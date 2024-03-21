@@ -1,0 +1,131 @@
+#compdef vserver
+
+_vserver () {
+
+  # local variables
+  local curcontext="$curcontext" state line expl ret=1
+  local cmd=$words[3]
+  
+  # dispatch
+  case "$cmd" in
+    apt-cache|apt-config|apt-get)
+      compset -n 3
+      _dispatch $cmd:t $cmd $cmd:t -default- && ret=0
+      ;;
+    exec)
+      _arguments -C \
+	'1: :->vsnames' \
+	'2: :->cmds' \
+	'3:command name: _command_names -e'  \
+	'*::arguments: _normal' && ret=0
+      ;;
+    stop|restart|condrestart|enter|running|status)
+      _arguments -C \
+	'1: :->vsnames' \
+	'2: :->cmds' \
+	'*::arguments: _message "no more arguments"' && ret=0
+      ;;
+    *)
+      _arguments -C \
+	'(-)--help[print help information]' \
+	'(- *)--version[print client version information]' \
+	'1: :->vsnames' \
+	'2: :->cmds' \
+	'*:: :->args' && ret=0
+      ;;
+  esac
+  
+  # cache initialization
+  if [[ -n "$state" ]]; then
+    if (( ! $+_cache_vserver_cfgdir )); then
+      typeset -g _cache_vserver_cfgdir_initialized
+      _vserver_cache_cfgdir
+    fi
+    if (( ! $+_cache_vserver_vsnames )); then
+      typeset -g _cache_vserver_vsnames_initialized
+      _vserver_cache_vsnames
+    fi
+    if (( ! $+_cache_vserver_cmds )); then
+      typeset -g _cache_vserver_cmds_initialized
+      _vserver_cache_cmds
+    fi
+  fi
+
+  case "$state" in
+    vsnames)
+      _wanted commands expl 'vserver name' _vserver_vsnames && ret=0
+      ;;
+    cmds)
+      _wanted commands expl 'vserver command' _vserver_commands && ret=0
+      ;;
+    args)
+      local args
+      if $+args; then
+	_arguments "$args[@]" && ret=0
+      else
+	ret=0
+      fi
+      ;;
+  esac
+
+  return ret
+}
+
+(( $+functions[_vserver_commands] )) ||
+_vserver_commands() {
+  compadd "$@" -k _cache_vserver_cmds || compadd "$@" ${(s.:.)_cache_vserver_cmds}
+}
+
+(( $+functions[_svk_list_patches] )) ||
+_vserver_vsnames() {
+  local expl
+  _wanted vserver expl 'vserver name' compadd -S '' $_cache_vserver_vsnames[@]
+}
+
+(( $+functions[_vserver_cache_cfgdir] )) ||
+_vserver_cache_cfgdir() {
+  if [[ "$_cache_vserver_cfgdir_initialized" != true ]]; then
+    typeset -ga _cache_vserver_cfgdir
+    _cache_vserver_cfgdir=`vserver-info info SYSINFO | grep '^ *cfg-Directory' | awk '{print $2}'`
+    _cache_vserver_cfgdir_initialized=true
+  fi
+}
+
+(( $+functions[_vserver_cache_vsnames] )) ||
+_vserver_cache_vsnames() {
+  if [[ "$_cache_vserver_vsnames_initialized" != true ]]; then
+    typeset -ga _cache_vserver_vsnames
+    _cache_vserver_vsnames=( $_cache_vserver_cfgdir/*(/:t) )
+    _cache_vserver_vsnames_initialized=true
+  fi
+}
+
+(( $+functions[_vserver_cache_cmds] )) ||
+_vserver_cache_cmds() {
+  if [[ "$_cache_vserver_cmds_initialized" != true ]]; then
+    typeset -ga _cache_vserver_cmds
+      _cache_vserver_cmds=(
+      start
+      stop
+      restart
+      condrestart
+      suexec
+      exec
+      enter
+      chkconfig
+      running
+      status
+      build
+      unify
+      pkg
+      apt-get
+      apt-config
+      apt-cache
+      rpm
+      pkgmgmt	 
+    )
+    _cache_vserver_cmds_initialized=true
+  fi
+}
+
+_vserver "$@"

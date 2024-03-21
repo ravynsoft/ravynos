@@ -1,0 +1,82 @@
+#compdef units
+
+local curcontext="$curcontext" state line expl
+integer ret=1
+typeset -A opt_args
+
+# Command line completion for Solaris units isn't very useful; this
+# may be standard old-fashioned behaviour.  However, it does let you
+# find out the units that are available before running units
+# interactively.
+
+# GNU options, but these aren't very intrusive for other versions.
+_arguments -C -s -S \
+  '(-c --check --check-verbose)'{-c,--check}'[check units are reducible]' \
+  '(-c --check)--check-verbose[verbosely check units are reducible]' \
+  '(-o --output-format)'{-o,--output-format}'[specify output format]:printf format' \
+  '(-f --file)'{-f,--file}'[specify file with units]:units file:_files' \
+  '(-m --minus)'{-m,--minus}'[- is subtraction]' \
+  '(-p --product)'{-p,--product}'[binary - is product]' \
+  '(-q --quiet --silent)'{-q,--quiet,--silent}'[suppress prompts and statistics]' \
+  '(-s --strict)'{-s,--strict}'[suppress conversion to reciprocal units]' \
+  '(-t --terse)'{-t,--terse}'[make conversion output briefer]' \
+  '(-v --verbose)'{-v,--verbose}'[make output more verbose]' \
+  '(- *)'{-h,--help}'[show help information and exit]' \
+  '(- *)'{-V,--version}'[show version information and exit]' \
+  '*:unit expression:->expr' && return 0
+
+[[ $state = expr ]] || return 1
+
+# It's very likely there's a quoted expression, since things like '2 seconds'
+# need to be a single argument.  Units themselves don't have special
+# characters, so it's safe to take just the characters around the
+# cursor.
+compset -P '*[^[:alnum:]]'
+compset -S '[^[:alnum:]]*'
+
+# Find the units data.
+local datfile
+local -a testfiles
+testfiles=(
+  /usr/share/units.dat		# GNU on Fedora
+  /usr/share/units/units.dat    # on gentoo
+  /usr/share/units/definitions.units # on Debian, units 2.00 and newer
+  /usr/local/share/units.dat    # GNU DIY install
+  /usr/share/lib/unittab	# Solaris
+  /usr/share/misc/units.lib     # OpenBSD [as of 2020]; also FreeBSD 9.1
+  /usr/share/misc/definitions.units     # FreeBSD 12.1
+  /usr/share/misc/units.dat     # on Debian, units 1.88 and older
+)
+
+datfile=${opt_args[-f]:-${opt_args[--file]}}
+if [[ -z $datfile ]]; then
+  for datfile in $testfiles; do
+    [[ -f $datfile ]] && break
+  done
+fi
+
+if [[ ! -f $datfile ]]; then
+  _message "Data file for units not found."
+  return
+fi
+
+local -a all units pfxs
+# Solaris uses / to start a comment, else #.
+# could cache this, but it's not that big a deal...
+all=($(awk '$1 !~ /^[\/#]/ { print $1 }' $datfile))
+# prefixes end in a -
+pfxs=(${${all:#^[[:alnum:]]##-}%%-})
+# units may include regular or piecewise linear functions
+units=(${${all:#^[[:alnum:]]##([\(\]]*|)}%%\(*})
+
+if (( ${#units} )); then
+  _alternative 'unitprefixes:unit prefix:compadd -S "" -a pfxs' \
+    'units:unit:compadd -a units' && ret=0
+  # attempt to skip a prefix
+  if (( ${#pfxs} )) && compset -P "(${(j.|.)pfxs})"; then
+    _wanted units expl unit compadd -a units && ret=0
+  fi
+  return ret
+else
+  _message "No unit definitions found."
+fi

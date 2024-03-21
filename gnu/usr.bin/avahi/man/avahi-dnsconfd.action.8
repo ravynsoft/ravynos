@@ -1,0 +1,30 @@
+.TH avahi-dnsconfd.action 8 User Manuals
+.SH NAME
+avahi-dnsconfd.action \- avahi-dnsconfd action script
+.SH SYNOPSIS
+\fB/etc/avahi/avahi-dnsconfd.action
+\f1
+.SH DESCRIPTION
+\fIavahi-dnsconfd.action\f1 is the action script that is called whenever a new unicast DNS server is found or removed by avahi-dnsconfd. The default script as shipped with avahi patches \fI/etc/resolv.conf\f1 to reflect the changed unicast DNS server configuration.
+.SH PARAMETERS
+.TP
+\fBargv[1]\f1 Contains the character "+" if the DNS server is new, "-" when it shall be removed from the DNS server list.
+.TP
+\fBargv[2]\f1 The IP address of the DNS server.
+.TP
+\fBargv[3]\f1 Numerical network interface number this DNS server was found on.
+.TP
+\fBargv[4]\f1 Numerical protocol number this DNS server was found on. (usually 2 for IPv4 and 10 for IPv6) 
+.SH ENVIRONMENT
+.TP
+\fBAVAHI_INTERFACE\f1 Contains the textual interface name the corresponds with argv[3]. (e.g. "eth0")
+.TP
+\fBAVAHI_INTERFACE_DNS_SERVERS\f1 Contains a list of all DNS servers that avahi-dnsconfd found on the interface \fB$AVAHI_INTERFACE\f1, separated by spaces.
+.TP
+\fBAVAHI_DNS_SERVERS\f1 Contains a list of all DNS server that avahi-dnsconfd found on all interfaces, separated by spaces.
+.SH AUTHORS
+The Avahi Developers <avahi (at) lists (dot) freedesktop (dot) org>; Avahi is available from \fBhttp://avahi.org/\f1
+.SH SEE ALSO
+\fBavahi-dnsconfd(8)\f1, \fBavahi-daemon(8)\f1
+.SH COMMENTS
+This man page was written using \fBxml2man(1)\f1 by Oliver Kurth.

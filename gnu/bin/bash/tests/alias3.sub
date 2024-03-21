@@ -1,0 +1,11 @@
+shopt -s expand_aliases
+alias foo='oneword'
+foo_word='foo'
+#
+# Fails silently to match 'foo':
+#
+case "$foo_word"
+in
+	foo) ;;
+	*) echo bad 1;;
+esac

@@ -1,0 +1,142 @@
+Changes in TIFF v4.5.0
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.5.0 (:tag:`v4.5.0`)
+    Previous Version        :doc:`v4.4.0 <v4.4.0>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<https://libtiff.gitlab.io/libtiff/>`_
+    Master HTTP Site #3     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+This document provides a summary of significant changes made to the
+software between the *previous* and *current* versions (see
+above). A fully-detailed change summary is provided by the :file:`ChangeLog` file
+included in the release package and by the Git commit history:
+
+Major changes
+-------------
+
+* Whole code base reformatting of .c/.h files using new .clang-format format
+* Documentation changed from static HTML and man pages to Restructured Text
+  (rst). HTML and man pages are now build artifacts.
+
+Software configuration changes
+------------------------------
+
+* SONAME version bumped to 6 due to changes in symbol versioning.
+* autoconf/cmake: detect (not yet released) libjpeg-turbo 2.2 to take into
+  its capability of handling both 8-bit JPEG and 12-bit JPEG in a single build.
+* autoconf/cmake: detect sphinx-build to build HTML and man pages
+* CMakeLists.txt: fix warning with -Wdev
+* CMake: correctly set default value of 'lzma' option when liblzma is detected
+  (:issue:`482`)
+* CMake: Moved linking of CMath::CMath into CMath_LIBRARY check.
+* Fix CMake build to be compatible with FetchContent.
+* cmake: Correct duplicate definition of _CRT_SECURE_NO_WARNINGS (:issue:`443`)
+* cmake: Fixes for Visual Studio 2022.
+* Adds Requires.private generation so that pkg-config can correctly find
+  the dependencies of libtiff.
+* Fix dependency on libm on Android
+* cmake: libtiffxx is static on win32
+* Fix build in tif_lzw.c
+* CMake: Add options for disabling tools, tests, contrib and docs.
+
+Library changes
+---------------
+
+New/improved functionalities:
+
+* Addition of an open option concept with the new functions
+  :c:func:`TIFFOpenExt`, :c:func:`TIFFOpenWExt`, :c:func:`TIFFFdOpenExt`,
+  :c:func:`TIFFClientOpenExt`, :c:func:`TIFFOpenOptionsAlloc`, 
+  :c:func:`TIFFOpenOptionsFree`
+* Leveraging above mentioned open option concept, addition of a new capability
+  to limit the size of a single dynamic memory allocation done
+  by the library with :c:func:`TIFFOpenOptionsSetMaxSingleMemAlloc`
+* Leveraging above mentioned open option concept, addition of a new capability
+  to specify per-TIFF handle re-entrant error and warning callbacks
+  with :c:func:`TIFFOpenOptionsSetErrorHandlerExtR` and
+  :c:func:`TIFFOpenOptionsSetWarningHandlerExtR`
+* Related to IFD-Loop detection refactoring, the number of IFDs that libtiff
+  can browse through has been extended from 65535 to 1048576. This value is
+  a build-time setting that can be configured with CMake's TIFF_MAX_DIR_COUNT
+  variable or autoconf's --with-max-dir-count option.
+
+API/ABI breaks:
+
+* tdir_t type updated to uint32_t. This type is now used for the return value of
+  :c:func:`TIFFCurrentDirectory` and :c:func:`TIFFNumberOfDirectories`, and
+  as the argument of :c:func:`TIFFSetDirectory` and :c:func:`TIFFUnlinkDirectory`
+
+Bug fixes:
+
+* TIFFWriteRawStrip(): restore capabilities to append data in the current strip
+  (:issue:`489`)
+* _TIFFReadEncodedTileAndAllocBuffer(): avoid excessive memory allocation on
+  broken files (:issue:`479`)
+* TIFFReadRGBATileExt(): fix (unsigned) integer overflow on strips/tiles > 2 GB
+  (oss-fuzz #53137)
+* Replace sprintf calls with snprintf to fix warnings on macOS 13 SDK
+* Added warning messages for FIELD_IGNORE tags for writing and for
+  TIFF_SETGET_UNDEFINED for reading added. (:issue:`438`)
+* tif_dirinfo.c: fix TIFFTAG_CLIPPATH tag declaration (:issue:`439`)
+* tif_dirinfo.c: fix TIFFTAG_COMPRESSION and _BITSPERSAMPLE tag declaration
+  (:issue:`364`)
+* Revised handling of TIFFTAG_INKNAMES and related TIFFTAG_NUMBEROFINKS value
+  (:issue:`149`, :issue:`150`, :issue:`152`, :issue:`168`, :issue:`250`,
+  :issue:`269`,:issue:`398`, CVE-2022-3599, :issue:`456`)
+* TIFFAdvanceDirectory(): fix unsigned-integer-overflow in mapped case
+  (oss-fuzz #52309)
+* Improved/fixes IFD-Loop Handling (:issue:`455`).
+* Update getimage to support large raster images.
+* Presetting of default tag values extended (e.g. PlanarConfig). (:issue:`449`)
+* Deal with RichTIFFIPTC tag written with LONG type (:issue:`225`)
+* TIFFSetValue(): Writing IFD8 & LONG8 tags to ClassicTIFF corrected
+  (:issue:`442`)
+* tif_jpeg.c: allow to pass -DEXPECTED_JPEG_LIB_VERSION=number to do optional
+  compile-time version check
+* TIFFReadFromUserBuffer(): fix clearing of TIFF_CODERSETUP flag that could
+  cause issues with reading JPEG compressed files
+* _TIFFCheckFieldIsValidForCodec(): return FALSE when passed a codec-specific
+  tag and the codec is not configured (:issue:`433`, :issue:`486`,
+  CVE-2022-34526)
+* Add basic 16 bit cielab support.
+* WEBP codec: avoid temporary buffer and memcpy() on whole tile/strip decoding
+* tif_predict.c: make horAcc8() work with icc (ICC) 2021.6.0 20220226 -O2
+
+Tools changes
+-------------
+
+New/improved functionality:
+
+* :program:`tiffinfo`: Updated to parse through SubIFDs and show their tags.
+
+Bug fixes:
+
+* :program:`tiffcrop`: add check if (bps != 1) in writeSingleSection()
+  (:issue:`169`)
+* :program:`tiffcrop`: Fix too many 'mode' options on command line
+  (:issue:`470` and :issue:`450`)
+* :program:`tiffcrop`: Fix memory allocation to require a larger buffer
+  (:issue:`271`, :issue:`381`, :issue:`386`, :issue:`388`, :issue:`389`,
+  :issue:`435`, CVE-2022-3570, CVE-2022-3598)
+* :program:`tiffcrop`: disable incompatibility of -Z, -X, -Y, -z options with
+  any PAGE_MODE_x option (:issue:`411`, CVE-2022-3627, :issue:`413`,
+  CVE-2022-3597, :issue:`426`, CVE-2022-3626)
+* :program:`tiffcrop`: -S option mutually exclusive (:issue:`349`,
+  :issue:`414`, :issue:`422`, :issue:`423`, :issue:`424`)
+* :program:`tiffcrop`: fix floating-point exception (:issue:`415`,
+  :issue:`427`, :issue:`428`, CVE-2022-2056, CVE-2022-2057, CVE-2022-2058)
+* :program:`tiff2pdf`: Don't try to seek into stdout (:issue:`441`)
+* :program:`tiffinfo`: update curdir from uint16_t to tdir_t for more than 64k
+  IFD handling.
+
+Contributed software changes
+----------------------------
+
+None

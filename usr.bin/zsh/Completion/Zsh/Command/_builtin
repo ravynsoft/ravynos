@@ -1,0 +1,11 @@
+#compdef builtin
+
+if (( $CURRENT > 2 )); then
+  shift words
+  (( CURRENT -- ))
+  _normal -p $service
+else
+  local expl
+
+  _wanted commands expl 'builtin command' compadd "$@" -k builtins
+fi

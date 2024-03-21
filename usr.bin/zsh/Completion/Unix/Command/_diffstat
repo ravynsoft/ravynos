@@ -1,0 +1,32 @@
+#compdef diffstat
+
+_arguments -s -S \
+  '-b[ignore lines indicating binary file differences]' \
+  '-c[prefix each line with hash mark]' \
+  '-C[use color highlighting of histogram]' \
+  '-d[print debug information]' \
+  '-D+[specify location of patched files for unchanged count]:location:_directories' \
+  '-e+[redirect standard error to specified file]:error file:_files' \
+  '-E[trim escape sequences, e.g. from colordiff]' \
+  '-f+[specify histogram format]:format:((0\:concise 1\:normal 2\:dots 3\:dots+normal 4\:value 5\:value+normal 6\:value+dots 7\:value+dots+normal))' \
+  '(- *)-h[display help information]' \
+  '-k[suppress merging of filenames in report]' \
+  '-K[resolve ambiguity of "only" filenames]' \
+  '-l[list only the filenames]' \
+  '-m[merge insert/delete data in chunks as modified-lines]' \
+  '-n+[specify minimum width for filenames]:width [auto]' \
+  '-N+[specify maximum width for filenames]:width [auto]' \
+  '-o+[redirect standard output to specified file]:output file:_files' \
+  '-p+[specify number of path separators to strip]:path components [common]' \
+  '-q[suppress "0 files changed" message for empty diffs]' \
+  '-r+[specify rounding for histogram]:rounding:((0\:none 1\:simple 2\:simple+adjustment))' \
+  '(-t)-s[show only the summary line]' \
+  '-S+[specify location of original files for unchanged count]:location:_directories' \
+  '-R[assume patch was created with old and new files swapped]' \
+  '(-T -s)-t[overrides histogram, generates csv output]' \
+  '(-t)-T[print amounts (like -t) in addition to histogram]' \
+  '-u[suppress sorting of filenames in report]' \
+  '-v[show progress]' \
+  '(- *)-V[print version number]' \
+  '-w+[specify maximumn width of output]:maximum width [80]' \
+  '*:patch file:_files'

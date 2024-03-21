@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+/*
+ * Client message to the server.  Messages on the wire are
+ * prefixed with a 32-bit size in network byte order.
+ */
+message ClientMessage {
+  oneof type {
+    AcceptMessage accept_msg = 1;
+    RejectMessage reject_msg = 2;
+    ExitMessage exit_msg = 3;
+    RestartMessage restart_msg = 4;
+    AlertMessage alert_msg = 5;
+    IoBuffer ttyin_buf = 6;
+    IoBuffer ttyout_buf = 7;
+    IoBuffer stdin_buf = 8;
+    IoBuffer stdout_buf = 9;
+    IoBuffer stderr_buf = 10;
+    ChangeWindowSize winsize_event = 11;
+    CommandSuspend suspend_event = 12;
+    ClientHello hello_msg = 13;
+  }
+}
+
+/* Equivalent of POSIX struct timespec */
+message TimeSpec {
+    int64 tv_sec = 1;		/* seconds */
+    int32 tv_nsec = 2;		/* nanoseconds */
+}
+
+/* I/O buffer with keystroke data */
+message IoBuffer {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  bytes data = 2;		/* keystroke data */
+}
+
+/*
+ * Key/value pairs, like Privilege Manager struct info.
+ * The value may be a number, a string, or a list of strings.
+ */
+message InfoMessage {
+  message StringList {
+    repeated string strings = 1;
+  }
+  message NumberList {
+    repeated int64 numbers = 1;
+  }
+  string key = 1;
+  oneof value {
+    int64 numval = 2;
+    string strval = 3;
+    StringList strlistval = 4;
+    NumberList numlistval = 5;
+  }
+}
+
+/*
+ * Event log data for command accepted by the policy.
+ */
+message AcceptMessage {
+  TimeSpec submit_time = 1;		/* when command was submitted */
+  repeated InfoMessage info_msgs = 2;	/* key,value event log data */
+  bool expect_iobufs = 3;		/* true if I/O logging enabled */
+}
+
+/*
+ * Event log data for command rejected by the policy.
+ */
+message RejectMessage {
+  TimeSpec submit_time = 1;		/* when command was submitted */
+  string reason = 2;			/* reason command was rejected */
+  repeated InfoMessage info_msgs = 3;	/* key,value event log data */
+}
+
+/* Message sent by client when command exits. */
+/* Might revisit runtime and use end_time instead */
+message ExitMessage {
+  TimeSpec run_time = 1;	/* total elapsed run time */
+  int32 exit_value = 2;		/* 0-255 */
+  bool dumped_core = 3;		/* true if command dumped core */
+  string signal = 4;		/* signal name if killed by signal */
+  string error = 5;		/* if killed due to other error */
+}
+
+/* Alert message, policy module-specific. */
+message AlertMessage {
+  TimeSpec alert_time = 1;		/* time alert message occurred */
+  string reason = 2;			/* policy alert error string */
+  repeated InfoMessage info_msgs = 3;	/* optional key,value event log data */
+}
+
+/* Used to restart an existing I/O log on the server. */
+message RestartMessage {
+  string log_id = 1;		/* ID of log being restarted */
+  TimeSpec resume_point = 2;	/* resume point (elapsed time) */
+}
+
+/* Window size change event. */
+message ChangeWindowSize {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  int32 rows = 2;		/* new number of rows */
+  int32 cols = 3;		/* new number of columns */
+}
+
+/* Command suspend/resume event. */
+message CommandSuspend {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  string signal = 2;		/* signal that caused suspend/resume */
+}
+
+/* Hello message from client when connecting to server. */
+message ClientHello {
+  string client_id = 1;		/* free-form client description */
+}
+
+/*
+ * Server messages to the client.  Messages on the wire are
+ * prefixed with a 32-bit size in network byte order.
+ */
+message ServerMessage {
+  oneof type {
+    ServerHello hello = 1;	/* server hello message */
+    TimeSpec commit_point = 2;	/* cumulative time of records stored */
+    string log_id = 3;		/* ID of server-side I/O log */
+    string error = 4;		/* error message from server */
+    string abort = 5;		/* abort message, kill command */
+  }
+}
+
+/* Hello message from server when client connects. */
+message ServerHello {
+  string server_id = 1;		/* free-form server description */
+  string redirect = 2;		/* optional redirect if busy */
+  repeated string servers = 3;	/* optional list of known servers */
+  bool subcommands = 4;		/* flag: server supports sub-commands */
+}

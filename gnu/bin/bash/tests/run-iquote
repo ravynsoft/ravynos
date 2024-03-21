@@ -1,0 +1,2 @@
+${THIS_SH} ./iquote.tests >${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} iquote.right && rm -f ${BASH_TSTOUT}

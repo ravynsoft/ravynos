@@ -1,0 +1,26 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+echo "warning: the text of a system error message may vary between systems and" >&2
+echo "warning: produce diff output." >&2
+echo "warning: UNIX versions number signals differently." >&2
+echo "warning: If output differing only in line numbers is produced, please" >&2
+echo "warning: do not consider this a test failure." >&2
+echo "warning: if the text of the error messages concerning \`notthere' or" >&2
+echo "warning: \`/tmp/bash-notthere' not being found or \`/' being a directory" >&2
+echo "warning: produce diff output, please do not consider this a test failure" >&2
+echo "warning: if diff output differing only in the location of the bash" >&2
+echo "warning: binary appears, please do not consider this a test failure" >&2
+${THIS_SH} ./execscript > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} exec.right && rm -f ${BASH_TSTOUT}

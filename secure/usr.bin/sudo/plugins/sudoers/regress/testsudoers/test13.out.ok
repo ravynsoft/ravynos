@@ -1,0 +1,22 @@
+Testing alias definitions using reserved words
+
+sudoers:1:12: syntax error, reserved word ALL used as an alias name
+Cmnd_Alias ALL=ALL
+           ^~~
+sudoers:2:12: syntax error, reserved word CHROOT used as an alias name
+Cmnd_Alias CHROOT=foo
+           ^~~~~~
+sudoers:3:12: syntax error, reserved word CMND_TIMEOUT used as an alias name
+User_Alias TIMEOUT=foo
+           ^~~~~~~
+sudoers:4:13: syntax error, reserved word CWD used as an alias name
+Runas_Alias CWD=bar
+            ^~~
+sudoers:5:12: syntax error, reserved word NOTBEFORE used as an alias name
+Host_Alias NOTBEFORE=baz
+           ^~~~~~~~~
+sudoers:6:12: syntax error, reserved word NOTAFTER used as an alias name
+Host_Alias NOTAFTER=biff
+           ^~~~~~~~
+
+root ALL = ALL

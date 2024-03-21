@@ -13,7 +13,7 @@ setkey_body()
 	geli_test_setup
 
 	sectors=100
-	md=$(attach_md -t malloc -s `expr $sectors + 1`)
+	attach_md md -t malloc -s `expr $sectors + 1`
 
 	atf_check dd if=/dev/random of=rnd bs=512 count=${sectors} status=none
 	hash1=`dd if=rnd bs=512 count=${sectors} status=none | md5`
@@ -103,14 +103,14 @@ setkey_passphrase_body()
 	geli_test_setup
 
 	sectors=100
-	md=$(attach_md -t malloc -s `expr $sectors + 1`)
+	attach_md md -t malloc -s `expr $sectors + 1`
 
 	atf_check dd if=/dev/random of=rnd bs=512 count=${sectors} status=none
 	hash1=`dd if=rnd bs=512 count=${sectors} status=none | md5`
 	atf_check_equal 0 $?
-	atf_check dd if=/dev/random of=pass1 bs=512 count=32 status=none
-	atf_check dd if=/dev/random of=pass2 bs=512 count=32 status=none
-	atf_check dd if=/dev/random of=pass3 bs=512 count=32 status=none
+	atf_check dd if=/dev/random of=pass1 bs=512 count=1 status=none
+	atf_check dd if=/dev/random of=pass2 bs=512 count=1 status=none
+	atf_check dd if=/dev/random of=pass3 bs=512 count=1 status=none
 
 	atf_check geli init -B none -J pass1 ${md}
 	atf_check geli attach -j pass1 ${md}
@@ -161,7 +161,7 @@ setkey_readonly_body()
 	geli_test_setup
 
 	sectors=100
-	md=$(attach_md -t malloc -s `expr $sectors + 1`)
+	attach_md md -t malloc -s `expr $sectors + 1`
 	atf_check dd if=/dev/random of=keyfile bs=512 count=16 status=none
 
 	atf_check geli init -B none -P -K keyfile ${md}
@@ -186,7 +186,7 @@ nokey_body()
 	geli_test_setup
 
 	sectors=100
-	md=$(attach_md -t malloc -s `expr $sectors + 1`)
+	attach_md md -t malloc -s `expr $sectors + 1`
 	atf_check dd if=/dev/random of=keyfile1 bs=512 count=16 status=none
 	atf_check dd if=/dev/random of=keyfile2 bs=512 count=16 status=none
 

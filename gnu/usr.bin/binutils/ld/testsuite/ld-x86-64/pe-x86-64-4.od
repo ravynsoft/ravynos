@@ -1,0 +1,62 @@
+
+.*: +file format .*
+
+SYMBOL TABLE:
+0+400000 g       .text\$mn	0000000000000000 __executable_start
+0+403038 g       .bss	0000000000000000 c
+0+401000 g       .text\$mn	0000000000000000 begin
+0+403038 g       .bss	0000000000000000 __bss_start
+0+403018 g       .data	0000000000000000 Struct
+0+401020 g       .text\$mn	0000000000000000 opti_O1
+0+403038 g       .data	0000000000000000 _edata
+0+403040 g       .bss	0000000000000000 _end
+0+401060 g       .text\$mn	0000000000000000 opti_Od
+
+
+
+Disassembly of section .text\$mn:
+
+0+401000 <begin>:
+ +[a-f0-9]+:	48 83 ec 28          	sub    \$0x28,%rsp
+ +[a-f0-9]+:	48 c7 05 29 20 00 00 01 00 00 00 	movq   \$0x1,0x2029\(%rip\)        # 403038 <__bss_start>
+ +[a-f0-9]+:	e8 4c 00 00 00       	call   401060 <opti_Od>
+ +[a-f0-9]+:	e8 07 00 00 00       	call   401020 <opti_O1>
+ +[a-f0-9]+:	48 83 c4 28          	add    \$0x28,%rsp
+ +[a-f0-9]+:	c3                   	ret
+ +[a-f0-9]+:	66 90                	xchg   %ax,%ax
+
+0+401020 <opti_O1>:
+ +[a-f0-9]+:	b8 33 22 00 00       	mov    \$0x2233,%eax
+ +[a-f0-9]+:	c6 05 ec 1f 00 00 12 	movb   \$0x12,0x1fec\(%rip\)        # 403018 <Struct>
+ +[a-f0-9]+:	66 89 05 e7 1f 00 00 	mov    %ax,0x1fe7\(%rip\)        # 40301a <Struct\+0x2>
+ +[a-f0-9]+:	48 b8 99 99 99 99 88 88 88 88 	movabs \$0x8888888899999999,%rax
+ +[a-f0-9]+:	48 89 05 dc 1f 00 00 	mov    %rax,0x1fdc\(%rip\)        # 403020 <Struct\+0x8>
+ +[a-f0-9]+:	83 c8 ff             	or     \$0xffffffff,%eax
+ +[a-f0-9]+:	c7 05 cb 1f 00 00 55 55 44 44 	movl   \$0x44445555,0x1fcb\(%rip\)        # 40301c <Struct\+0x4>
+ +[a-f0-9]+:	c3                   	ret
+ +[a-f0-9]+:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0\(%rax,%rax,1\)
+ +[a-f0-9]+:	0f 1f 40 00          	nopl   0x0\(%rax\)
+
+0+401060 <opti_Od>:
+ +[a-f0-9]+:	48 89 4c 24 08       	mov    %rcx,0x8\(%rsp\)
+ +[a-f0-9]+:	b8 10 00 00 00       	mov    \$0x10,%eax
+ +[a-f0-9]+:	48 6b c0 00          	imul   \$0x0,%rax,%rax
+ +[a-f0-9]+:	48 8d 0d a3 1f 00 00 	lea    0x1fa3\(%rip\),%rcx        # 403018 <Struct>
+ +[a-f0-9]+:	c6 04 01 11          	movb   \$0x11,\(%rcx,%rax,1\)
+ +[a-f0-9]+:	b8 10 00 00 00       	mov    \$0x10,%eax
+ +[a-f0-9]+:	48 6b c0 00          	imul   \$0x0,%rax,%rax
+ +[a-f0-9]+:	48 8d 0d 8f 1f 00 00 	lea    0x1f8f\(%rip\),%rcx        # 403018 <Struct>
+ +[a-f0-9]+:	ba 22 22 00 00       	mov    \$0x2222,%edx
+ +[a-f0-9]+:	66 89 54 01 02       	mov    %dx,0x2\(%rcx,%rax,1\)
+ +[a-f0-9]+:	b8 10 00 00 00       	mov    \$0x10,%eax
+ +[a-f0-9]+:	48 6b c0 00          	imul   \$0x0,%rax,%rax
+ +[a-f0-9]+:	48 8d 0d 75 1f 00 00 	lea    0x1f75\(%rip\),%rcx        # 403018 <Struct>
+ +[a-f0-9]+:	c7 44 01 04 44 44 44 44 	movl   \$0x44444444,0x4\(%rcx,%rax,1\)
+ +[a-f0-9]+:	b8 10 00 00 00       	mov    \$0x10,%eax
+ +[a-f0-9]+:	48 6b c0 00          	imul   \$0x0,%rax,%rax
+ +[a-f0-9]+:	48 8d 0d 5d 1f 00 00 	lea    0x1f5d\(%rip\),%rcx        # 403018 <Struct>
+ +[a-f0-9]+:	48 ba 88 88 88 88 88 88 88 88 	movabs \$0x8888888888888888,%rdx
+ +[a-f0-9]+:	48 89 54 01 08       	mov    %rdx,0x8\(%rcx,%rax,1\)
+ +[a-f0-9]+:	b8 ff ff ff ff       	mov    \$0xffffffff,%eax
+ +[a-f0-9]+:	c3                   	ret
+#pass

@@ -1,0 +1,282 @@
+#compdef gpg gpgv gpg-zip gpg2=gpg
+
+local curcontext="$curcontext" state line expl ret=1
+local -a args allopts dups extra
+typeset -A opt_args
+
+if [[ $service = gpg-zip ]]; then
+  args=(
+    '--gpg[command to use instead of gpg]:command:_command'
+    '--gpg-args[gpg arguments]:gpg arguments:'
+    '--tar[command to use instead of tar]:command:_command'
+    '--tar-args[tar arguments]:tar arguments:'
+    '--list-archive[list archive contents]'
+  )
+else
+  allopts=( $(_call_program options $words[1] --dump-options) )
+  args=(
+    '(-q --quiet)*'{-v,--verbose}'[increase amount of output]'
+    '(-q --quiet -v --verbose)'{-q,--quiet}'[reduce amount of output]'
+    '--keyring=[add specified file to list of keyrings]:file:_files'
+    '--'{status,logger}'-fd:file descriptor:_file_descriptors'
+    '--homedir:directory:_directories'
+  )
+fi
+
+[[ $service = gpgv ]] || args+=(
+  '(-e --encrypt)'{-e,--encrypt}'[encrypt data. this option may be combined  with --sign]'
+  {-d,--decrypt}'[decrypt file or stdin]'
+  '(-c --symmetric)'{-c,--symmetric}'[encrypt with symmetric cipher only]'
+  '(-s --sign)'{-s,--sign}'[make a signature]'
+  '*'{-r+,--recipient}'[specify user to encrypt for]:recipient:->public-keys'
+  '(-u --local-user)'{-u+,--local-user}'[use name as the user ID to sign]:user attachment:_users'
+  '(-o --output)'{-o+,--output}'[write output to file]:output file:_files'
+  '(-h --help)'{-h,--help}'[display usage information]'
+  '--version[print info on program version and supported algorithms]'
+)
+
+[[ $service = gpg ]] && args+=(
+  '--decrypt-files[decrypt multiple files]'
+  '(-b --detach-sign)'{-b,--detach-sign}'[make a detached signature]'
+  --clear{,-}sign'[make a clear text signature]'
+  '--store[store only]'
+  '--verify[verify a signature]'
+  '--verify-files[verify a list of files]'
+  '(-f --encrypt-files)'{-f,--encrypt-files}'[encrypt files]'
+  '(-k --list-keys)'{-k,--list-keys}'[list all keys]'
+  '--list-public-keys[list all public keys]'
+  '(-K --list-secret-keys)'{-K,--list-secret-keys}'[list all secret keys]'
+  --list-sig{,nature}s'[lists keys and signatures]:key attachment:->public-keys'
+  '--list-options[modify what the various --list-* commands show]: :->option-list'
+  --check-sig{,nature}s'[list key, signatures and check them]:key attachment:->public-keys'
+  '--fingerprint[list all keys with their fingerprints]:key attachment:->public-keys'
+  '--list-packets[list only the sequence of packets]'
+  '--gen-key[generate a new pair key]'
+  '--edit-key[interactively edit a key]:key attachment:->public-keys'
+  '--sign-key[sign a key]:key attachment:->public-keys'
+  '--lsign-key[sign a key but mark as non-exportable]:key attachment:->public-keys'
+  '--delete-keys[remove key from public keyring]:key attachment:->public-keys'
+  '--delete-secret-keys[remove key from public & private keyring]:key attachment:->secret-keys'
+  '--delete-secret-and-public-keys:key attachment:->secret-keys'
+  '--gen-revoke[generate a revocation certificate]'
+  '--desig-revoke[generate a designated revocation certificate]'
+  '--passwd[change a passphrase]'
+  '--export[export all keys from all keyrings]'
+  '--send-keys[send keys to a keyserver]:key attachment:->public-keyids'
+  '--export-secret-keys:key attachment:->secret-keys'
+  '--export-secret-subkeys:key attachment:->secret-keys'
+  '--import[import a gpg key from a file]:attachment (file):_files'
+  '--fast-import[import a file without adding to trustdb]:attachment (file):_files'
+  '--fetch-keys[fetch key at URIs]:uri:'
+  --rec{eive,v}-keys'[receive a list of keys from a keyserver]:key attachment:->public-keyids'
+  '--refresh-keys[update all keys from a keyserver]'
+  '--search-keys[search for keys on a key server]'
+  '--update-trustdb[update the trust database]'
+  '--check-trustdb[unattended trust database update]'
+  '--fix-trustdb[fix a corrupted trust database]'
+  '--export-ownertrust[list the assigned ownertrust values in ASCII format]:file:_files'
+  '--import-ownertrust[update the trustdb with a file]:file:_files'
+  '--dearmor[de-Armor a file or stdin]'
+  '--enarmor[en-Armor a file or stdin]'
+  '--print-md[print message digests]:algorithm:->ciphers::file:_files'
+  '--print-mds[print message digests]::file:_files'
+  '--tofu-policy:policy:(good unknown bad ask auto):*:keys:->public-keys'
+  '--tofu-default-policy:policy:(good unknown bad ask auto)'
+  '--quick-generate-key:user-id: :algorithm:(default future-default rsa dsa elg ed25519 cv25519): : _values -s , usage - default sign auth encr::expiration'
+  '--quick-add-key:fingerprint: :algorithm:(default future-default rsa dsa elg ed25519 cv25519): : _values -s , usage - default sign auth encr::expiration'
+  '--gen-random:quality level:(0 1 2):count (bytes)' '--gen-prime'
+  '--warranty[print warranty info]'
+  '(-a --armor)'{-a,--armor}'[create ASCII armored output]'
+  '--default-key[specify default user ID for signatures]:key:->secret-keys'
+  '--default-recipient[specify default recipient]:recipient:->public-keys'
+  '--default-recipient-self[use default key as default recipient]'
+  '--no-default-recipient[reset default recipient]'
+  '*--encrypt-to[specify recipient]:key:->public-keys'
+  '(--encrypt-to)--no-encrypt-to[disable the use of all --encrypt-to keys]'
+  '-z[specify compression level]:compression level:((0\:no\ compression 1\:minimum 2 3 4 5 6\:default 7 8 9\:maximum))'
+  '(-t --textmode)'{-t,--textmode}'[use canonical text mode]'
+  '(-n --dry-run)'{-n,--dry-run}"[don't make any changes]"
+  '(-i --interactive --batch)'{-i,--interactive}'[prompt before overwriting files]'
+  '(-i --interactive --no-batch)--batch[use batch mode]'
+  '--no-tty[never output to tty]'
+  '(--batch)--no-batch[disable batch mode]'
+  '(--no)--yes[assume "yes" on most questions]'
+  '(--yes)--no[assume "no" on most questions]'
+  '--default-cert-check-level:check level:((0\:no\ claim 1\:no\ verification 2\:casual\ verification 3\:extensive\ verification))'
+  '--trusted-key[assume that the specified key is trustworthy]:long key id'
+  '--always-trust[skip key validation]'
+  '--keyserver[specify key server to use]:key server:_hosts'
+  '--keyserver-options[specify keyserver options]:options'
+  '--import-options[specify options for importing keys]:options'
+  '--export-options[specify options for exporting keys]:options'
+  '--photo-viewer:command:_command_names -e'
+  '--exec-path:path:_dir_list'
+  '--show-keyring[display keyring name when listing keys]'
+  '--secret-keyring[add specified file to list of secret keyrings]:file:_files'
+  '--charset:character set:(iso-8859-1 iso-8859-2 koi8-r utf-8)'
+  '--utf8-strings' '--no-utf8-strings[arguments are not in UTF8]'
+  '(--no-options)--options[specify file to read options from]:options file:_files'
+  "(--options)--no-options[don't read options file]"
+  '--'{attribute,passphrase,command}'-fd:file descriptor:_file_descriptors'
+  '--sk-comments[include secret key comments when exporting keys]'
+  '(--emit-version)--no-emit-version[omit version string in clear text signatures]'
+  '(--no-emit-version)--emit-version[force writing of version string in clear text signatures]'
+  '(-N --notation-data)'{-N,--notation-data}'[put parameter in signature]:name=value'
+  '(--no-show-notation)--show-notation[show key signature notations]'
+  "(--show-notation)--no-show-notation[don't show key signature notations]"
+  '--set-policy-url:policy URL'
+  '--set-filename[specify file which is stored in messages]:file:_files'
+  '--completes-needed:number' '--marginals-needed:number' '--max-cert-depth:number'
+  '--'{{,disable-,s2k-}cipher,{,s2k-,cert-}digest,disable-pubkey}'-algo:cipher:->ciphers'
+  '--s2k-mode:value'
+  '--compress-algo:compression algorithm:((0\:disable\ compression 1\:zlib 2\:rfc1950))'
+  '--personal-'{cipher,digest,compress}'-preferences:string'
+  --{card-edit,edit-card}'[present smartcard menu]' '--card-status[show smartcard content]'
+  '--change-pin[present menu to change smartcard pin]'
+  '--list-config[display internal configuration parameters]'
+  '--hidden-recipient[hidden recipient]:recipient:->public-keys'
+  '--default-preference-list:string'
+  '--fetch-keys:URIs'
+  '--hidden-encrypt-to:recipient:->public-keys'
+  '--compress-level:integer'
+  '--bzip2-compress-level:integer'
+  '--default-cert-level:integer'
+  '--max-output[maximum output generated when processing file]:bytes:'
+  '--gpg-agent-info[override GPG_AGENT_INFO]:'
+  '--primary-keyring:file:_files'
+  '--verify-options: :->verify-options'
+  '--debug:flags:' '--status-file:file:_files'
+  '--attribute-file:file:_files' '--load-extension:file:_files'
+  '--s2k-count:integer'
+  '--sig-notation:name=value:' '--cert-notation:name=value:'
+  '--passphrase-file:file:_files' '--passphrase-repeat:integer:'
+  '--command-file:file:_files' '--trustdb-name:file:_files'
+  '--trust-model:trust model:(pgp classic tofu tofu+pgp direct always auto)'
+  '--sig-policy-url:string:' '--cert-policy-url:string:'
+  '--sig-keyserver-url:string:' '--comment[comment]:comment:'
+  '--no-comments[disable comments]'
+  '--logger-file[write log to file]:file:_files'
+  '--rebuild-keydb-caches[create signature caches in keyring]'
+  '--default-keyserver-url:name:'
+  '--display-charset[set native charset]:charset:((iso-8859-1 iso-8859-2 iso-8859-15 koi8-r utf-8))'
+  '--ungroup[remove group]:group name:'
+  '--no-groups[remove all entries from --group list]'
+  '--enable-progress-filter[enable progress status output]'
+  '--multifile[process multiple files]'
+  '--keyid-format[key id format]:key format:((short 0xshort long 0xlong))'
+  '--exit-on-status-write-error[exit immediately on error write]'
+  '--limit-card-insert-tries:integer'
+  '--reader-port[card reader port]:port'
+  '--ctapi-driver[file to use to access smartcard reader]:file:_files'
+  '--pcsc-driver[file to use to access smartcard reader]:file:_files'
+  '--auto-key-locate:parameters'
+  '--dump-options[show all options]'
+)
+
+extra=( ${${${args#\([^\)]#\)}#\*}%%[=:\[]*} )
+extra=( ${allopts:|extra} )
+_arguments -C -s -S -A "-*" $args $extra '*:args:->args' && ret=0
+
+if [[ $state = args ]]; then
+  if (( ${+opt_args[--export]} || ${+opt_args[-k]} || ${+opt_args[--list-keys]} || ${+opt_args[--list-public-keys]} )); then
+    state=public-keys
+  elif (( ${+opt_args[--list-secret-keys]} )); then
+    state=secret-keys
+  else
+    _files && return
+  fi
+fi
+
+# We need to keep some arguments to get a consistent list of keys
+# etc.
+local -a needed
+integer krind=${words[(I)--keyring(|=*)]}
+needed=(${words[(r)--no-default-keyring]})
+if (( krind )); then
+  # We have a --keyring option.  We can't be completing its
+  # argument because that was handled above, so it must be complete.
+  if [[ $words[krind] = --keyring ]]; then
+    if [[ -n $words[krind+1] ]]; then
+      needed+=(--keyring=$words[krind+1])
+    fi
+  else
+    needed+=($words[krind])
+  fi
+fi
+
+case "$state" in
+  public-keys)
+    local public_keys_lines=(${(f)"$(_call_program public-keys ${(q)words[1]} ${(q)needed} --list-public-keys --list-options no-show-photos --with-colons)"})
+    local -a uids emails
+    local i j parts current_uid
+    for (( i = 1; i < ${#public_keys_lines[@]}; ++i )); do
+      parts=("${(@s.:.)public_keys_lines[$i]}")
+      if [[ ${parts[1]} == "fpr" ]]; then
+        current_uid="${parts[10]}"
+        i=$((i + 1))
+        parts=("${(@s.:.)public_keys_lines[$i]}")
+        while [[ ${parts[1]} == "uid" ]]; do
+          uids+=("${current_uid}")
+          emails+=("${parts[10]}")
+          i=$((i + 1))
+          parts=("${(@s.:.)public_keys_lines[$i]}")
+        done
+      fi
+    done
+    _describe -t public-keys 'public key' emails uids
+  ;;
+  secret-keys)
+    local secret_keys_lines=(${(f)"$(_call_program secret-keys ${(q)words[1]} ${(q)needed} --list-secret-keys --list-options no-show-photos --with-colons)"})
+    local -a uids emails
+    local i j parts current_uid
+    for (( i = 1; i < ${#secret_keys_lines[@]}; ++i )); do
+      parts=("${(@s.:.)secret_keys_lines[$i]}")
+      if [[ ${parts[1]} == "fpr" ]]; then
+        current_uid="${parts[10]}"
+        i=$((i + 1))
+        parts=("${(@s.:.)secret_keys_lines[$i]}")
+        while [[ ${parts[1]} == "uid" ]]; do
+          uids+=("${current_uid}")
+          emails+=("${parts[10]}")
+          i=$((i + 1))
+          parts=("${(@s.:.)secret_keys_lines[$i]}")
+        done
+      fi
+    done
+    _describe -t secret-keys 'secret key' emails uids
+  ;;
+  ciphers)
+    _wanted ciphers expl cipher compadd \
+        ${${(s.,.)${(M)${(f)${"$(_call_program ciphers ${(q)words[1]} ${(q)needed} --version)"}//,$'\n' #/, }:#Cipher*}#*:}# } && return
+  ;;
+  (public-keyids)
+    local public_keys_lines=(${(f)"$(_call_program public-keyids ${(q)words[1]} ${(q)needed} --list-public-keys --list-options no-show-photos --with-colons)"})
+    local -a uids emails
+    local i j parts current_uid
+    for (( i = 1; i < ${#public_keys_lines[@]}; ++i )); do
+      parts=("${(@s.:.)public_keys_lines[$i]}")
+      if [[ ${parts[1]} == "fpr" ]]; then
+        current_uid="${parts[10]}"
+        i=$((i + 1))
+        parts=("${(@s.:.)public_keys_lines[$i]}")
+        while [[ ${parts[1]} == "uid" ]]; do
+          uids+=("${current_uid}")
+          emails+=("${parts[10]}")
+          i=$((i + 1))
+          parts=("${(@s.:.)public_keys_lines[$i]}")
+        done
+      fi
+    done
+    _describe -t public-keyids 'public key' emails uids
+  ;;
+  (option-list)
+    _sequence _wanted options expl option \
+        compadd - {no-,}show-{photos,usage,policy-urls,{std,user}-notations,keyserver-urls,uid-validity,unusable-{uids,subkeys},keyring,sig-{expire,subpackets}} && return
+  ;;
+  (verify-options)
+    _sequence _wanted options expl option \
+        compadd - {no-,}show-{photos,policy-urls,{std,user}-notations,keyserver-urls,uid-validity,unusable-uids,primary-uid-only} {no-,}pka-{lookups,trust-increase} && return
+  ;;
+esac
+
+return ret

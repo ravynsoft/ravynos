@@ -493,7 +493,7 @@ lapic_init(vm_paddr_t addr)
 		    (cpu_feature2 & CPUID2_TSCDLT) != 0 &&
 		    tsc_is_invariant && tsc_freq != 0) {
 			lapic_timer_tsc_deadline = 1;
-			TUNABLE_INT_FETCH("hw.lapic_tsc_deadline",
+			TUNABLE_INT_FETCH("hw.apic.timer_tsc_deadline",
 			    &lapic_timer_tsc_deadline);
 		}
 
@@ -526,7 +526,7 @@ lapic_init(vm_paddr_t addr)
 		       "KVM -- disabling lapic eoi suppression\n");
 			lapic_eoi_suppression = 0;
 		}
-		TUNABLE_INT_FETCH("hw.lapic_eoi_suppression",
+		TUNABLE_INT_FETCH("hw.apic.eoi_suppression",
 		    &lapic_eoi_suppression);
 	}
 
@@ -876,22 +876,8 @@ lapic_enable_pmc(void)
 
 	lvts[APIC_LVT_PMC].lvt_masked = 0;
 
-#ifdef EARLY_AP_STARTUP
 	MPASS(mp_ncpus == 1 || smp_started);
 	smp_rendezvous(NULL, lapic_update_pmc, NULL, NULL);
-#else
-#ifdef SMP
-	/*
-	 * If hwpmc was loaded at boot time then the APs may not be
-	 * started yet.  In that case, don't forward the request to
-	 * them as they will program the lvt when they start.
-	 */
-	if (smp_started)
-		smp_rendezvous(NULL, lapic_update_pmc, NULL, NULL);
-	else
-#endif
-		lapic_update_pmc(NULL);
-#endif
 	return (1);
 #else
 	return (0);
@@ -1582,7 +1568,7 @@ apic_alloc_vectors(u_int apic_id, u_int *irqs, u_int count, u_int align)
 
 		/* Start a new run if run == 0 and vector is aligned. */
 		if (run == 0) {
-			if ((vector & (align - 1)) != 0)
+			if (((vector + APIC_IO_INTS) & (align - 1)) != 0)
 				continue;
 			first = vector;
 		}

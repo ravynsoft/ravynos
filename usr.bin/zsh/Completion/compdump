@@ -1,0 +1,141 @@
+# This is a function to dump the definitions for new-style
+# completion defined by 'compinit' in the same directory.  The output
+# should be directed into the "compinit.dump" in the same directory as
+# compinit. If you rename init, just stick .dump onto the end of whatever
+# you have called it and put it in the same directory.  This is handled
+# automatically if you invoke compinit with the option -d.
+#
+# You will need to update the dump every time you add a new completion.
+# To do this, simply remove the .dump file, start a new shell, and
+# create the .dump file as before.  Again, compinit -d handles this
+# automatically.
+
+# Print the number of files used for completion. This is used in compinit
+# to see if auto-dump should re-dump the dump-file.
+
+emulate -L zsh
+setopt extendedglob noshglob
+
+typeset _d_file _d_f _d_fd _d_bks _d_line _d_als _d_files _d_name _d_tmp
+
+_d_file=${_comp_dumpfile-${0:h}/compinit.dump}.$HOST.$$
+[[ $_d_file = //* ]] && _d_file=${_d_file[2,-1]}
+
+[[ -w ${_d_file:h} ]] || return 1
+
+_d_files=( ${^~fpath:/.}/^([^_]*|*~|*.zwc)(N) )
+
+if [[ -n "$_comp_secure" ]]; then
+  _d_wdirs=( ${^fpath}(Nf:g+w:,f:o+w:,^u0u${EUID}) )
+  _d_wfiles=( ${^~fpath:/.}/^([^_]*|*~|*.zwc)(N^u0u${EUID}) )
+
+  (( $#_d_wfiles )) && _d_files=( "${(@)_d_files:#(${(j:|:)_d_wfiles})}"  )
+  (( $#_d_wdirs ))  && _d_files=( "${(@)_d_files:#(${(j:|:)_d_wdirs})/*}" )
+fi
+
+exec {_d_fd}>$_d_file
+print "#files: $#_d_files\tversion: $ZSH_VERSION" >& $_d_fd
+
+# Dump the arrays _comps, _services and _patcomps.  The quoting
+# hieroglyphics ensure that a single quote inside a variable is itself
+# correctly quoted.
+
+print "\n_comps=(" >& $_d_fd
+for _d_f in ${(ok)_comps}; do
+  print -r - "${(qq)_d_f}" "${(qq)_comps[$_d_f]}"
+done >& $_d_fd
+print ")" >& $_d_fd
+
+print "\n_services=(" >& $_d_fd
+for _d_f in ${(ok)_services}; do
+  print -r - "${(qq)_d_f}" "${(qq)_services[$_d_f]}"
+done >& $_d_fd
+print ")" >& $_d_fd
+
+print "\n_patcomps=(" >& $_d_fd
+for _d_f in ${(ok)_patcomps}; do
+  print -r - "${(qq)_d_f}" "${(qq)_patcomps[$_d_f]}"
+done >& $_d_fd
+print ")" >& $_d_fd
+
+_d_tmp="_postpatcomps"
+print "\n_postpatcomps=(" >& $_d_fd
+for _d_f in ${(ok)_postpatcomps}; do
+  print -r - "${(qq)_d_f}" "${(qq)_postpatcomps[$_d_f]}"
+done >& $_d_fd
+print ")" >& $_d_fd
+
+print "\n_compautos=(" >& $_d_fd
+for _d_f in "${(ok@)_compautos}"; do
+  print -r - "${(qq)_d_f}" "${(qq)_compautos[$_d_f]}"
+done >& $_d_fd
+print ")" >& $_d_fd
+
+print >& $_d_fd
+
+# Now dump the key bindings. We dump all bindings for zle widgets
+# whose names start with a underscore.
+# We need both the zle -C's and the bindkey's to recreate.
+# We can ignore any zle -C which rebinds a standard widget (second
+# argument to zle does not begin with a `_').
+
+_d_bks=()
+typeset _d_complist=
+zle -lL |
+  while read -rA _d_line; do
+    if [[ ${_d_line[3]} = _* && ${_d_line[5]} = _* ]]; then
+      if [[ -z "$_d_complist" && ${_d_line[4]} = .menu-select ]]; then
+        print 'zmodload -i zsh/complist'
+	_d_complist=yes
+      fi
+      print -r - ${_d_line}
+      _d_bks+=(${_d_line[3]})
+    fi
+  done >& $_d_fd
+bindkey |
+  while read -rA _d_line; do
+    if [[ ${_d_line[2]} = (${(j.|.)~_d_bks}) ]]; then
+      print -r "bindkey '${_d_line[1][2,-2]}' ${_d_line[2]}"
+    fi
+  done >& $_d_fd
+
+print >& $_d_fd
+
+
+# Autoloads: look for all defined functions beginning with `_' (that also
+# exists in fpath: see workers/38547).
+
+_d_als=($^fpath/(${(o~j.|.)$(typeset +fm '_*')})(N:t))
+
+# print them out:  about five to a line looks neat
+
+integer _i=5
+print -n autoload -Uz >& $_d_fd
+while (( $#_d_als )); do
+  if (( ! $+_compautos[$_d_als[1]] )); then
+    print -n " $_d_als[1]"
+    if (( ! --_i && $#_d_als > 1 )); then
+      _i=5
+      print -n ' \\\n           '
+    fi
+  fi
+  shift _d_als
+done >& $_d_fd
+
+print >& $_d_fd
+
+local _c
+for _c in "${(ok@)_compautos}"; do
+  print "autoload -Uz $_compautos[$_c] $_c" >& $_d_fd
+done
+
+print >& $_d_fd
+
+print "typeset -gUa _comp_assocs" >& $_d_fd
+print "_comp_assocs=( ${(qq)_comp_assocs} )" >& $_d_fd
+exec {_d_fd}>&-
+
+mv -f $_d_file ${_d_file%.$HOST.$$}
+
+unfunction compdump
+autoload -Uz compdump

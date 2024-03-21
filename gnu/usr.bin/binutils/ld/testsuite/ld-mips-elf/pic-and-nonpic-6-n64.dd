@@ -1,0 +1,102 @@
+# GOT layout:
+#
+# -32752: lazy resolution function
+# -32748: reserved for module pointer
+# -32744: extd2's local GOT entry (copy reloc)
+# -32740: extf3's local GOT entry (PLT entry)
+# -32736: extf4's local GOT entry (PLT entry)
+# -32732: extf2's global GOT entry (undefined 0)
+# -32728: extf1's global GOT entry (.MIPS.stubs entry)
+# -32724: extd1's global GOT entry (undefined 0)
+# -32720: extd4's global GOT entry (undefined 0, reloc only)
+
+.*
+
+Disassembly of section \.plt:
+
+0+43080 <.*>:
+.*:	3c0e0008 	lui	t2,0x8
+.*:	ddd91000 	ld	t9,4096\(t2\)
+.*:	25ce1000 	addiu	t2,t2,4096
+.*:	030ec023 	subu	t8,t8,t2
+.*:	03e07825 	move	t3,ra
+.*:	0018c0c2 	srl	t8,t8,0x3
+.*:	0320f809 	jalr	t9
+.*:	2718fffe 	addiu	t8,t8,-2
+
+0+430a0 <extf4@plt>:
+.*:	3c0f0008 	lui	t3,0x8
+.*:	ddf91010 	ld	t9,4112\(t3\)
+.*:	03200008 	jr	t9
+.*:	25f81010 	addiu	t8,t3,4112
+
+0+430b0 <extf5@plt>:
+.*:	3c0f0008 	lui	t3,0x8
+.*:	ddf91018 	ld	t9,4120\(t3\)
+.*:	03200008 	jr	t9
+.*:	25f81018 	addiu	t8,t3,4120
+
+0+430c0 <extf3@plt>:
+.*:	3c0f0008 	lui	t3,0x8
+.*:	ddf91020 	ld	t9,4128\(t3\)
+.*:	03200008 	jr	t9
+.*:	25f81020 	addiu	t8,t3,4128
+
+Disassembly of section \.text:
+
+0+44000 <.*>:
+	\.\.\.
+
+0+44008 <\.pic\.f1>:
+   44008:	3c190004 	lui	t9,0x4
+   4400c:	27394010 	addiu	t9,t9,16400
+
+0+44010 <f1>:
+   44010:	0c011013 	jal	4404c <f3>
+   44014:	3c020004 	lui	v0,0x4
+   44018:	03e00008 	jr	ra
+   4401c:	24424020 	addiu	v0,v0,16416
+
+0+44020 <f2>:
+   44020:	3c1c0006 	lui	gp,0x6
+   44024:	0399e021 	addu	gp,gp,t9
+   44028:	279c3fd0 	addiu	gp,gp,16336
+   4402c:	df998040 	ld	t9,-32704\(gp\)
+   44030:	df848038 	ld	a0,-32712\(gp\)
+   44034:	df858048 	ld	a1,-32696\(gp\)
+   44038:	0320f809 	jalr	t9
+   4403c:	df868020 	ld	a2,-32736\(gp\)
+   44040:	df998028 	ld	t9,-32728\(gp\)
+   44044:	03200008 	jr	t9
+   44048:	df848030 	ld	a0,-32720\(gp\)
+
+0+4404c <f3>:
+   4404c:	03e00008 	jr	ra
+   44050:	00000000 	nop
+	\.\.\.
+
+0+44060 <__start>:
+   44060:	0c011002 	jal	44008 <\.pic\.f1>
+   44064:	00000000 	nop
+   44068:	3c020004 	lui	v0,0x4
+   4406c:	24424020 	addiu	v0,v0,16416
+   44070:	0c010c30 	jal	430c0 <extf3@plt>
+   44074:	00000000 	nop
+   44078:	0c010c28 	jal	430a0 <extf4@plt>
+   4407c:	00000000 	nop
+   44080:	0c010c2c 	jal	430b0 <extf5@plt>
+   44084:	00000000 	nop
+   44088:	3c02000a 	lui	v0,0xa
+   4408c:	24422000 	addiu	v0,v0,8192
+   44090:	3c02000a 	lui	v0,0xa
+   44094:	24422018 	addiu	v0,v0,8216
+	\.\.\.
+
+Disassembly of section \.MIPS\.stubs:
+
+0+440a0 <_MIPS_STUBS_>:
+   440a0:	df998010 	ld	t9,-32752\(gp\)
+   440a4:	03e07825 	move	t3,ra
+   440a8:	0320f809 	jalr	t9
+   440ac:	64180009 	daddiu	t8,zero,9
+	\.\.\.

@@ -1,0 +1,98 @@
+Changes in TIFF v4.4.0
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.4.0 (:tag:`v4.4.0`)
+    Previous Version        :doc:`v4.3.0 <v4.3.0>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<https://libtiff.gitlab.io/libtiff/>`_
+    Master HTTP Site #3     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+This document provides a summary of significant changes made to the
+software between the *previous* and *current* versions (see
+above). A fully-detailed change summary is provided by the :file:`ChangeLog` file
+included in the release package and by the Git commit history:
+
+Major changes
+-------------
+
+None
+
+Software configuration changes
+------------------------------
+
+* Handle absolute paths in pkg-config file (:issue:`333`)
+* Correct fix for the pkgconf file relative paths.
+* cmake: allow running the tests with a read-only source directory.
+* cmake: Fix ``STRIPCHOP_DEFAULT`` value in CMake builds.
+* build: Fix static library imports in mingw related to LERC
+* Fix version in :file:`libtiff-4.pc.in`, and CMake build: Add requirements to pc file
+* cmake: Fix build with CMake 3.10.
+* cmake: Export tiff targets.
+* Make ``LERC_SUPPORT`` conditional on ``ZLIB_SUPPORT``
+
+Library changes
+---------------
+
+New/improved functionalities:
+
+* :c:func:`TIFFIsBigTiff` function added.
+* Functions :c:func:`TIFFFieldSetGetSize` and :c:func:`TIFFieldSetGetCountSize` added.
+* :c:func:`LZWDecode`: major speed improvements (~30% faster)
+* Predictor 2 (horizontal differenciation): support 64-bit
+* Support libjpeg 9d
+
+Bug fixes:
+
+* Remove incorrect assert (:issue:`329`)
+* avoid hang in :c:func:`TIFFRewriteDirectory` if a classic file > 4 GB is attempted to be created
+* :file:`tif_jbig.c`: fix crash when reading a file with multiple IFD in memory-mapped mode and when bit reversal is needed (fixes :issue:`385`)
+* :c:func:`TIFFFetchNormalTag`: avoid calling :c:func:`memcpy` with a null source pointer and size of zero (fixes :issue:`383`)
+* :c:func:`TIFFWriteDirectoryTagData`: turn assertion on data length into a runtime check
+* :c:func:`TIFFFetchStripThing`: avoid calling :c:func:`memcpy` with a null source pointer and size of zero (fixes :issue:`362`)
+* :c:func:`TIFFReadDirectory`: avoid calling :c:func:`memcpy` with a null source pointer and size of zero (fixes :issue:`362`)
+* :c:func:`TIFFYCbCrToRGBInit`: avoid Integer-overflow
+* ``TIFFGetField(TIFFTAG_STRIPBYTECOUNTS/TIFFTAG_STRIPOFFSETS)``: return error if returned pointer is NULL (fixes :issue:`342`)
+* OJPEG: avoid assertion when using :c:func:`TIFFReadScanline` (fixes :issue:`337`)
+* :c:func:`TIFFReadDirectory`: fix OJPEG hack (fixes :issue:`319`)
+* LZW codec: fix support for strips/tiles > 2 GB on Windows
+* :c:func:`TIFFAppendToStrip`: fix rewrite-in-place logic (fixes :issue:`309`)
+* Fix :c:func:`TIFFRewriteDirectory` discarding directories.
+* :c:func:`TIFFReadCustomDirectory`: avoid crash when reading SubjectDistance tag on a non EXIF directory (:issue:`316`)
+* Fix Segmentation fault printing GPS directory if ``Altitude`` tag is present
+* :file:`tif_jpeg.c`: do not emit progressive scans with mozjpeg. (:issue:`266`)
+* :c:func:`_TIFFRewriteField`: fix when writing a IFD with a single tile that is a sparse one, on big endian hosts
+* Fix all remaining uses of legacy Deflate compression id and warn on use.
+
+Tools changes
+-------------
+
+Bug fixes:
+
+* :program:`tiffcrop`: Fix issue :issue:`330` and some more from 320 to 349.
+* :program:`tiffcrop`: fix issue :issue:`395`: generation of strange section images.
+* :program:`tiffcrop`: fix issue :issue:`380` and :issue:`382` heap buffer overflow in extractImageSection
+* :program:`tiffcrop`: fix FPE (:issue:`393`)
+* :program:`tiffcrop`: buffsize check  formula in :c:func:`loadImage` amended  (fixes :issue:`273`, :issue:`275`)
+* :program:`tiffcrop.c`: Fix issue :issue:`352` heap-buffer-overflow by correcting :c:type:`uint32_t` underflow.
+* :program:`tiff2pdf`: handle 8-bit palette colormap.
+* :program:`tiffcp`: avoid buffer overflow in "mode" string (fixes :issue:`400`)
+* :program:`tiffcp`: Fix incomprehensible setting of orientation tag (fixes :issue:`29`)
+* :program:`tiffcp`: do not try to fetch compressor-specific tags when not appropriate (fixes :issue:`396`)
+* :program:`tiffcp`: fix heap buffer overflow (:issue:`278`)
+* :program:`tiff2ps`: In :c:func:`limitMalloc` check for negative size (fixes :issue:`284`)
+* :program:`tiffinfo`: add a ``-M`` switch to define the maximum heap allocation, and default it to 256 MiB (fixes :issue:`287`, :issue:`290`)
+* :program:`tiffinfo`: limit more memory allocations using ``-M`` switch (fixes :issue:`288`)
+* :program:`tiffset`: fix global-buffer-overflow for ASCII tags where count is required (fixes :issue:`355`)
+* :program:`raw2tiff`: check that band number if not zero to avoid floating point exception(fixes :issue:`338`)
+* :program:`tiffinfo`/:program:`tiffdump`: improve output for GDAL tags.
+
+Contributed software changes
+----------------------------
+
+None

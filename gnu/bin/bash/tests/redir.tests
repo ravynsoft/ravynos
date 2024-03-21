@@ -1,0 +1,209 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${TMPDIR:=/tmp}
+
+export LC_ALL=C
+export LANG=C
+
+# catch-all for remaining untested redirection stuff
+set +o posix
+
+echo abc > /tmp/redir-test
+cat /tmp/redir-test
+
+set -o noclobber
+
+#this should be an error
+echo def > /tmp/redir-test
+cat /tmp/redir-test
+
+# but this should succeed
+echo def > /tmp/redir-test-2
+cat /tmp/redir-test-2
+
+# and so should this
+echo def >| /tmp/redir-test
+cat /tmp/redir-test
+
+set +o noclobber
+rm /tmp/redir-test /tmp/redir-test-2
+
+# this should be an error
+z="a b"
+cat < $z
+
+echo "Point 1"
+
+exec 3</etc/passwd
+exec 4>$TMPDIR/bash-a
+exec 5>$TMPDIR/bash-b
+echo "Point 2"
+
+echo to a 1>&4
+echo to b 1>&5
+cat $TMPDIR/bash-a
+cat $TMPDIR/bash-b
+exec 11</dev/null
+echo "Point 3"
+
+echo to a 1>&4
+echo to b 1>&5
+cat $TMPDIR/bash-a
+cat $TMPDIR/bash-b
+
+exec 11<&-
+echo "Point 4"
+
+exec 6<>$TMPDIR/bash-c
+echo to c 1>&6
+cat $TMPDIR/bash-c
+echo "Point 5"
+
+# clean up before running scripts
+exec 4>&- 5>&- 6<&-
+
+rm -f $TMPDIR/bash-a $TMPDIR/bash-b $TMPDIR/bash-c
+
+#
+# Test the effect of input buffering on the shell's input
+#
+${THIS_SH} < redir1.sub
+
+# more open, close, duplicate file descriptors
+${THIS_SH} ./redir3.sub < ./redir3.in1
+
+# still more redirections
+${THIS_SH} ./redir4.sub < redir4.in1
+
+# various forms of null redirection
+testf()
+{
+	if [ -f "$1" ]; then
+		rm -f "$1"
+	else
+		echo oops -- $1 not found
+	fi
+}
+
+> $TMPDIR/null-redir-a
+testf $TMPDIR/null-redir-a
+
+$EXIT > $TMPDIR/null-redir-b
+testf $TMPDIR/null-redir-b
+
+( > $TMPDIR/null-redir-c )
+testf $TMPDIR/null-redir-c
+
+$EXIT > $TMPDIR/null-redir-d &
+wait
+testf $TMPDIR/null-redir-d
+
+exit 3 | $EXIT > $TMPDIR/null-redir-e
+echo $? -- ${PIPESTATUS[@]}
+testf $TMPDIR/null-redir-e
+
+exit 4 | > $TMPDIR/null-redir-f
+echo $? -- ${PIPESTATUS[@]}
+testf $TMPDIR/null-redir-f
+
+> $TMPDIR/null-redir-g &
+wait
+testf $TMPDIR/null-redir-g
+
+exec >$TMPDIR/null-redir-h &
+wait
+testf $TMPDIR/null-redir-h
+
+# make sure async commands don't get /dev/null as stdin when an explicit
+# input redirection is supplied
+for x in 1 2 3; do
+	{ read line ; echo $line ; } &
+	wait
+	{ read line ; echo $line ; } &
+	wait
+done << EOF
+ab
+cd
+ef
+gh
+ij
+kl
+EOF
+
+# make sure async commands get /dev/null as stdin in the absence of any
+# input redirection
+/bin/cat &
+wait
+echo $?
+
+# make sure that loops work OK with here documents and are not run in
+# subshells
+while read line; do
+	echo $line
+	l2=$line
+done << EOF
+ab
+cd
+EOF
+echo $l2
+
+# These should not echo anything -- bug in versions before 2.04
+( ( echo hello 1>&3 ) 3>&1 ) >/dev/null 2>&1
+
+( ( echo hello 1>&3 ) 3>&1 ) >/dev/null 2>&1 | cat
+
+# in posix mode, non-interactive shells are not allowed to perform
+# filename expansion on input redirections, even if they expand to
+# a single filename
+set -o posix
+cat < redir1.*
+
+# test ksh93 dup-and-close (move fd) redirections
+${THIS_SH} ./redir5.sub
+
+# test behavior after a write error with a builtin command
+${THIS_SH} ./redir6.sub
+
+# problem with redirections using fds bash uses internally
+: ${TMPDIR:=$TMPDIR}
+
+trap 'rm -f $TMPDIR/bash-redir-$$' 0 1 2 3 6 15
+
+echo before block
+{
+	echo before redir
+	exec 10>&1
+	echo after redir
+} > $TMPDIR/bash-redir-$$
+
+echo after block
+
+${THIS_SH} ./redir7.sub
+
+${THIS_SH} ./redir8.sub
+
+exec 9>&2
+command exec 2>$TMPDIR/foo-$$
+echo whatsis >&2
+echo cat /tmp/foo
+cat $TMPDIR/foo-$$
+rm -f $TMPDIR/foo-$$
+exec 2>&9
+exec 9>&-
+
+${THIS_SH} ./redir9.sub
+
+${THIS_SH} ./redir10.sub
+
+${THIS_SH} ./redir11.sub

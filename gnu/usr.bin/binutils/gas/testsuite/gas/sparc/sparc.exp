@@ -1,0 +1,169 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# Some generic SPARC and SPARC64 tests
+
+# FIXME: The tests here aren't really bullet proof.  A mistake in the opcode
+# table can slip through since we use the same table for assembly and
+# disassembly.  The way to fix this is to include a hex dump of the insns
+# and test that as well.  Later.
+
+# Find out if these binutils are either sparc64*-*-* or
+# sparc*-*-* with --enable-targets=sparc64-*-*
+proc gas_64_check { } {
+    global NM
+    global NMFLAGS
+
+    set status [gas_host_run "$NM $NMFLAGS --help" ""]
+    return [regexp "elf64\[_-\]sparc" [lindex $status 1]]
+}
+
+# Until binutils support Solaris-style capabilities, specify the arch
+# necessary to disassemble the ISA extensions used.
+proc set_tests_arch {arch} {
+    global OBJDUMPFLAGS
+
+    if [istarget "sparc*-*-solaris*"] {
+	if { $arch != "" } {
+	    set OBJDUMPFLAGS "-msparc:$arch"
+	} else {
+	    set OBJDUMPFLAGS ""
+	}
+    }
+}
+
+if [istarget sparc*-*-*] {
+
+    if [is_elf_format] {
+        # The next five tests are ELF only.
+        run_dump_test "unalign"
+        run_dump_test "pcrel"
+        run_dump_test "plt"
+        run_dump_test "gotop32"
+        run_dump_test "pc2210"
+        # The features tested in the tests below are not ELF-specific.
+        # However, these features are not present in practice in COFF
+        # and a.out targets.  Running them only in ELF targets allows
+        # us to don't have to replicate pattern test files as that
+        # would bring no practical advantage.
+        run_dump_test "natural-32"
+        run_list_test "pr4587" ""
+        run_dump_test "ticc-imm-reg"
+        run_dump_test "v8-movwr-imm"
+        run_dump_test "save-args"
+        run_dump_test "leon"
+        run_dump_test "v8branch"
+
+	set_tests_arch "v9c"
+	run_dump_test "ldtxa"
+
+	set_tests_arch "v9d"
+	run_dump_test "edge"
+
+	set_tests_arch "v9v"
+	run_dump_test "cfr"
+	run_dump_test "crypto"
+	run_dump_test "hpcvis3"
+	run_dump_test "ima"
+	run_dump_test "pause"
+
+	set_tests_arch "v9m"
+	run_dump_test "mcdper"
+	run_dump_test "mwait"
+	run_dump_test "sparc5vis4"
+	run_dump_test "xcrypto"
+
+	set_tests_arch "v9m8"
+	run_dump_test "fpcmpshl"
+	run_dump_test "ldm-stm"
+	run_dump_test "ldmf-stmf"
+	run_dump_test "on"
+	run_dump_test "rle"
+	run_dump_test "sparc6"
+
+	set_tests_arch ""
+        run_dump_test "flush"
+        run_dump_test "ld_st_fsr"
+        run_dump_test "ldtw_sttw"
+        run_dump_test "ldd_std"
+        run_dump_test "ldx_stx"
+        run_dump_test "ldx_efsr"
+        run_dump_test "v9branch1"
+        run_dump_test "imm-plus-rreg"
+        run_dump_test "dcti-couples-v9"
+        run_dump_test "call-relax"
+    } else {
+        # The next tests are a.out only.
+        run_dump_test "call-relax-aout"
+    }
+
+    if [gas_64_check] {
+	run_dump_test "asi"
+	set_tests_arch "v9v"
+	run_dump_test "cbcond"
+	set_tests_arch ""
+	run_dump_test "gotop64"
+	run_dump_test "membar"
+	run_dump_test "natural"
+	run_dump_test "pcrel64"
+	run_dump_test "plt64"
+	run_dump_test "prefetch"
+	run_dump_test "reloc64"
+	run_dump_test "set64"
+	run_dump_test "synth64"
+	run_dump_test "window"
+	run_list_test "asi-arch-error" "-Av9"
+	run_list_test "asi-bump-warn" "-64 -bump"
+	run_list_test "cbcond-diag" "-64"
+	run_list_test "fpcmpshl-diag" "-64"
+	run_list_test "hwcaps-bump" "-64 -bump"
+	run_list_test "ldm-stm-diag" "-64"
+	run_list_test "ldmf-stmf-diag" "-64"
+	run_list_test "on-diag" "-64"
+	run_list_test "sparc6-diag" "-64"
+
+	set_tests_arch "v9m"
+	run_dump_test "rdhpr"
+	run_dump_test "rdpr"
+	run_dump_test "wrasr"
+	run_dump_test "wrhpr"
+	run_dump_test "wrpr"
+
+	set_tests_arch "v9m8"
+	run_dump_test "rdasr"
+	set_tests_arch ""
+    }
+
+    run_dump_test "synth"
+    run_dump_test "v9branch2"
+    run_dump_test "v9branch3"
+    run_dump_test "v9branch4"
+    run_dump_test "v9branch5"
+    run_dump_test "pr19910-1"
+    run_list_test "pr19910-2"
+    run_dump_test "dcti-couples-v8"
+    run_dump_test "dcti-couples-v9c"
+    run_dump_test "pr20732"
+}
+
+if [istarget sparc-*-vxworks*] {
+    run_dump_test "vxworks-pic"
+}
+
+if [istarget sparclet*-*-*] {
+    run_dump_test "splet"
+    run_dump_test "splet-2"
+}

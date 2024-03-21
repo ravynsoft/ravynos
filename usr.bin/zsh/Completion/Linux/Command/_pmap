@@ -1,0 +1,20 @@
+#compdef pmap
+# based on procps-ng-3.3.15
+
+_arguments -s \
+  '(exit -A --range)'{-A+,--range}'[limit results to the specified address range]:low,high: ' \
+  '(exit -q --quiet)'{-q,--quiet}'[do not display some header or footer lines]' \
+  '(exit -p --show-path)'{-p,--show-path}'[show full path to files in the mapping column]' \
+  '(exit)*: :_pids' \
+  + '(format)' \
+  '(exit)'{-d,--device}'[show the device format]' \
+  '(exit)'{-x,--extended}'[show the extended format]' \
+  '(exit)-X[show even more details than -x option]' \
+  '(exit)-XX[show everything the kernel provides]' \
+  '(exit)'{-c,--read-rc}'[read the default configuration]' \
+  '(exit)'{-C+,--read-rc-from=}'[read the configuration from the specified file]: :_files' \
+  + '(exit)' \
+  '(- *)'{-n,--create-rc}'[create new default configuration and exit]' \
+  '(- *)'{-N+,--create-rc-to=}'[create new configuration to the specified file and exit]: :_files' \
+  '(- *)'{-h,--help}'[display help text and exit]' \
+  '(- *)'{-V,--version}'[display version information and exit]'

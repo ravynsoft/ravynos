@@ -1,0 +1,43 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that gettext() in multithreaded applications works correctly if
+# different threads operate in different locales referring to the same
+# catalog file but with different encodings.
+
+# Let's use two locales that configure already checked for: French.
+# The PO file is actually German, not French, but that doesn't matter.
+
+test -d in-th-3 || mkdir in-th-3
+test -d in-th-3/fr || mkdir in-th-3/fr
+test -d in-th-3/fr/LC_MESSAGES || mkdir in-th-3/fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o in-th-3/fr/LC_MESSAGES/tstthread.mo "$wabs_srcdir"/intl-thread-3.po
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none && test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ in-th-3/fr in-th-3/$LOCALE_FR
+  prepare_locale_ in-th-3/fr in-th-3/$LOCALE_FR_UTF8
+  ../intl-thread-3-prg $LOCALE_FR $LOCALE_FR_UTF8 > in-th-3.out
+  case $? in
+    0) ;;
+    77)
+      echo "Skipping test: POSIX per-thread locales not supported"
+      Exit 77
+      ;;
+    *)
+      Exit 1
+      ;;
+  esac
+else
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no traditional and modern french locales are installed"
+  else
+    echo "Skipping test: no traditional and modern french locales are supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

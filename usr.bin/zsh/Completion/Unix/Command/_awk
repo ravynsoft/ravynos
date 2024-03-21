@@ -1,0 +1,120 @@
+#compdef awk gawk nawk
+
+# For gawk ver.3 to 5, in addition to POSIX.
+#
+# gawk's options '-W ...' (such as '-W help') are not supported.
+# gawk3 has some synonyms for long options (e.g., --compat is a synonym
+# for --traditional). These are not supported either.
+#
+# 'gawk -f<TAB>' will complete files in AWKPATH in addition to those in
+# the current directory. If this is annoying, you may try
+#   zstyle ':completion:*:*:gawk:option-f-1:*' tag-order program-files
+
+local variant curcontext="$curcontext" state state_descr line ret=1
+local -A opt_args
+local -a args
+
+_pick_variant -r variant gawk4='GNU Awk [45]' gawk3='GNU Awk 3' posix --version
+
+args=(
+  {-F+,--field-separator}'[define input field separator by extended regex]:extended regular expression:'
+  '*'{-v+,--assign}'[assign values to variables]:assignment:'
+  '(1)*'{-f+,--file}'[read program file]:program file:->script'
+  '1: :_guard "^-*" "program text"'
+  '*:input file:_files'
+)
+
+case $variant in
+  (gawk*)
+    args+=(
+      {-c,--traditional}'[run in compatibility mode]'
+      '(- : *)'{-C,--copyright}'[print copyright info and exit]'
+      {-d-,--dump-variables=-}'[print a sorted list of global variables]::output file:_files'
+      {-e,--source}'[pass program text in arg]:program text:'
+      '(1)'{-E+,--exec}'[like -f, but safer for CGI]:program file:->script'
+      '(- : *)'{-h,--help}'[print usage message and exit]'
+      {-L-,--lint=-}'[warn about dubious or non-portable constructs]::flag:((fatal\:"treat warnings as fatal error" invalid\:"warn only about things that are actually invalid" no-ext\:"disable warnings about gawk extensions"))'
+      {-n,--non-decimal-data}'[auto-detect octal/hexadecimal values in input]'
+      {-N,--use-lc-numeric}"[force use of locale's decimal point character]"
+      {-O,--optimize}'[enable optimization]'
+      {-p-,--profile=-}'[output profiling data to file]::output file:_files'
+      {-P,--posix}'[run in strict POSIX mode]'
+      {-r,--re-interval}'[enable interval expressions in regex matching]'
+      {-t,--lint-old}'[warn about non-portable constructs]'
+      '(- : *)'{-V,--version}'[print version info and exit]'
+    )
+    ;|
+  (gawk4)
+    args+=(
+      {-b,--characters-as-bytes}'[treat all input data as single-byte characters]'
+      {-D-,--debug=-}'[enable debugging]::debugger command file:_files'
+      {-g,--gen-pot}'[scan awk program and generate .po file on stdout]'
+      '*'{-i+,--include}'[load source library]:library file:->script'
+      '*'{-l+,--load}'[load dynamic extension]:extension:->extension'
+      {-M,--bignum}'[select arbitrary-precision arithmetic on numbers]'
+      {-o-,--pretty-print=-}'[pretty-print awk program]::output file:_files'
+      '(-s --no-optimize)'{-s,--no-optimize}'[disable default optimizations upon the internal program representation]'
+      {-S,--sandbox}'[disable system(), redirections and dynamic extensions]'
+    )
+    ;;
+  (gawk3)
+    # one letter options are new in gawk4
+    args=( ${args:#(|\*)(|\(*\))-[cCdEhLnNtOpPreV]*} )
+    args+=(
+      '--gen-po[scan awk program and generate .po file on stdout]'
+    )
+    ;;
+  (*)
+    # remove long options
+    args=( ${args:#*--*} )
+esac
+
+_arguments -S -s -C : $args && ret=0
+
+# Complete files in . (current directory) and AWKPATH/AWKLIBPATH.
+# Use different tag/description for files in . even if . is in AWKPATH.
+_files_in_curdir_or_path() {
+  local expl pat1 pat2
+  if [[ -n $6 ]]; then  # $6 = 'so', 'dll' or ''
+    pat1="-g *.$6"
+    pat2="-g *.$6"
+  fi
+  if [[ $words[CURRENT] == */* || $variant != gawk* || \
+	-n $opt_args[(I)(-c|--traditional|-P|--posix)] ]]; then
+    _wanted $2 expl $3 _files $pat1 && ret=0
+  else
+    local prog='BEGIN {print ENVIRON["'$1'"]}'
+    local -aU paths
+    # split AWKPATH into paths, and replace null element by '.'.
+    paths=( "${(@)${(@s.:.)$(_call_program get-awk-env \
+			    $words[1] ${(q)prog})}:/#%/.}" )
+    if (( $paths[(I).] )); then
+      # If '.' is in paths, remove it; we will handle it separately
+      paths=( ${(@)paths:#.} )
+    else
+      # If '.' is not in paths, we should not complete files in '.'
+      pat1='-g *(-/)'
+    fi
+    if (( $#paths )); then
+      _alternative "${2}:${3}:_files ${(b)pat1}" \
+		  "${4}:${5}:_files -W paths ${(b)pat2}" && ret=0
+    else
+      _wanted $2 expl $3 _files $pat1 && ret=0
+    fi
+  fi
+}
+
+case $state in
+  (script)
+    _files_in_curdir_or_path AWKPATH program-files 'program file' \
+			    library-files 'library in AWKPATH'
+    ;;
+  (extension)
+    local ext=so
+    [[ $OSTYPE == cygwin* ]] && ext=dll
+    _files_in_curdir_or_path AWKLIBPATH extensions 'extension' \
+			    library-files 'extension in AWKLIBPATH' $ext
+    ;;
+esac
+
+return ret

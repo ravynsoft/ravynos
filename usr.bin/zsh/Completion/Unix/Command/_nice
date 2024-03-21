@@ -1,0 +1,14 @@
+#compdef nice
+
+shift words
+(( CURRENT-- ))
+
+if [[ $CURRENT -gt 1 && $words[1] = ([-+](-|)|-n)<-> ]]; then
+    shift words
+    (( CURRENT -- ))
+elif [[ $CURRENT -gt 2 && $words[1] = -n ]]; then
+    shift 2 words
+    (( CURRENT -= 2 ))
+fi
+
+_normal

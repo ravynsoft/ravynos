@@ -26,7 +26,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 
@@ -46,10 +45,11 @@
 #include "config.h"
 #include "debug.h"
 #include "console.h"
-#include "inout.h"
 #include "pci_emul.h"
 #include "rfb.h"
-#include "vga.h"
+#ifdef __amd64__
+#include "amd64/vga.h"
+#endif
 
 /*
  * bhyve Framebuffer device emulation.
@@ -70,10 +70,10 @@ static int fbuf_debug = 1;
 
 #define	DMEMSZ	128
 
-#define	FB_SIZE		(16*MB)
+#define	FB_SIZE		(32*MB)
 
-#define COLS_MAX	1920
-#define	ROWS_MAX	1200
+#define COLS_MAX	3840
+#define ROWS_MAX	2160
 
 #define COLS_DEFAULT	1024
 #define ROWS_DEFAULT	768
@@ -312,26 +312,23 @@ pci_fbuf_parse_config(struct pci_fbuf_softc *sc, nvlist_t *nvl)
 	}
 
 	value = get_config_value_node(nvl, "w");
-	if (value != NULL) {
-		sc->memregs.width = atoi(value);
-		if (sc->memregs.width > COLS_MAX) {
-			EPRINTLN("fbuf: width %d too large", sc->memregs.width);
-			return (-1);
-		}
-		if (sc->memregs.width == 0)
-			sc->memregs.width = 1920;
-	}
+	if (value != NULL)
+		sc->memregs.width = strtol(value, NULL, 10);
 
 	value = get_config_value_node(nvl, "h");
-	if (value != NULL) {
-		sc->memregs.height = atoi(value);
-		if (sc->memregs.height > ROWS_MAX) {
-			EPRINTLN("fbuf: height %d too large",
-			    sc->memregs.height);
-			return (-1);
-		}
-		if (sc->memregs.height == 0)
-			sc->memregs.height = 1080;
+	if (value != NULL)
+		sc->memregs.height = strtol(value, NULL, 10);
+
+	if (sc->memregs.width > COLS_MAX ||
+	    sc->memregs.height > ROWS_MAX) {
+		EPRINTLN("fbuf: max resolution is %ux%u", COLS_MAX, ROWS_MAX);
+		return (-1);
+	}
+	if (sc->memregs.width < COLS_MIN ||
+	    sc->memregs.height < ROWS_MIN) {
+		EPRINTLN("fbuf: minimum resolution is %ux%u",
+		    COLS_MIN, ROWS_MIN);
+		return (-1);
 	}
 
 	value = get_config_value_node(nvl, "password");

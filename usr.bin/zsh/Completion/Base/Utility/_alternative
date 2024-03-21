@@ -1,0 +1,83 @@
+#autoload
+
+local tags def expl descr action mesgs nm="$compstate[nmatches]" subopts
+local opt ws curcontext="$curcontext"
+
+subopts=()
+while getopts 'O:C:' opt; do
+  case "$opt" in
+  O) subopts=( "${(@P)OPTARG}" ) ;;
+  C) curcontext="${curcontext%:*}:$OPTARG" ;;
+  esac
+done
+
+shift OPTIND-1
+
+[[ "$1" = -(|-) ]] && shift
+
+mesgs=()
+
+_tags "${(@)argv%%:*}"
+
+while _tags; do
+  for def; do
+    if _requested "${def%%:*}"; then
+      descr="${${def#*:}%%:*}"
+      action="${def#*:*:}"
+
+      _description "${def%%:*}" expl "$descr"
+
+      if [[ "$action" = \ # ]]; then
+
+        # An empty action means that we should just display a message.
+
+        mesgs=( "$mesgs[@]" "${def%%:*}:$descr")
+      elif [[ "$action" = \(\(*\)\) ]]; then
+
+        # ((...)) contains literal strings with descriptions.
+
+        eval ws\=\( "${action[3,-3]}" \)
+
+        _describe -t "${def%%:*}" "$descr" ws -M 'r:|[_-]=* r:|=*' "$subopts[@]"
+      elif [[ "$action" = \(*\) ]]; then
+
+        # Anything inside `(...)' is added directly.
+
+        eval ws\=\( "${action[2,-2]}" \)
+
+        _all_labels "${def%%:*}" expl "$descr" \
+            compadd "$subopts[@]" -a - ws
+      elif [[ "$action" = \{*\} ]]; then
+
+        # A string in braces is evaluated.
+
+        while _next_label "${def%%:*}" expl "$descr"; do
+          eval "$action[2,-2]"
+        done
+      elif [[ "$action" = \ * ]]; then
+
+        # If the action starts with a space, we just call it.
+
+        eval "action=( $action )"
+        while _next_label "${def%%:*}" expl "$descr"; do
+          "$action[@]"
+        done
+      else
+
+        # Otherwise we call it with the description-arguments built above.
+
+        eval "action=( $action )"
+	while _next_label "${def%%:*}" expl "$descr"; do
+          "$action[1]" "$subopts[@]" "$expl[@]" "${(@)action[2,-1]}"
+        done
+      fi
+    fi
+  done
+  [[ nm -ne compstate[nmatches] ]] && return 0
+done
+
+for descr in "$mesgs[@]"; do
+  _message -e "${descr%%:*}" "${descr#*:}"
+done
+
+return 1

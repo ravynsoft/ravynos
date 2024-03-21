@@ -1,0 +1,35 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --more-than=0; identical message are wanted once only.
+
+cat <<EOF > mcomm-test18.in1
+# Sure.
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test18.in2
+# Right.
+#: hunt.c:759
+msgid "1"
+msgstr "1x"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --more-than=0 -o mcomm-test18.tmp mcomm-test18.in1 mcomm-test18.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test18.tmp > mcomm-test18.out || Exit 1
+
+cat << EOF > mcomm-test18.ok
+# Sure.
+#: first.c:123 hunt.c:759
+msgid "1"
+msgstr "1x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test18.ok mcomm-test18.out
+result=$?
+
+exit $result

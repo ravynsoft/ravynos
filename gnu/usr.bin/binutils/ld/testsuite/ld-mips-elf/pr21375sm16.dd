@@ -1,0 +1,28 @@
+.*: +file format .*mips.*
+
+Disassembly of section \.text:
+
+[0-9a-f]+ <foo>:
+ *[0-9a-f]+:	f000 6a01 	li	v0,1
+ *[0-9a-f]+:	f050 0b0c 	la	v1,ffff8250 <_gp\+0xffff0000>
+ *[0-9a-f]+:	f400 3240 	sll	v0,16
+ *[0-9a-f]+:	e269      	addu	v0,v1
+ *[0-9a-f]+:	f010 9a9c 	lw	a0,-32740\(v0\)
+ *[0-9a-f]+:	f010 9a58 	lw	v0,-32744\(v0\)
+ *[0-9a-f]+:	ea00      	jr	v0
+ *[0-9a-f]+:	653a      	move	t9,v0
+	\.\.\.
+
+[0-9a-f]+ <bar>:
+ *[0-9a-f]+:	f000 6a01 	li	v0,1
+ *[0-9a-f]+:	f010 0b1c 	la	v1,ffff8250 <_gp\+0xffff0000>
+ *[0-9a-f]+:	f400 3240 	sll	v0,16
+ *[0-9a-f]+:	e269      	addu	v0,v1
+ *[0-9a-f]+:	6782      	move	a0,v0
+ *[0-9a-f]+:	f010 4c1c 	addiu	a0,-32740
+ *[0-9a-f]+:	f010 4a18 	addiu	v0,-32744
+ *[0-9a-f]+:	9a40      	lw	v0,0\(v0\)
+ *[0-9a-f]+:	9c80      	lw	a0,0\(a0\)
+ *[0-9a-f]+:	ea00      	jr	v0
+ *[0-9a-f]+:	653a      	move	t9,v0
+	\.\.\.

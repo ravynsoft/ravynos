@@ -1,0 +1,176 @@
+#compdef devtodo todo tda tde tdd tdr
+## completion for devtodo 0.1.20 <http://swapoff.org/DevTodo>
+
+typeset -a arg_generic arg_add todo_opts \
+           priorities
+typeset -A arg_pair arg_desc
+typeset -i i
+typeset expl arg
+
+for ((i=2; i <= $#words; i++)) {
+	if [[ $words[$i] == '--database' ]]; then
+		todo_opts+=(--database ${~words[$((++i))]}) 2>/dev/null
+	elif [[ $words[$i] == '--sort' ]]; then
+		todo_opts+=(--sort ${words[$((++i))]})
+	fi
+}
+
+priorities=(verylow low medium high veryhigh)
+
+arg_add=(
+	'-p[priority]:priority:_todo_priority'
+	'-g[parent item]:parent:_todo_index'
+)
+
+arg_generic=(
+	'--remove[remove items]:index:_todo_index'
+	'--database[database file]:file:_files'
+	'--global-database[global database file]:file:_files'
+	'*--colour[item color]:color:_todo_color'
+	'--force-colour[force use of colors]'
+	'--mono[no colors]'
+	'--help[display help]'
+	'--version[display version]'
+	'--title[todo title]:string: '
+	'--date-format[strftime time format]:time string:_date_formats'
+	'*--format[define format]:format:_todo_format'
+	'*--use-format[output format]:format:_todo_format'
+	'--sort[sort database]:sort expression:_todo_sort'
+	'--paranoid[paranoid permissions etc]'
+	'--database-loaders[loader order]:database loader: '
+	'--backup[backup database]:count: '
+	'--timeout[display timeout]:seconds: '
+	'--purge[purge completed items]:days: '
+	'*'{'--filter','-f'}'[show items matching filter]:filter:_todo_filter'
+	'*::item:_todo_index'
+)
+
+arg_pair=(
+	'verbose'     'v'
+	'add'         'a'
+	'graft'       'g'
+	'link'        'l'
+	'reparent'    'R'
+	'priority'    'p'
+	'edit'        'e'
+	'done'        'd'
+	'not-done'    'D'
+	'global'      'G'
+	'TODO'        'T'
+	'all'         'A'
+)
+
+arg_desc=(
+	'verbose'     '[be verbose]'
+	'add'         '[add item]:item'
+	'graft'       '[parent item]:parent:_todo_index'
+	'link'        '[link file into database]:database:_files'
+	'reparent'    '[change item parent]:index:_todo_index'
+	'priority'    '[item priority]:priority:_todo_priority'
+	'edit'        '[edit item]:index:_todo_index'
+	'done'        '[mark as done]:index:_todo_index'
+	'not-done'    '[mark as undone]:index:_todo_index -u'
+	'global'      '[use global database]'
+	'TODO'        '[generate TODO file]'
+	'all'         '[show all items]'
+)
+
+for arg in ${(k)arg_pair}; {
+	arg_generic+='(--'$arg')-'${arg_pair[$arg]}${arg_desc[$arg]}
+	arg_generic+='(-'${arg_pair[$arg]}')--'${arg}${arg_desc[$arg]}
+}
+
+function _todo_index () {
+	typeset number text i entry last_entry depth last_depth=0 IFS=$'\n'
+	typeset -a index desc
+	for i in $*; do
+		case $i in
+			-u) todo_opts+=(--filter done)
+		esac
+	done
+	for entry in $(todo $todo_opts -f +children --format display='%1>%i%n:%t\n'); do
+		number=${entry%%:*}
+		depth=$(( ${#number} - ${#${number// }} ))
+		((depth)) && entry=${(j:.:)${${(s:.:):-a.${last_entry%%:*}}[2,depth+1]}}.$entry
+		text=${entry#*:}
+		number=${${entry%%:*}// }
+		entry=$number:$text
+		index+=$entry
+		last_depth=$depth
+		last_entry=$entry
+	done
+	_describe -t items index index
+}
+
+function _todo_color () {
+	if compset -P '*='; then
+		_wanted color expl 'color' \
+		compadd black red green yellow blue magenta cyan white default
+	else
+		_wanted item expl 'item' \
+		compadd -S '=' $priorities title info
+	fi
+}
+
+function _todo_filter {
+	typeset prefix
+	if [[ ${#${words[$CURRENT]}} -gt 0 ]] {
+		prefix=${${words[$CURRENT]}[1]}
+		_wanted expression expl 'filter expression' \
+		compadd -p $prefix -- all children done $priorities
+	} else {
+		# XXX the '-' makes problems
+		_wanted expression expl 'filter expression' \
+		compadd -S '' -- - + = all children done $priorities
+	}
+}
+
+function _todo_format () {
+	typeset prefix
+	if [[ -prefix *= ]] {
+		_message 'format string'
+	} else {
+		_wanted expression expl 'format name' \
+		compadd -S '=' display generated verbose-display verbose-generated
+	}
+}
+
+function _todo_priority () {
+	_wanted priority expl 'priority' \
+	compadd default $priorities
+}
+
+function _todo_sort () {
+	typeset -a keys used_prefixes
+	typeset key prefix=''
+	keys=(created completed text priority duration none done)
+	for key in $keys; {
+		[[ $key != none ]] && keys+="-$key"
+	}
+
+	if [[ -prefix *, ]] {
+		prefix=${words[$CURRENT]%,*},
+		used_prefixes=(${(s:,:)prefix})
+		for key in $used_prefixes; {
+			[[ $key == -* ]] && used_prefixes+=$key[2,-1] || used_prefixes+=-$key
+		}
+	}
+	_wanted expression expl 'sort expression' \
+	compadd -F used_prefixes -qS , -P "$prefix" $keys
+}
+
+case $service in
+	tda)
+		_arguments -s $arg_add
+	;;
+	tde|tdd)
+		_arguments -s ':index:_todo_index'
+	;;
+	tdr)
+		zstyle ':completion:*:tdr:*' ignore-line yes
+		_arguments -s '*:index:_todo_index'
+	;;
+	*todo)
+		_arguments -s $arg_generic
+	;;
+esac

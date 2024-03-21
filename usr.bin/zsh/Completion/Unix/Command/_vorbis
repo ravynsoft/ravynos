@@ -1,0 +1,148 @@
+#compdef oggenc ogg123 ogginfo oggdec vorbiscomment
+
+local curcontext="$curcontext" ret=1
+local -a alts expl state line suf
+
+case $service in
+  oggenc)
+    _arguments -C -s -S \
+      '(-Q --quiet)'{-Q,--quiet}'[produce no output to stderr]' \
+      '(- *)'{-h,--help}'[display usage information]' \
+      '(- *)'{-V,--version}'[display version information]' \
+      '(-k --skeleton)'{-k,--skeleton}'[add an Ogg Skeleton bitstream]' \
+      '(-r --raw)'{-r,--raw}'[assume input data is raw, little-endian with no header information]' \
+      '(-B --raw-bits)'{-B+,--raw-bits=}'[set raw mode input sample size in bits]:sample size [16]:(8 16)' \
+      '(-C --raw-chan)'{-C+,--raw-chan=}'[set raw mode input number of channels]:number of channels [2]' \
+      '(-R --raw-rate)'{-R+,--raw-rate=}'[set raw mode input sample rate]:sample rate [44100]:(44100 48000)' \
+      '--raw-endianness=[set raw mode endianness]:endianness [0]:((0\:big\ endian 1\:little\ endian))' \
+      '(-b --bitrate)'{-b+,--bitrate=}'[set encoding to the bitrate closest to that specified]:bitrate (kb/s)' \
+      '--managed[enable the bitrate management engine]' \
+      '(-m --min-bitrate)'{-m+,--min-bitrate=}'[set minimum bitrate]:bitrate (kb/s)' \
+      '(-M --max-bitrate)'{-M+,--max-bitrate=}'[set maximum bitrate]:bitrate (kb/s)' \
+      '*--advanced-encode-option=:option name:_values option
+        "lowpass_frequency[set the lowpass frequency]\:frequency (kHz)"
+        "impulse_noisetune[set a noise floor bias]\:bias (-15..0)"
+        "bitrate_hard_max[set the allowed bitrate maximum for the encoded file]\:bitrate (kb/s)"
+        "bitrate_hard_min[set the allowed bitrate minimum for the encoded file]\:bitrate (kb/s)"
+        "bit_reservoir_bits[set the total size of the bit reservoir]\:bits"
+        "bit_reservoir_bias[set the behavior bias of the bit reservoir]\:bias (0..1)"
+        "bitrate_average[set the average bitrate for the file]\:bitrate (kb/s)"
+        "bitrate_average_damping[set the reaction time for the average bitrate tracker]\:time (seconds)"
+        "disable_coupling[disable use of channel coupling for multichannel encoding]"' \
+      '(-q --quality)'{-q+,--quality=}'[set encoding quality]:quality:(0 1 2 3 4 5 6 7 8 9 10)' \
+      '--resample=[resample input to the given sample rate before encoding]:sample rate (Hz)' \
+      '--downmix[down mix input from stereo to mono]' \
+      '--scale=[set input scaling factor]:scaling factor' \
+      '(-s --serial)'{-s+,--serial=}'[force a specific serial number in the output stream]:serial number' \
+      "--discard-comments[don't copy comments from FLAC file to output Ogg Vorbis file]" \
+      '--ignorelength[ignore the datalength in Wave headers]' \
+      '(-o --output)'{-o+,--output=}'[write the Ogg Vorbis stream to output_file]:files:->oggfiles' \
+      '(-n --names)'{-n+,--names=}'[specify pattern for producing filenames]:string' \
+      '(-X --name-remove)'{-X+,--name-remove=}'[remove specified characters from output filenames]:characters' \
+      '(-P --name-replace)'{-P+,--name-replace=}'[specify replacement characters for those removed]:characters' \
+      '--utf8[interpret command-line parameters as already being UTF-8 encoded]' \
+      \*{-c+,--comment=}'[add the string comment as an extra comment]:comment' \
+      \*{-d+,--date=}'[set the date comment field to the given value]:date' \
+      \*{-N+,--tracknum=}'[set the track number comment field to the given value]:track number' \
+      \*{-t+,--title=}'[set the track title comment field to title]:title' \
+      \*{-l+,--album=}'[set the album comment field to album]:album' \
+      \*{-a+,--artist=}'[set the artist comment field in the comments to artist]:artist' \
+      \*{-G+,--genre=}'[set the genre comment field in the comments to genre]:genre' \
+      \*{-L+,--lyrics=}'[include lyrics from specified file]:lyrics file:_files -g "*.(srt|lrc)(-.)"' \
+      \*{-Y+,--lyrics-language=}'[specify language for the lyrics]:language' \
+      '*:input file:_files -g "(#i)*.(flac|wav|aiff)(-.)"' && ret=0
+  ;;
+  ogg123)
+    _arguments -C -s -S \
+      \*{-d+,--device=}'[output device]:device:(aixs alsa arts au esd irix macosx nas null oss pulse raw roar sndio sun wav wmm)' \
+      \*{-f+,--files=}'[output filename for a previously specified file device]:output filename:_files -g "(#i)*.(wav|au|raw)(-.)"' \
+      '--audio-buffer=[specify size of output audio buffer]:size (kilobytes)' \
+      \*{-o,--device-option=}'[assign device option values]:device option:->devopts' \
+      '(-@ --list)'{-@+,--list=}'[play all of the files from a playlist]:playlist:_files' \
+      '(-r --repeat)'{-r,--repeat}'[repeat playlist indefinitely]' \
+      '(-R --remote)'{-R,--remote}'[use remote control interface]' \
+      '(-z --shuffle -Z --random)'{-z,--shuffle}'[shuffle list of files before playing]' \
+      '(-Z --random -z --shuffle -r --repeat)'{-Z,--random}'[play files randomly until interrupted]' \
+      '(-b --buffer)'{-b+,--buffer=}'[specify size of input buffer (HTTP only)]:size (kilobytes)' \
+      '(-p --prebuffer)'{-p+,--prebuffer=}'[delay playback until proportion of buffer filled (HTTP only)]:percent' \
+      '(-k --skip)'{-k+,--skip=}"[skip up to specified time]:start time ([[hh\:]mm\:]ss[.d])" \
+      '(-K --end)'{-K+,--end=}"[end after specified time]:end time ([[hh\:]mm\:]ss[.d])" \
+      '(-x --nth)'{-x+,--nth=}"[play every 'n'th block]:number"\
+      '(-y --ntimes)'{-y+,--ntimes=}"[repeat every 'n'th block]:number" \
+      '(-l --delay)'{-l+,--delay=}'[set delay between two SIGINTs to quit]:delay (ms)' \
+      '(- *)'{-h,--help}'[display usage information]' \
+      '(-q --quiet -v --verbose)'{--quiet,-q}'[quiet mode]' \
+      '(-q --quiet)*'{-v,--verbose}'[increase verbosity]' \
+      '(- *)'{-V,--version}'[display version information]' \
+      \*{-c-,--config=-}'[specify config options]: :_values option
+        "default_device\:device"
+        "shuffle\:value\:(0 1)"
+        "repeat\:value\:(0 1)"' \
+      '*:sound file or directory:->urls-or-files' && ret=0
+  ;;
+  ogginfo)
+    _arguments -S \
+      '(- *)-h[display usage information]' \
+      '(- *)-V[display version information]' \
+      '(-)*-q[quiet mode]' \
+      '(-)-v[verbose mode]' \
+      '(-h)*:ogg vorbis file:_files -g "(#i)*.ogg(-.)"' && ret=0
+  ;;
+  oggdec)
+    _arguments -s -S \
+      '(-Q --quiet)'{-Q,--quiet}'[quiet mode]' \
+      '(- *)'{-h,--help}'[display usage information]' \
+      '(- *)'{-V,--version}'[display version information]' \
+      '(-b --bits)'{-b+,--bits=}'[bits per sample]:bits per sample:(8 16)' \
+      '(-e --endianness)'{-e+,--endianness=}'[set endianness for 16-bit output]:endianness [0]:((0\:little-endian\ \(Intel\ byte\ order\) 1\:big-endian\ \(sane\ byte\ order\)))' \
+      '(-s --sign)'{-s+,--sign=}'[set signedness for output]:signedness [1]:((0\:unsigned 1\:signed))' \
+      '(-R --raw)'{-R,--raw}'[output in raw format]' \
+      '(-o --output)'{-o+,--output=}'[write output to specified filename]:output filename:_files' \
+      '*:ogg vorbis file:_files -g "(#i)*.ogg(-.)"' && ret=0
+  ;;
+  vorbiscomment)
+    _arguments -s -S \
+      '(-l --list)*'{-t+,--tag=}'[specify a comment tag on the commandline]:tag=value' \
+      '(-c --commentfile)'{-c+,--commentfile=}'[specify comment file]:file:_files' \
+      '(-R --raw)'{-R,--raw}'[read and write comments in UTF-8]' \
+      '(-e --escapes)'{-e,--escapes}'[use \\n-style escapes to allow multiline comments]' \
+      '1:ogg vorbis file:_files -g "(#i)*.ogg(-.)"' \
+      '(-l --list)2:ogg vorbis file:_files -g "(#i)*.ogg(-.)"' \
+      + '(actions)' \
+      '(2 -t --tag)'{-l,--list}'[list the comments (default)]' \
+      {-a,--append}'[append comments]' \
+      {-w,--write}'[write comments, replacing the existing ones]' \
+      '(-)'{-h,--help}'[display usage information]' \
+      '(-)'{-V,--version}'[display version information]' && ret=0
+  ;;
+esac
+
+if [[ -n $state ]]; then
+  case $state in
+    urls-or-files)
+      if [[ -prefix 1 (f|ht)tp(|s):// ]]; then
+        alts=( 'urls:URL of sound file:_urls -f -g "*.(#i)(ogg|flax|spx)(-.)"' )
+      else
+        alts=( 'urls:URL of sound file:compadd -S "" ftp:// http:// https://' )
+      fi
+      _alternative \
+        'files:sound file or directory:_files -g "(#i)*.(ogg|flac|spx)"' \
+        $alts && ret=0
+    ;;
+    devopts)
+      if compset -P 1 '*:'; then
+        _message -e value value
+      else
+        _description device-options expl 'device option'
+        if ! compset -S ':*'; then
+          compadd "$expl[@]" - debug verbose quiet && ret=0
+          suf=( -qS : )
+        fi
+        compadd $suf "$expl[@]" - matrix dev buffer_time period_time use_mmap \
+            multi host buf_size dsp server sink byteorder id && ret=0
+      fi
+    ;;
+  esac
+fi
+
+return ret

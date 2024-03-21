@@ -1,0 +1,65 @@
+# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# This script tests -setpath and -pathmap for "profng display text"
+
+global srcdir CC CLOCK_GETTIME_LINK
+set gprofng $::env(GPROFNG)
+set tdir "tmpdir/setpath_map"
+
+run_native_host_cmd "mkdir -p $tdir/src"
+
+# Build test, create experiment:
+set output [run_native_host_cmd "cd $tdir && \
+  cat $srcdir/lib/smalltest.c | sed '1 i /* CORRECTSOURCE */' > t.c && \
+  $CC -g t.c $CLOCK_GETTIME_LINK && \
+  $gprofng collect app -p on -a off -O exp.er ./a.out"]
+
+if { [lindex $output 0] != 0 } then {
+  set out [lindex $output 1]
+  send_log "Experiment is not created in $tdir\n"
+  fail $tdir
+  return
+}
+
+# Copy the "good" file to $tdir/src. Mark old file as "wrong":
+run_native_host_cmd "cp $tdir/t.c $tdir/src"
+run_native_host_cmd "sed -i 's/CORRECTSOURCE/WRONGSOURCE/' $tdir/t.c"
+
+# Test -setpath:
+set output [run_native_host_cmd "$gprofng display text -setpath $tdir/src -source main $tdir/exp.er"]
+if { [string first "CORRECTSOURCE" [lindex $output 1]] < 0 } then {
+  set out [lindex $output 1]
+  send_log "CORRECTSOURCE is not found in $gprofng display text -setpath $tdir/src -source main $tdir/exp.er\n"
+  fail $tdir
+  return
+}
+
+# Test -pathmap:
+set output [run_native_host_cmd "$gprofng display text -pathmap $tdir $tdir/src -source main $tdir/exp.er"]
+set out [lindex $output 1]
+if { [string first "CORRECTSOURCE" [lindex $output 1]] < 0 } then {
+  set out [lindex $output 1]
+  send_log "CORRECTSOURCE is not found in $gprofng display text -pathmap $tdir $tdir/src -source main $tdir/exp.er\n"
+  fail $tdir
+  return
+}
+
+pass $dir

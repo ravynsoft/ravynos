@@ -1,0 +1,30 @@
+.TH libinput-measure-fuzz "1"
+.SH NAME
+libinput\-measure\-fuzz \- measure absolute axis fuzz
+.SH SYNOPSIS
+.B libinput measure fuzz [\-\-help] [options]
+[\fI/dev/input/event0\fI]
+.SH DESCRIPTION
+.PP
+The
+.B "libinput measure fuzz"
+tool measures the fuzz for an absolute axis on a kernel device. The current
+implementation does not actually measure anything, it only prints the
+relevant information available and suggests a udev rule.
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+If a device node is given, this tool opens that device node. Otherwise, this
+tool searches for the first node that looks like a touchpad device and
+uses that node.
+.TP 8
+.B \-\-help
+Print help
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

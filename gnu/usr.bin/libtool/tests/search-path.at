@@ -1,0 +1,98 @@
+# search-path.at -- test sys_lib_search_path_spec             -*- Autotest -*-
+#
+#   Copyright (C) 2006, 2008, 2010-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([sys_lib_search_path])
+AT_KEYWORDS([libtool])
+LDFLAGS="$LDFLAGS -no-undefined"
+
+AT_DATA([main.c],
+[[extern
+#ifdef __cplusplus
+"C"
+#endif
+int inflate ();
+int main()
+{
+  return inflate ();
+}
+]])
+
+$CC $CPPFLAGS $CFLAGS -c main.c
+eval `$LIBTOOL --config | $EGREP '^(sys_lib_search_path_spec)='`
+eval sys_lib_search_path=\"$sys_lib_search_path_spec\"
+no_libz=:
+for path in $sys_lib_search_path; do
+  if $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT -L$path -lz
+  then
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT -lz],
+             [], [ignore], [ignore])
+    no_libz=false
+    break
+  fi
+done
+
+# If -lz doesn't exist (hello, cross compiler!), we need a dummy test.
+if $no_libz; then
+  AT_CHECK([exit 77])
+fi
+
+AT_CLEANUP
+
+
+AT_SETUP([sys_lib_search_path on w32])
+AT_KEYWORDS([libtool])
+
+# Check if libtool knows the path to system libraries.  Using
+# a w32 system library since the test is designed to check if
+# the libtool handling of the sys_lib_search_path variable is
+# correct for MSVC.
+
+LDFLAGS="$LDFLAGS -no-undefined"
+
+AT_DATA([gc.c],
+[[#include <windows.h>
+HCURSOR get_cursor (void)
+{
+  return GetCursor ();
+}
+]])
+
+eval "`$LIBTOOL --config | $GREP '^build_libtool_libs='`"
+AT_CHECK([test yes = "$build_libtool_libs" || exit 77])
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC \
+	  $CC $CPPFLAGS $CFLAGS -o gc.lo -c gc.c || exit 77],
+	 [], [ignore], [ignore])
+
+# Ok, compile was fine, then it should be possible to link too.
+
+AT_CHECK([$LIBTOOL --mode=link --tag=CC --tag=disable-static \
+	  $CC $CFLAGS $LDFLAGS -o libgc.la gc.lo -rpath /nowhere -luser32],
+	 [], [ignore], [ignore])
+
+# If -luser32 was found, then libtool will build a shared library,
+# otherwise libtool will fall back to creating a static library.
+AT_CHECK([$GREP old_library=\'\' libgc.la], [], [ignore])
+
+AT_CLEANUP

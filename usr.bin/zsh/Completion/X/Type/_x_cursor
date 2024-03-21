@@ -1,0 +1,18 @@
+#autoload
+
+local expl
+
+if (( ! $+_cursor_cache )); then
+  local file
+
+  file=( /usr/{include,{{X11R6,openwin},local{,/X11{,R6}}}/include}/X11/cursorfont.h(N) )
+
+  if (( $#file )); then
+    _cursor_cache=( "${(@)${(@)${(M@)${(@f)$(< $file[1])}:#*XC_*}[2,-1]#* XC_}% *}" )
+  else
+    _cursor_cache=( X_cursor )
+  fi
+fi
+
+_wanted cursors expl 'cursor name' \
+    compadd "$@" -M 'm:-=_ r:|_=*' -a - _cursor_cache

@@ -1,0 +1,11 @@
+# interactive
+
+# from tty
+read -n 3 -p 'enter three chars: ' xyz
+echo
+echo $xyz
+
+# using readline
+read -p 'enter 3 chars: ' -e -n 3 abc
+# readline outputs a newline for us, so we don't need the extra echo
+echo $abc

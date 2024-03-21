@@ -25,8 +25,6 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"     @(#)ktrace.2	8.1 (Berkeley) 6/4/93
-.\"
 .Dd November 2, 2022
 .Dt KTRACE 2
 .Os
@@ -145,7 +143,7 @@ The following
 tunables influence the behaviour of
 .Fn ktrace :
 .Bl -tag -width indent
-.It Va kern.ktrace.geniosize
+.It Va kern.ktrace.genio_size
 bounds the amount of data a traced I/O request will log
 to the trace file.
 .It Va kern.ktrace.request_pool

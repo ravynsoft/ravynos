@@ -1,0 +1,57 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# post-bash-4.3 changes for more ksh93 compatibility when following nameref
+# chains and using typeset/declare -n to operate on nameref variables rather
+# than the variables they reference
+
+# don't follow nameref chain when using declare -n and at the global scope
+unset -n r1 r2
+
+typeset -n r1=r2
+typeset -n r2=x
+typeset -n r1=y
+
+typeset -p r1 r2 x y
+
+# same behavior when in a shell function
+foo()
+{
+	typeset -n r1=r2
+	typeset -n r2=x
+	typeset -n r1=y
+
+	typeset -p r1 r2 x y
+}
+unset -n r1 r2
+foo
+unset -f foo
+
+# same behavior when namerefs aren't chained
+unset -n r1 r2
+
+typeset -n r1=z
+typeset -n r2=x
+typeset -n r1=y
+typeset -p r1 r2 x y
+
+# same behavior when referenced variables have values
+unset -n r1 r2
+
+x=one
+y=two
+typeset -n r1=r2
+typeset -n r2=x
+typeset -n r1=y
+
+typeset -p r1 r2 x y

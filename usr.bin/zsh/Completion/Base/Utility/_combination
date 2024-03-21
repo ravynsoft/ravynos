@@ -1,0 +1,102 @@
+#autoload
+
+# Usage:
+#   _combination [-s S] TAG STYLE \
+#     Ki1[:Ni1]=Pi1 Ki2[:Ni2]=Pi2 ... Kim[:Nim]=Pim Kj[:Nj] EXPL...
+#
+#  STYLE should be of the form K1-K2-...-Kn.
+#
+# Example: telnet
+#
+#  Assume a user sets the style `users-hosts-ports' as for the my-accounts
+#  tag:
+#
+#    zstyle ':completion:*:*:telnet:*:my-accounts' users-hosts-ports \
+#      @host0: user1@host1: user2@host2:
+#      @mail-server:{smtp,pop3}
+#      @news-server:nntp
+#      @proxy-server:8000
+# 
+#
+#  `_telnet' completes hosts as:
+#
+#    _combination my-accounts users-hosts-ports \
+#      ${opt_args[-l]:+users=${opt_args[-l]:q}} \
+#      hosts "$expl[@]"
+#
+#  This completes `host1', `host2', `mail-server', `news-server' and
+#  `proxy-server' according to the user given with `-l' if it is exists.
+#  And if it is failed, `_hosts' is called.
+# 
+#  `_telnet' completes ports as:
+#
+#    _combination my-accounts users-hosts-ports \
+#      ${opt_args[-l]:+users=${opt_args[-l]:q}} \
+#      hosts="${line[2]:q}" \
+#      ports "$expl[@]"
+#
+#  This completes `smtp', `pop3', `nntp' and `8000' according to the
+#  host argument --- $line[2] and the user option argument if it is
+#  exists. And if it is failed, `_ports' is called.
+#
+#  `_telnet' completes users for an argument of option `-l' as:
+#
+#    _combination my-accounts users-hosts-ports \
+#      ${line[2]:+hosts="${line[2]:q}"} \
+#      ${line[3]:+ports="${line[3]:q}"} \
+#      users "$expl[@]"
+#
+#  This completes `user1' and `user2' according to the host argument and
+#  the port argument if they are exist. And if it is failed, `_users' is
+#  called.
+
+local sep tag style keys pats key num tmp
+
+if [[ "$1" = -s ]]; then
+  sep="$2"
+  shift 2
+elif [[ "$1" = -s* ]]; then
+  sep="${1[3,-1]}"
+  shift
+else
+  sep=:
+fi
+
+tag="$1"
+style="$2"
+shift 2
+
+keys=( ${(s/-/)style} )
+pats=( "${(@)keys/*/*}" )
+
+while [[ "$1" = *=* ]]; do
+  tmp="${1%%\=*}"
+  key="${tmp%:*}"
+  if [[ $1 = *:* ]]; then
+    num=${tmp##*:}
+  else
+    num=1
+  fi
+  pats[$keys[(in:num:)$key]]="${1#*\=}"
+  shift
+done
+
+key="${1%:*}"
+if [[ $1 = *:* ]]; then
+  num=${1##*:}
+else
+  num=1
+fi
+shift
+
+if zstyle -a ":completion:${curcontext}:$tag" "$style" tmp; then
+  eval "tmp=( \"\${(@M)tmp:#\${(j($sep))~pats}}\" )"
+  if (( keys[(in:num:)$key] != 1 )); then
+    eval "tmp=( \${tmp#\${(j(${sep}))~\${(@)\${(@)keys[2,(rn:num:)\$key]}/*/*}}${~sep}} )"
+  fi
+  tmp=( ${tmp%%${~sep}*} )
+
+  compadd "$@" -a tmp || { (( $+functions[_$key] )) && "_$key" "$@" }
+else
+  (( $+functions[_$key] )) && "_$key" "$@"
+fi

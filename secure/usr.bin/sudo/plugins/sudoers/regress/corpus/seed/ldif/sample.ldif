@@ -1,0 +1,295 @@
+# LDIF version of the example sudoers file
+
+# Unable to translate ./examples/sudoers:12:17:
+# Defaults>root !set_logname
+
+# Unable to translate ./examples/sudoers:16:24:
+# Defaults!/usr/bin/more, /usr/bin/pg, /usr/bin/less noexec
+
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: syslog=auth
+sudoOption: runcwd=~
+
+dn: cn=root,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: root
+sudoUser: root
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoRunAsGroup: ALL
+sudoCommand: ALL
+sudoOrder: 1
+
+dn: cn=%wheel,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %wheel
+sudoUser: %wheel
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoRunAsGroup: ALL
+sudoCommand: ALL
+sudoOrder: 2
+
+dn: cn=FULLTIMERS,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: FULLTIMERS
+sudoUser: millert
+sudoUser: mikef
+sudoUser: dowdy
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoRunAsGroup: ALL
+sudoOption: !authenticate
+sudoOption: !lecture
+sudoOption: !runchroot=*
+sudoCommand: ALL
+sudoOrder: 3
+
+dn: cn=PARTTIMERS,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: PARTTIMERS
+sudoUser: bostley
+sudoUser: jwfox
+sudoUser: crawl
+sudoHost: ALL
+sudoCommand: ALL
+sudoOrder: 4
+
+dn: cn=jack,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: jack
+sudoUser: jack
+sudoHost: 128.138.243.0
+sudoHost: 128.138.204.0/24
+sudoHost: 128.138.242.0
+sudoCommand: ALL
+sudoOrder: 5
+
+dn: cn=lisa,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: lisa
+sudoUser: lisa
+sudoHost: 128.138.0.0/255.255.0.0
+sudoCommand: ALL
+sudoOrder: 6
+
+dn: cn=operator,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: operator
+sudoUser: operator
+sudoHost: ALL
+sudoCommand: /usr/sbin/dump
+sudoCommand: /usr/sbin/rdump
+sudoCommand: /usr/sbin/restore
+sudoCommand: /usr/sbin/rrestore
+sudoCommand: /usr/bin/mt
+sudoCommand: sha224:0GomF8mNN3wlDt1HD9XldjJ3SNgpFdbjO1+NsQ== /home/operator/bin/start_backups
+sudoCommand: /usr/bin/kill
+sudoCommand: /usr/bin/top
+sudoCommand: /usr/sbin/shutdown
+sudoCommand: /usr/sbin/halt
+sudoCommand: /usr/sbin/reboot
+sudoCommand: /usr/sbin/lpc
+sudoCommand: /usr/bin/lprm
+sudoCommand: sudoedit /etc/printcap
+sudoCommand: /usr/oper/bin/
+sudoOrder: 7
+
+dn: cn=joe,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: joe
+sudoUser: joe
+sudoHost: ALL
+sudoCommand: /usr/bin/su operator
+sudoOrder: 8
+
+dn: cn=pete,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: pete
+sudoUser: pete
+sudoHost: boa
+sudoHost: nag
+sudoHost: python
+sudoCommand: /usr/bin/passwd ^[a-zA-Z0-9_]+$
+sudoCommand: !/usr/bin/passwd root
+sudoOrder: 9
+
+dn: cn=bob,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: bob
+sudoUser: bob
+sudoHost: bigtime
+sudoHost: eclipse
+sudoHost: moet
+sudoHost: anchor
+sudoRunAsUser: root
+sudoRunAsUser: operator
+sudoCommand: ALL
+sudoOrder: 10
+
+dn: cn=bob_1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: bob_1
+sudoUser: bob
+sudoHost: grolsch
+sudoHost: dandelion
+sudoHost: black
+sudoRunAsUser: root
+sudoRunAsUser: operator
+sudoCommand: ALL
+sudoOrder: 11
+
+dn: cn=jim,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: jim
+sudoUser: jim
+sudoHost: +biglab
+sudoCommand: ALL
+sudoOrder: 12
+
+dn: cn=\+secretaries,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: \+secretaries
+sudoUser: +secretaries
+sudoHost: ALL
+sudoCommand: /usr/sbin/lpc
+sudoCommand: /usr/bin/lprm
+sudoCommand: /usr/bin/adduser
+sudoCommand: /usr/bin/rmuser
+sudoOrder: 13
+
+dn: cn=fred,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: fred
+sudoUser: fred
+sudoHost: ALL
+sudoRunAsUser: oracle
+sudoRunAsUser: sybase
+sudoOption: !authenticate
+sudoCommand: ALL
+sudoOrder: 14
+
+dn: cn=john,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: john
+sudoUser: john
+sudoHost: widget
+sudoHost: thalamus
+sudoHost: foobar
+sudoCommand: /usr/bin/su ^[a-zA-Z0-9_]+$
+sudoCommand: !/usr/bin/su root
+sudoOrder: 15
+
+dn: cn=jen,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: jen
+sudoUser: jen
+sudoHost: ALL
+sudoHost: !primary
+sudoHost: !mail
+sudoHost: !www
+sudoHost: !ns
+sudoCommand: ALL
+sudoOrder: 16
+
+dn: cn=jill,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: jill
+sudoUser: jill
+sudoHost: primary
+sudoHost: mail
+sudoHost: www
+sudoHost: ns
+sudoOption: log_year
+sudoOption: logfile=/var/log/sudo.log
+sudoCommand: /usr/bin/
+sudoCommand: !/usr/bin/su
+sudoCommand: !/sbin/sh
+sudoCommand: !/usr/bin/sh
+sudoCommand: !/usr/bin/csh
+sudoCommand: !/usr/bin/ksh
+sudoCommand: !/usr/local/bin/tcsh
+sudoCommand: !/usr/bin/rsh
+sudoCommand: !/usr/local/bin/zsh
+sudoOrder: 17
+
+dn: cn=steve,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: steve
+sudoUser: steve
+sudoHost: 128.138.243.0
+sudoHost: 128.138.204.0/24
+sudoHost: 128.138.242.0
+sudoRunAsUser: operator
+sudoCommand: /usr/local/op_commands/
+sudoOrder: 18
+
+dn: cn=matt,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: matt
+sudoUser: matt
+sudoHost: valkyrie
+sudoCommand: /usr/bin/kill
+sudoCommand: /usr/bin/top
+sudoOrder: 19
+
+dn: cn=WEBADMIN,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: WEBADMIN
+sudoUser: will
+sudoUser: wendy
+sudoUser: wim
+sudoHost: www
+sudoRunAsUser: www
+sudoCommand: ALL
+sudoOrder: 20
+
+dn: cn=WEBADMIN_1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: WEBADMIN_1
+sudoUser: will
+sudoUser: wendy
+sudoUser: wim
+sudoHost: www
+sudoRunAsUser: root
+sudoCommand: /usr/bin/su www
+sudoOrder: 21
+
+dn: cn=ALL,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: ALL
+sudoUser: ALL
+sudoHost: orion
+sudoHost: perseus
+sudoHost: hercules
+sudoOption: !authenticate
+sudoCommand: /sbin/umount /CDROM
+sudoCommand: /sbin/mount -o nosuid,nodev /dev/cd0a /CDROM
+sudoOrder: 22
+

@@ -23,7 +23,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/bus.h>
@@ -135,7 +134,7 @@ static uint64_t
 aw_clk_m_find_best(struct aw_clk_m_sc *sc, uint64_t fparent, uint64_t *fout,
     uint32_t *factor_m)
 {
-	uint64_t cur, best;
+	uint64_t cur, best = 0;
 	uint32_t m, max_m, min_m;
 
 	*factor_m = 0;

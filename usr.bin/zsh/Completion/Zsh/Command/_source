@@ -1,0 +1,14 @@
+#compdef source .
+
+if [[ CURRENT -ge 3 ]]; then
+  compset -n 2
+  _normal
+else
+  if [[ -prefix */ && ! -o pathdirs ]]; then
+    _files
+  elif [[ $service = . ]]; then
+    _files -W path
+  else
+    _files -W "(. $path)"
+  fi
+fi

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFswab &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFtile" href="TIFFtile.html" />
+    <link rel="prev" title="TIFFstrip" href="TIFFstrip.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFtile.html" title="TIFFtile"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFstrip.html" title="TIFFstrip"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFswab</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffswab">
+<h1>TIFFswab<a class="headerlink" href="#tiffswab" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFGetBitRevTable">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFGetBitRevTable</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">reversed</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFGetBitRevTable" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFReverseBits">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFReverseBits</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">u_char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">long</span></span><span class="w"> </span><span class="n"><span class="pre">nbytes</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFReverseBits" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabShort">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabShort</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabShort" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabLong">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabLong</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabLong" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabLong8">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabLong8</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabLong8" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabFloat">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabFloat</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabFloat" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabDouble">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabDouble</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabDouble" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabArrayOfShort">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabArrayOfShort</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">wp</span></span>, <span class="n"><span class="pre">tmsize_t</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabArrayOfShort" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabArrayOfTriples">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabArrayOfTriples</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tp</span></span>, <span class="n"><span class="pre">tmsize_t</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabArrayOfTriples" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabArrayOfLong">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabArrayOfLong</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lp</span></span>, <span class="n"><span class="pre">tmsize_t</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabArrayOfLong" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabArrayOfLong8">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabArrayOfLong8</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">lp</span></span>, <span class="n"><span class="pre">tmsize_t</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabArrayOfLong8" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabArrayOfFloat">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabArrayOfFloat</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fp</span></span>, <span class="n"><span class="pre">tmsize_t</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabArrayOfFloat" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSwabArrayOfDouble">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSwabArrayOfDouble</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">dp</span></span>, <span class="n"><span class="pre">tmsize_t</span></span><span class="w"> </span><span class="n"><span class="pre">n</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSwabArrayOfDouble" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>The following routines are used by the library to swap 16-, 32- and 64-bit
+data and to reverse the order of bits in bytes.</p>
+<p><a class="reference internal" href="#c.TIFFSwabShort" title="TIFFSwabShort"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabShort()</span></code></a> and <a class="reference internal" href="#c.TIFFSwabLong" title="TIFFSwabLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabLong()</span></code></a> and <a class="reference internal" href="#c.TIFFSwabFloat" title="TIFFSwabFloat"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabFloat()</span></code></a>
+swap the bytes in a single 16- and 32-bit item, respectively.</p>
+<p><a class="reference internal" href="#c.TIFFSwabLong8" title="TIFFSwabLong8"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabLong8()</span></code></a> and <a class="reference internal" href="#c.TIFFSwabDouble" title="TIFFSwabDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabDouble()</span></code></a>
+swap the bytes in a single 64-bit item.</p>
+<p><a class="reference internal" href="#c.TIFFSwabArrayOfTriples" title="TIFFSwabArrayOfTriples"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfTriples()</span></code></a> swap the first and the third byte of
+each triple (three bytes) within the byte array. The second byte of each
+triple stays untouched.</p>
+<p><a class="reference internal" href="#c.TIFFSwabArrayOfShort" title="TIFFSwabArrayOfShort"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfShort()</span></code></a> and  <a class="reference internal" href="#c.TIFFSwabArrayOfLong" title="TIFFSwabArrayOfLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfLong()</span></code></a>,
+<a class="reference internal" href="#c.TIFFSwabArrayOfFloat" title="TIFFSwabArrayOfFloat"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfFloat()</span></code></a> swap the bytes in an array of 16- and 32-bit
+items, respectively.</p>
+<p><a class="reference internal" href="#c.TIFFSwabArrayOfLong8" title="TIFFSwabArrayOfLong8"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfLong8()</span></code></a> and <a class="reference internal" href="#c.TIFFSwabArrayOfDouble" title="TIFFSwabArrayOfDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfDouble()</span></code></a>
+swap the bytes in an array of 64-bit items.</p>
+<p><a class="reference internal" href="#c.TIFFReverseBits" title="TIFFReverseBits"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReverseBits()</span></code></a> replaces each byte in <em>data</em> with the
+equivalent bit-reversed value. This operation is performed with a
+lookup table, which is returned using the <a class="reference internal" href="#c.TIFFGetBitRevTable" title="TIFFGetBitRevTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetBitRevTable()</span></code></a>
+function.  The <em>reversed</em> parameter specifies which table should be
+returned. Supply <em>1</em> if you want bit reversal table. Supply <em>0</em> to get
+the table that do not reverse bit values. It is a lookup table that can
+be used as an “identity function”; i.e. <span class="c-expr sig sig-inline c"><span class="n">TIFFNoBitRevTable</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">n</span></span>.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>None.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFswab</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFstrip.html"
+                          title="previous chapter">TIFFstrip</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFtile.html"
+                          title="next chapter">TIFFtile</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFswab.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFtile.html" title="TIFFtile"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFstrip.html" title="TIFFstrip"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFswab</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

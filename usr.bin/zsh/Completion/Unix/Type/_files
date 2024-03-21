@@ -1,0 +1,153 @@
+#compdef -redirect-,-default-,-default-
+
+local -a match mbegin mend
+local -a subtree
+local ret=1
+
+# Look for glob qualifiers. This is duplicated from _path_files because
+# we don't want to complete them multiple times (for each file pattern).
+if _have_glob_qual $PREFIX; then
+  compset -p ${#match[1]}
+  compset -S '[^\)\|\~]#(|\))'
+  if [[ $_comp_caller_options[extendedglob] == on ]] && compset -P '\#'; then
+    _globflags && ret=0
+  else
+    if [[ $_comp_caller_options[extendedglob] == on ]]; then
+      _describe -t globflags "glob flag" '(\#:introduce\ glob\ flag)' -Q -S '' && ret=0
+    fi
+    _globquals && ret=0
+  fi
+  return ret
+elif [[ $_comp_caller_options[extendedglob] == on && $PREFIX = \(\#[^\)]# ]] && compset -P '\(\#'; then
+  # Globbing flags can start at beginning of word, even though
+  # glob qualifiers can't.
+  _globflags && return
+fi
+
+local opts tmp glob pat pats expl tag i def descr end ign tried
+local type sdef ignvars ignvar prepath oprefix rfiles rfile
+
+zparseopts -a opts \
+    '/=tmp' 'f=tmp' 'g+:-=tmp' q n 1 2 P: S: r: R: W: x+: X+: M+: F: J+: V+: o+:
+
+type="${(@j::M)${(@)tmp#-}#?}"
+if (( $tmp[(I)-g*] )); then
+  glob="${${${(@)${(@M)tmp:#-g*}#-g}##[[:blank:]]#}%%[[:blank:]]#}"
+  [[ "$glob" = *[^\\][[:blank:]]* ]] &&
+      glob="{${glob//(#b)([^\\])[[:blank:]]##/${match[1]},}}"
+
+  # add `#q' to the beginning of any glob qualifier if not there already
+  [[ "$glob" = (#b)(*\()([^\|\~]##\)) && $match[2] != \#q* ]] &&
+      glob="${match[1]}#q${match[2]}"
+elif [[ $type = */* ]]; then
+  glob="*(#q-/)"
+fi
+tmp=$opts[(I)-F]
+if (( tmp )); then
+  ignvars=($=opts[tmp+1])
+  if [[ $ignvars = _comp_ignore ]]; then
+    ign=( $_comp_ignore )
+  elif [[ $ignvars = \(* ]]; then
+    ign=( ${=ignvars[2,-2]} )
+  else
+    ign=()
+    for ignvar in $ignvars; do
+      ign+=(${(P)ignvar})
+    done
+    opts[tmp+1]=_comp_ignore
+  fi
+else
+  ign=()
+fi
+
+if zstyle -a ":completion:${curcontext}:" file-patterns tmp; then
+  pats=()
+
+  for i in ${tmp//\%p/${${glob:-\*}//:/\\:}}; do
+    if [[ $i = *[^\\]:* ]]; then
+      pats+=( " $i " )
+    else
+      pats+=( " ${i}:files " )
+    fi
+  done
+elif zstyle -t ":completion:${curcontext}:" list-dirs-first; then
+  pats=( " *(-/):directories:directory ${${glob:-*}//:/\\:}(#q^-/):globbed-files" '*:all-files' )
+else
+  # People prefer to have directories shown on first try as default.
+  # Even if the calling function didn't use -/.
+  pats=( "${${glob:-*}//:/\\:}:globbed-files *(-/):directories" '*:all-files ' )
+fi
+
+tried=()
+for def in "$pats[@]"; do
+  eval "def=( ${${def//\\:/\\\\\\:}//(#b)([][()|*?^#~<>])/\\${match[1]}} )"
+
+  tmp="${(@M)def#*[^\\]:}"
+  (( $tried[(I)${(q)tmp}] )) && continue
+  tried=( "$tried[@]" "$tmp" )
+
+  for sdef in "$def[@]"; do
+
+    tag="${${sdef#*[^\\]:}%%:*}"
+    pat="${${sdef%%:${tag}*}//\\:/:}"
+
+    if [[ "$sdef" = *:${tag}:* ]]; then
+      # If the file-patterns spec includes a description, use it and give the
+      # group/description options from it precedence over passed in parameters.
+      descr="${(Q)sdef#*:${tag}:}"
+      end=
+    else
+      if (( $opts[(I)-X] )); then
+        descr=
+      else
+        descr=file
+      fi
+      end=yes
+    fi
+
+    _tags "$tag"
+    while _tags; do
+      _comp_ignore=()
+      while _next_label "$tag" expl "$descr"; do
+        _comp_ignore=( $_comp_ignore $ign )
+        if [[ -n "$end" ]]; then
+          expl=( "$opts[@]" "$expl[@]" )
+        else
+          expl+=( "$opts[@]" )
+        fi
+
+        if _path_files -g "$pat" "$expl[@]"; then
+          ret=0
+        elif [[ $PREFIX$SUFFIX != */* ]] && \
+            zstyle -a ":completion:${curcontext}:$tag" recursive-files rfiles
+        then
+          for rfile in $rfiles; do
+            if [[ $PWD/ = ${~rfile} ]]; then
+              if [[ -z $subtree ]]; then
+                subtree=( **/*(/) )
+              fi
+              for prepath in $subtree; do
+                oprefix=$PREFIX
+                PREFIX=$prepath/$PREFIX
+                _path_files -g "$pat" "$expl[@]" && ret=0
+                PREFIX=$oprefix
+              done
+              break
+            fi
+          done
+        fi
+      done
+      (( ret )) || break
+    done
+
+    ### For that _next_tags change mentioned above we would have to
+    ### comment out the following line. (Or not, depending on the order
+    ### of the patterns.)
+
+    [[ "$pat" = '*' ]] && return ret
+
+  done
+  (( ret )) || return 0
+done
+
+return 1

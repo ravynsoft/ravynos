@@ -1,0 +1,2730 @@
+mailto(pws@pwstephenson.fsnet.co.uk)\
+whentxt(notableofcontents())\
+COMMENT(-- mytt is like tt but adds quotes `like this' for plain text --)\
+def(mytt)(1)(\
+  whentxt(`ARG1')\
+  whenhtml(tt(ARG1))\
+  whenlatex(tt(ARG1))\
+  whenms(tt(ARG1))\
+  whensgml(tt(ARG1)))\
+COMMENT(-- mybf/em are like bf/em but add *emphasis* for text too --)\
+def(mybf)(1)(\
+  whentxt(*ARG1*)\
+  whenhtml(bf(ARG1))\
+  whenlatex(bf(ARG1))\
+  whenms(bf(ARG1))\
+  whensgml(bf(ARG1)))\
+def(myem)(1)(\
+  whentxt(_ARG1_)\
+  whenhtml(em(ARG1))\
+  whenlatex(em(ARG1))\
+  whenms(em(ARG1))\
+  whensgml(em(ARG1)))\
+COMMENT(-- mydit is like dit but no `o' for text mode --)\
+def(mydit)(1)(\
+    whenlatex(dit(ARG1))\
+    whenhtml(dit(ARG1))\
+    whentxt(ARG1)\
+    whenman(dit(ARG1))\
+    whenms(dit(ARG1))\
+    whensgml(dit(ARG1)))\
+COMMENT(-- myeit is like eit but fancier text formatting --)\
+def(myeit)(0)(\
+    whenlatex(eit())whenhtml(eit())whenman(eit())whenms(eit())whensgml(eit())\
+    whentxt(eit()CHAR(41)))\
+def(myeitd)(0)(\
+    whenlatex(eit())whenhtml(eit())whenman(eit())whenms(eit())whensgml(eit())\
+    whentxt(.))\
+COMMENT(-- don't want headers for text, USENET headers must come first --)\
+def(myreport)(3)(\
+whentxt(report()()())\
+whenhtml(report(ARG1)(ARG2)(ARG3))\
+whenlatex(report(ARG1)(ARG2)(ARG3))\
+whenman(report(ARG1)(ARG2)(ARG3))\
+whenms(report(ARG1)(ARG2)(ARG3))\
+whensgml(report(ARG1)(ARG2)(ARG3)))\
+def(startitem)(0)() \
+def(enditem)(0)()\
+def(item)(2)(
+ARG1: ARG2)\
+def(nofill)(1)(ARG1)\
+def(uref)(1)(url(ARG1)(ARG1))\
+COMMENT(TODO: make this expand to a Unicode em dash (U+2014) in HTML output)\
+def(emdash)(0)(\
+    whenlatex(---)\
+    whenhtml(---)\
+    whenman(--)whenms(--)whensgml(--)\
+    whentxt(--))\
+SUBST(_LPAR_)(CHAR(40))\
+SUBST(_RPAR_)(CHAR(41))
+myreport(Z-Shell Frequently-Asked Questions)(Peter Stephenson)(2010/02/15)
+COMMENT(-- the following are for Usenet and must appear first)\
+description(\
+mydit(Archive-Name:) unix-faq/shell/zsh
+mydit(Last-Modified:) 2020/08/08
+mydit(Submitted-By:) email(coordinator@zsh.org (Peter Stephenson))
+mydit(Posting-Frequency:) Monthly
+mydit(Copyright:) (C) P.W. Stephenson, 1995--2020 (see end of document)
+)
+
+This document contains a list of frequently-asked (or otherwise
+significant) questions concerning the Z-shell, a command interpreter
+for many UNIX systems which is freely available to anyone with FTP
+access.  Zsh is among the most powerful freely available Bourne-like
+shells for interactive use.
+
+If you have never heard of mytt(sh), mytt(csh) or mytt(ksh), then you are
+probably better off to start by reading a general introduction to UNIX
+rather than this document.
+
+If you just want to know how to get your hands on the latest version,
+skip to question link(1.6)(16); if you want to know what to do with
+insoluble problems, go to link(6.2)(62).
+
+whentxt(Notation: Quotes `like this' are ordinary textual quotation
+marks.  Other uses of quotation marks are input to the shell.)
+
+COMMENT(-- need to do this specially in text since it should go here --)
+whentxt(Contents:
+Chapter 1:  Introducing zsh and how to install it
+1.1. Sources of information
+1.2. What is it?
+1.3. What is it good at?
+1.4. On what machines will it run?  (Plus important compilation notes)
+1.5. What's the latest version?
+1.6. Where do I get it?
+1.7. I don't have root access: how do I make zsh my login shell?
+
+Chapter 2:  How does zsh differ from...?
+2.1. sh and ksh?
+2.2. csh?
+2.3. Why do my csh aliases not work?  (Plus other alias pitfalls.)
+2.4. tcsh?
+2.5. bash?
+2.6. Shouldn't zsh be more/less like ksh/(t)csh?
+2.7. What is zsh's support for Unicode/UTF-8?
+2.8. Why does my bash script report an error when I run it under zsh?
+
+Chapter 3:  How to get various things to work
+3.1. Why does `$var' where `var="foo bar"' not do what I expect?
+3.2. In which startup file do I put...?
+3.3. What is the difference between `export' and the ALL_EXPORT option?
+3.4. How do I turn off spelling correction/globbing for a single command?
+3.5. How do I get the Meta key to work on my xterm?
+3.6. How do I automatically display the directory in my xterm title bar?
+3.7. How do I make the completion list use eight bit characters?
+3.8. Why do the cursor (arrow) keys not work?  (And other terminal oddities.)
+3.9. Why does my terminal act funny in some way?
+3.10. Why does zsh not work in an Emacs shell mode any more?
+3.11. Why do my autoloaded functions not autoload [the first time]?
+3.12. How does base arithmetic work?
+3.13. How do I get a newline in my prompt?
+3.14. Why does `bindkey ^a command-name' or 'stty intr ^-' do something funny?
+3.15. Why can't I bind \C-s and \C-q any more?
+3.16. How do I execute command `foo' within function `foo'?
+3.17. Why do history substitutions with single bangs do something funny?
+3.18. Why does zsh kill off all my background jobs when I logout?
+3.19. How do I list all my history entries?
+3.20. How does the alternative loop syntax, e.g. mytt(while {...} {...}) work?
+3.21. Why is my history not being saved?
+3.22. How do I get a variable's value to be evaluated as another variable?
+3.23. How do I prevent the prompt overwriting output when there is no newline?
+3.24. What's wrong with cut and paste on my xterm?
+3.25. How do I get coloured prompts on my colour xterm?
+3.26. Why is my output duplicated with `tt(foo 2>&1 >foo.out | bar)'?
+3.27. What are these `^' and `~' pattern characters, anyway?
+3.28. How do I edit the input buffer in $EDITOR?
+3.29. Why does `which' output for missing commands go to stdout?
+3.30. Why doesn't the expansion mytt(*.{tex,aux,pdf}) do what I expect?
+
+Chapter 4:  The mysteries of completion
+4.1. What is completion?
+4.2. What sorts of things can be completed?
+4.3. How does zsh deal with ambiguous completions?
+4.4. How do I complete in the middle of words / just what's before the cursor?
+4.5. How do I get started with programmable completion?
+4.6. Suppose I want to complete all files during a special completion?
+
+Chapter 5:  Multibyte input and output
+
+5.1. What is multibyte input?
+5.2. How does zsh handle multibyte input and output?
+5.3. How do I ensure multibyte input and output work on my system?
+5.4. How can I input characters that aren't on my keyboard?
+
+Chapter 6:  The future of zsh
+6.1. What bugs are currently known and unfixed? (Plus recent important changes)
+6.2. Where do I report bugs, get more info / who's working on zsh?
+6.3. What's on the wish-list?
+6.4. Did zsh have problems in the year 2000?
+6.5. When reporting a bug, how do I reduce my mytt(.zshrc) into a minimal reproduction recipe?
+
+Acknowledgments
+
+Copyright
+--- End of Contents ---
+)
+
+chapter(Introducing zsh and how to install it)
+
+sect(Sources of information)
+label(11)
+
+  Information on zsh is available via the World Wide Web.  The URL
+  is url(https://zsh.sourceforge.io/)(https://zsh.sourceforge.io/) .
+  The server provides this FAQ and much else and is
+  now maintained by the zsh workers (email email(zsh-workers@zsh.org)).
+  The FAQ is at \
+url(https://zsh.sourceforge.io/FAQ/)(https://zsh.sourceforge.io/FAQ/) .
+  The site also contains some contributed zsh scripts and functions;
+  we are delighted to add more, or simply links to your own collection.
+
+  This document was originally written in YODL, allowing it to be converted
+  easily into various other formats.  The master source file lives at
+  url(https://zsh.sourceforge.io/FAQ/zshfaq.yo)
+(https://zsh.sourceforge.io/FAQ/zshfaq.yo) and the plain text version
+  can be found at url(https://zsh.sourceforge.io/FAQ/zshfaq.txt)
+(https://zsh.sourceforge.io/FAQ/zshfaq.txt) .
+
+  Another useful source of information is the collection of FAQ articles
+  posted frequently to the Usenet news groups comp.unix.questions,
+  comp.unix.shells and comp.answers with answers to general questions
+  about UNIX.  The fifth of the seven articles deals with shells,
+  including zsh, with a brief description of differences.  There is
+  also a separate FAQ on shell differences and how to change your
+  shell.  Usenet FAQs are available via FTP from rtfm.mit.edu and
+  mirrors and also on the World Wide Web; see
+  description(
+    mydit(USA)         url(http://www.cis.ohio-state.edu/hypertext/faq/usenet/top.html)
+    (http://www.cis.ohio-state.edu/hypertext/faq/usenet/top.html)
+    mydit(UK)          url(http://www.lib.ox.ac.uk/internet/news/faq/comp.unix.shell.html)
+    (http://www.lib.ox.ac.uk/internet/news/faq/comp.unix.shell.html)
+    mydit(Netherlands) url(http://www.cs.uu.nl/wais/html/na-dir/unix-faq/shell/.html)
+    (http://www.cs.uu.nl/wais/html/na-dir/unix-faq/shell/.html)
+  )
+
+  You can also get it via email by emailing \
+email(mail-server@rtfm.mit.edu)
+  with, in the body of the message, mytt(send faqs/unix-faq/shell/zsh).
+
+  The latest version of this FAQ is also available directly from any
+  of the zsh archive sites listed in question link(1.6)(16).
+
+  I have put together a user guide to complement the manual by
+  explaining the most useful features of zsh in a more easy to read way.
+  This can be found at the zsh web site:
+    url(https://zsh.sourceforge.io/Guide/)(https://zsh.sourceforge.io/Guide/)
+
+  (As a method of reading the following in Emacs, you can type tt(\M-2
+  \C-x $) to make all the indented text vanish, then tt(\M-0 \C-x $)
+  when you are on the title you want.)
+
+  For any more eclectic information, you should contact the mailing
+  list:  see question link(6.2)(62).
+
+
+sect(What is it?)
+
+  Zsh is a UNIX command interpreter (shell) which of the standard
+  shells most resembles the Korn shell (ksh); its compatibility with
+  the 1988 Korn shell has been gradually increasing.  It includes
+  enhancements of many types, notably in the command-line editor,
+  options for customising its behaviour, filename globbing, features
+  to make C-shell (csh) users feel more at home and extra features
+  drawn from tcsh (another `custom' shell).
+
+  It was written by Paul Falstad when a student at Princeton; however,
+  Paul doesn't maintain it any more and enquiries should be sent to
+  the mailing list (see question link(6.2)(62)).  Zsh is distributed under a
+  standard Berkeley style copyright.
+
+  For more information, the files Doc/intro.txt or Doc/intro.troff
+  included with the source distribution are highly recommended.  A list
+  of features is given in FEATURES, also with the source.
+
+
+sect(What is it good at?)
+
+  Here are some things that zsh is particularly good at.  No claim of
+  exclusivity is made, especially as shells copy one another, though
+  in the areas of command line editing and globbing zsh is well ahead
+  of the competition.  I am not aware of a major interactive feature
+  in any other freely-available shell which zsh does not also have
+  (except smallness).
+
+  itemization(
+  it() Command line editing:
+  itemization(
+    it() programmable completion: incorporates the ability to use the
+       full power of zsh's globbing and shell programming features,
+    it() multi-line commands editable as a single buffer (even files!),
+    it() variable editing (vared),
+    it() command buffer stack,
+    it() print text straight into the buffer for immediate editing (print -z),
+    it() execution of unbound commands,
+    it() menu completion in two flavours,
+    it() variable, editing function and option name completion,
+    it() inline expansion of variables and history commands.  
+  )
+  it() Globbing --- extremely powerful, including:
+  itemization(
+    it() recursive globbing (cf. find),
+    it() file attribute qualifiers (size, type, etc. also cf. find),
+    it() full alternation and negation of patterns.
+  )
+  it() Handling of multiple redirections (simpler than tee).
+  it() Large number of options for tailoring.
+  it() Path expansion (=foo -> /usr/bin/foo).
+  it() Adaptable messages for spelling, watch, time as well as prompt
+     (including conditional expressions).
+  it() Named directories.
+  it() Comprehensive integer and floating point arithmetic.
+  it() Manipulation of arrays (including reverse subscripting).
+  it() Associative arrays (key-to-value hashes)
+  it() Spelling correction.
+  )
+
+
+sect(On what machines will it run?)
+
+  From version 3.0, zsh uses GNU autoconf as the installation
+  mechanism.  This considerably increases flexibility over the old
+  `buildzsh' mechanism.  Consequently, zsh should compile and run on
+  any modern version of UNIX, and a great many not-so-modern versions
+  too.  The file MACHINES in the distribution has more details.
+
+  There used to be separate ports for Windows and OS/2, but these
+  are rather out of date and hard to get; however, zsh exists for
+  the Cygwin environment.  See further notes below.
+
+  If you need to change something to support a new machine, it would be
+  appreciated if you could add any necessary preprocessor code and
+  alter configure.in and acconfig.h to configure zsh automatically,
+  then send the required unified diffs to the list (see question
+  link(6.2)(62)).  Please make sure you have the latest version first.
+
+  To get it to work, retrieve the source distribution (see question
+  link(1.6)(16)), un-gzip it, un-tar it and read the INSTALL file in the top
+  directory.  Also read the MACHINES file for up-to-date
+  information on compilation on certain architectures.
+
+  mybf(Note for users of nawk) (The following information comes from Zoltan
+  Hidvegi): On some systems nawk is broken and produces an incorrect
+  signames.h file. This makes the signals code unusable. This often happens
+  on Ultrix, HP-UX, IRIX (?). Install gawk if you experience such problems.
+
+
+sect(What's the latest version?)
+
+  Zsh 5.9 is the latest production version.  For details of all the
+  changes, see the NEWS file in the source distribution.
+
+  A beta of the next version is sometimes available.  Development of zsh is
+  patch by patch, with each intermediate version publicly available.  Note
+  that this `open' development system does mean bugs are sometimes
+  introduced into the most recent archived version.  These are usually
+  fixed quickly.  If you are really interested in getting the latest
+  improvements, and less worried about providing a stable environment,
+  development versions are uploaded quite frequently to the archive in the
+  tt(development) subdirectory.
+
+  Note also that as the shell changes, it may become incompatible with
+  older versions; see the end of question link(6.1)(61) for a partial list.
+  Changes of this kind are almost always forced by an awkward or
+  unnecessary feature in the original design (as perceived by current
+  users), or to enhance compatibility with other Bourne shell
+  derivatives, or (mostly in the 3.0 series) to provide POSIX compliance.
+
+
+sect(Where do I get it?)
+label(16)
+
+  The coordinator of development is currently me; the alias
+  email(coordinator@zsh.org) can be used to contact whoever is in the hot
+  seat.  url(https://www.zsh.org/)(https://www.zsh.org/) is the official
+  archive site.  Test versions are kept in the
+  `testing' subdirectory: such up-to-the-minute development versions should
+  only be retrieved if you actually plan to help test the latest version of
+  the shell.
+
+  A Windows port was created by Amol Deshpandem based on 3.0.5 (which
+  is now rather old).  This has now been restored and can be found at
+  url(http://zsh-nt.sourceforge.net/)(http://zsh-nt.sourceforge.net/).
+
+  All recent releases of zsh compile under Cygwin, a freely available
+  UNIX-style environment for the Win32 API, and a pre-compiled version of
+  zsh can be downloaded by the Cygwin installer.  You can find information
+  about this at url(http://www.cygwin.com/)(http://www.cygwin.com/).
+  Please email email(zsh-workers@zsh.org) if you have information about
+  other ports.
+
+  Starting from mid-October 1997, there is an archive of patches sent
+  to the maintainers' mailing list.  Note that these may not all be
+  added to the shell, and some may already have been; you simply have
+  to search for something you might want which is not in the version
+  you have.  Also, there may be some prerequisites earlier in the
+  archive.  It can be found on the zsh WWW pages (as described in
+  link(1.1)(11)) at:
+
+  description(
+    mydit()        url(https://zsh.sourceforge.io/Patches/)
+(https://zsh.sourceforge.io/Patches/)
+  )
+
+sect(I don't have root access: how do I make zsh my login shell?)
+
+  Unfortunately, on many machines you can't use mytt(chsh) to change your
+  shell unless the name of the shell is contained in /etc/shells, so if
+  you have your own copy of zsh you need some sleight-of-hand to use it
+  when you log on.  (Simply typing mytt(zsh) is not really a solution since
+  you still have your original login shell waiting for when you exit.)
+
+  The basic idea is to use mytt(exec <zsh-path>) to replace the current
+  shell with zsh.  Often you can do this in a login file such as .profile 
+  (if your shell is sh or ksh) or .login (if it's csh).  Make sure you
+  have some way of altering the file (e.g. via FTP) before you try this as
+  mytt(exec) is often rather unforgiving. 
+
+  If you have zsh in a subdirectory mytt(bin) of your home directory,
+  put this in .profile:
+  verb(
+    [ -f $HOME/bin/zsh ] && exec $HOME/bin/zsh -l
+  )
+  or if your login shell is csh or tcsh, put this in .login:
+  verb(
+    if ( -f ~/bin/zsh ) exec ~/bin/zsh -l
+  )
+  (in each case the mytt(-l) tells zsh it is a login shell).
+
+  If you want to check this works before committing yourself to it,
+  you can make the login shell ask whether to exec zsh.  The following
+  work for Bourne-like shells:
+  verb(
+    [ -f $HOME/bin/zsh ] && {
+            echo "Type Y to run zsh: \c"
+            read line
+            [ "$line" = Y ] && exec $HOME/bin/zsh -l
+    }
+  )
+  and for C-shell-like shells:
+  verb(
+    if ( -f ~/bin/zsh ) then
+            echo -n "Type Y to run zsh: "
+            if ( "$<" == Y ) exec ~/bin/zsh -l
+    endif
+  )
+
+  It's not a good idea to put this (even without the -l) into .cshrc,
+  at least without some tests on what the csh is supposed to be doing,
+  as that will cause _every_ instance of csh to turn into a zsh and
+  will cause csh scripts (yes, unfortunately some people write these)
+  which do not call `csh -f' to fail.  If you want to tell xterm to
+  run zsh, change the SHELL environment variable to the full path of
+  zsh at the same time as you exec zsh (in fact, this is sensible for
+  consistency even if you aren't using xterm).  If you have to exec
+  zsh from your .cshrc, a minimum safety check is mytt(if ($?prompt) exec
+  zsh).
+
+  If you like your login shell to appear in the process list as mytt(-zsh),
+  you can link mytt(zsh) to mytt(-zsh) (e.g. by mytt(ln -s ~/bin/zsh 
+  ~/bin/-zsh)) and change the exec to mytt(exec -zsh).  (Make sure
+  mytt(-zsh) is in your path.) This has the same effect as the mytt(-l)
+  option. 
+
+  Footnote: if you DO have root access, make sure zsh goes in
+  /etc/shells on all appropriate machines, including NIS clients, or you
+  may have problems with FTP to that machine.
+
+
+chapter(How does zsh differ from...?)
+
+As has already been mentioned, zsh is most similar to ksh, while many
+of the additions are to please csh users.  Here are some more detailed
+notes.  See also the article `UNIX shell differences and how to change
+your shell' posted frequently to the USENET group comp.unix.shell.
+
+sect(Differences from sh and ksh)
+label(21)
+
+  Most features of ksh (and hence also of sh) are implemented in zsh;
+  problems can arise because the implementation is slightly different.
+  Note also that not all ksh's are the same either.  I have based this
+  on the 11/16/88f version of ksh; differences from ksh93 will be more
+  substantial.
+
+  As a summary of the status:
+  enumeration(
+  myeit() because of all the options it is not safe to assume a general
+     zsh run by a user will behave as if sh or ksh compatible;
+  myeit() invoking zsh as sh or ksh (or if either is a symbolic link to
+     zsh) sets appropriate options and improves compatibility (from
+     within zsh itself, calling mytt(ARGV0=sh zsh) will also work);
+  myeit() from version 3.0 onward the degree of compatibility with sh
+     under these circumstances is very high:  zsh can now be used
+     with GNU configure or perl's Configure, for example;
+  myeit() the degree of compatibility with ksh is also high, but a few
+     things are missing:  for example the more sophisticated
+     pattern-matching expressions are different for versions before
+     3.1.3 --- see the detailed list below;
+  myeit() also from 3.0, the command `emulate' is available: `emulate
+     ksh' and `emulate sh' set various options as well as changing the
+     effect of single-letter option flags as if the shell had been
+     invoked with the appropriate name.  Including the command
+     `emulate sh; setopt localoptions' in a shell function will
+     turn on sh emulation for that function only.  In version 4 (and in
+     3.0.6 through 8), this can be abbreviated as `emulate -L sh'.
+   )
+
+  The classic difference is word splitting, discussed in question \
+link(3.1)(31);
+  this catches out very many beginning zsh users.  As explained there,
+  this is actually a bug in every other shell.  The answer is to set
+  tt(SH_WORD_SPLIT) for backward compatibility.  The next most classic
+  difference is that unmatched glob patterns cause the command to abort;
+  set tt(NO_NOMATCH) for those.
+
+  Here is a list of various options which will increase ksh
+  compatibility, though maybe decrease zsh's abilities: see the manual
+  entries for tt(GLOB_SUBST), tt(IGNORE_BRACES) (though brace expansion occurs
+  in some versions of ksh), tt(KSH_ARRAYS), tt(KSH_GLOB), tt(KSH_OPTION_PRINT),
+  tt(LOCAL_OPTIONS), tt(NO_BAD_PATTERN), tt(NO_BANG_HIST), tt(NO_EQUALS), \
+tt(NO_HUP),
+  tt(NO_NOMATCH), tt(NO_RCS), tt(NO_SHORT_LOOPS), tt(PROMPT_SUBST), \
+tt(RM_STAR_SILENT),
+  tt(POSIX_ALIASES), tt(POSIX_BUILTINS), tt(POSIX_IDENTIFIERS),
+  tt(SH_FILE_EXPANSION), tt(SH_GLOB), tt(SH_OPTION_LETTERS),
+  tt(SH_WORD_SPLIT) (see question link(3.1)(31)) and tt(SINGLE_LINE_ZLE).
+  Note that you can also disable any built-in commands which get in
+  your way.  If invoked as `ksh', the shell will try to set suitable
+  options.
+
+  Here are some differences from ksh which might prove significant for
+  ksh programmers, some of which may be interpreted as bugs; there
+  must be more.  Note that this list is deliberately rather full and
+  that most of the items are fairly minor.  Those marked `*' perform
+  in a ksh-like manner if the shell is invoked with the name `ksh', or
+  if `emulate ksh' is in effect.  Capitalised words with underlines
+  refer to shell options. 
+
+  itemization(
+  it() Syntax:
+  itemization(
+    it()* Shell word splitting: see question link(3.1)(31).
+    it()* Arrays are (by default) more csh-like than ksh-like:
+        subscripts start at 1, not 0; tt(array[0]) refers to tt(array[1]);
+        mytt($array) refers to the whole array, not tt($array[0]);
+        braces are unnecessary: tt($a[1] == ${a[1]}), etc.
+        Set the tt(KSH_ARRAYS) option for compatibility.
+    it()  Furthermore, individual elements of arrays in zsh are always
+        strings, not separate parameters.  This means, for example, you
+	can't `unset' an array element in zsh as you can in ksh; you
+	can only set it to the empty string, or shorten the array.
+	(You can unset elements of associative arrays in zsh because
+	those are a completely different type of object.)
+    it()  Coprocesses are established by mytt(coproc); mytt(|&) behaves like
+        csh.  Handling of coprocess file descriptors is also different.
+    it()  In mytt(cmd1 && cmd2 &), only mytt(cmd2) instead of the whole
+        expression is run in the background in zsh.  The manual implies
+        this is a bug.  Use mytt({ cmd1 && cmd2 } &) as a workaround.
+  )
+  it() Command line substitutions, globbing etc.:
+  itemization(
+    it()* Failure to match a globbing pattern causes an error (use
+        tt(NO_NOMATCH)).
+    it()* The results of parameter substitutions are treated as plain text:
+        mytt(foo="*"; print $foo) prints all files in ksh but mytt(*) in zsh
+        (use tt(GLOB_SUBST)).
+    it()* tt($PSn) do not do parameter substitution by default (use \
+PROMPT_SUBST).
+    it()* Standard globbing does not allow ksh-style `pattern-lists'.
+        Equivalents:
+  verb(
+----------------------------------------------------------------------
+      ksh              zsh         Meaning
+     ------           ------       ---------
+     !(foo)            ^foo        Anything but foo.
+                or   foo1~foo2     Anything matching foo1 but foo2[1].
+@(foo1|foo2|...)  (foo1|foo2|...)  One of foo1 or foo2 or ...
+     ?(foo)           (foo|)       Zero or one occurrences of foo.
+     *(foo)           (foo)#       Zero or more occurrences of foo.
+     +(foo)           (foo)##      One or more occurrences of foo.
+----------------------------------------------------------------------
+      )
+      The mytt(^), mytt(~) and mytt(#) (but not mytt(|))forms require \
+tt(EXTENDED_GLOB).
+      From version 3.1.3, the ksh forms are fully supported when the
+      option tt(KSH_GLOB) is in effect; for previous versions you
+      must use the table above.
+
+      [1] See question link(3.27)(327) for more on the mysteries of
+        mytt(~) and mytt(^).
+    it()  Unquoted assignments do file expansion after mytt(:)s (intended for
+        PATHs). 
+    it()* mytt(typeset) and mytt(integer) have special behaviour for
+        assignments in ksh, but not in zsh.  For example, this doesn't
+        work in zsh:
+  verb(
+          integer k=$(wc -l ~/.zshrc)
+      )
+        because the return value from tt(wc) includes leading
+        whitespace which causes wordsplitting.  Ksh handles the
+        assignment specially as a single word.
+  )
+  it() Command execution:
+  itemization(
+    it()* There is no tt($ENV) variable (use tt(/etc/zshrc), tt(~/.zshrc); 
+        note also tt($ZDOTDIR)).
+    it()* tt($PATH) is not searched for commands specified
+        at invocation without -c.
+  )
+  it() Aliases and functions:
+  itemization(
+    it()  The order in which aliases and functions are defined is significant:
+        function definitions with () expand aliases -- see question \
+link(2.3)(23).
+    it()  Aliases and functions cannot be exported.
+    it()  There are no tracked aliases: command hashing replaces these.
+    it()  The use of aliases for key bindings is replaced by `bindkey'.
+    it()* Options are not local to functions (use LOCAL_OPTIONS; note this
+        may always be unset locally to propagate options settings from a
+        function to the calling level).
+    it()  Functions defined with `function funcname { body }' behave the
+        same way as those defined with `funcname () { body }'.  In ksh,
+        the former behave as if the body were read from a file with `.',
+        and only the latter behave as true functions.
+  )
+    it() Traps and signals:
+  itemization(
+    it()* Traps are not local to functions.  The option LOCAL_TRAPS is
+          available from 3.1.6.
+    it()  TRAPERR has become TRAPZERR (this was forced by UNICOS which
+        has SIGERR).
+  )
+  it() Editing:
+  itemization(
+    it()  The options tt(gmacs), tt(viraw) are not supported.
+        Use bindkey to change the editing behaviour: mytt(set -o {emacs,vi})
+        becomes `bindkey -{e,v}', although `set -o emacs' and `set -o vi'
+        are supported for compatibility; for gmacs, go to emacs mode and
+        use `bindkey \^t gosmacs-transpose-characters'.
+    it()  The mytt(keyword) option does not exist and mytt(-k) is instead
+        interactivecomments.  (mytt(keyword) is not in recent versions
+        of ksh either.)
+    it()* Management of histories in multiple shells is different:
+        the history list is not saved and restored after each command.
+        The option tt(SHARE_HISTORY) appeared in 3.1.6 and is set in ksh
+        compatibility mode to remedy this.
+    it()  mytt(\) does not escape editing chars (use mytt(^V)).
+    it()  Not all ksh bindings are set (e.g. mytt(<ESC>#); try mytt(<ESC>q)).
+    it()* mytt(#) in an interactive shell is not treated as a comment by
+        default.
+    it()  In vi command mode the keys "k" and "j" move the cursor to the
+        end of the line.  To move the cursor to the start instead, use
+  verb(
+          bindkey -M vicmd 'k' vi-up-line-or-history
+          bindkey -M vicmd 'j' vi-down-line-or-history
+  )
+  )
+  it() Built-in commands:
+  itemization(
+    it()  Some built-ins (tt(r), tt(autoload), tt(history), tt(integer) ...)
+        were aliases in ksh. 
+    it()  There is no built-in command newgrp: use e.g. mytt(alias
+        newgrp="exec newgrp")
+    it()  mytt(jobs) has no mytt(-n) flag.
+  )
+  it() Other idiosyncrasies:
+  itemization(
+    it()  mytt(select) always redisplays the list of selections on each loop.
+  )
+  )
+
+
+sect(Similarities with csh)
+
+  Although certain features aim to ease the withdrawal symptoms of csh
+  (ab)users, the syntax is in general rather different and you should
+  certainly not try to run scripts without modification.  The c2z script
+  is provided with the source (in Misc/c2z) to help convert .cshrc
+  and .login files; see also the next question concerning aliases,
+  particularly those with arguments.
+
+  Csh-compatibility additions include:
+  itemization(
+  it()  tt(logout), tt(rehash), tt(source), tt((un)limit) built-in commands.
+  it()  tt(*rc) file for interactive shells.
+  it()  Directory stacks.
+  it()  tt(cshjunkie*), tt(ignoreeof) options.
+  it()  The tt(CSH_NULL_GLOB) option.
+  it()  tt(>&), tt(|&) etc. redirection.
+      (Note that mytt(>file 2>&1) is the standard Bourne shell command for
+      csh's mytt(>&file).)
+  it()  tt(foreach ...) loops; alternative syntax for other loops.
+  it()  Alternative syntax mytt(if ( ... ) ...), though this still doesn't
+      work like csh: it expects a command in the parentheses.  Also
+      mytt(for), mytt(which).
+  it()  tt($PROMPT) as well as tt($PS1), tt($status) as well as tt($?),
+      tt($#argv) as well as tt($#), .... 
+  it()  Escape sequences via tt(%) for prompts.
+  it()  Special array variables tt($PATH) etc. are colon-separated, tt($path)
+      are arrays.
+  it()  tt(!)-type history (which may be turned off via mytt(setopt
+      nobanghist)).
+  it()  Arrays have csh-like features (see under link(2.1)(21)).
+  )
+
+
+sect(Why do my csh aliases not work?  (Plus other alias pitfalls.))
+label(23)
+
+  First of all, check you are using the syntax
+  verb(
+    alias newcmd='list of commands'
+  )
+  and not
+  verb(
+    alias newcmd 'list of commands'
+  )
+  which won't work. (It tells you if `newcmd' and `list of commands' are
+  already defined as aliases.)
+
+  Otherwise, your aliases probably contain references to the command
+  line of the form mytt(\!*), etc.  Zsh does not handle this behaviour as it
+  has shell functions which provide a way of solving this problem more
+  consistent with other forms of argument handling.  For example, the
+  csh alias
+  verb(
+    alias cd 'cd \!*; echo $cwd'
+  )
+  can be replaced by the zsh function,
+  verb(
+    cd() { builtin cd "$@"; echo $PWD; }
+  )
+  (the `builtin' tells zsh to use its own `cd', avoiding an infinite loop)
+  or, perhaps better,
+  verb(
+    cd() { builtin cd "$@"; print -D $PWD; }
+  )
+  (which converts your home directory to a tt(~)).  In fact, this problem is
+  better solved by defining the special function chpwd+_LPAR__RPAR_ (see
+  the manual). Note also that the mytt(;) at the end of the function is
+  optional in zsh, but not in ksh or sh (for sh's where it exists).
+
+  Here is Bart Schaefer's guide to converting csh aliases for zsh.
+
+  enumeration(
+  myeit() If the csh alias references "parameters" (tt(\!:1), tt(\!*) etc.),
+     then in zsh you need a function (referencing tt($1), tt($*) etc.).
+     In recent versions of zsh this can be done by defining an anonymous
+     function within the alias.  Otherwise, a simple zsh alias suffices.
+
+  myeit() If you use a zsh function, you need to refer _at_least_ to
+     tt($*) in the body (inside the tt({ })).  Parameters don't magically
+     appear inside the tt({ }) the way they get appended to an alias.
+
+  myeit() If the csh alias references its own name (tt(alias rm "rm -i")),
+     then in a zsh function you need the "command" or "builtin" keyword
+     (function tt(rm() { command rm -i "$@" })), but in a zsh alias
+     you don't (tt(alias rm="rm -i")).
+
+  myeit() If you have aliases that refer to each other (tt(alias ls "ls -C";
+     alias lf "ls -F" ==> lf == ls -C -F)) then you must either:
+  itemization(
+        it() convert all of them to zsh functions; or
+        it() after converting, be sure your .zshrc defines all of your
+           aliases before it defines any of your functions.
+         )
+
+     Those first four are all you really need, but here are four more for
+     heavy csh alias junkies:
+
+  myeit() Mapping from csh alias "parameter referencing" into zsh function
+     (assuming tt(SH_WORD_SPLIT) and tt(KSH_ARRAYS) are NOT set in zsh):
+       verb(
+      csh             zsh
+     =====         ==========
+     \!*           $*              (or $argv)
+     \!^           $1              (or $argv[1])
+     \!:1          $1
+     \!:2          $2              (or $argv[2], etc.)
+     \!$           $*[$#]          (or $argv[$#], or $*[-1])
+     \!:1-4        $*[1,4]
+     \!:1-         $*[1,$#-1]      (or $*[1,-2])
+     \!^-          $*[1,$#-1]
+     \!*:q         "$@"
+     \!*:x         $=*             ($*:x doesn't work (yet))
+        )
+
+  myeit() Remember that it is NOT a syntax error in a zsh function to
+     refer to a position (tt($1), tt($2), etc.) greater than the number of
+     parameters. (E.g., in a csh alias, a reference to tt(\!:5) will
+     cause an error if 4 or fewer arguments are given; in a zsh
+     function, tt($5) is the empty string if there are 4 or fewer
+     parameters.  Force an error in this example by using tt(${5?}).)
+
+  myeit() To begin a zsh alias with a - (dash, hyphen) character, use
+     mytt(alias --):
+      verb(
+             csh                            zsh
+        ===============             ==================
+        alias - "fg %-"             alias -- -="fg %-"
+      )
+
+  myeit() Stay away from mytt(alias -g) in zsh until you REALLY know what
+     you're doing.
+  )
+
+  There is one other serious problem with aliases: consider
+  verb(
+    alias l='/bin/ls -F'
+    l() { /bin/ls -la "$@" | more }
+  )
+  mytt(l) in the function definition is in command position and is expanded
+  as an alias, defining mytt(/bin/ls) and mytt(-F) as functions which call
+  mytt(/bin/ls), which gets a bit recursive.  Recent versions of zsh treat
+  this as an error, but older versions silently create the functions.
+
+  One workaround for this is to use the "function" keyword instead:
+  verb(
+    alias l='/bin/ls -F'
+    function l { /bin/ls -la "$@" | more }
+  )
+  The mytt(l) after mytt(function) is not expanded.  Note you don't need
+  the mytt(_LPAR__RPAR_) in this case, although it's harmless.
+
+  You need to be careful if you are defining a function with multiple
+  names; most people don't need to do this, so it's an unusual problem,
+  but in case you do you should be aware that in versions of the shell
+  before 5.1 names after the first em(were) expanded:
+  verb(
+    function a b c { ... }
+  )
+  Here, mytt(b) and mytt(c), but not mytt(a), have aliases expanded.
+  This oddity was fixed in version 5.1.
+
+  The rest of this item assumes you use the (more common,
+  but equivalent) mytt(_LPAR__RPAR_) definitions.
+
+  Bart Schaefer's rule is:  Define first those aliases you expect to
+  use in the body of a function, but define the function first if the
+  alias has the same name as the function.
+
+  If you aware of the problem, you can always escape part or all of the
+  name of the function:
+  verb(
+     'l'() { /bin/ls -la "$@" | more }
+  )
+  Adding the quotes has no effect on the function definition, but
+  suppresses alias expansion for the function name.  Hence this is
+  guaranteed to be safe---unless you are in the habit of defining
+  aliases for expressions such as tt('l'), which is valid, but probably
+  confusing.
+
+sect(Similarities with tcsh)
+
+  (The sections on csh apply too, of course.)  Certain features have
+  been borrowed from tcsh, including tt($watch), tt(run-help), tt($savehist),
+  periodic commands etc., extended prompts, tt(sched) and tt(which) built-ins.
+  Programmable completion was inspired by, but is entirely different to,
+  tcsh's mytt(complete).  (There is a perl script called tt(lete2ctl) in the
+  Misc directory of the source distribution to convert mytt(complete) to \
+mytt(compctl)
+  statements.)  This list is not definitive: some features have gone in
+  the other direction.
+
+  If you're missing the editor function tt(run-fg-editor), try something
+  with mytt(bindkey -s) (which binds a string to a keystroke), e.g.
+  verb(
+    bindkey -s '^z' '\eqfg %$EDITOR:t\n'
+  )
+  which pushes the current line onto the stack and tries to bring a job
+  with the basename of your editor into the foreground.  mytt(bindkey -s)
+  allows limitless possibilities along these lines.  You can execute
+  any command in the middle of editing a line in the same way,
+  corresponding to tcsh's mytt(-c) option:
+  verb(
+    bindkey -s '^p' '\eqpwd\n'
+  )
+  In both these examples, the mytt(\eq) saves the current input line to
+  be restored after the command runs; a better effect with multiline
+  buffers is achieved if you also have
+  verb(
+    bindkey '\eq' push-input
+  )
+  to save the entire buffer.  In version 4 and recent versions of zsh 3.1,
+  you have the following more sophisticated option,
+  verb(
+    run-fg-editor() {
+      zle push-input
+      BUFFER="fg %$EDITOR:t"
+      zle accept-line
+    }
+    zle -N run-fg-editor
+  )
+  and can now bind tt(run-fg-editor) just like any other editor function.
+
+
+sect(Similarities with bash)
+label(25)
+
+  The Bourne-Again Shell, bash, is another enhanced Bourne-like shell;
+  the most obvious difference from zsh is that it does not attempt to
+  emulate the Korn shell.  Since both shells are under active
+  development it is probably not sensible to be too specific here.
+  Broadly, bash has paid more attention to standards compliance
+  (i.e. POSIX) for longer, and has so far avoided the more abstruse
+  interactive features (programmable completion, etc.) that zsh has.
+
+  In recent years there has been a certain amount of crossover in the
+  extensions, however.  Zsh (as of 3.1.6) has bash's `tt(${var/old/new})'
+  feature for replacing the text tt(old) with the text tt(new) in the
+  parameter tt($var).  Note one difference here:  while both shells
+  implement the syntax `tt(${var/#old/new})' and `tt(${var/%old/new})' for
+  anchoring the match of tt(old) to the start or end of the parameter text,
+  respectively, in zsh you can't put the `tt(#)' or `tt(%)' inside a
+  parameter:  in other words `tt({var/$old/new})' where tt(old) begins with
+  a `tt(#)' treats that as an ordinary character in zsh, unlike bash.  To
+  do this sort of thing in zsh you can use (from 3.1.7) the new syntax
+  for anchors in any pattern, `tt((#s))' to match the start of a string,
+  and `tt((#e))' to match the end.  These require the option
+  tt(EXTENDED_GLOB) to be set.
+
+
+sect(Shouldn't zsh be more/less like ksh/(t)csh?)
+
+  People often ask why zsh has all these `unnecessary' csh-like features,
+  or alternatively why zsh doesn't understand more csh syntax.  This is
+  far from a definitive answer and the debate will no doubt continue.
+
+  Paul's object in writing zsh was to produce a ksh-like shell which
+  would have features familiar to csh users.  For a long time, csh was
+  the preferred interactive shell and there is a strong resistance to
+  changing to something unfamiliar, hence the additional syntax and
+  tt(CSH_JUNKIE) options.  This argument still holds.  On the other hand,
+  the arguments for having what is close to a plug-in replacement for ksh
+  are, if anything, even more powerful:  the deficiencies of csh as a
+  programming language are well known (look in any Usenet FAQ archive, e.g.
+    url(http://www.cis.ohio-state.edu/hypertext/faq/usenet/unix-faq/\ 
+        shell/csh-whynot/faq.html)
+(http://www.cis.ohio-state.edu/hypertext/faq/usenet/unix-faq/shell/csh-whynot/faq.html)
+  if you are in any doubt) and zsh is able to run many standard
+  scripts such as /etc/rc.
+
+  Of course, this makes zsh rather large and feature-ridden so that it
+  seems to appeal mainly to hackers.  The only answer, perhaps not
+  entirely satisfactory, is that you have to ignore the bits you don't
+  want.  The introduction of loadable in modules in version 3.1 should
+  help.
+
+
+sect(What is zsh's support for Unicode/UTF-8?)
+
+  `Unicode', or UCS for Universal Character Set, is the modern way
+  of specifying character sets.  It replaces a large number of ad hoc
+  ways of supporting character sets beyond ASCII.  `UTF-8' is an
+  encoding of Unicode that is particularly natural on Unix-like systems.
+
+  The production branch of zsh, 4.2, has very limited support:
+  the built-in printf command supports "\u" and "\U" escapes
+  to output arbitrary Unicode characters; ZLE (the Zsh Line Editor) has
+  no concept of character encodings, and is confused by multi-octet
+  encodings.
+
+  However, the 4.3 branch has much better support, and furthermore this
+  is now fairly stable.  (Only a few minor areas need fixing before
+  this becomes a production release.)  This is discussed more
+  fully below, see `Multibyte input and output'.
+
+
+sect(Why does my bash script report an error when I run it under zsh?)
+label(28)
+
+  em(tl;dr:) bash is not the reference implementation of zsh, and zsh is not
+  a bug-for-bug compatible reimplementation of bash.
+
+  bash and zsh are different programming languages.  They are not
+  interchangeable; programs written for either of these languages will,
+  in general, not run under the other.  (The situation is similar with
+  many other pairs of closely-related languages, such as Python 2 and
+  Python 3; C and C++; and even C89 and C11.)
+
+  When bash and zsh behave differently on the same input, whether zsh's
+  behaviour is a bug does not depend on what bash does on the same
+  input; rather, it depends on what zsh's user manual specifies.
+  (By way of comparison, it's not a bug in Emacs that mytt(:q!) doesn't
+  cause it to exit.)
+
+  That being said, the bash and zsh languages do have a common subset, and it is
+  feasible to write non-trivial pieces of code that would run under either of
+  them, if one is sufficiently familiar with both of them.  However,
+  a difference between bash's behaviour and zsh's does not imply that
+  zsh has a bug.  The difference might be a bug in zsh, a bug in bash, or
+  a bug in neither shell
+  (see link(3.1)(31) for an example).
+
+  The recommended way to deal with these differences depends on what kind
+  of piece of code is in question: a myem(script) or a myem(plugin).
+  
+  For em(scripts) emdash() external commands that
+  are located in tt($PATH), or located elsewhere and are executed by
+  giving their path explicitly (as in mytt(ls), mytt(/etc/rc.d/sshd),
+  and mytt(./configure)) emdash() the answer is simple:
+
+  Don't run bash scripts under zsh.  If the scripts were written for
+  bash, run them in bash.  There's absolutely no problem with having
+  mytt(#!/usr/bin/env bash) scripts even if mytt(zsh) is your shell for
+  interactive sessions.
+  
+  In fact, if you've recently changed to zsh, we myem(recommend) that
+  you keep your scripts as mytt(#!/usr/bin/env bash), at least for
+  a while: this would make the change more gradual and flatten your
+  learning curve.  Once you're used to zsh, you can decide for each
+  script whether to port it to zsh or keep it as-is.
+
+  For myem(plugins) emdash() pieces of code
+  executed within the shell itself, loaded via the mytt(.),
+  mytt(source), or mytt(autoload) builtins, added to mytt(.zshrc), or
+  pasted interactively at the shell prompt emdash() one may consider it
+  worthwhile to invest the effort to make them runnable under either shell.
+  However, as mentioned above, doing so requires one to be familiar with both
+  shells, and either steer clear of their differences or handle them explicitly
+  with conditional code (such as mytt(if test -n "$ZSH_VERSION")).
+
+  In summary,
+  if you'd like to run a bash script or plugin under zsh, you must port the script or plugin
+  properly, reviewing it line by line for differences between the two
+  languages and adjusting it accordingly, just like you would
+  when translating a book from American English to British English.
+
+
+chapter(How to get various things to work)
+
+sect(Why does mytt($var) where mytt(var="foo bar") not do what I expect?)
+label(31)
+
+  In most Bourne-shell derivatives, multiple-word variables such as
+  verb(
+    var="foo bar"
+  )
+  are split into words when passed to a command or used in a mytt(for foo in
+  $var) loop.  By default, zsh does not have that behaviour: the
+  variable remains intact.  (This is not a bug!  See below.)  The option
+  tt(SH_WORD_SPLIT) exists to provide compatibility.
+
+  For example, defining the function args to show the number of its
+  arguments:
+  verb(
+    args() { echo $#; }
+  )
+  and with our definition of `var',
+  verb(
+    args $var
+  )
+  produces the output `1'.  After
+  verb(
+    setopt shwordsplit
+  )
+  the same function produces the output `2', as with sh and ksh.
+
+  Unless you need strict sh/ksh compatibility, you should ask yourself
+  whether you really want this behaviour, as it can produce unexpected
+  effects for variables with entirely innocuous embedded spaces.  This
+  can cause horrendous quoting problems when invoking scripts written
+  for other shells (see link(2.8)(28)).  The natural way to produce
+  word-splitting behaviour in zsh is via arrays.  For example,
+  verb(
+    set -A array one two three twenty
+  )
+  (or
+  verb(
+    array=(one two three twenty)
+  )
+  if you prefer), followed by
+  verb(
+    args $array
+  )
+  produces the output `4', regardless of the setting of tt(SH_WORD_SPLIT).
+  Arrays are also much more versatile than single strings.  Probably
+  if this mechanism had always been available there would never have
+  been automatic word splitting in scalars, which is a sort of
+  uncontrollable poor man's array.
+
+  Note that word splitting happens regardless of the value of the internal field
+  separator, tt($IFS); in other words, with mytt(IFS=:; foo=a:b; args $foo)
+  you get the answer 1.
+
+  Other ways of causing word splitting include a judicious use of
+  `eval':
+  verb(
+    sentence="Longtemps, je me suis couch\\'e de bonne heure."
+    eval "words=($sentence)"
+  )
+  after which $words is an array with the words of $sentence (note
+  characters special to the shell, such as the mytt(') in this example,
+  must already be quoted), or, less standard but more reliable,
+  turning on tt(SH_WORD_SPLIT) for one variable only:
+  verb(
+    args ${=sentence}
+  )
+  always returns 8 with the above definition of mytt(args).  (In older
+  versions of zsh, tt(${=foo}) toggled tt(SH_WORD_SPLIT); now it forces it on.)
+
+  Note also the tt("$@") method of word splitting is always available in zsh
+  functions and scripts (though strictly this does array splitting, not
+  word splitting).  This is more portable than the tt($*), since it
+  will work regardless of the tt(SH_WORD_SPLIT) setting; the other
+  difference is that tt($*) removes empty arguments from the array.
+  You can fix the first half of that objection by using tt(${==*}),
+  which turns off tt(SH_WORD_SPLIT) for the duration of the expansion.
+
+  tt(SH_WORD_SPLIT) is set when zsh is invoked with the names `ksh' or `sh',
+  or (entirely equivalent) when mytt(emulate ksh) or mytt(emulate sh) is in
+  effect.
+
+  There used to be another effect of word splitting which differed between ksh
+  and zsh.  In ksh, the builtin commands that declare parameters such
+  as tt(typeset) and tt(export) force word-splitting not to take place
+  after on an assignment argument:
+  verb(
+    typeset param=`echo foo bar`
+  )
+  in ksh will create a parameter with value mytt(foo bar).
+  
+  zsh used to
+  create a parameter tt(param) with value tt(foo) and a parameter tt(bar)
+  whose value was empty.  Contrast this with a normal assignment (no
+  tt(typeset) or other command in front), which never causes a word split
+  unless you have tt(GLOB_ASSIGN) set.
+  
+  zsh version 4.0.2 and newer creates a single parameter with value
+  mytt(foo bar), like ksh does, when the option tt(KSH_TYPESET) is set.
+  This option gets set automatically when in ksh compatibility mode.
+
+  zsh 5.1 and newer create a single parameter with value mytt(foo bar) by
+  default, in both compatibility and native modes. The older behaviour
+  can be obtained with mytt(disable -r typeset).
+
+  If the options mytt(MAGIC_EQUAL_SUBST) and mytt(KSH_TYPESET) are both
+  set, arguments that look like assignments will not undergo word
+  splitting, whatever the command name.
+
+sect(In which startup file do I put...?)
+
+  When zsh starts up, there are four files you can change which it will
+  run under various circumstances: tt(.zshenv), tt(.zprofile), tt(.zshrc)
+  and tt(.zlogin).  They are usually in your home directory, but the
+  variable tt($ZDOTDIR) may be set to alter that.  Here are a few simple
+  hints about how to use them.  There are also files which the system
+  administrator can set for all shells; you can avoid running all except
+  tt(/etc/zshenv) by starting zsh with the tt(-f) option --- for this
+  reason it is important for administrators to make sure tt(/etc/zshenv)
+  is as brief as possible.
+
+  The order in which the four files are searched (none of them
+  myem(need) to exist) is the one just given.  However, tt(.zprofile)
+  and tt(.zlogin) are only run when the shell is a login shell --- when
+  you first login, of course, and whenever you start zsh with the tt(-l)
+  option.  The order is the only difference between those; you should
+  decide whether you need things set before or after tt(.zshrc).  These
+  files are a good place to set environment variables (i.e. mytt(export)
+  commands), since they are passed on to all shells without you having
+  to set them again, and also to check that your terminal is set up
+  properly (except that if you want to change settings for terminal
+  emulator windows like tt(xterm) you will need to put those in
+  tt(.zshrc), since usually you do not get a login shell here).
+
+  Login shells are often interactive, but this is not necessarily the
+  case.  It is the programme that starts the shell that decides if it is
+  to be a login shell, and it is not required that the shell be run
+  interactively.  A possible example is a display manager that starts a
+  shell to initialise your environment before running the window manager
+  to create terminals: it might run this as a login shell but with no
+  terminal, so it is not interactive.
+
+  The only file you can alter which is started with every zsh (unless
+  you use the tt(-f) option) is tt(.zshenv), so this is a good place to \
+  put
+  things you want even if the shell is non-interactive: options for
+  changing the syntax, like tt(EXTENDED_GLOB), any changes to set with
+  mytt(limit), any more variables you want to make sure are set as for
+  example tt($fpath) to find functions.  You almost certainly do not
+  want tt(.zshenv) to produce any output.  Some people prefer not to
+  use tt(.zshenv) for setting options, as this affects scripts; but
+  making zsh scripts portable usually requires special handling anyway.
+
+  Finally, tt(.zshrc) is run for every interactive shell; that includes
+  login shells, but also any other time you start up a shell, such as
+  simply by typing mytt(zsh) or opening a new terminal emulator window.
+  This file is the place to change the editing behaviour via options or
+  mytt(bindkey), control how your history is saved, set aliases unless
+  you want to use them in scripts too, and for any other clutter which
+  can't be exported but you only use when interacting directly with the
+  shell.  You probably don't want tt(.zshrc) to produce output, either,
+  since there are occasions when this can be a problem, such as when
+  using mytt(rsh) from another host.  See link(3.21)(321) for what to \
+  put in tt(.zshrc)
+  to save your history.
+
+
+sect(What is the difference between `export' and the tt(ALL_EXPORT) option?)
+
+  Normally, you would put a variable into the environment by using
+  mytt(export var).  The command mytt(setopt allexport) causes all
+  variables which are subsequently set (N.B. not all the ones which
+  already exist) to be put into the environment.
+
+  This may seem a useful shorthand, but in practice it can have
+  unhelpful side effects:
+  enumeration(
+  myeit() Since every variable is in the environment as well as remembered
+     by the shell, the memory for it needs to be allocated twice.
+     This is bigger as well as slower.
+  myeit() It really is mybf(every) variable which is exported, even loop
+     variables in mytt(for) loops.  This is probably a waste.
+  myeit() An arbitrary variable created by the user might have a special
+     meaning to a command.  Since all shell variables are visible to
+     commands, there is no protection against this.
+  )
+  For these reasons it is usually best to avoid tt(ALL_EXPORT) unless you
+  have a specific use for it.  One safe use is to set it before
+  creating a list of variables in an initialisation file, then unset
+  it immediately afterwards.  Only those variables will be automatically
+  exported.
+
+
+sect(How do I turn off spelling correction/globbing for a single command?)
+
+  In the first case, you presumably have mytt(setopt correctall) in an
+  initialisation file, so that zsh checks the spelling of each word in
+  the command line.  You probably do not want this behaviour for
+  commands which do not operate on existing files.
+
+  The answer is to alias the offending command to itself with
+  mytt(nocorrect) stuck on the front, e.g.
+  verb(
+    alias mkdir='nocorrect mkdir'
+  )
+
+  To turn off globbing, the rationale is identical:
+  verb(
+    alias mkdir='noglob mkdir'
+  )
+  You can have both tt(nocorrect) and tt(noglob), if you like, but the
+  tt(nocorrect) must come first, since it is needed by the line editor,
+  while tt(noglob) is only handled when the command is examined.
+
+  Note also that a shell function won't work: the no... directives must
+  be expanded before the rest of the command line is parsed.
+
+
+sect(How do I get the Meta key to work on my xterm?)
+label(35)
+
+  The Meta key isn't present on a lot of keyboards, but on some
+  the Alt key has the same effect.  If a character is typed on the
+  keyboard while the Meta key is held down, the characters is sent
+  as terminal input with its eighth bit set.  For example, ASCII
+  mytt(A), hex 65, becomes hex E5.  This is sometimes used to provide
+  extra editing commands.
+
+  As stated in the manual, zsh needs to be told about the Meta key by
+  using mytt(bindkey -me) or mytt(bindkey -mv) in your .zshrc or on the
+  command line.  You probably also need to tell the terminal driver to
+  allow the `Meta' bit of the character through; mytt(stty pass8) is the
+  usual incantation.  Sample .zshrc entry:
+  verb(
+    [[ $TERM = "xterm" ]] && stty pass8 && bindkey -me
+  )
+  or, on SYSVR4-ish systems without pass8,
+  verb(
+    [[ $TERM = "xterm" ]] && stty -parenb -istrip cs8 && bindkey -me
+  )
+  (disable parity detection, don't strip high bit, use 8-bit characters).
+  Make sure this comes myem(before) any bindkey entries in your .zshrc which
+  redefine keys normally defined in the emacs/vi keymap.  You may also
+  need to set the tt(eightBitOutput) resource in your tt(~/.Xdefaults)
+  file, although this is on by default and it's unlikely anybody will
+  have tinkered with it.
+
+  You don't need the mytt(bindkey) to be able to define your own sequences
+  with the Meta key, though you still need the mytt(stty).
+
+  If you are using multibyte input directly from the keyboard you
+  probably don't want to use this feature since the eighth bit in
+  each byte is used to indicate a part of a multibyte character.  See
+  link(chapter 5)(c5).
+
+
+sect(How do I automatically display the directory in my xterm title bar?)
+
+  You should use the special function mytt(chpwd), which is called when
+  the directory changes.  The following checks that standard output is
+  a terminal, then puts the directory in the title bar if the terminal
+  is an tt(xterm) or some close relative, or a tt(sun-cmd).
+  
+  verb(
+  chpwd() {
+    [[ -t 1 ]] || return
+    case $TERM in
+      sun-cmd+CHAR(41) print -Pn "\e]l%~\e\\"
+        ;;
+      *xterm*|rxvt|(dt|k|E)term+CHAR(41) print -Pn "\e]2;%~\a"
+        ;;
+    esac
+  }
+  )
+
+  Change mytt(%~) if you want the message to be different.  (The mytt(-P)
+  option interprets such sequences just like in prompts, in this case
+  producing the current directory; you can of course use mytt($PWD) here,
+  but that won't use the mytt(~) notation which I find clearer.)  Note that
+  when the tt(xterm) starts up you will probably want to call tt(chpwd)
+  directly: just put mytt(chpwd) in tt(.zshrc) after it is defined or \
+  autoloaded.
+
+
+sect(How do I make the completion list use eight bit characters?)
+
+  If you are sure your terminal handles this, the easiest way from versions
+  3.0.6 and 3.1 of the shell is to set the option tt(PRINT_EIGHT_BIT).  In
+  principle, this will work automatically if your computer uses the
+  `locale' system and your locale variables are set properly, as zsh
+  understands this.  However, it is quite complicated, so if it isn't
+  already set up, trying the option is a lot easier.  For earlier versions
+  of zsh 3, you are stuck with trying to understand locales, see the
+  tt(setlocale(3)) and tt(zshparam(1)) manual pages: the simplest
+  possibility may be to set tt(LC_ALL=en_US).  For older versions of the
+  shell, there is no easy way out.
+
+
+sect(Why do the cursor (arrow) keys not work?  (And other terminal oddities.))
+
+  The cursor keys send different codes depending on the terminal; zsh
+  only binds the most well known versions.  If you see these problems,
+  try putting the following in your tt(.zshrc):
+
+  verb(
+    bindkey "$(echotc kl)" backward-char
+    bindkey "$(echotc kr)" forward-char
+    bindkey "$(echotc ku)" up-line-or-history
+    bindkey "$(echotc kd)" down-line-or-history
+  )
+
+  If you use vi mode, use mytt(vi-backward-char) and mytt(vi-forward-char)
+  where appropriate.  As of version 4.0.1, zsh attempts to look up these
+  codes and to set the key bindings for you (both emacs and vi), but in
+  some circumstances this may not work.
+
+  Note, however, that up to version 3.0 binding arbitrary multiple key
+  sequences can cause problems, so check that this works with your set
+  up first.  Also, from version 3.1.3, more sequences are supported by
+  default, namely those in the form mytt(<ESC>O) followed by tt(A),
+  tt(B), tt(C) or tt(D), as well as the corresponding set beginning
+  mytt(<ESC>[), so this may be redundant.
+
+  A particular problem which sometimes occurs is that there are two
+  different modes for arrow keys, normal mode and keypad mode, which
+  send different sequences.  Although this is largely a historical
+  artifact, it sometimes happens that your terminal can be switched from
+  one mode to the other, for example by a rogue programme that sends the
+  sequence to switch one way, but not the sequence to switch back.  Thus
+  you are stuck with the effects.  Luckily in this case the arrow key
+  sequences are likely to be standard, and you can simply bind both sets.
+  The following code does this.
+  verb(
+    bindkey '\e[A'  up-line-or-history
+    bindkey '\e[B'  down-line-or-history
+    bindkey '\e[C'  forward-char
+    bindkey '\e[D'  backward-char
+    bindkey '\eOA'  up-line-or-history
+    bindkey '\eOB'  down-line-or-history
+    bindkey '\eOC'  forward-char
+    bindkey '\eOD'  backward-char
+  )
+  For most even vaguely VT100-compatible terminals, the above eight
+  instructions are a fairly safe bet for your tt(.zshrc).  Of course
+  you can substitute variant functions for the second argument here too.
+
+  It should be noted that the mytt(O) / mytt([) confusion can occur
+  with other keys such as Home and End.  Some systems let you query
+  the key sequences sent by these keys from the system's terminal
+  database, terminfo.  Unfortunately, the key sequences given there
+  typically apply to the mode that is not the one zsh uses by default (it's
+  the "application" mode rather than the "raw" mode).  Explaining the use
+  of terminfo is outside the scope of this FAQ, but if you wish to use the
+  key sequences given there you can tell the line editor to turn on
+  "application" mode when it starts and turn it off when it stops:
+  verb(
+    function zle-line-init () { echoti smkx }
+    function zle-line-finish () { echoti rmkx }
+    zle -N zle-line-init
+    zle -N zle-line-finish
+  )
+  If you only have the predecessor to terminfo, called termcap (which is
+  what we used to get the cursor keys above), replace mytt(echoti smkx)
+  with mytt(echotc ks) and replace mytt(echoti rmkx) with mytt(echotc ke).
+
+
+sect(Why does my terminal act funny in some way?)
+
+  If you are using an OpenWindows cmdtool as your terminal, any
+  escape sequences (such as those produced by cursor keys) will be
+  swallowed up and never reach zsh.  Either use shelltool or avoid
+  commands with escape sequences.  You can also disable scrolling from
+  the cmdtool pane menu (which effectively turns it into a shelltool).
+  If you still want scrolling, try using an xterm with the scrollbar
+  activated.
+
+  If that's not the problem, and you are using stty to change some tty
+  settings, make sure you haven't asked zsh to freeze the tty settings:
+  type
+  verb(
+    ttyctl -u
+  )
+  before any stty commands you use.
+
+  On the other hand, if you aren't using stty and have problems you may
+  need the opposite:  mytt(ttyctl -f) freezes the terminal to protect it
+  from hiccups introduced by other programmes (kermit has been known to
+  do this).
+
+  A problem I have experienced myself (on an AIX 3.2 workstation with
+  xterm) is that termcap deinitialization sequences sent by `less'
+  were causing automargins to be turned off --- not actually a shell
+  problem, but you might have thought it was.  The fix is to put `tt(X)'
+  into the environment variable tt(LESS) to stop the sequences being sent.
+  Other programs (though not zsh) may also send that sequence.
+
+  If myem(that)'s not the problem, and you are having difficulties with
+  external commands (not part of zsh), and you think some terminal
+  setting is wrong (e.g. tt(^V) is getting interpreted as `literal next
+  character' when you don't want it to be), try
+  verb(
+    ttyctl -u
+    STTY='lnext "^-"' commandname
+  )
+  (in this example).  Note that zsh doesn't reset the terminal completely
+  afterwards: just the modes it uses itself and a number of special
+  processing characters (see the tt(stty(1)) manual page).
+
+
+sect(Why does zsh not work in an Emacs shell mode any more?)
+
+  (This information comes from Bart Schaefer and other zsh-workers.)
+
+  Emacs 19.29 or thereabouts stopped using a terminal type of "emacs"
+  in shell buffers, and instead sets it to "dumb".  Zsh only kicks in
+  its special I'm-inside-emacs initialization when the terminal type
+  is "emacs".
+
+  Probably the most reliable way of dealing with this is to look for
+  the environment variable mytt($EMACS), which is set to mytt(t) in
+  Emacs' shell mode.  Putting
+  verb(
+    [[ $EMACS = t ]] && unsetopt zle
+  )
+  in your .zshrc should be sufficient.
+
+  Another method is to put
+  verb(
+    #!/bin/sh
+    TERM=emacs exec zsh
+  )
+  into a file ~/bin/eshell, then mytt(chmod +x ~/bin/eshell), and
+  tell emacs to use that as the shell by adding
+  verb(
+    (setenv "ESHELL" (expand-file-name "~/bin/eshell"))
+  )
+  to ~/.emacs.
+
+
+sect(Why do my autoloaded functions not autoload [the first time]?)
+
+  The problem is that there are two possible ways of autoloading a
+  function (see the AUTOLOADING FUNCTIONS section of the zsh manual
+  page zshmisc for more detailed information):
+  enumeration(
+  myeit() The file contains just the body of the function, i.e.
+     there should be no line at the beginning saying mytt(function foo {)
+     or mytt(foo () {), and consequently no matching mytt(}) at the end.
+     This is the traditional zsh method.  The advantage is that the
+     file is called exactly like a script, so can double as both.
+     To define a function mytt(xhead () { print -n "\033]2;$*\a"; }),
+     the file would just contain mytt(print -n "\033]2;$*\a").  
+  myeit() The file contains the entire definition, and maybe even
+     other code:  it is run when the function needs to be loaded, then
+     the function itself is called up.  This is the method in ksh.
+     To define the same function mytt(xhead), the whole of the
+     usual definition should be in the file.
+  )
+
+  In old versions of zsh, before 3.0, only the first behaviour was
+  allowed, so you had to make sure the file found for autoload just
+  contained the function body.  You could still define other functions
+  in the file with the standard form for definitions, though they
+  would be redefined each time you called the main function.
+
+  In version 3.0.x, the second behaviour is activated if the file
+  defines the autoloaded function.  Unfortunately, this is
+  incompatible with the old zsh behaviour which allowed you to
+  redefine the function when you called it.
+
+  From version 3.1, there is an option tt(KSH_AUTOLOAD) to allow full ksh
+  compatibility, i.e. the function myem(must) be in the second form
+  above.  If that is not set, zsh tries to guess which form you are
+  using:  if the file contains only a complete definition of the
+  function in the second form, and nothing else apart from comments
+  and whitespace, it will use the function defined in the file;
+  otherwise, it will assume the old behaviour.  The option is set
+  if mytt(emulate ksh) is in effect, of course.
+  
+  (A neat trick to autoload all functions in a given directory is to
+  include a line like mytt(autoload ~/fns/*(:t)) in .zshrc; the bit in
+  parentheses removes the directory part of the filenames, leaving
+  just the function names.)
+
+
+sect(How does base arithmetic work?)
+
+  The ksh syntax is now understood, i.e.
+  verb(
+    let 'foo = 16#ff'
+  )
+  or equivalently
+  verb(
+    (( foo = 16#ff ))
+  )
+  or even
+  verb(
+    foo=$((16#ff))
+  )
+  The original syntax was
+  verb(
+    (( foo = [16]ff ))
+  )
+  --- this was based on a misunderstanding of the ksh manual page.  It
+  still works but its use is deprecated.  Then
+  verb(
+    echo $foo
+  )
+  gives the answer `255'.  It is possible to declare variables explicitly
+  to be integers, via
+  verb(
+    typeset -i foo
+  )
+  which has a different effect: namely the base used in the first
+  assignment (hexadecimal in the example) is subsequently used whenever
+  `foo' is displayed (although the internal representation is unchanged).
+  To ensure foo is always displayed in decimal, declare it as
+  verb(
+    typeset -i 10 foo
+  )
+  which requests base 10 for output.  You can change the output base of an
+  existing variable in this fashion.  Using the mytt($(( ... ))) method will
+  always display in decimal, except that in 3.1.9 there is a new feature
+  for selecting a base for displaying here:
+  verb(
+    print $(( [#16] 255 ))
+  )
+
+
+sect(How do I get a newline in my prompt?)
+label(313)
+
+  You can place a literal newline in quotes, i.e.
+  verb(
+    PROMPT="Hi Joe,
+    what now?%# "
+  )
+  If you have the bad taste to set the option cshjunkiequotes, which
+  inhibits such behaviour, you will have to bracket this with
+  mytt(unsetopt cshjunkiequotes) and mytt(setopt cshjunkiequotes), or put it
+  in your tt(.zshrc) before the option is set.
+
+  In recent versions of zsh (not 3.0), there is a form of quoting which
+  interprets print sequences like `tt(\n)' but otherwise acts like single
+  quotes: surround the string with tt($'...').  Hence:
+  verb(
+    PROMPT=$'Hi Joe,\nwhat now?%# '
+  )
+  is a neat way of doing what you want.  Note that it is the quotes, not
+  the prompt expansion, which turns the `tt(\n)' into a newline.
+
+
+sect(Why does mytt(bindkey ^a command-name) or mytt(stty intr ^-) do something funny?)
+
+  You probably have the extendedglob option set in which case tt(^) and tt(#)
+  are metacharacters.  tt(^a) matches any file except one called tt(a), so the
+  line is interpreted as bindkey followed by a list of files.  Quote the
+  tt(^) with a backslash or put quotation marks around tt(^a).
+  See link(3.27)(327) if you want to know more about the pattern
+  character mytt(^).
+
+
+sect(Why can't I bind tt(\C-s) and tt(\C-q) any more?)
+
+  The control-s and control-q keys now do flow control by default,
+  unless you have turned this off with mytt(stty -ixon) or redefined the
+  keys which control it with mytt(stty start) or mytt(stty stop).  (This is
+  done by the system, not zsh; the shell simply respects these
+  settings.)  In other words, tt(\C-s) stops all output to the terminal,
+  while tt(\C-q) resumes it.
+
+  There is an option tt(NO_FLOW_CONTROL) to stop zsh from allowing flow
+  control and hence restoring the use of the keys: put mytt(setopt
+  noflowcontrol) in your tt(.zshrc) file.
+
+
+sect(How do I execute command mytt(foo) within function mytt(foo)?)
+
+  The command mytt(command foo) does just that.  You don't need this with
+  aliases, but you do with functions.  Note that error messages like
+  verb(
+    zsh: job table full or recursion limit exceeded
+  )
+  are a good sign that you tried calling `foo' in function `foo' without
+  using `command'.  If mytt(foo) is a builtin rather than an external
+  command, use mytt(builtin foo) instead.
+
+
+sect(Why do history substitutions with single bangs do something funny?)
+
+  If you have a command like "tt(echo !-2:$ !$)", the first history
+  substitution then sets a default to which later history substitutions
+  with single unqualified bangs refer, so that !$ becomes equivalent to
+  tt(!-2:$).  The option tt(CSH_JUNKIE_HISTORY) makes all single bangs refer
+  to the last command.
+
+
+sect(Why does zsh kill off all my background jobs when I logout?)
+
+  Simple answer: you haven't asked it not to.  Zsh (unlike [t]csh) gives
+  you the option of having background jobs killed or not: the mytt(nohup)
+  option exists if you don't want them killed.  Note that you can always
+  run programs with mytt(nohup) in front of the pipeline whether or not the
+  option is set, which will prevent that job from being killed on
+  logout.  (mytt(nohup) is actually an external command.)
+
+  The mytt(disown) builtin is very useful in this respect: if zsh informs
+  you that you have background jobs when you try to logout, you can
+  mytt(disown) all the ones you don't want killed when you exit.  This is
+  also a good way of making jobs you don't need the shell to know about
+  (such as commands which create new windows) invisible to the shell.
+  Likewise, you can start a background job with mytt(&!) instead of just
+  mytt(&) at the end, which will automatically disown the job.
+
+
+sect(How do I list all my history entries?)
+
+  Tell zsh to start from entry 1: mytt(history 1).  Those entries at the
+  start which are no longer in memory will be silently omitted.
+
+
+sect(How does the alternative loop syntax, e.g. mytt(while {...} {...}) \
+work?)
+
+  Zsh provides an alternative to the traditional sh-like forms with mytt(do),
+  verb(
+    while TEST; do COMMANDS; done
+  )
+  allowing you to have the COMMANDS delimited with some other command
+  structure, often mytt({...}).  The rules are quite complicated and
+  in most scripts it is probably safer --- and certainly more
+  compatible --- to stick with the sh-like rules.  If you are
+  wondering, the following is a rough guide.
+
+  To make it work you must make sure the TEST itself is clearly
+  delimited.  For example, this works:
+  verb(
+    while (( i++ < 10 )) { echo i is $i; }
+  )
+  but this does myem(not):
+  verb(
+    while let "i++ < 10"; { echo i is $i; }   # Wrong!
+  )
+  The reason is that after mytt(while), any sort of command list is valid.
+  This includes the whole list mytt(let "i++ < 10"; { echo i $i; });
+  the parser simply doesn't know when to stop.  Furthermore, it is
+  wrong to miss out the semicolon, as this makes the mytt({...}) part
+  of the argument to mytt(let).  A newline behaves the same as a
+  semicolon, so you can't put the brace on the next line as in C.
+
+  So when using this syntax, the test following the mytt(while) must
+  be wrapped up:  any of mytt(((...))), mytt([[...]]), mytt({...}) or
+  mytt((...)) will have this effect.  (They have their usual syntactic
+  meanings too, of course; they are not interchangeable.)  Note that
+  here too it is wrong to put in the semicolon, as then the case
+  becomes identical to the preceding one:
+  verb(
+    while (( i++ < 10 )); { echo i is $i; }   # Wrong!
+  )
+
+  The same is true of the mytt(if) and mytt(until) constructs:
+  verb(
+    if { true } { echo yes } else { echo no }
+  )
+  but with mytt(for), which only needs a list of words, you can get
+  away with it:
+  verb(
+    for foo in a b; { echo foo is $a; bar=$foo; }
+  )
+  since the parser knows it only needs everything up to the first
+  semicolon. For the same reason, there is no problem with the mytt(repeat),
+  mytt(case) or mytt(select) constructs; in fact, mytt(repeat) doesn't even
+  need the semicolon since it knows the repeat count is just one word.
+
+  This is independent of the behaviour of the SHORTLOOPS option (see
+  manual), which you are in any case encouraged even more strongly not
+  to use in programs as it can be very confusing.
+
+
+sect(Why is my history not being saved?)
+label(321)
+
+  In zsh, you need to set three variables to make sure your history is
+  written out when the shell exits.  For example,
+  verb(
+    HISTSIZE=200
+    HISTFILE=~/.zsh_history
+    SAVEHIST=200
+  )
+  tt($HISTSIZE) tells the shell how many lines to keep internally,
+  tt($HISTFILE) tells it where to write the history, and tt($SAVEHIST),
+  the easiest one to forget, tells it how many to write out.  The
+  simplest possibility is to set it to the same as tt($HISTSIZE) as
+  above.  There are also various options affecting history; see the
+  manual.
+
+
+sect(How do I get a variable's value to be evaluated as another variable?)
+
+  The problem is that you have a variable tt($E) containing the string
+  mytt(EDITOR), and a variable tt($EDITOR) containing the string mytt(emacs),
+  or something such.  How do you get from tt($E) to emacs in one easy
+  stage?
+
+  There is no standard single-stage way of doing this.  However, there
+  is a zsh idiom (available in all versions of zsh since 3.0) for this:
+  verb(
+    print ${(e)E:+\$$E}
+  )
+  Ignore the mytt((e)) for now.  The mytt(:+) means: if the variable
+  tt($E) is set, substitute the following, i.e. mytt(\$$E).  This is
+  expanded to mytt($EDITOR) by the normal rules.  Finally, the mytt((e)) \
+  means
+  `evaluate the expression you just made'.  This gives mytt(emacs).
+
+  For a standard shell way of doing this, you are stuck with mytt(eval):
+  verb(
+    eval echo \$$E
+  )
+  produces the same result.
+
+  Versions since 3.1.6 allow you to do this directly with a new flag;
+  mytt(${(P)E}).
+
+  As a slight aside, sometimes people note that the syntax mytt(${${E}})
+  is valid and expect it to have this effect.  It probably ought to, but
+  in the early days of zsh it was found convenient to have this way of
+  producing different substitutions on the same parameter; for example,
+  mytt(${${file##**/}%.*}) removes everything up to the last slash in
+  mytt($file), then everything from the last dot on, inclusive (try
+  it, this works).  So in mytt(${${E}}), the internal mytt(${...})
+  actually does nothing.
+
+
+sect(How do I prevent the prompt overwriting output when there is no newline?)
+
+  The problem is normally limited to zsh versions prior to 4.3.0 due to the
+  advent of the PROMPT_SP option (which is enabled by default, and eliminates
+  this problem for most terminals).  An example of the overwriting is:
+  verb(
+    % echo -n foo
+    % 
+  )
+  This shows a case where the word tt(foo) was output without a newline, and
+  then overwritten by the prompt line tt(%).  The reason this happens is that
+  the option tt(PROMPT_CR) is enabled by default, and it outputs a carriage
+  return before the prompt in order to ensure that the line editor knows what
+  column it is in (this is needed to position the right-side prompt correctly
+  (mytt($RPROMPT), mytt($RPS1)) and to avoid screen corruption when performing
+  line editing).  If you add tt(unsetopt promptcr) to your tt(.zshrc), you
+  will see any partial output, but your screen may look weird until you press
+  return or refresh the screen.
+
+  A better solution than disabling PROMPT_CR (for most terminals) is adding
+  a simpler version of the PROMPT_SP functionality to an older zsh using a
+  custom precmd function, like this one:
+  verb(
+    # Skip defining precmd if the PROMPT_SP option is available.
+    if ! eval '[[ -o promptsp ]] 2>/dev/null'; then
+      function precmd {
+        # Output an inverse char and a bunch spaces.  We include
+        # a CR at the end so that any user-input that gets echoed
+        # between this output and the prompt doesn't cause a wrap.
+        print -nP "%B%S%#%s%b${(l:$((COLUMNS-1)):::):-}\r"
+      }
+    fi
+  )
+  That precmd function will only bump the screen down to a new line if there
+  was output on the prompt line, otherwise the extra chars get removed by
+  the PROMPT_CR action.  Although this typically looks fine, it may result
+  in the spaces preceding the prompt being included when you select a line
+  of preserved text with the mouse.
+
+  One final alternative is to put a newline in your prompt -- see question
+  link(3.13)(313) for that.
+
+
+sect(What's wrong with cut and paste on my xterm?)
+
+  On the majority of modern UNIX systems, cutting text from one window and
+  pasting it into another should work fine.  On a few, however, there are
+  problems due to issues about how the terminal is handled:  most programs
+  expect the terminal to be in `canonical input mode', which means that the
+  program is passed a whole line of input at a time, while for editing
+  the shell needs a single character at a time and must be in
+  `non-canonical input mode'.  On the systems in question, input can be
+  lost or re-ordered when the mode changes.  There are actually two
+  slightly different problems:
+  enumeration(
+  myeit() When you paste something in while a programme is running, so that
+     the shell only retrieves it later.  Traditionally, there was a test
+     which was used only on systems where the problem was known to exist,
+     so it is possible some other systems were not handled (for example,
+     certain versions of IRIX, it appears); also, continuation lines were
+     not handled properly.  A more reliable approach appears from versions
+     3.0.6 and 3.1.6.
+  myeit() When the shell is waiting for input, and you paste in a chunk of
+     text consisting of more than one complete set of commands.
+     Unfortunately, this is a much harder problem: the line editor is
+     already active, and needs to be turned off when the first command is
+     executed.  The shell doesn't even know if the remaining text is input
+     to a command or for the shell, so there's simply nothing it can do.
+
+     However, if you have problems you can trick it: type `tt({)' on a line
+     by itself, then paste the input, then type `tt(})' on a line by
+     itself.  The shell will not execute anything until the final brace is
+     read; all input is read as continuation lines (this may require the
+     fixes referred to above in order to be reliable).
+
+     As of 5.1, this trick is not necessary on terminal emulators that
+     support the em(bracketed paste) feature (this includes most modern
+     terminal emulators).  See the description of tt($zle_bracketed_paste)
+     in the tt(zshparam) manual page for details.
+  )
+
+
+sect(How do I get coloured prompts on my colour xterm?)
+
+  (Or `color xterm', if you're reading this in black and white.)
+
+  Versions of the shell starting with the 4.3 series have this
+  built in.  Use
+  verb(
+    PS1='%K{white}%F{red}<red on white>%f%k<default colours>'
+  )
+  to change the prompt.  Names are only usable for the colours
+  black, red, green, yellow, blue, magenta, cyan and white, understood
+  by most terminals, but if you happen to know the details of how
+  your terminal implements colours you can specify a number, e.g.
+  mytt(%20F) to turn the foreground into colour number 20. mytt(echotc
+  Co) will often output the number of colours the terminal supports.
+  (Careful: mytt(echotc co) is different; it also outputs a number
+  but it's the number of columns in the terminal.)  If this is 8
+  then probably you have the named colours and nothing more.
+
+  In older versions of the shell you need to find the sequences which
+  generate the various colours from the manual for your terminal
+  emulator; these are ANSI standard on those I know about which support
+  colour.  With a recent (post 3.1.6) distribution of zsh, there is a
+  theme system to handle this for you; even if you don't see that, the
+  installed function `mytt(colors)' (meaning `colours', if you're not
+  reading this in black and white) gives the escape sequences.  You will
+  end up with code looking like this (borrowed from Oliver Kiddle):
+  verb(
+    PS1=$'%{\e[1;31m%}<the rest of your prompt here>%{\e[0m%}'
+  )
+  The mytt($') form of quoting turns the `mytt(\e)' into a real escape
+  character; this only works from about version 3.1.4, so if you're using
+  3.0.x, you need to do something like
+  verb(
+    PS1="$(print '%{\e[1;31m%}<the rest goes here>%{\e[0m%}')"
+  )
+  The `mytt(%{...%})' is used in prompts for strings which will
+  not appear as characters, so that the prompt code doesn't miscalculate the
+  length of the prompt which would have a bad effect on editing.  The
+  resulting `mytt(<ESC>[1;31m)' makes the prompt red, and the
+  `mytt(<ESC>[0m)' puts printing back to normal so that the rest of the line
+  is unchanged.
+
+
+sect(Why is my output duplicated with `tt(foo 2>&1 >foo.out | bar)'?)
+
+  This is a slightly unexpected effect of the option tt(MULTIOS), which is
+  set by default.  Let's look more closely:
+  verb(
+    foo 2>&1 >foo.out | bar
+  )
+  What you're probably expecting is that the command mytt(foo) sends its
+  standard output to the pipe and so to the input of the command mytt(bar),
+  while it sends its standard error to the file mytt(foo.out).  What you
+  actually see is that the output is going both to the pipe and into the
+  file.  To be more explicit, here's the same example with real commands:
+  verb(
+    % { print output; print error >&2 } 2>&1 >foo.out | sed 's/error/erratic/'
+    erratic
+    output
+    % cat foo.out
+    output
+  )
+  and you can see `tt(output)' appears twice.
+
+  It becomes clearer what's going on if we write:
+  verb(
+    % print output >foo1.out >foo2.out
+    % cat foo1.out
+    output
+    % cat foo2.out
+    output
+  )
+  You might recognise this as a standard feature of zsh, called `tt(multios)'
+  and controlled by the option of the same name, whereby output is copied
+  to both files when the redirector appears twice.  What's going on in the
+  first example is exactly the same, however the second redirector is
+  disguised as a pipe.  So if you want to turn this effect off, you need
+  to unset the option mytt(MULTIOS), or alternatively write the following:
+  verb(
+    % { print output; print error >&2 } 2>&1 >&- >foo.out | sed 's/error/erratic/'
+    erratic
+  )
+  By closing stdout with tt(>&-), we're cancelling the previous redirections
+  (to the pipe) and start anew with tt(>foo.out) instead of adding it as a
+  redirection target to stdout.
+
+
+sect(What are these `^' and `~' pattern characters, anyway?)
+label(327)
+
+  The characters mytt(^) and mytt(~) are active when the option
+  tt(EXTENDED_GLOB) is set.  Both are used to exclude patterns, i.e.  to
+  say `match something other than ...'.  There are some confusing
+  differences, however.  Here are the descriptions for mytt(^) and mytt(~).
+
+  mytt(^) means `anything except the pattern that follows'.  You can
+  think of the combination tt(^)em(pat) as being like a tt(*) except
+  that it doesn't match em(pat).  So, for example, mytt(myfile^.txt)
+  matches anything that begins with tt(myfile) except tt(myfile.txt).
+  Because it works with patterns, not just strings, mytt(myfile^*.c)
+  matches anything that begins with tt(myfile) unless it ends with
+  tt(.c), whatever comes in the middle --- so it matches tt(myfile1.h)
+  but not tt(myfile1.c).
+
+  Also like mytt(*), mytt(^) doesn't match across directories if you're
+  matching files when `globbing', i.e. when you use an unquoted pattern
+  in an ordinary command line to generate file names.  So
+  mytt(^dir1/^file1) matches any subdirectory of the current directory
+  except one called tt(dir1), and within any directory it matches it
+  picks any file except one called tt(file1).  So the overall pattern
+  matches tt(dir2/file2) but not tt(dir1/file1) nor tt(dir1/file2) nor
+  tt(dir2/file1).  (The rule that all the different bits of the pattern
+  must match is exactly the same as for any other pattern character,
+  it's just a little confusing that what em(does) match in each bit is
+  found by telling the shell em(not) to match something or other.)
+
+  As with any other pattern, a mytt(^) expression doesn't treat the
+  character `tt(/)' specially if it's not matching files, for example
+  when pattern matching in a command like mytt([[ $string = ^pat1/pat2 ]]).
+  Here the whole string tt(pat1/pat2) is treated as the argument that
+  follows the mytt(^).  So anything matches but that one string
+  tt(pat1/pat1).
+
+  It's not obvious what something like mytt([[ $string = ^pat1^pat2 ]])
+  means.  You won't often have cause to use it, but the rule is that
+  each mytt(^) takes em(everything) that follows as an argument (unless
+  it's already inside parentheses --- I'll explain this below).  To see
+  this more clearly, put those arguments in parentheses: the pattern is
+  equivalent to mytt(^(pat1^(pat2))). where now you can see exactly what
+  each mytt(^) takes as its argument.  I'll leave it as an exercise for
+  you to work out what this does and doesn't match.
+  
+  mytt(~) is always used between two patterns --- never right at the
+  beginning or right at the end.  Note that the other special meaning of
+  mytt(~), at the start of a filename to refer to your home directory or
+  to another named directory, doesn't require the option
+  tt(EXTENDED_GLOB) to be set.  (At the end of an argument mytt(~) is
+  never special at all.  This is useful if you have Emacs backup files.)
+  It means `match what's in front of the tilde, but only if it doesn't
+  match what's after the tilde'.  So mytt(*.c~f*) matches any file
+  ending in tt(.c) except one that begins with tt(f).  You'll see that,
+  unlike mytt(^), the parts before and after the mytt(~) both refer
+  separately to the entire test string.
+
+  For matching files by globbing, mytt(~) is the only globbing operator
+  to have a lower precedence than mytt(/).  In other words, when you
+  have mytt(/a/path/to/match~/a/path/not/to/match) the mytt(~) considers
+  what's before as a complete path to a file name, and what's after as a
+  pattern to match against that file.  You can put any other pattern
+  characters in the expressions before and after the mytt(~), but as I
+  said the pattern after the tt(~) is really just a single pattern to
+  match against the name of every file found rather than a pattern to
+  generate a file.  That means, for example, that a tt(*) after the
+  tt(~) em(will) match a tt(/).  If that's confusing, you can think of
+  how mytt(~) works like this: take the pattern on the left, use it as
+  normal to make a list of files, then for each file found see if it
+  matches the pattern on the right and if it does take that file out of
+  the list.  Note, however, that this removal of files happens
+  immediately, before anything else happens to the file list --- before
+  any glob qualifiers are applied, for example.
+
+  One rule that is common to both mytt(^) and mytt(~) is that they can
+  be put inside parentheses and the arguments to them don't extend past
+  the parentheses.  So mytt((^README).txt) matches any file ending in
+  tt(.txt) unless the string before that was tt(README), the same as
+  mytt(*.txt~README.txt) or mytt((*~README).txt).  In fact, you can
+  always turn mytt(^something) into mytt((*~something)), where
+  mytt(something) mustn't contain tt(/) if the pattern is being used for
+  globbing.
+
+  Likewise, mytt(abc+_LPAR_<->~<10-100>_RPAR_.txt) matches a file consisting of
+  tt(abc), then some digits, then tt(.txt), unless the digits happen to
+  match a number from 10 to 100 inclusive (remember the handy mytt(<->)
+  pattern for matching integers with optional limits to the range).  So
+  this pattern matches tt(abc1.txt) or tt(abc200.txt) but not
+  tt(abc20.txt) nor tt(abc100.txt) nor even tt(abc0030.txt).  However,
+  if you're matching files by globbing note you can't put mytt(/)s
+  inside the parentheses since the groups can't stretch across multiple
+  directories.  (You can do that, of course, whenever the character
+  mytt(/) isn't special.)  This means that you need to take care when
+  using exclusions across multiple directories; see some examples below.
+
+  You may like to know that from zsh 5.0.3 you can disable any pattern
+  character separately.  So if you find mytt(^) gets in your way and
+  you're happy using mytt(~), put mytt(disable -p "^") in tt(~/.zshrc).
+  You still need to turn on tt(EXTENDED_GLOB); the tt(disable) command
+  only deactivates things that would otherwise be active, you can't
+  specially enable something not allowed by the syntax options in effect.
+
+  Here are some examples with files to illustrate the points.  We'll
+  assume the option tt(EXTENDED_GLOB) is set and none of the pattern
+  characters is disabled.
+
+  enumeration(
+  myeit() mytt(**/foo~*bar*) matches any file called mytt(foo) in any
+     subdirectory, except where mytt(bar) occurred somewhere in the path.
+     For example, mytt(users/barstaff/foo) will be excluded by the mytt(~)
+     operator.  As the mytt(**) operator cannot be grouped (inside
+     parentheses it is treated as mytt(*)), this is one way to exclude some
+     subdirectories from matching a mytt(**).  Note that this can be quite
+     inefficient because the shell performs a complete search for
+     mytt(**/foo) before it uses the pattern after the mytt(~) to exclude
+     files from the match.  The file is excluded if mytt(bar) occurs
+     em(anywhere), in any directory segment or the final file name.
+  myeit() The form mytt((^foo/)#) can be used to match any hierarchy of
+     directories where none of the path components is tt(foo).  For
+     example, mytt((^CVS/)#) selects all subdirectories to any depth
+     except where one component is named mytt(CVS).  (The form
+     mytt((pat/)#) is very useful in other cases; for example,
+     mytt((../)#.cvsignore) finds the file tt(.cvsignore) if it exists
+     in the current directory or any parent.)
+  )
+
+
+sect(How do I edit the input buffer in $EDITOR?)
+label(328)
+
+  When typing a long command interactively, it's possible to edit it in $EDITOR
+  before execution by using the tt(edit-command-line) ZLE widget.  For example,
+  after putting
+  verb(
+    autoload -U edit-command-line; 
+    zle -N edit-command-line; 
+    bindkey '^Fc' edit-command-line;
+  )
+  in your tt(~/.zshrc), typing mytt(^F c) will open the entered-so-far
+  command-line for editing.  The command will not be automatically executed;
+  quitting the editor will only return to zsh's command-line editing mode.
+
+
+sect(Why does `which' output for missing commands go to stdout?)
+
+  The issue is that if you run:
+  verb(
+    which non-existent-command
+  )
+  the error message goes, unusually, to standard output rather than
+  to standard error.  Other shells send this message to standard error,
+  as they would if the command was about to be executed but could not be
+  found.
+
+  The original reason for this is that this behaviour is inherited from
+  previous versions of `tt(which)', a builtin in later versions of csh,
+  the C shell, as well as tcsh, an adaptation of the C Shell with better
+  editing, and is also available as a separate script sometimes still
+  found in certain distributions.  Other shells had equivalent commands,
+  `tt(whence)' and `tt(type), that zsh has also adopted.  So in fact
+  this has always been a feature of `tt(which)'.  (It would be possible
+  to change this in emulation modes; however, so far this possibility
+  has been seen as more of an additional confusion than a help.)
+
+  If you want some further rationalisation, you might note that
+  `tt(which)' is designed as a way of outputting information about a
+  command.  So `this command can be found in ...' and `this command
+  can't be found' are both bits of information here, unlike the case
+  where the command is to be executed.  So although it differs from
+  other Bourne-style shells it is in fact self-consistent.  Note that
+  the exit status does reflect the fact the command can't be found.
+
+
+sect(Why doesn't the expansion mytt(*.{tex,aux,pdf}) do what I expect?)
+
+  Based on the behaviour of some other shells, you might guess that the
+  following expression:
+  verb(
+    echo *.{tex,aux,pdf}
+  )
+  would be the way to echo any files ending in mytt(.tex), mytt(.aux) or
+  mytt(.pdf) in the current directory.  Depending on your settings for
+  matching (see link(2.1)(21), in particular tt(NO_NOMATCH)), you may
+  see something else, in particular an error about (say) mytt(*.aux) if
+  there were no files ending mytt(.aux).
+
+  The reason for this is that the brace expansion isn't actually
+  a form of pattern matching.  Instead, the line above is equivalent to
+  verb(
+    echo *.tex *.aux *.pdf
+  )
+  giving you three separate patterns.  With the default mytt(NOMATCH)
+  behaviour in effect, any pattern that fails to match is an error.
+
+  However, there em(is) a way of doing exactly what you want, using
+  parentheses instead of braces:
+  verb(
+    echo *.(tex|aux|pdf)
+  )
+  This is now a pattern matching expression, so is considered as a
+  single pattern.  Now any file that exists will suppress the
+  mytt(NOMATCH) behaviour, but you'll still get all the files that do
+  match.
+
+  This use of parentheses is special to zsh.  Modern Bourne-like shells
+  have a syntax like this, too, but with an mytt(@) in front of the
+  parentheses: again, see link(2.1)(21), and search for mytt(@_LPAR_).
+  This is harder for the user to remember but easier for the shell to
+  parse!
+
+
+chapter(The mysteries of completion)
+
+
+sect(What is completion?)
+
+  `Completion' is where you hit a particular command key (TAB is the
+  standard one) and the shell tries to guess the word you are typing
+  and finish it for you --- a godsend for long file names, in
+  particular, but in zsh there are many, many more possibilities than
+  that.
+
+  There is also a related process, `expansion', where the shell sees
+  you have typed something which would be turned by the shell into
+  something else, such as a variable turning into its value ($PWD
+  becomes /home/users/mydir) or a history reference (!! becomes
+  everything on the last command line).  In zsh, when you hit TAB it
+  will look to see if there is an expansion to be done; if there is,
+  it does that, otherwise it tries to perform completion.  (You can
+  see if the word would be expanded --- not completed --- by TAB by
+  typing mytt(\C-x g), which lists expansions.)  Expansion is generally
+  fairly intuitive and not under user control; for the rest of the
+  chapter I will discuss completion only.
+
+  An elegant completion system appeared in version 4, replacing the old
+  tt(compctl) command.  This is based on functions called automatically for
+  completion in particular contexts (for example, there is a function
+  called tt(_cd) to handle completion for the tt(cd) command) and is
+  installed automatically with the shell, so all you need to do, in
+  principal, is to arrange for this to be loaded.  Putting `tt(autoload -U
+  compinit; compinit)' in your tt(.zshrc) should be enough if the system is
+  installed properly.
+
+
+sect(What sorts of things can be completed?)
+label(42)
+
+  The simplest sort is filename completion, mentioned above.  Unless
+  you have made special arrangements, as described below, then after
+  you type a command name, anything else you type is assumed by the
+  completion system to be a filename.  If you type part of a word and
+  hit TAB, zsh will see if it matches the first part a filename and
+  if it does it will automatically insert the rest.
+
+  The other simple type is command completion, which applies
+  (naturally) to the first word on the line.  In this case, zsh
+  assumes the word is some command to be executed lying in your $PATH
+  (or something else you can execute, like a builtin command, a
+  function or an alias) and tries to complete that.
+
+  However, the new completion system is highly sensitive to context
+  and comes with completions for many UNIX commands.  These are
+  automatically loaded when you run tt(compinit) as described above.
+  So the real answer to the question `what can be completed?' is
+  `anything where an automated guess is possible'.  Just hit TAB
+  and see if the shell manages to guess correctly.
+
+
+sect(How does zsh deal with ambiguous completions?)
+
+  Often there will be more than one possible completion: two files
+  start with the same characters, for example.  Zsh has a lot of
+  flexibility for what it does here via its options.  The default is
+  for it to beep and completion to stop until you type another
+  character.  You can type tt(\C-D) to see all the possible completions.
+  (That's assuming you're at the end of the line, otherwise tt(\C-D) will
+  delete the next character and you have to use tt(ESC-\C-D).)  This can be
+  changed by the following options, among others:
+  itemization(
+   it() with tt(NO_BEEP) set, that annoying beep goes away
+   it() with tt(NO_LIST_BEEP), beeping is only turned off for ambiguous
+      completions
+   it() with tt(AUTO_LIST) set, when the completion is ambiguous you get a
+      list without having to type tt(\C-D)
+   it() with tt(BASH_AUTO_LIST) set, the list only happens the second
+      time you hit tab on an ambiguous completion
+   it() with tt(LIST_AMBIGUOUS), this is modified so that nothing is listed if
+      there is an unambiguous prefix or suffix to be inserted --- this
+      can be combined with tt(BASH_AUTO_LIST), so that where both are
+      applicable you need to hit tab three times for a listing.
+   it() with tt(MENU_COMPLETE) set, one completion is always inserted
+      completely, then when you hit TAB it changes to the next, and so
+      on until you get back to where you started
+   it() with tt(AUTO_MENU), you only get the menu behaviour when you hit TAB
+      again on the ambiguous completion.
+   it() Finally, although it affects all completion lists, including
+      those explicitly requested, note also tt(ALWAYS_LAST_PROMPT), which
+      causes the cursor to return to the line you were editing after
+      printing the list, provided that is short enough.
+  )
+  Combinations of these are possible; for example, tt(AUTO_LIST) and
+  tt(AUTO_MENU) together give an intuitive combination.  Note that
+  from version 3.1 tt(LIST_AMBIGUOUS) is set by default; if you use
+  autolist, you may well want to `unsetopt listambiguous'.
+
+
+sect(How do I complete in the middle of words / just what's before the cursor?)
+
+  Sometimes you have a word on the command-line which is incomplete in the
+  middle.  Normally if you hit tab in zsh, it will simply go to the end of
+  the word and try to complete there.  However, there are two ways of
+  changing this.
+
+  First, there is the option COMPLETE_IN_WORD.  This tries to fill in
+  the word at the point of the cursor.  For example, if the current
+  directory contains mytt(foobar), then with the option set, you can
+  complete mytt(fbar) to mytt(foobar) by moving the cursor to the
+  mytt(b) and hitting tab.
+
+  To complete just what's before the cursor, ignoring anything after, you
+  need the function tt(expand-or-complete-prefix): it works mostly like the
+  usual function bound to tab, but it ignores anything on the right of the
+  cursor.  If you always want this behaviour (some other shells do this),
+  bind it to tab; otherwise put another binding, e.g. mytt(^X TAB) in
+  tt(~/.zshrc):
+  verb(
+    bindkey "^X^I" expand-or-complete-prefix
+  )
+
+  The completion system's handling of filenames allows you to complete
+  multiple segments of a path in one go, so for example tt(/u/l/b)
+  can expand to tt(/usr/local/bin) or anything else that matches.  This
+  saves you having to expand the middle part of the path separately.
+
+
+sect(How do I get started with programmable completion?)
+label(45)
+
+  The main resource is the tt(zshcompsys) manual page.  It's complicated,
+  I'm afraid, far too much to go into here.  See also the user guide
+  referred to above, or copy one of the very many existing functions.  For
+  a professionally produced guide, see the book `From Bash to Z Shell:
+  Conquering the Command Line' by Oliver Kiddle, Jerry Peek and Peter
+  Stephenson (me), published by Apress, ISBN 1-59059-376-6.  Chapter 10
+  tells you how to configure the completion system and chapter 15 how
+  to write your own completion functions.
+
+
+sect(Suppose I want to complete all files during a special completion?)
+
+  If you're using the completion system the shell will decide what
+  to complete when you hit TAB.  That's usually the right thing for
+  the context, but sometimes you just want to complete files, like
+  TAB used to do in the old days.  You can set up this up as follows:
+  verb(
+    zle -C complete-file complete-word _generic
+    zstyle ':completion:complete-file::::' completer _files
+    bindkey '^xF' complete-file
+  )
+  This turns the key tt(\C-x F) into a command tt(complete-file) which
+  goes straight to the completion system's file completion command,
+  ignoring the normal context.  Change the binding how you like.
+
+  Note the way the form of completion to use is specified by picking a
+  `completer' called `tt(_files)'.  You can define any completion
+  to be bound to a keystroke by putting the appropriate completion
+  function at that point.  Then change all occurrences of
+  `tt(complete-file)' to a name of your own.
+
+  If you simply want to try filename completion as a default when other
+  completions fail, add it to the `tt(completer)' style for normal
+  completion, for example:
+  verb(
+    zstyle ':completion:*' completer _complete _ignored _files
+  )
+  This adds filename completion to the end of the default types of
+  completion.  Your actual completer style may include other actions,
+  such as expansion or approximate completion.
+
+
+chapter(Multibyte input and output)
+label(c5)
+
+sect(What is multibyte input?)
+
+  For a long time computers had a simple idea of a character: each octet
+  (8-bit byte) of text contained one character.  This meant an application
+  could only use 256 characters at once.  The first 128 characters (0 to
+  127) on Unix and similar systems usually corresponded to the ASCII
+  character set, as they still do.  So all other possibilities had to be
+  crammed into the remaining 128.  This was done by picking the appropriate
+  character set for the use you were making.  For example, ISO 8859
+  specified a set of extensions to ASCII for various alphabets.
+
+  This was fine for simple extensions and certain short enough relatives of
+  the Latin alphabet (with no more than a few dozen alphabetic characters),
+  but useless for complex alphabets.  Also, having a different character
+  set for each language is inconvenient: you have to start a new terminal
+  to run the shell with each character set.  So the character set had to be
+  extended.  To cut a long story short, the world has mostly standardised
+  on a character set called Unicode, related to the international standard
+  ISO 10646.  The intention is that this will contain every single
+  character used in all the languages of the world.
+
+  This has far too many characters to fit into a single octet.  What's
+  more, UNIX utilities such as zsh are so used to dealing with ASCII that
+  removing it would cause no end of trouble.  So what happens is this: the
+  128 ASCII characters are kept exactly the same (and they're the same as
+  the first 128 characters of Unicode), but the remaining 128 characters
+  are used to build up any other Unicode character by combining multiple
+  octets together.  The shell doesn't need to interpret these directly; it
+  just needs to ask the system library how many octets form the next
+  character, and if there's a valid character there at all.  (It can also
+  ask the system what width the character takes up on the screen, so that
+  characters no longer need to be exactly one position wide.)
+
+  The way this is done is called UTF-8.  Multibyte encodings of other
+  character sets exist (you might encounter them for Asian character sets);
+  zsh will be able to use any such encoding as long as it contains ASCII as
+  a single-octet subset and the system can provide information about other
+  characters.  However, in the case of Unicode, UTF-8 is the only one you
+  are likely to encounter that is useful in zsh.
+
+  (In case you're confused: Unicode is the character set, while UTF-8 is
+  an encoding of it.  You might hear about other encodings, such as UCS-2
+  and UCS-4 which are basically the character's index in the character set
+  as a two-octet or four-octet integer.  You might see files encoded this
+  way, for example on Windows, but the shell can't deal directly with text
+  in those formats.)
+
+
+sect(How does zsh handle multibyte input and output?)
+
+  Until version 4.3, zsh didn't handle multibyte input properly at all.
+  Each octet in a multibyte character would look to the shell like a
+  separate character.  If your terminal handled the character set,
+  characters might appear correct on screen, but trying to edit them would
+  cause all sorts of odd effects.  (It was possible to edit in zsh using
+  single-byte extensions of ASCII such as the ISO 8859 family, however.)
+
+  From version 4.3.4 (stable versions starting from 5.0), multibyte
+  input is handled in the line editor if zsh has been compiled with the
+  appropriate definitions, and is automatically activated.  This is
+  indicated by the option tt(MULTIBYTE), which is set by default on
+  shells that support multibyte mode.  Hence you can test this with a
+  standard option test: `tt([[ -o multibyte ]])'.
+
+  The tt(MULTIBYTE) option affects the entire shell: parameter expansion,
+  pattern matching, etc. count valid multibyte character strings as a
+  single character.  You can unset the option locally in a function to
+  revert to single-byte operation.
+
+  As multibyte characters are nowadays standard across most utilities,
+  since 5.1 the tt(MULTBYTE) option has been turned on when emulating
+  other shells.
+
+  The other option that affects multibyte support is tt(COMBINING_CHARS),
+  new in version 4.3.9.  When this is set, any zero-length punctuation
+  characters that follow an alphanumeric character (the base character) are
+  assumed to be modifications (accents etc.) to the base character and to
+  be displayed within the same screen area as the base character.  As not
+  all terminals handle this, even if they correctly display the base
+  multibyte character, this option is not on by default.  Recent versions
+  of the KDE and GNOME terminal emulators tt(konsole) and
+  tt(gnome-terminal) as well as tt(rxvt-unicode), and the Unicode version
+  of xterm, tt(xterm -u8) or the front-end tt(uxterm), are known to handle
+  combining characters.
+
+  The tt(COMBINING_CHARS) option only affects output; combining characters
+  may always be input, but when the option is off will be displayed
+  specially.  By default this is as a code point (the index of the
+  character in the character set) between angle brackets, usually
+  in inverse video.  Highlighting of such special characters can
+  be modified using the new array parameter tt(zle_highlight).
+
+
+sect(How do I ensure multibyte input and output work on my system?)
+
+  Once you have a version of zsh with multibyte support, you need to
+  ensure the environment is correct.  We'll assume you're using UTF-8.
+  Many modern systems may come set up correctly already.  Try one of
+  the editing widgets described in the next section to see.
+
+  There are basically three components.
+
+  itemization(
+   it() The locale.  This describes a whole series of features specific
+      to countries or regions of which the character set is one.
+      Usually it is controlled by the environment variable tt(LANG)
+      (there are others but this is the one to start with).  If you have
+      a recent operating system, very likely it is already set
+      appropriately.  Otherwise, you need to find a locale whose name
+      contains mytt(UTF-8).  This will be a variant on your usual
+      locale, which typically indicates the language and country; for
+      example, mine is mytt(en_GB.UTF-8).  Luckily, zsh can complete
+      locale names, so if you have the new completion system loaded you
+      can type mytt(export LANG=) and attempt to complete a suitable
+      locale.  It's the locale that tells the shell to expect the right
+      form of multibyte input.  (However, there's no guarantee that the
+      shell is actually going to get this input: for example, if you
+      edit file names that have been created using a different character
+      set it won't work properly.)
+   it() The terminal emulator.  Those that are supplied with a recent
+      desktop environment, such as tt(konsole) and tt(gnome-terminal), are
+      likely to have extensive support for localization and may work
+      correctly as soon as they know the locale.  You can enable UTF-8
+      support for tt(xterm) in its application defaults file.  The
+      following are the relevant resources; you don't actually need all of
+      them, as described below.  If you use a mytt(~/.Xdefaults) or
+      mytt(~/.Xresources) file for setting resources, prefix all the lines
+      with mytt(xterm):
+      verb(
+        *wideChars: true
+        *locale: true
+        *utf8: 1
+        *vt100Graphics: true
+      )
+      This turns on support for wide characters (this is enabled by the
+      tt(utf8) resource, too); enables conversions to UTF-8 from other
+      locales (this is the key resource and actually overrides
+      mytt(utf8)); turns on UTF-8 mode (this resource is mostly used to
+      force use of UTF-8 characters if your locale system isn't up to it);
+      and allows certain graphic characters to work even with UTF-8
+      enabled.  (Thanks to Phil Pennock for suggestions.)
+   it() The font.  If you selected this from a menu in your terminal
+      emulator, there's a good chance it already selected the right
+      character set to go with it.  If you hand-picked an old fashioned
+      X font with a lot of dashes, you need to make sure it ends with
+      the right character encoding, mytt(iso10646-1) (and not, for
+      example, mytt(iso8859-1)).  Not all characters will be available
+      in any font, and some fonts may have a more restricted range of
+      Unicode characters than others.
+  )
+
+  As mentioned in the previous section, mytt(bindkey -m) now outputs
+  a warning message telling you that multibyte input from the terminal
+  is likely not to work.  (See link(3.5)(35) if you don't know what
+  this feature does.)  If your terminal doesn't have characters
+  that need to be input as multibyte, however, you can still use
+  the meta bindings and can ignore the warning message.  Use
+  mytt(bindkey -m 2>/dev/null) to suppress it.
+
+  You might also note that the latest version of the Cygwin environment
+  for Windows supports UTF-8.  In previous versions, zsh was able
+  to compile with the tt(MULTIBYTE) option enabled, but the system
+  didn't provide full support for it.
+
+
+sect(How can I input characters that aren't on my keyboard?)
+
+  Two functions are provided with zsh that help you input characters.
+  As with all editing widgets implemented by functions, you need to
+  mark the function for autoload, create the widget, and, if you are
+  going to use it frequently, bind it to a key sequence.  The
+  following binds tt(insert-composed-char) to F5 on my keyboard:
+  verb(
+    autoload -Uz insert-composed-char
+    zle -N insert-composed-char
+    bindkey '\e[15~' insert-composed-char
+  )
+
+  The two widgets are described in the tt(zshcontrib(1)) manual
+  page, but here is a brief summary:
+
+  tt(insert-composed-char) is followed by two characters that
+  are a mnemonic for a multibyte character.  For example mytt(a:)
+  is a with an Umlaut; mytt(cH) is the symbol for hearts on a playing
+  card.  Various accented characters, European and related alphabets,
+  and punctuation and mathematical symbols are available.  The
+  mnemonics are mostly those given by RFC 1345, see
+  url(http://www.faqs.org/rfcs/rfc1345.html)\
+(http://www.faqs.org/rfcs/rfc1345.html).
+
+  tt(insert-unicode-char) is used to input a Unicode character by
+  its hexadecimal number.  This is the number given in the Unicode
+  character charts, see for example \
+url(http://www.unicode.org/charts/)(http://www.unicode.org/charts/).
+  You need to execute the function, then type the hexadecimal number
+  (you can omit any leading zeroes), then execute the function again.
+
+  Both functions can be used without multibyte mode, provided the locale is
+  correct and the character selected exists in the current character set;
+  however, using UTF-8 massively extends the number of valid characters
+  that can be produced.
+
+  If you have a recent X Window System installation, you might find
+  the tt(AltGr) key helps you input accented Latin characters; for
+  example on my keyboard tt(AltGr-; e) gives mytt(e) with an acute accent.
+  See also url(http://www.cl.cam.ac.uk/~mgk25/unicode.html#input)(http://www.cl.cam.ac.uk/~mgk25/unicode.html#input)
+  for general information on entering Unicode characters from a keyboard.
+
+
+chapter(The future of zsh)
+
+sect(What bugs are currently known and unfixed? (Plus recent \
+important changes))
+label(61)
+
+  Bugs tend to be tracked on the zsh-workers mailing list; see the
+  next section.  Check the mailing list to see if a bug has been
+  reported.  (There is a bug tracker at the zsh development site
+  at Sourceforge, but it's not in active use.)
+
+  To see how recent versions of the shell have changed, look at
+  the README file in the source distribution.  This indicates the
+  most important changes, and in particular draws attention to
+  incompatibilities you might notice.
+
+
+sect(Where do I report bugs, get more info / who's working on zsh?)
+label(62)
+
+  The shell is being maintained by various (entirely self-appointed)
+  subscribers to the mailing list,
+  verb(
+    zsh-workers@zsh.org
+  )
+  so mail on any issues (bug reports, suggestions, complaints...)
+  related to the development of the shell should be sent there.  If
+  you want someone to mail you directly, say so.  Most patches to zsh
+  appear there first.
+
+  Please note when reporting bugs that many exist only on certain
+  architectures, which the developers may not have access to.  In
+  this case debugging information, as detailed as possible, is
+  particularly welcome.
+
+  Two progressively lower volume lists exist, one with messages
+  concerning the use of zsh,
+  verb(
+    zsh-users@zsh.org
+  )
+  and one just containing announcements:  about releases, about major
+  changes in the shell, or this FAQ, for example,
+  verb(
+    zsh-announce@zsh.org
+  )
+  (posting to the last one is currently restricted).
+
+  Finally, there is a private mailing list (the general public cannot subscribe
+  to it) for discussing bug reports with security implications, i.e., potential
+  vulnerabilities: mytt(zsh-security@zsh.org).  If you find a security problem
+  in zsh itself, please mail this address.
+
+  Note that you should only join one of these lists:  people on
+  zsh-workers receive all the lists, and people on zsh-users will
+  also receive the announcements list.
+
+  The lists are handled by an automated server.  The instructions for
+  zsh-announce and zsh-users are the same as for zsh-workers: just
+  change zsh-workers to whatever in the following.
+
+  To join zsh-workers, send email to
+  verb(
+    zsh-workers-subscribe@zsh.org
+  )
+  (the actual content is unimportant).  Replace tt(subscribe) with
+  tt(unsubscribe) to unsubscribe.  The mailing software (tt(Sympa)) has
+  various bells and whistles: you can retrieve archived messages.
+  Mail email(sympa@zsh.org?subject=help) for detailed information.
+  Administrative matters are best sent to
+  email(zsh-workers-owner@zsh.org).
+  
+  Note that this location changed in August 2020, and the
+  instructions to go with it are slightly different.
+
+  An archive of mailings for the last few years can be found at
+    url(http://www.zsh.org/mla/)(http://www.zsh.org/mla/)
+  at the main zsh archive site.
+
+  Of course, you can also post zsh queries to the Usenet group
+  comp.unix.shell; if all else fails, you could even e-mail me.
+
+
+sect(What's on the wish-list?)
+
+  The code bears the marks of the ages and many things could be done much
+  better with a rewrite.  A more efficient set of code for
+  lexing/parsing/execution might also be an advantage.  Volunteers are
+  particularly welcome for these tasks.
+
+  Some future possibilities which have been suggested:
+  itemization(
+  it() The shell, in particular the line editor, should support Unicode
+     characters.  Initial support for this appeared in version 4.3;
+     it is reasonably complete in the line editor but patchy elsewhere
+     (note this may require the configuration option --enable-multibyte).
+  it() The parameter code could do with tidying up, maybe with more of the
+     features made available in ksh93.
+  it() Configuration files to enable zsh startup files to be created
+     with the Dotfile Generator.
+  it() Further improvements in integrating the line editor with shell
+     functions.
+  it() POSIX compatibility could be improved.
+  it() Option for glob qualifiers to follow perl syntax (a traditional item).
+  )
+
+
+sect(Did zsh have problems in the year 2000?)
+
+  Not that I heard of; it's up to you to be careful with two-digit dates,
+  though, which are produced by the prompt escapes mytt(%W) and mytt(%D),
+  and also by the command `tt(print -P)'.  Earlier versions of zsh may
+  show problems here.
+
+
+sect(When reporting a bug, how do I reduce my mytt(.zshrc) into a minimal reproduction recipe?)
+
+  When reporting a bug, the gold standard is to include with the bug
+  a myem(minimal reproduction recipe), with which anyone who reads the bug
+  report can url(reproduce the bug for themselves)
+  (https://www.chiark.greenend.org.uk/~sgtatham/bugs.html#showmehow)
+  at will.
+
+  When you run into a bug in the shell, particularly during interactive
+  use, a reproduction recipe would ideally start by running tt(zsh -f)
+  and then, within that instance of the shell, run a minimal short
+  sequence of commands that reproduces the bug.  A good way to devise
+  such recipes is the following:
+
+COMMENT(For reference, here's Vim's write-up of a similar process:
+https://github.com/chrisbra/vim_faq/blob/de424bd8e08bcf0e6b1e0563ee49514dfed926ae/vim_faq.txt#L1153-L1228)
+
+  enumeration(
+  myeit() First, ensure the bug is reproducible.  To do this, start
+  a new instance of the shell emdash() for example, open a new tab in
+  your terminal emulator emdash() and reproduce the bug there.
+
+  myeit() Start a new instance of the shell by running the
+  command mytt(zsh -f) from your regular shell prompt, and reproduce the
+  bug there.  (The mytt(-f) flag inhibits mytt(.zshenv),
+  mytt(/etc/zprofile), mytt(.zprofile), mytt(/etc/zshrc), and
+  mytt(.zshrc) from being sourced.)
+
+  If you succeeded in reproducing the bug in mytt(zsh -f), copy the
+  commands you used and their outputs (from the mytt(zsh -f) invocation
+  to the point the bug occurred) and include them in your bug report.
+  Skip the remaining steps of this procedure.
+
+  If, however, the bug happens in your regular shell but not in mytt(zsh
+  -f), read the next steps.
+
+  myeit() Make a backup of your tt(.zshrc) file.
+
+  myeit() Delete your tt(.zshrc) file, start a new instance of zsh, and confirm
+  that the problem does em(not) reproduce there.  (If the problem
+  does reproduce there, it's caused by something in mytt(.zshenv),
+  mytt(.zprofile), mytt(/etc/zprofile), or mytt(/etc/zshrc), so apply
+  this procedure from the top to those files rather than to your
+  mytt(.zshrc).)
+  COMMENT(Note that mytt(/etc/zshenv) is not mentioned, since by this
+  point we have established the bug does not occur under mytt(zsh -f),
+  which sources mytt(/etc/zshenv).)
+  COMMENT(mytt(.zlogout) and mytt(/etc/zlogout) aren't mentioned because
+  they're unlikely to be relevant to most readers.)
+
+  myeit() At this point, you know that the problem is caused by
+  something in your mytt(.zshrc) file, but not what line exactly.
+  To find the responsible line, we will use
+  a url(variation)(https://en.wikipedia.org/wiki/Delta_debugging)
+  of the url(binary search)(https://en.wikipedia.org/wiki/Binary_search)
+  algorithm, as follows:
+
+  Suppose your mytt(.zshrc) file has 200 lines.  To start, copy
+  the em(first) half of your mytt(.zshrc) emdash() that is, lines
+  1 through 100 emdash() from the backup copy to your live mytt(.zshrc)
+  file, and check whether the bug reproduces then.  Now, empty the live
+  mytt(.zshrc) file again, and copy the em(second) half of your
+  mytt(.zshrc) file from the backup to the live mytt(.zshrc) file
+  emdash() the live file should now contain lines 101 through 200, only
+  emdash() and see whether the problem reproduces.
+
+  Normally, the bug will reproduce em(either) with lines 1 through 100
+  em(or) with lines 101 through 200, but not in both cases.  To isolate
+  the specific line that causes the bug, repeat the above process on the
+  relevant half of the file: for example, if you've determined that the
+  bug reproduces when only lines 101 through 200 are installed, check
+  whether the bug reproduces (a) when only lines 101 through 150 are
+  installed, and (b) when only lines 151 through 200 are installed.
+  Repeat the process until the resulting mytt(.zshrc) is minimal.
+
+  It is not important to break the file into two halves exactly.
+  Breaking the file into two parts sized one-third and two-thirds, for
+  example, will work equally well.  You can even try restoring one line
+  at a time, but this is impractical for all but the shortest
+  mytt(.zshrc) files.
+
+  myeit() Include the minimal set of lines you devised in the previous
+  step, along with the commands you used and their outputs, in your bug
+  report.
+
+  myeit() Restore your mytt(.zshrc) from backup.
+  )
+
+  Bug reports should be emailed to the mytt(zsh-workers@zsh.org) public
+  mailing list; see link(6.2)(62) for details.
+
+
+nsect(Acknowledgments:)
+
+Thanks to zsh-list, in particular Bart Schaefer, for suggestions
+regarding this document.  Zsh has been in the hands of archivists Jim
+Mattson, Bas de Bakker, Richard Coleman, Zoltan Hidvegi and Andrew
+Main, and the mailing list has been run by Peter Gray, Rick Ohnemus,
+Richard Coleman, Karsten Thygesen and Geoff Wing, all of whom deserve
+thanks.  The world is eternally in the debt of Paul Falstad for inventing
+zsh in the first place (though the wizzo extended completion is by Sven
+Wischnowsky).
+
+
+nsect(Copyright Information:)
+
+This document is copyright (C) P.W. Stephenson, 1995, 1996, 1997,
+1998, 1999, 2000, 2012, 2020. This text originates in the U.K. and the author
+asserts his moral rights under the Copyrights, Designs and Patents Act,
+1988.
+
+Permission is hereby granted, without written agreement and without
+license or royalty fees, to use, copy, modify, and distribute this
+documentation for any purpose, provided that the above copyright
+notice appears in all copies of this documentation.  Remember,
+however, that this document changes monthly and it may be more useful
+to provide a pointer to it rather than the entire text.  A suitable
+pointer is "information on the Z-shell can be obtained on the World
+Wide Web at URL https://zsh.sourceforge.io/".

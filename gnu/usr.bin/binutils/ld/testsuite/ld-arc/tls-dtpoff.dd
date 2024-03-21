@@ -1,0 +1,11 @@
+
+.*:     file format .*arc.*
+architecture: ARCv2, flags 0x00000113:
+HAS_RELOC, EXEC_P, HAS_SYMS, D_PAGED
+start address 0x00010000
+
+
+Disassembly of section .text:
+
+[0-9a-f]+ <.text>:
+   [0-9a-f]+:	70c3 0000 0804      	add_s	r0,r0,0x804

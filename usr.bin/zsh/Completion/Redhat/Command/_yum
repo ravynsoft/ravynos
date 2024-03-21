@@ -1,0 +1,537 @@
+#compdef yum yumdb
+
+# Main dispatcher
+_yum() {
+  local curcontext="$curcontext" state lstate line
+
+  if [[ $service = yumdb ]]; then
+    _yumdb
+    return
+  fi
+
+  _arguments -s \
+    '(- *)'{-h,--help}'[show the help message]' \
+    '(-t --tolerant)'{-t,--tolerant}'[be tolerant of errors]' \
+    '(-C --cacheonly)'{-C,--cacheonly}'[run entirely from cache]' \
+    '(-c --config)'{-c,--config=}'[config file location]:Yum conf file:_files' \
+    '(-R --randomwait)'{-R,--randomwait=}'[specify maximum command wait time]:max wait time (minutes)' \
+    '(-d --debuglevel)'{-d,--debuglevel=}'[debug level (0-10)]:debug level' \
+    '--showduplicates[show duplicates, in repos, in list/search commands]' \
+    '(-e --errorlevel)'{-e,--errorlevel=}'[error level (0-10)]:error level' \
+    '--rpmverbosity=[specify rpm debug level]:debug level' \
+    '(-q --quiet -v --verbose)'{-q,--quiet}'[quiet operation]' \
+    '(-q --quiet -v --verbose)'{-v,--verbose}'[verbose operation]' \
+    '(-y --assumeyes --assumeno)'{-y,--assumeyes}'[answer yes to all questions]' \
+    '(-y --assumeyes --assumeno)--assumeno[answer no to all questions]' \
+    '(- *)--version[display version information]' \
+    '--installroot=[set install root]:install root:_files -/' \
+    '*--enablerepo=[enable or or more repositories]:repository:_sequence _yum_disabled_repos' \
+    '*--disablerepo=[disable one or more repositories]:repository:_sequence _yum_enabled_repos' \
+    \*{-x,--exclude=}'[exclude package by name or glob]:package:_yum_all_pkgs' \
+    '--disableexcludes=[disable exclude]:exclude:(all main)' \
+    '--disableincludes=[disable include]:include' \
+    '--obsoletes[enable obsoletes processing during updates]' \
+    '--noplugins[disable yum plugins]' \
+    '--nogpgcheck[disable gpg signature checking]' \
+    '--disableplugin=[disable plugin]:plugin' \
+    '--enableplugin=[enable plugin]:plugin' \
+    '--skip-broken[skip packages with depsolving problems]' \
+    '--color=[control whether color is used]:(always auto never)' \
+    '--releasever=[set value of $releasever in yum config and repo files]:value' \
+    "--downloadonly[don't update, just download]" \
+    '--downloaddir=[specify alternate directory to store packages]:directory:_directories' \
+    '--setopt=[set arbitrary config and repo options]:option' \
+    '--bugfix[include bugfix relevant packages in updates]' \
+    '--security[include security relevant packages in updates]' \
+    '--advisory=[include packages needed to fix the given advisory]:advisory' \
+    '--bzs=[include packages needed to fix the given BZ]:BZ' \
+    '--cves=[include packages needed to fix the given CVE]:CVE' \
+    '--sec-severity=[include security relevant packages matching specific severity]:severity' \
+    {*-x,*--exclude=}'[exclude package(s) by name or glob]:exclude packages' \
+    '*::yum command:_yum_command'
+}
+
+_yumdb() {
+  local curcontext="$curcontext" desc ret=1
+  local -a state line
+
+  _arguments -C \
+    '(- 1)--version[display version information]' \
+    '(- 1)'{-h,--help}'[display help information]' \
+    '--noplugins[disable yum plugin support]' \
+    '(-c --config)'{-c,--config=}'[specify config file location]:Yum conf file:_files' \
+    '1:command:((
+      get\:get\ value\ of\ given\ key
+      set\:set\ value\ of\ given\ key
+      del\:delete\ given\ key
+      rename\:rename\ given\ key
+      rename-force\:rename\ given\ key,\ potentially\ removing\ new-key
+      copy\:copy\ given\ key
+      copy-force\:copy\ given\ key,\ potentially\ removing\ new-key
+      search\:search\ packages\ for\ given\ key
+      exist\:list\ packages\ that\ have\ given\ key
+      unset\:list\ packages\ that\ lack\ given\ key
+      info\:display\ data\ in\ the\ yumdb
+      sync\:add\ package\ data\ from\ repositories
+      sync-force\:replace\ package\ data\ from\ repositories
+      undeleted shell
+    ))' \
+    '*:: :->args' && ret=0
+
+  if [[ -n $state ]]; then
+    case $CURRENT:$words[1] in
+      3:set|<3->:search)
+        case $words[2] in
+          reason) _wanted reasons expl reason compadd user dep ;;
+          *) _message -e values value ;;
+        esac
+      ;;
+      3:(copy|rename)*) desc='new key';&
+      2:(^(info|sync)))
+        _wanted -x keys expl "${desc:-key}" compadd \
+          checksum_data checksum_type command_line from_repo from_repo_revision \
+          from_repo_timestamp reason releasever installonly origin_url changed_by && ret=0
+      ;;
+      *) _yum_act_on_installed_pkgs && ret=0 ;;
+    esac
+  fi
+  return ret
+}
+
+(( $+functions[_yum_command] )) || _yum_command()
+{
+  local -a _yum_cmds
+  _yum_cmds=(
+  "install:install the latest version of a package or group of packages"
+  "erase:remove an installed package (with its dependencies)"
+  "remove:remove an installed package (with its dependencies)"
+  "clean:clean local yum cache"
+  "deplist:gives a list of all dependencies for a package"
+  "check-update:check if any updates are available"
+  "info:get description of available packages"
+  "list:is used to list various information about packages"
+  "groupinfo:get info on package groups"
+  "groupinstall:install a package group or groups"
+  "groupremove:remove a package group or groups"
+  "grouplist:list package groups"
+  "groupupdate:update a package group or groups"
+  "localinstall:install packages with local rpm files"
+  "localupdate:update packages with local rpm files"
+  "makecache:makes a local yum cache"
+  "provides:find out which package provides some feature or file"
+  "whatprovides:find out which package provides some feature or file"
+  "resolvedep:list packages providing the specified dependencies"
+  "search:find any packages matching pattern"
+  "shell:enter the 'yum shell'"
+  "update:update one or more packages"
+  "upgrade:upgrade one or more packages"
+  "update-to:update one or more packages taking obsoletes into account"
+  "upgrade-to:upgrade one or more packages taking obsoletes into account"
+  "history:view past transactions"
+  "help:produce help for all or given command"
+  "load-transaction:load a saved transaction from a textfile"
+  "load-ts:load a saved transaction from a textfile"
+  "check:check for problems in the rpmdb"
+  "reinstall:reinstall a package"
+  "downgrade:downgrade a package"
+  "repolist:display the configured software repositories"
+  "distribution-synchronization:synchronize installed packages to the latest available versions"
+  "distro-sync:synchronize installed packages to the latest available versions"
+  )
+
+  if (( CURRENT == 1 )); then
+    _describe -t commands 'yum command' _yum_cmds
+  else
+    local curcontext="$curcontext" ret=1
+
+    cmd="${${_yum_cmds[(r)$words[1]:*]%%:*}}"
+    # Deal with any aliases
+    case $cmd in
+      remove) cmd="erase";;
+      whatprovides) cmd="provides";;
+      upgrade) cmd="update";;
+      upgrade-to) cmd="update";;
+      update-to) cmd="update";;
+      load-ts) cmd="load-transaction";;
+      distro-sync) cmd="distribution-synchronization";;
+    esac
+
+    if (( $#cmd )); then
+      curcontext="${curcontext%:*:*}:yum-${cmd}:"
+
+      local update_policy
+      zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+      if [[ -z "$update_policy" ]]; then
+        zstyle ":completion:${curcontext}:" cache-policy _yum_caching_policy
+      fi
+
+      if [ "$cmd" = "help" ]; then
+        if (( CURRENT == 2 )); then
+          _describe -t commands 'yum command' _yum_cmds && ret=0
+        else
+          # help takes one argument
+          _message 'no more arguments'
+        fi
+      elif ! _call_function ret _yum-$cmd; then
+	_default && ret=0
+      fi
+    else
+      # fallback to default completion for unknown commands
+      _default && ret=0
+    fi
+    return ret
+  fi
+}
+
+# Expand next argument after 'yum check'
+_yum-check() {
+    ##chkargs=("dependencies" "duplicates" "obsoletes" "provides" "all") # according to man page
+    ##chkargs=("dependencies" "duplicates" "all") # according to help
+    #chkargs=("dependencies" "duplicates" "provides" "all") # what works for me
+  _values -w 'check argument' dependencies duplicates provides all
+}
+
+# Expand next argument after 'yum repolist'
+_yum-repolist() {
+  _yum_get_repos
+  _alternative \
+    'filters:filter:(all enabled disabled)' \
+    'repositories:repository:compadd -a yum_enabled_repos yum_disabled_repos'
+}
+
+_yum_ids() {
+  # the last argument will be the first valid transaction ID to be suggested
+  # all other arguments are forwarded to compadd
+  #
+  # maxid is the last transaction ID known to yum
+  local maxid
+
+  maxid=${${(M)${(f)"$(_call_program transactions yum history stats)"}:#Transactions:*}##* }
+
+  # `$@' are the arguments
+  # `${(@)@[...]}' selects a subrange from $@
+  # `${(@)@[1,-2]}' are all except the last argument
+  # `$@[$#]' is the last argument, e.g. the first suggestable ID
+  compadd "${(@)@[1,-2]}" -o numeric -M "B:0=" {$@[$#]..$maxid}
+}
+
+_yum_ranges() {
+  if compset -P 1 '*..'; then
+    _yum_ids "$@" ${(S)IPREFIX#..}
+  elif compset -S '..*'; then
+    _yum_ids "$@" 1
+  else
+    _yum_ids "$@" -S '..' 1
+  fi
+}
+
+# Expand next argument after 'yum history'
+_yum-history() {
+  local expl
+  if (( CURRENT == 2 )); then
+    _wanted commands expl "yum history command" compadd info list \
+      packages-list packages-info summary addon-info redo undo \
+      roll-back new sync stats
+  elif (( CURRENT == 3 )); then
+    local -a ID_commands
+    local -a ID_range_commands
+    local -a package_commands
+    local -a alts
+    alts=()
+    #ID_commands=('summary' 'info' 'list' 'stats' 'addon-info')
+    ID_commands=('addon-info')
+    ID_range_commands=('summary' 'info' 'list' 'stats')
+    package_commands=('summary' 'info' 'list' 'stats' 'packages-list' 'packages-info')
+    #package_commands=('packages-list' 'packages-info')
+    # packages-list, packages-info   : needs package name
+    # summary, info, list, stats     : ID, ID range, package name
+    # addon-info                     : ID
+    # redo, undo, roll-back, sync    : unknown
+
+    [[ -n "${ID_commands[(r)$words[2]]}" ]] && alts+=('special:special ID:(last)')
+    [[ -n "${ID_commands[(r)$words[2]]}" ]] && alts+=('regular:ID:_yum_ids 1')
+    [[ -n "${ID_range_commands[(r)$words[2]]}" ]] && alts+=('regular:transaction range:_yum_ranges')
+    [[ -n "${ID_range_commands[(r)$words[2]]}" ]] && alts+=('special:all transactions:(all)')
+    [[ -n "${package_commands[(r)$words[2]]}" ]] && alts+=("package:package:_yum_act_on_installed_pkgs")
+
+    if (( ${+alts[1]} )) ; then
+      _alternative "$alts[@]"
+    else
+      _default
+    fi
+  elif (( CURRENT == 4 )); then
+    if [ "$words[2]" = "addon-info" ]; then
+      _wanted arguments expl 'additional option' compadd saved_tx
+    fi
+  fi
+}
+
+
+# Fills the all pkg cache
+_yum_all_pkgs()
+{
+  (( $+_yum_all_pkgs[1] )) && return
+  if _cache_invalid yum-all-packages || ! _retrieve_cache yum-all-packages; then
+    _yum_all_pkgs=( ${(M)${${(f)"$(_call_program packages yum -C list all)"}// *}:#*.*} )
+    _store_cache yum-all-packages _yum_all_pkgs
+  fi
+}
+
+# Fills the installed pkg cache
+_yum_installed_pkgs()
+{
+  (( $+_yum_installed_pkgs[1] )) && return
+  if _cache_invalid yum-installed || ! _retrieve_cache yum-installed; then
+    _yum_installed_pkgs=( ${(M)${${(f)"$(_call_program packages yum -C list installed)"}// *}:#*.*} )
+    _store_cache yum-installed _yum_installed_pkgs
+  fi
+}
+
+# Fills the available pkg cache
+_yum_available_pkgs()
+{
+  (( $+_yum_available_pkgs[1] )) && return
+  if _cache_invalid yum-available || ! _retrieve_cache yum-available; then
+    _yum_available_pkgs=( ${(M)${${(f)"$(_call_program packages yum -C list available)"}// *}:#*.*} )
+    _store_cache yum-available _yum_available_pkgs
+  fi
+}
+
+# Fills the upgrade pkg cache
+_yum_upgrade_pkgs()
+{
+  (( $+_yum_upgrade_pkgs[1] )) && return
+  if _cache_invalid yum-upgrade || ! _retrieve_cache yum-upgrade; then
+    _yum_upgrade_pkgs=( ${(M)${${(f)"$(_call_program packages yum -C list upgrade)"}// *}:#*.*} )
+    _store_cache yum-upgrade _yum_upgrade_pkgs
+  fi
+}
+
+# Gets the list of defined repos
+_yum_get_repos() {
+  local trepo
+  local -a tarray
+  tarray=( $(egrep -h '(^\[.*\]|^enabled.*=)' /etc/yum.repos.d/*.repo /etc/yum.conf | sed -e 's/ //g' | sed -e 's/\[//g' | sed -e 's/\].*$//g' 2>/dev/null) )
+  local -i eindex=0
+  local -i dindex=0
+  for line in $tarray; do
+    if [[ "$line" = "enabled=1" ]]; then
+      yum_enabled_repos=($enabled_yum_repos $trepo)
+    elif [[ "$line" = "enabled=0" ]]; then
+      yum_disabled_repos=($yum_disabled_repos $trepo)
+    elif [[ "$line" != "main" ]]; then
+      trepo=$line
+    fi
+  done
+}
+
+_yum_disabled_repos() {
+  _yum_get_repos
+  compadd "$@" -a -- yum_disabled_repos
+}
+
+_yum_enabled_repos() {
+  _yum_get_repos
+  compadd "$@" -a -- yum_enabled_repos
+}
+
+# Suggest installed packages
+_yum_act_on_installed_pkgs() {
+  local expl
+  _yum_installed_pkgs
+  _wanted packages expl 'package' compadd "$@" -a -- _yum_installed_pkgs
+}
+
+# Completion function for distribution-synchronization|distro-sync
+(( $+functions[_yum-distribution-synchronization] )) || _yum-distribution-synchronization()
+{
+  _yum_act_on_installed_pkgs "$@"
+}
+
+# Completion function for erase|remove
+(( $+functions[_yum-erase] )) || _yum-erase()
+{
+  _yum_act_on_installed_pkgs "$@"
+}
+
+# Completion function for downgrade
+(( $+functions[_yum-downgrade] )) || _yum-downgrade()
+{
+  _yum_act_on_installed_pkgs "$@"
+}
+
+# Completion function for reinstall
+(( $+functions[_yum-reinstall] )) || _yum-reinstall()
+{
+  _yum_act_on_installed_pkgs "$@"
+}
+
+(( $+functions[_yum-groupinfo] )) || _yum-groupinfo()
+{
+  local expl
+  _wanted groups expl group compadd \
+      ${${(M)${(f)"$(_call_program groups yum grouplist -C)"}:#   *}#   }
+}
+
+(( $+functions[_yum-groupinstall] )) || _yum-groupinstall()
+{
+  local expl
+  _wanted groups expl group compadd \
+      ${${(M)${(f)"$(_call_program groups yum grouplist -C)"}:#   *}#   }
+}
+
+(( $+functions[_yum-groupremove] )) || _yum-groupremove()
+{
+  local expl
+  _wanted groups expl group compadd \
+      ${${(M)${(f)"$(_call_program groups yum grouplist -C installed)"}:#   *}#   }
+}
+
+(( $+functions[_yum-groupupdate] )) || _yum-groupupdate()
+{
+  local expl
+  _wanted groups expl group compadd \
+      ${${(M)${(f)"$(_call_program groups yum grouplist -C installed)"}:#   *}#   }
+}
+
+# Completion function for install
+(( $+functions[_yum-install] )) || _yum-install()
+{
+  if ! [[ $PREFIX == */* ]]; then
+    _yum_available_pkgs
+  fi
+
+  local ret=1
+  _tags files packages
+  while _tags; do
+    if _requested files; then
+      compadd "$@" -a -- _yum_available_pkgs
+    fi
+    if _requested packages; then
+      _call_function - _yum_localinstall
+    fi
+    (( ret )) || break
+  done
+  return ret
+}
+
+# Completion function for load-transaction
+(( $+functions[_yum-load-transaction] )) || _yum-load-transaction()
+{
+  _files
+}
+
+# Completion function for localinstall
+(( $+functions[_yum-localinstall] )) || _yum-localinstall()
+{
+  _files -/ -g '(#i)*.rpm(-.)'
+}
+
+# Completion function for localupdate
+(( $+functions[_yum-localupdate] )) || _yum-localupdate()
+{
+  _files -/ -g '(#i)*.rpm(-.)'
+}
+
+# Completion function for update/upgrade
+(( $+functions[_yum-update] )) || _yum-update()
+{
+  local expl
+  _yum_upgrade_pkgs
+  _wanted packages expl package compadd "$@" -a _yum_upgrade_pkgs
+}
+
+# Completion function for deplist
+(( $+functions[_yum-deplist] )) || _yum-deplist()
+{
+  local expl
+  _yum_available_pkgs
+  _wanted packages expl package compadd "$@" -a _yum_available_pkgs
+}
+
+_yum_all()
+{
+  _yum_all_pkgs
+  compadd "$@" -a -- _yum_all_pkgs
+}
+
+_yum_list_or_info()
+{
+  local -a listlist
+  listlist=(
+    "all:all packages in repositories"
+    "available:packages available in repositories"
+    "updates:packages with updates available"
+    "installed:installed packages"
+    "extras:packages installed that are not available in any yum repository"
+    "obsoletes:packages installed that are obsoleted"
+    "recent:packages recently added to repositories"
+  )
+
+  if (( CURRENT == 2 )); then
+    _describe -t filters "filter" listlist || _yum_all
+  else
+    # offer packages selected by the subcommand
+    case $words[2] in
+      installed) _yum-erase;;
+      available) _yum-install;;
+      updates) _yum-update;;
+      *extras|obsoletes|recent)
+        _wanted packages expl package compadd \
+	    ${(M)${${(f)"$(_call_program packages yum -C list $words[2])"}// *}:#*.*}
+      ;;
+      *) _yum_all;;
+    esac
+  fi
+}
+
+# Completion function for list
+(( $+functions[_yum-list] )) || _yum-list()
+{
+  _yum_list_or_info
+}
+
+# Completion function for info
+(( $+functions[_yum-info] )) || _yum-info()
+{
+  _yum_list_or_info
+}
+
+# Completion function for provides|whatprovides
+(( $+functions[_yum-provides] )) || _yum-provides()
+{
+  _files	
+}
+
+# Completion function for clean
+(( $+functions[_yum-clean] )) || _yum-clean()
+{
+  _values -w "Yum clean sub-commands" \
+    "all[all cache]" \
+    "cache[all cache]" \
+    "dbcache[DB cache]" \
+    "headers[cache headers]" \
+    "packages[cache packages]" \
+    "metadata[cache meta-data]"
+}
+
+_yum_caching_policy() {
+  local _yumrepomds
+  local -a oldp
+
+  # rebuild if cache is more than a week old
+  oldp=( "$1"(mw-1) )
+  (( $#oldp )) || return 0
+
+  _yumrepomds=( /var/cache/yum/**/repomd.xml )
+
+  if (( $#_yumrepomds )); then
+    for repo in $_yumrepomds; do
+      [[ "$repo" -nt "$1" ]] && return 0
+    done
+  fi
+
+  return 1
+}
+
+_yum "$@"

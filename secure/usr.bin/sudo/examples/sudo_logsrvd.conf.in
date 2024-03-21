@@ -1,0 +1,251 @@
+#
+# sudo logsrv daemon configuration
+#
+
+[server]
+# The host name or IP address and port to listen on with an optional TLS
+# flag.  If no port is specified, port 30343 will be used for plaintext
+# connections and port 30344 will be used to TLS connections.
+# The following forms are accepted:
+#   listen_address = hostname(tls)
+#   listen_address = hostname:port(tls)
+#   listen_address = IPv4_address(tls)
+#   listen_address = IPv4_address:port(tls)
+#   listen_address = [IPv6_address](tls)
+#   listen_address = [IPv6_address]:port(tls)
+#
+# The (tls) suffix should be omitted for plaintext connections.
+#
+# Multiple listen_address settings may be specified.
+# The default is to listen on all addresses.
+#listen_address = *:30343
+#listen_address = *:30344(tls)
+
+# The file containing the ID of the running sudo_logsrvd process.
+#pid_file = @rundir@/sudo_logsrvd.pid
+
+# Where to log server warnings: none, stderr, syslog, or a path name.
+#server_log = syslog
+
+# If true, enable the SO_KEEPALIVE socket option on client connections.
+# Defaults to true.
+#tcp_keepalive = true
+
+# The amount of time, in seconds, the server will wait for the client to
+# respond.  A value of 0 will disable the timeout.  The default value is 30.
+#timeout = 30
+
+# If true, the server will validate its own certificate at startup.
+# Defaults to true.
+#tls_verify = true
+
+# If true, client certificates will be validated by the server;
+# clients without a valid certificate will be unable to connect.
+# By default, client certs are not checked.
+#tls_checkpeer = false
+
+# Path to a certificate authority bundle file in PEM format to use
+# instead of the system's default certificate authority database.
+#tls_cacert = /etc/ssl/sudo/cacert.pem
+
+# Path to the server's certificate file in PEM format.
+# Required for TLS connections.
+#tls_cert = /etc/ssl/sudo/certs/logsrvd_cert.pem
+
+# Path to the server's private key file in PEM format.
+# Required for TLS connections.
+#tls_key = /etc/ssl/sudo/private/logsrvd_key.pem
+
+# TLS cipher list (see "CIPHER LIST FORMAT" in the openssl-ciphers manual).
+# This setting is only effective if the negotiated protocol is TLS version
+# 1.2.  The default cipher list is HIGH:!aNULL.
+#tls_ciphers_v12 = HIGH:!aNULL
+
+# TLS cipher list if the negotiated protocol is TLS version 1.3.
+# The default cipher list is TLS_AES_256_GCM_SHA384.
+#tls_ciphers_v13 = TLS_AES_256_GCM_SHA384
+
+# Path to the Diffie-Hellman parameter file in PEM format.
+# If not set, the server will use the OpenSSL defaults.
+#tls_dhparams = /etc/ssl/sudo/logsrvd_dhparams.pem
+
+[relay]
+# The host name or IP address and port to send logs to in relay mode.
+# The syntax is identical to listen_address with the exception of
+# the wild card ('*') syntax.  When this setting is enabled, logs will
+# be relayed to the specified host instead of being stored locally.
+# This setting is not enabled by default.
+#relay_host = relayhost.dom.ain
+#relay_host = relayhost.dom.ain(tls)
+
+# The amount of time, in seconds, the server will wait for a connection
+# to the relay server to complete.  A value of 0 will disable the timeout.
+# The default value is 30.
+#connect_timeout = 30
+
+# The directory to store messages in before they are sent to the relay.
+# Messages are stored in wire format.
+# The default value is @relay_dir@.
+#relay_dir = @relay_dir@
+
+# The number of seconds to wait after a connection error before
+# making a new attempt to forward a message to a relay host.
+# The default value is 30.
+#retry_interval = 30
+
+# Whether to store the log before relaying it.  If true, enable store
+# and forward mode.  If false, the client connection is immediately
+# relayed.  Defaults to false.
+#store_first = true
+
+# If true, enable the SO_KEEPALIVE socket option on relay connections.
+# Defaults to true.
+#tcp_keepalive = true
+
+# The amount of time, in seconds, the server will wait for the relay to
+# respond.  A value of 0 will disable the timeout.  The default value is 30.
+#timeout = 30
+
+# If true, the server's relay certificate will be verified at startup.
+# The default is to use the value in the [server] section.
+#tls_verify = true
+
+# Whether to verify the relay's certificate for TLS connections.
+# The default is to use the value in the [server] section.
+#tls_checkpeer = false
+
+# Path to a certificate authority bundle file in PEM format to use
+# instead of the system's default certificate authority database.
+# The default is to use the value in the [server] section.
+#tls_cacert = /etc/ssl/sudo/cacert.pem
+
+# Path to the server's certificate file in PEM format.
+# The default is to use the certificate in the [server] section.
+#tls_cert = /etc/ssl/sudo/certs/logsrvd_cert.pem
+
+# Path to the server's private key file in PEM format.
+# The default is to use the key in the [server] section.
+#tls_key = /etc/ssl/sudo/private/logsrvd_key.pem
+
+# TLS cipher list (see "CIPHER LIST FORMAT" in the openssl-ciphers manual).
+# this setting is only effective if the negotiated protocol is TLS version
+# 1.2.  The default is to use the value in the [server] section.
+#tls_ciphers_v12 = HIGH:!aNULL
+
+# TLS cipher list if the negotiated protocol is TLS version 1.3.
+# The default is to use the value in the [server] section.
+#tls_ciphers_v13 = TLS_AES_256_GCM_SHA384
+
+# Path to the Diffie-Hellman parameter file in PEM format.
+# The default is to use the value in the [server] section.
+#tls_dhparams = /etc/ssl/sudo/logsrvd_dhparams.pem
+
+[iolog]
+# The top-level directory to use when constructing the path name for the
+# I/O log directory.  The session sequence number, if any, is stored here.
+#iolog_dir = @iolog_dir@
+
+# The path name, relative to iolog_dir, in which to store I/O logs.
+# It is possible for iolog_file to contain directory components.
+#iolog_file = %{seq}
+
+# If set, I/O logs will be compressed using zlib.  Enabling compression can
+# make it harder to view the logs in real-time as the program is executing.
+#iolog_compress = false
+
+# If set, I/O log data is flushed to disk after each write instead of
+# buffering it.  This makes it possible to view the logs in real-time
+# as the program is executing but reduces the effectiveness of compression.
+#iolog_flush = true
+
+# The group to use when creating new I/O log files and directories.
+# If iolog_group is not set, the primary group-ID of the user specified
+# by iolog_user is used.  If neither iolog_group nor iolog_user
+# are set, I/O log files and directories are created with group-ID 0.
+#iolog_group = wheel
+
+# The user to use when setting the user-ID and group-ID of new I/O
+# log files and directories.  If iolog_group is set, it will be used
+# instead of the user's primary group-ID.  By default, I/O log files
+# and directories are created with user and group-ID 0.
+#iolog_user = root
+
+# The file mode to use when creating I/O log files.  The file permissions
+# will always include the owner read and write bits, even if they are
+# not present in the specified mode.  When creating I/O log directories,
+# search (execute) bits are added to match the read and write bits
+# specified by iolog_mode.
+#iolog_mode = 0600
+
+# If disabled, sudo_logsrvd will attempt to avoid logging plaintext
+# password in the terminal input using passprompt_regex.
+#log_passwords = true
+
+# The maximum sequence number that will be substituted for the "%{seq}"
+# escape in the I/O log file.  While the value substituted for "%{seq}"
+# is in base 36, maxseq itself should be expressed in decimal.  Values
+# larger than 2176782336 (which corresponds to the base 36 sequence
+# number "ZZZZZZ") will be silently truncated to 2176782336.
+#maxseq = 2176782336
+
+# One or more POSIX extended regular expressions used to match
+# password prompts in the terminal output when log_passwords is
+# disabled.  Multiple passprompt_regex settings may be specified.
+#passprompt_regex = [Pp]assword[: ]*
+#passprompt_regex = [Pp]assword for [a-z0-9]+: *
+
+[eventlog]
+# Where to log accept, reject, exit, and alert events.
+# Accepted values are syslog, logfile, or none.
+# Defaults to syslog
+#log_type = syslog
+
+# Whether to log an event when a command exits or is terminated by a signal.
+# Defaults to false
+#log_exit = true
+
+# Event log format.
+# Supported log formats are "sudo" and "json"
+# Defaults to sudo
+#log_format = sudo
+
+[syslog]
+# The maximum length of a syslog payload.
+# On many systems, syslog(3) has a relatively small log buffer.
+# IETF RFC 5424 states that syslog servers must support messages
+# of at least 480 bytes and should support messages up to 2048 bytes.
+# Messages larger than this value will be split into multiple messages.
+#maxlen = 960
+
+# The syslog facility to use for event log messages.
+# The following syslog facilities are supported: authpriv (if your OS
+# supports it), auth, daemon, user, local0, local1, local2, local3,
+# local4, local5, local6, and local7.
+#facility = @logfac@
+
+# Syslog priority to use for event log accept messages, when the command
+# is allowed by the security policy.  The following syslog priorities are
+# supported: alert, crit, debug, emerg, err, info, notice, warning, none.
+#accept_priority = @goodpri@
+
+# Syslog priority to use for event log reject messages, when the command
+# is not allowed by the security policy.
+#reject_priority = @badpri@
+
+# Syslog priority to use for event log alert messages reported by the
+# client.
+#alert_priority = @badpri@
+
+# The syslog facility to use for server warning messages.
+# Defaults to daemon.
+#server_facility = daemon
+
+[logfile]
+# The path to the file-based event log.
+# This path must be fully-qualified and start with a '/' character.
+#path = @logpath@
+
+# The format string used when formatting the date and time for
+# file-based event logs.  Formatting is performed via strftime(3) so
+# any format string supported by that function is allowed.
+#time_format = %h %e %T

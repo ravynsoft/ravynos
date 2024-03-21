@@ -35,8 +35,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	from: @(#)trap.c	7.4 (Berkeley) 5/13/91
  */
 
 #include <sys/cdefs.h>
@@ -1113,7 +1111,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	}
 
  	if (sa->code >= p->p_sysent->sv_size)
- 		sa->callp = &p->p_sysent->sv_table[0];
+		sa->callp = &nosys_sysent;
   	else
  		sa->callp = &p->p_sysent->sv_table[sa->code];
 

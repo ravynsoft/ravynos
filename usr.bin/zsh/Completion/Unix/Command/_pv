@@ -1,0 +1,75 @@
+#compdef pv
+
+local curcontext="$curcontext" ign Edesc ret=1
+local -a state state_descr line expl suf args fmts
+local -A opt_args
+
+(( $#words > 2 )) && ign='!'
+(( $+words[(r)-[^-]#E*] )) && Edesc=' and only report a read error once per file'
+[[ $OSTYPE = linux* ]] && args=(
+  '(-d --watchfd)'{-d+,--watchfd=}'[watch file descriptor opened by process]:process\:fd:->pid-fds' \
+)
+
+_arguments -s -S $args \
+  '(-p --progress -F --format)'{-p,--progress}'[show progress bar]' \
+  '(-t --timer -F --format)'{-t,--timer}'[show elapsed time]' \
+  '(-e --eta -F --format)'{-e,--eta}'[show estimated time of arrival]' \
+  '(-I --fineta -F --format)'{-I,--fineta}'[show absolute estimated time of arrival]' \
+  '(-r --rate -F --format)'{-r,--rate}'[show data transfer rate counter]' \
+  '(-a --average-rate -F --format)'{-a,--average-rate}'[show data transfer average rate counter]' \
+  '(-b --bytes -F --format)'{-b,--bytes}'[show number of bytes transferred]' \
+  '(-T --buffer-percent -F --format)'{-T,--buffer-percent}'[show percentage of transfer buffer in use]' \
+  '(-A --last-written -F --format)'{-A+,--last-written=}'[show number of bytes last written]:number (bytes)' \
+  '(-F --format -p --progress -t --timer -e --eta -I --fineta -r --rate -a --average-rate -b --bytes -T --buffer-percent -A --last-written -F --format)'{-F+,--format=}'[set output format]:format:->formats' \
+  '(-n --numeric -f --force)'{-n,--numeric}'[output percentages, not visual information]' \
+  '(-q --quiet)'{-q,--quiet}"[don't output any transfer information at all, useful with -L]" \
+  '(-W --wait)'{-W,--wait}'[display nothing until first byte transferred]' \
+  '(-D --delay-start -R --remote)'{-D+,--delay-start=}'[display nothing until delay has passed]:delay (seconds)' \
+  '(-s --size)'{-s+,--size=}'[set estimated data size]: :_numbers -u bytes size K M G T' \
+  '(-l --line-mode -R --remote)'{-l,--line-mode}'[count lines instead of bytes]' \
+  '(-0 --null -l --line-mode)'{-0,--null}'[lines are null-terminated]' \
+  '(-i --interval)'{-i+,--interval=}'[update every after specified interval]:interval (seconds) [1]' \
+  '(-w --width)'{-w+,--width}'[assume terminal is specified characters wide]:width' \
+  '(-H --height)'{-H+,--height=}'[assume terminal is specified rows high]:height' \
+  '(-N --name)'{-N+,--name=}'[prefix visual information with given name]:name' \
+  '(-f --force -R --remote)'{-f,--force}'[output even if standard error is not a terminal]' \
+  '(-c --cursor -R --remote)'{-c,--cursor}'[use cursor positioning escape sequences]' \
+  '(-L --rate-limit)'{-L+,--rate-limit=}'[limit transfer rate]: :_numbers -u "bytes per second" rate K M G T' \
+  '(-B --buffer-size)'{-B+,--buffer-size=}'[use a buffer size of given size]: :_numbers -u bytes size K M G T' \
+  '(-C --no-splice)'{-C,--no-splice}'[never use splice(), always use read/write]' \
+  '(-R --remote)*'{-E,--skip-errors}"[skip read errors in input${Edesc}]" \
+  '(-S --stop-at-size -R --remote)'{-S,--stop-at-size}'[stop after --size bytes have been transferred]' \
+  '(-R --remote -c --cursor -l --line-mode -f --force -D --delay-start -E --skip-errors -S --stop-at-size)'{-R+,--remote=}'[update settings of specified process]:process:_pids -m pv' \
+  '(-P --pidfile)'{-P+,--pidfile=}'[save process id in a file]:file:_files' \
+  "${ign}(- *)"{-h,--help}'[display usage information]' \
+  "${ign}(- *)"{-V,--version}'[display version information]' \
+  '*:file:_files' && ret=0
+
+case $state in
+  formats)
+    compset -P '(%?|%<->A|[^%])#'
+    fmts=(
+      'p:progress bar'
+      't:elapsed time'
+      'e:estimated time remaining'
+      'I:estimated time of completion'
+      'r:current data transfer rate'
+      'a:average data transfer rate'
+      'b:bytes transferred so far'
+      'T:percentage of transfer buffer in use'
+      'N:name prefix'
+      '%:literal %'
+    )
+    _describe -t format-specifiers 'format specifier' fmts -p % -S ''
+  ;;
+  pid-fds)
+    if compset -P 1 '*:'; then
+      _message -e file-descriptors 'file descriptor'
+    else
+      compset -S ':*' || suf=( -qS : )
+      _pids $suf && ret=0
+    fi
+  ;;
+esac
+
+return ret

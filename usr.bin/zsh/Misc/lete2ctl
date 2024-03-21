@@ -1,0 +1,340 @@
+#!/usr/local/bin/perl -w
+#
+#   ``Wee have also Shelles, thee Lyke of whych you knowe not, wherein
+#     thee User may with thee merest Presse of thee Tabbe-Keye expande
+#     or compleat al Maner of Wordes and such-like Diversities.''
+#            - Francis Bacon, `New Atlantis' (or not).
+#
+# Convert tcsh "complete" statements to zsh "compctl" statements.
+# Runs as a filter.  Should ignore anything which isn't a "complete".
+# It expects each "complete" statement to be the first thing on a line.
+# All the examples in the tcsh manual give sensible results.
+# Author:  Peter Stephenson <pws@ibmth.df.unipi.it>
+#
+# Option:
+# -x (exact): only applies in the case of command disambiguation (is
+#    that really a word?)  If you have lines like
+#       complete '-co*' 'p/0/(compress)'
+#    (which makes co<TAB> always complete to `compress') then the
+#    resulting "compctl" statements will produce one of two behaviours:
+#    (1) By default (like tcsh), com<TAB> etc. will also complete to
+#        "compress" and nothing else.
+#    (2) With -x, com<TAB> does ordinary command completion: this is
+#        more flexible.
+#    I don't understand what the hyphen in complete does and I've ignored it.
+#
+# Notes:
+# (1) The -s option is the way to do backquote expansion.  In zsh,
+#     "compctl -s '`users`' talk" works (duplicates are removed).
+# (2) Complicated backquote completions should definitely be rewritten as
+#     shell functions (compctl's "-K func" option).  Although most of
+#     these will be translated correctly, differences in shell syntax
+#     are not handled.
+# (3) Replacement of $:n with the n'th word on the current line with
+#     backquote expansion now works; it is not necessarily the most
+#     efficient way of doing it in any given case, however.
+# (4) I have made use of zsh's more sophisticated globbing to change
+#     things like ^foo.{a,b,c,d} to ^foo.(a|b|c|d), which works better.
+#     It's just possible in some cases you may want to change it back.
+# (5) Make sure all command names with wildcards are processed together --
+#     they need to be lumped into one "compctl -C" or "compctl -D"
+#     statement for zsh.
+# (6) Group completion (complete's g flag) is not built into zsh, so
+#     you need perl to be available to generate the groups.  If this
+#     script is useful, I assume that's not a problem.
+# (7) I don't know what `completing completions' means, so the X
+#     flag to complete is not handled.
+
+# Handle options
+if (@ARGV) {
+    ($ARGV[0] eq '-x') && shift && ($opt_x = 1);
+    ($ARGV[0] =~ /^-+$/) && shift;
+}
+
+# Function names used (via magic autoincrement) when cmdline words are needed
+$funcnam = 'compfn001';
+
+# Read next word on command line
+sub getword {
+    local($word, $word2, $ret);
+    ($_) = /^\s*(.*)$/;
+    while ($_ =~ /^\S/) {
+	if (/^[\']/) {
+	    ($word, $_) = /^\'([^\']*).(.*)$/;
+	} elsif (/^[\"]/) {
+	    ($word, $_) = /^\"([^\"]*).(.*)$/;
+	    while ($word =~ /\\$/) {
+		chop($word);
+		($word2, $_) = /^([^\"]*).(.*)$/;
+		$word .= '"' . $word2;
+	    }
+	} elsif (/\S/) {
+	    ($word, $_) = /^([^\s\\\'\"\#;]*)(.*)$/;
+	    # Backslash: literal next character
+	    /^\\(.)/ && (($word .= substr($_,1,1)),
+			 ($_ = substr($_,2)));
+	    # Rest of line quoted or end of command
+	    /^[\#;]/ && ($_ = '');
+	} else {
+	    return undef;
+	}
+	length($word) && ($ret = defined($ret) ? $ret . $word : $word);
+    }
+    $ret;
+}
+
+# Interpret the x and arg in 'x/arg/type/'
+sub getpat {
+    local($pat,$arg) = @_;
+    local($ret,$i);
+    if ($pat eq 'p') {
+	$ret = "p[$arg]";
+    } elsif ($pat eq 'n' || $pat eq 'N') {
+	$let = ($arg =~ /[*?|]/) ? 'C' : 'c';
+	$num = ($pat eq 'N') ? 2 : 1;
+	$ret = "${let}[-${num},$arg]";
+    } elsif ($pat eq 'c' || $pat eq 'C') {
+	# A few tricks to get zsh to ignore up to the end of
+	# any matched pattern.
+	if (($pat eq 'c' && $arg =~ /^\*([^*?]*)$/)) {
+	    $ret = "n[-1,$1]";
+	} elsif ($arg =~ /[*?]([^*?]*)$/) {
+	    length($1) && ($ret = " n[-1,$1]");
+	    $ret = "C[0,$arg] $ret";
+	} else {
+	    $let = ($pat eq 'c') ? 's' : 'S';
+	    $ret = "${let}[$arg]";
+	}
+    }
+    $ret =~ s/'/'\\''/g;
+    $ret;
+}
+
+# Interpret the type in 'x/arg/type/'
+sub gettype {
+    local ($_) = @_;
+    local($qual,$c,$glob,$ret,$b,$m,$e,@m);
+    $c = substr($_,0,1);
+    ($c =~ /\w/) && (substr($_,1,1) eq ':') && ($glob = substr($_,2));
+# Nothing (n) can be handled by returning nothing.  (C.f. King Lear, I.i.)
+    if ($c =~ /[abcjuv]/) {
+	$ret = "-$c";
+    } elsif ($c eq 'C') {
+	if (defined($glob)) {
+	    $ret = "-W $glob -/g '*(.*)'";
+	    undef($glob);
+	} else {
+	    $ret = '-c';
+	}
+    } elsif ($c eq 'S') {
+	$ret = '-k signals';
+    } elsif ($c eq 'd') {
+	if (defined($glob)) {
+	    $qual = '-/';
+	} else {
+	    $ret = '-/';
+	}
+    } elsif ($c eq 'D') {
+	if (defined($glob)) {
+	    $ret = "-W $glob -/";
+	    undef($glob);
+	} else {
+	    $ret = '-/';
+	}
+    } elsif ($c eq 'e') {
+	$ret = '-E';
+    } elsif ($c eq 'f' && !$glob) {
+	$ret = '-f';
+    } elsif ($c eq 'F') {
+	if (defined($glob)) {
+	    $ret = "-W $glob -f";
+	    undef($glob);
+	} else {
+	    $ret = '-f';
+	}
+    } elsif ($c eq 'g') {
+	$ret = "-s '\$(perl -e '\\''while ((\$name) = getgrent)\n" .
+	    "{ print \$name, \"\\n\"; }'\\'')'";
+    } elsif ($c eq 'l') {
+	$ret = q!-k "(`limit | awk '{print $1}'`)"!;
+    } elsif ($c eq 'p') {
+        $ret = "-W $glob -f", undef($glob) if defined($glob);
+    } elsif ($c eq 's') {
+        $ret = '-p';
+    } elsif ($c eq 't') {
+	$qual = '.';
+    } elsif ($c eq 'T') {
+        if (defined($glob)) {
+            $ret = "-W $glob -g '*(.)'";
+            undef($glob);
+        } else {
+            $ret = "-g '*(.)'";
+        }
+    } elsif ($c eq 'x') {
+	$glob =~ s/'/'\\''/g;
+	$ret = "-X '$glob'";
+	undef($glob);
+    } elsif ($c eq '$') {     # '){
+	$ret = "-k " . substr($_,1);
+    } elsif ($c eq '(') {
+	s/'/'\\''/g;
+	$ret = "-k '$_'";
+    } elsif ($c eq '`') {
+	# this took some working out...
+	if (s/\$:(\d+)/$foo=$1+1,"\${word[$foo]}"/ge) {
+	    $ret = "-K $funcnam";
+	    $genfunc .= <<"HERE";
+function $funcnam {
+    local word
+    read -cA word
+    reply=($_)
+}
+HERE
+	    $funcnam++;
+	} else {
+	    s/'/'\\''/g;
+	    $ret = "-s '$_'";
+	}
+    }
+
+    # foo{bar,ba,blak,sheap} -> foo(bar|ba|blak|sheap).
+    # This saves a lot of mess, since in zsh brace expansion occurs
+    # before globbing.  I'm sorry, but I don't trust $` and $'.
+    while (defined($glob) && (($b,$m,$e) = ($glob =~ /^(.*)\{(.*)\}(.*)$/))
+	   && $m =~ /,/) {
+	@m = split(/,/, $m);
+	for ($i = 0; $i < @m; $i++) {
+	    while ($m[$i] =~ /\\$/) {
+		substr($m[$i],-1,1) = "";
+		splice(@m,$i,2,"$m[$i]\\,$m[$i+1]");
+	    }
+	}
+	$glob = $b . "(" . join('|',@m) . ")" . $e;
+    }
+
+    if ($qual) {
+	$glob || ($glob = '*');
+	$glob .= "($qual)";
+    }
+    $glob && (($glob =~ s/'/'\\''/g),($glob = "-g '$glob'"));
+
+    defined($ret) && defined($glob) && ($ret .= " $glob");
+    defined($ret) ? $ret : $glob;
+}
+
+# Quoted array separator for extended completions
+$" = " - ";
+
+while (<>) {
+    if (/^\s*complete\s/) {
+	undef(@stuff);
+	$default = '';
+	$_ = $';
+	while (/\\$/) {
+	    # Remove backslashed newlines: in principle these should become
+	    # real newlines inside quotes, but what the hell.
+	    ($_) = /^(.*)\\$/;
+	    $_ .= <>;
+	}
+	$command = &getword;
+	if ($command =~ /^-/ || $command =~ /[*?]/) {
+	    # E.g. complete -co* ...
+	    $defmatch = $command;
+	    ($defmatch =~ /^-/) && ($defmatch = substr($defmatch,1));
+	} else {
+	    undef($defmatch);
+	}
+	while (defined($word = &getword)) {
+	    # Loop over remaining arguments to "complete".
+	    $sep = substr($word,1,1);
+	    $sep =~ s/(\W)/\\$1/g;
+	    @split = split(/$sep/,$word,4);
+	    for ($i = 0; $i < 3; $i++) {
+		while ($split[$i] =~ /\\$/) {
+		    substr($split[$i],-1,1) = "";
+		    splice(@split,$i,2,"$split[$i]\\$sep$split[$i+1]");
+		}
+	    }
+	    ($pat,$arg,$type,$suffix) = @split;
+	    defined($suffix) && ($suffix =~ /^\s*$/) && undef($suffix);
+	    if (($word =~ /^n$sep\*$sep/) &&
+		 (!defined($defmatch))) {
+		 # The "complete" catch-all:  treat this as compctl\'s
+		 # default (requiring no pattern matching).
+		$default .= &gettype($type) . ' ';
+		defined($suffix) &&
+		    (defined($defsuf) ? ($defsuf .= $suffix)
+		     : ($defsuf = $suffix));
+	    } else {
+		$pat = &getpat($pat,$arg);
+		$type = &gettype($type);
+		if (defined($defmatch)) {
+		    # The command is a pattern: use either -C or -D option.
+		    if ($pat eq 'p[0]') {
+			# Command word (-C): 'p[0]' is redundant.
+			if ($defmatch eq '*') {
+			    $defcommand = $type;
+			} else {
+			    ($defmatch =~ /\*$/) && chop($defmatch);
+			    if ($opt_x) {
+				$c = ($defmatch =~ /[*?]/) ? 'C' : 'c';
+				$pat = $c . "[0,${defmatch}]";
+			    } else {
+				$pat = ($defmatch =~ /[*?]/) ?
+				    "C[0,${defmatch}]" : "S[${defmatch}]";
+			    }
+			    push(@commandword,defined($suffix) ?
+				 "'$pat' $type -S '$suffix'" : "'$pat' $type");
+			}
+		    } elsif ($pat eq "C[-1,*]") {
+			# Not command word completion, but match
+			# command word (only)
+			if ($defmatch eq "*") {
+			    # any word of any command
+			    $defaultdefault .= " $type";
+			} else {
+			    $pat = "W[0,$defmatch]";
+			    push(@defaultword,defined($suffix) ?
+				 "'$pat' $type -S '$suffix'" : "'$pat' $type");
+			}
+		    } else {
+		        # Not command word completion, but still command
+			# word with pattern
+			($defmatch eq '*') || ($pat = "W[0,$defmatch] $pat");
+			push(@defaultword,defined($suffix) ?
+			     "'$pat' $type -S '$suffix'" : "'$pat' $type");
+		    }
+		} else {
+		    # Ordinary command
+		    push(@stuff,defined($suffix) ?
+			 "'$pat' $type -S '$suffix'" : "'$pat' $type");
+		}
+	    }
+	}
+        if (!defined($defmatch)) {
+	    # Ordinary commands with no pattern
+	    print("compctl $default");
+	    defined($defsuf) && print("-S '$defsuf' ") && undef($defsuf);
+	    defined(@stuff) && print("-x @stuff -- ");
+	    print("$command\n");
+	}
+	if (defined($genfunc)) {
+	    print $genfunc;
+	    undef($genfunc);
+	}
+    }
+}
+
+(defined(@commandword) || defined($defcommand)) &&
+    print("compctl -C ",
+	  defined($defcommand) ? $defcommand : '-c',
+	  defined(@commandword) ? " -x @commandword\n" : "\n");
+
+if (defined($defaultdefault) || defined(@defaultword)) {
+    defined($defaultdefault) || ($defaultdefault = "-f");
+    print "compctl -D $defaultdefault";
+    defined(@defaultword) && print(" -x @defaultword");
+    print "\n";
+}
+
+__END__

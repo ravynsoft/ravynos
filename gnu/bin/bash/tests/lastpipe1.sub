@@ -1,0 +1,5 @@
+# with lastpipe set, exit at the end of a pipeline exits
+# the calling shell
+shopt -s lastpipe
+exit 142 | exit 14
+echo after: $?

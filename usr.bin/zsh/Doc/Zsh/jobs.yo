@@ -1,0 +1,138 @@
+texinode(Jobs & Signals)(Arithmetic Evaluation)(Functions)(Top)
+chapter(Jobs & Signals)
+sect(Jobs)
+cindex(jobs)
+pindex(MONITOR, use of)
+If the tt(MONITOR) option is set,
+an interactive shell associates a em(job) with each pipeline.
+It keeps a table of current jobs, printed by the tt(jobs)
+command, and assigns them small integer numbers.
+When a job is started asynchronously with `tt(&)',
+the shell prints a line to standard error which looks like:
+
+example([1] 1234)
+
+indicating that the job which was started asynchronously was job number
+1 and had one (top-level) process, whose process ID was 1234.
+
+If a job is started with `tt(&|)' or `tt(&!)',
+then that job is immediately disowned.  After startup, it
+does not have a place in the job table, and is not subject
+to the job control features described here.
+
+If you are running a job and wish to do something else you may hit the key
+^Z (control-Z) which sends a tt(TSTP) signal to the current job:  this key
+may be redefined by the tt(susp) option of the external tt(stty) command.
+cindex(jobs, suspending)
+cindex(suspending jobs)
+The shell will then normally indicate that the job has been `suspended',
+and print another prompt.  You can then manipulate the state of this job,
+findex(bg, use of)
+putting it in the background with the tt(bg) command, or run some other
+commands and then eventually bring the job back into the foreground with
+findex(fg, use of)
+the foreground command tt(fg).  A ^Z takes effect immediately and
+is like an interrupt in that pending output and unread input are discarded
+when it is typed.
+
+A job being run in the background will suspend if it tries to read
+from the terminal.
+
+Note that if the job running in the foreground is a shell function,
+then suspending it will have the effect of causing the shell to fork.
+This is necessary to separate the function's state from that of the
+parent shell performing the job control, so that the latter can return
+to the command line prompt.  As a result, even if tt(fg) is
+used to continue the job the function will no longer be part of the
+parent shell, and any variables set by the function will not be visible
+in the parent shell.  Thus the behaviour is different from the case
+where the function was never suspended.  Zsh is different from many
+other shells in this regard.
+
+One additional side effect is that use of tt(disown) with a job
+created by suspending shell code in this fashion is delayed: the
+job can only be disowned once any process started from the parent
+shell has terminated.  At that point, the disowned job disappears
+silently from the job list.
+
+The same behaviour is found when the shell is executing code as the
+right hand side of a pipeline or any complex shell construct such as
+tt(if), tt(for), etc., in order that the entire block of code
+can be managed as a single job.
+cindex(background jobs, I/O)
+cindex(jobs, background, I/O)
+Background jobs are normally allowed to produce output,
+but this can be disabled by giving the command `tt(stty tostop)'.
+If you set this
+tty option, then background jobs will suspend when they try to produce
+output like they do when they try to read input.
+
+When a command is suspended and continued later with the tt(fg) or
+tt(wait) builtins, zsh restores tty modes that were in effect when it was
+suspended.  This (intentionally) does not apply if the command is
+continued via `tt(kill -CONT)', nor when it is continued with tt(bg).
+
+cindex(jobs, referring to)
+cindex(referring to jobs)
+There are several ways to refer to jobs in the shell.
+A job can be referred to by the process ID of any process of the job
+or by one of the following:
+
+startsitem()
+sitem(tt(%)var(number))(The job with the given number.)
+sitem(tt(%)var(string))(The last job whose command line begins with var(string).)
+sitem(tt(%?)var(string))(The last job whose command line contains var(string).)
+sitem(tt(%%))(Current job.)
+sitem(tt(%PLUS()))(Equivalent to `tt(%%)'.)
+sitem(tt(%-))(Previous job.)
+endsitem()
+
+The shell learns immediately whenever a process changes state.
+pindex(NOTIFY, use of)
+It normally informs you whenever a job becomes blocked so that
+no further progress is possible.  If the tt(NOTIFY) option is not set,
+it waits until just before it prints a prompt before it informs you.
+All such notifications are sent directly to the terminal, not to
+the standard output or standard error.
+
+When the monitor mode is on, each background job that completes
+triggers any trap set for tt(CHLD).
+
+When you try to leave the shell while jobs are running or suspended, you will
+be warned that `You have suspended (running) jobs'.
+You may use the tt(jobs) command to see what they are.
+If you do this or immediately try to
+exit again, the shell will not warn you a second time; the suspended
+jobs will be terminated, and the running jobs will be sent
+a tt(SIGHUP) signal, if the tt(HUP) option is set.
+pindex(HUP, use of)
+
+cindex(jobs, disowning)
+cindex(disowning jobs)
+findex(disown, use of)
+To avoid having the shell terminate the running jobs, either
+use the manref(nohup)(1) command
+or the tt(disown) builtin.
+sect(Signals)
+The tt(INT) and tt(QUIT) signals for an invoked
+command are ignored if the command is followed by
+`tt(&)' and the tt(MONITOR) option is not active.
+The shell itself always ignores the tt(QUIT) signal.
+Otherwise, signals have the values
+inherited by the shell from its parent
+(but see the tt(TRAP)var(NAL) special functions in noderef(Functions)).
+
+cindex(exiting shell, and asynchronous jobs)
+cindex(asynchronous jobs, and exiting shell)
+cindex(jobs, asynchronous, and exiting shell)
+Certain jobs are run asynchronously by the shell other than those
+explicitly put into the background; even in cases where the shell
+would usually wait for such jobs, an explicit tt(exit) command
+or exit due to the option tt(ERR_EXIT) will cause the shell to
+exit without waiting.  Examples of such asynchronous jobs are
+process substitution, see
+ifzman(the section PROCESS SUBSTITUTION in the zmanref(zshexpn) manual page)\
+ifnzman(noderef(Process Substitution)), and the handler processes for
+multios, see
+ifzman(the section MULTIOS in the zmanref(zshmisc) manual page)\
+ifnzman(the section em(Multios) in noderef(Redirection)).

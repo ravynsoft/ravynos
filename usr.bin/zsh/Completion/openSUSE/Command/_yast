@@ -1,0 +1,14 @@
+#compdef yast yast2
+
+_arguments \
+  '(- 1)'{-h,--help}'[display help information]' \
+  '(- 1)'{-l,--list}'[list all available modules]' \
+  '(-g --geometry --ncurses)'{-g,--geometry}'[specify default window size]:_x_geometry' \
+  '--qt[use the QT graphical frontend]' \
+  '--gtk[use the GTK graphical frontend]' \
+  '--ncurses[use the curses text-mode frontend]' \
+  '--noborder[no window manager border for main window]' \
+  '--fullscreen[use full screen]' \
+  '(-)'{-i,--install}'[install package]:*:package file:_files -g "*.rpm(-.)"' \
+  '(-)--remove[remove package]:*:package' \
+  '1:module:( ${${(f)"$($words[1] -l 2>/dev/null)"}[2,-1]##* } )'

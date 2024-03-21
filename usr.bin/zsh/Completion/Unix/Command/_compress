@@ -1,0 +1,48 @@
+#compdef compress uncompress -redirect-,<,uncompress=uncompress -redirect-,>,compress=uncompress -redirect-,<,compress=compress
+
+local expl state line bits common_args1 common_args2 decompress ret=1
+local curcontext="$curcontext"
+typeset -A opt_args
+bits=( {9..16} )
+
+common_args1=( \
+  '-n[omit compressed file header from compressed file]' \
+  '-V[display current version and compile options]' \
+  '*:files:->files')
+common_args2=( \
+  '-c[write on standard output]' \
+  '(-F)-f[force overwrite]' \
+  '(-f)-F[force overwrite]' \
+  '(-v)-q[suppress display of compression statistics]' \
+  '(-q)-v[display compression statistics]' \
+  "${common_args1[@]}" )
+
+case "$service" in
+  compress)
+    _arguments -C -s \
+      "-b[specify maximum number of bits used to replace common substring]:bits:(${bits[*]})" \
+      '-C[produce output compatible with BSD 2.0]' \
+      '(-b -C)-d[decompress]' \
+      "${common_args2[@]}" && ret=0
+  ;;
+  uncompress)
+    _arguments -C -s "${common_args2[@]}" && ret=0
+    decompress=yes
+  ;;
+  zcat)
+    _arguments -C -s "${common_args1[@]}" && ret=0
+    decompress=yes
+  ;;
+esac
+
+if [[ "$state" = files ]]; then
+  if [[ -z "$decompress" ]] || (( $+opt_args[-d] )); then
+    _description files expl 'file to compress'
+    _files "$expl[@]" -g '^*.Z(-.)' && return
+  else
+    _description files expl 'compressed file'
+    _files "$expl[@]" -g '*.Z(-.)' && return
+  fi
+fi
+
+return ret

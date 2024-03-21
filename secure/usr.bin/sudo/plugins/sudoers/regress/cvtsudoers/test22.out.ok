@@ -1,0 +1,31 @@
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: log_output
+
+dn: cn=root,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: root
+sudoUser: root
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoRunAsGroup: ALL
+sudoOption: !authenticate
+sudoCommand: ALL
+sudoOrder: 10
+
+dn: cn=%wheel,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %wheel
+sudoUser: %wheel
+sudoHost: +sudo-hosts
+sudoRunAsUser: ALL
+sudoRunAsGroup: ALL
+sudoOption: !authenticate
+sudoCommand: ALL
+sudoOrder: 20
+

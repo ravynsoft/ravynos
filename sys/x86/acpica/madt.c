@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/bus.h>
@@ -221,7 +220,7 @@ madt_setup_local(void)
 		else if (bootverbose)
 			printf("x2APIC available but disabled %s\n", reason);
 		user_x2apic = x2apic_mode;
-		TUNABLE_INT_FETCH("hw.x2apic_enable", &user_x2apic);
+		TUNABLE_INT_FETCH("hw.apic.x2apic_mode", &user_x2apic);
 		if (user_x2apic != x2apic_mode) {
 			if (bios_x2apic && !user_x2apic)
 				printf("x2APIC disabled by tunable and "

@@ -1,0 +1,41 @@
+#compdef tcp_open
+
+local curcontext="$curcontext" state line expl
+local -A opt_args
+local -a argargs sesslist
+
+case $service in
+  (tcp_open)
+  argargs=(
+    '(-a -f -l)-s[open session(s)]'
+    '(-a -f -s)-l[open list of sessions]'
+    '(-f -s -l)-a[open session for accept on fd]:fd'
+    '(-a -s -l)-f[open session for accept on fd]:fd'
+    '-q[quiet mode]'
+    '-z[no zle handler]'
+  )
+  if [[ -n $words[(R)-(a|f)*] ]]; then
+    argargs+=(':session:->session')
+  elif [[ -n $words[(R)-(l|s)*] ]]; then
+    argargs+=('*:session:->session')
+  else
+    argargs+=(':host:_hosts' ':port:_ports' '*:session:->session')
+  fi
+  _arguments -C $argargs
+  ;;
+esac
+
+while (( $#state )); do
+  case "$state[1]" in
+    (sessionlist)
+    compset -P '*,'
+    ;&
+
+    (session)
+    sesslist=(${${${(f)"$(<~/.ztcp_sessions)"}:#[[:space:]]#\#*}/ /:})
+    _describe -t sessions 'TCP session' sesslist && return
+    ;;
+
+  esac
+  shift state
+done

@@ -90,6 +90,7 @@ beastie_disable="YES"
 autoboot_delay="3"
 hw.psm.elantech_support="1"
 hw.psm.synaptics_support="1"
+hint.uart.0.disabled="1"
 vfs.root.mountfrom.options="rw""
 vfs.root.mountfrom="zfs:${pool}/ROOT/default"
 EOT

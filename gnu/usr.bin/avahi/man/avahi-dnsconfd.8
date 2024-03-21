@@ -1,0 +1,48 @@
+.TH avahi-dnsconfd 8 User Manuals
+.SH NAME
+avahi-dnsconfd \- Unicast DNS server from mDNS/DNS-SD configuration daemon
+.SH SYNOPSIS
+\fBavahi-dnsconfd [\fIoptions\fB]
+
+avahi-dnsconfd --kill\fB
+
+avahi-dnsconfd --refresh\fB
+
+avahi-dnsconfd --check\fB
+\f1
+.SH DESCRIPTION
+avahi-dnsconfd connects to a running avahi-daemon and runs the script \fI/etc/avahi/avahi-dnsconfd.action\f1 for each unicast DNS server that is announced on the local LAN. This is useful for configuring unicast DNS servers in a DHCP-like fashion with mDNS.
+.SH OPTIONS
+.TP
+\fB-D | --daemonize\f1
+Daemonize after startup and redirect log messages to syslog.
+.TP
+\fB-s | --syslog\f1
+Log to syslog instead of STDERR. Implied by \fB--daemonize\f1.
+.TP
+\fB-k | --kill\f1
+Kill an already running avahi-dnsconfd. (equivalent to sending a SIGTERM)
+.TP
+\fB-r | --refresh\f1
+Tell an already running avahi-dnsconfd to refresh the DNS server data. (equivalent to sending a SIGHUP)
+.TP
+\fB-c | --check\f1
+Return 0 as return code when avahi-dnsconfd is already running.
+.TP
+\fB-h | --help\f1
+Show help
+.TP
+\fB-v | --version\f1
+Show version information 
+.SH FILES
+\fI/etc/avahi/avahi-dnsconfd.action\f1: the script to run when a DNS server is found or removed.
+.SH SIGNALS
+\fISIGINT, SIGTERM\f1: avahi-dnsconfd will shutdown. This is issued by passing --kill to avahi-daemon.
+
+\fISIGHUP\f1: avahi-dnsconfd will refresh the DNS server data.
+.SH AUTHORS
+The Avahi Developers <avahi (at) lists (dot) freedesktop (dot) org>; Avahi is available from \fBhttp://avahi.org/\f1
+.SH SEE ALSO
+\fBavahi-daemon(8)\f1, \fBavahi-dnsconfd.action(8)\f1
+.SH COMMENTS
+This man page was written using \fBxml2man(1)\f1 by Oliver Kurth.

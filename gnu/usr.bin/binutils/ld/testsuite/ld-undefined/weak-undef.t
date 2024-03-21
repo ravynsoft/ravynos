@@ -1,0 +1,9 @@
+SECTIONS
+{
+  .data : {
+    *(.data)
+  }
+  /DISCARD/ : {
+    *(*)
+  }
+}

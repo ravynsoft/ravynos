@@ -1,0 +1,256 @@
+#compdef route
+
+local curcontext="$curcontext" expect ret=1
+local -a state state_descr line args families modifiers ignore sub sequential tags
+local -A opt_args subcmds once params
+
+subcmds=(
+  add     'add a route'
+  flush   'remove all routes'
+  delete  'delete a specific route'
+  change  'change aspects of a route (such as its gateway)'
+  get     'lookup route for a destination'
+  monitor 'continuously report any changes to the routing information'
+)
+args=(
+  '-n[output addresses numerically]'
+  '(-q)-v[verbose output]'
+)
+modifiers=(
+  '-net:interpret destination as a network'
+  '-host:interpret destination as a host'
+)
+params=(
+  '-dst'          target  # does this definitely follow
+  '(-|)netmask'   netmask
+  '(gw|-gateway)' gateway
+  metric          metric
+  '(mss|window|-(send|recv)pipe)' size:bytes
+  '[i-]rtt'       time:ms
+  -rttvar         rttvar
+  -mtu            mtu
+  '(dev|-ifscope|-ifp)'  interface
+  -ifa            address
+  -expire         time:epoch
+  -hopcount       hopcount
+  -tag            tag
+  -prefixlen      bits
+  '-(label|push|pop|swap)' label
+  -priority       number  # is it a number
+  -secattr        secattr
+  '(-iw|-iwmax|-msl)' value
+  '-fib'          table
+)
+
+case $OSTYPE in
+  ^linux*)
+    args+=( '(-v)-q[suppress all output]' )
+    families=( -inet -inet6 )
+    modifiers+=(
+      '-dst:distinguish a destination'
+      '-gateway:distinguish a gateway address'
+      -netmask
+      -rtt -rttvar
+      -sendpipe -recvpipe
+      -mtu -hopcount
+      -expire
+      '-lock' '-lockrest'
+      -i{,nter}face:'indicate destination is directly reachable'
+      '-static:manually added route'
+      '-nostatic:pretend route added by kernel or daemon'
+      '-reject:emit an ICMP unreachable when matched'
+      '-blackhole:silently discard packets (during updates)'
+      '-proto1:set protocol specific routing flag #1'
+      '-proto2:set protocol specific routing flag #2'
+    )
+    sequential=( target gateway netmask )
+  ;|
+  *bsd*|darwin*|dragonfly*)
+    modifiers+=(
+      -link '-ifp' '-ifa' # do these need an argument: interface or address
+      '-prefixlen:indicate mask bits'
+    )
+  ;|
+  (net|free)bsd*|darwin*|dragonfly*)
+    families+=( -xns )
+    modifiers+=( '-xresolve:emit mesg on use (for external lookup)' )
+  ;|
+  (net|open)bsd*|darwin*|dragonfly*)
+    modifiers+=(
+      '-cloning:generate a new route on use'
+      '-llinfo:validly translate proto addr to link addr'
+    )
+  ;|
+  (net|open|free)bsd*|darwin*|dragonfly*)
+    args+=(
+      "-d[debug-only mode: don't update routing table]"
+      '-t[test-only mode: /dev/null used instead of a socket]'
+    )
+  ;|
+  netbsd*|solaris*)
+    args+=( '-f[remove all routes first]' )
+  ;|
+  (netbsd|darwin|dragonfly)*)
+    modifiers+=( '-proxy:make entry a link level proxy' )
+  ;|
+  (netbsd|openbsd|dragonfly)*)
+    subcmds+=( show 'print out the routing table' )
+    families+=( -mpls )
+  ;|
+  (netbsd|darwin)*)
+    families+=( -atalk )
+  ;|
+  (freebsd|darwin)*)
+    families+=( -osi )
+  ;|
+  (openbsd|dragonfly)*)
+    modifiers+=( -push -pop -swap )
+  ;|
+  freebsd*)
+    subcmds+=(
+      del $subcmds[delete]
+      show $subcmds[get]
+    )
+    args+=(
+      '(-6)-4[specify IPv4 address family]'
+      '(-4)-6[specify IPv6 address family]'
+    )
+    families+=( -4 -6 )
+    modifiers+=( '-fib:specify a routing table' )
+  ;;
+  netbsd*)
+    subcmds+=( flushall 'remove all routes including the default gateway' )
+    args+=(
+      "-L[don't show link layer entries in routing table]"
+      '-S[print a space when a flag is missing to align flags]'
+      '-s[suppress all output from get except for the gateway]'
+      '-T[show tags in the route display]'
+    )
+    modifiers+=(
+      '-tag'
+      '-noreject:clear reject flag'
+      '-noblackhole:clear blackhole flag'
+    )
+  ;;
+  openbsd*)
+    subcmds+=( exec 'execute a command with alternate routing table' )
+    args+=(
+      '-T+[select specified alternate routing table]:routing table:_routing_tables'
+    )
+    modifiers+=(
+      -sa
+      '-label'
+      '-priority'
+      '-mpath:multiple gateways for a destination exist'
+      -mplslabel -in -out
+    )
+  ;;
+  solaris*)
+    subcmds+=( show 'display list of routes applied at system startup' )
+    args+=(
+      '-p[make changes to the route tables persistent across system restarts]'
+      '-R+[specify alternate root directory where changes are applied]:directory:_directories'
+    )
+    modifiers+=(
+      "-private:don't advertise this route"
+      '-multirt:create the specified redundant route'
+      '-setsrc:assign the default source address'
+      '-secattr:security attributes'
+    )
+  ;;
+  darwin*)
+    modifiers+=( -ifscope )
+  ;|
+  dragonfly*)
+    modifiers+=( -iw -iwmax -msl )
+  ;|
+  linux*)
+    args+=(
+      '(H -n)--numeric[output addresses numerically]'
+      '(H)*'{-e,--extend}'[display other/more information]'
+      '!(H -C --cache)'{-F,--fib}
+      '(H -C --cache)'{-C,--cache}'[display routing cache instead of FIB]'
+      + '(family)'
+      '-A+[use specified address family]:address family:(inet inet6 ax25 netrom ipx ddp x25)'
+      -4 -6 --inet --inet6 --ax25 --netrom --ipx --ddp --x25
+      + '(H)'
+      '(1 *)'{-h,--help}'[display help information]'
+      '(1 *)'{-V,--version}'[display version information]'
+    )
+    subcmds[del]=$subcmds[delete]
+    unset 'subcmds[monitor]' 'subcmds[get]' 'subcmds[change]'
+    modifiers+=(
+      netmask gw metric mss window irtt reject mod dyn reinstate
+      'dev:force route to be associated with the specified device'
+    )
+    sequential=( target interface )
+  ;;
+esac
+
+print -v sub -f '%s\\:%s' ${(kvq)subcmds}
+_arguments -C -s -S "1:command:(($sub))" '*::args:->args' $args && ret=0
+
+[[ -n $opt_args[(i)-[46]] ]] && families=()
+
+if [[ -n $state ]]; then
+  if [[ $line[1] = exec ]]; then
+    shift words
+    (( CURRENT-- ))
+    _normal
+  elif [[ $line[1] = (flush|monitor) ]]; then
+    sequential=()
+  fi
+
+  for ((i=2;i<CURRENT;i++)); do
+    if [[ -n $expect ]]; then
+      sequential=( ${sequential:#$expect} )
+      expect=''
+      continue
+    fi
+
+    expect=${params[(K)$words[i]]}
+    if [[ -n $expect ]]; then
+      ignore+=( ${(Q)words[i]} )
+    else
+      if [[ -n ${(M)${families%%:*}:#${(q)words[i]}} ]]; then
+        families=()
+      elif [[ -n ${(M)${modifiers%%:*}:#${(q)words[i]}} ]]; then
+	ignore+=( ${(q)words[i]} )
+      elif [[ $words[1] != -lock ]]; then
+	shift sequential
+      fi
+    fi
+  done
+
+  [[ -z $expect ]] && tags=( modifiers families )
+  _tags values $tags
+  while _tags; do
+    if _requested values; then
+      case ${expect:-$sequential[1]} in
+	target)
+	  if [[ -z $expect ]]; then
+	    _wanted -x targets expl target compadd default && ret=0
+	  else
+	    _message -e targets target
+	  fi
+	;;
+	interface) _net_interfaces && ret=0 ;;
+	size:bytes) _guard "[0-9]#" 'size (bytes)' ;; # _guard usage pointless
+	time:ms) _guard "[0-9]#" 'time (ms)' ;;
+	time:microseconds) _guard "[0-9]#" 'time (microseconds)' ;;
+	time:epoch) _guard "[0-9]#" 'expiration time (seconds since epoch)' ;;
+	rttvar) _guard "[0-9]#" 'time variance (microseconds)' ;;
+	mtu) _guard "[0-9]#" 'max MTU (bytes)' ;;
+	hopcount) _guard "[0-9]#" 'hop count' ;;
+	ssthresh) _message -e threshold 'ss threshold' ;;
+	bits) _guard "[0-9]#" 'bits' ;;
+	*) _guard "[^-]#" "${expect:-$sequential[1]}" ;;
+      esac
+    fi
+    _requested modifiers && _describe -t modifiers modifier modifiers -F ignore && ret=0
+    _requested families expl 'address family' compadd -a families && ret=0
+    (( ret )) || break
+  done
+fi
+
+return ret

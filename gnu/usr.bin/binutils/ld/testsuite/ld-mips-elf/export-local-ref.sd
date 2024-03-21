@@ -1,0 +1,7 @@
+# Make sure no local symbol is present in the dynamic symbol table, e.g.:
+#    Num:    Value  Size Type    Bind   Vis      Ndx Name
+#      6: 004003f0     8 FUNC    LOCAL  DEFAULT    8 f1
+#failif
+#...
+.+ +LOCAL +.+ +f1
+#pass

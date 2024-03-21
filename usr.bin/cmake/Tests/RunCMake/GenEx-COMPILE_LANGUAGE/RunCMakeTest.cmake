@@ -1,0 +1,11 @@
+include(RunCMake)
+
+run_cmake(add_custom_target)
+run_cmake(add_custom_command)
+run_cmake(install)
+run_cmake(target_sources)
+run_cmake(add_executable)
+run_cmake(add_library)
+run_cmake(add_test)
+run_cmake(unknown-lang)
+run_cmake(TARGET_PROPERTY)

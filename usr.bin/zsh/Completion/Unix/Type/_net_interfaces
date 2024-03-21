@@ -1,0 +1,9 @@
+#compdef ifup ifdown
+
+local expl
+local -a net_intf_disp net_intf_list
+
+_find_net_interfaces
+
+_wanted interfaces expl 'network interface' \
+    compadd "$@" "$net_intf_disp[@]" - "${(@)net_intf_list%%:*}"

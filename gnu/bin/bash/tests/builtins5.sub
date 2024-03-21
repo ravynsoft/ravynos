@@ -1,0 +1,83 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# a start at a test suite for what it means for an array to be set or unset and
+# how to test that state
+typeset -A A
+A[a]=1
+typeset -a a
+a[1]=1
+
+if [ -v A ]; then echo assoc 1; else echo assoc 1 unset; fi
+if [ -v a ]; then echo array 1; else echo array 1 unset; fi
+
+if [ -v "${A[@]}" ]; then echo assoc 2; else echo assoc 2 unset; fi
+if [ -v "${a[@]}" ]; then echo array 2; else echo array 2 unset; fi
+
+echo ${A-unset1}
+echo ${a-unset2}
+
+echo ${A[@]-unset3}
+echo ${a[@]-unset4}
+
+echo ${#A[@]}
+echo ${#a[@]}
+
+typeset -A B
+typeset -a b
+
+echo ${#B[@]}
+echo ${#b[@]}
+
+scalar1=foo
+scalar2=
+
+# this now checks for A[@] treating @ as a valid key - post-bash-5.1
+if [ -v A[@] ]; then echo assoc A; else echo assoc A unset; fi
+if [ -v a[@] ]; then echo array a; else echo array a unset; fi
+
+if [ ${#A[@]} -gt 0 ]; then echo assoc A; else echo assoc A unset; fi
+if [ ${#a[@]} -gt 0 ]; then echo array a; else echo array a unset; fi
+
+if [ -v B[@] ]; then echo assoc B; else echo assoc B unset; fi
+if [ -v b[@] ]; then echo array b; else echo array b unset; fi
+
+if [ ${#B[@]} -gt 0 ]; then echo assoc B; else echo assoc B unset; fi
+if [ ${#b[@]} -gt 0 ]; then echo array b; else echo array b unset; fi
+
+if [ -v scalar1[@] ]; then echo scalar 1; else echo scalar 1 unset; fi
+if [ -v scalar2[@] ]; then echo scalar 2; else echo scalar 2 unset; fi
+if [ -v scalar3[@] ]; then echo scalar 3; else echo scalar 3 unset; fi
+
+unset a A
+declare -A assoc=([one]=one [two]=two [three]=three)
+declare -a array=(one two three)
+
+scalar="one two three"
+scalar2=
+
+recho "${scalar[@]}"
+
+echo assoc: ${#assoc[@]}
+echo array: ${#array[@]}
+
+echo scalar: ${#scalar}
+echo scalar: ${#scalar[@]}
+
+echo scalar: ${#scalar2}
+echo scalar: ${#scalar2[@]}
+
+echo scalar: ${#scalar3}
+echo scalar: ${#scalar3[@]}
+
+

@@ -24,7 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
@@ -735,6 +734,7 @@ dtsec_attach(device_t dev)
 	if_setsendqready(ifp);
 #endif
 
+	if_setcapabilities(ifp, IFCAP_JUMBO_MTU | IFCAP_VLAN_MTU);
 	if_setcapenable(ifp, if_getcapabilities(ifp));
 
 	/* Attach PHY(s) */

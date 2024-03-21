@@ -1,0 +1,14 @@
+#autoload
+
+local ARCHCMD="$1"
+shift
+local expl completions library name_arg='-n'
+if [[ -n $argv[(r)--library] ]]; then
+  library='library-'
+  # remove parameter from $@ before calling compadd
+  argv[(r)--library]=()
+  name_arg=
+fi
+completions=($(_call_program ${ARCHCMD} ${ARCHCMD} ${library:-}archives $name_arg))
+_description -V archives expl "${library:-}archives"
+compadd "$@" "$expl[@]" -- "$completions[@]"

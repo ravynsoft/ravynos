@@ -1,0 +1,62 @@
+#compdef tidy
+
+local -a opts
+
+opts=( ${${${(s.</option>.)"$(_call_program options $words[1] -xml-config)"}##*<name>}/<\/name>*<type>/;} )
+opts=( ${opts/;Integer*/:number} )
+opts=( ${opts/;Boolean*/:boolean:(yes no)} )
+opts=( ${opts/;AutoBool*/:value:(auto yes no)} )
+opts=( ${opts/;(String|Tag|Attributes)*/:value} )
+opts=( ${opts/(#bi);(enum|Encoding|DocType)*<default>(*)<*<example>([^<]#)<*/:value [${match[2]%% *}]:(${(j. .)${(@s., .)match[3]}%% *})} )
+opts=( ${(M)opts:#*:*} )
+
+_arguments -s -A "-*" --$^opts \
+  '(-indent -i)'{-indent,-i}'[indent element content]' \
+  '-wrap[wrap text at the specified column]:column [68]' \
+  '(-upper -u)'{-upper,-u}'[force tags to upper case (default is lower case)]' \
+  '(-clean -c)'{-clean,-c}'[replace FONT, NOBR and CENTER tags by CSS]' \
+  '(-bare -b)'{-bare,-b}'[strip out smart quotes and em dashes, etc.]' \
+  '(-gdoc -g)'{-gdoc,-g}'[produce clean version of html exported by Google Docs]' \
+  '(-numeric -n)'{-numeric,-n}'[output numeric rather than named entities]' \
+  '(-errors -e)'{-errors,-e}'[only show errors]' \
+  '(-quiet -q)'{-quiet,-q}'[suppress nonessential output]' \
+  '-omit[omit optional start and end tags]' \
+  '-xml[specify the input is well formed XML]' \
+  '(-asxml -asxhtml -ashtml)'{-asxml,-asxhtml}'[convert HTML to well formed XHTML]' \
+  '(-asxml -asxhtml)-ashtml[force XHTML to well formed HTML]' \
+  '-access[do additional accessibility checks (<level> = 1, 2, 3)]:priority level:(${access[@]})' \
+  '-raw[output values above 127 without conversion to entities]' \
+  '(-out -o)'{-out,-o}'[specify the output markup file]:output file:_files' \
+  '-config[set configuration options from the specified <file>]:configuration file:_files' \
+  '-f[write errors to the specified <file>]:error file:_files' \
+  '(-modify -m)'{-modify,-m}'[modify the original input files]' \
+  '(- *)'{-version,-v}'[show the version of Tidy]' \
+  '(- *)'{-help,-h,-\?}'[list the command line options]' \
+  '(- *)-help-config[list all configuration options]' \
+  '(- *)-help-env[show details of environment and runtime configuration]' \
+  '(- *)-show-config[list the current configuration settings]' \
+  '(- *)-export-config[list the current settings in config file form]' \
+  '(- *)-export-default-config[list the default settings in config file form]' \
+  "(*)-help-option[show a description of specified configuration option]:config option:(${(@j. .)opts%%:*})" \
+  '(-lang -language)'{-lang,-language}'[set the two-letter language code]:language:_locales' \
+  '-xml-help[list the command line options in XML format]' \
+  '-xml-config[list all configuration options in XML format]' \
+  "-xml-strings[output all of Tidy's strings in XML format]" \
+  '-xml-error-strings[output error constants and strings in XML format]' \
+  '-xml-options-strings[output option descriptions in XML format]' \
+  '-options[specify file containing configuration settings]:config file:_files' \
+  '*:file:_files' \
+  + '(encoding)' \
+  '-ascii[use US-ASCII for output, ISO-8859-1 for input]' \
+  '-latin0[use US-ASCII for output, ISO-8859-1 for input]' \
+  '-latin1[use ISO-8859-1 for both input and output]' \
+  '-iso2022[use ISO-2022 for both input and output]' \
+  '-utf8[use UTF-8 for both input and output]' \
+  '-mac[use MacRoman for input, US-ASCII for output]' \
+  '-win1252[use Windows-1252 for input, US-ASCII for output]' \
+  '-ibm858[use IBM-858 (CP850+Euro) for input, US-ASCII for output]' \
+  '-utf16le[use UTF-16LE for both input and output]' \
+  '-utf16be[use UTF-16BE for both input and output]' \
+  '-utf16[use UTF-16 for both input and output]' \
+  '-shiftjis[use Shift_JIS for both input and output]' \
+  '-big5[use Big5 for both input and output]'

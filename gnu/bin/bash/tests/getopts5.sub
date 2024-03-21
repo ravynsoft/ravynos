@@ -1,0 +1,62 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#Time-stamp: <95/06/07 07:40:40 hrue@imf.unit.no>
+
+getop () {
+
+    local OPTIND=1
+    local OPTERR=1
+
+    echo getop: OPTERR=$OPTERR    
+    while getopts ab arg "$@"; do
+	case $arg in
+	    a)
+		echo a here
+		;;
+	    b)
+		echo b here
+		;;
+	    :|?|*)
+		echo something else here
+		;;
+	esac
+    done
+    echo getop: OPTIND=$OPTIND
+}
+
+OPTIND=
+OPTERR=0
+
+echo OPTERR=$OPTERR
+while getopts ab arg; do
+    case $arg in
+	a)
+	    echo a here
+	    ;;
+	b)
+	    echo b here
+	    ;;
+	:|?|*)
+	    
+	    echo something else here
+	    ;;
+    esac
+done
+
+echo OPTIND=$OPTIND
+
+getop "$@" -d -e
+
+echo OPTIND=$OPTIND
+echo OPTERR=$OPTERR

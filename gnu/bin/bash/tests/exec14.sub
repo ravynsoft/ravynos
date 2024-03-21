@@ -1,0 +1,64 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# test that optimizing command lists doesn't inappropriately short-cut commands
+
+# also includes optimizing last command in a list separated by `;'
+
+if [ -x /bin/echo ] ; then
+	binecho=/bin/echo
+elif [ -x /usr/bin/echo ]; then
+	binecho=/usr/bin/echo
+else
+	enable -n echo
+	binecho=echo
+fi
+
+export binecho
+
+: ${THIS_SH:=./bash} ${TMPDIR:=/var/tmp}
+
+${THIS_SH} -c 'trap "echo WORKS && rm $TMPDIR/x$$" EXIT && touch $TMPDIR/x$$' 
+${THIS_SH} -c 'trap "echo WORKS && rm $TMPDIR/x$$" EXIT && touch $TMPDIR/x$$ ; $binecho done' 
+
+( trap "echo WORKS && rm $TMPDIR/x$$" EXIT && touch $TMPDIR/x$$ )
+
+${THIS_SH} -c 'echo a && { $binecho b && $binecho c ; } && echo d'
+${THIS_SH} -c 'echo a && { $binecho b && $binecho c ; } && echo d ; $binecho e'
+
+${THIS_SH} -c 'echo A && $binecho B'
+${THIS_SH} -c '$binecho c && echo d'
+
+$THIS_SH -c '$binecho c && $binecho d && echo e'
+
+$THIS_SH -c 'trap "echo WORKS" EXIT ; $binecho x ; $binecho y ; $binecho z'
+
+${THIS_SH} -c 'echo w ; { echo x ; $binecho y; }; $binecho z'
+
+echo =====
+
+( trap "echo WORKS && rm $TMPDIR/x$$" EXIT && touch $TMPDIR/x$$ )
+( trap "echo WORKS && rm $TMPDIR/x$$" EXIT && touch $TMPDIR/x$$ ; $binecho done )
+
+( echo a && { $binecho b && $binecho c ; } && echo d )
+( echo a && { $binecho b && $binecho c ; } && echo d ; $binecho e )
+
+( echo A && $binecho B )
+( $binecho c && echo d )
+
+( $binecho c && $binecho d && echo e )
+
+( trap "echo WORKS" EXIT ; $binecho x ; $binecho y ; $binecho z )
+
+( echo w ; { echo x ; $binecho y; }; $binecho z )

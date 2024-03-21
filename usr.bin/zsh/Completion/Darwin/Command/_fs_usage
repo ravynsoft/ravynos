@@ -1,0 +1,28 @@
+#compdef fs_usage
+
+local curcontext="$curcontext" state state_descr line ret=1
+typeset -A opt_args
+
+_arguments -s -C -A '-*' : \
+  '-e[exclude fs_usage and the specified processes from sampling]' \
+  '-w[use wider output]' \
+  '*-f+[specify output filtering mode]:mode:(network filesys pathname exec diskio cachehit)' \
+  '-b[annotate disk I/O events with BootCache info]' \
+  '(-R -S -E)-t+[specify run timeout]:seconds' \
+  '(-t)-R+[specify raw trace file to process]:raw trace file:_files' \
+  '(-t)-S+[specify time to begin processing the trace file]:seconds' \
+  '(-t)-E+[specify time to stop processing the trace file]:seconds' \
+  '*: :->pid-or-pname' && ret=0
+
+case $state in
+  (pid-or-pname)
+    if [[ -z $opt_args[-R] ]]; then
+      _alternative "processes:: _pids" \
+		  "processes-names:: _process_names -a" && ret=0
+    else
+      _message 'pid or process name in the trace file' && ret=0
+    fi
+    ;;
+esac
+
+return ret

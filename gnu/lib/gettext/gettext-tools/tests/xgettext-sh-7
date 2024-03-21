@@ -1,0 +1,55 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Shell support: assignment syntax.
+
+cat <<\EOF > xg-sh-7.sh
+gettext 'immediate invocation'
+foo=bar gettext 'invocation with 1 environment variable'
+foo=bar FOO=baz gettext 'invocation with 2 environment variables'
+env gettext 'invocation with env'
+env foo=bar gettext 'invocation with env and 1 environment variable'
+env foo=bar FOO=baz gettext 'invocation with env and 2 environment variables'
+'foo'=bar gettext 'invocation after a non-assignment 1'
+"foo"=bar gettext 'invocation after a non-assignment 2'
+fo\o=bar gettext 'invocation after a non-assignment 3'
+foo'='bar gettext 'invocation after a non-assignment 4'
+foo"="bar gettext 'invocation after a non-assignment 5'
+foo\=bar gettext 'invocation after a non-assignment 6'
+7=bar gettext 'invocation after a non-assignment 7'
+océ=bar gettext 'invocation after a non-assignment 8'
+f0oO_=bar gettext 'invocation with a mixed environment variable'
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-sh-7.tmp xg-sh-7.sh || Exit 1
+LC_ALL=C tr -d '\r' < xg-sh-7.tmp.po > xg-sh-7.po || Exit 1
+
+cat <<\EOF > xg-sh-7.ok
+msgid "immediate invocation"
+msgstr ""
+
+msgid "invocation with 1 environment variable"
+msgstr ""
+
+msgid "invocation with 2 environment variables"
+msgstr ""
+
+msgid "invocation with env"
+msgstr ""
+
+msgid "invocation with env and 1 environment variable"
+msgstr ""
+
+msgid "invocation with env and 2 environment variables"
+msgstr ""
+
+msgid "invocation with a mixed environment variable"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sh-7.ok xg-sh-7.po
+result=$?
+
+exit $result

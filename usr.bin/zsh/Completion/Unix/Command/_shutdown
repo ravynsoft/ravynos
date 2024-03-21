@@ -1,0 +1,77 @@
+#compdef shutdown
+
+local -a args
+
+if [[ -d /etc/systemd ]]; then
+  _arguments \
+    '--help[display usage information]' \
+    '(-H --halt)'{-H,--halt}'[halt the machine]' \
+    '(-P --poweroff -h)'{-P,--poweroff,-h}'[power-off the machine (default)]' \
+    '(-r --reboot)'{-r,--reboot}'[reboot the machine]' \
+    "(--no-wall)-k[don't shutdown, just write wall message]" \
+    "(-k)--no-wall[don't send a wall message]" \
+    '-c[cancel pending shutdown]' \
+    '1: :_guard "^-*" "time (now/hh\:mm/+mins)"' \
+    '*:warning message'
+  return
+fi
+
+case $OSTYPE in
+  *bsd*|dragonfly*|linux*|darwin*)
+    args=(
+      '-h[halt the system after shutdown]'
+      '-r[reboot the system]'
+      '-k[kick everybody off]'
+      '-n[prevent file system cache from being flushed]'
+      '1: :_guard "^-*" "time (now/hh\:mm/+mins)"'
+      '*:warning message'
+    )
+  ;|
+  *bsd*|dragonfly*)
+    args+=(
+      '-p[turn off power after shutdown]'
+    )
+  ;|
+  (net|open)bsd*)
+    args+=(
+      '-d[cause system to perform a dump]'
+      '-f[create /fastboot so that file systems will not be checked during the next boot]'
+    )
+  ;|
+  freebsd*|dragonfly*)
+    args+=(
+      '-o[execute halt or reboot instead of sending a signal to init]'
+    )
+  ;|
+  freebsd<12->.*)
+    args+=(
+      '-c[power cycle the system instead of halting if possible]'
+    )
+  ;;
+  netbsd*)
+    args+=(
+      '-b[specify boot string to pass to reboot]:boot string'
+      '-v[enable verbose console messages]'
+      '-x[enable debug console messages]'
+      '-z[silence some console messages]'
+      '-D[prevent shutdown from detaching from the tty]'
+    )
+  ;;
+  darwin*)
+    args+=(
+      '-o[execute halt or reboot instead of sending a signal to launchd]'
+      '-s[put the system to sleep]'
+      '-u[with -h, wait 5 minutes before removing power]'
+    )
+  ;;
+  solaris2.<11->) args=( '(-i)-r[reboot]' ) ;&
+  solaris*)
+    args+=(
+      '(-r)-i+[specify init-state]:init state:((0\:stop 1\:administrative s\:single\ user 5 6\:reboot))'
+      '-y[pre-answer yes to confirmation question]'
+      '-g+[specify grace period]:grace period (seconds) [60]'
+    )
+  ;;
+esac
+
+_arguments $args

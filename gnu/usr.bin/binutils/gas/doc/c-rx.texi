@@ -1,0 +1,253 @@
+@c Copyright (C) 2008-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node RX-Dependent
+@chapter RX Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter RX Dependent Features
+@end ifclear
+
+@cindex RX support
+@menu
+* RX-Opts::                   RX Assembler Command-line Options
+* RX-Modifiers::              Symbolic Operand Modifiers
+* RX-Directives::             Assembler Directives
+* RX-Float::                  Floating Point
+* RX-Syntax::                 Syntax
+@end menu
+
+@node RX-Opts
+@section RX Options
+@cindex options, RX
+@cindex RX options
+
+The Renesas RX port of @code{@value{AS}} has a few target specific
+command-line options:
+
+@table @code
+
+@cindex @samp{-m32bit-doubles}
+@item -m32bit-doubles
+This option controls the ABI and indicates to use a 32-bit float ABI.
+It has no effect on the assembled instructions, but it does influence
+the behaviour of the @samp{.double} pseudo-op.
+This is the default.
+
+@cindex @samp{-m64bit-doubles}
+@item -m64bit-doubles
+This option controls the ABI and indicates to use a 64-bit float ABI.
+It has no effect on the assembled instructions, but it does influence
+the behaviour of the @samp{.double} pseudo-op.
+
+@cindex @samp{-mbig-endian}
+@item -mbig-endian
+This option controls the ABI and indicates to use a big-endian data
+ABI.  It has no effect on the assembled instructions, but it does
+influence the behaviour of the @samp{.short}, @samp{.hword}, @samp{.int},
+@samp{.word}, @samp{.long}, @samp{.quad} and @samp{.octa} pseudo-ops.
+
+@cindex @samp{-mlittle-endian}
+@item -mlittle-endian
+This option controls the ABI and indicates to use a little-endian data
+ABI.  It has no effect on the assembled instructions, but it does
+influence the behaviour of the @samp{.short}, @samp{.hword}, @samp{.int},
+@samp{.word}, @samp{.long}, @samp{.quad} and @samp{.octa} pseudo-ops.
+This is the default.
+
+@cindex @samp{-muse-conventional-section-names}
+@item -muse-conventional-section-names
+This option controls the default names given to the code (.text),
+initialised data (.data) and uninitialised data sections (.bss).
+
+@cindex @samp{-muse-renesas-section-names}
+@item -muse-renesas-section-names
+This option controls the default names given to the code (P),
+initialised data (D_1) and uninitialised data sections (B_1).
+This is the default.
+
+@cindex @samp{-msmall-data-limit}
+@item -msmall-data-limit
+This option tells the assembler that the small data limit feature of
+the RX port of GCC is being used.  This results in the assembler
+generating an undefined reference to a symbol called @code{__gp} for
+use by the relocations that are needed to support the small data limit
+feature.   This option is not enabled by default as it would otherwise
+pollute the symbol table.
+
+@cindex @samp{-mpid}
+@item -mpid
+This option tells the assembler that the position independent data of the
+RX port of GCC is being used.  This results in the assembler
+generating an undefined reference to a symbol called @code{__pid_base},
+and also setting the RX_PID flag bit in the e_flags field of the ELF
+header of the object file.
+
+@cindex @samp{-mint-register}
+@item -mint-register=@var{num}
+This option tells the assembler how many registers have been reserved
+for use by interrupt handlers.  This is needed in order to compute the
+correct values for the @code{%gpreg} and @code{%pidreg} meta registers.
+
+@cindex @samp{-mgcc-abi}
+@item -mgcc-abi
+This option tells the assembler that the old GCC ABI is being used by
+the assembled code.  With this version of the ABI function arguments
+that are passed on the stack are aligned to a 32-bit boundary.
+
+@cindex @samp{-mrx-abi}
+@item -mrx-abi
+This option tells the assembler that the official RX ABI is being used
+by the assembled code.  With this version of the ABI function
+arguments that are passed on the stack are aligned to their natural
+alignments.  This option is the default.
+
+@cindex @samp{-mcpu=}
+@item -mcpu=@var{name}
+This option tells the assembler the target CPU type.  Currently the
+@code{rx100}, @code{rx200}, @code{rx600}, @code{rx610}, @code{rxv2},
+@code{rxv3} and @code{rxv3-dfpu} are recognised as valid cpu names.
+Attempting to assemble an instructionnot supported by the indicated
+cpu type will result in an error message being generated.
+
+@cindex @samp{-mno-allow-string-insns}
+@item -mno-allow-string-insns
+This option tells the assembler to mark the object file that it is
+building as one that does not use the string instructions
+@code{SMOVF}, @code{SCMPU}, @code{SMOVB}, @code{SMOVU}, @code{SUNTIL}
+@code{SWHILE} or the @code{RMPA} instruction.  In addition the mark
+tells the linker to complain if an attempt is made to link the binary
+with another one that does use any of these instructions.
+
+Note - the inverse of this option, @code{-mallow-string-insns}, is
+not needed.  The assembler automatically detects the use of the
+the instructions in the source code and labels the resulting
+object file appropriately.  If no string instructions are detected
+then the object file is labelled as being one that can be linked with
+either string-using or string-banned object files.
+@end table
+
+@node RX-Modifiers
+@section Symbolic Operand Modifiers
+
+@cindex RX modifiers
+@cindex syntax, RX
+@cindex %gp
+
+The assembler supports one modifier when using symbol addresses
+in RX instruction operands.  The general syntax is the following:
+
+@smallexample
+%gp(symbol)
+@end smallexample
+
+The modifier returns the offset from the @var{__gp} symbol to the
+specified symbol as a 16-bit value.  The intent is that this offset
+should be used in a register+offset move instruction when generating
+references to small data.  Ie, like this:
+
+@smallexample
+  mov.W	 %gp(_foo)[%gpreg], r1
+@end smallexample
+
+The assembler also supports two meta register names which can be used
+to refer to registers whose values may not be known to the
+programmer.  These meta register names are:
+
+@table @code
+
+@cindex @samp{%gpreg}
+@item %gpreg
+The small data address register.
+
+@cindex @samp{%pidreg}
+@item %pidreg
+The PID base address register.
+
+@end table
+
+Both registers normally have the value r13, but this can change if
+some registers have been reserved for use by interrupt handlers or if
+both the small data limit and position independent data features are
+being used at the same time.
+
+@node RX-Directives
+@section Assembler Directives
+
+@cindex assembler directives, RX
+@cindex RX assembler directives
+
+The RX version of @code{@value{AS}} has the following specific
+assembler directives:
+
+@table @code
+
+@item .3byte
+@cindex assembler directive .3byte, RX
+@cindex RX assembler directive .3byte
+Inserts a 3-byte value into the output file at the current location.
+
+@item .fetchalign
+@cindex assembler directive .fetchalign, RX
+@cindex RX assembler directive .fetchalign
+If the next opcode following this directive spans a fetch line
+boundary (8 byte boundary), the opcode is aligned to that boundary.
+If the next opcode does not span a fetch line, this directive has no
+effect.  Note that one or more labels may be between this directive
+and the opcode; those labels are aligned as well.  Any inserted bytes
+due to alignment will form a NOP opcode.
+
+@end table
+
+@node RX-Float
+@section Floating Point
+
+@cindex floating point, RX
+@cindex RX floating point
+
+The floating point formats generated by directives are these.
+
+@table @code
+@cindex @code{float} directive, RX
+
+@item .float
+@code{Single} precision (32-bit) floating point constants.
+
+@cindex @code{double} directive, RX
+@item .double
+If the @option{-m64bit-doubles} command-line option has been specified
+then then @code{double} directive generates @code{double} precision
+(64-bit) floating point constants, otherwise it generates
+@code{single} precision (32-bit) floating point constants.  To force
+the generation of 64-bit floating point constants used the @code{dc.d}
+directive instead.
+
+@end table
+
+@node RX-Syntax
+@section Syntax for the RX
+@menu
+* RX-Chars::                Special Characters
+@end menu
+
+@node RX-Chars
+@subsection Special Characters
+
+@cindex line comment character, RX
+@cindex RX line comment character
+The presence of a @samp{;} appearing anywhere on a line indicates the
+start of a comment that extends to the end of that line.
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line can also be a
+logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, RX
+@cindex statement separator, RX
+@cindex RX line separator
+The @samp{!} character can be used to separate statements on the same
+line.

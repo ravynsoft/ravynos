@@ -1,0 +1,37 @@
+#compdef module-assistant m-a
+
+typeset -a _module_assistant_commands
+
+_module_assistant_commands=(
+  'update[synchronize version index files]'
+  'prepare[install required kernel headers package]'
+  'fakesource[install required kernel source package]'
+  'list[a print a list of details about available packages]'
+  'list-available[b print a list of details about available packages]'
+  'la[c print a list of details about available packages]'
+  'list-installed[ print a list of details about installed packages]'
+  'li[print a list of details about installed packages]'
+  'search[search for packages]'
+  'get[install specified source package]'
+  'build[build specified packages]'
+  'install[install specified packages]'
+  'auto-install[do all necessary steps to install specified packages]'
+  'clean[clear build directories of the kernel packages]'
+  'purge[clear cache and remove all binary packages of source package]'
+)
+
+_arguments -A \
+  '(-h --help)'{-h,--help}'[print help screen]' \
+  '(-v --verbose)'{-v,--verbose}'[be verbose, show full paths, etc.]' \
+  '(-q --quiet)'{-q,--quiet}'[the opposite of verbose]' \
+  '(-n --no-rebuild)'{-n,--no-rebuild}'[do not rebuild when package exists]' \
+  '(-i --ignore-failures)'{-i,--ignore-failures}'[do not stop on build failures]' \
+  '(-s --apt-search)'{-s,--apt-search}'[search for installation candidates in the Debian archive]' \
+  '(-f --force)'{-f,--force}'[force using new versions even when old ones exist]' \
+  '(-u --userdir)'{-u,--userdir}'[specify a (writable) replacement directory for /var&/usr]:dir:_files -/' \
+  '(-l --kvers-list)'{-l,--kvers-list}'[list of kernel versions to work on (default: current version)]:kernel version list:' \
+  '(-k --kernel-dir)'{-k,--kernel-dir}'[list of kernel headers/source directories, comma separated]:list of dirs:_files -/' \
+  '(-t --text-mode)'{-t,--text-mode}'[no progress bars]' \
+  '1:list of commands:_values -s , subcommands "${_module_assistant_commands[@]}"' \
+  '*:package: compadd /usr/src/modass/var_cache_modass/*.avail_version(N:t:r) /var/cache/modass/*.avail_version(N:t:r)'
+

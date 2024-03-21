@@ -1,0 +1,33 @@
+@section WebAssembly backend
+The WebAssembly module file format, at present, is a very simple
+object file format with up to 11 numbered sections plus named
+``custom'' sections. At present, there is no standard for relocations
+or symbols, though a @code{"name"} subsection can assign names to
+function indices and local variables.
+
+As such, it offers no real advantages over ELF, and intermediate ELF
+files can be used to produce WebAssembly modules. The WebAssembly
+backend aims to enable the opposite: reading a WebAssembly module and
+producing an ELF file containing the same information, which can then
+be manipulated and inspected with standard tools.
+
+When writing WebAssembly modules, the WebAssembly backend attempts to
+determine based on the section name whether to use a numeric section
+id, a named section header, or to include the section verbatim,
+assuming it already contains any necessary header.
+
+Function names are supported as symbols; local names and WebAssembly
+relocation sections are currently unsupported.
+
+There are slight differences in the LEB128 integer implementations
+between the WebAssembly specification and the BFD code; these result
+in some malformed WebAssembly modules being treated as valid.
+
+@menu
+* File layout::
+@end menu
+
+@node File layout
+@subsection File layout
+For a description of the WebAssembly file format, see
+@url{https://github.com/WebAssembly/design/blob/master/BinaryEncoding.md}.

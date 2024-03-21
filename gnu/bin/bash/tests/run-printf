@@ -1,0 +1,7 @@
+# See whether or not we can use `diff -a'
+#( diff -a ./printf.tests ./printf.tests >/dev/null 2>&1 ) && AFLAG=-a
+
+# use cat -v (and assume it's there) to make control chars visible
+${THIS_SH} ./printf.tests 2>&1 | cat -v > ${BASH_TSTOUT} 
+#diff $AFLAG ${BASH_TSTOUT} printf.right && rm -f ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} printf.right && rm -f ${BASH_TSTOUT}

@@ -49,7 +49,6 @@
  * specified device.
  */
 
-#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -84,6 +83,7 @@ typedef enum {
 	VENDOR_SAMSUNG,
 	VENDOR_SEAGATE,
 	VENDOR_SMART,
+	VENDOR_TOSHIBA,
 	VENDOR_ATA,
 	VENDOR_UNKNOWN
 } fw_vendor_t;
@@ -212,6 +212,8 @@ static struct fw_vendor vendors_list[] = {
 	{VENDOR_SEAGATE,	"SEAGATE",	T_ANY,
 	0x8000, 0x07, 0x07, 0, 1, FW_TUR_READY, WB_TIMEOUT, FW_TIMEOUT_DEFAULT},
 	{VENDOR_SMART,		"SmrtStor",	T_DIRECT,
+	0x8000, 0x07, 0x07, 0, 1, FW_TUR_READY, WB_TIMEOUT, FW_TIMEOUT_DEFAULT},
+	{VENDOR_TOSHIBA,	"TOSHIBA",	T_DIRECT,
 	0x8000, 0x07, 0x07, 0, 1, FW_TUR_READY, WB_TIMEOUT, FW_TIMEOUT_DEFAULT},
 	{VENDOR_HGST,	 	"WD",		T_DIRECT,
 	0x1000, 0x07, 0x07, 1, 0, FW_TUR_READY, WB_TIMEOUT, FW_TIMEOUT_DEFAULT},

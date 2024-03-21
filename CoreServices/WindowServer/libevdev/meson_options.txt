@@ -1,0 +1,12 @@
+option('tests',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Build the tests')
+option('documentation',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Build the documentation')
+option('coverity',
+       type: 'boolean',
+       value: 'false',
+       description: 'Enable coverity build fixes, see meson.build for details')

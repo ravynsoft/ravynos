@@ -1,0 +1,68 @@
+Changes in TIFF v4.0.3
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.3 (:tag:`Release-v4-0-3`)
+    Previous Version        :doc:`v4.0.2 <v4.0.2>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site        `<https://download.osgeo.org/libtiff/>`_
+    ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* None
+
+
+Software configuration changes
+------------------------------
+
+* Updated to use Automake 1.12.4.  Avoids security problem with
+  ``make distcheck`` (:cve:`2012-3386`).
+
+
+Library changes
+---------------
+
+* Various memory buffer access fixes.
+
+* Fix handling when writing RGBA jpeg compressed imagery (:gdal-trac:`4732`).
+
+* Fix to work properly with IJG JPEG 7+.
+
+* New functions :c:func:`TIFFFieldTag`, :c:func:`TIFFFieldName`,
+  :c:func:`TIFFFieldDataType`, :c:func:`TIFFFieldPassCount`, :c:func:`TIFFFieldReadCount`,
+  :c:func:`TIFFFieldWriteCount` to use as external accessors for the opaque
+  type :c:type:`TIFFField`.
+
+* Fix bug rewriting image tiles in a compressed file (:gdal-trac:`4771`).
+
+* Add TIFF/FX tag support in libtiff.
+
+
+Tools changes
+-------------
+
+* :program:`tiff2pdf`: Fail when :c:func:`TIFFSetDirectory` fails.  This prevents
+  core dumps or perhaps even arbitrary code execution when processing
+  a corrupt input file (:cve:`2012-3401`).
+
+* :program:`tiff2pdf`: Fix two places where :c:member:`t2p_error` didn't get set after a
+  :c:func:`malloc` failure.  No crash risk AFAICS, but the program might not
+  report exit code 1 as desired.
+
+
+Contributed software changes
+----------------------------
+
+* None

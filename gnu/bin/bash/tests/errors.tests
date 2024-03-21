@@ -1,0 +1,308 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# These should all be safe
+LC_ALL=C
+LC_CTYPE=C
+LC_COLLATE=C
+LC_MESSAGES=C
+
+# these tests should all generate errors
+
+# make sure we don't exit prematurely
+set +e
+set +o posix
+
+# various alias/unalias errors
+
+# at some point, this may mean to `export' an alias, like ksh, but
+# for now it is an error
+alias -x foo=barz
+unalias -x fooaha
+alias hoowah
+unalias hoowah
+
+# the iteration variable must be a valid identifier
+for 1 in a b c; do echo $1; done
+
+# try to rebind a read-only function
+func()
+{
+	echo func
+}
+readonly -f func
+# make sure `readonly' and `declare' play well together
+declare -Fr
+func()
+{
+	echo bar
+}
+
+# bad option
+unset -x func
+
+# cannot unset readonly functions or variables
+unset -f func
+# or make them not readonly
+declare -fr func
+declare -f +r func
+
+# cannot use declare -f in combination with other attributes
+a() { echo a; }
+declare -f -a a
+declare -f -i b c
+
+XPATH=$PATH
+declare -r XPATH
+unset -v XPATH
+
+# cannot unset invalid identifiers
+unset /bin/sh
+
+# cannot unset function and variable at the same time
+unset -f -v SHELL
+
+# bad option
+declare -z
+# cannot declare invalid identifiers
+declare -- -z 
+declare /bin/sh
+
+# this is the syntax used to export functions in the environment, but
+# it cannot be used with `declare'
+declare -f func='() { echo "this is func"; }'
+
+# bad option to exec -- this should not exit the script
+exec -i /bin/sh
+
+# try to export -f something that is not a function -- this should be
+# an error, not create an `invisible function'
+export -f XPATH
+
+# this depends on the setting of BREAK_COMPLAINS in config.h.in
+break
+continue
+
+# this should not exit the shell; it did in versions before 2.01
+shift label
+
+# other shells do not complain about the extra arguments; maybe someday
+# we won't either
+set -- a b c
+shift $# label
+# and get rid of the positional parameters
+shift $#
+
+# let without an expression is an error, though maybe it should just return
+# success
+let
+
+# local outside a function is an error
+local
+
+# logout of a non-login shell is an error
+logout
+
+# try to hash a non-existent command
+hash notthere
+
+# bad option to hash, although it may mean `verbose' at some future point
+hash -v
+
+# turn off hashing, then try to hash something
+set +o hashall
+hash -p ${THIS_SH} ${THIS_SH##*/}
+
+# bad identifiers to declare/readonly/export
+export AA[4]
+readonly AA[4]
+
+declare -a AA
+unset AA[-2]
+
+# try to assign to a readonly array
+declare -r AA
+AA=( one two three )
+
+# make sure `readonly -n' doesn't turn off readonly status
+readonly -n AA
+AA=(one two three)
+
+# try to assign a readonly array with bad assignment syntax
+# NOTE: this works in post-bash-2.05 (at least when I write this)
+# readonly -a ZZZ=bbb
+
+# bad counts to `shift'
+shopt -s shift_verbose
+shift $(( $# + 5 ))
+shift -2
+
+# bad shell options
+shopt -s no_such_option
+shopt no_such_option
+
+# non-octal digits for umask and other errors
+umask 09
+umask -S u=rwx:g=rwx:o=rx >/dev/null # 002
+umask -S u:rwx,g:rwx,o:rx >/dev/null # 002
+
+# at some point, this may mean `invert', but for now it is an error
+umask -i
+
+# bad assignments shouldn't change the umask
+mask=$(umask)
+umask g=u
+mask2=$(umask)
+if [ "$mask" != "$mask2" ]; then
+	echo "umask errors change process umask"
+fi
+
+# assignment to a readonly variable in environment
+VAR=4
+readonly VAR
+VAR=7 :
+
+# more readonly variable tests
+declare VAR=88
+declare +r VAR
+
+declare -p unset
+
+# iteration variable in a for statement being readonly
+for VAR in 1 2 3 ; do echo $VAR; done
+
+# parser errors; caught early so we have to run them in subshells
+${THIS_SH} -c ': $( for z in 1 2 3; do )' comsub
+${THIS_SH} -c ': $( for z in 1 2 3; done )' comsub
+
+# various `cd' errors
+( unset HOME ; cd )
+( HOME=/tmp/xyz.bash ; cd )
+# errors from cd
+cd -
+cd /bin/sh	# error - not a directory
+OLDPWD=/tmp/cd-notthere
+cd -
+
+# various `source/.' errors
+.
+source
+
+# maybe someday this will work like in rc
+. -i /dev/tty
+
+# make sure that this gives an error rather than setting $1
+set -q
+
+# enable non-builtins
+enable sh bash
+
+# try to set and unset shell options simultaneously
+shopt -s -u checkhash
+
+# this is an error -- bad timeout spec
+read -t var < /dev/null
+
+# try to read into an invalid identifier
+read /bin/sh < /dev/null
+
+# try to read into a readonly variable
+read VAR < /dev/null
+
+# bad option to readonly/export
+readonly -x foo
+
+# someday these may mean something, but for now they're errors
+eval -i "echo $-"
+command -i "echo $-"
+
+# this caused a core dump in bash-2.01 (fixed in bash-2.01.1)
+eval echo \$[/bin/sh + 0]
+eval echo '$((/bin/sh + 0))'
+
+# error to list trap for an unknown signal
+trap -p NOSIG
+
+# maybe someday trap will take a -s argument like kill, but not now
+trap -p -s NOSIG
+
+# we have a ksh-like ERR trap, post-bash-2.05
+#trap 'echo [$LINENO] -- error' ERR
+
+# can only return from a function or sourced script
+return 2
+
+# break and continue with arguments <= 0
+for z in 1 2 3; do
+	break 0
+	echo $x
+done
+for z in 1 2 3; do
+	continue 0
+	echo $x
+done
+
+# builtin with non-builtin
+builtin bash
+
+# maybe someday you will be able to use fg/bg when job control is not really
+# active, but for now they are errors
+bg
+fg
+
+# argument required
+kill -s
+# bad argument
+kill -S
+# null argument
+kill -INT ''
+# argument required
+kill -INT
+
+# bad shell option names
+set -o trackall		# bash is not ksh
+
+# problem with versions through bash-4.2
+readonly xx=5
+echo $((xx=5))
+echo $?
+
+${THIS_SH} ./errors1.sub
+${THIS_SH} ./errors2.sub
+${THIS_SH} ./errors3.sub
+${THIS_SH} ./errors4.sub
+${THIS_SH} -o posix ./errors4.sub
+
+${THIS_SH} ./errors5.sub
+
+${THIS_SH} ./errors6.sub
+THIS_SH="${THIS_SH} -o posix" ${THIS_SH} ./errors6.sub
+
+${THIS_SH} ./errors7.sub
+${THIS_SH} -o posix ./errors7.sub
+
+${THIS_SH} ./errors8.sub
+${THIS_SH} ./errors9.sub
+
+${THIS_SH} -c 'return ; echo after return' bash
+${THIS_SH} -o posix -c 'return ; echo after return' bash
+
+# this must be last!
+# in posix mode, a function name must be a valid identifier
+# this can't go in posix2.tests, since it causes the shell to exit
+# immediately
+set -o posix
+function !! () { fc -s "$@" ; }
+set +o posix
+
+echo end

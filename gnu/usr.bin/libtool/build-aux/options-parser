@@ -1,0 +1,685 @@
+#! /bin/sh
+
+# A portable, pluggable option parser for Bourne shell.
+# Written by Gary V. Vaughan, 2010
+
+# This is free software.  There is NO warranty; not even for
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# Copyright (C) 2010-2019, 2021 Bootstrap Authors
+#
+# This file is dual licensed under the terms of the MIT license
+# <https://opensource.org/license/MIT>, and GPL version 2 or later
+# <http://www.gnu.org/licenses/gpl-2.0.html>.  You must apply one of
+# these licenses when using or redistributing this software or any of
+# the files within it.  See the URLs above, or the file `LICENSE`
+# included in the Bootstrap distribution for the full license texts.
+
+# Please report bugs or propose patches to:
+# <https://github.com/gnulib-modules/bootstrap/issues>
+
+# Set a version string for this script.
+scriptversion=2019-02-19.15; # UTC
+
+
+## ------ ##
+## Usage. ##
+## ------ ##
+
+# This file is a library for parsing options in your shell scripts along
+# with assorted other useful supporting features that you can make use
+# of too.
+#
+# For the simplest scripts you might need only:
+#
+#   #!/bin/sh
+#   . relative/path/to/funclib.sh
+#   . relative/path/to/options-parser
+#   scriptversion=1.0
+#   func_options ${1+"$@"}
+#   eval set dummy "$func_options_result"; shift
+#   ...rest of your script...
+#
+# In order for the '--version' option to work, you will need to have a
+# suitably formatted comment like the one at the top of this file
+# starting with '# Written by ' and ending with '# Copyright'.
+#
+# For '-h' and '--help' to work, you will also need a one line
+# description of your script's purpose in a comment directly above the
+# '# Written by ' line, like the one at the top of this file.
+#
+# The default options also support '--debug', which will turn on shell
+# execution tracing (see the comment above debug_cmd below for another
+# use), and '--verbose' and the func_verbose function to allow your script
+# to display verbose messages only when your user has specified
+# '--verbose'.
+#
+# After sourcing this file, you can plug in processing for additional
+# options by amending the variables from the 'Configuration' section
+# below, and following the instructions in the 'Option parsing'
+# section further down.
+
+## -------------- ##
+## Configuration. ##
+## -------------- ##
+
+# You should override these variables in your script after sourcing this
+# file so that they reflect the customisations you have added to the
+# option parser.
+
+# The usage line for option parsing errors and the start of '-h' and
+# '--help' output messages. You can embed shell variables for delayed
+# expansion at the time the message is displayed, but you will need to
+# quote other shell meta-characters carefully to prevent them being
+# expanded when the contents are evaled.
+usage='$progpath [OPTION]...'
+
+# Short help message in response to '-h' and '--help'.  Add to this or
+# override it after sourcing this library to reflect the full set of
+# options your script accepts.
+usage_message="\
+       --debug        enable verbose shell tracing
+   -W, --warnings=CATEGORY
+                      report the warnings falling in CATEGORY [all]
+   -v, --verbose      verbosely report processing
+       --version      print version information and exit
+   -h, --help         print short or long help message and exit
+"
+
+# Additional text appended to 'usage_message' in response to '--help'.
+long_help_message="
+Warning categories include:
+       'all'          show all warnings
+       'none'         turn off all the warnings
+       'error'        warnings are treated as fatal errors"
+
+# Help message printed before fatal option parsing errors.
+fatal_help="Try '\$progname --help' for more information."
+
+
+
+## ------------------------- ##
+## Hook function management. ##
+## ------------------------- ##
+
+# This section contains functions for adding, removing, and running hooks
+# in the main code.  A hook is just a list of function names that can be
+# run in order later on.
+
+# func_hookable FUNC_NAME
+# -----------------------
+# Declare that FUNC_NAME will run hooks added with
+# 'func_add_hook FUNC_NAME ...'.
+func_hookable ()
+{
+    $debug_cmd
+
+    func_append hookable_fns " $1"
+}
+
+
+# func_add_hook FUNC_NAME HOOK_FUNC
+# ---------------------------------
+# Request that FUNC_NAME call HOOK_FUNC before it returns.  FUNC_NAME must
+# first have been declared "hookable" by a call to 'func_hookable'.
+func_add_hook ()
+{
+    $debug_cmd
+
+    case " $hookable_fns " in
+      *" $1 "*) ;;
+      *) func_fatal_error "'$1' does not accept hook functions." ;;
+    esac
+
+    eval func_append ${1}_hooks '" $2"'
+}
+
+
+# func_remove_hook FUNC_NAME HOOK_FUNC
+# ------------------------------------
+# Remove HOOK_FUNC from the list of hook functions to be called by
+# FUNC_NAME.
+func_remove_hook ()
+{
+    $debug_cmd
+
+    eval ${1}_hooks='`$ECHO "\$'$1'_hooks" |$SED "s| '$2'||"`'
+}
+
+
+# func_propagate_result FUNC_NAME_A FUNC_NAME_B
+# ---------------------------------------------
+# If the *_result variable of FUNC_NAME_A _is set_, assign its value to
+# *_result variable of FUNC_NAME_B.
+func_propagate_result ()
+{
+    $debug_cmd
+
+    func_propagate_result_result=:
+    if eval "test \"\${${1}_result+set}\" = set"
+    then
+      eval "${2}_result=\$${1}_result"
+    else
+      func_propagate_result_result=false
+    fi
+}
+
+
+# func_run_hooks FUNC_NAME [ARG]...
+# ---------------------------------
+# Run all hook functions registered to FUNC_NAME.
+# It's assumed that the list of hook functions contains nothing more
+# than a whitespace-delimited list of legal shell function names, and
+# no effort is wasted trying to catch shell meta-characters or preserve
+# whitespace.
+func_run_hooks ()
+{
+    $debug_cmd
+
+    case " $hookable_fns " in
+      *" $1 "*) ;;
+      *) func_fatal_error "'$1' does not support hook functions." ;;
+    esac
+
+    eval _G_hook_fns=\$$1_hooks; shift
+
+    for _G_hook in $_G_hook_fns; do
+      func_unset "${_G_hook}_result"
+      eval $_G_hook '${1+"$@"}'
+      func_propagate_result $_G_hook func_run_hooks
+      if $func_propagate_result_result; then
+        eval set dummy "$func_run_hooks_result"; shift
+      fi
+    done
+}
+
+
+
+## --------------- ##
+## Option parsing. ##
+## --------------- ##
+
+# In order to add your own option parsing hooks, you must accept the
+# full positional parameter list from your hook function.  You may remove
+# or edit any options that you action, and then pass back the remaining
+# unprocessed options in '<hooked_function_name>_result', escaped
+# suitably for 'eval'.
+#
+# The '<hooked_function_name>_result' variable is automatically unset
+# before your hook gets called; for best performance, only set the
+# *_result variable when necessary (i.e. don't call the 'func_quote'
+# function unnecessarily because it can be an expensive operation on some
+# machines).
+#
+# Like this:
+#
+#    my_options_prep ()
+#    {
+#        $debug_cmd
+#
+#        # Extend the existing usage message.
+#        usage_message=$usage_message'
+#      -s, --silent       don'\''t print informational messages
+#    '
+#        # No change in '$@' (ignored completely by this hook).  Leave
+#        # my_options_prep_result variable intact.
+#    }
+#    func_add_hook func_options_prep my_options_prep
+#
+#
+#    my_silent_option ()
+#    {
+#        $debug_cmd
+#
+#        args_changed=false
+#
+#        # Note that, for efficiency, we parse as many options as we can
+#        # recognise in a loop before passing the remainder back to the
+#        # caller on the first unrecognised argument we encounter.
+#        while test $# -gt 0; do
+#          opt=$1; shift
+#          case $opt in
+#            --silent|-s) opt_silent=:
+#                         args_changed=:
+#                         ;;
+#            # Separate non-argument short options:
+#            -s*)         func_split_short_opt "$_G_opt"
+#                         set dummy "$func_split_short_opt_name" \
+#                             "-$func_split_short_opt_arg" ${1+"$@"}
+#                         shift
+#                         args_changed=:
+#                         ;;
+#            *)           # Make sure the first unrecognised option "$_G_opt"
+#                         # is added back to "$@" in case we need it later,
+#                         # if $args_changed was set to 'true'.
+#                         set dummy "$_G_opt" ${1+"$@"}; shift; break ;;
+#          esac
+#        done
+#
+#        # Only call 'func_quote' here if we processed at least one argument.
+#        if $args_changed; then
+#          func_quote eval ${1+"$@"}
+#          my_silent_option_result=$func_quote_result
+#        fi
+#    }
+#    func_add_hook func_parse_options my_silent_option
+#
+#
+#    my_option_validation ()
+#    {
+#        $debug_cmd
+#
+#        $opt_silent && $opt_verbose && func_fatal_help "\
+#    '--silent' and '--verbose' options are mutually exclusive."
+#    }
+#    func_add_hook func_validate_options my_option_validation
+#
+# You'll also need to manually amend $usage_message to reflect the extra
+# options you parse.  It's preferable to append if you can, so that
+# multiple option parsing hooks can be added safely.
+
+
+# func_options_finish [ARG]...
+# ----------------------------
+# Finishing the option parse loop (call 'func_options' hooks ATM).
+func_options_finish ()
+{
+    $debug_cmd
+
+    func_run_hooks func_options ${1+"$@"}
+    func_propagate_result func_run_hooks func_options_finish
+}
+
+
+# func_options [ARG]...
+# ---------------------
+# All the functions called inside func_options are hookable. See the
+# individual implementations for details.
+func_hookable func_options
+func_options ()
+{
+    $debug_cmd
+
+    _G_options_quoted=false
+
+    for my_func in options_prep parse_options validate_options options_finish
+    do
+      func_unset func_${my_func}_result
+      func_unset func_run_hooks_result
+      eval func_$my_func '${1+"$@"}'
+      func_propagate_result func_$my_func func_options
+      if $func_propagate_result_result; then
+        eval set dummy "$func_options_result"; shift
+        _G_options_quoted=:
+      fi
+    done
+
+    $_G_options_quoted || {
+      # As we (func_options) are top-level options-parser function and
+      # nobody quoted "$@" for us yet, we need to do it explicitly for
+      # caller.
+      func_quote eval ${1+"$@"}
+      func_options_result=$func_quote_result
+    }
+}
+
+
+# func_options_prep [ARG]...
+# --------------------------
+# All initialisations required before starting the option parse loop.
+# Note that when calling hook functions, we pass through the list of
+# positional parameters.  If a hook function modifies that list, and
+# needs to propagate that back to rest of this script, then the complete
+# modified list must be put in 'func_run_hooks_result' before returning.
+func_hookable func_options_prep
+func_options_prep ()
+{
+    $debug_cmd
+
+    # Option defaults:
+    opt_verbose=false
+    opt_warning_types=
+
+    func_run_hooks func_options_prep ${1+"$@"}
+    func_propagate_result func_run_hooks func_options_prep
+}
+
+
+# func_parse_options [ARG]...
+# ---------------------------
+# The main option parsing loop.
+func_hookable func_parse_options
+func_parse_options ()
+{
+    $debug_cmd
+
+    _G_parse_options_requote=false
+    # this just eases exit handling
+    while test $# -gt 0; do
+      # Defer to hook functions for initial option parsing, so they
+      # get priority in the event of reusing an option name.
+      func_run_hooks func_parse_options ${1+"$@"}
+      func_propagate_result func_run_hooks func_parse_options
+      if $func_propagate_result_result; then
+        eval set dummy "$func_parse_options_result"; shift
+        # Even though we may have changed "$@", we passed the "$@" array
+        # down into the hook and it quoted it for us (because we are in
+        # this if-branch).  No need to quote it again.
+        _G_parse_options_requote=false
+      fi
+
+      # Break out of the loop if we already parsed every option.
+      test $# -gt 0 || break
+
+      # We expect that one of the options parsed in this function matches
+      # and thus we remove _G_opt from "$@" and need to re-quote.
+      _G_match_parse_options=:
+      _G_opt=$1
+      shift
+      case $_G_opt in
+        --debug|-x)   debug_cmd='set -x'
+                      func_echo "enabling shell trace mode" >&2
+                      $debug_cmd
+                      ;;
+
+        --no-warnings|--no-warning|--no-warn)
+                      set dummy --warnings none ${1+"$@"}
+                      shift
+		      ;;
+
+        --warnings|--warning|-W)
+                      if test $# = 0 && func_missing_arg $_G_opt; then
+                        _G_parse_options_requote=:
+                        break
+                      fi
+                      case " $warning_categories $1" in
+                        *" $1 "*)
+                          # trailing space prevents matching last $1 above
+                          func_append_uniq opt_warning_types " $1"
+                          ;;
+                        *all)
+                          opt_warning_types=$warning_categories
+                          ;;
+                        *none)
+                          opt_warning_types=none
+                          warning_func=:
+                          ;;
+                        *error)
+                          opt_warning_types=$warning_categories
+                          warning_func=func_fatal_error
+                          ;;
+                        *)
+                          func_fatal_error \
+                             "unsupported warning category: '$1'"
+                          ;;
+                      esac
+                      shift
+                      ;;
+
+        --verbose|-v) opt_verbose=: ;;
+        --version)    func_version ;;
+        -\?|-h)       func_usage ;;
+        --help)       func_help ;;
+
+	# Separate optargs to long options (plugins may need this):
+	--*=*)        func_split_equals "$_G_opt"
+	              set dummy "$func_split_equals_lhs" \
+                          "$func_split_equals_rhs" ${1+"$@"}
+                      shift
+                      ;;
+
+       # Separate optargs to short options:
+        -W*)
+                      func_split_short_opt "$_G_opt"
+                      set dummy "$func_split_short_opt_name" \
+                          "$func_split_short_opt_arg" ${1+"$@"}
+                      shift
+                      ;;
+
+        # Separate non-argument short options:
+        -\?*|-h*|-v*|-x*)
+                      func_split_short_opt "$_G_opt"
+                      set dummy "$func_split_short_opt_name" \
+                          "-$func_split_short_opt_arg" ${1+"$@"}
+                      shift
+                      ;;
+
+        --)           _G_parse_options_requote=: ; break ;;
+        -*)           func_fatal_help "unrecognised option: '$_G_opt'" ;;
+        *)            set dummy "$_G_opt" ${1+"$@"}; shift
+                      _G_match_parse_options=false
+                      break
+                      ;;
+      esac
+
+      if $_G_match_parse_options; then
+        _G_parse_options_requote=:
+      fi
+    done
+
+    if $_G_parse_options_requote; then
+      # save modified positional parameters for caller
+      func_quote eval ${1+"$@"}
+      func_parse_options_result=$func_quote_result
+    fi
+}
+
+
+# func_validate_options [ARG]...
+# ------------------------------
+# Perform any sanity checks on option settings and/or unconsumed
+# arguments.
+func_hookable func_validate_options
+func_validate_options ()
+{
+    $debug_cmd
+
+    # Display all warnings if -W was not given.
+    test -n "$opt_warning_types" || opt_warning_types=" $warning_categories"
+
+    func_run_hooks func_validate_options ${1+"$@"}
+    func_propagate_result func_run_hooks func_validate_options
+
+    # Bail if the options were screwed!
+    $exit_cmd $EXIT_FAILURE
+}
+
+
+
+## ----------------- ##
+## Helper functions. ##
+## ----------------- ##
+
+# This section contains the helper functions used by the rest of the
+# hookable option parser framework in ascii-betical order.
+
+
+# func_fatal_help ARG...
+# ----------------------
+# Echo program name prefixed message to standard error, followed by
+# a help hint, and exit.
+func_fatal_help ()
+{
+    $debug_cmd
+
+    eval \$ECHO \""Usage: $usage"\"
+    eval \$ECHO \""$fatal_help"\"
+    func_error ${1+"$@"}
+    exit $EXIT_FAILURE
+}
+
+
+# func_help
+# ---------
+# Echo long help message to standard output and exit.
+func_help ()
+{
+    $debug_cmd
+
+    func_usage_message
+    $ECHO "$long_help_message"
+    exit 0
+}
+
+
+# func_missing_arg ARGNAME
+# ------------------------
+# Echo program name prefixed message to standard error and set global
+# exit_cmd.
+func_missing_arg ()
+{
+    $debug_cmd
+
+    func_error "Missing argument for '$1'."
+    exit_cmd=exit
+}
+
+
+# func_split_equals STRING
+# ------------------------
+# Set func_split_equals_lhs and func_split_equals_rhs shell variables
+# after splitting STRING at the '=' sign.
+test -z "$_G_HAVE_XSI_OPS" \
+    && (eval 'x=a/b/c;
+      test 5aa/bb/cc = "${#x}${x%%/*}${x%/*}${x#*/}${x##*/}"') 2>/dev/null \
+    && _G_HAVE_XSI_OPS=yes
+
+if test yes = "$_G_HAVE_XSI_OPS"
+then
+  # This is an XSI compatible shell, allowing a faster implementation...
+  eval 'func_split_equals ()
+  {
+      $debug_cmd
+
+      func_split_equals_lhs=${1%%=*}
+      func_split_equals_rhs=${1#*=}
+      if test "x$func_split_equals_lhs" = "x$1"; then
+        func_split_equals_rhs=
+      fi
+  }'
+else
+  # ...otherwise fall back to using expr, which is often a shell builtin.
+  func_split_equals ()
+  {
+      $debug_cmd
+
+      func_split_equals_lhs=`expr "x$1" : 'x\([^=]*\)'`
+      func_split_equals_rhs=
+      test "x$func_split_equals_lhs=" = "x$1" \
+        || func_split_equals_rhs=`expr "x$1" : 'x[^=]*=\(.*\)$'`
+  }
+fi #func_split_equals
+
+
+# func_split_short_opt SHORTOPT
+# -----------------------------
+# Set func_split_short_opt_name and func_split_short_opt_arg shell
+# variables after splitting SHORTOPT after the 2nd character.
+if test yes = "$_G_HAVE_XSI_OPS"
+then
+  # This is an XSI compatible shell, allowing a faster implementation...
+  eval 'func_split_short_opt ()
+  {
+      $debug_cmd
+
+      func_split_short_opt_arg=${1#??}
+      func_split_short_opt_name=${1%"$func_split_short_opt_arg"}
+  }'
+else
+  # ...otherwise fall back to using expr, which is often a shell builtin.
+  func_split_short_opt ()
+  {
+      $debug_cmd
+
+      func_split_short_opt_name=`expr "x$1" : 'x\(-.\)'`
+      func_split_short_opt_arg=`expr "x$1" : 'x-.\(.*\)$'`
+  }
+fi #func_split_short_opt
+
+
+# func_usage
+# ----------
+# Echo short help message to standard output and exit.
+func_usage ()
+{
+    $debug_cmd
+
+    func_usage_message
+    $ECHO "Run '$progname --help |${PAGER-more}' for full usage"
+    exit 0
+}
+
+
+# func_usage_message
+# ------------------
+# Echo short help message to standard output.
+func_usage_message ()
+{
+    $debug_cmd
+
+    eval \$ECHO \""Usage: $usage"\"
+    echo
+    $SED -n 's|^# ||
+        /^Written by/{
+          x;p;x
+        }
+	h
+	/^Written by/q' < "$progpath"
+    echo
+    eval \$ECHO \""$usage_message"\"
+}
+
+
+# func_version
+# ------------
+# Echo version message to standard output and exit.
+# The version message is extracted from the calling file's header
+# comments, with leading '# ' stripped:
+#   1. First display the progname and version
+#   2. Followed by the header comment line matching  /^# Written by /
+#   3. Then a blank line followed by the first following line matching
+#      /^# Copyright /
+#   4. Immediately followed by any lines between the previous matches,
+#      except lines preceding the intervening completely blank line.
+# For example, see the header comments of this file.
+func_version ()
+{
+    $debug_cmd
+
+    printf '%s\n' "$progname $scriptversion"
+    $SED -n '
+        /^# Written by /!b
+        s|^# ||; p; n
+
+        :fwd2blnk
+        /./ {
+          n
+          b fwd2blnk
+        }
+        p; n
+
+        :holdwrnt
+        s|^# ||
+        s|^# *$||
+        /^Copyright /!{
+          /./H
+          n
+          b holdwrnt
+        }
+
+        s|\((C)\)[ 0-9,-]*[ ,-]\([1-9][0-9]* \)|\1 \2|
+        G
+        s|\(\n\)\n*|\1|g
+        p; q' < "$progpath"
+
+    exit $?
+}
+
+
+# Local variables:
+# mode: shell-script
+# sh-indentation: 2
+# eval: (add-hook 'before-save-hook 'time-stamp)
+# time-stamp-pattern: "30/scriptversion=%:y-%02m-%02d.%02H; # UTC"
+# time-stamp-time-zone: "UTC"
+# End:

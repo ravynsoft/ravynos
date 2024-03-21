@@ -1,0 +1,126 @@
+# Copyright (C) 2015-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if { [is_remote host] } then {
+    return
+}
+
+# These tests use ELF .section directives
+if ![is_elf_format] {
+    return
+}
+
+send_user "Version [binutil_version $OBJCOPY]"
+
+proc do_assemble {srcfile} {
+    global srcdir
+    global subdir
+    set objfile [regsub -- "\.s$" $srcfile ".o"]
+    if {![binutils_assemble $srcdir/$subdir/${srcfile} tmpdir/${objfile}]} then {
+        return 0;
+    }
+    return 1;
+}
+
+proc do_objcopy {objfile extraflags {pattern ""}} {
+    global OBJCOPY
+    global OBJCOPYFLAGS
+
+    set testname "objcopy $extraflags ${objfile}"
+    set got [binutils_run $OBJCOPY \
+                 "$OBJCOPYFLAGS ${extraflags} tmpdir/${objfile}"]
+    if ![regexp $pattern $got] then {
+        fail "objcopy ($testname)"
+        return 0
+    }
+    if { $pattern != "" } then {
+        pass "objcopy ($testname)"
+    }
+    return 1
+}
+
+proc do_compare {file1 file2} {
+    set src1 "tmpdir/${file1}"
+    set src2 "tmpdir/${file2}"
+    set status [remote_exec build cmp "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+
+    set testname "compare ${file1} ${file2}"
+    if [string match "" $exec_output] then {
+        pass "objcopy ($testname)"
+    } else {
+        send_log "$exec_output\n"
+        verbose "$exec_output" 1
+        fail "objcopy ($testname)"
+        return 0
+    }
+    return 1
+}
+
+#
+# Start Of Tests
+#
+
+foreach f [list update-1.s update-2.s update-3.s update-4.s] {
+    if { ![do_assemble $f] } then {
+        unsupported "update-section.exp"
+        return
+    }
+}
+
+# Check that we can dump empty sections.
+if { ![do_objcopy update-1.o "--dump-section .text=tmpdir/empty"] } {
+    fail "objcopy (dump empty section)"
+} else {
+    pass "objcopy (dump empty section)"
+}
+
+if { ![do_objcopy update-1.o \
+           "--dump-section .foo=tmpdir/dumped-contents"]
+     || ![do_objcopy update-2.o \
+              "--update-section .foo=tmpdir/dumped-contents"]
+     || ![do_objcopy update-3.o \
+              "--update-section .foo=tmpdir/dumped-contents"]
+     || ![do_objcopy update-4.o \
+              "--update-section .bar=tmpdir/dumped-contents \
+               --rename-section .bar=.foo"] } then {
+    # If any of the above tests failed then a FAIL will already have
+    # been reported.
+    return
+}
+
+# Check that the updated object files are as expected.
+do_compare update-1.o update-2.o
+do_compare update-1.o update-3.o
+do_compare update-1.o update-4.o
+
+# Check that --update-section on an unknown section will fail.
+if { ![do_objcopy update-2.o \
+           "--update-section .bar=tmpdir/dumped-contents" \
+           "error: .bar not found, can't be updated"] } then {
+    return
+}
+
+# Check that --update-section and --remove-section on the same section
+# will fail.
+if { ![do_objcopy update-2.o \
+           "--update-section .foo=tmpdir/dumped-contents \
+            --remove-section .foo" \
+           "error: section .foo matches both update and remove options"] \
+     } then {
+    return
+}

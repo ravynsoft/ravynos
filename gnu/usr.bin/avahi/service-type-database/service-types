@@ -1,0 +1,242 @@
+# This file is part of avahi.
+#
+# avahi is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# avahi is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with avahi; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+# Feel free to add more service types or translatons to this database.
+# Please refrain from copying bulk service type data from any publicly
+# available database unless its license is known and compatible with
+# our project! The database available on
+#
+#         http://www.dns-sd.org/ServiceTypes.html
+#
+# is not a source that complies with the criterion!
+
+### This list is NOT intended to be used as developer
+### documentation. If you're looking for the correct service type to
+### use for your application please refer to the URL mentioned above.
+
+
+# Devices
+
+_workstation._tcp:Workstation
+_workstation._tcp[de]:Arbeitsplatzrechner
+_workstation._tcp[it]:Macchine
+
+
+# Web
+
+_http._tcp:Web Site
+_http._tcp[de]:Web-Angebot
+_http._tcp[it]:Sito Web
+
+_https._tcp:Secure Web Site
+_https._tcp[de]:Sicheres Web-Angebot
+_https._tcp[it]:Sito Web sicuro
+
+_rss._tcp:Web Syndication RSS
+
+
+# Network
+
+_domain._udp:DNS Server
+_domain._udp[de]: DNS-Dienst
+
+_ntp._udp:NTP Time Server
+
+_smb._tcp:Microsoft Windows Network
+_smb._tcp[it]:Rete Microsoft Windows
+
+_airport._tcp:Apple AirPort
+
+
+# File and data access
+
+_ftp._tcp:FTP File Transfer
+_ftp._tcp[de]:FTP-Dateifreigabe
+
+_tftp._udp:TFTP Trivial File Transfer
+
+_webdav._tcp:WebDAV File Share
+_webdav._tcp[it]:WebDAV Condivisione File
+
+_webdavs._tcp:Secure WebDAV File Share
+_webdavs._tcp[it]:WebDAV Condivisione File Sicuro
+
+_afpovertcp._tcp:Apple File Sharing
+
+_nfs._tcp:Network File System
+
+_sftp-ssh._tcp:SFTP File Transfer
+
+_apt._tcp:APT Package Repository
+_apt._tcp[it]:APT - Repository dei Pacchetti
+
+_odisk._tcp:DVD or CD Sharing
+
+_adisk._tcp:Apple TimeMachine
+
+
+# Remote machine access
+
+_ssh._tcp:SSH Remote Terminal
+_ssh._tcp[de]:SSH-Fernzugriff
+_ssh._tcp[it]:SSH Terminale remoto
+
+_rfb._tcp:VNC Remote Access
+_rfb._tcp[it]:Controllo remoto VNC
+
+_telnet._tcp:Telnet Remote Terminal
+_telnet._tcp[it]:Telnet Terminale Remoto
+
+_timbuktu._tcp:Timbuktu Remote Desktop Control
+
+_net-assistant._udp:Apple Net Assistant
+
+_udisks-ssh._tcp:Remote Disk Management
+
+# Mail
+
+_imap._tcp:IMAP Mail Access
+_imap._tcp[it]:Posta - IMAP
+
+_pop3._tcp:POP3 Mail Access
+_pop3._tcp[it]:Posta - POP3
+
+
+# Printing
+
+_printer._tcp:UNIX Printer
+_printer._tcp[it]:Stampante UNIX
+
+_pdl-datastream._tcp:PDL Printer
+_pdl-datastream._tcp[it]:Stampante PDL
+
+_ipp._tcp:Internet Printer
+_ipps._tcp:Secure Internet Printer
+
+
+# Multimedia
+
+_daap._tcp:iTunes Audio Access
+_daap._tcp[de]:iTunes Audio-Zugriff
+_daap._tcp[it]:Accesso Audio iTunes
+
+_dacp._tcp:iTunes Remote Control
+
+_realplayfavs._tcp:RealPlayer Shared Favorites
+_realplayfavs._tcp[it]:RealPlayer - Preferiti Condivisi
+
+_raop._tcp:AirTunes Remote Audio
+_airplay._tcp:AirPlay Remote Video
+
+_rtsp._tcp:RTSP Realtime Streaming Server
+_rtp._udp:RTP Realtime Streaming Server
+
+_dpap._tcp:Digital Photo Sharing
+_dpap._tcp[it]:Condivisione Foto
+
+_pulse-server._tcp:PulseAudio Sound Server
+_pulse-sink._tcp:PulseAudio Sound Sink
+_pulse-source._tcp:PulseAudio Sound Source
+
+_mpd._tcp:Music Player Daemon
+
+_remote-jukebox._tcp:Remote Jukebox
+
+# DAAP share provided by iTunes on behalf of an iPod Touch
+_touch-able._tcp:iPod Touch Music Library
+
+_vlc-http._tcp:VLC Streaming
+
+
+# Communication, presence, working together
+
+_presence._tcp:iChat Presence
+
+_sip._udp:SIP Telephony
+_sip._udp[de]:SIP-Telefonie
+_sip._udp[it]:Telefonia-SIP
+
+_h323._tcp:H.323 Telephony
+_h323._tcp[de]:H.323-Telefonie
+_h323._tcp[it]:Telefonia-H.323
+
+_presence_olpc._tcp:OLPC Presence
+
+_iax._udp:Asterisk Exchange
+
+_skype._tcp:Skype VoIP
+
+_see._tcp:SubEthaEdit Collaborative Text Editor
+
+_lobby._tcp:Gobby Collaborative Editor Session
+
+_mumble._tcp:Mumble Server
+
+
+# Databases
+
+_postgresql._tcp:PostgreSQL Server
+
+
+# Development
+
+_svn._tcp:Subversion Revision Control
+_svn._tcp[it]:Subversion - Versionatore
+
+_distcc._tcp:Distributed Compiler
+_distcc._tcp[de]:Verteilter Compiler
+_distcc._tcp[it]:Compilatore Distribuito
+
+_bzr._tcp:Bazaar
+
+
+# Vendor specific
+
+_MacOSXDupSuppress._tcp:MacOS X Duplicate Machine Suppression
+
+_ksysguard._tcp:KDE System Guard
+
+_omni-bookmark._tcp:OmniWeb Bookmark Sharing
+
+_acrobatSRV._tcp:Adobe Acrobat
+
+_adobe-vc._tcp:Adobe Version Cue
+
+_home-sharing._tcp:Apple Home Sharing
+
+_amzn-wplay._tcp:Amazon Fire TV
+
+_qdiscover._tcp:QNAP NAS
+
+
+# Other
+
+_pgpkey-hkp._tcp:GnuPG/PGP HKP Key Server
+
+_ldap._tcp:LDAP Directory Server
+
+_tp._tcp:Thousand Parsec Server
+_tps._tcp:Thousand Parsec Server (Secure)
+_tp-http._tcp:Thousand Parsec Server (HTTP Tunnel)
+_tp-https._tcp:Thousand Parsec Server (Secure HTTP Tunnel)
+
+_shifter._tcp:Window Shifter
+_xpra._tcp:Xpra Session Server
+
+_libvirt._tcp:Virtual Machine Manager
+
+_device-info._tcp:Device Info

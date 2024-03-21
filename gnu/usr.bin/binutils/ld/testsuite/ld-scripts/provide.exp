@@ -1,0 +1,46 @@
+# Test PROVIDE in a linker script.
+# By Nathan Sidwell, CodeSourcery LLC
+#   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# a.out objdump displays the file header inside the text segment,
+# confusing run_dump_test.
+
+if { [is_aout_format] } {
+    unsupported provide-1
+    unsupported provide-2
+    unsupported provide-3
+    return
+}
+
+set saved_LDFLAGS "$LDFLAGS"
+if { [is_pecoff_format] } then {
+    set LDFLAGS "$LDFLAGS --image-base 0"
+} elseif { [is_xcoff_format] } then {
+    set LDFLAGS "$LDFLAGS -bnogc"
+}
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/provide-*.d]]
+foreach test_file $test_list {
+    set test_name [file rootname $test_file]
+    verbose $test_name
+    run_dump_test $test_name
+}
+
+set LDFLAGS "$saved_LDFLAGS"

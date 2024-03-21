@@ -1,0 +1,112 @@
+#autoload
+
+local flag ret=1
+local -aU specs
+local -A exclusion
+
+exclusion=(
+  'E' '[cCgGxXyY]'
+  'O' '[BdeHImMSuUVwWy]'
+  '-' '[OEdegHIjklmMSUz]'
+  '_' '[OEdgHIjmMSUz]'
+  '0' '[Oekl]'
+  '^' '[OEaAbBchP]'
+  '#' '[OEaAbBchpPrXZ]'
+)
+
+compset -P '(%[0-9EO_\\^#-]#[^0-9%EO_\\^#-]|[^%])#'
+compset -S '%*'
+specs=(
+  'a:abbreviated day name'
+  'A:full day name'
+  {b,h}':abbreviated month name'
+  'B:full month name'
+  'c:preferred locale date and time'
+  'C:2-digit century'
+  'd:day of month (01-31)'
+  'D:American format month/day/year (%m/%d/%y)'
+  'e:day of month ( 1-31)'
+  'F:ISO 8601 year-month-date (%Y-%m-%d)'
+  'G:4-digit ISO 8601 week-based year'
+  'g:2-digit ISO 8601 week-based year'
+  'H:hour (00-23)'
+  'I:hour (01-12)'
+  'j:day of year (001-366)'
+  'k:hour ( 0-23)'
+  'l:hour ( 1-12)'
+  'm:month (01-12)'
+  'M:minute (00-59)'
+  'n:newline'
+  'p:locale dependent AM/PM'
+  'r:locale dependent a.m. or p.m. time (%I:%M:%S %p)'
+  'R:24-hour notation time (%H:%M)'
+  's:seconds since the epoch'
+  'S:seconds (00-60)'
+  't:tab'
+  'T:24-hour notation with seconds (%H:%M:%S)'
+  'u:day of week (1-7, 1=Monday)'
+  'U:week number of current year, Sunday based (00-53)'
+  'V:ISO 8601 week number of current year, week 1 has 4 days in current year (01-53)'
+  'w:day of week (0-6, 0=Sunday)'
+  'W:week number of current year, Monday based (00-53)'
+  'x:locale dependent date representation without time'
+  'X:locale dependent time representation without date'
+  'y:2-digit year (00-99)'
+  'Y:full year'
+  'z:UTC offset'
+  'Z:timezone name'
+  '%:literal %'
+)
+
+case $OSTYPE in
+  linux-gnu)
+    [[ $1 == zsh ]] || # %N is handled below in this case
+    specs+=( 'N:fractional part of seconds since epoch, in nanoseconds' )
+  ;|
+  freebsd*|dragonfly*|darwin*|linux-gnu|solaris2.<11->)
+    specs+=(
+      'E:alternate representation'
+      'O:alternative format modifier'
+      "-:don't pad numeric values"
+      '0:left pad numeric values with zeroes'
+      '_:left pad numeric values with spaces'
+    )
+  ;|
+  linux-gnu|solaris2.<11->)
+    specs+=(
+      '#:swap case of alphabetic characters'
+      '^:convert lowercase characters to uppercase'
+      'P:lower case locale dependent am/pm'
+    )
+  ;|
+  freebsd*|dragonfly*|darwin*|openbsd*|netbsd*)
+    specs+=( 'v:date in short form (%e-%b-%Y)' )
+  ;|
+  solaris2.<11->|freebsd*|dragonfly*|darwin*|openbsd*)
+    specs+=( '+:localized representation of date and time' )
+  ;;
+  solaris2.<-10>)
+    specs=( ${specs:#[EOs]:*} )
+  ;;
+esac
+
+if [[ $1 == zsh ]]; then
+  specs+=(
+    'f:day of month (1-31)'
+    'K:hour (0-23)'
+    'L:hour (0-12)'
+    'N:fractional part of seconds since epoch, in nanoseconds (%9.)'
+    '.:fractional part of seconds since epoch'
+    "-:don't pad numeric values"
+  )
+fi
+
+for flag in ${(s..)PREFIX#%}; do
+  (( $+exclusion[$flag] )) && specs=( ${(M)specs:#${~exclusion[$flag]}:*} )
+done
+
+_describe -t date-format-specifier 'date format specifier' specs \
+    -p "${(Q)PREFIX:-%}" -S '' && ret=0
+[[ $1 == zsh ]] && _message -e date-format-precision 'precision for %%. (1-9)'
+
+return ret

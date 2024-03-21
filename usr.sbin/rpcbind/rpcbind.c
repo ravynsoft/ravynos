@@ -33,14 +33,6 @@
  * Copyright (c) 1984 - 1991 by Sun Microsystems, Inc.
  */
 
-/* #ident	"@(#)rpcbind.c	1.19	94/04/25 SMI" */
-
-#if 0
-#ifndef lint
-static	char sccsid[] = "@(#)rpcbind.c 1.35 89/04/21 Copyr 1984 Sun Micro";
-#endif
-#endif
-
 /*
  * rpcbind.c
  * Implements the program, version to address mapping for rpc.
@@ -94,6 +86,7 @@ int oldstyle_local = 0;
 #ifdef LIBWRAP
 int libwrap = 0;
 #endif
+int nofork = 0;
 int verboselog = 0;
 
 static char **hosts = NULL;
@@ -226,7 +219,7 @@ main(int argc, char *argv[])
 		} else {
 			printf("\n");
 		}
-	} else {
+	} else if (!nofork) {
 		if (daemon(0, 0))
 			err(1, "fork failed");
 	}
@@ -809,7 +802,7 @@ parseargs(int argc, char *argv[])
 #else
 #define WRAPOP	""
 #endif
-	while ((c = getopt(argc, argv, "6adh:iLls" WRAPOP WSOP)) != -1) {
+	while ((c = getopt(argc, argv, "6adh:iLlNs" WRAPOP WSOP)) != -1) {
 		switch (c) {
 		case '6':
 			ipv6_only = 1;
@@ -838,6 +831,9 @@ parseargs(int argc, char *argv[])
 			break;
 		case 'l':
 			verboselog = 1;
+			break;
+		case 'N':
+			nofork = 1;
 			break;
 		case 's':
 			runasdaemon = 1;

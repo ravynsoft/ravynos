@@ -1,0 +1,6 @@
+# Exercise the fix for https://github.com/sudo-project/sudo/pull/169
+#
+# If the last byte of the input file was a backslash, the parser would
+# read past the end of the buffer.
+#
+dn: cn= Manager\

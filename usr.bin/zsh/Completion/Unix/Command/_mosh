@@ -1,0 +1,41 @@
+#compdef mosh
+
+local curcontext="$curcontext" state line expl ret=1
+local -a _comp_priv_prefix
+
+_arguments -C \
+  '(-)--help[display help information]' \
+  '(-)--version[display version information]' \
+  "--no-init[don't set terminal init string]" \
+  '--ssh=[specify ssh command to setup session]:ssh command:_normal' \
+  '--port=[specify server-side port range]:port:_sequence -n 2 -s \: _ports' \
+  '(-a -n)--predict=[control speculative local echo]:mode:(adaptive always never)' \
+  '(--predict -n)-a[synonym for --predict=always]' \
+  '(--predict -a)-n[synonym for --predict=never]' \
+  '(--family -6)-4[use IPv4 only]' \
+  '(--family -4)-6[use IPv6 only]' \
+  '(-4 -6)--family=[specify address family]:family [prefer-inet]:(inet inet6 auto all prefer-inet prefer-inet6)' \
+  '--bind-server=[ask the server to reply from an IP address]:{ssh|any|IP}' \
+  '--server[specify command to run server helper]:remote file:_files' \
+  '--client[specify command to run client helper]:_command_names -e' \
+  "--no-ssh-pty[don't allocate a pseudo tty on ssh connection]" \
+  '--local[run mosh-server locally without using ssh]' \
+  '--experimental-remote-ip=[select method for discovering remote IP address to use for mosh]:method:(local remote proxy)' \
+  '1:remote host name:->userhost' \
+  '*:::args:_normal' && ret=0
+
+case $state in
+  userhost)
+    if compset -P '*@'; then
+      _wanted hosts expl 'remote host name' _ssh_hosts && ret=0
+    elif compset -S '@*'; then
+      _wanted users expl 'login name' _combination -s '[:@]' my-accounts users-hosts users -S '' && ret=0
+    else
+      _alternative \
+	'hosts:remote host name:_ssh_hosts' \
+	'users:login name:_combination -s "[:@]" my-accounts users-hosts users -qS@' && ret=0
+    fi
+  ;;
+esac
+
+return ret

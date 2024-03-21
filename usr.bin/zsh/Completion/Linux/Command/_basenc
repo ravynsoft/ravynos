@@ -1,0 +1,30 @@
+#compdef basenc
+# based on GNU coreutils 8.32
+
+local specs=(
+  + '(type)'
+  "(info)--base64[same as 'base64' program (RFC4648 section 4)]"
+  "(info)--base64url[file- and url-safe base64 (RFC4648 section 5)]"
+  "(info)--base32[same as 'base32' program (RFC4648 section 6)]"
+  "(info)--base32hex[extended hex alphabet base32 (RFC4648 section 7)]"
+  "(info)--base16[hex encoding (RFC4648 section 8)]"
+  "(info)--base2msbf[bit string with most significant bit (msb) first]"
+  "(info)--base2lsbf[bit string with least significant bit (lsb) first]"
+  "(info)--z85[ascii85-like encoding (ZeroMQ spec-32/Z85)]"
+
+  + enc
+  '(info dec -w --wrap)'{-w+,--wrap=}"[wrap encoded lines at specified column]:number of characters (0=disable wrapping) [76]: "
+
+  + dec
+  '(info enc -d --decode)'{-d,--decode}"[decode data]"
+  '(info enc -i --ignore-garbage)'{-i,--ignore-garbage}"[when decoding, ignore non-alphabet characters]"
+
+  + info
+  "(: -)--help[display help information and exit]"
+  "(: -)--version[output version information and exit]"
+
+  + input
+  '(info)1:input file:_files'
+)
+
+_arguments -s -S : $specs

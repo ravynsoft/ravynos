@@ -1,0 +1,94 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# -u, --unique (equivalent to --less-than=2): we are interested in unique
+# entries only (entries occurring less than 2 times).  But don't drop the
+# header entry; otherwise msgcomm will fail for multibyte strings.
+
+cat <<EOF > mcomm-test17.in1
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# occurs 3 times
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test17.in2
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:759
+msgid "1"
+msgstr ""
+EOF
+
+cat <<\EOF > mcomm-test17.in3
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:789
+msgid "1"
+msgstr ""
+
+# unique
+#: hunt.c:890
+msgid "5"
+msgstr "fünf"
+EOF
+
+: ${MSGCOMM=msgcomm}
+
+${MSGCOMM} -u \
+           -o mcomm-test17.tmp \
+           mcomm-test17.in1 mcomm-test17.in2 mcomm-test17.in3 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test17.tmp > mcomm-test17.out || Exit 1
+
+cat << \EOF > mcomm-test17.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# unique
+#: hunt.c:890
+msgid "5"
+msgstr "fünf"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test17.ok mcomm-test17.out
+result=$?
+
+exit $result

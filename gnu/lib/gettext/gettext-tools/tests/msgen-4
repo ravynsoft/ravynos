@@ -1,0 +1,68 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --add-location=file option.
+
+cat <<EOF > men-test1.po
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: foo:1
+msgid "height must be positive"
+msgstr ""
+
+#: foo:2
+msgid "color cannot be transparent"
+msgstr "colour cannot be transparent"
+
+#: bar:3
+msgid "width must be positive"
+msgstr ""
+
+#: baz:4
+msgid "%d error"
+msgid_plural "%d errors"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${MSGEN=msgen}
+${MSGEN} --add-location=file -o men-test1.tmp men-test1.po || Exit 1
+LC_ALL=C tr -d '\r' < men-test1.tmp > men-test1.out || Exit 1
+
+cat <<EOF > men-test1.ok
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: foo
+msgid "height must be positive"
+msgstr "height must be positive"
+
+#: foo
+msgid "color cannot be transparent"
+msgstr "colour cannot be transparent"
+
+#: bar
+msgid "width must be positive"
+msgstr "width must be positive"
+
+#: baz
+msgid "%d error"
+msgid_plural "%d errors"
+msgstr[0] "%d error"
+msgstr[1] "%d errors"
+EOF
+
+: ${DIFF=diff}
+${DIFF} men-test1.ok men-test1.out
+result=$?
+
+exit $result

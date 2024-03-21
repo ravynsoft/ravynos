@@ -1,7 +1,5 @@
 # Makefile.arm -- with config changes.
 # Copyright 1990 W. Jolitz
-#	from: @(#)Makefile.i386	7.1 5/10/91
-#
 # Makefile for FreeBSD
 #
 # This makefile is constructed from a machine description:
@@ -69,9 +67,6 @@ SYSTEM_LD= \
 # Generate the .bin (no elf headers) kernel as an extra build output.
 # We must relink to generate the .bin kernel, because without headers the
 # location of everything changes.  We also strip the ARM marker symbols.
-KERNEL_EXTRA+= ${KERNEL_KO}.bin
-KERNEL_EXTRA_INSTALL+= ${KERNEL_KO}.bin
-
 ${KERNEL_KO}.bin: ${SYSTEM_DEP} vers.o
 	@echo "linking ${.TARGET}"
 	@${SYSTEM_LD_BASECMD} \
@@ -99,8 +94,6 @@ genassym.o: bus_if.h device_if.h
 %FILES.m
 
 %CLEAN
-
-CLEAN+=	${KERNEL_KO}.bin
 
 %RULES
 	

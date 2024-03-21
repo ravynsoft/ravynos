@@ -1,0 +1,123 @@
+#compdef swift swiftc
+
+# swift(1) and swiftc(1) are part of the Swift programming language.
+# https://swift.org/
+
+local -a common_options swiftc_mode_options swiftc_additional_options
+local -A swiftc_modes
+
+common_options=(
+  '-assert-config[specify the assert_configuration replacement]:config:(Debug Release Unchecked DisableReplacement)'
+  '*-D[marks a conditional compilation flag as true]:flag:'
+  '*-framework[specifies a framework which should be linked against]:framework:'
+  '*-F[add directory to framework search path]:path:_files -/'
+  '(-gnone)-gdwarf-types[emit full DWARF type info]'
+  '(-gnone)-gline-tables-only[emit minimal debug info for backtraces only]'
+  '(-gdwarf-types -gline-tables-only -g)-gnone[do not emit debug info]'
+  '(-gnone)-g[emit debug info]'
+  '(- : *)-help[display available options]'
+  '-index-store-path[store indexing data to the specified path]:directory:_files -/'
+  '*-I[add directory to the import search path]:path:_files -/'
+  '-j[number of commands to execute in parallel]:count:'
+  '*-L[add directory to library link search path]:path:_files -/'
+  '*-l-[specifies a library which should be linked against]:library:'
+  '-module-cache-path[specifies the Clang module cache path]:path:_files -/'
+  '-module-link-name[library to link against when using this module]:name:'
+  '-module-name[name of the module to build]:name:'
+  '-nostdimport[do not search the standard library import path for modules]'
+  '-num-threads[enable multi-threading and specify number of threads]:count:'
+  '(-Ounchecked -O)-Onone[compile without any optimization]'
+  '(-Onone)-Ounchecked[compile with optimizations and remove runtime safety checks]'
+  '(-Onone)-O[compile with optimizations]'
+  '-sdk[compile against SDK]:sdk:_files -/'
+  '-static-stdlib[statically link the Swift standard library]'
+  '-suppress-warnings[suppress all warnings]'
+  '-target-cpu[generate code for a particular CPU variant]:cpu'
+  '-target[generate code for the given target]:target'
+  '-use-ld=-[specifies the linker to be used]:linker:_files -/'
+  '(- : *)-version[print version information and exit]'
+  '-v[show commands to run and use verbose output]'
+  '-warnings-as-errors[treat warnings as errors]'
+  '*-Xcc[pass argument to the C/C++/Objective-C compiler]:arg:'
+  '*-Xlinker[specifies an option which should be passed to the linker]:option:'
+)
+
+swiftc_modes=(
+  -dump-ast        'parse and type-check input file(s) and dump AST(s)'
+  -dump-parse      'parse input file(s) and dump AST(s)'
+  -dump-type-refinement-contexts
+                   'type-check input file(s) and dump type refinement contexts(s)'
+  -emit-assembly   'emit assembly file(s) (-S)'
+  -emit-bc         'emit LLVM BC file(s)'
+  -emit-executable 'emit a linked executable'
+  -emit-ir         'emit LLVM IR file(s)'
+  -emit-library    'emit a linked library'
+  -emit-object     'emit object file(s) (-c)'
+  -emit-sibgen     'emit serialized AST + raw SIL file(s)'
+  -emit-sib        'emit serialized AST + canonical SIL file(s)'
+  -emit-silgen     'emit raw SIL file(s)'
+  -emit-sil        'emit canonical SIL file(s)'
+  -parse           'parse input file(s)'
+  -print-ast       'parse and type-check input file(s) and pretty print AST(s)'
+)
+local mode
+for mode in ${(k)swiftc_modes}; do
+  # Mode options are mutually exclusive
+  swiftc_mode_options+=("(${(k)swiftc_modes})${mode}[$swiftc_modes[$mode]]")
+done
+
+swiftc_additional_options=(
+  '-application-extension[restrict code to those available for App Extensions]'
+  '-embed-bitcode-marker[embed placeholder LLVM IR data as a marker]'
+  '-embed-bitcode[embed LLVM IR bitcode as data]'
+  '-emit-dependencies[emit basic Make-compatible dependencies files]'
+  '-emit-module-path[emit an importable module to the specified path]:path:_files -/'
+  '-emit-module[emit an importable module]'
+  '-emit-objc-header-path[emit an Objective-C header file to the specified path]:path:_files -/'
+  '-emit-objc-header[emit an Objective-C header file]'
+  '-fixit-all[apply all fixits from diagnostics without any filtering]'
+  '-fixit-code[get compiler fixits as code edits]'
+  '-import-underlying-module[implicitly imports the Objective-C half of a module]'
+  '-output-file-map[a file which specifies the location of outputs]:path:_files'
+  '-o[write output to specified file]:path:_files'
+  '-parse-as-library[parse the input file(s) as libraries, not scripts]'
+  '-parse-sil[parse the input file as SIL code, not Swift source]'
+  '-parseable-output[emit textual output in a parseable format]'
+  '-profile-coverage-mapping[generate coverage data for use with profiled execution counts]'
+  '-profile-generate[generate instrumented code to collect execution counts]'
+  '-sanitize-coverage=-[specify the type of coverage instrumentation for Sanitizers and additional options separated by commas]:type:'
+  '*-sanitize=-[turn on runtime checks for erroneous behavior]:check:'
+  '-save-temps[save intermediate compilation results]'
+  '-serialize-diagnostics[serialize diagnostics in a binary format]'
+  '-tools-directory[look for external executables (ld, clang, binutils) in the specified directory]:directory:_files -/'
+  '-whole-module-optimization[optimize input files together instead of individually]'
+)
+
+case "$words[1]" in
+  swift)
+    # The name swift conflicts with the command with the same name from the
+    # OpenStack project. We delegate completion to _openstack if swift(1) is
+    # detected to be from OpenStack.
+    local variant
+    _pick_variant -r variant openstack=OpenStack swiftlang='Swift compiler' unknown --help
+    case $variant in
+      openstack)
+        _openstack "$@"
+        ;;
+      swiftlang)
+        _arguments \
+            "$common_options[@]" \
+            '*:input:_files'
+        ;;
+      *)
+        _default "$@"
+    esac
+    ;;
+  swiftc)
+    _arguments \
+        "$swiftc_mode_options[@]" \
+        "$common_options[@]" \
+        "$swiftc_additional_options[@]" \
+        '*:input:_files'
+    ;;
+esac

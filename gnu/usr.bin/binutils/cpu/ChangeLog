@@ -1,0 +1,1296 @@
+2023-07-03  Nick Clifton  <nickc@redhat.com>
+
+	2.41 Branch Point.
+
+2023-03-15  Nick Clifton  <nickc@redhat.com>
+
+	PR 30231
+	* mep.opc (mep_print_insn): Check for an out of range index.
+
+2022-12-31  Nick Clifton  <nickc@redhat.com>
+
+	* 2.40 branch created.
+
+2022-07-08  Nick Clifton  <nickc@redhat.com>
+
+	* 2.39 branch created.
+
+2022-01-22  Nick Clifton  <nickc@redhat.com>
+
+	* 2.38 release branch created.
+
+2021-07-05  Alan Modra  <amodra@gmail.com>
+
+	* mep.opc (macros): Make static and const.
+	(lookup_macro): Return and use const pointer.
+	(expand_macro): Make mac param const.
+	(expand_string): Make pmacro const.
+
+2021-07-03  Nick Clifton  <nickc@redhat.com>
+
+	* 2.37 release branch created.
+
+2021-05-06  Stafford Horne  <shorne@gmail.com>
+
+	PR 21464
+	* or1k.opc (or1k_imm16_relocs, parse_reloc): Define parse logic
+	for gotha() relocation.
+
+2021-03-31  Alan Modra  <amodra@gmail.com>
+
+	* frv.opc: Replace bfd_boolean with bool, FALSE with false, and
+	TRUE with true throughout.
+
+2021-03-29  Alan Modra  <amodra@gmail.com>
+
+	* frv.opc (frv_is_branch_major, frv_is_float_major),
+	(frv_is_media_major, frv_is_branch_insn, frv_is_float_insn),
+	(frv_is_media_insn, spr_valid): Correct prototypes.
+
+2021-01-09  Nick Clifton  <nickc@redhat.com>
+
+	* 2.36 release branch crated.
+
+2020-10-05  Samanta Navarro  <ferivoz@riseup.net>
+
+	* m32r.cpu: Fix spelling mistakes.
+
+2020-09-18  David Faust  <david.faust@oracle.com>
+
+	* bpf.cpu (insn-op-code-alu): Add SDIV and SMOD.
+	(define-alu-insn-bin, daib): Take ISAs as an argument.
+	(define-alu-instructions): Update calls to daib pmacro with
+	ISAs; add sdiv and smod.
+
+2020-09-08  David Faust  <david.faust@oracle.com>
+
+	* bpf.cpu (define-alu-instructions): Correct semantic operators
+	for div, mod to unsigned versions.
+
+2020-09-01  Alan Modra  <amodra@gmail.com>
+
+	* mep-core.cpu (f-8s8a2, f-12s4a2, f-17s16a2): Multiply signed
+	value by two rather than shifting left.
+	(f-24s5a2n): Similarly multiply signed f-24s5a2n-hi to extract.
+
+2020-08-26  David Faust  <david.faust@oracle.com>
+
+	* bpf.cpu (arch bpf): Add xbpf mach and isas.
+	(define-xbpf-isa) New pmacro.
+	(all-isas) Add xbpfle,xbpfbe.
+	(endian-isas): New pmacro.
+	(mach xbpf): New.
+	(model xbpf-def): Likewise.
+	(h-gpr): Add xbpf mach.
+	(f-dstle, f-srcle, dstle, srcle): Add xbpfle isa.
+	(f-dstbe, f-srcbe, dstbe, srcbe): Add xbpfbe isa.
+	(define-alu-insn-un): Use new endian-isas pmacro.
+	(define-alu-insn-bin, define-alu-insn-mov): Likewise.
+	(define-endian-insn, define-lddw): Likewise.
+	(dlind, dxli, dxsi, dsti): Likewise.
+	(define-cond-jump-insn, define-call-insn): Likewise.
+	(define-atomic-insns): Likewise.
+
+2020-07-04  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.35 branch created.
+
+2020-06-25 David Faust  <david.faust@oracle.com>
+
+	* bpf.cpu (f-offset16): Change type from INT to HI.
+	(dxli): Simplify memory access.
+	(dxsi): Likewise.
+	(define-endian-insn): Update c-call in semantics.
+	(dlabs) Likewise.
+	(dlind) Likewise.
+
+2020-06-02  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf.cpu (define-bpf-isa): Set base-insn-bitsize to 64.
+	* bpf.opc (bpf_print_insn): Do not set endian_code here.
+
+2020-06-02  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* mep.opc (print_slot_insn): Pass the insn endianness to
+	cgen_get_insn_value.
+
+2020-05-28  Jose E. Marchesi  <jose.marchesi@oracle.com>
+	    David Faust <david.faust@oracle.com>
+
+	* bpf.cpu (define-alu-insn-un): Add definitions of semantics.
+	(define-alu-insn-mov): Likewise.
+	(daib): Likewise.
+	(define-alu-instructions): Likewise.
+	(define-endian-insn): Likewise.
+	(define-lddw): Likewise.
+	(dlabs): Likewise.
+	(dlind): Likewise.
+	(dxli): Likewise.
+	(dxsi): Likewise.
+	(dsti): Likewise.
+	(define-ldstx-insns): Likewise.
+	(define-st-insns): Likewise.
+	(define-cond-jump-insn): Likewise.
+	(dcji): Likewise.
+	(define-condjump-insns): Likewise.
+	(define-call-insn): Likewise.
+	(ja): Likewise.
+	("exit"): Likewise.
+	(define-atomic-insns): Likewise.
+	(sem-exchange-and-add): New macro.
+	* bpf.cpu ("brkpt"): New instruction.
+	(bpfbf): Set word-bitsize to 32 and insn-endian big.
+	(h-gpr): Prefer r0 to `a' and r6 to `ctx'.
+	(h-pc): Expand definition.
+	* bpf.opc (bpf_print_insn): Set endian_code to BIG.
+
+2020-05-21  Alan Modra  <amodra@gmail.com>
+
+	* mep.opc (mep_cgen_expand_macros_and_parse_operand): Replace
+	"if (x) free (x)" with "free (x)".
+
+2020-05-19  Stafford Horne  <shorne@gmail.com>
+
+	PR 25184
+	* or1k.cpu (arch or1k): Remove or64 and or64nd machs.
+	(ORBIS-MACHS, ORFPX32-MACHS): Remove pmacros.
+	(cpu or1k64bf, mach or64, mach or64nd): Remove definitions.
+	* or1kcommon.cpu (h-fdr): Remove hardware.
+	* or1korfpx.cpu (rDDF, rADF, rBDF): Remove operand definitions.
+	(float-regreg-insn): Remove lf- mnemonic -d instruction pattern.
+	(float-setflag-insn-base): Remove lf-sf mnemonic -d pattern.
+	(float-cust-insn): Remove "lf-cust" cust-num "-d" pattern.
+	(lf-rem-d, lf-itof-d, lf-ftoi-d, lf-madd-d): Remove.
+
+2020-02-16  David Faust  <david.faust@oracle.com>
+
+	* bpf.cpu (define-cond-jump-insn): Renamed from djci.
+	(dcji) New version with support for JMP32
+
+2020-02-03  Alan Modra  <amodra@gmail.com>
+
+	* m32c.cpu (f-dsp-64-s16): Mask before shifting signed value.
+
+2020-02-01  Alan Modra  <amodra@gmail.com>
+
+	* frv.cpu (f-u12): Multiply rather than left shift signed values.
+	(f-label16, f-label24): Likewise.
+
+2020-01-30  Alan Modra  <amodra@gmail.com>
+
+	* m32c.cpu (f-src32-rn-unprefixed-QI): Shift before inverting.
+	(f-src32-rn-prefixed-QI, f-dst32-rn-unprefixed-QI): Likewise.
+	(f-dst32-rn-prefixed-QI): Likewise.
+	(f-dsp-32-s32): Mask before shifting left.
+	(f-dsp-48-u32, f-dsp-48-s32): Likewise.
+	(f-bitbase32-16-s11-unprefixed): Multiply signed field rather than
+	shifting left.
+	(f-bitbase32-24-s11-prefixed, f-bitbase32-24-s19-prefixed): Likewise.
+	(h-gr-SI): Mask before shifting.
+
+2020-01-30  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf.cpu (define-alu-insn-un): The unary BPF instructions
+	(neg and neg32) use OP_SRC_K even if they operate only in
+	registers.
+
+2020-01-18  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.34 branch created.
+
+2020-01-13  Alan Modra  <amodra@gmail.com>
+
+	* fr30.cpu (f-disp9, f-disp10, f-s10, f-rel9, f-rel12): Don't
+	left shift signed values.
+
+2020-01-06  Alan Modra  <amodra@gmail.com>
+
+	* m32c.cpu (f-dsp-8-u16, f-dsp-8-s16): Rearrange to mask any sign
+	bits before shifting rather than masking after shifting.
+	(f-dsp-16-u16, f-dsp-16-s16, f-dsp-32-u16, f-dsp-32-s16): Likewise.
+	(f-dsp-40-u16, f-dsp-40-s16, f-dsp-48-u16, f-dsp-48-s16): Likewise.
+	(f-dsp-64-u16, f-dsp-8-s24): Likewise.
+	(f-bitbase32-16-s19-unprefixed): Avoid signed left shift.
+
+2020-01-04  Alan Modra  <amodra@gmail.com>
+
+	* m32r.cpu (f-disp8): Avoid left shift of negative values.
+	(f-disp16, f-disp24): Likewise.
+
+2019-12-23  Alan Modra  <amodra@gmail.com>
+
+	* iq2000.cpu (f-offset): Avoid left shift of negative values.
+
+2019-12-20  Alan Modra  <amodra@gmail.com>
+
+	* or1korbis.cpu (f-disp26, f-disp21): Don't left shift negative values.
+
+2019-12-17  Alan Modra  <amodra@gmail.com>
+
+	* bpf.cpu (f-imm64): Avoid signed overflow.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* xstormy16.cpu (f-rel12a): Avoid signed overflow.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* epiphany.cpu (f-sdisp11): Don't sign extend with shifts.
+	* lm32.cpu (f-branch, f-vall): Likewise.
+	* m32.cpu (f-lab-8-16): Likewise.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* epiphany.cpu (f-simm8, f-simm24): Use multiply rather than
+	shift left to avoid UB on left shift of negative values.
+
+2019-11-20  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf.cpu: Fix comment describing the 128-bit instruction format.
+
+2019-09-09  Phil Blundell  <pb@pbcl.net>
+
+	binutils 2.33 branch created.
+
+2019-07-19  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf.cpu (h-gpr): when disassembling, use %r0 and %r6 instead of
+	%a and %ctx.
+
+2019-07-15  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf.cpu (dlabs): New pmacro.
+	(dlind): Likewise.
+
+2019-07-14  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf.cpu (dlsi): ldabs and ldind instructions do not take an
+	explicit 'dst' argument.
+
+2019-06-13  Stafford Horne  <shorne@gmail.com>
+
+	* or1korfpx.cpu (float-setflag-insn-base): Add 'sf' to symbol.
+
+2019-06-13  Stafford Horne  <shorne@gmail.com>
+
+	* or1k.cpu (or64nd, or32nd, or1200nd): Update comment.a
+	(l-adrp): Improve comment.
+
+2019-06-13  Stafford Horne  <shorne@gmail.com>
+
+	* or1korfpx.cpu (insn-opcode-float-regreg): Add SFUEQ_S, SFUNE_S,
+	SFUGT_S, SFUGE_S, SFULT_S, SFULE_S, SFUN_S, SFUEQ_D, SFUNE_D, SFUGT_D,
+	SFUGE_D, SFULT_D, SFULE_D, SFUN_D opcodes.
+	(float-setflag-insn-base): New pmacro based on float-setflag-insn.
+	(float-setflag-symantics, float-setflag-unordered-cmp-symantics,
+	float-setflag-unordered-symantics): New pmacro for instruction
+	symantics.
+	(float-setflag-insn): Update to use float-setflag-insn-base.
+	(float-setflag-unordered-insn): New pmacro for generating instructions.
+
+2019-06-13  Andrey Bacherov  <avbacherov@opencores.org>
+	    Stafford Horne  <shorne@gmail.com>
+
+	* or1k.cpu (ORFPX64A32-MACHS): New pmacro.
+	(ORFPX-MACHS): Removed pmacro.
+	* or1k.opc (or1k_cgen_insn_supported): New function.
+	(CGEN_VALIDATE_INSN_SUPPORTED): Define macro.
+	(parse_regpair, print_regpair): New functions.
+	* or1kcommon.cpu (h-spr, spr-shift, spr-address, h-gpr): Reorder
+	and add comments.
+	(h-fdr): Update comment to indicate or64.
+	(reg-pair-reg-lo, reg-pair-reg-hi): New pmacros for register pairs.
+	(h-fd32r): New hardware for 64-bit fpu registers.
+	(h-i64r): New hardware for 64-bit int registers.
+	* or1korbis.cpu (f-resv-8-1): New field.
+	* or1korfpx.cpu (rDSF, rASF, rBSF): Update attribute to ORFPX32-MACHS.
+	(rDDF, rADF, rBDF): Update operand comment to indicate or64.
+	(f-rdoff-10-1, f-raoff-9-1, f-rboff-8-1): New fields.
+	(h-roff1): New hardware.
+	(double-field-and-ops mnemonic): New pmacro to generate operations
+	rDD32F, rAD32F, rBD32F, rDDI and rADI.
+	(float-regreg-insn): Update single precision generator to MACH
+	ORFPX32-MACHS.  Add generator for or32 64-bit instructions.
+	(float-setflag-insn): Update single precision generator to MACH
+	ORFPX32-MACHS.  Fix double instructions from single to double
+	precision.  Add generator for or32 64-bit instructions.
+	(float-cust-insn cust-num): Update single precision generator to MACH
+	ORFPX32-MACHS.  Add generator for or32 64-bit instructions.
+	(lf-rem-s, lf-itof-s, lf-ftoi-s, lf-madd-s): Update MACH to
+	ORFPX32-MACHS.
+	(lf-rem-d): Fix operation from mod to rem.
+	(lf-rem-d32, lf-itof-d32, lf-ftoi-d32, lf-madd-d32): New instruction.
+	(lf-itof-d): Fix operands from single to double.
+	(lf-ftoi-d): Update operand mode from DI to WI.
+
+2019-05-23  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf.cpu: New file.
+	* bpf.opc: Likewise.
+
+2018-06-24  Nick Clifton  <nickc@redhat.com>
+
+	2.32 branch created.
+
+2018-10-05  Richard Henderson  <rth@twiddle.net>
+	    Stafford Horne  <shorne@gmail.com>
+
+	* or1korbis.cpu (insn-opcode-mac): Add opcodes for MACU and MSBU.
+	(insn-opcode-alu-regreg): Add opcodes for MULD and MULDU.
+	(l-mul): Fix overflow support and indentation.
+	(l-mulu): Fix overflow support and indentation.
+	(l-muld, l-muldu, l-msbu, l-macu): New instructions.
+	(l-div); Remove incorrect carry behavior.
+	(l-divu): Fix carry and overflow behavior.
+	(l-mac): Add overflow support.
+	(l-msb, l-msbu): Add carry and overflow support.
+
+2018-10-05  Richard Henderson  <rth@twiddle.net>
+
+	* or1k.opc (parse_disp26): Add support for plta() relocations.
+	(parse_disp21): New function.
+	(or1k_rclass): New enum.
+	(or1k_rtype): New enum.
+	(or1k_imm16_relocs): Define new PO and SPO relocation mappings.
+	(parse_reloc): Add new po(), gotpo() and gottppo() for LO13 relocations.
+	(parse_imm16): Add support for the new 21bit and 13bit relocations.
+	* or1korbis.cpu (f-disp26): Don't assume SI.
+	(f-disp21): New pc-relative 21-bit 13 shifted to right.
+	(insn-opcode): Add ADRP.
+	(l-adrp): New instruction.
+
+2018-10-05  Richard Henderson  <rth@twiddle.net>
+
+	* or1k.opc: Add RTYPE_ enum.
+	(INVALID_STORE_RELOC): New string.
+	(or1k_imm16_relocs): New array array.
+	(parse_reloc): New static function that just does the parsing.
+	(parse_imm16): New static function for generic parsing.
+	(parse_simm16): Change to just call parse_imm16.
+	(parse_simm16_split): New function.
+	(parse_uimm16): Change to call parse_imm16.
+	(parse_uimm16_split): New function.
+	* or1korbis.cpu (simm16-split): Change to use new simm16_split.
+	(uimm16-split): Change to use new uimm16_split.
+
+2018-07-24  Alan Modra  <amodra@gmail.com>
+
+	PR 23430
+	* or1kcommon.cpu (spr-reg-indices): Fix description typo.
+
+2018-05-09  Sebastian Rasmussen  <sebras@gmail.com>
+
+	* or1kcommon.cpu (spr-reg-info): Typo fix.
+
+2018-03-03  Alan Modra  <amodra@gmail.com>
+
+	* frv.opc: Include opintl.h.
+	(add_next_to_vliw): Use opcodes_error_handler to print error.
+	Standardize error message.
+	(fr500_check_insn_major_constraints, frv_vliw_add_insn): Likewise.
+
+2018-01-13  Nick Clifton  <nickc@redhat.com>
+
+	2.30 branch created.
+
+2017-03-15  Stafford Horne  <shorne@gmail.com>
+
+	* or1kcommon.cpu: Add pc set semantics to also update ppc.
+
+2016-10-06  Alan Modra  <amodra@gmail.com>
+
+	* mep.opc (expand_string): Add fall through comment.
+
+2016-03-03  Alan Modra  <amodra@gmail.com>
+
+	* fr30.cpu (f-m4): Replace bogus comment with a better guess
+	at what is really going on.
+
+2016-03-02  Alan Modra  <amodra@gmail.com>
+
+	* fr30.cpu (f-m4): Replace -1 << 4 with -16.
+
+2016-02-02  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* epiphany.opc (epiphany_print_insn): Set info->bytes_per_line to
+	a constant to better align disassembler output.
+
+2014-07-20  Stefan Kristiansson  <stefan.kristiansson@saunalahti.fi>
+
+	* or1korbis.cpu (l-msync, l-psync, l-csync): New instructions.
+
+2014-06-12  Alan Modra  <amodra@gmail.com>
+
+	* or1k.opc: Whitespace fixes.
+
+2014-05-08  Stefan Kristiansson  <stefan.kristiansson@saunalahti.fi>
+
+	* or1korbis.cpu (h-atomic-reserve): New hardware.
+	(h-atomic-address): Likewise.
+	(insn-opcode): Add opcodes for LWA and SWA.
+	(atomic-reserve): New operand.
+	(atomic-address): Likewise.
+	(l-lwa, l-swa): New instructions.
+	(l-lbs): Fix typo in comment.
+	(store-insn): Clear atomic reserve on store to atomic-address.
+	Fix register names in fmt field.
+
+2014-04-22  Christian Svensson  <blue@cmd.nu>
+
+	* openrisc.cpu: Delete.
+	* openrisc.opc: Delete.
+	* or1k.cpu: New file.
+	* or1k.opc: New file.
+	* or1kcommon.cpu: New file.
+	* or1korbis.cpu: New file.
+	* or1korfpx.cpu: New file.
+
+2013-12-07  Mike Frysinger  <vapier@gentoo.org>
+
+	* epiphany.opc: Remove +x file mode.
+
+2013-03-08  Yann Sionneau  <yann.sionneau@gmail.com>
+
+	PR binutils/15241
+	* lm32.cpu (Control and status registers): Add CFG2, PSW,
+	TLBVADDR, TLBPADDR and TLBBADVADDR.
+
+2012-11-30  Oleg Raikhman  <oleg@adapteva.com>
+	    Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* epiphany.cpu (keyword gr-names): Move sb/sl/ip after r9/r10/r12.
+	(load_insn): Add NO-DIS attribute to x, p, d, dpm, dl0, dl0.l.
+	(testset-insn): Add NO_DIS attribute to t.l.
+	(store-insn): Add NO-DIS attribute to x.l, p.l, d.l, dpm.l, dl0.l.
+	(move-insns): Add NO-DIS attribute to cmov.l.
+	(op-mmr-movts): Add NO-DIS attribute to movts.l.
+	(op-mmr-movfs): Add NO-DIS attribute to movfs.l.
+	(op-rrr): Add NO-DIS attribute to .l.
+	(shift-rrr): Add NO-DIS attribute to .l.
+	(op-shift-rri): Add NO-DIS attribute to i32.l.
+	(bitrl, movtl): Add NO-DIS attribute.
+	(op-iextrrr): Add NO-DIS attribute to .l
+	(op-two_operands-float, op-fabs-float): Add NO-DIS attribute to f32.l.
+	(op-fix2float-float, op-float2fix-float, op-fextop-float): Likewise.
+
+2012-02-27  Alan Modra  <amodra@gmail.com>
+
+	* mt.opc (print_dollarhex): Trim values to 32 bits.
+
+2011-12-15  Nick Clifton  <nickc@redhat.com>
+
+	* frv.opc (parse_uhi16): Fix handling of %hi operator on 64-bit
+	hosts.
+
+2011-10-26  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* epiphany.opc (parse_branch_addr): Fix type of valuep.
+	Cast value before printing it as a long.
+	(parse_postindex): Fix type of valuep.
+
+2011-10-25  Joern Rennecke  <joern.rennecke@embecosm.com>
+
+	* cpu/epiphany.cpu: New file.
+	* cpu/epiphany.opc: New file.
+
+2011-08-22  Nick Clifton  <nickc@redhat.com>
+
+	* fr30.cpu: Newly contributed file.
+	* fr30.opc: Likewise.
+	* ip2k.cpu: Likewise.
+	* ip2k.opc: Likewise.
+	* mep-avc.cpu: Likewise.
+	* mep-avc2.cpu: Likewise.
+	* mep-c5.cpu: Likewise.
+	* mep-core.cpu: Likewise.
+	* mep-default.cpu: Likewise.
+	* mep-ext-cop.cpu: Likewise.
+	* mep-fmax.cpu: Likewise.
+	* mep-h1.cpu: Likewise.
+	* mep-ivc2.cpu: Likewise.
+	* mep-rhcop.cpu: Likewise.
+	* mep-sample-ucidsp.cpu: Likewise.
+	* mep.cpu: Likewise.
+	* mep.opc: Likewise.
+	* openrisc.cpu: Likewise.
+	* openrisc.opc: Likewise.
+	* xstormy16.cpu: Likewise.
+	* xstormy16.opc: Likewise.
+
+2010-10-08  Pierre Muller  <muller@ics.u-strasbg.fr>
+
+	* frv.opc: #undef DEBUG.
+
+2010-07-03  DJ Delorie  <dj@delorie.com>
+
+	* m32c.cpu (f-dsp-8-s24): Mask high byte after shifting it.
+
+2010-02-11  Doug Evans  <dje@sebabeach.org>
+
+	* m32r.cpu (HASH-PREFIX): Delete.
+	(duhpo, dshpo): New pmacros.
+	(simm8, simm16): Delete HASH-PREFIX attribute, define with dshpo.
+	(uimm3, uimm4, uimm5, uimm8, uimm16, imm1): Delete HASH-PREFIX
+	attribute, define with dshpo.
+	(uimm24): Delete HASH-PREFIX attribute.
+	* m32r.opc (CGEN_PRINT_NORMAL): Delete.
+	(print_signed_with_hash_prefix): New function.
+	(print_unsigned_with_hash_prefix): New function.
+	* xc16x.cpu (dowh): New pmacro.
+	(upof16): Define with dowh, specify print handler.
+	(qbit, qlobit, qhibit): Ditto.
+	(upag16): Ditto.
+	* xc16x.opc (CGEN_PRINT_NORMAL): Delete.
+	(print_with_dot_prefix): New functions.
+	(print_with_pof_prefix, print_with_pag_prefix): New functions.
+
+2010-01-24  Doug Evans  <dje@sebabeach.org>
+
+	* frv.cpu (floating-point-conversion): Update call to fp conv op.
+	(floating-point-dual-conversion, ne-floating-point-dual-conversion,
+	conditional-floating-point-conversion, ne-floating-point-conversion,
+	float-parallel-mul-add-double-semantics): Ditto.
+
+2010-01-05  Doug Evans  <dje@sebabeach.org>
+
+	* m32c.cpu (f-dsp-32-u24): Fix mode of extract handler.
+	(f-dsp-40-u20, f-dsp-40-u24): Ditto.
+
+2010-01-02  Doug Evans  <dje@sebabeach.org>
+
+	* m32c.opc (parse_signed16): Fix typo.
+
+2009-12-11  Nick Clifton  <nickc@redhat.com>
+
+	* frv.opc: Fix shadowed variable warnings.
+	* m32c.opc: Fix shadowed variable warnings.
+
+2009-11-14  Doug Evans  <dje@sebabeach.org>
+
+	Must use VOID expression in VOID context.
+	* xc16x.cpu (mov4): Fix mode of `sequence'.
+	(mov9, mov10): Ditto.
+	(movbsrr, moveb1, jmprel, jmpseg, jmps): Fix mode of `if'.
+	(callr, callseg, calls, trap, rets, reti): Ditto.
+	(jb, jbc, jnb, jnbs): Fix mode of `if'.  Comment out no-op `sll'.
+	(atomic, extr, extp, extp1, extpg1, extpr, extpr1): Fix mode of `cond'.
+	(exts, exts1, extsr, extsr1, prior): Ditto.
+
+2009-10-23  Doug Evans  <dje@sebabeach.org>
+
+	* m32c.opc (opc.h): cgen-types.h -> cgen/basic-modes.h.
+	cgen-ops.h -> cgen/basic-ops.h.
+
+2009-09-25  Alan Modra  <amodra@bigpond.net.au>
+
+	* m32r.cpu (stb-plus): Typo fix.
+
+2009-09-23  Doug Evans  <dje@sebabeach.org>
+
+	* m32r.cpu (sth-plus): Fix address mode and calculation.
+	(stb-plus): Ditto.
+	(clrpsw): Fix mask calculation.
+	(bset, bclr, btst): Make mode in bit calculation match expression.
+
+	* xc16x.cpu (rtl-version): Set to 0.8.
+	(gr-names, ext-names,psw-names): Update, print-name -> enum-prefix,
+	make uppercase.  Remove unnecessary name-prefix spec.
+	(grb-names, conditioncode-names, extconditioncode-names): Ditto.
+	(grb8-names, r8-names, regmem8-names, regdiv8-names): Ditto.
+	(reg0-name, reg0-name1, regbmem8-names, memgr8-names): Ditto.
+	(h-cr): New hardware.
+	(muls): Comment out parts that won't compile, add fixme.
+	(mulu, divl, divlu, jmpabs, jmpa-, jmprel, jbc, jnbs, callr): Ditto.
+	(scxti, scxtmg, scxtm, bclear, bclr18, bset19, bitset, bmov): Ditto.
+	(bmovn, band, bor, bxor, bcmp, bfldl, bfldh): Ditto.
+
+2009-07-16  Doug Evans  <dje@sebabeach.org>
+
+	* cpu/simplify.inc (*): One line doc strings don't need \n.
+	(df): Invoke define-full-ifield instead of claiming it's an alias.
+	(dno): Define.
+	(dnop): Mark as deprecated.
+
+2009-06-22  Alan Modra  <amodra@bigpond.net.au>
+
+	* m32c.opc (parse_lab_5_3): Use correct enum.
+
+2009-01-07  Hans-Peter Nilsson  <hp@axis.com>
+
+	* frv.cpu (mabshs): Explicitly sign-extend arguments of abs to DI.
+	(DI-ext-HI, DI-ext-UHI, DI-ext-DI): New pmacros.
+	(media-arith-sat-semantics): Explicitly sign- or zero-extend
+	arguments of "operation" to DI using "mode" and the new pmacros.
+
+2009-01-03  Hans-Peter Nilsson  <hp@axis.com>
+
+	* cris.cpu (cris-implemented-writable-specregs-v32): Correct size
+	of number 2, PID.
+
+2008-12-23  Jon Beniston <jon@beniston.com>
+
+	* lm32.cpu: New file.
+	* lm32.opc: New file.
+
+2008-01-29  Alan Modra  <amodra@bigpond.net.au>
+
+	* mt.opc (parse_imm16): Apply 2007-09-26 opcodes/mt-asm.c change
+	to source.
+
+2007-10-22  Hans-Peter Nilsson  <hp@axis.com>
+
+	* cris.cpu (movs, movu): Use result of extension operation when
+	updating flags.
+
+2007-07-04  Nick Clifton  <nickc@redhat.com>
+
+	* cris.cpu: Update copyright notice to refer to GPLv3.
+	* frv.cpu, frv.opc, iq10.cpu, iq2000m.cpu, iq2000.opc, m32c.cpu,
+	m32c.opc, m32r.cpu, m32r.opc, mt.cpu, mt.opc, sh64-compact.cpu,
+	sh64-media.cpu, sh.cpu, sh.opc, simplify.inc, xc16x.cpu,
+	xc16x.opc: Likewise.
+	* iq2000.cpu: Fix copyright notice to refer to FSF.
+
+2007-04-30  Mark Salter  <msalter@sadr.localdomain>
+
+	* frv.cpu (spr-names): Support new coprocessor SPR registers.
+
+2007-04-20  Nick Clifton  <nickc@redhat.com>
+
+	* xc16x.cpu: Restore after accidentally overwriting this file with
+	xc16x.opc.
+
+2007-03-29  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (Imm-8-s4n): Fix print hook.
+	(Lab-24-8, Lab-32-8, Lab-40-8): Fix.
+	(arith-jnz-imm4-dst-defn): Make relaxable.
+	(arith-jnz16-imm4-dst-defn): Fix encodings.
+
+2007-03-20  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (f-dsp-40-u20, f-dsp-48-u20, Dsp-40-u20, Dsp-40-u20,
+	mem20): New.
+	(src16-16-20-An-relative-*): New.
+	(dst16-*-20-An-relative-*): New.
+	(dst16-16-16sa-*): New
+	(dst16-16-16ar-*): New
+	(dst32-16-16sa-Unprefixed-*): New
+	(jsri): Fix operands.
+	(setzx): Fix encoding.
+
+2007-03-08  Alan Modra  <amodra@bigpond.net.au>
+
+	* m32r.opc: Formatting.
+
+2006-05-22  Nick Clifton  <nickc@redhat.com>
+
+	* iq2000.cpu: Fix include paths for iq2000m.cpu and iq10.cpu.
+
+2006-04-10  DJ Delorie  <dj@redhat.com>
+
+	* m32c.opc (parse_unsigned_bitbase): Take a new parameter which
+	decides if this function accepts symbolic constants or not.
+	(parse_signed_bitbase): Likewise.
+	(parse_unsigned_bitbase8): Pass the new parameter.
+	(parse_unsigned_bitbase11): Likewise.
+	(parse_unsigned_bitbase16): Likewise.
+	(parse_unsigned_bitbase19): Likewise.
+	(parse_unsigned_bitbase27): Likewise.
+	(parse_signed_bitbase8): Likewise.
+	(parse_signed_bitbase11): Likewise.
+	(parse_signed_bitbase19): Likewise.
+
+2006-03-13  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (Bit3-S): New.
+	(btst:s): New.
+	* m32c.opc (parse_bit3_S): New.
+
+	* m32c.cpu (decimal-subtraction16-insn): Add second operand.
+	(btst): Add optional :G suffix for MACH32.
+	(or.b:S): New.
+	(pop.w:G): Add optional :G suffix for MACH16.
+	(push.b.imm): Fix syntax.
+
+2006-03-10  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (mul.l): New.
+	(mulu.l): New.
+
+2006-03-03 Shrirang Khisti <shrirangk@kpitcummins.com)
+
+	* xc16x.opc (parse_hash): Return NULL if the input was parsed or
+	an error message otherwise.
+	(parse_dot, parse_pof, parse_pag, parse_sof, parse_seg): Likewise.
+	Fix up comments to correctly describe the functions.
+
+2006-02-24  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (RL_TYPE): New attribute, with macros.
+	(Lab-8-24): Add RELAX.
+	(unary-insn-defn-g, binary-arith-imm-dst-defn,
+	binary-arith-imm4-dst-defn): Add 1ADDR attribute.
+	(binary-arith-src-dst-defn): Add 2ADDR attribute.
+	(jcnd16-5, jcnd16, jcnd32, jmp16.s, jmp16.b, jmp16.w, jmp16.a,
+	jmp32.s, jmp32.b, jmp32.w, jmp32.a, jsr16.w, jsr16.a): Add JUMP
+	attribute.
+	(jsri16, jsri32): Add 1ADDR attribute.
+	(jsr32.w, jsr32.a): Add JUMP attribute.
+
+2006-02-17  Shrirang Khisti  <shrirangk@kpitcummins.com>
+	    Anil Paranjape   <anilp1@kpitcummins.com>
+	    Shilin Shakti    <shilins@kpitcummins.com>
+
+	* xc16x.cpu: New file containing complete CGEN specific XC16X CPU
+	description.
+	* xc16x.opc: New file containing supporting XC16C routines.
+
+2006-02-10  Nick Clifton  <nickc@redhat.com>
+
+	* iq2000.opc (parse_hi16): Truncate shifted values to 16 bits.
+
+2006-01-06  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (mov.w:q): Fix mode.
+	(push32.b.imm): Likewise, for the comment.
+
+2005-12-16  Nathan Sidwell  <nathan@codesourcery.com>
+
+	Second part of ms1 to mt renaming.
+	* mt.cpu (define-arch, define-isa): Set name to mt.
+	(define-mach): Adjust.
+	* mt.opc (CGEN_ASM_HASH): Update.
+	(mt_asm_hash, mt_cgen_insn_supported): Renamed.
+	(parse_loopsize, parse_imm16): Adjust.
+
+2005-12-13  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (jsri): Fix order so register names aren't treated as
+	symbols.
+	(indexb, indexbd, indexbs, indexl, indexld, indexls, indexw,
+	indexwd, indexws): Fix encodings.
+
+2005-12-12  Nathan Sidwell  <nathan@codesourcery.com>
+
+	* mt.cpu: Rename from ms1.cpu.
+	* mt.opc: Rename from ms1.opc.
+
+2005-12-06  Hans-Peter Nilsson  <hp@axis.com>
+
+	* cris.cpu (simplecris-common-writable-specregs)
+	(simplecris-common-readable-specregs): Split from
+	simplecris-common-specregs.  All users changed.
+	(cris-implemented-writable-specregs-v0)
+	(cris-implemented-readable-specregs-v0): Similar from
+	cris-implemented-specregs-v0.
+	(cris-implemented-writable-specregs-v3)
+	(cris-implemented-readable-specregs-v3)
+	(cris-implemented-writable-specregs-v8)
+	(cris-implemented-readable-specregs-v8)
+	(cris-implemented-writable-specregs-v10)
+	(cris-implemented-readable-specregs-v10)
+	(cris-implemented-writable-specregs-v32)
+	(cris-implemented-readable-specregs-v32): Similar.
+	(bdap-32-pc, move-m-pcplus-p0, move-m-spplus-p8): New
+	insns and specializations.
+
+2005-11-08  Nathan Sidwell  <nathan@codesourcery.com>
+
+	Add ms2
+	* ms1.cpu (ms2, ms2bf): New architecture variant, cpu, machine and
+	model.
+	(f-uu8, f-uu1, f-imm16l, f-loopo, f-cb1sel, f-cb2sel, f-cb1incr,
+	f-cb2incr, f-rc3): New fields.
+	(LOOP): New instruction.
+	(JAL-HAZARD): New hazard.
+	(imm16o, loopsize, imm16l, rc3, cb1sel, cb2sel, cb1incr, cb2incr):
+	New operands.
+	(mul, muli, dbnz, iflush): Enable for ms2
+	(jal, reti): Has JAL-HAZARD.
+	(ldctxt, ldfb, stfb): Only ms1.
+	(fbcb): Only ms1,ms1-003.
+	(wfbinc, mefbinc, wfbincr, mwfbincr, fbcbincs, mfbcbincs,
+	fbcbincrs, mfbcbincrs): Enable for ms2.
+	(loop, loopu, dfbc, dwfb, fbwfb, dfbr): New ms2 insns.
+	* ms1.opc (parse_loopsize): New.
+	(parse_imm16): hi16/lo16 relocs are applicable to IMM16L.
+	(print_pcrel): New.
+
+2005-10-28  Dave Brolley  <brolley@redhat.com>
+
+	Contribute the following change:
+	2003-09-24  Dave Brolley  <brolley@redhat.com>
+
+	* frv.opc: Use CGEN_ATTR_VALUE_ENUM_TYPE in place of
+	CGEN_ATTR_VALUE_TYPE.
+	* m32c.opc (m32c_cgen_insn_supported): Use CGEN_INSN_BITSET_ATTR_VALUE.
+	Use cgen_bitset_intersect_p.
+
+2005-10-27  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (Imm-8-s4n, Imm-12-s4n): New.
+	(arith-jnz16-imm4-dst-defn, arith-jnz32-imm4-dst-defn,
+	arith-jnz-imm4-dst-mach, arith-jnz-imm4-dst): Keep track of which
+	imm operand is needed.
+	(adjnz, sbjnz): Pass the right operands.
+	(unary-insn-defn, unary16-defn, unary32-defn, unary-insn-mach,
+	unary-insn): Add -g variants for opcodes that need to support :G.
+	(not.BW:G, push.BW:G): Call it.
+	(stzx16-imm8-imm8-dsp8sb, stzx16-imm8-imm8-dsp8fb,
+	stzx16-imm8-imm8-abs16): Fix operand typos.
+	* m32c.opc (m32c_asm_hash): Support bnCND.
+	(parse_signed4n, print_signed4n): New.
+
+2005-10-26  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (f-dsp-8-s24, Dsp-8-s24): New.
+	(mov-dspsp-dst-defn, mov-src-dspsp-defn, mov16-dspsp-dst-defn,
+	mov16-src-dspsp-defn, mov32-dspsp-dst-defn, mov32-src-dspsp-defn):
+	dsp8[sp] is signed.
+	(mov.WL:S #imm,A0/A1): dsp24 is signed (i.e. -0x800000..0xffffff).
+	(mov.BW:S r0,r1): Fix typo r1l->r1.
+	(tst): Allow :G suffix.
+	* m32c.opc (parse_signed24): New, for -0x800000..0xffffff.
+
+2005-10-26  Kazuhiro Inaoka <inaoka.kazuhiro@renesas.com>
+
+	* m32r.opc (parse_hi16): Do not assume a 32-bit host word size.
+
+2005-10-25  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (add16-bQ-sp,add16-wQ-sp): Fix to allow either width by
+	making one a macro of the other.
+
+2005-10-21  DJ Delorie  <dj@redhat.com>
+
+	* m32c.cpu (lde, ste): Add dsp[a0] and [a1a] addressing.
+	(indexb, indexbd, indexbs, indexw, indexwd, indexws, indexl,
+	indexld, indexls): .w variants have `1' bit.
+	(rot32.b): QI, not SI.
+	(rot32.w): HI, not SI.
+	(xchg16): HI for .w variant.
+
+2005-10-19  Nick Clifton  <nickc@redhat.com>
+
+	* m32r.opc (parse_slo16): Fix bad application of previous patch.
+
+2005-10-18  Andreas Schwab  <schwab@suse.de>
+
+	* m32r.opc (parse_slo16): Better version of previous patch.
+
+2005-10-14  Kazuhiro Inaoka <inaoka.kazuhiro@renesas.com>
+
+	* cpu/m32r.opc (parse_slo16): Do not assume a 32-bit host word
+	size.
+
+2005-07-25  DJ Delorie  <dj@redhat.com>
+
+	* m32c.opc (parse_unsigned8): Add %dsp8().
+	(parse_signed8): Add %hi8().
+	(parse_unsigned16): Add %dsp16().
+	(parse_signed16): Add %lo16() and %hi16().
+	(parse_lab_5_3): Make valuep a bfd_vma *.
+
+2005-07-18  Nick Clifton  <nickc@redhat.com>
+
+	* m32c.cpu (f-16-8, f-24-8, f-32-16, f-dsp-8-u24): New opcode
+	components.
+	(f-lab32-jmp-s): Fix insertion sequence.
+	(Dsp-8-u24, Lab-5-3, Lab32-jmp-s): New operands.
+	(Dsp-40-s8): Make parameter be signed.
+	(Dsp-40-s16): Likewise.
+	(Dsp-48-s8): Likewise.
+	(Dsp-48-s16): Likewise.
+	(Imm-13-u3): Likewise. (Despite its name!)
+	(BitBase16-16-s8): Make the parameter be unsigned.
+	(BitBase16-8-u11-S): Likewise.
+	(Lab-8-8, Lab-8-16, Lab-16-8, jcnd16-5, jcnd16, jcnd32, jmp16.s,
+	jmp16.b, jmp16.w, jmp32.s, jmp32.b, jmp32.w, jsp16.w, jsr32.w): Allow
+	relaxation.
+
+	* m32c.opc: Fix formatting.
+	Use safe-ctype.h instead of ctype.h
+	Move duplicated code sequences into a macro.
+	Fix compile time warnings about signedness mismatches.
+	Remove dead code.
+	(parse_lab_5_3): New parser function.
+
+2005-07-16  Jim Blandy  <jimb@redhat.com>
+
+	* m32c.opc (m32c_cgen_insn_supported): Use int, not CGEN_BITSET,
+	to represent isa sets.
+
+2005-07-15  Jim Blandy  <jimb@redhat.com>
+
+	* m32c.cpu, m32c.opc: Fix copyright.
+
+2005-07-14  Jim Blandy  <jimb@redhat.com>
+
+	* m32c.cpu, m32c.opc: Machine description for the Renesas M32C.
+
+2005-07-14  Alan Modra  <amodra@bigpond.net.au>
+
+	* ms1.opc (print_dollarhex): Correct format string.
+
+2005-07-06  Alan Modra  <amodra@bigpond.net.au>
+
+	* iq2000.cpu: Include from binutils cpu dir.
+
+2005-07-05  Nick Clifton  <nickc@redhat.com>
+
+	* iq2000.opc (parse_lo16, parse_mlo16): Make value parameter
+	unsigned in order to avoid compile time warnings about sign
+	conflicts.
+
+	* ms1.opc (parse_*): Likewise.
+	(parse_imm16): Use a "void *" as it is passed both signed and
+	unsigned arguments.
+
+2005-07-01  Nick Clifton  <nickc@redhat.com>
+
+	* frv.opc: Update to ISO C90 function declaration style.
+	* iq2000.opc: Likewise.
+	* m32r.opc: Likewise.
+	* sh.opc: Likewise.
+
+2005-06-15  Dave Brolley  <brolley@redhat.com>
+
+	Contributed by Red Hat.
+	* ms1.cpu: New file.  Written by Nick Clifton, Stan Cox.
+	* ms1.opc: New file.  Written by Stan Cox.
+
+2005-05-10  Nick Clifton  <nickc@redhat.com>
+
+	* Update the address and phone number of the FSF organization in
+	the GPL notices in the following files:
+	cris.cpu, frv.cpu, frv.opc, iq10.cpu, iq2000.opc, iq2000m.cpu,
+	m32r.cpu, m32r.opc, sh.cpu, sh.opc, sh64-compact.cpu,
+	sh64-media.cpu, simplify.inc
+
+2005-02-24  Alan Modra  <amodra@bigpond.net.au>
+
+	* frv.opc (parse_A): Warning fix.
+
+2005-02-23  Nick Clifton  <nickc@redhat.com>
+
+	* frv.opc: Fixed compile time warnings about differing signed'ness
+	of pointers passed to functions.
+	* m32r.opc: Likewise.
+
+2005-02-11  Nick Clifton  <nickc@redhat.com>
+
+	* iq2000.opc (parse_jtargq10): Change type of valuep argument to
+	'bfd_vma *' in order avoid compile time warning message.
+
+2005-01-28  Hans-Peter Nilsson  <hp@axis.com>
+
+	* cris.cpu (mstep): Add missing insn.
+
+2005-01-25  Alexandre Oliva  <aoliva@redhat.com>
+
+	2004-11-10  Alexandre Oliva  <aoliva@redhat.com>
+	* frv.cpu: Add support for TLS annotations in loads and calll.
+	* frv.opc (parse_symbolic_address): New.
+	(parse_ldd_annotation): New.
+	(parse_call_annotation): New.
+	(parse_ld_annotation): New.
+	(parse_ulo16, parse_uslo16): Use parse_symbolic_address.
+	Introduce TLS relocations.
+	(parse_d12, parse_s12, parse_u12): Likewise.
+	(parse_uhi16): Likewise.  Fix constant checking on 64-bit host.
+	(parse_call_label, print_at): New.
+
+2004-12-21  Mikael Starvik  <starvik@axis.com>
+
+	* cris.cpu (cris-set-mem): Correct integral write semantics.
+
+2004-11-29  Hans-Peter Nilsson  <hp@axis.com>
+
+	* cris.cpu: New file.
+
+2004-11-15  Michael K. Lechner <mike.lechner@gmail.com>
+
+	* iq2000.cpu: Added quotes around macro arguments so that they
+	will work with newer versions of guile.
+
+2004-10-27  Nick Clifton  <nickc@redhat.com>
+
+	* iq2000m.cpu (pkrlr1, pkrlr30, rbr1, rbr30, rxr1, rxr30, wbr1,
+	wbr1u, wbr30, wbr30u, wxr1, wxr1u, wxr30, wxr30u): Add an index
+	operand.
+	* iq2000.cpu (dnop index): Rename to _index to avoid complications
+	with guile.
+
+2004-08-27  Richard Sandiford  <rsandifo@redhat.com>
+
+	* frv.cpu (cfmovs): Change UNIT attribute to FMALL.
+
+2004-05-15  Nick Clifton  <nickc@redhat.com>
+
+	* iq2000.opc (iq2000_cgen_insn_supported): Make 'insn' argument const.
+
+2004-03-30  Kazuhiro Inaoka  <inaoka.kazuhiro@renesas.com>
+
+	* m32r.opc (parse_hi16): Fixed shigh(0xffff8000) bug.
+
+2004-03-01  Richard Sandiford  <rsandifo@redhat.com>
+
+	* frv.cpu (define-arch frv): Add fr450 mach.
+	(define-mach fr450): New.
+	(define-model fr450): New.  Add profile units to every fr450 insn.
+	(define-attr UNIT): Add MDCUTSSI.
+	(define-attr FR450-MAJOR): New enum.  Add to every fr450 insn.
+	(define-attr AUDIO): New boolean.
+	(f-LRAE, f-LRAD, f-LRAS, f-TLBPRopx, f-TLBPRL)
+	(f-LRA-null, f-TLBPR-null): New fields.
+	(scr0, scr1, scr2, scr3, imavr1, damvr1, cxnr, ttbr)
+	(tplr, tppr, tpxr, timerh, timerl, timerd, btbr): New SPRs.
+	(LRAE, LRAD, LRAS, TLBPRopx, TLBPRL): New operands.
+	(LRA-null, TLBPR-null): New macros.
+	(iacc-multiply-r-r, slass, scutss, int-arith-ss-r-r): Add AUDIO attr.
+	(load-real-address): New macro.
+	(lrai, lrad, tlbpr): New instructions.
+	(media-cut-acc, media-cut-acc-ss): Add fr450-major argument.
+	(mcut, mcuti, mcutss, mcutssi): Adjust accordingly.
+	(mdcutssi): Change UNIT attribute to MDCUTSSI.
+	(media-low-clear-semantics, media-scope-limit-semantics)
+	(media-quad-limit, media-quad-shift): New macros.
+	(mqlclrhs, mqlmths, mqsllhi, mqsrahi): New instructions.
+	* frv.opc (frv_is_branch_major, frv_is_float_major, frv_is_media_major)
+	(frv_is_branch_insn, frv_is_float_insn, frv_is_media_insn)
+	(frv_vliw_reset, frv_vliw_add_insn): Handle bfd_mach_fr450.
+	(fr450_unit_mapping): New array.
+	(fr400_unit_mapping, fr500_unit_mapping, fr550_unit_mapping): Add entry
+	for new MDCUTSSI unit.
+	(fr450_check_insn_major_constraints): New function.
+	(check_insn_major_constraints): Use it.
+
+2004-03-01  Richard Sandiford  <rsandifo@redhat.com>
+
+	* frv.cpu (nsdiv, nudiv, nsdivi, nudivi): Remove fr400 profiling unit.
+	(scutss): Change unit to I0.
+	(calll, callil, ccalll): Add missing FR550-MAJOR and profile unit.
+	(mqsaths): Fix FR400-MAJOR categorization.
+	(media-quad-multiply-cross-acc, media-quad-cross-multiply-cross-acc)
+	(media-quad-cross-multiply-acc): Change unit from MDUALACC to FMALL.
+	* frv.opc (fr400_check_insn_major_constraints): Check for (M-2,M-1)
+	combinations.
+
+2004-03-01  Richard Sandiford  <rsandifo@redhat.com>
+
+	* frv.cpu (r-store, r-store-dual, r-store-quad): Delete.
+	(rstb, rsth, rst, rstd, rstq): Delete.
+	(rstbf, rsthf, rstf, rstdf, rstqf): Delete.
+
+2004-02-23  Nick Clifton  <nickc@redhat.com>
+
+	* Apply these patches from Renesas:
+
+	2004-02-10  Kazuhiro Inaoka  <inaoka.kazuhiro@renesas.com>
+
+	* cpu/m32r.opc (my_print_insn): Fixed incorrect output when
+	disassembling codes for 0x*2 addresses.
+
+	2003-12-15  Kazuhiro Inaoka  <inaoka.kazuhiro@renesas.com>
+
+	* cpu/m32r.cpu: Add PIPE_O attribute to "pop" instruction.
+
+	2003-12-03  Kazuhiro Inaoka  <inaoka.kazuhiro@renesas.com>
+
+	* cpu/m32r.cpu : Add new model m32r2.
+	Add new instructions.
+	Replace occurrances of 'Mitsubishi' with 'Renesas'.
+	Changed PIPE attr of push from O to OS.
+	Care for Little-endian of M32R.
+	* cpu/m32r.opc (CGEN_DIS_HASH, my_print_insn):
+	Care for Little-endian of M32R.
+	(parse_slo16): signed extension for value.
+
+2004-02-20  Andrew Cagney  <cagney@redhat.com>
+
+	* m32r.opc, m32r.cpu: New files.  Written by , Doug Evans, Nick
+	Clifton, Ben Elliston, Matthew Green, and Andrew Haley.
+
+	* sh.cpu, sh.opc, sh64-compact.cpu, sh64-media.cpu: New files, all
+	written by Ben Elliston.
+
+2004-01-14  Richard Sandiford  <rsandifo@redhat.com>
+
+	* frv.cpu (UNIT): Add IACC.
+	(iacc-multiply-r-r): Use it.
+	* frv.opc (fr400_unit_mapping): Add entry for IACC.
+	(fr500_unit_mapping, fr550_unit_mapping): Likewise.
+
+2004-01-06  Alexandre Oliva  <aoliva@redhat.com>
+
+	2003-12-19  Alexandre Oliva  <aoliva@redhat.com>
+	* frv.opc (parse_ulo16, parse_uhi16, parse_d12): Fix some
+	cut&paste errors in shifting/truncating numerical operands.
+	2003-08-08  Alexandre Oliva  <aoliva@redhat.com>
+	* frv.opc (parse_ulo16): Parse gotofflo and gotofffuncdesclo.
+	(parse_uslo16): Likewise.
+	(parse_uhi16): Parse gotoffhi and gotofffuncdeschi.
+	(parse_d12): Parse gotoff12 and gotofffuncdesc12.
+	(parse_s12): Likewise.
+	2003-08-04  Alexandre Oliva  <aoliva@redhat.com>
+	* frv.opc (parse_ulo16): Parse gotlo and gotfuncdesclo.
+	(parse_uslo16): Likewise.
+	(parse_uhi16): Parse gothi and gotfuncdeschi.
+	(parse_d12): Parse got12 and gotfuncdesc12.
+	(parse_s12): Likewise.
+
+2003-10-10  Dave Brolley  <brolley@redhat.com>
+
+	* frv.cpu (dnpmop): New p-macro.
+	(GRdoublek): Use dnpmop.
+	(CPRdoublek, FRdoublei, FRdoublej, FRdoublek): Ditto.
+	(store-double-r-r): Use (.sym regtype doublek).
+	(r-store-double): Ditto.
+	(store-double-r-r-u): Ditto.
+	(conditional-store-double): Ditto.
+	(conditional-store-double-u): Ditto.
+	(store-double-r-simm): Ditto.
+	(fmovs): Assign to UNIT FMALL.
+
+2003-10-06  Dave Brolley  <brolley@redhat.com>
+
+	* frv.cpu, frv.opc: Add support for fr550.
+
+2003-09-24  Dave Brolley  <brolley@redhat.com>
+
+	* frv.cpu (u-commit): New modelling unit for fr500.
+	(mwtaccg): Use frv_ref_SI to reference ACC40Sk as an input operand.
+	(commit-r): Use u-commit model for fr500.
+	(commit): Ditto.
+	(conditional-float-binary-op): Take profiling data as an argument.
+	Update callers.
+	(ne-float-binary-op): Ditto.
+
+2003-09-19  Michael Snyder  <msnyder@redhat.com>
+
+	* frv.cpu (nldqi): Delete unimplemented instruction.
+
+2003-09-12  Dave Brolley  <brolley@redhat.com>
+
+	* frv.cpu (u-clrgr, u-clrfr): New units of model fr500.
+	(clear-ne-flag-r): Pass insn profiling in as an argument. Call
+	frv_ref_SI to get input register referenced for profiling.
+	(clear-ne-flag-all): Pass insn profiling in as an argument.
+	(clrgr,clrfr,clrga,clrfa): Add profiling information.
+
+2003-09-11  Michael Snyder  <msnyder@redhat.com>
+
+	* frv.cpu: Typographical corrections.
+
+2003-09-09  Dave Brolley  <brolley@redhat.com>
+
+	* frv.cpu (media-dual-complex): Change UNIT to FMALL.
+	(conditional-media-dual-complex, media-quad-complex): Likewise.
+
+2003-09-04  Dave Brolley  <brolley@redhat.com>
+
+	* frv.cpu (register-transfer): Pass in all attributes in on argument.
+	Update all callers.
+	(conditional-register-transfer): Ditto.
+	(cache-preload): Ditto.
+	(floating-point-conversion): Ditto.
+	(floating-point-neg): Ditto.
+	(float-abs): Ditto.
+	(float-binary-op-s): Ditto.
+	(conditional-float-binary-op): Ditto.
+	(ne-float-binary-op): Ditto.
+	(float-dual-arith): Ditto.
+	(ne-float-dual-arith): Ditto.
+
+2003-09-03  Dave Brolley  <brolley@redhat.com>
+
+	* frv.opc (parse_A, parse_A0, parse_A1): New parse handlers.
+	* frv.cpu (UNIT): Add IALL, FMALL, FMLOW, STORE, SCAN, DCPL, MDUALACC,
+	MCLRACC-1.
+	(A): Removed operand.
+	(A0,A1): New operands replace operand A.
+	(mnop): Now a real insn
+	(mclracc): Removed insn.
+	(mclracc-0, mclracc-1): New insns replace mclracc.
+	(all insns): Use new UNIT attributes.
+
+2003-08-21  Nick Clifton  <nickc@redhat.com>
+
+	* frv.cpu (mbtoh): Replace input parameter to u-media-dual-expand
+	and u-media-dual-btoh with output parameter.
+	(cmbtoh): Add profiling hack.
+
+2003-08-19  Michael Snyder  <msnyder@redhat.com>
+
+	* frv.cpu: Fix typo, Frintkeven -> FRintkeven
+
+2003-06-10  Doug Evans  <dje@sebabeach.org>
+
+	* frv.cpu: Add IDOC attribute.
+
+2003-06-06  Andrew Cagney  <cagney@redhat.com>
+
+	Contributed by Red Hat.
+	* iq2000.cpu: New file.  Written by Ben Elliston, Jeff Johnston,
+	Stan Cox, and Frank Ch. Eigler.
+	* iq2000.opc: New file.  Written by Ben Elliston, Frank
+	Ch. Eigler, Chris Moller, Jeff Johnston, and Stan Cox.
+	* iq2000m.cpu: New file.  Written by Jeff Johnston.
+	* iq10.cpu: New file.  Written by Jeff Johnston.
+
+2003-06-05  Nick Clifton  <nickc@redhat.com>
+
+	* frv.cpu (FRintieven): New operand.  An even-numbered only
+	version of the FRinti operand.
+	(FRintjeven): Likewise for FRintj.
+	(FRintkeven): Likewise for FRintk.
+	(mdcutssi, media-dual-word-rotate-r-r, mqsaths,
+	media-quad-arith-sat-semantics, media-quad-arith-sat,
+	conditional-media-quad-arith-sat, mdunpackh,
+	media-quad-multiply-semantics, media-quad-multiply,
+	conditional-media-quad-multiply, media-quad-complex-i,
+	media-quad-multiply-acc-semantics, media-quad-multiply-acc,
+	conditional-media-quad-multiply-acc, munpackh,
+	media-quad-multiply-cross-acc-semantics, mdpackh,
+	media-quad-multiply-cross-acc, mbtoh-semantics,
+	media-quad-cross-multiply-cross-acc-semantics,
+	media-quad-cross-multiply-cross-acc, mbtoh, mhtob-semantics,
+	media-quad-cross-multiply-acc-semantics, cmbtoh,
+	media-quad-cross-multiply-acc, media-quad-complex, mhtob,
+	media-expand-halfword-to-double-semantics, mexpdhd, cmexpdhd,
+	cmhtob): Use new operands.
+	* frv.opc (CGEN_VERBOSE_ASSEMBLER_ERRORS): Define.
+	(parse_even_register): New function.
+
+2003-06-03  Nick Clifton  <nickc@redhat.com>
+
+	* frv.cpu (media-dual-word-rotate-r-r): Use a signed 6-bit
+	immediate value not unsigned.
+
+2003-06-03  Andrew Cagney  <cagney@redhat.com>
+
+	Contributed by Red Hat.
+	* frv.cpu: New file.  Written by Dave Brolley, Catherine Moore,
+	and Eric Christopher.
+	* frv.opc: New file.  Written by Catherine Moore, and Dave
+	Brolley.
+	* simplify.inc: New file.  Written by Doug Evans.
+
+2003-05-02  Andrew Cagney  <cagney@redhat.com>
+
+	* New file.
+
+
+Copyright (C) 2003-2012 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

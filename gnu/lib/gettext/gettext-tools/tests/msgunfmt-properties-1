@@ -1,0 +1,35 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of general operation with Java .properties syntax.
+
+cat <<EOF > mu-p-1.in
+eight=eighth
+
+five=fifth
+
+four=fourth
+
+one=first
+
+seven=seventh
+
+six=sixth
+
+three=third
+
+two=second
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --properties-input -o mu-p-1.mo mu-p-1.in || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+${MSGUNFMT} --properties-output -o mu-p-1.tmp mu-p-1.mo || Exit 1
+LC_ALL=C tr -d '\r' < mu-p-1.tmp > mu-p-1.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mu-p-1.in mu-p-1.out
+result=$?
+
+exit $result

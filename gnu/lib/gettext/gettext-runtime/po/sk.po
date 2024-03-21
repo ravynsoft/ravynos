@@ -1,0 +1,334 @@
+# Slovak translations for GNU gettext-runtime package.
+# Copyright (C) 1999, 2001, 2002, 2003, 2004, 2007, 2008, 2010, 2013, 2015, 2019, 2020 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# Štefan Ondrejička <ondrej@idata.sk>, 1999.
+# Marcel Telka <marcel@telka.sk>, 2001, 2002, 2003, 2004, 2007, 2008, 2010, 2013, 2015, 2019, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext-runtime 0.20.2\n"
+"Report-Msgid-Bugs-To: bug-gettext@gnu.org\n"
+"POT-Creation-Date: 2023-11-17 22:40+0100\n"
+"PO-Revision-Date: 2020-04-17 15:38+0200\n"
+"Last-Translator: Marcel Telka <marcel@telka.sk>\n"
+"Language-Team: Slovak <sk-i18n@lists.linux.sk>\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=3; plural= (n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "chyba zápisu"
+
+#: gnulib-lib/error.c:194
+msgid "Unknown system error"
+msgstr "Neznáma systémová chyba"
+
+#: gnulib-lib/getopt.c:278
+#, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s: voľba '%s%s' nie je jednoznačná\n"
+
+#: gnulib-lib/getopt.c:284
+#, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s: voľba '%s%s' nie je jednoznačná; možnosti:"
+
+#: gnulib-lib/getopt.c:319
+#, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s: neznáma voľba '%s%s'\n"
+
+#: gnulib-lib/getopt.c:345
+#, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s: voľba '%s%s' nepovoľuje parameter\n"
+
+#: gnulib-lib/getopt.c:360
+#, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s: voľba '%s%s' vyžaduje parameter\n"
+
+#: gnulib-lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: neplatná voľba -- '%c'\n"
+
+#: gnulib-lib/getopt.c:636 gnulib-lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: voľba vyžaduje parameter -- '%c'\n"
+
+#: gnulib-lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "pamäť je vyčerpaná"
+
+#: src/envsubst.c:110 src/gettext.c:135 src/ngettext.c:125
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Autorské práva (C) %s Free Software Foundation, Inc.\n"
+"Licencia GPLv3+: GNU GPL verzia 3 alebo novšia <%s>\n"
+"Toto je voľne šíriteľný softvér: môžete ho voľne meniť a ďalej šíriť.\n"
+"Neposkytuje sa ŽIADNA ZÁRUKA, v rozsahu povolenom zákonmi.\n"
+
+#: src/envsubst.c:116 src/gettext.c:141 src/ngettext.c:131
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Napísal %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:116
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:125 src/gettext.c:159 src/ngettext.c:143
+#, c-format
+msgid "too many arguments"
+msgstr "príliš veľa parametrov"
+
+#: src/envsubst.c:136 src/gettext.c:169 src/ngettext.c:155
+#, c-format
+msgid "missing arguments"
+msgstr "chýbajúce parametre"
+
+#: src/envsubst.c:174 src/gettext.c:246 src/ngettext.c:212
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Skúste '%s --help' a dozviete sa viac informácií.\n"
+
+#: src/envsubst.c:179
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Použitie: %s [VOĽBA] [SHELL-FORMAT]\n"
+
+#: src/envsubst.c:184
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Nahradí hodnoty premenných prostredia.\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Režim operácie:\n"
+
+#: src/envsubst.c:191
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             vypísať premenné nachádzajúce sa v SHELL-FORMAT\n"
+
+#: src/envsubst.c:195 src/gettext.c:275 src/ngettext.c:242
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Informatívny výstup:\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  zobraziť túto pomoc a skončiť\n"
+
+#: src/envsubst.c:201
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               vypísať informácie o verzii a skončiť\n"
+
+#: src/envsubst.c:205
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"V normálnom režime operácie je štandardný vstup kopírovaný na štandardný výstup\n"
+"s odkazmi na premenné prostredia v tvare $PREMENNÁ alebo ${PREMENNÁ}\n"
+"nahradené odpovedajúcou hodnotou. Ak je zadaný SHELL-FORMAT sú nahradené\n"
+"len tie premenné prostredia, ktoré sú uvedené v SHELL-FORMAT. V opačnom prípade\n"
+"sú nahradené všetky odkazy na premenné prostredia v štandardnom vstupe.\n"
+
+#: src/envsubst.c:214
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Ak je použité --variables, štandardný vstup je ignorovaný a výstup pozostáva\n"
+"z premenných prostredia, ktoré sú uvedené v SHELL-FORMAT, každá premenná je\n"
+"na samostatnom riadku.\n"
+
+#. TRANSLATORS: The first placeholder is the web address of the Savannah
+#. project of this package.  The second placeholder is the bug-reporting
+#. email address for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:223 src/gettext.c:299 src/ngettext.c:263
+#, c-format
+msgid ""
+"Report bugs in the bug tracker at <%s>\n"
+"or by email to <%s>.\n"
+msgstr ""
+"Chyby oznamujte do databázy chýb na <%s> (iba anglicky)\n"
+"alebo zasielajte na adresu <%s> (iba anglicky).\n"
+"Komentáre k slovenskému prekladu zasielajte na adresu <sk-i18n@lists.linux."
+"sk>.\n"
+
+#: src/envsubst.c:451
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "chyba pri čítaní \"%s\""
+
+#: src/envsubst.c:451
+msgid "standard input"
+msgstr "štandardný vstup"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:141 src/ngettext.c:131
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:251
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Použitie: %s [VOĽBA] [[DOMÉNA] ID_SPRÁVY]\n"
+"alebo:    %s [VOĽBA] -s [ID_SPRÁVY]...\n"
+
+#: src/gettext.c:257
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Zobraziť preklad textovej správy do natívneho jazyka.\n"
+
+#: src/gettext.c:261
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+msgstr "  -d, --domain=DOMÉNA       vybrať preložené správy z DOMÉNY\n"
+
+#: src/gettext.c:263 src/ngettext.c:229
+#, c-format
+msgid "  -c, --context=CONTEXT     specify context for MSGID\n"
+msgstr "  -c, --context=KONTEXT     zadať kontext pre ID_SPRÁVY\n"
+
+#: src/gettext.c:265 src/ngettext.c:231
+#, c-format
+msgid "  -e                        enable expansion of some escape sequences\n"
+msgstr ""
+"  -e                        povoliť rozvinutie niektorých riadiacich\n"
+"                            sekvencií znakov\n"
+
+#: src/gettext.c:267
+#, c-format
+msgid "  -n                        suppress trailing newline\n"
+msgstr "  -n                        potlačiť prázdny riadok na konci\n"
+
+#: src/gettext.c:269 src/ngettext.c:233
+#, c-format
+msgid "  -E                        (ignored for compatibility)\n"
+msgstr ""
+"  -E                        (bez významu; kvôli spätnej kompatibilite)\n"
+
+#: src/gettext.c:271
+#, c-format
+msgid ""
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  [DOMÉNA] ID_SPRÁVY        vybrať preloženú správu zodpovedajúcu ID_SPRÁVY\n"
+"                            z DOMÉNY\n"
+
+#: src/gettext.c:277 src/ngettext.c:244
+#, c-format
+msgid "  -h, --help                display this help and exit\n"
+msgstr "  -h, --help                zobraziť túto pomoc a skončiť\n"
+
+#: src/gettext.c:279 src/ngettext.c:246
+#, c-format
+msgid "  -V, --version             display version information and exit\n"
+msgstr "  -V, --version             zobraziť informáciu o verzii a skončiť\n"
+
+#: src/gettext.c:283
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Ak nie je zadaný parameter DOMÉNA, doména bude prevzatá z premennej prostredia\n"
+"TEXTDOMAIN. Ak sa katalóg správ nenachádza v obvyklom adresári, iný adresár\n"
+"môže byť určený obsahom premennej prostredia TEXTDOMAINDIR.\n"
+"Ak je program použitý s voľbou -s, bude sa správať ako príkaz 'echo'.\n"
+"Nevypíše však svoje parametre na štandardný výstup. Namiesto toho správy,\n"
+"ktoré sa nachádzajú vo vybranom katalógu správ budú preložené.\n"
+"Štandardný adresár, v ktorom sa budú hľadať katalógy: %s\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Použitie: %s [VOĽBA] [DOMÉNA] ID_SPRÁVY ID_SPRÁVY-MNČ POČET\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Zobraziť preklad textovej správy, ktorej gramatický tvar závisí od čísla,\n"
+"do natívneho jazyka.\n"
+
+#: src/ngettext.c:227
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+msgstr "  -d, --domain=DOMÉNA       vybrať preložené správy z DOMÉNY\n"
+
+#: src/ngettext.c:235
+#, c-format
+msgid ""
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+msgstr "  [DOMÉNA]                  vybrať preloženú správu z DOMÉNY\n"
+
+#: src/ngettext.c:237
+#, c-format
+msgid ""
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL "
+"(plural)\n"
+msgstr ""
+"  ID_SPRÁVY ID_SPRÁVY-MNČ   preložiť ID_SPRÁVY (jednotné číslo) / ID_SPRÁVY-"
+"MNČ\n"
+"                            (množné číslo)\n"
+
+#: src/ngettext.c:239
+#, c-format
+msgid ""
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  POČET                     vybrať jednotné/množné číslo na základe tejto "
+"hodnoty\n"
+
+#: src/ngettext.c:250
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Ak nie je zadaný parameter DOMÉNA, doména bude prevzatá z premennej prostredia\n"
+"TEXTDOMAIN. Ak sa katalóg správ nenachádza v obvyklom adresári, iné umiestnenie\n"
+"môže byť určené obsahom premennej prostredia TEXTDOMAINDIR.\n"
+"Štandardný adresár, v ktorom sa budú hľadať katalógy: %s\n"

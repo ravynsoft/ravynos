@@ -1,0 +1,263 @@
+# Test that xtrace output is correctly generated
+
+%prep
+  mkdir xtrace.tmp && cd xtrace.tmp
+
+  function xtf {
+    local regression_test_dummy_variable
+    print "$*"
+  }
+  function xtfx {
+    local regression_test_dummy_variable
+    print "Tracing: (){ builtin 2>file }" 2>>xtrace.err
+    { print "Tracing: (){ { builtin } 2>file }" } 2>>xtrace.err
+  }
+  echo 'print "$*"' > xt.in
+
+%test
+
+  PS4='+%N:%i> '
+  set -x
+  print 'Tracing: builtin'
+  print 'Tracing: builtin 2>file' 2>xtrace.err
+  cat <<<'Tracing: external'
+  cat <<<'Tracing: external 2>file' 2>>xtrace.err
+  ( print 'Tracing: ( builtin )' )
+  ( print 'Tracing: ( builtin ) 2>file' ) 2>>xtrace.err
+  ( cat <<<'Tracing: ( external )' )
+  ( cat <<<'Tracing: ( external ) 2>file' ) 2>>xtrace.err
+  { print 'Tracing: { builtin }' }
+  { print 'Tracing: { builtin } 2>file' } 2>>xtrace.err
+  { cat <<<'Tracing: { external }' }
+  { cat <<<'Tracing: { external } 2>file' } 2>>xtrace.err
+  repeat 1 do print 'Tracing: do builtin done'; done
+  repeat 1 do print 'Tracing: do builtin done 2>file'; done 2>>xtrace.err
+  repeat 1 do cat <<<'Tracing: do external done'; done
+  repeat 1 do cat <<<'Tracing: do external done 2>file'; done 2>>xtrace.err
+  xtf 'Tracing: function'
+  xtf 'Tracing: function 2>file' 2>>xtrace.err
+  xtfx
+  . ./xt.in 'Tracing: source'
+  . ./xt.in 'Tracing: source 2>file' 2>>xtrace.err
+  set +x
+  cat xtrace.err
+0:xtrace with and without redirection
+>Tracing: builtin
+>Tracing: builtin 2>file
+>Tracing: external
+>Tracing: external 2>file
+>Tracing: ( builtin )
+>Tracing: ( builtin ) 2>file
+>Tracing: ( external )
+>Tracing: ( external ) 2>file
+>Tracing: { builtin }
+>Tracing: { builtin } 2>file
+>Tracing: { external }
+>Tracing: { external } 2>file
+>Tracing: do builtin done
+>Tracing: do builtin done 2>file
+>Tracing: do external done
+>Tracing: do external done 2>file
+>Tracing: function
+>Tracing: function 2>file
+>Tracing: (){ builtin 2>file }
+>Tracing: (){ { builtin } 2>file }
+>Tracing: source
+>Tracing: source 2>file
+>+(eval):8> print 'Tracing: ( builtin ) 2>file'
+>+(eval):10> cat
+>+(eval):12> print 'Tracing: { builtin } 2>file'
+>+(eval):14> cat
+>+(eval):16> print 'Tracing: do builtin done 2>file'
+>+(eval):18> cat
+>+xtf:1> local regression_test_dummy_variable
+>+xtf:2> print 'Tracing: function 2>file'
+>+xtfx:3> print 'Tracing: (){ { builtin } 2>file }'
+?+(eval):3> print 'Tracing: builtin'
+?+(eval):4> print 'Tracing: builtin 2>file'
+?+(eval):5> cat
+?+(eval):6> cat
+?+(eval):7> print 'Tracing: ( builtin )'
+?+(eval):9> cat
+?+(eval):11> print 'Tracing: { builtin }'
+?+(eval):13> cat
+?+(eval):15> print 'Tracing: do builtin done'
+?+(eval):17> cat
+?+(eval):19> xtf 'Tracing: function'
+?+xtf:1> local regression_test_dummy_variable
+?+xtf:2> print 'Tracing: function'
+?+(eval):20> xtf 'Tracing: function 2>file'
+?+(eval):21> xtfx
+?+xtfx:1> local regression_test_dummy_variable
+?+xtfx:2> print 'Tracing: (){ builtin 2>file }'
+?+(eval):22> . ./xt.in 'Tracing: source'
+?+./xt.in:1> print 'Tracing: source'
+?+(eval):23> . ./xt.in 'Tracing: source 2>file'
+?+./xt.in:1> print 'Tracing: source 2>file'
+?+(eval):24> set +x
+
+ typeset -ft xtf
+ xtf 'Tracing: function'
+0:tracing function
+>Tracing: function
+?+xtf:1> local regression_test_dummy_variable
+?+xtf:2> print 'Tracing: function'
+
+ echo 'PS4="+%x:%I> "
+ fn() {
+   print This is fn.
+ }
+ :
+ fn
+ ' >fnfile
+ $ZTST_testdir/../Src/zsh -fx ./fnfile 2>errfile
+ grep '\./fnfile' errfile 1>&2
+0:Trace output with sourcefile and line number.
+>This is fn.
+?+./fnfile:1> PS4='+%x:%I> ' 
+?+./fnfile:5> :
+?+./fnfile:6> fn
+?+./fnfile:3> print This is fn.
+
+ set -x
+ [[ 'f o' == 'f x'* || 'b r' != 'z o' && 'squashy sound' < 'squishy sound' ]]
+ [[ 'f o' = 'f x'* || 'b r' != 'z o' && 'squashy sound' < 'squishy sound' ]]
+ [[ -e nonexistentfile || ( -z '' && -t 3 ) ]]
+ set +x
+0:Trace for conditions
+?+(eval):2> [[ 'f o' == f\ x* || 'b r' != z\ o && 'squashy sound' < 'squishy sound' ]]
+?+(eval):3> [[ 'f o' = f\ x* || 'b r' != z\ o && 'squashy sound' < 'squishy sound' ]]
+?+(eval):4> [[ -e nonexistentfile || -z '' && -t 3 ]]
+?+(eval):5> set +x
+
+  # Part 1: Recurses into nested anonymous functions
+  fn() {
+    () { () { true } }
+  }
+  functions -T fn
+  fn
+  # Part 2: Doesn't recurse into named functions
+  gn() { true }
+  fn() { gn }
+  functions -T fn
+  fn
+0:tracing recurses into anonymous functions
+?+fn:1> '(anon)'
+?+(anon):0> '(anon)'
+?+(anon):0> true
+?+fn:0> gn
+
+  test_cases=(
+      f            # baseline
+      foo-bar      # Dash
+      ヌ           # Meta (the UTF-8 representation of this character has an 0x83 byte)
+      \$\'ba\\0z\' # Nul, escaped as though by ${(qqqq)}
+  )
+  for 1 in "$test_cases[@]"; do
+    eval "
+      ${1}() {
+        ${1}() { echo inner }
+      }
+      functions -T ${1}
+      ${1}
+      LC_ALL=C which ${1}
+    "
+  done
+0:a function that redefines itself preserves tracing
+>f () {
+>	# traced
+>	echo inner
+>}
+>foo-bar () {
+>	# traced
+>	echo inner
+>}
+>$'\M-c\M-\C-C\M-\C-L' () {
+>	# traced
+>	echo inner
+>}
+>$'ba\C-@z' () {
+>	# traced
+>	echo inner
+>}
+
+ function -T { echo traced anonymous function }
+ functions -- -T # no output
+1:define traced function: anonymous function
+?+(anon):0> echo traced anonymous function
+>traced anonymous function
+
+ function -T f { echo traced named function }
+ functions -- -T # no output
+ functions f
+ f
+0:define traced function: named function
+>f () {
+>	# traced
+>	echo traced named function
+>}
+?+f:0> echo traced named function
+>traced named function
+
+ function -T -- -T { echo trace function literally named "-T" }
+ -T
+ function -T -- { echo trace anonymous function }
+ functions -- -- # no output
+1:define traced function: parse test
+?+-T:0> echo trace function literally named -T
+>trace function literally named -T
+?+(anon):0> echo trace anonymous function
+>trace anonymous function
+
+ function -- g { echo g }
+ g
+ function -- { echo anonymous }
+ functions -- -- # no output
+1:function end-of-"options" syntax, #1
+>g
+>anonymous
+
+ function -- -T { echo runs }
+ functions -- -- # no output
+ echo the definition didn\'t execute it
+ -T
+0:function end-of-"options" syntax, #2
+>the definition didn't execute it
+>runs
+
+ f() g
+ g() :
+ functions -t f
+ f
+0:functions -t smoke test #1
+?+f:4> g
+?+g:4> :
+F:The `4' on the second line is incorrect; see workers/48594.
+
+ f() g
+ g() { () : }
+ functions -t f
+ f
+0:functions -t smoke test #2
+?+f:4> g
+?+g:0> '(anon)'
+?+(anon):0> :
+
+ f() g
+ g() :
+ (
+  functions -T f
+  functions -t f
+  f
+ )
+ (
+  functions -t f
+  functions -T f
+  f
+ )
+0:ensure the behaviour  of 'functions -Tt f' doesn't change surreptitiously
+?+f:6> g
+?+f:11> g
+F:If this test fails, the new behaviour may be 
+F:workers/48591.
+

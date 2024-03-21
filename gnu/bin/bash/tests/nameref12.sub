@@ -1,0 +1,113 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+declare -n r
+declare -n r
+unset -n r
+
+r=foo
+declare -n r=/
+
+r=%
+declare -n r
+unset r
+
+declare -n r
+r=^
+declare -p r
+
+unset -n r
+
+declare -n foo
+declare -a foo
+declare -p foo
+foo[0]=7
+declare -p foo
+unset foo
+
+declare -n x
+declare x=42
+declare -p x
+
+declare -n -r RO=foo
+declare -p RO
+
+unset -n r; unset r
+
+# the details of this may change; currently we put namerefs and values into
+# the tempenv if the nameref value is an invalid variable name
+f() { echo $r; }
+
+declare -n r
+r=/ ${THIS_SH} < /dev/null
+r=/ f
+
+unset -f f
+
+# the details of this may change; this will tell me when they do
+declare -n foo ; declare -i foo=7*6 ; declare -p foo
+unset -n foo
+declare -n foo ; declare -i foo ; foo=7*6 ; declare -p foo
+
+# used to be buggy
+f()
+{
+	unset var
+	declare -n ref=var
+	declare -n ref
+	declare -p ref
+}
+f
+
+unset -f f
+f()
+{
+	local var
+	declare -n ref=var
+	declare -n ref
+	declare -p ref
+}
+f
+
+unset ref; unset -n ref
+unset var
+
+var=foo
+typeset -n ref=var[0]
+readonly ref
+typeset -p var
+
+var2=foo
+typeset -n ref2=var2
+readonly ref2
+typeset -p var2
+
+unset var
+unset -n ref ref2
+
+unset var; typeset -n ref=var
+ref[0]=foo
+typeset -p ref var
+unset -n ref
+
+unset var; typeset -n ref
+ref[0]=foo
+typeset -p ref
+unset -n ref
+
+ref=global
+f() { declare -n ref=var; ref[0]=foo1; }; f
+f() { declare -n ref=var; ref[0]=foo2; }; f
+declare -p ref var
+
+declare -p global

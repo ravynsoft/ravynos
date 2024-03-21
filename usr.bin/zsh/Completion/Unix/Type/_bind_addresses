@@ -1,0 +1,50 @@
+#autoload
+
+# Complete locally bound IP addresses
+#
+# Options:
+#   -0  Return also `0.0.0.0` and `::`
+#   -4  Return only IPv4 addresses
+#   -6  Return only IPv6 addresses
+#   -b  Return IPv6 addresses in brackets (for use with port numbers)
+#   -h  Return also `localhost`
+#   -L  Exclude loop-back addresses (`127.0.0.0/8` and `::1`)
+#   -K  Exclude link-local addresses (`169.254.0.0/16` and `fe80::/10`)
+
+local MATCH MBEGIN MEND
+local -a expl tmp cmd=( ifconfig -a )
+local -A opts
+
+zparseopts -A opts -D -E -- 0 4 6 b h L K
+
+# A lot of Linux systems have ifconfig, but this is probably safer (and it's
+# parsed the same way)
+[[ $OSTYPE == linux* ]] && (( $+commands[ip] )) && cmd=( ip addr show )
+
+tmp=( ${(f)"$( _call_program bind-addresses $cmd )"} )
+tmp=( ${(@M)tmp##(|[[:space:]]##)inet(|6)(|:)[[:space:]]*} )
+tmp=( ${(@)tmp#*inet(|6)(|:)[[:space:]]##} )
+tmp=( ${(@)tmp%%[^0-9A-Fa-f:.]*} )
+
+# The order of operations here is significant
+(( $+opts[-0] )) && tmp+=( 0.0.0.0 :: )
+
+if (( $+opts[-6] )); then
+  tmp=( ${(@M)tmp:#*:*} )
+elif (( $+opts[-4] )); then
+  tmp=( ${(@)tmp:#*:*} )
+fi
+
+(( $+opts[-L] )) && {
+  tmp=( ${(@)tmp:#127.*} )
+  tmp=( ${(@)tmp:#[0:]##:1} )
+}
+(( $+opts[-K] )) && {
+  tmp=( ${(@)tmp:#169.254.*} )
+  tmp=( ${(@)tmp:#(#i)fe[89ab]?:*} )
+}
+
+(( $+opts[-b] )) && tmp=( ${(@)tmp/(#m)*:*/\[$MATCH\]} )
+(( $+opts[-h] )) && tmp+=( localhost )
+
+_wanted bind-addresses expl 'bind address' compadd -a "$@" - tmp

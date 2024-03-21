@@ -1,0 +1,102 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# specvar -- test some of the dynamic variables
+
+# BASHPID
+pid=$$
+bpid=$BASHPID
+subpid=$( (echo $BASHPID) )
+
+if [ "$bpid" -ne "$subpid" ]; then echo BASHPID ok; fi
+
+# BASH_ARGV0
+
+BASH_ARGV0=hello
+case $0 in
+hello)	echo BASH_ARGV0 ok ;;
+*)	echo "BASH_ARGV0 mismatch: $BASH_ARGV0 ($0)" >&2 ;;
+esac
+
+setarg0()
+{
+	BASH_ARGV0="$1"
+}
+
+setarg0 arg0
+case $0 in
+arg0)	echo BASH_ARGV0 ok ;;
+*)	echo "BASH_ARGV0 mismatch: $BASH_ARGV0 ($0)" >&2 ;;
+esac
+
+# SECONDS
+before=$SECONDS
+sleep 2
+after=$SECONDS
+
+if (( $after > $before )); then echo SECONDS ok; fi
+unset before after
+
+# EPOCHSECONDS
+
+# not exact, but should work
+# date +%s should be portable enough now
+# then try gawk, perl, python in that order
+now1=$(date +%s 2>/dev/null) D=date
+[ -z "$now1" ] &&
+{
+	now1=$(gawk 'BEGIN { print systime(); }' 2>/dev/null) D=gawk
+	[ -z "$now1" ] && now1=$(perl -e 'print time' 2>/dev/null) D=perl
+	[ -z "$now1" ] && now1=$(python -c 'import time; ts = int(time.time()); print(ts)' 2>/dev/null) D=python
+}
+now2=$EPOCHSECONDS
+
+# use a window of +-1 second
+offset=1
+if [[ -z $now1 ]]; then
+	echo "cannot get current time using date/gawk/perl/python" >&2
+elif (( $now1 - $offset <= $now2 && $now2 <= $now1 + $offset )); then
+	echo EPOCHSECONDS ok
+else
+	echo "current time via $D and EPOCHSECONDS possible mismatch|$now1|$now2|offset=$offset" >&2
+fi
+unset now1 now2 D
+
+LC_ALL=C		# force decimal point to `.'
+now1=$EPOCHREALTIME
+now2=$EPOCHREALTIME
+sec1=${now1%%.*}
+sec2=${now2%%.*}
+
+msec1=${now1##*.}
+msec2=${now2##*.}
+# cut off leading zeros
+shopt -s extglob
+msec1=${msec1##*(0)}
+msec2=${msec2##*(0)}
+
+dsec=$(( $sec2 - $sec1 ))
+dmsec=$(( $msec2 - $msec1 ))
+if (( $dmsec < 0 )); then
+	dmsec=$(( dmsec + 1000000 ))
+	dsec=$(( desc - 1 ))
+fi
+
+# not a real test, but ok for a start
+if (( $dmsec < 1000000 )); then echo EPOCHREALTIME ok; fi
+
+${THIS_SH} -c 'echo $BASH_COMMAND'
+
+# FUNCNAME tested in func.tests
+# RANDOM tested in varenv.sh
+# LINENO tested in dbg-support

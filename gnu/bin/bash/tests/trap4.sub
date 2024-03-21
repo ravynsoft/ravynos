@@ -1,0 +1,55 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# make sure subshells at the end of pipelines run any exit traps they set
+
+: | { trap 'echo exit subshell 1' EXIT; exit; }; echo current shell
+
+: | { trap 'echo exit subshell 2' EXIT; exit; }; echo current shell
+
+: | { trap 'echo exit subshell 3' EXIT; exit; } | : ; echo current shell
+
+: | { trap 'echo exit subshell 4' EXIT; exit; } | : ; echo current shell
+
+trap 'echo inherited exit trap' EXIT
+: | { exit; } ; echo outside 1
+: | ( exit; ) ; echo outside 2
+: | { exit; } | : ; echo outside 3
+: | ( exit; ) | : ; echo outside 4
+
+trap - EXIT
+
+# make sure group commands that are not at the beginning or end of pipelines
+# run an EXIT trap, with and without the exit builtin
+echo ignored |
+{
+    trap 'echo "in trap EXIT">&2' EXIT
+    sleep 4 &
+    echo 'sleep 2'>&2
+    sleep 2
+    echo 'wait $!'>&2
+    wait $!
+    echo 'exit'>&2
+    exit
+} | cat
+
+echo ignored |
+{
+    trap 'echo "in trap EXIT">&2' EXIT
+    sleep 4 &
+    echo 'sleep 2'>&2
+    sleep 2
+    echo 'wait $!'>&2
+    wait $!
+    echo 'exit'>&2
+} | cat

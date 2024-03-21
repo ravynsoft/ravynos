@@ -1,0 +1,585 @@
+#compdef hdiutil
+
+# utilities
+#
+_hdiutil_disk() {
+  local -a disk_desc
+  _call_program devices hdiutil info | while read; do
+    local disk_name="${${(M)REPLY[(w)1]%/dev/disk*}#/dev/}"
+    if (( #disk_name )); then
+      disk_desc+=( "$disk_name:${${(M)REPLY%	*}#?}" )
+    fi
+  done
+  _describe -t devices disk disk_desc
+}
+
+_hdiutil_device() {
+  local -a device_desc
+  _call_program devices /usr/bin/hdiutil burn -list | while read; do
+    if [[ "$REPLY" == [:space:]#IOService:* ]]; then
+      device_desc+=( "$REPLY" )
+    fi
+  done
+  local expl
+  _wanted devices expl device compadd "$device_desc[@]"
+}
+
+_hdiutil_imagesize(){
+  local -a arr
+  local num="${PREFIX%%[^0-9]*}"
+  if [[ -n "$num" ]]; then
+    arr=(
+      "$num"b:"$(($num / 2.**11)) mega bytes"
+      "$num"k:"$(($num / 2.**10)) mega bytes"
+      "$num"m:"$(($num)) mega bytes"
+      "$num"g:"$(($num)) giga bytes"
+      "$num"t:"$(($num * 2**10)) giga bytes"
+      "$num"p:"$(($num * 2**20)) giga bytes"
+      "$num"e:"$(($num * 2**30)) giga bytes"
+    )
+  
+    local expl
+    _describe -t values "size (b, k, m, g..)" arr -V1
+  else
+    _message "size (b, k, m, g..)"
+  fi
+}
+
+_hdiutil_imageformat(){
+  local -a fmts ofmts
+  fmts=(
+    "UDRW:UDIF read/write image"
+    "UDRO:UDIF read-only image"
+    "UDCO:UDIF ADC-compressed image"
+    "UDZO:UDIF zlib-compressed image"
+    "ULFO:UDIF lzfse-compressed image"
+    "ULMO:UDIF lzma-compressed image"
+    "UDBZ:UDIF bzip2-compressed image"
+    "UDTO:DVD/CD-R master for export"
+    "UDSP:SPARSE (grows with content)"
+    "UDSB:SPARSEBUNDLE (grows with content; bundle-backed)"
+    "UFBI:UDIF entire image with MD5 checksum"
+  )
+  ofmts=(
+    "UDRo:UDIF read-only"
+    "UDCo:UDIF compressed"
+    "RdWr:NDIF read/write image"
+    "Rdxx:NDIF read-only image (Disk Copy 6.3.3 format)"
+    "ROCo:NDIF compressed image"
+    "Rken:NDIF compressed"
+    "DC42:Disk Copy 4.2 image"
+    "IPOD:iPod image" # Mentioned in help, not manual
+    "UDxx:UDIF stub image" # Mentioned in help, not manual
+    "UNIV:hybrid image (HFS+/ISO/UDF)" # Mentioned in help, not manual
+  )
+  _describe -t types "image format" fmts -V1 ||
+  _describe -t types "obsolete/deprecated image format" ofmts -V1
+}
+
+_hdiutil_images() {
+  local -a expl
+  _description files expl 'disk image'
+  _files "$@" "${(@)expl}" -g '*.(bin|cdr|dmg|img|iso|sparse(bundle|image))(-.)'
+}
+
+_hdiutil(){
+  local -a _common_options
+  _common_options=(
+    '(: -)'-help'[display help message of a verb]'
+    '(-quiet)-verbose' '(-verbose debug)-quiet' '(-quiet)-debug'
+  )
+
+  local -A _common_usage_options
+  _common_usage_options=(
+    -shadow "-shadow:shadow file:_files -g '*.shadow(-.)'"
+    -encryption "-encryption:encryption method:(CEncryptedEncoding)"
+    -stdinpass "-stdinpass[specify password from standard input]"
+    -certificate "-certificate[secondary access certificate]:certificate file:_files"
+    -cacert "-cacert[certificate authority certificate]: :_files"
+    -imagekey "*-imagekey[image key]: :->keyvalue"
+    -srcimagekey "*-srcimagekey[source image key]: :->keyvalue"
+    -tgtimagekey "*-tgtimagekey[target image key]: :->keyvalue"
+    -insecurehttp "-insecurehttp[ignore SSL host validation failure]"
+    -plist "-plist[display output in plist format]"
+    -recover "-recover[keychain to unlock]:keychain file:_files -g '*.keychain(-.)'"
+  )
+
+  local -a _1st_arguments
+  _1st_arguments=(
+    'help:display minimal usage information'
+    'attach:attach a disk image'
+    'mount:attach a disk image'
+    'detach:detach a disk image'
+    'eject:detach a disk image'
+    'verify:verify the checksum of a disk image'
+    'create:create a disk image'
+    'convert:convert a disk image into another format'
+    'burn:burn image to optical media'
+    'makehybrid:generate cross-platform hybrid images'
+    'compact:compacts a SPARSE disk image'
+    'info:display information about the disk image driver and attached images'
+    'load:manually load the disk image driver'
+    'checksum:calculate the specified checksum on the image data'
+    'chpass:change the passphrase for an encrypted image'
+    'unflatten:extract any UDIF metadata into resource fork'
+    'flatten:embed any resource fork into UDIF data fork'
+    'hfsanalyze:print information about an HFS/HFS+ volume'
+    'mountvol:mount a volume'
+    'unmount:unmount a volume'
+    'imageinfo:print out information about a disk image'
+    'plugins:print information about DiskImages framework plugins'
+    'internet-enable:enable or disable post-processing for the image'
+    'resize:resize partition or image'
+    'segment:segment disk image'
+    'pmap:display the partition map'
+  )
+
+  local size_spec='-size -sectors -megabytes -srcfolder -srcdir'
+
+  #
+  local curcontext="$curcontext" state line expl
+  local -A opt_args
+
+  _arguments -C '*:: :->subcmds'
+
+  if (( CURRENT == 1 )); then
+    _describe -t commands "hdiutil subcommand" _1st_arguments
+    return
+  fi
+
+  case "$words[1]" in
+    attach|mount)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-imagekey]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-plist]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "$_common_usage_options[-recover]" \
+        "(-readwrite)-readonly[force the resulting device to be read-only]" \
+        "(-readonly)-readwrite[attempt to set the device to be read/write]" \
+        "(-nokernel)-nokernel[attach with/without a helper process]" \
+        "(-kernel)-kernel[attach with/without a helper process]" \
+        "-notremovable[prevent this image from being detached]" \
+        "(-nomount)-mount[indicate whether image should be mounted]:mount?:(required optional suppressed)" \
+        "(-mount)-nomount[indicate whether image should be mounted]" \
+        "-mountroot[mount volumes in specified path]: :_directories" \
+        "-mountpoint[mount volume at specified path]: :_directories" \
+        "-union[perform a union mount]" \
+        "-private[suppress mount notifications to the rest of the system]" \
+        "-nobrowse[mark the volumes non-browsable in applications]" \
+        "-owners[enable or disable owners for HFS+ volumes]: :(on off)" \
+        "*-drivekey[key/value pair in the IOKit registry]:key=value:" \
+        "(-noverify)-verify[verify image checksums]" \
+        "(-verify)-noverify" \
+        "(-noignorebadchecksums)-ignorebadchecksums[indicate bad checksums should be ignored]" \
+        "(-ignorebadchecksums)-noignorebadchecksums" \
+        "(-noidme)-idme[perform IDME actions]" \
+        "(-idme)-noidme" \
+        "(-noidmereveal)-idmereveal[reveal the results of IDME processing]" \
+        "(-idmereveal)-noidmereveal" \
+        "(-noidmetrash)-idmetrash[put IDME images in the trash after processing]" \
+        "(-idmetrash)-noidmetrash" \
+        "(-noautoopen)-autoopen[auto-open volumes after attaching an image]" \
+        "(-autoopen)-noautoopen" \
+        "(-noautoopenro)-autoopenro[auto-open read-only volumes]" \
+        "(-autoopenro)-noautoopenro" \
+        "(-noautoopenrw)-autoopenrw[auto-open read/write volumes]" \
+        "(-autoopenrw)-noautoopenrw" \
+        "1:disk image to attach:_hdiutil_images" \
+        && return 0
+      ;;
+    detach|eject)
+      _arguments \
+        "$_common_options[@]" \
+        "-force[unmount any filesystems and detaches the image]" \
+        "1: :_hdiutil_disk" && return 0
+      ;;
+    verify)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-imagekey]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-plist]" \
+        "1:disk image to verify:_hdiutil_images" \
+        && return 0
+      ;;
+    create)
+      local fold_opts="-format -crossdev -nocrossdev -scrub -noscrub"
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-imagekey]:" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-tgtimagekey]" \
+        "$_common_usage_options[-plist]" \
+        "($size_spec $fold_opts)-size[specify size]: :_hdiutil_imagesize" \
+        "($size_spec $fold_opts)-sectors[specify size]:512 byte sectors" \
+        "($size_spec $fold_opts)-megabytes[specify size]:mega bytes" \
+        "($size_spec)-srcfolder[specify directory]: :_directories" \
+        "($size_spec)-srcdir[specify directory]: :_directories" \
+        "-align[size to which partition is aligned]:size" \
+        "-type[image type]:image type:((
+          SPARSEBUNDLE\:'sparse bundle disk image'
+          SPARSE\:'sparse disk image'
+          UDIF\:'read/write disk image'
+          UDTO\:'DVD/CD master'
+        ))" \
+        "-fs[filesystem to make]:filesystem:((
+          UDF\:'Universal Disk Format'
+          MS-DOS\ FAT12\:'MS-DOS (FAT12)'
+          MS-DOS\:'MS-DOS (FAT)'
+          MS-DOS\ FAT16\:'MS-DOS (FAT16)'
+          {FAT32,MS-DOS\ FAT32}\:'MS-DOS (FAT32)'
+          ExFAT\:'ExFAT'
+          HFS+\:'Mac OS Extended'
+          {HFS+J,JHFS+,HFSJ,Journaled\ HFS+}\:'Mac OS Extended (journaled)'
+          {HFS+X,HFSX,Case-sensitive\ HFS+}\:'Mac OS Extended (case-sensitive)'
+          {JHFS+X,JHFSX,HFS+X+J,HFS+XJ,HFSXJ,Case-sensitive\ Journaled\ HFS+}\:'Mac OS Extended (case-sensitive, journaled)'
+          APFS\:'APFS'
+          Case-sensitive\ APFS\:'APFS (case-sensitive)'
+        ))" \
+        "-volname[volume name]:name" \
+        "-uid[uid of root directory]:uid in number" \
+        "-gid[gid of root directory]:gid in number" \
+        "-mode[mode of root directory]:mode" \
+        "-nouuid[suppress adding a UUID]" \
+        "(-noautostretch)-autostretch" \
+        "(-autostretch)-noautostretch" \
+        "-stretch[max_stretch]: :_hdiutil_imagesize" \
+        "-fsargs[additional arguments to pass to newfs]:arguments" \
+        "-layout[partition layout]:partition layout:((
+          MBRSPUD\:'single partition, MBR'
+          SPUD\:'single partition, APM'
+          UNIVERSAL\ CD\:'CD/DVD'
+          NONE\:'no partition map'
+          GPTSPUD\:'single partition, GPT'
+          SPCD\:'single partition, CD/DVD'
+          UNIVERSAL\ HD\:'hard disk'
+          ISOCD\:'single partition, CD/DVD with ISO data'
+        ))" \
+        "-partitionType[partition type]:partition type:(Apple_HFS Apple_UFS)" \
+        "-ov[overwrite an existing file]" \
+        "-attach[attach the image after creating it]" \
+        "-format:format:_hdiutil_imageformat" \
+        "(-nocrossdev)-crossdev[cross device boundaries when copying from the source]" \
+        "(-crossdev)-nocrossdev" \
+        "(-noscrub)-scrub[skip temporary files and trashes]" \
+        "(-scrub)-noscrub" \
+        "(-noanyowners)-anyowners[allow user files being copied]" \
+        "(-anyowners)-noanyowners" \
+        "1:disk image to create:_files" && return 0
+        
+      if [[ $state = keyvalue ]]; then
+        _values 'key=value' \
+          "di-sparse-puma-compatible: :(TRUE FALSE)" \
+          "di-shadow-puma-compatible: :(TRUE FALSE)" \
+          "encrypted-encoding-version:version:(1 2)" \
+          "zlib-level:compression level:(1 2 3 4 5 6 7 8 9)" && return 0
+      fi
+      ;;
+    convert)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-certificate]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-tgtimagekey]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "$_common_usage_options[-plist]" \
+        "-align:size (512 byte sectors)" \
+        "-segmentSize: :_hdiutil_imagesize" \
+        "-pmap[add partition map]" \
+        "-tasks[number of tasks for compression operation]:number:" \
+        "-ov[overwrite an existing file]" \
+        "-format:format:_hdiutil_imageformat" \
+        "-o:target disk image:_files" \
+        "1:source disk image:_hdiutil_images" \
+        && return 0
+
+      if [[ $state = keyvalue ]]; then
+        _values 'key=value' \
+          "zlib-level:compression level:(1 2 3 4 5 6 7 8 9)" && return 0
+      fi
+      ;;
+    burn)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "-device[device to use for burning]:device:_hdiutil_device" \
+        "-testburn[don\'t turn on laser]" \
+        "-anydevice[allow burning to devices not qualified by Apple]" \
+        "(-eject)-noeject[don\'t eject disc after burning]" \
+        "(-noeject)-eject" \
+        "(-verifyburn)-noverifyburn[don\'t verify disc contents after burn]" \
+        "(-noverifyburn)-verifyburn" \
+        "(-addpmap)-noaddpmap[don\'t add partition map]" \
+        "(-noaddpmap)-addpmap" \
+        "(-skipfinalfree)-noskipfinalfree[don\'t skip final free partition]" \
+        "(-noskipfinalfree)-skipfinalfree" \
+        "(-nooptimizeimage)-optimizeimage[optimize filesystem for burning]" \
+        "(-optimizeimage)-nooptimizeimage" \
+        "-nounderrun[turn off buffer underrun protection]" \
+        "-forceclose[force the disc to be closed after burning]" \
+        "-speed[desired \"x-factor\"]:x_factor:(1 2 4 6 max)" \
+        "-sizequery[calculate the required size without burning anything]" \
+        "-erase[erase the media]" \
+        "-fullerase[erase all sectors of the disc]" \
+        "-list[list all burning devices with paths suitable for -device]" \
+        "1: :_hdiutil_images" \
+        && return 0
+      ;;
+    makehybrid)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "-hfs[generate an HFS+ filesystem]" \
+        "-iso[generate an ISO9660 filesystem with Rock Ridge extensions]" \
+        "-joliet[generate Joliet extensions to ISO9660]" \
+        "-hfs-blessed-directory[blessed folder for booting Mac OS X]: :_directories" \
+        "-hfs-openfolder[folder automatically opened]: :_directories" \
+        "-hfs-startupfile-size[Startup File size]:bytes" \
+        "-abstract-file[path to an ISO9660/Joliet Abstract file]: :_file" \
+        "-bibliography-file[path to a ISO9660/Joliet Bibliography file]: :_file" \
+        "-copyright-file[path to a ISO9660/Joliet Copyright file]: :_file" \
+        "-application[creator application name]:creator name" \
+        "-preparer[data preparer name]:preparer name" \
+        "-publisher[publisher name]:publisher name" \
+        "-system-id[system identifier]:system identifier" \
+        "-keep-mac-specific[keep Macintosh-specific files in non-HFS+ filesystems]" \
+        "-default-volume-name[default volume name for all filesystems]:name" \
+        "-hfs-volume-name[volume name for HFS+ filesystem]:name" \
+        "-iso-volume-name[volume name for ISO9660 filesystem]:name" \
+        "-joliet-volume-name[volume name for Joliet]:name" \
+        "-hide-all[glob expression to hide]:glob expression" \
+        "-hide-hfs[glob expression to hide in HFS+]:glob expression" \
+        "-hide-iso[glob expression to hide in ISO9660]:glob expression" \
+        "-hide-joliet[glob expression to hide in Joliet]:glob expression" \
+        "-print-size[print size estimate and quit]" \
+        "-plistin[accept command-line options as a plist on stdin]" \
+        "-ov[overwrite an existing file]" \
+        "(-noverify)-verify[verify image checksums]" \
+        "(-verify)-noverify" \
+        "(-nokernel)-nokernel[attach with a helper process]" \
+        "(-kernel)-kernel[attach without a helper process]" \
+        "-o:target disk image:_files" \
+        "1:source disk image or directory:_hdiutil_images" \
+        && return 0
+      ;;
+    compact)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "$_common_usage_options[-plist]" \
+        "1:sparse image:_files -g '*.sparseimage(-.)'" && return 0
+      ;;
+    info)
+      _arguments "$_common_options[@]" \
+        "$_common_usage_options[-plist]" && return 0
+      ;;
+    load)
+      _arguments "$_common_options[@]" && return 0
+      ;;
+    checksum)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "$_common_usage_options[-plist]" \
+        "-type:image type:(UDIF-CRC32 UDIF-MD5 DC42 CRC28 CRC32 MD5)" \
+        "1: :_hdiutil_images" \
+        && return 0
+      ;;
+    chpass)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-recover]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "-oldstdinpass[specify old password from standard input]" \
+        "-newstdinpass[specify new password from standard input]" \
+        "1: :_hdiutil_images" \
+        && return 0
+      ;;
+    unflatten)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "1: :_hdiutil_images" \
+        && return 0
+      ;;
+    flatten)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "(-xml)-noxml[don\'t embed XML data for in-kernel attachment]" \
+        "(-noxml)-xml" \
+        "(-rsrcfork)-norsrcfork[don\'t embed resource fork data]" \
+        "(-norsrcfork)-rsrcfork" \
+        "1: :_hdiutil_images" \
+        && return 0
+      ;;
+    hfsanalyze)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "1:disk image or device:_hdiutil_images" \
+        && return 0
+      ;;
+    mountvol)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-plist]" \
+        "1: :_path_files -W /dev -g disk\*" && return 0
+      ;;
+    unmount)
+      _arguments \
+        "$_common_options[@]" \
+        "-force[unmount filesystem regardless of open files]" \
+        "1:device or mount point:_files" && return 0
+      ;;
+    imageinfo)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "$_common_usage_options[-plist]" \
+        "-format[just print out the image format]" \
+        "-checksum[just print out the image checksum]" \
+        "1: :_hdiutil_images" \
+        && return 0
+      ;;
+    plugins)
+      _arguments \
+        "$_common_options[@]" "$_common_usage_options[-plist]" && return 0
+      ;;
+    internet-enable)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-plist]" \
+        "(-yes -no -query)"{-yes,-no,-query} \
+        "1: :_hdiutil_images" \
+        && return 0
+      ;;
+
+    resize)
+      _arguments -C \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "$_common_usage_options[-plist]" \
+        "(-sectors)-size[specify size]: :_hdiutil_imagesize" \
+        "(-size)-sectors[specify size]:size (512 byte sectors)/min/max:" \
+        "-imageonly[only resize image file]" \
+        "-partitiononly[only resize partition(s) in the image]" \
+        "-partitionNumber[partition to resize]:partition number" \
+        "-growonly[only allow the image to grow]" \
+        "-shrinkonly[only allow the image to shrink]" \
+        "-nofinalgap[allow elimination of trailing free partition]" \
+        "-limits[displays min/current/max size]" \
+        "1:disk image:_files -g \*.dmg\(\|.bin\)\(-.\)" \
+        && return 0
+      ;;
+    segment)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-tgtimagekey]" \
+        "$_common_usage_options[-plist]" \
+        "(-segmentSize)-segmentCount[number of segments]:number" \
+        "(-segmentCount)-segmentSize[segment size]: :_hdiutil_imagesize" \
+        "-firstSegmentSize[first segment size]: :_hdiutil_imagesize" \
+        "-restricted[make restricted segments]" \
+        "-o[first segment name]:name" \
+        "1:source disk image:_files -g \*.dmg\(\|.bin\)\(-.\)" \
+        && return 0
+      ;;
+    pmap)
+      _arguments \
+        "$_common_options[@]" \
+        "$_common_usage_options[-encryption]" \
+        "$_common_usage_options[-stdinpass]" \
+        "$_common_usage_options[-srcimagekey]" \
+        "$_common_usage_options[-shadow]" \
+        "$_common_usage_options[-insecurehttp]" \
+        "$_common_usage_options[-cacert]" \
+        "-options[just print out the image checksum]: :->option" \
+        "1: :_hdiutil_images" \
+        && return 0
+
+      case "$state" in
+        option)
+          _values -s '' option \
+            "r[process all without modification]" \
+            "x[process 2K & 512 entries and merge]" \
+            "s[return all quantities in sectors]" \
+            "S[sort all entries by block number]" \
+            "g[account for all unmapped space]" \
+            "c[combine adjacent freespace entries]" \
+            "f[extend last partition to device end]" \
+            "v[synthesize single volumes as a single partition entry]" \
+            "k[skip zero length entries]" \
+            "K[skip all free & void partitions]" \
+            "m[merge small free partitions into a previous partition]" \
+            "i[ignore small free partitions caused by block alignment]"
+          ;;
+      esac
+      ;;
+    *)
+      _message "unknown hdiutil command: $words[1]"
+      _default
+      ;;
+  esac
+  return 1
+}
+
+_hdiutil "$@"

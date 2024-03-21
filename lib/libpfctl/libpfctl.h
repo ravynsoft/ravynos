@@ -310,6 +310,7 @@ struct pfctl_kill {
 	char			ifname[IFNAMSIZ];
 	char			label[PF_RULE_LABEL_SIZE];
 	bool			kill_match;
+	bool			nat;
 };
 
 struct pfctl_state_peer {
@@ -368,7 +369,6 @@ struct pfctl_state {
 TAILQ_HEAD(pfctl_statelist, pfctl_state);
 struct pfctl_states {
 	struct pfctl_statelist	states;
-	size_t 			count;
 };
 
 enum pfctl_syncookies_mode {
@@ -382,10 +382,13 @@ struct pfctl_syncookies {
 	enum pfctl_syncookies_mode	mode;
 	uint8_t				highwater;	/* Percent */
 	uint8_t				lowwater;	/* Percent */
+	uint32_t			halfopen_states;
 };
 
+int	pfctl_startstop(int start);
 struct pfctl_status* pfctl_get_status(int dev);
 uint64_t pfctl_status_counter(struct pfctl_status *status, int id);
+uint64_t pfctl_status_lcounter(struct pfctl_status *status, int id);
 uint64_t pfctl_status_fcounter(struct pfctl_status *status, int id);
 uint64_t pfctl_status_scounter(struct pfctl_status *status, int id);
 void	pfctl_free_status(struct pfctl_status *status);
@@ -413,6 +416,18 @@ int	pfctl_add_rule(int dev, const struct pfctl_rule *r,
 	    const char *anchor, const char *anchor_call, uint32_t ticket,
 	    uint32_t pool_ticket);
 int	pfctl_set_keepcounters(int dev, bool keep);
+int	pfctl_get_creatorids(uint32_t *creators, size_t *len);
+
+struct pfctl_state_filter {
+	char			ifname[IFNAMSIZ];
+	uint16_t		proto;
+	sa_family_t		af;
+	struct pf_addr		addr;
+	struct pf_addr		mask;
+};
+typedef int (*pfctl_get_state_fn)(struct pfctl_state *, void *);
+int pfctl_get_states_iter(pfctl_get_state_fn f, void *arg);
+int pfctl_get_filtered_states_iter(struct pfctl_state_filter *filter, pfctl_get_state_fn f, void *arg);
 int	pfctl_get_states(int dev, struct pfctl_states *states);
 void	pfctl_free_states(struct pfctl_states *states);
 int	pfctl_clear_states(int dev, const struct pfctl_kill *kill,

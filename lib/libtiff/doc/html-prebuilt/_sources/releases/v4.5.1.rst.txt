@@ -1,0 +1,186 @@
+Changes in TIFF v4.5.1
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.5.1 (:tag:`v4.5.1`)
+    Previous Version        :doc:`v4.5.0 <v4.5.0>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<https://libtiff.gitlab.io/libtiff/>`_
+    Master HTTP Site #3     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+This document provides a summary of significant changes made to the
+software between the *previous* and *current* versions (see
+above). A fully-detailed change summary is provided by the :file:`ChangeLog` file
+included in the release package and by the Git commit history:
+
+.. warning::
+
+    This version will be the last one supporting most TIFF tools (except tiffinfo,
+    tiffdump, tiffcp and tiffset), whose maintenance will be discontinued, due
+    to the lack of contributors able to address reported security issues.
+    Starting with libtiff v4.6.0, their source code, at this time ,will still be
+    available in the source distribution, but they will no longer be built by
+    default, and issues related to them will no longer be accepted in the
+    libtiff bug tracker.
+
+
+.. warning::
+
+    Some CMake related changes, in particular related to the CMake config file
+    now installed, should be considered as a preview and may change in the next
+    releases based on user feedback.
+    See discussion in https://gitlab.com/libtiff/libtiff/-/merge_requests/496
+    and https://gitlab.com/libtiff/libtiff/-/merge_requests/494
+
+Major changes
+-------------
+
+None
+
+Software configuration changes
+------------------------------
+
+* Definition of tags reformatted (clang-format off) for better
+  readability of tag comments in tiff.h and tif_dirinfo.c
+
+* Do not install libtiff-4.pc when tiff-install is reset.
+
+* Add versioninfo resource files for DLL and tools
+  compiled with Windows MSVC and MINGW.
+
+* Disable clang-formatting for tif_config.h.cmake.in and
+  tiffconf.h.cmake.in because sensitive for CMake scripts.
+
+* CMake: make WebP component name compatible with upstream ConfigWebP.cmake
+
+* CMake: make Findliblzma with upstream CMake config file
+
+* CMake: FindDeflate.cmake: fix several errors (:issue:`526`).
+
+* CMake: FindLERC.cmake: version string return added.
+
+* CMake: export TiffConfig.cmake and TiffConfigVersion.cmake files
+
+* CMake: fix export of INTERFACE_INCLUDE_DIRECTORIES
+
+Library changes
+---------------
+
+New/improved functionalities:
+
+* Hardcode HOST_FILLORDER to FILLORDER_LSB2MSB and make 'H' flag of
+  :c:func:`TIFFOpen` to warn and an alias of FILLORDER_MSB2LSB. 
+  :file:`tif_lerc.c`: use WORDS_BIGENDIAN instead of HOST_BIGENDIAN.
+
+* Optimize relative seeking within :c:func:`TIFFSetDirectory`
+  by using the learned list of IFD offsets.
+
+* Improve internal IFD offset and directory number map handling.
+
+* Behavior of :c:func:`TIFFOpen`  mode "r+" in the Windows implementation
+  adjusted to that of Linux.
+
+API/ABI breaks:
+
+* None
+
+Bug fixes:
+
+* TIFFDirectory td_fieldsset type changed from unsigned long, which can
+  be 32 or 64 bits, to uint32_t (fixes :issue:`484`).
+
+* tif_ojpeg.c: checking for division by zero (fixes :issue:`554`).
+
+* LZWDecode(): avoid crash when trying to read again from a strip whith
+  a missing end-of-information marker (fixes :issue:`548`).
+
+* Fixed runtime error: applying zero offset to null pointer
+  in :c:func:`countInkNamesString`.
+
+* Fixing crash in :c:func:`TIFFUnlinkDirectory` when called with
+  directory number zero ("TIFFUnlinkDirectory(**0**)") as well as fixing
+  incorrect behaviour when unlinking the first directory.
+
+* tif_luv: check and correct for NaN data in :c:func:`uv_encode`
+  (:issue:`530`).
+
+* :c:func:`TIFFClose` avoid NULL pointer dereferencing
+  (:issue:`515`).
+
+* tif_hash_set.c: include tif_hash_set.h after tif_config.h
+  to let a chance for GDAL symbol renaming trick.
+
+* Fax3: fix failure to decode some fax3 number_of_images
+  and add test for Fax3 decoding issues
+  (:issue:`513`).
+
+* :c:func:`TIFFSetDirectory` and :c:func:`TIFFWriteDirectorySec` 
+  avoid harmless unsigned-integer-overflow
+  (due to gdal oss-fuzz #54311 and #54343).
+
+* :file:`tif_ojpeg.c`: fix :issue:`554` by checking for division by zero
+  in OJPEGWriteHeaderInfo().
+
+* LZWDecode(): avoid crash when trying to read again from a strip whith
+  a missing end-of-information marker (:issue:`548`).
+
+Documentation
+-------------
+
+* mention TIFFSetTagExtender() cannot add tags to custom directories.
+
+* manpage: add multi page TIFF and SubIFDs description and read / write example.
+
+Tools changes
+-------------
+
+New/improved functionality:
+
+* None
+
+Bug fixes:
+
+* :program:`tiffcrop`: Consider error return of writeSelections() (fixes :issue:`553`).
+
+* :program:`tiffcrop`: fix memory leak
+  (:issue:`475`).
+
+* :program:`tiffcrop`: do not reuse input buffer for subsequent images
+  (:issue:`527`).
+
+* :program:`tiffcrop`: Amend rotateImage() not to toggle the input
+  (main) image width and length parameters when only cropped image
+  sections are rotated. Remove buffptr from region structure
+  because never used. Fixes
+  :issue:`492`, :issue:`493`, :issue:`494`, :issue:`495`,
+  :issue:`499`, :issue:`518`, :issue:`519`.
+
+* :program:`tiffcrop`: correctly update buffersize after rotateImage() 
+  (:issue:`520`).
+
+* :program:`tiffcrop`: added check for assumption on composite images. Fixes
+  :issue:`496`, :issue:`497`, :issue:`498`, :issue:`500`, :issue:`501`.
+
+* :program:`tiffmedian`: avoid zero num_colors
+  (:issue:`477`).
+
+* :program:`fax2ps`: fix buffer overflow in qsort function pcompar
+  (:issue:`475`).
+
+* :program:`tiffset`: get filesize to allocate only the required memory
+  (:issue:`241`).
+
+* :program:`tiffcrop`: fix :issue:`553` by considering error return of writeSelections().
+
+* tif_ovrcache.c: check :c:func:`TIFFSetSubDirectory` return value (CID 1524573).
+
+
+Contributed software changes
+----------------------------
+
+None

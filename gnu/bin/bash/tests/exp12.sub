@@ -1,0 +1,51 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# force single-byte versions of these functions
+
+export LANG=C
+
+# remove shortest trailing match
+x=file.c
+recho ${x%.c}.o
+
+# remove longest trailing match
+x=posix/src/std
+recho ${x%%/*}
+
+# remove shortest leading pattern
+x=$HOME/src/cmd
+recho ${x#$HOME}
+
+# remove longest leading pattern
+x=/one/two/three
+recho ${x##*/}
+
+# and no match thrown in for good measure
+recho ${x#nomatch}
+
+foo=abcdefg
+
+# fail
+echo ${foo%ab}
+echo ${foo%def}
+
+echo ${foo#fg}
+echo ${foo#def}
+
+# succeed
+echo ${foo#ab}
+echo ${foo#def}
+
+echo ${foo%fg}
+echo ${foo%def}

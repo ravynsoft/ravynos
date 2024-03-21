@@ -1,0 +1,19 @@
+#compdef ulimit
+
+[[ $PREFIX = u* ]] && compadd unlimited && return 0
+
+_arguments -s \
+  '-H[set hard limits]' \
+  '-S[set soft and hard limits (with -H)]' \
+  '(-H -S -c -d -f -l -m -n -s -t *)-a[list all current resource limits]' \
+  '-c[core dump size limit]:max core dump size (512-byte blocks)' \
+  '-d[maximum size of data segment]:maximum size of data segment (K-bytes)' \
+  '-f[size of largest file allowed]:size of largest file allowed (512-byte blocks)' \
+  '-l[maximum size of locked in memory]:maximum size of locked in memory (K-bytes)' \
+  '-m[maximum size of physical memory]:maximum size of physical memory (K-bytes)' \
+  '-n[maximum no. of open file descriptors]:maximum no. of open file descriptors' \
+  '-s[stack size limit]:stack size limit (K-bytes)' \
+  '-t[maximum cpu time per process]:maximum cpu time per process (seconds)' \
+  '-u[processes available to the user]:processes' \
+  '-v[maximum size of virtual memory]:maximum size of virtual memory (K-bytes)' \
+  '*:size of largest file allowed'

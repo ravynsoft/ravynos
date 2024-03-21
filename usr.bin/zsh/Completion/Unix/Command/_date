@@ -1,0 +1,104 @@
+#compdef date gdate
+
+local curcontext="$curcontext" state state_descr line ret=1
+local -A opt_args
+local -a opts args
+
+opts=( -s -w -C )
+
+if _pick_variant gnu="Free Software Foundation" unix --version; then
+  local d='(-d --date -f --file -r --reference -s --set)'
+  local f='(-I --iso-8601 -R --rfc-email --rfc-3339)'
+  args=(
+    $d{-d+,--date=}'[output date specified by string]:time string'
+    '--debug[annotate parsed date and warn about questionable usage]'
+    $d{-f+,--file=}'[output dates specified in file]:file:_files'
+    $d{-r+,--reference=}'[output last modification time of specified file]:file:_files'
+    $d{-s+,--set=}'[set time]:time string'
+    $f{-I-,--iso-8601=-}'[display in ISO 8601 format]::precision:(date hours minutes seconds ns)'
+    $f{-R,--rfc-email}'[display in RFC5322 format]'
+    $f'--rfc-3339=-[display in RFC 3339 format]:precision:(date seconds ns)'
+    '(-u --utc --universal)'{-u,--utc,--universal}'[display or set time in UTC]'
+    '(- :)--help[output help and exit]'
+    '(- :)--version[output version info and exit]'
+  )
+else
+  args=( '-u[display or set time in UTC]' )
+  case "$OSTYPE" in
+    solaris*)
+      args+=( '-a:adjustment' )
+    ;;
+    freebsd*|dragonfly*|darwin*|netbsd*|openbsd*)
+      opts+=( -A '-*' )
+      args+=(
+	"-j[don't try to set date]"
+	'2:format or date:->fmt_date'
+      )
+    ;|
+    freebsd*|dragonfly*|darwin*|netbsd*)
+      args+=( '-n[only set time on current machine]' )
+    ;|
+    freebsd*|dragonfly*|darwin*|openbsd*)
+      args+=(
+	'-f+[use specified format for input]:parsing format:_date_formats:new date'
+      )
+    ;|
+    dragonfly*|darwin*|netbsd*|openbsd*)
+      args+=(
+	'-r+[output date specified by reference time]:seconds since epoch'
+      )
+    ;|
+    freebsd*)
+      local -a alts
+      alts=(
+	'seconds:sec:_guard "(0x[0-9a-fA-F]#|[0-9]#)" "seconds since epoch"'
+	'files:file:_files'
+      )
+      args+=(
+	'-r+[reference time: file modification or literal time]:reference: _alternative $alts'
+	'(-R)-I-[display in ISO 8601 format]::precision:(date hours minutes seconds)'
+      )
+    ;|
+    freebsd*|dragonfly*|darwin*)
+      args+=(
+	"*-v+[adjust and print (but don't set) date]:[+-]value[ymwdHMS]"
+      )
+    ;|
+    freebsd<-12>.*|darwin*)
+      args+=(
+	'-d+:daylight saving time value'
+	'-t+:minutes west of GMT'
+      )
+    ;|
+    freebsd*|dragonfly*)
+      args+=( '-R[display in RFC2822 format]' )
+    ;|
+    openbsd*|netbsd*) args+=( '-a[gradually skew]' )
+    ;|
+    openbsd*)
+      args+=( '-z[specify timezone for output]:time zone:_time_zone')
+    ;|
+    netbsd*)
+      args+=( '-d[output date specified by string]:time string:' )
+    ;;
+  esac
+fi
+
+_arguments $opts : $args \
+  '1:format or date:->fmt_date' && ret=0
+
+case $state in
+  (fmt_date)
+    local expl
+    if compset -P '+'; then
+      _wanted date-formats expl 'output format' _date_formats && ret=0
+    elif [[ $words[CURRENT] != -* ]]; then
+      # TODO: in most cases it should be possible to determine which
+      # (or both or neither) of the +format and/or date is allowed
+      # depending on the options already on the command line
+      _message -e date-formats '+format or date' && ret=0
+    fi
+    ;;
+esac
+
+return ret

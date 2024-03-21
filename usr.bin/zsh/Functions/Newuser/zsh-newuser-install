@@ -1,0 +1,1119 @@
+# Function to install startup files for a new user.
+# Currently it only creates or edits .zshrc.
+#
+# It can be run again by giving it the option "-f".
+
+# Sanitize environment.
+emulate -L zsh
+setopt extendedglob nonomatch warncreateglobal
+
+# How the function will be referred to.
+local myname=zsh-newuser-install
+
+# Quick test not requiring any setting up.
+# Don't run if we're root.  (These variables are provided by the shell.)
+if (( EUID == 0 || UID == 0 )); then
+  if [[ $1 = -f ]]; then
+    print -r "$myname: won't run as root.  Read the manual." >&2
+  fi
+  return 1
+fi
+
+# clear is missing in some Cygwin configurations (lacking ncurses)
+if ! ( clear >/dev/null 2>/dev/null ); then
+  if zmodload zsh/termcap 2>/dev/null; then
+    clear() { echotc cl; }
+  else
+    clear() { print -n "\e[H\e[J"; }
+  fi
+fi
+
+# The directory in which to look for and save .zshrc.
+local zd=${ZDOTDIR:-$HOME}
+# The same directory in a user friendly form, i.e. with ~ replacement.
+# (We don't want to use glob_subst since that has other side effects.)
+local zdmsg
+# The message used if an other blank .zshrc is created.
+local msg="# Created by newuser for $ZSH_VERSION"
+# The lines marking the start and end of the section edited.
+local startline="# Lines configured by $myname"
+local endline="# End of lines configured by $myname"
+# Prompts used for reading a key.  The initial "?" is required.
+local shortprompt="?--- Type a key --- "
+local longprompt="?--- Type one of the keys in parentheses --- "
+# Prefix for all temporary files.  Any files starting with this
+# will be removed at the end of the script.
+local tmpfile=${TMPPREFIX:-/tmp/zsh}-zni-$$
+# Report of the state of settings for the top-level menu.
+local -A install_state
+# Values of all parameters etc. to be saved (including
+# those read in from the existing file.)
+local -A parsed_parameters parsed_options parsed_bindings parsed_keymaps
+# Corresponding state in a user-readable form.
+local -A state_parameters state_options state_bindings state_keymaps
+# Indicate whether an option defaults on or off.
+local -A default_options
+# Lines read in from between $startline and $endline which were
+# not understood.  These are retained but moved out of that section
+# with a message.
+local -a unparsed
+# Lines used in submenus: the setting to output in a form
+# that can be exeucuted (an assignment, setopt or unsetopt), a brief message
+# about the setting, and the state copied from and to state_parameters or
+# state_options.  Elements of all three arrays must correspond.
+local -a output_lines display_lines state_lines
+# Variable indicating some of the lines in the above variables
+# have been read in, i.e. the user has already configured the
+# particular set of settings.
+integer lines_read
+# Lines to set up completion.  This is special as it is only
+# edited by compinstall, not this function.
+local -a completion_lines
+# Utility variables
+local -a reply match mbegin mend
+# Key read from user, used all over the place.
+local key
+# For default replies from read
+local REPLY
+integer save lines_found
+
+install_state[history]=Recommended
+install_state[completion]=Recommended
+install_state[bindkey]=Recommended
+
+# Don't save anything if interrupted.
+trap 'save=0' HUP INT QUIT
+
+# Substitute an initial ~ for human consumption.
+if [[ $zd = $HOME(#b)(|/*) ]]; then
+  zdmsg="~$match[1]"
+else
+  zdmsg=$zd
+fi
+
+# Don't run if we can't write to $zd.
+# Assume this is a temporary condition and exit silently---
+# if this really is a new user this probably isn't the right
+# time for screeds of explanation.
+if [[ ! -w $zd ]]; then
+  if [[ $1 = -f ]]; then
+    print -r "$myname: can't write to $zdmsg." >&2
+  fi
+  return 1
+fi
+
+# Don't run unless we can talk to the user.
+if [[ ! -t 0 || ! -t 1 ]]; then
+  if [[ $1 = -f ]]; then
+    print -r "$myname: can only be used interactively." >&2
+  fi
+  return 1
+fi
+
+# Don't run unless terminal is sane.
+if (( ${LINES:-0} < 15 || ${COLUMNS:-0} < 72 )); then
+  return 1
+fi
+
+if [[ $1 != -f ]]; then
+  # The zsh/newuser module already tests for the following, so this test only
+  # triggers if zsh-newuser-install is run by hand.
+  if [[ -e $zd/.zshenv || -e $zd/.zprofile || \
+        -e $zd/.zshrc || -e $zd/.zlogin ]]; then
+    print -r "$myname:  startup files exist, aborting.
+
+Use the argument -f if you want to force the function to be run again." >&2
+    return 1
+  fi
+fi
+
+# start of try block for tidy-up in always block
+{
+
+########################################################################
+# Utility functions
+########################################################################
+
+# All internal functions start with __zni_.  These will be removed
+# when the main function exits.
+
+# Read existing lines from .zshrc, if any.
+__zni_retrieve_lines() {
+  local line
+
+  reply=()
+
+  lines_found=0
+
+  [[ -f $zd/.zshrc ]] || return 1
+
+  grep "$startline" $zd/.zshrc 1>/dev/null 2>&1 || return 1
+
+  lines_found=1
+
+  sed -n "/^[	]*$startline/,/^[	]*$endline/p" $zd/.zshrc |
+  while read -r line; do
+    reply+=($line)
+  done
+
+  return 0
+}
+
+
+# First argument is a state; other arguments are lines
+# to parse.  They should either contain single assignments or
+# setopt or unsetopt statements.  The state for each parameter
+# or option so parsed is set to the value given by the first argument.
+__zni_parse_lines() {
+  local line opt warned first
+  local -a args
+  local state=$1
+
+  shift
+
+  for line in "$@"; do
+    case $line in
+      ((#b)[[:blank:]]#([[:IDENT:]]##)=(*))
+      parsed_parameters[$match[1]]=$match[2]
+      state_parameters[$match[1]]=$state
+      ;;
+
+      ((#b)[[:blank:]]#(un|)setopt[[:blank:]]##(*))
+      # TBD: handle setopt noX / unsetopt X
+      for opt in ${=match[2]}; do
+	opt=${${opt//(#m)[[:upper:]]/${(L)MATCH}}//_}
+	if [[ $match[1] = un ]]; then
+	  parsed_options[$opt]=off
+	else
+	  parsed_options[$opt]=on
+	fi
+	state_options[$opt]=$state
+      done
+      ;;
+
+      ((#b)[[:blank:]]#bindkey[[:blank:]]##(*))
+      args=(${(z)match[1]})
+      # store keys unquoted: will need quoting for output.
+      first=${(Q)args[1]}
+      shift args
+      if [[ $first = -[ev] && ${#args} -eq 0 ]]; then
+	case $first in
+	  (-e)
+	  parsed_keymaps[main]=emacs
+	  ;;
+
+	  (-v)
+	  parsed_keymaps[main]=vi
+	  ;;
+	esac
+	state_keymaps[main]=$state
+      else
+	# TODO: handling keymap options
+	parsed_bindings[first]=${args[2,-1]}
+	state_bindings[first]=$state
+      fi
+      ;;
+
+      ([[:blank:]]#($startline|$endline|))
+      ;;
+
+      (*)
+      unparsed+=($line)
+      print -r "WARNING: failed to understand line:
+  $line
+which will be retained but not edited."
+      warned=1
+      ;;
+    esac
+  done
+
+  if [[ -n $warned ]]; then
+    read -k key$shortprompt
+  fi
+}
+
+# Apply defaults.  Arguments in the form
+#   -p parameter_name default_value description
+#      ...
+#   -o option_name default=on|off description
+#      ...
+# Options on by default should begin !, e.g. !nomatch.  They
+# will still appear under the base option but with an indication that
+# the default is on.  The default applies to the base option.  Hack, sorry.
+#   -b bindkey_string default_value description
+#      ...
+#   -B default_keymap=emacs|vi|none description
+#
+# They're not really defaults (they're not the same as the
+# builtin defaults), so the description output is "not yet saved".
+#
+# All variables to be edited in this section must be mentioned,
+# though defaults can be blank in which case nothing will be
+# saved unless the variable is set by the user.  The description
+# is then "no value set".
+#
+# -B is a bit strange: it's simply designed to allow the user to
+# select "bindkey -e" for Emacs or "bindkey -v" for vi.  It only
+# takes a single argument.  Real key bindings use -b.
+#
+# This operation transfers some subset of settings from the parsed_*
+# and state_* variables to the *_lines variables for editing.
+__zni_apply_defaults() {
+  local un suf
+
+  # Reset the lines to be edited.
+  state_lines=()
+  display_lines=()
+  output_lines=()
+  lines_read=0
+
+  case $1 in
+    (-p)
+    shift
+    while [[ $# -gt 0 && $1 != -* ]]; do
+      # skip default if it was read in
+      if [[ -z $state_parameters[$1] ]]; then
+	parsed_parameters[$1]=$2
+	if [[ -n $2 ]]; then
+	  state_parameters[$1]="not yet saved"
+	else
+	  state_parameters[$1]="no value set"
+	fi
+      elif [[ $state_parameters[$1] = saved ]]; then
+	(( lines_read++ ))
+      fi
+      state_lines+=($state_parameters[$1])
+      display_lines+=("$3")
+      output_lines+=("$1=$parsed_parameters[$1]")
+
+      shift 3
+    done
+    ;;
+
+    (-o)
+    shift
+    while [[ $# -gt 0 && $1 != -* ]]; do
+      # skip default if there was a setting
+      if [[ $1 != ${1##!} ]]; then
+	argv[1]=${1##!}
+	default_options[$1]=on
+      else
+	default_options[$1]=off
+      fi
+      if [[ -z $state_options[$1] ]]; then
+	parsed_options[$1]=$2
+	if [[ -n $2 ]]; then
+	  state_options[$1]="not yet saved"
+	else
+	  state_options[$1]="no value set"
+	fi
+      elif [[ $state_options[$1] = saved ]]; then
+	(( lines_read++ ))
+      fi
+      if [[ $parsed_options[$1] = on ]]; then
+	un=
+	suf=
+      elif [[ -z $parsed_options[$1] && $default_options[$1] = on ]]
+      then
+	un=
+	suf=", default on"
+      else
+	# display as unsetopt even if no value to save yet
+	un=un
+	suf=
+      fi
+      state_lines+=("$state_options[$1]$suf")
+      display_lines+=("$3")
+      output_lines+=("${un}setopt $1")
+
+      shift 3
+    done
+    ;;
+
+    (-b)
+    shift
+    # this will barf on bindings beginning -; there's no good
+    # reason to rebind that, even in vi command mode, so perhaps
+    # we just add it to the sanity checks when we get around to them.
+    while [[ $# -gt 0 && $1 != -* ]]; do
+      if [[ -z $state_bindings[$1] ]]; then
+	parsed_bindings[$1]=$2
+	if [[ -n $2 ]]; then
+	  state_bindings[$1]="not yet saved"
+	else
+	  state_bindings[$1]="no value set"
+	fi
+      elif [[ $state_bindings[$1] = saved ]]; then
+	(( lines_read++ ))
+      fi
+      state_lines+=($state_bindings[$1])
+      display_lines+=("$3")
+      output_lines+=("bindkey ${(qq)1}${2:+ $2}")
+
+      shift 3
+    done
+    ;;
+
+    (-B)
+    shift
+    if [[ -z $state_keymaps[main] ]]; then
+      parsed_keymaps[main]=$1
+      if [[ $1 = none ]]; then
+	state_keymaps[main]="no value set"
+      else
+	state_keymaps[main]="not yet saved"
+      fi
+    elif [[ $state_keymaps[main] = saved ]]; then
+      (( lines_read++ ))
+    fi
+    state_lines+=($state_keymaps[main])
+    display_lines+=("$2")
+    # display as -e even if no value to save yet
+    if [[ $parsed_keymaps[main] = vi ]]; then
+      output_lines+=("bindkey -v")
+    else
+      output_lines+=("bindkey -e")
+    fi
+
+    shift 2
+    ;;
+  esac
+}
+
+
+# Display and edit the settings given by the set of *_lines arrays.
+# If requested by the user, apply the settings, updating the
+# parsed_* and state_* variables.
+__zni_display_and_edit() {
+  integer i changes
+  local default edval ldisp rdisp
+  local -a states displays outputs tstval
+
+  states=("${state_lines[@]}")
+  displays=("${display_lines[@]}")
+  outputs=("${output_lines[@]}")
+
+  if [[ -n ${states[(r)not yet saved]} ]]; then
+    # default should be installed, unless user says otherwise
+    (( changes++ ))
+  fi
+
+  while true; do
+    clear
+    print -r $1
+    # snicker...
+    print -r ${(l.${#1}..=.):-}
+    print
+    if (( $# > 1 )); then
+      print -rl $argv[2,-1]
+      print
+    fi
+
+    # Output each setting with a description and state.
+    for (( i = 1; i <= ${#output_lines}; i++ )); do
+      default=${states[$i]%%,*}
+      if [[ $default = ("no value set"|"not to be saved"*) ]]; then
+	ldisp="# $outputs[$i]"
+      else
+	ldisp=$outputs[$i]
+      fi
+      rdisp=${default:+($default)}
+      print -r "# ($i) $displays[$i]
+$ldisp${(l.$COLUMNS-${#ldisp}-${#rdisp}-1.):-}$rdisp"
+    done
+
+    if (( changes )); then
+      print -r "
+# (0)  Remember edits and return to main menu (does not save file yet)
+# (q)  Abandon edits and return to main menu
+"
+    else
+      print -r "
+# (0) or (q)  Return to main menu (no changes made yet)
+"
+    fi
+    read -k key$longprompt
+    print
+
+    if [[ $key = <-> && $key -ge 1 && $key -le ${#outputs} ]]; then
+      (( i = key ))
+      case $outputs[$i] in
+	((#b)(|un)setopt' '(*))
+	# Try to locate the appropriate section in the manual.
+	# I personally have no wish whatsoever to make this
+	# use sed or awk.  Suggestions welcome.
+	if [[ -s $tmpfile-man-options ]]; then
+	  perl -ne 's/^(\s*)([A-Z]+)_?([A-Z]*)_?([A-Z]*)(\s*\(.+\)|\s*\<.+\>)*\s*$/\L$1$2$3$4\n/ and "'$match[2]'" =~ /^(|no)\L$2$3$4$/ and $print = 1 and next; next unless $print; exit if /^\s*$/; print; ' <$tmpfile-man-options >$tmpfile-man 2>/dev/null
+	else
+	  rm -f $tmpfile-man
+	fi
+	while true; do
+	  clear
+	  if [[ -s $tmpfile-man ]]; then
+	    read <$tmpfile-man
+	    print "Option $match[2]:"
+	    cat $tmpfile-man
+	    print
+	  else
+	    print "Option $match[2]:  $displays[$i]"
+	  fi
+	  print "The option $match[2] is currently ${match[1]:+un}set.
+Type:
+  (s) to set it (turn it on)
+  (u) to unset it (turn it off)
+  (n) neither to set or unset it (use shell default: \
+$default_options[$match[2]])
+  (k) or (q) to keep the current setting:"
+	  read -k key$shortprompt
+	  print
+
+	  case $key in
+	    (s)
+	    (( changes++ ))
+	    outputs[$i]="setopt $match[2]"
+	    states[$i]="set but not saved"
+	    ;;
+
+	    (u)
+	    (( changes++ ))
+	    outputs[$i]="unsetopt $match[2]"
+	    states[$i]="set but not saved"
+	    ;;
+
+	    (n)
+	    (( changes++ ))
+	    outputs[$i]="unsetopt $match[2]"
+	    states[$i]="no value set"
+	    ;;
+
+	    ([kq])
+	    ;;
+
+	    (*)
+	    continue
+	    ;;
+	  esac
+	  break;
+	done
+	;;
+
+	((#b)([^=]##)=(*))
+	if [[ -s $tmpfile-man-param ]]; then
+	  perl -ne 's/^(\s*)([A-Z]+)(\s*\<.+\>)*\s*$/$1$2\n/ and "$2" eq "'$match[1]'" and $print = 1; next unless $print; exit if /^\s*$/; print;' <$tmpfile-man-param >$tmpfile-man 2>/dev/null
+	else
+	  rm -f $tmpfile-man
+        fi
+	if [[ -s $tmpfile-man ]]; then
+	  print -n Variable
+	  cat $tmpfile-man
+	  print
+	else
+	  print -r "Variable ${match[1]}:  $displays[$i]"
+	fi
+	print -r "Edit a value.  If it is left blank, nothing will be saved:"
+	edval=$match[2]
+	if vared -M emacs -p "$match[1]> " -h edval; then
+	  # check this assignment doesn't produce multiple words
+	  # e.g. "HISTFILE=never rm -f ~" does produce multiple words...
+	  # this isn't perfect, e.g. "(this would get split on assignment)",
+	  # but that's fairly benign.
+	  tstval=(${=edval})
+	  if (( ${#tstval} > 1 )); then
+	    print "Error: value isn't a single word.
+Use quotes or backslashes if your value contains spaces.
+Note that you shouldn't quote an initial ~ in file names." >&2
+	    read -k key$shortprompt
+	    # now check the assignment works...
+	    # don't suppress any errors, they may be useful.
+	    # this means we need to suppress warncreateglobal.
+	  elif ! ( typeset -g $match[1]; eval "$match[1]=$edval" ); then
+	    print "Error: bad shell syntax in value.
+The value will be assigned to the variable exactly as you enter it.
+Make sure all quotes are paired." >&2
+	    read -k key$shortprompt
+	  else
+	    outputs[$i]="$match[1]=$edval"
+	    if [[ -n $edval ]]; then
+	      states[$i]="set but not saved"
+	    else
+	      states[$i]="no value set"
+	    fi
+	    (( changes++ ))
+	  fi
+	else
+	  read -k key'?--- Edit abandoned, type a key --- '
+	fi
+	;;
+
+	(bindkey' '-[ev])
+	while true; do
+	  print -nr "Pick a keymap (set of keys) to use when editing.
+Type:
+  (e) for Emacs keymap (recommended unless you are vi user)
+  (v) for Vi keymap
+  (n) not to set a keymap (allow shell to choose)
+  (k) to keep the current setting, "
+	  if [[ ${state_lines[$i]%%,*} = ("no value set"|"not to be saved") ]]
+	  then
+	    print -r "(n):"
+	  elif [[ $output_lines[$i] = *-v ]]; then
+	    print -r "(v):"
+	  else
+	    print -r "(e):"
+	  fi
+	  read -k key$longprompt
+	  case $key in
+	    (e)
+	    (( changes++ ))
+	    outputs[$i]="bindkey -e"
+	    states[$i]="set but not saved"
+	    ;;
+
+	    (v)
+	    (( changes++ ))
+	    outputs[$i]="bindkey -v"
+	    states[$i]="set but not saved"
+	    ;;
+
+	    (n)
+	    (( changes++ ))
+	    outputs[$i]="bindkey -e"
+	    states[$i]="not to be saved"
+	    ;;
+
+	    (k)
+	    ;;
+
+	    (*)
+	    continue
+	    ;;
+	  esac
+	  break
+	done
+	;;
+
+	(bindkey' '*)
+	# TODO: this needs writing.  We need to be able to read
+	# keys and translate them, sanity check them, and ideally
+	# handle keymaps, at least vi command and insert.
+	;;
+
+	(*)
+	print "*** Internal error: bad setting '$outputs[$i]' ***" >&2
+	read -k key'?--- Type a key in forlorn hope --- '
+	;;
+      esac
+    elif [[ $key = 0 ]]; then
+      # Update the *_lines variables
+      state_lines=("${states[@]}")
+      display_lines=("${displays[@]}")
+      output_lines=("${outputs[@]}")
+
+      # Also save any lines suitably marked to parsed_* and state_*
+      # by rerunning __zni_parse_lines on each such line.
+      for (( i = 1; i <= ${#output_lines}; i++ )); do
+	if [[ ${state_lines[$i]%%,*} = \
+	  ("set but not saved"|"not to be saved"|"not yet saved") ]]
+	then
+	  __zni_parse_lines ${state_lines[$i]%%,*} $output_lines[$i]
+	fi
+      done
+
+      return $(( changes == 0 ))
+    elif [[ $key = [qQ] ]]; then
+      return 1
+    fi
+  done
+}
+
+
+# Print and dispatch a submenu.
+# The first argument is the title.  The remaining arguments
+# are pairs of descriptions and functions to execute.
+# There shouldn't be more than 9 entries.
+# The usual entries 0 and q are added automatically.
+__zni_submenu() {
+  local title=$1
+  local desc func
+  local -a descs funcs
+  integer i
+
+  shift
+
+  clear
+  print -r $title
+  print -r ${(l.${#title}..=.):-}
+
+  for desc func; do
+    if [[ -z $func ]]; then
+      print "*** Internal error: bad argument set for __zni_submenu ***" >&2
+      read -k key'?--- Type a key in forlorn hope --- '
+      return 1
+    fi
+
+    descs+=($desc)
+    funcs+=($func)
+  done
+
+  while true; do
+    for (( i = 1; i <= ${#descs}; i++ )); do
+      print -r "
+($i)  $descs[$i]"
+    done
+    print -r "
+(0) or (q)  Return to previous menu"
+
+    read -k key$longprompt
+
+    if [[ $key = [0qQ] ]]; then
+      return 1
+    elif (( key >= 1 && key <= ${#funcs} )); then
+      $funcs[$key]
+    fi
+  done
+}
+
+
+# Save all values that have been edited to .zshrc.
+__zni_save() {
+  local key optline newline
+  local -a on_opts off_opts lines lines2
+  integer i
+
+  # Record lines containing parameter settings, sorted.
+  for key in ${(ok)parsed_parameters}; do
+    if [[ $state_parameters[$key] != ("no value set"|"not to be saved") ]]
+    then
+      lines+=("$key=$parsed_parameters[$key]")
+    fi
+  done
+
+  # Search through sorted options, make list of those to
+  # be turned on and off.  Those marked "no value set" aren't
+  # to be output.
+  for key in ${(ok)parsed_options}; do
+    if [[ $state_options[$key] != ("no value set"|"not to be saved") ]]; then
+      if [[ $parsed_options[$key] = on ]]; then
+	on_opts+=($key)
+      else
+	off_opts+=($key)
+      fi
+    fi
+  done
+
+  # Construct lines of options to turn on, keeping them short.
+  optline="setopt"
+  for (( i = 1; i <= ${#on_opts}; i++ )); do
+    newline="$optline $on_opts[$i]"
+    if [[ ${#newline} -ge 72 ]]; then
+      lines+=($optline)
+      optline="setopt $on_opts[$i]"
+    else
+      optline=$newline
+    fi
+    if (( i == ${#on_opts} )); then
+      lines+=($optline)
+    fi
+  done
+
+  # Construct lines of options to turn off, keeping them short.
+  optline="unsetopt"
+  for (( i = 1; i <= ${#off_opts}; i++ )); do
+    newline="$optline $off_opts[$i]"
+    if [[ ${#newline} -ge 72 ]]; then
+      lines+=($optline)
+      optline="unsetopt $off_opts[$i]"
+    else
+      optline=$newline
+    fi
+    if (( i == ${#off_opts} )); then
+      lines+=($optline)
+    fi
+  done
+
+  # Construct lines of bindkey commands.  First the keymap.
+  if [[ $state_keymaps[main] != (|"no value set"|"not to be saved") ]]; then
+    case $parsed_keymaps[main] in
+      (emacs)
+      lines+=("bindkey -e")
+      ;;
+
+      (vi)
+      lines+=("bindkey -v")
+      ;;
+
+      (none)
+      ;;
+
+      (*)
+      print -r "\
+*** Internal error: bad type $parsed_keymaps[main] for keymap ***" >&2
+      read -k key'?--- Type a key in forlorn hope --- '
+      ;;
+    esac
+  fi
+  # Now bindings.
+  for key in ${(ok)parsed_bindings}; do
+    if [[ $state_bindings[$key] != ("no value set"|"not to be saved") ]]; then
+      lines+=("bindkey ${(qq)key} ${parsed_bindings[$key]}")
+    fi
+  done
+
+  # Save the lines with a start and end marker to a temporary file.
+  print -rl $startline $lines $endline >$tmpfile
+
+  if (( ${#unparsed} )); then
+    print "# The following lines were read by $myname.
+# They were moved here as they could not be understood.
+# $(date)
+${(F)unparsed}
+# End of lines moved by $myname." >>$tmpfile
+  fi
+
+  if grep "$startline"  $zd/.zshrc 1>/dev/null 2>&1; then
+    # Found the start line; replace the section.
+    # We could this by reading the lines in zsh, but in case
+    # the .zshrc is huge it's perhaps better to use sed.
+    sed -e "/^[		]*$endline/r $tmpfile
+/^[	]*$startline/,/^[	]*$endline/d" $zd/.zshrc >${tmpfile}.repl &&
+    cp ${tmpfile}.repl $zd/.zshrc
+  else
+    # No current start marker; just append.
+    cat $tmpfile >>$zd/.zshrc
+  fi
+}
+
+
+########################################################################
+# Specific configurations
+########################################################################
+
+__zni_history_config() {
+  __zni_apply_defaults -p \
+    HISTSIZE 1000 "Number of lines of history kept within the shell." \
+    HISTFILE $zdmsg/.histfile "File where history is saved." \
+    SAVEHIST 1000 "Number of lines of history to save to \$HISTFILE."
+
+  if __zni_display_and_edit "History configuration"; then
+    install_state[history]="Unsaved changes"
+    save=1
+  fi
+}
+
+
+__zni_completion_config() {
+  autoload -Uz compinstall
+  if compinstall -d; then
+    print "The completion system has already been activated.
+You can run the configuration tool (compinstall) at any time by typing
+   autoload -Uz compinstall
+   compinstall
+Do you wish to run it now [y/n]?"
+    read -k key$shortprompt
+    if [[ $key = [yY] ]]; then
+      compinstall
+    fi
+    print
+  else
+    while true; do
+      clear
+      print "The new completion system (compsys) allows you to complete
+commands, arguments and special shell syntax such as variables.  It provides
+completions for a wide range of commonly used commands in most cases simply
+by typing the TAB key.  Documentation is in the zshcompsys manual page.
+If it is not turned on, only a few simple completions such as filenames
+are available but the time to start the shell is slightly shorter.
+
+You can:
+  (1)  Turn on completion with the default options.
+
+  (2)  Run the configuration tool (compinstall).  You can also run
+       this from the command line with the following commands:
+        autoload -Uz compinstall
+        compinstall
+       if you don't want to configure completion now.
+
+  (0)  Don't turn on completion.
+"
+      read -k key$longprompt
+      case $key in
+	(1)
+	completion_lines=${(f)"$(compinstall -o)"}
+	install_state[completion]="Unsaved changes"
+	save=1
+	;;
+
+	(2)
+	if compinstall; then
+	  install_state[completion]="Configured"
+	  # compinstall has done it's thing, so we don't need
+	  # to write anything.
+	  completion_lines=()
+	fi
+	;;
+
+	(0)
+	completion_lines=()
+	install_state[completion]="Recommended"
+	;;
+
+	(*)
+	continue
+	;;
+      esac
+      break
+    done
+  fi
+}
+
+__zni_bindkey_config() {
+  __zni_apply_defaults -B emacs "Change default editing configuration"
+
+  if __zni_display_and_edit "Default editing configuration" \
+    "The keys in the shell's line editor can be made to behave either" \
+    "like Emacs or like Vi, two common Unix editors.  If you have no" \
+    "experience of either, Emacs is recommended.  If you don't pick one," \
+    "the shell will try to guess based on the EDITOR environment variable." \
+    "Usually it's better to pick one explicitly."; then
+    install_state[bindkey]="Unsaved changes"
+    save=1
+  fi
+}
+
+__zni_completion_save() {
+  if (( ${#completion_lines} )); then
+    # We don't try to replace existing lines of completion configuration ---
+    # that's up to compinstall.  We should already have tested that
+    # there was no existing completion set up.
+    print -rl $completion_lines >>$zd/.zshrc
+  fi
+}
+
+
+__zni_options_config() {
+  # when we have enough, should use:
+  #   __zni_submenu "Common shell options"
+
+  # This is deliberately just a tiny selection.
+  # Feel free to extend it, but if you do, consider using __zni_submenu.
+  # The "no" prefix is used to indicate options on by default.
+  __zni_apply_defaults -o autocd '' "Change directory given just path." \
+    extendedglob '' "Use additional pattern matching features." \
+    '!nomatch' '' "Unmatched patterns cause an error." \
+    '!beep' '' "Beep on errors." \
+    notify '' "Immediately report changes in background job status."
+
+  if __zni_display_and_edit "Common shell options" \
+  "The following are some of the shell options that are most often used." \
+  "The descriptions are very brief; if you would like more information," \
+  "read the zshoptions manual page (type \"man zshoptions\")."; then
+    install_state[options]="Unsaved changes"
+    save=1
+  fi
+}
+
+
+########################################################################
+# Main function
+########################################################################
+
+# Read and parse any existing lines, in case the function
+# was called again.
+__zni_retrieve_lines &&
+  __zni_parse_lines saved "$reply[@]"
+
+if [[ $state_parameters[HISTORY] = saved ]]; then
+  install_state[history]="Saved"
+fi
+autoload -Uz compinstall
+zstyle :compinstall filename $zd/.zshrc
+if compinstall -d; then
+  install_state[completion]="Saved"
+fi
+
+
+# skip initial screen if the function was deliberately run by the user.
+if [[ $1 != -f ]]; then
+  clear
+  print -r "This is the Z Shell configuration function for new users,
+$myname.
+You are seeing this message because you have no zsh startup files
+(the files .zshenv, .zprofile, .zshrc, .zlogin in the directory
+$zdmsg).  This function can help you with a few settings that should
+make your use of the shell easier.
+
+You can:
+
+(q)  Quit and do nothing.  The function will be run again next time."
+  if [[ ! -f $zd/.zshrc ]]; then
+    print -r "
+(0)  Exit, creating the file $zdmsg/.zshrc containing just a comment.
+     That will prevent this function being run again."
+  fi
+  print -r "
+(1)  Continue to the main menu.
+"
+  if [[ -f /etc/zsh/newuser.zshrc.recommended ]]; then
+    print -r "(2)  Populate your $zdmsg/.zshrc with the configuration recommended
+     by the system administrator and exit (you will need to edit
+     the file by hand, if so desired).
+"
+  fi
+
+  read -k key$longprompt
+  print
+
+  case $key in
+    ([qQ])
+    return 0
+    ;;
+
+    (0)
+    print -r $msg >$zd/.zshrc
+    return 0
+    ;;
+
+    (1)
+    ;;
+
+    (2)
+    cp /etc/zsh/newuser.zshrc.recommended $zd/.zshrc
+    source $zd/.zshrc
+    return 0
+    ;;
+
+    (*)
+    print -r "Aborting."
+    if [[ $1 != -f ]]; then
+      print "\
+The function will be run again next time.  To prevent this, execute:
+  touch $zdmsg/.zshrc"
+    fi
+    return 1
+    ;;
+  esac
+fi
+
+
+print -r "Attempting to extract information from manual pages..."
+(man zshoptions | col -b > $tmpfile-man-options;
+  man zshparam | col -b > $tmpfile-man-param) 2>/dev/null
+
+while true; do
+  clear
+  print -nr "Please pick one of the following options:
+
+(1)  Configure settings for history, i.e. command lines remembered
+     and saved by the shell.\
+${install_state[history]:+  ($install_state[history].)}
+
+(2)  "
+  if [[ $install_state[completion] = Recommended ]]; then
+    print -nr "Configure"
+  else
+    print -nr "Use"
+  fi
+  print -r " the new completion system.\
+${install_state[completion]:+  ($install_state[completion].)}
+
+(3)  Configure how keys behave when editing command lines.\
+${install_state[bindkey]:+  ($install_state[bindkey].)}
+
+(4)  Pick some of the more common shell options.  These are simple \"on\"
+     or \"off\" switches controlling the shell's features.  \
+${install_state[options]:+  ($install_state[options].)}
+"
+  print -nr "(0)  Exit, "
+  if (( save )); then
+    print -r "saving the new settings.  They will take effect immediately."
+  elif [[ -f $zd/.zshrc ]]; then
+    print -r "leaving the existing $zdmsg/.zshrc alone."
+  else
+    print -r "creating a blank $zdmsg/.zshrc file."
+  fi
+  print -r "
+(a)  Abort all settings and start from scratch.  Note this will overwrite
+     any settings from $myname already in the startup file.
+     It will not alter any of your other settings, however."
+  if [[ $1 = -f ]]; then
+    print -r "
+(q)  Quit and do nothing else."
+  else
+    print -r "
+(q)  Quit and do nothing else.  The function will be run again next time."
+  fi
+
+  read -k key$longprompt
+  print
+
+  case $key in
+    ([qQ])
+    break
+    ;;
+
+    ([aA])
+    parsed_parameters=()
+    state_parameters=()
+    parsed_options=()
+    state_options=()
+    parsed_keymaps=()
+    state_keymaps=()
+    parsed_bindings=()
+    state_bindings=()
+    unparsed=()
+    ;;
+
+    (0)
+    clear
+    if (( save )); then
+      if [[ -f $zd/.zshrc ]]; then
+	cp $zd/.zshrc $zd/.zshrc.zni &&
+	print -r "Copied old '$zdmsg/.zshrc' to '$zdmsg/.zshrc.zni'.
+"
+      fi
+
+      __zni_save
+      __zni_completion_save
+    elif [[ ! -f $zd/.zshrc ]]; then
+      print -r $msg >$zd/.zshrc
+    fi
+    if [[ $1 != -f ]]; then
+      print -r "The function will not be run in future, but you can run
+it yourself as follows:
+  autoload -Uz $myname
+  $myname -f
+
+The code added to $zdmsg/.zshrc is marked by the lines
+$startline
+$endline
+You should not edit anything between these lines if you intend to
+run $myname again.  You may, however, edit any other part
+of the file."
+    fi
+    break
+    ;;
+
+    (1)
+    __zni_history_config
+    ;;
+
+    (2)
+    __zni_completion_config
+    ;;
+
+    (3)
+    __zni_bindkey_config
+    ;;
+
+    (4)
+    __zni_options_config
+    ;;
+  esac
+done
+
+} always {
+  # Tidy up: always executed unless the shell is stopped dead
+  # in its tracks.
+  unfunction -m $myname __zni_\*
+  rm -f $tmpfile*
+}

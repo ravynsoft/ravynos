@@ -1,0 +1,40 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: extraction of contexts, disambiguating according to the
+# argument count.
+
+cat <<\EOF > xg-c-ctxt-2.c
+// (KDE) The 1-argument i18n macro is a simple gettext without context.
+print (i18n ("help"));
+// (KDE) The 2-argument i18n macro has the context first.
+print (i18n ("Help", "about"));
+// (KDE) The 3-argument i18n macro is an ngettext without context.
+print (i18n ("error", "errors", 7));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location \
+  --keyword=i18n:1 --keyword=i18n:1c,2,2t --keyword=i18n:1,2,3t \
+  -d xg-c-ctxt-2.tmp xg-c-ctxt-2.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-ctxt-2.tmp.po > xg-c-ctxt-2.po || Exit 1
+
+cat <<EOF > xg-c-ctxt-2.ok
+msgid "help"
+msgstr ""
+
+msgctxt "Help"
+msgid "about"
+msgstr ""
+
+msgid "error"
+msgid_plural "errors"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-ctxt-2.ok xg-c-ctxt-2.po
+result=$?
+
+exit $result

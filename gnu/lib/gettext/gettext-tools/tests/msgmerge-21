@@ -1,0 +1,80 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgmerge when a message's flags have been changed from c-format to
+# kde-format. Reported by Chusslove Illich (Часлав Илић).
+
+cat <<\EOF > mm-test21.po
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext-tools 0.16\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2007-10-18 02:57+0200\n"
+"PO-Revision-Date: 2007-06-28 16:37+0200\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, c-format
+msgid "Add resource from addressbook"
+msgid_plural "Add %1 resources from addressbook"
+msgstr[0] "Engadir un recurso dende o libro de enderezos"
+msgstr[1] "Engadir %n recursos dende o libro de enderezos"
+EOF
+
+cat <<\EOF > mm-test21.pot
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext-tools 0.16\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2007-10-19 02:57+0200\n"
+"PO-Revision-Date: 2007-06-28 16:37+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, kde-format
+msgid "Add resource from addressbook"
+msgid_plural "Add %1 resources from addressbook"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test21.tmp.po mm-test21.po mm-test21.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test21.tmp.po > mm-test21.new.po || Exit 1
+
+cat <<\EOF > mm-test21.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext-tools 0.16\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2007-10-19 02:57+0200\n"
+"PO-Revision-Date: 2007-06-28 16:37+0200\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, fuzzy, kde-format
+msgid "Add resource from addressbook"
+msgid_plural "Add %1 resources from addressbook"
+msgstr[0] "Engadir un recurso dende o libro de enderezos"
+msgstr[1] "Engadir %n recursos dende o libro de enderezos"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test21.ok mm-test21.new.po || Exit 1
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o mm-test21.mo mm-test21.new.po || Exit 1
+
+Exit 0

@@ -1,0 +1,101 @@
+#source: aix-tls-reloc.s
+#as: -a32
+#ld: -b32 -shared -bE:aix-tls-reloc.ex
+#objdump: -dr -j.data
+#target: [is_xcoff_format]
+
+.*
+
+
+Disassembly of section .data:
+
+.* <foo>:
+.*
+.*
+.*
+.*
+.*
+
+.* <TOC>:
+.*:	ff ff 88 00 .*
+.*: R_TLS	tdata_ext.*
+
+.* <.tdata_ext_gd>:
+.*:	00 00 00 00 .*
+.*: R_TLSM	tdata_ext.*
+
+.* <tdata_ext_ld>:
+.*:	ff ff 88 00 .*
+.*: R_TLS_LD	tdata_ext.*
+
+.* <tdata_ext_ie>:
+.*:	ff ff 88 00 .*
+.*: R_TLS_IE	tdata_ext.*
+
+.* <tdata_ext_le>:
+.*:	ff ff 88 00 .*
+.*: R_TLS_LE	tdata_ext.*
+
+.* <tdata_int1_gd>:
+.*:	ff ff 88 04 .*
+.*: R_TLS	tdata_int_csect.*
+
+.* <.tdata_int1_gd>:
+.*:	00 00 00 00 .*
+.*: R_TLSM	tdata_int_csect.*
+
+.* <tdata_int1_ld>:
+.*:	ff ff 88 04 .*
+.*: R_TLS_LD	tdata_int_csect.*
+
+.* <tdata_int1_ie>:
+.*:	ff ff 88 04 .*
+.*: R_TLS_IE	tdata_int_csect.*
+
+.* <tdata_int1_le>:
+.*:	ff ff 88 04 .*
+.*: R_TLS_LE	tdata_int_csect.*
+
+.* <tdata_int2_gd>:
+.*:	ff ff 88 08 .*
+.*: R_TLS	tdata_int_csect.*
+
+.* <.tdata_int2_gd>:
+.*:	00 00 00 00 .*
+.*: R_TLSM	tdata_int_csect.*
+
+.* <tdata_int2_ld>:
+.*:	ff ff 88 08 .*
+.*: R_TLS_LD	tdata_int_csect.*
+
+.* <tdata_int2_ie>:
+.*:	ff ff 88 08 .*
+.*: R_TLS_IE	tdata_int_csect.*
+
+.* <tdata_int2_le>:
+.*:	ff ff 88 08 .*
+.*: R_TLS_LE	tdata_int_csect.*
+
+.* <tbss_ext_gd>:
+.*:	ff ff 88 10 .*
+.*: R_TLS	tbss_ext.*
+
+.* <.tbss_ext_gd>:
+.*:	00 00 00 00 .*
+.*: R_TLSM	tbss_ext.*
+
+.* <tbss_ext_ld>:
+.*:	ff ff 88 10 .*
+.*: R_TLS_LD	tbss_ext.*
+
+.* <tbss_ext_ie>:
+.*:	ff ff 88 10 .*
+.*: R_TLS_IE	tbss_ext.*
+
+.* <tbss_ext_le>:
+.*:	ff ff 88 10 .*
+.*: R_TLS_LE	tbss_ext.*
+
+.* <_\$TLSML>:
+	...
+.*: R_TLSML	_\$TLSML.*

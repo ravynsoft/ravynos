@@ -1,0 +1,150 @@
+#compdef mozilla mozilla-firefox mozilla-xremote-client firefox iceweasel=firefox
+
+local curcontext="$curcontext" state line expl ret=1 suf
+typeset -A opt_args
+
+local popts="-installer -CreateProfile -P -ProfileWizard -ProfileManager -SelectProfile"
+local -a mozopts
+
+if [[ $service = *remote* ]]; then
+  state=remote
+else
+  if [[ $service = *firefox* ]]; then
+    mozopts=(
+    '-browser[open browser window]' \
+    '-console[start with debugging console]' \
+    '-h[output help message]' \
+    '-help[output help message]' \
+    '-inspector[start with DOM Inspector]:URL to inspect:->location' \
+    '-install-global-extension[install an extension]:extension to install:_files' \
+    '-new-window[load URL in new window]:URL to load:->location' \
+    '-new-tab[load URL in new tab]:URL to load:->location' \
+    '-no-remote[run with multiple profiles]' \
+    '-profile[specify profile file]:profile file:_files' \
+    '-v[show version]' \
+    '-version[show version]' \
+    '-safe-mode[disable extensions and themes for this session]'
+    )
+  else
+    mozopts=(
+      "($popts)-installer[start with 4.x migration window]"
+      "($popts)-ProfileWizard[start with profile wizard]"
+      "($popts)-SelectProfile[start with profile selection dialog]"
+      '-splash[enable splash screen]'
+      '-chat[start with IRC client]'
+      '-news[start with news]'
+      '-venkman[start with JavaScript debugger]'
+      '-terminal[start with command line terminal]'
+      '-mail[start with mail]'
+      '-compose[start with messenger compose]:URL:_urls' 
+    )
+  fi
+  _x_arguments -C  $mozopts \
+    '-height[height of startup window]:height' \
+    '(-)'{-h,-help}'[show usage message]' \
+      "($popts)-CreateProfile:profile" \
+    '-width[width of startup window]:width' \
+    '(-)'{-v,-version}'[show the version number and build date]' \
+    "($popts)-P[start with profile]:profile:->profile" \
+    "($popts)-ProfileManager[start with profile manager]" \
+    '-UILocale:locale' \
+    '-contentLocale:locale' \
+    '-remote[execute a command in an existing Mozilla]:remote command:->remote' \
+    '-jsconsole[start with JavaScript Console]' \
+    '-edit[start with editor]:URL:_urls' \
+    '-chrome[load the specified chrome]:URL:_urls' \
+    '*:location:->urls' && ret=0
+fi
+
+[[ "$state" = "urls" ]] &&
+  _files "$@" && return 0
+
+# Handle mozilla remote commands
+if [[ "$state" = "remote" ]]; then  
+  local -a remote_commands
+  remote_commands=(openURL openFile saveAs mailto addBookmark ping)
+
+  compset -P '*\('
+  if compset -S '(|\\)\)*'; then
+    set - -S "" "$@"
+  else
+    set - -S"${${QIPREFIX:+)}:-\)}$compstate[quote] " "$@"
+  fi
+  case $IPREFIX in
+    openURL*)
+      if compset -P "*,"; then
+        _wanted option expl 'option' compadd "$@" new-tab new-window && ret=0
+      else
+        compset -S ',*'
+        state=urls
+      fi
+    ;;
+    addBookmark*) state=urls;;
+    openFile*) _files "$@" -W ~;;
+    saveAs*) 
+      if compset -P "*,"; then
+        _wanted types expl 'data type' \
+            compadd "$@" -M 'm:{a-zA-Z}={A-Za-z}' HTML Text PostScript && ret=0
+      else
+        compset -S ",*" || suf=","
+        _files -qS "$suf" -W ~ && ret=0
+      fi
+    ;;
+    mailto*)
+      _email_addresses -s, -c && ret=0
+    ;;
+    *)
+      compset -S '(|\\)\(*' || suf="${${QIPREFIX:+(}:-\(}"
+      _wanted commands expl 'remote command' \
+          compadd -qS "$suf" -M 'm:{a-zA-Z}={A-Za-z}' -a \
+                  remote_commands && ret=0
+    ;;
+  esac
+fi
+
+if [[ "$state" = "urls" ]]; then
+  # Complete mozilla urls
+  if compset -P about: ; then
+    _wanted values expl 'about what' \
+        compadd "$@" authors blank cache document fonts global hype image-cache \
+            license logo memory-cache mozilla plugins && ret=0
+  elif compset -P news: ; then
+    _newsgroups "$@" && ret=0
+  elif compset -P mailto: ; then
+    _email_addresses -c && ret=0
+  else
+    _tags prefixes
+    while _tags; do
+      while _next_label prefixes expl 'URL prefix' "$@"; do
+        _urls "$expl[@]" && ret=0
+	compset -S '[^:]*'
+        compadd -S '' "$expl[@]" about: news: mailto: mocha: javascript: && ret=0
+      done
+      (( ret )) || return 0
+    done
+  fi
+fi
+
+if [[ $state == "profile" ]]; then
+  if [[ $service == *firefox* ]]; then
+    local -a profiles text profiledir
+    case "$OSTYPE" in
+    darwin*) profiledir=~/"Library/Application Support/Firefox" ;;
+    *)       profiledir=~/.mozilla/firefox/ ;;
+    esac
+    profiles=(${(f)"$(< ${profiledir}/profiles.ini)"})
+    profiles=(${(M)${profiles}:#(\[Profile|(Path|Name)=)*})
+    text=${(F)profiles}
+    profiles=(${(f)text//(#b)\[Profile([0-9]##)\]
+Name=([^
+]##|)
+Path=([^
+]##|)/$match[2]})
+    profiles=(${profiles%:})
+    compadd $profiles
+  else
+    compadd ~/.mozilla/*/*.slt(\:h\:t)
+  fi
+fi
+
+return ret

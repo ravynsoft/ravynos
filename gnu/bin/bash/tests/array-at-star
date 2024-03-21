@@ -1,0 +1,120 @@
+# test the expansion of ${array[@]} and ${array[*]}, both quoted and
+# unquoted.  the expansions should be exactly analogous to the
+# expansions of $@ and $* quoted and unquoted
+A=(a b)
+
+recho "${A[*]}"
+
+# If IFS is null, the parameters are joined without separators
+IFS=''
+recho "${A[*]}"
+
+# If IFS is unset, the parameters are separated by spaces
+unset IFS
+recho "${A[*]}"
+
+recho "${A[@]}"
+recho ${A[@]}
+
+IFS='/'
+A=(bob 'tom dick harry' joe)
+set ${A[*]}
+recho $#
+recho $1
+recho $2
+recho $3
+
+A=(bob 'tom dick harry' joe)
+set ${A[*]}
+recho $#
+recho $1
+recho $2
+recho $3
+
+A=(bob 'tom dick harry' joe)
+set ${A[@]}
+recho $#
+recho $1
+recho $2
+recho $3
+
+A=(bob 'tom dick harry' joe)
+set ${A[@]}
+recho $#
+recho $1
+recho $2
+recho $3
+
+# according to POSIX.2, unquoted $* should expand to multiple words if
+# $IFS is null, just like unquoted $@
+IFS=''
+A=(bob 'tom dick harry' joe)
+set "${A[*]}"
+recho $#
+recho $1
+recho $2
+recho $3
+
+A=(bob 'tom dick harry' joe)
+set ${A[*]}
+recho $#
+recho $1
+recho $2
+recho $3
+
+A=(bob 'tom dick harry' joe)
+set ${A[@]}
+recho $#
+recho $1
+recho $2
+recho $3
+
+# if IFS is unset, the individual positional parameters are split on
+# " \t\n" if $* or $@ are unquoted
+unset IFS
+A=(bob 'tom dick harry' joe)
+set ${A[*]}
+recho $#
+recho $1
+recho $2
+recho $3
+
+A=(bob 'tom dick harry' joe)
+set ${A[@]}
+recho $#                                              
+recho $1
+recho $2
+recho $3
+
+# but not for "$@" or "$*"
+A=(bob 'tom dick harry' joe)
+set "${A[*]}"
+recho $#
+recho $1
+recho $2
+recho $3
+
+A=(bob 'tom dick harry' joe)
+set "${A[@]}"
+recho $#
+recho $1
+recho $2
+recho $3
+
+# these should both expand the value of A to multiple words
+A=(a b c d e)
+IFS=""
+recho ${A[@]}
+recho "${A[@]}"
+
+# this example is straight from the POSIX.2 rationale and adapted to arrays
+A=(foo bar bam)
+
+recho "${A[@]}"
+recho "${A[*]}"
+
+unset IFS
+
+recho "${A[@]}"
+recho ${A[@]}
+recho "${A[*]}"

@@ -1,0 +1,13 @@
+#name: symver symver16
+#readelf: -srW
+
+#...
+Relocation section .*
+#...
+[0-9a-f]+[ \t]+[0-9a-f]+[ \t]+R_.*[ \t]+[0-9a-f]+[ \t]+(foo@@VERS_1|\.data).*
+#...
+[0-9a-f]+[ \t]+[0-9a-f]+[ \t]+R_.*[ \t]+[0-9a-f]+[ \t]+(bar@VERS_1|\.data).*
+#...
+ +[0-9]+: 0+ +1 +OBJECT +GLOBAL +DEFAULT +[0-9]+ +foo@@VERS_1
+ +[0-9]+: 0+1 +1 +OBJECT +GLOBAL +DEFAULT +[0-9]+ +bar@VERS_1
+#pass

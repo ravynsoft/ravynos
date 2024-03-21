@@ -1,0 +1,24 @@
+Description:
+Simple hash table where the keys are memory blocks.
+
+Files:
+lib/mem-hash-map.h
+lib/mem-hash-map.c
+
+Depends-on:
+obstack
+xalloc
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += mem-hash-map.h mem-hash-map.c
+
+Include:
+"mem-hash-map.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible

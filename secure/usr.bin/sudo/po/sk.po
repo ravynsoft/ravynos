@@ -1,0 +1,858 @@
+# Portable object template file for sudo
+# This file is put in the public domain.
+# Todd C. Miller <Todd.Miller@courtesan.com>, 2011-2015
+# Dušan Kazik <prescott66@gmail.com>, 2015-2016
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sudo 1.8.16b1\n"
+"Report-Msgid-Bugs-To: https://bugzilla.sudo.ws\n"
+"POT-Creation-Date: 2016-02-19 15:48-0700\n"
+"PO-Revision-Date: 2016-03-20 10:56+0100\n"
+"Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
+"Language-Team: Slovak <sk-i18n@lists.linux.sk>\n"
+"Language: sk\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.7\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: lib/util/aix.c:85 lib/util/aix.c:164
+msgid "unable to open userdb"
+msgstr "nie je možné otvoriť userdb"
+
+#: lib/util/aix.c:219
+#, c-format
+msgid "unable to switch to registry \"%s\" for %s"
+msgstr "nie je možné prepnúť na register „%s“ pre %s"
+
+#: lib/util/aix.c:244
+msgid "unable to restore registry"
+msgstr "nie je možné obnoviť register"
+
+#: lib/util/aix.c:267 lib/util/gidlist.c:64 lib/util/gidlist.c:74
+#: lib/util/sudo_conf.c:207 lib/util/sudo_conf.c:290 lib/util/sudo_conf.c:367
+#: lib/util/sudo_conf.c:569 src/conversation.c:75 src/exec.c:863
+#: src/exec_common.c:107 src/exec_common.c:123 src/exec_common.c:132
+#: src/exec_pty.c:684 src/exec_pty.c:692 src/load_plugins.c:52
+#: src/load_plugins.c:65 src/load_plugins.c:215 src/load_plugins.c:238
+#: src/load_plugins.c:303 src/load_plugins.c:318 src/parse_args.c:180
+#: src/parse_args.c:202 src/parse_args.c:370 src/parse_args.c:466
+#: src/parse_args.c:485 src/preserve_fds.c:47 src/preserve_fds.c:130
+#: src/selinux.c:84 src/selinux.c:291 src/selinux.c:416 src/selinux.c:425
+#: src/sesh.c:115 src/sudo.c:201 src/sudo.c:398 src/sudo.c:417 src/sudo.c:481
+#: src/sudo.c:655 src/sudo.c:665 src/sudo.c:685 src/sudo.c:704 src/sudo.c:713
+#: src/sudo.c:722 src/sudo.c:739 src/sudo.c:780 src/sudo.c:790 src/sudo.c:810
+#: src/sudo.c:1215 src/sudo.c:1236 src/sudo.c:1398 src/sudo.c:1492
+#: src/sudo_edit.c:151 src/sudo_edit.c:716 src/sudo_edit.c:813
+#: src/sudo_edit.c:925 src/sudo_edit.c:945
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: lib/util/aix.c:267 lib/util/gidlist.c:64 lib/util/sudo_conf.c:208
+#: lib/util/sudo_conf.c:290 lib/util/sudo_conf.c:367 lib/util/sudo_conf.c:569
+#: src/conversation.c:76 src/exec.c:863 src/exec_common.c:107
+#: src/exec_common.c:124 src/exec_common.c:133 src/exec_pty.c:684
+#: src/exec_pty.c:692 src/load_plugins.c:215 src/load_plugins.c:238
+#: src/load_plugins.c:303 src/load_plugins.c:318 src/parse_args.c:180
+#: src/parse_args.c:202 src/parse_args.c:370 src/parse_args.c:466
+#: src/parse_args.c:485 src/preserve_fds.c:47 src/preserve_fds.c:130
+#: src/selinux.c:84 src/selinux.c:291 src/selinux.c:416 src/selinux.c:425
+#: src/sesh.c:115 src/sudo.c:201 src/sudo.c:398 src/sudo.c:417 src/sudo.c:481
+#: src/sudo.c:810 src/sudo.c:1215 src/sudo.c:1236 src/sudo.c:1398
+#: src/sudo.c:1492 src/sudo_edit.c:151 src/sudo_edit.c:716 src/sudo_edit.c:813
+#: src/sudo_edit.c:925 src/sudo_edit.c:945
+msgid "unable to allocate memory"
+msgstr "nie je možné alokovať pamäť"
+
+#: lib/util/strsignal.c:48
+msgid "Unknown signal"
+msgstr "Neznámy signál"
+
+#: lib/util/strtoid.c:76 lib/util/strtoid.c:104 lib/util/strtomode.c:48
+#: lib/util/strtonum.c:58 lib/util/strtonum.c:176
+msgid "invalid value"
+msgstr "neplatná hodnota"
+
+#: lib/util/strtoid.c:83 lib/util/strtoid.c:111 lib/util/strtomode.c:54
+#: lib/util/strtonum.c:61 lib/util/strtonum.c:188
+msgid "value too large"
+msgstr "hodnota je príliš veľká"
+
+#: lib/util/strtoid.c:89 lib/util/strtomode.c:54 lib/util/strtonum.c:61
+#: lib/util/strtonum.c:182
+msgid "value too small"
+msgstr "hodnota je príliš malá"
+
+#: lib/util/sudo_conf.c:223
+#, c-format
+msgid "invalid Path value `%s' in %s, line %u"
+msgstr "neplatná hodnota pre cestu „%s“ v %s, riadok %u"
+
+#: lib/util/sudo_conf.c:389 lib/util/sudo_conf.c:442
+#, c-format
+msgid "invalid value for %s `%s' in %s, line %u"
+msgstr "neplatná hodnota pre %s „%s“ v %s, riadok %u"
+
+#: lib/util/sudo_conf.c:410
+#, c-format
+msgid "unsupported group source `%s' in %s, line %u"
+msgstr "nepodporovaný zdroj skupiny „%s“ v %s, riadok %u"
+
+#: lib/util/sudo_conf.c:426
+#, c-format
+msgid "invalid max groups `%s' in %s, line %u"
+msgstr ""
+
+#: lib/util/sudo_conf.c:585
+#, c-format
+msgid "unable to stat %s"
+msgstr ""
+
+#: lib/util/sudo_conf.c:588
+#, c-format
+msgid "%s is not a regular file"
+msgstr "%s nie je regulárny súbor"
+
+#: lib/util/sudo_conf.c:591
+#, c-format
+msgid "%s is owned by uid %u, should be %u"
+msgstr "%s je vlastnený identifikátorom uid %u a mal by byť vlastnený %u"
+
+#: lib/util/sudo_conf.c:595
+#, c-format
+msgid "%s is world writable"
+msgstr ""
+
+#: lib/util/sudo_conf.c:598
+#, c-format
+msgid "%s is group writable"
+msgstr ""
+
+#: lib/util/sudo_conf.c:608 src/selinux.c:199 src/selinux.c:212 src/sudo.c:367
+#, c-format
+msgid "unable to open %s"
+msgstr "nie je možné otvoriť %s"
+
+#: src/exec.c:114 src/exec.c:116 src/exec.c:121 src/exec.c:409 src/exec.c:411
+#: src/exec.c:413 src/exec.c:415 src/exec.c:417 src/exec.c:419 src/exec.c:422
+#: src/exec.c:438 src/exec.c:440 src/exec.c:595 src/exec.c:790
+#: src/exec_pty.c:466 src/exec_pty.c:722 src/exec_pty.c:792 src/exec_pty.c:794
+#: src/exec_pty.c:806 src/exec_pty.c:808 src/exec_pty.c:1289
+#: src/exec_pty.c:1291 src/exec_pty.c:1296 src/exec_pty.c:1298
+#: src/exec_pty.c:1312 src/exec_pty.c:1323 src/exec_pty.c:1325
+#: src/exec_pty.c:1327 src/exec_pty.c:1329 src/exec_pty.c:1331
+#: src/exec_pty.c:1333 src/exec_pty.c:1335 src/signal.c:147
+#, c-format
+msgid "unable to set handler for signal %d"
+msgstr ""
+
+#: src/exec.c:126 src/exec_pty.c:838 src/exec_pty.c:1373 src/tgetpass.c:265
+msgid "unable to fork"
+msgstr ""
+
+#: src/exec.c:304 src/exec.c:312 src/exec.c:868 src/exec_pty.c:604
+#: src/exec_pty.c:611 src/exec_pty.c:654 src/exec_pty.c:659 src/exec_pty.c:946
+#: src/exec_pty.c:956 src/exec_pty.c:1001 src/exec_pty.c:1008
+#: src/exec_pty.c:1438 src/exec_pty.c:1445 src/exec_pty.c:1452
+msgid "unable to add event to queue"
+msgstr ""
+
+#: src/exec.c:392
+msgid "unable to create sockets"
+msgstr "nie je možné vytvoriť sokety"
+
+#: src/exec.c:447
+msgid "policy plugin failed session initialization"
+msgstr ""
+
+#: src/exec.c:492
+msgid "error in event loop"
+msgstr ""
+
+#: src/exec.c:510
+msgid "unable to restore tty label"
+msgstr "nie je možné obnoviť menovku rozhrania tty"
+
+#: src/exec.c:603 src/exec_pty.c:498 src/signal.c:86
+#, c-format
+msgid "unable to restore handler for signal %d"
+msgstr ""
+
+#: src/exec.c:721 src/exec_pty.c:1180
+msgid "error reading from signal pipe"
+msgstr "chyba pri čítaní zo zreťazenia signálov"
+
+#: src/exec_common.c:166
+msgid "unable to remove PRIV_PROC_EXEC from PRIV_LIMIT"
+msgstr "nie je možné odstrániť PRIV_PROC_EXEC z PRIV_LIMIT"
+
+#: src/exec_pty.c:188
+msgid "unable to allocate pty"
+msgstr "nie je možné alokovať pty"
+
+#: src/exec_pty.c:766 src/exec_pty.c:775 src/exec_pty.c:783
+#: src/exec_pty.c:1281 src/exec_pty.c:1370 src/signal.c:128 src/tgetpass.c:261
+msgid "unable to create pipe"
+msgstr "nie je možné vytvoriť zreťazenie"
+
+#: src/exec_pty.c:1213
+msgid "error reading from pipe"
+msgstr "chyba pri čítaní zo zreťazenia"
+
+#: src/exec_pty.c:1238
+msgid "error reading from socketpair"
+msgstr ""
+
+#: src/exec_pty.c:1247
+#, c-format
+msgid "unexpected reply type on backchannel: %d"
+msgstr "neočakávaný typ odpovede na zadnom kanále: %d"
+
+#: src/exec_pty.c:1349
+msgid "unable to set controlling tty"
+msgstr "nie je možné nastaviť ovládacie rozhranie tty"
+
+#: src/load_plugins.c:50 src/load_plugins.c:63 src/load_plugins.c:85
+#: src/load_plugins.c:115 src/load_plugins.c:123 src/load_plugins.c:129
+#: src/load_plugins.c:170 src/load_plugins.c:178 src/load_plugins.c:185
+#: src/load_plugins.c:191
+#, c-format
+msgid "error in %s, line %d while loading plugin `%s'"
+msgstr "chyba v %s, riadok%d počas načítania zásuvného modulu „%s“"
+
+#: src/load_plugins.c:87
+#, c-format
+msgid "%s%s: %s"
+msgstr "%s%s: %s"
+
+#: src/load_plugins.c:125
+#, c-format
+msgid "%s must be owned by uid %d"
+msgstr "%s musí byť vlastnený identifikátorom uid %d"
+
+#: src/load_plugins.c:131
+#, c-format
+msgid "%s must be only be writable by owner"
+msgstr "%s musí byť zapisovateľný iba vlastníkom"
+
+#: src/load_plugins.c:172
+#, c-format
+msgid "unable to load %s: %s"
+msgstr "nie je možné načítať %s:%s"
+
+#: src/load_plugins.c:180
+#, c-format
+msgid "unable to find symbol `%s' in %s"
+msgstr "nie je možné nájsť symbol „%s“ v %s"
+
+#: src/load_plugins.c:187
+#, c-format
+msgid "unknown policy type %d found in %s"
+msgstr "našiel sa neplatný typ politiky %d v %s"
+
+#: src/load_plugins.c:193
+#, c-format
+msgid "incompatible plugin major version %d (expected %d) found in %s"
+msgstr "nekompatibilná hlavná verzia zásuvného modulu %d (očakávala sa %d) nájdená v %s"
+
+#: src/load_plugins.c:202
+#, c-format
+msgid "ignoring policy plugin `%s' in %s, line %d"
+msgstr "ignoruje sa zásuvný modul politiky „%s“ v %s, riadok %d"
+
+#: src/load_plugins.c:204
+msgid "only a single policy plugin may be specified"
+msgstr "môže byť určený iba jeden zásuvný modul politiky"
+
+#: src/load_plugins.c:207
+#, c-format
+msgid "ignoring duplicate policy plugin `%s' in %s, line %d"
+msgstr "ignoruje sa zdvojený zásuvný modul politiky „%s“ v %s, riadok %d"
+
+#: src/load_plugins.c:228
+#, c-format
+msgid "ignoring duplicate I/O plugin `%s' in %s, line %d"
+msgstr "ignoruje sa zdvojený vstupno-výstupný zásuvný modul „%s“ v %s, riadok %d"
+
+#: src/load_plugins.c:331
+#, c-format
+msgid "policy plugin %s does not include a check_policy method"
+msgstr "zásuvný modul politiky %s nezahŕňa spôsob check_policy"
+
+#: src/net_ifs.c:173 src/net_ifs.c:190 src/net_ifs.c:335 src/sudo.c:476
+#, c-format
+msgid "internal error, %s overflow"
+msgstr "vnútorná chyba, %s pretečenie"
+
+#: src/parse_args.c:239
+msgid "the argument to -C must be a number greater than or equal to 3"
+msgstr "parameter pre -C musí byť číslo väčšie alebo rovné 3"
+
+#: src/parse_args.c:406
+msgid "you may not specify both the `-i' and `-s' options"
+msgstr "nemôžete určiť naraz voľby „-i“ a „-s“"
+
+#: src/parse_args.c:410
+msgid "you may not specify both the `-i' and `-E' options"
+msgstr "nemôžete určiť naraz voľby „-i“ a „-E“"
+
+#: src/parse_args.c:420
+msgid "the `-E' option is not valid in edit mode"
+msgstr "voľba „-E“ nie je platná v režime úprav"
+
+#: src/parse_args.c:422
+msgid "you may not specify environment variables in edit mode"
+msgstr "nemôžete určiť premenné prostredia v režim úprav"
+
+#: src/parse_args.c:430
+msgid "the `-U' option may only be used with the `-l' option"
+msgstr "voľba „-U“ môže byť použitá iba s voľbou „-l“"
+
+#: src/parse_args.c:434
+msgid "the `-A' and `-S' options may not be used together"
+msgstr "voľby „-A“ a „-S“ nemôžu byť použité zároveň"
+
+#: src/parse_args.c:504
+msgid "sudoedit is not supported on this platform"
+msgstr "sudoedit nie je podporovaný na tejto platforme"
+
+#: src/parse_args.c:577
+msgid "Only one of the -e, -h, -i, -K, -l, -s, -v or -V options may be specified"
+msgstr "Môže byť určená iba jedna z volieb -e, -h, -i, -K, -l, -s, -v alebo -V"
+
+#: src/parse_args.c:591
+#, c-format
+msgid ""
+"%s - edit files as another user\n"
+"\n"
+msgstr ""
+"%s - upravuje súbory ako iný používateľ\n"
+"\n"
+
+#: src/parse_args.c:593
+#, c-format
+msgid ""
+"%s - execute a command as another user\n"
+"\n"
+msgstr ""
+"%s - vykonáva príkaz ako iný používateľ\n"
+"\n"
+
+#: src/parse_args.c:598
+#, c-format
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"Voľby:\n"
+
+#: src/parse_args.c:600
+msgid "use a helper program for password prompting"
+msgstr "použije pomocný program na pýtanie hesla "
+
+#: src/parse_args.c:603
+msgid "use specified BSD authentication type"
+msgstr ""
+
+#: src/parse_args.c:606
+msgid "run command in the background"
+msgstr "spustí príkaz na pozadí"
+
+#: src/parse_args.c:608
+msgid "close all file descriptors >= num"
+msgstr "zavrie všetky popisovače súborov >= číslo"
+
+#: src/parse_args.c:611
+msgid "run command with the specified BSD login class"
+msgstr "spustí príkaz s určenou triedou prihlásenia BSD"
+
+#: src/parse_args.c:614
+msgid "preserve user environment when running command"
+msgstr "zachová rozhranie používateľa, keď sa spúšťa príkaz"
+
+#: src/parse_args.c:616
+msgid "edit files instead of running a command"
+msgstr "upraví súbory namiesto spustenia príkazu"
+
+#: src/parse_args.c:618
+msgid "run command as the specified group name or ID"
+msgstr "spustí príkaz ako určený názov skupiny alebo ID"
+
+#: src/parse_args.c:620
+msgid "set HOME variable to target user's home dir"
+msgstr "nastaví premennú HOME do domovského adresára cieľového používateľa"
+
+#: src/parse_args.c:622
+msgid "display help message and exit"
+msgstr "zobrazí správu pomocníka a skončí"
+
+#: src/parse_args.c:624
+msgid "run command on host (if supported by plugin)"
+msgstr "spustí príkaz na hostiteľovi (ak je podporované zásuvným modulom)"
+
+#: src/parse_args.c:626
+msgid "run login shell as the target user; a command may also be specified"
+msgstr "spustí príkazový riadok prihlásenia, príkaz môže byť tiež určený"
+
+#: src/parse_args.c:628
+msgid "remove timestamp file completely"
+msgstr "úplne odstráni súbor časovej značky"
+
+#: src/parse_args.c:630
+msgid "invalidate timestamp file"
+msgstr "urobí súbor časovej značky neplatným"
+
+#: src/parse_args.c:632
+msgid "list user's privileges or check a specific command; use twice for longer format"
+msgstr "vypíše právomoci používateľa, alebo skontroluje určený príkaz; použite dvakrát pre dlhší formát"
+
+#: src/parse_args.c:634
+msgid "non-interactive mode, no prompts are used"
+msgstr "neinteraktívny režim, nebudú použité žiadne výzvy"
+
+#: src/parse_args.c:636
+msgid "preserve group vector instead of setting to target's"
+msgstr ""
+
+#: src/parse_args.c:638
+msgid "use the specified password prompt"
+msgstr "použije určenú výzvu na heslo"
+
+#: src/parse_args.c:641
+msgid "create SELinux security context with specified role"
+msgstr "vytvorí bezpečnostný kontext systému SELinux s určenou rolou"
+
+#: src/parse_args.c:644
+msgid "read password from standard input"
+msgstr "bude čítať heslo zo štandardného vstupu"
+
+#: src/parse_args.c:646
+msgid "run shell as the target user; a command may also be specified"
+msgstr ""
+
+#: src/parse_args.c:649
+msgid "create SELinux security context with specified type"
+msgstr "vytvorí bezpečnostný kontext systému SELinux s určeným typom"
+
+#: src/parse_args.c:652
+msgid "in list mode, display privileges for user"
+msgstr "v režime výpisu, zobrazí právomoci používateľa"
+
+#: src/parse_args.c:654
+msgid "run command (or edit file) as specified user name or ID"
+msgstr ""
+
+#: src/parse_args.c:656
+msgid "display version information and exit"
+msgstr "zobrazí informácie o verzii a skončí"
+
+#: src/parse_args.c:658
+msgid "update user's timestamp without running a command"
+msgstr ""
+
+#: src/parse_args.c:660
+msgid "stop processing command line arguments"
+msgstr "zastaví spracovávanie parametrov príkazového riadku"
+
+#: src/selinux.c:78
+msgid "unable to open audit system"
+msgstr "nie je možné otvoriť systém auditu"
+
+#: src/selinux.c:88
+msgid "unable to send audit message"
+msgstr "nie je možné odoslať správu auditu"
+
+#: src/selinux.c:116
+#, c-format
+msgid "unable to fgetfilecon %s"
+msgstr "nie je možné vykonať funkciu fgetfilecon na %s"
+
+#: src/selinux.c:121
+#, c-format
+msgid "%s changed labels"
+msgstr ""
+
+#: src/selinux.c:126
+#, c-format
+msgid "unable to restore context for %s"
+msgstr "nie je možné obnoviť kontext pre %s"
+
+#: src/selinux.c:166
+#, c-format
+msgid "unable to open %s, not relabeling tty"
+msgstr "nie je možné otvoriť %s, rozhranie tty nebude mať zmenenú menovku"
+
+#: src/selinux.c:175
+msgid "unable to get current tty context, not relabeling tty"
+msgstr "nie je možné získať aktuálny kontext rozhrania tty, rozhranie tty nebude mať zmenenú menovku"
+
+#: src/selinux.c:182
+msgid "unable to get new tty context, not relabeling tty"
+msgstr "nie je možné získať nový kontext tty, rozhranie tty nebude mať zmenenú menovku"
+
+#: src/selinux.c:189
+msgid "unable to set new tty context"
+msgstr "nie je možné nastaviť nový kontext rozhrania tty"
+
+#: src/selinux.c:255
+#, c-format
+msgid "you must specify a role for type %s"
+msgstr "musíte určiť typ roly pre %s"
+
+#: src/selinux.c:261
+#, c-format
+msgid "unable to get default type for role %s"
+msgstr "nie je možné získať predvolený typ roly %s"
+
+#: src/selinux.c:279
+#, c-format
+msgid "failed to set new role %s"
+msgstr "zlyhalo nastavenie novej roly  %s"
+
+#: src/selinux.c:283
+#, c-format
+msgid "failed to set new type %s"
+msgstr "zlyhalo nastavenie nového typu %s"
+
+#: src/selinux.c:295
+#, c-format
+msgid "%s is not a valid context"
+msgstr "%s nie je platný kontext"
+
+#: src/selinux.c:330
+msgid "failed to get old_context"
+msgstr "zlyhalo získanie old_context"
+
+#: src/selinux.c:336
+msgid "unable to determine enforcing mode."
+msgstr ""
+
+#: src/selinux.c:353
+#, c-format
+msgid "unable to set tty context to %s"
+msgstr "nie je možné nastaviť kontext rozhrania tty na %s"
+
+#: src/selinux.c:392
+#, c-format
+msgid "unable to set exec context to %s"
+msgstr "nie je možné nastaviť kontext exec na %s"
+
+#: src/selinux.c:399
+#, c-format
+msgid "unable to set key creation context to %s"
+msgstr "nie je možné nastaviť kontext tvorby kľúča na %s"
+
+#: src/sesh.c:77
+msgid "requires at least one argument"
+msgstr "vyžaduje aspoň jeden parameter"
+
+#: src/sesh.c:106
+#, c-format
+msgid "invalid file descriptor number: %s"
+msgstr "neplatné číslo popisovača súboru: %s"
+
+#: src/sesh.c:120
+#, c-format
+msgid "unable to run %s as a login shell"
+msgstr "nie je možné spustiť %s ako terminál prihlásenia"
+
+#: src/sesh.c:125 src/sudo.c:1274
+#, c-format
+msgid "unable to execute %s"
+msgstr "nie je možné vykonať %s"
+
+#: src/signal.c:68
+#, c-format
+msgid "unable to save handler for signal %d"
+msgstr ""
+
+#: src/solaris.c:76
+msgid "resource control limit has been reached"
+msgstr "bol dosiahnutý limit ovládania prostriedkov"
+
+#: src/solaris.c:79
+#, c-format
+msgid "user \"%s\" is not a member of project \"%s\""
+msgstr "používateľ „%s“ nie je členom projektu „%s“"
+
+#: src/solaris.c:83
+msgid "the invoking task is final"
+msgstr "vyvolávajúca úloha je konečná"
+
+#: src/solaris.c:86
+#, c-format
+msgid "could not join project \"%s\""
+msgstr "nepodarilo sa vstúpiť do projektu „%s“"
+
+#: src/solaris.c:91
+#, c-format
+msgid "no resource pool accepting default bindings exists for project \"%s\""
+msgstr ""
+
+#: src/solaris.c:95
+#, c-format
+msgid "specified resource pool does not exist for project \"%s\""
+msgstr ""
+
+#: src/solaris.c:99
+#, c-format
+msgid "could not bind to default resource pool for project \"%s\""
+msgstr ""
+
+#: src/solaris.c:105
+#, c-format
+msgid "setproject failed for project \"%s\""
+msgstr "funkcia setproject zlyhala pre projekt „%s“"
+
+#: src/solaris.c:107
+#, c-format
+msgid "warning, resource control assignment failed for project \"%s\""
+msgstr "upozornenie, zlyhalo priradenie ovládania prostriedkov pre projekt „%s“"
+
+#: src/sudo.c:212
+#, c-format
+msgid "Sudo version %s\n"
+msgstr "Verzia programu sudo %s\n"
+
+#: src/sudo.c:214
+#, c-format
+msgid "Configure options: %s\n"
+msgstr "Voľby konfigurácie: %s\n"
+
+#: src/sudo.c:222
+msgid "fatal error, unable to load plugins"
+msgstr "závažná chyba, nie je možné načítať zásuvné moduly"
+
+#: src/sudo.c:230
+msgid "unable to initialize policy plugin"
+msgstr "nie je možné inicializovať zásuvný modul politiky"
+
+#: src/sudo.c:276
+msgid "plugin did not return a command to execute"
+msgstr ""
+
+#: src/sudo.c:292
+#, c-format
+msgid "error initializing I/O plugin %s"
+msgstr "chyba pri inicializácii vstupno-výstupného zásuvného modulu %s"
+
+#: src/sudo.c:318
+#, c-format
+msgid "unexpected sudo mode 0x%x"
+msgstr "neočakávaný režim sudo 0x%x"
+
+#: src/sudo.c:461
+msgid "unable to get group vector"
+msgstr "nie je možné získať vektor skupiny"
+
+#: src/sudo.c:522
+#, c-format
+msgid "unknown uid %u: who are you?"
+msgstr "neznámy identifikátor uid %u: kto ste?"
+
+#: src/sudo.c:859
+#, c-format
+msgid "%s must be owned by uid %d and have the setuid bit set"
+msgstr "%s musí byť vlastnený identifikátorom uid %d a musí mať nastavený bit setuid"
+
+#: src/sudo.c:862
+#, c-format
+msgid "effective uid is not %d, is %s on a file system with the 'nosuid' option set or an NFS file system without root privileges?"
+msgstr "efektívny identifikátor uid nie je %d, je %s na systéme súborov s nastavenou voľbou „nosuid“, alebo na systéme súborov NFS bez právomocí administrátora?"
+
+#: src/sudo.c:868
+#, c-format
+msgid "effective uid is not %d, is sudo installed setuid root?"
+msgstr ""
+
+#: src/sudo.c:999
+#, c-format
+msgid "unknown login class %s"
+msgstr "neznáma trieda prihlásenia %s"
+
+#: src/sudo.c:1012
+msgid "unable to set user context"
+msgstr "nie je možné nastaviť kontext používateľa"
+
+#: src/sudo.c:1026
+msgid "unable to set supplementary group IDs"
+msgstr ""
+
+#: src/sudo.c:1033
+#, c-format
+msgid "unable to set effective gid to runas gid %u"
+msgstr ""
+
+#: src/sudo.c:1039
+#, c-format
+msgid "unable to set gid to runas gid %u"
+msgstr ""
+
+#: src/sudo.c:1046
+msgid "unable to set process priority"
+msgstr "nie je možné nastaviť prioritu procesu"
+
+#: src/sudo.c:1054
+#, c-format
+msgid "unable to change root to %s"
+msgstr "nie je možné zmeniť administrátora na %s"
+
+#: src/sudo.c:1067 src/sudo.c:1073 src/sudo.c:1080
+#, c-format
+msgid "unable to change to runas uid (%u, %u)"
+msgstr ""
+
+#: src/sudo.c:1098
+#, c-format
+msgid "unable to change directory to %s"
+msgstr "nie je možné zmeniť adresár na %s"
+
+#: src/sudo.c:1156
+#, c-format
+msgid "unexpected child termination condition: %d"
+msgstr "neočakávaná podmienka prerušenia potomka: %d"
+
+#: src/sudo.c:1302
+#, c-format
+msgid "policy plugin %s is missing the `check_policy' method"
+msgstr "zásuvnému modulu politiky %s chýba spôsob „check_policy“"
+
+#: src/sudo.c:1320
+#, c-format
+msgid "policy plugin %s does not support listing privileges"
+msgstr "zásuvný modul politiky %s nepodporuje výpis právomocí"
+
+#: src/sudo.c:1337
+#, c-format
+msgid "policy plugin %s does not support the -v option"
+msgstr ""
+
+#: src/sudo.c:1352
+#, c-format
+msgid "policy plugin %s does not support the -k/-K options"
+msgstr ""
+
+#: src/sudo_edit.c:181
+msgid "unable to restore current working directory"
+msgstr "nie je možné obnoviť aktuálny pracovný adresár"
+
+#: src/sudo_edit.c:526 src/sudo_edit.c:630
+#, c-format
+msgid "%s: not a regular file"
+msgstr "%s: nie je regulárny súbor"
+
+#: src/sudo_edit.c:533
+#, c-format
+msgid "%s: editing symbolic links is not permitted"
+msgstr "%s: upravovanie symbolických odkazov nie je dovolené"
+
+#: src/sudo_edit.c:536
+#, c-format
+msgid "%s: editing files in a writable directory is not permitted"
+msgstr "%s: upravovanie súborov v zapisovateľnom adresári nie je dovolené"
+
+#: src/sudo_edit.c:567 src/sudo_edit.c:669
+#, c-format
+msgid "%s: short write"
+msgstr "%s: krátky zápis"
+
+#: src/sudo_edit.c:631
+#, c-format
+msgid "%s left unmodified"
+msgstr "%s zostal nezmenený"
+
+#: src/sudo_edit.c:644 src/sudo_edit.c:830
+#, c-format
+msgid "%s unchanged"
+msgstr "%s nezmenený"
+
+#: src/sudo_edit.c:658 src/sudo_edit.c:680
+#, c-format
+msgid "unable to write to %s"
+msgstr "nie je možné zapísať do %s"
+
+#: src/sudo_edit.c:659 src/sudo_edit.c:678 src/sudo_edit.c:681
+#: src/sudo_edit.c:855 src/sudo_edit.c:859
+#, c-format
+msgid "contents of edit session left in %s"
+msgstr "obsah upravovanej relácie zostal v %s"
+
+#: src/sudo_edit.c:677
+msgid "unable to read temporary file"
+msgstr "nie je možné čítať dočasný súbor"
+
+#: src/sudo_edit.c:760
+msgid "sesh: internal error: odd number of paths"
+msgstr "sesh: vnútorná chyba: nepárne čísla ciest"
+
+#: src/sudo_edit.c:762
+msgid "sesh: unable to create temporary files"
+msgstr "sesh: nie je možné vytvoriť dočasné súbory"
+
+#: src/sudo_edit.c:764 src/sudo_edit.c:862
+#, c-format
+msgid "sesh: unknown error %d"
+msgstr "sesh: neznáma chyba %d"
+
+#: src/sudo_edit.c:854
+msgid "unable to copy temporary files back to their original location"
+msgstr "nie je možné skopírovať dočasné súbory späť do ich pôvodného umiestnenia"
+
+#: src/sudo_edit.c:858
+msgid "unable to copy some of the temporary files back to their original location"
+msgstr "nie je možné skopírovať niektoré z dočasných súborov späť do ich pôvodného umiestnenia"
+
+#: src/sudo_edit.c:901
+#, c-format
+msgid "unable to change uid to root (%u)"
+msgstr "nie je možné zmeniť identifikátor uid na administrátora (%u)"
+
+#: src/sudo_edit.c:918
+msgid "plugin error: missing file list for sudoedit"
+msgstr "chyba zásuvného modulu: chýba zoznam súborov pre sudoedit"
+
+#: src/sudo_edit.c:959 src/sudo_edit.c:972
+msgid "unable to read the clock"
+msgstr "nie je možné čítať hodiny"
+
+#: src/tgetpass.c:107
+msgid "no tty present and no askpass program specified"
+msgstr ""
+
+#: src/tgetpass.c:116
+msgid "no askpass program specified, try setting SUDO_ASKPASS"
+msgstr ""
+
+#: src/tgetpass.c:276
+#, c-format
+msgid "unable to set gid to %u"
+msgstr "nie je možné nastaviť identifikátor gid na %u"
+
+#: src/tgetpass.c:280
+#, c-format
+msgid "unable to set uid to %u"
+msgstr "nie je možné nastaviť identifikátor uid na %u"
+
+#: src/tgetpass.c:285
+#, c-format
+msgid "unable to run %s"
+msgstr "nie je možné spustiť %s"
+
+#: src/utmp.c:266
+msgid "unable to save stdin"
+msgstr "nie je možné uložiť štandardný vstup stdin"
+
+#: src/utmp.c:268
+msgid "unable to dup2 stdin"
+msgstr ""
+
+#: src/utmp.c:271
+msgid "unable to restore stdin"
+msgstr "nie je možné obnoviť štandardný vstup stdin"

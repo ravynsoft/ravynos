@@ -1,0 +1,2 @@
+${THIS_SH} ./getopts.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} getopts.right && rm -f ${BASH_TSTOUT}

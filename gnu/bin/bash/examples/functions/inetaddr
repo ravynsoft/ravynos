@@ -1,0 +1,79 @@
+#
+#  Chet Ramey <chet.ramey@case.edu>
+#
+#  Copyright 2002 Chester Ramey
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2, or (at your option)
+#   any later version.
+#
+#   TThis program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+#
+# inet2hex - Internet address conversion, dotted-decimal to hex
+#
+inet2hex ()
+{
+	local IFS
+
+	IFS=.
+	set -- $1
+
+	if (( $# != 4 )); then
+		echo "inet2hex: incorrect input format: $1" >&2
+		echo "inet2hex: usage: inet2hex XX.XX.XX.XX" >&2
+		return 2
+	fi
+  
+	printf "0x%02x%02x%02x%02x\n" $1 $2 $3 $4
+}
+
+#
+# hex2inet - Internet address conversion, hex to dotted-decimal
+#
+hex2inet ()
+{
+	local x1 x2 x3 x4
+	local rev
+
+	OPTIND=1
+	while getopts "r" o
+	do
+		case "$o" in
+		r)	rev=true;;
+		*)	echo "hex2inet: usage: hex2inet [-r] [0x]XXXXXXXX" >&2 ; exit 2;;
+		esac
+	done
+	shift $(( $OPTIND - 1 ))
+
+	case "$1" in
+	0x*)	h=${1#??} ;;
+	*)	h=$1 ;;
+	esac
+
+	if (( ${#h} != 8 )); then
+		echo "hex2inet: $h not in inet format" >&2
+		echo "hex2inet: usage: hex2inet [0x]XXXXXXXX" >&2
+		return 2
+	fi
+
+	x1=$(( 0x${h:0:2} ))
+	x2=$(( 0x${h:2:2} ))
+	x3=$(( 0x${h:4:2} ))
+	x4=$(( 0x${h:6:2} ))
+
+	if [ -z "$rev" ] ; then
+		printf "%d.%d.%d.%d\n" $x1 $x2 $x3 $x4 
+	else
+		printf "%d.%d.%d.%d\n" $x4 $x3 $x2 $x1 
+	fi
+	return 0
+}

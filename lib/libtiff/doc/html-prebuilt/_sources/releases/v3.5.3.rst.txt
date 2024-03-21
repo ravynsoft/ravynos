@@ -1,0 +1,97 @@
+Changes in TIFF v3.5.3
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.5.3 (:tag:`Release-v3-5-3`)
+  Previous Version        :doc:`v3.5.2 <v3.5.2>`
+  Master Download Site    `<ftp://ftp.onshore.com/pub/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+Please note the most important change: **LZW compression has been removed**.
+
+Unisys has the patent on LZW compression and have been very active in
+their enforcement of late, demanding payments of $5000 or more from
+websites using unlicensed software to create GIF's.  They could well
+do the same do persons using libtiff to create LZW compressed TIFF
+images.
+
+From `Burn All GIF's Day <http://burnallgifs.org>`_:
+
+  The catch is that it appears to be difficult or impossible to get a
+  Unisys license to use LZW in free software that complies with the Open
+  Source Definition
+
+Unfortunately, the removal of LZW compression means that saved image size has
+grown dramatically.  Without a change in the TIFF spec to support
+another lossless compression format, this is unavoidable.
+
+The library can use zip for lossless compression, but as this is not
+part of the spec, TIFFs using zip compression may not work with other
+software.
+
+We will be making a patch available that will contain the LZW
+compression code for users who have either obtained a license from
+Unisys or are willing to risk it.
+
+LZW decompression is unchanged.
+
+
+Software configuration changes
+------------------------------
+
+* Added zip creation to release makefile target 
+
+
+Library changes
+---------------
+
+* Added html for :file:`TIFFWriteTile.3t` man page.
+  
+* Added some changes to :file:`tif_write.c` to support rewriting existing
+  fixed sized tiles and strips.  Code mods disabled by default, only
+  enabled if :c:macro:`REWRITE_HACK` is defined for now.
+  
+* Added :file:`TIFFWriteTile.3t` man page.
+  
+* Added notes on use of :file:`makefile.vc` in :file:`build.html`, and fixed
+  email subscription address.
+  
+* Did some casts cleaning up to reduce compiler warnings in :file:`tif_fax3.c`,
+  from `Bruce Cameron <cameron@petris.com>`_---modifications of
+  changes made by Frank (sun cc still complained on cast). 
+  
+* fixed various VC++ warnings as suggested by `Gilles Vollant
+  <info@winimage.com>`_.
+  
+* Modified :file:`TIFFquery.3t` man pages info on :c:func:`TIFFIsByteSwapped` to
+  not imply applications are responsible for image data swapping.
+  
+*  HTML-ized the man pages, added to :file:`html/man`.
+  
+*  Removed LZW Compression to comply with Unisys patent extortion. 
+  
+* Corrected one remaining ``16 -> 32`` bit value in :file:`tif_fax3.c`,
+  From  `Ivo Penzar <ivo.penzar@infolink-software.com>`_.
+  
+* Added patch from Ivo Penzar to have :c:func:`TiffAdvanceDirectory` handle
+  memory mapped files. `Ivo Penzar <ivo.penzar@infolink-software.com>`_.
+
+
+Contributed software changes
+----------------------------
+
+*  Fixed apocalypse-inducing y2k bug in :file:`contrib/ras/ras2tiff.c`

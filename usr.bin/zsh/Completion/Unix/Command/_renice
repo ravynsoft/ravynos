@@ -1,0 +1,21 @@
+#compdef renice
+
+if [[ $CURRENT = 2 ]]; then
+  _message -e priority
+else
+  local opts ret=1
+  opts=(
+    '-g:interpret args as process group IDs'
+    '-u:interpret args as user names'
+    '-p:interpret args as process IDs'
+  )
+  _describe -o option opts && ret=0
+
+  case ${(v)words[(I)-?]} in
+    -g) _pgids && ret=0 ;;
+    -u) _users && ret=0 ;;
+    *)  _pids && ret=0;;
+  esac
+fi
+
+return ret

@@ -1,0 +1,65 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Perl brace format strings.
+
+cat <<\EOF > f-pb-1.data
+# Invalid: no argument
+"abc"
+# Valid: a named argument
+"abc{value}"
+# Invalid: an empty name
+"abc{}"
+# Invalid: unterminated name
+"abc{value"
+# Valid: three arguments, two with equal names
+"abc{addr},{char},{addr}"
+# Invalid: place-holder contains a space.
+"{foo bar}"
+# Invalid: missing right angle bracket.
+"{foo bar"
+# Valid: not nested, but one single place-holder.
+"{foo{bar}baz}"
+# Valid: no nesting error, but one single place-holder.
+"{foo{bar}baz"
+# Valid: place-holder with spaces must be ignored, but still one remaining.
+"{foo bar} {baz}"
+# Invalid: percent sign not allowed.
+"{foo%bar}"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-pb-1-$n.in
+gettext(${string});
+EOF
+  ${XGETTEXT} -L Perl -o f-pb-1-$n.po f-pb-1-$n.in || Exit 1
+  test -f f-pb-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep perl-brace-format f-pb-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep perl-brace-format f-pb-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-pb-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-pb-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-pb-1-$n.in f-pb-1-$n.po
+done < f-pb-1.data
+
+Exit 0

@@ -1,0 +1,115 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2011-2015, 2017-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+includedir = @includedir@
+scriptdir = $(top_srcdir)/scripts
+cross_compiling = @CROSS_COMPILING@
+
+# Our install program supports extra flags...
+INSTALL = $(SHELL) $(scriptdir)/install-sh -c
+INSTALL_OWNER = -o $(install_uid) -g $(install_gid)
+
+# Where to install things...
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+sbindir = @sbindir@
+sysconfdir = @sysconfdir@
+adminconfdir = @adminconfdir@
+libexecdir = @libexecdir@
+datarootdir = @datarootdir@
+localstatedir = @localstatedir@
+
+# User and group ids the installed files should be "owned" by
+install_uid = 0
+install_gid = 0
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+all:
+
+depend:
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file include/Makefile
+
+.SUFFIXES: .h
+
+pre-install:
+
+install: install-includes
+
+install-dirs:
+	$(SHELL) $(scriptdir)/mkinstalldirs $(DESTDIR)$(includedir)
+
+install-binaries:
+
+install-doc:
+
+install-includes: install-dirs
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 $(srcdir)/sudo_plugin.h $(DESTDIR)$(includedir)
+
+install-plugin:
+
+install-fuzzer:
+
+uninstall:
+	-rm -f $(DESTDIR)$(includedir)/sudo_plugin.h
+
+splint:
+
+cppcheck:
+
+pvs-log-files:
+
+pvs-studio:
+
+fuzz:
+
+check-fuzzer:
+
+check: check-fuzzer
+
+check-verbose: check
+
+clean:
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile
+
+clobber: distclean
+
+realclean: distclean
+
+cleandir: distclean
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean

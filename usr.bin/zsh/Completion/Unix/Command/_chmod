@@ -1,0 +1,96 @@
+#compdef chmod gchmod zf_chmod
+
+local curcontext="$curcontext" state line expl ret=1 variant
+local -a args privs aopts
+
+# usual -* pattern picks up valid non-options, e.g. -x which is like a-x
+aopts=( -A '-[^gorstuwxX]*' )
+
+args=( '*: :->files' '1: :_file_modes' )
+
+_pick_variant -r variant -b zsh gnu=Free\ Soft $OSTYPE --version
+case "$variant" in
+  zsh)
+    # Assign, not append because zf_chmod only supports octal modes.
+    args=(
+      '-R[change files and directories recursively]'
+      '-s[enable paranoid behavior]'
+      '1: :_guard "[0-7]#" "octal mode"'
+      '*: :->files'
+    )
+    ;;
+  gnu)
+    aopts=()
+    args+=(
+      '(-v --verbose -c --changes)'{-c,--changes}'[report changes made]'
+      '(-v --verbose -c --changes)'{-v,--verbose}'[output a diagnostic for every file processed]'
+      '(-f --silent --quiet)'{-f,--silent,--quiet}'[suppress most error messages]'
+      '(--no-preserve-root)--preserve-root[fail to operate recursively on /]'
+      "(--preserve-root)--no-preserve-root[don't treat / specially (default)]"
+      '(1)--reference=[copy permissions of specified file]:file:_files'
+      '(-R --recursive)'{-R,--recursive}'[change files and directories recursively]'
+      '(- : *)--help[display help information]'
+      '(- : *)--version[display version information]'
+    )
+    ;;
+  *)
+    args+=(
+      '-f[suppress most error messages]'
+      '-R[change files and directories recursively]'
+    )
+    ;|
+  freebsd*|dragonfly*|darwin*)
+    args+=(
+      '-v[output a diagnostic for every file processed]'
+    )
+    ;|
+  freebsd*|netbsd*|darwin*|dragonfly*)
+    args+=(
+      '-h[operate on symlinks themselves]'
+    )
+    ;|
+  freebsd*|openbsd*|netbsd*|darwin*|dragonfly*)
+    args+=(
+      '(-H -L -P)-L[follow all symlinks]'
+      '(-H -L -P)-H[follow symlinks on the command line]'
+      '(-H -L -P)-P[do not follow symlinks (default)]'
+    )
+    ;|
+  darwin*)
+    args+=(
+      '(1)-C[return false if any specified files have ACLs]'
+      '(1)-N[remove ACLs from specified files]'
+      '(1)-E[read ACL info from stdin as sequential list of ACEs]'
+      "(1)-i[remove inherited bit from all entries in specified files' ACLs]"
+      "(1)-I[remove all inherited entries from specified files' ACLs]"
+    )
+    ;;
+esac
+
+_arguments -C -s -S $aopts "$args[@]" && ret=0
+
+case "$state" in
+  files)
+    if [[ -n $opt_args[--reference] ]]; then
+      zmodload -F zsh/stat b:zstat 2>/dev/null
+      typeset -i8 ref=$(zstat +mode $opt_args[--reference])
+      _wanted files expl file _files -g "*(-.^f${ref#??})" && ret=0
+    elif [[ $line[1] = [0-7]## ]]; then
+      _wanted files expl file _files -g "*(-.^f$line[1])" && ret=0
+    else
+      local spec who op priv
+      local -a specs
+      for spec in ${(s:,:)line[1]}; do
+        if [[ ${spec#*[+-=]} != [rwxst]## ]]; then
+          _files && ret=0
+          return ret
+        fi
+
+        specs+=( ${${(M)spec##[+-=]*}:+a}$spec )
+      done
+      _wanted files expl file _files -g "*(-.^f:${(j.,.)specs}:)" && ret=0
+    fi
+  ;;
+esac
+
+return ret

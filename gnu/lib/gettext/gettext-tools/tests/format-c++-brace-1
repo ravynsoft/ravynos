@@ -1,0 +1,569 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of C++ format strings.
+
+cat <<\EOF > f-c++-1.data
+# Valid: no argument
+"abc{{"
+# Valid: no argument
+"abc}}"
+
+# Valid: one argument of any type
+"abc{}"
+# Valid: one argument of any type
+"abc{:}"
+# Valid: one argument of type [integer, character, bool]
+"abc{:b}"
+# Valid: one argument of type [integer, character, bool]
+"abc{:B}"
+# Valid: one argument of type [integer, character, bool]
+"abc{:d}"
+# Valid: one argument of type [integer, character, bool]
+"abc{:o}"
+# Valid: one argument of type [integer, character, bool]
+"abc{:x}"
+# Valid: one argument of type [integer, character, bool]
+"abc{:X}"
+# Valid: one argument of type [float]
+"abc{:a}"
+# Valid: one argument of type [float]
+"abc{:A}"
+# Valid: one argument of type [float]
+"abc{:e}"
+# Valid: one argument of type [float]
+"abc{:E}"
+# Valid: one argument of type [float]
+"abc{:f}"
+# Valid: one argument of type [float]
+"abc{:F}"
+# Valid: one argument of type [float]
+"abc{:g}"
+# Valid: one argument of type [float]
+"abc{:G}"
+# Valid: one argument of type [integer, character]
+"abc{:c}"
+# Valid: one argument of type [string, bool]
+"abc{:s}"
+# Valid: one argument of type [pointer]
+"abc{:p}"
+
+# Valid: align option
+"abc{:<}"
+# Valid: align option
+"abc{:>}"
+# Valid: align option
+"abc{:^}"
+# Valid: fill-and-align option
+"abc{:_<}"
+# Valid: fill-and-align option
+"abc{:->}"
+# Valid: fill-and-align option
+"abc{:=^}"
+# Invalid: repeated fill-and-align option
+"abc{:_<>}"
+# Valid: align option, one argument of type [integer, character, bool]
+"abc{:^b}"
+# Valid: align option, one argument of type [integer, character, bool]
+"abc{:^B}"
+# Valid: align option, one argument of type [integer, character, bool]
+"abc{:^d}"
+# Valid: align option, one argument of type [integer, character, bool]
+"abc{:^o}"
+# Valid: align option, one argument of type [integer, character, bool]
+"abc{:^x}"
+# Valid: align option, one argument of type [integer, character, bool]
+"abc{:^X}"
+# Valid: align option, one argument of type [float]
+"abc{:^a}"
+# Valid: align option, one argument of type [float]
+"abc{:^A}"
+# Valid: align option, one argument of type [float]
+"abc{:^e}"
+# Valid: align option, one argument of type [float]
+"abc{:^E}"
+# Valid: align option, one argument of type [float]
+"abc{:^f}"
+# Valid: align option, one argument of type [float]
+"abc{:^F}"
+# Valid: align option, one argument of type [float]
+"abc{:^g}"
+# Valid: align option, one argument of type [float]
+"abc{:^G}"
+# Valid: align option, one argument of type [integer, character]
+"abc{:^c}"
+# Valid: align option, one argument of type [string, bool]
+"abc{:^s}"
+# Valid: align option, one argument of type [pointer]
+"abc{:^p}"
+
+# Valid: sign option, one argument of type [integer, float]
+"abc{:+}"
+# Valid: sign option, one argument of type [integer, float]
+"abc{:-}"
+# Valid: sign option, one argument of type [integer, float]
+"abc{: }"
+# Invalid: repeated sign option
+"abc{:+-}"
+# Valid: sign option, one argument of type [integer, character, bool]
+"abc{:-b}"
+# Valid: sign option, one argument of type [integer, character, bool]
+"abc{:-B}"
+# Valid: sign option, one argument of type [integer, character, bool]
+"abc{:-d}"
+# Valid: sign option, one argument of type [integer, character, bool]
+"abc{:-o}"
+# Valid: sign option, one argument of type [integer, character, bool]
+"abc{:-x}"
+# Valid: sign option, one argument of type [integer, character, bool]
+"abc{:-X}"
+# Valid: sign option, one argument of type [float]
+"abc{:-a}"
+# Valid: sign option, one argument of type [float]
+"abc{:-A}"
+# Valid: sign option, one argument of type [float]
+"abc{:-e}"
+# Valid: sign option, one argument of type [float]
+"abc{:-E}"
+# Valid: sign option, one argument of type [float]
+"abc{:-f}"
+# Valid: sign option, one argument of type [float]
+"abc{:-F}"
+# Valid: sign option, one argument of type [float]
+"abc{:-g}"
+# Valid: sign option, one argument of type [float]
+"abc{:-G}"
+# Valid: sign option, one argument of type [integer]
+"abc{:-c}"
+# Invalid: sign option, no possible argument type
+"abc{:-s}"
+# Invalid: sign option, no possible argument type
+"abc{:-p}"
+
+# Valid: '#' option, one argument of type [integer, float]
+"abc{:#}"
+# Invalid: repeated '#' option
+"abc{:##}"
+# Valid: '#' option, one argument of type [integer, character, bool]
+"abc{:#b}"
+# Valid: '#' option, one argument of type [integer, character, bool]
+"abc{:#B}"
+# Valid: '#' option, one argument of type [integer, character, bool]
+"abc{:#d}"
+# Valid: '#' option, one argument of type [integer, character, bool]
+"abc{:#o}"
+# Valid: '#' option, one argument of type [integer, character, bool]
+"abc{:#x}"
+# Valid: '#' option, one argument of type [integer, character, bool]
+"abc{:#X}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#a}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#A}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#e}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#E}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#f}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#F}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#g}"
+# Valid: '#' option, one argument of type [float]
+"abc{:#G}"
+# Valid: '#' option, one argument of type [integer]
+"abc{:#c}"
+# Invalid: '#' option, no possible argument type
+"abc{:#s}"
+# Invalid: '#' option, no possible argument type
+"abc{:#p}"
+
+# Valid: '0' option, one argument of type [integer, float]
+"abc{:0}"
+# Invalid: repeated '0' option
+"abc{:00}"
+# Valid: '0' option, one argument of type [integer, character, bool]
+"abc{:0b}"
+# Valid: '0' option, one argument of type [integer, character, bool]
+"abc{:0B}"
+# Valid: '0' option, one argument of type [integer, character, bool]
+"abc{:0d}"
+# Valid: '0' option, one argument of type [integer, character, bool]
+"abc{:0o}"
+# Valid: '0' option, one argument of type [integer, character, bool]
+"abc{:0x}"
+# Valid: '0' option, one argument of type [integer, character, bool]
+"abc{:0X}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0a}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0A}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0e}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0E}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0f}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0F}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0g}"
+# Valid: '0' option, one argument of type [float]
+"abc{:0G}"
+# Valid: '0' option, one argument of type [integer]
+"abc{:0c}"
+# Invalid: '0' option, no possible argument type
+"abc{:0s}"
+# Invalid: '0' option, no possible argument type
+"abc{:0p}"
+
+# Valid: width option
+"abc{:9}"
+# Valid: width option
+"abc{:99}"
+# Valid: width option
+"abc{:999999999999999999999999}"
+# Valid: width option that takes an argument
+"abc{:{}}"
+# Invalid: repeated width option that takes an argument
+"abc{:{}{}}"
+# Invalid: unterminated directive after width option
+"abc{:{}"
+# Valid: width option, one argument of type [integer, character, bool]
+"abc{:9b}"
+# Valid: width option, one argument of type [integer, character, bool]
+"abc{:9B}"
+# Valid: width option, one argument of type [integer, character, bool]
+"abc{:9d}"
+# Valid: width option, one argument of type [integer, character, bool]
+"abc{:9o}"
+# Valid: width option, one argument of type [integer, character, bool]
+"abc{:9x}"
+# Valid: width option, one argument of type [integer, character, bool]
+"abc{:9X}"
+# Valid: width option, one argument of type [float]
+"abc{:9a}"
+# Valid: width option, one argument of type [float]
+"abc{:9A}"
+# Valid: width option, one argument of type [float]
+"abc{:9e}"
+# Valid: width option, one argument of type [float]
+"abc{:9E}"
+# Valid: width option, one argument of type [float]
+"abc{:9f}"
+# Valid: width option, one argument of type [float]
+"abc{:9F}"
+# Valid: width option, one argument of type [float]
+"abc{:9g}"
+# Valid: width option, one argument of type [float]
+"abc{:9G}"
+# Valid: width option, one argument of type [integer, character]
+"abc{:9c}"
+# Valid: width option, one argument of type [string, bool]
+"abc{:9s}"
+# Valid: width option, one argument of type [pointer]
+"abc{:9p}"
+
+# Valid: precision option
+"abc{:.9}"
+# Valid: precision option
+"abc{:.99}"
+# Valid: precision option
+"abc{:.999999999999999999999999}"
+# Invalid: unterminated precision option
+"abc{:.}"
+# Valid: precision option that takes an argument
+"abc{:.{}}"
+# Invalid: repeated precision option that takes an argument
+"abc{:.{}.{}}"
+# Invalid: unterminated directive after precision option
+"abc{:.{}"
+# Invalid: precision option, no possible argument type
+"abc{:.9b}"
+# Invalid: precision option, no possible argument type
+"abc{:.9B}"
+# Invalid: precision option, no possible argument type
+"abc{:.9d}"
+# Invalid: precision option, no possible argument type
+"abc{:.9o}"
+# Invalid: precision option, no possible argument type
+"abc{:.9x}"
+# Invalid: precision option, no possible argument type
+"abc{:.9X}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9a}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9A}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9e}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9E}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9f}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9F}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9g}"
+# Valid: precision option, one argument of type [float]
+"abc{:.9G}"
+# Invalid: precision option, no possible argument type
+"abc{:.9c}"
+# Valid: precision option, one argument of type [string]
+"abc{:.9s}"
+# Invalid: precision option, no possible argument type
+"abc{:.9p}"
+
+# Valid: 'L' option, one argument of type [integer, float, character, bool]
+"abc{:L}"
+# Invalid: repeated 'L' option
+"abc{:LL}"
+# Valid: 'L' option, one argument of type [integer, character, bool]
+"abc{:Lb}"
+# Valid: 'L' option, one argument of type [integer, character, bool]
+"abc{:LB}"
+# Valid: 'L' option, one argument of type [integer, character, bool]
+"abc{:Ld}"
+# Valid: 'L' option, one argument of type [integer, character, bool]
+"abc{:Lo}"
+# Valid: 'L' option, one argument of type [integer, character, bool]
+"abc{:Lx}"
+# Valid: 'L' option, one argument of type [integer, character, bool]
+"abc{:LX}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:La}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:LA}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:Le}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:LE}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:Lf}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:LF}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:Lg}"
+# Valid: 'L' option, one argument of type [float]
+"abc{:LG}"
+# Valid: 'L' option, one argument of type [integer, character]
+"abc{:Lc}"
+# Valid: 'L' option, one argument of type [bool]
+"abc{:Ls}"
+# Invalid: 'L' option, no possible argument type
+"abc{:Lp}"
+
+# Valid: align option and sign option
+"abc{:^+}"
+# Valid: fill-and-align option and sign option
+"abc{:-^+}"
+# Invalid: fill-and-align option and sign option, but in reverse order
+"abc{:+-^}"
+# Valid: align option and '#' option
+"abc{:^#}"
+# Valid: fill-and-align option and '#' option
+"abc{:-^#}"
+# Invalid: fill-and-align option and '#' option, but in reverse order
+"abc{:#-^}"
+# Valid: align option and '0' option
+"abc{:^0}"
+# Valid: fill-and-align option and '0' option
+"abc{:-^0}"
+# Invalid: fill-and-align option and '0' option, but in reverse order
+"abc{:0-^}"
+# Valid: align option and width option
+"abc{:^9}"
+# Valid: fill-and-align option and width option
+"abc{:-^9}"
+# Invalid: fill-and-align option and width option, but in reverse order
+"abc{:9-^}"
+# Valid: align option and precision option
+"abc{:^.9}"
+# Valid: fill-and-align option and precision option
+"abc{:-^.9}"
+# Invalid: fill-and-align option and precision option, but in reverse order
+"abc{:.9-^}"
+# Valid: align option and 'L' option
+"abc{:^L}"
+# Valid: fill-and-align option and 'L' option
+"abc{:-^L}"
+# Invalid: fill-and-align option and 'L' option, but in reverse order
+"abc{:L-^}"
+# Valid: align option and type
+"abc{:^d}"
+# Valid: fill-and-align option and type
+"abc{:-^d}"
+# Invalid: fill-and-align option and type, but in reverse order
+"abc{:d-^}"
+
+# Valid: sign option and '#' option
+"abc{:-#}"
+# Invalid: sign option and '#' option, but in reverse order
+"abc{:#-}"
+# Valid: sign option and '0' option
+"abc{:-0}"
+# Invalid: sign option and '0' option, but in reverse order
+"abc{:0-}"
+# Valid: sign option and width option
+"abc{:-9}"
+# Invalid: sign option and width option, but in reverse order
+"abc{:9-}"
+# Valid: sign option and precision option
+"abc{:-.9}"
+# Invalid: sign option and precision option, but in reverse order
+"abc{:.9-}"
+# Valid: sign option and 'L' option
+"abc{:-L}"
+# Invalid: sign option and 'L' option, but in reverse order
+"abc{:L-}"
+# Valid: sign option and type
+"abc{:-d}"
+# Invalid: sign option and type, but in reverse order
+"abc{:d-}"
+
+# Valid: '#' option and '0' option
+"abc{:#0}"
+# Invalid: '#' option and '0' option, but in reverse order
+"abc{:0#}"
+# Valid: '#' option and width option
+"abc{:#9}"
+# Invalid: '#' option and width option, but in reverse order
+"abc{:9#}"
+# Valid: '#' option and precision option
+"abc{:#.9}"
+# Invalid: '#' option and precision option, but in reverse order
+"abc{:.9#}"
+# Valid: '#' option and 'L' option
+"abc{:#L}"
+# Invalid: '#' option and 'L' option, but in reverse order
+"abc{:L#}"
+# Valid: '#' option and type
+"abc{:#d}"
+# Invalid: '#' option and type, but in reverse order
+"abc{:d#}"
+
+# Valid: '0' option and width option
+"abc{:09}"
+# Valid: '0' option and precision option
+"abc{:0.9}"
+# Valid: '0' option and 'L' option
+"abc{:0L}"
+# Invalid: '0' option and 'L' option, but in reverse order
+"abc{:L0}"
+# Valid: '0' option and type
+"abc{:0d}"
+# Invalid: '0' option and type, but in reverse order
+"abc{:d0}"
+
+# Valid: width option and precision option
+"abc{:15.9}"
+# Valid: width option and 'L' option
+"abc{:15L}"
+# Invalid: width option and 'L' option, but in reverse order
+"abc{:L15}"
+# Valid: width option and type
+"abc{:15d}"
+# Invalid: width option and type, but in reverse order
+"abc{:d15}"
+
+# Valid: precision option and 'L' option
+"abc{:.9L}"
+# Invalid: precision option and 'L' option, but in reverse order
+"abc{:L.9}"
+# Valid: precision option and type
+"abc{:.9e}"
+# Invalid: precision option and type, but in reverse order
+"abc{:e.9}"
+
+# Valid: 'L' option and type
+"abc{:Ld}"
+# Invalid: 'L' option and type, but in reverse order
+"abc{:dL}"
+
+# Valid: several options, one argument of type [float]
+"{:.9L}"
+# Valid: several options, one argument of type [string]
+"{:.9s}"
+# Valid: several options, one argument of type [bool]
+"{:Ls}"
+# Invalid: several options, no possible argument type
+"{:.9Ls}"
+
+# Invalid: unterminated
+"abc{"
+# Invalid: unterminated
+"abc{2"
+# Invalid: unterminated
+"abc{:"
+# Invalid: non-standard type specifier
+"abc{:y}"
+# Valid: three arguments
+"abc{}{}{}"
+# Valid: a numbered argument
+"abc{0}"
+# Valid: two-digit numbered arguments
+"abc{10}ef{9}gh{8}ij{7}kl{6}mn{5}op{4}qr{3}st{2}uv{1}wx{0}yz"
+# Valid: three arguments, two with same number, no conflict
+"abc{0:4x},{1:c},{0:d}"
+# Valid: still no conflict between argument types
+"abc{1:{0}x},{2:c},{0:d}"
+# Invalid: argument with conflicting types
+"abc{1:{0}x},{2:c},{0:s}"
+# Invalid: mixing of numbered and unnumbered arguments
+"abc{:d}{1:x}"
+# Invalid: mixing of numbered and unnumbered arguments
+"abc{1:d}{:x}"
+# Invalid: mixing of numbered and unnumbered arguments
+"abc{:{1}x}"
+# Invalid: mixing of numbered and unnumbered arguments
+"abc{:.{1}x}"
+# Invalid: mixing of numbered and unnumbered arguments
+"abc{1:{}x}"
+# Invalid: mixing of numbered and unnumbered arguments
+"abc{1:.{}x}"
+# Valid: permutation
+"abc{1:d}def{0:d}"
+# Valid: one argument with width
+"abc{1:#{0}g}"
+# Valid: one argument with width and precision
+"abc{2:{1}.{0}g}"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  if test -z "$comment"; then
+    read comment
+  fi
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-c++-1-$n.in
+gettext(${string});
+EOF
+  ${XGETTEXT} -L C++ -o f-c++-1-$n.po f-c++-1-$n.in || Exit 1
+  test -f f-c++-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep c++-format f-c++-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep c++-format f-c++-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-c++-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-c++-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-c++-1-$n.in f-c++-1-$n.po
+done < f-c++-1.data
+
+Exit 0

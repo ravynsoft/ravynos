@@ -1,0 +1,62 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${TMPDIR:=/var/tmp}
+TMPFILE=$TMPDIR/foo
+
+bar()
+{
+exec {v}>$TMPFILE
+echo $v
+}
+
+bar
+
+echo foo 1 >&$v
+echo foo 2 >&$v
+echo foo 3 >&$v
+
+cat $TMPFILE
+rm -f $TMPFILE
+
+type bar
+exec {v}>&-
+
+readonly v=42
+bar
+
+echo foo 1 2>&1 >&$v | { grep -q '\$v: Bad' || echo 'bad foo 1'; }
+echo foo 2 2>&1 >&$v | { grep -q '\$v: Bad' || echo 'bad foo 2'; }
+echo foo 3 2>&1 >&$v | { grep -q '\$v: Bad' || echo 'bad foo 3'; }
+
+cat $TMPFILE
+rm -f $TMPFILE
+
+type bar
+
+${THIS_SH} ./vredir1.sub
+
+${THIS_SH} ./vredir2.sub
+
+${THIS_SH} ./vredir3.sub
+
+${THIS_SH} ./vredir4.sub
+
+${THIS_SH} ./vredir5.sub
+
+${THIS_SH} ./vredir6.sub
+
+${THIS_SH} ./vredir7.sub
+${THIS_SH} ./vredir8.sub
+
+exit 0

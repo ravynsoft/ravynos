@@ -1,0 +1,117 @@
+#compdef xauth
+
+local state context line expl ret=1
+typeset -A opt_args
+local tmp cmd
+
+_arguments -s \
+  '-f[specify authfile]:authfile:_files' \
+  '(-q)-v[verbose mode]' \
+  '(-v)-q[quiet mode]' \
+  '-b[break locks]' \
+  '-i[ignore locks]' \
+  '*::command:->command' && ret=0
+
+while [[ -n "$state" ]]; do
+  tmp="$state"
+  state=
+  case "$tmp" in
+  command)
+    if (( CURRENT == 1 )); then
+      state=subcommands
+    else
+      cmd="$words[1]"
+      curcontext="${curcontext%:*:*}:xauth-${cmd}:"
+      case "$cmd" in
+      add)
+	_arguments \
+	  ':display name:->displayname' \
+	  ':protocol name:->protocolname' \
+	  ':hexkey:' && ret=0
+	;;
+
+      generate)
+        if (( CURRENT == 2 )); then
+	  state=displayname
+        elif (( CURRENT == 3 )); then
+	  state=protocolname
+	else
+	  case "$words[CURRENT-1]" in
+	  timeout) _message -e values 'timeout (seconds)';;
+	  group) _message -e ids 'group-id';;
+	  data) _message -e values 'hexdata';;
+	  *) 
+	    _wanted options expl 'xauth generate option' \
+	      compadd trusted untrusted timeout group data && ret=0
+	    ;;
+	  esac
+	fi
+	;;
+
+      extract|nextract)
+	case "$CURRENT" in
+	2) _wanted files expl 'filename to write auth data' _files && ret=0;;
+	*) state=displayname;;
+	esac
+        ;;
+
+      list|nlist)
+	state=displayname
+        ;;
+
+      merge|nmerge)
+	_wanted files expl 'filename to read auth data' _files && ret=0
+	;;
+
+      remove)
+        state=displayname
+	;;
+
+      source)
+	_wanted files expl 'filename to source' _files && ret=0
+	;;
+
+      info|exit|quit|\?)
+        ;;
+
+      help)
+        state=subcommands
+	;;
+      esac
+    fi
+    ;;
+
+  subcommands)
+    tmp=(
+      'add:add entry'
+      'generate:use server to generate entry'
+      'extract:extract entries into file'
+      'nextract:numerically extract entries'
+      'list:list entries'
+      'nlist:numerically list entries'
+      'merge:merge entries from files'
+      'nmerge:numerically merge entries'
+      'remove:remove entries'
+      'source:read commands from file'
+      'info:print information about entries'
+      'exit:save changes and exit program'
+      'quit:abort changes and exit program'
+      'help:print help'
+      '?:list available commands'
+    )
+    _describe 'xauth command' tmp -- && ret=0
+    ;;
+
+  protocolname)
+    _wanted values expl 'authorization protocol' \
+      compadd MIT-MAGIC-COOKIE-1 XDM-AUTHORIZATION-1 SUN-DES-1 MIT-KERBEROS-5 && ret=0
+    ;;
+
+  displayname)
+    { _wanted values expl 'display name' \
+        compadd - ${${(f)"$(xauth list)"}%% *} || _x_display } && ret=0
+    ;;
+  esac
+done
+
+return ret

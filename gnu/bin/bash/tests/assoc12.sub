@@ -1,0 +1,74 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+foo='1 2'
+bar='3 4 5'
+xtra='20 40 80'
+
+declare -A v1=( $foo 3 )
+declare -p v1
+
+declare -A v2=( [$foo]=3 )
+declare -p v2
+
+declare -A  v3
+v3=( $foo 3 )
+declare -p v3
+
+unset v1 v2 v3
+
+declare -A v1=( $foo $bar )
+declare -p v1
+
+declare -A v2=( [$foo]=$bar )
+declare -p v2
+
+declare -A  v3
+v3=( $foo $bar )
+declare -p v3
+
+unset v1 v2 v3
+
+declare -A v1=( "$foo" $bar )
+declare -p v1
+
+declare -A v2=( ["$foo"]=$bar )
+declare -p v2
+
+declare -A  v3
+v3=( "$foo" $bar )
+declare -p v3
+
+unset v1 v2 v3
+
+declare -A v1=( "$foo" "$bar" )
+declare -p v1
+
+declare -A v2=( ["$foo"]="$bar" )
+declare -p v2
+
+declare -A  v3
+v3=( "$foo" "$bar" )
+declare -p v3
+
+v1+=( $xtra xtra )
+v2+=( "$xtra" xtra )
+v3+=( '$xtra' xtra )
+
+declare -p v1 v2 v3
+
+v1+=( [$xtra]='new xtra' )
+v2+=( ["$xtra"]='new xtra' )
+v3+=( ['$xtra']='new xtra' )
+
+declare -p v1 v2 v3

@@ -1,0 +1,8 @@
+#autoload
+
+# This should be used to complete all option names.
+
+local expl
+
+_wanted zsh-options expl 'zsh option' \
+    compadd "$@" -M 'B:[nN][oO]= M:_= M:{A-Z}={a-z}' -k - options

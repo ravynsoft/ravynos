@@ -1,0 +1,1350 @@
+#compdef zfs zdb zpool
+
+local curcontext="$curcontext" implementation nm="$compstate[nmatches]"
+local -a state curstate line state_descr expl alts args
+typeset -A opt_args val_args
+local MATCH MBEGIN MEND
+local -a subcmds
+local -a share_nfs_ro_properties share_nfs_rw_properties
+local -a share_smb_ro_properties share_smb_rw_properties
+local -a share_ro_properties share_rw_properties
+local -a difffields delegatable_perms key_properties
+local -a ds_types sum_algorithms comp_algorithms dedup_algorithms
+
+local -a ds_propnames ro_ds_props rw_ds_props ci_ds_props # dataset properties
+local -a po_propnames ro_po_props rw_po_props ci_po_props # pool properties
+
+_pick_variant -r implementation -c 'zpool upgrade -v' openzfs='This system supports ZFS pool feature flags' solaris
+
+ds_types=( filesystem snapshot volume all )
+sum_algorithms=( on off fletcher2 fletcher4 sha256 )
+comp_algorithms=( on off lzjb lz4 gzip gzip-{1..9} zle )
+dedup_algorithms=( on off verify sha256 sha256,verify )
+
+ro_po_props=( # readonly
+  'all[all properties]'
+  'allocated[space allocated]'
+  'capacity[space used (percentage)]'
+  'dedupratio[deduplication ratio]'
+  'free[space unallocated]'
+  'health[health status]'
+  'size[total size]'
+)
+ci_po_props=( # only set at create or import
+  'altroot[alternate root directory]:path:_directories'
+  'guid[unique identifier]:identifier'
+  'readonly[whether the pool can be modified]:value:(on off)'
+)
+rw_po_props=(
+  'autoexpand[automatic pool expansion]:value:(on off)'
+  'autoreplace[automatic device replacement]:value:(on off)'
+  'bootfs[default bootable dataset]:dataset:_zfs_dataset'
+  'cachefile[pool configuration cache file location]:value'
+  'dedupditto[threshold for number of copies]:value [0]'
+  'delegation[delegated administration]:value:(on off)'
+  'failmode[failure-mode behavior]:value:(wait continue panic)'
+  "listshares[show shares in 'zfs list']:value:(on off)"
+  "listsnaps[show snapshots in 'zfs list']:value:(on off)"
+  'version[pool version]:version'
+)
+
+# TODO: userused@ and groupused@ could have more extensive handling
+ro_ds_props=(
+  name type creation space used available referenced compressratio mounted
+  origin usedbychildren usedbydataset usedbyrefreservation usedbysnapshots
+  defer_destroy userused@ userrefs groupused@ keystatus
+)
+ci_ds_props=(
+  'casesensitivity:value:(sensitive insensitive mixed)'
+  'normalization:value:(none formC formD formKC formKD)'
+  'utf8only:value:(on off)'
+)
+rw_ds_props=(
+  'aclinherit:value:(discard noallow restricted passthrough passthrough-x)'
+  'atime:value:(on off)'
+  'canmount:value:(on off noauto)'
+  "checksum:value:($sum_algorithms)"
+  "compression:value:($comp_algorithms)"
+  'copies:value:(1 2 3)'
+  "dedup:value:($dedup_algorithms)"
+  'devices:value:(on off)'
+  'encryption:value:(off on aes128-ccm aes-192-ccm aes-256-ccm aes-128-gcm aes-192-gcm aes-256-gcm)'
+  'exec:value:(on off)'
+  'groupquota@'
+  'logbias:value:(latency throughput)'
+  "mountpoint: : _alternative \
+      'properties:property:(none legacy)' \
+      'paths:mountpoint:_directories -W / -P /'"
+  'multilevel:value:(on off)'
+  'nbmand:value:(on off)'
+  'primarycache:value:(all none metadata)'
+  'quota: :->quotas'
+  'readonly:value:(on off)'
+  'recordsize:value:(512 1K 2K 4K 8K 16K 32K 64K 128K 256K 512K 1M)'
+  'refquota: :->quotas'
+  "refreservation: : _alternative \
+      'sizes: :_numbers -M \"m:{a-zA-Z}={A-Za-z}\" -u bytes size :B {k,M,G,T,P,E,Z}{,B}' \
+      'properties:property:(auto none)'"
+  'reservation: :->quotas'
+  'rstchown:value:(on off)'
+  'secondarycache:value:(all none metadata)'
+  'setuid:value:(on off)'
+  'shadow:value' # TODO: complete URI|none
+  'share:share properties'
+  'snapdir:value:(hidden visible)'
+  'sync:value:(standard always disabled)'
+  'userquota@'
+  'version:value'
+  'volsize:size:_numbers -M "m:{a-zA-Z}={A-Za-z}" -u bytes size :B {k,M,G,T,P,E,Z}{,B}'
+)
+
+case $service:$implementation in
+  *:openzfs)
+    ds_types+=( bookmark )
+    sum_algorithms+=( noparity sha512 skein edonr )
+    comp_algorithms+=( zstd zstd-{1..19} zstd-fast zstd-fast-{{1..9}{,0},100,500,1000} )
+    dedup_algorithms+=( {sha512,skein}{,\,verify} edonr,verify )
+    share_rw_properties=( sharesmb:option sharenfs:option )
+    ro_po_props+=(
+      'expandsize[uninitialized space within the pool]'
+      'fragmentation[amount of fragmentation in the pool]'
+      'freeing[amount of space remaining to be reclaimed]'
+      'used[amount of storage space used within the pool]'
+      'load_guid[unique identifier generated when pool is loaded]'
+    )
+    ci_po_props+=(
+      'ashift[pool sector size exponent]:exponent:((9\:512 10\:1024 11\:2048 12\:4096 13\:8192 14\:16384 15\:32768 16\:65536))'
+    )
+    rw_po_props+=(
+      'autotrim[periodically trim recently freed space]:value:(on off)'
+      'comment[text string that is available even if the pool becomes faulted]:value'
+      'multihost[perform pool activity check during import]:value:(on off)'
+    )
+    rw_ds_props+=(
+      'aclmode:value:(discard groupmask passthrough restricted)'
+      'acltype:value:(off noacl nfsv4 posix posixacl)'
+      'mlslabel:value:(none)' # TODO: list sensitivity labels
+      'redundant_metadata:value:(all most)'
+      'vscan:value:(on off)'
+      'xattr:value:(on off dir sa)'
+      "filesystem_limit: :{if [[ -prefix [0-9]## ]]; then _message -e 'number'; elif [[ -prefix n ]]; then compadd none; else _message -e limits 'number or none'; fi}"
+      "snapshot_limit: :{if [[ -prefix [0-9]## ]]; then _message -e 'number'; elif [[ -prefix n ]]; then compadd none; else _message -e limits 'number or none'; fi}"
+      'volmode:mode:((
+        default\:use\ system-wide\ tunable
+        full\:expose\ as\ block\ devices
+        geom\:expose\ as\ block\ devices
+        dev\:hide\ partitions
+        none\:not\ exposed\ outside\ zfs
+      ))'
+    )
+    ro_ds_props+=(
+      createtxg clones filesystem_count guid logicalreferenced logicalused
+      receive_resume_token refcompressratio snapshot_count volblocksize written
+    )
+    delegatable_perms=(
+      bookmark load-key change-key userobjquota userobjused groupobjquota
+      groupobjused projectused projectquota projectobjused projectobjquota
+    )
+  ;|
+  *:solaris)
+    ds_types+=( share )
+    sum_algorithms+=( sha256+mac )
+    share_nfs_ro_properties=( share.nfs.all )
+    share_nfs_rw_properties=(
+      'share.nfs:value:(on off)'
+      'share.nfs.aclok:value:(on off)'
+      'share.nfs.aclfab:value:(on off)'
+      'share.nfs.anon:uid'
+      'share.nfs.charset.'{cp932,euc-{cn,jpns,kr,tw},iso8859-{1,2,5,6,7,8,9,13,15},koi8-r,shift_jis}':access-list'
+      'share.nfs.index:file:_files'
+      'share.nfs.labeled:value:(on off)'
+      'share.nfs.noaclfab:value:(on off)'
+      'share.nfs.log:nfslog.conf tag'
+      'share.nfs.nosub:value:(on off)'
+      'share.nfs.nosuid:value:(on off)'
+      'share.nfs.public:value:(on off)'
+      'share.nfs.sec:security-mode-list'
+      'share.nfs.sec.'{default,dh,krb5{,i,p},none,sys}.{ro,root,rw}':access-list'
+      'share.nfs.sec.'{default,dh,krb5{,i,p},none,sys}.root_mapping':uid'
+      'share.nfs.sec.'{default,dh,krb5{,i,p},none,sys}.window':credential lifetime (seconds)'
+      'share.nfs.sec.sys.resvport:value:(on off)'
+    )
+    share_smb_ro_properties=( share.smb.all )
+    share_smb_rw_properties=(
+      'share.smb:value:(on off)'
+      'share.smb.abe'
+      'share.smb.ad-container'
+      'share.smb.catia:value:(on off)'
+      'share.smb.csc:value:(disabled manual auto vdo)'
+      'share.smb.dfsroot:value:(on off)'
+      'share.smb.encrypt:value:(on off)'
+      'share.smb.guestok:value:(on off)'
+      'share.smb.oplocks:value:(disabled enabled)'
+      'share.smb.cont_avail:value:(on off)'
+      'share.smb.'{none,ro,rw}':access-list'
+    )
+    share_ro_properties=(
+      share.all share.fs share.name share.point share.protocols share.state
+      $share_nfs_ro_properties $share_smb_ro_properties
+    )
+    share_rw_properties=(
+      'share.desc:description'
+      'share.auto:value:(on off)'
+      'share.autoname:value'
+      'share.nfs.cksum:value'
+      'share.path:path'
+      $share_nfs_rw_properties $share_smb_rw_properties
+    )
+    ro_po_props+=(
+      'lastscrub[start time of the last successful scrub]'
+    )
+    rw_po_props+=(
+      'clustered[pool is imported as a global pool in Oracle Solaris Cluster]:value:(on off)'
+      'scrubinternal[time interval between scheduled scrubs]:interval'
+    )
+    ro_ds_props+=( keychangedate rekeydate effective{read,write}limit )
+    rw_ds_props+=(
+      'aclmode:value:(discard mask passthrough)'
+      "defaultreadlimit: : _alternative \
+          'sizes: :_guard \[0-9\]\#\(\|\[BKMGTPEZ\]\) size\ \(bytes\ per\ second\)' \
+          'properties:property:(none)'"
+      "defaultwritelimit: : _alternative \
+          'sizes: :_guard \[0-9\]\#\(\|\[BKMGTPEZ\]\) size\ \(bytes\ per\ second\)' \
+          'properties:property:(none)'"
+      'defaultuserquota:->quotas'
+      'defaultgroupquota: :->quotas'
+      'keysource:value:->keysources'
+    )
+    ci_ds_props+=(
+      'volblocksize:value:compadd -o nosort 512 1K 2K 4K 8K 16K 32K 64K 128K 256K 512K 1M'
+    )
+    difffields=(
+      object parent size links linkschange name oldname user group
+      ctime mtime atime crtime mountpoint dataset_name
+    )
+    delegatable_perms=( key keychange )
+  ;|
+  zfs:openzfs)
+    subcmds+=(
+      bookmark change-key load-key program project projectspace redact
+      unload-key wait
+    )
+  ;|
+  zpool:openzfs)
+    subcmds+=(
+      checkpoint events labelclear initialize reopen resilver sync trim wait
+      version
+    )
+  ;|
+  zfs:solaris)
+    subcmds+=( key help )
+  ;|
+  zpool:solaris)
+    subcmds+=( help label monitor )
+  ;|
+
+  zfs:*)
+    subcmds+=(
+      create destroy clone promote rename snapshot rollback list set get
+      inherit mount unmount share unshare send receive allow unallow upgrade
+      userspace groupspace hold holds release diff
+    )
+    [[ $OSTYPE = freebsd<7->.* ]] && subcmds+=( jail unjail )
+  ;;
+  zpool:*)
+    subcmds+=(
+      add attach clear create destroy detach export get history import iostat
+      list offline online reguid remove replace scrub set split status upgrade
+    )
+  ;;
+esac
+
+case $OSTYPE in
+  solaris*)
+    rw_ds_props+=( 'zoned:value:(on off)' )
+  ;;
+  freebsd*)
+    [[ $OSTYPE = freebsd<-12>.* ]] && subcmds+=( remap )
+    rw_ds_props+=( 'jailed:value:(on off)' )
+  ;;
+  linux-gnu)
+    rw_ds_props+=( 'relatime:value:(on off)' )
+    ci_ds_props+=(
+      {,fs,def,root}'context:SELinux context:_selinux_contexts'
+    )
+  ;;
+esac
+
+delegatable_perms+=(
+  allow clone create destroy diff hold key keychange mount promote receive
+  release rename rollback send share snapshot groupquota groupused userprop
+  userused ${ci_ds_props%%:*}
+)
+
+key_properties=(
+  'keylocation:location [prompt]:_files -P file\:// -W /'
+  'keyformat:format:(raw hex passphrase)'
+  'pbkdf2iters:iterations [350000]'
+)
+
+ro_ds_props+=( $share_ro_properties )
+rw_ds_props+=( $share_rw_properties )
+ci_ds_props+=( $rw_ds_props )
+
+ds_propnames=( ${rw_ds_props%%:*} )
+po_propnames=( ${ro_po_props%%:*} ${ci_po_props%%:*} ${rw_po_props%%:*} )
+
+
+case $service in
+  zfs|zpool)
+    _arguments -C -A "-*" \
+      '-?[display usage information]' \
+      '*::command:->subcmd' && return 0
+
+    if (( CURRENT == 1 )); then
+      _wanted commands expl "subcommand" compadd -a subcmds
+      return
+    fi
+    curcontext="${curcontext%:*}-$words[1]:"
+  ;;
+  zdb)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-mm[also display free space histogram associated with each metaslab]'
+        {-mmm,-MM}'[display more free space information]'
+        {-mmmm,-MMM}'[display every spacemap record]'
+        '-DD[display a histogram of deduplication statistics]'
+        '-DDD[display deduplication statistics independently for each table]'
+        '-DDDD[dump the contents of the deduplication tables describing duplicate blocks]'
+        '-DDDDD[also dump the contents of the deduplication tables describing unique blocks]'
+        '-E+[decode and display block from a given embedded block pointer]:word'
+        '(-l)-ll+[like -l but display L2ARC log blocks]:device:_files'
+        '(-l -ll)-lll+[like -l but display every configuration, unique or not]:device:_files'
+        "-q[don't print labels (with -l)]"
+        '-k[examine the checkpointed state of the pool]'
+        '-M[display the offset, spacemap, and free space of each metaslab]' \
+        '-O+[look up the specified path inside of the dataset]:dataset:_zfs_dataset:path:_files'
+        '-o+[set the given global libzpool variable]:variable'
+        '-r+[copy the specified path inside of the dataset to the specified destination]:dataset:_zfs_dataset:path:_files:destination:_files'
+        '-x+[copy all blocks accessed to files in the specified directory]:directory:_directories'
+        '-V[attempt verbatim import]'
+        '-Y[attempt all possible combinations when reconstructing indirect split blocks]'
+        '-y[perform validation for livelists that are being deleted]'
+      )
+    else
+      args=(
+        '-?[display usage information]'
+        '-M+[dump MOS contents]:contents: _values -s , raw_config all objset dir pool_props metaslab sync_bplist dtl config spares l2cache history errlog_scrub errlog_last bpmap-vdev bpmap_defer_obj dtl-scan ddt2'
+        '-r[dump datasets recursively]'
+        '-z[report zombies only]'
+        '-V[verify DDT xtree block data]'
+        "-a[don't import l2arc cache data]"
+        '-f[attempt to force import (with -e)]'
+        '-w+[specify directory to save shadow copy of all accessed disk locations]: :_directories'
+        '-x+[set kernel tunable]:tunable'
+        '-G[dump the contents of the zfs_dbgmsg buffer before exiting]'
+        '-I[limit the number of outstanding checksum I/Os to the specified value]'
+      )
+    fi
+    _arguments -A "-*" -S $args \
+      '(-C)-b[display block statistics]' \
+      '(-C)*-c[verify checksum of metadata blocks]' \
+      '(-b -c -d)-C[display configuration information]' \
+      '(-C)*-d[display dataset information]' \
+      '-h[display pool history]' \
+      '-i[display intent log (ZIL) information]' \
+      '-l+[read the vdev labels from the specified device]:device:_files' \
+      '-m[display the offset, spacemap, and free space of each metaslab]' \
+      '-s[report statistics on zdb I/O]' \
+      '*-u[also display the uberblocks on the device (with -l)]' \
+      '*-v[enable verbose output]' \
+      '-D[display deduplication statistics]' \
+      '-S[simulate the effects of deduplication, displaying constructed DDT as with -DD]' \
+      '-L[disable leak detection and the loading of space maps]' \
+      '-R+[read and display a block from the specified device]:device' \
+      "-A[don't abort should any assertion fail]" \
+      "-AA[enable panic recovery]" \
+      '-F[try progressively older transactions until pool is readable]' \
+      '-U+[specify cache file to use]:cache file [/etc/zfs/zpool.cache]:_files' \
+      '-X[attempt "extreme" transaction rewind]' \
+      '-e[operate on an exported pool]' \
+      '-p[specify path under which to search for devices (with -e)]:path:_files' \
+      '-P[use exact (parsable) numeric output]' \
+      '-t+[specify the highest transaction to use when searching for uberblocks]:transaction' \
+      '1:pool:_zfs_pool'
+    return
+  ;;
+esac
+
+case $service:$words[1] in
+  zfs:create)
+    [[ $implementation = openzfs ]] && args=(
+      '-P[print machine-parsable verbose information about the created dataset]'
+      '-n[do a dry-run, no dataset will be created]'
+      '-v[print verbose information about the created dataset]'
+    )
+    _arguments -C -A "-*" -S $args \
+      '-p[create parent datasets]' \
+      '*-o+[set initial propertyvalue]:property:->create-properties' \
+      - set1 \
+      ':filesystem:_zfs_dataset -t fs -e "parent dataset"' \
+      - set2 \
+      '-s[create sparse volume]' \
+      '-b+[set volblocksize]: :_numbers -M "m\:{a-zA-Z}={A-Za-z}" -u bytes blocksize \:B {k,M,G,T,P,E,Z}{,B}' \
+      '-V+[set size]: :_numbers -M "m\:{a-zA-Z}={A-Za-z}" -u bytes size \:B {k,M,G,T,P,E,Z}{,B}' \
+      ':volume:_zfs_dataset -t fs -e "parent dataset"'
+  ;;
+
+  zfs:destroy)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-n[do a dry-run, no data will be deleted]'
+        '-p[print machine-parsable verbose information about the deleted data]'
+        '-v[print verbose information about the deleted data]'
+      )
+    else
+      args=( '-s[destroy snapshots synchronously - only return when blocks freed]' )
+    fi
+    _arguments -A "-*" -S $args \
+      '-r[recursively destroy all children]' \
+      '-R[recursively destroy all dependents]' \
+      '(-f)-d[delete or mark deferred]' \
+      '(-d)-f[force unmounts]' \
+      ':dataset:_zfs_dataset -t fs -t vol ${=${opt_args[(i)-f]:--t snap}:/-f/} ${=${opt_args[(i)-*]:--t bookmark}:/-?/}'
+  ;;
+
+  zfs:snap(|shot))
+    _arguments -C -A "-*" -S \
+      '-r[recursively snapshot all descendant datasets]' \
+      '*-o+[set property]:property:->create-properties' \
+      ':filesystem/volume:_zfs_dataset -t fs -t vol -S@'
+  ;;
+
+  zfs:rollback)
+    _arguments -A "-*" -S \
+      '-r[recursively destroy more recent snapshots]' \
+      '-R[recursively destroy more recent snapshots and clones]' \
+      '-f[force unmounts]' \
+      ':snapshot:_zfs_dataset -t snap'
+  ;;
+
+  zfs:clone)
+    [[ $implementation = solaris ]] && args+=(
+    '-K[create encryption key]'
+  )
+  _arguments -C -A "-*" -S $args \
+    '-p[create parent datasets]' \
+    '*-o+[set property]:property:->create-properties' \
+    ':snapshot:_zfs_dataset -t snap' \
+    ':filesystem/volume:_zfs_dataset -t fs -e "parent dataset"'
+  ;;
+
+  zfs:promote)
+    _arguments \
+      ':filesystem:_zfs_dataset -t clone' \
+  ;;
+
+  zfs:rename)
+    [[ $implementation = openzfs ]] && args=(
+      '(-r -u)-f[force unmount any filesystems]'
+      "(-r -f)-u[don't remount file systems during rename]"
+    )
+    _arguments -A "-*" -S $args \
+      '(-r)-p[create parent datasets]' \
+      '(-p -u -f)-r[recursively rename snapshots of all descendent datasets]' \
+      ':dataset:_zfs_dataset -r1' \
+      ':dataset:_zfs_dataset -r2'
+  ;;
+
+  zfs:bookmark)
+    _arguments \
+      ':snapshot or bookmark:_zfs_dataset -t snap -t bookmark' \
+      ':bookmark'
+  ;;
+
+  zfs:program)
+    _arguments -A "-*" -S \
+      '-j[display channel program output in JSON format]' \
+      '-n[execute a read-only channel program]' \
+      '-t+[limit the number of Lua instructions to execute]:instruction limit' \
+      '-m+[specify memory limit]:memory limit (bytes) [10MB]' \
+      ':pool:_zfs_pool' \
+      ':script:_files' \
+      '*: :_default'
+  ;;
+
+  zfs:list)
+    if [[ $implementation = solaris ]]; then
+      args=( '-I+[specify dataset states to display instead of normal datasets]:dataset state:_sequence compadd - receiving resumable hidden all' )
+    else
+      args=( '-p[use exact (parsable) numeric output]' )
+    fi
+    _arguments -A "-*" -S $args \
+      '(-d)-r[recursively display children]' \
+      '-H[suppress printing of headers]' \
+      '(-r)-d+[depth]:value' \
+      '-o+[specify properties to list]: :_values -s , "property" $ro_ds_props $ds_propnames' \
+      '*-s+[specify sort key (ascending)]: :_values "property" $ro_ds_props $ds_propnames' \
+      '*-S+[specify sort key (descending)]: :_values "property" $ro_ds_props $ds_propnames' \
+      '-t+[specify dataset types to list]: :_values -s , "dataset type" $ds_types' \
+      '*:filesystem/volume/snapshot/path:_zfs_dataset -p'
+  ;;
+
+  zfs:set)
+    [[ $implementation = solaris ]] && args=(
+      '-r[recursively apply value]' \
+    )
+    _arguments -C -A "-*" -S $args \
+      ':property:->set-properties' \
+      '*:filesystem/volume:_zfs_dataset -t fs -t vol'
+  ;;
+
+  zfs:get)
+    if [[ $implementation == openzfs ]]; then
+      args=( '-t+[specify dataset types to display]: :_values -s , "dataset type" $ds_types' )
+    else
+      args=( '-e[expand property sublists to any depth]' )
+    fi
+    _arguments -A "-*" -S $args \
+      "(-d)-r[recursively display children's properties]" \
+      '(-r)-d+[depth]:value' \
+      '-H[suppress printing of headers]' \
+      '-p[use exact (parsable) numeric output]' \
+      '-s+[specify sources]: :_values -s , "source" local default inherited received temporary none' \
+      '-o+[specify fields]: :_values -s , "field" name property received value source' \
+      ':property:_values -s , "property" $ro_ds_props $ds_propnames all' \
+      '*:filesystem/volume/snapshot:_zfs_dataset'
+  ;;
+
+  zfs:inherit)
+    _arguments -C -A "-*" -S \
+      '-r[recursively inherit property for all children]' \
+      '-S[revert to received property value]' \
+      ':property:_values "property" $ro_ds_props ${rw_ds_props%%:*}' \
+      '*:filesystem/volume:_zfs_dataset -t fs -t vol'
+  ;;
+
+  zfs:remap)
+    _arguments \
+      ':filesystem or volume:_zfs_dataset -t fs -t vol'
+  ;;
+
+  zfs:upgrade)
+    _arguments -A "-*" -S \
+      '(- :)-v[display supported ZFS versions]' \
+      '(-v :)-a[upgrade all filesystems on all pools]' \
+      '(-v)-r[upgrade descendent filesystems, too]' \
+      '(-v)-V+[upgrade to specified version]:version' \
+      '(-a -v):filesystem:_zfs_dataset -t fs'
+  ;;
+
+  zfs:(user|group)space)
+    args=(
+      '-n[print numeric ID]'
+      '-i[translate SID to POSIX ID]'
+    )
+  ;& # fall-through
+  zfs:projectspace)
+    [[ $implementation = solaris ]] && args+=(
+      '(- *)'{-h,--help}'[display usage information]'
+    )
+    _arguments -A "-*" -S $args \
+      '-H[suppress printing of headers, tab-delimit columns]' \
+      '-p[use exact (parsable) numeric output]' \
+      '-o+[specify properties to list]:property:_values -s , "property" type name used quota' \
+      '*-s+[specify sort key (ascending)]: :_values "property" type name used quota' \
+      '*-S+[specify sort key (descending)]: :_values "property" type name used quota' \
+      '-t+[specify types to list]:type:_values -s , "type" all posixuser smbuser posixgroup smbgroup' \
+      '*:filesystem/volume/snapshot:_zfs_dataset'
+  ;;
+
+  zfs:project)
+    _arguments -A "-*" -S \
+      '(-r -C -k -p -s)-d[act on the directory project ID and inherit flag, not its children]' \
+      '(-d)-r[act on subdirectories recursively]' \
+      '(-0 -c -d -s)-C[clear project inherit flag and/or ID on the file(s) or directories]' \
+      '(-0 -c -d -p -s)-k[keep the project ID unchanged]' \
+      '(-k -C -s)-c[check project ID and inherit flag on the file(s) or directories]' \
+      '(-k -C -s)-0[print file name with a trailing NUL instead of newline]' \
+      '(-k)-p+[specify project ID]:project ID' \
+      '(-0 -c -k -C)-s[set project inherit flag on the given file(s) or directories]' \
+      '*:file:_files'
+  ;;
+
+  zfs:mount)
+    [[ $OSTYPE != freebsd* ]] && args=( '-O[overlay mount]' )
+    [[ $implementation = openzfs ]] && args+=(
+    '-l[load keys for encrypted filesystems as they are being mounted]'
+    )
+    _arguments -A "-*" -S $args \
+      '-o+[specify temporary file system options]: :_values -s , "option" {,no}{atime,dev,exec,relatime,suid,xattr} ro rw' \
+      '-v[report mount progress]' \
+      '-f[force mount]' \
+      '(:)-a[mount all available ZFS filesystems]' \
+      '(-a):filesystem:_zfs_dataset -t fs'
+  ;;
+
+  zfs:u(|n)mount)
+    [[ $implementation = openzfs ]] && args+=(
+      '-u[unload keys for any unmounted encryption roots]'
+    )
+    _arguments -A "-*" -S $args \
+      '-f[force unmount]' \
+      '(:)-a[unmount all ZFS filesystems]' \
+      '(-a):dataset or mountpoint:_zfs_dataset -t fs -t mtpt'
+  ;;
+
+  zfs:share)
+    [[ $implementation = solaris ]] && args=(
+      - set2 \
+      '-r[share filesystems recursively]' \
+      ':dataset:_zfs_dataset -t fs' \
+      - set3 \
+      '*-o+[create a share with specified properties]: :_values -w "share properties" $share_rw_properties' \
+      '-u[create a share without sharing it]' \
+      ':dataset:_zfs_dataset -t fs' \
+    )
+    _arguments -A "-*" -S \
+      - set1 \
+      '-a[share all available ZFS filesystems]' \
+      $args \
+      - set4 \
+      ':dataset or mountpoint:_zfs_dataset -t fs -t mtpt -t share'
+  ;;
+
+  zfs:unshare)
+    [[ $implementation = solaris ]] && args=(
+      - set2
+      '-r[unshare filesystems recursively]'
+      ':filesystem:_zfs_dataset -t fs'
+    )
+    _arguments -A "-*" -S $args \
+      - set1 \
+      '-a[unshare all shared ZFS filesystems]' \
+      - set3 \
+      ':filesystem:_zfs_dataset -t fs -t mtpt -t share'
+  ;;
+
+  zfs:send)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '(-L --large-block)'{-L,--large-block}'[generate a stream which may contain blocks larger than 128KB]'
+        '(-P --parsable)'{-P,--parsable}'[print machine-parsable verbose information about the stream generated]'
+        '(-e --embed)'{-e,--embed}'[more compact stream for blocks stored with the embedded_data feature]'
+        '(-c --compressed)'{-c,--compressed}'[more compact stream for compressed blocks]'
+        '(-h --holds)'{-h,--holds}'[send snapshot holds]'
+        '-V[set the process title to a per-second report of how much data has been send]'
+        '-t[create a send stream that resumes an interrupted receive]:resume token'
+        '(-w --raw)'{-w,--raw}'[keep encrypted data exactly as it exists on disk]'
+        - redact
+        '(-h -V -t -w --raw)--redact[generate a redacted send stream]'
+        - saved
+        '(-S --saved)'{-S,--saved}'[generate stream from partially received dataset]'
+      )
+    else
+      args=(
+        '-w+[send compressed filesystem blocks as compressed in the stream]:compression:(compress none)'
+        '-m+[limit amount of memory used by deduplication processing]: :_numbers -u bytes "memory size" K M G'
+        '-s+[set stream options]:token:(streamsize check nocheck memsize)'
+        '-C[read a receive checkpoint from stdin]'
+        '-c[create a self-contained stream]'
+        '(-R)-r[generate a recursive stream package]'
+      )
+    fi
+    _arguments -A "-*" -S \
+      '-b[send only received property values]' \
+      '(-I)-i[generate an incremental stream]:snapshot:_zfs_dataset -t snap' \
+      '-D[perform dedup processing]' \
+      "-n[don't send the stream]" \
+      '-p[send properties]' \
+      '-v[verbose]' \
+      '(-i)-I[generate an incremental stream with intermediary snapshots]:snapshot:_zfs_dataset -t snap' \
+      '(-r)-R[generate a replication stream package]' \
+      ':snapshot:_zfs_dataset -t snap -t bookmark' \
+      $args
+  ;;
+
+  zfs:redact)
+    _arguments \
+      ':snapshot:_zfs_dataset -t snap' \
+      ':bookmark:_zfs_dataset -t bookmark' \
+      ':redaction snapshot:_zfs_dataset -t snap'
+  ;;
+
+  zfs:(receive|recv))
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-h[skip the receive of holds]'
+        '-s[if the receive is interrupted, save the partially received state]'
+        '(- set2)-A[abort an interrupted zfs recv -s, deleting its saved partially received state]'
+      )
+      [[ $OSTYPE != linux* ]] && args+=(
+        '-M[force an unmount of the file system while receiving a snapshot]'
+      )
+    else
+      args=( '(-)-C[write a receive checkpoint to stdout]' )
+    fi
+    _arguments -A "-*" -S $args \
+      '-v[verbose]' \
+      "-n[don't receive the stream]" \
+      '-F[force a rollback if necessary]' \
+      '-u[filesystem is not mounted]' \
+      '-o[include property change in the stream]:property' \
+      '-x[exclude property change from the stream]:property' \
+      - set1 \
+      ':filesystem/volume/snapshot:_zfs_dataset' \
+      - set2 \
+      '(-e)-d[set path prefix from stream, excluding only pool name]' \
+      '(-d)-e[set path prefix from stream, using last path element]' \
+      ':filesystem:_zfs_dataset -t fs'
+  ;;
+
+  zfs:allow)
+    _arguments -C -A "-*" -S \
+      '(-g -e -c -s)-u[delegate to user]' \
+      '(-u -e -c -s)-g[delegate to group]' \
+      '(1 -g -u -c -s)-e[delegate to everyone]' \
+      '(1 -u -g -e -l -d -s)-c[set permissions for newly-created descendant filesystems]' \
+      '(-u -g -e -l -d -c)-s[define or modify permission sets]:permission set' \
+      '(-c -s)-l[allow for named dataset]' \
+      '(-c -s)-d[allow for descendent datasets]' \
+      '1: :->first' \
+      ':permission list:_values -s , "permission or set" $delegatable_perms' \
+      ':filesystem/volume:_zfs_dataset -t fs -t vol'
+
+    if [[ -n $state ]]; then
+      case $opt_args[(I)-[ugs]] in
+        ^-[ug]) alts+=( 'permission-sets: :_guard "(|@*)" "permission set"' ) ;|
+        ^-[gs]) alts+=( 'users:user:_users' ) ;|
+        ^-[us]) alts+=( 'groups:group:_groups' ) ;|
+        '')
+          alts+=(
+            'all:everyone:(everyone)'
+            'filesystems:filesystem/volume:_zfs_dataset -t fs -t vol'
+          )
+        ;;
+      esac
+      _alternative $alts
+    fi
+  ;;
+
+  zfs:unallow)
+    _arguments -A "-*" -S \
+      '-r[recursive removal]' \
+      '(-e -g -s -c)-u[user]' \
+      '(-e -u -s -c)-g[group]' \
+      '(1 -g -u -s -c)-e[everyone]' \
+      '(1 -u -g -e -s -l -d)-c[create-time permissions]' \
+      '(-e -u -g -c)-s[remove permissions from or delete a permission set]:permission set' \
+      '(-c -s)-l[allow for named dataset]' \
+      '(-c -s)-d[allow for descendent datasets]' \
+      '1: :->first' \
+      '::permissions or sets:_values -s , "permission or set" $delegatable_perms' \
+      ':filesystem/volume:_zfs_dataset -t fs -t vol'
+
+    if [[ -n $state ]]; then
+      case $opt_args[(I)-[ugs]] in
+        ^-[ug]) alts+=( 'permission-sets: :_guard "(|@*)" "permission set"' ) ;|
+        ^-[gs]) alts+=( 'users:user:_users' ) ;|
+        ^-[us]) alts+=( 'groups:group:_groups' ) ;|
+        '') alts+=( 'all:everyone:(everyone)' ) ;;
+      esac
+      _alternative $alts
+    fi
+  ;;
+
+  zfs:hold)
+    _arguments -A "-*" -S \
+      '-r[apply hold recursively]' \
+      ':tag' \
+      ':snapshot:_zfs_dataset -t snap'
+  ;;
+
+  zfs:holds)
+    [[ $implementation = openzfs ]] && args=(
+      '-H[suppress printing of headers, tab-delimit columns]'
+    )
+    [[ $OSTYPE = freebsd<-12>.* ]] && args+=(
+      # features were lost with the openzfs rebase
+      '-p[use exact (parsable) numeric output]'
+      '(-r)-d+[depth]:value'
+    )
+    _arguments -A "-*" -S $args \
+      '(-d)-r[list holds recursively]' \
+      ':snapshot:_zfs_dataset -t snap'
+  ;;
+
+  zfs:release)
+    _arguments -A "-*" -S \
+      '-r[release holds recursively]' \
+      ':tag' \
+      ':snapshot:_zfs_dataset -t snap'
+  ;;
+
+  zfs:diff)
+    [[ $implementation = solaris ]] && args=(
+      '(-E)-e[only show new and changed files, no deleted]'
+      '*-o+[show specified fields]:field:_values "field" $difffields'
+      '-q[silence warnings for missing snapshots on recursive datasets]'
+      '-N[enumerate new child datasets (with -r)]'
+      '(1 -e)-E[show difference from empty]'
+    )
+    _arguments -A "-*" -S $args \
+      '-F[add column for filetype character, similar to ls(1)]' \
+      '-H[suppress printing of headers and arrows, tab-delimit columns]' \
+      '-t[add column for ctime]' \
+      '(-E)1:snapshot:_zfs_dataset -t snap' \
+      '2:snapshot or filesystem:_zfs_dataset -t snap -t fs'
+  ;;
+
+  zfs:wait)
+    _arguments -A "-*" -S \
+      '-t[specify background activity]:activity:(deleteq)' \
+      ':filesystem:_zfs_dataset'
+  ;;
+
+  zfs:key)
+    _arguments -C -A "-*" -S \
+      '-t+[only apply to given dataset type]: :_values -s , "dataset type" $ds_types' \
+      '(-u -c -K -f -o)-l[load the encryption key]' \
+      "(-u -c -K -f -o)-M[don't mount file systems after loading their keys]" \
+      "(-u -c -K -f -o)-S[don't share file systems after loading their keys]" \
+      '(-l -c -K -o -M -S)-u[unload the encryption key]' \
+      '(-l -c -K -o -M -S)-f[force unmount the dataset before unloading the encryption key]' \
+      '(-l -u -K -f -M -S)-c[change the encryption key]' \
+      '(-l -u -K -f -M -S)-o+[change a property]:property:->keysources' \
+      '(-l -c -u -f -o -M -S)-K[create a new data encryption key]' \
+      '(1 -r)-a[apply to all datasets in all pools]' \
+      '(-a)-r[apply recursively]' \
+      ':filesystem or volume:_zfs_dataset -t fs -t vol'
+  ;;
+
+  zfs:load-key)
+    _arguments -A "-*" -S \
+      "-L+[specify location of user's encryption key]:key location [prompt]:_files -P file\:// -W /" \
+      '(:)-a[load keys for all encryption roots in all imported pools]' \
+      '-n[do a dry-run, simply check that the provided key is correct]' \
+      '-r[load keys for datasets recursively]' \
+      '(-a):filesystem or volume:_zfs_dataset -t fs -t vol'
+  ;;
+
+  zfs:unload-key)
+    _arguments -A "-*" -S \
+      '(:)-a[unload keys for all encryption roots in all imported pools]' \
+      '-r[unload keys for datasets recursively]' \
+      '(-a):filesystem or volume:_zfs_dataset -t fs -t vol'
+  ;;
+
+  zfs:change-key)
+    _arguments -A "-*" -S \
+      '(-o)-i[make filesystem inherit key from its parent]' \
+      '-l[ensure key is loaded before attempting to change it]' \
+      '(-i)*-o+[change encryption key property]: :_values -s , "property" $key_properties' \
+      ':filesystem or volume:_zfs_dataset -t fs -t vol'
+  ;;
+
+  zfs:jail|zfs:unjail)
+    _arguments \
+      '1: : _jails' \
+      '2:filesystem:_zfs_dataset -t fs'
+  ;;
+
+  zfs:help)
+    _arguments -A "-*" -S \
+      - set1 \
+      ':command:($subcmds $delegatable_perms $ro_ds_props ${rw_ds_props%%:*} properties)' \
+      - set2 \
+      '(2)-l[display property information]' \
+      ':help topic:(property)' \
+      ':property:($delegatable_perms $ro_ds_props ${rw_ds_props%%:*})'
+  ;;
+
+  zpool:help)
+    _arguments -A "-*" -S \
+      - commands \
+      ':command:($subcmds)' \
+      - properties \
+      '(2)-l[display property information]' \
+      ':help topic:(property)' \
+      ':property:(${po_propnames%%\[*})'
+  ;;
+
+  zpool:add)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-g[display vdev, GUIDs instead of the normal device names]'
+        '-L[display real paths for vdevs resolving all symbolic links]'
+        '-o+[set given pool properties]: :_values -s , "property" "${(@M)ci_po_props\:#ashift*}"' \
+        '-P[display real paths for vdevs instead of only the last component of the path]'
+      )
+    elif [[ $implementation = solaris ]]; then
+      args=( '-l[display configuration in /dev/chassis location form]' )
+    fi
+    _arguments -A "-*" -S $args \
+      '-f[force use of in-use devices]' \
+      '-n[display configuration without modifying pool]' \
+      ':pool:_zfs_pool' \
+      '*:virtual device:->virtual-devices'
+  ;;
+
+  zpool:attach)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-w[wait until new device has finished resilvering before returning]'
+        '-s[reconstruct sequentially to restore redundancy as quickly as possible]'
+        '-o+[set given pool properties]: :_values -s , "property" "${(@M)ci_po_props\:#ashift*}"'
+      )
+    fi
+    _arguments -A "-*" -S $args \
+      '-f[force attach, even if in use]' \
+      ':pool:_zfs_pool' \
+      ':virtual device:->pool-devices' \
+      ':virtual device:->disk-devices'
+  ;;
+
+  zpool:checkpoint)
+    _arguments -A "-*" -S \
+      '(-d --discard)'{-d,--discard}'[discard an existing checkpoint from the pool]' \
+      '(-w --wait)'{-w,--wait}'[wait until the checkpoint has finished being discarded before returning]' \
+      ':pool:_zfs_pool'
+  ;;
+
+  zpool:clear)
+    [[ $implementation = solaris ]] && args=(
+      '-f[ignore fmadm acquit and fmadm repair failures]'
+    )
+    _arguments -C -A "-*" -S $args \
+      '-F[discard transactions to allow pool opening]' \
+      '-n[with -F, check if discarding transactions would work]' \
+      '-X[(undocumented) extreme rewind of transactions]' \
+      ':pool:_zfs_pool' \
+      '*:virtual device:->pool-devices'
+  ;;
+
+  zpool:create)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        "-d[don't enable any features on the new pool]"
+      )
+    else
+      args=(
+        '-B[create EFI boot partition on whole disks]'
+        '-l[display configuration in /dev/chassis location form]'
+        "-N[create pool but don't mount or share]"
+      )
+    fi
+    _arguments -C -A "-*" -S $args \
+      '-o+[set pool property at creation time]:property:->newpool-properties' \
+      '-O+[set dataset property at creation time]:property:->create-properties' \
+      '-f[force use of in-use devices]' \
+      '-n[display configuration without creating pool]' \
+      '-R+[use alternate root]:alternate root:_directories' \
+      '-m+[set mountpoint for root dataset]:mountpoint' \
+      '-t+[use a temporary pool name]:pool name' \
+      ':pool :_guard "^-*" "pool name"' \
+      '*: :->virtual-devices'
+  ;;
+
+  zpool:destroy)
+    _arguments -A "-*" -S \
+      '-f[force active datasets to be unmounted]' \
+      ':pool:_zfs_pool'
+  ;;
+
+  zpool:detach)
+    _arguments -C \
+      ':pool:_zfs_pool' \
+      ':virtual device:->pool-devices'
+  ;;
+
+  zpool:events)
+    _arguments -A "-*" -S \
+      '(- 1)-c[clear all previous events]' \
+      '-f[follow mode - continue running, showing new events]' \
+      '-H[suppress headers and tab-delimit fields]' \
+      '-v[print the entire payload for each event]' \
+      '(-c)1:pool:_zfs_pool'
+  ;;
+
+  zpool:export)
+    [[ $implementation = openzfs ]] && args=( '(*)-a[export all pools]' )
+    _arguments -A "-*" -S $args \
+      '-f[forcefully unmount all datasets]' \
+      '*:pool:_zfs_pool'
+  ;;
+
+  zpool:get)
+    [[ $implementation = solaris ]] && args=(
+      '-s+[specify sources to display]: :_values -s "source" local default none'
+    )
+    _arguments -A "-*" -S $args \
+      '-H[suppress headers and tab-delimit fields]' \
+      '-p[display numbers in parseable (exact) values]' \
+      '-o+[specify fields to display]: : _values -s , field name property value source' \
+      ':property:_values -s , "property" $po_propnames' \
+      '*:pool:_zfs_pool'
+  ;;
+
+  zpool:history)
+    _arguments -A "-*" -S \
+      '-i[display internal events]' \
+      '-l[long format]' \
+      '*:pool:_zfs_pool'
+  ;;
+
+  zpool:import)
+    # TODO: -o should complete mount options, too
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-t[new pool name is temporary]'
+        '-l[request encryption keys for all encrypted datasets]'
+        '--rewind-to-checkpoint[rewind pool to the checkpointed state]'
+        '-s[scan using the default search path]'
+        '(-F -X)-T[specify the txg to use for rollback]'
+      )
+    else
+      args=(
+        '(-a)-t+[use a temporary pool name]:pool name'
+        '-l[display configuration in /dev/chassis location form]'
+      )
+    fi
+    _arguments -C -A "-*" -S $args \
+      '(1 2 -t)-a[search for and import all pools found]' \
+      '-D[destroyed pools only]' \
+      '(-d)*-c+[use cache file]:cache file:_files' \
+      '(-c -D)*-d+[search for devices or files in directory]:directory:_files -/' \
+      '-F[recovery mode: discard transactions if required]' \
+      '-X[(undocumented) extreme rewind of transactions]' \
+      '!-V' \
+      '-f[force import]' \
+      '-m[ignore missing log devices]' \
+      '-N[import pool without mounting any filesystems]' \
+      "-n[with -F; don't perform input]" \
+      '-R+[specify alternate root]:alternate root:_files -/' \
+      '-o+[set pool or dataset property]:property:->import-properties' \
+      '1:pool name or id:_zfs_pool' \
+      '2::new pool name'
+  ;;
+
+  zpool:initialize)
+    _arguments -A "-*" -S \
+      '(-s --suspend -c --cancel)'{-c,--cancel}'[cancel initializing on specified devices]' \
+      '(-s --suspend -c --cancel)'{-s,--suspend}'[suspend initializing on specified devices]' \
+      '(-w --wait)'{-w,--wait}'[wait until devices have finished initializing before returning]' \
+      ':pool:_zfs_pool' \
+      '*:device:pool-devices'
+  ;;
+
+  zpool:iostat)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-c[run scripts on each vdev]:script:_files -W "($ZPOOL_SCRIPTS_PATH /etc/zfs/zpool.d ~/.zpool.d)"'
+        '-g[display vdev GUIDs instead of normal device names]'
+        '-H[suppress headers and tab-delimit fields]'
+        '-L[display real paths for vdevs resolving all symbolic links]'
+        '-n[print headers only once]'
+        '-p[display numbers in parsable (exact) values and times in nanoseconds]'
+        '-P[display full paths for vdevs instead of only the last component of the path]'
+        "-r[print request size histograms for the leaf vdev's IO]"
+        '-y[omit statistics since boot]'
+        '-w[display latency histograms]'
+        '-l[include average latency statistics]'
+        '-q[include active queue statistics]'
+      )
+    else
+      args=( '-l[display configuration in /dev/chassis location form]' )
+    fi
+    _arguments -A "-*" -S $args \
+      '-T+[display a timestamp]:format:((d\:standard u\:internal))' \
+      '-v[verbose statistics]' \
+      '*::pool:_zfs_pool' \
+      '::interval' \
+      '::count'
+  ;;
+
+  zpool:label)
+    _arguments -C -A "-*" -S \
+      '(-c)*-d+[specify path in which to search for devices or files]:path:_directories' \
+      '(-d)-c+[read configuration from specified cache file]:cache file:_files' \
+      '(-R)-C[clear ZFS metadata on an inactive pool or device]' \
+      '(-C)-R[recover ZFS metadata for a pool]' \
+      '1::pool:_zfs_pool' \
+      '2:device:->pool-devices'
+  ;;
+
+  zpool:labelclear)
+    _arguments -A "-*" -S \
+      '-f[treat exported or foreign devices as inactive]' \
+      '*:virtual device:_files'
+  ;;
+
+  zpool:list)
+    [[ $implementation = openzfs ]] && args=(
+      '-g[display vdev GUIDs instead of normal device names]'
+      '-L[display real paths for vdevs resolving all symbolic links]'
+      '-p[display numbers in parsable (exact) values]'
+      '-P[display full paths for vdevs instead of only the last component of the path]'
+      '-v[report usage statistics for individual vdevs within the pool]'
+    )
+    _arguments -A "-*" -S $args \
+      '-H[suppress headers and tab-delimit fields]' \
+      '-T+[display a timestamp]:format:((d\:standard u\:internal))' \
+      '-o+[specify fields to list]: :_values -s , "field" $po_propnames' \
+      '::pool:_zfs_pool'
+  ;;
+
+  zpool:monitor)
+    _arguments -A "-*" -S \
+      '-t+[specify provider]:provider:(send receive scrub resilver ddtmigrate destroy)' \
+      '-o+[specify fields]: :_values -s , field done other pctdone pool provider speed starttime tag timeleft timestmp total' \
+      '-T+[display a timestamp]:format:((d\:standard u\:internal))' \
+      '-p[use machine-parseable output format]' \
+      '1:pool:_zfs_pool' \
+      '2:interval' \
+      '3:count'
+  ;;
+
+  zpool:offline)
+    [[ $implementation = openzfs ]] && args=(
+      '-f[force disk into faulted state]'
+    )
+    _arguments -C -A "-*" -S $args \
+      '-t[offline until next reboot]' \
+      ':pool:_zfs_pool' \
+      '*:virtual device:->pool-devices'
+  ;;
+
+  zpool:online)
+    _arguments -C -A "-*" -S \
+      '-e[expand device to use all available space]' \
+      ':pool:_zfs_pool' \
+      '*:virtual device:->pool-devices'
+  ;;
+
+  zpool:reopen)
+    _arguments -A "-*" -S \
+      "-n[don't restart an in-progress scrub operation]" \
+      '1:pool:_zfs_pool'
+  ;;
+
+  zpool:reguid)
+    _zfs_pool
+  ;;
+
+  zpool:remove)
+    [[ $implementation = openzfs ]] && args=(
+      '(-s)-w[wait until removal has completed before returning]'
+    )
+    _arguments -C -A "-*" -S $args \
+      "(-s)-n[don't perform the removal, display mapping table memory use]" \
+      '(-s)-p[with -n, display numbers in parseable (exact) values]' \
+      '(- *)-s[stop and cancel an in-progress removal]' \
+      '1:pool:_zfs_pool' \
+      '*:device:->pool-devices'
+  ;;
+
+  zpool:replace)
+    [[ $implementation = openzfs ]] && args=(
+      '-w[wait until replacement has completed before returning]'
+      '-s[reconstruct sequentially to restore redundancy as quickly as possible]'
+      '-o+[set given pool properties]: :_values -s , "property" "${(@M)ci_po_props\:#ashift*}"'
+    )
+    _arguments -A "-*" -S $args \
+      '-f[force attach, even if in use]' \
+      ':pool:_zfs_pool' \
+      ':virtual device:_files' \
+      '::virtual device:_files'
+  ;;
+
+  zpool:(resilver|sync))
+    _arguments \
+      '*:pool:_zfs_pool'
+  ;;
+
+  zpool:scrub)
+    [[ $implementation = openzfs ]] && args=(
+      '(-s)-p[pause scrubbing]'
+      '-w[wait until scrub has completed before returning]'
+    )
+    _arguments -A "-*" -S $args \
+      '(-p)-s[stop scrubbing]' \
+      '*:pool:_zfs_pool'
+  ;;
+
+  zpool:set)
+    _arguments -C -A "-*" -S \
+      ':property:->set-pool-properties' \
+      '*:pool:_zfs_pool'
+  ;;
+
+  zpool:split)
+    if [[ $implementation = solaris ]]; then
+      args=( '-l[display configuration in /dev/chassis location form]' )
+    else
+      args=(
+        '-g[display vdev GUIDs instead of normal device names]'
+        '-L[display real paths for vdevs resolving all symbolic links]'
+        '-l[request encryption keys for encrypted datasets]'
+        '-P[display full paths for vdevs instead of only the last component of the path]'
+      )
+    fi
+    _arguments -C -A "-*" -S $args \
+      '-R+[specify alternate root]:alternate root:_files -/' \
+      '-n[display configuration without splitting]' \
+      '-o+[set pool or dataset property]:property:->import-properties' \
+      ':pool name or id:_zfs_pool' \
+      ':new pool name' \
+      '*:virtual device:->pool-devices'
+  ;;
+
+  zpool:status)
+    if [[ $implementation = openzfs ]]; then
+      args=(
+        '-D[display a histogram of deduplication statistics]'
+        '-c[run scripts on each vdev]:script:_files -W "($ZPOOL_SCRIPTS_PATH /etc/zfs/zpool.d ~/.zpool.d)"'
+        '-i[display vdev initialization status]'
+        '-g[display vdev GUIDs instead of the normal device names]'
+        '-L[display real paths for vdevs resolving all symbolic links]'
+        '-p[display numbers in parsable (exact) values and times in nanoseconds]'
+        '-P[display full paths for vdevs instead of only the last component of the path]'
+        '-s[display the number of leaf VDEV slow IOs]'
+        '-t[display vdev TRIM status]'
+      )
+    else
+      args=( '-l[display configuration in /dev/chassis location form]' )
+    fi
+    _arguments -A "-*" -S $args\
+      '-v[verbose information]' \
+      '-x[show only unhealthy pools]' \
+      '-T+[display a timestamp]:format:((d\:standard u\:internal))' \
+      '*::pool:_zfs_pool' \
+      ':: :_guard "[0-9]#" interval' \
+      ':: :_guard "[0-9]#" count'
+  ;;
+
+  zpool:trim)
+    _arguments -C -A "-*" -S \
+      '(-d --secure)'{-d,--secure}'[initiate a secure TRIM]' \
+      '(-r --rate)'{-r,--rate}'[set rate at which the TRIM operation progresses]:rate (bytes per second)' \
+      '(-c --cancel)'{-c,--cancel}'[cancel trimming]' \
+      '(-s --suspend)'{-s,--suspend}'[suspend trimming]' \
+      '(-w --wait)'{-w,--wait}'[wait until devices are done being trimmed]' \
+      '1:pool:_zfs_pool' \
+      '*:device:->pool-devices'
+  ;;
+
+  zpool:upgrade)
+    _arguments -A "-*" -S \
+      '(- *)-v[display ZFS versions and descriptions]'
+      "(-v)-V+[upgrade to given version]:version" \
+      '(-v *)-a[upgrade all pools]' \
+      '(-a -v)*:pool:_zfs_pool'
+  ;;
+
+  zpool:wait)
+    _arguments -A "-*" -S \
+      '-H[suppress printing of headers, tab-delimit columns]' \
+      '-P[use exact (parsable) numeric output]' \
+      '-t+[specify background activity]: : _values -s , activity discard free initialize replace remove resilver scrub trim' \
+      '-T+[display a timestamp]:format:((d\:standard u\:internal))' \
+      ':pool:_zfs_pool' \
+      ':interval'
+  ;;
+
+  *)
+    _default
+  ;;
+esac
+
+while (( $#state )); do
+  curstate=$state
+  state=()
+  case $curstate in
+    virtual-devices)
+      local -a vdevtypes
+      vdevtypes=( mirror raidz{,1,2,3} spare log cache )
+      if [[ $implementation = openzfs ]]; then
+        vdevtypes+=( draid{,1,2,3} dedup special )
+      else
+        vdevtypes+=( meta )
+      fi
+      # cache can't be a mirror
+      [[ $words[CURRENT-1] != cache ]] && alts=(
+        'vdev-types:vdev type:compadd -a vdevtypes'
+      )
+      [[ -prefix / ]] || alts+=(
+        'disk-vdevs:disk vdev:_files -g "*(-%)" -W /dev'
+      )
+      _alternative $alts 'file-vdevs:file vdev:_files -W / -P /'
+    ;;
+
+    pool-devices)
+      local -a devices
+      devices=( ${${${(M)${(f)"$(_call_program devices zpool status $line[1])"}:#$'\t' *}##[[:blank:]]#}%%[[:blank:]]*} )
+      if (( $#devices )); then
+        _description devices expl "$state_descr"
+        compadd "$expl[@]" -a devices
+        break
+      fi
+    ;& # fall-through if we found none
+
+    disk-devices)
+      [[ -prefix / ]] || alts=(
+        'disk-vdevs:disk vdev:_files -g "*(-%)" -W /dev'
+      )
+      _alternative $alts 'file-vdevs:file vdev:_files -W / -P /'
+    ;;
+
+    keysources)
+      local -a suf
+
+      compset -S ",*" || suf=(-S ,)
+      if compset -P 1 "*,"; then
+        _alternative \
+          'zfs-keylocator-prompt:"prompt" locator:(prompt)' \
+          'zfs-keylocator-file:file locator:_files' \
+          'zfs-keylocator-pkcs11: : _message -e zfs-keylocator-pkcs11 "PKCS#11 locator"' \
+          'zfs-keylocator-https: : _message -e zfs-keylocator-https "HTTPS URL locator"'
+      else
+        _description keysource-formats expl "keysource format"
+        compadd $suf -q "$expl[@]" "$@" raw hex passphrase
+      fi
+    ;;
+
+    quotas)
+      _alternative \
+        'sizes: :_numbers -M "m:{a-zA-Z}={A-Za-z}" -u bytes size :B {k,M,G,T,P,E,Z}{,B}' \
+        'properties:property:(none)'
+    ;;
+
+    import-properties) args=( $ci_ds_props $rw_ds_props $ci_po_props ) ;|
+    create-properties) args=( $ci_ds_props ) ;|
+    set-properties) args=( $rw_ds_props ) ;|
+    newpool-properties) args=( $rw_po_props $ci_po_props ) ;|
+    set-pool-properties) args=( $rw_po_props ) ;|
+
+    *-properties)
+      if compset -P 1 '(#m)*@'; then
+        if compset -P 1 '*='; then
+          case $MATCH in
+            *quota@) _alternative \
+              'sizes: :_numbers -M "m\:{a-zA-Z}={A-Za-z}" -u bytes size \:B {k,M,G,T,P,E,Z}{,B}' \
+              'properties:property:(none)'
+            ;;
+          esac
+        else
+          case $MATCH in
+            user*@) _users -S = ;;
+            group*@) _groups -S = ;;
+            project*@) _message -e projects project ;;
+          esac
+        fi
+      else
+        _wanted values expl "$state_descr" compadd -S@ ${${(M)args:#*@}%@}
+        _values -C "$state_descr" ${args:#*@}
+      fi
+    ;;
+  esac
+done
+
+[[ nm -ne "$compstate[nmatches]" ]]

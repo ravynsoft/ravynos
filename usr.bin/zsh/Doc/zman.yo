@@ -1,0 +1,215 @@
+IFDEF(INCWSLEVEL)(\
+INCWSLEVEL()\
+DEFINESYMBOL(zman)()\
+)(\
+STARTDEF()
+DEFINESYMBOL(zman)
+)
+TYPEOUT(Zsh Yodl-to-man converter)
+
+INCLUDEFILE(zmacros)
+redef(ifzman)(1)(ARG1)
+redef(ifnzman)(1)()
+
+def(CMT)(0)(NOTRANS(.'))
+
+COMMENT(--- character translation ---)
+
+DEFINECHARTABLE(standard)(
+  '' = ".' (avoiding a yodl bug)"
+  '\\' = "\\e"
+  '.' = "\\&."
+  '-' = "\\-"
+)
+USECHARTABLE(standard)
+
+def(STDPAR)(0)(\
+  redef(PARAGRAPH)(0)(NL()NOTRANS(.PP)NL())\
+)
+
+COMMENT(--- emphasised text ---)
+
+def(em)(1)(NOTRANS(\fI)ARG1+NOTRANS(\fP))
+def(bf)(1)(NOTRANS(\fB)ARG1+NOTRANS(\fP))
+def(tt)(1)(NOTRANS(\fB)ARG1+NOTRANS(\fP))
+def(uref)(1)(NOTRANS(\fB)ARG1+NOTRANS(\fP))
+def(var)(1)(NOTRANS(\fI)ARG1+NOTRANS(\fP))
+
+COMMENT(--- man page headers ---)
+
+def(manpage)(4)(\
+  NOTRANS(.TH ")ARG1" "ARG2" "ARG3" "ARG4"\
+)
+def(manpagename)(2)(\
+  sect(NAME)+NL()\
+  ARG1 - ARG2\
+)
+
+COMMENT(--- TeXinfo headers and conditionals ---)
+
+def(texinfo)(2)(CMT())
+
+def(texiifinfo)(1)()
+def(texiiftex)(1)()
+def(texiifnottex)(1)()
+
+def(texipage)(0)(CMT())
+def(texititlepage)(0)(CMT())
+def(texiendtitlepage)(0)(CMT())
+def(texititle)(1)(CMT())
+def(texisubtitle)(1)(CMT())
+def(texiauthor)(1)(CMT())
+
+def(texinode)(4)(CMT())
+def(texitop)(1)(CMT())
+
+COMMENT(--- section divisions ---)
+
+def(chapter)(1)(CMT())
+
+COMMENT(--- the "" works around a yodl bug in versions before 2 ---)
+def(sect)(1)(\
+  IFDEF(INCWSLEVEL)(\
+  NOTRANS(.SH )"UPPERCASE(NOTRANS(ARG1))(0)"+NL()\
+  )(\
+  NOTRANS(.SH )UPPERCASE(ARG1)(0)""+NL()\
+  )\
+  STDPAR()\
+  CMT()\
+)
+
+def(subsect)(1)(\
+  NOTRANS(.SS ")ARG1"+NL()\
+  CMT()\
+)
+
+COMMENT(--- comment output ---)
+
+DEFINECHARTABLE(roffcomment)(
+  '\n' = "\n.\\\" "
+)
+def(comment)(1)(\
+  USECHARTABLE(roffcomment)\
+  NOTRANS(.\" )ARG1\
+  +USECHARTABLE(standard)\
+)
+
+COMMENT(--- cross-references ---)
+
+def(manref)(2)(\
+  NOTRANS(\fI)ARG1+NOTRANS(\fP)(ARG2)\
+)
+def(zmanref)(1)(manref(ARG1)(1))
+def(noderef)(1)(the section `ARG1')
+
+COMMENT(--- lists ---)
+
+def(startitem)(0)(\
+  NOTRANS(.PD 0)\
+  +redef(ITEM)(0)(NOTRANS(.PD)+NL())\
+)
+def(enditem)(0)(\
+  ENDITEM()\
+  STDPAR()\
+  +redef(ENDITEM)(0)(NOTRANS(.RE)STDPAR()redef(ENDITEM)(0)(CMT()))\
+)
+def(item)(2)(\
+  NOTRANS(.TP)+NL()\
+  ITEM()\
+  +redef(ITEM)(0)()\
+  ARG1\
+  +redef(ENDITEM)(0)(CMT())\
+  +redef(PARAGRAPH)(0)(\
+    NL()NOTRANS(.RS)+NL()NOTRANS(.PP)+NL()\
+    STDPAR()\
+    +redef(ENDITEM)(0)(NOTRANS(.RE)STDPAR()redef(ENDITEM)(0)(CMT()))\
+  )\
+  ARG2\
+  +ENDITEM()\
+)
+def(xitem)(1)(\
+  NOTRANS(.TP)+NL()\
+  NOTRANS(.PD 0)+NL()\
+  +redef(ITEM)(0)(NOTRANS(.PD)+NL())\
+  ARG1\
+)
+
+def(startsitem)(0)(\
+  NOTRANS(.PD 0)\
+)
+def(endsitem)(0)(\
+  NOTRANS(.PD)\
+)
+def(sitem)(2)(\
+  NOTRANS(.TP)+NL()\
+  ARG1+NL()\
+  ARG2\
+)
+def(sxitem)(1)(\
+  NOTRANS(.TP)+NL()\
+  ARG1\
+)
+
+def(startlist)(0)(\
+  NOTRANS(.PD 0)\
+)
+def(endlist)(0)(\
+  NOTRANS(.PD)\
+)
+def(list)(1)(\
+  NOTRANS(.TP)+NL()\
+  ARG1\
+)
+
+def(startitemize)(0)(\
+  startitem()\
+)
+def(enditemize)(0)(\
+  enditem()\
+)
+def(itemiz)(1)(\
+  item(NOTRANS(\)+LPAR()+NOTRANS(bu))(NL()ARG1+NL())\
+)
+
+COMMENT(--- special effects ---)
+
+def(example)(1)(\
+  undef(PARAGRAPH)\
+  NOTRANS(.RS)+NL()NOTRANS(.nf)+NL()\
+  NOTRANS(\fB)ARG1+NOTRANS(\fP)\
+  +NL()NOTRANS(.fi)+NL()NOTRANS(.RE)\
+  STDPAR()\
+)
+
+def(nofill)(1)(\
+  NOTRANS(.nf)+NL()\
+  ARG1\
+  +NL()NOTRANS(.fi)\
+)
+
+def(indent)(1)(\
+  NOTRANS(.RS)+NL()NOTRANS(.nf)+NL()\
+  ARG1\
+  +NL()NOTRANS(.fi)+NL()NOTRANS(.RE)\
+)
+
+COMMENT(--- hyperlink menus ---)
+
+def(startmenu)(0)(CMT())
+def(endmenu)(0)(CMT())
+def(menu)(1)(CMT())
+
+COMMENT(--- indices ---)
+
+def(cindex)(1)(CMT())
+def(findex)(1)(CMT())
+def(kindex)(1)(CMT())
+def(pindex)(1)(CMT())
+def(tindex)(1)(CMT())
+def(vindex)(1)(CMT())
+
+IFDEF(DECWSLEVEL)(\
+DECWSLEVEL()\
+)(\
+ENDDEF()\
+)\

@@ -1,0 +1,145 @@
+#! /bin/sh
+#
+# Copyright (C) 2001-2023 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+
+# This program creates a program's manual from the .x skeleton and its --help
+# output.
+#
+# Usage: x-to-1 [OPTIONS] PERL HELP2MAN [HELP2MAN-OPTIONS] EXECUTABLE PROGRAM.x PROGRAM.1
+# where
+#
+#   PERL        The file name of the perl program.
+#   HELP2MAN    Either the file name of the help2man perl script, or a complete
+#               command such as "$PERL -w -- help2man".
+#   HELP2MAN-OPTIONS  Options to pass to the help2man perl script.
+#   EXECUTABLE  The file name of the program to invoke with --help.
+#   PROGRAM     The name of the program.
+#   PROGRAM.x   The .x skeleton is a file containing manual page text that is
+#               not part of the --help output. It is passed to help2man via
+#               its --include option. Its format is described in the help2man
+#               documentation.
+#   PROGRAM.1   The output file, a manual page in mandoc format.
+#
+# Options:
+#   --update    Don't overwrite the output if nothing would change.
+#
+# Configure-time prerequisites:
+#
+#   PERL        Can be set through
+#                 ac_aux_dir_abs=`cd $ac_aux_dir && pwd`
+#                 AC_PATH_PROG([PERL], [perl], [$ac_aux_dir_abs/missing perl])
+#               or, alternatively, by the Gnulib 'perl' module.
+#
+#   CROSS_COMPILING  Can be set through
+#                      CROSS_COMPILING=$cross_compiling
+#                      AC_SUBST([CROSS_COMPILING])
+#                    The variable 'cross_compiling' is set by AC_PROG_CC.
+
+update=
+while true; do
+  case "$1" in
+    --update) update=yes; shift;;
+    *) break;;
+  esac
+done
+
+if test $# -lt 5; then
+  echo "Usage: x-to-1 [OPTIONS] PERL HELP2MAN [HELP2MAN-OPTIONS] executable program.x program.1" 1>&2
+  exit 1
+fi
+
+# In order to construct a command that invokes HELP2MAN [HELP2MAN-OPTIONS] ...
+# we need 'eval'.
+command_for_print=
+command_for_eval=
+# Protecting special characters, hiding them from 'eval':
+# Double each backslash.
+sed_protect_1='s/\\/\\\\/g'
+# Escape each dollar, backquote, double-quote.
+sed_protect_2a='s/\$/\\$/g'
+sed_protect_2b='s/`/\\`/g'
+sed_protect_2c='s/"/\\"/g'
+# Add double-quotes at the beginning and end of the word.
+sed_protect_3a='1s/^/"/'
+sed_protect_3b='$s/$/"/'
+func_add_word_to_command ()
+{
+  command_for_print="${command_for_print:+$command_for_print }$1"
+  word_protected=`echo "$1" | sed -e "$sed_protect_1" -e "$sed_protect_2a" -e "$sed_protect_2b" -e "$sed_protect_2c" -e "$sed_protect_3a" -e "$sed_protect_3b"`
+  command_for_eval="${command_for_eval:+$command_for_eval }$word_protected"
+}
+
+PERL="$1"; shift
+HELP2MAN="$1"; shift
+
+# Accommodate both possible forms of the HELP2MAN argument.
+case "$HELP2MAN" in
+  "$PERL "*) ;;
+  *) HELP2MAN="$PERL $HELP2MAN" ;;
+esac
+
+# Do word-splitting of $HELP2MAN, but carefully.
+for word in $HELP2MAN; do
+  func_add_word_to_command "$word"
+done
+
+# Now grok the HELP2MAN-OPTIONS.
+while test $# -gt 3; do
+  arg="$1"; shift
+  func_add_word_to_command "$arg"
+done
+
+# Grok the final arguments.
+executable="$1"
+aux="$2"
+output="$3"
+
+progname=`basename $aux .x`
+# configure determined whether perl exists.
+case "$PERL" in
+  *"/missing perl")
+    perlok=no
+    ;;
+  *)
+    # Determine whether all the perl modules that help2man needs are installed.
+    if $HELP2MAN --help >/dev/null 2>/dev/null; then
+      perlok=yes
+    else
+      perlok=no
+    fi
+    ;;
+esac
+if test @CROSS_COMPILING@ = no && test -f $executable && test $perlok = yes; then
+  echo "Updating man page $output"
+  func_add_word_to_command "--include=$aux"
+  func_add_word_to_command "$executable"
+  echo "$command_for_print > $output"
+  rm -f t-$progname.1
+  eval "$command_for_eval" > t-$progname.1 || exit 1
+  if test -n "$update"; then
+    # In --update mode, don't overwrite the output if nothing would change.
+    if cmp t-$progname.1 $output >/dev/null 2>&1; then
+      rm -f t-$progname.1
+    else
+      mv t-$progname.1 $output
+    fi
+  else
+    mv t-$progname.1 $output
+  fi
+else
+  echo "WARNING: The man page $output cannot be updated yet."
+fi

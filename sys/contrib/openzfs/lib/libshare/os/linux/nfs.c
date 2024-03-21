@@ -47,6 +47,7 @@
 
 
 static boolean_t nfs_available(void);
+static boolean_t exports_available(void);
 
 typedef int (*nfs_shareopt_callback_t)(const char *opt, const char *value,
     void *cookie);
@@ -319,11 +320,48 @@ get_linux_shareopts_cb(const char *key, const char *value, void *cookie)
 	    "wdelay" };
 
 	char **plinux_opts = (char **)cookie;
+	char *host, *val_dup, *literal, *next;
 
-	/* host-specific options, these are taken care of elsewhere */
-	if (strcmp(key, "ro") == 0 || strcmp(key, "rw") == 0 ||
-	    strcmp(key, "sec") == 0)
+	if (strcmp(key, "sec") == 0)
 		return (SA_OK);
+
+	if (strcmp(key, "ro") == 0 || strcmp(key, "rw") == 0) {
+		if (value == NULL || strlen(value) == 0)
+			return (SA_OK);
+		val_dup = strdup(value);
+		host = val_dup;
+		if (host == NULL)
+			return (SA_NO_MEMORY);
+		do {
+			if (*host == '[') {
+				host++;
+				literal = strchr(host, ']');
+				if (literal == NULL) {
+					free(val_dup);
+					return (SA_SYNTAX_ERR);
+				}
+				if (literal[1] == '\0')
+					next = NULL;
+				else if (literal[1] == '/') {
+					next = strchr(literal + 2, ':');
+					if (next != NULL)
+						++next;
+				} else if (literal[1] == ':')
+					next = literal + 2;
+				else {
+					free(val_dup);
+					return (SA_SYNTAX_ERR);
+				}
+			} else {
+				next = strchr(host, ':');
+				if (next != NULL)
+					++next;
+			}
+			host = next;
+		} while (host != NULL);
+		free(val_dup);
+		return (SA_OK);
+	}
 
 	if (strcmp(key, "anon") == 0)
 		key = "anonuid";
@@ -472,6 +510,10 @@ static int
 nfs_validate_shareopts(const char *shareopts)
 {
 	char *linux_opts = NULL;
+
+	if (strlen(shareopts) == 0)
+		return (SA_SYNTAX_ERR);
+
 	int error = get_linux_shareopts(shareopts, &linux_opts);
 	if (error != SA_OK)
 		return (error);
@@ -498,6 +540,8 @@ nfs_commit_shares(void)
 static void
 nfs_truncate_shares(void)
 {
+	if (!exports_available())
+		return;
 	nfs_reset_shares(ZFS_EXPORTS_LOCK, ZFS_EXPORTS_FILE);
 }
 
@@ -518,6 +562,21 @@ nfs_available(void)
 
 	if (!avail) {
 		if (access("/usr/sbin/exportfs", F_OK) != 0)
+			avail = -1;
+		else
+			avail = 1;
+	}
+
+	return (avail == 1);
+}
+
+static boolean_t
+exports_available(void)
+{
+	static int avail;
+
+	if (!avail) {
+		if (access(ZFS_EXPORTS_DIR, F_OK) != 0)
 			avail = -1;
 		else
 			avail = 1;

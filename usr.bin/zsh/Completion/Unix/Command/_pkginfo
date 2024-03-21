@@ -1,0 +1,18 @@
+#compdef pkginfo
+
+_arguments -s \
+  '(-q -r -x)-l[long listing]' \
+  '(-l -r -x)-q[quiet mode]' \
+  '(-l -q -x)-r[relocation base]' \
+  '(-l -q -r)-x[extracted listing]' \
+  '-c[category]:category' \
+  '-a[architecture]:architecture' \
+  '-v[version]:version' \
+  - set1 \
+  '(-p)-i[select completely installed packages]' \
+  '(-i)-p[select partially installed packages]' \
+  '-R[root path]:root path:_files -/' \
+  '*:package instance:_pkg_instance --_opts installed:set1--R' \
+  - set2 \
+  '-d[device]:device file:_files' \
+  '*:package instance:_pkg_instance --_opts uninstalled:set2--d'

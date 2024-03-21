@@ -1,0 +1,215 @@
+# Test zsh/system module
+
+%prep
+
+  if zmodload -s zsh/system && zmodload -s zsh/zselect; then
+    tst_dir=V14.tmp
+    mkdir -p -- $tst_dir
+    : > $tst_dir/file # File on which to acquire flock.
+  else
+    ZTST_unimplemented='the zsh/system and zsh/zselect modules are not available'
+  fi
+
+%test
+
+  (
+    zsystem flock -t 0 -i 0.000001 $tst_dir/file    &&
+    zsystem flock -t 0.1 -i 0.000001 $tst_dir/file  &&
+    zsystem flock -t 0.1 -i 0.0000001 $tst_dir/file &&
+    zsystem flock -t 1 -i 0.000001 $tst_dir/file
+  )
+0:zsystem flock valid time arguments
+
+  (
+    zsystem flock -t 1073741824 $tst_dir/file ||
+    zsystem flock -t 1e100      $tst_dir/file ||
+    zsystem flock -i -1         $tst_dir/file ||
+    zsystem flock -i 0          $tst_dir/file ||
+    zsystem flock -i 1e100      $tst_dir/file
+  )
+1:zsystem flock invalid time arguments
+?(eval):zsystem:2: flock: invalid timeout value: '1073741824'
+?(eval):zsystem:3: flock: invalid timeout value: '1e100'
+?(eval):zsystem:4: flock: invalid interval value: '-1'
+?(eval):zsystem:5: flock: invalid interval value: '0'
+?(eval):zsystem:6: flock: invalid interval value: '1e100'
+
+  (
+    # Lock file for 1 second in the background.
+    lock_flag=$tst_dir/locked1
+    (zsystem flock $tst_dir/file \
+     && touch $lock_flag \
+     && zselect -t 100
+     mv $lock_flag $lock_flag.done) &
+    # Wait until sub-shell above has started.
+    while ! [[ -f $lock_flag || -f $lock_flag.done ]]; do
+      zselect -t 1
+    done
+    if [[ -f $lock_flag.done ]]; then
+      echo "Background shell should not have completed already." 1>&2
+    else
+      # Attempt to lock file with 0.5 second timeout: must fail.
+      zsystem flock -t 0.5 $tst_dir/file
+    fi
+  )
+2:zsystem flock unsuccessful wait test
+F:This timing test might fail due to process scheduling issues unrelated to zsh.
+
+  (
+    # Lock file for 0.5 second in the background.
+    lock_flag=$tst_dir/locked2
+    (zsystem flock $tst_dir/file \
+      && touch $lock_flag \
+      && zselect -t 50
+      mv $lock_flag $lock_flag.done) &
+    # Wait until sub-shell above has started.
+    while ! [[ -f $lock_flag || -f $lock_flag.done ]]; do
+      zselect -t 1
+    done
+    if [[ -f $lock_flag.done ]]; then
+      echo "Background shell should not have completed already." 1>&2
+    fi
+    typeset -F SECONDS
+    start=$SECONDS
+    # Attempt to lock file without a timeout:
+    # must succeed after sub-shell above releases it (0.5 second).
+    if zsystem flock $tst_dir/file; then
+      elapsed=$[ $SECONDS - $start ]
+      if [[ $elapsed -ge 0.3 && $elapsed -le 0.7 ]]; then
+        echo "elapsed time seems OK" 1>&2
+      else
+        echo "elapsed time $elapsed should be ~ 0.5 second" 1>&2
+      fi
+    fi
+  )
+0:zsystem flock successful wait test, no timeout
+?elapsed time seems OK
+F:This timing test might fail due to process scheduling issues unrelated to zsh.
+
+  (
+    # Lock file for 0.5 second in the background.
+    lock_flag=$tst_dir/locked3
+    (zsystem flock $tst_dir/file \
+      && touch $lock_flag \
+      && zselect -t 50
+      mv $lock_flag $lock_flag.done) &
+    # Wait until sub-shell above has started.
+    while ! [[ -f $lock_flag || -f $lock_flag.done ]]; do
+      zselect -t 1
+    done
+    if [[ -f $lock_flag.done ]]; then
+      echo "Background shell should not have completed already." 1>&2
+    fi
+    typeset -F SECONDS
+    start=$SECONDS
+    # Attempt to lock file with 1-second timeout:
+    # must succeed 1 second after start because we retry every 1 second.
+    if zsystem flock -t 1 $tst_dir/file; then
+      elapsed=$[ $SECONDS - $start ]
+      if [[ $elapsed -ge 0.8 && $elapsed -le 1.2 ]]; then
+        echo "elapsed time seems OK" 1>&2
+      else
+        echo "elapsed time $elapsed should be ~ 1 second" 1>&2
+      fi
+    fi
+  )
+0:zsystem flock successful wait test, integral seconds
+?elapsed time seems OK
+F:This timing test might fail due to process scheduling issues unrelated to zsh.
+
+  (
+    # Lock file for 0.25 second in the background.
+    lock_flag=$tst_dir/locked4
+    (zsystem flock $tst_dir/file \
+      && touch $lock_flag \
+      && zselect -t 25
+      mv $lock_flag $lock_flag.done) &
+    # Wait until sub-shell above has started.
+    while ! [[ -f $lock_flag || -f $lock_flag.done ]]; do
+      zselect -t 1
+    done
+    if [[ -f $lock_flag.done ]]; then
+      echo "Background shell should not have completed already." 1>&2
+    fi
+    typeset -F SECONDS
+    start=$SECONDS
+    # Attempt to lock file with 0.4-second timeout, retrying every 0.1 second:
+    # must succeed 0.3 second after start.
+    if zsystem flock -t 0.4 -i 0.1 $tst_dir/file; then
+      elapsed=$[ $SECONDS - $start ]
+      if [[ $elapsed -ge 0.2 && $elapsed -le 0.5 ]]; then
+        echo "elapsed time seems OK" 1>&2
+      else
+        echo "elapsed time $elapsed should be ~ 0.3 second" 1>&2
+      fi
+    fi
+  )
+0:zsystem flock successful wait test, fractional seconds
+?elapsed time seems OK
+F:This timing test might fail due to process scheduling issues unrelated to zsh.
+
+  unset chars REPLY
+  print -n a few words | sysread -i 0 -c chars
+  ret=$?
+  print -- $chars x${REPLY}x
+  return ret
+0:sysread default
+>11 xa few wordsx
+
+  unset chars REPLY
+  sysread -i 9 -c chars
+  ret=$?
+  print -- $chars x${REPLY}x
+  return ret
+2:sysread read error
+>-1 xx
+
+  REPLY="say nothing"
+  sysread -i 9 -c chars
+  ret=$?
+  print -- $chars x${REPLY}x
+  return ret
+2f:sysread read error
+F:The value of $REPLY should be empty or unset when nothing is read?
+>-1 xx
+
+  unset chars REPLY
+  print -n a few words | sysread -i 0 -o 9 -c chars
+  ret=$?
+  print -- $chars x${REPLY}x
+  return ret
+3:sysread write error
+>11 xx
+
+  sleep 3 | sysread -i 0 -t 1
+4:sysread timeout
+
+  sysread -i 0 </dev/null
+5:sysread end of file
+
+  unset chars oration
+  print -n a few words | sysread -i 0 -o 9 -c chars oration
+  ret=$?
+  print $chars x${oration}x $REPLY
+  return ret
+3:regression test: sysread write error with both -o and a parameter
+>11 xa few wordsx
+
+  unset chars oration
+  print a few words | sysread -i 0 -o 1 -c chars oration
+  ret=$?
+  print -- $chars x${oration}x $REPLY
+  return ret
+0:regression test: sucessful sysread with both -o and a parameter
+>a few words
+>12 xx
+
+  oration="do not say these words"
+  print a few words | sysread -i 0 -o 1 -c chars oration
+  ret=$?
+  print -- $chars x${oration}x $REPLY
+  return ret
+0f:successful sysread with both -o and a parameter
+F:The value of $oration should be empty or unset when everything is written?
+>a few words
+>12 xx

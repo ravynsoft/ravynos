@@ -1,0 +1,131 @@
+'sudo -U root -l' with no matching rules
+Parses OK
+
+Entries for user admin:
+
+Password required
+
+Command denied
+
+'sudo -U root -l' with a matching ALL=ALL rule
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+'sudo -U root -l' with a matching list rule
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: list
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+'sudo -U root -l' without a matching list rule
+Parses OK
+
+Entries for user admin:
+
+ALL = (operator) list
+	host  allowed
+	runas unmatched
+
+Password required
+
+Command denied
+
+'sudo -U root -l' with a negated list rule
+Parses OK
+
+Entries for user admin:
+
+ALL = !list
+	host  allowed
+	runas allowed
+	cmnd  denied
+
+Password required
+
+Command denied
+
+'sudo -U root -l' with a list rule that is later negated
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: list, !list
+	host  allowed
+	runas allowed
+	cmnd  allowed
+	runas allowed
+	cmnd  denied
+
+Command denied
+
+'sudo -l command' with a matching command
+Parses OK
+
+Entries for user admin:
+
+ALL = /bin/ls
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+'sudo -l command' without a matching command
+Parses OK
+
+Entries for user admin:
+
+ALL = /bin/ls
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+'sudo -U root -l command' without list privileges
+Parses OK
+
+Entries for user admin:
+
+ALL = /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  unmatched
+
+Password required
+
+Command denied
+
+'sudo -U root -l command' with list privileges
+Parses OK
+
+Entries for user admin:
+
+ALL = list
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed

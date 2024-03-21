@@ -39,8 +39,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)kernel.h	8.3 (Berkeley) 1/21/94
  */
 
 #ifndef _SYS_KERNEL_H_
@@ -220,7 +218,7 @@ typedef void (*sysinit_cfunc_t)(const void *);
 struct sysinit {
 	enum sysinit_sub_id	subsystem;	/* subsystem identifier*/
 	enum sysinit_elem_order	order;		/* init order within subsystem*/
-	SLIST_ENTRY(sysinit)	next;		/* singly-linked list */
+	STAILQ_ENTRY(sysinit)	next;		/* singly-linked list */
 	sysinit_cfunc_t func;			/* function		*/
 	const void	*udata;			/* multiplexer/argument */
 };

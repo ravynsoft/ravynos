@@ -1,0 +1,486 @@
+#! /bin/sh
+
+# Extract macro arguments from autotools input with GNU M4.
+# Written by Gary V. Vaughan, 2010
+#
+# This is free software.  There is NO warranty; not even for
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# Copyright (C) 2010-2019, 2021 Bootstrap Authors
+#
+# This file is dual licensed under the terms of the MIT license
+# <https://opensource.org/license/MIT>, and GPL version 2 or later
+# <http://www.gnu.org/licenses/gpl-2.0.html>.  You must apply one of
+# these licenses when using or redistributing this software or any of
+# the files within it.  See the URLs above, or the file `LICENSE`
+# included in the Bootstrap distribution for the full license texts.
+
+# Please report bugs or propose patches to:
+# <https://github.com/gnulib-modules/bootstrap/issues>
+
+# Make sure we've evaluated scripts we depend on.
+test -z "$progpath" && . `echo "$0" |${SED-sed} 's|[^/]*$||'`/funclib.sh
+test extract-trace = "$progname" && . `echo "$0" |${SED-sed} 's|[^/]*$||'`/options-parser
+
+# Set a version string.
+scriptversion=2019-02-19.15; # UTC
+
+
+## ------ ##
+## Usage. ##
+## ------ ##
+
+# Run './extract-trace --help' for help with using this script from the
+# command line.
+#
+# Or source first 'options-parser' and then this file into your own
+# scripts in order to make use of the function and variable framework
+# they define, and also to avoid the overhead of forking to run this
+# script in its own process on every call.
+
+
+
+## ----------------- ##
+## Helper functions. ##
+## ----------------- ##
+
+# This section contains the helper functions used by the rest of
+# 'extract-trace'.
+
+
+# func_autoconf_configure MAYBE-CONFIGURE-FILE
+# --------------------------------------------
+# Ensure that MAYBE-CONFIGURE-FILE is the name of a file in the current
+# directory that contains an uncommented call to AC_INIT.
+func_autoconf_configure ()
+{
+    $debug_cmd
+
+    _G_sed_no_comment='
+      s|#.*$||
+      s|^dnl .*$||
+      s| dnl .*$||'
+    _G_ac_init=
+
+    # If we were passed a genuine file, make sure it calls AC_INIT.
+    test -f "$1" \
+      && _G_ac_init=`$SED "$_G_sed_no_comment" "$1" |$GREP AC_INIT`
+
+    # Otherwise it is not a genuine Autoconf input file.
+    test -n "$_G_ac_init"
+    _G_status=$?
+
+    test 0 -ne "$_G_status" \
+      && func_verbose "'$1' not using Autoconf"
+
+    (exit $_G_status)
+}
+
+
+# func_tool_version_output CMD [FATAL-ERROR-MSG]
+# ----------------------------------------------
+# Attempt to run 'CMD --version', discarding errors.  The output can be
+# ignored by redirecting stdout, and this function used simply to test
+# whether the command exists and exits normally when passed a
+# '--version' argument.
+# When FATAL-ERROR-MSG is given, then this function will display the
+# message and exit if running 'CMD --version' returns a non-zero exit
+# status.
+func_tool_version_output ()
+{
+    $debug_cmd
+
+    _G_cmd=$1
+    _G_fatal_error_msg=$2
+
+    # Some tools, like 'git2cl' produce thousands of lines of output
+    # unless stdin is /dev/null - in that case we want to return
+    # successfully without saving all of that output.  Other tools,
+    # such as 'help2man' exit with a non-zero status when stdin comes
+    # from /dev/null, so we re-execute without /dev/null if that
+    # happens.  This means that occasionally, the output from both calls
+    # ends up in the result, but the alternative would be to discard the
+    # output from one call, and hope the other produces something useful.
+    { $_G_cmd --version </dev/null || $_G_cmd --version; } 2>/dev/null
+    _G_status=$?
+
+    test 0 -ne "$_G_status" && test -n "$_G_fatal_error_msg" \
+        && func_fatal_error "$_G_fatal_error_msg"
+
+    (exit $_G_status)
+}
+
+
+# func_tool_version_number CMD [FATAL-ERROR-MSG]
+# ----------------------------------------------
+# Pass arguments to func_tool_version_output, but set
+# $func_tool_version_number_result to the last dot delimited digit string
+# on the first line of output.
+func_tool_version_number ()
+{
+    $debug_cmd
+
+    _G_verout=`func_tool_version_output "$@"`
+    _G_status=$?
+
+    # A version number starts with a digit following a space on the first
+    # line of output from `--version`.
+    _G_verout=`echo "$_G_verout" |sed 1q`
+    if test -n "$_G_verout"; then
+      _G_vernum=`expr "$_G_verout" : '.* \([0-9][^ ]*\)'`
+    fi
+
+    if test -n "$_G_vernum"; then
+      printf '%s\n' "$_G_vernum"
+    else
+      printf '%s\n' "$_G_verout"
+    fi
+
+    (exit $_G_status)
+}
+
+
+# func_find_tool ENVVAR NAMES...
+# ------------------------------
+# Search for a required program.  Use the value of ENVVAR, if set,
+# otherwise find the first of the NAMES that can be run (i.e.,
+# supports --version).  If found, set ENVVAR to the program name,
+# die otherwise.
+func_find_tool ()
+{
+    $debug_cmd
+
+    _G_find_tool_envvar=$1
+    shift
+    _G_find_tool_names=$@
+    eval "_G_find_tool_res=\$$_G_find_tool_envvar"
+    if test -n "$_G_find_tool_res"; then
+      _G_find_tool_error_prefix="\$$find_tool_envvar: "
+    else
+      _G_find_tool_res=
+      _G_bestver=
+      for _G_prog
+      do
+        _G_find_tool_save_IFS=$IFS
+        IFS=${PATH_SEPARATOR-:}
+	for _G_dir in $PATH; do
+	  IFS=$_G_find_tool_save_IFS
+	  _G_progpath=$_G_dir/$_G_prog
+          test -r "$_G_progpath" && {
+            _G_curver=`func_tool_version_number $_G_progpath`
+	    case $_G_bestver,$_G_curver in
+	    ,)
+	      # first non--version responsive prog sticks!
+              test -n "$_G_progpath" || _G_find_tool_res=$_G_progpath
+              ;;
+            ,*)
+	      # first --version responsive prog beats non--version responsive!
+	      _G_find_tool_res=$_G_progpath
+	      _G_bestver=$_G_curver
+	      ;;
+	    *,*)
+	      # another --version responsive prog must be newer to beat previous one!
+	      test "x$_G_curver" = "x$_G_bestver" \
+		|| func_lt_ver "$_G_curver" "$_G_bestver" \
+		|| {
+		     _G_find_tool_res=$_G_progpath
+		     _G_bestver=$_G_curver
+	           }
+	      ;;
+	    esac
+          }
+	done
+	IFS=$_G_find_tool_save_IFS
+      done
+    fi
+    if test -n "$_G_find_tool_res"; then
+      func_tool_version_number >/dev/null $_G_find_tool_res "\
+${_G_find_tool_error_prefix}Cannot run '$_G_find_tool_res --version'"
+
+      # Make sure the result is exported to the environment for children
+      # to use.
+      eval "$_G_find_tool_envvar=\$_G_find_tool_res"
+      eval "export $_G_find_tool_envvar"
+    else
+      func_error "\
+One of these is required:
+       $_G_find_tool_names"
+    fi
+}
+
+
+
+## -------------------- ##
+## Resource management. ##
+## -------------------- ##
+
+# This section contains definitions for functions that each ensure a
+# particular resource (a file, or a non-empty configuration variable for
+# example) is available, and if appropriate to extract default values
+# from pertinent package files.  Where a variable already has a non-
+# empty value (as set by the package's 'bootstrap.conf'), that value is
+# used in preference to deriving the default. Call them using their
+# associated 'require_*' variable to ensure that they are executed, at
+# most, once.
+#
+# It's entirely deliberate that calling these functions can set
+# variables that don't obey the namespace limitations obeyed by the rest
+# of this file, in order that that they be as useful as possible to
+# callers.
+
+
+# require_configure_ac
+# --------------------
+# Ensure that there is a 'configure.ac' or 'configure.in' file in the
+# current directory that contains an uncommented call to AC_INIT, and
+# that '$configure_ac' contains its name.
+require_configure_ac=func_require_configure_ac
+func_require_configure_ac ()
+{
+    $debug_cmd
+
+    test -z "$configure_ac" \
+      && func_autoconf_configure configure.ac && configure_ac=configure.ac
+    test -z "$configure_ac" \
+      && func_autoconf_configure configure.in && configure_ac=configure.in
+    test -z "$configure_ac" \
+      || func_verbose "found '$configure_ac'"
+
+    require_configure_ac=:
+}
+
+
+# require_gnu_m4
+# --------------
+# Search for GNU M4, and export it in $M4.
+require_gnu_m4=func_require_gnu_m4
+func_require_gnu_m4 ()
+{
+    $debug_cmd
+
+    test -n "$M4" || {
+      # Find the first m4 binary that responds to --version.
+      func_find_tool M4 gm4 gnum4 m4
+    }
+
+    test -n "$M4" || func_fatal_error "\
+Please install GNU M4, or 'export M4=/path/to/gnu/m4'."
+
+    func_verbose "export M4='$M4'"
+
+    # Make sure the search result is visible to subshells
+    export M4
+
+    require_gnu_m4=:
+}
+
+
+## --------------- ##
+## Core functions. ##
+## --------------- ##
+
+# This section contains the high level functions used when calling this
+# file as a script. 'func_extract_trace' is probably the only one that you
+# won't want to replace if you source this file into your own script.
+
+
+# func_extract_trace MACRO_NAMES [FILENAME]...
+# --------------------------------------------
+# set '$func_extract_trace_result' to a colon delimited list of arguments
+# to any of the comma separated list of MACRO_NAMES in FILENAME. If no
+# FILENAME is given, then '$configure_ac' is assumed.
+func_extract_trace ()
+{
+    $debug_cmd
+
+    $require_configure_ac
+    $require_gnu_m4
+
+    _G_m4_traces=`$ECHO "--trace=$1" |$SED 's%,% --trace=%g'`
+    _G_re_macros=`$ECHO "($1)" |$SED 's%,%|%g'`
+    _G_macros="$1"; shift
+    test $# -gt 0 || {
+      set dummy $configure_ac
+      shift
+    }
+
+    # Generate an error if the first file is missing
+    <"$1"
+
+    # Sadly, we can't use 'autom4te' tracing to extract macro arguments,
+    # because it complains about things we want to ignore at bootstrap
+    # time - like missing m4_include files; AC_PREREQ being newer than
+    # the installed autoconf; and returns nothing when tracing
+    # 'AM_INIT_AUTOMAKE' when aclocal hasn't been generated yet.
+    #
+    # The following tries to emulate a less persnickety version of (and
+    # due to not having to wait for Perl startup on every invocation,
+    # it's probably faster too):
+    #
+    #    autom4te --language=Autoconf --trace=$my_macro:\$% "$@"
+    #
+    # First we give a minimal set of macro declarations to M4 to prime
+    # it for reading Autoconf macros, while still providing some of the
+    # functionality generally used at m4-time to supply dynamic
+    # arguments to Autocof functions, but without following
+    # 'm4_s?include' files.
+    _G_mini='
+        dnl  Initialisation.
+        m4_changequote([,])
+        m4_define([m4_copy],   [m4_define([$2], m4_defn([$1]))])
+        m4_define([m4_rename], [m4_copy([$1], [$2])m4_undefine([$1])])
+
+        dnl  Replace macros which may abort m4 with a no-op variant.
+        m4_pushdef([m4_assert])
+        m4_pushdef([m4_exit])
+        m4_pushdef([m4_fatal])
+        m4_pushdef([m4_m4exit])
+
+        dnl  Replace macros that might break stderr of m4.
+        m4_pushdef([m4_errprint])
+        m4_pushdef([m4_errprintn])
+        m4_pushdef([m4_include])
+        m4_pushdef([m4_warn])
+
+        dnl  Avoid side-effects of tracing by extract-trace.
+        m4_pushdef([m4_maketemp])
+        m4_pushdef([m4_mkstemp])
+
+        dnl  TODO: reasons for this
+        m4_pushdef([m4_dnl])
+        m4_pushdef([m4_m4wrap])
+
+        dnl  Copy and rename macros not handled by "m4 --prefix".
+        m4_define([dnl],         [m4_builtin([dnl])])
+        m4_copy([m4_define],     [m4_defun])
+        m4_rename([m4_ifelse],   [m4_if])
+        m4_rename([m4_patsubst], [m4_bpatsubst])
+        m4_rename([m4_regexp],   [m4_bregexp])
+
+        dnl  "m4sugar.mini" - useful m4-time macros for dynamic arguments.
+        dnl  If we discover packages that need more m4 macros defined in
+        dnl  order to bootstrap correctly, add them here:
+        m4_define([m4_bmatch],
+            [m4_if([$#], 0, [], [$#], 1, [], [$#], 2, [$2],
+                   [m4_if(m4_bregexp([$1], [$2]), -1,
+                          [$0([$1], m4_shift3($@))], [$3])])])
+        m4_define([m4_ifndef], [m4_ifdef([$1], [$3], [$2])])
+        m4_define([m4_ifset],
+            [m4_ifdef([$1], [m4_ifval(m4_defn([$1]), [$2], [$3])], [$3])])
+        m4_define([m4_require], [$1])
+        m4_define([m4_shift3], [m4_shift(m4shift(m4shift($@)))])
+
+        dnl  "autoconf.mini" - things from autoconf macros we care about.
+        m4_copy([m4_defun], [AC_DEFUN])
+
+        dnl  Dummy definitions for the macros we want to trace.
+        dnl  AM_INIT_AUTOMAKE at least produces no trace without this.
+    '
+
+    _G_save=$IFS
+    IFS=,
+    for _G_macro in $_G_macros; do
+      IFS=$_G_save
+      func_append _G_mini "AC_DEFUN([$_G_macro])$nl"
+    done
+    IFS=$_G_save
+
+    # We discard M4's stdout, but the M4 trace output from reading our
+    # "autoconf.mini" followed by any other files passed to this
+    # function is then scanned by sed to transform it into a colon
+    # delimited argument list assigned to a shell variable.
+    _G_transform='s|#.*$||; s|^dnl .*$||; s| dnl .*$||;'
+
+    # Unfortunately, alternation in regexp addresses doesn't work in at
+    # least BSD (and hence Mac OS X) sed, so we have to append a capture
+    # and print block for each traced macro to the sed transform script.
+    _G_save=$IFS
+    IFS=,
+    for _G_macro in $_G_macros; do
+      IFS=$_G_save
+      func_append _G_transform '
+        /^m4trace: -1- '"$_G_macro"'/ {
+          s|^m4trace: -1- '"$_G_macro"'[([]*||
+          s|], [[]|:|g
+          s|[])]*$|:|
+          s|\(.\):$|\1|
+          p
+        }'
+    done
+    IFS=$_G_save
+
+    # Save the command pipeline results for further use by callers of
+    # this function.
+    func_extract_trace_result=`$ECHO "$_G_mini" \
+      |$M4 -daq --prefix $_G_m4_traces - "$@" 2>&1 1>/dev/null \
+      |$SED -n -e "$_G_transform"`
+}
+
+
+# func_extract_trace_first MACRO_NAMES [FILENAME]...
+# --------------------------------------------------
+# Exactly like func_extract_trace, except that only the first argument
+# to the first invocation of one of the comma separated MACRO_NAMES is
+# returned in '$func_extract_trace_first_result'.
+func_extract_trace_first ()
+{
+    $debug_cmd
+
+    func_extract_trace ${1+"$@"}
+    func_extract_trace_first_result=`$ECHO "$func_extract_trace_result" \
+      |$SED -e 's|:.*$||g' -e 1q`
+}
+
+
+# func_main [ARG]...
+# ------------------
+func_main ()
+{
+    $debug_cmd
+
+    # Configuration.
+    usage='$progname MACRO_NAME FILE [...]'
+
+    long_help_message='
+The first argument to this program is the name of an autotools macro
+whose arguments you want to extract by examining the files listed in the
+remaining arguments using the same tool that Autoconf and Automake use,
+GNU M4.
+
+The arguments are returned separated by colons, with each traced call
+on a separate line.'
+
+    # Option processing.
+    func_options "$@"
+    eval set dummy "$func_options_result"; shift
+
+    # Validate remaining non-option arguments.
+    test $# -gt 1 \
+        || func_fatal_help "not enough arguments"
+
+    # Pass non-option arguments to extraction function.
+    func_extract_trace "$@"
+
+    # Display results.
+    test -n "$func_extract_trace_result" \
+        && $ECHO "$func_extract_trace_result"
+
+    # The End.
+    exit $EXIT_SUCCESS
+}
+
+
+## --------------------------- ##
+## Actually perform the trace. ##
+## --------------------------- ##
+
+# Only call 'func_main' if this script was called directly.
+test extract-trace = "$progname" && func_main "$@"
+
+# Local variables:
+# mode: shell-script
+# sh-indentation: 2
+# eval: (add-hook 'before-save-hook 'time-stamp)
+# time-stamp-pattern: "50/scriptversion=%:y-%02m-%02d.%02H; # UTC"
+# time-stamp-time-zone: "UTC"
+# End:

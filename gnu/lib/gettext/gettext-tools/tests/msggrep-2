@@ -1,0 +1,251 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --domain option.
+
+cat <<\EOF > mg-test2.po
+domain "de"
+
+# German translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.11-pre1\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 2001-11-04 12:25+0100\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: getopt.c:691
+#, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr "%s: Option »%s« ist mehrdeutig\n"
+
+#: getopt.c:716
+#, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr "%s: Option »--%s« erwartet kein Argument\n"
+
+#: getopt.c:721
+#, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr "%s: Option »%c%s« erwartet kein Argument\n"
+
+#: getopt.c:739 getopt.c:912
+#, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr "%s: Option »%s« erwartet ein Argument\n"
+
+#: getopt.c:768
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr "%s: unbekannte Option »--%s«\n"
+
+#: getopt.c:772
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr "%s: unbekannte Option »%c%s«\n"
+
+#: getopt.c:798
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: unzulässige Option -- %c\n"
+
+#: getopt.c:801
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#: getopt.c:831 getopt.c:961
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s: Option erwartet ein Argument -- %c\n"
+
+#: getopt.c:878
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr "%s: Option »-W %s« ist mehrdeutig\n"
+
+#: getopt.c:896
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr "%s: Option »-W %s« erwartet kein Argument\n"
+
+domain "fr"
+
+# Messages français pour GNU gettext.
+# Copyright © 1996, 1997, 1998 Free Software Foundation, Inc.
+# François Pinard <pinard@iro.umontreal.ca>, 1996.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.10.35\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 1998-05-04 10:03-04:00\n"
+"Last-Translator: François Pinard <pinard@iro.umontreal.ca>\n"
+"Language-Team: French <fr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: getopt.c:691
+#, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr "%s: l'option « %s » est ambiguë\n"
+
+#: getopt.c:716
+#, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr "%s: l'option « --%s » ne tolère pas d'argument\n"
+
+#: getopt.c:721
+#, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr "%s: l'option « %c%s » ne tolère pas d'argument\n"
+
+#: getopt.c:739 getopt.c:912
+#, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr "%s: l'option « %s » exige un argument\n"
+
+#: getopt.c:768
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr "%s: l'option « --%s » n'est pas reconnue\n"
+
+#: getopt.c:772
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr "%s: l'option « %c%s » n'est pas reconnue\n"
+
+#: getopt.c:798
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: l'option « %c » n'est pas permise\n"
+
+#: getopt.c:801
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: l'option « %c » n'est pas valide\n"
+
+#: getopt.c:831 getopt.c:961
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s: l'option « %c » exige un argument\n"
+
+#: getopt.c:878
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr "%s: l'option « -W %s » est ambiguë\n"
+
+#: getopt.c:896
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr "%s: l'option « -W %s » ne tolère pas d'argument\n"
+EOF
+
+: ${MSGGREP=msggrep}
+${MSGGREP} -M fr -o mg-test2.tmp mg-test2.po || Exit 1
+LC_ALL=C tr -d '\r' < mg-test2.tmp > mg-test2.out || Exit 1
+
+cat <<\EOF > mg-test2.ok
+domain "de"
+
+# German translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.11-pre1\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 2001-11-04 12:25+0100\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+domain "fr"
+
+# Messages français pour GNU gettext.
+# Copyright © 1996, 1997, 1998 Free Software Foundation, Inc.
+# François Pinard <pinard@iro.umontreal.ca>, 1996.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.10.35\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 1998-05-04 10:03-04:00\n"
+"Last-Translator: François Pinard <pinard@iro.umontreal.ca>\n"
+"Language-Team: French <fr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: getopt.c:691
+#, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr "%s: l'option « %s » est ambiguë\n"
+
+#: getopt.c:716
+#, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr "%s: l'option « --%s » ne tolère pas d'argument\n"
+
+#: getopt.c:721
+#, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr "%s: l'option « %c%s » ne tolère pas d'argument\n"
+
+#: getopt.c:739 getopt.c:912
+#, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr "%s: l'option « %s » exige un argument\n"
+
+#: getopt.c:768
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr "%s: l'option « --%s » n'est pas reconnue\n"
+
+#: getopt.c:772
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr "%s: l'option « %c%s » n'est pas reconnue\n"
+
+#: getopt.c:798
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: l'option « %c » n'est pas permise\n"
+
+#: getopt.c:801
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: l'option « %c » n'est pas valide\n"
+
+#: getopt.c:831 getopt.c:961
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s: l'option « %c » exige un argument\n"
+
+#: getopt.c:878
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr "%s: l'option « -W %s » est ambiguë\n"
+
+#: getopt.c:896
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr "%s: l'option « -W %s » ne tolère pas d'argument\n"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mg-test2.ok mg-test2.out
+result=$?
+
+exit $result

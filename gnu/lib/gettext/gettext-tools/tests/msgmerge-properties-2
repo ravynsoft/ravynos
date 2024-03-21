@@ -1,0 +1,33 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --update: location changed, and xgettext comment added. Both changes
+# must be reflected in the resulting PO file. With Java .properties syntax.
+
+cat <<\EOF > mm-p-2.po
+#: cogarithmetic.cc:12
+white=wei\u00df
+EOF
+
+cat <<EOF > mm-p-2.pot
+#. location changed
+#: cogarithmetic.cc:33
+!white=
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q --properties-input --update mm-p-2.po mm-p-2.pot || Exit 1
+mv mm-p-2.po mm-p-2.tmp || { Exit 1; }
+LC_ALL=C tr -d '\r' < mm-p-2.tmp > mm-p-2.po || Exit 1
+
+cat <<\EOF > mm-p-2.ok
+#. location changed
+#: cogarithmetic.cc:33
+white=wei\u00df
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-p-2.ok mm-p-2.po
+result=$?
+
+exit $result

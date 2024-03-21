@@ -33,7 +33,8 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd August 5, 2022
+.Dd March 31, 2023
+
 .Dt MAKEFS 8
 .Os
 .Sh NAME
@@ -113,7 +114,12 @@ Treat duplicate paths in an mtree manifest as warnings not error.
 Enable various levels of debugging, depending upon which bits are
 set in
 .Ar debug-mask .
-XXX: document these
+This option is intended for source debugging.
+.Ar debug-mask
+is a bit map defined in the header file
+.Ar makefs.h .
+See the source for usage, and look for defines starting with
+.Ar DEBUG_ .
 .It Fl F Ar mtree-specfile
 .Em This is almost certainly not the option you are looking for.
 To create an image from a list of files in an mtree format manifest,
@@ -365,12 +371,6 @@ version id.
 Allow multiple dots in a filename.
 .It Sy applicationid
 Application ID of the image.
-.It Sy archimedes
-Use the
-.Ql ARCHIMEDES
-extension to encode
-.Tn RISC OS
-metadata.
 .It Sy bootimagedir
 Boot image directory.
 This option is not implemented.

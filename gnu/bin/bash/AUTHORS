@@ -1,0 +1,466 @@
+#
+# Master author manifest for bash
+#
+# The files in lib/intl were taken from the GNU gettext distribution.
+#
+# Any files appearing in the bash distribution not listed in this file
+# were created by Chet Ramey.
+#
+# Filename	authors (first is original author)
+#
+README		Brian Fox, Chet Ramey
+INSTALL		Brian Fox, Chet Ramey
+COPYING		Brian Fox, Chet Ramey
+MANIFEST	Brian Fox, Chet Ramey
+configure	Chet Ramey
+Makefile.in	Brian Fox, Chet Ramey
+configure.in	Chet Ramey
+aclocal.m4	Chet Ramey
+config.h.top	Chet Ramey
+config.h.bot	Chet Ramey
+config.h.in	Chet Ramey
+array.c		Chet Ramey
+print_cmd.c	Brian Fox, Chet Ramey
+general.c	Brian Fox, Chet Ramey
+variables.c	Brian Fox, Chet Ramey
+make_cmd.c	Brian Fox, Chet Ramey
+copy_cmd.c	Brian Fox, Chet Ramey
+unwind_prot.c	Brian Fox, Chet Ramey
+dispose_cmd.c	Brian Fox, Chet Ramey
+getcwd.c	Roland McGrath, Brian Fox, Chet Ramey
+bashhist.c	Chet Ramey
+hash.c		Brian Fox, Chet Ramey
+parse.y		Brian Fox, Chet Ramey
+subst.c		Brian Fox, Chet Ramey
+shell.c		Brian Fox, Chet Ramey
+sig.c		Chet Ramey
+trap.c		Brian Fox, Chet Ramey
+siglist.c	Brian Fox, Chet Ramey
+version.c	Brian Fox, Chet Ramey
+flags.c		Brian Fox, Chet Ramey
+jobs.c		Brian Fox, Chet Ramey
+input.c		Chet Ramey
+mailcheck.c	Brian Fox, Chet Ramey
+pathexp.c	Chet Ramey
+test.c		Brian Fox, Chet Ramey
+expr.c		Chet Ramey, Brian Fox
+alias.c		Brian Fox, Chet Ramey
+execute_cmd.c	Brian Fox, Chet Ramey
+bashline.c	Brian Fox, Chet Ramey
+braces.c	Brian Fox, Chet Ramey
+bracecomp.c	Brian Fox, Chet Ramey, Tom Tromey
+nojobs.c	Brian Fox, Chet Ramey
+vprint.c	Chet Ramey
+oslib.c		Chet Ramey
+error.c		Brian Fox, Chet Ramey
+xmalloc.c	Brian Fox, Chet Ramey
+alias.h		Brian Fox, Chet Ramey
+array.h		Chet Ramey
+builtins.h	Brian Fox, Chet Ramey
+parser.h	Brian Fox, Chet Ramey
+variables.h	Brian Fox, Chet Ramey
+machines.h	Brian Fox, Chet Ramey
+jobs.h		Brian Fox, Chet Ramey
+maxpath.h	Brian Fox, Chet Ramey
+pathexp.h	Chet Ramey
+mailcheck.h	Chet Ramey
+filecntl.h	Brian Fox, Chet Ramey
+hash.h		Brian Fox, Chet Ramey
+quit.h		Brian Fox, Chet Ramey
+flags.h		Brian Fox, Chet Ramey
+shell.h		Brian Fox, Chet Ramey
+bashjmp.h	Chet Ramey
+sig.h		Chet Ramey
+trap.h		Brian Fox, Chet Ramey
+general.h	Brian Fox, Chet Ramey
+unwind_prot.h	Brian Fox, Chet Ramey
+input.h		Brian Fox, Chet Ramey
+error.h		Brian Fox, Chet Ramey
+command.h	Brian Fox, Chet Ramey
+externs.h	Chet Ramey
+siglist.h	Chet Ramey
+subst.h		Brian Fox, Chet Ramey
+dispose_cmd.h	Brian Fox, Chet Ramey
+bashansi.h	Brian Fox, Chet Ramey
+make_cmd.h	Brian Fox, Chet Ramey
+bashhist.h	Chet Ramey
+bashline.h	Chet Ramey
+execute_cmd.h	Chet Ramey
+bashtypes.h	Chet Ramey
+bashtty.h	Chet Ramey
+pathnames.h	Chet Ramey
+y.tab.c		Brian Fox, Chet Ramey
+y.tab.h		Brian Fox, Chet Ramey
+parser-built	Brian Fox, Chet Ramey
+posixstat.h	Brian Fox, Chet Ramey
+stdc.h		Chet Ramey
+ansi_stdlib.h	Brian Fox, Chet Ramey
+memalloc.h	Chet Ramey
+builtins/ChangeLog	Brian Fox, Chet Ramey
+builtins/Makefile.in	Brian Fox, Chet Ramey
+builtins/alias.def	Brian Fox, Chet Ramey
+builtins/bind.def	Brian Fox, Chet Ramey
+builtins/break.def	Brian Fox, Chet Ramey
+builtins/builtin.def	Brian Fox, Chet Ramey
+builtins/caller.def	Rocky Bernstein, Chet Ramey
+builtins/cd.def		Brian Fox, Chet Ramey
+builtins/colon.def	Brian Fox, Chet Ramey
+builtins/command.def	Brian Fox, Chet Ramey
+builtins/common.c	Brian Fox, Chet Ramey
+builtins/declare.def	Brian Fox, Chet Ramey
+builtins/echo.def	Brian Fox, Chet Ramey
+builtins/enable.def	Brian Fox, Chet Ramey
+builtins/eval.def	Brian Fox, Chet Ramey
+builtins/exec.def	Brian Fox, Chet Ramey
+builtins/exit.def	Brian Fox, Chet Ramey
+builtins/fc.def		Brian Fox, Chet Ramey
+builtins/fg_bg.def	Brian Fox, Chet Ramey
+builtins/getopt.c	Roland McGrath, Brian Fox, Chet Ramey
+builtins/getopt.h	Roland McGrath, Brian Fox, Chet Ramey
+builtins/getopts.def	Brian Fox, Chet Ramey
+builtins/hash.def	Brian Fox, Chet Ramey
+builtins/hashcom.h	Brian Fox, Chet Ramey
+builtins/help.def	Brian Fox, Chet Ramey
+builtins/let.def	Chet Ramey, Brian Fox
+builtins/history.def	Brian Fox, Chet Ramey
+builtins/jobs.def	Brian Fox, Chet Ramey
+builtins/kill.def	Brian Fox, Chet Ramey
+builtins/mapfile.def	Rocky Bernstein
+builtins/mkbuiltins.c	Brian Fox, Chet Ramey
+builtins/pushd.def	Brian Fox, Chet Ramey
+builtins/read.def	Brian Fox, Chet Ramey
+builtins/reserved.def	Brian Fox, Chet Ramey
+builtins/return.def	Brian Fox, Chet Ramey
+builtins/set.def	Brian Fox, Chet Ramey
+builtins/setattr.def	Brian Fox, Chet Ramey
+builtins/shift.def	Brian Fox, Chet Ramey
+builtins/shopt.def	Chet Ramey
+builtins/source.def	Brian Fox, Chet Ramey
+builtins/suspend.def	Brian Fox, Chet Ramey
+builtins/test.def	Brian Fox, Chet Ramey
+builtins/times.def	Brian Fox, Chet Ramey
+builtins/trap.def	Brian Fox, Chet Ramey
+builtins/type.def	Brian Fox, Chet Ramey
+builtins/ulimit.def	Chet Ramey, Brian Fox
+builtins/umask.def	Brian Fox, Chet Ramey
+builtins/wait.def	Brian Fox, Chet Ramey
+builtins/psize.c	Chet Ramey, Brian Fox
+builtins/psize.sh	Chet Ramey, Brian Fox
+builtins/inlib.def	Chet Ramey
+builtins/bashgetopt.c	Chet Ramey
+builtins/common.h	Chet Ramey
+builtins/bashgetopt.h	Chet Ramey
+lib/doc-support/texindex.c	bug-texinfo@prep.ai.mit.edu, Chet Ramey
+lib/doc-support/Makefile.in	Chet Ramey
+lib/doc-support/getopt.h	Roland McGrath
+lib/doc-support/getopt.c	Roland McGrath
+lib/doc-support/getopt1.c	Roland McGrath
+lib/glob/ChangeLog	Brian Fox, Chet Ramey
+lib/glob/Makefile.in	Brian Fox, Chet Ramey
+lib/glob/strmatch.c	Roland McGrath, Brian Fox, Chet Ramey
+lib/glob/strmatch.h	Roland McGrath, Brian Fox, Chet Ramey
+lib/glob/glob.c		Richard Stallman, Roland McGrath, Brian Fox, Chet Ramey
+lib/glob/glob.h		Chet Ramey
+lib/glob/ndir.h		Doug Gwyn, Richard Stallman
+lib/glob/doc/Makefile.in	Brian Fox, Chet Ramey
+lib/glob/doc/glob.texi	Brian Fox, Chet Ramey
+lib/malloc/Makefile.in	Chet Ramey
+lib/malloc/alloca.c	Doug Gwyn, Richard Stallman, Brian Fox, Chet Ramey
+lib/malloc/getpagesize.h	Brian Fox, Chet Ramey
+lib/malloc/malloc.c	Chris Kingsley, Mike Muuss, Richard Stallman, Brian Fox, Chet Ramey
+lib/malloc/gmalloc.c	Mike Haertel, Roland McGrath
+lib/malloc/stub.c	Chet Ramey
+lib/malloc/i386-alloca.s	Richard Stallman
+lib/malloc/x386-alloca.s	Chip Salzenberg, Richard Stallman
+lib/malloc/xmalloc.c	Brian Fox, Chet Ramey
+lib/posixheaders/posixstat.h	Brian Fox, Chet Ramey
+lib/posixheaders/ansi_stdlib.h	Brian Fox, Chet Ramey
+lib/posixheaders/stdc.h	Chet Ramey
+lib/posixheaders/memalloc.h	Chet Ramey
+lib/posixheaders/filecntl.h	Brian Fox, Chet Ramey
+lib/readline/Makefile.in	Brian Fox, Chet Ramey
+lib/readline/COPYING	Brian Fox, Chet Ramey
+lib/readline/ChangeLog	Brian Fox, Chet Ramey
+lib/readline/readline.c	Brian Fox, Chet Ramey
+lib/readline/vi_mode.c	Brian Fox, Chet Ramey
+lib/readline/emacs_keymap.c	Brian Fox, Chet Ramey
+lib/readline/vi_keymap.c	Brian Fox, Chet Ramey
+lib/readline/funmap.c	Brian Fox, Chet Ramey
+lib/readline/keymaps.c	Brian Fox, Chet Ramey
+lib/readline/xmalloc.c	Brian Fox, Chet Ramey
+lib/readline/search.c	Brian Fox, Chet Ramey
+lib/readline/isearch.c	Brian Fox, Chet Ramey
+lib/readline/parens.c	Brian Fox, Chet Ramey
+lib/readline/rltty.c	Brian Fox, Chet Ramey
+lib/readline/complete.c	Brian Fox, Chet Ramey
+lib/readline/bind.c	Brian Fox, Chet Ramey
+lib/readline/display.c	Brian Fox, Chet Ramey
+lib/readline/signals.c	Brian Fox, Chet Ramey
+lib/readline/kill.c	Brian Fox, Chet Ramey
+lib/readline/undo.c	Brian Fox, Chet Ramey
+lib/readline/input.c	Brian Fox, Chet Ramey
+lib/readline/macro.c	Brian Fox, Chet Ramey
+lib/readline/util.c	Brian Fox, Chet Ramey
+lib/readline/callback.c	Chet Ramey
+lib/readline/readline.h	Brian Fox, Chet Ramey
+lib/readline/chardefs.h	Brian Fox, Chet Ramey
+lib/readline/keymaps.h	Brian Fox, Chet Ramey
+lib/readline/rldefs.h	Brian Fox, Chet Ramey
+lib/readline/posixstat.h	Brian Fox, Chet Ramey
+lib/readline/ansi_stdlib.h	Brian Fox, Chet Ramey
+lib/readline/memalloc.h	Chet Ramey
+lib/readline/rlconf.h	Chet Ramey
+lib/readline/rltty.h	Chet Ramey
+lib/readline/history.c	Brian Fox, Chet Ramey
+lib/readline/histexpand.c	Brian Fox, Chet Ramey
+lib/readline/histfile.c	Brian Fox, Chet Ramey
+lib/readline/histsearch.c	Brian Fox, Chet Ramey
+lib/readline/history.h	Brian Fox, Chet Ramey
+lib/readline/histlib.h	Brian Fox, Chet Ramey
+lib/readline/tilde.c	Brian Fox, Chet Ramey
+lib/readline/tilde.h	Brian Fox, Chet Ramey
+lib/readline/doc/texindex.c	bug-texinfo@prep.ai.mit.edu, Chet Ramey
+lib/readline/doc/Makefile	Brian Fox, Chet Ramey
+lib/readline/doc/rlman.texinfo	Brian Fox, Chet Ramey
+lib/readline/doc/rltech.texinfo	Brian Fox, Chet Ramey
+lib/readline/doc/rluser.texinfo	Brian Fox, Chet Ramey
+lib/readline/doc/hist.texinfo	Brian Fox, Chet Ramey
+lib/readline/doc/hstech.texinfo	Brian Fox, Chet Ramey
+lib/readline/doc/hsuser.texinfo	Brian Fox, Chet Ramey
+lib/readline/examples/Makefile	Brian Fox
+lib/readline/examples/fileman.c	Brian Fox
+lib/readline/examples/manexamp.c	Brian Fox
+lib/readline/examples/histexamp.c	Brian Fox, Chet Ramey
+lib/readline/examples/rltest.c	Brian Fox, Chet Ramey
+lib/readline/examples/Inputrc	Brian Fox, Chet Ramey
+lib/termcap/Makefile.in	David MacKenzie, Chet Ramey
+lib/termcap/termcap.c	David MacKenzie
+lib/termcap/termcap.h	David MacKenzie
+lib/termcap/tparam.c	David MacKenzie
+lib/termcap/version.c	David MacKenzie
+lib/termcap/grot/termcap.info	David MacKenzie
+lib/termcap/grot/termcap.info-1	David MacKenzie
+lib/termcap/grot/termcap.info-2	David MacKenzie
+lib/termcap/grot/termcap.info-3	David MacKenzie
+lib/termcap/grot/termcap.info-4	David MacKenzie
+lib/termcap/grot/NEWS	David MacKenzie
+lib/termcap/grot/INSTALL	David MacKenzie
+lib/termcap/grot/ChangeLog	David MacKenzie
+lib/termcap/grot/texinfo.tex	David MacKenzie
+lib/termcap/grot/termcap.texi	David MacKenzie
+lib/termcap/grot/Makefile.in	David MacKenzie
+lib/termcap/grot/configure	David MacKenzie
+lib/termcap/grot/configure.in	David MacKenzie
+lib/termcap/grot/COPYING	David MacKenzie
+lib/termcap/grot/README	David MacKenzie
+lib/tilde/ChangeLog	Brian Fox, Chet Ramey
+lib/tilde/Makefile.in	Brian Fox, Chet Ramey
+lib/tilde/doc/tilde.texi	Brian Fox, Chet Ramey
+lib/tilde/doc/Makefile	Brian Fox, Chet Ramey
+lib/tilde/tilde.c	Brian Fox, Chet Ramey
+lib/tilde/tilde.h	Brian Fox, Chet Ramey
+lib/tilde/memalloc.h	Brian Fox, Chet Ramey
+CWRU/misc/open-files.c	Chet Ramey
+CWRU/misc/sigs.c	Chet Ramey
+CWRU/misc/pid.c		Chet Ramey
+CWRU/misc/sigstat.c	Chet Ramey
+CWRU/misc/bison		Chet Ramey
+CWRU/misc/aux-machine-desc	Chet Ramey
+CWRU/PLATFORMS		Chet Ramey
+CWRU/README		Chet Ramey
+CWRU/CWRU.CHANGES.051093	Chet Ramey
+CWRU/POSIX.NOTES	Chet Ramey
+CWRU/CWRU.CHANGES.071193	Chet Ramey
+CWRU/CWRU.CHANGES.090393	Chet Ramey
+doc/Makefile.in		Brian Fox, Chet Ramey
+doc/bash.1		Chet Ramey
+doc/builtins.1		Chet Ramey
+doc/bash.ps		Chet Ramey
+doc/bash.txt		Chet Ramey
+doc/readline.3		Chet Ramey
+doc/readline.ps		Chet Ramey
+doc/readline.txt	Chet Ramey
+doc/texinfo.tex		Richard Stallman
+doc/features.texi	Brian Fox, Chet Ramey
+doc/features.ps		Brian Fox, Chet Ramey
+doc/features.info	Brian Fox, Chet Ramey
+doc/features.dvi	Brian Fox, Chet Ramey
+doc/bash_builtins.1	Chet Ramey
+doc/bash_builtins.ps	Chet Ramey
+doc/bash_builtins.txt	Chet Ramey
+doc/bash_builtins.readme	Chet Ramey
+doc/article.ms		Chet Ramey
+doc/FAQ			Chet Ramey
+support/cat-s		Brian Fox, Chet Ramey
+support/mksysdefs	Brian Fox, Chet Ramey
+support/mkversion.c	Brian Fox, Chet Ramey
+support/mksignames.c	Brian Fox, Chet Ramey
+support/getcppsyms.c	Brian Fox, Chet Ramey
+support/cppmagic	Brian Fox, Chet Ramey
+support/pagesize.sh	Chet Ramey, Brian Fox
+support/pagesize.c	Chet Ramey, Brian Fox
+support/bash.xbm	Brian Fox
+support/FAQ		Brian Fox
+support/PORTING		Brian Fox
+support/mklinks		Brian Fox
+support/fixlinks	Chet Ramey
+support/mkdirs		Chet Ramey
+support/clone-bash	Chet Ramey
+support/bashbug.sh	Chet Ramey
+support/mkmachtype	Chet Ramey
+support/recho.c		Chet Ramey
+support/config.guess	Per Bothner, Chet Ramey
+support/config.sub	Richard Stallman, Chet Ramey
+support/install.sh	MIT X Consortium (X11R5)
+support/endian.c	Chet Ramey
+support/printenv	Chet Ramey
+examples/precedence-tester	Brian Fox, Chet Ramey
+examples/functions/substr	Brian Fox, Chet Ramey
+examples/functions/kshenv	Chet Ramey
+examples/functions/autoload	Chet Ramey
+examples/functions/csh-compat	Brian Fox, Chet Ramey
+examples/functions/shcat	Chet Ramey
+examples/functions/substr2	Chet Ramey
+examples/functions/term		Chet Ramey
+examples/functions/whatis	Chet Ramey
+examples/functions/whence	Chet Ramey
+examples/functions/func		Chet Ramey
+examples/functions/dirname	Brian Fox, Noah Friedman
+examples/functions/basename	Brian Fox, Noah Friedman
+examples/functions/exitstat	Noah Friedman, Roland McGrath
+examples/functions/external	Noah Friedman
+examples/functions/fact		Brian Fox
+examples/functions/manpage	Tom Tromey
+examples/functions/fstty	Chet Ramey
+examples/functions/jj.bash	Chet Ramey
+examples/functions/notify.bash	Chet Ramey
+examples/loadables/getconf.c	J.T. Conklin
+examples/scripts/shprompt	Chet Ramey
+examples/scripts/adventure.sh	Chet Ramey, Doug Gwyn
+examples/scripts/bcsh.sh	Chris Robertson, Chet Ramey
+examples/startup-files/Bashrc	Brian Fox
+examples/startup-files/Bash_aliases	Brian Fox
+examples/startup-files/Bash_profile	Brian Fox
+examples/startup-files/bash-profile	Brian Fox
+examples/startup-files/bashrc	Chet Ramey
+examples/suncmd.termcap	Brian Fox, Chet Ramey
+examples/alias-conv.sh	Brian Fox, Chet Ramey
+tests/README    	Chet Ramey
+tests/arith.tests	Chet Ramey
+tests/arith.right	Chet Ramey
+tests/array.tests	Chet Ramey
+tests/array.right	Chet Ramey
+tests/dollar-at.sh      Chet Ramey
+tests/dollar-star.sh    Chet Ramey
+tests/dollar.right      Chet Ramey
+tests/exp-tests 	Chet Ramey
+tests/exp.right 	Chet Ramey
+tests/glob-test 	Chet Ramey
+tests/glob.right        Chet Ramey
+tests/ifs-test-1.sh     Chet Ramey
+tests/ifs-test-2.sh     Chet Ramey
+tests/ifs-test-3.sh     Chet Ramey
+tests/ifs.1.right       Chet Ramey
+tests/ifs.2.right       Chet Ramey
+tests/ifs.3.right       Chet Ramey
+tests/input-line.sh     Chet Ramey
+tests/input-line.sub    Chet Ramey
+tests/input.right       Chet Ramey
+tests/minus-e   	Chet Ramey
+tests/minus-e.right     Chet Ramey
+tests/new-exp.tests     Chet Ramey
+tests/new-exp.right     Chet Ramey
+tests/prec.right        Chet Ramey
+tests/precedence        Chet Ramey
+tests/run-all   	Chet Ramey
+tests/run-dollars       Chet Ramey
+tests/run-exp-tests     Chet Ramey
+tests/run-glob-test     Chet Ramey
+tests/run-ifs-tests     Chet Ramey
+tests/run-input-test    Chet Ramey
+tests/run-minus-e       Chet Ramey
+tests/run-new-exp       Chet Ramey
+tests/run-precedence    Chet Ramey
+tests/run-set-e-test    Chet Ramey
+tests/run-strip 	Chet Ramey
+tests/run-varenv        Chet Ramey
+tests/set-e-test        Chet Ramey
+tests/set-e.right       Chet Ramey
+tests/strip.tests       Chet Ramey
+tests/strip.right       Chet Ramey
+tests/tilde-tests       Chet Ramey
+tests/tilde.right       Chet Ramey
+tests/unicode1.sub	Chet Ramey, John Kearney
+tests/varenv.right      Chet Ramey
+tests/varenv.sh 	Chet Ramey
+tests/misc/chld-trap.sh Chet Ramey
+tests/misc/dot-test-1.sh        Chet Ramey
+tests/misc/dot-test-1.sub       Chet Ramey
+tests/misc/gotest       Chet Ramey
+tests/misc/perf-script  Chet Ramey
+tests/misc/redir.t1.sh  Chet Ramey
+tests/misc/redir.t2.sh  Chet Ramey
+tests/misc/redir.t3.sh  Chet Ramey
+tests/misc/redir.t3.sub Chet Ramey
+tests/misc/redir.t4.sh  Chet Ramey
+tests/misc/run.r1.sh    Chet Ramey
+tests/misc/run.r2.sh    Chet Ramey
+tests/misc/run.r3.sh    Chet Ramey
+tests/misc/sigint.t1.sh Chet Ramey
+tests/misc/sigint.t2.sh Chet Ramey
+tests/misc/sigint.t3.sh Chet Ramey
+tests/misc/sigint.t4.sh Chet Ramey
+tests/misc/test-minus-e.1       Chet Ramey
+tests/misc/test-minus-e.2       Chet Ramey
+lib/sh/Makefile.in	Chet Ramey
+lib/sh/clktck.c		Chet Ramey
+lib/sh/clock.c		Chet Ramey
+lib/sh/fmtullong.c	Chet Ramey
+lib/sh/fmtulong.c	Chet Ramey
+lib/sh/getcwd.c		Chet Ramey, Roland McGrath
+lib/sh/getenv.c		Chet Ramey, Brian Fox
+lib/sh/inet_aton.c	Chet Ramey, Ulrich Drepper, Paul Vixie
+lib/sh/itos.c		Chet Ramey
+lib/sh/mailstat.c	Chet Ramey
+lib/sh/makepath.c	Chet Ramey
+lib/sh/mktime.c		Chet Ramey, Paul Eggert
+lib/sh/netconn.c	Chet Ramey
+lib/sh/netopen.c	Chet Ramey
+lib/sh/oslib.c		Chet Ramey, Brian Fox
+lib/sh/pathcanon.c	Chet Ramey
+lib/sh/pathphys.c	Chet Ramey
+lib/sh/rename.c		Chet Ramey
+lib/sh/setlinebuf.c	Chet Ramey, Brian Fox
+lib/sh/shquote.c	Chet Ramey
+lib/sh/shtty.c		Chet Ramey
+lib/sh/snprintf.c	Chet Ramey, Unknown
+lib/sh/spell.c		Chet Ramey
+lib/sh/strcasecmp.c	Chet Ramey, Brian Fox
+lib/sh/strerror.c	Chet Ramey, Brian Fox
+lib/sh/strftime.c	Arnold Robbins
+lib/sh/strindex.c	Chet Ramey
+lib/sh/stringlist.c	Chet Ramey
+lib/sh/stringvec.c	Chet Ramey
+lib/sh/strpbrk.c	Roland McGrath
+lib/sh/strtod.c		Chet Ramey, Roland McGrath
+lib/sh/strtoimax.c	Chet Ramey, Paul Eggert
+lib/sh/strtol.c		Chet Ramey, Paul Eggert
+lib/sh/strtoll.c	Chet Ramey, Paul Eggert
+lib/sh/strtoul.c	Chet Ramey, Paul Eggert
+lib/sh/strtoull.c	Chet Ramey, Paul Eggert
+lib/sh/strtoumax.c	Chet Ramey, Paul Eggert
+lib/sh/strtrans.c	Chet Ramey
+lib/sh/times.c		Chet Ramey, Brian Fox
+lib/sh/timeval.c	Chet Ramey
+lib/sh/tmpfile.c	Chet Ramey
+lib/sh/vprint.c		Chet Ramey, Brian Fox
+lib/sh/xstrchr.c	Chet Ramey, Mitsuru Chinen
+lib/sh/zread.c		Chet Ramey
+lib/sh/zwrite.c		Chet Ramey
+
+tests/posix-ifs.sh	Glenn Fowler
+
+support/checkbashisms	Julian Gilbey, Debian Linux team
+
+lib/readline/colors.c	Richard Stallman, David MacKenzie
+lib/readline/parse-colors.c Richard Stallman, David MacKenzie

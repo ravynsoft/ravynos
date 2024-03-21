@@ -1,0 +1,227 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the Java language.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: java.
+
+# Test whether we can build and test Java programs.
+test "${JAVA_CHOICE}" != no || {
+  echo "Skipping test: configured with --disable-java"
+  Exit 77
+}
+test "${BUILDJAVA}" = yes || {
+  echo "Skipping test: Java compiler or jar not found"
+  Exit 77
+}
+test "${TESTJAVA}" = yes || {
+  echo "Skipping test: Java engine not found"
+  Exit 77
+}
+
+cat <<\EOF > Program.java
+import java.util.*;
+import java.io.*;
+import java.text.*;
+import gnu.gettext.*;
+
+public class Program {
+  public static void main (String[] args) {
+    // Some systems (like Solaris) don't set Locale.getDefault()
+    // as specified by LC_ALL. So set it by hand.
+    Locale.setDefault(new Locale("fr","FR"));
+EOF
+case "$host_os" in
+  darwin*)
+cat <<\EOF >> Program.java
+    // Some systems (like MacOS X) don't set System.out's character encoding
+    // according to LC_ALL, which is what we need for comparison purposes.
+    try {
+      System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out),
+                                    true, args[1]));
+    } catch (UnsupportedEncodingException e) {
+    }
+EOF
+    ;;
+esac
+cat <<\EOF >> Program.java
+    int n = Integer.parseInt(args[0]);
+    ResourceBundle catalog = ResourceBundle.getBundle("prog");
+    System.out.println(GettextResource.gettext(catalog,"'Your command, please?', asked the waiter."));
+    System.out.println(MessageFormat.format(GettextResource.ngettext(catalog,"a piece of cake","{0,number} pieces of cake",n), new Object[] { new Integer(n) }));
+    System.out.println(MessageFormat.format(GettextResource.gettext(catalog,"{0} is replaced by {1}."), new Object[] { "FF", "EUR" }));
+    System.out.println(MessageFormat.format(GettextResource.npgettext(catalog,"++","a piece of cake","{0,number} pieces of cake",n), new Object[] { new Integer(n) }));
+    System.out.println(MessageFormat.format(GettextResource.pgettext(catalog,"++","{0} is replaced by {1}."), new Object[] { "FF", "EUR" }));
+    System.out.println(String.format(GettextResource.ngettext(catalog,"She has one child","She has %d children",n), n));
+    System.out.println(String.format(GettextResource.gettext(catalog,"%d left-wing deputees and %d right-wing deputees"), 75, 64));
+  }
+}
+EOF
+
+: ${JAVACOMP="/bin/sh ../../javacomp.sh"}
+CLASSPATH=../../../gettext-runtime/intl-java/libintl.jar ${JAVACOMP} -d . Program.java 2>prog.err \
+  || { cat prog.err 1>&2; Exit 1; }
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --no-location Program.java || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, java-format
+msgid "a piece of cake"
+msgid_plural "{0,number} pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, java-format
+msgid "{0} is replaced by {1}."
+msgstr ""
+
+#, java-format
+msgctxt "++"
+msgid "a piece of cake"
+msgid_plural "{0,number} pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, java-format
+msgctxt "++"
+msgid "{0} is replaced by {1}."
+msgstr ""
+
+#, java-printf-format
+msgid "She has one child"
+msgid_plural "She has %d children"
+msgstr[0] ""
+msgstr[1] ""
+
+#, java-printf-format
+msgid "%d left-wing deputees and %d right-wing deputees"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, java-format
+msgid "a piece of cake"
+msgid_plural "{0,number} pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "{0,number} morceaux de gateau"
+
+# Reverse the arguments.
+#, java-format
+msgid "{0} is replaced by {1}."
+msgstr "{1} remplace {0}."
+
+# Euphemistic formulation.
+#, java-format
+msgctxt "++"
+msgid "a piece of cake"
+msgid_plural "{0,number} pieces of cake"
+msgstr[0] "un morceau de gateau succulent"
+msgstr[1] "{0,number} morceaux de gateau succulent"
+
+# Euphemistic formulation.
+#, java-format
+msgctxt "++"
+msgid "{0} is replaced by {1}."
+msgstr "Le nouveau {1} remplace le vieux {0}."
+
+#, java-printf-format
+msgid "She has one child"
+msgid_plural "She has %d children"
+msgstr[0] "Elle a un enfant"
+msgstr[1] "Elle a %d enfants"
+
+#, java-printf-format
+msgid "%d left-wing deputees and %d right-wing deputees"
+msgstr "%2$d députés de droite et %d députés de gauche"
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -j -d . -r prog -l fr fr.po || Exit 1
+
+# Test which of the fr_FR locales are installed.
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  LC_ALL=$LOCALE_FR ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  LC_ALL=$LOCALE_FR_UTF8 ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR_UTF8=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+EUR remplace FF.
+2 morceaux de gateau succulent
+Le nouveau EUR remplace le vieux FF.
+Elle a 2 enfants
+64 députés de droite et 75 députés de gauche
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+EUR remplace FF.
+2 morceaux de gateau succulent
+Le nouveau EUR remplace le vieux FF.
+Elle a 2 enfants
+64 dÃ©putÃ©s de droite et 75 dÃ©putÃ©s de gauche
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+: ${JAVAEXEC="/bin/sh ../../javaexec.sh"}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL=$LOCALE_FR CLASSPATH=.:../../../gettext-runtime/intl-java/libintl.jar ${JAVAEXEC} Program 2 ISO-8859-1 > prog.out || Exit 1
+  ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LC_ALL=$LOCALE_FR_UTF8 CLASSPATH=.:../../../gettext-runtime/intl-java/libintl.jar ${JAVAEXEC} Program 2 UTF-8 > prog.out || Exit 1
+  ${DIFF} prog.oku prog.out || Exit 1
+fi
+
+Exit 0

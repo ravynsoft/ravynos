@@ -1,0 +1,225 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that the msgmerge output is stable under an 'msgcat' invocation.
+# Also test what happens with the 'c-format' flag during msgmerge.
+
+cat <<\EOF > mm-test28.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "warning: bad context for singular argument of keyword '%.*s'"
+msgstr "Warnung: schlechter Kontext für das Singular-Argument des Schlüsselwortes »%.*s«"
+
+#, c-format
+msgid "warning: broken context for singular argument of keyword '%.*s'"
+msgstr "Warnung: missratener Kontext für das Singular-Argument des Schlüsselworts »%.*s«"
+
+msgid "warning: abstruse context for plural argument of keyword '%.*s'"
+msgstr "Warnung: abstruser Kontext für das Plural-Argument des Schlüsselwortes »%.*s«"
+
+#, c-format
+msgid "warning: missing context for plural argument of keyword '%.*s'"
+msgstr "Warnung: fehlender Kontext für das Plural-Argument des Schlüsselwortes »%.*s«"
+EOF
+
+cat <<\EOF > mm-test28-1.pot
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "warning: bad context for singular argument of keyword '%.*s'"
+msgstr ""
+
+#, c-format
+msgid "warning: broken context for singular argument of keyword '%.*s'"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test28.tmp.po mm-test28.po mm-test28-1.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test28.tmp.po > mm-test28.new.po || Exit 1
+
+: ${MSGCAT=msgcat}
+${MSGCAT} mm-test28.new.po > mm-test28.tmp.po || Exit 1
+LC_ALL=C tr -d '\r' < mm-test28.tmp.po > mm-test28.cat.po || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mm-test28.new.po mm-test28.cat.po || Exit 1
+
+cat <<\EOF > mm-test28-1.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "warning: bad context for singular argument of keyword '%.*s'"
+msgstr ""
+"Warnung: schlechter Kontext für das Singular-Argument des Schlüsselwortes »%."
+"*s«"
+
+#, c-format
+msgid "warning: broken context for singular argument of keyword '%.*s'"
+msgstr ""
+"Warnung: missratener Kontext für das Singular-Argument des Schlüsselworts "
+"»%.*s«"
+
+#~ msgid "warning: abstruse context for plural argument of keyword '%.*s'"
+#~ msgstr ""
+#~ "Warnung: abstruser Kontext für das Plural-Argument des Schlüsselwortes »%."
+#~ "*s«"
+
+#, c-format
+#~ msgid "warning: missing context for plural argument of keyword '%.*s'"
+#~ msgstr ""
+#~ "Warnung: fehlender Kontext für das Plural-Argument des Schlüsselwortes "
+#~ "»%.*s«"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test28-1.ok mm-test28.new.po || Exit 1
+
+# Now test what happens with the 'c-format' flag when merging with a POT file
+# where the 'c-format' flag is set.
+
+cat <<\EOF > mm-test28-2.pot
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, c-format
+msgid "warning: bad context for singular argument of keyword '%.*s'"
+msgstr ""
+
+#, c-format
+msgid "warning: broken context for singular argument of keyword '%.*s'"
+msgstr ""
+
+#, c-format
+msgid "warning: abstruse context for plural argument of keyword '%.*s'"
+msgstr ""
+
+#, c-format
+msgid "warning: missing context for plural argument of keyword '%.*s'"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test28.tmp.po mm-test28.new.po mm-test28-2.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test28.tmp.po > mm-test28-2.po || Exit 1
+
+cat <<\EOF > mm-test28-2.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, c-format
+msgid "warning: bad context for singular argument of keyword '%.*s'"
+msgstr ""
+"Warnung: schlechter Kontext für das Singular-Argument des Schlüsselwortes "
+"»%.*s«"
+
+#, c-format
+msgid "warning: broken context for singular argument of keyword '%.*s'"
+msgstr ""
+"Warnung: missratener Kontext für das Singular-Argument des Schlüsselworts "
+"»%.*s«"
+
+#, c-format
+msgid "warning: abstruse context for plural argument of keyword '%.*s'"
+msgstr ""
+"Warnung: abstruser Kontext für das Plural-Argument des Schlüsselwortes »%.*s«"
+
+#, c-format
+msgid "warning: missing context for plural argument of keyword '%.*s'"
+msgstr ""
+"Warnung: fehlender Kontext für das Plural-Argument des Schlüsselwortes »%.*s«"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test28-2.ok mm-test28-2.po || Exit 1
+
+# Now test what happens with the 'c-format' flag when merging with a POT file
+# where the 'c-format' flag is absent.
+
+cat <<\EOF > mm-test28-3.pot
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "warning: bad context for singular argument of keyword '%.*s'"
+msgstr ""
+
+msgid "warning: broken context for singular argument of keyword '%.*s'"
+msgstr ""
+
+msgid "warning: abstruse context for plural argument of keyword '%.*s'"
+msgstr ""
+
+msgid "warning: missing context for plural argument of keyword '%.*s'"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test28.tmp.po mm-test28.new.po mm-test28-3.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test28.tmp.po > mm-test28-3.po || Exit 1
+
+cat <<\EOF > mm-test28-3.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "warning: bad context for singular argument of keyword '%.*s'"
+msgstr ""
+"Warnung: schlechter Kontext für das Singular-Argument des Schlüsselwortes »%."
+"*s«"
+
+msgid "warning: broken context for singular argument of keyword '%.*s'"
+msgstr ""
+"Warnung: missratener Kontext für das Singular-Argument des Schlüsselworts »%."
+"*s«"
+
+msgid "warning: abstruse context for plural argument of keyword '%.*s'"
+msgstr ""
+"Warnung: abstruser Kontext für das Plural-Argument des Schlüsselwortes »%.*s«"
+
+msgid "warning: missing context for plural argument of keyword '%.*s'"
+msgstr ""
+"Warnung: fehlender Kontext für das Plural-Argument des Schlüsselwortes »%.*s«"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test28-3.ok mm-test28-3.po || Exit 1
+
+Exit 0

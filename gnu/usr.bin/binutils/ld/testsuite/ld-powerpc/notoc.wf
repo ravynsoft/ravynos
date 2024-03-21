@@ -1,0 +1,33 @@
+Contents of the \.eh_frame section:
+
+
+00000000 0000000000000010 00000000 CIE
+  Version:               1
+  Augmentation:          "zR"
+  Code alignment factor: 4
+  Data alignment factor: -8
+  Return address column: 65
+  Augmentation data:     1b
+  DW_CFA_def_cfa: r1 ofs 0
+
+00000014 0000000000000024 00000018 FDE cie=00000000 pc=00000000100000c0\.\.0000000010000140
+  DW_CFA_advance_loc: 40 to 00000000100000e8
+  DW_CFA_register: r65 in r12
+  DW_CFA_advance_loc: 8 to 00000000100000f0
+  DW_CFA_restore_extended: r65
+  DW_CFA_advance_loc: 40 to 0000000010000118
+  DW_CFA_register: r65 in r12
+  DW_CFA_advance_loc: 8 to 0000000010000120
+  DW_CFA_restore_extended: r65
+  DW_CFA_advance_loc: 16 to 0000000010000130
+  DW_CFA_register: r65 in r12
+  DW_CFA_advance_loc: 8 to 0000000010000138
+  DW_CFA_restore_extended: r65
+  DW_CFA_nop
+  DW_CFA_nop
+
+0000003c 0000000000000010 00000040 FDE cie=00000000 pc=00000000100001cc\.\.00000000100001d0
+  DW_CFA_nop
+  DW_CFA_nop
+  DW_CFA_nop
+

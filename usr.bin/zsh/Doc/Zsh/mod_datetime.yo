@@ -1,0 +1,92 @@
+COMMENT(!MOD!zsh/datetime
+Some date/time commands and parameters.
+!MOD!)
+The tt(zsh/datetime) module makes available one builtin command:
+
+startitem()
+findex(strftime)
+cindex(date string, printing)
+xitem(tt(strftime) [ tt(-s) var(scalar) | tt(-n) ] var(format) [ var(epochtime) [ var(nanoseconds) ] ] )
+item(tt(strftime) tt(-r) [ tt(-q) ] [ tt(-s) var(scalar) | tt(-n) ] var(format) var(timestring) )(
+Output the date in the var(format) specified.  With no var(epochtime), the
+current system date/time is used; optionally, var(epochtime) may be used to
+specify the number of seconds since the epoch, and var(nanoseconds) may
+additionally be used to specify the number of nanoseconds past the second
+(otherwise that number is assumed to be 0).
+See manref(strftime)(3) for details.  The zsh extensions described in
+ifzman(the section EXPANSION OF PROMPT SEQUENCES in zmanref(zshmisc))\
+ifnzman(noderef(Prompt Expansion)) are also available.
+
+startitem()
+item(tt(-n))(
+Suppress printing a newline after the formatted string.
+)
+item(tt(-q))(
+Run quietly; suppress printing of all error messages described below.
+Errors for invalid var(epochtime) values are always printed.
+)
+item(tt(-r))(
+With the option tt(-r) (reverse), use var(format) to parse the input
+string var(timestring) and output the number of seconds since the epoch at
+which the time occurred.  The parsing is implemented by the system
+function tt(strptime); see manref(strptime)(3).  This means that zsh
+format extensions are not available, but for reverse lookup they are not
+required.
+
+In most implementations of tt(strftime) any timezone in the
+var(timestring) is ignored and the local timezone declared by the tt(TZ)
+environment variable is used; other parameters are set to zero if not
+present.
+
+If var(timestring) does not match var(format) the command returns status 1
+and prints an error message.  If var(timestring) matches var(format) but
+not all characters in var(timestring) were used, the conversion succeeds
+but also prints an error message.
+
+If either of the system functions tt(strptime) or tt(mktime) is not
+available, status 2 is returned and an error message is printed.
+)
+item(tt(-s) var(scalar))(
+Assign the date string (or epoch time in seconds if tt(-r) is given) to
+var(scalar) instead of printing it.
+)
+enditem()
+
+Note that depending on the system's declared integral time type,
+tt(strftime) may produce incorrect results for epoch times greater than
+2147483647 which corresponds to 2038-01-19 03:14:07 +0000.
+)
+enditem()
+
+The tt(zsh/datetime) module makes available several parameters;
+all are readonly:
+
+startitem()
+vindex(EPOCHREALTIME)
+item(tt(EPOCHREALTIME))(
+A floating point value representing the number of seconds since
+the epoch.  The notional accuracy is to nanoseconds if the
+tt(clock_gettime) call is available and to microseconds otherwise,
+but in practice the range of double precision floating point and
+shell scheduling latencies may be significant effects.
+)
+vindex(EPOCHSECONDS)
+item(tt(EPOCHSECONDS))(
+An integer value representing the number of seconds since the
+epoch.
+)
+vindex(epochtime)
+item(tt(epochtime))(
+An array value containing the number of seconds since the epoch
+in the first element and the remainder of the time since the epoch
+in nanoseconds in the second element.  To ensure the two elements
+are consistent the array should be copied or otherwise referenced
+as a single substitution before the values are used.  The following
+idiom may be used:
+
+example(for secs nsecs in $epochtime; do
+  ...
+done)
+
+)
+enditem()

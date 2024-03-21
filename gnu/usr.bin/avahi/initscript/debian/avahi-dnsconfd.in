@@ -1,0 +1,184 @@
+#!/bin/sh
+
+# This file is part of avahi.
+#
+# avahi is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# avahi is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with avahi; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+#
+# avahi-dnsconfd     avahi dns configuration daemon
+#                               Daemon for ZeroConf
+#
+# Authors:      <sebastien.estienne@gmail.com>
+#
+
+if [ -f /lib/lsb/init-functions ]
+then
+    . /lib/lsb/init-functions
+else
+    # int log_begin_message (char *message)
+    log_begin_msg () {
+        if [ -z "$1" ]; then
+	    return 1
+        fi
+        echo " * $@"
+    }
+
+    # int log_end_message (int exitstatus)
+    log_end_msg () {
+	
+    # If no arguments were passed, return
+	[ -z "$1" ] && return 1
+	
+    # Only do the fancy stuff if we have an appropriate terminal
+    # and if /usr is already mounted
+	TPUT=/usr/bin/tput
+	EXPR=/usr/bin/expr
+	if [ -x $TPUT ] && [ -x $EXPR ] && $TPUT hpa 60 >/dev/null 2>&1; then
+	    COLS=`$TPUT cols`
+	    if [ -n "$COLS" ]; then
+		COL=`$EXPR $COLS - 7`
+	    else
+		COL=73
+	    fi
+	    UP=`$TPUT cuu1`
+	    END=`$TPUT hpa $COL`
+	    START=`$TPUT hpa 0`
+	    RED=`$TPUT setaf 1`
+	    NORMAL=`$TPUT op`
+	    if [ $1 -eq 0 ]; then
+		echo "$UP$END[ ok ]"
+	    else
+		echo -e "$UP$START $RED*$NORMAL$END[${RED}fail${NORMAL}]"
+	    fi
+	else
+	    if [ $1 -eq 0 ]; then
+		echo "   ...done."
+	    else
+		echo "   ...fail!"
+	    fi
+	fi
+	return $1
+    }
+    
+    log_warning_msg () {
+	if log_use_fancy_output; then
+	    YELLOW=`$TPUT setaf 3`
+	    NORMAL=`$TPUT op`
+	    echo "$YELLOW*$NORMAL $@"
+	else
+	    echo "$@"
+	fi
+    }
+
+fi
+
+#set -e
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DESC="Avahi Unicast DNS Configuration Daemon"
+NAME="avahi-dnsconfd"
+DAEMON="@sbindir@/$NAME"
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+# don't start if /etc/default/avahi-dnsconfd says so.
+AVAHI_DNSCONFD_START=1
+test -f /etc/default/avahi-dnsconfd && . /etc/default/avahi-dnsconfd
+
+if [ "$AVAHI_DNSCONFD_START" != "1" -a "$1" != "stop" ]; then
+    log_warning_msg "Not starting $DESC $NAME, disabled via /etc/default/$NAME"
+    exit 0
+fi
+
+#
+#       Function that starts the daemon/service.
+#
+d_start() {
+    $DAEMON -c
+    [ $? = 0 ] && exit 0
+
+    if [ -s /etc/localtime ]; then
+	if [ ! -d /etc/avahi/etc ]; then
+	    mkdir -p @sysconfdir@/avahi/etc >/dev/null 2>&1
+	fi
+	cp -fp /etc/localtime @sysconfdir@/avahi/etc >/dev/null 2>&1
+    fi;
+    
+    $DAEMON -D
+}
+
+#
+#       Function that stops the daemon/service.
+#
+d_stop() {
+    $DAEMON -c
+    [ $? != 0 ] && exit 0
+
+    $DAEMON -k
+}
+
+#
+#       Function that reload the config file for the daemon/service.
+#
+d_refresh() {
+    $DAEMON -c
+    [ $? != 0 ] && exit 0
+
+    $DAEMON -r
+}
+
+#
+#       Function that check the status of the daemon/service.
+#
+d_status() {
+    $DAEMON -c
+    [ $? = 0 ]  && echo "$DESC is running" || echo "$DESC is not running"
+}
+
+case "$1" in
+    start)
+        log_begin_msg "Starting $DESC: $NAME"
+        d_start
+        log_end_msg $?
+        ;;
+    stop)
+        log_begin_msg "Stopping $DESC: $NAME"
+        d_stop
+        log_end_msg $?
+        ;;
+    refresh)
+        log_begin_msg "Refreshing $DESC: $NAME"
+        d_refresh
+        log_end_msg $?
+        ;;
+    reload|restart|force-reload)
+        log_begin_msg "Restarting $DESC: $NAME"
+        $DAEMON -c && d_stop
+        d_start
+        log_end_msg $?
+        ;;
+    status)
+        d_status
+	;;
+    *)
+        echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

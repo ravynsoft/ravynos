@@ -1,0 +1,35 @@
+#compdef xpdf zxpdf
+
+_xt_arguments \
+  '-g[initial window geometry]:geometry:_x_geometry' \
+  '-cmap[install a private colormap]' \
+  '-rgb[biggest RGB cube to allocate]:int:' \
+  '-mattecolor[color of background outside page area]:color:' \
+  '-papercolor[color of paper background]:color:' \
+  '-z[initial zoom level]:zoom level:' \
+  '-t1lib[enable t1lib font rasterizer]:bool:(yes no)' \
+  '-freetype[enable FreeType font rasterizer]:bool:(yes no)' \
+  '-aa[enable font anti-aliasing]:bool:(yes no)' \
+  '-aaVector[enable vector anti-aliasing]:bool:(yes no)' \
+  '-cont[start in continuous view mode]' \
+  '-exec[execute command on xpdf remote server]:command:' \
+  '-ps[default PostScript file name or command]:file or command:_files' \
+  '-paper[paper size]:paper size:(letter legal A4 A3 match)' \
+  '-paperw[paper width]:points:' \
+  '-paperh[paper height]:points:' \
+  '-level1i[generate Level 1 PostScript]' \
+  '-enc[output text encoding name]:name:' \
+  '-eol[output end-of-line convention]:convention:(unix dos mac)' \
+  '-opw[owner password]:password:' \
+  '-upw[user password]:password:' \
+  '-fullscreen[run in full-screen (presentation) mode]' \
+  '-remote[start/contact xpdf remote server with specified name]:server:_hosts' \
+  '-reload[reload xpdf remove server window (with -remote only)]' \
+  '-raise[raise xpdf remote server window (with -remote only)]' \
+  '-quit[kill xpdf remote server (with -remote only)]' \
+  '-cmd[print commands as they are executed]' \
+  '-q[do not print any messages or errors]' \
+  '-cfg[configuration file to use in place of .xpdfrc]:file:_files' \
+  '-v[print copyright and version info]' \
+  '(-h -help --help -?)'{-h,-help,--help,-\?}'[print usage information]' \
+  ':PDF: _pdf '"${${service/xpdf/}:+-z}"

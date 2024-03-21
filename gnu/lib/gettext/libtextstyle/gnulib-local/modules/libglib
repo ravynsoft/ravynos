@@ -1,0 +1,154 @@
+Description:
+Substitute for a part of glib version 2.12.4.
+
+Files:
+lib/glib.in.h
+lib/glibconfig.in.h
+lib/glib/ghash.c
+lib/glib/ghash.in.h
+lib/glib/glist.c
+lib/glib/glist.in.h
+lib/glib/gmacros.in.h
+lib/glib/gmessages.c
+lib/glib/gprimes.c
+lib/glib/gprimes.in.h
+lib/glib/gprintfint.in.h
+lib/glib/gstrfuncs.c
+lib/glib/gstrfuncs.in.h
+lib/glib/gstring.c
+lib/glib/gstring.in.h
+lib/glib/gtypes.in.h
+m4/libglib.m4
+
+Depends-on:
+snprintf-posix
+strerror
+vasprintf
+xalloc
+xvasprintf
+no-c++
+
+configure.ac:
+# In libtextstyle, we don't want to use an external libglib, because its
+# dynamic relocations have an impact on the startup time of a program that
+# is linked with it. As you can see by using 'readelf -r ... | wc -l',
+# 'readelf -d ... | grep NEEDED', and 'nm --dynamic ...':
+# - libglib-2.0.so has more than 300 relocations and depends on libpcre.
+# - But libtextstyle needs only less than 10% of libglib: out of the more
+#   than 1600 exported symbols, libtextstyle needs less than 160.
+# So, force the use of the included libglib part.
+gl_LIBGLIB([yes])
+
+Makefile.am:
+if INCLUDED_LIBGLIB
+lib_LIBADD += libglib_rpl.la
+lib_DEPENDENCIES += libglib_rpl.la
+noinst_LTLIBRARIES += libglib_rpl.la
+endif
+
+libglib_rpl_la_SOURCES = \
+  glib/ghash.c \
+  glib/glist.c \
+  glib/gmessages.c \
+  glib/gprimes.c \
+  glib/gstrfuncs.c \
+  glib/gstring.c
+libglib_rpl_la_CPPFLAGS = $(AM_CPPFLAGS) $(NO_CXX)
+libglib_rpl_la_CFLAGS = @FOREIGN_WARN_CFLAGS@
+
+BUILT_SOURCES += $(LIBGLIB_H)
+
+glib.h: glib.in.h
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glibconfig.h: glibconfig.in.h
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glibconfig.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/ghash.h: glib/ghash.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/ghash.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/glist.h: glib/glist.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/glist.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/gmacros.h: glib/gmacros.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/gmacros.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/gprimes.h: glib/gprimes.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/gprimes.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/gprintfint.h: glib/gprintfint.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/gprintfint.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/gstrfuncs.h: glib/gstrfuncs.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/gstrfuncs.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/gstring.h: glib/gstring.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/gstring.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+glib/gtypes.h: glib/gtypes.in.h
+	test -d glib || $(MKDIR_P) glib
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/glib/gtypes.in.h; \
+	} > $@-t
+	mv -f $@-t $@
+
+MOSTLYCLEANFILES += \
+  glib.h \
+  glibconfig.h \
+  glib/ghash.h \
+  glib/glist.h \
+  glib/gmacros.h \
+  glib/gprimes.h \
+  glib/gprintfint.h \
+  glib/gstrfuncs.h \
+  glib/gstring.h \
+  glib/gtypes.h
+MOSTLYCLEANFILES += glib.h-t glibconfig.h-t glib/*.h-t
+
+if GL_COND_LIBTOOL
+lib_LDFLAGS += $(LTLIBGLIB)
+endif
+
+Include:
+#include <glib.h>
+
+License:
+LGPL
+
+Maintainer:
+GNOME, Bruno Haible
+

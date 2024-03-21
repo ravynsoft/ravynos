@@ -1,0 +1,162 @@
+To create a zsh release:
+
+- Be satisfied that 'master' is releaseable.
+  (No recent destabilizing changes, `make check` passes, etc)
+
+- Bump or update:
+
+	Config/version.mk to today's date
+	Config/version.mk version number
+	Etc/FAQ.yo ('latest version' section)
+	README (first two paragraphs, 'incompatibilities since' sections)
+	NEWS ('changes since' sections)
+
+  The version-number sequence is as follows:
+
+	5.8, 5.8.0.1-dev, 5.8.0.2-test, 5.8.1, 5.8.1.1-dev, 5.8.1.2-test, 5.9
+
+  Please note:
+
+	- All version numbers in this document are examples only and may not
+	  reflect the actual version history of the shell.
+	- A slightly different ordering of version-number components was used
+	  prior to zsh 5.8. All subsequent releases should use the scheme
+	  described above.
+	- Usually there is only one -dev version (1-dev), but there may be more
+	  if for example there is a wordcode compatibility break, in which case
+	  the sequence would be something like 1-dev, 2-dev, 3-test, .... No
+	  special release process is associated with a -dev version bump.
+	- Usually at least one -test version is released for public testing in
+	  the lead-up to the final release of the next stable version.
+
+  README should document compatibility-breaking changes. Generally, NEWS should
+  document new features and major bug fixes (but not routine fixes or changes to
+  completion/contrib functions). Historically, these documents have often been
+  missed at the time the changes were actually committed, so it may be a good
+  idea to scan back through the history and fill in any blanks before release.
+
+  For -test releases, you may update the FAQ, README, etc., to refer to the
+  upcoming stable version number.
+
+- Commit those changes with an "unposted" ChangeLog entry.
+
+	git commit -am "Test release: 5.8.1.2-test." &&
+		zshdev-add-nnnnn-and-changelog unposted
+	# (Everyone has a different way of getting the "unposted" magic string
+	# into ChangeLog and the log message.  This script is how I do it; YMMV;
+	# see Etc/zsh-development-guide for alternative scripts.)
+
+- Create signed git tag named "zsh-5.8.1..." (not "5.8.1...")
+
+	git tag --sign -m "Tag version zsh-5.8.1.2-test." zsh-5.8.1.2-test
+
+- If the tagged release is a stable release (as opposed to a test release):
+
+	vi Config/version.mk # bump to 5.9.0.1-dev and tomorrow's date
+	git commit -am "Post-release version bump." &&
+		zshdev-add-nnnnn-and-changelog unposted
+		# or local equivalent (see above)
+
+- Create tarball:
+
+	git checkout zsh-5.8.1.2-test
+	git diff HEAD # ensure no local mods
+	rm -f Doc/help.txt Doc/help/[_a-zA-Z0-9]* # some devs have had issues with these
+	Util/preconfig && ./configure ...
+	make -C Etc
+	make -C Doc everything
+	make tarxz-doc tarxz-src
+	for i in zsh*.tar.?z ; do gpg -ab -- $i ; done
+
+- [one time step] Add your key to http://zsh.sf.net/Arc/source.html; see README
+  in the 'web' repository for how to do this.  Its URL is:
+
+	git clone git://git.code.sf.net/p/zsh/web
+	git clone ssh://git.code.sf.net/p/zsh/web
+
+- [one time step] Add your key to the Keys/ directory in the 'web' repository, using
+  `gpg --armor --export $YourPublicKeyFingerprint`.
+
+- Create the keyring:
+
+	cat web.git/Keys/*.asc > zsh-keyring.asc
+
+- Upload to sf.net:
+
+	Test releases go to the "zsh-test" directory.
+	Stable releases to zsh/ and zsh-doc/.
+	For stable releases only, after uploading, select the tar.xz artifact
+	under zsh/, press the 🛈 button ("View Details") to its right, and press
+	[Select All] next to "Default Download For:".  This should cause sf.net
+	to offer that artifact in the "Looking for the latest version?" line.
+
+  You should upload five files:
+
+	zsh-5.8.tar.xz
+	zsh-5.8.tar.xz.asc
+	zsh-doc-5.8.tar.xz
+	zsh-doc-5.8.tar.xz.asc
+	zsh-keyring.asc
+
+	(TODO: what about MD5SUM, FAQ, META-FAQ, all in www.zsh.org/pub/?)
+
+  Note that zsh-keyring.asc is fine to just overwrite, since it's only ever
+  appended to, and in any case the underlying Keys/*.asc files are in version
+  control.
+
+  TODO: link to zsh-keyring.asc from Arc/source.html and elsewhere
+
+- If the new release is a stable release, update zsh.sf.net:
+
+	# Move into the 'web' repository mentioned above
+	cd /path/to/web/repo
+	git pull
+
+	# Review the README, in case there is any new information there
+	cat README
+
+	# Run release.zsh to update the documentation from the main repository
+	# (making sure you still have checked out the tag you created!)
+	ZSHPATH=/path/to/zsh/repo ./release.zsh
+
+	# Commit changes
+	git commit -am 'Doc, FAQ, Intro: Update for <version>' # replace <version>
+
+	# Update the files mentioned in the release.zsh instructions (just
+	# adhere to the existing structure/format)
+	$EDITOR index.html
+	$EDITOR News/index.html
+	$EDITOR releases.html
+
+	# Run release-update-versions.zsh to update the names and sizes of the
+	# files listed on the documentation index and source page
+	./release-update-versions.zsh <version> # replace <version>
+
+	# Commit changes
+	git commit -am 'Update downloads, notes, etc., for <version>' # replace <version>
+
+	# Tag and push changes
+	git tag -sm 'Release of zsh <version>' zsh-<version> # replace <version>
+	git push
+
+	# Post changes; see web/README for the full rsync command. When in
+	# doubt, use `rsync -n` to perform a dry run. Note that changes may take
+	# several minutes to appear afterwards
+	rsync ...
+
+- For stable releases, upload the build artefacts to zsh.org/pub, making sure to
+  move the previous ones to old/. For example (assuming the new artefacts are in
+  the CWD):
+
+	mv /usr/local/www/ftp/pub/zsh-*.*(.) /usr/local/www/ftp/pub/old/
+	mv zsh-*.*(.) /usr/local/www/ftp/pub/
+
+  You may need assistance from another dev if you don't have access to do this.
+
+- Post to -workers@. You may also wish to (ask someone to) update the #zsh
+  channel topic on IRC.
+
+- After a day or so post to:
+
+	-users@, if test release;
+	-announce@, if stable release.

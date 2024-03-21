@@ -1,0 +1,62 @@
+#autoload
+
+# Complete 'globbing flags', i.e., '(#x)'; everything up to the '#' will
+# have been "compset -P"'d by the caller.
+
+local ret=1
+local -a flags
+local preprefix=$IPREFIX
+
+compset -P '([ilIUubBmMcq]|a(|<->))##'
+# make sure to not consider anything before the '#'
+preprefix=${IPREFIX[$#preprefix,-1]}
+if [[ $preprefix = *\#q* ]]; then
+  _globquals
+  return
+elif [[ $preprefix = *q* ]]; then
+  _message 'q flag has to be specified by itself'
+  return
+elif [[ $preprefix = *a(|<->) ]]; then
+  _message -e number 'errors'
+  if [[ $preprefix = *a ]]; then
+    return
+  else
+    compset -P '<->'
+  fi
+elif [[ $preprefix = *\#c ]]; then
+  _message -e range 'repetitions (min,max) or (exact)'
+  return
+fi
+
+flags=(
+  'i:case insensitive'
+  'l:lower case characters match uppercase'
+  'I:case sensitive matching'
+  's:match start of string'
+  'e:match end of string'
+  'U:consider all characters to be one byte'
+  'u:support multibyte characters in pattern'
+)
+[[ $compstate[context] = condition ]] && flags+=(
+  'b:activate backreferences'
+  'B:deactivate backreferences'
+  'm:set reference to entire matched data'
+  'M:deactivate m flag'
+)
+flags=( ${flags:#[$preprefix[(R)\#,-1]]*} )
+if [[ $IPREFIX != *'#' ]]; then
+  flags=( ${flags:#[se]*} )
+fi
+_describe -t globflags "glob flag" flags -Q -S ')' && ret=0
+flags=(
+  'a:approximate matching'
+  'q:introduce glob qualifier'
+  'c:match repetitions of preceding pattern'
+)
+flags=( ${flags:#[$preprefix[(R)\#,-1]]*} )
+if [[ $IPREFIX != *'#' ]]; then
+  flags=( ${flags:#[cq]*} )
+fi
+_describe -t globflags "glob flag" flags -Q -S '' && ret=0
+
+return ret

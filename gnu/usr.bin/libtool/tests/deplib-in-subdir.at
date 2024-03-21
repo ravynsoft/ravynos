@@ -1,0 +1,157 @@
+# deplib-in-subdir.at --                         -*- Autotest -*-
+
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# It should be possible to use a nontrivial relative path to the output
+# file name when creating libraries and programs.  The deplibs of these
+# might have relative paths as well.  When executing uninstalled programs,
+# the paths relative to $PWD at build time needs to be translated to a
+# path valid at execution time.
+#
+# Also test installing these libraries and programs; however,
+# use consistent relative paths between 'libtool --mode=link' and
+# 'libtool --mode=install' in this test.
+
+AT_SETUP([deplib in subdir])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a1.c],
+[[int a1 () { return 0; }
+]])
+AT_DATA([a2.c],
+[[int a2 () { return 0; }
+]])
+AT_DATA([a3.c],
+[[int a3 () { return 0; }
+]])
+AT_DATA([b1.c],
+[[extern int a1 ();
+int b1 () { return a1 (); }
+]])
+AT_DATA([b2.c],
+[[extern int a2 ();
+int b2 () { return a2 (); }
+]])
+AT_DATA([b3.c],
+[[extern int a3 ();
+int b3 () { return a3 (); }
+]])
+AT_DATA([m.c],
+[[extern int b1 ();
+extern int b2 ();
+extern int b3 ();
+int main () { return b1 () + b2 () + b3 (); }
+]])
+
+cwd=`pwd`
+instdir=$cwd/inst
+lib1dir=$instdir/lib1
+lib2dir=$instdir/lib2
+bindir=$instdir/bin
+addrunpath=$cwd/foobar
+LDFLAGS="$LDFLAGS -no-undefined"
+
+flags='-export-symbols-regex ".*"'
+
+mkdir -p sub1 sub2/subsub sub3/subsub $instdir $lib1dir $lib2dir $bindir
+
+for file in a1.c a2.c a3.c b1.c b2.c b3.c; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file
+done
+$CC $CPPFLAGS $CFLAGS -c m.c
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o sub1/liba1.la a1.lo -rpath $lib1dir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o sub1/liba2.la a2.lo -rpath $lib1dir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o sub1/liba3.la a3.lo -rpath $lib1dir],
+	 [], [ignore], [ignore])
+
+AT_CHECK([eval '$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o sub2/subsub/libb1.la b1.lo ]dnl
+	 [-rpath $lib2dir sub1/liba1.la' "$flags"],
+	 [], [ignore], [ignore])
+cd sub2
+AT_CHECK([eval '$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o subsub/libb2.la ../b2.lo ]dnl
+	 [-rpath $lib2dir ../sub1/liba2.la' "$flags"],
+	 [], [ignore], [ignore])
+cd subsub
+AT_CHECK([eval '$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libb3.la ../../b3.lo ]dnl
+	 [-rpath $lib2dir ../../sub1/liba3.la' "$flags"],
+	 [], [ignore], [ignore])
+cd ../..
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o sub3/subsub/m1$EXEEXT m.$OBJEXT ]dnl
+	 [sub2/subsub/libb1.la sub2/subsub/libb2.la sub2/subsub/libb3.la],
+	 [], [ignore], [ignore])
+cd sub3
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o subsub/m2$EXEEXT ../m.$OBJEXT ]dnl
+	 [../sub2/subsub/libb1.la ../sub2/subsub/libb2.la ../sub2/subsub/libb3.la],
+	 [], [ignore], [ignore])
+cd subsub
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m3$EXEEXT ../../m.$OBJEXT ]dnl
+	 [../../sub2/subsub/libb1.la ../../sub2/subsub/libb2.la ../../sub2/subsub/libb3.la],
+	 [], [ignore], [ignore])
+cd ../..
+
+for i in 1 2 3; do
+  LT_AT_EXEC_CHECK([./sub3/subsub/m$i])
+  cd sub3
+  LT_AT_EXEC_CHECK([./subsub/m$i])
+  cd subsub
+  LT_AT_EXEC_CHECK([./m$i])
+  cd ../..
+done
+
+for i in 1 2 3; do
+  AT_CHECK([$LIBTOOL --mode=install cp sub1/liba$i.la $lib1dir/liba.la], [], [ignore], [ignore])
+done
+
+AT_CHECK([$LIBTOOL --mode=install cp sub2/subsub/libb1.la $lib2dir/libb1.la], [], [ignore], [ignore])
+cd sub2
+AT_CHECK([$LIBTOOL --mode=install cp subsub/libb2.la $lib2dir/libb2.la], [], [ignore], [ignore])
+cd subsub
+AT_CHECK([$LIBTOOL --mode=install cp libb3.la $lib2dir/libb3.la], [], [ignore], [ignore])
+cd ../..
+
+AT_CHECK([$LIBTOOL --mode=install cp sub3/subsub/m1$EXEEXT $bindir/m1$EXEEXT], [], [ignore], [ignore])
+cd sub3
+AT_CHECK([$LIBTOOL --mode=install cp subsub/m2$EXEEXT $bindir/m2$EXEEXT], [], [ignore], [ignore])
+cd subsub
+AT_CHECK([$LIBTOOL --mode=install cp m3$EXEEXT $bindir/m3$EXEEXT], [], [ignore], [ignore])
+cd ../..
+
+AT_CHECK([$LIBTOOL --mode=clean rm -f sub1/liba1.la sub1/liba2.la sub1/liba3.la ]dnl
+	 [sub2/subsub/libb1.la sub2/subsub/libb2.la sub2/subsub/libb3.la ]dnl
+	 [sub3/subsub/m1$EXEEXT sub3/subsub/m2$EXEEXT sub3/subsub/m3$EXEEXT],
+	 [], [ignore], [ignore])
+
+for i in 1 2 3; do
+  LT_AT_EXEC_CHECK([$bindir/m$i$EXEEXT])
+  cd $bindir
+  LT_AT_EXEC_CHECK([./m$i$EXEEXT])
+  cd $cwd
+done
+
+PATH=$bindir${PATH_SEPARATOR-:}$PATH
+for i in 1 2 3; do
+  LT_AT_EXEC_CHECK([m$i$EXEEXT])
+done
+
+AT_CLEANUP

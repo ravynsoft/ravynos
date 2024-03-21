@@ -1,0 +1,100 @@
+#compdef w3m
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '-t[set tab width]:tab width:' \
+  '-r[ignore backspace effect]' \
+  '-l[specify number of preserved lines]:number of lines [10000]' \
+  '-I[document charset]:charset:->charset' \
+  '-O[display/output charset]:charset:->charset' \
+  '(   -s -j)-e[EUC-JP]' \
+  '(-e    -j)-s[Shift_JIS]' \
+  '(-e -s   )-j[JIS]' \
+  '(-v *)-B[load bookmark]' \
+  '-bookmark[specify bookmark file]:bookmark file:_files' \
+  '-T[specify content-type]:content type:_mime_types' \
+  '-m[internet message mode]' \
+  '(-B *)-v[visual startup mode]' \
+  '-M[monochrome display]' \
+  '-N[open URL of command line on each new tab]' \
+  '-F[automatically render frames]' \
+  '-cols[specify column width (used with -dump)]:column width' \
+  '-ppc[specify the number of pixels per character (4.0...32.0)]:number of pixels (4.0...32.0):' \
+  '-ppl[specify the number of pixels per line (4.0...64.0)]:number of pixels (4.0...64.0):' \
+  '(      -dump_head -dump_source -dump_both -dump_extra)-dump[dump formatted page into stdout]' \
+  '(-dump            -dump_source -dump_both -dump_extra)-dump_head[dump HEAD and source into stdout]' \
+  '(-dump -dump_head              -dump_both -dump_extra)-dump_source[dump page source into stdout]' \
+  '(-dump -dump_head -dump_source            -dump_extra)-dump_both[dump HEAD and source into stdout]' \
+  '(-dump -dump_head -dump_source -dump_both            )-dump_extra[dump HEAD, source, and extra information into stdout]' \
+  '-post[use POST method with file content]:POST data file:_files' \
+  '-header[insert string as a header]:header:' \
+  '+-[goto specified line]:line number:_guard "[0-9]#" "line number"' \
+  '-num[show line number]' \
+  '-session[use specified session]:id' \
+  "-no-proxy[don't use proxy]" \
+  '(-6)-4[IPv4 only (-o dns_order=4)]' \
+  '(-4)-6[IPv6 only (-o dns_order=6)]' \
+  "-no-mouse[don't use mouse]" \
+  '(-no-cookie)-cookie[use cookie]' \
+  "(-cookie)-no-cookie[don't use cookie]" \
+  '(-no-graph)-graph[use DEC special graphics for border of table and menu]' \
+  '(-graph)-no-graph[use ASCII character for border of table and menu]' \
+  '-S[squeeze multiple blank lines]' \
+  '-W[toggle search wrap mode]' \
+  "-X[don't use termcap init/deinit]" \
+  '-title=[set buffer name to terminal title string]:terminal:_terminals' \
+  '*-o[assign value to config option]:option=value:->option' \
+  '(- *)-show-option[print all config options]' \
+  '-config[specify config file]:configuration file:_files' \
+  '(- *)-help[print usage information]' \
+  '(- *)-version[print version information]' \
+  '-debug' \
+  '(-B -v)*:URL:->html' && ret=0
+
+local -a suf
+
+case "$state" in
+  charset)
+    local -a charsets
+    charsets=(
+      US-ASCII ISO-8859-1 ISO-8859-2 ISO-8859-3 ISO-8859-4 ISO-8859-5
+      ISO-8859-6 ISO-8859-7 ISO-8859-8 ISO-8859-9 ISO-8859-10 ISO-8859-11
+      ISO-8859-13 ISO-8859-14 ISO-8859-15 ISO-8859-16 EUC-JP Shift_JIS
+      Shift_JISX0213 ISO-2022-JP ISO-2022-JP-2 ISO-2022-JP-3 EUC-CN GBK GB18030
+      HZ-GB-2312 ISO-2022-CN EUC-TW Big5 HKSCS EUC-KR UHC Johab ISO-2022-KR
+      TIS-620 TCVN-5712 VISCII VPS KOI8-R KOI8-U NeXTSTEP CP437 CP737 CP775
+      CP850 CP852 CP855 CP856 CP857 CP860 CP861 CP862 CP863 CP864 CP865 CP866
+      CP869 CP874 CP1006 CP1250 CP1251 CP1252 CP1253 CP1254 CP1255 CP1256
+      CP1257 CP1258 UTF-8 UTF-7
+    )
+    _wanted charsets expl 'character set' compadd -a charsets && ret=0
+  ;;
+  html)
+    local -a bookmarks w3mhistory
+    if [[ -s ~/.w3m/bookmark.html ]]; then
+      bookmarks=( ${${(M)${(f)"$(<~/.w3m/bookmark.html)"}:#<li>*}/(#b)<li><a href=\"(*)\">*/$match[1]} )
+    fi
+    if [[ -s ~/.w3m/history ]]; then
+      w3mhistory=( ${(f)"$(<~/.w3m/history)"} )
+    fi
+    _alternative \
+      'files:file:_files -g "*.x#html(-.)"' \
+      'urls:URL:_urls' \
+      'bookmarks:bookmark:compadd -a bookmarks' \
+      'history:history:compadd -a w3mhistory' && ret=0
+  ;;
+  option)
+    local -a options
+    options=( ${${(M)${(f)"$(_call_program options $words[1] -show-option 2>/dev/null)"}:#    -o *}/(#b)    -o (*)=[^ ]#[[:blank:]]##(*)/$match[1]:${match[2]:l}} )
+    if compset -P 1 '*='; then
+      _message -e values 'value'
+    else
+      compset -S '=*' || suf=( -S '=' )
+      _describe -t options 'option' options "$suf[@]" && ret=0
+    fi
+  ;;
+esac
+
+return ret

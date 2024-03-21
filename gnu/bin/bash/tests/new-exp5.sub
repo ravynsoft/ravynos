@@ -1,0 +1,53 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+x=(one two)
+echo ${x[@]:1}
+echo ${x[@]:0:1}
+
+x=(one)
+echo ${x[0]:1}
+echo ${x[0]:0}
+echo ${x[@]:1}
+echo ${x[@]:0}
+
+echo ${x[@]: -1}
+echo ${x[@]: ${#x[@]}-1}
+
+x=(0 1 2 3 4 5 6 7 8 9)
+echo ${x[@]:1}
+
+echo ${x[@]: -1}
+echo ${x[@]: ${#x[@]}-1}
+
+set -- ${x[@]}
+
+echo $1
+echo ${@: -1}
+echo ${@: $#-1}
+
+a=0123456789
+
+echo ${a:1}
+echo ${a: -1}
+echo ${a: ${#a}-1}
+
+# problem with bash through 3.2.33
+oIFS="$IFS"
+IFS=$'\n'
+a=(A B C D)
+b=("${a[@]}")
+echo "${#b[@]}", "${b[@]}"  # 4, A B C D -- OK
+b=("${a[@]:2}")
+echo "${#b[@]}", "${b[@]}"  # 1, C D -- bug, should be 2, C D 
+IFS="$oIFS"

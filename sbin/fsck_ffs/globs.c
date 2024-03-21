@@ -29,18 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#if 0
-#ifndef lint
-static const char copyright[] =
-"@(#) Copyright (c) 1980, 1986, 1993\n\
-	The Regents of the University of California.  All rights reserved.\n";
-#endif /* not lint */
-
-#ifndef lint
-static char sccsid[] = "@(#)main.c	8.6 (Berkeley) 5/14/95";
-#endif /* not lint */
-#endif
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <ufs/ufs/dinode.h>
 #include <ufs/ffs/fs.h>
@@ -71,7 +59,6 @@ int	freefiles[MIBSIZE];	/* MIB cmd to free a set of files */
 int	freedirs[MIBSIZE];	/* MIB cmd to free a set of directories */
 int	freeblks[MIBSIZE];	/* MIB cmd to free a set of data blocks */
 struct	fsck_cmd cmd;		/* sysctl file system update commands */
-char	snapname[BUFSIZ];	/* when doing snapshots, the name of the file */
 char	*cdevname;		/* name of device being checked */
 long	dev_bsize;		/* computed value of DEV_BSIZE */
 long	secsize;		/* actual disk sector size */
@@ -144,7 +131,6 @@ fsckinit(void)
 	bzero(freedirs, sizeof(int) * MIBSIZE);
 	bzero(freeblks, sizeof(int) * MIBSIZE);
 	bzero(&cmd, sizeof(struct fsck_cmd));
-	bzero(snapname, sizeof(char) * BUFSIZ);
 	cdevname = NULL;
 	dev_bsize = 0;
 	secsize = 0;

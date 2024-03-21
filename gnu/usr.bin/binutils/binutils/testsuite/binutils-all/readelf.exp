@@ -1,0 +1,636 @@
+#   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+# Please email any bugs, comments, and/or additions to this file to:
+# bug-dejagnu@prep.ai.mit.edu
+
+# Written by Nick Clifton <nickc@cygnus.com>
+# Based on scripts written by Ian Lance Taylor <ian@cygnus.com>
+# and Ken Raeburn <raeburn@cygnus.com>.
+
+# Exclude non-ELF targets.
+if ![is_elf_format] {
+    verbose "$READELF is only intended for ELF targets" 2
+    return
+}
+
+# First some helpful procedures, then the tests themselves
+
+# Return the contents of the filename given
+proc file_contents { filename } {
+    set file [open $filename r]
+    set contents [read $file]
+    close $file
+    return $contents
+}
+
+# Find out the size by reading the output of the EI_CLASS field.
+# Similar to the test for readelf -h, but we're just looking for the
+# EI_CLASS line here.
+proc readelf_find_size { binary_file test_iteration } {
+    global READELF
+    global READELFFLAGS
+    global readelf_size
+
+    set readelf_size ""
+    set testname "finding out ELF size with readelf -h ($test_iteration)"
+    set got [remote_exec host "$READELF $READELFFLAGS -h $binary_file" "" "/dev/null" "readelf.out"]
+    if [is_remote host] then {
+        remote_upload host "readelf.out"
+    }
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]]} then {
+	send_log $got
+	fail $testname
+	return
+    }
+
+    if { ! [regexp "\n\[ \]*Class:\[ \]*ELF(\[0-9\]+)\n" \
+	    [file_contents readelf.out] nil readelf_size] } {
+	verbose -log "EI_CLASS field not found in output"
+	verbose -log "output is \n[file_contents readelf.out]"
+	fail $testname
+	return
+    } else {
+	verbose -log "ELF size is $readelf_size"
+    }
+
+    pass $testname
+}
+
+# Run an individual readelf test.
+# Basically readelf is run on the binary_file with the given options.
+# Readelf's output is captured and then compared against the contents
+# of the regexp_file-readelf_size if it exists, else regexp_file.
+
+proc readelf_test { options binary_file regexp_file } {
+
+    global READELF
+    global READELFFLAGS
+    global readelf_size
+    global srcdir
+    global subdir
+
+    set testname "readelf $options [file rootname [file tail $binary_file]]"
+
+    send_log "exec $READELF $READELFFLAGS $options $binary_file > readelf.out\n"
+    set got [remote_exec host "$READELF $READELFFLAGS $options $binary_file" "" "/dev/null" "readelf.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$testname (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+	return
+    }
+
+    if { [is_elf_unused_section_symbols ] } {
+	set target_machine unused
+    } else {
+	set target_machine ""
+    }
+    if [istarget "mips*-*-*"] then {
+	if [is_bad_symtab] then {
+	    set target_machine mips
+	} else {
+	    set target_machine tmips
+	}
+    }
+
+    if { $target_machine != "" && [file exists $srcdir/$subdir/$regexp_file-$readelf_size-$target_machine] } then {
+	set regexp_file $regexp_file-$readelf_size-$target_machine
+    } elseif { $target_machine != "" && [file exists $srcdir/$subdir/$regexp_file-$target_machine] } then {
+	set regexp_file $regexp_file-$target_machine
+    } elseif { [file exists $srcdir/$subdir/$regexp_file-$readelf_size] } then {
+	set regexp_file $regexp_file-$readelf_size
+    }
+
+    if { [regexp_diff readelf.out $srcdir/$subdir/$regexp_file] } then {
+	send_log [file_contents readelf.out]
+	send_log "\n"
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Simple proc to skip certain expected warning messages.
+
+proc prune_readelf_wi_warnings { text } {
+    regsub -all "(^|\n)(.*Skipping unexpected symbol type.*)" $text "\\1" text
+    return $text
+}
+
+# Testing the "readelf -wi" option is difficult because there
+# is no guaranteed order to the output, and because some ports
+# will use indirect string references, whilst others will use
+# direct references.  So instead of having an expected output
+# file, like the other readelf tests, we grep for strings that
+# really ought to be there.
+
+proc readelf_wi_test {} {
+    global READELF
+    global READELFFLAGS
+    global srcdir
+    global subdir
+
+    # Compile the second test file.
+    if { [target_compile $srcdir/$subdir/testprog.c tmpdir/testprog.o object debug] != "" } {
+	verbose "Unable to compile test file."
+	untested "readelf -wi"
+	return
+    }
+
+    # Download it.
+    set tempfile [remote_download host tmpdir/testprog.o]
+
+    # Run "readelf -wi" on it.
+    set got [remote_exec host "$READELF $READELFFLAGS -wi $tempfile" "" "/dev/null" "readelf.out"]
+
+    # Upload the results.
+    set output [remote_upload host readelf.out]
+
+    file_on_host delete $tempfile
+
+    # Strip any superflous warnings.
+    set got [prune_readelf_wi_warnings [lindex $got 1]]
+
+    if ![string match "" $got] then {
+	fail "readelf $READELFFLAGS -wi (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+	return
+    }
+
+    if ![file size $output] then {
+	# If the output file is empty, then this target does not
+	# generate dwarf2 output.  This is not a failure.
+	verbose "No output from 'readelf -wi'"
+	untested "readelf -wi"
+	return
+    }
+
+    # Search for strings that should be in the output.
+    set sought {
+	".*DW_TAG_compile_unit.*"
+	".*DW_TAG_subprogram.*"
+	".*DW_TAG_base_type.*"
+	".*DW_AT_producer.*(GNU C|indirect string|indexed string).*"
+	".*DW_AT_language.*(ANSI C|C11).*"
+	".*DW_AT_name.*(testprog.c|indirect string|indexed string).*"
+	".*DW_AT_name.*fn.*"
+	".*DW_AT_name.*(main|indirect string|indexed string).*"
+	".*(DW_OP_addr: 0|DW_OP_addrx <0>).*"
+	".*DW_AT_name.*(main|indirect string).*"
+    }
+
+    # The MSP430 in LARGE mode does not generate a DW_OP_addr.
+    setup_xfail msp430*-*-*
+
+    foreach looked_for $sought {
+	set lines [grep $output $looked_for]
+	if ![llength $lines] then {
+	    fail "readelf -wi: missing: $looked_for"
+	    send_log readelf.out
+	    return
+	}
+    }
+
+    file_on_host delete $output
+
+    # All done.
+    pass "readelf -wi"
+}
+
+# This tests "readelf -wa", but on a file with a compressed
+# .debug_abbrev section.
+
+proc readelf_compressed_wa_test {} {
+    global READELF
+    global READELFFLAGS
+    global srcdir
+    global subdir
+
+    # Compile the compressed-debug-section test file.
+    if { [target_compile $srcdir/$subdir/dw2-compressed.S tmpdir/dw2-compressed.o object debug] != "" } {
+	verbose "Unable to compile test file."
+	untested "readelf -wa (compressed)"
+	return
+    }
+
+    # Download it.
+    set tempfile [remote_download host tmpdir/dw2-compressed.o]
+
+    # Run "readelf -wa" on it.
+    set got [remote_exec host "$READELF $READELFFLAGS -wa $tempfile" "" "/dev/null" "readelf.out"]
+
+    # Upload the results.
+    set output [remote_upload host readelf.out]
+
+    file_on_host delete $tempfile
+
+    if { [string compare [file_contents readelf.out] [file_contents $srcdir/$subdir/readelf.wa]] != 0 } then {
+	fail "readelf -wa (compressed)"
+	verbose "output is \n[file_contents readelf.out]" 2
+	verbose "expected is \n[file_contents $srcdir/$subdir/readelf.wa]" 2
+	return
+    }
+
+    pass "readelf -wa (compressed)"
+}
+
+# Test readelf's dumping abilities.
+
+proc readelf_dump_test {} {
+    global READELF
+    global READELFFLAGS
+    global srcdir
+    global subdir
+
+    # Assemble the dump test file.
+    if {![binutils_assemble $srcdir/$subdir/dumptest.s tmpdir/dumptest.o]} then {
+      unsupported "readelf -p: failed to assemble dump test file"
+      return
+    }
+    # Download it.
+    set tempfile [remote_download host tmpdir/dumptest.o]
+
+    # Run "readelf -p.data" on it.
+    set sect_names [get_standard_section_names]
+    if { $sect_names != "" } {
+	set got [remote_exec host "$READELF $READELFFLAGS -p[lindex $sect_names 1] $tempfile" "" "/dev/null" "readelf.out"]
+    } else {
+	set got [remote_exec host "$READELF $READELFFLAGS -p.data $tempfile" "" "/dev/null" "readelf.out"]
+    }
+    set got [lindex $got 1]
+
+    # Upload the results.
+    set output [remote_upload host readelf.out]
+
+    # Check for something going wrong.
+    if ![string match "" $got] then {
+	fail "readelf -p: unexpected output"
+	send_log $got
+	send_log "\n"
+	return
+    }
+
+    # Search for strings that should be in the output.
+    set sought {
+	".*test_string.*"
+    }
+
+    foreach looked_for $sought {
+	set lines [grep $output $looked_for]
+	if ![llength $lines] then {
+	    fail "readelf -p: missing: $looked_for"
+	    send_log readelf.out
+	    return
+	}
+    }
+
+    file_on_host delete $tempfile
+    file_on_host delete $output
+
+    # All done.
+    pass "readelf -p"
+
+    # XXX FIXME: Add test of readelf -x here
+}
+
+# Tests whether readelf can read thin archives
+proc readelf_thin_archive_test {} {
+    global AR
+
+    if ![is_remote host] {
+	set tempfile tmpdir/bintest.o
+        set templib  tmpdir/bintest.thin.a
+        set libname  tmpdir/bintest.thin.a
+    } else {
+	set tempfile [remote_download host tmpdir/bintest.o]
+        set templib  [remote_download host tmpdir/bintest.thin.a]
+        set libname  bintest.thin.a
+    }
+
+    set testname "readelf -h bintest.thin"
+    set got [binutils_run $AR "rcT $libname ${tempfile}"]
+    if ![string match "" $got] {
+        fail $testname
+        return
+    }
+
+    readelf_test -h $templib readelf.h.thin
+
+    pass $testname
+}
+
+if ![is_remote host] {
+    if {[which $READELF] == 0} then {
+        perror "$READELF does not exist"
+        return
+    }
+}
+
+send_user "Version [binutil_version $READELF]"
+
+# Assemble the test file.
+if {![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.o]} then {
+    unsupported "readelf -h bintest (failed to assemble)"
+    unsupported "readelf -S bintest (failed to assemble)"
+    unsupported "readelf -s bintest (failed to assemble)"
+    unsupported "readelf -r bintest (failed to assemble)"
+    global readelf_size
+    set readelf_size ""
+} else {
+
+    if ![is_remote host] {
+	set tempfile tmpdir/bintest.o
+    } else {
+	set tempfile [remote_download host tmpdir/bintest.o]
+    }
+
+    # First, determine the size, so specific output matchers can be used.
+    readelf_find_size $tempfile 1
+
+    # Run the tests.
+    readelf_test -h $tempfile readelf.h
+    readelf_test -S $tempfile readelf.s
+    setup_xfail "mips-*-*irix*"
+    readelf_test -s $tempfile readelf.ss
+    readelf_test -r $tempfile readelf.r
+
+    readelf_thin_archive_test
+}
+
+# Test demangling symbol names.
+if {![binutils_assemble $srcdir/$subdir/mangled.s tmpdir/mangled.o]} then {
+    unsupported "readelf -s -C bintest (failed to assemble)"
+} else {
+
+    if ![is_remote host] {
+	set tempfile tmpdir/mangled.o
+    } else {
+	set tempfile [remote_download host tmpdir/mangled.o]
+    }
+
+    # Run the test.
+    readelf_test {--syms --demangle --wide} $tempfile readelf.demangled
+}
+
+readelf_wi_test
+readelf_compressed_wa_test
+
+readelf_dump_test
+
+# These dump tests require an assembler.
+if {[which $AS] != 0} then {
+    run_dump_test "pr25543"
+    run_dump_test "retain1a"
+    run_dump_test "retain1b"
+    run_dump_test "readelf-maskos-1a"
+    run_dump_test "readelf-maskos-1b"
+    if {![istarget *-*-hpux*]} then {
+	run_dump_test pr26548
+	if {![binutils_assemble_flags $srcdir/$subdir/pr26548.s tmpdir/pr26548e.o {--defsym ERROR=1}]} then {
+	    unsupported "pr26548e (failed to assemble)"
+	} else {
+	    if ![is_remote host] {
+		set tempfile tmpdir/pr26548e.o
+	    } else {
+		set tempfile [remote_download host tmpdir/pr26548e.o]
+	    }
+	    readelf_test -Wwi $tempfile pr26548e.d
+	}
+    }
+}
+
+# PR 13482 - Check for off-by-one errors when dumping .note sections.
+if {![binutils_assemble $srcdir/$subdir/version.s tmpdir/version.o]} then {
+    unsupported "readelf -n version (failed to assemble)"
+} else {
+
+    if ![is_remote host] {
+	set tempfile tmpdir/version.o
+    } else {
+	set tempfile [remote_download host tmpdir/version.o]
+    }
+
+    readelf_test -n $tempfile readelf.n
+}
+
+
+# PR 18374 - Check that relocations against the .debug_loc section
+# do not prevent readelf from displaying all the location lists.
+if {![binutils_assemble $srcdir/$subdir/pr18374.s tmpdir/pr18374.o]} then {
+    unsupported "readelf --debug-dump=loc pr18374 (failed to assemble)"
+} else {
+
+    if ![is_remote host] {
+	set tempfile tmpdir/pr18374.o
+    } else {
+	set tempfile [remote_download host tmpdir/pr18374.o]
+    }
+
+    readelf_test --debug-dump=loc $tempfile readelf.pr18374
+}
+
+
+# locview - Check dumping of location lists with location views.
+if {![binutils_assemble $srcdir/$subdir/locview-1.s tmpdir/locview-1.o]} then {
+    unsupported "readelf --debug-dump=loc locview-1 (failed to assemble)"
+} else {
+
+    if ![is_remote host] {
+	set tempfile tmpdir/locview-1.o
+    } else {
+	set tempfile [remote_download host tmpdir/locview-1.o]
+    }
+
+    readelf_test --debug-dump=loc $tempfile readelf.locview-1
+}
+if {![binutils_assemble $srcdir/$subdir/locview-2.s tmpdir/locview-2.o]} then {
+    unsupported "readelf --debug-dump=loc locview-2 (failed to assemble)"
+} else {
+
+    if ![is_remote host] {
+	set tempfile tmpdir/locview-2.o
+    } else {
+	set tempfile [remote_download host tmpdir/locview-2.o]
+    }
+
+    readelf_test --debug-dump=loc $tempfile readelf.locview-2
+}
+
+
+# Check that decompressed dumps work.
+if {![binutils_assemble $srcdir/$subdir/z.s tmpdir/z.o]} then {
+    unsupported "readelf --decompress --hex-dump .debug_loc z (failed to assemble)"
+} else {
+
+    if ![is_remote host] {
+	set tempfile tmpdir/z.o
+    } else {
+	set tempfile [remote_download host tmpdir/z.o]
+    }
+
+    readelf_test {--decompress --hex-dump .debug_loc} $tempfile readelf.z
+}
+
+set flags ""
+
+# Skip the next test for the RISCV architectures because they
+# do not support .ULEB128 pseudo-ops with non-constant values.
+if ![istarget "riscv*-*-*"] then {
+
+    if [istarget "hppa*64*-*-hpux*"] {
+	set flags "--defsym HPUX=1"
+    }
+
+    # LoongArch relax align add nops, so label subtractions will increase
+    if [istarget "loongarch*-*-*"] {
+	set flags "-mno-relax"
+     }
+
+    # Assemble the DWARF-5 test file.
+    if {![binutils_assemble_flags $srcdir/$subdir/dw5.S tmpdir/dw5.o $flags]} then {
+	unsupported "readelf -wiaoRlL dw5 (failed to assemble)"
+    } else {
+
+	# Download it.
+	if ![is_remote host] {
+	    set tempfile tmpdir/dw5.o
+	} else {
+	    set tempfile [remote_download host tmpdir/dw5.o]
+	}
+
+	# First, determine the size, so specific output matchers can be used.
+	readelf_find_size $tempfile 2
+
+	# Make sure that readelf can decode the contents.
+	readelf_test -wiaoRlL $tempfile dw5.W
+    }
+}
+
+# Assemble the DWARF-5 attributes test file.
+if {![binutils_assemble_flags $srcdir/$subdir/dwarf-attributes.S tmpdir/dwarf-attributes.o ""]} then {
+    unsupported "readelf -wi dwarf-attributes (failed to assemble)"
+} else {
+    # Download it.
+    if ![is_remote host] {
+	set tempfile tmpdir/dwarf-attributes.o
+    } else {
+	set tempfile [remote_download host tmpdir/dwarf-attributes.o]
+    }
+
+    # First, determine the size, so specific output matchers can be used.
+    readelf_find_size $tempfile 3
+
+    # Make sure that readelf can decode the contents.
+    readelf_test -wi $tempfile dwarf-attributes.W
+}
+
+# Check that debug link sections can be dumped.
+if {![binutils_assemble $srcdir/$subdir/debuglink.s tmpdir/debuglink.o]} then {
+    unsupported "readelf --debug-dump=links (failed to assemble debuglink.s)"
+} else {
+    if ![is_remote host] {
+	set tempfile tmpdir/debuglink.o
+    } else {
+	set tempfile [remote_download host tmpdir/debuglink.o]
+    }
+
+    readelf_test {--debug-dump=links -wN} $tempfile readelf.k
+
+    # Check that debug link sections can be followed.
+    if {![binutils_assemble $srcdir/$subdir/linkdebug.s tmpdir/linkdebug.debug]} then {
+	unsupported "readelf --debug-dump=follow-links (failed to assemble linkdebug.s)"
+    } else {
+	if [is_remote host] {
+	    set tempfile2 [remote_download host tmpdir/linkdebug.debug]
+	}
+
+	readelf_test "-wKis -P" $tempfile readelf.wKis
+    }
+}
+
+if {![binutils_assemble $srcdir/$subdir/dwo.s tmpdir/dwo.o]} then {
+    unsupported "readelf --debug-dump=links (failed to assemble dwo.s)"
+} else {
+    if ![is_remote host] {
+	set tempfile tmpdir/dwo.o
+    } else {
+	set tempfile [remote_download host tmpdir/dwo.o]
+    }
+
+    readelf_test {--debug-dump=links --debug-dump=no-follow-links} $tempfile readelf.k2
+}
+
+if {![binutils_assemble $srcdir/$subdir/zero-sec.s tmpdir/zero-sec.o]} then {
+    unsupported "readelf --enable-checks (failed to assemble zero-sec.s)"
+} else {
+    if ![is_remote host] {
+	set tempfile tmpdir/zero-sec.o
+    } else {
+	set tempfile [remote_download host tmpdir/zero-sec.o]
+    }
+
+    readelf_test {--enable-checks --sections --wide} $tempfile zero-sec.r
+}
+
+if ![is_remote host] {
+    set test $srcdir/$subdir/pr26112.o.bz2
+    # We need to strip the ".bz2", but can leave the dirname.
+    set t $subdir/[file tail $test]
+    set testname [file rootname $t]
+    verbose $testname
+    set tempfile tmpdir/pr26112.o
+    if {[catch "system \"bzip2 -dc $test > $tempfile\""] != 0} {
+	untested "bzip2 -dc ($testname)"
+    } else {
+	readelf_test {--debug-dump=macro -wN} $tempfile pr26112.r
+    }
+
+    set test $srcdir/$subdir/pr26160.dwp.bz2
+    # We need to strip the ".bz2", but can leave the dirname.
+    set t $subdir/[file tail $test]
+    set testname [file rootname $t]
+    verbose $testname
+    set tempfile tmpdir/pr26160.dwp
+    if {[catch "system \"bzip2 -dc $test > $tempfile\""] != 0} {
+	untested "bzip2 -dc ($testname)"
+    } else {
+	readelf_test {-wi} $tempfile pr26160.r
+    }
+}
+
+# Check dwarf-5 support for DW_OP_addrx.
+if {![binutils_assemble_flags $srcdir/$subdir/dw5-op.S tmpdir/dw5-op.o $flags]} then {
+    unsupported "readelf -wi dw5-op (failed to assemble)"
+} else {
+
+# Download it.
+if ![is_remote host] {
+    set tempfile tmpdir/dw5-op.o
+} else {
+    set tempfile [remote_download host tmpdir/dw5-op.o]
+}
+
+# First, determine the size, so specific output matchers can be used.
+readelf_find_size $tempfile 2
+
+# Make sure that readelf can decode the contents.
+readelf_test -wi $tempfile dw5-op.W
+}

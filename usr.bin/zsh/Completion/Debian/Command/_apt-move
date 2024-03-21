@@ -1,0 +1,57 @@
+#compdef apt-move
+
+local curcontext="$curcontext" state line expl cmds ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '-a[process all packages]' \
+  '-c[specify an alternative configuration file]' \
+  '-d[override the DIST setting]' \
+  '-f[override the MAXDELETE setting]' \
+  '-q[be quiet; suppress normal output]' \
+  '-t[show what apt-move would do, but do not actually do anything]' \
+  '1: :->cmds' \
+  '*: :->args' && ret=0
+
+case $state in
+  cmds)
+    cmds=(
+      'get:update your master files from local apt'
+      'getlocal:alias of get'
+      'fsck:fix broken repositories'
+      'move:move cache files into mirror tree'
+      'movefile:move files into the repository'
+      'delete:delete obsolete packages'
+      'packages:create new local Packages files'
+      'update:alias for: get move delete packages'
+      'local:alias for: move delete packages'
+      'localupdate:alias for: getlocal move delete packages'
+      'mirror:update your local mirror from remote rsync site'
+      'sync:same as mirror, but only gets packages that you currently have installed on your system'
+      'exclude:prints a list of all packages EXCLUDED from the mirror by the .exclude file'
+      'listbin:prints lists of packages which can serve as the input to mirrorbin(mirror,sync,repo)'
+      'listsrc:same as listbin, but lists source packages'
+      'mirrorbin:same as mirror, but gets the packages specified on stdin'
+      'mirrorsrc:same as mirrorbin, but gets source packages'
+    )
+    _describe -t commands 'apt-move command' cmds && ret=0
+  ;;
+  args)
+    case $line[1] in
+      get|getlocal)
+        _directories && ret=0
+      ;;
+      movefile)
+        _files -g "*.d(sc|eb)(-.)" && ret=0
+      ;;
+      listbin)
+        _wanted lists expl list compadd mirror sync repo && ret=0
+      ;;
+      *)
+	_default && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

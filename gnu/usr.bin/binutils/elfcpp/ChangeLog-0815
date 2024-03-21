@@ -1,0 +1,467 @@
+2015-12-07  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.h (R_PPC64_ENTRY): Define.
+
+2015-11-11  Alan Modra  <amodra@gmail.com>
+            Peter Bergner <bergner@vnet.ibm.com>
+
+	* powerpc.h (R_POWERPC_REL16DX_HA): Define.
+
+2015-10-28  Marcin Kościelnicki  <koriakin@0x04.net>
+
+	* s390.h: New file.
+
+2015-10-22  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* x86_64.h (R_X86_64_GOTPCRELX): New.
+	(R_X86_64_REX_GOTPCRELX): Likewise.
+
+2015-10-22  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* i386.h (R_386_GOT32X): New.
+
+2015-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/19118
+	* elfcpp.h (EM): Add EM_IAMCU.
+
+2015-10-02  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/19060
+	* elfcpp.h (Chdr::get_ch_type): Change return type to Elf_Word.
+	* elfcpp_internal.h (Chdr_data<64>): Change ch_type to 4 bytes
+	and add ch_reserved.
+
+2015-04-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elfcpp.h (Elf_sizes): Add chdr_size.
+	(Chdr): New.
+	(Chdr_write): Likewise.
+	* elfcpp_internal.h (Chdr_data): Likewise.
+
+2015-04-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elfcpp.h (SHF): Add SHF_COMPRESSED.
+	(ELFCOMPRESS_ZLIB): New.
+	(ELFCOMPRESS_LOOS): Likewise.
+	(ELFCOMPRESS_HIOS): Likewise.
+	(ELFCOMPRESS_LOPROC): Likewise.
+	(ELFCOMPRESS_HIPROC): Likewise.
+
+2015-04-07  HC Yen <hc.yen@mediatek.com>
+
+	* arm.h: Add TAG_CPU_ARCH_V8 in Tag_CPU_arch EABI attribute.
+
+2015-02-09  Mark Wielaard  <mjw@redhat.com>
+
+	* dwarf.h (enum DW_LANG): Add DW_LANG_C_plus_plus_11,
+	DW_LANG_C11, DW_LANG_C_plus_plus_14, DW_LANG_Fortran03 and
+	DW_LANG_Fortran08 from ../include/dwarf2.h.
+
+2015-01-22  Han Shen  <shenhan@google.com>
+
+	* arm.h (R_ARM_IRELATIVE): New dynamic relocation.
+
+2015-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+2014-12-25  Alan Modra  <amodra@gmail.com>
+
+	* arm.h: Add enums for Tag_ABI_FP_number_model and Tag_ABI_VFP_args.
+
+2014-09-17  Han Shen  <shenhan@google.com>
+
+	* aarch64.h (R_AARCH64_TLS_DTPREL64): Switch enum value with ...
+	(R_AARCH64_TLS_DTPMOD64): ... enum value.
+
+2014-09-15  Andrew Bennett  <andrew.bennett@imgtec.com>
+	    Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* mips.h (E_MIPS_ARCH_32R6, E_MIPS_ARCH_64R6): New enum constants.
+
+2014-09-02  Cary Coutant  <ccoutant@google.com>
+
+	* elfcpp_file.h (Elf_file::shnum): New const function.
+	(Elf_file::shstrndx): New const function.
+	(Elf_file::large_shndx_offset): New const function.
+	(Elf_file::section_name): Add const attribute.
+	(Elf_file::section_header_offset): Likewise.
+
+2014-08-08  Han Shen  <shenhan@google.com>
+
+	* aarch64.h (withdrawn): Replaced with R_AARCH64_withdrawn.
+
+2014-07-29  Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* elfcpp.h (PT_MIPS_ABIFLAGS): New program header type.
+
+2014-07-02  Jing Yu  <jingyu@google.com>
+
+	* aarch64.h: New file. New enums for aarch64-elf64 relocations.
+	* elfcpp.h (EM_AARCH64, SHT_AARCH64_ATTRIBUTES, PT_AARCH64_ARCHEXT,
+	PT_AARCH64_UNWIND): New enum constant.
+
+2014-04-22  Christian Svensson  <blue@cmd.nu>
+
+	* elfcpp.h: Remove openrisc and or32 support.
+
+2014-04-15  Sasa Stankovic  <Sasa.Stankovic@imgtec.com>
+
+	* mips.h (R _MIPS16_TLS_GD, R_MIPS16_TLS_LDM, R_MIPS16_TLS_DTPREL_HI16,
+	R_MIPS16_TLS_DTPREL_LO16, R_MIPS16_TLS_GOTTPREL,
+	R_MIPS16_TLS_TPREL_HI16, R_MIPS16_TLS_TPREL_LO16, R_MICROMIPS_26_S1,
+	R_MICROMIPS_HI16, R_MICROMIPS_LO16, R_MICROMIPS_GPREL16,
+	R_MICROMIPS_LITERAL, R_MICROMIPS_GOT16, R_MICROMIPS_PC7_S1,
+	R_MICROMIPS_PC10_S1, R_MICROMIPS_PC16_S1, R_MICROMIPS_CALL16,
+	R_MICROMIPS_GOT_DISP, R_MICROMIPS_GOT_PAGE, R_MICROMIPS_GOT_OFST,
+	R_MICROMIPS_GOT_HI16, R_MICROMIPS_GOT_LO16, R_MICROMIPS_SUB,
+	R_MICROMIPS_HIGHER, R_MICROMIPS_HIGHEST, R_MICROMIPS_CALL_HI16,
+	R_MICROMIPS_CALL_LO16, R_MICROMIPS_SCN_DISP, R_MICROMIPS_JALR,
+	R_MICROMIPS_HI0_LO16, R_MICROMIPS_TLS_GD, R_MICROMIPS_TLS_LDM,
+	R_MICROMIPS_TLS_DTPREL_HI16, R_MICROMIPS_TLS_DTPREL_LO16,
+	R_MICROMIPS_TLS_GOTTPREL, R_MICROMIPS_TLS_TPREL_HI16,
+	R_MICROMIPS_TLS_TPREL_LO16, R_MICROMIPS_GPREL7_S2,
+	R_MICROMIPS_PC23_S20, R_MIPS_EH): New enums for relocations (mips16 and
+	micromips).
+	(STO_MIPS_FLAGS): New enum constant.
+	(elf_st_is_mips16): New function.
+	(elf_st_is_micromips): New function.
+	(is_micromips): New function.
+	(abi_n32): New function.
+	(abi_n64): New function.
+	(ODK_NULL, ODK_REGINFO, ODK_EXCEPTIONS, ODK_PAD, ODK_HWPATCH, ODK_FILL,
+	ODK_TAGS, ODK_HWAND, ODK_HWOR, ODK_GP_GROUP, ODK_IDENT): New enum
+	constants.
+	* elfcpp.h (SHT_MIPS_OPTIONS): New enum constant.
+
+2014-03-05  Alan Modra  <amodra@gmail.com>
+
+	Update copyright years.
+
+2014-03-05  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.h (R_PPC64_REL24_NOTOC, R_PPC64_ADDR64_LOCAL): Define.
+
+2014-02-06  Andrew Pinski  <apinski@cavium.com>
+
+	* mips.h (E_MIPS_MACH_OCTEON3): New enum constant.
+
+2013-11-17  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* x86_64.h (R_X86_64_PC32_BND): New.
+	(R_X86_64_PLT32_BND): Likewise.
+
+2013-10-30  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.h (EF_PPC64_ABI): New enum constant.
+	(STO_PPC64_LOCAL_BIT, STO_PPC64_LOCAL_MASK): Likewise.
+	(ppc64_decode_local_entry): New function.
+	(ppc64_encode_local_entry): Likewise.
+
+2013-10-30  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.h (R_PPC64_ADDR16_HIGH, R_PPC64_ADDR16_HIGHA,
+	R_PPC64_TPREL16_HIGH, R_PPC64_TPREL16_HIGHA,
+	R_PPC64_DTPREL16_HIGH, R_PPC64_DTPREL16_HIGHA): Define.
+
+2013-03-01  Cary Coutant  <ccoutant@google.com>
+
+	* dwarf.h (enum DW_LANG): Adjust spacing for consistency.
+	(enum DW_SECT): New enum type.
+
+2012-12-17  Nick Clifton  <nickc@redhat.com>
+
+	* README: Add copyright notice.
+
+2012-10-30  Steve McIntyre  <steve.mcintyre@linaro.org>
+
+	* arm.h: New enum for EABI soft- and hard-float flags.
+
+2012-09-15  Jiong Wang  <jiwang@tilera.com>
+
+	* tilegx.h: New file.
+	* elfcpp.h: add EM_TILEGX.
+
+2012-08-14  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.h: Add more relocs.
+	(R_PPC_REL16*): Rename to R_POWERPC_REL16*.
+
+2012-05-11  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/14091
+	* x86_64.h (R_X86_64_RELATIVE64): New.
+
+2012-05-01  Cary Coutant  <ccoutant@google.com>
+
+	* dwarf.h (enum DW_TAG, enum DW_FORM, enum DW_AT, enum DW_ENCODING)
+	(enum DW_OP, enum DW_CFA): Remove.
+	Include dwarf2.def.
+
+2012-04-23  Cary Coutant  <ccoutant@google.com>
+
+	* elfcpp_swap.h (struct Swap_aligned32): New template.
+
+2012-04-16  David S. Miller  <davem@davemloft.net>
+
+	* sparc.h (R_SPARC_JMP_IREL): New relocation.
+
+2012-04-12  David S. Miller  <davem@davemloft.net>
+
+	* sparc.h (R_SPARC_WDISP10): New relocation.
+
+2012-03-12  Cary Coutant  <ccoutant@google.com>
+
+	Update DWARF enums from ../include/dwarf2.h.
+	* dwarf.h (enum DW_TAG): Add new DWARF-4 tags.
+	(enum DW_FORM): Add new DWARF-4 and Fission extensions.
+	(enum DW_AT): New enum.
+	(enum DW_LINE_EXTENDED_OPS): Add new DWARF-4 opcode.
+	(enum DW_ENCODING): Add new DWARF-4 encoding.
+	(enum DW_OP): Add new DWARF-4 opcodes.
+	(enum DW_CHILDREN): New enum.
+	(enum DW_LANG): New enum.
+
+2012-01-27  Aleksandar Simeonov  <asimeonov@mips.com>
+
+	* mips.h: New file
+	* elfcpp.h (SHT_MIPS_REGINFO): New enums for processor-specific flags.
+	(SHF_MIPS_GPREL): Likewise.
+	(PT_MIPS_REGINFO, PT_MIPS_RTPROC, PT_MIPS_OPTIONS): Likewise.
+	(DT_MIPS_RLD_VERSION, DT_MIPS_TIME_STAMP, DT_MIPS_ICHECKSUM,
+	 DT_MIPS_IVERSION, DT_MIPS_FLAGS, DT_MIPS_BASE_ADDRESS, DT_MIPS_MSYM,
+	 DT_MIPS_CONFLICT, DT_MIPS_LIBLIST, DT_MIPS_LOCAL_GOTNO,
+	 DT_MIPS_CONFLICTNO, DT_MIPS_LIBLISTNO, DT_MIPS_SYMTABNO,
+	 DT_MIPS_UNREFEXTNO, DT_MIPS_GOTSYM, DT_MIPS_HIPAGENO, DT_MIPS_RLD_MAP,
+	 DT_MIPS_DELTA_CLASS, DT_MIPS_DELTA_CLASS_NO, DT_MIPS_DELTA_INSTANCE,
+	 DT_MIPS_DELTA_INSTANCE_NO, DT_MIPS_DELTA_RELOC, DT_MIPS_DELTA_RELOC_NO,
+	 DT_MIPS_DELTA_SYM, DT_MIPS_DELTA_SYM_NO, DT_MIPS_DELTA_CLASSSYM,
+	 DT_MIPS_DELTA_CLASSSYM_NO, DT_MIPS_CXX_FLAGS, DT_MIPS_PIXIE_INIT,
+	 DT_MIPS_SYMBOL_LIB, DT_MIPS_LOCALPAGE_GOTIDX, DT_MIPS_LOCAL_GOTIDX,
+	 DT_MIPS_HIDDEN_GOTIDX, DT_MIPS_PROTECTED_GOTIDX, DT_MIPS_OPTIONS,
+	 DT_MIPS_INTERFACE, DT_MIPS_DYNSTR_ALIGN, DT_MIPS_INTERFACE_SIZE,
+	 DT_MIPS_RLD_TEXT_RESOLVE_ADDR, DT_MIPS_PERF_SUFFIX,
+	 DT_MIPS_COMPACT_SIZE, DT_MIPS_GP_VALUE, DT_MIPS_AUX_DYNAMIC,
+	 DT_MIPS_PLTGOT, DT_MIPS_RWPLT): Likewise.
+
+2012-01-27  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp.h (STT_GNU_IFUNC): Add comment.
+
+2011-07-03  Samuel Thibault  <samuel.thibault@gnu.org>
+	    Thomas Schwinge  <thomas@schwinge.name>
+
+	PR binutils/12913
+	* elfcpp.h (ELFOSABI): Add ELFOSABI_GNU with value of ELFOSABI_LINUX,
+	keep ELFOSABI_LINUX as an alias.  Remove ELFOSABI_HURD.
+
+2011-07-01  Ian Lance Taylor  <iant@google.com>
+
+	* dwarf.h (enum DW_CFA): Define.
+
+2010-08-12  Cary Coutant  <ccoutant@google.com>
+
+	* elfcpp.h (enum SHT): Add SHT_GNU_INCREMENTAL_GOT_PLT.
+
+2010-08-12  Cary Coutant  <ccoutant@google.com>
+
+	* elfcpp.h (enum SHT): Add SHT_GNU_INCREMENTAL_SYMTAB,
+	SHT_GNU_INCREMENTAL_RELOCS.
+
+2010-08-04  Ian Lance Taylor  <iant@google.com>
+
+	* i386.h (R_386_IRELATIVE): Define.
+	* powerpc.h (R_POWERPC_IRELATIVE): Define.
+	(R_PPC_RELAX32, R_PPC_RELAX32PC): Don't define.
+	(R_PPC_RELAX32_PLT, R_PPC_RELAX32PC_PLT): Don't define.
+	* sparc.h (R_SPARC_IRELATIVE): Define.
+	* x86_64.h (R_X86_64_IRELATIVE): Define.
+	(R_X86_64_GNU_VTINHERIT): Rename from R_386_GNU_VTINHERIT.
+	(R_X86_64_GNU_VTENTRY): Rename from R_386_GNU_VTENTRY.
+
+2010-05-12  Doug Kwan  <dougkwan@google.com>
+
+	* arm.h (Tag_FP_arch, Tag_ABI_align_needed, Tag_ABI_align_preserved,
+	Tag_FP_HP_extension, Tag_MPextension_use_legacy): Rename from
+	existing tags.
+	(Tag_undefined40, Tag_undefined41, Tag_MPextension_use,
+	Tag_undefined43): New tags.
+	(Targ_VFP_arch, Tag_ABI_align8_needed, TAG_ABI_align8_preserved,
+	Tag_VFP_HP_extension): Define aliases for backward compatiblity.
+
+2010-03-05  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	* elfcpp.h (VER_FLG_INFO): Define.
+
+2010-01-21  Doug Kwan  <dougkwan@google.com>
+
+	* arm.h (EXIDX_CANTUNWIND): New enum.
+
+2010-01-19  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp.h (PN_XNUM): Define.
+
+2009-12-14  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp_file.h: Revert last patch.
+
+2009-12-11  Nick Clifton  <nickc@redhat.com>
+
+	* elfcpp_file.h: Fix shadowed variable warnings.
+
+2009-12-10  Doug Kwan  <dougkwan@google.com>
+
+	* arm.h: New enums for EABI object attribute tags and values.
+
+2009-12-05  Doug Kwan  <dougkwan@google.com>
+
+	* arm.h: Define enums for Tag_CPU_arch EABI attribute.
+
+2009-11-24  Rafael Avila de Espindola  <espindola@google.com>
+
+	* elfcpp_file.h: Include elfcpp.h.
+
+2009-11-03  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp.h: Remove trailing commas from enum definitions.
+
+2009-10-30  Doug Kwan  <dougkwan@google.com>
+
+	* arm.h (EF_ARM_BE8, EF_ARM_EABIMASK, EF_ARM_EABI_UNKNOWN,
+	EF_ARM_EABI_VER1, EF_ARM_EABI_VER2, EF_ARM_EABI_VER3,
+	EF_ARM_EABI_VER4, EF_ARM_EABI_VER5): New enums for processor-specific
+	flags.
+	(arm_eabi_version): New inline function.
+	* elfcpp.h: Add a comment about DT_ENCODING.
+
+2009-10-16  Doug Kwan  <dougkwan@google.com>
+
+	* elfcpp.h (DT_PREINIT_ARRAY): Correct enum value.
+
+2009-10-09  Andrew Pinski  <andrew_pinski@playstation.sony.com>
+
+	* elfcpp_file.h (Elf_file::section_name): Change shstr_size
+	to Elf_WXword.
+
+2009-10-09  Mikolaj Zalewski  <mikolajz@google.com>
+
+	* elf_file.h: (class Elf_strtab): New class.
+
+2009-10-09  Mikolaj Zalewski  <mikolajz@google.com>
+
+	* elfcpp_file.h: Fix header guard.  Include <cstdio>.
+	(class Elf_recognizer): New class, code from gold/object.cc.
+	(Elf_file::find_section_by_type): New method.
+
+2009-07-23  Ulrich Drepper  <drepper@redhat.com>
+
+	* elfcpp.h (enum STB): Add STB_GNU_UNIQUE.
+
+2009-06-21  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp.h (SHN_X86_64_LCOMMON): Define enum constant.
+	(enum SHT): Add SHT_X86_64_UNWIND.
+	(enum SHF): Add SHT_X86_64_LARGE.
+
+2009-05-27  Doug Kwan  <dougkwan@google.com>
+
+	* arm.h: New file.
+	* elfcpp.h (enum SHT): Add ARM-specific special sections.
+	(enum PT): Add ARM-specific section types.
+	(enum SST): Add STT_ARM_TFUNC.
+
+2009-04-30  Nick Clifton  <nickc@redhat.com>
+
+	* elfcpp.h (enum STT): Add STT_GNU_IFUNC.
+
+2009-03-20  Mikolaj Zalewski  <mikolajz@google.com>
+
+	* elfcpp.h (SHT_GNU_INCREMENTAL_INPUTS): Define.
+
+2009-03-01  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp_swap.h: #include "config.h".  Only #include <byteswap.h>
+	if HAVE_BYTESWAP_H is defined; if not, provide definitions for
+	bswap_{16,32,64}.  For gcc 4.3 and later, use the builtin bswap
+	functions.  Check WORDS_BIGENDIAN rather than __BYTE_ORDER.
+
+2009-01-06  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elfcpp.h (enum STT): Remove STT_IFUNC.
+
+2008-12-03  Nick Clifton  <nickc@redhat.com>
+
+	* elfcpp.h (enum STT): Add STT_IFUNC.
+
+2008-06-12  David S. Miller  <davem@davemloft.net>
+
+	* powerpc.h: New file.
+	* elfcpp.h (SHT_ORDERED): New enum constant.
+	(DT_PPC_GOT, DT_PPC64_GLINK, DT_PPC64_OPD, DT_PPC64_OPDSZ): Same.
+
+2008-05-28  Caleb Howe  <cshowe@google.com>
+
+	* dwarf.h (enum DW_FORM): Define.
+
+2008-04-19  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp_file.h (class Elf_file): Add large_shndx_offset_ field.
+	(Elf_file::large_shndx_offset): New function.
+	(Elf_file::construct): Initialize large_shndx_offset_.
+	(Elf_File::initialize_shnum): If necessary, adjust shstrndx_ and
+	set large_shndx_offset_.
+
+2008-04-16  David S. Miller  <davem@davemloft.net>
+
+	* elfcpp.h (DF_1_NOW, DF_1_GLOBAL, DF_1_GROUP,
+	DF_1_NODELETE, DF_1_LOADFLTR, DF_1_INITFIRST,
+	DF_1_NOOPEN, DF_1_ORIGIN, DF_1_DIRECT, DF_1_TRANS,
+	DF_1_INTERPOSE, DF_1_NODEFLIB, DF_1_NODUMP,
+	DF_1_CONLFAT): New enum constants.
+
+2008-04-15  David S. Miller  <davem@davemloft.net>
+
+	* sparc.h (EF_SPARC_EXT_MASK, EF_SPARC_32PLUS_MASK,
+	EF_SPARC_32PLUS, EF_SPARC_SUN_US1, EF_SPARC_HAL_R1,
+	EF_SPARC_SUN_US3, EF_SPARC_LEDATA, EF_SPARCV9_MM,
+	EF_SPARCV9_TSO, EF_SPARCV9_PSO, EF_SPARCV9_RMO):
+	Define as enum constants.
+
+2008-04-11  David S. Miller  <davem@davemloft.net>
+
+	* sparc.h: New file
+	* elfcpp.h (SHN_BEFORE, SHN_AFTER): New enum constants.
+	(SHT_SPARC_GOTDATA, SHF_ORDERED, SHF_EXCLUDE,
+	STT_SPARC_REGISTER, DT_SPARC_REGISTER): Likewise.
+
+2008-04-03  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp_swap.h (Swap_unaligned<64, true>::writeval): Correct
+	byte order.
+
+2008-03-24  Ian Lance Taylor  <iant@google.com>
+
+	* elfcpp.h (NT_VERSION, NT_ARCH): Define as enum constants.
+	(NT_GNU_ABI_TAG, NT_GNU_HWCAP): Likewise.
+	(NT_GNU_BUILD_ID, NT_GNU_GOLD_VERSION): Likewise.
+	(ELF_NOTE_OS_LINUX, ELF_NOTE_OS_GNU): Likewise.
+	(ELF_NOTE_OS_SOLARIS2, ELF_NOTE_OS_NETBSD): Likewise.
+	(ELF_NOTE_OS_SYLLABLE): Likewise.
+
+2008-03-21  Ian Lance Taylor  <iant@google.com>
+
+	* Added source code to GNU binutils.
+
+Copyright (C) 2008-2015 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

@@ -26,9 +26,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"	@(#)mt.1	8.1 (Berkeley) 6/6/93
-.\"
-.Dd December 10, 2020
+.Dd October 31, 2023
 .Dt MT 1
 .Os
 .Sh NAME
@@ -341,7 +339,7 @@ For example, specifying
 .Fl w Ar 0
 will enable all settings except for LBP_W.
 .It Fl l
-List available protection parmeters and their current settings.
+List available protection parameters and their current settings.
 .It Fl L Ar len
 Set the length of the protection information in bytes.
 For Reed-Solomon CRC, the protection information length should be 4 bytes.
@@ -520,6 +518,7 @@ Value  Width        Tracks    Density         Code Type Reference   Note
 0x56   12.7  (0.5) 7680      20,670 (525,018)       C   3592B5 (unencrypted)
 0x57   12.7  (0.5) 8704      21,850 (554,990)       C   3592A6 (unencrypted)
 0x58   12.7  (0.5) 1280      15,142 (384,607)       C   LTO-5
+0x59   12.7  (0.5)18944      21,850 (554,990)       C   3592A7 (unencrypted)
 0x5A   12.7  (0.5) 2176      15,142 (384,607)       C   LTO-6
 0x5C   12.7  (0.5) 3584      19,107 (485,318)       C   LTO-7
 0x5D   12.7  (0.5) 5376      19,107 (485,318)       C   LTO-M8       14
@@ -532,6 +531,7 @@ Value  Width        Tracks    Density         Code Type Reference   Note
 0x75   12.7  (0.5) 5120      20,670 (525,018)       C   3592A5 (encrypted)
 0x76   12.7  (0.5) 7680      20,670 (525,018)       C   3592B5 (encrypted)
 0x77   12.7  (0.5) 8704      21,850 (554,990)       C   3592A6 (encrypted)
+0x79   12.7  (0.5)18944      21,850 (554,990)       C   3592A7 (encrypted)
 0x8c    8.0  (0.315)  1      1,789  (45,434)  RLL   CS  EXB-8500c    5,9
 0x90    8.0  (0.315)  1      1,703  (43,245)  RLL   CS  EXB-8200c    5,9
 .Ed

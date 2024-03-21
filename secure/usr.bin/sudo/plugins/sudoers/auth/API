@@ -1,0 +1,148 @@
+NOTE: the Sudo auth API is subject to change
+
+Purpose: to provide a simple API for authentication methods that
+         encapsulates things nicely without turning into a maze
+	 of #ifdef's
+
+The sudo_auth struct looks like this:
+
+typedef struct sudo_auth {
+    unsigned int flags;         /* various flags, see below */
+    int status;                 /* status from verify routine */
+    char *name;			/* name of the method in string form */
+    void *data;                 /* method-specific data pointer */
+
+    int (*init)(struct passwd *pw, sudo_auth *auth);
+    int (*setup)(struct passwd *pw, char **prompt, sudo_auth *auth);
+    int (*verify)(struct passwd *pw, const char *p, sudo_auth *auth, struct sudo_conv_callback *callback);
+    int (*approval)(struct passwd *pw, sudo_auth *auth);
+    int (*cleanup)(struct passwd *pw, sudo_auth *auth, bool force);
+    int (*begin_session)(struct passwd *pw, char **user_env[], struct sudo_auth *auth);
+    int (*end_session)(struct passwd *pw, struct sudo_auth *auth);
+} sudo_auth;
+
+The variables in the struct are as follows:
+    flags	Bitwise binary flags, see below.
+
+    status	Contains the return value from the last run of
+		the "verify" function.  Starts out as AUTH_FAILURE.
+
+    name	The name of the authentication method as a C string.
+
+    data	A pointer to method-specific data.  This is passed to
+		all the functions of an auth method and is usually
+		initialized in the "init" or "setup" routines.
+
+Possible values of sudo_auth.flags:
+    FLAG_DISABLED	Set if an "init" or "setup" function fails.
+
+    FLAG_STANDALONE	If set, this indicates that the method must
+			be the only auth method configured, and that
+			it will prompt for the password itself.
+
+    FLAG_ONEANDONLY	If set, this indicates that the method is the
+			only one in use.  Can be used by auth functions
+			to determine whether to return a fatal or nonfatal
+			error.
+
+    FLAG_NONINTERACTIVE	If set, this indicates that the user invoked
+			sudo with the -n option and no user interaction
+			is allowed.
+
+The member functions can return the following values:
+    AUTH_SUCCESS	Function succeeded.  For a ``verify'' function
+			this means the user correctly authenticated.
+
+    AUTH_FAILURE	Function failed.  If this is an ``init'' or
+			``setup'' routine, the auth method will be
+			marked as !configured.
+
+    AUTH_ERROR		A fatal error occurred.  The routine should have
+			written an error message to stderr and optionally
+			sent mail to the administrator.  When verify_user()
+			receives AUTH_ERROR from an auth function it stops
+			authenticating and returns an error.
+
+    AUTH_INTR		An attempt to read the password read was interrupted.
+			Usually this means the user entered ^C at the
+			password prompt.
+
+    AUTH_NONINTERACTIVE	Function failed because user interaction was
+			required but sudo was run in non-interactive
+			mode.
+
+The functions in the struct are as follows:
+
+    int init(struct passwd *pw, sudo_auth *auth)
+        Function to do any one-time initialization for the auth
+        method.  All of the "init" functions are run before anything
+        else.
+
+    int setup(struct passwd *pw, char **prompt, sudo_auth *auth)
+        Function to do method-specific setup.  All the "setup"
+        routines are run before any of the "verify" routines.  A
+        pointer to the prompt string may be used to add method-specific
+        info to the prompt.
+
+    int verify(struct passwd *pw, char *p, sudo_auth *auth, struct sudo_conv_callback *callback)
+        Function to do user verification for this auth method.  For
+        standalone auth methods ``p'' is the prompt string.  For
+        normal auth methods, ``p'' is the password the user entered.
+	The callback should be passed to auth_getpass() to allow sudoers
+	to unlock the ticket file when sudo is suspended.
+        Note that standalone auth methods are responsible for
+        rerading the password themselves.
+
+    int approval(struct passwd *pw, struct sudo_auth *auth)
+	Function to perform account management and approval *after*
+	the user has authenticated successfully.  This function may
+	check for expired accounts, perform time of day restrictions, etc.
+	For PAM, this calls pam_acct_mgmt().  For BSD auth, it calls
+	auth_approval().
+
+    int cleanup(struct passwd *pw, sudo_auth *auth, bool force)
+        Function to do per-auth method cleanup.  This is only run
+        at the end of the authentication process, after the user
+        has completely failed or succeeded to authenticate.
+	The ``auth->status'' variable contains the result of the
+	last authentication attempt which may be interesting.
+	If the force flag is set, cleanup should happen immediately.
+
+    int begin_session(struct passwd *pw, char **user_env[], struct sudo_auth *auth)
+	Function to begin a user session.  This is used for session handling
+	in PAM and SIA.
+
+    int end_session(struct passwd *pw, struct sudo_auth *auth)
+	Function to end a user session.  This is used for session handling
+	in PAM and SIA.
+
+A note about standalone methods.  Some authentication methods can't
+coexist with any others.  This may be because they encapsulate other
+methods (pam, sia) or because they have a special way of interacting
+with the user (securid).
+
+Adding a new authentication method:
+
+Each method should live in its own file.  Add prototypes for the functions
+in sudo_auth.h.
+
+Add the method to the ``auth_switch'' in sudo_auth.c.  Note that
+standalone methods must go first.  If ``fooauth'' is a normal auth
+method, its entry would look like:
+
+#ifdef HAVE_FOOAUTH
+AUTH_ENTRY("foo", 0, foo_init, foo_setup, foo_verify,
+    foo_cleanup, foo_begin_session, foo_end_session)
+#endif
+
+If this is a standalone method, it would be:
+
+#ifdef HAVE_FOOAUTH
+AUTH_ENTRY("foo", FLAG_STANDALONE, foo_init, foo_setup, foo_verify,
+    foo_cleanup, foo_begin_session, foo_end_session)
+#endif
+
+If the method needs to run as the user, not root, add FLAG_USER to
+the second argument in the  AUTH_ENTRY line.  If you don't have an
+init/setup/cleanup/begin/end routine, just use a NULL for that
+field.

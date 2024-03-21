@@ -1,0 +1,125 @@
+This should match the 'ALL=ALL' rule.
+Parses OK
+
+Entries for user admin:
+
+ALL = (admin : staff) NOPASSWD: ALL
+	host  allowed
+	runas unmatched
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+This should match the 'ALL=ALL' rule.
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+This should match the 'ALL=(:staff) NOPASSWD: ALL' rule.
+Parses OK
+
+Entries for user admin:
+
+ALL = (admin : staff) NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+This should match the 'ALL=(:staff) NOPASSWD: ALL' rule.
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas unmatched
+
+ALL = (admin : staff) NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+This should match the 'ALL=(:staff) NOPASSWD: ALL' rule.
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas unmatched
+
+ALL = (admin : staff) NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+This should match the 'ALL=(:staff) NOPASSWD: ALL' rule.
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas unmatched
+
+ALL = (admin : staff) NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+This should not match any rules.
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas unmatched
+
+ALL = (admin : staff) NOPASSWD: ALL
+	host  allowed
+	runas unmatched
+
+Password required
+
+Command unmatched
+
+This should not match any rules.
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas unmatched
+
+ALL = (admin : users) NOPASSWD: ALL
+	host  allowed
+	runas unmatched
+
+Password required
+
+Command unmatched

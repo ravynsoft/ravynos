@@ -1,0 +1,111 @@
+#compdef ali anno burst comp dist flist flists fmttest folder folders forw fnext fprev inc mark mhfixmsg mhlist mhmail mhn mhparam mhpath mhshow mhstore msgchk new next packf pick prev refile repl rmf rmm scan show sortm whom
+
+if [[ -z $commands[mhpath] ]]; then
+  _message "MH commands are not available"
+  return 1
+fi
+
+# Completion for all possible MH commands.
+local mymhdir=${$(_call_program mhpath mhpath + 2>/dev/null):-~/Mail}
+local mhlib=/usr/lib/mh
+
+local prev="$words[CURRENT-1]" expl
+
+if compset -P 1 -; then
+  # get list of options, which MH commands can generate themselves
+  # awk is just too icky to use for this, sorry.  send me one if
+  # you come up with it.
+  local -a options disp
+  options=(
+    $($words[1] -help | perl -ne 'if (/^\s*-\(?(\S+)/) {
+       $n = $1;
+       $n =~ s/\)//g;
+       print $n =~ s/^\[([a-z]+)\]// ? "$n\n$1$n\n" : "$n\n";
+    }')
+  )
+  if zstyle -t ":completion:${curcontext}:options" prefix-hidden; then
+    _wanted options expl option compadd -d disp - "$options[@]"
+  else
+    disp=( -${options} )
+    _wanted options expl option compadd -d disp - "$options[@]"
+  fi    
+  return
+elif compset -P 1 '[+@]' || [[ "$prev" = -draftfolder ]]; then
+  # Complete folder names.
+  local mhpath
+
+  if [[ $IPREFIX != '@' ]]; then
+    [[ $IPREFIX = '+' ]] || IPREFIX=+
+    mhpath=$mymhdir
+  else
+    mhpath=$(mhpath)
+  fi
+
+  _wanted files expl 'MH folder' _path_files -W mhpath -/
+elif [[ "$prev" = -(editor|(whatnow|rmm|show|more)proc) ]]; then
+  _command_names -e
+elif [[ "$prev" = -file ]]; then
+  _files
+elif [[ "$prev" = -(form|audit|filter) ]]; then
+  # Need some MH template file, which may be in our own MH directory
+  # or with the standard library.
+  local mhfpath
+  # This is the only place we need mhlib, so leave the test till here.
+  mhlib=${${$(mhparam mhlproc 2>/dev/null):h}:-/usr/lib/mh}
+  mhfpath=($mymhdir $mhlib)
+
+  _wanted files expl 'MH template file' _files -W mhfpath -g '*(-.)'
+elif [[ $service = mhmail ]]; then
+  _email_addresses
+elif [[ "$prev" = -(no|)cc ]]; then
+  _wanted -C "$prev" values expl 'CC address' compadd all to cc me
+elif [[ "$prev" = -[rw]cache ]]; then
+  _wanted -C "$prev" values expl cache compadd public private never ask
+elif [[ "$prev" = -textfield ]]; then
+  _wanted -C "$prev" -x headers expl header compadd -M 'm:{a-zA-Z}={A-Za-z}' \
+      Subject From To cc
+elif [[ "$prev" = -datefield ]]; then
+  _wanted -C "$prev" -x headers expl header compadd -M 'm:{a-zA-Z}={A-Za-z}' \
+      Delivery-Date
+elif [[ $service = mhparam ]]; then
+  _wanted parameters expl 'MH parameter' compadd - \
+    ${${(f)"$(mhparam -all)"}%%:*}
+elif [[ $service = ali ]]; then
+  _email_addresses -n MH
+elif compset -P '*:'; then
+  _alternative \
+    'sequences:sub-sequence:(first last cur prev next)'
+    'number: : _message -e number "number of messages"'
+else
+  # Generate sequences.
+  local foldnam folddir f sequences mhneg ret=1
+
+  compset -P '*-' # ignore start of message range
+
+  for f in $words; do
+    [[ $f = [@+]* ]] && foldnam=$f
+  done
+  if [[ $foldnam = '+'* ]]; then
+    folddir=$mymhdir/${foldnam#+}
+  elif [[ $foldnam = '@'* ]]; then
+    folddir=$(mhpath)/${foldnam#@}
+  else
+    folddir=$(mhpath)
+    # leaving foldnam empty works here
+  fi
+
+  sequences=( ${${(f)"$(mark $foldnam 2>/dev/null)"}%%:*} )
+  mhneg="$(mhparam Sequence-Negation)" && sequences=( {,$mhneg}$^sequences )
+  sequences+=( all first last prev next )
+  [[ $service = mhpath ]] && sequences+=( new )
+  _tags sequences
+  while _tags; do
+    while _next_label sequences expl sequence; do
+      compadd -S ' ' -r '-: \t\n\-' "$expl[@]" -a sequences && ret=0
+      _path_files -S ' ' -r '-: \t\n\-' "$expl[@]" -W folddir -g '<->(-.)' &&
+          ret=0
+    done
+    (( ret )) || return 0
+  done
+  return ret
+fi

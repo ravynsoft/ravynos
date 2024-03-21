@@ -1,0 +1,22 @@
+This is a sample sudo policy plugin.  See the sudo_plugin manual for
+information on writing your own plugin.
+
+The sample policy plugin is not installed by default.  It can be installed
+by running "make install" as the superuser from the plugins/sample
+directory.
+
+To actually use the sample plugin, you'll need to modify the
+/etc/sudo.conf file.  Caution: you should not make changes to
+/etc/sudo.conf without also having a root shell open repair things
+in case of an error.  To enable the plugin, first comment out any
+existing policy Plugin line in /etc/sudo.conf, for example:
+
+    Plugin sudoers_policy sudoers.so
+
+Then add a line for the sample plugin:
+
+    Plugin sample_policy sample_plugin.so
+
+You may need to create /etc/sudo.conf if it does not already exist.
+
+Note that you may only have a single policy plugin defined.

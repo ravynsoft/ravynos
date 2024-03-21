@@ -1,0 +1,82 @@
+#compdef column
+
+# Note: BSD and util-linux disagree on how to describe the behaviour of the -x
+# option. We use our own wording to avoid confusion
+
+local variant ret=1
+local -a context state line expl args columns MATCH aopts=( -A '-*' )
+local -i MBEGIN MEND
+local -A opt_args
+
+# Debian and its derivatives (as of 2019) ship with a slightly customised
+# version of the BSD column instead of the util-linux one. It can be identified
+# by the presence of the custom option -n in the synopsis
+_pick_variant -r variant \
+  util-linux='(#i)util-linux' \
+  debian='\[-[A-Za-z]#n[A-Za-z]#\]' \
+  $OSTYPE \
+--version
+
+case $variant in
+  util-linux)
+    aopts=()
+    args=(
+      '(info json -c --output-width)'{-c+,--output-width=}'[format output to fit display of specified width]:width'
+      '(info)'{-L,--table-empty-lines}"[don't ignore empty lines]"
+      + fill
+      '(info table text json -x --fillrows)'{-x,--fillrows}'[print across before down]'
+      + table
+      '(info fill -t --table)'{-t,--table}'[create a table]'
+      '(info fill -o --output-separator)'{-o+,--output-separator=}'[specify column separator for table output]:separator [two spaces]'
+      '(info fill -s --separator)'{-s+,--separator=}'[specify column delimiters in input data]:delimiters'
+      '(info fill -O --table-order)'{-O+,--table-order=}'[specify order of output columns]: :->columns'
+      '(info fill -N --table-columns)'{-N+,--table-columns=}'[specify column names]:names'
+      '(info fill -H --table-hide)'{-H+,--table-hide=}"[don't print specified columns]: :->columns"
+      + text
+      '(info fill json -d --table-noheadings)'{-d,--table-noheadings}"[don't print header]"
+      '(info fill json -E --table-noextreme)'{-E+,--table-noextreme}"[specify columns where length can be ignored]: :->columns"
+      '(info fill json -e --table-header-repeat)'{-e,--table-header-repeat}'[repeat header for each page]'
+      '(info fill json -H --table-hide)'{-H+,--table-hide=}"[don't print specified columns]: :->columns"
+      '(info fill json -R --table-right)'{-R+,--table-right=}'[right align text in these columns]: :->columns'
+      '(info fill json -T --table-truncate)'{-T+,--table-truncate=}'[truncate text in the columns when necessary]: :->columns'
+      '(info fill json -W --table-wrap)'{-W+,--table-wrap=}'[wrap text in the columns when necessary]: :->columns'
+      '(info fill json -r --tree)'{-r+,--tree=}'[specify column to format tree-like]: :->columns'
+      '(info fill json -i --tree-id)'{-i+,--tree-id=}'[specify column containing ID for child-parent relations]: :->columns'
+      '(info fill json -p --tree-parent)'{-p+,--tree-parent=}'[specify column containing reference to parent]: :->columns'
+      + json
+      '(info fill text -n --table-name -c --output-width)'{-n+,--table-name=}'[specify table name for JSON output]:name'
+      '(info fill text -J --json -c --output-width)'{-J,--json}'[use JSON output format for table]'
+      + info
+      '(- *)'{-h,--help}'[display usage information]'
+      '(- *)'{-V,--version}'[display version information]'
+    )
+  ;;
+  debian)
+    aopts=()
+    args=(
+      "(-x)-n[don't merge multiple adjacent delimiters]"
+      "-e[don't ignore empty lines]"
+    )
+  ;& # FALL THROUGH
+  *)
+    args+=(
+      '(-t -s)-c+[format output to fit display of specified width]:width'
+      '(-c -x)-t[create a table]'
+      '(-c -x)-s+[specify column delimiters in input data]:delimiters'
+      '(-n -t -s)-x[print across before down]'
+    )
+  ;;
+esac
+
+_arguments -s -S $aopts '*:file:_files' $args && ret=0
+
+if [[ -n $state ]]; then
+  columns=( ${(s.,.)${(Q)${opt_args[table--N]:-$opt_args[table---table-columns]}//(#m)\\([\\:])/${MATCH[2]}}} )
+  if (( $#columns )); then
+    ${${(M)state:#*s}:+_sequence} _wanted -C "$context[1]" columns expl column compadd -a - columns && ret=0
+  else
+    _message -e columns "$state"
+  fi
+fi
+
+return ret

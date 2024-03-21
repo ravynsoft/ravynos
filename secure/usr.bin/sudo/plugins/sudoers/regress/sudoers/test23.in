@@ -1,0 +1,11 @@
+# Test parsing of env_check, env_delete and env_keep
+Defaults	env_check = "COLORTERM LANG LANGUAGE LC_* LINGUAS"
+Defaults	env_check += "TERM TZ"
+
+Defaults	env_delete = "IFS CDPATH LOCALDOMAIN RES_OPTIONS HOSTALIASES"
+Defaults	env_delete += "NLSPATH PATH_LOCALE LD_* _RLD*"
+
+Defaults	env_keep += "LANG LANGUAGE LINGUAS LC_* _XKB_CHARSET"
+Defaults	env_keep -= _XKB_CHARSET
+Defaults	env_keep += "XAPPLRESDIR XFILESEARCHPATH XUSERFILESEARCHPATH"
+Defaults	env_keep += XDG_SESSION_COOKIE

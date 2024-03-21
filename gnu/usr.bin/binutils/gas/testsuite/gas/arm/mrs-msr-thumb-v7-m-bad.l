@@ -1,0 +1,10 @@
+[^:]*: Assembler messages:
+[^:]*:5: Error: selected processor does not support requested special purpose register -- `mrs r4,cpsr'
+[^:]*:6: Error: selected processor does not support requested special purpose register -- `mrs r5,spsr'
+[^:]*:7: Error: selected processor does not support DSP extension -- `msr apsr_nzcvqg,r4'
+[^:]*:8: Error: selected processor does not support DSP extension -- `msr iapsr_nzcvqg,r5'
+[^:]*:9: Error: bad bitmask specified after APSR -- `msr xpsr_nncvq,r6'
+[^:]*:10: Error: bad bitmask specified after APSR -- `msr xpsr_nzcv,r7'
+[^:]*:11: Error: selected processor does not support requested special purpose register -- `msr cpsr_f,r7'
+[^:]*:12: Error: selected processor does not support requested special purpose register -- `msr spsr,r8'
+[^:]*:13: Error: syntax error -- `msr primask_nzcvq,r9'

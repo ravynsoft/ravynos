@@ -25,7 +25,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/kernel.h>
 #include <sys/systm.h>
@@ -87,7 +86,7 @@ struct sysentvec elf32_freebsd_sysvec = {
 	.sv_maxssiz	= NULL,
 	.sv_flags	=
 			  SV_ASLR | SV_SHP | SV_TIMEKEEP | SV_RNG_SEED_VER |
-			  SV_ABI_FREEBSD | SV_ILP32,
+			  SV_ABI_FREEBSD | SV_ILP32 | SV_SIGSYS,
 	.sv_set_syscall_retval = cpu_set_syscall_retval,
 	.sv_fetch_syscall_args = cpu_fetch_syscall_args,
 	.sv_syscallnames = syscallnames,

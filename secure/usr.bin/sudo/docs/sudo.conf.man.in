@@ -1,0 +1,929 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2010-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.nr SL @SEMAN@
+.TH "SUDO.CONF" "@mansectform@" "November 6, 2023" "Sudo @PACKAGE_VERSION@" "File Formats Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo.conf\fR
+\- configuration for sudo front-end
+.SH "DESCRIPTION"
+The
+\fBsudo.conf\fR
+file is used to configure the
+\fBsudo\fR
+front-end.
+It is used to configure sudo plugins, plugin-agnostic path names,
+debug flags, and other settings.
+.PP
+The
+\fBsudo.conf\fR
+file supports the following directives, described in detail below.
+.TP 8n
+Plugin
+an approval, audit, I/O logging, or security policy plugin
+.TP 8n
+Path
+a plugin-agnostic path
+.TP 8n
+Set
+a front-end setting, such as
+\fIdisable_coredump\fR
+or
+\fIgroup_source\fR
+.TP 8n
+Debug
+debug flags to aid in debugging
+\fBsudo\fR,
+\fBsudoreplay\fR,
+\fBvisudo\fR,
+and the
+\fBsudoers\fR
+plugin.
+.PP
+The pound sign
+(\(oq#\(cq)
+is used to indicate a comment.
+Both the comment character and any text after it, up to the end of
+the line, are ignored.
+.PP
+Long lines can be continued with a backslash
+(\(oq\e\(cq)
+as the last character on the line.
+Leading white space is removed from the beginning of lines
+even when a continuation character is used.
+.PP
+Non-comment lines that don't begin with
+\fIPlugin\fR,
+\fIPath\fR,
+\fIDebug\fR,
+or
+\fISet\fR
+are silently ignored.
+.PP
+The
+\fBsudo.conf\fR
+file is always parsed in the
+\(oqC\(cq
+locale.
+.SS "Plugin configuration"
+\fBsudo\fR
+supports a plugin architecture for security policies and input/output
+logging.
+Third parties can develop and distribute their own policy and I/O
+logging plugins to work seamlessly with the
+\fBsudo\fR
+front-end.
+Plugins are dynamically loaded based on the contents of
+\fBsudo.conf\fR.
+.PP
+A
+\fIPlugin\fR
+line consists of the
+\fIPlugin\fR
+keyword, followed by the
+\fIsymbol_name\fR
+and the
+\fIpath\fR
+to the dynamic shared object that contains the plugin.
+The
+\fIsymbol_name\fR
+is the name of the
+\fIstruct approval_plugin\fR,
+\fIstruct audit_plugin\fR,
+\fIstruct io_plugin\fR,
+or
+\fIstruct policy_plugin\fR
+defined by the plugin.
+If a plugin implements multiple plugin types, there must be a
+\fIPlugin\fR
+line for each unique symbol name.
+The
+\fIpath\fR
+may be fully qualified or relative.
+If not fully qualified, it is relative to the directory
+specified by the
+\fIplugin_dir\fR
+\fIPath\fR
+setting, which defaults to
+\fI@plugindir@\fR.
+In other words:
+.nf
+.sp
+.RS 4n
+Plugin sudoers_policy @sudoers_plugin@
+.RE
+.fi
+.PP
+is equivalent to:
+.nf
+.sp
+.RS 4n
+Plugin sudoers_policy @plugindir@/@sudoers_plugin@
+.RE
+.fi
+.PP
+If the plugin was compiled statically into the
+\fBsudo\fR
+binary instead of being installed as a dynamic shared object, the
+\fIpath\fR
+should be specified without a leading directory,
+as it does not actually exist in the file system.
+For example:
+.nf
+.sp
+.RS 4n
+Plugin sudoers_policy @sudoers_plugin@
+.RE
+.fi
+.PP
+On AIX systems, the plugin may be either a shared object
+ending in
+\(oq.so\(cq
+or an archive file containing a shared object ending in
+\(oq.a\(cq
+with the name of the shared object in parentheses at the end.
+.PP
+Starting with
+\fBsudo\fR
+1.8.5, any additional parameters after the
+\fIpath\fR
+are passed as arguments to the plugin's
+\fIopen\fR
+function.
+For example, to override the compile-time default sudoers file mode:
+.nf
+.sp
+.RS 4n
+Plugin sudoers_policy @sudoers_plugin@ sudoers_mode=0440
+.RE
+.fi
+.PP
+See the
+sudoers(@mansectform@)
+manual for a list of supported arguments.
+.PP
+The same dynamic shared object may contain multiple plugins,
+each with a different symbol name.
+The file must be owned by user-ID 0 and only writable by its owner.
+Because of ambiguities that arise from composite policies, only a single
+policy plugin may be specified.
+This limitation does not apply to I/O plugins.
+.PP
+If no
+\fBsudo.conf\fR
+file is present, or if it contains no
+\fIPlugin\fR
+lines, the
+\fBsudoers\fR
+plugin will be used as the default security policy, for I/O logging
+(if enabled by the policy), and for auditing.
+This is equivalent to the following:
+.nf
+.sp
+.RS 4n
+Plugin sudoers_policy @sudoers_plugin@
+Plugin sudoers_io @sudoers_plugin@
+Plugin sudoers_audit @sudoers_plugin@
+.RE
+.fi
+.PP
+Starting with
+\fBsudo\fR
+version 1.9.1, some of the logging functionality of the
+\fBsudoers\fR
+plugin has been moved from the policy plugin to an audit plugin.
+To maintain compatibility with
+\fBsudo.conf\fR
+files from older
+\fBsudo\fR
+versions, if
+\fBsudoers\fR
+is configured as the security policy, it will be used as an audit
+plugin as well.
+This guarantees that the logging behavior will be consistent with that of
+\fBsudo\fR
+versions 1.9.0 and below.
+.PP
+For more information on the
+\fBsudo\fR
+plugin architecture, see the
+sudo_plugin(@mansectform@)
+manual.
+.SS "Path settings"
+A
+\fIPath\fR
+line consists of the
+\fIPath\fR
+keyword, followed by the name of the path to set and its value.
+For example:
+.nf
+.sp
+.RS 4n
+Path intercept @intercept_file@
+Path noexec @noexec_file@
+Path askpass /usr/X11R6/bin/ssh-askpass
+.RE
+.fi
+.PP
+If no path name is specified, features relying on the specified
+setting will be disabled.
+Disabling
+\fIPath\fR
+settings is only supported in
+\fBsudo\fR
+version 1.8.16 and higher.
+.PP
+The following plugin-agnostic paths may be set in the
+\fI@sysconfdir@/sudo.conf\fR
+file:
+.TP 6n
+askpass
+The fully qualified path to a helper program used to read the user's
+password when no terminal is available.
+This may be the case when
+\fBsudo\fR
+is executed from a graphical (as opposed to text-based) application.
+The program specified by
+\fIaskpass\fR
+should display the argument passed to it as the prompt and write
+the user's password to the standard output.
+The value of
+\fIaskpass\fR
+may be overridden by the
+\fRSUDO_ASKPASS\fR
+environment variable.
+.TP 6n
+devsearch
+An ordered, colon-separated search path of directories to look in for
+device nodes.
+This is used when mapping the process's tty device number to a device name
+on systems that do not provide such a mechanism.
+Sudo will
+\fInot\fR
+recurse into sub-directories.
+If terminal devices may be located in a sub-directory of
+\fI/dev\fR,
+that path must be explicitly listed in
+\fIdevsearch\fR.
+The default value is
+\fI/dev/pts:/dev/vt:/dev/term:/dev/zcons:/dev/pty:/dev\fR
+.sp
+This option is ignored on systems that support either the
+\fBdevname\fR()
+or
+\fB_ttyname_dev\fR()
+functions, for example
+BSD,
+macOS and Solaris.
+.TP 6n
+intercept
+The path to a shared library containing a wrappers for the
+execve(2),
+execl(3),
+execle(3),
+execlp(3),
+execv(3),
+execvp(3),
+execvpe(3),
+and
+system(3)
+library functions that intercepts attempts to run further commands and
+performs a policy check before allowing them to be executed.
+This is used to implement the
+\fIintercept\fR
+and
+\fIlog_subcmds\fR
+functionality on systems that support
+\fRLD_PRELOAD\fR
+or the equivalent.
+.sp
+The
+\fIintercept\fR
+path may be set to either a single fully-qualified path, or, for systems
+that support separate
+\fRLD_PRELOAD\fR
+environment variables for 32-bit and 64-bit executables, it may optionally
+be set to two fully-qualified paths separated by a colon
+(\(oq:\&\(cq).
+The first path should be the 32-bit version and the second the
+64-bit version.
+This two-path form is currently only supported on AIX and Solaris
+systems.
+The default value is
+\fI@intercept_file@\fR.
+.TP 6n
+noexec
+The path to a shared library containing wrappers for the
+execve(2),
+execl(3),
+execle(3),
+execlp(3),
+exect(3),
+execv(3),
+execveat(3),
+execvP(3),
+execvp(3),
+execvpe(3),
+fexecve(3),
+popen(3),
+posix_spawn(3),
+posix_spawnp(3),
+system(3),
+and
+wordexp(3)
+library functions that prevent the execution of further commands.
+This is used to implement the
+\fInoexec\fR
+functionality on systems that support
+\fRLD_PRELOAD\fR
+or the equivalent.
+.sp
+The
+\fInoexec\fR
+path may be set to either a single fully-qualified path, or, for systems
+that support separate
+\fRLD_PRELOAD\fR
+environment variables for 32-bit and 64-bit executables, it may optionally
+be set to two fully-qualified paths separated by a colon
+(\(oq:\&\(cq).
+The first path should be the 32-bit version and the second the
+64-bit version.
+This two-path form is currently only supported on AIX and Solaris
+systems.
+The default value is
+\fI@noexec_file@\fR.
+.TP 6n
+plugin_dir
+The default directory to use when searching for plugins
+that are specified without a fully qualified path name.
+The default value is
+\fI@plugindir@\fR.
+.TP 6n
+sesh
+The fully-qualified path to the
+\fBsesh\fR
+binary.
+This setting is only used when
+\fBsudo\fR
+is built with SELinux support.
+The default value is
+\fI@sesh_file@\fR.
+.\}
+.SS "Other settings"
+The
+\fBsudo.conf\fR
+file also supports the following front-end settings:
+.TP 6n
+disable_coredump
+Core dumps of
+\fBsudo\fR
+itself are disabled by default to prevent the disclosure of potentially
+sensitive information.
+To aid in debugging
+\fBsudo\fR
+crashes, you may wish to re-enable core dumps by setting
+\(lqdisable_coredump\(rq
+to false in
+\fBsudo.conf\fR
+as follows:
+.nf
+.sp
+.RS 10n
+Set disable_coredump false
+.RE
+.fi
+.RS 6n
+.sp
+All modern operating systems place restrictions on core dumps
+from set-user-ID processes like
+\fBsudo\fR
+so this option can be enabled without compromising security.
+To actually get a
+\fBsudo\fR
+core file you will likely need to enable core dumps for set-user-ID processes.
+On
+BSD
+and Linux systems this is accomplished in the
+sysctl(@mansectsu@)
+command.
+On Solaris, the
+coreadm(1m)
+command is used to configure core dump behavior.
+.sp
+This setting is only available in
+\fBsudo\fR
+version 1.8.4 and higher.
+.RE
+.TP 6n
+group_source
+\fBsudo\fR
+passes the invoking user's group list to the policy and I/O plugins.
+On most systems, there is an upper limit to the number of groups that
+a user may belong to simultaneously (typically 16 for compatibility
+with NFS).
+On systems with the
+getconf(1)
+utility, running:
+.RS 12n
+getconf NGROUPS_MAX
+.RE
+.RS 6n
+will return the maximum number of groups.
+.sp
+However, it is still possible to be a member of a larger number of
+groups--they simply won't be included in the group list returned
+by the kernel for the user.
+Starting with
+\fBsudo\fR
+version 1.8.7, if the user's kernel group list has the maximum number
+of entries,
+\fBsudo\fR
+will consult the group database directly to determine the group list.
+This makes it possible for the security policy to perform matching by group
+name even when the user is a member of more than the maximum number of groups.
+.sp
+The
+\fIgroup_source\fR
+setting allows the administrator to change this default behavior.
+Supported values for
+\fIgroup_source\fR
+are:
+.TP 6n
+static
+Use the static group list that the kernel returns.
+Retrieving the group list this way is very fast but it is subject
+to an upper limit as described above.
+It is
+\(lqstatic\(rq
+in that it does not reflect changes to the group database made
+after the user logs in.
+This was the default behavior prior to
+\fBsudo\fR
+1.8.7.
+.TP 6n
+dynamic
+Always query the group database directly.
+It is
+\(lqdynamic\(rq
+in that changes made to the group database after the user logs in
+will be reflected in the group list.
+On some systems, querying the group database for all of a user's
+groups can be time consuming when querying a network-based group
+database.
+Most operating systems provide an efficient method of performing
+such queries.
+Currently,
+\fBsudo\fR
+supports efficient group queries on AIX,
+BSD,
+Linux, macOS, and Solaris.
+This is the default behavior on macOS in
+\fBsudo\fR
+1.9.6 and higher.
+.TP 6n
+adaptive
+Only query the group database if the static group list returned
+by the kernel has the maximum number of entries.
+This is the default behavior on systems other than macOS in
+\fBsudo\fR
+1.8.7 and higher.
+.PP
+For example, to cause
+\fBsudo\fR
+to only use the kernel's static list of groups for the user:
+.nf
+.sp
+.RS 10n
+Set group_source static
+.RE
+.fi
+.sp
+This setting is only available in
+\fBsudo\fR
+version 1.8.7 and higher.
+.RE
+.TP 6n
+max_groups
+The maximum number of user groups to retrieve from the group database.
+Values less than one or larger than 1024 will be ignored.
+This setting is only used when querying the group database directly.
+It is intended to be used on systems where it is not possible to detect
+when the array to be populated with group entries is not sufficiently large.
+By default,
+\fBsudo\fR
+will allocate four times the system's maximum number of groups (see above)
+and retry with double that number if the group database query fails.
+.sp
+This setting is only available in
+\fBsudo\fR
+version 1.8.7 and higher.
+It should not be required in
+\fBsudo\fR
+versions 1.8.24 and higher and may be removed in a later release.
+.TP 6n
+probe_interfaces
+By default,
+\fBsudo\fR
+will probe the system's network interfaces and pass the IP address
+of each enabled interface to the policy plugin.
+This makes it possible for the plugin to match rules based on the IP address
+without having to query DNS.
+On Linux systems with a large number of virtual interfaces, this may
+take a non-negligible amount of time.
+If IP-based matching is not required, network interface probing
+can be disabled as follows:
+.nf
+.sp
+.RS 10n
+Set probe_interfaces false
+.RE
+.fi
+.RS 6n
+.sp
+This setting is only available in
+\fBsudo\fR
+version 1.8.10 and higher.
+.RE
+.SS "Debug settings"
+\fBsudo\fR
+versions 1.8.4 and higher support a flexible debugging framework
+that can log what
+\fBsudo\fR
+is doing internally if there is a problem.
+.PP
+A
+\fIDebug\fR
+line consists of the
+\fIDebug\fR
+keyword, followed by the name of the program, plugin, or shared object
+to debug, the debug file name, and a comma-separated list of debug flags.
+The debug flag syntax used by
+\fBsudo\fR,
+the
+\fBsudoers\fR
+plugin along with its associated programs and shared objects is
+\fIsubsystem\fR@\fIpriority\fR
+but a third-party plugin is free to use a different format so long
+as it does not include a comma
+(\(oq\&,\(cq).
+.PP
+On AIX systems, a
+\fIDebug\fR
+line will match a plugin specified as either the name of an
+SVR4-style shared object file ending in
+\(oq.so\(cq,
+an archive file ending in
+\(oq.a\(cq,
+or an archive file ending in
+\(oq.a\(cq
+with the name of the shared object in parentheses.
+.PP
+Examples:
+.nf
+.sp
+.RS 4n
+Debug sudo @log_dir@/sudo_debug all@warn,plugin@info
+.RE
+.fi
+.PP
+would log all debugging statements at the
+\fIwarn\fR
+level and higher in addition to those at the
+\fIinfo\fR
+level for the plugin subsystem.
+.nf
+.sp
+.RS 4n
+Debug sudo_intercept.so @log_dir@/intercept_debug all@debug
+.RE
+.fi
+.PP
+would log all debugging statements, regardless of level, for the
+\fIsudo_intercept.so\fR
+shared library that implements
+\fBsudo\fR's
+intercept functionality on some systems.
+.nf
+.sp
+.RS 4n
+Debug @sudoers_plugin@ @log_dir@/sudoers_debug all@debug
+.RE
+.fi
+.PP
+would log all debugging statements, regardless of level, for the
+\fBsudoers\fR
+plugin.
+See
+sudoers(@mansectform@)
+for the full list of subsystems supported by the
+\fBsudoers\fR
+plugin.
+.PP
+As of
+\fBsudo\fR
+1.8.12, multiple
+\fIDebug\fR
+entries may be specified per program.
+Older versions of
+\fBsudo\fR
+only support a single
+\fIDebug\fR
+entry per program.
+Plugin-specific
+\fIDebug\fR
+entries are also supported starting with
+\fBsudo\fR
+1.8.12 and are matched by either the base name of the plugin that was loaded
+(for example
+\fI@sudoers_plugin@\fR)
+or by the plugin's fully-qualified path name.
+Previously, the
+\fBsudoers\fR
+plugin shared the same
+\fIDebug\fR
+entry as the
+\fBsudo\fR
+front-end and could not be configured separately.
+.PP
+The following priorities are supported, in order of decreasing severity:
+\fIcrit\fR, \fIerr\fR, \fIwarn\fR, \fInotice\fR, \fIdiag\fR, \fIinfo\fR, \fItrace\fR,
+and
+\fIdebug\fR.
+Each priority, when specified, also includes all priorities higher
+than it.
+For example, a priority of
+\fInotice\fR
+would include debug messages logged at
+\fInotice\fR
+and higher.
+.PP
+The priorities
+\fItrace\fR
+and
+\fIdebug\fR
+also include function call tracing which logs when a function is
+entered and when it returns.
+For example, the following trace is for the
+\fBget_user_groups\fR()
+function located in src/sudo.c:
+.nf
+.sp
+.RS 4n
+sudo[123] -> get_user_groups @ src/sudo.c:385
+sudo[123] <- get_user_groups @ src/sudo.c:429 := groups=10,0,5
+.RE
+.fi
+.PP
+When the function is entered, indicated by a right arrow
+\(oq->\(cq,
+the program, process ID, function, source file, and line number
+are logged.
+When the function returns, indicated by a left arrow
+\(oq<-\(cq,
+the same information is logged along with the return value.
+In this case, the return value is a string.
+.PP
+The following subsystems are used by the
+\fBsudo\fR
+front-end:
+.TP 12n
+\fIall\fR
+matches every subsystem
+.TP 12n
+\fIargs\fR
+command line argument processing
+.TP 12n
+\fIconv\fR
+user conversation
+.TP 12n
+\fIedit\fR
+sudoedit
+.TP 12n
+\fIevent\fR
+event subsystem
+.TP 12n
+\fIexec\fR
+command execution
+.TP 12n
+\fImain\fR
+\fBsudo\fR
+main function
+.TP 12n
+\fInetif\fR
+network interface handling
+.TP 12n
+\fIpcomm\fR
+communication with the plugin
+.TP 12n
+\fIplugin\fR
+plugin configuration
+.TP 12n
+\fIpty\fR
+pseudo-terminal related code
+.TP 12n
+\fIselinux\fR
+SELinux-specific handling
+.TP 12n
+\fIutil\fR
+utility functions
+.TP 12n
+\fIutmp\fR
+utmp handling
+.PP
+The
+sudoers(@mansectform@)
+plugin includes support for additional subsystems.
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo.conf\fR
+\fBsudo\fR
+front-end configuration
+.SH "EXAMPLES"
+.nf
+.RS 0n
+#
+# Default @sysconfdir@/sudo.conf file
+#
+# Sudo plugins:
+#   Plugin plugin_name plugin_path plugin_options ...
+#
+# The plugin_path is relative to @plugindir@ unless
+#   fully qualified.
+# The plugin_name corresponds to a global symbol in the plugin
+#   that contains the plugin interface structure.
+# The plugin_options are optional.
+#
+# The sudoers plugin is used by default if no Plugin lines are present.
+#Plugin sudoers_policy @sudoers_plugin@
+#Plugin sudoers_io @sudoers_plugin@
+#Plugin sudoers_audit @sudoers_plugin@
+
+#
+# Sudo askpass:
+#   Path askpass /path/to/askpass
+#
+# An askpass helper program may be specified to provide a graphical
+# password prompt for "sudo -A" support.  Sudo does not ship with its
+# own askpass program but can use the OpenSSH askpass.
+#
+# Use the OpenSSH askpass
+#Path askpass /usr/X11R6/bin/ssh-askpass
+#
+# Use the Gnome OpenSSH askpass
+#Path askpass /usr/libexec/openssh/gnome-ssh-askpass
+
+#
+# Sudo device search path:
+#   Path devsearch /dev/path1:/dev/path2:/dev
+#
+# A colon-separated list of paths to check when searching for a user's
+# terminal device.
+#
+#Path devsearch /dev/pts:/dev/vt:/dev/term:/dev/zcons:/dev/pty:/dev
+
+#
+# Sudo command interception:
+#   Path intercept /path/to/sudo_intercept.so
+#
+# Path to a shared library containing replacements for the execv()
+# and execve() library functions that perform a policy check to verify
+# the command is allowed and simply return an error if not.  This is
+# used to implement the "intercept" functionality on systems that
+# support LD_PRELOAD or its equivalent.
+#
+# The compiled-in value is usually sufficient and should only be changed
+# if you rename or move the sudo_intercept.so file.
+#
+#Path intercept @intercept_file@
+
+#
+# Sudo noexec:
+#   Path noexec /path/to/sudo_noexec.so
+#
+# Path to a shared library containing replacements for the execv()
+# family of library functions that just return an error.  This is
+# used to implement the "noexec" functionality on systems that support
+# LD_PRELOAD or its equivalent.
+#
+# The compiled-in value is usually sufficient and should only be changed
+# if you rename or move the sudo_noexec.so file.
+#
+#Path noexec @noexec_file@
+
+#
+# Sudo plugin directory:
+#   Path plugin_dir /path/to/plugins
+#
+# The default directory to use when searching for plugins that are
+# specified without a fully qualified path name.
+#
+#Path plugin_dir @plugindir@
+
+#
+# Core dumps:
+#   Set disable_coredump true|false
+#
+# By default, sudo disables core dumps while it is executing (they
+# are re-enabled for the command that is run).
+# To aid in debugging sudo problems, you may wish to enable core
+# dumps by setting "disable_coredump" to false.
+#
+#Set disable_coredump false
+
+#
+# User groups:
+#   Set group_source static|dynamic|adaptive
+#
+# Sudo passes the user's group list to the policy plugin.
+# If the user is a member of the maximum number of groups (usually 16),
+# sudo will query the group database directly to be sure to include
+# the full list of groups.
+#
+# On some systems, this can be expensive so the behavior is configurable.
+# The "group_source" setting has three possible values:
+#   static   - use the user's list of groups returned by the kernel.
+#   dynamic  - query the group database to find the list of groups.
+#   adaptive - if user is in less than the maximum number of groups.
+#	       use the kernel list, else query the group database.
+#
+#Set group_source static
+
+#
+# Sudo interface probing:
+#   Set probe_interfaces true|false
+#
+# By default, sudo will probe the system's network interfaces and
+# pass the IP address of each enabled interface to the policy plugin.
+# On systems with a large number of virtual interfaces this may take
+# a noticeable amount of time.
+#
+#Set probe_interfaces false
+
+#
+# Sudo debug files:
+#   Debug program /path/to/debug_log subsystem@priority[,subsyste@priority]
+#
+# Sudo and related programs support logging debug information to a file.
+# The program is typically sudo, sudoers.so, sudoreplay, or visudo.
+#
+# Subsystems vary based on the program; "all" matches all subsystems.
+# Priority may be crit, err, warn, notice, diag, info, trace, or debug.
+# Multiple subsystem@priority may be specified, separated by a comma.
+#
+#Debug sudo @log_dir@/sudo_debug all@debug
+#Debug @sudoers_plugin@ @log_dir@/sudoers_debug all@debug
+.RE
+.fi
+.SH "SEE ALSO"
+sudo_plugin(@mansectform@),
+sudoers(@mansectform@),
+sudo(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

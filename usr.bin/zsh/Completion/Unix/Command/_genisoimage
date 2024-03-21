@@ -1,0 +1,46 @@
+#compdef genisoimage
+
+_arguments \
+  '-nobak[do not include backup files]' \
+  '-no-bak[do not include backup files]' \
+  '-abstract:abstract filename:_files' \
+  '(-A -appid)'{-A,-appid}':application ID:' \
+  '-biblio:bibliographic filename:_files' \
+  '-cache-inodes[cache inodes]' \
+  '-no-cache-inodes[do not cache inodes]' \
+  '-check-oldnames[check all imported ISO9660 names from old session]' \
+  '-check-session[check all ISO9660 names from previous session]:_files' \
+  '-copyright:copyright filename:_files' \
+  '-debug[set debug flag]' \
+  '(-b -eltorito-boot)'{-b,-eltorito-boot}':boot image:_files' \
+  '-eltorito-alt-boot[start specifying alternative El Torito boot parameters]' \
+  '(-B -sparc-boot)'{-B,-sparc-boot}':boot image:_files' \
+  '-sunx86-boot:boot image:_files' \
+  '(-G -generic-boot)'{-G,-generic-boot}':boot image:_files' \
+  '-sparc-label:label text:' \
+  '-sunx86-label:label text:' \
+  '(-c -eltorito-catalog)'{-c,-eltorito-catalog}':catalog:_files' \
+  '(-C -cdrecord-params)'{-C,-cdrecord-params}':params:' \
+  '(-d -omit-period)'{-d,-omit-period}'[omit trailing periods from filenames]' \
+  '-dir-mode:mode:' \
+  '(-D -disable-deep-relocation)'{-D,-disable-deep-relocation}'[disable deep directory relocation]' \
+  '-file-mode:mode:' \
+  '(-f -follow-links)'{-f,-follow-links}'[follow symbolic links]' \
+  '-gid:gid:' \
+  '-graft-points[allow to use graft points for filenames]' \
+  '-root:dir:_files -/' \
+  '-old-root:dir:_files -/' \
+  '-help[print option help]' \
+  '-hide:globfile:_files' \
+  '-hide-list:file list:_files' \
+  '-hidden:globfile:_files' \
+  '-hidden-list:file list:_files' \
+  '-hide-joliet:globfile:_files' \
+  '-hide-joliet-list:file list:_files' \
+  '-hide-joliet-trans-tbl[hide TRANS.TBL from Joliet tree]' \
+  '-hide-rr-moved[rename RR_MOVED to .rr_moved in Rock Ridge tree]' \
+  '-gui[switch behaviour for GUI]' \
+  '-input-charset:charset:' \
+  '-output-charset:charset:' \
+  '-iso-level:conformance level:(1 2 3 4)' \
+  '*:pathspec:_files'

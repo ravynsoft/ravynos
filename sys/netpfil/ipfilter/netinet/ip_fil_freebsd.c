@@ -4,10 +4,6 @@
  *
  * See the IPFILTER.LICENCE file for details on licencing.
  */
-#if !defined(lint)
-static const char sccsid[] = "@(#)ip_fil.c	2.41 6/5/96 (C) 1993-2000 Darren Reed";
-static const char rcsid[] = "@(#)$Id$";
-#endif
 
 #if defined(KERNEL) || defined(_KERNEL)
 # undef KERNEL
@@ -383,18 +379,17 @@ ipf_send_reset(fr_info_t *fin)
 	tcp2->th_sport = tcp->th_dport;
 	tcp2->th_dport = tcp->th_sport;
 
-	if (tcp->th_flags & TH_ACK) {
+	if (tcp_get_flags(tcp) & TH_ACK) {
 		tcp2->th_seq = tcp->th_ack;
-		tcp2->th_flags = TH_RST;
+		tcp_set_flags(tcp2, TH_RST);
 		tcp2->th_ack = 0;
 	} else {
 		tcp2->th_seq = 0;
 		tcp2->th_ack = ntohl(tcp->th_seq);
 		tcp2->th_ack += tlen;
 		tcp2->th_ack = htonl(tcp2->th_ack);
-		tcp2->th_flags = TH_RST|TH_ACK;
+		tcp_set_flags(tcp2, TH_RST|TH_ACK);
 	}
-	TCP_X2_A(tcp2, 0);
 	TCP_OFF_A(tcp2, sizeof(*tcp2) >> 2);
 	tcp2->th_win = tcp->th_win;
 	tcp2->th_sum = 0;

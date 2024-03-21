@@ -1,0 +1,400 @@
+texinode(Functions)(Jobs & Signals)(Command Execution)(Top)
+chapter(Functions)
+ifzman(\
+sect(Functions)
+)\
+cindex(functions)
+findex(function, use of)
+Shell functions are defined with the tt(function) reserved word or the
+special syntax `var(funcname) tt(())'.
+Shell functions are read in and stored internally.
+Alias names are resolved when the function is read.
+Functions are executed like commands with the arguments
+passed as positional parameters.
+(See noderef(Command Execution).)
+
+Functions execute in the same process as the caller and
+share all files
+and present working directory with the
+caller.  A trap on tt(EXIT) set inside a function
+is executed after the function completes in the environment
+of the caller.
+
+findex(return, use of)
+The tt(return) builtin is used to return from function calls.
+
+findex(functions, use of)
+Function identifiers can be listed with the tt(functions) builtin.
+findex(unfunction, use of)
+Functions can be undefined with the tt(unfunction) builtin.
+sect(Autoloading Functions)
+cindex(autoloading functions)
+cindex(functions, autoloading)
+
+findex(autoload, use of)
+vindex(fpath, use of)
+A function can be marked as em(undefined) using the tt(autoload) builtin
+(or `tt(functions -u)' or `tt(typeset -fu)').  Such a function has no
+body.  When the function is first executed, the shell searches for its
+definition using the elements of the tt(fpath) variable.  Thus to define
+functions for autoloading, a typical sequence is:
+
+example(fpath=(~/myfuncs $fpath)
+autoload myfunc1 myfunc2 ...)
+
+The usual alias expansion during reading will be suppressed if the
+tt(autoload) builtin or its equivalent is given the option tt(-U). This is
+recommended for the use of functions supplied with the zsh distribution.
+findex(zcompile, use of)
+Note that for functions precompiled with the tt(zcompile) builtin command
+the flag tt(-U) must be provided when the tt(.zwc) file is created, as the
+corresponding information is compiled into the latter.
+
+For each var(element) in tt(fpath), the shell looks for three possible
+files, the newest of which is used to load the definition for the function:
+
+startitem()
+item(var(element)tt(.zwc))(
+A file created with the tt(zcompile) builtin command, which is expected to
+contain the definitions for all functions in the directory named
+var(element).  The file is treated in the same manner as a directory
+containing files for functions and is searched for the definition of the
+function.   If the definition is not found, the search for a definition
+proceeds with the other two possibilities described below.
+
+If var(element) already includes a tt(.zwc) extension (i.e. the extension
+was explicitly given by the user), var(element) is searched for the
+definition of the function without comparing its age to that of other
+files; in fact, there does not need to be any directory named var(element)
+without the suffix.  Thus including an element such as
+`tt(/usr/local/funcs.zwc)' in tt(fpath) will speed up the search for
+functions, with the disadvantage that functions included must be explicitly
+recompiled by hand before the shell notices any changes.
+)
+item(var(element)tt(/)var(function)tt(.zwc))(
+A file created with tt(zcompile), which is expected to contain the
+definition for var(function).  It may include other function definitions
+as well, but those are neither loaded nor executed; a file found in this
+way is searched em(only) for the definition of var(function).
+)
+item(var(element)tt(/)var(function))(
+A file of zsh command text, taken to be the definition for var(function).
+)
+enditem()
+
+In summary, the order of searching is, first, in the em(parents of)
+directories in tt(fpath) for the newer of either a compiled directory or
+a directory in tt(fpath); second, if more than one of these contains a
+definition for the function that is sought, the leftmost in the tt(fpath)
+is chosen; and third, within a directory, the newer of either a compiled
+function or an ordinary function definition is used.
+
+pindex(KSH_AUTOLOAD, use of)
+If the tt(KSH_AUTOLOAD) option is set, or the file contains only a
+simple definition of the function, the file's contents will be executed.
+This will normally define the function in question, but may also perform
+initialization, which is executed in the context of the function execution,
+and may therefore define local parameters.  It is an error if the function
+is not defined by loading the file.
+
+Otherwise, the function body (with no surrounding `var(funcname)tt(()
+{)var(...)tt(})') is taken to be the complete contents of the file.  This
+form allows the file to be used directly as an executable shell script.  If
+processing of the file results in the function being re-defined, the
+function itself is not re-executed.  To force the shell to perform
+initialization and then call the function defined, the file should contain
+initialization code (which will be executed then discarded) in addition to
+a complete function definition (which will be retained for subsequent calls
+to the function), and a call to the shell function, including any
+arguments, at the end.
+
+For example, suppose the autoload file tt(func) contains
+
+example(func+LPAR()RPAR() { print This is func; }
+print func is initialized)
+
+then `tt(func; func)' with tt(KSH_AUTOLOAD) set will produce both messages
+on the first call, but only the message `tt(This is func)' on the second
+and subsequent calls.  Without tt(KSH_AUTOLOAD) set, it will produce
+the initialization message on the first call, and the other message on the
+second and subsequent calls.
+
+It is also possible to create a function that is not marked as autoloaded,
+but which loads its own definition by searching tt(fpath), by using
+`tt(autoload -X)' within a shell function.  For example, the following are
+equivalent:
+
+example(myfunc+LPAR()RPAR() {
+  autoload -X
+}
+myfunc args...)
+
+and
+
+example(unfunction myfunc   # if myfunc was defined
+autoload myfunc
+myfunc args...)
+
+In fact, the tt(functions) command outputs `tt(builtin autoload -X)' as
+the body of an autoloaded function.  This is done so that
+
+example(eval "$(functions)")
+
+produces a reasonable result.  A true autoloaded function can be
+identified by the presence of the comment `tt(# undefined)' in the body,
+because all comments are discarded from defined functions.
+
+To load the definition of an autoloaded function tt(myfunc) without
+executing tt(myfunc), use:
+
+example(autoload +X myfunc)
+
+sect(Anonymous Functions)
+cindex(anonymous functions)
+cindex(functions, anonymous)
+
+If no name is given for a function, it is `anonymous' and is handled
+specially.  Either form of function definition may be used: a `tt(())' with
+no preceding name, or a `tt(function)' with an immediately following open
+brace.  The function is executed immediately at the point of definition and
+is not stored for future use.  The function name is set to `tt((anon))'.
+
+Arguments to the function may be specified as words following the
+closing brace defining the function, hence if there are none no
+arguments (other than tt($0)) are set.  This is a difference from the
+way other functions are parsed: normal function definitions may be
+followed by certain keywords such as `tt(else)' or `tt(fi)', which will
+be treated as arguments to anonymous functions, so that a newline or
+semicolon is needed to force keyword interpretation.
+
+Note also that the argument list of any enclosing script or function is
+hidden (as would be the case for any other function called at this
+point).
+
+Redirections may be applied to the anonymous function in the same manner as
+to a current-shell structure enclosed in braces.  The main use of anonymous
+functions is to provide a scope for local variables.  This is particularly
+convenient in start-up files as these do not provide their own local
+variable scope.
+
+For example,
+
+example(variable=outside
+function {
+  local variable=inside
+  print "I am $variable with arguments $*"
+} this and that
+print "I am $variable")
+
+outputs the following:
+
+example(I am inside with arguments this and that
+I am outside)
+
+Note that function definitions with arguments that expand to nothing,
+for example `tt(name=; function $name { )var(...)tt( })', are not
+treated as anonymous functions.  Instead, they are treated as normal
+function definitions where the definition is silently discarded.
+
+sect(Special Functions)
+Certain functions, if defined, have special meaning to the shell.
+
+subsect(Hook Functions)
+findex(functions, hook)
+findex(hook functions)
+
+For the functions below, it is possible to define an array that has the
+same name as the function with `tt(_functions)' appended.  Any element in
+such an array is taken as the name of a function to execute; it is executed
+in the same context and with the same arguments and same initial value of tt($?)
+as the basic function.  For
+example, if tt($chpwd_functions) is an array containing the values
+`tt(mychpwd)', `tt(chpwd_save_dirstack)', then the shell attempts to
+execute the functions `tt(chpwd)', `tt(mychpwd)' and
+`tt(chpwd_save_dirstack)', in that order.  Any function that does not exist
+is silently ignored.  A function found by this mechanism is referred to
+elsewhere as a em(hook function).  An error in any function causes subsequent
+functions not to be run.  Note further that an error in a tt(precmd) hook
+causes an immediately following tt(periodic) function not to run (though
+it may run at the next opportunity).
+
+startitem()
+findex(chpwd)
+vindex(chpwd_functions)
+item(tt(chpwd))(
+Executed whenever the current working directory is changed.
+)
+findex(periodic)
+vindex(periodic_functions)
+item(tt(periodic))(
+vindex(PERIOD)
+If the parameter tt(PERIOD)
+is set, this function is executed every tt($PERIOD)
+seconds, just before a prompt.  Note that if multiple functions
+are defined using the array tt(periodic_functions) only one
+period is applied to the complete set of functions, and the
+scheduled time is not reset if the list of functions is altered.
+Hence the set of functions is always called together.
+)
+findex(precmd)
+vindex(precmd_functions)
+item(tt(precmd))(
+Executed before each prompt.  Note that precommand functions are not
+re-executed simply because the command line is redrawn, as happens, for
+example, when a notification about an exiting job is displayed.
+)
+findex(preexec)
+vindex(preexec_functions)
+item(tt(preexec))(
+Executed just after a command has been read and is about to be
+executed.  If the history mechanism is active (regardless of whether the
+line was discarded from the history buffer), the string that the user
+typed is passed as the first argument, otherwise it is an empty string.
+The actual command that will be executed (including expanded aliases) is
+passed in two different forms: the second argument is a single-line,
+size-limited version of the command (with things like function bodies
+elided); the third argument contains the full text that is being
+executed.
+)
+findex(zshaddhistory)
+vindex(zshaddhistory_functions)
+item(tt(zshaddhistory))(
+cindex(history, hook when line is saved)
+Executed when a history line has been read interactively, but
+before it is executed.  The sole argument is the complete history
+line (so that any terminating newline will still be present).
+
+If any of the hook functions returns status 1 (or any non-zero value
+other than 2, though this is not guaranteed for future versions of the
+shell) the history line will not be saved, although it lingers in the
+history until the next line is executed, allowing you to reuse or edit
+it immediately.
+
+If any of the hook functions returns status 2 the history line
+will be saved on the internal history list, but not written to
+the history file.  In case of a conflict, the first non-zero status
+value is taken.
+
+A hook function may call `tt(fc -p) var(...)' to switch the history
+context so that the history is saved in a different file from
+that in the global tt(HISTFILE) parameter.  This is handled specially:
+the history context is automatically restored after the processing
+of the history line is finished.
+
+The following example function works with one of the options
+tt(INC_APPEND_HISTORY) or tt(SHARE_HISTORY) set, in order that the line
+is written out immediately after the history entry is added.  It first
+adds the history line to the normal history with the newline stripped,
+which is usually the correct behaviour.  Then it switches the history
+context so that the line will be written to a history file in the
+current directory.
+
+example(zshaddhistory+LPAR()RPAR() {
+  print -sr -- ${1%%$'\n'}
+  fc -p .zsh_local_history
+})
+)
+findex(zshexit)
+vindex(zshexit_functions)
+item(tt(zshexit))(
+Executed at the point where the main shell is about to exit normally.
+This is not called by exiting subshells, nor when the tt(exec)
+precommand modifier is used before an external command.  Also, unlike
+tt(TRAPEXIT), it is not called when functions exit.
+)
+enditem()
+
+subsect(Trap Functions)
+
+The functions below are treated specially but do not have corresponding
+hook arrays.
+
+startitem()
+item(tt(TRAP)var(NAL))(
+cindex(signals, trapping)
+cindex(trapping signals)
+If defined and non-null,
+this function will be executed whenever the shell
+catches a signal tt(SIG)var(NAL), where var(NAL) is a signal
+name as specified for the tt(kill) builtin.
+The signal number will be passed as the first parameter to the function.
+
+If a function of this form is defined and null,
+the shell and processes spawned by it will ignore tt(SIG)var(NAL).
+
+The return status from the function is handled specially.  If it is
+zero, the signal is assumed to have been handled, and execution continues
+normally.  Otherwise, the shell will behave as interrupted except that
+the return status of the trap is retained.
+
+Programs terminated by uncaught signals typically return the status 128
+plus the signal number.  Hence the following causes the handler for
+tt(SIGINT) to print a message, then mimic the usual effect of the signal.
+
+example(TRAPINT+LPAR()RPAR() {
+  print "Caught SIGINT, aborting."
+  return $(( 128 + $1 ))
+})
+
+The functions tt(TRAPZERR), tt(TRAPDEBUG) and tt(TRAPEXIT) are never
+executed inside other traps.
+)
+findex(TRAPDEBUG)
+item(tt(TRAPDEBUG))(
+If the option tt(DEBUG_BEFORE_CMD) is set (as it is by default), executed
+before each command; otherwise executed after each command.  See
+the description of the tt(trap) builtin in
+ifnzman(noderef(Shell Builtin Commands))\
+ifzman(zmanref(zshbuiltins)) for details of additional features provided
+in debug traps.
+)
+findex(TRAPEXIT)
+item(tt(TRAPEXIT))(
+Executed when the shell exits,
+or when the current function exits if defined inside a function.
+The value of tt($?) at the start of execution is the exit status of the
+shell or the return status of the function exiting.
+)
+findex(TRAPZERR)
+findex(TRAPERR)
+item(tt(TRAPZERR))(
+Executed whenever a command has a non-zero exit status.  However, the
+function is not executed if the command occurred in a sublist followed by
+`tt(&&)' or `tt(||)'; only the final command in a sublist of this type
+causes the trap to be executed.  The function tt(TRAPERR) acts the same as
+tt(TRAPZERR) on systems where there is no tt(SIGERR) (this is the usual
+case).
+)
+enditem()
+
+findex(trap, use of)
+The functions beginning `tt(TRAP)' may alternatively be defined with the
+tt(trap) builtin:  this may be preferable for some uses.  Setting a trap
+with one form removes any trap of the other form for the same signal;
+removing a trap in either form removes all traps for the same signal.
+The forms
+
+example(TRAPNAL+LPAR()RPAR() { 
+ # code
+})
+
+('function traps') and
+
+example(trap '
+ # code
+' NAL)
+
+('list traps') are equivalent in most ways, the exceptions being the
+following:
+
+startitemize()
+itemiz(Function traps have all the properties of normal functions,
+appearing in the list of functions and being called with their own
+function context rather than the context where the trap was triggered.)
+itemiz(The return status from function traps is special, whereas a return
+from a list trap causes the surrounding context to return with the given
+status.)
+itemiz(Function traps are not reset within subshells, in accordance with
+zsh behaviour; list traps are reset, in accordance with POSIX
+behaviour.)
+enditemize()

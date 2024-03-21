@@ -1,0 +1,8 @@
+#compdef cplay
+
+_arguments -s \
+  '-n[enable restricted mode]' \
+  '-r[toggle playlist repeat mode]' \
+  '-R[toggle playlist random mode]' \
+  '-v[toggle PCM and MASTER volume control]' \
+  '*:playlist or directory or audio file:_files -g "*.(mp3|mp2|ogg|669|amf|ams|dsm|far|it|med|mod|mt2|mtm|okt|s3m|stm|ult|gdm|xm|m3u|pls|spx|wav|au)(-.)"'

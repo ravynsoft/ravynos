@@ -1,0 +1,49 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --sort-by-file option, when no file positions are present.
+
+cat <<\EOF > mm-test29.po
+msgid "a"
+msgstr "a"
+
+#~ msgid "c"
+#~ msgstr "c"
+
+#~ msgid "d"
+#~ msgstr "d"
+
+#~ msgid "b"
+#~ msgstr "b"
+EOF
+
+cat <<EOF > mm-test29.pot
+msgid "a"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q --sort-by-file -o mm-test29.tmp mm-test29.po mm-test29.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test29.tmp > mm-test29.po2 || Exit 1
+${MSGMERGE} -q --sort-by-file -o mm-test29.tmp mm-test29.po2 mm-test29.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test29.tmp > mm-test29.po3 || Exit 1
+
+cat <<\EOF > mm-test29.ok
+msgid "a"
+msgstr "a"
+
+#~ msgid "b"
+#~ msgstr "b"
+
+#~ msgid "c"
+#~ msgstr "c"
+
+#~ msgid "d"
+#~ msgstr "d"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test29.ok mm-test29.po2 || Exit 1
+${DIFF} mm-test29.ok mm-test29.po3 || Exit 1
+
+Exit 0

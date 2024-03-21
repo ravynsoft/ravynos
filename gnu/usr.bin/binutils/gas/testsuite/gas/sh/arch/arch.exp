@@ -1,0 +1,207 @@
+# Copyright (C) 2004-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# Please email any bugs, comments, and/or additions to this file to:
+# binutils@sources.redhat.com
+
+# This scripts tests all available SH architectures with all the assembler
+# options related to the architecture. It ensures that those combinations
+# which should not work do not work, and that those that should work
+# produce the correct output architecture.
+#
+# It looks for files in the same directory as this file named sh*.s .
+# Each file must contain all the instructions available within
+# that architecture. The architecture name is inferred from the file name.
+#
+# The sh*.s files should NOT be hand edited. Whenever the script is run
+# (e.g. with 'make check') it creates a set of new (usually identical) files
+# in the <objdir>/gas/testsuite directory. These are compared against the
+# old ones in the testsuite. When the expected results change (or new
+# architectures are added) these new files can be used to replace the old
+# ones with no modification required.
+#
+# The script generates the architecture/option permutations automatically,
+# but it reads the expected results from the file arch_expected.txt (also
+# found in the same directory as this script).
+#
+# The arch_expected.txt file should NOT be hand edited. Whenever the script
+# is run (e.g. with 'make check') it creates a new (usually identical) file
+# named arch_results.txt in the <objdir>/gas/testsuite directory. When the
+# expected results change (or new architectures are added) this new file
+# can be used to replace arch_expected.txt with no modification required.
+
+if {[istarget sh*-*-*]} then {
+
+
+# This procedure extracts the architecture name from the objdump output.
+# If there is no architecture name (or objdump output changes significantly)
+# then the behaviour is undefined, but it will most likely return junk.
+
+proc get_sh_arch { ofile } {
+    global comp_output
+
+    objdump "-f $ofile"
+    send_log $comp_output
+
+    set comp_output [string replace $comp_output 0 \
+	    [expr [string first "architecture:" $comp_output] + 13] ""]
+
+    return [string range $comp_output 0 [expr [string first "," $comp_output] - 1]]
+}
+
+
+# This procedure runs two tests:
+#   Test 1: Check the assembler can assemble the given file with
+#           given options.
+#   Test 2: Check that the resultant architecture is as expected.
+# It also writes an entry to the arch_results.txt file.
+
+proc test_arch { file opt arch resultfile } {
+    global comp_output
+
+    set name [file tail $file]
+    set rootname [file rootname $name]
+
+    if [string equal $opt "default-options"] then {
+	gas_run $name "-o ${rootname}-#${opt}#.o" ""
+    } else {
+	gas_run $name "$opt -o ${rootname}-#${opt}#.o" ""
+    }
+
+    if [want_no_output "$rootname file should assemble with $opt"] then {
+	set result [get_sh_arch "${rootname}-#${opt}#.o"]
+	puts $resultfile [format "%-20s %-25s %s" $file $opt $result]
+
+	if {$result == $arch} then {
+	    pass "$rootname file with $opt should assemble to arch $arch"
+	    file delete "${rootname}-#${opt}#.o"
+	} else {
+	    send_log $comp_output
+	    fail "$rootname file with $opt should assemble to arch $arch"
+	}
+    } else {
+	puts $resultfile [format "%-20s %-25s ERROR" $file $opt]
+	untested "$rootname file with $opt should assemble to arch $arch"
+    }
+
+}
+
+
+# This procedure tests that a file that is not supposed to assemble
+# with a given option does, in fact, not assemble.
+# It also writes an entry to the arch_results.txt file.
+
+proc test_arch_error { file opt resultfile} {
+    global comp_output
+
+    set name [file tail $file]
+    set rootname [file rootname $name]
+
+    if [string equal $opt "default-options"] then {
+	gas_run $name "-o ${rootname}-#${opt}#.o" ""
+    } else {
+	gas_run $name "$opt -o ${rootname}-#${opt}#.o" ""
+    }
+
+    if [string match "" $comp_output] then {
+	fail "$rootname file with $opt should not assemble"
+	puts $resultfile [format "%-20s %-25s [get_sh_arch ${rootname}-#${opt}#.o]" $file $opt]
+    } else {
+	pass "$rootname file with $opt should not assemble"
+	puts $resultfile [format "%-20s %-25s ERROR" $file $opt]
+    }
+}   
+
+# These tests are not suitable for sh-coff because
+# coff does not store the architecture information.
+
+if [istarget sh*-*-elf] then {
+    global subdir srcdir
+
+    # Find all the architectures and generate the
+    # list of options we will test.
+
+    set filelist [lsort -ascii [glob "$srcdir/$subdir/sh*.s"]]
+    set optlist {"default-options" "-dsp" "-isa=any" "-isa=dsp" "-isa=fp"}
+    foreach file $filelist {
+	set arch [file rootname [file tail $file]]
+	lappend optlist "-isa=$arch" "-isa=${arch}-up"
+    }
+
+    # Initialise the results file
+
+    set outfile [open "arch_results.txt" w 0666]
+    puts $outfile "# Generated file. DO NOT EDIT"
+    puts $outfile "#"
+    puts $outfile "# This file is generated by gas/testsuite/gas/sh/arch/arch.exp ."
+    puts $outfile "# It contains the expected results of the tests."
+    puts $outfile "# If the tests are failing because the expected results"
+    puts $outfile "# have changed then run 'make check' and copy the new file"
+    puts $outfile "# from <objdir>/gas/testsuite/arch_results.txt"
+    puts $outfile "# to   <srcdir>/gas/testsuite/gas/sh/arch/arch_expected.txt ."
+    puts $outfile "# Make sure the new expected results are ALL correct."
+    puts $outfile "#"
+    puts $outfile [format "# %-18s %-25s %s" "FILE" "OPTION" "OUTPUT"]
+    puts $outfile [format "# %-18s %-25s %s" "----" "------" "------"]
+
+    # Open the expected results file and skip the header
+
+    set infile [open "$srcdir/$subdir/arch_expected.txt" r]
+    while {[gets $infile line] >= 0 && [string match {\#*} $line]} {send_log "reading '$line'\n"}
+
+    foreach file $filelist {
+	foreach opt $optlist {
+	    set name [file tail $file]
+	    set rootname [file rootname $name]
+
+	    # Decode the expected result from the file
+
+	    scan $line "%s %s %s" exfile exopt exarch
+	    send_log "exfile = '$exfile', exopt = '$exopt', exarch = '$exarch'\n"
+	    send_log "  name = '$name',   opt = '$opt'\n"
+
+	    if {[string equal $exfile $name] && [string equal $exopt $opt]} then {
+		# The expected result file makes sense and
+		# appears up-to-date (the file and options match)
+
+		if {[string equal $exarch "ERROR"]} then {
+		    test_arch_error $name $opt $outfile
+		} else {
+		    test_arch $name $opt $exarch $outfile
+		}
+	    } else {
+		# The expected result file isn't right somehow
+		# so just try any old test. This will cause
+		# many failures, but will generate the results file.
+
+		test_arch $name $opt $rootname $outfile
+	    }
+
+	    # Read the next line from the expected result file.
+	    # This is at the end because the process of skipping
+	    # the header reads the first real line
+
+	    if [gets $infile line] then {
+		send_log "reading '$line'\n"
+	    }
+	}
+    }
+
+    close $infile
+    close $outfile
+}
+
+} ;# istarget sh*-*-*

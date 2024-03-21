@@ -1,0 +1,2 @@
+${THIS_SH} ./complete.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} complete.right && rm -f ${BASH_TSTOUT}

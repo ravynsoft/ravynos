@@ -1,0 +1,39 @@
+.TH libinput-measure-touchpad-size "1"
+.SH NAME
+libinput\-measure\-touchpad\-size \- measure the size of a touchpad
+.SH SYNOPSIS
+.B libinput measure touchpad\-size [\-\-help] WxH [\fI/dev/input/event0\fI]
+.SH DESCRIPTION
+.PP
+The
+.B "libinput measure touchpad\-size"
+tool measures the size of a touchpad. This is an interactive tool. When
+executed, the tool will prompt the user to interact with the touchpad. The
+tool records the axis ranges and calculates the size and resolution based on
+those. On termination, the tool prints a hwdb entry that can be added to the
+.B 60-evdev.hwdb
+file provided by system.
+.PP
+For details see the online documentation here:
+.I https://wayland.freedesktop.org/libinput/doc/latest/absolute-coordinate-ranges.html
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+This tool must be provided the physical dimensions of the device in mm.
+For example, if your touchpad is 100mm wide and 55mm high, run this tool as
+.B libinput measure touchpad-size 100x55
+.PP
+If a device node is given, this tool opens that device node. Otherwise, this
+tool searches for the first node that looks like a touchpad and uses that
+node.
+.TP 8
+.B \-\-help
+Print help
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

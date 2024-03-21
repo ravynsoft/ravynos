@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>DRAFT TIFF Technical Note #2 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BigTIFF Design" href="bigtiff.html" />
+    <link rel="prev" title="TIFF File Format Specification" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="bigtiff.html" title="BigTIFF Design"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="TIFF File Format Specification"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">TIFF File Format Specification</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DRAFT TIFF Technical Note #2</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="draft-tiff-technical-note-2">
+<h1>DRAFT TIFF Technical Note #2<a class="headerlink" href="#draft-tiff-technical-note-2" title="Permalink to this heading">¶</a></h1>
+<p>17-Mar-95</p>
+<p>This Technical Note describes serious problems that have been found in
+TIFF 6.0’s design for embedding JPEG-compressed data in TIFF (Section 22
+of the TIFF 6.0 spec of 3 June 1992).  A replacement TIFF/JPEG
+specification is given.  Some corrections to Section 21 are also given.</p>
+<p>To permit TIFF implementations to continue to read existing files, the 6.0
+JPEG fields and tag values will remain reserved indefinitely.  However,
+TIFF writers are strongly discouraged from using the 6.0 JPEG design.  It
+is expected that the next full release of the TIFF specification will not
+describe the old design at all, except to note that certain tag numbers
+are reserved.  The existing Section 22 will be replaced by the
+specification text given in the second part of this Tech Note.</p>
+<section id="problems-in-tiff-6-0-jpeg">
+<h2>Problems in TIFF 6.0 JPEG<a class="headerlink" href="#problems-in-tiff-6-0-jpeg" title="Permalink to this heading">¶</a></h2>
+<p>Abandoning a published spec is not a step to be taken lightly.  This
+section summarizes the reasons that have forced this decision.
+TIFF 6.0’s JPEG design suffers from design errors and limitations,
+ambiguities, and unnecessary complexity.</p>
+<section id="design-errors-and-limitations">
+<h3>Design errors and limitations<a class="headerlink" href="#design-errors-and-limitations" title="Permalink to this heading">¶</a></h3>
+<p>The fundamental design error in the existing Section 22 is that JPEG’s
+various tables and parameters are broken out as separate fields which the
+TIFF control logic must manage.  This is bad software engineering: that
+information should be treated as private to the JPEG codec
+(compressor/decompressor).  Worse, the fields themselves are specified
+without sufficient thought for future extension and without regard to
+well-established TIFF conventions.  Here are some of the significant
+problems:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">JPEGxxTable</span></code> fields do not store the table data directly in the
+IFD/field structure; rather, the fields hold pointers to information
+elsewhere in the file.  This requires special-purpose code to be added to
+<em>every</em> TIFF-manipulating application, whether it needs to decode JPEG
+image data or not.  Even a trivial TIFF editor, for example a program to
+add an <code class="docutils literal notranslate"><span class="pre">ImageDescription</span></code> field to a TIFF file, must be explicitly aware of
+the internal structure of the JPEG-related tables, or else it will probably
+break the file.  Every other auxiliary field in the TIFF spec contains
+data, not pointers, and can be copied or relocated by standard code that
+doesn’t know anything about the particular field.  This is a crucial
+property of the TIFF format that must not be given up.</p></li>
+<li><p>To manipulate these fields, the TIFF control logic is required to know a
+great deal about JPEG details, for example such arcana as how to compute
+the length of a Huffman code table — the length is not supplied in the
+field structure and can only be found by inspecting the table contents.
+This is again a violation of good software practice.  Moreover, it will
+prevent easy adoption of future JPEG extensions that might change these
+low-level details.</p></li>
+<li><p>The design neglects the fact that baseline JPEG codecs support only two
+sets of Huffman tables: it specifies a separate table for each color
+component.  This implies that encoders must waste space (by storing
+duplicate Huffman tables) or else violate the well-founded TIFF convention
+that prohibits duplicate pointers.  Furthermore, baseline decoders must
+test to find out which tables are identical, a waste of time and code
+space.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">JPEGInterchangeFormat</span></code> field also violates TIFF’s proscription against
+duplicate pointers: the normal strip/tile pointers are expected to point
+into the larger data area pointed to by <code class="docutils literal notranslate"><span class="pre">JPEGInterchangeFormat</span></code>.  All TIFF
+editing applications must be specifically aware of this relationship, since
+they must maintain it or else delete the <code class="docutils literal notranslate"><span class="pre">JPEGInterchangeFormat</span> <span class="pre">field</span></code>.  The
+<code class="docutils literal notranslate"><span class="pre">JPEGxxTables</span></code> fields are also likely to point into the <code class="docutils literal notranslate"><span class="pre">JPEGInterchangeFormat</span></code>
+area, creating additional pointer relationships that must be maintained.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">JPEGQTables</span></code> field is fixed at a byte per table entry; there is no
+way to support 16-bit quantization values.  This is a serious impediment
+to extending TIFF to use 12-bit JPEG.</p></li>
+<li><p>The 6.0 design cannot support using different quantization tables in
+different strips/tiles of an image (so as to encode some areas at higher
+quality than others).  Furthermore, since quantization tables are tied
+one-for-one to color components, the design cannot support table switching
+options that are likely to be added in future JPEG revisions.</p></li>
+</ul>
+</section>
+<section id="ambiguities">
+<h3>Ambiguities<a class="headerlink" href="#ambiguities" title="Permalink to this heading">¶</a></h3>
+<p>Several incompatible interpretations are possible for 6.0’s treatment of
+JPEG restart markers:</p>
+<ul class="simple">
+<li><p>It is unclear whether restart markers must be omitted at TIFF segment
+(strip/tile) boundaries, or whether they are optional.</p></li>
+<li><p>It is unclear whether the segment size is required to be chosen as
+a multiple of the specified restart interval (if any); perhaps the
+JPEG codec is supposed to be reset at each segment boundary as if
+there were a restart marker there, even if the boundary does not fall
+at a multiple of the nominal restart interval.</p></li>
+<li><p>The spec fails to address the question of restart marker numbering:
+do the numbers begin again within each segment, or not?</p></li>
+</ul>
+<p>That last point is particularly nasty.  If we make numbering begin again
+within each segment, we give up the ability to impose a TIFF strip/tile
+structure on an existing JPEG datastream with restarts (which was clearly a
+goal of Section 22’s authors).  But the other choice interferes with random
+access to the image segments: a reader must compute the first restart
+number to be expected within a segment, and must have a way to reset its
+JPEG decoder to expect a nonzero restart number first.  This may not even
+be possible with some JPEG chips.</p>
+<p>The tile height restriction found on page 104 contradicts Section 15’s
+general description of tiles.  For an image that is not vertically
+downsampled, page 104 specifies a tile height of one MCU or 8 pixels; but
+Section 15 requires tiles to be a multiple of 16 pixels high.</p>
+<p>This Tech Note does not attempt to resolve these ambiguities, so
+implementations that follow the 6.0 design should be aware that
+inter-application compatibility problems are likely to arise.</p>
+</section>
+<section id="unnecessary-complexity">
+<h3>Unnecessary complexity<a class="headerlink" href="#unnecessary-complexity" title="Permalink to this heading">¶</a></h3>
+<p>The 6.0 design creates problems for implementations that need to keep the
+JPEG codec separate from the TIFF control logic — for example, consider
+using a JPEG chip that was not designed specifically for TIFF.  JPEG codecs
+generally want to produce or consume a standard ISO JPEG datastream, not
+just raw compressed data.  (If they were to handle raw data, a separate
+out-of-band mechanism would be needed to load tables into the codec.)
+With such a codec, the TIFF control logic must parse JPEG markers emitted
+by the codec to create the TIFF table fields (when writing) or synthesize
+JPEG markers from the TIFF fields to feed the codec (when reading).  This
+means that the control logic must know a great deal more about JPEG details
+than we would like.  The parsing and reconstruction of the markers also
+represents a fair amount of unnecessary work.</p>
+<p>Quite a few implementors have proposed writing “TIFF/JPEG” files in which
+a standard JPEG datastream is simply dumped into the file and pointed to
+by JPEGInterchangeFormat.  To avoid parsing the JPEG datastream, they
+suggest not writing the JPEG auxiliary fields (JPEGxxTables etc) nor even
+the basic TIFF strip/tile data pointers.  This approach is incompatible
+with implementations that handle the full TIFF 6.0 JPEG design, since they
+will expect to find strip/tile pointers and auxiliary fields.  Indeed this
+is arguably not TIFF at all, since <em>all</em> TIFF-reading applications expect
+to find strip or tile pointers.  A subset implementation that is not
+upward-compatible with the full spec is clearly unacceptable.  However,
+the frequency with which this idea has come up makes it clear that
+implementors find the existing Section 22 too complex.</p>
+</section>
+</section>
+<section id="overview-of-the-solution">
+<h2>Overview of the solution<a class="headerlink" href="#overview-of-the-solution" title="Permalink to this heading">¶</a></h2>
+<p>To solve these problems, we adopt a new design for embedding
+JPEG-compressed data in TIFF files.  The new design uses only complete,
+uninterpreted ISO JPEG datastreams, so it should be much more forgiving of
+extensions to the ISO standard.  It should also be far easier to implement
+using unmodified JPEG codecs.</p>
+<p>To reduce overhead in multi-segment TIFF files, we allow JPEG overhead
+tables to be stored just once in a <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> auxiliary field.  This
+feature does not violate the integrity of the JPEG datastreams, because it
+uses the notions of “tables-only datastreams” and “abbreviated image
+datastreams” as defined by the ISO standard.</p>
+<p>To prevent confusion with the old design, the new design is given a new
+<code class="docutils literal notranslate"><span class="pre">Compression</span></code> tag value, <code class="docutils literal notranslate"><span class="pre">Compression=7</span></code>.  Readers that need to handle
+existing 6.0 JPEG files may read both old and new files, using whatever
+interpretation of the 6.0 spec they did before.  <code class="docutils literal notranslate"><span class="pre">Compression</span></code> tag value 6
+and the field tag numbers defined by 6.0 section 22 will remain reserved
+indefinitely, even though detailed descriptions of them will be dropped
+from future editions of the TIFF specification.</p>
+</section>
+<section id="replacement-tiff-jpeg-specification">
+<h2>Replacement TIFF/JPEG specification<a class="headerlink" href="#replacement-tiff-jpeg-specification" title="Permalink to this heading">¶</a></h2>
+<p>[This section of the Tech Note is expected to replace Section 22 in the
+next release of the TIFF specification.]</p>
+<p>This section describes TIFF compression scheme 7, a high-performance
+compression method for continuous-tone images.</p>
+<section id="introduction">
+<h3>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h3>
+<p>This TIFF compression method uses the international standard for image
+compression ISO/IEC 10918-1, usually known as “JPEG” (after the original
+name of the standards committee, Joint Photographic Experts Group).  JPEG
+is a joint ISO/CCITT standard for compression of continuous-tone images.</p>
+<p>The JPEG committee decided that because of the broad scope of the standard,
+no one algorithmic procedure was able to satisfy the requirements of all
+applications.  Instead, the JPEG standard became a “toolkit” of multiple
+algorithms and optional capabilities.  Individual applications may select
+a subset of the JPEG standard that meets their requirements.</p>
+<p>The most important distinction among the JPEG processes is between lossy
+and lossless compression.  Lossy compression methods provide high
+compression but allow only approximate reconstruction of the original
+image.  JPEG’s lossy processes allow the encoder to trade off compressed
+file size against reconstruction fidelity over a wide range.  Typically,
+10:1 or more compression of full-color data can be obtained while keeping
+the reconstructed image visually indistinguishable from the original.  Much
+higher compression ratios are possible if a low-quality reconstructed image
+is acceptable.  Lossless compression provides exact reconstruction of the
+source data, but the achievable compression ratio is much lower than for
+the lossy processes; JPEG’s rather simple lossless process typically
+achieves around 2:1 compression of full-color data.</p>
+<p>The most widely implemented JPEG subset is the “baseline” JPEG process.
+This provides lossy compression of 8-bit-per-channel data.  Optional
+extensions include 12-bit-per-channel data, arithmetic entropy coding for
+better compression, and progressive/hierarchical representations.  The
+lossless process is an independent algorithm that has little in
+common with the lossy processes.</p>
+<p>It should be noted that the optional arithmetic-coding extension is subject
+to several US and Japanese patents.  To avoid patent problems, use of
+arithmetic coding processes in TIFF files intended for inter-application
+interchange is discouraged.</p>
+<p>All of the JPEG processes are useful only for “continuous tone” data,
+in which the difference between adjacent pixel values is usually small.
+Low-bit-depth source data is not appropriate for JPEG compression, nor
+are palette-color images good candidates.  The JPEG processes work well
+on grayscale and full-color data.</p>
+<p>Describing the JPEG compression algorithms in sufficient detail to permit
+implementation would require more space than we have here.  Instead, we
+refer the reader to the References section.</p>
+</section>
+<section id="what-data-is-being-compressed">
+<h3>What data is being compressed?<a class="headerlink" href="#what-data-is-being-compressed" title="Permalink to this heading">¶</a></h3>
+<p>In lossy JPEG compression, it is customary to convert color source data
+to YCbCr and then downsample it before JPEG compression.  This gives
+2:1 data compression with hardly any visible image degradation, and it
+permits additional space savings within the JPEG compression step proper.
+However, these steps are not considered part of the ISO JPEG standard.
+The ISO standard is “color blind”: it accepts data in any color space.</p>
+<p>For TIFF purposes, the JPEG compression tag is considered to represent the
+ISO JPEG compression standard only.  The ISO standard is applied to the
+same data that would be stored in the TIFF file if no compression were
+used.  Therefore, if color conversion or downsampling are used, they must
+be reflected in the regular TIFF fields; these steps are not considered to
+be implicit in the JPEG compression tag value.  <code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code>
+and related fields shall describe the color space actually stored in the
+file.  With the TIFF 6.0 field definitions, downsampling is permissible
+only for YCbCr data, and it must correspond to the <code class="docutils literal notranslate"><span class="pre">YCbCrSubSampling</span></code> field.
+(Note that the default value for this field is not 1,1; so the default for
+YCbCr is to apply downsampling!)  It is likely that future versions of TIFF
+will provide additional <code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> values and a more general
+way of defining subsampling, so as to allow more flexibility in
+JPEG-compressed files.  But that issue is not addressed in this Tech Note.</p>
+<p>Implementors should note that many popular JPEG codecs
+(compressor/decompressors) provide automatic color conversion and
+downsampling, so that the application may supply full-size RGB data which
+is nonetheless converted to downsampled YCbCr.  This is an implementation
+convenience which does not excuse the TIFF control layer from its
+responsibility to know what is really going on.  The
+<code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> and subsampling fields written to the file must
+describe what is actually in the file.</p>
+<p>A JPEG-compressed TIFF file will typically have <code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span> <span class="pre">=</span>
+<span class="pre">YCbCr</span></code> and <code class="docutils literal notranslate"><span class="pre">YCbCrSubSampling</span> <span class="pre">=</span> <span class="pre">[2,1]</span></code> or <code class="docutils literal notranslate"><span class="pre">[2,2]</span></code>, unless the source data was
+grayscale or CMYK.</p>
+</section>
+<section id="basic-representation-of-jpeg-compressed-images">
+<h3>Basic representation of JPEG-compressed images<a class="headerlink" href="#basic-representation-of-jpeg-compressed-images" title="Permalink to this heading">¶</a></h3>
+<p>JPEG compression works in either strip-based or tile-based TIFF files.
+Rather than repeating “strip or tile” constantly, we will use the term
+“segment” to mean either a strip or a tile.</p>
+<p>When the <code class="docutils literal notranslate"><span class="pre">Compression</span></code> field has the value 7, each image segment contains
+a complete JPEG datastream which is valid according to the ISO JPEG
+standard (ISO/IEC 10918-1).  Any sequential JPEG process can be used,
+including lossless JPEG, but progressive and hierarchical processes are not
+supported.  Since JPEG is useful only for continuous-tone images, the
+PhotometricInterpretation of the image shall not be 3 (palette color) nor
+4 (transparency mask).  The bit depth of the data is also restricted as
+specified below.</p>
+<p>Each image segment in a JPEG-compressed TIFF file shall contain a valid
+JPEG datastream according to the ISO JPEG standard’s rules for
+interchange-format or abbreviated-image-format data.  The datastream shall
+contain a single JPEG frame storing that segment of the image.  The
+required JPEG markers within a segment are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SOI</span></code> (must appear at very beginning of segment)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOFn</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SOS</span></code> (one for each scan, if there is more than one scan)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EOI</span></code> (must appear at very end of segment)</p></li>
+</ul>
+<p>The actual compressed data follows <code class="docutils literal notranslate"><span class="pre">SOS</span></code>; it may contain <code class="docutils literal notranslate"><span class="pre">RSTn</span></code> markers if <code class="docutils literal notranslate"><span class="pre">DRI</span></code>
+is used.</p>
+<p>Additional JPEG “tables and miscellaneous” markers may appear between <code class="docutils literal notranslate"><span class="pre">SOI</span></code>
+and <code class="docutils literal notranslate"><span class="pre">SOFn</span></code>, between <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> and <code class="docutils literal notranslate"><span class="pre">SOS</span></code>, and before each subsequent <code class="docutils literal notranslate"><span class="pre">SOS</span></code> if there is
+more than one scan.  These markers include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DQT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DHT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAC</span></code> (not to appear unless arithmetic coding is used)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">APPn</span></code> (shall be ignored by TIFF readers)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">COM</span></code> (shall be ignored by TIFF readers)</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">DNL</span></code> markers shall not be used in TIFF files.  Readers should abort if any
+other marker type is found, especially the JPEG reserved markers;
+occurrence of such a marker is likely to indicate a JPEG extension.</p>
+<p>The tables/miscellaneous markers may appear in any order.  Readers are
+cautioned that although the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> marker refers to <code class="docutils literal notranslate"><span class="pre">DQT</span></code> tables, JPEG does not
+require those tables to precede the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code>, only the <code class="docutils literal notranslate"><span class="pre">SOS</span></code>.  Missing-table
+checks should be made when SOS is reached.</p>
+<p>If no <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> field is used, then each image segment shall be a complete
+JPEG interchange datastream.  Each segment must define all the tables it
+references.  To allow readers to decode segments in any order, no segment
+may rely on tables being carried over from a previous segment.</p>
+<p>When a <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> field is used, image segments may omit tables that have
+been specified in the <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> field.  Further details appear below.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> marker shall be of type <code class="docutils literal notranslate"><span class="pre">SOF0</span></code> for strict baseline JPEG data, of
+type <code class="docutils literal notranslate"><span class="pre">SOF1</span></code> for non-baseline lossy JPEG data, or of type <code class="docutils literal notranslate"><span class="pre">SOF3</span></code> for lossless
+JPEG data.  (<code class="docutils literal notranslate"><span class="pre">SOF9</span></code> or <code class="docutils literal notranslate"><span class="pre">SOF11</span></code> would be used for arithmetic coding.)  All
+segments of a JPEG-compressed TIFF image shall use the same JPEG
+compression process, in particular the same <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> type.</p>
+<p>The data precision field of the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> marker shall agree with the TIFF
+<code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> field.  (Note that when <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=1</span></code>, this implies
+that all components must have the same <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> value; when
+<code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=2</span></code>, different components could have different bit
+depths.)  For <code class="docutils literal notranslate"><span class="pre">SOF0</span></code> only precision 8 is permitted; for <code class="docutils literal notranslate"><span class="pre">SOF1</span></code>, precision 8 or
+12 is permitted; for <code class="docutils literal notranslate"><span class="pre">SOF3</span></code>, precisions 2 to 16 are permitted.</p>
+<p>The image dimensions given in the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> marker shall agree with the logical
+dimensions of that particular strip or tile.  For strip images, the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code>
+image width shall equal <code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code> and the height shall equal <code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code>,
+except in the last strip; its <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> height shall equal the number of rows
+remaining in the <code class="docutils literal notranslate"><span class="pre">ImageLength</span></code>.  (In other words, no padding data is counted
+in the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> dimensions.)  For tile images, each <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> shall have width
+<code class="docutils literal notranslate"><span class="pre">TileWidth</span></code> and height <code class="docutils literal notranslate"><span class="pre">TileHeight</span></code>; adding and removing any padding needed in
+the edge tiles is the concern of some higher level of the TIFF software.
+(The dimensional rules are slightly different when <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=2</span></code>,
+as described below.)</p>
+<p>The ISO JPEG standard only permits images up to 65535 pixels in width or
+height, due to 2-byte fields in the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> markers.  In TIFF, this limits
+the size of an individual JPEG-compressed strip or tile, but the total
+image size can be greater.</p>
+<p>The number of components in the JPEG datastream shall equal <code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code>
+for <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=1</span></code>, and shall be 1 for <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=2</span></code>.  The
+components shall be stored in the same order as they are described at the
+TIFF field level.  (This applies both to their order in the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> marker,
+and to the order in which they are scanned if multiple JPEG scans are
+used.)  The component ID bytes are arbitrary so long as each component
+within an image segment is given a distinct ID.  To avoid any possible
+confusion, we require that all segments of a TIFF image use the same ID
+code for a given component.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span> <span class="pre">1</span></code>, the sampling factors given in <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> markers shall
+agree with the sampling factors defined by the related TIFF fields (or with
+the default values that are specified in the absence of those fields).</p>
+<p>When DCT-based JPEG is used in a strip TIFF file, <code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code> is required
+to be a multiple of 8 times the largest vertical sampling factor, i.e., a
+multiple of the height of an interleaved MCU.  (For simplicity of
+specification, we require this even if the data is not actually
+interleaved.)  For example, if <code class="docutils literal notranslate"><span class="pre">YCbCrSubSampling</span> <span class="pre">=</span> <span class="pre">[2,2]</span></code> then <code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code>
+must be a multiple of 16.  An exception to this rule is made for
+single-strip images (<code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span> <span class="pre">&gt;=</span> <span class="pre">ImageLength</span></code>): the exact value of
+<code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code> is unimportant in that case.  This rule ensures that no data
+padding is needed at the bottom of a strip, except perhaps the last strip.
+Any padding required at the right edge of the image, or at the bottom of
+the last strip, is expected to occur internally to the JPEG codec.</p>
+<p>When DCT-based JPEG is used in a tiled TIFF file, <code class="docutils literal notranslate"><span class="pre">TileLength</span></code> is required
+to be a multiple of 8 times the largest vertical sampling factor, i.e.,
+a multiple of the height of an interleaved MCU; and <code class="docutils literal notranslate"><span class="pre">TileWidth</span></code> is required
+to be a multiple of 8 times the largest horizontal sampling factor, i.e.,
+a multiple of the width of an interleaved MCU.  (For simplicity of
+specification, we require this even if the data is not actually
+interleaved.)  All edge padding required will therefore occur in the course
+of normal TIFF tile padding; it is not special to JPEG.</p>
+<p>Lossless JPEG does not impose these constraints on strip and tile sizes,
+since it is not DCT-based.</p>
+<p>Note that within JPEG datastreams, multibyte values appear in the MSB-first
+order specified by the JPEG standard, regardless of the byte ordering of
+the surrounding TIFF file.</p>
+</section>
+<section id="jpegtables-field">
+<h3>JPEGTables field<a class="headerlink" href="#jpegtables-field" title="Permalink to this heading">¶</a></h3>
+<p>The only auxiliary TIFF field added for <code class="docutils literal notranslate"><span class="pre">Compression=7</span></code> is the optional
+<code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> field.  The purpose of <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> is to predefine JPEG
+quantization and/or Huffman tables for subsequent use by JPEG image
+segments.  When this is done, these rather bulky tables need not be
+duplicated in each segment, thus saving space and processing time.
+<code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> may be used even in a single-segment file, although there is no
+space savings in that case.</p>
+<p><code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Tag = 347 (15B.H)</p></li>
+<li><p>Type = UNDEFINED</p></li>
+<li><p>N = number of bytes in tables datastream, typically a few hundred</p></li>
+</ul>
+</div></blockquote>
+<p>JPEGTables provides default JPEG quantization and/or Huffman tables which
+are used whenever a segment datastream does not contain its own tables, as
+specified below.</p>
+<p>Notice that the JPEGTables field is required to have type code UNDEFINED,
+not type code BYTE.  This is to cue readers that expanding individual bytes
+to short or long integers is not appropriate.  A TIFF reader will generally
+need to store the field value as an uninterpreted byte sequence until it is
+fed to the JPEG decoder.</p>
+<p>Multibyte quantities within the tables follow the ISO JPEG convention of
+MSB-first storage, regardless of the byte ordering of the surrounding TIFF
+file.</p>
+<p>When the JPEGTables field is present, it shall contain a valid JPEG
+“abbreviated table specification” datastream.  This datastream shall begin
+with <code class="docutils literal notranslate"><span class="pre">SOI</span></code> and end with <code class="docutils literal notranslate"><span class="pre">EOI</span></code>.  It may contain zero or more JPEG “tables and
+miscellaneous” markers, namely:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DQT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DHT</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAC</span></code> (not to appear unless arithmetic coding is used)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DRI</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">APPn*</span></code> (shall be ignored by TIFF readers)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">COM</span></code> (shall be ignored by TIFF readers)</p></li>
+</ul>
+<p>Since JPEG defines the <code class="docutils literal notranslate"><span class="pre">SOI</span></code> marker to reset the <code class="docutils literal notranslate"><span class="pre">DAC</span></code> and <code class="docutils literal notranslate"><span class="pre">DRI</span></code> state, these two
+markers’ values cannot be carried over into any image datastream, and thus
+they are effectively no-ops in the <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> field.  To avoid confusion,
+it is recommended that writers not place <code class="docutils literal notranslate"><span class="pre">DAC</span></code> or <code class="docutils literal notranslate"><span class="pre">DRI</span></code> markers in <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code>.
+However readers must properly skip over them if they appear.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> is present, readers shall load the table specifications
+contained in <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> before processing image segment datastreams.
+Image segments may simply refer to these preloaded tables without defining
+them.  An image segment can still define and use its own tables, subject to
+the restrictions below.</p>
+<p>An image segment may not redefine any table defined in <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code>.  (This
+restriction is imposed to allow readers to process image segments in random
+order without having to reload <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> between segments.)  Therefore, use
+of <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> divides the available table slots into two groups: “global”
+slots are defined in <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> and may be used but not redefined by
+segments; “local” slots are available for local definition and use in each
+segment.  To permit random access, a segment may not reference any local
+tables that it does not itself define.</p>
+</section>
+<section id="special-considerations-for-planarconfiguration-2">
+<h3>Special considerations for PlanarConfiguration 2<a class="headerlink" href="#special-considerations-for-planarconfiguration-2" title="Permalink to this heading">¶</a></h3>
+<p>In <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> 2, each image segment contains data for only one
+color component.  To avoid confusing the JPEG codec, we wish the segments
+to look like valid single-channel (i.e., grayscale) JPEG datastreams.  This
+means that different rules must be used for the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> parameters.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> 2, the dimensions given in the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> of a subsampled
+component shall be scaled down by the sampling factors compared to the <code class="docutils literal notranslate"><span class="pre">SOFn</span></code>
+dimensions that would be used in <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> 1.  This is necessary
+to match the actual number of samples stored in that segment, so that the
+JPEG codec doesn’t complain about too much or too little data.  In strip
+TIFF files the computed dimensions may need to be rounded up to the next
+integer; in tiled files, the restrictions on tile size make this case
+impossible.</p>
+<p>Furthermore, all <code class="docutils literal notranslate"><span class="pre">SOFn</span></code> sampling factors shall be given as 1.  (This is
+merely to avoid confusion, since the sampling factors in a single-channel
+JPEG datastream have no real effect.)</p>
+<p>Any downsampling will need to happen externally to the JPEG codec, since
+JPEG sampling factors are defined with reference to the full-precision
+component.  In <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> 2, the JPEG codec will be working on
+only one component at a time and thus will have no reference component to
+downsample against.</p>
+</section>
+<section id="minimum-requirements-for-tiff-jpeg">
+<h3>Minimum requirements for TIFF/JPEG<a class="headerlink" href="#minimum-requirements-for-tiff-jpeg" title="Permalink to this heading">¶</a></h3>
+<p>ISO JPEG is a large and complex standard; most implementations support only
+a subset of it.  Here we define a “core” subset of TIFF/JPEG which readers
+must support to claim TIFF/JPEG compatibility.  For maximum
+cross-application compatibility, we recommend that writers confine
+themselves to this subset unless there is very good reason to do otherwise.</p>
+<p>Use the ISO baseline JPEG process: 8-bit data precision, Huffman coding,
+with no more than 2 DC and 2 AC Huffman tables.  Note that this implies
+<code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> = 8 for each component.  We recommend deviating from baseline
+JPEG only if 12-bit data precision or lossless coding is required.</p>
+<p>Use no subsampling (all JPEG sampling factors = 1) for color spaces other
+than YCbCr.  (This is, in fact, required with the TIFF 6.0 field
+definitions, but may not be so in future revisions.)  For YCbCr, use one of
+the following choices:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>YCbCrSubSampling field</p></th>
+<th class="head"><p>JPEG sampling factors</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1,1</p></td>
+<td><p>1h1v, 1h1v, 1h1v</p></td>
+</tr>
+<tr class="row-odd"><td><p>2,1</p></td>
+<td><p>2h1v, 1h1v, 1h1v</p></td>
+</tr>
+<tr class="row-even"><td><p>2,2 (default value)</p></td>
+<td><p>2h2v, 1h1v, 1h1v</p></td>
+</tr>
+</tbody>
+</table>
+<p>We recommend that RGB source data be converted to YCbCr for best compression
+results.  Other source data colorspaces should probably be left alone.
+Minimal readers need not support JPEG images with colorspaces other than
+YCbCr and grayscale (<cite>PhotometricInterpretation</cite> = 6 or 1).</p>
+<p>A minimal reader also need not support JPEG YCbCr images with nondefault
+values of <code class="docutils literal notranslate"><span class="pre">YCbCrCoefficients</span></code> or <code class="docutils literal notranslate"><span class="pre">YCbCrPositioning</span></code>, nor with values of
+<code class="docutils literal notranslate"><span class="pre">ReferenceBlackWhite</span></code> other than [0,255,128,255,128,255].  (These values
+correspond to the RGB&lt;=&gt;YCbCr conversion specified by JFIF, which is widely
+implemented in JPEG codecs.)</p>
+<p>Writers are reminded that a <code class="docutils literal notranslate"><span class="pre">ReferenceBlackWhite</span></code> field <em>must</em> be included
+when <code class="docutils literal notranslate"><span class="pre">PhotometricInterpretation</span></code> is YCbCr, because the default
+<code class="docutils literal notranslate"><span class="pre">ReferenceBlackWhite</span></code> values are inappropriate for YCbCr.</p>
+<p>If any subsampling is used, <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=1</span></code> is preferred to avoid the
+possibly-confusing requirements of <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=2</span></code>.  In any case,
+readers are not required to support <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=2</span></code>.</p>
+<p>If possible, use a single interleaved scan in each image segment.  This is
+not legal JPEG if there are more than 4 <code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> or if the sampling
+factors are such that more than 10 blocks would be needed per MCU; in that
+case, use a separate scan for each component.  (The recommended color
+spaces and sampling factors will not run into that restriction, so a
+minimal reader need not support more than one scan per segment.)</p>
+<p>To claim TIFF/JPEG compatibility, readers shall support multiple-strip TIFF
+files and the optional <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> field; it is not acceptable to read only
+single-datastream files.  Support for tiled TIFF files is strongly
+recommended but not required.</p>
+</section>
+<section id="other-recommendations-for-implementors">
+<h3>Other recommendations for implementors<a class="headerlink" href="#other-recommendations-for-implementors" title="Permalink to this heading">¶</a></h3>
+<p>The TIFF tag <code class="docutils literal notranslate"><span class="pre">Compression=7</span></code> guarantees only that the compressed data is
+represented as ISO JPEG datastreams.  Since JPEG is a large and evolving
+standard, readers should apply careful error checking to the JPEG markers
+to ensure that the compression process is within their capabilities.  In
+particular, to avoid being confused by future extensions to the JPEG
+standard, it is important to abort if unknown marker codes are seen.</p>
+<p>The point of requiring that all image segments use the same JPEG process is
+to ensure that a reader need check only one segment to determine whether it
+can handle the image.  For example, consider a TIFF reader that has access
+to fast but restricted JPEG hardware, as well as a slower, more general
+software implementation.  It is desirable to check only one image segment
+to find out whether the fast hardware can be used.  Thus, writers should
+try to ensure that all segments of an image look as much “alike” as
+possible: there should be no variation in scan layout, use of options such
+as <code class="docutils literal notranslate"><span class="pre">DRI</span></code>, etc.  Ideally, segments will be processed identically except
+perhaps for using different local quantization or entropy-coding tables.</p>
+<p>Writers should avoid including “noise” JPEG markers (<code class="docutils literal notranslate"><span class="pre">COM</span></code> and <code class="docutils literal notranslate"><span class="pre">APPn</span></code> markers).
+Standard TIFF fields provide a better way to transport any non-image data.
+Some JPEG codecs may change behavior if they see an <code class="docutils literal notranslate"><span class="pre">APPn</span></code> marker they
+think they understand; since the TIFF spec requires these markers to be
+ignored, this behavior is undesirable.</p>
+<p>It is possible to convert an interchange-JPEG file (e.g., a JFIF file) to
+TIFF simply by dropping the interchange datastream into a single strip.
+(However, designers are reminded that the TIFF spec discourages huge
+strips; splitting the image is somewhat more work but may give better
+results.)  Conversion from TIFF to interchange JPEG is more complex.  A
+strip-based TIFF/JPEG file can be converted fairly easily if all strips use
+identical JPEG tables and no <code class="docutils literal notranslate"><span class="pre">RSTn</span></code> markers: just delete the overhead markers
+and insert <code class="docutils literal notranslate"><span class="pre">RSTn</span></code> markers between strips.  Converting tiled images is harder,
+since the data will usually not be in the right order (unless the tiles are
+only one MCU high).  This can still be done losslessly, but it will require
+undoing and redoing the entropy coding so that the DC coefficient
+differences can be updated.</p>
+<p>There is no default value for <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code>: standard TIFF files must define all
+tables that they reference.  For some closed systems in which many files will
+have identical tables, it might make sense to define a default <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code>
+value to avoid actually storing the tables.  Or even better, invent a
+private field selecting one of N default <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> settings, so as to allow
+for future expansion.  Either of these must be regarded as a private
+extension that will render the files unreadable by other applications.</p>
+</section>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this heading">¶</a></h3>
+<p>[1] Wallace, Gregory K.  “The JPEG Still Picture Compression Standard”,
+Communications of the ACM, April 1991 (vol. 34 no. 4), pp. 30-44.</p>
+<p>This is the best short technical introduction to the JPEG algorithms.
+It is a good overview but does not provide sufficiently detailed
+information to write an implementation.</p>
+<p>[2] Pennebaker, William B. and Mitchell, Joan L.  “JPEG Still Image Data
+Compression Standard”, Van Nostrand Reinhold, 1993, ISBN 0-442-01272-1.
+638pp.</p>
+<p>This textbook is by far the most complete exposition of JPEG in existence.
+It includes the full text of the ISO JPEG standards (DIS 10918-1 and draft
+DIS 10918-2).  No would-be JPEG implementor should be without it.</p>
+<p>[3] ISO/IEC IS 10918-1, “Digital Compression and Coding of Continuous-tone
+Still Images, Part 1: Requirements and guidelines”, February 1994.
+ISO/IEC DIS 10918-2, “Digital Compression and Coding of Continuous-tone
+Still Images, Part 2: Compliance testing”, final approval expected 1994.</p>
+<p>These are the official standards documents.  Note that the Pennebaker and
+Mitchell textbook is likely to be cheaper and more useful than the official
+standards.</p>
+</section>
+</section>
+<section id="changes-to-section-21-ycbcr-images">
+<h2>Changes to Section 21: YCbCr Images<a class="headerlink" href="#changes-to-section-21-ycbcr-images" title="Permalink to this heading">¶</a></h2>
+<p>[This section of the Tech Note clarifies section 21 to make clear the
+interpretation of image dimensions in a subsampled image.  Furthermore,
+the section is changed to allow the original image dimensions not to be
+multiples of the sampling factors.  This change is necessary to support use
+of JPEG compression on odd-size images.]</p>
+<p>Add the following paragraphs to the Section 21 introduction (p. 89),
+just after the paragraph beginning “When a Class Y image is subsampled”:</p>
+<blockquote>
+<div><p>In a subsampled image, it is understood that all TIFF image
+dimensions are measured in terms of the highest-resolution
+(luminance) component.  In particular, <code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">ImageLength</span></code>,
+<code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code>, <code class="docutils literal notranslate"><span class="pre">TileWidth</span></code>, <code class="docutils literal notranslate"><span class="pre">TileLength</span></code>, <code class="docutils literal notranslate"><span class="pre">XResolution</span></code>, and <code class="docutils literal notranslate"><span class="pre">YResolution</span></code>
+are measured in luminance samples.</p>
+<p><code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code>, <code class="docutils literal notranslate"><span class="pre">TileWidth</span></code>, and <code class="docutils literal notranslate"><span class="pre">TileLength</span></code> are constrained so that
+there are an integral number of samples of each component in a
+complete strip or tile.  However, <code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code>/<code class="docutils literal notranslate"><span class="pre">ImageLength</span></code> are not
+constrained.  If an odd-size image is to be converted to subsampled
+format, the writer should pad the source data to a multiple of the
+sampling factors by replication of the last column and/or row, then
+downsample.  The number of luminance samples actually stored in the
+file will be a multiple of the sampling factors.  Conversely,
+readers must ignore any extra data (outside the specified image
+dimensions) after upsampling.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration=2</span></code>, each strip or tile covers the same
+image area despite subsampling; that is, the total number of strips
+or tiles in the image is the same for each component.  Therefore
+strips or tiles of the subsampled components contain fewer samples
+than strips or tiles of the luminance component.</p>
+<p>If there are extra samples per pixel (see field <code class="docutils literal notranslate"><span class="pre">ExtraSamples</span></code>),
+these data channels have the same number of samples as the
+luminance component.</p>
+</div></blockquote>
+<p>Rewrite the <code class="docutils literal notranslate"><span class="pre">YCbCrSubSampling</span></code> field description (pp 91-92) as follows
+(largely to eliminate possibly-misleading references to
+<code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code>/<code class="docutils literal notranslate"><span class="pre">ImageLength</span></code> of the subsampled components):</p>
+<blockquote>
+<div><p>(first paragraph unchanged)</p>
+<p>The two elements of this field are defined as follows:</p>
+<p>Short 0: <code class="docutils literal notranslate"><span class="pre">ChromaSubsampleHoriz</span></code>:</p>
+<blockquote>
+<div><p>1 = there are equal numbers of luma and chroma samples horizontally.</p>
+<p>2 = there are twice as many luma samples as chroma samples
+horizontally.</p>
+<p>4 = there are four times as many luma samples as chroma samples
+horizontally.</p>
+</div></blockquote>
+<p>Short 1: <code class="docutils literal notranslate"><span class="pre">ChromaSubsampleVert</span></code>:</p>
+<blockquote>
+<div><p>1 = there are equal numbers of luma and chroma samples vertically.</p>
+<p>2 = there are twice as many luma samples as chroma samples
+vertically.</p>
+<p>4 = there are four times as many luma samples as chroma samples
+vertically.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">ChromaSubsampleVert</span></code> shall always be less than or equal to
+<code class="docutils literal notranslate"><span class="pre">ChromaSubsampleHoriz</span></code>.  Note that Cb and Cr have the same sampling
+ratios.</p>
+<p>In a strip TIFF file, <code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code> is required to be an integer
+multiple of <code class="docutils literal notranslate"><span class="pre">ChromaSubSampleVert</span></code> (unless <code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span> <span class="pre">&gt;=</span>
+<span class="pre">ImageLength</span></code>, in which case its exact value is unimportant).
+If <code class="docutils literal notranslate"><span class="pre">ImageWidth</span></code> and <code class="docutils literal notranslate"><span class="pre">ImageLength</span></code> are not multiples of
+<code class="docutils literal notranslate"><span class="pre">ChromaSubsampleHoriz</span></code> and <code class="docutils literal notranslate"><span class="pre">ChromaSubsampleVert</span></code> respectively, then the
+source data shall be padded to the next integer multiple of these
+values before downsampling.</p>
+<p>In a tiled TIFF file, <code class="docutils literal notranslate"><span class="pre">TileWidth</span></code> must be an integer multiple of
+<code class="docutils literal notranslate"><span class="pre">ChromaSubsampleHoriz</span></code> and <code class="docutils literal notranslate"><span class="pre">TileLength</span></code> must be an integer multiple of
+<code class="docutils literal notranslate"><span class="pre">ChromaSubsampleVert</span></code>.  Padding will occur to tile boundaries.</p>
+<p>The default values of this field are [ 2,2 ].  Thus, YCbCr data is
+downsampled by default!</p>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">DRAFT TIFF Technical Note #2</a><ul>
+<li><a class="reference internal" href="#problems-in-tiff-6-0-jpeg">Problems in TIFF 6.0 JPEG</a><ul>
+<li><a class="reference internal" href="#design-errors-and-limitations">Design errors and limitations</a></li>
+<li><a class="reference internal" href="#ambiguities">Ambiguities</a></li>
+<li><a class="reference internal" href="#unnecessary-complexity">Unnecessary complexity</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#overview-of-the-solution">Overview of the solution</a></li>
+<li><a class="reference internal" href="#replacement-tiff-jpeg-specification">Replacement TIFF/JPEG specification</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#what-data-is-being-compressed">What data is being compressed?</a></li>
+<li><a class="reference internal" href="#basic-representation-of-jpeg-compressed-images">Basic representation of JPEG-compressed images</a></li>
+<li><a class="reference internal" href="#jpegtables-field">JPEGTables field</a></li>
+<li><a class="reference internal" href="#special-considerations-for-planarconfiguration-2">Special considerations for PlanarConfiguration 2</a></li>
+<li><a class="reference internal" href="#minimum-requirements-for-tiff-jpeg">Minimum requirements for TIFF/JPEG</a></li>
+<li><a class="reference internal" href="#other-recommendations-for-implementors">Other recommendations for implementors</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#changes-to-section-21-ycbcr-images">Changes to Section 21: YCbCr Images</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">TIFF File Format Specification</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="bigtiff.html"
+                          title="next chapter">BigTIFF Design</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/specification/technote2.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="bigtiff.html" title="BigTIFF Design"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="TIFF File Format Specification"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >TIFF File Format Specification</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DRAFT TIFF Technical Note #2</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

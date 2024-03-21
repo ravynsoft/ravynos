@@ -1,0 +1,35 @@
+#compdef ionice
+
+local curcontext="$curcontext" state line expl ret=1
+local -A opt_args
+
+_arguments -C -s -S \
+  '(H -c --class)'{-c+,--class=}'[scheduling class]:class:((0\:none 1\:realtime 2\:best-effort 3\:idle))' \
+  '(H -m --classdata)'{-n+,--classdata=}'[scheduling class priority]:class-priority:((
+    0\:high\ priority
+    {6..1}\:
+    7\:low\ priority
+  ))' \
+  '(H -t --ignore)'{-t,--ignore}'[ignore failures]' \
+  '(H)*:: :->args' \
+  + 'H' \
+  '(- *)'{-V,--version}'[display version information]' \
+  '(- *)'{-h,--help}'[display help information]' \
+  + '(args)' \
+  '(H)'{-p-,--pid=-}'[interpret args as process ID]::process id:_pids' \
+  '(H)'{-P-,--pgid=-}'[specify process group IDs]::process group:_pgids' \
+  '(H)'{-u-,--uid=-}'[act on running process owned by specified users]::user id' && ret=0
+
+if [[ -n $state ]]; then
+  if (( $+opt_args[args--p] || $+opt_args[args---pid] )); then
+    _pids && ret=0
+  elif (( $+opt_args[args--P] || $+opt_args[args---pgid] )); then
+    _pgids && ret=0
+  elif (( $+opt_args[args--u] || $+opt_args[args---uid] )); then
+    _message -e uids 'user id'
+  else
+    _normal && ret=0
+  fi
+fi
+
+return ret

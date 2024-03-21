@@ -1,4 +1,3 @@
-#	@(#)Makefile.inc	8.6 (Berkeley) 5/4/95
 
 # machine-independent gen sources
 .PATH: ${LIBC_SRCTOP}/${LIBC_ARCH}/gen ${LIBC_SRCTOP}/gen ${SRCTOP}/etc
@@ -103,6 +102,7 @@ SRCS+=	__getosreldate.c \
 	lockf.c \
 	lrand48.c \
 	memalign.c \
+	memfd_create.c \
 	mrand48.c \
 	nftw.c \
 	nftw-compat11.c \
@@ -485,7 +485,11 @@ MLINKS+=posix_spawn.3 posix_spawnp.3 \
 MLINKS+=psignal.3 strsignal.3 \
 	psignal.3 sys_siglist.3 \
 	psignal.3 sys_signame.3
-MLINKS+=pwcache.3 group_from_gid.3 \
+MLINKS+=pwcache.3 gid_from_group.3 \
+	pwcache.3 group_from_gid.3 \
+	pwcache.3 pwcache_groupdb.3 \
+	pwcache.3 pwcache_userdb.3 \
+	pwcache.3 uid_from_user.3 \
 	pwcache.3 user_from_uid.3
 MLINKS+=rand48.3 _rand48.3 \
 	rand48.3 drand48.3 \

@@ -1,0 +1,14 @@
+#autoload
+
+local -a parts suf
+
+parts=( users roles types )
+while compset -P 1 '*:' && (( $+parts[1] )) ; do
+  shift parts
+done
+if (( $+parts[1] )); then
+  compset -S ':*' || suf=( -S : )
+  _selinux_$parts[1] $suf
+else
+  _message -e selinux-ranges 'selinux range'
+fi

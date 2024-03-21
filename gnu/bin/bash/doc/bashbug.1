@@ -1,0 +1,67 @@
+.\"
+.\" MAN PAGE COMMENTS to
+.\"
+.\"     Chet Ramey
+.\"     Case Western Reserve University
+.\"     chet@po.cwru.edu
+.\"
+.\"     Last Change: Sun Aug  2 15:39:07 EDT 2020
+.\"
+.TH BASHBUG 1 "2020 August 1" "GNU Bash 5.1"
+.SH NAME
+bashbug \- report a bug in bash
+.SH SYNOPSIS
+\fBbashbug\fP [\fI--version\fP] [\fI--help\fP] [\fIemail-address\fP]
+.SH DESCRIPTION
+.B bashbug
+is a shell script to help the user compose and mail bug reports
+concerning bash in a standard format.
+.B bashbug
+invokes the editor specified by the environment variable
+.SM
+.B EDITOR
+on a temporary copy of the bug report format outline. The user must
+fill in the appropriate fields and exit the editor.
+.B bashbug
+then mails the completed report to \fIbug-bash@gnu.org\fP, or
+\fIemail-address\fP.  If the report cannot be mailed, it is saved in the
+file \fIdead.bashbug\fP in the invoking user's home directory.
+.PP
+The bug report format outline consists of several sections.  The first
+section provides information about the machine, operating system, the
+bash version, and the compilation environment.  The second section
+should be filled in with a description of the bug.  The third section
+should be a description of how to reproduce the bug.  The optional
+fourth section is for a proposed fix.  Fixes are encouraged.
+.SH ENVIRONMENT
+.B bashbug
+will utilize the following environment variables if they exist:
+.TP
+.B EDITOR
+Specifies the preferred editor. If
+.SM
+.B EDITOR
+is not set,
+.B bashbug
+attempts to locate a number of alternative editors, including
+.BR emacs .
+If
+.B bashbug
+cannot locate any of the alternative editors, it attempts to execute \fBvi\fP.
+.TP
+.B HOME
+Directory in which the failed bug report is saved if the mail fails.
+.TP
+.B TMPDIR
+Directory in which to create temporary files and directories.
+.SH "SEE ALSO"
+.TP
+\fIbash\fP(1)
+.SH AUTHORS
+Brian Fox, Free Software Foundation
+.br
+bfox@gnu.org
+.PP
+Chet Ramey, Case Western Reserve University
+.br
+chet@po.cwru.edu

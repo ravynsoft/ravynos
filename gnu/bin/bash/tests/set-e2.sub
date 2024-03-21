@@ -1,0 +1,10 @@
+${THIS_SH} -ce 'true || false ; echo "true || false no exit"'
+${THIS_SH} -ce 'false || false ; echo "false || false no exit"'
+${THIS_SH} -ce 'false || true ; echo "false || true no exit"'
+
+${THIS_SH} -ce 'false && false ; echo "false && false no exit"'
+${THIS_SH} -ce 'true && false ; echo "true && false no exit"'
+
+${THIS_SH} -ce 'true && (exit 1) ; echo "true && (exit 1) no exit"'
+${THIS_SH} -ce 'true && true|false ; echo "true && true|false no exit"'
+${THIS_SH} -ce 'true && true|(false) ; echo "true && true|(false) no exit"'

@@ -1,0 +1,204 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2019-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDO_SENDLOG" "@mansectsu@" "January 16, 2023" "Sudo @PACKAGE_VERSION@" "System Manager's Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo_sendlog\fR
+\- send sudo I/O log to log server
+.SH "SYNOPSIS"
+.HP 13n
+\fBsudo_sendlog\fR
+[\fB\-AnV\fR]
+[\fB\-b\fR\ \fIca_bundle\fR]
+[\fB\-c\fR\ \fIcert_file\fR]
+[\fB\-h\fR\ \fIhost\fR]
+[\fB\-i\fR\ \fIiolog-id\fR]
+[\fB\-k\fR\ \fIkey_file\fR]
+[\fB\-p\fR\ \fIport\fR]
+[\fB\-r\fR\ \fIrestart-point\fR]
+[\fB\-R\fR\ \fIreject-reason\fR]
+[\fB\-s\fR\ \fIstop-point\fR]
+[\fB\-t\fR\ \fInumber\fR]
+\fIpath\fR
+.SH "DESCRIPTION"
+\fBsudo_sendlog\fR
+can be used to send the existing
+\fBsudoers\fR
+I/O log
+\fIpath\fR
+to a remote log server such as
+sudo_logsrvd(@mansectsu@)
+for central storage.
+.PP
+The options are as follows:
+.TP 8n
+\fB\-A\fR, \fB\--accept-only\fR
+Only send the accept event, not the I/O associated with the log.
+This can be used to test the logging of accept events without
+any associated I/O.
+.TP 8n
+\fB\-b\fR, \fB\--ca-bundle\fR
+The path to a certificate authority bundle file, in PEM format,
+to use instead of the system's default certificate authority database
+when authenticating the log server.
+The default is to use the system's default certificate authority database.
+.TP 8n
+\fB\-c\fR, \fB\--cert\fR
+The path to the client's certificate file in PEM format.
+This setting is required when the connection to the remote log server
+is secured with TLS.
+.TP 8n
+\fB\--help\fR
+.br
+Display a short help message to the standard output and exit.
+.TP 8n
+\fB\-h\fR, \fB\--host\fR
+Connect to the specified
+\fIhost\fR
+instead of localhost.
+.TP 8n
+\fB\-i\fR, \fB\--iolog-id\fR
+Use the specified
+\fIiolog-id\fR
+when restarting a log transfer.
+The
+\fIiolog-id\fR
+is reported by the server when it creates the remote I/O log.
+This option may only be used in conjunction with the
+\fB\-r\fR
+option.
+.TP 8n
+\fB\-k\fR, \fB\--key\fR
+The path to the client's private key file in PEM format.
+This setting is required when the connection to the remote log server
+is secured with TLS.
+.TP 8n
+\fB\-n\fR, \fB\--no-verify\fR
+If specified, the server's certificate will not be verified during
+the TLS handshake.
+By default,
+\fBsudo_sendlog\fR
+verifies that the server's certificate is valid and that it contains either
+the server's host name or its IP address.
+This setting is only supported when the connection to the remote log server
+is secured with TLS.
+.TP 8n
+\fB\-p\fR, \fB\--port\fR
+Use the specified network
+\fIport\fR
+when connecting to the log server instead of the
+default, port 30344.
+.TP 8n
+\fB\-r\fR, \fB\--restart\fR
+Restart an interrupted connection to the log server.
+The specified
+\fIrestart-point\fR
+is used to tell the server the point in time at which to continue the log.
+The
+\fIrestart-point\fR
+is specified in the form
+\(lqseconds,nanoseconds\(rq
+and is usually the last commit point received from the server.
+The
+\fB\-i\fR
+option must also be specified when restarting a transfer.
+.TP 8n
+\fB\-R\fR, \fB\--reject\fR
+Send a reject event for the command using the specified
+\fIreject-reason\fR,
+even though it was actually accepted locally.
+This can be used to test the logging of reject events; no I/O
+will be sent.
+.TP 8n
+\fB\-s\fR, \fB\--stop-after\fR
+Stop sending log records and close the connection when
+\fIstop-point\fR
+is reached.
+This can be used for testing purposes to send a partial I/O log to the server.
+Partial logs can be restarted using the
+\fB\-r\fR
+option.
+The
+\fIstop-point\fR
+is an elapsed time specified in the form
+\(lqseconds,nanoseconds\(rq.
+.TP 8n
+\fB\-t\fR, \fB\--test\fR
+Open
+\fInumber\fR
+simultaneous connections to the log server and send the specified
+I/O log file on each one.
+This option is useful for performance testing.
+.TP 8n
+\fB\-V\fR, \fB\--version\fR
+Print the
+\fBsudo_sendlog\fR
+version and exit.
+.SS "Debugging sendlog"
+\fBsudo_sendlog\fR
+supports a flexible debugging framework that is configured via
+\fIDebug\fR
+lines in the
+sudo.conf(@mansectform@)
+file.
+.PP
+For more information on configuring
+sudo.conf(@mansectform@),
+refer to its manual.
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo.conf\fR
+Sudo front-end configuration
+.SH "SEE ALSO"
+sudo.conf(@mansectform@),
+sudo(@mansectsu@),
+sudo_logsrvd(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo_sendlog\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo_sendlog\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

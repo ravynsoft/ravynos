@@ -133,6 +133,8 @@ CHACHA20INCS+=	${SRCTOP}/sys/crypto/chacha20/_chacha.h \
 
 .if ${MACHINE} == "host"
 _host_arch= ${_HOST_ARCH}
+.elif ${MACHINE} == "host32"
+_host_arch= ${_HOST_ARCH32}
 .else
 _host_arch=${MACHINE}
 .endif
@@ -201,9 +203,15 @@ SRCS+=	strtonum.c merge.c heapsort.c reallocf.c
 SRCS+=	rpmatch.c
 
 .if ${.MAKE.OS} == "Linux"
-# On Linux, glibc does not provide strlcpy,strlcat or strmode.
+# On Linux, glibc does not provide strmode. It only provides strlcpy
+# and strlcat from glibc 2.38.
 .PATH: ${LIBC_SRCTOP}/string
-SRCS+=	strlcpy.c strlcat.c strmode.c
+SRCS+=	strmode.c
+# Assume if strlcpy exists so does strlcat
+_WITH_EXPLICIT_STRLCPY!= cat ${HOST_INCLUDE_ROOT}/strings.h ${HOST_INCLUDE_ROOT}/string.h | grep -c strlcpy || true
+.if ${_WITH_EXPLICIT_STRLCPY} == 0
+SRCS+=	strlcpy.c strlcat.c
+.endif
 # On Linux, glibc provides ffs* but not fls*
 SRCS+=	fls.c flsl.c flsll.c
 # Compile the fgetln/fgetwln/closefrom fallback code from libbsd:
@@ -214,6 +222,10 @@ CFLAGS.closefrom.c+=	-DSTDC_HEADERS -DHAVE_SYS_DIR_H -DHAVE_DIRENT_H \
 SRCS+=	progname.c
 # Stub implementations of fflagstostr/strtofflags
 SRCS+=	fflags.c
+
+# macOS has a standalone cross-build implementation, but Linux can use the same
+# ELF one as FreeBSD
+SYSINCS+=	${SRCTOP}/sys/sys/linker_set.h
 
 .endif # ${MAKE.OS} == "Linux"
 
@@ -298,6 +310,8 @@ SYSINCS+=	${SRCTOP}/sys/sys/elf.h
 SYSINCS+=	${SRCTOP}/sys/sys/ctf.h
 # for kbdcontrol:
 SYSINCS+=	${SRCTOP}/sys/sys/kbio.h
+# for kldxref:
+SYSINCS+=	${SRCTOP}/sys/sys/module.h
 
 # We want to run the build with only ${WORLDTMP} in $PATH to ensure we don't
 # accidentally run tools that are incompatible but happen to be in $PATH.

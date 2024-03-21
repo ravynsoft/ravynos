@@ -1,0 +1,67 @@
+#compdef rubber rubber-pipe rubber-info
+
+local _rubber_version _rubber_path _rubber_modules _rubber_args
+
+eval $(rubber --version 2>/dev/null | sed 's/^.* \([^ ]*\): */_rubber_\1=/')
+if [[ ${_rubber_version#0} != $_rubber_version ]]; then
+  _rubber_modules=(
+    $_rubber_path/rubber/modules/[^_]*.py(N:r:t)
+  )
+else
+  _rubber_modules=(
+    $_rubber_path/modules/*.rub(N:r:t)
+    $_rubber_path/rubber/rules/latex/[^_]*.py(N:r:t)
+  )
+fi
+
+_rubber_args=(
+  \*{-c,--command}'=[run specified directive command before parsing]:command'
+  \*{-e,--epilogue}'=[run specified directive command after parsing]:command'
+  '(-z --gzip)'{-z,--gzip}'[compress the final document]'
+  '(- *)'{-h,--help}'[show help information]'
+  '--into=[go to specified directory before compiling]:directory:_files -/'
+  '(-l --landscape)'{-l,--landscape}'[change paper orientation (if relevant)]'
+  '(-n --maxerr)'{-n,--maxerr}'=[display at most specified number of errors]:number'
+  \*{-m,--module}'=[use module]:module:($_rubber_modules)'
+  '--only=[only include the specified sources]:sources'
+  \*{-o,--post}'=[postprocess with module]:postprocessor:($_rubber_modules)'
+  '(-d --pdf -p -ps)'{-d,--pdf}'[produce PDF output instead of DVI]'
+  '(-p -ps -d --pdf)'{-p,--ps}'[produce a PostScript document]'
+  {-q,--quiet}'[suppress messages]'
+  \*{-r,--read}'[read additional directives from a file]:directives files:_files'
+  {-s,--short}'[display errors in compact form]'
+  \*{-I,--texpath}'=[add directory to the search path for LaTeX]:tex path:_files -/'
+  \*{-v,--verbose}'[increase verbosity]'
+  '--version[print version information and exit]'
+)
+
+case "$service" in
+  rubber)
+    _arguments -s \
+      "$_rubber_args[@]" \
+      '--clean[remove produced files instead of compiling]' \
+      {-f,--force}'[force at least one compilation]' \
+      '--inplace[compile the documents from their source directory]' \
+      \*{-W,--warn}'=[report warnings of the given type]:warnings:(all boxes misc refs)' \
+      '*:LaTeX files:_files -g "*.(tex|dtx|lhs|w)(-.)"'
+	;;
+	
+  rubber-pipe)
+    _arguments -s \
+      "$_rubber_args[@]" \
+      {-k,--keep}'[keep the temporary files after compiling]' \
+      \*{-W,--warn}'=[report warnings of the given type]:warnings:(all boxes misc refs)'
+	;;
+	
+  rubber-info)
+    _arguments -s \
+      "$_rubber_args[@]" \
+      '--boxes[report overfull and underfull boxes]' \
+      '--check[report errors or warnings default action]' \
+      '--deps[show the target file s dependencies]' \
+      '--errors[show all errors that occurred during compilation]' \
+      '--refs[show the list of undefined references]' \
+      '--warnings[show all LaTeX warnings]' \
+      ':LaTeX file:_files -g "*.(tex|dtx|lhs|w)(-.)"'
+  ;;
+esac

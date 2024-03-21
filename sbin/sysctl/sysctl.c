@@ -29,7 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -998,8 +997,10 @@ show_info(char *name, const char *sep, int ctltype, char *fmt, int *qoid, int nl
 	bzero(buf, BUFSIZ);
 	j = sizeof(buf);
 	i = sysctl(qoid, nlen + 2, buf, &j, 0, 0);
-	if (i < 0)
+	if (i < 0) {
+		putchar('\n');
 		return (1);
+	}
 	fputs(buf, stdout);
 	return (error);
 }

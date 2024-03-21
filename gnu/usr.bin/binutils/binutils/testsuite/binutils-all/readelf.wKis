@@ -1,0 +1,23 @@
+#...
+Contents of the .debug_str section \(loaded from .*debuglink.o\):
+
+  0x00000000 73747269 6e672d31 00737472 696e672d string-1.string-
+  0x00000010 3200                                2.
+#...
+Contents of the .debug_info section \(loaded from .*debuglink.o\):
+
+  Compilation Unit @ offset (0x)?0:
+   Length:        0x12 \(32-bit\)
+   Version:       4
+   Abbrev Offset: (0x)?0
+   Pointer Size:  4
+ <0><b>: Abbrev Number: 1 \(DW_TAG_compile_unit\)
+    <c>   DW_AT_name        : \(indirect string, offset: (0x)?0\): string-1
+ <0><10>: Abbrev Number: 2 \(DW_TAG_subprogram\)
+    <11>   DW_AT_name        : \(alt indirect string, offset: (0x)?0\) string-3
+#...
+Contents of the .debug_str section \(loaded from .*linkdebug.debug\):
+
+  0x00000000 73747269 6e672d33 00737472 696e672d string-3.string-
+  0x00000010 3400                                4.
+#pass

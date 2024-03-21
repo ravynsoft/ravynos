@@ -1,4 +1,3 @@
-#	@(#)Makefile	8.1 (Berkeley) 6/5/93
 
 .include <src.opts.mk>
 
@@ -19,6 +18,7 @@ MAN=	arch.7 \
 	hostname.7 \
 	intro.7 \
 	maclabel.7 \
+	mitigations.7 \
 	operator.7 \
 	orders.7 \
 	ports.7 \

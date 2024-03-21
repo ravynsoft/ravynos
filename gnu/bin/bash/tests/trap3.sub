@@ -1,0 +1,9 @@
+PS4='+[$LINENO] '
+trap 'echo trap: $LINENO' ERR
+
+set -x
+
+echo 1
+echo 2
+false | false | false
+echo 4

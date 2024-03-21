@@ -1,0 +1,59 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgattrib on a PO file with contexts.
+
+cat <<\EOF > ma-test15.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+EOF
+
+: ${MSGATTRIB=msgattrib}
+${MSGATTRIB} --clear-fuzzy -o ma-test15.tmp ma-test15.po || Exit 1
+LC_ALL=C tr -d '\r' < ma-test15.tmp > ma-test15.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} ma-test15.po ma-test15.out
+result=$?
+
+exit $result

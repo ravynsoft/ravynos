@@ -1,0 +1,63 @@
+#compdef etags
+
+integer ret=1
+local context state line expl
+typeset -A opt_args
+
+_arguments \
+  '(-a --append)'{-a,--append}'[append tag entries]' \
+  '--packages-only[only generate tags for Ada packages]' \
+  '--declarations[C etc.: tags for function declarations]' \
+  '(-D --no-defines)'{-D,--no-defines}'[No tags for preprocessor definitions]' \
+  {-i-,--include=}'[Tag file should include another]:tag file:_files' \
+  {-l-,--language=}'[Specify language]:language:->lang' \
+  '--no-globals[No tag entries for global variables]' \
+  '--no-members[No tag entries for structure members]' \
+  {-r-,--regex=}'[Specify regular expression]:regular expression:->regex' \
+  {-R,--no-regex}'[No regular expressions for tags]' \
+  '(-I --ignore-indentation)'{-I,--ignore-indentation}'[Closing brace in first col may not be start of func]' \
+  '(-o --output)'{-o-,--output=}'[Specify output file]:file:_files' \
+  '--parse-stdin=[Specify file name for stdin]:file name:_files' \
+  '(-V --version)'{-V,--version}'[Output version]' \
+  '(-h --help)'{-h,--help}'[Output help]' \
+  '*:file to tag:_files' \
+  && ret=0
+
+case $state in
+  (lang)
+  local -a langs
+  langs=(${${${${(f)"$(etags --help)"}:#^  [^[:blank:]]##[[:blank:]]##([[:alnum:].]*|)}#  }%%[[:blank:]]*})
+  _wanted languages expl language compadd -a langs && ret=0
+  ;;
+
+  (regex)
+  if compset -P @; then
+    _files && ret=0
+  elif [[ -n $PREFIX ]]; then
+    local sep=$PREFIX[1]
+    [[ $sep = [\\*?#] ]] && sep="\\$sep"
+    local -a match mbegin mend
+    if compset -P "$sep*$sep*$sep"; then
+      local mods=smi
+      mods=${mods//[${PREFIX}]}
+      if [[ -n $mods ]]; then
+	compset -P '*'
+	local -a modarr
+	[[ $mods = *i* ]] && modarr+=("i:ignore case")
+	[[ $mods = *m* ]] && modarr+=("m:allow multi-line matches")
+	[[ $mods = *s* ]] && modarr+=("s:multi-line, dot matches newline")
+	_describe -t modifiers modifier modarr && ret=0
+      fi
+    elif compset -P "$sep*$sep"; then
+      _message "tagname" && ret=0
+    else
+      compset -P "$sep"
+      _message "tag regexp" && ret=0
+    fi
+  else
+    _message "regexp separator or @ for file" && ret=0
+  fi
+  ;;
+esac
+
+return ret

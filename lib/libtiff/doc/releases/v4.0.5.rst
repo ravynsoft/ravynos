@@ -1,0 +1,85 @@
+Changes in TIFF v4.0.5
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.5 (:tag:`Release-v4-0-5`)
+    Previous Version        :doc:`v4.0.4 <v4.0.4>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site        `<https://download.osgeo.org/libtiff/>`_
+    ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* Support for configure/build using CMake.
+* Support for large (> 2GB) files under Microsoft Windows.
+
+
+Software configuration changes
+------------------------------
+
+* :file:`CMakeLists.txt` / CMake
+
+  * Configuration and building using CMake is now supported
+    under Microsoft Windows and on Unix-type systems.
+
+* :file:`configure.ac` / :program:`configure`
+
+  * Test for and use :c:func:`fseeko` if it is available.  This allows
+    supporting large files on Unix-type systems with a 32-bit :c:expr:`long`
+    type and a 64-bit :c:type:`off_t` type.
+
+
+Library changes
+---------------
+
+* :file:`tiffiop.h`:
+
+  * Macros added to use 64-bit equivalents for all standard I/O
+    and POSIX APIs used by libtiff and its tools which are limited
+    to 2GB in Windows builds.  Note that these 64-bit equivalents
+    were introduced by the CRT provided with Visual Studio 2005 and
+    if the necessary CRT is not installed on the target computer,
+    the program will not run.  The wrapper macros will not be
+    activated unless the definition :c:macro:`_MSC_VER` is at least 1400 or
+    :c:macro:``__MSVCRT_VERSION__`` is at least ``0x800``.
+
+* :file:`tif_unix.c`:
+
+  * Updated to support large files under Microsoft Windows.
+    This makes :file:`tif_unix.c` a completely viable candidate for use
+    under Windows (in spite of its name) if the CRT is modern
+    enough.  Please note that :file:`tif_win32.c` already supported large
+    files, but only :program:`tiffinfo` and :program:`tiffdump` made any provision to
+    support large files under Windows.
+  * :c:func:`_tiffReadProc` and :c:func:`_tiffWriteProc` are modified to chunk
+    I/O to a maximum size of 2GB for extremely large I/O
+    requests. This surmounts limitations in the Microsoft Windows
+    :c:func:`read` and :c:func:`write` APIs (which are limited to the range of a
+    32-bit :c:expr:`int`), and may avoid poor behavior with extremely large
+    I/O requests on other systems.
+
+
+Tools changes
+-------------
+
+* All tools
+
+  * Updated to use I/O wrapper macros from :file:`tiffiop.h` in order
+    to support large files under Microsoft Windows.
+
+
+Contributed software changes
+----------------------------
+
+None

@@ -1,0 +1,1905 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2019-2021 Robert Manner <robert.manner@oneidentity.com>
+.\" Copyright (c) 2019-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDO_PLUGIN_PYTHON" "5" "January 16, 2023" "Sudo @PACKAGE_VERSION@" "File Formats Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo_plugin_python\fR
+\- Sudo Plugin API (Python)
+.SH "DESCRIPTION"
+Starting with version 1.9,
+\fBsudo\fR
+plugins can be written in python.
+The API closely follows the C
+\fBsudo\fR
+plugin API described by
+sudo_plugin(@mansectform@).
+.PP
+The supported plugins types are:
+.PP
+.RS 1n
+.PD 0
+.TP 3n
+\fB\(bu\fR
+Policy plugin
+.TP 3n
+\fB\(bu\fR
+I/O plugin
+.TP 3n
+\fB\(bu\fR
+Audit plugin
+.TP 3n
+\fB\(bu\fR
+Approval plugin
+.TP 3n
+\fB\(bu\fR
+Group provider plugin
+.RE
+.PD
+.PP
+Python plugin support needs to be explicitly enabled at build time
+with the configure option
+\(lq--enable-python\(rq.
+Python version 3.0 or higher is required.
+.SS "Sudo Python Plugin Base"
+A plugin written in Python should be a class in a python file that
+inherits from
+\fIsudo.Plugin\fR.
+The
+\fIsudo.Plugin\fR
+base class has no real purpose other than to identify this class as a plugin.
+.PP
+The only implemented method is a constructor, which stores the
+keyword arguments it receives as fields (member variables) in the object.
+This is intended as a convenience to allow you to avoid writing the
+constructor yourself.
+.PP
+For example:
+.nf
+.sp
+.RS 4n
+import sudo
+
+class MySudoPlugin(sudo.Plugin):
+    # example constructor (optional)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    # example destructor (optional)
+    def __del__(self):
+        pass
+.RE
+.fi
+.PP
+Both the constructor and destructor are optional and can be omitted.
+.PP
+The customized Plugin class should define a few plugin-specific methods.
+When the plugin loads,
+\fBsudo\fR
+will create an instance of this class and call the methods.
+The actual methods required depend on the type of the plugin,
+but most return an
+\fIint\fR
+result code, as documented in
+sudo_plugin(@mansectform@),
+that indicates whether or not the method was successful.
+The Python sudo module defines the following constants to improve readability:
+.RS 4n
+.TS
+l l.
+.PP
+\fBDefine\fR	\fBValue\fR
+.PP
+\fRsudo.RC.OK\fR	1
+.PP
+\fRsudo.RC.ACCEPT\fR	1
+.PP
+\fRsudo.RC.REJECT\fR	0
+.PP
+\fRsudo.RC.ERROR\fR	\-1
+.PP
+\fRsudo.RC.USAGE_ERROR\fR	\-2
+.TE
+.RE
+.PP
+If a function returns
+\fRNone\fR
+(for example, if it does not call return),
+it will be considered to have returned
+\fRsudo.RC.OK\fR.
+If an exception is raised (other than sudo.PluginException), the
+backtrace will be shown to the user and the plugin function will return
+\fRsudo.RC.ERROR\fR.
+If that is not acceptable, you must catch the exception and handle it yourself.
+.PP
+Instead of just returning
+\fRsudo.RC.ERROR\fR
+or
+\fRsudo.RC.REJECT\fR
+result code the plugin can also provide a message describing the problem.
+This can be done by raising one of the special exceptions:
+.nf
+.sp
+.RS 4n
+raise sudo.PluginError("Message")
+raise sudo.PluginReject("Message")
+.RE
+.fi
+.PP
+This added message will be used by the audit plugins.
+Both exceptions inherit from
+\fRsudo.PluginException\fR
+.SS "Python Plugin Loader"
+Running the Python interpreter and bridging between C and Python is
+handled by the
+\fBsudo\fR
+plugin
+\fI@python_plugin@\fR.
+This shared object can be loaded like any other dynamic
+\fBsudo\fR
+plugin and should receive the path and the class name of the Python
+plugin it is loading as arguments.
+.PP
+Example usage in
+sudo.conf(@mansectform@):
+.nf
+.sp
+.RS 4n
+Plugin python_policy @python_plugin@ ModulePath=<path> ClassName=<class>
+Plugin python_io @python_plugin@ ModulePath=<path> ClassName=<class>
+Plugin python_audit @python_plugin@ ModulePath=<path> ClassName=<class>
+Plugin python_approval @python_plugin@ ModulePath=<path> ClassName=<class>
+.RE
+.fi
+.PP
+Example group provider plugin usage in the
+\fIsudoers\fR
+file:
+.nf
+.sp
+.RS 4n
+Defaults group_plugin="@python_plugin@ ModulePath=<path> ClassName=<class>"
+.RE
+.fi
+.PP
+The plugin arguments are as follows:
+.TP 6n
+ModulePath
+The path of a python file which contains the class of the sudo Python plugin.
+It must be either an absolute path or a path relative to the sudo Python plugin
+directory,
+\fI@plugindir@/python\fR.
+The parent directory of
+\fIModulePath\fR
+will be appended to Python's module search path (there is currently no
+way to force Python to load a module from a fully-qualified path).
+It is good practice to use a prefix for the module file that is unlikely
+to conflict with other installed Python modules, for example,
+\fIsudo_policy.py\fR.
+Otherwise, if the there is an installed Python module with the same
+file name as the sudo Python plugin file (without the directory),
+the wrong file will be loaded.
+.TP 6n
+ClassName
+(Optional.) The name of the class implementing the sudo Python plugin.
+If not supplied, the one and only sudo.Plugin that is present in the module
+will be used.
+If there are multiple such plugins in the module (or none), it
+will result in an error.
+.SS "Policy plugin API"
+Policy plugins must be registered in
+sudo.conf(@mansectform@).
+For example:
+.nf
+.sp
+.RS 4n
+Plugin python_policy @python_plugin@ ModulePath=<path> ClassName=<class>
+.RE
+.fi
+.PP
+Currently, only a single policy plugin may be specified in
+sudo.conf(@mansectform@).
+.PP
+A policy plugin may have the following member functions:
+.TP 6n
+\fIconstructor\fR
+.nf
+.RS 6n
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...],
+    plugin_options: Tuple[str, ...])
+.RE
+.fi
+.RS 6n
+.sp
+Implementing this function is optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.sp
+The constructor matches the
+\fBopen\fR()
+function in the C
+\fBsudo\fR
+plugin API.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIuser_env\fR
+The user's environment as a tuple of strings in
+\(lqkey=value\(rq
+format.
+.TP 6n
+\fIsettings\fR
+A tuple of user-supplied
+\fIsudo\fR
+settings in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIversion\fR
+The version of the Python Policy Plugin API.
+.TP 6n
+\fIuser_info\fR
+A tuple of information about the user running the command in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIplugin_options\fR
+The plugin options passed as arguments in the
+sudo.conf(@mansectform@)
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+\(lqkey=value\(rq
+format.
+.PP
+The
+\fBsudo.options_as_dict\fR()
+convenience function can be used to convert
+\(lqkey=value\(rq
+pairs to a dictionary.
+For a list of recognized keys and their supported values,
+see the policy plugin
+\fBopen\fR()
+documentation in
+sudo_plugin(@mansectform@).
+.RE
+.TP 6n
+\fIcheck_policy\fR
+.nf
+.RS 6n
+check_policy(self, argv: Tuple[str, ...], env_add: Tuple[str, ...])
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBcheck_policy\fR()
+function is called by
+\fBsudo\fR
+to determine whether the user is allowed to run the specified command.
+Implementing this function is mandatory for a policy plugin.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIargv\fR
+A tuple describing the command the user wishes to run.
+.TP 6n
+\fIenv_add\fR
+Additional environment variables specified by the user on the command line in
+the form of a tuple of
+\(lqkey=value\(rq
+pairs.
+The
+\fBsudo.options_as_dict\fR()
+convenience function can be used to convert them to a dictionary.
+.PP
+This function should return a result code or a tuple in the following format:
+.nf
+.sp
+.RS 10n
+return (rc, command_info_out, argv_out, user_env_out)
+.RE
+.fi
+.sp
+The tuple values are as follows:
+.TP 6n
+\fIrc\fR
+The result of the policy check, one of the
+\fRsudo.RC.*\fR
+constants.
+\fRsudo.RC.ACCEPT\fR
+if the command is allowed,
+\fRsudo.RC.REJECT\fR
+if not allowed,
+\fRsudo.RC.ERROR\fR
+for a general error, or
+\fRsudo.RC.USAGE_ERROR\fR
+for a usage error.
+.TP 6n
+\fIcommand_info_out\fR
+Optional (only required when the command is accepted).
+Information about the command being run in the form of
+\(lqkey=value\(rq
+strings.
+.sp
+To accept a command, at the very minimum the plugin must set in the
+\fIcommand\fR,
+\fIrunas_uid\fR,
+and
+\fIrunas_gid\fR
+keys.
+.sp
+For a list of recognized keys and supported values,
+see the
+\fBcheck_policy\fR()
+documentation in
+sudo_plugin(@mansectform@).
+.TP 6n
+\fIargv_out\fR
+Optional (only required when the command is accepted).
+The arguments to pass to the
+execve(2)
+system call when executing the command.
+.TP 6n
+\fIuser_env_out\fR
+Optional (only required when the command is accepted).
+The environment to use when executing the command in the form of a
+tuple of strings in
+\(lqkey=value\(rq
+format.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIinit_session\fR
+.nf
+.RS 6n
+init_session(self, user_pwd: Tuple, user_env: Tuple[str, ...])
+.RE
+.fi
+.RS 6n
+.sp
+Perform session setup (optional).
+The
+\fBinit_session\fR()
+function is called before
+\fBsudo\fR
+sets up the
+execution environment for the command before any user-ID or group-ID changes.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIuser_pwd\fR
+A tuple describing the user's passwd entry.
+Convertible to
+\fIpwd.struct_passwd or\fR
+\fRNone\fR
+if the user is not present in the password database.
+.sp
+Example conversion:
+.nf
+.RS 12n
+user_pwd = pwd.struct_passwd(user_pwd) if user_pwd else None
+.RE
+.fi
+.TP 6n
+\fIuser_env\fR
+The environment the command will run in.
+This is a tuple of strings in
+\(lqkey=value\(rq
+format.
+.PP
+This function should return a result code or a tuple in the following format:
+.nf
+.sp
+.RS 10n
+return (rc, user_env_out)
+.RE
+.fi
+.sp
+The tuple values are as follows:
+.TP 6n
+\fIrc\fR
+The result of the session init, one of the
+\fRsudo.RC.*\fR
+constants.
+\fRsudo.RC.OK\fR
+on success, 0 on failure, or
+\fRsudo.RC.ERROR\fR
+if an error occurred.
+.TP 6n
+\fIuser_env_out\fR
+Optional.
+If the
+\fBinit_session\fR()
+function needs to modify the user environment, it can return the new
+environment in
+\fIuser_env_out\fR.
+If this is omitted, no changes will be made to
+\fIuser_env\fR.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlist\fR
+.nf
+.RS 6n
+list(self, argv: Tuple[str, ...], is_verbose: int, user: str)
+.RE
+.fi
+.RS 6n
+.sp
+List available privileges for the invoking user.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIargv\fR
+If not set to
+\fRNone\fR,
+an argument vector describing a command the user wishes to check
+against the policy.
+.TP 6n
+\fIis_verbose\fR
+Flag indicating whether to list in verbose mode or not.
+.TP 6n
+\fIuser\fR
+The name of a different user to list privileges for if the policy allows it.
+If
+\fRNone\fR,
+the plugin should list the privileges of the invoking user.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIvalidate\fR
+.nf
+.RS 6n
+validate(self)
+.RE
+.fi
+.RS 6n
+.sp
+For policy plugins that cache authentication credentials, this function is used to validate and cache the credentials (optional).
+.RE
+.TP 6n
+\fIinvalidate\fR
+.nf
+.RS 6n
+invalidate(self, remove: int)
+.RE
+.fi
+.RS 6n
+.sp
+For policy plugins that cache authentication credentials, this function is used to invalidate the credentials (optional).
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIremove\fR
+If this flag is set, the plugin may remove the credentials instead of simply
+invalidating them.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+show_version(self, is_verbose: int)
+.RE
+.fi
+.RS 6n
+.sp
+Display the plugin version information to the user.
+The
+\fBsudo.log_info\fR()
+function should be used.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIis_verbose\fR
+A flag to indicate displaying more verbose information.
+Currently this is 1 if
+\(oqsudo -V\(cq
+is run as the root user.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclose\fR
+.br
+.nf
+.RS 6n
+close(self, exit_status: int, error: int)
+.RE
+.fi
+.RS 6n
+.sp
+Called when a command finishes executing.
+.sp
+Works the same as the
+\fBclose\fR()
+function in the C
+\fBsudo\fR
+plugin API, except that it only gets called if
+\fBsudo\fR
+attempts to execute the command.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIexit_status\fR
+The exit status of the command if was executed, otherwise \-1.
+.TP 6n
+\fIerror\fR
+.br
+If the command could not be executed, this is set to the value of
+errno set by the
+execve(2)
+system call, otherwise 0.
+.PD 0
+.PP
+.RE
+.PD
+.SS "Policy plugin example"
+Sudo ships with an example Python policy plugin.
+To try it, register it by adding the following lines to
+\fI@sysconfdir@/sudo.conf\fR:
+.nf
+.sp
+.RS 0n
+Plugin python_policy @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_policy_plugin.py \e
+    ClassName=SudoPolicyPlugin
+.RE
+.fi
+.PP
+Only one policy plugin can be enabled at a time so you must disable
+any other policy plugin listed in
+\fI@sysconfdir@/sudo.conf\fR,
+such as
+sudoers(@mansectform@).
+.SS "I/O plugin API"
+I/O plugins must be registered in
+sudo.conf(@mansectform@).
+For example:
+.nf
+.sp
+.RS 4n
+Plugin python_io @python_plugin@ ModulePath=<path> ClassName=<class>
+.RE
+.fi
+.PP
+Sudo supports loading multiple I/O plugins.
+Currently only 8 python I/O plugins can be loaded at once.
+.PP
+An I/O plugin may have the following member functions:
+.TP 6n
+\fIconstructor\fR
+.nf
+.RS 6n
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...],
+    plugin_options: Tuple[str, ...])
+.RE
+.fi
+.RS 6n
+.sp
+Implementing this function is optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.sp
+The constructor matches the
+\fBopen\fR()
+function in the C
+\fBsudo\fR
+plugin API.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIuser_env\fR
+The user's environment as a tuple of strings in
+\(lqkey=value\(rq
+format.
+.TP 6n
+\fIsettings\fR
+A tuple of user-supplied
+\fIsudo\fR
+settings in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIversion\fR
+The version of the Python I/O Plugin API.
+.TP 6n
+\fIuser_info\fR
+A tuple of information about the user running the command in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIplugin_options\fR
+The plugin options passed as arguments in the
+sudo.conf(@mansectform@)
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+\(lqkey=value\(rq
+format.
+.PP
+The
+\fBsudo.options_as_dict\fR()
+convenience function can be used to convert
+\(lqkey=value\(rq
+pairs to a dictionary.
+For a list of recognized keys and their supported values,
+see the I/O plugin
+\fBopen\fR()
+documentation in
+sudo_plugin(@mansectform@).
+.RE
+.TP 6n
+\fIopen\fR
+.nf
+.RS 6n
+open(self, argv: Tuple[str, ...],
+    command_info: Tuple[str, ...]) -> int
+.RE
+.fi
+.RS 6n
+.sp
+Receives the command the user wishes to run.
+.sp
+Works the same as the
+\fBopen\fR()
+function in the C
+\fBsudo\fR
+plugin API except that:
+.sp
+.RS 7n
+.PD 0
+.TP 3n
+\fB\(bu\fR
+It only gets called when there is a command to be executed
+(and not for a version query for example).
+.TP 3n
+\fB\(bu\fR
+Other arguments of the C API
+\fBopen\fR()
+function are received through the constructor.
+.RE
+.sp
+The function arguments are as follows:
+.PD
+.TP 6n
+\fIargv\fR
+A tuple of the arguments describing the command the user wishes to run.
+.TP 6n
+\fIcommand_info\fR
+Information about the command being run in the form of
+\(lqkey=value\(rq
+strings.
+.PP
+The
+\fBsudo.options_as_dict\fR()
+convenience function can be used to convert
+\(lqkey=value\(rq
+pairs to a dictionary.
+For a list of recognized keys and their supported values,
+see the I/O plugin
+\fBopen\fR()
+documentation in
+sudo_plugin(@mansectform@).
+.sp
+The
+\fBopen\fR()
+function should return a result code, one of the
+\fRsudo.RC.*\fR
+constants.
+If the function returns
+\fRsudo.RC.REJECT\fR,
+no I/O will be sent to the plugin.
+.RE
+.TP 6n
+\fIlog_ttyin\fR, \fIlog_ttyout\fR, \fIlog_stdin\fR, \fIlog_stdout\fR, \fIlog_stderr\fR
+.nf
+.RS 6n
+log_ttyin(self, buf: str) -> int
+log_ttyout(self, buf: str) -> int
+log_stdin(self, buf: str) -> int
+log_stdout(self, buf: str) -> int
+log_stderr(self, buf: str) -> int
+.RE
+.fi
+.RS 6n
+.sp
+Receive the user input or output of the terminal device and
+application standard input, standard output, or standard error.
+See the matching calls in
+sudo_plugin(@mansectform@).
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIbuf\fR
+The input (or output) buffer in the form of a string.
+.PP
+The function should return a result code, one of the
+\fRsudo.RC.*\fR
+constants.
+.sp
+If
+\fRsudo.RC.ERROR\fR
+is returned, the running command will be terminated and all of the
+plugin's logging functions will be disabled.
+Other I/O logging plugins will still receive any remaining
+input or output that has not yet been processed.
+.sp
+If an input logging function rejects the data by returning
+\fRsudo.RC.REJECT\fR,
+the command will be terminated and the data will not be passed to the
+command, though it will still be sent to any other I/O logging plugins.
+If an output logging function rejects the data by returning
+\fRsudo.RC.REJECT\fR,
+the command will be terminated and the data will not be written to the
+terminal, though it will still be sent to any other I/O logging plugins.
+.RE
+.TP 6n
+\fIchange_winsize\fR
+.nf
+.RS 6n
+change_winsize(self, line: int, cols: int) -> int
+.RE
+.fi
+.RS 6n
+.sp
+Called whenever the window size of the terminal changes.
+The function arguments are as follows:
+.TP 6n
+\fIline\fR
+The number of lines of the terminal.
+.TP 6n
+\fIcols\fR
+The number of columns of the terminal.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIlog_suspend\fR
+.nf
+.RS 6n
+log_suspend(self, signo: int) -> int
+.RE
+.fi
+.RS 6n
+Called whenever a command is suspended or resumed.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIsigno\fR
+.br
+The number of the signal that caused the command to be suspended or
+\fRSIGCONT\fR
+if the command was resumed.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+show_version(self, is_verbose: int)
+.RE
+.fi
+.RS 6n
+Display the plugin version information to the user.
+The
+\fBsudo.log_info\fR()
+function should be used.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIis_verbose\fR
+A flag to indicate displaying more verbose information.
+Currently this is 1 if
+\(oqsudo -V\(cq
+is run as the root user.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclose\fR
+.br
+.nf
+.RS 6n
+close(self, exit_status: int, error: int) -> None
+.RE
+.fi
+.RS 6n
+Called when a command finishes execution.
+.sp
+Works the same as the
+\fBclose\fR()
+function in the C
+\fBsudo\fR
+plugin API, except that it only gets called if
+\fBsudo\fR
+attempts to execute the command.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIexit_status\fR
+The exit status of the command if was executed, otherwise \-1.
+.TP 6n
+\fIerror\fR
+.br
+If the command could not be executed, this is set to the value of
+errno set by the
+execve(2)
+system call, otherwise 0.
+.PD 0
+.PP
+.RE
+.PD
+.SS "I/O plugin example"
+Sudo ships with a Python I/O plugin example.
+To try it, register it by adding the following lines to
+\fI@sysconfdir@/sudo.conf\fR:
+.nf
+.sp
+.RS 4n
+Plugin python_io @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_io_plugin.py \e
+    ClassName=SudoIOPlugin
+.RE
+.fi
+.SS "Audit plugin API"
+Audit plugins must be registered in
+sudo.conf(@mansectform@).
+For example:
+.nf
+.sp
+.RS 4n
+Plugin python_audit @python_plugin@ ModulePath=<path> ClassName=<class>
+.RE
+.fi
+.PP
+Sudo supports loading multiple audit plugins.
+Currently only 8 python audit plugins can be loaded at once.
+.PP
+An audit plugin may have the following member functions (all of which are optional):
+.TP 6n
+\fIconstructor\fR
+.nf
+.RS 6n
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...], plugin_options: Tuple[str, ...])
+.RE
+.fi
+.RS 6n
+.sp
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.sp
+The constructor matches the
+\fBopen\fR()
+function in the C
+\fBsudo\fR
+plugin API.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIuser_env\fR
+The user's environment as a tuple of strings in
+\(lqkey=value\(rq
+format.
+.TP 6n
+\fIsettings\fR
+A tuple of user-supplied
+\fIsudo\fR
+settings in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIversion\fR
+The version of the Python Audit Plugin API.
+.TP 6n
+\fIuser_info\fR
+A tuple of information about the user running the command in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIplugin_options\fR
+The plugin options passed as arguments in the
+sudo.conf(@mansectform@)
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+\(lqkey=value\(rq
+format.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIopen\fR
+.nf
+.RS 6n
+open(self, submit_optind: int,
+    submit_argv: Tuple[str, ...]) -> int
+.RE
+.fi
+.RS 6n
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIsubmit_optind\fR
+The index into
+\fIsubmit_argv\fR
+that corresponds to the first entry that is not a command line option.
+.TP 6n
+\fIsubmit_argv\fR
+The argument vector sudo was invoked with, including all command line options.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIclose\fR
+.br
+.nf
+.RS 6n
+close(self, status_type: int, status: int) -> None
+.RE
+.fi
+.RS 6n
+.sp
+Called when sudo is finished, shortly before it exits.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIstatus_type\fR
+The type of status being passed.
+One of the
+\fRsudo.EXIT_REASON.*\fR
+constants.
+.TP 6n
+\fIstatus\fR
+Depending on the value of
+\fIstatus_type\fR,
+this value is either
+ignored, the command's exit status as returned by the
+wait(2)
+system call, the value of
+\fIerrno\fR
+set by the
+execve(2)
+system call, or the value of
+\fIerrno\fR
+resulting from an error in the
+\fBsudo\fR
+front-end.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+show_version(self, is_verbose: int) -> int
+.RE
+.fi
+.RS 6n
+.sp
+Display the plugin version information to the user.
+The
+\fBsudo.log_info\fR()
+function should be used.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIis_verbose\fR
+A flag to indicate displaying more verbose information.
+Currently this is 1 if
+\(oqsudo -V\(cq
+is run as the root user.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIaccept\fR
+.nf
+.RS 6n
+accept(self, plugin_name: str, plugin_type: int, command_info: Tuple[str, ...],
+       run_argv: Tuple[str, ...], run_envp: Tuple[str, ...]) -> int
+.RE
+.fi
+.RS 6n
+.sp
+This function is called when a command or action is accepted by a policy
+or approval plugin.
+The function arguments are as follows:
+.TP 6n
+plugin_name
+The name of the plugin that accepted the command or
+\(lqsudo\(rq
+for the
+\fBsudo\fR
+front-end.
+.TP 6n
+plugin_type
+The type of plugin that accepted the command, currently either
+\fRsudo.PLUGIN_TYPE.POLICY\fR,
+\fRsudo.PLUGIN_TYPE.APPROVAL\fR,
+or
+\fRsudo.PLUGIN_TYPE.SUDO\fR.
+The
+\fBaccept\fR()
+function is called multiple times--once for each policy or approval
+plugin that succeeds and once for the sudo front-end.
+When called on behalf of the sudo front-end,
+\fIcommand_info\fR
+may include information from an I/O logging plugin as well.
+.sp
+Typically, an audit plugin is interested in either the accept status from
+the
+\fBsudo\fR
+front-end or from the various policy and approval plugins, but not both.
+It is possible for the policy plugin to accept a command that is
+later rejected by an approval plugin, in which case the audit
+plugin's
+\fBaccept\fR()
+and
+\fBreject\fR()
+functions will
+\fIboth\fR
+be called.
+.TP 6n
+command_info
+A vector of information describing the command being run.
+See the
+sudo_plugin(@mansectform@)
+manual for possible values.
+.TP 6n
+run_argv
+Argument vector describing a command that will be run.
+.TP 6n
+run_envp
+The environment the command will be run with.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIreject\fR
+.nf
+.RS 6n
+reject(self, plugin_name: str, plugin_type: int, audit_msg: str,
+       command_info: Tuple[str, ...]) -> int
+.RE
+.fi
+.RS 6n
+.sp
+This function is called when a command or action is rejected by the policy
+plugin.
+The function arguments are as follows:
+.TP 6n
+plugin_name
+The name of the plugin that rejected the command.
+.TP 6n
+plugin_type
+The type of plugin that rejected the command, currently either
+\fRsudo.PLUGIN_TYPE.POLICY\fR,
+\fRsudo.PLUGIN_TYPE.APPROVAL\fR,
+or
+\fRsudo.PLUGIN_TYPE.IO\fR.
+.sp
+Unlike the
+\fBaccept\fR()
+function, the
+\fBreject\fR()
+function is not called on behalf of the
+\fBsudo\fR
+front-end.
+.TP 6n
+audit_msg
+An optional string describing the reason the command was rejected by the plugin.
+If the plugin did not provide a reason, audit_msg will be
+\fRNone\fR.
+.TP 6n
+command_info
+A vector of information describing the rejected command.
+See the
+sudo_plugin(@mansectform@)
+manual for possible values.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIerror\fR
+.br
+.nf
+.RS 6n
+error(self, plugin_name: str, plugin_type: int, audit_msg: str,
+      command_info: Tuple[str, ...]) -> int
+.RE
+.fi
+.RS 6n
+.sp
+This function is called when a plugin or the
+\fBsudo\fR
+front-end returns an error.
+The function arguments are as follows:
+.TP 6n
+plugin_name
+The name of the plugin that generated the error or
+\(lqsudo\(rq
+for the
+\fBsudo\fR
+front-end.
+.TP 6n
+plugin_type
+The type of plugin that generated the error, or
+\fRSUDO_FRONT_END\fR
+for the
+\fBsudo\fR
+front-end.
+.TP 6n
+audit_msg
+An optional string describing the plugin error.
+If the plugin did not provide a description, it will be
+\fRNone\fR.
+.TP 6n
+command_info
+A vector of information describing the command.
+See the
+sudo_plugin(@mansectform@)
+manual for possible values.
+.PD 0
+.PP
+.RE
+.PD
+.SS "Audit plugin example"
+Sudo ships with a Python Audit plugin example.
+To try it, register it by adding the following lines to
+\fI@sysconfdir@/sudo.conf\fR:
+.nf
+.sp
+.RS 4n
+Plugin python_audit @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_audit_plugin.py \e
+    ClassName=SudoAuditPlugin
+.RE
+.fi
+.PP
+It will log the plugin accept / reject / error results to the output.
+.SS "Approval plugin API"
+Approval plugins must be registered in
+sudo.conf(@mansectform@).
+For example:
+.nf
+.sp
+.RS 4n
+Plugin python_approval @python_plugin@ ModulePath=<path> ClassName=<class>
+.RE
+.fi
+.PP
+Sudo supports loading multiple approval plugins.
+Currently only 8 python approval plugins can be loaded at once.
+.PP
+An approval plugin may have the following member functions:
+.TP 6n
+\fIconstructor\fR
+.nf
+.RS 6n
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...], plugin_options: Tuple[str, ...],
+    submit_optind: int, submit_argv: Tuple[str, ...])
+.RE
+.fi
+.RS 6n
+.sp
+Optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.sp
+The constructor matches the
+\fBopen\fR()
+function in the C
+\fBsudo\fR
+plugin API.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIuser_env\fR
+The user's environment as a tuple of strings in
+\(lqkey=value\(rq
+format.
+.TP 6n
+\fIsettings\fR
+A tuple of user-supplied
+\fIsudo\fR
+settings in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIversion\fR
+The version of the Python Approval Plugin API.
+.TP 6n
+\fIuser_info\fR
+A tuple of information about the user running the command in the form of
+\(lqkey=value\(rq
+strings.
+.TP 6n
+\fIplugin_options\fR
+The plugin options passed as arguments in the
+sudo.conf(@mansectform@)
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+\(lqkey=value\(rq
+format.
+.TP 6n
+\fIsubmit_optind\fR
+The index into
+\fIsubmit_argv\fR
+that corresponds to the first entry that is not a command line option.
+.TP 6n
+\fIsubmit_argv\fR
+The argument vector sudo was invoked with, including all command line options.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIshow_version\fR
+.nf
+.RS 6n
+show_version(self, is_verbose: int) -> int
+.RE
+.fi
+.RS 6n
+.sp
+Display the version.
+(Same as for all the other plugins.)
+.RE
+.TP 6n
+\fIcheck\fR
+.br
+.nf
+.RS 6n
+check(self, command_info: Tuple[str, ...], run_argv: Tuple[str, ...],
+      run_env: Tuple[str, ...]) -> int
+.RE
+.fi
+.RS 6n
+.sp
+This function is called after policy plugin's check_policy has succeeded.
+It can reject execution of the command by returning sudo.RC.REJECT or
+raising the special exception:
+.nf
+.sp
+.RS 10n
+raise sudo.PluginReject("some message")
+.RE
+.fi
+.sp
+with the message describing the problem.
+In the latter case, the audit plugins will get the description.
+.sp
+The function arguments are as follows:
+.TP 6n
+command_info
+A vector of information describing the command that will run.
+See the
+sudo_plugin(@mansectform@)
+manual for possible values.
+.TP 6n
+run_argv
+Argument vector describing a command that will be run.
+.TP 6n
+run_env
+The environment the command will be run with.
+.PD 0
+.PP
+.RE
+.PD
+.SS "Approval plugin example"
+Sudo ships with a Python Approval plugin example.
+To try it, register it by adding the following lines to
+\fI@sysconfdir@/sudo.conf\fR:
+.nf
+.sp
+.RS 4n
+Plugin python_approval @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_approval_plugin.py \e
+    ClassName=BusinessHoursApprovalPlugin
+.RE
+.fi
+.PP
+It will only allow execution of commands in the "business hours" (from Monday
+to Friday between 8:00 and 17:59:59).
+.SS "Sudoers group provider plugin API"
+A group provider plugin is registered in the
+sudoers(@mansectform@)
+file.
+For example:
+.nf
+.sp
+.RS 4n
+Defaults group_plugin="@python_plugin@ ModulePath=<path> ClassName=<class>"
+.RE
+.fi
+.PP
+Currently, only a single group plugin can be registered in
+\fIsudoers\fR.
+.PP
+A group provider plugin may have the following member functions:
+.TP 6n
+\fIconstructor\fR
+.nf
+.RS 6n
+__init__(self, args: Tuple[str, ...], version: str)
+.RE
+.fi
+.RS 6n
+.sp
+Implementing this function is optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIargs\fR
+The plugin options passed as arguments in the
+\fIsudoers\fR
+file plugin registration.
+All the arguments are free form strings (not necessarily in
+\(lqkey=value\(rq
+format).
+.TP 6n
+\fIversion\fR
+The version of the Python Group Plugin API.
+.PD 0
+.PP
+.RE
+.PD
+.TP 6n
+\fIquery\fR
+.br
+.nf
+.RS 6n
+query(self, user: str, group: str, user_pwd: Tuple)
+.RE
+.fi
+.RS 6n
+.sp
+The
+\fBquery\fR()
+function is used to ask the group plugin whether
+\fIuser\fR
+is a member of
+\fIgroup\fR.
+This method is required.
+.RE
+.PP
+The function arguments are as follows:
+.TP 6n
+\fIuser\fR
+The name of the user being looked up in the external group database.
+.TP 6n
+\fIgroup\fR
+.br
+The name of the group being queried.
+.TP 6n
+\fIuser_pwd\fR
+The password database entry for the user, if any.
+If
+\fIuser\fR
+is not present in the password database,
+\fIuser_pwd\fR
+will be
+\fRNULL\fR.
+.SS "Group plugin example"
+Sudo ships with a Python group plugin example.
+To try it, register it in the
+\fIsudoers\fR
+file by adding the following lines:
+.nf
+.sp
+.RS 4n
+Defaults group_plugin="@python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_group_plugin.py \e
+    ClassName=SudoGroupPlugin"
+.RE
+.fi
+.PP
+The example plugin will tell
+\fBsudo\fR
+that the user
+\fItest\fR
+is part of the non-Unix group
+\fImygroup\fR.
+If you add a rule that uses this group, it will affect the
+\fItest\fR
+user.
+For example:
+.nf
+.sp
+.RS 4n
+%:mygroup ALL=(ALL) NOPASSWD: ALL
+.RE
+.fi
+.PP
+Will allow user
+\fItest\fR
+to run
+\fBsudo\fR
+without a password.
+.SS "Hook function API"
+The hook function API is currently not supported for plugins
+written in Python.
+.SS "Conversation API"
+A Python plugin can interact with the user using the
+\fBsudo.conv\fR()
+function which displays one or more messages described by the
+\fRsudo.ConvMessage\fR
+class.
+This is the Python equivalent of the
+\fBconversation\fR()
+function in the C
+\fBsudo\fR
+plugin API.
+A plugin should not attempt to read directly from the standard input or
+the user's tty (neither of which are guaranteed to exist).
+.PP
+The
+\fRsudo.ConvMessage\fR
+class specifies how the user interaction should occur:
+.nf
+.sp
+.RS 4n
+sudo.ConvMessage(msg_type: int, msg: str, timeout: int)
+.RE
+.fi
+.PP
+\fRsudo.ConvMessage\fR
+member variables:
+.TP 6n
+\fImsg_type\fR
+Specifies the type of the conversation.
+See the
+\fRsudo.CONV.*\fR
+constants below.
+.TP 6n
+\fImsg\fR
+The message to display to the user.
+The caller must include a trailing newline in
+\fImsg\fR
+if one is to be displayed.
+.TP 6n
+\fItimeout\fR
+Optional.
+The maximum amount of time for the conversation in seconds.
+If the timeout is exceeded, the
+\fBsudo.conv\fR()
+function will raise a
+\fRsudo.ConversationInterrupted\fR
+exception.
+The default is to wait forever (no timeout).
+.PP
+To specify the message type, the following constants are available:
+.PP
+.RS 1n
+.PD 0
+.TP 3n
+\fB\(bu\fR
+\fRsudo.CONV.PROMPT_ECHO_OFF\fR
+.TP 3n
+\fB\(bu\fR
+\fRsudo.CONV.PROMPT_ECHO_ON\fR
+.TP 3n
+\fB\(bu\fR
+\fRsudo.CONV.ERROR_MSG\fR
+.TP 3n
+\fB\(bu\fR
+\fRsudo.CONV.INFO_MSG\fR
+.TP 3n
+\fB\(bu\fR
+\fRsudo.CONV.PROMPT_MASK\fR
+.TP 3n
+\fB\(bu\fR
+\fRsudo.CONV.PROMPT_ECHO_OK\fR
+.TP 3n
+\fB\(bu\fR
+\fRsudo.CONV.PREFER_TTY\fR
+.RE
+.PD
+.PP
+See the
+sudo_plugin(@mansectform@)
+manual for a description of the message types.
+.PP
+The
+\fBsudo.conv\fR()
+function performs the actual user interaction:
+.nf
+.sp
+.RS 4n
+sudo.conv(message(s), on_suspend=suspend_function,
+    on_resume=resume_function)
+.RE
+.fi
+.PP
+The function arguments are as follows:
+.TP 6n
+\fImessage(s)\fR
+One of more messages (of type
+\fRsudo.ConvMessage\fR),
+each describing a conversation.
+At least one message is required.
+.TP 6n
+\fIon_suspend\fR
+An optional callback function which gets called if the conversation
+is suspended, for example by the user pressing control-Z.
+The specified function must take a single argument which will be filled
+with the number of the signal that caused the process to be suspended.
+.TP 6n
+\fIon_resume\fR
+An optional callback function which gets called when the previously
+suspended conversation is resumed.
+The specified function must take a single argument which will be filled
+with the number of the signal that caused the process to be suspended.
+.PP
+The
+\fBsudo.conv\fR()
+function can raise the following exceptions:
+.TP 6n
+\fRsudo.SudoException\fR
+If the conversation fails, for example when the conversation function is not
+available.
+.TP 6n
+\fRsudo.ConversationInterrupted\fR
+If the conversation function returns an error, e.g., the timeout passed
+or the user interrupted the conversation by pressing control-C.
+.SS "Conversation example"
+Sudo ships with an example plugin demonstrating the Python conversation API.
+To try it, register it by adding the following lines to
+\fI@sysconfdir@/sudo.conf\fR:
+.nf
+.sp
+.RS 4n
+Plugin python_io @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_conversation.py \e
+    ClassName=ReasonLoggerIOPlugin
+.RE
+.fi
+.SS "Information / error display API"
+.nf
+.RS 0n
+sudo.log_info(string(s), sep=" ", end="\en")
+sudo.log_error(string(s), sep=" ", end="\en")
+.RE
+.fi
+.PP
+To display information to the user, the
+\fBsudo.log_info\fR()
+function can be used.
+To display error messages, use
+\fBsudo.log_error\fR().
+The syntax is similar to the Python
+\fBprint\fR()
+function.
+.PP
+The function arguments are as follows:
+.TP 6n
+\fIstring(s)\fR
+One or more strings to display.
+.TP 6n
+\fIsep\fR
+An optional string which will be used as the separator between the
+specified strings.
+The default is a space character,
+(\(oq\ \(cq).
+.TP 6n
+\fIend\fR
+An optional string which will be displayed at the end of the message.
+The default is a new line character
+(\(oq\en\(cq).
+.SS "Debug API"
+Debug messages are not visible to the user and are only logged debugging
+is explicitly enabled in
+sudo.conf(@mansectform@).
+Python plugins can use the
+\fBsudo.debug\fR()
+function to make use of
+\fBsudo\fR's
+debug system.
+.PP
+\fIEnabling debugging in sudo.conf\fR
+.PP
+To enable debug messages, add a
+\fIDebug\fR
+line to
+sudo.conf(@mansectform@)
+with the program set to
+\fI@python_plugin@\fR.
+For example, to store debug output in
+\fI@log_dir@/sudo_python_debug\fR,
+use a line like the following:
+.nf
+.sp
+.RS 4n
+Debug @python_plugin@ @log_dir@/sudo_python_debug \e
+    plugin@trace,c_calls@trace
+.RE
+.fi
+.PP
+The debug options are in the form of multiple
+\(lqsubsystem@level\(rq
+strings, separated by commas
+(\(oq\&,\(cq).
+For example to just see the debug output of
+\fBsudo.debug\fR()
+calls, use:
+.nf
+.sp
+.RS 4n
+Debug @python_plugin@ @log_dir@/sudo_python_debug plugin@trace
+.RE
+.fi
+.PP
+See
+sudo_conf(@mansectform@)
+for more details.
+.PP
+The most interesting subsystems for Python plugin development are:
+.TP 6n
+\fIplugin\fR
+Logs each
+\fBsudo.debug\fR()
+API call.
+.TP 6n
+\fIpy_calls\fR
+Logs whenever a C function calls into the python module.
+For example, calling the
+\fB__init__\fR()
+function.
+.TP 6n
+\fIc_calls\fR
+Logs whenever python calls into a C
+\fBsudo\fR
+API function.
+.TP 6n
+\fIinternal\fR
+Logs internal functions of the python language wrapper plugin.
+.TP 6n
+\fIsudo_cb\fR
+Logs when
+\fBsudo\fR
+calls into the python plugin API.
+.TP 6n
+\fIload\fR
+Logs python plugin loading / unloading events.
+.PP
+You can also specify
+\(lqall\(rq
+as the subsystem name to log debug messages for all subsystems.
+.PP
+The
+\fBsudo.debug\fR()
+function is defined as:
+.nf
+.sp
+.RS 4n
+sudo.debug(level, message(s))
+.RE
+.fi
+.PP
+The function arguments are as follows:
+.TP 6n
+\fIlevel\fR
+.br
+an integer, use one of the log level constants below
+.TP 6n
+\fImessage(s)\fR
+one or more messages to log
+.PP
+\fIAvailable log levels:\fR
+.TS
+l l l.
+.PP
+\fBsudo.conf name\fR	\fBPython constant\fR	\fBdescription\fR
+.PP
+crit	\fRsudo.DEBUG.CRIT\fR	only critical messages
+.PP
+err	\fRsudo.DEBUG.ERROR\fR	
+.PP
+warn	\fRsudo.DEBUG.WARN\fR	
+.PP
+notice	\fRsudo.DEBUG.NOTICE\fR	
+.PP
+diag	\fRsudo.DEBUG.DIAG\fR	
+.PP
+info	\fRsudo.DEBUG.INFO\fR	
+.PP
+trace	\fRsudo.DEBUG.TRACE\fR	
+.PP
+debug	\fRsudo.DEBUG.DEBUG\fR	very extreme verbose debugging
+.TE
+.PP
+\fIUsing the logging module\fR
+.PP
+Alternatively, a plugin can use the built in logging module of Python as well.
+Sudo adds its log handler to the root logger, so by default all output of a
+logger will get forwarded to sudo log system, as it would call sudo.debug.
+.PP
+The log handler of sudo will map each Python log level of a message to
+the appropriate sudo debug level.
+The sudo debug system will only receive messages that are not filtered
+out by the Python loggers.
+For example, the log level of the python logger will be an additional
+filter for the log messages, and is usually very different from
+what level is set in sudo.conf for the sudo debug system.
+.SS "Debug example"
+Sudo ships with an example debug plugin.
+To try it, register it by adding the following lines to
+\fI@sysconfdir@/sudo.conf\fR:
+.nf
+.sp
+.RS 4n
+Plugin python_io @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_debugging.py \e
+    ClassName=DebugDemoPlugin
+
+Debug @python_plugin@ \e
+    @log_dir@/sudo_python_debug plugin@trace,c_calls@trace
+.RE
+.fi
+.SS "Option conversion API"
+The Python plugin API includes two convenience functions to
+convert options in
+\(lqkey=value\(rq
+format to a dictionary and vice versa.
+.TP 6n
+options_as_dict
+.nf
+.RS 6n
+options_as_dict(options)
+.RE
+.fi
+.RS 6n
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIoptions\fR
+An iterable (tuple, list, etc.) of strings, each in
+\(lqkey=value\(rq
+format.
+This is how the plugin API passes options and settings to a Python plugin.
+.PP
+The function returns the resulting dictionary.
+Each string of the passed in
+\fIoptions\fR
+will be split at the first equal sign
+(\(oq\&=\(cq)
+into a
+\fIkey\fR
+and
+\fIvalue\fR.
+Dictionary keys will never contain this symbol (but values may).
+.RE
+.TP 6n
+options_from_dict
+.nf
+.RS 6n
+options_from_dict(options_dict)
+.RE
+.fi
+.RS 6n
+.sp
+The function arguments are as follows:
+.TP 6n
+\fIoptions_dict\fR
+A dictionary where both the key and the value are strings.
+The key should not contain an equal sign
+(\(oq\&=\(cq),
+otherwise the resulting string will have a different meaning.
+However, this is not currently enforced.
+.PP
+The function returns a tuple containing the strings in
+\(lqkey=value\(rq
+form for each key and value in the
+\fIoptions_dict\fR
+dictionary passed in.
+This is how the plugin API accepts options and settings.
+.RE
+.SH "PLUGIN API CHANGELOG (Python)"
+None yet
+.SH "LIMITATIONS"
+A maximum of 8 python I/O plugins can be loaded at once.
+If
+\fI@sysconfdir@/sudo.conf\fR
+contains more, those will be rejected with a warning message.
+.PP
+The Event API and the hook function API is currently not accessible
+for Python plugins.
+.SH "SEE ALSO"
+sudo.conf(@mansectform@),
+sudo_plugin(@mansectform@),
+sudoers(@mansectform@),
+sudo(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+Python plugin support is currently considered experimental.
+.PP
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SECURITY CONSIDERATIONS"
+All Python plugin handling is implemented inside the
+\fI@python_plugin@\fR
+dynamic plugin.
+Therefore, if no Python plugin is registered in
+sudo.conf(@mansectform@)
+or the
+\fIsudoers\fR
+file,
+\fBsudo\fR
+will not load the Python interpreter or the Python libraries.
+.PP
+As
+\fBsudo\fR
+runs plugins as
+\fBroot\fR,
+care must be taken when writing Python plugins to avoid creating
+security vulnerabilities, just as one would when writing plugins
+in C.
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

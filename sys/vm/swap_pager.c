@@ -63,9 +63,6 @@
  *	  or renamed.
  *
  * from: Utah $Hdr: swap_pager.c 1.4 91/04/30$
- *
- *	@(#)swap_pager.c	8.9 (Berkeley) 3/21/94
- *	@(#)vm_swap.c	8.5 (Berkeley) 2/17/94
  */
 
 #include <sys/cdefs.h>
@@ -1890,8 +1887,8 @@ swap_pager_swapoff_object(struct swdevt *sp, vm_object_t object)
 			if (rv != VM_PAGER_OK)
 				panic("%s: read from swap failed: %d",
 				    __func__, rv);
-			vm_object_pip_wakeupn(object, 1);
 			VM_OBJECT_WLOCK(object);
+			vm_object_pip_wakeupn(object, 1);
 			vm_page_xunbusy(m);
 
 			/*

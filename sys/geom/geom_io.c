@@ -39,7 +39,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
@@ -67,6 +66,9 @@
 #include <vm/vm_object.h>
 #include <vm/vm_extern.h>
 #include <vm/vm_map.h>
+
+#define KTR_GEOM_ENABLED \
+    ((KTR_COMPILE & KTR_GEOM) != 0 && (ktr_mask & KTR_GEOM) != 0)
 
 static int	g_io_transient_map_bio(struct bio *bp);
 
@@ -142,7 +144,7 @@ g_new_bio(void)
 
 	bp = uma_zalloc(biozone, M_NOWAIT | M_ZERO);
 #ifdef KTR
-	if ((KTR_COMPILE & KTR_GEOM) && (ktr_mask & KTR_GEOM)) {
+	if (KTR_GEOM_ENABLED) {
 		struct stack st;
 
 		CTR1(KTR_GEOM, "g_new_bio(): %p", bp);
@@ -160,7 +162,7 @@ g_alloc_bio(void)
 
 	bp = uma_zalloc(biozone, M_WAITOK | M_ZERO);
 #ifdef KTR
-	if ((KTR_COMPILE & KTR_GEOM) && (ktr_mask & KTR_GEOM)) {
+	if (KTR_GEOM_ENABLED) {
 		struct stack st;
 
 		CTR1(KTR_GEOM, "g_alloc_bio(): %p", bp);
@@ -175,7 +177,7 @@ void
 g_destroy_bio(struct bio *bp)
 {
 #ifdef KTR
-	if ((KTR_COMPILE & KTR_GEOM) && (ktr_mask & KTR_GEOM)) {
+	if (KTR_GEOM_ENABLED) {
 		struct stack st;
 
 		CTR1(KTR_GEOM, "g_destroy_bio(): %p", bp);
@@ -220,7 +222,7 @@ g_clone_bio(struct bio *bp)
 		bp->bio_children++;
 	}
 #ifdef KTR
-	if ((KTR_COMPILE & KTR_GEOM) && (ktr_mask & KTR_GEOM)) {
+	if (KTR_GEOM_ENABLED) {
 		struct stack st;
 
 		CTR2(KTR_GEOM, "g_clone_bio(%p): %p", bp, bp2);
@@ -249,7 +251,7 @@ g_duplicate_bio(struct bio *bp)
 	bp2->bio_attribute = bp->bio_attribute;
 	bp->bio_children++;
 #ifdef KTR
-	if ((KTR_COMPILE & KTR_GEOM) && (ktr_mask & KTR_GEOM)) {
+	if (KTR_GEOM_ENABLED) {
 		struct stack st;
 
 		CTR2(KTR_GEOM, "g_duplicate_bio(%p): %p", bp, bp2);

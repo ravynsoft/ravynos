@@ -1,0 +1,45 @@
+#compdef popd
+
+# This just completes the numbers after +, showing the full directory list
+# with numbers. For - we do the same thing, but reverse the numbering (other
+# way round if pushdminus is set). Note that this function is also called
+# from _cd for cd and pushd.
+
+setopt localoptions nonomatch
+
+local expl list lines revlines disp sep
+
+### we decided against this, for now...
+#! zstyle -T ":completion:${curcontext}:directory-stack" prefix-needed ||
+
+[[ $PREFIX = [-+]* ]] || return 1
+
+zstyle -s ":completion:${curcontext}:directory-stack" list-separator sep || sep=--
+
+if zstyle -T ":completion:${curcontext}:directory-stack" verbose; then
+  # get the list of directories with their canonical number
+  # and turn the lines into an array, removing the current directory
+  lines=("${(D)dirstack[@]}")
+
+  if [[ ( $PREFIX[1] = - && ! -o pushdminus ) ||
+        ( $PREFIX[1] = + && -o pushdminus ) ]]; then
+    integer i
+    revlines=( $lines )
+    for (( i = 1; i <= $#lines; i++ )); do
+      lines[$i]="$((i-1)) $sep ${revlines[-$i]##[0-9]#[	 ]#}"
+    done
+  else
+    for (( i = 1; i <= $#lines; i++ )); do
+      lines[$i]="$i $sep ${lines[$i]##[0-9]#[	 ]#}"
+    done
+  fi
+  # get the array of numbers only
+  list=( ${PREFIX[1]}${^lines%% *} )
+  disp=( -ld lines )
+else
+  list=( ${PREFIX[1]}{0..${#dirstack}} )
+  disp=()
+fi
+
+_wanted -V directory-stack expl 'directory stack' \
+    compadd "$@" "$disp[@]" -Q -a list

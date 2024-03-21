@@ -1,0 +1,7 @@
+#compdef command
+
+_arguments \
+  '-v[indicate result of command search]:*:command:_path_commands' \
+  '-V[show result of command search in verbose form]:*:command:_path_commands' \
+  '(-)-p[use default PATH to find command]' \
+  '*:: : _normal -p $service'

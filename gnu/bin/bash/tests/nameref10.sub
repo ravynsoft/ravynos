@@ -1,0 +1,77 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# testing behavior of command substitution as one of expansions performed by
+# array subscripting; should behave the same directly as when done through
+# a nameref
+
+x[0]=42
+zero=0
+f() { typeset -n foo="$1"; declare -p foo; echo "$foo"; }
+
+f 'x[$zero]'
+
+x[$(echo 0)]=4
+declare -p x
+
+f 'x[$(echo 0)]'
+
+unset -f f
+f()
+{
+	typeset -n foo="$1";
+
+	echo "x[i=0$(echo comsub >&2)]"
+	echo "${x[i=0$(echo comsub >&2)]}"
+	echo "${!1}"
+	echo "$foo"
+}
+
+f 'x[i=0$(echo comsub >&2)]'
+
+unset -f f
+unset x
+
+# problems with unset and namerefs pointing to non-existent variables pointed
+# out after bash-4.3 released
+
+typeset -n foo=somevariable
+foo=bar
+unset foo		# unsets somevariable
+typeset -p foo somevariable
+echo foo = $foo
+
+typeset -A foo		# should create array variable named somevariable
+foo["jug"]="brown"
+
+typeset -p foo somevariable
+typeset -A foo='([jug]="brown" )'
+typeset -p foo somevariable
+
+unset foo
+typeset -p foo somevariable
+unset -n foo
+typeset -p foo somevariable
+
+unset bar
+typeset -n foo=bar
+typeset -p foo bar
+unset foo
+typeset -p foo bar
+typeset -i foo
+foo=4+4
+typeset -p foo bar
+echo "$foo"
+
+unset foo
+typeset -p foo bar

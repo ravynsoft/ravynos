@@ -26,7 +26,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/malloc.h>
@@ -119,10 +118,12 @@ linux_alloc_pages(gfp_t flags, unsigned int order)
 			    PAGE_SIZE, 0, VM_MEMATTR_DEFAULT);
 			if (page == NULL) {
 				if (flags & M_WAITOK) {
-					if (!vm_page_reclaim_contig(req,
-					    npages, 0, pmax, PAGE_SIZE, 0)) {
+					int err = vm_page_reclaim_contig(req,
+					    npages, 0, pmax, PAGE_SIZE, 0);
+					if (err == ENOMEM)
 						vm_wait(NULL);
-					}
+					else if (err != 0)
+						return (NULL);
 					flags &= ~M_WAITOK;
 					goto retry;
 				}
@@ -145,6 +146,14 @@ linux_alloc_pages(gfp_t flags, unsigned int order)
 	return (page);
 }
 
+static void
+_linux_free_kmem(vm_offset_t addr, unsigned int order)
+{
+	size_t size = ((size_t)PAGE_SIZE) << order;
+
+	kmem_free((void *)addr, size);
+}
+
 void
 linux_free_pages(struct page *page, unsigned int order)
 {
@@ -163,7 +172,7 @@ linux_free_pages(struct page *page, unsigned int order)
 
 		vaddr = (vm_offset_t)page_address(page);
 
-		linux_free_kmem(vaddr, order);
+		_linux_free_kmem(vaddr, order);
 	}
 }
 
@@ -185,9 +194,17 @@ linux_alloc_kmem(gfp_t flags, unsigned int order)
 void
 linux_free_kmem(vm_offset_t addr, unsigned int order)
 {
-	size_t size = ((size_t)PAGE_SIZE) << order;
+	KASSERT((addr & ~PAGE_MASK) == 0,
+	    ("%s: addr %p is not page aligned", __func__, (void *)addr));
 
-	kmem_free((void *)addr, size);
+	if (addr >= VM_MIN_KERNEL_ADDRESS && addr < VM_MAX_KERNEL_ADDRESS) {
+		_linux_free_kmem(addr, order);
+	} else {
+		vm_page_t page;
+
+		page = PHYS_TO_VM_PAGE(DMAP_TO_PHYS(addr));
+		linux_free_pages(page, order);
+	}
 }
 
 static int

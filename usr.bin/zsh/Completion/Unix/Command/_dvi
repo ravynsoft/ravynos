@@ -1,0 +1,104 @@
+#compdef dvips dvibook dviconcat dvicopy dvidvi dvipdf dviselect dvitodvi dvitype
+
+local expl args
+
+args=(
+  '-i[specify input file]:input DVI file:_files -g "*.(dvi|DVI)(-.)"' \
+  '-o[specify output file]:output DVI file:_files -g "*.(dvi|DVI)(-.)"' \
+  ':input DVI file:_files -g "*.(dvi|DVI)(-.)"' \
+  ':output DVI file:_files -g "*.(dvi|DVI)(-.)"'
+)
+
+case "$service" in
+dvips)
+  _arguments \
+    '-a[make three passes]' \
+    '(-B)-A[print only odd numbered pages]' \
+    '(-A)-B[print only even numbered pages]' \
+    '(-c -C)-b[select number of copies (duplicating body)]:number of copies' \
+    '(-b -C)-c[select number of copies]:number of copies' \
+    '(-b -c)-C[select number of copies (collated)]:number of copies' \
+    '-d[set debug flags]:debug flags' \
+    '(-X -Y)-D[set resolution]:resolution in dots per inch' \
+    '-e[set maximum character offset]:maximum character offset' \
+    '-E[generate EPSF file]' \
+    '(-o)-f[write to stdout]' \
+    '-F[append control-D]' \
+    '-G[shift low chars to higher position]' \
+    '-h[specify additional header file]:postscript header file:_files -g "*.(#i)(ps|eps)(-.)"' \
+    '-i[one file per section]' \
+    '-j[download fonts partially]' \
+    '-k[print crop marks]' \
+    '-K[include postscript comments]' \
+    '(-pp)-l[specify last page to print]:number of last page' \
+    '-m[specify manual feed for printer]' \
+    '-M[no automatic font generation]' \
+    '(-pp)-n[specify maximum number of pages to print]:maximum number of pages' \
+    '-N[turn off structured comments]' \
+    '(-f)-o[specify output file name]:output file name:_files -g "*.(#i)(ps|eps)(-.)"' \
+    '-O[specify offset of origin]:offset of origin (<x>,<y>)' \
+    '(-p -l -n)-pp[specify which pages to print]:list of pages or ranges to print:' \
+    '(-pp)-p[specify first page to print]:number of first page' \
+    '-P+[specify printer]:printer name' \
+    '-q[quiet operation]' \
+    '-r[reverse order of pages]' \
+    '-R[run securely]' \
+    '-s[enclose output in save/restore pair]' \
+    '-S[set maximum number of pages per section]:maximum number of pages per section' \
+    '(-T)*-t[specify paper type]:paper type:(letter legal ledger a4 a3 landscape)' \
+    '(-t)-T[set paper size]:paper size (<x>,<y>)' \
+    '-u:PS mapfile:' \
+    '-U[disable string param trick]' \
+    '-v[print version number and quit]' \
+    '-V[send downloadable PS fonts as PK]' \
+    '-x[set magnification ratio]:magnification ratio (per mille)' \
+    '(-D)-X[set horizontal resolution]:horizontal resolution' \
+    '-y[multiply by dvi magnification]' \
+    '(-D)-Y[set vertical resolution]:vertical resolution' \
+    '-z[hyper PS]' \
+    '-Z[compress bitmapped fonts]' \
+    ':input file:_files -g "*.(dvi|DVI)(-.)"'
+  ;;
+dvibook)
+  _arguments -s \
+    '-q[quiet operation]' \
+    '-s-[specify signature size]:signature size' \
+    "$args[@]"
+  ;;
+dviconcat)
+  _arguments \
+    '-m[specify magnification]:magnification factor' \
+    '-o[specify output file]:output DVI file:_files -g "*.(dvi|DVI)(-.)"' \
+    '*:input DVI file:_files -g "*.(dvi|DVI)(-.)"'
+  ;;
+dvidvi)
+  _arguments -s \
+    '-q[quiet operation]' \
+    '-r[reverse order of pages]' \
+    '(-i -x)-f[select first page]:number of first page:' \
+    '(-i -x)-l[select last page]:number of last page:' \
+    '(-i -x)-n[select number of pages]:maximum number of pages:' \
+    '(-f -l -n)-i[specify included pages]:list of included pages:' \
+    '(-f -l -n)-x[specify excluded pages]:list of excluded pages:' \
+    ':input DVI file:_files -g "*.(dvi|DVI)(-.)"' \
+    ':output DVI file:_files -g "*.(dvi|DVI)(-.)"'
+  ;;
+dviselect)
+  _arguments -s \
+    '-s[silent operation]' \
+    ':list of pages:' \
+    "$args[@]"
+  ;;
+dvitodvi)
+  _arguments -s \
+    '-q[quiet operation]' \
+    '-w-[set w dimension specifier]:width for dimension specifier:' \
+    '-h-[set h dimension specifier]:height for dimension specifier:' \
+    ':page specifications:' \
+    "$args[@]"
+  ;;
+*)
+  _description files expl 'DVI file'
+  _files "$expl[@]" -g '*.(dvi|DVI)(-.)'
+  ;;
+esac

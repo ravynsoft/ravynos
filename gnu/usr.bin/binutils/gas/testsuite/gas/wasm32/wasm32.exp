@@ -1,0 +1,58 @@
+# Expect script for wasm32 tests.
+#   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# wasm32 assembler testsuite.
+
+if [istarget wasm32-*-*] {
+    run_dump_test "allinsn"
+    # no GOT/PLT relocs yet.
+    setup_xfail "wasm32-*-*"
+    run_dump_test "reloc"
+    run_list_test "illegal"
+    run_list_test "illegal-2"
+    run_list_test "illegal-3"
+    run_list_test "illegal-4"
+    run_list_test "illegal-5"
+    run_list_test "illegal-6"
+    run_list_test "illegal-7"
+    run_list_test "illegal-8"
+    run_list_test "illegal-9"
+    run_list_test "illegal-10"
+    setup_xfail "wasm32-*-*"
+    run_list_test "illegal-11"
+    setup_xfail "wasm32-*-*"
+    run_list_test "illegal-12"
+    setup_xfail "wasm32-*-*"
+    run_list_test "illegal-13"
+    run_list_test "illegal-14"
+    run_list_test "illegal-15"
+    run_list_test "illegal-16"
+    run_list_test "illegal-17"
+    run_list_test "illegal-18"
+    run_list_test "illegal-19"
+    run_list_test "illegal-20"
+    run_list_test "illegal-21"
+    run_list_test "illegal-22"
+    # illegal-23 has become legal
+    run_list_test "illegal-24"
+    run_list_test "illegal-25"
+    run_dump_test "disass"
+    run_dump_test "disass-2"
+}

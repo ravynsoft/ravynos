@@ -1,0 +1,69 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# tests of the backslash-in-glob-patterns discussion on the austin-group ML
+[ $UID -eq 0 ] && { echo "glob6.sub: the test suite should not be run as root" >&2 ; }
+
+: ${TMPDIR:=/var/tmp}
+
+ORIG=$PWD
+GLOBDIR=$TMPDIR/bash-glob-$$
+mkdir $GLOBDIR || { echo "glob6.sub: cannot make directory $GLOBDIR" >&2 ; exit 1; }
+builtin cd $GLOBDIR || { echo "glob6.sub: cannot change directory to $GLOBDIR" >&2 ; exit 1; }
+
+# does the pattern matcher allow backslashes as escape characters and remove
+# them as part of matching?
+touch abcdefg
+pat='ab\cd*'
+printf '<%s>\n' $pat
+pat='\.'
+printf '<%s>\n' $pat
+rm abcdefg
+
+# how about when escaping pattern characters?
+touch '*abc.c'
+a='\**.c'
+printf '%s\n' $a
+rm -f '*abc.c'
+
+# how about when making the distinction between readable and searchable path
+# components?
+mkdir -m a=x searchable
+mkdir -m a=r readable
+
+p='searchable/\.'
+printf "%s\n" $p
+
+p='searchable/\./.'
+printf "%s\n" $p
+
+p='readable/\.'
+printf "%s\n" $p
+
+p='readable/\./.'
+printf "%s\n" $p
+
+printf "%s\n" 'searchable/\.'
+printf "%s\n" 'readable/\.'
+
+echo */.
+
+p='*/\.'
+echo $p
+
+echo */'.'
+
+rmdir searchable readable
+
+cd $ORIG
+rmdir $GLOBDIR

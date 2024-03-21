@@ -1,0 +1,79 @@
+#compdef pkgin
+
+local curcontext="$curcontext" pkgin=$words[1] cmd ret=1
+local -a state state_descr line expl cmds short pkgs
+local -A opt_args
+
+_arguments -s -S -C \
+  '-c+[enable chrooting pkgin in the given repository]:chroot path:_directories' \
+  '-d[download only]' \
+  '-f[force database update]' \
+  '-F[force package reinstall]' \
+  '(- 1 *)-h[display usage information]' \
+  '-l+[only include the packages with the specified status flags]:limit chars:((
+    \=\:installed\ version\ is\ current
+    \<\:installed\ version\ is\ older
+    \>\:installed\ version\ is\ newer
+  ))' \
+  '(-y)-n[assume "no" as default answer and print results of actions to be taken line per line]' \
+  '-p[display results in a parsable format]' \
+  '-P[display packages versions instead of globs (sd, sfd, srd)]' \
+  '-t+[log package browsing (dependencies and impact) to specified log file]:log file:_files' \
+  '(- 1 *)-v[display version information]' \
+  '-V[be verbose when (un)installing]' \
+  '(-n)-y[assume "yes" as default answer, except for autoremove]' \
+  '1:command:->subcommands' \
+  '*:: :->restargs' && ret=0
+
+if [[ -n $state ]]; then
+  cmds=( ${${${(f)"$(_call_program commands $pkgin -h 2>&1)"}[3,-1]/ - (#b)(?)/:$match:l}%.} )
+  short=( ${${cmds#*\(}/ #\)/} )
+  cmds=( ${cmds// #\(*\)/} )
+  if [[ $state = subcommands && ! -prefix - ]]; then
+    _describe -t commands "command" short -- cmds -M 'r:|-=* r:|=*' && ret=0
+    return ret
+  fi
+
+  cmd=${short[(I)${words[1]}:*]}
+  if (( cmd )); then
+    cmd=${cmds[cmd]%%:*}
+  else
+    cmd=$words[1]
+  fi
+  curcontext="${curcontext%:*}-$cmd"
+  case $cmd in
+    avail|autoremove|clean|export|(full-|)upgrade|show(|-no)-keep|update)
+      _nothing
+    ;;
+    import)
+      _wanted files expl file _files && ret=0
+    ;;
+    install|pkg-(content|descr|build-defs)|provides|requires|show(|-full|-rev)-deps|show-pkg-category)
+      _wanted packages expl package compadd - \
+	  ${${(f)"$(_call_program packages $pkgin avail)"}%%-[^- ]# *} && ret=0
+    ;;
+    keep)
+      _wanted packages expl package compadd - \
+	  ${${(f)"$(_call_program packages $pkgin show-no-keep)"}%%-[^- ]# *} && ret=0
+    ;;
+    remove)
+      _wanted packages expl package compadd - \
+	  ${${(f)"$(_call_program packages $pkgin list)"}%%-[^- ]# *} && ret=0
+    ;;
+    search)
+      _message -e patterns pattern
+    ;;
+    show-category)
+      _wanted -x categories expl category compadd - /usr/pkgsrc/*~*/CVS(N/:t) && ret=0
+    ;;
+    unkeep)
+      _wanted packages expl package compadd - \
+	  ${${(f)"$(_call_program packages $pkgin show-keep)"}%%-[^- ]# *} && ret=0
+    ;;
+    *)
+      _default && ret=0
+    ;;
+  esac
+fi
+
+return ret

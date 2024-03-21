@@ -1,0 +1,65 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that PO files that differ only in the POT-Creation-Date yield the
+# exact same .mo file.
+
+cat <<\EOF > mf-19-1.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"POT-Creation-Date: 2017-04-05 19:47+0200\n"
+"PO-Revision-Date: 2017-06-07 09:07+0000\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Open &File"
+msgstr "Open File"
+
+msgid "Show _Help"
+msgstr "Show Help"
+EOF
+
+cat <<\EOF > mf-19-2.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"POT-Creation-Date: 2016-03-04 18:46+0100\n"
+"PO-Revision-Date: 2017-06-07 09:07+0000\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Open &File"
+msgstr "Open File"
+
+msgid "Show _Help"
+msgstr "Show Help"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o mf-19-1.mo mf-19-1.po 2>/dev/null
+test $? = 0 || { Exit 1; }
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o mf-19-2.mo mf-19-2.po 2>/dev/null
+test $? = 0 || { Exit 1; }
+
+: ${DIFF=diff}
+${DIFF} mf-19-1.mo mf-19-2.mo
+test $? = 0 || { Exit 1; }

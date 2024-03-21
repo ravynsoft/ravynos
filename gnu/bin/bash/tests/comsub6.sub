@@ -1,0 +1,40 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+DATE='Mon Aug 29 20:03:02 EDT 2022'
+shopt -s expand_aliases
+
+alias foo='echo $(echo $DATE)'
+alias foo1='echo $(echo $DATE)    '
+
+foo
+echo post foo
+
+foo1
+echo post foo1
+
+alias comsub0='echo $(echo $DATE'
+comsub0)
+comsub0		) after
+
+alias math0='echo $(( 4+3 )'
+math0)
+
+alias x='VAR=$(echo hey)'
+x
+foo
+
+echo $VAR after x
+
+alias math1='echo $( date )'
+math1)

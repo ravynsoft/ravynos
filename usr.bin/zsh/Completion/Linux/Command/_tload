@@ -1,0 +1,9 @@
+#compdef tload
+# based on procps-ng-3.3.15
+
+_arguments -s \
+  '(-s --scale)'{-s+,--scale=}'[specify the vertical scale]:number of characters between tics: ' \
+  '(-d --delay)'{-d+,--delay=}'[specify the delay between updates]:seconds: ' \
+  '(- *)'{-h,--help}'[display help and exit]' \
+  '(- *)'{-V,--version}'[display version information and exit]' \
+  '1: :_ttys -o'

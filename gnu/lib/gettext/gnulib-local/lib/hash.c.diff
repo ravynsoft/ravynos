@@ -1,0 +1,20 @@
+--- hash.c.orig	2020-07-04 10:21:00.491559357 +0200
++++ hash.c	2020-07-04 10:22:00.536240305 +0200
+@@ -345,6 +345,8 @@
+ 
+ /* Allocation and clean-up.  */
+ 
++#if 0
++
+ #if USE_DIFF_HASH
+ 
+ /* About hashings, Paul Eggert writes to me (FP), on 1994-01-01: "Please see
+@@ -389,6 +391,8 @@
+ 
+ #endif /* not USE_DIFF_HASH */
+ 
++#endif
++
+ /* Return true if CANDIDATE is a prime number.  CANDIDATE should be an odd
+    number at least equal to 11.  */
+ 

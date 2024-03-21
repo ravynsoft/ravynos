@@ -1,0 +1,132 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgcat on PO files with contexts.
+
+cat <<\EOF > mcat-test13.in1
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouverte"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermée"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+EOF
+
+cat <<\EOF > mcat-test13.in2
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+EOF
+
+rm -f mcat-test13.tmp
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test13.tmp mcat-test13.in1 mcat-test13.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test13.tmp > mcat-test13.out || Exit 1
+
+cat <<\EOF > mcat-test13.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+#, fuzzy
+msgctxt "Lock state"
+msgid "Open"
+msgstr ""
+"#-#-#-#-#  mcat-test13.in1  #-#-#-#-#\n"
+"Ouverte\n"
+"#-#-#-#-#  mcat-test13.in2  #-#-#-#-#\n"
+"Ouvert"
+
+#. Denote a lock's state
+#, fuzzy
+msgctxt "Lock state"
+msgid "Closed"
+msgstr ""
+"#-#-#-#-#  mcat-test13.in1  #-#-#-#-#\n"
+"Fermée\n"
+"#-#-#-#-#  mcat-test13.in2  #-#-#-#-#\n"
+"Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test13.ok mcat-test13.out
+result=$?
+
+exit $result

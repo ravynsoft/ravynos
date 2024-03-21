@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFWarning &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFWriteDirectory" href="TIFFWriteDirectory.html" />
+    <link rel="prev" title="TIFFtile" href="TIFFtile.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFWriteDirectory.html" title="TIFFWriteDirectory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFtile.html" title="TIFFtile"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFWarning</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffwarning">
+<h1>TIFFWarning<a class="headerlink" href="#tiffwarning" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdarg.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFWarning">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWarning</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFWarning" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFWarningExt">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWarningExt</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="n"><span class="pre">fd</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFWarningExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFWarningExtR">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWarningExtR</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFWarningExtR" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFWarningHandler">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWarningHandler</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFWarningHandler" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFWarningHandlerExt">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWarningHandlerExt</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="n"><span class="pre">fd</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFWarningHandlerExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFWarningHandlerExtR">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWarningHandlerExtR</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">user_data</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFWarningHandlerExtR" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetWarningHandler">
+<a class="reference internal" href="#c.TIFFWarningHandler" title="TIFFWarningHandler"><span class="n"><span class="pre">TIFFWarningHandler</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetWarningHandler</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TIFFWarningHandler" title="TIFFWarningHandler"><span class="n"><span class="pre">TIFFWarningHandler</span></span></a><span class="w"> </span><span class="n"><span class="pre">handler</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetWarningHandler" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetWarningHandlerExt">
+<a class="reference internal" href="#c.TIFFWarningHandlerExt" title="TIFFWarningHandlerExt"><span class="n"><span class="pre">TIFFWarningHandlerExt</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetWarningHandlerExt</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TIFFWarningHandlerExt" title="TIFFWarningHandlerExt"><span class="n"><span class="pre">TIFFWarningHandlerExt</span></span></a><span class="w"> </span><span class="n"><span class="pre">handler</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetWarningHandlerExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFWarning" title="TIFFWarning"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarning()</span></code></a> invokes the library-wide warning handler function
+to (normally) write a warning message to the <code class="docutils literal notranslate"><span class="pre">stderr</span></code>.
+The <em>fmt</em> parameter is a <code class="xref c c-func docutils literal notranslate"><span class="pre">printf()</span></code> format string, and any number
+arguments can be supplied. The <em>module</em> parameter is interpreted as a
+string that, if non-zero, should be printed before the message; it
+typically is used to identify the software module in which a warning is
+detected.</p>
+<p>Applications that desire to capture control in the event of a warning
+should use <a class="reference internal" href="#c.TIFFSetWarningHandler" title="TIFFSetWarningHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWarningHandler()</span></code></a> to override the default
+warning handler. A <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> (0) warning handler function may be
+installed to suppress warning messages.</p>
+<p>Two more application-specific warning handler callbacks are available,
+each with different call parameters and passing parameters to the handler.
+Each handler is also linked with a warning message function, i.e.
+<a class="reference internal" href="#c.TIFFWarningExt" title="TIFFWarningExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExt()</span></code></a> and <a class="reference internal" href="#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> if the application
+intends to call the handler with those extended parameters.</p>
+<p><a class="reference internal" href="#c.TIFFWarningExt" title="TIFFWarningExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExt()</span></code></a> provides a file handle as parameter.
+Within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> <a class="reference internal" href="#c.TIFFWarningExt" title="TIFFWarningExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExt()</span></code></a> is called passing <code class="docutils literal notranslate"><span class="pre">tif-&gt;tif_clientdata</span></code>
+as <em>fd</em>, which represents the TIFF file handle (file descriptor).
+The application-specific and library-wide handler for <a class="reference internal" href="#c.TIFFWarningExt" title="TIFFWarningExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExt()</span></code></a>
+is setup with <a class="reference internal" href="#c.TIFFSetWarningHandlerExt" title="TIFFSetWarningHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWarningHandlerExt()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> (introduced with libtiff 4.5) is called with its
+TIFF handle and thus provides access to a per-TIFF handle (re-entrant)
+warning handler. That means for different TIFF handles, different warning
+handlers can be setup. This application-specific handler
+can be setup when a TIFF file is opened with one of the following functions:
+<a class="reference internal" href="TIFFOpen.html#c.TIFFOpenExt" title="TIFFOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenExt()</span></code></a>, <a class="reference internal" href="TIFFOpen.html#c.TIFFOpenWExt" title="TIFFOpenWExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenWExt()</span></code></a>, <a class="reference internal" href="TIFFOpen.html#c.TIFFFdOpenExt" title="TIFFFdOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpenExt()</span></code></a>
+or <a class="reference internal" href="TIFFOpen.html#c.TIFFClientOpenExt" title="TIFFClientOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpenExt()</span></code></a>.
+Furthermore, a <strong>custom defined data structure</strong> <em>user_data</em> for the
+warning handler can be given along.</p>
+</section>
+<section id="note">
+<h2>Note<a class="headerlink" href="#note" title="Permalink to this heading">¶</a></h2>
+<p>Both functions <a class="reference internal" href="#c.TIFFWarning" title="TIFFWarning"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarning()</span></code></a> and <a class="reference internal" href="#c.TIFFWarningExt" title="TIFFWarningExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExt()</span></code></a>
+each attempt to call both handler functions if they are defined.
+First <a class="reference internal" href="#c.TIFFWarningHandler" title="TIFFWarningHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandler()</span></code></a> is called and then <a class="reference internal" href="#c.TIFFWarningHandlerExt" title="TIFFWarningHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandlerExt()</span></code></a>.
+However, <a class="reference internal" href="#c.TIFFWarning" title="TIFFWarning"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarning()</span></code></a> passes a “0” as a file handle to
+<a class="reference internal" href="#c.TIFFWarningHandlerExt" title="TIFFWarningHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandlerExt()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> tries first to call the per-TIFF handle defined
+warning handler. If <a class="reference internal" href="#c.TIFFWarningHandlerExtR" title="TIFFWarningHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandlerExtR()</span></code></a> is not defined or
+returns 0, <a class="reference internal" href="#c.TIFFWarningHandler" title="TIFFWarningHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandler()</span></code></a> and then <a class="reference internal" href="#c.TIFFWarningHandlerExt" title="TIFFWarningHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandlerExt()</span></code></a>
+are called. From libtiff 4.5 onwards <a class="reference internal" href="#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> is used
+within the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> library.</p>
+</section>
+<section id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFSetWarningHandler" title="TIFFSetWarningHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWarningHandler()</span></code></a> and <a class="reference internal" href="#c.TIFFSetWarningHandlerExt" title="TIFFSetWarningHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWarningHandlerExt()</span></code></a>
+returns a reference to the previous warning handler function.</p>
+<p><a class="reference internal" href="#c.TIFFWarningHandlerExtR" title="TIFFWarningHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandlerExtR()</span></code></a> returns an integer as “stop” to control the call
+of furhter warning handler functions within <a class="reference internal" href="#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>0: both functions <a class="reference internal" href="#c.TIFFWarningHandler" title="TIFFWarningHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandler()</span></code></a> and <a class="reference internal" href="#c.TIFFWarningHandlerExt" title="TIFFWarningHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningHandlerExt()</span></code></a> are called.</p></li>
+<li><p>non-zero: no further warning message function is called.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="TIFFError.html"><span class="doc">TIFFError</span></a> (3tiff),
+<a class="reference internal" href="TIFFOpen.html"><span class="doc">TIFFOpen</span></a> (3tiff),
+<a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff),
+printf (3)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFWarning</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#note">Note</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFtile.html"
+                          title="previous chapter">TIFFtile</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFWriteDirectory.html"
+                          title="next chapter">TIFFWriteDirectory</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFWarning.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFWriteDirectory.html" title="TIFFWriteDirectory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFtile.html" title="TIFFtile"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFWarning</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

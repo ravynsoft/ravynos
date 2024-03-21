@@ -1,0 +1,54 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Python support: --add-comments option.
+
+cat <<EOF > xg-py-2.py
+# This comment will not be extracted.
+print gettext.gettext("help")
+#  TRANSLATORS: This is an extracted comment.
+print gettext.gettext("me")
+# Not extracted either.
+print gettext.gettext("Hey Jude")
+# TRANSLATORS:
+#    Nickname of the Beatles
+print gettext.gettext("The Fabulous Four")
+# TRANSLATORS: The strings get concatenated.
+print gettext.gettext("there is not enough"
+" room on a single line for this entire long, " # confusing, eh?
+"verbose string")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-py-2.tmp xg-py-2.py || Exit 1
+LC_ALL=C tr -d '\r' < xg-py-2.tmp.po > xg-py-2.po || Exit 1
+
+cat <<EOF > xg-py-2.ok
+msgid "help"
+msgstr ""
+
+#. TRANSLATORS: This is an extracted comment.
+msgid "me"
+msgstr ""
+
+msgid "Hey Jude"
+msgstr ""
+
+#. TRANSLATORS:
+#. Nickname of the Beatles
+msgid "The Fabulous Four"
+msgstr ""
+
+#. TRANSLATORS: The strings get concatenated.
+msgid ""
+"there is not enough room on a single line for this entire long, verbose "
+"string"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-py-2.ok xg-py-2.po
+result=$?
+
+exit $result

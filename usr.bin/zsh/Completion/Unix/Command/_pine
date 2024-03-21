@@ -1,0 +1,51 @@
+#compdef pine pinef
+
+local optfile getopts='pine -conf' sortorder lusortorder opts send idx
+
+if (( $#_cache_pine_options )); then
+  for optfile in ~/.pinerc /etc/pine.conf; do
+    if [[ -f $optfile ]]; then
+      getopts="cat $optfile"
+      break
+    fi
+  done
+  _cache_pine_options=( $($=getopts | sed -n 's/^\([-a-z]*=\).*/-\1/p') )
+fi
+
+sortorder=( {subject,arrival,date,from,size}{,/reverse} )
+lusortorder=( dont-sort {nickname,fullname}{,-with-lists-last} )
+
+opts=( -h -v -F -conf -create_lu -pinerc -copy_abook -copy_pinerc)  # exclusive options
+idx=( -f -c -i -I -n -o -sort )  # options used when viewing messages
+send=( -attach -attachlist -attach_and_delete -url )  # options when sending
+
+_arguments -s \
+  "($opts $idx $send -bail -d -k -z -r -p -P *)-h[display help]" \
+  "($opts $idx $send -bail -d -k -z -r -p -P *)-v[display version information]" \
+  "($opts $idx $send -r *)-F+[specify file to open and page through]:file:_files" \
+  "($opts $idx $send *)-conf[print out fresh global configuration]" \
+  "($opts $idx $send *)-pinerc[put fresh pinerc configuration in file]:file:_files" \
+  "($opts $idx $send *)-create_lu[create .lu from script]:addressbook file:_files:sort order:(${(j: :)lusortorder})" \
+  "($opts $idx $send *)-copy_pinerc:pinerc file:_files:remote folder" \
+  "($opts $idx $send *)-copy_abook:addressbook file:_files:remote folder" \
+  "($opts $idx -url)-attach[go directly into composer with given file]:file:_files" \
+  "($opts $idx -url)-attachlist[go to composer with given files]:file:_files" \
+  "($opts $idx -url)-attach_and_delete[go to composer, attach file, delete when finished]:file:_files" \
+  "($opts $idx $send)-url[open the given URL]:URL:_email_addresses -c -P mailto\:" \
+  "($opts $send)-f+[specify mailbox to load]:mailbox: _mailboxes" \
+  "($opts $send)-c+[specify context to apply to -f arg]: :_guard '[0-9]#' number" \
+  "($opts $send)-sort[specify sort order of folder]:sort order:(${(j: :)sortorder})" \
+  "($opts $send)-i[go directly to index, bypassing main menu]" \
+  "($opts $send)-I+[specify initial keystrokes to be executed]:keystrokes" \
+  "($opts $send)-n+[entry in index to begin on]: :_guard '[0-9]#' number" \
+  "($opts $send)-o[open first folder read-only]" \
+  "(-F -h -v)-r[restricted - can only send mail to oneself]" \
+  "(-h -v)-d[set debug level]:debug:(0 1 2 3 4 5 6 7 8 9 flush timestamp imap= numfiles= verbose=)" \
+  \(${(j. .)opts:#-F}')-k[force use of function keys]' \
+  \(${(j. .)opts:#-F}')-z[allow use of ^Z suspension]' \
+  \(${(j. .)opts:#-F}')-p+[use alternate .pinerc file]:alternate pinerc:_files' \
+  \(${(j. .)opts:#-F}')-P+[use alternate pine.conf file]:alternate pine.conf:_files' \
+  \(${(j. .)opts:#-F}')-x[use configuration exceptions file]:configuration exceptions file:_files' \
+  \(${(j. .)opts:#-F}")-bail[exit if pinerc file doesn't already exist]" \
+  '*::recipient:_email_addresses -n pine' \
+  ${^_cache_pine_options}':option value'

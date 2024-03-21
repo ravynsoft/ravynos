@@ -1,0 +1,11 @@
+#autoload
+
+local expl login_classes
+
+login_classes=(${${(M)${(f)"$(</etc/login.conf)"}:#[^#[:blank:]]*}%%[:|]*})
+if [[ $OSTYPE = openbsd* ]]; then
+  login_classes+=(/etc/login.conf.d/*(N:t))
+fi
+
+_description login-classes expl 'login class'
+compadd "$@" "$expl[@]" - $login_classes

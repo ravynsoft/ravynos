@@ -1,0 +1,258 @@
+\input texinfo          @c -*-texinfo-*-
+@c %**start of header
+@setfilename autosprintf.info
+@c The @ifset makeinfo ... @end ifset conditional evaluates to true in makeinfo
+@c for info and html output, but to false in texi2html.
+@ifnottex
+@ifclear texi2html
+@set makeinfo
+@end ifclear
+@end ifnottex
+@settitle GNU @code{autosprintf}
+@finalout
+@c Indices:
+@c   none
+@c Unused predefined indices:
+@c   cp = concept         @cindex
+@c   fn = function        @findex
+@c   vr = variable        @vindex
+@c   ky = keystroke       @kindex
+@c   pg = program         @pindex
+@c   tp = type            @tindex
+@ifclear texi2html
+@firstparagraphindent insert
+@end ifclear
+@c %**end of header
+@set VERSION 1.0
+
+@ifinfo
+@dircategory C++ libraries
+@direntry
+* autosprintf: (autosprintf).   Support for printf format strings in C++.
+@end direntry
+@end ifinfo
+
+@ifinfo
+This file provides documentation for GNU @code{autosprintf} library.
+
+@copying
+Copyright (C) 2002-2003, 2006-2007, 2018-2019 Free Software Foundation, Inc.
+
+This manual is free documentation.  It is dually licensed under the
+GNU FDL and the GNU GPL.  This means that you can redistribute this
+manual under either of these two licenses, at your choice.
+
+This manual is covered by the GNU FDL.  Permission is granted to copy,
+distribute and/or modify this document under the terms of the
+GNU Free Documentation License (FDL), either version 1.2 of the
+License, or (at your option) any later version published by the
+Free Software Foundation (FSF); with no Invariant Sections, with no
+Front-Cover Text, and with no Back-Cover Texts.
+A copy of the license is at @url{https://www.gnu.org/licenses/fdl.html}.
+
+This manual is covered by the GNU GPL.  You can redistribute it and/or
+modify it under the terms of the GNU General Public License (GPL), either
+version 2 of the License, or (at your option) any later version published
+by the Free Software Foundation (FSF).
+A copy of the license is at @url{https://www.gnu.org/licenses/gpl.html}.
+@end copying
+@end ifinfo
+
+@titlepage
+@title GNU autosprintf, version @value{VERSION}
+@subtitle Formatted Output to Strings in C++
+@author Bruno Haible
+
+@ifnothtml
+@page
+@vskip 0pt plus 1filll
+@c @insertcopying
+Copyright (C) 2002-2003, 2006-2007, 2018-2019 Free Software Foundation, Inc.
+
+This manual is free documentation.  It is dually licensed under the
+GNU FDL and the GNU GPL.  This means that you can redistribute this
+manual under either of these two licenses, at your choice.
+
+This manual is covered by the GNU FDL.  Permission is granted to copy,
+distribute and/or modify this document under the terms of the
+GNU Free Documentation License (FDL), either version 1.2 of the
+License, or (at your option) any later version published by the
+Free Software Foundation (FSF); with no Invariant Sections, with no
+Front-Cover Text, and with no Back-Cover Texts.
+A copy of the license is at @url{https://www.gnu.org/licenses/fdl.html}.
+
+This manual is covered by the GNU GPL.  You can redistribute it and/or
+modify it under the terms of the GNU General Public License (GPL), either
+version 2 of the License, or (at your option) any later version published
+by the Free Software Foundation (FSF).
+A copy of the license is at @url{https://www.gnu.org/licenses/gpl.html}.
+@end ifnothtml
+@end titlepage
+
+@c Table of Contents
+@contents
+
+@ifnottex
+@node Top
+@top GNU autosprintf
+
+This manual documents the GNU autosprintf class, version @value{VERSION}.
+
+@menu
+* Introduction::                Introduction
+* Class autosprintf::           The @code{autosprintf} class
+* Using autosprintf::           Using @code{autosprintf} in own programs
+* Licenses::
+@end menu
+
+@end ifnottex
+
+@node Introduction
+@chapter Introduction
+
+This package makes the C formatted output routines (@code{fprintf} et al.)
+usable in C++ programs, for use with the @code{<string>} strings and the
+@code{<iostream>} streams.
+
+It allows to write code like
+
+@smallexample
+cerr << autosprintf ("syntax error in %s:%d: %s", filename, line, errstring);
+@end smallexample
+
+@noindent
+instead of
+
+@smallexample
+cerr << "syntax error in " << filename << ":" << line << ": " << errstring;
+@end smallexample
+
+The benefits of the autosprintf syntax are:
+
+@itemize @bullet
+@item
+It reuses the standard POSIX printf facility. Easy migration from C to C++.
+
+@item
+English sentences are kept together.
+
+@item
+It makes internationalization possible. Internationalization requires format
+strings, because in some cases the translator needs to change the order of a
+sentence, and more generally it is easier for the translator to work with a
+single string for a sentence than with multiple string pieces.
+
+@item
+It reduces the risk of programming errors due to forgotten state in the
+output stream (e.g.@: @code{cout << hex;} not followed by @code{cout << dec;}).
+@end itemize
+
+@node Class autosprintf
+@chapter The @code{autosprintf} class
+
+An instance of class @code{autosprintf} just contains a string with the
+formatted output result. Such an instance is usually allocated as an
+automatic storage variable, i.e.@: on the stack, not with @code{new} on the
+heap.
+
+The constructor @code{autosprintf (const char *format, ...)} takes a format
+string and additional arguments, like the C function @code{printf}.
+
+Conversions to @code{char *} and @code{std::string} are defined that return
+the encapsulated string.  The conversion to @code{char *} returns a freshly
+allocated copy of the encapsulated string; it needs to be freed using
+@code{delete[]}.  The conversion to @code{std::string} returns a copy of
+the encapsulated string, with automatic memory management.
+
+The destructor @code{~autosprintf ()} destroys the encapsulated string.
+
+An @code{operator <<} is provided that outputs the encapsulated string to the
+given @code{ostream}.
+
+@node Using autosprintf
+@chapter Using @code{autosprintf} in own programs
+
+To use the @code{autosprintf} class in your programs, you need to add
+
+@smallexample
+#include "autosprintf.h"
+using gnu::autosprintf;
+@end smallexample
+
+@noindent
+to your source code.
+The include file defines the class @code{autosprintf}, in a namespace called
+@code{gnu}. The @samp{using} statement makes it possible to use the class
+without the (otherwise natural) @code{gnu::} prefix.
+
+When linking your program, you need to link with @code{libasprintf}, because
+that's where the class is defined. In projects using GNU @code{autoconf},
+this means adding @samp{AC_LIB_LINKFLAGS([asprintf])} to @code{configure.in}
+or @code{configure.ac}, and using the @@LIBASPRINTF@@ Makefile variable that
+it provides.
+
+@node Licenses
+@appendix Licenses
+@cindex Licenses
+
+The files of this package are covered by the licenses indicated in each
+particular file or directory.  Here is a summary:
+
+@itemize @bullet
+@item
+The @code{libasprintf} library is covered by the
+GNU Lesser General Public License (LGPL), either version 2.1 of the
+License, or (at your option) any later version published by the
+Free Software Foundation (FSF).
+A copy of the license is included in @ref{GNU LGPL}.
+
+@item
+This manual is free documentation.  It is dually licensed under the
+GNU FDL and the GNU GPL.  This means that you can redistribute this
+manual under either of these two licenses, at your choice.
+@*
+This manual is covered by the GNU FDL.  Permission is granted to copy,
+distribute and/or modify this document under the terms of the
+GNU Free Documentation License (FDL), either version 1.2 of the
+License, or (at your option) any later version published by the
+Free Software Foundation (FSF); with no Invariant Sections, with no
+Front-Cover Text, and with no Back-Cover Texts.
+A copy of the license is included in @ref{GNU FDL}.
+@*
+This manual is covered by the GNU GPL.  You can redistribute it and/or
+modify it under the terms of the GNU General Public License (GPL), either
+version 2 of the License, or (at your option) any later version published
+by the Free Software Foundation (FSF).
+A copy of the license is included in @ref{GNU GPL}.
+@end itemize
+
+@menu
+* GNU LGPL::                    GNU Lesser General Public License
+* GNU GPL::                     GNU General Public License
+* GNU FDL::                     GNU Free Documentation License
+@end menu
+
+@page
+@node GNU LGPL
+@appendixsec GNU LESSER GENERAL PUBLIC LICENSE
+@cindex :GPL, GNU Lesser General Public License
+@cindex License, GNU LGPL
+@include lgpl.texi
+@page
+@node GNU GPL
+@appendixsec GNU GENERAL PUBLIC LICENSE
+@cindex GPL, GNU General Public License
+@cindex License, GNU GPL
+@include gpl.texi
+@page
+@node GNU FDL
+@appendixsec GNU Free Documentation License
+@cindex FDL, GNU Free Documentation License
+@cindex License, GNU FDL
+@include fdl.texi
+
+@bye
+
+@c Local variables:
+@c texinfo-column-for-description: 32
+@c End:

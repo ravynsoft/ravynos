@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFcolor &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFCreateDirectory" href="TIFFCreateDirectory.html" />
+    <link rel="prev" title="TIFFcodec" href="TIFFcodec.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFCreateDirectory.html" title="TIFFCreateDirectory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFcodec.html" title="TIFFcodec"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFcolor</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffcolor">
+<h1>TIFFcolor<a class="headerlink" href="#tiffcolor" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFYCbCrToRGBInit">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFYCbCrToRGBInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFFYCbCrToRGB</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ycbcr</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">luma</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">refBlackWhite</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFYCbCrToRGBInit" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFYCbCrtoRGB">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFYCbCrtoRGB</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFFYCbCrToRGB</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ycbcr</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">Y</span></span>, <span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n"><span class="pre">Cb</span></span>, <span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n"><span class="pre">Cr</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">R</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">G</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">B</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFYCbCrtoRGB" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCIELabToRGBInit">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCIELabToRGBInit</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFFCIELabToRGB</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cielab</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">TIFFDisplay</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">displayw</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">refWhite</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCIELabToRGBInit" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCIELabToXYZ">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCIELabToXYZ</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFFCIELabToRGB</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cielab</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">L</span></span>, <span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n"><span class="pre">a</span></span>, <span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n"><span class="pre">b</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">X</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">Y</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">Z</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCIELabToXYZ" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFXYZToRGB">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFXYZToRGB</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFFCIELabToRGB</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">cielab</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="n"><span class="pre">X</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="n"><span class="pre">Y</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="n"><span class="pre">Z</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">R</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">G</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">B</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFXYZToRGB" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>TIFF supports several color spaces for images stored in that format. There is
+usually a problem of application to handle the data properly and convert
+between different colorspaces for displaying and printing purposes. To
+simplify this task <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> implements several color conversion routines
+itself. In particular, these routines used in the <a class="reference internal" href="TIFFRGBAImage.html"><span class="doc">TIFFRGBAImage</span></a>
+interface.</p>
+<p><a class="reference internal" href="#c.TIFFYCbCrToRGBInit" title="TIFFYCbCrToRGBInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFYCbCrToRGBInit()</span></code></a> used to initialize <em>YCbCr</em> to <em>RGB</em>
+conversion state. Allocating and freeing of the <em>ycbcr</em> structure
+belongs to programmer.  <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFYCbCrToRGB</span></code> is defined in
+<code class="file docutils literal notranslate"><span class="pre">tiffio.h</span></code> as:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w">                </span><span class="cm">/* YCbCr-&gt;RGB support */</span>
+<span class="w">        </span><span class="n">TIFFRGBValue</span><span class="o">*</span><span class="w"> </span><span class="n">clamptab</span><span class="p">;</span><span class="w"> </span><span class="cm">/* range clamping table */</span>
+<span class="w">        </span><span class="kt">int</span><span class="o">*</span><span class="w">          </span><span class="n">Cr_r_tab</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="o">*</span><span class="w">          </span><span class="n">Cb_b_tab</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int32_t</span><span class="o">*</span><span class="w">      </span><span class="n">Cr_g_tab</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int32_t</span><span class="o">*</span><span class="w">      </span><span class="n">Cb_g_tab</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int32_t</span><span class="o">*</span><span class="w">      </span><span class="n">Y_tab</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">TIFFYCbCrToRGB</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><em>luma</em> is a float array of three values representing proportions of the
+red, green and blue in luminance, Y (see section 21 of the TIFF 6.0
+specification, where YCbCr images are discussed).
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YCBCRCOEFFICIENTS</span></code> hold these values in TIFF file.
+<em>refBlackWhite</em> is a float array of 6 values which specifies a pair of
+headroom and footroom image data values (codes) for each image component
+(see section 20 of the TIFF 6.0 specification where the colorimetry
+fields are discussed).
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_REFERENCEBLACKWHITE</span></code> is responsible for storing these
+values in TIFF file. The following code snippet should help to
+understand the the technique:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">float</span><span class="w"> </span><span class="o">*</span><span class="n">luma</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">refBlackWhite</span><span class="p">;</span>
+<span class="kt">uint16_t</span><span class="w"> </span><span class="n">hs</span><span class="p">,</span><span class="w"> </span><span class="n">vs</span><span class="p">;</span>
+
+<span class="cm">/* Initialize structures */</span>
+<span class="n">ycbcr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFYCbCrToRGB</span><span class="o">*</span><span class="p">)</span>
+<span class="w">    </span><span class="n">_TIFFmalloc</span><span class="p">(</span><span class="n">TIFFroundup</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">TIFFYCbCrToRGB</span><span class="p">),</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">))</span>
+<span class="w">        </span><span class="o">+</span><span class="w"> </span><span class="mi">4</span><span class="o">*</span><span class="mi">256</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="n">TIFFRGBValue</span><span class="p">)</span>
+<span class="w">        </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="mi">256</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span>
+<span class="w">        </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="o">*</span><span class="mi">256</span><span class="o">*</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int32_t</span><span class="p">));</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ycbcr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">TIFFError</span><span class="p">(</span><span class="s">&quot;YCbCr-&gt;RGB&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s">&quot;No space for YCbCr-&gt;RGB conversion state&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">TIFFGetFieldDefaulted</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_YCBCRCOEFFICIENTS</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">luma</span><span class="p">);</span>
+<span class="n">TIFFGetFieldDefaulted</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_REFERENCEBLACKWHITE</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">refBlackWhite</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFYCbCrToRGBInit</span><span class="p">(</span><span class="n">ycbcr</span><span class="p">,</span><span class="w"> </span><span class="n">luma</span><span class="p">,</span><span class="w"> </span><span class="n">refBlackWhite</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cm">/* Start conversion */</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">;</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="n">Y</span><span class="p">;</span>
+<span class="kt">int32_t</span><span class="w"> </span><span class="n">Cb</span><span class="p">,</span><span class="w"> </span><span class="n">Cr</span><span class="p">;</span>
+
+<span class="k">for</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">pixel</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">TIFFYCbCrtoRGB</span><span class="p">(</span><span class="n">img</span><span class="o">-&gt;</span><span class="n">ycbcr</span><span class="p">,</span><span class="w"> </span><span class="n">Y</span><span class="p">,</span><span class="w"> </span><span class="n">Cb</span><span class="p">,</span><span class="w"> </span><span class="n">Cr</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cm">/* Free state structure */</span>
+<span class="n">_TIFFfree</span><span class="p">(</span><span class="n">ycbcr</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#c.TIFFCIELabToRGBInit" title="TIFFCIELabToRGBInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCIELabToRGBInit()</span></code></a> initializes the <em>CIE L*a*b* 1976</em> to
+<em>RGB</em> conversion state. <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFCIELabToRGB</span></code> is defined as:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define CIELABTORGB_TABLE_RANGE 1500</span>
+
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w">                                </span><span class="cm">/* CIE Lab 1976-&gt;RGB support */</span>
+<span class="w">    </span><span class="kt">int</span><span class="w">      </span><span class="n">range</span><span class="p">;</span><span class="w">                             </span><span class="cm">/* Size of conversion table */</span>
+<span class="w">    </span><span class="kt">float</span><span class="w">    </span><span class="n">rstep</span><span class="p">,</span><span class="w"> </span><span class="n">gstep</span><span class="p">,</span><span class="w"> </span><span class="n">bstep</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w">    </span><span class="n">X0</span><span class="p">,</span><span class="w"> </span><span class="n">Y0</span><span class="p">,</span><span class="w"> </span><span class="n">Z0</span><span class="p">;</span><span class="w">                        </span><span class="cm">/* Reference white point */</span>
+<span class="w">    </span><span class="n">TIFFDisplay</span><span class="w"> </span><span class="n">display</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w">    </span><span class="n">Yr2r</span><span class="p">[</span><span class="n">CIELABTORGB_TABLE_RANGE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"> </span><span class="cm">/* Conversion of Yr to r */</span>
+<span class="w">    </span><span class="kt">float</span><span class="w">    </span><span class="n">Yg2g</span><span class="p">[</span><span class="n">CIELABTORGB_TABLE_RANGE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"> </span><span class="cm">/* Conversion of Yg to g */</span>
+<span class="w">    </span><span class="kt">float</span><span class="w">    </span><span class="n">Yb2b</span><span class="p">[</span><span class="n">CIELABTORGB_TABLE_RANGE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"> </span><span class="cm">/* Conversion of Yb to b */</span>
+<span class="p">}</span><span class="w"> </span><span class="n">TIFFCIELabToRGB</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><em>display</em> is a display device description, declared as:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_mat</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">3</span><span class="p">];</span><span class="w"> </span><span class="cm">/* XYZ -&gt; luminance matrix */</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_YCR</span><span class="p">;</span><span class="w">       </span><span class="cm">/* Light o/p for reference white */</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_YCG</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_YCB</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">d_Vrwr</span><span class="p">;</span><span class="w">   </span><span class="cm">/* Pixel values for ref. white */</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">d_Vrwg</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">d_Vrwb</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_Y0R</span><span class="p">;</span><span class="w">       </span><span class="cm">/* Residual light for black pixel */</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_Y0G</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_Y0B</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_gammaR</span><span class="p">;</span><span class="w">    </span><span class="cm">/* Gamma values for the three guns */</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_gammaG</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">d_gammaB</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="n">TIFFDisplay</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>For example, one can use sRGB device, which has the following parameters:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">TIFFDisplay</span><span class="w"> </span><span class="n">display_sRGB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">{</span><span class="w">   </span><span class="cm">/* XYZ -&gt; luminance matrix */</span>
+<span class="w">        </span><span class="p">{</span><span class="w">  </span><span class="mf">3.2410F</span><span class="p">,</span><span class="w"> </span><span class="mf">-1.5374F</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.4986F</span><span class="w"> </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="w">  </span><span class="mf">-0.9692F</span><span class="p">,</span><span class="w"> </span><span class="mf">1.8760F</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0416F</span><span class="w"> </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="w">  </span><span class="mf">0.0556F</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.2040F</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0570F</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="mf">100.0F</span><span class="p">,</span><span class="w"> </span><span class="mf">100.0F</span><span class="p">,</span><span class="w"> </span><span class="mf">100.0F</span><span class="p">,</span><span class="w"> </span><span class="cm">/* Light o/p for reference white */</span>
+<span class="w">    </span><span class="mi">255</span><span class="p">,</span><span class="w"> </span><span class="mi">255</span><span class="p">,</span><span class="w"> </span><span class="mi">255</span><span class="p">,</span><span class="w">          </span><span class="cm">/* Pixel values for ref. white */</span>
+<span class="w">    </span><span class="mf">1.0F</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0F</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0F</span><span class="p">,</span><span class="w">       </span><span class="cm">/* Residual light o/p for black pixel */</span>
+<span class="w">    </span><span class="mf">2.4F</span><span class="p">,</span><span class="w"> </span><span class="mf">2.4F</span><span class="p">,</span><span class="w"> </span><span class="mf">2.4F</span><span class="p">,</span><span class="w">       </span><span class="cm">/* Gamma values for the three guns */</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p><em>refWhite</em> is a color temperature of the reference white. The
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_WHITEPOINT</span></code> contains the chromaticity of the white
+point of the image from where the reference white can be calculated
+using following formulae:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">refWhite_Y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0</span>
+
+<span class="n">refWhite_X</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">whitePoint_x</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">whitePoint_y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">refWhite_Y</span>
+
+<span class="n">refWhite_Z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mf">1.0</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">whitePoint_x</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">whitePoint_y</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">whitePoint_y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">refWhite_X</span>
+</pre></div>
+</div>
+<p>The conversion itself performed in two steps: at the first one we will convert
+<em>CIE L*a*b* 1976</em> to <em>CIE XYZ</em> using the <a class="reference internal" href="#c.TIFFCIELabToXYZ" title="TIFFCIELabToXYZ"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCIELabToXYZ()</span></code></a> routine,
+and at the second step we will convert <em>CIE XYZ</em> to <em>RGB</em> using
+<a class="reference internal" href="#c.TIFFXYZToRGB" title="TIFFXYZToRGB"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFXYZToRGB()</span></code></a>.  Look at the code sample below:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">float</span><span class="w">   </span><span class="o">*</span><span class="n">whitePoint</span><span class="p">;</span>
+<span class="kt">float</span><span class="w">   </span><span class="n">refWhite</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+
+<span class="cm">/* Initialize structures */</span>
+<span class="n">img</span><span class="o">-&gt;</span><span class="n">cielab</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFCIELabToRGB</span><span class="w"> </span><span class="o">*</span><span class="p">)</span>
+<span class="w">    </span><span class="n">_TIFFmalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">TIFFCIELabToRGB</span><span class="p">));</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">cielab</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">TIFFError</span><span class="p">(</span><span class="s">&quot;CIE L*a*b*-&gt;RGB&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;No space for CIE L*a*b*-&gt;RGB conversion state.&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">TIFFGetFieldDefaulted</span><span class="p">(</span><span class="n">tif</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_WHITEPOINT</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">whitePoint</span><span class="p">);</span>
+<span class="n">refWhite</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0F</span><span class="p">;</span>
+<span class="n">refWhite</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">whitePoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">whitePoint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">refWhite</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="n">refWhite</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mf">1.0F</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">whitePoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">whitePoint</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="w">    </span><span class="o">/</span><span class="w"> </span><span class="n">whitePoint</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">refWhite</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFCIELabToRGBInit</span><span class="p">(</span><span class="n">cielab</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">display_sRGB</span><span class="p">,</span><span class="w"> </span><span class="n">refWhite</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">TIFFError</span><span class="p">(</span><span class="s">&quot;CIE L*a*b*-&gt;RGB&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s">&quot;Failed to initialize CIE L*a*b*-&gt;RGB conversion state.&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">_TIFFfree</span><span class="p">(</span><span class="n">cielab</span><span class="p">);</span>
+<span class="w">    </span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cm">/* Now we can start to convert */</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">;</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="n">L</span><span class="p">;</span>
+<span class="kt">int32_t</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">;</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">Y</span><span class="p">,</span><span class="w"> </span><span class="n">Z</span><span class="p">;</span>
+
+<span class="k">for</span><span class="w"> </span><span class="n">each</span><span class="w"> </span><span class="n">pixel</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">TIFFCIELabToXYZ</span><span class="p">(</span><span class="n">cielab</span><span class="p">,</span><span class="w"> </span><span class="n">L</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Y</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">Z</span><span class="p">);</span>
+<span class="w">    </span><span class="n">TIFFXYZToRGB</span><span class="p">(</span><span class="n">cielab</span><span class="p">,</span><span class="w"> </span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">Y</span><span class="p">,</span><span class="w"> </span><span class="n">Z</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">b</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cm">/* Don&#39;t forget to free the state structure */</span>
+<span class="n">_TIFFfree</span><span class="p">(</span><span class="n">cielab</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="TIFFRGBAImage.html"><span class="doc">TIFFRGBAImage</span></a> (3tiff),
+<a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFcolor</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFcodec.html"
+                          title="previous chapter">TIFFcodec</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFCreateDirectory.html"
+                          title="next chapter">TIFFCreateDirectory</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFcolor.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFCreateDirectory.html" title="TIFFCreateDirectory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFcodec.html" title="TIFFcodec"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFcolor</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

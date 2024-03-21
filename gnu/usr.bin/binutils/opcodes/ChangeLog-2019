@@ -1,0 +1,2456 @@
+2019-12-30  Alan Modra  <amodra@gmail.com>
+
+	PR 25319
+	* tic4x-dis.c (tic4x_print_cond): Correct order of xcalloc args.
+
+2019-12-29  Alan Modra  <amodra@gmail.com>
+
+	* sparc-dis.c (SEX): Don't use left and right shift to sign extend.
+	(compare_opcodes): Avoid signed shift left overflow.
+	(print_insn_sparc): Likewise.
+
+2019-12-29  Alan Modra  <amodra@gmail.com>
+
+	PR 25319
+	* tic4x-dis.c (tic4x_print_cond): Init all of condtable.
+
+2019-12-27  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (Jdqw): Define.
+	(dqw_mode): Adjust associated comment.
+	(rm_table): Use Jdqw for XBEGIN.
+	(OP_J): Handle dqw_mode.
+
+2019-12-27  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (process_i386_operand_type): Don't set Disp32 for
+	Cpu64 templates.
+	* i386-opc.tbl (mov): Fold two templates.
+	(jcxz, jecxz, jrcxz, loop, loope, loopne, loopnz, loopz): Drop
+	Disp16, Disp32, and Disp32S.
+	(xbegin): Add Disp32S.
+	* i386-tbl.h: Re-generate.
+
+2019-12-26  Alan Modra  <amodra@gmail.com>
+
+	* crx-dis.c (get_number_of_operands): Don't access operands[]
+	out of bounds.
+
+2019-12-26  Alan Modra  <amodra@gmail.com>
+
+	* v850-dis.c (disassemble): Avoid signed overflow.  Don't use
+	long vars when unsigned int will do.
+
+2019-12-24  Alan Modra  <amodra@gmail.com>
+
+	* arm-dis.c (print_insn_arm): Don't shift by 32 on unsigned int var.
+
+2019-12-23  Jan Beulich  <jbeulich@suse.com>
+
+	* ppc-dis.c (print_insn_powerpc): Rename local variable "spaces"
+	to "blanks".
+	* ppc-opc.c (D34, SI34, NSI34): Use UINT64_C().
+
+2019-12-23  Alan Modra  <amodra@gmail.com>
+
+	* score-dis.c (print_insn_score32): Avoid signed overflow.
+	(print_insn_score48): Likewise.  Don't cast to int when printing
+	hex values.
+
+2019-12-23  Alan Modra  <amodra@gmail.com>
+
+	* iq2000-ibld.c: Regenerate.
+
+2019-12-23  Alan Modra  <amodra@gmail.com>
+
+	* d30v-dis.c (extract_value): Make num param a uint64_t, constify
+	oper.  Use unsigned vars.
+	(print_insn): Make num var uint64_t.  Constify oper and remove now
+	unnecessary casts on extract_value calls.
+	(print_insn_d30v): Use unsigned vars.  Adjust printf formats.
+
+2019-12-23  Alan Modra  <amodra@gmail.com>
+
+	* wasm32-dis.c (wasm_read_leb128): Don't allow oversize shifts.
+	Catch value overflow.  Sign extend only on terminating byte.
+
+2019-12-20  Alan Modra  <amodra@gmail.com>
+
+	PR 25281
+	* sh-dis.c (print_insn_ddt): Properly check validity of MOVX_NOPY
+	and MOVY_NOPX insns.  For invalid cases include 0xf000 in the word
+	printed.  Print .word in more cases.
+
+2019-12-20  Alan Modra  <amodra@gmail.com>
+
+	* or1k-ibld.c: Regenerate.
+
+2019-12-20  Alan Modra  <amodra@gmail.com>
+
+	* hppa-dis.c (extract_16, extract_21, print_insn_hppa): Use
+	unsigned variables.
+
+2019-12-20  Alan Modra  <amodra@gmail.com>
+
+	* m68hc11-dis.c (read_memory): Delete forward decls.
+	(print_indexed_operand, print_insn): Likewise.
+	(print_indexed_operand): Formatting.  Don't rely on short being
+	exactly 16 bits, make sign extension explicit.
+	(print_insn): Likewise.  Avoid signed overflow.
+
+2019-12-19  Alan Modra  <amodra@gmail.com>
+
+	* vax-dis.c (print_insn_mode): Stop index mode recursion.
+
+2019-12-19  Dr N.W. Filardo  <nwf20@cam.ac.uk>
+
+	PR 25277
+	* microblaze-opcm.h (enum microblaze_instr): Prefix fadd, fmul and
+	fdiv with "mbi_".
+	* microblaze-opc.h (opcodes): Adjust to suit.
+
+2019-12-18  Alan Modra  <amodra@gmail.com>
+
+	* alpha-opc.c (OP): Avoid signed overflow.
+	* arm-dis.c (print_insn): Likewise.
+	* mcore-dis.c (print_insn_mcore): Likewise.
+	* pj-dis.c (get_int): Likewise.
+	* ppc-opc.c (EBD15, EBD15BI): Likewise.
+	* score7-dis.c (s7_print_insn): Likewise.
+	* tic30-dis.c (print_insn_tic30): Likewise.
+	* v850-opc.c (insert_SELID): Likewise.
+	* vax-dis.c (print_insn_vax): Likewise.
+	* arc-ext.c (create_map): Likewise.
+	(struct ExtAuxRegister): Make "address" field unsigned int.
+	(arcExtMap_auxRegName): Pass unsigned address.
+	(dump_ARC_extmap): Adjust.
+	* arc-ext.h (arcExtMap_auxRegName): Update prototype.
+
+2019-12-17  Alan Modra  <amodra@gmail.com>
+
+	* visium-dis.c (print_insn_visium): Avoid signed overflow.
+
+2019-12-17  Alan Modra  <amodra@gmail.com>
+
+	* aarch64-opc.c (value_fit_signed_field_p): Avoid signed overflow.
+	(value_fit_unsigned_field_p): Likewise.
+	(aarch64_wide_constant_p): Likewise.
+	(operand_general_constraint_met_p): Likewise.
+	* aarch64-opc.h (aarch64_wide_constant_p): Update prototype.
+
+2019-12-17  Alan Modra  <amodra@gmail.com>
+
+	* nds32-dis.c (nds32_mask_opcode): Avoid signed overflow.
+	(print_insn_nds32): Use uint64_t for "given" and "given1".
+
+2019-12-17  Alan Modra  <amodra@gmail.com>
+
+	* tic80-dis.c: Delete file.
+	* tic80-opc.c: Delete file.
+	* disassemble.c: Remove tic80 support.
+	* disassemble.h: Likewise.
+	* Makefile.am: Likewise.
+	* configure.ac: Likewise.
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+	* po/POTFILES.in: Regenerate.
+
+2019-12-17  Alan Modra  <amodra@gmail.com>
+
+	* bpf-ibld.c: Regenerate.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* aarch64-dis.c (sign_extend): Return uint64_t.  Rewrite without
+	conditional.
+	(aarch64_ext_imm): Avoid signed overflow.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* microblaze-dis.c (read_insn_microblaze): Avoid signed overflow.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* nios2-dis.c (nios2_print_insn_arg): Avoid signed overflow
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* xstormy16-ibld.c: Regenerate.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* score-dis.c (print_insn_score16): Move rpush/rpop imm field
+	value adjustment so that it doesn't affect reg field too.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* crx-dis.c (EXTRACT, SBM): Avoid signed overflow.
+	(get_number_of_operands, getargtype, getbits, getregname),
+	(getcopregname, getprocregname, gettrapstring, getcinvstring),
+	(getregliststring, get_word_at_PC, get_words_at_PC, build_mask),
+	(powerof2, match_opcode, make_instruction, print_arguments),
+	(print_arg): Delete forward declarations, moving static to..
+	(getregname, getcopregname, getregliststring): ..these definitions.
+	(build_mask): Return unsigned int mask.
+	(match_opcode): Use unsigned int vars.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* bfin-dis.c (fmtconst, fmtconst_val): Avoid signed overflow.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* nds32-dis.c (print_insn16, print_insn32): Remove forward decls.
+	(struct objdump_disasm_info): Delete.
+	(nds32_parse_audio_ext, nds32_parse_opcode): Cast result of
+	N32_IMMS to unsigned before shifting left.
+
+2019-12-16  Alan Modra  <amodra@gmail.com>
+
+	* moxie-dis.c (INST2OFFSET): Don't left shift a signed value.
+	(print_insn_moxie): Remove unnecessary cast.
+
+2019-12-12  Alan Modra  <amodra@gmail.com>
+
+	* csky-dis.c (csky_chars_to_number): Remove abort and unnecessary
+	mask.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* arc-dis.c (BITS): Don't truncate high bits with shifts.
+	* nios2-dis.c (nios2_print_insn_arg): Don't sign extend with shifts.
+	* tic54x-dis.c (print_instruction): Likewise.
+	* tilegx-opc.c (parse_insn_tilegx): Likewise.
+	* tilepro-opc.c (parse_insn_tilepro): Likewise.
+	* visium-dis.c (disassem_class0): Likewise.
+	* pdp11-dis.c (sign_extend): Likewise.
+	(SIGN_BITS): Delete.
+	* epiphany-ibld.c: Regenerate.
+	* lm32-ibld.c: Regenerate.
+	* m32c-ibld.c: Regenerate.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* ns32k-dis.c (sign_extend): Correct last patch.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* vax-dis.c (NEXTLONG): Avoid signed overflow.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* v850-dis.c (get_operand_value): Use unsigned arithmetic.  Don't
+	sign extend using shifts.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* tic6x-dis.c (tic6x_extract_32): Avoid signed overflow.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* tic4x-dis.c (tic4x_print_register): Formatting.  Don't segfault
+	on NULL registertable entry.
+	(tic4x_hash_opcode): Use unsigned arithmetic.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* s12z-opc.c (z_decode_signed_value): Avoid signed overflow.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* ns32k-dis.c (bit_extract): Use unsigned arithmetic.
+	(bit_extract_simple, sign_extend): Likewise.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* nios2-dis.c (nios2_print_insn_arg): Use 1u << 31.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* moxie-dis.c (INST2OFFSET): Don't sign extend using shifts.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* m68k-dis.c (COERCE32): Cast value first.
+	(NEXTLONG, NEXTULONG): Avoid signed overflow.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* h8300-dis.c (extract_immediate): Avoid signed overflow.
+	(bfd_h8_disassemble): Likewise.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* d30v-dis.c (print_insn): Make opind unsigned.  Don't access
+	past end of operands array.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* csky-dis.c (csky_chars_to_number): Rewrite.  Avoid signed
+	overflow when collecting bytes of a number.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* cris-dis.c (print_with_operands): Avoid signed integer
+	overflow when collecting bytes of a 32-bit integer.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* cr16-dis.c (EXTRACT, SBM): Rewrite.
+	(cr16_match_opcode): Delete duplicate bcond test.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* bfin-dis.c (HOST_LONG_WORD_SIZE, XFIELD): Delete.
+	(SIGNBIT): New.
+	(MASKBITS, SIGNEXTEND): Rewrite.
+	(fmtconst): Don't use ? expression now that SIGNEXTEND uses
+	unsigned arithmetic, instead assign result of SIGNEXTEND back
+	to x.
+	(fmtconst_val): Use 1u in shift expression.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* arc-dis.c (find_format_from_table): Use ull constant when
+	shifting by up to 32.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	PR 25270
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Return
+	false when field is zero for sve_size_tsz_bhs.
+
+2019-12-11  Alan Modra  <amodra@gmail.com>
+
+	* epiphany-ibld.c: Regenerate.
+
+2019-12-10  Alan Modra  <amodra@gmail.com>
+
+	PR 24960
+	* disassemble.c (disassemble_free_target): New function.
+
+2019-12-10  Alan Modra  <amodra@gmail.com>
+
+	* cgen-dis.in (print_insn_@arch@): Replace insn_sets with private_data.
+	* disassemble.c (disassemble_init_for_target): Likewise.
+	* bpf-dis.c: Regenerate.
+	* epiphany-dis.c: Regenerate.
+	* fr30-dis.c: Regenerate.
+	* frv-dis.c: Regenerate.
+	* ip2k-dis.c: Regenerate.
+	* iq2000-dis.c: Regenerate.
+	* lm32-dis.c: Regenerate.
+	* m32c-dis.c: Regenerate.
+	* m32r-dis.c: Regenerate.
+	* mep-dis.c: Regenerate.
+	* mt-dis.c: Regenerate.
+	* or1k-dis.c: Regenerate.
+	* xc16x-dis.c: Regenerate.
+	* xstormy16-dis.c: Regenerate.
+
+2019-12-10  Alan Modra  <amodra@gmail.com>
+
+	* ppc-dis.c (private): Delete variable.
+	(get_powerpc_dialect): Don't segfault on NULL info->private_data.
+	(powerpc_init_dialect): Don't use global private.
+
+2019-12-10  Alan Modra  <amodra@gmail.com>
+
+	* s12z-opc.c: Formatting.
+
+2019-12-08  Alan Modra  <amodra@gmail.com>
+
+	* s12z-opc.c (exg_sex_discrim): Don't leak memory on invalid
+	registers.
+
+2019-12-05  Jan Beulich  <jbeulich@suse.com>
+
+	* aarch64-tbl.h (aarch64_feature_crypto,
+	aarch64_feature_crypto_v8_2, CRYPTO, CRYPTO_V8_2, CRYP_INSN,
+	CRYPTO_V8_2_INSN): Delete.
+
+2019-12-05  Alan Modra  <amodra@gmail.com>
+
+	PR 25249
+	* microblaze-dis.c (NUM_STRBUFS, STRBUF_SIZE): Define.
+	(struct string_buf): New.
+	(strbuf): New function.
+	(get_field): Use strbuf rather than strdup of local temp.
+	(get_field_imm, get_field_imm5, get_field_imm5_mbar): Likewise.
+	(get_field_rfsl, get_field_imm15): Likewise.
+	(get_field_rd, get_field_r1, get_field_r2): Update macros.
+	(get_field_special): Likewise.  Don't strcpy spr.  Formatting.
+	(print_insn_microblaze): Formatting.  Init and pass string_buf to
+	get_field functions.
+
+2019-12-04  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (lfs, lgs, lss): Drop No_qSuf.
+	* i386-tbl.h: Re-generate.
+
+2019-12-04  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (mod_table): Use Ev instead of Em for movdiri.
+
+2019-12-04  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (push, pop): Drop DefaultSize from GPR-only
+	forms.
+	(xbegin): Drop DefaultSize.
+	* i386-tbl.h: Re-generate.
+
+2019-11-22  Mihail Ionescu  <mihail.ionescu@arm.com>
+
+	* opcodes/arm-dis.c (arm_opcodes, thumb32_opcodes):
+	Change the coproc CRC conditions to use the extension
+	feature set, second word, base on ARM_EXT2_CRC.
+
+2019-11-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (syscall, sysret): Drop Cpu64 forms.
+	* i386-tbl.h: Re-generate.
+
+2019-11-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (opcode_modifiers): Remove JumpDword, JumpByte,
+	JumpInterSegment, and JumpAbsolute entries.
+	* i386-opc.h (JUMP, JUMP_DWORD, JUMP_BYTE, JUMP_INTERSEGMENT,
+	JUMP_ABSOLUTE): Define.
+	(struct i386_opcode_modifier): Extend jump field to 3 bits.
+	Remove jumpdword, jumpbyte, jumpintersegment, and jumpabsolute
+	fields.
+	* i386-opc.tbl (JumpByte, JumpDword, JumpAbsolute,
+	JumpInterSegment): Define.
+	* i386-tbl.h: Re-generate.
+
+2019-11-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Remove
+	OPERAND_TYPE_JUMPABSOLUTE entry.
+	(opcode_modifiers): Add JumpAbsolute entry.
+	(operand_types): Remove JumpAbsolute entry.
+	* i386-opc.h (JumpAbsolute): Move between enums.
+	(struct i386_opcode_modifier): Add jumpabsolute field.
+	(union i386_operand_type): Remove jumpabsolute field.
+	* i386-opc.tbl (call, lcall, jmp, ljmp): Move JumpAbsolute.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-14  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (opcode_modifiers): Add AnySize entry.
+	(operand_types): Remove AnySize entry.
+	* i386-opc.h (AnySize): Move between enums.
+	(struct i386_opcode_modifier): Add anysize field.
+	(OTUnused): Un-comment.
+	(union i386_operand_type): Remove anysize field.
+	* i386-opc.tbl (lea, invlpg, clflush, prefetchnta, prefetcht0,
+	prefetcht1, prefetcht2, prefetchtw, bndmk, bndcl, bndcu, bndcn,
+	bndstx, bndldx, prefetchwt1, clflushopt, clwb, cldemote): Move
+	AnySize.
+	* i386-tbl.h: Re-generate.
+
+2019-11-12  Nelson Chu  <nelson.chu@sifive.com>
+
+	* riscv-opc.c (riscv_insn_types): Replace the INSN_CLASS_I with
+	INSN_CLASS_F and the INSN_CLASS_C with INSN_CLASS_F_AND_C if we
+	use the floating point register (FPR).
+
+2019-11-12  Mihail Ionescu  <mihail.ionescu@arm.com>
+
+	* opcodes/arm-dis.c (mve_opcodes): Enable VMOV imm to vec with
+	cmode 1101.
+	(is_mve_encoding_conflict): Update cmode conflict checks for
+	MVE_VMVN_IMM.
+
+2019-11-12  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Remove OPERAND_TYPE_ESSEG
+	entry.
+	(operand_types): Remove EsSeg entry.
+	(main): Replace stale use of OTMax.
+	* i386-opc.h (IS_STRING_ES_OP0, IS_STRING_ES_OP1): Define.
+	(struct i386_opcode_modifier): Expand isstring field to 2 bits.
+	(EsSeg): Delete.
+	(OTUnused): Comment out.
+	(union i386_operand_type): Remove esseg field.
+	* i386-opc.tbl (IsStringEsOp0, IsStringEsOp1): Define.
+	(cmps, scmp, scas, ssca, cmpsd): Add IsStringEsOp0.
+	(ins, movs, smov, movsd): Add IsStringEsOpOp1.
+	(stos, ssto): Add IsStringEsOp0/IsStringEsOpOp1.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-12  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_instances): Add RegB entry.
+	* i386-opc.h (enum operand_instance): Add RegB.
+	* i386-opc.tbl (RegC, RegD, RegB): Define.
+	(Acc, ShiftCount, InOutPortReg): Adjust definitions.
+	(monitor, mwait, invlpga, skinit, vmload, vmrun, vmsave, clzero,
+	monitorx, mwaitx): Drop ImmExt and convert encodings
+	accordingly.
+	* i386-reg.tbl (ecx, rcx): Add Instance=RegC.
+	(edx, rdx): Add Instance=RegD.
+	(ebx, rbx): Add Instance=RegB.
+	* i386-tbl.h: Re-generate.
+
+2019-11-12  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Adjust
+	OPERAND_TYPE_INOUTPORTREG, OPERAND_TYPE_SHIFTCOUNT,
+	OPERAND_TYPE_FLOATACC, OPERAND_TYPE_ACC8, OPERAND_TYPE_ACC16,
+	OPERAND_TYPE_ACC32, and OPERAND_TYPE_ACC64 entries.
+	(operand_instances): New.
+	(operand_types): Drop InOutPortReg, ShiftCount, and Acc entries.
+	(output_operand_type): New parameter "instance". Process it.
+	(process_i386_operand_type): New local variable "instance".
+	(main): Adjust static assertions.
+	* i386-opc.h (INSTANCE_WIDTH): Define.
+	(enum operand_instance): New.
+	(Acc, InOutPortReg, ShiftCount): Replace by ClassInstance.
+	(union i386_operand_type): Replace acc, inoutportreg, and
+	shiftcount by instance.
+	* i386-opc.tbl (Acc, InOutPortReg, ShiftCount): Define.
+	* i386-reg.tbl (st, al, cl, ax, dx, eax, rax, xmm0, st(0)):
+	Add Instance=.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-11  Jan Beulich  <jbeulich@suse.com>
+
+	* aarch64-tbl.h (aarch64_opcode_table): Switch SVE2's
+	smaxp/sminp entries' "tied_operand" field to 2.
+
+2019-11-11  Jan Beulich  <jbeulich@suse.com>
+
+	* aarch64-opc.c (operand_general_constraint_met_p): Replace
+	"index" local variable by that of the already existing "num".
+
+2019-11-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gas/25167
+	* i386-opc.tbl: Remove IgnoreSize from cmpsd and movsd.
+	* i386-tbl.h: Regenerated.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_REGMASK and OPERAND_TYPE_REGBND entries. Move up
+	OPERAND_TYPE_REGBND entry.
+	(operand_classes): Add RegMask and RegBND entries.
+	(operand_types): Drop RegMask and RegBND entry.
+	* i386-opc.h (enum operand_class): Add RegMask and RegBND.
+	(RegMask, RegBND): Delete.
+	(union i386_operand_type): Remove regmask and regbnd fields.
+	* i386-opc.tbl (RegMask, RegBND): Define.
+	* i386-reg.tbl: Replace RegMask by Class=RegMask and RegBND by
+	Class=RegBND.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_REGMMX, OPERAND_TYPE_REGXMM, OPERAND_TYPE_REGYMM, and
+	OPERAND_TYPE_REGZMM entries.
+	(operand_classes): Add RegMMX and RegSIMD entries.
+	(operand_types): Drop RegMMX and RegSIMD entries.
+	* i386-opc.h (enum operand_class): Add RegMMX and RegSIMD.
+	(RegMMX, RegSIMD): Delete.
+	(union i386_operand_type): Remove regmmx and regsimd fields.
+	* i386-opc.tbl (RegMMX): Define.
+	(RegXMM, RegYMM, RegZMM): Add Class=.
+	* i386-reg.tbl: Replace RegMMX by Class=RegMMX and RegSIMD by
+	Class=RegSIMD.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_CONTROL, OPERAND_TYPE_TEST, and OPERAND_TYPE_DEBUG
+	entries.
+	(operand_classes): Add RegCR, RegDR, and RegTR entries.
+	(operand_types): Drop Control, Debug, and Test entries.
+	* i386-opc.h (enum operand_class): Add RegCR, RegDR, and RegTR.
+	(Control, Debug, Test): Delete.
+	(union i386_operand_type): Remove control, debug, and test
+	fields.
+	* i386-opc.tbl (Control, Debug, Test): Define.
+	* i386-reg.tbl: Replace Control by Class=RegCR, Debug by
+	Class=RegDR, and Test by Class=RegTR.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class= to
+	OPERAND_TYPE_SREG entry.
+	(operand_classes): Add SReg entry.
+	(operand_types): Drop SReg entry.
+	* i386-opc.h (enum operand_class): Add SReg.
+	(SReg): Delete.
+	(union i386_operand_type): Remove sreg field.
+	* i386-opc.tbl (SReg): Define.
+	* i386-reg.tbl: Replace SReg by Class=SReg.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-08  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Add Class=. New
+	OPERAND_TYPE_ANYIMM entry.
+	(operand_classes): New.
+	(operand_types): Drop Reg entry.
+	(output_operand_type): New parameter "class". Process it.
+	(process_i386_operand_type): New local variable "class".
+	(main): Adjust static assertions.
+	* i386-opc.h (CLASS_WIDTH): Define.
+	(enum operand_class): New.
+	(Reg): Replace by Class. Adjust comment.
+	(union i386_operand_type): Replace reg by class.
+	* i386-opc.tbl (Reg8, Reg16, Reg32, Reg64, FloatReg): Add
+	Class=.
+	* i386-reg.tbl: Replace Reg by Class=Reg.
+	* i386-init.h: Re-generate.
+
+2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
+
+	* opcodes/aarch64-tbl.h (V8_6_INSN): New macro for v8.6 instructions.
+	(aarch64_opcode_table): Add data gathering hint mnemonic.
+	* opcodes/aarch64-dis-2.c: Account for new instruction.
+
+2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
+
+	* arm-dis.c (neon_opcodes): Add i8mm SIMD instructions.
+
+
+2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
+
+	* aarch64-tbl.h (aarch64_feature_i8mm_sve, aarch64_feature_f32mm_sve,
+	aarch64_feature_f64mm_sve, aarch64_feature_i8mm, aarch64_feature_f32mm,
+	aarch64_feature_f64mm): New feature sets.
+	(INT8MATMUL_INSN, F64MATMUL_SVE_INSN, F64MATMUL_INSN,
+	F32MATMUL_SVE_INSN, F32MATMUL_INSN): New macros to define matrix multiply
+	instructions.
+	(I8MM_SVE, F32MM_SVE, F64MM_SVE, I8MM, F32MM, F64MM): New feature set
+	macros.
+	(QL_MMLA64, OP_SVE_SBB): New qualifiers.
+	(OP_SVE_QQQ): New qualifier.
+	(INT8MATMUL_SVE_INSNC, F64MATMUL_SVE_INSNC,
+	F32MATMUL_SVE_INSNC): New feature set for bfloat16 instructions to support
+	the movprfx constraint.
+	(aarch64_opcode_table): Support for SVE_ADDR_RI_S4x32.
+	(aarch64_opcode_table): Define new instructions smmla,
+	ummla, usmmla, usdot, sudot, fmmla, ld1rob, ld1roh, ld1row, ld1rod,
+	uzip{1/2}, trn{1/2}.
+	* aarch64-opc.c (operand_general_constraint_met_p): Handle
+	AARCH64_OPND_SVE_ADDR_RI_S4x32.
+	(aarch64_print_operand): Handle AARCH64_OPND_SVE_ADDR_RI_S4x32.
+	* aarch64-dis-2.c (aarch64_opcode_lookup_1, aarch64_find_next_opcode):
+	Account for new instructions.
+	* opcodes/aarch64-asm-2.c (aarch64_insert_operand): Support the new
+	S4x32 operand.
+	* aarch64-opc-2.c (aarch64_operands): Support the new S4x32 operand.
+
+2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
+2019-11-07  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* arm-dis.c (select_arm_features): Update bfd_march_arm_8 with
+	Armv8.6-A.
+	(coprocessor_opcodes): Add bfloat16 vcvt{t,b}.
+	(neon_opcodes): Add bfloat SIMD instructions.
+	(print_insn_coprocessor): Add new control character %b to print
+	condition code without checking cp_num.
+	(print_insn_neon): Account for BFloat16 instructions that have no
+	special top-byte handling.
+
+2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
+2019-11-07  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* arm-dis.c (print_insn_coprocessor,
+	print_insn_generic_coprocessor): Create wrapper functions around
+	the implementation of the print_insn_coprocessor control codes.
+	(print_insn_coprocessor_1): Original print_insn_coprocessor
+	function that now takes which array to look at as an argument.
+	(print_insn_arm): Use both print_insn_coprocessor and
+	print_insn_generic_coprocessor.
+	(print_insn_thumb32): As above.
+
+2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
+2019-11-07  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_ins_reglane): Use AARCH64_OPND_QLF_S_2H
+	in reglane special case.
+	* aarch64-dis-2.c (aarch64_opcode_lookup_1,
+	aarch64_find_next_opcode): Account for new instructions.
+	* aarch64-dis.c (aarch64_ext_reglane): Use AARCH64_OPND_QLF_S_2H
+	in reglane special case.
+	* aarch64-opc.c (struct operand_qualifier_data): Add data for
+	new AARCH64_OPND_QLF_S_2H qualifier.
+	* aarch64-tbl.h (QL_BFDOT QL_BFDOT64, QL_BFDOT64I, QL_BFMMLA2,
+	QL_BFCVT64, QL_BFCVTN64, QL_BFCVTN2_64): New qualifiers.
+	(aarch64_feature_bfloat16, aarch64_feature_bfloat16_sve): New feature
+	sets.
+	(BFLOAT_SVE, BFLOAT): New feature set macros.
+	(BFLOAT_SVE_INSN, BFLOAT_INSN): New macros to define BFloat16
+	instructions.
+	(aarch64_opcode_table): Define new instructions bfdot,
+	bfmmla, bfcvt, bfcvtnt, bfdot, bfdot, bfcvtn, bfmlal[b/t]
+	bfcvtn2, bfcvt.
+
+2019-11-07  Mihail Ionescu  <mihail.ionescu@arm.com>
+2019-11-07  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-tbl.h (ARMV8_6): New macro.
+
+2019-11-07  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (prefix_table): Add mcommit.
+	(rm_table): Add rdpru.
+	* i386-gen.c (cpu_flag_init): Adjust CPU_ZNVER2_FLAGS entry. Add
+	CPU_RDPRU_FLAGS and CPU_MCOMMIT_FLAGS entries.
+	(cpu_flags): Add CpuRDPRU and CpuMCOMMIT entries.
+	* i386-opc.h (CpuRDPRU, CpuMCOMMIT): New.
+	(union i386_cpu_flags): Add cpurdpru and cpumcommit fields.
+	* i386-opc.tbl (mcommit, rdpru): New.
+	* i386-init.h, i386-tbl.h: Re-generate.
+
+2019-11-07  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (OP_Mwait): Drop local variable "names", use
+	"names32" instead.
+	(OP_Monitor): Drop local variable "op1_names", re-purpose
+	"names" for it instead, and replace former "names" uses by
+	"names32" ones.
+
+2019-11-07  Jan Beulich  <jbeulich@suse.com>
+
+	PR/gas 25167
+	* opcodes/i386-opc.tbl (movsd, cmpsd): Drop IgnoreSize from
+	operand-less forms.
+	* opcodes/i386-tbl.h: Re-generate.
+
+2019-11-05  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (OP_Mwaitx): Delete.
+	(prefix_table): Use OP_Mwait for mwaitx entry.
+	(OP_Mwait): Also handle mwaitx.
+
+2019-11-05  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (PREFIX_0F01_REG_7_MOD_3_RM_2,
+	PREFIX_0F01_REG_7_MOD_3_RM_3): New.
+	(prefix_table): Add respective entries.
+	(rm_table): Link to those entries.
+
+2019-11-05  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (REG_0F1C_MOD_0): Rename to ...
+	(REG_0F1C_P_0_MOD_0): ... this.
+	(REG_0F1E_MOD_3): Rename to ...
+	(REG_0F1E_P_1_MOD_3): ... this.
+	(RM_0F01_REG_5): Rename to ...
+	(RM_0F01_REG_5_MOD_3): ... this.
+	(RM_0F01_REG_7): Rename to ...
+	(RM_0F01_REG_7_MOD_3): ... this.
+	(RM_0F1E_MOD_3_REG_7): Rename to ...
+	(RM_0F1E_P_1_MOD_3_REG_7): ... this.
+	(RM_0FAE_REG_6): Rename to ...
+	(RM_0FAE_REG_6_MOD_3_P_0): ... this.
+	(RM_0FAE_REG_7): Rename to ...
+	(RM_0FAE_REG_7_MOD_3): ... this.
+	(PREFIX_MOD_0_0F01_REG_5): Rename to ...
+	(PREFIX_0F01_REG_5_MOD_0): ... this.
+	(PREFIX_MOD_3_0F01_REG_5_RM_0): Rename to ...
+	(PREFIX_0F01_REG_5_MOD_3_RM_0): ... this.
+	(PREFIX_MOD_3_0F01_REG_5_RM_2): Rename to ...
+	(PREFIX_0F01_REG_5_MOD_3_RM_2): ... this.
+	(PREFIX_0FAE_REG_0): Rename to ...
+	(PREFIX_0FAE_REG_0_MOD_3): ... this.
+	(PREFIX_0FAE_REG_1): Rename to ...
+	(PREFIX_0FAE_REG_1_MOD_3): ... this.
+	(PREFIX_0FAE_REG_2): Rename to ...
+	(PREFIX_0FAE_REG_2_MOD_3): ... this.
+	(PREFIX_0FAE_REG_3): Rename to ...
+	(PREFIX_0FAE_REG_3_MOD_3): ... this.
+	(PREFIX_MOD_0_0FAE_REG_4): Rename to ...
+	(PREFIX_0FAE_REG_4_MOD_0): ... this.
+	(PREFIX_MOD_3_0FAE_REG_4): Rename to ...
+	(PREFIX_0FAE_REG_4_MOD_3): ... this.
+	(PREFIX_MOD_0_0FAE_REG_5): Rename to ...
+	(PREFIX_0FAE_REG_5_MOD_0): ... this.
+	(PREFIX_MOD_3_0FAE_REG_5): Rename to ...
+	(PREFIX_0FAE_REG_5_MOD_3): ... this.
+	(PREFIX_MOD_0_0FAE_REG_6): Rename to ...
+	(PREFIX_0FAE_REG_6_MOD_0): ... this.
+	(PREFIX_MOD_1_0FAE_REG_6): Rename to ...
+	(PREFIX_0FAE_REG_6_MOD_3): ... this.
+	(PREFIX_0FAE_REG_7): Rename to ...
+	(PREFIX_0FAE_REG_7_MOD_0): ... this.
+	(PREFIX_MOD_0_0FC3): Rename to ...
+	(PREFIX_0FC3_MOD_0): ... this.
+	(PREFIX_MOD_0_0FC7_REG_6): Rename to ...
+	(PREFIX_0FC7_REG_6_MOD_0): ... this.
+	(PREFIX_MOD_3_0FC7_REG_6): Rename to ...
+	(PREFIX_0FC7_REG_6_MOD_3): ... this.
+	(PREFIX_MOD_3_0FC7_REG_7): Rename to ...
+	(PREFIX_0FC7_REG_7_MOD_3): ... this.
+	(reg_table, prefix_table, mod_table, rm_table): Adjust
+	accordingly.
+
+2019-11-04  Nick Clifton  <nickc@redhat.com>
+
+	* v850-dis.c (get_v850_sreg_name): New function.  Returns the name
+	of a v850 system register.  Move the v850_sreg_names array into
+	this function.
+	(get_v850_reg_name): Likewise for ordinary register names.
+	(get_v850_vreg_name): Likewise for vector register names.
+	(get_v850_cc_name): Likewise for condition codes.
+	* get_v850_float_cc_name): Likewise for floating point condition
+	codes.
+	(get_v850_cacheop_name): Likewise for cache-ops.
+	(get_v850_prefop_name): Likewise for pref-ops.
+	(disassemble): Use the new accessor functions.
+
+2019-10-30  Delia Burduv   <delia.burduv@arm.com>
+
+	* aarch64-opc.c (print_immediate_offset_address): Don't print the
+	immediate for the writeback form of ldraa/ldrab if it is 0.
+	* aarch64-tbl.h: Updated the documentation for ADDR_SIMM10.
+	* aarch64-opc-2.c: Regenerated.
+
+2019-10-30  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_shorthands): Delete.
+	(operand_type_init): Expand previous shorthands.
+	(set_bitfield_from_shorthand): Rename back to ...
+	(set_bitfield_from_cpu_flag_init): ... this.  Drop processing
+	of operand_type_init[].
+	(set_bitfield): Adjust call to the above function.
+	* i386-opc.tbl (Reg8, Reg16, Reg32, Reg64, FloatAcc, FloatReg,
+	RegXMM, RegYMM, RegZMM): Define.
+	* i386-reg.tbl: Expand prior shorthands.
+
+2019-10-30  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (output_i386_opcode): Change order of fields
+	emitted to output.
+	* i386-opc.h (struct insn_template): Move operands field.
+	Convert extension_opcode field to unsigned short.
+	* i386-tbl.h: Re-generate.
+
+2019-10-30  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (process_i386_opcode_modifier): Report bogus uses
+	of W.
+	* i386-opc.h (W): Extend comment.
+	* i386-opc.tbl (mov, movabs, movq): Drop W and adjust opcodes of
+	general purpose variants not allowing for byte operands.
+	* i386-tbl.h: Re-generate.
+
+2019-10-29  Nick Clifton  <nickc@redhat.com>
+
+	* tic30-dis.c (print_branch): Correct size of operand array.
+
+2019-10-29  Nick Clifton  <nickc@redhat.com>
+
+	* d30v-dis.c (print_insn): Check that operand index is valid
+	before attempting to access the operands array.
+
+2019-10-29  Nick Clifton  <nickc@redhat.com>
+
+	* ia64-opc.c (locate_opcode_ent): Prevent a negative shift when
+	locating the bit to be tested.
+
+2019-10-29  Nick Clifton  <nickc@redhat.com>
+
+	* s12z-dis.c (opr_emit_disassembly): Check for illegal register
+	values.
+	(shift_size_table): Use a fixed size defined as S12Z_N_SIZES.
+	(print_insn_s12z):  Check for illegal size values.
+
+2019-10-28  Nick Clifton  <nickc@redhat.com>
+
+	* csky-dis.c (csky_chars_to_number): Check for a negative
+	count. Use an unsigned integer to construct the return value.
+
+2019-10-28  Nick Clifton  <nickc@redhat.com>
+
+	* tic30-dis.c (OPERAND_BUFFER_LEN): Define.  Use as length of
+	operand buffer.  Set value to 15 not 13.
+	(get_register_operand): Use OPERAND_BUFFER_LEN.
+	(get_indirect_operand): Likewise.
+	(print_two_operand): Likewise.
+	(print_three_operand): Likewise.
+	(print_oar_insn): Likewise.
+
+2019-10-28  Nick Clifton  <nickc@redhat.com>
+
+	* ns32k-dis.c (bit_extract): Add sanitiy check of parameters.
+	(bit_extract_simple): Likewise.
+	(bit_copy): Likewise.
+	(pirnt_insn_ns32k): Ensure that uninitialised elements in the
+	index_offset array are not accessed.
+
+2019-10-28  Nick Clifton  <nickc@redhat.com>
+
+	* xgate-dis.c (print_insn): Fix decoding of the XGATE_OP_DYA
+	operand.
+
+2019-10-25  Nick Clifton  <nickc@redhat.com>
+
+	* rx-dis.c (print_insn_rx): Use parenthesis to ensure correct
+	access to opcodes.op array element.
+
+2019-10-23  Nick Clifton  <nickc@redhat.com>
+
+	* rx-dis.c (get_register_name): Fix spelling typo in error
+	message.
+	(get_condition_name, get_flag_name, get_double_register_name)
+	(get_double_register_high_name, get_double_register_low_name)
+	(get_double_control_register_name, get_double_condition_name)
+	(get_opsize_name, get_size_name): Likewise.
+
+2019-10-22  Nick Clifton  <nickc@redhat.com>
+
+	* rx-dis.c (get_size_name): New function.  Provides safe
+	access to name array.
+	(get_opsize_name): Likewise.
+	(print_insn_rx): Use the accessor functions.
+
+2019-10-16  Nick Clifton  <nickc@redhat.com>
+
+	* rx-dis.c (get_register_name): New function.  Provides safe
+	access to name array.
+	(get_condition_name, get_flag_name, get_double_register_name)
+	(get_double_register_high_name, get_double_register_low_name)
+	(get_double_control_register_name, get_double_condition_name):
+	Likewise.
+	(print_insn_rx): Use the accessor functions.
+
+2019-10-09  Nick Clifton  <nickc@redhat.com>
+
+	PR 25041
+	* avr-dis.c (avr_operand): Fix construction of address for lds/sts
+	instructions.
+
+2019-10-07  Jan Beulich  <jbeulich@suse.com>
+
+	* opcodes/i386-opc.tbl (movsd): Add Dword and IgnoreSize.
+	(cmpsd): Likewise. Move EsSeg to other operand.
+	* opcodes/i386-tbl.h: Re-generate.
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* m68k-dis.c: Include cpu-m68k.h
+
+2019-09-23  Alan Modra  <amodra@gmail.com>
+
+	* mips-dis.c: Include elfxx-mips.h.  Move "elf-bfd.h" and
+	"elf/mips.h" earlier.
+
+2018-09-20  Jan Beulich  <jbeulich@suse.com>
+
+	PR gas/25012
+	* i386-opc.tbl (push, pop): Re-instate distinct Cpu64 templates
+	with SReg operand.
+	* i386-tbl.h: Re-generate.
+
+2019-09-18  Alan Modra  <amodra@gmail.com>
+
+	* arc-ext.c: Update throughout for bfd section macro changes.
+
+2019-09-18  Simon Marchi  <simon.marchi@polymtl.ca>
+
+	* Makefile.in: Re-generate.
+	* configure: Re-generate.
+
+2019-09-17  Maxim Blinov  <maxim.blinov@embecosm.com>
+
+	* riscv-opc.c (riscv_opcodes): Change subset field
+	to insn_class field for all instructions.
+	(riscv_insn_types): Likewise.
+
+2019-09-16  Phil Blundell  <pb@pbcl.net>
+
+	* configure: Regenerated.
+
+2019-09-10  Miod Vallat  <miod@online.fr>
+
+	PR 24982
+	* m68k-opc.c: Correct aliases for tdivsl and tdivul.
+
+2019-09-09  Phil Blundell  <pb@pbcl.net>
+
+	binutils 2.33 branch created.
+
+2019-09-03  Nick Clifton  <nickc@redhat.com>
+
+	PR 24961
+	* tic30-dis.c (get_indirect_operand): Check for bufcnt being
+	greater than zero before indexing via (bufcnt -1).
+
+2019-09-03  Nick Clifton  <nickc@redhat.com>
+
+	PR 24958
+	* mmix-dis.c (MAX_REG_NAME_LEN): Define.
+	(MAX_SPEC_REG_NAME_LEN): Define.
+	(struct mmix_dis_info): Use defined constants for array lengths.
+	(get_reg_name): New function.
+	(get_sprec_reg_name): New function.
+	(print_insn_mmix): Use new functions.
+
+2019-08-27  Srinath Parvathaneni  <srinath.parvathaneni@arm.com>
+
+	* arm-dis.c (mve_opcodes): Add entry for MVE_VMOV_VEC_TO_VEC.
+	(is_mve_undefined): Add case for MVE_VMOV_VEC_TO_VEC.
+	(print_insn_mve): Add condition to check Qm==Qn of VORR instruction.
+
+2019-08-22  Kyrylo Tkachov <kyrylo.tkachov@arm.com>
+
+	* aarch64-opc.c (aarch64_sys_regs): Update encoding of tfsre0_el1,
+	tfsr_el1, tfsr_el2, tfsr_el3, tfsr_el12.
+	(aarch64_sys_reg_supported_p): Update checks for the above.
+
+2019-08-12  Srinath Parvathaneni  <srinath.parvathaneni@arm.com>
+
+	* arm-dis.c (struct mopcode32 mve_opcodes): Modify the mask for
+	cases MVE_SQRSHRL and MVE_UQRSHLL.
+	(print_insn_mve): Add case for specifier 'k' to check
+	specific bit of the instruction.
+
+2019-08-07  Phillipe Antoine  <p.antoine@catenacyber.fr>
+
+	PR 24854
+	* arc-dis.c (arc_insn_length): Return 0 rather than aborting when
+	encountering an unknown machine type.
+	(print_insn_arc): Handle arc_insn_length returning 0.  In error
+	cases return -1 rather than calling abort.
+
+2019-08-07  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (fld, fstp): Drop FloatMF from extended forms.
+	(fldcw, fnstcw, fstcw, fnstsw, fstsw): Replace FloatMF by
+	IgnoreSize.
+	* i386-tbl.h: Re-generate.
+
+2019-08-05  Barnaby Wilks  <barnaby.wilks@arm.com>
+
+	* arm-dis.c: Only accept signed variants of VQ(R)DMLAH and VQ(R)DMLASH
+	instructions.
+
+2019-07-30  Mel Chen <mel.chen@sifive.com>
+
+	* riscv-opc.c (riscv_opcodes): Set frsr, fssr, frcsr, fscsr, frrm,
+	fsrm, fsrmi, frflags, fsflags, fsflagsi to alias instructions.
+
+	* riscv-opc.c (riscv_opcodes): Adjust order of frsr, frcsr, fssr,
+	fscsr.
+
+2019-07-24  Claudiu Zissulescu  <claziss@synopsys.com>
+
+	* arc-dis.c (skip_this_opcode): Check also for 0x07 major opcodes,
+	and MPY class instructions.
+	(parse_option): Add nps400 option.
+	(print_arc_disassembler_options): Add nps400 info.
+
+2019-07-24  Claudiu Zissulescu  <claziss@synopsys.com>
+
+	* arc-ext-tbl.h (bspeek): Remove it, added to main table.
+	(bspop): Likewise.
+	(modapp): Likewise.
+	* arc-opc.c (RAD_CHK): Add.
+	* arc-tbl.h: Regenerate.
+
+2019-07-23  Kyrylo Tkachov  <kyrylo.tkachov@arm.com>
+
+	* aarch64-opc.c (aarch64_sys_regs): Add gmid_el1 entry.
+	(aarch64_sys_reg_supported_p): Handle gmid_el1 encoding.
+
+2019-07-22  Barnaby Wilks  <barnaby.wilks@arm.com>
+
+	* arm-dis.c (is_mve_unpredictable): Stop marking some MVE
+	instructions as UNPREDICTABLE.
+
+2019-07-19  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf-desc.c: Regenerated.
+
+2019-07-17  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (static_assert): Define.
+	(main): Use it.
+	* i386-opc.h (Opcode_Modifier_Max): Rename to ...
+	(Opcode_Modifier_Num): ... this.
+	(Mem): Delete.
+
+2019-07-16  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_types): Move RegMem ...
+	(opcode_modifiers): ... here.
+	* i386-opc.h (RegMem): Move to opcode modifer enum.
+	(union i386_operand_type): Move regmem field ...
+	(struct i386_opcode_modifier): ... here.
+	* i386-opc.tbl (RegMem): Define.
+	(mov, movq): Move RegMem on segment, control, debug, and test
+	register flavors.
+	(pextrb): Move RegMem on register only flavors. Add IgnoreSize
+	to non-SSE2AVX flavor.
+	(extractps, pextrw, vcvtps2ph, vextractps, vpextrb, vpextrw):
+	Move RegMem on register only flavors. Drop IgnoreSize from
+	legacy encoding flavors.
+	(movss, movsd, vmovss, vmovsd): Drop RegMem from register only
+	flavors.
+	(vpinsrb, vpinsrw): Drop IgnoreSize where still present on
+	register only flavors.
+	(vmovd): Move RegMem and drop IgnoreSize on register only
+	flavor. Change opcode and operand order to store form.
+	* opcodes/i386-init.h, i386-tbl.h: Re-generate.
+
+2019-07-16  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init, operand_types): Replace SReg
+	entries.
+	* i386-opc.h (SReg2, SReg3): Replace by ...
+	(SReg): ... this.
+	(union i386_operand_type): Replace sreg fields.
+	* i386-opc.tbl (mov, ): Use SReg.
+	(push, pop): Likewies. Drop i386 and x86-64 specific segment
+	register flavors.
+	* i386-reg.tbl (cs, ds, es, fs, gs, ss, flat): Use SReg.
+	* opcodes/i386-init.h, i386-tbl.h: Re-generate.
+
+2019-07-15  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf-desc.c: Regenerate.
+	* bpf-opc.c: Likewise.
+	* bpf-opc.h: Likewise.
+
+2019-07-14  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* bpf-desc.c: Regenerate.
+	* bpf-opc.c: Likewise.
+
+2019-07-10  Hans-Peter Nilsson  <hp@bitrange.com>
+
+	* arm-dis.c (print_insn_coprocessor): Rename index to
+	index_operand.
+
+2019-07-05  Kito Cheng <kito.cheng@sifive.com>
+
+	* riscv-opc.c (riscv_insn_types): Add r4 type.
+
+	* riscv-opc.c (riscv_insn_types): Add b and j type.
+
+	* opcodes/riscv-opc.c (riscv_insn_types): Remove incorrect
+	format for sb type and correct s type.
+
+2019-07-02  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* aarch64-tbl.h (aarch64_opcode): Set C_SCAN_MOVPRFX for the
+	SVE FMOV alias of FCPY.
+
+2019-07-02  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* aarch64-tbl.h (aarch64_opcode_table): Add C_MAX_ELEM flags
+	to SVE fcvtzs, fcvtzu, scvtf and ucvtf entries.
+
+2019-07-02  Richard Sandiford  <richard.sandiford@arm.com>
+
+	* aarch64-opc.c (verify_constraints): Skip GPRs when scanning the
+	registers in an instruction prefixed by MOVPRFX.
+
+2019-07-01  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_encode_variant_using_iclass): Use new
+	sve_size_13 icode to account for variant behaviour of
+	pmull{t,b}.
+	* aarch64-dis-2.c: Regenerate.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Use new
+	sve_size_13 icode to account for variant behaviour of
+	pmull{t,b}.
+	* aarch64-tbl.h (OP_SVE_VVV_HD_BS): Add new qualifier.
+	(OP_SVE_VVV_Q_D): Add new qualifier.
+	(OP_SVE_VVV_QHD_DBS): Remove now unused qualifier.
+	(struct aarch64_opcode): Split pmull{t,b} into those requiring
+	AES and those not.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* opcodes/i386-gen.c (operand_type_init): Remove
+	OPERAND_TYPE_VEC_IMM4 entry.
+	(operand_types): Remove Vec_Imm4.
+	* opcodes/i386-opc.h (Vec_Imm4): Delete.
+	(union i386_operand_type): Remove vec_imm4.
+	* i386-opc.tbl (vpermil2pd, vpermil2ps): Remove Vec_Imm4.
+	* opcodes/i386-init.h, i386-tbl.h: Re-generate.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (lfence, mfence, sfence, monitor, mwait, vmcall,
+	vmlaunch, vmresume, vmxoff, vmfunc, xgetbv, xsetbv, swapgs,
+	rdtscp, clgi, invlpga, skinit, stgi, vmload, vmmcall, vmrun,
+	vmsave, montmul, xsha1, xsha256, xstorerng, xcryptecb,
+	xcryptcbc, xcryptctr, xcryptcfb, xcryptofb, xstore, clac, stac,
+	monitorx, mwaitx): Drop ImmExt from operand-less forms.
+	* i386-tbl.h: Re-generate.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (and, or): Add Optimize to forms allowing two
+	register operands.
+	* i386-tbl.h: Re-generate.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (C): New.
+	(paddb, paddw, paddd, paddq, paddsb, paddsw, paddusb, paddusw,
+	pand, pcmpeqb, pcmpeqw, pcmpeqd, pmaddwd, pmulhw, pmullw,
+	por, pxor, andps, cmpeqps, cmpeqss, cmpneqps, cmpneqss,
+	cmpordps, cmpordss, cmpunordps, cmpunordss, orps, pavgb, pavgw,
+	pmaxsw, pmaxub, pminsw, pminub, pmulhuw, xorps, andpd, cmpeqpd,
+	cmpeqsd, cmpneqpd, cmpneqsd, cmpordpd, cmpordsd, cmpunordpd,
+	cmpunordsd, orpd, xorpd, pmuludq, vandpd, vandps, vcmpeq_ospd,
+	vcmpeq_osps, vcmpeq_ossd, vcmpeq_osss, vcmpeqpd, vcmpeqps,
+	vcmpeqsd, vcmpeqss, vcmpeq_uqpd, vcmpeq_uqps, vcmpeq_uqsd,
+	vcmpeq_uqss, vcmpeq_uspd, vcmpeq_usps, vcmpeq_ussd,
+	vcmpeq_usss, vcmpfalse_ospd, vcmpfalse_osps, vcmpfalse_ossd,
+	vcmpfalse_osss, vcmpfalsepd, vcmpfalseps, vcmpfalsesd,
+	vcmpfalsess, vcmpneq_oqpd, vcmpneq_oqps, vcmpneq_oqsd,
+	vcmpneq_oqss, vcmpneq_ospd, vcmpneq_osps, vcmpneq_ossd,
+	vcmpneq_osss, vcmpneqpd, vcmpneqps, vcmpneqsd, vcmpneqss,
+	vcmpneq_uspd, vcmpneq_usps, vcmpneq_ussd, vcmpneq_usss,
+	vcmpordpd, vcmpordps, vcmpordsd, vcmpord_spd, vcmpord_sps,
+	vcmpordss, vcmpord_ssd, vcmpord_sss, vcmptruepd, vcmptrueps,
+	vcmptruesd, vcmptruess, vcmptrue_uspd, vcmptrue_usps,
+	vcmptrue_ussd, vcmptrue_usss, vcmpunordpd, vcmpunordps,
+	vcmpunordsd, vcmpunord_spd, vcmpunord_sps, vcmpunordss,
+	vcmpunord_ssd, vcmpunord_sss, vorpd, vorps, vpaddsb, vpaddsw,
+	vpaddb, vpaddd, vpaddq, vpaddw, vpaddusb, vpaddusw, vpand,
+	vpavgb, vpavgw, vpcmpeqb, vpcmpeqd, vpcmpeqw, vpmaddwd,
+	vpmaxsw, vpmaxub, vpminsw, vpminub, vpmulhuw, vpmulhw, vpmullw,
+	vpmuludq, vpor, vpxor, vxorpd, vxorps): Add C to VEX-encoded
+	flavors.
+	* i386-tbl.h: Re-generate.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (and, or): Add Optimize to forms allowing two
+	register operands.
+	* i386-tbl.h: Re-generate.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis-evex-prefix.h: Use PCLMUL for vpclmulqdq.
+	* i386-opc.tbl (vpclmullqlqdq, vpclmulhqlqdq, vpclmullqhqdq,
+	vpclmulhqhqdq): Add CpuVPCLMULQDQ flavors.
+	* i386-tbl.h: Re-generate.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (vextractps, vpextrw, vpinsrw): Remove
+	Disp8MemShift from register only templates.
+	* i386-tbl.h: Re-generate.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (EXdScalarS, MOD_EVEX_0F10_PREFIX_1,
+	MOD_EVEX_0F10_PREFIX_3, MOD_EVEX_0F11_PREFIX_1,
+	MOD_EVEX_0F11_PREFIX_3, EVEX_W_0F10_P_1_M_0,
+	EVEX_W_0F10_P_1_M_1, EVEX_W_0F10_P_3_M_0, EVEX_W_0F10_P_3_M_1,
+	EVEX_W_0F11_P_1_M_0, EVEX_W_0F11_P_1_M_1, EVEX_W_0F11_P_3_M_0,
+	EVEX_W_0F11_P_3_M_1): Delete.
+	(EVEX_W_0F10_P_1, EVEX_W_0F10_P_3, EVEX_W_0F11_P_1,
+	EVEX_W_0F11_P_3): New.
+	* i386-dis-evex-mod.h: Remove MOD_EVEX_0F10_PREFIX_1,
+	MOD_EVEX_0F10_PREFIX_3, MOD_EVEX_0F11_PREFIX_1, and
+	MOD_EVEX_0F11_PREFIX_3 table entries.
+	* i386-dis-evex-prefix.h: Adjust PREFIX_EVEX_0F10 and
+	PREFIX_EVEX_0F11 table entries.
+	* i386-dis-evex-w.h: Replace EVEX_W_0F10_P_1_M_{0,1},
+	EVEX_W_0F10_P_3_M_{0,1}, EVEX_W_0F11_P_1_M_{0,1}, and
+	EVEX_W_0F11_P_3_M_{0,1} table entries.
+
+2019-07-01  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (EXdVex, EXdVexS, EXqVex, EXqVexS, XMVex):
+	Delete.
+
+2019-06-27  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/24719
+	* i386-dis-evex-len.h: Add EVEX_LEN_0F38C6_REG_1_PREFIX_2,
+	EVEX_LEN_0F38C6_REG_2_PREFIX_2, EVEX_LEN_0F38C6_REG_5_PREFIX_2,
+	EVEX_LEN_0F38C6_REG_6_PREFIX_2, EVEX_LEN_0F38C7_R_1_P_2_W_0,
+	EVEX_LEN_0F38C7_R_1_P_2_W_1, EVEX_LEN_0F38C7_R_2_P_2_W_0,
+	EVEX_LEN_0F38C7_R_2_P_2_W_1, EVEX_LEN_0F38C7_R_5_P_2_W_0,
+	EVEX_LEN_0F38C7_R_5_P_2_W_1, EVEX_LEN_0F38C7_R_6_P_2_W_0 and
+	EVEX_LEN_0F38C7_R_6_P_2_W_1.
+	* i386-dis-evex-prefix.h: Update PREFIX_EVEX_0F38C6_REG_1,
+	PREFIX_EVEX_0F38C6_REG_2, PREFIX_EVEX_0F38C6_REG_5 and
+	PREFIX_EVEX_0F38C6_REG_6 entries.
+	* i386-dis-evex-w.h: Update EVEX_W_0F38C7_R_1_P_2,
+	EVEX_W_0F38C7_R_2_P_2, EVEX_W_0F38C7_R_5_P_2 and
+	EVEX_W_0F38C7_R_6_P_2 entries.
+	* i386-dis.c: Add EVEX_LEN_0F38C6_REG_1_PREFIX_2,
+	EVEX_LEN_0F38C6_REG_2_PREFIX_2, EVEX_LEN_0F38C6_REG_5_PREFIX_2,
+	EVEX_LEN_0F38C6_REG_6_PREFIX_2, EVEX_LEN_0F38C7_R_1_P_2_W_0,
+	EVEX_LEN_0F38C7_R_1_P_2_W_1, EVEX_LEN_0F38C7_R_2_P_2_W_0,
+	EVEX_LEN_0F38C7_R_2_P_2_W_1, EVEX_LEN_0F38C7_R_5_P_2_W_0,
+	EVEX_LEN_0F38C7_R_5_P_2_W_1, EVEX_LEN_0F38C7_R_6_P_2_W_0 and
+	EVEX_LEN_0F38C7_R_6_P_2_W_1 enums.
+
+2019-06-27  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (VEX_LEN_0F2A_P_1, VEX_LEN_0F2A_P_3,
+	VEX_LEN_0F2C_P_1, VEX_LEN_0F2C_P_3, VEX_LEN_0F2D_P_1,
+	VEX_LEN_0F2D_P_3): Delete.
+	(vex_len_table): Move vcvtsi2ss, vcvtsi2sd, vcvttss2si,
+	vcvttsd2si, vcvtss2si, and vcvtsd2si leaf entries ...
+	(prefix_table): ... here.
+
+2019-06-27  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (Iq): Delete.
+	(Id): New.
+	(reg_table): Use it for lwpins, lwpval, and bextr. Use Edq for
+	TBM insns.
+	(vex_len_table): Use Edq for vcvtsi2ss, vcvtsi2sd. Use Gdq for
+	vcvttss2si, vcvttsd2si, vcvtss2si, and vcvtsd2si.
+	(OP_E_memory): Also honor needindex when deciding whether an
+	address size prefix needs printing.
+	(OP_I): Remove handling of q_mode. Add handling of d_mode.
+
+2019-06-26  Jim Wilson  <jimw@sifive.com>
+
+	PR binutils/24739
+	* riscv-dis.c (riscv_disasemble_insn): Set info->endian_code.
+	Set info->display_endian to info->endian_code.
+
+2019-06-25  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-gen.c (operand_type_init): Correct OPERAND_TYPE_DEBUG
+	entry. Drop OPERAND_TYPE_ACC entry. Add OPERAND_TYPE_ACC8 and
+	OPERAND_TYPE_ACC16 entries. Adjust OPERAND_TYPE_ACC32 and
+	OPERAND_TYPE_ACC64 entries.
+	* i386-init.h: Re-generate.
+
+2019-06-25  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (Edqa, dqa_mode, EVEX_W_0F2A_P_1, EVEX_W_0F7B_P_1):
+	Delete.
+	(intel_operand_size, OP_E_register, OP_E_memory): Drop handling
+	of dqa_mode.
+	* i386-dis-evex-prefix.h: Move vcvtsi2ss and vcvtusi2ss leaf
+	entries here.
+	* i386-dis-evex-w.h: Drop EVEX_W_0F2A_P_1 and EVEX_W_0F7B_P_1
+	entries. Use Edq for vcvtsi2sd and vcvtusi2sd.
+
+2019-06-25  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (OP_I64): Forword more cases to OP_I(). Drop local
+	variables.
+
+2019-06-25  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-dis.c (prefix_table): Use Edq for cvtsi2ss and cvtsi2sd.
+	Use Gdq for cvttss2si, cvttsd2si, cvtss2si, and cvtsd2si, and
+	movnti.
+	* i386-opc.tbl (movnti): Add IgnoreSize.
+	* i386-tbl.h: Re-generate.
+
+2019-06-25  Jan Beulich  <jbeulich@suse.com>
+
+	* i386-opc.tbl (and): Mark Imm8S form for optimization.
+	* i386-tbl.h: Re-generate.
+
+2019-06-21  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* i386-dis-evex.h: Break into ...
+	* i386-dis-evex-len.h: New file.
+	* i386-dis-evex-mod.h: Likewise.
+	* i386-dis-evex-prefix.h: Likewise.
+	* i386-dis-evex-reg.h: Likewise.
+	* i386-dis-evex-w.h: Likewise.
+	* i386-dis.c: Include i386-dis-evex-reg.h, i386-dis-evex-prefix.h,
+	i386-dis-evex.h, i386-dis-evex-len.h, i386-dis-evex-w.h and
+	i386-dis-evex-mod.h.
+
+2019-06-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/24700
+	* i386-dis-evex.h (evex_table): Update EVEX_W_0F3819_P_2,
+	EVEX_W_0F381A_P_2, EVEX_W_0F381B_P_2, EVEX_W_0F385A_P_2 and
+	EVEX_W_0F385B_P_2.
+	(evex_len_table): Add EVEX_LEN_0F3819_P_2_W_0,
+	EVEX_LEN_0F3819_P_2_W_1, EVEX_LEN_0F381A_P_2_W_0,
+	EVEX_LEN_0F381A_P_2_W_1, EVEX_LEN_0F381B_P_2_W_0,
+	EVEX_LEN_0F381B_P_2_W_1, EVEX_LEN_0F385A_P_2_W_0,
+	EVEX_LEN_0F385A_P_2_W_1, EVEX_LEN_0F385B_P_2_W_0 and
+	EVEX_LEN_0F385B_P_2_W_1.
+	* i386-dis.c (EVEX_LEN_0F3819_P_2_W_0): New enum.
+	(EVEX_LEN_0F3819_P_2_W_1): Likewise.
+	(EVEX_LEN_0F381A_P_2_W_0): Likewise.
+	(EVEX_LEN_0F381A_P_2_W_1): Likewise.
+	(EVEX_LEN_0F381B_P_2_W_0): Likewise.
+	(EVEX_LEN_0F381B_P_2_W_1): Likewise.
+	(EVEX_LEN_0F385A_P_2_W_0): Likewise.
+	(EVEX_LEN_0F385A_P_2_W_1): Likewise.
+	(EVEX_LEN_0F385B_P_2_W_0): Likewise.
+	(EVEX_LEN_0F385B_P_2_W_1): Likewise.
+
+2019-06-17  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/24691
+	* i386-dis-evex.h (evex_table): Update EVEX_W_0F3A23_P_2,
+	EVEX_W_0F3A38_P_2, EVEX_W_0F3A39_P_2, EVEX_W_0F3A3A_P_2,
+	EVEX_W_0F3A3B_P_2 and EVEX_W_0F3A43_P_2.
+	(evex_len_table): Add EVEX_LEN_0F3A23_P_2_W_0,
+	EVEX_LEN_0F3A23_P_2_W_1, EVEX_LEN_0F3A38_P_2_W_0,
+	EVEX_LEN_0F3A38_P_2_W_1, EVEX_LEN_0F3A39_P_2_W_0,
+	EVEX_LEN_0F3A39_P_2_W_1, EVEX_LEN_0F3A3A_P_2_W_0,
+	EVEX_LEN_0F3A3A_P_2_W_1, EVEX_LEN_0F3A3B_P_2_W_0,
+	EVEX_LEN_0F3A3B_P_2_W_1, EVEX_LEN_0F3A43_P_2_W_0 and
+	EVEX_LEN_0F3A43_P_2_W_1.
+	* i386-dis.c (EVEX_LEN_0F3A23_P_2_W_0): New enum.
+	(EVEX_LEN_0F3A23_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A38_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A38_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A39_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A39_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A3A_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A3A_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A3B_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A3B_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A43_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A43_P_2_W_1): Likewise.
+
+2019-06-14  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po; Updated French translation.
+
+2019-06-13  Stafford Horne  <shorne@gmail.com>
+
+	* or1k-asm.c: Regenerated.
+	* or1k-desc.c: Regenerated.
+	* or1k-desc.h: Regenerated.
+	* or1k-dis.c: Regenerated.
+	* or1k-ibld.c: Regenerated.
+	* or1k-opc.c: Regenerated.
+	* or1k-opc.h: Regenerated.
+	* or1k-opinst.c: Regenerated.
+
+2019-06-12  Peter Bergner  <bergner@linux.ibm.com>
+
+	* ppc-opc.c (powerpc_opcodes) <ldmx>: Delete mnemonic.
+
+2019-06-05  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/24633
+	* i386-dis-evex.h (evex_table): Update EVEX_W_0F3A18_P_2,
+	EVEX_W_0F3A19_P_2, EVEX_W_0F3A1A_P_2 and EVEX_W_0F3A1B_P_2.
+	(evex_len_table): EVEX_LEN_0F3A18_P_2_W_0,
+	EVEX_LEN_0F3A18_P_2_W_1, EVEX_LEN_0F3A19_P_2_W_0,
+	EVEX_LEN_0F3A19_P_2_W_1, EVEX_LEN_0F3A1A_P_2_W_0,
+	EVEX_LEN_0F3A1A_P_2_W_1, EVEX_LEN_0F3A1B_P_2_W_0,
+	EVEX_LEN_0F3A1B_P_2_W_1.
+	* i386-dis.c (EVEX_LEN_0F3A18_P_2_W_0): New enum.
+	(EVEX_LEN_0F3A18_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A19_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A19_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A1A_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A1A_P_2_W_1): Likewise.
+	(EVEX_LEN_0F3A1B_P_2_W_0): Likewise.
+	(EVEX_LEN_0F3A1B_P_2_W_1): Likewise.
+
+2019-06-04  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/24626
+	* i386-dis.c (print_insn): Check for unused VEX.vvvv and
+	EVEX.vvvv when disassembling VEX and EVEX instructions.
+	(OP_VEX): Set vex.register_specifier to 0 after readding
+	vex.register_specifier.
+	(OP_Vex_2src_1): Likewise.
+	(OP_Vex_2src_2): Likewise.
+	(OP_LWP_E): Likewise.
+	(OP_EX_Vex): Don't check vex.register_specifier.
+	(OP_XMM_Vex): Likewise.
+
+2019-06-04  Igor Tsimbalist  <igor.v.tsimbalist@intel.com>
+	    Lili Cui  <lili.cui@intel.com>
+
+	* i386-dis.c (enum): Add PREFIX_EVEX_0F3868, EVEX_W_0F3868_P_3.
+	* i386-dis-evex.h (evex_table): Add AVX512_VP2INTERSECT
+	instructions.
+	* i386-gen.c (cpu_flag_init): Add CPU_AVX512_VP2INTERSECT_FLAGS,
+	CPU_ANY_AVX512_VP2INTERSECT_FLAGS.
+	(cpu_flags): Add CpuAVX512_VP2INTERSECT.
+	* i386-opc.h (enum): Add CpuAVX512_VP2INTERSECT.
+	(i386_cpu_flags): Add cpuavx512_vp2intersect.
+	* i386-opc.tbl: Add AVX512_VP2INTERSECT insns.
+	* i386-init.h: Regenerated.
+	* i386-tbl.h: Likewise.
+
+2019-06-04  Xuepeng Guo  <xuepeng.guo@intel.com>
+	    Lili Cui  <lili.cui@intel.com>
+
+	* doc/c-i386.texi: Document enqcmd.
+	* testsuite/gas/i386/enqcmd-intel.d: New file.
+	* testsuite/gas/i386/enqcmd-inval.l: Likewise.
+	* testsuite/gas/i386/enqcmd-inval.s: Likewise.
+	* testsuite/gas/i386/enqcmd.d: Likewise.
+	* testsuite/gas/i386/enqcmd.s: Likewise.
+	* testsuite/gas/i386/x86-64-enqcmd-intel.d: Likewise.
+	* testsuite/gas/i386/x86-64-enqcmd-inval.l: Likewise.
+	* testsuite/gas/i386/x86-64-enqcmd-inval.s: Likewise.
+	* testsuite/gas/i386/x86-64-enqcmd.d: Likewise.
+	* testsuite/gas/i386/x86-64-enqcmd.s: Likewise.
+	* testsuite/gas/i386/i386.exp: Run enqcmd-intel, enqcmd-inval,
+	enqcmd, x86-64-enqcmd-intel, x86-64-enqcmd-inval,
+	and x86-64-enqcmd.
+
+2019-06-04  Alan Hayward  <alan.hayward@arm.com>
+
+	* arm-dis.c (is_mve_unpredictable): Remove spurious paranthesis.
+
+2019-06-03  Alan Modra  <amodra@gmail.com>
+
+	* ppc-dis.c (prefix_opcd_indices): Correct size.
+
+2019-05-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gas/24625
+	* i386-opc.tbl: Add CheckRegSize to AVX512_BF16 instructions with
+	Disp8ShiftVL.
+	* i386-tbl.h: Regenerated.
+
+2019-05-24  Alan Modra  <amodra@gmail.com>
+
+	* po/POTFILES.in: Regenerate.
+
+2019-05-24  Peter Bergner  <bergner@linux.ibm.com>
+	    Alan Modra  <amodra@gmail.com>
+
+	* ppc-opc.c (insert_d34, extract_d34, insert_nsi34, extract_nsi34),
+	(insert_pcrel, extract_pcrel, extract_pcrel0): New functions.
+	(extract_esync, extract_raq, extract_tbr, extract_sxl): Comment.
+	(powerpc_operands <D34, SI34, NSI34, PRA0, PRAQ, PCREL, PCREL0,
+	XTOP>): Define and add entries.
+	(P8LS, PMLS, P_D_MASK, P_DRAPCREL_MASK): Define.
+	(prefix_opcodes): Add pli, paddi, pla, psubi, plwz, plbz, pstw,
+	pstb, plhz, plha, psth, plfs, plfd, pstfs, pstfd, plq, plxsd,
+	plxssp, pld, plwa, pstxsd, pstxssp, pstxv, pstd, and pstq.
+
+2019-05-24  Peter Bergner  <bergner@linux.ibm.com>
+	    Alan Modra  <amodra@gmail.com>
+
+	* ppc-dis.c (ppc_opts): Add "future" entry.
+	(PREFIX_OPCD_SEGS): Define.
+	(prefix_opcd_indices): New array.
+	(disassemble_init_powerpc): Initialize prefix_opcd_indices.
+	(lookup_prefix): New function.
+	(print_insn_powerpc): Handle 64-bit prefix instructions.
+	* ppc-opc.c (PREFIX_OP, PREFIX_FORM, SUFFIX_MASK, PREFIX_MASK),
+	(PMRR, POWERXX): Define.
+	(prefix_opcodes): New instruction table.
+	(prefix_num_opcodes): New constant.
+
+2019-05-23  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* configure.ac (SHARED_DEPENDENCIES): Add case for bfd_bpf_arch.
+	* configure: Regenerated.
+	* Makefile.am: Add rules for the files generated from cpu/bpf.cpu
+	and cpu/bpf.opc.
+	(HFILES): Add bpf-desc.h and bpf-opc.h.
+	(TARGET_LIBOPCODES_CFILES): Add bpf-asm.c, bpf-desc.c, bpf-dis.c,
+	bpf-ibld.c and bpf-opc.c.
+	(BPF_DEPS): Define.
+	* Makefile.in: Regenerated.
+	* disassemble.c (ARCH_bpf): Define.
+	(disassembler): Add case for bfd_arch_bpf.
+	(disassemble_init_for_target): Likewise.
+	(enum epbf_isa_attr): Define.
+	* disassemble.h: extern print_insn_bpf.
+	* bpf-asm.c: Generated.
+	* bpf-opc.h: Likewise.
+	* bpf-opc.c: Likewise.
+	* bpf-ibld.c: Likewise.
+	* bpf-dis.c: Likewise.
+	* bpf-desc.h: Likewise.
+	* bpf-desc.c: Likewise.
+
+2019-05-21  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (coprocessor_opcodes): New instructions for VMRS
+	and VMSR with the new operands.
+
+2019-05-21  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (enum mve_instructions): New enum
+	for csinc, csinv, csneg, csel, cset, csetm, cinv, cinv
+	and cneg.
+	(mve_opcodes): New instructions as above.
+	(is_mve_encoding_conflict): Add cases for csinc, csinv,
+	csneg and csel.
+	(print_insn_mve): Accept new %<bitfield>c and %<bitfield>C.
+
+2019-05-21  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (emun mve_instructions): Updated for new instructions.
+	(mve_opcodes): New instructions for asrl, lsll, lsrl, sqrshrl,
+	sqrshr, sqshl, sqshll, srshr, srshrl, uqrshll, uqrshl, uqshll,
+	uqshl, urshrl and urshr.
+	(is_mve_okay_in_it): Add new instructions to TRUE list.
+	(is_mve_unpredictable): Add cases for UNPRED_R13 and UNPRED_R15.
+	(print_insn_mve): Updated to accept new %j,
+	%<bitfield>m and %<bitfield>n patterns.
+
+2019-05-21  Faraz Shahbazker  <fshahbazker@wavecomp.com>
+
+	* mips-opc.c (mips_builtin_opcodes): Change source register
+	constraint for DAUI.
+
+2019-05-20  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): Add new instructions.
+	(enum mve_instructions): Likewise.
+	(enum mve_undefined): Add new reasons.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_size): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): Add new instructions.
+	(enum mve_instructions): Likewise.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): Add new instructions.
+	(enum mve_instructions): Likewise.
+	(is_mve_encoding_conflict): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): Add new instructions.
+	(enum mve_instructions): Likewise.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): Add new instructions.
+	(enum mve_instructions): Likewise.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): Add new instructions.
+	(print_insn_thumb32): Handle new instructions.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_undefined): Add new reasons.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_size): Likewise.
+	(print_mve_shift_n): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_rotate): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_undefined): Add new reasons.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_unpredictable): Add new reasons.
+	(enum mve_undefined): Likewise.
+	(is_mve_okay_in_it): Handle new isntructions.
+	(is_mve_encoding_conflict): Likewise.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_vmov_index): Likewise.
+	(print_simd_imm8): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_unpredictable): Add new reasons.
+	(enum mve_undefined): Likewise.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_unpredictable): Likewise.
+	(print_mve_rounding_mode): Likewise.
+	(print_mve_vcvt_size): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_unpredictable): Add new reasons.
+	(enum mve_undefined): Likewise.
+	(is_mve_undefined): Handle new instructions.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_unpredictable): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_undefined): Add new reasons.
+	(insns): Add new instructions.
+	(is_mve_encoding_conflict):
+	(print_mve_vld_str_addr): New print function.
+	(is_mve_undefined): Handle new instructions.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_size): Likewise.
+	(print_insn_coprocessor_1): Handle MVE VLDR, VSTR instructions.
+	(print_insn_mve):  Handle new operands.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_unpredictable): Add new reasons.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_unpredictable): Likewise.
+	(mve_opcodes): Add new instructions.
+	(print_mve_unpredictable): Handle new reasons.
+	(print_mve_register_blocks): New print function.
+	(print_mve_size): Handle new instructions.
+	(print_insn_mve): Likewise.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_unpredictable): Add new reasons.
+	(enum mve_undefined): Likewise.
+	(is_mve_encoding_conflict): Handle new instructions.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(coprocessor_opcodes): Move NEON VDUP from here...
+	(neon_opcodes): ... to here.
+	(mve_opcodes): Add new instructions.
+	(print_mve_undefined):  Handle new reasons.
+	(print_mve_unpredictable): Likewise.
+	(print_mve_size): Handle new instructions.
+	(print_insn_neon): Handle vdup.
+	(print_insn_mve): Handle new operands.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): Add new instructions.
+	(enum mve_unpredictable): Add new values.
+	(mve_opcodes): Add new instructions.
+	(vec_condnames): New array with vector conditions.
+	(mve_predicatenames): New array with predicate suffixes.
+	(mve_vec_sizename): New array with vector sizes.
+	(enum vpt_pred_state): New enum with vector predication states.
+	(struct vpt_block): New struct type for vpt blocks.
+	(vpt_block_state): Global struct to keep track of state.
+	(mve_extract_pred_mask): New helper function.
+	(num_instructions_vpt_block): Likewise.
+	(mark_outside_vpt_block): Likewise.
+	(mark_inside_vpt_block): Likewise.
+	(invert_next_predicate_state): Likewise.
+	(update_next_predicate_state): Likewise.
+	(update_vpt_block_state): Likewise.
+	(is_vpt_instruction): Likewise.
+	(is_mve_encoding_conflict): Add entries for new instructions.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_unpredictable): Handle new cases.
+	(print_instruction_predicate): Likewise.
+	(print_mve_size): New function.
+	(print_vec_condition): New function.
+	(print_insn_mve): Handle vpt blocks and new print operands.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+
+	* arm-dis.c (print_insn_coprocessor_1): Disable the use of coprocessors
+	8, 14 and 15 for Armv8.1-M Mainline.
+
+2019-05-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+	    Michael Collison <michael.collison@arm.com>
+
+	* arm-dis.c (enum mve_instructions): New enum.
+	(enum mve_unpredictable): Likewise.
+	(enum mve_undefined): Likewise.
+	(struct mopcode32): New struct.
+	(is_mve_okay_in_it): New function.
+	(is_mve_architecture): Likewise.
+	(arm_decode_field): Likewise.
+	(arm_decode_field_multiple): Likewise.
+	(is_mve_encoding_conflict): Likewise.
+	(is_mve_undefined): Likewise.
+	(is_mve_unpredictable): Likewise.
+	(print_mve_undefined): Likewise.
+	(print_mve_unpredictable): Likewise.
+	(print_insn_coprocessor_1): Use arm_decode_field_multiple.
+	(print_insn_mve): New function.
+	(print_insn_thumb32): Handle MVE architecture.
+	(select_arm_features): Force thumb for Armv8.1-m Mainline.
+
+2019-05-10  Nick Clifton  <nickc@redhat.com>
+
+	PR 24538
+	* ia64-opc.c (ia64_find_matching_opcode): Check for reaching the
+	end of the table prematurely.
+
+2019-05-10  Faraz Shahbazker  <fshahbazker@wavecomp.com>
+
+        * mips-opc.c (mips_opcodes): Enable ADD, SUB, DADD and DSUB
+	macros for R6.
+
+2019-05-11  Alan Modra  <amodra@gmail.com>
+
+	* ppc-dis.c (print_insn_powerpc) Don't skip optional operands
+	when -Mraw is in effect.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-dis-2.c: Regenerate.
+	* aarch64-tbl.h (OP_SVE_BBU): New variant set.
+	(OP_SVE_BBB): New variant set.
+	(OP_SVE_DDDD): New variant set.
+	(OP_SVE_HHH): New variant set.
+	(OP_SVE_HHHU): New variant set.
+	(OP_SVE_SSS): New variant set.
+	(OP_SVE_SSSU): New variant set.
+	(OP_SVE_SHH): New variant set.
+	(OP_SVE_SBBU): New variant set.
+	(OP_SVE_DSS): New variant set.
+	(OP_SVE_DHHU): New variant set.
+	(OP_SVE_VMV_HSD_BHS): New variant set.
+	(OP_SVE_VVU_HSD_BHS): New variant set.
+	(OP_SVE_VVVU_SD_BH): New variant set.
+	(OP_SVE_VVVU_BHSD): New variant set.
+	(OP_SVE_VVV_QHD_DBS): New variant set.
+	(OP_SVE_VVV_HSD_BHS): New variant set.
+	(OP_SVE_VVV_HSD_BHS2): New variant set.
+	(OP_SVE_VVV_BHS_HSD): New variant set.
+	(OP_SVE_VV_BHS_HSD): New variant set.
+	(OP_SVE_VVV_SD): New variant set.
+	(OP_SVE_VVU_BHS_HSD): New variant set.
+	(OP_SVE_VZVV_SD): New variant set.
+	(OP_SVE_VZVV_BH): New variant set.
+	(OP_SVE_VZV_SD): New variant set.
+	(aarch64_opcode_table): Add sve2 instructions.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+	* aarch64-opc.c (operand_general_constraint_met_p): Constraint checking
+	for SVE_SHLIMM_UNPRED_22.
+	(aarch64_print_operand): Add printing for SVE_SHLIMM_UNPRED_22.
+	* aarch64-tbl.h (AARCH64_OPERANDS): Use new SVE_SHLIMM_UNPRED_22
+	operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_encode_variant_using_iclass): Handle
+	sve_size_tsz_bhs iclass encode.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Handle
+	sve_size_tsz_bhs iclass decode.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+	* aarch64-opc.c (operand_general_constraint_met_p): Constraint checking
+	for SVE_Zm4_11_INDEX.
+	(aarch64_print_operand): Add printing for SVE_Zm4_11_INDEX.
+	(fields): Handle SVE_i2h field.
+	* aarch64-opc.h (enum aarch64_field_kind): New SVE_i2h field.
+	* aarch64-tbl.h (AARCH64_OPERANDS): Use new SVE_Zm4_11_INDEX operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_encode_variant_using_iclass): Handle
+	sve_shift_tsz_bhsd iclass encode.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Handle
+	sve_shift_tsz_bhsd iclass decode.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+	* aarch64-asm.c (aarch64_ins_sve_shrimm):
+	(aarch64_encode_variant_using_iclass): Handle
+	sve_shift_tsz_hsd iclass encode.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Handle
+	sve_shift_tsz_hsd iclass decode.
+	* aarch64-opc.c (operand_general_constraint_met_p): Constraint checking
+	for SVE_SHRIMM_UNPRED_22.
+	(aarch64_print_operand): Add printing for SVE_SHRIMM_UNPRED_22.
+	* aarch64-tbl.h (AARCH64_OPERANDS): Use new SVE_SHRIMM_UNPRED_22
+	operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_encode_variant_using_iclass): Handle
+	sve_size_013 iclass encode.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Handle
+	sve_size_013 iclass decode.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_encode_variant_using_iclass): Handle
+	sve_size_bh iclass encode.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Handle
+	sve_size_bh iclass decode.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_encode_variant_using_iclass): Handle
+	sve_size_sd2 iclass encode.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Handle
+	sve_size_sd2 iclass decode.
+	* aarch64-opc.c (fields): Handle SVE_sz2 field.
+	* aarch64-opc.h (enum aarch64_field_kind): New SVE_sz2 field.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+	* aarch64-opc.c (operand_general_constraint_met_p): Constraint checking
+	for SVE_ADDR_ZX.
+	(aarch64_print_operand): Add printing for SVE_ADDR_ZX.
+	* aarch64-tbl.h (AARCH64_OPERANDS): Use new SVE_ADDR_ZX operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+	* aarch64-opc.c (operand_general_constraint_met_p): Constraint checking
+	for SVE_Zm3_11_INDEX.
+	(aarch64_print_operand): Add printing for SVE_Zm3_11_INDEX.
+	(fields): Handle SVE_i3l and SVE_i3h2 fields.
+	* aarch64-opc.h (enum aarch64_field_kind): New SVE_i3l and SVE_i3h2
+	fields.
+	* aarch64-tbl.h (AARCH64_OPERANDS): Use new SVE_Zm3_11_INDEX operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm.c (aarch64_encode_variant_using_iclass): Handle
+	sve_size_hsd2 iclass encode.
+	* aarch64-dis.c (aarch64_decode_variant_using_iclass): Handle
+	sve_size_hsd2 iclass decode.
+	* aarch64-opc.c (fields): Handle SVE_size field.
+	* aarch64-opc.h (enum aarch64_field_kind): New SVE_size field.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+	* aarch64-opc.c (operand_general_constraint_met_p): Constraint checking
+	for SVE_IMM_ROT3.
+	(aarch64_print_operand): Add printing for SVE_IMM_ROT3.
+	(fields): Handle SVE_rot3 field.
+	* aarch64-opc.h (enum aarch64_field_kind): New SVE_rot3 field.
+	* aarch64-tbl.h (AARCH64_OPERANDS): Use new SVE_IMM_ROT3 operand.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-opc.c (verify_constraints): Check for movprfx for sve2
+	instructions.
+
+2019-05-09  Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* aarch64-tbl.h
+	(aarch64_feature_sve2, aarch64_feature_sve2aes,
+	aarch64_feature_sve2sha3, aarch64_feature_sve2sm4,
+	aarch64_feature_sve2bitperm): New feature sets.
+	(SVE2, SVE2_AES, SVE2_SHA3, SVE2_SM4, SVE2_BITPERM): New macros
+	for feature set addresses.
+	(SVE2_INSN, SVE2_INSNC, SVE2AES_INSN, SVE2SHA3_INSN,
+	SVE2SM4_INSN, SVE2SM4_INSNC, SVE2BITPERM_INSN): New macros.
+
+2019-05-06  Andrew Bennett  <andrew.bennett@imgtec.com>
+	    Faraz Shahbazker  <fshahbazker@wavecomp.com>
+
+	* mips-dis.c (mips_calculate_combination_ases): Add ISA
+	argument and set ASE_EVA_R6 appropriately.
+	(set_default_mips_dis_options): Pass ISA to above.
+	(parse_mips_dis_option): Likewise.
+	* mips-opc.c (EVAR6): New macro.
+	(mips_builtin_opcodes): Add llwpe, scwpe.
+
+2019-05-01  Sudakshina Das  <sudi.das@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+	* aarch64-opc.c (operand_general_constraint_met_p): Add case for
+	AARCH64_OPND_TME_UIMM16.
+	(aarch64_print_operand): Likewise.
+	* aarch64-tbl.h (QL_IMM_NIL): New.
+	(TME): New.
+	(_TME_INSN): New.
+	(struct aarch64_opcode): Add tstart, tcommit, ttest and tcancel.
+
+2019-04-29  John Darrington  <john@darrington.wattle.id.au>
+
+        * s12z-opc.c (shift_discrim): Return OP_INVALID when reading fails.
+
+2019-04-26  Andrew Bennett  <andrew.bennett@imgtec.com>
+	    Faraz Shahbazker  <fshahbazker@wavecomp.com>
+
+	* mips-opc.c (mips_builtin_opcodes): Add llwp, lldp, scwp, scdp.
+
+2019-04-24  John Darrington  <john@darrington.wattle.id.au>
+
+        * s12z-opc.h: Add extern "C" bracketing to help
+	users who wish to use this interface in c++ code.
+
+2019-04-24  John Darrington  <john@darrington.wattle.id.au>
+
+	* s12z-opc.c (bm_decode): Handle bit map operations with the
+	"reserved0" mode.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* arm-dis.c (coprocessor_opcodes): Document new %J and %K format
+	specifier.  Add entries for VLDR and VSTR of system registers.
+	(print_insn_coprocessor): Forbid coprocessor numbers 8, 14 and 15 in
+	coprocessor instructions on Armv8.1-M Mainline targets.  Add handling
+	of %J and %K format specifier.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* arm-dis.c (coprocessor_opcodes): Document new %C format control code.
+	Add new entries for VSCCLRM instruction.
+	(print_insn_coprocessor): Handle new %C format control code.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* arm-dis.c (enum isa): New enum.
+	(struct sopcode32): New structure.
+	(coprocessor_opcodes): change type of entries to struct sopcode32 and
+	set isa field of all current entries to ANY.
+	(print_insn_coprocessor): Change type of insn to struct sopcode32.
+	Only match an entry if its isa field allows the current mode.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* arm-dis.c (thumb_opcodes): Document %n control code.  Add entry for
+	CLRM.
+	(print_insn_thumb32): Add logic to print %n CLRM register list.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (print_insn_thumb32): Updated to accept new %P
+	and %Q patterns.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): New instruction bfcsel.
+	(print_insn_thumb32): Edit the switch case for %Z.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (print_insn_thumb32): Updated to accept new %Z pattern.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): New instruction bfl.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (print_insn_thumb32): Updated to accept new %Y pattern.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (print_insn_thumb32): Add '%<bitfield>S' to print an
+	Arm register with r13 and r15 unpredictable.
+	(thumb32_opcodes): New instructions for bfx and bflx.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (thumb32_opcodes): New instructions for bf.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (print_insn_thumb32): Updated to accept new %W pattern.
+
+2019-04-15  Sudakshina Das  <sudi.das@arm.com>
+
+	* arm-dis.c (print_insn_thumb32): Updated to accept new %G pattern.
+
+2019-04-15  Thomas Preud'homme  <thomas.preudhomme@arm.com>
+
+	* arm-dis.c (select_arm_features): Add logic for Armv8.1-M Mainline.
+
+2019-04-12  John Darrington <john@darrington.wattle.id.au>
+
+	s12z-dis.c, s12z-opc.c, s12z-opc.h: Replace "operator" with
+	"optr". ("operator" is a reserved word in c++).
+
+2019-04-11  Sudakshina Das  <sudi.das@arm.com>
+
+	* aarch64-opc.c (aarch64_print_operand): Add case for
+	AARCH64_OPND_Rt_SP.
+	(verify_constraints): Likewise.
+	* aarch64-tbl.h (QL_LDST_AT): Update to add SP qualifier.
+	(struct aarch64_opcode): Update stg, stzg, st2g, stz2g instructions
+	to accept Rt|SP as first operand.
+	(AARCH64_OPERANDS): Add new Rt_SP.
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+
+2019-04-11  Sudakshina Das  <sudi.das@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Likewise.
+	* aarch64-opc-2.c: Likewise.
+	* aarch64-tbl.h (aarch64_opcode): Add new ldgm and stgm.
+
+2019-04-09  Robert Suchanek  <robert.suchanek@mips.com>
+
+	* mips-opc.c (mips_builtin_opcodes): Add RDHWR rt rd sel.
+
+2019-04-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* i386-opc.tbl: Consolidate AVX512 BF16 entries.
+	* i386-init.h: Regenerated.
+
+2019-04-07  Alan Modra  <amodra@gmail.com>
+
+	* ppc-dis.c (print_insn_powerpc): Use a tiny state machine
+	op_separator to control printing of spaces, comma and parens
+	rather than need_comma, need_paren and spaces vars.
+
+2019-04-07  Alan Modra  <amodra@gmail.com>
+
+	PR 24421
+	* arm-dis.c (print_insn_coprocessor): Correct bracket placement.
+	(print_insn_neon, print_insn_arm): Likewise.
+
+2019-04-05  Xuepeng Guo  <xuepeng.guo@intel.com>
+
+	* i386-dis-evex.h (evex_table): Updated to support BF16
+	instructions.
+	* i386-dis.c (enum): Add EVEX_W_0F3852_P_1, EVEX_W_0F3872_P_1
+	and EVEX_W_0F3872_P_3.
+	* i386-gen.c (cpu_flag_init): Add CPU_AVX512_BF16_FLAGS.
+	(cpu_flags): Add bitfield for CpuAVX512_BF16.
+	* i386-opc.h (enum): Add CpuAVX512_BF16.
+	(i386_cpu_flags): Add bitfield for cpuavx512_bf16.
+	* i386-opc.tbl: Add AVX512 BF16 instructions.
+	* i386-init.h: Regenerated.
+	* i386-tbl.h: Likewise.
+
+2019-04-05  Alan Modra  <amodra@gmail.com>
+
+	* ppc-opc.c (XLBH_MASK): Subtract off BH field from BB_MASK.
+	(powerpc_opcodes): Reorder bcctr and bclr extended mnemonics
+	to favour printing of "-" branch hint when using the "y" bit.
+	Allow BH field on bc{ctr,lr,tar}{,l}{-,+}.
+
+2019-04-05  Alan Modra  <amodra@gmail.com>
+
+	* ppc-dis.c (print_insn_powerpc): Delay printing spaces after
+	opcode until first operand is output.
+
+2019-04-04  Peter Bergner  <bergner@linux.ibm.com>
+
+	PR gas/24349
+	* ppc-opc.c (valid_bo_pre_v2): Add comments.
+	(valid_bo_post_v2): Add support for 'at' branch hints.
+	(insert_bo): Only error on branch on ctr.
+	(get_bo_hint_mask): New function.
+	(insert_boe): Add new 'branch_taken' formal argument.  Add support
+	for inserting 'at' branch hints.
+	(extract_boe): Add new 'branch_taken' formal argument.  Add support
+	for extracting 'at' branch hints.
+	(insert_bom, extract_bom, insert_bop, extract_bop): New functions.
+	(BOE): Delete operand.
+	(BOM, BOP): New operands.
+	(RM): Update value.
+	(XLYLK, XLYLK_MASK, XLYBB_MASK): Delete.
+	(powerpc_opcodes) <bc-, bcl-, bca-, bcla-, bclr-, bclrl-, bcctr-,
+	bcctrl-, bctar-, bctarl->: Replace BOE with BOM.
+	(powerpc_opcodes) <bc+, bcl+, bca+, bcla+, bclr+, bclrl+, bcctr+,
+	bcctrl+, bctar+, bctarl+>: Replace BOE with BOP.
+	<bdnztar, bdnztarl, bdztar, bdztarl, btar, btarl, bdnztar-, bdnztarl-,
+	bdnztar+, bdnztarl+, bdztar-, bdztarl-, bdztar+, bdztarl+, bgetar,
+	bnltar, bgetarl, bnltarl, bletar, bngtar, bletarl, bngtarl, bnetar,
+	bnetarl, bnstar, bnutar, bnstarl, bnutarl, bgetar-, bnltar-, bgetarl-,
+	bnltarl-, bletar-, bngtar-, bletarl-, bngtarl-, bnetar-, bnetarl-,
+	bnstar-, bnutar-, bnstarl-, bnutarl-, bgetar+, bnltar+, bgetarl+,
+	bnltarl+, bletar+, bngtar+, bletarl+, bngtarl+, bnetar+, bnetarl+,
+	bnstar+, bnutar+, bnstarl+, bnutarl+, blttar, blttarl, bgttar, bgttarl,
+	beqtar, beqtarl, bsotar, buntar, bsotarl, buntarl, blttar-, blttarl-,
+	bgttar-, bgttarl-, beqtar-, beqtarl-, bsotar-, buntar-, bsotarl-,
+	buntarl-, blttar+, blttarl+, bgttar+, bgttarl+, beqtar+, beqtarl+,
+	bsotar+, buntar+, bsotarl+, buntarl+, bdnzftar, bdnzftarl, bdzftar,
+	bdzftarl, bftar, bftarl, bftar-, bftarl-, bftar+, bftarl+, bdnzttar,
+	bdnzttarl, bdzttar, bdzttarl, bttar, bttarl, bttar-, bttarl-, bttar+,
+	bttarl+>: New extended mnemonics.
+
+2019-03-28  Alan Modra  <amodra@gmail.com>
+
+	PR 24390
+	* ppc-opc.c (BTF): Define.
+	(powerpc_opcodes): Use for mtfsb*.
+	* ppc-dis.c (print_insn_powerpc): Print fields with both
+	PPC_OPERAND_CR_REG and PPC_OPERAND_CR_BIT as a plain number.
+
+2019-03-25  Tamar Christina  <tamar.christina@arm.com>
+
+	* arm-dis.c (struct arm_private_data): Remove has_mapping_symbols.
+	(mapping_symbol_for_insn): Implement new algorithm.
+	(print_insn): Remove duplicate code.
+
+2019-03-25  Tamar Christina  <tamar.christina@arm.com>
+
+	* aarch64-dis.c (print_insn_aarch64):
+	Implement override.
+
+2019-03-25  Tamar Christina  <tamar.christina@arm.com>
+
+	* aarch64-dis.c (print_insn_aarch64): Update the mapping symbol search
+	order.
+
+2019-03-25  Tamar Christina  <tamar.christina@arm.com>
+
+	* aarch64-dis.c (last_stop_offset): New.
+	(print_insn_aarch64): Use stop_offset.
+
+2019-03-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gas/24359
+	* i386-gen.c (cpu_flag_init): Add CPU_ANY_AVX512F_FLAGS to
+	CPU_ANY_AVX2_FLAGS.
+	* i386-init.h: Regenerated.
+
+2019-03-18  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gas/24348
+	* i386-opc.tbl: Add Optimize to vmovdqa32, vmovdqa64, vmovdqu8,
+	vmovdqu16, vmovdqu32 and vmovdqu64.
+	* i386-tbl.h: Regenerated.
+
+2019-03-12  Andreas Krebbel  <krebbel@linux.ibm.com>
+
+	* s390-opc.txt: Rename selhhhr to selfhr.  Remove optional operand
+	from vstrszb, vstrszh, and vstrszf.
+
+2019-03-12  Andreas Krebbel  <krebbel@linux.ibm.com>
+
+	* s390-opc.txt: Add instruction descriptions.
+
+2019-02-08  Jim Wilson  <jimw@sifive.com>
+
+	* riscv-opc.c (riscv_opcodes) <beq>: Use Cz to compress 3 operand form.
+	<bne>: Likewise.
+
+2019-02-07  Tamar Christina  <tamar.christina@arm.com>
+
+	* arm-dis.c (arm_opcodes): Redefine hlt to armv1.
+
+2019-02-07  Tamar Christina  <tamar.christina@arm.com>
+
+	PR binutils/23212
+	* aarch64-opc.h (enum aarch64_field_kind): Add FLD_sz.
+	* aarch64-opc.c (verify_elem_sd): New.
+	(fields): Add FLD_sz entr.
+	* aarch64-tbl.h (_SIMD_INSN): New.
+	(aarch64_opcode_table): Add elem_sd verifier to fmla, fmls, fmul and
+	fmulx scalar and vector by element isns.
+
+2019-02-07  Nick Clifton  <nickc@redhat.com>
+
+	* po/sv.po: Updated Swedish translation.
+
+2019-01-31  Andreas Krebbel  <krebbel@linux.ibm.com>
+
+	* s390-mkopc.c (main): Accept arch13 as cpu string.
+	* s390-opc.c: Add new instruction formats and instruction opcode
+	masks.
+	* s390-opc.txt: Add new arch13 instructions.
+
+2019-01-25  Sudakshina Das  <sudi.das@arm.com>
+
+	* aarch64-tbl.h (QL_LDST_AT): Update macro.
+	(aarch64_opcode): Change encoding for stg, stzg
+	st2g and st2zg.
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+
+2019-01-25  Sudakshina Das  <sudi.das@arm.com>
+
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Likewise.
+	* aarch64-opc-2.c: Likewise.
+	* aarch64-tbl.h (aarch64_opcode): Add new stzgm.
+
+2019-01-25  Sudakshina Das  <sudi.das@arm.com>
+	    Ramana Radhakrishnan  <ramana.radhakrishnan@arm.com>
+
+	* aarch64-asm.c (aarch64_ins_addr_simple_2): Remove.
+	* aarch64-asm.h (ins_addr_simple_2): Likeiwse.
+	* aarch64-dis.c (aarch64_ext_addr_simple_2): Likewise.
+	* aarch64-dis.h (ext_addr_simple_2): Likewise.
+	* aarch64-opc.c (operand_general_constraint_met_p): Remove
+	case for ldstgv_indexed.
+	(aarch64_print_operand): Remove case for AARCH64_OPND_ADDR_SIMPLE_2.
+	* aarch64-tbl.h (struct aarch64_opcode): Remove ldgv and stgv.
+	(AARCH64_OPERANDS): Remove ADDR_SIMPLE_2.
+	* aarch64-asm-2.c: Regenerated.
+	* aarch64-dis-2.c: Regenerated.
+	* aarch64-opc-2.c: Regenerated.
+
+2019-01-23  Nick Clifton  <nickc@redhat.com>
+
+	* po/pt_BR.po: Updated Brazilian Portuguese translation.
+
+2019-01-21  Nick Clifton  <nickc@redhat.com>
+
+	* po/de.po: Updated German translation.
+	* po/uk.po: Updated Ukranian translation.
+
+2019-01-20  Chenghua Xu  <paul.hua.gm@gmail.com>
+	* mips-dis.c (mips_arch_choices): Fix typo in
+	gs464, gs464e and gs264e descriptors.
+
+2019-01-19  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+	* po/opcodes.pot: Regenerate.
+
+2018-06-24  Nick Clifton  <nickc@redhat.com>
+
+	2.32 branch created.
+
+2019-01-09  John Darrington <john@darrington.wattle.id.au>
+
+	* s12z-dis.c (print_insn_s12z):  Do not dereference an operand
+	if it is null.
+	-dis.c (opr_emit_disassembly): Do not omit an index if it is
+	zero.
+
+2019-01-09  Andrew Paprocki  <andrew@ishiboo.com>
+
+	* configure: Regenerate.
+
+2019-01-07  Alan Modra  <amodra@gmail.com>
+
+	* configure: Regenerate.
+	* po/POTFILES.in: Regenerate.
+
+2019-01-03  John Darrington <john@darrington.wattle.id.au>
+
+	* s12z-opc.c: New file.
+	* s12z-opc.h: New file.
+	* s12z-dis.c: Removed all code not directly related to display
+	of instructions.  Used the interface provided by the new files
+	instead.
+	* Makefile.am (TARGET_LIBOPCODES_CFILES) Add s12z-opc.c.
+	* Makefile.in: Regenerate.
+	* configure.ac (bfd_s12z_arch): Correct the dependencies.
+	* configure: Regenerate.
+
+2019-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2018
+
+Copyright (C) 2019 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

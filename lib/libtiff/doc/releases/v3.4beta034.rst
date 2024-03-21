@@ -1,0 +1,37 @@
+Changes in TIFF v3.4beta034
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta034 (no release tag)
+  Previous Version        :doc:`v3.4beta033 <v3.4beta033>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* support was added for building the library as a DSO under NetBSD
+* a bug was fixed in the DSO support for Linux
+* the handling of version strings has changed slightly to simplify parsing
+* a new parameter, ``TIFFLIBREF``, was added to control how the
+  library is referenced when linking programs in the :file:`tools` directory
+
+
+Library changes
+---------------
+
+* DSO creation under Solaris now forces the DSO name with a ``-h`` option
+* the interface to the :program:`mkversion` program was changed
+  to eliminate the need to parse files
+* a bug was fixed in the EOL-detection logic of the T.4/T.6 decoder
+* ANSI IT8 TIFF/IT tag definitions were added to :file:`tiff.h`

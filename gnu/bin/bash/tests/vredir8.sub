@@ -1,0 +1,13 @@
+# test varredir_close
+
+: {fd}<>/dev/null
+
+echo redir 1 >&$fd
+exec {fd}>&-
+
+shopt -s varredir_close
+
+: {fd}<>/dev/tty
+
+echo redir 2 >&$fd
+exec {fd}>&-

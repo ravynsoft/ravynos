@@ -1,0 +1,86 @@
+#compdef xz unxz xzcat=unxz lzma=xz unlzma=unxz lzcat=unxz -redirect-,<,unxz=unxz -redirect-,>,xz=unxz -redirect-,<,xz=xz -value-,XZ_OPT,-default- -value-,XZ_DEFAULTS,-default-
+
+local decompress files expl state line curcontext="$curcontext" ret=1
+typeset -A opt_args
+
+files=( '(--files --files0)*:files:->files' )
+case "$service" in
+  *XZ_*)
+    compset -q
+    words=( fake "$words[@]" )
+    (( CURRENT++ ))
+    files=()
+  ;&
+  xz) decompress=no;&
+  unxz) _arguments -C -s -S "$files[@]" \
+    '--robot[use machine-parsable messages]' \
+    + 'common' \
+    '(I -k --keep)'{-k,--keep}"[keep (don't delete) input files]" \
+    '(I -f --force)'{-f,--force}'[force overwrite]' \
+    '(I -c --stdout)'{-c,--stdout}'[write on standard output]' \
+    '(I)*'{-q,--quiet}'[suppress all warnings]' \
+    '(I)*'{-v,--verbose}'[verbose mode]' \
+    '(I * --files --files0)--files=-[read list of files to process from file]::file:_files' \
+    '(I * --files --files0)--files0=-[read null terminated list of files to process from file]::file:_files' \
+    '(I -F --format)'{-F,--format}'=[specify file format]:format:(auto xz lzma raw)' \
+    '(I -T --threads)'{-T+,--threads=}'[use specified number of threads]:threads [1]' \
+    '(I -M --memlimit --memory)'{-M+,--memlimit=,--memory=}'[set memory usage limit]:memory usage' \
+    '(I)--no-adjust[give error if settings exceed memory limit]' \
+    '(I -Q --no-warn)'{-Q,--no-warn}'[make warnings not affect exit status]' \
+    + 'comp' \
+    "(I decomp)"{-z,--compress}'[compress]' \
+    '(I decomp -e --extreme)'{-e,--extreme}'[try to improve compression ratio by using more CPU time]' \
+    '(I decomp -S --suffix)'{-S+,--suffix=}'[use specified suffix for compressed files]:suffix [.xz]' \
+    '(I decomp -C --check)'{-C,--check}'=[integrity check type]:check type:(none crc32 crc64 sha256)' \
+    '(I decomp)--block-size=[start a new .xz block after specified bytes of input]:size' \
+    '(I decomp)--block-list=[start a new .xz block after specified intervals of uncompressed data]:size' \
+    '(I decomp)--flush-timeout=[specify maximum time between flushing of output]:time (ms) [0]' \
+    '(I decomp)--memlimit-compress=[set memory usage limit for compression]:memory usage' \
+    + 'decomp' \
+    '(I comp level filters)'{-d,--decompress}'[decompress]' \
+    '(I comp level filters)'{-t,--test}'[test compressed file integrity]' \
+    '(I comp level filters)'{-l,--list}'[list information about .xz files]' \
+    "(I comp level filters)--ignore-check[don't verify integrity when decompressing]" \
+    '(I comp level filters)--single-stream[decompress only the first stream]' \
+    "(I comp level filters)--no-sparse[don't create sparse files when decompressing]" \
+    '(I comp level filters)--memlimit-decompress=[set memory usage limit for decompression]:memory usage' \
+    + '(I)' \
+    '(* comp decomp level filters common)--info-memory[display amount of RAM and memory usage limits]' \
+    '(- *)'{-h,--help}'[display help message]' \
+    '(- *)'{-H,--long-help}'[display the long help (lists also the advanced options)]' \
+    '(* comp decomp level filters common)'{-V,--version}'[display version number]' \
+    + '(level)' \
+    '(I filters decomp)-'{-best,-fast,1,2,3,4,5,6,7,8,9} \
+    + filters \
+    '(I level decomp --extreme)'--{x86,powerpc,ia64,arm,armthumb,sparc}=-'[add a branch/call/jump filter]::option:->bcj-options' \
+    '(I level decomp --extreme)'--lzma{1,2}=-'[add lzma filter]::option:->lzma-options' \
+    '(I level decomp --extreme)--delta=-[add delta filter]::option:->delta-options' && ret=0
+  ;;
+esac
+
+case $state in
+  files)
+    (( $+opt_args[-z] || $+opt_args[--compress] )) && decompress=no
+    [[ -n ${(k)opt_args[(i)decomp*]} ]] && unset decompress
+    if [[ -z "$decompress" ]]; then
+      _description files expl 'compressed file'
+      _files "$expl[@]" -g '*.(xz|txz|lzma|tlz)(-.)' && return
+    else
+      _description files expl 'file to compress'
+      _files "$expl[@]" -g '^*.(xz|txz|lzma|tlz)(-.)' && return
+    fi
+  ;;
+  lzma-options)
+    _values -s , options 'preset:preset' 'dict:size' 'lc:context bits' \
+      'lp:position bits' 'pb:position bites' 'mf:matchfinder:(hc3 hc4 bt2 bt3 bt4)' \
+      'mode:mode:(fast normal)' 'nice:length' 'depth:depth' && ret=0
+  ;;
+  bcj-options)
+    _values options 'start:offset' && return
+  ;;
+  delta-options)
+    _values options 'dist:distance' && return
+  ;;
+esac
+
+return ret

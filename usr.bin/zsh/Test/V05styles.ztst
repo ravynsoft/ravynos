@@ -1,0 +1,175 @@
+%prep
+
+# Test the use of styles, if the zsh/zutil module is available.
+
+  if ! zmodload zsh/zutil 2>/dev/null; then
+    ZTST_unimplemented="can't load the zsh/zutil module for testing"
+  fi
+
+%test
+  zstyle :random:stuff any-old-style with any old value
+  zstyle :randomly:chosen some-other-style I can go on and on
+  zstyle -d
+  zstyle
+0:zstyle -d restores a pristine state
+
+# patterns should be ordered by weight, so add in reverse order to check
+  zstyle ':ztst:context*' scalar-style other-scalar-value
+  zstyle ':ztst:context:*' scalar-style second-scalar-value
+  zstyle ':ztst:context:sub1' scalar-style scalar-value
+  zstyle ':ztst:context:sub1' array-style array value elements 'with spaces'
+  zstyle ':ztst:context*' boolean-style false
+  zstyle ':ztst:context:sub1' boolean-style true
+0:defining styles
+
+# styles are now sorted, but patterns are in order of definition
+  zstyle
+0:listing styles in default format
+>array-style
+>        :ztst:context:sub1 array value elements 'with spaces'
+>boolean-style
+>        :ztst:context:sub1 true
+>        :ztst:context* false
+>scalar-style
+>        :ztst:context:sub1 scalar-value
+>        :ztst:context:* second-scalar-value
+>        :ztst:context* other-scalar-value
+
+  zstyle -L
+0:listing styles in zstyle format
+>zstyle :ztst:context:sub1 array-style array value elements 'with spaces'
+>zstyle :ztst:context:sub1 boolean-style true
+>zstyle ':ztst:context*' boolean-style false
+>zstyle :ztst:context:sub1 scalar-style scalar-value
+>zstyle ':ztst:context:*' scalar-style second-scalar-value
+>zstyle ':ztst:context*' scalar-style other-scalar-value
+
+  zstyle -b :ztst:context:sub1 boolean-style bool; print $bool
+  zstyle -t :ztst:context:sub1 boolean-style
+0:boolean test -b/-t + true
+>yes
+
+  zstyle -b :ztst:context:sub2 boolean-style bool; print $bool
+  zstyle -t :ztst:context:sub2 boolean-style
+1:boolean test -b/-t + false
+>no
+
+  zstyle -b :ztst:context:sub1 boolean-unset-style bool; print $bool
+  zstyle -t :ztst:context:sub1 boolean-unset-style
+2:boolean test -b/-t + unset
+>no
+
+  zstyle -T :ztst:context:sub1 boolean-style
+0:boolean test -T + true
+
+  zstyle -T :ztst:context:sub2 boolean-style
+1:boolean test -T + false
+
+  zstyle -T :ztst:context:sub1 boolean-unset-style
+0:boolean test -T + unset
+
+  zstyle -s :ztst:context:sub1 scalar-style scalar && print $scalar
+  zstyle -s :ztst:context:sub2 scalar-style scalar && print $scalar
+  zstyle -s :ztst:contextual-psychedelia scalar-style scalar && print $scalar
+  zstyle -s :ztst:contemplative scalar-style scalar || print no match
+0:pattern matching rules
+>scalar-value
+>second-scalar-value
+>other-scalar-value
+>no match
+
+  zstyle -s :ztst:context:sub1 array-style scalar + && print $scalar
+0:scalar with separator
+>array+value+elements+with spaces
+
+  zstyle -e :ztst:\* eval-style 'reply=($something)'
+  something=(one two three)
+  zstyle -a :ztst:eval eval-style array && print -l $array
+0:zstyle -e evaluations
+>one
+>two
+>three
+
+# pattern ordering on output is not specified, so although in the
+# current implementation it's deterministic we shouldn't
+# assume it's always the same.  Thus we sort the array.
+# (It might be a nice touch to order patterns by weight, which is
+# the way they are stored for each separate style.)
+  zstyle -g array && print -l ${(o)array}
+0:retrieving patterns
+>:ztst:*
+>:ztst:context*
+>:ztst:context:*
+>:ztst:context:sub1
+
+  zstyle -m :ztst:context:sub1 array-style 'w* *s'
+0:positive pattern match
+
+  zstyle -m :ztst:context:sub1 array-style 'v'
+1:negative pattern match
+
+  zstyle -g array ':ztst:context*' && print -l $array
+0:retrieving styles by pattern
+>boolean-style
+>scalar-style
+
+  zstyle -g array ':ztst:context:sub1' array-style && print -l $array
+0:retrieving values by pattern and name
+>array
+>value
+>elements
+>with spaces
+
+  zstyle -d :ztst:context:sub1
+  zstyle
+0:deleting styles by pattern only
+>boolean-style
+>        :ztst:context* false
+>eval-style
+>(eval)  :ztst:* 'reply=($something)'
+>scalar-style
+>        :ztst:context:* second-scalar-value
+>        :ztst:context* other-scalar-value
+
+  zstyle -d :ztst:context\* scalar-style
+  zstyle
+0:deleting styles by pattern and style name
+>boolean-style
+>        :ztst:context* false
+>eval-style
+>(eval)  :ztst:* 'reply=($something)'
+>scalar-style
+>        :ztst:context:* second-scalar-value
+
+ (zstyle 'ctx?' foo one
+  zstyle 'ctx*' foo two
+  zstyle -s 'ctx1' foo bar && print $bar)
+ (zstyle 'ctx*' foo two
+  zstyle 'ctx?' foo one
+  zstyle -s 'ctx1' foo bar && print $bar)
+0:patterns of equal weight are used in order of definition
+>one
+>two
+
+ (
+  zstyle ':weather:*:Sunday:*' preferred-precipitation snow
+  zstyle ':weather:europe:*' preferred-precipitation rain
+  zstyle -s ':weather:europe:Sunday:foo' preferred-precipitation REPLY && print $REPLY
+ )
+ (
+  zstyle ':weather:europe:*' preferred-precipitation rain
+  zstyle ':weather:*:Sunday:*' preferred-precipitation snow
+  zstyle -s ':weather:europe:Sunday:foo' preferred-precipitation REPLY && print $REPLY
+ )
+0:the example in the documentation remains correct
+>snow
+>snow
+
+ (
+  zstyle $'con\x00text' $'ke\x00y' $'val\x00u' $'e'
+  a=( ${(f)"$(zstyle -L)"} )
+  a=( ${(M)a:#*con*text*ke*y*val*u*e} )
+  print -r -- "$a"
+ )
+0:zstyle -L escapes the key (regression: workers/48424)
+>zstyle $'con\C-@text' $'ke\C-@y' $'val\C-@u' e

@@ -1,0 +1,11 @@
+.*: Assembler messages:
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #17'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #18'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #19'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #21'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #22'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #23'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #25'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #26'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #27'
+.*: Error: immediate value out of range 0 to 15 at operand 1 -- `dsb #29'

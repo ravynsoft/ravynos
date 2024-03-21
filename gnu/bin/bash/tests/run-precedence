@@ -1,0 +1,2 @@
+${THIS_SH} ./precedence.tests > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} prec.right && rm -f ${BASH_TSTOUT}

@@ -1,0 +1,517 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+expect()
+{
+	echo expect "$@"
+}
+
+tool_var() {
+        eval $1=\"\${$1:-$2}\"
+        export $1
+}
+
+A="aaa bbb ccc"
+
+unset B
+
+tool_var        B       ${B:-"$A"}
+
+expect '<aaa bbb ccc>'
+recho "$A"
+expect '<aaa bbb ccc>'
+recho "$B"
+
+eto_prepend() {
+        eval $1=\'$2\''${'$1':+":"${'$1'}}'; export $1
+}
+
+foo=bar; export foo
+eto_prepend foo baz
+expect '<baz:bar>'
+recho $foo
+expect '<baz:bar>'
+recho ${foo-"bar"}
+
+aa='aaa bbb ccc'
+
+expect '<aaa bbb ccc>'
+recho ${zzz-"$aa"}
+expect '<bar>'
+recho ${zzz:-"bar"}
+expect '<bar>'
+recho "${zzz:-bar}"
+expect '<bar>'
+recho "${zzz:-"bar"}"
+
+var=abcde
+expect '<abcde>'
+recho "${var:-xyz}"
+expect '<abcde>'
+recho "${var:=xyz}"
+expect '<xyz>'
+recho "${var:+xyz}"
+
+set 'a b' c d e f
+expect '<a b> <c> <d> <e> <f>'
+recho ${1+"$@"}
+expect '<a b>'
+recho "${1-"$@"}"
+expect '<a> <b>'
+recho ${1-"$@"}
+expect '<a b> <c> <d> <e> <f>'
+recho "${1+$@}"
+expect '<a b> <c> <d> <e> <f>'
+recho "${1+"$@"}"
+
+HOME=/usr/homes/chet
+somevar=
+expect "<$HOME>"
+recho ${somevar:-~}
+# This changed after bash-3.0, when the tilde implementation was redone.  It's
+# not backward compatible, but it's very hard to be backward-compatible here,
+# and I think the old behavior was a bug
+expect '<~>'
+recho "${somevar:-~}"
+expect '<~>'
+recho "${somevar:-"~"}"
+expect '<\~>'
+recho "${somevar:-\~}"
+expect '<\ \~>'
+recho "${somevar:-\ \~}"
+expect '<\ \ \~>'
+recho "${somevar:-\ \ \~}"
+
+expect "<$HOME>"
+recho ${somevar:-$HOME}
+expect "<$HOME>"
+recho "${somevar:-$HOME}"
+expect "<$HOME>"
+recho "${somevar:-"$HOME"}"
+expect '<$HOME>'
+recho "${somevar:-\$HOME}"
+expect '<\ $HOME>'
+recho "${somevar:-\ \$HOME}"
+expect '<\ \ $HOME>'
+recho "${somevar:-\ \ \$HOME}"
+
+foo=bar
+expect "<'bar'>"
+recho "${foo+'$foo'}"
+expect "<'bar'>"
+recho "${fox='$foo'}"
+
+P='*@*'
+expect '<*@>'
+recho "${P%"*"}"
+expect '<*@>'
+recho "${P%'*'}"
+
+expect '<*@>'
+recho ${P%"*"}
+expect '<*@>'
+recho ${P%'*'}
+
+expect '<*@*>'
+recho ${P%""}
+expect '<*@*>'
+recho ${P#""}
+
+expect '<*@*>'
+recho ${P#"$foobar"}
+expect '<*@*>'
+recho ${P%"$foobar"}
+
+s1=abcdefghijkl
+s2=efgh
+
+first=${s1/$s2*/}
+expect '<abcd>'
+recho $first
+
+last=${s1##$first}
+expect '<efghijkl>'
+recho $last
+
+shift $#
+UNAME_RELEASE=${1:-4.2MP}
+
+RELEASE=`expr "$UNAME_RELEASE" : '[^0-9]*\([0-9]*\)'` # 4
+case "$RELEASE" in
+"")     RELEASE=0 ;;
+*)      RELEASE=`expr "$RELEASE" + 0` ;;
+esac            
+REL_LEVEL=`expr "$UNAME_RELEASE" : '[^0-9]*[0-9]*.\([0-9]*\)'`    # 1
+REL_SUBLEVEL=`expr "$UNAME_RELEASE" : '[^0-9]*[0-9]*.[0-9]*.\([0-9]*\)'` # 2
+
+expect '<4> <2>'
+recho $RELEASE $REL_LEVEL $REL_SUBLEVEL
+
+b1()
+{
+	b2 ${1+"$@"}
+}
+
+b2()
+{	
+	recho $*
+	recho ${#}
+}
+
+expect '<1>'
+b1 ''
+
+expect '<bar> <2>'
+b1 bar ''
+
+expect '<bar> <2>'
+b1 '' bar
+
+expect '<4>'
+b1 '' '' '' ''
+
+NL="\\
+"
+
+NNL="+$NL+"
+
+expect '<--\> <-->'
+recho --$NL--
+expect '<--\^J-->'
+recho "--$NL--"
+
+expect '<--+\> <+-->'
+recho --$NNL--
+expect '<--+\^J+-->'
+recho "--$NNL--"
+
+expect '<-+\> <+-\> <->'
+recho -$NNL-$NL-
+
+set ''
+expect '<xy>'
+recho "$*xy"
+expect '<xy>'
+recho "x$*y"
+expect '<xy>'
+recho "xy$*"
+expect '<xy>'
+recho x"$*"y
+expect '<xy>'
+recho xy"$*"
+expect '<xy>'
+recho "$*"xy
+expect '<>'
+recho "$*"
+expect nothing
+recho $*
+
+unset undef ; set ""
+
+expect '<>'
+recho ${undef-"$*"}
+expect '<xy>'
+recho ${undef-"x$*y"}
+expect '<xy>'
+recho ${undef-"$*xy"}
+expect '<xy>'
+recho ${undef-"xy$*"}
+expect '<xy>'
+recho ${undef-x"$*"y}
+expect '<xy>'
+recho ${undef-xy"$*"}
+expect '<xy>'
+recho ${undef-"$*"xy}
+expect '<>'
+recho "${undef-$*}"
+expect nothing
+recho ${undef-$*}
+
+expect '<>'
+recho ${undef-"$zzz"}
+expect '<x>'
+recho x${undef-"$zzz"}
+expect '<x>'
+recho x${undef-"$@"}
+expect nothing
+recho ${undef-"$@"}
+expect '<x>'
+recho ${undef-"$zzz"}x
+expect '<x>'
+recho ${undef-"$@"}x
+expect '<x>'
+recho "$@"x
+expect '<x>'
+recho "$zzz"x
+expect '<^?>'
+recho ${undef-}
+expect '<^?>'
+recho ${undef-""}
+
+yyy=""
+recho "$xxx"x
+recho "$yyy"x
+
+set "" "abd" ""
+recho "$@"x
+recho "$@"$xxx
+
+OIFS="$IFS"
+
+arg=a,b,c,d,e,f
+
+IFS=,
+
+export z=$arg
+
+eval z1=\"$arg\"
+
+IFS="$OIFS"
+
+recho $z
+recho $z1
+
+# should give an error
+abc\=def
+
+zz="a b c d e"
+declare a=$zz
+
+recho "$a"
+recho $a
+
+recho $(echo "foo$(echo ")")")
+
+# test backslash escapes
+
+recho \a
+recho \\a
+
+recho "\a"
+recho "\\a"
+
+recho '\a'
+recho '\\a'
+
+recho $(zecho \a)
+recho $(zecho \\a)
+
+recho $(zecho "\a")
+recho $(zecho "\\a")
+
+recho $(zecho '\a')
+recho $(zecho '\\a')
+
+recho `zecho \a`
+recho `zecho \\a`
+
+recho `zecho "\a"`
+recho `zecho "\\a"`
+
+recho `zecho '\a'`
+recho `zecho '\\a'`
+
+a=foo
+
+recho \$a
+recho \\$a
+
+recho "\$a"
+recho "\\$a"
+
+recho '\$a'
+recho '\\$a'
+
+recho $(zecho `zecho \a`)
+recho $(zecho `zecho \\a`)
+
+recho $(zecho `zecho "\a"`)
+recho $(zecho `zecho "\\a"`)
+
+recho $(zecho `zecho '\a'`)
+recho $(zecho `zecho '\\a'`)
+
+# should echo G { I K }
+recho ${abc:-G { I } K }
+
+abc=hi
+
+# should echo hi K }
+recho ${abc:-G { I } K }
+
+# should echo a*
+unset foo
+recho "${foo:-"a"}*"
+
+f ()
+{
+	echo "Number of args: $#"
+	echo "<\${*-x}>: <${*-x}>"
+	echo "<\${@-x}>: <${@-x}>"
+}
+
+f
+f ''
+f '' ''
+
+set 1 2 3 4 5
+
+expect '<5>'
+recho ${#}
+expect '<5>'
+recho ${#:foo}
+expect '<5>'
+recho ${#:-foo}
+expect '<5>'
+recho ${#-posparams}
+expect '<5>'
+recho ${#:-posparams}
+
+expect '<0>'
+recho ${#!}
+
+expect nothing
+recho $!
+expect nothing
+recho ${!}
+
+expect nothing
+recho $8
+expect nothing
+recho ${8}
+
+shift $#
+
+expect '<0>'
+recho ${#}
+expect '<0>'
+recho ${#:foo}
+expect '<0>'
+recho ${#:-foo}
+expect '<0>'
+recho ${#-posparams}
+expect '<0>'
+recho ${#:-posparams}
+
+expect '<posparams>'
+recho ${!-posparams}
+expect '<posparams>'
+recho ${!:-posparams}
+
+expect '<2>'
+recho ${#-}
+
+expect '<0>'
+recho ${#-posparams}
+
+expect '<0>'
+recho ${#?:-xyz}
+
+expect '<1>'
+recho ${#?}
+
+set a b c d e
+
+expect '<5>'
+recho ${#}
+expect '<5>'
+recho ${#?:-xyz}
+
+shift ${#}
+
+expect '<0>'
+recho ${#:-foo}
+
+expect a bad substitution error
+recho ${#:}
+expect a bad substitution error
+recho ${#/}
+expect a bad substitution error
+recho ${#%}
+expect a bad substitution error
+recho ${#=}
+expect a bad substitution error
+recho ${#+}
+expect a bad substitution error
+recho ${#1xyz}
+
+expect a math syntax error
+recho ${#:%}
+
+expect '<0>'
+recho ${#:-}
+
+set --
+unset a b
+
+x=a
+y=b
+
+IFS=+
+
+expect '<a+b>'
+recho $x+$y
+expect '<+>'
+recho $a+$b
+
+expect '<+>'
+recho + "$@"
+expect '<+>'
+recho +"$@"
+
+# variants of nested curly braces inside ${...} expressions
+
+# IFS is not the standard one
+
+expect '<G { I>' '<K>' '<}>'
+recho ${gik:-G { I } K }
+
+abc=hi
+
+expect '<hi>' '<K>' '<}>'
+recho ${abc:-G { I } K }
+
+# reset IFS to the default
+IFS=' 	
+'
+
+# nested ${...} inside ${...} are handled specially
+unset XXX FOO BAR
+expect '<xxx>' '<yyy>'
+XXX=xxx
+FOO=${BAR:-${XXX} yyy}
+recho $FOO
+
+# this was a bug in versions of bash prior to bash-2.04-release
+set -- ''
+expect 1
+echo $#
+expect '<>'
+recho "${@}"
+expect '<>'
+recho "${@-}"
+expect '<>'
+recho "${@:-}"
+
+# this was a bug in bash-2.04, fixed in 2.05
+set -- a b
+expect '<:a:>' '<:b:>'
+for i in "${@-}"; do recho :$i:; done
+
+# I believe that ksh93 does these wrong -- we're using the rhs, so shouldn't
+# it behave the same as ""?
+set --
+expect '<>'
+recho "${@-}"
+expect '<>'
+recho "${@:-}"

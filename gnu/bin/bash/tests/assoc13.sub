@@ -1,0 +1,44 @@
+# assignment to @ and *
+
+declare -A assoc
+key=@
+key2=*
+
+assoc[$key]=at
+assoc[$key2]=star
+assoc[!]=bang
+declare -p assoc
+
+echo ${assoc[$key]}
+echo ${assoc[$key2]}
+unset assoc
+
+declare -A a
+
+a[@]=at
+declare -p a
+
+declare -a ia
+ia[@]=garbage
+
+declare -p ia
+
+declare a[@]=at2
+declare -p a
+
+unset a ia
+
+declare -A a
+printf -v a[@] "%10s" string
+
+declare -p a
+unset a
+
+declare -A a
+declare a[$key2]=star
+declare a[@]=at
+declare a[*]=star2
+
+declare -p a
+unset a
+

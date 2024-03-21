@@ -1,0 +1,179 @@
+#compdef module
+
+# Main dispatcher
+_module()
+{
+  _arguments -s \
+    '(-H --help)'{--help,-H}'[display usage info]' \
+    '(-V --version)'{--version,-V}'[module command version and configuration options]' \
+    '(-f --force)'{--force,-f}'[force active dependency resolution]' \
+    '(-t --terse)'{--terse,-t}'[display avail and list output in short format]' \
+    '(-l --long)'{--long,-l}'[display avail and list output in long format]' \
+    '(-h --human)'{--human,-h}'[display short output in human-readable format]' \
+    '(-v --verbose)'{--verbose,-v}'[verbose]' \
+    '(-s --silent)'{--silent,-s}'[disable verbose messages]' \
+    '(-c --create)'{--create,-c}'[create caches]' \
+    '(-i --icase)'{--icase,-i}'[case insensitive]' \
+    '(-u --userlvl)'{--userlvl,-u}'[set user level to value]:level:(novice expert advanced)' \
+    '*::module command:_module_command'
+}
+
+(( $+functions[_module_command] )) || _module_command()
+{
+  local -a _module_cmds
+
+  _module_cmds=(
+    "help:print the usage of each sub-command"
+    "load:load a module into the shell environment"
+    "add:load a module into the shell environment"
+    "unload:remove a module from the shell environment"
+    "rm:remove a module from the shell environment"
+    "switch:switch loaded a loaded module with another module"
+    "swap:switch loaded a loaded module with another module"
+    "display:display information about a module"
+    "show:display information about a module"
+    "list:list loaded modules"
+    "avail:list all available modules"
+    "use:add a directory to MODULEPATH"
+    "unuse:remove a directory from MODULEPATH"
+    "update:reload all loaded modules"
+    "clear:clear loaded modules information"
+    "purge:unload all loaded modules"
+    "refresh:refresh all non-persistent components of loaded modules"
+    "whatis:display module information"
+    "apropos:search for a given keyword in modules"
+    "keyword:search for a given keyword in modules"
+    "initadd:add or append a module to the user's shell init file"
+    "initprepend:add or prepend a module to the user's shell init files"
+    "initrm:remove a module from the user's shell init file"
+    "initswitch:switch modules in the user's shell init file"
+    "initlist:list all loaded modules in the user's shell init files"
+    "initclear:clear all modules from the user's shell init files"
+  )
+
+  if (( CURRENT == 1 )); then
+    _describe -t commands 'module command' _module_cmds
+  else
+    local curcontext="$curcontext" ret
+
+    cmd="${${_module_cmds[(r)$words[1]:*]%%:*}}"
+    # Deal with any aliases
+    case $cmd in
+      add) cmd="load";;
+      rm) cmd="unload";;
+      swap) cmd="switch";;
+      show) cmd="display";;
+      keyword) cmd="apropos";;
+    esac
+
+    if (( $#cmd ));
+    then
+      local update_policy
+      curcontext="${curcontext%:*:*}:module-${cmd}:"
+      zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+      _call_function ret _module_$cmd || _message 'no more arguments'
+    else
+      _message "unknown module command: $words[1]"
+    fi
+
+    return ret
+  fi
+}
+
+# Fills the available modules cache
+_module_available_modules()
+{
+  if [[ -n $MODULEPATH ]] && [[ ${+_available_modules} -eq 0 ]]
+  then
+    _available_modules=(${$(find -L ${(e)=MODULEPATH//:/ } -type f -print 2>/dev/null | grep -v \\.version | sed -e 's,\('${${(e)=MODULEPATH//:/\/\\\|}%\\\|}'\),,g' -e 's,^/*,,g' -e 's,\.lua$,,g'):#*\~})
+  fi
+}
+
+# Completion function for help
+(( $+functions[_module_help] )) || _module_help()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for load|add
+(( $+functions[_module_load] )) || _module_load()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for unload|rm
+(( $+functions[_module_unload] )) || _module_unload()
+{
+  compadd "$@" -- ${=LOADEDMODULES//:/ }
+}
+
+# Completion function for switch|swap
+(( $+functions[_module_switch] )) || _module_switch()
+{
+  # Actually first argument could be a loaded module
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for display|show
+(( $+functions[_module_display] )) || _module_display()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for avail
+### No completion (yet?)
+
+# Completion function for use
+(( $+functions[_module_use] )) || _module_use()
+{
+  _arguments -s \
+    '(-a --append)'{--append,-a}'[append the directories instead of prepending]' \
+    '*:directory:_files -/'
+}
+
+# Completion function for unuse
+(( $+functions[_module_unuse] )) || _module_unuse()
+{
+  compadd "$@" -- ${=MODULEPATH//:/ }
+}
+
+# Completion function for whatis
+(( $+functions[_module_whatis] )) || _module_whatis()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for initadd
+(( $+functions[_module_initadd] )) || _module_initadd()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for initprepend
+(( $+functions[_module_initprepend] )) || _module_initprepend()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for initrm
+(( $+functions[_module_initrm] )) || _module_initrm()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+# Completion function for initswitch
+(( $+functions[_module_initswitch] )) || _module_initswitch()
+{
+  _module_available_modules
+  _multi_parts / "($_available_modules)"
+}
+
+_module "$@"

@@ -1,0 +1,311 @@
+#                                                                    -*-perl-*-
+$description = "Test handling of static pattern rules.";
+
+$details = "\
+The makefile created in this test has three targets.  The
+filter command is used to get those target names ending in
+.o and statically creates a compile command with the target
+name and the target name with .c.  It also does the same thing
+for another target filtered with .elc and creates a command
+to emacs a .el file";
+
+&touch('bar.c', 'lose.c');
+
+#   TEST #0
+#   -------
+
+run_make_test('
+files = foo.elc bar.o lose.o
+
+$(filter %.o,$(files)): %.o: %.c ; @echo CC -c $(CFLAGS) $< -o $@
+
+$(filter %.elc,$(files)): %.elc: %.el ; @echo emacs $<
+',
+              '',
+              'CC -c bar.c -o bar.o');
+
+#  TEST #1
+#  -------
+
+run_make_test(undef, 'lose.o', 'CC -c lose.c -o lose.o');
+
+
+#   TEST #2
+#   -------
+&touch("foo.el");
+
+run_make_test(undef, 'foo.elc', 'emacs foo.el');
+
+# Clean up after the first tests.
+unlink('foo.el', 'bar.c', 'lose.c');
+
+
+# TEST #3 -- PR/1670: don't core dump on invalid static pattern rules
+# -------
+
+run_make_test('
+.DEFAULT: ; @echo $@
+foo: foo%: % %.x % % % y.% % ; @echo $@
+',
+              '', ".x\ny.\nfoo");
+
+
+# TEST #4 -- bug #12180: core dump on a stat pattern rule with an empty
+#                        prerequisite list.
+run_make_test('
+foo.x bar.x: %.x : ; @echo $@
+
+',
+              '', 'foo.x');
+
+
+# TEST #5 -- bug #13881: double colon static pattern rule does not
+#                        substitute %.
+run_make_test('
+foo.bar:: %.bar: %.baz
+foo.baz: ;@:
+',
+              '', '');
+
+
+# TEST #6: make sure the second stem does not overwrite the first
+#          perprerequisite's stem (Savannah bug #16053).
+#
+run_make_test('
+.RECIPEPREFIX := >
+
+all.foo.bar: %.foo.bar: %.one
+
+all.foo.bar: %.bar: %.two
+
+all.foo.bar:
+>	@echo $*
+>	@echo $^
+
+.DEFAULT:;@:
+',
+'',
+'all.foo
+all.one all.foo.two');
+
+
+# TEST #7: make sure the second stem does not overwrite the first
+#          perprerequisite's stem when second expansion is enabled
+#          (Savannah bug #16053).
+#
+run_make_test('
+.RECIPEPREFIX := >
+.SECONDEXPANSION:
+
+all.foo.bar: %.foo.bar: %.one $$*-one
+
+all.foo.bar: %.bar: %.two $$*-two
+
+all.foo.bar:
+>	@echo $*
+>	@echo $^
+
+.DEFAULT:;@:
+',
+'',
+'all.foo
+all.one all-one all.foo.two all.foo-two');
+
+# Test #8:
+# sv 60188.
+# Static pattern rules are considered explicit rules: no prerequisite of
+# a static pattern rule can ever be considered intermediate.
+
+touch('hello.z');
+
+# subtest 1
+run_make_test(q!
+hello.z: %.z: %.x ; @echo $@
+%.x: ;
+!, '', "hello.z\n");
+
+# subtest 2
+run_make_test(q!
+hello.z: %.z: %.x test.x ; @echo $@
+%.x: ;
+!, '', "hello.z\n");
+
+# subtest 3
+# 'hello.x' is mentioned explicitly on an unrelated rule.
+run_make_test(q!
+hello.z: %.z: %.x ; @echo $@
+%.x: ;
+unrelated: hello.x
+!, '', "hello.z\n");
+
+unlink('hello.z');
+
+# sv 17374 Ensure double-colon static pattern rules work
+
+touch(qw(a.src b.src));
+
+run_make_test(q!
+all: a.tgt b.tgt
+a.tgt b.tgt:: %.tgt : %.src ; cp $< $@
+!,
+    '', "cp a.src a.tgt\ncp b.src b.tgt\n");
+
+unlink(qw(a.src b.src a.tgt b.tgt));
+
+my @dir = ('', 'lib/'); # With and without last slash.
+my @secondexpansion = ('', '.SECONDEXPANSION:');
+
+# The following combinations are generated with and without second expansion.
+# 1.
+# all: bye.x
+# bye.x: %.x: ...
+#
+# 2.
+# all: lib/bye.x
+# lib/bye.x: %.x: ...
+#
+# 3.
+# all: lib/bye.x
+# lib/bye.x: lib/%.x: ...
+#
+# The following combination is not generated, because there is no rule to
+# build bye.x, no stem substitution takes place, not of interest of this test.
+# 4.
+# all: bye.x
+# bye.x: lib/%.x: ...
+#
+
+for my $se (@secondexpansion) {
+for my $d (@dir) { # The directory of the prerequisite of 'all'.
+for my $r (@dir) { # The directory of the prerequisite in the rule definition.
+(!$d && $r) && next; # Combination 4.
+my $dollar = $se ? '$' : '';
+
+# The prerequisite should only have directory if the prerequisite of 'all' has
+# it and if the prerequisite pattern in the rule definition does not have it.
+# That is combination 2.
+my $pdir = $d && !$r ? $d : '';
+
+
+# One func, one %.
+my $prereqs = "${pdir}bye.1";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(firstword %.1); \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# Multiple funcs, each has one %.
+$prereqs = "${pdir}bye.1 ${pdir}bye.2";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(firstword %.1) $dollar\$(firstword %.2); \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# Multiple funcs, each has multiple %.
+$prereqs = "${pdir}bye.1 ${pdir}bye.2 ${pdir}bye.3 ${pdir}bye.4";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(wordlist 1, 99, %.1 %.2) $dollar\$(wordlist 1, 99, %.3 %.4); \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# Multiple funcs, each has multiple %, each prerequisite has multiple %.
+$prereqs = "${pdir}bye_%_%.1 ${pdir}bye_%_%.2 ${pdir}bye_%_%.3 ${pdir}bye_%_%.4";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(wordlist 1, 99, %_%_%.1 %_%_%.2) $dollar\$(wordlist 1, 99, %_%_%.3 %_%_%.4); \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# Nested functions.
+$prereqs = "${pdir}bye.1 ${pdir}bye.2 ${pdir}bye.3 ${pdir}bye.4";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(wordlist 1, 99, $dollar\$(wordlist 1, 99, %.1 %.2)) $dollar\$(wordlist 1, 99, $dollar\$(wordlist 1,99, %.3 %.4)); \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# Multiple funcs, each has multiple words, each word has multiple %, sole %,
+# various corner cases.
+# Make should substitute the first % and only the first % in each word with the
+# stem.
+$prereqs = "${pdir}bye1%2% ${pdir}bye 3${pdir}bye4%5 6${pdir}bye ${pdir}bye7%8 ${pdir}bye9 ${pdir}bye10% 11${pdir}bye12 13";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(wordlist 1, 99, %1%2% % 3%4%5 6%) %7%8 %9 $dollar\$(wordlist 1, 99, %10% 11%12) 13; \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+if ($port_type eq 'UNIX') {
+# Test that make does not use some hardcoded array of a finite size on stack.
+# Long prerequisite name. This prerequisite name is over 66K long.
+my $prefix = 'abcdefgh' x 128 x 33; # 33K long.
+my $suffix = 'stuvwxyz' x 128 x 33; # 33K long.
+$prereqs = "${prefix}${pdir}bye${suffix}.1 ${prefix}${pdir}bye${suffix}.2";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(wordlist 1, 99, ${prefix}%${suffix}.1 ${prefix}%${suffix}.2); \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+}
+
+
+# Empty stem.
+$prereqs = "${pdir}.1";
+run_make_test("
+$se
+.PHONY: $prereqs
+all: ${d}bye.x
+${d}bye.x: $r%bye.x: $dollar\$(firstword %.1); \$(info \$@ from \$^)
+", '', "${d}bye.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# A word expands to an empty prerequisite.
+run_make_test("
+$se
+all: ${d}bye.x
+${d}bye.x: $r%.x: $dollar\$(%); \$(info \$@ from \$^)
+", '', "${d}bye.x from \n#MAKE#: Nothing to be done for 'all'.\n");
+
+}
+}
+}
+
+# Escaped %.
+# The following combinations are generated without second expansion.
+# 1.
+# all: the%weird\\_hello_pattern\\.x
+# the\\%weird\\_hello_pattern\\.x: the\\%weird\\_%_pattern\\.x: ...
+#
+# 2.
+# all: lib/the%weird\\_hello_pattern\\.x
+# lib/the\\%weird\\_hello_pattern\\.x: lib/the\\%weird\\_%_pattern\\.x: ...
+#
+# Other combinations or second expansion are not tested, because escaped % is
+# not implemented for those.
+
+for my $d (@dir) {
+my $prereqs = "${d}the%weird\\\\_hello_pattern%\\\\.1 ${d}the%weird\\\\_hello_pattern%\\\\.2";
+run_make_test("
+.PHONY: $prereqs
+all: ${d}the%weird\\\\_hello_pattern\\\\.x
+${d}the\\%weird\\\\_hello_pattern\\\\.x: ${d}the\\%weird\\\\_%_pattern\\\\.x: \$(wordlist 1, 99, ${d}the\\%weird\\\\_%_pattern%\\\\.1 ${d}the\\%weird\\\\_%_pattern%\\\\.2); \$(info \$@ from \$^)
+", '', "${d}the%weird\\\\_hello_pattern\\\\.x from $prereqs\n#MAKE#: Nothing to be done for 'all'.\n");
+}
+
+1;

@@ -1,0 +1,40 @@
+# ltdl-api.at -- test libltdl API                -*- Autotest -*-
+#
+#   Copyright (C) 2008, 2011-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#   Written by Ralf Wildenhues, 2008.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([ltdl API])
+AT_KEYWORDS([libltdl])
+
+# Ensure that no symbols from argz are unrenamed.
+eval `$LIBTOOL --config | $EGREP '^(NM|global_symbol_pipe|objext)='`
+lt__argz_o=$abs_top_builddir/libltdl/lt__argz.$objext
+AT_CHECK([test -f "$lt__argz_o" || exit 77])
+AT_CHECK([eval "$NM \"\$lt__argz_o\" | $global_symbol_pipe"],
+	 [], [stdout], [ignore])
+# Check for global symbols beginning with "argz_"
+AT_CHECK([$GREP "^T argz_" stdout], [1])
+# and also for the _ prefixed version "_argz_"
+AT_CHECK([$GREP "^T _argz_" stdout], [1])
+
+AT_CLEANUP

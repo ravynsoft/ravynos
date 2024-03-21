@@ -1,4 +1,3 @@
-#	@(#)Makefile	8.1 (Berkeley) 6/4/93
 
 .include <src.opts.mk>
 
@@ -64,10 +63,12 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libdwarf \
 	libedit \
 	libelftc \
+        libepoll-shim \
 	libevent1 \
 	libexecinfo \
 	libexpat \
 	libfetch \
+        libffi \
 	libgcc_eh \
 	libgcc_s \
 	libgeom \
@@ -76,6 +77,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libiscsiutil \
 	libjail \
 	libjansson \
+        libjpeg \
 	libkiconv \
 	libkvm \
 	liblaunch \
@@ -95,7 +97,9 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libpam \
 	libpathconv \
 	libpcap \
+        libpixman \
 	libpjdlog \
+        libpng \
 	libproc \
 	libprocstat \
 	libregex \
@@ -111,13 +115,17 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libtacplus \
 	libthr \
 	libthread_db \
+        libtiff \
 	libucl \
+        libudev-devd \
 	libufs \
 	libugidfw \
 	libulog \
+        libutf8 \
 	libutil \
 	${_libvgl} \
 	libwrap \
+        libxml2 \
 	libxo \
 	libxpc \
 	liby \
@@ -152,11 +160,14 @@ SUBDIR_DEPEND_libmagic= libz
 SUBDIR_DEPEND_libmemstat= libkvm
 SUBDIR_DEPEND_liblaunch= libasl
 SUBDIR_DEPEND_libpam= libcrypt ${_libradius} librpcsvc libtacplus libutil ${_libypclnt} ${_libcom_err}
+SUBDIR_DEPEND_libpixman= libpng
 SUBDIR_DEPEND_libpjdlog= libutil
+SUBDIR_DEPEND_libpng= libz
 SUBDIR_DEPEND_libprocstat= libkvm libutil
 SUBDIR_DEPEND_libradius= libmd
 SUBDIR_DEPEND_libsmb= libkiconv
 SUBDIR_DEPEND_libtacplus= libmd
+SUBDIR_DEPEND_libtiff= libz liblzma libzstd
 SUBDIR_DEPEND_libulog= libmd
 SUBDIR_DEPEND_libunbound= ${_libldns}
 SUBDIR_DEPEND_liblzma= libthr

@@ -1,0 +1,20 @@
+unset [ -fmv ] name ...
+       Each  named  parameter  is unset.  Local parameters remain local
+       even if unset; they appear unset within scope, but the  previous
+       value will still reappear when the scope ends.
+
+       Individual elements of associative array parameters may be unset
+       by using subscript syntax on name, which should  be  quoted  (or
+       the  entire  command  prefixed  with noglob) to protect the sub-
+       script from filename generation.
+
+       If the -m flag is specified the arguments are taken as  patterns
+       (should  be  quoted)  and all parameters with matching names are
+       unset.  Note that this cannot be used when unsetting associative
+       array  elements, as the subscript will be treated as part of the
+       pattern.
+
+       The -v flag specifies that name refers to  parameters.  This  is
+       the default behaviour.
+
+       unset -f is equivalent to unfunction.

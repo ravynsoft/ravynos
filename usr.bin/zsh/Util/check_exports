@@ -1,0 +1,64 @@
+#!/usr/local/bin/perl -w
+
+# Attempt to scan executable, libraries, and .export files after
+# a zsh build to see if all necessary symbols appear in the .export file
+# (and hence with `mod_export' in the source file).  This keeps AIX happy.
+# Probably severely system dependent, but known to run on Fedora Core 1,
+# at least.  Not needed on AIX itself... you can tell if doesn't link.
+
+if (! -f "zsh") {
+    die "Can't file zsh, are we in the Src directory of the build?\n";
+}
+
+my (%defined, %undefined, %exported);
+
+foreach my $file ("zsh", glob("*.so */*.so")) {
+    next unless -f $file;
+
+    my $exports = $file;
+    $exports =~ s/\.so//;
+    $exports .= ".export";
+    if (-f $exports) {
+	open EXPORT, $exports  or  die "Can't read $exports: $!\n";
+	my $href = $exported{$file} = { };
+	while (<EXPORT>) {
+	    next if /^#/;
+	    chomp;
+	    $href->{$_} = 1;
+	}
+	close EXPORT;
+    } else {
+	warn "Hmmm... no .exports file for $file\n";
+    }
+
+    open PIPE, "nm $file |"  or  die "Can't popen nm";
+    while (<PIPE>) {
+	s/^[0-9a-f]*\s+//;
+	my ($type, $sym) = split;
+	# ignore local symbols (lower case)
+	if ($type =~ /^[TBAD]/) {
+	    if (!defined $defined{$sym}) {
+		$defined{$sym} = $file;
+	    }
+	} elsif ($type eq 'U') {
+	    # could skip undefined from zsh and zsh.so, but what the heck
+	    my $ref = \$undefined{$sym};
+	    if (defined $$ref) {
+		push @$$ref, $file;
+	    } else {
+		$$ref = [ $file ];
+	    }
+	}
+    }
+    close PIPE  or  die "nm failed";
+}
+
+foreach $sym (keys %undefined) {
+    my $deffile = $defined{$sym};
+    if (defined $deffile) {
+	if (!$exported{$deffile}{$sym}) {
+	    printf "%-20s: %-20s: %s\n", $sym, $defined{$sym},
+	    join(" ", @{$undefined{$sym}});
+	}
+    }
+}

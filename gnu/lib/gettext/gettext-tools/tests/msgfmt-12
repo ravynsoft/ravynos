@@ -1,0 +1,90 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test ISO C 99 <inttypes.h> format string directives.
+
+cat <<\EOF > mf-12.po
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+#, c-format
+msgid "File size is: %<PRId64>"
+msgstr "Dateigröße ist: %<PRId64>"
+
+#, c-format
+msgid "File age is %10<PRIdMAX> microseconds"
+msgstr "Datei ist %10<PRIdMAX> Mikrosekunden alt."
+
+msgid "<PRIXFAST16> errors"
+msgstr "<PRIXFAST16> Fehler"
+EOF
+
+# First, without redundancy.
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --no-convert --no-redundancy -o mf-12.mo mf-12.po || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+${MSGUNFMT} -o mf-12.tmp mf-12.mo || Exit 1
+LC_ALL=C tr -d '\r' < mf-12.tmp > mf-12.out || Exit 1
+
+cat <<\EOF > mf-12.ok
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+msgid "<PRIXFAST16> errors"
+msgstr "<PRIXFAST16> Fehler"
+
+#, c-format
+msgid "File size is: %<PRId64>"
+msgstr "Dateigröße ist: %<PRId64>"
+
+#, c-format
+msgid "File age is %10<PRIdMAX> microseconds"
+msgstr "Datei ist %10<PRIdMAX> Mikrosekunden alt."
+EOF
+
+: ${DIFF=diff}
+${DIFF} mf-12.ok mf-12.out || Exit 1
+
+# Now, with redundancy.
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --no-convert -o mf-12.mo mf-12.po || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+${MSGUNFMT} -o mf-12.tmp mf-12.mo || Exit 1
+LC_ALL=C tr -d '\r' < mf-12.tmp > mf-12.out || Exit 1
+
+cat <<\EOF > mf-12.ok
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+msgid "<PRIXFAST16> errors"
+msgstr "<PRIXFAST16> Fehler"
+
+msgid "File age is %10ld microseconds"
+msgstr "Datei ist %10ld Mikrosekunden alt."
+
+msgid "File age is %10lld microseconds"
+msgstr "Datei ist %10lld Mikrosekunden alt."
+
+msgid "File size is: %ld"
+msgstr "Dateigröße ist: %ld"
+
+msgid "File size is: %lld"
+msgstr "Dateigröße ist: %lld"
+
+#, c-format
+msgid "File size is: %<PRId64>"
+msgstr "Dateigröße ist: %<PRId64>"
+
+#, c-format
+msgid "File age is %10<PRIdMAX> microseconds"
+msgstr "Datei ist %10<PRIdMAX> Mikrosekunden alt."
+EOF
+
+: ${DIFF=diff}
+${DIFF} mf-12.ok mf-12.out || Exit 1
+
+Exit 0

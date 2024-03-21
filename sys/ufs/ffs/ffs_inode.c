@@ -27,8 +27,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)ffs_inode.c	8.13 (Berkeley) 4/21/95
  */
 
 #include <sys/cdefs.h>
@@ -238,7 +236,9 @@ ffs_truncate(struct vnode *vp,
 	struct inode *ip;
 	ufs2_daddr_t bn, lbn, lastblock, lastiblock[UFS_NIADDR];
 	ufs2_daddr_t indir_lbn[UFS_NIADDR], oldblks[UFS_NDADDR + UFS_NIADDR];
+#ifdef INVARIANTS
 	ufs2_daddr_t newblks[UFS_NDADDR + UFS_NIADDR];
+#endif
 	ufs2_daddr_t count, blocksreleased = 0, blkno;
 	struct bufobj *bo __diagused;
 	struct fs *fs;
@@ -546,11 +546,15 @@ ffs_truncate(struct vnode *vp,
 	 * when we are done.
 	 */
 	for (i = 0; i < UFS_NDADDR; i++) {
+#ifdef INVARIANTS
 		newblks[i] = DIP(ip, i_db[i]);
+#endif
 		DIP_SET(ip, i_db[i], oldblks[i]);
 	}
 	for (i = 0; i < UFS_NIADDR; i++) {
+#ifdef INVARIANTS
 		newblks[UFS_NDADDR + i] = DIP(ip, i_ib[i]);
+#endif
 		DIP_SET(ip, i_ib[i], oldblks[UFS_NDADDR + i]);
 	}
 	ip->i_size = osize;

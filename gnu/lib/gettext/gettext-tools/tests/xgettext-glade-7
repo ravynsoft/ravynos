@@ -1,0 +1,277 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of GtkBuilder support.
+# Checks the extraction of a medium size GtkBuilder file, with
+# comments, context and translatable and not translatable content.
+
+cat <<EOF > xg-gl-7-empty.glade
+<?xml version="1.0"?>
+<GTK-Interface/>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gl-7.pot xg-gl-7-empty.glade 2>/dev/null
+test $? = 0 || {
+  echo "Skipping test: xgettext was built without Glade support"
+  Exit 77
+}
+
+cat <<EOF > xg-gl-7.ui
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-about</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-help</property>
+  </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-connect</property>
+  </object>
+  <object class="GtkListStore" id="liststore">
+    <columns>
+      <!-- column-name first column -->
+      <column type="gchararray"/>
+      <!-- column-name second column -->
+      <column type="gchararray"/>
+      <!-- column-name not extracted column -->
+      <column type="guint64"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes" context="First row">Hi</col>
+        <col id="1" translatable="yes" comments="A comment.">Comment</col>
+        <col id="2">999</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="First row">Hello</col>
+        <col id="1" translatable="yes" comments="This is no translatable.">Translatable comment.</col>
+        <col id="2">88</col>
+      </row>
+      <row>
+        <col id="0" translatable="no" context="First row" comments="Yeah">Oi</col>
+        <col id="1" translatable="yes" context="This is not translatable">Please...</col>
+        <col id="2">86855555</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="First row">Hi</col>
+        <col id="1" translatable="yes" comments="A multiline&#10;comment.">Comment</col>
+        <col id="2">999</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkWindow" id="window">
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkBox" id="box">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkMenuBar" id="menubar">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkMenuItem" id="menuitem1">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes" context="Menu" comments="This thing is the menu label">One thing</property>
+                <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="menu1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkImageMenuItem" id="imagemenuitem1">
+                        <property name="label" translatable="yes" context="One thing" comments="This thing is the label in the inner menu.">One thing</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="image">image1</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem" id="menuitem2">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes" context="Menu" comments="This is easy.">H_elp</property>
+                <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="menu2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkImageMenuItem" id="imagemenuitem2">
+                        <property name="label" translatable="yes" context="Second menu" comments="This one thing is for the second menu.">One thing</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="image">image2</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="imagemenuitem3">
+                        <property name="label" translatable="yes" context="Second menu" comments="To you too.">Greetings</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="image">image3</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkTreeView" id="treeview2">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="model">liststore</property>
+            <signal name="columns-changed" handler="myfunction_treeview_columns_changed" object="treeview-selection2" swapped="no"/>
+            <child internal-child="selection">
+              <object class="GtkTreeSelection" id="treeview-selection2"/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="button">
+            <property name="label" translatable="yes" context="Button" comments="This one thing is the button.">One thing</property>
+            <property name="use_action_appearance">False</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="use_action_appearance">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gl-7.tmp xg-gl-7.ui || Exit 1
+func_filter_POT_Creation_Date xg-gl-7.tmp xg-gl-7.pot
+
+cat <<\EOF > xg-gl-7.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: xg-gl-7.ui:30 xg-gl-7.ui:45
+msgctxt "First row"
+msgid "Hi"
+msgstr ""
+
+#. A comment.
+#. A multiline
+#. comment.
+#: xg-gl-7.ui:31 xg-gl-7.ui:46
+msgid "Comment"
+msgstr ""
+
+#: xg-gl-7.ui:35
+msgctxt "First row"
+msgid "Hello"
+msgstr ""
+
+#. This is no translatable.
+#: xg-gl-7.ui:36
+msgid "Translatable comment."
+msgstr ""
+
+#: xg-gl-7.ui:41
+msgctxt "This is not translatable"
+msgid "Please..."
+msgstr ""
+
+#. This thing is the menu label
+#: xg-gl-7.ui:67
+msgctxt "Menu"
+msgid "One thing"
+msgstr ""
+
+#. This thing is the label in the inner menu.
+#: xg-gl-7.ui:75
+msgctxt "One thing"
+msgid "One thing"
+msgstr ""
+
+#. This is easy.
+#: xg-gl-7.ui:92
+msgctxt "Menu"
+msgid "H_elp"
+msgstr ""
+
+#. This one thing is for the second menu.
+#: xg-gl-7.ui:100
+msgctxt "Second menu"
+msgid "One thing"
+msgstr ""
+
+#. To you too.
+#: xg-gl-7.ui:110
+msgctxt "Second menu"
+msgid "Greetings"
+msgstr ""
+
+#. This one thing is the button.
+#: xg-gl-7.ui:147
+msgctxt "Button"
+msgid "One thing"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-gl-7.ok xg-gl-7.pot
+result=$?
+
+exit $result

@@ -1,0 +1,17 @@
+#compdef ncftp lftp
+
+local expl bookmarks XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
+
+if [[ $service = lftp ]]; then
+  bookmarks=$XDG_DATA_HOME/$service/bookmarks
+else
+  bookmarks=$HOME/.$service/bookmarks
+fi
+
+if [[ -f $bookmarks ]]; then
+  bookmarks=(${"${(f)$(<$bookmarks)}"%%[[:space:],]*})
+  [[ $service == ncftp ]] && shift 2 bookmarks  
+  _wanted bookmarks expl bookmark compadd -a bookmarks && return 0
+fi
+
+_hosts

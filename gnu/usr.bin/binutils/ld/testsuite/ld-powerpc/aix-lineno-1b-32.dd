@@ -1,0 +1,16 @@
+
+.*
+
+Disassembly of section \.text:
+
+10000100 <\.foo>:
+10000100:	60 00 00 00 	(oril    r0,r0,0|nop)
+10000104:	60 00 00 00 	(oril    r0,r0,0|nop)
+10000108:	60 00 00 00 	(oril    r0,r0,0|nop)
+1000010c:	60 00 00 00 	(oril    r0,r0,0|nop)
+10000110:	60 00 00 00 	(oril    r0,r0,0|nop)
+
+10000114 <\.main>:
+10000114:	4b ff ff ed 	bl      .* <\.foo>
+10000118:	60 00 00 00 	(oril    r0,r0,0|nop)
+#pass

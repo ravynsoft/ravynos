@@ -1,0 +1,122 @@
+#
+#  Chet Ramey <chet.ramey@case.edu>
+#
+#  Copyright 1999 Chester Ramey
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2, or (at your option)
+#   any later version.
+#
+#   TThis program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+# usage: reverse arrayname
+reverse()
+{
+	local -a R
+	local -i i
+	local rlen temp
+
+	# make r a copy of the array whose name is passed as an arg
+	eval R=\( \"\$\{$1\[@\]\}\" \)
+
+	# reverse R
+	rlen=${#R[@]}
+
+	for ((i=0; i < rlen/2; i++ ))
+	do
+		temp=${R[i]}
+		R[i]=${R[rlen-i-1]}
+		R[rlen-i-1]=$temp
+	done
+
+	# and assign R back to array whose name is passed as an arg
+	eval $1=\( \"\$\{R\[@\]\}\" \)
+}
+
+A=(1 2 3 4 5 6 7)
+echo "${A[@]}"
+reverse A
+echo "${A[@]}"
+reverse A
+echo "${A[@]}"
+
+# unset last element of A
+alen=${#A[@]}
+unset A[$alen-1]
+echo "${A[@]}"
+
+# ashift -- like shift, but for arrays
+
+ashift()
+{
+	local -a R
+	local n
+
+	case $# in
+	1)	n=1 ;;
+	2)	n=$2 ;;
+	*)	echo "$FUNCNAME: usage: $FUNCNAME array [count]" >&2
+		exit 2;;
+	esac
+
+	# make r a copy of the array whose name is passed as an arg
+	eval R=\( \"\$\{$1\[@\]\}\" \)
+
+	# shift R
+	R=( "${R[@]:$n}" )
+
+	# and assign R back to array whose name is passed as an arg
+	eval $1=\( \"\$\{R\[@\]\}\" \)
+}
+
+ashift A 2
+echo "${A[@]}"
+
+ashift A
+echo "${A[@]}"
+
+ashift A 7
+echo "${A[@]}"
+
+# Sort the members of the array whose name is passed as the first non-option
+# arg.  If -u is the first arg, remove duplicate array members.
+array_sort()
+{
+	local -a R
+	local u
+
+	case "$1" in
+	-u)	u=-u ; shift ;;
+	esac
+
+	if [ $# -eq 0 ]; then
+		echo "array_sort: argument expected" >&2
+		return 1
+	fi
+
+	# make r a copy of the array whose name is passed as an arg
+	eval R=\( \"\$\{$1\[@\]\}\" \)
+
+	# sort R
+	R=( $( printf "%s\n" "${A[@]}" | sort $u) )
+
+	# and assign R back to array whose name is passed as an arg
+	eval $1=\( \"\$\{R\[@\]\}\" \)
+	return 0
+}
+
+A=(3 1 4 1 5 9 2 6 5 3 2)
+array_sort A
+echo "${A[@]}"
+
+A=(3 1 4 1 5 9 2 6 5 3 2)
+array_sort -u A
+echo "${A[@]}"

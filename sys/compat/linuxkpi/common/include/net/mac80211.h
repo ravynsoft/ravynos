@@ -175,11 +175,13 @@ struct ieee80211_sta;
 #define	IEEE80211_HT_AMPDU_PARM_DENSITY		(0x7 << IEEE80211_HT_AMPDU_PARM_DENSITY_SHIFT)
 
 struct ieee80211_ampdu_params {
-	/* TODO FIXME */
 	struct ieee80211_sta			*sta;
-	uint8_t					tid;
+	enum ieee80211_ampdu_mlme_action	action;
+	uint16_t				buf_size;
+	uint16_t				timeout;
 	uint16_t				ssn;
-	int		action, amsdu, buf_size, timeout;
+	uint8_t					tid;
+	bool					amsdu;
 };
 
 struct ieee80211_bar {
@@ -280,19 +282,13 @@ struct ieee80211_bss_conf {
 	bool					eht_su_beamformer;
 	bool					eht_mu_beamformer;
 
-	size_t					ssid_len;
-	uint8_t					ssid[IEEE80211_NWID_LEN];
-	uint16_t				aid;
 	uint16_t				ht_operation_mode;
 	int					arp_addr_cnt;
 	uint16_t				eht_puncturing;
 
 	uint8_t					dtim_period;
 	uint8_t					sync_dtim_count;
-	bool					assoc;
-	bool					idle;
 	bool					qos;
-	bool					ps;
 	bool					twt_broadcast;
 	bool					use_cts_prot;
 	bool					use_short_preamble;
@@ -458,7 +454,6 @@ struct ieee80211_hw {
 	struct wiphy			*wiphy;
 
 	/* TODO FIXME */
-	int		max_rx_aggregation_subframes, max_tx_aggregation_subframes;
 	int		extra_tx_headroom, weight_multiplier;
 	int		max_rate_tries, max_rates, max_report_rates;
 	struct ieee80211_cipher_scheme	*cipher_schemes;
@@ -478,6 +473,8 @@ struct ieee80211_hw {
 	uint16_t			offchannel_tx_hw_queue;
 	uint16_t			uapsd_max_sp_len;
 	uint16_t			uapsd_queues;
+	uint16_t			max_rx_aggregation_subframes;
+	uint16_t			max_tx_aggregation_subframes;
 	uint16_t			max_tx_fragments;
 	uint16_t			max_listen_interval;
 	uint32_t			extra_beacon_tailroom;
@@ -702,12 +699,6 @@ struct ieee80211_sta {
 
 	struct ieee80211_link_sta		deflink;
 	struct ieee80211_link_sta		*link[IEEE80211_MLD_MAX_NUM_LINKS];	/* rcu? */
-
-#ifndef __FOR_LATER_DRV_UPDATE
-	uint16_t				max_rc_amsdu_len;
-	uint16_t				max_amsdu_len;
-	uint16_t				max_tid_amsdu_len[IEEE80211_NUM_TIDS];
-#endif
 
 	/* Must stay last. */
 	uint8_t					drv_priv[0] __aligned(CACHE_LINE_SIZE);
@@ -997,6 +988,8 @@ struct ieee80211_ops {
 	void (*config_iface_filter)(struct ieee80211_hw *, struct ieee80211_vif *, unsigned int, unsigned int);
 
 	void (*bss_info_changed)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_bss_conf *, u64);
+        void (*link_info_changed)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_bss_conf *, u64);
+
 	int  (*set_rts_threshold)(struct ieee80211_hw *, u32);
 	void (*event_callback)(struct ieee80211_hw *, struct ieee80211_vif *, const struct ieee80211_event *);
 	int  (*get_survey)(struct ieee80211_hw *, int, struct survey_info *);
@@ -1044,7 +1037,6 @@ struct ieee80211_ops {
 
 	int (*set_hw_timestamp)(struct ieee80211_hw *, struct ieee80211_vif *, struct cfg80211_set_hw_timestamp *);
 
-        void (*link_info_changed)(struct ieee80211_hw *, struct ieee80211_vif *, struct ieee80211_bss_conf *, u64);
         void (*vif_cfg_changed)(struct ieee80211_hw *, struct ieee80211_vif *, u64);
 
 	int (*change_vif_links)(struct ieee80211_hw *, struct ieee80211_vif *, u16, u16, struct ieee80211_bss_conf *[IEEE80211_MLD_MAX_NUM_LINKS]);
@@ -1125,6 +1117,8 @@ void linuxkpi_ieee80211_txq_schedule_start(struct ieee80211_hw *, uint8_t);
 struct ieee80211_txq *linuxkpi_ieee80211_next_txq(struct ieee80211_hw *, uint8_t);
 void linuxkpi_ieee80211_schedule_txq(struct ieee80211_hw *,
     struct ieee80211_txq *, bool);
+void linuxkpi_ieee80211_handle_wake_tx_queue(struct ieee80211_hw *,
+	struct ieee80211_txq *);
 
 /* -------------------------------------------------------------------------- */
 
@@ -1421,7 +1415,6 @@ ieee80211_is_back_req(__le16 fc)
 }
 
 static __inline bool
-#ifdef __FOR_LATER_DRV_UPDATE
 ieee80211_is_bufferable_mmpdu(struct sk_buff *skb)
 {
 	struct ieee80211_mgmt *mgmt;
@@ -1429,10 +1422,6 @@ ieee80211_is_bufferable_mmpdu(struct sk_buff *skb)
 
 	mgmt = (struct ieee80211_mgmt *)skb->data;
 	fc = mgmt->frame_control;
-#else
-ieee80211_is_bufferable_mmpdu(__le16 fc)
-{
-#endif
 
 	/* 11.2.2 Bufferable MMPDUs, 80211-2020. */
 	/* XXX we do not care about IBSS yet. */
@@ -1694,7 +1683,7 @@ static inline void
 ieee80211_return_txq(struct ieee80211_hw *hw, struct ieee80211_txq *txq,
     bool withoutpkts)
 {
-	linuxkpi_ieee80211_schedule_txq(hw, txq, true);
+	linuxkpi_ieee80211_schedule_txq(hw, txq, withoutpkts);
 }
 
 static inline void
@@ -1719,7 +1708,7 @@ static inline void
 ieee80211_handle_wake_tx_queue(struct ieee80211_hw *hw,
     struct ieee80211_txq *txq)
 {
-	TODO();
+	linuxkpi_ieee80211_handle_wake_tx_queue(hw, txq);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2022,10 +2011,7 @@ ieee80211_ie_split(const u8 *ies, size_t ies_len,
 }
 
 static __inline void
-ieee80211_request_smps(struct ieee80211_vif *vif,
-#ifdef __FOR_LATER_DRV_UPDATE
-    u_int link_id,
-#endif
+ieee80211_request_smps(struct ieee80211_vif *vif, u_int link_id,
     enum ieee80211_smps_mode smps)
 {
 	static const char *smps_mode_name[] = {
@@ -2213,19 +2199,28 @@ ieee80211_tkip_add_iv(u8 *crypto_hdr, struct ieee80211_key_conf *keyconf,
 	TODO();
 }
 
-static __inline struct sk_buff *
+static inline struct sk_buff *
 ieee80211_tx_dequeue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
 {
 
 	return (linuxkpi_ieee80211_tx_dequeue(hw, txq));
 }
 
+static inline struct sk_buff *
+ieee80211_tx_dequeue_ni(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
+{
+	struct sk_buff *skb;
+
+	local_bh_disable();
+	skb = linuxkpi_ieee80211_tx_dequeue(hw, txq);
+	local_bh_enable();
+
+	return (skb);
+}
+
 static __inline void
 ieee80211_update_mu_groups(struct ieee80211_vif *vif,
-#ifdef __FOR_LATER_DRV_UPDATE
-    u_int _i,
-#endif
-    uint8_t *ms, uint8_t *up)
+    u_int _i, uint8_t *ms, uint8_t *up)
 {
 	TODO();
 }
@@ -2345,14 +2340,8 @@ ieee80211_proberesp_get(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 
 static __inline struct sk_buff *
 ieee80211_nullfunc_get(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-#ifdef __FOR_LATER_DRV_UPDATE
-    int linkid,
-#endif
-    bool qos)
+    int linkid, bool qos)
 {
-#ifndef __FOR_LATER_DRV_UPDATE
-	int linkid = 0;
-#endif
 
 	/* Only STA needs this.  Otherwise return NULL and panic bad drivers. */
 	if (vif->type != NL80211_IFTYPE_STATION)
@@ -2479,13 +2468,6 @@ ieee80211_stop_rx_ba_session_offl(struct ieee80211_vif *vif, uint8_t *addr,
     uint8_t tid)
 {
 	TODO();
-}
-
-static __inline struct sk_buff *
-ieee80211_tx_dequeue_ni(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
-{
-	TODO();
-	return (NULL);
 }
 
 static __inline void

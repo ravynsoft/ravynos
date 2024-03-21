@@ -1,0 +1,61 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of Shell format strings.
+
+cat <<\EOF > f-sh-2.data
+# Invalid: invalid msgstr
+msgid  "abc$file"
+msgstr "xyz$file$"
+# Valid: same arguments, permutation
+msgid  "abc$file in $dir"
+msgstr "xyz$dir o $file"
+# Invalid: missing argument
+msgid  "abc$dir/$file"
+msgstr "xyz$file"
+# Invalid: added argument
+msgid  "abc$file"
+msgstr "xyz$file in $dir"
+# Valid: braces or not, doesn't matter
+msgid  "abc$file"
+msgstr "xyz${file}"
+# Invalid: different default value
+msgid  "abc$file"
+msgstr "xyz${file-/tmpdir}"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-sh-2-$n.po
+#, sh-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-sh-2-$n.mo f-sh-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-sh-2-$n.mo f-sh-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-sh-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-sh-2-$n.po f-sh-2-$n.mo
+done < f-sh-2.data
+
+Exit 0

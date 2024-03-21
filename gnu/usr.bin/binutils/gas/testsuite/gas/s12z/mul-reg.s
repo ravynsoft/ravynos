@@ -1,0 +1,16 @@
+	muls d0, d1, d2
+	muls d1, d2, d3
+	muls d2, d3, d4
+	muls d3, d4, d5
+	muls d4, d5, d6
+	muls d5, d6, d7
+	muls d6, d7, d0
+	muls d7, d0, d1
+	mulu d0, d1, d2
+	mulu d1, d2, d3
+	mulu d2, d3, d4
+	mulu d3, d4, d5
+	mulu d4, d5, d6
+	mulu d5, d6, d7
+	mulu d6, d7, d0
+	mulu d7, d0, d1

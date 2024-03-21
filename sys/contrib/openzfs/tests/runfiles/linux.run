@@ -42,7 +42,10 @@ tests = ['block_cloning_copyfilerange', 'block_cloning_copyfilerange_partial',
     'block_cloning_disabled_copyfilerange', 'block_cloning_disabled_ficlone',
     'block_cloning_disabled_ficlonerange',
     'block_cloning_copyfilerange_cross_dataset',
-    'block_cloning_copyfilerange_fallback_same_txg']
+    'block_cloning_cross_enc_dataset',
+    'block_cloning_copyfilerange_fallback_same_txg',
+    'block_cloning_replay', 'block_cloning_replay_encrypted',
+    'block_cloning_lwb_buffer_overflow']
 tags = ['functional', 'block_cloning']
 
 [tests/functional/chattr:Linux]
@@ -82,6 +85,13 @@ tests = ['zpool_expand_001_pos', 'zpool_expand_002_pos',
     'zpool_expand_003_neg', 'zpool_expand_004_pos', 'zpool_expand_005_pos']
 tags = ['functional', 'cli_root', 'zpool_expand']
 
+[tests/functional/cli_root/zpool_import:Linux]
+tests = ['zpool_import_hostid_changed',
+    'zpool_import_hostid_changed_unclean_export',
+    'zpool_import_hostid_changed_cachefile',
+    'zpool_import_hostid_changed_cachefile_unclean_export']
+tags = ['functional', 'cli_root', 'zpool_import']
+
 [tests/functional/cli_root/zpool_reopen:Linux]
 tests = ['zpool_reopen_001_pos', 'zpool_reopen_002_pos',
     'zpool_reopen_003_pos', 'zpool_reopen_004_pos', 'zpool_reopen_005_pos',
@@ -115,10 +125,10 @@ tags = ['functional', 'fallocate']
 
 [tests/functional/fault:Linux]
 tests = ['auto_offline_001_pos', 'auto_online_001_pos', 'auto_online_002_pos',
-    'auto_replace_001_pos', 'auto_spare_001_pos', 'auto_spare_002_pos',
-    'auto_spare_multiple', 'auto_spare_ashift', 'auto_spare_shared',
-    'decrypt_fault', 'decompress_fault', 'scrub_after_resilver',
-    'zpool_status_-s']
+    'auto_replace_001_pos', 'auto_replace_002_pos', 'auto_spare_001_pos',
+    'auto_spare_002_pos', 'auto_spare_multiple', 'auto_spare_ashift',
+    'auto_spare_shared', 'decrypt_fault', 'decompress_fault',
+    'scrub_after_resilver', 'zpool_status_-s']
 tags = ['functional', 'fault']
 
 [tests/functional/features/large_dnode:Linux]

@@ -1,0 +1,345 @@
+#compdef mkisofs growisofs
+
+local context state line
+typeset -A opt_args
+
+declare -a find_options
+
+find_options=(
+  '(   -L -P)-H[follow symbolic links encountered on the command line]'
+  '(-H    -P)-L[follow all symbolic links]'
+  '(-H -L   )-P[do not follow symbolic links (default)]'
+  '(- *)-help[print -find help]'
+  '(- *)-version[print -find version]')
+
+local find_paths
+find_paths='*: :_directories'
+
+declare -a find_operators
+
+find_operators=(
+  '*-a[logical and of options]'
+  '*-o[logical or of options]')
+
+declare -a find_expressions
+
+# TODO: Modes (see _chmod)
+# TODO: Ranges
+# TODO: The -type types should be documented correctly and only include D on
+# Solaris systems (?)
+# TODO: --sfm is only available on NT systems (i.e., cygwin?)
+find_expressions=(
+  '*-acl[true if the file has additional ACLs defined]'
+  '*-atime[true if the last-access time is in the specified range]:range'
+  '*-chgrp[change group of file]:group:_group'
+  '*-chmod[change mode of file]:mode'
+  '*-chown[change user of file]:user:_user'
+  '*-ctime[true if the inode-change time is in the specified range]:range'
+  '*-depth[evaluate directory contents before directory itself]'
+  '*-dostat[do not do stat optimization]'
+  '*-exec[execute program on found file]:program: _command_names -e:*\;::program arguments: _normal'
+  '*-false[always false]'
+  '*-fstype[true if the file is on a file system of the given type]:file-system type:_file_systems'
+  '*-group[true if the file is owned by the given group]:group:_groups'
+  '*-inum[true if the inode of the file is in the specified range]:inode range'
+  '*-linkedto[true if the file is linked to the given file]:file:_files'
+  '*-links[true if the file has a number of links to it in the specified range]:number of links'
+  '*-lname[true if symbolic-link name matches the given glob]:glob'
+  '*-local[true if the file is on a local file-system]'
+  '*-lpat[true if symbolic-link name matches the given pattern]:pattern'
+  '*-ls[list found files]'
+  '*-maxdepth[descend at most the given number of directories deep]:maximum search depth:'
+  '*-mindepth[descend at least the given number of directories deep]:minimum search depth'
+  '*-mtime[true if the last-modification time is in the specified range]:range'
+  '*-name[true if file-name matches the given glob]:glob'
+  '*-newer[true if last-modification time is newer than that of the given file]:file:_files'
+  '*-neweraa[true if the last-access time is newer than that of the given file]:file:_files'
+  '*-newerac[true if the last-access time is newer than the inode-change time of the given file]:file:_files'
+  '*-neweram[true if the last-access time is newer than the last-modification time of the given file]:file:_files'
+  '*-newerca[true if the inode-change time is newer than the last-access time of the given file]:file:_files'
+  '*-newercc[true if the inode-change time is newer than that of the given file]:file:_files'
+  '*-newercm[true if the inode-change time is newer than the last-modification time of the given file]:file:_files'
+  '*-newerma[true if the last-modification time is newer than the last-access time of the given file]:file:_files'
+  '*-newermc[true if the last-modification time is newer than the inode-change time of the given file]:file:_files'
+  '*-newermm[true if the last-modification time is newer than that of the given file]:file:_files'
+  '*-nogroup[true if the group of the file is not in the group database]'
+  '*-nouser[true if the user of the file is not in the user database]'
+  '*-ok[execute program on found file, after confirmation]:program: _command_names -e:*\;::program arguments: _normal'
+  '*-pat[true if the file-name matches the given pattern]:pattern'
+  '*-path[true if the full path matches the given glob]:glob'
+  '*-perm[true if the given symbolic or octal permission matches that of the file]:mode'
+  '*-ppat[true if the full path matches the given pattern]:pattern'
+  '*-print[print filenames to stdout separated by newlines]'
+  '*-printnnl[print filenames to stdout separated by spaces]'
+  '*-prune[do not descend into found directory]'
+  '*-size[true if the size of the file is in the given range]:range'
+  '*-sparse[true if the file appears to be sparse]'
+  '*-true[always true]'
+  '*-type[true if the file is of the given type]:file type:((b\:"block (buffered) special"
+                                                             c\:"character (unbuffered) special"
+                                                             d\:directory
+                                                             p\:"named pipe (FIFO)"
+                                                             f\:"regular file"
+                                                             l\:"symbolic link"
+                                                             s\:socket
+                                                             D\:"door (Solaris)"
+                                                             e\:unknown))'
+  '*-user[true if the file is owned by the given user]:user:_users'
+  '*-xattr[true if the file has extended attributes]'
+  '*'{-xdev,-mount}'[restrict the search to the current file-system]')
+
+(( $+_cache_mkisofs_find_primaries_not_taking_an_argument )) ||
+_cache_mkisofs_find_primaries_not_taking_an_argument=(\) ${${${find_expressions:#\*-*\[*\]:*}#\*}%%\[*})
+
+(( $+_cache_mkisofs_find_primaries_taking_an_argument )) ||
+_cache_mkisofs_find_primaries_taking_an_argument=(${${${(M)find_expressions:#\*-*\[*\]:*}#\*}%%\[*})
+
+(( $+functions[_mkisofs_character_sets] )) ||
+_mkisofs_character_sets () {
+  local expl character_sets
+  character_sets=${${(f)"$(_call_program character-sets mkisofs -input-charset help 2>&1)"}[3,-1]}
+  _wanted character-sets expl 'character set' compadd - $character_sets
+}
+
+(( $+functions[_mkisofs_sparc_boot_images] )) ||
+_mkisofs_sparc_boot_images () {
+  compset -P '*,'
+  sep='-qS,'
+  [[ $words[CURRENT] == ?*,?*,?*,?*,?*,?*,* ]] && sep=
+  _alternative \
+    "boot-images:boot image:_files $sep" \
+    'boot-image-replications:boot-image replication:((...\:"use the previous boot-image for the rest of the partitions"))'
+}
+
+# TODO: Need to escape = in the result.
+(( $+functions[_mkisofs_pathspec] )) ||
+_mkisofs_pathspec () {
+  local sep
+  if (( $words[(I)-graft-points] )); then
+    if ! compset -P 1 '*[^\\]\='; then
+      sep='-qS='
+    fi
+  fi
+  _files $sep
+}
+
+
+integer index_of_find
+(( index_of_find = $words[(I)-find] ))
+
+if (( index_of_find > 0 && index_of_find < CURRENT )); then
+  if (( $words[(I)-help] || $words[(I)-version] )); then
+    _message 'no more arguments'
+  elif (( index_of_find == CURRENT - 1 )); then
+    _arguments \
+      $find_options \
+      $find_paths \
+      $find_expressions
+  elif ((( index_of_find == CURRENT - 2 )) &&
+        [[ $words[CURRENT-1] == -([HLP]|-(help|version)) ]]) ||
+       [[ -d $words[CURRENT-1] ]]; then
+    # TODO: all $words[index_of_find,CURRENT-1] must be -d.
+    # But we can perhaps assume that the user hasn't gone back and changed an
+    # argument without thinking about it carefully...otherwise, all previous
+    # words of interest will have passed the -d test.
+    _arguments \
+      $find_paths \
+      $find_expressions
+  else
+    integer i
+    (( i = index_of_find + 1 ))
+    while [[ $words[i] == -([HLP]|-(help|version)) ]]; do
+      (( i++ ))
+    done
+    while [[ -d $words[i] ]]; do
+      (( i++ ))
+    done
+    words=($words[1,index_of_find] $words[i,-1])
+    (( CURRENT -= i - index_of_find - 1 ))
+    echo one: $i - $CURRENT - $words > /dev/pts/8
+    integer old_words_length
+    (( old_words_length = $#words ))
+    words=(${words:#\\[()\!]})
+    (( CURRENT -= old_words_length - $#words ))
+    echo two: $i - $CURRENT - $words > /dev/pts/8
+    _arguments \
+      $find_operators \
+      $find_expressions
+  fi
+  #  elif (( $_cache_mkisofs_find_primaries_not_taking_an_argument[(I)$words[CURRENT-1]] ||
+  #          $_cache_mkisofs_find_primaries_taking_an_argument[(I)$words[CURRENT-2]] )); then
+    #    _arguments \
+      #      $find_operators \
+      #      $find_expressions \
+      #      '*:fuck: '
+    #    echo 3 > /dev/pts/7
+    #  else
+    #    _arguments \
+      #      $find_expressions \
+      #      '*:fuck: '
+    #    echo 4 > /dev/pts/7
+    #  fi
+else
+  declare -a growisofs_options
+
+  if [[ $service == growisofs ]]; then
+    growisofs_options=(
+      '-Z[burn an initial session to the selected device]:device:->devimg'
+      '-M[merge a session with an existing one on the selected device]:device:->devimg'
+      '-dvd-compat[provide maximum compatibility with DVD-ROM/Video]'
+      '-dry-run[do everything up to the actual burning process]'
+      '-overburn[allow overburning of the media]'
+      '-speed=-[set recording speed]:speed')
+  fi
+
+  # TODO: -M device and -dev device
+  _arguments \
+    '-abstract[specify the abstract file-name]:file:_files' \
+    '-A[specify application id]:application id' \
+    {-allow-leading-dots,-ldots}'[allow ISO9660 filenames to begin with a period]' \
+    '-allow-lowercase[allow lower-case characters in ISO9660 filenames]' \
+    '-allow-multidot[allow more than one dot in ISO9660 filen-names]' \
+    '-biblio[specify the bibliographic file-name]:file:_files' \
+    '(-no-cache-inodes              )-cache-inodes[cache inode and device numbers to find hard links to files]' \
+    '(                 -cache-inodes)-no-cache-inodes[do not cache inode and device numbers]' \
+    '-b[specify path and file-name of a el torito boot-image]:boot image:_files' \
+    '-eltorito-alt-boot[start a new set of el torito boot parameters]' \
+    {-B,-sparc-boot}'[specify comma-separated list of boot images needed for sparc systems]:boot image:_mkisofs_sparc_boot_images' \
+    '-G[specify path and file-name of a generic boot-image]:boot image:_files' \
+    '-hard-disk-boot[specify that the el torito boot-image  is a hard-disk image]' \
+    '-no-emul-boot[specify that the el torito boot-image is a "no emulation" image]' \
+    '-no-boot[specify that the el torito CD should be marked non-bootable]' \
+    '-boot-load-seg[specify the load-segment address of the boot-image for a "no emulation" image]:segment address' \
+    '-boot-lead-size[specify the number of 512-byte sectors to load in "no emulation" mode]:load sectors' \
+    '-boot-info-table[specify that a 56-byte table of CD-ROM-layout information should be written]' \
+    '-C[specify last session start and next session start addresses for CDextra]' \
+    '-c[specify the path and file-name of a boot catalog to be used for an el torito bootable-CD]' \
+    '-check-oldnames[check all filenames imported from an old session against current rules]' \
+    '-check-session[check old session for compliance against current rules]' \
+    '-copyright[specify the path and file-name of the copyright file]' \
+    '-d[omit trailing period from files that do not have a period]' \
+    "-D[don't use deep directory-reallocation]" \
+    '-dir-mode[specify the mode of directories]' \
+    '-dvd-video[generate a DVD-Video compliant UDF file-system]' \
+    '-f[follow symbolic links when generating the file system]' \
+    '-file-mode[specify the mode of regular files]' \
+    '-find[the rest of the command line is treated like a find expression]' \
+    '-gid[use the given group-id for files in the image]:group:_groups' \
+    '-gui[behave favorable towards a GUI]' \
+    '-graft-points[allow graft-points in filenames]' \
+    '*-hide[hide files and directories matching the given glob on the image]:glob' \
+    '-hide-list[hide files and directories found in the given file]:file-list file:_files' \
+    '-hide-joliet[hide files and directories matching the given glob in the Joliet tree of the image]:glob' \
+    '-hide-joliet-trans-tbl[hide the TRANS.TBL files from the Joliet tree]' \
+    '-hide-rr-moved[rename the RR_MOVED directory to .rr_moved in the Rock Ridge tree]' \
+    '-input-charset[specify the character set of source files]:character set:_mkisofs_character_sets' \
+    '-output-charset[specify the character set of files in the Rock Ridge tree]:_mkisofs_character_sets' \
+    '-iso-level[specify ISO9660 conformance level]:ISO9660 conformance level:(1 2 3 4)' \
+    '-J[generate a Joliet tree]' \
+    '-joliet-long[generate a Joliet tree allowing filenames up to 103 characters long]' \
+    '-jcharset[specify the character set of files in the Joliet tree]:_mkisofs_character_sets' \
+    '-l[allow full 31-character filenames]' \
+    '-log-file[write all output to the given file]:log file:_files' \
+    '-m[exclude files matching the given glob from the image]:glob' \
+    '-exclude-list[exclude files matching globs in the given file]:glob file:_files' \
+    '-max-iso9660-filenames[allow 37-character ISO9660-filenames]' \
+    '-M[specify path or device to existing ISO9660 image to merge with]:ISO9660 image:_files' \
+    '-dev[specify device of existing ISO9660 image to merge with]:ISO9660 device' \
+    '-N[omit version numbers from ISO9660 filenames]' \
+    '-new-dir-mode[mode to use when creating directories in the ISO9660 image]:mode' \
+    {-nobak,-no-bak}'[do not include backup files on the ISO9660 file-system]' \
+    '-force-rr[do not use the automatic Rock Ridge attribute-recognition for previous sessions]' \
+    '-no-rr[do not use use the Rock Ridge attributes from previous sessions]' \
+    "-no-split-symlink-components[don't split the symbolic-link components]" \
+    '-no-split-symlink-fields[do not split the symbolic-link fields]' \
+    '-o[output the ISO9660-file-system image to the given file]:ISO9660 image:_files' \
+    '-pad[pad the end of the image by 150 sectors]' \
+    '-no-pad[do not pad the end of the image by 150 sectors]' \
+    '-path-list[read directory and file-name pathspecs from the given file]' \
+    '-publisher[specify what should be written in the publisher volume-header]' \
+    '-p[specify what should be written in the preparer volume-header]' \
+    '-print-size[print estimated file-system-size in multiples of the sector size and exit]' \
+    '-quiet[output even less information than usual]' \
+    '-R[generate SUSP and RR records using the Rock-Ridge protocol]' \
+    '-r[same as -R, but with more useful UID and GID values]' \
+    '-relaxed-filenames[allow more characters in ISO9660 filenames]' \
+    '-root[move all files and directories into the given directory on the image]:root directory:_directories' \
+    '-rrip110[create ISO9660-file-system images that follow the Rrip v1.10 standard]' \
+    '-rrip112[create ISO9660-file-system images that follow the Rrip v1.12 standard]' \
+    '-old-root[specify the root directory used in a previous session]:old root-directory:_directories' \
+    '-sort[sort files on the image based on weights defined in the given file]:sort-weighting file:_files' \
+    '-sparc-label[set the sun disk-label-name used for the -sparc-boot option]:label' \
+    '-split-output[split the output image into several files ~1GiB in size]' \
+    '-stream-media-size[enable streaming operation and set media size to given number of sectors]:media size (sectors)' \
+    '-stream-file-name[reserved for future use]:name' \
+    '-sunx86-boot[specify a comma-separated list of file-system images needed to make a bootable Solaris-x86-CD]:list' \
+    '-sunx86-label[specify the SVr4 disk-label-name for the SVr4 disk-label created with the -sunx86-boot option]:label' \
+    '-sysid[specify the system ID]' \
+    '-T[generate a TRANS.TBL file in each directory on the image]' \
+    '-table-name[alternative translation-table filename]:translation-table filename:_files' \
+    '-ucs-level[specify Unicode conformance-level in the Joliet directory]:Unicode conformance-level:(1 2 3)' \
+    '-udf[include UDF support in the generated file-system image]' \
+    '-uid[use the given user-id for files in the image]:user:_users' \
+    '-use-fileversions[use version numbers found on the file system for files included in the image]' \
+    '-U[allow basically any characters in filenames in the ISO9660 image]' \
+    "-no-iso-translate[do not translate invalid characters '#' and '~' for ISO9660 filenames]" \
+    '-V[specify the volume ID]:volume ID' \
+    '-volset[specify the volume-set ID]:volume-set ID' \
+    '-volset-size[specify the size of the volume-set]:volume-set size' \
+    '-volset-seqno[specify the volume-set sequence-number]:volume-set sequence-number' \
+    '*-v[enable verbose execution (given twice produces additional output)]' \
+    '*-x[exclude complete pathname from the image]:path:_directories' \
+    '-z[generate special RRIP records for transparently compressed files]' \
+    '-hfs[create a ISO9660/HFS-hybrid CD]' \
+    '-apple[create an ISO9660 CD with apple extensions]' \
+    '-map[use the given file to map CREATOR and TYPE information for a file based on extension]:mapping file:_files' \
+    '-magic[the CREATOR and TYPE information is set using the magic number of the file]:magic file:_files' \
+    '-hfs-creator[specify the default CREATOR for all files in the image]:creator' \
+    '-hfs-type[specify the default TYPE for all files in the image]:type' \
+    '-probe[search the contents of files for known Apple/Unix file-formats]' \
+    '-no-desktop[do not create (empty) Desktop files]' \
+    '-map-name[use the HFS filename as the starting point for the image filenames]' \
+    '-boot-hfs-file[use the given file as a boot driver]:boot-driver file:_files' \
+    '-part[generate an HFS partition table]' \
+    '-auto[make the HFS CD auto-start with the given file]:auto-start file:_files' \
+    '-cluster-size[set the size in bytes of allocation units of PC-Exchange files]:cluster size' \
+    '-hide-hfs[hide files matching the given glob from the HFS volume]:glob' \
+    '-hide-hfs-list[hide files matching any of the globs found in the given file]:glob file:_files' \
+    '-hfs-volid[volume name for the HFS partition]:HFS volume-name' \
+    '-icon-position[use the icon-position information from the Apple/Unix file]' \
+    '-root-info[set metadata for the root folder of the HFS volume]' \
+    '*-prep-boot[specify the PReP boot-image-file]:PReP boot-image-file:_files' \
+    '-input--hfs-charset[specify the character set used in HFS filenames]:character set:_mkisofs_character_sets' \
+    '-output-hfs-charset[specify the character set of files in the HFS volume]:_mkisofs_character_sets' \
+    '-hfs-unlock[do not lock the HFS volume]' \
+    '-hfs-bless["bless" the given directory/folder]' \
+    '-hfs-params[override certain parameters used to create the HFS file system]:parameters' \
+    '--cap[look for AUFS CAP Macintosh files]' \
+    '--netatalk[look for NETATALK Macintosh files]' \
+    '--double[look for AppleDouble Macintosh files]' \
+    '--ethershare[look for Helios EtherShare Macintosh files]' \
+    '--ushare[look for IPT UShare Macintosh files]' \
+    '--exchange[look for PC Exchange Macintosh files]' \
+    '--sgi[look for SGI Macintosh files]' \
+    '--xinet[look for XINET Macintosh files]' \
+    '--macbin[look for MacBinary Macintosh files]' \
+    '--single[look for AppleSingle Macintosh files]' \
+    '--dave[look for Thursby Software Systems DAVE Macintosh files]' \
+    "--sfm[look for Microsoft's Services for Macintosh files]" \
+    '--osx-double[look for MacOS X AppleDouble Macintosh files]' \
+    '--osx-hfs[look for MacOS X HFS Macintosh files]' \
+    '(- *)-help[display help message]' \
+    '(- *)-version[display version information]' \
+    $growisofs_options \
+    '*:pathspec:_mkisofs_pathspec' && return 0
+
+    case "$state" in
+      (devimg)
+      if compset -P 1 '*='; then
+        _files
+      else
+        _files -g "*(%,@)"
+      fi
+      ;;
+      esac
+fi

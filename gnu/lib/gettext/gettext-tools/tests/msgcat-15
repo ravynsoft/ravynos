@@ -1,0 +1,99 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgcat on a PO file with previous msgids.
+
+cat <<\EOF > mcat-test15.in
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "Too many arguments."
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "Too few arguments."
+msgstr "zu viele Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+#| msgid "missing arguments"
+msgid "Missing arguments."
+msgstr "Argumente fehlen."
+
+#, fuzzy
+#~| msgid "%s: invalid option -- %c\n"
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: ungültige Option -- %c\n"
+
+#~ msgid "%s: invalid option -- %c\n"
+#~ msgstr "%s: ungültige Option -- %c\n"
+EOF
+
+rm -f mcat-test15.tmp1
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test15.tmp1 mcat-test15.in || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test15.tmp1 > mcat-test15.out1 || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mcat-test15.in mcat-test15.out1
+result=$?
+
+rm -f mcat-test15.tmp2
+: ${MSGCAT=msgcat}
+${MSGCAT} --indent -o mcat-test15.tmp2 mcat-test15.in || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test15.tmp2 > mcat-test15.out2 || Exit 1
+
+cat <<\EOF > mcat-test15.ok
+msgid   ""
+msgstr  "Report-Msgid-Bugs-To: \n"
+        "Content-Type: text/plain; charset=UTF-8\n"
+        "Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid        "too many arguments"
+msgid           "Too many arguments."
+msgstr          "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, fuzzy, c-format
+#| msgid        "too many arguments"
+msgid           "Too few arguments."
+msgstr          "zu viele Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+#| msgid        "missing arguments"
+msgid           "Missing arguments."
+msgstr          "Argumente fehlen."
+
+#, fuzzy
+#~| msgid       "%s: invalid option -- %c\n"
+#~ msgid        "%s: illegal option -- %c\n"
+#~ msgstr       "%s: ungültige Option -- %c\n"
+
+#~ msgid        "%s: invalid option -- %c\n"
+#~ msgstr       "%s: ungültige Option -- %c\n"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test15.ok mcat-test15.out2
+result=$?
+
+exit $result

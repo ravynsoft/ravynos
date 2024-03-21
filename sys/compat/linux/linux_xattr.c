@@ -165,6 +165,8 @@ listxattr(struct thread *td, struct listxattr_args *args)
 			error = kern_extattr_list_fd(td, args->fd,
 			    attrnamespace, &auio);
 		rs = sz - auio.uio_resid;
+		if (error == EPERM)
+			break;
 		if (error != 0 || rs == 0)
 			continue;
 		prefix = extattr_namespace_names[attrnamespace];
@@ -173,24 +175,28 @@ listxattr(struct thread *td, struct listxattr_args *args)
 		while (rs > 0) {
 			keylen = (unsigned char)key[0];
 			pairlen = prefixlen + 1 + keylen + 1;
-			if (cnt + pairlen > LINUX_XATTR_LIST_MAX) {
+			cnt += pairlen;
+			if (cnt > LINUX_XATTR_LIST_MAX) {
 				error = E2BIG;
 				break;
 			}
-			if ((args->list != NULL && cnt > args->size) ||
+			/*
+			 * If size is specified as zero, return the current size
+			 * of the list of extended attribute names.
+			 */
+			if ((args->size > 0 && cnt > args->size) ||
 			    pairlen >= sizeof(attrname)) {
 				error = ERANGE;
 				break;
 			}
 			++key;
-			if (args->list != NULL) {
+			if (args->list != NULL && args->size > 0) {
 				sprintf(attrname, "%s.%.*s", prefix, keylen, key);
 				error = copyout(attrname, args->list, pairlen);
 				if (error != 0)
 					break;
 				args->list += pairlen;
 			}
-			cnt += pairlen;
 			key += keylen;
 			rs -= (keylen + 1);
 		}

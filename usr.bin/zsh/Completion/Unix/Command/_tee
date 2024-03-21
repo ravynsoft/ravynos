@@ -1,0 +1,32 @@
+#compdef tee gtee
+
+local ret=1
+local -a context line state state_descr args
+local -A opt_args
+
+args=(
+  '(: -)--help[display help information]'
+  '(: -)--version[display version information]'
+  '(-a --append)'{-a,--append}'[append to files instead of overwriting]'
+  '(-i --ignore-interrupts)'{-i,--ignore-interrupts}'[ignore interrupt signals]'
+  '(--output-error)-p[warn on errors writing to non-pipes]'
+  '(-p)--output-error=[specify write-error behavior]: :->errmodes'
+)
+
+# Filter out non-GNU options if applicable
+_pick_variant gnu='Free Soft' unix --version ||
+args=( ${(@M)args:#(|*\))-[ai]\[*} )
+
+_arguments -s -S : $args '*: :_files' && ret=0
+
+[[ $state == errmodes ]] && {
+  args=(
+    'exit[exit on errors writing to any output]'
+    'exit-nopipe[exit on errors writing to non-pipes]'
+    'warn[warn on errors writing to any output]'
+    'warn-nopipe[warn on errors writing to non-pipes]'
+  )
+  _values 'error mode' $args && ret=0
+}
+
+return ret

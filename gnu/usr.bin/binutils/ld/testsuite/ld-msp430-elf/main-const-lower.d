@@ -1,0 +1,3 @@
+#...
+.* \.lower\.rodata +0+14 .*
+#pass

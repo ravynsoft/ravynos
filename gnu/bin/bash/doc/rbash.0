@@ -1,0 +1,64 @@
+RBASH(1)                    General Commands Manual                   RBASH(1)
+
+
+
+NNAAMMEE
+       rbash - restricted bash, see bbaasshh(1)
+
+RREESSTTRRIICCTTEEDD SSHHEELLLL
+       If bbaasshh is started with the name rrbbaasshh, or the --rr option is supplied at
+       invocation, the shell becomes restricted.  A restricted shell  is  used
+       to  set  up an environment more controlled than the standard shell.  It
+       behaves identically to bbaasshh with the exception that the  following  are
+       disallowed or not performed:
+
+       +o      changing directories with ccdd
+
+       +o      setting  or  unsetting the values of SSHHEELLLL, PPAATTHH, HHIISSTTFFIILLEE, EENNVV,
+              or BBAASSHH__EENNVV
+
+       +o      specifying command names containing //
+
+       +o      specifying a filename containing a // as an  argument  to  the  ..
+              builtin command
+
+       +o      specifying  a  filename containing a slash as an argument to the
+              hhiissttoorryy builtin command
+
+       +o      specifying a filename containing a slash as an argument  to  the
+              --pp option to the hhaasshh builtin command
+
+       +o      importing  function  definitions  from  the shell environment at
+              startup
+
+       +o      parsing the value of SSHHEELLLLOOPPTTSS from  the  shell  environment  at
+              startup
+
+       +o      redirecting output using the >, >|, <>, >&, &>, and >> redirect-
+              ion operators
+
+       +o      using the eexxeecc builtin command to replace the shell with another
+              command
+
+       +o      adding  or  deleting builtin commands with the --ff and --dd options
+              to the eennaabbllee builtin command
+
+       +o      using the  eennaabbllee  builtin  command  to  enable  disabled  shell
+              builtins
+
+       +o      specifying the --pp option to the ccoommmmaanndd builtin command
+
+       +o      turning  off  restricted  mode  with  sseett  ++rr  or  sshhoopptt  --uu rree--
+              ssttrriicctteedd__sshheellll.
+
+       These restrictions are enforced after any startup files are read.
+
+       When a command that is found to be a shell script  is  executed,  rrbbaasshh
+       turns off any restrictions in the shell spawned to execute the script.
+
+SSEEEE AALLSSOO
+       bash(1)
+
+
+
+Bash-5.2                       2021 November 22                       RBASH(1)

@@ -1,0 +1,20 @@
+enable [ -afmprs ] name ...
+       Enable the named hash table elements, presumably  disabled  ear-
+       lier  with  disable.  The default is to enable builtin commands.
+       The -a option causes enable to act on regular or global aliases.
+       The  -s  option  causes enable to act on suffix aliases.  The -f
+       option causes enable to act on shell functions.  The  -r  option
+       causes  enable  to act on reserved words.  Without arguments all
+       enabled hash table elements from the  corresponding  hash  table
+       are  printed.   With the -m flag the arguments are taken as pat-
+       terns (should be quoted) and all hash table  elements  from  the
+       corresponding  hash  table  matching these patterns are enabled.
+       Enabled objects can be disabled with the  disable  builtin  com-
+       mand.
+
+       enable  -p  reenables  patterns  disabled with disable -p.  Note
+       that it does not override globbing options; for example, `enable
+       -p  "~"' does not cause the pattern character ~ to be active un-
+       less the EXTENDED_GLOB option is also set.  To enable all possi-
+       ble  patterns  (so  that  they may be individually disabled with
+       disable -p), use `setopt EXTENDED_GLOB KSH_GLOB NO_SH_GLOB'.

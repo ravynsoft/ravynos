@@ -1,0 +1,223 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msgunfmt
+@cindex @code{msgunfmt} program, usage
+@example
+msgunfmt [@var{option}] [@var{file}]...
+@end example
+
+@cindex convert binary message catalog into PO file
+The @code{msgunfmt} program converts a binary message catalog to a
+Uniforum style .po file.
+
+@subsection Operation mode
+
+@table @samp
+@item -j
+@itemx --java
+@opindex -j@r{, @code{msgunfmt} option}
+@opindex --java@r{, @code{msgunfmt} option}
+@cindex Java mode, and @code{msgunfmt} program
+Java mode: input is a Java @code{ResourceBundle} class.
+
+@item --csharp
+@opindex --csharp@r{, @code{msgunfmt} option}
+@cindex C# mode, and @code{msgunfmt} program
+C# mode: input is a .NET .dll file containing a subclass of
+@code{GettextResourceSet}.
+
+@item --csharp-resources
+@opindex --csharp-resources@r{, @code{msgunfmt} option}
+@cindex C# resources mode, and @code{msgunfmt} program
+C# resources mode: input is a .NET @file{.resources} file.
+
+@item --tcl
+@opindex --tcl@r{, @code{msgunfmt} option}
+@cindex Tcl mode, and @code{msgunfmt} program
+Tcl mode: input is a tcl/msgcat @file{.msg} file.
+
+@end table
+
+@subsection Input file location
+
+@table @samp
+@item @var{file} @dots{}
+Input .mo files.
+
+@end table
+
+If no input @var{file} is given or if it is @samp{-}, standard input is read.
+
+@subsection Input file location in Java mode
+
+@table @samp
+@item -r @var{resource}
+@itemx --resource=@var{resource}
+@opindex -r@r{, @code{msgunfmt} option}
+@opindex --resource@r{, @code{msgunfmt} option}
+Specify the resource name.
+
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgunfmt} option}
+@opindex --locale@r{, @code{msgunfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@end table
+
+The class name is determined by appending the locale name to the resource name,
+separated with an underscore.  The class is located using the @code{CLASSPATH}.
+
+@subsection Input file location in C# mode
+
+@table @samp
+@item -r @var{resource}
+@itemx --resource=@var{resource}
+@opindex -r@r{, @code{msgunfmt} option}
+@opindex --resource@r{, @code{msgunfmt} option}
+Specify the resource name.
+
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgunfmt} option}
+@opindex --locale@r{, @code{msgunfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@item -d @var{directory}
+@opindex -d@r{, @code{msgunfmt} option}
+Specify the base directory for locale dependent @file{.dll} files.
+
+@end table
+
+The @samp{-l} and @samp{-d} options are mandatory.  The @file{.msg} file is
+located in a subdirectory of the specified directory whose name depends on the
+locale.
+
+@subsection Input file location in Tcl mode
+
+@table @samp
+@item -l @var{locale}
+@itemx --locale=@var{locale}
+@opindex -l@r{, @code{msgunfmt} option}
+@opindex --locale@r{, @code{msgunfmt} option}
+Specify the locale name, either a language specification of the form @var{ll}
+or a combined language and country specification of the form @var{ll_CC}.
+
+@item -d @var{directory}
+@opindex -d@r{, @code{msgunfmt} option}
+Specify the base directory of @file{.msg} message catalogs.
+
+@end table
+
+The @samp{-l} and @samp{-d} options are mandatory.  The @file{.msg} file is
+located in the specified directory.
+
+@subsection Output file location
+
+@table @samp
+@item -o @var{file}
+@itemx --output-file=@var{file}
+@opindex -o@r{, @code{msgunfmt} option}
+@opindex --output-file@r{, @code{msgunfmt} option}
+Write output to specified file.
+
+@end table
+
+The results are written to standard output if no output file is specified
+or if it is @samp{-}.
+
+@subsection Output details
+
+@c --no-escape and --escape omitted on purpose.  They are not useful.
+
+@table @samp
+@item --color
+@itemx --color=@var{when}
+@opindex --color@r{, @code{msgunfmt} option}
+Specify whether or when to use colors and other text attributes.
+See @ref{The --color option} for details.
+
+@item --style=@var{style_file}
+@opindex --style@r{, @code{msgunfmt} option}
+Specify the CSS style rule file to use for @code{--color}.
+See @ref{The --style option} for details.
+
+@item --force-po
+@opindex --force-po@r{, @code{msgunfmt} option}
+Always write an output file even if it contains no message.
+
+@item -i
+@itemx --indent
+@opindex -i@r{, @code{msgunfmt} option}
+@opindex --indent@r{, @code{msgunfmt} option}
+Write the .po file using indented style.
+
+@item --strict
+@opindex --strict@r{, @code{msgunfmt} option}
+Write out a strict Uniforum conforming PO file.  Note that this
+Uniforum format should be avoided because it doesn't support the
+GNU extensions.
+
+@item -p
+@itemx --properties-output
+@opindex -p@r{, @code{msgunfmt} option}
+@opindex --properties-output@r{, @code{msgunfmt} option}
+Write out a Java ResourceBundle in Java @code{.properties} syntax.  Note
+that this file format doesn't support plural forms and silently drops
+obsolete messages.
+
+@item --stringtable-output
+@opindex --stringtable-output@r{, @code{msgunfmt} option}
+Write out a NeXTstep/GNUstep localized resource file in @code{.strings} syntax.
+Note that this file format doesn't support plural forms.
+
+@item -w @var{number}
+@itemx --width=@var{number}
+@opindex -w@r{, @code{msgunfmt} option}
+@opindex --width@r{, @code{msgunfmt} option}
+Set the output page width.  Long strings in the output files will be
+split across multiple lines in order to ensure that each line's width
+(= number of screen columns) is less or equal to the given @var{number}.
+
+@item --no-wrap
+@opindex --no-wrap@r{, @code{msgunfmt} option}
+Do not break long message lines.  Message lines whose width exceeds the
+output page width will not be split into several lines.  Only file reference
+lines which are wider than the output page width will be split.
+
+@item -s
+@itemx --sort-output
+@opindex -s@r{, @code{msgunfmt} option}
+@opindex --sort-output@r{, @code{msgunfmt} option}
+@cindex sorting @code{msgunfmt} output
+Generate sorted output.  Note that using this option makes it much harder
+for the translator to understand each message's context.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msgunfmt} option}
+@opindex --help@r{, @code{msgunfmt} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msgunfmt} option}
+@opindex --version@r{, @code{msgunfmt} option}
+Output version information and exit.
+
+@item -v
+@itemx --verbose
+@opindex -v@r{, @code{msgunfmt} option}
+@opindex --verbose@r{, @code{msgunfmt} option}
+Increase verbosity level.
+
+@end table

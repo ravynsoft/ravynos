@@ -1,0 +1,45 @@
+#autoload
+
+local format raw gopt
+
+if [[ "$1" = -e ]]; then
+  local expl ret=1 tag
+
+  _comp_mesg=yes
+
+  if (( $# > 2 )); then
+    tag="$2"
+    shift
+  else
+    tag="$curtag"
+  fi
+  _tags "$tag" && while _next_label "$tag" expl "$2"; do
+    compadd ${expl:/-X/-x}
+    ret=0
+  done
+
+  (( ! $compstate[nmatches] )) && [[ $compstate[insert] = *unambiguous* ]] &&
+      compstate[insert]=
+
+  return ret
+fi
+
+gopt=()
+zparseopts -D -a gopt 1 2 V J
+
+_tags messages || return 1
+
+if [[ "$1" = -r ]]; then
+  raw=yes
+  shift
+  format="$1"
+else
+  zstyle -s ":completion:${curcontext}:messages" format format ||
+      zstyle -s ":completion:${curcontext}:descriptions" format format
+fi
+
+if [[ -n "$format$raw" ]]; then
+  [[ -z "$raw" ]] && zformat -F format "$format" "d:$1" "${(@)argv[2,-1]}"
+  builtin compadd "$gopt[@]" -x "$format"
+  _comp_mesg=yes
+fi

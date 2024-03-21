@@ -1,0 +1,102 @@
+# Copyright © 2016 Collabora Ltd.
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation files
+# (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+#include <tunables/global>
+#include <tunables/sys>
+
+@DBUS_TEST_EXEC@/test-apparmor-activation {
+  #include <abstractions/apparmor_api/change_profile>
+  #include <abstractions/apparmor_api/find_mountpoint>
+  #include <abstractions/apparmor_api/is_enabled>
+  #include <abstractions/base>
+
+  # We aren't really confining this process seriously; allow most things.
+  /** mrix,
+  /tmp/dbus-daemon-test.*/{,**} w,
+  /tmp/dbus-* w,
+  @{sys}/kernel/security/apparmor/** w,
+  dbus (send, receive, bind),
+  network,
+  signal,
+
+  # "Hat" subprofile used for the part of the process that imitates a client
+  # trying to cause service activation via auto-starting.
+  ^caller {
+    #include <abstractions/apparmor_api/change_profile>
+    #include <abstractions/base>
+
+    /** mrix,
+    /tmp/dbus-* w,
+    @{sys}/kernel/security/apparmor/** w,
+    dbus (send, receive, bind),
+    network,
+    signal,
+
+    deny dbus send peer=(label=@DBUS_TEST_EXEC@/test-apparmor-activation//com.example.SendDeniedByAppArmorLabel),
+    deny dbus send peer=(name=com.example.SendDeniedByAppArmorName),
+
+    # There is no profile of this name. That's deliberate.
+    deny dbus send peer=(label=@DBUS_TEST_EXEC@/test-apparmor-activation-com.example.SendDeniedByNonexistentAppArmorLabel),
+  }
+
+  # Used when we check that XML-based policy still works.
+  ^com.example.ReceiveDenied {
+    #include <abstractions/apparmor_api/change_profile>
+    #include <abstractions/base>
+
+    /** mrix,
+    /tmp/dbus-* w,
+    @{sys}/kernel/security/apparmor/** w,
+    dbus,
+    network,
+    signal,
+  }
+
+  # This one is never actually used, but needs to exist so ^caller can
+  # refer to it
+  ^com.example.SendDeniedByAppArmorLabel {
+    #include <abstractions/apparmor_api/change_profile>
+    #include <abstractions/base>
+
+    /** mrix,
+    @{sys}/kernel/security/apparmor/** w,
+    dbus (send, receive, bind),
+    network,
+    signal,
+  }
+
+  # "Hat" subprofile used for the part of the process that imitates a service
+  # that is not allowed to receive from the caller.
+  ^com.example.ReceiveDeniedByAppArmorLabel {
+    #include <abstractions/apparmor_api/change_profile>
+    #include <abstractions/base>
+
+    /** mrix,
+    /tmp/dbus-* w,
+    @{sys}/kernel/security/apparmor/** w,
+    dbus (send, receive, bind),
+    network,
+    signal,
+
+    deny dbus receive peer=(label=@DBUS_TEST_EXEC@/test-apparmor-activation//caller),
+  }
+}

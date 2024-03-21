@@ -1,0 +1,1282 @@
+/* -*- c -*- */
+/* Copyright (C) 2012-2023 Free Software Foundation, Inc.
+   Contributed by Red Hat.
+   Written by DJ Delorie.
+
+   This file is part of the GNU opcodes library.
+
+   This library is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   It is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+   License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+#include "sysdep.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ansidecl.h"
+#include "opcode/rx.h"
+#include "libiberty.h"
+
+#define RX_OPCODE_BIG_ENDIAN 0
+
+typedef struct
+{
+  RX_Opcode_Decoded * rx;
+  int (* getbyte)(void *);
+  void * ptr;
+  unsigned char * op;
+} LocalData;
+
+static int trace = 0;
+
+#define BSIZE 0
+#define WSIZE 1
+#define LSIZE 2
+#define DSIZE 3
+
+/* These are for when the upper bits are "don't care" or "undefined".  */
+static int bwl[4] =
+{
+  RX_Byte,
+  RX_Word,
+  RX_Long,
+  RX_Bad_Size /* Bogus instructions can have a size field set to 3.  */
+};
+
+static int sbwl[4] =
+{
+  RX_SByte,
+  RX_SWord,
+  RX_Long,
+  RX_Bad_Size /* Bogus instructions can have a size field set to 3.  */
+};
+
+static int ubw[4] =
+{
+  RX_UByte,
+  RX_UWord,
+  RX_Bad_Size,/* Bogus instructions can have a size field set to 2.  */
+  RX_Bad_Size /* Bogus instructions can have a size field set to 3.  */
+};
+
+static int memex[4] =
+{
+  RX_SByte,
+  RX_SWord,
+  RX_Long,
+  RX_UWord
+};
+
+static int _ld[2] =
+{
+  RX_Long,
+  RX_Double
+};
+
+#define ID(x) rx->id = RXO_##x
+#define OP(n,t,r,a) (rx->op[n].type = t, \
+		     rx->op[n].reg = r,	     \
+		     rx->op[n].addend = a )
+#define OPs(n,t,r,a,s) (OP (n,t,r,a), \
+			rx->op[n].size = s )
+
+/* This is for the BWL and BW bitfields.  */
+static int SCALE[] = { 1, 2, 4, 0 };
+/* This is for the prefix size enum.  */
+static int PSCALE[] = { 4, 1, 1, 1, 2, 2, 2, 3, 4, 8 };
+
+#define GET_SCALE(_indx)  ((unsigned)(_indx) < ARRAY_SIZE (SCALE) ? SCALE[(_indx)] : 0)
+#define GET_PSCALE(_indx) ((unsigned)(_indx) < ARRAY_SIZE (PSCALE) ? PSCALE[(_indx)] : 0)
+
+static int flagmap[] = {0, 1, 2, 3, 0, 0, 0, 0,
+		       16, 17, 0, 0, 0, 0, 0, 0 };
+
+static int dsp3map[] = { 8, 9, 10, 3, 4, 5, 6, 7 };
+
+/*
+ *C	a constant (immediate) c
+ *R	A register
+ *I	Register indirect, no offset
+ *Is	Register indirect, with offset
+ *D	standard displacement: type (r,[r],dsp8,dsp16 code), register, BWL code
+ *P	standard displacement: type (r,[r]), reg, assumes UByte
+ *Pm	memex displacement: type (r,[r]), reg, memex code
+ *cc	condition code.  */
+
+#define DC(c)       OP (0, RX_Operand_Immediate, 0, c)
+#define DR(r)       OP (0, RX_Operand_Register,  r, 0)
+#define DI(r,a)     OP (0, RX_Operand_Indirect,  r, a)
+#define DIs(r,a,s)  OP (0, RX_Operand_Indirect,  r, (a) * GET_SCALE (s))
+#define DD(t,r,s)   rx_disp (0, t, r, bwl[s], ld);
+#define DF(r)       OP (0, RX_Operand_Flag,  flagmap[r], 0)
+#define DCR(r)      OP (0, RX_Operand_DoubleCReg, r, 0)
+#define DDR(r)      OP (0, RX_Operand_DoubleReg,  r, 0)
+#define DDRH(r)     OP (0, RX_Operand_DoubleRegH,  r, 0)
+#define DDRL(r)     OP (0, RX_Operand_DoubleRegL,  r, 0)
+#define DCND(r)     OP (0, RX_Operand_DoubleCond, r, 0)
+
+#define SC(i)       OP (1, RX_Operand_Immediate, 0, i)
+#define SR(r)       OP (1, RX_Operand_Register,  r, 0)
+#define SRR(r)      OP (1, RX_Operand_TwoReg,  r, 0)
+#define SI(r,a)     OP (1, RX_Operand_Indirect,  r, a)
+#define SIs(r,a,s)  OP (1, RX_Operand_Indirect,  r, (a) * GET_SCALE (s))
+#define SD(t,r,s)   rx_disp (1, t, r, bwl[s], ld);
+#define SP(t,r)     rx_disp (1, t, r, (t!=3) ? RX_UByte : RX_Long, ld); P(t, 1);
+#define SPm(t,r,m)  rx_disp (1, t, r, memex[m], ld); rx->op[1].size = memex[m];
+#define Scc(cc)     OP (1, RX_Operand_Condition,  cc, 0)
+#define SCR(r)      OP (1, RX_Operand_DoubleCReg, r, 0)
+#define SDR(r)      OP (1, RX_Operand_DoubleReg,  r, 0)
+#define SDRH(r)      OP (1, RX_Operand_DoubleRegH,  r, 0)
+#define SDRL(r)      OP (1, RX_Operand_DoubleRegL,  r, 0)
+
+#define S2C(i)      OP (2, RX_Operand_Immediate, 0, i)
+#define S2R(r)      OP (2, RX_Operand_Register,  r, 0)
+#define S2I(r,a)    OP (2, RX_Operand_Indirect,  r, a)
+#define S2Is(r,a,s) OP (2, RX_Operand_Indirect,  r, (a) * GET_SCALE (s))
+#define S2D(t,r,s)  rx_disp (2, t, r, bwl[s], ld);
+#define S2P(t,r)    rx_disp (2, t, r, (t!=3) ? RX_UByte : RX_Long, ld); P(t, 2);
+#define S2Pm(t,r,m) rx_disp (2, t, r, memex[m], ld); rx->op[2].size = memex[m];
+#define S2cc(cc)    OP (2, RX_Operand_Condition,  cc, 0)
+#define S2DR(r)     OP (2, RX_Operand_DoubleReg,  r, 0)
+#define S2CR(r)     OP (2, RX_Operand_DoubleCReg, r, 0)
+
+#define SDD(t,r,s)  rx_disp (1, t, r, bwl, ld);
+
+#define BWL(sz)     rx->op[0].size = rx->op[1].size = rx->op[2].size = rx->size = bwl[sz]
+#define sBWL(sz)    rx->op[0].size = rx->op[1].size = rx->op[2].size = rx->size = sbwl[sz]
+#define uBW(sz)     rx->op[0].size = rx->op[1].size = rx->op[2].size = rx->size = ubw[sz]
+#define P(t, n)	    rx->op[n].size = (t!=3) ? RX_UByte : RX_Long;
+#define DL(sz)      rx->op[0].size = rx->op[1].size = rx->op[2].size = rx->size = _ld[sz]
+
+#define F(f) store_flags(rx, f)
+
+#define AU ATTRIBUTE_UNUSED
+#define GETBYTE() (ld->op [ld->rx->n_bytes++] = ld->getbyte (ld->ptr))
+
+#define SYNTAX(x) rx->syntax = x
+
+#define UNSUPPORTED() \
+  rx->syntax = "*unknown*"
+
+#define IMM(sf)   immediate (sf, 0, ld)
+#define IMMex(sf) immediate (sf, 1, ld)
+
+static int
+immediate (int sfield, int ex, LocalData * ld)
+{
+  unsigned long i = 0, j;
+
+  switch (sfield)
+    {
+#define B ((unsigned long) GETBYTE())
+    case 0:
+#if RX_OPCODE_BIG_ENDIAN
+      i  = B;
+      if (ex && (i & 0x80))
+	i -= 0x100;
+      i <<= 24;
+      i |= B << 16;
+      i |= B << 8;
+      i |= B;
+#else
+      i = B;
+      i |= B << 8;
+      i |= B << 16;
+      j = B;
+      if (ex && (j & 0x80))
+	j -= 0x100;
+      i |= j << 24;
+#endif
+      break;
+    case 3:
+#if RX_OPCODE_BIG_ENDIAN
+      i  = B << 16;
+      i |= B << 8;
+      i |= B;
+#else
+      i  = B;
+      i |= B << 8;
+      i |= B << 16;
+#endif
+      if (ex && (i & 0x800000))
+	i -= 0x1000000;
+      break;
+    case 2:
+#if RX_OPCODE_BIG_ENDIAN
+      i |= B << 8;
+      i |= B;
+#else
+      i |= B;
+      i |= B << 8;
+#endif
+      if (ex && (i & 0x8000))
+	i -= 0x10000;
+      break;
+    case 1:
+      i |= B;
+      if (ex && (i & 0x80))
+	i -= 0x100;
+      break;
+    default:
+      abort();
+    }
+  return i;
+}
+
+static void
+rx_disp (int n, int type, int reg, unsigned int size, LocalData * ld)
+{
+  int disp;
+
+  ld->rx->op[n].reg = reg;
+  switch (type)
+    {
+    case 3:
+      ld->rx->op[n].type = RX_Operand_Register;
+      break;
+    case 0:
+      ld->rx->op[n].type = RX_Operand_Zero_Indirect;
+      ld->rx->op[n].addend = 0;
+      break;
+    case 1:
+      ld->rx->op[n].type = RX_Operand_Indirect;
+      disp = GETBYTE ();
+      ld->rx->op[n].addend = disp * GET_PSCALE (size);
+      break;
+    case 2:
+      ld->rx->op[n].type = RX_Operand_Indirect;
+      disp = GETBYTE ();
+#if RX_OPCODE_BIG_ENDIAN
+      disp = disp * 256 + GETBYTE ();
+#else
+      disp = disp + GETBYTE () * 256;
+#endif
+      ld->rx->op[n].addend = disp * GET_PSCALE (size);
+      break;
+    default:
+      abort ();
+    }
+}
+
+#define xO 8
+#define xS 4
+#define xZ 2
+#define xC 1
+
+#define F_____
+#define F___ZC rx->flags_0 = rx->flags_s = xZ|xC;
+#define F__SZ_ rx->flags_0 = rx->flags_s = xS|xZ;
+#define F__SZC rx->flags_0 = rx->flags_s = xS|xZ|xC;
+#define F_0SZC rx->flags_0 = xO|xS|xZ|xC; rx->flags_s = xS|xZ|xC;
+#define F_O___ rx->flags_0 = rx->flags_s = xO;
+#define F_OS__ rx->flags_0 = rx->flags_s = xO|xS;
+#define F_OSZ_ rx->flags_0 = rx->flags_s = xO|xS|xZ;
+#define F_OSZC rx->flags_0 = rx->flags_s = xO|xS|xZ|xC;
+
+int
+rx_decode_opcode (unsigned long pc AU,
+		  RX_Opcode_Decoded * rx,
+		  int (* getbyte)(void *),
+		  void * ptr)
+{
+  LocalData lds, * ld = &lds;
+  unsigned char op[20] = {0};
+
+  lds.rx = rx;
+  lds.getbyte = getbyte;
+  lds.ptr = ptr;
+  lds.op = op;
+
+  memset (rx, 0, sizeof (*rx));
+  BWL(LSIZE);
+
+/** VARY sz 00 01 10 */
+
+/*----------------------------------------------------------------------*/
+/* MOV									*/
+
+/** 0111 0101 0100 rdst		mov%s	#%1, %0 */
+  ID(mov); DR(rdst); SC(IMM (1)); F_____;
+
+/** 1111 10sd rdst im sz	mov%s	#%1, %0 */
+  ID(mov); DD(sd, rdst, sz);
+  if ((im == 1 && sz == 0)
+      || (im == 2 && sz == 1)
+      || (im == 0 && sz == 2))
+    {
+      BWL (sz);
+      SC(IMM(im));
+    }
+  else
+    {
+      sBWL (sz);
+      SC(IMMex(im));
+    }
+   F_____;
+
+/** 0110 0110 immm rdst		mov%s	#%1, %0 */
+  ID(mov); DR(rdst); SC(immm); F_____;
+
+/** 0011 11sz d dst sppp		mov%s	#%1, %0 */
+  ID(mov); sBWL (sz); DIs(dst, d*16+sppp, sz); SC(IMM(1)); F_____;
+
+/** 11sz sd ss rsrc rdst	mov%s	%1, %0 */
+  if (sd == 3 && ss == 3 && sz == 2 && rsrc == 0 && rdst == 0)
+    {
+      ID(nop2);
+      SYNTAX ("nop\t; mov.l\tr0, r0");
+    }
+  else
+    {
+      ID(mov); sBWL(sz); F_____;
+      if ((ss == 3) && (sd != 3))
+	{
+	  SD(ss, rdst, sz); DD(sd, rsrc, sz);
+	}
+      else
+	{
+	  SD(ss, rsrc, sz); DD(sd, rdst, sz);
+	}
+    }
+
+/** 10sz 1dsp a src b dst	mov%s	%1, %0 */
+  ID(mov); sBWL(sz); DR(dst); SIs(src, dsp*4+a*2+b, sz); F_____;
+
+/** 10sz 0dsp a dst b src	mov%s	%1, %0 */
+  ID(mov); sBWL(sz); DIs(dst, dsp*4+a*2+b, sz); SR(src); F_____;
+
+/** 1111 1110 01sz isrc bsrc rdst	mov%s	[%1, %2], %0 */
+  ID(movbi); sBWL(sz); DR(rdst); SRR(isrc); S2R(bsrc); F_____;
+
+/** 1111 1110 00sz isrc bsrc rdst	mov%s	%0, [%1, %2] */
+  ID(movbir); sBWL(sz); DR(rdst); SRR(isrc); S2R(bsrc); F_____;
+
+/** 1111 1110 11sz isrc bsrc rdst	movu%s	[%1, %2], %0 */
+  ID(movbi); uBW(sz); DR(rdst); SRR(isrc); S2R(bsrc); F_____;
+
+/** 1111 1101 0010 0p sz rdst rsrc	mov%s	%1, %0 */
+  ID(mov); sBWL (sz); SR(rsrc); F_____;
+  OP(0, p ? RX_Operand_Predec : RX_Operand_Postinc, rdst, 0);
+
+/** 1111 1101 0010 1p sz rsrc rdst	mov%s	%1, %0 */
+  ID(mov); sBWL (sz); DR(rdst); F_____;
+  OP(1, p ? RX_Operand_Predec : RX_Operand_Postinc, rsrc, 0);
+
+/** 1011 w dsp a src b dst	movu%s	%1, %0 */
+  ID(mov); uBW(w); DR(dst); SIs(src, dsp*4+a*2+b, w); F_____;
+
+/** 0101 1 s ss rsrc rdst	movu%s	%1, %0 */
+  ID(mov); uBW(s); SD(ss, rsrc, s); DR(rdst); F_____;
+
+/** 1111 1101 0011 1p sz rsrc rdst	movu%s	%1, %0 */
+  ID(mov); uBW (sz); DR(rdst); F_____;
+   OP(1, p ? RX_Operand_Predec : RX_Operand_Postinc, rsrc, 0);
+
+/*----------------------------------------------------------------------*/
+/* PUSH/POP								*/
+
+/** 0110 1111 dsta dstb		popm	%1-%2 */
+  ID(popm); SR(dsta); S2R(dstb); F_____;
+
+/** 0110 1110 dsta dstb		pushm	%1-%2 */
+  ID(pushm); SR(dsta); S2R(dstb); F_____;
+
+/** 0111 1110 1011 rdst		pop	%0 */
+  ID(mov); OP(1, RX_Operand_Postinc, 0, 0); DR(rdst); F_____;
+
+/** 0111 1110 10sz rsrc		push%s	%1 */
+  ID(mov); BWL(sz); OP(0, RX_Operand_Predec, 0, 0); SR(rsrc); F_____;
+
+/** 1111 01ss rsrc 10sz		push%s	%1 */
+  ID(mov); BWL(sz); OP(0, RX_Operand_Predec, 0, 0); SD(ss, rsrc, sz); F_____;
+
+/*----------------------------------------------------------------------*/
+/* XCHG									*/
+
+/** 1111 1100 0100 00ss rsrc rdst	xchg	%1%S1, %0 */
+  ID(xchg); DR(rdst); SP(ss, rsrc);
+
+/** 0000 0110 mx10 00ss 0001 0000 rsrc rdst	xchg	%1%S1, %0 */
+  ID(xchg); DR(rdst); SPm(ss, rsrc, mx);
+
+/*----------------------------------------------------------------------*/
+/* STZ/STNZ								*/
+
+/** 1111 1101 0111 im00 1110rdst	stz	#%1, %0 */
+  ID(stcc); SC(IMMex(im)); DR(rdst); S2cc(RXC_z);
+
+/** 1111 1101 0111 im00 1111rdst	stnz	#%1, %0 */
+  ID(stcc); SC(IMMex(im)); DR(rdst); S2cc(RXC_nz);
+
+/*----------------------------------------------------------------------*/
+/* RTSD									*/
+
+/** 0110 0111			rtsd	#%1 */
+  ID(rtsd); SC(IMM(1) * 4);
+
+/** 0011 1111 rega regb		rtsd	#%1, %2-%0 */
+  ID(rtsd); SC(IMM(1) * 4); S2R(rega); DR(regb);
+
+/*----------------------------------------------------------------------*/
+/* AND									*/
+
+/** 0110 0100 immm rdst			and	#%1, %0 */
+  ID(and); SC(immm); DR(rdst); F__SZ_;
+
+/** 0111 01im 0010 rdst			and	#%1, %0 */
+  ID(and); SC(IMMex(im)); DR(rdst); F__SZ_;
+
+/** 0101 00ss rsrc rdst			and	%1%S1, %0 */
+  ID(and); SP(ss, rsrc); DR(rdst); F__SZ_;
+
+/** 0000 0110 mx01 00ss rsrc rdst	and	%1%S1, %0 */
+  ID(and); SPm(ss, rsrc, mx); DR(rdst); F__SZ_;
+
+/** 1111 1111 0100 rdst srca srcb	and	%2, %1, %0 */
+  ID(and); DR(rdst); SR(srcb); S2R(srca); F__SZ_;
+
+/*----------------------------------------------------------------------*/
+/* OR									*/
+
+/** 0110 0101 immm rdst			or	#%1, %0 */
+  ID(or); SC(immm); DR(rdst); F__SZ_;
+
+/** 0111 01im 0011 rdst			or	#%1, %0 */
+  ID(or); SC(IMMex(im)); DR(rdst); F__SZ_;
+
+/** 0101 01ss rsrc rdst			or	%1%S1, %0 */
+  ID(or); SP(ss, rsrc); DR(rdst); F__SZ_;
+
+/** 0000 0110 mx01 01ss rsrc rdst			or	%1%S1, %0 */
+  ID(or); SPm(ss, rsrc, mx); DR(rdst); F__SZ_;
+
+/** 1111 1111 0101 rdst srca srcb	or	%2, %1, %0 */
+  ID(or); DR(rdst); SR(srcb); S2R(srca); F__SZ_;
+
+/*----------------------------------------------------------------------*/
+/* XOR									*/
+
+/** 1111 1101 0111 im00 1101rdst	xor	#%1, %0 */
+  ID(xor); SC(IMMex(im)); DR(rdst); F__SZ_;
+
+/** 1111 1100 0011 01ss rsrc rdst	xor	%1%S1, %0 */
+  ID(xor); SP(ss, rsrc); DR(rdst); F__SZ_;
+
+/** 0000 0110 mx10 00ss 0000 1101 rsrc rdst	xor	%1%S1, %0 */
+  ID(xor); SPm(ss, rsrc, mx); DR(rdst); F__SZ_;
+
+/*----------------------------------------------------------------------*/
+/* NOT									*/
+
+/** 0111 1110 0000 rdst			not	%0 */
+  ID(xor); DR(rdst); SR(rdst); S2C(~0); F__SZ_;
+
+/** 1111 1100 0011 1011 rsrc rdst	not	%1, %0 */
+  ID(xor); DR(rdst); SR(rsrc); S2C(~0); F__SZ_;
+
+/*----------------------------------------------------------------------*/
+/* TST									*/
+
+/** 1111 1101 0111 im00 1100rdst	tst	#%1, %2 */
+  ID(and); SC(IMMex(im)); S2R(rdst); F__SZ_;
+
+/** 1111 1100 0011 00ss rsrc rdst	tst	%1%S1, %2 */
+  ID(and); SP(ss, rsrc); S2R(rdst); F__SZ_;
+
+/** 0000 0110 mx10 00ss 0000 1100 rsrc rdst	tst	%1%S1, %2 */
+  ID(and); SPm(ss, rsrc, mx); S2R(rdst); F__SZ_;
+
+/*----------------------------------------------------------------------*/
+/* NEG									*/
+
+/** 0111 1110 0001 rdst			neg	%0 */
+  ID(sub); DR(rdst); SC(0); S2R(rdst); F_OSZC;
+
+/** 1111 1100 0000 0111 rsrc rdst	neg	%2, %0 */
+  ID(sub); DR(rdst); SC(0); S2R(rsrc); F_OSZC;
+
+/*----------------------------------------------------------------------*/
+/* ADC									*/
+
+/** 1111 1101 0111 im00 0010rdst	adc	#%1, %0 */
+  ID(adc); SC(IMMex(im)); DR(rdst); F_OSZC;
+
+/** 1111 1100 0000 1011 rsrc rdst	adc	%1, %0 */
+  ID(adc); SR(rsrc); DR(rdst); F_OSZC;
+
+/** 0000 0110 1010 00ss 0000 0010 rsrc rdst	adc	%1%S1, %0 */
+  ID(adc); SPm(ss, rsrc, 2); DR(rdst); F_OSZC;
+
+/*----------------------------------------------------------------------*/
+/* ADD									*/
+
+/** 0110 0010 immm rdst			add	#%1, %0 */
+  ID(add); SC(immm); DR(rdst); F_OSZC;
+
+/** 0100 10ss rsrc rdst			add	%1%S1, %0 */
+  ID(add); SP(ss, rsrc); DR(rdst); F_OSZC;
+
+/** 0000 0110 mx00 10ss rsrc rdst	add	%1%S1, %0 */
+  ID(add); SPm(ss, rsrc, mx); DR(rdst); F_OSZC;
+
+/** 0111 00im rsrc rdst			add	#%1, %2, %0 */
+  ID(add); SC(IMMex(im)); S2R(rsrc); DR(rdst); F_OSZC;
+
+/** 1111 1111 0010 rdst srca srcb	add	%2, %1, %0 */
+  ID(add); DR(rdst); SR(srcb); S2R(srca); F_OSZC;
+
+/*----------------------------------------------------------------------*/
+/* CMP									*/
+
+/** 0110 0001 immm rdst			cmp	#%2, %1 */
+  ID(sub); S2C(immm); SR(rdst); F_OSZC;
+
+/** 0111 01im 0000 rsrc		cmp	#%2, %1%S1 */
+  ID(sub); SR(rsrc); S2C(IMMex(im)); F_OSZC;
+
+/** 0111 0101 0101 rsrc			cmp	#%2, %1 */
+  ID(sub); SR(rsrc); S2C(IMM(1)); F_OSZC;
+
+/** 0100 01ss rsrc rdst		cmp	%2%S2, %1 */
+  ID(sub); S2P(ss, rsrc); SR(rdst); F_OSZC;
+
+/** 0000 0110 mx00 01ss rsrc rdst		cmp	%2%S2, %1 */
+  ID(sub); S2Pm(ss, rsrc, mx); SR(rdst); F_OSZC;
+
+/*----------------------------------------------------------------------*/
+/* SUB									*/
+
+/** 0110 0000 immm rdst			sub	#%2, %0 */
+  ID(sub); S2C(immm); SR(rdst); DR(rdst); F_OSZC;
+
+/** 0100 00ss rsrc rdst			sub	%2%S2, %1 */
+  ID(sub); S2P(ss, rsrc); SR(rdst); DR(rdst); F_OSZC;
+
+/** 0000 0110 mx00 00ss rsrc rdst			sub	%2%S2, %1 */
+  ID(sub); S2Pm(ss, rsrc, mx); SR(rdst); DR(rdst); F_OSZC;
+
+/** 1111 1111 0000 rdst srca srcb	sub	%2, %1, %0 */
+  ID(sub); DR(rdst); SR(srcb); S2R(srca); F_OSZC;
+
+/*----------------------------------------------------------------------*/
+/* SBB									*/
+
+/** 1111 1100 0000 0011 rsrc rdst	sbb	%1, %0 */
+  ID(sbb); SR (rsrc); DR(rdst); F_OSZC;
+
+  /* FIXME: only supports .L */
+/** 0000 0110 mx10 00sp 0000 0000 rsrc rdst	sbb	%1%S1, %0 */
+  ID(sbb); SPm(sp, rsrc, mx); DR(rdst); F_OSZC;
+
+/*----------------------------------------------------------------------*/
+/* ABS									*/
+
+/** 0111 1110 0010 rdst			abs	%0 */
+  ID(abs); DR(rdst); SR(rdst); F_OSZ_;
+
+/** 1111 1100 0000 1111 rsrc rdst	abs	%1, %0 */
+  ID(abs); DR(rdst); SR(rsrc); F_OSZ_;
+
+/*----------------------------------------------------------------------*/
+/* MAX									*/
+
+/** 1111 1101 0111 im00 0100rdst	max	#%1, %0 */
+  int val = IMMex (im);
+  if (im == 0 && (unsigned) val == 0x80000000 && rdst == 0)
+    {
+      ID (nop7);
+      SYNTAX("nop\t; max\t#0x80000000, r0");
+    }
+  else
+    {
+      ID(max);
+    }
+  DR(rdst); SC(val);
+
+/** 1111 1100 0001 00ss rsrc rdst	max	%1%S1, %0 */
+  if (ss == 3 && rsrc == 0 && rdst == 0)
+    {
+      ID(nop3);
+      SYNTAX("nop\t; max\tr0, r0");
+    }
+  else
+    {
+      ID(max); SP(ss, rsrc); DR(rdst);
+    }
+
+/** 0000 0110 mx10 00ss 0000 0100 rsrc rdst	max	%1%S1, %0 */
+  ID(max); SPm(ss, rsrc, mx); DR(rdst);
+
+/*----------------------------------------------------------------------*/
+/* MIN									*/
+
+/** 1111 1101 0111 im00 0101rdst	min	#%1, %0 */
+  ID(min); DR(rdst); SC(IMMex(im));
+
+/** 1111 1100 0001 01ss rsrc rdst	min	%1%S1, %0 */
+  ID(min); SP(ss, rsrc); DR(rdst);
+
+/** 0000 0110 mx10 00ss 0000 0101 rsrc rdst	min	%1%S1, %0 */
+  ID(min); SPm(ss, rsrc, mx); DR(rdst);
+
+/*----------------------------------------------------------------------*/
+/* MUL									*/
+
+/** 0110 0011 immm rdst			mul	#%1, %0 */
+  if (immm == 1 && rdst == 0)
+    {
+      ID(nop2);
+      SYNTAX ("nop\t; mul\t#1, r0");
+    }
+  else
+    {
+      ID(mul);
+    }
+  DR(rdst); SC(immm); F_____;
+
+/** 0111 01im 0001rdst			mul	#%1, %0 */
+  int val = IMMex(im);
+  if (val == 1 && rdst == 0)
+    {
+      SYNTAX("nop\t; mul\t#1, r0");
+      switch (im)
+	{
+	case 2: ID(nop4); break;
+	case 3: ID(nop5); break;
+	case 0: ID(nop6); break;
+	default:
+	  ID(mul);
+	  SYNTAX("mul	#%1, %0");
+	  break;
+	}
+    }
+  else
+    {
+      ID(mul);
+    }
+  DR(rdst); SC(val); F_____;
+
+/** 0100 11ss rsrc rdst			mul	%1%S1, %0 */
+  ID(mul); SP(ss, rsrc); DR(rdst); F_____;
+
+/** 0000 0110 mx00 11ss rsrc rdst	mul	%1%S1, %0 */
+  ID(mul); SPm(ss, rsrc, mx); DR(rdst); F_____;
+
+/** 1111 1111 0011 rdst srca srcb	mul 	%2, %1, %0 */
+  ID(mul); DR(rdst); SR(srcb); S2R(srca); F_____;
+
+/*----------------------------------------------------------------------*/
+/* EMUL									*/
+
+/** 1111 1101 0111 im00 0110rdst	emul	#%1, %0 */
+  ID(emul); DR(rdst); SC(IMMex(im));
+
+/** 1111 1100 0001 10ss rsrc rdst	emul	%1%S1, %0 */
+  ID(emul); SP(ss, rsrc); DR(rdst);
+
+/** 0000 0110 mx10 00ss 0000 0110 rsrc rdst	emul	%1%S1, %0 */
+  ID(emul); SPm(ss, rsrc, mx); DR(rdst);
+
+/*----------------------------------------------------------------------*/
+/* EMULU									*/
+
+/** 1111 1101 0111 im00 0111rdst	emulu	#%1, %0 */
+  ID(emulu); DR(rdst); SC(IMMex(im));
+
+/** 1111 1100 0001 11ss rsrc rdst	emulu	%1%S1, %0 */
+  ID(emulu); SP(ss, rsrc); DR(rdst);
+
+/** 0000 0110 mx10 00ss 0000 0111 rsrc rdst	emulu	%1%S1, %0 */
+  ID(emulu); SPm(ss, rsrc, mx); DR(rdst);
+
+/*----------------------------------------------------------------------*/
+/* DIV									*/
+
+/** 1111 1101 0111 im00 1000rdst	div	#%1, %0 */
+  ID(div); DR(rdst); SC(IMMex(im)); F_O___;
+
+/** 1111 1100 0010 00ss rsrc rdst	div	%1%S1, %0 */
+  ID(div); SP(ss, rsrc); DR(rdst); F_O___;
+
+/** 0000 0110 mx10 00ss 0000 1000 rsrc rdst	div	%1%S1, %0 */
+  ID(div); SPm(ss, rsrc, mx); DR(rdst); F_O___;
+
+/*----------------------------------------------------------------------*/
+/* DIVU									*/
+
+/** 1111 1101 0111 im00 1001rdst	divu	#%1, %0 */
+  ID(divu); DR(rdst); SC(IMMex(im)); F_O___;
+
+/** 1111 1100 0010 01ss rsrc rdst	divu	%1%S1, %0 */
+  ID(divu); SP(ss, rsrc); DR(rdst); F_O___;
+
+/** 0000 0110 mx10 00ss 0000 1001 rsrc rdst	divu	%1%S1, %0 */
+  ID(divu); SPm(ss, rsrc, mx); DR(rdst); F_O___;
+
+/*----------------------------------------------------------------------*/
+/* SHIFT								*/
+
+/** 0110 110i mmmm rdst			shll	#%2, %0 */
+  ID(shll); S2C(i*16+mmmm); SR(rdst); DR(rdst); F_OSZC;
+
+/** 1111 1101 0110 0010 rsrc rdst	shll	%2, %0 */
+  ID(shll); S2R(rsrc); SR(rdst); DR(rdst); F_OSZC;
+
+/** 1111 1101 110immmm rsrc rdst	shll	#%2, %1, %0 */
+  ID(shll); S2C(immmm); SR(rsrc); DR(rdst); F_OSZC;
+
+
+/** 0110 101i mmmm rdst			shar	#%2, %0 */
+  ID(shar); S2C(i*16+mmmm); SR(rdst); DR(rdst); F_0SZC;
+
+/** 1111 1101 0110 0001 rsrc rdst	shar	%2, %0 */
+  ID(shar); S2R(rsrc); SR(rdst); DR(rdst); F_0SZC;
+
+/** 1111 1101 101immmm rsrc rdst	shar	#%2, %1, %0 */
+  ID(shar); S2C(immmm); SR(rsrc); DR(rdst); F_0SZC;
+
+
+/** 0110 100i mmmm rdst			shlr	#%2, %0 */
+  ID(shlr); S2C(i*16+mmmm); SR(rdst); DR(rdst); F__SZC;
+
+/** 1111 1101 0110 0000 rsrc rdst	shlr	%2, %0 */
+  ID(shlr); S2R(rsrc); SR(rdst); DR(rdst); F__SZC;
+
+/** 1111 1101 100immmm rsrc rdst	shlr	#%2, %1, %0 */
+  ID(shlr); S2C(immmm); SR(rsrc); DR(rdst); F__SZC;
+
+/*----------------------------------------------------------------------*/
+/* ROTATE								*/
+
+/** 0111 1110 0101 rdst			rolc	%0 */
+  ID(rolc); DR(rdst); F__SZC;
+
+/** 0111 1110 0100 rdst			rorc	%0 */
+  ID(rorc); DR(rdst); F__SZC;
+
+/** 1111 1101 0110 111i mmmm rdst	rotl	#%1, %0 */
+  ID(rotl); SC(i*16+mmmm); DR(rdst); F__SZC;
+
+/** 1111 1101 0110 0110 rsrc rdst	rotl	%1, %0 */
+  ID(rotl); SR(rsrc); DR(rdst); F__SZC;
+
+/** 1111 1101 0110 110i mmmm rdst	rotr	#%1, %0 */
+  ID(rotr); SC(i*16+mmmm); DR(rdst); F__SZC;
+
+/** 1111 1101 0110 0100 rsrc rdst	rotr	%1, %0 */
+  ID(rotr); SR(rsrc); DR(rdst); F__SZC;
+
+/** 1111 1101 0110 0101 rsrc rdst	revw	%1, %0 */
+  ID(revw); SR(rsrc); DR(rdst);
+
+/** 1111 1101 0110 0111 rsrc rdst	revl	%1, %0 */
+  ID(revl); SR(rsrc); DR(rdst);
+
+/*----------------------------------------------------------------------*/
+/* BRANCH								*/
+
+/** 0001 n dsp			b%1.s	%a0 */
+  ID(branch); Scc(n); DC(pc + dsp3map[dsp]);
+
+/** 0010 cond			b%1.b	%a0 */
+  ID(branch); Scc(cond); DC(pc + IMMex (1));
+
+/** 0011 101c			b%1.w	%a0 */
+  ID(branch); Scc(c); DC(pc + IMMex (2));
+
+
+/** 0000 1dsp			bra.s	%a0 */
+  ID(branch); DC(pc + dsp3map[dsp]);
+
+/** 0010 1110			bra.b	%a0 */
+  ID(branch); DC(pc + IMMex(1));
+
+/** 0011 1000			bra.w	%a0 */
+  ID(branch); DC(pc + IMMex(2));
+
+/** 0000 0100			bra.a	%a0 */
+  ID(branch); DC(pc + IMMex(3));
+
+/** 0111 1111 0100 rsrc		bra.l	%0 */
+  ID(branchrel); DR(rsrc);
+
+
+/** 0111 1111 0000 rsrc		jmp	%0 */
+  ID(branch); DR(rsrc);
+
+/** 0111 1111 0001 rsrc		jsr	%0 */
+  ID(jsr); DR(rsrc);
+
+/** 0011 1001			bsr.w	%a0 */
+  ID(jsr); DC(pc + IMMex(2));
+
+/** 0000 0101			bsr.a	%a0 */
+  ID(jsr); DC(pc + IMMex(3));
+
+/** 0111 1111 0101 rsrc		bsr.l	%0 */
+  ID(jsrrel); DR(rsrc);
+
+/** 0000 0010			rts */
+  ID(rts);
+
+/*----------------------------------------------------------------------*/
+/* NOP								*/
+
+/** 0000 0011			nop */
+  ID(nop);
+
+/*----------------------------------------------------------------------*/
+/* STRING FUNCTIONS							*/
+
+/** 0111 1111 1000 0011		scmpu */
+  ID(scmpu); F___ZC;
+
+/** 0111 1111 1000 0111		smovu */
+  ID(smovu);
+
+/** 0111 1111 1000 1011		smovb */
+  ID(smovb);
+
+/** 0111 1111 1000 00sz		suntil%s */
+  ID(suntil); BWL(sz); F___ZC;
+
+/** 0111 1111 1000 01sz		swhile%s */
+  ID(swhile); BWL(sz); F___ZC;
+
+/** 0111 1111 1000 1111		smovf */
+  ID(smovf);
+
+/** 0111 1111 1000 10sz		sstr%s */
+  ID(sstr); BWL(sz);
+
+/*----------------------------------------------------------------------*/
+/* RMPA									*/
+
+/** 0111 1111 1000 11sz		rmpa%s */
+  ID(rmpa); BWL(sz); F_OS__;
+
+/*----------------------------------------------------------------------*/
+/* HI/LO stuff								*/
+
+/** 1111 1101 0000 a000 srca srcb	mulhi	%1, %2, %0 */
+  ID(mulhi); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0000 a001 srca srcb	mullo	%1, %2, %0 */
+  ID(mullo); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0000 a100 srca srcb	machi	%1, %2, %0 */
+  ID(machi); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0000 a101 srca srcb	maclo	%1, %2, %0 */
+  ID(maclo); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0001 0111 a000 rsrc	mvtachi	%1, %0 */
+  ID(mvtachi); DR(a+32); SR(rsrc); F_____;
+
+/** 1111 1101 0001 0111 a001 rsrc	mvtaclo	%1, %0 */
+  ID(mvtaclo); DR(a+32); SR(rsrc); F_____;
+
+/** 1111 1101 0001 111i a m00 rdst	mvfachi	#%2, %1, %0 */
+  ID(mvfachi); S2C(((i^1)<<1)|m); SR(a+32); DR(rdst); F_____;
+
+/** 1111 1101 0001 111i a m10 rdst	mvfacmi	#%2, %1, %0 */
+  ID(mvfacmi); S2C(((i^1)<<1)|m); SR(a+32); DR(rdst); F_____;
+
+/** 1111 1101 0001 111i a m01 rdst	mvfaclo	#%2, %1, %0 */
+  ID(mvfaclo); S2C(((i^1)<<1)|m); SR(a+32); DR(rdst); F_____;
+
+/** 1111 1101 0001 1000 a00i 0000	racw	#%1, %0 */
+  ID(racw); SC(i+1); DR(a+32); F_____;
+
+/*----------------------------------------------------------------------*/
+/* SAT									*/
+
+/** 0111 1110 0011 rdst		sat	%0 */
+  ID(sat); DR (rdst);
+
+/** 0111 1111 1001 0011		satr */
+  ID(satr);
+
+/*----------------------------------------------------------------------*/
+/* FLOAT								*/
+
+/** 1111 1101 0111 0010 0010 rdst	fadd	#%1, %0 */
+  ID(fadd); DR(rdst); SC(IMM(0)); F__SZ_;
+
+/** 1111 1100 1000 10sd rsrc rdst	fadd	%1%S1, %0 */
+  ID(fadd); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1101 0111 0010 0001 rdst	fcmp	#%1, %0 */
+  ID(fcmp); DR(rdst); SC(IMM(0)); F_OSZ_;
+
+/** 1111 1100 1000 01sd rsrc rdst	fcmp	%1%S1, %0 */
+  ID(fcmp); DR(rdst); SD(sd, rsrc, LSIZE); F_OSZ_;
+
+/** 1111 1101 0111 0010 0000 rdst	fsub	#%1, %0 */
+  ID(fsub); DR(rdst); SC(IMM(0)); F__SZ_;
+
+/** 1111 1100 1000 00sd rsrc rdst	fsub	%1%S1, %0 */
+  ID(fsub); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1100 1001 01sd rsrc rdst	ftoi	%1%S1, %0 */
+  ID(ftoi); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1101 0111 0010 0011 rdst	fmul	#%1, %0 */
+  ID(fmul); DR(rdst); SC(IMM(0)); F__SZ_;
+
+/** 1111 1100 1000 11sd rsrc rdst	fmul	%1%S1, %0 */
+  ID(fmul); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1101 0111 0010 0100 rdst	fdiv	#%1, %0 */
+  ID(fdiv); DR(rdst); SC(IMM(0)); F__SZ_;
+
+/** 1111 1100 1001 00sd rsrc rdst	fdiv	%1%S1, %0 */
+  ID(fdiv); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1100 1001 10sd rsrc rdst	round	%1%S1, %0 */
+  ID(round); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1100 0100 01sd rsrc rdst	itof	%1%S1, %0 */
+  ID(itof); DR (rdst); SP(sd, rsrc); F__SZ_;
+
+/** 0000 0110 mx10 00sd 0001 0001 rsrc rdst	itof	%1%S1, %0 */
+  ID(itof); DR (rdst); SPm(sd, rsrc, mx); F__SZ_;
+
+/*----------------------------------------------------------------------*/
+/* BIT OPS								*/
+
+/** 1111 00sd rdst 0bit			bset	#%1, %0%S0 */
+  ID(bset); BWL(BSIZE); SC(bit); DD(sd, rdst, BSIZE); F_____;
+
+/** 1111 1100 0110 00sd rdst rsrc	bset	%1, %0%S0 */
+  ID(bset); BWL(BSIZE); SR(rsrc); DD(sd, rdst, BSIZE); F_____;
+  if (sd == 3) /* bset reg,reg */
+    BWL(LSIZE);
+
+/** 0111 100b ittt rdst			bset	#%1, %0 */
+  ID(bset); BWL(LSIZE); SC(b*16+ittt); DR(rdst); F_____;
+
+
+/** 1111 00sd rdst 1bit			bclr	#%1, %0%S0 */
+  ID(bclr); BWL(BSIZE); SC(bit); DD(sd, rdst, BSIZE); F_____;
+
+/** 1111 1100 0110 01sd rdst rsrc	bclr	%1, %0%S0 */
+  ID(bclr); BWL(BSIZE); SR(rsrc); DD(sd, rdst, BSIZE); F_____;
+  if (sd == 3) /* bset reg,reg */
+    BWL(LSIZE);
+
+/** 0111 101b ittt rdst			bclr	#%1, %0 */
+  ID(bclr); BWL(LSIZE); SC(b*16+ittt); DR(rdst); F_____;
+
+
+/** 1111 01sd rdst 0bit			btst	#%2, %1%S1 */
+  ID(btst); BWL(BSIZE); S2C(bit); SD(sd, rdst, BSIZE); F___ZC;
+
+/** 1111 1100 0110 10sd rdst rsrc	btst	%2, %1%S1 */
+  ID(btst); BWL(BSIZE); S2R(rsrc); SD(sd, rdst, BSIZE); F___ZC;
+  if (sd == 3) /* bset reg,reg */
+    BWL(LSIZE);
+
+/** 0111 110b ittt rdst			btst	#%2, %1 */
+  ID(btst); BWL(LSIZE); S2C(b*16+ittt); SR(rdst); F___ZC;
+
+
+/** 1111 1100 111bit sd rdst 1111	bnot	#%1, %0%S0 */
+  ID(bnot); BWL(BSIZE); SC(bit); DD(sd, rdst, BSIZE);
+
+/** 1111 1100 0110 11sd rdst rsrc	bnot	%1, %0%S0 */
+  ID(bnot); BWL(BSIZE); SR(rsrc); DD(sd, rdst, BSIZE);
+  if (sd == 3) /* bset reg,reg */
+    BWL(LSIZE);
+
+/** 1111 1101 111bittt 1111 rdst	bnot	#%1, %0 */
+  ID(bnot); BWL(LSIZE); SC(bittt); DR(rdst);
+
+
+/** 1111 1100 111bit sd rdst cond	bm%2	#%1, %0%S0 */
+  ID(bmcc); BWL(BSIZE); S2cc(cond); SC(bit); DD(sd, rdst, BSIZE);
+
+/** 1111 1101 111 bittt cond rdst	bm%2	#%1, %0%S0 */
+  ID(bmcc); BWL(LSIZE); S2cc(cond); SC(bittt); DR(rdst);
+
+/*----------------------------------------------------------------------*/
+/* CONTROL REGISTERS							*/
+
+/** 0111 1111 1011 rdst			clrpsw	%0 */
+  ID(clrpsw); DF(rdst);
+
+/** 0111 1111 1010 rdst			setpsw	%0 */
+  ID(setpsw); DF(rdst);
+
+/** 0111 0101 0111 0000 0000 immm	mvtipl	#%1 */
+  ID(mvtipl); SC(immm);
+
+/** 0111 1110 111 crdst			popc	%0 */
+  ID(mov); OP(1, RX_Operand_Postinc, 0, 0); DR(crdst + 16);
+
+/** 0111 1110 110 crsrc			pushc	%1 */
+  ID(mov); OP(0, RX_Operand_Predec, 0, 0); SR(crsrc + 16);
+
+/** 1111 1101 0111 im11 000crdst	mvtc	#%1, %0 */
+  ID(mov); SC(IMMex(im)); DR(crdst + 16);
+
+/** 1111 1101 0110 100c rsrc rdst	mvtc	%1, %0 */
+  ID(mov); SR(rsrc); DR(c*16+rdst + 16);
+
+/** 1111 1101 0110 101s rsrc rdst	mvfc	%1, %0 */
+  ID(mov); SR((s*16+rsrc) + 16); DR(rdst);
+
+/*----------------------------------------------------------------------*/
+/* INTERRUPTS								*/
+
+/** 0111 1111 1001 0100		rtfi */
+  ID(rtfi);
+
+/** 0111 1111 1001 0101		rte */
+  ID(rte);
+
+/** 0000 0000			brk */
+  ID(brk);
+
+/** 0000 0001			dbt */
+  ID(dbt);
+
+/** 0111 0101 0110 0000		int #%1 */
+  ID(int); SC(IMM(1));
+
+/** 0111 1111 1001 0110		wait */
+  ID(wait);
+
+/*----------------------------------------------------------------------*/
+/* SCcnd								*/
+
+/** 1111 1100 1101 sz sd rdst cond	sc%1%s	%0 */
+  ID(sccnd); BWL(sz); DD (sd, rdst, sz); Scc(cond);
+
+/*----------------------------------------------------------------------*/
+/* RXv2 enhanced							*/
+
+/** 1111 1101 0010 0111 rdst rsrc	movco	%1, [%0] */
+   ID(movco); SR(rsrc); DR(rdst); F_____;
+
+/** 1111 1101 0010 1111 rsrc rdst	movli	[%1], %0 */
+   ID(movli); SR(rsrc); DR(rdst); F_____;
+
+/** 1111 1100 0100 1011 rsrc rdst	stz	%1, %0 */
+  ID(stcc); SR(rsrc); DR(rdst); S2cc(RXC_z);
+
+/** 1111 1100 0100 1111 rsrc rdst	stnz	%1, %0 */
+  ID(stcc); SR(rsrc); DR(rdst); S2cc(RXC_nz);
+
+/** 1111 1101 0000 a111 srca srcb 	emaca	%1, %2, %0 */
+  ID(emaca); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0100 a111 srca srcb 	emsba	%1, %2, %0 */
+  ID(emsba); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0000 a011 srca srcb 	emula	%1, %2, %0 */
+  ID(emula); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0000 a110 srca srcb	maclh	%1, %2, %0 */
+  ID(maclh); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0100 a100 srca srcb	msbhi	%1, %2, %0 */
+  ID(msbhi); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0100 a110 srca srcb	msblh	%1, %2, %0 */
+  ID(msblh); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0100 a101 srca srcb	msblo	%1, %2, %0 */
+  ID(msblo); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0000 a010 srca srcb	mullh	%1, %2, %0 */
+  ID(mullh); DR(a+32); SR(srca); S2R(srcb); F_____;
+
+/** 1111 1101 0001 111i a m11 rdst	mvfacgu	#%2, %1, %0 */
+  ID(mvfacgu); S2C(((i^1)<<1)|m); SR(a+32); DR(rdst); F_____;
+
+/** 1111 1101 0001 0111 a011 rsrc	mvtacgu	%1, %0 */
+  ID(mvtacgu); SR(rsrc); DR(a+32); F_____;
+
+/** 1111 1101 0001 1001 a00i 0000	racl	#%1, %0 */
+  ID(racl); SC(i+1); DR(a+32); F_____;
+
+/** 1111 1101 0001 1001 a10i 0000	rdacl	#%1, %0 */
+  ID(rdacl); SC(i+1); DR(a+32); F_____;
+
+/** 1111 1101 0001 1000 a10i 0000	rdacw	#%1, %0 */
+  ID(rdacw); SC(i+1); DR(a+32); F_____;
+
+/** 1111 1111 1010 rdst srca srcb	fadd	%2, %1, %0 */
+  ID(fadd); DR(rdst); SR(srcb); S2R(srca); F__SZ_;
+
+/** 1111 1111 1000 rdst srca srcb	fsub	%2, %1, %0 */
+  ID(fsub); DR(rdst); SR(srcb); S2R(srca); F__SZ_;
+
+/** 1111 1111 1011 rdst srca srcb	fmul	%2, %1, %0 */
+  ID(fmul); DR(rdst); SR(srcb); S2R(srca); F__SZ_;
+
+/** 1111 1100 1010 00sd rsrc rdst	fsqrt	%1%S1, %0 */
+  ID(fsqrt); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1100 1010 01sd rsrc rdst	ftou	%1%S1, %0 */
+  ID(ftou); DR(rdst); SD(sd, rsrc, LSIZE); F__SZ_;
+
+/** 1111 1100 0101 01sd rsrc rdst	utof	%1%S1, %0 */
+  ID(utof); DR (rdst); SP(sd, rsrc); F__SZ_;
+
+/** 0000 0110 mx10 00sd 0001 0101 rsrc rdst	utof	%1%S1, %0 */
+  ID(utof); DR (rdst); SPm(sd, rsrc, mx); F__SZ_;
+
+/*----------------------------------------------------------------------*/
+/* RXv3 enhanced							*/
+
+/** 1111 1111 0110 rdst srca srcb	xor	%2, %1, %0 */
+  ID(xor); DR(rdst); SR(srcb); S2R(srca); F__SZ_;
+
+/** 1111 1100 0101 1110 rsrc rdst	bfmov	%bf */
+  ID(bfmov); DR(rdst); SR(rsrc); S2C(IMM(2)); F_____;
+
+/** 1111 1100 0101 1010 rsrc rdst	bfmovz	%bf */
+  ID(bfmovz); DR(rdst); SR(rsrc); S2C(IMM(2)); F_____;
+
+/** 1111 1101 0111 0110 1101 rsrc 0000 0000 	rstr	%1 */
+  ID(rstr); SR(rsrc); F_____;
+
+/** 1111 1101 0111 0110 1111 0000 	rstr	#%1 */
+  ID(rstr); SC(IMM(1)); F_____;
+
+/** 1111 1101 0111 0110 1100 rsrc 0000 0000 	save	%1 */
+  ID(save); SR(rsrc); F_____;
+
+/** 1111 1101 0111 0110 1110 0000	save	#%1 */
+  ID(save); SC(IMM(1)); F_____;
+
+/** 1111 1101 0111 0111 1000 rsrc rdst 001s	dmov%s	%1, %0 */
+  ID(dmov); DDRH(rdst); SR(rsrc); DL(s); F_____;
+
+/** 1111 1101 0111 0111 1000 rsrc rdst 0000	dmov.l	%1, %0 */
+  ID(dmov); DDRL(rdst); SR(rsrc); F_____;
+
+/** 1111 1101 0111 0101 1000 rdst rsrc 0010	dmov.l	%1, %0 */
+  ID(dmov); DR(rdst); SDRH(rsrc); F_____;
+
+/** 1111 1101 0111 0101 1000 rdst rsrc 0000	dmov.l	%1, %0 */
+  ID(dmov); DR(rdst); SDRL(rsrc); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1100 rdst 0000	dmov.d	%1, %0 */
+  ID(dmov); DDR(rdst); SDR(rsrc); F_____;
+
+/** 1111 1100 0111 1000 rdst 1000 rsrc 0000	dmov.d	%1, %0 */
+  ID(dmov); DD(0, rdst, 0); SDR(rsrc); F_____;
+
+/** 1111 1100 0111 10sz rdst 1000	dmov.d	%1, %0 */
+  int rsrc;
+  rx_disp(0, sz, rdst, RX_Double, ld);
+  rsrc = GETBYTE();
+  if (rsrc & 0x0f)
+    UNSUPPORTED();
+  else {
+    ID(dmov); SDR(rsrc >> 4); F_____;
+  }
+
+/** 1111 1100 1100 1000 rsrc 1000 rdst 0000	dmov.d	%1, %0 */
+  ID(dmov); SD(sd, rsrc, 0) ; DDR(rdst); F_____;
+
+/** 1111 1100 1100 10sz rsrc 1000	dmov.d	%1, %0 */
+  int rdst;
+  rx_disp(1, sz, rsrc, RX_Double, ld);
+  rdst = GETBYTE();
+  if (rdst & 0x0f)
+    UNSUPPORTED();
+  else {
+    ID(dmov); DDR(rdst >> 4); F_____;
+  }
+
+/** 1111 1001 0000 0011 rdst 001s	dmov%s	#%1, %0 */
+  ID(dmov); DDRH(rdst); DL(s); SC(IMMex(0)); F_____;
+
+/** 1111 1001 0000 0011 rdst 0000	dmov.l	#%1, %0 */
+  ID(dmov); DDRL(rdst); SC(IMMex(0)); F_____;
+
+/** 0111 0101 1011 1000 rdst rnum	dpopm.d	%1-%2 */
+  ID(dpopm); SDR(rdst); S2DR(rdst + rnum); F_____;
+
+/** 0111 0101 1010 1000 rdst rnum	dpopm.l	%1-%2 */
+  ID(dpopm); SCR(rdst); S2CR(rdst + rnum); F_____;
+
+/** 0111 0101 1011 0000 rdst rnum	dpushm.d	%1-%2 */
+  ID(dpushm); SDR(rdst); S2DR(rdst + rnum); F_____;
+
+/** 0111 0101 1010 0000 rdst rnum	dpushm.l	%1-%2 */
+  ID(dpushm); SCR(rdst); S2CR(rdst + rnum); F_____;
+
+/** 1111 1101 0111 0101 1000 rdst rsrc 0100	mvfdc	%1, %0 */
+  ID(mvfdc); DR(rdst); SCR(rsrc); F_____;
+
+/** 0111 0101 1001 0000 0001 1011	mvfdr */
+  ID(mvfdr); F_____;
+
+/** 1111 1101 0111 0111 1000 rdst rsrc 0100	mvtdc	%1, %0 */
+  ID(mvtdc); DCR(rdst); SR(rsrc); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1100 rdst 0001	dabs	%1, %0 */
+  ID(dabs); DDR(rdst); SDR(rsrc); F_____;
+
+/** 0111 0110 1001 0000 srcb 0000 rdst srca	dadd	%1, %2, %0 */
+  ID(dadd); DDR(rdst); SDR(srca); S2DR(srcb); F_____;
+
+/** 0111 0110 1001 0000 srcb 1000 cond srca	dcmp%0	%1, %2 */
+  ID(dcmp); DCND(cond); SDR(srca); S2DR(srcb); F_____;
+
+/** 0111 0110 1001 0000 srcb 0101 rdst srca	ddiv	%1, %2, %0 */
+  ID(ddiv); DDR(rdst); SDR(srca); S2DR(srcb); F_____;
+
+/** 0111 0110 1001 0000 srcb 0010 rdst srca	dmul	%1, %2, %0 */
+  ID(dmul); DDR(rdst); SDR(srca); S2DR(srcb); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1100 rdst 0010	dneg	%1, %0 */
+  ID(dneg); DDR(rdst); SDR(rsrc); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1101 rdst 1101	dround	%1, %0 */
+  ID(dround); DDR(rdst); SDR(rsrc); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1101 rdst 0000	dsqrt	%1, %0 */
+  ID(dsqrt); DDR(rdst); SDR(rsrc); F_____;
+
+/** 0111 0110 1001 0000 srcb 0001 rdst srca	dsub	%1, %2, %0 */
+  ID(dsub); DDR(rdst); SDR(srca); S2DR(srcb); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1101 rdst 1100	dtof	%1, %0 */
+  ID(dtof); DDR(rdst); SDR(rsrc); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1101 rdst 1000	dtoi	%1, %0 */
+  ID(dtoi); DDR(rdst); SDR(rsrc); F_____;
+
+/** 0111 0110 1001 0000 rsrc 1101 rdst 1001	dtou	%1, %0 */
+  ID(dtou); DDR(rdst); SDR(rsrc); F_____;
+
+/** 1111 1101 0111 0111 1000 rsrc rdst 1010	ftod	%1, %0 */
+  ID(ftod); DDR(rdst); SR(rsrc); F_____;
+
+/** 1111 1101 0111 0111 1000 rsrc rdst 1001	itod	%1, %0 */
+  ID(itod); DDR(rdst); SR(rsrc); F_____;
+
+/** 1111 1101 0111 0111 1000 rsrc rdst 1101	utod	%1, %0 */
+  ID(dsqrt); DDR(rdst); SR(rsrc); F_____;
+
+/** */
+
+  return rx->n_bytes;
+}

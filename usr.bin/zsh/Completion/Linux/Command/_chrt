@@ -1,0 +1,68 @@
+#compdef chrt
+
+local curcontext="$curcontext" cmd="$words[1]" ret=1
+local -a state line expl
+typeset -A opt_args
+
+_arguments -C -s -S -A "-*" \
+  '(H -a --all-tasks)'{-a,--all-tasks}'[operate on all tasks (threads) for a given pid]' \
+  '(H)'{-v,--verbose}'[display status information]' \
+  '(H)'{-p,--pid}'[interpret args as process ID]' \
+  '(H -R --reset-on-fork -b --batch -d --deadline -i --idle -o --other)'{-R,--reset-on-fork}'[set SCHED_RESET_ON_FORK for FIFO or RR]' \
+  '(H)*::command or priority:->cmd_or_prio' \
+  + 'H' \
+  '(* -)'{-m,--max}'[show minimum and maximum valid priorities, then exit]' \
+  '(* -)'{-h,--help}'[display usage information]' \
+  '(* -)'{-V,--version}'[output version information]' \
+  + 'dline' \
+  '(H -T --sched-runtime -b --batch -f --fifo -i --idle -o --other -r --rr)'{-T,--sched-runtime}'[runtime parameter for DEADLINE]' \
+  '(H -P --sched-period -b --batch -f --fifo -i --idle -o --other -r --rr)'{-P,--sched-period}'[period parameter for DEADLINE]' \
+  '(H -D --sched-deadline -b --batch -f --fifo -i --idle -o --other -r --rr)'{-D,--sched-deadline}'[deadline parameter for DEADLINE]' \
+  + '(policy)' \
+  '(H dline -R --reset-on-fork)'{-b,--batch}'[set scheduling policy to SCHED_BATCH]' \
+  '(H -R --reset-on-fork)'{-d,--deadline}'[set scheduling policy to SCHED_DEADLINE]' \
+  '(H dline)'{-f,--fifo}'[set scheduling policy to SCHED_FIFO]' \
+  '(H dline -R --reset-on-fork)'{-i,--idle}'[set scheduling policy to SCHED_IDLE]' \
+  '(H dline -R --reset-on-fork)'{-o,--other}'[set scheduling policy to SCHED_OTHER]' \
+  '(H dline)'{-r,--rr}'[set scheduling policy to SCHED_RR (default)]' && ret=0
+
+_chrt_priority()
+{
+  local ty
+  [[ -prefix - ]] && return 1
+  if (( $+opt_args[policy--b] || $+opt_args[policy---batch] )); then
+    ty=BATCH
+  elif (( $+opt_args[policy--f] || $+opt_args[policy---fifo] )); then
+    ty=FIFO
+  elif (( $+opt_args[policy--o] || $+opt_args[policy---other] )); then
+    ty=OTHER
+  else
+    ty=RR
+  fi
+  local range
+  range=${${(M)${(f)"$(_call_program priorities $cmd --max)"}:#*_${ty}*}#*: }
+  if [[ $range = 0/0 ]]; then
+    _wanted priorites expl 'priority' compadd 0
+  else
+    _message -e priorities "priority (range $range)"
+  fi
+}
+
+if (( $+opt_args[-p] || $+opt_args[--pid] ))
+then
+  if (( CURRENT == 1 )); then
+    _alternative \
+      'priority:priority:_chrt_priority' \
+      'processes:process IDs:_pids' && ret=0
+  else
+    _pids && ret=0
+  fi
+elif (( CURRENT == 1 )); then
+  _chrt_priority && ret=0
+else
+  shift words
+  (( CURRENT-- ))
+  _normal && ret=0
+fi
+
+return ret

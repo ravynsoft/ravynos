@@ -1,0 +1,4 @@
+echo "warning: several of these tests will fail if arrays have not" >&2
+echo "warning: been compiled into the shell." >&2
+${THIS_SH} ./nquote2.tests 2>&1 | grep -v '^expect' > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} nquote2.right && rm -f ${BASH_TSTOUT}

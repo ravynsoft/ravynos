@@ -1,0 +1,86 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Issues with CTLESC characters in array subscripts and values. Bash-5.1 and
+# earlier didn't quote them correctly and therefore halved the number of
+# CTLESCs.
+
+declare -a var
+var=( $'\x01\x01\x01\x01' )
+declare -p var
+declare -A v2
+v2=( $'\x01' ab$'\x01'c )
+declare -p v2
+
+pv()
+{
+	local -a foo
+	foo=( "${var[@]}" )
+	declare -p foo
+}
+pv
+
+unset -f pv
+pv()
+{
+        local -A foo
+        eval foo=\( "${v2[@]@k}" \)
+        declare -p foo
+}
+pv
+
+# these are wrong through bash-5.1; there is a fix tagged for bash-5.2
+# when I uncomment that fix, these results will reflect it
+
+pv1()
+{
+	local -a foo=( "${var[@]}" )
+	declare -p foo
+}
+pv1
+
+pv2()
+{
+	local -a foo=( [0]="${var[@]}" )
+	declare -p foo
+}
+pv2
+
+pv3()
+{
+	local -A foo=( v "${var[@]}" )
+	declare -p foo
+}
+pv3
+
+pv4()
+{
+	local -A foo=( [v]="${var[@]}" )
+	declare -p foo
+}
+pv4
+
+unset -f pv3 pv4
+pv3()
+{
+	local -A foo=( $'\x01' "${v2[@]}" )
+	declare -p foo
+}
+pv3
+
+pv4()
+{
+	local -A foo=( [$'\x01']="${v2[@]}" )
+	declare -p foo
+}
+pv4

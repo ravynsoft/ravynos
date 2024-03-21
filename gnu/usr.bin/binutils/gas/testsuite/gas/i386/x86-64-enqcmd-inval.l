@@ -1,0 +1,13 @@
+.* Assembler messages:
+.*6: Error: invalid register operand size for `enqcmd'
+.*7: Error: invalid register operand size for `enqcmd'
+.*8: Error: invalid register operand size for `enqcmd'
+.*9: Error: invalid register operand size for `enqcmd'
+.*10: Error: invalid register operand size for `enqcmds'
+.*11: Error: invalid register operand size for `enqcmds'
+.*12: Error: invalid register operand size for `enqcmds'
+.*13: Error: invalid register operand size for `enqcmds'
+.*16: Error: invalid register operand size for `enqcmd'
+.*17: Error: invalid register operand size for `enqcmd'
+.*18: Error: invalid register operand size for `enqcmds'
+.*19: Error: invalid register operand size for `enqcmds'

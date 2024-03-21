@@ -298,7 +298,12 @@ main(int argc, char *const *argv)
 			launchd_syslog(LOG_DEBUG, "Our audit session ID is %i", launchd_audit_session);
 		}
 
+#ifdef notyet
+                // FIXME: This started triggering signal 12 which kills
+                // child launchd before they start as of FreeBSD 15
+                // Removing it for now since auditing is not currently used
 		launchd_audit_port = _audit_session_self();
+#endif
 #if 0
 		vproc_transaction_begin(NULL);
 		vproc_transaction_end(NULL, NULL);

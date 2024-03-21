@@ -1,0 +1,54 @@
+#compdef vpnc vpnc-connect
+
+local ign
+
+(( $#words > 2 )) && ign='!'
+_arguments \
+  "${ign}(- : *)--version[display version information]" \
+  "${ign}(- : *)--"{,long-}'help[display usage information]' \
+  '--gateway=[specify IP/name of IPSec gateway]: :_hosts' \
+  '--id=[specify group name]: :_groups' \
+  '--username=[specify username]: :_users' \
+  '--domain=[specify domain name for authentication]: :_domains' \
+  '--xauth-inter[enable interactive extended authentication]' \
+  '--vendor=[specify IPSec gateway vendor]:vendor:(cisco netscreen)' \
+  '--natt-mode=[specify NAT-Traversal method to use]:NAT-traversal method [natt]:((
+      natt\:NAT-T\ as\ defined\ in\ RFC3947
+      none\:disable\ use\ of\ any\ NAT-T\ method
+      force-natt\:always\ use\ NAT-T\ encapsulation\ even\ without\ presence\ of\ a\ NAT\ device
+      cisco-udp\:Cisco\ proprietary\ UDP\ encapsulation,\ commonly\ over\ port\ 10000
+  ))' \
+  '--script=[specify command executed using system() to configure the interface, routing and so on]: : _command_names -e' \
+  '--dh=[specify the IKE DH group]:group:(dh1 dh2 dh5)' \
+  '--pfs=[specify Diffie-Hellman group to use for PFS]:group:(nopfs dh1 dh2 dh5 server)' \
+  '--enable-1des[enable weak single DES encryption]' \
+  '--enable-no-encryption[use no encryption for data traffic (key exchange still encrypted)]' \
+  '--application-version=[specify application version to report]:application version' \
+  '--ifname=[specify visible name of the TUN/TAP interface]:interface name' \
+  '--ifmode=[specify mode of TUN/TAP interface]:mode [tun]:(tun tap)' \
+  '--ifmtu=[set MTU for TUN/TAP device]:MTU (0-65535) [0 - automatic]' \
+  "--debug[show verbose debug messages]:debug information:((
+      0\:don\'t\ print\ debug\ information
+      1\:print\ minimal\ debug\ information
+      2\:show\ state\ machine\ and\ packet/payload\ type\ information
+      3\:dump\ everything\ excluding\ authentication\ data
+      99\:dump\ everything\ including\ authentication\ data\ \(e.g.\ passwords\)
+  ))" \
+  "--no-detach[don't detach from the console after login]" \
+  '--pid-file=[store the pid of background process in specified file]:pid file:_files' \
+  '--local-addr=[specify local IP to use for ISAKMP/ESP/...]: :_hosts' \
+  '--local-port=[specify local ISAKMP port number to use]:ISAKMP port number (0-65535) [500]' \
+  '--udp-port=[specify local UDP port number to use]:udp port (0-65535) [10000]' \
+  '--dpd-idle=[send DPD packet after not receiving anything for specified time]:timeout (seconds) [600]' \
+  "--non-inter[don't ask anything, exit on missing options]" \
+  '--auth-mode=[specify authentication mode]:authentication mode [psk]:((
+    psk\:pre-shared\ key
+    cert\:server\ +\ client\ certificate
+    hybrid\:server\ certificate\ +\ xauth
+  ))' \
+  '--ca-file=[specify CA-PEM-File]:CA-PEM file:_files -g "*.pem(-.)"' \
+  '--ca-dir=[specify trusted CA-Directory]:CA directory:_files -/' \
+  '--target-network=[specify target network]:network/netmask' \
+  '--password-helper=[specify password helper executable]: : _command_names -e' \
+  '--print-config[print configuration in form that can be used as vpnc.conf]' \
+  '*:configuration [default]:compadd - /etc/vpnc/*.conf(N:t:r)'

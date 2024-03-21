@@ -28,7 +28,6 @@
  * Copyright (c) 2009 Alexander Motin <mav@FreeBSD.org>
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 
 #ifdef _KERNEL
@@ -438,8 +437,9 @@ ndaioctl(struct disk *dp, u_long cmd, void *data, int fflag,
 		 * Tear down mapping and return status.
 		 */
 		cam_periph_unlock(periph);
-		cam_periph_unmapmem(ccb, &mapinfo);
-		error = cam_ccb_success(ccb) ? 0 : EIO;
+		error = cam_periph_unmapmem(ccb, &mapinfo);
+		if (!cam_ccb_success(ccb))
+			error = EIO;
 out:
 		cam_periph_lock(periph);
 		xpt_release_ccb(ccb);
@@ -811,7 +811,7 @@ ndaflagssysctl(SYSCTL_HANDLER_ARGS)
 	if (softc->flags != 0)
 		sbuf_printf(&sbuf, "0x%b", (unsigned)softc->flags, NDA_FLAG_STRING);
 	else
-		sbuf_printf(&sbuf, "0");
+		sbuf_putc(&sbuf, '0');
 	error = sbuf_finish(&sbuf);
 	sbuf_delete(&sbuf);
 

@@ -1,0 +1,17 @@
+#autoload
+
+if (( CURRENT == 1 && ${#words} == 1 )); then
+  # Heuristics to decide whether to complete for system() or for execl().
+  local space=' '
+  if (( ${${words[CURRENT]}[(I)$space]} )); then
+    _cmdstring
+  elif [[ ${${compstate[all_quotes]}[1]} == (\'|\") ]]; then
+    _cmdstring
+  else
+    _command_names -e
+  fi
+elif (( CURRENT == 1 )); then
+  _command_names -e
+else
+  _normal
+fi

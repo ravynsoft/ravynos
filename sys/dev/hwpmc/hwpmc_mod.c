@@ -31,7 +31,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/domainset.h>
@@ -3349,7 +3348,8 @@ pmc_do_op_pmcallocate(struct thread *td, struct pmc_op_pmcallocate *pa)
 	 * Look for valid values for 'pm_flags'.
 	 */
 	if ((flags & ~(PMC_F_DESCENDANTS | PMC_F_LOG_PROCCSW |
-	    PMC_F_LOG_PROCEXIT | PMC_F_CALLCHAIN | PMC_F_USERCALLCHAIN)) != 0)
+	    PMC_F_LOG_PROCEXIT | PMC_F_CALLCHAIN | PMC_F_USERCALLCHAIN |
+	    PMC_F_EV_PMU)) != 0)
 		return (EINVAL);
 
 	/* PMC_F_USERCALLCHAIN is only valid with PMC_F_CALLCHAIN. */

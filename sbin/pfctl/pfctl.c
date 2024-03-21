@@ -233,7 +233,7 @@ static const char * const clearopt_list[] = {
 static const char * const showopt_list[] = {
 	"ether", "nat", "queue", "rules", "Anchors", "Sources", "states",
 	"info", "Interfaces", "labels", "timeouts", "memory", "Tables",
-	"osfp", "Running", "all", NULL
+	"osfp", "Running", "all", "creatorids", NULL
 };
 
 static const char * const tblcmdopt_list[] = {
@@ -310,10 +310,12 @@ pfctl_proto2name(int proto)
 int
 pfctl_enable(int dev, int opts)
 {
-	if (ioctl(dev, DIOCSTART)) {
-		if (errno == EEXIST)
+	int ret;
+
+	if ((ret = pfctl_startstop(1)) != 0) {
+		if (ret == EEXIST)
 			errx(1, "pf already enabled");
-		else if (errno == ESRCH)
+		else if (ret == ESRCH)
 			errx(1, "pfil registeration failed");
 		else
 			err(1, "DIOCSTART");
@@ -331,8 +333,10 @@ pfctl_enable(int dev, int opts)
 int
 pfctl_disable(int dev, int opts)
 {
-	if (ioctl(dev, DIOCSTOP)) {
-		if (errno == ENOENT)
+	int ret;
+
+	if ((ret = pfctl_startstop(0)) != 0) {
+		if (ret == ENOENT)
 			errx(1, "pf not enabled");
 		else
 			err(1, "DIOCSTOP");
@@ -720,6 +724,12 @@ pfctl_net_kill_states(int dev, const char *iface, int opts)
 	if (iface != NULL && strlcpy(kill.ifname, iface,
 	    sizeof(kill.ifname)) >= sizeof(kill.ifname))
 		errx(1, "invalid interface: %s", iface);
+
+	if (state_killers == 2 && (strcmp(state_kill[0], "nat") == 0)) {
+		kill.nat = true;
+		state_kill[0] = state_kill[1];
+		state_killers = 1;
+	}
 
 	pfctl_addrprefix(state_kill[0], &kill.src.addr.v.a.mask);
 
@@ -1357,6 +1367,14 @@ pfctl_show_rules(int dev, char *path, int opts, enum pfctl_show format,
 				    (unsigned long long)rule.bytes[1],
 				    (uintmax_t)rule.states_tot);
 			}
+
+			if (anchor_call[0] &&
+			    (((p = strrchr(anchor_call, '/')) ?
+			      p[1] == '_' : anchor_call[0] == '_') ||
+			     opts & PF_OPT_RECURSE)) {
+				pfctl_show_rules(dev, npath, opts, format,
+				    anchor_call, depth, rule.anchor_wildcard);
+			}
 			break;
 		}
 		case PFCTL_SHOW_RULES:
@@ -1514,29 +1532,41 @@ done:
 	return (0);
 }
 
+struct pfctl_show_state_arg {
+	int opts;
+	int dotitle;
+	const char *iface;
+};
+
+static int
+pfctl_show_state(struct pfctl_state *s, void *arg)
+{
+	struct pfctl_show_state_arg *a = (struct pfctl_show_state_arg *)arg;
+
+	if (a->dotitle) {
+		pfctl_print_title("STATES:");
+		a->dotitle = 0;
+	}
+	print_state(s, a->opts);
+
+	return (0);
+}
+
 int
 pfctl_show_states(int dev, const char *iface, int opts)
 {
-	struct pfctl_states states;
-	struct pfctl_state *s;
-	int dotitle = (opts & PF_OPT_SHOWALL);
+	struct pfctl_show_state_arg arg;
+	struct pfctl_state_filter filter = {};
 
-	memset(&states, 0, sizeof(states));
+	if (iface != NULL)
+		strncpy(filter.ifname, iface, IFNAMSIZ);
 
-	if (pfctl_get_states(dev, &states))
+	arg.opts = opts;
+	arg.dotitle = opts & PF_OPT_SHOWALL;
+	arg.iface = iface;
+
+	if (pfctl_get_filtered_states_iter(&filter, pfctl_show_state, &arg))
 		return (-1);
-
-	TAILQ_FOREACH(s, &states.states, entry) {
-		if (iface != NULL && strcmp(s->ifname, iface))
-			continue;
-		if (dotitle) {
-			pfctl_print_title("STATES:");
-			dotitle = 0;
-		}
-		print_state(s, opts);
-	}
-
-	pfctl_free_states(&states);
 
 	return (0);
 }
@@ -1626,6 +1656,22 @@ pfctl_show_limits(int dev, int opts)
 			printf("hard limit %8u\n", pl.limit);
 	}
 	return (0);
+}
+
+void
+pfctl_show_creators(int opts)
+{
+	int ret;
+	uint32_t creators[16];
+	size_t count = nitems(creators);
+
+	ret = pfctl_get_creatorids(creators, &count);
+	if (ret != 0)
+		errx(ret, "Failed to retrieve creators");
+
+	printf("Creator IDs:\n");
+	for (size_t i = 0; i < count; i++)
+		printf("%08x\n", creators[i]);
 }
 
 /* callbacks for rule/nat/rdr/addr */
@@ -2234,6 +2280,11 @@ pfctl_init_options(struct pfctl *pf)
 	pf->timeout[PFTM_TCP_CLOSING] = PFTM_TCP_CLOSING_VAL;
 	pf->timeout[PFTM_TCP_FIN_WAIT] = PFTM_TCP_FIN_WAIT_VAL;
 	pf->timeout[PFTM_TCP_CLOSED] = PFTM_TCP_CLOSED_VAL;
+	pf->timeout[PFTM_SCTP_FIRST_PACKET] = PFTM_TCP_FIRST_PACKET_VAL;
+	pf->timeout[PFTM_SCTP_OPENING] = PFTM_TCP_OPENING_VAL;
+	pf->timeout[PFTM_SCTP_ESTABLISHED] = PFTM_TCP_ESTABLISHED_VAL;
+	pf->timeout[PFTM_SCTP_CLOSING] = PFTM_TCP_CLOSING_VAL;
+	pf->timeout[PFTM_SCTP_CLOSED] = PFTM_TCP_CLOSED_VAL;
 	pf->timeout[PFTM_UDP_FIRST_PACKET] = PFTM_UDP_FIRST_PACKET_VAL;
 	pf->timeout[PFTM_UDP_SINGLE] = PFTM_UDP_SINGLE_VAL;
 	pf->timeout[PFTM_UDP_MULTIPLE] = PFTM_UDP_MULTIPLE_VAL;
@@ -3109,6 +3160,9 @@ main(int argc, char *argv[])
 			break;
 		case 'I':
 			pfctl_show_ifaces(ifaceopt, opts);
+			break;
+		case 'c':
+			pfctl_show_creators(opts);
 			break;
 		}
 	}

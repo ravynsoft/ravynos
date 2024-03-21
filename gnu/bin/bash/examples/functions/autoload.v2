@@ -1,0 +1,192 @@
+#
+# An almost ksh-compatible `autoload'.  A function declared as `autoload' will
+# be read in from a file the same name as the function found by searching the
+# $FPATH (which works the same as $PATH), then that definition will be run.
+#
+# To do this without source support, we define a dummy function that, when
+# executed, will load the file (thereby re-defining the function), then 
+# execute that newly-redefined function with the original arguments.
+#
+# It's not identical to ksh because ksh apparently does lazy evaluation
+# and looks for the file to load from only when the function is referenced.
+# This one requires that the file exist when the function is declared as
+# `autoload'.
+#
+# usage: autoload [-pu] [func ...]
+#
+# options:
+#	-p	print in a format that can be reused as input
+#	-u	unset each function and remove it from the autoload list
+#
+# The first cut of this was by Bill Trost, trost@reed.edu
+#
+# Chet Ramey
+# chet@ins.CWRU.Edu
+
+unset _AUTOLOADS
+_aindex=0
+
+#
+# Declare a function ($1) to be autoloaded from a file ($2) when it is first
+# called.  This defines a `temporary' function that will `.' the file 
+# containing the real function definition, then execute that new definition with
+# the arguments given to this `fake' function.  The autoload function defined
+# by the file and the file itself *must* be named identically.
+#
+
+_aload()
+{
+	eval $1 '() {  . '$2' ; '$1' "$@" ; return $? ; }'
+	_autoload_addlist "$1"
+}
+
+_autoload_addlist()
+{
+	local i=0
+
+	while (( i < $_aindex )); do
+		case "${_AUTOLOADS[i]}" in
+		"$1")	return 1 ;;
+		esac
+		(( i += 1 ))
+	done
+	_AUTOLOADS[_aindex]="$1"
+	(( _aindex += 1 ))
+	return 0
+}
+
+_autoload_dump()
+{
+	local func
+
+	for func in ${_AUTOLOADS[@]}; do
+		[ -n "$1" ] && echo -n "autoload "
+		echo "$func"
+	done
+}
+
+# Remove $1 from the list of autoloaded functions
+_autoload_remove_one()
+{
+	local i=0 nnl=0
+	local -a nlist
+
+	while (( i < _aindex )); do
+		case "${_AUTOLOADS[i]}" in
+		"$1")	;;
+		*)	nlist[nnl]="${_AUTOLOADS[i]}" ; (( nnl += 1 ));;
+		esac
+		(( i += 1 ))
+	done
+	unset _AUTOLOADS _aindex
+	eval _AUTOLOADS=( ${nlist[@]} )
+	_aindex=$nnl
+}
+
+# Remove all function arguments from the list of autoloaded functions
+_autoload_remove()
+{
+	local func i es=0
+	
+	# first unset the autoloaded functions
+	for func; do
+		i=0
+		while (( i < _aindex )); do
+			case "${_AUTOLOADS[i]}" in
+			"$func")	unset -f $func ; break ;;
+			esac
+			(( i += 1 ))
+		done
+		if (( i == _aindex )); then
+			echo "autoload: $func: not an autoloaded function" >&2
+			es=1
+		fi
+	done
+
+	# then rebuild the list of autoloaded functions
+	for func ; do
+		_autoload_remove_one "$func"
+	done
+
+	return $es
+}
+
+#
+# Search $FPATH for a file the same name as the function given as $1, and
+# autoload the function from that file.  There is no default $FPATH.
+#
+
+autoload()
+{
+	local -a fp
+	local _autoload_unset nfp i
+
+	if (( $# == 0 )) ; then
+		_autoload_dump
+		return 0
+	fi
+
+	OPTIND=1
+	while getopts pu opt
+	do
+		case "$opt" in
+		p)	_autoload_dump printable; return 0;;
+		u)	_autoload_unset=y ;;
+		*)	echo "autoload: usage: autoload [-pu] [function ...]" >&2
+			return 1 ;;
+		esac
+	done
+
+	shift $(( $OPTIND - 1 ))
+
+	if [ -n "$_autoload_unset" ]; then
+		_autoload_remove "$@"
+		return $?
+	fi
+
+	#
+	# If there is no $FPATH, there is no work to be done
+	#
+
+	if [ -z "$FPATH" ] ; then
+		echo "autoload: FPATH not set or null" >&2
+		return 1
+	fi
+
+	#
+	# This treats FPATH exactly like PATH: a null field anywhere in the
+	# FPATH is treated the same as the current directory.
+	#
+	# This turns $FPATH into an array, substituting `.' for `'
+	#
+	eval fp=( $(
+			IFS=':'
+			set -- ${FPATH}
+			for p in "$@" ; do echo -n "${p:-.} "; done
+		   )
+		)
+
+	nfp=${#fp[@]}
+
+	for FUNC ; do
+		i=0;
+		while (( i < nfp )) ; do
+			if [ -f ${fp[i]}/$FUNC ] ; then
+				break			# found it! 
+			fi
+			(( i += 1 ))
+		done
+
+		if (( i == nfp )) ; then
+			echo "autoload: $FUNC: autoload function not found" >&2
+			es=1
+			continue
+		fi
+
+#		echo auto-loading $FUNC from ${fp[i]}/$FUNC
+		_aload $FUNC ${fp[i]}/$FUNC
+		es=0
+	done
+
+	return $es
+}

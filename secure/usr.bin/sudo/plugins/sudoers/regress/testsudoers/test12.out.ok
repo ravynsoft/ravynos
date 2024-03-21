@@ -1,0 +1,18 @@
+Testing sudoers with multiple syntax errors
+
+sudoers:1:20: syntax error
+User_Alias A1 = u1 u2 : A2 = u3, u4
+                   ^~
+sudoers:3:26: syntax error
+millert ALL = /fail : foo
+                         ^
+sudoers:5:16: syntax error
+root ALL = ALL bar
+               ^~~
+sudoers:7:12: expected a fully-qualified path name
+root ALL = baz
+           ^~~
+
+User_Alias A1 = u1
+
+millert ALL = /fail

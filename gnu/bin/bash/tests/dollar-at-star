@@ -1,0 +1,332 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# first, let's start with the basics
+
+recho "$@"
+recho "$*"
+
+recho $@
+recho $*
+
+foo=$*
+foo=$@
+
+foo="$*"
+foo="$@"
+
+unset -v bar
+
+foo=${bar:-$*}
+foo=${bar:-$@}
+
+foo=${bar:-"$*"}
+foo=${bar:-"$@"}
+
+foo=${!*}
+foo=${!@}
+
+set a b
+
+recho "$*"
+
+# If IFS is null, the parameters are joined without separators
+IFS=''
+recho "$*"
+
+# If IFS is unset, the parameters are separated by spaces
+unset IFS
+recho "${*}"
+
+recho "$@"
+recho $@
+
+IFS='/'
+set bob 'tom dick harry' joe
+set $*
+recho $#
+recho $1
+recho $2
+recho $3
+
+set bob 'tom dick harry' joe
+set ${*}
+recho $#
+recho $1
+recho $2
+recho $3
+
+set bob 'tom dick harry' joe
+set $@
+recho $#
+recho $1
+recho $2
+recho $3
+
+set bob 'tom dick harry' joe
+set ${@}
+recho $#
+recho $1
+recho $2
+recho $3
+
+# according to POSIX.2, unquoted $* should expand to multiple words if
+# $IFS is null, just like unquoted $@
+IFS=''
+set bob 'tom dick harry' joe
+set $*
+recho $#
+recho $1
+recho $2
+recho $3
+
+set bob 'tom dick harry' joe
+set $@
+recho $#
+recho $1
+recho $2
+recho $3
+
+# if IFS is unset, the individual positional parameters are split on
+# " \t\n" if $* or $@ are unquoted
+unset IFS
+set bob 'tom dick harry' joe
+set $*
+recho $#
+recho $1
+recho $2
+recho $3
+
+set bob 'tom dick harry' joe
+set $@  
+recho $#                                              
+recho $1
+recho $2
+recho $3
+
+# but not for "$@" or "$*"
+set bob 'tom dick harry' joe
+set "$*"
+recho $#
+recho $1
+recho $2
+recho $3
+
+set bob 'tom dick harry' joe
+set "$@"
+recho $#
+recho $1
+recho $2
+recho $3
+
+# POSIX.2 says these should both expand the positional parameters
+# to multiple words
+set a b c d e
+IFS=""
+recho $@
+recho "$@"
+
+# this example is straight from the POSIX.2 rationale
+set foo bar bam
+
+recho "$@"
+recho "$*"
+
+unset IFS
+
+recho "$@"
+recho $@
+recho "$*"
+
+IFS=:
+
+# special variables
+set -- 1 2 3 4 5 6 7 8 9 10
+
+bar=${*}
+foo=$*
+echo foo = "$foo"
+echo bar = "$bar"
+
+foo1=$@
+bar1=${@}
+
+echo foo1 = "$foo1"
+echo bar1 = "$bar1"
+
+foo2="$*"
+bar2="${*}"
+
+echo foo2 = "$foo2"
+echo bar2 = "$bar2"
+
+eval foo3='$*' bar3='${*}'
+echo foo3 = "$foo3"
+echo bar3 = "$bar3"
+
+case $* in
+*\:*)	echo ok 1;;
+*)	echo bad 1;;
+esac
+
+case $@ in
+*\:*)	echo bad 2;;
+*)	echo ok 2;;
+esac
+
+case "$*" in
+*\:*)	echo ok 3;;
+*)	echo bad 3;;
+esac
+
+case "$@" in
+*\:*)	echo bad 4;;
+*)	echo ok 4;;
+esac
+
+IFS=$' \t\n'
+
+bar=${*}
+foo=$*
+echo foo = "$foo"
+echo bar = "$bar"
+
+foo1=$@
+bar1=${@}
+
+echo foo1 = "$foo1"
+echo bar1 = "$bar1"
+
+foo2="$*"
+bar2="${*}"
+
+echo foo2 = "$foo2"
+echo bar2 = "$bar2"
+
+eval foo3='$*' bar3='${*}'
+echo foo3 = "$foo3"
+echo bar3 = "$bar3"
+
+case $* in
+*\ *)	echo ok 1;;
+*)	echo bad 1;;
+esac
+
+case $@ in
+*\ *)	echo ok 2;;
+*)	echo bad 2;;
+esac
+
+case "$*" in
+*\ *)	echo ok 3;;
+*)	echo bad 3;;
+esac
+
+case "$@" in
+*\ *)	echo ok 4;;
+*)	echo bad 4;;
+esac
+
+# tests for the effect of quoting $* and $@ in an assignment context (plus
+# arrays) -- bugs through bash 4.2
+${THIS_SH} ./dollar-at-star1.sub
+
+# more tests for expanding $@ and $* in a context where there is no word
+# splitting
+${THIS_SH} ./dollar-at-star2.sub
+${THIS_SH} ./dollar-at-star3.sub
+${THIS_SH} ./dollar-at-star4.sub
+${THIS_SH} ./dollar-at-star5.sub
+${THIS_SH} ./dollar-at-star6.sub
+${THIS_SH} ./dollar-at-star7.sub
+
+# tests for expansions of $@ and ${a[@]} (vs. $* and ${a[*]}) on the RHS of
+# assignment statements with non-default IFS: $@ expands to args or array
+# members separated by spaces
+${THIS_SH} ./dollar-at-star8.sub
+
+# more tests of the expansions of $@ and $* (and their array equivalents)
+# with different values for IFS
+${THIS_SH} ./dollar-at-star9.sub
+
+# tests for expansions of "$*" and "$@" and their array equivalents when $1 == ''
+# and we're using the POSIX word expansions
+${THIS_SH} ./dollar-at-star10.sub
+${THIS_SH} ./dollar-at-star11.sub
+
+# tests for special expansion of "$*" and "${array[*]}" when used with other
+# expansions -- bugs through bash-2.05b
+${THIS_SH} ./dollar-star1.sub
+
+# tests for expansion of "$@" on rhs of things like ${param:+word}.  Bugs
+# though bash-2.05b
+${THIS_SH} ./dollar-at1.sub
+
+# tests for expansion of other variables in double-quoted strings containing
+# $@.  Bugs through bash-2.05b
+${THIS_SH} ./dollar-at2.sub
+
+# tests for various expansions of $* in different contexts -- word split,
+# no splitting, etc. when $IFS is NUL
+${THIS_SH} ./dollar-star2.sub
+
+# tests for expansions of "${array[*]}" and "${array[@]}" when $IFS is not the
+# default and the array contains null elements
+${THIS_SH} ./dollar-star3.sub
+
+# test for set -u and expansions of $@ when there are no positional parameters
+${THIS_SH} ./dollar-at3.sub
+# test for set -u and expansions of $* when there are no positional parameters
+${THIS_SH} ./dollar-star4.sub
+
+# tests for expansions of $* when IFS is null
+${THIS_SH} ./dollar-star5.sub
+
+# tests for inappropriate word splitting through bash-4.2
+${THIS_SH} ./dollar-at4.sub
+
+# tests for problems with "$@" preceded and followed by other quoted expansions
+# through bash-4.2
+${THIS_SH} ./dollar-at5.sub
+
+# tests for problems with "${@:1}" and other expansions with null entries
+# in positional parameters
+${THIS_SH} ./dollar-at6.sub
+
+# tests for expansions of $* when $1 == ""; problem through bash-4.2
+${THIS_SH} ./dollar-star6.sub
+
+# tests for expansions of $* (unquoted) when IFS changes (e.g., ${IFS:=-})
+# problem through bash-4.2
+${THIS_SH} ./dollar-star7.sub
+
+# tests for expansions of $* (unquoted) when IFS is null and word splitting is
+# not going to be performed.
+# problem through bash-4.4 in some parameter expansion contexts
+${THIS_SH} ./dollar-star8.sub
+
+# tests for expansions of "$@" when there are no positional parameter or when
+# $1 == '' and the expansion is preceded by something that results in a quoted
+# null string
+${THIS_SH} ./dollar-at7.sub
+
+# tests for expansions of $* when in an assignment context (no splitting) and
+# IFS is null
+${THIS_SH} ./dollar-star9.sub
+
+# more tests for expansions of $* when not splitting with IFS set or unset and
+# null strings as the positional parameters
+${THIS_SH} ./dollar-star10.sub
+
+exit 0

@@ -1,0 +1,104 @@
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: command_timeout=2d8h10m59s
+
+dn: cn=user0,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user0
+sudoUser: user0
+sudoHost: ALL
+sudoOption: command_timeout=619830
+sudoCommand: /usr/bin/id
+sudoCommand: /usr/bin/who
+sudoCommand: /bin/ls
+sudoOrder: 1
+
+dn: cn=user1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user1
+sudoUser: user1
+sudoHost: ALL
+sudoOption: command_timeout=619830
+sudoCommand: /usr/bin/id
+sudoOrder: 2
+
+dn: cn=user2,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user2
+sudoUser: user2
+sudoHost: ALL
+sudoOption: command_timeout=15030
+sudoCommand: /usr/bin/id
+sudoOrder: 3
+
+dn: cn=user3,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user3
+sudoUser: user3
+sudoHost: ALL
+sudoOption: command_timeout=630
+sudoCommand: /usr/bin/id
+sudoOrder: 4
+
+dn: cn=user4,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user4
+sudoUser: user4
+sudoHost: ALL
+sudoOption: command_timeout=1209600
+sudoCommand: /usr/bin/id
+sudoOrder: 5
+
+dn: cn=user5,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user5
+sudoUser: user5
+sudoHost: ALL
+sudoOption: command_timeout=300
+sudoCommand: /usr/bin/id
+sudoOrder: 6
+
+dn: cn=user6,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user6
+sudoUser: user6
+sudoHost: ALL
+sudoOption: command_timeout=30
+sudoCommand: /usr/bin/id
+sudoOrder: 7
+
+dn: cn=user7,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user7
+sudoUser: user7
+sudoHost: ALL
+sudoOption: command_timeout=45
+sudoCommand: /usr/bin/id
+sudoOrder: 8
+
+dn: cn=user8,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user8
+sudoUser: user8
+sudoHost: ALL
+sudoOption: command_timeout=619830
+sudoCommand: /usr/bin/id
+sudoCommand: /usr/bin/id
+sudoCommand: /usr/bin/id
+sudoCommand: /usr/bin/id
+sudoCommand: /usr/bin/id
+sudoCommand: /usr/bin/id
+sudoOrder: 9
+

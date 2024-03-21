@@ -1,0 +1,7 @@
+#compdef curl
+
+# As of 7.43.0, curl upstream provides its own _curl definition.  This
+# definition is provided as a fallback, and should be installed later
+# in $fpath than the curl-provided definition of _curl.
+
+_gnu_generic || _urls "$@"

@@ -1,0 +1,24 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the -e (environment overrides) option";
+
+$ENV{GOOGLE} = 'boggle';
+
+run_make_test(q!
+GOOGLE = bazzle
+all:; @echo "$(GOOGLE)"
+!,
+              '-e', "boggle\n");
+
+# Ensure variables set on the command line have the origin correct
+# See SV 61218
+
+run_make_test(q!
+$(info FOO [$(origin FOO)]: $(value FOO))
+all: ;
+recurse: ; @$(MAKE) -f #MAKEFILE#
+!,
+              '-e --no-print-directory FOO=1 recurse',
+              "FOO [command line]: 1\nFOO [command line]: 1\n#MAKE#[1]: 'all' is up to date.");
+
+1;

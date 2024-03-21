@@ -1,0 +1,9 @@
+# try exec'ing a command that cannot be found in $PATH
+shopt -s execfail
+
+exec bash-notthere
+# make sure we're still around
+echo $?
+
+# now we need to go away, but this should echo 'this is ohio-state'
+exec -a ohio-state ${THIS_SH} -c 'echo this is $0'

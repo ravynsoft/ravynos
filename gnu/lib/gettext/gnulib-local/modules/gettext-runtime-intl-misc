@@ -1,0 +1,32 @@
+Description:
+
+Files:
+
+Depends-on:
+
+configure.ac:
+dnl Make sure LOCALENAME_ENHANCE_LOCALE_FUNCS gets initialized to 0 before,
+dnl not after, it has been set to 1 by gt_INTL_THREAD_LOCALE_NAME.
+AC_REQUIRE([gl_LOCALE_H_DEFAULTS])
+AC_REQUIRE([gt_INTL_THREAD_LOCALE_NAME])
+
+Makefile.am:
+# Parameterization of the 'relocatable-lib-lgpl' module.
+AM_CPPFLAGS += \
+  -DIN_LIBRARY -DINSTALLDIR=\"$(libdir)\" -DNO_XMALLOC -DBUILDING_DLL \
+  -Dset_relocation_prefix=libintl_set_relocation_prefix \
+  -DDEPENDS_ON_LIBICONV=1
+
+# Enable more warning options in this directory.
+AM_CFLAGS += @WARN_CFLAGS@
+
+# Support building libintl.a with -fPIC (needed by GCC).
+AM_CFLAGS += @PICFLAG@
+
+Include:
+
+License:
+LGPLv2+
+
+Maintainer:
+Bruno Haible

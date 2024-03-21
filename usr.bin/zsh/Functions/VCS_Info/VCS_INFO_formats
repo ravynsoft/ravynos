@@ -1,0 +1,106 @@
+## vim:ft=zsh
+## Written by Frank Terbeck <ft@bewatermyfriend.org>
+## Distributed under the same BSD-ish license as zsh itself.
+
+setopt localoptions noksharrays NO_shwordsplit
+local msg tmp
+local -i i
+local -A hook_com
+# The _origs are needed because hooks can change values and there would
+# be no way to get the originals back for later hooks (a hook is run for
+# each message, that's being created).
+hook_com=(
+    action        "$1"
+    action_orig   "$1"
+    branch        "$2"
+    branch_orig   "$2"
+    base          "$3"
+    base_orig     "$3"
+    staged        "$4"
+    staged_orig   "$4"
+    unstaged      "$5"
+    unstaged_orig "$5"
+    revision      "$6"
+    revision_orig "$6"
+    misc          "$7"
+    misc_orig     "$7"
+    vcs           "${vcs}"
+    vcs_orig      "${vcs}"
+)
+hook_com[base-name]="${${hook_com[base]}:t}"
+hook_com[base-name_orig]="${hook_com[base-name]}"
+hook_com[subdir]="$(VCS_INFO_reposub ${hook_com[base]})"
+hook_com[subdir_orig]="${hook_com[subdir]}"
+
+VCS_INFO_hook 'post-backend'
+
+## description (for backend authors):
+#   action:   a string that signals a certain non-default condition in the
+#             repository (like 'rebase-i' in git). If this in non-empty,
+#             the actionformats will be used, too.
+#   branch:   the name of the currently checked out branch.
+#   base:     the full name of the repository's root directory.
+#   staged:   non-empty if the repository contains staged changes.
+#   unstaged: non-empty if the repository contains unstaged changes.
+#   revision: an identifier of the currently checked out revision.
+#   misc:     a string that may contain anything the backend author likes.
+#
+# If an argument has no valid value for a given backend, an empty value
+# should be provided. eg:
+#   VCS_INFO_formats '' "${foobranch}" "${foobase}" '' '' '' "${foomisc}"
+
+## description (vcs_info internals):
+# This function is called by the backend with information about the repository,
+# and (after some manipulations) populates the ${msgs} variable in preparation
+# for calling VCS_INFO_set.
+
+if [[ -n ${hook_com[action]} ]] ; then
+    zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" actionformats msgs
+    (( ${#msgs} < 1 )) && msgs[1]=' (%s)-[%b|%a]%u%c-'
+else
+    zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" formats msgs
+    (( ${#msgs} < 1 )) && msgs[1]=' (%s)-[%b]%u%c-'
+fi
+
+if [[ -n ${hook_com[staged]} ]] ; then
+    zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" stagedstr tmp
+    [[ -z ${tmp} ]] && hook_com[staged]='S' || hook_com[staged]=${tmp}
+fi
+
+if [[ -n ${hook_com[unstaged]} ]] ; then
+    zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" unstagedstr tmp
+    [[ -z ${tmp} ]] && hook_com[unstaged]='U' || hook_com[unstaged]=${tmp}
+fi
+
+if [[ ${quiltmode} != 'standalone' ]] && VCS_INFO_hook "pre-addon-quilt"; then
+    local REPLY
+    VCS_INFO_quilt addon
+    hook_com[quilt]="${REPLY}"
+    unset REPLY
+elif [[ ${quiltmode} == 'standalone' ]]; then
+    hook_com[quilt]=${hook_com[misc]}
+fi
+
+(( ${#msgs} > maxexports )) && msgs[$(( maxexports + 1 )),-1]=()
+for i in {1..${#msgs}} ; do
+    if VCS_INFO_hook "set-message" $(( $i - 1 )) "${msgs[$i]}"; then
+        zformat -f msg ${msgs[$i]}                      \
+                        a:${hook_com[action]}           \
+                        b:${hook_com[branch]}           \
+                        c:${hook_com[staged]}           \
+                        i:${hook_com[revision]}         \
+                        m:${hook_com[misc]}             \
+                        r:${hook_com[base-name]}        \
+                        s:${hook_com[vcs]}              \
+                        u:${hook_com[unstaged]}         \
+                        Q:${hook_com[quilt]}            \
+                        R:${hook_com[base]}             \
+                        S:${hook_com[subdir]}
+        msgs[$i]=${msg}
+    else
+        msgs[$i]=${hook_com[message]}
+    fi
+done
+hook_com=()
+backend_misc=()
+return 0

@@ -1,0 +1,24 @@
+#compdef alias
+
+local curcontext="$curcontext" state line expl type suf
+typeset -A opt_args
+
+_arguments -C -s -A "-*" -S \
+  '(-r +r -s +s)-+g[list or define global aliases]' \
+  '(-g +g -s +s)-+r[list or define regular aliases]' \
+  '(-r +r -g +g)-+s[list or define suffix aliases]' \
+  '-+m[print aliases matching specified pattern]' \
+  '-L[print each alias in the form of calls to alias]' \
+  '*::alias definition:->defn'
+
+if [[ -n "$state" ]]; then
+  if compset -P 1 '*='; then
+    compset -q
+    _normal
+  else
+    compset -S '=*' || suf='='
+    type=( ${opt_args[(i)[-+][grs]]#?} )
+    (( $#type )) && type=( -s $type )
+    _wanted -x alias expl 'alias definition' _aliases -qS "$suf" "$type[@]"
+  fi
+fi

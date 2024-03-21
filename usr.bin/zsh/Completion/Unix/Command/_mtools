@@ -1,0 +1,156 @@
+#compdef mattrib mcopy mdel mdu mcd mdeltree mdir mformat mlabel mmd mmount mmove mrd mread mren mtoolstest mtype
+
+(( $+functions[_mtools_drives] )) ||
+_mtools_drives() {
+  local expl
+
+  _wanted drives expl drive compadd "$@" -M "m:{a-z}={A-Z}" \
+      ${${(M)${(f)"$(mtoolstest)"}:#drive*}##drive }
+}
+
+(( $+functions[_mtools_dosfiles] )) ||
+_mtools_dosfiles() {
+  local expl files dirs disp dirsonly suf='/' ret=1
+  
+  zparseopts -D -E '/=dirsonly'
+  if compset -P '[A-Za-z]:'; then
+    _tags files
+  else
+    _tags files drives
+  fi
+  compset -P '*/'
+  if compset -S '/*'; then
+    suf=''
+    dirsonly=(1)
+  fi
+
+  while _tags; do
+    _requested drives expl drive _mtools_drives -S '' && ret=0
+    if _requested files; then
+      files=( ${(f)"$(mdir -aX $IPREFIX 2>/dev/null)"} )
+      dirs=( ${${${(M)files:#*/}%/}##*/} )
+      disp=( $dirs/ )
+      while _next_label files expl 'file'; do
+	(( ! $#dirsonly )) && compadd "$@" "$expl[@]" -M 'm:{a-zA-Z}={A-Za-z}' \
+	    ${files##*/} && ret=0
+	compadd "$@" "$expl[@]" -M 'm:{a-zA-Z}={A-Za-z}' -S "$suf" -q \
+            -d disp -a dirs && ret=0
+      done
+    fi
+    (( ret )) || return 0
+  done
+  
+  return ret
+}
+
+(( $+functions[_mtools_files] )) ||
+_mtools_files() {
+  local dos
+  
+  if [[ -prefix [a-zA-Z]: ]]; then
+    dos='files:file:_mtools_dosfiles'
+  else
+    dos='drives:drive:_mtools_drives -S ""'
+  fi
+  _alternative $dos 'files:file:_files'
+}
+
+_mtools() {
+  local args Dopt oopt sopt topt vopt
+
+  Dopt='(-V)-D[specify name clash handling]:clash option:
+    _values "name clash handling"
+      "o[overwrite primary names]"
+      "O[overwrite secondary names]"
+      "r[rename primary name]"
+      "R[rename secondary name]"
+      "a[autorename primary name]"
+      "A[autorename secondary name]"
+      "s[skip primary name]"
+      "S[skip secondary name]"
+      "m[ask user what to do with primary name]"
+      "M[ask user what to do with secondary name]"'
+  oopt='(-V)-o[no confirmation on overwrite of DOS files]'
+  sopt=( '(-V -s -/)'-{s,/}'[recurse subdirectories]' )
+  topt='(-V)-t[perform text file translation]'
+  vopt='(-V)-v[verbose]'
+
+  case $service in
+    mattrib)
+      args=( $mdfiles
+	'(-V)-+a[archive]'
+	'(-V)-+h[hidden]'
+	'(-V)-+r[readonly]'
+	'(-V)-+s[system]'
+	'(-V)-/[recurse subdirectories]'
+	'(-V)-X[concise output]'
+	'(-V)-p[replay mode]'  
+        '(-V)*:file:_mtools_dosfiles'
+      )
+    ;;
+    mcopy|mread)
+      args=( $Dopt $oopt $sopt $topt $vopt
+	'(-V)-b[batch mode]'
+	'(-V)-p[preserve file attributes]' 
+	'(-V)-Q[quit on failure]'
+	'(-V)-a[text mode transfer]'
+	'(-V)-n[no confirmation on overwrite of Unix files]'
+	'(-V)-m[preserve modification time]'
+	'(-V)*:source file:_mtools_files'
+      )
+    ;;
+    mdeltree|mrd)
+      args=( $vopt '(-V)*:directory:_mtools_dosfiles -/' )
+    ;;
+    mdel)
+      args=( $vopt '(-V)*:file:_mtools_dosfiles' )
+    ;;
+    mdir)
+      args=( $Dopt $sopt
+	'(-V)-w[wide output]'
+	'(-V)-a[also list hidden files]'
+	'(-V)-f[fast - do not find free space]'
+	'(-V -b -X)'-{b,X}'[concise output]'
+	'(-V)*:file:_mtools_dosfiles'
+      )
+    ;;
+    mdu)
+      args=(
+	'(-V)-a[output for all files]'
+	'(-V)-s[summarize - output only for each argument]'
+	'(-V)*:file:_mtools_dosfiles'
+      )
+    ;;
+    mlabel)
+      args=(
+	'(-V -s)-c[clear existing label]'
+	'(-V -c)-s[show existing label]'
+	'(-V -N)-n[assign new random serial number]'
+	'(-V -n)-N[specify new serial number]:serial number'
+	'1:drive:_mtools_drives -S ""'
+      )
+    ;;
+    mmd)
+      args=( $Dopt '(-V)*:directory:_mtools_dosfiles -/' )
+    ;;
+    mmove|mren)
+      # target file should be completed relative to source here
+      args=( $Dopt $oopt $vopt '(-V)*:file:_mtools_dosfiles' )
+    ;;
+    mtype)
+      args=( $topt
+	'(-V)-s[strip the high bit]'
+	'(-V)*:file:_mtools_files'
+      )
+    ;;
+    mbadblocks|mmount|mformat|mtoolstest|mdrive)
+      args=( '(-V)1:drive:_mtools_drives' )
+    ;;
+    mcd) args=( '(-V)*:directory:_mtools_dosfiles -/' ) ;;
+  esac
+
+  _arguments -s -S "$args[@]" \
+    '(-D -o -s -t -v -w -a -h -r -s -/ -X -p -f -b * 1)-V[display version information]'
+}
+
+_mtools "$@"

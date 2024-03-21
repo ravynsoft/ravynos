@@ -1,0 +1,17 @@
+#autoload
+
+# Note this is a normal ZLE widget, not a completion widget.
+# A completion widget can't call another widget, while a normal
+# widget can.
+
+[[ $WIDGET = *noread* ]] || local ZSH_TRACE_GENERIC_WIDGET
+
+if [[ $WIDGET = *debug* ]]; then
+  ZSH_TRACE_GENERIC_WIDGET=_complete_debug
+else
+  ZSH_TRACE_GENERIC_WIDGET=_complete_help
+fi
+
+if [[ $WIDGET != *noread* ]]; then
+  zle read-command && zle $REPLY -w
+fi

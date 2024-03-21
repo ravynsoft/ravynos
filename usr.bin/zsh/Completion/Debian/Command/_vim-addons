@@ -1,0 +1,51 @@
+#compdef vim-addons
+
+local context state line expl ret=1
+typeset -A opt_args
+
+_arguments \
+  '(-q --query)'{-q,--query}'[be quiet and make the output more parseable]' \
+  '(-r --registry-dir)'{-r,--registry-dir}'[set the registry directory]' \
+  '(-s --source-dir)'{-s,--source-dir}'[set addon source directory]' \
+  '(-t --target-dir -w --system-wide)'{-t,--target-dir}'[set addon target directory]' \
+  '(-v --verbose -z --silent)'{-v,--verbose}'[increase verbosity]' \
+  '(y --system-dir)'{-y,--system-dir}'[set system-wide target directory]' \
+  '(-)'{-h,--help}'[show help information]' \
+  '(-w --system-wide -t --target-dir)'{-w,--system-wide}'[use system-wide target directory]' \
+  '(-z --silent -v --verbose)'{-z,--silent}'[suppress most output]' \
+  '1:commands:((
+    install\:install\ specified\ addons
+    remove\:remove\ specified\ addons
+    list\:list\ available\ addons\ in\ registry
+    status\:list\ status\ of\ addons
+    disable\:disable\ specified\ addons
+    enable\:undo\ effects\ of\ previous\ disable
+    files\:list\ files\ composing\ the\ specified\ addon
+    show\:display\ detailed\ information\ on\ specified\ addon
+  ))' \
+  '*: :->args' && ret=0
+
+case $state in
+  args)
+    case $line[1] in
+      install)
+        _wanted -C $context addons expl 'addon' compadd - \
+	    ${${(M)${(f)"$(_call_program addons vim-addons -q)"}:#*removed}%$'\t'*} && ret=0
+      ;;
+      enable)
+        _wanted -C $context addons expl 'addon' compadd - \
+	    ${${(M)${(f)"$(_call_program addons vim-addons -q)"}:#*disabled}%$'\t'*} && ret=0
+      ;;
+      remove)
+        _wanted -C $context addons expl 'addon' compadd - \
+	    ${${(M)${(f)"$(_call_program addons vim-addons -q)"}:#*(disabled|installed)}%$'\t'*} && ret=0
+      ;;
+      *)
+        _wanted -C $context addons expl 'addon' compadd - \
+	    $(_call_program addons vim-addons list) && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

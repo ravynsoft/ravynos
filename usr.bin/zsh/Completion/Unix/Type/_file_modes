@@ -1,0 +1,37 @@
+#autoload
+
+# Provides completion for file modes (formerly part of _chmod)
+
+local curcontext=$curcontext
+local -a context line state state_descr copts=( "${@}" ) privs
+local -A val_args
+
+privs=(
+  'r[read]' 'w[write]' 'x[execute]'
+  's[set uid/gid]' 't[sticky]'
+  'X[execute only if directory or executable to another]'
+  "u[owner's current permissions]"
+  "g[group's current permissions]"
+  "o[others' current permissions]"
+)
+
+[[ $OSTYPE == solaris* ]] &&
+privs+=( 'l[mandatory locking]' )
+
+compset -P '*,'
+compset -S ',*'
+
+if [[ -prefix [0-7] ]]; then
+  _message -e number 'numeric mode'
+elif compset -P '[a-z]#[+-=]'; then
+  _values -O copts -S '' privilege $privs && return 0
+else
+  compset -P '*'
+  copts=( -S '' )
+  _alternative -O copts \
+    'who:who:((a\:all u\:owner g\:group o\:others))' \
+    'operators:operator:(+ - =)' \
+  && return 0
+fi
+
+return 1

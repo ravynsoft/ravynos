@@ -1,0 +1,850 @@
+#compdef composer composer.phar
+
+# Notes:
+# - With some re-arranging, this function could be used as a base for completing
+#   any Symfony Console application. It's worth mentioning that most Console
+#   applications provide their help output in structured XML and JSON formats,
+#   and a helper function could be written to parse these and produce basic
+#   completion similar to what `_arguments --` does. But it wouldn't be fully
+#   featured like this
+# - Completing arbitrary package names from Packagist, even with caching enabled
+#   (which it is by default here), can be very slow; it may even hang the shell.
+#   To disable the fetching of remote packages and use only local cache/JSON
+#   information for completion, set the fetch-packages style as follows:
+#   zstyle ':completion:*:composer:*' fetch-packages no
+# - @todo We don't complete custom commands (including script aliases). This is
+#   easy to do in the general case, but it probably requires some clever caching
+#   to avoid introducing a noticeable lag to every completion operation, due to
+#   the way command resolution works and the fact that discovering custom
+#   commands requires making slow calls to Composer
+# - @todo We don't complete version constraints
+
+# Check cache validity
+__composer_cache_policy() {
+  # Invalidate if the cache is over a week old
+  [[ -n $1(#qmw+1N) ]] && return 0
+
+  __composer_update_work_dir
+
+  # Invalidate if the current project JSON file is newer than the cache
+  [[ -e $_composer_work_dir/composer.json ]] &&
+  [[ $_composer_work_dir/composer.json -nt $1 ]]
+}
+
+# _call_program wrapper (same eval/quoting rules apply)
+# $1     => tag
+# $2 ... => composer arguments
+(( $+functions[__composer_call] )) ||
+__composer_call() {
+  local -a cmd
+
+  __composer_update_work_dir
+
+  cmd=( ${_composer_cmd:-composer} -d${(q)${_composer_work_dir:-$PWD}} )
+  (( _composer_is_global )) && cmd+=( global )
+
+  _call_program $1 $cmd "${@[2,-1]}"
+}
+
+# Resolve potentially abbreviated/aliased command name to canonical name
+# $1 => name of scalar parameter to set
+# $2 => provided command name
+(( $+functions[__composer_resolve_cmd] )) ||
+__composer_resolve_cmd() {
+  local __i __ret=1
+  local -a __cmds __tmp=( ${(@)_composer_cmds%%:*} )
+
+  __cmds=( $__tmp[(r)$2] )
+  (( $#__cmds )) || __cmds=( ${(M)__tmp:#$2*} )
+
+  if (( $#__cmds == 1 )); then
+    2=$__cmds[1]
+    (( $+_composer_cmd_aliases[$2] )) && 2=$_composer_cmd_aliases[$2]
+    __ret=0
+  else
+    3=$__cmds[1]
+
+    # An ambiguous prefix match isn't ambiguous if all the matches are aliases
+    # of each other
+    for (( __i = 2; __i <= $#__cmds; __i++ )); do
+      if [[ $_composer_cmd_aliases[$__cmds[__i]] == $3 ]]; then
+        __cmds[__i]=()
+      elif [[ $_composer_cmd_aliases[$3] == $__cmds[__i] ]]; then
+        3=$__cmds[__i]
+        __cmds[__i]=()
+      fi
+    done
+
+    if (( $#__cmds == 1 )); then
+      2=$3
+      __ret=0
+    elif (( $#__cmds )); then
+      _message -e ambiguous-commands "ambiguous command: $2 ($__cmds)"
+    else
+      # @todo Too annoying without handling custom commands
+      : _message -e unrecognized-commands "unrecognized command: $2"
+    fi
+  fi
+  : ${(P)1::=$2}
+  return __ret
+}
+
+# Remove already-used global options (this is a bit silly admittedly)
+# $1 ... => options given (e.g. ${(k)opt_args})
+(( $+functions[__composer_prune_global_opts] )) ||
+__composer_prune_global_opts() {
+  local opt
+  local -a excls specs remove
+
+  for opt in $@; do
+    specs=( ${(M)_composer_global_opts:#(*[\*\)]|)${opt}[=+-]#\[*} )
+    excls=( ${=${(@)${(@M)specs#\([^\)]##\)}//[ \(\)]/ }} )
+    remove+=(
+      # Don't remove used options like *-v
+      ${specs:#(*\)|)\*${opt}[=+-]#\[*}
+      # But do remove them if a used option excludes them
+      ${(M)_composer_global_opts:#(*[\*\)]|)(${(j<|>)~${(@b)excls}})[=+-]#\[*}
+    )
+  done
+
+  _composer_global_opts=( ${_composer_global_opts:#(${(j<|>)~${(@b)remove}})} )
+}
+
+# Update the working directory from opt_args/PWD. This is a little irritating to
+# deal with; for now we're just calling it anywhere it might be important
+(( $+functions[__composer_update_work_dir] )) ||
+__composer_update_work_dir() {
+  if [[ -n ${(v)opt_args[(i)(-d|--working-dir)]} ]]; then
+    _composer_work_dir=${(Q)${(v)opt_args[(i)(-d|--working-dir)]}}
+  elif [[ -z $_composer_work_dir ]]; then
+    _composer_work_dir=$PWD
+  fi
+}
+
+# Complete local/vendored binaries
+(( $+functions[__composer_binaries] )) ||
+__composer_binaries() {
+  local -a expl tmp
+
+  tmp=( ${(f)"$( __composer_call exec-list exec -l )"} )
+  tmp=( ${(@)tmp%%[[:space:]]##} )
+  [[ $tmp[1] == *: ]] && tmp[1]=()
+  tmp=( ${(@)tmp##[\*-][[:space:]]#} )
+  tmp=( ${(@)tmp%%[[:space:]]##\(local\)} )
+
+  _wanted -x commands expl binary compadd -a "$@" - tmp
+}
+
+# Complete commands
+(( $+functions[__composer_commands] )) ||
+__composer_commands() {
+  _describe -t commands command _composer_cmds
+}
+
+# Complete package licences
+(( $+functions[__composer_licenses] )) ||
+__composer_licenses() {
+  # These are just the ones the Composer documentation recommends; the full list
+  # of supported identifiers can be found at https://spdx.org/licenses/. If
+  # other functions need to complete licences in the future, it might be wise to
+  # break this out into a _licenses type
+  local -a tmp=(
+    'Apache-2.0:Apache License 2.0'
+    'BSD-2-Clause:BSD 2-Clause "Simplified" License'
+    'BSD-3-Clause:BSD 3-Clause "New" or "Revised" License'
+    'BSD-4-Clause:BSD 4-Clause "Original" or "Old" License'
+    'GPL-2.0-only:GNU General Public License v2.0 only'
+    'GPL-2.0-or-later:GNU General Public License v2.0 or later'
+    'GPL-3.0-only:GNU General Public License v3.0 only'
+    'GPL-3.0-or-later:GNU General Public License v3.0 or later'
+    'LGPL-2.1-only:GNU Lesser General Public License v2.1 only'
+    'LGPL-2.1-or-later:GNU Lesser General Public License v2.1 or later'
+    'LGPL-3.0-only:GNU Lesser General Public License v3.0 only'
+    'LGPL-3.0-or-later:GNU Lesser General Public License v3.0 or later'
+    'MIT:MIT License'
+    'proprietary:proprietary/closed-source license'
+  )
+  _describe -t licenses 'package license' tmp
+}
+
+# Complete packages
+# --pairs  => complete as package:constraint pairs
+# --vendor => complete only vendored (installed) packages
+(( $+functions[__composer_packages] )) ||
+__composer_packages() {
+  local cwd
+  local -a pairs vendor home_dirs pkgs
+
+  __composer_update_work_dir
+
+  zparseopts -D -E - -vendor=vendor -pairs=pairs
+
+  (( $#pairs )) && compset -P '*[:= ]' && {
+    _message -e versions 'version constraint'
+    return
+  }
+
+  home_dirs=(
+    $COMPOSER_HOME(#q/N)
+    $HOME/.composer(#q/N)
+    $HOME/.config/composer(#q/N)
+    ${XDG_CONFIG_HOME:-/@err@}/composer(#q/N)
+  )
+
+  pkgs=( $_composer_work_dir/vendor/*/*(#q/N) )
+
+  # Trying to work out the path to the vendor directory when we're global is
+  # tedious, so we'll just take everything we can find
+  (( ! $#vendor || _composer_is_global )) &&
+  pkgs+=( $^home_dirs/vendor/*/*(#q/N) )
+
+  (( $#vendor )) || pkgs+=(
+    ${COMPOSER_CACHE_DIR:-/@err@}/files/*/*(#q/N)
+    $^home_dirs/cache/files/*/*(#q/N)
+  )
+
+  pkgs=( ${(@M)pkgs%%[^/]##/[^/]##} )
+
+  (( $#vendor )) || {
+    pkgs+=(
+      ${(f)"$(
+        _call_program packages-json \
+          command grep -soE ${(qq):-'"[^/]+\\?/[^/]+"\s*:'} -- \
+          ${(qq)_composer_work_dir}/composer.json
+      )"//[$':" \t\\']/}
+      ${(@)${(f)"$(
+        _call_program packages-lock \
+          command grep -soE ${(qq):-'"name"\s*:\s*"[^/]+\\?/[^/]+"'} -- \
+          ${(qq)_composer_work_dir}/composer.lock
+      )"//\"name\"/}//[$':" \t\\']/}
+    )
+
+    zstyle -T ":completion:*:*:$service:*" fetch-packages && {
+      { (( ! $#_composer_cache_pkgs )) || _cache_invalid composer-pkgs } &&
+      ! _retrieve_cache composer-pkgs && {
+        _composer_cache_pkgs=( ${(f)"$(
+          __composer_call packages-fetch show -aN |
+          LC_ALL=C tr -d '\t ' # Seems faster than ${...//.../} here
+        )"} )
+        _store_cache composer-pkgs _composer_cache_pkgs
+      }
+      pkgs+=( $_composer_cache_pkgs )
+    }
+  }
+
+  (( $#pkgs )) || {
+    _message -e packages package
+    return
+  }
+
+  if [[ $PREFIX == */* ]]; then
+    _description packages expl "${PREFIX%%/*}/* package"
+  else
+    _description packages expl 'package vendor'
+  fi
+  _multi_parts "${(@)expl}" "$@" / pkgs
+}
+
+# Complete package repositories
+(( $+functions[__composer_repositories] )) ||
+__composer_repositories() {
+  _alternative \
+    'urls:repository URL:_urls' \
+    'files:repository JSON configuration file:_files -g "*.json(#q-.)"' \
+    'json:repository JSON configuration object:'
+}
+
+# Complete composer.json scripts
+(( $+functions[__composer_scripts] )) ||
+__composer_scripts() {
+  local -a expl tmp
+
+  tmp=( ${(f)"$( __composer_call run-script-list run-script -l )"} )
+  tmp=( ${(@)tmp##[[:space:]]##} )
+  tmp=( ${(@)tmp%%[[:space:]]##} )
+  [[ $tmp[1] == *: ]] && tmp[1]=()
+  tmp=( ${(@)tmp##[\*-][[:space:]]#} )
+  tmp=( ${(@)tmp%%[[:space:]]*} )
+
+  _wanted -x commands expl script compadd -a "$@" - tmp
+}
+
+# Complete package stabilities
+(( $+functions[__composer_stabilities] )) ||
+__composer_stabilities() {
+  local -a expl
+  _wanted stabilities expl 'package stability' compadd "$@" - \
+    stable RC beta alpha dev
+}
+
+# Complete package types
+(( $+functions[__composer_types] )) ||
+__composer_types() {
+  local -a expl
+  # Only the first four here are official types listed in the documentation; the
+  # others are popular custom types
+  _wanted types expl 'package type' compadd "$@" - \
+    composer-plugin library metapackage project \
+    cakephp-plugin cantao-module drupal-module magento2-module package \
+    phpcodesniffer-standard silverstripe-module symfony-bundle \
+    typo3-cms-extension wordpress-plugin yii2-extension
+}
+
+(( $+functions[_composer_archive] )) ||
+_composer_archive() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--dir=[specify output directory]:output directory:_files -/' \
+    '--file=[specify output file name]:output file name (without extension):_files' \
+    '(-f --format)'{-f+,--format=}'[specify archive format]:archive format:(tar zip)' \
+    '1:: :__composer_packages' \
+    '2:: :_guard "^-*" "version constraint"'
+}
+
+(( $+functions[_composer_check-platform-reqs] )) ||
+_composer_check-platform-reqs() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--no-dev[do not check require-dev package requirements]'
+}
+
+(( $+functions[_composer_config] )) ||
+_composer_config() {
+  local ret=1
+  local -a context expl line state state_descr cmd tmp
+  local -A opt_args
+
+  # -a and -f can be used together, in which case auth.json will be looked up in
+  # the base directory of the -f file. -f and -g can't be used together, but -f
+  # can still be used to specify config.json with `composer global config`
+  _arguments -s -S : \
+    $_composer_global_opts \
+    + '(a)' '(A l u : *)'{-a,--auth}'[edit auth.json (with -e)]' \
+    + '(A)' '(a e u)--absolute[display absolute *-dir setting paths]' \
+    + '(e)' '(A l u : *)'{-e,--editor}'[open configuration in $EDITOR]' \
+    + '(f)' '(g)'{-f+,--file=}'[specify {composer,config}.json path]:configuration file:_files' \
+    + '(g)' {-g,--global}'[use global config.json]' \
+    + '(l)' '(a e u : *)'{-l,--list}'[list configuration settings]' \
+    + '(u)' '(a A e l *)--unset[unset specified setting key]' \
+    + k '(a e l)1: :->key' \
+    + v '(a e l u)*:: :->val' \
+  && ret=0
+  __composer_update_work_dir
+
+  case $state in
+    key)
+      # `composer config` doesn't seem to actually respect -d...
+      tmp=( ${(v)opt_args[(i)([^-]##-|)(-f|--file)]} )
+      cmd=( config -f$^tmp $opt_args[(i)([^-]##-|)(-g|--global)] -l )
+
+      tmp=( ${(@M)${(f)"$( __composer_call config-list $cmd )"}#\[*\]} )
+      tmp=( ${(@)tmp//[ \]\[]/} )
+
+      _wanted setting-keys expl 'setting key' compadd -a "$@" - tmp && ret=0
+      ;;
+    val)
+      case $words[1] in
+        *[.-]dirs#|home)
+          _wanted setting-values expl 'setting value' _files -/ "$@" && ret=0
+          ;;
+        *[.-]domains#)
+          _wanted setting-values expl 'setting value' _hosts "$@" && ret=0
+          ;;
+        *[.-]urls#)
+          _wanted setting-values expl 'setting value' _urls "$@" && ret=0
+          ;;
+        *)
+          # If we wanted we could get specific about booleans, etc., here
+          _wanted setting-values expl 'setting value' _default "$@" && ret=0
+          ;;
+      esac
+      ;;
+  esac
+
+  return ret
+}
+
+(( $+functions[_composer_create-project] )) ||
+_composer_create-project() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(--no-dev)--dev[install require-dev packages]' \
+    '--ignore-platform-reqs[ignore PHP platform requirements]' \
+    '(--remove-vcs)--keep-vcs[do not remove VCS directory]' \
+    '!(--no-plugins)--no-custom-installers' \
+    '(--dev)--no-dev[do not install require-dev packages]' \
+    '--no-install[skip installation of package dependencies]' \
+    '--no-progress[do not display download progress]' \
+    '--no-secure-http[do not use HTTPS]' \
+    '--no-scripts[prevent execution of scripts defined in root package]' \
+    '(--prefer-source)--prefer-dist[prefer installation from dist]' \
+    '(--prefer-dist)--prefer-source[prefer installation from source]' \
+    '(--keep-vcs)--remove-vcs[force removal of VCS directory]' \
+    '--repository=[specify package repository]: :__composer_repositories' \
+    '!(--repository)--repository_url:repository URL:_urls' \
+    '(-s --stability)'{-s+,--stability=}'[specify minimum stability]: :__composer_stabilities' \
+    '1: :__composer_packages' \
+    '2::project directory:_files -/' \
+    '3:: :_guard "^-*" "version constraint"'
+}
+
+(( $+functions[_composer_depends] )) ||
+_composer_depends() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(-r --recursive)'{-r,--recursive}'[resolve recursively up to root package]' \
+    '(-t --tree)'{-t,--tree}'[display in tree format]' \
+    '1: :__composer_packages --vendor' \
+    '2:: :_guard "^-*" "version constraint"'
+}
+
+(( $+functions[_composer_dump-autoload] )) ||
+_composer_dump-autoload() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--apcu[use APCu to cache found/not-found classes]' \
+    '--no-dev[ignore autoload-dev rules]' \
+    '--no-scripts[prevent execution of scripts defined in composer.json]' \
+    + '(a)' '(o)'{-a,--classmap-authoritative}'[autoload from class maps only (implies -o)]' \
+    + '(o)' {-o,--optimize}'[use class maps for PSR-0/4 packages]'
+}
+
+(( $+functions[_composer_exec] )) ||
+_composer_exec() {
+  local ret=1
+  local -a context line state state_descr
+  local -A opt_args
+
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(: * -l --list)'{-l,--list}'[display available binaries]' \
+    '1: :__composer_binaries' \
+    '*: :->next' \
+  && ret=0
+
+  # Can't use *:: here, it won't complete subsequent options
+  [[ $state == next ]] && {
+    shift words
+    (( CURRENT-- ))
+    unset _composer_cmd
+    _normal && ret=0
+  }
+
+  return ret
+}
+
+(( $+functions[_composer_global] )) ||
+_composer_global() {
+  _composer_is_global=1
+  _composer "$@"
+}
+
+(( $+functions[_composer_help] )) ||
+_composer_help() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--format=[specify output format]:output format [txt]:(json md txt xml)' \
+    '--raw[output raw help (with text format)]' \
+    '1: :__composer_commands'
+}
+
+(( $+functions[_composer_home] )) ||
+_composer_home() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(-H --homepage)'{-H,--homepage}'[use home page instead of repository]' \
+    '(-s --show)'{-s,--show}'[display URL only (do not open)]' \
+    '*: :__composer_packages' \
+}
+
+(( $+functions[_composer_init] )) ||
+_composer_init() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--author=[specify package author]:package author' \
+    '--description=[specify package description]:package description' \
+    '--homepage=[specify package home page]:package home page:_urls' \
+    '(-l --license)'{-l+,--license=}'[specify package license]: :__composer_licenses' \
+    '--name=[specify package name]: :__composer_packages' \
+    '*--repository=[specify custom package repository]: :__composer_repositories' \
+    '*--require=[specify package to require]: :__composer_packages --pairs' \
+    '*--require-dev=[specify package to require for development]: :__composer_packages --pairs' \
+    '(-s --stability)'{-s+,--stability=}'[specify minimum stability]: :__composer_stabilities' \
+    '--type=-[specify package type]:: :__composer_types'
+}
+
+(( $+functions[_composer_install] )) ||
+_composer_install() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(--no-dev)--dev[install require-dev packages]' \
+    '--dry-run[do not actually install (implies -v)]' \
+    '--ignore-platform-reqs[ignore PHP platform requirements]' \
+    '!(--no-plugins)--no-custom-installers' \
+    '(--dev)--no-dev[do not install require-dev packages]' \
+    '--no-progress[do not display download progress]' \
+    '--no-scripts[prevent execution of scripts defined in composer.json]' \
+    '--no-suggest[do not display package suggestions]' \
+    '(--prefer-source)--prefer-dist[prefer installation from dist]' \
+    '(--prefer-dist)--prefer-source[prefer installation from source]' \
+    + '(a)' '(n o)'{-a,--classmap-authoritative}'[autoload from class maps only (implies -o)]' \
+    + '(A)' '(n)--apcu-autoloader[use APCu to cache found/not-found classes]' \
+    + '(n)' '(a A o)--no-autoload[skip autoloader generation]' \
+    + '(o)' '(n)'{-o,--optimize}'[use class maps for PSR-0/4 packages]'
+}
+
+(( $+functions[_composer_licenses] )) ||
+_composer_licenses() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--no-dev[ignore require-dev packages]' \
+    '--format=[specify output format]:output format [text]:(json text)'
+}
+
+(( $+functions[_composer_list] )) ||
+_composer_list() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--format=[specify output format]:output format [txt]:(json md txt xml)' \
+    '--raw[output raw help (with text format)]' \
+    '1: :_guard "^-*" namespace'
+}
+
+(( $+functions[_composer_outdated] )) ||
+_composer_outdated() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--format=[specify output format]:output format [text]:(json text)' \
+    '--strict[return non-zero exit code if there are outdated packages]' \
+    '1: :__composer_packages --vendor' \
+    + '(a)' '(D I)'{-a,--all}'[display all installed packages]' \
+    + '(D)' '(a)'{-D,--direct}'[display only packages directly required by root package]' \
+    + '(I)' '(a)*--ignore=[ignore specified package (with -o)]: :__composer_packages' \
+    + '(m)' '(a)'{-m,--minor-only}'[display only packages with minor semver updates (with -o)]' \
+    + '(o)' '!(a)'{-o,--outdated}
+}
+
+(( $+functions[_composer_prohibits] )) ||
+_composer_prohibits() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(-r --recursive)'{-r,--recursive}'[resolve recursively up to root package]' \
+    '(-t --tree)'{-t,--tree}'[display in tree format]' \
+    '1: :__composer_packages --vendor' \
+    '2:: :_guard "^-*" "version constraint"'
+}
+
+(( $+functions[_composer_remove] )) ||
+_composer_remove() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--dev[remove package from require-dev]' \
+    '--ignore-platform-reqs[ignore PHP platform requirements]' \
+    '(--dev)--no-dev[do not install require-dev packages]' \
+    '--no-progress[do not display download progress]' \
+    '--no-scripts[prevent execution of scripts defined in composer.json]' \
+    '(--update-no-dev)--no-update[do not update dependencies]' \
+    '(--update-with-dependencies)--no-update-with-dependencies[do not update inherited dependencies]' \
+    '(--no-update)--update-no-dev[update dependencies with --no-dev option]' \
+    '(--no-update-with-dependencies)--update-with-dependencies[update inherited dependencies]' \
+    '*: :__composer_packages --vendor' \
+    + '(a)' '(n o)'{-a,--classmap-authoritative}'[autoload from class maps only (implies -o)]' \
+    + '(A)' '(n)--apcu-autoloader[use APCu to cache found/not-found classes]' \
+    + '(n)' '(a A o)--no-autoload[skip autoloader generation]' \
+    + '(o)' '(n)'{-o,--optimize}'[use class maps for PSR-0/4 packages]'
+}
+
+(( $+functions[_composer_require] )) ||
+_composer_require() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--dev[add package to require-dev]' \
+    '--ignore-platform-reqs[ignore PHP platform requirements]' \
+    '--no-progress[do not display download progress]' \
+    '--no-scripts[prevent execution of scripts defined in composer.json]' \
+    '--no-suggest[do not display package suggestions]' \
+    '(--prefer-source)--prefer-dist[prefer installation from dist]' \
+    '--prefer-lowest[prefer lowest versions of dependencies]' \
+    '(--prefer-dist)--prefer-source[prefer installation from source]' \
+    '--prefer-stable[prefer stable versions of dependencies]' \
+    '--sort-packages[sort packages when adding/updating dependencies]' \
+    '(--no-update)--update-no-dev[update dependencies with --no-dev option]' \
+    '*: :__composer_packages --pairs' \
+    + '(a)' '(n o)'{-a,--classmap-authoritative}'[autoload from class maps only (implies -o)]' \
+    + '(A)' '(n)--apcu-autoloader[use APCu to cache found/not-found classes]' \
+    + '(n)' '(a A o)--no-autoload[skip autoloader generation]' \
+    + '(o)' '(n)'{-o,--optimize}'[use class maps for PSR-0/4 packages]' \
+    + '(u)' \
+    '(--update-no-dev)--no-update[do not update dependencies]' \
+    '--update-with-dependencies[update inherited dependencies, except root requirements]' \
+    '--update-with-all-dependencies[update all inherited dependencies]'
+}
+
+(( $+functions[_composer_run-script] )) ||
+_composer_run-script() {
+  local ret=1
+  local -a context line state state_descr
+  local -A opt_args
+
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(--no-dev)--dev[enable dev mode]' \
+    '(: * -l --list)'{-l,--list}'[display available scripts]' \
+    '(--dev)--no-dev[disable dev mode]' \
+    '--timeout=[specify script timeout]:timeout (seconds)' \
+    '1: :__composer_scripts' \
+    '*: :->next' \
+  && ret=0
+
+  # Can't use *:: here, it won't complete subsequent options
+  [[ $state == next ]] && {
+    shift words
+    (( CURRENT-- ))
+    unset _composer_cmd
+    _normal && ret=0
+  }
+
+  return ret
+}
+
+(( $+functions[_composer_search] )) ||
+_composer_search() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(-N --only-name)'{-N,--only-name}'[search package names only]' \
+    '(-t --type)'{-t+,--type=}'[search for specified package type]: :__composer_types' \
+    '*: :__composer_packages'
+}
+
+(( $+functions[_composer_self-update] )) ||
+_composer_self-update() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    + '(c)' \
+    '--preview[force update to preview channel]' \
+    '--snapshot[force update to snapshot channel]' \
+    '--stable[force update to stable channel]' \
+    + '(C)' '(u)--set-channel-only[set channel as default and exit]' \
+    + u \
+    '(C -r --rollback)--clean-backups[delete old back-ups during update]' \
+    '(C)--no-progress[do not display download progress]' \
+    '(c C -r --rollback)'{-r,--rollback}'[roll back to earlier installation]' \
+    '(C)--update-keys[prompt for key update]' \
+    '(C)1: :_guard "^-*" "Composer version"'
+}
+
+(( $+functions[_composer_show] )) ||
+_composer_show() {
+  local ret=1
+  local -a context line state state_descr
+  local -A opt_args
+
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '--format=[specify output format]:output format [text]:(json text)' \
+    '--strict[return non-zero exit code if there are outdated packages]' \
+    '1: :->pkgs' \
+    '2:: :_guard "^-*" "version constraint"' \
+    + '(a)' '(D I s t)'{-a,--available}'[display only available packages]' \
+    + '(A)' '(D I s t)--all[display all packages]' \
+    + '(D)' '(a A p s)'{-D,--direct}'[display only packages directly required by root package]' \
+    + '(i)' '(s)'{-i,--installed}'[display only installed packages]' \
+    + '(I)' '(a A s t)*--ignore=[ignore specified package (with -o)]: :__composer_packages' \
+    + '(l)' '(s t)'{-l,--latest}'[display only latest version of installed packages]' \
+    + '(m)' '(a A s t)'{-m,--minor-only}'[display only packages with minor semver updates (with -o)]' \
+    + '(N)' '(P)'{-N,--name-only}'[display package names only]' \
+    + '(o)' '(l t s)'{-o,--outdated}'[like -l, but display only outdated packages]' \
+    + '(p)' '(D)'{-p,--platform}'[display only PHP platform packages]' \
+    + '(P)' '(a A N)'{-P,--path}'[display package file paths]' \
+    + '(s)' '(a A I l o t)'{-s,--self}'[display root package information]' \
+    + '(t)' '(a A I l o s)'{-t,--tree}'[display in tree format]' \
+  && ret=0
+
+  [[ $state == pkgs ]] &&
+  if [[ -n $opt_args[(i)[aA]-*] ]]; then
+    __composer_packages && ret=0
+  else
+    __composer_packages --vendor && ret=0
+  fi
+
+  return ret
+}
+
+(( $+functions[_composer_suggests] )) ||
+_composer_suggests() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(--by-suggestion)--by-package[group results by suggesting package]' \
+    '(--by-package)--by-suggestion[group results by suggested package]' \
+    '--no-dev[exclude suggestions from require-dev packages]' \
+    '*: :__composer_packages --vendor'
+}
+
+(( $+functions[_composer_update] )) ||
+_composer_update() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(--no-dev)--dev[install require-dev packages]' \
+    '--dry-run[do not actually update (implies -v)]' \
+    '(-i -n --interactive --no-interaction)'{-i,--interactive}'[update with interactive interface]' \
+    '--ignore-platform-reqs[ignore PHP platform requirements]' \
+    '--lock[update composer.lock hash only]' \
+    '!(--no-plugins)--no-custom-installers' \
+    '(--dev)--no-dev[do not install require-dev packages]' \
+    '--no-progress[do not display download progress]' \
+    '--no-scripts[prevent execution of scripts defined in composer.json]' \
+    '--no-suggest[do not display package suggestions]' \
+    '(--prefer-source)--prefer-dist[prefer installation from dist]' \
+    '--prefer-lowest[prefer lowest versions of dependencies]' \
+    '(--prefer-dist)--prefer-source[prefer installation from source]' \
+    '--prefer-stable[prefer stable versions of dependencies]' \
+    '--root-reqs[update only root-package dependencies]' \
+    '*:: :__composer_packages --vendor' \
+    + '(a)' '(n o)'{-a,--classmap-authoritative}'[autoload from class maps only (implies -o)]' \
+    + '(A)' '(n)--apcu-autoloader[use APCu to cache found/not-found classes]' \
+    + '(n)' '(a A o)--no-autoload[skip autoloader generation]' \
+    + '(o)' '(n)'{-o,--optimize}'[use class maps for PSR-0/4 packages]' \
+    + '(u)' \
+    '--with-dependencies[update dependencies of whitelisted packages, except root requirements]' \
+    '--with-all-dependencies[update all dependencies of whitelisted packages]'
+}
+
+(( $+functions[_composer_validate] )) ||
+_composer_validate() {
+  _arguments -s -S : \
+    $_composer_global_opts \
+    '(-A --with-dependencies)'{-A,--with-dependencies}'[validate composer.json of installed dependencies]' \
+    '--no-check-all[do not validate completely]' \
+    '--no-check-lock[ignore out-of-date composer.lock]' \
+    '--no-check-publish[ignore publish errors]' \
+    '--strict[return non-zero exit code for warnings as well as errors]' \
+    '1::composer.json file:_files -g "*.json(#q-.)"'
+}
+
+_composer() {
+  local ret=1 tmp helps cmd
+  local -a context line state state_descr
+  local -A opt_args
+
+  # These are meant for use by helper functions; we check for set-ness first in
+  # case of `composer global`
+  (( $+_composer_cmd )) || {
+    local _composer_cmd=$words[1] _composer_is_global=0 _composer_work_dir=
+    local -a _composer_cmds _composer_global_opts _composer_cache_pkgs
+    local -A _composer_cmd_aliases
+
+    # alias -> canonical (mappings derived from source)
+    _composer_cmd_aliases=(
+      browse       home
+      clearcache   clear-cache
+      dumpautoload dump-autoload
+      i            install
+      info         show
+      selfupdate   self-update
+      u            update
+      upgrade      update
+      why          depends
+      why-not      prohibits
+    )
+    # Official commands (see note at top about custom ones)
+    _composer_cmds=(
+      about:'display short information about Composer'
+      archive:'create archive of project/package'
+      check-platform-reqs:'check that platform requirements are satisfied'
+      clear{-,}cache:'clear internal package cache'
+      config:'set configuration options'
+      create-project:'create new project from package'
+      {depends,why}:'display packages depending on package'
+      diagnose:'diagnose system problems'
+      dump{-,}autoload:'dump class autoloader'
+      exec:'execute vendored binary/script'
+      global:'run command in global Composer directory'
+      help:'display help information'
+      {home,browse}:'open package home page or repository in browser'
+      init:'create basic composer.json'
+      {install,i}:'install packages in composer.{lock,json}'
+      licenses:'display dependency license information'
+      list:'display supported commands'
+      outdated:'display outdated packages'
+      {prohibits,why-not}:'display packages preventing package from being installed'
+      remove:'remove and uninstall required package'
+      require:'add and install required package'
+      run-script:'run scripts in composer.json'
+      search:'search packages'
+      self{-,}update:'upgrade Composer'
+      {show,info}:'display package information'
+      status:'display locally modified packages'
+      suggests:'display package suggestions'
+      {update,u,upgrade}:'upgrade packages in composer.json and update composer.lock'
+      validate:'validate composer.{json,lock}'
+    )
+    # Global options (can be used both before and after a command)
+    _composer_global_opts=(
+      '(-h --help)'{-h,--help}'[display help information]'
+      '(: * -)'{-V,--version}'[display version information]'
+
+      # Symfony handles -vv and -vvv specially
+      '(-q -v --quiet --verbose)'{-q,--quiet}'[reduce output verbosity]'
+      '(-q --quiet --verbose)*-v[increase output verbosity]'
+      '(-q --quiet --verbose)--verbose[increase output verbosity]'
+
+      '(--no-ansi)--ansi[force ANSI (color) output]'
+      '(--ansi)--no-ansi[disable ANSI (color) output]'
+
+      '(-n --no-interaction)'{-n,--no-interaction}'[run non-interactively]'
+
+      '--no-plugins[disable plug-ins]'
+      '--profile[display timing and memory usage information]'
+      '(-d --working-dir)'{-d+,--working-dir=}'[specify working directory]:working directory:_files -/'
+    )
+
+    # Use caching by default; Composer is very slow
+    zstyle -s ":completion:*:*:$service:*" cache-policy tmp
+    [[ -n $tmp ]] ||
+    zstyle ":completion:*:*:$service:*" cache-policy __composer_cache_policy
+
+    zstyle -s ":completion:*:*:$service:*" use-cache tmp
+    [[ -n $tmp ]] ||
+    zstyle ":completion:*:*:$service:*" use-cache yes
+  }
+
+  # Symfony's Application class naively intercepts --version and --help no
+  # matter where they appear on the command line. --version is handled
+  # sufficiently by the global option spec above; for --help, we need to
+  # simulate the help command
+  [[ -n $words[(r)(-h|--help)] ]] && {
+    helps=${#${(M)words[2,CURRENT]:#(-h|--help)}}
+    words=( "$words[1]" help "${(@)words[2,CURRENT]:#(-h|--help)}" )
+    (( CURRENT -= helps - 1 ))
+    __composer_prune_global_opts -h --help
+  }
+
+  _arguments -s -S -A '-*' : \
+    $_composer_global_opts \
+    '1: :__composer_commands' \
+    '*:: :->next' \
+  && ret=0
+  __composer_update_work_dir
+
+  [[ $state == next ]] && {
+    # Resolve abbreviated/aliased command names and ensure that $words[1] works
+    # as expected in our helper functions
+    __composer_resolve_cmd cmd $words[1]
+    words[1]=$_composer_cmd
+
+    # Don't offer global options again after they've been given
+    __composer_prune_global_opts ${(k)opt_args}
+    # This is intentionally done twice
+    [[ $cmd == help ]] && __composer_prune_global_opts -h --help
+
+    if (( $+functions[_composer_$cmd] )); then
+      _composer_$cmd "$@" && ret=0
+    else
+      _arguments -s -S : $_composer_global_opts && ret=0
+    fi
+  }
+
+  return ret
+}
+
+_composer "$@"

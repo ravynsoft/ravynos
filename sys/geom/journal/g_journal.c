@@ -26,34 +26,36 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/bio.h>
+#include <sys/eventhandler.h>
 #include <sys/kernel.h>
-#include <sys/module.h>
+#include <sys/kthread.h>
 #include <sys/limits.h>
 #include <sys/lock.h>
-#include <sys/mutex.h>
-#include <sys/bio.h>
-#include <sys/sysctl.h>
+#include <sys/module.h>
 #include <sys/malloc.h>
 #include <sys/mount.h>
-#include <sys/eventhandler.h>
+#include <sys/mutex.h>
 #include <sys/proc.h>
-#include <sys/kthread.h>
+#include <sys/reboot.h>
+#include <sys/sbuf.h>
 #include <sys/sched.h>
+#include <sys/sysctl.h>
 #include <sys/taskqueue.h>
 #include <sys/vnode.h>
-#include <sys/sbuf.h>
+
 #ifdef GJ_MEMDEBUG
 #include <sys/stack.h>
 #include <sys/kdb.h>
 #endif
+
 #include <vm/vm.h>
 #include <vm/vm_kern.h>
+
 #include <geom/geom.h>
 #include <geom/geom_dbg.h>
-
 #include <geom/journal/g_journal.h>
 
 FEATURE(geom_journal, "GEOM journaling support");
@@ -372,7 +374,7 @@ g_journal_check_overflow(struct g_journal_softc *sc)
 	if (g_journal_switcher_wokenup)
 		return;
 	/*
-	 * If the active journal takes more than g_journal_force_switch precent
+	 * If the active journal takes more than g_journal_force_switch percent
 	 * of free journal space, we force journal switch.
 	 */
 	KASSERT(length > 0,
@@ -1381,7 +1383,7 @@ g_journal_flush_send(struct g_journal_softc *sc)
 	cp = sc->sc_jconsumer;
 	bioq = lbp = NULL;
 	while (sc->sc_flush_in_progress < g_journal_parallel_flushes) {
-		/* Send one flush requests to the active journal. */
+		/* Send one flush request to the active journal. */
 		bp = GJQ_FIRST(sc->sc_flush_queue);
 		if (bp != NULL) {
 			GJQ_REMOVE(sc->sc_flush_queue, bp);
@@ -1722,7 +1724,7 @@ g_journal_mark_as_dirty(struct g_journal_softc *sc)
 
 /*
  * Function read record header from the given journal.
- * It is very simlar to g_read_data(9), but it doesn't allocate memory for bio
+ * It is very similar to g_read_data(9), but it doesn't allocate memory for bio
  * and data on every call.
  */
 static int
@@ -1835,7 +1837,7 @@ g_journal_sync(struct g_journal_softc *sc)
 				    (intmax_t)offset, error);
 				/*
 				 * Nope, this is not journal header, which
-				 * bascially means that journal is not
+				 * basically means that journal is not
 				 * terminated properly.
 				 */
 				error = ENOENT;
@@ -2654,13 +2656,14 @@ static eventhandler_tag g_journal_event_shutdown = NULL;
 static eventhandler_tag g_journal_event_lowmem = NULL;
 
 static void
-g_journal_shutdown(void *arg, int howto __unused)
+g_journal_shutdown_post_sync(void *arg, int howto)
 {
 	struct g_class *mp;
 	struct g_geom *gp, *gp2;
 
-	if (KERNEL_PANICKED())
+	if ((howto & RB_NOSYNC) != 0)
 		return;
+
 	mp = arg;
 	g_topology_lock();
 	LIST_FOREACH_SAFE(gp, &mp->geom, geom, gp2) {
@@ -2737,7 +2740,7 @@ g_journal_init(struct g_class *mp)
 		    (g_journal_cache_limit / 100) * g_journal_cache_switch;
 	}
 	g_journal_event_shutdown = EVENTHANDLER_REGISTER(shutdown_post_sync,
-	    g_journal_shutdown, mp, EVENTHANDLER_PRI_FIRST);
+	    g_journal_shutdown_post_sync, mp, EVENTHANDLER_PRI_FIRST);
 	if (g_journal_event_shutdown == NULL)
 		GJ_DEBUG(0, "Warning! Cannot register shutdown event.");
 	g_journal_event_lowmem = EVENTHANDLER_REGISTER(vm_lowmem,

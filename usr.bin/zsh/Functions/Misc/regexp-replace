@@ -1,0 +1,91 @@
+# Replace all occurrences of a regular expression in a variable.  The
+# variable is modified directly.  Respects the setting of the
+# option RE_MATCH_PCRE.
+#
+# First argument: *name* (not contents) of variable.
+# Second argument: regular expression
+# Third argument: replacement string.  This can contain all forms of
+# $ and backtick substitutions; in particular, $MATCH will be replaced
+# by the portion of the string matched by the regular expression.
+
+# we use positional parameters instead of variables to avoid
+# clashing with the user's variable. Make sure we start with 3 and only
+# 3 elements:
+argv=("$1" "$2" "$3")
+
+# $4 records whether pcre is enabled as that information would otherwise
+# be lost after emulate -L zsh
+4=0
+[[ -o re_match_pcre ]] && 4=1
+
+emulate -L zsh
+
+
+local MATCH MBEGIN MEND
+local -a match mbegin mend
+
+if (( $4 )); then
+  # if using pcre, we're using pcre_match and a running offset
+  # That's needed for ^, \A, \b, and look-behind operators to work
+  # properly.
+
+  zmodload zsh/pcre || return 2
+  pcre_compile -- "$2" && pcre_study || return 2
+
+  # $4 is the current *byte* offset, $5, $6 reserved for later use
+  4=0 6=
+
+  local ZPCRE_OP
+  while pcre_match -b -n $4 -- "${(P)1}"; do
+    # append offsets and computed replacement to the array
+    # we need to perform the evaluation in a scalar assignment so that if
+    # it generates an array, the elements are converted to string (by
+    # joining with the first character of $IFS as usual)
+    5=${(e)3}
+    argv+=(${(s: :)ZPCRE_OP} "$5")
+
+    # for 0-width matches, increase offset by 1 to avoid
+    # infinite loop
+    4=$((argv[-2] + (argv[-3] == argv[-2])))
+  done
+
+  (($# > 6)) || return # no match
+
+  set +o multibyte
+
+  # $5 contains the result, $6 the current offset
+  5= 6=1
+  for 2 3 4 in "$@[7,-1]"; do
+    5+=${(P)1[$6,$2]}$4
+    6=$(($3 + 1))
+  done
+  5+=${(P)1[$6,-1]}
+else
+  # in ERE, we can't use an offset so ^, (and \<, \b, \B, [[:<:]] where
+  # available) won't work properly.
+
+  # $4 is the string to be matched
+  4=${(P)1}
+
+  while [[ -n $4 ]]; do
+    if [[ $4 =~ $2 ]]; then
+      # append initial part and substituted match
+      5+=${4[1,MBEGIN-1]}${(e)3}
+      # truncate remaining string
+      if ((MEND < MBEGIN)); then
+        # zero-width match, skip one character for the next match
+        ((MEND++))
+	5+=${4[1]}
+      fi
+      4=${4[MEND+1,-1]}
+      # indicate we did something
+      6=1
+    else
+      break
+    fi
+  done
+  [[ -n $6 ]] || return # no match
+  5+=$4
+fi
+
+eval $1=\$5

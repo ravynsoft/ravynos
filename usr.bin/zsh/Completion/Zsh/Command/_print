@@ -1,0 +1,97 @@
+#compdef print printf
+
+local state expl line eflag pflag rflag rest ret=1
+
+if [[ $service = print ]]; then
+  # -e flag available only after -R 
+  eflag="${words[1,CURRENT-1][(r)-*R*]:+-e[enable escapes]}"
+  rflag='-r[ignore escape conventions of echo]'
+
+  # -p flag only relevant if we have a coprocess
+  (:>&p) 2>/dev/null &&
+    pflag='(-s -u -z)-p[print arguments to input of coprocess]'
+
+  [[ -n ${words[(r)-*f]} ]] && rflag='-r[disable reuse of format string]'
+
+  if [[ -n ${words[1,CURRENT][(r)-*P*]} ]]; then
+    rest='*: :->prompt'
+  else
+    rest='*: :_default'
+  fi
+
+  _arguments -C -s -A "-*" -S \
+    '-r[ignore escape conventions of echo]' \
+    '(-r -b -f -m -s -S -l -N -o -O -i -c -u -p -z -D -P)-R[emulate BSD echo (no escapes, -n & -e flags only)]' \
+    '-b[recognise bindkey escape sequences]' \
+    '-m[remove arguments not matching specified pattern]:pattern' \
+    '(-n -R -l -N -c -S)-f+[print arguments as for the printf builtin]:format:->printfformat' \
+    '(-u -p -z -S)-s[place results in the history list]' \
+    '(-a -f -c -C -i -l -o -O -N -u -p -v -z -s -x -X)-S[place results in the history list, after splitting argument into words]' \
+    '(-c -f)-n[do not add a newline to the result]' \
+    '(-N -c -f -S)-l[print arguments separated by newlines]' \
+    '(-n -l -c -f -S)-N[print arguments separated and terminated by nulls]' \
+    '(-O -S)-o[sort arguments in ascending order]' \
+    '(-o -S)-O[sort arguments in descending order]' \
+    '(-S)-i[case-insensitive sorting]' \
+    '(-n -l -N -f -s -S -z)-a[with -c/-C, print arguments across before down]' \
+    '(-n -l -N -f -C -s -S -z)-c[print arguments in columns]' \
+    '(-n -l -N -f -c -s -S -z)-C+[print arguments in specified number of columns]:columns' \
+    '(-s -S -p -z)-u+[specify file descriptor to print arguments to]:file descriptor:_file_descriptors' \
+    '(-s -S -z -p -u)-v[store output in named parameter]:parameter:_parameters' \
+    '(-s -S -p -u)-z[push arguments onto editing buffer stack]' \
+    '-D[substitute any arguments which are named directories using ~ notation]' \
+    '-P[perform prompt expansion]' \
+    '(-X -f -a -C -c -s -S -z)-x+[expand leading tabs]:tab width' \
+    '(-x -f -a -C -c -s -S -z)-X+[expand all tabs]:tab width' \
+    $pflag $eflag $rflag $rest && ret=0
+elif [[ $service = printf ]]; then
+  state=printf
+fi
+
+if [[ $state = printf ]]; then
+  _arguments -C -s -S \
+    '-v[store output in named parameter]:parameter:_parameters' \
+    '1:format:->printfformat' \
+    '*: :_default' && ret=0
+fi
+
+if [[ $state = printfformat ]]; then
+  if [[ ${(Q)PREFIX} = *%[0-9\$#\ +*.\'-]# ]]; then
+    local -a specs
+      specs=(
+        '#:alternate form'
+        '0:zero pad to length'
+        '-:left adjust result'
+        ' :leave one space in front of positive number from signed conversion'
+        '+:always place sign before a number from signed conversion'
+        '*:field width in next argument'
+        '.:precision'
+	"':thousand separators"
+        'c:print the first character of the argument'
+        's:print the argument as a string'
+        {d,i}':signed decimal number or with leading " numeric value of following character'
+        'o:unsigned octal number'
+        'u:unsigned decimal number'
+        {x,X}':unsigned hexadecimal number, letters capitalized as x'
+        {e,E}':double number in scientific notation'
+        'f:double number'
+        {g,G}':double number as %f or %e depending on size'
+        '%:a percent sign'
+        'n:store number of printed bytes in parameter specified by argument'
+        'b:as %s but interpret escape sequences in argument'
+        'q:as %s but shell quote result'
+      )
+    compset -P "*"
+    _describe -t print-format-specifiers 'print format specifier' specs -S ''
+    _message -e print-format-specifiers 'number'
+  else
+    _wanted print-format-specifiers expl 'print format specifier' compadd -S '' %
+  fi
+  ret=0
+elif [[ $state = prompt ]]; then
+  _default && ret=0
+  # complete prompt specifiers without interfering too much with default completion
+  (( $#compstate[unambiguous] <= $#PREFIX || ! $#PREFIX )) && _ps1234 && ret=0
+fi
+
+return ret

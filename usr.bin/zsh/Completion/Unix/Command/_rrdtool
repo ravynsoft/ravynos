@@ -1,0 +1,25 @@
+#compdef rrdtool
+
+local curcontext="$curcontext" state line expl ret=1
+
+_arguments -C \
+  ':rrdtool command:(create update updatev graph dump restore
+                   last lastupdate first help info fetch tune
+		   resize xport)' \
+  '*:: :->subcmds' && ret=0
+
+curcontext="${curcontext%:*}-$words[1]:"
+case "$state" in
+  (subcmds)
+    case "$words[1]" in
+      (help)
+	_wanted -V 'subcommands' expl 'subcommand' compadd \
+	  create update updatev graph dump restore last lastupdate \
+	  first help info fetch tune resize xport
+      ;;
+      (*)
+        _files
+      ;;
+    esac
+  ;;
+esac

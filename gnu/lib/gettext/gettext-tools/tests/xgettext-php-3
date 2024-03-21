@@ -1,0 +1,35 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test PHP support: --add-comments option.
+
+cat <<\EOF > xg-ph-3.php
+<?
+/* a */
+/* b */ string = /* c */
+/* d */
+/* e */ _( /* f */ "hello " /* g */ . /* h */ "world" /* i */ );
+?>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-ph-3.tmp xg-ph-3.php || Exit 1
+LC_ALL=C tr -d '\r' < xg-ph-3.tmp.po > xg-ph-3.po || Exit 1
+
+cat <<EOF > xg-ph-3.ok
+#. a
+#. b
+#. c
+#. d
+#. e
+#. f
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ph-3.ok xg-ph-3.po
+result=$?
+
+exit $result

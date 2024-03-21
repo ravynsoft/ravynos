@@ -1,0 +1,16 @@
+#autoload
+
+local expl list desc
+
+_tags colormapids || return 1
+
+list=(${(f)"$(xprop -root -f RGB_COLOR_MAP 32xcccccccxx ': $0\n'|awk -F'[ ():]' '/^[a-zA-Z_]+\(RGB_COLOR_MAP\)/ {print $5, "--", $1}')"})
+
+if zstyle -T ":completion:${curcontext}:colormap-id" verbose; then
+  desc=(-ld list)
+else
+  desc=()
+fi
+
+_wanted colormapids expl 'colormap id' \
+    compadd "$@" "$desc[@]" - "${(@)list%% *}" 

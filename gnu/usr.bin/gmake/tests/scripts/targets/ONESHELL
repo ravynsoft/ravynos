@@ -1,0 +1,143 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the behaviour of the .ONESHELL target.";
+
+$details = "";
+
+my $multi_ok = 0;
+
+if ($port_type ne 'W32') {
+    # Some shells (*shakes fist at Solaris*) cannot handle multiple flags in
+    # separate arguments.
+    my $t = `$sh_name -e -c true 2>/dev/null`;
+    $multi_ok = $? == 0;
+}
+
+# Simple
+
+run_make_test(q!
+.ONESHELL:
+all:
+	a=$$$$
+	[ 0"$$a" -eq "$$$$" ] || echo fail
+!,
+              '', 'a=$$
+[ 0"$a" -eq "$$" ] || echo fail
+');
+
+# Simple but use multi-word SHELLFLAGS
+
+if ($multi_ok) {
+    run_make_test(q!
+.ONESHELL:
+.SHELLFLAGS = -e -c
+all:
+	a=$$$$
+	[ 0"$$a" -eq "$$$$" ] || echo fail
+!,
+              '', 'a=$$
+[ 0"$a" -eq "$$" ] || echo fail
+');
+}
+
+# Again, but this time with inner prefix chars
+
+run_make_test(q!
+.ONESHELL:
+all:
+	a=$$$$
+	@-+    [ 0"$$a" -eq "$$$$" ] || echo fail
+!,
+              '', 'a=$$
+[ 0"$a" -eq "$$" ] || echo fail
+');
+
+# This time with outer prefix chars
+
+run_make_test(q!
+.ONESHELL:
+all:
+	   @a=$$$$
+	    [ 0"$$a" -eq "$$$$" ] || echo fail
+!,
+              '', '');
+
+
+# This time with outer and inner prefix chars
+
+run_make_test(q!
+.ONESHELL:
+all:
+	   @a=$$$$
+	    -@     +[ 0"$$a" -eq "$$$$" ] || echo fail
+!,
+              '', '');
+
+
+# Now try using a different interpreter
+# This doesn't work on Windows right now
+if ($port_type ne 'W32') {
+    run_make_test(q!
+.RECIPEPREFIX = >
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS = -e
+all:
+>	   @$$a=5
+>	    +7;
+>	@y=qw(a b c);
+>print "a = $$a, y = (@y)\n";
+!,
+                  '', "a = 12, y = (a b c)\n");
+
+    # Simple .SHELLFLAGS, no quotes.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS = -e
+all:; @print "it works\n"
+!, '', 'it works');
+
+    # Pass a quoted string with spaces to oneshell.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS = -w -E 'use warnings FATAL => "all";' -E
+all:; @print "it works\n"
+!, '', 'it works');
+
+    # Empty .SHELLFLAGS.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS =
+all:; @print "it works"
+!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:5: all] Error $ERR_no_such_file_code", 512);
+
+    # No .SHELLFLAGS.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+all:; @print "it works"
+!, '', "Can't open perl script \"print \"it works\"\": $ERR_no_such_file\n#MAKE#: *** [#MAKEFILE#:4: all] Error $ERR_no_such_file_code", 512);
+
+    # Pass a quoted string with spaces to oneshell.
+    # sv 61805.
+    run_make_test(q!
+.ONESHELL:
+SHELL = #PERL#
+.SHELLFLAGS = -w -E 'use warnings FATAL => "all";' -E 'my $$foo = "bar";' -E
+all:; @print "it works: $$foo\n"
+!, '', 'it works: bar');
+}
+
+# This tells the test driver that the perl test script executed properly.
+1;
+
+### Local Variables:
+### eval: (setq whitespace-action (delq 'auto-cleanup whitespace-action))
+### End:

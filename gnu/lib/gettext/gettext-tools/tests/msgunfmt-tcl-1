@@ -1,0 +1,61 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of --tcl option.
+
+# This test fails on mingw, in the Cygwin environment: tclsh exists as
+# tclsh.exe from Cygwin. When msgunfmt invokes it, it crashes, presenting
+# a dialog "16 bit MS-DOS subsystem - The NTVDM CPU has encountered an
+# illegal instruction." When this dialog is closed, msgunfmt continues,
+# reads empty output, and refrains from creating a PO file because
+# --force-po was not specified.
+
+# Test whether we can execute Tcl programs and Tcl's fconfigure command
+# understands the -encoding option (it does since approximately Tcl 8.1).
+cat <<\EOF > mu-tcl-1-version.tcl
+fconfigure stdout -encoding utf-8
+puts $tcl_version
+EOF
+(tclsh mu-tcl-1-version.tcl) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: tclsh not found or Tcl too old"
+       Exit 77
+     }
+
+cat <<\EOF > mu-tcl-1-fr.po
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+#: program.tcl:5
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Reverse the arguments.
+#: program.tcl:6
+#, tcl-format
+msgid "%s is replaced by %s."
+msgstr "%2$s remplace %1$s."
+EOF
+
+test -d mu-tcl-1-msgs || mkdir mu-tcl-1-msgs
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --tcl -d mu-tcl-1-msgs -l fr mu-tcl-1-fr.po || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+GETTEXTTCLDIR="$wabs_top_srcdir"/src \
+${MSGUNFMT} --tcl -d mu-tcl-1-msgs -l fr -o mu-tcl-1-prog.out || Exit 1
+
+cat <<\EOF > mu-tcl-1-prog.ok
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on."
+
+msgid "%s is replaced by %s."
+msgstr "%2$s remplace %1$s."
+EOF
+: ${DIFF=diff}
+${DIFF} mu-tcl-1-prog.ok mu-tcl-1-prog.out || Exit 1
+
+Exit 0

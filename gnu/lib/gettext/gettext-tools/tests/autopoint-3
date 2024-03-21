@@ -1,0 +1,140 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test the autopoint program, with Automake.
+
+# Note: This tests fails on Alpine Linux, because the 'gzip' binary on this
+# system does not support the '--best' option.
+
+: ${AUTOCONF=autoconf}
+${AUTOCONF} --version >/dev/null 2>/dev/null \
+  || { echo "Skipping test: autoconf not found"; Exit 77; }
+
+cat <<\EOF >configure.ac
+AC_PREREQ([2.60])
+EOF
+
+${AUTOCONF} >/dev/null 2>/dev/null \
+  || { echo "Skipping test: autoconf version too old"; Exit 77; }
+
+rm -f configure.ac
+
+: ${AUTOMAKE=automake}
+${AUTOMAKE} --version >/dev/null 2>/dev/null \
+  || { echo "Skipping test: automake not found"; Exit 77; }
+
+cat <<\EOF >configure.ac
+AC_PREREQ([2.60])
+AC_INIT([foo], [0.0], [bug-gnu-gettext@gnu.org])
+AM_INIT_AUTOMAKE([1.11 foreign])
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+EOF
+
+: ${ACLOCAL=aclocal}
+${ACLOCAL} >/dev/null 2>autopoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+: > Makefile.am
+
+${AUTOMAKE} --add-missing >/dev/null 2>/dev/null \
+  || { echo "Skipping test: automake version too old"; Exit 77; }
+
+rm -f configure.ac Makefile.am
+
+: ${MAKE=make}
+${MAKE} --version >/dev/null 2>/dev/null \
+  || { echo "Skipping test: make not found"; Exit 77; }
+
+gettext_datadir=$top_builddir/misc
+export gettext_datadir
+
+cat <<EOF >configure.ac
+AC_INIT([hello], [0.0.0], [bug-gnu-gettext@gnu.org])
+AM_INIT_AUTOMAKE([foreign])
+LT_INIT
+
+AC_CONFIG_MACRO_DIR([m4])
+
+AC_PROG_CC
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([$ARCHIVE_VERSION])
+
+dnl AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([po/Makefile.in])
+AC_OUTPUT
+EOF
+
+cat <<\EOF >Makefile.am
+# Example for use of GNU gettext.
+# This file is in the public domain.
+#
+# Makefile configuration - processed by automake.
+
+# The list of subdirectories containing Makefiles.
+SUBDIRS = po
+
+# The list of programs that are built.
+bin_PROGRAMS = hello
+
+# The source files of the 'hello' program.
+hello_SOURCES = hello.c gettext.h
+
+# Define a C macro LOCALEDIR indicating where catalogs will be installed.
+DEFS = -DLOCALEDIR=\"$(localedir)\" @DEFS@
+
+# Make sure the gettext.h include file is found.
+AM_CPPFLAGS = -I. -I$(srcdir)
+
+# Link time dependencies.
+LDADD = @LTLIBINTL@
+EOF
+
+cp -p "$abs_top_srcdir"/gnulib-lib/gettext.h .
+cp -p "$abs_top_srcdir"/examples/hello-c/hello.c .
+
+$gettext_datadir/autopoint -f >/dev/null 2>autopoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+test ! -d intl || Exit 1
+test -d m4 || Exit 1
+test -d po || Exit 1
+
+test -f m4/po.m4 || Exit 1
+test -f po/Makefile.in.in || Exit 1
+
+cp -p po/Makevars.template po/Makevars
+echo hello.c > po/POTFILES.in
+
+${ACLOCAL} -I m4 >/dev/null 2>autopoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+if false; then
+  : ${AUTOHEADER=autoheader}
+  ${AUTOHEADER} >/dev/null 2>autopoint.err
+  test $? = 0 || { cat autopoint.err; Exit 1; }
+fi
+
+${AUTOCONF} >/dev/null 2>autopoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+# If ltmain.sh is not present, some installations of Automake fail with an
+# error "configure.ac:3: error: required file './ltmain.sh' not found".
+touch ltmain.sh
+
+${AUTOMAKE} -a -c >/dev/null 2>autopoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+# Check that it all compiles.
+: ${CONFIG_SHELL=${SHELL-/bin/sh}}
+${CONFIG_SHELL} ./configure >/dev/null 2>autpoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+${MAKE} >/dev/null 2>autopoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+${MAKE} dist >/dev/null 2>autopoint.err
+test $? = 0 || { cat autopoint.err; Exit 1; }
+
+Exit 0

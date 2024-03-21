@@ -1,0 +1,4300 @@
+# translation of gold to Romanian
+# Mesajele în limba română pentru pachetul gold.
+# Copyright © 2022 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+#
+# Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 2022 - 2023.
+#
+# Cronologia traducerii fișierului „gold”:
+# Traducerea inițială, făcută de R-GC, pentru versiunea gold 2.38.90.
+# Actualizare a traducerii pentru versiunea 2.39.90, făcută de R-GC, ian-2023.
+# Actualizare a traducerii pentru versiunea 2.40.90, făcută de R-GC, iul-2023.
+# Actualizare a traducerii pentru versiunea Y, făcută de X, Z(luna-anul).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gold 2.40.90\n"
+"Report-Msgid-Bugs-To: https://sourceware.org/bugzilla/\n"
+"POT-Creation-Date: 2023-07-03 11:34+0100\n"
+"PO-Revision-Date: 2023-07-03 21:17+0200\n"
+"Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
+"Language-Team: Romanian <translation-team-ro@lists.sourceforge.net>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=((n==1) ? 0 : (n==2) ? 1 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 2 : 3);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: aarch64-reloc-property.cc:173 arm-reloc-property.cc:303
+#, c-format
+msgid "invalid reloc %u"
+msgstr "%u realocare nevalidă"
+
+#: aarch64-reloc-property.cc:186 arm-reloc-property.cc:316
+msgid "reloc "
+msgstr "realocare "
+
+#: aarch64-reloc-property.cc:186 arm-reloc-property.cc:316
+msgid "unimplemented reloc "
+msgstr "realocare neimplementată "
+
+#: aarch64-reloc-property.cc:189 arm-reloc-property.cc:319
+msgid "dynamic reloc "
+msgstr "realocare dinamică "
+
+#: aarch64-reloc-property.h:228
+#, c-format
+msgid "Invalid/unrecognized reloc reloc %d."
+msgstr "Realocare nevalidă/nerecunoscută reloc() %d."
+
+#: aarch64.cc:511 arm.cc:7391 mips.cc:6685
+#, c-format
+msgid "undefined or discarded local symbol %u from  object %s in GOT"
+msgstr "simbol local nedefinit sau eliminat %u din obiectul %s din GOT"
+
+#: aarch64.cc:532 arm.cc:7413 mips.cc:6704
+#, c-format
+msgid "undefined or discarded symbol %s in GOT"
+msgstr "simbolul %s nedefinit sau eliminat în GOT"
+
+#: aarch64.cc:1932 arm.cc:6543 object.cc:901
+#, c-format
+msgid "invalid symbol table name index: %u"
+msgstr "index de nume de tabel de simboluri nevalid: %u"
+
+#: aarch64.cc:1940 arm.cc:6551 object.cc:907
+#, c-format
+msgid "symbol table name section has wrong type: %u"
+msgstr "secțiunea de nume a tabelului de simboluri are tip greșit: %u"
+
+#: aarch64.cc:3832 arm.cc:10905 mips.cc:9608 powerpc.cc:2935 target.cc:94
+#, c-format
+msgid "%s: unsupported ELF file type %d"
+msgstr "%s: tip de fișier ELF neacceptat %d"
+
+#: aarch64.cc:4014 arm.cc:12181
+#, c-format
+msgid "cannot handle branch to local %u in a merged section %s"
+msgstr "nu se poate gestiona ramificarea către locația %u într-o secțiune îmbinată %s"
+
+#: aarch64.cc:4379 arm.cc:7593 i386.cc:193 s390.cc:216 sparc.cc:1366
+#: tilegx.cc:182 x86_64.cc:314
+msgid "** PLT"
+msgstr "** PLT"
+
+#: aarch64.cc:5554
+#, c-format
+msgid "Stub is too far away, try a smaller value for '--stub-group-size'. The current value is 0x%lx."
+msgstr "Ciotul(stub) este prea departe, încercați o valoare mai mică pentru „--stub-group-size”. Valoarea curentă este 0x%lx."
+
+#: aarch64.cc:6016 arm.cc:8477 i386.cc:1772 mips.cc:12461 powerpc.cc:7845
+#: s390.cc:2185 s390.cc:2633 sparc.cc:2134 tilegx.cc:3137 tilegx.cc:3589
+#: x86_64.cc:3012 x86_64.cc:3459
+#, c-format
+msgid "%s: unsupported reloc %u against local symbol"
+msgstr "%s: realocare neacceptată a lui %u în raport cu simbolul local"
+
+#: aarch64.cc:6057 powerpc.cc:7950 s390.cc:2259 sparc.cc:2230
+msgid "requires unsupported dynamic reloc; recompile with -fPIC"
+msgstr "necesită realocare dinamică neacceptată; recompilați cu „-fPIC”"
+
+#: aarch64.cc:6079
+#, c-format
+msgid "%s: unsupported TLS reloc %s for IFUNC symbol"
+msgstr "%s: realocare TLS neacceptată %s pentru simbolul IFUNC"
+
+#: aarch64.cc:6123 aarch64.cc:6187 aarch64.cc:6497
+#, c-format
+msgid "%s: unsupported reloc %u in pos independent link."
+msgstr "%s: realocare neacceptată %u în legătura independentă de poziție."
+
+#: aarch64.cc:6288
+#, c-format
+msgid "%s: unsupported TLSLE reloc %u in shared code."
+msgstr "%s: realocare TLSLE neacceptată %u în cod partajat."
+
+#: aarch64.cc:6373 arm.cc:8885 i386.cc:2127 mips.cc:12474 powerpc.cc:8785
+#: s390.cc:3064 s390.cc:3081 sparc.cc:2572 tilegx.cc:3605 tilegx.cc:4144
+#: x86_64.cc:3475 x86_64.cc:3979
+#, c-format
+msgid "%s: unsupported reloc %u against global symbol %s"
+msgstr "%s: realocare neacceptată %u în raport cu simbolul global %s"
+
+#: aarch64.cc:6723
+#, c-format
+msgid "%s: unsupported TLSLE reloc type %u in shared objects."
+msgstr "%s: tip de realocare TLSLE neacceptată %u în obiectele partajate."
+
+#: aarch64.cc:6768
+#, c-format
+msgid "%s: unsupported reloc type in global scan"
+msgstr "%s: tip de realocare neacceptată în scanarea globală"
+
+#: aarch64.cc:6908 powerpc.cc:9922 s390.cc:4014 sparc.cc:3164 tilegx.cc:4211
+#: x86_64.cc:4044
+#, c-format
+msgid "%s: unsupported REL reloc section"
+msgstr "%s: secțiune de realocare REL neacceptată"
+
+#: aarch64.cc:7071 arm.cc:9615
+#, c-format
+msgid "cannot relocate %s in object file"
+msgstr "nu se poate realoca %s în fișierul obiect"
+
+#: aarch64.cc:7344 i386.cc:2987 i386.cc:3753 mips.cc:10076 powerpc.cc:12279
+#: s390.cc:3465 sparc.cc:3695 tilegx.cc:4726 x86_64.cc:4537
+#, c-format
+msgid "unexpected reloc %u in object file"
+msgstr "realocare neașteptată %u în fișierul obiect"
+
+#: aarch64.cc:7350
+#, c-format
+msgid "unsupported reloc %s"
+msgstr "realocare neacceptată %s"
+
+#: aarch64.cc:7362 arm.cc:10095 arm.cc:10713
+#, c-format
+msgid "relocation overflow in %s"
+msgstr "depășire de realocări în %s"
+
+#: aarch64.cc:7370 arm.cc:10103 arm.cc:10718
+#, c-format
+msgid "unexpected opcode while processing relocation %s"
+msgstr "cod operațional neașteptat în timpul procesării realocării %s"
+
+#: aarch64.cc:7466
+#, c-format
+msgid "unsupported gd_to_ie relaxation on %u"
+msgstr "relaxare gd_to_ie neacceptată pe %u"
+
+#: aarch64.cc:7638
+#, c-format
+msgid "%s: unsupported reloc %u in non-static TLSLE mode."
+msgstr "%s: realocare %u neacceptată în modul TLSLE nestatic."
+
+#: aarch64.cc:7723
+#, c-format
+msgid "%s: unsupported TLS reloc %u."
+msgstr "%s: realocare TLS neacceptată %u."
+
+#. Ideally we should give up gd_to_le relaxation and do gd access.
+#. However the gd_to_le relaxation decision has been made early
+#. in the scan stage, where we did not allocate any GOT entry for
+#. this symbol. Therefore we have to exit and report error now.
+#. Ideally we should give up gd_to_le relaxation and do gd access.
+#. However the gd_to_le relaxation decision has been made early
+#. in the scan stage, where we did not allocate a GOT entry for
+#. this symbol. Therefore we have to exit and report an error now.
+#: aarch64.cc:7780 aarch64.cc:7880
+#, c-format
+msgid "unexpected reloc insn sequence while relaxing tls gd to le for reloc %u."
+msgstr "secvență neașteptată de realocare insn în timp ce se relaxează tls gd_to_le pentru realocare %u."
+
+#: aarch64.cc:7955
+#, c-format
+msgid "TLS variable referred by reloc %u is too far from TP."
+msgstr "Variabila TLS referită de realocarea %u este prea departe de TP."
+
+#: aarch64.cc:8025
+#, c-format
+msgid "TLS variable referred by reloc %u is too far from TP. We Can't do gd_to_le relaxation.\n"
+msgstr "Variabila TLS referită de realocarea %u este prea departe de TP. Nu se poate face relaxarea gd_to_le.\n"
+
+#: aarch64.cc:8049
+#, c-format
+msgid "unsupported tlsdesc gd_to_le optimization on reloc %u"
+msgstr "optimizare tlsdesc gd_to_le neacceptată la realocarea %u"
+
+#: aarch64.cc:8121
+#, c-format
+msgid "Don't support tlsdesc gd_to_ie optimization on reloc %u"
+msgstr "Nu se acceptă optimizarea tlsdesc gd_to_ie la realocarea %u"
+
+#: aarch64.cc:8456
+#, c-format
+msgid "Erratum 835769 found and fixed at \"%s\", section %d, offset 0x%08x."
+msgstr "Eroare 835769 găsită și remediată la „%s”, secțiunea %d, poziția 0x%08x."
+
+#: archive.cc:127
+#, c-format
+msgid "script or expression reference to %s"
+msgstr "scriptul sau expresia se referă la %s"
+
+#: archive.cc:232
+#, c-format
+msgid "%s: no archive symbol table (run ranlib)"
+msgstr "%s: nicio tabelă cu simboluri de arhivă (executați ranlib)"
+
+#: archive.cc:324
+#, c-format
+msgid "%s: bad archive symbol table names"
+msgstr "%s: nume de tabel de simboluri de arhivă incorecte"
+
+#: archive.cc:356
+#, c-format
+msgid "%s: malformed archive header at %zu"
+msgstr "%s: antet de arhivă incorect în %zu"
+
+#: archive.cc:376
+#, c-format
+msgid "%s: malformed archive header size at %zu"
+msgstr "%s: dimensiunea antetului arhivei este incorectă în %zu"
+
+#: archive.cc:387
+#, c-format
+msgid "%s: malformed archive header name at %zu"
+msgstr "%s: nume de antet de arhivă incorect în %zu"
+
+#: archive.cc:423
+#, c-format
+msgid "%s: bad extended name index at %zu"
+msgstr "%s: index de nume extins incorect în %zu"
+
+#: archive.cc:433
+#, c-format
+msgid "%s: bad extended name entry at header %zu"
+msgstr "%s: intrare incorectă a numelui extins în antetul %zu"
+
+#: archive.cc:530
+#, c-format
+msgid "%s: short archive header at %zu"
+msgstr "%s: antet de arhivă scurt în %zu"
+
+#: archive.cc:720
+#, c-format
+msgid "%s: plugin failed to claim member %s at %zu"
+msgstr "%s: modulul nu a reușit să revendice membrul %s la %zu"
+
+#: archive.cc:724
+#, c-format
+msgid "%s: member %s at %zu is not an ELF object"
+msgstr "%s: membrul %s din %zu nu este un obiect ELF"
+
+#: archive.cc:1086
+#, c-format
+msgid "%s: archive libraries: %u\n"
+msgstr "%s: biblioteci de arhivă: %u\n"
+
+#: archive.cc:1088
+#, c-format
+msgid "%s: total archive members: %u\n"
+msgstr "%s: numărul total de membrii ai arhivei: %u\n"
+
+#: archive.cc:1090
+#, c-format
+msgid "%s: loaded archive members: %u\n"
+msgstr "%s: membrii arhivei încărcate: %u\n"
+
+#: archive.cc:1320
+#, c-format
+msgid "%s: lib groups: %u\n"
+msgstr "%s: grupuri de biblioteci: %u\n"
+
+#: archive.cc:1322
+#, c-format
+msgid "%s: total lib groups members: %u\n"
+msgstr "%s: numărul total de membri ai grupului de bibliotecă: %u\n"
+
+#: archive.cc:1324
+#, c-format
+msgid "%s: loaded lib groups members: %u\n"
+msgstr "%s: numărul de membri ai grupului de biblioteci încărcat: %u\n"
+
+#: arm-reloc-property.cc:322
+msgid "private reloc "
+msgstr "realocare privată "
+
+#: arm-reloc-property.cc:325
+msgid "obsolete reloc "
+msgstr "realocare învechită "
+
+#: arm.cc:1077
+msgid "** ARM cantunwind"
+msgstr "** ARM cantunwind (nu se poate desfășura pentru ARM)"
+
+#: arm.cc:2554
+msgid "Cannot use both --target1-abs and --target1-rel."
+msgstr "Nu se poate utiliza atât opțiunea „--target1-abs”, cât și opțiunea „--target1-rel”."
+
+#: arm.cc:4148
+#, c-format
+msgid "%s: Thumb BLX instruction targets thumb function '%s'."
+msgstr "%s: instrucțiunea Thumb BLX vizează funcția thumb() „%s”."
+
+#: arm.cc:4294
+msgid "conditional branch to PLT in THUMB-2 not supported yet."
+msgstr "ramificarea condiționată la PLT în THUMB-2 nu este încă acceptată."
+
+#: arm.cc:5432
+msgid "PREL31 overflow in EXIDX_CANTUNWIND entry"
+msgstr "depășire PREL31 în intrarea EXIDX_CANTUNWIND"
+
+#. Something is wrong with this section.  Better not touch it.
+#: arm.cc:5678
+#, c-format
+msgid "uneven .ARM.exidx section size in %s section %u"
+msgstr "dimensiune neuniformă a secțiunii .ARM.exidx în secțiunea %2$u din %1$s"
+
+#: arm.cc:6004
+msgid "Found non-EXIDX input sections in EXIDX output section"
+msgstr "S-au găsit secțiuni de intrare non-EXIDX în secțiunea de ieșire EXIDX"
+
+#: arm.cc:6058 arm.cc:6062
+#, c-format
+msgid "unwinding may not work because EXIDX input section %u of %s is not in EXIDX output section"
+msgstr "desfășurarea poate să nu funcționeze deoarece secțiunea de intrare EXIDX %u din %s nu este în secțiunea de ieșire EXIDX"
+
+#: arm.cc:6875
+#, c-format
+msgid "EXIDX section %s(%u) links to invalid section %u in %s"
+msgstr "Secțiunea EXIDX %s(%u) face legătura cu secțiunea nevalidă %u din %s"
+
+#: arm.cc:6884
+#, c-format
+msgid "EXIDX sections %s(%u) and %s(%u) both link to text section%s(%u) in %s"
+msgstr "Secțiunile EXIDX %s(%u) și %s(%u) leagă ambele către secțiunea de text%s(%u) din %s"
+
+#: arm.cc:6898
+#, c-format
+msgid "EXIDX section %s(%u) links to non-allocated section %s(%u)  in %s"
+msgstr "Secțiunea EXIDX %s(%u) face legătura cu secțiunea nealocată %s(%u) în %s"
+
+#. I would like to make this an error but currently ld just ignores
+#. this.
+#: arm.cc:6908
+#, c-format
+msgid "EXIDX section %s(%u) links to non-executable section %s(%u) in %s"
+msgstr "Secțiunea EXIDX %s(%u) face legătura cu secțiunea neexecutabilă %s(%u) în %s"
+
+#: arm.cc:6992
+#, c-format
+msgid "SHF_LINK_ORDER not set in EXIDX section %s of %s"
+msgstr "SHF_LINK_ORDER nu este definit în secțiunea EXIDX %s din %s"
+
+#: arm.cc:7025
+#, c-format
+msgid "relocation section %u has invalid info %u"
+msgstr "secțiunea de realocare %u are informații nevalide %u"
+
+#: arm.cc:7031
+#, c-format
+msgid "section %u has multiple relocation sections %u and %u"
+msgstr "secțiunea %u are mai multe secțiuni de realocare %u și %u"
+
+#: arm.cc:7983
+msgid "PLT offset too large, try linking with --long-plt"
+msgstr "Deplasarea PLT este prea mare, încercați să compilați cu „--long-plt”"
+
+#: arm.cc:8522
+#, c-format
+msgid "requires unsupported dynamic reloc %s; recompile with -fPIC"
+msgstr "necesită realocarea dinamică neacceptată %s; recompilați cu -fPIC"
+
+#: arm.cc:8547 i386.cc:1786 s390.cc:2276 sparc.cc:2247 tilegx.cc:3223
+#: x86_64.cc:3118
+#, c-format
+msgid "%s: unsupported TLS reloc %u for IFUNC symbol"
+msgstr "%s: realocare TLS neacceptată %u pentru simbolul IFUNC"
+
+#: arm.cc:8643 i386.cc:1862 powerpc.cc:8254 s390.cc:2369 x86_64.cc:3216
+#, c-format
+msgid "section symbol %u has bad shndx %u"
+msgstr "simbolul secțiunii %u are shndx incorect %u"
+
+#. These are relocations which should only be seen by the
+#. dynamic linker, and should never be seen here.
+#: arm.cc:8752 arm.cc:9233 i386.cc:1950 i386.cc:2436 mips.cc:11258
+#: s390.cc:2468 s390.cc:2902 sparc.cc:2553 sparc.cc:3033 tilegx.cc:3584
+#: tilegx.cc:4139 x86_64.cc:3331 x86_64.cc:3852
+#, c-format
+msgid "%s: unexpected reloc %u in object file"
+msgstr "%s: realocare neașteptată %u în fișierul obiect"
+
+#: arm.cc:8784 i386.cc:1984 mips.cc:10707 s390.cc:2512 sparc.cc:2452
+#: tilegx.cc:3488 x86_64.cc:3363
+#, c-format
+msgid "local symbol %u has bad shndx %u"
+msgstr "simbolul local %u are shndx incorect %u"
+
+#: arm.cc:9389 i386.cc:2644
+#, c-format
+msgid "%s: unsupported RELA reloc section"
+msgstr "%s: secțiune de realocare RELA neacceptată"
+
+#: arm.cc:9479
+msgid "unable to provide V4BX reloc interworking fix up; the target profile does not support BX instruction"
+msgstr "imposibil de furnizat remedierea interfuncționării realocării V4BX; profilul țintă nu acceptă instrucțiunile BX"
+
+#: arm.cc:10247 i386.cc:3019 i386.cc:3101 i386.cc:3166 i386.cc:3202
+#: i386.cc:3274 mips.cc:12296 powerpc.cc:12393 s390.cc:3471 s390.cc:3542
+#: s390.cc:3579 s390.cc:3601 s390.cc:3626 sparc.cc:3701 sparc.cc:3892
+#: sparc.cc:3953 sparc.cc:4060 tilegx.cc:4732 x86_64.cc:4558 x86_64.cc:4684
+#: x86_64.cc:4756 x86_64.cc:4790
+#, c-format
+msgid "unsupported reloc %u"
+msgstr "realocare neacceptată %u"
+
+#: arm.cc:10328
+#, c-format
+msgid "%s: unexpected %s in object file"
+msgstr "%s: neașteptat %s în fișierul obiect"
+
+#: arm.cc:10698
+#, c-format
+msgid "cannot handle %s in a relocatable link"
+msgstr "nu poate gestiona %s într-o legătură realocabilă"
+
+#: arm.cc:10800
+#, c-format
+msgid "Source object %s has EABI version %d but output has EABI version %d."
+msgstr "Obiectul sursă %s are versiunea EABI %d, dar ieșirea are versiunea EABI %d."
+
+#: arm.cc:11121
+#, c-format
+msgid "%s: unknown CPU architecture"
+msgstr "%s: arhitectură CPU necunoscută"
+
+#: arm.cc:11158
+#, c-format
+msgid "%s: conflicting CPU architectures %d/%d"
+msgstr "%s: arhitecturi CPU aflate în conflict %d/%d"
+
+#: arm.cc:11297 arm.cc:11683
+#, c-format
+msgid "%s has both the current and legacy Tag_MPextension_use attributes"
+msgstr "%s are atât atributele Tag_MPextension_use actuale, cât și cele vechi"
+
+#: arm.cc:11333
+#, c-format
+msgid "%s uses VFP register arguments, output does not"
+msgstr "%s utilizează argumente de registru VFP, în schimb ieșirea nu"
+
+#: arm.cc:11479
+#, c-format
+msgid "conflicting architecture profiles %c/%c"
+msgstr "profiluri de arhitectură aflate în conflict %c/%c"
+
+#. It's sometimes ok to mix different configs, so this is only
+#. a warning.
+#: arm.cc:11537
+#, c-format
+msgid "%s: conflicting platform configuration"
+msgstr "%s: configurație conflictuală a platformei"
+
+#: arm.cc:11546
+#, c-format
+msgid "%s: conflicting use of R9"
+msgstr "%s: utilizare conflictuală a R9"
+
+#: arm.cc:11559
+#, c-format
+msgid "%s: SB relative addressing conflicts with use of R9"
+msgstr "%s: adresarea relativă SB intră în conflict cu utilizarea R9"
+
+#: arm.cc:11574
+#, c-format
+msgid "%s uses %u-byte wchar_t yet the output is to use %u-byte wchar_t; use of wchar_t values across objects may fail"
+msgstr "%s utilizează wchar_t de %u octeți, în timp ce ieșirea ar trebui să utilizeze wchar_t de %u octeți; utilizarea valorilor whcar_t între obiecte poate eșua"
+
+#: arm.cc:11600
+#, c-format
+msgid "%s uses %s enums yet the output is to use %s enums; use of enum values across objects may fail"
+msgstr "%s folosește %s enumerări, dar rezultatul este să folosească %s enumerări; utilizarea valorilor enumerate între obiecte poate eșua"
+
+#: arm.cc:11616
+#, c-format
+msgid "%s uses iWMMXt register arguments, output does not"
+msgstr "%s utilizează argumente de registru iWMMXt, în schimb ieșirea nu"
+
+#: arm.cc:11637
+#, c-format
+msgid "fp16 format mismatch between %s and output"
+msgstr "nepotrivire a formatului fp16 între %s și ieșire"
+
+#: arm.cc:11729 arm.cc:11822
+#, c-format
+msgid "%s: unknown mandatory EABI object attribute %d"
+msgstr "%s: atribut de obiect EABI obligatoriu necunoscut %d"
+
+#: arm.cc:11733 arm.cc:11827
+#, c-format
+msgid "%s: unknown EABI object attribute %d"
+msgstr "%s: atribut de obiect EABI necunoscut %d"
+
+#. We cannot handle this now.
+#: arm.cc:12422
+#, c-format
+msgid "multiple SHT_ARM_EXIDX sections %s and %s in a non-relocatable link"
+msgstr "mai multe secțiuni SHT_ARM_EXIDX %s și %s într-o legătură nerealocabilă"
+
+#: attributes.cc:410
+#, c-format
+msgid "%s: must be processed by '%s' toolchain"
+msgstr "%s: trebuie să fie procesat de lanțul de instrumente „%s”"
+
+#: attributes.cc:418
+#, c-format
+msgid "%s: object tag '%d, %s' is incompatible with tag '%d, %s'"
+msgstr "%s: eticheta obiectului „%d, %s” este incompatibilă cu eticheta „%d, %s”"
+
+#: attributes.h:393
+msgid "** attributes"
+msgstr "** atribute"
+
+#: binary.cc:135
+#, c-format
+msgid "cannot open %s: %s:"
+msgstr "nu se poate deschide %s: %s:"
+
+# R-GC, scrie:
+# această traducere, este, în parte, o adaptare
+# a mesajului original, pentru ca mesajul, în
+# totalitatea sa, să aibă un înțeles coerent
+# pentru utilizator ;)
+#: common.cc:351 output.cc:2469 output.cc:2568
+#, c-format
+msgid "out of patch space in section %s; relink with --incremental-full"
+msgstr "nu mai există spațiu de corecție în secțiunea „%s”; reeditați legăturile cu opțiunea „--incremental-full”"
+
+#: compressed_output.cc:347
+msgid "not compressing section data: zlib error"
+msgstr "nu se comprimă datele secțiunii: eroare zlib"
+
+#: copy-relocs.cc:125
+#, c-format
+msgid "%s: cannot make copy relocation for protected symbol '%s', defined in %s"
+msgstr "%s: nu se poate face copierea realocării pentru simbolul protejat „%s”, definit în %s"
+
+#: cref.cc:388
+#, c-format
+msgid "cannot open symbol count file %s: %s"
+msgstr "nu se poate deschide fișierul de numărare a simbolurilor %s: %s"
+
+#: cref.cc:402
+#, c-format
+msgid ""
+"\n"
+"Cross Reference Table\n"
+"\n"
+msgstr ""
+"\n"
+"Tabel de referințe încrucișate\n"
+"\n"
+
+#: cref.cc:403
+msgid "Symbol"
+msgstr "Simbol"
+
+#: cref.cc:405
+msgid "File"
+msgstr "Fișier"
+
+#: descriptors.cc:132
+#, c-format
+msgid "file %s was removed during the link"
+msgstr "fișierul %s a fost eliminat la editarea legăturilor"
+
+#: descriptors.cc:188
+msgid "out of file descriptors and couldn't close any"
+msgstr "prea mulți descriptori de fișier și nu se poate închide niciunul"
+
+#: descriptors.cc:209 descriptors.cc:248 descriptors.cc:283
+#, c-format
+msgid "while closing %s: %s"
+msgstr "în timp ce se închidea %s: %s"
+
+#: dirsearch.cc:73
+#, c-format
+msgid "%s: can not read directory: %s"
+msgstr "%s: nu se poate citi directorul: %s"
+
+#: dwarf_reader.cc:471 dwarf_reader.cc:561
+#, c-format
+msgid "%s: DWARF info may be corrupt; offsets in a range list entry are in different sections"
+msgstr "%s: informațiile DWARF pot fi corupte; decalajele dintr-o intrare din lista de intervale sunt în secțiuni diferite"
+
+#: dwarf_reader.cc:588
+#, c-format
+msgid "%s: DWARF range list contains unsupported entry type (%d)"
+msgstr "%s: lista de intervale DWARF conține un tip de intrare neacceptat (%d)"
+
+#: dwarf_reader.cc:1764
+#, c-format
+msgid "%s: corrupt debug info in %s"
+msgstr "%s: informații de depanare corupte în %s"
+
+#: dynobj.cc:176
+#, c-format
+msgid "unexpected duplicate type %u section: %u, %u"
+msgstr "tip duplicat neașteptat secțiunea %u: %u, %u"
+
+#: dynobj.cc:231
+#, c-format
+msgid "unexpected link in section %u header: %u != %u"
+msgstr "legătură neașteptată în antetul secțiunii %u: %u != %u"
+
+#: dynobj.cc:267
+#, c-format
+msgid "DYNAMIC section %u link out of range: %u"
+msgstr "legătura de secțiune DINAMICĂ %u este în afara intervalului: %u"
+
+#: dynobj.cc:275
+#, c-format
+msgid "DYNAMIC section %u link %u is not a strtab"
+msgstr "legătura de secțiune DINAMICĂ %u, %u nu este un strtab"
+
+#: dynobj.cc:304
+#, c-format
+msgid "DT_SONAME value out of range: %lld >= %lld"
+msgstr "Valoarea DT_SONAME în afara intervalului: %lld >= %lld"
+
+#: dynobj.cc:316
+#, c-format
+msgid "DT_NEEDED value out of range: %lld >= %lld"
+msgstr "Valoarea DT_NEEDED în afara intervalului: %lld >= %lld"
+
+#: dynobj.cc:329
+msgid "missing DT_NULL in dynamic segment"
+msgstr "lipsește DT_NULL în segmentul dinamic"
+
+#: dynobj.cc:404
+#, c-format
+msgid "invalid dynamic symbol table name index: %u"
+msgstr "index nevalid al numelui tabelului de simboluri dinamice: %u"
+
+#: dynobj.cc:411
+#, c-format
+msgid "dynamic symbol table name section has wrong type: %u"
+msgstr "secțiunea de nume a tabelului de simboluri dinamice are tip greșit: %u"
+
+#: dynobj.cc:498 object.cc:738 object.cc:1616
+#, c-format
+msgid "bad section name offset for section %u: %lu"
+msgstr "poziție greșită a numelui de secțiune pentru secțiunea %u: %lu"
+
+#: dynobj.cc:528
+#, c-format
+msgid "duplicate definition for version %u"
+msgstr "definiție duplicată pentru versiunea %u"
+
+#: dynobj.cc:557
+#, c-format
+msgid "unexpected verdef version %u"
+msgstr "versiune neașteptată a verdef %u"
+
+#: dynobj.cc:573
+#, c-format
+msgid "verdef vd_cnt field too small: %u"
+msgstr "câmpul vd_cnt al verdef este prea mic: %u"
+
+#: dynobj.cc:581
+#, c-format
+msgid "verdef vd_aux field out of range: %u"
+msgstr "câmpul vd_aux al verdef este în afara limitei: %u"
+
+#: dynobj.cc:592
+#, c-format
+msgid "verdaux vda_name field out of range: %u"
+msgstr "câmpul vda_name al verdaux este în afara limitei: %u"
+
+#: dynobj.cc:602
+#, c-format
+msgid "verdef vd_next field out of range: %u"
+msgstr "câmpul vd_next al verdef este în afara limitei: %u"
+
+#: dynobj.cc:636
+#, c-format
+msgid "unexpected verneed version %u"
+msgstr "versiune neașteptată a verneed %u"
+
+#: dynobj.cc:645
+#, c-format
+msgid "verneed vn_aux field out of range: %u"
+msgstr "câmpul vn_aux al verneed este în afara limitei: %u"
+
+#: dynobj.cc:659
+#, c-format
+msgid "vernaux vna_name field out of range: %u"
+msgstr "câmpul vna_name al vernaux este în afara limitei: %u"
+
+#: dynobj.cc:670
+#, c-format
+msgid "verneed vna_next field out of range: %u"
+msgstr "câmpul vna_next al verneed este în afara limitei: %u"
+
+#: dynobj.cc:681
+#, c-format
+msgid "verneed vn_next field out of range: %u"
+msgstr "câmpul vn_next al verneed este în afara limitei: %u"
+
+#: dynobj.cc:730
+msgid "size of dynamic symbols is not multiple of symbol size"
+msgstr "dimensiunea simbolurilor dinamice nu este multiplu al dimensiunii simbolului"
+
+#: dynobj.cc:1576
+#, c-format
+msgid "symbol %s has undefined version %s"
+msgstr "simbolul %s are versiunea nedefinită %s"
+
+#: ehframe.cc:382
+msgid "overflow in PLT unwind data; unwinding through PLT may fail"
+msgstr "depășire în datele de desfășurare PLT; desfășurarea prin PLT poate eșua"
+
+#: ehframe.h:78
+msgid "** eh_frame_hdr"
+msgstr "** eh_frame_hdr"
+
+#: ehframe.h:450
+msgid "** eh_frame"
+msgstr "** eh_frame"
+
+#: errors.cc:81 errors.cc:92
+#, c-format
+msgid "%s: fatal error: "
+msgstr "%s: eroare fatală: "
+
+#: errors.cc:103 errors.cc:148
+#, c-format
+msgid "%s: error: "
+msgstr "%s: eroare: "
+
+#: errors.cc:115 errors.cc:164
+#, c-format
+msgid "%s: warning: "
+msgstr "%s: avertisment: "
+
+#: errors.cc:188
+msgid "warning"
+msgstr "avertisment"
+
+#: errors.cc:193
+msgid "error"
+msgstr "eroare"
+
+#: errors.cc:199
+#, c-format
+msgid "%s: %s: undefined reference to '%s'\n"
+msgstr "%s: %s: referință nedefinită la „%s”\n"
+
+#: errors.cc:203
+#, c-format
+msgid "%s: %s: undefined reference to '%s', version '%s'\n"
+msgstr "%s: %s: referință nedefinită la „%s”, versiunea „%s”\n"
+
+#: errors.cc:207
+#, c-format
+msgid "%s: the vtable symbol may be undefined because the class is missing its key function"
+msgstr "%s: simbolul vtable poate fi nedefinit deoarece clasei îi lipsește funcția cheie"
+
+#: errors.cc:211
+#, c-format
+msgid "%s: the symbol should have been defined by a plugin"
+msgstr "%s: simbolul trebuia să fi fost definit printr-un modul"
+
+#: errors.cc:220
+#, c-format
+msgid "%s: "
+msgstr "%s: "
+
+#: expression.cc:230
+#, c-format
+msgid "undefined symbol '%s' referenced in expression"
+msgstr "simbol nedefinit „%s” referit în expresie"
+
+#: expression.cc:274
+msgid "invalid reference to dot symbol outside of SECTIONS clause"
+msgstr "referință nevalidă la simbolul punct în afara clauzei SECTIONS"
+
+#. Handle unary operators.  We use a preprocessor macro as a hack to
+#. capture the C operator.
+#: expression.cc:354
+msgid "unary "
+msgstr "unar "
+
+#. Handle binary operators.  We use a preprocessor macro as a hack to
+#. capture the C operator.  KEEP_LEFT means that if the left operand
+#. is section relative and the right operand is not, the result uses
+#. the same section as the left operand.  KEEP_RIGHT is the same with
+#. left and right swapped.  IS_DIV means that we need to give an error
+#. if the right operand is zero.  WARN means that we should warn if
+#. used on section relative values in a relocatable link.  We always
+#. warn if used on values in different sections in a relocatable link.
+#: expression.cc:513
+msgid "binary "
+msgstr "binar "
+
+#: expression.cc:517
+msgid " by zero"
+msgstr " la zero"
+
+#: expression.cc:723
+msgid "max applied to section relative value"
+msgstr "maxim aplicat la valoarea relativă a secțiunii"
+
+#: expression.cc:774
+msgid "min applied to section relative value"
+msgstr "minim aplicat la valoarea relativă a secțiunii"
+
+#: expression.cc:915
+msgid "aligning to section relative value"
+msgstr "se aliniază la valoarea relativă a secțiunii"
+
+#: expression.cc:1083
+#, c-format
+msgid "unknown constant %s"
+msgstr "constantă necunoscută %s"
+
+#: fileread.cc:141
+#, c-format
+msgid "munmap failed: %s"
+msgstr "munmap a eșuat: %s"
+
+#: fileread.cc:209
+#, c-format
+msgid "%s: fstat failed: %s"
+msgstr "%s: fstat() a eșuat: %s"
+
+#: fileread.cc:253
+#, c-format
+msgid "could not reopen file %s"
+msgstr "nu s-a putut redeschide fișierul %s"
+
+#: fileread.cc:390
+#, c-format
+msgid "%s: read failed, starting offset (%#llx) less than zero"
+msgstr "%s: citirea a eșuat, poziția de pornire (%#llx) este mai mică decât zero"
+
+#: fileread.cc:412
+#, c-format
+msgid "%s: pread failed: %s"
+msgstr "%s: pread() a eșuat: %s"
+
+#: fileread.cc:426
+#, c-format
+msgid "%s: file too short: read only %lld of %lld bytes at %lld"
+msgstr "%s: fișier prea scurt: s-au citit doar %lld din %lld octeți la poziția %lld"
+
+#: fileread.cc:549
+#, c-format
+msgid "%s: attempt to map %lld bytes at offset %lld exceeds size of file; the file may be corrupt"
+msgstr "%s: încercarea de a atribui %lld octeți la poziția %lld depășește dimensiunea fișierului; fișierul poate fi corupt"
+
+#: fileread.cc:689
+#, c-format
+msgid "%s: lseek failed: %s"
+msgstr "%s: lseek() a eșuat: %s"
+
+#: fileread.cc:695
+#, c-format
+msgid "%s: readv failed: %s"
+msgstr "%s: readv() a eșuat: %s"
+
+#: fileread.cc:698
+#, c-format
+msgid "%s: file too short: read only %zd of %zd bytes at %lld"
+msgstr "%s: fișier prea scurt: s-au citit doar %zd din %zd octeți la poziția %lld"
+
+#: fileread.cc:865
+#, c-format
+msgid "%s: total bytes mapped for read: %llu\n"
+msgstr "%s: totalul de octeți atribuiți pentru citire: %llu\n"
+
+#: fileread.cc:867
+#, c-format
+msgid "%s: maximum bytes mapped for read at one time: %llu\n"
+msgstr "%s: numărul maxim de octeți atribuiți pentru a fi citiți simultan: %llu\n"
+
+#: fileread.cc:960
+#, c-format
+msgid "%s: stat failed: %s"
+msgstr "%s: stat() a eșuat: %s"
+
+#: fileread.cc:1057
+#, c-format
+msgid "cannot find %s%s"
+msgstr "nu se poate găsi %s%s"
+
+#: fileread.cc:1082
+#, c-format
+msgid "cannot find %s"
+msgstr "nu se poate găsi %s"
+
+#: fileread.cc:1121
+#, c-format
+msgid "cannot open %s: %s"
+msgstr "nu se poate deschide %s: %s"
+
+#: gdb-index.cc:378
+#, c-format
+msgid "%s: --gdb-index currently supports only C and C++ languages"
+msgstr "%s: „--gdb-index” acceptă în prezent numai limbajele C și C++"
+
+#. The top level DIE should be one of the above.
+#: gdb-index.cc:392
+#, c-format
+msgid "%s: top level DIE is not DW_TAG_compile_unit or DW_TAG_type_unit"
+msgstr "%s: DIE de nivel superior nu este DW_TAG_compile_unit sau DW_TAG_type_unit"
+
+#: gdb-index.cc:845
+#, c-format
+msgid "%s: DWARF info may be corrupt; low_pc and high_pc are in different sections"
+msgstr "%s: informațiile DWARF pot fi corupte; low_pc și high_pc sunt în secțiuni diferite"
+
+#: gdb-index.cc:971
+#, c-format
+msgid "%s: DWARF CUs: %u\n"
+msgstr "%s: unități de compilare (CUs) DWARF: %u\n"
+
+#: gdb-index.cc:973
+#, c-format
+msgid "%s: DWARF CUs without pubnames/pubtypes: %u\n"
+msgstr "%s: unități de compilare (CUs) DWARF fără pubnames/pubtypes: %u\n"
+
+#: gdb-index.cc:975
+#, c-format
+msgid "%s: DWARF TUs: %u\n"
+msgstr "%s: unități de tip (TUs) DWARF: %u\n"
+
+#: gdb-index.cc:977
+#, c-format
+msgid "%s: DWARF TUs without pubnames/pubtypes: %u\n"
+msgstr "%s: unități de tip (TU) DWARFF fără pubnames/pubtypes: %u\n"
+
+#: gdb-index.h:149
+msgid "** gdb_index"
+msgstr "** gdb_index"
+
+#: gold-threads.cc:103
+#, c-format
+msgid "pthead_mutexattr_init failed: %s"
+msgstr "pthead_mutexattr_init() a eșuat: %s"
+
+#: gold-threads.cc:107
+#, c-format
+msgid "pthread_mutexattr_settype failed: %s"
+msgstr "pthread_mutexattr_settype() a eșuat: %s"
+
+#: gold-threads.cc:112
+#, c-format
+msgid "pthread_mutex_init failed: %s"
+msgstr "pthread_mutex_init() a eșuat: %s"
+
+#: gold-threads.cc:116
+#, c-format
+msgid "pthread_mutexattr_destroy failed: %s"
+msgstr "pthread_mutexattr_destroy() a eșuat: %s"
+
+#: gold-threads.cc:123
+#, c-format
+msgid "pthread_mutex_destroy failed: %s"
+msgstr "pthread_mutex_destroy() a eșuat: %s"
+
+#: gold-threads.cc:131 gold-threads.cc:396
+#, c-format
+msgid "pthread_mutex_lock failed: %s"
+msgstr "pthread_mutex_lock() a eșuat: %s"
+
+#: gold-threads.cc:139 gold-threads.cc:410
+#, c-format
+msgid "pthread_mutex_unlock failed: %s"
+msgstr "pthread_mutex_unlock() a eșuat: %s"
+
+#: gold-threads.cc:220
+#, c-format
+msgid "pthread_cond_init failed: %s"
+msgstr "pthread_cond_init() a eșuat: %s"
+
+#: gold-threads.cc:227
+#, c-format
+msgid "pthread_cond_destroy failed: %s"
+msgstr "pthread_cond_destroy() a eșuat: %s"
+
+#: gold-threads.cc:236
+#, c-format
+msgid "pthread_cond_wait failed: %s"
+msgstr "pthread_cond_wait() a eșuat: %s"
+
+#: gold-threads.cc:244
+#, c-format
+msgid "pthread_cond_signal failed: %s"
+msgstr "pthread_cond_signal() a eșuat: %s"
+
+#: gold-threads.cc:252
+#, c-format
+msgid "pthread_cond_broadcast failed: %s"
+msgstr "pthread_cond_broadcast() a eșuat: %s"
+
+#: gold-threads.cc:403
+#, c-format
+msgid "pthread_once failed: %s"
+msgstr "pthread_once() a eșuat: %s"
+
+#: gold.cc:100
+#, c-format
+msgid "%s: internal error in %s, at %s:%d\n"
+msgstr "%s: eroare internă în %s, la %s:%d\n"
+
+#: gold.cc:190
+msgid "no input files"
+msgstr "nu există fișiere de intrare"
+
+#: gold.cc:220
+msgid "linking with --incremental-full"
+msgstr "se editează legăturile cu „--incremental-full”"
+
+#: gold.cc:222
+msgid "restart link with --incremental-full"
+msgstr "se repornește editarea legăturilor cu „--incremental-full”"
+
+#: gold.cc:284
+msgid "cannot mix -r with --gc-sections or --icf"
+msgstr "nu se poate utiliza „-r” cu „--gc-sections” sau „--icf”"
+
+#: gold.cc:614
+#, c-format
+msgid "cannot mix -static with dynamic object %s"
+msgstr "nu se poate utiliza „-static” cu obiectul dinamic %s"
+
+#: gold.cc:618
+#, c-format
+msgid "cannot mix -r with dynamic object %s"
+msgstr "nu se poate utiliza „-r” cu obiectul dinamic %s"
+
+#: gold.cc:622
+#, c-format
+msgid "cannot use non-ELF output format with dynamic object %s"
+msgstr "nu se poate utiliza formatul de ieșire non-ELF cu obiectul dinamic %s"
+
+#: gold.cc:640
+#, c-format
+msgid "cannot mix split-stack '%s' and non-split-stack '%s' when using -r"
+msgstr "nu se poate amesteca stiva-divizată(split-stack) „%s” și stiva-nedivizată(non-split-stack) „%s” când se utilizează „-r”"
+
+#. FIXME: This needs to specify the location somehow.
+#: i386.cc:639 i386.cc:2800 sparc.cc:324 sparc.cc:3296 x86_64.cc:962
+#: x86_64.cc:4238
+msgid "missing expected TLS relocation"
+msgstr "lipsește realocarea TLS așteptată"
+
+#: i386.cc:2404
+#, c-format
+msgid "%s: relocation R_386_GOTOFF against undefined symbol %s cannot be used when making a shared object"
+msgstr "%s: realocarea R_386_GOTOFF contra simbolului nedefinit %s nu poate fi utilizată atunci când se creează un obiect partajat"
+
+#: i386.cc:2408
+#, c-format
+msgid "%s: relocation R_386_GOTOFF against external symbol %s cannot be used when making a shared object"
+msgstr "%s: realocarea R_386_GOTOFF contra simbolului extern %s nu poate fi utilizată atunci când se creează un obiect partajat"
+
+#: i386.cc:2412
+#, c-format
+msgid "%s: relocation R_386_GOTOFF against preemptible symbol %s cannot be used when making a shared object"
+msgstr "%s: realocarea R_386_GOTOFF contra simbolului preferat %s nu poate fi utilizată atunci când se creează un obiect partajat"
+
+#: i386.cc:2904
+#, c-format
+msgid "unexpected reloc %u against global symbol %s without base register in object file when generating a position-independent output file"
+msgstr "realocare neașteptată %u față de simbolul global %s fără registru de bază în fișierul obiect atunci când se generează un fișier de ieșire independent de poziție"
+
+#: i386.cc:2908
+#, c-format
+msgid "unexpected reloc %u against local symbol without base register in object file when generating a position-independent output file"
+msgstr "realocare neașteptată %u față de simbolul local fără registru de bază în fișierul obiect atunci când se generează un fișier de ieșire independent de poziție"
+
+#: i386.cc:3174
+msgid "both SUN and GNU model TLS relocations"
+msgstr "atât realocări TLS model SUN cât și model GNU"
+
+#: i386.cc:3767 mips.cc:10080
+#, c-format
+msgid "unsupported reloc %u in object file"
+msgstr "neacceptată realocare %u în fișierul obiect"
+
+#: i386.cc:4036 powerpc.cc:9876 s390.cc:4886 x86_64.cc:5642
+#, c-format
+msgid "failed to match split-stack sequence at section %u offset %0zx"
+msgstr "nu s-a putut potrivi secvența de stivă-divizată la secțiunea %u poziția %0zx"
+
+#: icf.cc:1027
+#, c-format
+msgid "could not parse eh_frame section %s(%s); ICF might not preserve exception handling behavior"
+msgstr "nu s-a putut analiza eh_frame secțiunea %s(%s); este posibil ca ICF să nu păstreze comportamentul de gestionare a excepțiilor"
+
+#: icf.cc:1058
+#, c-format
+msgid "%s: ICF Converged after %u iteration(s)"
+msgstr "%s: ICF converge după %u iterație(i)"
+
+#: icf.cc:1061
+#, c-format
+msgid "%s: ICF stopped after %u iteration(s)"
+msgstr "%s: ICF s-a oprit după %u iterație(i)"
+
+#: icf.cc:1075
+#, c-format
+msgid "Could not find symbol %s to unfold\n"
+msgstr "Nu s-a putut găsi simbolul %s pentru a se desfășura\n"
+
+#: incremental.cc:79
+msgid "** incremental_inputs"
+msgstr "** incremental_inputs"
+
+#: incremental.cc:144
+#, c-format
+msgid "the link might take longer: cannot perform incremental link: %s"
+msgstr "editarea de legături poate dura mai mult: nu se poate realiza editarea de legături incrementală: %s"
+
+#: incremental.cc:415
+msgid "no incremental data from previous build"
+msgstr "nu există date incrementale de la versiunea anterioară"
+
+#: incremental.cc:421
+msgid "different version of incremental build data"
+msgstr "versiune diferită a datelor de construcție incrementală"
+
+#: incremental.cc:433
+msgid "command line changed"
+msgstr "linia de comandă a fost schimbată"
+
+#: incremental.cc:460
+#, c-format
+msgid "%s: script file changed"
+msgstr "%s: fișierul script a fost modificat"
+
+#: incremental.cc:863
+#, c-format
+msgid "unsupported ELF machine number %d"
+msgstr "numărul de mașină ELF %d nu este acceptat"
+
+#: incremental.cc:871 object.cc:3403
+#, c-format
+msgid "%s: incompatible target"
+msgstr "%s: țintă incompatibilă"
+
+#: incremental.cc:893
+msgid "output is not an ELF file."
+msgstr "ieșirea nu este un fișier ELF."
+
+#: incremental.cc:916
+msgid "unsupported file: 32-bit, big-endian"
+msgstr "fișier neacceptat: 32 de biți, big-endian"
+
+#: incremental.cc:925
+msgid "unsupported file: 32-bit, little-endian"
+msgstr "fișier neacceptat: 32 de biți, little-endian"
+
+#: incremental.cc:937
+msgid "unsupported file: 64-bit, big-endian"
+msgstr "fișier neacceptat: 64 de biți, big-endian"
+
+#: incremental.cc:946
+msgid "unsupported file: 64-bit, little-endian"
+msgstr "fișier neacceptat: 64 de biți, little-endian"
+
+#: incremental.cc:2089
+msgid "COMDAT group has no signature"
+msgstr "grupul COMDAT nu are semnătură"
+
+#: incremental.cc:2095
+#, c-format
+msgid "COMDAT group %s included twice in incremental link"
+msgstr "grupul COMDAT %s inclus de două ori în editarea de legături incrementală"
+
+#: int_encoding.cc:50 int_encoding.cc:83
+msgid "Unusually large LEB128 decoded, debug information may be corrupted"
+msgstr "LEB128 decodificat neobișnuit de mare, informațiile de depanare pot fi corupte"
+
+#: layout.cc:231
+#, c-format
+msgid "%s: total free lists: %u\n"
+msgstr "%s: totalul listelor libere: %u\n"
+
+#: layout.cc:233
+#, c-format
+msgid "%s: total free list nodes: %u\n"
+msgstr "%s: totalul de noduri de liste libere: %u\n"
+
+#: layout.cc:235
+#, c-format
+msgid "%s: calls to Free_list::remove: %u\n"
+msgstr "%s: apeluri la Free_list::remove: %u\n"
+
+#: layout.cc:237 layout.cc:241
+#, c-format
+msgid "%s: nodes visited: %u\n"
+msgstr "%s: noduri vizitate: %u\n"
+
+#: layout.cc:239
+#, c-format
+msgid "%s: calls to Free_list::allocate: %u\n"
+msgstr "%s: apeluri la Free_list::allocate: %u\n"
+
+#: layout.cc:977
+#, c-format
+msgid "Unable to create output section '%s' because it is not allowed by the SECTIONS clause of the linker script"
+msgstr "Nu se poate crea secțiunea de ieșire „%s” deoarece nu este permisă de clauza SECTIONS a scriptului  editorului de legături"
+
+#: layout.cc:2122
+msgid "multiple '.interp' sections in input files may cause confusing PT_INTERP segment"
+msgstr "mai multe secțiuni „.interp” din fișierele de intrare pot cauza segmentul PT_INTERP confuz"
+
+#: layout.cc:2186
+#, c-format
+msgid "%s: missing .note.GNU-stack section implies executable stack"
+msgstr "%s: lipsa secțiunii .note.GNU-stack implică o stivă executabilă"
+
+#: layout.cc:2197
+#, c-format
+msgid "%s: requires executable stack"
+msgstr "%s: necesită o stivă executabilă"
+
+#: layout.cc:2226
+#, c-format
+msgid "%s: in .note.gnu.property section, pr_datasz must be 4 or 8"
+msgstr "%s: în secțiunea .note.gnu.property, pr_datasz trebuie să fie 4 sau 8"
+
+#: layout.cc:2359
+#, c-format
+msgid "%s: unknown program property type %d in .note.gnu.property section"
+msgstr "%s: tip necunoscut de proprietate a programului %d în secțiunea .note.gnu.property"
+
+#: layout.cc:2930
+#, c-format
+msgid "unable to open --section-ordering-file file %s: %s"
+msgstr "nu se poate deschide fișierul  pasat ca argument al opțiunii „--section-ordering-file” %s: %s"
+
+#: layout.cc:3396
+msgid "one or more inputs require executable stack, but -z noexecstack was given"
+msgstr "una sau mai multe intrări necesită o stivă executabilă, dar a fost dată opțiunea „-z noexecstack”"
+
+#: layout.cc:3469
+#, c-format
+msgid "--build-id=uuid failed: could not open /dev/urandom: %s"
+msgstr "„--build-id=uuid” a eșuat: nu s-a putut deschide /dev/urandom: %s"
+
+#: layout.cc:3476
+#, c-format
+msgid "/dev/urandom: read failed: %s"
+msgstr "/dev/urandom: citirea a eșuat: %s"
+
+#: layout.cc:3478
+#, c-format
+msgid "/dev/urandom: expected %zu bytes, got %zd bytes"
+msgstr "/dev/urandom: se așteptau %zu octeți, s-au primit %zd octeți"
+
+#: layout.cc:3490
+msgid "--build-id=uuid failed: could not load rpcrt4.dll"
+msgstr "„--build-id=uuid” a eșuat: nu s-a putut încărca rpcrt4.dll"
+
+#: layout.cc:3496
+msgid "--build-id=uuid failed: could not find UuidCreate"
+msgstr "„--build-id=uuid” a eșuat: nu s-a putut găsi UuidCreate"
+
+#: layout.cc:3498
+msgid "__build_id=uuid failed: call UuidCreate() failed"
+msgstr "„__build_id=uuid” a eșuat: apelul UuidCreate() a eșuat"
+
+#: layout.cc:3520
+#, c-format
+msgid "--build-id argument '%s' not a valid hex number"
+msgstr "argumentul „%s”, al opțiunii „--build-id”, nu este un număr hexazecimal valid"
+
+#: layout.cc:3526
+#, c-format
+msgid "unrecognized --build-id argument '%s'"
+msgstr "argumentul „%s”, al opțiunii „--build-id”, nu este recunoscut"
+
+#: layout.cc:3580
+#, c-format
+msgid "error: --package-metadata=%s does not contain valid JSON: %s\n"
+msgstr "eroare: „--package-metadata=%s” nu conține JSON valid: %s\n"
+
+#: layout.cc:4150
+#, c-format
+msgid "load segment overlap [0x%llx -> 0x%llx] and [0x%llx -> 0x%llx]"
+msgstr "suprapunerea segmentului de încărcare [0x%llx -> 0x%llx] și [0x%llx -> 0x%llx]"
+
+#: layout.cc:4311 output.cc:4549
+#, c-format
+msgid "out of patch space for section %s; relink with --incremental-full"
+msgstr "epuizat spațiul de corecție pentru secțiunea %s; reeditați legăturile cu „--incremental-full”"
+
+#: layout.cc:4320 output.cc:4557
+#, c-format
+msgid "%s: section changed size; relink with --incremental-full"
+msgstr "%s: dimensiunea secțiunii s-a schimbat; reeditați legăturile cu „--incremental-full”"
+
+#: layout.cc:4575
+msgid "out of patch space for symbol table; relink with --incremental-full"
+msgstr "epuizat spațiul de corecție pentru tabelul de simboluri; reeditați legăturile cu „--incremental-full”"
+
+#: layout.cc:4646
+msgid "out of patch space for section header table; relink with --incremental-full"
+msgstr "epuizat spațiul de corecție pentru tabelul de antet de secțiune; reeditați legăturile cu „--incremental-full”"
+
+#: layout.cc:5397
+msgid "read-only segment has dynamic relocations"
+msgstr "segmentul de numai citire are realocări dinamice"
+
+#: layout.cc:5400
+msgid "shared library text segment is not shareable"
+msgstr "segmentul de text din biblioteca partajată nu este partajabil"
+
+#: mapfile.cc:70
+#, c-format
+msgid "cannot open map file %s: %s"
+msgstr "nu se poate deschide fișierul de atribuire %s: %s"
+
+#: mapfile.cc:84
+#, c-format
+msgid "cannot close map file: %s"
+msgstr "nu se poate închide fișierul de atribuire: %s"
+
+#: mapfile.cc:116
+#, c-format
+msgid ""
+"Archive member included because of file (symbol)\n"
+"\n"
+msgstr ""
+"Membru al arhivei inclus din cauza fișierului (simbol)\n"
+"\n"
+
+#: mapfile.cc:159
+#, c-format
+msgid ""
+"\n"
+"Allocating common symbols\n"
+msgstr ""
+"\n"
+"Alocarea simbolurilor comune\n"
+
+#: mapfile.cc:161
+#, c-format
+msgid ""
+"Common symbol       size              file\n"
+"\n"
+msgstr ""
+"Simbol comun       dimensiune             fișier\n"
+"\n"
+
+#: mapfile.cc:195
+#, c-format
+msgid ""
+"\n"
+"Memory map\n"
+"\n"
+msgstr ""
+"\n"
+"Atribuirea memoriei\n"
+"\n"
+
+#: mapfile.cc:372
+#, c-format
+msgid ""
+"\n"
+"Discarded input sections\n"
+"\n"
+msgstr ""
+"\n"
+"Secțiuni de intrare eliminate\n"
+"\n"
+
+#: merge.cc:426
+#, c-format
+msgid "%s: %s merged constants size: %lu; input: %zu; output: %zu\n"
+msgstr "%s: %s dimensiunea combinată a constantelor: %lu; intrare: %zu; ieșire: %zu\n"
+
+#: merge.cc:455
+msgid "mergeable string section length not multiple of character size"
+msgstr "lungimea secțiunii șirurilor de caractere fuzionabile nu este un multiplu al dimensiunii caracterului"
+
+#: merge.cc:464
+#, c-format
+msgid "%s: last entry in mergeable string section '%s' not null terminated"
+msgstr "%s: ultima intrare din secțiunea de șiruri care poate fi fuzionată „%s” nu se termină cu un caracter null"
+
+#: merge.cc:528
+#, c-format
+msgid "%s: section %s contains incorrectly aligned strings; the alignment of those strings won't be preserved"
+msgstr "%s: secțiunea %s conține șiruri aliniate incorect; alinierea acelor șiruri nu va fi păstrată"
+
+#: merge.cc:655
+#, c-format
+msgid "%s: %s input bytes: %zu\n"
+msgstr "%s: %s octeți de intrare: %zu\n"
+
+#: merge.cc:657
+#, c-format
+msgid "%s: %s input strings: %zu\n"
+msgstr "%s: %s șiruri de intrare: %zu\n"
+
+#: merge.h:306
+msgid "** merge constants"
+msgstr "** fuzionare constante"
+
+#: merge.h:435
+msgid "** merge strings"
+msgstr "** fuzionare șiruri"
+
+#: mips.cc:2391
+msgid ".LA25.stubs"
+msgstr ".LA25.stubs"
+
+#: mips.cc:2554
+msgid ".plt"
+msgstr ".plt"
+
+#: mips.cc:2750
+msgid ".MIPS.stubs"
+msgstr ".MIPS.stubs"
+
+#: mips.cc:2814
+msgid ".reginfo"
+msgstr ".reginfo"
+
+#: mips.cc:2874
+msgid ".MIPS.abiflags"
+msgstr ".MIPS.abiflags"
+
+#: mips.cc:4632
+msgid "JALX to a non-word-aligned address"
+msgstr "JALX la o adresă nealiniată la cuvinte"
+
+#: mips.cc:4686
+msgid "Unsupported jump between ISA modes; consider recompiling with interlinking enabled."
+msgstr "Salt neacceptat între modurile ISA; luați în considerare recompilarea cu inter-editarea de legături activată."
+
+#: mips.cc:5486
+msgid "small-data section exceeds 64KB; lower small-data size limit (see option -G)"
+msgstr "secțiunea de date de mici dimensiuni depășește 64KB; limita inferioară a dimensiunii datelor de mici dimensiuni (consultați opțiunea „-G”)"
+
+#: mips.cc:6907
+#, c-format
+msgid "%s: .MIPS.abiflags section has unsupported version %u"
+msgstr "%s: secțiunea .MIPS.abiflags are versiunea neacceptată %u"
+
+#: mips.cc:6970
+#, c-format
+msgid "%s: Warning: bad `%s' option size %u smaller than its header"
+msgstr "%s: Avertisment: opțiunea „%s” are dimensiunea incorectă %u, mai mică decât antetul său"
+
+#: mips.cc:7050
+#, c-format
+msgid "no relocation found in mips16 stub section '%s'"
+msgstr "nu s-a găsit nicio realocare în secțiunea ciotului mips16 „%s”"
+
+#: mips.cc:7552 mips.cc:7715
+#, c-format
+msgid ".got.plt offset of %ld from .plt beyond the range of ADDIUPC"
+msgstr "poziția .got.plt a %ld din .plt dincolo de intervalul ADDIUPC"
+
+#: mips.cc:8263
+#, c-format
+msgid "Warning: bad `%s' option size %u smaller than its header in output section"
+msgstr "Avertisment: opțiunea „%s” are dimensiunea incorectă %u, mai mică decât antetul din secțiunea de ieșire"
+
+#: mips.cc:9103
+#, c-format
+msgid "%s: Unknown architecture %s"
+msgstr "%s: Arhitectură necunoscută %s"
+
+#: mips.cc:9204
+#, c-format
+msgid "%s: Inconsistent ISA between e_flags and .MIPS.abiflags"
+msgstr "%s: ISA inconsecvent între e_flags și .MIPS.abiflags"
+
+#: mips.cc:9208
+#, c-format
+msgid "%s: Inconsistent FP ABI between .gnu.attributes and .MIPS.abiflags"
+msgstr "%s: ABI FP inconsecvent între .gnu.attributes și .MIPS.abiflags"
+
+#: mips.cc:9211
+#, c-format
+msgid "%s: Inconsistent ASEs between e_flags and .MIPS.abiflags"
+msgstr "%s: ASE-uri inconsecvente între e_flags și .MIPS.abiflags"
+
+#: mips.cc:9217
+#, c-format
+msgid "%s: Inconsistent ISA extensions between e_flags and .MIPS.abiflags"
+msgstr "%s: Extensii ISA inconsecvente între e_flags și .MIPS.abiflags"
+
+#: mips.cc:9220
+#, c-format
+msgid "%s: Unexpected flag in the flags2 field of .MIPS.abiflags (0x%x)"
+msgstr "%s: Fanion neașteptat în câmpul flags2 al .MIPS.abiflags (0x%x)"
+
+#: mips.cc:9242
+msgid "-mips32r2 -mfp64 (12 callee-saved)"
+msgstr "-mips32r2 -mfp64 (12 apelanți economisiți)"
+
+#: mips.cc:9283
+#, c-format
+msgid "%s: FP ABI %s is incompatible with %s"
+msgstr "%s: ABI FP %s este incompatibil cu %s"
+
+#: mips.cc:9418
+#, c-format
+msgid "%s: linking abicalls files with non-abicalls files"
+msgstr "%s: se vinculează fișiere abicals cu fișiere non-abicals"
+
+#: mips.cc:9431
+#, c-format
+msgid "%s: linking 32-bit code with 64-bit code"
+msgstr "%s: se vinculează cod pe 32 de biți cu un cod pe 64 de biți"
+
+#. The ISAs aren't compatible.
+#: mips.cc:9457 mips.cc:9509 mips.cc:9523
+#, c-format
+msgid "%s: linking %s module with previous %s modules"
+msgstr "%s: se vinculează modulul %s cu modulele %s anterioare"
+
+#: mips.cc:9473
+#, c-format
+msgid "%s: ABI mismatch: linking %s module with previous %s modules"
+msgstr "%s: nepotrivire ABI: se vinculează modulul %s cu modulele %s anterioare"
+
+#: mips.cc:9495
+#, c-format
+msgid "%s: ASE mismatch: linking %s module with previous %s modules"
+msgstr "%s: nepotrivire ASE: se vinculează modulul %s cu modulele %s anterioare"
+
+#: mips.cc:9536
+#, c-format
+msgid "%s: uses different e_flags (0x%x) fields than previous modules (0x%x)"
+msgstr "%s: utilizează câmpuri e_flags (0x%x) diferite față de modulele anterioare (0x%x)"
+
+#: mips.cc:9944
+#, c-format
+msgid "Unknown dynamic tag 0x%x"
+msgstr "Etichetă dinamică necunoscută 0x%x"
+
+#: mips.cc:10385 mips.cc:12322
+#, c-format
+msgid "relocation overflow: %u against local symbol %u in %s"
+msgstr "depășire de realocare: %u față de simbolul local %u în %s"
+
+#: mips.cc:10391 mips.cc:12338
+msgid "unexpected opcode while processing relocation"
+msgstr "cod operațional neașteptat în timpul procesării realocării"
+
+#: mips.cc:10539
+#, c-format
+msgid "CALL16 reloc at 0x%lx not against global symbol "
+msgstr "realocarea CALL16 la 0x%lx nu contra simbolului global "
+
+#: mips.cc:10791 mips.cc:11296
+#, c-format
+msgid "%s: relocation %u against `%s' can not be used when making a shared object; recompile with -fPIC"
+msgstr "%s: realocarea %u contra „%s” nu poate fi utilizată când se creează un obiect partajat; recompilați cu „-fPIC”"
+
+#: mips.cc:11107
+#, c-format
+msgid "non-dynamic relocations refer to dynamic symbol %s"
+msgstr "realocările nedinamice se referă la simbolul dinamic %s"
+
+#: mips.cc:11584
+msgid "relocations against _gp_disp are permitted only with R_MIPS_HI16 and R_MIPS_LO16 relocations."
+msgstr "realocările contra _gp_disp sunt permise numai cu realocări R_MIPS_HI16 și R_MIPS_LO16."
+
+#: mips.cc:11719
+msgid "MIPS16 and microMIPS functions cannot call each other"
+msgstr "funcțiile MIPS16 și microMIPS nu se pot apela reciproc"
+
+#: mips.cc:12327
+#, c-format
+msgid "relocation overflow: %u against '%s' defined in %s"
+msgstr "depășire de realocare: %u față de „%s” definit în %s"
+
+#: mips.cc:12333
+#, c-format
+msgid "relocation overflow: %u against '%s'"
+msgstr "depășire de realocare: %u față de „%s”"
+
+#: mips.cc:12342
+msgid "unaligned PC-relative relocation"
+msgstr "realocarea relativă la PC nu este aliniată"
+
+#: nacl.cc:43 object.cc:174 object.cc:3451 output.cc:5191
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: object.cc:101
+msgid "missing SHT_SYMTAB_SHNDX section"
+msgstr "lipsește secțiunea SHT_SYMTAB_SHNDX"
+
+#: object.cc:145
+#, c-format
+msgid "symbol %u out of range for SHT_SYMTAB_SHNDX section"
+msgstr "simbolul %u în afara intervalului pentru secțiunea SHT_SYMTAB_SHNDX"
+
+#: object.cc:152
+#, c-format
+msgid "extended index for symbol %u out of range: %u"
+msgstr "index extins pentru simbolul %u în afara intervalului: %u"
+
+#: object.cc:207
+#, c-format
+msgid "section name section has wrong type: %u"
+msgstr "secțiunea de nume a secțiunii are tip greșit: %u"
+
+#: object.cc:997
+#, c-format
+msgid "section group %u info %u out of range"
+msgstr "grup de secțiuni %u informații %u în afara intervalului"
+
+#: object.cc:1016
+#, c-format
+msgid "symbol %u name offset %u out of range"
+msgstr "simbolul %u poziția numelui %u în afara intervalului"
+
+#: object.cc:1034
+#, c-format
+msgid "symbol %u invalid section index %u"
+msgstr "simbolul %u index de secțiune nevalid %u"
+
+#: object.cc:1086
+#, c-format
+msgid "section %u in section group %u out of range"
+msgstr "secțiunea %u în grupul de secțiuni %u în afara intervalului"
+
+#: object.cc:1094
+#, c-format
+msgid "invalid section group %u refers to earlier section %u"
+msgstr "grupul de secțiune nevalid %u se referă la secțiunea anterioară %u"
+
+#: object.cc:1323
+#, c-format
+msgid "%s: corrupt .note.gnu.property section (note too short)"
+msgstr "%s: secțiunea .note.gnu.property este coruptă (nota este prea scurtă)"
+
+#: object.cc:1336
+#, c-format
+msgid "%s: corrupt .note.gnu.property section (name is not 'GNU')"
+msgstr "%s: secțiunea .note.gnu.property este coruptă (numele nu este „GNU”)"
+
+#: object.cc:1344
+#, c-format
+msgid "%s: unsupported note type %d in .note.gnu.property section"
+msgstr "%s: tip de notă neacceptat %d în secțiunea .note.gnu.property"
+
+#: object.cc:1355 object.cc:1367 object.cc:1376
+#, c-format
+msgid "%s: corrupt .note.gnu.property section"
+msgstr "%s: secțiunea .note.gnu.property este coruptă"
+
+#: object.cc:1540 reloc.cc:290 reloc.cc:925
+#, c-format
+msgid "relocation section %u has bad info %u"
+msgstr "secțiunea de realocare %u are informații necorespunzătoare %u"
+
+#: object.cc:1793
+#, c-format
+msgid "%s: removing unused section from '%s' in file '%s'"
+msgstr "%s: se elimină secțiunea nefolosită din „%s” din fișierul „%s”"
+
+#: object.cc:1819
+#, c-format
+msgid "%s: ICF folding section '%s' in file '%s' into '%s' in file '%s'"
+msgstr "%s: secțiunea de pliere ICF „%s” din fișierul „%s” în „%s” din fișierul „%s”"
+
+#: object.cc:2134
+msgid "size of symbols is not multiple of symbol size"
+msgstr "dimensiunea simbolurilor nu este un multiplu al dimensiunii simbolului"
+
+#: object.cc:2142 symtab.cc:1217
+#, c-format
+msgid "%s: plugin needed to handle lto object"
+msgstr "%s: modul necesar pentru a gestiona obiectul lto"
+
+#: object.cc:2375
+#, c-format
+msgid "local symbol %u section name out of range: %u >= %u"
+msgstr "simbol local %u numele secțiunii în afara intervalului: %u >= %u"
+
+#: object.cc:2469
+#, c-format
+msgid "unknown section index %u for local symbol %u"
+msgstr "indice de secțiune necunoscut %u pentru simbolul local %u"
+
+#: object.cc:2479
+#, c-format
+msgid "local symbol %u section index %u out of range"
+msgstr "simbol local %u index de secțiune %u în afara intervalului"
+
+#: object.cc:3156 reloc.cc:833
+#, c-format
+msgid "could not decompress section %s"
+msgstr "nu s-a putut decomprima secțiunea %s"
+
+#: object.cc:3282
+#, c-format
+msgid "%s is not supported but is required for %s in %s"
+msgstr "%s nu este acceptat, dar este necesar pentru %s în %s"
+
+#: object.cc:3359
+msgid "function "
+msgstr "funcție "
+
+#: object.cc:3393
+#, c-format
+msgid "%s: unsupported ELF machine number %d"
+msgstr "%s: numărul de mașină ELF neacceptat %d"
+
+#: object.cc:3467 plugin.cc:2279
+#, c-format
+msgid "%s: not configured to support 32-bit big-endian object"
+msgstr "%s: nu este configurat să accepte obiect big-endian pe 32 de biți"
+
+#: object.cc:3483 plugin.cc:2288
+#, c-format
+msgid "%s: not configured to support 32-bit little-endian object"
+msgstr "%s: nu este configurat să accepte obiect little-endian pe 32 de biți"
+
+#: object.cc:3502 plugin.cc:2300
+#, c-format
+msgid "%s: not configured to support 64-bit big-endian object"
+msgstr "%s: nu este configurat să accepte obiect big-endian pe 64 de biți"
+
+#: object.cc:3518 plugin.cc:2309
+#, c-format
+msgid "%s: not configured to support 64-bit little-endian object"
+msgstr "%s: nu este configurat să accepte obiect little-endian pe 64 de biți"
+
+#: options.cc:151
+msgid "default"
+msgstr "implicit"
+
+#: options.cc:158
+#, c-format
+msgid ""
+"Usage: %s [options] file...\n"
+"Options:\n"
+msgstr ""
+"Utilizare: %s [opțiuni] fișier...\n"
+"Opțiuni:\n"
+
+#. config.guess and libtool.m4 look in ld --help output for the
+#. string "supported targets".
+#: options.cc:166
+#, c-format
+msgid "%s: supported targets:"
+msgstr "%s: ținte acceptate:"
+
+#: options.cc:175
+#, c-format
+msgid "%s: supported emulations:"
+msgstr "%s: emulări acceptate:"
+
+#: options.cc:187
+#, c-format
+msgid "Report bugs to %s\n"
+msgstr "Raportați erorile la %s.\n"
+
+#: options.cc:204 options.cc:214 options.cc:224
+#, c-format
+msgid "%s: invalid option value (expected an integer): %s"
+msgstr "%s: valoare de opțiune nevalidă (se aștepta un număr întreg): %s"
+
+#: options.cc:234 options.cc:245
+#, c-format
+msgid "%s: invalid option value (expected a floating point number): %s"
+msgstr "%s: valoare de opțiune nevalidă (se aștepta un număr cu virgulă mobilă): %s"
+
+#: options.cc:254
+#, c-format
+msgid "%s: must take a non-empty argument"
+msgstr "%s: trebuie să ia un argument care nu este gol"
+
+#: options.cc:295
+#, c-format
+msgid "%s: must take one of the following arguments: %s"
+msgstr "%s: trebuie să ia unul dintre următoarele argumente: %s"
+
+#: options.cc:326
+#, c-format
+msgid "  Supported targets:\n"
+msgstr "  Ținte acceptate:\n"
+
+#: options.cc:334
+#, c-format
+msgid "  Supported emulations:\n"
+msgstr "  Emulări acceptate:\n"
+
+#: options.cc:525
+msgid "invalid argument to --section-start; must be SECTION=ADDRESS"
+msgstr "argument nevalid pentru --section-start; trebuie să fie SECȚIUNE=ADRESĂ"
+
+#: options.cc:538
+msgid "--section-start address missing"
+msgstr "--section-start adresa lipsește"
+
+#: options.cc:547
+#, c-format
+msgid "--section-start argument %s is not a valid hex number"
+msgstr "argumentul „%s”, al opțiunii „--section-start”, nu este un număr hexazecimal valid"
+
+#: options.cc:584
+#, c-format
+msgid "unable to parse script file %s"
+msgstr "nu se poate analiza fișierul script %s"
+
+#: options.cc:592
+#, c-format
+msgid "unable to parse version script file %s"
+msgstr "nu se poate analiza fișierul script al versiunii %s"
+
+#: options.cc:600
+#, c-format
+msgid "unable to parse dynamic-list script file %s"
+msgstr "nu se poate analiza fișierul script de listă dinamică %s"
+
+#: options.cc:712
+#, c-format
+msgid "format '%s' not supported; treating as elf (supported formats: elf, binary)"
+msgstr "formatul „%s” nu este acceptat; se tratează ca elf (formate acceptate: elf, binar)"
+
+#: options.cc:783
+msgid "unbalanced --push-state/--pop-state"
+msgstr "--push-state/--pop-state nu este în echilibru"
+
+#: options.cc:801
+#, c-format
+msgid "%s: use the --help option for usage information\n"
+msgstr "%s: utilizați opțiunea „--help” pentru informații despre utilizare\n"
+
+#: options.cc:810
+#, c-format
+msgid "%s: %s: %s\n"
+msgstr "%s: %s: %s\n"
+
+#: options.cc:914
+msgid "unexpected argument"
+msgstr "argument neașteptat"
+
+#: options.cc:927 options.cc:988
+msgid "missing argument"
+msgstr "argument lipsă"
+
+#: options.cc:999
+msgid "unknown -z option"
+msgstr "opțiune „-z” necunoscută"
+
+#: options.cc:1262
+#, c-format
+msgid "ignoring --threads: %s was compiled without thread support"
+msgstr "se ignoră opțiunea „--threads”: %s a fost compilat fără suport pentru fire de execuție"
+
+#: options.cc:1269
+#, c-format
+msgid "ignoring --thread-count: %s was compiled without thread support"
+msgstr "se ignoră opțiunea „--thread-count”: %s a fost compilat fără suport pentru fire de execuție"
+
+#: options.cc:1276
+#, c-format
+msgid "cannot use --plugin: %s was compiled without plugin support"
+msgstr "nu se poate utiliza opțiunea „--plugin”: %s a fost compilat fără suport pentru module(plugins)"
+
+#: options.cc:1330
+#, c-format
+msgid "unable to open -retain-symbols-file file %s: %s"
+msgstr "nu se poate deschide fișierul %s, dat ca argument al opțiunii „-retain-symbols-file”: %s"
+
+#: options.cc:1360
+msgid "-shared and -static are incompatible"
+msgstr "opțiunile „-shared” și „-static” sunt incompatibile"
+
+#: options.cc:1362
+msgid "-shared and -pie are incompatible"
+msgstr "opțiunile „-shared” și „-pie” sunt incompatibile"
+
+#: options.cc:1364
+msgid "-pie and -static are incompatible"
+msgstr "opțiunile „-pie” și „-static” sunt incompatibile"
+
+#: options.cc:1367
+msgid "-shared and -r are incompatible"
+msgstr "opțiunile „-shared” și „-r” sunt incompatibile"
+
+#: options.cc:1369
+msgid "-pie and -r are incompatible"
+msgstr "opțiunile „-pie” și „-r” sunt incompatibile"
+
+#: options.cc:1374
+msgid "-F/--filter may not used without -shared"
+msgstr "opțiunea „-F”/„--filter” nu se poate utiliza fără opțiunea „-shared”"
+
+#: options.cc:1376
+msgid "-f/--auxiliary may not be used without -shared"
+msgstr "opțiunea „-f”/„--auxiliary” nu se poate utiliza fără opțiunea „-shared”"
+
+#: options.cc:1381
+msgid "-retain-symbols-file does not yet work with -r"
+msgstr "opțiunea „-retain-symbols-file”, nu funcționează încă cu opțiunea „-r”"
+
+#: options.cc:1387
+msgid "binary output format not compatible with -shared or -pie or -r"
+msgstr "formatul de ieșire binar nu este compatibil cu opțiunea „-shared” sau „-pie” sau „-r”"
+
+#: options.cc:1393
+#, c-format
+msgid "--hash-bucket-empty-fraction value %g out of range [0.0, 1.0)"
+msgstr "valoarea %g,  a argumentului opțiunii „--hash-bucket-empty-fraction”, este în afara intervalului [0,0, 1,0)"
+
+#: options.cc:1398
+msgid "Options --incremental-changed, --incremental-unchanged, --incremental-unknown require the use of --incremental"
+msgstr "Opțiunile „--incremental-changed”, „--incremental-unchanged”, „--incremental-unknown”, necesită utilizarea opțiunii „--incremental”"
+
+#: options.cc:1408
+msgid "incremental linking is not compatible with -r"
+msgstr "vincularea incrementală nu este compatibilă cu opțiunea „-r”"
+
+#: options.cc:1410
+msgid "incremental linking is not compatible with --emit-relocs"
+msgstr "vincularea incrementală nu este compatibilă cu opțiunea „--emit-relocs”"
+
+#: options.cc:1413
+msgid "incremental linking is not compatible with --plugin"
+msgstr "vincularea incrementală nu este compatibilă cu opțiunea „--plugin”"
+
+#: options.cc:1415
+msgid "incremental linking is not compatible with -z relro"
+msgstr "vincularea incrementală nu este compatibilă cu „-z relro”"
+
+#: options.cc:1417
+msgid "incremental linking is not compatible with -pie"
+msgstr "vincularea incrementală nu este compatibilă cu opțiunea „-pie”"
+
+#: options.cc:1420
+msgid "ignoring --gc-sections for an incremental link"
+msgstr "suse ignoră „--gc-sections” pentru o legătură incrementală"
+
+#: options.cc:1425
+msgid "ignoring --icf for an incremental link"
+msgstr "se ignoră „--icf” pentru o legătură incrementală"
+
+#: options.cc:1430
+msgid "ignoring --compress-debug-sections for an incremental link"
+msgstr "se ignoră „--compress-debug-sections” pentru o legătură incrementală"
+
+#: options.cc:1439
+msgid "--compress-debug-sections=zstd: gold is not built with zstd support"
+msgstr "„--compress-debug-sections=zstd”: «gold» nu este construit cu suport pentru «zstd»"
+
+#: options.cc:1519
+msgid "May not nest groups"
+msgstr "Nu se pot imbrica grupuri"
+
+#: options.cc:1521
+msgid "may not nest groups in libraries"
+msgstr "nu se pot imbrica grupuri în biblioteci"
+
+#: options.cc:1533
+msgid "Group end without group start"
+msgstr "Sfârșit de grup fără început de grup"
+
+#: options.cc:1543
+msgid "may not nest libraries"
+msgstr "nu se pot imbrica biblioteci"
+
+#: options.cc:1545
+msgid "may not nest libraries in groups"
+msgstr "nu se pot imbrica biblioteci în grupuri"
+
+#: options.cc:1557
+msgid "lib end without lib start"
+msgstr "sfârșit de bibliotecă fără început de bibliotecă"
+
+#. I guess it's neither a long option nor a short option.
+#: options.cc:1622
+msgid "unknown option"
+msgstr "opțiune necunoscută"
+
+#: options.cc:1649
+#, c-format
+msgid "%s: missing group end\n"
+msgstr "%s: sfârșitul grupului lipsește\n"
+
+#: options.cc:1655
+#, c-format
+msgid "%s: missing lib end\n"
+msgstr "%s: sfârșitul bibliotecii lipsește\n"
+
+#: options.h:669
+msgid "Report usage information"
+msgstr "Comunică informațiile de utilizare"
+
+#: options.h:671
+msgid "Report version information"
+msgstr "Comunică informațiile despre versiune"
+
+#: options.h:673
+msgid "Report version and target information"
+msgstr "Comunică informațiile despre versiune și țintă"
+
+#: options.h:684 options.h:777
+msgid "Not supported"
+msgstr "Nu este acceptată"
+
+#: options.h:685 options.h:778
+msgid "Do not copy DT_NEEDED tags from shared libraries"
+msgstr "Nu copiază etichetele DT_NEEDED din bibliotecile partajate"
+
+#: options.h:689 options.h:1498
+msgid "Allow multiple definitions of symbols"
+msgstr "Permite multiple definiții de simboluri"
+
+#: options.h:690
+msgid "Do not allow multiple definitions"
+msgstr "Nu permite multiple definiții"
+
+#: options.h:693
+msgid "Allow unresolved references in shared libraries"
+msgstr "Permite referințe nerezolvate în bibliotecile partajate"
+
+#: options.h:694
+msgid "Do not allow unresolved references in shared libraries"
+msgstr "Nu permite referințe nerezolvate în bibliotecile partajate"
+
+#: options.h:697
+msgid "Apply link-time values for dynamic relocations"
+msgstr "Aplică valorile timpului de legătură pentru realocările dinamice"
+
+#: options.h:698
+msgid "(aarch64 only) Do not apply link-time values for dynamic relocations"
+msgstr "(doar aarch64) Nu aplică valorile timpului de legătură pentru realocările dinamice"
+
+#: options.h:702
+msgid "Use DT_NEEDED only for shared libraries that are used"
+msgstr "Utilizează DT_NEEDED numai pentru bibliotecile partajate care sunt utilizate"
+
+#: options.h:703
+msgid "Use DT_NEEDED for all shared libraries"
+msgstr "Utilizează DT_NEEDED pentru toate bibliotecile partajate"
+
+#: options.h:706 options.h:923 options.h:1389 options.h:1403
+msgid "Ignored"
+msgstr "Ignorată"
+
+#: options.h:706
+msgid "[ignored]"
+msgstr "[ignorată]"
+
+#: options.h:716
+msgid "Set input format"
+msgstr "Stabilește formatul de intrare"
+
+#: options.h:719
+msgid "Output BE8 format image"
+msgstr "Date de ieșire în format de imagine BE8"
+
+#: options.h:722
+msgid "Generate build ID note"
+msgstr "Generează o notă cu ID-ul construcției"
+
+#: options.h:723 options.h:807
+msgid "[=STYLE]"
+msgstr "[=STIL]"
+
+#: options.h:727
+msgid "Chunk size for '--build-id=tree'"
+msgstr "Dimensiunea fragmentului pentru „--build-id=tree”"
+
+#: options.h:727 options.h:732 options.h:1273 options.h:1282 options.h:1471
+#: options.h:1496 options.h:1529
+msgid "SIZE"
+msgstr "DIMENSIUNE"
+
+#: options.h:731
+msgid "Minimum output file size for '--build-id=tree' to work differently than '--build-id=sha1'"
+msgstr "Dimensiunea minimă a fișierului de ieșire pentru ca „--build-id=tree” să funcționeze diferit de „-- build-id=sha1”"
+
+#: options.h:735
+msgid "-l searches for shared libraries"
+msgstr "„-l” caută biblioteci partajate"
+
+#: options.h:737
+msgid "-l does not search for shared libraries"
+msgstr "„-l” nu caută biblioteci partajate"
+
+#: options.h:740
+msgid "alias for -Bdynamic"
+msgstr "alias pentru „-Bdynamic”"
+
+#: options.h:742
+msgid "alias for -Bstatic"
+msgstr "alias pentru „-Bstatic”"
+
+#: options.h:745
+msgid "Use group name lookup rules for shared library"
+msgstr "Utilizează regulile de căutare a numelui grupului pentru biblioteca partajată"
+
+#: options.h:748
+msgid "Generate shared library (alias for -G/-shared)"
+msgstr "Generează o bibliotecă partajată (alias pentru „-G”/„-shared”)"
+
+#: options.h:751
+msgid "Don't bind default visibility defined symbols locally for -shared (default)"
+msgstr "Nu asociază local simbolurile implicite definite de vizibilitate pentru „-shared” (implicit)"
+
+#: options.h:756
+msgid "Bind default visibility defined function symbols locally for -shared"
+msgstr "Asociază local simbolurile de funcție implicite definite de vizibilitate pentru „-shared”"
+
+#: options.h:762
+msgid "Bind default visibility defined symbols locally for -shared"
+msgstr "Asociază local simbolurile implicite definite de vizibilitate pentru „-shared”"
+
+#: options.h:768
+msgid "Check segment addresses for overlaps"
+msgstr "Verifică adresele de segment pentru suprapuneri"
+
+#: options.h:769
+msgid "Do not check segment addresses for overlaps"
+msgstr "Nu verifică adresele de segment pentru suprapuneri"
+
+#: options.h:772
+msgid "Compress .debug_* sections in the output file"
+msgstr "Comprimă secțiunile .debug_* din fișierul de ieșire"
+
+#: options.h:781
+msgid "Output cross reference table"
+msgstr "Afișează tabelul de referințe încrucișate"
+
+#: options.h:782
+msgid "Do not output cross reference table"
+msgstr "Nu afișează tabelul de referințe încrucișate"
+
+#: options.h:785
+msgid "Use DT_INIT_ARRAY for all constructors"
+msgstr "Utilizează DT_INIT_ARRAY pentru toți constructorii"
+
+#: options.h:786
+msgid "Handle constructors as directed by compiler"
+msgstr "Gestionează constructorii conform instrucțiunilor compilatorului"
+
+#: options.h:791
+msgid "Define common symbols"
+msgstr "Definește simbolurile comune"
+
+#: options.h:792
+msgid "Do not define common symbols in relocatable output"
+msgstr "Nu definește simboluri comune în ieșirea realocabilă"
+
+#: options.h:794 options.h:796
+msgid "Alias for -d"
+msgstr "Alias pentru „-d”"
+
+#: options.h:799
+msgid "Turn on debugging"
+msgstr "Activează depanarea"
+
+#: options.h:800
+msgid "[all,files,script,task][,...]"
+msgstr "[all(toate),files(fișiere),script,task(sarcini)][,...]"
+
+#: options.h:803
+msgid "Define a symbol"
+msgstr "Definește un simbol"
+
+#: options.h:803
+msgid "SYMBOL=EXPRESSION"
+msgstr "SIMBOL=EXPRESIE"
+
+#: options.h:806
+msgid "Demangle C++ symbols in log messages"
+msgstr "Recuperează simbolurile C++ din mesajele de jurnal"
+
+#: options.h:809
+msgid "Do not demangle C++ symbols in log messages"
+msgstr "Nu recuperează simbolurile C++ din mesajele de jurnal"
+
+#: options.h:813
+msgid "Write a dependency file listing all files read"
+msgstr "Scrie un fișier de dependență care listează toate fișierele citite"
+
+#: options.h:814 options.h:830 options.h:986 options.h:1015 options.h:1092
+#: options.h:1208 options.h:1348 options.h:1380
+msgid "FILE"
+msgstr "FIȘIER"
+
+#: options.h:817
+msgid "Look for violations of the C++ One Definition Rule"
+msgstr "Caută încălcări ale regulii de definiție unică pentru C++"
+
+#: options.h:818
+msgid "Do not look for violations of the C++ One Definition Rule"
+msgstr "Nu caută încălcări ale regulii de definiție unică pentru C++"
+
+#: options.h:821
+msgid "Add data symbols to dynamic symbols"
+msgstr "Adaugă simboluri de date la simbolurile dinamice"
+
+#: options.h:824
+msgid "Add C++ operator new/delete to dynamic symbols"
+msgstr "Adaugă operatorul C++ de creare/eliminare de obiecte (new/delete) la simbolurile dinamice"
+
+#: options.h:827
+msgid "Add C++ typeinfo to dynamic symbols"
+msgstr "Adaugă informațiile de tip C++ (typeinfo) la simbolurile dinamice"
+
+#: options.h:830
+msgid "Read a list of dynamic symbols"
+msgstr "Citește o listă de simboluri dinamice"
+
+#: options.h:835
+msgid "(PowerPC only) Label linker stubs with a symbol"
+msgstr "(Numai PowerPC) Etichetează cioturile editorului de legături cu un simbol"
+
+#: options.h:836
+msgid "(PowerPC only) Do not label linker stubs with a symbol"
+msgstr "(Numai PowerPC) Nu etichetează cioturile editorului de legături cu un simbol"
+
+#: options.h:839
+msgid "Set program start address"
+msgstr "Stabilește adresa de pornire a programului"
+
+#: options.h:839 options.h:1351 options.h:1353 options.h:1355 options.h:1358
+#: options.h:1360
+msgid "ADDRESS"
+msgstr "ADRESA"
+
+#: options.h:842
+msgid "Create exception frame header"
+msgstr "Creează antet de cadru de excepție"
+
+#: options.h:843
+msgid "Do not create exception frame header"
+msgstr "Nu creează antet de cadru de excepție"
+
+#: options.h:847
+msgid "Enable use of DT_RUNPATH"
+msgstr "Activează utilizarea de DT_RUNPATH"
+
+#: options.h:848
+msgid "Disable use of DT_RUNPATH"
+msgstr "Dezactivează utilizarea de DT_RUNPATH"
+
+#: options.h:851
+msgid "Put the linker version string into the .comment section"
+msgstr "Pune șirul versiunii editorului de legături în secțiunea .comment"
+
+#: options.h:852
+msgid "Put the linker version string into the .note.gnu.gold-version section"
+msgstr "Pune șirul versiunii editorului de legături în secțiunea .note.gnu.gold-version"
+
+#: options.h:855
+msgid "(ARM only) Do not warn about objects with incompatible enum sizes"
+msgstr "(Numai ARM) Nu avertizează despre obiecte cu dimensiuni de enumerare incompatibile"
+
+#: options.h:859
+msgid "Exclude libraries from automatic export"
+msgstr "Exclude bibliotecile de la exportul automat"
+
+#: options.h:863
+msgid "Export all dynamic symbols"
+msgstr "Exportă toate simbolurile dinamice"
+
+#: options.h:864
+msgid "Do not export all dynamic symbols"
+msgstr "Nu exportă toate simbolurile dinamice"
+
+#: options.h:867
+msgid "Export SYMBOL to dynamic symbol table"
+msgstr "Exportă SIMBOLUL în tabelul de simboluri dinamice"
+
+#: options.h:867 options.h:889 options.h:1007 options.h:1024 options.h:1365
+#: options.h:1434 options.h:1448
+msgid "SYMBOL"
+msgstr "SIMBOL"
+
+#: options.h:870
+msgid "Link big-endian objects."
+msgstr "Vinculează obiecte big-endian."
+
+#: options.h:872
+msgid "Link little-endian objects."
+msgstr "Vinculează obiecte little-endian."
+
+#: options.h:877
+msgid "Auxiliary filter for shared object symbol table"
+msgstr "Filtru auxiliar pentru tabelul de simboluri ale obiectelor partajate"
+
+#: options.h:878 options.h:882
+msgid "SHLIB"
+msgstr "BIBL_PARTAJ"
+
+#: options.h:881
+msgid "Filter for shared object symbol table"
+msgstr "Filtru pentru tabelul de simboluri ale obiectelor partajate"
+
+#: options.h:885
+msgid "Treat warnings as errors"
+msgstr "Tratează avertismentele ca erori"
+
+#: options.h:886
+msgid "Do not treat warnings as errors"
+msgstr "Nu tratează avertismentele ca erori"
+
+#: options.h:889
+msgid "Call SYMBOL at unload-time"
+msgstr "Apelează SIMBOLUL la momentul descărcării"
+
+#: options.h:892
+msgid "(ARM only) Fix binaries for ARM1176 erratum"
+msgstr "(numai ARM) Remediază fișierele binare pentru eroarea ARM1176"
+
+#: options.h:893
+msgid "(ARM only) Do not fix binaries for ARM1176 erratum"
+msgstr "(numai ARM) Nu remediază fișierele binare pentru eroarea ARM1176"
+
+#: options.h:896
+msgid "(ARM only) Fix binaries for Cortex-A8 erratum"
+msgstr "(numai ARM) Remediază fișierele binare pentru eroarea Cortex-A8"
+
+#: options.h:897
+msgid "(ARM only) Do not fix binaries for Cortex-A8 erratum"
+msgstr "(numai ARM) Nu remediază fișierele binare pentru eroarea Cortex-A8"
+
+#: options.h:900
+msgid "(AArch64 only) Fix Cortex-A53 erratum 843419"
+msgstr "(numai AArch64) Remediază eroarea Cortex-A53 843419"
+
+#: options.h:901
+msgid "(AArch64 only) Do not fix Cortex-A53 erratum 843419"
+msgstr "(numai AArch64) Nu remediază eroarea Cortex-A53 843419"
+
+#: options.h:904
+msgid "(AArch64 only) Fix Cortex-A53 erratum 835769"
+msgstr "(numai AArch64) Remediază eroarea Cortex-A53 835769"
+
+#: options.h:905
+msgid "(AArch64 only) Do not fix Cortex-A53 erratum 835769"
+msgstr "(numai AArch64) Nu remediază eroarea Cortex-A53 835769"
+
+#: options.h:908
+msgid "(ARM only) Rewrite BX rn as MOV pc, rn for ARMv4"
+msgstr "(numai ARM) Rescrie BX rn ca MOV pc, rn pentru ARMv4"
+
+#: options.h:912
+msgid "(ARM only) Rewrite BX rn branch to ARMv4 interworking veneer"
+msgstr "(numai ARM) Rescrie ramura BX rn în stratul de interoperabilitate ARMv4"
+
+#: options.h:917
+msgid "Ignored for GCC linker option compatibility"
+msgstr "Ignorat pentru compatibilitate cu opțiunile editorului de legături GCC"
+
+#: options.h:918
+msgid "[gold,bfd]"
+msgstr "[gold,bfd]"
+
+#: options.h:926
+msgid "Remove unused sections"
+msgstr "Elimină secțiunile neutilizate"
+
+#: options.h:927
+msgid "Don't remove unused sections"
+msgstr "Nu elimină secțiunile neutilizate"
+
+#: options.h:930
+msgid "Generate .gdb_index section"
+msgstr "Generează secțiunea .gdb_index"
+
+#: options.h:931
+msgid "Do not generate .gdb_index section"
+msgstr "Nu generează secțiunea .gdb_index"
+
+#: options.h:934
+msgid "Enable STB_GNU_UNIQUE symbol binding"
+msgstr "Activează asocierea de simboluri STB_GNU_UNIQUE"
+
+#: options.h:935
+msgid "Disable STB_GNU_UNIQUE symbol binding"
+msgstr "Dezactivează asocierea de simboluri STB_GNU_UNIQUE"
+
+#: options.h:938
+msgid "Generate shared library"
+msgstr "Generează o bibliotecă partajată"
+
+#: options.h:943
+msgid "Set shared library name"
+msgstr "Stabilește numele bibliotecii partajate"
+
+#: options.h:943 options.h:1183 options.h:1247
+msgid "FILENAME"
+msgstr "NUME FIȘIER"
+
+#: options.h:946
+msgid "Min fraction of empty buckets in dynamic hash"
+msgstr "Fracțiunea minimă de blocuri goale în asocierea (hash) dinamică"
+
+#: options.h:947
+msgid "FRACTION"
+msgstr "FRACȚIUNE"
+
+#: options.h:950
+msgid "Dynamic hash style"
+msgstr "Stil de asociere dinamică"
+
+#: options.h:950
+msgid "[sysv,gnu,both]"
+msgstr "[sysv,gnu,both(sysv+gnu)]"
+
+#: options.h:956
+msgid "Alias for -r"
+msgstr "Alias pentru „-r”"
+
+#: options.h:959
+msgid "Identical Code Folding. '--icf=safe' Folds ctors, dtors and functions whose pointers are definitely not taken"
+msgstr "Regruparea de cod identic (ICF). Opțiunea „--icf=safe” regrupează constructorii(ctors), destructorii(dtors) și funcțiile în care indicatorii, cu siguranță, nu sunt utilizați"
+
+#: options.h:966
+msgid "Number of iterations of ICF (default 3)"
+msgstr "Numărul de iterații ale ICF (implicit 3)"
+
+#: options.h:966 options.h:1267 options.h:1324 options.h:1326 options.h:1328
+#: options.h:1330
+msgid "COUNT"
+msgstr "NUMĂR"
+
+#: options.h:969
+msgid "Do an incremental link if possible; otherwise, do a full link and prepare output for incremental linking"
+msgstr "Efectuează o editare de legături incrementală dacă este posibil; în caz contrar, efectuează o editare de legături completă și pregătește ieșirea pentru o editare de legături incrementală"
+
+#: options.h:974
+msgid "Do a full link (default)"
+msgstr "Efectuează o editare de legături completă (implicit)"
+
+#: options.h:977
+msgid "Do a full link and prepare output for incremental linking"
+msgstr "Efectuează o editare de legături completă și pregătește ieșirea pentru o editare de legături incrementală"
+
+#: options.h:981
+msgid "Do an incremental link; exit if not possible"
+msgstr "Efectuează o editare de legături incrementală; iese dacă nu este posibil"
+
+#: options.h:984
+msgid "Set base file for incremental linking (default is output file)"
+msgstr "Stabilește fișierul de bază pentru editarea de legături incrementale (implicit este fișierul de ieșire)"
+
+#: options.h:989
+msgid "Assume files changed"
+msgstr "Presupune că fișierele au fost modificate"
+
+#: options.h:992
+msgid "Assume files didn't change"
+msgstr "Presupune că fișierele nu au fost modificate"
+
+#: options.h:995
+msgid "Use timestamps to check files (default)"
+msgstr "Utilizează marcajele de timp pentru a verifica fișierele (implicit)"
+
+#: options.h:998
+msgid "Assume startup files unchanged (files preceding this option)"
+msgstr "Presupune că fișierele de pornire nu sunt modificate (fișierele care preced această opțiune)"
+
+#: options.h:1002
+msgid "Amount of extra space to allocate for patches (default 10)"
+msgstr "Cantitatea de spațiu suplimentar de alocat pentru corecții (implicit 10)"
+
+#: options.h:1004
+msgid "PERCENT"
+msgstr "PROCENT"
+
+#: options.h:1007
+msgid "Call SYMBOL at load-time"
+msgstr "Apelează SIMBOLUL în timpul încărcării"
+
+#: options.h:1010
+msgid "Set dynamic linker path"
+msgstr "Stabilește calea la editorul de legături dinamice"
+
+#: options.h:1010
+msgid "PROGRAM"
+msgstr "PROGRAM"
+
+#: options.h:1015
+msgid "Read only symbol values from FILE"
+msgstr "Citește doar valorile simbolului din FIȘIER"
+
+#: options.h:1020
+msgid "Keep files mapped across passes"
+msgstr "Păstrează fișierele asociate între treceri"
+
+#: options.h:1021
+msgid "Release mapped files after each pass"
+msgstr "Eliberează fișierele asociate după fiecare trecere"
+
+#: options.h:1024
+msgid "Do not fold this symbol during ICF"
+msgstr "Nu regrupează acest simbol în timpul ICF"
+
+#: options.h:1029
+msgid "Search for library LIBNAME"
+msgstr "Caută biblioteca NUME_BIBL"
+
+#: options.h:1029
+msgid "LIBNAME"
+msgstr "NUME_BIBL"
+
+#: options.h:1032
+msgid "Generate unwind information for PLT"
+msgstr "Generează informații de desfășurare pentru PLT"
+
+#: options.h:1033
+msgid "Do not generate unwind information for PLT"
+msgstr "Nu generează informații de desfășurare pentru PLT"
+
+#: options.h:1036
+msgid "Add directory to search path"
+msgstr "Adaugă directorul la calea de căutare"
+
+#: options.h:1036 options.h:1222 options.h:1225 options.h:1229 options.h:1298
+msgid "DIR"
+msgstr "DIRECTOR"
+
+#: options.h:1039
+msgid "(ARM only) Generate long PLT entries"
+msgstr "(numai ARM) Generează intrări PLT lungi"
+
+#: options.h:1040
+msgid "(ARM only) Do not generate long PLT entries"
+msgstr "(numai ARM) Nu generează intrări PLT lungi"
+
+#: options.h:1045
+msgid "Set GNU linker emulation; obsolete"
+msgstr "Activează emularea editorului de legături GNU; învechit"
+
+#: options.h:1045
+msgid "EMULATION"
+msgstr "EMULARE"
+
+#: options.h:1049
+msgid "Map whole files to memory"
+msgstr "Copiază fișiere întregi în memorie"
+
+#: options.h:1050
+msgid "Map relevant file parts to memory"
+msgstr "Copiază părțile relevante ale fișierelor în memorie"
+
+#: options.h:1053
+msgid "(ARM only) Merge exidx entries in debuginfo"
+msgstr "(Numai ARM) Fuzionează intrările exidx în informațiile de depanare (debuginfo)"
+
+#: options.h:1054
+msgid "(ARM only) Do not merge exidx entries in debuginfo"
+msgstr "(Numai ARM) Nu fuzionează intrările exidx în informațiile de depanare (debuginfo)"
+
+#: options.h:1057
+msgid "Map the output file for writing"
+msgstr "Copiază conținutul fișierului de ieșire pentru scriere"
+
+#: options.h:1058
+msgid "Do not map the output file for writing"
+msgstr "Nu copiază conținutul fișierului de ieșire pentru scriere"
+
+#: options.h:1061
+msgid "Write map file on standard output"
+msgstr "Scrie fișierul de asociere la ieșirea standard"
+
+#: options.h:1063
+msgid "Write map file"
+msgstr "Scrie fișierul de asociere"
+
+#: options.h:1064
+msgid "MAPFILENAME"
+msgstr "NUME_FIȘIER_ASOCIERE"
+
+#: options.h:1069
+msgid "Do not page align data"
+msgstr "Nu aliniază datele în pagină"
+
+#: options.h:1071
+msgid "Do not page align data, do not make text readonly"
+msgstr "Nu aliniază datele în pagină, nu creează text numai pentru citire"
+
+#: options.h:1072
+msgid "Page align data, make text readonly"
+msgstr "Aliniază datele în pagină, creează text numai pentru citire"
+
+#: options.h:1075
+msgid "Use less memory and more disk I/O (included only for compatibility with GNU ld)"
+msgstr "Utilizează mai puțină memorie și mai multe In/Ieș pe disc (inclus numai pentru compatibilitatea cu GNU ld)"
+
+#: options.h:1079 options.h:1473
+msgid "Report undefined symbols (even with --shared)"
+msgstr "Comunică simboluri nedefinite (chiar și cu „--shared”)"
+
+#: options.h:1083
+msgid "Create an output file even if errors occur"
+msgstr "Creează un fișier de ieșire chiar dacă apar erori"
+
+#: options.h:1086
+msgid "Only search directories specified on the command line"
+msgstr "Caută doar directoarele specificate în linia de comandă"
+
+#: options.h:1092
+msgid "Set output file name"
+msgstr "Stabilește numele fișierului de ieșire"
+
+#: options.h:1095
+msgid "Set output format"
+msgstr "Stabilește formatul de ieșire"
+
+#: options.h:1095
+msgid "[binary]"
+msgstr "[binar]"
+
+#: options.h:1098
+msgid "Optimize output file size"
+msgstr "Optimizează dimensiunea fișierului de ieșire"
+
+#: options.h:1098
+msgid "LEVEL"
+msgstr "NIVEL"
+
+#: options.h:1101
+msgid "Orphan section handling"
+msgstr "Gestionează secțiunile orfane"
+
+#: options.h:1101
+msgid "[place,discard,warn,error]"
+msgstr "[place(plasare),discard(eliminare),warn(avertisment),error(eroare)]"
+
+#: options.h:1107
+msgid "Ignored for ARM compatibility"
+msgstr "Ignorat pentru compatibilitatea cu ARM"
+
+#: options.h:1110
+msgid "Generate package metadata note"
+msgstr "Generează o notă de metadate a pachetului"
+
+#: options.h:1111
+msgid "[=JSON]"
+msgstr "[=JSON]"
+
+#: options.h:1114 options.h:1117
+msgid "Create a position independent executable"
+msgstr "Creează un executabil independent de poziție"
+
+#: options.h:1115 options.h:1118
+msgid "Do not create a position independent executable"
+msgstr "Nu creează un executabil independent de poziție"
+
+#: options.h:1122
+msgid "Force PIC sequences for ARM/Thumb interworking veneers"
+msgstr "Forțați secvențele PIC pentru nivelurile de interfunționare ARM/Thumb"
+
+#: options.h:1126
+msgid "(ARM only) Ignore for backward compatibility"
+msgstr "(numai ARM) Ignorat pentru compatibilitate cu versiunea anterioară"
+
+#: options.h:1129
+msgid "(PowerPC only) Align PLT call stubs to fit cache lines"
+msgstr "(numai PowerPC) Aliniază cioturile de apel PLT pentru a se potrivi liniilor zonei de prestocare(cache)"
+
+#: options.h:1130
+msgid "[=P2ALIGN]"
+msgstr "[=P2ALIGN]"
+
+#: options.h:1133
+msgid "(PowerPC64 only) Optimize calls to ELFv2 localentry:0 functions"
+msgstr "(numai PowerPC64) Optimizează apelurile la funcțiile ELFv2 localentry:0"
+
+#: options.h:1134
+msgid "(PowerPC64 only) Don't optimize ELFv2 calls"
+msgstr "(numai PowerPC64) Nu optimizează apelurile ELFv2"
+
+#: options.h:1137
+msgid "(PowerPC64 only) PLT call stubs should load r11"
+msgstr "(numai PowerPC64) Cioturile de apel PLT trebuie să încarce r11"
+
+#: options.h:1138
+msgid "(PowerPC64 only) PLT call stubs should not load r11"
+msgstr "(numai PowerPC64) Cioturile de apel PLT trebuie să încarce r11"
+
+#: options.h:1141
+msgid "(PowerPC64 only) PLT call stubs with load-load barrier"
+msgstr "(numai PowerPC64) Cioturi de apel PLT cu barieră load-load"
+
+#: options.h:1142
+msgid "(PowerPC64 only) PLT call stubs without barrier"
+msgstr "(numai PowerPC64) Cioturi de apel PLT fără barieră"
+
+#: options.h:1146
+msgid "Load a plugin library"
+msgstr "Încarcă o bibliotecă de module"
+
+#: options.h:1146 options.h:1151
+msgid "PLUGIN"
+msgstr "MODUL"
+
+#: options.h:1148
+msgid "Pass an option to the plugin"
+msgstr "Pasează o opțiune către modul"
+
+#: options.h:1148 options.h:1154
+msgid "OPTION"
+msgstr "OPȚIUNE"
+
+#: options.h:1151
+msgid "Load a plugin library (not supported)"
+msgstr "Încarcă o bibliotecă de pluginuri (acțiune neacceptată)"
+
+#: options.h:1153
+msgid "Pass an option to the plugin (not supported)"
+msgstr "Pasează o opțiune către modul (acțiune neacceptată)"
+
+#: options.h:1158
+msgid "Use posix_fallocate to reserve space in the output file"
+msgstr "Utilizează posix_fallocate pentru a rezerva spațiu în fișierul de ieșire"
+
+#: options.h:1159
+msgid "Use fallocate or ftruncate to reserve space"
+msgstr "Utilizează fallocate sau ftruncate pentru a rezerva spațiu"
+
+#: options.h:1162
+msgid "(PowerPC64 only) stubs use power10 insns"
+msgstr "(numai PowerPC64) Cioturile utilizează instrucțiuni(insns) power10"
+
+#: options.h:1163
+msgid "[=auto,no,yes]"
+msgstr "[=auto,no,yes]"
+
+#: options.h:1165
+msgid "(PowerPC64 only) stubs do not use power10 insns"
+msgstr "(numai PowerPC64) Cioturile nu utilizează instrucțiuni(insns) power10"
+
+#: options.h:1168
+msgid "Preread archive symbols when multi-threaded"
+msgstr "Pre-citește simbolurile de arhivă în modul cu mai multe fire de execuție"
+
+#: options.h:1171
+msgid "List removed unused sections on stderr"
+msgstr "Listează secțiunile neutilizate eliminate, la ieșirea de eroare standard"
+
+#: options.h:1172
+msgid "Do not list removed unused sections"
+msgstr "Nu listează secțiunile neutilizate eliminate"
+
+#: options.h:1175
+msgid "List folded identical sections on stderr"
+msgstr "Listează secțiunile identice pliate(folded), la ieșirea de eroare standard"
+
+#: options.h:1176
+msgid "Do not list folded identical sections"
+msgstr "Nu listează secțiunile identice pliate(folded)"
+
+#: options.h:1179
+msgid "Print default output format"
+msgstr "Afișează formatul de ieșire implicit"
+
+#: options.h:1182
+msgid "Print symbols defined and used for each input"
+msgstr "Afișează simbolurile definite și utilizate pentru fiecare intrare"
+
+#: options.h:1186
+msgid "Save the state of flags related to input files"
+msgstr "Salvează starea fanioanelor aferente fișierelor de intrare"
+
+#: options.h:1188
+msgid "Restore the state of flags related to input files"
+msgstr "Restaurează starea fanioanelor aferente fișierelor de intrare"
+
+#: options.h:1193
+msgid "Generate relocations in output"
+msgstr "Generează realocări în datele de ieșire"
+
+#: options.h:1196
+msgid "Ignored for SVR4 compatibility"
+msgstr "Ignorat pentru compatibilitate cu SVR4"
+
+#: options.h:1201
+msgid "Generate relocatable output"
+msgstr "Generează o ieșire realocabilă"
+
+#: options.h:1204
+msgid "Relax branches on certain targets"
+msgstr "Relaxează ramurile pe anumite ținte"
+
+#: options.h:1205
+msgid "Do not relax branches"
+msgstr "Nu relaxează ramurile"
+
+#: options.h:1208
+msgid "keep only symbols listed in this file"
+msgstr "păstrează doar simbolurile enumerate în acest fișier"
+
+#: options.h:1211
+msgid "Put read-only non-executable sections in their own segment"
+msgstr "Pune secțiunile neexecutabile, doar-pentru-citire, în propriul lor segment"
+
+#: options.h:1212
+msgid "Do not put read-only non-executable sections in their own segment"
+msgstr "Nu pune secțiunile neexecutabile, doar-pentru-citire, în propriul lor segment"
+
+#: options.h:1215
+msgid "Set offset between executable and read-only segments"
+msgstr "Stabilește decalajul dintre segmentele executabile și cele de numai citire"
+
+#: options.h:1216
+msgid "OFFSET"
+msgstr "DECALAJ"
+
+#: options.h:1222 options.h:1225
+msgid "Add DIR to runtime search path"
+msgstr "Adaugă DIRECTOR la calea de căutare în timpul execuției"
+
+#: options.h:1228
+msgid "Add DIR to link time shared library search path"
+msgstr "Adaugă DIRECTOR la calea de căutare a bibliotecii partajate în timpul editării de legături"
+
+#: options.h:1234
+msgid "Strip all symbols"
+msgstr "Elimină toate simbolurile"
+
+#: options.h:1236
+msgid "Strip debugging information"
+msgstr "Elimină informațiile de depanare"
+
+#: options.h:1238
+msgid "Emit only debug line number information"
+msgstr "Emite doar informații despre numărul de linie de depanare"
+
+#: options.h:1240
+msgid "Strip debug symbols that are unused by gdb (at least versions <= 7.4)"
+msgstr "Elimină simbolurile de depanare care nu sunt utilizate de gdb (cel puțin versiunile <= 7.4)"
+
+#: options.h:1243
+msgid "Strip LTO intermediate code sections"
+msgstr "Elimină secțiunile de cod intermediar LTO"
+
+#: options.h:1246
+msgid "Layout sections in the order specified"
+msgstr "Aranjează secțiunile în ordinea specificată"
+
+#: options.h:1250
+msgid "Set address of section"
+msgstr "Stabilește adresa secțiunii"
+
+#: options.h:1250
+msgid "SECTION=ADDRESS"
+msgstr "SECȚIUNE=ADRESĂ"
+
+#: options.h:1253
+msgid "(PowerPC only) Use new-style PLT"
+msgstr "(numai PowerPC) Utilizează PLT în stil nou"
+
+#: options.h:1256
+msgid "Sort common symbols by alignment"
+msgstr "Sortează simbolurile comune după aliniere"
+
+#: options.h:1257
+msgid "[={ascending,descending}]"
+msgstr "[={crescător,descrescător}]"
+
+#: options.h:1260
+msgid "Sort sections by name.  '--no-text-reorder' will override '--sort-section=name' for .text"
+msgstr "Sortează secțiunile după nume. „--no-text-reorder” va înlocui „--sort-section=name” pentru .text"
+
+#: options.h:1262
+msgid "[none,name]"
+msgstr "[none,name]"
+
+#: options.h:1266
+msgid "Dynamic tag slots to reserve (default 5)"
+msgstr "Sloturi de etichete dinamice de rezervat (implicit 5)"
+
+#: options.h:1270
+msgid "(ARM, PowerPC only) The maximum distance from instructions in a group of sections to their stubs. Negative values mean stubs are always after the group. 1 means use default size"
+msgstr "(numai ARM, PowerPC) Distanța maximă de la instrucțiunile dintr-un grup de secțiuni până la cioturile(stubs) acestora. Valorile negative înseamnă că cioturile sunt întotdeauna după grup. 1 înseamnă utilizarea mărimii implicite"
+
+#: options.h:1276
+msgid "(PowerPC only) Allow a group of stubs to serve multiple output sections"
+msgstr "(numai PowerPC) Permite unui grup de cioturi(stubs) să deservească mai multe secțiuni de ieșire"
+
+#: options.h:1278
+msgid "(PowerPC only) Each output section has its own stubs"
+msgstr "(numai PowerPC) Fiecare secțiune de ieșire are propriile sale cioturi(stubs)"
+
+#: options.h:1281
+msgid "Stack size when -fsplit-stack function calls non-split"
+msgstr "Dimensiunea stivei atunci când funcția „-fsplit-stack” apelează «non-split»"
+
+#: options.h:1287
+msgid "Do not link against shared libraries"
+msgstr "Nu stabilește legături cu bibliotecile partajate"
+
+#: options.h:1290
+msgid "Start a library"
+msgstr "Începe o bibliotecă"
+
+#: options.h:1292
+msgid "End a library "
+msgstr "Termină o bibliotecă "
+
+#: options.h:1295
+msgid "Print resource usage statistics"
+msgstr "Afișează statistici privind utilizarea resurselor"
+
+#: options.h:1298
+msgid "Set target system root directory"
+msgstr "Stabilește directorul rădăcină al sistemului țintă"
+
+#: options.h:1303
+msgid "Print the name of each input file"
+msgstr "Afișează numele fiecărui fișier de intrare"
+
+#: options.h:1306
+msgid "(ARM only) Force R_ARM_TARGET1 type to R_ARM_ABS32"
+msgstr "(numai ARM) Forțează tipul R_ARM_TARGET1 la R_ARM_ABS32"
+
+#: options.h:1309
+msgid "(ARM only) Force R_ARM_TARGET1 type to R_ARM_REL32"
+msgstr "(numai ARM) Forțează tipul R_ARM_TARGET1 la R_ARM_REL32"
+
+#: options.h:1312
+msgid "(ARM only) Set R_ARM_TARGET2 relocation type"
+msgstr "(numai ARM) Stabilește tipul de realocare R_ARM_TARGET2"
+
+#: options.h:1313
+msgid "[rel, abs, got-rel"
+msgstr "[rel, abs, got-rel"
+
+#: options.h:1317
+msgid "Enable text section reordering for GCC section names"
+msgstr "Activează reordonarea secțiunilor de text pentru numele secțiunilor GCC"
+
+#: options.h:1318
+msgid "Disable text section reordering for GCC section names"
+msgstr "Dezactivează reordonarea secțiunilor de text pentru numele secțiunilor GCC"
+
+#: options.h:1321
+msgid "Run the linker multi-threaded"
+msgstr "Rulează editorul de legături cu mai multe fire de execuție"
+
+#: options.h:1322
+msgid "Do not run the linker multi-threaded"
+msgstr "Nu rulează editorul de legături cu mai multe fire de execuție"
+
+#: options.h:1324
+msgid "Number of threads to use"
+msgstr "Numărul de fire de execuție ce trebuie utilizate"
+
+#: options.h:1326
+msgid "Number of threads to use in initial pass"
+msgstr "Numărul de fire de execuție ce trebuie utilizate la trecerea inițială"
+
+#: options.h:1328
+msgid "Number of threads to use in middle pass"
+msgstr "Numărul de fire de execuție ce trebuie utilizate la trecerea intermediară"
+
+#: options.h:1330
+msgid "Number of threads to use in final pass"
+msgstr "Numărul de fire de execuție ce trebuie utilizate la trecerea finală"
+
+#: options.h:1333
+msgid "(PowerPC/64 only) Optimize GD/LD/IE code to IE/LE"
+msgstr "(numai PowerPC/64) Optimizează codul GD/LD/IE la IE/LE"
+
+#: options.h:1334
+msgid "(PowerPC/64 only) Don'''t try to optimize TLS accesses"
+msgstr "(numai PowerPC/64) Nu încearcă să optimizeze accesările TLS"
+
+#: options.h:1336
+msgid "(PowerPC/64 only) Use a special __tls_get_addr call"
+msgstr "(numai PowerPC/64) Utilizează un apel special __tls_get_addr"
+
+#: options.h:1337
+msgid "(PowerPC/64 only) Don't use a special __tls_get_addr call"
+msgstr "(numai PowerPC/64) Nu utilizează un apel special __tls_get_addr"
+
+#: options.h:1340
+msgid "(PowerPC64 only) Optimize TOC code sequences"
+msgstr "(numai PowerPC64) Optimizează secvențele de cod TOC"
+
+#: options.h:1341
+msgid "(PowerPC64 only) Don't optimize TOC code sequences"
+msgstr "(numai PowerPC64) Nu optimizează secvențele de cod TOC"
+
+#: options.h:1344
+msgid "(PowerPC64 only) Sort TOC and GOT sections"
+msgstr "(numai PowerPC64) Sortează secțiunile TOC și GOT"
+
+#: options.h:1345
+msgid "(PowerPC64 only) Don't sort TOC and GOT sections"
+msgstr "(numai PowerPC64) Nu sortează secțiunile TOC și GOT"
+
+#: options.h:1348
+msgid "Read linker script"
+msgstr "Citește scriptul editorului de legături"
+
+#: options.h:1351
+msgid "Set the address of the bss segment"
+msgstr "Stabilește adresa segmentului bss"
+
+#: options.h:1353
+msgid "Set the address of the data segment"
+msgstr "Stabilește adresa segmentului de date"
+
+#: options.h:1355 options.h:1357
+msgid "Set the address of the text segment"
+msgstr "Stabilește adresa segmentului de text"
+
+#: options.h:1360
+msgid "Set the address of the rodata segment"
+msgstr "Stabilește adresa segmentului de date numai pentru citire"
+
+#: options.h:1365
+msgid "Create undefined reference to SYMBOL"
+msgstr "Creează o referință nedefinită la SIMBOL"
+
+#: options.h:1368
+msgid "How to handle unresolved symbols"
+msgstr "Cum să gestioneze simbolurile nerezolvate"
+
+#: options.h:1377
+msgid "Alias for --debug=files"
+msgstr "Alias pentru „--debug=fișiere”"
+
+#: options.h:1380
+msgid "Read version script"
+msgstr "Citește scriptul de versiune"
+
+#: options.h:1385
+msgid "Warn about duplicate common symbols"
+msgstr "Avertizează despre simbolurile comune duplicat"
+
+#: options.h:1386
+msgid "Do not warn about duplicate common symbols"
+msgstr "Nu avertizează despre simbolurile comune duplicat"
+
+#: options.h:1392
+msgid "Warn when discarding version information"
+msgstr "Avertizează atunci când renunță la informațiile despre versiune"
+
+#: options.h:1393
+msgid "Do not warn when discarding version information"
+msgstr "Nu avertizează atunci când renunță la informațiile despre versiune"
+
+#: options.h:1396
+msgid "Warn if the stack is executable"
+msgstr "Avertizează dacă stiva este executabilă"
+
+#: options.h:1397
+msgid "Do not warn if the stack is executable"
+msgstr "Nu avertizează dacă stiva este executabilă"
+
+#: options.h:1400
+msgid "Don't warn about mismatched input files"
+msgstr "Nu avertizează asupra fișierelor de intrare care nu se potrivesc"
+
+#: options.h:1406
+msgid "Warn when skipping an incompatible library"
+msgstr "Avertizează când se omite o bibliotecă incompatibilă"
+
+#: options.h:1407
+msgid "Don't warn when skipping an incompatible library"
+msgstr "Nu avertizează când se omite o bibliotecă incompatibilă"
+
+#: options.h:1410
+msgid "Warn if text segment is not shareable"
+msgstr "Avertizează dacă segmentul de text nu este partajabil"
+
+#: options.h:1411
+msgid "Do not warn if text segment is not shareable"
+msgstr "Nu avertizează dacă segmentul de text nu este partajabil"
+
+#: options.h:1414
+msgid "Report unresolved symbols as warnings"
+msgstr "Raportează simbolurile nerezolvate ca avertismente"
+
+#: options.h:1418
+msgid "Report unresolved symbols as errors"
+msgstr "Raportează simbolurile nerezolvate ca erori"
+
+#: options.h:1422
+msgid "(ARM only) Do not warn about objects with incompatible wchar_t sizes"
+msgstr "(numai ARM) Nu avertizează despre obiecte cu dimensiuni wchar_t incompatibile"
+
+#: options.h:1426
+msgid "Convert unresolved symbols to weak references"
+msgstr "Convertește simbolurile nerezolvate în referințe slabe"
+
+#: options.h:1430
+msgid "Include all archive contents"
+msgstr "Include tot conținutul arhivei"
+
+#: options.h:1431
+msgid "Include only needed archive contents"
+msgstr "Include numai conținutul necesar din arhivă"
+
+#: options.h:1434
+msgid "Use wrapper functions for SYMBOL"
+msgstr "Utilizează funcțiile de înveliș pentru SIMBOL"
+
+#: options.h:1439
+msgid "Delete all local symbols"
+msgstr "Șterge toate simbolurile locale"
+
+#: options.h:1441
+msgid "Delete all temporary local symbols"
+msgstr "Șterge toate simbolurile locale temporare"
+
+#: options.h:1443
+msgid "Keep all local symbols"
+msgstr "Păstrează toate simbolurile locale"
+
+#: options.h:1448
+msgid "Trace references to symbol"
+msgstr "Urmează referințele la simbol"
+
+#: options.h:1451
+msgid "Allow unused version in script"
+msgstr "Permite versiunea neutilizată în script"
+
+#: options.h:1452
+msgid "Do not allow unused version in script"
+msgstr "Nu permite versiunea neutilizată în script"
+
+#: options.h:1455
+msgid "Default search path for Solaris compatibility"
+msgstr "Calea de căutare implicită pentru compatibilitate cu Solaris"
+
+#: options.h:1456
+msgid "PATH"
+msgstr "CALEA"
+
+#: options.h:1461
+msgid "Start a library search group"
+msgstr "Pornește un grup de căutare de biblioteci"
+
+#: options.h:1463
+msgid "End a library search group"
+msgstr "Termină un grup de căutare de biblioteci"
+
+#: options.h:1468
+msgid "Sort dynamic relocs"
+msgstr "Sortează realocările dinamice"
+
+#: options.h:1469
+msgid "Do not sort dynamic relocs"
+msgstr "Nu sortează realocările dinamice"
+
+#: options.h:1471
+msgid "Set common page size to SIZE"
+msgstr "Stabilește dimensiunea comună a paginii la DIMENSIUNE"
+
+#: options.h:1476
+msgid "Mark output as requiring executable stack"
+msgstr "Marchează ieșirea ca necesitând stivă executabilă"
+
+#: options.h:1478
+msgid "Make symbols in DSO available for subsequently loaded objects"
+msgstr "Face simbolurile în DSO disponibile pentru obiectele încărcate ulterior"
+
+#: options.h:1481
+msgid "Mark DSO to be initialized first at runtime"
+msgstr "Marchează DSO pentru a fi inițializat mai întâi în timpul execuției"
+
+#: options.h:1484
+msgid "Mark object to interpose all DSOs but executable"
+msgstr "Marchează obiectul pentru a interpune toate DSO-urile, cu excepția executabilului"
+
+#: options.h:1487
+msgid "Mark DSO to be loaded at most once, and only in the main namespace"
+msgstr "Marchează DSO pentru a fi încărcat cel mult o dată și numai în spațiul de nume principal"
+
+#: options.h:1488
+msgid "Do not mark the DSO as one to be loaded only in the main namespace"
+msgstr "Nu marchează DSO ca ceva care trebuie încărcat numai în spațiul de nume principal"
+
+#: options.h:1490
+msgid "Mark object for lazy runtime binding"
+msgstr "Marchează obiectul pentru vincularea întârziată în timpul execuției"
+
+#: options.h:1493
+msgid "Mark object requiring immediate process"
+msgstr "Marchează obiectul care necesită o procesare imediată"
+
+#: options.h:1496
+msgid "Set maximum page size to SIZE"
+msgstr "Stabilește dimensiunea maximă a paginii la DIMENSIUNE"
+
+#: options.h:1504
+msgid "Do not create copy relocs"
+msgstr "Nu creează realocări de copiere"
+
+#: options.h:1506
+msgid "Mark object not to use default search paths"
+msgstr "Marchează obiectul pentru a nu utiliza căile de căutare implicite"
+
+#: options.h:1509
+msgid "Mark DSO non-deletable at runtime"
+msgstr "Marchează DSO ca neeliminabil în timpul execuției"
+
+#: options.h:1512
+msgid "Mark DSO not available to dlopen"
+msgstr "Marchează DSO ca nedisponibil pentru dlopen()"
+
+#: options.h:1515
+msgid "Mark DSO not available to dldump"
+msgstr "Marchează DSO ca nedisponibil pentru dldump()"
+
+#: options.h:1518
+msgid "Mark output as not requiring executable stack"
+msgstr "Marchează ieșirea precum că nu necesită stivă executabilă"
+
+#: options.h:1520
+msgid "Mark object for immediate function binding"
+msgstr "Marchează obiectul pentru vincularea imediată a funcției"
+
+#: options.h:1523
+msgid "Mark DSO to indicate that needs immediate $ORIGIN processing at runtime"
+msgstr "Marchează DSO pentru a indica că acesta necesită procesare imediată $ORIGIN în timpul execuției"
+
+#: options.h:1526
+msgid "Where possible mark variables read-only after relocation"
+msgstr "Acolo unde este posibil, marchează variabilele doar pentru citire după realocare"
+
+#: options.h:1527
+msgid "Don't mark variables read-only after relocation"
+msgstr "Nu marchează variabilele doar pentru citire după realocare"
+
+#: options.h:1529
+msgid "Set PT_GNU_STACK segment p_memsz to SIZE"
+msgstr "Stabilește p_memsz din segmentul PT_GNU_STACK la DIMENSIUNE"
+
+#: options.h:1531
+msgid "ELF symbol visibility for synthesized __start_* and __stop_* symbols"
+msgstr "Vizibilitatea simbolurilor ELF pentru simbolurile sintetizate __start_* și __stop_*"
+
+#: options.h:1536
+msgid "Do not permit relocations in read-only segments"
+msgstr "Nu permite realocări în segmentele de numai citire"
+
+#: options.h:1537 options.h:1539
+msgid "Permit relocations in read-only segments"
+msgstr "Permite realocări în segmentele de numai citire"
+
+#: options.h:1542
+msgid "Move .text.unlikely sections to a separate segment."
+msgstr "Mută secțiunile .text.unlikely într-un segment separat."
+
+#: options.h:1543
+msgid "Do not move .text.unlikely sections to a separate segment."
+msgstr "Nu mută secțiunile .text.unlikely într-un segment separat."
+
+#: options.h:1546
+msgid "Keep .text.hot, .text.startup, .text.exit and .text.unlikely as separate sections in the final binary."
+msgstr "Păstrează .text.hot, .text.startup, .text.exit și .text.unlikely ca secțiuni separate în binarul final."
+
+#: options.h:1548
+msgid "Merge all .text.* prefix sections."
+msgstr "Fuzionează toate secțiunile cu prefixul .text.*."
+
+#: output.cc:1346
+msgid "section group retained but group element discarded"
+msgstr "grupul de secțiuni reținut, dar elementul de grup a fost eliminat"
+
+#: output.cc:1733 output.cc:1765
+msgid "out of patch space (GOT); relink with --incremental-full"
+msgstr "în afara spațiului de corecție (GOT); reeditați legăturile cu „--incremental-full”"
+
+#: output.cc:2414
+#, c-format
+msgid "invalid alignment %lu for section \"%s\""
+msgstr "aliniere nevalidă %lu pentru secțiunea „%s”"
+
+#: output.cc:4577
+msgid "script places BSS section in the middle of a LOAD segment; space will be allocated in the file"
+msgstr "scriptul plasează secțiunea BSS în mijlocul unui segment LOAD; spațiu va fi alocat în fișier"
+
+#: output.cc:4599
+#, c-format
+msgid "dot moves backward in linker script from 0x%llx to 0x%llx"
+msgstr "punctul se deplasează înapoi în scriptul editorului de legături de la 0x%llx la 0x%llx"
+
+#: output.cc:4602
+#, c-format
+msgid "address of section '%s' moves backward from 0x%llx to 0x%llx"
+msgstr "adresa secțiunii „%s” se deplasează înapoi de la 0x%llx la 0x%llx"
+
+#: output.cc:4971
+#, c-format
+msgid "%s: incremental base and output file name are the same"
+msgstr "%s: baza incrementală și numele fișierului de ieșire sunt aceleași"
+
+#: output.cc:4978
+#, c-format
+msgid "%s: stat: %s"
+msgstr "%s: statistică: %s"
+
+#: output.cc:4983
+#, c-format
+msgid "%s: incremental base file is empty"
+msgstr "%s: fișierul de bază incremental este gol"
+
+#: output.cc:4995 output.cc:5093
+#, c-format
+msgid "%s: open: %s"
+msgstr "%s: open(): %s"
+
+#: output.cc:5012
+#, c-format
+msgid "%s: read failed: %s"
+msgstr "%s: read() a eșuat: %s"
+
+#: output.cc:5017
+#, c-format
+msgid "%s: file too short: read only %lld of %lld bytes"
+msgstr "%s: fișier prea scurt: se citește doar %lld din %lld octeți"
+
+#: output.cc:5117
+#, c-format
+msgid "%s: mremap: %s"
+msgstr "%s: mremap(): %s"
+
+#: output.cc:5136
+#, c-format
+msgid "%s: mmap: %s"
+msgstr "%s: mmap(): %s"
+
+#: output.cc:5228
+#, c-format
+msgid "%s: mmap: failed to allocate %lu bytes for output file: %s"
+msgstr "%s: mmap(): nu a reușit alocarea de %lu octeți pentru fișierul de ieșire: %s"
+
+#: output.cc:5246
+#, c-format
+msgid "%s: munmap: %s"
+msgstr "%s: munmap(): %s"
+
+#: output.cc:5266
+#, c-format
+msgid "%s: write: unexpected 0 return-value"
+msgstr "%s: write(): valoare de returnare 0, neașteptată"
+
+#: output.cc:5268
+#, c-format
+msgid "%s: write: %s"
+msgstr "%s: write(): %s"
+
+#: output.cc:5283
+#, c-format
+msgid "%s: close: %s"
+msgstr "%s: close(): %s"
+
+#: output.h:625
+msgid "** section headers"
+msgstr "** antete de secțiune"
+
+#: output.h:675
+msgid "** segment headers"
+msgstr "** antete de segment"
+
+#: output.h:722
+msgid "** file header"
+msgstr "** antete de fișier"
+
+#: output.h:936
+msgid "** fill"
+msgstr "** umplere"
+
+#: output.h:1102
+msgid "** string table"
+msgstr "** tabel de șiruri"
+
+#: output.h:1659
+msgid "** dynamic relocs"
+msgstr "** realocări dinamice"
+
+#: output.h:1660 output.h:2371
+msgid "** relocs"
+msgstr "** realocări"
+
+#: output.h:2396
+msgid "** group"
+msgstr "** grup"
+
+#: output.h:2581
+msgid "** GOT"
+msgstr "** GOT"
+
+#: output.h:2776
+msgid "** dynamic"
+msgstr "** dinamic"
+
+#: output.h:2920
+msgid "** symtab xindex"
+msgstr "** indicele-x al tabelului de simboluri"
+
+#: parameters.cc:221
+msgid "input file does not match -EB/EL option"
+msgstr "fișierul de intrare nu se potrivește cu opțiunea „-EB/EL”"
+
+#: parameters.cc:231
+msgid "-Trodata-segment is meaningless without --rosegment"
+msgstr "-Trodata-segment este lipsit de sens fără „--rosegment”"
+
+#: parameters.cc:338 target-select.cc:198
+#, c-format
+msgid "unrecognized output format %s"
+msgstr "format de ieșire nerecunoscut %s"
+
+#: parameters.cc:351
+#, c-format
+msgid "unrecognized emulation %s"
+msgstr "emulare nerecunoscută %s"
+
+#: parameters.cc:374
+msgid "no supported target for -EB/-EL option"
+msgstr "nicio țintă acceptată pentru opțiunea „-EB/-EL”"
+
+#: plugin.cc:202
+#, c-format
+msgid "%s: could not load plugin library: %s"
+msgstr "%s: nu s-a putut încărca biblioteca modulului: %s"
+
+#: plugin.cc:211
+#, c-format
+msgid "%s: could not find onload entry point"
+msgstr "%s: nu s-a putut găsi punctul de intrare la încărcare"
+
+#: plugin.cc:540
+#, c-format
+msgid "%s: recording to %s"
+msgstr "%s: se înregistrează la %s"
+
+#: plugin.cc:585
+#, c-format
+msgid "%s: can't open (%s)"
+msgstr "%s: nu se poate deschide (%s)"
+
+#: plugin.cc:591
+#, c-format
+msgid "%s: can't create (%s)"
+msgstr "%s: nu se poate crea (%s)"
+
+#: plugin.cc:600
+#, c-format
+msgid "%s: write error while making copy of file (%s)"
+msgstr "%s: eroare de scriere în timpul copierii fișierului (%s)"
+
+#: plugin.cc:1182
+msgid "input files added by plug-ins in --incremental mode not supported yet"
+msgstr "fișierele de intrare adăugate de module în modul „--incremental” nu sunt încă acceptate"
+
+#: powerpc.cc:1324
+msgid "missing expected __tls_get_addr call"
+msgstr "lipsește apelul __tls_get_addr așteptat"
+
+#: powerpc.cc:2316 powerpc.cc:2651
+#, c-format
+msgid "%s: ABI version %d is not compatible with ABI version %d output"
+msgstr "%s: versiunea ABI %d nu este compatibilă cu versiunea ABI %d de ieșire"
+
+#: powerpc.cc:2350 powerpc.cc:2710
+#, c-format
+msgid "%s: .opd invalid in abiv%d"
+msgstr "%s: .opd nevalid în abiv%d"
+
+#: powerpc.cc:2428
+#, c-format
+msgid "%s: unexpected reloc type %u in .opd section"
+msgstr "%s: tip de realocare neașteptată %u în secțiunea .opd"
+
+#: powerpc.cc:2439
+#, c-format
+msgid "%s: .opd is not a regular array of opd entries"
+msgstr "%s: .opd nu este o matrice obișnuită de intrări opd"
+
+#: powerpc.cc:2579
+#, c-format
+msgid "%s: local symbol %d has invalid st_other for ABI version 1"
+msgstr "%s: simbolul local %d are st_other nevalid pentru versiunea 1 a ABI"
+
+#: powerpc.cc:3314
+#, c-format
+msgid "%s:%s exceeds group size"
+msgstr "%s:%s depășește dimensiunea grupului"
+
+#: powerpc.cc:3665
+#, c-format
+msgid "%s:%s: branch in non-executable section, no long branch stub for you"
+msgstr "%s:%s: ramură în secțiunea neexecutabilă, nu există un ciot(stub) de ramură lung pentru dumneavoastră"
+
+#: powerpc.cc:3795
+#, c-format
+msgid "%s: stub group size is too large; retrying with %#x"
+msgstr "%s: dimensiunea grupului ciot(stub) este prea mare; reîncercând cu %#x"
+
+#: powerpc.cc:5738
+msgid "** glink"
+msgstr "** glink"
+
+#: powerpc.cc:6403 powerpc.cc:7118
+#, c-format
+msgid "linkage table error against `%s'"
+msgstr "eroare în tabelul de vinculare față de „%s”"
+
+#: powerpc.cc:6406
+#, c-format
+msgid "linkage table error against `%s:[local %u]'"
+msgstr "eroare în tabelul de vinculare față de „%s”:[local %u]'"
+
+#: powerpc.cc:7245
+msgid "** save/restore"
+msgstr "** salvează/restaurează"
+
+#: powerpc.cc:8043
+#, c-format
+msgid "%s: unsupported reloc %u for IFUNC symbol"
+msgstr "%s: realocare neacceptată %u pentru simbolul IFUNC"
+
+#: powerpc.cc:8309 powerpc.cc:9096
+#, c-format
+msgid "tocsave symbol %u has bad shndx %u"
+msgstr "simbolul tocsave %u are shndx %u greșit"
+
+#: powerpc.cc:8600 powerpc.cc:9433
+#, c-format
+msgid "%s: toc optimization is not supported for %#08x instruction"
+msgstr "%s: optimizarea toc nu este acceptată pentru instrucțiunea %#08x"
+
+#: powerpc.cc:8666 powerpc.cc:9495
+#, c-format
+msgid "%s: unsupported -mbss-plt code"
+msgstr "%s: cod „-mbss-plt” neacceptat"
+
+#: powerpc.cc:9842
+#, c-format
+msgid "split-stack stack size overflow at section %u offset %0zx"
+msgstr "depășirea dimensiunii stivei de stivă-divizată la secțiunea %u poziția %0zx"
+
+#: powerpc.cc:9913
+msgid "--plt-localentry is especially dangerous without ld.so support to detect ABI violations"
+msgstr "„--plt-localentry” este deosebit de periculoasă fără suport ld.so pentru a detecta încălcările ABI"
+
+#: powerpc.cc:9942
+msgid "--plt-localentry is incompatible with power10 pc-relative code"
+msgstr "„--plt-localentry” este incompatibilă cu codul pc-relativ power10"
+
+#: powerpc.cc:10249 powerpc.cc:10255
+#, c-format
+msgid "%s uses hard float, %s uses soft float"
+msgstr "%s folosește suport hardware pentru numere reale, %s folosește suport software pentru numere reale"
+
+#: powerpc.cc:10261 powerpc.cc:10268
+#, c-format
+msgid "%s uses double-precision hard float, %s uses single-precision hard float"
+msgstr "%s folosește suport hardware pentru numere reale cu precizie dublă, %s folosește suport hardware pentru numere reale cu precizie simplă"
+
+#: powerpc.cc:10288 powerpc.cc:10294
+#, c-format
+msgid "%s uses 64-bit long double, %s uses 128-bit long double"
+msgstr "%s folosește valori întregi lungi cu precizie dublă pe 64 de biți, %s folosește valori întregi lungi cu precizie dublă pe 128 de biți"
+
+#: powerpc.cc:10300 powerpc.cc:10306
+#, c-format
+msgid "%s uses IBM long double, %s uses IEEE long double"
+msgstr "%s folosește numere întregi lungi de dublă precizie IBM, %s folosește numere întregi lungi de dublă precizie IEEE"
+
+#: powerpc.cc:10360 powerpc.cc:10366
+#, c-format
+msgid "%s uses AltiVec vector ABI, %s uses SPE vector ABI"
+msgstr "%s folosește vectorul AltiVec ABI, %s folosește vectorul SPE ABI"
+
+#: powerpc.cc:10395 powerpc.cc:10402
+#, c-format
+msgid "%s uses r3/r4 for small structure returns, %s uses memory"
+msgstr "%s folosește r3/r4 pentru returnări de structuri mici, %s folosește memoria"
+
+#: powerpc.cc:10972
+msgid "call lacks nop, can't restore toc; recompile with -fPIC"
+msgstr "apel în care nop lipsește, nu se poate restabili toc; recompilați cu „-fPIC”"
+
+#: powerpc.cc:12424 s390.cc:3479
+msgid "relocation overflow"
+msgstr "debordare de realocare"
+
+#: powerpc.cc:12426
+msgid "try relinking with a smaller --stub-group-size"
+msgstr "încercați să reeditați legăturile cu o „--stub-group-size” mai mică"
+
+#: readsyms.cc:285
+#, c-format
+msgid "%s: file is empty"
+msgstr "%s: fișierul este gol"
+
+#. Here we have to handle any other input file types we need.
+#: readsyms.cc:920
+#, c-format
+msgid "%s: not an object or archive"
+msgstr "%s: nu este un obiect sau o arhivă"
+
+#: reduced_debug_output.cc:187
+msgid "Debug abbreviations extend beyond .debug_abbrev section; failed to reduce debug abbreviations"
+msgstr "Abrevierile de depanare se extind dincolo de secțiunea .debug_abbrev; nu s-a reușit să se reducă abrevierile de depanare"
+
+#: reduced_debug_output.cc:273
+msgid "Extremely large compile unit in debug info; failed to reduce debug info"
+msgstr "Unitate de compilare extrem de mare în informațiile de depanare; nu s-a reușit să se reducă informațiile de depanare"
+
+#: reduced_debug_output.cc:281
+msgid "Debug info extends beyond .debug_info section;failed to reduce debug info"
+msgstr "Informațiile de depanare se extind dincolo de secțiunea .debug_info; nu s-a reușit să se reducă informațiile de depanare"
+
+#: reduced_debug_output.cc:301 reduced_debug_output.cc:343
+msgid "Invalid DIE in debug info; failed to reduce debug info"
+msgstr "DIE nevalid în informațiile de depanare; nu s-a reușit să se reducă informațiile de depanare"
+
+#: reduced_debug_output.cc:324
+msgid "Debug info extends beyond .debug_info section; failed to reduce debug info"
+msgstr "Informațiile de depanare se extind dincolo de secțiunea .debug_info; nu s-a reușit să se reducă informațiile de depanare"
+
+#: reloc.cc:317 reloc.cc:945
+#, c-format
+msgid "relocation section %u uses unexpected symbol table %u"
+msgstr "secțiunea de realocare %u utilizează tabelul de simboluri neașteptat %u"
+
+#: reloc.cc:335 reloc.cc:962
+#, c-format
+msgid "unexpected entsize for reloc section %u: %lu != %u"
+msgstr "dimensiune de entitate (entsize) neașteptată pentru secțiunea de realocare %u: %lu != %u"
+
+#: reloc.cc:344 reloc.cc:971
+#, c-format
+msgid "reloc section %u size %lu uneven"
+msgstr "secțiunea de relocalizare %u cu dimensiunea %lu este neuniformă"
+
+#: reloc.cc:1371
+#, c-format
+msgid "could not convert call to '%s' to '%s'"
+msgstr "nu s-a putut converti apelul din „%s” în „%s”"
+
+#: reloc.cc:1537
+#, c-format
+msgid "reloc section size %zu is not a multiple of reloc size %d\n"
+msgstr "dimensiunea secțiunii de realocare %zu nu este un multiplu al mărimii de realocare %d\n"
+
+#. We should only see externally visible symbols in the symbol
+#. table.
+#: resolve.cc:194
+msgid "invalid STB_LOCAL symbol in external symbols"
+msgstr "simbol STB_LOCAL nevalid în simbolurile externe"
+
+#. Any target which wants to handle STB_LOOS, etc., needs to
+#. define a resolve method.
+#: resolve.cc:201
+#, c-format
+msgid "unsupported symbol binding %d"
+msgstr "asociere de simbol neacceptată %d"
+
+#: resolve.cc:288
+#, c-format
+msgid "STT_COMMON symbol '%s' in %s is not in a common section"
+msgstr "simbolul STT_COMMON „%s” din %s nu este într-o secțiune comună"
+
+#: resolve.cc:443
+#, c-format
+msgid "common of '%s' overriding smaller common"
+msgstr "comun de „%s” suprascriind comun mai mic"
+
+#: resolve.cc:448
+#, c-format
+msgid "common of '%s' overidden by larger common"
+msgstr "comun de „%s” suprascris de comun mai mare"
+
+#: resolve.cc:453
+#, c-format
+msgid "multiple common of '%s'"
+msgstr "comun multiplu de „%s”"
+
+#: resolve.cc:492
+#, c-format
+msgid "symbol '%s' used as both __thread and non-__thread"
+msgstr "simbolul „%s” folosit atât ca __thread, cât și ca non-__thread"
+
+#: resolve.cc:535
+#, c-format
+msgid "multiple definition of '%s'"
+msgstr "definiție multiplă a lui „%s”"
+
+#: resolve.cc:574
+#, c-format
+msgid "definition of '%s' overriding common"
+msgstr "definiția lui „%s” înlocuiește comun"
+
+#: resolve.cc:609
+#, c-format
+msgid "definition of '%s' overriding dynamic common definition"
+msgstr "definiția lui „%s” înlocuiește definiția comună dinamică"
+
+#: resolve.cc:785
+#, c-format
+msgid "common '%s' overridden by previous definition"
+msgstr "„%s” comun înlocuit de definiția anterioară"
+
+#: resolve.cc:920
+msgid "COPY reloc"
+msgstr "COPIAZĂ realocarea"
+
+#: resolve.cc:924 resolve.cc:947
+msgid "command line"
+msgstr "linie de comandă"
+
+#: resolve.cc:927
+msgid "linker script"
+msgstr "script editor de legături"
+
+#: resolve.cc:931
+msgid "linker defined"
+msgstr "editor de legături definit"
+
+#: s390.cc:1007
+#, c-format
+msgid "R_390_PC32DBL target misaligned at %llx"
+msgstr "ținta R_390_PC32DBL aliniată greșit la %llx"
+
+#: s390.cc:1099 tilegx.cc:2088 x86_64.cc:1697
+msgid "out of patch space (PLT); relink with --incremental-full"
+msgstr "în afara spațiului de corecție (PLT); reeditați legăturile cu „--incremental-full”"
+
+#: s390.cc:3677 s390.cc:3733 x86_64.cc:4878
+#, c-format
+msgid "unsupported reloc type %u"
+msgstr "tip de realocare neacceptat %u"
+
+#: s390.cc:3806
+msgid "unsupported op for GD to IE"
+msgstr "op neacceptată pentru GD la IE"
+
+#: s390.cc:3855
+msgid "unsupported op for GD to LE"
+msgstr "op neacceptată pentru GD la LE"
+
+#: s390.cc:3901
+msgid "unsupported op for LD to LE"
+msgstr "op neacceptată pentru LD la LE"
+
+#: s390.cc:3989
+msgid "unsupported op for IE to LE"
+msgstr "op neacceptată pentru IE la LE"
+
+#: s390.cc:4271
+msgid "S/390 code fill of odd length requested"
+msgstr "se solicită completarea codului S/390 de lungime impară"
+
+#. Should not happen.
+#: s390.cc:4318
+msgid "instruction with PC32DBL not wholly within section"
+msgstr "instrucțiunile cu PC32DBL nu sunt în întregime în secțiune"
+
+#: script-sections.cc:103
+#, c-format
+msgid "address 0x%llx is not within region %s"
+msgstr "adresa 0x%llx nu se află în regiunea %s"
+
+#: script-sections.cc:107
+#, c-format
+msgid "address 0x%llx moves dot backwards in region %s"
+msgstr "adresa 0x%llx mută punctul înapoi în regiunea %s"
+
+#: script-sections.cc:121
+#, c-format
+msgid "section %s overflows end of region %s"
+msgstr "secțiunea %s depășește sfârșitul regiunii %s"
+
+#: script-sections.cc:696
+msgid "Attempt to set a memory region for a non-output section"
+msgstr "Încercare de-a aloca o regiune de memorie pentru o secțiune care nu este de ieșire"
+
+#: script-sections.cc:1002 script-sections.cc:3786
+msgid "dot may not move backward"
+msgstr "punctul nu se poate mișca înapoi"
+
+#: script-sections.cc:1069
+msgid "** expression"
+msgstr "** expresie"
+
+#: script-sections.cc:1254
+msgid "fill value is not absolute"
+msgstr "valoarea de umplere nu este absolută"
+
+#: script-sections.cc:2506
+#, c-format
+msgid "alignment of section %s is not absolute"
+msgstr "alinierea secțiunii %s nu este absolută"
+
+#: script-sections.cc:2523
+#, c-format
+msgid "subalign of section %s is not absolute"
+msgstr "subalinierea secțiunii %s nu este absolută"
+
+#: script-sections.cc:2636
+#, c-format
+msgid "fill of section %s is not absolute"
+msgstr "umplerea secțiunii %s nu este absolută"
+
+#: script-sections.cc:2749
+msgid "SPECIAL constraints are not implemented"
+msgstr "constrângerile SPECIALE nu sunt implementate"
+
+#: script-sections.cc:2791
+msgid "mismatched definition for constrained sections"
+msgstr "definiție nepotrivită pentru secțiunile constrânse"
+
+#: script-sections.cc:3267
+#, c-format
+msgid "region '%.*s' already defined"
+msgstr "regiunea „%.*s” este deja definită"
+
+#: script-sections.cc:3494
+msgid "DATA_SEGMENT_ALIGN may only appear once in a linker script"
+msgstr "DATA_SEGMENT_ALIGN poate apărea o singură dată într-un script de editor de legături"
+
+#: script-sections.cc:3509
+msgid "DATA_SEGMENT_RELRO_END may only appear once in a linker script"
+msgstr "DATA_SEGMENT_RELRO_END poate apărea o singură dată într-un script de editor de legături"
+
+#: script-sections.cc:3514
+msgid "DATA_SEGMENT_RELRO_END must follow DATA_SEGMENT_ALIGN"
+msgstr "DATA_SEGMENT_RELRO_END trebuie să urmeze DATA_SEGMENT_ALIGN"
+
+#: script-sections.cc:3610
+#, c-format
+msgid "unplaced orphan section '%s'"
+msgstr "secțiunea orfană neplasată „%s”"
+
+#: script-sections.cc:3612
+#, c-format
+msgid "unplaced orphan section '%s' from '%s'"
+msgstr "secțiunea orfană neplasată „%s” din „%s”"
+
+#: script-sections.cc:3619
+#, c-format
+msgid "orphan section '%s' is being placed in section '%s'"
+msgstr "secțiunea orfană „%s” este plasată în secțiunea „%s”"
+
+#: script-sections.cc:3622
+#, c-format
+msgid "orphan section '%s' from '%s' is being placed in section '%s'"
+msgstr "secțiunea orfană „%s” din „%s” este plasată în secțiunea „%s”"
+
+#: script-sections.cc:3722
+msgid "no matching section constraint"
+msgstr "nicio constrângere de secțiune care se potrivește"
+
+#: script-sections.cc:4120
+msgid "creating a segment to contain the file and program headers outside of any MEMORY region"
+msgstr "crearea unui segment care să conțină antetele fișierului și programului în afara oricărei regiuni de MEMORIE"
+
+#: script-sections.cc:4169
+msgid "TLS sections are not adjacent"
+msgstr "secțiunile TLS nu sunt adiacente"
+
+#: script-sections.cc:4333
+#, c-format
+msgid "allocated section %s not in any segment"
+msgstr "secțiunea alocată %s nu este în niciun segment"
+
+#: script-sections.cc:4379
+#, c-format
+msgid "no segment %s"
+msgstr "niciun segment %s"
+
+#: script-sections.cc:4392
+msgid "section in two PT_LOAD segments"
+msgstr "secțiune în două segmente PT_LOAD"
+
+#: script-sections.cc:4399
+msgid "allocated section not in any PT_LOAD segment"
+msgstr "secțiunea alocată nu este în niciun segment PT_LOAD"
+
+#: script-sections.cc:4428
+msgid "may only specify load address for PT_LOAD segment"
+msgstr "poate specifica doar adresa de încărcare pentru segmentul PT_LOAD"
+
+#: script-sections.cc:4454
+#, c-format
+msgid "PHDRS load address overrides section %s load address"
+msgstr "adresa de încărcare PHDRS înlocuiește adresa de încărcare a secțiunii %s"
+
+#. We could support this if we wanted to.
+#: script-sections.cc:4465
+msgid "using only one of FILEHDR and PHDRS is not currently supported"
+msgstr "utilizarea doar a unuia dintre FILEHDR și PHDRS nu este acceptată în prezent"
+
+#: script-sections.cc:4480
+msgid "sections loaded on first page without room for file and program headers are not supported"
+msgstr "secțiunile încărcate pe prima pagină fără spațiu pentru antetele fișierelor și programelor nu sunt acceptate"
+
+#: script-sections.cc:4486
+msgid "using FILEHDR and PHDRS on more than one PT_LOAD segment is not currently supported"
+msgstr "utilizarea FILEHDR și PHDRS pe mai mult de un segment PT_LOAD nu este acceptată în prezent"
+
+#: script.cc:1170
+msgid "invalid use of PROVIDE for dot symbol"
+msgstr "utilizare nevalidă a PROVIDE pentru simbolul punct"
+
+#: script.cc:1546
+#, c-format
+msgid "%s: SECTIONS seen after other input files; try -T/--script"
+msgstr "%s: SECȚIUNI văzute după alte fișiere de intrare; încercați „-T/--script”"
+
+#. We have a match for both the global and local entries for a
+#. version tag.  That's got to be wrong.
+#: script.cc:2252
+#, c-format
+msgid "'%s' appears as both a global and a local symbol for version '%s' in script"
+msgstr "„%s” apare atât ca simbol global, cât și ca simbol local pentru versiunea „%s” în script"
+
+#: script.cc:2279
+#, c-format
+msgid "wildcard match appears in both version '%s' and '%s' in script"
+msgstr "potrivirea metacaracterului apare atât în versiunea „%s” cât și în „%s” în script"
+
+#: script.cc:2284
+#, c-format
+msgid "wildcard match appears as both global and local in version '%s' in script"
+msgstr "potrivirea metacaracterului apare atât ca globală, cât și locală în versiunea „%s” în script"
+
+#: script.cc:2369
+#, c-format
+msgid "using '%s' as version for '%s' which is also named in version '%s' in script"
+msgstr "folosind „%s” ca versiune pentru „%s”, care este, de asemenea, numită în versiunea „%s” în script"
+
+#: script.cc:2467
+#, c-format
+msgid "version script assignment of %s to symbol %s failed: symbol not defined"
+msgstr "alocarea scriptului de versiune a lui %s la simbolul %s a eșuat: simbolul nu a fost definit"
+
+#: script.cc:2663
+#, c-format
+msgid "%s:%d:%d: %s"
+msgstr "%s:%d:%d: %s"
+
+#: script.cc:2729
+msgid "library name must be prefixed with -l"
+msgstr "numele bibliotecii trebuie să fie prefixat cu „-l”"
+
+#. There are some options that we could handle here--e.g.,
+#. -lLIBRARY.  Should we bother?
+#: script.cc:2856
+#, c-format
+msgid "%s:%d:%d: ignoring command OPTION; OPTION is only valid for scripts specified via -T/--script"
+msgstr "%s:%d:%d: se ignoră comanda OPȚIUNE; OPȚIUNEA este valabilă numai pentru scripturile specificate prin „-T/--script”"
+
+#: script.cc:2921
+#, c-format
+msgid "%s:%d:%d: ignoring SEARCH_DIR; SEARCH_DIR is only valid for scripts specified via -T/--script"
+msgstr "%s:%d:%d: se ignoră SEARCH_DIR; SEARCH_DIR este valabilă numai pentru scripturile specificate prin „-T/--script”"
+
+#: script.cc:2949
+#, c-format
+msgid "%s:%d:%d: invalid use of VERSION in input file"
+msgstr "%s:%d:%d: utilizare nevalidă a VERSIUNII în fișierul de intrare"
+
+#: script.cc:3065
+#, c-format
+msgid "unrecognized version script language '%s'"
+msgstr "versiune nerecunoscută a limbajului de script „%s”"
+
+#: script.cc:3184 script.cc:3198
+#, c-format
+msgid "%s:%d:%d: DATA_SEGMENT_ALIGN not in SECTIONS clause"
+msgstr "%s:%d:%d: DATA_SEGMENT_ALIGN nu se află în clauza SECȚIUNI"
+
+#: script.cc:3317
+msgid "unknown PHDR type (try integer)"
+msgstr "tip PHDR necunoscut (încercați număr întreg)"
+
+#: script.cc:3336
+#, c-format
+msgid "%s:%d:%d: MEMORY region '%.*s' referred to outside of SECTIONS clause"
+msgstr "%s:%d:%d: regiunea MEMORIE „%.*s” la care se face referire în afara clauzei SECȚIUNI"
+
+#: script.cc:3347
+#, c-format
+msgid "%s:%d:%d: MEMORY region '%.*s' not declared"
+msgstr "%s:%d:%d: regiunea de MEMORIE „%.*s” nu a fost declarată"
+
+#: script.cc:3392
+msgid "unknown MEMORY attribute"
+msgstr "atribut MEMORIE necunoscut"
+
+#: script.cc:3423
+#, c-format
+msgid "undefined memory region '%s' referenced in ORIGIN expression"
+msgstr "regiune de memorie nedefinită „%s” referită în expresia ORIGINE"
+
+#: script.cc:3442
+#, c-format
+msgid "undefined memory region '%s' referenced in LENGTH expression"
+msgstr "regiune de memorie nedefinită „%s” la care se face referire în expresia LUNGIME"
+
+#: sparc.cc:3074
+#, c-format
+msgid "%s: only registers %%g[2367] can be declared using STT_REGISTER"
+msgstr "%s: numai registrele %%g[2367] pot fi declarate folosind STT_REGISTER"
+
+#: sparc.cc:3090
+#, c-format
+msgid "%s: register %%g%d declared as '%s'; previously declared as '%s' in %s"
+msgstr "%s: înregistrarea %%g%d declarată ca „%s”; declarată anterior ca „%s” în %s"
+
+#: sparc.cc:4467
+#, c-format
+msgid "%s: little endian elf flag set on BE object"
+msgstr "%s: atribut elf little endian activat pe obiectul BE"
+
+#: sparc.cc:4470
+#, c-format
+msgid "%s: little endian elf flag clear on LE object"
+msgstr "%s: atribut elf little endian dezactivat pe obiectul LE"
+
+#: stringpool.cc:513
+#, c-format
+msgid "%s: %s entries: %zu; buckets: %zu\n"
+msgstr "%s: %s intrări: %zu; blocuri(buckets): %zu\n"
+
+#: stringpool.cc:517
+#, c-format
+msgid "%s: %s entries: %zu\n"
+msgstr "%s: %s intrări: %zu\n"
+
+#: stringpool.cc:520
+#, c-format
+msgid "%s: %s Stringdata structures: %zu\n"
+msgstr "%s: %s Structuri șiruri de date: %zu\n"
+
+#: symtab.cc:377
+#, c-format
+msgid "Cannot export local symbol '%s'"
+msgstr "Nu se poate exporta simbolul local „%s”"
+
+#: symtab.cc:948
+#, c-format
+msgid "%s: reference to %s"
+msgstr "%s: referință la %s"
+
+#: symtab.cc:950
+#, c-format
+msgid "%s: definition of %s"
+msgstr "%s: definiția lui %s"
+
+#: symtab.cc:1060
+#, c-format
+msgid "%s: conflicting default version definition for %s@@%s"
+msgstr "%s: definiția versiunii implicite în conflict pentru %s@@%s"
+
+#: symtab.cc:1064
+#, c-format
+msgid "%s: %s: previous definition of %s@@%s here"
+msgstr "%s: %s: definiția anterioară a lui %s@@%s aici"
+
+#: symtab.cc:1206
+#, c-format
+msgid "bad global symbol name offset %u at %zu"
+msgstr "poziție greșită a numelui de simbol global %u la %zu"
+
+#: symtab.cc:1473
+msgid "--just-symbols does not make sense with a shared object"
+msgstr "„--just-symbols” nu are sens cu un obiect partajat"
+
+#: symtab.cc:1484
+msgid "too few symbol versions"
+msgstr "prea puține versiuni de simbol"
+
+#: symtab.cc:1539
+#, c-format
+msgid "bad symbol name offset %u at %zu"
+msgstr "poziție greșită a numelui de simbol %u la %zu"
+
+#: symtab.cc:1602
+#, c-format
+msgid "versym for symbol %zu out of range: %u"
+msgstr "versym pentru simbolul %zu în afara intervalului: %u"
+
+#: symtab.cc:1610
+#, c-format
+msgid "versym for symbol %zu has no name: %u"
+msgstr "versym pentru simbolul %zu nu are nume: %u"
+
+#: symtab.cc:2633
+#, c-format
+msgid "discarding version information for %s@%s, defined in unused shared library %s (linked with --as-needed)"
+msgstr "se înlătură informațiile despre versiune pentru %s@%s, definite în biblioteca partajată neutilizată %s (vinculată cu „--as-needed”)"
+
+#: symtab.cc:2995 symtab.cc:3141
+#, c-format
+msgid "%s: unsupported symbol section 0x%x"
+msgstr "%s: secțiunea simbolului neacceptată 0x%x"
+
+#: symtab.cc:3473
+#, c-format
+msgid "%s: symbol table entries: %zu; buckets: %zu\n"
+msgstr "%s: intrări în tabelul de simboluri: %zu; blocuri(buckets): %zu\n"
+
+#: symtab.cc:3476
+#, c-format
+msgid "%s: symbol table entries: %zu\n"
+msgstr "%s: intrări în tabelul de simboluri: %zu\n"
+
+#: symtab.cc:3633
+#, c-format
+msgid "while linking %s: symbol '%s' defined in multiple places (possible ODR violation):"
+msgstr "în timpul editării legăturilor %s: simbolul „%s” definit în mai multe locuri (posibilă încălcare ODR):"
+
+#. This only prints one location from each definition,
+#. which may not be the location we expect to intersect
+#. with another definition.  We could print the whole
+#. set of locations, but that seems too verbose.
+#: symtab.cc:3640 symtab.cc:3643
+#, c-format
+msgid "  %s from %s\n"
+msgstr "  %s de la %s\n"
+
+#: target-reloc.h:156
+msgid "internal"
+msgstr "intern"
+
+#: target-reloc.h:159
+msgid "hidden"
+msgstr "ascuns"
+
+#: target-reloc.h:162
+msgid "protected"
+msgstr "protejat"
+
+#: target-reloc.h:167
+#, c-format
+msgid "%s symbol '%s' is not defined locally"
+msgstr "simbolul %s, „%s” nu este definit local"
+
+#: target-reloc.h:243
+#, c-format
+msgid "relocation refers to local symbol \"%s\" [%u], which is defined in a discarded section"
+msgstr "realocarea se referă la simbolul local „%s” [%u], care este definit într-o secțiune eliminată"
+
+#: target-reloc.h:251
+#, c-format
+msgid "relocation refers to global symbol \"%s\", which is defined in a discarded section"
+msgstr "realocarea se referă la simbolul global „%s”, care este definit într-o secțiune eliminată"
+
+#: target-reloc.h:266
+#, c-format
+msgid "  section group signature: \"%s\""
+msgstr "  semnătura grupului de secțiuni: „%s”"
+
+#: target-reloc.h:269
+#, c-format
+msgid "  prevailing definition is from %s"
+msgstr "  definiția predominantă este de la %s"
+
+#: target-reloc.h:456
+#, c-format
+msgid "reloc has bad offset %zu"
+msgstr "realocarea are poziția greșită %zu"
+
+#: target.cc:172
+#, c-format
+msgid "linker does not include stack split support required by %s"
+msgstr "editorul de legături nu include suportul pentru împărțirea stivei cerut de %s"
+
+#: tilegx.cc:2738 x86_64.cc:2714
+msgid "TLS_DESC not yet supported for incremental linking"
+msgstr "TLS_DESC nu este încă acceptată pentru editarea de legături incrementală"
+
+#: tilegx.cc:2793
+msgid "TLS_DESC not yet supported for TILEGX"
+msgstr "TLS_DESC nu este încă acceptat pentru TILEGX"
+
+#: tilegx.cc:3202 x86_64.cc:3096
+#, c-format
+msgid "requires unsupported dynamic reloc %u; recompile with -fPIC"
+msgstr "necesită realocarea dinamică neacceptată %u; recompilați cu „-fPIC”"
+
+#: tls.h:59
+msgid "TLS relocation out of range"
+msgstr "Realocare TLS în afara intervalului"
+
+#: tls.h:73
+msgid "TLS relocation against invalid instruction"
+msgstr "realocare TLS față de instrucțiunile nevalide"
+
+#. This output is intended to follow the GNU standards.
+#: version.cc:65
+#, c-format
+msgid "Copyright (C) 2023 Free Software Foundation, Inc.\n"
+msgstr "Drepturi de autor © 2023 Free Software Foundation, Inc.\n"
+
+#: version.cc:66
+#, c-format
+msgid ""
+"This program is free software; you may redistribute it under the terms of\n"
+"the GNU General Public License version 3 or (at your option) a later version.\n"
+"This program has absolutely no warranty.\n"
+msgstr ""
+"Acest program este software gratuit; îl puteți redistribui în conformitate cu\n"
+"termenii Licenței Publice Generale GNU versiunea 3 sau (la alegerea dvs.)\n"
+"o versiune ulterioară.\n"
+"Acest program nu are absolut nicio garanție.\n"
+
+#: workqueue-threads.cc:106
+#, c-format
+msgid "%s failed: %s"
+msgstr "%s a eșuat: %s"
+
+#: x86_64.cc:1500
+#, c-format
+msgid "%s: corrupt .note.gnu.property section (pr_datasz for property %d is not 4)"
+msgstr "%s: secțiunea .note.gnu.property este coruptă (pr_datasz pentru proprietatea %d nu este 4)"
+
+#: x86_64.cc:1508
+#, c-format
+msgid "%s: unknown program property type 0x%x in .note.gnu.property section"
+msgstr "%s: tip de proprietate de program necunoscut 0x%x în secțiunea .note.gnu.property"
+
+#: x86_64.cc:1930
+#, c-format
+msgid "PC-relative offset overflow in PLT entry %d"
+msgstr "depășire de poziție relativă la PC în intrarea PLT %d"
+
+#: x86_64.cc:2140
+#, c-format
+msgid "PC-relative offset overflow in APLT entry %d"
+msgstr "depășire de poziție relativă la PC în intrarea APLT %d"
+
+#: x86_64.cc:3064
+msgid "requires dynamic R_X86_64_32 reloc which may overflow at runtime; recompile with -fPIC"
+msgstr "necesită realocarea R_X86_64_32 dinamică, care se poate deborda în timpul rulării; recompilați cu „-fPIC”"
+
+#: x86_64.cc:3081
+#, c-format
+msgid "requires dynamic %s reloc against '%s' which may overflow at runtime; recompile with -fPIC"
+msgstr "necesită realocarea %s dinamică față de „%s”, care se poate deborda în timpul rulării; recompilați cu „-fPIC”"
+
+#: x86_64.cc:4569
+#, c-format
+msgid "relocation overflow: reference to local symbol %u in %s"
+msgstr "depășire de realocare: referință la simbolul local %u în %s"
+
+#: x86_64.cc:4576
+#, c-format
+msgid "relocation overflow: reference to '%s' defined in %s"
+msgstr "depășire de realocare: referință la „%s” definită în %s"
+
+#: x86_64.cc:4584
+#, c-format
+msgid "relocation overflow: reference to '%s'"
+msgstr "depășire de realocare: referință la „%s”"
+
+#~ msgid "(x86-64 only) Generate a BND PLT for Intel MPX"
+#~ msgstr "(doar x86-64) Generează un PLT BND pentru Intel MPX"
+
+#~ msgid "Generate a regular PLT"
+#~ msgstr "Generează un PLT obișnuit"

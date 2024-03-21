@@ -1,0 +1,18 @@
+#compdef acpi
+
+_arguments -s \
+    '(-b --battery)'{-b,--battery}'[battery information]' \
+    '(-B --without-battery)'{-B,--without-battery}'[suppress battery information]' \
+    '(-t --thermal)'{-t,--thermal}'[thermal information]' \
+    '(-T --without-thermal)'{-T,--without-thermal}'[suppress thermal information]' \
+    '(-a --ac-adapter)'{-a,--ac-adapter}'[ac adapter information]' \
+    '(-A --without-ac-adapter)'{-A,--without-ac-adapter}'[suppress ac-adapter information]' \
+    '(-V --everything)'{-V,--everything}'[show every device, overrides above options]' \
+    '(-s --show-empty)'{-s,--show-empty}'[show non-operational devices]' \
+    '(-S --hide-empty)'{-S,--hide-empty}'[hide non-operational devices]' \
+    '(-c --celsius -f --fahrenheit -k --kelvin)'{-c,--celsius}'[use Celsius as the temperature scale]' \
+    '(-c --celsius -f --fahrenheit -k --kelvin)'{-f,--fahrenheit}'[use Fahrenheit as the temperature scale]' \
+    '(-c --celsius -f --fahrenheit -k --kelvin)'{-k,--kelvin}'[use Kelvin as the temperature scale]' \
+    '(-d --directory)'{-d,--directory}'[path to ACPI info (/proc/acpi)]:directory:_files -/' \
+    '(-h --help)'{-h,--help}'[display this help and exit]' \
+    '(-v --version)'{-v,--version}'[output version information and exit]'

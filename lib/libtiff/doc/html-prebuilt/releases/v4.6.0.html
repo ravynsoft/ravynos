@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v4.6.0 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v4.5.1" href="v4.5.1.html" />
+    <link rel="prev" title="Release history" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v4.5.1.html" title="Changes in TIFF v4.5.1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Release history"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.6.0</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v4-6-0">
+<h1>Changes in TIFF v4.6.0<a class="headerlink" href="#changes-in-tiff-v4-6-0" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v4.6.0 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/v4.6.0">tag v4.6.0</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v4.5.1.html"><span class="doc">v4.5.1</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site #1</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master HTTP Site #2</p></td>
+<td><p><a class="reference external" href="https://libtiff.gitlab.io/libtiff/">https://libtiff.gitlab.io/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document provides a summary of significant changes made to the
+software between the <em>previous</em> and <em>current</em> versions (see
+above). A fully-detailed change summary is provided by the <code class="file docutils literal notranslate"><span class="pre">ChangeLog</span></code> file
+included in the release package and by the Git commit history:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This version removes a big number of utilities that have suffered from lack
+of maintenance over the years and were the source of various reported
+security issues.
+See “Removed functionality” below for the list of removed utilities.
+Starting with libtiff v4.6.0, their source code, at this time, will still be
+available in the source distribution, but they will no longer be built by
+default, and issues related to them will no longer be accepted in the
+libtiff bug tracker.
+The only remaining supported TIFF tools are tiffinfo, tiffdump, tiffcp,
+tiffset and tiffsplit.</p>
+</div>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>TiffConfig.cmake.in: set TIFF_INCLUDE_DIR, TIFF_INCLUDE_DIRS and
+TIFF_LIBRARIES for compatibility with FindTIFF.cmake as shipped by CMake
+(fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/589">issue #589</a>)</p></li>
+<li><p>Update CMake and autoconf scripts to consistently update LibTIFF version
+defines and references in various files when version definition in
+configure.ac has been changed.</p>
+<ul>
+<li><p>Move in tiffvers.h from libtiff source directory to libtiff build directory.</p></li>
+<li><p>Remove unused version information from tif_config.h</p></li>
+<li><p>With every CMake build the version defines (e.g. 4.5.1) within tiffvers.h
+are consistently updated from configure.ac. The version release-date is
+taken from file RELEASE-DATE.</p></li>
+<li><p>The files VERSION and RELEASE-DATE are only updated with a special CMake
+target build: cmake –build . –target tiff_release.</p></li>
+<li><p>For autotools, version information is updated from configure.ac with
+./autogen.sh. LIBTIFF_RELEASE_DATE is taken form file RELEASE-DATE.</p></li>
+<li><p>./configure generates tiffvers.h with the cached version information and
+LIBTIFF_RELEASE_DATE.</p></li>
+<li><p>“make release” updates tiffvers.h and VERSION file with cached version info
+and RELEASE-DATE file and tiffves.h with the current date.</p></li>
+</ul>
+</li>
+<li><p>CMake: fix build with -Dstrip-chopping=off (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/600">issue #600</a>)</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<p>New/improved functionalities:</p>
+<ul class="simple">
+<li><p>Fix using <code class="docutils literal notranslate"><span class="pre">__attribute__</span></code> libtiff with clang-for-windows</p></li>
+</ul>
+<p>API/ABI breaks:</p>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p>WebP decoder: validate WebP blob width, height, band count against TIFF
+parameters to avoid use of uninitialized variable, or decoding corrupted
+content without explicit error (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/581">issue #581</a>,  <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/582">issue #582</a>).</p></li>
+<li><p>WebP codec: turn exact mode when creating lossless files to avoid altering
+R,G,B values in areas where alpha=0 (<a class="reference external" href="https://github.com/OSGeo/gdal/issues/8038">https://github.com/OSGeo/gdal/issues/8038</a>)</p></li>
+<li><p>Fix TransferFunction writing of only two transfer functions.</p></li>
+<li><p>TIFFReadDirectoryCheckOrder: avoid integer overflow. When it occurs, it
+should be harmless in practice though
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/merge_requests/512">https://gitlab.com/libtiff/libtiff/-/merge_requests/512</a>)</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>TiffField functions documentation updated with return behaviour for not
+defined tags and determination of write-/read-count size.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<p>Removed functionality:</p>
+<ul class="simple">
+<li><p>The following tools are no longer compiled and have been moved to archive/tools:</p>
+<ul>
+<li><p>fax2ps</p></li>
+<li><p>fax2tiff</p></li>
+<li><p>pal2rgb</p></li>
+<li><p>ppm2tiff</p></li>
+<li><p>raw2tiff</p></li>
+<li><p>rgb2ycbcr</p></li>
+<li><p>thumbnail</p></li>
+<li><p>tiff2bw</p></li>
+<li><p>tiff2rgba</p></li>
+<li><p>tiffcmp</p></li>
+<li><p>tiffcrop</p></li>
+<li><p>tiffdither</p></li>
+<li><p>tiffgt</p></li>
+<li><p>tiffmedian</p></li>
+</ul>
+</li>
+<li><p>The following tools are no longer compiled by default: tiff2ps and tiff2pdf.
+They have been moved to tools/unsupported.
+They can be built by setting <code class="docutils literal notranslate"><span class="pre">--enable-tools-unsupported</span></code> for autoconf,
+or <code class="docutils literal notranslate"><span class="pre">-Dtiff-tools-unsupported</span></code> for CMake, but as the name imply, they are
+no longer supported by upstream. Packagers are suggested <em>not</em> to enable those
+options.</p></li>
+<li><p>tiffcp: remove -i option (ignore errors), because almost all
+fuzzer issues were consequential errors from ignored errors because of the
+“-i” option.</p></li>
+</ul>
+<p>New/improved functionality:</p>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p>tiffset: fix #597: warning: comparison of integer expressions of different
+signedness. (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/597">issue #597</a>)</p></li>
+<li><p>tiffcp: fix memory corruption (overflow) on hostile images
+(fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/591">issue #591</a>)</p></li>
+</ul>
+</section>
+<section id="test-changes">
+<h2>Test changes<a class="headerlink" href="#test-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Add missing test_write_read_tags.c and test_transferfunction_write_read.c
+in tarball (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/585">issue #585</a>) and correct “long” issue.</p></li>
+<li><p>Don’t use “long” because can be int32_t or int64_t, depending on compiler and
+system.</p></li>
+</ul>
+</section>
+<section id="changes-to-contributed-and-unsupported-tools">
+<h2>Changes to contributed and unsupported tools<a class="headerlink" href="#changes-to-contributed-and-unsupported-tools" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>raw2tiff: fix integer overflow and bypass of the check (fixes <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/592">issue #592</a>)</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v4.6.0</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#test-changes">Test changes</a></li>
+<li><a class="reference internal" href="#changes-to-contributed-and-unsupported-tools">Changes to contributed and unsupported tools</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter">Release history</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v4.5.1.html"
+                          title="next chapter">Changes in TIFF v4.5.1</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v4.6.0.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v4.5.1.html" title="Changes in TIFF v4.5.1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Release history"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.6.0</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

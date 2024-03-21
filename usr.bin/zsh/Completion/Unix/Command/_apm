@@ -1,0 +1,41 @@
+#compdef apm
+
+if [[ $OSTYPE == linux* ]]; then
+
+  _arguments -s \
+    '(-)'{-V,--version}'[print the apm program version and exit immediately]' \
+    '(-v --verbose)'{-v,--verbose}'[print information about APM BIOS and Linux APM driver version]' \
+    '(-m --minutes)'{-m,--minutes}'[print total minutes remaining instead of using an hh:mm format]' \
+    '(-s --suspend)'{-s,--suspend}'[put the machine into suspend mode if possible]' \
+    '(-S --standby)'{-S,--standby}'[put the machine into standby mode if possible]' \
+    '(-n --noignore)'{-n,--noignore}'[tell the system not to ignore system-generated APM message]' \
+    '(-i --ignore)'{-i,--ignore}'[tell the system to ignore system-generated APM message]' && return
+
+elif [[ $OSTYPE == (freebsd|dragonfly)* ]]; then
+
+  _arguments \
+    '-a[display AC line status]' \
+    '-b[display battery status]' \
+    '-d[disable/enable display suspension]:bool:' \
+    '-e[disable/enable apm functions]:bool:' \
+    '-h[disable/enable HLT in kernel context switch]:bool:' \
+    '-l[display remaining battery percentage]' \
+    '-r[enable resume wakeup timer]' \
+    '-s[display status of APM support]' \
+    '-t[display estimated remaining battery life in seconds]' \
+    '-Z[transition system into standby mode]' \
+    '-z[suspend the system]' && return
+
+elif [[ $OSTYPE == openbsd* ]]; then
+  _arguments \
+    '-z[engage suspend mode]' \
+    '-S[engage stand-by mode]' \
+    '-l[display estimated battery lifetime percentage]' \
+    '-m[display estimated battery lifetime minutes]' \
+    '-b[display battery status]' \
+    '-a[display AC line status]' \
+    '-v[verbose]' \
+    '-f[socket]:sockname:_files' && return
+fi
+
+return 1

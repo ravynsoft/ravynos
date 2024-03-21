@@ -1,0 +1,246 @@
+@c ----------------------------------------------------------------------------
+@c This is the Texinfo source file for the gp-collect-app man page.
+@c
+@c Author: Ruud van der Pas
+@c ----------------------------------------------------------------------------
+@ifset man
+\input texinfo @c -*-texinfo-*-
+@setfilename gprofng archive
+@settitle Archive gprofng experiment data
+@include gp-macros.texi
+@end ifset
+
+@c ----------------------------------------------------------------------------
+@c This is from the man-pages(7) man page
+@c
+@c "The list below shows conventional or suggested sections.  Most manual pages
+@c  should include at least the highlighted sections.  Arrange a new manual
+@c  page so that sections are placed in the order shown in the list."
+@c
+@c              NAME
+@c              SYNOPSIS
+@c              CONFIGURATION    [Normally only in Section 4]
+@c              DESCRIPTION
+@c              OPTIONS          [Normally only in Sections 1, 8]
+@c              EXIT STATUS      [Normally only in Sections 1, 8]
+@c              RETURN VALUE     [Normally only in Sections 2, 3]
+@c              ERRORS           [Typically only in Sections 2, 3]
+@c              ENVIRONMENT
+@c              FILES
+@c              VERSIONS         [Normally only in Sections 2, 3]
+@c              ATTRIBUTES       [Normally only in Sections 2, 3]
+@c              CONFORMING TO
+@c              NOTES
+@c              BUGS
+@c              EXAMPLES
+@c              AUTHORS          [Discouraged]
+@c              REPORTING BUGS   [Not used in man-pages]
+@c              COPYRIGHT        [Not used in man-pages]
+@c              SEE ALSO
+@c
+@c This is what the texi2pod.pl tool recognizes:
+@c
+@c for $sect (qw(NAME SYNOPSIS TARGET DESCRIPTION OPTIONS ENVIRONMENT FILES
+@c               BUGS NOTES FOOTNOTES SEEALSO AUTHOR COPYRIGHT)) {
+@c
+@c What is interesting is that it places "SEE ALSO" before "COPYRIGHT", which
+@c makes sense and adhered to for the other formats.
+@c ----------------------------------------------------------------------------
+
+@c ----------------------------------------------------------------------------
+@c NAME section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NAME}
+@c man begin NAME
+
+gprofng archive - Archive gprofng experiment data
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SYNOPSIS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SYNOPSIS}
+@c man begin SYNOPSIS
+
+@command{gprofng archive} [@var{option(s)}] @var{experiment}
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c DESCRIPTION section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{DESCRIPTION}
+@c man begin DESCRIPTION
+
+Archive the associated application binaries and source files in a gprofng
+experiment to make it self contained and portable.
+
+By default, the binaries are archived, but the application source files
+are not archived.  Use this tool to change this and afterwards archive
+additional components.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c OPTIONS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{OPTIONS}
+@c man begin OPTIONS
+
+@table @gcctabopt
+
+@item --version
+@ifclear man
+@IndexSubentry{Options, @code{--version}}
+@end ifclear
+
+Print the version number and exit.
+
+@item --help
+@ifclear man
+@IndexSubentry{Options, @code{--help}}
+@end ifclear
+
+Print usage information and exit.
+
+@c -- @item --verbose @{on|off@}
+@c -- @ifclear man
+@c -- @IndexSubentry{Options, @code{--verbose}}
+@c -- @end ifclear
+
+@c -- Enable (on) or disable (off) verbose mode; the default is @samp{off}.
+
+@item -a @{off|on|ldobjects|src|usedldobjects|usedsrc@}
+@ifclear man
+@IndexSubentry{Options, @code{-a}}
+@end ifclear
+
+Specify archiving of binaries and other files.  In addition to disable this
+feature (off), or enable archiving off all loadobjects and sources (on),
+the  other  op tions support a more refined selection.
+
+All of these options enable archiving, but the keyword controls what exactly
+is selected: all load objects (ldobjects), all source files (src), the
+loadobjects asscoiated with a program counter (usedldobjects), or the source
+files associated with a program counter (usedsrc).
+The default is @samp{-a ldobjects}.
+
+@item -n
+@ifclear man
+@IndexSubentry{Options, @code{-n}}
+@end ifclear
+
+Archive the named experiment only, not any of its descendants.
+
+@item -m @var{regex}
+@ifclear man
+@IndexSubentry{Options, @code{-m}}
+@end ifclear
+
+Archive only those source, object, and debug info files whose full path name
+matches the given POSIX compliant @var{regex} regular expression.
+
+@item -q
+@ifclear man
+@IndexSubentry{Options, @code{-q}}
+@end ifclear
+
+Do not write any warnings to stderr.  Warnings are incorporated into the
+.archive file in the experiment directory.  They are shown in the output 
+of @command{gprofng display text}.
+
+@item -F
+@ifclear man
+@IndexSubentry{Options, @code{-F}}
+@end ifclear
+
+Force writing or rewriting of the archive.  This is ignored with the 
+@samp{-n} or @samp{-m} option, or if this is a subexperiment.
+
+@item -d @var{path}
+@ifclear man
+@IndexSubentry{Options, @code{-d}}
+@end ifclear
+
+The @var{path} is the absolute path path to a common archive, which is a
+directory that contains archived files.  If the directory does not
+exist, then it will be created.  Files are saved in the common archive
+directory, and a symbolic link is created in the experiment archive.
+
+@end table
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c NOTES section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NOTES}
+@c man begin NOTES
+
+Default archiving does not occur in case the application profiled terminates
+prematurely, or if archiving is disabled when collecting the performance data.
+In such cases, this tool can be used to afterwards archive the information,
+but it has to be run on the same system where the profiling data was recorded.
+
+Some Java applications store shared objects in jar files.  By default, such
+shared objects are not automatically archived.  To archive shared objects
+contained in jar files, the addpath directive in an .er.rc file. The addpath
+directive should give the path to the jar file, including the jar file itself.
+The .er.rc file should be saved in the user home directory or parent of the
+experiment directory.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SEEALSO section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SEEALSO}
+@c man begin SEEALSO
+
+gprofng(1), gp-collect-app(1), gp-display-html(1), gp-display-src(1), gp-display-text(1)
+
+The user guide for gprofng is maintained as a Texinfo manual.  If the info
+and gprofng programs are correctly installed, the command
+@command{info gprofng} should give access to this document.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c COPYRIGHT section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{COPYRIGHT}
+@c man begin COPYRIGHT
+
+Copyright @copyright{} 2022-2023 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, with no Front-Cover Texts, and with no
+Back-Cover Texts.  A copy of the license is included in the
+section entitled ``GNU Free Documentation License''.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c If this text is used for a man page, exit.  Otherwise we need to continue.
+@c ----------------------------------------------------------------------------
+
+@ifset man
+@bye
+@end ifset

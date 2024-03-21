@@ -1,0 +1,199 @@
+#!/usr/bin/perl
+# -*- perl -*-
+
+#  Copyright (C) 2006 Red Hat Inc.
+#
+#  This file is part of GAS, the GNU Assembler.
+#
+#  GAS is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2, or (at your option)
+#  any later version.
+#
+#  GAS is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+#  MA 02110-1301, USA.
+
+%myfiles = ();
+
+$incdir = ".";
+
+while ($ARGV[0] =~ /^-/) {
+    $opt = shift;
+    if ($opt eq "-I") {
+	$incdir = shift;
+    }
+}
+
+$infile = shift;
+$outfile = shift;
+
+$inbase = $infile;
+$inbase =~ s@.*/@@;
+$inbase =~ s@[^a-zA-Z0-9].*@@;
+
+$t = 0;
+$errors = 0;
+
+if ($outfile) {
+    open(OUT, ">$outfile");
+} else {
+    open(OUT, ">&STDOUT");
+}
+
+open(I, "$incdir/macros.inc") || die("$incdir/macros.inc: $!");
+&read_file();
+close I;
+open(I, $infile) || die("$infile: $!");
+&read_file();
+close I;
+
+sub read_file {
+    while (<I>) {
+	$line ++;
+	next if /^;/;
+    s/[\r\n]+$//;
+	if (/^macro\s+(\S+)\s+(.*)/) {
+	    ($name, $val) = ($1,$2);
+	    print "set macro \"$name\" to \"$val\"\n" if $t;
+	    $macro{$name} = $val;
+	} elsif (/\S/) {
+	    &explode($_);
+	}
+    }
+}
+
+exit ($errors);
+
+# There's no way to quote braces so you can output them :-P
+
+sub explode {
+    my ($s) = @_;
+    my ($a, $b, $p, $e, @params);
+
+    print "explode($s)\n" if $t;
+
+    ($b, $a, @params) = &split_braces($s);
+    @params = explode_params (@params);
+    if (! $a && ! @params) {
+	if ($t) {
+	    print "\033[33m$s\033[0m\n";
+	} else {
+	    print OUT "$s\n";
+	}
+	return;
+    }
+    if (@params == 1 && defined $macro{$params[0]}) {
+	$p = $macro{$params[0]};
+	&explode ("$b$p$a");
+    } else {
+	for $p (@params) {
+	    &explode ("$b$p$a");
+	}
+    }
+}
+
+sub explode_params {
+    my (@p) = @_;
+    my ($p,@r);
+
+    @r = ();
+    while (@p) {
+	$p = shift @p;
+	($b,$a,@e) = split_braces ($p);
+	if (defined $a) {
+	    for $e (reverse @e) {
+		unshift (@p, "$b$e$a");
+	    }
+	} else {
+	    push (@r, $p);
+	}
+    }
+    return @r;
+}
+
+sub getmacro {
+    my ($v) = $macro{$_[0]};
+    if (! defined $v) {
+	print STDERR "$line: Error: macro $_[0] not defined\n";
+	$errors ++;
+    }
+    return $v;
+}
+
+sub expand_macros {
+    my ($l) = @_;
+    0 while $l =~ s/{([^{};]+)}/&getmacro($1)/ge;
+    return $l;
+}
+
+# returns (before, after, list of variances)
+sub split_braces {
+    my ($l) = @_;
+    my (@l, $i, $a, @parms, $b, $n,$p);
+
+    print "split_braces($l) = (" if $t;
+
+    $l = &expand_macros ($l);
+
+    if ($l !~ /\{.*\}/) {
+	print "nothing)\n" if $t;
+	return ($l);
+    }
+    if ($l =~ /^{([^{};]+)}/) {
+	print "macro:", $macro{$1}, ")\n" if $t;
+	return (&getmacro($1), "");
+    }
+
+    $n = 0;
+    @parms = ('');
+    $p = 0;
+
+    ($a, $l) = $l =~ m@^([^\{]*)\{(.*)@;
+    @l = split(//, $l);
+
+    while (defined ($i = shift @l)) {
+	if ($n == 0) {
+	    print "\033[32m$i" if $t;
+	    if ($i eq '}') {
+		print "\033[0m$a, ", join('', @l), ", (", join("\033[31m;\033[0m", @parms), ")\n" if $t;
+		return ($a, join('',@l), @parms);
+	    } elsif ($i eq ';') {
+		$p ++;
+		$parms[$p] = '';
+	    } else {
+		$parms[$p] .= $i;
+		$n ++ if $i eq '{';
+	    }
+	} else {
+	    print "\033[34m$i" if $t;
+	    $n ++ if $i eq '{';
+	    $n -- if $i eq '}';
+	    $parms[$p] .= $i;
+	}
+    }
+    print "$a, <null>, (", join(';', @parms), ")\n" if $t;
+    return ($a, "", @parms);
+}
+
+__END__;
+
+macro rest c,d
+	foo {a;b},{{rest};e;}
+
+expands to:
+
+        foo a,c
+        foo a,d
+        foo a,e
+        foo a,
+        foo b,c
+        foo b,d
+        foo b,e
+        foo b,

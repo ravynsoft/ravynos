@@ -1,0 +1,16 @@
+#compdef pack unpack pcat=unpack
+
+local expl state line
+
+case $service in
+  pack)
+    _arguments -C \
+      '-f[force packing even for files which will not benefit]' \
+      '-[show statistics for files]' \
+      '*:file to compress:_files -g "^*.z(-.)"'
+  ;;
+  unpack)
+    _description files expl 'compressed file'
+    _files "$expl[@]" -g '*.z(-.)'
+  ;;
+esac

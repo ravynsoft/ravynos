@@ -1,0 +1,376 @@
+@c Copyright (C) 2011-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+
+@ifset GENERIC
+@page
+@node Z80-Dependent
+@chapter Z80 Dependent Features
+@end ifset
+
+
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter Z80 Dependent Features
+@end ifclear
+
+@cindex Z80 support
+@menu
+* Z80 Options::              Options
+* Z80 Syntax::               Syntax
+* Z80 Floating Point::       Floating Point
+* Z80 Directives::           Z80 Machine Directives
+* Z80 Opcodes::              Opcodes
+@end menu
+
+@node Z80 Options
+@section Command-line Options
+@cindex Z80 options
+@cindex options for Z80
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @code{-march=} command-line option, Z80
+@item -march=@var{CPU}[-@var{EXT}@dots{}][+@var{EXT}@dots{}]
+This option specifies the target processor. The assembler will issue
+an error message if an attempt is made to assemble an instruction which
+will not execute on the target processor. The following processor names
+are recognized:
+@code{z80},
+@code{z180},
+@code{ez80},
+@code{gbz80},
+@code{z80n},
+@code{r800}.
+In addition to the basic instruction set, the assembler can be told to
+accept some extention mnemonics. For example,
+@code{-march=z180+sli+infc} extends @var{z180} with @var{SLI} instructions and
+@var{IN F,(C)}. The following extentions are currently supported:
+@code{full} (all known instructions),
+@code{adl} (ADL CPU mode by default, eZ80 only),
+@code{sli} (instruction known as @var{SLI}, @var{SLL} or @var{SL1}),
+@code{xyhl} (instructions with halves of index registers: @var{IXL}, @var{IXH},
+@var{IYL}, @var{IYH}),
+@code{xdcb} (instructions like @var{RotOp (II+d),R} and @var{BitOp n,(II+d),R}),
+@code{infc} (instruction @var{IN F,(C)} or @var{IN (C)}),
+@code{outc0} (instruction @var{OUT (C),0}).
+Note that rather than extending a basic instruction set, the extention
+mnemonics starting with @code{-} revoke the respective functionality:
+@code{-march=z80-full+xyhl} first removes all default extentions and adds
+support for index registers halves only.
+
+If this option is not specified then @code{-march=z80+xyhl+infc} is assumed.
+
+@cindex @code{-local-prefix} command-line option, Z80
+@item  -local-prefix=@var{prefix}
+Mark all labels with specified prefix as local. But such label can be
+marked global explicitly in the code. This option do not change default
+local label prefix @code{.L}, it is just adds new one.
+
+@cindex @code{-colonless} command-line option, Z80
+@item  -colonless
+Accept colonless labels. All symbols at line begin are treated as labels.
+
+@cindex @code{-sdcc} command-line option, Z80
+@item  -sdcc
+Accept assembler code produced by SDCC.
+
+@cindex @code{-fp-s} command-line option, Z80
+@item -fp-s=@var{FORMAT}
+Single precision floating point numbers format. Default: ieee754 (32 bit).
+
+@cindex @code{-fp-d} command-line option, Z80
+@item -fp-d=@var{FORMAT}
+Double precision floating point numbers format. Default: ieee754 (64 bit).
+@end table
+@c man end
+
+Floating point numbers formats.
+@table @option
+@item @code{ieee754}
+Single or double precision IEEE754 compatible format.
+
+@item @code{half}
+Half precision IEEE754 compatible format (16 bits).
+
+@item @code{single}
+Single precision IEEE754 compatible format (32 bits).
+
+@item @code{double}
+Double precision IEEE754 compatible format (64 bits).
+
+@item @code{zeda32}
+32 bit floating point format from z80float library by Zeda.
+
+@item @code{math48}
+48 bit floating point format from Math48 package by Anders Hejlsberg.
+@end table
+
+@cindex Z80 Syntax
+@node Z80 Syntax
+@section Syntax
+The assembler syntax closely follows the 'Z80 family CPU User Manual' by
+Zilog.
+In expressions a single @samp{=} may be used as ``is equal to''
+comparison operator.
+
+Suffices can be used to indicate the radix of integer constants;
+@samp{H} or @samp{h} for hexadecimal, @samp{D} or @samp{d} for decimal,
+@samp{Q}, @samp{O}, @samp{q} or @samp{o} for octal, and @samp{B} for
+binary.
+
+The suffix @samp{b} denotes a backreference to local label.
+
+@menu
+* Z80-Chars::                Special Characters
+* Z80-Regs::                 Register Names
+* Z80-Case::                 Case Sensitivity
+* Z80-Labels::               Labels
+@end menu
+
+@node Z80-Chars
+@subsection Special Characters
+
+@cindex line comment character, Z80
+@cindex Z80 line comment character
+The semicolon @samp{;} is the line comment character;
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line could also be
+a logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, Z80
+@cindex statement separator, Z80
+@cindex Z80 line separator
+The Z80 assembler does not support a line separator character.
+
+@cindex location counter, Z80
+@cindex hexadecimal prefix, Z80
+@cindex Z80 $
+The dollar sign @samp{$} can be used as a prefix for hexadecimal numbers
+and as a symbol denoting the current location counter.
+
+@cindex character escapes, Z80
+@cindex Z80, \
+A backslash @samp{\} is an ordinary character for the Z80 assembler.
+
+@cindex character constant, Z80
+@cindex single quote, Z80
+@cindex Z80 '
+The single quote @samp{'} must be followed by a closing quote. If there
+is one character in between, it is a character constant, otherwise it is
+a string constant.
+
+@node Z80-Regs
+@subsection Register Names
+@cindex Z80 registers
+@cindex register names, Z80
+
+The registers are referred to with the letters assigned to them by
+Zilog. In addition @command{@value{AS}} recognizes @samp{ixl} and
+@samp{ixh} as the least and most significant octet in @samp{ix}, and
+similarly @samp{iyl} and  @samp{iyh} as parts of @samp{iy}.
+
+@c The @samp{'} in @samp{ex af,af'} may be omitted.
+
+@node Z80-Case
+@subsection Case Sensitivity
+@cindex Z80, case sensitivity
+@cindex case sensitivity, Z80
+
+Upper and lower case are equivalent in register names, opcodes,
+condition codes  and assembler directives.
+The case of letters is significant in labels and symbol names. The case
+is also important to distinguish the suffix @samp{b} for a backward reference
+to a local label from the suffix @samp{B} for a number in binary notation.
+
+@node Z80-Labels
+@subsection Labels
+
+@cindex labels, Z80
+@cindex Z80 labels
+Labels started by @code{.L} acts as local labels. You may specify custom local
+label prefix by @code{-local-prefix} command-line option.
+Dollar, forward and backward local labels are supported. By default, all labels
+are followed by colon.
+Legacy code with colonless labels can be built with @code{-colonless}
+command-line option specified. In this case all tokens at line begin are treated
+as labels.
+
+@node Z80 Floating Point
+@section Floating Point
+@cindex floating point, Z80
+@cindex Z80 floating point
+Floating-point numbers of following types are supported:
+
+@table @option
+@item @code{ieee754}
+Supported half, single and double precision IEEE754 compatible numbers.
+
+@item @code{zeda32}
+32 bit floating point numbers from z80float library by Zeda.
+
+@item @code{math48}
+48 bit floating point numbers from Math48 package by Anders Hejlsberg.
+@end table
+
+@node Z80 Directives
+@section Z80 Assembler Directives
+@cindex Z80-only directives
+
+@command{@value{AS}} for the Z80 supports some additional directives for
+compatibility with other assemblers.
+
+These are the additional directives in @code{@value{AS}} for the Z80:
+
+@table @code
+@item @code{.assume ADL = @var{expression}}
+@cindex @code{.assume} directive, Z80
+Set ADL status for eZ80. Non-zero value enable compilation in ADL mode else
+used Z80 mode. ADL and Z80 mode produces incompatible object code. Mixing
+both of them within one binary may lead problems with disassembler.
+
+@item @code{db @var{expression}|@var{string}[,@var{expression}|@var{string}...]}
+@cindex @code{db} directive, Z80
+@itemx @code{defb @var{expression}|@var{string}[,@var{expression}|@var{string}...]}
+@cindex @code{defb} directive, Z80
+@itemx @code{defm @var{string}[,@var{string}...]}
+@cindex @code{defm} directive, Z80
+For each @var{string} the characters are copied to the object file, for
+each other @var{expression} the value is stored in one byte.
+A warning is issued in case of an overflow.
+Backslash symbol in the strings is generic symbol, it cannot be used as
+escape character.  @xref{Ascii,,@code{.ascii}}.
+
+@item @code{dw @var{expression}[,@var{expression}...]}
+@cindex @code{dw} directive, Z80
+@itemx @code{defw @var{expression}[,@var{expression}...]}
+@cindex @code{defw} directive, Z80
+For each @var{expression} the value is stored in two bytes, ignoring
+overflow.
+
+@item @code{d24 @var{expression}[,@var{expression}...]}
+@cindex @code{d24} directive, Z80
+@itemx @code{def24 @var{expression}[,@var{expression}...]}
+@cindex @code{def24} directive, Z80
+For each @var{expression} the value is stored in three bytes, ignoring
+overflow.
+
+@item @code{d32 @var{expression}[,@var{expression}...]}
+@cindex @code{d32} directive, Z80
+@itemx @code{def32 @var{expression}[,@var{expression}...]}
+@cindex @code{def32} directive, Z80
+For each @var{expression} the value is stored in four bytes, ignoring
+overflow.
+
+@item @code{ds @var{count}[, @var{value}]}
+@cindex @code{ds} directive, Z80
+@itemx @code{defs @var{count}[, @var{value}]}
+@cindex @code{defs} directive, Z80
+@c Synonyms for @code{ds.b},
+@c which should have been described elsewhere
+Fill @var{count} bytes in the object file with @var{value}, if
+@var{value} is omitted it defaults to zero.
+
+@item @code{@var{symbol} defl @var{expression}}
+@cindex @code{defl} directive, Z80
+The @code{defl} directive is like @code{.set} but with different
+syntax.  @xref{Set,,@code{.set}}.
+It set the value of @var{symbol} to @var{expression}. Symbols defined
+with @code{defl} are not protected from redefinition.
+
+@item @code{@var{symbol} equ @var{expression}}
+@cindex @code{equ} directive, Z80
+The @code{equ} directive is like @code{.equiv} but with different
+syntax.  @xref{Equiv, ,@code{.equiv}}.
+It set the value of @var{symbol} to @var{expression}. It is an error
+if @var{symbol} is already defined. Symbols defined with @code{equ}
+are not protected from redefinition.
+
+@item @code{psect @var{name}}
+@cindex @code{psect} directive, Z80
+A synonym for @code{.section}, no second argument should be given.
+@xref{Section,,@code{.section}}.
+
+@item @code{xdef @var{symbol}}
+@cindex @code{xdef} directive, Z80
+A synonym for @code{.global}, make @var{symbol} is visible to linker.
+@xref{Global,,@code{.global}}.
+
+@item @code{xref @var{name}}
+@cindex @code{xref} directive, Z80
+A synonym for @code{.extern} (@ref{Extern,,@code{.extern}}).
+@ignore
+
+The following attributes will possibly be recognized in the future
+@table @code
+@item abs
+The section is to be absolute. @code{@value{AS}} will issue an error
+message because it can not produce an absolute section.
+@item global
+The section is to be concatenated with other sections of the same name
+by the linker, this is the default.
+@item local
+The section is not global. @code{@value{AS}} will issue a warning if
+object file format is not soff.
+@item ovrld
+The section is to be overlapped with other sections of the same name by
+the linker. @code{@value{AS}} will issue an error message
+because it can not mark a section as such.
+@item pure
+The section is marked as read only.
+@end table
+@end ignore
+
+@end table
+
+@node Z80 Opcodes
+@section Opcodes
+In line with common practice, Z80 mnemonics are used for the Z80,
+Z80N, Z180, eZ80, Ascii R800 and the GameBoy Z80.
+
+In many instructions it is possible to use one of the half index
+registers (@samp{ixl},@samp{ixh},@samp{iyl},@samp{iyh}) in stead of an
+8-bit general purpose register. This yields instructions that are
+documented on the eZ80 and the R800, undocumented on the Z80 and
+unsupported on the Z180.
+Similarly @code{in f,(c)} is documented on the R800, undocumented on
+the Z80 and unsupported on the Z180 and the eZ80.
+
+The assembler also supports the following undocumented Z80-instructions,
+that have not been adopted in any other instruction set:
+@table @code
+@item out (c),0
+Sends zero to the port pointed to by register @code{C}.
+
+@item sli @var{m}
+Equivalent to @code{@var{m} = (@var{m}<<1)+1}, the operand @var{m} can
+be any operand that is valid for @samp{sla}. One can use @samp{sll} as a
+synonym for @samp{sli}.
+
+@item @var{op} (ix+@var{d}), @var{r}
+This is equivalent to
+
+@example
+ld @var{r}, (ix+@var{d})
+@var{op} @var{r}
+ld (ix+@var{d}), @var{r}
+@end example
+
+The operation @samp{@var{op}} may be any of @samp{res @var{b},},
+@samp{set @var{b},}, @samp{rl}, @samp{rlc}, @samp{rr}, @samp{rrc},
+@samp{sla}, @samp{sli}, @samp{sra} and @samp{srl}, and the register
+@samp{@var{r}} may be any of @samp{a}, @samp{b}, @samp{c}, @samp{d},
+@samp{e}, @samp{h} and @samp{l}.
+
+@item @var{op} (iy+@var{d}), @var{r}
+As above, but with @samp{iy} instead of @samp{ix}.
+@end table
+
+The web site at @uref{http://www.z80.info} is a good starting place to
+find more information on programming the Z80.
+
+You may enable or disable any of these instructions for any target CPU
+even this instruction is not supported by any real CPU of this type.
+Useful for custom CPU cores.

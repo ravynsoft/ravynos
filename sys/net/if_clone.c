@@ -28,11 +28,7 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)if.c	8.5 (Berkeley) 1/9/95
  */
-
-#include "opt_netlink.h"
 
 #include <sys/param.h>
 #include <sys/eventhandler.h>

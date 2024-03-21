@@ -1,0 +1,246 @@
+@c ----------------------------------------------------------------------------
+@c This is the Texinfo source file for the gp-collect-app man page.
+@c
+@c Author: Ruud van der Pas
+@c ----------------------------------------------------------------------------
+@ifset man
+\input texinfo @c -*-texinfo-*-
+@setfilename gprofng display src
+@settitle Display the source code, optionally interleaved with the disassembly of the target object
+@include gp-macros.texi
+@end ifset
+
+@c ----------------------------------------------------------------------------
+@c This is from the man-pages(7) man page
+@c
+@c "The list below shows conventional or suggested sections.  Most manual pages
+@c  should include at least the highlighted sections.  Arrange a new manual
+@c  page so that sections are placed in the order shown in the list."
+@c
+@c              NAME
+@c              SYNOPSIS
+@c              CONFIGURATION    [Normally only in Section 4]
+@c              DESCRIPTION
+@c              OPTIONS          [Normally only in Sections 1, 8]
+@c              EXIT STATUS      [Normally only in Sections 1, 8]
+@c              RETURN VALUE     [Normally only in Sections 2, 3]
+@c              ERRORS           [Typically only in Sections 2, 3]
+@c              ENVIRONMENT
+@c              FILES
+@c              VERSIONS         [Normally only in Sections 2, 3]
+@c              ATTRIBUTES       [Normally only in Sections 2, 3]
+@c              CONFORMING TO
+@c              NOTES
+@c              BUGS
+@c              EXAMPLES
+@c              AUTHORS          [Discouraged]
+@c              REPORTING BUGS   [Not used in man-pages]
+@c              COPYRIGHT        [Not used in man-pages]
+@c              SEE ALSO
+@c
+@c This is what the texi2pod.pl tool recognizes:
+@c
+@c for $sect (qw(NAME SYNOPSIS TARGET DESCRIPTION OPTIONS ENVIRONMENT FILES
+@c               BUGS NOTES FOOTNOTES SEEALSO AUTHOR COPYRIGHT)) {
+@c
+@c What is interesting is that it places "SEE ALSO" before "COPYRIGHT", which
+@c makes sense and adhered to for the other formats.
+@c ----------------------------------------------------------------------------
+
+@c ----------------------------------------------------------------------------
+@c NAME section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NAME}
+@c man begin NAME
+
+gprofng display src - Display the source code, optionally interleaved with the disassembly of the target object
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SYNOPSIS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SYNOPSIS}
+@c man begin SYNOPSIS
+
+@command{gprofng display src} [@var{option(s)}] @var{target_file}
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c DESCRIPTION section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{DESCRIPTION}
+@c man begin DESCRIPTION
+
+Display the source code listing, or source code interleaved with disassembly code,
+as extracted from the target file (an executable, shared object, object file, or a
+Java .class file).
+
+For example, this command displays the source code and disassembly listing for a
+function called @samp{mxv_core} that is part of object file @samp{mxv.o}:
+
+@smallexample
+$ gprofng display src -disasm mxv_core mxv.o
+@end smallexample
+
+To list the source code and disassembly for all the functions in this file,
+use the following command:
+
+@smallexample
+$ gprofng display src -disasm all -1 mxv.o
+@end smallexample
+
+The @var{target_file} is the name of an executable, a shared object, an object
+file (.o), or a Java .class file.
+
+If no options are given, the source code listing of the @var{target_file}
+is shown.  This is equivalent to @samp{-source all -1}.  If this information
+is not available, a message to this extent is printed.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c OPTIONS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{OPTIONS}
+@c man begin OPTIONS
+
+@table @gcctabopt
+
+@item --version
+@ifclear man
+@IndexSubentry{Options, @code{--version}}
+@end ifclear
+
+Print the version number and exit.
+
+@item --help
+@ifclear man
+@IndexSubentry{Options, @code{--help}}
+@end ifclear
+
+Print usage information and exit.
+
+@c -- @item --verbose @{on|off@}
+@c -- @ifclear man
+@c -- @IndexSubentry{Options, @code{--verbose}}
+@c -- @end ifclear
+
+@c -- Enable (on) or disable (off) verbose mode; the default is @samp{off}.
+
+@item -functions
+@ifclear man
+@IndexSubentry{Options,  @code{-functions}}
+@IndexSubentry{Commands, @code{functions}}
+@end ifclear
+List all the functions from the given object.
+
+@item -source @var{item} @var{tag}
+@ifclear man
+@IndexSubentry{Options, @code{-source}}
+@IndexSubentry{Commands, @code{source}}
+@end ifclear
+Show the source code for @var{item} in @var{target_file}.  The @var{tag}
+is used to differentiate in case there are multiple occurences with the same
+name.
+See the @samp{NOTES} section for the definition of @var{item} and @var{tag}. 
+
+@item -disasm @var{item} @var{tag}
+@ifclear man
+@IndexSubentry{Options,  @code{-disasm}}
+@IndexSubentry{Commands, @code{disasm}}
+@end ifclear
+Include the disassembly in the source listing. The default listing does not
+include the disassembly. If the source code is not available, show a listing
+of the disassembly only.
+See the @samp{NOTES} section for the definition of @var{item} and @var{tag}. 
+
+@item -outfile @var{filename}
+@ifclear man
+@IndexSubentry{Options,  @code{-outfile}}
+@IndexSubentry{Commands, @code{outfile}}
+@end ifclear
+Write results to file @var{filename}.  A dash (-) writes to stdout. This is also
+the default. Note that this option only affects those options included to the
+right of this option.
+
+@end table
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c NOTES section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NOTES}
+@c man begin NOTES
+
+Use @var{item} to specify the name of a function, or of a source or object
+file that was used to build the executable, or shared object.
+
+The @var{tag} is an index used to determine which item is being referred
+to when multiple functions have the same name. It is required, but will
+be ignored if not necessary to resolve the function.
+
+The @var{item} may also be specified in the form @samp{function`file`}, in
+which case the source or disassembly of the named function in the source
+context of the named file will be used.
+
+The special @var{item} and @var{tag} combination @samp{all -1}, is used to
+indicate generating the source, or disassembly, for all functions in the
+@var{target_file}.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SEEALSO section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SEEALSO}
+@c man begin SEEALSO
+
+gprofng(1), gp-archive(1), gp-collect-app(1), gp-display-html(1), gp-display-text(1)
+
+The user guide for gprofng is maintained as a Texinfo manual.  If the info
+and gprofng programs are correctly installed, the command
+@command{info gprofng} should give access to this document.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c COPYRIGHT section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{COPYRIGHT}
+@c man begin COPYRIGHT
+
+Copyright @copyright{} 2022-2023 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, with no Front-Cover Texts, and with no
+Back-Cover Texts.  A copy of the license is included in the
+section entitled ``GNU Free Documentation License''.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c If this text is used for a man page, exit.  Otherwise we need to continue.
+@c ----------------------------------------------------------------------------
+
+@ifset man
+@bye
+@end ifset

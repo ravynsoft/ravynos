@@ -1,0 +1,4 @@
+Debug sudo /var/log/sudo_debug all@info
+Debug sudo /var/log/sudo_debug util@debug
+Debug visudo /var/log/sudo_debug match@debug
+Debug sudoers.so /var/log/sudoers_debug match@debug,nss@info

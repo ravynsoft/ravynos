@@ -1,0 +1,116 @@
+# flags.at -- libtool passing of flags             -*- Autotest -*-
+#
+#   Copyright (C) 2009-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+m4_foreach([lt_tag], [CC, CXX, F77, FC, GCJ],
+[AT_SETUP([passing lt_tag flags through libtool])
+AT_KEYWORDS([libtool])
+LT_AT_TAG(m4_defn([lt_tag]))
+
+LDFLAGS="$LDFLAGS -no-undefined"
+eval "`$LIBTOOL --config | $EGREP '^(FGREP)='`"
+
+m4_case(lt_tag,
+[CC], [AT_DATA([a.c],
+[[int main () { return 0; }
+]])
+compile="$CC $CPPFLAGS $CFLAGS" link="$CC $CFLAGS $LDFLAGS" source=a.c
+],
+[CXX], [AT_DATA([a.cpp],
+[[int main () { return 0; }
+]])
+compile="$CXX $CPPFLAGS $CXXFLAGS" link="$CXX $CXXFLAGS $LDFLAGS" source=a.cpp
+],
+[F77], [AT_DATA([a.f],
+[[      program main
+      end
+]])
+compile="$F77 $FFLAGS" link="$F77 $FFLAGS $LDFLAGS" source=a.f
+],
+[FC], [AT_DATA([a.f90],
+[[      program main
+      end
+]])
+compile="$FC $FCFLAGS" link="$FC $FCFLAGS $LDFLAGS" source=a.f90
+],
+[GCJ], [AT_DATA([a.java],
+[[class a {}
+]])
+compile="$GCJ $GCJFLAGS" link="$GCJ $GCJFLAGS $LDFLAGS" source=a.java
+])
+
+# Linker flags are not passed to the archiver, so don't test static libraries.
+if $LIBTOOL --features | $GREP 'enable shared libraries'; then
+  library_and_module='library.la "module.la -module -avoid-version"'
+else
+  library_and_module=
+fi
+
+eval "`$LIBTOOL --tag=lt_tag --config | $EGREP '^(wl|archive_cmds)='`"
+
+AT_CHECK([$LIBTOOL --tag=lt_tag --mode=compile $compile -c $source],
+	 [], [ignore], [ignore])
+
+# Linker flags are prefixed with $wl iff they are passed to the
+# compiler driver, instead of directly to the linker.
+case $archive_cmds in
+*\$LD*\$linker_flags*) maybe_wl= compiler_flags_in_liblink=false ;;
+*) maybe_wl=$wl compiler_flags_in_liblink=: ;;
+esac
+
+for flag in -Wc, -Wl, '-Xcompiler ' '-Xlinker '; do
+  case $flag in
+  -Wc, | -Xcompiler\ )
+    AT_CHECK([$LIBTOOL -n --tag=lt_tag --mode=compile $compile ]dnl
+	     [$flag-foo -c $source], [], [stdout], [ignore])
+    AT_CHECK([$FGREP " -foo" stdout], [], [ignore])
+    flag_prefix_prog=
+    flag_prefix_lib=
+    flags_in_liblink=$compiler_flags_in_liblink
+    ;;
+  -Wl, | -Xlinker\ )
+    flag_prefix_prog=$wl
+    flag_prefix_lib=$maybe_wl
+    flags_in_liblink=:
+    ;;
+  esac
+
+  AT_CHECK([$LIBTOOL -n --tag=lt_tag --mode=link $link ]dnl
+	   [-o program$EXEEXT a.lo $flag-foo], [], [stdout], [ignore])
+  AT_CHECK([$FGREP " $flag_prefix_prog-foo" stdout], [], [ignore])
+
+  eval set x "$library_and_module"
+  for output
+  do
+    test x = "$output" && continue
+    AT_CHECK([$LIBTOOL -n --tag=lt_tag --mode=link $link ]dnl
+	     [-o $output a.lo -rpath /nowhere $flag-foo], [], [stdout], [ignore])
+    if $flags_in_liblink; then
+      AT_CHECK([$FGREP " $flag_prefix_lib-foo" stdout], [], [ignore])
+    else
+      AT_CHECK([$FGREP " $flag_prefix_lib-foo" stdout], [1])
+    fi
+  done
+done
+
+AT_CLEANUP
+])dnl m4_foreach(tag)

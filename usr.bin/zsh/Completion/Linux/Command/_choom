@@ -1,0 +1,10 @@
+#compdef choom
+
+_arguments -S \
+  '(H -n --adjust)'{-n,--adjust}'+[specify the adjust score value (-1000...1000)]:score (-1000...1000)' \
+  '(H -p --pid)'{-p,--pid}'[interpret args as process ID]:process ID:_pids' \
+  '(H -p --pid):command:_command_names' \
+  '*::arguments:_normal' \
+  + 'H' \
+  '(- *)'{-V,--version}'[display version information]' \
+  '(- *)'{-h,--help}'[display help information]'

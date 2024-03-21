@@ -33,9 +33,9 @@
  * SUCH DAMAGE.
  */
 
+#include "opt_kstack_pages.h"
 #include "opt_platform.h"
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/boot.h>
@@ -286,7 +286,7 @@ init_proc0(vm_offset_t kstack)
 
 	proc_linkup0(&proc0, &thread0);
 	thread0.td_kstack = kstack;
-	thread0.td_kstack_pages = kstack_pages;
+	thread0.td_kstack_pages = KSTACK_PAGES;
 	thread0.td_pcb = (struct pcb *)(thread0.td_kstack +
 	    thread0.td_kstack_pages * PAGE_SIZE) - 1;
 	thread0.td_pcb->pcb_fpflags = 0;
@@ -594,6 +594,10 @@ initriscv(struct riscv_bootparams *rvbp)
 		physmem_print_tables();
 
 	early_boot = 0;
+
+	if (bootverbose && kstack_pages != KSTACK_PAGES)
+		printf("kern.kstack_pages = %d ignored for thread0\n",
+		    kstack_pages);
 
 	TSEXIT();
 }

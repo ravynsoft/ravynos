@@ -27,14 +27,6 @@
  * Mountain View, California  94043
  */
 
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)setkey.c	1.11	94/04/25 SMI";
-#endif
-static const char rcsid[] =
-  "$FreeBSD$";
-#endif /* not lint */
-
 /*
  * Copyright (c) 1986 - 1991 by Sun Microsystems, Inc.
  */

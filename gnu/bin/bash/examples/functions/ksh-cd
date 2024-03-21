@@ -1,0 +1,54 @@
+#
+#  Chet Ramey <chet.ramey@case.edu>
+#
+#  Copyright 2001 Chester Ramey
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2, or (at your option)
+#   any later version.
+#
+#   TThis program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+#
+# ksh-like `cd': cd [-LP] [dir [change]]
+#
+cd()
+{
+	OPTIND=1
+	while getopts "LP" opt
+	do
+		case $opt in
+		L|P)	CDOPTS="$CDOPTS -$opt" ;;
+		*)	echo "$FUNCNAME: usage: $FUNCNAME [-LP] [dir] [change]" >&2
+			return 2;;
+		esac
+	done
+
+	shift $(( $OPTIND - 1 ))
+
+	case $# in
+	0)	builtin cd $CDOPTS "$HOME" ;;
+	1) 	builtin cd $CDOPTS "$@" ;;
+	2)	old="$1" new="$2"
+		case "$PWD" in
+		*$old*)	;;
+		*)	 echo "${0##*/}: $FUNCNAME: bad substitution" >&2 ; return 1 ;;
+		esac
+
+		dir=${PWD//$old/$new}
+
+		builtin cd $CDOPTS "$dir" && echo "$PWD"
+
+		;;
+	*)	echo "${0##*/}: $FUNCNAME: usage: $FUNCNAME [-LP] [dir] [change]" >&2
+		return 2 ;;
+	esac
+}

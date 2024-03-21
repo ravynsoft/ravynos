@@ -1,0 +1,123 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msguniq on PO file with previous msgids.
+
+cat <<\EOF > msguniq-6.in
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, c-format
+msgid "too many arguments"
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "too few arguments"
+msgstr "zu viele Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+msgid "missing arguments"
+msgstr "Argumente fehlen"
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+#| msgid "%s: invalid option -- %c\n"
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#: getopt.c:805 getopt.c:808
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, c-format
+msgid "too few arguments"
+msgstr "zu wenige Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid "too few arguments"
+msgid "too many arguments"
+msgstr "zu wenige Argumente"
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+#| msgid "%s: invalid options -- %c\n"
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: ungültige Optionen -- %c\n"
+
+#: getopt.c:863 getopt.c:882 getopt.c:1095 getopt.c:1116
+#, fuzzy, c-format
+#| msgid "%s: option requires an argument -- %c\n"
+msgid "%s: option requires more than one argument\n"
+msgstr "%s: Option erwartet ein Argument -- %c\n"
+EOF
+
+: ${MSGUNIQ=msguniq}
+${MSGUNIQ} -o msguniq-6.tmp msguniq-6.in || Exit 1
+LC_ALL=C tr -d '\r' < msguniq-6.tmp > msguniq-6.out || Exit 1
+
+cat <<\EOF > msguniq-6.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, c-format
+msgid "too many arguments"
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, c-format
+msgid "too few arguments"
+msgstr "zu wenige Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+msgid "missing arguments"
+msgstr "Argumente fehlen"
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr ""
+"#-#-#-#-#  msguniq-6.in  #-#-#-#-#\n"
+"%s: ungültige Option -- %c\n"
+"#-#-#-#-#  msguniq-6.in  #-#-#-#-#\n"
+"%s: ungültige Optionen -- %c\n"
+
+#: getopt.c:805 getopt.c:808
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#: getopt.c:863 getopt.c:882 getopt.c:1095 getopt.c:1116
+#, fuzzy, c-format
+#| msgid "%s: option requires an argument -- %c\n"
+msgid "%s: option requires more than one argument\n"
+msgstr "%s: Option erwartet ein Argument -- %c\n"
+EOF
+
+: ${DIFF=diff}
+${DIFF} msguniq-6.ok msguniq-6.out
+result=$?
+
+exit $result

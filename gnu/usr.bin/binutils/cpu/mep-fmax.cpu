@@ -1,0 +1,340 @@
+; Toshiba MeP FMAX Coprocessor description.  -*- Scheme -*-
+; Copyright 2011 Free Software Foundation, Inc.
+;
+; Contributed by Red Hat Inc;
+;
+; This file is part of the GNU Binutils.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+;------------------------------------------------------------------------------
+; MeP-Integrator will redefine the isa pmacros below to allow the bit widths
+; specified below for each ME_MODULE using this coprocessor.
+; This coprocessor requires only the 32 bit insns in the core.
+;------------------------------------------------------------------------------
+; begin-isas
+(define-pmacro fmax-core-isa () (ISA ext_core2))
+(define-pmacro all-fmax-isas () (ISA ext_core2))
+; end-isas
+
+;******************************************************************************
+; ifields
+;------------------------------------------------------------------------------
+; opcodes
+(dnf f-fmax-0-4  "opcode" (all-fmax-isas)  0 4)
+(dnf f-fmax-4-4  "opcode" (all-fmax-isas)  4 4)
+(dnf f-fmax-8-4  "opcode" (all-fmax-isas)  8 4)
+(dnf f-fmax-12-4 "opcode" (all-fmax-isas) 12 4)
+(dnf f-fmax-16-4 "opcode" (all-fmax-isas) 16 4)
+(dnf f-fmax-20-4 "opcode" (all-fmax-isas) 20 4)
+(dnf f-fmax-24-4 "opcode" (all-fmax-isas) 24 4)
+(dnf f-fmax-28-1 "opcode" (all-fmax-isas) 28 1)
+(dnf f-fmax-29-1 "opcode" (all-fmax-isas) 29 1)
+(dnf f-fmax-30-1 "opcode" (all-fmax-isas) 30 1)
+(dnf f-fmax-31-1 "opcode" (all-fmax-isas) 31 1)
+
+;------------------------------------------------------------------------------
+; FR registers
+(define-multi-ifield
+  (name f-fmax-frd)
+  (comment "FRd register")
+  (attrs all-fmax-isas)
+  (mode UINT)
+  (subfields f-fmax-28-1 f-fmax-4-4)
+  (insert (sequence ()
+		    (set (ifield f-fmax-4-4) (and (ifield f-fmax-frd) #xf))
+		    (set (ifield f-fmax-28-1) (srl (ifield f-fmax-frd) 4))))
+  (extract (set (ifield f-fmax-frd)
+		(or (sll (ifield f-fmax-28-1) 4) (ifield f-fmax-4-4))))
+)
+(define-multi-ifield
+  (name f-fmax-frn)
+  (comment "FRn register")
+  (attrs all-fmax-isas)
+  (mode UINT)
+  (subfields f-fmax-29-1 f-fmax-20-4)
+  (insert (sequence ()
+		    (set (ifield f-fmax-20-4) (and (ifield f-fmax-frn) #xf))
+		    (set (ifield f-fmax-29-1) (srl (ifield f-fmax-frn) 4))))
+  (extract (set (ifield f-fmax-frn)
+		(or (sll (ifield f-fmax-29-1) 4) (ifield f-fmax-20-4))))
+)
+(define-multi-ifield
+  (name f-fmax-frm)
+  (comment "FRm register")
+  (attrs all-fmax-isas)
+  (mode UINT)
+  (subfields f-fmax-30-1 f-fmax-24-4)
+  (insert (sequence ()
+		    (set (ifield f-fmax-24-4) (and (ifield f-fmax-frm) #xf))
+		    (set (ifield f-fmax-30-1) (srl (ifield f-fmax-frm) 4))))
+  (extract (set (ifield f-fmax-frm)
+		(or (sll (ifield f-fmax-30-1) 4) (ifield f-fmax-24-4))))
+)
+
+;------------------------------------------------------------------------------
+; Core General registers
+(dnf f-fmax-rm  "opcode" (all-fmax-isas)  8 4)
+
+;------------------------------------------------------------------------------
+; Condition opcodes enum
+(define-normal-insn-enum fmax-cond "condition opcode enum" (all-fmax-isas) FMAX_ f-fmax-8-4
+  ("f"  "u"  "e"  "ue"  "l"  "ul"  "le"  "ule"
+   "fi" "ui" "ei" "uei" "li" "uli" "lei" "ulei")
+)
+
+;******************************************************************************
+; Hardware
+;------------------------------------------------------------------------------
+; FR registers
+
+; Given a coprocessor register number N, expand to a
+; name/index pair: ($frN N)
+(define-pmacro (-fmax-fr-reg-pair n) ((.sym "fr" n) n))
+(define-pmacro (-fmax-cr-reg-pair n) ((.sym "c" n) n))
+
+; NOTE: This exists solely for the purpose of providing the proper register names for this coprocessor.
+; GDB will use the hardware table generated from this declaration. The operands use h-cr
+; from mep-core.cpu so that SID's semantic trace will be consistent between
+; the core and the coprocessor but use parse/print handlers which reference the hardware table
+; generated from this declarations
+(define-hardware
+  (name h-cr-fmax)
+  (comment "Floating point registers")
+  (attrs all-fmax-isas VIRTUAL IS_FLOAT)
+  (type register SF (32))
+  (indices keyword "$"
+	   (.splice (.unsplice (.map -fmax-fr-reg-pair (.iota 32)))
+		    (.unsplice (.map -fmax-cr-reg-pair (.iota 32))))
+  )
+  (get (index) (c-call SF "fmax_fr_get_handler" index))
+  (set (index newval) (c-call VOID "fmax_fr_set_handler" index newval))
+)
+
+;------------------------------------------------------------------------------
+; Control registers
+; NOTE: This exists solely for the purpose of providing the proper register names for this coprocessor.
+; GDB will use the hardware table generated from this declaration. The operands use h-ccr
+; from mep-core.cpu so that SID's semantic trace will be consistent between
+; the core and the coprocessor but use parse/print handlers which reference the hardware table
+; generated from this declarations
+(define-hardware
+  (name h-ccr-fmax)
+  (comment "Coprocessor Identifier and Revision Register")
+  (attrs all-fmax-isas VIRTUAL)
+  (type register USI (16))
+  (indices keyword "$" (
+		       ("cirr"  0) ("fcr0"   0) ("ccr0"   0)
+		       ("cbcr"  1) ("fcr1"   1) ("ccr1"   1)
+		       ("cerr" 15) ("fcr15" 15) ("ccr15" 15)
+                      )
+  )
+  (set (index newval) (c-call VOID "h_ccr_set" index newval))
+  (get (index) (c-call SI "h_ccr_get" index))
+)
+
+;------------------------------------------------------------------------------
+; Misc
+(define-hardware
+  (name h-fmax-compare-i-p)
+  (comment "flag")
+  (attrs all-fmax-isas)
+  (type register USI)
+)
+
+;******************************************************************************
+; Operands
+;------------------------------------------------------------------------------
+; FR Registers
+(define-full-operand fmax-FRd "FRd" (all-fmax-isas (CDATA FMAX_FLOAT)) h-cr SF f-fmax-frd ((parse "fmax_cr") (print "fmax_cr")) () ())
+(define-full-operand fmax-FRn "FRn" (all-fmax-isas (CDATA FMAX_FLOAT)) h-cr SF f-fmax-frn ((parse "fmax_cr") (print "fmax_cr")) () ())
+(define-full-operand fmax-FRm "FRm" (all-fmax-isas (CDATA FMAX_FLOAT)) h-cr SF f-fmax-frm ((parse "fmax_cr") (print "fmax_cr")) () ())
+
+(define-full-operand fmax-FRd-int "FRd as an integer" (all-fmax-isas (CDATA FMAX_INT)) h-cr SI f-fmax-frd ((parse "fmax_cr") (print "fmax_cr")) () ())
+(define-full-operand fmax-FRn-int "FRn as an integer" (all-fmax-isas (CDATA FMAX_INT)) h-cr SI f-fmax-frn ((parse "fmax_cr") (print "fmax_cr")) () ())
+
+;------------------------------------------------------------------------------
+; Control registers
+(define-full-operand fmax-CCRn "CCRn" (all-fmax-isas (CDATA REGNUM)) h-ccr DFLT f-fmax-4-4 ((parse "fmax_ccr") (print "fmax_ccr")) () ())
+
+(dnop fmax-CIRR "CIRR" (all-fmax-isas SEM-ONLY) h-ccr 0)
+(dnop fmax-CBCR "CBCR" (all-fmax-isas SEM-ONLY) h-ccr 1)
+(dnop fmax-CERR "CERR" (all-fmax-isas SEM-ONLY) h-ccr 15)
+
+;------------------------------------------------------------------------------
+; Core General Registers
+(dnop fmax-Rm "Rm" (all-fmax-isas) h-gpr f-fmax-rm)
+
+;------------------------------------------------------------------------------
+; misc
+(dnop fmax-Compare-i-p "flag" (all-fmax-isas SEM-ONLY) h-fmax-compare-i-p f-nil)
+
+;******************************************************************************
+; Instructions
+;------------------------------------------------------------------------------
+; Binary Arithmetic
+(define-pmacro (fmax-binary-arith op opc sem)
+  (dni op
+       (.str op " FRd,FRn,FRm")
+       (all-fmax-isas MAY_TRAP)
+       (.str op " ${fmax-FRd},${fmax-FRn},${fmax-FRm}")
+       (+ (f-fmax-0-4 #xF) fmax-FRd (f-fmax-8-4 opc) (f-fmax-12-4 #x7) (f-fmax-16-4 0)
+	  fmax-FRn fmax-FRm (f-fmax-31-1 0))
+       sem
+       ()
+  )
+)
+
+(fmax-binary-arith fadds #x0 (set fmax-FRd (add fmax-FRn fmax-FRm)))
+(fmax-binary-arith fsubs #x1 (set fmax-FRd (sub fmax-FRn fmax-FRm)))
+(fmax-binary-arith fmuls #x2 (set fmax-FRd (mul fmax-FRn fmax-FRm)))
+(fmax-binary-arith fdivs #x3 (set fmax-FRd (div fmax-FRn fmax-FRm)))
+
+;------------------------------------------------------------------------------
+; Unary Arithmetic
+(define-pmacro (fmax-unary-arith op opc sem)
+  (dni op
+       (.str op " FRd,FRn")
+       (all-fmax-isas MAY_TRAP)
+       (.str op " ${fmax-FRd},${fmax-FRn}")
+       (+ (f-fmax-0-4 #xF) fmax-FRd (f-fmax-8-4 opc) (f-fmax-12-4 #x7)
+	  (f-fmax-16-4 0)  fmax-FRn (f-fmax-24-4 0) (f-fmax-30-1 0) (f-fmax-31-1 0))
+       sem
+       ()
+  )
+)
+
+(fmax-unary-arith fsqrts #x4 (set fmax-FRd (sqrt fmax-FRn)))
+(fmax-unary-arith fabss  #x5 (set fmax-FRd (abs fmax-FRn)))
+(fmax-unary-arith fnegs  #x7 (set fmax-FRd (neg fmax-FRn)))
+(fmax-unary-arith fmovs  #x6 (set fmax-FRd fmax-FRn))
+
+;------------------------------------------------------------------------------
+; Conversions
+(define-pmacro (fmax-conv op opc1 opc2 opnd1 opnd2 sem)
+  (dni op
+       (.str op " FRd,FRn")
+       (all-fmax-isas MAY_TRAP)
+       (.str op " ${" opnd1 "},${" opnd2 "}")
+       (+ (f-fmax-0-4 #xF) opnd1 (f-fmax-8-4 opc1) (f-fmax-12-4 #x7)
+	  (f-fmax-16-4 opc2)  opnd2 (f-fmax-24-4 0) (f-fmax-30-1 0) (f-fmax-31-1 0))
+       sem
+       ()
+  )
+)
+
+(fmax-conv froundws #xC #x0 fmax-FRd-int fmax-FRn     (set fmax-FRd-int (c-call SI "fmax_froundws" fmax-FRn)))
+(fmax-conv ftruncws #xD #x0 fmax-FRd-int fmax-FRn     (set fmax-FRd-int (c-call SI "fmax_ftruncws" fmax-FRn)))
+(fmax-conv fceilws  #xE #x0 fmax-FRd-int fmax-FRn     (set fmax-FRd-int (c-call SI "fmax_fceilws" fmax-FRn)))
+(fmax-conv ffloorws #xF #x0 fmax-FRd-int fmax-FRn     (set fmax-FRd-int (c-call SI "fmax_ffloorws" fmax-FRn)))
+(fmax-conv fcvtws   #x4 #x1 fmax-FRd-int fmax-FRn     (set fmax-FRd-int (c-call SI "fmax_fcvtws" fmax-FRn)))
+(fmax-conv fcvtsw   #x0 #x9 fmax-FRd     fmax-FRn-int (set fmax-FRd (float SF FPCONV-DEFAULT fmax-FRn-int)))
+
+;------------------------------------------------------------------------------
+; Comparisons
+;
+; Comparison with no exceptions
+(define-pmacro (fmax-f-sem x y)  (andif (gt x y) (lt x y))) ; do this to get exception detection
+(define-pmacro (fmax-u-sem x y)  (not (orif (lt x y) (orif (eq x y) (gt x y)))))
+(define-pmacro (fmax-e-sem x y)  (eq x y))
+(define-pmacro (fmax-ue-sem x y) (not (orif (lt x y) (gt x y))))
+(define-pmacro (fmax-l-sem x y)  (lt x y))
+(define-pmacro (fmax-ul-sem x y) (not (orif (gt x y) (eq x y))))
+(define-pmacro (fmax-le-sem x y) (orif (lt x y) (eq x y)))
+(define-pmacro (fmax-ule-sem x y) (not (gt x y)))
+
+(define-pmacro (fmax-comp cond suffix exceptions)
+  (dni (.sym fcmp cond suffix s)
+       (.str "fcmp" cond suffix "s FRn,FRm")
+       ;; Even though the instruction doesn't really trap if EXCEPTIONS
+       ;; is zero, we don't want gcc to put it in a repeat or erepeat
+       ;; block because of the hazards between fcmp instructions and
+       ;; anything that reads CBCR.
+       (all-fmax-isas MAY_TRAP)
+       (.str "fcmp" cond suffix "s ${fmax-FRn},${fmax-FRm}")
+       (+ (f-fmax-0-4 #xF) (f-fmax-4-4 0) (.sym FMAX_ cond suffix) (f-fmax-12-4 #x7)
+	  (f-fmax-16-4 #x2) (f-fmax-28-1 0) fmax-FRn fmax-FRm (f-fmax-31-1 0))
+       (sequence ()
+		 (set fmax-Compare-i-p exceptions)
+		 (set fmax-CBCR ((.sym fmax- cond -sem) fmax-FRn fmax-FRm))
+		 (set fmax-Compare-i-p 0)
+       )
+       ()
+  )
+)
+
+; Comparison with no exceptions
+(fmax-comp f   "" 0)
+(fmax-comp u   "" 0)
+(fmax-comp e   "" 0)
+(fmax-comp ue  "" 0)
+(fmax-comp l   "" 0)
+(fmax-comp ul  "" 0)
+(fmax-comp le  "" 0)
+(fmax-comp ule "" 0)
+
+; Comparison with exceptions
+(fmax-comp f   i 1)
+(fmax-comp u   i 1)
+(fmax-comp e   i 1)
+(fmax-comp ue  i 1)
+(fmax-comp l   i 1)
+(fmax-comp ul  i 1)
+(fmax-comp le  i 1)
+(fmax-comp ule i 1)
+
+;------------------------------------------------------------------------------
+; Move to/from core registers
+(dni cmov-frn-rm
+     "cmov FRn,Rm"
+     (all-fmax-isas (INTRINSIC "cmov1"))
+     "cmov ${fmax-FRd-int},${fmax-Rm}"
+     (+ (f-fmax-0-4 #xF) fmax-FRd-int fmax-Rm (f-fmax-12-4 #x7)
+	(f-fmax-16-4 #xF) (f-fmax-20-4 0) (f-fmax-24-4 0)
+	(f-fmax-29-1 0) (f-fmax-30-1 0) (f-fmax-31-1 0))
+     (set fmax-FRd-int fmax-Rm)
+     ()
+)
+(dni cmov-rm-frn
+     "cmov Rm,FRn"
+     (all-fmax-isas (INTRINSIC "cmov2"))
+     "cmov ${fmax-Rm},${fmax-FRd-int}"
+     (+ (f-fmax-0-4 #xF) fmax-FRd-int fmax-Rm (f-fmax-12-4 #x7)
+	(f-fmax-16-4 #xF) (f-fmax-20-4 0) (f-fmax-24-4 0)
+	(f-fmax-29-1 0) (f-fmax-30-1 0) (f-fmax-31-1 1))
+     (set fmax-Rm fmax-FRd-int)
+     ()
+)
+(dni cmovc-ccrn-rm
+     "cmovc CCRn,Rm"
+     (all-fmax-isas (INTRINSIC "cmovc1"))
+     "cmovc ${fmax-CCRn},${fmax-Rm}"
+     (+ (f-fmax-0-4 #xF) fmax-CCRn fmax-Rm (f-fmax-12-4 #x7)
+	(f-fmax-16-4 #xF) (f-fmax-20-4 0) (f-fmax-24-4 0)
+	(f-fmax-28-1 0) (f-fmax-29-1 0) (f-fmax-30-1 1) (f-fmax-31-1 0))
+     (set fmax-CCRn fmax-Rm)
+     ()
+)
+(dni cmovc-rm-ccrn
+     "cmovc Rm,CCRn"
+     (all-fmax-isas (INTRINSIC "cmovc2"))
+     "cmovc ${fmax-Rm},${fmax-CCRn}"
+     (+ (f-fmax-0-4 #xF) fmax-CCRn fmax-Rm (f-fmax-12-4 #x7)
+	(f-fmax-16-4 #xF) (f-fmax-20-4 0) (f-fmax-24-4 0)
+	(f-fmax-28-1 0) (f-fmax-29-1 0) (f-fmax-30-1 1) (f-fmax-31-1 1))
+     (set fmax-Rm fmax-CCRn)
+     ()
+)

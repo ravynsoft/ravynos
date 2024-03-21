@@ -1,0 +1,109 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --for-msgfmt option.
+
+cat <<EOF > mm-test26.in1
+#: fruits.c:14
+msgid "cherry"
+msgstr "cerise"
+
+#: fruits.c:17
+msgid "pear"
+msgstr "poire"
+
+#: fruits.c:19
+msgid "orange"
+msgstr ""
+
+#, fuzzy
+#: fruits.c:20
+msgid "apple"
+msgstr "pommes"
+EOF
+
+cat <<EOF > mm-test26.in2
+# Fuzzy already in the PO file.
+#: fruits.c:10
+msgid "apple"
+msgstr ""
+
+# Fuzzy match to fuzzy already in the PO file.
+#: fruits.c:11
+msgid "apples"
+msgstr ""
+
+# Translated.
+#: fruits.c:16
+msgid "pear"
+msgstr ""
+
+# Fuzzy match.
+#: fruits.c:17
+msgid "pears"
+msgstr ""
+
+# Untranslated, in the PO file.
+#: fruits.c:18
+msgid "orange"
+msgstr ""
+
+# Untranslated, not in the PO file.
+#: fruits.c:20
+msgid "banana"
+msgstr ""
+
+# Translated already in the POT file.
+#: fruits.c:25
+msgid "papaya"
+msgstr "Papaya"
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} --for-msgfmt -o mm-test26.tmp mm-test26.in1 mm-test26.in2 \
+    || Exit 1
+LC_ALL=C tr -d '\r' < mm-test26.tmp > mm-test26.out || Exit 1
+
+cat << EOF > mm-test26.ok
+msgid "pear"
+msgstr "poire"
+
+msgid "papaya"
+msgstr "Papaya"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test26.ok mm-test26.out || Exit 1
+
+# Test with a PO file that has no translated messages.
+
+cat <<\EOF > mm-test26a.in1
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Hello world"
+msgstr "Hallo Welt"
+EOF
+
+cat <<\EOF > mm-test26a.in2
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ASCII\n"
+
+msgid "Hello, world!"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} --for-msgfmt -o mm-test26a.tmp mm-test26a.in1 mm-test26a.in2 \
+    || Exit 1
+LC_ALL=C tr -d '\r' < mm-test26a.tmp > mm-test26a.out || Exit 1
+
+cat <<\EOF > mm-test26a.ok
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test26a.ok mm-test26a.out || Exit 1

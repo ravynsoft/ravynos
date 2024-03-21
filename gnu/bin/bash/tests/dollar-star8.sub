@@ -1,0 +1,34 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+IFS=
+set "abc" "def ghi" "jkl"
+
+set ${1+$*}
+printf '<%s>\n' "$#" "$@"
+
+set "abc" "def ghi" "jkl"
+set $*
+printf '<%s>\n' "$#" "$@"
+
+printf '<%s>\n' $* ;
+printf '<%s>\n' ${q:-$*} 
+printf '<%s>\n' "${q:-$*}"
+
+IFS=:
+printf '<%s>\n' $* ;
+printf '<%s>\n' ${q:-$*} 
+printf '<%s>\n' "${q:-$*}"
+
+unset -v IFS
+printf '<%s>\n' $* $@

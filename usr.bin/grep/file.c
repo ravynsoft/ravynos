@@ -31,7 +31,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -72,6 +71,8 @@ grep_refill(struct file *f)
 	bufrem = 0;
 
 	nr = read(f->fd, buffer, MAXBUFSIZ);
+	if (nr < 0 && errno == EISDIR)
+		nr = 0;
 	if (nr < 0)
 		return (-1);
 

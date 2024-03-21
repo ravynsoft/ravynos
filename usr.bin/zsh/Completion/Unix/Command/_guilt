@@ -1,0 +1,43 @@
+#compdef guilt guilt-add guilt-applied guilt-delete guilt-files guilt-fold guilt-fork guilt-header guilt-help guilt-import-commit guilt-import guilt-init guilt-new guilt-next guilt-patchbomb guilt-pop guilt-prev guilt-push guilt-rebase guilt-refresh guilt-rm guilt-series guilt-status guilt-top guilt-unapplied
+
+local -a _guilt_commands
+
+_guilt_commands=(
+'add:add a file to git and guilt'
+'applied:list applied patches'
+'delete:delete a patch'
+'files:print the list of files that the topmost patch changes'
+'fold:fold a specified patch into the topmost applied patch'
+'fork:fork the topmost applied patch'
+'header:print a patch header'
+'help:open man page of a guilt command'
+'import-commit:import one or more commits as patches'
+'import:import specified patch file'
+'init:initialize guilt for use in a git repository'
+'new:create a new patch'
+'next:output the name of next patch to be pushed'
+'patchbomb:email a series of commits interactively'
+'pop:pop patches from the tree'
+'prev:output name of second topmost applied patch'
+'push:push patches onto the tree'
+'rebase:rebase pushed patches'
+'refresh:refresh topmost applied patch'
+'rm:remove a file from the git tree and guilt'
+'series:print the stack of patches'
+'status:print the status of files since the last refresh'
+'top:output name of topmost applied patch'
+'unapplied:list all unapplied patches'
+)
+
+case "$service" in
+  (guilt)
+    if (( CURRENT == 2 )); then
+      _describe -t commands 'guilt command' _guilt_commands && ret=0
+    else
+      _files
+    fi
+  ;;
+  (*)
+    _files
+  ;;
+esac

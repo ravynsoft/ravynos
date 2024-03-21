@@ -1,0 +1,62 @@
+#compdef elinks
+
+# ELinks 0.12pre5
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_arguments -C -A '-*' \
+  '*-anonymous[restrict to anonymous mode]::boolean:(0 1)' \
+  '*-auto-submit[autosubmit first form]::boolean:(0 1)' \
+  '*-base-session[clone internal session with given ID]:ID number:' \
+  '*-config-dir[name of directory with configuration file]:configuration directory:_files -/' \
+  '(- 1)-config-dump[print default configuration file to stdout]' \
+  '*-config-file[name of configuration file]:configuration file:_files' \
+  '*-default-mime-type[MIME type assumed for unknown document types]:MIME type:_mime_types' \
+  '*-default-keys[ignore user-defined keybindings]::boolean:(0 1)' \
+  '*-dump[print formatted versions of given URLs to stdout]::boolean:(0 1)' \
+  '*-dump-charset[codepage to use with -dump]:codepage:' \
+  '-dump-color-mode[color mode used with -dump]:color mode:((-1\:standard\ dump\ mode 0\:mono\ mode 1\:16\ color\ mode 2\:88\ color\ mode 3\:256\ color\ mode 4\:true\ color\ mode))' \
+  '*-dump-width[width of document formatted with -dump]:width:' \
+  '*-eval[evaluate configuration file directive]:configuration option:' \
+  '*-force-html[interpret documents of unknown types as HTML]' \
+  '(- 1)-'{\?,h,help}'[print usage help and exit]' \
+  '*-localhost[only permit local connections]::boolean:(0 1)' \
+  '(- 1)-long-help[print detailed usage help and exit]' \
+  '(- 1)-config-help[print help for configuration options]' \
+  '(- 1)-lookup[look up specified host]:host:_hosts' \
+  '*-no-connect[run as separate instance]::boolean:(0 1)' \
+  "*-no-home[don't use files in ~/.elinks]::boolean:(0 1)" \
+  '*-no-numbering[disable link numbering in dump output]::boolean:(0 1)' \
+  '*-no-references[disable printing of link references in dump output]::boolean:(0 1)' \
+  '*-remote[control an already running ELinks]:*:command:->remote' \
+  '*-session-ring[connect to session ring with given ID]:ID number:' \
+  '*-source[print the source of given URLs to stdout]::boolean:(0 1)' \
+  '(1)*-stdin[read document from stdin]::boolean:(0 1)' \
+  '*-touch-files[touch files in ~/.elinks when running with -no-connect/-session-ring]::boolean:(0 1)' \
+  '*-verbose[verbose level]:verbosity level:((0\:serious\ errors 1\:serious\ errors\ and\ warnings 2\:all\ messages ))' \
+  '(- 1)-version[print version information and exit]' \
+  '1:URL:->url' && ret=0
+
+if [[ "$state" = url ]]; then
+  local -a bookmarks
+  local file=${opt_args[-config-dir]:-${ELINKS_CONFDIR:-~/.elinks}}/bookmarks
+
+  if [[ -s $file ]]; then
+    bookmarks=( ${${${(f)"$(< $file)"}#*	}%%	*} )
+  fi
+
+  _alternative \
+    'files:file:_files' \
+    'bookmarks:bookmark:compadd -a bookmarks' \
+    'urls:URL:_urls' && ret=0
+elif [[ "$state" = remote ]]; then
+  local -a commands
+  commands=( ping openURL addBookmark infoBox xfeDoCommand )
+
+  _alternative \
+    'commands:command:compadd -a commands' \
+    'urls:URL:_urls' && ret=0
+fi
+
+return ret

@@ -1,0 +1,1736 @@
+\input texinfo       @c                    -*- Texinfo -*-
+@setfilename ctf-spec.info
+@settitle The CTF File Format
+@ifnottex
+@xrefautomaticsectiontitle on
+@end ifnottex
+@synindex fn cp
+@synindex tp cp
+@synindex vr cp
+
+@copying
+Copyright @copyright{} 2021-2023 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU General Public License, Version 3 or any
+later version published by the Free Software Foundation.  A copy of the
+license is included in the section entitled ``GNU General Public
+License''.
+
+@end copying
+
+@dircategory Software development
+@direntry
+* CTF: (ctf-spec).         The CTF file format.
+@end direntry
+
+@titlepage
+@title The CTF File Format
+@subtitle Version 3
+@author Nick Alcock
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+@contents
+
+@ifnottex
+@node Top
+@top The CTF file format
+
+This manual describes version 3 of the CTF file format, which is
+intended to model the C type system in a fashion that C programs can
+consume at runtime.
+@end ifnottex
+
+@node Overview
+@unnumbered Overview
+@cindex Overview
+
+The CTF file format compactly describes C types and the association
+between function and data symbols and types: if embedded in ELF objects,
+it can exploit the ELF string table to reduce duplication further.
+There is no real concept of namespacing: only top-level types are
+described, not types scoped to within single functions.
+
+CTF dictionaries can be @dfn{children} of other dictionaries, in a
+one-level hierarchy: child dictionaries can refer to types in the
+parent, but the opposite is not sensible (since if you refer to a child
+type in the parent, the actual type you cited would vary depending on
+what child was attached).  This parent/child definition is recorded in
+the child, but only as a recommendation: users of the API have to attach
+parents to children explicitly, and can choose to attach a child to any
+parent they like, or to none, though doing so might lead to unpleasant
+consequences like dangling references to types.  @xref{Type indexes and
+type IDs}.  Type lookups in child dicts that are not associated with a
+parent at all will fail with @code{ECTF_NOPARENT} if a parent type was
+needed.
+
+The associated API to generate, merge together, and query this file
+format will be described in the accompanying @code{libctf} manual once
+it is written.  There is no API to modify dictionaries once they've been
+written out: CTF is a write-once file format.  (However, it is always
+possible to dynamically create a new child dictionary on the fly and
+attach it to a pre-existing, read-only parent.)
+
+There are two major pieces to CTF: the @dfn{archive} and the
+@dfn{dictionary}.  Some relatives and ancestors of CTF call dictionaries
+@dfn{containers}: the archive format is unique to this variant of CTF.
+(Much of the source code still uses the old term.)
+
+The archive file format is a very simple mmappable archive used to group
+multiple dictionaries together into groups: it is expected to slowly go
+away and be replaced by other mechanisms, but right now it is an
+important part of the file format, used to group dictionaries containing
+types with conflicting definitions in different TUs with the overarching
+dictionary used to store all other types.  (Even when archives go away,
+the @code{libctf} API used to access them will remain, and access the
+other mechanisms that replace it instead.)
+
+The CTF dictionary consists of a @dfn{preamble}, which does not vary
+between versions of the CTF file format, and a @dfn{header} and some
+number of @dfn{sections}, which can vary between versions.
+
+The rest of this specification describes the format of these sections,
+first for the latest version of CTF, then for all earlier versions
+supported by @code{libctf}: the earlier versions are defined in terms of
+their differences from the next later one.  We describe each part of the
+format first by reproducing the C structure which defines that part,
+then describing it at greater length in terms of file offsets.
+
+The description of the file format ends with a description of relevant
+limits that apply to it.  These limits can vary between file format
+versions.
+
+This document is quite young, so for now the C code in @file{ctf.h}
+should be presumed correct when this document conflicts with it.
+
+@node CTF archive
+@chapter CTF archives
+@cindex archive, CTF archive
+
+The CTF archive format maps names to CTF dictionaries.  The names may
+contain any character other than \0, but for now archives containing
+slashes in the names may not extract correctly.  It is possible to
+insert multiple members with the same name, but these are quite hard to
+access reliably (you have to iterate through all the members rather than
+opening by name) so this is not recommended.
+
+CTF archives are not themselves compressed: the constituent components,
+CTF dictionaries, can be compressed.  (@xref{CTF header}).
+
+CTF archives usually contain a collection of related dictionaries, one
+parent and many children of that parent.  CTF archives can have a member
+with a @dfn{default name}, @code{.ctf} (which can be represented as
+@code{NULL} in the API).  If present, this member is usually the parent
+of all the children, but it is possible for CTF producers to emit
+parents with different names if they wish (usually for backward-
+compatibility purposes).
+
+@code{.ctf} sections in ELF objects consist of a single CTF dictionary
+rather than an archive of dictionaries if and only if the section
+contains no types with identical names but conflicting definitions: if
+two conflicting definitions exist, the deduplicator will place the type
+most commonly referred to by other types in the parent and will place
+the other type in a child named after the translation unit it is found
+in, and will emit a CTF archive containing both dictionaries instead of
+a raw dictionary.  All types that refer to such conflicting types are
+also placed in the per-translation-unit child.
+
+The definition of an archive in @file{ctf.h} is as follows:
+
+@verbatim
+struct ctf_archive
+{
+  uint64_t ctfa_magic;
+  uint64_t ctfa_model;
+  uint64_t ctfa_nfiles;
+  uint64_t ctfa_names;
+  uint64_t ctfa_ctfs;
+};
+
+typedef struct ctf_archive_modent
+{
+  uint64_t name_offset;
+  uint64_t ctf_offset;
+} ctf_archive_modent_t;
+@end verbatim
+
+(Note one irregularity here: the @code{ctf_archive_t} is not a typedef
+to @code{struct ctf_archive}, but a different typedef, private to
+@code{libctf}, so that things that are not really archives can be made
+to appear as if they were.)
+
+All the above items are always in little-endian byte order, regardless
+of the machine endianness.
+
+The archive header has the following fields:
+
+@tindex struct ctf_archive
+@multitable {Offset} {@code{uint64_t ctfa_nfiles}} {The data model for this archive: an arbitrary integer}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{uint64_t ctfa_magic}
+@vindex ctfa_magic
+@vindex struct ctf_archive, ctfa_magic
+@tab The magic number for archives, @code{CTFA_MAGIC}: 0x8b47f2a4d7623eeb.
+@tindex CTFA_MAGIC
+
+@item 0x08
+@tab @code{uint64_t ctfa_model}
+@vindex ctfa_model
+@vindex struct ctf_archive, ctfa_model
+@tab The data model for this archive: an arbitrary integer that serves no
+purpose but to be handed back by the libctf API. @xref{Data models}.
+
+@item 0x10
+@tab @code{uint64_t ctfa_nfiles}
+@vindex ctfa_nfiles
+@vindex struct ctf_archive, ctfa_nfiles
+@tab The number of CTF dictionaries in this archive.
+
+@item 0x18
+@tab @code{uint64_t ctfa_names}
+@vindex ctfa_names
+@vindex struct ctf_archive, ctfa_names
+@tab Offset of the name table, in bytes from the start of the archive.
+The name table is an array of @code{struct ctf_archive_modent_t[ctfa_nfiles]}.
+
+@item 0x20
+@tab @code{uint64_t ctfa_ctfs}
+@vindex ctfa_ctfs
+@vindex struct ctf_archive, ctfa_ctfs
+@tab Offset of the CTF table.  Each element starts with a @code{uint64_t} size,
+followed by a CTF dictionary.
+
+@end multitable
+
+The array pointed to by @code{ctfa_names} is an array of entries of
+@code{ctf_archive_modent}:
+
+@tindex struct ctf_archive_modent
+@tindex ctf_archive_modent_t
+@multitable {Offset} {@code{uint64_t name_offset}} {Offset of this name, in bytes from the start}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{uint64_t name_offset}
+@vindex name_offset
+@vindex struct ctf_archive_modent, name_offset
+@vindex ctf_archive_modent_t, name_offset
+@tab Offset of this name, in bytes from the start of the archive.
+
+@item 0x08
+@tab @code{uint64_t ctf_offset}
+@vindex ctf_offset
+@vindex struct ctf_archive_modent, ctf_offset
+@vindex ctf_archive_modent_t, ctf_offset
+@tab Offset of this CTF dictionary, in bytes from the start of the archive.
+
+@end multitable
+
+The @code{ctfa_names} array is sorted into ASCIIbetical order by name
+(i.e. by the result of dereferencing the @code{name_offset}).
+
+The archive file also contains a name table and a table of CTF
+dictionaries: these are pointed to by the structures above.  The name
+table is a simple strtab which is not required to be sorted; the
+dictionary array is described above in the entry for @code{ctfa_ctfs}.
+
+The relative order of these various parts is not defined, except that
+the header naturally always comes first.
+
+@node CTF dictionaries
+@chapter CTF dictionaries
+@cindex dictionary, CTF dictionary
+
+CTF dictionaries consist of a header, starting with a premable, and a
+number of sections.
+
+@node CTF Preamble
+@section CTF Preamble
+
+The preamble is the only part of the CTF dictionary whose format cannot
+vary between versions.  It is never compressed.  It is correspondingly
+simple:
+
+@verbatim
+typedef struct ctf_preamble
+{
+  unsigned short ctp_magic;
+  unsigned char ctp_version;
+  unsigned char ctp_flags;
+} ctf_preamble_t;
+@end verbatim
+
+@code{#define}s are provided under the names @code{cth_magic},
+@code{cth_version} and @code{cth_flags} to make the fields of the
+@code{ctf_preamble_t} appear to be part of the @code{ctf_header_t}, so
+consuming programs rarely need to consider the existence of the preamble
+as a separate structure.
+
+@tindex struct ctf_preamble
+@tindex ctf_preamble_t
+@multitable {Offset} {@code{unsigned char ctp_version}} {The magic number for CTF dictionaries}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{unsigned short ctp_magic}
+@vindex ctp_magic
+@vindex cth_magic
+@vindex ctf_preamble_t, ctp_magic
+@vindex struct ctf_preamble, ctp_magic
+@vindex ctf_header_t, cth_magic
+@vindex struct ctf_header, cth_magic
+@tab The magic number for CTF dictionaries, @code{CTF_MAGIC}: 0xdff2.
+@tindex CTF_MAGIC
+
+@item 0x02
+@tab @code {unsigned char ctp_version}
+@vindex ctp_version
+@vindex cth_version
+@vindex ctf_preamble_t, ctp_version
+@vindex struct ctf_preamble, ctp_version
+@vindex ctf_header_t, cth_version
+@vindex struct ctf_header, cth_version
+@tab The version number of this CTF dictionary.
+
+@item 0x03
+@tab @code{ctp_flags}
+@vindex ctp_flags
+@vindex cth_flags
+@vindex ctf_preamble_t, ctp_flags
+@vindex struct ctf_preamble, ctp_flags
+@vindex ctf_header_t, cth_flags
+@vindex struct ctf_header, cth_flags
+@tab Flags for this CTF file. @xref{CTF file-wide flags}.
+@end multitable
+
+@cindex alignment
+Every element of a dictionary must be naturally aligned unless otherwise
+specified.  (This restriction will be lifted in later versions.)
+
+@cindex endianness
+CTF dictionaries are stored in the native endianness of the system that
+generates them: the consumer (e.g., @code{libctf}) can detect whether to
+endian-flip a CTF dictionary by inspecting the @code{ctp_magic}. (If it
+appears as 0xf2df, endian-flipping is needed.)
+
+The version of the CTF dictionary can be determined by inspecting
+@code{ctp_version}.  The following versions are currently valid, and
+@code{libctf} can read all of them:
+
+@tindex CTF_VERSION_3
+@cindex CTF versions, versions
+@multitable {@code{CTF_VERSION_1_UPGRADED_3}} {Number} {First version, rare.  Very similar to Solaris CTF.}
+@headitem Version @tab Number @tab Description
+@item @code{CTF_VERSION_1}
+@tab 1 @tab First version, rare. Very similar to Solaris CTF.
+
+@item @code{CTF_VERSION_1_UPGRADED_3}
+@tab 2 @tab First version, upgraded to v3 or higher and written out again.
+Name may change. Very rare.
+
+@item @code{CTF_VERSION_2}
+@tab 3 @tab Second version, with many range limits lifted.
+
+@item @code{CTF_VERSION_3}
+@tab 4  @tab Third and current version, documented here.
+@end multitable
+
+This section documents @code{CTF_VERSION_3}.
+
+@vindex ctp_flags
+@node CTF file-wide flags
+@subsection CTF file-wide flags
+
+The preamble contains bitflags in its @code{ctp_flags} field that
+describe various file-wide properties.  Some of the flags are valid only
+for particular file-format versions, which means the flags can be used
+to fix file-format bugs.  Consumers that see unknown flags should
+accordingly assume that the dictionary is not comprehensible, and
+refuse to open them.
+
+The following flags are currently defined.  Many are bug workarounds,
+valid only in CTFv3, and will not be valid in any future versions: the
+same values may be reused for other flags in v4+.
+
+@multitable {@code{CTF_F_NEWFUNCINFO}} {Versions} {Value} {The external strtab is in @code{.dynstr} and the}
+@headitem Flag @tab Versions @tab Value @tab Meaning
+@tindex CTF_F_COMPRESS
+@item @code{CTF_F_COMPRESS} @tab All @tab 0x1 @tab Compressed with zlib
+@tindex CTF_F_NEWFUNCINFO
+@item @code{CTF_F_NEWFUNCINFO} @tab 3 only @tab 0x2
+@tab ``New-format'' func info section.
+@tindex CTF_F_IDXSORTED
+@item @code{CTF_F_IDXSORTED} @tab 3+ @tab 0x4 @tab The index section is
+in sorted order
+@tindex CTF_F_DYNSTR
+@item @code{CTF_F_DYNSTR} @tab 3 only @tab 0x8 @tab The external strtab is
+in @code{.dynstr} and the symtab used is @code{.dynsym}.
+@xref{The string section}
+@end multitable
+
+@code{CTF_F_NEWFUNCINFO} and @code{CTF_F_IDXSORTED} relate to the
+function info and data object sections. @xref{The symtypetab sections}.
+
+Further flags (and further compression methods) wil be added in future.
+
+@node CTF header
+@section CTF header
+@cindex CTF header
+@cindex Sections, header
+
+The CTF header is the first part of a CTF dictionary, including the
+preamble.  All parts of it other than the preamble (@pxref{CTF Preamble})
+can vary between CTF file versions and are never compressed.  It
+contains things that apply to the dictionary as a whole, and a table of
+the sections into which the rest of the dictionary is divided.  The
+sections tile the file: each section runs from the offset given until
+the start of the next section.  Only the last section cannot follow this
+rule, so the header has a length for it instead.
+
+All section offsets, here and in the rest of the CTF file, are relative to the
+@emph{end} of the header.  (This is annoyingly different to how offsets in CTF
+archives are handled.)
+
+This is the first structure to include offsets into the string table, which are
+not straight references because CTF dictionaries can include references into the
+ELF string table to save space, as well as into the string table internal to the
+CTF dictionary.  @xref{The string section} for more on these.  Offset 0 is
+always the null string.
+
+@verbatim
+typedef struct ctf_header
+{
+  ctf_preamble_t cth_preamble;
+  uint32_t cth_parlabel;
+  uint32_t cth_parname;
+  uint32_t cth_cuname;
+  uint32_t cth_lbloff;
+  uint32_t cth_objtoff;
+  uint32_t cth_funcoff;
+  uint32_t cth_objtidxoff;
+  uint32_t cth_funcidxoff;
+  uint32_t cth_varoff;
+  uint32_t cth_typeoff;
+  uint32_t cth_stroff;
+  uint32_t cth_strlen;
+} ctf_header_t;
+@end verbatim
+
+In detail:
+
+@tindex struct ctf_header
+@tindex ctf_header_t
+@multitable {Offset} {@code{ctf_preamble_t cth_preamble}} {The parent label, if deduplication happened against}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{ctf_preamble_t cth_preamble}
+@vindex cth_preamble
+@vindex struct ctf_header, cth_preamble
+@vindex ctf_header_t, cth_preamble
+@tab The preamble (conceptually embedded in the header). @xref{CTF Preamble}
+
+@item 0x04
+@tab @code{uint32_t cth_parlabel}
+@vindex cth_parlabel
+@vindex struct ctf_header, cth_parlabel
+@vindex ctf_header_t, cth_parlabel
+@tab The parent label, if deduplication happened against a specific label: a
+strtab offset. @xref{The label section}. Currently unused and always 0, but may
+be used in future when semantics are attached to the label section.
+
+@item 0x08
+@tab @code{uint32_t cth_parname}
+@vindex cth_parname
+@vindex struct ctf_header, cth_parname
+@vindex ctf_header_t, cth_parname
+@tab The name of the parent dictionary deduplicated against: a strtab offset.
+Interpretation is up to the consumer (usually a CTF archive member name).  0
+(the null string) if this is not a child dictionary.
+
+@item 0x1c
+@tab @code{uint32_t cth_cuname}
+@vindex cth_cuname
+@vindex struct ctf_header, cth_cuname
+@vindex ctf_header_t, cth_cuname
+@tab The name of the compilation unit, for consumers like GDB that want to
+know the name of CUs associated with single CUs: a strtab offset.  0 if this
+dictionary describes types from many CUs.
+
+@item 0x10
+@tab @code{uint32_t cth_lbloff}
+@vindex cth_lbloff
+@vindex struct ctf_header, cth_lbloff
+@vindex ctf_header_t, cth_lbloff
+@tab The offset of the label section, which tiles the type space into
+named regions.  @xref{The label section}.
+
+@item 0x14
+@tab @code{uint32_t cth_objtoff}
+@vindex cth_objtoff
+@vindex struct ctf_header, cth_objtoff
+@vindex ctf_header_t, cth_objtoff
+@tab The offset of the data object symtypetab section, which maps ELF data symbols to
+types.  @xref{The symtypetab sections}.
+
+@item 0x18
+@tab @code{uint32_t cth_funcoff}
+@vindex cth_funcoff
+@vindex struct ctf_header, cth_funcoff
+@vindex ctf_header_t, cth_funcoff
+@tab The offset of the function info symtypetab section, which maps ELF function
+symbols to a return type and arg types.  @xref{The symtypetab sections}.
+
+@item 0x1c
+@tab @code{uint32_t cth_objtidxoff}
+@vindex cth_objtidxoff
+@vindex struct ctf_header, cth_objtidxoff
+@vindex ctf_header_t, cth_objtidxoff
+@tab The offset of the object index section, which maps ELF object symbols to
+entries in the data object section.  @xref{The symtypetab sections}.
+
+@item 0x20
+@tab @code{uint32_t cth_funcidxoff}
+@vindex cth_funcidxoff
+@vindex struct ctf_header, cth_funcidxoff
+@vindex ctf_header_t, cth_funcidxoff
+@tab The offset of the function info index section, which maps ELF function
+symbols to entries in the function info section. @xref{The symtypetab sections}.
+
+@item 0x24
+@tab @code{uint32_t cth_varoff}
+@vindex cth_varoff
+@vindex struct ctf_header, cth_varoff
+@vindex ctf_header_t, cth_varoff
+@tab The offset of the variable section, which maps string names to types.
+@xref{The variable section}.
+
+@item 0x28
+@tab @code{uint32_t cth_typeoff}
+@vindex cth_typeoff
+@vindex struct ctf_header, cth_typeoff
+@vindex ctf_header_t, cth_typeoff
+@tab The offset of the type section, the core of CTF, which describes types
+ using variable-length array elements. @xref{The type section}.
+
+@item 0x2c
+@tab @code{uint32_t cth_stroff}
+@vindex cth_stroff
+@vindex struct ctf_header, cth_stroff
+@vindex ctf_header_t, cth_stroff
+@tab The offset of the string section. @xref{The string section}.
+
+@item 0x30
+@tab @code{uint32_t cth_strlen}
+@vindex cth_strlen
+@vindex struct ctf_header, cth_strlen
+@vindex ctf_header_t, cth_strlen
+@tab The length of the string section (not an offset!).  The CTF file ends
+at this point.
+
+@end multitable
+
+Everything from this point on (until the end of the file at @code{cth_stroff} +
+@code{cth_strlen}) is compressed with zlib if @code{CTF_F_COMPRESS} is set in
+the preamble's @code{ctp_flags}.
+
+@node The type section
+@section The type section
+@cindex Type section
+@cindex Sections, type
+
+This section is the most important section in CTF, describing all the top-level
+types in the program.  It consists of an array of type structures, each of which
+describes a type of some @dfn{kind}: each kind of type has some amount of
+variable-length data associated with it (some kinds have none).  The amount of
+variable-length data associated with a given type can be determined by
+inspecting the type, so the reading code can walk through the types in sequence
+at opening time.
+
+Each type structure is one of a set of overlapping structures in a discriminated
+union of sorts: the variable-length data for each type immediately follows the
+type's type structure.  Here's the largest of the overlapping structures, which
+is only needed for huge types and so is very rarely seen:
+
+@verbatim
+typedef struct ctf_type
+{
+  uint32_t ctt_name;
+  uint32_t ctt_info;
+  __extension__
+  union
+  {
+    uint32_t ctt_size;
+    uint32_t ctt_type;
+  };
+  uint32_t ctt_lsizehi;
+  uint32_t ctt_lsizelo;
+} ctf_type_t;
+@end verbatim
+
+Here's the much more common smaller form:
+
+@verbatim
+typedef struct ctf_stype
+{
+  uint32_t ctt_name;
+  uint32_t ctt_info;
+  __extension__
+  union
+  {
+    uint32_t ctt_size;
+    uint32_t ctt_type;
+  };
+} ctf_type_t;
+@end verbatim
+
+If @code{ctt_size} is the #define @code{CTF_LSIZE_SENT}, 0xffffffff, this type
+is described by a @code{ctf_type_t}: otherwise, a @code{ctf_stype_t}.
+@tindex CTF_LSIZE_SENT
+
+Here's what the fields mean:
+
+@tindex struct ctf_type
+@tindex struct ctf_stype
+@tindex ctf_type_t
+@tindex ctf_stype_t
+@multitable {0x1c (@code{ctf_type_t}} {@code{uint32_t ctt_lsizehi}} {The size of this type, if this type is of a kind for}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{uint32_t ctt_name}
+@vindex ctt_name
+@tab Strtab offset of the type name, if any (0 if none).
+
+@item 0x04
+@tab @code{uint32_t ctt_info}
+@vindex ctt_info
+@vindex struct ctf_type, ctt_info
+@vindex ctf_type_t, ctt_info
+@vindex struct ctf_stype, ctt_info
+@vindex ctf_stype_t, ctt_info
+@tab The @dfn{info word}, containing information on the kind of this type, its
+variable-length data and whether it is visible to name lookup. See @xref{The
+info word}.
+
+@item 0x08
+@tab @code{uint32_t ctt_size}
+@vindex ctt_size
+@vindex struct ctf_type, ctt_size
+@vindex ctf_type_t, ctt_size
+@vindex struct ctf_stype, ctt_size
+@vindex ctf_stype_t, ctt_size
+@tab The size of this type, if this type is of a kind for which a size needs
+to be recorded (constant-size types don't need one).  If this is
+@code{CTF_LSIZE_SENT}, this type is a huge type described by @code{ctf_type_t}.
+
+@item 0x08
+@tab @code{uint32_t ctt_type}
+@vindex ctt_type
+@vindex struct ctf_stype, ctt_type
+@vindex ctf_stype_t, ctt_type
+@tab The type this type refers to, if this type is of a kind which refers to
+other types (like a pointer).  All such types are fixed-size, and no types that
+are variable-size refer to other types, so @code{ctt_size} and @code{ctt_type}
+overlap.  All type kinds that use @code{ctt_type} are described by
+@code{ctf_stype_t}, not @code{ctf_type_t}. @xref{Type indexes and type IDs}.
+
+@item 0x0c (@code{ctf_type_t} only)
+@tab @code{uint32_t ctt_lsizehi}
+@vindex ctt_lsizehi
+@vindex struct ctf_type, ctt_lsizehi
+@vindex ctf_type_t, ctt_lsizehi
+@tab The high 32 bits of the size of a very large type. The @code{CTF_TYPE_LSIZE} macro
+can be used to get a 64-bit size out of this field and the next one.
+@code{CTF_SIZE_TO_LSIZE_HI} splits the @code{ctt_lsizehi} out of it again.
+@findex CTF_TYPE_LSIZE
+@findex CTF_SIZE_TO_LSIZE_HI
+
+@item 0x10 (@code{ctf_type_t} only)
+@tab @code{uint32_t ctt_lsizelo}
+@vindex ctt_lsizelo
+@vindex struct ctf_type, ctt_lsizelo
+@vindex ctf_type_t, ctt_lsizelo
+@tab The low 32 bits of the size of a very large type.
+@code{CTF_SIZE_TO_LSIZE_LO} splits the @code{ctt_lsizelo} out of a 64-bit size.
+@findex CTF_SIZE_TO_LSIZE_LO
+@end multitable
+
+Two aspects of this need further explanation: the info word, and what exactly a
+type ID is and how you determine it.  (Information on the various type-kind-
+dependent things, like whether @code{ctt_size} or @code{ctt_type} is used,
+is described in the section devoted to each kind.)
+
+@node The info word
+@subsection The info word, ctt_info
+
+The info word is a bitfield split into three parts.  From MSB to LSB:
+
+@multitable {Bit offset} {@code{isroot}} {Length of variable-length data for this type (some kinds only).}
+@headitem Bit offset @tab Name @tab Description
+@item 26--31
+@tab @code{kind}
+@tab Type kind: @pxref{Type kinds}.
+
+@item 25
+@tab @code{isroot}
+@tab 1 if this type is visible to name lookup
+
+@item 0--24
+@tab @code{vlen}
+@tab Length of variable-length data for this type (some kinds only).
+The variable-length data directly follows the @code{ctf_type_t} or
+@code{ctf_stype_t}.  This is a kind-dependent array length value,
+not a length in bytes.  Some kinds have no variable-length data, or
+fixed-size variable-length data, and do not use this value.
+@end multitable
+
+The most mysterious of these is undoubtedly @code{isroot}.  This indicates
+whether types with names (nonzero @code{ctt_name}) are visible to name lookup:
+if zero, this type is considered a @dfn{non-root type} and you can't look it up
+by name at all.  Multiple types with the same name in the same C namespace
+(struct, union, enum, other) can exist in a single dictionary, but only one of
+them may have a nonzero value for @code{isroot}.  @code{libctf} validates this
+at open time and refuses to open dictionaries that violate this constraint.
+
+Historically, this feature was introduced for the encoding of bitfields
+(@pxref{Integer types}): for instance, int bitfields will all be named
+@code{int} with different widths or offsets, but only the full-width one at
+offset zero is wanted when you look up the type named @code{int}.  With the
+introduction of slices (@pxref{Slices}) as a more general bitfield encoding
+mechanism, this is less important, but we still use non-root types to handle
+conflicts if the linker API is used to fuse multiple translation units into one
+dictionary and those translation units contain types with the same name and
+conflicting definitions.  (We do not discuss this further here, because the
+linker never does this: only specialized type mergers do, like that used for the
+Linux kernel.  The libctf documentation will describe this in more detail.)
+@c XXX update when libctf docs are written.
+
+The @code{CTF_TYPE_INFO} macro can be used to compose an info word from
+a @code{kind}, @code{isroot}, and @code{vlen}; @code{CTF_V2_INFO_KIND},
+@code{CTF_V2_INFO_ISROOT} and @code{CTF_V2_INFO_VLEN} pick it apart again.
+@findex CTF_TYPE_INFO
+@findex CTF_V2_INFO_KIND
+@findex CTF_V2_INFO_ISROOT
+@findex CTF_V2_INFO_VLEN
+
+@node Type indexes and type IDs
+@subsection Type indexes and type IDs
+@cindex Type indexes
+@cindex Type IDs
+@cindex Type, IDs of
+@cindex Type, indexes of
+@cindex ctf_id_t
+
+@cindex Parent range
+@cindex Child range
+@cindex Type IDs, ranges
+Types are referred to within the CTF file via @dfn{type IDs}.  A type ID is a
+number from 0 to @math{2^32}, from a space divided in half.  Types @math{2^31-1}
+and below are in the @dfn{parent range}: these IDs are used for dictionaries
+that have not had any other dictionary @code{ctf_import}ed into it as a parent.
+Both completely standalone dictionaries and parent dictionaries with children
+hanging off them have types in this range.  Types @math{2^31} and above are in
+the @dfn{child range}: only types in child dictionaries are in this range.
+
+These IDs appear in @code{ctf_type_t.ctt_type} (@pxref{The type section}), but
+the types themselves have no visible ID: quite intentionally, because adding an
+ID uses space, and every ID is different so they don't compress well.  The IDs
+are implicit: at open time, the consumer walks through the entire type section
+and counts the types in the type section. The type section is an array of
+variable-length elements, so each entry could be considered as having an index,
+starting from 1. We count these indexes and associate each with its
+corresponding @code{ctf_type_t} or @code{ctf_stype_t}.
+
+Lookups of types with IDs in the parent space look in the parent dictionary if
+this dictionary has one associated with it; lookups of types with IDs in the
+child space error out if the dictionary does not have a parent, and otherwise
+convert the ID into an index by shaving off the top bit and look up the index
+in the child.
+
+These properties mean that the same dictionary can be used as a parent of child
+dictionaries and can also be used directly with no children at all, but a
+dictionary created as a child dictionary must always be associated with a parent
+--- usually, the same parent --- because its references to its own types have
+the high bit turned on and this is only flipped off again if this is a child
+dictionary.  (This is not a problem, because if you @emph{don't} associate the
+child with a parent, any references within it to its parent types will fail, and
+there are almost certain to be many such references, or why is it a child at
+all?)
+
+This does mean that consumers should keep a close eye on the distinction between
+type IDs and type indexes: if you mix them up, everything will appear to work as
+long as you're only using parent dictionaries or standalone dictionaries, but as
+soon as you start using children, everything will fail horribly.
+
+Type index zero, and type ID zero, are used to indicate that this type cannot be
+represented in CTF as currently constituted: they are emitted by the compiler,
+but all type chains that terminate in the unknown type are erased at link time
+(structure fields that use them just vanish, etc).  So you will probably never
+see a use of type zero outside the symtypetab sections, where they serve as
+sentinels of sorts, to indicate symbols with no associated type.
+
+The macros @code{CTF_V2_TYPE_TO_INDEX} and @code{CTF_V2_INDEX_TO_TYPE} may help
+in translation between types and indexes: @code{CTF_V2_TYPE_ISPARENT} and
+@code{CTF_V2_TYPE_ISCHILD} can be used to tell whether a given ID is in the
+parent or child range.
+@findex CTF_V2_TYPE_TO_INDEX
+@findex CTF_V2_INDEX_TO_TYPE
+@findex CTF_V2_TYPE_ISPARENT
+@findex CTF_V2_TYPE_ISCHILD
+
+It is quite possible and indeed common for type IDs to point forward in the
+dictionary, as well as backward.
+
+@node Type kinds
+@subsection Type kinds
+@cindex Type kinds
+@cindex Type, kinds of
+
+Every type in CTF is of some @dfn{kind}. Each kind is some variety of C type:
+all structures are a single kind, as are all unions, all pointers, all arrays,
+all integers regardless of their bitfield width, etc.  The kind of a type is
+given in the @code{kind} field of the @code{ctt_info} word (@pxref{The info
+word}).
+
+The space of type kinds is only a quarter full so far, so there is plenty of
+room for expansion.  It is likely that in future versions of the file format,
+types with smaller kinds will be more efficiently encoded than types with larger
+kinds, so their numerical value will actually start to matter in future. (So
+these IDs will probably change their numerical values in a later release of this
+format, to move more frequently-used kinds like structures and cv-quals towards
+the top of the space, and move rarely-used kinds like integers downwards. Yes,
+integers are rare: how many kinds of @code{int} are there in a program? They're
+just very frequently @emph{referenced}.)
+
+Here's the set of kinds so far.  Each kind has a @code{#define} associated with
+it, also given here.
+
+@multitable {Kind} {@code{CTF_K_VOLATILE}} {Indicates a type that cannot be represented in CTF, or that} {@xref{Pointers typedefs and cvr-quals}}
+@headitem Kind @tab Macro @tab Purpose
+@item 0
+@tab @code{CTF_K_UNKNOWN}
+@tab Indicates a type that cannot be represented in CTF, or that is being skipped.
+It is very similar to type ID 0, except that you can have @emph{multiple}, distinct types
+of kind @code{CTF_K_UNKNOWN}.
+@tindex CTF_K_UNKNOWN
+
+@item 1
+@tab @code{CTF_K_INTEGER}
+@tab An integer type. @xref{Integer types}.
+
+@item 2
+@tab @code{CTF_K_FLOAT}
+@tab A floating-point type. @xref{Floating-point types}.
+
+@item 3
+@tab @code{CTF_K_POINTER}
+@tab A pointer. @xref{Pointers typedefs and cvr-quals}.
+
+@item 4
+@tab @code{CTF_K_ARRAY}
+@tab An array. @xref{Arrays}.
+
+@item 5
+@tab @code{CTF_K_FUNCTION}
+@tab A function pointer. @xref{Function pointers}.
+
+@item 6
+@tab @code{CTF_K_STRUCT}
+@tab A structure. @xref{Structs and unions}.
+
+@item 7
+@tab @code{CTF_K_UNION}
+@tab A union. @xref{Structs and unions}.
+
+@item 8
+@tab @code{CTF_K_ENUM}
+@tab An enumerated type. @xref{Enums}.
+
+@item 9
+@tab @code{CTF_K_FORWARD}
+@tab A forward. @xref{Forward declarations}.
+
+@item 10
+@tab @code{CTF_K_TYPEDEF}
+@tab A typedef. @xref{Pointers typedefs and cvr-quals}.
+
+@item 11
+@tab @code{CTF_K_VOLATILE}
+@tab A volatile-qualified type. @xref{Pointers typedefs and cvr-quals}.
+
+@item 12
+@tab @code{CTF_K_CONST}
+@tab A const-qualified type. @xref{Pointers typedefs and cvr-quals}.
+
+@item 13
+@tab @code{CTF_K_RESTRICT}
+@tab A restrict-qualified type. @xref{Pointers typedefs and cvr-quals}.
+
+@item 14
+@tab @code{CTF_K_SLICE}
+@tab A slice, a change of the bit-width or offset of some other type. @xref{Slices}.
+@end multitable
+
+Now we cover all type kinds in turn. Some are more complicated than others.
+
+@node Integer types
+@subsection Integer types
+@cindex Integer types
+@cindex Types, integer
+@tindex int
+@tindex long
+@tindex long long
+@tindex short
+@tindex char
+@tindex bool
+@tindex unsigned int
+@tindex unsigned long
+@tindex unsigned long long
+@tindex unsigned short
+@tindex unsigned char
+@tindex signed int
+@tindex signed long
+@tindex signed long long
+@tindex signed short
+@tindex signed char
+@cindex CTF_K_INTEGER
+
+Integral types are all represented as types of kind @code{CTF_K_INTEGER}.  These
+types fill out @code{ctt_size} in the @code{ctf_stype_t} with the size in bytes
+of the integral type in question.  They are always represented by
+@code{ctf_stype_t}, never @code{ctf_type_t}. Their variable-length data is one
+@code{uint32_t} in length: @code{vlen} in the info word should be disregarded
+and is always zero.
+
+The variable-length data for integers has multiple items packed into it much
+like the info word does.
+
+@multitable {Bit offset} {Encoding} {The integer encoding and desired display representation.}
+@headitem Bit offset @tab Name @tab Description
+@item 24--31
+@tab Encoding
+@tab The desired display representation of this integer. You can extract this
+field with the @code{CTF_INT_ENCODING} macro.  See below.
+@findex CTF_INT_ENCODING
+
+@item 16--23
+@tab Offset
+@tab The offset of this integral type in bits from the start of its enclosing
+structure field, adjusted for endianness: @pxref{Structs and unions}.  You can
+extract this field with the @code{CTF_INT_OFFSET} macro.
+@findex CTF_INT_OFFSET
+
+@item 0--15
+@tab Bit-width
+@tab The width of this integral type in bits.  You can extract this field with
+the @code{CTF_INT_BITS} macro.
+@findex CTF_INT_BITS
+@end multitable
+
+If you choose, bitfields can be represented using the things above as a sort of
+integral type with the @code{isroot} bit flipped off and the offset and bits
+values set in the vlen word: you can populate it with the @code{CTF_INT_DATA}
+macro.  (But it may be more convenient to represent them using slices of a
+full-width integer: @pxref{Slices}.)
+@findex CTF_INT_DATA
+
+Integers that are bitfields usually have a @code{ctt_size} rounded up to the
+nearest power of two in bytes, for natural alignment (e.g. a 17-bit integer
+would have a @code{ctt_size} of 4).  However, not all types are naturally
+aligned on all architectures: packed structures may in theory use integral
+bitfields with different @code{ctt_size}, though this is rarely observed.
+
+The @dfn{encoding} for integers is a bit-field comprised of the values below,
+which consumers can use to decide how to display values of this type:
+
+@multitable {Offset} {@code{CTF_INT_VARARGS}} {If set, this is a char type.  It is platform-dependent whether unadorned}
+@headitem Offset @tab Name @tab Description
+@item 0x01
+@tab @code{CTF_INT_SIGNED}
+@tab If set, this is a signed int: if false, unsigned.
+@tindex CTF_INT_SIGNED
+
+@item 0x02
+@tab @code{CTF_INT_CHAR}
+@tab If set, this is a char type.  It is platform-dependent whether unadorned
+@code{char} is signed or not: the @code{CTF_CHAR} macro produces an integral
+type suitable for the definition of @code{char} on this platform.
+@tindex CTF_INT_CHAR
+@findex CTF_CHAR
+
+@item 0x04
+@tab @code{CTF_INT_BOOL}
+@tab If set, this is a boolean type.  (It is theoretically possible to turn this
+and @code{CTF_INT_CHAR} on at the same time, but it is not clear what this would
+mean.)
+@tindex CTF_INT_BOOL
+
+@item 0x08
+@tab @code{CTF_INT_VARARGS}
+@tab If set, this is a varargs-promoted value in a K&R function definition.
+This is not currently produced or consumed by anything that we know of: it is set
+aside for future use.
+@end multitable
+
+The GCC ``@code{Complex int}'' and fixed-point extensions are not yet supported:
+references to such types will be emitted as type 0.
+
+@node Floating-point types
+@subsection Floating-point types
+@cindex Floating-point types
+@cindex Types, floating-point
+@tindex float
+@tindex double
+@tindex signed float
+@tindex signed double
+@tindex unsigned float
+@tindex unsigned double
+@tindex Complex, float
+@tindex Complex, double
+@tindex Complex, signed float
+@tindex Complex, signed double
+@tindex Complex, unsigned float
+@tindex Complex, unsigned double
+@cindex CTF_K_FLOAT
+
+Floating-point types are all represented as types of kind @code{CTF_K_FLOAT}.
+Like integers, These types fill out @code{ctt_size} in the @code{ctf_stype_t}
+with the size in bytes of the floating-point type in question.  They are always
+represented by @code{ctf_stype_t}, never @code{ctf_type_t}.
+
+This part of CTF shows many rough edges in the more obscure corners of
+floating-point handling, and is likely to change in format v4.
+
+The variable-length data for floats has multiple items packed into it just like
+integers do:
+
+@multitable {Bit offset} {Encoding} {The floating-;point encoding and desired display representation.}
+@headitem Bit offset @tab Name @tab Description
+@item 24--31
+@tab Encoding
+@tab The desired display representation of this float. You can extract this
+field with the @code{CTF_FP_ENCODING} macro.  See below.
+@findex CTF_FP_ENCODING
+
+@item 16--23
+@tab Offset
+@tab The offset of this floating-point type in bits from the start of its enclosing
+structure field, adjusted for endianness: @pxref{Structs and unions}.  You can
+extract this field with the @code{CTF_FP_OFFSET} macro.
+@findex CTF_FP_OFFSET
+
+@item 0--15
+@tab Bit-width
+@tab The width of this floating-point type in bits.  You can extract this field with
+the @code{CTF_FP_BITS} macro.
+@findex CTF_FP_BITS
+@end multitable
+
+The purpose of the floating-point offset and bit-width is somewhat opaque, since
+there are no such things as floating-point bitfields in C: the bit-width should
+be filled out with the full width of the type in bits, and the offset should
+always be zero.  It is likely that these fields will go away in the future.  As
+with integers, you can use @code{CTF_FP_DATA} to assemble one of these vlen
+items from its component parts.
+@findex CTF_INT_DATA
+
+The @dfn{encoding} for floats is not a bitfield but a simple value indicating
+the display representation.  Many of these are unused, relate to
+Solaris-specific compiler extensions, and will be recycled in future: some are
+unused and will become used in future.
+
+@multitable {Offset} {@code{CTF_FP_LDIMAGRY}} {This is a @code{float} interval type, a Solaris-specific extension.}
+@headitem Offset @tab Name @tab Description
+@item 1
+@tab @code{CTF_FP_SINGLE}
+@tab This is a single-precision IEEE 754 @code{float}.
+@tindex CTF_FP_SINGLE
+@item 2
+@tab @code{CTF_FP_DOUBLE}
+@tab This is a double-precision IEEE 754 @code{double}.
+@tindex CTF_FP_DOUBLE
+@item 3
+@tab @code{CTF_FP_CPLX}
+@tab This is a @code{Complex float}.
+@tindex CTF_FP_CPLX
+@item 4
+@tab @code{CTF_FP_DCPLX}
+@tab This is a @code{Complex double}.
+@tindex CTF_FP_DCPLX
+@item 5
+@tab @code{CTF_FP_LDCPLX}
+@tab This is a @code{Complex long double}.
+@tindex CTF_FP_LDCPLX
+@item 6
+@tab @code{CTF_FP_LDOUBLE}
+@tab This is a @code{long double}.
+@tindex CTF_FP_LDOUBLE
+@item 7
+@tab @code{CTF_FP_INTRVL}
+@tab This is a @code{float} interval type, a Solaris-specific extension.
+Unused: will be recycled.
+@tindex CTF_FP_INTRVL
+@cindex Unused bits
+@item 8
+@tab @code{CTF_FP_DINTRVL}
+@tab This is a @code{double} interval type, a Solaris-specific extension.
+Unused: will be recycled.
+@tindex CTF_FP_DINTRVL
+@cindex Unused bits
+@item 9
+@tab @code{CTF_FP_LDINTRVL}
+@tab This is a @code{long double} interval type, a Solaris-specific extension.
+Unused: will be recycled.
+@tindex CTF_FP_LDINTRVL
+@cindex Unused bits
+@item 10
+@tab @code{CTF_FP_IMAGRY}
+@tab This is a the imaginary part of a @code{Complex float}. Not currently
+generated. May change.
+@tindex CTF_FP_IMAGRY
+@cindex Unused bits
+@item 11
+@tab @code{CTF_FP_DIMAGRY}
+@tab This is a the imaginary part of a @code{Complex double}. Not currently
+generated. May change.
+@tindex CTF_FP_DIMAGRY
+@cindex Unused bits
+@item 12
+@tab @code{CTF_FP_LDIMAGRY}
+@tab This is a the imaginary part of a @code{Complex long double}. Not currently
+generated. May change.
+@tindex CTF_FP_LDIMAGRY
+@cindex Unused bits
+@end multitable
+
+The use of the complex floating-point encodings is obscure: it is possible that
+@code{CTF_FP_CPLX} is meant to be used for only the real part of complex types,
+and @code{CTF_FP_IMAGRY} et al for the imaginary part -- but for now, we are
+emitting @code{CTF_FP_CPLX} to cover the entire type, with no way to get at its
+constituent parts. There appear to be no uses of these encodings anywhere, so
+they are quite likely to change incompatibly in future.
+
+@node Slices
+@subsection Slices
+@cindex Slices
+@cindex Types, slices of integral
+@tindex CTF_K_SLICE
+
+Slices, with kind @code{CTF_K_SLICE}, are an unusual CTF construct: they do not
+directly correspond to any C type, but are a way to model other types in a more
+convenient fashion for CTF generators.
+
+A slice is like a pointer or other reference type in that they are always
+represented by @code{ctf_stype_t}: but unlike pointers and other reference
+types, they populate the @code{ctt_size} field just like integral types do, and
+come with an attached encoding and transform the encoding of the underlying
+type.  The underlying type is described in the variable-length data, similarly
+to structure and union fields: see below.  Requests for the type size should
+also chase down to the referenced type.
+
+Slices are always nameless: @code{ctt_name} is always zero for them.
+
+(The @code{libctf} API behaviour is unusual as well, and justifies the existence
+of slices: @code{ctf_type_kind} never returns @code{CTF_K_SLICE} but always the
+underlying type kind, so that consumers never need to know about slices: they
+can tell if an apparent integer is actually a slice if they need to by calling
+@code{ctf_type_reference}, which will uniquely return the underlying integral
+type rather than erroring out with @code{ECTF_NOTREF} if this is actually a
+slice. So slices act just like an integer with an encoding, but more closely
+mirror DWARF and other debugging information formats by allowing CTF file
+creators to represent a bitfield as a slice of an underlying integral type.)
+@findex Slices, effect on ctf_type_kind
+@findex Slices, effect on ctf_type_reference
+@findex libctf, effect of slices
+
+The vlen in the info word for a slice should be ignored and is always zero. The
+variable-length data for a slice is a single @code{ctf_slice_t}:
+
+@verbatim
+typedef struct ctf_slice
+{
+  uint32_t cts_type;
+  unsigned short cts_offset;
+  unsigned short cts_bits;
+} ctf_slice_t;
+@end verbatim
+
+@tindex struct ctf_slice
+@tindex ctf_slice_t
+@multitable {Offset} {@code{unsigned short cts_offset}} {The type this slice is a slice of.  Must be an}
+@headitem Offset @tab Name @tab Description
+@item 0x0
+@tab @code{uint32_t cts_type}
+@vindex cts_type
+@vindex struct ctf_slice, cts_type
+@vindex ctf_slice_t, cts_type
+@tab The type this slice is a slice of.  Must be an integral type (or a
+floating-point type, but this nonsensical option will go away in v4.)
+
+@item 0x4
+@tab @code{unsigned short cts_offset}
+@vindex cts_offset
+@vindex struct ctf_slice, cts_offset
+@vindex ctf_slice_t, cts_offset
+@tab The offset of this integral type in bits from the start of its enclosing
+structure field, adjusted for endianness: @pxref{Structs and unions}. Identical
+semantics to the @code{CTF_INT_OFFSET} field: @pxref{Integer types}.  This field
+is much too long, because the maximum possible offset of an integral type would
+easily fit in a char: this field is bigger just for the sake of alignment.  This
+will change in v4.
+
+@item 0x6
+@tab @code{unsigned short cts_bits}
+@vindex cts_bits
+@vindex struct ctf_slice, cts_bits
+@vindex ctf_slice_t, cts_bits
+@tab The bit-width of this integral type. Identical semantics to the
+@code{CTF_INT_BITS} field: @pxref{Integer types}.  As above, this field is
+really too large and will shrink in v4.
+@end multitable
+
+@node Pointers typedefs and cvr-quals
+@subsection Pointers, typedefs, and cvr-quals
+@cindex Pointers
+@cindex Typedefs
+@cindex cvr-quals
+@tindex typedef
+@tindex const
+@tindex volatile
+@tindex restrict
+@tindex CTF_K_POINTER
+@tindex CTF_K_TYPEDEF
+@tindex CTF_K_CONST
+@tindex CTF_K_VOLATILE
+@tindex CTF_K_RESTRICT
+
+Pointers, @code{typedef}s, and @code{const}, @code{volatile} and @code{restrict}
+qualifiers are represented identically except for their type kind (though they
+may be treated differently by consuming libraries like @code{libctf}, since
+pointers affect assignment-compatibility in ways cvr-quals do not, and they may
+have different alignment requirements, etc).
+
+All of these are represented by @code{ctf_stype_t}, have no variable data at
+all, and populate @code{ctt_type} with the type ID of the type they point
+to. These types can stack: a @code{CTF_K_RESTRICT} can point to a
+@code{CTF_K_CONST} which can point to a @code{CTF_K_POINTER} etc.
+
+They are all unnamed: @code{ctt_name} is 0.
+
+The size of @code{CTF_K_POINTER} is derived from the data model (@pxref{Data
+models}), i.e. in practice, from the target machine ABI, and is not explicitly
+represented.  The size of other kinds in this set should be determined by
+chasing ctf_types as necessary until a non-typedef/const/volatile/restrict is
+found, and using that.
+
+@node Arrays
+@subsection Arrays
+@cindex Arrays
+
+Arrays are encoded as types of kind @code{CTF_K_ARRAY} in a @code{ctf_stype_t}.
+Both size and kind for arrays are zero.  The variable-length data is a
+@code{ctf_array_t}: @code{vlen} in the info word should be disregarded and is
+always zero.
+
+@verbatim
+typedef struct ctf_array
+{
+  uint32_t cta_contents;
+  uint32_t cta_index;
+  uint32_t cta_nelems;
+} ctf_array_t;
+@end verbatim
+
+@tindex struct ctf_array
+@tindex ctf_array_t
+@multitable {Offset} {@code{unsigned short cta_contents}} {The type of the array index: a type ID of an}
+@headitem Offset @tab Name @tab Description
+@item 0x0
+@tab @code{uint32_t cta_contents}
+@vindex cta_contents
+@vindex struct ctf_array, cta_contents
+@vindex ctf_array_t, cta_contents
+@tab The type of the array elements: a type ID.
+
+@item 0x4
+@tab @code{uint32_t cta_index}
+@vindex cta_index
+@vindex struct ctf_array, cta_index
+@vindex ctf_array_t, cta_index
+@tab The type of the array index: a type ID of an integral type.
+If this is a variable-length array, the index type ID will be 0
+(but the actual index type of this array is probably @code{int}).
+Probably redundant and may be dropped in v4.
+
+@item 0x8
+@tab @code{uint32_t cta_nelems}
+@vindex cta_nelems
+@vindex struct ctf_array, cta_nelems
+@vindex ctf_array_t, cta_nelems
+@tab The number of array elements.  0 for VLAs, and also for
+the historical variety of VLA which has explicit zero dimensions (which will
+have a nonzero @code{cta_index}.)
+@end multitable
+
+The size of an array can be computed by simple multiplication of the size of the
+@code{cta_contents} type by the @code{cta_nelems}.
+
+@node Function pointers
+@subsection Function pointers
+@cindex Function pointers
+@cindex Pointers, to functions
+
+Function pointers are explicitly represented in the CTF type section by a type
+of kind @code{CTF_K_FUNCTION}, always encoded with a @code{ctf_stype_t}.  The
+@code{ctt_type} is the function return type ID.  The @code{vlen} in the info
+word is the number of arguments, each of which is a type ID, a @code{uint32_t}:
+if the last argument is 0, this is a varargs function and the number of
+arguments is one less than indicated by the vlen.
+
+If the number of arguments is odd, a single @code{uint32_t} of padding is
+inserted to maintain alignment.
+
+@node Enums
+@subsection Enums
+@cindex Enums
+@tindex enum
+@tindex CTF_K_ENUM
+
+Enumerated types are represented as types of kind @code{CTF_K_ENUM} in a
+@code{ctf_stype_t}.  The @code{ctt_size} is always the size of an int from the
+data model (enum bitfields are implemented via slices).  The @code{vlen} is a
+count of enumerations, each of which is represented by a @code{ctf_enum_t} in
+the vlen:
+
+@verbatim
+typedef struct ctf_enum
+{
+  uint32_t cte_name;
+  int32_t cte_value;
+} ctf_enum_t;
+@end verbatim
+
+@tindex struct ctf_enum
+@tindex ctf_enum_t
+@multitable {Offset} {@code{int32_t cte_value}} {Strtab offset of the enumeration name.}
+@headitem Offset @tab Name @tab Description
+@item 0x0
+@tab @code{uint32_t cte_name}
+@vindex cte_name
+@vindex struct ctf_enum, cte_name
+@vindex ctf_enum_t, cte_name
+@tab Strtab offset of the enumeration name.  Must not be 0.
+
+@item 0x4
+@tab @code{int32_t cte_value}
+@vindex cte_value
+@vindex struct ctf_enum, cte_value
+@vindex ctf_enum_t, cte_value
+@tab The enumeration value.
+
+@end multitable
+
+Enumeration values larger than @math{2^32} are not yet supported and are omitted
+from the enumeration.  (v4 will lift this restriction by encoding the value
+differently.)
+
+Forward declarations of enums are not implemented with this kind: @pxref{Forward
+declarations}.
+
+Enumerated type names, as usual in C, go into their own namespace, and do not
+conflict with non-enums, structs, or unions with the same name.
+
+@node Structs and unions
+@subsection Structs and unions
+@cindex Structures
+@cindex Unions
+@tindex struct
+@tindex union
+@tindex CTF_K_STRUCT
+@tindex CTF_K_UNION
+
+Structures and unions are represnted as types of kind @code{CTF_K_STRUCT} and
+@code{CTF_K_UNION}: their representation is otherwise identical, and it is
+perfectly allowed for ``structs'' to contain overlapping fields etc, so we will
+treat them together for the rest of this section.
+
+They fill out @code{ctt_size}, and use @code{ctf_type_t} in preference to
+@code{ctf_stype_t} if the structure size is greater than @code{CTF_MAX_SIZE}
+(0xfffffffe).
+@tindex CTF_MAX_LSIZE
+
+The vlen for structures and unions is a count of structure fields, but the type
+used to represent a structure field (and thus the size of the variable-length
+array element representing the type) depends on the size of the structure: truly
+huge structures, greater than @code{CTF_LSTRUCT_THRESH} bytes in length, use a
+different type.  (@code{CTF_LSTRUCT_THRESH} is 536870912, so such structures are
+vanishingly rare: in v4, this representation will change somewhat for greater
+compactness. It's inherited from v1, where the limits were much lower.)
+@tindex CTF_LSTRUCT_THRESH
+
+Most structures can get away with using @code{ctf_member_t}:
+
+@verbatim
+typedef struct ctf_member_v2
+{
+  uint32_t ctm_name;
+  uint32_t ctm_offset;
+  uint32_t ctm_type;
+} ctf_member_t;
+@end verbatim
+
+Huge structures that are represented by @code{ctf_type_t} rather than
+@code{ctf_stype_t} have to use @code{ctf_lmember_t}, which splits the offset as
+@code{ctf_type_t} splits the size:
+
+@verbatim
+typedef struct ctf_lmember_v2
+{
+  uint32_t ctlm_name;
+  uint32_t ctlm_offsethi;
+  uint32_t ctlm_type;
+  uint32_t ctlm_offsetlo;
+} ctf_lmember_t;
+@end verbatim
+
+Here's what the fields of @code{ctf_member} mean:
+
+@tindex struct ctf_member_v2
+@tindex ctf_member_t
+@multitable {Offset} {@code{uint32_t ctm_offset}} {The offset of this field @emph{in bits}.  (Usually, for bitfields, this is}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{uint32_t ctm_name}
+@vindex ctm_name
+@vindex struct ctf_member_v2, ctm_name
+@vindex ctf_member_t, ctm_name
+@tab Strtab offset of the field name.
+
+@item 0x04
+@tab @code{uint32_t ctm_offset}
+@vindex ctm_offset
+@vindex struct ctf_member_v2, ctm_offset
+@vindex ctf_member_t, ctm_offset
+@tab The offset of this field @emph{in bits}.  (Usually, for bitfields, this is
+machine-word-aligned and the individual field has an offset in bits, but
+the format allows for the offset to be encoded in bits here.)
+
+@item 0x08
+@tab @code{uint32_t ctm_type}
+@vindex ctm_type
+@vindex struct ctf_member_v2, ctm_type
+@vindex ctf_member_t, ctm_type
+@tab The type ID of the type of the field.
+@end multitable
+
+Here's what the fields of the very similar @code{ctf_lmember} mean:
+
+@tindex struct ctf_lmember_v2
+@tindex ctf_lmember_t
+@multitable {Offset} {@code{uint32_t ctlm_offsethi}} {The offset of this field @emph{in bits}.  (Usually, for bitfields, this is}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{uint32_t ctlm_name}
+@vindex ctlm_name
+@vindex struct ctf_lmember_v2, ctlm_name
+@vindex ctf_lmember_t, ctlm_name
+@tab Strtab offset of the field name.
+
+@item 0x04
+@tab @code{uint32_t ctlm_offsethi}
+@vindex ctlm_offsethi
+@vindex struct ctf_lmember_v2, ctlm_offsethi
+@vindex ctf_lmember_t, ctlm_offsethi
+@tab The high 32 bits of the offset of this field in bits.
+
+@item 0x08
+@tab @code{uint32_t ctlm_type}
+@vindex ctm_type
+@vindex struct ctf_lmember_v2, ctlm_type
+@vindex ctf_member_t, ctlm_type
+@tab The type ID of the type of the field.
+
+@item 0x0c
+@tab @code{uint32_t ctlm_offsetlo}
+@vindex ctlm_offsetlo
+@vindex struct ctf_lmember_v2, ctlm_offsetlo
+@vindex ctf_lmember_t, ctlm_offsetlo
+@tab The low 32 bits of the offset of this field in bits.
+@end multitable
+
+Macros @code{CTF_LMEM_OFFSET}, @code{CTF_OFFSET_TO_LMEMHI} and
+@code{CTF_OFFSET_TO_LMEMLO} serve to extract and install the values of the
+@code{ctlm_offset} fields, much as with the split size fields in
+@code{ctf_type_t}.
+
+Unnamed structure and union fields are simply implemented by collapsing the
+unnamed field's members into the containing structure or union: this does mean
+that a structure containing an unnamed union can end up being a ``structure''
+with multiple members at the same offset.  (A future format revision may
+collapse @code{CTF_K_STRUCT} and @code{CTF_K_UNION} into the same kind and
+decide among them based on whether their members do in fact overlap.)
+
+Structure and union type names, as usual in C, go into their own namespace,
+just as enum type names do.
+
+Forward declarations of structures and unions are not implemented with this
+kind: @pxref{Forward declarations}.
+
+@node Forward declarations
+@subsection Forward declarations
+@cindex Forwards
+@tindex enum
+@tindex struct
+@tindex union
+@tindex CTF_K_FORWARD
+
+When the compiler encounters a forward declaration of a struct, union, or enum,
+it emits a type of kind @code{CTF_K_FORWARD}.  If it later encounters a non-
+forward declaration of the same thing, it marks the forward as non-root-visible:
+before link time, therefore, non-root-visible forwards indicate that a
+non-forward is coming.
+
+After link time, forwards are fused with their corresponding non-forwards by the
+deduplicator where possible.  They are kept if there is no non-forward
+definition (maybe it's not visible from any TU at all) or if @code{multiple}
+conflicting structures with the same name might match it.  Otherwise, all other
+forwards are converted to structures, unions, or enums as appropriate, even
+across TUs if only one structure could correspond to the forward (after all,
+all types across all TUs land in the same dictionary unless they conflict,
+so promoting forwards to their concrete type seems most helpful).
+
+A forward has a rather strange representation: it is encoded with a
+@code{ctf_stype_t} but the @code{ctt_type} is populated not with a type (if it's
+a forward, we don't have an underlying type yet: if we did, we'd have promoted
+it and this wouldn't be a forward any more) but with the @code{kind} of the
+forward.  This means that we can distinguish forwards to structs, enums and
+unions reliably and ensure they land in the appropriate namespace even before
+the actual struct, union or enum is found.
+
+@node The symtypetab sections
+@section The symtypetab sections
+@cindex Symtypetab section
+@cindex Sections, symtypetab
+@cindex Function info section
+@cindex Sections, function info
+@cindex Data object section
+@cindex Sections, data object
+@cindex Function info index section
+@cindex Sections, function info index
+@cindex Data object index section
+@cindex Sections, data object index
+@tindex CTF_F_IDXSORTED
+@tindex CTF_F_DYNSTR
+@cindex Bug workarounds, CTF_F_DYNSTR
+
+These are two very simple sections with identical formats, used by consumers to
+map from ELF function and data symbols directly to their types. So they are
+usually populated only in CTF sections that are embedded in ELF objects.
+
+Their format is very simple: an array of type IDs. Which symbol each type ID
+corresponds to depends on whether the optional @emph{index section} associated
+with this symtypetab section has any content.
+
+If the index section is nonempty, it is an array of @code{uint32_t} string table
+offsets, each giving the name of the symbol whose type is at the same offset in
+the corresponding non-index section: users can look up symbols in such a table
+by name.  The index section and corresponding symtypetab section is usually
+ASCIIbetically sorted (indicated by the @code{CTF_F_IDXSORTED} flag in the
+header): if it's sorted, it can be bsearched for a symbol name rather than
+having to use a slower linear search.
+
+If the data object index section is empty, the entries in the data object and
+function info sections are associated 1:1 with ELF symbols of type
+@code{STT_OBJECT} (for data object) or @code{STT_FUNC} (for function info) with
+a nonzero value: the linker shuffles the symtypetab sections to correspond with
+the order of the symbols in the ELF file.  Symbols with no name, undefined
+symbols and symbols named ``@code{_START_}'' and ``@code{_END_}'' are skipped
+and never appear in either section.  Symbols that have no corresponding type are
+represented by type ID 0. The section may have fewer entries than the symbol
+table, in which case no later entries have associated types.  This format is
+more compact than an indexed form if most entries have types (since there is no
+need to record any symbol names), but if the producer and consumer disagree even
+slightly about which symbols are omitted, the types of all further symbols will
+be wrong!
+
+The compiler always emits indexed symtypetab tables, because there is no symbol
+table yet. The linker will always have to read them all in and always works
+through them from start to end, so there is no benefit having the compiler sort
+them either. The linker (actually, @code{libctf}'s linking machinery) will
+automatically sort unsorted indexed sections, and convert indexed sections that
+contain a lot of pads into the more compact, unindexed form.
+
+If child dicts are in use, only symbols that use types actually mentioned in the
+child appear in the child's symtypetab: symbols that use only types in the
+parent appear in the parent's symtypetab instead. So the child's symtypetab will
+almost always be very sparse, and thus will usually use the indexed form even in
+fully linked objects. (It is, of course, impossible for symbols to exist that
+use types from multiple child dicts at once, since it's impossible to declare a
+function in C that uses types that are only visible in two different, disjoint
+translation units.)
+
+@node The variable section
+@section The variable section
+@cindex Variable section
+@cindex Sections, variable
+
+The variable section is a simple array mapping names (strtab entries) to type
+IDs, intended to provide a replacement for the data object section in dynamic
+situations in which there is no static ELF strtab but the consumer instead hands
+back names.  The section is sorted into ASCIIbetical order by name for rapid
+lookup, like the CTF archive name table.
+
+The section is an array of these structures:
+
+@verbatim
+typedef struct ctf_varent
+{
+  uint32_t ctv_name;
+  uint32_t ctv_type;
+} ctf_varent_t;
+@end verbatim
+
+@tindex struct ctf_varent
+@tindex ctf_varent_t
+@multitable {Offset} {@code{uint32_t ctv_name}} {Strtab offset of the name}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{uint32_t ctv_name}
+@vindex ctv_name
+@vindex struct ctf_varent, ctv_name
+@vindex ctf_varent_t, ctv_name
+@tab Strtab offset of the name
+
+@item 0x04
+@tab @code{uint32_t ctv_type}
+@vindex ctv_type
+@vindex struct ctf_varent, ctv_type
+@vindex ctf_varent_t, ctv_type
+@tab Type ID of this type
+@end multitable
+
+There is no analogue of the function info section yet: v4 will probably drop
+this section in favour of a way to put both indexed (thus, named) and nonindexed
+symbols into the symtypetab sections at the same time.
+
+@node The label section
+@section The label section
+@cindex Label section
+@cindex Sections, label
+
+The label section is a currently-unused facility allowing the tiling of the type
+space with names taken from the strtab.  The section is an array of these
+structures:
+
+@verbatim
+typedef struct ctf_lblent
+{
+  uint32_t ctl_label;
+  uint32_t ctl_type;
+} ctf_lblent_t;
+@end verbatim
+
+@tindex struct ctf_lblent
+@tindex ctf_lblent_t
+@multitable {Offset} {@code{uint32_t ctl_label}} {Strtab offset of the label}
+@headitem Offset @tab Name @tab Description
+@item 0x00
+@tab @code{uint32_t ctl_label}
+@vindex ctl_label
+@vindex struct ctf_lblent, ctl_label
+@vindex ctf_lblent_t, ctl_label
+@tab Strtab offset of the label
+
+@item 0x04
+@tab @code{uint32_t ctl_type}
+@vindex ctl_type
+@vindex struct ctf_lblent, ctl_type
+@vindex ctf_lblent_t, ctl_type
+@tab Type ID of the last type covered by this label
+@end multitable
+
+Semantics will be attached to labels soon, probably in v4 (the plan is to use
+them to allow multiple disjoint namespaces in a single CTF file, removing many
+uses of CTF archives, in particular in the @code{.ctf} section in ELF objects).
+
+@node The string section
+@section The string section
+@cindex String section
+@cindex Sections, string
+
+This section is a simple ELF-format strtab, starting with a zero byte (thus
+ensuring that the string with offset 0 is the null string, as assumed elsewhere
+in this spec).  The strtab is usually ASCIIbetically sorted to somewhat improve
+compression efficiency.
+
+Where the strtab is unusual is the @emph{references} to it.  CTF has two
+string tables, the internal strtab and an external strtab associated
+with the CTF dictionary at open time: usually, this is the ELF dynamic
+strtab (@code{.dynstr}) of a CTF dictionary embedded in an ELF file.  We
+distinguish between these strtabs by the most significant bit, bit 31,
+of the 32-bit strtab references: if it is 0, the offset is in the
+internal strtab: if 1, the offset is in the external strtab.
+
+@tindex CTF_F_DYNSTR
+@cindex Bug workarounds, CTF_F_DYNSTR
+There is a bug workaround in this area: in format v3 (the first version
+to have working support for external strtabs), the external strtab is
+@code{.strtab} unless the @code{CTF_F_DYNSTR} flag is set on the
+dictionary (@pxref{CTF file-wide flags}).  Format v4 will introduce a
+header field that explicitly names the external strtab, making this flag
+unnecessary.
+
+@node Data models
+@section Data models
+@cindex Data models
+
+The data model is a simple integer which indicates the ABI in use on this
+platform. Right now, it is very simple, distinguishing only between 32- and
+64-bit types: a model of 1 indicates ILP32, 2 indicats LP64. The mapping from
+ABI integer to type sizes is hardwired into @code{libctf}: currently, we use
+this to hardwire the size of pointers, function pointers, and enumerated types,
+
+This is a very kludgy corner of CTF and will probably be replaced with explicit
+header fields to record this sort of thing in future.
+
+@node Limits of CTF
+@section Limits of CTF
+@cindex Limits
+
+The following limits are imposed by various aspects of CTF version 3:
+
+@table @code
+@item CTF_MAX_TYPE
+Maximum type identifier (maximum number of types accessible with parent and
+child containers in use): 0xfffffffe
+@item CTF_MAX_PTYPE
+Maximum type identifier in a parent dictioanry: maximum number of types in any
+one dictionary: 0x7fffffff
+@item CTF_MAX_NAME
+Maximum offset into a string table: 0x7fffffff
+@item CTF_MAX_VLEN
+Maximum number of members in a struct, union, or enum: maximum number of
+function args: 0xffffff
+@item CTF_MAX_SIZE
+Maximum size of a @code{ctf_stype_t} in bytes before we fall back to
+@code{ctf_type_t}: 0xfffffffe bytes
+@end table
+
+Other maxima without associated macros:
+@itemize
+@item
+Maximum value of an enumerated type: 2^32
+@item
+Maximum size of an array element: 2^32
+@end itemize
+
+These maxima are generally considered to be too low, because C programs can and
+do exceed them: they will be lifted in format v4.
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@bye

@@ -1,6 +1,5 @@
 # Makefile.arm64 -- with config changes.
 # Copyright 1990 W. Jolitz
-#	from: @(#)Makefile.i386	7.1 5/10/91
 #	from FreeBSD: src/sys/conf/Makefile.i386,v 1.255 2002/02/20 23:35:49
 #
 # Makefile for FreeBSD
@@ -56,11 +55,6 @@ SYSTEM_LD= \
 	    --strip-symbol='$$[adtx]*' \
 	    ${.TARGET}
 
-# Generate the .bin (booti images) kernel as an extra build output.
-# The targets and rules to generate these appear near the end of the file.
-KERNEL_EXTRA+= ${KERNEL_KO}.bin
-KERNEL_EXTRA_INSTALL+= ${KERNEL_KO}.bin
-
 .if !empty(DDB_ENABLED) || !empty(DTRACE_ENABLED) || !empty(HWPMC_ENABLED)
 CFLAGS += -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
 .endif
@@ -76,7 +70,6 @@ CFLAGS += -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
 %FILES.m
 
 %CLEAN
-CLEAN+=	${KERNEL_KO}.bin
 
 %RULES
 

@@ -1,0 +1,548 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 1996,1998-2005, 2007-2023
+.\"	Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" Sponsored in part by the Defense Advanced Research Projects
+.\" Agency (DARPA) and Air Force Research Laboratory, Air Force
+.\" Materiel Command, USAF, under agreement number F39502-99-1-0512.
+.\"
+.TH "VISUDO" "@mansectsu@" "July 27, 2023" "Sudo @PACKAGE_VERSION@" "System Manager's Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBvisudo\fR
+\- edit the sudoers file
+.SH "SYNOPSIS"
+.HP 7n
+\fBvisudo\fR
+[\fB\-chIOPqsV\fR]
+[[\fB\-f\fR]\ \fIsudoers\fR]
+.SH "DESCRIPTION"
+\fBvisudo\fR
+edits the
+\fIsudoers\fR
+file in a safe fashion, analogous to
+vipw(@mansectsu@).
+\fBvisudo\fR
+locks the
+\fIsudoers\fR
+file against multiple simultaneous edits, performs basic validity checks,
+and checks for syntax errors before installing the edited file.
+If the
+\fIsudoers\fR
+file is currently being edited you will receive a message to try again later.
+.PP
+If the
+\fIsudoers\fR
+file does not exist, it will be created unless the editor exits
+without writing to the file.
+.PP
+\fBvisudo\fR
+parses the
+\fIsudoers\fR
+file after editing and will not save the changes if there is a syntax error.
+Upon finding an error,
+\fBvisudo\fR
+will print a message stating the line number(s)
+where the error occurred and the user will receive the
+\(lqWhat now?\(rq
+prompt.
+At this point the user may enter
+\(oqe\(cq
+to re-edit the
+\fIsudoers\fR
+file,
+\(oqx\(cq
+to exit without saving the changes, or
+\(oqQ\(cq
+to quit and save changes.
+The
+\(oqQ\(cq
+option should be used with extreme caution because if
+\fBvisudo\fR
+believes there to be a syntax error, so will
+\fBsudo\fR.
+If
+\(oqe\(cq
+is typed to edit the
+\fIsudoers\fR
+file after a syntax error has been detected, the cursor will be placed on
+the line where the error occurred (if the editor supports this feature).
+.PP
+There are two
+\fIsudoers\fR
+settings that determine which editor
+\fBvisudo\fR
+will run.
+.TP 12n
+editor
+A colon
+(\(oq:\&\(cq)
+separated list of editors allowed to be used with
+\fBvisudo\fR.
+\fBvisudo\fR
+will choose the editor that matches the user's
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR,
+or
+\fREDITOR\fR
+environment variable if possible, or the first editor in the
+list that exists and is executable.
+\fBsudo\fR
+does not preserve the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR,
+or
+\fREDITOR\fR
+environment variables unless they are present in the
+\fIenv_keep\fR
+list or the
+\fIenv_reset\fR
+option is disabled in the
+\fIsudoers\fR
+file.
+The default editor path is
+\fI@editor@\fR
+which can be set at compile time via the
+\fR--with-editor\fR
+configure option.
+.TP 12n
+env_editor
+If set,
+\fBvisudo\fR
+will use the value of the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR,
+or
+\fREDITOR\fR
+environment variables before falling back on the default editor list.
+\fBvisudo\fR
+is typically run as root so this option may allow a user with
+\fBvisudo\fR
+privileges to run arbitrary commands as root without logging.
+An alternative is to place a colon-separated list of
+\(lqsafe\(rq
+editors in the
+\fIeditor\fR
+variable.
+\fBvisudo\fR
+will then only use
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR,
+or
+\fREDITOR\fR
+if they match a value specified in
+\fIeditor\fR.
+If the
+\fIenv_reset\fR
+flag is enabled, the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR,
+and/or
+\fREDITOR\fR
+environment variables must be present in the
+\fIenv_keep\fR
+list for the
+\fIenv_editor\fR
+flag to function when
+\fBvisudo\fR
+is invoked via
+\fBsudo\fR.
+The default value is
+\fI@env_editor@\fR,
+which can be set at compile time via the
+\fR--with-env-editor\fR
+configure option.
+.PP
+The options are as follows:
+.TP 8n
+\fB\-c\fR, \fB\--check\fR
+Enable
+\fIcheck-only\fR
+mode.
+The existing
+\fIsudoers\fR
+file (and any other files it includes) will be
+checked for syntax errors.
+If the path to the
+\fIsudoers\fR
+file was not specified,
+\fBvisudo\fR
+will also check the file ownership and permissions (see the
+\fB\-O\fR
+and
+\fB\-P\fR
+options).
+A message will be printed to the standard output describing the status of
+\fIsudoers\fR
+unless the
+\fB\-q\fR
+option was specified.
+If the check completes successfully,
+\fBvisudo\fR
+will exit with a value of 0.
+If an error is encountered,
+\fBvisudo\fR
+will exit with a value of 1.
+.TP 8n
+\fB\-f\fR \fIsudoers\fR, \fB\--file\fR=\fIsudoers\fR
+Specify an alternate
+\fIsudoers\fR
+file location, see below.
+As of version 1.8.27, the
+\fIsudoers\fR
+path can be specified without using the
+\fB\-f\fR
+option.
+.TP 8n
+\fB\-h\fR, \fB\--help\fR
+Display a short help message to the standard output and exit.
+.TP 8n
+\fB\-I\fR, \fB\--no-includes\fR
+Disable the editing of include files unless there is a pre-existing
+syntax error.
+By default,
+\fBvisudo\fR
+will edit the main
+\fIsudoers\fR
+file and any files included via
+\fI@include\fR
+or
+\fI#include\fR
+directives.
+Files included via
+\fI@includedir\fR
+or
+\fI#includedir\fR
+are never edited unless they contain a syntax error.
+.TP 8n
+\fB\-O\fR, \fB\--owner\fR
+Enforce the default ownership (user and group) of the
+\fIsudoers\fR
+file.
+In edit mode, the owner of the edited file will be set to the default.
+In check mode
+(\fB\-c\fR),
+an error will be reported if the owner is incorrect.
+This option is enabled by default if the
+\fIsudoers\fR
+file was not specified.
+.TP 8n
+\fB\-P\fR, \fB\--perms\fR
+Enforce the default permissions (mode) of the
+\fIsudoers\fR
+file.
+In edit mode, the permissions of the edited file will be set to the default.
+In check mode
+(\fB\-c\fR),
+an error will be reported if the file permissions are incorrect.
+This option is enabled by default if the
+\fIsudoers\fR
+file was not specified.
+.TP 8n
+\fB\-q\fR, \fB\--quiet\fR
+Enable
+\fIquiet\fR
+mode.
+In this mode details about syntax errors are not printed.
+This option is only useful when combined with
+the
+\fB\-c\fR
+option.
+.TP 8n
+\fB\-s\fR, \fB\--strict\fR
+Enable
+\fIstrict\fR
+checking of the
+\fIsudoers\fR
+file.
+If an alias is referenced but not actually defined
+or if there is a cycle in an alias,
+\fBvisudo\fR
+will consider this a syntax error.
+It is not possible to differentiate between an alias and a host
+name or user name that consists solely of uppercase letters, digits,
+and the underscore
+(\(oq_\(cq)
+character.
+.TP 8n
+\fB\-V\fR, \fB\--version\fR
+Print the
+\fBvisudo\fR
+and
+\fIsudoers\fR
+grammar versions and exit.
+.PP
+A
+\fIsudoers\fR
+file may be specified instead of the default,
+\fI@sysconfdir@/sudoers\fR.
+The temporary file used is the specified
+\fIsudoers\fR
+file with
+\(lq\.tmp\(rq
+appended to it.
+In
+\fIcheck-only\fR
+mode only,
+\(oq-\(cq
+may be used to indicate that
+\fIsudoers\fR
+will be read from the standard input.
+Because the policy is evaluated in its entirety, it is not sufficient
+to check an individual
+\fIsudoers\fR
+include file for syntax errors.
+.SS "Debugging and sudoers plugin arguments"
+\fBvisudo\fR
+versions 1.8.4 and higher support a flexible debugging framework
+that is configured via
+\fIDebug\fR
+lines in the
+sudo.conf(@mansectform@)
+file.
+.PP
+Starting with
+\fBsudo\fR
+1.8.12,
+\fBvisudo\fR
+will also parse the arguments to the
+\fIsudoers\fR
+plugin to override the default
+\fIsudoers\fR
+path name, user-ID, group-ID, and file mode.
+These arguments, if present, should be listed after the path to the plugin
+(i.e., after
+\fI@sudoers_plugin@\fR).
+Multiple arguments may be specified, separated by white space.
+For example:
+.nf
+.sp
+.RS 4n
+Plugin sudoers_policy @sudoers_plugin@ sudoers_mode=0400
+.RE
+.fi
+.PP
+The following arguments are supported:
+.TP 6n
+sudoers_file=pathname
+The
+\fIsudoers_file\fR
+argument can be used to override the default path to the
+\fIsudoers\fR
+file.
+.TP 6n
+sudoers_uid=user-ID
+The
+\fIsudoers_uid\fR
+argument can be used to override the default owner of the sudoers file.
+It should be specified as a numeric user-ID.
+.TP 6n
+sudoers_gid=group-ID
+The
+\fIsudoers_gid\fR
+argument can be used to override the default group of the sudoers file.
+It must be specified as a numeric group-ID (not a group name).
+.TP 6n
+sudoers_mode=mode
+The
+\fIsudoers_mode\fR
+argument can be used to override the default file mode for the sudoers file.
+It should be specified as an octal value.
+.PP
+For more information on configuring
+sudo.conf(@mansectform@),
+refer to its manual.
+.SH "ENVIRONMENT"
+The following environment variables may be consulted depending on
+the value of the
+\fIeditor\fR
+and
+\fIenv_editor\fR
+\fIsudoers\fR
+settings:
+.TP 17n
+\fRSUDO_EDITOR\fR
+Invoked by
+\fBvisudo\fR
+as the editor to use
+.TP 17n
+\fRVISUAL\fR
+Used by
+\fBvisudo\fR
+if
+\fRSUDO_EDITOR\fR
+is not set
+.TP 17n
+\fREDITOR\fR
+Used by
+\fBvisudo\fR
+if neither
+\fRSUDO_EDITOR\fR
+nor
+\fRVISUAL\fR
+is set
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo.conf\fR
+Sudo front-end configuration
+.TP 26n
+\fI@sysconfdir@/sudoers\fR
+List of who can run what
+.TP 26n
+\fI@sysconfdir@/sudoers.tmp\fR
+Default temporary file used by visudo
+.SH "DIAGNOSTICS"
+In addition to reporting
+\fIsudoers\fR
+syntax errors,
+\fBvisudo\fR
+may produce the following messages:
+.TP 6n
+\fRsudoers file busy, try again later.\fR
+Someone else is currently editing the
+\fIsudoers\fR
+file.
+.TP 6n
+\fR@sysconfdir@/sudoers: Permission denied\fR
+You didn't run
+\fBvisudo\fR
+as root.
+.TP 6n
+\fRyou do not exist in the passwd database\fR
+Your user-ID does not appear in the system passwd database.
+.TP 6n
+\fRWarning: {User,Runas,Host,Cmnd}_Alias referenced but not defined\fR
+Either you are trying to use an undeclared {User,Runas,Host,Cmnd}_Alias
+or you have a user or host name listed that consists solely of
+uppercase letters, digits, and the underscore
+(\(oq_\(cq)
+character.
+In the latter case, you can ignore the warnings
+(\fBsudo\fR
+will not complain)
+\&.
+The message is prefixed with the path name of the
+\fIsudoers\fR
+file and the line number where the undefined alias was used.
+In
+\fB\-s\fR
+(strict) mode these are errors, not warnings.
+.TP 6n
+\fRWarning: unused {User,Runas,Host,Cmnd}_Alias\fR
+The specified {User,Runas,Host,Cmnd}_Alias was defined but never
+used.
+The message is prefixed with the path name of the
+\fIsudoers\fR
+file and the line number where the unused alias was defined.
+You may wish to comment out or remove the unused alias.
+.TP 6n
+\fRWarning: cycle in {User,Runas,Host,Cmnd}_Alias\fR
+The specified {User,Runas,Host,Cmnd}_Alias includes a reference to
+itself, either directly or through an alias it includes.
+The message is prefixed with the path name of the
+\fIsudoers\fR
+file and the line number where the cycle was detected.
+This is only a warning unless
+\fBvisudo\fR
+is run in
+\fB\-s\fR
+(strict) mode as
+\fBsudo\fR
+will ignore cycles when parsing
+the
+\fIsudoers\fR
+file.
+.TP 6n
+\fRignoring editor backup file\fR
+While processing a
+\fI@includedir\fR
+or
+\fI#includedir\fR,
+a file was found with a name that ends in
+\(oq~\(cq
+or
+\fI.bak\fR.
+Such files are skipped by
+\fBsudo\fR
+and
+\fBvisudo\fR.
+.TP 6n
+\fRignoring file name containing '.'\fR
+While processing a
+\fI@includedir\fR
+or
+\fI#includedir\fR,
+a file was found with a name that contains a
+\(oq.\&\(cq
+character.
+Such files are skipped by
+\fBsudo\fR
+and
+\fBvisudo\fR.
+.TP 6n
+\fRunknown defaults entry \&"name\&"\fR
+The
+\fIsudoers\fR
+file contains a
+\fIDefaults\fR
+setting not recognized by
+\fBvisudo\fR.
+.SH "SEE ALSO"
+vi(1),
+sudo.conf(@mansectform@),
+sudoers(@mansectform@),
+sudo(@mansectsu@),
+vipw(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "CAVEATS"
+There is no easy way to prevent a user from gaining a root shell if
+the editor used by
+\fBvisudo\fR
+allows shell escapes.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBvisudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBvisudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

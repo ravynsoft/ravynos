@@ -1,0 +1,97 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+unset a
+printf "%s\n" ${a:=a\ b}
+echo "$a"
+
+unset v
+recho ${v=a\ b} x ${v=c\ d}
+
+unset v
+recho "${v=a\ b}" x "${v=c\ d}"
+
+unset a v
+
+recho "foo ${IFS+'bar'} baz"
+recho "a ${IFS+b  c} d"
+
+recho "a ${IFS+"b  c"} d"
+
+u=x
+recho "foo ${IFS+a$u{{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz
+
+a=foo
+recho "${IFS+'$a'}"
+recho "${IFS+"'$a'"}"
+
+recho ${IFS+'$a'}
+recho ${IFS+"'$a'"}
+
+unset a u
+x='foo*bar'
+
+recho "${x##"}"}"
+recho "${x##'}'}"
+recho "${x##'}"
+
+recho "${x:-'}'}"
+
+foo="x'a'y"
+recho "${foo%*'a'*}"
+unset x
+
+unset u
+v=w
+printf '<%s> ' ${u+x} . ${v+x} . "${u+x}" . "${v+x}" .; echo
+printf '<%s> ' ${u-x} . ${v-x} . "${u-x}" . "${v-x}" .; echo
+printf '<%s> ' ${u=x} . ${v=x} . "${u=x}" . "${v=x}" .; echo
+printf '<%s> ' ${u?x} . ${v?x} . "${u?x}" . "${v?x}" .; echo
+printf '<%s> ' ${u#x} . ${v#x} . "${u#x}" . "${v#x}" .; echo
+printf '<%s> ' ${u%x} . ${v%x} . "${u%x}" . "${v%x}" .; echo
+printf '<%s> ' ${u:+x} . ${v:+x} . "${u:+x}" . "${v:+x}" .; echo
+printf '<%s> ' ${u:-x} . ${v:-x} . "${u:-x}" . "${v:-x}" .; echo
+printf '<%s> ' ${u:=x} . ${v:=x} . "${u:=x}" . "${v:=x}" .; echo
+printf '<%s> ' ${u:?x} . ${v:?x} . "${u:?x}" . "${v:?x}" .; echo
+# these are invalid substitution operators
+#printf '<%s> ' ${u:#x} . ${v:#x} . "${u:#x}" . "${v:#x}" .; echo
+#printf '<%s> ' ${u:%x} . ${v:%x} . "${u:%x}" . "${v:%x}" .; echo
+
+unset foo
+set -o posix
+
+recho "${IFS+'bar}"
+recho "foo ${IFS+'bar} baz"
+
+recho ${IFS+'}'z}
+recho "${IFS+'}'z}"
+
+: ${TMPDIR:=/var/tmp}
+rm -f $TMPDIR/sh
+cp ${THIS_SH} $TMPDIR/sh
+THIS_SH=$TMPDIR/sh ${THIS_SH} ./posixexp1.sub || echo "sh posixexp1.sub: test $? failed"
+${THIS_SH} ./posixexp1.sub || echo "bash posixexp1.sub: test $? failed"
+
+THIS_SH=$TMPDIR/sh ${THIS_SH} ./posixexp2.sub || echo "sh posixexp2.sub: test $? failed"
+rm -f $TMPDIR/sh
+
+${THIS_SH} ./posixexp3.sub
+${THIS_SH} ./posixexp4.sub
+${THIS_SH} ./posixexp5.sub
+${THIS_SH} ./posixexp6.sub
+${THIS_SH} ./posixexp7.sub
+${THIS_SH} ./posixexp8.sub
+
+# this will be an error
+foo=bar
+echo "${foo:-"a}"

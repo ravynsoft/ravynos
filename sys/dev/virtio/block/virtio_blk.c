@@ -28,7 +28,6 @@
 
 /* Driver for VirtIO block devices. */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
@@ -707,7 +706,7 @@ vtblk_alloc_virtqueue(struct vtblk_softc *sc)
 	    vtblk_vq_intr, sc, &sc->vtblk_vq,
 	    "%s request", device_get_nameunit(dev));
 
-	return (virtio_alloc_virtqueues(dev, 0, 1, &vq_info));
+	return (virtio_alloc_virtqueues(dev, 1, &vq_info));
 }
 
 static void

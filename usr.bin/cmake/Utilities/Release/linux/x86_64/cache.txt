@@ -1,0 +1,34 @@
+CMAKE_BUILD_TYPE:STRING=Release
+
+CMAKE_C_STANDARD:STRING=11
+CMAKE_CXX_STANDARD:STRING=14
+
+# Link C++ library statically.
+CMAKE_EXE_LINKER_FLAGS:STRING=-static-libstdc++ -static-libgcc
+
+# Enable ssl support in curl
+CMAKE_USE_OPENSSL:BOOL=ON
+OPENSSL_CRYPTO_LIBRARY:STRING=/opt/openssl/lib/libcrypto.a;-pthread
+OPENSSL_INCLUDE_DIR:PATH=/opt/openssl/include
+OPENSSL_SSL_LIBRARY:FILEPATH=/opt/openssl/lib/libssl.a
+
+# Enable ccmake
+BUILD_CursesDialog:BOOL=ON
+CURSES_FORM_LIBRARY:FILEPATH=/opt/ncurses/lib/libform.a
+CURSES_INCLUDE_PATH:PATH=/opt/ncurses/include
+CURSES_NCURSES_LIBRARY:FILEPATH=/opt/ncurses/lib/libncurses.a
+
+# Enable cmake-gui with static qt plugins
+BUILD_QtDialog:BOOL=TRUE
+CMake_GUI_DISTRIBUTE_WITH_Qt_LGPL:STRING=3
+CMAKE_PREFIX_PATH:STRING=/opt/qt
+CMake_QT_STATIC_QXcbIntegrationPlugin_LIBRARIES:STRING=/opt/qt/plugins/platforms/libqxcb.a;/opt/qt/lib/libQt5XcbQpa.a;/opt/qt/lib/libQt5ServiceSupport.a;/opt/qt/lib/libQt5EdidSupport.a;/opt/qt/lib/libQt5EventDispatcherSupport.a;/opt/qt/lib/libQt5FontDatabaseSupport.a;/opt/qt/lib/libQt5ThemeSupport.a;/opt/qt/lib/libxcb-static.a;-lxcb;-lfontconfig;-lfreetype
+
+# We bootstrap as part of the build so skip its test.
+CMake_TEST_BOOTSTRAP:BOOL=FALSE
+
+# Skip Qt5 tests because our Qt is static.
+CMake_TEST_Qt5:BOOL=FALSE
+
+# CPack package file name component for this platform.
+CPACK_SYSTEM_NAME:STRING=linux-x86_64

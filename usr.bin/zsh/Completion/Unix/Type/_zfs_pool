@@ -1,0 +1,3 @@
+#autoload
+
+compadd "$@" - $(zpool list -H -o name)

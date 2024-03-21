@@ -1,0 +1,26 @@
+# This is a sample syslog.conf fragment for use with Sudo.
+#
+# By default, sudo logs to "authpriv" if your system supports it, else it
+# uses "auth".  The facility can be set via the --with-logfac configure
+# option or in the sudoers file.
+# To see what syslog facility a sudo binary uses, run `sudo -V' as *root*.
+#
+# NOTES:
+#	The whitespace in the following line is made up of <TAB>
+#       characters, *not* spaces.  You cannot just cut and paste!
+#
+#	If you edit syslog.conf you need to send syslogd a HUP signal.
+#	Ie: kill -HUP process_id
+#
+#	Syslogd will not create new log files for you, you must first
+#	create the file before syslogd will log to it.  Eg.
+#	'touch @log_dir@/sudo'
+
+# This logs successful and failed sudo attempts to the file @log_dir@/auth
+# If your system has the authpriv syslog facility, use authpriv.debug
+auth.debug					@log_dir@/auth
+
+# To log to a remote machine, use something like the following,
+# where "loghost" is the name of the remote machine.
+# If your system has the authpriv syslog facility, use authpriv.debug
+auth.debug					@loghost

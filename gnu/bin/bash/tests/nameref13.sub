@@ -1,0 +1,115 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+declare -nt r=a
+
+f()
+{
+	declare a
+	declare -n r=a
+	declare -p a r
+}
+
+f
+unset -f f
+
+f()
+{
+	declare a
+	declare -n r
+	r=a
+	declare -p a r
+}
+f
+echo $?
+
+unset -f f
+
+P=12345
+function foo
+{
+	typeset -n r
+	typeset -n r=P
+	typeset -p r
+}
+
+foo
+unset P foo
+
+ref=outside
+
+f()
+{
+	unset var
+	declare -n ref=var
+	declare -n ref;
+	declare -p ref;
+}
+f
+
+unset ref foo
+
+typeset -n r=a
+
+f()
+{
+	typeset a
+	typeset -n r
+	typeset -n r
+	r=a
+
+	typeset -p a r
+}
+f
+echo $?
+unset -n r
+unset -f f
+
+function foo
+{
+	typeset -n r
+	typeset -n r
+	typeset -p r
+}
+
+foo
+unset -f foo
+
+
+function foo
+{
+	typeset r
+	typeset -n r
+	typeset -p r
+}
+foo
+unset -f foo
+
+foo()
+{
+	typeset -n foo
+	typeset foo=12345
+	typeset -p foo
+}
+foo
+unset -f foo
+
+foo()
+{
+	typeset -n foo
+	typeset -n foo=12345
+	typeset -p foo
+}
+foo
+unset -f foo
+

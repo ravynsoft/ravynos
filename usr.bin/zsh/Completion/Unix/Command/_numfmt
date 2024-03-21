@@ -1,0 +1,24 @@
+#compdef numfmt gnumfmt
+
+local units="((auto\:1K\ =\ 1000,\ 1Ki\ =\ 1024 si\:1K\ =\ 1000 iec\:1K\ =\ 1024 iec-i\:1Ki\ =\ 1024))"
+
+_arguments -S \
+  '(H)--debug[print warnings about invalid input]' \
+  '(H -z --zero-terminated -d --delimiter)'{-d+,--delimiter=}'[use specified field delimiter instead of whitespace]:delimiter' \
+  '(H)--field=[replace numbers in specified input fields]:fields [1]' \
+  '(H)--format=[use printf style floating-point format]:format' \
+  "(H)--from=[auto-scale input numbers to specified units]:unit [none]:$units" \
+  '(H)--from-unit=[specify the input unit size]:unit size [1]' \
+  '(H)--grouping[use locale-defined digit grouping e.g. 1,000,000]' \
+  '(H)--header=-[print (without converting) initial header lines]::header lines [1]' \
+  '(H)--invalid=[specify failure mode for invalid numbers]:mode [abort]:(abort fail warn ignore)' \
+  '(H)--padding=[pad the output to specified width]:width; positive - right-align; negative - left-align' \
+  '(H)--round=[use specified method for rounding when scaling]:method [from-zero]:(up down from-zero towards-zero nearest)' \
+  '(H)--suffix=[add suffix to output numbers and accept optional suffix in input numbers]:suffix' \
+  "(H)--to=[auto-scale output numbers to specified unit]:unit:$units" \
+  '(H)--to-unit=[specify output unit size]:unit size [1]' \
+  '(H -z --zero-terminated -d --delimiter)'{-z,--zero-terminated}'[line delimiter is NUL, not newline]' \
+  '(H)*: :_guard "^-*" number' \
+  + 'H' \
+  '(- *)--help[display usage information]' \
+  '(- *)--version[display version information]'

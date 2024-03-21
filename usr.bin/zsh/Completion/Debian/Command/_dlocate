@@ -1,0 +1,33 @@
+#compdef dlocate
+
+local context state line
+typeset -A opt_args
+
+_arguments \
+	'-h[help]' \
+	'-S[match strings only]' \
+	'-L[list all files in package]' \
+	'-l[almost-emulation of dpkg -l]' \
+	'-s[print status of package]' \
+	'-ls[ls -ldF of all files in package]' \
+	'-du[du -sck of all files in package]' \
+        '-conf[list conffiles in package]' \
+	'-lsconf[ls -ldF of conffiles in package]' \
+	'-lsman[list man pages in package]' \
+	'-lsbin[list executable files in package]' \
+	'-md5sum[list md5sums (if any) of package]' \
+	'-md5check[check md5sums (if any) of package]' \
+	'-man[list man pages (if any) of package]' \
+	':arg:->stringorpkg' && return 0
+
+case "$state" in
+    (stringorpkg)
+      if (( $+opt_args[-S] )); then
+          _files
+      else
+          _alternative \
+		'string:search string:_files' \
+		'package:Debian packages:_deb_packages installed'
+      fi
+    ;;
+esac

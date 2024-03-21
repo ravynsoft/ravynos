@@ -1,0 +1,24 @@
+#source: plt.s
+#as: --64
+#ld: -melf_x86_64
+#objdump: -drj.plt
+#target: x86_64-*-*
+
+.*: +file format .*
+
+Disassembly of section .plt:
+
+[0-9a-f]+ <fn1@plt-0x10>:
+ +[0-9a-f]+:	ff 35 ([0-9a-f]{2} ){4} *	push   0x[0-9a-f]+\(%rip\) +# [0-9a-f]+ <_GLOBAL_OFFSET_TABLE_\+0x8>
+ +[0-9a-f]+:	ff 25 ([0-9a-f]{2} ){4} *	jmp    \*0x[0-9a-f]+\(%rip\) +# [0-9a-f]+ <_GLOBAL_OFFSET_TABLE_\+0x10>
+ +[0-9a-f]+:	0f 1f 40 00          	nopl   0x0\(%rax\)
+
+[0-9a-f]+ <fn1@plt>:
+ +[0-9a-f]+:	ff 25 ([0-9a-f]{2} ){4} *	jmp    \*0x[0-9a-f]+\(%rip\) +# [0-9a-f]+ <fn1>
+ +[0-9a-f]+:	68 00 00 00 00       	push   \$0x0
+ +[0-9a-f]+:	e9 ([0-9a-f]{2} ){4} *	jmp    [0-9a-f]+ <fn1@plt-0x10>
+
+[0-9a-f]+ <fn2@plt>:
+ +[0-9a-f]+:	ff 25 ([0-9a-f]{2} ){4} *	jmp    \*0x[0-9a-f]+\(%rip\) +# [0-9a-f]+ <fn2>
+ +[0-9a-f]+:	68 01 00 00 00       	push   \$0x1
+ +[0-9a-f]+:	e9 ([0-9a-f]{2} ){4} *	jmp    [0-9a-f]+ <fn1@plt-0x10>

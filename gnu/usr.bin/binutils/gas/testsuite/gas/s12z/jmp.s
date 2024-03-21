@@ -1,0 +1,20 @@
+ 	jmp d5
+	jmp (12, x)
+	jmp (+y)
+	jmp (-y)
+	jmp (y+)
+	jmp (y-)
+	jmp (+x)
+	jmp (-x)
+	jmp (x+)
+	jmp (x-)
+	jmp (-s)
+	jmp (s+)
+ 	jmp (d5,s)
+ 	jmp (90,d7)
+ 	jmp (90,p)
+	jmp [45,y]
+	jmp 16
+	jmp 14321
+	jmp 114321
+	jmp [432134]

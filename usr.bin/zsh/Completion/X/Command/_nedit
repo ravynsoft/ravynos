@@ -1,0 +1,60 @@
+#compdef nedit nedit-nc=nc ncl=nc
+
+local state line expl nedit_common curcontext="$curcontext" ret=1
+typeset -A opt_args
+
+nedit_common=(
+  '-read[open file read only]'
+  "-create[create file if it doesn't already exist]"
+  '-line[go to specified line number]:line number'
+  '-do[execute macro or action commands]:macro command'
+  '-lm[specify language mode]:language mode:->lang'
+  '-svrname[name the server]:nedit server name'
+  '(-noiconic -icon -iconic)'{-icon,-iconic}'[set initial window state to iconic]'
+  '*-tabbed[open all subsequent files in new tabs]'
+  '*-untabbed[open all subsequent files in new windows]'
+  '*-group[open all subsequent files as tabs in a new window]'
+  '(- *)'{-V,-version}'[display version information]'
+  '*-xrm:resource:_x_resource'
+  '*:file:_files'
+)
+
+if [[ $service = nc ]]; then
+  _x_arguments -C -S \
+    '(-noask)-ask[prompt if no server found]' \
+    '(-ask)-noask[start a new server without asking if none found]' \
+    "-wait[don't return to the shell until all files given are closed]" \
+    '-timeout[timeout period when talking to server]:timeout (seconds)' \
+    '-svrcmd[command to run server]:server command:_command_names -e' \
+    "$nedit_common[@]" && ret=0
+else
+  _x_arguments -C -S \
+    '-server[designate this session as an nedit server]' \
+    '-tags[load ctags file]:tags file:_files' \
+    '-tabs[specify tab width in characters]:tab width' \
+    '(-nowrap -autowrap -noautowrap)-wrap[use continuous wrap mode]' \
+    '(-wrap -autowrap -noautowrap)-nowrap[turn off continuous wrap mode]' \
+    '(-wrap -nowrap -noautowrap)-autowrap[use auto-newline wrap mode]' \
+    '(-wrap -nowrap -autowrap)-noautowrap[turn off auto-newline wrap mode]' \
+    '(-noautoindent)-autoindent[maintain a running indent]' \
+    '(-autoindent)-noautoindent[turn off autoindent]' \
+    '(-noautosave)-autosave[maintain a backup copy of file being edited]' \
+    "(-autosave)-noautosave[don't maintain a backup copy of file being edited]" \
+    "(-iconic)-noiconic[don't set initial window state to iconic]" \
+    '-rows[specify default height in characters for an editing window]:height' \
+    '-columns[specify default width in characters for an editing window]:width' \
+    '-font[specify font for text window]:font:_x_font' \
+    '(-bg)-background:background color:_x_color' \
+    '(-background)-bg[specify background color]:background color:_x_color' \
+    '(-fg)-foreground:foreground color:_x_color' \
+    '(-foreground)-fg[specify foreground color]:foreground color:_x_color' \
+    '*-import[load additional preferences file]:nedit preferences file:_files' \
+    "$nedit_common[@]" && ret=0
+fi
+
+[[ $state = lang && -f ~/.nedit ]] &&
+    _wanted neditlanguages expl 'language mode' \
+        compadd -  ${(f)"$(sed -n \
+            '/^nedit.languageMode/,/^nedit/ s/.*	\([^:]*\).*/\1/p' < ~/.nedit)"} && ret=0
+
+return ret

@@ -1,0 +1,487 @@
+#compdef moosic
+
+_moosic_add_cmds() {
+
+    # querying for information
+    typeset -a queries
+    queries=(
+    "help:print brief description of command"
+    "current:print name of currently playing song"
+    "current-time:print the amount of time the current song has been playing"
+    "list:print the list of items in the current song queue"
+    "plainlist:print the current song queue without numbering each line"
+    "history:print a list of items that were recently played"
+    {status,state}":print the current state of the music daemon"
+    "length:print the number of items in the queue"
+    "ispaused:show whether the current song is paused or not"
+    "islooping:show whether the server is in loop mode"
+    "isadvancing:show whether the server is advancing through the song queue"
+    "version:print version information for client and server"
+    )
+
+
+    # appending to song queue
+    typeset -a appending
+    appending=(
+    {append,add}":add the files to be played to the end of the song queue"
+    {pl-append,pl-add}":add the items listed in the given playlist files to end of queue"
+    "prepend:add the files to be played to the beginning of the song queue"
+    "pl-prepend:add the items in the given playlist files to beginning of queue"
+    "mixin:add the files to the song queue and reshuffle the entire queue"
+    "pl-mixin:add items in given playlist files to song queue and reshuffle the entire queue"
+    "replace:replace the current contents of the song queue with files listed"
+    "pl-replace:replace current contents of song queue with songs given in playlists"
+    "insert:insert the given items at a given point in the song queue"
+    "pl-insert:insert items from playlist files at specified point in queue"
+    "putback:reinsert current song at start of song queue"
+    "stagger-add:adds file list to end of queue after rearranging queue into staggered order"
+    "stagger-merge:adds given file list to queue in interleaved fashion"
+    "interval-add:inserts given songs with regular frequency specified by interval argument"
+    )
+
+    # removing
+    typeset -a removing
+    removing=(
+    {cut,del}":removes all song queue items in given range"
+    "crop:removes all song queue items that do not fall within given range"
+    "remove:remove all song queue items matching any one of given regexps"
+    "filter:remove all queue items not matching all given regexps"
+    "clear:clear song queue"
+    "wipe:clear song queue and stop current song"
+    )
+
+    # rearranging
+    typeset -a rearranging
+    rearranging=(
+    "move:move all items in given range to new position in song queue"
+    "move-pattern:moves all items matching the given regexp to new position"
+    "swap:trade places of songs in two specified ranges"
+    {shuffle,reshuffle}":reshuffle song queue within an optional range"
+    "sort:sort queue within optional range"
+    "reverse:reverse order of song queue"
+    "partial-sort:sort items matching each regexp"
+    "stagger:stagger items matching each regexp"
+    "sub:perform regular expression substitution on all items in queue"
+    "suball:like sub, but replace all occurrences of the pattern"
+    )
+
+    # general management
+    typeset -a general
+    general=(
+    "next:jumps ahead, number of songs optional"
+    "previous:retreats to previously played song"
+    "goto:jumps to next song matching regexp"
+    "gobackto:jumps back to most recent previous song matching regexp"
+    "noadvance:halt queue advancement"
+    "advance:resume queue advancement"
+    "toggle-advance:toggle queue advancement"
+    "stop:stop playing current song, stop processing queue, put current song back"
+    "pause:suspend current song to resume it later"
+    "unpause:unpause current song"
+    "play:resume playing"
+    "loop:turn loop mode on"
+    "noloop:turn loop mode off"
+    "toggle-loop:toggle loop mode"
+    "reconfigure:daemon reload configuration file"
+    "showconfig:show daemon filetype associations"
+    "start-server:starts new instance of daemon with given options"
+    {quit,exit,die}":quit daemon"
+    )
+
+    _describe queries queries -J queries
+    _describe appending appending -J appending
+    _describe removing removing -J removing
+    _describe rearranging rearranging -J rearranging
+    _describe general general -J general
+}
+
+_moosic() {
+    typeset context state line
+    typeset -A opt_args
+
+    typeset -a filelist_opts
+    filelist_opts=(
+    '(-g --shuffle-global)'{-g,--shuffle-global}'[shuffle filelist after directory expansion]'
+    '(-d --shuffle-dir)'{-d,--shuffle-dir}'[shuffle results of expanding the directories]'
+    '(-a --shuffle-args)'{-a,--shuffle-args}'[shuffle actual command line arguments]'
+    '(-o --inorder)'{-o,--inorder}'[do not shuffle filelist]'
+    '(-s --sort)'{-s,--sort}'[sort filelist lexicographically after expansion]'
+    '(-r --no-recurse)'{-r,--no-recurse}'[do not recurse through directories]'
+    '(-n --no-file-munge)'{-n,--no-file-munge}'[do not modify names in expanded filelist]'
+    '(-f --auto-find)'{-f,--auto-find}'[perform fuzzy search for music files]'
+    '(-F --auto-grep)'{-F,--auto-grep}'[like --auto-find but with regexp]'
+    '(-U --allow-unplayable)'{-U,--allow-unplayable}'[allow addition of unknown song types]'
+    )
+
+    typeset -a auto_opts
+    auto_opts=(
+    '(-m --music-dir)'{-m,--music-dir}'[directory used for auto-find, auto-grep]:directory:_files'
+    )
+
+    typeset -a main_opts
+    main_opts=(
+    '(-i --ignore-case)'{-i,--ignore-case}'[treat regexps as if they are case-insensitive]'
+    '(-S --showcommands)'{-S,--showcommands}'[show all moosic commands, then exit]'
+    '(-h --help)'{-h,--help}'[print help message then exit]'
+    '(-v --version)'{-v,--version}'[print version information, then exit]'
+    '(-c --config-dir)'{-c,--config-dir}'[configuration directory]:directory:_files'
+    '(-t --tcp)'{-t,--tcp}'[talk to server at specified host and port]:host\:port:'
+    '(-N --no-startserver)'{-N,--no-startserver}'[do not start moosicd server]'
+    )
+
+    typeset -a list_opts
+    list_opts=(
+    '(-C --current-in-list)'{-C,--current-in-list}'[print currently playing song in list]'
+    )
+
+    # GLOBAL ARGUMENTS
+    # do not use the -A option here. It will break the processing of
+    # positional arguments.
+    _arguments $main_opts $list_opts $auto_opts $filelist_opts \
+               '1: :->cmd' \
+               '*:: :->posarg'
+
+    if [[ $state == cmd ]]; then
+        _moosic_add_cmds
+    elif [[ $state == posarg ]]; then
+        _moosic_cmd_${line[1]}
+    fi
+}
+
+# Do something, but only if the current word is 2.
+_do2() {
+    if (( CURRENT == 2 )); then
+        $@
+    else
+        _message 'no more arguments'
+    fi
+}
+
+### QUERY COMMANDS
+
+_moosic_cmd_help() {
+    _do2 '_moosic_add_cmds'
+}
+
+_moosic_cmd_current() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_current-time() {
+    _do2 '_message' 'strftime string'
+}
+
+_moosic_cmd_list() {
+    _do2 '_message' 'range'
+}
+
+_moosic_cmd_plainlist() {
+    _do2 '_message' 'range'
+}
+
+_moosic_cmd_history() {
+    _do2 '_message' 'maximum number of entries'
+}
+
+_moosic_cmd_status() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_state() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_length() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_ispaused() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_islooping() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_isadvancing() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_version() {
+    _message 'no arguments'
+}
+
+### APPENDING COMMANDS
+
+_moosic_song_files()
+{
+    _arguments -A '-*' $main_opts $filelist_opts $auto_opts \
+               '*:song file:_files'
+}
+
+_moosic_cmd_append() {
+    _moosic_song_files
+}
+
+_moosic_cmd_add() {
+    _moosic_song_files
+}
+
+_moosic_cmd_pl-append() {
+    _moosic_song_files
+}
+
+_moosic_cmd_pl-add() {
+    _moosic_song_files
+}
+
+_moosic_cmd_prepend() {
+    _moosic_song_files
+}
+
+_moosic_cmd_pl-prepend() {
+    _moosic_song_files
+}
+
+_moosic_cmd_mixin() {
+    _moosic_song_files
+}
+
+_moosic_cmd_pl-mixin() {
+    _moosic_song_files
+}
+
+_moosic_cmd_replace() {
+    _moosic_song_files
+}
+
+_moosic_cmd_pl-replace() {
+    _moosic_song_files
+}
+
+_moosic_cmd_insert() {
+    _moosic_song_files
+}
+
+_moosic_cmd_pl-insert() {
+    _moosic_song_files
+}
+
+_moosic_cmd_putback() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_stagger-add() {
+    _moosic_song_files
+}
+
+_moosic_cmd_stagger-merge() {
+    _moosic_song_files
+}
+
+_moosic_cmd_interval-add() {
+    _arguments -A '-*' $main_opts $filelist_opts \
+                  '1:interval:' \
+                  '*:song file:_files'
+}
+
+### REMOVING COMMANDS
+
+_moosic_cmd_cut() {
+    _do2 '_message' 'range'
+}
+
+_moosic_cmd_del() {
+    _do2 '_message' 'range'
+}
+
+_moosic_cmd_crop() {
+    _do2 '_message' 'range'
+}
+
+_moosic_cmd_remove() {
+    _do2 '_message' 'regex'
+}
+
+_moosic_cmd_filter() {
+    _do2 '_message' 'regex'
+}
+
+_moosic_cmd_clear() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_wipe() {
+    _message 'no arguments'
+}
+
+### REARRANGING COMMANDS
+
+_moosic_cmd_move() {
+    _arguments -A '-*' $main_opts \
+               '1:range:' \
+               '2:index:' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_move-pattern() {
+    _arguments -A '-*' $main_opts \
+               '1:regex:' \
+               '2:index:' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_swap() {
+    _arguments -A '-*' $main_opts \
+               '1:range:' \
+               '2:range:' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_shuffle() {
+    _arguments -A '-*' $main_opts \
+               '1:range (optional):' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_reshuffle() {
+    _arguments -A '-*' $main_opts \
+               '1:range (optional):' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_sort() {
+    _arguments -A '-*' $main_opts \
+               '1:range (optional):' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_reverse() {
+    _arguments -A '-*' $main_opts \
+               '1:range (optional):' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_partial-sort() {
+    _do2 '_message' 'regex'
+}
+
+_moosic_cmd_stagger() {
+    _do2 '_message' 'regex'
+}
+
+_moosic_cmd_sub() {
+    _arguments -A '-*' $main_opts \
+               '1:pattern:' \
+               '2:replacement:' \
+               '3:range (optional):' \
+               '*:no more arguments:'
+}
+
+_moosic_cmd_suball() {
+    _arguments -A '-*' $main_opts \
+               '1:pattern:' \
+               '2:replacement:' \
+               '3:range (optional):' \
+               '*:no more arguments:'
+}
+
+### GENERAL COMMANDS
+
+_moosic_cmd_next() {
+    if (( CURRENT == 2 )); then
+
+        typeset -a display display_cmd
+        if zstyle -a ":completion:${curcontext}:next" \
+                     'command' display_cmd; then
+            $display_cmd
+        else
+            display=(${(f)"$(moosic list)"})
+        fi
+
+        typeset -a numbers
+        numbers=({1..${#display}})
+
+        compadd -V songs -d display -a numbers
+    else
+        _message 'no more arguments'
+    fi
+}
+
+_moosic_cmd_previous() {
+    _do2 '_message' 'number to skip'
+}
+
+_moosic_cmd_goto() {
+    _do2 '_message' 'regex'
+}
+
+_moosic_cmd_gobackto() {
+    _do2 '_message' 'regex'
+}
+
+_moosic_cmd_noadvance() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_advance() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_toggle-advance() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_stop() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_pause() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_unpause() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_play() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_loop() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_noloop() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_toggle-loop() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_reconfigure() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_showconfig() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_start-server() {
+    _message 'options'
+}
+
+_moosic_cmd_quit() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_exit() {
+    _message 'no arguments'
+}
+
+_moosic_cmd_die() {
+    _message 'no arguments'
+}
+
+_moosic "$@"

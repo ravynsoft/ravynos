@@ -1,0 +1,41 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --foreign-user
+
+cat <<EOF > xg-test4.in.c
+_("extract me")
+EOF
+
+: ${XGETTEXT=xgettext}
+# delete POT-Creation-Date: line because the date depends on local time.
+${XGETTEXT} --output xg-test4.tmp --foreign-user --no-location -k_ xg-test4.in.c || Exit 1
+sed -e '/\"POT-Creation-Date:.*/d' < xg-test4.tmp | LC_ALL=C tr -d '\r' > xg-test4.po
+
+cat <<EOF > xg-test4.ok
+# SOME DESCRIPTIVE TITLE.
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "extract me"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test4.ok xg-test4.po
+result=$?
+
+exit $result

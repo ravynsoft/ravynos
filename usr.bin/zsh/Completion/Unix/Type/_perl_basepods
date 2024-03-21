@@ -1,0 +1,32 @@
+#autoload
+#
+# _perl_basepods - zsh completion function
+#
+# Adam Spiers <adam@spiers.net>
+#
+# Calculate all installed Perl base pods (perlfunc, perlfaq etc.).
+# The result is cached for future use.
+#
+
+if (( ! $+_perl_basepods )); then
+  typeset -agU _perl_basepods
+
+  if (( ${+commands[basepods]} )); then
+    _perl_basepods=( ${$(basepods):t:r} )
+  else
+    local podpath
+
+    podpath=$(perl -MConfig -e 'print "$Config{installprivlib}/pod"')
+
+    if [[ ! -e $podpath/perl.pod ]]; then
+      _message "can't find perl.pod from Config.pm; giving up"
+      return 1
+    else
+      _perl_basepods=( ${podpath}/*.pod(:r:t) )
+    fi
+  fi
+fi
+
+local expl
+
+_wanted pods expl 'perl base pod' compadd -a "$@" - _perl_basepods

@@ -1,0 +1,28 @@
+<!--
+Configuration similar to the system bus, to be used when testing rlimit
+handling.
+-->
+
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <type>system</type>
+  <user>@DBUS_USER@</user>
+  <auth>EXTERNAL</auth>
+
+  <!-- This is not the same as the real system bus: we don't want to collide -->
+  <listen>@TEST_LISTEN@</listen>
+
+  <policy context="default">
+    <allow user="*"/>
+    <deny own="*"/>
+    <deny send_type="method_call"/>
+    <allow send_type="signal"/>
+    <allow send_requested_reply="true" send_type="method_return"/>
+    <allow send_requested_reply="true" send_type="error"/>
+    <allow receive_type="method_call"/>
+    <allow receive_type="method_return"/>
+    <allow receive_type="error"/>
+    <allow receive_type="signal"/>
+  </policy>
+</busconfig>

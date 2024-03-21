@@ -1,0 +1,146 @@
+#autoload
+
+# This function can be used to separately complete parts of strings
+# where each part may be one of a set of matches and different parts
+# have different sets.
+# Arguments are alternately arrays and separator strings. Arrays may
+# be given by name or literally as words separated by white space in
+# parentheses, e.g.:
+#
+#  _sep_parts '(foo bar)' @ hosts
+#
+# This will make this function complete the strings `foo' and `bar'.
+# If the string on the line contains a `@', the substring after it
+# will be completed from the array `hosts'. Of course more arrays
+# may be given, each preceded by another separator string.
+#
+# This function understands the `-J group', `-V group', and
+# `-X explanation' options.
+
+local str arr sep test testarr tmparr prefix suffixes autosuffix
+local matchflags opt group expl nm=$compstate[nmatches] opre osuf opts matcher
+
+# Get the options.
+
+zparseopts -D -a opts 'J+:=group' 'V+:=group' P: F: S: r: R: q 1 2 o+: n \
+    'x+:=expl' 'X+:=expl' 'M+:=matcher'
+
+# Get the string from the line.
+
+opre="$PREFIX"
+osuf="$SUFFIX"
+str="$PREFIX$SUFFIX"
+SUFFIX=""
+prefix=""
+
+# Walk through the arguments to find the longest unambiguous prefix.
+
+while [[ $# -gt 1 ]]; do
+  # Get the next array and separator.
+  arr="$1"
+  sep="$2"
+
+  if [[ "$arr[1]" == '(' ]]; then
+    tmparr=( ${=arr[2,-2]} )
+    arr=tmparr
+  fi
+
+  # Is the separator on the line?
+
+  [[ "$str" != *${sep}* ]] && break
+
+  # Get the matching array elements.
+
+  PREFIX="${str%%(|\\)${sep}*}"
+  builtin compadd -O testarr "$matcher[@]" -a "$arr"
+  [[ $#testarr -eq 0 && -n "$_comp_correct" ]] &&
+    compadd -O testarr "$matcher[@]" -a "$arr"
+
+  # If there are no matches we give up. If there is more than one
+  # match, this is the part we will complete.
+
+  (( $#testarr )) || return 1
+  [[ $#testarr -gt 1 ]] && break
+
+  # Only one match, add it to the prefix and skip over it in `str',
+  # continuing with the next array and separator.
+
+  prefix="${prefix}${testarr[1]}${sep}"
+  str="${str#*${sep}}"
+  shift 2
+done
+
+# Get the array to work upon.
+
+arr="$1"
+if [[ "$arr[1]" == '(' ]]; then
+  tmparr=( ${=arr[2,-2]} )
+  arr=tmparr
+fi
+
+if [[ $# -le 1 || "$str" != *${2}* ]]; then
+  # No more separators, build the matches.
+
+  PREFIX="$str"
+  builtin compadd -O testarr "$matcher[@]" -a "$arr"
+  [[ $#testarr -eq 0 && -n "$_comp_correct" ]] &&
+    compadd -O testarr "$matcher[@]" -a "$arr"
+fi
+
+[[ $#testarr -eq 0 || ${#testarr[1]} -eq 0 ]] && return 1
+
+# Now we build the suffixes to give to the completion code.
+
+shift
+suffixes=("")
+autosuffix=()
+
+while [[ $# -gt 0 && "$str" == *${1}* ]]; do
+  # Remove anything up to the suffix.
+
+  str="${str#*${1}}"
+
+  # Again, we get the string from the line up to the next separator
+  # and build a pattern from it.
+
+  if [[ $# -gt 2 ]]; then
+    PREFIX="${str%%${3}*}"
+  else
+    PREFIX="$str"
+  fi
+
+  # We incrementally add suffixes by appending to them the separators
+  # and the strings from the next array that match the pattern we built.
+
+  arr="$2"
+  if [[ "$arr[1]" == '(' ]]; then
+    tmparr=( ${=arr[2,-2]} )
+    arr=tmparr
+  fi
+
+  builtin compadd -O tmparr "$matcher[@]" -a "$arr"
+  [[ $#tmparr -eq 0 && -n "$_comp_correct" ]] &&
+    compadd -O tmparr "$matcher[@]" - "$arr"
+
+  suffixes=("${(@)^suffixes[@]}${(q)1}${(@)^tmparr}")
+
+  shift 2
+done
+
+# If we were given at least one more separator we make the completion
+# code offer it by appending it as a autoremovable suffix.
+
+(( $# )) && autosuffix=(-qS "${(q)1}")
+
+# Add the matches for each of the suffixes.
+
+PREFIX="$pre"
+SUFFIX="$suf"
+for i in "$suffixes[@]"; do
+  compadd -U "$group[@]" "$expl[@]" "$autosuffix[@]" "$opts[@]" \
+          -i "$IPREFIX" -I "$ISUFFIX" -p "$prefix" -s "$i" -a testarr
+done
+
+# This sets the return value to indicate that we added matches (or not).
+
+[[ nm -ne compstate[nmatches] ]]

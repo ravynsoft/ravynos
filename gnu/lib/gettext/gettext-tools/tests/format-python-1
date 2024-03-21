@@ -1,0 +1,133 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Python format strings.
+
+cat <<\EOF > f-p-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one character argument
+"abc%c"
+# Valid: one string argument
+"abc%s"
+# Valid: one string argument
+"abc%r"
+# Valid: one integer argument
+"abc%i"
+# Valid: one integer argument
+"abc%d"
+# Valid: one integer argument
+"abc%u"
+# Valid: one integer argument
+"abc%o"
+# Valid: one integer argument
+"abc%x"
+# Valid: one integer argument
+"abc%X"
+# Valid: one floating-point argument
+"abc%e"
+# Valid: one floating-point argument
+"abc%E"
+# Valid: one floating-point argument
+"abc%f"
+# Valid: one floating-point argument
+"abc%g"
+# Valid: one floating-point argument
+"abc%G"
+# Valid: one argument with flags
+"abc%0#g"
+# Valid: one argument with width
+"abc%2g"
+# Valid: one argument with width
+"abc%*g"
+# Valid: one argument with precision
+"abc%.4g"
+# Valid: one argument with precision
+"abc%.*g"
+# Valid: one argument with width and precision
+"abc%14.4g"
+# Valid: one argument with width and precision
+"abc%14.*g"
+# Valid: one argument with width and precision
+"abc%*.4g"
+# Valid: one argument with width and precision
+"abc%*.*g"
+# Valid: one argument with size specifier
+"abc%hi"
+# Valid: one argument with size specifier
+"abc%li"
+# Valid: one argument with size specifier
+"abc%Li"
+# Invalid: unterminated
+"abc%"
+# Invalid: unknown format specifier
+"abc%y"
+# Invalid: flags after width
+"abc%*0g"
+# Invalid: twice precision
+"abc%.4.2g"
+# Invalid: two size specifiers
+"abc%lli"
+# Valid: three arguments
+"abc%d%u%u"
+# Valid: a named argument
+"abc%(value)d"
+# Valid: an empty name
+"abc%()d"
+# Invalid: unterminated name
+"abc%(value"
+# Valid: ignored named argument
+"abc%(dummy)%"
+# Invalid: flags before name
+"abc%0(value)d"
+# Valid: three arguments, two with equal names
+"abc%(addr)4x,%(char)c,%(addr)u"
+# Invalid: argument with conflicting types
+"abc%(addr)4x,%(char)c,%(addr)s"
+# Valid: no conflict
+"abc%(addr)r,%(addr)s"
+# Invalid: mixing of named and unnamed arguments
+"abc%d%(addr)x"
+# Valid: named argument with constant precision
+"abc%(addr).9x"
+# Invalid: mixing of named and unnamed arguments
+"abc%(addr).*x"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-p-1-$n.in
+gettext(${string});
+EOF
+  # Hide xgettext's "The translator cannot reorder the arguments." warnings.
+  ${XGETTEXT} -L Python -o f-p-1-$n.po f-p-1-$n.in 2> f-p-1.err \
+    || { cat f-p-1.err 1>&2; Exit 1; }
+  test -f f-p-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep python-format f-p-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep python-format f-p-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-p-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-p-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-p-1-$n.in f-p-1-$n.po
+done < f-p-1.data
+
+Exit 0

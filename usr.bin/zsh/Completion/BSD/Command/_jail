@@ -1,0 +1,53 @@
+#compdef jail
+
+local curcontext="$curcontext" ret=1
+local -a state state_descr line jails running alts suf
+local -A opt_args
+
+_arguments -C -s \
+  '-c[create a new jail]' \
+  '-m[modify an existing jail]' \
+  '-r[remove specified jail]' \
+  '-d[allow changes to a dying jail]' \
+  '-f+[specify configuration file]:config file [/etc/jail.conf]:_files' \
+  '-h[resolve host.hostname and use IP addresses for the jail]' \
+  '(-q)-i[output jail ID of new jails]' \
+  '-J+[write a file containing parameters used to start the jail]:file:_files' \
+  '-p+[limit the number of commands from exec.* that can run simultaneously]:limit' \
+  '(-i -v)-q[suppress the message printed when a jail is created, modified or removed]' \
+  '-R[remove jail without using the configuration file]' \
+  '(-q)-v[print a message on every operation]' \
+  '!-n+:name' '!-l' '!-s+:secure level' \!-{u,U}'+:user:_users' \
+  '*:: :->args' && ret=0
+
+if [[ -n $state ]]; then
+  if compset -P 1 '(^name)='; then
+    case ${IPREFIX%=} in
+      command|exec.*st(art|op)*) _cmdstring && ret=0 ;;
+      depend) _jails && ret=0 ;;
+      path) _directories && ret=0 ;;
+      host|vnet) alts=( 'values:value:(inherit new)' ) ;;
+      ip[46]) alts=( 'values:value:(inherit new disable)' ) ;;
+      *_user) _users && ret=0 ;;
+      *) _message -e values 'value' ;;
+    esac
+  elif compset -P name= || [[ $#line = 1 ]]; then
+    if (( $+opt_args[-r] || $+opt_args[-m] )); then
+      alts=( 'jails:jail:_jails' )
+    elif (( $+opt_args[-c] )); then
+      running=( ${${(f)"$(_call_program jails jls name)"}/ /:} )
+      jails=( ${${(M)${(f)"$(<${opt_args[-f]:-/etc/jail.conf})"}:#[a-z]# #\{#(#e)}%% *} )
+      alts=( "jails:jail:compadd - ${jails:|running}" )
+    fi
+  fi
+  if [[ -z $IPREFIX ]]; then
+    compset -S '=*' || suf=( -qS = )
+    alts+=(
+      'parameters:parameter:compadd -r "\n\t\- =" - persist allow.{set_hostname,sysvipc,raw_sockets,chflags,mount{,.devfs,.fdescfs,.nullfs,.procfs,.linprocfs,.linsysfs,.tmpfs,.zfs},quotas,socket_af} mount.{devfs,fdescfs,procfs}'
+      'parameters:parameter:compadd $suf - jid name path ip{4,6}{,.addr{,sel}} vnet host.hostname host securelevel devfs_ruleset children.{max,cur} enforce_statfs cpuset.id osrelease osreldate command exec.{{,pre,post}{start,stop},clean,jail_user,system{,_jail}_user,timeout,consolelog,fib} stop.timeout {vnet.,}interface ip_hostname mount{,.fstab} depend'
+    )
+  fi
+  (( $#alts )) && _alternative $alts && ret=0
+fi
+
+return ret

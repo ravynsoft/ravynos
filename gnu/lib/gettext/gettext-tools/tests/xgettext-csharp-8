@@ -1,0 +1,66 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C# support: Unicode character escape handling
+
+cat <<\EOF > xg-cs-8.cs
+// Valid:
+string s1 = "\U00020213";    // Codepoint U+20213
+string s2 = "\uD840\uDE13";  // Encoded form of U+20213
+string s3 = "\uD840\U0000DE13";  // Encoded form of U+20213
+string s4 = "\U0000D840\uDE13";  // Encoded form of U+20213
+string s5 = "\U0000D840\U0000DE13";  // Encoded form of U+20213
+string s6 = "\xD840\xDE13";  // Encoded form of U+20213
+
+// Invalid:
+string i1 = "\U0020213";    // Unterminated
+string i2 = "\uD840\u3032";  // Missing low surrogate
+string i3 = "\uD840\uDE1";    // Unterminated after a high surrogate
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --output xg-cs-8.tmp --add-location xg-cs-8.cs -a 2>/dev/null || Exit 1
+sed -e '/\"POT-Creation-Date:.*/d' < xg-cs-8.tmp | LC_ALL=C tr -d '\r' > xg-cs-8.po || Exit 1
+
+cat <<\EOF > xg-cs-8.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: xg-cs-8.cs:2 xg-cs-8.cs:3 xg-cs-8.cs:4 xg-cs-8.cs:5 xg-cs-8.cs:6
+#: xg-cs-8.cs:7
+msgid "𠈓"
+msgstr ""
+
+#: xg-cs-8.cs:10
+msgid "\\U0020213"
+msgstr ""
+
+#: xg-cs-8.cs:11
+msgid "�〲"
+msgstr ""
+
+#: xg-cs-8.cs:12
+msgid "�\\uDE1"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-cs-8.ok xg-cs-8.po
+result=$?
+
+exit $result

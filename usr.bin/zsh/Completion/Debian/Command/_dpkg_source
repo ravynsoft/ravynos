@@ -1,0 +1,28 @@
+#compdef dpkg-source
+
+_arguments \
+  '-x[specify source file]:Debian source file:_files -g "*.dsc(-.)"' \
+  '-b[specify source directory]:Debian source directory:_files -/' \
+  '-c-[control file]:control file:_files' \
+  '-l-[changelog file]:changelog file:_files' \
+  '-F-[changelog format]:changelog format:' \
+  '-V-[set substitutions variable]:expression:' \
+  '-T-[alternate variable file]:varlistfile:' \
+  '-D-[override dsc field]:expression:' \
+  '-U-[remove a field]:field:' \
+  '-i-[ignore files in diff]:filter:' \
+  '-sa[autoselect orig source]' \
+  '-sk[use packaged orig source - unpack and keep]' \
+  '-sp[use packaged orig source - unpack and remove]' \
+  '-su[use unpackaged orig source - unpack and keep]' \
+  '-sr[use unpackaged orig source - unpack and remove]' \
+  '-ss[trust packed and unpacked source are the same]' \
+  '-sn[no diff, do main tarfile only]' \
+  '-sA[autoselect orig source with overwrite]' \
+  '-sK[use packaged orig source - unpack and keep with overwrite]' \
+  '-sP[use packaged orig source - unpack and remove with overwrite]' \
+  '-sU[use unpackaged orig source - unpack and keep with overwrite]' \
+  '-sR[use unpackaged orig source - unpack and remove with overwrite]' \
+  '-sp[leave original source packed in cwd]' \
+  '-su[unpack original source tree too]' \
+  '-h[help]'

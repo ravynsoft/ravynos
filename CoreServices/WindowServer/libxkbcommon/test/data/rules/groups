@@ -1,0 +1,20 @@
+! $model_group = pc101       pc102    \
+                 pc104\
+                 pc105\
+                 pc106
+! $layout_group = ar br cr              us
+! $variant_group =
+
+! model         = keycodes
+  $model_group  = something(%m)
+  *             = default_keycodes
+
+! layout        variant = symbols
+  $layout_group *       = my_symbols+%(v)
+  *             *       = default_symbols
+
+! model         = types
+  *             = default_types
+
+! model         = compat
+  *             = default_compat

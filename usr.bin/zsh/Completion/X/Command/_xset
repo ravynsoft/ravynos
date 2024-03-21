@@ -1,0 +1,198 @@
+#compdef xset
+
+local word=$'[^\0]#\0'
+local nul=$'\0'
+
+local guard='-_xset_guard ${match[1]%?}'
+
+_xset_guard () {
+  local opt="$1" o
+  (( no[$opt]-- ))
+  for o in ${=eo[$opt]}; do
+    no[$o]=0
+  done 
+  :
+}
+
+_xset_compopts () {
+  local expl
+  local opt tmp
+
+  tmp=()
+  for opt in ${(k)no[(R)*~0]}
+  do
+    if (( $+desc[$opt] )); then
+      tmp=("$tmp[@]" "$opt:$desc[$opt]")
+    else
+      tmp=("$tmp[@]" "$opt")
+    fi
+  done
+  _describe -O options tmp -- ||
+  _describe -O options allopts --
+}
+
+_xset_compfpadd () {
+  _files "$expl[@]" -/
+}
+
+_xset_compfpdel () {
+  compadd "$expl[@]" - ${(s:,:)${"$(xset q)"##*
+Font Path:
+ #}%%
+*}
+}
+
+_regex_arguments _xset_parse \
+  "/$word/" \
+  \( "/-d(isplay|)$nul/" "$guard" "/$word/" ':option-display:display:_x_display' \
+  \| "/-c$nul/" "$guard" \
+  \| "/c$nul/" "$guard" \
+    \( "/(on|off)$nul/" ':option-c-bool:click:(on off)' \
+    \| "/[0-9]##$nul/" ':option-c-volume:volume:' \
+    \| \) \
+  \| "/-b$nul/" "$guard" \
+  \| "/b$nul/" "$guard" \
+    \( "/(on|off)$nul/" ':option-b-bool:bell:(on off)' \
+    \| "/[0-9]##$nul/" ':option-b-volume:bell volume:' \
+      \( "/[0-9]##$nul/" ':option-b-pitch:bell pitch:' \
+	\( "/[0-9]##$nul/" ':option-b-duration:bell duration:' \
+	\| \) \
+      \| \) \
+    \| \) \
+  \| "/bc$nul/" "$guard" \
+  \| "/-bc$nul/" "$guard" \
+  \| "/fp$nul/" "$guard" "/$word/" ':option-fp:font path:(default rehash)' \
+  \| "/(fp[+=]|[+]fp)$nul/" "$guard" "/$word/" ':option-fp-add:font path:{compset -P "*,"; _xset_compfpadd}' \
+  \| "/(fp-|-fp)$nul/" "$guard" "/$word/" ':option-fp-del:font path:{compset -P "*,"; _xset_compfpdel}' \
+  \| "/-led$nul/" "$guard" \
+    \( "/[0-9]##$nul/" ':option-led-number:led number:' \
+    \| \) \
+  \| "/led$nul/" "$guard" \
+    \( "/(on|off)$nul/" ':option-led-bool:led:(on off)' \
+    \| "/[0-9]##$nul/" ':option-led-number:led number:' \
+    \| \) \
+  \| "/m(ouse|)$nul/" "$guard" \
+    \( "/default$nul/" ':option-mouse-default:mouse parameter:(default)' \
+    \| "/[0-9]##(/[0-9]##|)$nul/" ':option-mouse-mult-div:accel_mult/accel_div:' \
+      \( "/[0-9]##$nul/" ':option-mouse-threshold:threshold:' \
+      \| \) \
+    \| \) \
+  \| "/[-+]dpms$nul/" "$guard" \
+  \| "/dpms$nul/" "$guard" \
+    \( "/[0-9]##$nul/" ':option-dpms-standby:standby timeout:' \
+      \( "/[0-9]##$nul/" ':option-dpms-suspend:suspend timeout:' \
+	\( "/[0-9]##$nul/" ':option-dpms-off:off timeout:' \
+	\| \) \
+      \| \) \
+    \| "/force$nul/" ':option-dpms-force:force DPMS state:(force)' \
+       "/(on|standby|suspend|off)$nul/" ':option-dpms-state:DPMS state:(on standby suspend off)' \
+    \) \
+  \| "/s$nul/" "$guard" \
+    \( "/(blank|noblank|expose|noexpose|default|on|activate|reset)$nul/" \
+       ':option-s:screen saver:(blank noblank expose noexpose default on activate reset off)' \
+    \| "/off$nul/" \( "/off$nul/" ':option-s-off-period:period off:(off)' \| \) \
+    \| "/[0-9]##$nul/" ':option-s-timeout: :_numbers -u seconds length' \
+      \( "/[0-9]##$nul/" ':option-s-period: :_numbers -u seconds period' \
+      \| \) \
+    \| \) \
+  \| "/-r$nul/" "$guard" \
+    \( "/[0-9]##$nul/" ':option-r-keycode:keycode:' \
+    \| \) \
+  \| "/r$nul/" "$guard" \
+    \( "/(on|off)$nul/" ':option-r-autorepeat:autorepeat:(on off)' \
+    \| "/[0-9]##$nul/" ':option-r-keycode:keycode:' \
+    \| \) \
+  \| "/p$nul/" "$guard" \
+    "/[0-9]##$nul/" ':option-p-pixel:pixel:' \
+    "/$word/" ':option-p-color:color:_x_color' \
+  \| "/(-|)k$nul/" "$guard" \
+  \| "/(-|)q$nul/" "$guard" \
+  \| "/[]/" ':options:options:_xset_compopts' \
+  \) \#
+
+_xset () {
+  local expl allopts opt
+  typeset -A desc no eo
+
+  desc=(
+    b 'specify bell parameters'
+    -b 'disable bell'
+    bc 'enable bug compatibility'
+    -bc 'disable bug compatibility'
+    c 'control key click'
+    -c 'disable key click'
+    -dpms 'disable DPMS'
+    +dpms 'enable DPMS'
+    dpms 'specify DPMS parameter'
+    fp\= 'set font path'
+    fp 'control font path'
+    -fp 'remove font path elements'
+    fp- 'remove font path elements'
+    +fp 'prepend font path elements'
+    fp+ 'append font path elements'
+    led 'control keyboard LEDs'
+    -led 'turn off all LEDs'
+    m 'specify mouse parameters'
+    mouse 'specify mouse parameters'
+    p 'specify pixel color values'
+    r 'enable autorepeat'
+    -r 'disable autorepeat'
+    s 'specify screen saver parameters'
+    q 'query current information'
+    k 'enable lock'
+    -k 'disable lock'
+    -display 'display'
+  )
+
+  no=(
+    -display 1 -d 0
+    -c 1 c 1
+    -b 1 b 1
+    -bc 1 bc 1
+    fp 1 fp= 1 +fp 1 fp+ 1 -fp 1 fp- 1
+    -led 1 led 1
+    mouse 1 m 0
+    +dpms 1 -dpms 1 dpms 1
+    s 1
+    -r 1 r 1
+    p 1
+    -k 1 k 1
+    -q 0 q 1
+  )
+
+  allopts=()
+  for opt in ${(k)no}
+  do
+    if (( $+desc[$opt] )); then
+      allopts=("$allopts[@]" "$opt:$desc[$opt]")
+    else
+      allopts=("$allopts[@]" "$opt")
+    fi
+  done
+
+  eo=(
+    -display	'-display -d'
+    -d		'-display -d'
+    -c		'-c c'
+    c		'-c c'
+    -b		'-b b'
+    b		'-b b'
+    -bc		'-bc bc'
+    bc		'-bc bc'
+    fp+		'fp fp='
+    fp-		'fp fp='
+    +fp		'fp fp='
+    -fp		'fp fp='
+    m		'm mouse'
+    mouse	'm mouse'
+    -dpms	'+dpms -dpms dpms'
+    +dpms	'+dpms -dpms dpms'
+    dpms	'+dpms -dpms dpms'
+    -k		'-k k'
+    k		'-k k'
+  )
+
+  _xset_parse
+}
+
+_xset "$@"

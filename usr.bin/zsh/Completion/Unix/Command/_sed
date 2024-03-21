@@ -1,0 +1,255 @@
+#compdef sed gsed psed s2p
+
+local variant inplace extended ign sep separator
+local -i nest=0
+local -a args aopts sedexpr cmds_none cmds_slash cmds_end substflags expl bsnl nl labels excl dedup
+local -a step range negate mods
+aopts=( -A '-*' )
+bsnl=( $'\\\n' )
+nl=$'\n'
+compquote nl
+
+cmds_none=(
+  '{:start group'
+  'q:quit after printing pattern space'
+  'h:copy pattern space to hold space'
+  '\::place label'
+  '#:comment'
+  '=:print current line number'
+  'a:append text'
+  'i:insert text'
+  'r:append contents of file'
+  'b:branch'
+  't:branch if s command has been successful'
+  'c:replace line with text'
+  'l:list current line in visually unambiguous form'
+  'w:write pattern space to file'
+)
+cmds_slash=(
+  's:substitute regex'
+  'y:transliterate characters'
+)
+cmds_end=(
+  'd:delete pattern space'
+  'D:delete up to the first newline in the pattern space'
+  'g:copy hold space to pattern space'
+  'G:append hold space to pattern space'
+  'H:append pattern space to hold space'
+  'n:read the next line of input into pattern space'
+  'N:append the next line of input to the pattern space'
+  'p:print the current pattern space'
+  'P:print up to the first newline of the current pattern space'
+  'x:exchange hold and pattern spaces'
+  '}:end group'
+)
+substflags=(
+  'g:replace all matches to the regular expression'
+  'p:print new pattern space if substitution made'
+  'w:write result to named file if substitution made'
+)
+args=(
+  '(-n --quiet --silent)'{-n,--quiet,--silent}'[suppress automatic printing of pattern space]'
+  '(1)*'{-e+,--expression=}'[specify sed commands to run]:sed script:_sed_expressions'
+  '(1)*'{-f+,--file=}'[add contents of file to commands to run]:file:_files'
+  '(-e)1:sed script:_sed_expressions'
+  '*:input file:_files'
+)
+inplace='[edit files in-place, running scripts separately for each file]:: :_guard "^(*[@/; ]*|?(#c6,)|-*)" "suffix for backup"'
+extended='[use extended regular expressions]'
+
+if [[ $service = (psed|s2p) ]]; then
+  args=(
+    "${(@)args:#(|\(*\))(|\*)--*}"
+    '-a[delay opening files listed with w function]'
+  )
+elif _pick_variant -r variant gnu=GNU unix --version; then
+  aopts=( )
+  (( $#words > 2 )) && ign='!'
+  args+=(
+    '--debug[annotate program execution]'
+    '--follow-symlinks[follow symlinks when processing in place]'
+    '(-i --in-place -s --separate)'{-i-,--in-place=-}$inplace
+    '(-c --copy)'{-c,--copy}'[copy instead of rename when shuffling files in in-place mode]'
+    '(-l --line-length)'{-l+,--line-length=}'[specify line-wrap length for the l command]'
+    '(-r)--posix[disable GNU extensions]'
+    '(-E -r --regexp-extended)'{-E,-r,--regexp-extended}$extended
+    '(-s --separate)'{-s,--separate}'[consider files separately instead of as a combined stream]'
+    '--sandbox[block commands that can affect the system (r/w/W/e)]'
+    '(-u --unbuffered)'{-u,--unbuffered}'[disable data buffering]'
+    '(-z --null-data)'{-z,--null-data}'[separate lines by NUL characters]'
+    "${ign}(- 1 :)--help[print program usage]"
+    "${ign}(- 1 :)--version[print program version]"
+  )
+  if [[ -z ${words[(r)--posix]} ]]; then
+    cmds_none+=(
+      'R:append a line from file'
+      'T:branch if no s command has been successful'
+      'W:write the first line of pattern space to file'
+      'v:fail if GNU extensions not supported or older than specified version'
+    )
+    cmds_end+=(
+      "e:execute a command and include it's output"
+      'F:print the filename of the current input file'
+      'Q:quit'
+      'z:empty the pattern space'
+    )
+    substflags+=(
+      'e:execute pattern space as a command and replace with result'
+      {i,I}':case-insensitive regular expression matching'
+      {m,M}':multi-line matching'
+    )
+  fi
+else
+  args=( "${(@)args:#(|\(*\))(|\*)--*}" )
+  case $OSTYPE in
+    openbsd*|freebsd*|netbsd*|darwin*|dragonfly*)
+      args+=(
+	'(-r -E)'-E$extended
+	'-a[delay opening files listed with w function]'
+      )
+    ;|
+    openbsd*|freebsd*|netbsd*|dragonfly*) args+=( '(-r -E)'-r$extended ) ;|
+    darwin*|freebsd*|netbsd*|openbsd*|dragonfly*) args+=( '-i+'$inplace ) ;|
+    darwin*|freebsd*|netbsd*|dragonfly*) args+=( '-l[make output line buffered]' ) ;|
+    freebsd*|dragonfly*) args+=( '-u[disable data buffering]' ) ;|
+    freebsd*|netbsd*|dragonfly*)
+      args+=(
+        '-I+[edit files in-place, treating all files as a single input stream]:: :_guard "^(*[@/; \\\]*|?(#c6,)|-*)" "suffix for backup"'
+      )
+    ;;
+    openbsd*) args+=( '-u[make output line buffered]' ) ;;
+  esac
+fi
+
+zstyle -s ":completion:${curcontext}:address-forms" list-separator separator || separator=--
+step=( "~ $separator step" )
+negate=( "! $separator negated" )
+range=( ", $separator range" )
+mods=( "I $separator case-insensitive" "M $separator multi-line" )
+
+sedexpr=(
+  \( /$'*\0[ \t\n]#'/ \) # strip off any preceding arguments - handled by _arguments
+  \(
+    # Handle an optional address range
+    \(
+      \(
+        \(
+          '///' '/[^/]#//' ':regexes:regex:' # skip /pattern/
+        \|
+          '/\\(?)/' -'sep=${match#?}' # handle \xpatternx
+          \( '/\?/' \| '/?/' -'[[ $match != $sep ]]' \) \# '/?/' -'[[ $match = $sep ]]' ':regexes:regex:'
+        \)
+        $'/[ \t]#/'
+        \( \| '/[IM]##/' -'dedup=( ${(s..)match} )' ':address-forms:address form:compadd -S "" -d mods -F dedup I M' \) \#
+      \|
+        '/([0-9]##|$)[ \t]#/' # line number
+        \(
+          '/\~[ \t]#/' # addr1~N
+          '/[0-9]##[ \t]#/' ': _message -e steps "number - match where line number is a multiple"'
+        \| '//' ':address-forms:address form:compadd -S "" -d step \~' \)
+      \|
+        '/[]/' ': _guard "^([sy]|[^0-9$/\\\]*)" "address - line number or /pattern/"'
+      \)
+      \( # range end, also optional
+        '/[ \t]#,[ \t]#/' -'excl=( \\\# : )' # exclude comments and labels after ranges
+        \(
+          '///' '/[^/]#//' ':regexes:regex:' # handle /pattern/
+        \|
+          '/\\(?)/' -'sep=${match#?}' # handle \xpatternx
+          \( '/\?/' \| '/?/' -'[[ $match != $sep ]]' \) \# '/?/' -'[[ $match = $sep ]]' ':regexes:regex - 2:'
+        \|
+          '/+[ \t]#/' # addr1,+N
+          '/[0-9]##/' ': _message -e number "number of following lines"'
+        \|
+          '/\~[ \t]#/' # addr1,~N
+          '/[0-9]##/' ': _message -e number "following lines until line number is a multiple of specified number"'
+        \|
+          '/([0-9]##|$)/' # line number
+        \|
+          '/[]/' ': _message -e ranges "ending line - [+~]number, $ or /pattern/"'
+        \)
+      \|
+        '//' -'excl=( \\\# : )' ':address-forms:address form:compadd -S "" -d range ,'
+      \)
+      \(
+        '/!/' ':address-forms:address form:compadd -S "" -d negate !'
+      \| \)
+    \| // -'excl=( \{ )' \) # { ... } is only useful following a range so exclude {
+
+    $'/[ \t]#/' -'(( nest )) || excl+=( \} )' # whitespace + exclude } without preceding {
+    \( # First commands, for which the pattern fully terminates them
+      '/e[ \t]#/' $'/((\\\n|\\[^\n]|[^\\\n])##\n|[\n;])/' ':commands:command:_cmdstring' # GNU extension
+    \|
+      $'/{[ ;\t\n]#/' -'((++nest,1))' # opening brace
+    \|
+      '/\#/' # comments
+      $'/[^\n]##\n[\n; \t]#/' ':comments:comment:'
+    \|
+      $'/[aci]/' # a, c and i commands
+      \(
+        $'/[ \t]#/' -'[[ $variant = gnu && $+opt_args[--posix] = 0 ]]' # GNU allows, e.g. 'c string'
+      \|
+        $'/[ \t]#/' $'/\\\n/' ':newlines:newline:compadd -Q -S "" "$bsnl"'
+      \)
+      $'/(\\\n|\\[^\n]|[^\\\n])##\n[\n; \t]#/' ':strings:string:'
+    \|
+      $'/[RrwW][ \t]#/' $'/[^\n]##\n[\n; \t]#/' ':files:file:_files -S ""'
+    \| # Now commands with shared termination handling
+      \(
+        # branches/labels, GNU sed allows an empty label
+        $'/[:btT][ \t]#/' $'/[^ \t\n;]#/' $'%[ \t\n;]%' -'labels+=( $match )'
+            ':labels:label: _wanted -x labels expl label compadd -S "" -a labels'
+      \|
+        '/l/' $'/[ \t]#<->/' ':width:width:'
+      \|
+        '/s(?)/' -'sep=${match#s}' # Substitutions
+        \( '/\\?/' \| '/?/' -'[[ $match != $sep ]]' \) \#
+        '/?/' -'[[ $match = $sep ]]' ':regexes:source regex:'
+        \( '/\\?/' \| '/?/' -'[[ $match != $sep ]]' \) \#
+        '/?/' -'[[ $match = $sep ]]' ':regexes:substitute string (back-references with & and \1 .. \9):'
+        \( # Substitution flags
+          $'/w[ \t]#/' $'/[^\n]##/' $'%\n%' ':files:file:_files -S ""'
+        \|
+          # pass existing flags, building exclusion list from them
+          $'/[gpiImM0-9]#/' -'excl=( ${(s..)${${${match/[iI]/iI}/[mM]/mM}}/e/ew} )'
+          \(
+            '//' -'[[ -z ${excl[(r)[0-9]]} ]]' # exclude if numbers already there
+            '//' '%[^egpiImM0-9]%' ': _message -e numbers "number - substitute nth match"'
+          \|
+            '//' '%[^egpiImM0-9]%' $':flags:flag: _describe -t flags flag substflags -S "" -F excl'
+          \)
+        \)
+      \|
+        '/y(?)/' -'sep=${match#y}' # Character transliterations
+        \( '/\?/' \| '/?/' -'[[ $match != $sep ]]' \) \# '/?/' -'[[ $match = $sep ]]' ':source:source:'
+        \( '/\?/' \| '/?/' -'[[ $match != $sep ]]' \) \# '/?/' -'[[ $match = $sep ]]' ':dest:dest:'
+      \|
+        '/[qQ]/' -'[[ $variant = gnu && $+opt_args[--posix] = 0 ]]'
+        $'/[\t ]#<->/' '%[^0-9]%' ':exit-codes:exit code:'
+      \|
+        '/[=dDFhHgGnNpPqQxz]/' # stand-alone commands that take no argument
+        \( $'/[ \t]#/' $'%[#\n;}]%' \| $'/[ \t]/' '/[]/' ': _message "no arguments"' \| \)
+      \|
+        $'/v[ \t]#/' $'/[^\n;}]#/' $'%[\n;}]%' ':versions:version:'
+      \|
+        $'/}[ \t]#/' -'((--nest,1))' # closing }
+      \|
+        /'[]'/ ':commands:command: _describe -t sed-commands "sed command" cmds_none -S "" -F excl -- cmds_slash -S / -- cmds_end -F excl -r \; -S $nl'
+      \)
+      $'/[ \t]#/'
+      \( $'/}[ \t]#/' -'((--nest,1))' \| \) # closing } is allowed by GNU sed without preceding ; or newline
+      \(
+       '/\#/' $'/[^\n]##\n[\n; \t]#/' ':comments:comment:' # line end comments
+      \|
+        # add in and auto-removable newline if command is terminated
+        $'/[;\n][ ;\t\n]#/' $':separators:separator:compadd -r ";" -S $nl ""'
+      \|
+        $'/{[ \t]#/' -'((++nest,1))' # opening {, keep count of nesting level
+      \)
+    \)
+  \) \#
+)
+
+_regex_arguments _sed_expressions "$sedexpr[@]"
+
+_arguments -s -S $aopts : "$args[@]"

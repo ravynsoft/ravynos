@@ -1,0 +1,80 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test format string checking in plural entries.
+
+cat <<\EOF > mf-test10.po1
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"PO-Revision-Date: 2001-04-05 19:47+0200\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-9\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/reduce.c:511
+#, c-format
+msgid "%d useless nonterminal"
+msgid_plural "%d useless nonterminals"
+msgstr[0] "1 yararsýz deðiþken simge"
+msgstr[1] "%d yararsýz deðiþken simges"
+
+#: src/reduce.c:520
+#, c-format
+msgid "one useless rule"
+msgid_plural "%d useless rules"
+msgstr[0] "%d yararsýz kural"
+msgstr[1] "%d yararsýz kurals"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o /dev/null mf-test10.po1 || Exit 1
+
+cat <<\EOF > mf-test10.po2
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"PO-Revision-Date: 2001-04-05 19:47+0200\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-9\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/reduce.c:520
+#, c-format
+msgid "one useless rule"
+msgid_plural "%d useless rules"
+msgstr[0] "%d yararsýz kural"
+msgstr[1] "%d yararsýz kural%s"
+EOF
+
+: ${MSGFMT=msgfmt}
+LC_MESSAGES=C LC_ALL= \
+${MSGFMT} --check -o /dev/null mf-test10.po2 \
+    2>&1 | grep -v '^==' | sed -e 's|[^ ]*\\msgfmt\.exe|msgfmt|' -e 's|^msgfmt\.exe|msgfmt|' -e 's|^/cygdrive/[^ ]*/msgfmt|msgfmt|' | LC_ALL=C tr -d '\r' > mf-test10.err
+
+cat << EOF > mf-test10.ok
+mf-test10.po2:6: warning: header field 'Language-Team' missing in header
+mf-test10.po2:6: warning: header field 'Language' missing in header
+mf-test10.po2:19: number of format specifications in 'msgid_plural' and 'msgstr[1]' does not match
+msgfmt: found 1 fatal error
+EOF
+
+: ${DIFF=diff}
+${DIFF} mf-test10.ok mf-test10.err
+result=$?
+
+exit $result

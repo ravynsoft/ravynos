@@ -1,0 +1,66 @@
+#compdef lsblk
+
+local sep ret=1
+local -a values dedup suf
+local curcontext="$curcontext" state line expl
+typeset -A opt_args
+
+_arguments -C -s -S \
+  '(H -E --dedup)'{-E+,--dedup=}'[de-duplicate output by specified column]:column:->columns' \
+  '(H -a --all)'{-a,--all}'[print all devices]' \
+  '(H -b --bytes)'{-b,--bytes}'[print size in bytes rather than in human readable format]' \
+  '(H -d --nodeps)'{-d,--nodeps}"[don't print slaves or holders]" \
+  '(H -I --include)*'{-e,--exclude}'[exclude devices by major number]:major device number:->majorlist' \
+  '(H -e --exclude)*'{-I+,--include=}'[show only devices with specified major numbers]:major device number:->majorlist' \
+  '(H -n --noheadings)'{-n,--noheadings}"[don't print headings]" \
+  '(H -p --paths)'{-p,--paths}'[print complete device path]' \
+  '(H -s --inverse)'{-s,--inverse}'[reverse dependency order]' \
+  '(H -x --sort)'{-x+,--sort=}'[sort output by specified column]:column:->columns' \
+  '(H)--sysroot=[use specified directory as system root]:directory:_directories' \
+  '*:device:_files -g "*(-%b)" -P / -W /' \
+  + fields \
+  '(H -D --discard -o --output -O --output-all)'{-D,--discard}'[output discard capabilities]' \
+  '(H -z --zoned -o --output -O --output-all)'{-z,--zoned}'[output zone model]' \
+  '(H -f --fs -o --output -O --output-all)'{-f,--fs}'[output info about filesystems]' \
+  '(H -m --perms -o --output -O --output-all)'{-m,--perms}'[output info about permissions]' \
+  '(H -S --scsi -o --output -O --output-all)'{-S,--scsi}'[output info about SCSI devices]' \
+  '(H -t --topology -o --output -O --output-all)'{-t,--topology}'[output info about topology]' \
+  '(H fields)'{-o+,--output=}'[specify output columns]:output column:->columnlist' \
+  '(H fields)'{-O,--output-all}'[output all columns]' \
+  + '(format)' \
+  '(H)'{-i,--ascii}'[output ascii characters only]' \
+  '(H)'{-J,--json}'[use JSON output format]' \
+  '(H)'{-l,--list}'[use list format output]' \
+  '(H)'{-T+,--tree=}'[use tree format output]:column:->columns' \
+  '(H)'{-P,--pairs}'[use key="value" output format]' \
+  '(H)'{-r,--raw}'[use raw output format]' \
+  + 'H' \
+  '(* -)'{-h,--help}'[display help information]' \
+  '(* -)'{-V,--version}'[display version information]' && ret=0
+
+case $state in
+  columnlist)
+    compset -P '+' || _describe -t list-prefixes prefix \
+		      '( +:"not replace but extend the list" )' -S '' && ret=0
+  ;|
+  *list)
+    dedup=( ${(Ms.,.)PREFIX##*,} ${(Ms.,.)SUFFIX%%,*} )
+    suf=( -qS , )
+    compset -S ',*' && suf=()
+    compset -P '*,'
+  ;|
+  column*)
+    values=(
+      ${${${${(f)"$(_call_program columns lsblk -h)"}[(r)Available*,-2]## #}[2,-1]//:/\\:}/  /:}
+    )
+    _describe -t fields column values -M 'm:{a-z}={A-Z}' $suf -F dedup && ret=0
+  ;;
+  major*)
+    zstyle -s ":completion:${curcontext}:" list-separator sep || sep=--
+    values=( ${${${(f)"$(</proc/devices)"}[(r)Block*,-1]## #}[2,-1]/ /:} )
+    zformat -a values " $sep " $values
+    _wanted -V devices expl 'major device number' compadd $suf -d values -F dedup ${values%% *} && ret=0
+  ;;
+esac
+
+return ret

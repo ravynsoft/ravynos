@@ -1,0 +1,45 @@
+#compdef head ghead
+
+local curcontext=$curcontext state state_descr line expl opts args ret=1
+typeset -A opt_args
+
+if _pick_variant gnu=GNU unix --version; then
+  args=(
+    '(-n --lines -c --bytes)'{-c+,--bytes=}'[print the first (or with -, all but the last) specified bytes]:number of bytes:->number'
+    '(-n --lines -c --bytes)'{-n+,--lines=}'[print the first (or with -, all but the last) specified lines]:number of lines:->number'
+    '(-q --quiet --silent -v --verbose)'{-q,--quiet,--silent}'[never print headers giving file names]'
+    '(-q --quiet --silent -v --verbose)'{-v,--verbose}'[always print headers giving file names]'
+    '(- *)--help[display help and exit]'
+    '(- *)--version[output version information and exit]'
+  )
+else
+  opts=(-A '-*')
+  args=( '(-c)-n+[display the first specified lines]:number of lines' )
+  case $OSTYPE in
+    (freebsd*|darwin*|dragonfly*|netbsd*)
+      args+=( '(-n)-c+[display the first specified bytes]:number of bytes' )
+    ;|
+    dragonfly*|netbsd*)
+      args+=(
+        '(-v)-q[never print headers giving file names]'
+        '(-q)-v[always print headers giving file names]'
+      )
+    ;;
+  esac
+fi
+
+_arguments -C -s -S $opts : $args '*:file:_files' && return 0
+
+case $state in
+  (number)
+    local alts
+    [[ -z $PREFIX ]] && alts=(
+      'sign:sign:((-\:"print all but the last specified bytes/lines" +\:"print the first specified bytes/lines (default)"))'
+    )
+    compset -P '+'
+    alts+=( 'numbers: :_numbers -N $state_descr b\:512 K\:1024 KB\:1000 M\:1024\^2 MB\:1000\^2 G\:1024\^3 GB\:1000\^3 T\:1024\^4 TB\:1000\^4' )
+    _alternative $alts && ret=0
+  ;;
+esac
+
+return ret

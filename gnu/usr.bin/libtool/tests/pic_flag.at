@@ -1,0 +1,63 @@
+# pic_flag.at -- override the pic_flag at configure time   -*- Autotest -*-
+
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([override pic_flag at configure time])
+
+# Just try to configure the Libtool package with -fpic if we can compile
+# with it, for C and C++.
+
+AT_DATA([foo.c],
+[[int data = 42;
+int func(void) { return data; }
+]])
+
+cp foo.c foo.cpp
+C_pic_flag='-fpic -DPIC'
+AT_CHECK([$CC $CPPFLAGS $CFLAGS $C_pic_flag -c foo.c || exit 77],
+	 [], [stdout], [stderr])
+# The configure test for the PIC flag also checks for warnings.
+AT_CHECK([$GREP fpic stdout stderr && exit 77], [1])
+AT_CHECK([[$GREP '[uU]nknown.*option' stdout stderr && exit 77]], [1])
+
+CXX_pic_flag='-fpic -DPIC'
+if $CXX $CPPFLAGS $CXXFLAGS $CXX_pic_flag -c foo.cpp; then :; else
+  CXX_pic_flag=
+fi
+
+# Set up a tests/demo.at style project.
+_LT_DEMO_SETUP
+
+# Bootstrap, and configure it so that we can extract libtool --config
+# settings.
+LT_AT_BOOTSTRAP([], [-I m4], [], [--add-missing], [],
+    [ignore], [ignore])
+
+LT_AT_CONFIGURE([lt_cv_prog_compiler_pic="$C_pic_flag" ]dnl
+		[lt_cv_prog_compiler_pic_CXX="$CXX_pic_flag"],
+		[./configure])
+: ${MAKE=make}
+AT_CHECK([$MAKE], [], [stdout], [ignore])
+AT_CHECK([if ./libtool --features | $GREP 'enable shared libraries'; then ]dnl
+	 [  $GREP ' -fpic' stdout; else exit 77; fi], [], [ignore], [ignore])
+
+AT_CLEANUP

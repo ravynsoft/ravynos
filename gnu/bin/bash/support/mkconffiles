@@ -1,0 +1,79 @@
+#! /bin/sh
+#
+# mkconffiles - create _distribution and _patchlevel files in preparation
+#		for recreating `configure' from `configure.ac'
+#
+# options:
+#	-s srcdir	directory where `configure' resides (defaults to `.')
+#	-d outdir	directory where the files should be written (defaults
+#			to "$srcdir")
+#	-v		verbose
+#	-n		nocreate - don't create the output files
+#
+# Chet Ramey
+# chet@po.cwru.edu
+
+# Copyright (C) 1996-2002 Free Software Foundation, Inc.
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+PROG=`basename $0`
+
+# defaults
+srcdir=.
+
+distname="_distribution"
+patchname="_patchlevel"
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+	-s)	shift; srcdir="$1"; shift;;
+	-d)	shift; outdir="$1"; shift;;
+	-v)	shift; verbose=yes ;;
+	-n)	shift; nocreate=yes;;
+	--)	shift; break;;
+	*)	echo "${PROG}: usage: ${PROG} [-s srcdir] [-d outdir] [-nv]" >&2; exit 2;;
+	esac
+done
+
+if [ ! -f ${srcdir}/configure ]; then
+	echo "${PROG}: ${srcdir}/configure not found" >&2
+	exit 1
+fi
+
+# default output directory to source directory
+if [ -z "$outdir" ]; then
+	outdir=${srcdir}
+fi
+
+DISTRIB=`grep '^BASHVERS' ${srcdir}/configure | sed 's:.*=::'`
+PATCH=`grep '^BASHPATCH' ${srcdir}/configure | sed 's:.*=::'`
+
+if [ -n "$verbose" ]; then
+	echo "${PROG}: creating new distribution files for bash-${DISTRIB}.${PATCH} in ${outdir}"
+fi
+
+distout=${outdir}/${distname}
+patchout=${outdir}/${patchname}
+
+if [ -z "$nocreate" ]; then
+	echo "$DISTRIB" > $distout
+	echo "$PATCH"   > $patchout
+fi
+
+if [ -n "$verbose" ]; then
+	echo "${PROG}: created $distout and $patchout"
+fi
+
+exit 0

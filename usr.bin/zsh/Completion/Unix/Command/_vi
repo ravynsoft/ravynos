@@ -1,0 +1,47 @@
+#compdef ex vi view
+
+local -a args
+
+if _pick_variant vim='(N|)VIM' vi --version; then
+  _vim
+  return
+fi
+
+args=(
+  '-c+[execute command on the first file loaded]:command:'
+  '-r[recover the named files]'
+  '-t+[start editing at the specified tag]:tag:'
+  '-w+[set window size to specified number of lines]:lines:'
+  '*: :_files'
+)
+
+[[ $service != view ]] && args+=(
+  '-R[set readonly]'
+)
+
+[[ $service == ex ]] && args+=(
+  '-s[enter batch mode]'
+  '-v[start in vi mode]'
+)
+
+case $OSTYPE in
+  *bsd*|dragonfly*)
+    args+=(
+      "-F[don't copy the entire file on start]"
+      '-S[set the secure option]'
+    )
+    [[ $service != ex ]] && args+=(
+      '-e[start in ex mode]'
+    )
+    ;|
+  netbsd*)
+    args+=(
+      '-G[start in gtags mode]'
+    )
+    [[ $service == vi ]] && args+=(
+      '-l[set the lisp and showmatch options]'
+    )
+    ;;
+esac
+
+_arguments -s -S -A '-*' : $args

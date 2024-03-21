@@ -1,0 +1,23 @@
+unhash [ -adfms ] name ...
+       Remove  the element named name from an internal hash table.  The
+       default is remove elements from the command hash table.  The  -a
+       option  causes  unhash to remove regular or global aliases; note
+       when removing a global aliases that the argument must be  quoted
+       to  prevent  it  from  being expanded before being passed to the
+       command.  The -s option causes unhash to remove suffix  aliases.
+       The  -f  option causes unhash to remove shell functions.  The -d
+       options causes unhash to remove named directories.   If  the  -m
+       flag  is  given  the  arguments are taken as patterns (should be
+       quoted) and all elements of the corresponding  hash  table  with
+       matching names will be removed.
+
+unalias [ -ams ] name ...
+       Removes aliases.  This command works the same as unhash -a,  ex-
+       cept  that  the -a option removes all regular or global aliases,
+       or with -s all suffix aliases: in this case  no  name  arguments
+       may  appear.   The options -m (remove by pattern) and -s without
+       -a (remove listed suffix aliases) behave as for unhash -a.  Note
+       that the meaning of -a is different between unalias and unhash.
+
+unfunction
+       Same as unhash -f.

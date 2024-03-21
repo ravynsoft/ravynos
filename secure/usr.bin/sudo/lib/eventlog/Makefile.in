@@ -1,0 +1,350 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2020-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+devdir = @devdir@
+scriptdir = $(top_srcdir)/scripts
+incdir = $(top_srcdir)/include
+
+# Compiler & tools to use
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+EGREP = @EGREP@
+SED = @SED@
+
+# C preprocessor flags
+CPPFLAGS = -I$(incdir) -I$(top_builddir) -I$(srcdir) -I$(top_srcdir) @CPPFLAGS@
+
+# Usually -O and/or -g
+CFLAGS = @CFLAGS@
+
+# Flags to pass to the link stage
+LDFLAGS = @LDFLAGS@
+
+# Flags to pass to libtool
+LTFLAGS = @LT_STATIC@
+
+# Libraries
+LIBUTIL = $(top_builddir)/lib/util/libsudo_util.la
+LT_LIBS = $(LIBUTIL)
+LIBS = $(LT_LIBS)
+
+# Address sanitizer flags
+ASAN_CFLAGS = @ASAN_CFLAGS@
+ASAN_LDFLAGS = @ASAN_LDFLAGS@
+
+# PIE flags
+PIE_CFLAGS = @PIE_CFLAGS@
+PIE_LDFLAGS = @PIE_LDFLAGS@
+
+# Stack smashing protection flags
+HARDENING_CFLAGS = @HARDENING_CFLAGS@
+HARDENING_LDFLAGS = @HARDENING_LDFLAGS@
+
+# cppcheck options, usually set in the top-level Makefile
+CPPCHECK_OPTS = -q --enable=warning,performance,portability --suppress=constStatement --suppress=compareBoolExpressionWithInt --error-exitcode=1 --inline-suppr -Dva_copy=va_copy -U__cplusplus -UQUAD_MAX -UQUAD_MIN -UUQUAD_MAX -U_POSIX_HOST_NAME_MAX -U_POSIX_PATH_MAX -U__NBBY -DNSIG=64
+
+# splint options, usually set in the top-level Makefile
+SPLINT_OPTS = -D__restrict= -checks
+
+# PVS-studio options
+PVS_CFG = $(top_srcdir)/PVS-Studio.cfg
+PVS_IGNORE = 'V707,V011,V002,V536'
+PVS_LOG_OPTS = -a 'GA:1,2' -e -t errorfile -d $(PVS_IGNORE)
+
+# Set to non-empty for development mode
+DEVEL = @DEVEL@
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+TEST_PROGS = check_wrap check_parse_json store_json_test store_sudo_test
+TEST_VERBOSE =
+
+LIBEVENTLOG_OBJS = eventlog.lo eventlog_conf.lo eventlog_free.lo logwrap.lo \
+		   parse_json.lo
+
+IOBJS = $(LIBEVENTLOG_OBJS:.lo=.i)
+
+POBJS = $(IOBJS:.i=.plog)
+
+CHECK_WRAP_OBJS = check_wrap.lo logwrap.lo
+
+CHECK_PARSE_JSON_OBJS = check_parse_json.lo parse_json.lo
+
+STORE_JSON_TEST_OBJS = store_json_test.lo
+
+STORE_SUDO_TEST_OBJS = store_sudo_test.lo
+
+all: libsudo_eventlog.la
+
+depend:
+	$(scriptdir)/mkdep.pl --srcdir=$(abs_top_srcdir) \
+	    --builddir=$(abs_top_builddir) lib/eventlog/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/eventlog/Makefile
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/eventlog/Makefile
+
+.SUFFIXES: .c .h .i .lo .plog
+
+.c.lo:
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $<
+
+.c.i:
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+
+.i.plog:
+	ifile=$<; rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $${ifile%i}c --i-file $< --output-file $@
+
+libsudo_eventlog.la: $(LIBEVENTLOG_OBJS) $(LT_LIBS)
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(LIBEVENTLOG_OBJS) $(LT_LIBS)
+
+check_parse_json: $(CHECK_PARSE_JSON_OBJS) $(LIBUTIL)
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_PARSE_JSON_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS)
+
+check_wrap: $(CHECK_WRAP_OBJS) $(LIBUTIL) $(LIBUTIL)
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_WRAP_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS)
+
+store_json_test: $(STORE_JSON_TEST_OBJS) $(LIBUTIL) libsudo_eventlog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(STORE_JSON_TEST_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS) libsudo_eventlog.la
+
+store_sudo_test: $(STORE_SUDO_TEST_OBJS) $(LIBUTIL) libsudo_eventlog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(STORE_SUDO_TEST_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS) libsudo_eventlog.la
+
+pre-install:
+
+install:
+
+install-binaries:
+
+install-includes:
+
+install-doc:
+
+install-plugin:
+
+install-fuzzer:
+
+uninstall:
+
+splint:
+	splint $(SPLINT_OPTS) -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(srcdir)/*.c
+
+cppcheck:
+	cppcheck $(CPPCHECK_OPTS) -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(srcdir)/*.c
+
+pvs-log-files: $(POBJS)
+
+pvs-studio: $(POBJS)
+	plog-converter $(PVS_LOG_OPTS) $(POBJS)
+
+fuzz:
+
+check-fuzzer:
+
+check: $(TEST_PROGS) check-fuzzer
+	@if test X"$(cross_compiling)" != X"yes"; then \
+	    l=`locale -a 2>&1 | $(EGREP) -i '^C\.UTF-?8$$' | $(SED) 1q` || true; \
+	    test -n "$$l" || l="C"; \
+	    LC_ALL="$$l"; export LC_ALL; \
+	    unset LANG || LANG=; \
+	    unset LANGUAGE || LANGUAGE=; \
+	    MALLOC_OPTIONS=S; export MALLOC_OPTIONS; \
+	    MALLOC_CONF="abort:true,junk:true"; export MALLOC_CONF; \
+	    umask 022; \
+	    rval=0; \
+	    ./check_parse_json $(TEST_VERBOSE) $(srcdir)/regress/parse_json/*.in || rval=`expr $$rval + $$?`; \
+	    ./store_json_test $(TEST_VERBOSE) $(srcdir)/regress/eventlog_store/*.json.in || rval=`expr $$rval + $$?`; \
+	    ./store_sudo_test $(TEST_VERBOSE) $(srcdir)/regress/eventlog_store/*.json.in || rval=`expr $$rval + $$?`; \
+	    mkdir -p regress/logwrap; \
+	    ./check_wrap $(TEST_VERBOSE) $(srcdir)/regress/logwrap/check_wrap.in > regress/logwrap/check_wrap.out; \
+	    diff regress/logwrap/check_wrap.out $(srcdir)/regress/logwrap/check_wrap.out.ok || rval=`expr $$rval + $$?`; \
+	    exit $$rval; \
+	fi
+
+check-verbose:
+	exec $(MAKE) $(MFLAGS) TEST_VERBOSE=-v FUZZ_VERBOSE=-verbosity=1 check
+
+clean:
+	-$(LIBTOOL) $(LTFLAGS) --mode=clean rm -f *.lo *.o *.la $(TEST_PROGS)
+	-rm -f *.i *.plog stamp-* core *.core core.* regress/*/*.out
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile .libs
+
+clobber: distclean
+
+realclean: distclean
+	rm -f TAGS tags
+
+cleandir: realclean
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean
+
+# Autogenerated dependencies, do not modify
+check_parse_json.lo: $(srcdir)/regress/parse_json/check_parse_json.c \
+                     $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                     $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                     $(incdir)/sudo_json.h $(incdir)/sudo_plugin.h \
+                     $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                     $(srcdir)/parse_json.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/parse_json/check_parse_json.c
+check_parse_json.i: $(srcdir)/regress/parse_json/check_parse_json.c \
+                     $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                     $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                     $(incdir)/sudo_json.h $(incdir)/sudo_plugin.h \
+                     $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                     $(srcdir)/parse_json.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+check_parse_json.plog: check_parse_json.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/parse_json/check_parse_json.c --i-file $< --output-file $@
+check_wrap.lo: $(srcdir)/regress/logwrap/check_wrap.c \
+               $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+               $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+               $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+               $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/logwrap/check_wrap.c
+check_wrap.i: $(srcdir)/regress/logwrap/check_wrap.c \
+               $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+               $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+               $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+check_wrap.plog: check_wrap.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/logwrap/check_wrap.c --i-file $< --output-file $@
+eventlog.lo: $(srcdir)/eventlog.c $(incdir)/compat/stdbool.h \
+             $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+             $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+             $(incdir)/sudo_gettext.h $(incdir)/sudo_json.h \
+             $(incdir)/sudo_lbuf.h $(incdir)/sudo_plugin.h \
+             $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+             $(top_builddir)/config.h $(top_builddir)/pathnames.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/eventlog.c
+eventlog.i: $(srcdir)/eventlog.c $(incdir)/compat/stdbool.h \
+             $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+             $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+             $(incdir)/sudo_gettext.h $(incdir)/sudo_json.h \
+             $(incdir)/sudo_lbuf.h $(incdir)/sudo_plugin.h \
+             $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+             $(top_builddir)/config.h $(top_builddir)/pathnames.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+eventlog.plog: eventlog.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/eventlog.c --i-file $< --output-file $@
+eventlog_conf.lo: $(srcdir)/eventlog_conf.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                  $(incdir)/sudo_gettext.h $(incdir)/sudo_json.h \
+                  $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                  $(incdir)/sudo_util.h $(top_builddir)/config.h \
+                  $(top_builddir)/pathnames.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/eventlog_conf.c
+eventlog_conf.i: $(srcdir)/eventlog_conf.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                  $(incdir)/sudo_gettext.h $(incdir)/sudo_json.h \
+                  $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                  $(incdir)/sudo_util.h $(top_builddir)/config.h \
+                  $(top_builddir)/pathnames.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+eventlog_conf.plog: eventlog_conf.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/eventlog_conf.c --i-file $< --output-file $@
+eventlog_free.lo: $(srcdir)/eventlog_free.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_eventlog.h $(incdir)/sudo_queue.h \
+                  $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/eventlog_free.c
+eventlog_free.i: $(srcdir)/eventlog_free.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_eventlog.h $(incdir)/sudo_queue.h \
+                  $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+eventlog_free.plog: eventlog_free.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/eventlog_free.c --i-file $< --output-file $@
+logwrap.lo: $(srcdir)/logwrap.c $(incdir)/compat/stdbool.h \
+            $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+            $(incdir)/sudo_eventlog.h $(incdir)/sudo_queue.h \
+            $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/logwrap.c
+logwrap.i: $(srcdir)/logwrap.c $(incdir)/compat/stdbool.h \
+            $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+            $(incdir)/sudo_eventlog.h $(incdir)/sudo_queue.h \
+            $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+logwrap.plog: logwrap.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/logwrap.c --i-file $< --output-file $@
+parse_json.lo: $(srcdir)/parse_json.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+               $(incdir)/sudo_gettext.h $(incdir)/sudo_json.h \
+               $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+               $(incdir)/sudo_util.h $(srcdir)/parse_json.h \
+               $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/parse_json.c
+parse_json.i: $(srcdir)/parse_json.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+               $(incdir)/sudo_gettext.h $(incdir)/sudo_json.h \
+               $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+               $(incdir)/sudo_util.h $(srcdir)/parse_json.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+parse_json.plog: parse_json.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/parse_json.c --i-file $< --output-file $@
+store_json_test.lo: $(srcdir)/regress/eventlog_store/store_json_test.c \
+                    $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                    $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                    $(incdir)/sudo_json.h $(incdir)/sudo_plugin.h \
+                    $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                    $(srcdir)/parse_json.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/eventlog_store/store_json_test.c
+store_json_test.i: $(srcdir)/regress/eventlog_store/store_json_test.c \
+                    $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                    $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                    $(incdir)/sudo_json.h $(incdir)/sudo_plugin.h \
+                    $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                    $(srcdir)/parse_json.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+store_json_test.plog: store_json_test.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/eventlog_store/store_json_test.c --i-file $< --output-file $@
+store_sudo_test.lo: $(srcdir)/regress/eventlog_store/store_sudo_test.c \
+                    $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                    $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                    $(incdir)/sudo_lbuf.h $(incdir)/sudo_plugin.h \
+                    $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/eventlog_store/store_sudo_test.c
+store_sudo_test.i: $(srcdir)/regress/eventlog_store/store_sudo_test.c \
+                    $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                    $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                    $(incdir)/sudo_lbuf.h $(incdir)/sudo_plugin.h \
+                    $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+store_sudo_test.plog: store_sudo_test.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/eventlog_store/store_sudo_test.c --i-file $< --output-file $@

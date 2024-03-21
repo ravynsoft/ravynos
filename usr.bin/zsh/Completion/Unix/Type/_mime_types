@@ -1,0 +1,42 @@
+#autoload
+
+local expl maintype
+local -a default_type_files type_files match mbegin mend
+integer ind
+
+default_type_files=(~/.mime.types /etc/mime.types)
+
+# This is the same style as used by zsh-mime-setup, with a different
+# context.
+if zstyle -a ":completion:${curcontext}:" mime-types type_files; then
+  while (( (ind = ${type_files[(I)+]}) > 0 )); do
+    type_files[$ind]=($default_type_files)
+  done
+else
+  type_files=($default_type_files)
+fi
+
+#
+# Handle two different mime type formats; the simple
+# format:
+#   application/x-pws-frobnicate psf pwsf
+# and the extended format
+#   type=application/x-pws-frobnicate \
+#   desc="PWS frobnicated widget" \
+#   exts="pwsf,psf"
+# which Netscape seems to like.
+#
+
+if [[ $PREFIX = (#b)([^/]##)/* ]]; then
+  # Search for subtype.
+  maintype=$match[1]
+  compset -p $(( ${#maintype} + 1 ))
+  _wanted mime-subtypes expl 'MIME subtype' \
+      compadd -- $(sed -ne "s%^\(type=\|\)${maintype}/\([^ 	]*\).*$%\2%p" \
+      $type_files 2>/dev/null)
+else
+  # Search for main type.
+  _wanted mime-types expl 'MIME type' \
+    compadd -S/ -- $(sed -ne "s/^type=//" \
+      -e "s%^\(${PREFIX:-[a-z]}[^=\"]*\)/.*$%\1%p" $type_files 2>/dev/null)
+fi

@@ -1,0 +1,4 @@
+echo "warning: all of these tests will fail if history has not been compiled" >&2
+echo "warning: into the shell" >&2
+${THIS_SH} ./histexp.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} histexp.right && rm -f ${BASH_TSTOUT}

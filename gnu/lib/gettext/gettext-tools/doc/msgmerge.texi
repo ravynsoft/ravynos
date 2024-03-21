@@ -1,0 +1,292 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msgmerge
+@cindex @code{msgmerge} program, usage
+@example
+msgmerge [@var{option}] @var{def}.po @var{ref}.pot
+@end example
+
+The @code{msgmerge} program merges two Uniforum style .po files together.
+The @var{def}.po file is an existing PO file with translations which will
+be taken over to the newly created file as long as they still match;
+comments will be preserved, but extracted comments and file positions will
+be discarded.  The @var{ref}.pot file is the last created PO file with
+up-to-date source references but old translations, or a PO Template file
+(generally created by @code{xgettext}); any translations or comments
+in the file will be discarded, however dot comments and file positions
+will be preserved.  Where an exact match cannot be found, fuzzy matching
+is used to produce better results.
+
+@subsection Input file location
+
+@table @samp
+@item @var{def}.po
+Translations referring to old sources.
+
+@item @var{ref}.pot
+References to the new sources.
+
+@item -D @var{directory}
+@itemx --directory=@var{directory}
+@opindex -D@r{, @code{msgmerge} option}
+@opindex --directory@r{, @code{msgmerge} option}
+Add @var{directory} to the list of directories.  Source files are
+searched relative to this list of directories.  The resulting @file{.po}
+file will be written relative to the current directory, though.
+
+@item -C @var{file}
+@itemx --compendium=@var{file}
+@opindex -C@r{, @code{msgmerge} option}
+@opindex --compendium@r{, @code{msgmerge} option}
+Specify an additional library of message translations.  @xref{Compendium}.
+This option may be specified more than once.
+
+@end table
+
+@subsection Operation mode
+
+@table @samp
+@item -U
+@itemx --update
+@opindex -U@r{, @code{msgmerge} option}
+@opindex --update@r{, @code{msgmerge} option}
+Update @var{def}.po.  Do nothing if @var{def}.po is already up to date.
+
+@end table
+
+@subsection Output file location
+
+@table @samp
+@item -o @var{file}
+@itemx --output-file=@var{file}
+@opindex -o@r{, @code{msgmerge} option}
+@opindex --output-file@r{, @code{msgmerge} option}
+Write output to specified file.
+
+@end table
+
+@cindex standard output, and @code{msgmerge} program
+The results are written to standard output if no output file is specified
+or if it is @samp{-}.
+
+@subsection Output file location in update mode
+
+The result is written back to @var{def}.po.
+
+@table @samp
+@item --backup=@var{control}
+@opindex --backup@r{, @code{msgmerge} option}
+@cindex backup old file, and @code{msgmerge} program
+Make a backup of @var{def}.po
+
+@item --suffix=@var{suffix}
+@opindex --suffix@r{, @code{msgmerge} option}
+Override the usual backup suffix.
+
+@end table
+
+@cindex version control for backup files, @code{msgmerge}
+The version control method may be selected via the @code{--backup} option
+or through the @code{VERSION_CONTROL} environment variable.  Here are the
+values:
+
+@table @samp
+@item none
+@itemx off
+Never make backups (even if @code{--backup} is given).
+
+@item numbered
+@itemx t
+Make numbered backups.
+
+@item existing
+@itemx nil
+Make numbered backups if numbered backups for this file already exist,
+otherwise make simple backups.
+
+@item simple
+@itemx never
+Always make simple backups.
+
+@end table
+
+The backup suffix is @samp{~}, unless set with @code{--suffix} or the
+@code{SIMPLE_BACKUP_SUFFIX} environment variable.
+
+@subsection Operation modifiers
+
+@table @samp
+@item -m
+@itemx --multi-domain
+@opindex -m@r{, @code{msgmerge} option}
+@opindex --multi-domain@r{, @code{msgmerge} option}
+Apply @var{ref}.pot to each of the domains in @var{def}.po.
+
+@item --for-msgfmt
+@opindex --for-msgfmt@r{, @code{msgmerge} option}
+Produce a PO file meant for @code{msgfmt} only, not for a translator.
+This option omits untranslated messages, fuzzy messages (except the header
+entry), and obsolete messages from the output.  Also, it omits translator
+comments and @samp{#: @var{filename}:@var{line}} lines from the output.
+In particular, this option implies @samp{--no-fuzzy-matching}.
+
+@item -N
+@itemx --no-fuzzy-matching
+@opindex -N@r{, @code{msgmerge} option}
+@opindex --no-fuzzy-matching@r{, @code{msgmerge} option}
+Do not use fuzzy matching when an exact match is not found.  This may speed
+up the operation considerably.
+
+@item --previous
+@opindex --previous@r{, @code{msgmerge} option}
+Keep the previous msgids of translated messages, marked with @samp{#|}, when
+adding the fuzzy marker to such messages.
+@end table
+
+@subsection Input file syntax
+
+@table @samp
+@item -P
+@itemx --properties-input
+@opindex -P@r{, @code{msgmerge} option}
+@opindex --properties-input@r{, @code{msgmerge} option}
+Assume the input files are Java ResourceBundles in Java @code{.properties}
+syntax, not in PO file syntax.
+
+@item --stringtable-input
+@opindex --stringtable-input@r{, @code{msgmerge} option}
+Assume the input files are NeXTstep/GNUstep localized resource files in
+@code{.strings} syntax, not in PO file syntax.
+
+@end table
+
+@subsection Output details
+
+@c --no-escape and --escape omitted on purpose.  They are not useful.
+
+@table @samp
+@item --lang=@var{catalogname}
+@opindex --lang@r{, @code{msgmerge} option}
+Specify the @samp{Language} field to be used in the header entry.  See
+@ref{Header Entry} for the meaning of this field.  Note: The
+@samp{Language-Team} and @samp{Plural-Forms} fields are left unchanged.
+If this option is not specified, the @samp{Language} field is inferred, as
+best as possible, from the @samp{Language-Team} field.
+
+@item --color
+@itemx --color=@var{when}
+@opindex --color@r{, @code{msgmerge} option}
+Specify whether or when to use colors and other text attributes.
+See @ref{The --color option} for details.
+
+@item --style=@var{style_file}
+@opindex --style@r{, @code{msgmerge} option}
+Specify the CSS style rule file to use for @code{--color}.
+See @ref{The --style option} for details.
+
+@item --force-po
+@opindex --force-po@r{, @code{msgmerge} option}
+Always write an output file even if it contains no message.
+
+@item -i
+@itemx --indent
+@opindex -i@r{, @code{msgmerge} option}
+@opindex --indent@r{, @code{msgmerge} option}
+Write the .po file using indented style.
+
+@item --no-location
+@opindex --no-location@r{, @code{msgmerge} option}
+Do not write @samp{#: @var{filename}:@var{line}} lines.
+
+@item -n
+@itemx --add-location=@var{type}
+@opindex --add-location@r{, @code{msgmerge} option}
+Generate @samp{#: @var{filename}:@var{line}} lines (default).
+
+The optional @var{type} can be either @samp{full}, @samp{file}, or
+@samp{never}.  If it is not given or @samp{full}, it generates the
+lines with both file name and line number.  If it is @samp{file}, the
+line number part is omitted.  If it is @samp{never}, it completely
+suppresses the lines (same as @code{--no-location}).
+
+@item --strict
+@opindex --strict@r{, @code{msgmerge} option}
+Write out a strict Uniforum conforming PO file.  Note that this
+Uniforum format should be avoided because it doesn't support the
+GNU extensions.
+
+@item -p
+@itemx --properties-output
+@opindex -p@r{, @code{msgmerge} option}
+@opindex --properties-output@r{, @code{msgmerge} option}
+Write out a Java ResourceBundle in Java @code{.properties} syntax.  Note
+that this file format doesn't support plural forms and silently drops
+obsolete messages.
+
+@item --stringtable-output
+@opindex --stringtable-output@r{, @code{msgmerge} option}
+Write out a NeXTstep/GNUstep localized resource file in @code{.strings} syntax.
+Note that this file format doesn't support plural forms.
+
+@item -w @var{number}
+@itemx --width=@var{number}
+@opindex -w@r{, @code{msgmerge} option}
+@opindex --width@r{, @code{msgmerge} option}
+Set the output page width.  Long strings in the output files will be
+split across multiple lines in order to ensure that each line's width
+(= number of screen columns) is less or equal to the given @var{number}.
+
+@item --no-wrap
+@opindex --no-wrap@r{, @code{msgmerge} option}
+Do not break long message lines.  Message lines whose width exceeds the
+output page width will not be split into several lines.  Only file reference
+lines which are wider than the output page width will be split.
+
+@item -s
+@itemx --sort-output
+@opindex -s@r{, @code{msgmerge} option}
+@opindex --sort-output@r{, @code{msgmerge} option}
+@cindex sorting @code{msgmerge} output
+Generate sorted output.  Note that using this option makes it much harder
+for the translator to understand each message's context.
+
+@item -F
+@itemx --sort-by-file
+@opindex -F@r{, @code{msgmerge} option}
+@opindex --sort-by-file@r{, @code{msgmerge} option}
+Sort output by file location.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msgmerge} option}
+@opindex --help@r{, @code{msgmerge} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msgmerge} option}
+@opindex --version@r{, @code{msgmerge} option}
+Output version information and exit.
+
+@item -v
+@itemx --verbose
+@opindex -v@r{, @code{msgmerge} option}
+@opindex --verbose@r{, @code{msgmerge} option}
+Increase verbosity level.
+
+@item -q
+@itemx --quiet
+@itemx --silent
+@opindex -q@r{, @code{msgmerge} option}
+@opindex --quiet@r{, @code{msgmerge} option}
+@opindex --silent@r{, @code{msgmerge} option}
+Suppress progress indicators.
+
+@end table

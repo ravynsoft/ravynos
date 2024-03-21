@@ -1,0 +1,13 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgfmt --qt on a PO file with contexts.
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --qt "$wabs_srcdir"/qttest2_de.po -o mf-qt-2.qm || Exit 1
+
+: ${CMP=cmp}
+${CMP} "$abs_srcdir"/qttest2_de.qm mf-qt-2.qm >/dev/null 2>/dev/null
+result=$?
+
+exit $result

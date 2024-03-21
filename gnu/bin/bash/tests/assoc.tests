@@ -1,0 +1,268 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# TEST - basic declaration and assignment
+typeset -A fluff
+declare -A
+
+fluff[foo]=one
+fluff[bar]=two
+
+declare -A
+declare -p fluff
+
+unset fluff[foo]
+declare -p fluff
+
+fluff[bar]=newval
+declare fluff[qux]=assigned
+
+declare -p fluff
+
+unset fluff
+
+# TEST - compound assignment and variable attributes
+declare -A wheat chaff
+wheat=( [zero]=0 [one]=a [two]=b [three]=c )
+
+declare -i chaff
+chaff=( [zero]=1+4 [one]=3+7 four )
+
+declare -A waste=( [pid]=42134 [version]=4.0-devel [source]=$0 [lineno]=$LINENO )
+declare -r waste
+
+declare -A
+
+declare +i chaff
+chaff[hello world]=flip
+declare -p chaff
+
+# TEST - no longer errors
+waste[stuff]=other
+unset waste
+chaff[*]=12
+chaff=( [one]=a [*]=12 )
+
+# TEST - key expansion -- no word splitting
+chaff[hello world]=flip
+declare -p chaff
+echo ${chaff[hello world]}
+
+chaff[box]="multiple words"
+
+recho ${chaff[@]}
+recho "${chaff[@]}"
+
+recho ${chaff[*]}
+recho "${chaff[*]}"
+
+unset chaff
+declare -A chaff[200]
+declare +A chaff
+
+chaff[*]=12
+chaff=( [one]=a [*]=12 )
+
+# TEST - keys and values containing spaces
+unset wheat
+declare -A wheat
+wheat=([six]=6 [foo bar]="qux qix" )
+
+declare -p wheat
+
+unset wheat
+declare -A wheat=([six]=6 [foo bar]="qux qix" )
+
+recho ${wheat[foo bar]}
+recho "${wheat[foo bar]}"
+
+declare -p wheat
+
+# TEST - basic expansions: number of elements and value length
+unset wheat
+typeset -A wheat
+wheat=([six]=6 [foo bar]="qux qix" )
+
+recho ${#wheat[@]}
+
+recho ${#wheat[foo bar]}
+
+# TEST - appending assignment operator
+unset wheat
+typeset -A wheat
+wheat=([six]=6 [foo bar]="qux qix" )
+
+wheat[foo bar]+=' blat'
+
+recho ${wheat[foo bar]}
+recho "${wheat[foo bar]}"
+unset wheat
+
+flix=9
+typeset -Ai wheat
+wheat=([six]=6 [foo bar]=flix )
+
+wheat[foo bar]+=7
+
+recho ${wheat[foo bar]}
+recho "${wheat[foo bar]}"
+unset flix wheat
+
+# TEST - index expansion: no word splitting or globbing
+typeset -A wheat
+cd ${TMPDIR:=/tmp}
+touch '[sfiri]'
+wheat=([s*]=6 [foo bar]=flix )
+
+recho ${wheat[@]}
+rm '[sfiri]'
+cd $OLDPWD
+
+# TEST -- associative array keys expansion
+unset wheat
+typeset -A wheat
+
+wheat=([six]=6 [foo bar]=flix )
+
+recho ${!wheat[@]}
+recho "${!wheat[@]}"
+
+# TEST -- associative array pattern removal
+unset xpath
+typeset -A xpath
+
+xpath=( [0]=/bin [one]=/bin [two]=/usr/bin [three]=/usr/ucb [four]=/usr/local/bin)
+xpath+=( [five]=/sbin [six]=/usr/sbin [seven]=. )
+
+echo ${#xpath[@]}
+
+echo ${xpath[@]}
+echo ${xpath[@]##*/}
+echo ${xpath[0]##*/}
+echo ${xpath[@]%%[!/]*}
+echo ${xpath[0]%%[!/]*}
+recho ${xpath##*/}
+recho ${xpath%%[!/]*}
+recho ${xpath[five]##*/}
+recho ${xpath[five]%%[!/]*}
+
+echo ${#xpath[*]}
+
+echo ${xpath[*]}
+echo ${xpath[*]##*/}
+echo ${xpath[*]%%[!/]*}
+
+# TEST -- associative array pattern substitution
+unset xpath
+typeset -A xpath
+
+xpath=( [0]=/bin [one]=/bin [two]=/usr/bin [three]=/usr/ucb [four]=/usr/local/bin)
+xpath+=( [five]=/sbin [six]=/usr/sbin [seven]=. )
+
+echo ${#xpath[@]}
+# default element is "0" (as a string)
+echo ${#xpath} -- ${xpath["0"]}
+
+echo ${xpath[@]//\//^}
+echo "${xpath[@]//\//^}" | cat -v
+
+zecho "${xpath[@]/\//\\}"
+zecho "${xpath[@]//\//\\}"
+zecho "${xpath[@]//[\/]/\\}"
+
+# test assignment to key "0"
+unset T
+declare -A T
+T='([a]=1)'
+echo "${T[@]}"
+unset T
+
+# peculiar ksh93 semantics for unsubscripted assoc variable reference
+declare -A T
+T[0]='zero'
+if [ "$T" != "${T[0]}" ]; then
+	echo 'assoc.tests: $T and ${T[0]} mismatch'
+fi
+
+${THIS_SH} ./assoc1.sub
+
+${THIS_SH} ./assoc2.sub
+
+${THIS_SH} ./assoc3.sub
+
+${THIS_SH} ./assoc4.sub
+
+${THIS_SH} ./assoc5.sub
+
+${THIS_SH} ./assoc6.sub
+
+${THIS_SH} ./assoc7.sub
+
+# test converting between scalars and assoc arrays
+unset assoc
+assoc=assoc
+declare -A assoc
+declare -p assoc
+echo ${assoc[@]}
+
+# weird syntax required to append to multiple existing array elements using
+# compound assignment syntax
+unset assoc
+declare -A assoc 
+assoc=( [one]=one [two]=two [three]=three )
+assoc+=( [one]+=more [two]+=less )
+declare -p assoc
+
+readonly -A assoc
+declare -p assoc
+
+declare -A hash
+
+hash=(["key"]="value1")
+declare -p hash
+hash=(["key"]="${hash["key"]} value2")
+declare -p hash
+
+unset hash
+
+${THIS_SH} ./assoc8.sub
+
+# new shopt option to prevent multiple expansion of assoc array subscripts
+${THIS_SH} ./assoc9.sub
+
+${THIS_SH} ./assoc10.sub
+
+# test assigning associative arrays using compound key/value pair assignments
+${THIS_SH} ./assoc11.sub
+
+# more kvpair associative array assignment tests
+${THIS_SH} ./assoc12.sub
+
+# assignment to @ and *
+${THIS_SH} ./assoc13.sub
+
+# tests of the @k transformation on associative arrays
+${THIS_SH} ./assoc14.sub
+
+# tests with subscripts and values containing 0x01 (some indexed array tests too)
+${THIS_SH} ./assoc15.sub
+
+# tests with subscripts being expanded more than one in ${xxx} word expansions
+${THIS_SH} ./assoc16.sub
+
+# tests with `[' and `]' subscripts and `unset'
+${THIS_SH} ./assoc17.sub
+
+# tests with `[' and `]' subscripts and printf/read/wait builtins
+${THIS_SH} ./assoc18.sub
+

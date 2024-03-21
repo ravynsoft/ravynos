@@ -1,0 +1,7 @@
+# test readonly nameref variables
+# ksh93 allows this but not typeset -rn ref=foo?
+typeset -n ref=foo
+readonly ref
+foo=4
+
+echo $ref

@@ -31,30 +31,16 @@
  */
 
 #include <sys/param.h>
-#include <sys/fcntl.h>
-#include <sys/imgact.h>
-#include <sys/limits.h>
 #include <sys/lock.h>
-#include <sys/malloc.h>
 #include <sys/mutex.h>
 #include <sys/priv.h>
 #include <sys/proc.h>
 #include <sys/reg.h>
 #include <sys/syscallsubr.h>
 
-#include <machine/frame.h>
 #include <machine/md_var.h>
-#include <machine/pcb.h>
-#include <machine/psl.h>
-#include <machine/segments.h>
 #include <machine/specialreg.h>
 #include <x86/ifunc.h>
-
-#include <vm/pmap.h>
-#include <vm/vm.h>
-#include <vm/vm_map.h>
-
-#include <security/audit/audit.h>
 
 #include <compat/freebsd32/freebsd32_util.h>
 #include <amd64/linux32/linux.h>
@@ -62,7 +48,6 @@
 #include <compat/linux/linux_emul.h>
 #include <compat/linux/linux_fork.h>
 #include <compat/linux/linux_ipc.h>
-#include <compat/linux/linux_misc.h>
 #include <compat/linux/linux_mmap.h>
 #include <compat/linux/linux_signal.h>
 #include <compat/linux/linux_util.h>
@@ -322,15 +307,6 @@ linux_set_upcall(struct thread *td, register_t stack)
 }
 
 int
-linux_mmap2(struct thread *td, struct linux_mmap2_args *args)
-{
-
-	return (linux_mmap_common(td, PTROUT(args->addr), args->len, args->prot,
-		args->flags, args->fd, (uint64_t)(uint32_t)args->pgoff *
-		PAGE_SIZE));
-}
-
-int
 linux_mmap(struct thread *td, struct linux_mmap_args *args)
 {
 	int error;
@@ -343,20 +319,6 @@ linux_mmap(struct thread *td, struct linux_mmap_args *args)
 	return (linux_mmap_common(td, linux_args.addr, linux_args.len,
 	    linux_args.prot, linux_args.flags, linux_args.fd,
 	    (uint32_t)linux_args.pgoff));
-}
-
-int
-linux_mprotect(struct thread *td, struct linux_mprotect_args *uap)
-{
-
-	return (linux_mprotect_common(td, PTROUT(uap->addr), uap->len, uap->prot));
-}
-
-int
-linux_madvise(struct thread *td, struct linux_madvise_args *uap)
-{
-
-	return (linux_madvise_common(td, PTROUT(uap->addr), uap->len, uap->behav));
 }
 
 int

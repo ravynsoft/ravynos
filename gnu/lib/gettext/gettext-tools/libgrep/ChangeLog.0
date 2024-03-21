@@ -1,0 +1,372 @@
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.6 released.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.5 released.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-04-22  Roumen Petrov  <bugtrack@roumenpetrov.info>  (tiny change)
+
+	build: Use Automake 'subdir-objects' option
+	* Makefile.am (AUTOMAKE_OPTIONS): Add 'subdir-objects'.
+
+2013-12-05  Ivailo  <xakepa10@gmail.com>  (tiny change)
+
+	libgrep: Fix issues detected by gcc -Wformat-security
+	* m-fgrep.c (Fcompile): Supply FORMAT argument of error.
+	* m-regex.c (compile): Likewise.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-06-03  Jim Meyering  <jim@meyering.net>
+
+	* kwset.c: Spelling fixes.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Use the newest regex module from gnulib.
+	* regex.h: Remove file.
+	* regex.c: Remove file.
+	* memchr.c: Remove file.
+	* Makefile.am: Include Makefile.gnulib.
+	(BUILT_SOURCES, MOSTLYCLEANFILES, MOSTLYCLEANDIRS, CLEANFILES,
+	DISTCLEANFILES, MAINTAINERCLEANFILES): New variables.
+	(noinst_LIBRARIES): Initialize empty.
+	(libgrep_a_SOURCES): Augment instead of initializing.
+	(LIBADD_SOURCE, libgrep_a_LIBADD, libgrep_a_DEPENDENCIES): Remove
+	variables.
+	* gnulib-lib/Makefile.am: New file.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Code cleanup.
+	* m-regex.c (EGexecute): Write logic in a similar way as
+	m-fgrep.c:Fexecute.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Fix bug: Avoid out-of-bounds access.
+	* m-regex.c (EGexecute): Fix test before second call to
+	IS_WORD_CONSTITUENT.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Cleanup syntax.
+	* m-regex.c (compile, EGexecute): Remove useless parentheses.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Tiny optimization.
+	* m-fgrep.c (Fexecute): New local variable buflim.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	* m-fgrep.c (Fcompile, Fexecute): Reduce scope of local variables.
+	* m-regex.c (compile, EGexecute): Likewise.
+	* kwset.c (kwsincr, treefails, kwsprep, bmexec, cwexec): Likewise.
+	(kwsexec): Remove useless cast.
+
+2010-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* kwset.c: Use GNU coding style.
+	(kwsalloc): Write NULL, not 0. Remove useless cast.
+
+2010-05-23  Bruno Haible  <bruno@clisp.org>
+
+	msggrep: Fix interpretation of '$' in regular expressions.
+	* m-regex.c (EGexecute): When searching up to the end of a string that
+	does not end in a newline, set not_eol to 0.
+	Reported by Sean Flanigan <sflaniga@redhat.com>.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	* m-fgrep.c: Untabify.
+	* m-regex.c: Likewise.
+	* kwset.h: Likewise.
+	* kwset.c: Likewise.
+
+2010-05-23  Bruno Haible  <bruno@clisp.org>
+
+	Fix bug: A regex was not regonized when it matched the end of the last
+	line and that last line was not terminated with a newline.
+	* m-regex.c (EGexecute): Don't ignore the last byte of the buffer if it
+	is not a newline.
+	* m-fgrep.c (Fexecute): Don't assume that the buffer contains a
+	newline.
+
+2010-05-23  Bruno Haible  <bruno@clisp.org>
+
+	Do regex matching purely with regex, not regex + dfa + kwset.
+	* dfa.h: Remove file.
+	* dfa.c: Remove file.
+	* hard-locale.h: Remove file.
+	* hard-locale.c: Remove file.
+	* m-common.h: Remove file.
+	* m-common.c: Remove file.
+	* m-fgrep.c: Include <limits.h>, <stdbool.h>, not m-common.h.
+	(MBS_SUPPORT): Moved here from m-common.h.
+	Include kwset.h, gettext.h.
+	(_, ISUPPER, TOLOWER): Moved here from m-common.c.
+	(IS_WORD_CONSTITUENT, NCHAR, compiled_kwset): Moved here from
+	m-common.h.
+	(kwsinit, check_multibyte_string): Moved here from m-common.c.
+	* m-regex.c: Include <stdbool.h>, <regex.h>, not m-common.h.
+	(IS_WORD_CONSTITUENT): Moved here from m-common.h.
+	(struct compiled_regex): Remove fields dfa, ckwset,
+	kwset_exact_matches.
+	(dfaerror, kwsmusts): Remove functions.
+	(compile): Simplify accordingly.
+	(Gcompile): Likewise. Invoke compile.
+	(EGexecute): Simplify accordingly.
+	* Makefile.am (libgrep_a_SOURCES): Update.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2009-12-12  Bruno Haible  <bruno@clisp.org>
+
+	* libgrep.h: Untabify.
+	* hard-locale.c: Untabify.
+	* memchr.c: Untabify.
+
+2009-08-15  Bruno Haible  <bruno@clisp.org>
+
+	Stop using gnulib module 'strdup'.
+	* strdup.c: Remove file.
+	* Makefile.am (LIBADD_SOURCE): Remove strdup.c.
+
+2008-04-28  Eric Blake  <ebb9@byu.net>
+
+	* memchr.c (__memchr): Hand-inline the TYPE_MAXIMUM check.
+
+2008-04-27  Bruno Haible  <bruno@clisp.org>
+
+	* memchr.c (__memchr): Change type of 'i'.
+
+2008-04-26  Eric Blake  <ebb9@byu.net>
+	    Bruno Haible  <bruno@clisp.org>
+
+	* memchr.c: Include intprops.h.
+	(__memchr): Optimize parallel detection of matching bytes. Rename local
+	variables. Add explanatory comments.
+
+2008-04-26  Bruno Haible  <bruno@clisp.org>
+
+	Fix module 'memchr', broken since 2000-10-28.
+	* memchr.c: Outside glibc, define memchr, not __memchr.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2007-01-26  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (LIBADD_SOURCE): Remove strdup.h.
+
+2007-01-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* strdup.h: Remove file.
+	* strdup.c: Don't include no-longer-existent include files. Rely on
+	<string.h> instead.
+	* hard-locale.c: Likewise.
+
+2006-11-03  Bruno Haible  <bruno@clisp.org>
+
+	Simplify xmalloc expressions. Add overflow check in xmalloc arguments.
+	* m-common.c (kwsinit): Use XNMALLOC instead of xmalloc.
+	* m-fgrep.c (Fcompile): Use XMALLOC instead of xmalloc.
+	* m-regex.c (Gcompile, compile): Use XMALLOC, XNMALLOC instead of
+	xmalloc.
+
+2006-11-01  Bruno Haible  <bruno@clisp.org>
+
+	* dfa.c (delete_pos): Renamed from remove.
+	(epsclosure): Update.
+	Reported by Ralf Wildenhues <Ralf.Wildenhues@gmx.de>.
+
+2006-10-29  Bruno Haible  <bruno@clisp.org>
+
+	Make it compile in C++ mode.
+	* dfa.h (token): Typedef as int.
+	* dfa.c (remove): Renamed from delete.
+	(epsclosure): Update.
+	(match_mb_charset): Cast strncpy argument.
+	(dfaexec): Add cast.
+	(dfacomp): Cast malloc result.
+	(icatalloc): Rename argument names to 'stem', 'suffix'.
+	(enlist): Rename 'new' argument to 'suffix'.
+	(addlists): Rename 'new' argument to 'suffixes'.
+	(dfamust): Cast malloc results. Rename local variable 'new' to 'common'.
+	* kwset.c (kwsprep): Cast obstack_alloc result.
+	(bmexec): Cast memchr result.
+	* m-fgrep.c (Fexecute): Rename local variable 'try' to 'curr'. Cast
+	memchr result.
+	* m-regex.c (struct patterns): Move out of the scope of struct
+	compiled_regex.
+	(Gcompile, compile, EGexecute): Cast memchr results.
+	* regex.c (EXTEND_BUFFER): Cast REALLOC result.
+	(byte_re_match_2_internal): Limit the scope of same_str_p variable.
+	Rename local variable 'not' to 'invert'.
+	(regcomp): Cast malloc results.
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-10-10  Bruno Haible  <bruno@clisp.org>
+
+	Make it possible to #define stpcpy, strdup to aliases.
+	* strdup.c (strdup) [!_LIBC]: Don't undefine.
+
+2006-09-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* memchr.c: Include <config.h> unconditionally.
+	* strdup.c: Likewise.
+
+2006-07-30  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (AM_CPPFLAGS): Replace ../lib with ../gnulib-lib.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.msvc: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.msvc.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.vms.
+
+2006-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.15 released.
+
+2006-05-16  Bruno Haible  <bruno@clisp.org>
+
+	* regex.c (mempcpy) [_LIBC]: New macro.
+	(regerror): Use it instead of __mempcpy.
+
+2005-10-06  Bruno Haible  <bruno@clisp.org>
+
+	* hard-locale.c: Test HAVE_CONFIG_H using #ifdef.
+	* m-common.c: Likewise.
+	* m-fgrep.c: Likewise.
+	* m-regex.c: Likewise.
+	Reported by Ralf Wildenhues on bug-gnulib.
+
+2005-04-18  Bruno Haible  <bruno@clisp.org>
+
+	* dfa.c (update_mb_len_index): Change argument type to 'const char *'.
+	Avoids gcc-4.0 warnings.
+
+2006-06-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.6 released.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.5 released.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.4 released.
+
+2005-03-14  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.3 released.
+
+2005-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.2 released.
+
+2005-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.msvc (INCLUDES): Add -I., needed for <regex.h>, and
+	-I..\intl, needed for <libintl.h>.
+
+2005-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* libgrep.h: Add extern "C" for C++.
+
+2003-07-08  David Kaelbling  <drk@sgi.com>
+
+	* dfa.c (lex): Remove non-constant initializers.
+
+2005-02-08  Bruno Haible  <bruno@clisp.org>
+
+	* kwset.h (kwsincr, kwsprep): Change return type to 'const char *'.
+	* kwset.c (kwsincr, kwsprep): Likewise.
+
+2005-02-03  Bruno Haible  <bruno@clisp.org>
+
+	* dfa.c (dfaexec): Avoid continuing the loop past the end of the
+	string.
+
+2005-01-27  Bruno Haible  <bruno@clisp.org>
+
+	* dfa.c (parse_bracket_exp_mb): Don't confuse wctype_t with wchar_t.
+
+2005-01-27  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (libgrep_a_DEPENDENCIES): New variable.
+	(AM_CPPFLAGS): Add -I../intl, so that libintl.h is found before gettext
+	is installed.
+
+2005-01-14  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (EXTRA_DIST): Add $(LIBADD_SOURCE).
+
+2005-01-08  Bruno Haible  <bruno@clisp.org>
+
+	* libgrep.h: New file.
+	* kwset.h: From grep-2.5.1 with modifications.
+	* kwset.c: From grep-2.5.1 with modifications.
+	* dfa.h: From grep-2.5.1 with modifications.
+	* dfa.c: From grep-2.5.1 with modifications.
+	* m-common.h: New file.
+	* m-common.c: New file, with code from grep-2.5.1/src/search.c.
+	* m-fgrep.c: New file, with code from grep-2.5.1/src/search.c.
+	* m-regex.c: New file, with code from grep-2.5.1/src/search.c.
+	* hard-locale.h: New file, from gnulib.
+	* hard-locale.c: New file, from gnulib.
+	* memchr.c: New file, from gnulib.
+	* regex.h: New file, from gnulib.
+	* regex.c: New file, from gnulib.
+	* strdup.h: New file, from gnulib.
+	* strdup.c: New file, from gnulib.
+	* Makefile.am: New file.
+	* Makefile.msvc: New file.
+	* Makefile.vms: New file.
+

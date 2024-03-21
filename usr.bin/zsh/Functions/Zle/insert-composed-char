@@ -1,0 +1,187 @@
+# Accented characters.  Inputs two keys.  There are two types: those
+# with a base character followed by an accent (see below for codes for
+# accents), and those with a two-character mnemonic for the composed
+# character.  These are (with the exception of the Euro) the codes
+# given by RFC 1345.  Note that some codes in RFC 1345 require three
+# characters to be input; none of these are handled.
+#
+# For best results zsh should have been built with support for
+# multibyte characters (--enable-multibyte), but single character sets
+# also work.
+#
+# Outputs the character converted from Unicode into the local representation.
+# (The conversion is done within the shell, using whatever facilities
+# the C library provides.)
+#
+# When used as a zle widget, the character is inserted at the cursor
+# position.  With a numeric argument, preview in status line; outside zle,
+# print character (and newline) to standard output.
+#
+# The set of accented characters is reasonably complete up to U+0180, the
+# set of special characters less so.  However, it mostly gives up at that
+# point.  Adding new Unicode characters is easy, however.  Please send any
+# additions to zsh-workers@zsh.org .
+#
+# Some of the accent codes are a little more obscure than others.
+#  !   Grave
+#  '   Acute
+#  >   Circumflex
+#  ?   Tilde
+#  -   Macron.  (A horizontal bar over the letter.)
+#  (   Breve.  (A shallow dish shape over the letter.)
+#  .   Dot above, or no dot with lower case i, or dot in the middle of L or l.
+#  :   Diaeresis (Umlaut)
+#  ,   Cedilla
+#  _   Underline (none of these currently)
+#  /   Stroke through character
+#  "   Double acute
+#  ;   Ogonek.  (A little forward facing hook at the bottom right
+#      of the character.)
+#  <   Caron.  (A little v over the letter.)
+#  0   Circle
+#  2   Hook
+#  9   Horn
+# Hence A! is upper case A with a grave, c, is lower case c with cedilla.
+#
+# Some other composed characters:
+# Various ligatures:
+#  AE ae OE oe IJ ij
+#
+# ASCII characters not on all keyboards:
+#  <(           [
+#  //           \
+#  )>           ]
+#  (!           {
+#  !!           |
+#  !)           }
+#  '?           ~
+#
+# Special letters:
+#  ss		Eszett (schafes S)
+#  D- d- TH th  Eth and thorn
+#  kk           kra
+#  'n           'n
+#  NG ng        ng
+#  OI oi        OI
+#  yr           yr
+#  ED           ezh
+#
+# Currency symbols:
+#  Ct           Cent
+#  Pd           Pound sterling
+#  Cu           Currency
+#  Ye           Yen
+#  Eu           Euro (not in RFC 1345 but logical)
+#
+# Punctuation
+#  !I           Inverted !
+#  BB           Broken vertical bar
+#  SE           Section
+#  Co           Copyright
+#  -a           Spanish feminine ordinal indicator
+#  <<           Left guillemet
+#  --           Soft hyphen
+#  Rg           Registered trade mark
+#  PI           Pilcrow (paragraph)
+#  -o           Spanish masculine ordinal indicator
+#  >>           Right guillemet
+#  ?I           Inverted question mark
+#  -1           Hyphen
+#  -N           en dash
+#  -M           em dash
+#  -3           horizontal bar
+#  :3           vertical ellipsis
+#  .3           horizontal midline ellipsis
+#  !2           double vertical line
+#  =2           double low line
+#  '6           Left single quote
+#  '9           Right single quote
+#  .9           "Right" low quote
+#  9'           Reversed "right" quote
+#  "6           Left double quote
+#  "9           Right double quote
+#  :9           "Right" low double quote
+#  9"           Reversed "right" double quote
+#  /-           Dagger
+#  /=           Double dagger
+#
+# Mathematical
+#  DG           Degree
+#  +-           +/-
+#  2S           Superscript 2
+#  3S           Superscript 3
+#  My           Micro
+#  .M           Middle dot
+#  1S           Superscript 1
+#  14           Quarter
+#  12           Half
+#  34           Three quarters
+#  *X           Multiplication
+#  -:           Division
+#  %0           Per mille
+#
+# Accents with no base character
+# '>            Circumflex (caret)
+# '!            Grave (backtick)
+# ',            Cedilla
+# ':            Diaeresis (Umlaut)
+# 'm            Macron
+# ''            Acute
+
+emulate -L zsh
+setopt cbases extendedglob printeightbit
+
+local accent basechar ochar error
+
+if [[ -n $WIDGET ]]; then
+  error=(zle -M)
+else
+  error=print
+fi
+
+if (( ${+zsh_accented_chars} == 0 )); then
+  # Save quite a lot of memory by running and then erasing
+  # the function that defines the characters.
+  autoload -Uz define-composed-chars
+  define-composed-chars
+  unfunction define-composed-chars
+fi
+
+if (( $# )); then
+  basechar=${1[1]}
+  if [[ $1 = ? ]]; then
+    shift
+  else
+    1=${1[2,-1]}
+  fi
+else
+  read -k basechar || return 1
+fi
+
+if (( $# )); then
+  accent=${1[1]}
+else
+  read -k accent || return 1
+fi
+
+local -A charmap
+# just in case someone is monkeying with IFS...
+charmap=(${(s. .)zsh_accented_chars[$accent]})
+
+if [[ ${#charmap} -eq 0 || -z $charmap[$basechar] ]]; then
+  $error "Combination ${basechar}${accent} is not available."
+  return 1
+fi
+
+if [[ -z $WIDGET ]]; then
+  [[ -t 1 ]] && print
+  print "\U${(l.8..0.)charmap[$basechar]}"
+else
+  ochar="$(print -n "\U${(l.8..0.)charmap[$basechar]}")"
+
+  if (( ${+NUMERIC} )); then
+    $error "Character ${(l.8..0.)charmap[$basechar]}: $ochar"
+  else
+    LBUFFER+=$ochar
+  fi
+fi

@@ -1,0 +1,73 @@
+COMMENT(!MOD!zsh/net/socket
+Manipulation of Unix domain sockets
+!MOD!)
+The tt(zsh/net/socket) module makes available one builtin command:
+
+startitem()
+findex(zsocket)
+cindex(sockets)
+cindex(sockets, Unix domain)
+item(tt(zsocket) [ tt(-altv) ] [ tt(-d) var(fd) ] [ var(args) ])(
+tt(zsocket) is implemented as a builtin to allow full use of shell
+command line editing, file I/O, and job control mechanisms.
+)
+enditem()
+
+subsect(Outbound Connections)
+cindex(sockets, outbound Unix domain)
+
+startitem()
+item(tt(zsocket) [ tt(-v) ] [ tt(-d) var(fd) ] var(filename))(
+Open a new Unix domain connection to var(filename).
+The shell parameter tt(REPLY) will be set to the file descriptor
+associated with that connection.  Currently, only stream connections
+are supported.
+
+If tt(-d) is specified, its argument
+will be taken as the target file descriptor for the
+connection.
+
+In order to elicit more verbose output, use tt(-v).
+
+File descriptors can be closed with normal shell syntax when no longer
+needed, for example:
+
+example(exec {REPLY}>&-)
+)
+enditem()
+
+subsect(Inbound Connections)
+cindex(sockets, inbound Unix domain)
+
+startitem()
+item(tt(zsocket) tt(-l) [ tt(-v) ] [ tt(-d) var(fd) ] var(filename))(
+tt(zsocket -l) will open a socket listening on var(filename).
+The shell parameter tt(REPLY) will be set to the file descriptor
+associated with that listener.  The file descriptor remains open in subshells
+and forked external executables.
+
+If tt(-d) is specified, its argument
+will be taken as the target file descriptor for
+the connection.
+
+In order to elicit more verbose output, use tt(-v).
+)
+item(tt(zsocket) tt(-a) [ tt(-tv) ] [ tt(-d) var(targetfd) ] var(listenfd))(
+tt(zsocket -a) will accept an incoming connection
+to the socket associated with var(listenfd).
+The shell parameter tt(REPLY) will
+be set to the file descriptor associated with
+the inbound connection.  The file descriptor remains open in subshells
+and forked external executables.
+
+If tt(-d) is specified, its argument
+will be taken as the target file descriptor for the
+connection.
+
+If tt(-t) is specified, tt(zsocket) will return
+if no incoming connection is pending.  Otherwise
+it will wait for one.
+
+In order to elicit more verbose output, use tt(-v).
+)
+enditem()

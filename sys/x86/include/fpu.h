@@ -28,8 +28,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	from: @(#)npx.h	5.3 (Berkeley) 1/18/91
  */
 
 /*
@@ -212,5 +210,14 @@ struct savefpu_ymm {
  * to match the offset used by NT_X86_XSTATE in other systems.
  */
 #define	X86_XSTATE_XCR0_OFFSET	464
+
+#ifdef _KERNEL
+/*
+ * CR0_MP and CR0_EM are always set.  Use CR0_TS to force traps when
+ * FPU access is disabled.
+ */
+#define	fpu_enable()	clts()
+#define	fpu_disable()	load_cr0(rcr0() | CR0_TS)
+#endif
 
 #endif /* !_X86_FPU_H_ */

@@ -1,0 +1,28 @@
+#compdef cal ncal
+
+local args
+
+case $service in
+  cal)
+    args=(
+      '-3[three in a row]'
+      '-m[Monday as first day of the week]'
+    )
+  ;;
+  ncal)
+    args=(
+      '-J[display Julian calendar]'
+      '-e[display date of western Easter]'
+      '-o[display date of orthodox Easter]'
+      '-p[assume as by ncal]'
+      '-s[country code]'
+      '-w[print number of the week below each column]'
+    )
+  ;;
+esac
+
+_arguments "${args[@]}" \
+  '-j[display Julian days]' \
+  '-y[display a calendar for the current year]' \
+  '::month' \
+  ':year'

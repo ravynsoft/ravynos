@@ -1,0 +1,3 @@
+#...
+.*Dependency audit library: \[tmpdir/audit.so\].*
+#pass

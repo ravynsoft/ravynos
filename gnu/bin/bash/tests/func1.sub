@@ -1,0 +1,68 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# Test that redirections attached to shell functions are printed correctly.
+# This was a bug in all bash versions before bash-2.04.
+#
+f()
+{
+	echo f-x
+	echo f-y
+} >&2
+
+type f
+export -f f
+${THIS_SH} -c 'echo subshell; type f'
+
+f2()
+{
+	echo f2-a
+	f3()
+	{
+		echo f3-a
+		echo f3-b
+	} >&2
+	f3
+}
+
+type f2
+
+export -f f2
+${THIS_SH} -c 'echo subshell; type f2'
+
+f4()
+{
+	echo f4-a
+	f5()
+	{
+		echo f5-a
+		echo f5-b
+	} >&2
+	f5
+} 2>&1
+
+type f4
+export -f f4
+${THIS_SH} -c 'echo subshell; type f4'
+
+testgrp()
+{
+	echo testgrp-a
+	{ echo tg-x; echo tg-y; } >&2
+	echo testgrp-b
+}
+type testgrp
+
+export -f testgrp
+${THIS_SH} -c 'echo subshell; type testgrp'

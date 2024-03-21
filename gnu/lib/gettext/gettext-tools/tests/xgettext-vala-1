@@ -1,0 +1,207 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Vala support.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > xg-vala-1.err.vala
+int main (string[] args) {
+  var r1 = /a
+EOF
+
+(LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -o - xg-vala-1.err.vala 2>&1; exit) | grep 'regular expression literal terminated too early' || Exit 1
+
+cat <<\EOF > xg-vala-1.vala
+int main (string[] args) {
+    var s1 = "Simple string, " + " no gettext needed";
+    var c1 = '\'';
+    var empty = "";
+    // This is a C++ style comment
+    var s2 = _("Extract this first string");
+    var s3 = "Prefix _(" + _("Extract this second string") + ") Postfix";
+
+    var empty_verbatim = """""";
+    if (args[0] == _("Extract this thirth string")) {
+      /* _("This is a comment and must not be extracted!") */
+    }
+
+    var s4 = _("""Extract this
+    ""\t\a
+    fourth string""");
+
+    var s5 = _("Extract this \u2464th string");
+
+    var s6 = /_("This is a regex literal and must not be extracted!")\|/i;
+
+    var i1 = 1000;
+    i1 = 1 + /_("Regex literal after '+'")/.get_capture_count ();
+    i1 = 1 - /_("Regex literal after '-'")/.get_capture_count ();
+    i1 = 1 & /_("Regex literal after '-'")/.get_capture_count ();
+    i1 = 1 ^ /_("Regex literal after '^'")/.get_capture_count ();
+    if (1 < /_("Regex literal after '<'")/.get_capture_count ())
+      return 1;
+    if (1 <= /_("Regex literal after '<='")/.get_capture_count ())
+      return 1;
+    if (1 != /_("Regex literal after '!='")/.get_capture_count ())
+      return 1;
+    if (! /_("Regex literal after '!'")/.match(s1))
+      return 1;
+    if (true && /_("Regex literal after '&&'")/.match(s1))
+      return 1;
+    if (false || /_("Regex literal after '||'")/.match(s1))
+      return 1;
+
+    var r1 = true ? /_("Regex literal after '?'")/ :
+        /_("Regex literal after ':'")/;
+    var r2 = true ?? /_("Regex literal after '??'")/;
+    i1 += 1 << /_("Regex literal after '+='")/.get_capture_count ();
+    i1 *= /_("Regex literal after '*='")/.get_capture_count ();
+    i1 /= /_("Regex literal after '/='")/.get_capture_count ();
+    i1 %= /_("Regex literal after '%='")/.get_capture_count ();
+    i1 <<= /_("Regex literal after '<<='")/.get_capture_count ();
+    i1 |= /_("Regex literal after '|='")/.get_capture_count ();
+
+    i1++;
+    i1--;
+    i1 = i1 / i1;
+    GLib.Timeout.add (10, () => { return false; });
+
+    var d1 = 10e-1;
+    var d2 = 10E-1;
+
+    /* This is a
+       multiline C style comment */
+    var s7 = _("Extract this //sixth string");
+
+    var s8 = _(@"This is a template string, which cannot be extracted!");
+
+    /* /= shouldn't start a regex literal */
+    var i5 = 1000;
+    i5 /= 10;
+    
+    return 0;
+}
+
+class Foo : Object {
+  // @ isn't always followed by a template string.
+  public static Foo @new (void) {
+    return null;
+  }
+}
+EOF
+
+${XGETTEXT} --add-comments --no-location -o xg-vala-1.tmp xg-vala-1.vala 2>xg-vala-1.err
+test $? = 0 || { cat xg-vala-1.err; Exit 1; }
+func_filter_POT_Creation_Date xg-vala-1.tmp xg-vala-1.pot
+
+cat <<\EOF > xg-vala-1.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. This is a C++ style comment
+msgid "Extract this first string"
+msgstr ""
+
+msgid "Extract this second string"
+msgstr ""
+
+msgid "Extract this thirth string"
+msgstr ""
+
+msgid ""
+"Extract this\n"
+"    \"\"\\t\\a\n"
+"    fourth string"
+msgstr ""
+
+msgid "Extract this ⑤th string"
+msgstr ""
+
+#. This is a
+#. multiline C style comment
+msgid "Extract this //sixth string"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-vala-1.ok xg-vala-1.pot
+result=$?
+test $result = 0 || exit $result
+
+# Test --extract-all option.
+${XGETTEXT} --extract-all --add-comments --no-location -o xg-vala-1.tmp xg-vala-1.vala 2>xg-vala-1.err
+test $? = 0 || { cat xg-vala-1.err; Exit 1; }
+func_filter_POT_Creation_Date xg-vala-1.tmp xg-vala-1.pot
+
+cat <<\EOF > xg-vala-1.all.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Simple string,  no gettext needed"
+msgstr ""
+
+#. This is a C++ style comment
+msgid "Extract this first string"
+msgstr ""
+
+msgid "Prefix _("
+msgstr ""
+
+msgid "Extract this second string"
+msgstr ""
+
+msgid ") Postfix"
+msgstr ""
+
+msgid "Extract this thirth string"
+msgstr ""
+
+msgid ""
+"Extract this\n"
+"    \"\"\\t\\a\n"
+"    fourth string"
+msgstr ""
+
+msgid "Extract this ⑤th string"
+msgstr ""
+
+#. This is a
+#. multiline C style comment
+msgid "Extract this //sixth string"
+msgstr ""
+EOF
+
+${DIFF} xg-vala-1.all.ok xg-vala-1.pot
+result=$?
+test $result = 0 || exit $result

@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# $FreeBSD: /repoman/r/pcvs/ports/net/avahi/files/avahi-dnsconfd.sh,v 1.4 2005/11/19 06:36:09 ahze Exp $
+#
+# PROVIDE: avahi_dnsconfd
+# REQUIRE: DAEMON dbus avahi_daemon
+# KEYWORD: FreeBSD
+#
+# avahi-dnsconfd connects to a running avahi-daemon and runs  the script
+# @sysconfdir@/avahi/avahi-dnsconfd.action for each unicast DNS server that
+# is announced on the local LAN. This is useful for configuring unicast
+# DNS servers in a DHCP-like fashion with mDNS.
+#
+
+avahi_dnsconfd_enable=${avahi_dnsconfd_enable-"NO"}
+avahi_dnsconfd_flags=${avahi_dnsconfd_flags-"-D"}
+
+. /etc/rc.subr
+
+name=avahi_dnsconfd
+rcvar=`set_rcvar`
+
+start_cmd=avahi_dnsconfd_start
+stop_cmd=avahi_dnsconfd_stop
+
+avahi_dnsconfd_bin=@sbindir@/avahi-dnsconfd
+
+avahi_dnsconfd_start() {
+    checkyesno avahi_dnsconfd_enable && echo "Starting avahi-dnsconfd." && \
+    	${avahi_dnsconfd_bin} ${avahi_dnsconfd_flags}
+}
+
+avahi_dnsconfd_stop() {
+    checkyesno avahi_dnsconfd_enable && echo "Stopping avahi-dnsconfd." && \
+    	${avahi_dnsconfd_bin} -k
+}
+
+load_rc_config ${name}
+run_rc_command "$1"

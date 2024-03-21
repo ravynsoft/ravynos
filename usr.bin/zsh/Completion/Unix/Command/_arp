@@ -1,0 +1,100 @@
+#compdef arp
+
+local state line expl curcontext="$curcontext" ret=1
+typeset -A opt_args
+local -a cmds args vopt flags
+
+flags=( temp pub )
+cmds=(
+  '(2 3)-a[show entries for all hosts]'
+  '(2 -d)-d[delete entry from table]'
+  '(-n -v)-s[create an arp entry]'
+  '(2 3 -n -v)-f[read multiple entries from file]'
+)
+args=( '-n[show numeric addresses]' )
+vopt='-v[be verbose]'
+
+if (( ${+words[(r)-d]} )) && [[ $OSTYPE = (*bsd|dragonfly|darwin)* ]]; then
+  args+=( '(1 *)-a[delete all entries]' )
+fi
+
+case $OSTYPE in
+  linux*)
+    cmds=(
+      '(2 * -D --use-device)-a[show entries in BSD style output format]'
+      '!(2 * -D --use-device)-e'
+      '(2 -n --numeric -D --use-device -H --hw-type)'{-d,--delete}'[delete entry from table]'
+      '(-n --numeric)'{-s,--set}'[create an ARP entry]'
+      '(2 * -D --use-device)'{-f,--file}'[read multiple entries from file]'
+    )
+    args=(
+      '(-i --device)'{-i+,--device=}'[select an interface]:interface:_net_interfaces'
+      '(-D --use-device -a --display -d --delete)'{-D,--use-device}"[use specified interface's hardware address]"
+      '(-H --hw-type -d --delete)'{-H+,--hw-type=}'[specify class of entries to check for]:class:(ash ether arcnet pronet ax25 netrom rose dlci fddi hippi irda x25 infiniband eui64)'
+      '(* -n --numeric -d --delete -s --set -f --file)'{-n,--numeric}'[show numeric addresses]'
+      '(-v --verbose)'{-v,--verbose}'[be verbose]'
+    )
+    flags+=( netmask )
+  ;;
+  darwin*|freebsd*|dragonfly*)
+    cmds+=( '(-n -i)-S[create an arp entry, replacing any existing entry]' )
+    args+=( '(-s -Q -f)-i+[select an interface]:interface:_net_interfaces' )
+  ;|
+  darwin*)
+    args+=(
+      '(-d -s -S -f)-l[show link-layer reachability information]'
+      '(-d -s -S -f)-x[show extended link-layer reachability information]'
+    )
+    flags+=( reject blackhole only ifscope )
+  ;;
+  dragonfly*)
+    flags+=( only )
+    args+=( '-c:cpu' )
+  ;;
+  netbsd*)
+    flags+=( proxy )
+    args+=( $vopt )
+  ;;
+  freebsd*)
+    flags+=( blackhole reject )
+  ;;
+  openbsd*)
+    args+=(
+      '(-a -d -W)-F[overwrite existing entries]'
+      '(-W)-V+[select the routing domain]:routing domain:_routing_domains'
+    )
+    cmds+=(
+      '(- 1)-W[send the wake on LAN frame]'
+    )
+    flags+=( permanent )
+  ;;
+  solaris*) flags+=( trail permanent) ;;
+esac
+
+_arguments -C -s -S $args \
+  '1: :->hostintable' \
+  '2:ethernet address' \
+  "*: :->flags" \
+  + '(cmds)' $cmds && ret=0
+
+if [[ "$state" = hostintable ]]; then
+  if [[ -n $opt_args[(i)-(D|-use-device)] ]]; then
+    _wanted interfaces expl interface _net_interfaces && ret=0
+  elif [[ -n $opt_args[(i)-(f|-file)] ]]; then
+    _files && ret=0
+  elif [[ -n $opt_args[(i)-(s|S|-set)] ]]; then
+    _hosts && ret=0
+  else
+    _wanted hosts expl 'host' compadd ${${${(f)"$(${words[1]} -an)"}##[ ?(]#}%%[ )]*} && ret=0
+  fi
+elif [[ "$state" = flags ]]; then
+  if [[ $words[CURRENT-1] = netmask ]]; then
+    _message -e netmasks netmask
+  elif (( $+opt_args[-W] )) || [[ $words[CURRENT-1] = ifscope ]]; then
+    _wanted interfaces expl interface _net_interfaces && ret=0
+  else
+    _wanted flags expl flag compadd -F line $flags && ret=0
+  fi
+fi
+
+return ret

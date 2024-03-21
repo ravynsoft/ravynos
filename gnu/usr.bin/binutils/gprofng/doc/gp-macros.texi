@@ -1,0 +1,72 @@
+@c -- Macro definitions -------------------------------------------------------
+@c
+@c Since only letters can be used, we use capitalization to distinguish
+@c different words.
+@c ----------------------------------------------------------------------------
+@macro CollectApp{}
+@command{gprofng collect app}
+@end macro
+
+@macro DisplayHTML{}
+@command{gprofng display html}
+@end macro
+
+@macro DisplayText{}
+@command{gprofng display text}
+@end macro
+
+@macro DisplaySRC{}
+@command{gprofng display src}
+@end macro
+
+@macro Archive{}
+@command{gprofng archive}
+@end macro
+
+@macro Driver{}
+@command{gprofng}
+@end macro
+
+@macro ProductName{}
+gprofng
+@end macro
+
+@macro ToolName{}
+@command{gprofng}
+@end macro
+
+@macro IndexSubentry{label, string}
+@c -- @cindex \label\ @subentry \string\
+@cindex \label\, \string\
+@end macro
+
+@macro vspace {lines}
+@sp \lines\
+@end macro
+
+@c -- For some reason ending this macro with @noindent does not work out well.
+
+@macro OptionHeader {lines, option, description}
+@sp \lines\
+@noindent
+@code{\option\} @ @emph{\description\}
+@c -- @sp 1
+@end macro
+
+@macro gcctabopt{body}
+@code{\body\}
+@end macro
+
+@macro ManPageStart{headername}
+@ifclear man
+@sp 1
+@noindent @b{\headername\}
+@indentedblock
+@end ifclear
+@end macro
+
+@macro ManPageEnd{}
+@ifclear man
+@end indentedblock
+@end ifclear
+@end macro

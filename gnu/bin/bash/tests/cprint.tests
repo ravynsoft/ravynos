@@ -1,0 +1,80 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# a nonsense script and shell function to test out the command printing code
+#
+tf()
+{
+	# simple command with redir
+	echo this is ${0##*/} > /dev/null
+
+	# pipeline
+	echo a | cat - > /dev/null
+
+	test -f ${0##*/} && echo ${0##*/} is a regular file
+	test -d ${0##*/} || echo ${0##*/} is not a directory
+
+	echo a ; echo b ; echo c
+
+	echo background >/dev/null &
+
+	( exit 1 )
+	echo $?
+
+	{ echo a ; }
+
+	i=0
+	while (( i < 3 )); do
+		test -r /dev/fd/$i
+		i=$(( i + 1 ))
+	done
+
+	[[ -r /dev/fd/0 && -w /dev/fd/1 ]] || echo oops > /dev/null
+
+	for name in $( echo 1 2 3 ); do
+		test -r /dev/fd/$name
+	done
+
+	if [[ -r /dev/fd/0 && -w /dev/fd/1 ]] ; then
+		echo ok > /dev/null
+	elif (( 7 > 40 )) ; then
+		echo oops
+	else
+		echo done
+	fi > /dev/null
+
+	case $PATH in
+	*$PWD*)	echo \$PWD in \$PATH ;;
+	*)	echo \$PWD not in \$PATH ;;
+	esac > /dev/null
+
+	while false; do echo z; done > /dev/null
+
+	until true; do echo z ; done > /dev/null
+
+	echo \&\|'()' \{ echo abcde \; \}
+	# when not in POSIX mode, we can have weirdly-named functions
+	eval fu\%nc'()' \{ echo abcde \; \}
+	type fu\%nc
+}
+
+tf2()
+{
+	( { time -p echo a | cat - > /dev/null ; } ) 2>&1
+}
+
+type tf
+type tf2
+
+tf

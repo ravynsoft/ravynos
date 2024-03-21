@@ -1,0 +1,96 @@
+#autoload
+
+_svcs_fmri() {
+	local type="$argv[$#]"
+	local fmri_abbrevs m i expl
+	typeset -a -g _smf_fmris
+
+	local update_policy
+	zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+	if [[ -z "$update_policy" ]]; then
+		zstyle ":completion:${curcontext}:" cache-policy _smf_caching_policy
+	fi
+	# The cache really must be per-host
+	local cache_id=smf_fmri:$HOST
+
+	# TODO: Do something useful with the expand and/or ambiguous styles.
+	case $type in
+	(-i|-c)
+		# We probably also need an option to eliminate ambiguous
+		# results for use in places where that's not allowed.
+
+		# Grab all FMRIs that have a word beginning with $PREFIX,
+		# making sure not to return the portion of the FMRI before
+		# $PREFIX.  Use the cache if it exists and the user wants to.
+		if ( [[ $#_smf_fmris -eq 0 ]] || _cache_invalid $cache_id ) \
+			&& ! _retrieve_cache $cache_id; then
+			_smf_fmris=( ${(f)"$(svcs -a -H -o fmri)"} )
+			_store_cache $cache_id _smf_fmris
+		fi
+		# Each element of the array is removed which doesn't match
+		# (^|.*/)$PREFIX.*
+		fmri_abbrevs=( ${(M)_smf_fmris:#((#s)|*[/:])$PREFIX*} )
+
+		# Go through the remaining elements and remove the characters
+		# in front of $PREFIX.
+		for ((i = 1; i <= $#fmri_abbrevs; i++ )); do
+			# Either one of these will work, but they're too
+			# greedy, preventing multiple matches below.
+			fmri_abbrevs[i]=${${fmri_abbrevs[i]}/((#s)|*[\/:])(#b)($PREFIX*)/$match[1]}
+			#fmri_abbrevs[i]=${${(M)${fmri_abbrevs[i]}:#(#b)((#s)|*/)$PREFIX*}#$match[1]}
+		done
+
+		# Remove the "default" instance identifier if it's the only
+		# instance for a given service (not for svccfg).
+		if [[ $type == "-i" ]]; then
+			local -a svcs insts nabbrevs
+			local s
+			svcs=( ${(u)fmri_abbrevs%:*} )
+			for s in $svcs; do
+				insts=( ${(@M)fmri_abbrevs:#$s:*} )
+				if [[ $#insts -eq 1 && $insts[1] == *":default" ]]; then
+					nabbrevs=($nabbrevs ${insts//:default})
+				elif [[ $#insts -eq 0 ]]; then
+					# Turns out we're completing the
+					# instance name.
+					nabbrevs=($nabbrevs $s)
+				else
+					nabbrevs=($nabbrevs $insts)
+				fi
+			done
+			fmri_abbrevs=( $nabbrevs )
+		fi
+
+		# After playing with _multi_parts, I'm not sure it's actually
+		# that useful.
+		# _wanted fmri expl "full or unambiguously abbreviated FMRIs" \
+		# 	_multi_parts -i / fmri_abbrevs
+
+		_wanted fmri expl "full or unambiguously abbreviated FMRI" \
+			compadd $fmri_abbrevs
+		;;
+
+	(-m)
+		_wanted fmri expl "milestone FMRI" \
+			compadd $(svcs -H -o fmri svc:/milestone/\*) all
+		;;
+
+	(-r)
+		# TODO: need some way to pick out only restarters
+		_wanted fmri expl "restarter FMRI" \
+			compadd master reset svc:/network/inetd:default
+		;;
+
+	(*)
+		_message "unknown argument to _svcs_fmri: $type"
+		;;
+	esac
+}
+
+_smf_caching_policy() {
+	# /etc/svc/repository.db is not a public interface, so this is kinda
+	# grody.
+	[[ ! -f "$1" || /etc/svc/repository.db -nt "$1" ]]
+}
+
+_svcs_fmri "$@"

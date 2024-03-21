@@ -1,0 +1,89 @@
+<!-- This configuration file controls the per-user-login-session message bus.
+     Add a session-local.conf and edit that rather than changing this
+     file directly. -->
+
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <!-- Our well-known bus type, don't change this -->
+  <type>session</type>
+
+  <!-- If we fork, keep the user's original umask to avoid affecting
+       the behavior of child processes. -->
+  <keep_umask/>
+
+  <listen>unix:tmpdir=/tmp</listen>
+
+  <servicedir>@DBUS_TEST_DATA@/valid-service-files</servicedir>
+
+  <!-- intended to match system bus -->
+  <policy context="default">
+    <!-- All users can connect to system bus -->
+    <allow user="*"/>
+
+    <!-- Holes must be punched in service configuration files for
+         name ownership and sending method calls -->
+    <deny own="*"/>
+    <deny send_type="method_call"/>
+
+    <!-- Signals and reply messages (method returns, errors) are allowed
+         by default -->
+    <allow send_type="signal"/>
+    <allow send_requested_reply="true" send_type="method_return"/>
+    <allow send_requested_reply="true" send_type="error"/>
+
+    <!-- All messages may be received by default -->
+    <allow receive_type="method_call"/>
+    <allow receive_type="method_return"/>
+    <allow receive_type="error"/>
+    <allow receive_type="signal"/>
+
+    <!-- Allow anyone to talk to the message bus -->
+    <allow send_destination="org.freedesktop.DBus"/>
+    <!-- But disallow some specific bus services -->
+    <deny send_destination="org.freedesktop.DBus"
+          send_interface="org.freedesktop.DBus"
+          send_member="UpdateActivationEnvironment"/>
+
+    <!-- Specific to the test suite -->
+    <allow own="org.freedesktop.DBus.TestSuiteEchoService"/>
+    <allow send_destination="org.freedesktop.DBus.TestSuiteEchoService"
+           send_interface="org.freedesktop.DBus.Introspectable"/>
+    <allow send_destination="org.freedesktop.DBus.TestSuiteEchoService"
+           send_interface="org.freedesktop.TestSuite"
+           send_member="EmitFoo"/>
+  </policy>
+
+  <policy context="default">
+     <allow own="org.freedesktop.DBus.TestSuiteEchoService"/>
+     <allow send_destination="org.freedesktop.DBus.TestSuiteEchoService"
+            send_interface="org.freedesktop.DBus.Introspectable"/>
+     <allow send_destination="org.freedesktop.DBus.TestSuiteEchoService"
+            send_interface="org.freedesktop.TestSuite"
+            send_member="EmitFoo"/>
+  </policy>
+
+  <!-- For the session bus, override the default relatively-low limits
+       with essentially infinite limits, since the bus is just running
+       as the user anyway, using up bus resources is not something we need
+       to worry about. In some cases, we do set the limits lower than
+       "all available memory" if exceeding the limit is almost certainly a bug,
+       having the bus enforce a limit is nicer than a huge memory leak. But the
+       intent is that these limits should never be hit. -->
+
+  <!-- the memory limits are 1G instead of say 4G because they can't exceed 32-bit signed int max -->
+  <limit name="max_incoming_bytes">1000000000</limit>
+  <limit name="max_outgoing_bytes">1000000000</limit>
+  <limit name="max_message_size">1000000000</limit>
+  <limit name="service_start_timeout">120000</limit>
+  <limit name="auth_timeout">240000</limit>
+  <limit name="max_completed_connections">100000</limit>
+  <limit name="max_incomplete_connections">10000</limit>
+  <limit name="max_connections_per_user">100000</limit>
+  <limit name="max_pending_service_starts">10000</limit>
+  <limit name="max_names_per_connection">50000</limit>
+  <limit name="max_match_rules_per_connection">50000</limit>
+  <limit name="max_replies_per_connection">50000</limit>
+  <limit name="reply_timeout">300000</limit>
+
+</busconfig>

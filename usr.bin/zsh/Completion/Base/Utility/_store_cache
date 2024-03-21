@@ -1,0 +1,64 @@
+#autoload
+#
+# Storage component of completions caching layer
+
+local _cache_ident _cache_ident_dir _cache_dir
+_cache_ident="$1"
+
+if zstyle -t ":completion:${curcontext}:" use-cache; then
+  # Decide which directory to cache to, and ensure it exists
+  zstyle -s ":completion:${curcontext}:" cache-path _cache_dir
+  : ${_cache_dir:=${ZDOTDIR:-$HOME}/.zcompcache}
+  if [[ ! -d "$_cache_dir" ]]; then
+    if [[ -e "$_cache_dir" ]]; then
+      _message "cache-dir style points to a non-directory\!"
+    else
+      # if module load fails, we *should* be okay using normal mkdir so
+      # we load feature b:mkdir instead of b:zf_mkdir; note that modules
+      # loaded in a sub-shell don't affect the parent.
+      ( zmodload -F zsh/files b:mkdir; mkdir -m 0700 -p "$_cache_dir"
+      ) 2>/dev/null
+      if [[ ! -d "$_cache_dir" ]]; then
+        _message "couldn't create cache-dir $_cache_dir"
+        return 1
+      fi
+    fi
+  fi
+  _cache_ident_dir="$_cache_dir/$_cache_ident"
+  _cache_ident_dir="$_cache_ident_dir:h"
+  
+  if [[ ! -d "$_cache_ident_dir" ]]; then
+    if [[ -e "$_cache_ident_dir" ]]; then
+      _message "cache ident dir points to a non-directory:$_cache_ident_dir"
+    else
+      # See also rationale in zmodload above
+      ( zmodload -F zsh/files b:mkdir; mkdir -m 0700 -p "$_cache_ident_dir"
+      ) 2>/dev/null
+      if [[ ! -d "$_cache_ident_dir" ]]; then
+        _message "couldn't create cache-ident_dir $_cache_ident_dir"
+        return 1
+      fi
+    fi
+  fi
+  
+
+  shift
+  for var; do
+    case ${(Pt)var} in
+    (*readonly*) ;;
+    (*(association|array)*)
+	# Dump the array as a here-document to reduce parsing overhead
+	# when reloading the cache with "source" from _retrieve_cache
+	print -r "$var=( "'${(Q)"${(z)$(<<\EO:'"$var"
+	print -r "${(kv@Pqq)^^var}"
+	print -r "EO:$var"
+	print -r ')}"} )'
+	;;
+    (*) print -r "$var=${(Pqq)^^var}";;
+    esac
+  done >! "$_cache_dir/$_cache_ident"
+else
+  return 1
+fi
+
+return 0

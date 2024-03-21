@@ -1,0 +1,86 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --update with --sort-output: POT-Creation-Date changed. This change
+# must not be reflected in the resulting PO file; this is needed for projects
+# which don't put the .pot file under CVS.
+
+cat <<\EOF > mm-u-4.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cog_training 1.0\n"
+"POT-Creation-Date: 2001-04-29 22:40+0200\n"
+"PO-Revision-Date: 2001-04-29 21:19+02:00\n"
+"Last-Translator: Felix N. <xyz@zyx.uucp>\n"
+"Language-Team: German <de@li.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: cogarithmetic.cc:12 cogidmarkup.cc:288 cogroman.cc:14
+msgid "white"
+msgstr "weiß"
+
+#~ msgid "green"
+#~ msgstr "grün"
+EOF
+
+cat <<EOF > mm-u-4.pot
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2001-04-30 18:51+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: cogarithmetic.cc:12 cogidmarkup.cc:288 cogroman.cc:14
+msgid "white"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q --update --sort-output mm-u-4.po mm-u-4.pot || Exit 1
+
+cat <<\EOF > mm-u-4.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cog_training 1.0\n"
+"POT-Creation-Date: 2001-04-29 22:40+0200\n"
+"PO-Revision-Date: 2001-04-29 21:19+02:00\n"
+"Last-Translator: Felix N. <xyz@zyx.uucp>\n"
+"Language-Team: German <de@li.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: cogarithmetic.cc:12 cogidmarkup.cc:288 cogroman.cc:14
+msgid "white"
+msgstr "weiß"
+
+#~ msgid "green"
+#~ msgstr "grün"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-u-4.ok mm-u-4.po
+result=$?
+
+exit $result

@@ -126,6 +126,10 @@ vdev_cmd_data_list_t *all_pools_for_each_vdev_run(int argc, char **argv,
 
 void free_vdev_cmd_data_list(vdev_cmd_data_list_t *vcdl);
 
+void free_vdev_cmd_data(vdev_cmd_data_t *data);
+
+int vdev_run_cmd_simple(char *path, char *cmd);
+
 int check_device(const char *path, boolean_t force,
     boolean_t isspare, boolean_t iswholedisk);
 boolean_t check_sector_size_database(char *path, int *sector_size);
@@ -133,6 +137,9 @@ void vdev_error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 int check_file(const char *file, boolean_t force, boolean_t isspare);
 void after_zpool_upgrade(zpool_handle_t *zhp);
 int check_file_generic(const char *file, boolean_t force, boolean_t isspare);
+
+int zpool_power(zpool_handle_t *zhp, char *vdev, boolean_t turn_on);
+int zpool_power_current_state(zpool_handle_t *zhp, char *vdev);
 
 #ifdef	__cplusplus
 }

@@ -1,0 +1,163 @@
+#compdef zoneadm
+# Synced with the S11U1 man page
+
+_zoneadm_bootargs() {
+	# This is a subset of the arguments to kernel(1M)
+	_arguments -A "-*" \
+		'-i[Alternate init]:path:_path_files' \
+		'-m[SMF options]:option:_values "SMF option" debug milestone= quiet verbose' \
+		'-s[Boot single user]'
+}
+
+_zoneadm() {
+	local context state line expl
+	typeset -A opt_args
+	local -a subcmds fields
+	local -a solaris_attach solaris_install
+	local -a solaris10_attach solaris10_install
+	local -a extended_create_options extended_destroy_options
+	local brand brand_args
+
+	subcmds=(
+		attach boot clone detach halt help install list mark move
+		ready reboot uninstall verify
+	)
+
+	extended_create_options=(
+		"force-zpool-import"
+		"force-zpool-create:ZFS pool: "
+		"force-zpool-create-all"
+	)
+
+	extended_destroy_options=(
+		"force-zpool-destroy:ZFS pool: "
+		"force-zpool-destroy-all"
+	)
+
+	solaris_attach=(
+		'(-d)-a[Path to archive]:path:_path_files'
+		'(-a)-d[Path to zonepath]:directory:_path_files -/'
+	)
+	solaris_install=(
+		- set1
+		'-c[Path to certificate]:path:_path_files'
+		'*-e[Additional package]:package:'
+		'-k[Path to key]:path:_path_files'
+		'-P[Publisher/URI mapping]:publisher:'
+		- set2
+		'(-d)-a[Path to archive]:path:_path_files'
+		'(-a)-d[Path to installed zone root]:directory:path_files -/'
+		'-p[Preserve system configuration]'
+		'-s[Install silently]'
+		'-u[Unconfigure after installation]'
+		'-v[Verbose]'
+	)
+
+	solaris10_attach=(
+		'(-d)-a[Path to archive]:path:_path_files'
+		'(-a)-d[Path to zonepath]:directory:_path_files -/'
+	)
+	solaris10_install=(
+		'(-d)-a[Path to archive]:path:_path_files'
+		'(-a)-d[Path to installed zone root]:directory:path_files -/'
+		'-p[Preserve system configuration]'
+		'-s[Install silently]'
+		'-u[Unconfigure after installation]'
+		'-v[Verbose]'
+	)
+
+	if [[ $service == "zoneadm" ]]; then
+		_arguments -C -A "-*" \
+			'-R[Alternate root]:alternate root:_path_files -/' \
+			'-u[Zone UUID]:zone UUID: ' \
+			'-z[Zone name]:zone name:_zones' \
+			'*::command:->subcmd' && return 0
+
+		if (( CURRENT == 1 )); then
+			_wanted commands expl "zoneadm subcommand" compadd -a subcmds
+			return
+		fi
+		service="$words[1]"
+		curcontext="${curcontext%:*}=$service:"
+	fi
+
+	case $service in
+	("boot")
+		# Completion of boot arguments after -- is kinda hacky.
+		_arguments -S -A "-*" \
+			'-w[Force writable root]' \
+			'-W[Boot in transient r/w mode]' \
+			'*:boot options:_zoneadm_bootargs'
+		;;
+
+	("clone")
+		_arguments -A "-*" \
+			'-m[Clone mode]:mode:_values "mode" copy' \
+			'-s[Source snapshot]:snapshot:_zfs_dataset -t snap' \
+			'-x[Extended options]:extended option:_values -w "extended option" $extended_create_options' \
+			':source zone:_zones'
+		;;
+
+	("attach")
+		if [[ -n $opt_args[-z] ]]; then
+			brand=${"${(@s,:,)$(zoneadm -z $opt_args[-z] list -p)}"[6]}
+			brand_args=${brand}_attach
+		fi
+		_arguments -A "-*" \
+			'-F[Force attach]' \
+			'-n[Path to zone manifest]:path to zone manifest:_path_files' \
+			'-u[Update on attach]' \
+			'-x[Extended options]:extended option:_values -w "extended option" $extended_create_options' \
+			${(P)brand_args}
+		;;
+
+	("detach")
+		_arguments -A "-*" \
+			'-n[Dry run]'
+		;;
+
+	("halt"|"ready"|"reboot"|"verify")
+		;;
+
+
+	("help")
+		_wanted commands expl "zoneadm subcommand" compadd -a subcmds
+		;;
+
+	("install")
+		if [[ -n $opt_args[-z] ]]; then
+			brand=${"${(@s,:,)$(zoneadm -z $opt_args[-z] list -p)}"[6]}
+			brand_args=${brand}_install
+		fi
+		_arguments -A "-*" \
+			'-x[Extended options]:extended option:_values -w "extended option" $extended_create_options' \
+			${(P)brand_args}
+		;;
+
+	("list")
+		_arguments -A "-*" \
+			'-c[Configured zones]' \
+			'-i[Installed zones]' \
+			'(-v)-p[Parsable output]' \
+			'(-p)-v[Verbose mode]'
+		;;
+
+	("mark")
+		_arguments -A "-*" \
+			':state:(incomplete unavailable)'
+		;;
+
+	("move")
+		_arguments -A "-*" \
+			':new zone path:_path_files -/'
+		;;
+
+	("uninstall")
+		_arguments -A "-*" \
+			'-F[Force]' \
+			'-x[Extended options]:extended option:_values -w "extended option" $extended_destroy_options'
+		;;
+	esac
+}
+
+_zoneadm "$@"

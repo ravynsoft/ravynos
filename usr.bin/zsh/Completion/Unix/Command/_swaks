@@ -1,0 +1,56 @@
+#compdef swaks
+
+local ign
+
+(( $#words > 2 )) && ign='!'
+_arguments \
+  '(-s --server -p --port)'{-s+,--server=}'[target host[:port\]]:host[\:port]:_hosts' \
+  '(-p --port)'{-p+,--port=}'[target port number]:port number:(25 465 587)' \
+  '--copy-routing[derive target host:port from email address domain part]:email address domain part' \
+  '(-t --to)'{-t+,--to=}':envelope recipient(s):_sequence _email_addresses -c' \
+  '(-f --from)'{-f+,--from=}':envelope sender:_email_addresses -c' \
+  '(--ehlo --lhlo -h --helo)'{-h+,--ehlo,--helo,--lhlo}':HELO string:_hosts' \
+  '(-q --quit-after)'{-q+,--quit-after=}'[stop transaction early]:stop point:((
+      CONNECT\:banner BANNER\:banner
+      FIRST-HELO\:first\ HELO FIRST-EHLO\:first\ HELO
+      XCLIENT\:XCLIENT
+      TLS\:TLS\ negotiation
+      HELO\:second\ HELO EHLO\:second\ HELO
+      AUTH\:authentication
+      MAIL\:MAIL\ FROM FROM\:MAIL\ FROM
+      RCPT\:RCPT\ TO TO\:RCPT\ TO
+      ))' \
+  '--protocol=:protocol variant:((
+      SMTP\:HELO\ 25
+      SSMTP\:EHLO\ 465
+      SSMTPA\:EHLO\ 465\ authenticated
+      SMTPS\:HELO\ 465
+      ESMTP\:EHLO\ 25
+      ESMTPA\:EHLO\ 25\ authenticated
+      ESMTPS\:EHLO\ STARTTLS\ 25
+      ESMTPSA\:EHLO\ STARTTLS\ 25\ authenticated
+      ))' \
+  '(-tls -tlsos --tls-optional-strict)-tls[TLS required]' \
+  '(-tls -tlsos --tls-optional-strict)'{-tlsos,--tls-optional-strict}'[TLS iff offered by target]' \
+  '(-tlsc --tls-on-connect)'{-tlsc,--tls-on-connect}'[TLS on connect (port 465)]' \
+  '(-tlsp --tls-protocol)'{-tlsp,--tls-protocol=}':TLS protocol:(sslv2 sslv3 tlsv1 tlsv1_1 tlsv1_2)' \
+  '-tls-cipher:OpenSSL cipher string: ' \
+  '--tls-verify[verify TLS certificates]' \
+  '--tls-ca-path=:OpenSSL CAfile or CAdir:_files' \
+  '--tls-get-peer-cert=-:file to write (omit for STDOUT)' \
+  '(-a --auth -ao --auth-optional -aos --auth-optional-strict)'{-a+,--auth=}'[use authentication, failing if no common auth-types found]::auth type:_sequence compadd - LOGIN PLAIN CRAM-MD5 DIGEST-MD5 CRAM-SHA1 NTLM SPA MSN' \
+  '(-a --auth -ao --auth-optional -aos --auth-optional-strict)'{-ao,--auth-optional=}'[use authentication if common auth-types found]::auth type:_sequence compadd - LOGIN PLAIN CRAM-MD5 DIGEST-MD5 CRAM-SHA1 NTLM SPA MSN' \
+  '(-a --auth -ao --auth-optional -aos --auth-optional-strict)'{-aos,--auth-optional-strict=}'[use authentication]::auth type:_sequence compadd - LOGIN PLAIN CRAM-MD5 DIGEST-MD5 CRAM-SHA1 NTLM SPA MSN' \
+  '(-ap --auth-password)'{-ap,--auth-password=}'[provide the password to be used for authentication]::password' \
+  \*{-ae,--auth-extra=}'[add extra information to authentication process]: :_values keywords
+	{realm,domain,dmd5-{serv-type,host,serv-name}}\:value' \
+  \*{-am,--auth-map=}'[map alternate names for authentication types]:alias=type,...' \
+  '(-apt --auth-plaintext)'{-apt,--auth-plaintext}'[show auth strings in plaintext when printing on screen]' \
+  '(-ahp --auth-hide-password)'{-ahp,--auth-hide-password}'[replace passwords with dummy string when printing to terminal]' \
+  '(-d --data)'{-d+,--data=}'[specify DATA payload]:filename (or string with tokens):_files' \
+  '*'{-ah,--add-header=}'[add headers]:<Header>\: Value' \
+  '*'{-h,--header=}'[replace headers]:<Header>\: Value' \
+  "${ign}(-)--support[display capabilities and exit]" \
+  "--dump[display results of option processing but send no mail]" \
+  "${ign}(-)--help[display usage information]" \
+  "${ign}(-)--version[display version information]"

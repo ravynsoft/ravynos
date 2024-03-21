@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.4beta016 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v3.4beta016" href="v3.4beta007.html" />
+    <link rel="prev" title="Changes in TIFF v3.4beta018" href="v3.4beta018.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.4beta007.html" title="Changes in TIFF v3.4beta016"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v3.4beta018.html" title="Changes in TIFF v3.4beta018"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.4beta016</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-4beta016">
+<h1>Changes in TIFF v3.4beta016<a class="headerlink" href="#changes-in-tiff-v3-4beta016" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.4beta016 (no release tag)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.4beta007.html"><span class="doc">v3.4beta007</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="ftp://ftp.sgi.com/graphics/tiff/">ftp://ftp.sgi.com/graphics/tiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>support was added for configuring the Deflate codec</p></li>
+<li><p>support was added for the HTML documentation</p></li>
+<li><p>codecs that are not configured for inclusion in the library
+are no longer compiled</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>support was added for registering new codecs external to the library
+and for overriding the codecs that are builtin to the library</p></li>
+<li><p>emulation support for the old <code class="docutils literal notranslate"><span class="pre">DataType</span></code> tag was improved</p></li>
+<li><p>support was added for the <code class="docutils literal notranslate"><span class="pre">SMinSampleValue</span></code>
+and <code class="docutils literal notranslate"><span class="pre">SMaxSampleValue</span></code> tags</p></li>
+<li><p>the library no longer ignores <code class="docutils literal notranslate"><span class="pre">TileWidth</span></code> and <code class="docutils literal notranslate"><span class="pre">TileLength</span></code>
+tags whose values are not a multiple of 16 (per the spec); this
+permits old, improperly written, images to be read</p></li>
+<li><p>the support for the <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> tag was placed in a reusable
+module so that it can be shared by multiple codecs</p></li>
+<li><p>experimental compression support was added for the Deflate algorithm
+(using the freely available zlib package)</p></li>
+<li><p>a new routine, <a class="reference internal" href="../functions/TIFFbuffer.html#c.TIFFWriteBufferSetup" title="TIFFWriteBufferSetup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteBufferSetup()</span></code></a> was added à la the
+routine <a class="reference internal" href="../functions/TIFFbuffer.html#c.TIFFReadBufferSetup" title="TIFFReadBufferSetup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadBufferSetup()</span></code></a></p></li>
+<li><p>the DSO version of the library is now statically linked with the
+JPEG and Deflate libraries; this means applications that link against
+the DSO do not also need to link against these ancillary libraries</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>all the tools now use common code to process compress-oriented arguments</p></li>
+<li><p><strong class="program">tiffdump</strong> should now compile on a Macintosh with MPW</p></li>
+</ul>
+</section>
+<section id="documentation-changes">
+<h2>Documentation changes<a class="headerlink" href="#documentation-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>everything was updated</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">contrib/dbs/xtiff</span></code> was made to compile</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">contrib/mac-mpw</span></code> is new support for compiling the software on
+a Macintosh under MPW</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">contrib/tags</span></code> is information on how to use the tag extenion
+facilities; consult <code class="file docutils literal notranslate"><span class="pre">contrib/tags/README</span></code> for details</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.4beta016</a><ul>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#documentation-changes">Documentation changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.4beta018.html"
+                          title="previous chapter">Changes in TIFF v3.4beta018</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v3.4beta007.html"
+                          title="next chapter">Changes in TIFF v3.4beta016</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.4beta016.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.4beta007.html" title="Changes in TIFF v3.4beta016"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v3.4beta018.html" title="Changes in TIFF v3.4beta018"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.4beta016</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

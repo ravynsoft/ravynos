@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFGetField &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFmemory" href="TIFFmemory.html" />
+    <link rel="prev" title="TIFFFlush" href="TIFFFlush.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFmemory.html" title="TIFFmemory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFFlush.html" title="TIFFFlush"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFGetField</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffgetfield">
+<h1>TIFFGetField<a class="headerlink" href="#tiffgetfield" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdarg.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFGetField">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFGetField</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">ttag_t</span></span><span class="w"> </span><span class="n"><span class="pre">tag</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFGetField" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFVGetField">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFVGetField</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">ttag_t</span></span><span class="w"> </span><span class="n"><span class="pre">tag</span></span>, <span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFVGetField" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFGetFieldDefaulted">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFGetFieldDefaulted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">ttag_t</span></span><span class="w"> </span><span class="n"><span class="pre">tag</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFGetFieldDefaulted" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFVGetFieldDefaulted">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFVGetFieldDefaulted</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">ttag_t</span></span><span class="w"> </span><span class="n"><span class="pre">tag</span></span>, <span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFVGetFieldDefaulted" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a> returns the value of a tag or pseudo-tag associated with the
+the current directory of the opened TIFF file <em>tif</em>.  (A <em>pseudo-tag</em> is a
+parameter that is used to control the operation of the TIFF library but whose value
+is not read or written to the underlying file.) The  file must have been previously
+opened with <a class="reference internal" href="TIFFOpen.html#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a>.  The tag is identified by <em>tag</em>, one of the values
+defined in the include file <code class="file docutils literal notranslate"><span class="pre">tiff.h</span></code> (see also the table below). The type and
+number of values returned is dependent on the tag being requested. The programming
+interface uses a variable argument list as prescribed by the <code class="file docutils literal notranslate"><span class="pre">stdarg.h</span></code>
+interface. The returned values should only be interpreted if <a class="reference internal" href="#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a>
+returns 1.</p>
+<p><a class="reference internal" href="#c.TIFFVGetField" title="TIFFVGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVGetField()</span></code></a> is functionally equivalent to <a class="reference internal" href="#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a>
+except that it takes a pointer to a variable argument list.  <a class="reference internal" href="#c.TIFFVGetField" title="TIFFVGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVGetField()</span></code></a>
+is useful for layering interfaces on top of the functionality provided by
+<a class="reference internal" href="#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFGetFieldDefaulted" title="TIFFGetFieldDefaulted"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetFieldDefaulted()</span></code></a> and <a class="reference internal" href="#c.TIFFVGetFieldDefaulted" title="TIFFVGetFieldDefaulted"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVGetFieldDefaulted()</span></code></a> are identical
+to <a class="reference internal" href="#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a> and <a class="reference internal" href="#c.TIFFVGetField" title="TIFFVGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVGetField()</span></code></a>, respectively, except that if
+a tag is not defined in the current directory and it has a default value, then the
+default value is returned.</p>
+<p>The tags understood by <strong class="program">libtiff</strong> the number of parameter values, and the
+types for the returned values are shown below. The data types are specified as in C
+and correspond to the types used to specify tag values to
+<a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a>.  Remember that <a class="reference internal" href="#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a> returns parameter
+values, so all the listed data types are pointers to storage where values should be
+returned.  Consult the TIFF specification (or relevant industry specification) for
+information on the meaning of each tag and their possible values.</p>
+<blockquote>
+<div><table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Tag properties</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 21.7%" />
+<col style="width: 13.0%" />
+<col style="width: 21.7%" />
+<col style="width: 43.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag name</p></th>
+<th class="head"><p>Count</p></th>
+<th class="head"><p>Types</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_ARTIST</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_BADFAXLINES</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_BITSPERSAMPLE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_CLEANFAXDATA</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_COLORMAP</span></code></p></td>
+<td><p>3</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint16_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="m">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">BitsPerSample</span></span> arrays</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_COMPRESSION</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_CONSECUTIVEBADFAXLINES</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_COPYRIGHT</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_DATATYPE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_DATETIME</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_DOCUMENTNAME</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_DOTRANGE</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_EXTRASAMPLES</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span>, <span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint16_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>count, types array</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FAXFILLFUNC</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">TIFFFaxFillFunc</span><span class="p">*</span></span></p></td>
+<td><p>G3/G4 compression pseudo-tag</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FAXMODE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">int</span><span class="p">*</span></span></p></td>
+<td><p>G3/G4 compression pseudo-tag</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FILLORDER</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_GROUP3OPTIONS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_GROUP4OPTIONS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_HALFTONEHINTS</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_HOSTCOMPUTER</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_ICCPROFILE</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint32_t</span><span class="p">*</span></span>, <span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>count, profile data‡</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_IMAGEDEPTH</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_IMAGEDESCRIPTION</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_IMAGELENGTH</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_IMAGEWIDTH</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_INKNAMES</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_INKSET</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGCOLORMODE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">int</span><span class="p">*</span></span></p></td>
+<td><p>JPEG pseudo-tag</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGQUALITY</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">int</span><span class="p">*</span></span></p></td>
+<td><p>JPEG pseudo-tag</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGTABLES</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span>, <span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>count, tables</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGTABLESMODE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">int</span><span class="p">*</span></span></p></td>
+<td><p>JPEG pseudo-tag</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_MAKE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_MATTEING</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_MAXSAMPLEVALUE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_MINSAMPLEVALUE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_MODEL</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_ORIENTATION</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PAGENAME</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PAGENUMBER</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PHOTOMETRIC</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PHOTOSHOP</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span>, <span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>count, data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PLANARCONFIG</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PREDICTOR</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PRIMARYCHROMATICITIES</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>6-entry array</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_REFERENCEBLACKWHITE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>6-entry array</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_RESOLUTIONUNIT</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_RICHTIFFIPTC</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span>, <span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>count, data</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_ROWSPERSTRIP</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SAMPLEFORMAT</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SAMPLESPERPIXEL</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SMAXSAMPLEVALUE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">double</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SMINSAMPLEVALUE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">double</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SOFTWARE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_STONITS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">double</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_STRIPBYTECOUNTS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint64_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_STRIPOFFSETS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint64_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SUBFILETYPE</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SUBIFD</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span>, <span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint64_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>count, offsets array</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TARGETPRINTER</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_THRESHHOLDING</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TILEBYTECOUNTS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint64_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TILEDEPTH</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TILELENGTH</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TILEOFFSETS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint64_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TILEWIDTH</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TRANSFERFUNCTION</span></code></p></td>
+<td><p>1 or 3†</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="n">uint16_t</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="m">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">BitsPerSample</span></span> entry arrays</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_WHITEPOINT</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>2-entry array</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_XMLPACKET</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint32_t</span><span class="p">*</span></span>, <span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">void</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>count, data</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_XPOSITION</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">float</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_XRESOLUTION</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">float</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YCBCRCOEFFICIENTS</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="p">*</span><span class="p">*</span></span></p></td>
+<td><p>3-entry array</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YCBCRPOSITIONING</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YCBCRSUBSAMPLING</span></code></p></td>
+<td><p>2</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="n">uint16_t</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YPOSITION</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">float</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YRESOLUTION</span></code></p></td>
+<td><p>1</p></td>
+<td><p><span class="c-expr sig sig-inline c"><span class="kt">float</span><span class="p">*</span></span></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<dl class="simple">
+<dt>†:</dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> is one, then a single array is returned; otherwise
+three arrays are returned.</p>
+</dd>
+<dt>‡:</dt><dd><p>The contents of this field are quite complex.  See
+“The ICC Profile Format Specification”,
+Annex B.3 “Embedding ICC Profiles in TIFF Files” (available at
+<a class="reference external" href="http://www.color.org">http://www.color.org</a>) for an explanation.</p>
+</dd>
+</dl>
+</section>
+<section id="autoregistered-tags">
+<h2>Autoregistered tags<a class="headerlink" href="#autoregistered-tags" title="Permalink to this heading">¶</a></h2>
+<p>If you can’t find the tag in the table above that means this is an unsupported
+tag and is not directly supported by the <strong class="program">libtiff</strong> library. You will
+still be able to read it’s value if you know the data type of that tag. For
+example, if you want to read the <code class="docutils literal notranslate"><span class="pre">LONG</span></code> value from the tag 33424
+and <code class="docutils literal notranslate"><span class="pre">ASCII</span></code> string from the tag 36867 you can use the following code:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">uint32_t</span><span class="w">  </span><span class="n">count</span><span class="p">;</span>
+<span class="kt">void</span><span class="w">    </span><span class="o">*</span><span class="n">data</span><span class="p">;</span>
+
+<span class="n">TIFFGetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="mi">33424</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">data</span><span class="p">);</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">&quot;Tag %d: %d, count %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">33424</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+<span class="n">TIFFGetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="mi">36867</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">data</span><span class="p">);</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">&quot;Tag %d: %s, count %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">36867</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p>1 is returned if the tag is defined in the current directory; otherwise a 0 is
+returned.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed to the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Unknown</span> <span class="pre">field,</span> <span class="pre">tag</span> <span class="pre">0x%x</span></code>:</p>
+<blockquote>
+<div><p>An unknown tag was supplied.</p>
+</div></blockquote>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="TIFFOpen.html"><span class="doc">TIFFOpen</span></a> (3tiff),
+<a class="reference internal" href="TIFFSetField.html"><span class="doc">TIFFSetField</span></a> (3tiff),
+<a class="reference internal" href="TIFFSetDirectory.html"><span class="doc">TIFFSetDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFReadDirectory.html"><span class="doc">TIFFReadDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFWriteDirectory.html"><span class="doc">TIFFWriteDirectory</span></a> (3tiff),
+<a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFGetField</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#autoregistered-tags">Autoregistered tags</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFFlush.html"
+                          title="previous chapter">TIFFFlush</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFmemory.html"
+                          title="next chapter">TIFFmemory</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFGetField.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFmemory.html" title="TIFFmemory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFFlush.html" title="TIFFFlush"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFGetField</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

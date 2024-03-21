@@ -1,0 +1,51 @@
+#!/bin/sh
+set -eu
+
+RET=0
+LIB=${WAYLAND_EGL_LIB}
+
+if ! test -f "$LIB"; then
+	echo "Test binary \"$LIB\" does not exist"
+	exit 99
+fi
+
+if ! test -n "$NM"; then
+	echo "nm environment variable not set"
+	exit 99
+fi
+
+AVAIL_FUNCS="$($NM -D --format=bsd --defined-only $LIB | awk '{print $3}')"
+
+# Official ABI, taken from the header.
+REQ_FUNCS="wl_egl_window_resize
+wl_egl_window_create
+wl_egl_window_destroy
+wl_egl_window_get_attached_size
+"
+
+NEW_ABI=$(echo "$AVAIL_FUNCS" | while read func; do
+    echo "$func" | grep -q "^_" && continue
+    echo "$REQ_FUNCS" | grep -q "^$func$" && continue
+
+    echo $func
+done)
+
+if test -n "$NEW_ABI"; then
+	echo "New ABI detected - If intentional, update the test."
+	echo "$NEW_ABI"
+	RET=1
+fi
+
+REMOVED_ABI=$(echo "$REQ_FUNCS" | while read func; do
+    echo "$AVAIL_FUNCS" | grep -q "^$func$" && continue
+
+    echo $func
+done)
+
+if test -n "$REMOVED_ABI"; then
+	echo "ABI break detected - Required symbol(s) no longer exported!"
+	echo "$REMOVED_ABI"
+	RET=1
+fi
+
+exit $RET

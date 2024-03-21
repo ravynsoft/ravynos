@@ -99,9 +99,10 @@ CFLAGS+= -I${SRCTOP}/cddl/compat/opensolaris/include
 CFLAGS+= -I${SRCTOP}/sys/contrib/openzfs/module/icp/include
 CFLAGS+= -include ${SRCTOP}/sys/contrib/openzfs/include/os/freebsd/spl/sys/ccompile.h
 CFLAGS+= -DHAVE_ISSETUGID
+CFLAGS+= -DHAVE_EXECVPE
 CFLAGS+= -include ${SRCTOP}/sys/modules/zfs/zfs_config.h
 CFLAGS+= -DSYSCONFDIR=\"/etc\"
 CFLAGS+= -DPKGDATADIR=\"/usr/share/zfs\"
-
+CFLAGS+= -DZFSEXECDIR=\"${LIBEXECDIR}/zfs\"
 
 .include <bsd.lib.mk>

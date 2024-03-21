@@ -1,0 +1,66 @@
+#compdef sudo sudoedit
+
+setopt localoptions extended_glob
+
+local environ e cmd cpp
+local -a args _comp_priv_prefix
+local -A opt_args
+
+zstyle -a ":completion:${curcontext}:" environ environ
+
+for e in "${environ[@]}"
+do local -x "$e"
+done
+
+args=(
+  '(-A --askpass)'{-A,--askpass}'[use a helper program for password prompting]'
+  '(-B --bell)'{-B,--bell}'[ring bell when prompting]'
+  '(-C --close-from)'{-C+,--close-from=}'[close file descriptors]:lowest fd to close'
+  '(-D --chdir)'{-D+,--chdir=}'[change the working directory before running command]:directory:_directories'
+  '(-g --group)'{-g+,--group=}'[run command as the specified group name or ID]:group:_groups'
+  '(-)'{-h,--help}'[display help message and exit]'
+  '(-h --host)'{-h+,--host=}'[run command on host]:host:_hosts'
+  '(-K --remove-timestamp)'{-K,--remove-timestamp}'[remove timestamp file completely]'
+  '(-k --reset-timestamp)'{-k,--reset-timestamp}'[invalidate timestamp file]'
+  \*{-l,--list}"[list user's privileges or check a specific command]"
+  '(-n --non-interactive)'{-n,--non-interactive}'[non-interactive mode, no prompts are used]'
+  '(-p --prompt)'{-p+,--prompt=}'[use the specified password prompt]:prompt'
+  '(-R --chroot)'{-R+,--chroot=}'[change the root directory before running command]:directory:_directories'
+  '(-r --role)'{-r+,--role=}'[create SELinux security context with specified role]: :_selinux_roles'
+  '(-S --stdin)'{-S,--stdin}'[read password from standard input]'
+  '(-t --type)'{-t+,--type=}'[create SELinux security context with specified type]: :_selinux_types'
+  '(-T --command-timeout)'{-T+,--command-timeout=}'[terminate command after specified time limit]:timeout'
+  '(-U --other-user)'{-U+,--other-user=}'[in list mode, display privileges for user]:user:_users'
+  '(-u --user)'{-u+,--user=}'[run command (or edit file) as specified user]:user:_users'
+  '(-)'{-V,--version}'[display version information and exit]'
+  '(-v --validate)'{-v,--validate}"[update user's timestamp without running a command]"
+)
+
+# Does -e appears before the first word that doesn't begin with a hyphen?
+# The way (i) works in subscripts, the test will always be true if all the
+# words begin with a hyphen.
+# 
+# TODO: use _arguments' $opt_args to detect the cases '-u jrandom -e' and '-Ae'
+if [[ $service = sudoedit ]] || (( $words[(i)-e] < $words[(i)^(*sudo|-[^-]*)] ))  ; then
+  args=( -A "-*" $args '!(-V --version -h --help)-e' '*:file:_files' )
+else
+  cmd="$words[1]"
+  cpp='_comp_priv_prefix=(
+    $cmd -n
+    ${(kv)opt_args[(I)(-[ugHEP]|--(user|group|set-home|preserve-env|preserve-groups))]}
+  )'
+  args+=(
+    '(-e --edit 1 *)'{-e,--edit}'[edit files instead of running a command]' \
+    '(-s --shell)'{-s,--shell}'[run shell as the target user; a command may also be specified]' \
+    '(-i --login)'{-i,--login}'[run login shell as the target user; a command may also be specified]' \
+    '(-b --background -i --login -s --shell -e --edit)'{-b,--background}'[run command in the background]' \
+    '(--preserve-env -i --login -s --shell -e --edit)-E[preserve user environment when running command]' \
+    '(-E -i --login -s --shell -e --edit)--preserve-env=-[preserve user environment when running command]::environment variable:_sequence _parameters -g "*export*"' \
+    '(-H --set-home -i --login -s --shell -e --edit)'{-H,--set-home}"[set HOME variable to target user's home dir]" \
+    '(-P --preserve-groups -i -login -s --shell -e --edit)'{-P,--preserve-groups}"[preserve group vector instead of setting to target's]" \
+    "(-)1: :{ $cpp; _command_names -e }"
+    "*:: :{ $cpp; _normal }"
+  )
+fi
+
+_arguments -s -S $args

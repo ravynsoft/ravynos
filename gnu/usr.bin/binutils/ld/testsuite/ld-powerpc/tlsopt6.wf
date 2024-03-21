@@ -1,0 +1,49 @@
+Contents of the \.eh_frame section:
+
+0+ 0+10 0+ CIE
+  Version:               1
+  Augmentation:          "zR"
+  Code alignment factor: 4
+  Data alignment factor: -8
+  Return address column: 65
+  Augmentation data:     1b
+  DW_CFA_def_cfa: r1 ofs 0
+
+0+14 0+34 0+18 FDE cie=0+ pc=.*
+  DW_CFA_advance_loc: 104 to .*
+  DW_CFA_def_cfa_offset: 96
+  DW_CFA_offset_extended_sf: r65 at cfa\+16
+  DW_CFA_offset: r4 at cfa-64
+  DW_CFA_offset: r5 at cfa-56
+  DW_CFA_offset: r6 at cfa-48
+  DW_CFA_offset: r7 at cfa-40
+  DW_CFA_offset: r8 at cfa-32
+  DW_CFA_offset: r9 at cfa-24
+  DW_CFA_offset: r10 at cfa-16
+  DW_CFA_offset: r11 at cfa-8
+  DW_CFA_advance_loc: 56 to .*
+  DW_CFA_def_cfa_offset: 0
+  DW_CFA_restore: r4
+  DW_CFA_restore: r5
+  DW_CFA_restore: r6
+  DW_CFA_restore: r7
+  DW_CFA_restore: r8
+  DW_CFA_restore: r9
+  DW_CFA_restore: r10
+  DW_CFA_restore: r11
+  DW_CFA_advance_loc: 8 to .*
+  DW_CFA_restore_extended: r65
+  DW_CFA_nop
+  DW_CFA_nop
+  DW_CFA_nop
+
+0+4c 0+14 0+50 FDE cie=0+ pc=.*
+  DW_CFA_advance_loc: 8 to .*
+  DW_CFA_register: r65 in r0
+  DW_CFA_advance_loc: 8 to .*
+  DW_CFA_restore_extended: r65
+
+0+64 0+10 0+68 FDE cie=0+ pc=.*
+  DW_CFA_nop
+  DW_CFA_nop
+  DW_CFA_nop

@@ -1,0 +1,52 @@
+#   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if {![istarget nfp*-*-*]} {
+  return
+}
+
+if {![is_remote host] && [which $OBJDUMP] == 0} then {
+  perror "$OBJDUMP does not exist"
+  return
+}
+
+send_user "Version [binutil_version $OBJDUMP]"
+
+set outfile "tmpdir/dump.out"
+
+set testname "NFP dissasembler NFP-6xxx instructions"
+set dumpfile "$srcdir/$subdir/test1.d"
+remote_exec host "${OBJDUMP} -d $srcdir/$subdir/test1_nfp6000.nffw" "" "/dev/null" "$outfile"
+if { [regexp_diff "${outfile}" "${dumpfile}"] } then {
+  fail $testname
+  return
+}
+
+set testname "NFP dissasembler options: no-pc,ctx4"
+set dumpfile "$srcdir/$subdir/test2_no-pc_ctx4.d"
+remote_exec host "${OBJDUMP} -M no-pc,ctx4 -d $srcdir/$subdir/test2_nfp6000.nffw" "" "/dev/null" "$outfile"
+if { [regexp_diff "${outfile}" "${dumpfile}"] } then {
+  fail $testname
+  return
+}
+
+set testname "NFP dissasembler options: ctx8"
+set dumpfile "$srcdir/$subdir/test2_ctx8.d"
+remote_exec host "${OBJDUMP} -M ctx8 -d $srcdir/$subdir/test2_nfp6000.nffw" "" "/dev/null" "$outfile"
+if { [regexp_diff "${outfile}" "${dumpfile}"] } then {
+  fail $testname
+  return
+}

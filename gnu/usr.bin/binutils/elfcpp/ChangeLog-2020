@@ -1,0 +1,96 @@
+2020-12-15  Cary Coutant  <ccoutant@gmail.com>
+
+	* elfcpp.h (class Ehdr): Add get_ei_osabi and get_ei_abiversion methods.
+
+2020-12-15  Vivek Das Mohapatra  <vivek@collabora.com>
+
+	* elfcpp.h (enum DT): New enum member DT_GNU_FLAGS_1.
+	(enum DF_GNU_1): New enum DF_GNU_1 containing DF_GNU_1_UNIQUE.
+
+2020-12-14  H.J. Lu  <hjl.tools@gmail.com>
+	    Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/27039
+	* elfcpp.h (SHF): Add SHF_GNU_RETAIN.
+
+2020-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elfcpp.h (GNU_PROPERTY_X86_ISA_1_USED): Renamed to ...
+	(GNU_PROPERTY_X86_COMPAT_ISA_1_USED): This.
+	(GNU_PROPERTY_X86_ISA_1_NEEDED): Renamed to ...
+	(GNU_PROPERTY_X86_COMPAT_ISA_1_NEEDED): This.
+	(GNU_PROPERTY_X86_UINT32_AND_LO): New.
+	(GNU_PROPERTY_X86_UINT32_AND_HI): Likewise.
+	(GNU_PROPERTY_X86_UINT32_OR_LO): Likewise.
+	(GNU_PROPERTY_X86_UINT32_OR_HI): Likewise.
+	(GNU_PROPERTY_X86_UINT32_OR_AND_LO): Likewise.
+	(GNU_PROPERTY_X86_UINT32_OR_AND_HI): Likewise.
+	(GNU_PROPERTY_X86_COMPAT_2_ISA_1_NEEDED): New.
+	(GNU_PROPERTY_X86_COMPAT_2_ISA_1_NEEDED): Likewise.
+	(GNU_PROPERTY_X86_FEATURE_1_AND): Updated to
+	(GNU_PROPERTY_X86_UINT32_AND_LO + 0).
+	(GNU_PROPERTY_X86_ISA_1_NEEDED): New.  Defined to
+	GNU_PROPERTY_X86_UINT32_OR_LO + 2.
+	(GNU_PROPERTY_X86_FEATURE_2_NEEDED): New.  Defined to
+	(GNU_PROPERTY_X86_UINT32_OR_LO + 1).
+	(GNU_PROPERTY_X86_ISA_1_USED): New.  Defined to
+	GNU_PROPERTY_X86_UINT32_OR_AND_LO + 2.
+	(GNU_PROPERTY_X86_FEATURE_2_USED): New.  Defined to
+	(GNU_PROPERTY_X86_UINT32_OR_AND_LO + 1).
+
+2020-09-25  Alan Modra  <amodra@gmail.com>
+
+	* dwarf.h (DW_FIRST_UT, DW_UT, DW_END_UT): Define.
+
+2020-08-26  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+        * elfcpp.h (enum SHT): New enum SHT_CSKY_ATTRIBUTES.
+
+2020-07-04  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.35 branch created.
+
+2020-06-26  Nick Alcock  <nick.alcock@oracle.com>
+
+	* elfcpp_swap.h (bswap_16): Do not assume that presence of
+	<byteswap.h> means this is declared.  Make static inline, matching
+	recent change to libctf, since there is no non-inline definition
+	of these functions.
+	(bswap_32): Likewise.
+	(bswap_64): Likewise.
+
+2020-06-18  Fangrui Song  <i@maskray.me>
+
+	PR gold/26039
+	* elfcpp.h (enum DF_1): New enum member DF_1_PIE.
+
+2020-06-06  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.h: Rename
+	R_PPC64_GOT_TLSGD34 to R_PPC64_GOT_TLSGD_PCREL34,
+	R_PPC64_GOT_TLSLD34 to R_PPC64_GOT_TLSLD_PCREL34,
+	R_PPC64_GOT_TPREL34 to R_PPC64_GOT_TPREL_PCREL34, and
+	R_PPC64_GOT_DTPREL34 to R_PPC64_GOT_DTPREL_PCREL34.
+
+2020-01-18  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.34 branch created.
+
+2020-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2019
+
+Copyright (C) 2020 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

@@ -1,0 +1,1801 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2003-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDOERS.LDAP" "@mansectform@" "June 7, 2023" "Sudo @PACKAGE_VERSION@" "File Formats Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudoers.ldap\fR
+\- sudo LDAP configuration
+.SH "DESCRIPTION"
+In addition to the standard
+\fIsudoers\fR
+file,
+\fBsudo\fR
+may be configured
+via LDAP.
+This can be especially useful for synchronizing
+\fIsudoers\fR
+in a large, distributed environment.
+.PP
+Using LDAP for
+\fIsudoers\fR
+has several benefits:
+.TP 3n
+\fB\(bu\fR
+\fBsudo\fR
+no longer needs to read
+\fIsudoers\fR
+in its entirety.
+When LDAP is used, there are only two or three LDAP queries per invocation.
+This makes it especially fast and particularly usable in LDAP environments.
+.TP 3n
+\fB\(bu\fR
+It is possible to specify per-entry options that override the global
+default options.
+\fI@sysconfdir@/sudoers\fR
+only supports default options and limited options associated with
+user/host/commands/aliases.
+The syntax is complicated and can be difficult for users to understand.
+Placing the options directly in the entry is more natural.
+.TP 3n
+\fB\(bu\fR
+The
+\fBvisudo\fR
+program is no longer needed.
+\fBvisudo\fR
+provides locking and syntax checking of the
+\fI@sysconfdir@/sudoers\fR
+file.
+Since LDAP updates are atomic, locking is no longer necessary.
+Because syntax is checked when the data is inserted into LDAP, there
+is no need for a specialized tool to check syntax.
+.SS "SUDOers LDAP container"
+The
+\fIsudoers\fR
+configuration is contained in the
+\(oqou=SUDOers\(cq
+LDAP container.
+.PP
+Sudo first looks for the
+\(oqcn=defaults\(cq
+entry in the SUDOers container.
+If found, the multi-valued
+\fIsudoOption\fR
+attribute is parsed in the same manner as a global
+\fIDefaults\fR
+line in
+\fI@sysconfdir@/sudoers\fR.
+In the following example, the
+\fRSSH_AUTH_SOCK\fR
+variable will be preserved in the environment for all users.
+.nf
+.sp
+.RS 4n
+dn: cn=defaults,ou=SUDOers,dc=my-domain,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: env_keep+=SSH_AUTH_SOCK
+.RE
+.fi
+.PP
+The equivalent of a sudoer in LDAP is a
+\fIsudoRole\fR.
+It consists of the following attributes:
+.TP 6n
+\fBsudoUser\fR
+A user name, user-ID (prefixed with
+\(oq#\(cq),
+Unix group name or ID (prefixed with
+\(oq%\(cq
+or
+\(oq%#\(cq
+respectively), user netgroup (prefixed with
+\(oq+\(cq),
+or non-Unix group name or ID (prefixed with
+\(oq%:\(cq
+or
+\(oq%:#\(cq
+respectively).
+User netgroups are matched using the user and domain members only;
+the host member is not used when matching.
+Non-Unix group support is only available when an appropriate
+\fIgroup_plugin\fR
+is defined in the global
+\fIdefaults\fR
+\fIsudoRole\fR
+object.
+If a
+\fIsudoUser\fR
+entry is preceded by an exclamation point,
+\(oq\&!\(cq,
+and the entry matches, the
+\fIsudoRole\fR
+in which it resides will be ignored.
+Negated
+\fIsudoUser\fR
+entries are only supported by version 1.9.9 or higher.
+.TP 6n
+\fBsudoHost\fR
+A host name, IP address, IP network, or host netgroup (prefixed with a
+\(oq+\(cq).
+The special value
+\fBALL\fR
+will match any host.
+Host netgroups are matched using the host (both qualified and unqualified)
+and domain members only; the user member is not used when matching.
+If a
+\fIsudoHost\fR
+entry is preceded by an exclamation point,
+\(oq\&!\(cq,
+and the entry matches, the
+\fIsudoRole\fR
+in which it resides will be ignored.
+Negated
+\fIsudoHost\fR
+entries are only supported by version 1.8.18 or higher.
+.TP 6n
+\fBsudoCommand\fR
+A fully-qualified Unix command name with optional command line arguments,
+potentially including globbing characters (aka wild cards).
+If a command name is preceded by an exclamation point,
+\(oq\&!\(cq,
+the user will be prohibited from running that command.
+.sp
+The built-in command
+\(lqsudoedit\(rq
+is used to permit a user to run
+\fBsudo\fR
+with the
+\fB\-e\fR
+option (or as
+\fBsudoedit\fR).
+It may take command line arguments just as a normal command does.
+Unlike other commands,
+\(lqsudoedit\(rq
+is a built into
+\fBsudo\fR
+itself and must be specified in without a leading path.
+.sp
+The special value
+\fBALL\fR
+will match any command.
+.sp
+If a command name is prefixed with a SHA-2 digest, it will
+only be allowed if the digest matches.
+This may be useful in situations where the user invoking
+\fBsudo\fR
+has write access to the command or its parent directory.
+The following digest formats are supported: sha224, sha256, sha384, and sha512.
+The digest name must be followed by a colon
+(\(oq:\&\(cq)
+and then the actual digest, in either hex or base64 format.
+For example, given the following value for sudoCommand:
+.nf
+.sp
+.RS 10n
+sha224:0GomF8mNN3wlDt1HD9XldjJ3SNgpFdbjO1+NsQ /bin/ls
+.RE
+.fi
+.RS 6n
+.sp
+The user may only run
+\fI/bin/ls\fR
+if its sha224 digest matches the specified value.
+Command digests are only supported by version 1.8.7 or higher.
+.RE
+.TP 6n
+\fBsudoOption\fR
+Identical in function to the global options described above, but
+specific to the
+\fIsudoRole\fR
+in which it resides.
+.TP 6n
+\fBsudoRunAsUser\fR
+A user name or user-ID (prefixed with
+\(oq#\(cq)
+that commands may be run as or a Unix group (prefixed with a
+\(oq%\(cq)
+or user netgroup (prefixed with a
+\(oq+\(cq)
+that contains a list of users that commands may be run as.
+The special value
+\fBALL\fR
+will match any user.
+If a
+\fIsudoRunAsUser\fR
+entry is preceded by an exclamation point,
+\(oq\&!\(cq,
+and the entry matches, the
+\fIsudoRole\fR
+in which it resides will be ignored.
+If
+\fIsudoRunAsUser\fR
+is specified but empty, it will match the invoking user.
+If neither
+\fIsudoRunAsUser\fR
+nor
+\fIsudoRunAsGroup\fR
+are present, the value of the
+\fIrunas_default\fR
+\fIsudoOption\fR
+is used (defaults to @runas_default@).
+.sp
+The
+\fIsudoRunAsUser\fR
+attribute is only available in
+\fBsudo\fR
+versions
+1.7.0 and higher.
+Older versions of
+\fBsudo\fR
+use the
+\fIsudoRunAs\fR
+attribute instead.
+Negated
+\fIsudoRunAsUser\fR
+entries are only supported by version 1.8.26 or higher.
+.TP 6n
+\fBsudoRunAsGroup\fR
+A Unix group or group-ID (prefixed with
+\(oq#\(cq)
+that commands may be run as.
+The special value
+\fBALL\fR
+will match any group.
+If a
+\fIsudoRunAsGroup\fR
+entry is preceded by an exclamation point,
+\(oq\&!\(cq,
+and the entry matches, the
+\fIsudoRole\fR
+in which it resides will be ignored.
+.sp
+The
+\fIsudoRunAsGroup\fR
+attribute is only available in
+\fBsudo\fR
+versions
+1.7.0 and higher.
+Negated
+\fIsudoRunAsGroup\fR
+entries are only supported by version 1.8.26 or higher.
+.TP 6n
+\fBsudoNotBefore\fR
+A timestamp in the form
+\(oqyyyymmddHHMMSSZ\(cq
+that can be used to provide a start date/time for when the
+\fIsudoRole\fR
+will be valid.
+If multiple
+\fIsudoNotBefore\fR
+entries are present, the earliest is used.
+Timestamps must be in Coordinated Universal Time (UTC),
+not the local timezone.
+The minute and seconds portions are optional, but some LDAP servers
+require that they be present (contrary to the RFC).
+.sp
+The
+\fIsudoNotBefore\fR
+attribute is only available in
+\fBsudo\fR
+versions 1.7.5 and higher and must be explicitly enabled via the
+\fBSUDOERS_TIMED\fR
+option in
+\fI@ldap_conf@\fR.
+.TP 6n
+\fBsudoNotAfter\fR
+A timestamp in the form
+\(oqyyyymmddHHMMSSZ\(cq
+that indicates an expiration date/time, after which the
+\fIsudoRole\fR
+will no longer be valid.
+If multiple
+\fIsudoNotAfter\fR
+entries are present, the last one is used.
+Timestamps must be in Coordinated Universal Time (UTC),
+not the local timezone.
+The minute and seconds portions are optional, but some LDAP servers
+require that they be present (contrary to the RFC).
+.sp
+The
+\fIsudoNotAfter\fR
+attribute is only available in
+\fBsudo\fR
+versions
+1.7.5 and higher and must be explicitly enabled via the
+\fBSUDOERS_TIMED\fR
+option in
+\fI@ldap_conf@\fR.
+.TP 6n
+\fBsudoOrder\fR
+The
+\fIsudoRole\fR
+entries retrieved from the LDAP directory have no inherent order.
+The
+\fIsudoOrder\fR
+attribute is an integer (or floating point value for LDAP servers
+that support it) that is used to sort the matching entries.
+This allows LDAP-based sudoers entries to more closely mimic the behavior
+of the sudoers file, where the order of the entries influences the result.
+If multiple entries match, the entry with the highest
+\fIsudoOrder\fR
+attribute is chosen.
+This corresponds to the
+\(lqlast match\(rq
+behavior of the sudoers file.
+If the
+\fIsudoOrder\fR
+attribute is not present, a value of 0 is assumed.
+.sp
+The
+\fIsudoOrder\fR
+attribute is only available in
+\fBsudo\fR
+versions 1.7.5 and higher.
+.PP
+Each attribute listed above should contain a single value, but there
+may be multiple instances of each attribute type.
+A
+\fIsudoRole\fR
+must contain at least one
+\fIsudoUser\fR,
+\fIsudoHost\fR,
+and
+\fIsudoCommand\fR.
+.PP
+The following example allows users in group wheel to run any command
+on any host via
+\fBsudo\fR:
+.nf
+.sp
+.RS 4n
+dn: cn=%wheel,ou=SUDOers,dc=my-domain,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: %wheel
+sudoUser: %wheel
+sudoHost: ALL
+sudoCommand: ALL
+.RE
+.fi
+.SS "Anatomy of LDAP sudoers lookup"
+When looking up a sudoer using LDAP there are only two or three
+LDAP queries per invocation.
+The first query is to parse the global options.
+The second is to match against the user's name and the groups that
+the user belongs to.
+(The special
+\fBALL\fR
+tag is matched in this query too.)
+If no match is returned for the user's name and groups, a third
+query returns all entries containing user netgroups and other
+non-Unix groups and checks to see if the user belongs to any of them.
+.PP
+If timed entries are enabled with the
+\fBSUDOERS_TIMED\fR
+parameter, the LDAP queries include a sub-filter that limits retrieval
+to entries that satisfy the time constraints, if any.
+.PP
+If the
+\fBNETGROUP_BASE\fR
+parameter is present and
+\fBNETGROUP_QUERY\fR
+has not been disabled (see
+\fIConfiguring ldap.conf\fR
+below), queries are performed to determine the list of netgroups
+the user belongs to before the sudoers query.
+This makes it possible to include netgroups in the sudoers query
+string in the same manner as Unix groups.
+The third query mentioned above is not performed unless a group provider
+plugin is also configured.
+The actual LDAP queries performed by
+\fBsudo\fR
+are as follows:
+.TP 5n
+1.\&
+Match all
+\fInisNetgroup\fR
+records with a
+\fInisNetgroupTriple\fR
+containing the user, host, and NIS domain.
+The query will match
+\fInisNetgroupTriple\fR
+entries with either the short or long form of the host name or
+no host name specified in the tuple.
+If the NIS domain is set, the query will match only match entries
+that include the domain or for which there is no domain present.
+If the NIS domain is
+\fInot\fR
+set, a wildcard is used to match any domain name but be aware that the
+NIS schema used by some LDAP servers may not support wild cards for
+\fInisNetgroupTriple\fR.
+.TP 5n
+2.\&
+Repeated queries are performed to find any nested
+\fInisNetgroup\fR
+records with a
+\fImemberNisNetgroup\fR
+entry that refers to an already-matched record.
+.PP
+For sites with a large number of netgroups, using
+\fBNETGROUP_BASE\fR
+can significantly speed up
+\fBsudo\fR's
+execution time as long as the LDAP server supports querying the
+\fInisNetgroup\fR
+object by its
+\fInisNetgroupTriple\fR
+attribute.
+.SS "Differences between LDAP and non-LDAP sudoers"
+One of the major differences between LDAP and file-based
+\fIsudoers\fR
+is that in LDAP,
+\fBsudo\fR-specific
+Aliases are not supported.
+.PP
+For the most part, there is little need for
+\fBsudo\fR-specific
+Aliases.
+Unix groups, non-Unix groups (via the
+\fIgroup_plugin\fR),
+or user netgroups can be used in place of User_Aliases and Runas_Aliases.
+Host netgroups can be used in place of Host_Aliases.
+Since groups and netgroups can also be stored in LDAP there is no real need for
+\fBsudo\fR-specific
+aliases.
+.PP
+There are also some subtle differences in the way sudoers is handled
+once in LDAP.
+Probably the biggest is that according to the RFC, LDAP ordering
+is arbitrary and you cannot expect that Attributes and Entries are
+returned in any specific order.
+.PP
+The order in which different entries are applied can be controlled
+using the
+\fIsudoOrder\fR
+attribute, but there is no way to guarantee the order of attributes
+within a specific entry.
+If there are conflicting command rules in an entry, the negative
+takes precedence.
+This is called paranoid behavior (not necessarily the most specific
+match).
+.PP
+Here is an example:
+.nf
+.sp
+.RS 4n
+# /etc/sudoers:
+# Allow all commands except shell
+johnny  ALL=(root) ALL,!/bin/sh
+# Always allows all commands because ALL is matched last
+puddles ALL=(root) !/bin/sh,ALL
+
+# LDAP equivalent of johnny
+# Allows all commands except shell
+dn: cn=role1,ou=Sudoers,dc=my-domain,dc=com
+objectClass: sudoRole
+objectClass: top
+cn: role1
+sudoUser: johnny
+sudoHost: ALL
+sudoCommand: ALL
+sudoCommand: !/bin/sh
+
+# LDAP equivalent of puddles
+# Notice that even though ALL comes last, it still behaves like
+# role1 since the LDAP code assumes the more paranoid configuration
+dn: cn=role2,ou=Sudoers,dc=my-domain,dc=com
+objectClass: sudoRole
+objectClass: top
+cn: role2
+sudoUser: puddles
+sudoHost: ALL
+sudoCommand: !/bin/sh
+sudoCommand: ALL
+.RE
+.fi
+.SS "Converting between file-based and LDAP sudoers"
+The
+cvtsudoers(1)
+utility can be used to convert between file-based and LDAP
+\fIsudoers\fR.
+However, there are features in the file-based sudoers that have
+no equivalent in LDAP-based sudoers (and vice versa).
+These cannot be converted automatically.
+.PP
+For example, a Cmnd_Alias in a
+\fIsudoers\fR
+file may be converted to a
+\fIsudoRole\fR
+that contains multiple commands.
+Multiple users and/or groups may be assigned to the
+\fIsudoRole\fR.
+.PP
+Also, host, user, runas, and command-based
+\fIDefaults\fR
+entries are not supported.
+However, a
+\fIsudoRole\fR
+may contain one or more
+\fIsudoOption\fR
+attributes which can often serve the same purpose.
+.PP
+Consider the following
+\fIsudoers\fR
+lines:
+.nf
+.sp
+.RS 4n
+Cmnd_Alias PAGERS = /usr/bin/more, /usr/bin/pg, /usr/bin/less
+Defaults!PAGERS noexec
+alice, bob ALL = ALL
+.RE
+.fi
+.PP
+In this example, alice and bob are allowed to run all commands, but
+the commands listed in PAGERS will have the noexec flag set,
+preventing shell escapes.
+.PP
+When converting this to LDAP, two sudoRole objects can be used:
+.nf
+.sp
+.RS 4n
+dn: cn=PAGERS,ou=SUDOers,dc=my-domain,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: PAGERS
+sudoUser: alice
+sudoUser: bob
+sudoHost: ALL
+sudoCommand: /usr/bin/more
+sudoCommand: /usr/bin/pg
+sudoCommand: /usr/bin/less
+sudoOption: noexec
+sudoOrder: 900
+
+dn: cn=ADMINS,ou=SUDOers,dc=my-domain,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: ADMINS
+sudoUser: alice
+sudoUser: bob
+sudoHost: ALL
+sudoCommand: ALL
+sudoOrder: 100
+.RE
+.fi
+.PP
+In the LDAP version, the sudoOrder attribute is used to guarantee
+that the PAGERS sudoRole with
+\fInoexec\fR
+has precedence.
+Unlike the
+\fIsudoers\fR
+version, the LDAP version requires that all users for whom the restriction
+should apply be assigned to the PAGERS sudoRole.
+Using a Unix group or netgroup in PAGERS rather than listing each
+user would make this easier to maintain.
+.PP
+Per-user
+\fIDefaults\fR
+entries can be emulated by using one or more sudoOption attributes
+in a sudoRole.
+Consider the following
+\fIsudoers\fR
+lines:
+.nf
+.sp
+.RS 4n
+User_Alias ADMINS = john, sally
+Defaults:ADMINS !authenticate
+ADMINS ALL = (ALL:ALL) ALL
+.RE
+.fi
+.PP
+In this example, john and sally are allowed to run any command
+as any user or group.
+.PP
+When converting this to LDAP, we can use a Unix group instead
+of the User_Alias.
+.nf
+.sp
+.RS 4n
+dn: cn=admins,ou=SUDOers,dc=my-domain,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: admins
+sudoUser: %admin
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoRunAsGroup: ALL
+sudoCommand: ALL
+sudoOption: !authenticate
+.RE
+.fi
+.PP
+This assumes that users john and sally are members of the
+\(lqadmins\(rq
+Unix group.
+.SS "Sudoers schema"
+In order to use
+\fBsudo\fR's
+LDAP support, the
+\fBsudo\fR
+schema must be
+installed on your LDAP server.
+In addition, be sure to index the
+\fIsudoUser\fR
+attribute.
+.PP
+The
+\fBsudo\fR
+distribution includes versions of the
+\fBsudoers\fR
+schema for multiple LDAP servers:
+.TP 6n
+\fIschema.OpenLDAP\fR
+OpenLDAP slapd and
+OpenBSD
+ldapd
+.TP 6n
+\fIschema.olcSudo\fR
+OpenLDAP slapd 2.3 and higher when on-line configuration is enabled
+.TP 6n
+\fIschema.iPlanet\fR
+Netscape-derived servers such as the iPlanet, Oracle,
+and 389 Directory Servers
+.TP 6n
+\fIschema.ActiveDirectory\fR
+Microsoft Active Directory
+.PP
+The schema in OpenLDAP format is also included in the
+\fIEXAMPLES\fR
+section.
+.SS "Configuring ldap.conf"
+Sudo reads the
+\fI@ldap_conf@\fR
+file for LDAP-specific configuration.
+Typically, this file is shared between different LDAP-aware clients.
+As such, most of the settings are not
+\fBsudo\fR-specific.
+The
+\fI@ldap_conf@\fR
+file is parsed by
+\fBsudo\fR
+itself and may support options that differ from those described in the
+system's
+ldap.conf(@mansectform@)
+manual.
+The path to
+\fIldap.conf\fR
+may be overridden via the
+\fIldap_conf\fR
+plugin argument in
+sudo.conf(@mansectform@).
+.PP
+On systems using the OpenLDAP libraries, default values specified in
+\fI/etc/openldap/ldap.conf\fR
+or the user's
+\fI.ldaprc\fR
+files are not used.
+.PP
+\fBsudo\fR
+supports a variety of LDAP library implementations, including
+OpenLDAP, Netscape-derived (also used by Solaris and HP-UX), and
+IBM LDAP (aka Tivoli).
+Some options are specific to certain LDAP implementations or have
+implementation-specific behavior.
+These differences are noted below where applicable.
+.PP
+Only those options explicitly listed in
+\fI@ldap_conf@\fR
+as being supported by
+\fBsudo\fR
+are honored.
+Configuration options are listed below in upper case but are parsed
+in a case-independent manner.
+.PP
+Lines beginning with a pound sign
+(\(oq#\(cq)
+are ignored.
+Leading white space is removed from the beginning of lines.
+.TP 6n
+\fBBIND_TIMELIMIT\fR \fIseconds\fR
+The
+\fBBIND_TIMELIMIT\fR
+parameter specifies the amount of time, in seconds, to wait while trying
+to connect to an LDAP server.
+If multiple
+\fBURI\fRs
+or
+\fBHOST\fRs
+are specified, this is the amount of time to wait before trying
+the next one in the list.
+.TP 6n
+\fBBINDDN\fR \fIDN\fR
+The
+\fBBINDDN\fR
+parameter specifies the identity, in the form of a Distinguished Name (DN),
+to use when performing LDAP operations.
+If not specified, LDAP operations are performed with an anonymous identity.
+By default, most LDAP servers will allow anonymous access.
+.TP 6n
+\fBBINDPW\fR \fIsecret\fR
+The
+\fBBINDPW\fR
+parameter specifies the password to use when performing LDAP operations.
+This is typically used in conjunction with the
+\fBBINDDN\fR
+parameter.
+The
+\fIsecret\fR
+may be a plaintext password or a base64-encoded string with a
+\(lqbase64:\(rq
+prefix.
+For example:
+.nf
+.sp
+.RS 10n
+BINDPW base64:dGVzdA==
+.RE
+.fi
+.RS 6n
+.sp
+If a plaintext password is used, it should be a simple string without quotes.
+Plain text passwords may not include the comment character
+(\(oq#\(cq)
+and the escaping of special characters with a backslash
+(\(oq\e\(cq)
+is not supported.
+.RE
+.TP 6n
+\fBDEREF\fR \fInever/searching/finding/always\fR
+How alias dereferencing is to be performed when searching.
+See the
+ldap.conf(@mansectform@)
+manual for a full description of this option.
+.TP 6n
+\fBHOST\fR \fIname[:port] ...\fR
+If no
+\fBURI\fR
+is specified (see below), the
+\fBHOST\fR
+parameter specifies a white space-delimited list of LDAP servers to connect to.
+Each host may include an optional
+\fIport\fR
+separated by a colon
+(\(oq:\&\(cq).
+The
+\fBHOST\fR
+parameter is deprecated in favor of the
+\fBURI\fR
+specification and is included for backward compatibility only.
+.TP 6n
+\fBKRB5_CCNAME\fR \fIfile name\fR
+The path to the Kerberos 5 credential cache to use when authenticating
+with the remote server.
+.sp
+This option is only relevant when using SASL authentication (see below).
+.TP 6n
+\fBLDAP_VERSION\fR \fInumber\fR
+The version of the LDAP protocol to use when connecting to the server.
+The default value is protocol version 3.
+.TP 6n
+\fBNETGROUP_BASE\fR \fIbase\fR
+The base DN to use when performing LDAP netgroup queries.
+Typically this is of the form
+\(oqou=netgroup,dc=my-domain,dc=com\(cq
+for the domain my-domain.com.
+Multiple
+\fBNETGROUP_BASE\fR
+lines may be specified, in which case they are queried in the order specified.
+.sp
+When this option is enabled,
+\fBsudo\fR
+will query the LDAP server directly when matching netgroups present in a
+\fIsudoRole\fR
+instead of relying on the C library's
+\fBinnetgr\fR()
+function.
+.sp
+Additionally, if the
+\fBNETGROUP_QUERY\fR
+parameter (which is enabled by default) has not been disabled, the
+user's netgroups will be queried directly via LDAP for use in the
+main sudoers query.
+This is usually faster than fetching every
+\fIsudoRole\fR
+object containing a
+\fIsudoUser\fR
+that begins with a
+\(oq+\(cq
+prefix and checking whether the user is a member of each one.
+The NIS schema used by some LDAP servers needs a modification to
+support querying the
+\fInisNetgroup\fR
+object by its
+\fInisNetgroupTriple\fR
+attribute.
+For example, OpenLDAP's
+\fBslapd\fR
+requires the following change to the
+\fInisNetgroupTriple\fR
+attribute:
+.nf
+.sp
+.RS 10n
+attributetype ( 1.3.6.1.1.1.1.14 NAME 'nisNetgroupTriple'
+   DESC 'Netgroup triple'
+   EQUALITY caseIgnoreIA5Match
+   SUBSTR caseIgnoreIA5SubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+.RE
+.fi
+.RS 6n
+.sp
+Before enabling
+\fBNETGROUP_BASE\fR,
+you should verify that your LDAP server supports matching
+\fInisNetgroupTriple\fR.
+For example, using
+\fBldapsearch\fR:
+.nf
+.sp
+.RS 10n
+$ ldapsearch -b $NETGROUP_BASE \e
+  '(&(objectClass=nisNetgroup)(nisNetgroupTriple=\e28*,USER,\e29))'
+.RE
+.fi
+.sp
+where your
+\fInisNetgroup\fR
+data includes an object with the following
+\fInisNetgroupTriple\fR:
+.sp
+.RS 12n
+nisNetgroupTriple: (,USER,)
+.RE
+.RE
+.TP 6n
+\fBNETGROUP_QUERY\fR \fIon/true/yes/off/false/no\fR
+The
+\fBNETGROUP_QUERY\fR
+parameter indicates whether or not the LDAP server supports querying
+\fInisNetgroup\fR
+objects by matching on
+\fInisNetgroupTriple\fR
+attributes.
+By default,
+\fBsudoers\fR
+expects to be able to perform queries that match on
+\fInisNetgroupTriple\fR
+attributes when
+\fBNETGROUP_BASE\fR
+is set, but not all LDAP servers support this.
+.sp
+If
+\fBNETGROUP_QUERY\fR
+is disabled,
+\fBsudoers\fR
+will not attempt to determine the list of netgroups the user belongs
+to, but will still use
+\fBNETGROUP_BASE\fR
+directly when matching netgroups.
+This can be used to support netgroups on systems that lack the
+\fBinnetgr\fR()
+C library function.
+See the description of the
+\fBNETGROUP_BASE\fR
+parameter for more information.
+.TP 6n
+\fBNETGROUP_SEARCH_FILTER\fR \fIldap_filter\fR
+An LDAP filter which is used to restrict the set of records returned
+when performing an LDAP netgroup query.
+Typically, this is of the form
+\(oqattribute=value\(cq
+or
+\(oq(&(attribute=value)(attribute2=value2))\(cq.
+The default search filter is:
+\(oqobjectClass=nisNetgroup\(cq.
+If
+\fIldap_filter\fR
+is omitted, no search filter will be used.
+.sp
+This option is only used when querying netgroups directly via LDAP.
+.TP 6n
+\fBNETWORK_TIMEOUT\fR \fIseconds\fR
+An alias for
+\fBBIND_TIMELIMIT\fR
+provided for OpenLDAP compatibility.
+.TP 6n
+\fBPORT\fR \fIport_number\fR
+If no
+\fBURI\fR
+is specified, the
+\fBPORT\fR
+parameter specifies the default port to connect to on the LDAP server if a
+\fBHOST\fR
+parameter does not specify the port itself.
+If no
+\fBPORT\fR
+parameter is used, the default is port 389 for LDAP and port 636 for LDAP
+over TLS (SSL).
+The
+\fBPORT\fR
+parameter is deprecated in favor of the
+\fBURI\fR
+specification and is included for backward compatibility only.
+.TP 6n
+\fBROOTBINDDN\fR \fIDN\fR
+The
+\fBROOTBINDDN\fR
+parameter specifies the identity, in the form of a Distinguished Name (DN),
+to use when performing privileged LDAP operations, such as
+\fIsudoers\fR
+queries.
+The password corresponding to the identity should be stored in the
+or the path specified by the
+\fIldap_secret\fR
+plugin argument in
+sudo.conf(@mansectform@),
+which defaults to
+\fI@ldap_secret@\fR.
+If no
+\fBROOTBINDDN\fR
+is specified, the
+\fBBINDDN\fR
+identity is used (if any).
+.TP 6n
+\fBROOTUSE_SASL\fR \fIon/true/yes/off/false/no\fR
+Enable
+\fBROOTUSE_SASL\fR
+to enable SASL authentication when connecting
+to an LDAP server from a privileged process, such as
+\fBsudo\fR.
+.TP 6n
+\fBSASL_AUTH_ID\fR \fIidentity\fR
+The SASL user name to use when connecting to the LDAP server.
+By default,
+\fBsudo\fR
+will use an anonymous connection.
+.sp
+This option is only relevant when using SASL authentication.
+.TP 6n
+\fBSASL_MECH\fR \fImechanisms\fR
+A white space-delimited list of SASL authentication mechanisms to use.
+By default,
+\fBsudo\fR
+will use
+\fRGSSAPI\fR
+authentication.
+.TP 6n
+\fBSASL_SECPROPS\fR \fInone/properties\fR
+SASL security properties or
+\fInone\fR
+for no properties.
+See the SASL programmer's manual for details.
+.sp
+This option is only relevant when using SASL authentication.
+.TP 6n
+\fBSSL\fR \fIon/true/yes/off/false/no\fR
+If the
+\fBSSL\fR
+parameter is set to
+\fIon\fR,
+\fItrue\fR,
+or
+\fIyes\fR
+TLS (SSL) encryption is always used when communicating with the LDAP server.
+Typically, this involves connecting to the server on port 636 (ldaps).
+.TP 6n
+\fBSSL\fR \fIstart_tls\fR
+If the
+\fBSSL\fR
+parameter is set to
+\fIstart_tls\fR,
+the LDAP server connection is initiated normally and TLS encryption is
+begun before the bind credentials are sent.
+This has the advantage of not requiring a dedicated port for encrypted
+communications.
+This parameter is only supported by LDAP servers that honor the
+\fIstart_tls\fR
+extension, such as the OpenLDAP and IBM Tivoli Directory servers.
+.TP 6n
+\fBSUDOERS_BASE\fR \fIbase\fR
+The base DN to use when performing
+\fBsudo\fR
+LDAP queries.
+Typically this is of the form
+\(oqou=SUDOers,dc=my-domain,dc=com\(cq
+for the domain my-domain.com.
+Multiple
+\fBSUDOERS_BASE\fR
+lines may be specified, in which case they are queried in the order specified.
+.TP 6n
+\fBSUDOERS_DEBUG\fR \fIdebug_level\fR
+This sets the debug level for
+\fBsudo\fR
+LDAP queries.
+Debugging information is printed to the standard error.
+A value of 1 results in a moderate amount of debugging information.
+A value of 2 shows the results of the matches themselves.
+This parameter should not be set in a production environment as the
+extra information is likely to confuse users.
+.sp
+The
+\fBSUDOERS_DEBUG\fR
+parameter is deprecated and will be removed in a future release.
+The same information is now logged via the
+\fBsudo\fR
+debugging framework using the
+\(lqldap\(rq
+subsystem at priorities
+\fIdiag\fR
+and
+\fIinfo\fR
+for
+\fIdebug_level\fR
+values 1 and 2 respectively.
+See the
+sudo.conf(@mansectform@)
+manual for details on how to configure
+\fBsudo\fR
+debugging.
+.TP 6n
+\fBSUDOERS_SEARCH_FILTER\fR \fIldap_filter\fR
+An LDAP filter which is used to restrict the set of records returned
+when performing a
+\fBsudo\fR
+LDAP query.
+Typically, this is of the
+form
+\(oqattribute=value\(cq
+or
+\(oq(&(attribute=value)(attribute2=value2))\(cq.
+The default search filter is:
+\(oqobjectClass=sudoRole\(cq.
+If
+\fIldap_filter\fR
+is omitted, no search filter will be used.
+.TP 6n
+\fBSUDOERS_TIMED\fR \fIon/true/yes/off/false/no\fR
+Whether or not to evaluate the
+\fIsudoNotBefore\fR
+and
+\fIsudoNotAfter\fR
+attributes that implement time-dependent sudoers entries.
+.TP 6n
+\fBTIMELIMIT\fR \fIseconds\fR
+The
+\fBTIMELIMIT\fR
+parameter specifies the amount of time, in seconds, to wait for a
+response to an LDAP query.
+.TP 6n
+\fBTIMEOUT\fR \fIseconds\fR
+The
+\fBTIMEOUT\fR
+parameter specifies the amount of time, in seconds, to wait for a
+response from the various LDAP APIs.
+.TP 6n
+\fBTLS_CACERT\fR \fIfile name\fR
+An alias for
+\fBTLS_CACERTFILE\fR
+for OpenLDAP compatibility.
+.TP 6n
+\fBTLS_CACERTFILE\fR \fIfile name\fR
+The path to a certificate authority bundle which contains the certificates
+for all the Certificate Authorities the client knows to be valid, e.g.,
+\fI/etc/ssl/ca-bundle.pem\fR.
+.sp
+This option is only supported by the OpenLDAP libraries.
+Netscape-derived LDAP libraries use the same certificate
+database for CA and client certificates (see
+\fBTLS_CERT\fR).
+.TP 6n
+\fBTLS_CACERTDIR\fR \fIdirectory\fR
+Similar to
+\fBTLS_CACERTFILE\fR
+but instead of a file, it is a directory containing individual
+Certificate Authority certificates, e.g.,
+\fI/etc/ssl/certs\fR.
+The directory specified by
+\fBTLS_CACERTDIR\fR
+is checked after
+\fBTLS_CACERTFILE\fR.
+.sp
+This option is only supported by the OpenLDAP libraries.
+.TP 6n
+\fBTLS_CERT\fR \fIfile name\fR
+The path to a file containing the client certificate which can
+be used to authenticate the client to the LDAP server.
+The certificate type depends on the LDAP libraries used.
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+OpenLDAP:
+\(oqtls_cert /etc/ssl/client_cert.pem\(cq
+.PD
+.TP 6n
+Netscape-derived:
+\(oqtls_cert /var/ldap/cert7.db\(cq
+.TP 6n
+IBM LDAP:
+Unused, the key database specified by
+\fBTLS_KEY\fR
+contains both keys and certificates.
+.PP
+When using Netscape-derived libraries, this file may also contain
+Certificate Authority certificates.
+.RE
+.TP 6n
+\fBTLS_CHECKPEER\fR \fIon/true/yes/off/false/no\fR
+If enabled,
+\fBTLS_CHECKPEER\fR
+will cause the LDAP server's TLS certificated to be verified.
+If the server's TLS certificate cannot be verified (usually because it
+is signed by an unknown certificate authority),
+\fBsudo\fR
+will be unable to connect to it.
+If
+\fBTLS_CHECKPEER\fR
+is disabled, no check is made.
+Disabling this check creates an opportunity for man-in-the-middle
+attacks since the server's identity will not be authenticated.
+If possible, the CA's certificate should be installed locally so it can
+be verified.
+.sp
+This option is not supported by the IBM LDAP libraries.
+.TP 6n
+\fBTLS_KEY\fR \fIfile name\fR
+The path to a file containing the private key which matches the
+certificate specified by
+\fBTLS_CERT\fR.
+The private key must not be password-protected.
+The key type depends on the LDAP libraries used.
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+OpenLDAP:
+\(oqtls_key /etc/ssl/client_key.pem\(cq
+.PD
+.TP 6n
+Netscape-derived:
+\(oqtls_key /var/ldap/key3.db\(cq
+.TP 6n
+IBM LDAP:
+\(oqtls_key /usr/ldap/ldapkey.kdb\(cq
+.PP
+When using IBM LDAP libraries, this file may also contain
+Certificate Authority and client certificates and may be encrypted.
+.RE
+.TP 6n
+\fBTLS_CIPHERS\fR \fIcipher list\fR
+The
+\fBTLS_CIPHERS\fR
+parameter allows the administer to restrict which encryption algorithms
+may be used for TLS (SSL) connections.
+See the OpenLDAP or IBM Tivoli Directory Server manual for a list of valid
+ciphers.
+.sp
+This option is not supported by Netscape-derived libraries.
+.TP 6n
+\fBTLS_KEYPW\fR \fIsecret\fR
+The
+\fBTLS_KEYPW\fR
+contains the password used to decrypt the key database on clients
+using the IBM LDAP library.
+The
+\fIsecret\fR
+may be a plaintext password or a base64-encoded string with a
+\(lqbase64:\(rq
+prefix.
+For example:
+.nf
+.sp
+.RS 10n
+TLS_KEYPW base64:dGVzdA==
+.RE
+.fi
+.RS 6n
+.sp
+If a plaintext password is used, it should be a simple string without quotes.
+Plain text passwords may not include the comment character
+(\(oq#\(cq)
+and the escaping of special characters with a backslash
+(\(oq\e\(cq)
+is not supported.
+If this option is used,
+\fI@ldap_conf@\fR
+must not be world-readable to avoid exposing the password.
+Alternately, a
+\fIstash file\fR
+can be used to store the password in encrypted form (see below).
+.sp
+If no
+\fBTLS_KEYPW\fR
+is specified, a
+\fIstash file\fR
+will be used if it exists.
+The
+\fIstash file\fR
+must have the same path as the file specified by
+\fBTLS_KEY\fR,
+but use a
+\(oq.sth\(cq
+file extension instead of
+\(oq.kdb\(cq,
+for example
+\(oqldapkey.sth\(cq.
+The default
+\(oqldapkey.kdb\(cq
+that ships with the IBM Tivoli Directory Server is encrypted with the password
+\(oqssl_password\(cq.
+The
+\fIgsk8capicmd\fR
+utility can be used to manage the key database and create a
+\fIstash file\fR.
+.sp
+This option is only supported by the IBM LDAP libraries.
+.RE
+.TP 6n
+\fBTLS_REQCERT\fR \fIlevel\fR
+The
+\fBTLS_REQCERT\fR
+parameter controls how the LDAP server's TLS certificated will be
+verified (if at all).
+If the server's TLS certificate cannot be verified (usually because it
+is signed by an unknown certificate authority),
+\fBsudo\fR
+will be unable to connect to it.
+The following
+\fIlevel\fR
+values are supported:
+.RS 10n
+.TP 6n
+never
+.br
+The server certificate will not be requested or checked.
+.TP 6n
+allow
+.br
+The server certificate will be requested.
+A missing or invalid certificate is ignored and not considered an error.
+.TP 6n
+try
+The server certificate will be requested.
+A missing certificate is ignored but an invalid certificate will
+result in a connection error.
+.TP 6n
+demand | \fIhard\fR
+The server certificate will be requested.
+A missing or invalid certificate will result in a connection error.
+This is the default behavior.
+.RE
+.RS 6n
+.sp
+This option is only supported by the OpenLDAP libraries.
+Other LDAP libraries only support the
+\fBTLS_CHECKPEER\fR
+parameter.
+.RE
+.TP 6n
+\fBTLS_RANDFILE\fR \fIfile name\fR
+The
+\fBTLS_RANDFILE\fR
+parameter specifies the path to an entropy source for systems that lack
+a random device.
+It is generally used in conjunction with
+\fIprngd\fR
+or
+\fIegd\fR.
+.sp
+This option is only supported by the OpenLDAP libraries.
+.TP 6n
+\fBURI\fR \fIldap[s]://[hostname[:port]] ...\fR
+Specifies a white space-delimited list of one or more URIs describing
+the LDAP server(s) to connect to.
+The
+\fIprotocol\fR
+may be either
+\fIldap\fR
+\fIldaps\fR,
+the latter being for servers that support TLS (SSL) encryption.
+If no
+\fIport\fR
+is specified, the default is port 389 for
+\(oqldap://\(cq
+or port 636 for
+\(oqldaps://\(cq.
+If no
+\fIhostname\fR
+is specified,
+\fBsudo\fR
+will connect to
+\fIlocalhost\fR.
+Multiple
+\fBURI\fR
+lines are treated identically to a
+\fBURI\fR
+line containing multiple entries.
+Only systems using the OpenSSL libraries support the mixing of
+\(oqldap://\(cq
+and
+\(oqldaps://\(cq
+URIs.
+Both the Netscape-derived and IBM LDAP libraries used on most commercial
+versions of Unix are only capable of supporting one or the other.
+.TP 6n
+\fBUSE_SASL\fR \fIon/true/yes/off/false/no\fR
+Enable
+\fBUSE_SASL\fR
+for LDAP servers that support SASL authentication.
+.TP 6n
+\fBROOTSASL_AUTH_ID\fR \fIidentity\fR
+The SASL user name to use when
+\fBROOTUSE_SASL\fR
+is enabled.
+.PP
+See the
+\fIldap.conf\fR
+entry in the
+\fIEXAMPLES\fR
+section.
+.SS "Configuring nsswitch.conf"
+Unless it is disabled at build time,
+\fBsudo\fR
+consults the Name Service Switch file,
+\fI@nsswitch_conf@\fR,
+to specify the
+\fIsudoers\fR
+search order.
+Sudo looks for a line beginning with
+\fIsudoers\fR:
+and uses this to determine the search order.
+By default,
+\fBsudo\fR
+does not stop searching after the first match and later matches take
+precedence over earlier ones (unless
+\(oq[SUCCESS=return]\(cq
+is used, see below).
+The following sources are recognized:
+.PP
+.RS 4n
+.PD 0
+.TP 7n
+files
+read sudoers from
+\fI@sysconfdir@/sudoers\fR
+.TP 7n
+ldap
+read sudoers from LDAP
+.RE
+.PD
+.PP
+In addition, a subset of
+\fInsswitch.conf\fR-style
+action statements is supported, specifically
+\(oq[SUCCESS=return]\(cq
+and
+\(oq[NOTFOUND=return]\(cq.
+These will unconditionally terminate the search if the user was either
+found
+\(oq[SUCCESS=return]\(cq
+or not found
+\(oq[NOTFOUND=return]\(cq
+in the immediately preceding source.
+Other action statements tokens are not supported, nor is test
+negation with
+\(oq\&!\(cq.
+.PP
+To consult LDAP first followed by the local sudoers file (if it
+exists), use:
+.nf
+.sp
+.RS 4n
+sudoers: ldap files
+.RE
+.fi
+.PP
+To consult LDAP only when no match is found in the local sudoers
+file (if it exists), use:
+.nf
+.sp
+.RS 4n
+sudoers: files [SUCCESS=return] ldap
+.RE
+.fi
+.PP
+The local
+\fIsudoers\fR
+file can be ignored completely by using:
+.nf
+.sp
+.RS 4n
+sudoers: ldap
+.RE
+.fi
+.PP
+If the
+\fI@nsswitch_conf@\fR
+file is not present or there is no sudoers line, the following
+default is assumed:
+.nf
+.sp
+.RS 4n
+sudoers: files
+.RE
+.fi
+.PP
+The
+\fI@nsswitch_conf@\fR
+file is supported even when the underlying operating system does not
+support it, except on AIX (see below).
+.SS "Configuring netsvc.conf"
+On AIX systems, the
+\fI@netsvc_conf@\fR
+file is consulted instead of
+\fI@nsswitch_conf@\fR.
+\fBsudo\fR
+simply treats
+\fInetsvc.conf\fR
+as a variant of
+\fInsswitch.conf\fR;
+information in the previous section unrelated to the file format
+itself still applies.
+.PP
+To consult LDAP first followed by the local sudoers file (if it
+exists), use:
+.nf
+.sp
+.RS 4n
+sudoers = ldap, files
+.RE
+.fi
+.PP
+The local
+\fIsudoers\fR
+file can be ignored completely by using:
+.nf
+.sp
+.RS 4n
+sudoers = ldap
+.RE
+.fi
+.PP
+To treat LDAP as authoritative and only use the local sudoers file
+if the user is not present in LDAP, use:
+.nf
+.sp
+.RS 4n
+sudoers = ldap = auth, files
+.RE
+.fi
+.PP
+In the above example, the
+\fIauth\fR
+qualifier only affects user lookups; both LDAP and
+\fIsudoers\fR
+will be queried for
+\fIDefaults\fR
+entries.
+.PP
+If the
+\fI@netsvc_conf@\fR
+file is not present or there is no sudoers line, the following
+default is assumed:
+.nf
+.sp
+.RS 4n
+sudoers = files
+.RE
+.fi
+.SS "Integration with sssd"
+On systems with the
+\fISystem Security Services Daemon\fR
+(SSSD) and where
+\fBsudo\fR
+has been built with SSSD support,
+it is possible to use SSSD to cache LDAP
+\fIsudoers\fR
+rules.
+To use SSSD as the
+\fIsudoers\fR
+source, you should use
+\fIsss\fR
+instead of
+\fIldap\fR
+for the sudoers entry in
+\fI@nsswitch_conf@\fR.
+The
+\fI@ldap_conf@\fR
+file is not used by the SSSD
+\fBsudo\fR
+back end.
+See
+sssd-sudo(@mansectform@)
+for more information on configuring
+\fBsudo\fR
+to work with SSSD.
+.SH "FILES"
+.TP 26n
+\fI@ldap_conf@\fR
+LDAP configuration file
+.TP 26n
+\fI@nsswitch_conf@\fR
+determines sudoers source order
+.TP 26n
+\fI@netsvc_conf@\fR
+determines sudoers source order on AIX
+.SH "EXAMPLES"
+.SS "Example ldap.conf"
+.nf
+.RS 2n
+# Either specify one or more URIs or one or more host:port pairs.
+# If neither is specified sudo will default to localhost, port 389.
+#
+#host          ldapserver
+#host          ldapserver1 ldapserver2:390
+#
+# Default port if host is specified without one, defaults to 389.
+#port          389
+#
+# URI will override the host and port settings.
+uri            ldap://ldapserver
+#uri            ldaps://secureldapserver
+#uri            ldaps://secureldapserver ldap://ldapserver
+#
+# The amount of time, in seconds, to wait while trying to connect to
+# an LDAP server.
+bind_timelimit 30
+#
+# The amount of time, in seconds, to wait while performing an LDAP query.
+timelimit 30
+#
+# Must be set or sudo will ignore LDAP; may be specified multiple times.
+sudoers_base   ou=SUDOers,dc=my-domain,dc=com
+#
+# verbose sudoers matching from ldap
+#sudoers_debug 2
+#
+# Enable support for time-based entries in sudoers.
+#sudoers_timed yes
+#
+# optional proxy credentials
+#binddn        <who to search as>
+#bindpw        <password>
+#rootbinddn    <who to search as, uses /etc/ldap.secret for bindpw>
+#
+# LDAP protocol version, defaults to 3
+#ldap_version 3
+#
+# Define if you want to use an encrypted LDAP connection.
+# Typically, you must also set the port to 636 (ldaps).
+#ssl on
+#
+# Define if you want to use port 389 and switch to
+# encryption before the bind credentials are sent.
+# Only supported by LDAP servers that support the start_tls
+# extension such as OpenLDAP.
+#ssl start_tls
+#
+# Additional TLS options follow that allow tweaking of the
+# SSL/TLS connection.
+#
+#tls_checkpeer yes # verify server SSL certificate
+#tls_checkpeer no  # ignore server SSL certificate
+#
+# If you enable tls_checkpeer, specify either tls_cacertfile
+# or tls_cacertdir.  Only supported when using OpenLDAP.
+#
+#tls_cacertfile /etc/certs/trusted_signers.pem
+#tls_cacertdir  /etc/certs
+#
+# For systems that don't have /dev/random
+# use this along with PRNGD or EGD.pl to seed the
+# random number pool to generate cryptographic session keys.
+# Only supported when using OpenLDAP.
+#
+#tls_randfile /etc/egd-pool
+#
+# You may restrict which ciphers are used.  Consult your SSL
+# documentation for which options go here.
+# Only supported when using OpenLDAP.
+#
+#tls_ciphers <cipher-list>
+#
+# Sudo can provide a client certificate when communicating to
+# the LDAP server.
+# Tips:
+#   * Enable both lines at the same time.
+#   * Do not password protect the key file.
+#   * Ensure the keyfile is only readable by root.
+#
+# For OpenLDAP:
+#tls_cert /etc/certs/client_cert.pem
+#tls_key  /etc/certs/client_key.pem
+#
+# For Netscape-derived LDAP, tls_cert and tls_key may specify either
+# a directory, in which case the files in the directory must have the
+# default names (e.g., cert8.db and key4.db), or the path to the cert
+# and key files themselves.  However, a bug in version 5.0 of the LDAP
+# SDK will prevent specific file names from working.  For this reason
+# it is suggested that tls_cert and tls_key be set to a directory,
+# not a file name.
+#
+# The certificate database specified by tls_cert may contain CA certs
+# and/or the client's cert.  If the client's cert is included, tls_key
+# should be specified as well.
+# For backward compatibility, "sslpath" may be used in place of tls_cert.
+#tls_cert /var/ldap
+#tls_key /var/ldap
+#
+# If using SASL authentication for LDAP (OpenSSL)
+# use_sasl yes
+# sasl_auth_id <SASL user name>
+# rootuse_sasl yes
+# rootsasl_auth_id <SASL user name for root access>
+# sasl_secprops none
+# krb5_ccname /etc/.ldapcache
+.RE
+.fi
+.SS "Sudoers schema for OpenLDAP"
+The following schema, in OpenLDAP format, is included with
+\fBsudo\fR
+source and binary distributions as
+\fIschema.OpenLDAP\fR.
+Simply copy
+it to the schema directory (e.g.,
+\fI/etc/openldap/schema\fR),
+add the proper
+\fIinclude\fR
+line in
+\fIslapd.conf\fR
+and restart
+\fBslapd\fR.
+Sites using the optional on-line configuration supported by OpenLDAP 2.3
+and higher should apply the
+\fIschema.olcSudo\fR
+file instead.
+.nf
+.sp
+.RS 2n
+attributetype ( 1.3.6.1.4.1.15953.9.1.1
+   NAME 'sudoUser'
+   DESC 'User(s) who may  run sudo'
+   EQUALITY caseExactMatch
+   SUBSTR caseExactSubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.2
+   NAME 'sudoHost'
+   DESC 'Host(s) who may run sudo'
+   EQUALITY caseExactIA5Match
+   SUBSTR caseExactIA5SubstringsMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.3
+   NAME 'sudoCommand'
+   DESC 'Command(s) to be executed by sudo'
+   EQUALITY caseExactIA5Match
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.4
+   NAME 'sudoRunAs'
+   DESC 'User(s) impersonated by sudo'
+   EQUALITY caseExactIA5Match
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.5
+   NAME 'sudoOption'
+   DESC 'Options(s) followed by sudo'
+   EQUALITY caseExactIA5Match
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.6
+   NAME 'sudoRunAsUser'
+   DESC 'User(s) impersonated by sudo'
+   EQUALITY caseExactMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.7
+   NAME 'sudoRunAsGroup'
+   DESC 'Group(s) impersonated by sudo'
+   EQUALITY caseExactMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.8
+   NAME 'sudoNotBefore'
+   DESC 'Start of time interval for which the entry is valid'
+   EQUALITY generalizedTimeMatch
+   ORDERING generalizedTimeOrderingMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.9
+   NAME 'sudoNotAfter'
+   DESC 'End of time interval for which the entry is valid'
+   EQUALITY generalizedTimeMatch
+   ORDERING generalizedTimeOrderingMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 )
+
+attributetype ( 1.3.6.1.4.1.15953.9.1.10
+   NAME 'sudoOrder'
+   DESC 'an integer to order the sudoRole entries'
+   EQUALITY integerMatch
+   ORDERING integerOrderingMatch
+   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+
+objectclass ( 1.3.6.1.4.1.15953.9.2.1 NAME 'sudoRole' SUP top STRUCTURAL
+   DESC 'Sudoer Entries'
+   MUST ( cn )
+   MAY ( sudoUser $ sudoHost $ sudoCommand $ sudoRunAs $ sudoRunAsUser $
+         sudoRunAsGroup $ sudoOption $ sudoNotBefore $ sudoNotAfter $
+         sudoOrder $ description )
+   )
+.RE
+.fi
+.SH "SEE ALSO"
+cvtsudoers(1),
+ldap.conf(@mansectform@),
+sssd-sudo(@mansectform@),
+sudo.conf(@mansectform@),
+sudoers(@mansectform@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "CAVEATS"
+There are differences in the way that LDAP-based
+\fIsudoers\fR
+is parsed compared to file-based
+\fIsudoers\fR.
+See the
+\fIDifferences between LDAP and non-LDAP sudoers\fR
+section for more information.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

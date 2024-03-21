@@ -30,8 +30,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)ufs_quota.c	8.5 (Berkeley) 5/20/95
  */
 
 #include <sys/cdefs.h>
@@ -580,6 +578,15 @@ quotaon(struct thread *td, struct mount *mp, int type, void *fname,
 	VN_LOCK_DSHARE(vp);
 	VOP_UNLOCK(vp);
 	*vpp = vp;
+
+	/*
+	 * Allow the getdq from getinoquota below to read the quota
+	 * from file.
+	 */
+	UFS_LOCK(ump);
+	ump->um_qflags[type] &= ~QTF_CLOSING;
+	UFS_UNLOCK(ump);
+
 	/*
 	 * Save the credential of the process that turned on quotas.
 	 * Set up the time limits for this quota.
@@ -594,13 +601,6 @@ quotaon(struct thread *td, struct mount *mp, int type, void *fname,
 			ump->um_itime[type] = dq->dq_itime;
 		dqrele(NULLVP, dq);
 	}
-	/*
-	 * Allow the getdq from getinoquota below to read the quota
-	 * from file.
-	 */
-	UFS_LOCK(ump);
-	ump->um_qflags[type] &= ~QTF_CLOSING;
-	UFS_UNLOCK(ump);
 	/*
 	 * Search vnodes associated with this mount point,
 	 * adding references to quota file being opened.

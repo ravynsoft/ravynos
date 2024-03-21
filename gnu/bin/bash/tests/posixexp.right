@@ -1,0 +1,308 @@
+a
+b
+a b
+argv[1] = <a>
+argv[2] = <b>
+argv[3] = <x>
+argv[4] = <a>
+argv[5] = <b>
+argv[1] = <a\ b>
+argv[2] = <x>
+argv[3] = <a\ b>
+argv[1] = <foo 'bar' baz>
+argv[1] = <a b  c d>
+argv[1] = <a b  c d>
+argv[1] = <foo ax{{{}b c d{} bar>
+argv[2] = <}>
+argv[3] = <baz>
+argv[1] = <'foo'>
+argv[1] = <'foo'>
+argv[1] = <$a>
+argv[1] = <'foo'>
+argv[1] = <foo*bar>
+argv[1] = <foo*bar>
+argv[1] = <foo*bar'}>
+argv[1] = <x'>
+<.> <x> <.> <> <.> <x> <.> 
+<x> <.> <w> <.> <x> <.> <w> <.> 
+<x> <.> <w> <.> <x> <.> <w> <.> 
+<x> <.> <w> <.> <x> <.> <w> <.> 
+<.> <w> <.> <> <.> <w> <.> 
+<.> <w> <.> <> <.> <w> <.> 
+<x> <.> <x> <.> <x> <.> <x> <.> 
+<x> <.> <w> <.> <x> <.> <w> <.> 
+<x> <.> <w> <.> <x> <.> <w> <.> 
+<x> <.> <w> <.> <x> <.> <w> <.> 
+argv[1] = <'bar>
+argv[1] = <foo 'bar baz>
+argv[1] = <}z>
+argv[1] = <''z}>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1 2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1 2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1 2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1 2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1 2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <12>
+argv[1] = <1 2>
+argv[1] = <1 2>
+argv[1] = <1 2>
+argv[1] = <1 2>
+argv[1] = <1 2>
+argv[1] = <1 2>
+argv[1] = <12>
+argv[1] = <12>
+argv[1] = <12>
+argv[1] = <12>
+argv[1] = <12>
+argv[1] = <12>
+argv[1] = <1 2>
+argv[1] = <1 2>
+argv[1] = <12>
+argv[1] = <12>
+normal IFS
+argv[1] = <abc>
+argv[2] = <def>
+argv[3] = <ghi>
+argv[4] = <jkl>
+argv[1] = <abc>
+argv[2] = <def>
+argv[3] = <ghi>
+argv[4] = <jkl>
+argv[1] = <abc>
+argv[2] = <def>
+argv[3] = <ghi>
+argv[4] = <jkl>
+null IFS
+argv[1] = < abc>
+argv[2] = <def ghi>
+argv[3] = <jkl >
+argv[1] = < abc def ghi jkl >
+argv[1] = < abc>
+argv[2] = <def ghi>
+argv[3] = <jkl >
+non-standard IFS
+argv[1] = < abc>
+argv[2] = <def ghi>
+argv[3] = <jkl >
+argv[1] = < abc def ghi jkl >
+argv[1] = < abc def ghi jkl >
+unset IFS
+argv[1] = < abc>
+argv[2] = <def ghi>
+argv[3] = <jkl >
+argv[1] = < abc def ghi jkl >
+argv[1] = < abc def ghi jkl >
+
+001: IFS = (unset): unset -v foo; set -- ${foo=$*}
+soh stx etx del   / soh stx etx del
+
+002: IFS = (unset): unset -v foo; set -- ${foo="$*"}
+soh stx etx del   / soh stx etx del
+
+003: IFS = (unset): unset -v foo; set -- "${foo=$*}"
+soh stx etx del   / soh stx etx del
+
+004: IFS = (unset): foo=; set -- ${foo:=$*}
+soh stx etx del   / soh stx etx del
+
+005: IFS = (unset): foo=; set -- ${foo:="$*"}
+soh stx etx del   / soh stx etx del
+
+006: IFS = (unset): foo=; set -- "${foo:=$*}"
+soh stx etx del   / soh stx etx del
+
+007: IFS = (unset): unset -v foo; set -- ${foo=$@}
+soh stx etx del   / soh stx etx del
+
+008: IFS = (unset): unset -v foo; set -- ${foo="$@"}
+soh stx etx del   / soh stx etx del
+
+009: IFS = (unset): unset -v foo; set -- "${foo=$@}"
+soh stx etx del   / soh stx etx del
+
+010: IFS = (unset): foo=; set -- ${foo:=$@}
+soh stx etx del   / soh stx etx del
+
+011: IFS = (unset): foo=; set -- ${foo:="$@"}
+soh stx etx del   / soh stx etx del
+
+012: IFS = (unset): foo=; set -- "${foo:=$@}"
+soh stx etx del   / soh stx etx del
+
+013: IFS = (null): unset -v foo; set -- ${foo=$*}
+soh stx etx del   / soh stx etx del
+
+014: IFS = (null): unset -v foo; set -- ${foo="$*"}
+soh stx etx del   / soh stx etx del
+
+015: IFS = (null): unset -v foo; set -- "${foo=$*}"
+soh stx etx del   / soh stx etx del
+
+016: IFS = (null): foo=; set -- ${foo:=$*}
+soh stx etx del   / soh stx etx del
+
+017: IFS = (null): foo=; set -- ${foo:="$*"}
+soh stx etx del   / soh stx etx del
+
+018: IFS = (null): foo=; set -- "${foo:=$*}"
+soh stx etx del   / soh stx etx del
+
+019: IFS = (null): unset -v foo; set -- ${foo=$@}
+soh stx etx del   / soh stx etx del
+
+020: IFS = (null): unset -v foo; set -- ${foo="$@"}
+soh stx etx del   / soh stx etx del
+
+021: IFS = (null): unset -v foo; set -- "${foo=$@}"
+soh stx etx del   / soh stx etx del
+
+022: IFS = (null): foo=; set -- ${foo:=$@}
+soh stx etx del   / soh stx etx del
+
+023: IFS = (null): foo=; set -- ${foo:="$@"}
+soh stx etx del   / soh stx etx del
+
+024: IFS = (null): foo=; set -- "${foo:=$@}"
+soh stx etx del   / soh stx etx del
+
+025: IFS = x: unset -v foo; set -- ${foo=$*}
+soh stx etx del   / soh stx etx del
+
+026: IFS = x: unset -v foo; set -- ${foo="$*"}
+soh stx etx del   / soh stx etx del
+
+027: IFS = x: unset -v foo; set -- "${foo=$*}"
+soh stx etx del   / soh stx etx del
+
+028: IFS = x: foo=; set -- ${foo:=$*}
+soh stx etx del   / soh stx etx del
+
+029: IFS = x: foo=; set -- ${foo:="$*"}
+soh stx etx del   / soh stx etx del
+
+030: IFS = x: foo=; set -- "${foo:=$*}"
+soh stx etx del   / soh stx etx del
+
+031: IFS = x: unset -v foo; set -- ${foo=$@}
+soh stx etx del   / soh stx etx del
+
+032: IFS = x: unset -v foo; set -- ${foo="$@"}
+soh stx etx del   / soh stx etx del
+
+033: IFS = x: unset -v foo; set -- "${foo=$@}"
+soh stx etx del   / soh stx etx del
+
+034: IFS = x: foo=; set -- ${foo:=$@}
+soh stx etx del   / soh stx etx del
+
+035: IFS = x: foo=; set -- ${foo:="$@"}
+soh stx etx del   / soh stx etx del
+
+036: IFS = x: foo=; set -- "${foo:=$@}"
+soh stx etx del   / soh stx etx del
+
+037: IFS = sp  ht  nl: unset -v foo; set -- ${foo=$*}
+soh stx etx del   / soh stx etx del
+
+038: IFS = sp  ht  nl: unset -v foo; set -- ${foo="$*"}
+soh stx etx del   / soh stx etx del
+
+039: IFS = sp  ht  nl: unset -v foo; set -- "${foo=$*}"
+soh stx etx del   / soh stx etx del
+
+040: IFS = sp  ht  nl: foo=; set -- ${foo:=$*}
+soh stx etx del   / soh stx etx del
+
+041: IFS = sp  ht  nl: foo=; set -- ${foo:="$*"}
+soh stx etx del   / soh stx etx del
+
+042: IFS = sp  ht  nl: foo=; set -- "${foo:=$*}"
+soh stx etx del   / soh stx etx del
+
+043: IFS = sp  ht  nl: unset -v foo; set -- ${foo=$@}
+soh stx etx del   / soh stx etx del
+
+044: IFS = sp  ht  nl: unset -v foo; set -- ${foo="$@"}
+soh stx etx del   / soh stx etx del
+
+045: IFS = sp  ht  nl: unset -v foo; set -- "${foo=$@}"
+soh stx etx del   / soh stx etx del
+
+046: IFS = sp  ht  nl: foo=; set -- ${foo:=$@}
+soh stx etx del   / soh stx etx del
+
+047: IFS = sp  ht  nl: foo=; set -- ${foo:="$@"}
+soh stx etx del   / soh stx etx del
+
+048: IFS = sp  ht  nl: foo=; set -- "${foo:=$@}"
+soh stx etx del   / soh stx etx del
+argv[1] = <^A^B^C^?>
+argv[1] = <^A^B^C^?>
+argv[1] = <^A^B^C^?>
+argv[1] = <^A^B^C^?>
+argv[1] = <^A^B^C^?>
+argv[1] = <^A^B^C^?>
+argv[1] = <^A^B^C^?>
+argv[1] = <^A^B^C^?>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+[  abc    def  ghi  jkl /  abc    def  ghi  jkl ]
+[  abc    def  ghi  jkl ]
+[  abc    def  ghi  jkl /  abc    def  ghi  jkl /  abc    def  ghi  jkl ]
+1: OK
+2: $'not'
+3: OK
+4: OK
+5: tOK
+OK
+OK
+$'not'
+OK
+tOK
+6: $'not\ttoo\nbad'
+OKa	'	b
+OKa	'	b
+7: OK
+8: OKa	'	b
+9: OKa	"	b
+10: OKa	"	b
+tOK
+tOK
+tOK
+tOK
+./posixexp7.sub: line 69: ${'x1'%'t'}: bad substitution
+./posixexp7.sub: line 70: ${'x1'%'t'}: bad substitution
+./posixexp7.sub: line 73: ${'x1'%'t'}: bad substitution
+./posixexp7.sub: line 74: ${'x1'%'t'}: bad substitution
+"A"
+A
+argv[1] = <"A">
+argv[1] = <A>
+argv[1] = <A>
+./posixexp.tests: line 97: unexpected EOF while looking for matching `}'

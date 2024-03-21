@@ -1,0 +1,6487 @@
+# Pesan Bahasa Indonesia untuk binutils
+# Copyright (C) 2008 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+# Arif E. Nugroho <arif_endro@yahoo.com>, 2008,2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: binutils 2.20\n"
+"Report-Msgid-Bugs-To: bug-binutils@gnu.org\n"
+"POT-Creation-Date: 2009-09-07 14:08+0200\n"
+"PO-Revision-Date: 2009-11-11 11:00+0700\n"
+"Last-Translator: Arif E. Nugroho <arif_endro@yahoo.com>\n"
+"Language-Team: Indonesian <translation-team-id@lists.sourceforge.net>\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: addr2line.c:76
+#, c-format
+msgid "Usage: %s [option(s)] [addr(s)]\n"
+msgstr "Penggunaan: %s [pilihan] [alamat]\n"
+
+#: addr2line.c:77
+#, c-format
+msgid " Convert addresses into line number/file name pairs.\n"
+msgstr " Mengubah alamat kedalam pasangan nomor baris / nama berkas.\n"
+
+#: addr2line.c:78
+#, c-format
+msgid " If no addresses are specified on the command line, they will be read from stdin\n"
+msgstr " Jika tidak ada alamat yang dispesifikasikan dalam baris perintah, mereka akan dibaca dari stdin\n"
+
+#: addr2line.c:79
+#, c-format
+msgid ""
+" The options are:\n"
+"  @<file>                Read options from <file>\n"
+"  -b --target=<bfdname>  Set the binary file format\n"
+"  -e --exe=<executable>  Set the input file name (default is a.out)\n"
+"  -i --inlines           Unwind inlined functions\n"
+"  -j --section=<name>    Read section-relative offsets instead of addresses\n"
+"  -s --basenames         Strip directory names\n"
+"  -f --functions         Show function names\n"
+"  -C --demangle[=style]  Demangle function names\n"
+"  -h --help              Display this information\n"
+"  -v --version           Display the program's version\n"
+"\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  @<berkas>              Baca pilihan dari <berkas>\n"
+"  -b --target=<bfdname>  Set format berkas binary\n"
+"  -e --exe=executable>   Set nama berkas masukan (baku a.out)\n"
+"  -i --inlines           Buka fungsi inline\n"
+"  -j --section=<nama>    Baca section-relative ofset daripada alamat\n"
+"  -s --basenames         Strip nama direktori\n"
+"  -f --functions         Tampilkan nama fungsi\n"
+"  -C --demangle[=style]  Demangle nama fungsi\n"
+"  -h --help              Tampilkan informasi ini\n"
+"  -v --version           Tampilkan versi aplikasi\n"
+"\n"
+
+#: addr2line.c:94 ar.c:295 coffdump.c:469 dlltool.c:3832 dllwrap.c:510
+#: nlmconv.c:1113 objcopy.c:563 objcopy.c:598 readelf.c:2922 size.c:99
+#: srconv.c:1741 strings.c:676 sysdump.c:653 windmc.c:233 windres.c:698
+#, c-format
+msgid "Report bugs to %s\n"
+msgstr "Laporkan bugs ke %s\n"
+
+#: addr2line.c:281
+#, c-format
+msgid "%s: cannot get addresses from archive"
+msgstr "%s: tidak dapat memperoleh alamat dari archive"
+
+#: addr2line.c:298
+#, c-format
+msgid "%s: cannot find section %s"
+msgstr "%s: tidak dapat menemukan daerah %s"
+
+#: addr2line.c:364 nm.c:1554 objdump.c:3229
+#, c-format
+msgid "unknown demangling style `%s'"
+msgstr "gaya demangling `%s' tidak diketahui"
+
+#: ar.c:218
+#, c-format
+msgid "no entry %s in archive\n"
+msgstr "tidak ada masukan %s dalam archive\n"
+
+#: ar.c:236
+#, c-format
+msgid "Usage: %s [emulation options] [--plugin <name>] [-]{dmpqrstx}[abcfilNoPsSuvV] [member-name] [count] archive-file file...\n"
+msgstr "Penggunaan: %s [pilihan emulasi] [--plugin <nama>] [-]{dmpqrstx}[abcfilNoPsSuvV] [nama-anggota] [jumlah] berkas-archive berkas...\n"
+
+#: ar.c:238
+#, c-format
+msgid "Usage: %s [emulation options] [-]{dmpqrstx}[abcfilNoPsSuvV] [member-name] [count] archive-file file...\n"
+msgstr "Penggunaan: %s [pilihan emulasi] [-]{dmpqrstx}[abcfilNoPsSuvV] [nama-anggota] [jumlah] berkas-archive berkas...\n"
+
+#: ar.c:243
+#, c-format
+msgid "       %s -M [<mri-script]\n"
+msgstr "       %s -M [<mri-scrip]\n"
+
+#: ar.c:244
+#, c-format
+msgid " commands:\n"
+msgstr " perintah:\n"
+
+#: ar.c:245
+#, c-format
+msgid "  d            - delete file(s) from the archive\n"
+msgstr "  d            - hapus berkas dari archive\n"
+
+#: ar.c:246
+#, c-format
+msgid "  m[ab]        - move file(s) in the archive\n"
+msgstr "  m[ab]        - pindahkan berkas dalam archive\n"
+
+#: ar.c:247
+#, c-format
+msgid "  p            - print file(s) found in the archive\n"
+msgstr "  p            - tampilkan berkas ditemukan dalam archive\n"
+
+#: ar.c:248
+#, c-format
+msgid "  q[f]         - quick append file(s) to the archive\n"
+msgstr "  q[f]         - tambahkan berkas cepat kedalam archive\n"
+
+#: ar.c:249
+#, c-format
+msgid "  r[ab][f][u]  - replace existing or insert new file(s) into the archive\n"
+msgstr "  r[ab][f][u]  - gantikan telah ada atau masukan berkas baru kedalam archive\n"
+
+#: ar.c:250
+#, c-format
+msgid "  t            - display contents of archive\n"
+msgstr "  t            - tampilkan isi dari archive\n"
+
+#: ar.c:251
+#, c-format
+msgid "  x[o]         - extract file(s) from the archive\n"
+msgstr "  x[o]         - ekstrak berkas dari archive\n"
+
+#: ar.c:252
+#, c-format
+msgid " command specific modifiers:\n"
+msgstr " modifikasi spesifik perintah:\n"
+
+#: ar.c:253
+#, c-format
+msgid "  [a]          - put file(s) after [member-name]\n"
+msgstr "  [a]          - tempatkan berkas setelah [nama-anggota]\n"
+
+#: ar.c:254
+#, c-format
+msgid "  [b]          - put file(s) before [member-name] (same as [i])\n"
+msgstr "  [b]          - tempatkan berkas sebelum [nama-anggota] (sama seperti [i])\n"
+
+#: ar.c:255
+#, c-format
+msgid "  [D]          - use zero for timestamps and uids/gids\n"
+msgstr "  [D]          - gunakan nol untuk penanda waktu dan uids/gids\n"
+
+#: ar.c:256
+#, c-format
+msgid "  [N]          - use instance [count] of name\n"
+msgstr "  [N]          - gunakan instance [jumlah] dari nama\n"
+
+#: ar.c:257
+#, c-format
+msgid "  [f]          - truncate inserted file names\n"
+msgstr "  [f]          - potong masukan nama berkas\n"
+
+#: ar.c:258
+#, c-format
+msgid "  [P]          - use full path names when matching\n"
+msgstr "  [P]          - gunakan nama jalur lengkap ketika mencocokan\n"
+
+#: ar.c:259
+#, c-format
+msgid "  [o]          - preserve original dates\n"
+msgstr "  [o]          - jaga tanggal asli\n"
+
+#: ar.c:260
+#, c-format
+msgid "  [u]          - only replace files that are newer than current archive contents\n"
+msgstr "  [u]          - hanya gantikan berkas yang lebih baru dari isi archive sekarang\n"
+
+#: ar.c:261
+#, c-format
+msgid " generic modifiers:\n"
+msgstr " pemodifikasi umum:\n"
+
+#: ar.c:262
+#, c-format
+msgid "  [c]          - do not warn if the library had to be created\n"
+msgstr "  [c]          - jangan peringatkan jika perpustakaan harus dibuat\n"
+
+#: ar.c:263
+#, c-format
+msgid "  [s]          - create an archive index (cf. ranlib)\n"
+msgstr "  [s]          - buat sebuah indeks archive (cf. ranlib)\n"
+
+#: ar.c:264
+#, c-format
+msgid "  [S]          - do not build a symbol table\n"
+msgstr "  [S]          - jangan buah sebuah tabel simbol\n"
+
+#: ar.c:265
+#, c-format
+msgid "  [T]          - make a thin archive\n"
+msgstr "  [T]          - buat sebuah archive tipis\n"
+
+#: ar.c:266
+#, c-format
+msgid "  [v]          - be verbose\n"
+msgstr "  [v]          - verbose\n"
+
+#: ar.c:267
+#, c-format
+msgid "  [V]          - display the version number\n"
+msgstr "  [V]          - tampilkan nomor versi\n"
+
+#: ar.c:268
+#, c-format
+msgid "  @<file>      - read options from <file>\n"
+msgstr "  @<berkas>    - baca pilihan dari <berkas>\n"
+
+#: ar.c:270
+#, c-format
+msgid " optional:\n"
+msgstr " pilihan adalah:\n"
+
+#: ar.c:271
+#, c-format
+msgid "  --plugin <p> - load the specified plugin\n"
+msgstr "  --plugin <p> - muat plugin yang dispesifikasikan\n"
+
+#: ar.c:278
+#, c-format
+msgid "Usage: %s [options] archive\n"
+msgstr "Penggunaan: %s [pilihan] archive\n"
+
+#: ar.c:279
+#, c-format
+msgid " Generate an index to speed access to archives\n"
+msgstr " Buat sebuah indeks untuk mempercepat akses ke archive\n"
+
+#: ar.c:280
+#, c-format
+msgid ""
+" The options are:\n"
+"  @<file>                      Read options from <file>\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  @<berkas>                    Baca pilihan dari <berkas>\n"
+
+#: ar.c:283
+#, c-format
+msgid "  --plugin <name>              Load the specified plugin\n"
+msgstr "  --plugin <nama>              Muat plugin yang dispesifikasikan\n"
+
+#: ar.c:286
+#, c-format
+msgid ""
+"  -t                           Update the archive's symbol map timestamp\n"
+"  -h --help                    Print this help message\n"
+"  -v --version                 Print version information\n"
+msgstr ""
+"  -t                           Update archive peta simbol tanda-waktu\n"
+"  -h --help                    Tampilkan pesan bantuan ini\n"
+"  -v --version                 Tampilkan informasi versi\n"
+
+#: ar.c:512 nm.c:1626
+#, c-format
+msgid "sorry - this program has been built without plugin support\n"
+msgstr "maaf - aplikasi ini telah dibuat tanpa dukungan plugin\n"
+
+#: ar.c:539
+msgid "two different operation options specified"
+msgstr "dua pilihan operasi berbeda dispesifikasikan"
+
+#: ar.c:620
+#, c-format
+msgid "illegal option -- %c"
+msgstr "pilihan tidak legal -- %c"
+
+#: ar.c:663
+msgid "no operation specified"
+msgstr "tidak ada operasi yang dispesifikasikan"
+
+#: ar.c:666
+msgid "`u' is only meaningful with the `r' option."
+msgstr "`u' hanya berarti dengan pilihan `r'."
+
+#: ar.c:669
+msgid "`u' is not meaningful with the `D' option."
+msgstr "`u' hanya berarti dengan pilihan `D'."
+
+#: ar.c:677
+msgid "`N' is only meaningful with the `x' and `d' options."
+msgstr "`N' hanya berarti dengan pilihan `x' dan `d'."
+
+#: ar.c:680
+msgid "Value for `N' must be positive."
+msgstr "Nilai untuk `N' harus positif."
+
+#: ar.c:692
+msgid "`x' cannot be used on thin archives."
+msgstr "`x' tidak dapat digunakan dalam archive tipis."
+
+#: ar.c:733
+#, c-format
+msgid "internal error -- this option not implemented"
+msgstr "internal error -- pilihan ini tidak terimplementasi"
+
+#: ar.c:802
+#, c-format
+msgid "creating %s"
+msgstr "membuat %s"
+
+#: ar.c:851 ar.c:906 ar.c:1234 objcopy.c:2026
+#, c-format
+msgid "internal stat error on %s"
+msgstr "internal stat error di %s"
+
+#: ar.c:855
+#, c-format
+msgid ""
+"\n"
+"<%s>\n"
+"\n"
+msgstr ""
+"\n"
+"<%s>\n"
+"\n"
+
+#: ar.c:871 ar.c:939
+#, c-format
+msgid "%s is not a valid archive"
+msgstr "%s bukan sebuah archive valid"
+
+#: ar.c:1139
+#, c-format
+msgid "No member named `%s'\n"
+msgstr "Tidak ada anggota bernama `%s'\n"
+
+#: ar.c:1189
+#, c-format
+msgid "no entry %s in archive %s!"
+msgstr "tidak ada masukan %s dalam archive %s!"
+
+#: ar.c:1328
+#, c-format
+msgid "%s: no archive map to update"
+msgstr "%s: tidak ada peta archive untuk update"
+
+#: arsup.c:89
+#, c-format
+msgid "No entry %s in archive.\n"
+msgstr "Tidak ada masukan %s dalam archive.\n"
+
+#: arsup.c:114
+#, c-format
+msgid "Can't open file %s\n"
+msgstr "Tidak dapat membuka berkas %s\n"
+
+#: arsup.c:164
+#, c-format
+msgid "%s: Can't open output archive %s\n"
+msgstr "%s: Tidak dapat membuat keluaran archive %s\n"
+
+#: arsup.c:181
+#, c-format
+msgid "%s: Can't open input archive %s\n"
+msgstr "%s: Tidak dapat membuak masukan archive %s\n"
+
+#: arsup.c:190
+#, c-format
+msgid "%s: file %s is not an archive\n"
+msgstr "%s: berkas %s bukan sebuah archive\n"
+
+#: arsup.c:230
+#, c-format
+msgid "%s: no output archive specified yet\n"
+msgstr "%s: belum ada keluaran archive yang dispesifikasikan\n"
+
+#: arsup.c:250 arsup.c:288 arsup.c:330 arsup.c:350 arsup.c:416
+#, c-format
+msgid "%s: no open output archive\n"
+msgstr "%s: tidak ada keluaran archive\n"
+
+#: arsup.c:261 arsup.c:371 arsup.c:397
+#, c-format
+msgid "%s: can't open file %s\n"
+msgstr "%s: tidak dapat membuka berkas %s\n"
+
+#: arsup.c:315 arsup.c:393 arsup.c:474
+#, c-format
+msgid "%s: can't find module file %s\n"
+msgstr "%s: tidak dapat menemukan berkas module %s\n"
+
+#: arsup.c:425
+#, c-format
+msgid "Current open archive is %s\n"
+msgstr "Open archive sekarang adalah %s\n"
+
+#: arsup.c:449
+#, c-format
+msgid "%s: no open archive\n"
+msgstr "%s: tidak ada open archive\n"
+
+#: bin2c.c:59
+#, c-format
+msgid "Usage: %s < input_file > output_file\n"
+msgstr "Penggunaan: %s < input_file > output_file\n"
+
+#: bin2c.c:60
+#, c-format
+msgid "Prints bytes from stdin in hex format.\n"
+msgstr "Tampilkan bytes dari stdin dalam format hex.\n"
+
+#: binemul.c:38
+#, c-format
+msgid "  No emulation specific options\n"
+msgstr "  Tidak ada pilihan spesifik emulasi\n"
+
+#. Macros for common output.
+#: binemul.h:43
+#, c-format
+msgid " emulation options: \n"
+msgstr " pilihan emulasi: \n"
+
+#: bucomm.c:157
+#, c-format
+msgid "can't set BFD default target to `%s': %s"
+msgstr "tidak dapat menset default target BFD ke `%s': %s"
+
+#: bucomm.c:168
+#, c-format
+msgid "%s: Matching formats:"
+msgstr "%s: Format yang cocok:"
+
+#: bucomm.c:183
+#, c-format
+msgid "Supported targets:"
+msgstr "Target yang didukung:"
+
+#: bucomm.c:185
+#, c-format
+msgid "%s: supported targets:"
+msgstr "%s: target yang didukung:"
+
+#: bucomm.c:202
+#, c-format
+msgid "Supported architectures:"
+msgstr "Arsitektur yang didukung:"
+
+#: bucomm.c:204
+#, c-format
+msgid "%s: supported architectures:"
+msgstr "%s: arsitektur yang didukung:"
+
+#: bucomm.c:398
+#, c-format
+msgid "BFD header file version %s\n"
+msgstr "versi berkas header BFD %s\n"
+
+#: bucomm.c:547
+#, c-format
+msgid "%s: bad number: %s"
+msgstr "%s: nomor buruk: %s"
+
+#: bucomm.c:564 strings.c:422
+#, c-format
+msgid "'%s': No such file"
+msgstr "'%s': Tidak ada berkas seperti itu"
+
+#: bucomm.c:566 strings.c:424
+#, c-format
+msgid "Warning: could not locate '%s'.  reason: %s"
+msgstr "Peringatan: Tidak dapat menemukan '%s'. alasan: %s"
+
+#: bucomm.c:570
+#, c-format
+msgid "Warning: '%s' is not an ordinary file"
+msgstr "Peringatan: '%s' bukan sebuah berkas biasa"
+
+#: coffdump.c:106
+#, c-format
+msgid "#lines %d "
+msgstr "#baris %d "
+
+#: coffdump.c:460 sysdump.c:646
+#, c-format
+msgid "Usage: %s [option(s)] in-file\n"
+msgstr "Penggunaan: %s [pilihan] in-berkas\n"
+
+#: coffdump.c:461
+#, c-format
+msgid " Print a human readable interpretation of a SYSROFF object file\n"
+msgstr " Tampilkan dalam interpretasi yang mudah dipahami dari sebuah berkas objek SYSROFF\n"
+
+#: coffdump.c:462
+#, c-format
+msgid ""
+" The options are:\n"
+"  @<file>                Read options from <file>\n"
+"  -h --help              Display this information\n"
+"  -v --version           Display the program's version\n"
+"\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  @<berkas>              Baca pilihan dari <berkas>\n"
+"  -h --help              Tampilkan informasi ini\n"
+"  -v --version           Tampilkan versi aplikasi\n"
+"\n"
+
+#: coffdump.c:531 srconv.c:1831 sysdump.c:710
+msgid "no input file specified"
+msgstr "tidak ada berkas masukan yang dispesifikasikan"
+
+#: cxxfilt.c:119 nm.c:264 objdump.c:251
+#, c-format
+msgid "Report bugs to %s.\n"
+msgstr "Laporkan bugs ke %s.\n"
+
+#: debug.c:647
+msgid "debug_add_to_current_namespace: no current file"
+msgstr "debug_add_to_current_namespace: tidak ada berkas sekarang"
+
+#: debug.c:726
+msgid "debug_start_source: no debug_set_filename call"
+msgstr "debug_start_source: tidak ada debug_set_filename call"
+
+#: debug.c:782
+msgid "debug_record_function: no debug_set_filename call"
+msgstr "debug_record_function: tidak ada debug_set_filename call"
+
+#: debug.c:834
+msgid "debug_record_parameter: no current function"
+msgstr "debug_record_parameter: tidak ada fungsi sekarang"
+
+#: debug.c:866
+msgid "debug_end_function: no current function"
+msgstr "debug_end_function: tidak ada fungsi sekarang"
+
+#: debug.c:872
+msgid "debug_end_function: some blocks were not closed"
+msgstr "debug_end_function: beberapa blok tidak ditutup"
+
+#: debug.c:900
+msgid "debug_start_block: no current block"
+msgstr "debug_start_block: tidak ada blok sekarang"
+
+#: debug.c:936
+msgid "debug_end_block: no current block"
+msgstr "debug_end_block: tidak ada block sekarang"
+
+#: debug.c:943
+msgid "debug_end_block: attempt to close top level block"
+msgstr "debug_end_block: mencoba menutup tingkat teratas blok"
+
+#: debug.c:966
+msgid "debug_record_line: no current unit"
+msgstr "debug_record_line: tidak ada satuan sekarang"
+
+#. FIXME
+#: debug.c:1019
+msgid "debug_start_common_block: not implemented"
+msgstr "debug_start_common_block: tidak terimplementasi"
+
+#. FIXME
+#: debug.c:1030
+msgid "debug_end_common_block: not implemented"
+msgstr "debug_end_common_block: tidak terimplementasi"
+
+#. FIXME.
+#: debug.c:1114
+msgid "debug_record_label: not implemented"
+msgstr "debug_record_label: tidak terimplementasi"
+
+#: debug.c:1136
+msgid "debug_record_variable: no current file"
+msgstr "debug_record_variabel: tidak ada berkas sekarang"
+
+#: debug.c:1664
+msgid "debug_make_undefined_type: unsupported kind"
+msgstr "debug_make_undefined_type: kind tidak didukung"
+
+#: debug.c:1841
+msgid "debug_name_type: no current file"
+msgstr "debug_name_type: tidak ada berkas sekarang"
+
+#: debug.c:1886
+msgid "debug_tag_type: no current file"
+msgstr "debug_tag_type: tidak ada berkas sekarang"
+
+#: debug.c:1894
+msgid "debug_tag_type: extra tag attempted"
+msgstr "debug_tag_type: ekstra tag dicoba"
+
+#: debug.c:1931
+#, c-format
+msgid "Warning: changing type size from %d to %d\n"
+msgstr "Peringatan: mengubah ukuran tipe dari %d ke %d\n"
+
+#: debug.c:1953
+msgid "debug_find_named_type: no current compilation unit"
+msgstr "debug_find_named_type:: tidak ada satuan kompilasi sekarang"
+
+#: debug.c:2056
+#, c-format
+msgid "debug_get_real_type: circular debug information for %s\n"
+msgstr "debug_get_real_type: circular informasi debug untuk %s\n"
+
+#: debug.c:2483
+msgid "debug_write_type: illegal type encountered"
+msgstr "debug_write_type: tipe tidak legal ditemui"
+
+#: dlltool.c:884 dlltool.c:910 dlltool.c:941
+#, c-format
+msgid "Internal error: Unknown machine type: %d"
+msgstr "Internal error: tipe mesin tidak diketahui: %d"
+
+#: dlltool.c:982
+#, c-format
+msgid "Can't open def file: %s"
+msgstr "Tidak dapat membuka berkas def: %s"
+
+#: dlltool.c:987
+#, c-format
+msgid "Processing def file: %s"
+msgstr "Memproses berkas def: %s"
+
+#: dlltool.c:991
+msgid "Processed def file"
+msgstr "Berkas def telah diproses"
+
+#: dlltool.c:1015
+#, c-format
+msgid "Syntax error in def file %s:%d"
+msgstr "Sintaks error dalam berkas def %s: %d"
+
+#: dlltool.c:1050
+#, c-format
+msgid "%s: Path components stripped from image name, '%s'."
+msgstr "%s: Path komponen stripped dari nama gambar, '%s'."
+
+#: dlltool.c:1068
+#, c-format
+msgid "NAME: %s base: %x"
+msgstr "NAMA: %s dasar: %x"
+
+#: dlltool.c:1071 dlltool.c:1087
+msgid "Can't have LIBRARY and NAME"
+msgstr "Tida dapat memiliki PERPUSTAKAAN dan NAMA"
+
+#: dlltool.c:1084
+#, c-format
+msgid "LIBRARY: %s base: %x"
+msgstr "PERPUSTAKAAN: %s dasar: %x"
+
+#: dlltool.c:1320 resrc.c:293
+#, c-format
+msgid "wait: %s"
+msgstr "tunggu: %s"
+
+#: dlltool.c:1325 dllwrap.c:410 resrc.c:298
+#, c-format
+msgid "subprocess got fatal signal %d"
+msgstr "subproses mendapat sinyal fatal %d"
+
+#: dlltool.c:1331 dllwrap.c:417 resrc.c:305
+#, c-format
+msgid "%s exited with status %d"
+msgstr "%s keluar dengan status %d"
+
+#: dlltool.c:1362
+#, c-format
+msgid "Sucking in info from %s section in %s"
+msgstr "Suckin dalam info dari %s daerah dalam %s"
+
+#: dlltool.c:1487
+#, c-format
+msgid "Excluding symbol: %s"
+msgstr "Mengabaikan simbol: %s"
+
+#: dlltool.c:1576 dlltool.c:1587 nm.c:1001 nm.c:1012
+#, c-format
+msgid "%s: no symbols"
+msgstr "%s: tidak ada simbol"
+
+#. FIXME: we ought to read in and block out the base relocations.
+#: dlltool.c:1613
+#, c-format
+msgid "Done reading %s"
+msgstr "Selesai membaca %s"
+
+#: dlltool.c:1623
+#, c-format
+msgid "Unable to open object file: %s"
+msgstr "Tidak dapat membuka berkas objek: %s"
+
+#: dlltool.c:1626
+#, c-format
+msgid "Scanning object file %s"
+msgstr "Menskan berkas objek %s"
+
+#: dlltool.c:1641
+#, c-format
+msgid "Cannot produce mcore-elf dll from archive file: %s"
+msgstr "Tidak dapat menghasilkan mcore-elf dll dari berkas archive: %s"
+
+#: dlltool.c:1741
+msgid "Adding exports to output file"
+msgstr "Menambahkan ekspor ke berkas keluaran"
+
+#: dlltool.c:1789
+msgid "Added exports to output file"
+msgstr "Menambahkan ekspor ke berkas keluaran"
+
+#: dlltool.c:1930
+#, c-format
+msgid "Generating export file: %s"
+msgstr "Menghasilkan berkas ekspor: %s"
+
+#: dlltool.c:1935
+#, c-format
+msgid "Unable to open temporary assembler file: %s"
+msgstr "Tidak dapat membuka berkas perakit sementara: %s"
+
+#: dlltool.c:1938
+#, c-format
+msgid "Opened temporary file: %s"
+msgstr "Berkas sementara terbuka: %s"
+
+#: dlltool.c:2113
+msgid "failed to read the number of entries from base file"
+msgstr "Gagal untuk membaca jumlah dari masukan dari berkas dasar"
+
+#: dlltool.c:2161
+msgid "Generated exports file"
+msgstr "Menghasilkan berkas ekspor"
+
+#: dlltool.c:2370
+#, c-format
+msgid "bfd_open failed open stub file: %s"
+msgstr "bfd_open gagal membuka berkas stub: %s"
+
+#: dlltool.c:2373
+#, c-format
+msgid "Creating stub file: %s"
+msgstr "Membuat berkas stub: %s"
+
+#: dlltool.c:2837 dlltool.c:2906
+#, c-format
+msgid "failed to open temporary head file: %s"
+msgstr "gagal membuka berkas sementara head: %s"
+
+#: dlltool.c:2979
+#, c-format
+msgid "failed to open temporary tail file: %s"
+msgstr "gagal membuka berkas sementara tail: %s"
+
+#: dlltool.c:3052
+#, c-format
+msgid "Can't open .lib file: %s"
+msgstr "Tidak dapat membuka berkas .lib: %s"
+
+#: dlltool.c:3055
+#, c-format
+msgid "Creating library file: %s"
+msgstr "Membuat berkas perpustakaan: %s"
+
+#: dlltool.c:3146 dlltool.c:3152
+#, c-format
+msgid "cannot delete %s: %s"
+msgstr "tidak dapat menghapus %s: %s"
+
+#: dlltool.c:3157
+msgid "Created lib file"
+msgstr "Membuat berkas lib"
+
+#: dlltool.c:3369 dlltool.c:3391
+#, c-format
+msgid "%s is not a library"
+msgstr "%s bukan sebuah perpustakaan"
+
+#: dlltool.c:3409
+#, c-format
+msgid "Import library `%s' specifies two or more dlls"
+msgstr "Impor perpustakaan `%s' yang dispesifikasikan oleh dua atau lebih dlls"
+
+#: dlltool.c:3420
+#, c-format
+msgid "Unable to determine dll name for `%s' (not an import library?)"
+msgstr "Tidak dapat menentukan nama dll untuk `%s' (bukan sebuah perpustakaan impor?)"
+
+#: dlltool.c:3641
+#, c-format
+msgid "Warning, ignoring duplicate EXPORT %s %d,%d"
+msgstr "Peringatan, mengabaikan duplikasi EXPORT %s %d,%d"
+
+#: dlltool.c:3647
+#, c-format
+msgid "Error, duplicate EXPORT with ordinals: %s"
+msgstr "Error, duplikasi EXPORT dengan ordinals: %s"
+
+#: dlltool.c:3752
+msgid "Processing definitions"
+msgstr "Memproses definisi"
+
+#: dlltool.c:3784
+msgid "Processed definitions"
+msgstr "Definisi telah terproses"
+
+#. xgetext:c-format
+#: dlltool.c:3791 dllwrap.c:471
+#, c-format
+msgid "Usage %s <option(s)> <object-file(s)>\n"
+msgstr "Penggunaan %s <pilihan> <berkas-objek>\n"
+
+#. xgetext:c-format
+#: dlltool.c:3793
+#, c-format
+msgid "   -m --machine <machine>    Create as DLL for <machine>.  [default: %s]\n"
+msgstr "   -m --machine <mesin>      Buat sebagai DLL untuk <mesin>. [baku: %s]\n"
+
+#: dlltool.c:3794
+#, c-format
+msgid "        possible <machine>: arm[_interwork], i386, mcore[-elf]{-le|-be}, ppc, thumb\n"
+msgstr "        <mesin> mungkin: arm[_interwork], i386, mcore[-elf]{-le|-be}, ppc, thumb\n"
+
+#: dlltool.c:3795
+#, c-format
+msgid "   -e --output-exp <outname> Generate an export file.\n"
+msgstr "   -e --output-expt <outname> Hasilkan sebuah berkas ekspor.\n"
+
+#: dlltool.c:3796
+#, c-format
+msgid "   -l --output-lib <outname> Generate an interface library.\n"
+msgstr "   -l --output-lib <outname> Hasilkan sebuah perpustakaan antar-muka.\n"
+
+#: dlltool.c:3797
+#, c-format
+msgid "   -y --output-delaylib <outname> Create a delay-import library.\n"
+msgstr "   -y --output-delaylib <outname> Buat perpustakaan impor-tertunda.\n"
+
+#: dlltool.c:3798
+#, c-format
+msgid "   -a --add-indirect         Add dll indirects to export file.\n"
+msgstr "   -a --add-indirect         Tambahkan dll tidak langsung ke berkas ekspor.\n"
+
+#: dlltool.c:3799
+#, c-format
+msgid "   -D --dllname <name>       Name of input dll to put into interface lib.\n"
+msgstr "   -D --dllname <nama>       Nama dari masukan dll ke put dalam antar-muka lib.\n"
+
+#: dlltool.c:3800
+#, c-format
+msgid "   -d --input-def <deffile>  Name of .def file to be read in.\n"
+msgstr "   -d --input-def <deffile>  Nama dari berkas .def yang akan dibaca.\n"
+
+#: dlltool.c:3801
+#, c-format
+msgid "   -z --output-def <deffile> Name of .def file to be created.\n"
+msgstr "   -z --output-def <deffile> Nama dari berkas .def yang akan dibuat.\n"
+
+#: dlltool.c:3802
+#, c-format
+msgid "      --export-all-symbols   Export all symbols to .def\n"
+msgstr "      --export-all-symbols   Ekspor seluruh simbol ke .def\n"
+
+#: dlltool.c:3803
+#, c-format
+msgid "      --no-export-all-symbols  Only export listed symbols\n"
+msgstr "      --no-export-all-symbols  Hanya ekspor simbol yang terdaftar\n"
+
+#: dlltool.c:3804
+#, c-format
+msgid "      --exclude-symbols <list> Don't export <list>\n"
+msgstr "      --exclude-symbols <list> Jangan ekspor <daftar>\n"
+
+#: dlltool.c:3805
+#, c-format
+msgid "      --no-default-excludes  Clear default exclude symbols\n"
+msgstr "      --no-default-excludes  Hapus default exclude symbols\n"
+
+#: dlltool.c:3806
+#, c-format
+msgid "   -b --base-file <basefile> Read linker generated base file.\n"
+msgstr "   -b --base-file <basefile> Baca berkas dasar yang dihasilkan linker.\n"
+
+#: dlltool.c:3807
+#, c-format
+msgid "   -x --no-idata4            Don't generate idata$4 section.\n"
+msgstr "   -x --no-idata4            Jangan hasilkan daerah idata$4.\n"
+
+#: dlltool.c:3808
+#, c-format
+msgid "   -c --no-idata5            Don't generate idata$5 section.\n"
+msgstr "   -c --no-idata5             Jangan hasilkan daerah idata$5.\n"
+
+#: dlltool.c:3809
+#, c-format
+msgid "      --use-nul-prefixed-import-tables Use zero prefixed idata$4 and idata$5.\n"
+msgstr "      --use-nul-prefixed-import-tables Gunakan awalan nol idata$4 dan idata$5.\n"
+
+#: dlltool.c:3810
+#, c-format
+msgid "   -U --add-underscore       Add underscores to all symbols in interface library.\n"
+msgstr "   -U --add-underscore       Tambahkan garis-bawah ke semua simbol dalam antar-muka perpustakaan.\n"
+
+#: dlltool.c:3811
+#, c-format
+msgid "      --add-stdcall-underscore Add underscores to stdcall symbols in interface library.\n"
+msgstr "      --add-stdcall-underscore Tambahkan garis-bawah ke stdcall simbol dalam antar-muka perpustakaan.\n"
+
+#: dlltool.c:3812
+#, c-format
+msgid "   -k --kill-at              Kill @<n> from exported names.\n"
+msgstr "   -k --kill-at              Matikan @<n> dari nama terekspor.\n"
+
+#: dlltool.c:3813
+#, c-format
+msgid "   -A --add-stdcall-alias    Add aliases without @<n>.\n"
+msgstr "   -A --add-stdcall-alias    Tambahkan alias tanpa @<n>.\n"
+
+#: dlltool.c:3814
+#, c-format
+msgid "   -p --ext-prefix-alias <prefix> Add aliases with <prefix>.\n"
+msgstr "   -p --ext-prefix-alias <prefix> Tambahkan alias dengan <prefix>.\n"
+
+#: dlltool.c:3815
+#, c-format
+msgid "   -S --as <name>            Use <name> for assembler.\n"
+msgstr "   -S --as <nama>            Gunakan <nama> untuk perakit.\n"
+
+#: dlltool.c:3816
+#, c-format
+msgid "   -f --as-flags <flags>     Pass <flags> to the assembler.\n"
+msgstr "   -f --as-flags <flags>     Lewatkan <flags> ke perakit.\n"
+
+#: dlltool.c:3817
+#, c-format
+msgid "   -C --compat-implib        Create backward compatible import library.\n"
+msgstr "   -C --compat-implib        Buat kompabilitaas kebelakang impor perpustakaan.\n"
+
+#: dlltool.c:3818
+#, c-format
+msgid "   -n --no-delete            Keep temp files (repeat for extra preservation).\n"
+msgstr "   -n --no-delete            Simpan berkas sementara (ulang untuk ekstra preservation).\n"
+
+#: dlltool.c:3819
+#, c-format
+msgid "   -t --temp-prefix <prefix> Use <prefix> to construct temp file names.\n"
+msgstr "   -t --temp-prefix <prefix> Gunakan <prefix untuk mengkonstruksi nama berkas sementara.\n"
+
+#: dlltool.c:3820
+#, c-format
+msgid "   -I --identify <implib>    Report the name of the DLL associated with <implib>.\n"
+msgstr "   -I --identify <implib>    Laporakan nama dari DLL yang berasosiasi dengan <implib>.\n"
+
+#: dlltool.c:3821
+#, c-format
+msgid "      --identify-strict      Causes --identify to report error when multiple DLLs.\n"
+msgstr "      --identify-strict      Menyebabkan --identify untuk melaporkan kesalahan ketika ada DLL ganda.\n"
+
+#: dlltool.c:3822
+#, c-format
+msgid "   -v --verbose              Be verbose.\n"
+msgstr "   -v --verbose              Verbose.\n"
+
+#: dlltool.c:3823
+#, c-format
+msgid "   -V --version              Display the program version.\n"
+msgstr "   -V --version              Tampilkan versi dari aplikasi.\n"
+
+#: dlltool.c:3824
+#, c-format
+msgid "   -h --help                 Display this information.\n"
+msgstr "   -h --help                 Tampilkan informasi ini.\n"
+
+#: dlltool.c:3825
+#, c-format
+msgid "   @<file>                   Read options from <file>.\n"
+msgstr "   @<berkas>                 Baca pilihan dari <berkas>.\n"
+
+#: dlltool.c:3827
+#, c-format
+msgid "   -M --mcore-elf <outname>  Process mcore-elf object files into <outname>.\n"
+msgstr "   -M --mcore-elf <outname>  Proses mcore-elf berkas objek kedalam <outname>.\n"
+
+#: dlltool.c:3828
+#, c-format
+msgid "   -L --linker <name>        Use <name> as the linker.\n"
+msgstr "   -L --linker <nama>        Gunakan <nama> sebagai linker.\n"
+
+#: dlltool.c:3829
+#, c-format
+msgid "   -F --linker-flags <flags> Pass <flags> to the linker.\n"
+msgstr "   -F --linker-flags <flags> Lewatkan <flags> ke linker.\n"
+
+#: dlltool.c:3966
+#, c-format
+msgid "Path components stripped from dllname, '%s'."
+msgstr "Jalur komponen dihapus dari dllname, '%s'."
+
+#: dlltool.c:4014
+#, c-format
+msgid "Unable to open base-file: %s"
+msgstr "Tidak dapat membuka berkas-dasar: %s"
+
+#: dlltool.c:4049
+#, c-format
+msgid "Machine '%s' not supported"
+msgstr "Mesin '%s' tidak didukung"
+
+#: dlltool.c:4118
+#, c-format
+msgid "Warning, machine type (%d) not supported for delayimport."
+msgstr "Peringatan, tipe mesin (%d) tidak didukung untuk delayimport."
+
+#: dlltool.c:4186 dllwrap.c:201
+#, c-format
+msgid "Tried file: %s"
+msgstr "Berkas yang dicoba: %s"
+
+#: dlltool.c:4193 dllwrap.c:208
+#, c-format
+msgid "Using file: %s"
+msgstr "Menggunakan berkas: %s"
+
+#: dllwrap.c:291
+#, c-format
+msgid "Keeping temporary base file %s"
+msgstr "Menjaga berkas dasaar sementara %s"
+
+#: dllwrap.c:293
+#, c-format
+msgid "Deleting temporary base file %s"
+msgstr "Menghapus berkas dasar sementara %s"
+
+#: dllwrap.c:307
+#, c-format
+msgid "Keeping temporary exp file %s"
+msgstr "Menjaga berkas eks sementara %s"
+
+#: dllwrap.c:309
+#, c-format
+msgid "Deleting temporary exp file %s"
+msgstr "Menghapus berkas eksp sementara %s"
+
+#: dllwrap.c:322
+#, c-format
+msgid "Keeping temporary def file %s"
+msgstr "Menjaga berkas def sementara %s"
+
+#: dllwrap.c:324
+#, c-format
+msgid "Deleting temporary def file %s"
+msgstr "Menghapus berkas de sementara %s"
+
+#: dllwrap.c:472
+#, c-format
+msgid "  Generic options:\n"
+msgstr "  Pilihan umum:\n"
+
+#: dllwrap.c:473
+#, c-format
+msgid "   @<file>                Read options from <file>\n"
+msgstr "   @<berkas>              Baca pilihan dari <berkas>\n"
+
+#: dllwrap.c:474
+#, c-format
+msgid "   --quiet, -q            Work quietly\n"
+msgstr "   --quiet, -q            Kerja secara tenang\n"
+
+#: dllwrap.c:475
+#, c-format
+msgid "   --verbose, -v          Verbose\n"
+msgstr "   --verbose, -v          Verbose\n"
+
+#: dllwrap.c:476
+#, c-format
+msgid "   --version              Print dllwrap version\n"
+msgstr "   --version              Tampilkan versi dllwrap\n"
+
+#: dllwrap.c:477
+#, c-format
+msgid "   --implib <outname>     Synonym for --output-lib\n"
+msgstr "   --implib <outname>     Sinonim untuk --output-lib\n"
+
+#: dllwrap.c:478
+#, c-format
+msgid "  Options for %s:\n"
+msgstr "  Pilihan untuk %s:\n"
+
+#: dllwrap.c:479
+#, c-format
+msgid "   --driver-name <driver> Defaults to \"gcc\"\n"
+msgstr "   --driver-name <driver> Baku ke \"gcc\"\n"
+
+#: dllwrap.c:480
+#, c-format
+msgid "   --driver-flags <flags> Override default ld flags\n"
+msgstr "   --driver-flags <flags> Override baku Id flags\n"
+
+#: dllwrap.c:481
+#, c-format
+msgid "   --dlltool-name <dlltool> Defaults to \"dlltool\"\n"
+msgstr "   --dlltool-name <dlltool> Baku ku \"dlltool\"\n"
+
+#: dllwrap.c:482
+#, c-format
+msgid "   --entry <entry>        Specify alternate DLL entry point\n"
+msgstr "   --entry <masukan>      Spesifikasikan alternatif titik masukan DLL\n"
+
+#: dllwrap.c:483
+#, c-format
+msgid "   --image-base <base>    Specify image base address\n"
+msgstr "   --image-base <base>    Spesifikasikan alamat dasar image\n"
+
+#: dllwrap.c:484
+#, c-format
+msgid "   --target <machine>     i386-cygwin32 or i386-mingw32\n"
+msgstr "   --target <mesin>       i386-cygwin32 atau i386-mingw32\n"
+
+#: dllwrap.c:485
+#, c-format
+msgid "   --dry-run              Show what needs to be run\n"
+msgstr "   --dry-run              Tampilkan apa yang dibutuhkan untuk berjalan\n"
+
+#: dllwrap.c:486
+#, c-format
+msgid "   --mno-cygwin           Create Mingw DLL\n"
+msgstr "   --mno-cygwin           Buat Mingw DLL\n"
+
+#: dllwrap.c:487
+#, c-format
+msgid "  Options passed to DLLTOOL:\n"
+msgstr "  Pilihan dilewatkan ke DLLTOOL:\n"
+
+#: dllwrap.c:488
+#, c-format
+msgid "   --machine <machine>\n"
+msgstr "   --machine <mesin>\n"
+
+#: dllwrap.c:489
+#, c-format
+msgid "   --output-exp <outname> Generate export file.\n"
+msgstr "   --output-exp <outname> Hasilkan berkas ekspor.\n"
+
+#: dllwrap.c:490
+#, c-format
+msgid "   --output-lib <outname> Generate input library.\n"
+msgstr "   --output-lib <outname> Hasilkan perpustakaan masukan.\n"
+
+#: dllwrap.c:491
+#, c-format
+msgid "   --add-indirect         Add dll indirects to export file.\n"
+msgstr "   --add-indirect         Tambahkan dll tidak langsung ke berkas ekspor.\n"
+
+#: dllwrap.c:492
+#, c-format
+msgid "   --dllname <name>       Name of input dll to put into output lib.\n"
+msgstr "   --dllname <nama>       Nama dari masukan dll ke put dalam lib keluaran.\n"
+
+#: dllwrap.c:493
+#, c-format
+msgid "   --def <deffile>        Name input .def file\n"
+msgstr "   --def <deffile>        Nama berkas masukan .def\n"
+
+#: dllwrap.c:494
+#, c-format
+msgid "   --output-def <deffile> Name output .def file\n"
+msgstr "   --output-def <deffile> Nama berkas keluaran .def\n"
+
+#: dllwrap.c:495
+#, c-format
+msgid "   --export-all-symbols     Export all symbols to .def\n"
+msgstr "   --export-all-symbols     Ekspor seluruh simbol ke .def\n"
+
+#: dllwrap.c:496
+#, c-format
+msgid "   --no-export-all-symbols  Only export .drectve symbols\n"
+msgstr "   --no-export-all-symbols  Hanya ekspor .drectve simbols\n"
+
+#: dllwrap.c:497
+#, c-format
+msgid "   --exclude-symbols <list> Exclude <list> from .def\n"
+msgstr "   --exclude-symbols <list> Exclude <list> dari .def\n"
+
+#: dllwrap.c:498
+#, c-format
+msgid "   --no-default-excludes    Zap default exclude symbols\n"
+msgstr "   --no-default-excludes    Zap default exclude simbol\n"
+
+#: dllwrap.c:499
+#, c-format
+msgid "   --base-file <basefile> Read linker generated base file\n"
+msgstr "   --base-file <basefile> Baca linker yang dihasilkan berkas dasar\n"
+
+#: dllwrap.c:500
+#, c-format
+msgid "   --no-idata4           Don't generate idata$4 section\n"
+msgstr "   --no-idata4           Jangan hasilkan daerah idata$4\n"
+
+#: dllwrap.c:501
+#, c-format
+msgid "   --no-idata5           Don't generate idata$5 section\n"
+msgstr "   --no-idata5           Jangan hasilkan daerah idata$4\n"
+
+#: dllwrap.c:502
+#, c-format
+msgid "   -U                     Add underscores to .lib\n"
+msgstr "   -U                     Tambahkan garis-bawah ke .lib\n"
+
+#: dllwrap.c:503
+#, c-format
+msgid "   -k                     Kill @<n> from exported names\n"
+msgstr "   -k                     Non-aktifkan @<n> dari nama terekspor\n"
+
+#: dllwrap.c:504
+#, c-format
+msgid "   --add-stdcall-alias    Add aliases without @<n>\n"
+msgstr "   --add-stdcall-alias    Tambahkan alias tanpa @<n>\n"
+
+#: dllwrap.c:505
+#, c-format
+msgid "   --as <name>            Use <name> for assembler\n"
+msgstr "   --as <nama>            Gunakan <nama> untuk perakit\n"
+
+#: dllwrap.c:506
+#, c-format
+msgid "   --nodelete             Keep temp files.\n"
+msgstr "   --nodelete             Simpan berkas sementara.\n"
+
+#: dllwrap.c:507
+#, c-format
+msgid "  Rest are passed unmodified to the language driver\n"
+msgstr "  Sisanya dilewatkan tidak termodifikasi ke driver bahasa\n"
+
+#: dllwrap.c:781
+msgid "Must provide at least one of -o or --dllname options"
+msgstr "Harus menyediakan paling tidak satu dari pilihan -o atau --dllname"
+
+#: dllwrap.c:810
+msgid ""
+"no export definition file provided.\n"
+"Creating one, but that may not be what you want"
+msgstr ""
+"tidak ada berkas definisi ekspor yang diberikan.\n"
+"Membuat satu, tetapi itu mungkin bukan apa yang anda inginkan"
+
+#: dllwrap.c:969
+#, c-format
+msgid "DLLTOOL name    : %s\n"
+msgstr "nama DLLTOOL    : %s\n"
+
+#: dllwrap.c:970
+#, c-format
+msgid "DLLTOOL options : %s\n"
+msgstr "pilihan DLLTOOL    : %s\n"
+
+#: dllwrap.c:971
+#, c-format
+msgid "DRIVER name     : %s\n"
+msgstr "nama DRIVER     : %s\n"
+
+#: dllwrap.c:972
+#, c-format
+msgid "DRIVER options  : %s\n"
+msgstr "pilihan DRIVER     : %s\n"
+
+#: dwarf.c:101 dwarf.c:145 readelf.c:355 readelf.c:520
+#, c-format
+msgid "Unhandled data length: %d\n"
+msgstr "Panjang data tidak tertangani: %d\n"
+
+#: dwarf.c:294 dwarf.c:2625
+msgid "badly formed extended line op encountered!\n"
+msgstr "baris eksten terbentuk buruk op ditemui!\n"
+
+#: dwarf.c:301
+#, c-format
+msgid "  Extended opcode %d: "
+msgstr "  Eksten opkode %d: "
+
+#: dwarf.c:306
+#, c-format
+msgid ""
+"End of Sequence\n"
+"\n"
+msgstr ""
+"Akhir dari Urutan\n"
+"\n"
+
+#: dwarf.c:312
+#, c-format
+msgid "set Address to 0x%lx\n"
+msgstr "set Alamat ke 0x%lx\n"
+
+#: dwarf.c:317
+#, c-format
+msgid "  define new File Table entry\n"
+msgstr "  definisikan masukan Berkas Tabel baru\n"
+
+#: dwarf.c:318 dwarf.c:2240
+#, c-format
+msgid "  Entry\tDir\tTime\tSize\tName\n"
+msgstr "  Masukan\tDir\tWaktu\tUkuran\tNama\n"
+
+#: dwarf.c:320
+#, c-format
+msgid "   %d\t"
+msgstr "   %d\t"
+
+#: dwarf.c:323 dwarf.c:325 dwarf.c:327 dwarf.c:2252 dwarf.c:2254 dwarf.c:2256
+#, c-format
+msgid "%lu\t"
+msgstr "%lu\t"
+
+#: dwarf.c:328
+#, c-format
+msgid ""
+"%s\n"
+"\n"
+msgstr ""
+"%s\n"
+"\n"
+
+#: dwarf.c:332
+#, c-format
+msgid "set Discriminator to %lu\n"
+msgstr "set Pembeda ke %lu\n"
+
+#. The test against DW_LNW_hi_user is redundant due to
+#. the limited range of the unsigned char data type used
+#. for op_code.
+#. && op_code <= DW_LNE_hi_user
+#: dwarf.c:374
+#, c-format
+msgid "user defined: length %d\n"
+msgstr "terdefinisi oleh pengguna: panjang %d\n"
+
+#: dwarf.c:376 dwarf.c:2656
+#, c-format
+msgid "UNKNOWN: length %d\n"
+msgstr "TIDAK DIKETAHUI: panjang %d\n"
+
+#: dwarf.c:389
+msgid "<no .debug_str section>"
+msgstr "<tidak ada daerah .debug_str>"
+
+#: dwarf.c:395
+#, c-format
+msgid "DW_FORM_strp offset too big: %lx\n"
+msgstr "DW_FORM_strp ofset terlalu besar: %lx\n"
+
+#: dwarf.c:396
+msgid "<offset is too big>"
+msgstr "<ofset terlalu besar>"
+
+#: dwarf.c:629
+#, c-format
+msgid "Unknown TAG value: %lx"
+msgstr "Nilai TAG tidak diketahui: %lx"
+
+#: dwarf.c:665
+#, c-format
+msgid "Unknown FORM value: %lx"
+msgstr "Nilai FORM tidak diketahui: %lx"
+
+#: dwarf.c:674
+#, c-format
+msgid " %lu byte block: "
+msgstr " %lu byte blok: "
+
+#: dwarf.c:1092
+#, c-format
+msgid "(User defined location op)"
+msgstr "(Lokasi definisi oleh pengguna op)"
+
+#: dwarf.c:1094
+#, c-format
+msgid "(Unknown location op)"
+msgstr "(Lokasi op tidak diketahui)"
+
+#: dwarf.c:1142
+msgid "Internal error: DWARF version is not 2 or 3.\n"
+msgstr "Internal error: versi DWARF bukan 2 atau 3.\n"
+
+#: dwarf.c:1241
+msgid "DW_FORM_data8 is unsupported when sizeof (unsigned long) != 8\n"
+msgstr "DW_FORM_data8 tidak didukung ketika sizeof (unsigned long) != 8\n"
+
+#: dwarf.c:1290
+#, c-format
+msgid " (indirect string, offset: 0x%lx): %s"
+msgstr " (indirect string, ofset: 0x%lx): %s"
+
+#: dwarf.c:1299
+#, c-format
+msgid "Unrecognized form: %lu\n"
+msgstr "Bentuk tidak dikenali: %lu\n"
+
+#: dwarf.c:1383
+#, c-format
+msgid "(not inlined)"
+msgstr "(tidak inline)"
+
+#: dwarf.c:1386
+#, c-format
+msgid "(inlined)"
+msgstr "(inline)"
+
+#: dwarf.c:1389
+#, c-format
+msgid "(declared as inline but ignored)"
+msgstr "(terdeklarasi sebagai inline tetapi diabaikan)"
+
+#: dwarf.c:1392
+#, c-format
+msgid "(declared as inline and inlined)"
+msgstr "(terdeklarasi sebagai inline dan diinline)"
+
+#: dwarf.c:1395
+#, c-format
+msgid "  (Unknown inline attribute value: %lx)"
+msgstr "  (Nilai atribut inline tidak diketahui: %lx)"
+
+#: dwarf.c:1556
+#, c-format
+msgid "(location list)"
+msgstr "(daftar lokasi)"
+
+#: dwarf.c:1575 dwarf.c:3257
+#, c-format
+msgid " [without DW_AT_frame_base]"
+msgstr " [tanpa DW_AT_frame_base]"
+
+#: dwarf.c:1587
+#, c-format
+msgid "Offset %lx used as value for DW_AT_import attribute of DIE at offset %lx is too big.\n"
+msgstr "Ofset %lx yang digunakan sebagai nilai untuk DW_AT_import atribut dari DIE di ofset %lx terlalu besar.\n"
+
+#: dwarf.c:1761
+#, c-format
+msgid "Unknown AT value: %lx"
+msgstr "Nilai AT tidak diketahui: %lx"
+
+#: dwarf.c:1828
+#, c-format
+msgid "Reserved length value (%lx) found in section %s\n"
+msgstr "Nilai panjang terpesan (%lx) ditemukan di daerah %s\n"
+
+#: dwarf.c:1839
+#, c-format
+msgid "Corrupt unit length (%lx) found in section %s\n"
+msgstr "Panjang satuan terkorupsi (%lx) ditemukan di daerah %s\n"
+
+#: dwarf.c:1846
+#, c-format
+msgid "No comp units in %s section ?"
+msgstr "Tidak ada satuan comp dalam daerah %s?"
+
+#: dwarf.c:1855
+#, c-format
+msgid "Not enough memory for a debug info array of %u entries"
+msgstr "Tidak cukup memori untuk informasi debug dari masukan %u"
+
+#: dwarf.c:1863 dwarf.c:2858 dwarf.c:2952 dwarf.c:3026 dwarf.c:3143
+#: dwarf.c:3292 dwarf.c:3350 dwarf.c:3546
+#, c-format
+msgid ""
+"Contents of the %s section:\n"
+"\n"
+msgstr ""
+"Isi dari daerah %s:\n"
+"\n"
+
+#: dwarf.c:1871
+#, c-format
+msgid "Unable to locate %s section!\n"
+msgstr "Tidak dapat mengalokasikan daerah %s!\n"
+
+#: dwarf.c:1934
+#, c-format
+msgid "  Compilation Unit @ offset 0x%lx:\n"
+msgstr "  Kompilasi dari Unit @ ofset 0x%lx:\n"
+
+#: dwarf.c:1935
+#, c-format
+msgid "   Length:        0x%lx (%s)\n"
+msgstr "   Panjang:       0x%lx (%s)\n"
+
+#: dwarf.c:1937
+#, c-format
+msgid "   Version:       %d\n"
+msgstr "   Versi:         %d\n"
+
+#: dwarf.c:1938
+#, c-format
+msgid "   Abbrev Offset: %ld\n"
+msgstr "   Ofset Kependekan: %ld\n"
+
+#: dwarf.c:1939
+#, c-format
+msgid "   Pointer Size:  %d\n"
+msgstr "   Ukuran Pointer: %d\n"
+
+#: dwarf.c:1945
+#, c-format
+msgid "Debug info is corrupted, length of CU at %lx extends beyond end of section (length = %lx)\n"
+msgstr "Informasi debug terkorupsi, panjang dari CU di %lx eksten diluar akhir dari daerah (panjang = %lx)\n"
+
+#: dwarf.c:1954
+#, c-format
+msgid "CU at offset %lx contains corrupt or unsupported version number: %d.\n"
+msgstr "CU di ofset %lx berisi nomor versi yang terkorupsi atau tidak didukung:  %d.\n"
+
+#: dwarf.c:1964
+#, c-format
+msgid "Debug info is corrupted, abbrev offset (%lx) is larger than abbrev section size (%lx)\n"
+msgstr "Informasi debug terkorupsi, ofset kependekan (%lx) lebih besar  dari daerah kependekan ukuran (%lx)\n"
+
+#: dwarf.c:1998
+#, c-format
+msgid "Bogus end-of-siblings marker detected at offset %lx in .debug_info section\n"
+msgstr "Palsu penanda akhir-dari-siblings terdeteksi di ofset %lx dalam daerah .debug_info\n"
+
+#: dwarf.c:2002
+msgid "Further warnings about bogus end-of-sibling markers suppressed\n"
+msgstr "Tidak ada peringatan lebih lanjut mengenai penanda palsu akhir-dari-sibling ditekan\n"
+
+#: dwarf.c:2009
+#, c-format
+msgid " <%d><%lx>: Abbrev Number: %lu"
+msgstr " <%d><%lx>: Nomor Kependekan: %lu"
+
+#: dwarf.c:2026
+#, c-format
+msgid "DIE at offset %lx refers to abbreviation number %lu which does not exist\n"
+msgstr "DIE di ofset %lx mereferensikan nomor kependekan %lu dimana itu tidak ada\n"
+
+#: dwarf.c:2032
+#, c-format
+msgid " (%s)\n"
+msgstr " (%s)\n"
+
+#: dwarf.c:2123
+#, c-format
+msgid ""
+"Raw dump of debug contents of section %s:\n"
+"\n"
+msgstr ""
+"Isi mentah dari isi debug dari daerah %s:\n"
+"\n"
+
+#: dwarf.c:2161
+#, c-format
+msgid "The information in section %s appears to be corrupt - the section is too small\n"
+msgstr "Informasi dalam daerah %s kelihatannya telah terkorupsi - daerah terlalu kecil\n"
+
+#: dwarf.c:2171 dwarf.c:2459
+msgid "Only DWARF version 2 and 3 line info is currently supported.\n"
+msgstr "Hanya DWARF versi 2 dan 3 baris info yang saat ini didukung.\n"
+
+#: dwarf.c:2192
+#, c-format
+msgid "  Offset:                      0x%lx\n"
+msgstr "  Ofset:                       0x%lx\n"
+
+#: dwarf.c:2193
+#, c-format
+msgid "  Length:                      %ld\n"
+msgstr "  Panjang:                     %ld\n"
+
+#: dwarf.c:2194
+#, c-format
+msgid "  DWARF Version:               %d\n"
+msgstr "  Versi DWARF:                 %d\n"
+
+#: dwarf.c:2195
+#, c-format
+msgid "  Prologue Length:             %d\n"
+msgstr "  Panjang Prologue:            %d\n"
+
+#: dwarf.c:2196
+#, c-format
+msgid "  Minimum Instruction Length:  %d\n"
+msgstr "  Panjang Instruksi Minimal:   %d\n"
+
+#: dwarf.c:2197
+#, c-format
+msgid "  Initial value of 'is_stmt':  %d\n"
+msgstr "  Nilai inisial dari 'is_stmt': %d\n"
+
+#: dwarf.c:2198
+#, c-format
+msgid "  Line Base:                   %d\n"
+msgstr "  Dasar Baris:                 %d\n"
+
+#: dwarf.c:2199
+#, c-format
+msgid "  Line Range:                  %d\n"
+msgstr "  Jangkauan Baris:             %d\n"
+
+#: dwarf.c:2200
+#, c-format
+msgid "  Opcode Base:                 %d\n"
+msgstr "  Dasar Opkode:                %d\n"
+
+#: dwarf.c:2209
+#, c-format
+msgid ""
+"\n"
+" Opcodes:\n"
+msgstr ""
+"\n"
+" Opkode:\n"
+
+#: dwarf.c:2212
+#, c-format
+msgid "  Opcode %d has %d args\n"
+msgstr "  Opkode %d memiliki %d args\n"
+
+#: dwarf.c:2218
+#, c-format
+msgid ""
+"\n"
+" The Directory Table is empty.\n"
+msgstr ""
+"\n"
+" Tabel Direktori kosong.\n"
+
+#: dwarf.c:2221
+#, c-format
+msgid ""
+"\n"
+" The Directory Table:\n"
+msgstr ""
+"\n"
+" Tabel Direktori:\n"
+
+#: dwarf.c:2225
+#, c-format
+msgid "  %s\n"
+msgstr "  %s\n"
+
+#: dwarf.c:2236
+#, c-format
+msgid ""
+"\n"
+" The File Name Table is empty.\n"
+msgstr ""
+"\n"
+" Tabel Nama Berkas kosong.\n"
+
+#: dwarf.c:2239
+#, c-format
+msgid ""
+"\n"
+" The File Name Table:\n"
+msgstr ""
+"\n"
+" Tabel Nama Berkas:\n"
+
+#: dwarf.c:2247
+#, c-format
+msgid "  %d\t"
+msgstr "  %d\t"
+
+#: dwarf.c:2258
+#, c-format
+msgid "%s\n"
+msgstr "%s\n"
+
+#. Now display the statements.
+#: dwarf.c:2266
+#, c-format
+msgid ""
+"\n"
+" Line Number Statements:\n"
+msgstr ""
+"\n"
+" Pernyataan Nomor Baris:\n"
+
+#: dwarf.c:2282
+#, c-format
+msgid "  Special opcode %d: advance Address by %lu to 0x%lx"
+msgstr "  Opkode spesial %d: advance Alamat dengan %lu ke 0x%lx"
+
+#: dwarf.c:2286
+#, c-format
+msgid " and Line by %d to %d\n"
+msgstr " dan Baris dengan %d ke %d\n"
+
+#: dwarf.c:2296
+#, c-format
+msgid "  Copy\n"
+msgstr "  Salin\n"
+
+#: dwarf.c:2304
+#, c-format
+msgid "  Advance PC by %lu to 0x%lx\n"
+msgstr "  Lanjut PC dengan %lu ke 0x%lx\n"
+
+#: dwarf.c:2312
+#, c-format
+msgid "  Advance Line by %d to %d\n"
+msgstr "  Lanjut Baris dengan %d ke %d\n"
+
+#: dwarf.c:2319
+#, c-format
+msgid "  Set File Name to entry %d in the File Name Table\n"
+msgstr "  Set Nama Berkas ke masukan %d dalam Tabel Nama Berkas\n"
+
+#: dwarf.c:2327
+#, c-format
+msgid "  Set column to %lu\n"
+msgstr "  Set kolom ke %lu\n"
+
+#: dwarf.c:2334
+#, c-format
+msgid "  Set is_stmt to %d\n"
+msgstr "  Set is_stmt ke %d\n"
+
+#: dwarf.c:2339
+#, c-format
+msgid "  Set basic block\n"
+msgstr "  Set basik blok\n"
+
+#: dwarf.c:2347
+#, c-format
+msgid "  Advance PC by constant %lu to 0x%lx\n"
+msgstr "  Lanjut PC dengan konstan %lu ke 0x%lx\n"
+
+#: dwarf.c:2355
+#, c-format
+msgid "  Advance PC by fixed size amount %lu to 0x%lx\n"
+msgstr "  Lanjut PC dengan jumlah tetap %lu ke 0x%lx\n"
+
+#: dwarf.c:2360
+#, c-format
+msgid "  Set prologue_end to true\n"
+msgstr "  Set prologue_end ke true\n"
+
+#: dwarf.c:2364
+#, c-format
+msgid "  Set epilogue_begin to true\n"
+msgstr "  Set epilogue_begin ke true\n"
+
+#: dwarf.c:2370 dwarf.c:2734
+#, c-format
+msgid "  Set ISA to %lu\n"
+msgstr "  Set ISA ke %lu\n"
+
+#: dwarf.c:2374 dwarf.c:2738
+#, c-format
+msgid "  Unknown opcode %d with operands: "
+msgstr "  Opkode %d tidak dikenal dengan operan: "
+
+#: dwarf.c:2407
+#, c-format
+msgid ""
+"Decoded dump of debug contents of section %s:\n"
+"\n"
+msgstr ""
+"Dump terdekode dari isi debug dari daerah %s:\n"
+"\n"
+
+#: dwarf.c:2449
+msgid "The line info appears to be corrupt - the section is too small\n"
+msgstr "Baris infor sepertinya terkorupsi - daerah terlalu kecil\n"
+
+#: dwarf.c:2568
+#, c-format
+msgid "CU: %s:\n"
+msgstr "CU: %s:\n"
+
+#: dwarf.c:2569 dwarf.c:2582
+#, c-format
+msgid "File name                            Line number    Starting address\n"
+msgstr "Nama Berkas                          Nomor Baris    Awal alamat\n"
+
+#: dwarf.c:2575
+#, c-format
+msgid "CU: %s/%s:\n"
+msgstr "CU: %s/%s:\n"
+
+#: dwarf.c:2580 dwarf.c:2652
+#, c-format
+msgid "%s:\n"
+msgstr "%s:\n"
+
+#. If directory index is 0, that means current directory.
+#: dwarf.c:2685
+#, c-format
+msgid ""
+"\n"
+"./%s:[++]\n"
+msgstr ""
+"\n"
+"./%s:[++]\n"
+
+#. The directory index starts counting at 1.
+#: dwarf.c:2691
+#, c-format
+msgid ""
+"\n"
+"%s/%s:\n"
+msgstr ""
+"\n"
+"%s/%s:\n"
+
+#: dwarf.c:2776
+#, c-format
+msgid "%-35s  %11d  %#18lx\n"
+msgstr "%-35s %11d  %#18lx\n"
+
+#: dwarf.c:2781
+#, c-format
+msgid "%s  %11d  %#18lx\n"
+msgstr "%s %11d  %#18lx\n"
+
+#: dwarf.c:2811 dwarf.c:3088 dwarf.c:3510
+#, c-format
+msgid "Unable to load/parse the .debug_info section, so cannot interpret the %s section.\n"
+msgstr "Tidak dapat meload/parse daerah .debug_info, jadi tidak dapat meninterpretasikan daerah %s.\n"
+
+#: dwarf.c:2892 dwarf.c:3395
+#, c-format
+msgid ".debug_info offset of 0x%lx in %s section does not point to a CU header.\n"
+msgstr ".debug_info ofset dari 0x%lx dalam daerah %s tidak menunjuk ke header CU.\n"
+
+#: dwarf.c:2906
+msgid "Only DWARF 2 and 3 pubnames are currently supported\n"
+msgstr "Hanya DWARF 2 dan 3 pubnames yang saat ini didukung\n"
+
+#: dwarf.c:2913
+#, c-format
+msgid "  Length:                              %ld\n"
+msgstr "  Panjang:                             %ld\n"
+
+#: dwarf.c:2915
+#, c-format
+msgid "  Version:                             %d\n"
+msgstr "  Versi:                               %d\n"
+
+#: dwarf.c:2917
+#, c-format
+msgid "  Offset into .debug_info section:     0x%lx\n"
+msgstr "  Ofset dalam daerah .debug_info:      0x%lx\n"
+
+#: dwarf.c:2919
+#, c-format
+msgid "  Size of area in .debug_info section: %ld\n"
+msgstr "  Ukuran dari daerah dalam .debug_info: %ld\n"
+
+#: dwarf.c:2922
+#, c-format
+msgid ""
+"\n"
+"    Offset\tName\n"
+msgstr ""
+"\n"
+"    Ofset\tNama\n"
+
+#: dwarf.c:2973
+#, c-format
+msgid " DW_MACINFO_start_file - lineno: %d filenum: %d\n"
+msgstr " DW_MACINFO_start_file - lineno: %d filenum: %d\n"
+
+#: dwarf.c:2979
+#, c-format
+msgid " DW_MACINFO_end_file\n"
+msgstr " DW_MACINFO_end_file\n"
+
+#: dwarf.c:2987
+#, c-format
+msgid " DW_MACINFO_define - lineno : %d macro : %s\n"
+msgstr " DW_MACINFO_define - lineno : %d makro : %s\n"
+
+#: dwarf.c:2996
+#, c-format
+msgid " DW_MACINFO_undef - lineno : %d macro : %s\n"
+msgstr " DW_MACINFO_undef - lineno : %d makro : %s\n"
+
+#: dwarf.c:3008
+#, c-format
+msgid " DW_MACINFO_vendor_ext - constant : %d string : %s\n"
+msgstr " DW_MACINFO_vendor_ext - konstan : %d string : %s\n"
+
+#: dwarf.c:3037
+#, c-format
+msgid "  Number TAG\n"
+msgstr "  Nomor TAG\n"
+
+#: dwarf.c:3043
+#, c-format
+msgid "   %ld      %s    [%s]\n"
+msgstr "   %ld      %s    [%s]\n"
+
+#: dwarf.c:3046
+msgid "has children"
+msgstr "memiliki anak"
+
+#: dwarf.c:3046
+msgid "no children"
+msgstr "tidak memiliki anak"
+
+#: dwarf.c:3049
+#, c-format
+msgid "    %-18s %s\n"
+msgstr "    %-18s %s\n"
+
+#: dwarf.c:3082 dwarf.c:3288 dwarf.c:3504
+#, c-format
+msgid ""
+"\n"
+"The %s section is empty.\n"
+msgstr ""
+"\n"
+"Daerah %s ini kosong.\n"
+
+#. FIXME: Should we handle this case?
+#: dwarf.c:3132
+msgid "Location lists in .debug_info section aren't in ascending order!\n"
+msgstr "Daftar lokasi dalam daerah .debug_info tidak dalam urutan meningkat!\n"
+
+#: dwarf.c:3135
+msgid "No location lists in .debug_info section!\n"
+msgstr "Tidak ada daftar lokasi dalam daerah .debug_info!\n"
+
+#: dwarf.c:3140
+#, c-format
+msgid "Location lists in %s section start at 0x%lx\n"
+msgstr "Daftar lokasi dalam daerah %s dimulai di 0x%lx\n"
+
+#: dwarf.c:3144
+#, c-format
+msgid "    Offset   Begin    End      Expression\n"
+msgstr "    Ofset    Awal     Akhir    Pernyataan\n"
+
+#: dwarf.c:3175
+#, c-format
+msgid "There is a hole [0x%lx - 0x%lx] in .debug_loc section.\n"
+msgstr "Disana ada hole [0x%lx - 0x%lx] dalam daerah .debug_loc.\n"
+
+#: dwarf.c:3179
+#, c-format
+msgid "There is an overlap [0x%lx - 0x%lx] in .debug_loc section.\n"
+msgstr "Disana ada tumpang tindih [0x%lx - 0x%lx] dalam daerah .debug_loc\n"
+
+#: dwarf.c:3187
+#, c-format
+msgid "Offset 0x%lx is bigger than .debug_loc section size.\n"
+msgstr "Ofset 0x%lx lebih besar dari ukuran daerah .debug_loc.\n"
+
+#: dwarf.c:3196 dwarf.c:3231 dwarf.c:3241
+#, c-format
+msgid "Location list starting at offset 0x%lx is not terminated.\n"
+msgstr "Daftar lokasi dimulai di ofset 0x%lx tidak diakhiri.\n"
+
+#: dwarf.c:3215 dwarf.c:3597
+#, c-format
+msgid "<End of list>\n"
+msgstr "<Akhir dari daftar>\n"
+
+#: dwarf.c:3225
+#, c-format
+msgid "(base address)\n"
+msgstr "(alamat dasar)\n"
+
+#: dwarf.c:3260
+msgid " (start == end)"
+msgstr " (awal == akhir)"
+
+#: dwarf.c:3262
+msgid " (start > end)"
+msgstr " (awal > akhir)"
+
+#: dwarf.c:3272
+#, c-format
+msgid "There are %ld unused bytes at the end of section %s\n"
+msgstr "Disana ada %ld byte tidak digunakan diakhir dari daerah %s\n"
+
+#: dwarf.c:3406
+msgid "Only DWARF 2 and 3 aranges are currently supported.\n"
+msgstr "Hanya DWARF 2 dan 3 yang saat ini didukung.\n"
+
+#: dwarf.c:3410
+#, c-format
+msgid "  Length:                   %ld\n"
+msgstr "  Panjang:                  %ld\n"
+
+#: dwarf.c:3411
+#, c-format
+msgid "  Version:                  %d\n"
+msgstr "  Versi:                    %d\n"
+
+#: dwarf.c:3412
+#, c-format
+msgid "  Offset into .debug_info:  0x%lx\n"
+msgstr "  Ofset kedalam .debug_info: 0x%lx\n"
+
+#: dwarf.c:3413
+#, c-format
+msgid "  Pointer Size:             %d\n"
+msgstr "  Ukuran Penunjuk:          %d\n"
+
+#: dwarf.c:3414
+#, c-format
+msgid "  Segment Size:             %d\n"
+msgstr "  Ukuran Segmen:            %d\n"
+
+#: dwarf.c:3423
+msgid "Pointer size + Segment size is not a power of two.\n"
+msgstr "Ukuran penunjuk + Ukuran segmen bukan kelipatan dari dua.\n"
+
+#: dwarf.c:3428
+#, c-format
+msgid ""
+"\n"
+"    Address            Length\n"
+msgstr ""
+"\n"
+"    Alamat             Panjang\n"
+
+#: dwarf.c:3430
+#, c-format
+msgid ""
+"\n"
+"    Address    Length\n"
+msgstr ""
+"\n"
+"    Alamat     Panjang\n"
+
+#: dwarf.c:3520
+msgid "No range lists in .debug_info section!\n"
+msgstr "Tidak ada daftar jangkauan dalam daerah .debug_info!\n"
+
+#: dwarf.c:3543
+#, c-format
+msgid "Range lists in %s section start at 0x%lx\n"
+msgstr "Daftar jangkauan dalam daerah %s dimulai dari 0x%lx\n"
+
+#: dwarf.c:3547
+#, c-format
+msgid "    Offset   Begin    End\n"
+msgstr "    Ofset    Awal     Akhir\n"
+
+#: dwarf.c:3568
+#, c-format
+msgid "There is a hole [0x%lx - 0x%lx] in %s section.\n"
+msgstr "Disana terdapat sebuah lubang [0x%lx -0x%lx] dalam daerah %s.\n"
+
+#: dwarf.c:3572
+#, c-format
+msgid "There is an overlap [0x%lx - 0x%lx] in %s section.\n"
+msgstr "Disana terdapat sebuah tumpang tindih [0x%lx - 0x%lx] dalam daerah %s.\n"
+
+#: dwarf.c:3615
+msgid "(start == end)"
+msgstr "(awal == akhir)"
+
+#: dwarf.c:3617
+msgid "(start > end)"
+msgstr "(awal > akhir)"
+
+#: dwarf.c:3853
+msgid "bad register: "
+msgstr "register buruk: "
+
+#: dwarf.c:3855
+#, c-format
+msgid "Contents of the %s section:\n"
+msgstr "Isi dari daerah %s:\n"
+
+#: dwarf.c:4619
+#, c-format
+msgid "  DW_CFA_??? (User defined call frame op: %#x)\n"
+msgstr "  DW_CFA_??? (Definisi oleh pengguna memanggil frame op: %#x)\n"
+
+#: dwarf.c:4621
+#, c-format
+msgid "unsupported or unknown Dwarf Call Frame Instruction number: %#x\n"
+msgstr "tidak didukung atau tidak dikenal Dwarf Call Frame nomor Instruksi: %#x\n"
+
+#: dwarf.c:4645
+#, c-format
+msgid "Displaying the debug contents of section %s is not yet supported.\n"
+msgstr "Menampilkan isi debug dari daerah %s belum didukung.\n"
+
+#: dwarf.c:4687
+#, c-format
+msgid "%s: Error: "
+msgstr "%s: Error: "
+
+#: dwarf.c:4698
+#, c-format
+msgid "%s: Warning: "
+msgstr "%s: Peringatan: "
+
+#: dwarf.c:4796 dwarf.c:4862
+#, c-format
+msgid "Unrecognized debug option '%s'\n"
+msgstr "Pilihan debug '%s' tidak dikenal\n"
+
+#: emul_aix.c:43
+#, c-format
+msgid "  [-g]         - 32 bit small archive\n"
+msgstr "  [-g]         - 32 bit archive kecil\n"
+
+#: emul_aix.c:44
+#, c-format
+msgid "  [-X32]       - ignores 64 bit objects\n"
+msgstr "  [-X32]       - abaikan objek 64 bit\n"
+
+#: emul_aix.c:45
+#, c-format
+msgid "  [-X64]       - ignores 32 bit objects\n"
+msgstr "  [-X64]       - abaikan objek 32 bit\n"
+
+#: emul_aix.c:46
+#, c-format
+msgid "  [-X32_64]    - accepts 32 and 64 bit objects\n"
+msgstr "  [-X32_64]    - terima objek 32 dan 64 bit\n"
+
+#: ieee.c:309
+msgid "unexpected end of debugging information"
+msgstr "tidak terduga akhir dari informasi debug"
+
+#: ieee.c:396
+msgid "invalid number"
+msgstr "nomor tidak valid"
+
+#: ieee.c:449
+msgid "invalid string length"
+msgstr "panjang string tidak valid"
+
+#: ieee.c:504 ieee.c:545
+msgid "expression stack overflow"
+msgstr "ekspresi stack overflow"
+
+#: ieee.c:524
+msgid "unsupported IEEE expression operator"
+msgstr "operator ekspresi IEEE tidak didukung"
+
+#: ieee.c:539
+msgid "unknown section"
+msgstr "daerah tidak dikenal"
+
+#: ieee.c:560
+msgid "expression stack underflow"
+msgstr "ekspresi stack underflow"
+
+#: ieee.c:574
+msgid "expression stack mismatch"
+msgstr "ekspresi stack tidak cocok"
+
+#: ieee.c:611
+msgid "unknown builtin type"
+msgstr "tipe builtin tidak dikenal"
+
+#: ieee.c:756
+msgid "BCD float type not supported"
+msgstr "tipe pecahan BCD tidak didukung"
+
+#: ieee.c:893
+msgid "unexpected number"
+msgstr "nomor tidak terduga"
+
+#: ieee.c:900
+msgid "unexpected record type"
+msgstr "tipe rekaman tidak terduga"
+
+#: ieee.c:933
+msgid "blocks left on stack at end"
+msgstr "sisa blok pada stack di akhir"
+
+#: ieee.c:1206
+msgid "unknown BB type"
+msgstr "tipe BB tidak diketahui"
+
+#: ieee.c:1215
+msgid "stack overflow"
+msgstr "stack overflow"
+
+#: ieee.c:1238
+msgid "stack underflow"
+msgstr "stack underflow"
+
+#: ieee.c:1350 ieee.c:1420 ieee.c:2118
+msgid "illegal variable index"
+msgstr "variabel indeks tidak legal"
+
+#: ieee.c:1398
+msgid "illegal type index"
+msgstr "tipe indeks tidak legal"
+
+#: ieee.c:1408 ieee.c:1445
+msgid "unknown TY code"
+msgstr "kode TY tidak dikenal"
+
+#: ieee.c:1427
+msgid "undefined variable in TY"
+msgstr "variabel dalam TY tidak dikenal"
+
+#. Pascal file name.  FIXME.
+#: ieee.c:1839
+msgid "Pascal file name not supported"
+msgstr "Nama berkas Pascal tidak didukung"
+
+#: ieee.c:1887
+msgid "unsupported qualifier"
+msgstr "kualifier tidak didukung"
+
+#: ieee.c:2156
+msgid "undefined variable in ATN"
+msgstr "variabel dalam ATN tidak terdefinisi"
+
+#: ieee.c:2199
+msgid "unknown ATN type"
+msgstr "tipe ATN tidak didukung"
+
+#. Reserved for FORTRAN common.
+#: ieee.c:2321
+msgid "unsupported ATN11"
+msgstr "ATN11 tidak didukung"
+
+#. We have no way to record this information.  FIXME.
+#: ieee.c:2348
+msgid "unsupported ATN12"
+msgstr "ATN12 tidak didukung"
+
+#: ieee.c:2408
+msgid "unexpected string in C++ misc"
+msgstr "string dalam misc C++ tidak terduga"
+
+#: ieee.c:2421
+msgid "bad misc record"
+msgstr "rekaman misc buruk"
+
+#: ieee.c:2462
+msgid "unrecognized C++ misc record"
+msgstr "rekaman misc C++ tidak dikenal"
+
+#: ieee.c:2577
+msgid "undefined C++ object"
+msgstr "objek C++ tidak terdefinisi"
+
+#: ieee.c:2611
+msgid "unrecognized C++ object spec"
+msgstr "spesifikasi objek C++ tidak dikenal"
+
+#: ieee.c:2647
+msgid "unsupported C++ object type"
+msgstr "tipe objek C++ tidak didukung"
+
+#: ieee.c:2657
+msgid "C++ base class not defined"
+msgstr "C++ kelas dasar tidak terdefinisi"
+
+#: ieee.c:2669 ieee.c:2774
+msgid "C++ object has no fields"
+msgstr "C++ objek tidak memiliki field"
+
+#: ieee.c:2688
+msgid "C++ base class not found in container"
+msgstr "C++ kelas dasar tidak ditemukan dalam kontainer"
+
+#: ieee.c:2795
+msgid "C++ data member not found in container"
+msgstr "C++ data anggota tidak ditemukan dalam kontainer"
+
+#: ieee.c:2836 ieee.c:2986
+msgid "unknown C++ visibility"
+msgstr "visibility C++ tidak diketahui"
+
+#: ieee.c:2870
+msgid "bad C++ field bit pos or size"
+msgstr "C++ bit field posisi atau ukuran buruk"
+
+#: ieee.c:2962
+msgid "bad type for C++ method function"
+msgstr "tipe untuk fungsi metode C++ buruk"
+
+#: ieee.c:2972
+msgid "no type information for C++ method function"
+msgstr "tidak ada informasi untuk C++ fungsi metode"
+
+#: ieee.c:3011
+msgid "C++ static virtual method"
+msgstr "C++ static virtual metode"
+
+#: ieee.c:3106
+msgid "unrecognized C++ object overhead spec"
+msgstr "tidak dikenal C++ objek overhead spec"
+
+#: ieee.c:3145
+msgid "undefined C++ vtable"
+msgstr "vtabel C++ tidak terdefinisi"
+
+#: ieee.c:3214
+msgid "C++ default values not in a function"
+msgstr "nilai baku C++ tidak dalam sebuah fungsi"
+
+#: ieee.c:3254
+msgid "unrecognized C++ default type"
+msgstr "tipe baku C++ tidak dikenal"
+
+#: ieee.c:3285
+msgid "reference parameter is not a pointer"
+msgstr "parameter referensi bukan sebuah penunjuk"
+
+#: ieee.c:3368
+msgid "unrecognized C++ reference type"
+msgstr "tipe referensi C++ tidak dikenal"
+
+#: ieee.c:3450
+msgid "C++ reference not found"
+msgstr "referensi C++ tidak ditemukan"
+
+#: ieee.c:3458
+msgid "C++ reference is not pointer"
+msgstr "referensi C++ bukan sebuah penunjuk"
+
+#: ieee.c:3484 ieee.c:3492
+msgid "missing required ASN"
+msgstr "hilang ASN yang dibutuhkan"
+
+#: ieee.c:3519 ieee.c:3527
+msgid "missing required ATN65"
+msgstr "hilang ATN65 yang dibutuhkan"
+
+#: ieee.c:3541
+msgid "bad ATN65 record"
+msgstr "rekaman ATN65 buruk"
+
+#: ieee.c:4169
+#, c-format
+msgid "IEEE numeric overflow: 0x"
+msgstr "numerik IEEE overflow; 0x"
+
+#: ieee.c:4213
+#, c-format
+msgid "IEEE string length overflow: %u\n"
+msgstr "panjang string IEEE overflow: %u\n"
+
+#: ieee.c:5210
+#, c-format
+msgid "IEEE unsupported integer type size %u\n"
+msgstr "ukuran tipe bilangan bulat %u IEEE tidak didukung\n"
+
+#: ieee.c:5244
+#, c-format
+msgid "IEEE unsupported float type size %u\n"
+msgstr "ukuran tipe bilangan pecahan %u IEEE tidak didukung\n"
+
+#: ieee.c:5278
+#, c-format
+msgid "IEEE unsupported complex type size %u\n"
+msgstr "ukuran tipe kompleks %u IEEE tidak didukung\n"
+
+#: mclex.c:241
+msgid "Duplicate symbol entered into keyword list."
+msgstr "Duplikasi simbol dimasukan dalam daftar keyword."
+
+#: nlmconv.c:273 srconv.c:1822
+msgid "input and output files must be different"
+msgstr "berkas masukan dan keluaran harus berbeda"
+
+#: nlmconv.c:320
+msgid "input file named both on command line and with INPUT"
+msgstr "nama kedua berkas masukan di baris perintah dan dengan INPUT"
+
+#: nlmconv.c:329
+msgid "no input file"
+msgstr "tidak ada berkas masukan"
+
+#: nlmconv.c:359
+msgid "no name for output file"
+msgstr "tidak ada nama untuk berkas keluaran"
+
+#: nlmconv.c:373
+msgid "warning: input and output formats are not compatible"
+msgstr "peringatan: format masukan dan keluaran tidak kompatibel"
+
+#: nlmconv.c:403
+msgid "make .bss section"
+msgstr "buat daerah .bss"
+
+#: nlmconv.c:413
+msgid "make .nlmsections section"
+msgstr "buat daerah .nlmsections"
+
+#: nlmconv.c:441
+msgid "set .bss vma"
+msgstr "set vma .bss"
+
+#: nlmconv.c:448
+msgid "set .data size"
+msgstr "set ukuran .data"
+
+#: nlmconv.c:628
+#, c-format
+msgid "warning: symbol %s imported but not in import list"
+msgstr "peringatan: simbol %s diimpor tetapi tidak dalam daftar impor"
+
+#: nlmconv.c:648
+msgid "set start address"
+msgstr "set awal alamat"
+
+#: nlmconv.c:697
+#, c-format
+msgid "warning: START procedure %s not defined"
+msgstr "peringatan: AWAL prosedur %s tidak terdefinisi"
+
+#: nlmconv.c:699
+#, c-format
+msgid "warning: EXIT procedure %s not defined"
+msgstr "peringatan: KELUAR prosedur %s tidak terdefinisi"
+
+#: nlmconv.c:701
+#, c-format
+msgid "warning: CHECK procedure %s not defined"
+msgstr "peringatan: PERIKSA prosedur %s tidak terdefinisi"
+
+#: nlmconv.c:721 nlmconv.c:907
+msgid "custom section"
+msgstr "daerah kustom"
+
+#: nlmconv.c:741 nlmconv.c:936
+msgid "help section"
+msgstr "daerah bantuan"
+
+#: nlmconv.c:763 nlmconv.c:954
+msgid "message section"
+msgstr "daerah pesan"
+
+#: nlmconv.c:778 nlmconv.c:987
+msgid "module section"
+msgstr "daerah modul"
+
+#: nlmconv.c:797 nlmconv.c:1003
+msgid "rpc section"
+msgstr "daerah rpc"
+
+#. There is no place to record this information.
+#: nlmconv.c:833
+#, c-format
+msgid "%s: warning: shared libraries can not have uninitialized data"
+msgstr "%s: peringatan: perpustakaan terbagi tidak dapat memiliki data tidak terinisialisasi"
+
+#: nlmconv.c:854 nlmconv.c:1022
+msgid "shared section"
+msgstr "daerah terbagi"
+
+#: nlmconv.c:862
+msgid "warning: No version number given"
+msgstr "peringatan: Tidak ada nomor versi yang diberikan"
+
+#: nlmconv.c:902 nlmconv.c:931 nlmconv.c:949 nlmconv.c:998 nlmconv.c:1017
+#, c-format
+msgid "%s: read: %s"
+msgstr "%s: baca: %s"
+
+#: nlmconv.c:924
+msgid "warning: FULLMAP is not supported; try ld -M"
+msgstr "peringatan: FULLMAP tidak didukung: coba ld -M"
+
+#: nlmconv.c:1100
+#, c-format
+msgid "Usage: %s [option(s)] [in-file [out-file]]\n"
+msgstr "Penggunaan: %s [pilihan] [berkas-masuk [berkas-keluar]]\n"
+
+#: nlmconv.c:1101
+#, c-format
+msgid " Convert an object file into a NetWare Loadable Module\n"
+msgstr " Ubah sebuah berkas objek ke sebuah NetWare Loadable Modul\n"
+
+#: nlmconv.c:1102
+#, c-format
+msgid ""
+" The options are:\n"
+"  -I --input-target=<bfdname>   Set the input binary file format\n"
+"  -O --output-target=<bfdname>  Set the output binary file format\n"
+"  -T --header-file=<file>       Read <file> for NLM header information\n"
+"  -l --linker=<linker>          Use <linker> for any linking\n"
+"  -d --debug                    Display on stderr the linker command line\n"
+"  @<file>                       Read options from <file>.\n"
+"  -h --help                     Display this information\n"
+"  -v --version                  Display the program's version\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -I --input-target=<bfdname>   Set format berkas masukan binari\n"
+"  -O --output-target=<bfdname>  Set format berkas keluaran binari\n"
+"  -T --header-file=<file>       Baca <berkas> untuk informasi header NLM\n"
+"  -l --linker=<linker>          Gunakan <linker> untuk linking apapun\n"
+"  -d --debug                    Tampilkan di stderr baris perintah linker\n"
+"  @<berkas>                     Baca pilihan dari <berkas>.\n"
+"  -h --help                     Tampilkan informasi ini\n"
+"  -v --version                  Tampilkan versi aplikasi\n"
+
+#: nlmconv.c:1143
+#, c-format
+msgid "support not compiled in for %s"
+msgstr "dukungan tidak dikompile untuk %s"
+
+#: nlmconv.c:1180
+msgid "make section"
+msgstr "buat daerah"
+
+#: nlmconv.c:1194
+msgid "set section size"
+msgstr "set ukuran daerah"
+
+#: nlmconv.c:1200
+msgid "set section alignment"
+msgstr "set alignmen daerah"
+
+#: nlmconv.c:1204
+msgid "set section flags"
+msgstr "set tanda daerah"
+
+#: nlmconv.c:1215
+msgid "set .nlmsections size"
+msgstr "set ukuran .nlmsections"
+
+#: nlmconv.c:1296 nlmconv.c:1304 nlmconv.c:1313 nlmconv.c:1318
+msgid "set .nlmsection contents"
+msgstr "set isi .nlmsection"
+
+#: nlmconv.c:1795
+msgid "stub section sizes"
+msgstr "ukuran stub daerah"
+
+#: nlmconv.c:1842
+msgid "writing stub"
+msgstr "menulis stub"
+
+#: nlmconv.c:1926
+#, c-format
+msgid "unresolved PC relative reloc against %s"
+msgstr "tidak terselesaikan PC relatif relokasi terhadap %s"
+
+#: nlmconv.c:1990
+#, c-format
+msgid "overflow when adjusting relocation against %s"
+msgstr "overflow ketika menyesuaikan relokasi terhadap %s"
+
+#: nlmconv.c:2117
+#, c-format
+msgid "%s: execution of %s failed: "
+msgstr "%s: eksekusi dari %s gagal: "
+
+#: nlmconv.c:2132
+#, c-format
+msgid "Execution of %s failed"
+msgstr "Eksekusi dari %s gagal"
+
+#: nm.c:220 size.c:78 strings.c:659
+#, c-format
+msgid "Usage: %s [option(s)] [file(s)]\n"
+msgstr "Penggunaan: %s [pilihan] [berkas]\n"
+
+#: nm.c:221
+#, c-format
+msgid " List symbols in [file(s)] (a.out by default).\n"
+msgstr " Daftar simbol dalam [berkas] (a.out secara baku).\n"
+
+#: nm.c:222
+#, c-format
+msgid ""
+" The options are:\n"
+"  -a, --debug-syms       Display debugger-only symbols\n"
+"  -A, --print-file-name  Print name of the input file before every symbol\n"
+"  -B                     Same as --format=bsd\n"
+"  -C, --demangle[=STYLE] Decode low-level symbol names into user-level names\n"
+"                          The STYLE, if specified, can be `auto' (the default),\n"
+"                          `gnu', `lucid', `arm', `hp', `edg', `gnu-v3', `java'\n"
+"                          or `gnat'\n"
+"      --no-demangle      Do not demangle low-level symbol names\n"
+"  -D, --dynamic          Display dynamic symbols instead of normal symbols\n"
+"      --defined-only     Display only defined symbols\n"
+"  -e                     (ignored)\n"
+"  -f, --format=FORMAT    Use the output format FORMAT.  FORMAT can be `bsd',\n"
+"                           `sysv' or `posix'.  The default is `bsd'\n"
+"  -g, --extern-only      Display only external symbols\n"
+"  -l, --line-numbers     Use debugging information to find a filename and\n"
+"                           line number for each symbol\n"
+"  -n, --numeric-sort     Sort symbols numerically by address\n"
+"  -o                     Same as -A\n"
+"  -p, --no-sort          Do not sort the symbols\n"
+"  -P, --portability      Same as --format=posix\n"
+"  -r, --reverse-sort     Reverse the sense of the sort\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -a, --debug-syms       Tampilkan debugger-only simbol\n"
+"  -A, --print-file-name  Tampilkan nama dari berkas masukan sebelum setiap simbol\n"
+"  -B                     Sama seperti --format=bsd\n"
+"  -C, --demangle[=STYLE] Dekode tingkat-bawah nama simbol dalam nama tingkat-pengguna\n"
+"                         STYLE, jika dispesifikasikan, dapat berupa `auto'(baku),\n"
+"                         `gnu', `lucid', `arm', `hp', `edg', `gnu-v3', `java'\n"
+"                         atau `gnat'\n"
+"      --no-demangle      Jangan demangle tingkat-bawah nama simbol\n"
+"  -D, --dynamic          Tampilkan simbol dinamis daripada normal simbol\n"
+"      --defined-only     Tampilkan hanya simbol terdefinisi\n"
+"  -e                     (diabaikan)\n"
+"  -f, --format=FORMAT    Gunakan format keluaran FORMAT. FORMAT dapat berupa `bsd',\n"
+"                         `sysv' atau `posix'. Baku adalah `bsd'\n"
+"  -g, --extern-only      Tampilkan hanya simbol eksternal\n"
+"  -l, --line-numbers     Gunakan informasi debug untuk mencari sebuah nama berkas dan\n"
+"                         nomor baris untuk setiap simbol\n"
+"  -n, --numeric-sort     Urutkan simbol secara numerik dengan alamat\n"
+"  -o                     Sama seperti -A\n"
+"  -p, --no-sort          Jangan urutkan simbol\n"
+"  -P, --portability      Sama seperti --format=posix\n"
+"  -r, --reverse-sort     Balik sense dari sort\n"
+
+#: nm.c:245
+#, c-format
+msgid "      --plugin NAME      Load the specified plugin\n"
+msgstr "      --plugin NAMA      Muat plugin yang dispesifikasikan\n"
+
+#: nm.c:248
+#, c-format
+msgid ""
+"  -S, --print-size       Print size of defined symbols\n"
+"\t\t  -s, --print-armap      Include index for symbols from archive members\n"
+"      --size-sort        Sort symbols by size\n"
+"      --special-syms     Include special symbols in the output\n"
+"      --synthetic        Display synthetic symbols as well\n"
+"  -t, --radix=RADIX      Use RADIX for printing symbol values\n"
+"      --target=BFDNAME   Specify the target object format as BFDNAME\n"
+"  -u, --undefined-only   Display only undefined symbols\n"
+"  -X 32_64               (ignored)\n"
+"  @FILE                  Read options from FILE\n"
+"  -h, --help             Display this information\n"
+"  -V, --version          Display this program's version number\n"
+"\n"
+msgstr ""
+"  -S, --print-size       Tampilkan ukuran dari simbol yang terdefinisi\n"
+"\t\t  -s, --print-armap      Masukan indeks untuk simbol dari anggota archive\n"
+"      --size-sort        Urutkan simbol berdasarkan ukuran\n"
+"      --special-syms     Masukan simbol berdasarkan ukuran\n"
+"      --synthetic        Tampilkan synthetic simbol juga\n"
+"  -t, --radix=RADIX      Gunakan RADIX untuk menampilkan nilai simbol\n"
+"      --target=BFDNAME   Spesifikasikan format objek target sebagai BFDNAME\n"
+"  -u, --undefined-only   Tampilkan hanya simbol tidak terdefinisi\n"
+"  -X 32_64               (diabaikan)\n"
+"  @BERKAS                Baca pilihan dari BERKAS\n"
+"  -h, --help             Tampilkan informasi ini\n"
+"  -V, --version          Tampilkan nomor versi aplikasi ini\n"
+"\n"
+
+#: nm.c:292
+#, c-format
+msgid "%s: invalid radix"
+msgstr "%s: radix tidak valid"
+
+#: nm.c:316
+#, c-format
+msgid "%s: invalid output format"
+msgstr "%s: format keluaran tidak valid"
+
+#: nm.c:337 readelf.c:6917 readelf.c:6962
+#, c-format
+msgid "<processor specific>: %d"
+msgstr "<prosesor spesifik>: %d"
+
+#: nm.c:339 readelf.c:6926 readelf.c:6980
+#, c-format
+msgid "<OS specific>: %d"
+msgstr "<OS spesifik>: %d"
+
+#: nm.c:341 readelf.c:6929 readelf.c:6983
+#, c-format
+msgid "<unknown>: %d"
+msgstr "<tidak diketahui>: %d"
+
+#: nm.c:381
+#, c-format
+msgid ""
+"\n"
+"Archive index:\n"
+msgstr ""
+"\n"
+"Indeks archive:\n"
+
+#: nm.c:1242
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Undefined symbols from %s:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Simbol tidak terdefinisi dari %s:\n"
+"\n"
+
+#: nm.c:1244
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Symbols from %s:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Simbol dari %s:\n"
+"\n"
+
+#: nm.c:1246 nm.c:1297
+#, c-format
+msgid ""
+"Name                  Value   Class        Type         Size     Line  Section\n"
+"\n"
+msgstr ""
+"Nama                  Nilai   Kelas         Tipe        Ukuran   Baris  Daerah\n"
+"\n"
+
+#: nm.c:1249 nm.c:1300
+#, c-format
+msgid ""
+"Name                  Value           Class        Type         Size             Line  Section\n"
+"\n"
+msgstr ""
+"Nama                  Nilai           Kelas         Tipe        Ukuran           Baris Daerah\n"
+"\n"
+
+#: nm.c:1293
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Undefined symbols from %s[%s]:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Simbol tidak terdefinisi dari %s[%s]:\n"
+"\n"
+
+#: nm.c:1295
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Symbols from %s[%s]:\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Simbol dari %s[%s]:\n"
+"\n"
+
+#: nm.c:1387
+#, c-format
+msgid "Print width has not been initialized (%d)"
+msgstr "Tampilkan lebar yang belum terinisialisasi (%d)"
+
+#: nm.c:1615
+msgid "Only -X 32_64 is supported"
+msgstr "Hanya -X 32_64 yang didukung"
+
+#: nm.c:1643
+msgid "Using the --size-sort and --undefined-only options together"
+msgstr "Gunakan --size-sort dan --undefined-only pilihan secara bersamaan"
+
+#: nm.c:1644
+msgid "will produce no output, since undefined symbols have no size."
+msgstr "tidak akan menghasilkan keluaran, karena simbol tidak terdefinisi tidak memiliki ukuran."
+
+#: nm.c:1672
+#, c-format
+msgid "data size %ld"
+msgstr "ukuran data %ld"
+
+#: objcopy.c:463 srconv.c:1730
+#, c-format
+msgid "Usage: %s [option(s)] in-file [out-file]\n"
+msgstr "Penggunaan: %s [pilihan] berkas-masukan [berkas-keluaran]\n"
+
+#: objcopy.c:464
+#, c-format
+msgid " Copies a binary file, possibly transforming it in the process\n"
+msgstr " Menyalin sebuah berkas binari, kemungkinan mengubahnya dalam proses ini\n"
+
+#: objcopy.c:465 objcopy.c:572
+#, c-format
+msgid " The options are:\n"
+msgstr " Pilihan adalah:\n"
+
+#: objcopy.c:466
+#, c-format
+msgid ""
+"  -I --input-target <bfdname>      Assume input file is in format <bfdname>\n"
+"  -O --output-target <bfdname>     Create an output file in format <bfdname>\n"
+"  -B --binary-architecture <arch>  Set arch of output file, when input is binary\n"
+"  -F --target <bfdname>            Set both input and output format to <bfdname>\n"
+"     --debugging                   Convert debugging information, if possible\n"
+"  -p --preserve-dates              Copy modified/access timestamps to the output\n"
+"  -j --only-section <name>         Only copy section <name> into the output\n"
+"     --add-gnu-debuglink=<file>    Add section .gnu_debuglink linking to <file>\n"
+"  -R --remove-section <name>       Remove section <name> from the output\n"
+"  -S --strip-all                   Remove all symbol and relocation information\n"
+"  -g --strip-debug                 Remove all debugging symbols & sections\n"
+"     --strip-unneeded              Remove all symbols not needed by relocations\n"
+"  -N --strip-symbol <name>         Do not copy symbol <name>\n"
+"     --strip-unneeded-symbol <name>\n"
+"                                   Do not copy symbol <name> unless needed by\n"
+"                                     relocations\n"
+"     --only-keep-debug             Strip everything but the debug information\n"
+"     --extract-symbol              Remove section contents but keep symbols\n"
+"  -K --keep-symbol <name>          Do not strip symbol <name>\n"
+"     --keep-file-symbols           Do not strip file symbol(s)\n"
+"     --localize-hidden             Turn all ELF hidden symbols into locals\n"
+"  -L --localize-symbol <name>      Force symbol <name> to be marked as a local\n"
+"     --globalize-symbol <name>     Force symbol <name> to be marked as a global\n"
+"  -G --keep-global-symbol <name>   Localize all symbols except <name>\n"
+"  -W --weaken-symbol <name>        Force symbol <name> to be marked as a weak\n"
+"     --weaken                      Force all global symbols to be marked as weak\n"
+"  -w --wildcard                    Permit wildcard in symbol comparison\n"
+"  -x --discard-all                 Remove all non-global symbols\n"
+"  -X --discard-locals              Remove any compiler-generated symbols\n"
+"  -i --interleave <number>         Only copy one out of every <number> bytes\n"
+"  -b --byte <num>                  Select byte <num> in every interleaved block\n"
+"     --gap-fill <val>              Fill gaps between sections with <val>\n"
+"     --pad-to <addr>               Pad the last section up to address <addr>\n"
+"     --set-start <addr>            Set the start address to <addr>\n"
+"    {--change-start|--adjust-start} <incr>\n"
+"                                   Add <incr> to the start address\n"
+"    {--change-addresses|--adjust-vma} <incr>\n"
+"                                   Add <incr> to LMA, VMA and start addresses\n"
+"    {--change-section-address|--adjust-section-vma} <name>{=|+|-}<val>\n"
+"                                   Change LMA and VMA of section <name> by <val>\n"
+"     --change-section-lma <name>{=|+|-}<val>\n"
+"                                   Change the LMA of section <name> by <val>\n"
+"     --change-section-vma <name>{=|+|-}<val>\n"
+"                                   Change the VMA of section <name> by <val>\n"
+"    {--[no-]change-warnings|--[no-]adjust-warnings}\n"
+"                                   Warn if a named section does not exist\n"
+"     --set-section-flags <name>=<flags>\n"
+"                                   Set section <name>'s properties to <flags>\n"
+"     --add-section <name>=<file>   Add section <name> found in <file> to output\n"
+"     --rename-section <old>=<new>[,<flags>] Rename section <old> to <new>\n"
+"     --long-section-names {enable|disable|keep}\n"
+"                                   Handle long section names in Coff objects.\n"
+"     --change-leading-char         Force output format's leading character style\n"
+"     --remove-leading-char         Remove leading character from global symbols\n"
+"     --reverse-bytes=<num>         Reverse <num> bytes at a time, in output sections with content\n"
+"     --redefine-sym <old>=<new>    Redefine symbol name <old> to <new>\n"
+"     --redefine-syms <file>        --redefine-sym for all symbol pairs \n"
+"                                     listed in <file>\n"
+"     --srec-len <number>           Restrict the length of generated Srecords\n"
+"     --srec-forceS3                Restrict the type of generated Srecords to S3\n"
+"     --strip-symbols <file>        -N for all symbols listed in <file>\n"
+"     --strip-unneeded-symbols <file>\n"
+"                                   --strip-unneeded-symbol for all symbols listed\n"
+"                                     in <file>\n"
+"     --keep-symbols <file>         -K for all symbols listed in <file>\n"
+"     --localize-symbols <file>     -L for all symbols listed in <file>\n"
+"     --globalize-symbols <file>    --globalize-symbol for all in <file>\n"
+"     --keep-global-symbols <file>  -G for all symbols listed in <file>\n"
+"     --weaken-symbols <file>       -W for all symbols listed in <file>\n"
+"     --alt-machine-code <index>    Use the target's <index>'th alternative machine\n"
+"     --writable-text               Mark the output text as writable\n"
+"     --readonly-text               Make the output text write protected\n"
+"     --pure                        Mark the output file as demand paged\n"
+"     --impure                      Mark the output file as impure\n"
+"     --prefix-symbols <prefix>     Add <prefix> to start of every symbol name\n"
+"     --prefix-sections <prefix>    Add <prefix> to start of every section name\n"
+"     --prefix-alloc-sections <prefix>\n"
+"                                   Add <prefix> to start of every allocatable\n"
+"                                     section name\n"
+"     --file-alignment <num>        Set PE file alignment to <num>\n"
+"     --heap <reserve>[,<commit>]   Set PE reserve/commit heap to <reserve>/\n"
+"                                   <commit>\n"
+"     --image-base <address>        Set PE image base to <address>\n"
+"     --section-alignment <num>     Set PE section alignment to <num>\n"
+"     --stack <reserve>[,<commit>]  Set PE reserve/commit stack to <reserve>/\n"
+"                                   <commit>\n"
+"     --subsystem <name>[:<version>]\n"
+"                                   Set PE subsystem to <name> [& <version>]\n"
+"]  -v --verbose                     List all object files modified\n"
+"  @<file>                          Read options from <file>\n"
+"  -V --version                     Display this program's version number\n"
+"  -h --help                        Display this output\n"
+"     --info                        List object formats & architectures supported\n"
+msgstr ""
+"  -I --input-target <bfdname>      Asumsikan berkas masukan berada dalam format <bfdname>\n"
+"  -O --output-target <bfdname>     Buat sebuah berkas keluaran dalam format <bfdname>\n"
+"  -B --binary-architecture <arch>  Set arsitektur dari berkas keluaran, ketika masukan adalah binari\n"
+"  -F --target <bfdname>            Set kedua format masukan dan keluaran ke <bfdname>\n"
+"     --debugging                   Ubah informasi debug, jika memungkinkan\n"
+"  -p --preserve-dates              Salin modifikasi/akses penanda-waktu ke keluaran\n"
+"  -j --only-section <name>         Salin hanya bagian <nama> kedalam keluaran\n"
+"     --add-gnu-debuglink=<berkas>  Tambahkan bagian .gnu_debuglink linking ke <berkas>\n"
+"  -R --remove-section <nama>       Hapus bagian <nama> dari keluaran\n"
+"  -S --strip-all                   Hapus seluruh informasi simbol dan relokasi\n"
+"  -g --strip-debug                 Hapus seluruh debug simbol dan bagian\n"
+"     --strip-unneeded              Hapus seluruh simbol tidak dibutuhkan oleh relokasi\n"
+"  -N --strip-simbol <nama>         Jangan menyalin simbol <nama>\n"
+"     --strip-unneeded-symbol <nama>\n"
+"                                   Jangan menyalin simbol <nama> kecuali dibutuhkan oleh\n"
+"                                   relokasi\n"
+"     --only-keep-debug             Strip seluruhnya kecuali informasi debug\n"
+"     --extract-symbol              Hapus isi bagian tetapi simpan simbol\n"
+"  -K --keep-symbol <nama>          Jangan strip simbol <nama>\n"
+"     --keep-file-symbols           Jangan strip file simbol\n"
+"     --localize-hidden             Ubah seluruh ELF simbol tersembunyi ke lokal\n"
+"  -L --localize-symbol <nama>      Paksa simbol <nama> untuk ditandai sebagai lokal\n"
+"     --globalize-symbol <nama>     Paksa simbol <nama> untuk ditandai sebagai global\n"
+"  -G --keep-global-symbol <nama>   Lokalisasi seluruh simbol kecuali <nama>\n"
+"  -W --weaken-symbol <nama>        Paksa simbol <nama> untuk ditandai sebagai lemah\n"
+"     --weaken                      Paksa seluruh simbol global untuk ditandai sebagai lemah\n"
+"  -w --wildcard                    Ijinkan wildcard dalam perbandingan simbol\n"
+"  -x --discard-all                 Hapus seluruh simbol bukan-global\n"
+"  -i --interleave <nomor>          Salin hanya satu dari setiap <nomor> bytes\n"
+"  -b --byte <nomor>                Pilih byte <nomor> dalam setiap interleaved blok\n"
+"     --gap-fill <nilai>            Isi gap diantara bagian dengan <nilai>\n"
+"     --pad-to <alamat>             Pad bagian terakhir sampai ke alamat <addr>\n"
+"     --set-start <alamat>          Set awal dari alamat ke <alamat>\n"
+"    {--change-start|--adjust-start} <incr>\n"
+"                                   Tambahkan <incr> ke awal dari alamat\n"
+"    {--change-addresses|--adjust-vma} <incr>\n"
+"                                   Tambahkan <incr> ke LMA, VMA, dan awal alamat\n"
+"    {--change-section-address|--adjust-section-vma} <nama>{=|+|-}<nilai>\n"
+"                                   Ubah LMA dan VMA dari bagian <nama> dengan <nilai>\n"
+"     --change-section-lma <nama>{=|+|-}<nilai>\n"
+"                                   Ubah LMA bagian <nama> dengan <nilai>\n"
+"     --change-section-vma <nama>{=|+|-}<nilai>\n"
+"                                   Ubah VMA bagian <nama> dengan <nilai>\n"
+"    {--[no-]change-warnings|--[no-]adjust-warnings}\n"
+"                                   Peringatkan jika sebuah bagian bernama tidak ada\n"
+"     --set-section-flags <nama>=<flags>\n"
+"                                   Set bagian <nama> properti ke <tanda>\n"
+"     --add-section <nama>=<file>   Tambahkan bagian <nama> ditemukan dalam <berkas> ke keluaran\n"
+"     --rename-section <old>=<new>[,<flags>] Ubah nama bagian <lama> ke <baru>\n"
+"     --change-leading-char         Paksa format keluaran gaya awal karakter\n"
+"     --remove-leading-char         Hapus awal karakter dari global simbol\n"
+"     --reverse-bytes=<num>         Balik <nomor> bytes dalam satu waktu, dalam bagian keluara dengan isi\n"
+"     --redefine-sym <lama>=<baru>  Redefinisikan nama simbol <lama> ke <baru>\n"
+"     --redefine-syms <file>        --redefine-sym untuk seluruh pasangan simbol\n"
+"                                   terdaftar dalam <berkas>\n"
+"     --srec-len <nomor>            Batasi panjang dari Srecords yang dihasilkan\n"
+"     --srec-forceS3                Batasi tipe dari Srecord yang dihasilkan ke S3\n"
+"     --strip-symbols <berkas>      -N untuk seluruh simbol terdaftar dalam <berkas>\n"
+"     --strip-unneeded-symbols <file>\n"
+"                                   --strip-unneeded-symbol untuk seluruh simbol terdaftar\n"
+"                                   dalam <berkas>\n"
+"     --keep-symbols <berkas>       -K untuk seluruh simbol terdaftar dalam <berkas>\n"
+"     --localize-symbols <berkas>   -L untuk seluruh simbol terdaftar dalam <berkas>\n"
+"     --globalize-symbols <berkas>  --globalize-symbol untuk seluruh dalam <berkas>\n"
+"     --keep-global-symbols <berkas>-G untuk seluruh simbol terdaftar dalam <berkas>\n"
+"     --weaken-symbols <berkas>     -W untuk seluruh simbol terdaftar dalam <berkas>\n"
+"     --alt-machine-code <indeks>   Gunakan arsitektur target <indeks> mesin\n"
+"     --writeable-text              Tandai teks keluaran sebagai dapat-ditulis\n"
+"     --readonly-text               Tandai teks keluaran sebagai tulis-terproteksi\n"
+"     --pure                        Tandai berkas keluaran sebagai demand paged\n"
+"     --impure                      Tandai berkas keluaran sebagai impure\n"
+"     --prefix-symbols <prefix>     Tambahkan <awalan> ke awal dari setiap simbol nama\n"
+"     --prefix-sections <prefix>    Tambahkan <awalan> ke awal dari setiap nama bagian\n"
+"     --prefix-alloc-section <prefix>\n"
+"                                   Tambahkan <awalan> ke awal dari setiap alokasi\n"
+"                                   nama bagian\n"
+"     --file-alignment <num>        Set PE berkas alignment ke <num>\n"
+"     --heap <reserve>[,<commit>]   Set PE reserve/commit heap ke <reserve>/\n"
+"                                   <commit>\n"
+"     --image-base <alamat>         Set PE dasar image ke <address>\n"
+"     --section-alignment <num>     Set PE daerah alignment ke <num>\n"
+"     --stack <reserve>[,<commit>]  Set PE reserve/commit stack ke <reserve>/\n"
+"                                   <commit>\n"
+"     --subsystem <name>[:<version>]\n"
+"                                   Set PE subsystem to <name> [& <version>]\n"
+"  -v --verbose                     Daftar seluruh berkas objek termodifikasi\n"
+"  @<berkas>                        Baca pilihan dari <berkas>\n"
+"  -V --version                     Tampilkan nomor versi aplikasi ini\n"
+"  -h --help                        Tampilkan keluaran ini\n"
+"     --info                        Daftar objek format dan arsitektur yang didukung\n"
+
+#: objcopy.c:570
+#, c-format
+msgid "Usage: %s <option(s)> in-file(s)\n"
+msgstr "Penggunaan: %s <pilihan> berkas-masukan\n"
+
+#: objcopy.c:571
+#, c-format
+msgid " Removes symbols and sections from files\n"
+msgstr " Hapus simbol dan daerah dari berkas\n"
+
+#: objcopy.c:573
+#, c-format
+msgid ""
+"  -I --input-target=<bfdname>      Assume input file is in format <bfdname>\n"
+"  -O --output-target=<bfdname>     Create an output file in format <bfdname>\n"
+"  -F --target=<bfdname>            Set both input and output format to <bfdname>\n"
+"  -p --preserve-dates              Copy modified/access timestamps to the output\n"
+"  -R --remove-section=<name>       Remove section <name> from the output\n"
+"  -s --strip-all                   Remove all symbol and relocation information\n"
+"  -g -S -d --strip-debug           Remove all debugging symbols & sections\n"
+"     --strip-unneeded              Remove all symbols not needed by relocations\n"
+"     --only-keep-debug             Strip everything but the debug information\n"
+"  -N --strip-symbol=<name>         Do not copy symbol <name>\n"
+"  -K --keep-symbol=<name>          Do not strip symbol <name>\n"
+"     --keep-file-symbols           Do not strip file symbol(s)\n"
+"  -w --wildcard                    Permit wildcard in symbol comparison\n"
+"  -x --discard-all                 Remove all non-global symbols\n"
+"  -X --discard-locals              Remove any compiler-generated symbols\n"
+"  -v --verbose                     List all object files modified\n"
+"  -V --version                     Display this program's version number\n"
+"  -h --help                        Display this output\n"
+"     --info                        List object formats & architectures supported\n"
+"  -o <file>                        Place stripped output into <file>\n"
+msgstr ""
+"  -I --input-target=<bfdname>      Asumsikan berkas masukan adalah dalam format <bfdname>\n"
+"  -O --output-target=<bfdname>     Buah sebuah berkas keluaran dalam format <bfdname>\n"
+"  -F --target=<bfdname>            Set kedua format masukan dan keluaran ke <bfdname>\n"
+"  -p --preserve-dates              Salin penanda-waktu modifikasi/akses ke keluaran\n"
+"  -R --remove-section=<nama>       Hapus bagian <nama> dari keluaran\n"
+"  -s --strip-all                   Hapus seluruh informasi simbol dan relokasi\n"
+"  -g -S -d --strip-debug           Hapus seluruh debug simbol dan section\n"
+"     --strip-unneeded              Hapus seluruh simbol tidak dibutuhkan oleh relokasi\n"
+"     --only-keep-debug             Strip seluruh tetapi simpan informasi debug\n"
+"  -N --strip-symbol=<nama>         Jangan salin simbol <nama>\n"
+"  -K --keep-symbol=<nama>          Jangan strip simbol <nama>\n"
+"     --keep-file-symbols           Jangan strip berkas simbol\n"
+"  -w --wildcard                    Ijinkan wildcard dalam perbandingan simbol\n"
+"  -x --discard-all                 Hapus seluruh simbol bukan-global\n"
+"  -X --discard-locals              Hapus simbol apapun yang dihasilkan kompiler\n"
+"  -v --verbose                     Daftar seluruh berkas objek yang termodifikasi\n"
+"  -V --version                     Tampilkan nomor versi aplikasi ini\n"
+"  -h --help                        Tampilkan bantuan ini\n"
+"     --info                        Daftar format dan arsitektur objek yang didukung\n"
+"  -o <berkas>                      Tempatkan keluaran ter-strip kedalam <berkas>\n"
+
+#: objcopy.c:646
+#, c-format
+msgid "unrecognized section flag `%s'"
+msgstr "tanda `%s' daerah tidak dikenal"
+
+#: objcopy.c:647
+#, c-format
+msgid "supported flags: %s"
+msgstr "tanda yang didukung: %s"
+
+#: objcopy.c:748
+#, c-format
+msgid "cannot open '%s': %s"
+msgstr "tidak dapat membuka '%s': %s"
+
+#: objcopy.c:751 objcopy.c:3335
+#, c-format
+msgid "%s: fread failed"
+msgstr "%s: fread gagal"
+
+#: objcopy.c:824
+#, c-format
+msgid "%s:%d: Ignoring rubbish found on this line"
+msgstr "%s:%d: Mengabaikan sampah ditemukan di baris ini"
+
+#: objcopy.c:1120
+#, c-format
+msgid "not stripping symbol `%s' because it is named in a relocation"
+msgstr "bukan stripping simbol `%s' karena ini dinamakan dalam sebuah relokasi"
+
+#: objcopy.c:1203
+#, c-format
+msgid "%s: Multiple redefinition of symbol \"%s\""
+msgstr "%s: Multiple redefinisi dari simbol \"%s\""
+
+#: objcopy.c:1207
+#, c-format
+msgid "%s: Symbol \"%s\" is target of more than one redefinition"
+msgstr "%s: Simbol \"%s\" adalah target dari lebih satu redefinisi"
+
+#: objcopy.c:1235
+#, c-format
+msgid "couldn't open symbol redefinition file %s (error: %s)"
+msgstr "tidak dapat membuka berkas redefinisi %s (error: %s)"
+
+#: objcopy.c:1313
+#, c-format
+msgid "%s:%d: garbage found at end of line"
+msgstr "%s:%d: sampah ditemukan diakhir dari baris"
+
+#: objcopy.c:1316
+#, c-format
+msgid "%s:%d: missing new symbol name"
+msgstr "%s:%d: hilang nama simbol baru"
+
+#: objcopy.c:1326
+#, c-format
+msgid "%s:%d: premature end of file"
+msgstr "%s:%d: prematur akhir dari berkas"
+
+#: objcopy.c:1352
+#, c-format
+msgid "stat returns negative size for `%s'"
+msgstr "stat mengembalikan ukuran negatif untuk `%s'"
+
+#: objcopy.c:1364
+#, c-format
+msgid "copy from `%s' [unknown] to `%s' [unknown]\n"
+msgstr "salin dari `%s' [tidak dikenal] ke `%s' [tidak dikenal]\n"
+
+#: objcopy.c:1419
+msgid "Unable to change endianness of input file(s)"
+msgstr "Tidak dapat mengubah endianness dari berkas masukan"
+
+#: objcopy.c:1428
+#, c-format
+msgid "copy from `%s' [%s] to `%s' [%s]\n"
+msgstr "salin dari `%s' [%s] ke `%s' [%s]\n"
+
+#: objcopy.c:1473
+#, c-format
+msgid "Unable to recognise the format of the input file `%s'"
+msgstr "Tidak dapat mengenali format dari berkas masukan `%s'"
+
+#: objcopy.c:1476
+#, c-format
+msgid "Warning: Output file cannot represent architecture `%s'"
+msgstr "Peringatan: Berkas keluaran tidak dapat merepresentasikan arsitektur `%s'"
+
+#: objcopy.c:1539
+#, c-format
+msgid "warning: file alignment (0x%s) > section alignment (0x%s)"
+msgstr "peringatan: penyelarasan berkas (0x%s) > penyelarasan daerah (0x%s)"
+
+#: objcopy.c:1598
+#, c-format
+msgid "can't add section '%s'"
+msgstr "tidak dapat menambahkan daerah  '%s'"
+
+#: objcopy.c:1607
+#, c-format
+msgid "can't create section `%s'"
+msgstr "tidak dapat membuat daerah `%s'"
+
+#: objcopy.c:1653
+#, c-format
+msgid "cannot create debug link section `%s'"
+msgstr "tidak dapat membuat debug link daerah `%s'"
+
+#: objcopy.c:1746
+msgid "Can't fill gap after section"
+msgstr "Tidak dapat mengisi gap setelah daerah"
+
+#: objcopy.c:1770
+msgid "can't add padding"
+msgstr "tidak dapat menambahkan padding"
+
+#: objcopy.c:1861
+#, c-format
+msgid "cannot fill debug link section `%s'"
+msgstr "tidak dapat mengisi debug link section `%s'"
+
+#: objcopy.c:1924
+msgid "error copying private BFD data"
+msgstr "error menyalin private BFD data"
+
+#: objcopy.c:1935
+#, c-format
+msgid "this target does not support %lu alternative machine codes"
+msgstr "target ini tidak mendukung %lu alternatif kode mesin"
+
+#: objcopy.c:1939
+msgid "treating that number as an absolute e_machine value instead"
+msgstr "membuat nomor itu sebagai sebuah nilai e_machine absolut"
+
+#: objcopy.c:1943
+msgid "ignoring the alternative value"
+msgstr "mengabaikan nilai alternatif"
+
+#: objcopy.c:1974 objcopy.c:2009
+#, c-format
+msgid "cannot create tempdir for archive copying (error: %s)"
+msgstr "tidak dapat membuat tempdir untuk archive menyalin (error: %s)"
+
+#: objcopy.c:2070
+msgid "Unable to recognise the format of file"
+msgstr "Tidak dapat mengenali format dari berkas"
+
+#: objcopy.c:2167
+#, c-format
+msgid "error: the input file '%s' is empty"
+msgstr "error: berkas masukan '%s' kosong"
+
+#: objcopy.c:2299
+#, c-format
+msgid "Multiple renames of section %s"
+msgstr "Multiple pergantian nama dari daerah %s"
+
+#: objcopy.c:2350
+msgid "error in private header data"
+msgstr "error dalam private header data"
+
+#: objcopy.c:2428
+msgid "failed to create output section"
+msgstr "gagal untuk membuat daerah keluaran"
+
+#: objcopy.c:2442
+msgid "failed to set size"
+msgstr "gagal untuk menset ukuran"
+
+#: objcopy.c:2456
+msgid "failed to set vma"
+msgstr "gagal untuk menset vma"
+
+#: objcopy.c:2481
+msgid "failed to set alignment"
+msgstr "gagal untuk menset alignmen"
+
+#: objcopy.c:2515
+msgid "failed to copy private data"
+msgstr "gagal untuk menyalin private data"
+
+#: objcopy.c:2597
+msgid "relocation count is negative"
+msgstr "jumlah relokasi negatif"
+
+#. User must pad the section up in order to do this.
+#: objcopy.c:2658
+#, c-format
+msgid "cannot reverse bytes: length of section %s must be evenly divisible by %d"
+msgstr "tidak dapat membalik bytes: panjang dari daerah %s harus secara genap terbagi oleh %d"
+
+#: objcopy.c:2842
+msgid "can't create debugging section"
+msgstr "tidak dapat membuat daerah debug"
+
+#: objcopy.c:2855
+msgid "can't set debugging section contents"
+msgstr "tidak dapat menset isi daerah debug"
+
+#: objcopy.c:2863
+#, c-format
+msgid "don't know how to write debugging information for %s"
+msgstr "tidak tahu bagaimana menulis informasi debug untuk %s"
+
+#: objcopy.c:3005
+msgid "could not create temporary file to hold stripped copy"
+msgstr "tidak dapat membuat berkas sementara untuk menjaga salinan terstrip"
+
+#: objcopy.c:3077
+#, c-format
+msgid "%s: bad version in PE subsystem"
+msgstr "%s: versi dalam subsistem PE buruk"
+
+#: objcopy.c:3107
+#, c-format
+msgid "unknown PE subsystem: %s"
+msgstr "subsistem PE tidak diketahui: %s"
+
+#: objcopy.c:3167
+msgid "byte number must be non-negative"
+msgstr "nomor byte harus tidak negatif"
+
+#: objcopy.c:3177
+msgid "interleave must be positive"
+msgstr "interleave harus positif"
+
+#: objcopy.c:3197 objcopy.c:3205
+#, c-format
+msgid "%s both copied and removed"
+msgstr "%s kedua disalin dan dihapus"
+
+#: objcopy.c:3306 objcopy.c:3380 objcopy.c:3480 objcopy.c:3511 objcopy.c:3535
+#: objcopy.c:3539 objcopy.c:3559
+#, c-format
+msgid "bad format for %s"
+msgstr "format buruk untuk %s"
+
+#: objcopy.c:3330
+#, c-format
+msgid "cannot open: %s: %s"
+msgstr "tidak dapat membuka %s: %s"
+
+#: objcopy.c:3449
+#, c-format
+msgid "Warning: truncating gap-fill from 0x%s to 0x%x"
+msgstr "Peringatan: memotong gap-fill dari 0x%s ke 0x%x"
+
+#: objcopy.c:3610
+#, c-format
+msgid "unknown long section names option '%s'"
+msgstr "pilihan nama daerah panjang '%s' tidak diketahui"
+
+#: objcopy.c:3628
+msgid "unable to parse alternative machine code"
+msgstr "tidak dapat memparse kode mesin alternatif"
+
+#: objcopy.c:3673
+msgid "number of bytes to reverse must be positive and even"
+msgstr "nomor dari byte untuk membalik harus positif dan genap"
+
+#: objcopy.c:3676
+#, c-format
+msgid "Warning: ignoring previous --reverse-bytes value of %d"
+msgstr "Peringatan: mengabaikan sebelumnya --reverse-byte nilai dari %d"
+
+#: objcopy.c:3691
+#, c-format
+msgid "%s: invalid reserve value for --heap"
+msgstr "%s: nilai reservasi untuk --heap tidak valid"
+
+#: objcopy.c:3697
+#, c-format
+msgid "%s: invalid commit value for --heap"
+msgstr "%s: nilai komitmen untuk --heap tidak valid"
+
+#: objcopy.c:3722
+#, c-format
+msgid "%s: invalid reserve value for --stack"
+msgstr "%s: nilai reservasi untuk --stack tidak valid"
+
+#: objcopy.c:3728
+#, c-format
+msgid "%s: invalid commit value for --stack"
+msgstr "%s: nilai komitmen untuk --stack tidak valid"
+
+#: objcopy.c:3757
+msgid "byte number must be less than interleave"
+msgstr "byte number harus lebih kecil dari interleave"
+
+#: objcopy.c:3784
+#, c-format
+msgid "unknown input EFI target: %s"
+msgstr "target masukan EFI tidak diketahui: %s"
+
+#: objcopy.c:3815
+#, c-format
+msgid "unknown output EFI target: %s"
+msgstr "target keluaran EFI tidak diketahui: %s"
+
+#: objcopy.c:3840
+#, c-format
+msgid "architecture %s unknown"
+msgstr "arsitektur %s tidak dikenal"
+
+#: objcopy.c:3844
+msgid "Warning: input target 'binary' required for binary architecture parameter."
+msgstr "Peringatan: target masukan 'binary' dibutuhkan untuk parameter arsitektur binari."
+
+#: objcopy.c:3845
+#, c-format
+msgid " Argument %s ignored"
+msgstr " Argumen %s diabaikan"
+
+#: objcopy.c:3851
+#, c-format
+msgid "warning: could not locate '%s'.  System error message: %s"
+msgstr "peringatan: tidak dapat mengalokasikan '%s'. Pesan error sistem: %s"
+
+#: objcopy.c:3862
+#, c-format
+msgid "warning: could not create temporary file whilst copying '%s', (error: %s)"
+msgstr "peringatan: tidak dapat membuat berkas sementara ketika menyalin '%s', (error: %s)"
+
+#: objcopy.c:3890 objcopy.c:3904
+#, c-format
+msgid "%s %s%c0x%s never used"
+msgstr "%s %s%c0x%s tidak pernah digunakan"
+
+#: objdump.c:187
+#, c-format
+msgid "Usage: %s <option(s)> <file(s)>\n"
+msgstr "Penggunaan: %s <pilihan> <berkas>\n"
+
+#: objdump.c:188
+#, c-format
+msgid " Display information from object <file(s)>.\n"
+msgstr " Menampilkan informasi dari objek <berkas>.\n"
+
+#: objdump.c:189
+#, c-format
+msgid " At least one of the following switches must be given:\n"
+msgstr " Paling tidak satu dari switch berikut harus diberikan:\n"
+
+#: objdump.c:190
+#, c-format
+msgid ""
+"  -a, --archive-headers    Display archive header information\n"
+"  -f, --file-headers       Display the contents of the overall file header\n"
+"  -p, --private-headers    Display object format specific file header contents\n"
+"  -h, --[section-]headers  Display the contents of the section headers\n"
+"  -x, --all-headers        Display the contents of all headers\n"
+"  -d, --disassemble        Display assembler contents of executable sections\n"
+"  -D, --disassemble-all    Display assembler contents of all sections\n"
+"  -S, --source             Intermix source code with disassembly\n"
+"  -s, --full-contents      Display the full contents of all sections requested\n"
+"  -g, --debugging          Display debug information in object file\n"
+"  -e, --debugging-tags     Display debug information using ctags style\n"
+"  -G, --stabs              Display (in raw form) any STABS info in the file\n"
+"  -W[lLiaprmfFsoR] or\n"
+"  --dwarf[=rawline,=decodedline,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=str,=loc,=Ranges]\n"
+"                           Display DWARF info in the file\n"
+"  -t, --syms               Display the contents of the symbol table(s)\n"
+"  -T, --dynamic-syms       Display the contents of the dynamic symbol table\n"
+"  -r, --reloc              Display the relocation entries in the file\n"
+"  -R, --dynamic-reloc      Display the dynamic relocation entries in the file\n"
+"  @<file>                  Read options from <file>\n"
+"  -v, --version            Display this program's version number\n"
+"  -i, --info               List object formats and architectures supported\n"
+"  -H, --help               Display this information\n"
+msgstr ""
+"  -a, --archive-headers    Tampilkan informasi archive header\n"
+"  -f, --file-headers       Tampilkan isi dari seluruh berkas header\n"
+"  -p, --private-headers    Tampilkan format objek spesifik isi berkas header\n"
+"  -h, --[section-]headers  Tampilkan isi dari daerah header\n"
+"  -x, --all-headers        Tampilkan isi dari seluruh header\n"
+"  -d, --disassemble        Tampilkan isi rakitan dari daerah executable\n"
+"  -D, --disassemble-all    Tampilkan isi rakitan dari seluruh bagian\n"
+"  -S, --source             Campur kode program dengan pembongkaran\n"
+"  -s, --full-contents      Tampilkan isi penuh dari seluruh bagian yang diminta\n"
+"  -g, --debugging          Tampilkan informasi debug dalam berkas objek\n"
+"  -e, --debugging-tags     Tampilkan informasi debug menggunakan gaya ctags\n"
+"  -G, --stabs              Tampilkan (dalam bentuk mentah) informasi STABS apapun dalam berkas\n"
+"  -W, --dwarf              Tampilkan informasi DWARF dalam berkas\n"
+"  --dwarf[=rawline,=decodedline,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=str,=loc,=Ranges]\n"
+"                           Tampilkan informasi DWARF yang ada dalam berkas\n"
+"  -t, --syms               Tampilkan isi dari tabel simbol\n"
+"  -T, --dynamic-syms       Tampilkan isi dari tabel simbol dinamis\n"
+"  -r, --reloc              Tampilkan masukan relokasi dalam berkas\n"
+"  -R, --dynamic-reloc      Tampilkan masukan relokasi dinamis dalam berkas\n"
+"  @<berkas>                Baca pilihan dari <berkas>\n"
+"  -v, --version            Tampilkan nomor versi aplikasi ini\n"
+"  -i, --info               Daftar format dan arsitektur objek yang didukung\n"
+"  -H, --help               Tampilkan informasi ini\n"
+
+#: objdump.c:217
+#, c-format
+msgid ""
+"\n"
+" The following switches are optional:\n"
+msgstr ""
+"\n"
+" Switch berikut adalah opsional:\n"
+
+#: objdump.c:218
+#, c-format
+msgid ""
+"  -b, --target=BFDNAME           Specify the target object format as BFDNAME\n"
+"  -m, --architecture=MACHINE     Specify the target architecture as MACHINE\n"
+"  -j, --section=NAME             Only display information for section NAME\n"
+"  -M, --disassembler-options=OPT Pass text OPT on to the disassembler\n"
+"  -EB --endian=big               Assume big endian format when disassembling\n"
+"  -EL --endian=little            Assume little endian format when disassembling\n"
+"      --file-start-context       Include context from start of file (with -S)\n"
+"  -I, --include=DIR              Add DIR to search list for source files\n"
+"  -l, --line-numbers             Include line numbers and filenames in output\n"
+"  -F, --file-offsets             Include file offsets when displaying information\n"
+"  -C, --demangle[=STYLE]         Decode mangled/processed symbol names\n"
+"                                  The STYLE, if specified, can be `auto', `gnu',\n"
+"                                  `lucid', `arm', `hp', `edg', `gnu-v3', `java'\n"
+"                                  or `gnat'\n"
+"  -w, --wide                     Format output for more than 80 columns\n"
+"  -z, --disassemble-zeroes       Do not skip blocks of zeroes when disassembling\n"
+"      --start-address=ADDR       Only process data whose address is >= ADDR\n"
+"      --stop-address=ADDR        Only process data whose address is <= ADDR\n"
+"      --prefix-addresses         Print complete address alongside disassembly\n"
+"      --[no-]show-raw-insn       Display hex alongside symbolic disassembly\n"
+"      --insn-width=WIDTH         Display WIDTH bytes on a signle line for -d\n"
+"      --adjust-vma=OFFSET        Add OFFSET to all displayed section addresses\n"
+"      --special-syms             Include special symbols in symbol dumps\n"
+"      --prefix=PREFIX            Add PREFIX to absolute paths for -S\n"
+"      --prefix-strip=LEVEL       Strip initial directory names for -S\n"
+"\n"
+msgstr ""
+"  -b, --target=BFDNAME           Spesifikasikan format objek target sebagai BFDNAME\n"
+"  -m, --architecture=MESIN       Spesifikasikan target arsitektur sebagai MESIN\n"
+"  -j, --section=NAMA             Hanya tampilkan informasi untuk daerah NAMA\n"
+"  -M, --disassembler-options=OPT Lewatkan teks OPT ke pembongkar\n"
+"  -EB --endian=big               Asumsikan format big endian ketika membongkar\n"
+"  -EL --endian=little            Asumsikan format little endian ketika membongkar\n"
+"      --file-start-context       Masukan konteks dari awal dari berkas (dengan -S)\n"
+"  -I, --include=DIR              Tambahkan ke daftar pencarian DIR untuk berkas sumber\n"
+"  -l, --line-numbers             Masukan nomor baris dan nama berkas dalam keluaran\n"
+"  -F, --file-offsets             Masukan berkas ofset ketika menampilkan informasi\n"
+"  -C, --dimangle[=GAYA]          Dekode mangled/proses nama simbol\n"
+"                                 GAYA, jika dispesifikasikan, dapat berupa `auto', `gnu',\n"
+"                                 `lucid', `arm', `hp', `edg', `gnu-v3', `java'\n"
+"                                 atau `gnat'\n"
+"  -w, --wide                     Format keluaran untuk lebih dari 80 kolom\n"
+"  -z, --disassemble-zeroes       Jangan lewati blok dari nol ketika membongkar\n"
+"      --start-address=ALAMAT     Hanya proses data yang alamatnya >= ALAMAT\n"
+"      --stop-address=ALAMAT      Hanya proses data yang alamatnya <= ALAMAT\n"
+"      --prefix-addresses         Tampilkan alamat lengkap disamping pembongkaran\n"
+"      --[no-]show-raw-insn       Tampilkan heksa disamping simbol terbongkar\n"
+"      --adjust-vma=OFFSET        Tambahkan OFFSET ke seluruh alamat daerah yang ditampilkan\n"
+"      --special-syms             Masukan simbol spesial dalam simbol dumps\n"
+"      --prefix=AWALAN            Tambahkan AWALAH ke jalur absolut untuk -S\n"
+"      --prefix-strip=TINGKAT     Hapus nama direktori awal untuk -S\n"
+"\n"
+
+#: objdump.c:433
+#, c-format
+msgid "Sections:\n"
+msgstr "Daerah:\n"
+
+#: objdump.c:436 objdump.c:440
+#, c-format
+msgid "Idx Name          Size      VMA       LMA       File off  Algn"
+msgstr "Idx Nama          Ukuran    VMA       LMA       Berkas off Algn"
+
+#: objdump.c:442
+#, c-format
+msgid "Idx Name          Size      VMA               LMA               File off  Algn"
+msgstr "Idx Nama          Ukuran    VMA               LMA               Berkas off   Algn"
+
+#: objdump.c:446
+#, c-format
+msgid "  Flags"
+msgstr "  Tanda"
+
+#: objdump.c:448
+#, c-format
+msgid "  Pg"
+msgstr "  Pg"
+
+#: objdump.c:491
+#, c-format
+msgid "%s: not a dynamic object"
+msgstr "%s: bukan sebuah objek dinamis"
+
+#: objdump.c:916 objdump.c:940
+#, c-format
+msgid " (File Offset: 0x%lx)"
+msgstr " (Berkas Ofset: 0x%lx)"
+
+#: objdump.c:1885
+#, c-format
+msgid ""
+"\n"
+"Disassembly of section %s:\n"
+msgstr ""
+"\n"
+"Pembongkaran dari daerah %s:\n"
+
+#: objdump.c:2058
+#, c-format
+msgid "Can't use supplied machine %s"
+msgstr "Tidak dapat menggunakan mesin %s yang diberikan"
+
+#: objdump.c:2077
+#, c-format
+msgid "Can't disassemble for architecture %s\n"
+msgstr "Tidak dapat membongkar untuk arsitektur %s\n"
+
+#: objdump.c:2168
+#, c-format
+msgid ""
+"\n"
+"Can't get contents for section '%s'.\n"
+msgstr ""
+"\n"
+"Tidak dapat memperoleh isi dari daerah '%s'.\n"
+
+#: objdump.c:2179
+#, c-format
+msgid ""
+"\n"
+"Can't uncompress section '%s'.\n"
+msgstr ""
+"\n"
+"Tidak dapat mengekstrak daerah '%s'.\n"
+
+#: objdump.c:2307
+#, c-format
+msgid ""
+"No %s section present\n"
+"\n"
+msgstr ""
+"Tidak ada %s daerah ada\n"
+"\n"
+
+#: objdump.c:2316
+#, c-format
+msgid "Reading %s section of %s failed: %s"
+msgstr "Membaca daerah %s dari %s gagal: %s"
+
+#: objdump.c:2360
+#, c-format
+msgid ""
+"Contents of %s section:\n"
+"\n"
+msgstr ""
+"Isi dari daerah %s:\n"
+"\n"
+
+#: objdump.c:2491
+#, c-format
+msgid "architecture: %s, "
+msgstr "arsitektur: %s, "
+
+#: objdump.c:2494
+#, c-format
+msgid "flags 0x%08x:\n"
+msgstr "tanda 0x%08x:\n"
+
+#: objdump.c:2508
+#, c-format
+msgid ""
+"\n"
+"start address 0x"
+msgstr ""
+"\n"
+"awal alamat 0x"
+
+#: objdump.c:2571
+#, c-format
+msgid "Contents of section %s:"
+msgstr "Isi dari daerah %s:"
+
+#: objdump.c:2573
+#, c-format
+msgid "  (Starting at file offset: 0x%lx)"
+msgstr "  (Awal dari berkas ofset: 0x%lx)"
+
+#: objdump.c:2680
+#, c-format
+msgid "no symbols\n"
+msgstr "tidak ada simbol\n"
+
+#: objdump.c:2687
+#, c-format
+msgid "no information for symbol number %ld\n"
+msgstr "tidak ada informasi untuk nomor simbol %ld\n"
+
+#: objdump.c:2690
+#, c-format
+msgid "could not determine the type of symbol number %ld\n"
+msgstr "tidak dapat menentukan tipe dari nomor simbol %ld\n"
+
+#: objdump.c:2970
+#, c-format
+msgid ""
+"\n"
+"%s:     file format %s\n"
+msgstr ""
+"\n"
+"%s:     format berkas %s\n"
+
+#: objdump.c:3028
+#, c-format
+msgid "%s: printing debugging information failed"
+msgstr "%s: menampilkan informasi debug gagal"
+
+#: objdump.c:3128
+#, c-format
+msgid "In archive %s:\n"
+msgstr "Dalam archive %s:\n"
+
+#: objdump.c:3244
+msgid "error: the start address should be before the end address"
+msgstr "error: awal dari alamat seharusnya sebelum akhir dari alamat"
+
+#: objdump.c:3249
+msgid "error: the stop address should be after the start address"
+msgstr "error: stop alamat seharusnya setelah awal alamat"
+
+#: objdump.c:3261
+msgid "error: prefix strip must be non-negative"
+msgstr "error: awalan strip harus tidak negatif"
+
+#: objdump.c:3266
+msgid "error: instruction width must be positive"
+msgstr "error: panjang instruksi harus positif"
+
+#: objdump.c:3275
+msgid "unrecognized -E option"
+msgstr "pilihan -E tidak dikenal"
+
+#: objdump.c:3286
+#, c-format
+msgid "unrecognized --endian type `%s'"
+msgstr "tipe --endian `%s' tidak dikenal"
+
+#: rclex.c:197
+msgid "invalid value specified for pragma code_page.\n"
+msgstr "nilai yang dispesifikasikan untuk prama code_page tidak valid.\n"
+
+#: rdcoff.c:198
+#, c-format
+msgid "parse_coff_type: Bad type code 0x%x"
+msgstr "parse_coff_type: Tipe kode 0x%x buruk"
+
+#: rdcoff.c:406 rdcoff.c:511 rdcoff.c:699
+#, c-format
+msgid "bfd_coff_get_syment failed: %s"
+msgstr "bfd_coff_get_syment gagal: %s"
+
+#: rdcoff.c:422 rdcoff.c:719
+#, c-format
+msgid "bfd_coff_get_auxent failed: %s"
+msgstr "bfd_coff_get_auxent gagal: %s"
+
+#: rdcoff.c:786
+#, c-format
+msgid "%ld: .bf without preceding function"
+msgstr "%ld: .bf tanpa fungsi yang mengawali"
+
+#: rdcoff.c:836
+#, c-format
+msgid "%ld: unexpected .ef\n"
+msgstr "%ld: tidak diduga .ef\n"
+
+#: rddbg.c:88
+#, c-format
+msgid "%s: no recognized debugging information"
+msgstr "%s: tidak dikenali informasi debug"
+
+#: rddbg.c:402
+#, c-format
+msgid "Last stabs entries before error:\n"
+msgstr "Akhir masukan stab sebelum error:\n"
+
+#: readelf.c:297
+#, c-format
+msgid "Unable to seek to 0x%lx for %s\n"
+msgstr "Tidak dapat mencari ke 0x%lx untuk %s\n"
+
+#: readelf.c:312
+#, c-format
+msgid "Out of memory allocating 0x%lx bytes for %s\n"
+msgstr "Kehabisan alokasi dari memori 0x%lx bytes untuk %s\n"
+
+#: readelf.c:322
+#, c-format
+msgid "Unable to read in 0x%lx bytes of %s\n"
+msgstr "Tidak dapat membaca dalam 0x%lx bytes dari %s\n"
+
+#: readelf.c:640
+msgid "Don't know about relocations on this machine architecture\n"
+msgstr "Tidak tahu mengenai relokasi di arsitektur mesin ini\n"
+
+#: readelf.c:660 readelf.c:688 readelf.c:754 readelf.c:782
+msgid "relocs"
+msgstr "relokasi"
+
+#: readelf.c:671 readelf.c:699 readelf.c:765 readelf.c:793
+msgid "out of memory parsing relocs\n"
+msgstr "kehabisan memori parsing relokasi\n"
+
+#: readelf.c:898
+#, c-format
+msgid " Offset     Info    Type                Sym. Value  Symbol's Name + Addend\n"
+msgstr " Ofset      Info    Tipe                Sim. Nilai  Nama Simbol   + Addend\n"
+
+#: readelf.c:900
+#, c-format
+msgid " Offset     Info    Type            Sym.Value  Sym. Name + Addend\n"
+msgstr " Ofset      Info    Tipe            Nilai.Sim  Nama Sim  + Addend\n"
+
+#: readelf.c:905
+#, c-format
+msgid " Offset     Info    Type                Sym. Value  Symbol's Name\n"
+msgstr " Ofset      Info    Tipe                Nilai Sim   Nama Simbol\n"
+
+#: readelf.c:907
+#, c-format
+msgid " Offset     Info    Type            Sym.Value  Sym. Name\n"
+msgstr " Ofset      Info    Tipe            Nilai.Sim  Nama Sim.\n"
+
+#: readelf.c:915
+#, c-format
+msgid "    Offset             Info             Type               Symbol's Value  Symbol's Name + Addend\n"
+msgstr "    Ofset              Info             Tipe               Nilai Simbol   Nama Simbol + Addend\n"
+
+#: readelf.c:917
+#, c-format
+msgid "  Offset          Info           Type           Sym. Value    Sym. Name + Addend\n"
+msgstr "  Ofset           Info           Tipe           Nilai Sim.    Nama Sim. + Addend\n"
+
+#: readelf.c:922
+#, c-format
+msgid "    Offset             Info             Type               Symbol's Value  Symbol's Name\n"
+msgstr "    Ofset              Info             Tipe               Nilai Simbol Nama Simbol\n"
+
+#: readelf.c:924
+#, c-format
+msgid "  Offset          Info           Type           Sym. Value    Sym. Name\n"
+msgstr "  Ofset           Info           Tipe           Nilai Sim.    Nama Sim.\n"
+
+#: readelf.c:1211 readelf.c:1370 readelf.c:1378
+#, c-format
+msgid "unrecognized: %-7lx"
+msgstr "tidak dikenal: %-7lx"
+
+#: readelf.c:1236
+#, c-format
+msgid "<unknown addend: %lx>"
+msgstr "<tidak dikenal addend: %lx>"
+
+#: readelf.c:1328
+#, c-format
+msgid "<string table index: %3ld>"
+msgstr "<string tabel indeks: %3ld>"
+
+#: readelf.c:1330
+#, c-format
+msgid "<corrupt string table index: %3ld>"
+msgstr "<korup indeks tabel string: %3ld>"
+
+#: readelf.c:1703
+#, c-format
+msgid "Processor Specific: %lx"
+msgstr "Prosesor Spesifik: %lx"
+
+#: readelf.c:1727
+#, c-format
+msgid "Operating System specific: %lx"
+msgstr "Sistem Operasi spesifik: %lx"
+
+#: readelf.c:1731 readelf.c:2613
+#, c-format
+msgid "<unknown>: %lx"
+msgstr "<tidak diketahui>: %lx"
+
+#: readelf.c:1744
+msgid "NONE (None)"
+msgstr "KOSONG (Kosong)"
+
+#: readelf.c:1745
+msgid "REL (Relocatable file)"
+msgstr "REL (Berkas dapat direlokasi)"
+
+#: readelf.c:1746
+msgid "EXEC (Executable file)"
+msgstr "EXEC (Berkas dapat dieksekusi)"
+
+#: readelf.c:1747
+msgid "DYN (Shared object file)"
+msgstr "DYN (Berkas objek terbagi)"
+
+#: readelf.c:1748
+msgid "CORE (Core file)"
+msgstr "CORE (Berkas core)"
+
+#: readelf.c:1752
+#, c-format
+msgid "Processor Specific: (%x)"
+msgstr "Prosesor Spesifik: (%x)"
+
+#: readelf.c:1754
+#, c-format
+msgid "OS Specific: (%x)"
+msgstr "OS Spesifik: (%x)"
+
+#: readelf.c:1756 readelf.c:2830
+#, c-format
+msgid "<unknown>: %x"
+msgstr "<tidak dikenal>: %x"
+
+#: readelf.c:1768
+msgid "None"
+msgstr "Kosong"
+
+#: readelf.c:1879
+#, c-format
+msgid "<unknown>: 0x%x"
+msgstr "<tidak dikenal>: 0x%x"
+
+#: readelf.c:2136
+msgid "unknown"
+msgstr "tidak dikenal"
+
+#: readelf.c:2137
+msgid "unknown mac"
+msgstr "tidak dikenal mac"
+
+#: readelf.c:2450
+msgid "Standalone App"
+msgstr "Standalone App"
+
+#: readelf.c:2453 readelf.c:3159 readelf.c:3175
+#, c-format
+msgid "<unknown: %x>"
+msgstr "<tidak dikenal: %x>"
+
+#: readelf.c:2878
+#, c-format
+msgid "Usage: readelf <option(s)> elf-file(s)\n"
+msgstr "Penggunaan: readelf <pilihan> berkas-elf\n"
+
+#: readelf.c:2879
+#, c-format
+msgid " Display information about the contents of ELF format files\n"
+msgstr " Menampilkan informasi mengenai isi dari berkas format ELF\n"
+
+#: readelf.c:2880
+#, c-format
+msgid ""
+" Options are:\n"
+"  -a --all               Equivalent to: -h -l -S -s -r -d -V -A -I\n"
+"  -h --file-header       Display the ELF file header\n"
+"  -l --program-headers   Display the program headers\n"
+"     --segments          An alias for --program-headers\n"
+"  -S --section-headers   Display the sections' header\n"
+"     --sections          An alias for --section-headers\n"
+"  -g --section-groups    Display the section groups\n"
+"  -t --section-details   Display the section details\n"
+"  -e --headers           Equivalent to: -h -l -S\n"
+"  -s --syms              Display the symbol table\n"
+"      --symbols          An alias for --syms\n"
+"  -n --notes             Display the core notes (if present)\n"
+"  -r --relocs            Display the relocations (if present)\n"
+"  -u --unwind            Display the unwind info (if present)\n"
+"  -d --dynamic           Display the dynamic section (if present)\n"
+"  -V --version-info      Display the version sections (if present)\n"
+"  -A --arch-specific     Display architecture specific information (if any).\n"
+"  -c --archive-index     Display the symbol/file index in an archive\n"
+"  -D --use-dynamic       Use the dynamic section info when displaying symbols\n"
+"  -x --hex-dump=<number|name>\n"
+"                         Dump the contents of section <number|name> as bytes\n"
+"  -p --string-dump=<number|name>\n"
+"                         Dump the contents of section <number|name> as strings\n"
+"  -R --relocated-dump=<number|name>\n"
+"                         Dump the contents of section <number|name> as relocated bytes\n"
+"  -w[lLiaprmfFsoR] or\n"
+"  --debug-dump[=rawline,=decodedline,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=str,=loc,=Ranges]\n"
+"                         Display the contents of DWARF2 debug sections\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -a --all               Sama dengan: -h -l -S -s -r -d -V -A -I\n"
+"  -h --file-header       Tampilkan ELF file header\n"
+"  -l --program-headers   Tampilkan program header\n"
+"     --segments          Sebuah alias untuk --program-headers\n"
+"  -S --section-headers   Tampilkan section headers\n"
+"     --sections          Sebuah alias untuk --section-headers\n"
+"  -g --section-groups    Tampilkan section groups\n"
+"  -t --section-details   Tampilkan detail daerah\n"
+"  -e --headers           Sama dengan: -h -l -S\n"
+"  -s --syms              Tampilkan tabel simbol\n"
+"     --symbols           Sebuah alias untuk --syms\n"
+"  -n --notes             Tampilkan core notes (jika ada)\n"
+"  -r --relocs            Tampilkan relokasi (jika ada)\n"
+"  -u --unwind            Tampilkan informasi unwind (jika ada)\n"
+"  -d --dynamic           Tampilkan daerah dinamis (jika ada)\n"
+"  -V --version-info      Tampilkan daerah versi (jika ada)\n"
+"  -A --arch-specific     Tampilkan informasi spesifik arsitektur (jika ada).\n"
+"  -c --archive-index     Tampilkan simbol/berkas indeks dalam sebuah archive\n"
+"  -D --use-dynamic       Gunakan informasi daerah dinamis ketika menampilkan simbol\n"
+"  -x --hex-dump=<nomor|nama>\n"
+"                         Dump isi dari daerah <nomor|nama> sebagai bytes\n"
+"  -p --string-dump=<nomor|nama>\n"
+"                         Dump isi dari daerah <nomor|nama> sebagai strings\n"
+"  -R --relocated-dump=<nomor|nama>\n"
+"                         Dump isi dari daerah <nomor|nama> sebagai bytes yang direlokasi\n"
+"  -w[lLiaprmfFsoR] atau\n"
+"  --debug-dump[=rawline,=decodedline,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=str,=loc,=Ranges]\n"
+"                         Tampilkan isi dari daerah debug DWARF2\n"
+
+#: readelf.c:2910
+#, c-format
+msgid ""
+"  -i --instruction-dump=<number|name>\n"
+"                         Disassemble the contents of section <number|name>\n"
+msgstr ""
+"  -i --instruction-dump=<nomor|nama>\n"
+"                         Bongkar isi dari daerah <nomor|nama>\n"
+
+#: readelf.c:2914
+#, c-format
+msgid ""
+"  -I --histogram         Display histogram of bucket list lengths\n"
+"  -W --wide              Allow output width to exceed 80 characters\n"
+"  @<file>                Read options from <file>\n"
+"  -H --help              Display this information\n"
+"  -v --version           Display the version number of readelf\n"
+msgstr ""
+"  -I --histogram         Tampilkan histogram dari daftar panjang bucket\n"
+"  -W --wide              Ijinkan lebar keluaran untuk melebihi 80 karakter\n"
+"  @<berkas>              Baca pilihan dari <berkas>\n"
+"  -H --help              Tampilkan informasi ini\n"
+"  -v --version           Tampilkan nomor versi dari readelf\n"
+
+#: readelf.c:2942 readelf.c:2970 readelf.c:2974 readelf.c:11443
+msgid "Out of memory allocating dump request table.\n"
+msgstr "Kehabisan memori mengalokasikan permintaan dump tabel.\n"
+
+#: readelf.c:3129
+#, c-format
+msgid "Invalid option '-%c'\n"
+msgstr "Pilihan tidak valid '-%c'\n"
+
+#: readelf.c:3143
+msgid "Nothing to do.\n"
+msgstr "Tidak ada yang dilakukan.\n"
+
+#: readelf.c:3155 readelf.c:3171 readelf.c:6440
+msgid "none"
+msgstr "kosong"
+
+#: readelf.c:3172
+msgid "2's complement, little endian"
+msgstr "2's komplemen, little endian"
+
+#: readelf.c:3173
+msgid "2's complement, big endian"
+msgstr "2's komplemen, big endian"
+
+#: readelf.c:3191
+msgid "Not an ELF file - it has the wrong magic bytes at the start\n"
+msgstr "Bukan sebuah berkas ELF - ini memiliki magic bytes yang salah di awal\n"
+
+#: readelf.c:3201
+#, c-format
+msgid "ELF Header:\n"
+msgstr "ELF Header:\n"
+
+#: readelf.c:3202
+#, c-format
+msgid "  Magic:   "
+msgstr "  Magik:   "
+
+#: readelf.c:3206
+#, c-format
+msgid "  Class:                             %s\n"
+msgstr "  Kelas:                             %s\n"
+
+#: readelf.c:3208
+#, c-format
+msgid "  Data:                              %s\n"
+msgstr "  Data:                              %s\n"
+
+#: readelf.c:3210
+#, c-format
+msgid "  Version:                           %d %s\n"
+msgstr "  Versi:                             %d %s\n"
+
+#: readelf.c:3217
+#, c-format
+msgid "  OS/ABI:                            %s\n"
+msgstr "  OS/ABI:                            %s\n"
+
+#: readelf.c:3219
+#, c-format
+msgid "  ABI Version:                       %d\n"
+msgstr "  Versi ABI:                         %d\n"
+
+#: readelf.c:3221
+#, c-format
+msgid "  Type:                              %s\n"
+msgstr "  Tipe:                              %s\n"
+
+#: readelf.c:3223
+#, c-format
+msgid "  Machine:                           %s\n"
+msgstr "  Mesin:                             %s\n"
+
+#: readelf.c:3225
+#, c-format
+msgid "  Version:                           0x%lx\n"
+msgstr "  Versi:                             0x%lx\n"
+
+#: readelf.c:3228
+#, c-format
+msgid "  Entry point address:               "
+msgstr "  Alamat titik masuk:                "
+
+#: readelf.c:3230
+#, c-format
+msgid ""
+"\n"
+"  Start of program headers:          "
+msgstr ""
+"\n"
+"  Awal dari aplikasi headers:         "
+
+#: readelf.c:3232
+#, c-format
+msgid ""
+" (bytes into file)\n"
+"  Start of section headers:          "
+msgstr ""
+" (bytes kedalam berkas)\n"
+"  Awal dari header bagian:           "
+
+#: readelf.c:3234
+#, c-format
+msgid " (bytes into file)\n"
+msgstr " (bytes kedalam berkas)\n"
+
+#: readelf.c:3236
+#, c-format
+msgid "  Flags:                             0x%lx%s\n"
+msgstr "  Tanda:                             0x%lx%s\n"
+
+#: readelf.c:3239
+#, c-format
+msgid "  Size of this header:               %ld (bytes)\n"
+msgstr "  Ukuran dari header ini:            %ld (bytes)\n"
+
+#: readelf.c:3241
+#, c-format
+msgid "  Size of program headers:           %ld (bytes)\n"
+msgstr "  Ukuran dari aplikasi header:       %ld (bytes)\n"
+
+#: readelf.c:3243
+#, c-format
+msgid "  Number of program headers:         %ld\n"
+msgstr "  Jumlah dari aplikasi header:       %ld\n"
+
+#: readelf.c:3245
+#, c-format
+msgid "  Size of section headers:           %ld (bytes)\n"
+msgstr "  Ukuran dari header daerah:         %ld (bytes)\n"
+
+#: readelf.c:3247
+#, c-format
+msgid "  Number of section headers:         %ld"
+msgstr "  Jumlah dari header daerah:         %ld"
+
+#: readelf.c:3252
+#, c-format
+msgid "  Section header string table index: %ld"
+msgstr "  Indeks tabel string daerah header: %ld"
+
+#: readelf.c:3289 readelf.c:3322
+msgid "program headers"
+msgstr "aplikasi header"
+
+#: readelf.c:3360 readelf.c:3658 readelf.c:3699 readelf.c:3758 readelf.c:3823
+#: readelf.c:4494 readelf.c:4518 readelf.c:5770 readelf.c:5815 readelf.c:6014
+#: readelf.c:7087 readelf.c:7101 readelf.c:7611 readelf.c:7627 readelf.c:7670
+#: readelf.c:7695 readelf.c:9642 readelf.c:9834 readelf.c:10362
+#: readelf.c:10736 readelf.c:10750 readelf.c:11109
+msgid "Out of memory\n"
+msgstr "Kehabisan memori\n"
+
+#: readelf.c:3387
+#, c-format
+msgid ""
+"\n"
+"There are no program headers in this file.\n"
+msgstr ""
+"\n"
+"Tidak ada aplikasi header dalam berkas ini.\n"
+
+#: readelf.c:3393
+#, c-format
+msgid ""
+"\n"
+"Elf file type is %s\n"
+msgstr ""
+"\n"
+"Tipe berkas ELF adalah %s\n"
+
+#: readelf.c:3394
+#, c-format
+msgid "Entry point "
+msgstr "Titik masukan "
+
+#: readelf.c:3396
+#, c-format
+msgid ""
+"\n"
+"There are %d program headers, starting at offset "
+msgstr ""
+"\n"
+"Tidak ada %d aplikasi header, dimulai di ofset "
+
+#: readelf.c:3408 readelf.c:3410
+#, c-format
+msgid ""
+"\n"
+"Program Headers:\n"
+msgstr ""
+"\n"
+"Aplikasi header:\n"
+
+#: readelf.c:3414
+#, c-format
+msgid "  Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align\n"
+msgstr "  Tipe           Ofset    AlamatMaya AlamatPisik UkuranBerkas UkuranMemori Flg Align\n"
+
+#: readelf.c:3417
+#, c-format
+msgid "  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align\n"
+msgstr "  Tipe           Ofset    AlamatMaya         AlamatPisik        UkuranBerkas UkuranMemori Flg Align\n"
+
+#: readelf.c:3421
+#, c-format
+msgid "  Type           Offset             VirtAddr           PhysAddr\n"
+msgstr "  Tipe           Ofset              AlamatMaya         AlamatPisik\n"
+
+#: readelf.c:3423
+#, c-format
+msgid "                 FileSiz            MemSiz              Flags  Align\n"
+msgstr "                 UkuranBerkas       UkuranMemori        Tanda  Align\n"
+
+#: readelf.c:3516
+msgid "more than one dynamic segment\n"
+msgstr "lebih dari satu argumen dinamis\n"
+
+#: readelf.c:3532
+msgid "no .dynamic section in the dynamic segment\n"
+msgstr "tidak ada daerah .dinamis dalam segmen dinamis\n"
+
+#: readelf.c:3547
+msgid "the .dynamic section is not contained within the dynamic segment\n"
+msgstr "daerah dinamis tidak berisi dalam segmen dinamis\n"
+
+#: readelf.c:3550
+msgid "the .dynamic section is not the first section in the dynamic segment.\n"
+msgstr "daerah dinmasi bukan daerah pertama dalam segmen dinamis\n"
+
+#: readelf.c:3558
+msgid "Unable to find program interpreter name\n"
+msgstr "Tidak dapat menemukan nama aplikasi interpretasi\n"
+
+#: readelf.c:3565
+msgid "Internal error: failed to create format string to display program interpreter\n"
+msgstr "Internal error: gagal membuat string format untuk menampilkan aplikasi interpretasi\n"
+
+#: readelf.c:3569
+msgid "Unable to read program interpreter name\n"
+msgstr "Tidak dapat membaca nama aplikasi interpretasi\n"
+
+#: readelf.c:3572
+#, c-format
+msgid ""
+"\n"
+"      [Requesting program interpreter: %s]"
+msgstr ""
+"\n"
+"      [Meminta aplikasi interpretasi: %s]"
+
+#: readelf.c:3584
+#, c-format
+msgid ""
+"\n"
+" Section to Segment mapping:\n"
+msgstr ""
+"\n"
+" Pemetaan daerah ke segmen:\n"
+
+#: readelf.c:3585
+#, c-format
+msgid "  Segment Sections...\n"
+msgstr "  Daerah Segmen...\n"
+
+#: readelf.c:3620
+msgid "Cannot interpret virtual addresses without program headers.\n"
+msgstr "Tidak dapat menginterpretasikan alamat maya tanpa aplikasi header.\n"
+
+#: readelf.c:3636
+#, c-format
+msgid "Virtual address 0x%lx not located in any PT_LOAD segment.\n"
+msgstr "Alamat maya 0x%lx tidak dapat dilokasikan dalam segmen PT_LOAD apapun.\n"
+
+#: readelf.c:3650 readelf.c:3691
+msgid "section headers"
+msgstr "header daerah"
+
+#: readelf.c:3735 readelf.c:3800
+msgid "symbols"
+msgstr "simbol"
+
+#: readelf.c:3745 readelf.c:3810
+msgid "symtab shndx"
+msgstr "simtab shndx"
+
+#: readelf.c:4070 readelf.c:4478
+#, c-format
+msgid ""
+"\n"
+"There are no sections in this file.\n"
+msgstr ""
+"\n"
+"Tidak ada daerah dalam berkas ini.\n"
+
+#: readelf.c:4076
+#, c-format
+msgid "There are %d section headers, starting at offset 0x%lx:\n"
+msgstr "Tidak ada header daerah %d, dimulai di ofset 0x%lx:\n"
+
+#: readelf.c:4096 readelf.c:4595 readelf.c:4821 readelf.c:5116 readelf.c:5524
+#: readelf.c:7421
+msgid "string table"
+msgstr "tabel string"
+
+#: readelf.c:4163
+#, c-format
+msgid "Section %d has invalid sh_entsize %lx (expected %lx)\n"
+msgstr "Daerah %d memiliki sh_entsize %lx tidak valid (diduga %lx)\n"
+
+#: readelf.c:4183
+msgid "File contains multiple dynamic symbol tables\n"
+msgstr "Berkas berisi multiple tabel simbol dinamis\n"
+
+#: readelf.c:4196
+msgid "File contains multiple dynamic string tables\n"
+msgstr "Berkas berisi multiple tabel string dinamis\n"
+
+#: readelf.c:4201
+msgid "dynamic strings"
+msgstr "string dinamis"
+
+#: readelf.c:4208
+msgid "File contains multiple symtab shndx tables\n"
+msgstr "Berksa berisi multiple simtab shndx tabel\n"
+
+#: readelf.c:4259
+#, c-format
+msgid ""
+"\n"
+"Section Headers:\n"
+msgstr ""
+"\n"
+"Header Daerah:\n"
+
+#: readelf.c:4261
+#, c-format
+msgid ""
+"\n"
+"Section Header:\n"
+msgstr ""
+"\n"
+"Header Daerah:\n"
+
+#: readelf.c:4267 readelf.c:4278 readelf.c:4289
+#, c-format
+msgid "  [Nr] Name\n"
+msgstr "  [Nr] Nama\n"
+
+#: readelf.c:4268
+#, c-format
+msgid "       Type            Addr     Off    Size   ES   Lk Inf Al\n"
+msgstr "       Tipe            Alamat   Ofset  Ukuran ES   Lk Inf Al\n"
+
+#: readelf.c:4272
+#, c-format
+msgid "  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al\n"
+msgstr "  [Nr] Nama              Tipe            Alamat   Ofset  Ukuran ES Flg Lk Inf Al\n"
+
+#: readelf.c:4279
+#, c-format
+msgid "       Type            Address          Off    Size   ES   Lk Inf Al\n"
+msgstr "       Tipe            Alamat           Ofset  Ukuran ES   Lk Inf Al\n"
+
+#: readelf.c:4283
+#, c-format
+msgid "  [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al\n"
+msgstr "  [Nr] Nama              Tipe            Alamat           Ofset  Ukuran ES Flg Lk Inf Al\n"
+
+#: readelf.c:4290
+#, c-format
+msgid "       Type              Address          Offset            Link\n"
+msgstr "       Tipe              Alamat           Ofset             Link\n"
+
+#: readelf.c:4291
+#, c-format
+msgid "       Size              EntSize          Info              Align\n"
+msgstr "       Ukuran            UkuranMasuk      Info              Align\n"
+
+#: readelf.c:4295
+#, c-format
+msgid "  [Nr] Name              Type             Address           Offset\n"
+msgstr "  [Nr] Nama              Tipe             Alamat            Ofset\n"
+
+#: readelf.c:4296
+#, c-format
+msgid "       Size              EntSize          Flags  Link  Info  Align\n"
+msgstr "       Ukuran            UkuranMasuk      Tanda  Link  Info  Align\n"
+
+#: readelf.c:4301
+#, c-format
+msgid "       Flags\n"
+msgstr "       Tanda\n"
+
+#: readelf.c:4435
+#, c-format
+msgid ""
+"Key to Flags:\n"
+"  W (write), A (alloc), X (execute), M (merge), S (strings)\n"
+"  I (info), L (link order), G (group), x (unknown)\n"
+"  O (extra OS processing required) o (OS specific), p (processor specific)\n"
+msgstr ""
+"Kunci ke Tanda:\n"
+"  W (tulis), A (alokasi), X (execute), M (gabung), S (strings)\n"
+"  I (info), L (urutan penggabungan), G (grup), x (tidak diketahui)\n"
+"  O (ekstra pemrosesan OS dibutuhkan) o (OS spesifik), p (prosesor spesifik)\n"
+
+#: readelf.c:4453
+#, c-format
+msgid "[<unknown>: 0x%x]"
+msgstr "[<tidak diketahui>: 0x%x]"
+
+#: readelf.c:4485
+msgid "Section headers are not available!\n"
+msgstr "Header Daerah tidak tersedia!\n"
+
+#: readelf.c:4509
+#, c-format
+msgid ""
+"\n"
+"There are no section groups in this file.\n"
+msgstr ""
+"\n"
+"Tidak ada daerah grup dalam berkas ini.\n"
+
+#: readelf.c:4546
+#, c-format
+msgid "Bad sh_link in group section `%s'\n"
+msgstr "sh_link buruk dalam daerah grup `%s'\n"
+
+#: readelf.c:4565
+#, c-format
+msgid "Bad sh_info in group section `%s'\n"
+msgstr "sh_info buruk dalah daerah grup `%s'\n"
+
+#: readelf.c:4603
+msgid "section data"
+msgstr "daerah data"
+
+#: readelf.c:4615
+#, c-format
+msgid "   [Index]    Name\n"
+msgstr "   [Indeks]   Nama\n"
+
+#: readelf.c:4629
+#, c-format
+msgid "section [%5u] in group section [%5u] > maximum section [%5u]\n"
+msgstr "daerah [%5u] dalah daerah grup [%5u] > daerah maksimal [%5u]\n"
+
+#: readelf.c:4638
+#, c-format
+msgid "section [%5u] in group section [%5u] already in group section [%5u]\n"
+msgstr "daerah [%5u] dalam daerah grup [%5u] telah dalam daerah grup [%5u]\n"
+
+#: readelf.c:4651
+#, c-format
+msgid "section 0 in group section [%5u]\n"
+msgstr "daerah 0 dalam grup dearah [%5u]\n"
+
+#: readelf.c:4746
+#, c-format
+msgid ""
+"\n"
+"'%s' relocation section at offset 0x%lx contains %ld bytes:\n"
+msgstr ""
+"\n"
+"'%s' relokasi daerah di ofset 0x%lx berisi %ld bytes:\n"
+
+#: readelf.c:4758
+#, c-format
+msgid ""
+"\n"
+"There are no dynamic relocations in this file.\n"
+msgstr ""
+"\n"
+"Tidak ada relokasi dinamis dalam berkas ini.\n"
+
+#: readelf.c:4782
+#, c-format
+msgid ""
+"\n"
+"Relocation section "
+msgstr ""
+"\n"
+"Daerah relokasi "
+
+#: readelf.c:4787 readelf.c:5192 readelf.c:5206 readelf.c:5539
+#, c-format
+msgid "'%s'"
+msgstr "'%s'"
+
+#: readelf.c:4789 readelf.c:5208 readelf.c:5541
+#, c-format
+msgid " at offset 0x%lx contains %lu entries:\n"
+msgstr " di ofset 0x%lx berisi %lu masukan:\n"
+
+#: readelf.c:4840
+#, c-format
+msgid ""
+"\n"
+"There are no relocations in this file.\n"
+msgstr ""
+"\n"
+"Disana tidak ada relokasi dalam berkas ini.\n"
+
+#: readelf.c:5022 readelf.c:5390
+msgid "unwind table"
+msgstr "tabel unwind"
+
+#: readelf.c:5063 readelf.c:5471
+#, c-format
+msgid "Skipping unexpected relocation type %s\n"
+msgstr "Melewati tipe relokasi %s tidak terduga\n"
+
+#: readelf.c:5124 readelf.c:5532 readelf.c:5585
+#, c-format
+msgid ""
+"\n"
+"There are no unwind sections in this file.\n"
+msgstr ""
+"\n"
+"Disana tidak ada daerah unwind dalam berkas ini.\n"
+
+#: readelf.c:5187
+#, c-format
+msgid ""
+"\n"
+"Could not find unwind info section for "
+msgstr ""
+"\n"
+"Tidak dapat menemukan informasi unwind daerah untuk "
+
+#: readelf.c:5199
+msgid "unwind info"
+msgstr "informasi unwind"
+
+#: readelf.c:5201 readelf.c:5538
+#, c-format
+msgid ""
+"\n"
+"Unwind section "
+msgstr ""
+"\n"
+"Daerah unwind "
+
+#: readelf.c:5751 readelf.c:5796
+msgid "dynamic section"
+msgstr "daerah dinamis"
+
+#: readelf.c:5873
+#, c-format
+msgid ""
+"\n"
+"There is no dynamic section in this file.\n"
+msgstr ""
+"\n"
+"Disana tidak ada daerah dinamis dalam berkas ini.\n"
+
+#: readelf.c:5911
+msgid "Unable to seek to end of file!\n"
+msgstr "Tidak dapat mencari ke akhir dari berkas!\n"
+
+#: readelf.c:5924
+msgid "Unable to determine the number of symbols to load\n"
+msgstr "Tidak dapat menentukan jumlah dari simbol untuk diload\n"
+
+#: readelf.c:5959
+msgid "Unable to seek to end of file\n"
+msgstr "Tidak dapat mencari ke akhir dari berkas\n"
+
+#: readelf.c:5966
+msgid "Unable to determine the length of the dynamic string table\n"
+msgstr "Tidak dapat menentukan panjang dari tabel dinamis string\n"
+
+#: readelf.c:5971
+msgid "dynamic string table"
+msgstr "tabel string dinamis"
+
+#: readelf.c:6007
+msgid "symbol information"
+msgstr "informasi simbol"
+
+#: readelf.c:6032
+#, c-format
+msgid ""
+"\n"
+"Dynamic section at offset 0x%lx contains %u entries:\n"
+msgstr ""
+"\n"
+"Daerah dinamis di ofset 0x%lx berisi %u masukan:\n"
+
+#: readelf.c:6035
+#, c-format
+msgid "  Tag        Type                         Name/Value\n"
+msgstr "  Tanda      Tipe                         Nama/Nilai\n"
+
+#: readelf.c:6071
+#, c-format
+msgid "Auxiliary library"
+msgstr "Auxiliary library"
+
+#: readelf.c:6075
+#, c-format
+msgid "Filter library"
+msgstr "Filter library"
+
+#: readelf.c:6079
+#, c-format
+msgid "Configuration file"
+msgstr "Berkas konfigurasi"
+
+#: readelf.c:6083
+#, c-format
+msgid "Dependency audit library"
+msgstr "Dependensi audit perpustakaan"
+
+#: readelf.c:6087
+#, c-format
+msgid "Audit library"
+msgstr "Perpustakaan audit"
+
+#: readelf.c:6105 readelf.c:6133 readelf.c:6161
+#, c-format
+msgid "Flags:"
+msgstr "Tanda:"
+
+#: readelf.c:6108 readelf.c:6136 readelf.c:6163
+#, c-format
+msgid " None\n"
+msgstr " Kosong\n"
+
+#: readelf.c:6284
+#, c-format
+msgid "Shared library: [%s]"
+msgstr "Perpustakaan terbagi: [%s]"
+
+#: readelf.c:6287
+#, c-format
+msgid " program interpreter"
+msgstr " aplikasi interpretasi"
+
+#: readelf.c:6291
+#, c-format
+msgid "Library soname: [%s]"
+msgstr "Perpustakaan soname: [%s]"
+
+#: readelf.c:6295
+#, c-format
+msgid "Library rpath: [%s]"
+msgstr "Perpustakaan rpath: [%s]"
+
+#: readelf.c:6299
+#, c-format
+msgid "Library runpath: [%s]"
+msgstr "Perpustakaan runpath: [%s]"
+
+#: readelf.c:6362
+#, c-format
+msgid "Not needed object: [%s]\n"
+msgstr "Objek tidak dibutuhkan: [%s]\n"
+
+#: readelf.c:6487
+#, c-format
+msgid ""
+"\n"
+"Version definition section '%s' contains %u entries:\n"
+msgstr ""
+"\n"
+"Definisi versi daerah '%s' berisi %u masukan:\n"
+
+#: readelf.c:6490
+#, c-format
+msgid "  Addr: 0x"
+msgstr "  Alamat: 0x"
+
+#: readelf.c:6492 readelf.c:6594 readelf.c:6715
+#, c-format
+msgid "  Offset: %#08lx  Link: %u (%s)\n"
+msgstr "  Ofset:  %#08lx  Link: %u (%s)\n"
+
+#: readelf.c:6500
+msgid "version definition section"
+msgstr "daerah definisi versi"
+
+#: readelf.c:6529
+#, c-format
+msgid "  %#06x: Rev: %d  Flags: %s"
+msgstr "  %#06x: Rev: %d  Tanda: %s"
+
+#: readelf.c:6532
+#, c-format
+msgid "  Index: %d  Cnt: %d  "
+msgstr "  Indeks: %d Cnt: %d  "
+
+#: readelf.c:6543
+#, c-format
+msgid "Name: %s\n"
+msgstr "Nama: %s\n"
+
+#: readelf.c:6545
+#, c-format
+msgid "Name index: %ld\n"
+msgstr "Nama indeks: %ld\n"
+
+#: readelf.c:6562
+#, c-format
+msgid "  %#06x: Parent %d: %s\n"
+msgstr "  %#06x: Parent %d: %s\n"
+
+#: readelf.c:6565
+#, c-format
+msgid "  %#06x: Parent %d, name index: %ld\n"
+msgstr "  %#06x: Parent %d, nama indeks: %ld\n"
+
+#: readelf.c:6569
+#, c-format
+msgid "  Version def aux past end of section\n"
+msgstr "  Versi def aux melewati akhir dari daerah\n"
+
+#: readelf.c:6574
+#, c-format
+msgid "  Version definition past end of section\n"
+msgstr "  Versi definisi melewati akhir dari daerah\n"
+
+#: readelf.c:6589
+#, c-format
+msgid ""
+"\n"
+"Version needs section '%s' contains %u entries:\n"
+msgstr ""
+"\n"
+"Versi membutuhkan daerah '%s' berisi %u masukan:\n"
+
+#: readelf.c:6592
+#, c-format
+msgid " Addr: 0x"
+msgstr " Alamat: 0x"
+
+#: readelf.c:6602
+msgid "version need section"
+msgstr "versi membutuhkan daerah"
+
+#: readelf.c:6627
+#, c-format
+msgid "  %#06x: Version: %d"
+msgstr "  %#06x: Versi: %d"
+
+#: readelf.c:6630
+#, c-format
+msgid "  File: %s"
+msgstr "  Berkas: %s"
+
+#: readelf.c:6632
+#, c-format
+msgid "  File: %lx"
+msgstr "  Berkas: %lx"
+
+#: readelf.c:6634
+#, c-format
+msgid "  Cnt: %d\n"
+msgstr "  Cnt: %d\n"
+
+#: readelf.c:6654
+#, c-format
+msgid "  %#06x:   Name: %s"
+msgstr "  %#06x:   Nama: %s"
+
+#: readelf.c:6657
+#, c-format
+msgid "  %#06x:   Name index: %lx"
+msgstr "  %#06x:   Nama indeks: %lx"
+
+#: readelf.c:6660
+#, c-format
+msgid "  Flags: %s  Version: %d\n"
+msgstr "  Tanda: %s  Versi:   %d\n"
+
+#: readelf.c:6667
+#, c-format
+msgid "  Version need aux past end of section\n"
+msgstr "  Versi membutuhkan aux melewati akhir dari daerah\n"
+
+#: readelf.c:6672
+#, c-format
+msgid "  Version need past end of section\n"
+msgstr "  Versi membutuhkan melewati akhir dari daerah\n"
+
+#: readelf.c:6706
+msgid "version string table"
+msgstr "tabel versi tring"
+
+#: readelf.c:6710
+#, c-format
+msgid ""
+"\n"
+"Version symbols section '%s' contains %d entries:\n"
+msgstr ""
+"\n"
+"Versi simbol daerah '%s' berisi %d masukan:\n"
+
+#: readelf.c:6713
+#, c-format
+msgid " Addr: "
+msgstr " Alamat: "
+
+#: readelf.c:6723
+msgid "version symbol data"
+msgstr "versi simbol data"
+
+#: readelf.c:6750
+msgid "   0 (*local*)    "
+msgstr "   0 (*local*)    "
+
+#: readelf.c:6754
+msgid "   1 (*global*)   "
+msgstr "   1 (*global*)   "
+
+#: readelf.c:6791 readelf.c:7488
+msgid "version need"
+msgstr "versi membutuhkan"
+
+#: readelf.c:6801
+msgid "version need aux (2)"
+msgstr "versi membutuhkan aux (2)"
+
+#: readelf.c:6816 readelf.c:6871
+msgid "*invalid*"
+msgstr "*tidak valid*"
+
+#: readelf.c:6846 readelf.c:7553
+msgid "version def"
+msgstr "versi def"
+
+#: readelf.c:6866 readelf.c:7568
+msgid "version def aux"
+msgstr "versi def aux"
+
+#: readelf.c:6900
+#, c-format
+msgid ""
+"\n"
+"No version information found in this file.\n"
+msgstr ""
+"\n"
+"Tidak ada informasi versi ditemukan dalam berkas ini.\n"
+
+#: readelf.c:7034
+#, c-format
+msgid "<other>: %x"
+msgstr "<yang lain>: %x"
+
+#: readelf.c:7093
+msgid "Unable to read in dynamic data\n"
+msgstr "Tidak dapat membaca dalam data dinamis\n"
+
+#: readelf.c:7184 readelf.c:7234 readelf.c:7258 readelf.c:7288 readelf.c:7312
+msgid "Unable to seek to start of dynamic information\n"
+msgstr "Tidak dapat mencari awal dari informasi dinamis\n"
+
+#: readelf.c:7190 readelf.c:7240
+msgid "Failed to read in number of buckets\n"
+msgstr "Gagal untuk membaca dalam jumlah dari buckets\n"
+
+#: readelf.c:7196
+msgid "Failed to read in number of chains\n"
+msgstr "Gagal untuk membaca dalam jumlah dari rantai\n"
+
+#: readelf.c:7296
+msgid "Failed to determine last chain length\n"
+msgstr "Gagal untuk menentukan akhir dari panjang rantai\n"
+
+#: readelf.c:7340
+#, c-format
+msgid ""
+"\n"
+"Symbol table for image:\n"
+msgstr ""
+"\n"
+"Tabel simbol untuk gambar:\n"
+
+#: readelf.c:7342 readelf.c:7360
+#, c-format
+msgid "  Num Buc:    Value  Size   Type   Bind Vis      Ndx Name\n"
+msgstr "  Num Buc:    Nilai  Ukuran Tipe   Bind Vis      Ndx Nama\n"
+
+#: readelf.c:7344 readelf.c:7362
+#, c-format
+msgid "  Num Buc:    Value          Size   Type   Bind Vis      Ndx Name\n"
+msgstr "  Num Buc:    Nilai          Ukuran Tipe   Bind Vis      Ndx Nama\n"
+
+#: readelf.c:7358
+#, c-format
+msgid ""
+"\n"
+"Symbol table of `.gnu.hash' for image:\n"
+msgstr ""
+"\n"
+"Tabel simbol dari `.gnu.hash' untuk image:\n"
+
+#: readelf.c:7397
+#, c-format
+msgid ""
+"\n"
+"Symbol table '%s' contains %lu entries:\n"
+msgstr ""
+"\n"
+"Tabel simbol '%s' berisi %lu masukan:\n"
+
+#: readelf.c:7401
+#, c-format
+msgid "   Num:    Value  Size Type    Bind   Vis      Ndx Name\n"
+msgstr "   Jumlah: Nilai  Ukuran TIpe  Bind   Vis      Ndx Nama\n"
+
+#: readelf.c:7403
+#, c-format
+msgid "   Num:    Value          Size Type    Bind   Vis      Ndx Name\n"
+msgstr "   Jumlah: Nilai          Ukuran Tipe  Bind   Vis      Ndx Nama\n"
+
+#: readelf.c:7459
+msgid "version data"
+msgstr "versi data"
+
+#: readelf.c:7501
+msgid "version need aux (3)"
+msgstr "versi membutuhkan aux (3)"
+
+#: readelf.c:7528
+msgid "bad dynamic symbol\n"
+msgstr "simbol dinamis buruk\n"
+
+#: readelf.c:7592
+#, c-format
+msgid ""
+"\n"
+"Dynamic symbol information is not available for displaying symbols.\n"
+msgstr ""
+"\n"
+"Informasi simbol dinamis tidak tersedia untuk menampilkan simbol.\n"
+
+#: readelf.c:7604
+#, c-format
+msgid ""
+"\n"
+"Histogram for bucket list length (total of %lu buckets):\n"
+msgstr ""
+"\n"
+"Histogram untuk daftar panjang bucket (total dari %lu buckets):\n"
+
+#: readelf.c:7606 readelf.c:7676
+#, c-format
+msgid " Length  Number     %% of total  Coverage\n"
+msgstr " Panjang Nomor      %% dari total Coverage\n"
+
+#: readelf.c:7674
+#, c-format
+msgid ""
+"\n"
+"Histogram for `.gnu.hash' bucket list length (total of %lu buckets):\n"
+msgstr ""
+"\n"
+"Histogram untuk `.gnu.hash' daftar panjang bucket (total dari %lu bucket):\n"
+
+#: readelf.c:7740
+#, c-format
+msgid ""
+"\n"
+"Dynamic info segment at offset 0x%lx contains %d entries:\n"
+msgstr ""
+"\n"
+"Segmen info dinamis di ofset 0x%lx berisi %d masukan:\n"
+
+#: readelf.c:7743
+#, c-format
+msgid " Num: Name                           BoundTo     Flags\n"
+msgstr " Jumlah: Nama                        BoundTo     Tanda\n"
+
+#: readelf.c:7834
+msgid "Unhandled MN10300 reloc type found after SYM_DIFF reloc"
+msgstr "Tipe relokasi MN10300 tidak tertangani ditemukan setelah relokasi SYM_DIFF"
+
+#: readelf.c:7982
+#, c-format
+msgid "Missing knowledge of 32-bit reloc types used in DWARF sections of machine number %d\n"
+msgstr "Hilang pengetahuan dari 32-bit tipe relokasi yang digunakan dalam daerah DWARF dari mesin nomor %d\n"
+
+#: readelf.c:8251
+#, c-format
+msgid "unable to apply unsupported reloc type %d to section %s\n"
+msgstr "tidak dapat mengaplikasikan tipe relokasi %d tidak didukung ke daerah %s\n"
+
+#: readelf.c:8259
+#, c-format
+msgid "skipping invalid relocation offset 0x%lx in section %s\n"
+msgstr "melewati relokasi ofset 0x%lx tidak valid dalam daerah %s\n"
+
+#: readelf.c:8283
+#, c-format
+msgid "skipping unexpected symbol type %s in %ld'th relocation in section %s\n"
+msgstr "melewati tipe simbol %s tidak terduga dalam relokasi ke %ld dalam daerah %s\n"
+
+#: readelf.c:8315
+#, c-format
+msgid ""
+"\n"
+"Assembly dump of section %s\n"
+msgstr ""
+"\n"
+"Daerah perakitan dump dari %s\n"
+
+#: readelf.c:8336
+#, c-format
+msgid ""
+"\n"
+"Section '%s' has no data to dump.\n"
+msgstr ""
+"\n"
+"Daerah '%s' tidak memiliki data untuk di dump.\n"
+
+#: readelf.c:8342
+msgid "section contents"
+msgstr "daerah isi"
+
+#: readelf.c:8362
+#, c-format
+msgid ""
+"\n"
+"String dump of section '%s':\n"
+msgstr ""
+"\n"
+"String dump dari daerah '%s':\n"
+
+#: readelf.c:8380
+#, c-format
+msgid "  Note: This section has relocations against it, but these have NOT been applied to this dump.\n"
+msgstr "  Catatan: Daerah ini memiliki relokasi terhadatnya, tetapi ini BELUM pernah diaplikasikan ke dump ini.\n"
+
+#: readelf.c:8409
+#, c-format
+msgid "  No strings found in this section."
+msgstr "  Tidak ada string yang ditemukan dalam daerah ini."
+
+#: readelf.c:8431
+#, c-format
+msgid ""
+"\n"
+"Hex dump of section '%s':\n"
+msgstr ""
+"\n"
+"Hex dump dari daerah '%s':\n"
+
+#: readelf.c:8455
+#, c-format
+msgid " NOTE: This section has relocations against it, but these have NOT been applied to this dump.\n"
+msgstr " CATATAN: Daerah ini memiliki relokasi terhadap ini, tetapi ini BELUM diaplikasikan ke dump ini.\n"
+
+#: readelf.c:8593
+#, c-format
+msgid "%s section data"
+msgstr "daerah data %s"
+
+#: readelf.c:8658
+#, c-format
+msgid ""
+"\n"
+"Section '%s' has no debugging data.\n"
+msgstr ""
+"\n"
+"Daerah '%s' tidak memiliki data debugging.\n"
+
+#. There is no point in dumping the contents of a debugging section
+#. which has the NOBITS type - the bits in the file will be random.
+#. This can happen when a file containing a .eh_frame section is
+#. stripped with the --only-keep-debug command line option.
+#: readelf.c:8667
+#, c-format
+msgid "section '%s' has the NOBITS type - its contents are unreliable.\n"
+msgstr "daerah '%s' memiliki tipe NOBITS - isinya tidak dapat diharapkan.\n"
+
+#: readelf.c:8702
+#, c-format
+msgid "Unrecognized debug section: %s\n"
+msgstr "Daerah debug tidak dikenal: %s\n"
+
+#: readelf.c:8730
+#, c-format
+msgid "Section '%s' was not dumped because it does not exist!\n"
+msgstr "Daerah '%s' tidak didump karena ini tidak ada!\n"
+
+#: readelf.c:8771
+#, c-format
+msgid "Section %d was not dumped because it does not exist!\n"
+msgstr "Daerah %d tidak didump karena ini tidak ada!\n"
+
+#: readelf.c:9285
+msgid "attributes"
+msgstr "atribut"
+
+#: readelf.c:9306
+#, c-format
+msgid "ERROR: Bad section length (%d > %d)\n"
+msgstr "ERROR: Panjang daerah buruk (%d > %d)\n"
+
+#: readelf.c:9337
+#, c-format
+msgid "ERROR: Bad subsection length (%d > %d)\n"
+msgstr "ERROR: panjang subsection buruk (%d > %d)\n"
+
+#: readelf.c:9396
+#, c-format
+msgid "Unknown format '%c'\n"
+msgstr "Format '%c' tidak diketahui\n"
+
+#: readelf.c:9549 readelf.c:10065
+msgid "liblist"
+msgstr "liblist"
+
+#: readelf.c:9636
+msgid "options"
+msgstr "pilihan"
+
+#: readelf.c:9666
+#, c-format
+msgid ""
+"\n"
+"Section '%s' contains %d entries:\n"
+msgstr ""
+"\n"
+"Daerah '%s' berisi %d masukan:\n"
+
+#: readelf.c:9827
+msgid "conflict list found without a dynamic symbol table\n"
+msgstr "daftar konflik ditemukan tanpa sebuah tabel simbol dinamis\n"
+
+#: readelf.c:9843 readelf.c:9857
+msgid "conflict"
+msgstr "konflik"
+
+#: readelf.c:9867
+#, c-format
+msgid ""
+"\n"
+"Section '.conflict' contains %lu entries:\n"
+msgstr ""
+"\n"
+"Daerah '.conflict' berisi %lu masukan:\n"
+
+#: readelf.c:9869
+msgid "  Num:    Index       Value  Name"
+msgstr "  Num:    Indeks      Nilai  Nama"
+
+#: readelf.c:9901
+msgid "GOT"
+msgstr "GOT"
+
+#: readelf.c:9902
+#, c-format
+msgid ""
+"\n"
+"Primary GOT:\n"
+msgstr ""
+"\n"
+"GOT Utama:\n"
+
+#: readelf.c:9903
+#, c-format
+msgid " Canonical gp value: "
+msgstr " Kanonikal nilai gp: "
+
+#: readelf.c:9907 readelf.c:9998
+#, c-format
+msgid " Reserved entries:\n"
+msgstr " Masukan terpesan:\n"
+
+#: readelf.c:9908
+#, c-format
+msgid "  %*s %10s %*s Purpose\n"
+msgstr "  %*s %10s %*s Tujuan\n"
+
+#: readelf.c:9924
+#, c-format
+msgid " Local entries:\n"
+msgstr " Masukan lokal:\n"
+
+#: readelf.c:9925
+#, c-format
+msgid "  %*s %10s %*s\n"
+msgstr "  %*s %10s %*s\n"
+
+#: readelf.c:9940
+#, c-format
+msgid " Global entries:\n"
+msgstr " Masukan global:\n"
+
+#: readelf.c:9941
+#, c-format
+msgid "  %*s %10s %*s %*s %-7s %3s %s\n"
+msgstr "  %*s %10s %*s %*s %-7s %3s %s\n"
+
+#: readelf.c:9996
+msgid "PLT GOT"
+msgstr "PLT GOT"
+
+#: readelf.c:9997
+#, c-format
+msgid ""
+"\n"
+"PLT GOT:\n"
+"\n"
+msgstr ""
+"\n"
+"PLT GOT:\n"
+"\n"
+
+#: readelf.c:9999
+#, c-format
+msgid "  %*s %*s Purpose\n"
+msgstr "  %*s  %*s Tujuan\n"
+
+#: readelf.c:10007
+#, c-format
+msgid " Entries:\n"
+msgstr " Masukan:\n"
+
+#: readelf.c:10008
+#, c-format
+msgid "  %*s %*s %*s %-7s %3s %s\n"
+msgstr "  %*s %*s %*s %-7s %3s %s\n"
+
+#: readelf.c:10072
+msgid "liblist string table"
+msgstr "liblist tabel string"
+
+#: readelf.c:10082
+#, c-format
+msgid ""
+"\n"
+"Library list section '%s' contains %lu entries:\n"
+msgstr ""
+"\n"
+"Daftar perpustakaan daerah '%s' berisi %lu masukan:\n"
+
+#: readelf.c:10135
+msgid "NT_AUXV (auxiliary vector)"
+msgstr "NT_AUXV (auxiliary vector)"
+
+#: readelf.c:10137
+msgid "NT_PRSTATUS (prstatus structure)"
+msgstr "NT_PRSTATUS (prstatus struktur)"
+
+#: readelf.c:10139
+msgid "NT_FPREGSET (floating point registers)"
+msgstr "NT_FPREGSET (register bilangan pecahan)"
+
+#: readelf.c:10141
+msgid "NT_PRPSINFO (prpsinfo structure)"
+msgstr "NT_PRPSINFO (prpsinfo struktur)"
+
+#: readelf.c:10143
+msgid "NT_TASKSTRUCT (task structure)"
+msgstr "NT_TASKSTRUCT (struktur tugas)"
+
+#: readelf.c:10145
+msgid "NT_PRXFPREG (user_xfpregs structure)"
+msgstr "NT_PRXFPREG (struktur user_xfpregs)"
+
+#: readelf.c:10147
+msgid "NT_PPC_VMX (ppc Altivec registers)"
+msgstr "NT_PPC_VMX (register ppc Altivec)"
+
+#: readelf.c:10149
+msgid "NT_PPC_VSX (ppc VSX registers)"
+msgstr "NT_PPC_VSX (register ppc VSX)"
+
+#: readelf.c:10151
+msgid "NT_PSTATUS (pstatus structure)"
+msgstr "NT_PSTATUS (struktur pstatus)"
+
+#: readelf.c:10153
+msgid "NT_FPREGS (floating point registers)"
+msgstr "NT_FPREGS (register bilangan pecahan)"
+
+#: readelf.c:10155
+msgid "NT_PSINFO (psinfo structure)"
+msgstr "NT_PSINFO (struktur psinfo)"
+
+#: readelf.c:10157
+msgid "NT_LWPSTATUS (lwpstatus_t structure)"
+msgstr "NT_LWPSTATUS (struktur lwpstatus_t)"
+
+#: readelf.c:10159
+msgid "NT_LWPSINFO (lwpsinfo_t structure)"
+msgstr "NT_LWPSINFO (struktur lwpsinfo_t)"
+
+#: readelf.c:10161
+msgid "NT_WIN32PSTATUS (win32_pstatus structure)"
+msgstr "NT_WIN32PSTATUS (struktur win32_pstatus)"
+
+#: readelf.c:10169
+msgid "NT_VERSION (version)"
+msgstr "NT_VERSION (versi)"
+
+#: readelf.c:10171
+msgid "NT_ARCH (architecture)"
+msgstr "NT_ARCH (arsitektur)"
+
+#: readelf.c:10176 readelf.c:10199 readelf.c:10221
+#, c-format
+msgid "Unknown note type: (0x%08x)"
+msgstr "Tipe catatan tidak dikenal: (0x%08x)"
+
+#: readelf.c:10188
+msgid "NT_GNU_ABI_TAG (ABI version tag)"
+msgstr "NT_GNU_ABI_TAG (Tanda versi ABI)"
+
+#: readelf.c:10190
+msgid "NT_GNU_HWCAP (DSO-supplied software HWCAP info)"
+msgstr "NT_GNU_HWCAP (DSO-supplied software HWCAP info)"
+
+#: readelf.c:10192
+msgid "NT_GNU_BUILD_ID (unique build ID bitstring)"
+msgstr "NT_GNU_BUILD_ID (unik ID pembuatan bitstring)"
+
+#: readelf.c:10194
+msgid "NT_GNU_GOLD_VERSION (gold version)"
+msgstr "NT_GNU_GOLD_VERSION (versi emas)"
+
+#. NetBSD core "procinfo" structure.
+#: readelf.c:10211
+msgid "NetBSD procinfo structure"
+msgstr "NetBSD struktur procinfo"
+
+#: readelf.c:10238 readelf.c:10252
+msgid "PT_GETREGS (reg structure)"
+msgstr "PT_GETREGS (struktur reg)"
+
+#: readelf.c:10240 readelf.c:10254
+msgid "PT_GETFPREGS (fpreg structure)"
+msgstr "PT_GETFPREGS (struktur fpreg)"
+
+#: readelf.c:10260
+#, c-format
+msgid "PT_FIRSTMACH+%d"
+msgstr "PT_FIRSTMACH+%d"
+
+#: readelf.c:10316
+msgid "notes"
+msgstr "catatan"
+
+#: readelf.c:10322
+#, c-format
+msgid ""
+"\n"
+"Notes at offset 0x%08lx with length 0x%08lx:\n"
+msgstr ""
+"\n"
+"Catatan di ofset 0x%08lx dengan panjang 0x%08lx:\n"
+
+#: readelf.c:10324
+#, c-format
+msgid "  Owner\t\tData size\tDescription\n"
+msgstr "  Pemilik\t\tBesar Data\tDeskripsi\n"
+
+#: readelf.c:10343
+#, c-format
+msgid "corrupt note found at offset %lx into core notes\n"
+msgstr "catatan terkorupsi ditemukan di ofset %lx kedalam core notes\n"
+
+#: readelf.c:10345
+#, c-format
+msgid " type: %lx, namesize: %08lx, descsize: %08lx\n"
+msgstr " tipe: %lx, namesize: %08lx, descsize: %08lx\n"
+
+#: readelf.c:10443
+#, c-format
+msgid "No note segments present in the core file.\n"
+msgstr "Tidak ada catatan segmen hadir dalam berkas inti.\n"
+
+#: readelf.c:10527
+msgid ""
+"This instance of readelf has been built without support for a\n"
+"64 bit data type and so it cannot read 64 bit ELF files.\n"
+msgstr ""
+"Instance ini dari readelf telah dibuat tanpa dukungan untuk\n"
+"tipe data 64 bit dan jadi ini tidak dapat membaca berkas ELF 64 bit.\n"
+
+#: readelf.c:10574
+#, c-format
+msgid "%s: Failed to read file header\n"
+msgstr "%s: Gagal untuk membaca berkas header\n"
+
+#: readelf.c:10587
+#, c-format
+msgid ""
+"\n"
+"File: %s\n"
+msgstr ""
+"\n"
+"Berkas: %s\n"
+
+#: readelf.c:10802
+#, c-format
+msgid "%s: failed to seek to first archive header\n"
+msgstr "%s: gagal untuk mencari header archive pertama\n"
+
+#: readelf.c:10811 readelf.c:11076 readelf.c:11246
+#, c-format
+msgid "%s: failed to read archive header\n"
+msgstr "%s: gagal untuk membaca header archive\n"
+
+#: readelf.c:10836
+#, c-format
+msgid "%s: the archive index is empty\n"
+msgstr "%s: indeks archive kosong\n"
+
+#: readelf.c:10844 readelf.c:10867
+#, c-format
+msgid "%s: failed to read archive index\n"
+msgstr "%s: gagal untuk membaca archive indeks\n"
+
+#: readelf.c:10853
+#, c-format
+msgid "%s: the archive index is supposed to have %ld entries, but the size in the header is too small\n"
+msgstr "%s: archive indeks seharusnya memiliki %ld masukan, tetapi ukuran dalam header terlalu kecil\n"
+
+#: readelf.c:10860
+msgid "Out of memory whilst trying to read archive symbol index\n"
+msgstr "Kehabisan memeri ketika mencoba membaca indeks simbol archive\n"
+
+#: readelf.c:10877
+msgid "Out of memory whilst trying to convert the archive symbol index\n"
+msgstr "Kehabisan memori ketika mencoba mengubak indeks simbol archive\n"
+
+#: readelf.c:10889
+#, c-format
+msgid "%s: the archive has an index but no symbols\n"
+msgstr "%s: archive memiliki sebuah indeks tetapi bukan simbol\n"
+
+#: readelf.c:10896
+msgid "Out of memory whilst trying to read archive index symbol table\n"
+msgstr "Kehabisan memori ketika mencoba untuk membaca indeks tabel simbol archive\n"
+
+#: readelf.c:10902
+#, c-format
+msgid "%s: failed to read archive index symbol table\n"
+msgstr "%s: gagal untuk membaca indeks simbol tabel archive\n"
+
+#: readelf.c:10910
+#, c-format
+msgid "%s: failed to skip archive symbol table\n"
+msgstr "%s: gagal untuk melewati simbol tabel archive\n"
+
+#: readelf.c:10921
+#, c-format
+msgid "%s: failed to read archive header following archive index\n"
+msgstr "%s: gagal untuk membaca archive header dari indeks archive berikut\n"
+
+#: readelf.c:10926
+#, c-format
+msgid "%s has no archive index\n"
+msgstr "%s tidak memiliki indeks archive\n"
+
+#: readelf.c:10937
+msgid "Out of memory reading long symbol names in archive\n"
+msgstr "Kehabisan memori membaca nama simbol panjang dalam archive\n"
+
+#: readelf.c:10945
+#, c-format
+msgid "%s: failed to read long symbol name string table\n"
+msgstr "%s: gagal untuk membaca nama simbol panjang tabel string\n"
+
+#: readelf.c:11070
+#, c-format
+msgid "%s: failed to seek to next file name\n"
+msgstr "%s: gagal untuk mencari nama berkas selanjutnya\n"
+
+#: readelf.c:11081 readelf.c:11252
+#, c-format
+msgid "%s: did not find a valid archive header\n"
+msgstr "%s tidak menemukan header archive yang valid\n"
+
+#: readelf.c:11162
+#, c-format
+msgid "%s: unable to dump the index as none was found\n"
+msgstr "%s: tidak dapat mendeump indeks sebagai kosong telah ditemukan\n"
+
+#: readelf.c:11168
+#, c-format
+msgid "Index of archive %s: (%ld entries, 0x%lx bytes in the symbol table)\n"
+msgstr "Indeks dari archive %s: (%ld masukan, 0x%lx bytes dalam tabel simbol)\n"
+
+#: readelf.c:11186
+#, c-format
+msgid "Binary %s contains:\n"
+msgstr "Binari %s berisi:\n"
+
+#: readelf.c:11194
+#, c-format
+msgid "%s: end of the symbol table reached before the end of the index\n"
+msgstr "%s: akhir dari simbel tabel dicapai sebelum akhir dari indeks\n"
+
+#: readelf.c:11205
+#, c-format
+msgid "%s: symbols remain in the index symbol table, but without corresponding entries in the index table\n"
+msgstr "%s: simbol tetap berada dalam tabel simbol indeks, tetapi tanpa masukan yang berhubunga dalam tabel indeks\n"
+
+#: readelf.c:11210
+#, c-format
+msgid "%s: failed to seek back to start of object files in the archive\n"
+msgstr "%s: gagal untuk seek back ke awal dari berkas objek dalam archive\n"
+
+#: readelf.c:11238
+#, c-format
+msgid "%s: failed to seek to next archive header\n"
+msgstr "%s: gagal untuk mencari header archive selanjutnya\n"
+
+#: readelf.c:11266 readelf.c:11275
+#, c-format
+msgid "%s: bad archive file name\n"
+msgstr "%s: nama berkas archive buruk\n"
+
+#: readelf.c:11294 readelf.c:11370
+#, c-format
+msgid "Input file '%s' is not readable.\n"
+msgstr "Berkas masukan '%s' tidak dapat dibaca.\n"
+
+#: readelf.c:11316
+#, c-format
+msgid "%s: failed to seek to archive member.\n"
+msgstr "%s: gagal untuk mencari anggota archive.\n"
+
+#: readelf.c:11354
+#, c-format
+msgid "'%s': No such file\n"
+msgstr "'%s': Tidak ada berkas seperti itu\n"
+
+#: readelf.c:11356
+#, c-format
+msgid "Could not locate '%s'.  System error message: %s\n"
+msgstr "Tidak dapat menemukan '%s'. Pesan error sistem: %s\n"
+
+#: readelf.c:11363
+#, c-format
+msgid "'%s' is not an ordinary file\n"
+msgstr "'%s' bukan sebuah berkas biasa\n"
+
+#: readelf.c:11376
+#, c-format
+msgid "%s: Failed to read file's magic number\n"
+msgstr "%s: Gagal membaca berkas nomor magik\n"
+
+#: readelf.c:11388
+#, c-format
+msgid "File %s is not an archive so its index cannot be displayed.\n"
+msgstr "Berkas %s bukan sebuah archive jadi indeksnya tidak dapat ditampilkan.\n"
+
+#: rename.c:124
+#, c-format
+msgid "%s: cannot set time: %s"
+msgstr "%s: tidak dapat menset waktu: %s"
+
+#. We have to clean up here.
+#: rename.c:159 rename.c:197
+#, c-format
+msgid "unable to rename '%s'; reason: %s"
+msgstr "tidak dapat mengubah nama '%s'; alasan: %s"
+
+#: rename.c:205
+#, c-format
+msgid "unable to copy file '%s'; reason: %s"
+msgstr "tidak dapat menyalin berkas '%s'; alasan: %s"
+
+#: resbin.c:120
+#, c-format
+msgid "%s: not enough binary data"
+msgstr "%s: tidak cukup data binari"
+
+#: resbin.c:136
+msgid "null terminated unicode string"
+msgstr "kosong diakhir string unicode"
+
+#: resbin.c:163 resbin.c:169
+msgid "resource ID"
+msgstr "ID sumber daya"
+
+#: resbin.c:208
+msgid "cursor"
+msgstr "kursor"
+
+#: resbin.c:239 resbin.c:246
+msgid "menu header"
+msgstr "menu header"
+
+#: resbin.c:255
+msgid "menuex header"
+msgstr "menuex header"
+
+#: resbin.c:259
+msgid "menuex offset"
+msgstr "menuex ofset"
+
+#: resbin.c:264
+#, c-format
+msgid "unsupported menu version %d"
+msgstr "versi menu %d tidak didukung"
+
+#: resbin.c:289 resbin.c:304 resbin.c:366
+msgid "menuitem header"
+msgstr "menuitem header"
+
+#: resbin.c:396
+msgid "menuitem"
+msgstr "menuitem"
+
+#: resbin.c:433 resbin.c:461
+msgid "dialog header"
+msgstr "header dialog"
+
+#: resbin.c:451
+#, c-format
+msgid "unexpected DIALOGEX version %d"
+msgstr "versi %d DIALOGEX tidak terduga"
+
+#: resbin.c:496
+msgid "dialog font point size"
+msgstr "dialog ukuran titik font"
+
+#: resbin.c:504
+msgid "dialogex font information"
+msgstr "informasi font dialogex"
+
+#: resbin.c:530 resbin.c:548
+msgid "dialog control"
+msgstr "kontrol dialog"
+
+#: resbin.c:540
+msgid "dialogex control"
+msgstr "kontrol dialogex"
+
+#: resbin.c:569
+msgid "dialog control end"
+msgstr "akhir kontrol dialog"
+
+#: resbin.c:581
+msgid "dialog control data"
+msgstr "kontrol data dialog"
+
+#: resbin.c:621
+msgid "stringtable string length"
+msgstr "panjang string stringtabel"
+
+#: resbin.c:631
+msgid "stringtable string"
+msgstr "stringtabel string"
+
+#: resbin.c:661
+msgid "fontdir header"
+msgstr "fontdir header"
+
+#: resbin.c:675
+msgid "fontdir"
+msgstr "fontdir"
+
+#: resbin.c:692
+msgid "fontdir device name"
+msgstr "fontdir nama perangkat"
+
+#: resbin.c:698
+msgid "fontdir face name"
+msgstr "fontdir nama muka"
+
+#: resbin.c:738
+msgid "accelerator"
+msgstr "akselerator"
+
+#: resbin.c:797
+msgid "group cursor header"
+msgstr "grup kursor header"
+
+#: resbin.c:801 resrc.c:1355
+#, c-format
+msgid "unexpected group cursor type %d"
+msgstr "tipe kursor %d grup tidak terduga"
+
+#: resbin.c:816
+msgid "group cursor"
+msgstr "grup kursor"
+
+#: resbin.c:852
+msgid "group icon header"
+msgstr "grup ikon header"
+
+#: resbin.c:856 resrc.c:1302
+#, c-format
+msgid "unexpected group icon type %d"
+msgstr "tipe ikon grup %d tidak terduga"
+
+#: resbin.c:871
+msgid "group icon"
+msgstr "grup ikon"
+
+#: resbin.c:935 resbin.c:1151
+msgid "unexpected version string"
+msgstr "string versi tidak terduga"
+
+#: resbin.c:966
+#, c-format
+msgid "version length %d does not match resource length %lu"
+msgstr "panjang versi %d tidak cocok dengan panjang sumber daya %lu"
+
+#: resbin.c:970
+#, c-format
+msgid "unexpected version type %d"
+msgstr "tipe versi %d tidak terduga"
+
+#: resbin.c:982
+#, c-format
+msgid "unexpected fixed version information length %ld"
+msgstr "panjang informasi versi %ld tetap tidak terduga"
+
+#: resbin.c:985
+msgid "fixed version info"
+msgstr "info versi tetap"
+
+#: resbin.c:989
+#, c-format
+msgid "unexpected fixed version signature %lu"
+msgstr "tanda tangan versi %lu tetap tidak terduga"
+
+#: resbin.c:993
+#, c-format
+msgid "unexpected fixed version info version %lu"
+msgstr "info versi %lu versi tetap tidak terduga"
+
+#: resbin.c:1022
+msgid "version var info"
+msgstr "info var versi"
+
+#: resbin.c:1039
+#, c-format
+msgid "unexpected stringfileinfo value length %ld"
+msgstr "nilai panjang %ld stringfileinfo tidak terduga"
+
+#: resbin.c:1049
+#, c-format
+msgid "unexpected version stringtable value length %ld"
+msgstr "nilai panjang %ld versi stringtabel tidak terduga"
+
+#: resbin.c:1083
+#, c-format
+msgid "unexpected version string length %ld != %ld + %ld"
+msgstr "versi panjang string %ld != %ld + %ld tidak terduga"
+
+#: resbin.c:1094
+#, c-format
+msgid "unexpected version string length %ld < %ld"
+msgstr "versi panjang string %ld < %ld tidak terduga"
+
+#: resbin.c:1111
+#, c-format
+msgid "unexpected varfileinfo value length %ld"
+msgstr "nilai panjang varfileinfo %ld tidak terduga"
+
+#: resbin.c:1130
+msgid "version varfileinfo"
+msgstr "versi varfileinfo"
+
+#: resbin.c:1145
+#, c-format
+msgid "unexpected version value length %ld"
+msgstr "nilai panjang versi %ld tidak terduga"
+
+#: rescoff.c:124
+msgid "filename required for COFF input"
+msgstr "nama berkas dibutuhkan untuk masukan COFF"
+
+#: rescoff.c:141
+#, c-format
+msgid "%s: no resource section"
+msgstr "%s: daerah tidak ada sumber daya"
+
+#: rescoff.c:173
+#, c-format
+msgid "%s: %s: address out of bounds"
+msgstr "%s: %s: alamat diluar dari ikatan"
+
+#: rescoff.c:190
+msgid "directory"
+msgstr "direktori"
+
+#: rescoff.c:218
+msgid "named directory entry"
+msgstr "nama dari masukan direktori"
+
+#: rescoff.c:227
+msgid "directory entry name"
+msgstr "nama masukan direktori"
+
+#: rescoff.c:247
+msgid "named subdirectory"
+msgstr "nama subdirektori"
+
+#: rescoff.c:255
+msgid "named resource"
+msgstr "nama sumber daya"
+
+#: rescoff.c:270
+msgid "ID directory entry"
+msgstr "ID masukan direktori"
+
+#: rescoff.c:287
+msgid "ID subdirectory"
+msgstr "ID subdirektori"
+
+#: rescoff.c:295
+msgid "ID resource"
+msgstr "ID sumber daya"
+
+#: rescoff.c:320
+msgid "resource type unknown"
+msgstr "tipe sumber daya tidak dikenal"
+
+#: rescoff.c:323
+msgid "data entry"
+msgstr "masukan data"
+
+#: rescoff.c:331
+msgid "resource data"
+msgstr "sumber daya data"
+
+#: rescoff.c:336
+msgid "resource data size"
+msgstr "ukuran data sumber daya"
+
+#: rescoff.c:431
+msgid "filename required for COFF output"
+msgstr "nama berkas dibutuhkan untuk output COFF"
+
+#: rescoff.c:715
+msgid "can't get BFD_RELOC_RVA relocation type"
+msgstr "tidak dapat memperoleh tipe relokasi BFD_RELOC_RVA"
+
+#: resrc.c:262 resrc.c:333
+#, c-format
+msgid "can't open temporary file `%s': %s"
+msgstr "tida dapat membuka berkas sementara `%s': %s"
+
+#: resrc.c:268
+#, c-format
+msgid "can't redirect stdout: `%s': %s"
+msgstr "tidak dapat meredirek stdout: `%s': %s"
+
+#: resrc.c:284
+#, c-format
+msgid "%s %s: %s"
+msgstr "%s %s: %s"
+
+#: resrc.c:329
+#, c-format
+msgid "can't execute `%s': %s"
+msgstr "tidak dapat menjalankan `%s': %s"
+
+#: resrc.c:338
+#, c-format
+msgid "Using temporary file `%s' to read preprocessor output\n"
+msgstr "Menggunakan berkas sementara `%s' untuk membaca keluaran preprosesor\n"
+
+#: resrc.c:345
+#, c-format
+msgid "can't popen `%s': %s"
+msgstr "tidak dapat popen `%s': %s"
+
+#: resrc.c:347
+#, c-format
+msgid "Using popen to read preprocessor output\n"
+msgstr "Menggunakan popen untuk membaca keluaran preprosesor\n"
+
+#: resrc.c:413
+#, c-format
+msgid "Tried `%s'\n"
+msgstr "Mencoba `%s'\n"
+
+#: resrc.c:424
+#, c-format
+msgid "Using `%s'\n"
+msgstr "Menggunakan `%s'\n"
+
+#: resrc.c:608
+msgid "preprocessing failed."
+msgstr "preprosesing gagal."
+
+#: resrc.c:631
+#, c-format
+msgid "%s:%d: %s\n"
+msgstr "%s:%d: %s\n"
+
+#: resrc.c:639
+#, c-format
+msgid "%s: unexpected EOF"
+msgstr "%s: tidak terduga EOF"
+
+#: resrc.c:688
+#, c-format
+msgid "%s: read of %lu returned %lu"
+msgstr "%s: membaca dari %lu dikembalikan %lu"
+
+#: resrc.c:727 resrc.c:1502
+#, c-format
+msgid "stat failed on bitmap file `%s': %s"
+msgstr "stat gagal dalam berkas bitmap `%s': %s"
+
+#: resrc.c:778
+#, c-format
+msgid "cursor file `%s' does not contain cursor data"
+msgstr "berkas kursor `%s' tidak berisi data kursor"
+
+#: resrc.c:810 resrc.c:1210
+#, c-format
+msgid "%s: fseek to %lu failed: %s"
+msgstr "%s: fseek ke %lu gagal: %s"
+
+#: resrc.c:936
+msgid "help ID requires DIALOGEX"
+msgstr "help ID membutuhkan DIALOGEX"
+
+#: resrc.c:938
+msgid "control data requires DIALOGEX"
+msgstr "kontrol data membutuhkan DIALOGEX"
+
+#: resrc.c:966
+#, c-format
+msgid "stat failed on font file `%s': %s"
+msgstr "stat gagal dalam berkas font `%s': %s"
+
+#: resrc.c:1179
+#, c-format
+msgid "icon file `%s' does not contain icon data"
+msgstr "berkas ikon `%s' tidak berisi data ikon"
+
+#: resrc.c:1724 resrc.c:1759
+#, c-format
+msgid "stat failed on file `%s': %s"
+msgstr "stat gagal di berkas `%s': %s"
+
+#: resrc.c:1940
+#, c-format
+msgid "can't open `%s' for output: %s"
+msgstr "tidak dapat membuka `%s' untuk keluaran: %s"
+
+#: size.c:79
+#, c-format
+msgid " Displays the sizes of sections inside binary files\n"
+msgstr " Menampilkan ukuran dari daerah didalam berkas binari\n"
+
+#: size.c:80
+#, c-format
+msgid " If no input file(s) are specified, a.out is assumed\n"
+msgstr " Jika tidak ada berkas masukan yang dispesifikasikan, a.out diasumsikan\n"
+
+#: size.c:81
+#, c-format
+msgid ""
+" The options are:\n"
+"  -A|-B     --format={sysv|berkeley}  Select output style (default is %s)\n"
+"  -o|-d|-x  --radix={8|10|16}         Display numbers in octal, decimal or hex\n"
+"  -t        --totals                  Display the total sizes (Berkeley only)\n"
+"            --common                  Display total size for *COM* syms\n"
+"            --target=<bfdname>        Set the binary file format\n"
+"            @<file>                   Read options from <file>\n"
+"  -h        --help                    Display this information\n"
+"  -v        --version                 Display the program's version\n"
+"\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -A|-B     --format={sysv|berkeley}  Pilih gaya keluaran (baku adalah %s)\n"
+"  -o|-d|-x  --radix={8|10|16}         Tampilkan nomor dalam oktal, desimal atau heksadesimal\n"
+"  -t        --totals                  Tampilkan jumlah total (Berkeley saja)\n"
+"            --common                  Tampilkan jumlah total untuk *COM* syms\n"
+"            --target=<bfdname>        Set format berkas binari\n"
+"            @<berkas>                 Baca pilihan dari <berkas>\n"
+"  -h        --help                    Tampilkan informasi ini\n"
+"  -v        --version                 Tampilkan versi aplikasi\n"
+"\n"
+
+#: size.c:160
+#, c-format
+msgid "invalid argument to --format: %s"
+msgstr "argumen tidak valid ke --format: %s"
+
+#: size.c:187
+#, c-format
+msgid "Invalid radix: %s\n"
+msgstr "Radix tidak valid: %s\n"
+
+#: srconv.c:1731
+#, c-format
+msgid "Convert a COFF object file into a SYSROFF object file\n"
+msgstr "Mengubah sebuah berkas objek COFF kedalam sebuah berkas objek SYSROFF\n"
+
+#: srconv.c:1732
+#, c-format
+msgid ""
+" The options are:\n"
+"  -q --quick       (Obsolete - ignored)\n"
+"  -n --noprescan   Do not perform a scan to convert commons into defs\n"
+"  -d --debug       Display information about what is being done\n"
+"  @<file>          Read options from <file>\n"
+"  -h --help        Display this information\n"
+"  -v --version     Print the program's version number\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -q --quick       (Kadaluarsaa - diabaikan)\n"
+"  -n --noprescan   Jangan lakukan sebuah scan untuk mengubah common menjadi def\n"
+"  -d --debug       Tampilkan informasi mengenai apa yang sedang dikerjakan\n"
+"  @<berkas>        Baca pilihan dari <berkas>\n"
+"  -h --help        Tampilkan informasi ini\n"
+"  -v --version     Tampilkan nomor versi aplikasi\n"
+
+#: srconv.c:1878
+#, c-format
+msgid "unable to open output file %s"
+msgstr "tidak dapat membuka berkas keluaran %s"
+
+#: stabs.c:328 stabs.c:1726
+msgid "numeric overflow"
+msgstr "numerik overflow"
+
+#: stabs.c:338
+#, c-format
+msgid "Bad stab: %s\n"
+msgstr "Bad stab: %s\n"
+
+#: stabs.c:346
+#, c-format
+msgid "Warning: %s: %s\n"
+msgstr "Peringatan: %s: %s\n"
+
+#: stabs.c:456
+#, c-format
+msgid "N_LBRAC not within function\n"
+msgstr "N_LBRAC tidak dalam fungsi\n"
+
+#: stabs.c:495
+#, c-format
+msgid "Too many N_RBRACs\n"
+msgstr "Terlalu banyak N_RBRAC\n"
+
+#: stabs.c:736
+msgid "unknown C++ encoded name"
+msgstr "nama C++ terenkode tidak dikenal"
+
+#. Complain and keep going, so compilers can invent new
+#. cross-reference types.
+#: stabs.c:1271
+msgid "unrecognized cross reference type"
+msgstr "tipe referensi silang tidak dikenal"
+
+#. Does this actually ever happen?  Is that why we are worrying
+#. about dealing with it rather than just calling error_type?
+#: stabs.c:1818
+msgid "missing index type"
+msgstr "hilang tipe indeks"
+
+#: stabs.c:2134
+msgid "unknown virtual character for baseclass"
+msgstr "karakter maya untuk baseclass tidak dikenal"
+
+#: stabs.c:2152
+msgid "unknown visibility character for baseclass"
+msgstr "karakter visibel untuk baseclass tidak dikenal"
+
+#: stabs.c:2338
+msgid "unnamed $vb type"
+msgstr "unnamed tipe $vb"
+
+#: stabs.c:2344
+msgid "unrecognized C++ abbreviation"
+msgstr "kependekan C++ tidak dikenal"
+
+#: stabs.c:2420
+msgid "unknown visibility character for field"
+msgstr "karakter visibel untuk field tidak dikenal"
+
+#: stabs.c:2672
+msgid "const/volatile indicator missing"
+msgstr "const/volatile indikator hilang"
+
+#: stabs.c:2908
+#, c-format
+msgid "No mangling for \"%s\"\n"
+msgstr "Tidak ada mangling untuk \"%s\"\n"
+
+#: stabs.c:3208
+msgid "Undefined N_EXCL"
+msgstr "Tidak terdefinisi N_EXCL"
+
+#: stabs.c:3288
+#, c-format
+msgid "Type file number %d out of range\n"
+msgstr "Tipe nomor berkas %d diluar dari jangkauan\n"
+
+#: stabs.c:3293
+#, c-format
+msgid "Type index number %d out of range\n"
+msgstr "Tipe nomor indeks %d diluar dari jangkauan\n"
+
+#: stabs.c:3372
+#, c-format
+msgid "Unrecognized XCOFF type %d\n"
+msgstr "Tipe XCOFF %d tidak dikenal\n"
+
+#: stabs.c:3664
+#, c-format
+msgid "bad mangled name `%s'\n"
+msgstr "nama mangled `%s' buruk\n"
+
+#: stabs.c:3759
+#, c-format
+msgid "no argument types in mangled string\n"
+msgstr "tidak ada tipe argumen dalam string mangle\n"
+
+#: stabs.c:5113
+#, c-format
+msgid "Demangled name is not a function\n"
+msgstr "Nama demangle bukan sebuah fungsi\n"
+
+#: stabs.c:5155
+#, c-format
+msgid "Unexpected type in v3 arglist demangling\n"
+msgstr "Tipe tidak terduga dalam daftar argumen v3 demangling\n"
+
+#: stabs.c:5222
+#, c-format
+msgid "Unrecognized demangle component %d\n"
+msgstr "Komponen %d demangle tidak dikenal\n"
+
+#: stabs.c:5274
+#, c-format
+msgid "Failed to print demangled template\n"
+msgstr "Gagal untuk menampilkan template demangle\n"
+
+#: stabs.c:5354
+#, c-format
+msgid "Couldn't get demangled builtin type\n"
+msgstr "Tidak dapat memperoleh demangle tipe builtin\n"
+
+#: stabs.c:5403
+#, c-format
+msgid "Unexpected demangled varargs\n"
+msgstr "varags demangled tidak terduga\n"
+
+#: stabs.c:5410
+#, c-format
+msgid "Unrecognized demangled builtin type\n"
+msgstr "tipe builting demangle tidak dikenal\n"
+
+#: strings.c:201 strings.c:260
+#, c-format
+msgid "invalid integer argument %s"
+msgstr "argumen integer tidak valid %s"
+
+#: strings.c:263
+#, c-format
+msgid "invalid minimum string length %d"
+msgstr "panjang string minimal %d tidak valid"
+
+#: strings.c:660
+#, c-format
+msgid " Display printable strings in [file(s)] (stdin by default)\n"
+msgstr " Menampilkan string yang dapat dicetak dalam [berkas] (stdin secara baku)\n"
+
+#: strings.c:661
+#, c-format
+msgid ""
+" The options are:\n"
+"  -a - --all                Scan the entire file, not just the data section\n"
+"  -f --print-file-name      Print the name of the file before each string\n"
+"  -n --bytes=[number]       Locate & print any NUL-terminated sequence of at\n"
+"  -<number>                   least [number] characters (default 4).\n"
+"  -t --radix={o,d,x}        Print the location of the string in base 8, 10 or 16\n"
+"  -o                        An alias for --radix=o\n"
+"  -T --target=<BFDNAME>     Specify the binary file format\n"
+"  -e --encoding={s,S,b,l,B,L} Select character size and endianness:\n"
+"                            s = 7-bit, S = 8-bit, {b,l} = 16-bit, {B,L} = 32-bit\n"
+"  @<file>                   Read options from <file>\n"
+"  -h --help                 Display this information\n"
+"  -v -V --version           Print the program's version number\n"
+msgstr ""
+" Pilihan adalah:\n"
+" -a --all                   Periksa seluruh berkas, tidak hanya daerah data\n"
+" -f --print-file-name       Tampilkan nama dari berkas sebelum setiap string\n"
+" -n --bytes=[nomor]         Lokasikan dan tampilkan urutan NUL-terakhiri apapun dari di\n"
+" -<nomor>                   akhir [nomor] karakter (baku 4).\n"
+" -t --radix={o,d,x}         Tampilkan lokasi dari string dalam basis 8, 10 atau 16\n"
+" -o                         Sebuah alias untuk --radix=o\n"
+" -T --target=<BFDNAME>      Spesifikasikan format berkas binari\n"
+" -e --encoding={s,S,b,l,B,L} Pilih ukuran karakter dan tipe endian:\n"
+"                            s = 7-bit, S = 8-bit, {b,l} = 16-bit, {B,L} = 32-bit\n"
+" @<berkas>                  Baca pilihan dari <berkas>\n"
+" -h --help                  Tampilkan informasi ini\n"
+" -v -V --version            Tampilkan nomor versi aplikasi\n"
+
+#: sysdump.c:647
+#, c-format
+msgid "Print a human readable interpretation of a SYSROFF object file\n"
+msgstr "Menampilkan sebuah interpretasi mudah dibaca dari sebuah berkas objek SYSROFF\n"
+
+#: sysdump.c:648
+#, c-format
+msgid ""
+" The options are:\n"
+"  -h --help        Display this information\n"
+"  -v --version     Print the program's version number\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -h --help        Tampilkan informasi ini\n"
+"  -v --version     Tampilkan nomor versi aplikasi\n"
+
+#: sysdump.c:715
+#, c-format
+msgid "cannot open input file %s"
+msgstr "tidak dapat membuka berkas masukan %s"
+
+#: version.c:35
+#, c-format
+msgid "Copyright 2009 Free Software Foundation, Inc.\n"
+msgstr "Hak Cipta 2009 Free Software Foundation, Inc.\n"
+
+#: version.c:36
+#, c-format
+msgid ""
+"This program is free software; you may redistribute it under the terms of\n"
+"the GNU General Public License version 3 or (at your option) any later version.\n"
+"This program has absolutely no warranty.\n"
+msgstr ""
+"Aplikasi ini adalah software bebas; anda boleh meredistribusikannya dibawah ijin dari\n"
+"Lisensi GNU General Public  versi 3 atau (menurut pilihan anda) mungkin versi selanjutnya.\n"
+"Aplikasi ini tidak memiliki garansi apapun.\n"
+
+#: windmc.c:195
+#, c-format
+msgid "can't create %s file ,%s' for output.\n"
+msgstr "tidak dapat membuat berkas %s, %s' untuk keluaran.\n"
+
+#: windmc.c:203
+#, c-format
+msgid "Usage: %s [option(s)] [input-file]\n"
+msgstr "Penggunaan: %s [pilihan] [berkas-masukan]\n"
+
+#: windmc.c:205
+#, c-format
+msgid ""
+" The options are:\n"
+"  -a --ascii_in                Read input file as ASCII file\n"
+"  -A --ascii_out               Write binary messages as ASCII\n"
+"  -b --binprefix               .bin filename is prefixed by .mc filename_ for uniqueness.\n"
+"  -c --customflag              Set custom flags for messages\n"
+"  -C --codepage_in=<val>       Set codepage when reading mc text file\n"
+"  -d --decimal_values          Print values to text files decimal\n"
+"  -e --extension=<extension>   Set header extension used on export header file\n"
+"  -F --target <target>         Specify output target for endianess.\n"
+"  -h --headerdir=<directory>   Set the export directory for headers\n"
+"  -u --unicode_in              Read input file as UTF16 file\n"
+"  -U --unicode_out             Write binary messages as UFT16\n"
+"  -m --maxlength=<val>         Set the maximal allowed message length\n"
+"  -n --nullterminate           Automatic add a zero termination to strings\n"
+"  -o --hresult_use             Use HRESULT definition instead of status code definition\n"
+"  -O --codepage_out=<val>      Set codepage used for writing text file\n"
+"  -r --rcdir=<directory>       Set the export directory for rc files\n"
+"  -x --xdbg=<directory>        Where to create the .dbg C include file\n"
+"                               that maps message ID's to their symbolic name.\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -a --ascii_in                Baca berkas masukan sebagai berkas ASCII\n"
+"  -A --ascii_out               Tulis pesan binari sebagai ASCII\n"
+"  -b --binprefix               nama berkas .bin diawali sebagai nama berkas .mc supaya unik.\n"
+"  -c --customflag              Set tanda kustom untuk pesan\n"
+"  -C --codepage_in=<val>       Set kode halaman ketika membaca mc berkas teks\n"
+"  -d --decimal_values          Tampilkan nilai ke berkas teks desimal\n"
+"  -e --extension=<extension>   Set header extension digunakan dalam menekspor berkas header\n"
+"  -F --target <target>         Spesifikasikan target keluaran untuk tipe endian.\n"
+"  -h --headerdir=<direktori>   Set direktori ekspor untuk header\n"
+"  -u --unicode_in              Baca berkas masukan sebagai berkas UTF16\n"
+"  -U --unicode_out             Tulis pesan binari sebagai UTF16\n"
+"  -m --maxlength=<nilai>       Set maksimal panjang pesan yang diijinkan\n"
+"  -n --nullterminate           Otomatis tambahkan sebuah nol ke string\n"
+"  -o --hresult_use             Gunakan definisi HRESULT daripada kode status definisi\n"
+"  -O --codepage_out=<nilai>    Set kode halaman digunakn untuk menulis berkas teks\n"
+"  -r --rcdir=<direktori>       Set direktori ekspor untuk berkas rc\n"
+"  -x --xdbg=<direktori>        Dimana untuk membuat berkas .dbg C include\n"
+"                               yang memetakan pesan ID ke nama simboliknya.\n"
+
+#: windmc.c:225
+#, c-format
+msgid ""
+"  -H --help                    Print this help message\n"
+"  -v --verbose                 Verbose - tells you what it's doing\n"
+"  -V --version                 Print version information\n"
+msgstr ""
+"  -H --help                    Tampilkan pesan bantuan ini\n"
+"  -v --verbose                 Verbose - Beritahu anda apa yang sedang dikerjakan\n"
+"  -V --version                 Tampilkan informasi versi\n"
+
+#: windmc.c:296 windres.c:415
+#, c-format
+msgid "%s: warning: "
+msgstr "%s: peringatan: "
+
+#: windmc.c:297
+#, c-format
+msgid "A codepage was specified switch ,%s' and UTF16.\n"
+msgstr "Sebuah kode halaman telah dispesifikasikan perpindahan ,%s' dan UTF16.\n"
+
+#: windmc.c:298
+#, c-format
+msgid "\tcodepage settings are ignored.\n"
+msgstr "\tkonfigurasi kode halaman diabaikan.\n"
+
+#: windmc.c:342
+msgid "try to add a ill language."
+msgstr "coba tambahkan sebuah bahasa sakit."
+
+#: windmc.c:1151
+#, c-format
+msgid "unable to open file ,%s' for input.\n"
+msgstr "tidak dapat membuka berkas, %s' untuk masukan.\n"
+
+#: windmc.c:1159
+#, c-format
+msgid "unable to read contents of %s"
+msgstr "tidak dapat membaca isi dari %s"
+
+#: windmc.c:1171
+msgid "input file does not seems to be UFT16.\n"
+msgstr "berkas masukan tidak dapat terlihat sebagai UTF16.\n"
+
+#: windres.c:220
+#, c-format
+msgid "can't open %s `%s': %s"
+msgstr "tidak dapat membuka %s `%s': %s"
+
+#: windres.c:394
+#, c-format
+msgid ": expected to be a directory\n"
+msgstr ": diduga sebuah direktori\n"
+
+#: windres.c:406
+#, c-format
+msgid ": expected to be a leaf\n"
+msgstr ": diduga sebuah daun\n"
+
+#: windres.c:417
+#, c-format
+msgid ": duplicate value\n"
+msgstr ": nilai terduplikasi\n"
+
+#: windres.c:567
+#, c-format
+msgid "unknown format type `%s'"
+msgstr "tipe format `%s' tidak diketahui"
+
+#: windres.c:568
+#, c-format
+msgid "%s: supported formats:"
+msgstr "%s: format yang didukung:"
+
+#. Otherwise, we give up.
+#: windres.c:651
+#, c-format
+msgid "can not determine type of file `%s'; use the -J option"
+msgstr "tidak dapat menentukan tipe dari berkas `%s'; gunakan pilihan -J"
+
+#: windres.c:663
+#, c-format
+msgid "Usage: %s [option(s)] [input-file] [output-file]\n"
+msgstr "Penggunaan: %s [pilihan] [berkas-masukan] [berkas-keluaran]\n"
+
+#: windres.c:665
+#, c-format
+msgid ""
+" The options are:\n"
+"  -i --input=<file>            Name input file\n"
+"  -o --output=<file>           Name output file\n"
+"  -J --input-format=<format>   Specify input format\n"
+"  -O --output-format=<format>  Specify output format\n"
+"  -F --target=<target>         Specify COFF target\n"
+"     --preprocessor=<program>  Program to use to preprocess rc file\n"
+"  -I --include-dir=<dir>       Include directory when preprocessing rc file\n"
+"  -D --define <sym>[=<val>]    Define SYM when preprocessing rc file\n"
+"  -U --undefine <sym>          Undefine SYM when preprocessing rc file\n"
+"  -v --verbose                 Verbose - tells you what it's doing\n"
+"  -c --codepage=<codepage>     Specify default codepage\n"
+"  -l --language=<val>          Set language when reading rc file\n"
+"     --use-temp-file           Use a temporary file instead of popen to read\n"
+"                               the preprocessor output\n"
+"     --no-use-temp-file        Use popen (default)\n"
+msgstr ""
+" Pilihan adalah:\n"
+"  -i --input=<berkas>          Nama berkas masukan\n"
+"  -o --output=<berkas>         Nama berkas keluaran\n"
+"  -J --input-format=<format>   Spesifikasikan format masukan\n"
+"  -O --output-format=<format>  Spesifikasikan format keluaran\n"
+"  -F --target=<target>         Spesifikasikan target COFF\n"
+"     --preprocessor=<program>  Aplikasi yang digunakan untuk memproses berkas rc\n"
+"  -I --include-dir=<dir>       Masukan direktori ketika memproses berkas rc\n"
+"  -D --define <sym>[=<val>]    Definisikan SYM ketika memproses berkas rc\n"
+"  -U --undefine <sym>          Undefine SYM ketika memproses berkas rc\n"
+"  -v --verbose                 Verbose - beritahu anda apa yang sedang dikerjakan\n"
+"  -c --codepage=<codepage>     Spesifikasikan kode halaman baku\n"
+"  -l --language=<val>          Set bahasa ketika membaca berkas rc\n"
+"     --use-temp-file           Gunakan sebuah berkas sementara daripada popen untuk membaca\n"
+"                               keluaran preprosesor\n"
+"     --no-use-temp-file        Use popen (baku)\n"
+
+#: windres.c:682
+#, c-format
+msgid "     --yydebug                 Turn on parser debugging\n"
+msgstr "     --yydebug                 Aktifkan parse debugging\n"
+
+#: windres.c:685
+#, c-format
+msgid ""
+"  -r                           Ignored for compatibility with rc\n"
+"  @<file>                      Read options from <file>\n"
+"  -h --help                    Print this help message\n"
+"  -V --version                 Print version information\n"
+msgstr ""
+"  -r                           Mengabaikan untuk kompabilitas dengan rc\n"
+"  @<berkas>                    Baca pilihan dari <berkas>\n"
+"  -h --help                    Tampilkan pesan bantuan ini\n"
+"  -V --version                 Tampilkan informasi versi\n"
+
+#: windres.c:690
+#, c-format
+msgid ""
+"FORMAT is one of rc, res, or coff, and is deduced from the file name\n"
+"extension if not specified.  A single file name is an input file.\n"
+"No input-file is stdin, default rc.  No output-file is stdout, default rc.\n"
+msgstr ""
+"FORMAR adalah salah satu dari rc, res, atau coff,, dan dideduksi dari nama berkas\n"
+"ekstensi jika tidak dispesifikasikan. Sebuah nama berkas tunggal adalah sebuah berkas masukan.\n"
+"Tidak ada berkas-masukan adalah stdin, default rc. Tidak ada berkas-keluaraan adalah stdout, default rc.\n"
+
+#: windres.c:848
+msgid "invalid codepage specified.\n"
+msgstr "kode halaman yang dispesifikasikan tidak valid.\n"
+
+#: windres.c:863
+msgid "invalid option -f\n"
+msgstr "pilihan -f tidak valid\n"
+
+#: windres.c:868
+msgid "No filename following the -fo option.\n"
+msgstr "Tidak ada nama berkas yang mengikuti pilihan -fo.\n"
+
+#: windres.c:927
+#, c-format
+msgid "Option -I is deprecated for setting the input format, please use -J instead.\n"
+msgstr "Pilihan -I kadaluarsa untuk konfigurasi format masukan, tolong gunakan -J lebih baik.\n"
+
+#: windres.c:1037
+msgid "no resources"
+msgstr "tidak ada sumber daya"
+
+#: wrstabs.c:353 wrstabs.c:1916
+#, c-format
+msgid "string_hash_lookup failed: %s"
+msgstr "string_hash_lookup gagal: %s"
+
+#: wrstabs.c:636
+#, c-format
+msgid "stab_int_type: bad size %u"
+msgstr "stab_int_type: ukuran %u buruk"
+
+#: wrstabs.c:1394
+#, c-format
+msgid "%s: warning: unknown size for field `%s' in struct"
+msgstr "%s: peringatan: ukuran tidak diketahui untuk field `%s' dalam struktur"
+
+#~ msgid ""
+#~ "The section %s contains:\n"
+#~ "\n"
+#~ msgstr ""
+#~ "Daerah %s berisi:\n"
+#~ "\n"
+
+#~ msgid "Range lists in .debug_info section aren't in ascending order!\n"
+#~ msgstr "Daftar jangkauan dalam daerah .debug_info tidak dalam urutan meningkat!\n"
+
+#~ msgid "The section %s contains:\n"
+#~ msgstr "Daerah %s berisi:\n"
+
+#~ msgid "%s: failed to read archive header following long symbol names\n"
+#~ msgstr "%s: gagal untuk membaca archive header dari nama simbol panjang berikut\n"
+
+#~ msgid "%s: failed to read file name\n"
+#~ msgstr "%s: gagal untuk membaca nama berkas\n"
+
+#~ msgid "%s: invalid archive string table offset %lu\n"
+#~ msgstr "%s: ofset tabel string archive tidak valid %lu\n"

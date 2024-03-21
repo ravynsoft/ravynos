@@ -1,0 +1,38 @@
+-*- text -*-
+
+Changes in 2.39:
+
+* New features
+
+** The CTF variable section (if generated via ld --ctf-variables) now contains
+   entries for static functions, hidden functions, and other functions with
+   no associated symbol.  The associated type is of kind CTF_K_FUNCTION.
+   (No change if --ctf-variables is not specified, which is the default.)
+
+Changes in 2.37:
+
+* New features
+
+** Add ctf_lookup_by_symbol name and ctf_arc_lookup_symbol_name, analogues of
+   existing ctf_lookup_by_symbol and ctf_arc_lookup_symbol, but looking up
+   symbols by name rather than symbol number.  This also works in places where no
+   symbol number is known, like in object files and dynamic dicts created by
+   ctf_create.
+
+** libctf supports compilers that encode unrepresentable types via a special
+   kind (CTF_K_UNKNOWN) as well as via type ID 0.
+
+* Bugfixes
+
+** Avoid duplicating or losing types of data object symbols when
+   ld -r is used
+
+** Prohibit typedefs with no name; prevent the linker/deduplicator
+   producing such typedefs
+
+* Bugfixes, also on 2.36 branch
+
+** Prevent ctf_lookup_by_name returning success when
+   looking up nonexistent pointer types
+
+** Fix ctf_type_add copying of structs with unnamed members

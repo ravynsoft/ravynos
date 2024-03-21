@@ -1,0 +1,75 @@
+digraph {
+
+    node [shape=box]
+
+    subgraph process {
+        RMLVO [
+            label=<<i>End user configuration</i><br/><b>RMLVO:</b> <b>R</b>ules, <b>M</b>odel, <b>L</b>ayout, <b>V</b>ariant, <b>O</b>ptions>,
+            penwidth=3,
+            href="@ref RMLVO-intro",
+        ];
+        RMLVO_resolution [
+            label=<<i>RMLVO resolution</i><br/>Determine KcCGST using the specified rules file:<br/>match the given model, layout, variant and options fields>,
+            style=rounded,
+            color=blue
+        ];
+        KcCGST [
+            label=<<i>Layout database configuration</i><br/><b>KcCGST:</b> <b>K</b>ey<b>c</b>odes, <b>C</b>ompat, <b>G</b>eometry, <b>S</b>ymbols, <b>T</b>ypes>,
+            penwidth=3,
+            href="@ref KcCGST-intro"
+        ];
+        KcCGST_resolution [
+            label=<<i>KcCGST resolution</i><br/>Construct the keymap from its components>,
+            style=rounded,
+            color=blue
+        ];
+        Keymap [
+            label=<<i>Window server configuration</i><br/><b>Complete keymap</b>>,
+            penwidth=3,
+            href="@ref keymap-intro"
+        ];
+    }
+
+    database [shape=none, label=<
+        <table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+            <tr><td><b>Layout Database</b></td></tr>
+            <hr/>
+            <tr><td port="rules">Rules files</td></tr>
+            <tr><td port="keycodes">Keycodes files</td></tr>
+            <tr><td port="compat">Compat files</td></tr>
+            <tr><td port="geometry">(Geometry files)</td></tr>
+            <tr><td port="symbols">Symbols files</td></tr>
+            <tr><td port="types">Types files</td></tr>
+        </table>
+    >];
+
+    { rank = same; KcCGST; database }
+
+    edge [
+        color=blue,
+        arrowhead=normal,
+        style=bold
+    ]
+    {
+        rankdir="TB";
+        RMLVO -> RMLVO_resolution -> KcCGST -> KcCGST_resolution -> Keymap
+    }
+
+
+    edge [
+        color=dimgrey,
+        arrowhead=vee,
+        style=solid
+    ]
+    RMLVO:e -> database:rules:e [constraint=false];
+    KcCGST:e -> database:keycodes:w [constraint=false];
+    KcCGST:e -> database:compat:w [constraint=false];
+    KcCGST:e -> database:symbols:w [constraint=false];
+    KcCGST:e -> database:types:w [constraint=false];
+
+    database:rules:w -> RMLVO_resolution:e [constraint=false];
+    database:keycodes:e -> KcCGST_resolution [constraint=false];
+    database:compat:e -> KcCGST_resolution [constraint=false];
+    database:symbols:e -> KcCGST_resolution [constraint=false];
+    database:types:e -> KcCGST_resolution [constraint=false];
+}

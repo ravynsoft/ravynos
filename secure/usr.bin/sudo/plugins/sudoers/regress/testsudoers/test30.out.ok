@@ -1,0 +1,133 @@
+verifypw = all, 'sudo -v' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+verifypw = all, 'sudo -v' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+verifypw = all, 'sudo -v' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = NOPASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+verifypw = always, 'sudo -v' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+verifypw = any, 'sudo -v' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+verifypw = any, 'sudo -v' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = NOPASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+verifypw = any, 'sudo -v' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+verifypw = never, 'sudo -v' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = PASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed

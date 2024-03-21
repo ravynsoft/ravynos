@@ -1,0 +1,30 @@
+digraph stack
+{
+  compound=true;
+  rankdir="LR";
+  node [
+    shape="box";
+  ]
+
+  gcc -> gsettings
+
+  xf86libinput -> libinput
+
+  subgraph cluster0 {
+    label="X.Org";
+    xf86libinput [label="xf86-input-libinput"];
+    xserver [label="X Server"];
+    xserver -> xf86libinput;
+  }
+
+  gcc [label="gnome-control-center"];
+
+  subgraph cluster3 {
+    gsettings
+  }
+
+  gsd [label="mutter"];
+
+  gsd -> gsettings
+  gsd -> xserver
+}

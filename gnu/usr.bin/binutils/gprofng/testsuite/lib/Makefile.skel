@@ -1,0 +1,64 @@
+# Skeleton makefile for display tests
+#   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+CC          = gcc
+CFLAGS      = -g -Wall
+SHAREDOPT	= -fpic	-shared
+
+#JAVABIN = /usr/java/latest/bin
+JAVABIN = $(shell dirname `which java`)
+JAVA    = $(JAVABIN)/java
+JAVAC   = $(JAVABIN)/javac
+
+COLLECT_FLAGS   = -p on
+TARGET_FLAGS    =
+DISPLAY_FLAGS   = -func
+GPROFNG_OPT = -func
+
+GPROFNG     = gprofng
+COLLECT	    = $(GPROFNG) collect app
+DISPLAY	    = $(GPROFNG) display text
+
+EXPERIMENT  = test.er
+DISPLAY_LOG = display.log
+
+export LD_LIBRARY_PATH := $(BUILDDIR)/src
+
+# Set GPROFNG_SYSCONFDIR to find out gprofng.rc:
+export GPROFNG_SYSCONFDIR := $(srcdir)/../../../src
+
+.PHONY: all collect compare clobber clean
+
+all: compare
+
+# We intentionally use incomplete dependencies here, because we don't want to
+# regenerate test.er during the later display/compare phases.
+collect: $(EXPERIMENT)
+
+$(DISPLAY_LOG): $(EXPERIMENT)
+	$(DISPLAY) $(DISPLAY_FLAGS) $(EXPERIMENT) > $@
+
+compare: $(DISPLAY_LOG)
+	cat $(ACCT_FILE) $(ACCT_FILTER) > $(ACCT_FILE).fltr
+	perl -I $(srcdir)/../../lib $(srcdir)/check_results.pl $(ACCT_FILE).fltr $(DISPLAY_LOG)
+
+clobber clean:
+	rm -rf *.er
+	rm -f *.acct *.acct2 *.log core* *.class *.o $(TARGETS) *.out

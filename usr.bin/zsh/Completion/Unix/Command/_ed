@@ -1,0 +1,38 @@
+#compdef ed
+
+local -a args
+
+args=(
+  '(-p --prompt)'{-p+,--prompt=}'[specify prompt]:prompt:'
+  '(-s --quiet --silent)'{-s,--quiet,--silent}'[suppress diagnostics]'
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  args+=(
+    '(-G --traditional)'{-G,--traditional}'[run in compatibility mode]'
+    '(- :)'{-h,--help}'[display help]'
+    '(-l --loose-exit-status)'{-l,--loose-exit-status}'[exit 0 even if a command fails]'
+    '(-r --restricted)'{-r,--restricted}'[run in restricted mode]'
+    '(- :)'{-V,--version}'[display version]'
+    '(-v --verbose)'{-v,--verbose}'[be verbose]'
+  )
+else
+  args=(-A '-*' ${args:#*\)--*})
+  case $OSTYPE in
+    dragonfly*|freebsd*|darwin*|netbsd*|solaris*)
+      args+=(
+        '-x[prompt for an encryption key]'
+      )
+      ;|
+    netbsd*)
+      args+=(
+        '-E[enable extended regular expressions]'
+        '-S[disable ! command]'
+      )
+      ;;
+  esac
+fi
+
+_arguments -s -S \
+  $args \
+  ':file:_files'

@@ -73,7 +73,7 @@ startwizard:
 		return (1);
 	}
 
-	bsddialog_clearterminal();
+	bsddialog_clear(0);
 	bsddialog_backtitle(&conf, "FreeBSD Installer");
 	schemeroot = wizard_partition(&mesh, disk);
 	free(disk);
@@ -81,7 +81,7 @@ startwizard:
 	if (schemeroot == NULL)
 		return (1);
 
-	bsddialog_clearterminal();
+	bsddialog_clear(0);
 	bsddialog_backtitle(&conf, "FreeBSD Installer");
 	error = geom_gettree(&mesh);
 	if (error != 0) {
@@ -277,7 +277,8 @@ query:
 		char warning[512];
 		int subchoice;
 
-		sprintf(warning, "The existing partition scheme on this "
+		snprintf(warning, sizeof(warning),
+		    "The existing partition scheme on this "
 		    "disk (%s) is not bootable on this platform. To install "
 		    OSNAME ", it must be repartitioned. This will destroy all "
 		    "data on the disk. Are you sure you want to proceed?",
@@ -367,7 +368,8 @@ wizard_makeparts(struct gmesh *mesh, const char *disk, const char *fstype,
 		    HN_DECIMAL);
 		humanize_number(neededstr, 7, MIN_FREE_SPACE, "B", HN_AUTOSCALE,
 		    HN_DECIMAL);
-		sprintf(message, "There is not enough free space on %s to "
+		snprintf(message, sizeof(message),
+		    "There is not enough free space on %s to "
 		    "install " OSNAME " (%s free, %s required). Would you like "
 		    "to choose another disk or to open the partition editor?",
 		    disk, availablestr, neededstr);

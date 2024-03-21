@@ -1,0 +1,17 @@
+#compdef uscan
+
+_arguments \
+  '(--report --no-download --download)'{--report,--no-download}'[report but do not download]' \
+  '--debug[dump downloaded pages to stdout]' \
+  '(--report --no-download --download)--download[report and download]' \
+  '(--pasv --no-pasv)--pasv[force passive mode for ftp]' \
+  '(--pasv --no-pasv)--no-pasv[do not use passive mode for ftp]' \
+  '(--symlink --no-symlink)--symlink[make orig.tar.gz symlinks]' \
+  '(--symlink --no-symlink)--no-symlink[do not make orig.tar.gz symlinks]' \
+  '(--verbose --no-verbose)--verbose[give verbose output]' \
+  '(--verbose --no-verbose)--no-verbose[do not give verbose output]' \
+  '--check-dirname-level:level:((0\:never\ check\ the\ directory\ name 1\:only\ check\ directory\ name\ if\ we\ had\ to\ change\ directory 2\:always\ check\ the\ directory\ name))' \
+  '--check-dirname-regex:perl regex' \
+  '(--no-conf --noconf)'{--no-conf,--noconf}'[do not read any configuration files]' \
+  '--help[display help information]' \
+  '--version[display version information]'

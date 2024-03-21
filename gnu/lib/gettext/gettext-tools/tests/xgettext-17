@@ -1,0 +1,59 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test file locations with file names that contain spaces.
+
+cat <<\EOF > 'xg-test17 a.c'
+gettext ("foo");
+EOF
+
+cat <<\EOF > 'xg-test17 x y.c'
+gettext ("foo");
+gettext ("bar");
+EOF
+
+cat <<\EOF > 'xg-test17z.c'
+gettext ("bar");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} 'xg-test17 a.c' 'xg-test17 x y.c' 'xg-test17z.c' \
+            -o xg-test17.out >xg-test17.err 2>&1
+result=$?
+cat xg-test17.err | grep -v '^ '
+test $result = 0 || { Exit 1; }
+sed -e '/\"POT-Creation-Date:.*/d' < xg-test17.out | LC_ALL=C tr -d '\r' > xg-test17.po
+
+cat <<\EOF > xg-test17.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ⁨xg-test17 a.c⁩:1 ⁨xg-test17 x y.c⁩:1
+msgid "foo"
+msgstr ""
+
+#: ⁨xg-test17 x y.c⁩:2 xg-test17z.c:1
+msgid "bar"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test17.ok xg-test17.po
+result=$?
+
+exit $result

@@ -1,0 +1,20 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test conversion from UTF-8 to BIG5 is a NOP with Java .properties syntax.
+# Test that encoding names are case insensitive.
+
+cat <<\EOF > mco-test4.properties
+#: src/msgcmp.c:155 src/msgmerge.c:273
+exactly\ 2\ input\ files\ required=\u6b64\u529f\u80fd\u9700\u8981\u6070\u597d\u6307\u5b9a\u5169\u500b\u8f38\u5165\u6a94
+EOF
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --properties-input --properties-output -t Big5 -o mco-test4.out mco-test4.properties || Exit 1
+
+: ${DIFF=diff}
+# Redirect stdout, so as not to fill the user's screen with non-ASCII bytes.
+${DIFF} mco-test4.properties mco-test4.out >/dev/null
+result=$?
+
+exit $result

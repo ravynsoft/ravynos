@@ -48,24 +48,24 @@ diskmenu_show(const char *title, const char *text, struct partedit_item *items,
 	for (i = 0; i < nitems; i++) {
 		bsditems[i].prefix = "";
 		bsditems[i].on = false;
-		bsditems[i].depth = items[i].indentation;
+		bsditems[i].depth = 2 * items[i].indentation;
 		/* old menu sets max namelen to 10 */
 		bsditems[i].name = items[i].name;
 		humanize_number(size, 7, items[i].size, "B",
 		    HN_AUTOSCALE, HN_DECIMAL);
 		mp = items[i].mountpoint != NULL ? items[i].mountpoint : "";
-		asprintf(__DECONST(char**, &bsditems[i].desc), "%s %-15s %-10s",
-		    size, items[i].type, mp);
+		asprintf(__DECONST(char**, &bsditems[i].desc),
+		    "  %-9s %-15s %s", size, items[i].type, mp);
 		bsditems[i].bottomdesc = "";
 	}
 
 	bsddialog_initconf(&conf);
 	conf.title = title;
 	conf.menu.align_left = true;
-	conf.text.highlight = true;
+	conf.text.escape = true;
 	conf.key.f1_message="[\\Z1\\ZbC\\Znreate]: a new partition.\n"
 		"[\\Z1\\ZbD\\Znelete]: selected partition(s).\n"
-		"[\\Z1\\ZbC\\Znhange]: partition type or mountpoint.\n"
+		"[\\Z1\\ZbM\\Znodify]: partition type or mountpoint.\n"
 		"[\\Z1\\ZbR\\Znevert]: changes to disk setup.\n"
 		"[\\Z1\\ZbA\\Znuto]:   guided partitioning tool.\n"
 		"[\\Z1\\ZbF\\Zninish]: will ask to apply changes.";
@@ -76,8 +76,8 @@ diskmenu_show(const char *title, const char *text, struct partedit_item *items,
 	conf.button.cancel_label   = "Modify";
 	conf.button.with_help      = true;
 	conf.button.help_label     = "Revert";
-	conf.button.generic1_label = "Auto";
-	conf.button.generic2_label = "Finish";
+	conf.button.right1_label = "Auto";
+	conf.button.right2_label = "Finish";
 	conf.button.default_label  = "Finish";
 	output = bsddialog_menu(&conf, text, 20, 0, 10, nitems, bsditems,
 	    focusitem);
@@ -86,5 +86,5 @@ diskmenu_show(const char *title, const char *text, struct partedit_item *items,
 		free((char *)bsditems[i].desc);
 	free(bsditems);
 
-	return output;
+	return (output);
 }

@@ -1,0 +1,5 @@
+#compdef bibtex
+
+# bibtex only works when the *.aux file exists, but complete the *.tex file in
+# case it hasn't been compiled yet.
+_files -g '*.(aux|tex)(:r)'

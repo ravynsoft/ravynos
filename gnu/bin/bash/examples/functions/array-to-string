@@ -1,0 +1,15 @@
+#! /bin/bash
+
+# Format: array_to_string vname_of_array vname_of_string separator
+array_to_string()
+{
+	(( ($# < 2) || ($# > 3) )) && {
+		 "$FUNCNAME: usage: $FUNCNAME arrayname stringname [separator]"
+		return 2
+	}
+
+	local array=$1 string=$2
+	((3==$#)) && [[ $3 = ? ]] && local IFS="${3}${IFS}"
+	eval $string="\"\${$array[*]}\""
+	return 0
+}

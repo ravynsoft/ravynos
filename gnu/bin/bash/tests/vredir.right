@@ -1,0 +1,101 @@
+10
+foo 1
+foo 2
+foo 3
+bar is a function
+bar () 
+{ 
+    exec {v}> $TMPFILE;
+    echo $v
+}
+./vredir.tests: line 19: v: readonly variable
+./vredir.tests: line 19: v: cannot assign fd to variable
+42
+bar is a function
+bar () 
+{ 
+    exec {v}> $TMPFILE;
+    echo $v
+}
+10
+line 1
+line 2
+line 3
+bar is a function
+bar () 
+{ 
+    exec {v}<<EOF
+line 1
+line 2
+line 3
+EOF
+
+    echo $v
+}
+10
+foo 1
+foo 2
+foo 3
+10
+/bin/bash
+/bin/csh
+/bin/ksh
+/bin/sh
+/bin/tcsh
+/bin/zsh
+oclosev is a function
+oclosev () 
+{ 
+    exec {v}>&-
+}
+iclosev is a function
+iclosev () 
+{ 
+    exec {v}>&-
+}
+/bin/bash
+/bin/csh
+/bin/ksh
+/bin/sh
+/bin/tcsh
+/bin/zsh
+./vredir3.sub: line 4: v: ambiguous redirect
+after
+10 11
+a
+a
+swizzle is a function
+swizzle () 
+{ 
+    fd0=0;
+    fd1=1;
+    exec {stdin}<&$fd0;
+    exec {stdout}>&$fd1
+}
+12 10
+a
+a
+swizzle is a function
+swizzle () 
+{ 
+    exec {fd0}<&0;
+    exec {fd1}>&1;
+    exec {stdin}<&$fd0-;
+    exec {stdout}>&$fd1-
+}
+ok 1
+./vredir6.sub: redirection error: cannot duplicate fd: Invalid argument
+./vredir6.sub: line 13: /dev/null: Invalid argument
+unset
+12 10
+a
+a
+swizzle is a function
+swizzle () 
+{ 
+    exec {fd[0]}<&0;
+    exec {fd[1]}>&1;
+    exec {stdin}<&${fd[0]}-;
+    exec {stdout}>&${fd[1]}-
+}
+./vredir8.sub: line 12: $fd: Bad file descriptor

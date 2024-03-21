@@ -1,0 +1,31 @@
+#compdef vcs_info_hookadd vcs_info_hookdel
+
+local -a hook_types=(
+  gen-applied-string
+  gen-hg-bookmark-string
+  gen-mqguards-string
+  gen-unapplied-string
+  no-vcs
+  post-backend
+  post-quilt
+  pre-addon-quilt
+  pre-get-data
+  set-branch-format
+  set-hgrev-format
+  set-message
+  set-patch-format
+  start-up
+)
+
+local -a specs
+case $service in
+  (vcs_info_hookdel)
+    specs=( '-a[remove all occurrences, not just the first]' )
+    ;;
+esac
+
+# TODO: for vcs_info_hookdel complete only functions installed for that hook
+_arguments : \
+  $specs \
+  ":hook type:($hook_types)" \
+  '*:hook function:_vcs_info_hooks'

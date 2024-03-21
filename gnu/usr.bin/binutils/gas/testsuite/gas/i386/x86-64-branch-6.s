@@ -1,0 +1,18 @@
+	.text
+
+branch_6:
+	call	0x87654321
+	je	0x87654321
+	jmp	0x87654321
+
+	call	0x876543210
+	je	0x876543210
+	jmp	0x876543210
+
+	addr32 call	0x87654321
+	addr32 je	0x87654321
+	addr32 jmp	0x87654321
+
+	addr32 call	0x876543210
+	addr32 je	0x876543210
+	addr32 jmp	0x876543210

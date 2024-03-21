@@ -1,0 +1,184 @@
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+ok 6
+ok 7
+ok 8
+ok 9
+ok 10
+ok 11
+ok 12
+ok 13
+ok 14
+ok 15
+ok 16
+ok 17
+ok 18
+ok 19
+ok 20
+ok 21
+ok 22
+ok 23
+ok 24
+ok 25
+ok 26
+ok 27
+ok 28
+ok 29
+ok 30
+ok 31
+ok 32
+ok 33
+ok 34
+ok 35
+ok 36
+!([*)*
++(a|b[)*
+[a*(]*)z
++()c
++()x
+abc
++(*)x
+abc
+no-file+(a|b)stuff
+no-file+(a*(c)|b)stuff
+abd acd
+acd
+abd
+no
+yes
+yes
+1: bcdef
+2: def
+3: abcde
+4: abc
+5: ef
+6: ef
+7: abcdef
+ab abef
+abcfef abef
+abcdef
+ab abcdef abcfef abef
+abcdef abcfef abef
+ok 37
+ok 38
+ok 39
+ok 40
+ok 41
+ok 42
+a b a,b a-b a.b a:b a;b a_b
+a b a,b a-b a.b a:b a;b a_b
+a b a,b a-b a.b a:b a;b a_b
+a b a,b a-b a.b a:b a;b a_b
+a.b
+a b a,b a-b a:b a;b a_b
+a b a,b a-b a.b a:b a;b a_b
+a b a,b a-b a.b a:b a;b a_b
+a b a,b a-b a.b a:b a;b a_b
+argv[1] = <ef>
+a,b
+a.c
+a.c
+a.c
+a.c
+a.c
+a.c
+ok 1
+ok 2
+ok 3
+a ab
+a ab
+a ab
+a
+*(.)
+a.log
+*(foo)
+*(foo|bar)
+a.log
+?(foo)
+a.log
+a.log
+*(foo).*
+*(foo|bar).*
+a.log
+a.log
+.x .y .z
+a b c
+.x .y .z a b c
+a b c
+a b c
+a b c
+a b c
+.x .y .z a b c
+.x .y .z a b c
+*
+.b a
+.b a
+a .b
+.b
+.b
+.b a
+.b a
+a .b
+.b
+.b
+dotglob: .a .foo bar
+@(.foo)
+.foo
+!(.foo)
+.a bar
+@(.foo|*)
+.a .foo bar
+!(.foo|*)
+!(.foo|*)
+@(*)
+.a .foo bar
+!(*)
+!(*)
+.*
+. .. .a .foo
+@(.*)
+. .. .a .foo
+!(.*)
+bar
+no dotglob: .a .foo bar
+@(.foo)
+.foo
+!(.foo)
+bar
+@(.foo|*)
+.foo bar
+!(.foo|*)
+!(.foo|*)
+!(bar).foo
+!(bar).foo
+*(bar).foo
+.foo
+?(bar).foo
+.foo
+.?
+.. .a
+@(.?)
+.. .a
+!(.?)
+bar
+dotglob: .a .foo bar
+@(?|.?)
+.. .a
+@(?|.*)
+. .. .a .foo
+? .*
+? . .. .a .foo
+*
+.a .foo bar
+no dotglob: .a .foo bar
+@(?|.?)
+.. .a
+@(?|.*)
+. .. .a .foo
+? .*
+? . .. .a .foo
+*
+bar

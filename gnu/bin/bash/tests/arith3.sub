@@ -1,0 +1,60 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# this depends on the sequence of random numbers from the internal LCRNG
+RANDOM=42
+(( dice[RANDOM%6+1 + RANDOM%6+1]++ ))
+echo ${dice[6]}
+
+(( ++dice[RANDOM%6+1 + RANDOM%6+1] ))
+echo ${dice[7]}
+
+v=4
+DIND=20
+
+(( dice[DIND%6 + 1]=v ))
+echo ${dice[3]}
+(( dice[DIND/v]+=2 ))
+
+RANDOM=42
+
+(( dice[RANDOM%6+1 + RANDOM%6+1]+=v ))
+echo ${dice[6]}
+
+(( dice[RANDOM%6+1 + RANDOM%6+1]-=v ))
+echo ${dice[7]}
+
+(( dice[RANDOM%6+1 + RANDOM%6+1]+=2 ))
+echo ${dice[8]}
+
+(( dice[RANDOM%6+1 + RANDOM%6+1]*=2 ))
+echo ${dice[5]}
+
+unset dice1 dice2
+RANDOM=42
+
+for i in {1..5000}; do ((dice1[$RANDOM%6+1 + $RANDOM%6+1]++)); done;
+unset t; for i in ${dice1[@]}; do ((t+=i)); done; echo $t
+
+foo="${dice1[@]}"
+
+RANDOM=42
+
+for i in {1..5000}; do ((dice2[RANDOM%6+1 + RANDOM%6+1]++)); done;
+unset t; for i in ${dice2[@]}; do ((t+=i)); done; echo $t
+
+bar="${dice2[@]}"
+
+if [ "$foo" != "$bar" ]; then
+	echo "random sequences differ"
+fi

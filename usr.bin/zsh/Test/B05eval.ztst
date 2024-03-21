@@ -1,0 +1,34 @@
+# Tests for the eval builtin.
+# This is quite short; eval is widely tested throughout the test suite
+# and its basic behaviour is fairly straightforward.
+
+%prep
+
+  cmd='print $?'
+
+%test
+
+  false
+  eval $cmd
+0:eval retains value of $?
+>1
+
+  # no point getting worked up over what the error message is...
+  ./command_not_found 2>/dev/null
+  eval $cmd
+0:eval after command not found
+>127
+
+  # trick the test system
+  sp=
+  false
+  eval "
+  $sp
+  $sp
+  $sp
+  "
+0:eval with empty command resets the status
+
+  false
+  eval
+0:eval with empty command resets the status

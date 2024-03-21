@@ -80,12 +80,18 @@ static struct notifier_block arc_hotplug_callback_mem_nb;
 
 /*
  * Return a default max arc size based on the amount of physical memory.
+ * This may be overridden by tuning the zfs_arc_max module parameter.
  */
 uint64_t
 arc_default_max(uint64_t min, uint64_t allmem)
 {
-	/* Default to 1/2 of all memory. */
-	return (MAX(allmem / 2, min));
+	uint64_t size;
+
+	if (allmem >= 1 << 30)
+		size = allmem - (1 << 30);
+	else
+		size = min;
+	return (MAX(allmem * 5 / 8, size));
 }
 
 #ifdef _KERNEL
@@ -247,8 +253,7 @@ arc_shrinker_scan(struct shrinker *shrink, struct shrink_control *sc)
 	return (sc->nr_to_scan);
 }
 
-SPL_SHRINKER_DECLARE(arc_shrinker,
-    arc_shrinker_count, arc_shrinker_scan, DEFAULT_SEEKS);
+static struct shrinker *arc_shrinker = NULL;
 
 int
 arc_memory_throttle(spa_t *spa, uint64_t reserve, uint64_t txg)
@@ -351,14 +356,18 @@ arc_lowmem_init(void)
 	 * reclaim from the arc.  This is done to prevent kswapd from
 	 * swapping out pages when it is preferable to shrink the arc.
 	 */
-	spl_register_shrinker(&arc_shrinker);
+	arc_shrinker = spl_register_shrinker("zfs-arc-shrinker",
+	    arc_shrinker_count, arc_shrinker_scan, DEFAULT_SEEKS);
+	VERIFY(arc_shrinker);
+
 	arc_set_sys_free(allmem);
 }
 
 void
 arc_lowmem_fini(void)
 {
-	spl_unregister_shrinker(&arc_shrinker);
+	spl_unregister_shrinker(arc_shrinker);
+	arc_shrinker = NULL;
 }
 
 int
@@ -488,57 +497,6 @@ arc_unregister_hotplug(void)
 {
 }
 #endif /* _KERNEL */
-
-/*
- * Helper function for arc_prune_async() it is responsible for safely
- * handling the execution of a registered arc_prune_func_t.
- */
-static void
-arc_prune_task(void *ptr)
-{
-	arc_prune_t *ap = (arc_prune_t *)ptr;
-	arc_prune_func_t *func = ap->p_pfunc;
-
-	if (func != NULL)
-		func(ap->p_adjust, ap->p_private);
-
-	zfs_refcount_remove(&ap->p_refcnt, func);
-}
-
-/*
- * Notify registered consumers they must drop holds on a portion of the ARC
- * buffered they reference.  This provides a mechanism to ensure the ARC can
- * honor the metadata limit and reclaim otherwise pinned ARC buffers.  This
- * is analogous to dnlc_reduce_cache() but more generic.
- *
- * This operation is performed asynchronously so it may be safely called
- * in the context of the arc_reclaim_thread().  A reference is taken here
- * for each registered arc_prune_t and the arc_prune_task() is responsible
- * for releasing it once the registered arc_prune_func_t has completed.
- */
-void
-arc_prune_async(uint64_t adjust)
-{
-	arc_prune_t *ap;
-
-	mutex_enter(&arc_prune_mtx);
-	for (ap = list_head(&arc_prune_list); ap != NULL;
-	    ap = list_next(&arc_prune_list, ap)) {
-
-		if (zfs_refcount_count(&ap->p_refcnt) >= 2)
-			continue;
-
-		zfs_refcount_add(&ap->p_refcnt, ap->p_pfunc);
-		ap->p_adjust = adjust;
-		if (taskq_dispatch(arc_prune_taskq, arc_prune_task,
-		    ap, TQ_SLEEP) == TASKQID_INVALID) {
-			zfs_refcount_remove(&ap->p_refcnt, ap->p_pfunc);
-			continue;
-		}
-		ARCSTAT_BUMP(arcstat_prune);
-	}
-	mutex_exit(&arc_prune_mtx);
-}
 
 ZFS_MODULE_PARAM(zfs_arc, zfs_arc_, shrinker_limit, INT, ZMOD_RW,
 	"Limit on number of pages that ARC shrinker can reclaim at once");

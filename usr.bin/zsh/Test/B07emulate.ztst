@@ -1,0 +1,300 @@
+# Test the "emulate" builtin and related functions.
+
+%prep
+
+  isset() { 
+    print -n "${1}: "
+    if [[ -o $1 ]]; then print yes; else print no; fi
+  }
+  showopts() {
+    # Set for Bourne shell emulation
+    isset shwordsplit
+    # Set in native mode and unless "emulate -R" is in use
+    isset banghist
+  }
+  cshowopts() {
+    showopts
+    # Show a csh option, too
+    isset cshnullglob
+  }
+
+%test
+
+  (print Before
+  showopts
+  fn() {
+     emulate sh
+  }
+  fn
+   print After
+  showopts)
+0:Basic use of emulate
+>Before
+>shwordsplit: no
+>banghist: yes
+>After
+>shwordsplit: yes
+>banghist: yes
+
+  fn() {
+    emulate -L sh
+    print During
+    showopts
+  }
+  print Before
+  showopts
+  fn
+  print After
+  showopts
+0:Use of emulate -L
+>Before
+>shwordsplit: no
+>banghist: yes
+>During
+>shwordsplit: yes
+>banghist: yes
+>After
+>shwordsplit: no
+>banghist: yes
+
+  (print Before
+  showopts
+  emulate -R sh
+  print After
+  showopts)
+0:Use of emulate -R
+>Before
+>shwordsplit: no
+>banghist: yes
+>After
+>shwordsplit: yes
+>banghist: no
+
+  print Before
+  showopts
+  emulate sh -c 'print During; showopts'
+  print After
+  showopts
+0:Use of emulate -c
+>Before
+>shwordsplit: no
+>banghist: yes
+>During
+>shwordsplit: yes
+>banghist: yes
+>After
+>shwordsplit: no
+>banghist: yes
+
+  print Before
+  showopts
+  emulate -R sh -c 'print During; showopts'
+  print After
+  showopts
+0:Use of emulate -R -c
+>Before
+>shwordsplit: no
+>banghist: yes
+>During
+>shwordsplit: yes
+>banghist: no
+>After
+>shwordsplit: no
+>banghist: yes
+
+  print Before
+  showopts
+  emulate -R sh -c 'shshowopts() { showopts; }'
+  print After definition
+  showopts
+  print In sticky emulation
+  shshowopts
+  print After sticky emulation
+  showopts
+0:Basic sticky function emulation
+>Before
+>shwordsplit: no
+>banghist: yes
+>After definition
+>shwordsplit: no
+>banghist: yes
+>In sticky emulation
+>shwordsplit: yes
+>banghist: no
+>After sticky emulation
+>shwordsplit: no
+>banghist: yes
+
+  print Before
+  cshowopts
+  emulate -R sh -c 'shshowopts() { cshowopts; }'
+  emulate csh -c 'cshshowopts() {
+    cshowopts
+    print In nested sh emulation
+    shshowopts
+  }'
+  print After definition
+  cshowopts
+  print In sticky csh emulation
+  cshshowopts
+  print After sticky emulation
+  cshowopts
+0:Basic sticky function emulation
+>Before
+>shwordsplit: no
+>banghist: yes
+>cshnullglob: no
+>After definition
+>shwordsplit: no
+>banghist: yes
+>cshnullglob: no
+>In sticky csh emulation
+>shwordsplit: no
+>banghist: yes
+>cshnullglob: yes
+>In nested sh emulation
+>shwordsplit: yes
+>banghist: no
+>cshnullglob: no
+>After sticky emulation
+>shwordsplit: no
+>banghist: yes
+>cshnullglob: no
+
+  isalp() { if [[ -o alwayslastprompt ]]; then print on; else print off; fi; }
+  emulate sh -c 'shfunc_inner() { setopt alwayslastprompt; }'
+  emulate csh -c 'cshfunc_inner() { setopt alwayslastprompt; }'
+  emulate sh -c 'shfunc_outer() {
+    unsetopt alwayslastprompt;
+    shfunc_inner;
+    isalp
+    unsetopt alwayslastprompt
+    cshfunc_inner
+    isalp
+  }'
+  shfunc_outer
+0:Sticky emulation not triggered if sticky emulation unchanged
+>on
+>off
+
+  (
+  setopt ignorebraces
+  emulate zsh -o extendedglob -c '
+  [[ -o ignorebraces ]] || print "Yay, ignorebraces was reset"
+  [[ -o extendedglob ]] && print "Yay, extendedglob is set"
+  '
+  )
+0:emulate -c with options
+>Yay, ignorebraces was reset
+>Yay, extendedglob is set
+
+  (
+  setopt ignorebraces          
+  emulate zsh -o extendedglob
+  [[ -o ignorebraces ]] || print "Yay, ignorebraces is no longer set"
+  [[ -o extendedglob ]] && print "Yay, extendedglob is set"
+  )
+0:emulate with options but no -c
+>Yay, ignorebraces is no longer set
+>Yay, extendedglob is set
+
+  emulate zsh -o fixallmybugs 'print This was executed, bad'
+1:emulate -c with incorrect options
+?(eval):emulate:1: no such option: fixallmybugs
+
+  emulate zsh -c '
+    func() { [[ -o extendedglob ]] || print extendedglob is off }
+  '
+  func
+  emulate zsh -o extendedglob -c '
+    func() { [[ -o extendedglob ]] && print extendedglob is on }
+  '
+  func
+0:options specified alongside emulation are also sticky
+>extendedglob is off
+>extendedglob is on
+
+  emulate zsh -o extendedglob -c '
+    func_inner() { setopt nobareglobqual }
+  '
+  emulate zsh -o extendedglob -c '
+    func_outer() { 
+      func_inner
+      [[ -o bareglobqual ]] || print bareglobqual was turned off
+      [[ -o extendedglob ]] && print extendedglob is on, though
+    }
+  '
+  [[ -o extendedglob ]] || print extendedglob is initially off
+  func_outer
+0:options propagate between identical emulations
+>extendedglob is initially off
+>bareglobqual was turned off
+>extendedglob is on, though
+
+  emulate zsh -o extendedglob -c '
+    func_inner() { setopt nobareglobqual }
+  '
+  emulate zsh -o extendedglob -o cbases -c '
+    func_outer() { 
+      func_inner
+      [[ -o bareglobqual ]] && print bareglobqual is still on
+      [[ -o extendedglob ]] && print extendedglob is on, too
+    }
+  '
+  [[ -o extendedglob ]] || print extendedglob is initially off
+  func_outer
+0:options do not propagate between different emulations
+>extendedglob is initially off
+>bareglobqual is still on
+>extendedglob is on, too
+
+ emulate sh -c '[[ a == a ]]'
+0:regression test for POSIX_ALIASES reserved words
+F:Some reserved tokens are handled in alias expansion
+
+ for mode in ksh bash zsh; do
+   $ZTST_testdir/../Src/zsh --emulate $mode -f -c 'emulate'
+ done
+0:--emulate option
+>ksh
+>sh
+>zsh
+
+ $ZTST_testdir/../Src/zsh -f --emulate sh
+1:--emulate must be first
+*?*: --emulate: must precede other options
+
+ $ZTST_testdir/../Src/zsh --emulate
+1:--emulate needs an argument
+*?*: --emulate: argument required
+
+ for opt in shwordsplit noshwordsplit; do
+   $ZTST_testdir/../Src/zsh --emulate sh -f -o $opt -c '
+     [[ -o shwordsplit ]] && echo yes || echo no
+   '
+ done
+0:--emulate followed by other options
+>yes
+>no
+
+  emulate sh -c '
+  foo () {
+    VAR=foo &&
+    echo $VAR | bar &&
+    echo "$VAR"
+  }
+  bar () {
+    tr f b &&
+    VAR="$(echo bar | tr r z)" &&
+    echo "$VAR"
+  }
+  foo
+  '
+  emulate sh -c 'func() { echo | local def="abc"; echo $def;}; func'
+  emulate sh -c 'abc="def"; echo | abc="ghi"; echo $abc'
+0:emulate sh uses subshell for last pipe entry
+>boo
+>baz
+>foo
+>
+>def

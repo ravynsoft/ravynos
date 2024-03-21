@@ -1,0 +1,50 @@
+#compdef bzip2 bunzip2 bzcat=bunzip2 bzip2recover -redirect-,<,bunzip2=bunzip2 -redirect-,>,bzip2=bunzip2 -redirect-,<,bzip2=bzip2
+
+local decompress expl state line curcontext="$curcontext" ret=1
+typeset -A opt_args
+
+case "$service" in
+  bzip2recover) [[ $CURRENT = 2 ]] && state=files;;
+  bzip2) decompress=no;&
+  bunzip2) _arguments -C -s -S \
+    '(- *)'{-h,--help}'[display help message]' \
+    '(-d --decompress --compress -z --test -t)'{-d,--decompress}'[decompress]' \
+    '(-z --compress --decompress -d --test -t)'{-z,--compress}'[compress]' \
+    '(-k --keep)'{-k,--keep}"[keep (don't delete) input files]" \
+    '(-f --force)'{-f,--force}'[force overwrite]' \
+    '(-t --test --decompress -d --compress -z)'{-t,--test}'[test compressed file integrity]' \
+    '(-c --stdout)'{-c,--stdout}'[write on standard output]' \
+    '(-q --quiet)'{-q,--quiet}'[suppress all warnings]' \
+    \*{-v,--verbose}'[verbose mode]' \
+    '(- *)'{-L,--license}'[display software license]' \
+    '(- *)'{-V,--version}'[display version number]' \
+    '(--small -s)'{-s,--small}'[reduce memory usage (at most 2500k)]' \
+    '(-1 -2 -3 -4 -5 -6 -7 -8 -9 --fast       )--best' \
+    '(-1 -2 -3 -4 -5 -6 -7 -8 -9        --best)--fast' \
+    '(   -2 -3 -4 -5 -6 -7 -8 -9 --fast --best)-1' \
+    '(-1    -3 -4 -5 -6 -7 -8 -9 --fast --best)-2' \
+    '(-1 -2    -4 -5 -6 -7 -8 -9 --fast --best)-3' \
+    '(-1 -2 -3    -5 -6 -7 -8 -9 --fast --best)-4' \
+    '(-1 -2 -3 -4    -6 -7 -8 -9 --fast --best)-5' \
+    '(-1 -2 -3 -4 -5	-7 -8 -9 --fast --best)-6' \
+    '(-1 -2 -3 -4 -5 -6    -8 -9 --fast --best)-7' \
+    '(-1 -2 -3 -4 -5 -6 -7    -9 --fast --best)-8' \
+    '(-1 -2 -3 -4 -5 -6 -7 -8	 --fast --best)-9' \
+    '*:files:->files' && ret=0
+  ;;
+esac
+
+if [[ "$state" = files ]]; then
+  (( $+opt_args[-z] || $+opt_args[--compress] )) && decompress=no
+  (( $+opt_args[-d] || $+opt_args[--decompress] || $+opt_args[-t] ||
+      $+opt_args[--test] )) && unset decompress
+  if [[ -z "$decompress" ]]; then
+    _description files expl 'compressed file'
+    _files "$expl[@]" -g '*.(bz2|tbz|tbz2)(-.)' && return
+  else
+    _description files expl 'file to compress'
+    _files "$expl[@]" -g '^*.(bz2|tbz|tbz2)(-.)' && return
+  fi
+fi
+
+return ret

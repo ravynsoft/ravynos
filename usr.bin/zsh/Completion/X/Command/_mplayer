@@ -1,0 +1,165 @@
+#compdef mplayer gmplayer
+
+local suf ret=1 curcontext="$curcontext"
+local -a vals state line expl
+
+_x_arguments -C -s \
+  '!-abs:buffer size' \
+  '-ac[force usage of a specific audio codec]:audio codec attachment:->audio-codecs' \
+  '-af[activate audio filters]:filter' -af-adv:option \
+  '-afm[force usage of a specific audio codec family]:audio codec family:->audio-codec-families' \
+  '-aid:audio channel id' \
+  '-alang[select the DVD audio language]:country code' \
+  '(-nosound)-ao[specify audio driver]:audio-driver attachment:->audio-drivers' \
+  '-aofile:file:_files' \
+  '(-nosound)*-aop[specify audio output filter]:audio output filter:->audio-plugins' \
+  '-aspect:ratio' \
+  '-audiofile:audio file:_files -g "(#i)*.(wav|mp3|ogg|opus)(-.)"' \
+  -autoq:quality -autosync:factor \
+  -bandwidth:bandwidth\ value -benchmark -bpp:depth \
+  '(-nocache)-cache:cache size (kb)' \
+  '-cdda:audio CD options:(spped paranoia generic-dev sector-size overlap toc-bias toc-offset skip noskip)' \
+  '-cdrom-device:cdrom device:_files -g "*(-%b)"' \
+  '-channels:playback channels:((2\:stereo 4\:surround 6\:full\ 5.1))' \
+  '-chapter:chapter' -contract:value \
+  '-csslib:libcss.so location:_files' \
+  -cuefile -delay:delay -demuxer:number -dfbopts:value \
+  '(-nodouble)-double[enable double buffering]' \
+  '-dr[enable direct rendering]' \
+  -dxr2:option -dumpaudio -dumpstream -dumpvideo \
+  '-dumpfile:output file:_files' \
+  -dumpmicrodvdsub -dumpmpsub -dumpsrtsub -dumpjacosub -dumpsami -dumpsub \
+  '-dvd:title id' '-dvdauth:DVD device' \
+  '-dvd-device:dvd device:_files -g "*(-%b)"' \
+  '-dvdangle:angle id' '-dvdkey:key' \
+  '-edl:edl file:_files' '-edlout:edl file:_files' -enqueue \
+  '-fbmode:video mode' '-fbmodeconfig:config file:_files' \
+  '-fb[specify framebuffer device to use]:device:_files -g "*(-%b)"' \
+  '-ffactor:factor:(0 0.75 1 10)' \
+  -flip '-font:font.desc file:_files' -forceidx -forcexv -format:format \
+  '-fps[force frame rate]:frame-rate' \
+  '-framedrop' \
+  '-frames:frame number' \
+  '-fs[fullscreen]' -fstype:type \
+  -gui -{,gui}'wid:X window:_x_window' \
+  {-h,-help,--help}'[display help info]' \
+  -hardframedrop \-hr-mp3-seek \
+  '-hue:video signal hue adjustment' \
+  '(-rootwin)-icelayer:icewm layer:((0\:desktop 2\:below 4\:normal 6\:ontop 8\:dock 10\:abovedock 12\:menu))' \
+  '(-use-stdin)-idx[rebuild index of the avi]' \
+  '-ifo:ifo file:_files' '-include:config-file:_files' \
+  '-input:command:(conf ar-delay ar-rate keylist cmdlist js-dev file)' \
+  '-jpeg:option' -lavdopts:option \
+  '-lircconf:lirc config file:_files' '-loop:repetitions' \
+  '-mc[specify max sync correction]:max sync correction' \
+  '-mf[specify option when decoding multiple PNG or JPEG files]:option' \
+  '-mixer:mixer device:_files -g "*(-%b)"' \
+  '-monitoraspect:ratio' -monitor_dotclock -monitor_{h,v}freq:frequency \
+  '-ni[force usage of non-interlaced avi parser]' \
+  -noaspect -noautosub -overlapsub -nooverlapsub -nowaveheader \
+  '(-cache)-nocache' -nobps \
+  '(-double)-nodouble' -nodshow -noextbased -noframedrop \
+  -nograbpointer -nokeepaspect -noslices -nojoystick -nolirc -nortc \
+  '(-ao -aop)-nosound' \
+  '-osdlevel:osd-level:((0\:subtitles\ only 1\:volume\ +\ seek 2\:volume\ +\ seek\ +\ timer\ +\ percentage 3\:volume\ +\ seek\ +\ timer\ +\ percentage\ +\ total\ time))' \
+  -panscan:value \
+  '-passwd[specify password for http authentication]:password' \
+  '-playlist:file:_files' \
+  '-pp[apply postprocess filter]:filter attachment' -pphelp \
+  -quiet -really-quiet -rootwin \
+  -rawaudio:option -rawvideo:option \
+  '-rtsp-stream-over-tcp' -saturation:value \
+  '-sb[seek to byte position]:byte' \
+  -screen{w,h}:pixels \
+  '-sdp[input file is a SDP file]' -shuffle \
+  '-skin[skin directory]:skin directory:_directories' \
+  -skipopening -slave \
+  '-sid[turn on DVD subtitles]:language id' \
+  '-speed[set playback speed rate]:playback speed rate' \
+  '-srate[specify frequency of audio playback]:frequency (Hz)' \
+  '-ss[seek to given time position]:position ([[hh\:]mm\:]ss[.sss])' \
+  '-sstep[specify time between displayed frames]:time (seconds)' \
+  -ssf:mode -stop_xscreensaver \
+  '-stereo:mode:((0\:stereo 1\:left\ channel 2\:right\ channel))' \
+  '-sub[use specified subtitle file]:subtitle file:_files' \
+  -subfps:rate -sub-bg-alpha:value -sub-bg-color:value -subcc  -subcp:codepage -subdelay:seconds \
+  -subpos:vertical\ position -s{ub,pu}'align:alignment:((0\:top 1\:center 2\:bottom))' \
+  '-subfont-autoscale:mode:((0\:no\ autoscale 1\:proportional\ to\ height 2\:proportional\ to\ width 3\:proportional\ to\ diagonal))' \
+  -subfont-blur:radius -subfont-encoding:encoding -subfont-osd-scale:coefficient -subfont-outline:thickness -subfont-text-scale:coefficient \
+  -sub-no-text-pp -spuaa:mode  -spugauss:gauss -sws:scalar\ type \
+  '-tv[TV grabbing]:option' \
+  -unicode -utf8 \
+  '-user[specify username for http authentication]' \
+  '(-idx)-use-stdin' \
+  '-vcd[play video cd track]:track' \
+  '-vc[force usage of a specific video codec]:video-codec attachment:->video-codecs' \
+  '-v[enable verbose output]' \
+  '*-vf[video output filters]:video output filters:->video-output-plugins' \
+  '-vfm[force usage of a specific video codec family]:video-codec-family:(1 2 3 4 5)' \
+  '-vid[select video channel]:video-channel' \
+  '-vm[try to change to a better video mode]' \
+  '-vo[specify video driver]:video-driver attachment:->video-drivers' \
+  '-vop[specify video output filters]:video output filters:->video-output-plugins' \
+  -vobsub:vobsub\ file -vobsubid:id -vsync \
+  '-x[scale image to x width if driver supports]:width' \
+  -xineramascreen:screen -xvidopts:option \
+  '-xy[scale image by factor if driver supports]:factor' \
+  '-y[scale image to y height if driver supports]:height' \
+  '-z[specify compression level for png output]:compression-level:((0\:no\ compression 1 2 3 4 5 6\:default\ compression 7 8 9\:max\ compression))' \
+  '-zoom[use software scaling, where available (use with -nofs)]' \
+  -zrbw -zrcrop -zrdev -zrfd -zrhelp -zrnorm -zrquality -zr{h,v}dec -zr{x,y}doff \
+  '(-use-stdin)*:video file:->mfiles' && ret=0
+
+case "$state" in
+  mfiles)
+    _tags files urls
+    while _tags; do
+      _requested files expl 'media file' _files -g \
+         "*.(#i)(asf|asx|avi|flac|flv|m1v|m2p|m2v|m4a|m4v|mjpg|mka|mkv|mov|mp3|mp4|mpe|mpeg|mpg|ogg|ogm|ogv|opus|qt|rm|ts|vob|wav|webm|wma|wmv)(-.)" && ret=0
+      if _requested urls; then
+        while _next_label urls expl URL; do
+          _urls "$expl[@]" && ret=0
+          compadd -S '' "$expl[@]" {dvd,vcd,cdda,cddb,tv}:// && ret=0
+        done
+      fi
+      (( ret )) || return 0
+    done
+  ;;
+  audio-codecs)
+    vals=( help ${${${(f)"$(_call_program audio-codecs $words[1] -ac help -quiet 2>/dev/null)"}[(r)ac:*,-1]}[2,-1]/ ##[^ ]# #[^ ]# #/:} )
+    _describe -t audio-codecs 'audio codec' vals && ret=0
+  ;;
+  audio-drivers)
+    vals=( help ${${${(f)"$(_call_program audio-drivers mplayer -ao help 2>/dev/null)"}[(r)	*,-1]#?}/	/:} )
+    _describe -t audio-drivers 'audio driver' vals && ret=0
+  ;;
+  audio-codec-families)
+    compset -P '*,'
+    compset -S ',*'
+    vals=( help ${${${(f)"$(_call_program audio-codec-families mplayer -afm help 2>/dev/null)"}[(r) [^:]#,-1]## ##}/ ##/:} )
+    _describe -t audio-codec-families 'audio driver' vals && ret=0
+  ;;
+  audio-plugins)
+    _values -s : 'audio output plugin' \
+      'list[specify list of plugins]:plugin:(resample surround format volume extrastereo volnorm delay)' \
+      'format[output format]:format' \
+      'fout[output frequency]:frequency (Hz)' \
+      'volume[volume level]:volume <0-255>' \
+      'mul[stereo coefficient]:coefficient' \
+      'softclip[compressor]' && ret=0
+  ;;
+  video-codecs)
+    vals=( help ${${${(f)"$(_call_program audio-codecs $words[1] -vc help -quiet 2>/dev/null)"}[(r)vc:*,-1]}[2,-1]/ ##[^ ]# #[^ ]# #/:} )
+    _describe -t video-codecs 'video codec' vals && ret=0
+  ;;
+  video-drivers)
+    vals=( help ${${${(f)"$(_call_program video-drivers mplayer -vo help 2>/dev/null)"}[(r)	*,-1]#?}/	/:} )
+    _describe -t video-drivers 'video driver' vals && ret=0
+  ;;
+  video-output-plugins)
+    vals=( help ${${${${(f)"$(_call_program video-output-plugins mplayer -vop help 2>/dev/null)"}[(r)	*,-1]}/	/}/ #: /:} )
+    _describe -t video-output-plugins 'video output plugin' vals && ret=0
+  ;;
+esac
+
+return ret

@@ -1,0 +1,804 @@
+# Expect script for linker support of IFUNC symbols and relocations.
+#
+#   Copyright (C) 2009-2023 Free Software Foundation, Inc.
+#   Contributed by Red Hat.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Nick Clifton <nickc@redhat.com>
+
+
+if { ![is_elf_format] || ![supports_gnu_osabi]
+     || [istarget alpha-*-*]
+     || [istarget arc*-*-*]
+     || [istarget am33*-*-*]
+     || [istarget bfin-*-*]
+     || [istarget cris*-*-*]
+     || [istarget frv-*-*]
+     || [istarget lm32-*-*]
+     || [istarget m32r-*-*]
+     || [istarget m68k-*-*]
+     || [istarget microblaze-*-*]
+     || [istarget mips*-*-*]
+     || [istarget mn10300-*-*]
+     || [istarget nds32*-*-*]
+     || [istarget nios2-*-*]
+     || [istarget or1k-*-*]
+     || [istarget score*-*-*]
+     || [istarget sh*-*-*]
+     || [istarget tic6x-*-*]
+     || [istarget tile*-*-*]
+     || [istarget vax-*-*] } {
+    verbose "IFUNC tests not run - target does not support IFUNC"
+    return
+}
+
+# Skip targets where -shared is not supported
+
+if ![check_shared_lib_support] {
+    return
+}
+
+set saved_ASFLAGS "$ASFLAGS"
+if { [istarget "i?86-*-*"] || [istarget "x86_64-*-*"] } {
+    set ASFLAGS "$ASFLAGS -mx86-used-note=no"
+}
+
+# This test does not need a compiler...
+run_dump_test "ifuncmod5"
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}
+
+# We need a working compiler.  (Strictly speaking this is
+# not true, we could use target specific assembler files).
+if { ![check_compiler_available] } {
+    verbose "IFUNC tests not run - no compiler available"
+    return
+}
+
+# A procedure to check the OS/ABI field in the ELF header of a binary file.
+proc check_osabi { binary_file expected_osabi } {
+    global READELF
+    global READELFFLAGS
+
+    catch "exec $READELF $READELFFLAGS --file-header $binary_file > readelf.out" got
+
+    if ![string match "" $got] then {
+	verbose "proc check_osabi: Readelf produced unexpected out processing $binary_file: $got"
+	return 0
+    }
+
+    if { ![regexp "\n\[ \]*OS/ABI:\[ \]*(.+)\n\[ \]*ABI" \
+	   [file_contents readelf.out] nil osabi] } {
+	verbose "proc check_osabi: Readelf failed to extract an ELF header from $binary_file"
+	return 0
+    }
+
+    if { $osabi == $expected_osabi } {
+	return 1
+    }
+
+    verbose "Expected OSABI: $expected_osabi, Obtained osabi: $osabi"
+
+    return 0
+}
+
+# A procedure to confirm that a file contains the IFUNC symbol.
+# Returns -1 upon error, 0 if the symbol was not found and 1 if it was found.
+proc contains_ifunc_symbol { binary_file } {
+    global READELF
+    global READELFFLAGS
+
+    catch "exec $READELF $READELFFLAGS --symbols $binary_file > readelf.out" got
+
+    if ![string match "" $got] then {
+	verbose "proc contains_ifunc_symbol: Readelf produced unexpected out processing $binary_file: $got"
+	return -1
+    }
+
+    # Look for a line like this:
+    #    58: 0000000000400600    30 IFUNC   GLOBAL DEFAULT   12 library_func2
+    # with perhaps some other info between the visibility and section
+
+    if { ![regexp ".*\[ \]*IFUNC\[ \]+GLOBAL\[ \]+DEFAULT .* \[UND0-9\]+\[ \]+library_func2\n" [file_contents readelf.out]] } {
+	return 0
+    }
+
+    return 1
+}
+
+# A procedure to confirm that a file contains the R_*_IRELATIVE
+# relocation.
+# Returns -1 upon error, 0 if the relocation was not found and 1 if
+# it was found.
+proc contains_irelative_reloc { binary_file } {
+    global READELF
+    global READELFFLAGS
+
+    catch "exec $READELF $READELFFLAGS --relocs --wide $binary_file > readelf.out" got
+
+    if ![string match "" $got] then {
+	verbose "proc contains_irelative_reloc: Readelf produced unexpected out processing $binary_file: $got"
+	return -1
+    }
+
+    # Look for a line like this:
+    #    0000000000600ab0  0000000000000025 R_X86_64_IRELATIVE      000000000040061c
+    #    080496f4  0000002a R_386_IRELATIVE
+
+
+    if { ![regexp "\[0-9a-f\]+\[ \]+\[0-9a-f\]+\[ \]+R_(\[_0-9A-Z\]+_IREL(|ATIVE)|PARISC_IPLT).*\n" [file_contents readelf.out]] } {
+	return 0
+    }
+
+    return 1
+}
+
+# A procedure to confirm that a file contains a relocation that references an IFUNC symbol.
+# Returns -1 upon error, 0 if the reloc was not found and 1 if it was found.
+proc contains_ifunc_reloc { binary_file } {
+    global READELF
+    global READELFFLAGS
+
+    catch "exec $READELF $READELFFLAGS --relocs $binary_file > readelf.out" got
+
+    if ![string match "" $got] then {
+	verbose "proc contains_ifunc_reloc: Readelf produced unexpected out processing $binary_file: $got"
+	return -1
+    }
+
+    if [string match "" [file_contents readelf.out]] then {
+	verbose "No relocs found in $binary_file"
+	return 0
+    }
+
+    if { ![regexp "\\(\\)" [file_contents readelf.out]] } {
+	return 0
+    }
+
+    return 1
+}
+
+set fails 0
+
+# Disable LTO for these tests.
+set cc_cmd "$CC_FOR_TARGET"
+if {[check_lto_available]} {
+   append cc_cmd " -fno-lto"
+}
+
+# Create the object files, libraries and executables.
+if ![ld_compile "$cc_cmd -c -fPIC" "$srcdir/$subdir/prog.c" "tmpdir/shared_prog.o"] {
+    fail "Could not create a PIC object file"
+    set fails [expr $fails + 1]
+}
+if ![ld_compile "$cc_cmd -c $NOPIE_CFLAGS" "$srcdir/$subdir/prog.c" "tmpdir/static_prog.o"] {
+    fail "Could not create a non-PIC object file"
+    set fails [expr $fails + 1]
+}
+if ![ld_compile "$cc_cmd -c -fPIC -DWITH_IFUNC" "$srcdir/$subdir/lib.c" "tmpdir/shared_ifunc.o"] {
+    fail "Could not create a PIC object file containing an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if ![ld_compile "$cc_cmd -c $NOPIE_CFLAGS -DWITH_IFUNC" "$srcdir/$subdir/lib.c" "tmpdir/static_ifunc.o"] {
+    fail "Could not create a non-PIC object file containing an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if ![ld_compile "$cc_cmd -c -DWITHOUT_IFUNC" "$srcdir/$subdir/lib.c" "tmpdir/static_noifunc.o"] {
+    fail "Could not create an ordinary non-PIC object file"
+    set fails [expr $fails + 1]
+}
+if ![ld_assemble $as "$srcdir/ld-elf/empty.s" "tmpdir/empty.o"] {
+    fail "Could not create an empty object file"
+    set fails [expr $fails + 1]
+}
+if ![ld_compile "$cc_cmd -c" "$srcdir/$subdir/test-1.c" "tmpdir/test-1.o"] {
+    fail "Could not create test-1.o"
+    set fails [expr $fails + 1]
+}
+if ![ld_compile "$cc_cmd -fPIC -c" "$srcdir/$subdir/test-2.c" "tmpdir/test-2.o"] {
+    fail "Could not create test-2.o"
+    set fails [expr $fails + 1]
+}
+
+if { $fails != 0 } {
+    return
+}
+
+if ![ld_link $ld "tmpdir/libshared_ifunc.so" "-shared tmpdir/shared_ifunc.o"] {
+    fail "Could not create a shared library containing an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if ![ar_simple_create $ar "" "tmpdir/libifunc.a" "tmpdir/static_ifunc.o"] {
+    fail "Could not create a static library containing an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+
+if { $fails != 0 } {
+    return
+}
+
+if ![ld_link $CC_FOR_TARGET "tmpdir/dynamic_prog" "-Wl,--no-as-needed,-rpath=./tmpdir,-Bdynamic -Ltmpdir tmpdir/shared_prog.o -lshared_ifunc"] {
+    fail "Could not link a dynamic executable"
+    set fails [expr $fails + 1]
+}
+if ![ld_link $CC_FOR_TARGET "tmpdir/local_prog" "$NOPIE_LDFLAGS -Wl,--no-as-needed,-rpath=./tmpdir -Ltmpdir tmpdir/static_prog.o -lifunc"] {
+    fail "Could not link a dynamic executable using local ifunc"
+    set fails [expr $fails + 1]
+}
+if ![string match "" $STATIC_LDFLAGS] {
+    if ![ld_link $CC_FOR_TARGET "tmpdir/static_prog" "-static -Ltmpdir tmpdir/static_prog.o -lifunc"] {
+	fail "Could not link a static executable"
+	set fails [expr $fails + 1]
+    }
+}
+if ![ld_link $ld "tmpdir/static_nonifunc_prog" "-static tmpdir/empty.o"] {
+    fail "Could not link a non-ifunc using static executable"
+    set fails [expr $fails + 1]
+}
+if ![ld_link $CC_FOR_TARGET "tmpdir/test-1" "-Wl,--no-as-needed,-rpath=./tmpdir tmpdir/test-1.o tmpdir/libshared_ifunc.so"] {
+    fail "Could not link test-1"
+    set fails [expr $fails + 1]
+}
+if ![ld_link $ld "tmpdir/libtest-2.so" "-shared tmpdir/test-2.o"] {
+    fail "Could not link libtest-2.so"
+    set fails [expr $fails + 1]
+}
+if ![ld_link $ld "tmpdir/libtest-2-now.so" "-shared -z now tmpdir/test-2.o"] {
+    fail "Could not link libtest-2-now.so"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Building ifunc binaries"
+  set fails 0
+} else {
+    return
+}
+
+# Check the executables and shared libraries
+#
+# The linked ifunc using executables and the shared library containing
+# ifunc should have an OSABI field of GNU.  The linked non-ifunc using
+# executable should have an OSABI field of NONE (aka System V).
+
+switch -glob $target_triplet {
+    hppa*-*-linux* { set expected_none {UNIX - GNU} }
+    default { set expected_none {UNIX - System V} }
+}
+
+if {! [check_osabi tmpdir/libshared_ifunc.so {UNIX - GNU}]} {
+    fail "Shared libraries containing ifunc does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+if {! [check_osabi tmpdir/local_prog {UNIX - GNU}]} {
+    fail "Local ifunc-using executable does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+if { ![string match "" $STATIC_LDFLAGS] \
+     && ![check_osabi tmpdir/static_prog {UNIX - GNU}]} {
+    fail "Static ifunc-using executable does not have an OS/ABI field of GNU"
+    set fails [expr $fails + 1]
+}
+if {! [check_osabi tmpdir/dynamic_prog $expected_none]} {
+    fail "Dynamic ifunc-using executable does not have an OS/ABI field of $expected_none"
+    set fails [expr $fails + 1]
+}
+if {! [check_osabi tmpdir/static_nonifunc_prog $expected_none]} {
+    fail "Static non-ifunc-using executable does not have an OS/ABI field of $expected_none"
+    set fails [expr $fails + 1]
+}
+
+# The linked ifunc using executables and the shared library containing
+# ifunc should contain an IFUNC symbol.  The non-ifunc using executable
+# should not.
+
+if {[contains_ifunc_symbol tmpdir/libshared_ifunc.so] != 1} {
+    fail "Shared libraries containing ifunc does not contain an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_symbol tmpdir/local_prog] != 1} {
+    fail "Local ifunc-using executable does not contain an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if { ![string match "" $STATIC_LDFLAGS] \
+     && [contains_ifunc_symbol tmpdir/static_prog] != 1} {
+    fail "Static ifunc-using executable does not contain an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_symbol tmpdir/dynamic_prog] != 0} {
+    fail "Dynamic ifunc-using executable contains an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_symbol tmpdir/static_nonifunc_prog] != 0} {
+    fail "Static non-ifunc-using executable contains an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_symbol tmpdir/test-1] != 0} {
+    fail "test-1 contains IFUNC symbols"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_symbol tmpdir/libtest-2.so] != 0} {
+    fail "libtest-2.so contains IFUNC symbols"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_symbol tmpdir/libtest-2-now.so] != 0} {
+    fail "libtest-2-now.so contains IFUNC symbols"
+    set fails [expr $fails + 1]
+}
+
+# The linked ifunc using executables and shared libraries should contain
+# a dynamic reloc referencing the IFUNC symbol.  (Even the static
+# executable which should have a dynamic section created for it).  The
+# non-ifunc using executable should not.
+
+if {[contains_irelative_reloc tmpdir/libshared_ifunc.so] != 1} {
+    fail "ifunc-using shared library does not contain R_*_IRELATIVE relocation"
+    set fails [expr $fails + 1]
+}
+if {[contains_irelative_reloc tmpdir/local_prog] != 1} {
+    fail "Local ifunc-using executable does not contain R_*_IRELATIVE relocation"
+    set fails [expr $fails + 1]
+}
+if { ![string match "" $STATIC_LDFLAGS] \
+    && ![istarget hppa*-*-*] \
+    && [contains_irelative_reloc tmpdir/static_prog] != 1} {
+    fail "Static ifunc-using executable does not contain R_*_IRELATIVE relocation"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_reloc tmpdir/dynamic_prog] != 0} {
+    fail "Dynamic ifunc-using executable contains a reloc against an IFUNC symbol"
+    set fails [expr $fails + 1]
+}
+if {[contains_ifunc_reloc tmpdir/static_nonifunc_prog] == 1} {
+    fail "Static non-ifunc-using executable contains a reloc against an IFUNC symbol!"
+    set fails [expr $fails + 1]
+}
+
+if { $fails == 0 } {
+  pass "Checking ifunc binaries"
+}
+
+run_cc_link_tests [list \
+    [list \
+	"Build libpr16467a.so" \
+	"-shared -Wl,--version-script=pr16467a.map" \
+	"-fPIC" \
+	{ pr16467a.c } \
+	{} \
+	"libpr16467a.so" \
+    ] \
+    [list \
+	"Build libpr16467b.a" \
+	"" \
+	"-fPIC" \
+	{ pr16467b.c } \
+	{} \
+	"libpr16467b.a" \
+    ] \
+    [list \
+	"Build libpr16467b.so" \
+	"-shared -Wl,--as-needed tmpdir/pr16467b.o tmpdir/libpr16467a.so \
+	 -Wl,--version-script=pr16467b.map" \
+	"-fPIC" \
+	{ dummy.c } \
+	{} \
+	"libpr16467b.so" \
+    ] \
+    [list \
+	"Build libpr16467c.a" \
+	"" \
+	"" \
+	{ pr16467c.c } \
+	{} \
+	"libpr16467c.a" \
+    ] \
+    [list \
+	"Build libpr16467an.so" \
+	"-shared -Wl,-z,now -Wl,--version-script=pr16467a.map" \
+	"-fPIC" \
+	{ pr16467a.c } \
+	{} \
+	"libpr16467an.so" \
+    ] \
+    [list \
+	"Build libpr16467bn.so" \
+	"-shared -Wl,--as-needed tmpdir/pr16467b.o tmpdir/libpr16467an.so \
+	 -Wl,--version-script=pr16467b.map" \
+	"-fPIC" \
+	{ dummy.c } \
+	{} \
+	"libpr16467bn.so" \
+    ] \
+]
+
+run_ld_link_exec_tests [list \
+    [list \
+	"Common symbol override ifunc test 1a" \
+	"-static" \
+	"" \
+	{ ifunc-common-1a.c ifunc-common-1b.c } \
+	"ifunc-common-1a" \
+	"ifunc-common-1.out" \
+	"-g" \
+    ] \
+    [list \
+	"Common symbol override ifunc test 1b" \
+	"-static" \
+	"" \
+	{ ifunc-common-1b.c ifunc-common-1a.c } \
+	"ifunc-common-1b" \
+	"ifunc-common-1.out" \
+	"-g" \
+    ] \
+]
+
+# Run-time tests which require working IFUNC support.
+if { ![check_ifunc_available] } {
+    return
+}
+
+run_cc_link_tests [list \
+    [list \
+	"Build ifunc-lib.so" \
+	"-shared" \
+	"-fPIC" \
+	{ ifunc-lib.c } \
+	{} \
+	"libifunc-lib.so" \
+    ] \
+    [list \
+	"Build ifunc-libn.so" \
+	"-shared -Wl,-z,now" \
+	"-fPIC" \
+	{ ifunc-lib.c } \
+	{} \
+	"libifunc-libn.so" \
+    ] \
+]
+
+run_ld_link_exec_tests [list \
+    [list \
+	"Run pr16467" \
+	"-Wl,--no-as-needed tmpdir/pr16467c.o tmpdir/libpr16467b.so tmpdir/libpr16467a.so" \
+	"" \
+	{ dummy.c } \
+	"pr16467" \
+	"pr16467.out" \
+	"" \
+    ] \
+    [list \
+	"Run pr16467 (-z now)" \
+	"-Wl,-z,now -Wl,--no-as-needed tmpdir/pr16467c.o tmpdir/libpr16467bn.so tmpdir/libpr16467an.so" \
+	"" \
+	{ dummy.c } \
+	"pr16467n" \
+	"pr16467.out" \
+	"" \
+    ] \
+    [list \
+	"Run ifunc-main" \
+	"-Wl,--no-as-needed tmpdir/libifunc-lib.so" \
+	"" \
+	{ ifunc-main.c } \
+	"ifunc-main" \
+	"ifunc-main.out" \
+    ] \
+    [list \
+	"Run ifunc-main with -fpic" \
+	"-Wl,--no-as-needed tmpdir/libifunc-lib.so" \
+	"" \
+	{ ifunc-main.c } \
+	"ifunc-main" \
+	"ifunc-main.out" \
+	"-fpic" \
+    ] \
+    [list \
+	"Run ifunc-main (-z now)" \
+	"-Wl,-z,now -Wl,--no-as-needed tmpdir/libifunc-libn.so" \
+	"" \
+	{ ifunc-main.c } \
+	"ifunc-mainn" \
+	"ifunc-main.out" \
+    ] \
+    [list \
+	"Run ifunc-main with PIE (-z now)" \
+	"-pie -Wl,-z,now -Wl,--no-as-needed tmpdir/libifunc-libn.so" \
+	"" \
+	{ ifunc-main.c } \
+	"ifunc-mainpn" \
+	"ifunc-main.out" \
+	"-fpie" \
+    ] \
+]
+
+# Run-time tests which require working ifunc attribute support.
+if { ![check_ifunc_attribute_available] } {
+    return
+}
+
+run_cc_link_tests [list \
+    [list \
+	"Build pr18808a.o" \
+	"" \
+	"" \
+	{ pr18808a.c } \
+	"" \
+	"" \
+    ] \
+    [list \
+	"Build libpr18808.so" \
+	"-shared" \
+	"-fPIC -O2 -g" \
+	{ pr18808b.c } \
+	{} \
+	"libpr18808.so" \
+    ] \
+    [list \
+	"Build libpr18808n.so" \
+	"-shared -Wl,-z,now" \
+	"-fPIC -O2 -g" \
+	{ pr18808b.c } \
+	{} \
+	"libpr18808n.so" \
+    ] \
+    [list \
+	"Build pr18841a.o" \
+	"" \
+	"$NOPIE_CFLAGS" \
+	{ pr18841a.c } \
+	"" \
+	"" \
+    ] \
+    [list \
+	"Build libpr18841b.so" \
+	"-shared" \
+	"-fPIC -O0 -g" \
+	{ pr18841b.c } \
+	{} \
+	"libpr18841b.so" \
+    ] \
+    [list \
+	"Build libpr18841c.so" \
+	"-shared" \
+	"-fPIC -O0 -g" \
+	{ pr18841c.c } \
+	{} \
+	"libpr18841c.so" \
+    ] \
+    [list \
+	"Build libpr18841bn.so" \
+	"-Wl,-z,now -shared" \
+	"-fPIC -O0 -g" \
+	{ pr18841b.c } \
+	{} \
+	"libpr18841bn.so" \
+    ] \
+    [list \
+	"Build libpr18841cn.so" \
+	"-shared" \
+	"-Wl,-z,now -fPIC -O0 -g" \
+	{ pr18841c.c } \
+	{} \
+	"libpr18841cn.so" \
+    ] \
+    [list \
+	"Build libpr23169a.so" \
+	"-shared" \
+	"-fPIC -O2 -g" \
+	{ pr23169a.c } \
+	{} \
+	"libpr23169a.so" \
+    ] \
+    [list \
+	"Build libpr23169b.so" \
+	"-shared -Wl,-z,now" \
+	"-fPIC -O2 -g" \
+	{ pr23169a.c } \
+	{} \
+	"libpr23169b.so" \
+    ] \
+    [list \
+	"Build pr23169a" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libpr23169a.so" \
+	"$NOPIE_CFLAGS -O2 -g" \
+	{ pr23169b.c pr23169c.c } \
+	{{readelf {--dyn-syms} pr23169a.rd} \
+	 {readelf {-r -W} pr23169b.rd}} \
+	"pr23169a" \
+    ] \
+    [list \
+	"Build pr23169b" \
+	"-pie -Wl,--no-as-needed tmpdir/libpr23169a.so" \
+	"-fPIE -O2 -g" \
+	{ pr23169b.c pr23169c.c } \
+	{{readelf {--dyn-syms} pr23169c.rd} \
+	 {readelf {-r -W} pr23169b.rd}} \
+	"pr23169b" \
+    ] \
+    [list \
+	"Build pr23169c" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libpr23169a.so" \
+	"-fPIE -O2 -g" \
+	{ pr23169b.c pr23169c.c } \
+	{{readelf {--dyn-syms} pr23169a.rd} \
+	 {readelf {-r -W} pr23169b.rd}} \
+	"pr23169c" \
+    ] \
+    [list \
+	"Build pr23169d" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+	"$NOPIE_CFLAGS -O2 -g" \
+	{ pr23169b.c pr23169c.c } \
+	{{readelf {--dyn-syms} pr23169a.rd} \
+	 {readelf {-r -W} pr23169b.rd}} \
+	"pr23169d" \
+    ] \
+    [list \
+	"Build pr23169f" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+	"-fPIE -O2 -g" \
+	{ pr23169b.c pr23169c.c } \
+	{{readelf {--dyn-syms} pr23169a.rd} \
+	 {readelf {-r -W} pr23169b.rd}} \
+	"pr23169f" \
+    ] \
+]
+
+run_ld_link_exec_tests [list \
+    [list \
+	"Run pr18808" \
+	"-Wl,--no-as-needed tmpdir/pr18808a.o tmpdir/libpr18808.so" \
+	"" \
+	{ dummy.c } \
+	"pr18808" \
+	"pr18808.out" \
+    ] \
+    [list \
+	"Run pr18808 (-z now)" \
+	"-Wl,-z,now -Wl,--no-as-needed tmpdir/pr18808a.o tmpdir/libpr18808n.so" \
+	"" \
+	{ dummy.c } \
+	"pr18808n" \
+	"pr18808.out" \
+    ] \
+    [list \
+	"Run pr18841 with libpr18841b.so" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr18841a.o tmpdir/libpr18841b.so" \
+	"$NOPIE_CFLAGS" \
+	{ dummy.c } \
+	"pr18841b" \
+	"pr18841.out" \
+    ] \
+    [list \
+	"Run pr18841 with libpr18841c.so" \
+	"$NOPIE_LDFLAGS -Wl,--as-needed tmpdir/pr18841a.o tmpdir/libpr18841c.so" \
+	"$NOPIE_CFLAGS" \
+	{ dummy.c } \
+	"pr18841c" \
+	"pr18841.out" \
+    ] \
+    [list \
+	"Run pr18841 with libpr18841bn.so (-z now)" \
+	"$NOPIE_LDFLAGS -Wl,-z,now -Wl,--no-as-needed tmpdir/pr18841a.o tmpdir/libpr18841bn.so" \
+	"$NOPIE_CFLAGS" \
+	{ dummy.c } \
+	"pr18841bn" \
+	"pr18841.out" \
+    ] \
+    [list \
+	"Run pr18841 with libpr18841cn.so (-z now)" \
+	"$NOPIE_LDFLAGS -Wl,-z,now -Wl,--as-needed tmpdir/pr18841a.o tmpdir/libpr18841cn.so" \
+	"$NOPIE_CFLAGS" \
+	{ dummy.c } \
+	"pr18841cn" \
+	"pr18841.out" \
+    ] \
+    [list \
+	"Run pr29216" \
+	"$NOPIE_LDFLAGS" \
+	"" \
+	{ pr29216.c } \
+	"pr29216" \
+	"pass.out" \
+	"-fPIC" \
+    ] \
+]
+
+# The pr23169 testcase is not valid.  In general, you can't call ifunc
+# resolvers in another binary unless you know what you're doing.  In
+# particular you must ensure that the binary containing the resolver
+# is relocated before the resolver is called (for example, the
+# function addresses returned by the resolver may be loaded from the
+# GOT).
+# That does not happen for the pr23169 testcase where the resolver is
+# in the executable (which is relocated last by ld.so).
+if { [isnative]
+     && !([istarget "powerpc-*-*"]
+	  || [istarget "aarch64*-*-*"]
+	  || [istarget "arm*-*-*"]
+	  || [istarget "sparc*-*-*"]
+	  || [istarget "riscv*-*-*"]) } {
+run_ld_link_exec_tests [list \
+    [list \
+	"Run pr23169a" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libpr23169a.so" \
+	"" \
+	{ pr23169b.c pr23169c.c } \
+	"pr23169a" \
+	"pass.out" \
+	"$NOPIE_CFLAGS -O2 -g" \
+    ] \
+    [list \
+	"Run pr23169b" \
+	"-pie -Wl,--no-as-needed tmpdir/libpr23169a.so" \
+	"" \
+	{ pr23169b.c pr23169c.c } \
+	"pr23169b" \
+	"pass.out" \
+	"-fPIE -O2 -g" \
+    ] \
+    [list \
+	"Run pr23169c" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libpr23169a.so" \
+	"" \
+	{ pr23169b.c pr23169c.c } \
+	"pr23169c" \
+	"pass.out" \
+	"-fPIE -O2 -g" \
+    ] \
+    [list \
+	"Run pr23169d" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+	"" \
+	{ pr23169b.c pr23169c.c } \
+	"pr23169d" \
+	"pass.out" \
+	"$NOPIE_CFLAGS -O2 -g" \
+    ] \
+    [list \
+	"Run pr23169f" \
+	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+	"" \
+	{ pr23169b.c pr23169c.c } \
+	"pr23169f" \
+	"pass.out" \
+	"-fPIE -O2 -g" \
+    ] \
+]
+if { $STATIC_PIE_LDFLAGS != "" } then {
+    run_ld_link_exec_tests [list \
+	[list \
+	    "Run pr23169g" \
+	    "$STATIC_PIE_LDFLAGS" \
+	    "" \
+	    { pr23169a.c pr23169b.c pr23169c.c } \
+	    "pr23169g" \
+	    "pass.out" \
+	    "-fPIE -O2 -g" \
+	] \
+]
+}
+}
+
+set ASFLAGS "$saved_ASFLAGS"

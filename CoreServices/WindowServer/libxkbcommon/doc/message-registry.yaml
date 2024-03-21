@@ -1,0 +1,376 @@
+# Guidelines:
+# • A message code must always have the same meaning forever.
+# • Codes may be retired or introduced in new releases. In order to avoid
+#   clashes, retired codes must not be deleted.
+# • Codes should not themselves reflect classification, e.g. a range for parse
+#   errors and a range for each keymap component.
+# • Codes should not be assigned sequentially because it is misleading.
+# • Codes must be in the range 1..999. This range may be extended once every
+#   code has be assigned.
+#
+# See the following guidelines for futher details on good practices:
+# https://github.com/haskellfoundation/error-message-index/blob/main/tool-developers.md#code-assignment-recommendations
+
+# NOTE: Field “added: ALWAYS” means that the precise version is unknown and
+# anterior to the introduction of the message registry. It will be replaced by
+# the default version 1.0.0 in the generated documentation. While this is deemed
+# good enough to avoid spelunking commit history, a more precise version would
+# be welcome.
+
+# TODO: fix missing detailed description, examples, resolution
+
+- id: "malformed-number-literal"
+  code: 34
+  added: ALWAYS
+  type: error
+  description: "Warn on malformed number literals"
+  details: |
+    xkbcommon can parse the following number literal formats:
+
+    - *decimal integer:* 1, 123, etc.
+    - *decimal floating-point number:* 1.23, etc.
+    - *hexadecimal integer:* prefixed with “0x”: 0x123, 0xff, 0xAB, etc.
+- id: "conflicting-key-type-preserve-entries"
+  code: 43
+  added: ALWAYS
+  type: warning
+  description: "Conflicting “preserve” entries in a key type"
+- id: "unsupported-modifier-mask"
+  code: 60
+  added: ALWAYS
+  type: error
+  description: "Warn on unsupported modifier mask"
+- id: "expected-array-entry"
+  code: 77
+  added: ALWAYS
+  type: error
+  description: "Expected an array entry, but the index is missing"
+- id: "illegal-keycode-alias"
+  code: 101
+  added: ALWAYS
+  type: warning
+  description: "Illegal keycode alias with the name of a real key"
+- id: "unrecognized-keysym"
+  code: 107
+  added: ALWAYS
+  type: warning
+  description: "Warn on unrecognized keysyms"
+  details: |
+    xkbcommon replaces keysyms it does not recognize by the keysym `NoSymbol`.
+
+    You may find the list of supported keysyms in
+    `include/xkbcommon/xkbcommon-keysyms.h`.
+  examples:
+    - name: Unrecognized keysym “`coma`”
+      description: |
+        **Error message:**
+
+        ```
+        xkbcommon: WARNING: [XKB-107] de:31:20: unrecognized keysym "coma"
+        ```
+
+        xkbcommon does not recognize the keysym “`coma`”. It is most probably
+        a typo for “<code>com<em>m</em>a</code>”.
+        See: `XKB_KEY_comma` in `include/xkbcommon/xkbcommon-keysyms.h`.
+      before: |
+        ```c
+        key <AB08> {[ coma, semicolon, periodcentered, multiply ]};
+        ```
+      after: |
+        ```c
+        key <AB08> {[ comma, semicolon, periodcentered, multiply ]};
+        ```
+- id: "undeclared-virtual-modifier"
+  code: 123
+  added: ALWAYS
+  type: error
+  description: "A virtual modifier is used before being declared"
+- id: "wrong-statement-type"
+  code: 150
+  added: ALWAYS
+  type: error
+  description: "The type of the statement is not allowed in the context"
+- id: "unsupported-geometry-section"
+  code: 172
+  added: ALWAYS
+  type: warning
+  description: "Geometry sections are not supported"
+- id: "cannot-infer-key-type"
+  code: 183
+  added: ALWAYS
+  type: warning
+  description: "Warn if no key type can be inferred"
+- id: "invalid-escape-sequence"
+  code: 193
+  added: ALWAYS
+  type: warning
+  description: "Invalid escape sequence in a string"
+- id: "illegal-key-type-preserve-result"
+  code: 195
+  added: ALWAYS
+  type: warning
+  description: "The result of a key type “preserve” entry must be a subset of its input modifiers."
+- id: "invalid-include-statement"
+  code: 203
+  added: ALWAYS
+  type: error
+  description: "Syntax error in the include statement"
+- id: "invalid-modmap-entry"
+  code: 206
+  added: ALWAYS
+  type: error
+  description: "A modmap entry is invalid"
+- id: "unsupported-group-index"
+  code: 237
+  added: ALWAYS
+  type: error
+  description: "Warn when a group index is not supported"
+  details: |
+    xkbcommon supports group index in the range (1..{{XKB_MAX_GROUPS}}).
+- id: "conflicting-key-type-level-names"
+  code: 239
+  added: ALWAYS
+  type: warning
+  description: "The name of a key type level is defined multiple times."
+- id: "invalid-set-default-statement"
+  code: 254
+  added: ALWAYS
+  type: error
+  description: "Invalid statement setting default values"
+- id: "conflicting-key-type-map-entry"
+  code: 266
+  added: ALWAYS
+  type: warning
+  description: "Conflicting “map” entries in type definition"
+- id: "undefined-key-type"
+  code: 286
+  added: ALWAYS
+  type: warning
+  description: "Warn if using an undefined key type"
+- id: "non-base-group-name"
+  code: 305
+  added: ALWAYS
+  type: warning
+  description: "Warn if a group name was defined for group other than the first one"
+- id: "unsupported-shift-level"
+  code: 312
+  added: ALWAYS
+  type: error
+  description: "Warn when a shift level is not supported"
+  details: |
+    Shift levels are _one_-indexed. xkbcommon supports two formats of shift levels:
+    as numbers and as identifiers `LevelN`, where `N` is in the range (1..8).
+- id: "included-file-not-found"
+  code: 338
+  added: ALWAYS
+  type: error
+  description: "Could not find a file used in an include statement"
+- id: "unknown-operator"
+  code: 345
+  added: ALWAYS
+  type: error
+  description: "Use of an operator that is unknown and thus unsupported"
+- id: "duplicate-entry"
+  code: 378
+  added: ALWAYS
+  type: warning
+  description: "An entry is duplicated and will be ignored"
+- id: "conflicting-key-type-definitions"
+  code: 407
+  added: ALWAYS
+  type: warning
+  description: "Conflicting definitions of a key type"
+  details: |
+    The given key type is defined multiple times, but only one definition is kept.
+- id: "wrong-scope"
+  code: 428
+  added: ALWAYS
+  type: error
+  description: "A statement is in a wrong scope and should be moved"
+- id: "missing-default-section"
+  code: 433
+  added: ALWAYS
+  type: warning
+  description: "Missing default section in included file"
+  details: |
+    When using an include statement, the included file may contains multiple sections.
+    The include statement may specify the name of the section to include, or leave it
+    unspecified. In the latter case, the included file must then define a *default* section.
+    The present warning is shown when no default section is defined.
+
+    To solve this, either fix the include statement by specifying the exact section to
+    include, or declare a default section in the included file.
+- id: "conflicting-key-symbol"
+  code: 461
+  added: ALWAYS
+  type: warning
+  description: "Warn if there are conflicting keysyms while merging keys"
+- id: "invalid-operation"
+  code: 478
+  added: ALWAYS
+  type: error
+  description: "The operation is invalid in the context"
+- id: "numeric-keysym"
+  code: 489
+  added: 1.6.0
+  type: warning
+  description: "Warn on numeric keysym (other than 0-9)"
+  details: |
+    Numeric keysyms are not human-friendly. Use the corresponding named keysym
+    or Unicode keysym, if available.
+  examples:
+    - name: Hexadecimal keysym `0x1001ed0`
+      description: |
+        **Error message:**
+
+        ```
+        xkbcommon: WARNING: [XKB-489] numeric keysym "0x1001ed0"
+        ```
+      before: |
+        ```c
+        key <AE01> { [ 0x1001ed0] };
+        ```
+      after: |
+        ```c
+        // Preferred form: human-friendly
+        key <AE01> { [ Ocircumflexacute ] };
+        // or
+        key <AE01> { [ U1ED0 ] };
+        ```
+- id: "extra-symbols-ignored"
+  code: 516
+  added: ALWAYS
+  type: warning
+  description: "TODO: add description"
+- id: "conflicting-key-name"
+  code: 523
+  added: ALWAYS
+  type: warning
+  description: "Conflicting definitions of a key name or alias"
+- id: "allocation-error"
+  code: 550
+  added: ALWAYS
+  type: error
+  description: "Cannot allocate memory"
+- id: "wrong-field-type"
+  code: 578
+  added: ALWAYS
+  type: error
+  description: "Warn when a field has not the expected type"
+- id: "invalid-real-modifier"
+  code: 623
+  added: ALWAYS
+  type: error
+  description: "Invalid _real_ modifier"
+- id: "unknown-char-escape-sequence"
+  code: 645
+  added: ALWAYS
+  type: warning
+  description: "Warn on unknown escape sequence in string literal"
+  details: |
+    xkbcommon support the following escape sequences in string literals:
+
+    | Escape sequence | Corresponding character             |
+    | --------------- | ----------------------------------- |
+    | `\b`            | `U+0008` Backspace                  |
+    | `\t`            | `U+0009` Character tabulation       |
+    | `\n`            | `U+000A` Line feed                  |
+    | `\v`            | `U+000B` Vertical tabulation        |
+    | `\f`            | `U+000C` Form feed                  |
+    | `\r`            | `U+000D` Carriage return            |
+    | `\e`            | `U+001B` Escape                     |
+    | `\\`            | `U+005C` Backslash                  |
+    | `\NNN`          | _Octal_ escape, from `\0` to `\777` |
+- id: "invalid-included-file"
+  code: 661
+  added: ALWAYS
+  type: error
+  description: "The target file of an include statement could not be processed"
+- id: "multiple-groups-at-once"
+  code: 700
+  added: ALWAYS
+  type: warning
+  description: "Warn if a key defines multiple groups at once"
+- id: "unsupported-symbols-field"
+  code: 711
+  added: ALWAYS
+  type: warning
+  description: "A legacy X11 symbol field is not supported"
+- id: "invalid-syntax"
+  code: 769
+  added: ALWAYS
+  type: error
+  description: "The syntax is invalid and the file cannot be parsed"
+- id: "undefined-keycode"
+  code: 770
+  added: ALWAYS
+  type: warning
+  description: "Reference to an undefined keycode"
+- id: "invalid-expression-type"
+  code: 784
+  added: ALWAYS
+  type: error
+  description: "An expression has not the expected type"
+- id: "invalid-value"
+  code: 796
+  added: ALWAYS
+  type: error
+  description: "A value is invalid and will be ignored"
+- id: "conflicting-modmap"
+  code: 800
+  added: ALWAYS
+  type: warning
+  description: "Warn if there are conflicting modmap definitions"
+  details: |
+    @todo detailed explanation and examples
+- id: "unknown-field"
+  code: 812
+  added: ALWAYS
+  type: error
+  description: "A field is unknown and will be ignored"
+- id: "conflicting-key-action"
+  code: 883
+  added: ALWAYS
+  type: warning
+  description: "Warn if there are conflicting actions while merging keys"
+- id: "conflicting-key-type-merging-groups"
+  code: 893
+  added: ALWAYS
+  type: warning
+  description: "Warn if there are conflicting key types while merging groups"
+- id: "conflicting-key-symbols-entry"
+  code: 901
+  added: ALWAYS
+  type: error
+  description: "Conflicting symbols entry for a key"
+- id: "missing-symbols-group-name-index"
+  code: 903
+  added: ALWAYS
+  type: warning
+  description: "Missing group index in a group name entry"
+- id: "conflicting-key-fields"
+  code: 935
+  added: ALWAYS
+  type: warning
+  description: "Warn if there are conflicting fields while merging keys"
+- id: "invalid-identifier"
+  code: 949
+  added: ALWAYS
+  type: error
+  description: "An identifier is used but is not built-in"
+- id: "unresolved-keymap-symbol"
+  code: 965
+  added: ALWAYS
+  type: warning
+  description: "Warn if using a symbol not defined in the keymap"
+- id: "undeclared-modifiers-in-key-type"
+  code: 971
+  added: ALWAYS
+  type: warning
+  description: "Some modifiers used in a key type “map” or “preserve” entry are not declared"
+  details: |
+    The modifiers used in `map` or `preserve` entries should be declared using the entry
+    `modifiers` in the key type.
+
+# TODO: deprecated keysym
+# TODO: unicode keysym when named and recommended keysym exists

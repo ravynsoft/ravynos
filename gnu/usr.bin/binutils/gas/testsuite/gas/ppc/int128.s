@@ -1,0 +1,34 @@
+	.text
+_start:
+	vmuleud	1,2,3
+	vmuloud	4,5,6
+	vmulesd	7,8,9
+	vmulosd	10,11,12
+	vmsumcud 13,14,15,16
+	vdivsq	17,18,19
+	vdivuq	20,21,21
+	vdivesq	22,23,24
+	vdiveuq	25,26,27
+	vmodsq	28,29,30
+	vmoduq	31,0,1
+	vextsd2q 2,3
+	vcmpuq	0,4,5
+	vcmpsq	1,6,7
+	vcmpequq 8,9,10
+	vcmpequq. 11,12,13
+	vcmpgtsq 14,15,16
+	vcmpgtsq. 17,18,19
+	vcmpgtuq 20,21,22
+	vcmpgtuq. 23,24,25
+	vrlq	26,27,28
+	vrlqnm	29,30,31
+	vrlqmi	0,1,2
+	vslq	3,4,5
+	vsrq	6,7,8
+	vsraq	9,10,11
+	xscvqpuqz 12,13
+	xscvqpsqz 14,15
+	xscvuqqp 16,17
+	xscvsqqp 18,19
+	dcffixqq 20,21
+	dctfixqq 23,22

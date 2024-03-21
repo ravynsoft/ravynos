@@ -1,0 +1,117 @@
+texinode(Invocation)(Files)(Roadmap)(Top)
+chapter(Invocation)
+cindex(invocation)
+sect(Invocation)
+cindex(shell options)
+cindex(options, shell)
+cindex(shell flags)
+cindex(flags, shell)
+The following flags are interpreted by the shell when invoked to determine
+where the shell will read commands from:
+
+startitem()
+item(tt(-c))(
+Take the first argument as a command to execute, rather than reading commands
+from a script or standard input.  If any further arguments are given, the
+first one is assigned to tt($0), rather than being used as a positional
+parameter.
+)
+item(tt(-i))(
+Force shell to be interactive.  It is still possible to specify a
+script to execute.
+)
+item(tt(-s))(
+Force shell to read commands from the standard input.
+If the tt(-s) flag is not present and an argument is given,
+the first argument is taken to be the pathname of a script to
+execute.
+)
+enditem()
+
+If there are any remaining arguments after option processing, and neither
+of the options tt(-c) or tt(-s) was supplied, the first argument is taken
+as the file name of a script containing shell commands to be executed.  If
+the option tt(PATH_SCRIPT) is set, and the file name does not contain a
+directory path (i.e. there is no `tt(/)' in the name), first the current
+directory and then the command path given by the variable tt(PATH) are
+searched for the script.  If the option is not set or the file name
+contains a `tt(/)' it is used directly.
+
+After the first one or two arguments have been appropriated as described above,
+the remaining arguments are assigned to the positional parameters.
+
+For further options, which are common to invocation and the tt(set)
+builtin, see
+ifzman(zmanref(zshoptions))\
+ifnzman(noderef(Options))\
+.
+
+The long option `tt(-)tt(-emulate)' followed (in a separate word) by an
+emulation mode may be passed to the shell.
+The emulation modes are those described for the tt(emulate) builtin,
+see
+ifzman(zmanref(zshbuiltins))\
+ifnzman(noderef(Shell Builtin Commands)).
+The `tt(-)tt(-emulate)' option must precede any other options (which might
+otherwise be overridden), but following options are honoured, so
+may be used to modify the requested emulation mode.  Note that certain
+extra steps are taken to ensure a smooth emulation when this option
+is used compared with the tt(emulate) command within the shell: for
+example, variables that conflict with POSIX usage such as tt(path) are
+not defined within the shell.
+
+Options may be specified by name using the tt(-o) option.  tt(-o) acts like
+a single-letter option, but takes a following string as the option name.
+For example,
+
+example(zsh -x -o shwordsplit scr)
+
+runs the script tt(scr), setting the tt(XTRACE) option by the corresponding
+letter `tt(-x)' and the tt(SH_WORD_SPLIT) option by name.
+Options may be turned em(off) by name by using tt(PLUS()o) instead of tt(-o).
+tt(-o) can be stacked up with preceding single-letter options, so for example
+`tt(-xo shwordsplit)' or `tt(-xoshwordsplit)' is equivalent to
+`tt(-x -o shwordsplit)'.
+
+cindex(long option)
+Options may also be specified by name in GNU long option style,
+`tt(-)tt(-)var(option-name)'.  When this is done, `tt(-)' characters in the
+option name are permitted: they are translated into `tt(_)', and thus ignored.
+So, for example, `tt(zsh -)tt(-sh-word-split)' invokes zsh with the
+tt(SH_WORD_SPLIT) option turned on.  Like other option syntaxes, options can
+be turned off by replacing the initial `tt(-)' with a `tt(PLUS())'; thus
+`tt(+-sh-word-split)' is equivalent to `tt(-)tt(-no-sh-word-split)'.
+Unlike other option syntaxes, GNU-style long options cannot be stacked with
+any other options, so for example `tt(-x-shwordsplit)' is an error,
+rather than being treated like `tt(-x -)tt(-shwordsplit)'.
+
+cindex(--version)
+cindex(--help)
+The special GNU-style option `tt(-)tt(-version)' is handled; it sends to
+standard output the shell's version information, then exits successfully.
+`tt(-)tt(-help)' is also handled; it sends to standard output a list of
+options that can be used when invoking the shell, then exits successfully.
+
+Option processing may be finished, allowing following arguments that start with
+`tt(-)' or `tt(PLUS())' to be treated as normal arguments, in two ways.
+Firstly, a lone `tt(-)' (or `tt(PLUS())') as an argument by itself ends
+option processing.  Secondly, a special option `tt(-)tt(-)' (or
+`tt(PLUS()-)'), which may be specified on its own (which is the standard
+POSIX usage) or may be stacked with preceding options (so `tt(-x-)' is
+equivalent to `tt(-x -)tt(-)').  Options are not permitted to be stacked
+after `tt(-)tt(-)' (so `tt(-x-f)' is an error), but note the GNU-style
+option form discussed above, where `tt(-)tt(-shwordsplit)' is permitted
+and does not end option processing.
+
+Except when the bf(sh)/bf(ksh) emulation single-letter options are in effect,
+the option `tt(-b)' (or `tt(PLUS()b)') ends option processing.
+`tt(-b)' is like `tt(-)tt(-)', except that further single-letter options
+can be stacked after the `tt(-b)' and will take effect as normal.
+
+startmenu()
+menu(Compatibility)
+menu(Restricted Shell)
+endmenu()
+
+includefile(Zsh/compat.yo)
+includefile(Zsh/restricted.yo)

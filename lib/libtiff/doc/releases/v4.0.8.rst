@@ -1,0 +1,390 @@
+Changes in TIFF v4.0.8
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.8 (:tag:`Release-v4-0-8`)
+    Previous Version        :doc:`v4.0.7 <v4.0.7>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* None
+
+
+Software configuration changes
+------------------------------
+
+* None
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_getimage.c`, :file:`libtiff/tif_open.c`: add parenthesis
+  to fix cppcheck ``clarifyCalculation`` warnings
+
+* :file:`libtiff/tif_predict.c`, :file:`libtiff/tif_print.c`: fix printf
+  unsigned vs signed formatting (cppcheck
+  ``invalidPrintfArgType_uint`` warnings)
+
+* :file:`libtiff/tif_read.c`, :file:`libtiff/tiffiop.h`: fix :c:type:`uint32` overflow in
+  :c:func:`TIFFReadEncodedStrip` that caused an integer division by
+  zero.  Reported by Agostino Sarubbo.  Fixes
+  :bugzilla:`2596`
+
+* :file:`libtiff/tif_pixarlog.c`, :file:`libtiff/tif_luv.c`: fix heap-based
+  buffer overflow on generation of PixarLog / LUV compressed
+  files, with ``ColorMap``, ``TransferFunction`` attached and nasty
+  plays with ``bitspersample``.  The fix for LUV has not been
+  tested, but suffers from the same kind of issue of PixarLog.
+  Reported by Agostino Sarubbo.  Fixes
+  :bugzilla:`2604`
+
+* :file:`libtiff/tif_strip.c`: revert the change in
+  :c:func:`TIFFNumberOfStrips` done for
+  :bugzilla:`2587` /
+  :cve:`2016-9273` since the above change is a better fix that
+  makes it unnecessary.
+
+* :file:`libtiff/tif_dirread.c`: modify :c:func:`ChopUpSingleUncompressedStrip`
+  to instantiate compute ``nstrips`` as
+  ``TIFFhowmany_32(td->td_imagelength, rowsperstrip)``, instead of a
+  logic based on the total size of data. Which is faulty is the
+  total size of data is not sufficient to fill the whole image,
+  and thus results in reading outside of the
+  ``StripByCounts``/``StripOffsets`` arrays when using
+  :c:func:`TIFFReadScanline`.  Reported by Agostino Sarubbo.  Fixes
+  :bugzilla:`2608`.
+
+* :file:`libtiff/tif_ojpeg.c`: make :c:func:`OJPEGDecode` early exit in case of
+  failure in :c:func:`OJPEGPreDecode`. This will avoid a divide by zero,
+  and potential other issues.  Reported by Agostino Sarubbo.
+  Fixes :bugzilla:`2611`
+
+* :file:`libtiff/tif_write.c`: fix misleading indentation as warned by GCC.
+
+
+* :file:`libtiff/tif_fax3.h`: revert change done on 2016-01-09 that
+  made :c:member:`Param` member of :c:struct:`TIFFFaxTabEnt` structure a :c:type:`uint16` to
+  reduce size of the binary. It happens that the Hylafax
+  software uses the tables that follow this typedef
+  (:c:var:`TIFFFaxMainTable`, :c:var:`TIFFFaxWhiteTable`, :c:var:`TIFFFaxBlackTable`),
+  although they are not in a public libtiff header.  Raised by
+  Lee Howard.  Fixes
+  :bugzilla:`2636`
+
+* :file:`libtiff/tiffio.h`, :file:`libtiff/tif_getimage.c`: add
+  :c:func:`TIFFReadRGBAStripExt` and :c:func:`TIFFReadRGBATileExt` variants of
+  the functions without ext, with an extra argument to control
+  the ``stop_on_error`` behaviour.
+
+* :file:`libtiff/tif_getimage.c`: fix potential memory leaks in error
+  code path of :c:func:`TIFFRGBAImageBegin`.  Fixes
+  :bugzilla:`2627`
+
+* :file:`libtiff/tif_jpeg.c`: increase libjpeg max memory usable to 10
+  MB instead of libjpeg 1MB default. This helps when creating
+  files with "big" tile, without using libjpeg temporary files.
+  Related to https://trac.osgeo.org/gdal/ticket/6757
+
+* :file:`libtiff/tif_jpeg.c`: avoid integer division by zero in
+  :c:func:`JPEGSetupEncode` when horizontal or vertical sampling is set
+  to 0.  Fixes :bugzilla:`2653`
+
+* :file:`libtiff/tif_dirwrite.c`: in
+  :c:func:`TIFFWriteDirectoryTagCheckedRational`, replace assertion by
+  runtime check to error out if passed value is strictly
+  negative.  Fixes
+  :bugzilla:`2535`
+
+* :file:`libtiff/tif_dirread.c`: avoid division by floating point 0 in
+  :c:func:`TIFFReadDirEntryCheckedRational` and
+  :c:func:`TIFFReadDirEntryCheckedSrational`, and return 0 in that case
+  (instead of infinity as before presumably) Apparently some
+  sanitizers do not like those divisions by zero.  Fixes
+  :bugzilla:`2644`
+
+* :file:`libtiff/tif_dir.c`, :file:`tif_dirread.c`, :file:`tif_dirwrite.c`: implement
+  various clampings of double to other data types to avoid
+  undefined behaviour if the output range isn't big enough to
+  hold the input value.  Fixes
+  :bugzilla:`2643`,
+  :bugzilla:`2642`,
+  :bugzilla:`2646`,
+  :bugzilla:`2647`
+
+* :file:`libtiff/tif_jpeg.c`: validate ``BitsPerSample`` in
+  :c:func:`JPEGSetupEncode` to avoid undefined behaviour caused by
+  invalid shift exponent.  Fixes
+  :bugzilla:`2648`
+
+* :file:`libtiff/tif_read.c`: avoid potential undefined behaviour on
+  signed integer addition in :c:func:`TIFFReadRawStrip1` in :c:func:`isMapped`
+  case.  Fixes :bugzilla:`2650`
+
+* :file:`libtiff/tif_getimage.c`: add explicit :c:func:`uint32` cast in
+  :c:var:`putagreytile` to avoid ``UndefinedBehaviorSanitizer`` warning.
+  Patch by Nicolás Peña.  Fixes
+  :bugzilla:`2658`
+
+* :file:`libtiff/tif_read.c`: :c:func:`TIFFReadBufferSetup`: use :c:func:`_TIFFcalloc`
+  to zero initialize :c:member:`tif_rawdata`.  Fixes
+  :bugzilla:`2651`
+
+* :file:`libtiff/tiffio.h`, :file:`tif_unix.c`, :file:`tif_win32.c`, :file:`tif_vms.c`: add
+    :c:func:`_TIFFcalloc`
+
+* :file:`libtiff/tif_luv.c`, :file:`tif_lzw.c`, :file:`tif_packbits.c`: return 0 in
+  Encode functions instead of -1 when :c:func:`TIFFFlushData1` fails.
+  Fixes :bugzilla:`2130`
+
+* :file:`libtiff/tif_ojpeg.c`: fix leak in
+  :c:func:`OJPEGReadHeaderInfoSecTablesQTable`,
+  :c:func:`OJPEGReadHeaderInfoSecTablesDcTable` and
+  :c:func:`OJPEGReadHeaderInfoSecTablesAcTable` when read fails.  Patch by
+  Nicolás Peña.  Fixes
+  :bugzilla:`2659`
+
+* :file:`libtiff/tif_jpeg.c`: only run :c:func:`JPEGFixupTagsSubsampling` if
+  the ``YCbCrSubsampling`` tag is not explicitly present. This helps
+  a bit to reduce the I/O amount when the tag is present
+  (especially on cloud hosted files).
+
+* :file:`libtiff/tif_lzw.c`: in :c:func:`LZWPostEncode`, increase, if
+  necessary, the code bit-width after flushing the remaining
+  code and before emitting the EOI code.  Fixes
+  :bugzilla:`1982`
+
+* :file:`libtiff/tif_pixarlog.c`: fix memory leak in error code path of
+  :c:func:`PixarLogSetupDecode`. Patch by Nicolás Peña.  Fixes
+  :bugzilla:`2665`
+
+* :file:`libtiff/tif_fax3.c`, :file:`tif_predict.c`, :file:`tif_getimage.c`: fix GCC 7
+  ``-Wimplicit-fallthrough`` warnings.
+
+* :file:`libtiff/tif_dirread.c`: fix memory leak in non
+  :c:macro:`DEFER_STRILE_LOAD` mode (ie default) when there is both a
+  ``StripOffsets`` and ``TileOffsets`` tag, or a ``StripByteCounts`` and
+  ``TileByteCounts``. Fixes
+  :bugzilla:`2689`
+
+* :file:`libtiff/tif_ojpeg.c`: fix potential memory leak in
+  :c:func:`OJPEGReadHeaderInfoSecTablesQTable`,
+  :c:func:`OJPEGReadHeaderInfoSecTablesDcTable` and
+  :c:func:`OJPEGReadHeaderInfoSecTablesAcTable`. Patch by Nicolás Peña.
+  Fixes :bugzilla:`2670`
+
+* :file:`libtiff/tif_fax3.c`: avoid crash in :c:func:`Fax3Close` on empty file.
+  Patch by Alan Coopersmith + complement by myself.  Fixes
+  :bugzilla:`2673`
+
+* :file:`libtiff/tif_read.c`: :c:func:`TIFFFillStrip`: add limitation to the
+  number of bytes read in case ``td_stripbytecount[strip]`` is
+  bigger than reasonable, so as to avoid excessive memory
+  allocation.
+
+* :file:`libtiff/tif_zip.c`, :file:`tif_pixarlog.c`, :file:`tif_predict.c`: fix memory
+  leak when the underlying codec (ZIP, PixarLog) succeeds its
+  :c:func:`setupdecode` method, but :c:func:`PredictorSetup` fails.  Credit to
+  OSS-Fuzz (locally run, on GDAL)
+
+* :file:`libtiff/tif_read.c`: :c:func:`TIFFFillStrip` and :c:func:`TIFFFillTile`: avoid
+  excessive memory allocation in case of shorten files.  Only
+  effective on 64 bit builds and non-mapped cases.  Credit to
+  OSS-Fuzz (locally run, on GDAL)
+
+* :file:`libtiff/tif_read.c`: :c:func:`TIFFFillStripPartial` / :c:func:`TIFFSeek`,
+  avoid potential integer overflows with read_ahead in
+  :c:macro:`CHUNKY_STRIP_READ_SUPPORT` mode. Should
+  especially occur on 32 bit platforms.
+
+* :file:`libtiff/tif_read.c`: :c:func:`TIFFFillStripPartial`: avoid excessive
+  memory allocation in case of shorten files.  Only effective on
+  64 bit builds.  Credit to OSS-Fuzz (locally run, on GDAL)
+
+* :file:`libtiff/tif_read.c`: update :c:member:`tif_rawcc` in
+  :c:macro:`CHUNKY_STRIP_READ_SUPPORT` mode with :c:member:`tif_rawdataloaded` when
+  calling :c:func:`TIFFStartStrip` or :c:func:`TIFFFillStripPartial`. This
+  avoids reading beyond :c:func:`tif_rawdata` when ``bytecount >
+  tif_rawdatasize``.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1545.
+  Credit to OSS-Fuzz
+
+* :file:`libtiff/tif_color.c`: avoid potential :c:type:`int32` overflow in
+  :c:func:`TIFFYCbCrToRGBInit`.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1533
+  Credit to OSS-Fuzz
+
+* :file:`libtiff/tif_pixarlog.c`, :file:`tif_luv.c`: avoid potential :c:type:`int32`
+  overflows in :c:func:`multiply_ms` and :c:func:`add_ms`.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1558
+  Credit to OSS-Fuzz
+
+* :file:`libtiff/tif_packbits.c`: fix out-of-buffer read in
+  :c:func:`PackBitsDecode`.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1563
+  Credit to OSS-Fuzz
+
+* :file:`libtiff/tif_luv.c`: :c:func:`LogL16InitState`: avoid excessive memory
+  allocation when ``RowsPerStrip`` tag is missing.
+  Credit to OSS-Fuzz (locally run, on GDAL)
+
+* :file:`libtiff/tif_lzw.c`: update dec_bitsleft at beginning of
+  LZWDecode(), and update tif_rawcc at end of LZWDecode(). This
+  is needed to properly work with the latest chnges in
+  tif_read.c in CHUNKY_STRIP_READ_SUPPORT mode.
+
+* :file:`libtiff/tif_pixarlog.c`: :c:func:`PixarLogDecode`: resync :c:member:`tif_rawcp`
+  with :c:member:`next_in` and :c:member:`tif_rawcc` with :c:member:`avail_in` at beginning and end
+  of function, similarly to what is done in :c:func:`LZWDecode`. Likely
+  needed so that it works properly with latest chnges in
+  :file:`tif_read.c` in :c:macro:`CHUNKY_STRIP_READ_SUPPORT` mode. But untested...
+
+* :file:`libtiff/tif_getimage.c`: :c:func:`initYCbCrConversion`: add basic
+  validation of :c:var:`luma` and :c:var:`refBlackWhite` coefficients (just check
+  they are not NaN for now), to avoid potential :c:expr:`float` to :c:expr:`int`
+  overflows.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1663
+  Credit to OSS Fuzz
+
+* :file:`libtiff/tif_read.c`: :c:func:`_TIFFVSetField`: fix outside range cast
+  of :c:expr:`double` to :c:expr:`float`.  Credit to Google Autofuzz project
+
+* :file:`libtiff/tif_getimage.c`: :c:func:`initYCbCrConversion`: check ``luma[1]``
+  is not zero to avoid division by zero.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1665
+  Credit to OSS Fuzz
+
+* :file:`libtiff/tif_read.c`: :c:func:`_TIFFVSetField`: fix outside range cast
+  of :c:expr:`double` to :c:expr:`float`.  Credit to Google Autofuzz project
+
+* :file:`libtiff/tif_getimage.c`: :c:func:`initYCbCrConversion`: check ``luma[1]``
+  is not zero to avoid division by zero.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1665
+  Credit to OSS Fuzz
+
+* :file:`libtiff/tif_getimage.c`: :c:func:`initYCbCrConversion`: stricter
+  validation for :c:var:`refBlackWhite` coefficients values. To avoid
+  invalid :c:expr:`float` to :c:expr:`int32` conversion.  Fixes
+  https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=1718
+  Credit to OSS Fuzz
+
+
+Tools changes
+-------------
+
+* :file:`tools/fax2tiff.c` (:c:func:`main`): Applied patch by Jörg Ahrens to fix
+  passing client data for Win32 builds using :file:`tif_win32.c`
+  (:c:macro:`USE_WIN32_FILEIO` defined) for file I/O.  Patch was provided
+  via email on November 20, 2016.
+
+* :file:`tools/tiffcp.c`: avoid :c:type:`uint32` underflow in :c:func:`cpDecodedStrips`
+  that can cause various issues, such as buffer overflows in the
+  library.  Reported by Agostino Sarubbo.  Fixes
+  :bugzilla:`2598`
+
+* :file:`tools/tiffcrop.c`: fix :c:func:`readContigStripsIntoBuffer` in ``-i``
+  (ignore) mode so that the output buffer is correctly
+  incremented to avoid write outside bounds.  Reported by
+  Agostino Sarubbo.  Fixes
+  :bugzilla:`2620`
+
+* :file:`tools/tiffcrop.c`: add 3 extra bytes at end of strip buffer in
+  :c:func:`readSeparateStripsIntoBuffer` to avoid read outside of heap
+  allocated buffer.  Reported by Agostino Sarubbo.  Fixes
+  :bugzilla:`2621`
+
+* :file:`tools/tiffcrop.c`: fix integer division by zero when
+  ``BitsPerSample`` is missing.  Reported by Agostino Sarubbo.
+  Fixes :bugzilla:`2619`
+
+* :file:`tools/tiffinfo.c`: fix null pointer dereference in ``-r`` mode
+  when the image has no ``StripByteCount`` tag.  Reported by
+  Agostino Sarubbo.  Fixes
+  :bugzilla:`2594`
+
+* :file:`tools/tiffcp.c`: avoid potential division by zero if
+  ``BitsPerSamples`` tag is missing.  Reported by Agostino Sarubbo.
+  Fixes :bugzilla:`2597`
+
+* :file:`tools/tif_dir.c`: when ``TIFFGetField(, TIFFTAG_NUMBEROFINKS, )``
+  is called, limit the return number of inks to ``SamplesPerPixel``,
+  so that code that parses ink names doesn't go past the end of
+  the buffer.  Reported by Agostino Sarubbo.  Fixes
+  :bugzilla:`2599`
+
+* :file:`tools/tiffcp.c`: avoid potential division by zero if
+  ``BitsPerSamples`` tag is missing.  Reported by Agostino Sarubbo.
+  Fixes :bugzilla:`2607`
+
+* :file:`tools/tiffcp.c`: fix :c:type:`uint32` underflow/overflow that can cause
+  heap-based buffer overflow.  Reported by Agostino Sarubbo.
+  Fixes :bugzilla:`2610`
+
+* :file:`tools/tiffcp.c`: replace ``assert( (bps % 8) == 0 )`` by a non
+  assert check.  Reported by Agostino Sarubbo.  Fixes
+  :bugzilla:`2605`
+
+* :file:`tools/tiff2ps.c`: fix 2 heap-based buffer overflows (in
+  :c:func:`PSDataBW` and :c:func:`PSDataColorContig`). Reported by Agostino Sarubbo.
+  Fixes :bugzilla:`2633` and
+  :bugzilla:`2634`.
+
+* :file:`tools/tiff2pdf.c`: prevent heap-based buffer overflow in ``-j``
+  mode on a paletted image. Note: this fix errors out before the
+  overflow happens. There could probably be a better fix.  Fixes
+  :bugzilla:`2635`
+
+* :file:`tools/tiff2pdf.c`: fix wrong usage of :c:func:`memcpy` that can
+  trigger unspecified behaviour.  Fixes
+  :bugzilla:`2638`
+
+* :file:`tools/tiff2pdf.c`: avoid potential invalid memory read in
+  :c:func:`t2p_writeproc`.  Fixes
+  :bugzilla:`2639`
+
+* :file:`tools/tiff2pdf.c`: avoid potential heap-based overflow in
+  :c:func:`t2p_readwrite_pdf_image_tile`.  Fixes
+  :bugzilla:`2640`
+
+* :file:`tools/tiffcrop.c`: remove extraneous :c:func:`TIFFClose` in error code
+  path, that caused double free.  Related to
+  :bugzilla:`2535`
+
+* :file:`tools/tiffcp.c`: error out cleanly in :c:func:`cpContig2SeparateByRow`
+  and :c:func:`cpSeparate2ContigByRow` if ``BitsPerSample != 8`` to avoid heap
+  based overflow.  Fixes
+  :bugzilla:`2656` and
+  :bugzilla:`2657`
+
+* :file:`tools/raw2tiff.c`: avoid integer division by zero.  Fixes
+  :bugzilla:`2631`
+
+* :file:`tools/tiff2ps.c`: call :c:func:`TIFFClose` in error code paths.
+
+* :file:`tools/fax2tiff.c`: emit appropriate message if the input file
+  is empty. Patch by Alan Coopersmith.  Fixes
+  :bugzilla:`2672`
+
+* :file:`tools/tiff2bw.c`: close :c:struct:`TIFF` handle in error code path.  Fixes
+  :bugzilla:`2677`
+
+
+Contributed software changes
+----------------------------
+
+None

@@ -1,0 +1,61 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+#
+# Some tests for java support
+#
+
+cat <<EOF > xg-j-1.java
+class TestCase {
+    public TestCase() {
+        ResourceBundle b = ResourceBundle.getBundle("test");
+        GetTextBundle b2 = (GetTextBundle)b;
+        // standard usage
+        String test1 = b.getString("Test String 1");
+        // gettext usage
+        String test2 = b2.gettext("Test String 2");
+
+        /* C style comment */
+        String test3 = b.getString("Test String 3");
+
+        // java "multiline" string
+        String test4 = b.getString("Test " +
+        "String " +
+        "4");
+
+        // empty string
+        String test5 = b.getString("");
+    }
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -c -d xg-j-1.tmp xg-j-1.java || Exit 1
+LC_ALL=C tr -d '\r' < xg-j-1.tmp.po > xg-j-1.po || Exit 1
+
+cat <<EOF > xg-j-1.ok
+#. standard usage
+msgid "Test String 1"
+msgstr ""
+
+#. gettext usage
+msgid "Test String 2"
+msgstr ""
+
+#. C style comment
+msgid "Test String 3"
+msgstr ""
+
+#. java "multiline" string
+msgid "Test String 4"
+msgstr ""
+
+#. empty string
+msgid ""
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-j-1.ok xg-j-1.po
+result=$?
+
+exit $result

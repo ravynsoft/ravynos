@@ -1,0 +1,417 @@
+# Test basic module loading
+
+%prep
+# Figure out which modules it ought to be possible to load by looking at
+# the config.modules file.  This differs for static vs. dynamic builds.
+
+ mods=()
+ deps="$(zmodload -Ld)"
+ while read name modfile link auto load funcs
+ do
+   [[ $name == \#* ]] && continue
+   eval "$name $modfile $link $auto $load"
+   [[ $link == no ]] && continue
+   mods=($mods $name)
+   moddeps=
+   modfile=$ZTST_srcdir/../$modfile
+   eval ${${${(f)"$(<$modfile)"}[(r)moddeps=*]}:-:}
+   [[ -n $moddeps ]] && zmodload -d $name $=moddeps
+ done < $ZTST_testdir/../config.modules
+
+ zmodunload() {
+   local m n=$#
+   (( n == 0 )) && return 0
+   for m
+   do
+     if [[ -z ${(M)${(f)"$(zmodload -d)"}:#*:* $m( *|)} ]]
+     then
+       zmodload -u $m && zmodload -ud $m || return 1
+       shift
+     else
+       set $@[2,-1] $m
+     fi
+   done
+   if (( $# < n ))
+   then
+     zmodunload $*
+   else
+     zmodload -u $*
+   fi
+ }
+
+ mkdir zmodload.tmp
+ cd zmodload.tmp
+
+%test
+
+# This first test depends on knowing that zsh is run with +Z from the
+# Makefile, and that ztst.zsh loads the parameter module.
+
+ zmodload -L
+0:List the loaded modules
+>zmodload zsh/main
+>zmodload zsh/parameter
+
+# You used to need zmodload -i to avoid an error.
+# That has been deemed pointless, so now an attempt
+# to load a loaded module should succeed.
+ zmodload zsh/main
+0:Test reloading an already-loaded module
+
+# Loop over the modules found above and attempt to load each one.  Use
+# the -i flag in case dependencies cause multiple modules to be loaded,
+# or in case some previous test suite loaded a module.
+
+ for m in $mods
+ do
+   zmodload $m || return $?
+ done
+0d:Test loading of all compiled modules
+
+ zmodload -e $mods
+0d:Check that zsh believes the modules did load
+
+# Now check for proper failure conditions by trying some operations on
+# a nonexistent module.
+
+ zmodload bogus/notamodule
+1D:Check that loading a nonexistent module fails
+
+ zmodload -u bogus/notamodule
+1D:Check that unloading a nonexistent module fails
+
+# Test adding and removing autoloads, using a nonexistent module.
+
+ zmodload -ab bogus
+ zmodload -ub bogus
+0:Add/remove autoloaded builtin
+
+ zmodload -ub bogus
+1:Fail to remove unautoloaded builtin
+?(eval):zmodload:1: bogus: no such builtin
+
+ zmodload -ac bogus
+ zmodload -uc bogus
+0:Add/remove autoloaded condition
+
+ zmodload -uc bogus
+1:Fail to remove unautoloaded condition
+?(eval):zmodload:1: bogus: no such condition
+
+ zmodload -ap bogus
+ zmodload -up bogus
+0:Add/remove autoloaded parameter
+
+ zmodload -up bogus
+1:Fail to remove unautoloaded parameter
+?(eval):zmodload:1: bogus: no such parameter
+
+ zmodload -af bogus
+ zmodload -uf bogus
+0:Add/remove autoloaded math function
+
+ zmodload -uf bogus
+1:Fail to remove unautoloaded math function
+?(eval):zmodload:1: bogus: no such math function
+
+# If the "example" module is available, test various autoloading behavior.
+
+ if [[ $mods[(r)zsh/example] == zsh/example ]]; then
+   zmodload -u zsh/example
+   zmodload -ab zsh/example example
+   builtin example
+   zmodload -e zsh/example
+ else print -u$ZTST_fd Warning: zsh/example not linked: not checking autoloading
+ fi
+0d:Autoload a module via a builtin
+
+ if [[ $mods[(r)zsh/example] == zsh/example ]]; then
+  zmodload -u zsh/example
+  builtin example
+ fi
+0d:Autoloads are persistent
+
+  (zmodload -u zsh/parameter
+  zmodload -aF zsh/parameter b:fail
+  fail
+  print "Shouldn't get here.")
+1:Failed builtin autoload
+?(eval):3: module `zsh/parameter' has no such feature: `b:fail': autoload cancelled
+?(eval):3: autoloading module zsh/parameter failed to define builtin: fail
+
+  (zmodload -u zsh/parameter
+  zmodload -aF zsh/parameter p:fail
+  print $fail
+  print "Shouldn't get here.")
+1:Failed parameter autoload
+?(eval):3: module `zsh/parameter' has no such feature: `p:fail': autoload cancelled
+?(eval):3: autoloading module zsh/parameter failed to define parameter: fail
+
+  (zmodload -u zsh/parameter
+  zmodload -aF zsh/parameter c:fail
+  [[ -fail foo ]]
+  print "Shouldn't get here.")
+2:Failed condition autoload
+?(eval):3: module `zsh/parameter' has no such feature: `c:fail': autoload cancelled
+?(eval):3: unknown condition: -fail
+
+  (zmodload -u zsh/parameter
+  zmodload -aF zsh/parameter f:fail
+  (( fail() )) )
+2:Failed math function autoload
+?(eval):3: module `zsh/parameter' has no such feature: `f:fail': autoload cancelled
+?(eval):3: autoloading module zsh/parameter failed to define math function: fail
+
+  zmodload -aF zsh/parameter f:fail2
+1:Immediate autoload failure on non-existent feature when module loaded
+?(eval):zmodload:1: module `zsh/parameter' has no such feature: `f:fail2'
+
+  (zmodload -u zsh/parameter
+  zmodload -aF zsh/parameter p:fail
+  print $(( ${#modules} > 1 )) )
+0:Autoloads checked on loading but don't necessarily effect current command
+>1
+?(eval):3: module `zsh/parameter' has no such feature: `p:fail': autoload cancelled
+
+  zmodload -laF zsh/parameter
+0:List default autoloads
+>p:aliases
+>p:builtins
+>p:commands
+>p:dirstack
+>p:dis_aliases
+>p:dis_builtins
+>p:dis_functions
+>p:dis_functions_source
+>p:dis_galiases
+>p:dis_patchars
+>p:dis_reswords
+>p:dis_saliases
+>p:funcfiletrace
+>p:funcsourcetrace
+>p:funcstack
+>p:functions
+>p:functions_source
+>p:functrace
+>p:galiases
+>p:history
+>p:historywords
+>p:jobdirs
+>p:jobstates
+>p:jobtexts
+>p:modules
+>p:nameddirs
+>p:options
+>p:parameters
+>p:patchars
+>p:reswords
+>p:saliases
+>p:userdirs
+>p:usergroups
+
+ if [[ $mods[(r)zsh/example] == zsh/example ]]; then
+   zmodload -u zsh/example
+   zmodload -ac -I zsh/example ex
+   [[ exam -ex ple ]]
+   zmodload -e zsh/example
+ else :
+ fi
+0d:Autoload a module via a condition
+
+ if [[ $mods[(r)zsh/example] == zsh/example ]]; then
+   zmodload -u zsh/example
+   zmodload -ap zsh/example exint
+   : $exint
+   zmodload -e zsh/example
+ else :
+ fi
+0d:Autoload a module via a parameter
+
+ if [[ $mods[(r)zsh/example] == zsh/example ]]; then
+   zmodload -u zsh/example
+   zmodload -af zsh/example sum
+   (( sum(1) ))
+   zmodload -e zsh/example
+ else :
+ fi
+0d:Autoload a module via a math function
+
+# Test module aliases
+
+ zmodload -A example=zsh/example
+ zmodload -A
+0:Test creating a module alias
+>example -> zsh/example
+
+ if [[ $mods[(r)zsh/example] == zsh/example ]]; then
+   zmodload -u example
+   zmodload -ab example
+   builtin example
+   zmodload -e example
+ else :
+ fi
+0d:Unload/autoload the module via its alias
+
+ zmodload -R example
+ zmodload -e example
+1:Delete the module alias again
+
+  zmodload >zmodload_list
+  print -l ${(o)mods} >mods_list
+  diff zmodload_list mods_list
+0:Listing with zmodload should give all our modules.
+
+# Don't unload the main module.
+# Do unload zsh/parameter, but reload it as it is needed.
+
+ mods[(r)zsh/main]=()
+ zmodunload $mods
+ zmodload zsh/parameter
+0d:Unload the modules loaded by this test suite
+
+  zmodload -aF zsh/zftp b:zftp
+  zmodload -LaF | grep zftp
+0:Listing feature autoloads includes unloaded modules
+>zmodload -Fa zsh/zftp b:zftp
+
+  if ! zmodload zsh/system >/dev/null 2>&1; then
+    ZTST_skip="zsh/system module not available"
+  else
+    zmodload -lF zsh/system
+    zmodload -F zsh/system -p:errnos
+    print ${+errnos}
+    zmodload -lF zsh/system
+    zmodload -F zsh/system +p:errnos
+    print ${+errnos}
+    zmodload -lF zsh/system
+  fi
+0:Regression tests for index bug with math functions.
+>+b:syserror
+>+b:sysread
+>+b:syswrite
+>+b:sysopen
+>+b:sysseek
+>+b:zsystem
+>+f:systell
+>+p:errnos
+>+p:sysparams
+>0
+>+b:syserror
+>+b:sysread
+>+b:syswrite
+>+b:sysopen
+>+b:sysseek
+>+b:zsystem
+>+f:systell
+>-p:errnos
+>+p:sysparams
+>1
+>+b:syserror
+>+b:sysread
+>+b:syswrite
+>+b:sysopen
+>+b:sysseek
+>+b:zsystem
+>+f:systell
+>+p:errnos
+>+p:sysparams
+
+  if ! zmodload zsh/system >/dev/null 2>&1; then
+    ZTST_skip="zsh/system module not available"
+  else
+    zmodload -F zsh/system -f:systell
+    zmodload -lF zsh/system
+    (print $(( systell(-1) )))
+    zmodload -F zsh/system +f:systell
+    zmodload -lF zsh/system
+    (print $(( systell(-1) )))
+  fi
+1:Module Features for math functions
+>+b:syserror
+>+b:sysread
+>+b:syswrite
+>+b:sysopen
+>+b:sysseek
+>+b:zsystem
+>-f:systell
+>+p:errnos
+>+p:sysparams
+>+b:syserror
+>+b:sysread
+>+b:syswrite
+>+b:sysopen
+>+b:sysseek
+>+b:zsystem
+>+f:systell
+>+p:errnos
+>+p:sysparams
+?(eval):6: unknown function: systell
+?(eval):9: file descriptor out of range
+
+ $ZTST_testdir/../Src/zsh -fc "
+   MODULE_PATH=${(q)MODULE_PATH}
+   if zmodload -e zsh/parameter; then zmodload -u zsh/parameter; fi
+   unset options
+   zmodload zsh/parameter
+   echo \$+options
+ "
+-f:can unset a non-readonly autoloadable parameter before loading the module
+>0
+# Currently prints '1'.
+
+ $ZTST_testdir/../Src/zsh -fc "
+   MODULE_PATH=${(q)MODULE_PATH}
+   zmodload zsh/parameter
+   unset options
+   echo \$+options
+ "
+0:can unset a non-readonly autoloadable parameter after loading the module
+>0
+
+ $ZTST_testdir/../Src/zsh -fc "
+   MODULE_PATH=${(q)MODULE_PATH}
+   if zmodload -e zsh/parameter; then zmodload -u zsh/parameter; fi
+   unset builtins
+ "
+-f:can't unset a readonly autoloadable parameter before loading the module
+*?zsh:?: read-only variable: builtins
+# Currently, the 'unset' succeeds.
+
+ $ZTST_testdir/../Src/zsh -fc "
+   MODULE_PATH=${(q)MODULE_PATH}
+   zmodload zsh/parameter
+   unset builtins
+ "
+1:can't unset a readonly autoloadable parameter after loading the module
+*?zsh:?: read-only variable: builtins
+
+ $ZTST_testdir/../Src/zsh -fc "
+   MODULE_PATH=${(q)MODULE_PATH}
+   zmodload zsh/parameter
+   zmodload -u zsh/parameter
+   echo \$options
+ "
+0:unloading a module doesn't implicitly unset autoloadable parameters
+*>(on|off) *
+
+ $ZTST_testdir/../Src/zsh -fc "
+  MODULE_PATH=${(q)MODULE_PATH}
+  #
+  zmodload zsh/zutil
+  zmodload -Fal zsh/zutil | grep parse
+  zmodload -u zsh/zutil
+  #
+  zmodload -Fa zsh/zutil -b:zregexparse
+  zmodload zsh/zutil
+  zmodload -Fal zsh/zutil | grep parse >&2
+ "
+0:zmodload -Fa can disable features from being loaded
+>b:zparseopts
+>b:zregexparse
+?b:zparseopts
+
+%clean
+
+ eval "$deps"
+ unset deps name modfile link auto load funcs mods moddeps
+ unfunction zmodunload

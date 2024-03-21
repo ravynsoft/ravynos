@@ -1,0 +1,135 @@
+Changes in TIFF v3.6.1
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.6.1 (:tag:`Release-v3-6-1`)
+  Previous Version        :doc:`v3.6.0 <v3.6.0>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+* New utility :program:`tiff2pdf`
+  for converting TIFF images directly into PDF.
+* New :doc:`/functions/TIFFcolor` color conversion module.
+* Full support for ``Orientation`` tag in ``TIFFRGBAImage`` interface.
+* Many bugs fixed.
+
+
+Software configuration changes
+------------------------------
+
+* :file:`libtiff/makefile.vc`, :file:`tools/makefile.vc`: Support for IJG JPEG library.
+
+* :file:`Makefile.in`: Add an absolute path to the :file:`test_pics.sh` call.
+
+* :file:`Makefile.in`: Add an absolute path to the :file:`test_pics.sh` call.
+
+* :file:`libtiff/tiffcomp.h`: ``#define _BSDTYPES_DEFINED`` when defining BSD typedefs.
+
+* :file:`configure`, :file:`libtiff/Makefile.in`, :file:`libtiff/mkversion.c`: Relative buildings fixed.
+
+* :file:`Makefile.in`: Add an absolute path to the :file:`test_pics.sh` call.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_color.c`, :file:`libtiff/tif_getimage.c`, :file:`libtiff/tiffio.h`:
+  Added support for ``ReferenceBlackWhite`` tag handling when converted from YCbCr color space as
+  per bug :bugzilla-rs:`120`.
+
+* :file:`libtiff/tif_getimage.c`, :file:`libtiff/tif_aux.c`: Read ``WhitePoint`` tag from the
+  file and properly use it for CIE Lab 1976 to RGB transform.
+
+* :file:`libtiff/tif_getimage.c`, :file:`libtiff/tiffio.h`: Finally resolved problems with
+  orientation handling. ``TIFFRGBAImage`` interface now properly supports all
+  possible orientations, i.e. images will be flipped both in horizontal and
+  vertical directions if required. 'Known bugs' section now removed from the
+  appropriate manual pages.
+
+* :file:`libtiff/tif_luv.c`: Fixed bug in 48-bit to 24-bit conversion routine,
+  reported by Antonio Scuri.
+
+* :file:`libtiff/tiffio.h`, :file:`libtiff/tif_codec.c`: Added new function
+  :c:func:`TIFFIsCODECConfigured`, suggested by Ross Finlayson.
+
+* :file:`libtiff/tif_ojpeg.c`: :c:func:`TIFFVGetField` function now can properly extract
+  the fields from the OJPEG files. Patch supplied by Ross  Finlayson.
+
+* :file:`libtiff/tif_dir.h`: :c:func:`_TIFFFindOrRegisterdInfo` declaration replaced
+  with :c:func:`_TIFFFindOrRegisterFieldInfo` as reported by Ross Finlayson.
+
+* :file:`libtiff/tif_dirinfo.c`: Implemented binary search in :c:func:`_TIFFMergeFieldInfo`.
+  Patch supplied by Ross Finlayson.
+
+* :file:`tif_dirread.c`: do not mark all anonymously defined tags to be ``IGNORE`` (as
+  it was done in 3.6.0).
+
+* :file:`libtiff/tiff.h`, :file:`libtiff/tif_dirinfo.c`: Added support for IFD (13) datatype,
+  introduced in "Adobe PageMaker TIFF Technical Notes".
+
+* :file:`libtiff/tif_color.c`, :file:`libtiff/tif_getimage.c`, :file:`libtiff/tiffio.h`: New color space
+  conversion code: CIE L*a*b* 1976 images now supported by the ``TIFFRGBAImage``
+  interface. YCbCr to RGB conversion code also moved there and now has
+  :doc:`/functions/TIFFcolor` publicly available interface. These
+  routines currently used in ``TIFFRGBAImage`` interface only and not supported in
+  other libtiff tools yet. So if you want, for example, to convert CIE Lab image
+  into PostScript file you should do it in two steps: change colorspace to RGB
+  using :program:`tiff2rgba` utility and then process
+  it with the :program:`tiff2ps`.
+
+* :file:`libtiff/tif_tile.c`: Remove spurious use of "s" (sample) in the
+  ``planarconfig_contig`` case in :c:func:`TIFFComputeTile` as per bug :bugzilla-rs:`387`.
+
+* :file:`libtiff/tiffiop.h`: New macros: :c:macro:`TIFFmax` and :c:macro:`TIFFmin`.
+
+* :file:`libtiff/tiffio.h`, :file:`libtiff/tif_strip.c`: Added :c:func:`TIFFRawStripSize` function
+  as suggested by Chris Hanson.
+
+* :file:`libtiff/tif_lzw.c`, :file:`libtiff/tif_fax3.c`: Proper support for update mode
+  as per bug :bugzilla-rs:`424`.
+
+
+Tools changes
+-------------
+
+* :program:`tiff2pdf`:: New tool, written by
+  Ross Finlayson, to directly convert TIFF files to PDF.
+
+* :program:`tiffgt`: Unmaintained and platform
+  dependent sgigt utility removed and replaced with the completely rewritten
+  portable tool (depend on OpenGL and
+  GLUT). This tool will not build by default.
+
+* :program:`ras2tiff`: Properly determine
+  SUN Rasterfiles with the reverse byte order (it is reported by the magic
+  header field). Problem reported by Andreas Wiesmann.
+
+* :program:`raw2tiff`: Implemented image size
+  guessing using correlation coefficient calculation between two neighbour
+  lines.
+
+
+Contributed software changes
+----------------------------
+
+* :file:`contrib/pds/tif_pdsdirread.c`, :file:`contrib/pds/tif_pdsdirwrite.c`:
+  Use :c:func:`TIFFDataWidth` function instead of :c:var:`tiffDataWidth` array.
+
+LZW compression kit changes
+---------------------------
+
+* Proper support for update mode as per bug :bugzilla-rs:`424`.

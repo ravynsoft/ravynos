@@ -73,13 +73,6 @@ typedef struct zfs_uio {
 	size_t		uio_skip;
 
 	struct request	*rq;
-
-	/*
-	 * Used for saving rq_for_each_segment() state between calls
-	 * to zfs_uiomove_bvec_rq().
-	 */
-	struct req_iterator iter;
-	struct bio_vec bv;
 } zfs_uio_t;
 
 
@@ -102,7 +95,7 @@ zfs_uio_setoffset(zfs_uio_t *uio, offset_t off)
 }
 
 static inline void
-zfs_uio_advance(zfs_uio_t *uio, size_t size)
+zfs_uio_advance(zfs_uio_t *uio, ssize_t size)
 {
 	uio->uio_resid -= size;
 	uio->uio_loffset += size;
@@ -138,7 +131,6 @@ zfs_uio_bvec_init(zfs_uio_t *uio, struct bio *bio, struct request *rq)
 	} else {
 		uio->uio_bvec = NULL;
 		uio->uio_iovcnt = 0;
-		memset(&uio->iter, 0, sizeof (uio->iter));
 	}
 
 	uio->uio_loffset = io_offset(bio, rq);

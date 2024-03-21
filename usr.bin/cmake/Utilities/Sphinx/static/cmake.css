@@ -1,0 +1,88 @@
+/* Import the Sphinx theme style.  */
+@import url("default.css");
+
+/* Wrap sidebar content even within words so that long
+   document names do not escape sidebar borders.  */
+div.sphinxsidebarwrapper {
+  word-wrap: break-word;
+}
+
+/* Make links inside parsed-literal blocks more obvious
+   by using a background color and increased line spacing
+   to make them look boxed.  */
+.literal-block {
+  line-height: 1.4;
+}
+.literal-block a.reference.internal {
+  background-color: #dfdfdf;
+}
+
+/* Apply <pre> style (from classic.css) to signature directive argument. */
+.signature .sig {
+  padding: 5px;
+  background-color: #eeeeee;
+  color: #333333;
+  line-height: 120%;
+  border: 1px solid #ac9;
+  border-left: none;
+  border-right: none;
+}
+
+/* Add additional styling to signature directive argument. */
+.signature .sig {
+  margin-bottom: 5px;
+  padding-left: calc(5px + 3em);
+  text-indent: -3em;
+  font-family: monospace;
+}
+
+.signature .sig .code.sig-name {
+  font-weight: normal;
+}
+
+/* Implement non-breaking spaces in signatures. */
+.nbsp {
+  white-space: nowrap;
+}
+
+/* Add hanging indent to deprecated and version-{added,changed} content. */
+div.deprecated > *,
+div.versionadded > *,
+div.versionchanged > * {
+  padding-left: 2em;
+}
+
+div.deprecated > :first-child,
+div.versionadded > :first-child,
+div.versionchanged > :first-child {
+  text-indent: -2em;
+}
+
+/* Remove unwanted margin in case list item contains a div-wrapping
+   directive like `.. versionadded` or `.. deprecated`. */
+dd > :first-child > p {
+  margin-top: 0px;
+}
+
+div.outdated {
+  background-color: #f0f0c0;
+  color: black;
+  font-size: 90%;
+  padding-bottom: 5px;
+  padding-left: 2px;
+  padding-right: 2px;
+  padding-top: 5px;
+  text-align: center;
+  width: 100%;
+}
+
+/* Revert style to the inherited (normal text) for `:guide:` links */
+code.xref.cmake-guide {
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+  padding: inherit;
+}
+code.xref.cmake-guide span.pre {
+  white-space: inherit;
+}

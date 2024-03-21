@@ -1,0 +1,43 @@
+#autoload
+
+# Completes current directories of other zsh processes
+# this is intended to be used via _generic bound to a
+# different key. Note that pattern matching is enabled.
+
+local -a expl
+local -au dirs
+
+# undo work _main_complete did to remove the tilde
+PREFIX="$IPREFIX$PREFIX"
+IPREFIX=
+SUFFIX="$SUFFIX$ISUFFIX"
+ISUFFIX=
+
+[[ -o magicequalsubst ]] && compset -P '*='
+
+case $OSTYPE in
+  solaris*)
+    dirs=(
+      ${(M)${${(f)"$(pgrep -U $UID -x zsh|xargs pwdx 2>/dev/null)"}:#$$:*}%%/*}
+    )
+  ;;
+  linux*)
+    dirs=( /proc/${^$(pidof -- -zsh zsh):#$$}/cwd(N:P) )
+    dirs=( $^dirs(N^@) )
+  ;;
+  freebsd*)
+    dirs=( $(pgrep -U $UID -x zsh) )
+    dirs=( $(procstat -h -f $dirs|awk '{if ($3 == "cwd") print $NF}') )
+  ;;
+  *)
+    if (( $+commands[lsof] )); then
+      dirs=( ${${${(M)${(f)"$(lsof -a -u $EUID -c zsh -p \^$$ -d cwd -F n -w
+          2>/dev/null)"}:#n*}#?}%% \(*} )
+    fi
+  ;;
+esac
+dirs=( ${(D)dirs:#$PWD} )
+
+compstate[pattern_match]='*'
+_wanted directories expl 'current directory from other shell' \
+    compadd -M "r:|/=* r:|=*" -f -a dirs

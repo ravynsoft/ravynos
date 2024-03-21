@@ -1,0 +1,1 @@
+.include "vgather-check.s"

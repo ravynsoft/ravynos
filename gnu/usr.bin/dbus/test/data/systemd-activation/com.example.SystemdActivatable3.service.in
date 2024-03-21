@@ -1,0 +1,7 @@
+[D-BUS Service]
+Name=com.example.SystemdActivatable3
+Exec=/bin/false 3
+SystemdService=dbus-com.example.SystemdActivatable3.service
+# This AppArmor label doesn't actually exist, but that's OK - nothing
+# prevents us from sending messages to it.
+AssumedAppArmorLabel=@DBUS_TEST_EXEC@/test-apparmor-activation-com.example.SystemdActivatable3

@@ -1,0 +1,41 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test format string recognition when different programming languages are used.
+
+cat <<\EOF > xg-18-a.py
+print(gettext.gettext("Found %(count)d warnings") % { 'count': 7 })
+EOF
+
+cat <<\EOF > xg-18-b.ui
+<?xml version="1.0"?>
+<interface>
+  <menu id="app-menu">
+    <section>
+      <submenu>
+        <attribute name="label" translatable="yes">Use in % of disk</attribute>
+      </submenu>
+    </section>
+  </menu>
+</interface>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-18.tmp xg-18-a.py xg-18-b.ui \
+  || Exit 1
+LC_ALL=C tr -d '\r' < xg-18.tmp.po > xg-18.po || Exit 1
+
+cat <<EOF > xg-18.ok
+#, python-format
+msgid "Found %(count)d warnings"
+msgstr ""
+
+msgid "Use in % of disk"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-18.ok xg-18.po
+result=$?
+
+exit $result

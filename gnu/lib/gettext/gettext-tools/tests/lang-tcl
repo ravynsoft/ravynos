@@ -1,0 +1,112 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the Tcl language.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: tcl.
+
+# Note: This test fails on MacOS X 10.3.5 (Darwin 7.5) in the fr_FR locale
+# but not in the fr_FR.UTF-8 locale. Probably because in the fr_FR locale,
+# nl_langinfo(CODESET) returns "".
+
+# Note: This test fails on Cygwin 1.7.2 in the fr_FR.UTF-8 locale but not
+# in the fr_FR.ISO-8859-1 locale.
+
+cat <<\EOF > program.tcl
+#!/usr/bin/env tclsh
+package require msgcat
+::msgcat::mcload [file join [file dirname [info script]] . msgs]
+proc _ {s} {return [::msgcat::mc $s]}
+puts [_ "'Your command, please?', asked the waiter."]
+puts [format [::msgcat::mc "%s is replaced by %s."] "FF" "EUR"]
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header -k_ program.tcl || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+#: program.tcl:5
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#: program.tcl:6
+#, tcl-format
+msgid "%s is replaced by %s."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+#: program.tcl:5
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Reverse the arguments.
+#: program.tcl:6
+#, tcl-format
+msgid "%s is replaced by %s."
+msgstr "%2$s remplace %1$s."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d msgs || mkdir msgs
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --tcl -d msgs -l fr fr.po || Exit 1
+
+# Test for presence of tclsh with msgcat extension.
+cat <<\EOF > version.tcl
+package require msgcat
+puts $tcl_version
+EOF
+(tclsh version.tcl) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: tclsh not found or msgcat extension not present"
+       Exit 77
+     }
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+EUR remplace FF.
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+EUR remplace FF.
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LANG=$LOCALE_FR LC_MESSAGES= LC_CTYPE= LC_ALL= tclsh program.tcl > prog.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < prog.tmp > prog.out || Exit 1
+  ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LANG=$LOCALE_FR_UTF8 LC_MESSAGES= LC_CTYPE= LC_ALL= tclsh program.tcl > prog.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < prog.tmp > prog.out || Exit 1
+  ${DIFF} prog.oku prog.out || Exit 1
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

@@ -1,0 +1,123 @@
+#autoload
+
+local name nopt xopt format gname hidden hide match opts tag
+local -a ign gropt sort
+local -a match mbegin mend
+
+opts=()
+
+xopt=(-X)
+nopt=()
+zparseopts -K -D -a nopt 1 2 V=gropt J=ign x=xopt
+
+3="${${3##[[:blank:]]#}%%[[:blank:]]#}"
+[[ -n "$3" ]] && _lastdescr=( "$_lastdescr[@]" "$3" )
+
+zstyle -s ":completion:${curcontext}:$1" group-name gname &&
+    [[ -z "$gname" ]] && gname="$1"
+
+_setup "$1" "${gname:--default-}"
+
+name="$2"
+
+zstyle -s ":completion:${curcontext}:$1" format format ||
+    zstyle -s ":completion:${curcontext}:descriptions" format format
+
+if zstyle -s ":completion:${curcontext}:$1" hidden hidden &&
+   [[ "$hidden" = (all|yes|true|1|on) ]]; then
+  [[ "$hidden" = all ]] && format=''
+  opts=(-n)
+fi
+zstyle -s ":completion:${curcontext}:$1" matcher match &&
+    opts=($opts -M "$match")
+[[ -n "$_matcher" ]] && opts=($opts -M "$_matcher")
+
+# Use sort style, but ignore `menu' value to help _expand.
+# Also don't override explicit use of -V.
+if [[ -z "$gropt" ]]; then
+  if zstyle -a ":completion:${curcontext}:$1" sort sort ||
+     zstyle -a ":completion:${curcontext}:" sort sort
+  then
+    if [[ -z "${(@)sort:#(match|numeric|reverse)}" ]]; then
+      gropt=( -o ${(j.,.)sort} )
+    elif [[ "$sort" != (yes|true|1|on|menu) ]]; then
+      gropt=( -o nosort )
+    fi
+  fi
+else
+  gropt=( -o nosort )
+fi
+
+if [[ -z "$_comp_no_ignore" ]]; then
+  zstyle -a ":completion:${curcontext}:$1" ignored-patterns _comp_ignore ||
+    _comp_ignore=()
+
+  if zstyle -s ":completion:${curcontext}:$1" ignore-line hidden; then
+    local -a qwords
+    qwords=( ${words//(#m)[\[\]()\\*?#<>~\^\|]/\\$MATCH} )
+    case "$hidden" in
+    true|yes|on|1) _comp_ignore+=( $qwords );;
+    current)       _comp_ignore+=( $qwords[CURRENT] );;
+    current-shown)
+	    [[ "$compstate[old_list]" = *shown* ]] &&
+            _comp_ignore+=( $qwords[CURRENT] );;
+    other)         _comp_ignore+=( $qwords[1,CURRENT-1]
+				   $qwords[CURRENT+1,-1] );;
+    esac
+  fi
+
+  # Ensure the ignore option is first so we can override it
+  # for fake-always.
+  (( $#_comp_ignore )) && opts=( -F _comp_ignore $opts )
+else
+  _comp_ignore=()
+fi
+
+tag="$1"
+
+shift 2
+if [[ -z "$1" && $# -eq 1 ]]; then
+  format=
+elif [[ -n "$format" ]]; then
+  if [[ -z $2 ]]; then
+    argv+=( h:${1%%( ##\((#b)([^\)]#[^0-9-][^\)]#)(#B)\)|)( ##\((#b)([0-9-]##)(#B)\)|)( ##\[(#b)([^\]]##)(#B)\]|)} )
+    [[ -n $match[1] ]] && argv+=( m:$match[1] )
+    [[ -n $match[2] ]] && argv+=( r:$match[2] )
+    [[ -n $match[3] ]] && argv+=( o:$match[3] )
+  fi
+
+  zformat -F format "$format" "d:$1" "${(@)argv[2,-1]}"
+fi
+
+if [[ -n "$gname" ]]; then
+  if [[ -n "$format" ]]; then
+    set -A "$name" "$opts[@]" "$nopt[@]" "$gropt[@]" -J "$gname" "$xopt" "$format"
+  else
+    set -A "$name" "$opts[@]" "$nopt[@]" "$gropt[@]" -J "$gname"
+  fi
+else
+  if [[ -n "$format" ]]; then
+    set -A "$name" "$opts[@]" "$nopt[@]" "$gropt[@]" -J -default- "$xopt" "$format"
+  else
+    set -A "$name" "$opts[@]" "$nopt[@]" "$gropt[@]" -J -default-
+  fi
+fi
+
+if ! (( ${funcstack[2,-1][(I)_description]} )); then
+  local fakestyle descr
+  for fakestyle in fake fake-always; do
+    zstyle -a ":completion:${curcontext}:$tag" $fakestyle match ||
+    continue
+
+    descr=( "${(@M)match:#*[^\\]:*}" )
+
+    opts=("${(@P)name}")
+    if [[ $fakestyle = fake-always && $opts[1,2] = "-F _comp_ignore" ]]; then
+      shift 2 opts
+    fi
+    compadd "${(@)opts}" - "${(@)${(@)match:#*[^\\]:*}:s/\\:/:/}"
+    (( $#descr )) && _describe -t "$tag" '' descr "${(@)opts}"
+  done
+fi
+
+return 0

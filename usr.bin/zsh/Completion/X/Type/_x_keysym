@@ -1,0 +1,22 @@
+#autoload
+
+local expl
+
+_tags keysyms || return 1
+
+if (( ! $+_keysym_cache )); then
+  local file
+
+  file=( /usr/{include,{{X11R6,openwin},local{,/X11{,R6}}}/include}/X11/keysymdef.h(N) )
+
+  if (( $#file )); then
+    _keysym_cache=( "${(@)${(@)${(M@)${(@f)$(< $file[1])}:#\#define[ 	]##XK_*}#\#define[ 	]##XK_}%%[ 	]*}" )
+  else
+    _keysym_cache=( BackSpace Tab Linefeed Clear Return Pause Escape 
+                    Delete Left Right Up Down Space Home Begin End
+		    F{1,2,3,4,5,6,7,8,9,10,11,12} )
+  fi
+fi
+
+_wanted keysyms expl 'key symbol' \
+    compadd "$@" -M 'm:{a-z}={A-Z} r:|-=* r:|=*' -a - _keysym_cache

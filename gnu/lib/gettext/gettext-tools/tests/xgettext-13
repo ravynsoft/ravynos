@@ -1,0 +1,59 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test wrapping long lines.
+# Both msgid and location comments should wrap at the same column.
+
+cat <<\EOF > xg-test13.c
+/* With --width=30, the following 10 gettext calls will produce:
+
+     #: x:1 x:2 x:3 x:4 x:5 x:6 x:7
+     #: x:8 x:9 x:10
+     msgid "a"
+
+   because strlen("#:") + strlen(" x:N") * 7 = 30.  */
+#line 1 "x"
+gettext ("a");
+gettext ("a");
+gettext ("a");
+gettext ("a");
+gettext ("a");
+gettext ("a");
+gettext ("a");
+gettext ("a");
+gettext ("a");
+gettext ("a");
+
+/* And the following gettext call will produce:
+
+    msgid ""
+    "x:1 x:2 x:3 x:4 x:5 x:6 x:7 "
+    "x:8 x:9 x:10"
+
+   because strlen("\"") + strlen("x:N ") * 7 + strlen("\"") = 30.  */
+gettext ("x:1 x:2 x:3 x:4 x:5 x:6 x:7 x:8 x:9 x:10");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --add-location --width=30 -d xg-test13.tmp \
+            xg-test13.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-test13.tmp.po > xg-test13.po || Exit 1
+
+cat <<\EOF > xg-test13.ok
+#: x:1 x:2 x:3 x:4 x:5 x:6 x:7
+#: x:8 x:9 x:10
+msgid "a"
+msgstr ""
+
+#: x:19
+msgid ""
+"x:1 x:2 x:3 x:4 x:5 x:6 x:7 "
+"x:8 x:9 x:10"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test13.ok xg-test13.po
+result=$?
+
+exit $result

@@ -1,0 +1,144 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the guile implementation of Scheme.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: guile.
+
+cat <<\EOF > prog.scm
+(use-modules (ice-9 format))
+
+(setlocale LC_ALL "")
+(textdomain "prog")
+(bindtextdomain "prog" ".")
+
+(define n (string->number (list-ref (command-line) 1)))
+
+(format #t "~A~%" (gettext "'Your command, please?', asked the waiter."))
+
+(format #t "~@?~%" (ngettext "a piece of cake" "~D pieces of cake" n) n)
+
+(format #t "~A~%" (format #f (gettext "~A is replaced by ~A.") "FF" "EUR"))
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --no-location prog.scm || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, scheme-format
+msgid "a piece of cake"
+msgid_plural "~D pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, scheme-format
+msgid "~A is replaced by ~A."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, scheme-format
+msgid "a piece of cake"
+msgid_plural "~D pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "~D morceaux de gateau"
+
+# Reverse the arguments.
+#, scheme-format
+msgid "~A is replaced by ~A."
+msgstr "~1@*~A remplace ~0@*~A."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fr/LC_MESSAGES/prog.mo fr.po
+
+# Test for presence of guile version 2.0 or newer.
+(guile --version) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: guile not found"; Exit 77; }
+case `guile --version | sed -e 1q | sed -e 's/^[^0-9]*//'` in
+  0.* | 1.* )
+    echo "Skipping test: guile version too old"; Exit 77;;
+esac
+
+# Test which of the fr_FR locales are installed.
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  LC_ALL=$LOCALE_FR ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  LC_ALL=$LOCALE_FR_UTF8 ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR_UTF8=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL=$LOCALE_FR guile -s prog.scm 2 > prog.out 2>prog.err || { cat prog.err 1>&2; Exit 1; }
+  grep -v '^;;;' prog.err 1>&2
+  ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LC_ALL=$LOCALE_FR_UTF8 guile -s prog.scm 2 > prog.out 2>prog.err || { cat prog.err 1>&2; Exit 1; }
+  grep -v '^;;;' prog.err 1>&2
+  ${DIFF} prog.oku prog.out || Exit 1
+fi
+
+Exit 0

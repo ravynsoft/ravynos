@@ -1,0 +1,68 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Ruby support.
+
+(rxgettext --version) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: rxgettext not found"; Exit 77; }
+
+cat <<\EOF > xg-ru-1.rb
+_("abc")
+# Some comment.
+_("abc%%def")
+_("abc%{foo}def")
+# xgettext: no-ruby-format
+_("abc%{bar}def")
+_("some %d people")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --no-location -o xg-ru-1.tmp xg-ru-1.rb 2>xg-ru-1.err
+test $? = 0 || { cat xg-ru-1.err; Exit 1; }
+func_filter_POT_Creation_Date xg-ru-1.tmp xg-ru-1.pot
+
+cat <<\EOF > xg-ru-1.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "abc"
+msgstr ""
+
+#. Some comment.
+#, ruby-format
+msgid "abc%%def"
+msgstr ""
+
+#, ruby-format
+msgid "abc%{foo}def"
+msgstr ""
+
+#, no-ruby-format
+msgid "abc%{bar}def"
+msgstr ""
+
+#, ruby-format
+msgid "some %d people"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ru-1.ok xg-ru-1.pot
+result=$?
+
+exit $result

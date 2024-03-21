@@ -1,0 +1,18 @@
+#compdef dtruss
+
+_arguments -s : \
+  '-a[print all details]' \
+  '-b+[specify dynamic variable buffer size]:buffer size [4m]' \
+  '-c[print system call counts]' \
+  '-d[print relative timestamps]' \
+  '-e[print elapsed times]' \
+  '-f[follow children as they are forked]' \
+  '-l[force printing of pid/lwpid per line]' \
+  "-L[don't print pid/lwpid per line]" \
+  '(-p :)-n+[examine processes with the specified name]: : _process_names -a' \
+  '-o[print on-cpu times]' \
+  '-s[print stack backtraces]' \
+  '(-n :)-p+[examine process with the specified pid]: : _pids' \
+  '-t+[examine only the specified syscall]: : _sys_calls' \
+  '1: : _command_names -e' \
+  '*:: : _normal'

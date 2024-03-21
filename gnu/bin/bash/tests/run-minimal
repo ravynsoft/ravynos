@@ -1,0 +1,68 @@
+#! /bin/sh
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# run-minimal - a version of run-all for shells configured with
+#		--enable-minimal-config
+#
+
+: ${TMPDIR:=/tmp}
+export TMPDIR
+
+# basic /bin/sh syntax
+SUFFIX=`${THIS_SH} -c 'echo $(( $RANDOM + $BASHPID ))'`
+
+BASH_TSTOUT=${TMPDIR}/bashtst-$SUFFIX	# for now
+export BASH_TSTOUT
+
+trap 'rm -f $BASH_TSTOUT' 0
+
+PATH=.:$PATH	# just to get the right version of printenv
+export PATH
+
+# unset BASH_ENV only if it is set
+[ "${BASH_ENV+set}" = "set" ] && unset BASH_ENV
+# ditto for SHELLOPTS
+#[ "${SHELLOPTS+set}" = "set" ] && unset SHELLOPTS
+
+: ${THIS_SH:=../bash}
+export THIS_SH
+
+: ${BUILD_DIR:=..}
+export BUILD_DIR
+
+${THIS_SH} ./version.mini
+
+rm -f "$BASH_TSTOUT"
+
+echo Testing ${THIS_SH}
+echo Any output from any test, unless otherwise noted, indicates a possible anomaly
+for x in run-*
+do
+	case $x in
+	$0)	;;
+	*.orig|*~) ;;
+	run-dollars|run-execscript|run-func|run-getopts|run-heredoc) echo $x ; sh $x ;;
+	run-ifs-tests|run-input-test|run-invert|run-more-exp|run-nquote) echo $x ; sh $x ;;
+	run-ifs-posix|run-posix2|run-posixpat|run-posixpipe) echo $x ; sh $x ;;
+	run-precedence|run-quote|run-read|run-rhs-exp|run-strip|run-tilde) echo $x ; sh $x ;;
+	run-dynvar|run-iquote) echo $x ; sh $x ;;
+	run-type|run-comsub-eof|run-comsub-posix) echo $x ; sh $x ;;
+	*)	;;
+	esac
+	rm -f "$BASH_TSTOUT"
+done
+
+exit 0

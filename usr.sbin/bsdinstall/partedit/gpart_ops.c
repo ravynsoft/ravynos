@@ -62,12 +62,13 @@ gpart_show_error(const char *title, const char *explanation, const char *errstr)
 		while (errmsg[0] == ' ')
 			errmsg++;
 		if (errmsg[0] != '\0')
-			sprintf(message, "%s%s. %s", explanation,
-			    strerror(error), errmsg);
+			snprintf(message, sizeof(message), "%s%s. %s",
+			    explanation, strerror(error), errmsg);
 		else
-			sprintf(message, "%s%s", explanation, strerror(error));
+			snprintf(message, sizeof(message), "%s%s", explanation,
+			    strerror(error));
 	} else {
-		sprintf(message, "%s%s", explanation, errmsg);
+		snprintf(message, sizeof(message), "%s%s", explanation, errmsg);
 	}
 
 	bsddialog_initconf(&conf);
@@ -86,12 +87,16 @@ scheme_supports_labels(const char *scheme)
 	return (0);
 }
 
-static void
-newfs_command(const char *fstype, char *command, int use_default)
+static char *
+newfs_command(const char *fstype, int use_default)
 {
 	struct bsddialog_conf conf;
+	FILE *fp;
+	char *buf;
+	size_t len;
 
 	bsddialog_initconf(&conf);
+	fp = open_memstream(&buf, &len);
 
 	if (strcmp(fstype, "freebsd-ufs") == 0) {
 		int i;
@@ -115,21 +120,21 @@ newfs_command(const char *fstype, char *command, int use_default)
 			choice = bsddialog_checklist(&conf, "", 0, 0, 0,
 			    nitems(items), items, NULL);
 			if (choice == BSDDIALOG_CANCEL)
-				return;
+				goto out;
 		}
 
-		strcpy(command, "newfs ");
+		fputs("newfs ", fp);
 		for (i = 0; i < (int)nitems(items); i++) {
 			if (items[i].on == false)
 				continue;
 			if (strcmp(items[i].name, "UFS1") == 0)
-				strcat(command, "-O1 ");
+				fputs("-O1 ", fp);
 			else if (strcmp(items[i].name, "SU") == 0)
-				strcat(command, "-U ");
+				fputs("-U ", fp);
 			else if (strcmp(items[i].name, "SUJ") == 0)
-				strcat(command, "-j ");
+				fputs("-j ", fp);
 			else if (strcmp(items[i].name, "TRIM") == 0)
-				strcat(command, "-t ");
+				fputs("-t ", fp);
 		}
 	} else if (strcmp(fstype, "freebsd-zfs") == 0) {
 		int i;
@@ -153,30 +158,31 @@ newfs_command(const char *fstype, char *command, int use_default)
 			choice = bsddialog_checklist(&conf, "", 0, 0, 0,
 			    nitems(items), items, NULL);
 			if (choice == BSDDIALOG_CANCEL)
-				return;
+				goto out;
 		}
 
-		strcpy(command, "zpool create -f -m none ");
+		fputs("zpool create -f -m none ", fp);
 		if (getenv("BSDINSTALL_TMPBOOT") != NULL) {
 			char zfsboot_path[MAXPATHLEN];
+
 			snprintf(zfsboot_path, sizeof(zfsboot_path), "%s/zfs",
 			    getenv("BSDINSTALL_TMPBOOT"));
 			mkdir(zfsboot_path, S_IRWXU | S_IRGRP | S_IXGRP |
 			    S_IROTH | S_IXOTH);
-			sprintf(command, "%s -o cachefile=%s/zpool.cache ",
-			    command, zfsboot_path);
+			fprintf(fp, " -o cachefile=%s/zpool.cache ",
+			    zfsboot_path);
 		}
 		for (i = 0; i < (int)nitems(items); i++) {
 			if (items[i].on == false)
 				continue;
 			if (strcmp(items[i].name, "fletcher4") == 0)
-				strcat(command, "-O checksum=fletcher4 ");
+				fputs("-O checksum=fletcher4 ", fp);
 			else if (strcmp(items[i].name, "fletcher2") == 0)
-				strcat(command, "-O checksum=fletcher2 ");
+				fputs("-O checksum=fletcher2 ", fp);
 			else if (strcmp(items[i].name, "sha256") == 0)
-				strcat(command, "-O checksum=sha256 ");
+				fputs("-O checksum=sha256 ", fp);
 			else if (strcmp(items[i].name, "atime") == 0)
-				strcat(command, "-O atime=off ");
+				fputs("-O atime=off ", fp);
 		}
 	} else if (strcmp(fstype, "fat32") == 0 || strcmp(fstype, "efi") == 0 ||
 	     strcmp(fstype, "ms-basic-data") == 0) {
@@ -196,19 +202,19 @@ newfs_command(const char *fstype, char *command, int use_default)
 			choice = bsddialog_radiolist(&conf, "", 0, 0, 0,
 			    nitems(items), items, NULL);
 			if (choice == BSDDIALOG_CANCEL)
-				return;
+				goto out;
 		}
 
-		strcpy(command, "newfs_msdos ");
+		fputs("newfs_msdos ", fp);
 		for (i = 0; i < (int)nitems(items); i++) {
 			if (items[i].on == false)
 				continue;
 			if (strcmp(items[i].name, "FAT32") == 0)
-				strcat(command, "-F 32 -c 1");
+				fputs("-F 32 -c 1", fp);
 			else if (strcmp(items[i].name, "FAT16") == 0)
-				strcat(command, "-F 16 ");
+				fputs("-F 16 ", fp);
 			else if (strcmp(items[i].name, "FAT12") == 0)
-				strcat(command, "-F 12 ");
+				fputs("-F 12 ", fp);
 		}
 	} else {
 		if (!use_default) {
@@ -216,8 +222,11 @@ newfs_command(const char *fstype, char *command, int use_default)
 			bsddialog_msgbox(&conf, "No configurable options exist "
 			    "for this filesystem.", 0, 0);
 		}
-		command[0] = '\0';
 	}
+
+out:
+	fclose(fp);
+	return (buf);
 }
 
 const char *
@@ -255,7 +264,9 @@ parttypemenu:
 
 	if (!is_scheme_bootable(items[choice].name)) {
 		char message[512];
-		sprintf(message, "This partition scheme (%s) is not "
+
+		snprintf(message, sizeof(message),
+		    "This partition scheme (%s) is not "
 		    "bootable on this platform. Are you sure you want "
 		    "to proceed?", items[choice].name);
 		conf.button.default_cancel = true;
@@ -290,7 +301,9 @@ schememenu:
 
 		if (!is_scheme_bootable(scheme)) {
 			char message[512];
-			sprintf(message, "This partition scheme (%s) is not "
+
+			snprintf(message, sizeof(message),
+			    "This partition scheme (%s) is not "
 			    "bootable on this platform. Are you sure you want "
 			    "to proceed?", scheme);
 			conf.button.default_cancel = true;
@@ -476,10 +489,11 @@ gpart_partcode(struct gprovider *pp, const char *fstype)
 	}
 
 	/* Shell out to gpart for partcode for now */
-	sprintf(command, "gpart bootcode -p %s -i %s %s",
+	snprintf(command, sizeof(command), "gpart bootcode -p %s -i %s %s",
 	    partcode_path(scheme, fstype), indexstr, pp->lg_geom->lg_name);
 	if (system(command) != 0) {
-		sprintf(message, "Error installing partcode on partition %s",
+		snprintf(message, sizeof(message),
+		    "Error installing partcode on partition %s",
 		    pp->lg_name);
 		bsddialog_initconf(&conf);
 		conf.title = "Error";
@@ -539,7 +553,7 @@ gpart_edit(struct gprovider *pp)
 	const char *errstr, *oldtype, *scheme;
 	struct partition_metadata *md;
 	char sizestr[32];
-	char newfs[255];
+	char *newfs;
 	intmax_t idx;
 	int hadlabel, choice, nitems;
 	unsigned i;
@@ -639,9 +653,10 @@ gpart_edit(struct gprovider *pp)
 	items[1].init = sizestr;
 
 editpart:
-	conf.form.value_without_ok = true;
+	conf.button.always_active = true;
 	conf.title = "Edit Partition";
-	choice = bsddialog_form(&conf, "", 0, 0, 0, nitems, items);
+	choice = bsddialog_form(&conf, "", 0, 0, 0, nitems, items, NULL);
+	conf.button.always_active = false;
 
 	if (choice == BSDDIALOG_CANCEL)
 		goto endedit;
@@ -650,7 +665,9 @@ editpart:
 	if (strcmp(items[2].value, "/") == 0 && !is_fs_bootable(scheme,
 	    items[0].value)) {
 		char message[512];
-		sprintf(message, "This file system (%s) is not bootable "
+
+		snprintf(message, sizeof(message),
+		    "This file system (%s) is not bootable "
 		    "on this system. Are you sure you want to proceed?",
 		    items[0].value);
 		conf.button.default_cancel = true;
@@ -686,10 +703,11 @@ editpart:
 	}
 	gctl_free(r);
 
-	newfs_command(items[0].value, newfs, 1);
+	newfs = newfs_command(items[0].value, 1);
 	set_default_part_metadata(pp->lg_name, scheme, items[0].value,
 	    items[2].value, (strcmp(oldtype, items[0].value) != 0) ?
 	    newfs : NULL);
+	free(newfs);
 
 endedit:
 	if (strcmp(oldtype, items[0].value) != 0 && cp != NULL)
@@ -722,18 +740,16 @@ set_default_part_metadata(const char *name, const char *scheme,
 		}
 
 		if (newfs != NULL && newfs[0] != '\0') {
-			md->newfs = malloc(strlen(newfs) + strlen(" /dev/") +
-			    strlen(mountpoint) + 5 + strlen(name) + 1);
 			if (strcmp("freebsd-zfs", type) == 0) {
 				zpool_name = strdup((strlen(mountpoint) == 1) ?
 				    "root" : &mountpoint[1]);
 				for (i = 0; zpool_name[i] != 0; i++)
 					if (!isalnum(zpool_name[i]))
 						zpool_name[i] = '_';
-				sprintf(md->newfs, "%s %s /dev/%s", newfs,
+				asprintf(&md->newfs, "%s %s /dev/%s", newfs,
 				    zpool_name, name);
 			} else {
-				sprintf(md->newfs, "%s /dev/%s", newfs, name);
+				asprintf(&md->newfs, "%s /dev/%s", newfs, name);
 			}
 		}
 	}
@@ -770,9 +786,7 @@ set_default_part_metadata(const char *name, const char *scheme,
 		if (strcmp("freebsd-zfs", type) == 0) {
 			md->fstab->fs_spec = strdup(zpool_name);
 		} else {
-			md->fstab->fs_spec = malloc(strlen(name) +
-			    strlen("/dev/") + 1);
-			sprintf(md->fstab->fs_spec, "/dev/%s", name);
+			asprintf(&md->fstab->fs_spec, "/dev/%s", name);
 		}
 		md->fstab->fs_file = strdup(mountpoint);
 		/* Get VFS from text after freebsd-, if possible */
@@ -1021,7 +1035,7 @@ gpart_create(struct gprovider *pp, const char *default_type,
 	struct ggeom *geom;
 	const char *errstr, *scheme;
 	char sizestr[32], startstr[32], output[64], *newpartname;
-	char newfs[255], options_fstype[64];
+	char *newfs, options_fstype[64];
 	intmax_t maxsize, size, sector, firstfree, stripe;
 	uint64_t bytes;
 	int nitems, choice, junk;
@@ -1122,28 +1136,29 @@ gpart_create(struct gprovider *pp, const char *default_type,
 	/* Default options */
 	strncpy(options_fstype, items[0].init,
 	    sizeof(options_fstype));
-	newfs_command(options_fstype, newfs, 1);
+	newfs = newfs_command(options_fstype, 1);
 
 	init_allocated = false;
 addpartform:
 	if (interactive) {
 		conf.button.with_extra = true;
 		conf.button.extra_label = "Options";
-		conf.form.value_without_ok = true;
+		conf.button.always_active = true;
 		conf.title = "Add Partition";
-		choice = bsddialog_form(&conf, "", 0, 0, 0, nitems, items);
+		choice = bsddialog_form(&conf, "", 0, 0, 0, nitems, items, NULL);
 		conf.button.with_extra = false;
 		conf.button.extra_label = NULL;
-		conf.form.value_without_ok = false;
+		conf.button.always_active = false;
 		switch (choice) {
 		case BSDDIALOG_OK:
 			break;
 		case BSDDIALOG_CANCEL:
 			return;
 		case BSDDIALOG_EXTRA: /* Options */
+			free(newfs);
 			strncpy(options_fstype, items[0].value,
 			    sizeof(options_fstype));
-			newfs_command(options_fstype, newfs, 0);
+			newfs = newfs_command(options_fstype, 0);
 			for (i = 0; i < nitems(items); i++) {
 				if (init_allocated)
 					free((char*)items[i].init);
@@ -1165,8 +1180,9 @@ addpartform:
 	 * their choices in favor of the new filesystem's defaults.
 	 */
 	if (strcmp(options_fstype, items[0].value) != 0) {
+		free(newfs);
 		strncpy(options_fstype, items[0].value, sizeof(options_fstype));
-		newfs_command(options_fstype, newfs, 1);
+		newfs = newfs_command(options_fstype, 1);
 	}
 
 	size = maxsize;
@@ -1174,7 +1190,8 @@ addpartform:
 		if (expand_number(items[1].value, &bytes) != 0) {
 			char error[512];
 
-			sprintf(error, "Invalid size: %s\n", strerror(errno));
+			snprintf(error, sizeof(error), "Invalid size: %s\n",
+			    strerror(errno));
 			conf.title = "Error";
 			bsddialog_msgbox(&conf, error, 0, 0);
 			goto addpartform;
@@ -1226,7 +1243,9 @@ addpartform:
 	/* If this is the root partition, check that this scheme is bootable */
 	if (strcmp(items[2].value, "/") == 0 && !is_scheme_bootable(scheme)) {
 		char message[512];
-		sprintf(message, "This partition scheme (%s) is not bootable "
+
+		snprintf(message, sizeof(message),
+		    "This partition scheme (%s) is not bootable "
 		    "on this platform. Are you sure you want to proceed?",
 		    scheme);
 		conf.button.default_cancel = true;
@@ -1241,7 +1260,9 @@ addpartform:
 	if (strcmp(items[2].value, "/") == 0 && !is_fs_bootable(scheme,
 	    items[0].value)) {
 		char message[512];
-		sprintf(message, "This file system (%s) is not bootable "
+
+		snprintf(message, sizeof(message),
+		    "This file system (%s) is not bootable "
 		    "on this system. Are you sure you want to proceed?",
 		    items[0].value);
 		conf.button.default_cancel = true;
@@ -1318,6 +1339,7 @@ addpartform:
 	else
 		set_default_part_metadata(newpartname, scheme,
 		    items[0].value, items[2].value, newfs);
+	free(newfs);
 
 	for (i = 0; i < nitems(items); i++) {
 		if (items[i].value != NULL) {

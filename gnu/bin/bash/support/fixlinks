@@ -1,0 +1,89 @@
+#! /bin/sh
+#
+# fixlinks - make symlinks in the bash source tree so that there is
+#	     exactly one version of any given source file.
+#
+# Copyright (C) 1996-2002 Free Software Foundation, Inc.
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+SRCDIR=.
+while [ $# -gt 0 ]; do
+	case "$1" in
+	-s)	shift; SRCDIR=$1 ;;
+	-u)	unfix=yes ;;
+	-h)	hardlinks=yes ;;
+	-*)	echo "$0: $1: bad option" 1>&2
+		echo "$0: usage: $0 [-hu] [-s srcdir] [linkmap]" 1>&2
+		exit 1;;
+	*)	break ;;
+	esac
+	shift
+done
+
+if [ ! -d $SRCDIR/builtins ]; then
+	echo "$0: must be run with valid -s argument or from source directory" 1>&2
+	exit 1
+fi
+
+if [ $# -eq 0 ]; then
+	linkfile=$SRCDIR/support/SYMLINKS
+else
+	linkfile=$1	
+fi
+
+if [ ! -f "$linkfile" ]; then
+	echo "$0: symlink map file \`$linkfile' does not exist"
+	exit 1
+fi
+
+rm_ltmp=false
+LINKTEMP=`mktemp -t linktmp.XXXXXXXX 2>/dev/null`
+if [ -z "$LINKTEMP" ]; then
+	: ${TMPDIR:=/tmp}
+	LINKTEMP=${TMPDIR}/linktmp.$$
+	rm_ltmp=true
+fi
+
+$rm_ltmp && rm -f ${LINKTEMP}
+# if the user specified hard links, then do that.  otherwise, try to use
+# symlinks if they're present
+if [ -n "$hardlinks" ]; then
+	LN=ln
+elif (ln -s /dev/null ${LINKTEMP}) >/dev/null 2>&1; then
+	LN="ln -s"
+else
+	LN=ln
+fi
+rm -f ${LINKTEMP}
+
+while read name target
+do
+	case "$name" in
+	\#*)	continue;;
+	esac
+
+	rm -f $name
+	case "$unfix" in
+	yes)	dirname=`expr "$name" ':' '^\(.*\)/[^/]*'`
+		[ -z "$dirname" ] && dirname=.
+		cp $dirname/$target $name
+		echo $target copied to $name ;;
+	*)	$LN $target $name ; echo "$name -> $target" ;;
+	esac
+
+done < $linkfile
+
+exit 0

@@ -1,0 +1,91 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Python brace format strings.
+
+cat <<\EOF > f-pyb-1.data
+# Invalid: no argument
+"abc"
+# Invalid: escaped braces
+"abc{{}}"
+# Valid: a numeric argument
+"abc{0}"
+# Valid: a named argument
+"abc{value}"
+# Invalid: an empty name
+"abc{}"
+# Invalid: unterminated name
+"abc{value"
+# Valid: three arguments, two with equal names
+"abc{addr},{char},{addr}"
+# Valid: getattr operator
+"abc{value.name}"
+# Invalid: getattr operator with numeric field name
+"abc{value.0}"
+# Valid: getitem operator
+"abc{value[name]}"
+# Invalid: unterminated getitem operator
+"abc{value[name}"
+# Invalid: unterminated getitem operator
+"abc{value[0}"
+# Invalid: unknown character in getitem operator
+"abc{value[!]}"
+# Valid: use of both getattr and getitem operators
+"abc{value.v[name]}"
+# Valid: use of both getitem and getattr operators
+"abc{value[name].v}"
+# Valid: format specifier
+"abc{value:0}"
+# Valid: format specifier after getattr operator
+"abc{value.name:0}"
+# Valid: format specifier after getitem operator
+"abc{value[name]:0}"
+# Valid: standard format specifier
+"abc{value:<<-#012.34e}"
+# Invalid: empty precision
+"abc{value:8.}"
+# Invalid: non-standard format specifier
+"abc{value:<c>}"
+# Valid: nested format specifier
+"abc{value:{foo}}"
+# Invalid: too many nesting of format specifier
+"abc{value:{foo:0}}"
+# Invalid: nested format specifier, in the middle of other format specifiers
+"abc{value:0{foo}0}"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-pyb-1-$n.in
+gettext(${string});
+EOF
+  ${XGETTEXT} -L Python -o f-pyb-1-$n.po f-pyb-1-$n.in || Exit 1
+  test -f f-pyb-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep python-brace-format f-pyb-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep python-brace-format f-pyb-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-pyb-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-pyb-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-pyb-1-$n.in f-pyb-1-$n.po
+done < f-pyb-1.data
+
+Exit 0

@@ -1,0 +1,198 @@
+# Expect script for ld-gc tests
+#   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# These tests require --gc-sections
+if ![check_gc_sections_available] {
+    return
+}
+
+set cflags "-ffunction-sections -fdata-sections $NOSANITIZE_CFLAGS $NOLTO_CFLAGS"
+set objfile "tmpdir/gc.o"
+
+if { [istarget powerpc*-*-*] && ![istarget powerpc64*-*-*] } {
+    # Avoid using .got2 for powerpc -m32
+    set cflags "$cflags $NOPIE_CFLAGS"
+}
+
+if { [istarget m681*-*-*] || [istarget m68hc1*-*-*] } {
+    # Otherwise tests FAIL due to _.frame
+    set cflags "$cflags -fomit-frame-pointer -mshort"
+}
+
+if { [check_compiler_available] } {
+    ld_compile "$CC_FOR_TARGET -c $cflags" $srcdir/$subdir/gc.c $objfile
+}
+
+proc test_gc { testname filename linker ldflags} {
+    global nm
+    global srcdir
+    global subdir
+    global nm_output
+    global objfile
+
+    if ![file readable $objfile ] {
+	untested $testname
+	return
+    }
+
+    set outfile "tmpdir/$filename"
+    set options "-L$srcdir/$subdir"
+    if [is_pecoff_format] {
+	append ldflags " --image-base 0"
+    }
+    append options " " $ldflags " " [ld_link_defsyms] " " $objfile
+
+    if ![ld_link $linker $outfile $options] {
+	fail $testname
+	return
+    }
+    if ![ld_nm $nm "" $outfile] {
+	fail $testname
+	return
+    }
+    if {![info exists nm_output(used_func)] \
+	    || ![info exists nm_output(used_var)]} {
+	send_log "used sections do not exist\n"
+	verbose "used sections do not exist"
+	fail $testname
+	return
+    }
+    if {[info exists nm_output(unused_func)] \
+	    || [info exists nm_output(unused_var)]} {
+	send_log "unused section still here\n"
+	verbose "unused section still here"
+	fail $testname
+	return
+    }
+    pass $testname
+}
+
+test_gc "Check --gc-section" "gcexe" $ld "--gc-sections -e main"
+test_gc "Check --gc-section/-q" "gcrexe" $ld "--gc-sections -q -e main"
+test_gc "Check --gc-section/-r/-e" "gcrel" $ld "-r --gc-sections -e main"
+test_gc "Check --gc-section/-r/-u" "gcrel" $ld "-r --gc-sections -u used_func"
+
+set old_ldflags $LDFLAGS
+if [is_pecoff_format] {
+    append LDFLAGS " --image-base 0"
+}
+set old_asflags $ASFLAGS
+if [is_underscore_target] {
+    append ASFLAGS " --defsym UNDERSCORE=1"
+}
+
+run_dump_test "noent"
+
+if { [is_elf_format] } then {
+    run_dump_test "abi-note"
+    run_dump_test "all-debug-sections"
+    run_dump_test "pr19167"
+    run_dump_test "pr20882"
+    run_dump_test "stop"
+    run_dump_test "start"
+    run_dump_test "start2"
+    run_dump_test "start3"
+    run_dump_test "start4"
+}
+
+if { [is_elf_format] && [check_shared_lib_support] } then {
+    set gasopt ""
+    if { [istarget tic6x-*] } then {
+	set gasopt "-mpic -mpid=near"
+    }
+    # These targets do not default to linking with shared libraries.
+    set save_ldflags $LDFLAGS
+    if { [istarget "mips*vr4100*-*-elf*"] \
+	 || [istarget "mips*vr4300*-*-elf*"] \
+	 || [istarget "mips*vr5000*-*-elf*"] } {
+	append LDFLAGS " -call_shared"
+    }
+    if {![ld_assemble_flags $as $gasopt $srcdir/$subdir/libpersonality.s tmpdir/libpersonality.o]
+	|| ![ld_link $ld tmpdir/libpersonality.so "-shared tmpdir/libpersonality.o"] } then {
+	fail libpersonality
+    } else {
+	run_dump_test "personality"
+    }
+    run_dump_test "pr18223"
+    if {![ld_assemble_flags $as $gasopt $srcdir/$subdir/pr20022a.s tmpdir/pr20022a.o]
+	|| ![ld_link $ld tmpdir/pr20022.so "-shared --gc-sections tmpdir/pr20022a.o"] } then {
+	fail pr20022
+    } else {
+	run_dump_test "pr20022"
+    }
+    set LDFLAGS $save_ldflags
+}
+
+if { [check_compiler_available] } {
+    if { [istarget "*-*-linux*"]
+	 || [istarget "*-*-nacl*"]
+	 || [istarget "*-*-gnu*"] } {
+	ld_compile "$CC_FOR_TARGET -fPIC $cflags" $srcdir/$subdir/pr11218-1.c tmpdir/pr11218-1.o
+	ld_link $ld tmpdir/pr11218-1.so "-shared tmpdir/pr11218-1.o"
+	ld_compile "$CC_FOR_TARGET -c $cflags" $srcdir/$subdir/pr11218-2.c tmpdir/pr11218-2.o
+	run_dump_test "pr11218"
+    }
+}
+
+set symdefs ""
+if [is_pecoff_format] {
+    set symdefs {{ld {--defsym __main=main --defsym ___main=main}}}
+}
+
+if { [check_compiler_available] } {
+    ld_compile "$CC_FOR_TARGET $cflags" $srcdir/$subdir/pr13683.c tmpdir/pr13683.o
+    run_dump_test "pr13683" $symdefs
+}
+
+if { [check_compiler_available] } {
+    ld_compile "$CC_FOR_TARGET $cflags $NOPIE_CFLAGS" $srcdir/$subdir/pr14265.c tmpdir/pr14265.o
+    run_dump_test "pr14265" $symdefs
+}
+
+if { [check_compiler_available] } {
+    ld_compile "$CC_FOR_TARGET $cflags -O0" $srcdir/$subdir/pr19161-1.c tmpdir/pr19161-1.o
+    ld_compile "$CC_FOR_TARGET $cflags -O0" $srcdir/$subdir/pr19161-2.c tmpdir/pr19161-2.o
+    if [istarget hppa*-*-linux*] {
+	set symdefs {{ld {--defsym '\$\$dyncall=0'}}}
+    }
+    run_dump_test "pr19161" $symdefs
+}
+
+if { [is_elf_format] && [check_shared_lib_support] \
+     && [check_compiler_available] } {
+    run_cc_link_tests [list \
+	[list \
+	    "Build libpr20306.so" \
+	    "-shared" \
+	    "-fPIC" \
+	    {pr20306.c} \
+	    {} \
+	    "libpr20306.so" \
+	] \
+    ]
+    run_dump_test "pr20306"
+}
+
+if { [is_elf_format] } then {
+    run_dump_test "skip-map-discarded"
+}
+
+set ASFLAGS $old_asflags
+set LDFLAGS $old_ldflags

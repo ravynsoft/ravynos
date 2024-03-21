@@ -1,0 +1,131 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test plural formula dependent checking of format strings.
+
+# Take as example a plural formula which takes the values 0 and 2 infinitely
+# often, and value 1 only a few times.
+# Test: 1 - have %d everywhere - OK
+#       2 - lack %d for value 0 - error
+#       3 - lack %d for value 1 - OK
+#       4 - lack %d for value 2 - error
+
+cat <<\EOF > mf-15.po1
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"PO-Revision-Date: 2001-04-05 19:47+0200\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n <= 1 ? 1 : (n % 2) == 0 ? 2 : 0);\n"
+
+#: src/reduce.c:511
+#, c-format
+msgid "%d useless nonterminal"
+msgid_plural "%d useless nonterminals"
+msgstr[0] "%d unnütze Nichtterminale"
+msgstr[1] "%d unnützes Nichtterminal"
+msgstr[2] "%d der unnützen Nichtterminale"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o /dev/null mf-15.po1 || Exit 1
+
+cat <<\EOF > mf-15.po2
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"PO-Revision-Date: 2001-04-05 19:47+0200\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n <= 1 ? 1 : (n % 2) == 0 ? 2 : 0);\n"
+
+#: src/reduce.c:511
+#, c-format
+msgid "%d useless nonterminal"
+msgid_plural "%d useless nonterminals"
+msgstr[0] "unnütze Nichtterminale"
+msgstr[1] "%d unnützes Nichtterminal"
+msgstr[2] "%d der unnützen Nichtterminale"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o /dev/null mf-15.po2 2>/dev/null
+test $? = 1 || { Exit 1; }
+
+cat <<\EOF > mf-15.po3
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"PO-Revision-Date: 2001-04-05 19:47+0200\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n <= 1 ? 1 : (n % 2) == 0 ? 2 : 0);\n"
+
+#: src/reduce.c:511
+#, c-format
+msgid "%d useless nonterminal"
+msgid_plural "%d useless nonterminals"
+msgstr[0] "%d unnütze Nichtterminale"
+msgstr[1] "unnützes Nichtterminal"
+msgstr[2] "%d der unnützen Nichtterminale"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o /dev/null mf-15.po3 || Exit 1
+
+cat <<\EOF > mf-15.po4
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"PO-Revision-Date: 2001-04-05 19:47+0200\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n <= 1 ? 1 : (n % 2) == 0 ? 2 : 0);\n"
+
+#: src/reduce.c:511
+#, c-format
+msgid "%d useless nonterminal"
+msgid_plural "%d useless nonterminals"
+msgstr[0] "%d unnütze Nichtterminale"
+msgstr[1] "%d unnützes Nichtterminal"
+msgstr[2] "der unnützen Nichtterminale"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o /dev/null mf-15.po4 2>/dev/null
+test $? = 1 || { Exit 1; }
+
+exit $result

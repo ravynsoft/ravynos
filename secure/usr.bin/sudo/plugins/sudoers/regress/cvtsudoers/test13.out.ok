@@ -1,0 +1,7 @@
+Defaults@SERVERS log_year, logfile=/var/log/sudo.log
+
+Host_Alias CDROM = orion, perseus, hercules
+Runas_Alias OPERATOR = operator, backup
+User_Alias PARTTIMERS = bostley, jwfox, crawl
+Host_Alias SERVERS = primary, mail, www, ns
+Cmnd_Alias VIPW = /usr/sbin/vipw, /usr/bin/passwd, /usr/bin/chsh, /usr/bin/chfn

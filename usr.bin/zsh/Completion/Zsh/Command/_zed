@@ -1,0 +1,16 @@
+#compdef zed fned histed
+
+case $service in
+(fned) _arguments -S : ':shell function:_functions';;
+(histed) _arguments -S : \
+	'1:history file:_files' \
+	'2:history size: ';;
+(zed) _arguments -S : \
+        '(-h 1 3 4)-f[edit function]' \
+        '(-h 1 3 4)-x+[specify spaces to use for indentation in function expansion]:spaces' \
+        '(-f -x 1 2)-h[edit history]' \
+        '(- 2 3 4)1:file:_files' \
+        '(3 4)2:shell function:_functions' \
+        '3:history file:_files -g "*(D)"' \
+        '4:history size';;
+esac

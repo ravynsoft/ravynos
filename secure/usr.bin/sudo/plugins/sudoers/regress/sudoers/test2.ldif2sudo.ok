@@ -1,0 +1,41 @@
+# sudoRole foo
+foo hosta = (root) ALL
+
+# sudoRole foo.bar
+foo.bar hostb = (root) ALL
+
+# sudoRole foo"
+foo\" hostc = (root) ALL
+
+# sudoRole foo:bar
+foo\:bar hostd = (root) ALL
+
+# sudoRole foo:bar"
+foo\:bar\" hoste = (root) ALL
+
+# sudoRole %baz
+%baz hosta = (root) ALL
+
+# sudoRole %baz.biz
+%baz.biz hostb = (root) ALL
+
+# sudoRole %:C/non UNIX 0 c
+"%:C/non UNIX 0 c" hostc = (root) ALL
+
+# sudoRole %:C/non\'UNIX\'1 c
+"%:C/non\'UNIX\'1 c" hostd = (root) ALL
+
+# sudoRole %:C/non"UNIX"0 c
+"%:C/non\"UNIX\"0 c" hoste = (root) ALL
+
+# sudoRole %:C/non_UNIX_0 c
+"%:C/non_UNIX_0 c" hostf = (root) ALL
+
+# sudoRole %:C/non\'UNIX_3 c
+"%:C/non\'UNIX_3 c" hostg = (root) ALL
+
+# sudoRole +netgr
++netgr hosth = (root) ALL
+
+# sudoRole user
+user ALL = /bin/ls "", /bin/echo " ", /bin/foo"bar ""

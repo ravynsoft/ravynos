@@ -81,6 +81,7 @@ struct dev_pm_ops {
 	int (*poweroff_late)(struct device *dev);
 	int (*restore)(struct device *dev);
 	int (*restore_early)(struct device *dev);
+	int (*suspend_noirq)(struct device *dev);
 	int (*runtime_suspend)(struct device *dev);
 	int (*runtime_resume)(struct device *dev);
 	int (*runtime_idle)(struct device *dev);
@@ -232,6 +233,14 @@ show_class_attr_string(struct class *class,
 	if (!__dev_err_once) {			\
 		__dev_err_once = 1;		\
 		dev_err(dev, __VA_ARGS__);	\
+	}					\
+} while (0)
+
+#define	dev_dbg_once(dev, ...) do {		\
+	static bool __dev_dbg_once;		\
+	if (!__dev_dbg_once) {			\
+		__dev_dbg_once = 1;		\
+		dev_dbg(dev, __VA_ARGS__);	\
 	}					\
 } while (0)
 

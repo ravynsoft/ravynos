@@ -1,0 +1,809 @@
+#compdef perf
+
+local curcontext="$curcontext" curstate state line expl nm="$compstate[nmatches]"
+local -a args opts cmd fields sortkeys
+local -A exclude full short
+local -i i skip
+
+exclude=(
+  --add \* --cgroup \* --definition \* --del \*
+  --detailed \* --dlarg \* --dsos \* --event \* --events \*
+  --fields \* --funcs \* --node-info \* --symbols \* --vars \*
+  --gtk '(--stdio --stdio2 --tui)'
+  --tui '(--gtk --stdio --stdio2)'
+  --stdio '(--gtk --tui --stdio2)'
+  --stdio2 '(--gtk --tui --stdio)'
+  --log-fd '(--output)'
+  --output '(--log-fd)'
+  --tracer '(-G --graph-funcs -g --nograph-funcs -F --funcs)'
+  --graph-funcs '(-g --nograph-funcs -N --notrace-funcs -T --trace-funcs -t --tracer)*'
+  --nograph-funcs '(-G --graph-funcs -N --notrace-funcs -T --trace-funcs -t --tracer)*'
+  --trace-funcs '(-N --notrace-funcs -G --graph-funcs -g --nograph-funcs -t --tracer)*'
+  --notrace-funcs '(-T --trace-funcs -G --graph-funcs -g --nograph-funcs -t --tracer)*'
+  --source '!(--no-source)'
+)
+
+full=(
+  --addr-range '=[list traced records within address range]:range'
+  --affinity '=[set affinity mask of trace reading thread]:affinity:(node cpu)'
+  --aio '=[specify number of control blocks in asynchronous trace writing mode]:control blocks (1-4) [1]'
+  --all-cgroups '[record cgroup events]'
+  --all-cpus '[system-wide collection from all CPUs]'
+  --asm-raw '[show raw instruction encoding of assembly instructions]'
+  --aux-sample '=[sample AUX area]::options'
+  --baseline-only '[show only items with match in baseline]'
+  --branch-any '[sample any taken branches]'
+  --branch-filter '=[enable taken branch stack sampling]:mask'
+  --branch-stack '[use branch records for per branch histogram filling]'
+  --buffer-size '=[size of per-cpu buffer]: :_numbers size B K M G'
+  --build-ids '[inject build-ids into the output stream]'
+  --buildid-all '[handle build-id of all DSOs]'
+  --call-graph '=[enable call-graph (stacktrace) recording]:(fp dwarf)'
+  --cgroup '=[monitor event in named cgroup only]:cgroup'
+  --children '[accumulate callchains of children and show total overhead]'
+  --clang-opt '=:clang option'
+  --clang-path '=:clang binary:_command_names -e'
+  --clockid '=[specify clockid to use for events]:clock id'
+  --coalesce '=:coalesce field:_sequence compadd - pid tid iaddr dso'
+  --color-cpus '=[highlight given CPUs in map]:cpus'
+  --color-pids '=[highlight given pids in map]: :_sequence _pids'
+  --column-widths '=[use fixed column widths]:widths (comma-separated)'
+  --comms '=[restrict to specified comms]:comms'
+  --compression-level '=[produce compressed trace  using specified level]:level (1-22) [1]'
+  --compute '=[set comparison method]:comparison method [delta-abs]:(delta delta-abs ratio wdiff)'
+  --control '=[listen on ctl-fd descriptor for command to control measurement]:descriptor'
+  --count '=[specify event period]:period'
+  --count-filter '=[only display functions with more than given number of events]:minimum number of events'
+  --cpu '=[restrict to specified CPUs]:cpus'
+  --cpus '=[restrict to specified CPUs]:cpus'
+  --cycles-hist '[show cycles histogram and standard deviation]'
+  --data '[record the sample addresses]'
+  --data-page-size '[record the sampled data address data page size]'
+  --definition '=[show trace-event definition converted from given probe-event]:event'
+  --delay '=[specify delay before starting measurement after program start]:delay (ms)'
+  --demangle '[demangle symbols]'
+  --demangle-kernel '[demangle kernel symbols]'
+  --detailed '[detailed run - start a lot of events]'
+  --disassembler-style '=[specify disassembler style]:style'
+  --dlarg '=:dlfilter argument'
+  --dlfilter '=[filter sample events using the given shared object]:file:_files -g "*.so(-.)"'
+  --dry-run '[parse options then exit]'
+  --dsos '=[only consider symbols in these dsos]:dso'
+  --dump-raw-trace '[dump raw trace in ASCII]'
+  --dump-symtab '[dump the symbol table used for profiling]'
+  --duration '=[show only events with duration over threshold]:minimum duration (ms)'
+  --entries '=[specify how many functions to display]:number of functions'
+  --event '=[select the PMU event]:event:->events'
+  --exclude-other '[only display entries with parent-match]'
+  --exclude-perf "[don't record events from perf itself]"
+  --exec '=[specify path to executable or shared library]:file:_files'
+  --expr '=[specify syscalls/events to trace]:syscall or event'
+  --field-separator '=[specify field separator]:separator'
+  --fields '=[specify output field]:field:->fields'
+  --filter '=[event filter]:filter'
+  --filter-pids '=[specify pids to filter]: :_sequence _pids'
+  --for-each-cgroup '=[expand events for each cgroup]:cgroup'
+  --force "[don't complain, do it]"
+  --format '=[specify output formatting style]:style:(default simple)'
+  --formula '[show formula]'
+  --freq '=[specify profile frequency]:frequency (Hz)'
+  --func-opts '=[specify function tracer options]:option:_sequence compadd - call-graph irq-info'
+  --funcs '=[show available functions]::filter'
+  --graph-funcs '=[select function_graph tracer and trace given functions]:function'
+  --graph-function '=[only print symbols and callees with --call-trace/--call-ret-trace]:symbol list'
+  --graph-opts '=[specify graph tracer options]: : _values -s , option nosleep-time noirqs verbose thresh\:duration depth\:depth'
+  --group '=[show event group information together]'
+  --group-sort-idx '=[sort output by specified event in group]:event index'
+  --gtk '[use the graphical interface]'
+  --guestkallsyms '=[provide copy of guest os /proc/kallsyms]:file:_files'
+  --guestmodules '=[provide copy of guest os /proc/modules]:file:_files'
+  --guestmount '=[specify guest os root file system mount directory]:path:_directories'
+  --guestvmlinux '=[provide guest os kernel]:kernel file:_files'
+  --hide_kernel_symbols '[hide kernel symbols]'
+  --hide_user_symbols '[hide user symbols]'
+  --hide-unresolved '[only display entries resolved to a symbol]'
+  --hierarchy '[show entries in a hierarchy]'
+  --ignore-callees '=[ignore callees of specified functions in call graphs]:functions (regex)'
+  --ignore-vmlinux '[ignore vmlinux files]'
+  --inherit '[trace child processes]'
+  --input '=[specify input file]:file:_files'
+  --interval-count '=[print counts for fixed number of times]:times'
+  --interval-print '=[print counts at regular interval]:interval (ms)'
+  --intr-regs '=[sample selected machine registers on interrupt]:register'
+  --inverted '[alias for inverted call graph]'
+  --iostat '=::default'
+  --itrace '=[specify instruction tracing options]:option:->itrace-opts'
+  --jit '[merge jitdump files into perf.data file]'
+  --kallsyms '=[specify kallsyms pathname]:path:_files'
+  --kcore '=[add specified kcore file to the cache]:file:_files'
+  --kernel '[show running kernel build id]'
+  --Latency '[show latency attributes (irqs/preemption disabled, etc)]'
+  --list '[list all cached files]'
+  --list-opts '[list available options]'
+  --log-fd '=[log output to file descriptor instead of stderr]:file descriptor:_file_descriptors'
+  --map-dump '=[specify BPF map to periodically dump]:BPF map'
+  --max-blocks '=[set maximum number of code blocks to dump with brstackinsn]:blocks'
+  --max-events '=[set maximum number of events to print]:events'
+  --max-size '=[limit the maximum size of the output file]: :_numbers size B K M G'
+  --max-stack '=[set maximum stack depth when parsing the callchain]:depth [kernel.perf_event_max_stack or 127]'
+  --metrics '=[monitor specified metrics or metric groups]:metric'
+  --min-stack '=[set minimum stack depth when parsing the callchain]:depth'
+  --mmap-flush '=[specify minimum size that is extracted from mmap data pages]: :_numbers -d 1 -u bytes size B K M G'
+  --mmap-pages '=[specify number of mmap data pages]:number of pages'
+  --modules '[load module symbols]'
+  --namespaces '[record namespaces events]'
+  --no-bpf-event "[don't record bpf events]"
+  --no-buildid "[don't collect buildids in perf.data]"
+  --no-buildid-cache "[don't update the buildid cache]"
+  --no-inherit "[child tasks don't inherit counters]"
+  --no-samples "[don't sample]"
+  --node-info '[show extra node info in report]'
+  --nograph-funcs "=[select function_graph tracer and don't trace given functions]:function"
+  --notrace-funcs "=[select function tracer and don't trace given functions]:function filter"
+  --null "[null run - don't start any counters]"
+  --num-thread-synthesize '=[specify number of threads to run for event synthesis]:threads'
+  --objdump '=[specify objdump binary to use for disassembly and annotations]:path:_command_names -e'
+  --order '=[specify compute sorting]:ordering [1]:((
+    0\:baseline\ overhead
+    1\:computed\ value\ of\ column\ 1))'
+  --output '=[specify output file]:file:_files'
+  --parent '=[filter by parent caller]:parent (regex)'
+  --percent-limit "=[don't show entries under specified percentage]:percent"
+  --percent-type '=[set annotation percent type]:compadd {local,global}{period,hits}'
+  --percentage '=[set display of filtered entries percentages]:display:(relative absolute)'
+  --phys-data '[record/report sample physical addresses]'
+  --pid '=[restrict to specified process id]:process: _sequence _pids'
+  --post '=[specify command to run after to the measured command]: :_cmdstring'
+  --pre '=[specify command to run prior to the measured command]: :_cmdstring'
+  --prefix '=[add prefix to source file path names]:prefix:_directories'
+  --prefix-strip '=[strip elements from source file path names]:elements'
+  --pretty '=[specify pretty printing style]:key:(normal raw)'
+  --proc-map-timeout '=[specify per-thread proc mmap processing timeout]:timeout (ms)'
+  --quiet "[don't print any messages]"
+  --raw-samples '[collect raw sample records from all opened counters]'
+  --raw-trace '[show raw trace event output]'
+  --realtime '=[profile --addevents with specified priority]:RT SCHED_FIFO priority'
+  --repeat '=[specify amount of times to repeat the run]:repetitions'
+  --samples '=[specify number of samples to save per histogram entry for individual browsing]:samples'
+  --sched-stat '[get details of how long tasks slept]'
+  --show-cpu-utilization '[show sample percentage for different cpu modes]'
+  --show-info '[display extended perf.data information]'
+  --show-nr-samples '[show a column with the number of samples]'
+  --show-on-off-events '[show the --switch-on/off events too]'
+  --show-round-events '[display finished round events]'
+  --show-switch-events '[display context switch events]'
+  --show-total-period '[show a column with the sum of periods]'
+  --skip-missing '--skip-missing[skip symbols that cannot be annotated]'
+  --snapshot '=[select AUX area tracing snapshot mode]::snapshot capturing parameter'
+  --socket-filter '=[only show processor socket that match specified filter]:filter'
+  --sort '=[sort by specified keys]:key:->sort-keys'
+  --stat '[per-thread counts]'
+  --stdio '[use the stdio interface]'
+  --stdio-color '=[specify when to use colors in output]:mode [always]:(always never auto)'
+  --stdio2 '[use the stdio2 interface, non-interactive, TUI formatting]'
+  --stitch-lbr '[enable LBR callgraph stitching approach]'
+  --stop-bt '=[stop display of callgraph at these symbols]:symbol list'
+  --stream '[enable hot streams comparison]'
+  --strip '[strip non-synthesized events]'
+  --summary '[show only syscall summary with statistics]'
+  --switch-max-files '=[limit number of generated files to keep]:limit'
+  --switch-off '=[stop considering events after occurrence of specified event]:event'
+  --switch-on '=[consider events after occurrence of specified event]:event'
+  --switch-output '=[specify when to rotate output file]::signal or size [USR2]:_signals'
+  --switch-output-event '=[switch output event selector]:event:->events'
+  --sym-annotate '=[specify symbol to annotate]:symbol'
+  --symbol '=[specify symbol]:symbol'
+  --symbol-filter '=[only show symbols that match filter]:filter'
+  --symbols '=[only consider specified symbols]:symbol'
+  --symfs '=[look symbol files relative to specified directory]:directory:_directories'
+  --sync '[call sync() before starting a run]'
+  --system '[read and write system config file]'
+  --target-ns '=[obtain mount namespace information form the target pid]:pid:_processes'
+  --td-level '=[set the metrics level for the top-down statistics]:level'
+  --tid '=[restrict to specified threads]:tids'
+  --time '=[specify time span of interest]:time span (start,stop)'
+  --time-quantum '=[set time quantum for time sort key]: :_numbers -d 100ms "time quantum" ms us ns s'
+  --timeout '=[stop workload and print counts after a timeout period]:timeout (ms)'
+  --timestamp-filename '[append timestamp to output file name]'
+  --trace-fields '[show tracepoint fields]'
+  --trace-funcs '=[select function tracer and set function filter]:function filter'
+  --tracer '=[specify tracer to use]:tracer:(function_graph function)'
+  --tui '[use the curses interface]'
+  --uid '=[profile events in threads owned by uid]:uid:_users'
+  --user '[read and write user config file]'
+  --user-regs '=[sample selected machine registers on interrupt]:registers'
+  --vars '=[show available local variables at given probe point]:probe'
+  --vcpu '=[specify vcpu id to report]:vcpu'
+  --verbose '[be more verbose]'
+  --vm-time-correlation '=[correlate time between VM guests and the host]::options'
+  --vmlinux '=[specify vmlinux path]:vmlinux pathname:_files'
+  --weight '[sample by weight (on special events only)]'
+  --with-hits '[show only DSOs with hits]'
+  --with-summary '[show all syscalls and summary with statistics]'
+  --zero '[zero history across updates]'
+)
+short=(
+  --add                -a
+  --all-cpus           -a
+  --baseline-only      -b
+  --branch-any         -b
+  --build-ids          -b
+  --cpu                -C
+  --coalesce           -c
+  --compute            -c
+  --count              -c
+  --delay              -D
+  --dump-raw-trace     -D
+  --data               -d
+  --dsos               -d
+  --event              -e
+  --fields             -F
+  --formula            -F
+  --freq               -F
+  --funcs              -F
+  --force              -f
+  --cgroup             -G
+  --graph-funcs        -G
+  --with-hits          -H
+  --intr-regs          -I
+  --show-info          -I
+  --input              -i
+  --no-inherit         -i
+  --branch-filter      -j
+  --jit                -j
+  --clockid            -k
+  --key                -k
+  --vmlinux            -k
+  --list               -l
+  --disassembler-style -M
+  --buffer-size        -m
+  --mmap-pages         -m
+  --modules            -m
+  --node-info          -N
+  --no-buildid-cache   -N
+  --no-samples         -n
+  --show-nr-samples    -n
+  --order              -o
+  --output             -o
+  --pid                -p
+  --quiet              -q
+  --raw-samples        -R
+  --realtime           -r
+  --repeat             -r
+  --snapshot           -S
+  --symbols            -S
+  --with-summary       -S
+  --sched-stat         -s
+  --script             -s
+  --sort               -s
+  --summary            -s
+  --timestamp          -T
+  --tid                -t
+  --tracer             -t
+  --uid                -u
+  --verbose            -v
+  --weight             -W
+  --column-widths      -w
+  --field-separator    -x
+  --compression-level  -z
+  --zero               -z
+)
+
+cmd=( $words[1] )
+(( $#words > 2 )) && ign='!'
+
+_arguments -C -A "-*" \
+  "${ign}(- *)"{-v,--version}'[display version information]' \
+  "${ign}(- *)"{-h,--help}'[display usage information]' \
+  "${ign}(- *)-vv[print the compiled-in status of libraries]" \
+  '(- *)--exec-path[display or set exec path]' \
+  '(- *)--html-path[display html documentation path]' \
+  "${ign}(- *)--list-opts[list available options]" \
+  "${ign}(- *)--list-cmds[list available subcommands]" \
+  '!(-p --paginate --no-pager)'{-p,--paginate} \
+  --no-pager \
+  '--buildid-dir=[setup buildid cache directory]: :_directories' \
+  '--debugfs-dir=[set debugfs directory]: :_directories' \
+  '--debug=[setup debug variable]: : _values -s, "debug option"
+    verbose\:level ordered-events data-convert stderr perf-event-open' \
+  '1: :->subcmds' \
+  '*:: :->args'
+
+while (( $#state )); do
+  curstate=$state
+  shift state
+  case $curstate in
+    subcmds)
+      subcmds=(
+        ${${${(f)"$(_call_program subcmds $cmd)"}[3,-2]## ##}/ ##(#m)?/:$MATCH[-1]:l}
+        'help:display help information about perf'
+      )
+      _describe 'subcommand' subcmds
+    ;;
+    subsubcmds)
+      _description commands expl command
+      compadd "$expl[@]" -a subcmds
+    ;;
+    args)
+      (( $#words < 3 )) && ign=''
+      cmd+=( $words[1] )
+      curcontext="${curcontext%:*:*}:${(j.-.)cmd}:"
+      args=()
+      skip=0
+      case ${(j.-.)cmd[2,-1]} in
+        kvm-*|top|stat)
+          full[--group]='[put the counters into a counter group]'
+        ;|
+        bench-[^-]##(|-all)) skip=1 opts=() subcmds=() ;|
+
+        annotate)
+          full+=(
+            --full-paths "[don't shorten the displayed pathnames]"
+            --print-line "[print matching source lines (may be slow)]"
+          )
+          short+=(
+            --print-line -l
+            --full-paths -P
+            --symbol -s
+          )
+          args+=(
+            "--no-source[don't interleave source code with assembly code]"
+            '1:: :_guard "^-*" "symbol name"'
+          )
+        ;;
+
+        archive)
+          _arguments --help '1:file:_files'
+          break
+        ;;
+
+        bench)
+          short+=(
+            --edge -E
+            --format -f
+            --nfds -f
+            --group -g
+            --iterations -i
+            --loop -l
+            --nr_loops -l
+            --nr-mmaps -m
+            --multiq -m
+            --nested -N
+            --noaffinity -n
+            --nonblocking -B
+            --nr-samples -n
+            --pipe -p
+            --randomize -R
+             -fruntime -r
+            --size -s
+            --thread -t
+            --threaded -T
+          )
+          args=(
+            '1:subsystem:(sched syscall mem numa futex epoll internals all)'
+            '*:: :->args'
+          )
+          full+=(
+            --group '=[specify number of groups]:groups'
+            --nr_loops '=[specify number of loops to run]:loops [100]'
+            --pipe '[use pipe() instead of socketpair()]'
+            --runtime '=[specify runtime]:runtime (seconds)'
+            --thread '[be multi thread instead of multi process]'
+            --threads '=[specify number of threads]:threads'
+            --loop '=[specify number of loops]:loops'
+            --iterations '=[number of iterations used to compute average]:iterarions'
+            --threaded '[specify threads/process based task setup]'
+            --size '=[specify size of memory buffers]: :_numbers -d 1MB size B KB MB GB TB'
+          )
+        ;;
+        bench-sched) args=( '1:suite:(all messaging pipe)' '*:: :->args' ) ;;
+        bench-numa) args=( '1:suite:(all mem)' '*:: :->args' ) ;;
+        bench-mem) args=( '1:suite:(all memcpy memset find_bit)' '*:: :->args' ) ;;
+        bench-futex)
+          args=( '1:suite:(all hash wake wake-parallel requeue lock-pi)' '*:: :->args' )
+        ;;
+        bench-epoll) args=( '1:suite:(all wait ctl)' '*:: :->args' ) ;;
+        bench-internals) args=( '1:suite:(all synthesize kallsyms-parse inject-build-id)' '*:: :->args' ) ;;
+        bench-syscall) args=( '1:suite:(all basic)' '*:: :->args' ) ;;
+
+        buildid-cache)
+          full+=(
+            --add '=[add specified file to the cache]:file:_files'
+            --debuginfod '=[specify debuginfod URL to be used when retrieving perf.data binaries]:url:_urls'
+            --missing '=[list missing build ids in the cache for the specified]:file:_files'
+            --purge '=[purge all cached binaries including older caches which have specified path from the cache]:path:_files'
+            --purge-all '[purge all cached binaries - flush out entire cache]'
+            --remove '=[remove a cached binary which has same build-id of specified file from the cache]:file:_files'
+            --update '=[update specified file of the cache]:file:_files'
+          )
+          short+=(
+            --kcore -k
+            --missing -M
+            --purge -p
+            --purge-all -P
+            --remove -r
+            --update -u
+          )
+        ;;
+        c2c)
+          args+=( '1:commands:(record report)' '*:: :->args' )
+        ;;
+        daemon)
+          full+=(
+            --base '=[specify base directory]:base directory:_directories'
+            --config '=[specify config file path]:config file:_files'
+            --foreground "[don't put process in background]"
+            --session '=[apply to specific session]:session'
+          )
+          short[--foreground]=-f
+          args=( '1:action:(start stop signal ping)' '*:: :->args' )
+        ;;
+        (kvm-|)buildid-list)
+          short[--kernel]=-k
+        ;;
+        config)
+          full[--list]='[show current config variables]'
+        ;;
+        data)
+          full+=(
+            --all '[convert all events]'
+            --to-json '=[convert to JSON format]:output file:_files'
+            --to-ctf '=[convert to CTF format]:output file:_files'
+            --tod '[convert time to wall clock time]'
+          )
+          exclude+=(
+            --to-ctf '(--to-json)'
+            --to-json '(--to-ctf)'
+          )
+        ;;
+        (kvm-|)diff)
+          short+=(
+            --baseline-only -b
+            --compute -c
+            --comms -C
+            --field-separator -t
+            --formula -F
+            --order -o
+            --period -p
+          )
+          full+=(
+            --period '[show period values]'
+          )
+          unset 'short[--pid]'
+          unset 'short[--tid]'
+          sortkeys=( pid comm dso symbol cpu parent srcline )
+        ;;
+        evlist)
+          short+=( --group -g )
+        ;;
+        ftrace)
+          short+=(
+            --nograph-funcs -g
+            --graph-funcs -G
+            --buffer-size -m
+            --notrace-funcs -N
+            --trace-funcs -T
+            --tracer -t
+          )
+          unset 'short[--tid]'
+        ;;
+        help*)
+          short+=( -a --all -i --info -m --man -w --web )
+        ;;
+        inject)
+          short+=( --jit -j --build-ids -b --sched-stat -s )
+        ;;
+        kmem)
+          full+=(
+            --alloc '[show per-allocation statistics]'
+            --caller '[show per-callsite statistics]'
+            --raw-ip '[show raw ip instead of symbol]'
+            --line '=[show specified number of lines]:lines'
+            --live '[show live page stat]'
+            --slab '[analyze SLAB allocator events]'
+            --page '[analyze page allocator events]'
+          )
+          short[--line]=-l
+          sortkeys=(
+            ptr callsite bytes hit pingpong frag
+            page order migtype gfp
+          )
+        ;;
+        list)
+          short+=( --desc -d --long-desc -v )
+          full+=(
+            --desc '[print extra event descriptions]'
+            --details '[print information on the perf event names and expressions used internally by events]'
+            --long-desc '[print longer event descriptions]'
+          )
+          args=( '*::events:->event-types' )
+        ;;
+        lock-info)
+          short[--map]=-m
+          short[--threads]=-t
+          full+=(
+            --map '[dump map of lock instances (address:name table)]'
+            --threads '[dump thread list in perf.data]'
+          )
+        ;;
+        lock-report)
+          full[--key]='=[specify sort key]:key [acquired]:(acquired contended avg_wait wait_total wait_max wait_min)'
+        ;;
+        mem)
+          short[--phys-data]=-p
+          short[--type]=-t
+          short[--dump-raw-samples]=-D
+          full[--type]='=[select the memory operation type]:type:(load store)'
+          full[--dump-raw-samples]='[dump raw samples in ASCII]'
+        ;;
+        probe)
+          full+=(
+            --add '=[probe point definition]:probe'
+            --del '=[delete a probe event]:probe event'
+            --filter '=[set a filter]:filter'
+            --line '[show source code lines which can be probed]'
+            --max-probes '=[set how many probe points can be found for a probe]:probes'
+            --module '=[specify target module name or path]:module name or path:_directories'
+            --range '[show variables location range in scope]'
+            --source '=[specify path to kernel source]:path:_directories'
+          )
+          short+=(
+            --definition -D
+            --del -d
+            --exec -x
+            --line -L
+            --module -m
+            --dry-run -n
+            --source -s
+            --vars -V
+          )
+          unset 'exclude[--source]'
+          unset 'short[--list]'
+        ;;
+        timechart-record)
+          short+=( --io-only -I --callchain -g )
+          full+=(
+            --callchain '[record callchain]'
+            --io-only '[record only IO data]'
+          )
+        ;;
+        *record)
+          short+=(
+            --data -d
+            --clockid -k
+            --no-samples -n
+            --no-buildid -B
+            --no-buildid-cache -N
+            --period -P
+            --stat -s
+          )
+          full+=(
+            --overwrite '[use overwrite mode]'
+            --period '[record the sample period]'
+            --timestamp '[record the sample timestamps]'
+            --transaction '[sample transaction flags (special events only)]'
+          )
+        ;;
+        (c2c-|kvm-|)report)
+          short+=(
+            --branch-stack -b
+            --comms -c
+            --inverted -G
+            --call-graph -g
+            --parent -p
+            --threads -T
+            --field-separator -t
+            --exclude-other -x
+          )
+          full+=(
+            --threads '[show per-thread event counters]'
+          )
+          unset 'short[--pid]'
+          unset 'short[--tid]'
+          sortkeys=(
+            pid comm dso symbol parent cpu socket srcline weight local_weight cgroup_id
+          )
+          fields=(
+	    overhead period sample overhead overhead_sys overhead_us
+	    overhead_guest_sys overhead_guest_us overhead_children
+	    sample period pid comm dso symbol parent cpu socket
+	    srcline srcfile local_weight weight transaction trace
+	    symbol_size dso_size cgroup cgroup_id ipc_null time
+	    code_page_size local_ins_lat ins_lat p_stage_cyc dso_from
+	    dso_to symbol_from symbol_to mispredict abort in_tx
+	    cycles srcline_from srcline_to ipc_lbr symbol_daddr
+	    dso_daddr locked tlb mem snoop dcacheline symbol_iaddr
+	    phys_daddr data_page_size blocked
+          )
+        ;;
+        sched-latency)
+          short+=(
+            --CPU -C
+            --pids -p
+          )
+          full+=(
+            --pids '[latency stats per pid instead of per comm]'
+            --CPU '=[specify CPU to profile on]:cpu'
+          )
+        ;;
+        sched-timehist)
+          short+=(
+            --idle-hist -I
+            --migrations -M
+            --next -n
+            --cpu-visual -V
+            --wakeups -w
+          )
+          full+=(
+            --cpu-visual '[add CPU visual]'
+            --idle-hist '[show idle events only]'
+            --migrations '[show migration events]'
+            --next '[show next task]'
+            --state '[show task state when sched-out]'
+            --wakeups '[show wakeup events]'
+          )
+        ;;
+        (*-|)script)
+          short+=( --comms -c --gen-script -g --Latency -L --debug-mode -d )
+          full+=(
+            --debug-mode '[do various checks like samples ordering and lost events]'
+            --gen-script '=[generate perf-script.xx script in specified language]:language'
+            --script '=[specify script file name]:script file name:_files'
+          )
+          unset 'short[--pid]'
+          unset 'short[--dsos]'
+          unset 'short[--tid]'
+          fields=(
+	    comm tid pid time cpu event trace ip sym dso addr symoff
+	    srcline period iregs uregs brstack brstacksym flags
+	    bpf-output brstackinsn brstackoff callindent insn insnlen
+	    synth phys_addr metric misc ipc tod data_page_size
+	    code_page_size
+          )
+        ;;
+        *stat*)
+          full+=(
+            --big-num "[print large numbers with thousands' separators]"
+            --delay '=[wait after starting program]:delay (msecs)'
+            --key '=[specify key for sorting]:key:(sample time)'
+            --no-aggr '[disable CPU count aggregation]'
+            --transaction '[hardware transaction statistics]'
+          )
+          short+=(
+            --no-aggr -A
+            --big-num -B
+            --detailed -d
+            --group -g
+            --interval-print -I
+            --metrics -M
+            --null -n
+            --sync -S
+            --transaction -T
+          )
+          exclude+=(
+            --log-fd '(-o --output)'
+            --output '(--log-fd)'
+          )
+          unset 'short[--quiet]'
+        ;;
+        test*)
+          short+=( --dont-fork -F --skip -s )
+          full+=(
+            --dont-fork "[don't fork for testcase]"
+            --skip '=[specify tests to skip]:test'
+          )
+        ;;
+        timechart)
+          short+=( --width -w --topology -t --proc-num -n --process -p )
+          full+=(
+            --highlight '=[highlight tasks that outlast duration or with given name]:duration or name'
+            --io-skip-eagain "[don't draw EAGAIN IO events]"
+            --io-min-time '=[all IO faster than minimum time will visually appear longer]: :_numbers -u ns -d 1ms time ms us'
+            --io-merge-dist '=[merge events that are within specified time]: :_numbers -u ns -d 1us time ms us'
+            --process '=[select process]:process:_pids'
+            --proc-num '=[specify minimum number of tasks to print]:tasks'
+            --topology '[sort CPUs according to topology]'
+            --width '=[specify page width]:page width'
+          )
+        ;;
+        (kvm-|)top)
+          full+=(
+            --delay '=[specify delay between refreshes]:delay (seconds)'
+            --comms '=[only consider symbols in specified comms]:comm'
+            --dsos '=[only consider symbols in these dsos]:dso'
+            --overwrite '[use a backward ring buffer]'
+          )
+          short+=(
+            --count-filter -f
+            --delay -d
+            --dump-symtab -D
+            --entries -E
+          )
+          unset 'short[--dsos]'
+          unset 'short[--fields]'
+          unset 'short[--force]'
+          unset 'short[--symbols]'
+          sortkeys=(
+            pid comm dso symbol parent srcline weight local_weight
+            abort in_tx transaction overhead sample period
+          )
+          fields=( overhead period sample $sortkeys )
+        ;;
+        trace)
+          short+=(
+            --pf -F
+            --summary -s
+            --time -T
+          )
+          full+=(
+            --pf '=[trace pagefaults]::type [maj]:(all min maj)'
+            --time '[show full timestamp, not relative]'
+          )
+          unset 'short[--no-inherit]'
+        ;;
+      esac
+      if (( !skip )); then
+        subcmds=( $(_call_program commands "$cmd --list-cmds|grep -v -e '^#' -e Unknown") )
+        opts=( $(_call_program options "$cmd --list-opts|grep -v -e '^#' -e Unknown") )
+      fi
+
+      for (( i = $#opts; i; i-- )); do
+        opts[i]=(
+          ${exclude[$opts[i]]}${opts[i]}${full[$opts[i]]}
+          ${short[$opts[i]]:+${exclude[$opts[i]]}${short[$opts[i]]}${full[$opts[i]]/(#s)=/+}}
+        )
+      done
+      (( $#subcmds)) && opts+=(
+        "${ign}(- *)--list-cmds[list available subcommands]" \
+        '1: :->subsubcmds'
+        '*:: :->args'
+      )
+      (( $#opts )) && opts+=(
+        "${ign}(- *)--help[display help information]"
+        "${ign}(- *)--list-opts[list available options]"
+      )
+      _arguments -C $opts $args \
+        "${ign}(- *)-h[display brief usage summary]"
+    ;;
+    event-types)
+      _wanted event-types expl 'event type' compadd - hw sw cache pmu tracepoint event_glob
+    ;&
+    events)
+      _wanted events expl event compadd - \
+        ${${=${${(f)"$(_call_program events perf list hw sw cache pmu tracepoint event_glob)"}[2,-5]#  }%% [ \[]*}:#OR}
+    ;;
+    itrace-opts)
+      _values -s '' "itrace option [ibxwpe]" \
+        'i[synthesize instructions events]' \
+        'b[synthesize branches events (branch misses for Arm SPE)]' \
+        'c[synthesize branches events (calls only)]' \
+        'r[synthesize branches events (returns only)]' \
+        'x[synthesize transactions events]' \
+        'w[synthesize ptwrite events]' \
+        'p[synthesize power events (incl. PSB events for Intel PT)]' \
+        'o[synthesize other events recorded due to the use of aux-output]' \
+        'e[synthesize error events]' \
+        'd[create a debug log]' \
+        'f[synthesize first level cache events]' \
+        'm[synthesize last level cache events]' \
+        'M[synthesize memory events]' \
+        't[synthesize TLB events]' \
+        'a[synthesize remote access events]' \
+        'g[synthesize a call chain (use with i or x)]' \
+        'G[synthesize a call chain on existing event records]' \
+        'l[synthesize last branch entries (use with i or x)]' \
+        'L[synthesize last branch entries on existing event records]' \
+        's[skip initial number of events]' \
+        'q[quicker (less detailed) decoding]' \
+        'Z[prefer to ignore timestamps (so-called "timeless" decoding)]'
+    ;;
+    fields)
+      _sequence _wanted fields expl 'field' compadd - -a fields
+    ;;
+    sort-keys)
+      _sequence _wanted sort-keys expl 'sort key' compadd - -a sortkeys
+    ;;
+  esac
+done
+
+[[ nm -ne compstate[nmatches] ]]

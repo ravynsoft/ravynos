@@ -1,0 +1,34 @@
+
+.*: +file format .*
+
+SYMBOL TABLE:
+0+400000 g       .text\$mn	0000000000000000 __executable_start
+0+401000 g       .text\$mn	0000000000000000 getaddr1
+0+401020 g       .text\$mn	0000000000000000 begin
+0+403014 g       .bss	0000000000000000 __bss_start
+0+403014 g       .bss	0000000000000000 var
+0+401010 g       .text\$mn	0000000000000000 getaddr2
+0+403014 g       .bss	0000000000000000 _edata
+0+403018 g       .bss	0000000000000000 _end
+
+
+
+Disassembly of section .text\$mn:
+
+0+401000 <getaddr1>:
+ +[a-f0-9]+:	48 8d 05 0d 20 00 00 	lea    0x200d\(%rip\),%rax        # 403014 <__bss_start>
+ +[a-f0-9]+:	c3                   	ret
+ +[a-f0-9]+:	0f 1f 84 00 00 00 00 00 	nopl   0x0\(%rax,%rax,1\)
+
+0+401010 <getaddr2>:
+ +[a-f0-9]+:	48 8d 05 fd 1f 00 00 	lea    0x1ffd\(%rip\),%rax        # 403014 <__bss_start>
+ +[a-f0-9]+:	c3                   	ret
+ +[a-f0-9]+:	0f 1f 84 00 00 00 00 00 	nopl   0x0\(%rax,%rax,1\)
+
+0+401020 <begin>:
+ +[a-f0-9]+:	48 83 ec 28          	sub    \$0x28,%rsp
+ +[a-f0-9]+:	e8 d7 ff ff ff       	call   401000 <getaddr1>
+ +[a-f0-9]+:	e8 e2 ff ff ff       	call   401010 <getaddr2>
+ +[a-f0-9]+:	48 83 c4 28          	add    \$0x28,%rsp
+ +[a-f0-9]+:	c3                   	ret
+#pass

@@ -1,0 +1,12 @@
+#compdef putclip putclip.exe
+
+# cygutils 1.3.2
+
+_arguments -s -S \
+  '(--dos -d --unix -u --no-conv -n)'{-d,--dos}'[clipboard text will have DOS line endings]' \
+  '(--dos -d --unix -u --no-conv -n)'{-u,--unix}'[clipboard text will have UNIX line endings]' \
+  '(--dos -d --unix -u --no-conv -n)'{-n,--no-conv}'[do not translate line endings]' \
+  '(-)'{-\?,--help}'[display help information]' \
+  '(-)--usage[display brief usage message]' \
+  '(-)--version[display version information]' \
+  '(-)--license[display licensing information]'

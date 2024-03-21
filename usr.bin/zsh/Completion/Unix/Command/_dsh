@@ -1,0 +1,34 @@
+#compdef dsh
+
+local curcontext="$curcontext" state line expl
+typeset -A opt_args
+local -a _comp_priv_prefix
+
+_arguments -s -C -S \
+  '(-v --verbose -q --quiet)'{-v,--verbose}'[verbose output]' \
+  '(-q --quiet -v --verbose)'{-q,--quiet}'[quieter output]' \
+  '(-M --show-machine-names)'{-M,--show-machine-names}'[prepend the host name on output]' \
+  '(-i --duplicate-input)'{-i,--duplicate-input}'[duplicate input given to dsh]' \
+  '(-b --bufsize)'{-b,--bufsize}'[change buffer size used in input duplication]:buffer size for -i (bytes)' \
+  \*{-m,--machine}'[execute on machine]:machine:{_hosts || _user_at_host}' \
+  '(-n --num-topology)'{-n,--num-topology}'[how to divide the machines]:number' \
+  '(-a --all)'{-a,--all}'[execute on all machines]' \
+  \*{-g,--group}'[execute on group member]:groupname:->groups' \
+  '(-f --file)'{-f,--file}'[use the file as list of machines]:file:_files' \
+  '(-r --remoteshell)'{-r,--remoteshell}'[execute using shell]:remote shell:(rsh ssh)' \
+  '(-o --remoteshellopt)'{-o,--remoteshellopt}'[option to give to remote shell ]:option' \
+  '(-)'{-h,--help}'[display help information]' \
+  '(-w --wait-shell -c --concurrent-shell)'{-w,--wait-shell}'[sequentially execute shell]' \
+  '(-c --concurrent-shell -w --wait-shell)'{-c,--concurrent-shell}'[execute shell concurrently]' \
+  '(-F --forklimit)'{-F,--forklimit}'[concurrent with limit on number]:fork limit' \
+  '(-)'{-V,--version}'[display version information]' \
+  '*::args: _normal' && return
+
+if [[ $state = groups ]]; then
+  if ! zstyle -s ":completion:${curcontext}:dsh-groups" dsh-groups grp; then
+    [[ -e ~/.dsh/group ]] && grp="~/.dsh/group" || return 1
+  fi
+  _path_files -W ~/.dsh/group && return
+fi
+
+return 1

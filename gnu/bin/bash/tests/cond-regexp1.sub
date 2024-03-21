@@ -1,0 +1,69 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+VAR='[[:alpha:]]'
+
+[[ $VAR =~ '[[:alpha:]]' ]] && echo match 1
+
+[[ a =~ '[[:alpha:]]' ]] || echo match 2
+
+[[ a =~ [[:alpha:]] ]] && echo match 3
+
+[[ a =~ $VAR ]] && echo match 4
+
+[[ a =~ "$VAR" ]] || echo match 5
+
+line=aab
+[[ $line =~ [[:space:]]*(a)?b ]] && echo match 6
+
+V="alphabet"
+[[ $V == alphabet ]] && echo yes 1
+[[ $V == "alphabet" ]] && echo yes 2
+[[ $V == 'alphabet' ]] && echo yes 3
+[[ $V =~ alphabet ]] && echo yes 4
+[[ $V =~ "alphabet" ]] && echo yes 5
+[[ $V =~ 'alphabet' ]] && echo yes 6
+
+DOG="Dog name - 01 - Wiggles"
+REPAT='([[:alpha:][:blank:]]*)- ([[:digit:]]*) - (.*)$'
+if [[ $DOG =~ ([[:alpha:][:blank:]]*)-\ ([[:digit:]]*)\ -\ (.*)$ ]]
+then
+   echo Dog ${BASH_REMATCH[2]} is ${BASH_REMATCH[3]}
+fi
+if [[ $DOG =~ $REPAT ]]
+then
+   echo Dog ${BASH_REMATCH[2]} is ${BASH_REMATCH[3]}
+fi
+
+[[ $REPAT =~ "$REPAT" ]] && echo rematch 1
+
+v="one two buckle my shoe"
+[[ ${v} =~ "one two" ]] && echo matches 7
+
+[[ ${v} =~ (one two) ]] && echo matches 8
+
+[[ ${v} =~ one\ two ]] && echo matches 9
+
+unset pattern string
+pattern="xxx.yyy"
+string=xxxAyyy
+
+[[ $string =~ $pattern ]] && echo unquoted matches
+[[ $string =~ "$pattern" ]] && echo quoted matches
+
+# problems in pre-patched bash-4.2
+[[ "helloworld" =~ llo ]] && echo match control-a 1
+[[ "helloworld" =~ world ]] && echo match control-a 2
+[[ "helloworld" =~ world$ ]] && echo match control-a 3
+[[ "helloworld" =~  ]] && echo match control-a 4
+[[ "helloworld" =~ oworld$ ]] && echo match control-a 5

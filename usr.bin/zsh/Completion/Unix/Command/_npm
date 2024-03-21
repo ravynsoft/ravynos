@@ -1,0 +1,14 @@
+#compdef npm
+
+# Node Package Manager completion, letting npm do all the completion work
+
+if (( $+commands[npm] )); then
+  eval "$(NPM_CONFIG_UPDATE_NOTIFIER=false npm completion)"
+  # Monkey-patch their function to prevent update checks
+  functions[_npm_completion]="
+    local -x NPM_CONFIG_UPDATE_NOTIFIER=false;
+    ${functions[_npm_completion]}
+  "
+
+  _npm_completion "$@"
+fi

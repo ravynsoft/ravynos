@@ -1,0 +1,8 @@
+# Test command_timeout and TIMEOUT syntax errors
+Defaults command_timeout=2d8h10m59ss
+Defaults:root command_timeout=15f
+user0	ALL = TIMEOUT=7dd4h10m30s /usr/bin/id, /usr/bin/who, TIMEOUT=0 /bin/ls
+user1	ALL = TIMEOUT=7d4h10mm30s /usr/bin/id
+user2	ALL = TIMEOUT=4hg10m30s /usr/bin/id
+user3	ALL = TIMEOUT=10m30ss /usr/bin/id
+user4	ALL = TIMEOUT=14g /usr/bin/id

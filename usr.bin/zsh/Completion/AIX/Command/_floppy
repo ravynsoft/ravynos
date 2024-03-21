@@ -1,0 +1,5 @@
+#compdef dosread dosdel
+
+local expl
+
+_wanted floppyfiles expl 'file on floppy' compadd - ${$(dosdir)[1,-5]:l}

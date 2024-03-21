@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.6.0 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v3.5.7" href="v3.5.7.html" />
+    <link rel="prev" title="Changes in TIFF v3.6.1" href="v3.6.1.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.5.7.html" title="Changes in TIFF v3.5.7"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v3.6.1.html" title="Changes in TIFF v3.6.1"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.6.0</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-6-0">
+<h1>Changes in TIFF v3.6.0<a class="headerlink" href="#changes-in-tiff-v3-6-0" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.6.0 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v3-6-0">tag Release-v3-6-0</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.5.7.html"><span class="doc">v3.5.7</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>New utility <strong class="program">raw2tiff</strong> for converting raw rasters into TIFF files.</p></li>
+<li><p>Lots of new <strong class="program">tiff2ps</strong> options.</p></li>
+<li><p>Lots of new <strong class="program">fax2tiff</strong> options.</p></li>
+<li><p>Lots of bug fixes for LZW, JPEG and OJPEG compression.</p></li>
+</ul>
+<section id="custom-tag-support">
+<h3>Custom Tag Support<a class="headerlink" href="#custom-tag-support" title="Permalink to this heading">¶</a></h3>
+<p>The approach to extending libtiff with custom tags has changed radically.
+Previously, all internally supported TIFF tags had a place in the
+private <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirectory</span></code> structure within libtiff to hold the values (if read),
+and a “field number” (ie. <code class="xref c c-macro docutils literal notranslate"><span class="pre">FIELD_SUBFILETYPE</span></code>) used to identify that tag.
+However, every time a new tag was added to the core, the size of the
+<code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirectory</span></code> structure would change, breaking any dynamically linked
+software that used the private data structures.</p>
+<p>Also, any tag not recognised
+by libtiff would not be read and accessible to applications without some
+fairly complicated work on the applications part to pre-register the tags
+as exemplified by the support for “Geo”TIFF tags by libgeotiff layered on
+libtiff.</p>
+<p>Among other things this approach required the extension code
+to access the private libtiff structures … which made the higher level
+non-libtiff code be locked into a specific version of libtiff at compile time.
+This caused no end of bug reports!</p>
+<p>The new approach is for libtiff to read all tags from TIFF files.  Those that
+aren’t recognised as “core tags” (those having an associated <code class="docutils literal notranslate"><span class="pre">FIELD_</span></code> value,
+and place for storage in the <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirectory</span></code> structure) are now read into a
+dynamic list of extra tags (<code class="xref c c-member docutils literal notranslate"><span class="pre">td_customValues</span></code> in <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirectory</span></code>).  When a new
+tag code is encountered for the first time in a given TIFF file, a new
+anonymous tag definition is created for the tag in the tag definition list.
+The type, and some other metadata is worked out from the instance encountered.
+These fields are known as “custom tags”.</p>
+<p>Custom tags can be set and fetched normally using <a class="reference internal" href="../functions/TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> and
+<a class="reference internal" href="../functions/TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a>, and appear pretty much like normal tags to application code.
+However, they have no impact on internal libtiff processing (such as
+compression).  Some utilities, such as <strong class="program">tiffcp</strong> will now copy these custom
+tags to the new output files.</p>
+<p>As well as the internal work with custom tags, new C API entry points
+were added so that extension libraries, such as libgeotiff, could
+define new tags more easily without accessing internal data structures.
+Because tag handling of extension tags is done via the “custom fields”
+mechanism as well, the definition provided externally mostly serves to provide
+a meaningful name for the tag.</p>
+<p>The addition of “custom tags” and the altered approach to extending libtiff
+with externally defined tags is the primary reason for the shift to the
+3.6.x version number from 3.5.x.</p>
+</section>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>, <code class="file docutils literal notranslate"><span class="pre">config.site</span></code>: Fix for large files (&gt;2GiB) support. New
+option in the config.site: <code class="docutils literal notranslate"><span class="pre">LARGEFILE=&quot;yes&quot;</span></code>. Should be enough for the large
+files I/O.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>: Set <code class="docutils literal notranslate"><span class="pre">-DPIXARLOG_SUPPORT</span></code> option along with <code class="docutils literal notranslate"><span class="pre">-DZIP_SUPPORT</span></code>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">html/Makefile.in</span></code>: Updated to use <strong class="program">groffhtml</strong> for generating html pages
+from man pages.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/Makefile.in</span></code>: Added SCO OpenServer 5.0.6 support
+from John H. DuBois III.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/Makefile.vc</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/libtiff.def</span></code>: Missed declarations added.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/Makefile.in</span></code>, <code class="file docutils literal notranslate"><span class="pre">tools/Makefile.in</span></code>: Shared library will not be
+stripped when installing, utility binaries will do be stripped. As per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=93">Remote Sensing bugzilla #93 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">man/Makefile.in</span></code>: Patch <code class="docutils literal notranslate"><span class="pre">DESTDIR</span></code> handling as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=95">Remote Sensing bugzilla #95 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>: OpenBSD changes for Sparc64 and DSO version as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=96">Remote Sensing bugzilla #96 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">config.site/configure</span></code>: added support for <code class="docutils literal notranslate"><span class="pre">OJPEG=yes</span></code> option to enable
+OJPEG support from <code class="file docutils literal notranslate"><span class="pre">config.site</span></code>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">config.gues</span></code>, <code class="file docutils literal notranslate"><span class="pre">config.sub</span></code>: Updated from <a class="reference external" href="ftp.gnu.org/pub/config">ftp.gnu.org/pub/config</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>: Modify <code class="docutils literal notranslate"><span class="pre">CheckForBigEndian</span></code> so it can work in a cross
+compiled situation.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/Makefile.in</span></code>: Changes for building on MacOS 10.1
+as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=94">Remote Sensing bugzilla #94 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">html/Makefile.in</span></code>: added missing images per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=92">Remote Sensing bugzilla #92 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">port/Makefile.in</span></code>: fixed clean target per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=92">Remote Sensing bugzilla #92 [no longer available]</a>.</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>: New function <a class="reference internal" href="../functions/TIFFReadRGBAImage.html#c.TIFFReadRGBAImageOriented" title="TIFFReadRGBAImageOriented"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAImageOriented()</span></code></a>
+implemented to retrieve raster array with user-specified origin position.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_fax3.c</span></code>: Fix wrong line numbering.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirread.c</span></code>: Check field counter against number of fields.</p></li>
+<li><p>Store a list of opened IFD to prevent directory looping.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg.c</span></code>: modified segment_height calculation to always
+be a full height tile for tiled images.  Also changed error to just
+be a warning.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzw.c</span></code>: fixed so that decoder state isn’t allocated till
+<code class="xref c c-func docutils literal notranslate"><span class="pre">LZWSetupDecode()</span></code>.  Needed to read LZW files in “<code class="docutils literal notranslate"><span class="pre">r+</span></code>” mode.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.c</span></code>: fixed up the <code class="xref c c-member docutils literal notranslate"><span class="pre">tif_postdecode</span></code> settings responsible
+for byte swapping complex image data.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_open.c</span></code>: Removed error if opening a compressed file
+in update mode bug (<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=198">Remote Sensing bugzilla #198 [no longer available]</a>).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_write.c</span></code>: <a class="reference internal" href="../functions/TIFFWriteDirectory.html#c.TIFFWriteCheck" title="TIFFWriteCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteCheck()</span></code></a> now fails if the image is
+a pre-existing compressed image.  That is, image writing to pre-existing
+compressed images is not allowed.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">html/man/*.html</span></code>: Web pages regenerated from man pages.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg.c</span></code>: Hack to ensure that “boolean” is defined properly
+on Windows so as to avoid the structure size mismatch error from libjpeg
+(bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=188">Remote Sensing bugzilla #188 [no longer available]</a>).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiff.h</span></code>: <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">USING_VISUALAGE</span></code> around previous Visual Age
+AIX porting hack as it screwed up gcc. (bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=39">Remote Sensing bugzilla #39 [no longer available]</a>)</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiff.h</span></code>: added <code class="xref c c-macro docutils literal notranslate"><span class="pre">COMPRESSION_JP2000</span></code> (34712) for LEAD tools
+custom compression.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirread.c</span></code>: Another fix for the fetching <code class="docutils literal notranslate"><span class="pre">SBYTE</span></code> arrays
+by the <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFetchByteArray()</span></code> function. (bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=52">Remote Sensing bugzilla #52 [no longer available]</a>)</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirread.c</span></code>: Expand <code class="docutils literal notranslate"><span class="pre">v[2]</span></code> to <code class="docutils literal notranslate"><span class="pre">v[4]</span></code> in <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFetchShortPair()</span></code>
+as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=196">Remote Sensing bugzilla #196 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzw.c</span></code>: Additional consistency checking added in
+<code class="xref c c-func docutils literal notranslate"><span class="pre">LZWDecode()</span></code> and <code class="xref c c-func docutils literal notranslate"><span class="pre">LZWDecodeCompat()</span></code> fixing bugs
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=190">Remote Sensing bugzilla #190 [no longer available]</a> and <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=100">Remote Sensing bugzilla #100 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzw.c</span></code>: Added check for valid code lengths in <code class="xref c c-func docutils literal notranslate"><span class="pre">LZWDecode()</span></code>
+and <code class="xref c c-func docutils literal notranslate"><span class="pre">LZWDecodeCompat()</span></code>. Fixes bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=115">Remote Sensing bugzilla #115 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_getimage.c</span></code>: Ensure that <a class="reference internal" href="../functions/TIFFRGBAImage.html#c.TIFFRGBAImageBegin" title="TIFFRGBAImageBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageBegin()</span></code></a> returns the
+return code from the underlying pick function as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=177">Remote Sensing bugzilla #177 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_strip.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_print.c</span></code>:
+Hacked <code class="file docutils literal notranslate"><span class="pre">tif_jpeg.c</span></code> to fetch <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_YCBCRSUBSAMPLING</span></code> from the jpeg
+data stream if it isn’t present in the tiff tags as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=168">Remote Sensing bugzilla #168 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg.c</span></code>: Fixed problem with setting of <code class="xref c c-var docutils literal notranslate"><span class="pre">nrows</span></code> in
+<code class="xref c c-func docutils literal notranslate"><span class="pre">JPEGDecode()</span></code> as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=129">Remote Sensing bugzilla #129 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_read.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_write.c</span></code>: <a class="reference internal" href="../functions/TIFFReadScanline.html#c.TIFFReadScanline" title="TIFFReadScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadScanline()</span></code></a> and
+<a class="reference internal" href="../functions/TIFFWriteScanline.html#c.TIFFWriteScanline" title="TIFFWriteScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteScanline()</span></code></a> now set <code class="xref c c-member docutils literal notranslate"><span class="pre">tif_row</span></code> explicitly in case the codec has
+fooled with the value as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=129">Remote Sensing bugzilla #129 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_ojpeg.c</span></code>: Major upgrade from Scott.  Details in bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=156">Remote Sensing bugzilla #156 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_open.c</span></code>: Pointers to custom procedures
+in <a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a> are checked to be not <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> pointers.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzw.c</span></code>: Assertions in <code class="xref c c-func docutils literal notranslate"><span class="pre">LZWDecode()</span></code> and <code class="xref c c-func docutils literal notranslate"><span class="pre">LZWDecodeCompat()</span></code>
+replaced by warnings. Now libtiff should read corrupted LZW-compressed
+files by skipping bad strips as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=100">Remote Sensing bugzilla #100 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirwrite.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_write.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code>:
+<a class="reference internal" href="../functions/TIFFWriteDirectory.html#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a> routine added as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=124">Remote Sensing bugzilla #124 [no longer available]</a>.
+The <a class="reference internal" href="../functions/TIFFWriteDirectory.html"><span class="doc">TIFFWriteDirectory</span></a> man page discusses this new function as well as the related
+<a class="reference internal" href="../functions/TIFFWriteDirectory.html#c.TIFFRewriteDirectory" title="TIFFRewriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRewriteDirectory()</span></code></a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_codec.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_compress.c</span></code>,
+<code class="file docutils literal notranslate"><span class="pre">libtiff/tiffiop.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>:
+Introduced additional members <code class="docutils literal notranslate"><span class="pre">tif-&gt;tif_decodestatus</span></code> and <code class="docutils literal notranslate"><span class="pre">tif-&gt;tif_encodestatus</span></code>
+for correct handling of unconfigured codecs (we should not try to read
+data or to define data size without correct codecs). See bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=119">Remote Sensing bugzilla #119 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirread.c</span></code>: avoid div-by-zero if <code class="xref c c-var docutils literal notranslate"><span class="pre">rowbytes</span></code> is zero in chop func as
+per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=111">Remote Sensing bugzilla #111 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiff.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.h</span></code>,
+<code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirinfo.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirread.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirwrite.c</span></code>:
+Dwight Kelly added get/put code for new tag <code class="docutils literal notranslate"><span class="pre">XMLPACKET</span></code> as
+defined in Adobe XMP Technote. Added missing <code class="docutils literal notranslate"><span class="pre">INKSET</span></code> tag value from TIFF 6.0
+spec <code class="docutils literal notranslate"><span class="pre">INKSET_MULTIINK</span></code> (=2). Added missing tags from Adobe TIFF technotes:
+<code class="docutils literal notranslate"><span class="pre">CLIPPATH</span></code>, <code class="docutils literal notranslate"><span class="pre">XCLIPPATHUNITS</span></code>, <code class="docutils literal notranslate"><span class="pre">YCLIPPATHUNITS</span></code>, <code class="docutils literal notranslate"><span class="pre">OPIIMAGEID</span></code>, <code class="docutils literal notranslate"><span class="pre">OPIPROXY</span></code> and
+<code class="docutils literal notranslate"><span class="pre">INDEXED</span></code>. Added <code class="docutils literal notranslate"><span class="pre">PHOTOMETRIC</span></code> tag value from TIFF technote 4 <code class="docutils literal notranslate"><span class="pre">ICCLAB</span></code> (=9).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>: Additional check for supported codecs added in
+<a class="reference internal" href="../functions/TIFFRGBAImage.html#c.TIFFRGBAImageOK" title="TIFFRGBAImageOK"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageOK()</span></code></a>, <a class="reference internal" href="../functions/TIFFReadRGBAImage.html#c.TIFFReadRGBAImage" title="TIFFReadRGBAImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAImage()</span></code></a>, <a class="reference internal" href="../functions/TIFFReadRGBAStrip.html#c.TIFFReadRGBAStrip" title="TIFFReadRGBAStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAStrip()</span></code></a> and
+<a class="reference internal" href="../functions/TIFFReadRGBATile.html#c.TIFFReadRGBATile" title="TIFFReadRGBATile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBATile()</span></code></a> now use <a class="reference internal" href="../functions/TIFFRGBAImage.html#c.TIFFRGBAImageOK" title="TIFFRGBAImageOK"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageOK()</span></code></a> before reading a per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=110">Remote Sensing bugzilla #110 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirinfo.c</span></code>,
+<code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirread.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirwrite.c</span></code>:
+Added routine <a class="reference internal" href="../functions/TIFFDataWidth.html#c.TIFFDataWidth" title="TIFFDataWidth"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDataWidth()</span></code></a> for determining
+<code class="xref c c-enum docutils literal notranslate"><span class="pre">TIFFDataType</span></code> sizes instead of working with <code class="xref c c-var docutils literal notranslate"><span class="pre">tiffDataWidth</span></code> array
+directly as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=109">Remote Sensing bugzilla #109 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirinfo.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirwrite.c</span></code>: Added possibility to
+read broken TIFFs with <code class="docutils literal notranslate"><span class="pre">LONG</span></code> type used for <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_COMPRESSION</span></code>,
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_BITSPERSAMPLE</span></code>, <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PHOTOMETRIC</span></code> as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=99">Remote Sensing bugzilla #99 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiff.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_fax3.c</span></code>: Add support for
+:c:macro:<code class="docutils literal notranslate"><span class="pre">__arch64__</span></code> as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=94">Remote Sensing bugzilla #94 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_read.c</span></code>: Fixed <a class="reference internal" href="../functions/TIFFReadEncodedStrip.html#c.TIFFReadEncodedStrip" title="TIFFReadEncodedStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEncodedStrip()</span></code></a> to fail if the
+decodestrip function returns anything not greater than zero as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=97">Remote Sensing bugzilla #97 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg.c</span></code>: fixed computation of <code class="xref c c-var docutils literal notranslate"><span class="pre">segment_width</span></code> for
+tiled files to avoid error about it not matching the
+<code class="docutils literal notranslate"><span class="pre">cinfo.d.image_width</span></code> values (“JPEGPreDecode: Improper JPEG strip/tile
+size.”) for ITIFF files.  Apparently the problem was incorporated since
+3.5.5, presumably during the OJPEG/JPEG work recently.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>: If <code class="xref c c-macro docutils literal notranslate"><span class="pre">DEFAULT_EXTRASAMPLE_AS_ALPHA</span></code> is 1
+(defined in <code class="file docutils literal notranslate"><span class="pre">tiffconf.h</span></code> - 1 by default) then the RGBA interface
+will assume that a fourth extra sample is <code class="docutils literal notranslate"><span class="pre">ASSOCALPHA</span></code> if the
+<code class="docutils literal notranslate"><span class="pre">EXTRASAMPLE</span></code> value isn’t set for it.  This changes the behaviour of
+the library, but makes it work better with RGBA files produced by
+lots of applications that don’t mark the alpha values properly.
+As per bugs <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=93">Remote Sensing bugzilla #93 [no longer available]</a> and <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=65">Remote Sensing bugzilla #65 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_jpeg.c</span></code>: allow jpeg data stream sampling values to
+override those from tiff directory.  This makes this work with
+ImageGear generated files.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul>
+<li><p><strong class="program">tiff2ps</strong>:</p>
+<ul class="simple">
+<li><p>Added page size setting when creating PS Level 2.</p></li>
+<li><p>Fixed PS comment emitted when FlateDecode is being used.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffsplit</strong>: increased the maximum number of pages that can be split.</p></li>
+<li><p><strong class="program">raw2tiff</strong>:</p>
+<ul class="simple">
+<li><p>New utility for turning raw raster images into TIFF files
+written by Andrey Kiselev.</p></li>
+<li><p>Added option “<code class="docutils literal notranslate"><span class="pre">-p</span></code>” to explicitly select color  space of input image data.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffmedian</strong>: Support for large (&gt; 2GB) images.</p></li>
+<li><p><strong class="program">ppm2tiff</strong>: Fixed possible endless loop.</p></li>
+<li><p><strong class="program">tiff2rgba</strong>: Switched to use :c:func:TIFFReadRGBAImageOriented
+instead of <a class="reference internal" href="../functions/TIFFReadRGBAImage.html#c.TIFFReadRGBAImage" title="TIFFReadRGBAImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAImage()</span></code></a>.</p></li>
+<li><p><strong class="program">tiffcmp</strong>: Fixed problem with unused data comparing (bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=349">Remote Sensing bugzilla #349 [no longer available]</a>).
+“<code class="docutils literal notranslate"><span class="pre">-z</span></code>” option now can be used to set the number of reported different bytes.</p></li>
+<li><p><strong class="program">tiffcp</strong>:</p>
+<ul class="simple">
+<li><p>Added possibility to specify value -1 to “<code class="docutils literal notranslate"><span class="pre">-r</span></code>” option to get the entire image as one strip
+(bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=343">Remote Sensing bugzilla #343 [no longer available]</a>).</p></li>
+<li><p>Set the correct <code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code> and <code class="docutils literal notranslate"><span class="pre">PageNumber</span></code> values (bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=343">Remote Sensing bugzilla #343 [no longer available]</a>).</p></li>
+<li><p>Fixed problem with colorspace conversion for JPEG encoded images (bugs <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=23">Remote Sensing bugzilla #23 [no longer available]</a>
+and <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=275">Remote Sensing bugzilla #275 [no longer available]</a>)</p></li>
+<li><p>Added support for <code class="docutils literal notranslate"><span class="pre">Orientation</span></code> tag.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">fax2tiff</strong>:</p>
+<ul class="simple">
+<li><p>Page numbering fixed (bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=341">Remote Sensing bugzilla #341 [no longer available]</a>).</p></li>
+<li><p>Applied patch from Julien Gaulmin. More switches for <strong class="program">fax2tiff</strong> tool for better control
+of input and output (bugs <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=272">Remote Sensing bugzilla #272 [no longer available]</a> and <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=293">Remote Sensing bugzilla #293 [no longer available]</a>).</p></li>
+<li><p>Updated to reflect latest changes in libtiff per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=125">Remote Sensing bugzilla #125 [no longer available]</a>.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">ppm2tiff</strong>: PPM header parser improved: now able to skip comments.</p></li>
+<li><p><strong class="program">tiff2ps</strong>:</p>
+<ul>
+<li><p>Sebastian Eken provided patches (bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=200">Remote Sensing bugzilla #200 [no longer available]</a>) to add new these new switches:</p>
+<dl class="simple">
+<dt>“<code class="docutils literal notranslate"><span class="pre">-b</span> <span class="pre">#</span></code>”:</dt><dd><p>for a bottom margin of # inches</p>
+</dd>
+<dt>“<code class="docutils literal notranslate"><span class="pre">-c</span></code>”:</dt><dd><p>center image</p>
+</dd>
+<dt>“<code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">#</span></code>”:</dt><dd><p>for a left margin of # inches</p>
+</dd>
+<dt>“<code class="docutils literal notranslate"><span class="pre">-r</span></code>”:</dt><dd><p>rotate the image by 180 degrees</p>
+</dd>
+</dl>
+<p>Also, new features merged with code for shrinking/overlapping.</p>
+</li>
+<li><p>Force deadzone printing when EPS output specified (bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=325">Remote Sensing bugzilla #325 [no longer available]</a>).</p></li>
+<li><p>Add ability to generate PS Level 3. It basically allows one to use the <code class="docutils literal notranslate"><span class="pre">/flateDecode</span></code>
+filter for ZIP compressed TIFF images. Patch supplied by Tom Kacvinsky
+(bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=328">Remote Sensing bugzilla #328 [no longer available]</a>).</p></li>
+<li><p>Don’t emit <code class="docutils literal notranslate"><span class="pre">BeginData</span></code>/<code class="docutils literal notranslate"><span class="pre">EndData</span></code> DSC comments since we are unable to properly
+include the amount to skip as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=80">Remote Sensing bugzilla #80 [no longer available]</a>.</p></li>
+<li><p>Added workaround for some software that may crash when last strip of image contains fewer
+number of scanlines than specified by the <code class="docutils literal notranslate"><span class="pre">/Height</span></code> variable as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=164">Remote Sensing bugzilla #164 [no longer available]</a>.</p></li>
+<li><p>Patch from John Williams to add new functionality for splitting long images in several pages as
+per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=142">Remote Sensing bugzilla #142 [no longer available]</a>. New switches:</p>
+<dl class="simple">
+<dt>“<code class="docutils literal notranslate"><span class="pre">-H</span> <span class="pre">#</span></code>”:</dt><dd><p>split image if height is more than # inches</p>
+</dd>
+<dt>“<code class="docutils literal notranslate"><span class="pre">-L</span> <span class="pre">#</span></code>”:</dt><dd><p>overLap split images by # inches</p>
+</dd>
+</dl>
+</li>
+<li><p>New commandline switches to override resolution units obtained from the input file per
+bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=131">Remote Sensing bugzilla #131 [no longer available]</a>:</p>
+<dl class="simple">
+<dt>“<code class="docutils literal notranslate"><span class="pre">-x</span></code>”:</dt><dd><p>override resolution units as centimeters</p>
+</dd>
+<dt>“<code class="docutils literal notranslate"><span class="pre">-y</span></code>”:</dt><dd><p>override resolution units as inches</p>
+</dd>
+</dl>
+</li>
+<li><p>tiff2ps: Division by zero fixed as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=88">Remote Sensing bugzilla #88 [no longer available]</a>.</p></li>
+</ul>
+</li>
+<li><p><strong class="program">tiffdump</strong>: include <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGTABLES</span></code> in tag list.</p></li>
+<li><p><strong class="program">tiffset</strong>: fix bug in error reporting.</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Fixed distribution to include <code class="file docutils literal notranslate"><span class="pre">contrib/addtiffo/tif_ovrcache.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">contrib/addtiffo/tif_ovrcache.h</span></code>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/contrib/win95</span></code>: renamed to <code class="file docutils literal notranslate"><span class="pre">contrib/win_dib</span></code>.  Added new
+<code class="file docutils literal notranslate"><span class="pre">Tiffile.cpp</span></code> example of converting TIFF files into a DIB on Win32 as per
+bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=143">Remote Sensing bugzilla #143 [no longer available]</a>.</p></li>
+</ul>
+</section>
+<section id="lzw-compression-kit-changes">
+<h2>LZW compression kit changes<a class="headerlink" href="#lzw-compression-kit-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>LZW compression kit synchronized with actual libtiff version.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.6.0</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a><ul>
+<li><a class="reference internal" href="#custom-tag-support">Custom Tag Support</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+<li><a class="reference internal" href="#lzw-compression-kit-changes">LZW compression kit changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.6.1.html"
+                          title="previous chapter">Changes in TIFF v3.6.1</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v3.5.7.html"
+                          title="next chapter">Changes in TIFF v3.5.7</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.6.0.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.5.7.html" title="Changes in TIFF v3.5.7"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v3.6.1.html" title="Changes in TIFF v3.6.1"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.6.0</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${TMPDIR:=/tmp}
+
+set -o history
+HISTFILE=$TMPDIR/history-$$
+
+history -c
+
+echo a
+echo b
+echo c
+echo d
+echo e
+
+history ; echo 
+
+history -d 2-4
+
+history
+
+echo f
+echo g
+echo h
+echo i
+history -d 6--1
+history ; echo
+
+history -d 16-40
+history -d 1-200
+history -d -20-50
+history -d 1--50
+history -d 5-0xaf
+
+history ; echo
+
+unset HISTFILE
+exit 0

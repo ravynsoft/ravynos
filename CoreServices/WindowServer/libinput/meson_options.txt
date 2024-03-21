@@ -1,0 +1,36 @@
+option('udev-dir',
+       type: 'string',
+       value: '',
+       description: 'udev base directory [default=$prefix/lib/udev]')
+option('epoll-dir',
+       type: 'string',
+       value: '',
+       description: 'libepoll-shim base directory (for non-Linux OS) [default=$prefix]')
+option('libwacom',
+       type: 'boolean',
+       value: true,
+       description: 'Use libwacom for tablet identification (default=true)')
+option('debug-gui',
+       type: 'boolean',
+       value: true,
+       description: 'Enable the "debug-gui" feature in the libinput tool [default=true]')
+option('tests',
+       type: 'boolean',
+       value: true,
+       description: 'Build the tests [default=true]')
+option('install-tests',
+       type: 'boolean',
+       value: false,
+       description: 'Install the libinput test command [default=false]')
+option('documentation',
+       type: 'boolean',
+       value: false,
+       description: 'Build the documentation [default=false]')
+option('coverity',
+       type: 'boolean',
+       value: false,
+       description: 'Enable coverity build fixes, see meson.build for details [default=false]')
+option('zshcompletiondir',
+       type: 'string',
+       value: '',
+       description: 'Directory for zsh completion scripts ["no" disables]')

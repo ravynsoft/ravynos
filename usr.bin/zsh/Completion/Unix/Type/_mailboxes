@@ -1,0 +1,198 @@
+#autoload
+
+_mailboxes() {
+  #emulate -L zsh
+  local expl ret=1
+  local maildirectory pinedirectory
+  zstyle -s ":completion:${curcontext}:" mail-directory maildirectory || maildirectory="~/Mail"
+  zstyle -s ":completion:${curcontext}:" pine-directory pinedirectory
+
+  if (( ! $+_mailbox_cache )) then
+    _mailbox_cache "$@"
+  fi
+
+  case "${curcontext}:" in
+    (*:mail:*)
+      if [[ "$PREFIX" == +* ]]; then
+	_tags mailboxes
+      else
+        _tags mailboxes files
+      fi;;
+    (*:(mush|zmail|zmlite):*)
+      if [[ "$PREFIX" == [%+]* ]]; then
+	_tags mailboxes
+      else
+        _tags mailboxes files
+      fi;;
+    (*:mutt:*)
+      if [[ "$PREFIX" == (|-f)[+=]* ]]; then
+	_tags mailboxes
+      else
+        _tags mailboxes files
+      fi;;
+    (*:pine:*)
+      # Files for pine must be absolute paths.
+      if [[ "$PREFIX" == (|-f)[/\~]* ]]; then
+        pinedirectory=''
+        _tags mailboxes files
+      else
+        _tags mailboxes
+      fi;;
+    (*)
+      if [[ "$PREFIX" == (|-f)+* ]]; then
+	_tags mailboxes
+      else
+        _tags mailboxes files
+      fi;;
+  esac
+
+  while _tags; do
+    _requested mailboxes expl 'mailbox specification' _mua_mailboxes && ret=0
+
+    if _requested files expl 'mailbox file'; then
+      [[ "${curcontext}:" != *:(mail|mush|mutt|zmail|zmlite):* ]] &&
+	compset -P -f
+      _files "$expl[@]" && ret=0
+    fi
+    (( ret )) || return 0
+  done
+
+  return 1
+}
+
+_mailbox_cache () {
+  local i j _mc_tmp
+  local -aU dirboxes
+  local maildirectory pinedirectory muttrc
+  typeset -aU -g _mailbox_cache
+  typeset -aU -g _maildir_cache _mbox_cache _mh_cache _mutt_cache _pine_cache
+
+  zstyle -s ":completion:${curcontext}:" mail-directory maildirectory || maildirectory="~/Mail"
+  zstyle -s ":completion:${curcontext}:" pine-directory pinedirectory
+  zstyle -s ":completion:${curcontext}:" muttrc muttrc || muttrc="~/.muttrc"
+
+  [[ -f ${~muttrc:-.} ]] &&
+    _mc_tmp=${=${(M)${(f)"$(<${~muttrc})"}:#mailboxes *}#mailboxes *} &&
+    _mutt_cache=( ${=${(Xe)_mc_tmp}} )
+
+  _mbox_cache=( ${~maildirectory}/*(^/) )
+  if [[ -n $pinedirectory ]]; then
+    _pine_cache=( ${~pinedirectory}/**/*(.) )
+  else
+    _pine_cache=()
+  fi
+
+  dirboxes=( ${~maildirectory}/*(/) )
+
+  while (( $#dirboxes )); do
+    i=${dirboxes[1]}
+    shift dirboxes
+    if [[ -d "$i/cur" ]]; then
+      _maildir_cache=( "${_maildir_cache[@]}" "$i" )
+    elif j=( "$i"/<1-> ) && [[ -n "$j" ]]; then
+      _mh_cache=( "${_mh_cache[@]}" "$i" )
+      dirboxes=( $dirboxes "$i"/*(/) )
+    else
+      _mbox_cache=( "${_mbox_cache[@]}" "$i"/*(.) )
+      dirboxes=( $dirboxes "$i"/*(/) )
+    fi
+  done
+
+  [[ -n "$mailpath" ]] &&
+      _mailbox_cache=( "${_mailbox_cache[@]}" "${(@)mailpath%%\?*}" )
+
+  [[ -n "$MAIL" ]] && _mailbox_cache=( "${_mailbox_cache[@]}" $MAIL )
+}
+
+_mua_mailboxes() {
+  local -a mbox_short
+  local -aU mbox_names
+  local ret=1
+
+  local maildirectory pinedirectory
+  zstyle -s ":completion:${curcontext}:" mail-directory maildirectory || maildirectory="~/Mail"
+  zstyle -s ":completion:${curcontext}:" pine-directory pinedirectory
+
+  case "${curcontext}:" in
+    (*:elm:*) # I've probably got this wrong, or at least incomplete
+      mbox_names=( "${_mbox_cache[@]}" "${_mailbox_cache[@]}" )
+      mbox_short=( \! \< \> )
+      ;;
+    (*:mail:*)
+      if compset -P +; then
+        mbox_names=( "${(@)_mbox_cache#$~maildirectory/}" )
+      else
+        mbox_names=( +"${(@)^_mbox_cache#$~maildirectory/}"
+		    "${_mailbox_cache[@]}" )
+      fi
+      ;;
+    (*:mh:*)
+      local lastmhbox=$(mhpath)
+      if compset -P +; then
+	mbox_names=( "${(@)_mh_cache#$~maildirectory/}" )
+      elif compset -P @; then
+	mbox_names=( "${(@)${(@M)_mh_cache:#$~lastmhbox/*}#$~lastmhbox/}" )
+      else
+	mbox_names=( +"${(@)^_mh_cache#$~maildirectory/}"
+		     @"${(@)^${(@M)_mh_cache:#$~lastmhbox/*}#$~lastmhbox/}"
+		     "${_mh_cache[@]}" )
+      fi
+      ;;
+    (*:mush:*)
+      if compset -P %; then
+        mbox_short=( "${(@k)userdirs}" )
+      elif compset -P +; then
+        mbox_names=( "${(@)_mbox_cache#$~maildirectory/}" )
+      else
+        mbox_names=( +"${(@)^_mbox_cache#$~maildirectory/}"
+		     "${_mailbox_cache[@]}" )
+        mbox_short=( \& % %"${(@k)^userdirs}" )
+      fi
+      ;;
+    (*:mutt:*)
+      if compset -P '(|\\)='; then
+        mbox_names=( "${_mutt_cache[@]#[+=]}" "${(@)_mbox_cache#$~maildirectory/}" "${(@)_maildir_cache#$~maildirectory/}" "${(@)_mh_cache#$~maildirectory/}")
+      elif compset -P +; then
+        mbox_names=( "${_mutt_cache[@]#[+=]}" "${(@)_mbox_cache#$~maildirectory/}" "${(@)_maildir_cache#$~maildirectory/}" "${(@)_mh_cache#$~maildirectory/}")
+      else
+      mbox_names=( "${_mutt_cache[@]}" "${_mailbox_cache[@]}"
+		   "${_maildir_cache[@]}" "${_mh_cache[@]}" )
+      mbox_short=( \! \< \> )
+      fi
+      ;;
+    (*:pine:*)
+      mbox_names=( "${_mbox_cache[@]}"
+		   "${_mailbox_cache[@]}" "${_mh_cache[@]}" )
+      # Pine is like mail but with no leading `+' to disambiguate;
+      # any files not in $pinedirectory must be absolute paths.
+      if [[ -n $pinedirectory ]]; then
+	mbox_names+=( "${(@)_pine_cache#$~pinedirectory/}" )
+      fi
+      ;;
+    (*:tkrat:*) # Has a couple of custom formats I haven't programmed for.
+      mbox_names=( "${_mbox_cache[@]}"
+		   "${_mailbox_cache[@]}" "${_mh_cache[@]}" )
+      ;;
+    (*:(zmail|zmlite):*)
+      if compset -P %; then
+        mbox_short=( "${(@k)userdirs}" )
+      elif compset -P +; then
+        mbox_names=( "${(@)_mbox_cache#$~maildirectory/}" )
+      else
+        mbox_names=( +"${(@)^_mbox_cache#$~maildirectory/}"
+		     "${_mailbox_cache[@]}" "${_mh_cache[@]}" )
+        mbox_short=( \& % %"${(@k)^userdirs}" )
+      fi
+      ;;
+    (*) # Some other program wants mailbox names?  Use them all?
+       mbox_names=( "${_mailbox_cache[@]}" "${_mbox_cache[@]}"
+		    "${_mh_cache[@]}" "${_mutt_cache[@]}" "${_pine_cache[@]}" )
+       ;;
+  esac
+
+  (( $#mbox_names )) && _multi_parts "$@" / mbox_names && ret=0
+  (( $#mbox_short )) && compadd "$@" -a mbox_short && ret=0
+  return ret
+}
+
+_mailboxes "$@"

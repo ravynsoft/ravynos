@@ -1,0 +1,50 @@
+# Copyright (C) 2016-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { ![istarget arc-*-*] } {
+    return
+}
+
+set arc_test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach arc_test $arc_test_list {
+    verbose [file rootname $arc_test]
+    run_dump_test [file rootname $arc_test]
+}
+
+# Note - we force the generation of little endian binaries, even if the default is
+# for big endian, because the sda-relocs.ld script selects little endian output.
+set arccommon_tests {
+    { "SDA relocs"
+        "-q -T sda-relocs.ld -A elf32-arclittle" "" "-mcpu=archs -EL" {sda-relocs.s}
+        {{objdump -fdw sda-relocs.dd} {readelf --relocs sda-relocs.rd}}
+        "sda-relocs.so" }
+    { "TLS reloc dtpoff"
+        "-q -T tls-relocs.ld -A elf32-arclittle" "" "-mcpu=archs -EL"
+	{tls-dtpoff.s}
+        {{objdump -fdw tls-dtpoff.dd} {readelf --relocs tls-dtpoff.rd}}
+        "sda-relocs.so" }
+    { "JLI simple"
+        "-q -T jli-script.ld -A elf32-arclittle" "" "-mcpu=em4 -EL"
+	{jli-simple.s}
+        {{objdump -fdw jli-simple.dd} {readelf --relocs jli-simple.rd}}
+        "jli-simple.so" }
+}
+
+run_ld_link_tests $arccommon_tests

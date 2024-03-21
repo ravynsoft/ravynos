@@ -1,0 +1,60 @@
+# GAS testsuite for the Linux eBPF -*- Tcl -*-
+#
+# Copyright (C) 2019-2023 Free Software Foundation, Inc.
+# Contributed by Oracle, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+if {[istarget bpf*-*-*]} {
+    run_dump_test lddw
+    run_dump_test lddw-pseudoc
+    run_dump_test alu
+    run_dump_test alu-pseudoc
+    run_dump_test alu32
+    run_dump_test alu32-pseudoc
+    run_dump_test mem
+    run_dump_test mem-pseudoc
+    run_dump_test jump
+    run_dump_test jump-pseudoc
+    run_dump_test jump32
+    run_dump_test jump32-pseudoc
+    run_dump_test call
+    run_dump_test exit
+    run_dump_test atomic
+    run_dump_test atomic-pseudoc
+    run_dump_test data
+    run_dump_test pseudoc-normal
+
+    run_dump_test lddw-be
+    run_dump_test lddw-be-pseudoc
+    run_dump_test alu-be
+    run_dump_test alu-be-pseudoc
+    run_dump_test alu32-be
+    run_dump_test alu32-be-pseudoc
+    run_dump_test mem-be
+    run_dump_test jump-be
+    run_dump_test call-be
+    run_dump_test exit-be
+    run_dump_test atomic-be
+    run_dump_test data-be
+    run_dump_test pseudoc-normal-be
+
+    run_dump_test indcall-1
+    run_dump_test indcall-1-pseudoc
+    run_list_test indcall-bad-1
+
+    run_dump_test alu-xbpf
+    run_dump_test alu32-xbpf
+}

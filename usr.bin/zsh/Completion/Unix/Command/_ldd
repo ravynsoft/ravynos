@@ -1,0 +1,43 @@
+#compdef ldd
+
+if _pick_variant gnu='(Free Soft|GNU|GLIBC|Gentoo)' unix --version; then
+  args=(
+    '(- *)--version[display version information]'
+    '(- *)--help[display help information]'
+    '(-v --verbose)'{-v,--verbose}'[include symbol versioning information]'
+    '(-d --data-relocs)'{-d,--data-relocs}'[perform data relocations and report missing objects]'
+    '(-r --function-relocs)'{-r,--function-relocs}'[perform data/function relocations and report missing objects]'
+    '(-u --unused)'{-u,--unused}'[display any unused objects]'
+  )
+else
+  case $OSTYPE in
+    solaris*)
+      args=(
+	-s
+	'(-r)-d[check immediate references]'
+	'(-d)-r[check immediate and lazy references]'
+	'-u[display any unused objects]'
+	'-U[display any unreferenced, or unused dependencies]'
+	'-e[set specified environment variable]:environment variable:(LD_PRELOAD LD_LIBRARY_PATH LD_RUN_PATH LD_DEBUG LD_DEBUG_OUTPUT LD_NOCONFIG LD_NOAUXFLTR)'
+	'-f[check for insecure executable]'
+	'-i[display order of execution of initialization sections]'
+	'-L[enable lazy loading]'
+	'-l[force immediate processing of any filters]'
+	'-s[display search path used]'
+	'-v[displays all dependency relationships]'
+      )
+    ;;
+    freebsd*)
+      args=(
+        '-a[show all objects that are needed by each loaded object]'
+	'-v[verbose listing of the dynamic linking headers]'
+	'-f+[specify format]:format:((%a\:program\ name %A\:environment\ name %o\:library\ name %p\:path\ to\ library %x\:load\ address))'
+      )
+    ;;
+  esac
+fi
+
+_arguments $args \
+  '*: : _alternative
+    "executables:executable:_files -g \^\*.so\(\-\*\)"
+      "shared-objects:shared object:_files -g \*.so\(-.\)"'

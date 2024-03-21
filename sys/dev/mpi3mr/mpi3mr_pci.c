@@ -145,6 +145,10 @@ mpi3mr_setup_sysctl(struct mpi3mr_softc *sc)
 	    OID_AUTO, "io_cmds_highwater", CTLFLAG_RD,
 	    &sc->io_cmds_highwater, 0, "Max FW outstanding commands");
 
+	SYSCTL_ADD_STRING(sysctl_ctx, SYSCTL_CHILDREN(sysctl_tree),
+	    OID_AUTO, "firmware_version", CTLFLAG_RD, sc->fw_version,
+	    strlen(sc->fw_version), "firmware version");
+
 	SYSCTL_ADD_UINT(sysctl_ctx, SYSCTL_CHILDREN(sysctl_tree),
 	    OID_AUTO, "mpi3mr_debug", CTLFLAG_RW, &sc->mpi3mr_debug, 0,
 	    "Driver debug level");
@@ -252,6 +256,7 @@ mpi3mr_release_resources(struct mpi3mr_softc *sc)
 
 static int mpi3mr_setup_resources(struct mpi3mr_softc *sc)
 {
+	bus_dma_template_t t;
 	int i;
 	device_t dev = sc->mpi3mr_dev;
 	
@@ -273,21 +278,22 @@ static int mpi3mr_setup_resources(struct mpi3mr_softc *sc)
 	sc->mpi3mr_btag = rman_get_bustag(sc->mpi3mr_regs_resource);
 	sc->mpi3mr_bhandle = rman_get_bushandle(sc->mpi3mr_regs_resource);
 
+	/*
+	 * XXX Perhaps we should move this to after we read iocfacts and use
+	 * that to create the proper parent tag.  However, to get the iocfacts
+	 * we need to have a dmatag for both the admin queue and the iocfacts
+	 * DMA transfer.  So for now, we just create a 'no restriction' tag and
+	 * use sc->dma_loaddr for all the other tag_create calls to get the
+	 * right value.  It would be nice if one could retroactively adjust a
+	 * created tag.  The Linux driver effectively does this by setting the
+	 * dma_mask on the device.
+	 */
 	/* Allocate the parent DMA tag */
-	if (bus_dma_tag_create(bus_get_dma_tag(dev),  	/* parent */
-				1, 0,			/* algnmnt, boundary */
-				BUS_SPACE_MAXADDR_32BIT,/* lowaddr */
-				BUS_SPACE_MAXADDR,	/* highaddr */
-				NULL, NULL,		/* filter, filterarg */
-				BUS_SPACE_MAXSIZE_32BIT,/* maxsize */
-				BUS_SPACE_UNRESTRICTED,	/* nsegments */
-				BUS_SPACE_MAXSIZE_32BIT,/* maxsegsize */
-                                0,			/* flags */
-                                NULL, NULL,		/* lockfunc, lockarg */
-                                &sc->mpi3mr_parent_dmat)) {
+	bus_dma_template_init(&t, bus_get_dma_tag(dev));
+	if (bus_dma_template_tag(&t, &sc->mpi3mr_parent_dmat)) {
 		mpi3mr_dprint(sc, MPI3MR_ERROR, "Cannot allocate parent DMA tag\n");
 		return (ENOMEM);
-        }
+	}
 
 	sc->max_msix_vectors = pci_msix_count(dev);
 	
@@ -307,6 +313,7 @@ static void
 mpi3mr_ich_startup(void *arg)
 {
 	struct mpi3mr_softc *sc;
+	int error;
 
 	sc = (struct mpi3mr_softc *)arg;
 	mpi3mr_dprint(sc, MPI3MR_XINFO, "%s entry\n", __func__);
@@ -314,7 +321,15 @@ mpi3mr_ich_startup(void *arg)
 	mtx_lock(&sc->mpi3mr_mtx);
 	
 	mpi3mr_startup(sc);
+
 	mtx_unlock(&sc->mpi3mr_mtx);
+
+	error = mpi3mr_kproc_create(mpi3mr_watchdog_thread, sc,
+	    &sc->watchdog_thread, 0, 0, "mpi3mr_watchdog%d",
+	    device_get_unit(sc->mpi3mr_dev));
+
+	if (error)
+		device_printf(sc->mpi3mr_dev, "Error %d starting OCR thread\n", error);
 
 	mpi3mr_dprint(sc, MPI3MR_XINFO, "disestablish config intrhook\n");
 	config_intrhook_disestablish(&sc->mpi3mr_ich);
@@ -440,14 +455,6 @@ mpi3mr_pci_attach(device_t dev)
 
 	if ((error = mpi3mr_cam_attach(sc)) != 0) {
 		mpi3mr_dprint(sc, MPI3MR_ERROR, "CAM attach failed\n");
-		goto load_failed;
-	}
-	
-	error = mpi3mr_kproc_create(mpi3mr_watchdog_thread, sc,
-	    &sc->watchdog_thread, 0, 0, "mpi3mr_watchdog%d",
-	    device_get_unit(sc->mpi3mr_dev));
-	if (error) {
-		device_printf(sc->mpi3mr_dev, "Error %d starting OCR thread\n", error);
 		goto load_failed;
 	}
 	
@@ -634,13 +641,15 @@ mpi3mr_pci_detach(device_t dev)
 	if (!sc->secure_ctrl)
 		return 0;
 	
-	sc->mpi3mr_flags |= MPI3MR_FLAGS_SHUTDOWN;
 	
 	if (sc->sysctl_tree != NULL)
 		sysctl_ctx_free(&sc->sysctl_ctx);
 	
+	mtx_lock(&sc->reset_mutex);
+	sc->mpi3mr_flags |= MPI3MR_FLAGS_SHUTDOWN;
 	if (sc->watchdog_thread_active)
 		wakeup(&sc->watchdog_chan);
+	mtx_unlock(&sc->reset_mutex);
 	
 	while (sc->reset_in_progress && (i < PEND_IOCTLS_COMP_WAIT_TIME)) {
 		i++;

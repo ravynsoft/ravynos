@@ -1,0 +1,390 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test the ksh-like extended globbing features: [!@*?+](patlist)
+
+shopt -s extglob
+
+expect()
+{
+	echo expect "$@"
+}
+
+case "/dev/udp/129.22.8.102/45" in
+/dev/@(tcp|udp)/*/*)	echo ok 1;;
+*)		echo bad 1;;
+esac
+
+# valid numbers
+case 12 in
+0|[1-9]*([0-9]))	echo ok 2;;
+*)			echo bad 2;;
+esac
+
+case 12abc in
+0|[1-9]*([0-9]))	echo bad 3;;
+*)			echo ok 3;;
+esac
+
+case 1 in
+0|[1-9]*([0-9]))	echo ok 4;;
+*)			echo bad 4;;
+esac
+
+# octal numbers
+case 07 in
++([0-7]))		echo ok 5;;
+*)			echo bad 5;;
+esac
+
+case 0377 in
++([0-7]))		echo ok 6;;
+*)			echo bad 6;;
+esac
+
+case 09 in
++([0-7]))		echo bad 7;;
+*)			echo ok 7;;
+esac
+
+# stuff from korn's book
+case paragraph in
+para@(chute|graph))	echo ok 8;;
+*)			echo bad 8;;
+esac
+
+case paramour in
+para@(chute|graph))	echo bad 9;;
+*)			echo ok 9;;
+esac
+
+case para991 in
+para?([345]|99)1)	echo ok 10;;
+*)			echo bad 10;;
+esac
+
+case para381 in
+para?([345]|99)1)	echo bad 11;;
+*)			echo ok 11;;
+esac
+
+case paragraph in
+para*([0-9]))		echo bad 12;;
+*)			echo ok 12;;
+esac
+
+case para in
+para*([0-9]))		echo ok 13;;
+*)			echo bad 13;;
+esac
+
+case para13829383746592 in
+para*([0-9]))		echo ok 14;;
+*)			echo bad 14;;
+esac
+
+case paragraph in
+para*([0-9]))		echo bad 15;;
+*)			echo ok 15;;
+esac
+
+case para in
+para+([0-9]))		echo bad 16;;
+*)			echo ok 16;;
+esac
+
+case para987346523 in
+para+([0-9]))		echo ok 17;;
+*)			echo bad 17;;
+esac
+
+case paragraph in
+para!(*.[0-9]))		echo ok 18;;
+*)			echo bad 18;;
+esac
+
+case para.38 in
+para!(*.[0-9]))		echo ok 19;;
+*)			echo bad 19;;
+esac
+
+case para.graph in
+para!(*.[0-9]))		echo ok 20;;
+*)			echo bad 20;;
+esac
+
+case para39 in
+para!(*.[0-9]))		echo ok 21;;
+*)			echo bad 21;;
+esac
+
+# tests derived from those in rosenblatt's korn shell book
+
+case "" in
+*(0|1|3|5|7|9))		echo ok 22;;
+*)			echo bad 22;
+esac
+
+case 137577991 in
+*(0|1|3|5|7|9))		echo ok 23;;
+*)			echo bad 23;
+esac
+
+case 2468 in
+*(0|1|3|5|7|9))		echo bad 24;;
+*)			echo ok 24;
+esac
+
+case file.c in
+*.c?(c))		echo ok 25;;
+*)			echo bad 25;;
+esac
+
+case file.C in
+*.c?(c))		echo bad 26;;
+*)			echo ok 26;;
+esac
+
+case file.cc in
+*.c?(c))		echo ok 27;;
+*)			echo bad 27;;
+esac
+
+case file.ccc in
+*.c?(c))		echo bad 28;;
+*)			echo ok 28;;
+esac
+
+case parse.y in
+!(*.c|*.h|Makefile.in|config*|README))	echo ok 29;;
+*)			echo bad 29;;
+esac
+
+case shell.c in
+!(*.c|*.h|Makefile.in|config*|README))	echo bad 30;;
+*)			echo ok 30;;
+esac
+
+case Makefile in
+!(*.c|*.h|Makefile.in|config*|README))	echo ok 31;;
+*)			echo bad 31;;
+esac
+
+case "VMS.FILE;1" in
+*\;[1-9]*([0-9]))	echo ok 32;;
+*)			echo bad 32;;
+esac
+
+case "VMS.FILE;0" in
+*\;[1-9]*([0-9]))	echo bad 33;;
+*)			echo ok 33;;
+esac
+case "VMS.FILE;" in
+*\;[1-9]*([0-9]))	echo bad 34;;
+*)			echo ok 34;;
+esac
+case "VMS.FILE;139" in
+*\;[1-9]*([0-9]))	echo ok 35;;
+*)			echo bad 35;;
+esac
+case "VMS.FILE;1N" in
+*\;[1-9]*([0-9]))	echo bad 36;;
+*)			echo ok 36;;
+esac
+
+# tests derived from the pd-ksh test suite
+
+MYDIR=$PWD      # save where we are
+
+: ${TMPDIR:=/var/tmp}
+TESTDIR=$TMPDIR/eglob-test-$$
+mkdir $TESTDIR
+builtin cd $TESTDIR || { echo $0: cannot cd to $TESTDIR >&2 ; exit 1; }
+rm -rf *
+
+touch abcx abcz bbc
+expect '!([*)*'
+echo !([*)*
+
+expect '+(a|b[)*'
+echo +(a|b[)*
+
+expect '[a*(]*z'
+echo [a*(]*)z
+
+rm -f abcx abcz bbc
+
+touch abc
+
+expect '+()c'
+echo +()c
+expect '+()x'
+echo +()x
+expect abc
+echo +(*)c
+expect '+(*)x'
+echo +(*)x
+
+# extended globbing should not be performed on the output of substitutions
+x='@(*)'
+expect '@(*)'
+echo $x
+
+expect 'no-file+(a|b)stuff'
+echo no-file+(a|b)stuff
+expect 'no-file+(a*(c)|b)stuff'
+echo no-file+(a*(c)|b)stuff
+
+touch abd acd
+
+expect 'abd acd'
+echo a+(b|c)d
+
+expect 'acd'
+echo a!(@(b|B))d
+
+expect 'abd'
+echo a[b*(foo|bar)]d
+
+# simple kleene star tests
+expect no
+case foo in *(a|b[)) echo yes;; *) echo no;; esac
+
+expect yes
+case foo in *(a|b[)|f*) echo yes;; *) echo no;; esac
+
+# this doesn't work right yet; it is an incorrectly formed pattern
+expect yes
+case '*(a|b[)' in *(a|b[)) echo yes;; *) echo no;; esac
+
+# check extended globbing in pattern removal -- these don't work right yet
+x=abcdef
+
+expect '1: bcdef'
+echo 1: ${x#+(a|abc)}
+expect '2: def'
+echo 2: ${x##+(a|abc)}
+expect '3: abcde'
+echo 3: ${x%+(def|f)}
+expect '4: abc'
+echo 4: ${x%%+(f|def)}
+
+# these work ok
+
+expect '5: ef'
+echo 5: ${x#*(a|b)cd}
+expect '6: ef'
+echo 6: "${x#*(a|b)cd}"
+expect '7: abcdef'
+echo 7: ${x#"*(a|b)cd"}
+
+# More tests derived from a bug report concerning extended glob patterns
+# following a *
+builtin cd $TESTDIR || { echo $0: cannot cd to $TESTDIR >&2 ; exit 1; }
+rm -rf *
+
+touch ab abcdef abef abcfef
+
+expect 'ab abef'
+echo ab*(e|f)
+
+expect 'abcfef abef'
+echo ab?*(e|f)
+
+expect abcdef
+echo ab*d+(e|f)
+
+expect 'ab abcdef abcfef abef'
+echo ab**(e|f)
+
+expect 'abcdef abcfef abef'
+echo ab*+(e|f)
+
+case 'abcfefg' in
+ab**(e|f))	echo ok 37;;
+*)		echo bad 37;;
+esac
+
+case 'abcfefg' in
+ab**(e|f)g)	echo ok 38;;
+*a)		echo bad 38;;
+esac
+
+case ab in
+ab*+(e|f))	echo bad 39;;
+*)		echo ok 39;;
+esac
+
+case abef in
+ab***ef)	echo ok 40;;
+*)		echo bad 40;;
+esac
+
+case abef in
+ab**)		echo ok 41;;
+*)		echo bad 41;;
+esac
+
+# bug in all versions up to and including bash-2.05b
+case "123abc" in
+*?(a)bc)	echo ok 42;;
+*)		echo bad 42;;
+esac
+
+# clean up and do the next one
+
+builtin cd /
+rm -rf $TESTDIR
+
+mkdir $TESTDIR
+builtin cd $TESTDIR
+
+LC_COLLATE=C # have to set this; it affects the sorting 
+touch a.b a,b a:b a-b a\;b a\ b a_b
+
+echo a[^[:alnum:]]b
+echo a[-.,:\;\ _]b
+
+echo a@([^[:alnum:]])b
+echo a@([-.,:; _])b
+echo a@([.])b
+echo a@([^.])b
+echo a@([^x])b
+echo a+([^[:alnum:]])b
+
+echo a@(.|[^[:alnum:]])b
+
+builtin cd /
+rm -rf $TESTDIR
+
+x=abcdef
+recho "${x#*(a|b)cd}"
+
+TEST='a , b'
+shopt -s globstar
+echo ${TEST//*([[:space:]]),*([[:space:]])/,}
+shopt -u globstar
+
+# this is for the benefit of pure coverage, so it writes the pcv file
+# in the right place
+builtin cd "$MYDIR"
+
+${THIS_SH} ./extglob1.sub
+${THIS_SH} ./extglob1a.sub
+${THIS_SH} ./extglob3.sub
+${THIS_SH} ./extglob4.sub
+${THIS_SH} ./extglob5.sub
+${THIS_SH} ./extglob6.sub
+${THIS_SH} ./extglob7.sub
+
+exit 0

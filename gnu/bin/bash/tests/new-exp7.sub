@@ -1,0 +1,13 @@
+foo()
+{
+	echo < <(cat x1)
+}
+
+type foo
+
+declare -f foo
+
+echo $(declare -f foo | sed 's:foo:bar:')
+eval "$(declare -f foo | sed 's:foo:bar:')"
+
+type bar

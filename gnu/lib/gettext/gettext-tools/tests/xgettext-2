@@ -1,0 +1,47 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Even an empty string is extracted, if not overridden by xgettext's
+# default-constructed header entry.
+
+cat <<EOF > xg-test2.in.c
+This is a test of the xgettext functionality.
+/* xgettext:no-c-format */
+_("extract me")
+Sometimes keywords can be spread apart
+xgettext:no-c-format
+_ ( "what about me" )
+And even further on occasion
+_
+(
+"hello"
+)
+
+/* also empty strings */
+_("")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -d xg-test2.tmp -k_ --omit-header --no-location xg-test2.in.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-test2.tmp.po > xg-test2.po || Exit 1
+
+cat <<EOF > xg-test2.ok
+#, no-c-format
+msgid "extract me"
+msgstr ""
+
+msgid "what about me"
+msgstr ""
+
+msgid "hello"
+msgstr ""
+
+msgid ""
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test2.ok xg-test2.po
+result=$?
+
+exit $result

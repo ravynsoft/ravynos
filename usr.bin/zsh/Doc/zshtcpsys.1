@@ -1,0 +1,845 @@
+.TH "ZSHTCPSYS" "1" "May 14, 2022" "zsh 5\&.9"
+.SH "NAME"
+zshtcpsys \- zsh tcp system
+.\" Yodl file: Zsh/tcpsys.yo
+.SH "DESCRIPTION"
+.PP
+A module \fBzsh/net/tcp\fP is provided to provide network I/O over
+TCP/IP from within the shell; see its description in
+\fIzshmodules\fP(1)\&.  This manual page describes a function suite based on the module\&.  
+If the module is installed, the functions are usually installed at the
+same time, in which case they will be available for
+autoloading in the default function search path\&.  In addition to the
+\fBzsh/net/tcp\fP module, the \fBzsh/zselect\fP module is used to implement
+timeouts on read operations\&.  For troubleshooting tips, consult the
+corresponding advice for the \fBzftp\fP functions described in
+\fIzshzftpsys\fP(1)\&.
+.PP
+There are functions corresponding to the basic I/O operations open, close,
+read and send, named \fBtcp_open\fP etc\&., as well as a function
+\fBtcp_expect\fP for pattern match analysis of data read as input\&.  The
+system makes it easy to receive data from and send data to multiple named
+sessions at once\&.  In addition, it can be linked with the shell\&'s line
+editor in such a way that input data is automatically shown at the
+terminal\&.  Other facilities available including logging, filtering and
+configurable output prompts\&.
+.PP
+To use the system where it is available, it should be enough to
+`\fBautoload \-U tcp_open\fP\&' and run \fBtcp_open\fP as documented below to
+start a session\&.  The \fBtcp_open\fP function will autoload the remaining
+functions\&.
+.PP
+.PP
+.SH "TCP USER FUNCTIONS"
+.PP
+.SS "Basic I/O"
+.PP
+.PD 0
+.TP
+.PD 0
+\fBtcp_open\fP [ \fB\-qz\fP ] \fIhost port\fP [ \fIsess\fP ]
+.TP
+.PD 0
+\fBtcp_open\fP [ \fB\-qz\fP ] [ \fB\-s\fP \fIsess\fP | \fB\-l\fP \fIsess\fP[\fB,\fP\&.\&.\&.] ] \&.\&.\&. 
+.TP
+.PD
+\fBtcp_open\fP [ \fB\-qz\fP ] [ \fB\-a\fP \fIfd\fP | \fB\-f\fP \fIfd\fP ] [ \fIsess\fP ]
+Open a new session\&.  In the first and simplest form, open a TCP connection
+to host \fIhost\fP at port \fIport\fP; numeric and symbolic forms are
+understood for both\&.
+.RS
+.PP
+If \fIsess\fP is given, this becomes the name of the session which can be
+used to refer to multiple different TCP connections\&.  If \fIsess\fP is
+not given, the function will invent a numeric name value (note this is
+\fInot\fP the same as the file descriptor to which the session is attached)\&.
+It is recommended that session names not include `funny\&' characters, where
+funny characters are not well\-defined but certainly do not include
+alphanumerics or underscores, and certainly do include whitespace\&.
+.PP
+In the second case, one or more sessions to be opened are given by name\&.
+A single session name is given after \fB\-s\fP and a comma\-separated list
+after \fB\-l\fP; both options may be repeated as many times as necessary\&.
+A failure to open any session causes \fBtcp_open\fP to abort\&.
+The host and port are read from the file \fB\&.ztcp_sessions\fP in the same
+directory as the user\&'s zsh initialisation files, i\&.e\&. usually the home
+directory, but \fB$ZDOTDIR\fP if that is set\&.  The file consists of lines
+each giving a session name and the corresponding host and port, in that
+order (note the session name comes first, not last), separated by
+whitespace\&.
+.PP
+The third form allows passive and fake TCP connections\&.  If the option
+\fB\-a\fP is used, its argument is a file descriptor open for listening for
+connections\&.  No function front\-end is provided to open such a file
+descriptor, but a call to `\fBztcp \-l\fP \fIport\fP\&' will create one with the
+file descriptor stored in the parameter \fB$REPLY\fP\&.  The listening port can
+be closed with `\fBztcp \-c\fP \fIfd\fP\&'\&.  A call to `\fBtcp_open \-a\fP \fIfd\fP'
+will block until a remote TCP connection is made to \fIport\fP on the local
+machine\&.  At this point, a session is created in the usual way and is
+largely indistinguishable from an active connection created with one of the
+first two forms\&.
+.PP
+If the option \fB\-f\fP is used, its argument is a file descriptor which is
+used directly as if it were a TCP session\&.  How well the remainder of the
+TCP function system copes with this depends on what actually underlies this
+file descriptor\&.  A regular file is likely to be unusable; a FIFO (pipe) of
+some sort will work better, but note that it is not a good idea for two
+different sessions to attempt to read from the same FIFO at once\&.
+.PP
+If the option \fB\-q\fP is given with any of the three forms, \fBtcp_open\fP
+will not print informational messages, although it will in any case exit
+with an appropriate status\&.
+.PP
+If the line editor (zle) is in use, which is typically the case if the
+shell is interactive, \fBtcp_open\fP installs a handler inside zle which
+will check for new data at the same time as it checks for keyboard input\&.
+This is convenient as the shell consumes no CPU time while waiting; the
+test is performed by the operating system\&.  Giving the option \fB\-z\fP to
+any of the forms of \fBtcp_open\fP prevents the handler from being
+installed, so data must be read explicitly\&.  Note, however, this is not
+necessary for executing complete sets of send and read commands from a
+function, as zle is not active at this point\&.  Generally speaking, the
+handler is only active when the shell is waiting for input at a command
+prompt or in the \fBvared\fP builtin\&.  The option has no effect if zle is not
+active; `\fB[[ \-o zle]]\fP\&' will test for this\&.
+.PP
+The first session to be opened becomes the current session and subsequent
+calls to \fBtcp_open\fP do not change it\&.  The current session is stored
+in the parameter \fB$TCP_SESS\fP; see below for more detail about the
+parameters used by the system\&.
+.PP
+The function \fBtcp_on_open\fP, if defined, is called when a session
+is opened\&.  See the description below\&.
+.RE
+.TP
+\fBtcp_close\fP [ \fB\-qn\fP ] [ \fB\-a\fP | \fB\-l\fP \fIsess\fP[\fB,\fP\&.\&.\&.] | \fIsess\fP \&.\&.\&. ]
+Close the named sessions, or the current session if none is given,
+or all open sessions if \fB\-a\fP is given\&.  The options \fB\-l\fP and \fB\-s\fP are
+both handled for consistency with \fBtcp_open\fP, although the latter is
+redundant\&.
+.RS
+.PP
+If the session being closed is the current one, \fB$TCP_SESS\fP is unset,
+leaving no current session, even if there are other sessions still open\&.
+.PP
+If the session was opened with \fBtcp_open \-f\fP, the file descriptor is
+closed so long as it is in the range 0 to 9 accessible directly from the
+command line\&.  If the option \fB\-n\fP is given, no attempt will be made to
+close file descriptors in this case\&.  The \fB\-n\fP option is not used for
+genuine \fBztcp\fP session; the file descriptors are always closed with the
+session\&.
+.PP
+If the option \fB\-q\fP is given, no informational messages will be printed\&.
+.RE
+
+.TP
+.PD 0
+\fBtcp_read \fP[ \fB\-bdq\fP ] [ \fB\-t\fP \fITO\fP ] [ \fB\-T\fP \fITO\fP ]
+.TP
+.PD
+\fB         \fP[ \fB\-a\fP | \fB\-u\fP \fIfd\fP[\fB,\fP\&.\&.\&.] | \fB\-l\fP \fIsess\fP[\fB,\fP\&.\&.\&.] | \fB\-s\fP \fIsess\fP \&.\&.\&. ]
+Perform a read operation on the current session, or on a list of
+sessions if any are given with \fB\-u\fP, \fB\-l\fP or \fB\-s\fP, or all open
+sessions if the option \fB\-a\fP is given\&.  Any of the \fB\-u\fP, \fB\-l\fP or
+\fB\-s\fP options may be repeated or mixed together\&.  The \fB\-u\fP option
+specifies a file descriptor directly (only those managed by this system
+are useful), the other two specify sessions as described for
+\fBtcp_open\fP above\&.
+.RS
+.PP
+The function checks for new data available on all the sessions listed\&.
+Unless the \fB\-b\fP option is given, it will not block waiting for new data\&.
+Any one line of data from any of the available sessions will be read,
+stored in the parameter \fB$TCP_LINE\fP, and displayed to standard output
+unless \fB$TCP_SILENT\fP contains a non\-empty string\&.  When printed to
+standard output the string \fB$TCP_PROMPT\fP will be shown at the start of
+the line; the default form for this includes the name of the session being
+read\&.  See below for more information on these parameters\&.  In this mode,
+\fBtcp_read\fP can be called repeatedly until it returns status 2 which
+indicates all pending input from all specified sessions has been handled\&.
+.PP
+With the option \fB\-b\fP, equivalent to an infinite timeout, the function
+will block until a line is available to read from one of the specified
+sessions\&.  However, only a single line is returned\&.
+.PP
+The option \fB\-d\fP indicates that all pending input should be drained\&.  In
+this case \fBtcp_read\fP may process multiple lines in the manner given
+above; only the last is stored in \fB$TCP_LINE\fP, but the complete set is
+stored in the array \fB$tcp_lines\fP\&.  This is cleared at the start of each
+call to \fBtcp_read\fP\&.
+.PP
+The options \fB\-t\fP and \fB\-T\fP specify a timeout in seconds, which may be a
+floating point number for increased accuracy\&.  With \fB\-t\fP the timeout is
+applied before each line read\&.  With \fB\-T\fP, the timeout applies to the
+overall operation, possibly including multiple read operations if the
+option \fB\-d\fP is present; without this option, there is no distinction
+between \fB\-t\fP and \fB\-T\fP\&.
+.PP
+The function does not print informational messages, but if the option
+\fB\-q\fP is given, no error message is printed for a non\-existent session\&.
+.PP
+A return status of 2 indicates a timeout or no data to read\&.  Any other
+non\-zero return status indicates some error condition\&.
+.PP
+See \fBtcp_log\fP for how to control where data is sent by \fBtcp_read\fP\&.
+.RE
+.TP
+.PD 0
+\fBtcp_send\fP [ \fB\-cnq\fP ] [ \fB\-s\fP \fIsess\fP | \fB\-l\fP \fIsess\fP[\fB,\fP\&.\&.\&.] ] \fIdata\fP \&.\&.\&.
+.TP
+.PD
+\fBtcp_send\fP [ \fB\-cnq\fP ] \fB\-a\fP \fIdata\fP \&.\&.\&.
+Send the supplied data strings to all the specified sessions in turn\&.  The
+underlying operation differs little from a `\fBprint \-r\fP\&' to the session's
+file descriptor, although it attempts to prevent the shell from dying owing
+to a \fBSIGPIPE\fP caused by an attempt to write to a defunct session\&.
+.RS
+.PP
+The option \fB\-c\fP causes \fBtcp_send\fP to behave like \fBcat\fP\&.  It reads
+lines from standard input until end of input and sends them in turn to the
+specified session(s) exactly as if they were given as \fIdata\fP
+arguments to individual \fBtcp_send\fP commands\&.
+.PP
+The option \fB\-n\fP prevents \fBtcp_send\fP from putting a newline at the end
+of the data strings\&.
+.PP
+The remaining options all behave as for \fBtcp_read\fP\&.
+.PP
+The data arguments are not further processed once they have been passed to
+\fBtcp_send\fP; they are simply passed down to \fBprint \-r\fP\&.
+.PP
+If the parameter \fB$TCP_OUTPUT\fP is a non\-empty string and logging is
+enabled then the data sent to each session will be echoed to the log
+file(s) with \fB$TCP_OUTPUT\fP in front where appropriate, much
+in the manner of \fB$TCP_PROMPT\fP\&.
+.RE
+.PP
+.SS "Session Management"
+.PP
+.PD 0
+.TP
+.PD 0
+\fBtcp_alias\fP [ \fB\-q\fP ] \fIalias\fP\fB=\fP\fIsess\fP \&.\&.\&.
+.TP
+.PD 0
+\fBtcp_alias\fP [ \fB\-q\fP ] [ \fIalias\fP \&.\&.\&. ]
+.TP
+.PD
+\fBtcp_alias\fP \fB\-d\fP [ \fB\-q\fP ] \fIalias\fP \&.\&.\&.
+This function is not particularly well tested\&.
+.RS
+.PP
+The first form creates an alias for a session name; \fIalias\fP can then be
+used to refer to the existing session \fIsess\fP\&.  As many aliases may be
+listed as required\&.
+.PP
+The second form lists any aliases specified, or all aliases if none\&.
+.PP
+The third form deletes all the aliases listed\&.  The underlying sessions are
+not affected\&.
+.PP
+The option \fB\-q\fP suppresses an inconsistently chosen subset of error
+messages\&.
+.RE
+.TP
+\fBtcp_log\fP [ \fB\-asc\fP ] [ \fB\-n\fP | \fB\-N\fP ] [ \fIlogfile\fP ]
+With an argument \fIlogfile\fP, all future input from \fBtcp_read\fP will be
+logged to the named file\&.  Unless \fB\-a\fP (append) is given, this file will
+first be truncated or created empty\&.  With no arguments, show the current
+status of logging\&.
+.RS
+.PP
+With the option \fB\-s\fP, per\-session logging is enabled\&.  Input from
+\fBtcp_read\fP is output to the file \fIlogfile\fP\fB\&.\fP\fIsess\fP\&.  As the
+session is automatically discriminated by the filename, the contents are
+raw (no \fB$TCP_PROMPT\fP)\&.  The option  \fB\-a\fP applies as above\&.
+Per\-session logging and logging of all data in one file are not mutually
+exclusive\&.
+.PP
+The option \fB\-c\fP closes all logging, both complete and per\-session logs\&.
+.PP
+The options \fB\-n\fP and \fB\-N\fP respectively turn off or restore output of
+data read by \fBtcp_read\fP to standard output; hence `\fBtcp_log \-cn\fP\&' turns
+off all output by \fBtcp_read\fP\&.
+.PP
+The function is purely a convenient front end to setting the parameters
+\fB$TCP_LOG\fP, \fB$TCP_LOG_SESS\fP, \fB$TCP_SILENT\fP, which are described below\&.
+.RE
+.TP
+\fBtcp_rename\fP \fIold\fP \fInew\fP
+Rename session \fIold\fP to session \fInew\fP\&.  The old name becomes invalid\&.
+.TP
+\fBtcp_sess\fP [ \fIsess\fP [ \fIcommand\fP [ \fIarg\fP \&.\&.\&. ] ] ]
+With no arguments, list all the open sessions and associated file
+descriptors\&.  The current session is marked with a star\&.  For use in
+functions, direct access to the parameters \fB$tcp_by_name\fP, \fB$tcp_by_fd\fP
+and \fB$TCP_SESS\fP is probably more convenient; see below\&.
+.RS
+.PP
+With a \fIsess\fP argument, set the current session to \fIsess\fP\&.
+This is equivalent to changing \fB$TCP_SESS\fP directly\&.
+.PP
+With additional arguments, temporarily set the current session while
+executing `\fIcommand\fP \fIarg\fP \&.\&.\&.\&'\&.  \fIcommand\fP is re\-evaluated
+so as to expand aliases etc\&., but the remaining \fIarg\fPs are passed
+through as that appear to \fBtcp_sess\fP\&.  The original session is restored
+when \fBtcp_sess\fP exits\&.
+.RE
+.PP
+.SS "Advanced I/O"
+.PP
+.PD 0
+.TP
+.PD
+\fBtcp_command\fP \fIsend\-option\fP \&.\&.\&. \fIsend\-argument\fP \&.\&.\&.
+This is a convenient front\-end to \fBtcp_send\fP\&.  All arguments are passed
+to \fBtcp_send\fP, then the function pauses waiting for data\&.  While data is
+arriving at least every \fB$TCP_TIMEOUT\fP (default 0\&.3) seconds, data is
+handled and printed out according to the current settings\&.  Status 0 is
+always returned\&.
+.RS
+.PP
+This is generally only useful for interactive use, to prevent the display
+becoming fragmented by output returned from the connection\&.  Within a
+programme or function it is generally better to handle reading data by a
+more explicit method\&.
+.RE
+
+.TP
+.PD 0
+\fBtcp_expect \fP[ \fB\-q\fP ] [ \fB\-p\fP \fIvar\fP | \fB\-P\fP \fIvar\fP ] [ \fB\-t\fP \fITO\fP | \fB\-T\fP \fITO\fP ]
+.TP
+.PD
+\fB           \fP[ \fB\-a\fP | \fB\-s\fP \fIsess\fP | \fB\-l\fP \fIsess\fP[\fB,\fP\&.\&.\&.] ] \fIpattern\fP \&.\&.\&.
+Wait for input matching any of the given \fIpattern\fPs from any of the
+specified sessions\&.  Input is ignored until an input line matches one of
+the given patterns; at this point status zero is returned, the matching
+line is stored in \fB$TCP_LINE\fP, and the full set of lines read during the
+call to \fBtcp_expect\fP is stored in the array \fB$tcp_expect_lines\fP\&.
+.RS
+.PP
+Sessions are specified in the same way as \fBtcp_read\fP: the default is to
+use the current session, otherwise the sessions specified by \fB\-a\fP,
+\fB\-s\fP, or \fB\-l\fP are used\&.
+.PP
+Each \fIpattern\fP is a standard zsh extended\-globbing pattern; note that it
+needs to be quoted to avoid it being expanded immediately by filename
+generation\&.  It must match the full line, so to match a substring there
+must be a `\fB*\fP\&' at the start and end\&.  The line matched against includes
+the \fB$TCP_PROMPT\fP added by \fBtcp_read\fP\&.  It is possible to include the
+globbing flags `\fB#b\fP\&' or `\fB#m\fP' in the patterns to make backreferences
+available in the parameters \fB$MATCH\fP, \fB$match\fP, etc\&., as described in
+the base zsh documentation on pattern matching\&.
+.PP
+Unlike \fBtcp_read\fP, the default behaviour of \fBtcp_expect\fP is to block
+indefinitely until the required input is found\&.  This can be modified by
+specifying a timeout with \fB\-t\fP or \fB\-T\fP; these function as in
+\fBtcp_read\fP, specifying a per\-read or overall timeout, respectively, in
+seconds, as an integer or floating\-point number\&.  As \fBtcp_read\fP, the
+function returns status 2 if a timeout occurs\&.
+.PP
+The function returns as soon as any one of the patterns given match\&.  If
+the caller needs to know which of the patterns matched, the option \fB\-p\fP
+\fIvar\fP can be used; on return, \fB$var\fP is set to the number of the
+pattern using ordinary zsh indexing, i\&.e\&. the first is 1, and so on\&.  Note
+the absence of a `\fB$\fP\&' in front of \fIvar\fP\&.  To avoid clashes, the
+parameter cannot begin with `\fB_expect\fP\&'\&.  The index \-1 is used if
+there is a timeout and 0 if there is no match\&.
+.PP
+The option \fB\-P\fP \fIvar\fP works similarly to \fB\-p\fP, but instead of
+numerical indexes the regular arguments must begin with a prefix
+followed by a colon: that prefix is then used as a tag to which \fIvar\fP
+is set when the argument matches\&.  The tag \fBtimeout\fP is used if there
+is a timeout and the empty string if there is no match\&.  Note it is
+acceptable for different arguments to start with the same prefix if the
+matches do not need to be distinguished\&.
+.PP
+The option \fB\-q\fP is passed directly down to \fBtcp_read\fP\&.
+.PP
+As all input is done via \fBtcp_read\fP, all the usual rules about output of
+lines read apply\&.  One exception is that the parameter \fB$tcp_lines\fP will
+only reflect the line actually matched by \fBtcp_expect\fP; use
+\fB$tcp_expect_lines\fP for the full set of lines read during the function
+call\&.
+.RE
+.TP
+\fBtcp_proxy\fP
+This is a simple\-minded function to accept a TCP connection and execute a
+command with I/O redirected to the connection\&.  Extreme caution should be
+taken as there is no security whatsoever and this can leave your computer
+open to the world\&.  Ideally, it should only be used behind a firewall\&.
+.RS
+.PP
+The first argument is a TCP port on which the function will listen\&.
+.PP
+The remaining arguments give a command and its arguments to execute with
+standard input, standard output and standard error redirected to the
+file descriptor on which the TCP session has been accepted\&.
+If no command is given, a new zsh is started\&.  This gives everyone on
+your network direct access to your account, which in many cases will be a
+bad thing\&.
+.PP
+The command is run in the background, so \fBtcp_proxy\fP can then accept new
+connections\&.  It continues to accept new connections until interrupted\&.
+.RE
+.TP
+\fBtcp_spam\fP [ \fB\-ertv\fP ] [ \fB\-a\fP | \fB\-s\fP \fIsess\fP | \fB\-l\fP \fIsess\fP[\fB,\fP\&.\&.\&.] ] \fIcmd\fP [ \fIarg\fP \&.\&.\&. ]
+Execute `\fIcmd\fP [ \fIarg\fP \&.\&.\&. ]\&' for each session in turn\&.  Note this executes
+the command and arguments; it does not send the command line as data
+unless the \fB\-t\fP (transmit) option is given\&.
+.RS
+.PP
+The sessions may be selected explicitly with the standard \fB\-a\fP, \fB\-s\fP or
+\fB\-l\fP options, or may be chosen implicitly\&.  If none of the three options
+is given the rules are: first, if the array \fB$tcp_spam_list\fP is set, this
+is taken as the list of sessions, otherwise all sessions are taken\&.
+Second, any sessions given in the array \fB$tcp_no_spam_list\fP are removed
+from the list of sessions\&.
+.PP
+Normally, any sessions added by the `\fB\-a\fP\&' flag or when all sessions are
+chosen implicitly are spammed in alphabetic order; sessions given by the
+\fB$tcp_spam_list\fP array or on the command line are spammed in the order
+given\&.  The \fB\-r\fP flag reverses the order however it was arrived it\&.
+.PP
+The \fB\-v\fP flag specifies that a \fB$TCP_PROMPT\fP will be output before each
+session\&.  This is output after any modification to \fBTCP_SESS\fP by the
+user\-defined \fBtcp_on_spam\fP function described below\&.  (Obviously that
+function is able to generate its own output\&.)
+.PP
+If the option \fB\-e\fP is present, the line given as `\fIcmd\fP [ \fIarg\fP \&.\&.\&. ]\&' is executed
+using \fBeval\fP, otherwise it is executed without any further processing\&.
+.RE
+.TP
+\fBtcp_talk\fP
+This is a fairly simple\-minded attempt to force input to the line editor to
+go straight to the default \fBTCP_SESS\fP\&.
+.RS
+.PP
+An escape string, \fB$TCP_TALK_ESCAPE\fP, default `\fB:\fP\&', is used to allow
+access to normal shell operation\&.  If it is on its own at the start of the
+line, or followed only by whitespace, the line editor returns to normal
+operation\&.  Otherwise, the string and any following whitespace are skipped
+and the remainder of the line executed as shell input without any change of
+the line editor\&'s operating mode\&.
+.PP
+The current implementation is somewhat deficient in terms of use of the
+command history\&.  For this reason, many users will prefer to use some form
+of alternative approach for sending data easily to the current session\&.
+One simple approach is to alias some special character (such as `\fB%\fP\&') to
+`\fBtcp_command \-\fP\fB\-\fP\&'\&.
+.RE
+.TP
+\fBtcp_wait\fP
+The sole argument is an integer or floating point number which gives the
+seconds to delay\&.  The shell will do nothing for that period except wait
+for input on all TCP sessions by calling \fBtcp_read \-a\fP\&.  This is similar
+to the interactive behaviour at the command prompt when zle handlers are
+installed\&.
+.PP
+.SS "`One\-shot\&' file transfer"
+.PD 0
+.TP
+.PD 0
+\fBtcp_point\fP \fIport\fP
+.TP
+.PD
+\fBtcp_shoot\fP \fIhost\fP \fIport\fP
+This pair of functions provide a simple way to transfer a file between
+two hosts within the shell\&.  Note, however, that bulk data transfer is
+currently done using \fBcat\fP\&.  \fBtcp_point\fP reads any data arriving at
+\fIport\fP and sends it to standard output; \fBtcp_shoot\fP connects to
+\fIport\fP on \fIhost\fP and sends its standard input\&.  Any unused \fIport\fP
+may be used; the standard mechanism for picking a port is to think of a
+random four\-digit number above 1024 until one works\&.
+.RS
+.PP
+To transfer a file from host \fBwoodcock\fP to host \fBspringes\fP, on
+\fBspringes\fP:
+.PP
+.RS
+.nf
+\fBtcp_point 8091 >output_file\fP
+.fi
+.RE
+.PP
+and on \fBwoodcock\fP:
+.PP
+.RS
+.nf
+\fBtcp_shoot springes 8091 <input_file\fP
+.fi
+.RE
+.PP
+As these two functions do not require \fBtcp_open\fP to set up a TCP
+connection first, they may need to be autoloaded separately\&.
+.RE
+.PP
+.SH "TCP USER\-DEFINED FUNCTIONS"
+.PP
+Certain functions, if defined by the user, will be called by the function
+system in certain contexts\&.  This facility depends on the module
+\fBzsh/parameter\fP, which is usually available in interactive shells as the
+completion system depends on it\&.  None of the functions need be defined;
+they simply provide convenient hooks when necessary\&.
+.PP
+Typically, these are called after the requested action has been taken, so
+that the various parameters will reflect the new state\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBtcp_on_alias\fP \fIalias\fP \fIfd\fP
+When an alias is defined, this function will be called with two arguments:
+the name of the alias, and the file descriptor of the corresponding session\&.
+.TP
+\fBtcp_on_awol\fP \fIsess\fP \fIfd\fP
+If the function \fBtcp_fd_handler\fP is handling input from the line
+editor and detects that the file descriptor is no longer reusable,
+by default it removes it from the list of file descriptors handled
+by this method and prints a message\&.  If the function \fBtcp_on_awol\fP
+is defined it is called immediately before this point\&.  It may
+return status 100, which indicates that the normal handling should
+still be performed; any other return status indicates that no further
+action should be taken and the \fBtcp_fd_handler\fP should return
+immediately with the given status\&.  Typically the action of \fBtcp_on_awol\fP
+will be to close the session\&.
+.RS
+.PP
+The variable \fBTCP_INVALIDATE_ZLE\fP will be a non\-empty string if it is
+necessary to invalidate the line editor display using `\fBzle \-I\fP\&' before
+printing output from the function\&.
+.PP
+(`AWOL\&' is military jargon for `absent without leave' or some
+variation\&.  It has no pre\-existing technical meaning known to the author\&.)
+.RE
+.TP
+\fBtcp_on_close\fP \fIsess\fP \fIfd\fP
+This is called with the name of a session being closed and the file
+descriptor which corresponded to that session\&.  Both will be invalid by
+the time the function is called\&.
+.TP
+\fBtcp_on_open\fP \fIsess\fP \fIfd\fP
+This is called after a new session has been defined with the session name
+and file descriptor as arguments\&.  If it returns a non\-zero status,
+opening the session is assumed to fail and the session is closed
+again; however, \fBtcp_open\fP will continue to attempt to open any
+remaining sessions given on the command line\&.
+.TP
+\fBtcp_on_rename\fP \fIoldsess\fP \fIfd\fP \fInewsess\fP
+This is called after a session has been renamed with the three arguments
+old session name, file descriptor, new session name\&.
+.TP
+\fBtcp_on_spam\fP \fIsess\fP \fIcommand \&.\&.\&.\fP
+This is called once for each session spammed, just \fIbefore\fP a command is
+executed for a session by \fBtcp_spam\fP\&.  The arguments are the session name
+followed by the command list to be executed\&.  If \fBtcp_spam\fP was called
+with the option \fB\-t\fP, the first command will be \fBtcp_send\fP\&.
+.RS
+.PP
+This function is called after \fB$TCP_SESS\fP is set to reflect the session
+to be spammed, but before any use of it is made\&.  Hence it is possible to
+alter the value of \fB$TCP_SESS\fP within this function\&.  For example, the
+session arguments to \fBtcp_spam\fP could include extra information to be
+stripped off and processed in \fBtcp_on_spam\fP\&.
+.PP
+If the function sets the parameter \fB$REPLY\fP to `\fBdone\fP\&', the command
+line is not executed; in addition, no prompt is printed for the \fB\-v\fP
+option to \fBtcp_spam\fP\&.
+.RE
+.TP
+\fBtcp_on_unalias\fP \fIalias\fP \fIfd\fP
+This is called with the name of an alias and the corresponding session\&'s
+file descriptor after an alias has been deleted\&.
+.PP
+.SH "TCP UTILITY FUNCTIONS"
+.PP
+The following functions are used by the TCP function system but will rarely
+if ever need to be called directly\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBtcp_fd_handler\fP
+This is the function installed by \fBtcp_open\fP for handling input from
+within the line editor, if that is required\&.  It is in the format
+documented for the builtin `\fBzle \-F\fP\&' in
+\fIzshzle\fP(1)
+\&.
+.RS
+.PP
+While active, the function sets the parameter \fBTCP_HANDLER_ACTIVE\fP to 1\&.
+This allows shell code called internally (for example, by setting
+\fBtcp_on_read\fP) to tell if is being called when the shell is otherwise
+idle at the editor prompt\&.
+.RE
+.TP
+\fBtcp_output\fP [ \fB\-q\fP ] \fB\-P\fP \fIprompt\fP \fB\-F\fP \fIfd\fP \fB\-S\fP \fIsess\fP
+This function is used for both logging and handling output to standard
+output, from within \fBtcp_read\fP and (if \fB$TCP_OUTPUT\fP is set)
+\fBtcp_send\fP\&.
+.RS
+.PP
+The \fIprompt\fP to use is specified by \fB\-P\fP; the default is the empty
+string\&.  It can contain:
+.PD 0
+.TP
+.PD
+\fB%c\fP
+Expands to 1 if the session is the current session, otherwise 0\&.  Used
+with ternary expressions such as `\fB%(c\&.\-\&.+)\fP\&' to
+output `\fB+\fP\&' for the current session and `\fB\-\fP' otherwise\&.
+.TP
+\fB%f\fP
+Replaced by the session\&'s file descriptor\&.
+.TP
+\fB%s\fP
+Replaced by the session name\&.
+.TP
+\fB%%\fP
+Replaced by a single `\fB%\fP\&'\&.
+.PP
+The option \fB\-q\fP suppresses output to standard output, but not to any log
+files which are configured\&.
+.PP
+The \fB\-S\fP and \fB\-F\fP options are used to pass in the session name and file
+descriptor for possible replacement in the prompt\&.
+.RE
+.PP
+.SH "TCP USER PARAMETERS"
+.PP
+Parameters follow the usual convention that uppercase is used for scalars
+and integers, while lowercase is used for normal and associative array\&.
+It is always safe for user code to read these parameters\&.  Some parameters
+may also be set; these are noted explicitly\&.  Others are included in this
+group as they are set by the function system for the user\&'s benefit,
+i\&.e\&. setting them is typically not useful but is benign\&.
+.PP
+It is often also useful to make settable parameters local to a function\&.
+For example, `\fBlocal TCP_SILENT=1\fP\&' specifies that data read during the
+function call will not be printed to standard output, regardless of the
+setting outside the function\&.  Likewise, `\fBlocal TCP_SESS=\fP\fIsess\fP\&'
+sets a session for the duration of a function, and `\fBlocal
+TCP_PROMPT=\fP\&' specifies that no prompt is used for input during the
+function\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBtcp_expect_lines\fP
+Array\&.  The set of lines read during the last call to \fBtcp_expect\fP,
+including the last (\fB$TCP_LINE\fP)\&.
+.TP
+\fBtcp_filter\fP
+Array\&. May be set directly\&.  A set of extended globbing patterns which,
+if matched in \fBtcp_output\fP, will cause the line not to be printed to
+standard output\&.  The patterns should be defined as described for the
+arguments to \fBtcp_expect\fP\&.  Output of line to log files is not affected\&.
+.TP
+\fBTCP_HANDLER_ACTIVE\fP
+Scalar\&.  Set to 1 within \fBtcp_fd_handler\fP to indicate to functions
+called recursively that they have been called during an editor session\&.
+Otherwise unset\&.
+.TP
+\fBTCP_LINE\fP
+The last line read by \fBtcp_read\fP, and hence also \fBtcp_expect\fP\&.
+.TP
+\fBTCP_LINE_FD\fP
+The file descriptor from which \fB$TCP_LINE\fP was read\&.
+\fB${tcp_by_fd[$TCP_LINE_FD]}\fP will give the corresponding session name\&.
+.TP
+\fBtcp_lines\fP
+Array\&. The set of lines read during the last call to \fBtcp_read\fP,
+including the last (\fB$TCP_LINE\fP)\&.
+.TP
+\fBTCP_LOG\fP
+May be set directly, although it is also controlled by \fBtcp_log\fP\&.
+The name of a file to which output from all sessions will be sent\&.
+The output is proceeded by the usual \fB$TCP_PROMPT\fP\&.  If it is not an
+absolute path name, it will follow the user\&'s current directory\&.
+.TP
+\fBTCP_LOG_SESS\fP
+May be set directly, although it is also controlled by \fBtcp_log\fP\&.
+The prefix for a set of files to which output from each session separately
+will be sent; the full filename is \fB${TCP_LOG_SESS}\&.\fP\fIsess\fP\&.
+Output to each file is raw; no prompt is added\&.  If it is not an absolute
+path name, it will follow the user\&'s current directory\&.
+.TP
+\fBtcp_no_spam_list\fP
+Array\&.  May be set directly\&.  See \fBtcp_spam\fP for how this is used\&.
+.TP
+\fBTCP_OUTPUT\fP
+May be set directly\&.  If a non\-empty string, any data sent to a session by
+\fBtcp_send\fP will be logged\&.  This parameter gives the prompt to be used
+in a file specified by \fB$TCP_LOG\fP but not in a file generated from
+\fB$TCP_LOG_SESS\fP\&.  The prompt string has the same format as
+\fBTCP_PROMPT\fP and the same rules for its use apply\&.
+.TP
+\fBTCP_PROMPT\fP
+May be set directly\&.  Used as the prefix for data read by \fBtcp_read\fP
+which is printed to standard output or to the log file given by
+\fB$TCP_LOG\fP, if any\&.  Any `\fB%s\fP\&', `\fB%f\fP' or `\fB%%\fP' occurring in the
+string will be replaced by the name of the session, the session\&'s
+underlying file descriptor, or a single `\fB%\fP\&', respectively\&.  The
+expression `\fB%c\fP\&' expands to 1 if the session being read is the current
+session, else 0; this is most useful in ternary expressions such as
+`\fB%(c\&.\-\&.+)\fP\&' which outputs `\fB+\fP' if the session is
+the current one, else `\fB\-\fP\&'\&.
+.RS
+.PP
+If the prompt starts with \fB%P\fP, this is stripped and the complete
+result of the previous stage is passed through standard prompt \fB%\fP\-style
+formatting before being output\&.
+.RE
+.TP
+\fBTCP_READ_DEBUG\fP
+May be set directly\&.  If this has non\-zero length, \fBtcp_read\fP will give
+some limited diagnostics about data being read\&.
+.TP
+\fBTCP_SECONDS_START\fP
+This value is created and initialised to zero by tcp_open\&.
+.RS
+.PP
+The functions \fBtcp_read\fP and \fBtcp_expect\fP use the shell\&'s
+\fBSECONDS\fP parameter for their own timing purposes\&.  If that parameter
+is not of floating point type on entry to one of the functions, it will
+create a local parameter \fBSECONDS\fP which is floating point and set the
+parameter \fBTCP_SECONDS_START\fP to the previous value of \fB$SECONDS\fP\&.
+If the parameter is already floating point, it is used without a local
+copy being created and \fBTCP_SECONDS_START\fP is not set\&.  As the global
+value is zero, the shell elapsed time is guaranteed to be the sum of
+\fB$SECONDS\fP and \fB$TCP_SECONDS_START\fP\&.
+.PP
+This can be avoided by setting \fBSECONDS\fP globally to a floating point
+value using `\fBtypeset \-F SECONDS\fP\&'; then the TCP functions will never
+make a local copy and never set \fBTCP_SECONDS_START\fP to a non\-zero value\&.
+.RE
+.TP
+\fBTCP_SESS\fP
+May be set directly\&.  The current session; must refer to one of the
+sessions established by \fBtcp_open\fP\&.
+.TP
+\fBTCP_SILENT\fP
+May be set directly, although it is also controlled by \fBtcp_log\fP\&.
+If of non\-zero length, data read by \fBtcp_read\fP will not be written to
+standard output, though may still be written to a log file\&.
+.TP
+\fBtcp_spam_list\fP
+Array\&.  May be set directly\&.  See the description of the function
+\fBtcp_spam\fP for how this is used\&.
+.TP
+\fBTCP_TALK_ESCAPE\fP
+May be set directly\&.  See the description of the function \fBtcp_talk\fP for
+how this is used\&.
+.TP
+\fBTCP_TIMEOUT\fP
+May be set directly\&.  Currently this is only used by the function
+\fBtcp_command\fP, see above\&.
+.PP
+.SH "TCP USER\-DEFINED PARAMETERS"
+.PP
+The following parameters are not set by the function system, but have
+a special effect if set by the user\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBtcp_on_read\fP
+This should be an associative array; if it is not, the behaviour is
+undefined\&.  Each key is the name of a shell function or other command,
+and the corresponding value is a shell pattern (using \fBEXTENDED_GLOB\fP)\&.
+Every line read from a TCP session directly or indirectly using
+\fBtcp_read\fP (which includes lines read by \fBtcp_expect\fP) is compared
+against the pattern\&.  If the line matches, the command given in the key is
+called with two arguments: the name of the session from which the line was
+read, and the line itself\&.
+.RS
+.PP
+If any function called to handle a line returns a non\-zero status, the
+line is not output\&.  Thus a \fBtcp_on_read\fP handler containing only
+the instruction `\fBreturn 1\fP\&' can be used to suppress output of
+particular lines (see, however, \fBtcp_filter\fP above)\&.  However, the line
+is still stored in \fBTCP_LINE\fP and \fBtcp_lines\fP; this occurs after all
+\fBtcp_on_read\fP processing\&.
+.RE
+.PP
+.SH "TCP UTILITY PARAMETERS"
+.PP
+These parameters are controlled by the function system; they may be read
+directly, but should not usually be set by user code\&.
+.PP
+.PD 0
+.TP
+.PD
+\fBtcp_aliases\fP
+Associative array\&.  The keys are the names of sessions established with
+\fBtcp_open\fP; each value is a space\-separated list of aliases which refer
+to that session\&.
+.TP
+\fBtcp_by_fd\fP
+Associative array\&.  The keys are session file descriptors; each
+value is the name of that session\&.
+.TP
+\fBtcp_by_name\fP
+Associative array\&.  The keys are the names of sessions; each value is the
+file descriptor associated with that session\&.
+.PP
+.SH "TCP EXAMPLES"
+.PP
+Here is a trivial example using a remote calculator\&.
+.PP
+To create a calculator server on port 7337 (see the \fBdc\fP manual page for
+quite how infuriating the underlying command is):
+.PP
+.RS
+.nf
+\fBtcp_proxy 7337 dc\fP
+.fi
+.RE
+.PP
+To connect to this from the same host with a session also named `\fBdc\fP\&':
+.PP
+.RS
+.nf
+\fBtcp_open localhost 7337 dc\fP
+.fi
+.RE
+.PP
+To send a command to the remote session and wait a short while for output
+(assuming \fBdc\fP is the current session):
+.PP
+.RS
+.nf
+\fBtcp_command 2 4 + p\fP
+.fi
+.RE
+.PP
+To close the session:
+.PP
+.RS
+.nf
+\fBtcp_close\fP
+.fi
+.RE
+.PP
+The \fBtcp_proxy\fP needs to be killed to be stopped\&.  Note this will not
+usually kill any connections which have already been accepted, and also
+that the port is not immediately available for reuse\&.
+.PP
+The following chunk of code puts a list of sessions into an xterm header,
+with the current session followed by a star\&.
+.PP
+.RS
+.nf
+\fBprint \-n "\e033]2;TCP:" ${(k)tcp_by_name:/$TCP_SESS/$TCP_SESS\e*} "\ea"\fP
+.fi
+.RE
+.PP
+.SH "TCP BUGS"
+.PP
+The function \fBtcp_read\fP uses the shell\&'s normal \fBread\fP builtin\&.  As
+this reads a complete line at once, data arriving without a terminating
+newline can cause the function to block indefinitely\&.
+.PP
+Though the function suite works well for interactive use and for data
+arriving in small amounts, the performance when large amounts of data are
+being exchanged is likely to be extremely poor\&.

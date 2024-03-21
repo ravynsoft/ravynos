@@ -1,0 +1,678 @@
+		README for MAKING BINUTILS RELEASES
+
+This is a collection of notes on how to perform a binutils release.  A
+lot of this information can also be found in the maintain.texi file in
+the gnulib project:
+
+  https://www.gnu.org/software/gnulib/
+
+It is useful to have a cloned copy of the sources of this project as
+it also contains an upload script used to install tarballs on the GNU
+FTP server.
+
+Make sure that you have upload authority on sourceware and fencepost.
+Beware - this is an involved process and can take weeks to complete.
+See the maintain.texi file for details on how to obtain these
+permissions.
+
+Note - when performing a release it is helpful to edit this document
+as you go, updating the example commands so that they are ready for
+the release that follows.
+
+-------------------------------------------------
+How to perform a release.
+-------------------------------------------------
+
+  1. Choose dates for the branch and release.  Weekends are better
+     because they are less busy.  It is typical to leave two weeks
+     between creating the branch and creating the release.
+     
+     Send an email out warning contributors about the forthcoming
+     branch and release.
+
+  2. When the branch date is near:  Update the libiberty and config
+     directories and the top level Makefile and configure files.  Also
+     consider updating the toplevel libtool files.
+
+Approx time to complete from here: 2 hours ....
+
+  2.5 If you have not built from the sources recently then now is the
+      time to check that they still work...
+
+  3. When branch day arrives add markers for the upcoming release to
+     the NEWS files in gas, ld, and binutils.  No need to update NEWS
+     in the gold directory - it has its own release numbering.
+
+     Likewise for the ChangeLog files in: bfd, binutils, config, cpu,
+     elfcpp, gas, gold, gprof, include, ld, libctf, opcodes and toplevel.
+
+     Add a note of the name of the new branch to binutils/BRANCHES.
+
+     Commit these changes.
+
+  4. Create the release branch using:
+
+	git branch binutils-2_41-branch
+        git push origin binutils-2_41-branch
+
+     If you get a message like:
+     
+       remote: fatal: Invalid revision range 0000000000000000000000000000000000000000..f974f26cb16cc6fe3946f163c787a05e713fb77b
+       
+     It appears that this can be ignored...
+
+  5. Make sure that the branch is there.  IE check out the branch sources:
+  
+        git clone ssh://sourceware.org/git/binutils-gdb.git -b binutils-2_41-branch 2.41
+
+     If you get a message about being in a "detached head" state, something
+     has gone wrong...
+
+     Keep the checked out sources - they are going to be needed in future
+     steps.
+
+  6. Update "BINUTILS_BRANCH" in gdbadmin's crontab:
+
+     Log in as gdbadmin on sourceware.org, and then:
+
+        $ cd crontab
+        $ vi crontab
+        [change BINUTILS_BRANCH]
+        $ cvs ci crontab
+        $ crontab crontab
+
+     If you do not have access to this account, please feel free to
+     ask Joel Brobecker <brobecker AT adacore DOT com>.
+
+  7. Rename the current HEAD version entry in Bugzilla, and create a
+     new one.  E.g. rename "2.41 (HEAD)" to 2.41, and create
+     "2.42 (HEAD)":
+     
+        https://sourceware.org/bugzilla/editversions.cgi?product=binutils
+
+  8. Update bfd/version.m4 on HEAD to indicate that is now a snapshot
+     of the next release and the BRANCH to indicate that it is almost
+     ready for the release.
+
+     So if the release is going to be 2.41 then the version number on
+     the BRANCH should be set to 2.40.90 - ie almost, but not quite 2.41,
+     and the version number on the MAINLINE should be set to 2.41.50 -
+     ie half way to 2.42 release.
+
+     So the branch bfd/version.m4 has:
+     
+       m4_define([BFD_VERSION], [2.40.90])
+       
+     and the mainline has:
+
+       m4_define([BFD_VERSION], [2.41.50])
+
+     Regenerate various files on both branch and HEAD by configuring
+     with "--enable-maintainer-mode --enable-gold --enable-shared" and then building
+     with "make all-binutils all-gas all-gold all-gprof all-gprofng all-ld"
+
+     Add ChangeLog entries for the updated files.  Commit the changes.
+     Make sure that this includes the .pot files as well as the
+     configure and makefiles.
+
+  9. Create an initial pre-release:
+
+     a. Remove any auto-generated files, in order to force the
+        src-release script to rebuild them.
+	 
+          cd <branch-sources>
+          git clean -fdx
+	  
+     b. Create a source tarball of the BRANCH sources:
+
+          ./src-release.sh -x binutils
+
+        FIXME: Not sure if the following steps are needed...
+	
+	Add a .dirstamp file to the gas/doc subdirectory:
+
+          touch -d <today's date> binutils-2.<release>/gas/doc/.dirstamp
+          tar rvf binutils-<release>.tar binutils-<release>/gas/doc/.ditstamp
+          rm binutils-<release>.tar.xz
+          xz -9 binutils-<release>.tar
+
+          eg:
+	    touch -d 2023-06-01 binutils-2.40.90/gas/doc/.dirstamp
+	    tar rvf binutils-2.40.90.tar binutils-2.40.90/gas/doc/.ditstamp
+            rm binutils-2.40.90.tar.xz
+            xz -9 binutils-2.40.90.tar
+	    
+	 ...END OF FIXME   
+
+     c. Build a test target using this tarball.
+
+           cp binutils-2.40.90.tar.xz /dev/shm
+	   pushd /dev/shm
+	   tar xvf binutils-2.40.90.tar.xz
+	   mkdir build
+	   cd build
+	   ../binutils-2.40.90/configure --quiet --enable-gold
+	   make
+	   popd
+
+        If there are problems, fix them.
+
+     d. Upload the pre-release snapshot to the sourceware FTP site:
+
+          scp binutils-2.40.90.tar.xz sourceware.org:/var/ftp/pub/binutils/snapshots
+          ssh sourceware.org sha256sum ~ftp/pub/binutils/snapshots/binutils-2.40.90.tar.xz
+
+     e. Clean up the source directory again.
+
+         git clean -fdx
+
+  10. Tell the Translation Project where to find the new tarball.
+      <coordinator@translationproject.org>
+      qv: https://translationproject.org/html/maintainers.html
+
+------------------------------------------------------------------------
+Dear Translation Project
+
+  The 2.40 release branch has been created for the GNU Binutils project.
+
+  A snapshot of the branch sources can be found here:
+
+    https://sourceware.org/pub/binutils/snapshots/binutils-2.39.90.tar.xz
+
+  We hope to make the official release of the sources on the <DATE>
+  although that could change if there are important bugs that need to
+  be fixed before the release.
+------------------------------------------------------------------------
+
+  11. Announce the availability of the snapshot and the branch on the
+      binutils mailing list.  Set a date for when the release will
+      actually happen.  Something like:
+      
+------------------------------------------------------------------------
+Hi Everyone, 
+
+  The <NEW_VERSION> branch has now been created:
+
+     git clone git://sourceware.org/git/binutils-gdb.git -b binutils-<NEW_VERSION>-branch
+
+  A snapshot of the sources is also available here:
+
+    https://sourceware.org/pub/binutils/snapshots/binutils-<OLD_VERSION>.90.tar.xz
+
+  Please could all patches for the branch be run by me.
+  The rules for the branch are:
+
+    * No new features.
+    * Target specific bug fixes are OK.
+    * Generic bug fixes are OK if they are important and widely tested.
+    * Documentation updates/fixes are OK.
+    * Translation updates are OK.
+    * Fixes for testsuite failures are OK.
+
+  Ideally I would like to make the release happen in two weeks time,
+  i.e. <DATE>.  Which I hope will be enough time for everyone
+  to get their final fixes in.
+------------------------------------------------------------------------
+
+  12. Build various different toolchains, test them and nag
+      maintainers to fix any testsuite failures for their
+      architectures...
+
+==============================================================================
+
+When the time comes to actually make the release....
+
+
+  20. Make sure that the branch sources still build, test and install 
+      correctly.  Make sure that the sources are clean, without any
+      patch files (.reg .orig *~) left over.
+
+         cd <branch>
+	 git clean -fdx
+
+  21. a. Update the release number in bfd/version.m4 on the release
+         branch to a whole new minor version number, without a point
+         value.  Eg "2.40.90" becomes "2.41".  NB/ Not: "2.41.00"
+
+      b. Change bfd/development.sh to set all values to "false".
+
+      c. Regenerate the configure and makefiles.  And *info* files.
+
+            make all-gas all-ld all-binutils all-gprof all-gold all-gprofng all-libctf
+	    make info
+
+      d. Create a ChangeLog from the git refs for all of the commits
+         from when changelog entries were no longer required:
+
+           gitlog-to-changelog --since=2021-07-03 > ChangeLog.git
+           git add ChangeLog.git
+
+         The gitlog-to-changelog script is part of the sources
+	 of the "config" project.
+
+         Add an entry for ChangeLog.git to the src-release.sh script's
+	 DEVO_SUPPORT list, so that it is included in the release.
+
+	 FIXME: it would be better if the ChangeLog.git file was permanently
+	 added to the src-release.sh script, but this mean that it would have
+	 to exist in the master repository, and that the GDB project would
+	 need to agree to have it there.
+	
+      e. Add ChangeLog entries for all of the updates and add a
+         "this-is-the-2.41-release" comment and commit.
+
+	   git add .
+           git commit
+	   git push
+	   
+  22. Check that your file creation mask will create the
+      correct file permissions.  Eg:
+
+      	    % umask
+	    22
+
+      Remove any spurious autom4te.cache files left over from the
+      reconfiguring:
+
+            git clean -fdx
+
+  23. Note - check to see if any new files have been added to the top
+      level of the source directory, but which are not in the
+      DEVO_SUPPORT variable in the src-release.sh script.  If they are
+      needed then add them.
+
+      Create the release tarballs:
+  
+            ./src-release.sh -b -g -l -x binutils
+
+      OR ... for a more reproducible tarball:
+
+            ./src-release.sh -b -g -l -x -r `git log -1 --format=%cd --date=format:%F bfd/version.m4` binutils
+
+  24. Check that the files in the tarballs have the correct
+      permissions.
+
+           tar tvf binutils-*.tar.xz | grep -e "---"
+
+      Also check that the man files are not empty.  (cf PR 28144).
+
+           tar tvf binutils-*.tar.xz | grep -e "\.1"
+
+  25. Sanity check the release on x86_64-pc-linux-gnu by building and
+       running the testsuites (gas, gold, binutils and ld).
+      Make the source directory read-only before building.
+      Also test 'make install'.
+      Also build the html and pdf documentation files.
+      If necessary fix any problems.
+
+        pushd /dev/shm
+	mkdir delme
+	cd delme
+	tar xvf <path-to-sources>/binutils-2.*.tar.lz
+	chmod -R -w binutils-2.*
+	mkdir build
+	cd build
+	../binutils-2.*/configure --quiet --enable-gold --prefix=`pwd`/install --enable-plugins --enable-shared
+	make all-gas all-gold all-ld all-binutils all-gprof all-gprofng
+	make check-gas check-binutils check-ld check-gold
+        make install-gas install-gold install-ld install-binutils install-gprofng
+
+        # Needed for step 29...
+	make html pdf html-libctf pdf-libctf html-libsframe pdf-libsframe
+
+        popd
+
+  26. Tag the branch with the new release number:
+	[optional: add "-u XXXXX" to sign with a gpg key]
+	enter a tag message such as: "Official GNU Binutils 2.4x release"
+
+	    git tag -a binutils-2_41 -u DD9E3C4F      <=== Be careful to get the tag right
+
+        NB/ If you do sign the binaries make sure to use a key
+	that has been published with the FSF.
+
+        Then push the release:
+	
+	    git push origin binutils-2_41
+
+        If you get an error message along the lines of:
+	  "Invalid revision range ..."
+	you can ignore it.
+
+  27.  Upload the tarballs to ftp.gnu.org.
+
+          for A in bz2 gz lz xz ; do gnupload --to ftp.gnu.org:binutils binutils-2.41.tar.$A ; done
+
+        Be prepared to provide the password for the key, if you
+	signed the binaries.
+      
+        The gnupload script is in the gnulib/build-aux directory.
+	It uses the ncftp package for transmitting the files.
+
+        Check for an email response from the upload.  If necessary
+        fix any problems.  (The response might take a while, so
+	proceed with the next steps if you are confident that
+	everything is OK).
+
+  28. Upload the tarballs (and signatures) to sourceware.org:
+
+       sftp sourceware.org
+         cd /sourceware/ftp/pub/binutils/releases
+ 	 put binutils-2.4*.tar.*
+ 	 chmod 644 binutils-2.4*.tar.*
+	 quit
+
+      FIXME: Are the signatures (created by the gnupload script in step 27)
+      needed ?  [The above commands upload them and nobody has complained,
+      so suggest that they are retained].
+
+  29. Update web pages.  For sourceware.org:
+
+      Create a new documentation folder on the sourceware.org web
+      pages as /sourceware/www/sourceware/htdocs/binutils/docs-2.3x.
+
+       sftp sourceware.org
+         cd /sourceware/www/sourceware/htdocs/binutils
+	 mkdir docs-2.4x
+	 cd docs-2.4x
+	 mkdir as
+	 mkdir bfd
+	 mkdir binutils
+	 mkdir gprof
+	 mkdir ld
+	 cd ../docs-2.3(x-1)
+	 get index.html
+
+      Update the (local copy of the) index.html file to point to the
+      new documentation and mention the new version and then upload it.
+
+	 cd ../docs-2.4x
+	 put index.html
+
+      Make the html documentation locally with the "make html" command.
+      (This should have been done by step 25 above).
+      Then upload and rename the directories as needed.
+      (Sftp does not support recursive uploads however, so the directories
+      have to be made and populated by hand).
+
+         cd as
+	 lcd <build-dir>/gas/doc/as
+	 put *                {be patient - this takes a long time...}
+	 lcd ..
+	 cd ..
+	 put as.html
+	 put as.pdf
+	 
+	 cd bfd
+	 lcd ../../bfd/doc/bfd
+	 put *
+	 cd ..
+	 lcd ..
+	 put bfd.html
+	 put bfd.pdf
+	 
+	 cd binutils
+	 lcd ../../binutils/binutils      <=== NB/ Path not like others
+	 put *
+	 cd ..
+	 lcd ../doc                       <=== Also not like the others
+	 put binutils.html
+	 put binutils.pdf
+	 
+	 cd gprof
+	 lcd ../../gprof/doc/gprof
+	 put *
+	 cd ..
+	 lcd ../..                        <==== Different again
+	 put gprof.html
+	 put gprof.pdf
+	 
+	 cd ld
+	 lcd ../ld/doc/ld
+	 put *
+	 cd ..
+	 lcd ../..
+	 put ld.html
+	 put ld.pdf
+	 
+	 lcd ../gprofng/doc
+	 put gprofng.html
+	 put gprofng.pdf
+	 
+	 lcd ../../libctf/doc
+	 put ctf-spec.html
+	 put ctf-spec.pdf
+
+	 lcd ../../libsframe/doc
+	 put sframe-spec.html
+	 put sframe-spec.pdf
+	 
+      Edit the top level binutils index.html file to change the links
+      to point to the new documentation.
+
+         cd ../..
+	 get index.html
+	 [edit]
+	 [check that it works]
+	 put index.html
+         rm docs
+	 ln -s docs-2.4x docs
+	 quit
+
+      Check that the new web page is correct:
+      
+          https://sourceware.org/binutils/
+	  
+      For the www.gnu.org site you have to email webmasters@gnu.org
+      and ask them to copy the change(s):
+---------------------------------------
+Hi FSF Webmasters,
+
+  Please could the GNU Binutils webpage at:
+
+https://www.gnu.org/software/binutils/binutils.html
+
+  be updated to indicate that there is now a newer version available
+  (2.3x).  I have already updated the related page on the sourceware
+  website so this might be useful as a template:
+
+https://sourceware.org/binutils/
+
+  Thanks very much.
+
+Cheers
+--------------------------------------  
+
+  30. Send emails to binutils@sourceware.org, info-gnu@gnu.org and
+      David Edelsohn <dje.gcc@gmail.com> announcing the new release.
+      Sign the email and include the checksum:
+
+          sha256sum binutils-2.4*.tar.*
+
+      (The email to Davis is so that he can update the GNU Toolchain
+      social media).  Something like this:
+      -----------------------------------------------------------------------
+        Hi Everyone,
+
+        We are pleased to announce that version 2.4x of the GNU Binutils project
+        sources have been released and are now available for download at:
+
+          https://ftp.gnu.org/gnu/binutils
+          https://sourceware.org/pub/binutils/releases/
+
+          checksums: xxxx
+
+        As an experiment these tarballs were made with the new "-r <date>"
+        option supported by the src-release.sh script.  This attempts to make
+        reproducible tarballs by sorting the files and passing the
+        "--mtime=<date>" option to tar.  The date used for these tarballs was
+        obtained by running:
+  
+          git log -1 --format=%cd --date=format:%F bfd/version.m4
+
+        This release contains numerous bug fixes, and also the
+        following new features:
+
+          <extract info from the NEWS files>
+
+        For more information see:
+	
+          https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=blob_plain;f=gas/NEWS;;hb=refs/tags/binutils-2_4x
+          https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=blob_plain;f=ld/NEWS;hb=refs/tags/binutils-2_4x
+          https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=blob_plain;f=binutils/NEWS;hb=refs/tags/binutils-2_4x
+
+        Our thanks go out to all of the binutils contributors, past and
+        present, for helping to make this release possible.
+
+      -----------------------------------------------------------------------
+
+  31. Clean up the source tree:
+
+        git clean -fdx .
+
+  32. Edit bfd/development.sh on the branch and set the development flag
+      to "true".  (Leave the experimental flag set to "false").  Also bump
+      the version in bfd/version.m4 by adding a trailing .0, so that the
+      date suffix keeps the version lower than the trunk version.
+      Regenerate files.  Commit these changes.
+
+  33. Email the binutils list telling everyone that the 2.34 branch
+      is now open for business as usual and that patches no longer
+      need special approval.
+
+  34. Examine the bfd/config.bfd file in the mainline sources and move
+      any pending obsolete targets into the definitely obsolete
+      section.  Create a changelog entry and commit.
+
+
+--------------------------------------------------------------------------
+How to perform a POINT release.
+--------------------------------------------------------------------------
+
+A point release is easier than a normal release since a lot of the
+work has already been done.  The branch has been created, the
+translations updated and the documentation uploaded.  So the procedure
+looks like this:
+
+  0. Decide that a point release is necessary.
+
+     Usually this only happens when a sufficient number of serious
+     bugs have been found and fixed since the previous release, and a
+     new official release is not imminent.
+
+  1. Tell the community that a point release is happening.  Ask
+     maintainers to ensure that their ports are up to date on the
+     release branch.  Ask the community if there are any bug fixes
+     which are missing from the branch.  Allow some time for the
+     responses to this step.
+
+  2. Make sure that the branch sources build, test and install
+     correctly.
+
+  2.5 Prepare a list of the bugs which have been fixed.  This
+      will be needed for step 8.
+
+  3. In the branch sources:
+
+       a. Update the minor release number in bfd/version.m4.
+       b. Edit bfd/development.sh, set "development=false".
+       c. Regenerate the configure files.
+       d. Remove spurious autom4te.cache files:
+
+          git clean -fdx
+	  
+       e. Commit the updates along with a "this-is-the-2.3x.y-release"
+          note in all of the changelogs.
+       f. Tag the branch with the new release number:
+
+            git tag -a binutils-2_3x_y
+	      [optional: add "-u XXXXX" to sign with a gpg key]
+	    git push origin binutils-2_3x_y
+
+       g. Check that your file creation mask will create the
+          correct file permissions.  Ie:
+
+	    umask 022
+
+       h. Create the release tarballs:
+       
+            ./src-release -b -g -l -x binutils
+
+       i. Check that the files in the tarballs have the correct
+          permissions.
+
+       j. Clean the source tree again
+       
+	    git clean -fdx
+	  
+       k. Edit bfd/development.sh and set "development=true".
+       l. Commit this change.
+
+  4. [If paranoid - upload the tarballs to one of the FTP servers and
+      ask people to test it before going on to step 5].
+
+  5. Upload the tarballs to ftp.gnu.org.
+
+       gnupload --to ftp.gnu.org:binutils binutils-*.tar.*
+
+     The gnupload script is in the gnulib/build-aux directory.
+
+  6. Upload the tarballs to sourceware.org:
+
+       sftp sourceware.org
+         cd /sourceware/ftp/pub/binutils/releases
+ 	 put binutils-*.tar.*
+ 	 chmod 644 binutils-*.tar.*
+	 quit
+
+    It is OK to upload the signatures as well.
+
+  7. Update web pages.  For sourceware.org:
+
+      * Log on to sourceware.org
+      * Go to /sourceware/www/sourceware/htdocs/binutils
+      * Edit index.html and update the latest release number (if this is a latest release)
+
+      For the www.gnu.org site you have to email webmasters@gnu.org
+      and ask them to make the change(s).
+
+  8. Send an emails to the binutils list, info-gnu@gnu.org and
+     David Edelsohn <dje.gcc@gmail.com> announcing the new release.
+     (The email to Davis is so that he can update the GNU Toolchain
+     social media).  Something like this:
+
+------------------------------------------------------------------------
+Hi Everyone,
+
+  We are pleased to announce that version 2.3x.y of the GNU Binutils
+  project sources have been released and are now available for download at:
+
+    https://ftp.gnu.org/gnu/binutils
+    https://sourceware.org/pub/binutils/releases/
+
+  This is a point release over the previous 2.3x version, containing bug
+  fixes but no new features.
+
+  Our thanks go out to all of the binutils contributors, past and
+  present, for helping to make this release possible.
+
+  Here is a list of the bugs that have been fixed:
+    xx
+    xx
+    xx
+    xx
+--------------------------------------------------------------------------
+
+  9. Create a new Bugzilla entry for the point release.
+     
+       https://sourceware.org/bugzilla/editversions.cgi?product=binutils
+
+     And a new milestone too:
+
+       https://sourceware.org/bugzilla/editmilestones.cgi?product=binutils
+
+Copyright (C) 2017-2023 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

@@ -1,0 +1,73 @@
+#compdef sshfs
+
+local curcontext="$curcontext" state state_descr line
+typeset -A opt_args
+integer ret=1
+
+# TODO: in the "user@host" argument, the "user@" part should be optional
+_arguments -C -S : \
+  '(-)'{-h,--help}'[display help information]' \
+  '(-)'{-V,--version}'[display version information]' \
+  '-p[specify TCP port]:tcp port:_ports' \
+  '-C[enable compression]' \
+  '-F[specify ssh config file]:file:_files' \
+  '*-o[specify mount options]:options:->options' \
+  '(-d --debug -f)'{-d,--debug}'[enable debug output]' \
+  '-f[foreground]' \
+  '-s[disable multithreaded operation]' \
+  ':remote directory:_user_at_host -S:' \
+  ':mountpoint:_files -/' && ret=0
+
+if [[ $state == options ]]; then
+  # TODO complete ssh(1) options
+  _values -s , "options to ssh, sshfs, mount, or FUSE" \
+    'port:number' \
+    'compression: :(yes no)' \
+    reconnect delay_connect sshfs_sync no_readahead sync_readdir \
+    sshfs_debug \
+    'cache: :(yes no)' \
+    'cache_timeout:timeout (seconds)' \
+    'dir_cache:cache setting:(yes no)' \
+    'dcache_max_size:size [10000]' \
+    'dcache_timeout:timeout (seconds) [20]' \
+    dcache_{stat,dir,link}_timeout:'timeout (seconds)' \
+    'dcache_clean_interval:interval [60]' \
+    'dcache_min_clean_interval:interval [5]' \
+    'workaround:workaround:(none all rename renamexdev delaysrv truncate nobuflimit fstat createmode)' \
+    'idmap:user/group mapping:(none user file)' \
+    uidfile:file:_files \
+    gidfile:file:_files \
+    'nomap:type:(ignore error)' \
+    'ssh_command:ssh command:_command_names' \
+    'ssh_protocol:version:(1 2)' \
+    sftp_server:path:_files \
+    directport:port:_ports \
+    slave disable_hardlink transform_symlinks follow_symlinks no_check_root password_stdin \
+    debug \
+    allow_other allow_root auto_unmount nonempty default_permissions \
+    fsname:filesystem\ name \
+    subtype:filesystem\ type \
+    large_read \
+    max_read:max\ size \
+    hard_remove use_ino readdir_ino direct_io kernel_cache auto_cache noauto_cache \
+    'umask:permissions' \
+    'uid:owner' 'gid:group' \
+    'entry_timeout:timeout (seconds) [1]' \
+    'negative_timeout:timeout (seconds) [0]' \
+    'attr_timeout:timeout (seconds) [1]' \
+    'ac_attr_timeout:timeout (seconds) [= attr_timeout]' \
+    noforget \
+    'remember:time (seconds)' \
+    nopath intr \
+    'intr_signal:signal [10]' \
+    modules:module \
+    max_write:size \
+    max_readahead:readahead \
+    max_background:number \
+    congestion_threshold:threshold \
+    async_read sync_read atomic_o_trunc big_writes no_remote_lock no_remote_flock \
+    no_remote_posix_lock splice_write splice_move splice_read \
+    from_code:charset to_code:charset subdir:_directories rellinks norellinks && ret=0
+fi
+
+return ret

@@ -1,0 +1,139 @@
+# export-def.at -- test module-definition files              -*- Autotest -*-
+
+#   Copyright (C) 2013-2019, 2021-2022 Free Software Foundation, Inc.
+#   Written by Peter Rosin, 2013
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([export from a DLL with a .def file])
+AT_KEYWORDS([libtool])
+
+AT_CHECK([$LIBTOOL --features | $GREP 'disable shared libraries' && (exit 77)],
+	 [1], [ignore])
+eval `$LIBTOOL --config | $EGREP '^(shrext_cmds|libname_spec|soname_spec)='`
+
+eval shared_ext=\"$shrext_cmds\"
+
+# skip if not building a .dll
+AT_CHECK([test .dll = "$shared_ext" || (exit 77)])
+
+LDFLAGS="$LDFLAGS -no-undefined"
+libdir=`pwd`/inst/lib
+mkdir inst inst/lib
+
+AT_DATA([a.c],
+[[/* a */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int v1 = -1;
+int v2 (void) { return -2; }
+
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([syms],
+[[v1
+v2
+]])
+
+AT_DATA([def1],
+[[EXPORTS
+v1 DATA
+v2
+]])
+
+AT_DATA([def2],
+[[; Def file
+    ; with some very important comments
+EXPORTS
+v1 DATA
+v2
+]])
+
+AT_DATA([def3],
+[[
+   EXPORTS v1 DATA
+   v2
+]])
+
+AT_DATA([def4],
+[[	LIBRARY %soname%
+EXPORTS
+v1 DATA
+v2
+]])
+
+AT_DATA([main.c],
+[[
+/* w32 fun.  With GCC, you can have auto-import, which will work for
+ * functions and non-const variables.  With MSVC, you have to explicitly
+ * import all variables.
+ *
+ * For users, it's best to realize that they should not provide any
+ * non-function API at all.
+ */
+#if defined LIBA_DLL_IMPORT
+#  if defined _WIN32 && defined _MSC_VER
+#    define LIBA_SCOPE_VAR extern __declspec(dllimport)
+#  endif
+#endif
+#if !defined LIBA_SCOPE_VAR
+#  define LIBA_SCOPE_VAR extern
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+LIBA_SCOPE_VAR int v1;
+extern int v2(void);
+#ifdef __cplusplus
+}
+#endif
+
+int main (void)
+{
+  return v1 + v2() + 3;
+}
+]])
+
+name=a
+eval libname=\"$libname_spec\"
+major=0
+versuffix=-$major
+eval soname=\"$soname_spec\"
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c],[0],[ignore],[ignore])
+AT_CHECK([$CC $CPPFLAGS -DLIBA_DLL_IMPORT $CFLAGS -c main.c],[0],[ignore],[ignore])
+
+for exportsyms in syms def1 def2 def3 def4
+do
+  $SED "s/%soname%/$soname/" -i $exportsyms
+
+  LT_AT_CHECK([eval '$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo \
+	       -rpath $libdir' -export-symbols $exportsyms], [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT liba.la],
+	   [], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./main])
+done
+
+AT_CLEANUP

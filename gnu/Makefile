@@ -1,9 +1,9 @@
-#	@(#)Makefile	5.33.1.1 (Berkeley) 5/6/91
 
 .include <src.opts.mk>
 
 SUBDIR= lib .WAIT \
-	usr.bin
+	usr.bin \
+	bin
 
 SUBDIR.${MK_TESTS}+= tests
 

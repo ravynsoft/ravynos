@@ -1,0 +1,2 @@
+${THIS_SH} ./appendop.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} appendop.right && rm -f ${BASH_TSTOUT}

@@ -1,0 +1,35 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Smalltalk support: --add-comments option.
+
+cat <<\EOF > xg-st-2.st
+"a"
+"b" Transcript showCr:
+"c" (
+"d" NLS
+"e" ?
+"f" 'hello world' "h" ).
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location \
+  -d xg-st-2.tmp xg-st-2.st || Exit 1
+LC_ALL=C tr -d '\r' < xg-st-2.tmp.po > xg-st-2.po || Exit 1
+
+cat <<EOF > xg-st-2.ok
+#. a
+#. b
+#. c
+#. d
+#. e
+#. f
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-st-2.ok xg-st-2.po
+result=$?
+
+exit $result

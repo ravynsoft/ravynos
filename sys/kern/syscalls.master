@@ -1,5 +1,3 @@
-;	from: @(#)syscalls.master	8.2 (Berkeley) 1/13/94
-;
 ; System call name/number master file.
 ; Processed to created init_sysent.c, syscalls.c and syscall.h.
 
@@ -34,6 +32,7 @@
 ;	COMPAT11 included on COMPAT_FREEBSD11 #ifdef (FreeBSD 11 compat)
 ;	COMPAT12 included on COMPAT_FREEBSD12 #ifdef (FreeBSD 12 compat)
 ;	COMPAT13 included on COMPAT_FREEBSD13 #ifdef (FreeBSD 13 compat)
+;	COMPAT14 included on COMPAT_FREEBSD14 #ifdef (FreeBSD 14 compat)
 ;	OBSOL	obsolete, not included in system, only specifies name
 ;	RESERVED reserved for local or vendor use (not for FreeBSD)
 ;	UNIMPL	not implemented, placeholder only
@@ -509,16 +508,8 @@
 	}
 67	AUE_NULL	OBSOL	vread
 68	AUE_NULL	OBSOL	vwrite
-69	AUE_SBRK	STD|CAPENABLED {
-		int sbrk(
-		    int incr
-		);
-	}
-70	AUE_SSTK	STD|CAPENABLED {
-		int sstk(
-		    int incr
-		);
-	}
+69	AUE_NULL	OBSOL	sbrk
+70	AUE_NULL	OBSOL	sstk
 71	AUE_MMAP	COMPAT|CAPENABLED {
 		void *mmap(
 		    _In_ void *addr,
@@ -1005,7 +996,7 @@
 		    int fd,
 		    _Out_writes_bytes_(count) char *buf,
 		    u_int count,
-		    _Out_ long *basep
+		    _Out_opt_ long *basep
 		);
 	}
 157	AUE_STATFS	COMPAT4 {
@@ -1191,7 +1182,7 @@
 		    int fd,
 		    _Out_writes_bytes_(count) char *buf,
 		    u_int count,
-		    _Out_ long *basep
+		    _Out_opt_ long *basep
 		);
 	}
 197	AUE_MMAP	COMPAT6|CAPENABLED {
@@ -3139,7 +3130,7 @@
 		    int fd,
 		    _Out_writes_bytes_(count) char *buf,
 		    size_t count,
-		    _Out_ off_t *basep
+		    _Out_opt_ off_t *basep
 		);
 	}
 555	AUE_STATFS	STD {

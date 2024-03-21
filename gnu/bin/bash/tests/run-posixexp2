@@ -1,0 +1,2 @@
+${THIS_SH} ./posixexp2.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} posixexp2.right && rm -f ${BASH_TSTOUT}

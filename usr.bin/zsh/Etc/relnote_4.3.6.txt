@@ -1,0 +1,19 @@
+Version 4.3.6 contains mostly bugfixes, but there are some small
+improvements.  No incompatibilities with previous versions are known.
+
+Visible changes in the shell and its modules since 4.3.5 include the
+following:
+
+The parameter subscripting flag "e", which existed but had limited
+usefulness, has been extended to allow reverse matching of strings instead
+of patterns.  For example, "${array[(ie)*]}" substitutes the index of the
+array element that contains the exact string "*".  In previous versions of
+the shell a fairly hairy process was necessary to ensure pattern characters
+were quoted.
+
+The cd, chdir, pushd and popd builtins now take the option -q (quiet) which
+avoids side effects when changing directories, suppressing the effect of
+the chpwd function, the chpwd_functions array and printing of the directory
+stack.  The last was already possible with the option PUSHD_SILENT, but in
+previous versions of the shell there was no easy way of suppressing the
+other side effects.

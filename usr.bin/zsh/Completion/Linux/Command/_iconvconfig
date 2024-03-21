@@ -1,0 +1,13 @@
+#compdef iconvconfig
+
+local exargs="-? --help --usage -V --version"
+
+_arguments -S -s \
+    "($exargs)--nostdlib[do not search system directory]" \
+    "(-o --output $exargs)"{-o+,--output=}'[specify output file]:output file:_files' \
+    "($exargs)--prefix=[specify system dir prefix]:prefix:_files" \
+    '(- *)'{-\?,--help}'[display help information]' \
+    '(- *)--usage[display a short usage message]' \
+    '(- *)'{-V,--version}'[print program version]' \
+    '*:directory:_files -/' \
+    && return 0

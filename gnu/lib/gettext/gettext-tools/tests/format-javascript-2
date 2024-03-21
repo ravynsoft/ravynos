@@ -1,0 +1,82 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of JavaScript format strings.
+
+cat <<\EOF > f-js-2.data
+# Valid: %% doesn't count
+msgid  "abc%%def"
+msgstr "xyz"
+# Invalid: invalid msgstr
+msgid  "abc%%def"
+msgstr "xyz%"
+# Valid: same arguments, with different widths
+msgid  "abc%2sdef"
+msgstr "xyz%3s"
+# Invalid: too few arguments
+msgid  "abc%sdef%d"
+msgstr "xyz%s"
+# Invalid: too many arguments
+msgid  "abc%ddef"
+msgstr "xyz%dvw%c"
+# Valid: type compatibility
+msgid  "abc%o"
+msgstr "xyz%d"
+# Valid: type compatibility
+msgid  "abc%o"
+msgstr "xyz%x"
+# Valid: type compatibility
+msgid  "abc%o"
+msgstr "xyz%X"
+# Valid: type compatibility
+msgid  "abc%d"
+msgstr "xyz%x"
+# Valid: type compatibility
+msgid  "abc%d"
+msgstr "xyz%X"
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%s"
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%d"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%d"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-js-2-$n.po
+#, javascript-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-js-2-$n.mo f-js-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-js-2-$n.mo f-js-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-js-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-js-2-$n.po f-js-2-$n.mo
+done < f-js-2.data
+
+Exit 0

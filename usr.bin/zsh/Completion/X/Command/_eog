@@ -1,0 +1,24 @@
+#compdef eog
+
+_arguments -s -S \
+  - '(help)' \
+  '--version[display version information]' \
+  {-h,--help}'[display help information]' \
+  '--help-all[display help on all options]' \
+  '--help-gtk[display help on GTK+ options]' \
+  - normal \
+  '--class=[specify program class as used by the window manager]:class' \
+  '--name=[program name as used by the window manager]:name:_x_name' \
+  '--gdk-debug=[specify GDK debugging flags to set]:flag' \
+  '--gdk-no-debug=[specify GDK debugging flags to unset]:flag' \
+  '--gtk-module=[load additional GTK+ modules]:module' \
+  '--g-fatal-warnings[make all warnings fatal]' \
+  '--gtk-debug=[specify GTK+ debugging flags to set]:flag' \
+  '--gtk-no-debug=[specify GTK+ debugging flags to unset]:flag' \
+  '(-f --fullscreen)'{-f,--fullscreen}'[open in fullscreen mode]' \
+  '(-s --slide-show -f --fullscreen)'{-s,--slide-show}'[open in slideshow mode]' \
+  '(-g --disable-gallery)'{-g,--disable-gallery}'[disable image gallery]' \
+  '(-n --new-instance)'{-n,--new-instance}'[start a new instance]' \
+  '(-w --single-window)'{-w,--single-window}'[open in single window]' \
+  '--display=[specify X display]:display:_x_display' \
+  '*:image file:_files -g "*.(#i)(ani|bmp|gif|ico|jpeg|jpg|pcx|png|pnm|ras|svg|tga|tiff||tif|wbmp|wbm|xbm|xpm)(-.)"'

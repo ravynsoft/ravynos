@@ -1,0 +1,73 @@
+#compdef sv
+
+_sv_commands() {
+  local -a sv_ary
+  sv_ary=(
+    'status':'get status of service (and log service if available)'
+    'up':'start if service is running. If service stops, restart'
+    'down':'send SIGTERM and SIGCONT if service is running. After it stops, do not restart'
+    'once':'start if service is not running. Do not restart if it stops'
+    'pause':'send SIGSTOP if service is running'
+    'cont':'send SIGCONT if service is running'
+    'hup':'send SIGHUP if service is running'
+    'alarm':'send SIGALRM if service is running'
+    'interrupt':'send SIGINT if service is running'
+    'quit':'send SIGQUIT if service is running'
+    '1':'send SIGUSR1 if service is running'
+    '2':'send SIGUSR2 if service is running'
+    'term':'send SIGTERM if service is running'
+    'kill':'send SIGKILL if service is running'
+    'exit':'send SIGTERM and SIGCONT if service is running. Do not restart service.'
+  )
+  _describe -t commands "sv command" sv_ary -V sv_commands
+}
+
+_sv_lsb() {
+  local -a sv_lsb_ary
+  sv_lsb_ary=(
+    'start':'up with check/timeout'
+    'stop':'down with check/timeout'
+    'reload':'hup with check'
+    'restart':'down and up with check'
+    'shutdown':'exit with check/timeout'
+    'force-stop':'stop with kill on timeout'
+    'force-reload':'reload with kill on timeout'
+    'force-restart':'restart with kill on timeout'
+    'force-shutdown':'shutdown with kill on timeout'
+    'try-restart':'restart if service is already running'
+  )
+
+  _describe -t lsb-commands "sv LSM init compat" sv_lsb_ary -V sv_init_compat
+}
+
+_sv_additional() {
+  _describe -t additional-commands "sv additional command" '("check:check status of service")' -V sv_addl_comm
+}
+
+local curcontext="$curcontext" state line
+_arguments -C \
+  '-v[verbose]' \
+  '-w[wait time]:time (seconds)' \
+  '1: :->command' \
+  '*:: :->options'
+
+case $state in
+  (command)
+    _alternative \
+      _sv_commands \
+      _sv_lsb \
+      _sv_additional
+  ;;
+
+  (options)
+    local -a sv_services
+    local svdir=${SVDIR:-/etc/service}
+    sv_services=(
+      $svdir/*(N)
+      $svdir/*/log(N)
+    )
+
+    sv_services=( ${sv_services#$svdir/} )
+    _describe -t services "sv service" sv_services
+  ;;
+esac

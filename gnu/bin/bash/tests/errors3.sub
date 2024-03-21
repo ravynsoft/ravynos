@@ -1,0 +1,7 @@
+# redirection errors with special builtins should exit the shell when in
+# Posix mode, not otherwise; being on the LHS of || or && should not make
+# a difference
+
+exec 9<no_such_file || echo TEST
+set -o posix
+exec 9<no_such_file || echo TEST

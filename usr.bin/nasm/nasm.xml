@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<refentry lang="en">
+<refentryinfo>
+    <title>nasm(1)</title>
+</refentryinfo>
+<refmeta>
+<refentrytitle>nasm</refentrytitle>
+<manvolnum>1</manvolnum>
+<refmiscinfo class="source">NASM</refmiscinfo>
+<refmiscinfo class="manual">The Netwide Assembler Project</refmiscinfo>
+</refmeta>
+<refnamediv>
+    <refname>nasm</refname>
+    <refpurpose>the Netwide Assembler, a portable 80x86 assembler</refpurpose>
+</refnamediv>
+<refsynopsisdiv id="_synopsis">
+<simpara><emphasis role="strong">nasm</emphasis> [<emphasis role="strong">-@</emphasis> response file] [<emphasis role="strong">-f</emphasis> format] [<emphasis role="strong">-o</emphasis> outfile] [<emphasis role="strong">-l</emphasis> listfile] [<emphasis>options</emphasis>&#8230;] filename</simpara>
+</refsynopsisdiv>
+<refsect1 id="_description">
+<title>DESCRIPTION</title>
+<simpara>The <emphasis role="strong">nasm</emphasis> command assembles the file <emphasis>filename</emphasis> and directs output to the file
+<emphasis>outfile</emphasis> if specified. If <emphasis>outfile</emphasis> is not specified, <emphasis role="strong">nasm</emphasis> will derive a default
+output file name from the name of its input file, usually by appending &#8216;.o&#8217; or
+&#8216;.obj&#8217;, or by removing all extensions for a raw binary file. Failing that, the
+output file name will be &#8216;nasm.out&#8217;.</simpara>
+</refsect1>
+<refsect1 id="_options">
+<title>OPTIONS</title>
+<variablelist>
+<varlistentry>
+<term>
+<emphasis role="strong">-@</emphasis> <emphasis>filename</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to process options from filename as if they were included on
+        the command line.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-a</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to assemble the given input file without first applying the
+        macro preprocessor.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-D</emphasis>|<emphasis role="strong">-d</emphasis> <emphasis>macro[=value]</emphasis>
+</term>
+<listitem>
+<simpara>
+        Pre-defines a single-line macro.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-E</emphasis>|<emphasis role="strong">-e</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to preprocess the given input file, and write the output to
+        <emphasis>stdout</emphasis> (or the specified output file name), and not actually assemble
+        anything.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-f</emphasis> <emphasis>format</emphasis>
+</term>
+<listitem>
+<simpara>
+        Specifies the output file format. To see a list of valid output formats,
+        use the <emphasis role="strong">-hf</emphasis> option.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-F</emphasis> <emphasis>format</emphasis>
+</term>
+<listitem>
+<simpara>
+        Specifies the debug information format. To see a list of valid output
+        formats, use the <emphasis role="strong">-y</emphasis> option (for example <emphasis role="strong">-felf -y</emphasis>).
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-g</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to generate debug information.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-g</emphasis><emphasis>format</emphasis>
+</term>
+<listitem>
+<simpara>
+        Equivalent to <emphasis role="strong">-g -F</emphasis><emphasis> format</emphasis>.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-h</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to exit immediately, after giving a summary of its
+        invocation options.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-hf</emphasis>
+</term>
+<listitem>
+<simpara>
+        Same as <emphasis role="strong">-h</emphasis> , but also lists all valid output formats.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-I</emphasis>|<emphasis role="strong">-i</emphasis> <emphasis>directory</emphasis>
+</term>
+<listitem>
+<simpara>
+        Adds a directory to the search path for include files. The directory
+        specification must include the trailing slash, as it will be directly
+        prepended to the name of the include file.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-l</emphasis> <emphasis>listfile</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes an assembly listing to be directed to the given file, in which
+        the original source is displayed on the right hand side (plus the source
+        for included files and the expansions of multi-line macros) and the
+        generated code is shown in hex on the left.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-M</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to output Makefile-style dependencies to stdout; normal
+        output is suppressed.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-MG</emphasis> <emphasis>file</emphasis>
+</term>
+<listitem>
+<simpara>
+        Same as <emphasis role="strong">-M</emphasis> but assumes that missing Makefile dependencies are generated
+        and added to dependency list without a prefix.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-MF</emphasis> <emphasis>file</emphasis>
+</term>
+<listitem>
+<simpara>
+        Output Makefile-style dependencies to the specified file.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-MD</emphasis> <emphasis>file</emphasis>
+</term>
+<listitem>
+<simpara>
+        Same as a combination of <emphasis role="strong">-M</emphasis> and <emphasis role="strong">-MF</emphasis> options.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-MT</emphasis> <emphasis>file</emphasis>
+</term>
+<listitem>
+<simpara>
+        Override the default name of the dependency target dependency target name.
+        This is normally the same as the output filename, specified by
+        the <emphasis role="strong">-o</emphasis> option.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-MQ</emphasis> <emphasis>file</emphasis>
+</term>
+<listitem>
+<simpara>
+        The same as <emphasis role="strong">-MT</emphasis> except it tries to quote characters that have special
+        meaning in Makefile syntax. This is not foolproof, as not all characters
+        with special meaning are quotable in Make.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-MP</emphasis>
+</term>
+<listitem>
+<simpara>
+        Emit phony target.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-O</emphasis> <emphasis>number</emphasis>
+</term>
+<listitem>
+<simpara>
+        Optimize branch offsets.
+</simpara>
+<itemizedlist>
+<listitem>
+<simpara>
+<emphasis role="strong">-O0</emphasis>: No optimization
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong">-O1</emphasis>: Minimal optimization
+</simpara>
+</listitem>
+<listitem>
+<simpara>
+<emphasis role="strong">-Ox</emphasis>: Multipass optimization (default)
+</simpara>
+</listitem>
+</itemizedlist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-o</emphasis> <emphasis>outfile</emphasis>
+</term>
+<listitem>
+<simpara>
+        Specifies a precise name for the output file, overriding <emphasis role="strong">nasm</emphasis>'s default
+        means of determining it.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-P</emphasis>|<emphasis role="strong">-p</emphasis> <emphasis>file</emphasis>
+</term>
+<listitem>
+<simpara>
+        Specifies a file to be pre-included, before the main source file
+        starts to be processed.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-s</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to send its error messages and/or help text to stdout
+        instead of stderr.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-t</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to assemble in SciTech TASM compatible mode.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-U</emphasis>|<emphasis role="strong">-u</emphasis> <emphasis>macro</emphasis>
+</term>
+<listitem>
+<simpara>
+        Undefines a single-line macro.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-v</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to exit immediately, after displaying its version number.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+*-W[no-]foo'
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to enable or disable certain classes of warning messages,
+        in gcc-like style, for example <emphasis role="strong">-Wlabel-orphan</emphasis> or <emphasis role="strong">-Wno-orphan-labels</emphasis>.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-w</emphasis><emphasis>[+-]foo</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to enable or disable certain classes of warning messages,
+        for example <emphasis role="strong">-w+label-orphan</emphasis> or <emphasis role="strong">-w-macro-params</emphasis>.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-X</emphasis> <emphasis>format</emphasis>
+</term>
+<listitem>
+<simpara>
+        Specifies error reporting format (gnu or vc).
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-y</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to list supported debug formats.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+<emphasis role="strong">-Z</emphasis> <emphasis>filename</emphasis>
+</term>
+<listitem>
+<simpara>
+        Causes <emphasis role="strong">nasm</emphasis> to redirect error messages to <emphasis>filename</emphasis>. This option exists
+        to support operating systems on which stderr is not easily redirected.
+</simpara>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term>
+--prefix
+</term>
+<term>
+--postfix
+</term>
+<listitem>
+<simpara>
+        Prepend or append (respectively) the given argument to all global or
+        extern variables.
+</simpara>
+</listitem>
+</varlistentry>
+</variablelist>
+</refsect1>
+<refsect1 id="_syntax">
+<title>SYNTAX</title>
+<simpara>This man page does not fully describe the syntax of <emphasis role="strong">nasm</emphasis>'s assembly language,
+but does give a summary of the differences from other assemblers.</simpara>
+<simpara><emphasis>Registers</emphasis> have no leading &#8216;%&#8217; sign, unlike <emphasis role="strong">gas</emphasis>, and floating-point stack
+registers are referred to as <emphasis>st0</emphasis>, <emphasis>st1</emphasis>, and so on.</simpara>
+<simpara><emphasis>Floating-point instructions</emphasis> may use either the single-operand form or the
+double. A <emphasis>TO</emphasis> keyword is provided; thus, one could either write</simpara>
+<literallayout class="monospaced">fadd st0,st1
+fadd st1,st0</literallayout>
+<simpara>or one could use the alternative single-operand forms</simpara>
+<literallayout class="monospaced">fadd st1
+fadd to st1</literallayout>
+<simpara><emphasis>Uninitialised storage</emphasis> is reserved using the <emphasis>RESB</emphasis>, <emphasis>RESW</emphasis>, <emphasis>RESD</emphasis>, <emphasis>RESQ</emphasis>,
+<emphasis>REST</emphasis> and <emphasis>RESO</emphasis> pseudo-opcodes, each taking one parameter which gives the
+number of bytes, words, doublewords, quadwords or ten-byte words to reserve.</simpara>
+<simpara><emphasis>Repetition</emphasis> of data items is not done by the <emphasis>DUP</emphasis> keyword as seen in DOS
+assemblers, but by the use of the <emphasis>TIMES</emphasis> prefix, like this:</simpara>
+<literallayout class="monospaced">message: times 3 db 'abc'
+         times 64-$+message db 0</literallayout>
+<simpara>which defines the string <literal>abcabcabc</literal>, followed by the right number of zero
+bytes to make the total length up to 64 bytes.</simpara>
+<simpara><emphasis>Symbol references</emphasis> are always understood to be immediate (i.e. the address
+of the symbol), unless square brackets are used, in which case the contents
+of the memory location are used. Thus:</simpara>
+<literallayout class="monospaced">mov ax,wordvar</literallayout>
+<simpara>loads AX with the address of the variable <literal>wordvar</literal>, whereas</simpara>
+<literallayout class="monospaced">mov ax,[wordvar]
+mov ax,[wordvar+1]
+mov ax,[es:wordvar+bx]</literallayout>
+<simpara>all refer to the <emphasis>contents</emphasis> of memory locations. The syntaxes</simpara>
+<literallayout class="monospaced">mov ax,es:wordvar[bx]
+es mov ax,wordvar[1]</literallayout>
+<simpara>are not legal at all, although the use of a segment register name as an instruction
+prefix is valid, and can be used with instructions such as <emphasis>LODSB</emphasis> which can&#8217;t
+be overridden any other way.</simpara>
+<simpara><emphasis>Constants</emphasis> may be expressed numerically in most formats: a trailing H, Q or
+B denotes hex, octal or binary respectively, and a leading &#8216;0x&#8217; or &#8216;$&#8217; denotes
+hex as well. Leading zeros are not treated specially at all. Character constants
+may be enclosed in single or double quotes; there is no escape character. The
+ordering is little-endian (reversed), so that the character constant <emphasis>'abcd</emphasis>'
+denotes 0x64636261 and not 0x61626364.</simpara>
+<simpara>Local labels begin with a period, and their &#8216;locality&#8217; is granted by the assembler
+prepending the name of the previous non-local symbol. Thus declaring a label
+&#8216;.loop&#8217; after a label &#8216;label&#8217; has actually defined a symbol called &#8216;label.loop&#8217;.</simpara>
+</refsect1>
+<refsect1 id="_directives">
+<title>DIRECTIVES</title>
+<simpara><emphasis>SECTION</emphasis> <emphasis>name</emphasis> or <emphasis>SEGMENT</emphasis> <emphasis>name</emphasis> causes <emphasis role="strong">nasm</emphasis> to direct all following code
+to the named section. Section names vary with output file format, although most
+formats support the names <emphasis>.text</emphasis>, <emphasis>.data</emphasis> and <emphasis>.bss</emphasis>. (The exception is the
+<emphasis>obj</emphasis> format, in which all segments are user-definable.)</simpara>
+<simpara><emphasis>ABSOLUTE</emphasis> <emphasis>address</emphasis> causes <emphasis role="strong">nasm</emphasis> to position its notional assembly point at
+an absolute address: so no code or data may be generated, but you can use <emphasis>RESB</emphasis>,
+<emphasis>RESW</emphasis> and <emphasis>RESD</emphasis> to move the assembly point further on, and you can define labels.
+So this directive may be used to define data structures. When you have finished
+doing absolute assembly, you must issue another <emphasis>SECTION</emphasis> directive to return to
+normal assembly.</simpara>
+<simpara><emphasis>BITS</emphasis> <emphasis>16</emphasis>, <emphasis>BITS</emphasis> <emphasis>32</emphasis> or <emphasis>BITS</emphasis> <emphasis>64</emphasis> switches the default processor mode for
+which <emphasis role="strong">nasm</emphasis> is generating code: it is equivalent to <emphasis>USE16</emphasis> or <emphasis>USE32</emphasis> in DOS
+assemblers.</simpara>
+<simpara><emphasis>EXTERN</emphasis> <emphasis>symbol</emphasis> and <emphasis>GLOBAL</emphasis> <emphasis>symbol</emphasis> import and export symbol definitions,
+respectively, from and to other modules. Note that the <emphasis>GLOBAL</emphasis> directive must
+appear before the definition of the symbol it refers to.</simpara>
+<simpara><emphasis>STRUC</emphasis> <emphasis>strucname</emphasis> and <emphasis>ENDSTRUC</emphasis>, when used to bracket a number of <emphasis>RESB</emphasis>,
+<emphasis>RESW</emphasis> or similar instructions, define a data structure. In addition to
+defining the offsets of the structure members, the construct also defines a symbol
+for the size of the structure, which is simply the structure name with <emphasis>size</emphasis>
+tacked on to the end.</simpara>
+</refsect1>
+<refsect1 id="_format_specific_directives">
+<title>FORMAT-SPECIFIC DIRECTIVES</title>
+<simpara><emphasis>ORG</emphasis> <emphasis>address</emphasis> is used by the <emphasis>bin</emphasis> flat-form binary output format, and
+specifies the address at which the output code will eventually be loaded.</simpara>
+<simpara><emphasis>GROUP</emphasis> <emphasis>grpname</emphasis> <emphasis>seg1</emphasis> <emphasis>seg2</emphasis>&#8230; is used by the obj (Microsoft 16-bit)
+output format, and defines segment groups. This format also uses <emphasis>UPPERCASE</emphasis>,
+which directs that all segment, group and symbol names output to the object
+file should be in uppercase. Note that the actual assembly is still case
+sensitive.</simpara>
+<simpara><emphasis>LIBRARY</emphasis> <emphasis>libname</emphasis> is used by the <emphasis>rdf</emphasis> output format, and causes a
+dependency record to be written to the output file which indicates that
+the program requires a certain library in order to run.</simpara>
+</refsect1>
+<refsect1 id="_macro_preprocessor">
+<title>MACRO PREPROCESSOR</title>
+<simpara>Single-line macros are defined using the <emphasis>%define</emphasis> or <emphasis>%idefine</emphasis> commands, in
+a similar fashion to the C preprocessor. They can be overloaded with respect
+to number of parameters, although defining a macro with no parameters prevents
+the definition of any macro with the same name taking parameters, and vice versa.
+<emphasis>%define</emphasis> defines macros whose names match case-sensitively, whereas <emphasis>%idefine</emphasis>
+defines case-insensitive macros.</simpara>
+<simpara>Multi-line macros are defined using <emphasis>%macro</emphasis> and <emphasis>%imacro</emphasis> (the distinction is the
+same as that between <emphasis>%define</emphasis> and <emphasis>%idefine</emphasis>), whose syntax is as follows</simpara>
+<literallayout class="monospaced">%macro name minprm[-maxprm][+][.nolist] [defaults]
+        &lt;some lines of macro expansion text&gt;
+%endmacro</literallayout>
+<simpara>Again, these macros may be overloaded. The trailing plus sign indicates that
+any parameters after the last one get subsumed, with their separating commas,
+into the last parameter. The <emphasis>defaults</emphasis> part can be used to specify defaults for
+unspecified macro parameters after <emphasis>minparam</emphasis>. <emphasis>%endm</emphasis> is a valid synonym for
+<emphasis>%endmacro</emphasis>.</simpara>
+<simpara>To refer to the macro parameters within a macro expansion, you use <emphasis>%1</emphasis>, <emphasis>%2</emphasis> and
+so on. You can also enforce that a macro parameter should contain a condition
+code by using <emphasis>%+1</emphasis>, and you can invert the condition code by using <emphasis>%-1</emphasis>. You can also
+define a label specific to a macro invocation by prefixing it with a double &#8216;%&#8217; sign.</simpara>
+<simpara>Files can be included using the <emphasis>%include</emphasis> directive, which works like C.</simpara>
+<simpara>The preprocessor has a &#8216;context stack&#8217;, which may be used by one macro to store
+information that a later one will retrieve. You can push a context on the stack
+using <emphasis>%push</emphasis>, remove one using <emphasis>%pop</emphasis>, and change the name of the top context (without
+disturbing any associated definitions) using <emphasis>%repl</emphasis>. Labels and <emphasis>%define</emphasis> macros
+specific to the top context may be defined by prefixing their names with %$,
+and things specific to the next context down with %$$, and so on.</simpara>
+<simpara>Conditional assembly is done by means of <emphasis>%ifdef</emphasis>, <emphasis>%ifndef</emphasis>, <emphasis>%else</emphasis> and <emphasis>%endif</emphasis>
+as in C. (Except that <emphasis>%ifdef</emphasis> can accept several putative macro names, and
+will evaluate TRUE if any of them is defined.) In addition, the directives
+<emphasis>%ifctx</emphasis> and <emphasis>%ifnctx</emphasis> can be used to condition on the name of the top context
+on the context stack. The obvious set of &#8216;else-if&#8217; directives, <emphasis>%elifdef</emphasis>,
+<emphasis>%elifndef</emphasis>, <emphasis>%elifctx</emphasis> and <emphasis>%elifnctx</emphasis> are also supported.</simpara>
+</refsect1>
+<refsect1 id="_bugs">
+<title>BUGS</title>
+<simpara>Please report bugs through the bug tracker function at <ulink url="http://nasm.us">http://nasm.us</ulink>.</simpara>
+</refsect1>
+<refsect1 id="_see_also">
+<title>SEE ALSO</title>
+<simpara><emphasis role="strong">as</emphasis>(1), <emphasis role="strong">ld</emphasis>(1).</simpara>
+</refsect1>
+</refentry>

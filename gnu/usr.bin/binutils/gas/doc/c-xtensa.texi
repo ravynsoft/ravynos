@@ -1,0 +1,940 @@
+@c Copyright (C) 2002-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c
+@c man end
+@ifset GENERIC
+@page
+@node Xtensa-Dependent
+@chapter Xtensa Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter Xtensa Dependent Features
+@end ifclear
+
+@cindex Xtensa architecture
+This chapter covers features of the @sc{gnu} assembler that are specific
+to the Xtensa architecture.  For details about the Xtensa instruction
+set, please consult the @cite{Xtensa Instruction Set Architecture (ISA)
+Reference Manual}.
+
+@menu
+* Xtensa Options::              Command-line Options.
+* Xtensa Syntax::               Assembler Syntax for Xtensa Processors.
+* Xtensa Optimizations::        Assembler Optimizations.
+* Xtensa Relaxation::           Other Automatic Transformations.
+* Xtensa Directives::           Directives for Xtensa Processors.
+@end menu
+
+@node Xtensa Options
+@section Command-line Options
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@item --text-section-literals | --no-text-section-literals
+@kindex --text-section-literals
+@kindex --no-text-section-literals
+Control the treatment of literal pools.  The default is
+@samp{--no-@-text-@-section-@-literals}, which places literals in
+separate sections in the output file.  This allows the literal pool to be
+placed in a data RAM/ROM.  With @samp{--text-@-section-@-literals}, the
+literals are interspersed in the text section in order to keep them as
+close as possible to their references.  This may be necessary for large
+assembly files, where the literals would otherwise be out of range of the
+@code{L32R} instructions in the text section.  Literals are grouped into
+pools following @code{.literal_position} directives or preceding
+@code{ENTRY} instructions.  These options only affect literals referenced
+via PC-relative @code{L32R} instructions; literals for absolute mode
+@code{L32R} instructions are handled separately.
+@xref{Literal Directive, ,literal}.
+
+@item --auto-litpools | --no-auto-litpools
+@kindex --auto-litpools
+@kindex --no-auto-litpools
+Control the treatment of literal pools.  The default is
+@samp{--no-@-auto-@-litpools}, which in the absence of
+@samp{--text-@-section-@-literals} places literals in separate sections
+in the output file.  This allows the literal pool to be placed in a data
+RAM/ROM.  With @samp{--auto-@-litpools}, the literals are interspersed
+in the text section in order to keep them as close as possible to their
+references, explicit @code{.literal_position} directives are not
+required.  This may be necessary for very large functions, where single
+literal pool at the beginning of the function may not be reachable by
+@code{L32R} instructions at the end.  These options only affect
+literals referenced via PC-relative @code{L32R} instructions; literals
+for absolute mode @code{L32R} instructions are handled separately.
+When used together with @samp{--text-@-section-@-literals},
+@samp{--auto-@-litpools} takes precedence.
+@xref{Literal Directive, ,literal}.
+
+@item --absolute-literals | --no-absolute-literals
+@kindex --absolute-literals
+@kindex --no-absolute-literals
+Indicate to the assembler whether @code{L32R} instructions use absolute
+or PC-relative addressing.  If the processor includes the absolute
+addressing option, the default is to use absolute @code{L32R}
+relocations.  Otherwise, only the PC-relative @code{L32R} relocations
+can be used.
+
+@item --target-align | --no-target-align
+@kindex --target-align
+@kindex --no-target-align
+Enable or disable automatic alignment to reduce branch penalties at some
+expense in code size.  @xref{Xtensa Automatic Alignment, ,Automatic
+Instruction Alignment}.  This optimization is enabled by default.  Note
+that the assembler will always align instructions like @code{LOOP} that
+have fixed alignment requirements.
+
+@item --longcalls | --no-longcalls
+@kindex --longcalls
+@kindex --no-longcalls
+Enable or disable transformation of call instructions to allow calls
+across a greater range of addresses.  @xref{Xtensa Call Relaxation,
+,Function Call Relaxation}.  This option should be used when call
+targets can potentially be out of range.  It may degrade both code size
+and performance, but the linker can generally optimize away the
+unnecessary overhead when a call ends up within range.  The default is
+@samp{--no-@-longcalls}.
+
+@item --transform | --no-transform
+@kindex --transform
+@kindex --no-transform
+Enable or disable all assembler transformations of Xtensa instructions,
+including both relaxation and optimization.  The default is
+@samp{--transform}; @samp{--no-transform} should only be used in the
+rare cases when the instructions must be exactly as specified in the
+assembly source.  Using @samp{--no-transform} causes out of range
+instruction operands to be errors.
+
+@item --rename-section @var{oldname}=@var{newname}
+@kindex --rename-section
+Rename the @var{oldname} section to @var{newname}.  This option can be used
+multiple times to rename multiple sections.
+
+@item --trampolines | --no-trampolines
+@kindex --trampolines
+@kindex --no-trampolines
+Enable or disable transformation of jump instructions to allow jumps
+across a greater range of addresses.  @xref{Xtensa Jump Relaxation,
+,Jump Trampolines}.  This option should be used when jump targets can
+potentially be out of range.  In the absence of such jumps this option
+does not affect code size or performance.  The default is
+@samp{--trampolines}.
+
+@item --abi-windowed | --abi-call0
+@kindex --abi-windowed
+@kindex --abi-call0
+Choose ABI tag written to the @code{.xtensa.info} section.  ABI tag
+indicates ABI of the assembly code.  A warning is issued by the linker
+on an attempt to link object files with inconsistent ABI tags.
+Default ABI is chosen by the Xtensa core configuration.
+@end table
+
+@c man end
+
+@node Xtensa Syntax
+@section Assembler Syntax
+@cindex syntax, Xtensa assembler
+@cindex Xtensa assembler syntax
+@cindex FLIX syntax
+
+Block comments are delimited by @samp{/*} and @samp{*/}.  End of line
+comments may be introduced with either @samp{#} or @samp{//}.
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line could also be
+a logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+Instructions consist of a leading opcode or macro name followed by
+whitespace and an optional comma-separated list of operands:
+
+@smallexample
+@var{opcode} [@var{operand}, @dots{}]
+@end smallexample
+
+Instructions must be separated by a newline or semicolon (@samp{;}).
+
+FLIX instructions, which bundle multiple opcodes together in a single
+instruction, are specified by enclosing the bundled opcodes inside
+braces:
+
+@smallexample
+@group
+@{
+[@var{format}]
+@var{opcode0} [@var{operands}]
+@end group
+@var{opcode1} [@var{operands}]
+@group
+@var{opcode2} [@var{operands}]
+@dots{}
+@}
+@end group
+@end smallexample
+
+The opcodes in a FLIX instruction are listed in the same order as the
+corresponding instruction slots in the TIE format declaration.
+Directives and labels are not allowed inside the braces of a FLIX
+instruction.  A particular TIE format name can optionally be specified
+immediately after the opening brace, but this is usually unnecessary.
+The assembler will automatically search for a format that can encode the
+specified opcodes, so the format name need only be specified in rare
+cases where there is more than one applicable format and where it
+matters which of those formats is used.  A FLIX instruction can also be
+specified on a single line by separating the opcodes with semicolons:
+
+@smallexample
+@{ [@var{format};] @var{opcode0} [@var{operands}]; @var{opcode1} [@var{operands}]; @var{opcode2} [@var{operands}]; @dots{} @}
+@end smallexample
+
+If an opcode can only be encoded in a FLIX instruction but is not
+specified as part of a FLIX bundle, the assembler will choose the
+smallest format where the opcode can be encoded and
+will fill unused instruction slots with no-ops.
+
+@menu
+* Xtensa Opcodes::              Opcode Naming Conventions.
+* Xtensa Registers::            Register Naming.
+@end menu
+
+@node Xtensa Opcodes
+@subsection Opcode Names
+@cindex Xtensa opcode names
+@cindex opcode names, Xtensa
+
+See the @cite{Xtensa Instruction Set Architecture (ISA) Reference
+Manual} for a complete list of opcodes and descriptions of their
+semantics.
+
+@cindex _ opcode prefix
+If an opcode name is prefixed with an underscore character (@samp{_}),
+@command{@value{AS}} will not transform that instruction in any way.  The
+underscore prefix disables both optimization (@pxref{Xtensa
+Optimizations, ,Xtensa Optimizations}) and relaxation (@pxref{Xtensa
+Relaxation, ,Xtensa Relaxation}) for that particular instruction.  Only
+use the underscore prefix when it is essential to select the exact
+opcode produced by the assembler.  Using this feature unnecessarily
+makes the code less efficient by disabling assembler optimization and
+less flexible by disabling relaxation.
+
+Note that this special handling of underscore prefixes only applies to
+Xtensa opcodes, not to either built-in macros or user-defined macros.
+When an underscore prefix is used with a macro (e.g., @code{_MOV}), it
+refers to a different macro.  The assembler generally provides built-in
+macros both with and without the underscore prefix, where the underscore
+versions behave as if the underscore carries through to the instructions
+in the macros.  For example, @code{_MOV} may expand to @code{_MOV.N}@.
+
+The underscore prefix only applies to individual instructions, not to
+series of instructions.  For example, if a series of instructions have
+underscore prefixes, the assembler will not transform the individual
+instructions, but it may insert other instructions between them (e.g.,
+to align a @code{LOOP} instruction).  To prevent the assembler from
+modifying a series of instructions as a whole, use the
+@code{no-transform} directive.  @xref{Transform Directive, ,transform}.
+
+@node Xtensa Registers
+@subsection Register Names
+@cindex Xtensa register names
+@cindex register names, Xtensa
+@cindex sp register
+
+The assembly syntax for a register file entry is the ``short'' name for
+a TIE register file followed by the index into that register file.  For
+example, the general-purpose @code{AR} register file has a short name of
+@code{a}, so these registers are named @code{a0}@dots{}@code{a15}.
+As a special feature, @code{sp} is also supported as a synonym for
+@code{a1}.  Additional registers may be added by processor configuration
+options and by designer-defined TIE extensions.  An initial @samp{$}
+character is optional in all register names.
+
+@node Xtensa Optimizations
+@section Xtensa Optimizations
+@cindex optimizations
+
+The optimizations currently supported by @command{@value{AS}} are
+generation of density instructions where appropriate and automatic
+branch target alignment.
+
+@menu
+* Density Instructions::        Using Density Instructions.
+* Xtensa Automatic Alignment::  Automatic Instruction Alignment.
+@end menu
+
+@node Density Instructions
+@subsection Using Density Instructions
+@cindex density instructions
+
+The Xtensa instruction set has a code density option that provides
+16-bit versions of some of the most commonly used opcodes.  Use of these
+opcodes can significantly reduce code size.  When possible, the
+assembler automatically translates instructions from the core
+Xtensa instruction set into equivalent instructions from the Xtensa code
+density option.  This translation can be disabled by using underscore
+prefixes (@pxref{Xtensa Opcodes, ,Opcode Names}), by using the
+@samp{--no-transform} command-line option (@pxref{Xtensa Options, ,Command
+Line Options}), or by using the @code{no-transform} directive
+(@pxref{Transform Directive, ,transform}).
+
+It is a good idea @emph{not} to use the density instructions directly.
+The assembler will automatically select dense instructions where
+possible.  If you later need to use an Xtensa processor without the code
+density option, the same assembly code will then work without modification.
+
+@node Xtensa Automatic Alignment
+@subsection Automatic Instruction Alignment
+@cindex alignment of @code{LOOP} instructions
+@cindex alignment of branch targets
+@cindex @code{LOOP} instructions, alignment
+@cindex branch target alignment
+
+The Xtensa assembler will automatically align certain instructions, both
+to optimize performance and to satisfy architectural requirements.
+
+As an optimization to improve performance, the assembler attempts to
+align branch targets so they do not cross instruction fetch boundaries.
+(Xtensa processors can be configured with either 32-bit or 64-bit
+instruction fetch widths.)  An
+instruction immediately following a call is treated as a branch target
+in this context, because it will be the target of a return from the
+call.  This alignment has the potential to reduce branch penalties at
+some expense in code size.
+This optimization is enabled by default.  You can disable it with the
+@samp{--no-target-@-align} command-line option (@pxref{Xtensa Options,
+,Command-line Options}).
+
+The target alignment optimization is done without adding instructions
+that could increase the execution time of the program.  If there are
+density instructions in the code preceding a target, the assembler can
+change the target alignment by widening some of those instructions to
+the equivalent 24-bit instructions.  Extra bytes of padding can be
+inserted immediately following unconditional jump and return
+instructions.
+This approach is usually successful in aligning many, but not all,
+branch targets.
+
+The @code{LOOP} family of instructions must be aligned such that the
+first instruction in the loop body does not cross an instruction fetch
+boundary (e.g., with a 32-bit fetch width, a @code{LOOP} instruction
+must be on either a 1 or 2 mod 4 byte boundary).  The assembler knows
+about this restriction and inserts the minimal number of 2 or 3 byte
+no-op instructions to satisfy it.  When no-op instructions are added,
+any label immediately preceding the original loop will be moved in order
+to refer to the loop instruction, not the newly generated no-op
+instruction.  To preserve binary compatibility across processors with
+different fetch widths, the assembler conservatively assumes a 32-bit
+fetch width when aligning @code{LOOP} instructions (except if the first
+instruction in the loop is a 64-bit instruction).
+
+Previous versions of the assembler automatically aligned @code{ENTRY}
+instructions to 4-byte boundaries, but that alignment is now the
+programmer's responsibility.
+
+@node Xtensa Relaxation
+@section Xtensa Relaxation
+@cindex relaxation
+
+When an instruction operand is outside the range allowed for that
+particular instruction field, @command{@value{AS}} can transform the code
+to use a functionally-equivalent instruction or sequence of
+instructions.  This process is known as @dfn{relaxation}.  This is
+typically done for branch instructions because the distance of the
+branch targets is not known until assembly-time.  The Xtensa assembler
+offers branch relaxation and also extends this concept to function
+calls, @code{MOVI} instructions and other instructions with immediate
+fields.
+
+@menu
+* Xtensa Branch Relaxation::        Relaxation of Branches.
+* Xtensa Call Relaxation::          Relaxation of Function Calls.
+* Xtensa Jump Relaxation::          Relaxation of Jumps.
+* Xtensa Immediate Relaxation::     Relaxation of other Immediate Fields.
+@end menu
+
+@node Xtensa Branch Relaxation
+@subsection Conditional Branch Relaxation
+@cindex relaxation of branch instructions
+@cindex branch instructions, relaxation
+
+When the target of a branch is too far away from the branch itself,
+i.e., when the offset from the branch to the target is too large to fit
+in the immediate field of the branch instruction, it may be necessary to
+replace the branch with a branch around a jump.  For example,
+
+@smallexample
+    beqz    a2, L
+@end smallexample
+
+may result in:
+
+@smallexample
+@group
+    bnez.n  a2, M
+    j L
+M:
+@end group
+@end smallexample
+
+(The @code{BNEZ.N} instruction would be used in this example only if the
+density option is available.  Otherwise, @code{BNEZ} would be used.)
+
+This relaxation works well because the unconditional jump instruction
+has a much larger offset range than the various conditional branches.
+However, an error will occur if a branch target is beyond the range of a
+jump instruction.  @command{@value{AS}} cannot relax unconditional jumps.
+Similarly, an error will occur if the original input contains an
+unconditional jump to a target that is out of range.
+
+Branch relaxation is enabled by default.  It can be disabled by using
+underscore prefixes (@pxref{Xtensa Opcodes, ,Opcode Names}), the
+@samp{--no-transform} command-line option (@pxref{Xtensa Options,
+,Command-line Options}), or the @code{no-transform} directive
+(@pxref{Transform Directive, ,transform}).
+
+@node Xtensa Call Relaxation
+@subsection Function Call Relaxation
+@cindex relaxation of call instructions
+@cindex call instructions, relaxation
+
+Function calls may require relaxation because the Xtensa immediate call
+instructions (@code{CALL0}, @code{CALL4}, @code{CALL8} and
+@code{CALL12}) provide a PC-relative offset of only 512 Kbytes in either
+direction.  For larger programs, it may be necessary to use indirect
+calls (@code{CALLX0}, @code{CALLX4}, @code{CALLX8} and @code{CALLX12})
+where the target address is specified in a register.  The Xtensa
+assembler can automatically relax immediate call instructions into
+indirect call instructions.  This relaxation is done by loading the
+address of the called function into the callee's return address register
+and then using a @code{CALLX} instruction.  So, for example:
+
+@smallexample
+    call8 func
+@end smallexample
+
+might be relaxed to:
+
+@smallexample
+@group
+    .literal .L1, func
+    l32r    a8, .L1
+    callx8  a8
+@end group
+@end smallexample
+
+Because the addresses of targets of function calls are not generally
+known until link-time, the assembler must assume the worst and relax all
+the calls to functions in other source files, not just those that really
+will be out of range.  The linker can recognize calls that were
+unnecessarily relaxed, and it will remove the overhead introduced by the
+assembler for those cases where direct calls are sufficient.
+
+Call relaxation is disabled by default because it can have a negative
+effect on both code size and performance, although the linker can
+usually eliminate the unnecessary overhead.  If a program is too large
+and some of the calls are out of range, function call relaxation can be
+enabled using the @samp{--longcalls} command-line option or the
+@code{longcalls} directive (@pxref{Longcalls Directive, ,longcalls}).
+
+@node Xtensa Jump Relaxation
+@subsection Jump Relaxation
+@cindex relaxation of jump instructions
+@cindex jump instructions, relaxation
+
+Jump instruction may require relaxation because the Xtensa jump instruction
+(@code{J}) provide a PC-relative offset of only 128 Kbytes in either
+direction.  One option is to use jump long (@code{J.L}) instruction, which
+depending on jump distance may be assembled as jump (@code{J}) or indirect
+jump (@code{JX}).  However it needs a free register.  When there's no spare
+register it is possible to plant intermediate jump sites (trampolines)
+between the jump instruction and its target.  These sites may be located in
+areas unreachable by normal code execution flow, in that case they only
+contain intermediate jumps, or they may be inserted in the middle of code
+block, in which case there's an additional jump from the beginning of the
+trampoline to the instruction past its end.  So, for example:
+
+@smallexample
+@group
+    j 1f
+    ...
+    retw
+    ...
+    mov a10, a2
+    call8 func
+    ...
+1:
+    ...
+@end group
+@end smallexample
+
+might be relaxed to:
+
+@smallexample
+@group
+    j .L0_TR_1
+    ...
+    retw
+.L0_TR_1:
+    j 1f
+    ...
+    mov a10, a2
+    call8 func
+    ...
+1:
+    ...
+@end group
+@end smallexample
+
+or to:
+
+@smallexample
+@group
+    j .L0_TR_1
+    ...
+    retw
+    ...
+    mov a10, a2
+    j .L0_TR_0
+.L0_TR_1:
+    j 1f
+.L0_TR_0:
+    call8 func
+    ...
+1:
+    ...
+@end group
+@end smallexample
+
+The Xtensa assembler uses trampolines with jump around only when it cannot
+find suitable unreachable trampoline.  There may be multiple trampolines
+between the jump instruction and its target.
+
+This relaxation does not apply to jumps to undefined symbols, assuming they
+will reach their targets once resolved.
+
+Jump relaxation is enabled by default because it does not affect code size
+or performance while the code itself is small.  This relaxation may be
+disabled completely with @samp{--no-trampolines} or @samp{--no-transform}
+command-line options (@pxref{Xtensa Options, ,Command-line Options}).
+
+@node Xtensa Immediate Relaxation
+@subsection Other Immediate Field Relaxation
+@cindex immediate fields, relaxation
+@cindex relaxation of immediate fields
+
+The assembler normally performs the following other relaxations.  They
+can be disabled by using underscore prefixes (@pxref{Xtensa Opcodes,
+,Opcode Names}), the @samp{--no-transform} command-line option
+(@pxref{Xtensa Options, ,Command-line Options}), or the
+@code{no-transform} directive (@pxref{Transform Directive, ,transform}).
+
+@cindex @code{MOVI} instructions, relaxation
+@cindex relaxation of @code{MOVI} instructions
+The @code{MOVI} machine instruction can only materialize values in the
+range from -2048 to 2047.  Values outside this range are best
+materialized with @code{L32R} instructions.  Thus:
+
+@smallexample
+    movi a0, 100000
+@end smallexample
+
+is assembled into the following machine code:
+
+@smallexample
+@group
+    .literal .L1, 100000
+    l32r a0, .L1
+@end group
+@end smallexample
+
+@cindex @code{L8UI} instructions, relaxation
+@cindex @code{L16SI} instructions, relaxation
+@cindex @code{L16UI} instructions, relaxation
+@cindex @code{L32I} instructions, relaxation
+@cindex relaxation of @code{L8UI} instructions
+@cindex relaxation of @code{L16SI} instructions
+@cindex relaxation of @code{L16UI} instructions
+@cindex relaxation of @code{L32I} instructions
+The @code{L8UI} machine instruction can only be used with immediate
+offsets in the range from 0 to 255. The @code{L16SI} and @code{L16UI}
+machine instructions can only be used with offsets from 0 to 510.  The
+@code{L32I} machine instruction can only be used with offsets from 0 to
+1020.  A load offset outside these ranges can be materialized with
+an @code{L32R} instruction if the destination register of the load
+is different than the source address register.  For example:
+
+@smallexample
+    l32i a1, a0, 2040
+@end smallexample
+
+is translated to:
+
+@smallexample
+@group
+    .literal .L1, 2040
+    l32r a1, .L1
+@end group
+@group
+    add a1, a0, a1
+    l32i a1, a1, 0
+@end group
+@end smallexample
+
+@noindent
+If the load destination and source address register are the same, an
+out-of-range offset causes an error.
+
+@cindex @code{ADDI} instructions, relaxation
+@cindex relaxation of @code{ADDI} instructions
+The Xtensa @code{ADDI} instruction only allows immediate operands in the
+range from -128 to 127.  There are a number of alternate instruction
+sequences for the @code{ADDI} operation.  First, if the
+immediate is 0, the @code{ADDI} will be turned into a @code{MOV.N}
+instruction (or the equivalent @code{OR} instruction if the code density
+option is not available).  If the @code{ADDI} immediate is outside of
+the range -128 to 127, but inside the range -32896 to 32639, an
+@code{ADDMI} instruction or @code{ADDMI}/@code{ADDI} sequence will be
+used.  Finally, if the immediate is outside of this range and a free
+register is available, an @code{L32R}/@code{ADD} sequence will be used
+with a literal allocated from the literal pool.
+
+For example:
+
+@smallexample
+@group
+    addi    a5, a6, 0
+    addi    a5, a6, 512
+@end group
+@group
+    addi    a5, a6, 513
+    addi    a5, a6, 50000
+@end group
+@end smallexample
+
+is assembled into the following:
+
+@smallexample
+@group
+    .literal .L1, 50000
+    mov.n   a5, a6
+@end group
+    addmi   a5, a6, 0x200
+    addmi   a5, a6, 0x200
+    addi    a5, a5, 1
+@group
+    l32r    a5, .L1
+    add     a5, a6, a5
+@end group
+@end smallexample
+
+@node Xtensa Directives
+@section Directives
+@cindex Xtensa directives
+@cindex directives, Xtensa
+
+The Xtensa assembler supports a region-based directive syntax:
+
+@smallexample
+@group
+    .begin @var{directive} [@var{options}]
+    @dots{}
+    .end @var{directive}
+@end group
+@end smallexample
+
+All the Xtensa-specific directives that apply to a region of code use
+this syntax.
+
+The directive applies to code between the @code{.begin} and the
+@code{.end}.  The state of the option after the @code{.end} reverts to
+what it was before the @code{.begin}.
+A nested @code{.begin}/@code{.end} region can further
+change the state of the directive without having to be aware of its
+outer state.  For example, consider:
+
+@smallexample
+@group
+    .begin no-transform
+L:  add a0, a1, a2
+@end group
+    .begin transform
+M:  add a0, a1, a2
+    .end transform
+@group
+N:  add a0, a1, a2
+    .end no-transform
+@end group
+@end smallexample
+
+The @code{ADD} opcodes at @code{L} and @code{N} in the outer
+@code{no-transform} region both result in @code{ADD} machine instructions,
+but the assembler selects an @code{ADD.N} instruction for the
+@code{ADD} at @code{M} in the inner @code{transform} region.
+
+The advantage of this style is that it works well inside macros which can
+preserve the context of their callers.
+
+The following directives are available:
+@menu
+* Schedule Directive::         Enable instruction scheduling.
+* Longcalls Directive::        Use Indirect Calls for Greater Range.
+* Transform Directive::        Disable All Assembler Transformations.
+* Literal Directive::          Intermix Literals with Instructions.
+* Literal Position Directive:: Specify Inline Literal Pool Locations.
+* Literal Prefix Directive::   Specify Literal Section Name Prefix.
+* Absolute Literals Directive:: Control PC-Relative vs. Absolute Literals.
+@end menu
+
+@node Schedule Directive
+@subsection schedule
+@cindex @code{schedule} directive
+@cindex @code{no-schedule} directive
+
+The @code{schedule} directive is recognized only for compatibility with
+Tensilica's assembler.
+
+@smallexample
+@group
+    .begin [no-]schedule
+    .end [no-]schedule
+@end group
+@end smallexample
+
+This directive is ignored and has no effect on @command{@value{AS}}.
+
+@node Longcalls Directive
+@subsection longcalls
+@cindex @code{longcalls} directive
+@cindex @code{no-longcalls} directive
+
+The @code{longcalls} directive enables or disables function call
+relaxation.  @xref{Xtensa Call Relaxation, ,Function Call Relaxation}.
+
+@smallexample
+@group
+    .begin [no-]longcalls
+    .end [no-]longcalls
+@end group
+@end smallexample
+
+Call relaxation is disabled by default unless the @samp{--longcalls}
+command-line option is specified.  The @code{longcalls} directive
+overrides the default determined by the command-line options.
+
+@node Transform Directive
+@subsection transform
+@cindex @code{transform} directive
+@cindex @code{no-transform} directive
+
+This directive enables or disables all assembler transformation,
+including relaxation (@pxref{Xtensa Relaxation, ,Xtensa Relaxation}) and
+optimization (@pxref{Xtensa Optimizations, ,Xtensa Optimizations}).
+
+@smallexample
+@group
+    .begin [no-]transform
+    .end [no-]transform
+@end group
+@end smallexample
+
+Transformations are enabled by default unless the @samp{--no-transform}
+option is used.  The @code{transform} directive overrides the default
+determined by the command-line options.  An underscore opcode prefix,
+disabling transformation of that opcode, always takes precedence over
+both directives and command-line flags.
+
+@node Literal Directive
+@subsection literal
+@cindex @code{literal} directive
+
+The @code{.literal} directive is used to define literal pool data, i.e.,
+read-only 32-bit data accessed via @code{L32R} instructions.
+
+@smallexample
+    .literal @var{label}, @var{value}[, @var{value}@dots{}]
+@end smallexample
+
+This directive is similar to the standard @code{.word} directive, except
+that the actual location of the literal data is determined by the
+assembler and linker, not by the position of the @code{.literal}
+directive.  Using this directive gives the assembler freedom to locate
+the literal data in the most appropriate place and possibly to combine
+identical literals.  For example, the code:
+
+@smallexample
+@group
+    entry sp, 40
+    .literal .L1, sym
+    l32r    a4, .L1
+@end group
+@end smallexample
+
+can be used to load a pointer to the symbol @code{sym} into register
+@code{a4}.  The value of @code{sym} will not be placed between the
+@code{ENTRY} and @code{L32R} instructions; instead, the assembler puts
+the data in a literal pool.
+
+Literal pools are placed by default in separate literal sections;
+however, when using the @samp{--text-@-section-@-literals}
+option (@pxref{Xtensa Options, ,Command-line Options}), the literal
+pools for PC-relative mode @code{L32R} instructions
+are placed in the current section.@footnote{Literals for the
+@code{.init} and @code{.fini} sections are always placed in separate
+sections, even when @samp{--text-@-section-@-literals} is enabled.}
+These text section literal
+pools are created automatically before @code{ENTRY} instructions and
+manually after @samp{.literal_position} directives (@pxref{Literal
+Position Directive, ,literal_position}).  If there are no preceding
+@code{ENTRY} instructions, explicit @code{.literal_position} directives
+must be used to place the text section literal pools; otherwise,
+@command{@value{AS}} will report an error.
+
+When literals are placed in separate sections, the literal section names
+are derived from the names of the sections where the literals are
+defined.  The base literal section names are @code{.literal} for
+PC-relative mode @code{L32R} instructions and @code{.lit4} for absolute
+mode @code{L32R} instructions (@pxref{Absolute Literals Directive,
+,absolute-literals}).  These base names are used for literals defined in
+the default @code{.text} section.  For literals defined in other
+sections or within the scope of a @code{literal_prefix} directive
+(@pxref{Literal Prefix Directive, ,literal_prefix}), the following rules
+determine the literal section name:
+
+@enumerate
+@item
+If the current section is a member of a section group, the literal
+section name includes the group name as a suffix to the base
+@code{.literal} or @code{.lit4} name, with a period to separate the base
+name and group name.  The literal section is also made a member of the
+group.
+
+@item
+If the current section name (or @code{literal_prefix} value) begins with
+``@code{.gnu.linkonce.@var{kind}.}'', the literal section name is formed
+by replacing ``@code{.@var{kind}}'' with the base @code{.literal} or
+@code{.lit4} name.  For example, for literals defined in a section named
+@code{.gnu.linkonce.t.func}, the literal section will be
+@code{.gnu.linkonce.literal.func} or @code{.gnu.linkonce.lit4.func}.
+
+@item
+If the current section name (or @code{literal_prefix} value) ends with
+@code{.text}, the literal section name is formed by replacing that
+suffix with the base @code{.literal} or @code{.lit4} name.  For example,
+for literals defined in a section named @code{.iram0.text}, the literal
+section will be @code{.iram0.literal} or @code{.iram0.lit4}.
+
+@item
+If none of the preceding conditions apply, the literal section name is
+formed by adding the base @code{.literal} or @code{.lit4} name as a
+suffix to the current section name (or @code{literal_prefix} value).
+@end enumerate
+
+@node Literal Position Directive
+@subsection literal_position
+@cindex @code{literal_position} directive
+
+When using @samp{--text-@-section-@-literals} to place literals inline
+in the section being assembled, the @code{.literal_position} directive
+can be used to mark a potential location for a literal pool.
+
+@smallexample
+    .literal_position
+@end smallexample
+
+The @code{.literal_position} directive is ignored when the
+@samp{--text-@-section-@-literals} option is not used or when
+@code{L32R} instructions use the absolute addressing mode.
+
+The assembler will automatically place text section literal pools
+before @code{ENTRY} instructions, so the @code{.literal_position}
+directive is only needed to specify some other location for a literal
+pool.  You may need to add an explicit jump instruction to skip over an
+inline literal pool.
+
+For example, an interrupt vector does not begin with an @code{ENTRY}
+instruction so the assembler will be unable to automatically find a good
+place to put a literal pool.  Moreover, the code for the interrupt
+vector must be at a specific starting address, so the literal pool
+cannot come before the start of the code.  The literal pool for the
+vector must be explicitly positioned in the middle of the vector (before
+any uses of the literals, due to the negative offsets used by
+PC-relative @code{L32R} instructions).  The @code{.literal_position}
+directive can be used to do this.  In the following code, the literal
+for @samp{M} will automatically be aligned correctly and is placed after
+the unconditional jump.
+
+@smallexample
+@group
+    .global M
+code_start:
+@end group
+    j continue
+    .literal_position
+    .align 4
+@group
+continue:
+    movi    a4, M
+@end group
+@end smallexample
+
+@node Literal Prefix Directive
+@subsection literal_prefix
+@cindex @code{literal_prefix} directive
+
+The @code{literal_prefix} directive allows you to override the default
+literal section names, which are derived from the names of the sections
+where the literals are defined.
+
+@smallexample
+@group
+    .begin literal_prefix [@var{name}]
+    .end literal_prefix
+@end group
+@end smallexample
+
+For literals defined within the delimited region, the literal section
+names are derived from the @var{name} argument instead of the name of
+the current section.  The rules used to derive the literal section names
+do not change.  @xref{Literal Directive, ,literal}.  If the @var{name}
+argument is omitted, the literal sections revert to the defaults.  This
+directive has no effect when using the
+@samp{--text-@-section-@-literals} option (@pxref{Xtensa Options,
+,Command-line Options}).
+
+@node Absolute Literals Directive
+@subsection absolute-literals
+@cindex @code{absolute-literals} directive
+@cindex @code{no-absolute-literals} directive
+
+The @code{absolute-@-literals} and @code{no-@-absolute-@-literals}
+directives control the absolute vs.@: PC-relative mode for @code{L32R}
+instructions.  These are relevant only for Xtensa configurations that
+include the absolute addressing option for @code{L32R} instructions.
+
+@smallexample
+@group
+    .begin [no-]absolute-literals
+    .end [no-]absolute-literals
+@end group
+@end smallexample
+
+These directives do not change the @code{L32R} mode---they only cause
+the assembler to emit the appropriate kind of relocation for @code{L32R}
+instructions and to place the literal values in the appropriate section.
+To change the @code{L32R} mode, the program must write the
+@code{LITBASE} special register.  It is the programmer's responsibility
+to keep track of the mode and indicate to the assembler which mode is
+used in each region of code.
+
+If the Xtensa configuration includes the absolute @code{L32R} addressing
+option, the default is to assume absolute @code{L32R} addressing unless
+the @samp{--no-@-absolute-@-literals} command-line option is specified.
+Otherwise, the default is to assume PC-relative @code{L32R} addressing.
+The @code{absolute-@-literals} directive can then be used to override
+the default determined by the command-line options.
+
+@c Local Variables:
+@c fill-column: 72
+@c End:

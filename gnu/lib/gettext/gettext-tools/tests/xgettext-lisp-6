@@ -1,0 +1,24 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Lisp support: lisp-format string with initial arguments and a loop.
+
+cat <<EOF > xg-ls-6.lisp
+(gettext "~{~}~^~:*~@{~,v*~w~}")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-ls-6.tmp xg-ls-6.lisp || Exit 1
+LC_ALL=C tr -d '\r' < xg-ls-6.tmp.po > xg-ls-6.po || Exit 1
+
+cat <<EOF > xg-ls-6.ok
+#, lisp-format
+msgid "~{~}~^~:*~@{~,v*~w~}"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ls-6.ok xg-ls-6.po
+result=$?
+
+exit $result

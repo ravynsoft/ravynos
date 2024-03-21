@@ -1,0 +1,68 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test general operation.
+
+cat <<EOF > men-test1.po
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "height must be positive"
+msgstr ""
+
+msgid "color cannot be transparent"
+msgstr "colour cannot be transparent"
+
+msgid "width must be positive"
+msgstr ""
+
+msgid "%d error"
+msgid_plural "%d errors"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${MSGEN=msgen}
+${MSGEN} -o men-test1.tmp men-test1.po || Exit 1
+LC_ALL=C tr -d '\r' < men-test1.tmp > men-test1.out || Exit 1
+
+cat <<EOF > men-test1.ok
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "height must be positive"
+msgstr "height must be positive"
+
+msgid "color cannot be transparent"
+msgstr "colour cannot be transparent"
+
+msgid "width must be positive"
+msgstr "width must be positive"
+
+msgid "%d error"
+msgid_plural "%d errors"
+msgstr[0] "%d error"
+msgstr[1] "%d errors"
+EOF
+
+: ${DIFF=diff}
+${DIFF} men-test1.ok men-test1.out
+result=$?
+test $result = 0 || exit $result
+
+# Test --lang option.
+${MSGEN} --lang=fr -o men-test1.tmp men-test1.po || Exit 1
+grep "Language: fr" men-test1.tmp 2>&1 >/dev/null || Exit 1
+grep -v "Language: fr" men-test1.tmp | LC_ALL=C tr -d '\r' > men-test1.out || Exit 1
+
+${DIFF} men-test1.ok men-test1.out
+result=$?
+test $result = 0 || exit $result

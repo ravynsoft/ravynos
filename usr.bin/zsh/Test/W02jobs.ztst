@@ -1,0 +1,198 @@
+# Tests for interactive job control
+
+%prep
+
+  if zmodload zsh/zpty 2> /dev/null; then
+    zpty_start() {
+      export PS1= PS2=
+      zpty -d
+      zpty zsh "${(q)ZTST_testdir}/../Src/zsh -fiV +Z"
+    }
+    zpty_input() {
+      zpty -w zsh "${(F)@}" $'\n'
+    }
+    zpty_line() {
+      local REPLY
+      integer i
+      for (( i = 0; i < ${1:-1}; ++i )); do
+        zpty -r zsh REPLY
+        print -r -- ${REPLY%%($'\r\n'|$'\n')}
+      done
+    }
+    zpty_stop() {
+      # exit twice in case of check_jobs
+      zpty -w zsh $'exit\nexit\n'
+      # zpty gives no output when piped without these braces (?)
+      { zpty -r zsh } | sed $'/[^[:space:]]/!d; s/\r$//;'
+      zpty -d
+      :
+    }
+  else
+    ZTST_unimplemented='the zsh/zpty module is not available'
+  fi
+
+%test
+
+  zpty_start
+  zpty_input 'setopt no_long_list_jobs'
+  zpty_input ': &'
+  zpty_input 'wait'
+  zpty_stop
+0:job notification with no_long_list_jobs
+*>\[1] [0-9]##
+*>\[1]  + done[[:space:]]##:
+
+  zpty_start
+  zpty_input 'setopt long_list_jobs'
+  zpty_input ': &'
+  zpty_input 'wait'
+  zpty_stop
+0:job notification with long_list_jobs
+*>\[1] [0-9]##
+*>\[1]  + [0-9]## done[[:space:]]##:
+
+  zpty_start
+  zpty_input 'setopt no_hup no_check_jobs'
+  zpty_input 'sleep 3 &'
+  zpty_stop
+0:running job with no_hup + no_check_jobs
+*>\[1] [0-9]##
+
+  zpty_start
+  zpty_input 'setopt no_check_jobs'
+  zpty_input 'sleep 3 &'
+  zpty_stop
+0:running job with no_check_jobs
+*>\[1] [0-9]##
+*>zsh:*SIGHUPed*
+
+  zpty_start
+  zpty_input 'setopt check_jobs no_check_running_jobs'
+  zpty_input 'sleep 3 &'
+  zpty_stop
+0:running job with check_jobs + no_check_running_jobs
+*>\[1] [0-9]##
+*>zsh:*SIGHUPed*
+
+  zpty_start
+  zpty_input 'setopt check_jobs check_running_jobs'
+  zpty_input 'sleep 3 &'
+  zpty_stop
+0:running job with check_jobs + check_running_jobs
+*>\[1] [0-9]##
+*>zsh:*running jobs*
+*>zsh:*SIGHUPed*
+
+#### Races presumed to be associated with zpty mean that
+#### tests involving suspending jobs are not safe.
+##   zpty_start
+##   zpty_input 'setopt check_jobs no_check_running_jobs'
+##   zpty_input 'sleep 3'
+##   sleep 0.1
+##   zpty_input $'\C-z'
+##   zpty_stop
+## 0:suspended job with check_jobs + no_check_running_jobs
+## *>zsh:*(stopped|suspended)*sleep*
+## *>zsh:*(stopped|suspended) jobs*
+## # no 'SIGHUPed' message for suspended jobs
+## 
+##   zpty_start
+##   zpty_input 'setopt check_jobs check_running_jobs'
+##   zpty_input 'sleep 3'
+##   sleep 0.1
+##   zpty_input $'\C-z'
+##   zpty_stop
+## 0:suspended job with check_jobs + check_running_jobs
+## *>zsh:*(stopped|suspended)*sleep*
+## *>zsh:*(stopped|suspended) jobs*
+## # no 'SIGHUPed' message for suspended jobs
+
+  zpty_start
+  zpty_input 'sleep 5 & sleep 4 & sleep 3 &'
+  zpty_input 'jobs'
+  zpty_stop
+0:`jobs` (misc.) with multiple running jobs
+*>\[1] [0-9]##
+*>\[2] [0-9]##
+*>\[3] [0-9]##
+*>\[1]    running*sleep 5*
+*>\[2]  - running*sleep 4*
+*>\[3]  + running*sleep 3*
+*>zsh:*SIGHUPed*
+
+  zpty_start
+  zpty_input 'sleep 3 &'
+  zpty_input 'jobs -l'
+  zpty_input 'jobs -p'
+  zpty_stop
+0:`jobs -l` and `jobs -p` with running job
+*>\[1] [0-9]##
+*>\[1]  + [0-9]## running*sleep*
+*>\[1]  + [0-9]## running*sleep*
+*>zsh:*SIGHUPed*
+
+  zpty_start
+  zpty_input 'sleep 3 &'
+  zpty_input 'jobs -d'
+  zpty_stop
+0:`jobs -d` with running job
+*>\[1] [0-9]##
+*>\[1]  + running*sleep*
+*>\(pwd : ?*\)
+*>zsh:*SIGHUPed*
+
+  zpty_start
+  zpty_input 'sleep 3 &'
+  zpty_input 'jobs -r'
+  zpty_input '(jobs -r)'
+  zpty_input 'print -- -'
+  zpty_input 'jobs -s'
+  zpty_stop
+0:`jobs -r` and `jobs -s` with running job
+*>\[1] [0-9]##
+*>\[1]  + running*sleep*
+*>\[1]  + running*sleep*
+*>-
+*>zsh:*SIGHUPed*
+
+##   zpty_start
+##   zpty_input 'sleep 5'
+##   sleep 0.1
+##   zpty_input $'\C-z'
+##   zpty_input 'jobs -r'
+##   zpty_input 'print -- -'
+##   zpty_input 'jobs -s'
+##   zpty_stop
+## 0:`jobs -r` and `jobs -s` with suspended job
+## *>zsh:*(stopped|suspended)*sleep*
+## *>-
+## *>\[1]  + (stopped|suspended)*sleep*
+## # no 'SIGHUPed' message for suspended jobs
+
+  zpty_start
+  zpty_input 'sleep 10 & sleep 9 & sleep 8 & sleep 7 &'
+  zpty_line 4
+  zpty_input 'kill %4'
+  # Dunno why we need this when checking input...
+  sleep 0.1
+  zpty_line
+  zpty_input 'kill -HUP %3'
+  zpty_line
+  zpty_input 'kill -INT %2'
+  zpty_line
+  zpty_input 'kill -KILL %1'
+  zpty_line
+  zpty_stop
+0:various `kill` signals with multiple running jobs
+*>\[1] [0-9]##
+*>\[2] [0-9]##
+*>\[3] [0-9]##
+*>\[4] [0-9]##
+*>\[4]  ? terminate*sleep*
+*>\[3]  ? hangup*sleep*
+*>\[2]  ? interrupt*sleep*
+*>\[1]  ? kill*sleep*
+
+%clean
+
+  zmodload -ui zsh/zpty

@@ -1,0 +1,41 @@
+#compdef prstat
+
+local d_opt sort_key
+d_opt=(
+  "u"\:"seconds past the epoch"
+  "d"\:"standard date format"
+)
+
+sort_key=(
+  "cpu"\:"process CPU usage"
+  "pri"\:"process priority"
+  "rss"\:"resident set size"
+  "size"\:"size of process image"
+  "time"\:"process execution time"
+)
+
+_arguments -A "-*" \
+  '-a[information about processes and users]' \
+  '-c[new reports below previous reports instead of overprinting them]' \
+  '-C[processes or lwps that are bound to processor sets in the list]:processor set list' \
+  '-d[specify the representation of time]:time representation:(($d_opt))' \
+  '-h[only processes or lwps whose home lgroup is in the list]:lgroup list' \
+  '-H[information about home lgroup]' \
+  '-j[only processes or lwps whose project ID is in the given list]:project list' \
+  '-J[information about processes and projects]' \
+  '-k[only processes or lwps whose task ID is in tasklist]:task list'\
+  '-L[statistics for each light-weight process (LWP)]' \
+  '-m[microstate process accounting information]' \
+  '-n[restrict number of output lines]:ntop,[nbottom]' \
+  '-p[only processes whose process ID is in the list]:PID list' \
+  '-P[only processes or lwps which have most recently executed on a CPU in the list]:CPU list' \
+  '-R[put prstat in the real time scheduling class]' \
+  '-s[sort key (descending)]:sort key [cpu]:(($sort_key))' \
+  '-S[sort key (ascending)]:sort key [cpu]:(($sort_key))' \
+  '-t[total usage summary for each user]' \
+  '-T[information about processes and tasks]' \
+  '-u[only processes whose effective user ID is in the list]:UID:_users' \
+  '-U[only processes whose real user ID is in the list]:UID:_users' \
+  '-v[verbose process usage]' \
+  '-z[only processes or LWPs whose zone ID is in the list]:zone ID' \
+  '-Z[information about processes and zones]'

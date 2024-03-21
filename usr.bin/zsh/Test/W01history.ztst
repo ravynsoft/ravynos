@@ -1,0 +1,112 @@
+# Tests for BANG_HIST replacements
+
+%prep
+
+  if [[ -t 0 ]]; then print -u $ZTST_fd History tests write to /dev/tty; fi
+
+%test
+
+  $ZTST_testdir/../Src/zsh -fis <<<'
+  print one two three four five six seven eight nine ten
+  print !:$ !:10 !:9 !:1 !:0
+  print one two three four five six seven eight nine ten
+  print !:0-$ !:1-2
+  ' 2>/dev/null
+0:History word references
+>one two three four five six seven eight nine ten
+>ten ten nine one print
+>one two three four five six seven eight nine ten
+>print one two three four five six seven eight nine ten one two
+
+  $ZTST_testdir/../Src/zsh -fis <<<'
+  print line one of an arbitrary series
+  print issue two for some mystery sequence
+  print !-1:5-$
+  print !1:2
+  print !2:2
+  print !-3:1-$
+  ' 2>/dev/null
+0:History line numbering
+>line one of an arbitrary series
+>issue two for some mystery sequence
+>mystery sequence
+>one
+>two
+>mystery sequence
+
+  $ZTST_testdir/../Src/zsh -fis <<<'
+  print All metaphor, Malachi, stilts and all
+  print !1:2:s/,/\\\\?/ !1:2:s/m/shm/:s/,/\!/
+  print !1:2:&
+  print -l !1:2-3:gs/a/o/
+  ' 2>/dev/null
+0:History substitution
+>All metaphor, Malachi, stilts and all
+>metaphor? shmetaphor!
+>metaphor!
+>metophor,
+>Molochi,
+
+  $ZTST_testdir/../Src/zsh -fis <<<'
+  echo foo bar
+  echo $(!!) again
+  echo more $( !! )' 2>/dev/null
+0:Regression test for history references in command substitution
+>foo bar
+>foo bar again
+>more foo bar again
+*?*
+F:Check that a history bug introduced by workers/34160 is working again.
+# Discarded line of error output consumes prompts printed by "zsh -i".
+
+ $ZTST_testdir/../Src/zsh -fis <<<'
+ echo /my/path/for/testing
+ echo !1:1:h10
+ echo !1:1:h3
+ echo !1:1:h2
+ echo !1:1:h1
+ echo !1:1:t10
+ echo !1:1:t3
+ echo !1:1:t2
+ echo !1:1:t1
+ echo !1:1:t3:h2' 2>/dev/null
+0:Modifiers :h and :t with arguments
+>/my/path/for/testing
+>/my/path/for/testing
+>/my/path
+>/my
+>/
+>/my/path/for/testing
+>path/for/testing
+>for/testing
+>testing
+>path/for
+
+ $ZTST_testdir/../Src/zsh -fis <<<'
+ echo /my/path/for/testing
+ echo !1:1:P' 2>/dev/null
+0:Modifier :P
+>/my/path/for/testing
+>/my/path/for/testing
+
+ $ZTST_testdir/../Src/zsh -fgis <<<'
+ SAVEHIST=7
+ print -rs "one\\"
+ print -rs "two\\\\"
+ print -rs "three\\\\\\"
+ print -rs "four\\\\\\\\"
+ print -rs "five\\\\\\\\\\"
+ print -s  "while false\ndo\ntrue\\\\\n && break\ndone"
+ print -s  "echo one\\\\\ntwo"
+ fc -W hist
+ fc -p -R hist
+ fc -l
+ rm hist' 2>/dev/null
+0:Lines ending in backslash saved and restored to history
+>    1  one\
+>    2  two\\
+>    3  three\\\
+>    4  four\\\\
+>    5  five\\\\\
+>    6  while false\ndo\ntrue\\n && break\ndone
+>    7  echo one\\ntwo

@@ -1,0 +1,21 @@
+#compdef read
+
+local pflag
+
+# -p flag only relevant if we have a coprocess
+(:>&p) 2>/dev/null &&
+  pflag='(-q -s -u -z)-p[input is read from the coprocess]'
+
+_arguments -s -A "-*" -S \
+  '-r[raw mode]' \
+  '(-p -k -s -u -z)-q[read y or n character from terminal]' \
+  '(-q)-k+[specify number of characters to read]:: :_guard "[0-9]#" "number of characters"' \
+  '(-q -z)-t+[test if input is available before reading]:: :_guard "[0-9.]#" "timeout (seconds)"' \
+  '(-q)-d[specify delimiter to terminate input instead of newline]:delimiter' \
+  '(-q -s -u -p -t)-z[read entry from editor buffer stack]' \
+  '(-E)-e[input read is echoed and not assigned]' \
+  '(-e)-E[input read is echoed]' \
+  '(-q -z -p)-s[suppress terminal echoing]' \
+  '-A[first name is taken as an array]' \
+  '(-q -z -p)-u+[specify file descriptor to read from]:file descriptor:_file_descriptors' \
+  $pflag '1:varprompt:_vars -qS\?' '*:vars:_vars'

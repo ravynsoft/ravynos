@@ -1,0 +1,72 @@
+#compdef defaults
+
+_defaults_domains(){
+  if [[ "`eval echo $PREFIX`" != [/~]* ]]; then
+    local str="$(_call_program domains defaults domains 2>/dev/null)"
+    local expl
+    local -a list
+    list=( ${(s/, /)str} -g -globalDomain )
+    _wanted domains expl 'defaults database domain' \
+	compadd -M 'r:|.=* r:|=*' -a list
+  else
+    _files -g '*.plist(-.:r)'
+  fi
+}
+
+_defaults_keys(){
+  local ks
+  ks=(${${${${(M)${(f)"$(defaults read "$words[2]" 2>/dev/null)"}:#    [^ ]*=*}#    }%% = *}:Q})
+  local expl
+  _wanted keys expl 'key' compadd "$ks[@]"
+}
+
+_defaults(){
+  local -a _1st_arguments
+  _1st_arguments=( read read-type write rename delete domains find help )
+
+  local curcontext="$curcontext" state line expl
+  typeset -A opt_args
+
+  _arguments -C -A '-*' \
+    '(-currentHost)-host:host:_hosts' \
+    '(-host)-currentHost' \
+    '*::command:->subcmd' && return 0
+
+  if (( CURRENT == 1 )); then
+    _describe -t commands "command" _1st_arguments
+    return
+  fi
+
+  case $words[1] in
+    read|read-type|delete)
+      _arguments \
+        "(1)-app:application:_mac_applications" \
+        "(-app)1:domain:_defaults_domains" \
+        "2:key:_defaults_keys"
+      ;;
+    write)
+      _arguments \
+        "(1)-app:application:_mac_applications" \
+        "(-app)1:domain:_defaults_domains" \
+        "2:key:_defaults_keys" \
+        "*::value"
+      ;;
+    rename)
+      _arguments \
+        "(1)-app:application:_mac_applications" \
+        "(-app)1:domain:_defaults_domains" \
+        "2:old key:_defaults_keys" \
+        "3:new key:_defaults_keys"
+      ;;
+    domains|help)
+      ;;
+    find)
+      _message word
+      ;;
+    *)
+      _message "unknown defaults command: $words[1]"
+      ;;
+  esac
+}
+
+_defaults "$@"

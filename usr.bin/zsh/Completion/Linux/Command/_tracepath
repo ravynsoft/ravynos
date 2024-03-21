@@ -1,0 +1,9 @@
+#compdef tracepath tracepath6
+
+_arguments -s -S \
+  '-n[print IP addresses numerically]' \
+  '-b[print both host names and IP addresses]' \
+  '-l+[set the initial packet length]:length (bytes)' \
+  '-m+[set maximum hops]:maximum [30]' \
+  '-p+[set initial destination port to use]:port:_ports' \
+  ':destination:_hosts'

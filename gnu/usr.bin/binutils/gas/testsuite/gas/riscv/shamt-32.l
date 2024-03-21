@@ -1,0 +1,13 @@
+.*Assembler messages:
+.*:4: Error: improper shift amount \(32\)
+.*:5: Error: improper shift amount \(63\)
+.*:9: Error: improper shift amount \(32\)
+.*:10: Error: improper shift amount \(63\)
+.*:14: Error: improper shift amount \(32\)
+.*:15: Error: improper shift amount \(63\)
+.*:20: Error: improper shift amount \(32\)
+.*:21: Error: improper shift amount \(63\)
+.*:25: Error: improper shift amount \(32\)
+.*:26: Error: improper shift amount \(63\)
+.*:30: Error: improper shift amount \(32\)
+.*:31: Error: improper shift amount \(63\)

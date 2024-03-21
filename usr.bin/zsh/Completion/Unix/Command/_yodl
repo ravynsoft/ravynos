@@ -1,0 +1,14 @@
+#compdef -P yodl(|2*)
+
+_arguments -s \
+  '-D-[define symbol]:define symbol:' \
+  '-I-[set include directory]:include directory:_files -/' \
+  '-l-[set live data policy]:live data policy:((0\:suppress\ SYSTEM\ and\ PIPETHROUGH 1\:require\ user\ confirmation 2\:display\ macros 3\:no\ confirmation,\ no\ display))' \
+  '-o-[specify output file]:output file:_files' \
+  '-P-[specify preload command]:preload command:' \
+  '-p-[specify maximum number of passes]:maximum number of passes:' \
+  '-t[enable tracing mode]' \
+  '-v[enable verbose mode]' \
+  '-w[enable warnings]' \
+  '-h[show usage information]' \
+  '*:YODL input file:_files -g "*.(#i)yo(|dl)(-.)"'

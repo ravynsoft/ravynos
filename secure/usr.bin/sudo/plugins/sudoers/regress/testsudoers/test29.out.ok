@@ -1,0 +1,133 @@
+listpw = all, 'sudo -l' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+listpw = all, 'sudo -l' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+listpw = all, 'sudo -l' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = NOPASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+listpw = always, 'sudo -l' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+listpw = any, 'sudo -l' should require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+listpw = any, 'sudo -l' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = NOPASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+listpw = any, 'sudo -l' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = NOPASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed
+
+listpw = never, 'sudo -l' should not require a password
+Parses OK
+
+Entries for user admin:
+
+ALL = PASSWD: /usr/bin/id
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Command allowed

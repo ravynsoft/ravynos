@@ -1,0 +1,28 @@
+#compdef nsenter
+
+local ign
+(( $#words > 2 )) && ign='!'
+
+_arguments -S -s \
+  '(-a --all)'{-a,--all}'[enter all namespaces]' \
+  '(-t --target)'{-t+,--target=}'[specify target process to get namespaces from]:pid:_pids' \
+  '(-m --mount)'{-m-,--mount=-}'[enter mount namespace]::file:_files' \
+  '(-u --uts)'{-u-,--uts=-}'[enter UTS namespace (hostname etc)]::file:_files' \
+  '(-i --ipc)'{-i-,--ipc=-}'[enter System V IPC namespace]::file:_files' \
+  '(-n --net)'{-n-,--net=-}'[enter network namespace]::file:_files' \
+  '(-p --pid)'{-p-,--pid=-}'[enter pid namespace]::file:_files' \
+  '(-C --cgroup)'{-C-,--cgroup=-}'[enter cgroup namespace]::file:_files' \
+  '(-U --user)'{-U-,--user=-}'[enter user namespace]::file:_files' \
+  '(-T --time)'{-T-,--time=-}'[enter time namespace]::file:_files' \
+  '(-S --setuid)'{-S+,--setuid=}'[set uid in entered namespace]:uid [0]' \
+  '(-G --setgid)'{-G+,--setgid=}'[set gid in entered namespace]:gid [0]' \
+  "--preserve-credentials[don't touch uids or gids]" \
+  '(-r --root)'{-r+,--root=}'[set the root directory]:directory:_directories' \
+  '(-w --wd)'{-w+,--wd=}'[set the working directory]:directory:_directories' \
+  '(-F --no-fork)'{-F,--no-fork}"[don't fork]" \
+  '(-Z --follow-context)'{-Z,--follow-context}'[set SELinux context according to --target PID]' \
+  "${ign}(- 1 *)"{-h,--help}'[display usage information]' \
+  "${ign}(- 1 *)"{-V,--version}'[display version information]' \
+  '1: : _command_names -e' \
+  '*::args :_normal'
+

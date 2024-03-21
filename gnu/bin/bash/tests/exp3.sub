@@ -1,0 +1,7 @@
+IFS=:
+
+case A in ([[:graph:]]) echo graph;; *) echo non-graph;; esac
+[[ A == [[:graph:]] ]] && echo yes || echo no
+
+IFS="~"; read a b <<< a~q; echo $a
+IFS=':'; read a b <<< a:q; echo $a

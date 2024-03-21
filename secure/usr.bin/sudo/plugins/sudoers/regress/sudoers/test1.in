@@ -1,0 +1,12 @@
+#
+# Verify that all command tags are parsed OK.
+# See https://bugzilla.sudo.ws/show_bug.cgi?id=437
+#
+user1 ALL = LOG_INPUT: LOG_OUTPUT: /usr/bin/su -:\
+      ALL = NOLOG_INPUT: NOLOG_OUTPUT: /usr/bin/id
+user2 ALL = NOPASSWD: NOEXEC: SETENV: /usr/bin/vi:\
+      ALL = PASSWD: EXEC: NOSETENV: /usr/bin/echo
+user3 ALL = MAIL: /bin/sh:\
+      ALL = NOMAIL: /usr/bin/id
+user4 ALL = FOLLOW: sudoedit /etc/motd:\
+      ALL = NOFOLLOW: sudoedit /home/*/*

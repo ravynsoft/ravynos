@@ -1,0 +1,80 @@
+#compdef finger
+
+local curcontext="$curcontext" state line match ret=1
+typeset -A opt_args
+
+if (( ! $+_finger_args )); then
+  local help="$(_call_program options finger -\\\? 2>&1)"
+  local -A optionmap
+
+## `finger -\?':
+
+# SunOS 5.7:
+# finger: illegal option -- ?
+# Usage: finger [-bfhilmpqsw] [-t l|h|l,h] [name1 [name2 ...] ]
+
+# SunOS 4.1.4:
+# Usage: finger [-bfhilmpqsw] [login1 [login2 ...] ]
+
+# IRIX 6.3:
+# Usage: finger [-bfhilmpqsw] [login1 [login2 ...] ]
+
+# NetBSD 1.4.1:
+# finger: illegal option -- ?
+# usage: finger [-lmpsho] [login ...]
+
+# FreeBSD 2.2.8
+# finger: illegal option -- ?
+# usage: finger [-lmpshoT] [login ...]
+
+# BSD/OS 3.0:
+# finger: illegal option -- ?
+# usage: finger [-lmps] [login ...]
+
+# 4.4BSD Lite:
+# usage: finger [-lmps] [login ...]
+
+# Debian GNU/Linux (potato) (netstd 3.07-10):
+# finger: invalid option -- ?
+# usage: finger [-lmps] [login ...]
+
+  if [[ "$help" = *\[-(#b)(lmps[a-zA-Z]#)* ]]; then
+    # BSD style
+    optionmap=(
+      '*m*' '-m[match to login name]'
+      '*l*' '(-s -o)-l[force long format]'
+      '*s*' '(-l -p)-s[force short format]'
+      '*p*' '(-s -o)-p[suppress .forward, .plan and .project]'
+      '*o*' '(-l -p)-o[print office information]'
+      '*T*' '-T[disable T/TCP]'
+    )
+    _finger_args=($optionmap[(K)$match[1]])
+  elif [[ "$help" = *\[-(#b)(bfhilmpqsw[a-zA-Z]#)* ]]; then
+    # System V style
+    optionmap=(
+      '*m*' '-m[match to login name]'
+      '*l*' '(   -i -q -s -f       -w)-l[force long format]'
+      '*i*' '(-l    -q -s -b -h -p -w)-i[force idle format]'
+      '*q*' '(-l -i    -s -b -h -p -w)-q[force quick format]'
+      '*s*' '(-l -i -q    -b -h -p)-s[force short format]'
+      '*b*' '(-i -q -s)-b[suppress home and shell]'
+      '*f*' '(-l)-f[suppress header]'
+      '*h*' '(-i -q -s)-h[suppress .project]'
+      '*p*' '(-i -q -s)-p[suppress .plan]'
+      '*w*' '(-i -q -l)-w[suppress full name]'
+    )
+    _finger_args=($optionmap[(K)$match[1]])
+  else
+    _finger_args=()
+  fi
+fi
+
+_arguments -C -s $_finger_args '*:finger targets:->finger-targets' && ret=0
+
+case "$state" in
+finger-targets)
+  _user_at_host -t other-accounts "$@" && return
+  ;;
+esac
+
+return ret

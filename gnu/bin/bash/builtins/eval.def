@@ -1,0 +1,57 @@
+This file is eval.def, from which is created eval.c.
+It implements the builtin "eval" in Bash.
+
+Copyright (C) 1987-2016 Free Software Foundation, Inc.
+
+This file is part of GNU Bash, the Bourne Again SHell.
+
+Bash is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Bash is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Bash.  If not, see <http://www.gnu.org/licenses/>.
+
+$PRODUCES eval.c
+
+$BUILTIN eval
+$FUNCTION eval_builtin
+$SHORT_DOC eval [arg ...]
+Execute arguments as a shell command.
+
+Combine ARGs into a single string, use the result as input to the shell,
+and execute the resulting commands.
+
+Exit Status:
+Returns exit status of command or success if command is null.
+$END
+
+#include <config.h>
+#if defined (HAVE_UNISTD_H)
+#  ifdef _MINIX
+#    include <sys/types.h>
+#  endif
+#  include <unistd.h>
+#endif
+
+#include "../shell.h"
+#include "bashgetopt.h"
+#include "common.h"
+
+/* Parse the string that these words make, and execute the command found. */
+int
+eval_builtin (list)
+     WORD_LIST *list;
+{
+  if (no_options (list))
+    return (EX_USAGE);
+  list = loptend;	/* skip over possible `--' */
+
+  return (list ? evalstring (string_list (list), "eval", SEVAL_NOHIST|SEVAL_NOOPTIMIZE) : EXECUTION_SUCCESS);
+}

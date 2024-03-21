@@ -1,0 +1,55 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# Test for warnings when placing yield instructions into IQ2000's
+# branch delay slot.  Written by Ben Elliston (bje@redhat.com)
+
+# Run GAS and check that it emits the desired error for the test case.
+# Arguments:
+#   file -- name of the test case to assemble.
+#   testname -- a string describing the test.
+#   pattern -- a regular expression, suitable for use by the Tcl
+#     regexp command, to decide if the error string was emitted by
+#     the assembler to stderr.
+
+proc iq2000_error_test { file testname {pattern ""} } {
+    global comp_output
+
+    gas_run $file "" ">/dev/null"
+    verbose "output was $comp_output" 2
+
+    if {$pattern == ""} {
+	if {$comp_output == ""} { pass $testname } else { fail $testname }
+	return
+    }
+
+    if {[regexp "Error: $pattern" $comp_output]} {
+	pass $testname
+    } else {
+	fail $testname
+    }
+}
+
+if [istarget iq2000*-*-*] {
+    foreach file [lsort [glob -nocomplain -- $srcdir/$subdir/yield*.s]] {
+	set file [file tail $file]
+	iq2000_error_test $file \
+		"assembler emits yield instruction in delay slot error for $file" \
+		"the yielding instruction \[a-zA-Z0-9\]+ may not be in a delay slot."
+    }
+    set testname "assembler emits no warnings for non-yield instruction in delay slot"
+    iq2000_error_test noyield.s $testname
+}

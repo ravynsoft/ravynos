@@ -1,0 +1,59 @@
+Testing @include of a path with escaped white space
+
+Parses OK
+
+Entries for user root:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+Testing @include of a double-quoted path with white space
+
+Parses OK
+
+Entries for user root:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+Testing #include of a path with escaped white space
+
+Parses OK
+
+Entries for user root:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+Testing #include of a double-quoted path with white space
+
+Parses OK
+
+Entries for user root:
+
+ALL = ALL
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed

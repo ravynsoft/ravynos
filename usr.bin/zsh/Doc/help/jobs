@@ -1,0 +1,33 @@
+jobs [ -dlprs ] [ job ... ]
+jobs -Z string
+       Lists  information  about  each given job, or all jobs if job is
+       omitted.  The -l flag lists process IDs, and the -p  flag  lists
+       process  groups.   If the -r flag is specified only running jobs
+       will be listed and if the -s flag is given only stopped jobs are
+       shown.   If  the  -d flag is given, the directory from which the
+       job was started (which may not be the current directory  of  the
+       job) will also be shown.
+
+       The  -Z  option  replaces  the  shell's argument and environment
+       space with the given string,  truncated  if  necessary  to  fit.
+       This will normally be visible in ps (ps(1)) listings.  This fea-
+       ture is typically used by daemons, to indicate their state.
+
+       Full job control is only available in the top-level  interactive
+       shell, not in commands run in the left hand side of pipelines or
+       within the (...) construct.  However,  a  snapshot  of  the  job
+       state at that point is taken, so it is still possible to use the
+       jobs builtin, or any parameter providing job information.   This
+       gives  information about the state of jobs at the point the sub-
+       shell was created.  If background processes are  created  within
+       the  subshell, then instead information about those processes is
+       provided.
+
+       For example,
+
+              sleep 10 &    # Job in background
+              (             # Shell forks
+              jobs          # Shows information about "sleep 10 &"
+              sleep 5 &     # Process in background (no job control)
+              jobs          # Shows information about "sleep 5 &"
+              )

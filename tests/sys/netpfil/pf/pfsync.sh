@@ -78,6 +78,8 @@ common_body()
 		"set skip on ${epair_sync}b" \
 		"pass out keep state"
 
+	hostid_one=$(jexec one pfctl -si -v | awk '/Hostid:/ { gsub(/0x/, "", $2); printf($2); }')
+
 	ifconfig ${epair_one}b 198.51.100.254/24 up
 
 	ping -c 1 -S 198.51.100.254 198.51.100.1
@@ -88,6 +90,12 @@ common_body()
 	if ! jexec two pfctl -s states | grep icmp | grep 198.51.100.1 | \
 	    grep 198.51.100.254 ; then
 		atf_fail "state not found on synced host"
+	fi
+
+	if ! jexec two pfctl -sc | grep ""${hostid_one}"";
+	then
+		jexec two pfctl -sc
+		atf_fail "HostID for host one not found on two"
 	fi
 }
 
@@ -118,6 +126,7 @@ defer_head()
 {
 	atf_set descr 'Defer mode pfsync test'
 	atf_set require.user root
+	atf_set require.progs scapy
 }
 
 defer_body()
@@ -825,6 +834,101 @@ basic_ipv6_cleanup()
 	pfsynct_cleanup
 }
 
+atf_test_case "route_to" "cleanup"
+route_to_head()
+{
+	atf_set descr 'Test route-to with default rule'
+	atf_set require.user root
+	atf_set require.progs scapy
+}
+
+route_to_body()
+{
+	pfsynct_init
+
+	epair_sync=$(vnet_mkepair)
+	epair_one=$(vnet_mkepair)
+	epair_two=$(vnet_mkepair)
+	epair_out_one=$(vnet_mkepair)
+	epair_out_two=$(vnet_mkepair)
+
+	vnet_mkjail one ${epair_one}a ${epair_sync}a ${epair_out_one}a
+	vnet_mkjail two ${epair_two}a ${epair_sync}b ${epair_out_two}a
+
+	# pfsync interface
+	jexec one ifconfig ${epair_sync}a 192.0.2.1/24 up
+	jexec one ifconfig ${epair_one}a 198.51.100.1/24 up
+	jexec one ifconfig ${epair_out_one}a 203.0.113.1/24 up
+	jexec one ifconfig ${epair_out_one}a name outif
+	jexec one sysctl net.inet.ip.forwarding=1
+	jexec one arp -s 203.0.113.254 00:01:02:03:04:05
+	jexec one ifconfig pfsync0 \
+		syncdev ${epair_sync}a \
+		maxupd 1 \
+		up
+
+	jexec two ifconfig ${epair_sync}b 192.0.2.2/24 up
+	jexec two ifconfig ${epair_two}a 198.51.100.2/24 up
+	jexec two ifconfig ${epair_out_two}a 203.0.113.2/24 up
+	#jexec two ifconfig ${epair_out_two}a name outif
+	jexec two sysctl net.inet.ip.forwarding=1
+	jexec two arp -s 203.0.113.254 00:01:02:03:04:05
+	jexec two ifconfig pfsync0 \
+		syncdev ${epair_sync}b \
+		maxupd 1 \
+		up
+
+	# Enable pf!
+	jexec one pfctl -e
+	pft_set_rules one \
+		"set skip on ${epair_sync}a" \
+		"pass out route-to (outif 203.0.113.254)"
+	jexec two pfctl -e
+
+	# Make sure we have different rulesets so the synced state is associated with
+	# V_pf_default_rule
+	pft_set_rules two \
+		"set skip on ${epair_sync}b" \
+		"pass out route-to (outif 203.0.113.254)" \
+		"pass out proto tcp"
+
+	ifconfig ${epair_one}b 198.51.100.254/24 up
+	ifconfig ${epair_two}b 198.51.100.253/24 up
+	route add -net 203.0.113.0/24 198.51.100.1
+	ifconfig ${epair_two}b up
+	ifconfig ${epair_out_one}b up
+	ifconfig ${epair_out_two}b up
+
+	atf_check -s exit:0 env PYTHONPATH=${common_dir} \
+		${common_dir}/pft_ping.py \
+		--sendif ${epair_one}b \
+		--fromaddr 198.51.100.254 \
+		--to 203.0.113.254 \
+		--recvif ${epair_out_one}b
+
+	# Allow time for sync
+	ifconfig ${epair_one}b inet 198.51.100.254 -alias
+	route del -net 203.0.113.0/24 198.51.100.1
+	route add -net 203.0.113.0/24 198.51.100.2
+
+	sleep 2
+
+	# Now try to trigger the state on the other pfsync member
+	env PYTHONPATH=${common_dir} \
+		${common_dir}/pft_ping.py \
+		--sendif ${epair_two}b \
+		--fromaddr 198.51.100.254 \
+		--to 203.0.113.254 \
+		--recvif ${epair_out_two}b
+
+	true
+}
+
+route_to_cleanup()
+{
+	pfsynct_cleanup
+}
+
 atf_init_test_cases()
 {
 	atf_add_test_case "basic"
@@ -837,4 +941,5 @@ atf_init_test_cases()
 	atf_add_test_case "timeout"
 	atf_add_test_case "basic_ipv6_unicast"
 	atf_add_test_case "basic_ipv6"
+	atf_add_test_case "route_to"
 }

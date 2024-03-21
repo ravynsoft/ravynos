@@ -1,0 +1,52 @@
+Changes in TIFF v3.4beta029
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta029 (no release tag)
+  Previous Version        :doc:`v3.4beta028 <v3.4beta028>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* :program:`configure` now relativizes pathname references given in
+  "``-L``" options (as frequently specified when configuring
+  ancillary packages)
+* problems related to configuring the software on Ultrix 4.4 have
+  been corrected
+* the shell to use in Makefiles and scripts can now be set with the
+  ``SCRIPT_SH`` configuration parameter
+* comments in :file:`config.site` now correctly indicate how to setup the
+  use of ancillary packages
+
+
+Library changes
+---------------
+
+* mods for building the software on a Mac using the
+  MetroWerks CodeWarrior compilers
+* a bug in the CCITT T.4/T.6 decoder was fixed where the last codeword in
+  a strip/tile might not be decoded; this was seen only when decoding
+  multi-strip images
+* a bug in the CCITT RLE codecs was fixed whereby the pseudo tags were not
+  being properly registered
+
+
+Contributed software changes
+----------------------------
+
+* :file:`contrib/mac-cw` contains information and code from `Niles Ritter
+  <ndr@tazboy.jpl.nasa.gov>`_
+  about building the software with the MetroWerks CodeWarrior compilers
+  on Macintosh systems

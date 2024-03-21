@@ -25,8 +25,6 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\"	@(#)termios.4	8.4 (Berkeley) 4/19/94
-.\"
 .Dd June 28, 2020
 .Dt TERMIOS 4
 .Os
@@ -884,6 +882,8 @@ following masks:
 /* any char will restart after stop */
 .It Dv IMAXBEL
 /* ring bell on input queue full */
+.It Dv IUTF8
+/* assume input is UTF-8 encoded */
 .El
 .Pp
 In the context of asynchronous serial data transmission, a break

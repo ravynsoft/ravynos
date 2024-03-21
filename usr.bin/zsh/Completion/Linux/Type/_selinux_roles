@@ -1,0 +1,7 @@
+#autoload
+
+local -a seroles expl
+
+seroles=( ${(f)"$(_call_program selinux-roles seinfo --flat -r)"} )
+_description selinux-roles expl "selinux role"
+compadd "$@" "$expl[@]" -a seroles

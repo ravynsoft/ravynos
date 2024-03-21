@@ -1,0 +1,85 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+HOME=/usr/xyz
+XPATH=/bin:/usr/bin:.
+
+ADDPATH=PATH=~/bin:$XPATH
+
+echo $ADDPATH
+
+unset ADDPATH
+: ${ADDPATH:=~/bin:~/bin2:$XPATH}
+echo $ADDPATH
+
+unset ADDPATH
+: ${ADDPATH:=PATH=~/bin:~/bin2:$XPATH}
+echo $ADDPATH
+
+cat << !
+~/bin
+!
+
+echo "~"
+
+echo ${TPATH:-~}
+echo "${TPATH:-~}"
+echo "${TPATH:-"~"}"
+
+echo "${XPATH+~}"
+
+recho "\a"
+recho "${TPATH:-\a}"
+
+SHELL=~/bash
+echo $SHELL
+
+case $SHELL in
+~/bash)	echo ok;;
+*)	echo bad;;
+esac
+
+somevar=
+echo "${somevar:-~}"
+echo "${somevar:-"~"}"
+
+echo make -k FOO=~/mumble
+
+typeset FOO=~/mumble
+echo "$FOO"
+
+h=HOME=~
+echo $h
+
+export h=HOME=~
+echo $h
+
+x=1234
+HOME='/usr/$x/abc'
+
+echo ~
+
+# behavior differs here in posix mode
+set -o posix
+
+eval echo $h
+eval $h
+echo $HOME
+
+set +o posix
+
+eval echo $h
+eval $h
+echo $HOME
+
+$THIS_SH ./tilde3.sub

@@ -1,0 +1,547 @@
+#compdef gm
+
+local state line expl formats curcontext="$curcontext"
+typeset -A opt_args
+
+formats=jpg:jpeg:jp2:j2k:jpc:jpx:jpf:tif:tiff:miff:ras:bmp:cgm:dcx:ps:eps:fig:fits:fpx:gif:mpeg:pbm:pgm:ppm:pcd:pcl:pdf:pcx:png:rad:rgb:rgba:rle:sgi:html:shtml:tga:ttf:uil:xcf:xwd:xbm:xpm:yuv
+
+if (( $# )); then
+  _files "$@" -g "*.(#i)(${~formats//:/|})(-.)"
+  return
+fi
+
+if (( CURRENT == 2 )); then
+  compadd animate benchmark compare composite conjure convert display help identify import mogrify montage version
+
+else
+
+case "$words[2]" in
+  (display)
+    _arguments -M 'm:{a-z}={A-Z}' \
+      '*-backdrop[use full screen]' \
+      '*-background:color:_x_color' \
+      '*-border:border size (<width>x<height>)' \
+      '*-bordercolor:color:_x_color' \
+      '*-borderwidth:geometry' \
+      '*-cache[specify memory available to the pixel cache]:memory (MB)' \
+      '*-colormap:colormap type:(shared private)' \
+      '*-colors:preferred number of colors' \
+      '*-colorspace:colorspace type:(GRAY OHTA RGB Transparent XYZ YCbCr YIQ YPbPr YUV CMYK)' \
+      '*-comment:comment string' \
+      '*-compress:image compression type:(None BZip Fax Group4 JPEG LZW RunlengthEncoded Zip)' \
+      '*-contrast[enhance contrast]' \
+      '*+contrast[reduce contrast]' \
+      '*-crop:crop image (<width>x<height>{+-}<x>{+-}<y>{%%})' \
+      '*-debug' \
+      '*-delay:delay for next image (1/100ths of a second)' \
+      '*-density:image resolution (<width>x<height> in pixels)' \
+      '*-despeckle[reduce speckles in image]' \
+      '*-display:display:_x_display' \
+      '*-dispose:GIF disposal method:((0:no\ disposal 1\:don'\''t\ dispose\ between\ frames 2\:overwrite\ frame\ with\ background\ color 3\:overwrite\ with\ previous\ frame))' \
+      '*-dither[apply dithering]' \
+      '*-edge:edge detection factor (0.0 - 99.9%%)' \
+      '*-endian:image endianness:(MSB LSB)' \
+      '*+endian' \
+      '*-enhance[enhance noisy image]' \
+      '*-filter:filter type for resizing:(Point Box Triangle Hermite Hanning Hamming Blackman Gaussian Quadratic Cubic Catrom Mitchell Lanczos Bessel Sinc)' \
+      '*-flip[vertical mirror image]' \
+      '*-flop[horizontal mirror image]' \
+      '*-font:font:_x_font' \
+      '*-foreground:color:_x_color' \
+      '*-frame:border dimensions (<width>x<height>+<out>+<in>)' \
+      '*-gamma[gamma correction level]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*+gamma[gamma correction level (don'\''t change pixels)]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*-geometry:window geometry (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>})' \
+      '(- *)-help[display help information]' \
+      '*-iconGeometry:geometry:_x_geometry' \
+      '*-iconic' \
+      '*-immutable[disallow image modifications]' \
+      '*-interlace:interlacing scheme:(None Line Plane Partition)' \
+      '*-label:label string' \
+      '*-magnify:factor' \
+      '*-map:colormap type for display:(best default gray red green blue)' \
+      '*-matte[store matte channel]' \
+      '*-mattecolor:color:_x_color' \
+      '*-monochrome[transform to black and white]' \
+      '*-name:image name' \
+      '*-negate[invert image]' \
+      '*+negate[invert only grayscale]' \
+      '*-noop' \
+      '*-page:geometry of image canvas (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>}):(11x17 Ledger Legal Letter LetterSmall ArchE ArchD ArchC ArchB ArchA A0 A1 A2 A3 A4 A4Small A5 A6 A7 A8 A9 A10 B0 B1 B2 B3 B4 B5 C0 C1 C2 C3 C4 C5 C6 Flsa Flse HalfLetter)' \
+      '*-quality:JPEG/MIFF/PNG compression level' \
+      '*-raise:3-D edges (raised)' \
+      '*+raise:3-D edges (lowered)' \
+      '*-remote:remote command (file name):_imagemagick' \
+      '*-roll:image roll offset ({+-}<x>{+-}<y>)' \
+      '*-rotate:rotation (degrees{<}{>})' \
+      '*-sample:scale factors (<width>x<height>)' \
+      '*-sampling_factor:sampling factor (<horizontal_factor>x<vertical_factor>)' \
+      '*-scenes:image scene number' \
+      '*-segment:cluster pixel number' \
+      '*-shared_memory' \
+      '*-sharpen:sharpening factor (0.0 - 99.9%%)' \
+      '*-size:image size (<width>x<height>+<offset>)' \
+      '*-text_font:font:_x_font' \
+      '*-texture:background texture image:_imagemagick' \
+      '*-title:image title' \
+      '*-treedepth:color reduction tree depth' \
+      '*-trim' \
+      '*-update:redisplay test time (seconds)' \
+      '*-use_pixmap' \
+      '*-verbose' \
+      '*-visual:visual to use for display:(StaticGray GrayScale StaticColor PseudoColor TrueColor DirectColor default)' \
+      '*-window:window ID to display image in:_x_window' \
+      '*-window_group' \
+      '*-write:output filename:_files' \
+      '*:picture file:_imagemagick' && return
+  ;;
+
+  (animate)
+    _arguments -M 'm:{a-z}={A-Z}' \
+      '*-backdrop[use full screen]' \
+      '*-background:color:_x_color' \
+      '*-bordercolor:color:_x_color' \
+      '*-borderwidth:geometry' \
+      '*-cache[specify memory available to the pixel cache]:memory (MB)' \
+      '*-chop:<width>x<height>{+-}<x>{+-}<y>' \
+      '*-colormap:colormap type:(Shared Private)' \
+      '*-colors:preferred number of colors' \
+      '*-colorspace:colorspace type:(GRAY OHTA RGB Transparent XYZ YCbCr YIQ YPbPr YUV CMYK)' \
+      '*-crop:crop image (<width>x<height>{+-}<x>{+-}<y>)' \
+      '*-debug' \
+      '*-delay:delay for next image (1/100ths of a second)' \
+      '*-density:image resolution (<width>x<height> in pixels)' \
+      '*-depth:image depth:(8 16)' \
+      '*-display:display:_x_display' \
+      '*-dither[apply dithering]' \
+      '*-font:font:_x_font' \
+      '*-foreground:color:_x_color' \
+      '*-gamma[gamma correction level]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*+gamma[gamma correction level (don'\''t change pixels)]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*-geometry:window geometry (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>})' \
+      '(- *)-help[display help information]' \
+      '*-iconGeometry:geometry:_x_geometry' \
+      '*-iconic' \
+      '*-interlace:interlacing scheme:(None Line Plane Partition)' \
+      '*-map:colormap type for display:(best default gray red green blue)' \
+      '*-matte[store matte channel]' \
+      '*-mattecolor:color:_x_color' \
+      '*-monochrome[transform to black and white]' \
+      '*-name:image name' \
+      '*-noop' \
+      '*-pause:delay (seconds)' \
+      '*-remote:remote command (file name):_imagemagick' \
+      '*-rotate:rotation (degrees{<}{>})' \
+      '*-scenes:image scene number' \
+      '*-shared_memory' \
+      '*-size:image size (<width>x<height>+<offset>)' \
+      '*-text_font:font:_x_font' \
+      '*-title:image title' \
+      '*-treedepth:color reduction tree depth' \
+      '*-trim' \
+      '*-verbose[print image information]' \
+      '*-visual:visual to use for display:(StaticGray GrayScale StaticColor PseudoColor TrueColor DirectColor default)' \
+      '*-window:window ID to display image in:_x_window' \
+      '*:picture file:_imagemagick' && return
+  ;;
+
+  (import)
+    _x_arguments -M 'm:{a-z}={A-Z}' \
+      '-adjoin[join images]' \
+      '-border:border size (<width>x<height>):' \
+      '-bordercolor:color:_x_color' \
+      '-cache[specify memory available to the pixel cache]:memory (MB)' \
+      '-colors:preferred number of colors' \
+      '-colorspace:colorspace type:(GRAY OHTA RGB Transparent XYZ YCbCr YIQ YPbPr YUV CMYK)' \
+      '-comment:comment string' \
+      '-crop:crop image (<width>x<height>{+-}<x>{+-}<y>{%%})' \
+      '-debug' \
+      '-delay:delay for next image (1/100ths of a second)' \
+      '-density:resolution in pixels of image (<width>x<height>)' \
+      '-depth:image depth:(8 16)' \
+      '-descend[descend window hierarchy]' \
+      '-dispose:GIF disposal method:((0:no\ disposal 1\:don'\''t\ dispose\ between\ frames 2\:overwrite\ frame\ with\ background\ color 3\:overwrite\ with\ previous\ frame))' \
+      '-dither[apply dithering]' \
+      '(+endian)-endian:image endianness:(MSB LSB)' \
+      '(-endian)+endian' \
+      '-frame[include window manager frame]' \
+      '(- *)-help[display help information]' \
+      '-interlace:interlacing scheme:(None Line Plane Partition)' \
+      '-label:label string' \
+      '-monochrome[transform to black and white]' \
+      '-negate[invert image]' \
+      '+negate[invert only grayscale]' \
+      '-page:geometry of image canvas (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>}):(11x17 Ledger Legal Letter LetterSmall ArchE ArchD ArchC ArchB ArchA A0 A1 A2 A3 A4 A4Small A5 A6 A7 A8 A9 A10 B0 B1 B2 B3 B4 B5 C0 C1 C2 C3 C4 C5 C6 Flsa Flse HalfLetter)' \
+      '-pause:delay (seconds)' \
+      '-ping' \
+      '-pointsize:Postscript font size' \
+      '-quality:JPEG/MIFF/PNG compression level' \
+      '-resize:size (<width>x<height>{%%}{@}{!}{<}{>})' \
+      '-rotate:rotation (degrees{<}{>})' \
+      '-sampling_factor:sampling factor (<horizontal_factor>x<vertical_factor>)' \
+      '-scene:number of screen snapshots' \
+      '-screen[get root window]' \
+      '-silent[be quiet]' \
+      '-snaps:number' \
+      '-transparent:transparent color:_x_color' \
+      '-treedepth:color reduction tree depth' \
+      '-trim' \
+      '-type:image type:(Bilevel Grayscale Palette PaletteMatte TrueColor TrueColorMatte ColorSeparation ColorSeparationMatte Optimize)' \
+      '-verbose[print image information]' \
+      '-window:window ID to get:_x_window' \
+      ':output file:_files' && return
+  ;;
+
+  (montage)
+    _arguments -M 'm:{a-z}={A-Z}' \
+      '*-adjoin[join images]' \
+      '*-background:color:_x_color' \
+      '*-blur:blur factor (0.0 - 99.9%%)' \
+      '*-bordercolor:color:_x_color' \
+      '*-borderwidth:geometry' \
+      '*-cache[specify memory available to the pixel cache]:memory (MB)' \
+      '*-colors:preferred number of colors' \
+      '*-colorspace:colorspace type:(GRAY OHTA RGB Transparent XYZ YCbCr YIQ YPbPr YUV CMYK)' \
+      '*-comment:comment string' \
+      '*-compose:image composition type:(Over In Out Atop Xor Plus Minus Add Subtract Difference Bumpmap Replace ReplaceRed ReplaceGreen ReplaceBlue ReplaceMatte)' \
+      '*-compress:image compression type:(None BZip Fax Group4 JPEG LZW RunlengthEncoded Zip)' \
+      '*-crop:crop image (<width>x<height>{+-}<x>{+-}<y>{%%})' \
+      '*-debug' \
+      '*-density:resolution in pixels of image (<width>x<height>)' \
+      '*-depth:image depth:(8 16)' \
+      '*-display:display:_x_display' \
+      '*-dispose:GIF disposal method:((0:no\ disposal 1\:don'\''t\ dispose\ between\ frames 2\:overwrite\ frame\ with\ background\ color 3\:overwrite\ with\ previous\ frame))' \
+      '*-dither[apply dithering]' \
+      '*+dither[render Postscript without aliasing]' \
+      '*-draw:drawing primitive:compadd -S "\\ " - rectangle circle ellipse polygon color matte text image' \
+      '*-endian:image endianness:(MSB LSB)' \
+      '*+endian' \
+      '*-filter:filter type for resizing:(Point Box Triangle Hermite Hanning Hamming Blackman Gaussian Quadratic Cubic Catrom Mitchell Lanczos Bessel Sinc)' \
+      '*-frame[draw frame around image]' \
+      '*-font:annotation font:_x_font' \
+      '*-gamma[gamma correction level]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*+gamma[gamma correction level (don'\''t change pixels)]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*-geometry:window geometry (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>})' \
+      '*-gravity:image gravity:(Center North NorthEast East SouthEast South SouthWest West NorthWest)' \
+      '(- *)-help[display help information]' \
+      '*-interlace:interlacing scheme:(None Line Plane Partition)' \
+      '*-label:label string' \
+      '*-matte[store matte channel]' \
+      '*-mattecolor:color:_x_color' \
+      '*-mode:montage type:(Frame Unframe Concatenate)' \
+      '*-monochrome[transform to black and white]' \
+      '*-noop' \
+      '*-page:geometry of image canvas (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>}):(11x17 Ledger Legal Letter LetterSmall ArchE ArchD ArchC ArchB ArchA A0 A1 A2 A3 A4 A4Small A5 A6 A7 A8 A9 A10 B0 B1 B2 B3 B4 B5 C0 C1 C2 C3 C4 C5 C6 Flsa Flse HalfLetter)' \
+      '*-pen:font color:_x_color' \
+      '*-pointsize:Postscript font size' \
+      '*-quality:JPEG/MIFF/PNG compression level' \
+      '*-resize:size (<width>x<height>{%%}{@}{!}{<}{>})' \
+      '*-rotate:rotation (degrees{<}{>})' \
+      '*-sampling_factor:sampling factor (<horizontal_factor>x<vertical_factor>)' \
+      '*-scenes:image scene number' \
+      '*-shadow[add shadow]' \
+      '*-sharpen:sharpening factor (0.0 - 99.9%%)' \
+      '*-size:image size (<width>x<height>+<offset>)' \
+      '*-stroke:color:_x_color' \
+      '*-texture:background texture image:_imagemagick' \
+      '*-tile:number of tiles (<width>x<height>)' \
+      '*-title:image title' \
+      '*-transparent:transparent color:_x_color' \
+      '*-treedepth:color reduction tree depth' \
+      '*-trim' \
+      '*-type:image type:(Bilevel Grayscale Palette PaletteMatte TrueColor TrueColorMatte ColorSeparation ColorSeparationMatte Optimize)' \
+      '*-verbose[print image information]' \
+      '*:picture file:_imagemagick' && return
+  ;;
+
+  (convert)
+    _arguments -C -M 'm:{a-z}={A-Z}' \
+      '-adjoin[join images]' \
+      '-affine[drawing transform matrix]:matrix' \
+      '-antialias[remove pixel aliasing]' \
+      '-append[append image sequence]' \
+      '-average[average image sequence]' \
+      '-background[specify background color]:color:_x_color' \
+      '-blur:blur factor (0.0 - 99.9%%)' \
+      '-border:border size (<width>x<height>)' \
+      '-bordercolor:border color:_x_color' \
+      '-box:annotation bounding box color:_x_color' \
+      '-cache[specify memory available to the pixel cache]:memory (MB)' \
+      '-channel:channel:(Red Green Blue Opacity Cyan Magenta Yellow Black)' \
+      '-charcoal:charcoal drawing factor' \
+      '-chop:<width>x<height>{+-}<x>{+-}<y>' \
+      '-clip' \
+      '-coalesce[merge image sequence]' \
+      '-colorize:colorization amount (<num> or <red>/<green>/<blue>)' \
+      '-colors:preferred number of colors' \
+      '-colorspace:colorspace type:(GRAY OHTA RGB Transparent XYZ YCbCr YIQ YPbPr YUV CMYK)' \
+      '-comment:comment string' \
+      '-compress:image compression type:(None BZip Fax Group4 JPEG LZW RunlengthEncoded Zip)' \
+      '-contrast[enhance contrast]' \
+      '+contrast[reduce contrast]' \
+      '-crop:crop image (<width>x<height>{+-}<x>{+-}<y>{%%})' \
+      '-cycle:image colormap shift' \
+      '-debug' \
+      '-deconstruct[break down image sequence into parts]' \
+      '-delay:delay for next image (1/100ths of a second)' \
+      '-density:resolution in pixels of image (<width>x<height>)' \
+      '-depth:image depth:(8 16)' \
+      '-despeckle[reduce speckles in image]' \
+      '-display:display:_x_display' \
+      '-dispose:GIF disposal method:((0:no\ disposal 1\:don'\''t\ dispose\ between\ frames 2\:overwrite\ frame\ with\ background\ color 3\:overwrite\ with\ previous\ frame))' \
+      '-dither[apply dithering]' \
+      '-draw:drawing primitive:compadd -S "\\ " - rectangle circle ellipse polygon color matte text image' \
+      '-edge:edge detection factor (0.0 - 99.9%%)' \
+      '-emboss[emboss image]' \
+      '(+endian)-endian:image endianness:(MSB LSB)' \
+      '(-endian)+endian' \
+      '-enhance[enhance image]' \
+      '-equalize[histogram equalization]' \
+      '-fill[specify color to use when filling a graphic primitive]:color:_x_color' \
+      '-filter:filter type for resizing:(Point Box Triangle Hermite Hanning Hamming Blackman Gaussian Quadratic Cubic Catrom Mitchell Lanczos Bessel Sinc)' \
+      '-flatten[flatten a sequence of images]' \
+      '-flip[vertical mirror image]' \
+      '-flop[horizontal mirror image]' \
+      '-font:annotation font:_x_font' \
+      '-frame:border dimensions (<width>x<height>+<out>+<in>)' \
+      '-fuzz:maximum distance for equal colors' \
+      '-gamma[gamma correction level]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '+gamma[gamma correction level (don'\''t change pixels)]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '-geometry:window geometry (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>})' \
+      '-gravity:image gravity:(Center North NorthEast East SouthEast South SouthWest West NorthWest)' \
+      '-implode:implosion factor (0.0 - 99.9%%)' \
+      '-interlace:interlacing scheme:(None Line Plane Partition)' \
+      '-label:label string' \
+      '-layer:layer type:(Red Green Blue Matte)' \
+      '-linewidth:line width' \
+      '-loop:number of iterations (GIF animation)' \
+      '-map[single image colormap file]:picture file for colors:_imagemagick' \
+      '+map[all images colormap file]:picture file for colors:_imagemagick' \
+      '-matte[store matte channel]' \
+      '-modulate:<brightness>,<saturation>,<hue>' \
+      '-monochrome[transform to black and white]' \
+      '-morph[morph image sequence]' \
+      '-negate[invert image]' \
+      '+negate[invert only grayscale]' \
+      '-noise[noise peak elimination]' \
+      '+noise:noise type:(Uniform Gaussian Multiplicative Impulse Laplacian Poisson)' \
+      '-normalize[use full color value range]' \
+      '-opaque:image pen color:_x_color' \
+      '-page:geometry of image canvas (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>}):(11x17 Ledger Legal Letter LetterSmall ArchE ArchD ArchC ArchB ArchA A0 A1 A2 A3 A4 A4Small A5 A6 A7 A8 A9 A10 B0 B1 B2 B3 B4 B5 C0 C1 C2 C3 C4 C5 C6 Flsa Flse HalfLetter)' \
+      '-paint:oil painting radius' \
+      '-pen:font color:_x_color' \
+      '-pointsize:Postscript font size' \
+      '-preview:image preview type:(Rotate Shear Roll Hue Saturation Brightness Gamma Spiff Dull Grayscale Quantize Despeckle ReduceNoise AddNoise Sharpen Blur Threshold Edge Detect Spread Shade Raise Segment Solarize Swirl Implode Wave OilPaint CharcoalDrawing JPEG)' \
+      '-profile:information profile:->profile' \
+      '-quality:JPEG/MIFF/PNG compression level' \
+      '-raise:lighten or darken edges (<width>x<height>)' \
+      '-region:image region (<width>x<height>{+-}<x>{+-}<y>)' \
+      '-roll:image roll offset ({+-}<x>{+-}<y>)' \
+      '-rotate:rotation (degrees{<}{>})' \
+      '-sample:scale factors (<width>x<height>)' \
+      '-scene:image scene number' \
+      '-seed:random number seed' \
+      '-segment:segment thresholds (<cluster>x<smoothing>)' \
+      '-shade:image shading (<azimuth>x<elevation>)' \
+      '-sharpen:sharpening factor (0.0 - 99.9%%)' \
+      '-shear:shearing angles (<x>x<y> in degrees)' \
+      '-size:image size (<width>x<height>+<offset>)' \
+      '-solarize:solarization threshold' \
+      '-spread:neighborhood size' \
+      '-swirl:swirl tightness' \
+      '-texture:background texture image:_imagemagick' \
+      '-threshold:threshold for maximum intensity' \
+      '-transparency:transparent color:_x_color' \
+      '-treedepth:color reduction tree depth' \
+      '-units:image resolution type:(Undefined PixelsPerInch PixelsPerCentimeter)' \
+      '-verbose[print image information]' \
+      '-view:FlashPix viewing parameters' \
+      '-wave:sine wave parameters (<amplitude>x<wavelength>)' \
+      '*:picture file:_imagemagick' && return
+
+    if [[ "$state" = profile ]]; then
+      if compset -P 1 '*:'; then
+	_files
+      else
+	_wanted prefixes expl 'profile type' compadd icc: iptc:
+      fi
+      return
+    fi
+  ;;
+
+  (composite)
+    _arguments -M 'm:{a-z}={A-Z}' \
+      '-blend:blending factor (0.0 - 99.9%%)' \
+      '-colors:preferred number of colors' \
+      '-colorspace:colorspace type:(GRAY OHTA RGB Transparent XYZ YCbCr YIQ YPbPr YUV CMYK)' \
+      '-comment:comment string' \
+      '-compose:image composition type:(Over In Out Atop Xor Plus Minus Add Subtract Difference Bumpmap Replace ReplaceRed ReplaceGreen ReplaceBlue ReplaceMatte)' \
+      '-compress:image compression type:(None BZip Fax Group4 JPEG LZW RunlengthEncoded Zip)' \
+      '-density:resolution in pixels of image (<width>x<height>)' \
+      '-displace:displacements scales (<horizontal>x<vertical>)' \
+      '-display:display:_x_display' \
+      '-dispose:GIF disposal method:((0:no\ disposal 1\:don'\''t\ dispose\ between\ frames 2\:overwrite\ frame\ with\ background\ color 3\:overwrite\ with\ previous\ frame))' \
+      '-dither[apply dithering]' \
+      '+dither[render Postscript without aliasing]' \
+      '-font:normal text font:_x_font' \
+      '-geometry:window geometry (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>})' \
+      '-gravity:image gravity:(Center North NorthEast East SouthEast South SouthWest West NorthWest)' \
+      '-interlace:interlacing scheme:(None Line Plane Partition)' \
+      '-label:label string' \
+      '-matte[store matte channel]' \
+      '-monochrome[transform to black and white]' \
+      '-negate[invert image]' \
+      '+negate[invert only grayscale]' \
+      '-page:geometry of image canvas (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>}):(11x17 Ledger Legal Letter LetterSmall ArchE ArchD ArchC ArchB ArchA A0 A1 A2 A3 A4 A4Small A5 A6 A7 A8 A9 A10 B0 B1 B2 B3 B4 B5 C0 C1 C2 C3 C4 C5 C6 Flsa Flse HalfLetter)' \
+      '-quality:JPEG/MIFF/PNG compression level' \
+      '-scene:image scene number' \
+      '-stegano:watermark offset' \
+      '-stereo[create stereo anaglyph]' \
+      '-tile[repeat composite operation]' \
+      '-treedepth:color reduction tree depth' \
+      '-verbose[print image information]' \
+      ':image file:_imagemagick' \
+      ':composite file:_imagemagick' \
+      ':mask or combined file:_imagemagick' \
+      ':combined file:_files' && return
+  ;;
+
+  (mogrify)
+    _arguments -M 'm:{a-z}={A-Z}' \
+      '*-affine[drawing transform matrix]:matrix' \
+      '*-antialias[remove pixel aliasing]' \
+      '*-background[specify background color]:color:_x_color' \
+      '*-blur:blur factor (0.0 - 99.9%%)' \
+      '*-border:border size (<width>x<height>)' \
+      '*-bordercolor:border color:_x_color' \
+      '*-box:annotation bounding box color:_x_color' \
+      '*-charcoal:charcoal drawing factor' \
+      '*-colorize:colorization amount (<num> or <red>/<green>/<blue>)' \
+      '*-colors:preferred number of colors' \
+      '*-colorspace:colorspace type:(GRAY OHTA RGB Transparent XYZ YCbCr YIQ YPbPr YUV CMYK)' \
+      '*-comment:comment string' \
+      '*-compress:image compression type:(None BZip Fax Group4 JPEG LZW RunlengthEncoded Zip)' \
+      '*-contrast[enhance contrast]' \
+      '*+contrast[reduce contrast]' \
+      '*-crop:crop image (<width>x<height>{+-}<x>{+-}<y>{%%})' \
+      '*-cycle:image colormap shift' \
+      '*-delay:delay for next image (1/100ths of a second)' \
+      '*-density:resolution in pixels of image (<width>x<height>)' \
+      '*-depth:image depth:(8 16)' \
+      '*-despeckle[reduce speckles in image]' \
+      '*-display:display:_x_display' \
+      '*-dispose:GIF disposal method:((0:no\ disposal 1\:don'\''t\ dispose\ between\ frames 2\:overwrite\ frame\ with\ background\ color 3\:overwrite\ with\ previous\ frame))' \
+      '*-dither[apply dithering]' \
+      '*+dither[render Postscript without aliasing]' \
+      '*-draw:drawing primitive:compadd -S "\\ " - point line rectangle fillRectangle circle fillCircle ellipse fillEllipse polygon fillPolygon color matte text image' \
+      '*-edge:edge detection factor (0.0 - 99.9%%)' \
+      '*-emboss[emboss image]' \
+      '*-enhance[enhance image]' \
+      '*-equalize[histogram equalization]' \
+      '*-filter:filter type for resizing:(Point Box Triangle Hermite Hanning Hamming Blackman Gaussian Quadratic Cubic Catrom Mitchell Lanczos Bessel Sinc)' \
+      '*-flip[vertical mirror image]' \
+      '*-flop[horizontal mirror image]' \
+      "*-format:output file format:(${formats//:/ })" \
+      '*-font:annotation font:_x_font' \
+      '*-frame:border dimensions (<width>x<height>+<out>+<in>)' \
+      '*-fuzz:maximum distance for equal colors' \
+      '*-gamma[gamma correction level]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*+gamma[gamma correction level (don'\''t change pixels)]:gamma correction level (<n> or <red>/<green>/<blue>)' \
+      '*-geometry:window geometry (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>})' \
+      '*-gravity:image gravity:(Center North NorthEast East SouthEast South SouthWest West NorthWest)' \
+      '*-implode:implosion factor (0.0 - 99.9%%)' \
+      '*-interlace:interlacing scheme:(None Line Plane Partition)' \
+      '*-layer:layer type:(Red Green Blue Matte)' \
+      '*-linewidth:line width' \
+      '*-loop:number of iterations (GIF animation)' \
+      '*-map[single image colormap file]:picture file for colors:_imagemagick' \
+      '*+map[all images colormap file]:picture file for colors:_imagemagick' \
+      '*-matte[store matte channel]' \
+      '*-modulate:<brightness>,<saturation>,<hue>' \
+      '*-monochrome[transform to black and white]' \
+      '*-negate[invert image]' \
+      '*+negate[invert only grayscale]' \
+      '*-noise[noise peak elimination]' \
+      '*+noise:noise type:(Uniform Gaussian Multiplicative Impulse Laplacian Poisson)' \
+      '*-normalize[use full color value range]' \
+      '*-opaque:image pen color:_x_color' \
+      '*-page:geometry of image canvas (<width>x<height>{+-}<x>{+-}<y>{%%}{!}{<}{>}):(11x17 Ledger Legal Letter LetterSmall ArchE ArchD ArchC ArchB ArchA A0 A1 A2 A3 A4 A4Small A5 A6 A7 A8 A9 A10 B0 B1 B2 B3 B4 B5 C0 C1 C2 C3 C4 C5 C6 Flsa Flse HalfLetter)' \
+      '*-paint:oil painting radius' \
+      '*-pen:font color:_x_color' \
+      '*-pointsize:Postscript font size' \
+      '*-quality:JPEG/MIFF/PNG compression level' \
+      '*-raise:lighten or darken edges (<width>x<height>)' \
+      '*-region:image region (<width>x<height>{+-}<x>{+-}<y>)' \
+      '*-resize:size (<width>x<height>{%%}{@}{!}{<}{>})' \
+      '*-roll:image roll offset ({+-}<x>{+-}<y>)' \
+      '*-rotate:rotation (degrees{<}{>})' \
+      '*-sample:scale factors (<width>x<height>)' \
+      '*-scene:image scene number' \
+      '*-seed:random number seed' \
+      '*-segment:segment thresholds (<cluster>x<smoothing>)' \
+      '*-shade:image shading (<azimuth>x<elevation>)' \
+      '*-sharpen:sharpening factor (0.0 - 99.9%%)' \
+      '*-shave:shave edges (<width>x<height>{%%})' \
+      '*-shear:shearing angles (<x>x<y> in degrees)' \
+      '*-size:image size (<width>x<height>+<offset>)' \
+      '*-solarize:solarization threshold' \
+      '*-spread:neighborhood size' \
+      '*-swirl:swirl tightness' \
+      '*-texture:background texture image:_imagemagick' \
+      '*-threshold:threshold for maximum intensity' \
+      '*-transparency:transparent color:_x_color' \
+      '*-treedepth:color reduction tree depth' \
+      '*-units:image resolution type:(Undefined PixelsPerInch PixelsPerCentimeter)' \
+      '*-verbose[print image information]' \
+      '*-view:FlashPix viewing parameters' \
+      '*-wave:sine wave parameters (<amplitude>x<wavelength>)' \
+      '*:picture file:_imagemagick' && return
+  ;;
+
+  (identify)
+    _arguments \
+      '*-cache[specify memory available to the pixel cache]:memory (MB)' \
+      '*-debug' '*-ping' \
+      '*-density:resolution in pixels of image (<width>x<height>)' \
+      '*-depth[specify image depth]:image depth:(8 16)' \
+      '*-format[specify format for image characteristics]:format' \
+      '(- *)-help[display help information]' \
+      '*-size:image size (<width>x<height>+<offset>)' \
+      '*-verbose[print more detailed info about image]' \
+      '*:picture file:_imagemagick' && return
+   ;;
+
+  (compare)
+    _arguments \
+      '*-authenticate[decrypt image]:password' \
+      '*-colorspace[alternate image colorspace]:type' \
+      '*-debug[display copious debugging information]:events' \
+      '*-define[coder/decoder specific options]:values' \
+      '*-density[ horizontal and vertical density of the image]:geometry' \
+      '*-depth[image depth]:value' \
+      '*-display[get image or font from this X server]:server' \
+      '*-endian[multibyte word order]:(LSB MSB Native)' \
+      '*-file[write difference image to this file]:file:_files' \
+      '(- *)-help[print program options]' \
+      '*-highlight-color[color to use when annotating difference pixels]:color' \
+      '*-highlight-style[pixel highlight style]:(assign threshold tint xor)' \
+      '*-interlace:type:(None Line Plane Partition)' \
+      '*-limit:resource limit type and value:(Disk Files Map Memory Pixels)' \
+      '*-log[format of debugging information]:format' \
+      '*-matte[store matte channel if the image has one]' \
+      '*-metric[comparison metric (MAE, MSE, PAE, PSNR, RMSE)]' \
+      '*-monitor[show progress indication]' \
+      '*-sampling-factor[horizontal and vertical sampling factors]:factors' \
+      '*-size[width and height of image]:geometry' \
+      '*-type[image type]:type' \
+      '*-verbose[print detailed information about the image]' \
+      '*-version[print version information]' \
+      '*:picture file:_files' && return
+   ;;
+
+  (*) _message 'unknown' ;;
+esac
+
+fi
+
+return 1

@@ -1,0 +1,241 @@
+# Test basic linker script functionality
+# By Ian Lance Taylor, Cygnus Support
+#   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+set testname "script"
+
+if ![ld_assemble $as $srcdir/$subdir/script.s tmpdir/script.o] { 
+    unsupported $testname
+    return
+}
+
+proc check_script { } {
+    global nm
+    global testname
+    global nm_output
+
+    if ![ld_nm $nm "" tmpdir/script] {
+	fail $testname
+	return
+    } 
+
+    if {![info exists nm_output(text_start)] \
+	    || ![info exists nm_output(text_end)] \
+	    || ![info exists nm_output(data_start)] \
+	    || ![info exists nm_output(data_end)]} {
+	send_log "bad output from nm\n"
+	verbose "bad output from nm"
+	fail $testname
+	return
+    } 
+
+    set passes 1
+    set text_end 0x104
+    set data_end 0x1004
+
+    if [istarget *c4x*-*-*] then {
+	set text_end 0x101
+	set data_end 0x1001
+    }
+
+    if [istarget *c54x*-*-*] then {
+	set text_end 0x102
+	set data_end 0x1002
+    }
+
+    if {$nm_output(text_start) != 0x100} {
+	send_log "text_start == $nm_output(text_start)\n"
+	verbose "text_start == $nm_output(text_start)"
+	set passes 0
+    } 
+
+    if {[info exists nm_output(tred)] \
+        && $nm_output(tred) != (0x100 + 0x4000)} {
+	send_log "tred == $nm_output(tred)\n"
+	verbose "tred == $nm_output(tred)"
+	set passes 0
+    }
+
+    if {$nm_output(text_end) < $text_end \
+	    || $nm_output(text_end) > 0x110} {
+	send_log "text_end == $nm_output(text_end)\n"
+	verbose "text_end == $nm_output(text_end)"
+	set passes 0
+    } 
+
+    if {$nm_output(data_start) != 0x1000} {
+	send_log "data_start == $nm_output(data_start)\n"
+	verbose "data_start == $nm_output(data_start)"
+	set passes 0
+    } 
+
+    if {[info exists nm_output(fred)] \
+        && $nm_output(fred) != (0x1000 + 0x1000)} {
+	send_log "fred == $nm_output(fred)\n"
+	verbose "fred == $nm_output(fred)"
+	set passes 0
+    }
+
+    if {$nm_output(data_end) < $data_end \
+	    || $nm_output(data_end) > 0x1010} {
+	send_log "data_end == $nm_output(data_end)\n"
+	verbose "data_end == $nm_output(data_end)"
+	set passes 0
+    } 
+
+    if { $passes } {
+	pass $testname
+    } else {
+	fail $testname
+    }
+}
+
+proc extract_symbol_test { testfile testname } {
+    global objcopy
+    global nm
+    global size
+    global target_triplet
+
+    set copyfile tmpdir/extract
+    set args "--extract-symbol $testfile $copyfile"
+    set exec_output [run_host_cmd $objcopy $args]
+    if ![string equal "" $exec_output] {
+	fail $testname
+	return
+    }
+
+    set orig_syms [run_host_cmd $nm $testfile]
+    set syms_massaged $orig_syms
+    switch -regexp $target_triplet {
+	^mmix-knuth-mmixware$ {
+	    # Without section sizes (stripped together with the
+	    # contents for this target), we can't deduce the symbol
+	    # types.  Artificially tracking the symbol types is
+	    # considered not worthwhile as there's no known use-case
+	    # for --extract-symbols for this target.  The option is
+	    # supported just enough to emit the same symbol values,
+	    # but absolute symbol types are expected.
+	    regsub -all " \[TD\] " $syms_massaged " A " syms_massaged
+	}
+	^mips-*-* {
+	    # This test cannot proceed any further for MIPS targets.
+	    # The extract_syms operation produces a binary with a zero
+	    # length .reginfo section, which is illegal under the MIPS
+	    # ABI.  Since producing such sections is part of the expected
+	    # behaviour of --extract-symbols, no further testing can be
+	    # performed.  Fortunately this should not matter as extracting
+	    # symbols is only needed for VxWorks support.
+	    pass $testname
+	    return
+	}
+	[a-z]*-*-pe$ {
+	    # Fails for PE based targets because the extracted section
+	    # relative symbols (eg tred or .text) all become undefined
+	    # when the sections are blown away by --extract-symbol.  Again
+	    # this should not matter as --extract-symbol is only used by
+	    # VxWorks.
+	    pass $testname
+	    return
+	}
+	# More PE variations...
+	[a-z]*-*-mingw* {
+	    pass $testname
+	    return
+	}
+	[a-z]*-*-cygwin$ {
+	    pass $testname
+	    return
+	}
+    }
+
+    set extract_syms [run_host_cmd $nm $copyfile]
+    if ![string equal $syms_massaged $extract_syms] {
+	fail $testname
+	return
+    }
+
+    # Check that the stripped section contains no code or data.
+    set exec_output [run_host_cmd $size $copyfile]
+    if ![regexp ".* 0\[	 \]+0\[	 \]+0\[	 \]+0\[	 \]+0\[	 \]+.*" $exec_output] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# PE targets need to set the image base to 0 to avoid complications from nm.
+set old_LDFLAGS $LDFLAGS
+if { [is_pecoff_format] } then {
+    append LDFLAGS " --image-base 0"
+} elseif { [is_xcoff_format] } then {
+    append LDFLAGS " -bnogc"
+}
+set flags $LDFLAGS
+
+if ![ld_link $ld tmpdir/script "$flags -T $srcdir/$subdir/script.t tmpdir/script.o"] {
+    fail $testname
+} else {
+    check_script
+}
+
+set testname "MRI script"
+
+if ![ld_link $ld tmpdir/script "$flags -c $srcdir/$subdir/scriptm.t"] {
+    fail $testname
+} else {
+    check_script
+}
+
+set testname "MEMORY"
+
+if ![ld_link $ld tmpdir/script "$flags -T $srcdir/$subdir/memory.t tmpdir/script.o"] {
+    fail $testname
+} else {
+    check_script
+}
+
+set testname "MEMORY with symbols"
+if ![ld_link $ld tmpdir/script "$flags -defsym DATA_ORIGIN=0x1000 -defsym DATA_LENGTH=0x1000 -T $srcdir/$subdir/memory_sym.t tmpdir/script.o"] {
+    fail $testname
+    untested "extract symbols"
+} else {
+    check_script
+    extract_symbol_test tmpdir/script "extract symbols"
+}
+
+set test_script_list [lsort [glob $srcdir/$subdir/region-alias-*.t]]
+
+foreach test_script $test_script_list {
+    run_dump_test [string range $test_script 0 end-2]
+}
+
+run_dump_test "asciz"
+run_dump_test "align-with-input"
+run_dump_test "pr20302"
+run_dump_test "output-section-types"
+run_dump_test "ld-version"
+run_dump_test "ld-version-2"
+
+run_dump_test "segment-start" {{name (default)}}
+run_dump_test "segment-start" {{name (overridden)} \
+			       {ld -Ttext-segment=0x10000000}}
+
+set LDFLAGS $old_LDFLAGS

@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % BOOK_ENTITIES SYSTEM "Wayland.ent">
+  <!ENTITY doxygen SYSTEM "ClientAPI.xml">
+%BOOK_ENTITIES;
+]>
+<appendix id="sect-Library-Client">
+  <title>Client API</title>
+  <section><title>Introduction</title>
+  <para>
+    The open-source reference implementation of Wayland protocol is
+    split in two C libraries, libwayland-client and <link
+    linkend="sect-Library-Server">libwayland-server</link>. Their main
+    responsibility is to handle the Inter-process communication
+    (<emphasis>IPC</emphasis>) with each other, therefore guaranteeing
+    the protocol objects marshaling and messages synchronization.
+  </para>
+  <para>
+    A client uses libwayland-client to communicate with one or more
+    wayland servers. A <link
+    linkend="Client-classwl__display">wl_display</link> object is
+    created and manages each open connection to a server. At least one
+    <link linkend="Client-classwl__event__queue">wl_event_queue</link>
+    object is created for each wl_display, this holds events as they
+    are received from the server until they can be
+    processed. Multi-threading is supported by creating an additional
+    wl_event_queue for each additional thread, each object can have
+    it's events placed in a particular queue, so potentially a
+    different thread could be made to handle the events for each
+    object created.
+  </para>
+  <para>
+    Though some convenience functions are provided, libwayland-client
+    is designed to allow the calling code to wait for events, so that
+    different polling mechanisms can be used. A file descriptor is
+    provided, when it becomes ready for reading the calling code can
+    ask libwayland-client to read the available events from it into
+    the wl_event_queue objects.
+  </para>
+  <para>
+    The library only provides low-level access to the wayland objects.
+    Each object created by the client is represented by a <link
+    linkend="Client-classwl__proxy">wl_proxy</link> object that this
+    library creates. This includes the id that is actually
+    communicated over the socket to the server, a void* data pointer
+    that is intended to point at a client's representation of the
+    object, and a pointer to a static <link
+    linkend="Client-structwl__interface">wl_interface</link> object,
+    which is generated from the xml and identifies the object's class
+    and can be used for introspection into the messages and events.
+  </para>
+  <para>
+    Messages are sent by calling wl_proxy_marshal. This will write a
+    message to the socket, by using the message id and the
+    wl_interface to identify the types of each argument and convert
+    them into stream format.  Most software will call type-safe
+    wrappers generated from the xml description of the <link
+    linkend="appe-Wayland-Protocol">Wayland protocols</link>. For
+    instance the C header file generated from the xml defines the
+    following inline function to transmit the <link
+    linkend="protocol-spec-wl_surface-request-attach">wl_surface::attach</link>
+    message:
+  </para>
+  <programlisting>static inline void
+wl_surface_attach(struct wl_surface *wl_surface, struct wl_buffer *buffer, int32_t x, int32_t y)
+{
+  wl_proxy_marshal((struct wl_proxy *) wl_surface, WL_SURFACE_ATTACH, buffer, x, y);
+}</programlisting>
+  <para>
+    Events (messages from the server) are handled by calling a
+    "dispatcher" callback the client stores in the wl_proxy for each
+    event. A language binding for a string-based interpreter, such as
+    CPython, might have a dispatcher that uses the event name from the
+    wl_interface to identify the function to call. The default
+    dispatcher uses the message id number to index an array of
+    functions pointers, called a wl_listener, and the wl_interface to
+    convert data from the stream into arguments to the function. The
+    C header file generated from the xml defines a per-class structure
+    that forces the function pointers to be of the correct type, for
+    instance the <link
+    linkend="protocol-spec-wl_surface-event-enter">wl_surface::enter</link>
+    event defines this pointer in the wl_surface_listener object:
+  </para>
+  <programlisting>struct wl_surface_listener {
+  void (*enter)(void *data, struct wl_surface *, struct wl_output *);
+  ...
+}</programlisting>
+  <para>
+  </para>
+  </section>
+  &doxygen;
+</appendix>

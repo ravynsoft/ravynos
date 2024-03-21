@@ -1,0 +1,417 @@
+COMMENT(!MOD!zsh/complist
+Completion listing extensions.
+!MOD!)
+cindex(completion, listing)
+cindex(completion, coloured listings)
+cindex(completion, scroll listings)
+The tt(zsh/complist) module offers three extensions to completion listings:
+the ability to highlight matches in such a list, the ability to
+scroll through long lists and a different style of menu completion.
+
+subsect(Colored completion listings)
+Whenever one of the parameters tt(ZLS_COLORS) or tt(ZLS_COLOURS) is set 
+and the tt(zsh/complist) module is loaded or linked into the shell,
+completion lists will be colored.  Note, however, that tt(complist) will
+not automatically be loaded if it is not linked in:  on systems with
+dynamic loading, `tt(zmodload zsh/complist)' is required.
+
+vindex(ZLS_COLORS)
+vindex(ZLS_COLOURS)
+The parameters tt(ZLS_COLORS) and tt(ZLS_COLOURS) describe how matches
+are highlighted.  To turn on highlighting an empty value suffices, in
+which case all the default values given below will be used.  The format of
+the value of these parameters is the same as used by the GNU version of the
+tt(ls) command: a colon-separated list of specifications of the form
+`var(name)tt(=)var(value)'.  The var(name) may be one of the following strings,
+most of which specify file types for which the var(value) will be used.
+The strings and their default values are:
+
+startitem()
+item(tt(no 0))(
+for normal text (i.e. when displaying something other than a matched file)
+)
+item(tt(fi 0))(
+for regular files
+)
+item(tt(di 32))(
+for directories
+)
+item(tt(ln 36))(
+for symbolic links.  If this has the special value tt(target),
+symbolic links are dereferenced and the target file used to
+determine the display format.
+)
+item(tt(pi 31))(
+for named pipes (FIFOs)
+)
+item(tt(so 33))(
+for sockets
+)
+item(tt(bd 44;37))(
+for block devices
+)
+item(tt(cd 44;37))(
+for character devices
+)
+item(tt(or) var(none))(
+for a symlink to nonexistent file (default is the value defined for tt(ln))
+)
+item(tt(mi) var(none))(
+for a non-existent file (default is the value defined for tt(fi)); this code
+is currently not used
+)
+item(tt(su 37;41))(
+for files with setuid bit set
+)
+item(tt(sg 30;43))(
+for files with setgid bit set
+)
+item(tt(tw 30;42))(
+for world writable directories with sticky bit set
+)
+item(tt(ow 34;43))(
+for world writable directories without sticky bit set
+)
+item(tt(sa) var(none))(
+for files with an associated suffix alias; this is only tested
+after specific suffixes, as described below
+)
+item(tt(st 37;44))(
+for directories with sticky bit set but not world writable
+)
+item(tt(ex 35))(
+for executable files
+)
+item(tt(lc \e[))(
+for the left code (see below)
+)
+item(tt(rc m))(
+for the right code
+)
+item(tt(tc 0))(
+for the character indicating the file type  printed after filenames if
+the tt(LIST_TYPES) option is set
+)
+item(tt(sp 0))(
+for the spaces printed after matches to align the next column
+)
+item(tt(ec) var(none))(
+for the end code
+)
+enditem()
+
+Apart from these strings, the var(name) may also be an asterisk
+(`tt(*)') followed by any string. The var(value) given for such a
+string will be used for all files whose name ends with the string.
+The var(name) may also be an equals sign (`tt(=)') followed by a
+pattern; the tt(EXTENDED_GLOB) option will be turned on for evaluation
+of the pattern.  The var(value) given for this pattern will be used for all
+matches (not just filenames) whose display string are matched by
+the pattern.  Definitions for the form with the leading equal sign take
+precedence over the values defined for file types, which in turn take
+precedence over the form with the leading asterisk (file extensions).
+
+The leading-equals form also allows different parts of the displayed
+strings to be colored differently.  For this, the pattern has to use the
+`tt((#b))' globbing flag and pairs of parentheses surrounding the
+parts of the strings that are to be colored differently.  In this case 
+the var(value) may consist of more than one color code separated by
+equal signs.  The first code will be used for all parts for which no
+explicit code is specified and the following codes will be used for
+the parts matched by the sub-patterns in parentheses.  For example,
+the specification `tt(=(#b)(?)*(?)=0=3=7)' will be used for all
+matches which are at least two characters long and will use
+the code `tt(3)' for the first character, `tt(7)' for the last
+character and `tt(0)' for the rest.
+
+All three forms of var(name) may be preceded by a pattern in
+parentheses.  If this is given, the var(value) will be used
+only for matches in groups whose names are matched by the pattern
+given in the parentheses.  For example, `tt((g*)m*=43)' highlights all
+matches beginning with `tt(m)' in groups whose names  begin with
+`tt(g)' using the color code `tt(43)'.  In case of the `tt(lc)',
+`tt(rc)', and `tt(ec)' codes, the group pattern is ignored.
+
+Note also that all patterns are tried in the order in which they
+appear in the parameter value until the first one matches which is
+then used.  Patterns may be matched against completions, descriptions
+(possibly with spaces appended for padding), or lines consisting of a
+completion followed by a description.  For consistent coloring it may be
+necessary to use more than one pattern or a pattern with backreferences.
+
+When printing a match, the code prints the value of tt(lc), the value
+for the file-type or the last matching specification with a `tt(*)',
+the value of tt(rc), the string to display for the match itself, and
+then the value of tt(ec) if that is defined or the values of tt(lc),
+tt(no), and tt(rc) if tt(ec) is not defined.
+
+The default values are ISO 6429 (ANSI) compliant and can be used on
+vt100 compatible terminals such as tt(xterm)s.  On monochrome terminals
+the default values will have no visible effect.  The tt(colors)
+function from the contribution can be used to get associative arrays
+containing the codes for ANSI terminals (see
+ifzman(the section `Other Functions' in zmanref(zshcontrib))\
+ifnzman(noderef(Other Functions))\
+).  For example, after loading tt(colors), one could use
+`tt($color[red])' to get the code for foreground color red and
+`tt($color[bg-green])' for the code for background color green.
+
+If the completion system invoked by compinit is used, these
+parameters should not be set directly because the system controls them 
+itself.  Instead, the tt(list-colors) style should be used (see
+ifzman(the section `Completion System Configuration' in zmanref(zshcompsys))\
+ifnzman(noderef(Completion System Configuration))\
+).
+
+subsect(Scrolling in completion listings)
+To enable scrolling through a completion list, the tt(LISTPROMPT)
+parameter must be set.  Its value will be used as the prompt; if it
+is the empty string, a default prompt will be used.  The value may
+contain escapes of the form `tt(%x)'.  It supports the escapes
+`tt(%B)', `tt(%b)', `tt(%S)', `tt(%s)', `tt(%U)', `tt(%u)', `tt(%F)',
+`tt(%f)', `tt(%K)', `tt(%k)' and
+`tt(%{)var(...)tt(%})' used also in shell prompts as well as three pairs of
+additional sequences: a `tt(%l)' or `tt(%L)' is replaced by the number
+of the last line shown and the total number of lines in the form
+`var(number)tt(/)var(total)'; a `tt(%m)' or `tt(%M)' is replaced with
+the number of the last match shown and the total number of matches; and 
+`tt(%p)' or `tt(%P)' is replaced with `tt(Top)', `tt(Bottom)' or the
+position of the first line shown in percent of the total number of
+lines, respectively.  In each of these cases the form with the uppercase
+letter will be replaced with a string of fixed width, padded to the
+right with spaces, while the lowercase form will not be padded.
+
+If the parameter tt(LISTPROMPT) is set, the completion code will not ask if
+the list should be shown.  Instead it immediately starts displaying the
+list, stopping after the first screenful, showing the prompt at the bottom,
+waiting for a keypress after temporarily switching to the tt(listscroll)
+keymap.  Some of the zle functions have a special meaning while scrolling
+lists:
+
+startitem()
+item(tt(send-break))(
+stops listing discarding the key pressed
+)
+xitem(tt(accept-line), tt(down-history), tt(down-line-or-history))
+item(tt(down-line-or-search), tt(vi-down-line-or-history))(
+scrolls forward one line
+)
+xitem(tt(complete-word), tt(menu-complete), tt(expand-or-complete))
+item(tt(expand-or-complete-prefix), tt(menu-complete-or-expand))(
+scrolls forward one screenful
+)
+item(tt(accept-search))(
+stop listing but take no other action
+)
+enditem()
+
+Every other character stops listing and immediately processes the key
+as usual.  Any key that is not bound in the tt(listscroll) keymap or
+that is bound to tt(undefined-key) is looked up in the keymap
+currently selected.
+
+As for the tt(ZLS_COLORS) and tt(ZLS_COLOURS) parameters,
+tt(LISTPROMPT) should not be set directly when using the shell
+function based completion system.  Instead, the tt(list-prompt) style
+should be used.
+
+subsect(Menu selection)
+cindex(completion, selecting by cursor)
+vindex(MENUSELECT)
+tindex(menu-select)
+The tt(zsh/complist) module also offers an alternative style of selecting
+matches from a list, called menu selection, which can be used if the
+shell is set up to return to the last prompt after showing a
+completion list (see the tt(ALWAYS_LAST_PROMPT) option in
+ifzman(zmanref(zshoptions))\
+ifnzman(noderef(Options))\
+).
+
+Menu selection can be invoked directly by
+the widget tt(menu-select) defined by this module.  This is a standard
+ZLE widget that can be bound to a key in the usual way as described
+in ifzman(zmanref(zshzle))\
+ifnzman(noderef(Zsh Line Editor)).
+
+Alternatively,
+the parameter tt(MENUSELECT) can be set to an integer, which gives the
+minimum number of matches that must be present before menu selection is
+automatically turned on.  This second method requires that menu completion
+be started, either directly from a widget such as tt(menu-complete), or due
+to one of the options tt(MENU_COMPLETE) or tt(AUTO_MENU) being set.  If
+tt(MENUSELECT) is set, but is 0, 1 or empty, menu selection will always be
+started during an ambiguous menu completion.
+
+When using the completion system based on shell functions, the
+tt(MENUSELECT) parameter should not be used (like the tt(ZLS_COLORS)
+and tt(ZLS_COLOURS) parameters described above).  Instead, the tt(menu) 
+style should be used with the tt(select=)var(...) keyword.
+
+After menu selection is started, the matches will be listed. If there
+are more matches than fit on the screen, only the first screenful is
+shown.  The
+matches to insert into the command line can be selected from this
+list.  In the list one match is highlighted using the value for tt(ma)
+from the tt(ZLS_COLORS) or tt(ZLS_COLOURS) parameter.  The default
+value for this is `tt(7)' which forces the selected match to be
+highlighted using standout mode on a vt100-compatible terminal.  If
+neither tt(ZLS_COLORS) nor tt(ZLS_COLOURS) is set, the same terminal
+control sequence as for the `tt(%S)' escape in prompts is used.
+
+If there are more matches than fit on the screen and the parameter
+tt(MENUPROMPT) is set, its value will be shown below the matches.  It
+supports the same escape sequences as tt(LISTPROMPT), but the number
+of the match or line shown will be that of the one where the mark is
+placed.  If its value is the empty string, a default prompt will be
+used.
+
+The tt(MENUSCROLL) parameter can be used to specify how the list is
+scrolled.  If the parameter is unset, this is done line by line, if it
+is set to `tt(0)' (zero), the list will scroll half the number of
+lines of the screen.  If the value is positive, it gives the number of
+lines to scroll and if it is negative, the list will be scrolled
+the number of lines of the screen minus the (absolute) value.
+
+As for the tt(ZLS_COLORS), tt(ZLS_COLOURS) and tt(LISTPROMPT)
+parameters, neither tt(MENUPROMPT) nor tt(MENUSCROLL) should be
+set directly when using the shell function based completion
+system.  Instead, the tt(select-prompt) and tt(select-scroll) styles
+should be used.
+
+The completion code sometimes decides not to show all of the matches
+in the list.  These hidden matches are either matches for which the
+completion function which added them explicitly requested that they
+not appear in the list (using the tt(-n) option of the tt(compadd)
+builtin command) or they are matches which duplicate a string already
+in the list (because they differ only in things like prefixes or
+suffixes that are not displayed).  In the list used for menu selection,
+however, even these matches are shown so that it is possible to select
+them.  To highlight such matches the tt(hi) and tt(du) capabilities in
+the tt(ZLS_COLORS) and tt(ZLS_COLOURS) parameters are supported for
+hidden matches of the first and second kind, respectively.
+
+Selecting matches is done by moving the mark around using the zle movement
+functions.  When not all matches can be shown on the screen at the same 
+time, the list will scroll up and down when crossing the top or
+bottom line.  The following zle functions have special meaning during
+menu selection.  Note that the following always
+perform the same task within the menu selection map and cannot be
+replaced by user defined widgets, nor can the set of functions
+be extended:
+
+startitem()
+item(tt(accept-line), tt(accept-search))(
+accept the current match and leave menu selection (but do
+not cause the command line to be accepted)
+)
+item(tt(send-break))(
+leaves menu selection and restores the previous contents of the
+command line
+)
+item(tt(redisplay), tt(clear-screen))(
+execute their normal function without leaving menu selection
+)
+item(tt(accept-and-hold), tt(accept-and-menu-complete))(
+accept the currently inserted match and continue selection allowing to 
+select the next match to insert into the line
+)
+item(tt(accept-and-infer-next-history))(
+accepts the current match and then tries completion with
+menu selection again;  in the case of files this allows one to select
+a directory and immediately attempt to complete files in it;  if there 
+are no matches, a message is shown and one can use tt(undo) to go back 
+to completion on the previous level, every other key leaves menu
+selection (including the other zle functions which are otherwise
+special during menu selection)
+)
+item(tt(undo))(
+removes matches inserted during the menu selection by one of the three 
+functions before
+)
+xitem(tt(down-history), tt(down-line-or-history))
+item(tt(vi-down-line-or-history),  tt(down-line-or-search))(
+moves the mark one line down
+)
+xitem(tt(up-history), tt(up-line-or-history))
+item(tt(vi-up-line-or-history), tt(up-line-or-search))(
+moves the mark one line up
+)
+item(tt(forward-char), tt(vi-forward-char))(
+moves the mark one column right
+)
+item(tt(backward-char), tt(vi-backward-char))(
+moves the mark one column left
+)
+xitem(tt(forward-word), tt(vi-forward-word))
+item(tt(vi-forward-word-end), tt(emacs-forward-word))(
+moves the mark one screenful down
+)
+item(tt(backward-word), tt(vi-backward-word), tt(emacs-backward-word))(
+moves the mark one screenful up
+)
+item(tt(vi-forward-blank-word), tt(vi-forward-blank-word-end))(
+moves the mark to the first line of the next group of matches
+)
+item(tt(vi-backward-blank-word))(
+moves the mark to the last line of the previous group of matches
+)
+item(tt(beginning-of-history))(
+moves the mark to the first line
+)
+item(tt(end-of-history))(
+moves the mark to the last line
+)
+xitem(tt(beginning-of-buffer-or-history), tt(beginning-of-line))
+item(tt(beginning-of-line-hist), tt(vi-beginning-of-line))(
+moves the mark to the leftmost column
+)
+xitem(tt(end-of-buffer-or-history), tt(end-of-line))
+item(tt(end-of-line-hist), tt(vi-end-of-line))(
+moves the mark to the rightmost column
+)
+xitem(tt(complete-word), tt(menu-complete), tt(expand-or-complete))
+item(tt(expand-or-complete-prefix), tt(menu-expand-or-complete))(
+moves the mark to the next match
+)
+item(tt(reverse-menu-complete))(
+moves the mark to the previous match
+)
+item(tt(vi-insert))(
+this toggles between normal and interactive mode; in interactive mode
+the keys bound to tt(self-insert) and tt(self-insert-unmeta) insert
+into the command line as in normal editing mode but without leaving
+menu selection; after each character completion is tried again and the
+list changes to contain only the new matches; the completion widgets
+make the longest unambiguous string be inserted in the command line
+and tt(undo) and tt(backward-delete-char) go back to the previous set
+of matches
+)
+xitem(tt(history-incremental-search-forward))
+item(tt(history-incremental-search-backward))(
+this starts incremental searches in the list of completions displayed;
+in this mode, tt(accept-line) only leaves incremental search, going
+back to the normal menu selection mode
+)
+enditem()
+
+All movement functions wrap around at the edges; any other zle function not
+listed leaves menu selection and executes that function.  It is possible to
+make widgets in the above list do the same by using the form of the widget
+with a `tt(.)' in front.  For example, the widget `tt(.accept-line)' has
+the effect of leaving menu selection and accepting the entire command line.
+
+During this selection the widget uses the keymap tt(menuselect).  Any
+key that is not defined in this keymap or that is bound to
+tt(undefined-key) is looked up in the keymap currently selected.  This
+is used to ensure that the most important keys used during selection
+(namely the cursor keys, return, and TAB) have sensible defaults.  However,
+keys in the tt(menuselect) keymap can be modified directly using the
+tt(bindkey) builtin command (see
+ifzman(zmanref(zshmodules))\
+ifnzman(noderef(The zsh/zle Module))\
+). For example, to make the return key leave menu selection without
+accepting the match currently selected one could call
+
+example(bindkey -M menuselect '^M' send-break)
+
+after loading the tt(zsh/complist) module.

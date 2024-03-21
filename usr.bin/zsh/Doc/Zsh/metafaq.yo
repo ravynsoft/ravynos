@@ -1,0 +1,103 @@
+startmenu()
+menu(Author)
+menu(Availability)
+menu(Mailing Lists)
+menu(The Zsh FAQ)
+menu(The Zsh Web Page)
+menu(The Zsh Userguide)
+menu(See Also)
+endmenu()
+texinode(Author)(Availability)()(Introduction)
+sect(Author)
+cindex(author)
+Zsh was originally written by Paul Falstad.  Zsh is now maintained by
+the members of the zsh-workers mailing list tt(<zsh-workers@zsh.org>).
+The development is currently coordinated by Peter Stephenson
+tt(<pws@zsh.org>).  The coordinator can be contacted at
+tt(<coordinator@zsh.org>), but matters relating to the code should
+generally go to the mailing list.
+texinode(Availability)(Mailing Lists)(Author)(Introduction)
+sect(Availability)
+Zsh is available from the following HTTP and anonymous FTP site.
+
+cindex(FTP sites for zsh)
+cindex(acquiring zsh by FTP)
+cindex(availability of zsh)
+nofill(uref(ftp://ftp.zsh.org/pub/)
+uref(https://www.zsh.org/pub/))
+
+The up-to-date source code is available via Git from Sourceforge.  See
+uref(https://sourceforge.net/projects/zsh/) for details.  A summary of
+instructions for the archive can be found at
+uref(https://zsh.sourceforge.io/).
+
+texinode(Mailing Lists)(The Zsh FAQ)(Availability)(Introduction)
+sect(Mailing Lists)
+cindex(mailing lists)
+Zsh has several mailing lists:
+
+startitem()
+item(tt(<zsh-announce@zsh.org>))(
+Announcements about releases, major changes in the shell and the
+monthly posting of the Zsh FAQ.  (moderated)
+)
+item(tt(<zsh-users@zsh.org>))(
+User discussions.
+)
+item(tt(<zsh-workers@zsh.org>))(
+Hacking, development, bug reports and patches.
+)
+item(tt(<zsh-security@zsh.org>))(
+Private mailing list (the general public cannot subscribe to it) for discussing
+bug reports with security implications, i.e., potential vulnerabilities.
+
+If you find a security problem in zsh itself, please mail this address.
+)
+enditem()
+
+To subscribe or unsubscribe, send mail
+to the associated administrative address for the mailing list.
+
+startlist()
+list(tt(<zsh-announce-subscribe@zsh.org>))
+list(tt(<zsh-users-subscribe@zsh.org>))
+list(tt(<zsh-workers-subscribe@zsh.org>))
+
+list(tt(<zsh-announce-unsubscribe@zsh.org>))
+list(tt(<zsh-users-unsubscribe@zsh.org>))
+list(tt(<zsh-workers-unsubscribe@zsh.org>))
+endlist()
+
+YOU ONLY NEED TO JOIN ONE OF THE MAILING LISTS AS THEY ARE NESTED.
+All submissions to bf(zsh-announce) are automatically forwarded to
+bf(zsh-users).  All submissions to bf(zsh-users) are automatically
+forwarded to bf(zsh-workers).
+
+If you have problems subscribing/unsubscribing to any of the mailing
+lists, send mail to tt(<listmaster@zsh.org>).
+
+The mailing lists are archived; the archives can be accessed via the
+administrative addresses listed above.  There is also a hypertext
+archive available at
+uref(https://www.zsh.org/mla/).
+texinode(The Zsh FAQ)(The Zsh Web Page)(Mailing Lists)(Introduction)
+sect(The Zsh FAQ)
+Zsh has a list of Frequently Asked Questions (FAQ), maintained by
+Peter Stephenson tt(<pws@zsh.org>).  It is regularly posted to the
+newsgroup bf(comp.unix.shell) and the bf(zsh-announce) mailing list.
+The latest version can be found at any of the Zsh FTP sites, or at
+uref(https://www.zsh.org/FAQ/).  The contact address for FAQ-related matters
+is tt(<faqmaster@zsh.org>).
+texinode(The Zsh Web Page)(The Zsh Userguide)(The Zsh FAQ)(Introduction)
+sect(The Zsh Web Page)
+Zsh has a web page which is located at uref(https://www.zsh.org/).
+The contact address for web-related matters is tt(<webmaster@zsh.org>).
+texinode(The Zsh Userguide)(See Also)(The Zsh Web Page)(Introduction)
+sect(The Zsh Userguide)
+A userguide is currently in preparation.  It is intended to complement the
+manual, with explanations and hints on issues where the manual can be
+cabbalistic, hierographic, or downright mystifying (for example, the word
+`hierographic' does not exist).  It can be viewed in its current state at
+uref(https://zsh.sourceforge.io/Guide/).  At the time of writing, chapters
+dealing with startup files and their contents and the new completion system
+were essentially complete.

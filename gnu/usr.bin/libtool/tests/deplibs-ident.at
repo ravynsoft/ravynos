@@ -1,0 +1,80 @@
+# deplibs-ident.at -- detecting identical deplibs              -*- Autotest -*-
+
+#   Copyright (C) 2005, 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Detecting identical deplibs.])
+
+
+## ----------------------------------------------- ##
+## Different relative paths within the build tree. ##
+## ----------------------------------------------- ##
+
+AT_SETUP([build tree relpaths])
+AT_KEYWORDS([libtool])
+
+mkdir a a/b c
+echo 'int c() { return 0; }' > c/libcee.c
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c c/libcee.c -o c/libcee.lo],
+	 [0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o c/libcee.la c/libcee.lo -rpath /nowhere],
+	 [0],[ignore],[ignore])
+
+depl_1=../c/libcee.la
+depl_2=`pwd`/c/libcee.la
+depl_3="-L../c -lcee"
+
+(
+  cd a
+  for i in 1 2 3; do
+    eval depend_on_c=\"\$depl_$i\"
+    echo "extern int c(void); int a$i() { return c(); }" > liba$i.c
+    AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c liba$i.c],
+	     [0],[ignore],[ignore])
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba$i.la liba$i.lo $depend_on_c -rpath /nowhere],
+	   [0],[ignore],[ignore])
+  done
+)
+
+AT_DATA([a/b/b.c],
+[[extern int a1(void), a2(void), a3(void), c(void);
+int main() { return a1() + a2() + a3() + c(); }
+]])
+
+(
+  cd a/b
+  AT_CHECK([$CC $CFLAGS -c b.c],[0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o b$EXEEXT b.$OBJEXT ../liba1.la ../liba2.la ../liba3.la ../../c/libcee.la -rpath /nowhere],
+	   [0],[stdout],[ignore])
+  AT_CHECK([$EGREP 'cee.*cee' stdout], 1, [ignore], [ignore])
+  AT_XFAIL_IF([dnl
+    eval `$LIBTOOL --config | $EGREP '^hardcode_(direct|direct_absolute|action)='`
+    case $hardcode_action,$hardcode_direct,$hardcode_direct_absolute in
+      relink,yes,no) :;;
+      *,no,*) :;;
+      *) false;;
+    esac])
+  dnl This is currently broken in libtool
+)
+
+AT_CLEANUP

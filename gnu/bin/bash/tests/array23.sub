@@ -1,0 +1,41 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# this captures how bash and ksh93 expand indexed array subscripts in
+# various contexts. if changes are ever made, or an option added to do
+# this differently, the diffs will show up here
+
+typeset -a array
+
+index='$( echo >&2 foo )' # Literal shell code should never be evaluated unless an 'eval' is involved.
+
+echo ${array[ $index ]} # [] expands $index, results in a literal that [] does not re-evaluate.
+echo $(( $index )) # (( )) expands $index, results in a literal that (( )) does not re-evaluate.
+echo $(( array[ $index ] )) # (( )) expands $index, results in a literal that  [] DOES re-evaluate.
+
+(( array[ $index ] ))
+
+typeset -a a
+
+: $(( a[$index]=5 ))
+
+#shopt -s assoc_expand_once
+echo $((1+a[$index]))
+echo $((1+a[\$index]))
+echo "1+${a[$index]}"
+
+# intermediate problems discovered while bash-5.0 was in testing
+a=0
+echo $(( a[a[0]] ))
+echo ${a[a[a[0]]]}
+echo $(( a[a[a[0]]] ))

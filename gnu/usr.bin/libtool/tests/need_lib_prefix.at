@@ -1,0 +1,198 @@
+# need-lib-prefix.at -- test libltdl functionality            -*- Autotest -*-
+#
+#   Copyright (C) 2007-2008, 2010-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([enforced lib prefix])
+AT_KEYWORDS([libltdl libtool])
+
+# Originally written to simulate a failure visible on systems
+# that need a library prefix like 'lib', such as BeOS.  Currently
+# the prefix is hardcoded as 'lib', so systems that require a
+# different prefix skips the test.
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+
+typedef int fun (int);
+
+static int errors = 0;
+
+static void
+complain (const char *msg)
+{
+  const char *errmsg = lt_dlerror ();
+  fprintf (stderr, "%s", msg);
+  if (errmsg)
+    fprintf (stderr, ": %s\n", errmsg);
+  else
+    fprintf (stderr, ".\n");
+  ++errors;
+}
+
+static lt_dlhandle
+moduleopen (const char *filename)
+{
+  lt_dlhandle handle;
+
+  handle = lt_dlopen (filename);
+  if (!handle)
+    {
+      fprintf (stderr, "can't open the module %s!\n", filename);
+      complain ("error was");
+    }
+
+  return handle;
+}
+
+static int
+moduletest (lt_dlhandle handle)
+{
+  const lt_dlinfo *info = lt_dlgetinfo (handle);
+  fun *f = (fun *) lt_dlsym (handle, "f");
+  int *v = (int *) lt_dlsym (handle, "i");
+
+  if (!f)
+    {
+      complain ("function 'f' not found");
+      return 1;
+    }
+  if (!v)
+    {
+      complain ("variable 'i' not found");
+      return 1;
+    }
+  printf ("%s: %d\n", info->name, f (*v));
+
+  return 0;
+}
+
+int
+main (int argc, char **argv)
+{
+  lt_dlhandle handle;
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+
+  if (lt_dlinit() != 0)
+    {
+      fprintf (stderr, "error during initialization: %s\n", lt_dlerror());
+      return 1;
+    }
+
+  if (lt_dlpreload_open (0, moduletest) != 0)
+    complain ("error during preloading");
+
+  if (lt_dlexit () != 0)
+    complain ("error during exit");
+
+  return (errors != 0);
+}
+]])
+
+AT_DATA([foo1.c],
+[[#define f foo1_LTX_f
+#define i foo1_LTX_i
+#ifdef __cplusplus
+extern "C" {
+#endif
+int f (int x) { return x / 3; }
+int i = 7;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([foo2.c],
+[[#define f libfoo2_LTX_f
+#define i libfoo2_LTX_i
+#ifdef __cplusplus
+extern "C" {
+#endif
+int f (int x) { return (x * x) / 10; }
+int i = 6;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+LT_AT_HOST_DATA([expout],
+[[libfoo1: 2
+libfoo2: 3
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+LDFLAGS=$LDFLAGS
+
+# Skip this test when libraries are not normally prefixed with lib.
+# E.g., for MSVC and OS/2.
+eval "`$LIBTOOL --config | $EGREP '^(libname_spec)='`"
+name=
+eval libname=\"$libname_spec\"
+AT_CHECK([test lib = "$libname" || exit 77])
+
+# Create our own libtool, forcing need_lib_prefix setting
+$SED 's|^\(need_lib_prefix\)=.*$|\1=unknown|' $LIBTOOL > ./libtool
+LIBTOOL="$SHELL ./libtool"
+
+# Installation directory:
+instdir=`pwd`/_inst
+
+$CC $CPPFLAGS $CFLAGS -c main.c
+for file in foo1 foo2; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file.c
+done
+
+AT_CHECK([$LIBTOOL --mode=link $CC -module -avoid-version $CFLAGS $LDFLAGS -o foo1.la foo1.lo -rpath $instdir/lib],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC -module -avoid-version $CFLAGS $LDFLAGS -o libfoo2.la foo2.lo -rpath $instdir/lib],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT -dlpreopen foo1.la -dlpreopen libfoo2.la $LIBLTDL],
+          [], [ignore], [ignore])
+
+LT_AT_NOINST_EXEC_CHECK([./main], [-dlopen foo1.la -dlopen libfoo2.la],
+	      [], [expout], [])
+
+# Install the libraries.
+mkdir $instdir
+mkdir $instdir/lib
+$LIBTOOL --mode=install cp foo1.la $instdir/lib/foo1.la
+$LIBTOOL --mode=install cp libfoo2.la $instdir/lib/libfoo2.la
+
+# Install the binary
+mkdir $instdir/bin
+$LIBTOOL --mode=install cp main$EXEEXT $instdir/bin/main$EXEEXT
+
+LT_AT_EXEC_CHECK([$instdir/bin/main], [], [expout], [])
+
+AT_CLEANUP

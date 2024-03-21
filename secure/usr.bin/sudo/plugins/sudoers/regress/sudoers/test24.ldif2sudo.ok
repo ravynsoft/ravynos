@@ -1,0 +1,8 @@
+Defaults runcwd=~
+Defaults runchroot=/
+
+# sudoRole user0
+user0 ALL = CHROOT=/var/www CWD=/htdocs /bin/ksh
+
+# sudoRole user1, user1_1
+user1 ALL = CWD=~root /usr/bin/id, CWD=/tmp /bin/ls

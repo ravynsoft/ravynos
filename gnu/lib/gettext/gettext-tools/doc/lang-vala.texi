@@ -1,0 +1,60 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node Vala
+@subsection Vala
+
+@table @asis
+@item RPMs
+vala
+
+@item Ubuntu packages
+valac
+
+@item File extension
+@code{vala}
+
+@item String syntax
+@itemize @bullet
+
+@item @code{"abc"}
+
+@item @code{"""abc"""}
+
+@end itemize
+
+@item gettext shorthand
+@code{_("abc")}
+
+@item gettext/ngettext functions
+@code{gettext}, @code{dgettext}, @code{dcgettext}, @code{ngettext},
+@code{dngettext}, @code{dpgettext}, @code{dpgettext2}
+
+@item textdomain
+@code{textdomain} function, defined under the @code{Intl} namespace
+
+@item bindtextdomain
+@code{bindtextdomain} function, defined under the @code{Intl} namespace
+
+@item setlocale
+Programmer must call @code{Intl.setlocale (LocaleCategory.ALL, "")}
+
+@item Prerequisite
+---
+
+@item Use or emulate GNU gettext
+Use
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+Same as for the C language.
+
+@item Portability
+autoconf (gettext.m4) and #if ENABLE_NLS
+
+@item po-mode marking
+yes
+@end table

@@ -1,0 +1,50 @@
+# Copyright (C) 2022-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+load_lib dejagnu.exp
+
+# Run the tests only if compatible dejagnu gcc pair is found
+if [string equal $COMPAT_DEJAGNU "no"] {
+    verbose -log "SFrame testsuite needs perhaps a more recent DejaGnu"
+    unsupported be-flipping
+    unsupported frecnt-1
+    unsupported frecnt-2
+    return;
+}
+
+catch "exec ln -s $srcdir/libsframe.decode/DATA1 ." status
+catch "exec ln -s $srcdir/libsframe.decode/DATA2 ." status
+catch "exec ln -s $srcdir/libsframe.decode/DATA-BE ." status
+
+if { [host_execute "testsuite/libsframe.decode/be-flipping"] ne "" } {
+    fail "be-flipping"
+}
+
+if { [host_execute "testsuite/libsframe.decode/frecnt-1"] ne "" } {
+    fail "frecnt-1"
+}
+
+if { [host_execute "testsuite/libsframe.decode/frecnt-2"] ne "" } {
+    fail "frecnt-2"
+}
+
+catch "exec rm DATA1" status
+catch "exec rm DATA2" status
+catch "exec rm DATA-BE" status

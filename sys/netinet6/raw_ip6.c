@@ -57,8 +57,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)raw_ip.c	8.2 (Berkeley) 1/4/94
  */
 
 #include <sys/cdefs.h>
@@ -689,7 +687,6 @@ rip6_detach(struct socket *so)
 	/* xxx: RSVP */
 	INP_WLOCK(inp);
 	free(inp->in6p_icmp6filt, M_PCB);
-	in_pcbdetach(inp);
 	in_pcbfree(inp);
 }
 

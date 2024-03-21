@@ -1,0 +1,83 @@
+#compdef xrandr
+
+local curcontext="$curcontext" state line expl state_descr
+typeset -A opt_args
+
+_arguments -C \
+  '(-d -display)'{-d,-display}':X display:_x_display' \
+  '-help[display help]' \
+  '(-o --orientation)'{-o,--orientation}':rotation:(normal inverted left right 0 1 2 3)' \
+  '(-q --query)'{-q,--query}'[display current state]' \
+  '(-s --size)'{-s,--size}':size:' \
+  '(-r --rate --refresh)'{*-r,*--rate,*--refresh}':target refresh rate:' \
+  '(-v --version)'{-v,--version}'[display version]' \
+  '-x[reflect across X axis]' \
+  '-y[reflect across Y axis]' \
+  '--screen:X screen number' \
+  '--verbose[be more verbose]' \
+  '--dryrun' \
+  '--nograb' \
+  '(--prop --properties)'{--prop,--properties}'[display the contents of properties for each output]' \
+  '--fb:size:' \
+  '--fbmm:size:' \
+  '--dpi:dpi:' \
+  "*--output:output to reconfigure:->outputs" \
+  '*--auto' \
+  "*--mode:mode:->modes" \
+  '*--preferred' \
+  '*--pos:position:' \
+  '*--reflect:axes:(normal x y xy)' \
+  '*--rotate:rotation:(normal inverted left right)' \
+  "*--left-of:relative position to:->outputs" \
+  "*--right-of:relative position to:->outputs" \
+  "*--above:relative position to:->outputs" \
+  "*--below:relative position to:->outputs" \
+  "*--same-as:relative position to:->outputs" \
+  '*--set:property:(Backlight scaling\ mode):value:->value' \
+  '*--scale:output scaling:' \
+  '*--transform:transformation matrix:' \
+  '*--filter:mode:(nearest bilinear)' \
+  '*--off[disable the output]' \
+  '*--crtc:crtc to use:' \
+  '*--panning:panning:' \
+  '*--gamma:r\:g\:b:' \
+  '*--primary' \
+  '--noprimary' \
+  '*--newmode:name: :clock MHz: :hdisp: :hsync-start: :hsync-end: :htotal: :vdisp: :vsync-start: :vsync-end: :vtotal:' \
+  '*--rmmode:Mode name:' \
+  "*--addmode:output:->outputs:name" \
+  "*--delmode:output:->outputs:name" \
+  '--listproviders' \
+  '--setprovideroutputsource:provider:->providers:source:->providers' \
+  '--setprovideroffloadsink:provider:->providers:sink:->providers' \
+  '--listmonitors' \
+  '--listactivemonitors' \
+  '--setmonitor:name' \
+  '--delmonitor:name' \
+  && return 0
+
+case $state in
+  value)
+    case $words[CURRENT-1] in
+      (scaling*" mode")
+	_description value expl "output property 'scaling mode'"
+	compadd "$@" "$expl[@]" None Full Center Full\ aspect && return 0
+      ;;
+    esac
+  ;;
+  outputs)
+    local -a xrandr_output=(${(f)"$(_call_program outputs xrandr)"})
+    _alternative \
+	'connected:connected outputs:('${(j: :)${(uo)${(M)xrandr_output:#* connected*}%% *}}')' \
+	'disconnected:disconnected outputs:('${(j: :)${(uo)${(M)xrandr_output:#* disconnected*}%% *}}')' \
+	&& return 0
+  ;;
+  modes)
+    _wanted modes expl mode compadd \
+        ${(Mun)$(_call_program modes xrandr):#[0-9]##x[0-9]##} && return 0
+  ;;
+  providers)
+    local -a xrandr_providers=(${(f)"$(_call_program providers xrandr --listproviders)"})
+    _wanted xrandr-providers expl $state_descr compadd ${${xrandr_providers}[2,-1]##*:} && return 0
+  ;;
+esac

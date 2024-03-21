@@ -1,0 +1,11 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify that $ as end-of-line anchor does not cause a crash.
+# <https://bugzilla.redhat.com/show_bug.cgi?id=483181>
+# <https://savannah.gnu.org/bugs/?25437>
+
+: ${MSGGREP=msggrep}
+echo a=b | LC_MESSAGES=C LC_ALL= ${MSGGREP} -P -K -e '^a$' > /dev/null || Exit 1
+
+exit $result

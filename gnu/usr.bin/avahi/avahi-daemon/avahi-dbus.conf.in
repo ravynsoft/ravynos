@@ -1,0 +1,32 @@
+<!DOCTYPE busconfig PUBLIC
+          "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+          "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+
+  <!-- Only root or user @AVAHI_USER@ can own the Avahi service -->
+  <policy user="@AVAHI_USER@">
+    <allow own="org.freedesktop.Avahi"/>
+  </policy>
+  <policy user="root">
+    <allow own="org.freedesktop.Avahi"/>
+  </policy>
+
+  <!-- Allow anyone to invoke methods on Avahi server, except SetHostName -->
+  <policy context="default">
+    <allow send_destination="org.freedesktop.Avahi"/>
+    <allow receive_sender="org.freedesktop.Avahi"/>
+
+    <deny send_destination="org.freedesktop.Avahi"
+          send_interface="org.freedesktop.Avahi.Server" send_member="SetHostName"/>
+  </policy>
+
+  <!-- Allow everything, including access to SetHostName to users of the group "@AVAHI_PRIV_ACCESS_GROUP@" -->
+  <policy group="@AVAHI_PRIV_ACCESS_GROUP@">
+    <allow send_destination="org.freedesktop.Avahi"/>
+    <allow receive_sender="org.freedesktop.Avahi"/>
+  </policy>
+  <policy user="root">
+    <allow send_destination="org.freedesktop.Avahi"/>
+    <allow receive_sender="org.freedesktop.Avahi"/>
+  </policy>
+</busconfig>

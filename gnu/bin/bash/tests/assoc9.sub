@@ -1,0 +1,159 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+typeset -A a=( [\\]= [\"]= [\)]= ) b
+for x in "${!a[@]}"; do b[$x]=; done
+b+=([\`]= [\]]=)
+typeset -p b
+for x in "${!a[@]}"; do
+  unset -v 'b[$x]'
+done
+typeset -p b
+
+unset -v a b
+
+loaddict()
+{
+    dict['"']=1
+    dict['`']=2
+    dict["'"]=3
+    dict['\']=4
+    declare -p dict
+}
+
+del()
+{
+	unset -v dict["$1"];
+}
+
+declare -A dict
+loaddict
+for k in "${!dict[@]}"; do del "$k"; done 
+declare -p dict
+
+unset 'dict[@]'
+
+shopt -s assoc_expand_once
+declare -A dict
+loaddict
+for k in "${!dict[@]}"; do del "$k"; done 
+declare -p dict
+
+unset a b dict
+
+typeset -A a
+b="80's"
+
+((++a[$b]))
+
+((++a["$b"]))
+[[ $((++a[$b])) ]]
+[[ $((++a["$b"])) ]]
+echo ${a["$b"]}
+echo ${a[$b]}
+
+let "++a[$b]"
+
+echo 'a[$b]=' "${a[$b]}"
+
+unset a b
+
+declare -A a
+b="80's"
+
+: ${a[$b]:='Depeche Mode'}
+
+declare -p a
+
+unset a b
+shopt -u assoc_expand_once
+
+typeset -A a
+b="80's"
+
+read a[$b] <<<"Depeche Mode"
+typeset -p a
+
+shopt -s assoc_expand_once
+read a[$b] <<<"Depeche Mode"
+typeset -p a
+
+unset a
+shopt -u assoc_expand_once
+
+typeset -A a
+
+printf -v a[$b] "%s" "Depeche Mode"
+typeset -p a
+
+shopt -s assoc_expand_once
+
+printf -v a[$b] "%s" "Depeche Mode"
+typeset -p a
+
+unset a
+
+declare -A a
+x='$(date >&2)'
+a[$x]=5
+
+shopt -s assoc_expand_once
+echo $((1+a[$x]))
+echo $((1+a[\$x]))
+echo "1+${a[$x]}"
+
+declare -p a
+
+shopt -s assoc_expand_once
+declare -A myarray
+
+declare myarray["foo[bar"]=bleh
+myarray["foo"]=bleh
+
+declare -p myarray
+
+key='$(date >&2)'
+declare -A aa
+aa[$key]=foo
+echo "${aa[$key]}"
+
+[[ -v aa[$key] ]] || echo bad assoc expansion
+
+shopt -u assoc_expand_once
+
+declare -A assoc
+
+var=x123
+assoc['$var']=value
+
+declare -p assoc
+
+unset "assoc[$var]"
+declare -p assoc
+
+unset 'assoc[$var]'
+declare -p assoc
+
+shopt -s assoc_expand_once
+unset 'assoc[$var]'
+declare -p assoc
+
+typeset -A foo
+
+foo["foo]bar"]=bip
+typeset foo["foo]bar"]=bax
+
+echo ${!foo[@]}
+echo ${foo[@]}
+
+declare -p foo

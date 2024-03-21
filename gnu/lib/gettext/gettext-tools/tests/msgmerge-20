@@ -1,0 +1,114 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgmerge when the second argument is a PO file with obsolete messages
+# (e.g. the result of an earlier msgmerge operation).
+
+cat <<\EOF > mm-test20.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello, world!"
+msgstr "Hallo Welt!"
+
+msgid "Hello example"
+msgstr ""
+
+#, fuzzy
+msgid "Hello world example"
+msgstr "Beispiel Hallo-Welt"
+
+#~ msgid "This program is running as process number $pid."
+#~ msgstr "Dieses Programm läuft mit der Prozess-Nummer $pid."
+
+#, python-format
+msgid "This program is running as process number %(pid)d."
+msgstr ""
+
+#, perl-brace-format
+msgid "This program is running as process number {pid}."
+msgstr "Dieses Programm läuft mit der Prozeß-Nummer {pid}."
+EOF
+
+cat <<\EOF > mm-test20.pot
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello, world!"
+msgstr "Hallo Welt!"
+
+#, ycp-format
+msgid "This program is running as process number %1."
+msgstr "Dieses Programm läuft mit der Prozess-Nummer %1."
+
+msgid "Hello example"
+msgstr "Beispiel Hallo"
+
+#, fuzzy
+msgid "Hello world example"
+msgstr "Beispiel Hallo-Welt"
+
+#, sh-format
+msgid "This program is running as process number $pid."
+msgstr "Dieses Programm läuft mit der Prozess-Nummer $pid."
+
+#, python-format
+msgid "This program is running as process number %(pid)d."
+msgstr ""
+
+#~ msgid "This program is running as process number {pid}."
+#~ msgstr "Dieses Programm läuft mit der Prozeß-Nummer {pid}."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test20.tmp.po mm-test20.po mm-test20.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test20.tmp.po > mm-test20.new.po || Exit 1
+
+cat <<\EOF > mm-test20.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello, world!"
+msgstr "Hallo Welt!"
+
+#, fuzzy, ycp-format
+msgid "This program is running as process number %1."
+msgstr "Dieses Programm läuft mit der Prozess-Nummer $pid."
+
+msgid "Hello example"
+msgstr ""
+
+#, fuzzy
+msgid "Hello world example"
+msgstr "Beispiel Hallo-Welt"
+
+#, sh-format
+msgid "This program is running as process number $pid."
+msgstr "Dieses Programm läuft mit der Prozess-Nummer $pid."
+
+#, python-format
+msgid "This program is running as process number %(pid)d."
+msgstr ""
+
+#~ msgid "This program is running as process number {pid}."
+#~ msgstr "Dieses Programm läuft mit der Prozeß-Nummer {pid}."
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test20.ok mm-test20.new.po || Exit 1
+
+Exit 0

@@ -1,0 +1,79 @@
+#compdef compdef
+
+local state line expl disp curcontext="$curcontext" pat normal ret=1
+local args1 args2
+typeset -A opt_args
+
+args2=()
+if (( ! ${words[2,-1][(I)[^-]*]} || ${words[(I)-[kK]]} )); then
+  args1=(
+    -A '-*'
+    '(-d)-a[make function autoloadable]'
+    '(-d)-n[leave existing definitions intact]'
+  )
+  args2=(
+     - d
+      '-d[delete]:*:completed command:->ccom'
+     - k
+      '-k[define widget and key binding]:completion function:->cfun:style:->style:*:key'
+     - K
+      '-K[define multiple widgets based on function]:*::: :->multi'
+  )
+else
+  args1=(
+    '!-a' '!-n'
+    '*-N[completion for named command]'
+  )
+fi
+
+_arguments -C -s -S \
+  "$args1[@]" \
+  '*-p[completion for command matching pattern]' \
+  '*-P[completion for command matching pattern]' \
+  ':completion function:->cfun' \
+  '*:commands:->com' \
+  "$args2[@]" && ret=0
+
+if [[ $state = multi ]]; then
+  case $(( CURRENT % 3 )) in
+  0) _message -e keys key
+     return 1;;
+  1) state=cfun;;
+  2) state=style;;
+  esac
+fi
+
+case $state in
+  com)
+    pat="${words[(I)-[pP]]}"
+    normal="${words[(I)-N]}"
+    if (( pat && pat > normal )); then
+      _message -e patterns 'pattern'
+    else
+      _command_names && ret=0
+    fi
+  ;;
+  ccom)
+    _wanted commands expl 'completed command' compadd -k _comps && ret=0
+  ;;
+  cfun)
+    typeset -aU list=( ${(v)_comps} ${(k)functions[(I)_*]} )
+    (( ${+list[1]} )) || list+=( ${^fpath:/.}/_(|*[^~])(:t) )
+    if zstyle -T ":completion:${curcontext}:functions" prefix-hidden; then
+      disp=( ${list[@]#_} )
+      _wanted functions expl 'completion function' \
+          compadd -d disp -a list && ret=0
+    else
+      _wanted functions expl 'completion function' compadd -a list && ret=0
+    fi
+  ;;
+  style)
+    _wanted widgetstyle expl 'widget style' \
+        compadd -M 'r:|-=* r:|=*' \
+            complete-word delete-char-or-list expand-or-complete \
+            expand-or-complete-prefix list-choices menu-complete \
+            menu-expand-or-complete reverse-menu-complete && ret=0
+  ;;
+esac
+
+return ret

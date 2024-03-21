@@ -1,0 +1,22 @@
+#compdef tcptraceroute
+
+_arguments \
+  '-n[no reverse lookups]' \
+  '-N[always reverse lookup]' \
+  '-f:first ttl:' \
+  '-m:maximum ttl:' \
+  '-p:local tcp port:_ports' \
+  '-s:source address:_hosts' \
+  '-i:interface for outgoing packets:_net_interfaces' \
+  '-q:number of probes to each hop:' \
+  '-w:timeout in seconds:' \
+  '-S[set TCP SYN flag]' \
+  '-A[set TCP ACK flag]' \
+  '-E[send ECN SYN packets]' \
+  '-t:IP TOS:' \
+  '-F[set IP don'"'"'t fragment bit]' \
+  '-l:total packet length:' \
+  '-d[enable debugging]' \
+  ':destination:_hosts' \
+  ':port:_ports' \
+  ':length:'

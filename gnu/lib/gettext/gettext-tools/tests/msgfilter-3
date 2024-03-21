@@ -1,0 +1,102 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test general filter execution with Java .properties syntax.
+
+if (echo "testing\c"; echo 1,2,3) | grep c >/dev/null; then
+  # Stardent Vistra SVR4 grep lacks -e, says ghazi@caip.rutgers.edu.
+  if (echo -n testing; echo 1,2,3) | sed s/-n/xn/ | grep xn >/dev/null; then
+    ac_n= ac_c='
+' ac_t='        '
+  else
+    ac_n=-n ac_c= ac_t=
+  fi
+else
+  ac_n= ac_c='\c' ac_t=
+fi
+
+# Some fold programs (like SunOS4 and FreeBSD) don't have an option to wrap at
+# spaces.
+echo abc | fold -b -s -w 20 >/dev/null 2>&1 || {
+  echo "Skipping test: fold program not POSIX compliant"
+  Exit 77
+}
+
+# Some fold programs (like NetBSD 5.0) remove trailing spaces when wrapping.
+echo ab cd | fold -b -s -w 3 | grep ' ' >/dev/null || {
+  echo "Skipping test: fold program trims trailing spaces"
+  Exit 77
+}
+
+# Some fold programs (like HP-UX) insert a newline at the end, if the last
+# line was not terminated with a newline and the -s option was given.
+foldoutputcount=`echo $ac_n "abc$ac_c" | fold -b -s -w 20 | wc -c`
+foldoutputcount=`echo "$foldoutputcount" | sed -e 's/[ 	]//g'`
+test "$foldoutputcount" = 3 || {
+  echo "Skipping test: fold program inserts extra newline"
+  Exit 77
+}
+
+cat <<\EOF > mfi-test3.properties
+# HEADER.
+#
+!=Project-Id-Version\: Bonnie Tyler\n
+
+#: married-men:4
+#, fuzzy
+!The\ world\ is\ full\ of\ married\ men=So viele verheiratete M\u00e4nner
+
+#: married-men:5
+with\ wives\ who\ never\ understand=und ihre Frauen verstehen sie nicht
+
+#: married-men:6
+!They're\ looking\ for\ someone\ to\ share=
+
+# schwer zu \u00fcbersetzen...
+#: married-men:7
+!the\ excitement\ of\ a\ love\ affair=
+
+#: married-men:8
+!Just\ as\ soon\ as\ they\ find\ you=
+
+#: married-men:9
+!They\ warn\ you\ and\ darn\ you=
+EOF
+
+: ${MSGFILTER=msgfilter}
+LC_ALL=C \
+${MSGFILTER} --properties-input --properties-output -i mfi-test3.properties -o mfi-test3.out fold -b -s -w 20
+result=$?
+test $result = 0 || { Exit 1; }
+
+cat <<\EOF > mfi-test3.ok
+# HEADER.
+#
+!=Project-Id-Version\: \nBonnie Tyler\n
+
+#: married-men:4
+#, fuzzy
+!The\ world\ is\ full\ of\ married\ men=So viele \nverheiratete M\u00e4nner
+
+#: married-men:5
+with\ wives\ who\ never\ understand=und ihre Frauen \nverstehen sie nicht
+
+#: married-men:6
+!They're\ looking\ for\ someone\ to\ share=
+
+# schwer zu \u00fcbersetzen...
+#: married-men:7
+!the\ excitement\ of\ a\ love\ affair=
+
+#: married-men:8
+!Just\ as\ soon\ as\ they\ find\ you=
+
+#: married-men:9
+!They\ warn\ you\ and\ darn\ you=
+EOF
+
+: ${DIFF=diff}
+${DIFF} mfi-test3.ok mfi-test3.out
+result=$?
+
+exit $result

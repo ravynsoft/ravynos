@@ -1,0 +1,13 @@
+*** gnulib/lib/exitfail.h	2005-05-14 08:03:58.000000000 +0200
+--- gettext-tools/lib/exitfail.h	2006-07-22 16:35:58.000000000 +0200
+***************
+*** 15,18 ****
+     You should have received a copy of the GNU General Public License
+     along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+  
+! extern int volatile exit_failure;
+--- 15,18 ----
+     You should have received a copy of the GNU General Public License
+     along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+  
+! extern DLL_VARIABLE int volatile exit_failure;

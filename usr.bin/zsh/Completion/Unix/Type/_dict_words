@@ -1,0 +1,43 @@
+#autoload
+
+local begin end ret=1
+local -a args dict dicts dictwords expl
+
+if [[ $service = dict ]]; then
+  args=( ${(kv)opt_args[(I)-([hpdauk]|-(host|port|database|noauth|user|key))]} )
+fi
+
+if [[ -z $words[CURRENT] ]]; then
+  _message -e dict 'dictionary word'
+  return 1
+elif [[ -z $SUFFIX ]]; then
+  dictwords=( ${(z)${(f)"$(_call_program words dict $args -m -s prefix $PREFIX 2>/dev/null)"}} )
+elif [[ -z $PREFIX ]]; then
+  dictwords=( ${(z)${(f)"$(_call_program words dict $args -m -s suffix $SUFFIX 2>/dev/null)"}} )
+else
+  dictwords=( ${(z)${(f)"$(_call_program words dict $args -m -s regexp $PREFIX.\*$SUFFIX 2>/dev/null)"}} )
+fi
+
+dictwords=( ${${dictwords#\"}%\"} )
+dicts=( ${${(M)dictwords:#*:}%:} )
+
+if zstyle -t ":completion:${curcontext}:words" separate-sections; then
+  _tags words.$^dicts
+  while _tags; do
+    for dict in $dicts; do
+      if _requested words.$dict expl "word from $dict"; then
+	(( begin=${dictwords[(i)$dict:]} + 1 ))
+	end=${dictwords[(ib.begin.)*:]}
+	[[ $end = 1 ]] && end=$#dictwords
+	compadd "$expl[@]" "$@" -M 'm:{a-zA-Z}={A-Za-z} r:|=*' -a - \
+            'dictwords[begin,end]' && ret=0
+      fi
+    done
+    (( ret )) || break
+  done
+  
+  return 1
+else
+  _wanted words expl word compadd -M 'm:{a-zA-Z}={A-Za-z} r:|=*' "$@" - \
+      ${dictwords:#*:}
+fi

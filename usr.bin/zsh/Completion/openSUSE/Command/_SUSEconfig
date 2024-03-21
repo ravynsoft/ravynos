@@ -1,0 +1,14 @@
+#compdef SuSEconfig
+
+local modules
+modules=( /sbin/conf.d/SuSEconfig.*~(*.rpm*|*.swap|*.bak|*.orig|*~|\#*)(N:e) )
+
+_arguments \
+  '--help' \
+  '--quick' \
+  '--force' \
+  '--verbose' \
+  '--nonewpackage' \
+  '-norestarts' \
+  '-nomodule' \
+  '--module:module:compadd -a modules'

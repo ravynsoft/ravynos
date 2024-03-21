@@ -1,0 +1,36 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that an out-of-range Unicode character doesn't lead to a crash.
+
+cat <<\EOF >mf-test13.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: minicom 2.1\n"
+"POT-Creation-Date: 2003-05-16 22:33+0200\n"
+"PO-Revision-Date: 2003-09-11 14:10+0200\n"
+"Last-Translator: Jochen Hein <jochen@jochen.org>\n"
+"Language-Team: german <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/file.c:60
+msgid " [Goto]  [Prev]  [Show]  [Tag]  [Untag]  [Okay] "
+msgstr " [Gehe zu]  [ZurÃ¼ck]  [Anzeigen]  [Markieren]  [Markierung lö³£¨en]  [Okay] "
+
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} mf-test13.po -o mf-test13.mo 2>/dev/null
+# Exit code must be 1.
+# If the invalid sequence didn't get noticed, it would be 0.
+# If it produced a core dump, it would be 134 (= 128 + SIGABRT).
+test $? = 1
+result=$?
+
+exit $result

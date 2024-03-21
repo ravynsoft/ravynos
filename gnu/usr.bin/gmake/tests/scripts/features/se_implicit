@@ -1,0 +1,506 @@
+#                                                                    -*-perl-*-
+$description = "Test second expansion in implicit rules.";
+
+$details = "";
+
+use Cwd;
+
+$dir = cwd;
+$dir =~ s,.*/([^/]+)$,../$1,;
+
+
+# Test #1: automatic variables.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+.DEFAULT: ; @echo '$@'
+
+foo.a: bar baz
+
+foo.a: biz | buz
+
+foo.%: 1.$$@ \
+       2.$$< \
+       $$(addprefix 3.,$$^) \
+       $$(addprefix 4.,$$+) \
+       5.$$| \
+       6.$$* ; @:
+
+1.foo.a \
+2.bar \
+3.bar \
+3.baz \
+3.biz \
+4.bar \
+4.baz \
+4.biz \
+5.buz \
+6.a: ; @echo '$@'
+
+!,
+'',
+'1.foo.a
+2.bar
+3.bar
+3.baz
+3.biz
+4.bar
+4.baz
+4.biz
+5.buz
+6.a
+bar
+baz
+biz
+buz
+');
+
+
+# Test #2: target/pattern -specific variables.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+foo.x:
+
+foo.%: $$(%_a) $$(%_b) bar ; @:
+
+foo.x: x_a := bar
+
+%.x: x_b := baz
+
+bar baz: ; @echo '$@'
+!,
+              '', "bar\nbaz\n");
+
+
+# Test #3: order of prerequisites.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+.DEFAULT: ; @echo '$@'
+
+all: foo bar baz
+
+
+# Subtest #1
+#
+%oo: %oo.1; @:
+
+foo: foo.2
+
+foo: foo.3
+
+foo.1: ; @echo '$@'
+
+
+# Subtest #2
+#
+bar: bar.2
+
+%ar: %ar.1; @:
+
+bar: bar.3
+
+bar.1: ; @echo '$@'
+
+
+# Subtest #3
+#
+baz: baz.1
+
+baz: baz.2
+
+%az: ; @:
+!,
+              '',
+'foo.1
+foo.2
+foo.3
+bar.1
+bar.2
+bar.3
+baz.1
+baz.2
+');
+
+
+# Test #4: stem splitting logic.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+$(dir)/tmp/bar.o:
+
+$(dir)/tmp/foo/bar.c: ; @echo '$@'
+$(dir)/tmp/bar/bar.c: ; @echo '$@'
+foo.h: ; @echo '$@'
+
+%.o: $$(addsuffix /%.c,foo bar) foo.h ; @echo '$@: {$<} $^'
+!,
+              "dir=$dir", "$dir/tmp/foo/bar.c
+$dir/tmp/bar/bar.c
+foo.h
+$dir/tmp/bar.o: {$dir/tmp/foo/bar.c} $dir/tmp/foo/bar.c $dir/tmp/bar/bar.c foo.h
+");
+
+
+# Test #5: stem splitting logic and order-only prerequisites.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+$(dir)/tmp/foo.o: $(dir)/tmp/foo.c
+$(dir)/tmp/foo.c: ; @echo '$@'
+bar.h: ; @echo '$@'
+
+%.o: %.c|bar.h ; @echo '$@: {$<} {$|} $^'
+
+!,
+              "dir=$dir", "$dir/tmp/foo.c
+bar.h
+$dir/tmp/foo.o: {$dir/tmp/foo.c} {bar.h} $dir/tmp/foo.c
+");
+
+
+# Test #6: lack of implicit prerequisites.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+foo.o: foo.c
+foo.c: ; @echo '$@'
+
+%.o: ; @echo '$@: {$<} $^'
+!,
+              '', "foo.c\nfoo.o: {foo.c} foo.c\n");
+
+
+# Test #7: Test stem from the middle of the name.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+foobarbaz:
+
+foo%baz: % $$*.1 ; @echo '$*'
+
+bar bar.1: ; @echo '$@'
+!,
+              '', "bar\nbar.1\nbar\n");
+
+
+# Test #8: Make sure stem triple-expansion does not happen.
+#
+run_make_test(q!
+.SECONDEXPANSION:
+foo$$bar:
+
+f%r: % $$*.1 ; @echo '$*'
+
+oo$$ba oo$$ba.1: ; @echo '$@'
+!,
+              '', 'oo$ba
+oo$ba.1
+oo$ba
+');
+
+# Test #9: Check the value of $^
+run_make_test(q!
+.SECONDEXPANSION:
+
+%.so: | $$(extra) ; @echo $^
+
+foo.so: extra := foo.o
+foo.so:
+foo.o:
+!,
+              '', "\n");
+
+# Test #10: Test second expansion with second expansion prerequisites
+# Ensures pattern_search() recurses with SE prereqs.
+touch('a');
+run_make_test(q!
+.SECONDEXPANSION:
+sim_base_rgg := just_a_name
+sim_base_src := a
+sim_base_f := a a a
+sim_%.f: $${sim_$$*_f} ; echo $@
+sim_%.src: $${sim_$$*_src} ; echo $@
+sim_%: \
+        $$(if $$(sim_$$*_src),sim_%.src) \
+        $$(if $$(sim_$$*_f),sim_%.f) \
+        $$(if $$(sim_$$*_rgg),$$(sim_$$*_rgg).s) ; echo $@
+!,
+              '-s sim_base', "#MAKE#: *** No rule to make target 'sim_base'.  Stop.", 512);
+
+unlink('a');
+
+# Ensure that order-only tokens embedded in second expansions are parsed
+run_make_test(q!
+.SECONDEXPANSION:
+PREREQS=p1|p2
+P2=p2
+all : foo bar
+f%o: $$(PREREQS) ; @echo '$@' from '$^' and '$|'
+b%r: p1|$$(P2)   ; @echo '$@' from '$^' and '$|'
+p% : ; : $@
+!,
+              "", ": p1\n: p2\nfoo from p1 and p2\nbar from p1 and p2\n");
+
+# SV 28456 : Don't reset $$< for default recipes
+run_make_test(q!
+.SECONDEXPANSION:
+
+.PHONY: foo bar
+foo: bar
+foo: $$(info $$<)
+%oo: ;
+!,
+              '', "bar\n#MAKE#: Nothing to be done for 'foo'.\n");
+
+# SV 54161: Expand $$* properly when it contains a path
+
+run_make_test(q!
+.SECONDEXPANSION:
+%x: $$(info $$*); @echo '$*'
+!,
+              'q/ux', "q/u\nq/u\n");
+
+
+
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate.
+
+touch('hello.z');
+
+# subtest 1.
+# hello.x is derived from the stem and thus is an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=.x
+all: hello.z
+%.z: %$$(dep) ; @echo $@
+%.x: ;
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 2.
+# test.x is explicitly mentioned and thus is not an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=test.x
+all: hello.z
+%.z: %.x $$(dep) ; @echo $@
+%.x: ;
+!, '', "hello.z\n");
+
+# subtest 3.
+# make is building hello.z and does not second expand the prerequisites of rule
+# 'unrelated: $$(dep)'. '$$(dep)' stays not expanded and 'hello.x' is never
+# entered to the database. Make considers 'hello.x' intermediate while building
+# 'hello.z'. Because 'hello.z' is present and 'hello.x' is missing and
+# 'hello.x' is intermediate, there is no need to rebuild 'hello.z'.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=hello.x
+all: hello.z
+%.z: %.x; @echo $@
+%.x: ;
+unrelated: $$(dep)
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+# subtest 4.
+# Just like subtest 3. $$(dep) is not second expanded. 'hello.x' is
+# intermediate.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=hello.x
+all: hello.z
+%.z: %.x; @echo $@
+%.x: ;
+%.q: $$(dep)
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.z');
+
+
+# sv 60188.
+# Test that a file explicitly mentioned by the user and made by an implicit
+# rule is not considered intermediate, even when the builtin rules are used.
+
+touch('hello.x');
+touch('hello.tsk');
+
+# subtest 1.
+# hello.z is explicitly mentioned and thus is not an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=hello.z
+all: hello.tsk
+%.tsk: $$(dep) ; @echo $@
+%.z : %.x ; @echo $@
+!, '', "hello.z\nhello.tsk");
+
+# subtest 2.
+# hello.z is derived from the stem and thus is an intermediate file.
+run_make_test(q!
+.SECONDEXPANSION:
+dep:=.z
+all: hello.tsk
+%.tsk: %$$(dep) ; @echo $@
+%.z : %.x ; @echo $@
+!, '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.x');
+unlink('hello.tsk');
+
+
+# sv 60659. Second expansion of automatic variables inside a function in the
+# prerequisite list.
+# $$@ expands to the target in the 1st and following rules.
+# $$* expands to the stem in the 1st and following rules.
+# $$<,$$^,$$+,$$|,$$?,$$% expand to the empty string in the prerequisite list
+# of the 1st rule.
+# $$<,$$^,$$+,$$|,$$?,$$% in the prerequisite list of the 2nd (and following)
+# rule expand to the values from the 1st rule.
+# $$% cannot be used in prerequisites, because in pattern rules % is
+# substituted for stem.
+
+
+# subtest 1. Pattern rules. 1st rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x
+%.x: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+%.z: ;
+!, '',
+"@=2.x,<=,^=,+=,|=,?=,*=2
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 2. Pattern rules. 2nd rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x 1.x
+2.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+1.x: 1.z 2.z 2.z | 3.z 4.z
+%.x: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+%.z: ;
+!, '',
+"@=2.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=2
+@=1.x,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=1
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 3. Static pattern rules. 1st rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x
+2.x: %.x: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+%.z: ;
+!, '',
+"@=2.x,<=,^=,+=,|=,?=,*=2
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 4. Static pattern rules. 2nd rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 15.x 1.x
+15.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+1.x: 1.z 2.z 2.z | 3.z 4.z
+15.x 1.x: %.x: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+%.z: ;
+!, '',
+"@=15.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=15
+@=1.x,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=1
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 5. Grouped targets in implicit rules. 1st rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x
+%.x %.xx&: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+%.z: ;
+!, '',
+"@=2.x,<=,^=,+=,|=,?=,*=2
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 6. Grouped targets in implicit rules. 2nd rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x 1.xx
+2.x: 5.z 6.z 5.z | 7.z 7.z 8.z
+1.xx: 1.z 2.z 2.z | 3.z 4.z
+%.x %.xx&: 9.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+%.z: ;
+!, '',
+"@=2.x,<=5.z,^=5.z 6.z,+=5.z 6.z 5.z,|=7.z 8.z,?=,*=2
+@=1.xx,<=1.z,^=1.z 2.z,+=1.z 2.z 2.z,|=3.z 4.z,?=,*=1
+#MAKE#: Nothing to be done for 'all'.\n");
+
+
+# subtest 7. Double colon rule.
+run_make_test(q!
+.SECONDEXPANSION:
+all: 2.x
+%.x:: 5.z 6.z 5.z $$(info @=$$@,<=$$<,^=$$^,+=$$+,|=$$|,?=$$?,*=$$*) ;
+5.z 6.z: ;
+!, '',
+"@=2.x,<=,^=,+=,|=,?=,*=2
+#MAKE#: Nothing to be done for 'all'.\n");
+
+# sv 62324.
+# Integrity self check.
+run_make_test(q!
+.SECONDEXPANSION:
+all: bye.x
+%.x: $$(firstword %.1;
+!, '', "#MAKE#: *** unterminated call to function 'firstword': missing ')'.  Stop.", 512);
+
+# sv 62706.
+# Test that makes avoids second expanding prerequisites of the rules which are
+# not tried during implicit search.
+# Here, make tries rules '%.tsk: %.o' and '%.o' and their prerequisites are
+# second expanded.
+# Rules '%.bin: %.x' and '%.x:' are not used in implicit search for 'hello.tsk'
+# and 'hello.o' and their prerequisites are not expanded.
+run_make_test(q!
+.SECONDEXPANSION:
+%.bin: %.x $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+%.tsk: %.o $$(info second expansion of $$@ prereqs); $(info $@ from $<)
+%.x: $$(info second expansion of $$@ prereqs); $(info $@)
+%.o: $$(info second expansion of $$@ prereqs); $(info $@)
+!, '-R hello.tsk',
+"second expansion of hello.o prereqs
+second expansion of hello.tsk prereqs
+hello.o
+hello.tsk from hello.o
+#MAKE#: 'hello.tsk' is up to date.\n");
+
+# sv 62706.
+# No side effects from second expansion of unrelated rules.
+run_make_test(q!
+.SECONDEXPANSION:
+all: hello.tsk
+%.tsk: %.o; exit 1
+hello.o:;
+%.q: $$(shell touch hello.1);
+!, '',
+"exit 1
+#MAKE#: *** [#MAKEFILE#:4: hello.tsk] Error 1\n", 512);
+
+# sv 62706.
+# Second expansion of intermediate prerequisites.
+# The rule to build hello.x is implicit.
+# Test that $$(deps) is secondary expanded.
+run_make_test(q!
+deps:=hello.h
+.SECONDEXPANSION:
+all: hello.tsk
+%.tsk: %.x; $(info $@)
+%.x: $$(deps); $(info $@)
+hello.h:; $(info $@)
+!, '', "hello.h\nhello.x\nhello.tsk\n#MAKE#: Nothing to be done for 'all'.\n");
+
+# This tells the test driver that the perl test script executed properly.
+1;

@@ -1,0 +1,5 @@
+MODULE subdirModuleA
+CONTAINS
+        SUBROUTINE subdirLibA
+        END SUBROUTINE
+END MODULE

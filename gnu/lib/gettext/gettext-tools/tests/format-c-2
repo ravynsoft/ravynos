@@ -1,0 +1,664 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of C format strings.
+
+cat <<\EOF > f-c-2.data
+# Valid: %% doesn't count
+msgid  "abc%%def"
+msgstr "xyz"
+# Invalid: invalid msgstr
+msgid  "abc%%def"
+msgstr "xyz%"
+# Valid: same arguments
+msgid  "abc%s%gdef"
+msgstr "xyz%s%g"
+# Valid: same arguments, with different widths
+msgid  "abc%2sdef"
+msgstr "xyz%3s"
+# Valid: same arguments but in numbered syntax
+msgid  "abc%s%gdef"
+msgstr "xyz%1$s%2$g"
+# Valid: permutation
+msgid  "abc%s%g%cdef"
+msgstr "xyz%3$c%2$g%1$s"
+# Invalid: too few arguments
+msgid  "abc%2$udef%1$s"
+msgstr "xyz%1$s"
+# Invalid: too few arguments
+msgid  "abc%sdef%u"
+msgstr "xyz%s"
+# Invalid: too many arguments
+msgid  "abc%udef"
+msgstr "xyz%uvw%c"
+# Valid: same numbered arguments, with different widths
+msgid  "abc%2$5s%1$4s"
+msgstr "xyz%2$4s%1$5s"
+# Invalid: missing argument
+msgid  "abc%2$sdef%1$u"
+msgstr "xyz%1$u"
+# Invalid: missing argument
+msgid  "abc%1$sdef%2$u"
+msgstr "xyz%2$u"
+# Invalid: added argument
+msgid  "abc%1$udef"
+msgstr "xyz%1$uvw%2$c"
+
+# Valid: type compatibility
+msgid  "abc%i"
+msgstr "xyz%d"
+
+# Valid: type compatibility
+msgid  "abc%o"
+msgstr "xyz%u"
+# Valid: type compatibility
+msgid  "abc%u"
+msgstr "xyz%x"
+# Valid: type compatibility
+msgid  "abc%u"
+msgstr "xyz%X"
+# Valid: type compatibility
+msgid  "abc%u"
+msgstr "xyz%b"
+
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%E"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%f"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%F"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%g"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%G"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%a"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%A"
+
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%s"
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%i"
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%o"
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%e"
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%p"
+# Invalid: type incompatibility
+msgid  "abc%c"
+msgstr "xyz%n"
+
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%i"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%o"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%e"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%p"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%n"
+
+# Invalid: type incompatibility
+msgid  "abc%i"
+msgstr "xyz%o"
+# Invalid: type incompatibility
+msgid  "abc%i"
+msgstr "xyz%e"
+# Invalid: type incompatibility
+msgid  "abc%i"
+msgstr "xyz%p"
+# Invalid: type incompatibility
+msgid  "abc%i"
+msgstr "xyz%n"
+
+# Invalid: type incompatibility
+msgid  "abc%u"
+msgstr "xyz%e"
+# Invalid: type incompatibility
+msgid  "abc%u"
+msgstr "xyz%p"
+# Invalid: type incompatibility
+msgid  "abc%u"
+msgstr "xyz%n"
+
+# Invalid: type incompatibility
+msgid  "abc%e"
+msgstr "xyz%p"
+# Invalid: type incompatibility
+msgid  "abc%e"
+msgstr "xyz%n"
+
+# Invalid: type incompatibility
+msgid  "abc%p"
+msgstr "xyz%n"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%hhi"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%hi"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%li"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%lli"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%Li"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%qi"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%ji"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%hi"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%li"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%lli"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%Li"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%qi"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%ji"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hhi"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%li"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%lli"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%Li"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%qi"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%ji"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%hi"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%lli"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%Li"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%qi"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%ji"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%li"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%ji"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%lli"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%ji"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%Li"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%ji"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%qi"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%zi"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ji"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%ti"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%zi"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%w8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%ti"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%w8i"
+msgstr "xyz%w16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w8i"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w8i"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w8i"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w8i"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w8i"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w8i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%w16i"
+msgstr "xyz%w32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w16i"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w16i"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w16i"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w16i"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w16i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%w32i"
+msgstr "xyz%w64i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w32i"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w32i"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w32i"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w32i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%w64i"
+msgstr "xyz%wf8i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w64i"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w64i"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%w64i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%wf8i"
+msgstr "xyz%wf16i"
+# Invalid: type incompatibility due to size
+msgid  "abc%wf8i"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%wf8i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%wf16i"
+msgstr "xyz%wf32i"
+# Invalid: type incompatibility due to size
+msgid  "abc%wf16i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility due to size
+msgid  "abc%wf32i"
+msgstr "xyz%wf64i"
+
+# Invalid: type incompatibility for width
+msgid  "abc%g%*g"
+msgstr "xyz%*g%g"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  if test -z "$comment"; then
+    read comment
+  fi
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-c-2-$n.po
+#, c-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-c-2-$n.mo f-c-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-c-2-$n.mo f-c-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-c-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-c-2-$n.po f-c-2-$n.mo
+done < f-c-2.data
+
+Exit 0

@@ -1,0 +1,125 @@
+#compdef fmadm
+
+_fm_modules() {
+  compadd "$@" - ${${(f)"$(_call_program modules fmadm config)"}[2,-1]// */}
+}
+
+_fm_faulted_fmris() {
+	compadd "$@" - $(fmadm faulty -r 2> /dev/null | awk '{print $1}')
+}
+
+_fm_faulted_uuids() {
+	compadd "$@" - $(fmadm faulty -s 2> /dev/null | tail +4 | awk '{print $4}')
+}
+
+_fm_faulted_labels() {
+	local line q='"'
+	compadd "$@" - $(fmadm faulty -f 2> /dev/null | while read line; do
+		if [[ $line == "----"* ]]; then
+			read line
+			if [[ $line == '"'* ]]; then
+				print ${${line[(r)$q,(rn:2:)$q]}[2,-2]}
+			fi
+		fi
+	done)
+}
+
+local curcontext="$curcontext" state line expl ret=1
+local -A opt_args
+local -a subcmds args
+
+# TODO: lookup-alias and remove-alias need completion based on the
+# output of list-alias, but I have no examples of that output.
+
+subcmds=(
+  faulty list acquit replaced repaired list-alert clear
+  list-defect list-fault
+  add-alias remove-alias lookup-alias list-alias sync-alias
+  config load unload reset rotate flush
+)
+
+_arguments -C -A "-*" \
+  '-q[quiet mode]' \
+  '1:fmadm subcommand:compadd -M "r:|-=* r:|=*" -a subcmds' \
+  '*::command:->subcmd' && ret=0
+
+[[ -z $state ]] && return ret
+service="$words[1]"
+curcontext="${curcontext%:*}-$service:"
+
+case $service in
+  (faulty|list|list-alert|list-defect|list-fault)
+    args+=(
+      '-f[display faulty FRUs]'
+      '-i[display persistent cache IDs]'
+      '-p[page output]'
+      '-r[display resources]'
+      '-s[display one-line summaries]'
+      '-u[only display fault with given uuid]:uuid:_fm_faulted_uuids'
+      '-v[display full output]'
+    )
+  ;|
+
+  (list|faulty)
+    _arguments -A "-*" $args \
+      '-a[display all faults]' \
+      '-g[group faults]' \
+      '-n[limit output to specified number of entries]:number'
+  ;;
+
+  (list-alert|list-defect|list-fault)
+    _arguments -A "-*" $args \
+      '-a[display all resources]'
+  ;;
+
+  (acquit)
+    _alternative \
+      'fmadm-acquit-label:label:_fm_faulted_labels' \
+      'fmadm-acquit-uuid:uuid:_fm_faulted_uuids' \
+      'fmadm-acquit-fmri:fmri:_fm_faulted_fmris' && ret=0
+  ;;
+
+  (repaired|replaced)
+    _alternative \
+      'fmadm-acquit-label:label:_fm_faulted_labels' \
+      'fmadm-acquit-fmri:fmri:_fm_faulted_fmris' && ret=0
+  ;;
+
+  (add-alias)
+    _arguments :chassis :alias-id :comment && ret=0
+  ;;
+
+  (remove-alias|lookup-alias)
+    _message -e aliases 'chassis or alias-id'
+  ;;
+
+  (load)
+    _directories && ret=0
+  ;;
+
+  (unload)
+    _fm_modules && ret=0
+  ;;
+
+  (reset)
+    _arguments -A "-*" \
+      '-s[reset named SERD]:serd' \
+      ':module:_fm_modules' && ret=0
+  ;;
+
+  (rotate)
+    _values 'logfile' errlog fltlog infolog infolog_hival && ret=0
+  ;;
+
+  (flush)
+    _fm_faulted_fmris && ret=0
+  ;;
+
+  (list-alias|config|sync-aliases) _message 'no more arguments' ;;
+
+  (*) # fallback to defaults for any new or unhandled subcommand
+    _default && ret=0
+  ;;
+esac
+
+return ret

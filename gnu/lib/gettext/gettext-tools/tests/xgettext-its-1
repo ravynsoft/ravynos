@@ -1,0 +1,320 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of ITS support.
+
+: ${XGETTEXT=xgettext}
+
+GETTEXTDATADIR=.
+export GETTEXTDATADIR
+
+cat <<\EOF > empty.xml
+<?xml version="1.0"?>
+<empty></empty>
+EOF
+
+${XGETTEXT} --itstool -o empty.pot empty.xml 2>empty.err || { cat empty.err; Exit 1; }
+
+test -d its || mkdir its
+
+cat <<\EOF > its/empty-1.loc
+<?xml version="1.0"?>
+<locatingRules/>
+EOF
+
+${XGETTEXT} --itstool -o empty.pot empty.xml 2>empty.err || { cat empty.err; Exit 1; }
+
+cat <<\EOF > its/empty-2.loc
+<?xml version="1.0"?>
+<locatingRules>
+  <locatingRule pattern="*.xml">
+    <documentRule prefix="" localName="empty" target="empty.its"/>
+  </locatingRule>
+</locatingRules>
+EOF
+
+${XGETTEXT} --itstool -o empty.pot empty.xml 2>empty.err || { cat empty.err; Exit 1; }
+
+cat <<\EOF > its/empty.its
+<?xml version="1.0"?>
+<its:rules xmlns:its="http://www.w3.org/2005/11/its" version="1.0">
+</its:rules>
+EOF
+
+${XGETTEXT} --itstool -o empty.pot empty.xml 2>empty.err || { cat empty.err; Exit 1; }
+
+cat <<\EOF > its/messages.loc
+<?xml version="1.0"?>
+<locatingRules>
+  <locatingRule pattern="*.xml">
+    <documentRule localName="messages" target="messages.its"/>
+  </locatingRule>
+  <locatingRule pattern="*.msg">
+    <documentRule localName="messages" target="messages.its"/>
+  </locatingRule>
+</locatingRules>
+EOF
+
+cat <<\EOF > its/messages.its
+<?xml version="1.0"?>
+<its:rules xmlns:its="http://www.w3.org/2005/11/its"
+           xmlns:gt="https://www.gnu.org/s/gettext/ns/its/extensions/1.0"
+           xmlns:msg="http://www.gnu.org/s/gettext/ns/messages/1.0"
+           version="1.0">
+  <!-- Invalid: no selector -->
+  <its:translateRule translate="yes"/>
+  <!-- Invalid: no translate -->
+  <its:translateRule selector="/"/>
+
+  <its:translateRule selector="//msg:message/@comment" translate="yes"/>
+  <its:translateRule selector="//msg:note" translate="no"/>
+  <its:translateRule selector="//msg:p[@translatable = 'no']"
+    translate="no"/>
+
+  <!-- Invalid: no selector -->
+  <its:locNoteRule locNoteType="alert"/>
+  <!-- Invalid: no locNoteType -->
+  <its:locNoteRule selector="/"/>
+  <its:locNoteRule selector="//msg:message/*" locNoteType="alert"
+    locNotePointer="../msg:note"/>
+  <its:locNoteRule selector="//msg:code" locNoteType="alert">
+    <its:locNote>This is code</its:locNote>
+  </its:locNoteRule>
+  <its:locNoteRule selector="//msg:message/@comment" locNoteType="alert">
+    <its:locNote>This is a comment</its:locNote>
+  </its:locNoteRule>
+
+  <!-- Invalid: no selector -->
+  <its:withinTextRule withinText="yes"/>
+  <!-- Invalid: no withinText -->
+  <its:withinTextRule selector="/"/>
+  <its:withinTextRule selector="//msg:span | //msg:link" withinText="yes"/>
+
+  <!-- Invalid: no selector -->
+  <its:preserveSpaceRule space="preserve"/>
+  <!-- Invalid: no space -->
+  <its:preserveSpaceRule selector="/"/>
+  <its:preserveSpaceRule selector="//msg:code" space="preserve"/>
+
+  <gt:contextRule selector="//msg:p[@context = 'yes']"
+                  contextPointer="substring-before(., '|')"
+                  textPointer="substring-after(., '|')"/>
+
+  <gt:escapeRule selector="//msg:message/*[@unescape = 'yes']" escape="no"/>
+
+  <its:translateRule selector="//msg:message/@unescaped" translate="yes"/>
+  <gt:escapeRule selector="//msg:message/@unescaped" escape="no"/>
+</its:rules>
+EOF
+
+cat <<\EOF >messages.xml
+<?xml version="1.0"?>
+<!DOCTYPE messages PUBLIC "" "" [
+<!ENTITY foo "bar">
+]>
+<messages xmlns="http://www.gnu.org/s/gettext/ns/messages/1.0"
+          xmlns:its="http://www.w3.org/2005/11/its">
+  <message>
+    <p>This is a test message &foo;&gt;&lt;&amp;&quot;"</p>
+  </message>
+  <message>
+    <p its:translate="no">This is a non-translatable message</p>
+  </message>
+  <message>
+    <p>This is a test message, with an <span>element</span> in a <link href="https://www.gnu.org/s/gettext">text</link></p>
+  </message>
+  <message>
+    <code>  $ echo '  ' &gt;&gt; /dev/null
+  $ cat &lt; /dev/yes
+  $ sleep 10 &amp;
+</code>
+  </message>
+  <message comment="This is a comment &lt;&gt;&amp;&quot;">
+    <p>This is a test message, with an attribute</p>
+  </message>
+  <message>
+    <note>
+      This is a localization note
+    </note>
+    <p>This is a test message, with a localization note</p>
+  </message>
+  <message>
+    <p its:locNote="This is a local localization note" its:locNoteType="alert">
+      This is a test message, with a local localization note
+    </p>
+  </message>
+  <message>
+    <!-- empty element, which shouldn't be extracted -->
+    <p></p>
+  </message>
+  <message>
+    <p xml:space="preserve"> This is a message with  space  preserved</p>
+  </message>
+  <message>
+    <p translatable="no">This is a non-translatable string</p>
+  </message>
+  <message its:translate="no">
+    <p>This is a non-translatable string</p>
+  </message>
+  <message>
+    <!-- This is a comment -->
+    <p context="yes">context|A translatable string with a context prefixed</p>
+  </message>
+  <message>
+    <p xml:space="trim"> Leading/trailing  whitespaces are  removed,
+      but not middle  
+    </p>
+  </message>
+  <message>
+    <p unescape="yes">This is an unescaped element &lt;&gt;&amp;&quot;</p>
+  </message>
+  <message unescaped="This is an unescaped attribute &lt;&gt;&amp;&quot;">
+    <p></p>
+  </message>
+  <message>
+    <p xml:space="paragraph">
+    This is the first paragraph with
+a newline.
+  
+    This is  the  second paragraph with spaces.
+
+
+    This is the last paragraph.     </p>
+  </message>
+  <message>
+    <p xml:space="paragraph">This is the only one paragraph</p>
+  </message>
+  <message>
+    <p xml:space="paragraph">This is the only one paragraph with a boundary
+
+</p>
+  </message>
+  <message>
+    <p xml:space="paragraph"></p>
+  </message>
+  <message>
+    <p xml:space="paragraph"> </p>
+  </message>
+</messages>
+EOF
+
+cat <<\EOF >messages.ok
+#. (itstool) path: message/p
+#: messages.xml:8
+msgid "This is a test message &foo;&gt;&lt;&amp;\"\""
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:14
+msgid "This is a test message, with an <span>element</span> in a <link href=\"https://www.gnu.org/s/gettext\">text</link>"
+msgstr ""
+
+#. This is code
+#. (itstool) path: message/code
+#: messages.xml:17
+#, no-wrap
+msgid ""
+"  $ echo '  ' &gt;&gt; /dev/null\n"
+"  $ cat &lt; /dev/yes\n"
+"  $ sleep 10 &amp;\n"
+msgstr ""
+
+#. This is a comment
+#. (itstool) path: messages/message@comment
+#: messages.xml:22
+msgid "This is a comment &lt;&gt;&amp;&quot;"
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:23
+msgid "This is a test message, with an attribute"
+msgstr ""
+
+#. This is a localization note
+#. (itstool) path: message/p
+#: messages.xml:29
+msgid "This is a test message, with a localization note"
+msgstr ""
+
+#. This is a local localization note
+#. (itstool) path: message/p
+#: messages.xml:32
+msgid "This is a test message, with a local localization note"
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:41
+#, no-wrap
+msgid " This is a message with  space  preserved"
+msgstr ""
+
+#. This is a comment
+#. (itstool) path: message/p
+#: messages.xml:51
+msgctxt "context"
+msgid "A translatable string with a context prefixed"
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:54
+msgid ""
+"Leading/trailing  whitespaces are  removed,\n"
+"      but not middle"
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:59
+msgid "This is an unescaped element <>&\""
+msgstr ""
+
+#. (itstool) path: messages/message@unescaped
+#: messages.xml:61
+msgid "This is an unescaped attribute <>&\""
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:65
+msgid ""
+"This is the first paragraph with a newline.\n"
+"\n"
+"This is the second paragraph with spaces.\n"
+"\n"
+"This is the last paragraph."
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:75
+msgid "This is the only one paragraph"
+msgstr ""
+
+#. (itstool) path: message/p
+#: messages.xml:78
+msgid "This is the only one paragraph with a boundary"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+
+${XGETTEXT} --itstool --no-wrap --omit-header -o messages.pot messages.xml 2>messages.err || { cat messages.err; Exit 1; }
+${DIFF} messages.ok messages.pot
+result=$?
+test $result = 0 || exit $result
+
+# Check if locating rules can work with --directory, and extra ".in"
+# file name extension.
+test -d data || mkdir data
+test -d po || mkdir po
+
+cp messages.xml data/messages.msg.in
+
+cd po
+GETTEXTDATADIR=..
+export GETTEXTDATADIR
+
+${XGETTEXT} --itstool --no-wrap --omit-header --directory=.. -o messages.pot.in data/messages.msg.in 2>messages.err || { cat messages.err; Exit 1; }
+sed -e 's!^#: data/messages.msg.in!#: messages.xml!' \
+  < messages.pot.in > messages.pot
+
+${DIFF} ../messages.ok messages.pot
+result=$?
+test $result = 0 || exit $result

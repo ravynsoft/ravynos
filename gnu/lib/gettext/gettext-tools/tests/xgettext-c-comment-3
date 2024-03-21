@@ -1,0 +1,33 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: --add-comments option.
+
+cat <<\EOF > xg-c-comment-3.c
+/* a */
+/* b */ char *string = /* c */
+/* d */
+/* e */ _( /* f */ "hello " /* g */ "world" /* h */ );
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-c-comment-3.tmp xg-c-comment-3.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-comment-3.tmp.po > xg-c-comment-3.po || Exit 1
+
+cat <<EOF > xg-c-comment-3.ok
+#. a
+#. b
+#. c
+#. d
+#. e
+#. f
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-comment-3.ok xg-c-comment-3.po
+result=$?
+
+exit $result

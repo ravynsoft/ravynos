@@ -296,7 +296,7 @@ static struct {
 	{ NFSV4OP_OPEN, 8, "CreateLayGet", 12, },
 	{ NFSV4OP_IOADVISE, 1, "Advise", 6, },
 	{ NFSV4OP_ALLOCATE, 2, "Allocate", 8, },
-	{ NFSV4OP_SAVEFH, 5, "Copy", 4, },
+	{ NFSV4OP_SAVEFH, 6, "Copy", 4, },
 	{ NFSV4OP_SEEK, 2, "Seek", 4, },
 	{ NFSV4OP_SEEK, 1, "SeekDS", 6, },
 	{ NFSV4OP_GETXATTR, 2, "Getxattr", 8, },
@@ -679,17 +679,13 @@ nfsm_mbufuio(struct nfsrv_descript *nd, struct uio *uiop, int siz)
 				    ("len %d, corrupted mbuf?", len));
 			}
 			xfer = (left > len) ? len : left;
-#ifdef notdef
-			/* Not Yet.. */
-			if (uiop->uio_iov->iov_op != NULL)
-				(*(uiop->uio_iov->iov_op))
-				(mbufcp, uiocp, xfer);
-			else
-#endif
 			if (uiop->uio_segflg == UIO_SYSSPACE)
 				NFSBCOPY(mbufcp, uiocp, xfer);
-			else
-				copyout(mbufcp, uiocp, xfer);
+			else {
+				error = copyout(mbufcp, uiocp, xfer);
+				if (error != 0)
+					goto out;
+			}
 			left -= xfer;
 			len -= xfer;
 			mbufcp += xfer;
@@ -5141,11 +5137,13 @@ nfsrpc_destroysession(struct nfsmount *nmp, struct nfsclsession *tsep,
 	struct nfsrv_descript *nd = &nfsd;
 	int error;
 
+	if (tsep == NULL)
+		tsep = nfsmnt_mdssession(nmp);
+	if (tsep == NULL)
+		return (0);
 	nfscl_reqstart(nd, NFSPROC_DESTROYSESSION, nmp, NULL, 0, NULL, NULL, 0,
 	    0, NULL);
 	NFSM_BUILD(tl, uint32_t *, NFSX_V4SESSIONID);
-	if (tsep == NULL)
-		tsep = nfsmnt_mdssession(nmp);
 	bcopy(tsep->nfsess_sessionid, tl, NFSX_V4SESSIONID);
 	nd->nd_flag |= ND_USEGSSNAME;
 	error = newnfs_request(nd, nmp, NULL, &nmp->nm_sockreq, NULL, p, cred,

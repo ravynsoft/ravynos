@@ -1,0 +1,411 @@
+
+.* file format .*
+
+
+Disassembly of section \.plt:
+
+# At present, all n32 PLT entries use the standard encoding.
+10100000 <_PROCEDURE_LINKAGE_TABLE_>:
+.*:	3c0e1020 	lui	\$14,0x1020
+.*:	8dd90000 	lw	\$25,0\(\$14\)
+.*:	25ce0000 	addiu	\$14,\$14,0
+.*:	030ec023 	subu	\$24,\$24,\$14
+.*:	03e07825 	move	\$15,\$31
+.*:	0018c082 	srl	\$24,\$24,0x2
+.*:	0320f809 	jalr	\$25
+.*:	2718fffe 	addiu	\$24,\$24,-2
+
+10100020 <f_lo_iu@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90008 	lw	\$25,8\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80008 	addiu	\$24,\$15,8
+
+10100030 <f_lo_iu_du_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9000c 	lw	\$25,12\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8000c 	addiu	\$24,\$15,12
+
+10100040 <f_lo_du_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90010 	lw	\$25,16\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80010 	addiu	\$24,\$15,16
+
+10100050 <f_du_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90014 	lw	\$25,20\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80014 	addiu	\$24,\$15,20
+
+10100060 <f_lo_iu_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90018 	lw	\$25,24\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80018 	addiu	\$24,\$15,24
+
+10100070 <f_iu_du_ic@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9001c 	lw	\$25,28\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8001c 	addiu	\$24,\$15,28
+
+10100080 <f_lo_du_ic@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90020 	lw	\$25,32\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80020 	addiu	\$24,\$15,32
+
+10100090 <f_iu_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90024 	lw	\$25,36\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80024 	addiu	\$24,\$15,36
+
+101000a0 <f_lo_iu_ic@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90028 	lw	\$25,40\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80028 	addiu	\$24,\$15,40
+
+101000b0 <f_lo_ic@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9002c 	lw	\$25,44\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8002c 	addiu	\$24,\$15,44
+
+101000c0 <f_lo_du_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90030 	lw	\$25,48\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80030 	addiu	\$24,\$15,48
+
+101000d0 <f_du@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90034 	lw	\$25,52\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80034 	addiu	\$24,\$15,52
+
+101000e0 <f_du_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90038 	lw	\$25,56\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80038 	addiu	\$24,\$15,56
+
+101000f0 <f_du_ic@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9003c 	lw	\$25,60\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8003c 	addiu	\$24,\$15,60
+
+10100100 <f_iu_du_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90040 	lw	\$25,64\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80040 	addiu	\$24,\$15,64
+
+10100110 <f_lo_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90044 	lw	\$25,68\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80044 	addiu	\$24,\$15,68
+
+10100120 <f_iu_du@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90048 	lw	\$25,72\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80048 	addiu	\$24,\$15,72
+
+10100130 <f_lo_iu_du@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9004c 	lw	\$25,76\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8004c 	addiu	\$24,\$15,76
+
+10100140 <f_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90050 	lw	\$25,80\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80050 	addiu	\$24,\$15,80
+
+10100150 <f_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90054 	lw	\$25,84\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80054 	addiu	\$24,\$15,84
+
+10100160 <f_lo_du@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90058 	lw	\$25,88\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80058 	addiu	\$24,\$15,88
+
+10100170 <f_iu_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9005c 	lw	\$25,92\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8005c 	addiu	\$24,\$15,92
+
+10100180 <f_iu_du_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90060 	lw	\$25,96\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80060 	addiu	\$24,\$15,96
+
+10100190 <f_lo_iu_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90064 	lw	\$25,100\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80064 	addiu	\$24,\$15,100
+
+101001a0 <f_lo_iu_du_ic@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90068 	lw	\$25,104\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80068 	addiu	\$24,\$15,104
+
+101001b0 <f_lo_iu_du_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df9006c 	lw	\$25,108\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f8006c 	addiu	\$24,\$15,108
+
+101001c0 <f_lo_ic_dc@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90070 	lw	\$25,112\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80070 	addiu	\$24,\$15,112
+
+101001d0 <f_lo@plt>:
+.*:	3c0f1020 	lui	\$15,0x1020
+.*:	8df90074 	lw	\$25,116\(\$15\)
+.*:	03200008 	jr	\$25
+.*:	25f80074 	addiu	\$24,\$15,116
+
+Disassembly of section \.MIPS\.stubs:
+
+10101000 <_MIPS_STUBS_>:
+# Lazy-binding stub for f_iu.
+.*:	ff3c 8010 	lw	\$25,-32752\(\$28\)
+.*:	0dff      	move	\$15,\$31
+.*:	45d9      	jalr	\$25
+.*:	3300 0021 	li	\$24,33
+# Lazy-binding stub for f_ic.
+.*:	ff3c 8010 	lw	\$25,-32752\(\$28\)
+.*:	0dff      	move	\$15,\$31
+.*:	45d9      	jalr	\$25
+.*:	3300 0020 	li	\$24,32
+# Lazy-binding stub for f_iu_ic.
+.*:	ff3c 8010 	lw	\$25,-32752\(\$28\)
+.*:	0dff      	move	\$15,\$31
+.*:	45d9      	jalr	\$25
+.*:	3300 001f 	li	\$24,31
+	\.\.\.
+
+Disassembly of section \.text\.a:
+
+10102000 <testc>:
+.*:	.... .... 	jalx	[0-9a-f]+ <f_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8070 	lw	\$2,-32656\(\$3\)
+#				    ^ global GOT entry for f_ic
+.*:	.... .... 	jalx	[0-9a-f]+ <f_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8018 	lw	\$2,-32744\(\$3\)
+#				    ^ local GOT entry for f_ic_dc@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_du_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 801c 	lw	\$2,-32740\(\$3\)
+#				    ^ local GOT entry for f_du_ic@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_du_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8020 	lw	\$2,-32736\(\$3\)
+#				    ^ local GOT entry for f_du_ic_dc@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_iu_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 806c 	lw	\$2,-32660\(\$3\)
+#				    ^ global GOT entry for f_iu_ic
+.*:	.... .... 	jalx	[0-9a-f]+ <f_iu_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8024 	lw	\$2,-32732\(\$3\)
+#				    ^ local GOT entry for f_iu_ic_dc@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_iu_du_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8028 	lw	\$2,-32728\(\$3\)
+#				    ^ local GOT entry for f_iu_du_ic@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_iu_du_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 802c 	lw	\$2,-32724\(\$3\)
+#				    ^ local GOT entry for f_iu_du_ic_dc@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8030 	lw	\$2,-32720\(\$3\)
+#				    ^ local GOT entry for f_lo_ic@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8034 	lw	\$2,-32716\(\$3\)
+#				    ^ local GOT entry for f_lo_ic_dc@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_du_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8038 	lw	\$2,-32712\(\$3\)
+#				    ^ local GOT entry for f_lo_du_ic@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_du_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 803c 	lw	\$2,-32708\(\$3\)
+#				    ^ local GOT entry for f_lo_du_ic_dc@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_iu_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8040 	lw	\$2,-32704\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_ic@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_iu_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8044 	lw	\$2,-32700\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_ic_dc@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_iu_du_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 8048 	lw	\$2,-32696\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_du_ic@plt
+.*:	.... .... 	jalx	[0-9a-f]+ <f_lo_iu_du_ic_dc@plt>
+.*:	0000 0000 	nop
+.*:	fc43 804c 	lw	\$2,-32692\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_du_ic_dc@plt
+.*:	459f      	jr	\$31
+
+Disassembly of section \.text\.b:
+
+10103000 <testu>:
+.*:	........ 	jal	[0-9a-f]+ <f_du@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_du@plt>
+.*:	00000000 	nop
+.*:	........ 	jal	[0-9a-f]+ <f_du_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_du_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	jal	[0-9a-f]+ <f_du_ic@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_du_ic@plt>
+.*:	00000000 	nop
+.*:	........ 	jal	[0-9a-f]+ <f_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	8c628074 	lw	\$2,-32652\(\$3\)
+#				    ^ global GOT entry for f_iu
+.*:	8c628050 	lw	\$2,-32688\(\$3\)
+#				    ^ local GOT entry for f_iu_dc@plt
+.*:	8c62806c 	lw	\$2,-32660\(\$3\)
+#				    ^ global GOT entry for f_iu_ic
+.*:	8c628024 	lw	\$2,-32732\(\$3\)
+#				    ^ local GOT entry for f_iu_ic_dc@plt
+.*:	........ 	jal	[0-9a-f]+ <f_iu_du@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_iu_du@plt>
+.*:	00000000 	nop
+.*:	8c628054 	lw	\$2,-32684\(\$3\)
+#				    ^ local GOT entry for f_iu_du@plt
+.*:	........ 	jal	[0-9a-f]+ <f_iu_du_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_iu_du_dc@plt>
+.*:	00000000 	nop
+.*:	8c628058 	lw	\$2,-32680\(\$3\)
+#				    ^ local GOT entry for f_iu_du_dc@plt
+.*:	........ 	jal	[0-9a-f]+ <f_iu_du_ic@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_iu_du_ic@plt>
+.*:	00000000 	nop
+.*:	8c628028 	lw	\$2,-32728\(\$3\)
+#				    ^ local GOT entry for f_iu_du_ic@plt
+.*:	........ 	jal	[0-9a-f]+ <f_iu_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_iu_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	8c62802c 	lw	\$2,-32724\(\$3\)
+#				    ^ local GOT entry for f_iu_du_ic_dc@plt
+.*:	........ 	jal	[0-9a-f]+ <f_lo_du@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_du@plt>
+.*:	00000000 	nop
+.*:	........ 	jal	[0-9a-f]+ <f_lo_du_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_du_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	jal	[0-9a-f]+ <f_lo_du_ic@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_du_ic@plt>
+.*:	00000000 	nop
+.*:	........ 	jal	[0-9a-f]+ <f_lo_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	8c62805c 	lw	\$2,-32676\(\$3\)
+#				    ^ local GOT entry for f_lo_iu@plt
+.*:	8c628060 	lw	\$2,-32672\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_dc@plt
+.*:	8c628040 	lw	\$2,-32704\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_ic@plt
+.*:	8c628044 	lw	\$2,-32700\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_ic_dc@plt
+.*:	........ 	jal	[0-9a-f]+ <f_lo_iu_du@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_iu_du@plt>
+.*:	00000000 	nop
+.*:	8c628064 	lw	\$2,-32668\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_du@plt
+.*:	........ 	jal	[0-9a-f]+ <f_lo_iu_du_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_iu_du_dc@plt>
+.*:	00000000 	nop
+.*:	8c628068 	lw	\$2,-32664\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_du_dc@plt
+.*:	........ 	jal	[0-9a-f]+ <f_lo_iu_du_ic@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_iu_du_ic@plt>
+.*:	00000000 	nop
+.*:	8c628048 	lw	\$2,-32696\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_du_ic@plt
+.*:	........ 	jal	[0-9a-f]+ <f_lo_iu_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	........ 	j	[0-9a-f]+ <f_lo_iu_du_ic_dc@plt>
+.*:	00000000 	nop
+.*:	8c62804c 	lw	\$2,-32692\(\$3\)
+#				    ^ local GOT entry for f_lo_iu_du_ic_dc@plt
+.*:	03e00008 	jr	\$31
+
+Disassembly of section \.text\.c:
+
+10104000 <testlo>:
+.*:	3040 01d0 	li	\$2,464
+#				    ^ low 16 bits of f_lo@plt
+.*:	3040 0110 	li	\$2,272
+#				    ^ low 16 bits of f_lo_dc@plt
+.*:	3040 00b0 	li	\$2,176
+#				    ^ low 16 bits of f_lo_ic@plt
+.*:	3040 01c0 	li	\$2,448
+#				    ^ low 16 bits of f_lo_ic_dc@plt
+.*:	3040 0160 	li	\$2,352
+#				    ^ low 16 bits of f_lo_du@plt
+.*:	3040 00c0 	li	\$2,192
+#				    ^ low 16 bits of f_lo_du_dc@plt
+.*:	3040 0080 	li	\$2,128
+#				    ^ low 16 bits of f_lo_du_ic@plt
+.*:	3040 0040 	li	\$2,64
+#				    ^ low 16 bits of f_lo_du_ic_dc@plt
+.*:	3040 0020 	li	\$2,32
+#				    ^ low 16 bits of f_lo_iu@plt
+.*:	3040 0060 	li	\$2,96
+#				    ^ low 16 bits of f_lo_iu_dc@plt
+.*:	3040 00a0 	li	\$2,160
+#				    ^ low 16 bits of f_lo_iu_ic@plt
+.*:	3040 0190 	li	\$2,400
+#				    ^ low 16 bits of f_lo_iu_ic_dc@plt
+.*:	3040 0130 	li	\$2,304
+#				    ^ low 16 bits of f_lo_iu_du@plt
+.*:	3040 0030 	li	\$2,48
+#				    ^ low 16 bits of f_lo_iu_du_dc@plt
+.*:	3040 01a0 	li	\$2,416
+#				    ^ low 16 bits of f_lo_iu_du_ic@plt
+.*:	3040 01b0 	li	\$2,432
+#				    ^ low 16 bits of f_lo_iu_du_ic_dc@plt
+

@@ -1,0 +1,43 @@
+#compdef fc-list fc-match
+
+local -a expl suf
+local font=${${PREFIX//-[0-9]##:/:}%:*}: ret=1
+local attr
+
+compset -S ':*' || suf=( -S: -r "-: \t\n\-" )
+if compset -P '*:'; then
+  attr="${PREFIX%\=*}"
+  if compset -P '*='; then
+    case $attr in
+      hintstyle)
+        _wanted value expl 'value' compadd "$suf[@]" \
+	    hint{none,slight,medium,full} && ret=0
+      ;;
+      *)
+        _wanted value expl 'value' compadd "$suf[@]" \
+            ${${(f)"$(_call_program font-attrs
+	    fc-list $font $attr 2>/dev/null)"//,/$'\n'}##*=} && ret=0
+      ;;
+    esac
+  else
+    _tags elements {weight,slant}-constants
+    while _tags; do
+      _requested elements expl element compadd -qS= hintstyle hinting autohint \
+          size ${${(u)${(M)${(f)"$(_call_program elements
+	  fc-list -v $font 2>/dev/null)"}:#	[a-z]*}%%:*}#?} && ret=0
+      _requested weight-constants expl 'weight constant' compadd "$suf[@]" \
+          thin bold regular medium semibold heavy roman && ret=0
+      _requested slant-constants expl 'slant constant' compadd "$suf[@]" \
+          roman italic oblique && ret=0
+
+      (( ret )) || break
+    done
+  fi
+elif compset -P '*[^\\]-'; then
+  _message -e size 'point size' && ret=0
+else
+  _wanted fonts expl font compadd "$suf[@]" \
+      ${(us:,:)$(_call_program fonts fc-list -f '%\{family\},' 2>/dev/null)} && ret=0
+fi
+
+return ret

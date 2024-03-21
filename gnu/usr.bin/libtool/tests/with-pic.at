@@ -1,0 +1,64 @@
+# with-pic.at -- test the --with-pic flag -*- Autotest -*-
+
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([test --with-pic])
+
+# Set up a tests/demo.at style project.
+_LT_DEMO_SETUP
+
+# Bootstrap, and configure it so that we can extract libtool --config
+# settings.
+LT_AT_BOOTSTRAP([], [-I m4], [], [--add-missing], [],
+    [], [ignore])
+eval `$LIBTOOL --config | $EGREP '^(pic_flag|FGREP)='`
+
+no_dlls=:
+case " $pic_flag " in
+*" -DDLL_EXPORT "*) no_dlls=false ;;
+esac
+AT_CHECK([$no_dlls || exit 77])
+AT_CHECK([test . != "$at_srcdir" || exit 77])
+
+: ${MAKE=make}
+
+LT_AT_CONFIGURE([--disable-shared --with-pic=no])
+AT_CHECK([$MAKE], [], [stdout], [ignore])
+AT_CHECK([$FGREP -v "$pic_flag" stdout], [], [ignore], [ignore])
+$MAKE clean
+
+LT_AT_CONFIGURE([--disable-shared --with-pic=yes])
+AT_CHECK([$MAKE], [], [stdout], [ignore])
+AT_CHECK([$FGREP "$pic_flag" stdout], [], [ignore], [ignore])
+$MAKE clean
+
+LT_AT_CONFIGURE([--disable-shared --with-pic="demo,foo,bar"])
+AT_CHECK([$MAKE], [], [stdout], [ignore])
+AT_CHECK([$FGREP "$pic_flag" stdout], [], [ignore], [ignore])
+$MAKE clean
+
+LT_AT_CONFIGURE([--disable-shared --with-pic="foo,bar"])
+AT_CHECK([$MAKE], [], [stdout], [ignore])
+AT_CHECK([$FGREP -v "$pic_flag" stdout], [], [ignore], [ignore])
+$MAKE clean
+
+AT_CLEANUP

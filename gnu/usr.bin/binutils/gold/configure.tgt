@@ -1,0 +1,187 @@
+# configure.tgt -- target configuration for gold  -*- sh -*-
+
+# Copyright (C) 2006-2023 Free Software Foundation, Inc.
+# Written by Ian Lance Taylor <iant@google.com>.
+
+# This file is part of gold.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# This script handles target configuration for gold.  This is shell
+# code invoked by the autoconf generated configure script.  Putting
+# this in a separate file lets us skip running autoconf when modifying
+# target specific information.
+
+# This file switches on the shell variable ${targ}, which is a
+# canonicalized GNU configuration triplet.  It sets the following
+# shell variables:
+
+# targ_obj               object file to include in the link, with no extension
+# targ_extra_obj         extra object file to include
+# targ_machine           ELF machine code for this target
+# targ_size              size of this target--32 or 64
+# targ_extra_size        extra targ_size setting for the target
+# targ_big_endian        whether the target is big-endian--true or false
+# targ_extra_big_endian  extra targ_big_endian setting for the target
+# targ_osabi		 EI_OSABI value
+
+# If the target is not recognized targ_obj is set to "UNKNOWN".
+
+targ_extra_obj=
+targ_machine=
+targ_size=
+targ_extra_size=
+targ_big_endian=
+targ_extra_big_endian=
+targ_osabi=ELFOSABI_NONE
+case "$targ" in
+i?86-*)
+  targ_obj=i386
+  targ_machine=EM_386
+  targ_size=32
+  targ_big_endian=false
+  case "$targ" in
+  i?86-*-freebsd*)
+    targ_osabi=ELFOSABI_FREEBSD
+    ;;
+  esac
+  ;;
+x86_64*)
+  targ_obj=x86_64
+  targ_extra_obj=i386
+  targ_machine=EM_X86_64
+  targ_size=64
+  targ_extra_size=32
+  targ_big_endian=false
+  case "$targ" in
+  x86_64-*-freebsd*)
+    targ_osabi=ELFOSABI_FREEBSD
+    ;;
+  esac
+  ;;
+tilegx*)
+  targ_obj=tilegx
+  targ_machine=EM_TILEGX
+  targ_size=64
+  targ_extra_size=32
+  targ_big_endian=false
+  targ_extra_big_endian=true
+  ;;
+sparc-*)
+  targ_obj=sparc
+  targ_machine=EM_SPARC
+  targ_size=32
+  targ_extra_size=64
+  targ_big_endian=true
+  targ_extra_big_endian=false
+  ;;
+sparc64-*)
+  targ_obj=sparc
+  targ_machine=EM_SPARCV9
+  targ_size=64
+  targ_extra_size=32
+  targ_big_endian=true
+  targ_extra_big_endian=false
+  ;;
+powerpc-*)
+  targ_obj=powerpc
+  targ_machine=EM_PPC
+  targ_size=32
+  targ_extra_size=64
+  targ_big_endian=true
+  targ_extra_big_endian=false
+  ;;
+powerpcle-*)
+  targ_obj=powerpc
+  targ_machine=EM_PPC
+  targ_size=32
+  targ_extra_size=64
+  targ_big_endian=false
+  targ_extra_big_endian=true
+  ;;
+powerpc64-*)
+  targ_obj=powerpc
+  targ_machine=EM_PPC64
+  targ_size=64
+  targ_extra_size=32
+  targ_big_endian=true
+  targ_extra_big_endian=false
+  ;;
+powerpc64le-*)
+  targ_obj=powerpc
+  targ_machine=EM_PPC64
+  targ_size=64
+  targ_extra_size=32
+  targ_big_endian=false
+  targ_extra_big_endian=true
+  ;;
+armeb*-*-*|armbe*-*-*)
+ targ_obj=arm
+ targ_extra_obj=arm-reloc-property
+ targ_machine=EM_ARM
+ targ_size=32
+ targ_big_endian=true
+ targ_extra_big_endian=false
+ ;;
+arm*-*-*)
+ targ_obj=arm
+ targ_extra_obj=arm-reloc-property
+ targ_machine=EM_ARM
+ targ_size=32
+ targ_big_endian=false
+ targ_extra_big_endian=true
+ ;;
+aarch64*-*)
+ targ_obj=aarch64
+ targ_extra_obj=aarch64-reloc-property
+ targ_machine=EM_AARCH64
+ targ_size=64
+ targ_extra_size=32
+ targ_big_endian=false
+ targ_extra_big_endian=true
+ ;;
+mips*el*-*-*|mips*le*-*-*)
+ targ_obj=mips
+ targ_machine=EM_MIPS_RS3_LE
+ targ_size=32
+ targ_big_endian=false
+ targ_extra_big_endian=true
+ ;;
+mips*-*-*)
+ targ_obj=mips
+ targ_machine=EM_MIPS
+ targ_size=32
+ targ_big_endian=true
+ targ_extra_big_endian=false
+ ;;
+s390-*-*)
+ targ_obj=s390
+ targ_machine=EM_S390
+ targ_size=32
+ targ_big_endian=true
+ targ_extra_big_endian=false
+ ;;
+s390x-*-*)
+ targ_obj=s390
+ targ_machine=EM_S390
+ targ_size=64
+ targ_big_endian=true
+ targ_extra_big_endian=false
+ ;;
+*)
+  targ_obj=UNKNOWN
+  ;;
+esac

@@ -1,0 +1,49 @@
+SAX.setDocumentLocator()
+SAX.startDocument()
+SAX.startElement(html)
+SAX.characters(
+  , 3)
+SAX.startElement(body)
+SAX.characters(
+    , 5)
+SAX.startElement(div)
+SAX.characters(
+      , 7)
+SAX.startElement(h3)
+SAX.characters(
+        , 9)
+SAX.startElement(a, href='https://html.spec.whatwg.org/multipage/parsing.html#parse-error-abrupt-closing-of-empty-comment')
+SAX.characters(
+          Abruptly closed com, 43)
+SAX.endElement(a)
+SAX.characters(
+      , 7)
+SAX.endElement(h3)
+SAX.characters(
+      , 7)
+SAX.startElement(div)
+SAX.characters(
+        , 9)
+SAX.error: Comment abruptly endedSAX.comment()
+SAX.characters(the previous node should be an, 86)
+SAX.endElement(div)
+SAX.characters(
+      , 7)
+SAX.startElement(div)
+SAX.characters(
+        , 9)
+SAX.error: Comment abruptly endedSAX.comment()
+SAX.characters(the previous node should be an, 86)
+SAX.endElement(div)
+SAX.characters(
+    , 5)
+SAX.endElement(div)
+SAX.characters(
+  , 3)
+SAX.endElement(body)
+SAX.characters(
+, 1)
+SAX.endElement(html)
+SAX.characters(
+, 1)
+SAX.endDocument()

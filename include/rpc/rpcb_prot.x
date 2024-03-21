@@ -1,6 +1,4 @@
 %/*-
-% * $FreeBSD$
-% *
 % * Copyright (c) 2009, Sun Microsystems, Inc.
 % * All rights reserved.
 % *
@@ -34,8 +32,6 @@
 %/* from rpcb_prot.x */
 
 #ifdef RPC_HDR
-%
-%/* #pragma ident	"@(#)rpcb_prot.x	1.5	94/04/29 SMI" */
 %
 %#ifndef _KERNEL
 %

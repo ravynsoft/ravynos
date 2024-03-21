@@ -1,0 +1,10 @@
+#compdef passwd groups userdel chage chfn
+
+local expl users
+
+if zstyle -a ":completion:${curcontext}:users" users users; then
+  _wanted users expl user compadd "$@" -a - users
+  return
+fi
+
+_wanted users expl user compadd "$@" -k - userdirs

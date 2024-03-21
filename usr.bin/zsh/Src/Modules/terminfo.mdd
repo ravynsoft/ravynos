@@ -1,0 +1,17 @@
+name=zsh/terminfo
+
+link='if test "x$ac_cv_func_tigetflag" = xyes -a x$zsh_cv_path_curses_header != xnone; then
+          if test "x$zsh_cv_shared_tigetstr" = xyes; then
+	      echo either
+	  else
+	      echo static
+	  fi
+      else
+          echo no;
+      fi
+'
+load=yes
+
+autofeatures="b:echoti p:terminfo"
+
+objects="terminfo.o"

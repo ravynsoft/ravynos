@@ -1,0 +1,66 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify that msgcat doesn't introduce alternative syntax if all translations
+# have the same msgstr.
+
+cat <<EOF > mcat-test1.in1
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: first.c:123
+msgid "1"
+msgstr "eins"
+EOF
+
+cat <<EOF > mcat-test1.in2
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:759
+msgid "1"
+msgstr "eins"
+EOF
+
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test1.tmp mcat-test1.in1 mcat-test1.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test1.tmp > mcat-test1.out || Exit 1
+
+cat << EOF > mcat-test1.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: first.c:123 hunt.c:759
+msgid "1"
+msgstr "eins"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test1.ok mcat-test1.out
+result=$?
+
+exit $result

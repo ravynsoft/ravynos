@@ -1,0 +1,76 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+r=/; declare -n r ; unset r
+declare -n r=/ ; unset -n r
+declare -n r; r=/ ; unset -n r
+declare -n r; declare r=/ ; unset -n r
+declare -n r; for r in /; do :; done ; unset -n r
+declare -n r; select r in /; do :; done <<< 1; echo x; echo $r ; unset -n r
+declare -n r; ((r=0)) ; unset -n r
+((r=0)); declare -n r ; unset -n r
+r=/ declare -n r ; unset -n r
+f() { declare -n r; }; r=/ f ; unset r
+f() { echo $r; }; declare -n r; r=/ f ; unset -n r
+declare -n r; : ${r:=/} ; unset -n r
+declare -n r; exec {r}>/dev/null ; unset -n r
+declare -n r; coproc r { :; }; echo $r ; unset r ; wait
+declare -r RO=x; r=$RO; declare -n r; x=y; declare -n RO; RO=z; declare -p RO; echo "$RO"
+s=/; declare -n r=s; declare -n s; echo $r ; unset -n r ; unset -n s
+declare -n r=s; declare -n s; s=/ ; unset -n r; unset -n s
+declare -n r; getopts x r -h ; unset r; unset -n r
+declare -n r; mapfile r < /dev/null ; declare -p r; unset r ; unset -n r
+mapfile r < /dev/null; declare -n r ; unset r ; unset -n r
+declare -n r; printf -v r / ; unset -n r
+
+declare -n r; r="" ; unset -n r
+declare -n r="" ; unset -n r
+declare -n r; : ${r=} ; unset -n r
+declare -n r; printf -v r '' ; unset -n r
+r=""; declare -n r ; unset -n r
+export r
+
+# coproc tests, since coproc sets and unsets variables
+declare -r ROVAR=42
+declare -p ROVAR; coproc ROVAR { :; }; wait; declare -p ROVAR
+
+echo ${@:0}; coproc @ { :; }; wait ; echo ${@:0}
+
+declare -n ref=x; coproc ref { :; }; wait ; declare -p ref
+unset -n ref ; unset ref
+
+declare -r RO RO_PID; coproc RO { :; }; declare -p RO_PID; wait; declare -p RO RO_PID
+
+declare -r RO2=a; declare -n ref_PID=RO2; coproc ref { :; }; wait; declare -p RO2
+
+unset x y
+set -- one two three
+
+y=2
+typeset -n x=y
+echo ${x}
+
+unset -n x
+
+typeset -n y
+echo $y
+
+unset -n y
+
+typeset -n y
+y=2
+echo ${y}
+
+declare -n foo=bar
+echo ${!foo[2]}
+echo ${!bar}

@@ -1,0 +1,97 @@
+#compdef vncserver vncviewer xvncviewer xtightvncviewer xvnc4viewer
+
+local displays args
+displays=( ~/.vnc/$HOST:<->.pid(N:r:t:s/$HOST//) )
+displays=( \\${^displays} ) 
+
+case $service in
+  vncserver)
+    # currently missing: bc, c, nologo, r, ttyxx, v
+    # Don't know values for -nolisten (other than tcp).
+    _arguments \
+      - start \
+	'-name:desktop name:_x_name' \
+	'-a[mouse acceleration (pixels)]:#:' \
+	'-ac[disable access control restrictions]' \
+	'-audit[set audit trail level]:int:' \
+	'-auth[select authorization file]:file:_files' \
+	'-bs[disable any backing store support]' \
+	'-c[turns off key-click]' \
+	'-cc[default color visual class]:int:' \
+	'-co[color database file]:file:_files' \
+	'-core[generate core dump on fatal error]' \
+	'-dpi[screen resolution in dots per inch]:int:' \
+	'-deferglyphs[defer loading of glyphs]:type:(none all 16)' \
+	'-f[bell base]:level (0-100):' \
+	'-fc[cursor font]:string:' \
+	'-fn[default font name]:string:' \
+	'-fp[default font path]:string:' \
+	'-help[prints message with these options]' \
+	'-I[ignore all remaining arguments]' \
+	'-ld[limit data space to N Kb]:int:' \
+	'-lf[limit number of open files to N]:int:' \
+	'-ls[limit stack space to N Kb]:int:' \
+	'-nolock[disable the locking mechanism]' \
+	'-logo[enable logo in screen saver]' \
+	"-nolisten[don't listen on protocol]:protocol:(tcp)" \
+	'-p[screen-saver pattern duration (minutes)]:time (minutes):' \
+	'-pn[accept failure to listen on all ports]' \
+	'-nopn[reject failure to listen on all ports]' \
+	'-r[turns off auto-repeat]' \
+	'-s[screen-saver timeout (minutes)]:timeout (minutes):' \
+	'-su[disable any save under support]' \
+	'-t[mouse threshold]:pixels:' \
+	'-terminate[terminate at server reset]' \
+	'-to[connection time out]:time:' \
+	'-tst[disable testing extensions]' \
+	'-v[screen-saver without video blanking]' \
+	'-wm[WhenMapped default backing-store]' \
+	'-x[loads named extension at init time ]:string:' \
+	'-query[contact named host for XDMCP]:host-name:_hosts' \
+	'-broadcast[broadcast for XDMCP]' \
+	'-indirect[contact named host for indirect XDMCP]:host-name:_hosts' \
+	'-port[UDP port number to send messages to]:port:' \
+	'-once[Terminate server after one session]' \
+	'-class[specify display class to send in manage]:display-class:' \
+	'-cookie[specify the magic cookie for XDMCP]:xdm-auth-bits:' \
+	'-displayID[manufacturer display ID for request]:display-id:' \
+	'-geometry:geometry:(1600x1200 1280x1024 1152x864 1024x768 800x600 640x480)' \
+	'-depth:pixel depth:(8 16 24 32)' \
+	'-pixelformat:pixel format' \
+	'-udpinputport[UDP port for keyboard/pointer data]:port:' \
+	'-rfbport[TCP port for RFB protocol]:port:' \
+	'-rfbwait[max time in ms to wait for RFB client]:time:' \
+	"-nocursor[don't put up a cursor]" \
+	'-rfbauth[use authentication on RFB protocol]:passwd-file:_files' \
+	'-httpd[serve files via HTTP from here]:dir:_files -/' \
+	'-httpport[port for HTTP]:port:' \
+	'-deferupdate[specify time to defer updates by]:time (ms) [40]' \
+	'-economictranslate[less memory-hungry translation]' \
+	'-lazytight[disable "gradient" filter in tight encoding]' \
+	'-desktop[specify VNC desktop name]:name [x11]' \
+	'-alwaysshared[always treat new clients as shared]' \
+	'-nevershared[never treat new clients as shared]' \
+	"-dontdisconnect[don't disconnect existing clients for new non-shared connections]" \
+	'-viewonly[let clients only to view the desktop]' \
+	'-localhost[only allow connections from localhost]' \
+	'-interface[only bind to specified interface address]:ipaddr:' \
+	'-inetd[Xvnc is launched by inetd]' \
+	'-compatiblekbd[set META key = ALT key as in the original VNC]' \
+	'-version[report Xvnc version on stderr]' \
+	'1:: :_guard "(|:[0-9]#)" "display number"' \
+      - kill \
+	"-kill:display number:($displays)" \
+      - help \
+	'-help'
+  ;;
+  *vncviewer) 
+    _xt_arguments -shared -viewonly -fullscreen -bgr233 -owncmap -truecolour \
+      '-encodings: :_values -s " " encoding copyrect hextile corre rre raw' \
+      '-depth:depth' \
+      '-passwd:file:_files' \
+      '(1)-listen:display number' \
+      '-via:host:_hosts' \
+      '(-listen)1::display:_x_display'
+  ;;
+esac
+    

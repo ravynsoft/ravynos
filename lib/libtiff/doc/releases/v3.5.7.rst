@@ -1,0 +1,219 @@
+Changes in TIFF v3.5.7
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.5.7 (:tag:`Release-v3-5-7`)
+  Previous Version        :doc:`v3.5.6beta <v3.5.6beta>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* :file:`libtiff/libtiff.def`: Brent Roman submitted new version adding
+  several missing entry points.  Also add a few other entry points
+  later.
+
+* :file:`configure`, :file:`Makefile.in`, etc: added support for ``OPTIMIZER`` being
+  set from :file:`config.site`.
+* :file:`config.guess`: updated wholesale to an FSF version apparently
+  from 1998 (as opposed to 1994).  This is mainly inspired by 
+  providing for MacOS X support.
+
+* :file:`configure/config.site`: modified to check if ``-lm`` is needed for
+  ``MACHDEPLIBS`` if not supplied by :file:`config.site`.  Needed for Darwin.
+* :file:`libtiff/tiff.h`: Applied hack to try and resolve the problem
+  with the :file:`inttypes.h` include file on AIX. (bug :bugzilla-rs:`39`)
+
+* :file:`configure`, :file:`*Makefile.in`: Various changes to improve configuration
+  for HP/UX specifically, and also in general.  (bug :bugzilla-rs:`40`) They include:
+
+   * Try to handle :program:`/usr/bin/sh` instead of :program:`/bin/sh` where necessary.
+   * Upgrade to HP/UX 10.x+ compiler, linker and dso options.
+   * Fixed :c:func:`mmap` test to avoid ``MMAP_FIXED`` ... it isn't available on HP
+   * Use ``-${MAKEFLAGS}`` in sub makes from makefiles.
+   * Fixed ``SCRIPT_SH``/``SHELL`` handling.
+
+* :file:`configure`: Changes for DSO generation on AIX provided by
+  `John Marquart <jomarqua@indiana.edu>`_.
+
+* :file:`configure`, :file:`libtiff/Makefile.in`: Modified to build DSOs properly
+  on Darwin thanks to `Robert Krajewski <rpk@alum.mit.edu>`_ and
+  `Keisuke Fujii <fujiik@jlcuxf.kek.jp>`_.
+
+* :file:`configure`, :file:`libtiff/Makefile.in`: applied OpenBSD patches as per bug :bugzilla-rs:`61`.
+
+* :file:`Makefile.in`: added ``DESTDIR`` support as per bug :bugzilla-rs:`60`.
+
+* :file:`libtiff/tif_jpeg.c`: Define :c:macro:`HAVE_BOOLEAN` on windows if :file:`RPCNDR.H`
+  has been included.
+* :file:`man/Makefile.in`: add :c:func:`TIFFClientOpen` link as per debian submitted
+  bug :bugzilla-rs:`66`.
+* :file:`libtiff/Makefile.in`: Fixed ``@DSOSUB_VERSION`` to be ``@DSOSUF_VERSION@``
+  in two places.
+
+
+Library changes
+---------------
+
+* :file:`tif_fax3.c`: keep :c:var:`rw_mode` flag internal to fax3 state to remember
+  whether we are encoding or decoding.  This is to ensure graceful 
+  recovery if :c:func:`TIFFClientOpen` discovers an attempt to open a compressed
+  file for "``r+``" access, and subsequently close it, as it resets the
+  :c:member:`tif_mode` flag to ``O_RDONLY`` in this case to avoid writes, confusing the
+  compressor's concept of whether it is in encode or decode mode.
+
+* :file:`tif_luv.c`, :file:`tiff.h`, :file:`tiffio.h`:
+  New version of TIFF LogLuv (SGILOG) modules contributed by `Greg Ward
+  <greg@shutterfly.com>`_.  He writes:
+
+  * I improved the gamut-mapping function in :file:`tif_luv.c` for imaginary
+    colors, because some images were being super-saturated on the input
+    side and this resulted in some strange color shifts in the output.
+
+  * I added a psuedotag in :file:`tiff.h` to control random dithering during
+    LogLuv encoding.  This is turned off by default for 32-bit LogLuv and
+    on for 24-bit LogLuv output.  Dithering improves the average color
+    accuracy over the image.
+
+  * I added a ``#define`` for :c:macro:`LOG_LUV_PUBLIC`, which is enabled by default in
+    :file:`tiffio.h`, to expose internal routines for converting between LogLuv and
+    XYZ coordinates.  This is helpful for writing more efficient,
+    specialized conversion routines, especially for reading LogLuv files.
+
+* :file:`libtiff/tif_dirinfo.c`: don't declare :c:var:`tiffFieldInfo` static on VMS.
+
+* Added :c:macro:`TIFFTAG_COPYRIGHT` support.
+
+* :file:`tif_getimage.c`: Added support for 16bit minisblack/miniswhite
+  images in RGBA interface.
+
+* :file:`libtiff/tif_dirinfo.c`: removed duplicate :c:macro:`TIFFTAG_PHOTOSHOP` as per
+  bug :bugzilla-rs:`44`.
+
+* :file:`libtiff/tif_dirwrite.c`: Added support for :c:enumerator:`TIFF_VARIABLE2` in the
+  case of writing :c:enumerator:`TIFF_BYTE`/:c:enumerator:`TIFF_SBYTE` fields as per
+  bug :bugzilla-rs:`43`.
+
+* :file:`libtiff/tif_dirinfo.c`: Modified the :c:enumerator:`TIFF_BYTE` definition for
+  :c:macro:`TIFFTAG_PHOTOSHOP` to use a writecount of :c:enumerator:`TIFF_VARIABLE2` (-3) to
+  force use of :c:type:`uint32` counts instead of :c:expr:`short` counts.
+
+* :file:`libtiff/tif_dirinfo.c`: moved pixar and copyright flags to ensure everything is in order.
+
+* Integrated experimental OJPEG support from Scott Marovich of HP.  
+
+* :file:`libtiff/tif_open.c`: Seek back to zero after failed read, before writing header.
+
+* :file:`libtiff/tiff.h`, :file:`libtiff/tif_fax3.c`: added check for :c:macro:`__LP64__`
+  when checking for 64 bit architectures as per bugzilla bug :bugzilla-rs:`67`.
+
+* :file:`libtiff/tif_getimage.c`: Use :c:func:`memmove` instead of :c:func:`TIFFmemcpy`
+  in :c:func:`TIFFReadRGBATile` to avoid issues in cases of overlapping
+  buffers.  See bug :bugzilla-rs:`69` in Bugzilla.
+
+* :file:`libtiff/tif_getimage.c`: Don't complain for CMYK (separated)
+  images with more than four samples per pixel as per bug :bugzilla-rs:`73`.
+
+* :file:`libtiff/tif_getimage.c`: relax handling of contig case where
+  there are extra samples that are supposed to be ignored as per bug :bugzilla-rs:`75`.  This
+  should now work for 8bit greyscale or paletted images.
+
+* :file:`libtiff/tif_packbits.c`: fixed memory overrun error as per bug :bugzilla-rs:`77`.
+
+* :file:`libtiff/tif_getimage.c`: Fixed problem with reading strips or
+  tiles that don't start on a tile boundary.  Fix contributed by
+  Josep Vallverdu (from HP), and further described in bug :bugzilla-rs:`47`.
+
+* :file:`libtif/tif_fax3.c`: Removed ``#ifdef PURIFY`` logic, and modified to
+  always use the "safe" version, even if there is a very slight
+  cost in performance as per bug :bugzilla-rs:`54`.
+
+* :file:`libtiff/tif_lzw.c`: added dummy :c:func:`LZWSetupEncode` to report an
+  error about LZW not being available.
+
+* :file:`libtiff/tif_dir.c`: propagate failure to initialize compression
+  back from :c:func:`TIFFSetField` as an error status, so applications can
+  detect failure.
+
+* :file:`libtiff/tif_lzw.c`: Avoid MS VC++ 5.0 optimization bug as per bug :bugzilla-rs:`78`.
+
+* :file:`libtiff/tif_dirwrite.c`: added :c:func:`TIFFRewriteDirectory` function.
+  Updated :c:func:`TIFFWriteDirectory` man page to include :c:func:`TIFFRewriteDirectory`.
+
+* :file:`libtiff/tiff.h`: I have created :c:macro:`COMPRESSION_CCITT_T4`,
+  :c:macro:`COMPRESSION_CCITT_T6`, :c:macro:`TIFFTAG_T4OPTIONS` and :c:macro:`TIFFTAG_T6OPTIONS` aliases
+  in keeping with TIFF 6.0 standard in :file:`tiff.h` as per bug :bugzilla-rs:`83`.
+
+* Added :c:macro:`PHOTOMETRIC_ITULAB` as per bug :bugzilla-rs:`90`.
+
+
+Tools changes
+-------------
+
+* Brent Roman contributed updated :program:`tiffcp` utility (and :file:`tiffcp.1`)
+  with support for extracting subimages with the ``,n`` syntax, and also
+  adding the "``-b``" bias removal flag.
+
+* :file:`tiff2ps.c`, :file:`tiff2ps.1`: Substantial changes to :program:`tiff2ps` by
+  Bruce A. Mallett, including a faster encoder, fixes for level
+  2 PostScript, and support for the imagemask operator.
+
+* fax2ps.c: Helge (libtiff at oldach.net) submitted fix
+  that corrects behaviour for non-Letter paper
+  sizes. (bug :bugzilla-rs:`35`) It fixes two problems:
+
+  Without  scaling ("``-S``") the fax is now centered on the page size specified
+  with "``-H``" and/or "``-W``". Before, :program:`fax2ps` was using an obscure and practically
+  useless algorithm to allocate the image relative to Letter sized paper
+  which sometime sled to useless whitespace on the paper, while at the
+  same time cutting of the faxes printable area at the opposite border.
+
+  Second, scaling now preserves aspect ratio, which makes unusual faxes
+  (in particular short ones) print properly.
+
+* :file:`thumbnail.c`: changed default output compression
+  to packbits from LZW since LZW isn't generally available.
+
+* :file:`tiff2rgba.c`: added "``-n``" flag to avoid emitting alpha component. Also added
+  a man page for :program:`tiff2rgba`.
+
+* :file:`tiffcmp.c`: Fixed multi samples per pixel support for :c:func:`ContigCompare`
+  as per bug :bugzilla-rs:`53`.
+  Updated bug section of tiffcmp.1 to note tiled file issues.
+
+* :file:`libtiff/tif_getimage.c`: Fixed so that failure is properly
+  reported by :c:func:`gtTileContig`, :c:func:`gtStripContig`, :c:func:`gtTileSeparate` and
+  :c:func:`gtStripSeparate` as per bug :bugzilla-rs:`51`.
+
+
+Contributed software changes
+----------------------------
+
+* Fixed distribution to include :file:`contrib/addtiffo/tif_ovrcache.c`
+  and :file:`contrib/addtiffo/tif_ovrcache.h`.
+
+
+LZW compression kit changes
+---------------------------
+
+* Rewrote lzw patching process so that is required to enable full
+  LZW support is to drop the :file:`tif_lzw.c` from the
+  ``libtiff-lzw-compression-kit`` over the one in the libtiff directory.
+
+* Some changes were made to make recovery from failure to
+  initialize the LZW compressor more graceful.
+
+* Note that as distributed libtiff support LZW decompression, but
+  not LZW compression. 

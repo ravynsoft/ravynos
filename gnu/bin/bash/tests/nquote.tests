@@ -1,0 +1,142 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+expect()
+{
+        echo expect "$@"
+}
+
+expect '<^J^J^J>'
+recho $'\n\n\n'
+
+expect '<++^J++>'
+f=$'\n'
+recho "++$f++"
+unset f
+
+z1=$''
+expect '<>'
+recho "$z1"
+
+ZIFS=$'\n'$'\t'$' '
+
+expect '<^J^I >'
+recho "$ZIFS"
+
+expect '<abc>'
+recho $'abc'
+
+expect '<^M^[^Gabc>'
+recho $'\r\e\aabc'
+
+D=$"hello"," "$"world"
+
+expect '<hello,> <world>'
+recho $D
+
+expect '<hello, world>'
+recho "$D"
+
+D=$""
+expect '<>'
+recho "$D"
+
+world=chet
+
+expect '<$hello, world>'
+recho \$"hello, world"
+
+expect '<hello, $world>'
+recho $"hello, \$world"
+
+expect '<hello, "world">'
+recho $"hello, \"world\""
+
+expect '<hello, $"world">'
+recho $"hello"', $"world"'
+
+expect '<hello, $"world">'
+recho $'hello, $"world"'
+
+expect '<$hello, chet>'
+recho \$"hello, $world"
+
+expect '<hello, chet>'
+recho $"hello, $world"
+
+z=$'\v\f\a\b'
+case "$z" in
+$'\v\f\a\b')	echo ok;;
+*)		echo bad;;
+esac
+
+# Dave Korn says this should be allowed and echo 'abcd'
+echo $'\'abcd\''
+
+# printf translates \' to ' ...
+printf "\'abcd\'\n"
+
+# but echo -e doesn't
+echo -e "\'abcd\'"
+echo -e "\\'abcd\\'"
+
+# and what do we do about unrecognized escape sequences?
+
+shopt -s xpg_echo
+
+recho $'A\CB'
+
+recho "A\CB"
+
+cde=c
+recho $'ab$cde'
+
+printf "%b\n" 'A\CB'
+printf 'A\CB\n'
+
+echo 'A\CB'
+
+world=chet
+
+recho $'hello, $"world"'
+recho $'hello, \$"world"'
+recho $'hello, $\"world"'
+
+recho "hello, $"world""
+
+# ansi quoting inside double-quoted command subst - bash-3.1 bug
+echo $(set -- $'a b'; echo $#)
+echo "$(set -- $'a b'; echo $#)"
+
+echo "$(echo $';foo')"
+
+args ()
+{
+ for a in "$@";do echo "'$a'";done
+}
+unset mytab
+recho "${mytab:-$'\t'}"
+recho "$( args $'A\tB' )"
+
+# tests for $'...' not being expanded when inside double quotes
+recho $'a\tb\tc'
+recho "$'a\tb\tc'"
+
+# tests for $'...' being expanded in command substitution, and when
+echo "$(echo $'\t\t\101\104\n\105')"
+
+${THIS_SH} ./nquote1.sub
+${THIS_SH} ./nquote2.sub
+${THIS_SH} ./nquote3.sub
+${THIS_SH} ./nquote4.sub
+${THIS_SH} ./nquote5.sub

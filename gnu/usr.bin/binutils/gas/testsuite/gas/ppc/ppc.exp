@@ -1,0 +1,163 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+#
+# Some PowerPC tests
+#
+
+if { ![istarget "powerpc*-*-*"] && ![istarget "rs6000-*-*"] } then {
+    return
+}
+
+proc supports_ppc64 { } {
+    global AS
+    if { [catch "exec $AS -a64 < /dev/null"] } then {
+	return 0
+    } else {
+	return 1
+    }
+}
+
+run_dump_test "bcyerr"
+run_dump_test "bcy"
+run_dump_test "bcaterr"
+run_dump_test "bcat"
+run_dump_test "regnames"
+run_dump_test "regsyms"
+run_dump_test "misalign"
+run_dump_test "misalign2"
+run_dump_test "machine"
+run_dump_test "simpshft"
+run_dump_test "altivec_and_spe"
+run_list_test "range" "-a32"
+run_dump_test "cell"
+
+if { [is_xcoff_format] } then {
+    run_dump_test "test1xcoff32"
+    run_dump_test "test2xcoff32"
+    run_dump_test "altivec_xcoff"
+    run_dump_test "altivec_xcoff64"
+    run_dump_test "groupnop"
+}
+
+# These tests are currently ELF specific, only because nobody has
+# converted them to look for XCOFF relocations.
+if { ![is_elf_format] } then {
+    return
+}
+
+if { [istarget powerpc64*-*-*] || [istarget *-*-elf64*]} then {
+# FIXME: Pass -x to objdump as well as -Dr for astest64 and astest2_64.
+    run_dump_test "astest64"
+    run_dump_test "astest2_64"
+    run_dump_test "test1elf64"
+    run_dump_test "power4"
+    run_list_test "range64" "-a64"
+} else {
+    run_dump_test "astest"
+    run_dump_test "astest2"
+    run_dump_test "test1elf32"
+}
+
+run_dump_test "common"
+run_dump_test "476"
+run_dump_test "a2"
+run_dump_test "be"
+run_dump_test "le_error"
+run_dump_test "pr21303"
+run_dump_test "vle"
+run_dump_test "vle-reloc"
+run_dump_test "vle-simple-1"
+run_dump_test "vle-simple-2"
+run_dump_test "vle-simple-3"
+run_dump_test "vle-simple-4"
+run_dump_test "vle-simple-5"
+run_dump_test "vle-simple-6"
+run_dump_test "vle-mult-ld-st-insns"
+run_dump_test "se_rfmci"
+run_dump_test "se_rfmci_bad"
+run_dump_test "lsp"
+run_dump_test "lsp-checks"
+run_dump_test "efs"
+run_dump_test "efs2"
+run_dump_test "spe2"
+run_dump_test "spe2-checks"
+run_dump_test "spe"
+run_dump_test "spe_ambiguous"
+run_dump_test "altivec"
+run_dump_test "altivec2"
+run_dump_test "altivec3"
+run_dump_test "broadway"
+run_dump_test "booke"
+run_dump_test "groupnop"
+run_dump_test "e500"
+run_list_test "e500-ill" "-me500"
+run_dump_test "ppc750ps"
+run_dump_test "e500mc"
+run_dump_test "e6500"
+run_dump_test "e500mc64_nop"
+run_dump_test "e5500_nop"
+run_dump_test "e6500_nop"
+run_dump_test "power4_32"
+run_dump_test "power5"
+run_dump_test "power6"
+run_dump_test "power6-dfp"
+run_dump_test "power7"
+run_dump_test "power8"
+run_dump_test "power9"
+run_dump_test "power10"
+run_dump_test "vsx"
+run_dump_test "vsx2"
+run_dump_test "vsx3"
+run_dump_test "vsx4"
+run_dump_test "htm"
+run_dump_test "titan"
+run_dump_test "prefix-align"
+run_dump_test "prefix-pcrel"
+if { [supports_ppc64] } then {
+    run_dump_test "prefix-reloc"
+}
+run_dump_test "byte_rev"
+run_dump_test "vec_mul"
+run_dump_test "vsx_32byte"
+run_dump_test "int128"
+run_dump_test "simd_perm"
+run_dump_test "outerprod"
+run_dump_test "maskmanip"
+run_dump_test "genpcv"
+run_dump_test "bitmanip"
+run_dump_test "set_bool"
+run_dump_test "stringop"
+run_dump_test "xvtlsbb"
+run_dump_test "rightmost"
+run_dump_test "scalarquad"
+run_dump_test "rop"
+run_dump_test "rop-checks"
+run_dump_test "rfc02653"
+run_dump_test "rfc02655"
+run_dump_test "rfc02656"
+run_dump_test "rfc02658"
+run_dump_test "future-raw"
+
+run_dump_test "dcbt"
+run_dump_test "pr27676"
+run_dump_test "raw"
+
+run_dump_test "setvl"
+run_dump_test "svstep"
+run_dump_test "svshape"
+run_dump_test "svremap"
+run_dump_test "svindex"

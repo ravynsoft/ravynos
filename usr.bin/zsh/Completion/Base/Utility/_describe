@@ -1,0 +1,140 @@
+#autoload
+
+# ### Note: Calling this function twice during one completion operation, such
+# ### that in each call there exists a pair of items having the same description
+# ### as each other, and the two calls specify the same $_type, currently leads
+# ### to garbled output; see workers/35229 (May 2015) and its thread (which also
+# ### discusses at least two other issues, that may or may not be related to
+# ### this one).
+
+# This can be used to add options or values with descriptions as matches.
+
+local _opt _expl _tmpm _tmpd _mlen _noprefix
+local _type=values _descr _ret=1 _showd _nm _hide _args _grp _sep
+local csl="$compstate[list]" csl2
+local _oargv _argv _new _strs _mats _opts _i _try=0
+local OPTIND OPTARG
+local -a _jvx12
+
+# Get the option.
+
+while getopts "oOt:12JVx" _opt; do
+  case $_opt in
+    (o)
+      _type=options;;
+    (O)
+      _type=options
+      _noprefix=1
+      ;;
+    (t)
+      _type="$OPTARG"
+      ;;
+    (1|2|J|V|x)
+      _jvx12+=(-$_opt)
+  esac
+done
+shift $(( OPTIND - 1 ))
+unset _opt
+
+[[ "$_type$_noprefix" = options && ! -prefix [-+]* ]] && \
+    zstyle -T ":completion:${curcontext}:options" prefix-needed &&
+        return 1
+
+# Do the tests. `showd' is set if the descriptions should be shown.
+
+zstyle -T ":completion:${curcontext}:$_type" verbose && _showd=yes
+
+zstyle -s ":completion:${curcontext}:$_type" list-separator _sep || _sep=--
+zstyle -s ":completion:${curcontext}:$_type" max-matches-width _mlen ||
+    _mlen=$((COLUMNS/2))
+
+_descr="$1"
+shift
+
+if [[ -n "$_showd" ]] &&
+   zstyle -T ":completion:${curcontext}:$_type" list-grouped; then
+  _oargv=( "$@" )
+  _grp=(-g)
+else
+  _grp=()
+fi
+
+[[ "$_type" = options ]] &&
+    zstyle -t ":completion:${curcontext}:options" prefix-hidden &&
+        _hide="${(M)PREFIX##(--|[-+])}"
+
+_tags "$_type"
+while _tags; do
+  while _next_label $_jvx12 "$_type" _expl "$_descr"; do
+
+    if (( $#_grp )); then
+  
+      set -- "$_oargv[@]"
+      _argv=( "$_oargv[@]" )
+      _i=1
+      (( _try++ ))
+      while (( $# )); do
+    
+        _strs="_a_$_try$_i"
+        if [[ "$1" = \(*\) ]]; then
+          eval local "_a_$_try$_i;_a_$_try$_i"'='$1
+        else
+          eval local "_a_$_try$_i;_a_$_try$_i"'=( "${'$1'[@]}" )'
+        fi
+        _argv[_i]="_a_$_try$_i"
+        shift
+        (( _i++ ))
+    
+        if [[ "$1" = (|-*) ]]; then
+          _mats=
+        else
+          _mats="_a_$_try$_i"
+          if [[ "$1" = \(*\) ]]; then
+            eval local "_a_$_try$_i;_a_$_try$_i"'='$1
+          else
+            eval local "_a_$_try$_i;_a_$_try$_i"'=( "${'$1'[@]}" )'
+          fi
+          _argv[_i]="_a_$_try$_i"
+          shift
+          (( _i++ ))
+        fi
+    
+        _opts=( "${(@)argv[1,(i)--]:#--}" )
+        shift "$#_opts"
+        (( _i += $#_opts ))
+        if [[ $1 == -- ]]; then
+          shift
+          (( _i++ ))
+        fi
+    
+        if [[ -n $_mats ]]; then
+          compadd "$_opts[@]" -2 -o nosort "${_expl[@]}" -D $_strs -O $_mats - \
+                  "${(@)${(@M)${(@P)_mats}##([^:\\]|\\?)##}//\\(#b)(?)/$match[1]}"
+        else
+          compadd "$_opts[@]" -2 -o nosort "${_expl[@]}" -D $_strs - \
+                  "${(@)${(@M)${(@P)_strs}##([^:\\]|\\?)##}//\\(#b)(?)/$match[1]}"
+        fi
+      done
+      set - "$_argv[@]"
+    fi
+
+    if [[ -n "$_showd" ]]; then
+      compdescribe -I "$_hide" "$_mlen" "$_sep " _expl "$_grp[@]" "$@"
+    else
+      compdescribe -i "$_hide" "$_mlen" "$@"
+    fi
+
+    compstate[list]="$csl"
+
+    while compdescribe -g csl2 _args _tmpm _tmpd; do
+
+      compstate[list]="$csl $csl2"
+      [[ -n "$csl2" ]] && compstate[list]="${compstate[list]:s/rows//}"
+
+      compadd "$_args[@]" -d _tmpd -a _tmpm && _ret=0
+    done
+  done
+  (( _ret )) || return 0
+done
+
+return 1

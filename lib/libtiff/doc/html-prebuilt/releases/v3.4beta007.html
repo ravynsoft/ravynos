@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.4beta016 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Changes in TIFF v3.4beta016" href="v3.4beta016.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.4beta016.html" title="Changes in TIFF v3.4beta016"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.4beta016</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-4beta016">
+<h1>Changes in TIFF v3.4beta016<a class="headerlink" href="#changes-in-tiff-v3-4beta016" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.4beta016 (no release tag)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p>v3.4beta004 (no references to earlier releases exist)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="ftp://ftp.sgi.com/graphics/tiff/">ftp://ftp.sgi.com/graphics/tiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>bit order was corrected for Pentium systems</p></li>
+<li><p>a new define, <code class="xref c c-macro docutils literal notranslate"><span class="pre">HOST_BIGENDIAN</span></code>, was added for code that
+wants to statically use information about native cpu byte order</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>the G3/G4 decoder was replaced by a new one that is faster and
+has smaller state tables</p></li>
+<li><p>Niles Ritter’s client tag extension hooks were added</p></li>
+<li><p>a new routine <a class="reference internal" href="../functions/TIFFquery.html#c.TIFFCurrentDirOffset" title="TIFFCurrentDirOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirOffset()</span></code></a> was added for
+applications that want to find out the file offset of a TIFF directory</p></li>
+<li><p>the calculation of the number of strips in an image was corrected
+for images with certain esoteric configurations</p></li>
+<li><p>a potential memory leak (very unlikely) was plugged</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">TIFFReadRGBAImage</span></code> support was completely rewritten
+and new, more flexible support was added for reading images into
+a fixed-format raster</p></li>
+<li><p>YCbCr to RGB conversion done in the <a class="reference internal" href="../functions/TIFFReadRGBAImage.html#c.TIFFReadRGBAImage" title="TIFFReadRGBAImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAImage()</span></code></a> support
+was optimized</p></li>
+<li><p>a bug in JPEG support calculation of strip size was corrected</p></li>
+<li><p>the LZW decoder was changed to initialize the code table to zero
+to lessen potential problems that arise when invalid data is decoded</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">tiffcomp.h()</span></code> is now aware of OS/2</p></li>
+<li><p>some function prototypes in <code class="file docutils literal notranslate"><span class="pre">tiffio.h</span></code> and <code class="file docutils literal notranslate"><span class="pre">tiffiop.h</span></code>
+that contained parameter names have been changed to avoid complaints
+from certain compilers</p></li>
+</ul>
+</section>
+<section id="portability-support-changes">
+<h2>Portability support changes<a class="headerlink" href="#portability-support-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">Makefile.in</span></code> has been corrected to use the parameters
+chosen by the <strong class="program">configure</strong> script</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">fax2ps</strong> has been rewritten and moved over from the user
+contributed software</p></li>
+<li><p>an uninitialized variable in <strong class="program">pal2rgb</strong> has been fixed</p></li>
+<li><p><strong class="program">ras2tiff</strong> now converts 24-bit RGB raster data so that
+samples are written in the proper order</p></li>
+<li><p><strong class="program">tiff2ps</strong> has been updated to include fixes
+and enhancements from Alberto Accomazzi</p></li>
+<li><p><strong class="program">tiffcp</strong> now has a “<code class="docutils literal notranslate"><span class="pre">-o</span></code>” option to select a directory
+by file offset</p></li>
+<li><p><strong class="program">tiffinfo</strong> is now capable of displaying the raw undecoded
+image data in a file</p></li>
+<li><p><strong class="program">tiffgt</strong> has been rewritten to use the new <code class="docutils literal notranslate"><span class="pre">TIFFRGBAImage</span></code>
+support and to handle multiple files</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.4beta016</a><ul>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#portability-support-changes">Portability support changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.4beta016.html"
+                          title="previous chapter">Changes in TIFF v3.4beta016</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.4beta007.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.4beta016.html" title="Changes in TIFF v3.4beta016"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.4beta016</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

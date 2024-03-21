@@ -1,0 +1,6 @@
+# source: nonstatic-var-section-ld-r-ctf.c
+# link: on
+# link_flags: -Wl,--ctf-variables
+foo is of type [0-9a-f]*
+Cannot look up bar: No type information available for symbol.
+foo missing from the data object section

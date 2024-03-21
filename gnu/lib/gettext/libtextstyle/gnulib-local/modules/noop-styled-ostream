@@ -1,0 +1,45 @@
+Description:
+Output stream with no-op styling.
+
+Files:
+lib/noop-styled-ostream.oo.h
+lib/noop-styled-ostream.oo.c
+
+Depends-on:
+styled-ostream
+stdbool
+xalloc
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += noop-styled-ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/noop-styled-ostream.h : $(top_srcdir)/build-aux/moopp noop-styled-ostream.oo.h noop-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/noop-styled-ostream.oo.c $(srcdir)/noop-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
+$(srcdir)/noop-styled-ostream.c $(srcdir)/noop_styled_ostream.priv.h $(srcdir)/noop_styled_ostream.vt.h : noop-styled-ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf noop-styled-ostream.lock' 1 2 13 15; \
+	  if mkdir noop-styled-ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/noop-styled-ostream.oo.c $(srcdir)/noop-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/noop-styled-ostream.oo.c $(srcdir)/noop-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf noop-styled-ostream.lock; exit $$result; \
+	  else \
+	    while test -d noop-styled-ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/noop-styled-ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += noop-styled-ostream.h noop-styled-ostream.c noop_styled_ostream.priv.h noop_styled_ostream.vt.h
+MAINTAINERCLEANFILES += noop-styled-ostream.h noop-styled-ostream.c noop_styled_ostream.priv.h noop_styled_ostream.vt.h
+EXTRA_DIST += noop-styled-ostream.h noop-styled-ostream.c noop_styled_ostream.priv.h noop_styled_ostream.vt.h
+
+Include:
+"noop-styled-ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

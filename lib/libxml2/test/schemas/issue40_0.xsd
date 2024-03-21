@@ -1,0 +1,10 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="aaa_ns" xmlns="http://www.w3.org/1999/XSL/Transform">
+	<xsd:element name="aaa">
+		<xsd:complexType>
+			<xsd:choice>
+				<xsd:any namespace="##other" processContents="skip" />
+				<xsd:any namespace="##local" processContents="skip" />
+			</xsd:choice>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

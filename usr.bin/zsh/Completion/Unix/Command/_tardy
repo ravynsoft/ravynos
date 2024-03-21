@@ -1,0 +1,30 @@
+#compdef tardy
+
+_arguments \
+  '-Block_Size:number:' \
+  '-Clean_Meta' \
+  '-Clean_Print' \
+  '-Clean_Space' \
+  '-Clean' \
+  '-DownCase' \
+  '-Group:group:_groups' \
+  '-Group_NAme:group:_groups' \
+  '-Group_NUmber:group:_groups' \
+  '-Help' \
+  '-Input_ForMaT:input format:(tar list)' \
+  '-List' \
+  '-No_Directories' \
+  '-Mode_Clear:bits:' \
+  '-Mode_Set:bits:' \
+  '-Now' \
+  '-Old_Type' \
+  '-Output_ForMaT:output format:(ustar tar-bsd cpio cpio-old-ascii v7)' \
+  '-Prefix:string:' \
+  '-PROgress' \
+  '-Remove_Prefix:number or string:' \
+  '-UpCase' \
+  '-User:user:_users' \
+  '-User_NAme:user:_users' \
+  '-User_NUmber:user:_users' \
+  '-VERSion' \
+  '*:file:_files'

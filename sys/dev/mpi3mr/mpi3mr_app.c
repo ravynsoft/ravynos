@@ -41,7 +41,6 @@
  * Broadcom Inc. (Broadcom) MPI3MR Adapter FreeBSD
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/proc.h>
 #include <cam/cam.h>
@@ -336,7 +335,7 @@ mpi3mr_app_build_nvme_prp(struct mpi3mr_softc *sc,
 	sc->nvme_encap_prp_sz = 0;
 	if (bus_dma_tag_create(sc->mpi3mr_parent_dmat,		/* parent */
 				4, 0,				/* algnmnt, boundary */
-				BUS_SPACE_MAXADDR_32BIT,	/* lowaddr */
+				sc->dma_loaddr,			/* lowaddr */
 				BUS_SPACE_MAXADDR,		/* highaddr */
 				NULL, NULL,			/* filter, filterarg */
 				dev_pgsz,			/* maxsize */
@@ -358,7 +357,7 @@ mpi3mr_app_build_nvme_prp(struct mpi3mr_softc *sc,
 	bzero(sc->nvme_encap_prp_list, dev_pgsz);
 	bus_dmamap_load(sc->nvme_encap_prp_list_dmatag, sc->nvme_encap_prp_list_dma_dmamap,
 			sc->nvme_encap_prp_list, dev_pgsz, mpi3mr_memaddr_cb, &sc->nvme_encap_prp_list_dma,
-			0);
+			BUS_DMA_NOWAIT);
 	
 	if (!sc->nvme_encap_prp_list) {
 		printf(IOCNAME "%s:%d Cannot load ioctl NVME dma memory for size: %d\n", sc->name,
@@ -544,6 +543,7 @@ static int mpi3mr_map_data_buffer_dma(struct mpi3mr_softc *sc,
 {
 	U16 i, needed_desc = (dma_buffers->kern_buf_len / MPI3MR_IOCTL_SGE_SIZE);
 	U32 buf_len = dma_buffers->kern_buf_len, copied_len = 0;
+	int error;
 	
 	if (dma_buffers->kern_buf_len % MPI3MR_IOCTL_SGE_SIZE)
 		needed_desc++;
@@ -559,6 +559,7 @@ static int mpi3mr_map_data_buffer_dma(struct mpi3mr_softc *sc,
 	if (!dma_buffers->dma_desc)
 		return -1;
 
+	error = 0;
 	for (i = 0; i < needed_desc; i++, desc_count++) {
 
 		dma_buffers->dma_desc[i].addr = sc->ioctl_sge[desc_count].addr;
@@ -573,11 +574,18 @@ static int mpi3mr_map_data_buffer_dma(struct mpi3mr_softc *sc,
 		memset(dma_buffers->dma_desc[i].addr, 0, sc->ioctl_sge[desc_count].size);
 
 		if (dma_buffers->data_dir == MPI3MR_APP_DDO) {
-			copyin(((U8 *)dma_buffers->user_buf + copied_len),
+			error = copyin(((U8 *)dma_buffers->user_buf + copied_len),
 			       dma_buffers->dma_desc[i].addr,
 			       dma_buffers->dma_desc[i].size);
+			if (error != 0)
+				break;
 			copied_len += dma_buffers->dma_desc[i].size;
 		}
+	}
+	if (error != 0) {
+		printf("%s: DMA copyin error %d\n", __func__, error);
+		free(dma_buffers->dma_desc, M_MPI3MR);
+		return -1;
 	}
 
 	dma_buffers->num_dma_desc = needed_desc;

@@ -1,4 +1,3 @@
-#	@(#)Makefile	8.1 (Berkeley) 6/18/93
 
 .include <src.opts.mk>
 
@@ -471,7 +470,6 @@ MAN=	aac.4 \
 	rtnetlink.4 \
 	rtsx.4 \
 	rtw88.4 \
-	rtw88fw.4 \
 	rtwn.4 \
 	rtwnfw.4 \
 	rtwn_pci.4 \

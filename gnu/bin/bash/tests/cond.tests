@@ -1,0 +1,232 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# the test/[ code is tested elsewhere, and the [[...]] just uses the same
+# code.  this tests the special features of [[...]]
+#
+TDIR=/usr/homes/chet
+
+# this one is straight out of the ksh88 book
+[[ foo > bar && $PWD -ef . ]]
+echo returns: $?
+
+# [[ x ]] is equivalent to [[ -n x ]]
+[[ x ]]
+echo returns: $?
+
+# [[ ! x ]] is equivalent to [[ ! -n x ]]
+[[ ! x ]]
+echo returns: $?
+
+# ! binds tighter than test/[ -- it binds to a term, not an expression
+[[ ! x || x ]]
+echo returns: $?
+
+# ! toggles on and off rather than just setting an `invert result' flag
+# this differs from ksh93
+[[ ! 1 -eq 1 ]]; echo $?
+[[ ! ! 1 -eq 1 ]]; echo $?
+
+[[ ! ! ! 1 -eq 1 ]]; echo $?
+[[ ! ! ! ! 1 -eq 1 ]]; echo $?
+
+# parenthesized terms didn't work right until post-2.04
+[[ a ]]
+echo returns: $?
+
+[[ (a) ]]
+echo returns: $?
+
+[[ -n a ]]
+echo returns: $?
+
+[[ (-n a) ]]
+echo returns: $?
+
+# unset variables don't need to be quoted
+[[ -n $UNSET ]]
+echo returns: $?
+
+[[ -z $UNSET ]]
+echo returns: $?
+
+# the ==/= and != operators do pattern matching
+[[ $TDIR == /usr/homes/* ]]
+echo returns: $?
+
+# ...but you can quote any part of the pattern to have it matched as a string
+[[ $TDIR == /usr/homes/\* ]]
+echo returns: $?
+
+[[ $TDIR == '/usr/homes/*' ]]
+echo returns: $?
+
+# if the first part of && fails, the second is not executed
+[[ -n $UNSET && $UNSET == foo ]]
+echo returns: $?
+
+[[ -z $UNSET && $UNSET == foo ]]
+echo returns: $?
+
+# if the first part of || succeeds, the second is not executed
+[[ -z $UNSET || -d $PWD ]]
+echo returns: $?
+
+# if the rhs were executed, it would be an error
+[[ -n $TDIR || $HOME -ef ${H*} ]]
+echo returns: $?
+
+[[ -n $TDIR && -z $UNSET || $HOME -ef ${H*} ]]
+echo returns: $?
+
+# && has a higher parsing precedence than ||
+[[ -n $TDIR && -n $UNSET || $TDIR -ef . ]]
+echo returns: $?
+
+# ...but expressions in parentheses may be used to override precedence rules
+[[ -n $TDIR || -n $UNSET && $PWD -ef xyz ]]
+echo returns: $?
+
+[[ ( -n $TDIR || -n $UNSET ) && $PWD -ef xyz ]]
+echo returns: $?
+
+# some arithmetic tests for completeness -- see what happens with missing
+# operands, bad expressions, makes sure arguments are evaluated as
+# arithmetic expressions, etc.
+
+unset IVAR A
+[[ 7 -gt $IVAR ]]
+echo returns: $?
+
+[[ $IVAR -gt 7 ]]
+echo returns: $?
+
+IVAR=4
+[[ $IVAR -gt 7 ]]
+echo returns: $?
+
+[[ 7 -eq 4+3 ]]
+echo returns: $?
+
+[[ 7 -eq 4+ ]] 
+echo returns: $? 
+
+IVAR=4+3
+[[ $IVAR -eq 7 ]]
+echo returns: $?
+
+A=7
+[[ $IVAR -eq A ]]
+echo returns: $?
+
+[[ "$IVAR" -eq "7" ]]
+echo returns: $?
+
+A=7
+[[ "$IVAR" -eq "A" ]]
+echo returns: $?
+
+unset IVAR A
+
+# more pattern matching tests
+
+[[ $filename == *.c ]]
+echo returns: $?
+
+filename=patmatch.c
+
+[[ $filename == *.c ]]
+echo returns: $?
+
+# the extended globbing features may be used when matching patterns
+shopt -s extglob
+
+arg=-7
+
+[[ $arg == -+([0-9]) ]]
+echo returns: $?
+
+arg=-H
+
+[[ $arg == -+([0-9]) ]]
+echo returns: $?
+
+arg=+4
+[[ $arg == ++([0-9]) ]]
+echo returns: $?
+
+# make sure the null string is never matched if the string is not null
+STR=file.c
+PAT=
+
+if [[ $STR = $PAT ]]; then
+        echo oops
+fi
+
+# but that if the string is null, a null pattern is matched correctly
+STR=
+PAT=
+
+if [[ $STR = $PAT ]]; then
+        echo ok
+fi
+
+# test the regular expression conditional operator
+[[ jbig2dec-0.9-i586-001.tgz =~ ([^-]+)-([^-]+)-([^-]+)-0*([1-9][0-9]*)\.tgz ]]
+echo ${BASH_REMATCH[1]}
+
+# this shouldn't echo anything
+[[ jbig2dec-0.9-i586-001.tgz =~ \([^-]+\)-\([^-]+\)-\([^-]+\)-0*\([1-9][0-9]*\)\.tgz ]]
+echo ${BASH_REMATCH[1]}
+
+LDD_BASH="       linux-gate.so.1 =>  (0xffffe000)
+       libreadline.so.5 => /lib/libreadline.so.5 (0xb7f91000)
+       libhistory.so.5 => /lib/libhistory.so.5 (0xb7f8a000)
+       libncurses.so.5 => /lib/libncurses.so.5 (0xb7f55000)
+       libdl.so.2 => /lib/libdl.so.2 (0xb7f51000)
+       libc.so.6 => /lib/libc.so.6 (0xb7e34000)
+       /lib/ld-linux.so.2 (0xb7fd0000)"
+
+[[ "$LDD_BASH" =~ "libc" ]] && echo "found 1" 
+echo ${BASH_REMATCH[@]}
+
+[[ "$LDD_BASH" =~ libc ]] && echo "found 2" 
+echo ${BASH_REMATCH[@]}
+
+# bug in all versions up to and including bash-2.05b
+if [[ "123abc" == *?(a)bc ]]; then echo ok 42; else echo bad 42; fi
+if [[ "123abc" == *?(a)bc ]]; then echo ok 43; else echo bad 43; fi
+
+match() { [[ $1 == $2 ]]; }
+match $'? *x\1y\177z' $'??\\*\\x\\\1\\y\\\177\\z' || echo bad 44
+
+foo=""
+[[ bar == *"${foo,,}"* ]] && echo ok 1
+[[ bar == *${foo,,}* ]] && echo ok 2
+
+shopt -s extquote
+bs='\'
+del=$'\177'
+[[ bar == *$bs"$del"* ]] || echo ok 3
+[[ "" == "$foo" ]] && echo ok 4
+[[ "$del" == "${foo,,}" ]] || echo ok 5
+
+# allow reserved words after a conditional command just because
+if [[ str ]] then [[ str ]] fi
+
+${THIS_SH} ./cond-regexp1.sub
+
+${THIS_SH} ./cond-regexp2.sub
+
+${THIS_SH} ./cond-regexp3.sub

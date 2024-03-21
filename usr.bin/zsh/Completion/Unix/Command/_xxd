@@ -1,0 +1,48 @@
+#compdef xxd
+
+local arguments
+
+# Output options compatibility matrix
+#
+# 0 - options conflict
+# 1 - options coexist
+#
+# (The matrix is symmetric, so implied values are not shown.)
+#
+#     bEipru
+#    bx10000
+#    E-x0001
+#    i--x001
+#    p---x11
+#    r----x0
+#    u-----x
+
+# xxd supports either double or single dashes on long options.
+[[ -prefix -- ]] && compset -P -
+
+arguments=(
+  # output options
+  '(-b -bits            -i -include -p -postscript -plain -ps -r -revert -u -uppercase)'{-b,-bits}'[output in binary digits, rather than hex]'
+  '(         -E -EBCDIC -i -include -p -postscript -plain -ps -r -revert              )'{-E,-EBCDIC}'[print human-readable part in EBCDIC rather than ASCII]'
+  '(-i -include -p -postscript -plain -ps -r -revert)'{-e,-endian}'[little-endian dump]'
+  '(-b -bits -E -EBCDIC -i -include -p -postscript -plain -ps -r -revert              )'{-i,-include}'[output in C include file style]'
+  '(-b -bits -E -EBCDIC -i -include -p -postscript -plain -ps -C -capitalize          )'{-p,-postscript,-plain,-ps}'[read or write a plain hexdump (no line numbers or ASCII rendering)]'
+
+  '(-b -bits -E -EBCDIC -i -include                           -r -revert -u -uppercase)'{-r,-revert}'[reverse mode\: read a hex dump and output binary data]'
+  '(-b -bits                                                  -r -revert -u -uppercase)'{-u,-uppercase}'[output upper-case hex digits]'
+
+  '(- :)'{-h,-help}'[display usage message]'
+  '(- :)'{-v,-version}'[show program version]'
+  '*'{-a,-autoskip}"[a single '*' replaces runs of NUL (toggleable)]"
+  '(-C -capitalize)'{-C,-capitalize}'[capitalize variable names in C include file style]'
+  {-c+,-cols}'[specify number of octets per line]: :_guard "[0-9a-fA-Fx]#" "number of octets per line"'
+  {-g+,-groupsize}'[specify the number of octets per group]: :_guard "[0-9]#" "number of octets per group"'
+  {-l+,-len}'[specify number of octets to output]: :_guard "[0-9]#" "number of octets to output"'
+  {-o+,-offset}'[add specified offset to displayed file position]:offset'
+  '-d[show offset in decimal instead of hex]'
+  {-s,-skip,-seek}'[specify file offset to dump from]: :_guard "[0-9]#" "file offset to dump from (absolute or relative)"'
+
+  ': :_files'
+)
+
+_arguments -S $arguments

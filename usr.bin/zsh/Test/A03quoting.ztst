@@ -1,0 +1,85 @@
+%test
+  print 'single  quotes'  "double  quotes"  `echo backquotes`
+0:Simple use of quotes
+>single  quotes double  quotes backquotes
+
+  foo=text
+  print -r '$foo\\\' "$foo\$foo\\\"\``echo bar`\`\"" `print -r $foo\\\``
+0:Quoting inside quotes
+>$foo\\\ text$foo\"`bar`" text`
+
+  print -r $'\'ut queant laxis\'\n"resonare fibris"'
+0:$'-style quotes
+>'ut queant laxis'
+>"resonare fibris"
+
+  print -r $'\'a \\\' is \'a backslash\' is \'a \\\''
+0:$'-style quotes with backslashed backslashes
+>'a \' is 'a backslash' is 'a \'
+
+  chars=$(print -r $'BS\\MBS\M-\\')
+  for (( i = 1; i <= $#chars; i++ )); do
+    char=$chars[$i]
+    print $(( [#16] #char ))
+  done
+0:$'-style quote with metafied backslash
+>16#42
+>16#53
+>16#5C
+>16#4D
+>16#42
+>16#53
+>16#DC
+
+  print -r ''''
+  setopt rcquotes
+# We need to set rcquotes here for the next example since it is
+# needed while parsing.
+0:No RC_QUOTES with single quotes
+>
+
+  print -r ''''
+  unsetopt rcquotes
+0:Yes RC_QUOTES with single quotes
+>'
+# ' Deconfuse Emacs quoting rules
+
+  print '<\u0041>'
+  printf '%s\n' $'<\u0042>'
+  print '<\u0043>'
+  printf '%s\n' $'<\u0044>'
+0:\u in both print and printf
+><A>
+><B>
+><C>
+><D>
+
+  null1="$(print -r a$'b\0c'd)"
+  null2="$(setopt posixstrings; print -r a$'b\0c'd)"
+  for string in $null1 $null2; do
+    print ":"
+    for (( i = 1; i <= $#string; i++ )); do
+      char=$string[$i]
+      print $(( [#16] #char ))
+    done
+  done
+0:Embedded null characters in $'...' strings.
+>:
+>16#61
+>16#62
+>16#0
+>16#63
+>16#64
+>:
+>16#61
+>16#62
+>16#64
+
+ () { print $# } '' "" $''
+0:$'' should not be elided, in common with other empty quotes
+>3
+
+ foo=$'one\\two\n\'buckle\'\tmy\\shoe\n'
+ print -r ${(q+)foo}
+0:Extended minimal quoting of quotes and backslashes
+>$'one\\two\n\'buckle\'\tmy\\shoe\n'

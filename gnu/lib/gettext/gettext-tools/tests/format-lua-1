@@ -1,0 +1,91 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Lua format strings.
+
+cat <<\EOF > f-lu-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one string argument
+"abc%s"
+# Valid: one string argument
+"abc%q"
+# Valid: one character argument
+"abc%c"
+# Valid: one integer argument
+"abc%i"
+# Valid: one integer argument
+"abc%d"
+# Valid: one integer argument
+"abc%o"
+# Valid: one integer argument
+"abc%u"
+# Valid: one integer argument
+"abc%X"
+# Valid: one integer argument
+"abc%x"
+# Valid: one float argument
+"abc%e"
+# Valid: one float argument
+"abc%E"
+# Valid: one float argument
+"abc%f"
+# Valid: one float argument
+"abc%g"
+# Valid: one float argument
+"abc%G"
+# Valid: one float argument with width
+"abc%4f"
+# Valid: one float argument with precision
+"abc%.8f"
+# Valid: one float argument with width and precision
+"abc%12.4f"
+# Valid: three arguments
+"abc%c%d%e"
+# Valid: three arguments with width and/or precision
+"abc%4.3s%.3f%0e"
+# Invalid: unterminated
+"abc%"
+# Invalid: unknown format specifier
+"abc%T"
+# Invalid: unknown modifier
+"abc%lf"
+# Invalid: extra precision
+"abc%1.1.1f"
+# Invalid: unterminated
+"abc%3"
+EOF
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  echo "gettext.gettext(${string});" > f-lu-1-$n.in
+  ${XGETTEXT} -L Lua -o f-lu-1-$n.po f-lu-1-$n.in || Exit 1
+  test -f f-lu-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep lua-format f-lu-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep lua-format f-lu-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-lu-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-lu-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-lu-1-$n.in f-lu-1-$n.po
+done < f-lu-1.data
+
+Exit 0
+

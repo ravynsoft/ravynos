@@ -1,0 +1,2 @@
+${THIS_SH} ./braces.tests > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} braces.right && rm -f ${BASH_TSTOUT}

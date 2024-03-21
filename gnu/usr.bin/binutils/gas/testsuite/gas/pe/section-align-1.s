@@ -1,0 +1,15 @@
+
+	.section	.none,"dr0"
+	.section	.zero,"dr0"
+	.ascii	""
+	.section	.one,"dr0"
+	.ascii	"1"
+	.section	.two,"dr0"
+	.ascii	"12"
+	.section	.three,"dr0"
+	.ascii	"123"
+	.section	.four,"dr0"
+	.ascii	"1234"
+	.section	.five,"dr0"
+	.ascii	"12345"
+	.end

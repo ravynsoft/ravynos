@@ -1,0 +1,48 @@
+alias [ {+|-}gmrsL ] [ name[=value] ... ]
+       For  each  name with a corresponding value, define an alias with
+       that value.  A trailing space in value causes the next  word  to
+       be  checked for alias expansion.  If the -g flag is present, de-
+       fine a global alias; global aliases are expanded even if they do
+       not occur in command position:
+
+              % perldoc --help 2>&1 | grep 'built-in functions'
+                  -f   Search Perl built-in functions
+              % alias -g HG='--help 2>&1 | grep'
+              % perldoc HG 'built-in functions'
+                  -f   Search Perl built-in functions
+
+       If the -s flag is present, define a suffix alias: if the command
+       word on a command line is in the form `text.name', where text is
+       any  non-empty  string,  it  is  replaced  by  the  text  `value
+       text.name'.  Note that name is treated as a literal string,  not
+       a  pattern.   A  trailing  space in value is not special in this
+       case.  For example,
+
+              alias -s ps='gv --'
+
+       will cause the command `*.ps' to be expanded to  `gv  --  *.ps'.
+       As  alias  expansion  is  carried out earlier than globbing, the
+       `*.ps' will then be expanded.  Suffix aliases constitute a  dif-
+       ferent name space from other aliases (so in the above example it
+       is still possible to create an alias for the command ps) and the
+       two sets are never listed together.
+
+       For  each  name  with no value, print the value of name, if any.
+       With no arguments, print all  currently  defined  aliases  other
+       than  suffix aliases.  If the -m flag is given the arguments are
+       taken as patterns (they should be quoted to preserve  them  from
+       being  interpreted  as  glob patterns), and the aliases matching
+       these patterns are printed.  When printing aliases  and  one  of
+       the  -g,  -r  or  -s  flags is present, restrict the printing to
+       global, regular or suffix aliases, respectively; a regular alias
+       is one which is neither a global nor a suffix alias.   Using `+'
+       instead of `-', or ending the option list  with  a  single  `+',
+       prevents the values of the aliases from being printed.
+
+       If  the  -L  flag  is present, then print each alias in a manner
+       suitable for putting in a startup script.  The  exit  status  is
+       nonzero  if  a  name (with no value) is given for which no alias
+       has been defined.
+
+       For more on aliases, include common problems,  see  the  section
+       ALIASING in zshmisc(1).

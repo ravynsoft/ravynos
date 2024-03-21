@@ -1,0 +1,2 @@
+${THIS_SH} ./nquote.tests 2>&1 | grep -v '^expect' > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} nquote.right && rm -f ${BASH_TSTOUT}

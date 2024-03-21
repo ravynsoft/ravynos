@@ -28,7 +28,6 @@
  *
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/pmc.h>
 #include <sys/pmckern.h>
@@ -581,6 +580,11 @@ pmc_md_initialize(void)
 void
 pmc_md_finalize(struct pmc_mdep *md)
 {
+	PMCDBG0(MDP, INI, 1, "powerpc-finalize");
+
+	for (int i = 0; i < pmc_cpu_max(); i++)
+		KASSERT(powerpc_pcpu[i] == NULL,
+		    ("[powerpc,%d] non-null pcpu cpu %d", __LINE__, i));
 
 	free(powerpc_pcpu, M_PMC);
 	powerpc_pcpu = NULL;

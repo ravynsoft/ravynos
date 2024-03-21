@@ -1,0 +1,66 @@
+# Expect control script for GAS testsuite PE object-format-specific tests.
+
+# Copyright (C) 2009-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# Please email any bugs, comments, and/or additions to this file to:
+# binutils@gnu.org
+
+load_lib gas-dg.exp
+load_lib gas-defs.exp
+
+# These tests can only be run on PE/COFF platforms.
+if {![is_pecoff_format]} {
+    return
+}
+
+run_dump_test "aligncomm-a"
+run_dump_test "aligncomm-b"
+run_dump_test "aligncomm-c"
+run_dump_test "aligncomm-d"
+
+run_dump_test "section-align-1"
+run_dump_test "section-align-3"
+run_dump_test "section-exclude"
+
+run_dump_test "set"
+
+# SEH related tests
+
+# These tests are only for x86_64 targets
+if ([istarget "x86_64-*-mingw*"]) then {
+	run_list_test "seh-x64-err-1" ""
+	run_list_test "seh-x64-err-2" ""
+	run_dump_test "peseh-x64"
+	run_dump_test "peseh-x64-2"
+	run_dump_test "peseh-x64-3"
+	run_dump_test "peseh-x64-4"
+	run_dump_test "peseh-x64-5"
+	run_dump_test "peseh-x64-6"
+}
+
+
+# This test is only for AArch64
+if {[istarget "aarch64-*-pe*"] || [istarget "aarch64-*-mingw*"]} {
+	run_dump_test "pe-aarch64"
+}
+
+# Big obj
+
+
+if ([istarget "*-*-mingw*"]) then {
+	run_dump_test "big-obj"
+}

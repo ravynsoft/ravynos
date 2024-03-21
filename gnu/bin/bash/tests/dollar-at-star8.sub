@@ -1,0 +1,14 @@
+function f {
+   typeset -a a
+   a=("$@")
+   typeset IFS=,
+   typeset a1="${a[@]} ${a[*]} $@ $* ${@} ${*}"
+   typeset a2=${a[@]}\ ${a[*]}\ $@\ $*\ ${@}\ ${*} a3 a4
+   a3="${a[@]} ${a[*]} $@ $* ${@} ${*}"
+   a4=${a[@]}\ ${a[*]}\ $@\ $*\ ${@}\ ${*}
+   unset -v IFS
+   printf '%s\n' "a1=$a1" "a2=$a2" "a3=$a3" "a4=$a4"
+}
+
+echo
+f a b c

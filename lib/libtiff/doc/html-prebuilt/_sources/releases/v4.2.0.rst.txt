@@ -1,0 +1,103 @@
+Changes in TIFF v4.2.0
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.2.0 (:tag:`v4.2.0`)
+    Previous Version        :doc:`v4.1.0 <v4.1.0>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<https://libtiff.gitlab.io/libtiff/>`_
+    Master HTTP Site #3     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+This document provides a summary of significant changes made to the
+software between the *previous* and *current* versions (see
+above). A fully-detailed change summary is provided by the :file:`ChangeLog` file
+included in the release package and by the Git commit history:
+
+
+Major changes
+-------------
+
+* Optional support for using libdeflate is added.
+* Many of the tools now support a memory usage limit.
+
+
+Software configuration changes
+------------------------------
+
+* The Microsoft Windows 'nmake' build is resuscitated and provides
+  a default ``HAVE_STRTOLL`` setting in 'nmake.opt' which is suitable for
+  MSVC++ 14.0 ("Visual Studio 2015") and later but may be disabled in
+  order to compile with earlier compiler versions.
+
+* mingw-w64 cmake build fixes to not add libm
+
+
+Library changes
+---------------
+
+* A great many issues discovered by fuzzers (via oss-fuzz and other reports) have been addressed.
+* EXIF 2.32 and GPS tags and functionality have been upgraded:
+  
+    * Existing EXIF field definition of tags are upgraded to EXIF version 2.3.2
+    * EXIF-GPS structure, tags and access functions are added as special ``CustomDirectory`` (like it was done for EXIF).
+    * Reading error for FileSource and SceneType tags corrected.
+
+* Make ``TIFFTAG_CFAPATTERN`` variable count.
+
+* Cmake configuration fixes for big-endian targets.
+
+* Added support for optional building against libdeflate for
+  faster Zip/Deflate compression/decompression.
+
+  We now have 2 kinds of builds with the Zip/Deflate codec:
+
+    * zlib only
+    * zlib + libdeflate
+
+  Speed improvements in the 35%-50% range can be expected when libdeflate is used.
+  Compression level up to 12 is now supported (capped to 9 when zlib is used).
+  Still requires zlib for situations where libdeflate cannot be used (that
+  is for scanline access, since libdeflate has no streaming mode)
+
+  Pseudo-tag ``TIFFTAG_DEFLATE_SUBCODEC=DEFLATE_SUBCODEC_ZLIB/DEFLATE_SUBCODEC_LIBDEFLATE``
+  is added to control which subcodec (zlib or libdeflate) should be used (it defaults
+  of course to libdeflate, when it is available).
+  This is mostly aimed at being used on the writing side, to be able to reproduce
+  output of previous libtiff versions at a binary level, in situations where this would
+  be really needed. Or as a safety belt in case there would be unforeseen issues
+  with using libdeflate.
+  It can be used to know when libdeflate is available at runtime (``DEFLATE_SUBCODEC_LIBDEFLATE``
+  will be the default value in that situation).
+
+  Of course, deflate codestreams produced by libdeflate can be read by zlib, and vice-versa.
+
+
+Tools changes
+-------------
+
+* A great many issues discovered by fuzzers (via oss-fuzz and other reports) have been addressed.
+
+* :program:`ppm2tiff`: support any bps value from 1 to 16.
+
+* :program:`tiff2ps`, :program:`tiff2rgba`:  A default memory limit is now enforced (256MiB) and a ``-M`` option is added to allow the user to adjust the limit.
+
+* :program:`tiff2pdf`, :program:`tiffcp`: A default memory limit is now enforced (256MiB) and a ``-m`` option is added to allow the user to adjust the limit.
+
+* :program:`tiffcrop`: A default memory limit is now enforced (256MiB) and a ``-k`` option is added to allow the user to adjust the limit.
+
+* :program:`tiff2pdf`: fix "raw" copy of Deflate streams.
+
+* :program:`tiff2pdf.c`: properly calculate datasize when saving to JPEG YCbCr
+
+* :program:`tiffcp`: disable strip chopping when trying to convert to JBIG compression
+
+
+Contributed software changes
+----------------------------
+
+None

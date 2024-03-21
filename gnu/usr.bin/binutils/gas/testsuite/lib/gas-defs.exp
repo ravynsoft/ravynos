@@ -1,0 +1,426 @@
+# Copyright (C) 1993-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# Please email any bugs, comments, and/or additions to this file to:
+# dejagnu@gnu.org
+
+# This file was written by Ken Raeburn (raeburn@cygnus.com).
+
+proc load_common_lib { name } {
+    global srcdir
+    load_file $srcdir/../../binutils/testsuite/lib/$name
+}
+
+load_common_lib binutils-common.exp
+
+proc gas_version {} {
+    global AS
+    if [is_remote host] then {
+	remote_exec host "$AS -version < /dev/null" "" "" "gas.version"
+	remote_exec host "which $AS" "" "" "gas.which"
+
+	remote_upload host "gas.version"
+	remote_upload host "gas.which"
+
+	set which_as [file_contents "gas.which"]
+	set tmp [file_contents "gas.version"]
+
+    	remote_file build delete "gas.version"
+   	remote_file build delete "gas.which"
+    	remote_file host delete "gas.version"
+    	remote_file host delete "gas.which"
+    } else {
+	set which_as [which $AS]
+	catch "exec $AS -version < /dev/null" tmp
+    }
+
+    # Should find a way to discard constant parts, keep whatever's
+    # left, so the version string could be almost anything at all...
+    regexp "\[^\n\]* (cygnus-|)(\[-0-9.a-zA-Z-\]+)\[\r\n\].*" $tmp version cyg number
+    if ![info exists number] then {
+        return "$which_as (no version number)\n"
+    }
+    clone_output "$which_as $number\n"
+    unset version
+}
+
+proc gas_host_run { cmd redir } {
+    verbose "Executing $cmd $redir"
+    set return_contents_of ""
+    if [regexp ">& */dev/null" $redir] then {
+	set output_file ""
+	set command "$cmd $redir"
+    } elseif [regexp "> */dev/null" $redir] then {
+	set output_file ""
+	set command "$cmd 2>gas.stderr"
+	set return_contents_of "gas.stderr"
+    } elseif [regexp ">&.*" $redir] then {
+	# See PR 5322 for why the following line is used.
+	regsub ">&" $redir "" output_file
+	set command "$cmd 2>&1"
+    } elseif [regexp "2>.*" $redir] then {
+	set output_file "gas.out"
+	set command "$cmd $redir"
+	set return_contents_of "gas.out"
+    } elseif [regexp ">.*" $redir] then {
+	set output_file ""
+	set command "$cmd $redir 2>gas.stderr"
+	set return_contents_of "gas.stderr"
+    } elseif { "$redir" == "" } then {
+	set output_file "gas.out"
+	set command "$cmd 2>&1"
+	set return_contents_of "gas.out"
+    } else {
+	fail "gas_host_run: unknown form of redirection string"
+    }
+
+    set status [remote_exec host [concat sh -c [list $command]] "" "/dev/null" "$output_file"]
+    set to_return ""
+    if { "$return_contents_of" != "" } then {
+	remote_upload host "$return_contents_of"
+	set to_return [file_contents "$return_contents_of"]
+	regsub "\n$" $to_return "" to_return
+    }
+
+    if { [lindex $status 0] == 0 && "$output_file" != ""
+	 && "$output_file" != "$return_contents_of" } then {
+	remote_upload host "$output_file"
+    }
+
+    return [list [lindex $status 0] "$to_return"]
+}
+
+proc gas_run { prog as_opts redir } {
+    global AS
+    global ASFLAGS
+    global comp_output
+    global srcdir
+    global subdir
+    global host_triplet
+
+    set status [gas_host_run "$AS $ASFLAGS $as_opts $srcdir/$subdir/$prog" "$redir"]
+    set comp_output [lindex $status 1]
+    if { [lindex $status 0] != 0 && [regexp "2>.*" $redir] } then {
+	append comp_output "child process exited abnormally"
+    }
+    set comp_output [prune_warnings $comp_output]
+    verbose "output was $comp_output"
+    return [list $comp_output ""]
+}
+
+proc gas_run_stdin { prog as_opts redir } {
+    global AS
+    global ASFLAGS
+    global comp_output
+    global srcdir
+    global subdir
+    global host_triplet
+
+    set status [gas_host_run "$AS $ASFLAGS $as_opts < $srcdir/$subdir/$prog" "$redir"]
+    set comp_output [lindex $status 1]
+    if { [lindex $status 0] != 0 && [regexp "2>.*" $redir] } then {
+	append comp_output "child process exited abnormally"
+    }
+    set comp_output [prune_warnings $comp_output]
+    verbose "output was $comp_output"
+    return [list $comp_output ""]
+}
+
+proc all_ones { args } {
+    foreach x $args { if [expr $x!=1] { return 0 } }
+    return 1
+}
+
+# ${tool}_finish (gas_finish) will be called by runtest.exp.  But
+# gas_finish should only be used with gas_start.  We use gas_started
+# to tell gas_finish if gas_start has been called so that runtest.exp
+# can call gas_finish without closing the wrong fd.
+set gas_started 0
+
+proc gas_start { prog as_opts } {
+    global AS
+    global ASFLAGS
+    global srcdir
+    global subdir
+    global spawn_id
+    global gas_started
+
+    set gas_started 1
+
+    verbose -log "Starting $AS $ASFLAGS $as_opts $prog" 2
+    set status [gas_host_run "$AS $ASFLAGS $as_opts $srcdir/$subdir/$prog" ">&gas.out"]
+    spawn -noecho -nottycopy cat gas.out
+}
+
+proc gas_finish { } {
+    global spawn_id
+    global gas_started
+
+    if { $gas_started == 1 } {
+	catch "close"
+	catch "wait"
+	set gas_started 0
+    }
+}
+
+proc want_no_output { testname } {
+    global comp_output
+
+    if ![string match "" $comp_output] then {
+	send_log "$comp_output\n"
+	verbose "$comp_output" 3
+    }
+    if [string match "" $comp_output] then {
+	pass "$testname"
+	return 1
+    } else {
+	fail "$testname"
+	return 0
+    }
+}
+
+proc gas_test_old { file as_opts testname } {
+    gas_run $file $as_opts ""
+    return [want_no_output $testname]
+}
+
+proc gas_test { file as_opts var_opts testname } {
+    global comp_output
+
+    set i 0
+    foreach word $var_opts {
+	set ignore_stdout($i) [string match "*>" $word]
+	set opt($i) [string trim $word {>}]
+	incr i
+    }
+    set max [expr 1<<$i]
+    for {set i 0} {[expr $i<$max]} {incr i} {
+	set maybe_ignore_stdout ""
+	set extra_opts ""
+	for {set bit 0} {(1<<$bit)<$max} {incr bit} {
+	    set num [expr 1<<$bit]
+	    if [expr $i&$num] then {
+		set extra_opts "$extra_opts $opt($bit)"
+		if $ignore_stdout($bit) then {
+		    set maybe_ignore_stdout ">/dev/null"
+		}
+	    }
+	}
+	set extra_opts [string trim $extra_opts]
+	gas_run $file "$as_opts $extra_opts" $maybe_ignore_stdout
+
+	# Should I be able to use a conditional expression here?
+	if [string match "" $extra_opts] then {
+	    want_no_output $testname
+	} else {
+	    want_no_output "$testname ($extra_opts)"
+	}
+    }
+    if [info exists errorInfo] then {
+        unset errorInfo
+    }
+}
+
+proc gas_test_ignore_stdout { file as_opts testname } {
+    global comp_output
+
+    gas_run $file $as_opts ">/dev/null"
+    want_no_output $testname
+}
+
+proc gas_test_error { file as_opts testname } {
+    global comp_output
+
+    gas_run $file $as_opts ">/dev/null"
+    send_log "$comp_output\n"
+    verbose "$comp_output" 3
+    if { ![string match "" $comp_output]
+	 && ![string match "*Assertion failure*" $comp_output]
+	 && ![string match "*Internal error*" $comp_output] } then {
+	pass "$testname"
+    } else {
+	fail "$testname"
+    }
+}
+
+proc gas_exit {} {}
+
+proc gas_init { args } {
+    global target_cpu
+    global target_cpu_family
+    global target_family
+    global target_vendor
+    global target_os
+    global stdoptlist
+
+    switch -glob "$target_cpu" {
+	"m68???"		{ set target_cpu_family m68k }
+	"i[3-7]86"		{ set target_cpu_family i386 }
+	default			{ set target_cpu_family $target_cpu }
+    }
+
+    set target_family "$target_cpu_family-$target_vendor-$target_os"
+    set stdoptlist "-a>"
+
+    if ![istarget "*-*-*"] {
+	perror "Target name [istarget] is not a triple."
+    }
+    # Need to return an empty string.
+    return
+}
+
+# run_dump_tests TESTCASES EXTRA_OPTIONS
+# Wrapper for run_dump_test, which is suitable for invoking as
+#   run_dump_tests [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+# EXTRA_OPTIONS are passed down to run_dump_test.  Honors runtest_file_p.
+# Body cribbed from dg-runtest.
+
+proc run_dump_tests { testcases {extra_options {}} } {
+    global runtests
+
+    foreach testcase $testcases {
+        # If testing specific files and this isn't one of them, skip it.
+        if ![runtest_file_p $runtests $testcase] {
+            continue
+        }
+        run_dump_test [file rootname [file tail $testcase]] $extra_options
+    }
+}
+
+proc objdump { opts } {
+    global OBJDUMP
+    global comp_output
+    global host_triplet
+
+    set status [gas_host_run "$OBJDUMP $opts" ""]
+    set comp_output [prune_warnings [lindex $status 1]]
+    verbose "objdump output=$comp_output\n" 3
+}
+
+proc objdump_start_no_subdir { prog opts } {
+    global OBJDUMP
+    global srcdir
+    global spawn_id
+
+    verbose "Starting $OBJDUMP $opts $prog" 2
+    set status [gas_host_run "$OBJDUMP $opts $prog" ">&gas.out"]
+    spawn -noecho -nottycopy cat gas.out
+}
+
+proc objdump_finish { } {
+    global spawn_id
+
+    catch "close"
+    catch "wait"
+}
+
+# Default timeout is 10 seconds, loses on a slow machine.  But some
+# configurations of dejagnu may override it.
+if {$timeout<120} then { set timeout 120 }
+
+expect_after -i {
+    timeout			{ perror "timeout" }
+    "virtual memory exhausted"	{ perror "virtual memory exhausted" }
+    buffer_full			{ perror "buffer full" }
+    eof				{ perror "eof" }
+}
+
+proc file_contents { filename } {
+    set file [open $filename r]
+    set contents [read $file]
+    close $file
+    return $contents
+}
+
+proc write_file { filename contents } {
+    set file [open $filename w]
+    puts $file "$contents"
+    close $file
+}
+
+proc verbose_eval { expr { level 1 } } {
+    global verbose
+    if $verbose>$level then { eval verbose "$expr" $level }
+}
+
+# This definition is taken from an unreleased version of DejaGnu.  Once
+# that version gets released, and has been out in the world for a few
+# months at least, it may be safe to delete this copy.
+
+if { [istarget loongarch*-*-*] } {
+    rename prune_warnings prune_warnings_other
+}
+if ![string length [info proc prune_warnings]] {
+    #
+    # prune_warnings -- delete various system verbosities from TEXT.
+    #
+    # An example is:
+    # ld.so: warning: /usr/lib/libc.so.1.8.1 has older revision than expected 9
+    #
+    # Sites with particular verbose os's may wish to override this in site.exp.
+    #
+    proc prune_warnings { text } {
+	# This is from sun4's.  Do it for all machines for now.
+	# The "\\1" is to try to preserve a "\n" but only if necessary.
+	regsub -all "(^|\n)(ld.so: warning:\[^\n\]*\n?)+" $text "\\1" text
+
+	# It might be tempting to get carried away and delete blank lines, etc.
+	# Just delete *exactly* what we're ask to, and that's it.
+	return $text
+    }
+}
+
+# run_list_test NAME (optional): OPTS TESTNAME
+#
+# Assemble the file "NAME.s" with command line options OPTS and
+# compare the assembler standard error output against the regular
+# expressions given in the file "NAME.l".  If TESTNAME is provided,
+# it will be used as the name of the test.
+
+proc run_list_test { name {opts {}} {testname {}} } {
+    global srcdir subdir
+    if { [string length $testname] == 0 } then {
+	set testname "[file tail $subdir] $name"
+    }
+    set file $srcdir/$subdir/$name
+    gas_run ${name}.s $opts ">&dump.out"
+    if { [regexp_diff "dump.out" "${file}.l"] } then {
+	fail $testname
+	verbose "output is [file_contents "dump.out"]" 2
+	return
+    }
+    pass $testname
+}
+
+# run_list_test_stdin NAME (optional): OPTS TESTNAME
+#
+# Similar to run_list_test, but use stdin as input.
+
+proc run_list_test_stdin { name {opts {}} {testname {}} } {
+    global srcdir subdir
+    if { [string length $testname] == 0 } then {
+	set testname "[file tail $subdir] $name"
+    }
+    set file $srcdir/$subdir/$name
+    gas_run_stdin ${name}.s $opts ">&dump.out"
+    if { [regexp_diff "dump.out" "${file}.l"] } then {
+	fail $testname
+	verbose "output is [file_contents "dump.out"]" 2
+	return
+    }
+    pass $testname
+}

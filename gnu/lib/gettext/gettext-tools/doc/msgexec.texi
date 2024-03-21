@@ -1,0 +1,118 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msgexec
+@cindex @code{msgexec} program, usage
+@example
+msgexec [@var{option}] @var{command} [@var{command-option}]
+@end example
+
+@cindex apply command to all translations in a catalog
+The @code{msgexec} program applies a command to all translations of a
+translation catalog.
+The @var{command} can be any program that reads a translation from standard
+input.  It is invoked once for each translation.  Its output becomes
+msgexec's output.  @code{msgexec}'s return code is the maximum return code
+across all invocations.
+
+@cindex @code{xargs}, and output from @code{msgexec}
+A special builtin command called @samp{0} outputs the translation, followed
+by a null byte.  The output of @samp{msgexec 0} is suitable as input for
+@samp{xargs -0}.
+
+@table @samp
+@item --newline
+@opindex --newline@r{, @code{msgfilter} option}
+Add newline at the end of each input line.
+
+@end table
+
+@vindex MSGEXEC_MSGCTXT@r{, environment variable}
+@vindex MSGEXEC_MSGID@r{, environment variable}
+@vindex MSGEXEC_MSGID_PLURAL@r{, environment variable}
+@vindex MSGEXEC_LOCATION@r{, environment variable}
+@vindex MSGEXEC_PLURAL_FORM@r{, environment variable}
+@vindex MSGEXEC_PREV_MSGCTXT@r{, environment variable}
+@vindex MSGEXEC_PREV_MSGID@r{, environment variable}
+@vindex MSGEXEC_PREV_MSGID_PLURAL@r{, environment variable}
+During each @var{command} invocation, the environment variable
+@code{MSGEXEC_MSGID} is bound to the message's msgid, and the environment
+variable @code{MSGEXEC_LOCATION} is bound to the location in the PO file
+of the message.  If the message has a context, the environment variable
+@code{MSGEXEC_MSGCTXT} is bound to the message's msgctxt, otherwise it is
+unbound.  If the message has a plural form, environment variable
+@code{MSGEXEC_MSGID_PLURAL} is bound to the message's msgid_plural and
+@code{MSGEXEC_PLURAL_FORM} is bound to the order number of the plural
+actually processed (starting with 0), otherwise both are unbound.
+If the message has a previous msgid (added by @code{msgmerge}),
+environment variable @code{MSGEXEC_PREV_MSGCTXT} is bound to the
+message's previous msgctxt, @code{MSGEXEC_PREV_MSGID} is bound to
+the previous msgid, and @code{MSGEXEC_PREV_MSGID_PLURAL} is bound to
+the previous msgid_plural.
+
+@cindex catalog encoding and @code{msgexec} output
+Note: It is your responsibility to ensure that the @var{command} can cope
+with input encoded in the translation catalog's encoding.  If the
+@var{command} wants input in a particular encoding, you can in a first step
+convert the translation catalog to that encoding using the @samp{msgconv}
+program, before invoking @samp{msgexec}.  If the @var{command} wants input
+in the locale's encoding, but you want to avoid the locale's encoding, then
+you can first convert the translation catalog to UTF-8 using the
+@samp{msgconv} program and then make @samp{msgexec} work in an UTF-8
+locale, by using the @code{LC_ALL} environment variable.
+
+@subsection Input file location
+
+@table @samp
+@item -i @var{inputfile}
+@itemx --input=@var{inputfile}
+@opindex -i@r{, @code{msgexec} option}
+@opindex --input@r{, @code{msgexec} option}
+Input PO file.
+
+@item -D @var{directory}
+@itemx --directory=@var{directory}
+@opindex -D@r{, @code{msgexec} option}
+@opindex --directory@r{, @code{msgexec} option}
+Add @var{directory} to the list of directories.  Source files are
+searched relative to this list of directories.  The resulting @file{.po}
+file will be written relative to the current directory, though.
+
+@end table
+
+If no @var{inputfile} is given or if it is @samp{-}, standard input is read.
+
+@subsection Input file syntax
+
+@table @samp
+@item -P
+@itemx --properties-input
+@opindex -P@r{, @code{msgexec} option}
+@opindex --properties-input@r{, @code{msgexec} option}
+Assume the input file is a Java ResourceBundle in Java @code{.properties}
+syntax, not in PO file syntax.
+
+@item --stringtable-input
+@opindex --stringtable-input@r{, @code{msgexec} option}
+Assume the input file is a NeXTstep/GNUstep localized resource file in
+@code{.strings} syntax, not in PO file syntax.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msgexec} option}
+@opindex --help@r{, @code{msgexec} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msgexec} option}
+@opindex --version@r{, @code{msgexec} option}
+Output version information and exit.
+
+@end table

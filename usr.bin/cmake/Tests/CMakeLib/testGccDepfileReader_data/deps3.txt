@@ -1,0 +1,11 @@
+--RULES--
+main.o
+--DEPENDENCIES--
+foo bar.h
+foo#bar.h
+foo$bar.h
+foo\ bar.h
+foo\#bar.h
+foo\\ bar.h
+foo\\\\
+main.cpp

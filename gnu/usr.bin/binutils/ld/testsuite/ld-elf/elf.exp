@@ -1,0 +1,632 @@
+# Expect script for various ELF tests.
+#   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Exclude non-ELF targets.
+
+if ![is_elf_format] {
+    return
+}
+
+# Return true if target is riscv little endian.
+# xfail the riscv little endain targets for the compressed1d1 test;
+# The riscv big endian targets and others should pass.
+proc riscv_little_endian { } {
+    if { [istarget "riscv32-*-*"]
+	 || [istarget "riscv64-*-*"]
+	 || [istarget "riscv32le-*-*"]
+	 || [istarget "riscv64le-*-*"] } {
+	return 1
+    }
+    return 0
+}
+
+set old_ldflags $LDFLAGS
+if { [istarget spu*-*-*] } {
+    set LDFLAGS "$LDFLAGS --local-store 0:0"
+}
+
+# hpux .comm differs from everyone else
+set hpux ""
+set old_asflags $ASFLAGS
+if [istarget "*-*-hpux*"] {
+    set hpux "--defsym HPUX=1"
+    set ASFLAGS "$ASFLAGS --defsym HPUX=1"
+}
+
+if { [istarget alpha*-*-* ] } {
+    # The compress1 test is written expecting 32-bit addresses; force the
+    # executable down into the low address space to match.
+    # ??? How can we adjust just the one testcase?
+    set LDFLAGS "$LDFLAGS -Ttext-segment 0x1000000"
+    set ASFLAGS "$ASFLAGS --defsym NO_SET=1"
+}
+
+if [istarget "tic6x-*-*"] {
+    append ASFLAGS " -mpic -mpid=near"
+}
+
+if { [istarget "*-*-solaris*"] } {
+    # Same for Solaris
+    set options_regsub(ld) {-melf_x86_64 -melf_x86_64_sol2}
+}
+
+if { [is_remote host] } then {
+    remote_download host merge.ld
+}
+
+# Note - the output file from the second test (symbol3w.a) is
+# used in the proc is_elf64 test below...
+run_ld_link_tests [list \
+    [list "Build symbol3.a" \
+	"" "" $hpux \
+	{symbol3.s} {} "symbol3.a" ] \
+    [list "Build symbol3w.a" \
+	"" "" "" \
+	{symbol3w.s} {} "symbol3w.a" ] \
+]
+
+
+if [is_elf64 tmpdir/symbol3w.a] {
+    set ASFLAGS "$ASFLAGS --defsym ALIGN=3"
+    set pr23900_1_exp "pr23900-1-64.rd"
+    set pr25490_2_exp "pr25490-2-64.rd"
+    set pr25490_3_exp "pr25490-3-64.rd"
+    set pr25490_4_exp "pr25490-4-64.rd"
+    set pr25490_5_exp "pr25490-5-64.rd"
+    set pr25490_6_exp "pr25490-6-64.rd"
+} else {
+    set ASFLAGS "$ASFLAGS --defsym ALIGN=2"
+    set pr23900_1_exp "pr23900-1-32.rd"
+    if {    [istarget avr-*-*]
+	 || [istarget h8300-*-*]
+	 || [istarget ip2k-*-*]
+	 || [istarget m68hc11-*]
+	 || [istarget "z80-*-*"] } {
+	set pr25490_2_exp "pr25490-2-16.rd"
+	set pr25490_3_exp "pr25490-3-16.rd"
+	set pr25490_4_exp "pr25490-4-16.rd"
+	set pr25490_5_exp "pr25490-5-16.rd"
+	set pr25490_6_exp "pr25490-6-16.rd"
+    } else {
+	set pr25490_2_exp "pr25490-2-32.rd"
+	set pr25490_3_exp "pr25490-3-32.rd"
+	set pr25490_4_exp "pr25490-4-32.rd"
+	set pr25490_5_exp "pr25490-5-32.rd"
+	set pr25490_6_exp "pr25490-6-32.rd"
+    }
+}
+
+
+
+# Targets that use _bfd_generic_link_add_symbols won't pass pr21703 tests
+run_ld_link_tests {
+      {"PR ld/21703"
+	"--allow-multiple-definition tmpdir/pr21703-1.o tmpdir/pr21703-2.o" "" "" \
+	{pr21703-1.s pr21703-2.s} {{readelf {-s} pr21703.sd}} "pr21703" }
+      {"PR ld/21703 -r"
+	"-r --allow-multiple-definition tmpdir/pr21703-3.o tmpdir/pr21703-4.o" "" "" \
+	{pr21703-3.s pr21703-4.s} {{readelf {-s} pr21703-r.sd}} "pr21703.o" }
+} \[is_generic\]
+
+if [is_underscore_target] {
+    set ASFLAGS "$ASFLAGS --defsym UNDERSCORE=1"
+}
+
+set saved_ASFLAGS "$ASFLAGS"
+if { [istarget "i?86-*-*"] || [istarget "x86_64-*-*"] } {
+    set ASFLAGS "$ASFLAGS -mx86-used-note=no"
+}
+
+# Build libraries required for SHF_GNU_RETAIN tests.
+if { [check_gc_sections_available] && [supports_gnu_osabi] } {
+    run_ld_link_tests [list \
+	[list "Build libretain5.a" "" "" "" \
+	    {retain5lib.s} {} "libretain5.a"] \
+	[list "Build libretain6.a" "" "" "" \
+	    {retain6lib.s} {} "libretain6.a"] \
+	]
+}
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}
+
+set ASFLAGS "$saved_ASFLAGS"
+
+# Check that the --out-implib option work correctly.
+# Targets that don't use elf.em won't support this.
+run_ld_link_tests [list \
+    [list "Generate empty import library" \
+	"--out-implib=tmpdir/implib.lib" "" \
+	[concat "--defsym NO_GLOBAL=1" $hpux] \
+	{implib.s} \
+	{{ld empty-implib.out}} \
+	"implib" ] \
+    [list "Generate import library" \
+	"--out-implib=tmpdir/implib.lib" "" \
+	$hpux \
+	{implib.s} \
+	{{readelf {-s tmpdir/implib.lib} implib.rd}} \
+	"implib" ] \
+] \[uses_genelf\]
+
+#v850 gas complains about .tbss.var section attributes.
+if { [check_gc_sections_available] && ![istarget "v850-*-*"] } {
+    run_ld_link_tests {
+	{"--gc-sections on tls variable"
+	    "--gc-section" "" "" {tls_gc.s} {} "tls_gc"}
+    }
+}
+
+proc target_defaults_to_execstack {} {
+    global base_dir
+
+    # If the linker has been configured with --enable-default-execstack=no then
+    # this proc should always return 0.
+    if { [file exists $base_dir/config.status] } {
+	set status [remote_exec host grep "enable-default-execstack=no" $base_dir/config.status]
+	if { [lindex $status 0] == 0 } {
+	    return 0
+	} else {
+	    verbose -log "$base_dir/config.status does not contain enable-default-execstack=no"
+	}
+    } else {
+	verbose -log "there is no file $base_dir/config.status"
+    }
+    
+    if {   [istarget "aarch64*-*-*"]
+	|| [istarget "arc*-*-*"]
+	|| [istarget "cris*-*-*"]
+	|| [istarget "ia64*-*-*"]
+	|| [istarget "loongarch*-*-*"]
+	|| [istarget "nios2*-*-*"]
+	|| [istarget "powerpc64*-*-*"]
+	|| [istarget "pru*-*-*"]
+	|| [istarget "riscv*-*-*"]
+	|| [istarget "tilegx*-*-*"]
+	|| [istarget "tilepro*-*-*"] } {
+	  return 0
+    }
+    return 1
+}
+
+if {   [istarget *-*-*linux*]
+    || [istarget *-*-nacl*]
+    || [istarget *-*-gnu*] } {
+    run_ld_link_tests [list \
+	[list "stack exec" \
+	    "-z execstack" \
+	    "" \
+	    "" \
+	    {stack.s} \
+	    {{readelf {-Wl} stack-exec.rd}} \
+	    "stack-exec.exe"] \
+	[list "stack noexec" \
+	    "-z noexecstack" \
+	    "" \
+	    "" \
+	    {stack.s} \
+	    {{readelf {-Wl} stack-noexec.rd}} \
+	    "stack-noexec.exe"] \
+	[list "stack size" \
+	    "-z stack-size=0x123400 -z noexecstack" \
+	    "" \
+	    "" \
+	    {stack.s} \
+	    {{readelf {-Wl} stack-size.rd}} \
+	    "stack-size.exe"] \
+	[list "PT_GNU_PROPERTY alignment" \
+	    "" \
+	    "" \
+	    "" \
+	    {pr23900-1.s} \
+	    [list [list "readelf" {-Wl} $pr23900_1_exp]] \
+	     "pr23900-1.exe"] \
+	  ]
+
+    # Test the linker's generation of execstack and executable segment warnings.
+    # Since these are normally pruned from the linker's output we temporarily
+    # disable tha action here.
+    rename prune_warnings_extra old_prune_warnings_extra
+    proc prune_warnings_extra { text } {
+	return $text
+    }
+
+    set curr_ldflags $LDFLAGS
+    if { [istarget powerpc*-*-*] && ![istarget powerpc64*-*-*] } {
+	# Don't generate an executable .plt section
+	set LDFLAGS "$LDFLAGS --secure-plt"
+    }
+
+    # Since the warnings can be disabled by configure, ensure consistency
+    # of the first test by forcing the flags.
+    run_ld_link_tests [list \
+	[list "PR ld/29072 (warn about an executable .note.GNU-stack)" \
+	    "-e 0 --warn-execstack --warn-rwx-segments" \
+	    "" \
+	    "" \
+	    {pr29072-a.s} \
+	    {{ld pr29072.a.warn}} \
+	    "pr29072-a.exe"] \
+	[list "PR 29072 (warn about -z execstack)" \
+	    "-z execstack --warn-execstack" \
+	    "" \
+	    "" \
+	    {stack.s} \
+	     {{ld pr29072.c.warn}} \
+	    "pr29072-c.exe"] \
+	[list "PR ld/29072 (suppress warnings about executable stack)" \
+	    "-e 0 --no-warn-execstack" \
+	    "" \
+	    "" \
+	    {pr29072-a.s} \
+	    {} \
+	    "pr29072-d.exe"] \
+	[list "Ensure that a warning issued when creating a segment with RWX permissions" \
+	    "-e 0 -Tnobits-1.t --warn-rwx-segments" \
+	    "" \
+	    "" \
+	    {nobits-1.s} \
+	     {{ld rwx-segments-1.l}} \
+	    "rwx-segments-1.exe"] \
+	[list "Ensure that a warning issued when creating a TLS segment with execute permission" \
+	    "-e 0 -T rwx-segments-2.t --warn-rwx-segments" \
+	    "" \
+	    "" \
+	    {size-2.s} \
+	     {{ld rwx-segments-2.l}} \
+	    "rwx-segments-2.exe"] \
+	[list "Ensure that the RWX warning can be suppressed" \
+	    "-e 0 -Tnobits-1.t --no-warn-rwx-segments" \
+	    "" \
+	    "" \
+	    {nobits-1.s} \
+	     {} \
+	    "rwx-segments-3.exe"] \
+	  ]
+
+    set LDFLAGS $curr_ldflags
+
+    if { [target_defaults_to_execstack] } {
+	run_ld_link_tests [list \
+	   [list "PR ld/29072 (warn about absent .note.GNU-stack)" \
+	    "-e 0 -z stack-size=0x123400  --warn-execstack" \
+	    "" \
+	    "" \
+	    {pr29072-b.s} \
+	    {{ld pr29072.b.warn}} \
+	    "pr29072-b.exe"] \
+	]
+    } else {
+	run_ld_link_tests [list \
+	   [list "PR ld/29072 (ignore absent .note.GNU-stack)" \
+	    "-e 0 -z stack-size=0x123400" \
+	    "" \
+	    "" \
+	    {pr29072-b.s} \
+	    {} \
+	    "pr29072-b.exe"] \
+	]
+    }
+
+    # Restore the normal pruning behaviour.
+    rename prune_warnings_extra ""
+    rename old_prune_warnings_extra prune_warnings_extra
+}
+
+if [check_gc_sections_available] {
+    run_ld_link_tests [list \
+	[list "__patchable_function_entries section 2" \
+	    "--gc-sections -e _start" \
+	    "" \
+	    "" \
+	    {pr25490-2.s} \
+	    [list [list "readelf" {-SW} $pr25490_2_exp]] \
+	    "pr25490-2.exe"] \
+	[list "__patchable_function_entries section 3" \
+	    "--gc-sections -e _start" \
+	    "" \
+	    "" \
+	    {pr25490-3.s} \
+	    [list [list "readelf" {-SW} $pr25490_3_exp]] \
+	    "pr25490-3.exe"] \
+	[list "__patchable_function_entries section 4" \
+	    "--gc-sections -e _start" \
+	    "" \
+	    "" \
+	    {pr25490-4.s} \
+	    [list [list "readelf" {-SW} $pr25490_4_exp]] \
+	    "pr25490-4.exe"] \
+	[list "__patchable_function_entries section 5" \
+	    "--gc-sections -e _start" \
+	    "" \
+	    "" \
+	    {pr25490-5.s} \
+	    [list [list "readelf" {-SW} $pr25490_5_exp]] \
+	    "pr25490-5.exe"] \
+	[list "__patchable_function_entries section 6" \
+	    "--gc-sections -e _start" \
+	    "" \
+	    "" \
+	    {pr25490-6.s} \
+	    [list [list "readelf" {-SW} $pr25490_6_exp]] \
+	    "pr25490-6.exe"] \
+	]
+}
+
+set LDFLAGS $old_ldflags
+set ASFLAGS $old_asflags
+
+# Check to see if the C compiler works
+if { ![check_compiler_available] } {
+    return
+}
+
+if [check_gc_sections_available] {
+    run_cc_link_tests {
+	{"PR ld/13195" "-Wl,--gc-sections" ""
+	 {pr13195.c} {} "pr13195"}
+    }
+}
+
+set array_tests {
+    {"preinit array" "" ""
+	{preinit.c} "preinit" "preinit.out"}
+    {"init array" "" ""
+	{init.c} "init" "init.out"}
+    {"fini array" "" ""
+	{fini.c} "fini" "fini.out"}
+    {"init array mixed" "" ""
+	{init-mixed.c} "init-mixed" "init-mixed.out" "-I."}
+}
+set array_tests_pie {
+    {"PIE preinit array" "-pie" ""
+	{preinit.c} "preinit" "preinit.out" "-fPIE"}
+    {"PIE init array" "-pie" ""
+	{init.c} "init" "init.out" "-fPIE"}
+    {"PIE fini array" "-pie" ""
+	{fini.c} "fini" "fini.out" "-fPIE"}
+    {"PIE init array mixed" "-pie" ""
+	{init-mixed.c} "init-mixed" "init-mixed.out" "-I. -fPIE"}
+    {"PIE PR ld/14525" "-pie" ""
+	{pr14525.c} "pr14525" "pr14525.out" "-fPIE"}
+}
+set array_tests_static {
+    {"static preinit array" "-static" ""
+	{preinit.c} "preinit" "preinit.out"}
+    {"static init array" "-static" ""
+	{init.c} "init" "init.out"}
+    {"static fini array" "-static" ""
+	{fini.c} "fini" "fini.out"}
+    {"static init array mixed" "-static" ""
+	{init-mixed.c} "init-mixed" "init-mixed.out" "-I."}
+}
+
+# NetBSD ELF systems do not currently support the .*_array sections.
+set xfails "*-*-netbsd*"
+run_ld_link_exec_tests $array_tests $xfails
+
+if { [istarget *-*-linux*]
+     || [istarget *-*-nacl*]
+     || [istarget *-*-gnu*] } {
+    run_ld_link_exec_tests $array_tests_pie $xfails
+
+    if { $STATIC_PIE_LDFLAGS != "" } then {
+	run_ld_link_exec_tests [list \
+	    [list \
+		"Static PIE preinit array" \
+		"$STATIC_PIE_LDFLAGS" \
+		"" \
+		{preinit.c} \
+		"preinit-static-pie" \
+		"preinit.out" \
+		"-fPIE" \
+	    ] \
+	    [list \
+		"Static PIE init array" \
+		"$STATIC_PIE_LDFLAGS" \
+		"" \
+		{init.c} \
+		"init-static-pie" \
+		"init.out" \
+		"-fPIE" \
+	    ] \
+	    [list \
+		"Static PIE fini array" \
+		"$STATIC_PIE_LDFLAGS" \
+		"" \
+		{fini.c} \
+		"fini-static-pie" \
+		"fini.out" \
+		"-fPIE" \
+	    ] \
+	    [list \
+		"Static PIE init array mixed" \
+		"$STATIC_PIE_LDFLAGS" \
+		"" \
+		{init-mixed.c} \
+		"init-mixed-static-pie" \
+		"init-mixed.out" \
+		"-I.  -fPIE" \
+	    ] \
+	    [list \
+		"Static PIE PR ld/14525" \
+		"$STATIC_PIE_LDFLAGS" \
+		"" \
+		{pr14525.c} \
+		"pr14525-static-pie" \
+		"pr14525.out" \
+		"-fPIE" \
+	    ] \
+	]
+    }
+
+    run_ld_link_exec_tests [list \
+	[list \
+	    "Run mbind2a" \
+	    "$NOPIE_LDFLAGS -Wl,-z,common-page-size=0x4000 -Wl,-z,noexecstack" \
+	    "" \
+	    { mbind2a.s mbind2b.c } \
+	    "mbind2a" \
+	    "pass.out" \
+	    "-O2 -I../bfd" \
+	] \
+	[list \
+	    "Run mbind2b" \
+	    "-static -Wl,-z,common-page-size=0x4000 -Wl,-z,noexecstack" \
+	    "" \
+	    { mbind2a.s mbind2b.c } \
+	    "mbind2b" \
+	    "pass.out" \
+	    "-O2 -I../bfd" \
+	] \
+    ]
+}
+
+run_ld_link_exec_tests $array_tests_static $xfails
+
+run_cc_link_tests [list \
+    [list \
+	"Build pr26391-1" \
+	"-Wl,-z,unique-symbol" \
+	"-fno-function-sections" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	{{nm "" pr26391.nd}} \
+	"pr26391-1" \
+    ] \
+    [list \
+	"Build pr26391-2" \
+	"-Wl,-z,unique-symbol" \
+	"-ffunction-sections" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	{{nm "" pr26391.nd}} \
+	"pr26391-2" \
+    ] \
+    [list \
+	"Build pr26391-3" \
+	"-Wl,-z,unique-symbol,--emit-relocs" \
+	"-fno-function-sections" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	{{nm "" pr26391.nd}} \
+	"pr26391-3" \
+    ] \
+    [list \
+	"Build pr26391-4" \
+	"-Wl,-z,unique-symbol,--emit-relocs" \
+	"-ffunction-sections" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	{{nm "" pr26391.nd}} \
+	"pr26391-4" \
+    ] \
+    [list \
+	"Build pr26391-5.o" \
+	"-Wl,-z,unique-symbol -r -nostdlib -nostartfiles" \
+	"-fno-function-sections" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	[list \
+	    [list "nm" "$dep_plug_opt" "pr26391.nd"] \
+	    [list "nm" "$dep_plug_opt" "pr26391.fd"] \
+	] \
+	"pr26391-5.o" \
+    ] \
+    [list \
+	"Build pr26391-6.o" \
+	"-Wl,-z,unique-symbol -r -nostdlib -nostartfiles" \
+	"-ffunction-sections" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	{{nm "" pr26391.nd}} \
+	"pr26391-6.o" \
+    ] \
+]
+
+run_ld_link_exec_tests [list \
+    [list \
+	"Run pr26391-1" \
+	"-Wl,-z,unique-symbol" \
+	"" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	"pr26391-1" \
+	"pr26391.out" \
+	"-fno-function-sections" \
+    ] \
+    [list \
+	"Run pr26391-2" \
+	"-Wl,-z,unique-symbol" \
+	"" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	"pr26391-2" \
+	"pr26391.out" \
+	"-ffunction-sections" \
+    ] \
+    [list \
+	"Run pr26391-3" \
+	"-Wl,-z,unique-symbol,--emit-relocs" \
+	"" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	"pr26391-3" \
+	"pr26391.out" \
+	"-fno-function-sections" \
+    ] \
+    [list \
+	"Run pr26391-4" \
+	"-Wl,-z,unique-symbol,--emit-relocs" \
+	"" \
+	{pr26391a.c pr26391b.c pr26391c.c pr26391d.c} \
+	"pr26391-4" \
+	"pr26391.out" \
+	"-ffunction-sections" \
+    ] \
+    [list \
+	"Run pr26391-5" \
+	"-Wl,-z,unique-symbol" \
+	"" \
+	{dummy.c} \
+	"pr26391-5" \
+	"pr26391.out" \
+	"" \
+	"c" \
+	"" \
+	"tmpdir/pr26391-5.o" \
+    ] \
+    [list \
+	"Run pr26391-6" \
+	"-Wl,-z,unique-symbol" \
+	"" \
+	{dummy.c} \
+	"pr26391-6" \
+	"pr26391.out" \
+	"" \
+	"c" \
+	"" \
+	"tmpdir/pr26391-6.o" \
+    ] \
+]
+
+set merge_exec_tests {
+    {"merge4" "" ""
+	{merge4a.c merge4b.s} "merge4" "merge4.out"}
+}
+run_ld_link_exec_tests $merge_exec_tests
+
+catch "exec rm -f tmpdir/preinit tmpdir/init tmpdir/fini tmpdir/init-mixed" status

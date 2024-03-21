@@ -1,0 +1,67 @@
+# runpath-in-lalib.at --                         -*- Autotest -*-
+
+#   Copyright (C) 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([Runpath in libtool library files])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a.c],
+[[int a () { return 0; }
+]])
+AT_DATA([b.c],
+[[extern int a ();
+int b () { return a (); }
+]])
+AT_DATA([m.c],
+[[extern int b ();
+int main () { return b (); }
+]])
+
+instdir=`pwd`/inst
+libdir=$instdir/lib
+bindir=$instdir/bin
+addrunpath=`pwd`/foobar
+
+mkdir $instdir $libdir $bindir
+
+for file in a.c b.c; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file
+done
+$CC $CPPFLAGS $CFLAGS -c m.c
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo -rpath $libdir -R$addrunpath],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libb.la b.lo -rpath $libdir liba.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m$EXEEXT m.$OBJEXT libb.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp liba.la $libdir/liba.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp libb.la $libdir/libb.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp m$EXEEXT $bindir/m$EXEEXT], [], [ignore], [ignore])
+
+AT_CHECK([$GREP /foobar $libdir/liba.la], [], [ignore])
+AT_CHECK([$GREP /foobar $libdir/libb.la], [], [ignore])
+
+# TODO: check that m gets -R, too.
+
+AT_CLEANUP

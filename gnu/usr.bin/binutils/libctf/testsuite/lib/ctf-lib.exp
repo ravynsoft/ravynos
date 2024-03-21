@@ -1,0 +1,263 @@
+# Support routines for libctf testsuite.
+#   Copyright (C) 1994-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+load_file $srcdir/../../ld/testsuite/lib/ld-lib.exp
+
+proc run_native_host_cmd { command } {
+    global link_output
+    global ld
+
+    verbose -log "$command"
+    set run_output ""
+    try {
+	set run_output [exec "sh" "-c" "$command" "2>@1"]
+	set status 0
+    } trap CHILDSTATUS {results options} {
+	set status [lindex [dict get $options -errorcode] 2]
+	set run_output $results
+    }
+    regsub "\n$" $run_output "" run_output
+    if { [lindex $status 0] != 0 && [string match "" $run_output] } then {
+	append run_output "child process exited abnormally"
+    }
+
+    if [string match "" $run_output] then {
+	return ""
+    }
+
+    verbose -log "$run_output"
+    return "$run_output"
+}
+
+# Compile and link a C source file for execution on the host.
+proc compile_link_one_host_cc { src output additional_args } {
+    global CC
+    global CFLAGS
+
+    return [run_native_host_cmd "./libtool --quiet --tag=CC --mode=link $CC $CFLAGS $src -o $output $additional_args" ]
+}
+
+# run_lookup_test FILE
+#
+# Compile with the host compiler and link a .c file into a "lookup" binary, then
+# compile and optionally link together a bunch of .s or .c files with CTF info
+# and pass the name of the resulting binary to the "lookup" binary and check the
+# output.  (If none is specified, the binary is expected to generate its own CTF
+# for testing purposes.)
+#
+# As with run_dump_test, this is all driven by a file (in this case, a .lk file)
+# beginning with zero or more option lines, which specify the names of the
+# lookup binary's source file, the source file(s) with CTF info to compile
+# together, and whether to link them.  The optional lines have the syntax:
+#
+#	# OPTION: VALUE
+#
+# OPTION is the name of some option, like "name" or "lookup", and
+# VALUE is OPTION's value.  The valid options are described below.
+# Whitespace is ignored everywhere, except within VALUE.  The option
+# list ends with the first line that doesn't match the above syntax.
+# However, a line within the options that begins with a #, but doesn't
+# have a recognizable option name followed by a colon, is considered a
+# comment and entirely ignored.
+#
+# The interesting options are:
+#
+#   name: TEST-NAME
+#	The name of this test, passed to DejaGNU's `pass' and `fail'
+#	commands.  If omitted, this defaults to FILE, the root of the
+#	lookup .c file's name.
+#
+#   lookup: SOURCE
+#	Compile the file SOURCE.c.  If omitted, the lookup source defaults
+#	to FILE.c.
+#
+#   source: SOURCE
+#	Assemble the file SOURCE.c and pass it to the LOOKUP program.
+#
+#   nonshared:
+#	If set, do not link with -shared.
+#
+#   link:
+#	If set, link the SOURCE together even if only one file is specified.
+#
+#   link_flags:
+#	If set, extra flags to pass to the linker.
+#
+#   xfail: GLOB|PROC ...
+#	This test is expected to fail on a specified list of targets.
+#
+#   no_cross:
+#       If set, do not run this test when host != target.
+#
+# Each option may occur at most once unless otherwise mentioned.
+#
+# After the option lines come regexp lines.  run_lookup_test calls
+# regexp_diff to compare the output of the lookup program against the
+# regexps in FILE.d.
+#
+proc run_lookup_test { name } {
+    global CC_FOR_TARGET CFLAGS_FOR_TARGET LIBS TEST_CROSS
+    global copyfile env runtests srcdir subdir verbose
+
+    if ![runtest_file_p $runtests $name] then {
+	return
+    }
+
+    if [string match "*/*" $name] {
+	set file $name
+	set name [file tail $name]
+    } else {
+	set file "$srcdir/$subdir/$name"
+    }
+
+    set opt_array [slurp_options "${file}.lk"]
+    if { $opt_array == -1 } {
+	perror "error reading options from $file.lk"
+	unresolved $subdir/$name
+	return
+    }
+    set run_ld 0
+    set shared "-shared"
+    set opts(link) {}
+    set opts(link_flags) {}
+    set opts(nonshared) {}
+    set opts(lookup) {}
+    set opts(name) {}
+    set opts(source) {}
+    set opts(xfail) {}
+    set opts(no_cross) {}
+
+    foreach i $opt_array {
+	set opt_name [lindex $i 0]
+	set opt_val [lindex $i 1]
+	if { $opt_name == "" } {
+	    set in_extra 1
+	    continue
+	}
+	if ![info exists opts($opt_name)] {
+	    perror "unknown option $opt_name in file $file.lk"
+	    unresolved $subdir/$name
+	    return
+	}
+
+	set opts($opt_name) [concat $opts($opt_name) $opt_val]
+    }
+
+    if { [llength $opts(no_cross)] != 0
+	 && "$TEST_CROSS" eq "yes" } {
+	untested "$subdir/$name not tested when cross-compiling"
+	return
+    }
+
+    if { [llength $opts(lookup)] == 0 } {
+	set opts(lookup) "$file.c"
+    } else {
+	set opts(lookup) "[file dirname $file]/$opts(lookup)"
+    }
+
+    if { [llength $opts(name)] == 0 } {
+	set opts(name) $opts(lookup)
+    }
+
+    if { [llength $opts(link)] != 0
+	 || [llength $opts(source)] > 1 } {
+	set run_ld 1
+    }
+
+    if { [llength $opts(nonshared)] != 0 } {
+	set shared ""
+    }
+
+    set testname $opts(name)
+    if { $opts(name) == "" } {
+	set testname "$subdir/$name"
+    }
+
+    # Compile and link the lookup program.
+    set comp_output [prune_warnings [compile_link_one_host_cc $opts(lookup) "tmpdir/lookup" "libctf.la"]]
+
+    if { $comp_output != ""} {
+	send_log "compilation of lookup program $opts(lookup) failed with <$comp_output>"
+	perror "compilation of lookup program $opts(lookup) failed"
+	fail $testname
+	return 0
+    }
+
+    # Compile the inputs and posibly link them together.
+
+    set lookup_output ""
+    if { [llength $opts(source)] > 0 } {
+	set lookup_flags ""
+	if { $run_ld } {
+	    set lookup_output "tmpdir/out.so"
+	    set lookup_flags "-gctf -fPIC $shared $opts(link_flags)"
+	} else {
+	    set lookup_output "tmpdir/out.o"
+	    set lookup_flags "-gctf -fPIC -c"
+	}
+	if [board_info [target_info name] exists cflags] {
+	    append lookup_flags " [board_info [target_info name] cflags]"
+	}
+	if [board_info [target_info name] exists ldflags] {
+	    append lookup_flags " [board_info [target_info name] ldflags]"
+	}
+	set src {}
+	foreach sfile $opts(source) {
+	    if [is_remote host] {
+		lappend src [remote_download host [file join [file dirname $file] $sfile]]
+	    } else {
+		lappend src [file join [file dirname $file] $sfile]
+	    }
+	}
+
+	set comp_output [prune_warnings [run_host_cmd "$CC_FOR_TARGET" "$CFLAGS_FOR_TARGET $lookup_flags [concat $src] -o $lookup_output"]]
+
+	if { $comp_output != ""} {
+	    send_log "compilation of CTF program [concat $src] failed with <$comp_output>"
+	    fail $testname
+	    return 0
+	}
+    }
+
+    # Time to setup xfailures.
+    foreach targ $opts(xfail) {
+	if [match_target $targ] {
+	    setup_xfail "*-*-*"
+	    break
+	}
+    }
+
+    # Invoke the lookup program on the outputs.
+
+    set results [run_host_cmd tmpdir/lookup $lookup_output]
+
+    set f [open "tmpdir/lookup.out" "w"]
+    puts $f $results
+    close $f
+
+    if { [regexp_diff "tmpdir/lookup.out" "${file}.lk"] } then {
+	fail $testname
+	if { $verbose == 2 } then { verbose "output is [file_contents tmpdir/lookup.out]" 2 }
+	return 0
+    }
+
+    pass $testname
+    return 0
+}

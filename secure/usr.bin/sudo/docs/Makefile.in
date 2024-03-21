@@ -1,0 +1,434 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2010-2015, 2017-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+docdir = @docdir@
+scriptdir = $(top_srcdir)/scripts
+
+# Tools to use
+SED = @SED@
+IGOR = igor
+MANDOC = mandoc
+MANCOMPRESS = @MANCOMPRESS@
+MANCOMPRESSEXT = @MANCOMPRESSEXT@
+TR = @TRPROG@
+
+# Our install program supports extra flags...
+INSTALL = $(SHELL) $(scriptdir)/install-sh -c
+INSTALL_OWNER = -o $(install_uid) -g $(install_gid)
+
+# Where to install things...
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+sbindir = @sbindir@
+sysconfdir = @sysconfdir@
+adminconfdir = @adminconfdir@
+libexecdir = @libexecdir@
+datarootdir = @datarootdir@
+localstatedir = @localstatedir@
+mandir = @mandir@
+
+# Directory in which to install the man page
+mantype = @MANTYPE@
+mansectsu = @mansectsu@
+mansectform = @mansectform@
+mandirexe = $(mandir)/@MANDIRTYPE@1
+mandirsu = $(mandir)/@MANDIRTYPE@$(mansectsu)
+mandirform = $(mandir)/@MANDIRTYPE@$(mansectform)
+
+# User and group ids the installed files should be "owned" by
+install_uid = 0
+install_gid = 0
+
+# Set to non-empty for development mode
+DEVEL = @DEVEL@
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+DOCS = ./cvtsudoers.$(mantype) ./sudo.$(mantype) ./sudo.conf.$(mantype) \
+       ./sudo_logsrvd.$(mantype) ./sudo_logsrv.proto.$(mantype) \
+       ./sudo_logsrvd.conf.$(mantype) ./sudo_plugin.$(mantype) \
+       ./sudo_plugin_python.$(mantype) ./sudo_sendlog.$(mantype) \
+       ./sudoers.$(mantype) ./sudoers.ldap.$(mantype) \
+       ./sudoers_timestamp.$(mantype) \
+       ./sudoreplay.$(mantype) ./visudo.$(mantype)
+
+DEVDOCS = $(srcdir)/cvtsudoers.man.in $(srcdir)/sudo.conf.man.in \
+	  $(srcdir)/sudo.man.in $(srcdir)/sudo_logsrvd.man.in \
+	  $(srcdir)/sudo_logsrv.proto.man.in \
+	  $(srcdir)/sudo_logsrvd.conf.man.in \
+	  $(srcdir)/sudo_plugin.man.in $(srcdir)/sudo_plugin_python.man.in \
+	  $(srcdir)/sudo_sendlog.man.in $(srcdir)/sudoers.ldap.man.in \
+	  $(srcdir)/sudoers.man.in $(srcdir)/sudoers_timestamp.man.in \
+	  $(srcdir)/sudoreplay.man.in $(srcdir)/visudo.man.in
+
+OTHER_DOCS = $(top_srcdir)/ChangeLog $(top_srcdir)/NEWS \
+	     $(top_srcdir)/README.md $(srcdir)/CONTRIBUTING.md \
+	     $(top_srcdir)/LICENSE.md $(srcdir)/CONTRIBUTORS.md \
+	     $(srcdir)/HISTORY.md $(srcdir)/SECURITY.md \
+	     $(srcdir)/TROUBLESHOOTING.md $(srcdir)/UPGRADE.md
+
+OTHER_DOCS_LDAP = $(top_srcdir)/README.LDAP.md $(srcdir)/schema.*
+
+VERSION = @PACKAGE_VERSION@
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+
+all: $(DEVDOCS) $(DOCS)
+
+igor: all
+	@if [ "$(mantype)" != "mdoc" ]; then \
+	    echo "make igor only supported for mdoc manuals" 1>&2; \
+	    exit 1; \
+	else \
+	    rval=0; \
+	    for m in $(DOCS); do \
+		echo $(IGOR) -D $$m; \
+		$(IGOR) -D $$m || rval=`expr $$rval + $$?`; \
+	    done; \
+	    exit $$rval; \
+	fi
+
+lint: all
+	@if [ "$(mantype)" != "mdoc" ]; then \
+	    echo "make lint only supported for mdoc manuals" 1>&2; \
+	    exit 1; \
+	else \
+	    rval=0; \
+	    for m in $(DOCS); do \
+		echo $(MANDOC) -Tlint -Wwarning $$m; \
+		$(MANDOC) -Tlint -Wwarning $$m || rval=`expr $$rval + $$?`; \
+	    done; \
+	    exit $$rval; \
+	fi
+
+depend:
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file docs/Makefile
+
+.SUFFIXES: .man
+
+$(srcdir)/sudo.man.in: $(srcdir)/sudo.mdoc.in $(srcdir)/sudo.man.in.sed
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e 's/^\(\.nr [A-Z][A-Z]\) .[A-Z][A-Z]MAN./\1 1/' -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO" \)"8"\(.*\)/\1"'$$mansectsu'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" -f $(srcdir)/sudo.man.in.sed > $@; \
+	fi
+
+fixman.sed: $(srcdir)/fixman.sh
+	$(SHELL) $(srcdir)/fixman.sh $@
+
+./sudo.man: $(top_builddir)/config.status $(srcdir)/sudo.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo.man.in | $(SED) -f fixman.sed > $@
+
+./sudo.mdoc: $(top_builddir)/config.status $(srcdir)/sudo.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/visudo.man.in: $(srcdir)/visudo.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/visudo.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "VISUDO" \)"8"\(.*\)/\1"'$$mansectsu'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./visudo.man: $(top_builddir)/config.status $(srcdir)/visudo.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/visudo.man.in | $(SED) -f fixman.sed > $@
+
+./visudo.mdoc: $(top_builddir)/config.status $(srcdir)/visudo.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudo.conf.man.in: $(srcdir)/sudo.conf.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e 's/^\(\.nr [A-Z][A-Z]\) .[A-Z][A-Z]MAN./\1 1/' -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo.conf.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO.CONF" \)"5"\(.*\)/\1"'$$mansectform'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" -f $(srcdir)/sudo.conf.man.in.sed > $@; \
+	fi
+
+./sudo.conf.man: $(top_builddir)/config.status $(srcdir)/sudo.conf.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo.conf.man.in | $(SED) -f fixman.sed > $@
+
+./sudo.conf.mdoc: $(top_builddir)/config.status $(srcdir)/sudo.conf.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudoers.man.in: $(srcdir)/sudoers.mdoc.in $(srcdir)/sudoers.man.in.sed
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e 's/^\(\.nr [A-Z][A-Z]\) .[A-Z][A-Z]MAN./\1 1/' -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudoers.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDOERS" \)"5"\(.*\)/\1"'$$mansectform'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" -f $(srcdir)/sudoers.man.in.sed> $@; \
+	fi
+
+./sudoers.man: $(top_builddir)/config.status $(srcdir)/sudoers.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudoers.man.in | $(SED) -f fixman.sed > $@
+
+./sudoers.mdoc: $(top_builddir)/config.status $(srcdir)/sudoers.mdoc.in $(srcdir)/fixmdoc.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudoers.mdoc.in | $(SED) -f $(srcdir)/fixmdoc.sed > $@
+
+$(srcdir)/sudoers.ldap.man.in: $(srcdir)/sudoers.ldap.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudoers.ldap.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDOERS.LDAP" \)"5"\(.*\)/\1"'$$mansectform'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./sudoers.ldap.man: $(top_builddir)/config.status $(srcdir)/sudoers.ldap.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudoers.ldap.man.in | $(SED) -f fixman.sed > $@
+
+./sudoers.ldap.mdoc: $(top_builddir)/config.status $(srcdir)/sudoers.ldap.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudoers_timestamp.man.in: $(srcdir)/sudoers_timestamp.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudoers_timestamp.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDOERS_TIMESTAMP" \)"5"\(.*\)/\1"'$$mansectform'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./sudoers_timestamp.man: $(top_builddir)/config.status $(srcdir)/sudoers_timestamp.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudoers_timestamp.man.in | $(SED) -f fixman.sed > $@
+
+./sudoers_timestamp.mdoc: $(top_builddir)/config.status $(srcdir)/sudoers_timestamp.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/cvtsudoers.man.in: $(srcdir)/cvtsudoers.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/cvtsudoers.mdoc.in | $(MANDOC) -Tman | $(SED) -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./cvtsudoers.man: $(top_builddir)/config.status $(srcdir)/cvtsudoers.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/cvtsudoers.man.in | $(SED) -f fixman.sed > $@
+
+./cvtsudoers.mdoc: $(top_builddir)/config.status $(srcdir)/cvtsudoers.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudoreplay.man.in: $(srcdir)/sudoreplay.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudoreplay.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDOREPLAY" \)"8"\(.*\)/\1"'$$mansectsu'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./sudoreplay.man: $(top_builddir)/config.status $(srcdir)/sudoreplay.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudoreplay.man.in | $(SED) -f fixman.sed > $@
+
+./sudoreplay.mdoc: $(top_builddir)/config.status $(srcdir)/sudoreplay.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudo_logsrvd.man.in: $(srcdir)/sudo_logsrvd.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo_logsrvd.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO_LOGSRVD" \)"8"\(.*\)/\1"'$$mansectsu'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./sudo_logsrvd.man: $(top_builddir)/config.status $(srcdir)/sudo_logsrvd.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo_logsrvd.man.in | $(SED) -f fixman.sed > $@
+
+./sudo_logsrvd.mdoc: $(top_builddir)/config.status $(srcdir)/sudo_logsrvd.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudo_logsrv.proto.man.in: $(srcdir)/sudo_logsrv.proto.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo_logsrv.proto.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO_LOGSRV.PROTO" \)"5"\(.*\)/\1"'$$mansectform'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(5)/($$mansectform)/g" > $@; \
+	fi
+
+./sudo_logsrv.proto.man: $(top_builddir)/config.status $(srcdir)/sudo_logsrv.proto.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo_logsrv.proto.man.in | $(SED) -f fixman.sed > $@
+
+./sudo_logsrv.proto.mdoc: $(top_builddir)/config.status $(srcdir)/sudo_logsrv.proto.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudo_logsrvd.conf.man.in: $(srcdir)/sudo_logsrvd.conf.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo_logsrvd.conf.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO_LOGSRVD.CONF" \)"5"\(.*\)/\1"'$$mansectform'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(5)/($$mansectform)/g" > $@; \
+	fi
+
+./sudo_logsrvd.conf.man: $(top_builddir)/config.status $(srcdir)/sudo_logsrvd.conf.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo_logsrvd.conf.man.in | $(SED) -f fixman.sed > $@
+
+./sudo_logsrvd.conf.mdoc: $(top_builddir)/config.status $(srcdir)/sudo_logsrvd.conf.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudo_plugin.man.in: $(srcdir)/sudo_plugin.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo_plugin.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO_PLUGIN" \)"8"\(.*\)/\1"'$$mansectsu'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./sudo_plugin.man: $(top_builddir)/config.status $(srcdir)/sudo_plugin.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo_plugin.man.in | $(SED) -f fixman.sed > $@
+
+./sudo_plugin.mdoc: $(top_builddir)/config.status $(srcdir)/sudo_plugin.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudo_plugin_python.man.in: $(srcdir)/sudo_plugin_python.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo_plugin_python.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO_PLUGIN_PYTHON" \)"8"\(.*\)/\1"'$$mansectsu'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./sudo_plugin_python.man: $(top_builddir)/config.status $(srcdir)/sudo_plugin_python.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo_plugin_python.man.in | $(SED) -f fixman.sed > $@
+
+./sudo_plugin_python.mdoc: $(top_builddir)/config.status $(srcdir)/sudo_plugin_python.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+$(srcdir)/sudo_sendlog.man.in: $(srcdir)/sudo_sendlog.mdoc.in
+	@if [ -n "$(DEVEL)" ]; then \
+	    echo "Generating $@"; \
+	    mansectsu=`echo @MANSECTSU@|$(TR) A-Z a-z`; \
+	    mansectform=`echo @MANSECTFORM@|$(TR) A-Z a-z`; \
+	    $(SED) -e "s/$$mansectsu/8/g" -e "s/$$mansectform/5/g" $(srcdir)/sudo_sendlog.mdoc.in | $(MANDOC) -Tman | $(SED) -e 's/^\(\.TH "SUDO_SENDLOG" \)"8"\(.*\)/\1"'$$mansectsu'"\2/' -e "s/(5)/($$mansectform)/g" -e "s/(8)/($$mansectsu)/g" > $@; \
+	fi
+
+./sudo_sendlog.man: $(top_builddir)/config.status $(srcdir)/sudo_sendlog.man.in fixman.sed
+	(cd $(top_builddir) && $(SHELL) config.status --file=-) < $(srcdir)/sudo_sendlog.man.in | $(SED) -f fixman.sed > $@
+
+./sudo_sendlog.mdoc: $(top_builddir)/config.status $(srcdir)/sudo_sendlog.mdoc.in
+	cd $(top_builddir) && $(SHELL) config.status --file=docs/$@
+
+pre-install:
+
+install: install-doc
+
+install-dirs:
+	$(SHELL) $(scriptdir)/mkinstalldirs $(DESTDIR)$(docdir) \
+	    $(DESTDIR)$(mandirexe) $(DESTDIR)$(mandirform) $(DESTDIR)$(mandirsu)
+
+install-binaries:
+
+install-includes:
+
+install-doc: install-dirs
+	for f in $(OTHER_DOCS); do $(INSTALL) $(INSTALL_OWNER) -m 0644 $$f $(DESTDIR)$(docdir); done
+	@LDAP@for f in $(OTHER_DOCS_LDAP); do $(INSTALL) $(INSTALL_OWNER) -m 0644 $$f $(DESTDIR)$(docdir); done
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./cvtsudoers.$(mantype) $(DESTDIR)$(mandirexe)/cvtsudoers.1
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo.$(mantype) $(DESTDIR)$(mandirsu)/sudo.$(mansectsu)
+	@LOGSRV@$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo_logsrvd.$(mantype) $(DESTDIR)$(mandirsu)/sudo_logsrvd.$(mansectsu)
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo_plugin.$(mantype) $(DESTDIR)$(mandirform)/sudo_plugin.$(mansectform)
+	@PYTHON_PLUGIN@$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo_plugin_python.$(mantype) $(DESTDIR)$(mandirform)/sudo_plugin_python.$(mansectform)
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo_sendlog.$(mantype) $(DESTDIR)$(mandirsu)/sudo_sendlog.$(mansectsu)
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudoreplay.$(mantype) $(DESTDIR)$(mandirsu)/sudoreplay.$(mansectsu)
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./visudo.$(mantype) $(DESTDIR)$(mandirsu)/visudo.$(mansectsu)
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo.conf.$(mantype) $(DESTDIR)$(mandirform)/sudo.conf.$(mansectform)
+	@LOGSRV@$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo_logsrv.proto.$(mantype) $(DESTDIR)$(mandirform)/sudo_logsrv.proto.$(mansectform)
+	@LOGSRV@$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudo_logsrvd.conf.$(mantype) $(DESTDIR)$(mandirform)/sudo_logsrvd.conf.$(mansectform)
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudoers.$(mantype) $(DESTDIR)$(mandirform)/sudoers.$(mansectform)
+	$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudoers_timestamp.$(mantype) $(DESTDIR)$(mandirform)/sudoers_timestamp.$(mansectform)
+	@LDAP@$(INSTALL) $(INSTALL_OWNER) -m 0644 ./sudoers.ldap.$(mantype) $(DESTDIR)$(mandirform)/sudoers.ldap.$(mansectform)
+	@if test -n "$(MANCOMPRESS)"; then \
+	    for f in $(mandirexe)/cvtsudoers.1 $(mandirsu)/sudo.$(mansectsu) $(mandirsu)/sudo_logsrvd.$(mansectsu) $(mandirform)/sudo_plugin.$(mansectform) $(mandirform)/sudo_plugin_python.$(mansectform) $(mandirsu)/sudo_sendlog.$(mansectsu) $(mandirsu)/sudoreplay.$(mansectsu) $(mandirsu)/visudo.$(mansectsu) $(mandirform)/sudo.conf.$(mansectform) $(mandirform)/sudo_logsrv.proto.$(mansectform) $(mandirform)/sudo_logsrvd.conf.$(mansectform) $(mandirform)/sudoers.$(mansectform) $(mandirform)/sudoers_timestamp.$(mansectform) $(mandirform)/sudoers.ldap.$(mansectform); do \
+		if test -f $(DESTDIR)$$f; then \
+		    echo $(MANCOMPRESS) -f $(DESTDIR)$$f; \
+		    $(MANCOMPRESS) -f $(DESTDIR)$$f; \
+		fi; \
+	    done; \
+	    rm -f $(DESTDIR)$(mandirsu)/sudoedit.$(mansectsu)$(MANCOMPRESSEXT); \
+	    echo ln -s sudo.$(mansectsu)$(MANCOMPRESSEXT) $(DESTDIR)$(mandirsu)/sudoedit.$(mansectsu)$(MANCOMPRESSEXT); \
+	    ln -s sudo.$(mansectsu)$(MANCOMPRESSEXT) $(DESTDIR)$(mandirsu)/sudoedit.$(mansectsu)$(MANCOMPRESSEXT); \
+	else \
+	    rm -f $(DESTDIR)$(mandirsu)/sudoedit.$(mansectsu); \
+	    echo ln -s sudo.$(mansectsu) $(DESTDIR)$(mandirsu)/sudoedit.$(mansectsu); \
+	    ln -s sudo.$(mansectsu) $(DESTDIR)$(mandirsu)/sudoedit.$(mansectsu); \
+	fi
+
+install-plugin:
+
+install-fuzzer:
+
+uninstall:
+	-rm -rf	$(DESTDIR)$(docdir)
+	-rm -f	$(DESTDIR)$(mandirexe)/cvtsudoers.1 \
+		$(DESTDIR)$(mandirsu)/sudo.$(mansectsu) \
+		$(DESTDIR)$(mandirsu)/sudoedit.$(mansectsu) \
+		$(DESTDIR)$(mandirsu)/sudo_logsrvd.$(mansectsu) \
+		$(DESTDIR)$(mandirsu)/sudo_sendlog.$(mansectsu) \
+		$(DESTDIR)$(mandirsu)/sudoreplay.$(mansectsu) \
+		$(DESTDIR)$(mandirsu)/visudo.$(mansectsu) \
+		$(DESTDIR)$(mandirform)/sudo.conf.$(mansectform) \
+		$(DESTDIR)$(mandirform)/sudo_logsrv.proto.$(mansectform) \
+		$(DESTDIR)$(mandirform)/sudo_logsrvd.conf.$(mansectform) \
+		$(DESTDIR)$(mandirform)/sudo_plugin.$(mansectform) \
+		$(DESTDIR)$(mandirform)/sudo_plugin_python.$(mansectform) \
+		$(DESTDIR)$(mandirform)/sudoers.$(mansectform) \
+		$(DESTDIR)$(mandirform)/sudoers_timestamp.$(mansectform) \
+		$(DESTDIR)$(mandirform)/sudoers.ldap.$(mansectform)
+
+splint:
+
+cppcheck:
+
+pvs-log-files:
+
+pvs-studio:
+
+fuzz:
+
+check-fuzzer:
+
+check: check-fuzzer
+
+check-verbose: check
+
+clean:
+	-rm -f fixman.sed
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile config.log *.man *.mdoc
+
+clobber: distclean
+
+realclean: distclean
+
+cleandir: distclean
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean

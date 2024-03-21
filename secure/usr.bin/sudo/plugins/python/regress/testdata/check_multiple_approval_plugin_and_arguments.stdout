@@ -1,0 +1,67 @@
+(APPROVAL 1) Constructed:
+{
+    "_id": "(APPROVAL 1)",
+    "plugin_options": [
+        "ModulePath=SRC_DIR/regress/plugin_approval_test.py",
+        "ClassName=ApprovalTestPlugin",
+        "Id=1"
+    ],
+    "settings": [
+        "SETTING1=VALUE1",
+        "setting2=value2"
+    ],
+    "submit_argv": [
+        "sudo",
+        "-u",
+        "user",
+        "whoami",
+        "--help"
+    ],
+    "submit_optind": 3,
+    "user_env": [
+        "USER_ENV1=VALUE1",
+        "USER_ENV2=value2"
+    ],
+    "user_info": [
+        "INFO1=VALUE1",
+        "info2=value2"
+    ],
+    "version": "1.21"
+}
+(APPROVAL 2) Constructed:
+{
+    "_id": "(APPROVAL 2)",
+    "plugin_options": [
+        "ModulePath=SRC_DIR/regress/plugin_approval_test.py",
+        "ClassName=ApprovalTestPlugin",
+        "Id=2"
+    ],
+    "settings": [
+        "SETTING1=VALUE1",
+        "setting2=value2"
+    ],
+    "submit_argv": [
+        "sudo",
+        "-u",
+        "user",
+        "whoami",
+        "--help"
+    ],
+    "submit_optind": 3,
+    "user_env": [
+        "USER_ENV1=VALUE1",
+        "USER_ENV2=value2"
+    ],
+    "user_info": [
+        "INFO1=VALUE1",
+        "info2=value2"
+    ],
+    "version": "1.21"
+}
+(APPROVAL 1) Show version was called with arguments: (0,)
+Python approval plugin (API 1.0): ApprovalTestPlugin (loaded from 'SRC_DIR/regress/plugin_approval_test.py')
+(APPROVAL 2) Show version was called with arguments: (1,)
+(APPROVAL 1) Check was called with arguments: (('CMDINFO1=value1', 'CMDINFO2=VALUE2'), ('whoami', '--help'), ('USER_ENV1=VALUE1', 'USER_ENV2=value2'))
+(APPROVAL 2) Check was called with arguments: (('CMDINFO1=value1', 'CMDINFO2=VALUE2'), ('whoami', '--help'), ('USER_ENV1=VALUE1', 'USER_ENV2=value2'))
+(APPROVAL 1) Destructed successfully
+(APPROVAL 2) Destructed successfully

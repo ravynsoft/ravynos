@@ -1,0 +1,5 @@
+echo "warning: if you have exported functions defined in your environment," >&2
+echo "warning: they may show up as diff output." >&2
+echo "warning: if so, please do not consider this a test failure" >&2
+${THIS_SH} ./func.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} func.right && rm -f ${BASH_TSTOUT}

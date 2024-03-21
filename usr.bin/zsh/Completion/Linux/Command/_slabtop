@@ -1,0 +1,22 @@
+#compdef slabtop
+# based on procps-ng-3.3.15
+
+local -a criteria=(
+  'a:number of active objects'
+  'b:objects per slab'
+  'c:cache size'
+  'l:number of slabs'
+  'v:number of active slabs'
+  'n:name'
+  'o:number of objects'
+  'p:page per slab'
+  's:object size'
+  'u:cache utilization'
+)
+
+_arguments -s \
+  '(-d --delay -o --once)'{-d+,--delay=}'[specify the delay between updates]:seconds: ' \
+  '(-s --sort)'{-s+,--sort=}'[specify the sort criteria]:criteria:(($criteria))' \
+  '(-d --delay -o --once)'{-o,--once}'[display the output once and exit]' \
+  '(-)'{-V,--version}'[display version information and exit]' \
+  '(-)'{-h,--help}'[display usage information and exit]'

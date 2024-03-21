@@ -1,0 +1,120 @@
+./jobs2.sub: line 9: fg: job 1 started without job control
+fg: 1
+Waiting for job 0
+job 0 returns 0
+Waiting for job 1
+job 1 returns 0
+Waiting for job 2
+job 2 returns 0
+Waiting for job 3
+job 3 returns 0
+Waiting for job 4
+job 4 returns 0
+Waiting for job 5
+job 5 returns 0
+Waiting for job 6
+job 6 returns 0
+Waiting for job 7
+job 7 returns 0
+[1]   Running                 sleep 2 &
+[2]   Running                 sleep 2 &
+[3]   Running                 sleep 2 &
+[4]-  Running                 sleep 2 &
+[5]+  Running                 ( sleep 2; exit 4 ) &
+4
+0
+i killed it
+12
+[1]-  Running                 sleep 20 &
+[3]+  Running                 sleep 20 &
+5: ok 1
+./jobs5.sub: line 40: wait: %8: no such job
+2: ok 2
+2: ok 3
+127
+./jobs5.sub: line 71: declare: wpid: not found
+child1 exit status 0
+[1]+ Running sleep 20 &
+./jobs7.sub: line 5: fg: no current jobs
+[1]+ Running sleep 20 &
+0
+./jobs.tests: line 40: wait: %1: no such job
+./jobs.tests: line 45: fg: no job control
+wait-for-pid
+wait-errors
+./jobs.tests: line 58: wait: `1-1': not a pid or valid job spec
+./jobs.tests: line 59: wait: `-4': not a pid or valid job spec
+wait-for-background-pids
+async list wait-for-background-pids
+async list wait for child
+forked
+wait-when-no-children
+posix jobs output
+[1]+  Done                    sleep 1
+wait-for-job
+./jobs.tests: line 84: wait: %2: no such job
+127
+async list wait-for-job
+forked
+fg-bg 1
+sleep 2
+fg-bg 2
+sleep 2
+fg-bg 3
+sleep 2
+fg-bg 4
+sleep 2
+fg-bg 5
+./jobs.tests: line 111: fg: %2: no such job
+./jobs.tests: line 112: bg: job 1 already in background
+fg-bg 6
+./jobs.tests: line 119: fg: -s: invalid option
+fg: usage: fg [job_spec]
+./jobs.tests: line 120: bg: -s: invalid option
+bg: usage: bg [job_spec ...]
+./jobs.tests: line 125: disown: -s: invalid option
+disown: usage: disown [-h] [-ar] [jobspec ... | pid ...]
+./jobs.tests: line 129: disown: %1: no such job
+./jobs.tests: line 132: disown: %2: no such job
+wait-for-non-child
+./jobs.tests: line 135: wait: pid 1 is not a child of this shell
+127
+3 -- 1 2 3 -- 1 - 2 - 3
+[1]   Running                 sleep 300 &
+[2]-  Running                 sleep 350 &
+[3]+  Running                 sleep 400 &
+running jobs:
+[1]   Running                 sleep 300 &
+[2]-  Running                 sleep 350 &
+[3]+  Running                 sleep 400 &
+./jobs.tests: line 152: kill: %4: no such job
+./jobs.tests: line 154: jobs: %4: no such job
+current job:
+[3]+  Running                 sleep 400 &
+previous job:
+[2]-  Running                 sleep 350 &
+after kill -STOP
+running jobs:
+[1]   Running                 sleep 300 &
+[3]-  Running                 sleep 400 &
+stopped jobs:
+[2]+  Stopped                 sleep 350
+after disown
+[2]+  Stopped                 sleep 350
+[3]-  Running                 sleep 400 &
+running jobs:
+[3]-  Running                 sleep 400 &
+stopped jobs:
+[2]+  Stopped                 sleep 350
+after kill -s CONT
+running jobs:
+[2]+  Running                 sleep 350 &
+[3]-  Running                 sleep 400 &
+stopped jobs:
+after kill -STOP, backgrounding %3:
+[3]+ sleep 400 &
+killing...
+done
+after KILL -STOP, foregrounding %1
+sleep 4
+done

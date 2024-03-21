@@ -27,12 +27,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)print.c	8.6 (Berkeley) 4/16/94";
-#endif
-#endif /* not lint */
-#include <sys/cdefs.h>
 #include <sys/types.h>
 
 #include <stddef.h>
@@ -127,6 +121,7 @@ print(struct termios *tp, struct winsize *wp, int ldisc, enum FMT fmt)
 	put("-inpck", INPCK, 0);
 	put("-ignpar", IGNPAR, 0);
 	put("-parmrk", PARMRK, 0);
+	put("-iutf8", IUTF8, 1);
 
 	/* output flags */
 	tmp = tp->c_oflag;

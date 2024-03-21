@@ -1,0 +1,15 @@
+#compdef powerd
+
+local powerd_mode
+powerd_mode=(minimum maximum adaptative)
+_arguments -s \
+  "-a+[mode to use while on AC power]:mode:($powerd_mode)" \
+  "-b+[mode to use while on battery power]:mode:($powerd_mode)" \
+  '-i+[CPU idle percent level when begin to degrade performance]:percent [75]' \
+  '-m+[minimum frequency to throttle down to]:frequency (MHz)' \
+  '-M+[maximum frequency to throttle up to]:frequency (MHz)' \
+  "-n+[mode to use normally when the AC line state is unknown]:mode:($powerd_mode)" \
+  '-p+[polling interval for AC line state and system idle levels]:interval (ms) [250]:' \
+  '-P+[alternative pidfile]:pidfile:_files' \
+  '-r+[CPU idle percent level where to increase performance]:percent' \
+  '-v[verbose mode]'

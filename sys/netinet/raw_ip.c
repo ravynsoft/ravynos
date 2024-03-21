@@ -28,8 +28,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)raw_ip.c	8.7 (Berkeley) 5/15/95
  */
 
 #include <sys/cdefs.h>
@@ -862,7 +860,6 @@ rip_detach(struct socket *so)
 		ip_rsvp_force_done(so);
 	if (so == V_ip_rsvpd)
 		ip_rsvp_done();
-	in_pcbdetach(inp);
 	in_pcbfree(inp);
 }
 

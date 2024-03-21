@@ -1,0 +1,6 @@
+## this tests an invalid hex encoding followed by successful authentication
+
+SERVER
+SEND 'AUTH EXTERNAL willy'
+EXPECT_COMMAND ERROR
+EXPECT_STATE WAITING_FOR_INPUT

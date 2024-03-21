@@ -1,0 +1,823 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2011-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+devdir = @devdir@
+incdir = $(top_srcdir)/include
+scriptdir = $(top_srcdir)/scripts
+cross_compiling = @CROSS_COMPILING@
+
+# Compiler & tools to use
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+SHA1SUM = @SHA1SUM@
+EGREP = @EGREP@
+SED = @SED@
+
+# Libraries
+LIBEVENTLOG = $(top_builddir)/lib/eventlog/libsudo_eventlog.la
+LIBFUZZSTUB = $(top_builddir)/lib/fuzzstub/libsudo_fuzzstub.la
+LIBUTIL = $(top_builddir)/lib/util/libsudo_util.la
+LT_LIBS = $(LIBUTIL)
+LIBS = @LIBS@ @ZLIB@ $(LT_LIBS)
+
+# C preprocessor flags
+CPPFLAGS = -I$(incdir) -I$(top_builddir) -I$(srcdir) @CPPFLAGS@
+
+# Usually -O and/or -g
+CFLAGS = @CFLAGS@
+
+# Flags to pass to the link stage
+LDFLAGS = @LDFLAGS@
+
+# Flags to pass to libtool
+LTFLAGS = @LT_STATIC@
+
+# Address sanitizer flags
+ASAN_CFLAGS = @ASAN_CFLAGS@
+ASAN_LDFLAGS = @ASAN_LDFLAGS@
+
+# PIE flags
+PIE_CFLAGS = @PIE_CFLAGS@
+PIE_LDFLAGS = @PIE_LDFLAGS@
+
+# Stack smashing protection flags
+HARDENING_CFLAGS = @HARDENING_CFLAGS@
+HARDENING_LDFLAGS = @HARDENING_LDFLAGS@
+
+# cppcheck options, usually set in the top-level Makefile
+CPPCHECK_OPTS = -q --enable=warning,performance,portability --suppress=constStatement --suppress=compareBoolExpressionWithInt --error-exitcode=1 --inline-suppr -Dva_copy=va_copy -U__cplusplus -UQUAD_MAX -UQUAD_MIN -UUQUAD_MAX -U_POSIX_HOST_NAME_MAX -U_POSIX_PATH_MAX -U__NBBY -DNSIG=64
+
+# splint options, usually set in the top-level Makefile
+SPLINT_OPTS = -D__restrict= -checks
+
+# PVS-studio options
+PVS_CFG = $(top_srcdir)/PVS-Studio.cfg
+PVS_IGNORE = 'V707,V011,V002,V536'
+PVS_LOG_OPTS = -a 'GA:1,2' -e -t errorfile -d $(PVS_IGNORE)
+
+# Regression tests
+TEST_PROGS = check_iolog_filter check_iolog_mkpath check_iolog_path \
+	     check_iolog_timing host_port_test
+TEST_LIBS = @LIBS@
+TEST_LDFLAGS = @LDFLAGS@
+TEST_VERBOSE =
+
+# Fuzzers
+LIB_FUZZING_ENGINE = @FUZZ_ENGINE@
+FUZZ_PROGS = fuzz_iolog_json fuzz_iolog_legacy fuzz_iolog_timing
+FUZZ_SEED_CORPUS = ${FUZZ_PROGS:=_seed_corpus.zip}
+FUZZ_LIBS = libsudo_iolog.la $(LIBEVENTLOG) $(LIB_FUZZING_ENGINE) $(LIBS)
+FUZZ_LDFLAGS = @LDFLAGS@
+FUZZ_MAX_LEN = 4096
+FUZZ_RUNS = 8192
+FUZZ_VERBOSE =
+
+# Set to non-empty for development mode
+DEVEL = @DEVEL@
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+LIBIOLOG_OBJS = host_port.lo hostcheck.lo iolog_clearerr.lo iolog_close.lo \
+		iolog_conf.lo iolog_eof.lo iolog_filter.lo iolog_flush.lo \
+		iolog_gets.lo iolog_json.lo iolog_legacy.lo iolog_loginfo.lo \
+		iolog_mkdirs.lo iolog_mkdtemp.lo iolog_mkpath.lo \
+		iolog_nextid.lo iolog_open.lo iolog_openat.lo iolog_path.lo \
+		iolog_read.lo iolog_seek.lo iolog_swapids.lo iolog_timing.lo \
+		iolog_util.lo iolog_write.lo
+
+IOBJS = $(LIBIOLOG_OBJS:.lo=.i)
+
+POBJS = $(IOBJS:.i=.plog)
+
+CHECK_IOLOG_MKPATH_OBJS = check_iolog_mkpath.lo
+
+CHECK_IOLOG_PATH_OBJS = check_iolog_path.lo
+
+CHECK_IOLOG_TIMING_OBJS = check_iolog_timing.lo
+
+CHECK_IOLOG_FILTER_OBJS = check_iolog_filter.lo
+
+HOST_PORT_TEST_OBJS = host_port_test.lo
+
+FUZZ_IOLOG_JSON_OBJS = fuzz_iolog_json.lo
+
+FUZZ_IOLOG_JSON_CORPUS = $(srcdir)/regress/corpus/seed/log_json/*.json
+
+FUZZ_IOLOG_LEGACY_OBJS = fuzz_iolog_legacy.lo
+
+FUZZ_IOLOG_LEGACY_CORPUS = $(srcdir)/regress/corpus/seed/log_legacy/*.log
+
+FUZZ_IOLOG_TIMING_OBJS = fuzz_iolog_timing.lo
+
+FUZZ_IOLOG_TIMING_CORPUS = $(srcdir)/regress/corpus/seed/timing/timing.*
+
+all: libsudo_iolog.la
+
+depend:
+	$(scriptdir)/mkdep.pl --srcdir=$(abs_top_srcdir) \
+	    --builddir=$(abs_top_builddir) lib/iolog/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/iolog/Makefile
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/iolog/Makefile
+
+.SUFFIXES: .c .h .i .lo .plog
+
+.c.lo:
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $<
+
+.c.i:
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+
+.i.plog:
+	ifile=$<; rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $${ifile%i}c --i-file $< --output-file $@
+
+libsudo_iolog.la: $(LIBIOLOG_OBJS) $(LT_LIBS)
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(LIBIOLOG_OBJS) $(LT_LIBS) @ZLIB@ @NET_LIBS@
+
+check_iolog_path: $(CHECK_IOLOG_PATH_OBJS) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_IOLOG_PATH_OBJS) libsudo_iolog.la $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(TEST_LDFLAGS) $(TEST_LIBS)
+
+check_iolog_mkpath: $(CHECK_IOLOG_MKPATH_OBJS) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_IOLOG_MKPATH_OBJS) libsudo_iolog.la $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(TEST_LDFLAGS) $(TEST_LIBS)
+
+check_iolog_timing: $(CHECK_IOLOG_TIMING_OBJS) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_IOLOG_TIMING_OBJS) libsudo_iolog.la $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(TEST_LDFLAGS) $(TEST_LIBS)
+
+check_iolog_filter: $(CHECK_IOLOG_FILTER_OBJS) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_IOLOG_FILTER_OBJS) libsudo_iolog.la $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(TEST_LDFLAGS) $(TEST_LIBS)
+
+host_port_test: $(HOST_PORT_TEST_OBJS) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(HOST_PORT_TEST_OBJS) libsudo_iolog.la $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(TEST_LDFLAGS) $(TEST_LIBS)
+
+fuzz_iolog_json: $(FUZZ_IOLOG_JSON_OBJS) $(LIBFUZZSTUB) $(LIBEVENTLOG) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_IOLOG_JSON_OBJS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS)
+
+fuzz_iolog_legacy: $(FUZZ_IOLOG_LEGACY_OBJS) $(LIBFUZZSTUB) $(LIBEVENTLOG) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_IOLOG_LEGACY_OBJS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS)
+
+fuzz_iolog_timing: $(FUZZ_IOLOG_TIMING_OBJS) $(LIBFUZZSTUB) $(LIBEVENTLOG) $(LIBUTIL) libsudo_iolog.la
+	$(LIBTOOL) $(LTFLAGS) --mode=link @FUZZ_LD@ -o $@ $(FUZZ_IOLOG_TIMING_OBJS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(FUZZ_LDFLAGS) $(FUZZ_LIBS)
+
+fuzz_iolog_json_seed_corpus.zip:
+	tdir=fuzz_iolog_json.$$$$; \
+	mkdir $$tdir; \
+	for f in $(FUZZ_IOLOG_JSON_CORPUS); do \
+	    cp $$f $$tdir/`$(SHA1SUM) $$f | $(SED) -e 's/^.*= *//' -e 's/ .*//'`; \
+	done; \
+	zip -j $@ $$tdir/*; \
+	rm -rf $$tdir
+
+run-fuzz_iolog_json: fuzz_iolog_json
+	l=`locale -a 2>&1 | $(EGREP) -i '^C\.UTF-?8$$' | $(SED) 1q` || true; \
+	test -n "$$l" || l="C"; \
+	LC_ALL="$$l"; export LC_ALL; \
+	unset LANG || LANG=; \
+	unset LANGUAGE || LANGUAGE=; \
+	MALLOC_OPTIONS=S; export MALLOC_OPTIONS; \
+	MALLOC_CONF="abort:true,junk:true"; export MALLOC_CONF; \
+	umask 022; \
+	corpus=regress/corpus/iolog_json; \
+	mkdir -p $$corpus; \
+	for f in $(FUZZ_IOLOG_JSON_CORPUS); do \
+	    cp $$f $$corpus; \
+	done; \
+	./fuzz_iolog_json -dict=$(srcdir)/regress/fuzz/fuzz_iolog_json.dict -max_len=$(FUZZ_MAX_LEN) -runs=$(FUZZ_RUNS) $(FUZZ_VERBOSE) $$corpus
+
+fuzz_iolog_legacy_seed_corpus.zip:
+	tdir=fuzz_iolog_legacy.$$$$; \
+	mkdir $$tdir; \
+	for f in $(FUZZ_IOLOG_LEGACY_CORPUS); do \
+	    cp $$f $$tdir/`$(SHA1SUM) $$f | $(SED) -e 's/^.*= *//' -e 's/ .*//'`; \
+	done; \
+	zip -j $@ $$tdir/*; \
+	rm -rf $$tdir
+
+run-fuzz_iolog_legacy: fuzz_iolog_legacy
+	l=`locale -a 2>&1 | $(EGREP) -i '^C\.UTF-?8$$' | $(SED) 1q` || true; \
+	test -n "$$l" || l="C"; \
+	LC_ALL="$$l"; export LC_ALL; \
+	unset LANG || LANG=; \
+	unset LANGUAGE || LANGUAGE=; \
+	MALLOC_OPTIONS=S; export MALLOC_OPTIONS; \
+	MALLOC_CONF="abort:true,junk:true"; export MALLOC_CONF; \
+	umask 022; \
+	corpus=regress/corpus/iolog_legacy; \
+	mkdir -p $$corpus; \
+	for f in $(FUZZ_IOLOG_LEGACY_CORPUS); do \
+	    cp $$f $$corpus; \
+	done; \
+	./fuzz_iolog_legacy -dict=$(srcdir)/regress/fuzz/fuzz_iolog_legacy.dict -max_len=$(FUZZ_MAX_LEN) -runs=$(FUZZ_RUNS) $(FUZZ_VERBOSE) $$corpus
+
+fuzz_iolog_timing_seed_corpus.zip:
+	tdir=fuzz_iolog_timing.$$$$; \
+	mkdir $$tdir; \
+	for f in $(FUZZ_IOLOG_TIMING_CORPUS); do \
+	    cp $$f $$tdir/`$(SHA1SUM) $$f | $(SED) -e 's/^.*= *//' -e 's/ .*//'`; \
+	done; \
+	zip -j $@ $$tdir/*; \
+	rm -rf $$tdir
+
+run-fuzz_iolog_timing: fuzz_iolog_timing
+	l=`locale -a 2>&1 | $(EGREP) -i '^C\.UTF-?8$$' | $(SED) 1q` || true; \
+	test -n "$$l" || l="C"; \
+	LC_ALL="$$l"; export LC_ALL; \
+	unset LANG || LANG=; \
+	unset LANGUAGE || LANGUAGE=; \
+	MALLOC_OPTIONS=S; export MALLOC_OPTIONS; \
+	MALLOC_CONF="abort:true,junk:true"; export MALLOC_CONF; \
+	umask 022; \
+	corpus=regress/corpus/iolog_timing; \
+	mkdir -p $$corpus; \
+	for f in $(FUZZ_IOLOG_TIMING_CORPUS); do \
+	    cp $$f $$corpus; \
+	done; \
+	./fuzz_iolog_timing -dict=$(srcdir)/regress/fuzz/fuzz_iolog_timing.dict -max_len=$(FUZZ_MAX_LEN) -runs=$(FUZZ_RUNS) $(FUZZ_VERBOSE) $$corpus
+
+pre-install:
+
+install:
+
+install-binaries:
+
+install-includes:
+
+install-doc:
+
+install-plugin:
+
+install-fuzzer: $(FUZZ_PROGS) $(FUZZ_SEED_CORPUS)
+	@if test X"$(FUZZ_DESTDIR)" = X""; then \
+	    echo "must set FUZZ_DESTDIR for install-fuzzer target"; \
+	else \
+	    cp $(FUZZ_PROGS) $(FUZZ_SEED_CORPUS) $(FUZZ_DESTDIR); \
+	    cp $(srcdir)/regress/fuzz/*.dict $(FUZZ_DESTDIR); \
+	fi
+
+uninstall:
+
+splint:
+	splint $(SPLINT_OPTS) -I$(incdir) -I$(top_builddir) $(srcdir)/*.c
+
+cppcheck:
+	cppcheck $(CPPCHECK_OPTS) -I$(incdir) -I$(top_builddir) $(srcdir)/*.c
+
+pvs-log-files: $(POBJS)
+
+pvs-studio: $(POBJS)
+	plog-converter $(PVS_LOG_OPTS) $(POBJS)
+
+fuzz: run-fuzz_iolog_json run-fuzz_iolog_legacy run-fuzz_iolog_timing
+
+check-fuzzer: $(FUZZ_PROGS)
+	@if test X"$(cross_compiling)" != X"yes"; then \
+	    l=`locale -a 2>&1 | $(EGREP) -i '^C\.UTF-?8$$' | $(SED) 1q` || true; \
+	    test -n "$$l" || l="C"; \
+	    LC_ALL="$$l"; export LC_ALL; \
+	    unset LANG || LANG=; \
+	    unset LANGUAGE || LANGUAGE=; \
+	    MALLOC_OPTIONS=S; export MALLOC_OPTIONS; \
+	    MALLOC_CONF="abort:true,junk:true"; export MALLOC_CONF; \
+	    echo "fuzz_iolog_legacy: verifying corpus"; \
+	    ./fuzz_iolog_legacy $(FUZZ_VERBOSE) $(FUZZ_IOLOG_LEGACY_CORPUS); \
+	    echo "fuzz_iolog_json: verifying corpus"; \
+	    ./fuzz_iolog_json $(FUZZ_VERBOSE) $(FUZZ_IOLOG_JSON_CORPUS); \
+	    echo "fuzz_iolog_timing: verifying corpus"; \
+	    ./fuzz_iolog_timing $(FUZZ_VERBOSE) $(FUZZ_IOLOG_TIMING_CORPUS); \
+	fi
+
+check: $(TEST_PROGS) check-fuzzer
+	@if test X"$(cross_compiling)" != X"yes"; then \
+	    l=`locale -a 2>&1 | $(EGREP) -i '^C\.UTF-?8$$' | $(SED) 1q` || true; \
+	    test -n "$$l" || l="C"; \
+	    LC_ALL="$$l"; export LC_ALL; \
+	    unset LANG || LANG=; \
+	    unset LANGUAGE || LANGUAGE=; \
+	    MALLOC_OPTIONS=S; export MALLOC_OPTIONS; \
+	    MALLOC_CONF="abort:true,junk:true"; export MALLOC_CONF; \
+	    rval=0; \
+	    ./check_iolog_filter $(TEST_VERBOSE) $(srcdir)/regress/iolog_filter/test[1-9]* || rval=`expr $$rval + $$?`; \
+	    ./check_iolog_path $(TEST_VERBOSE) $(srcdir)/regress/iolog_path/data || rval=`expr $$rval + $$?`; \
+	    ./check_iolog_mkpath $(TEST_VERBOSE) || rval=`expr $$rval + $$?`; \
+	    ./check_iolog_timing $(TEST_VERBOSE) || rval=`expr $$rval + $$?`; \
+	    ./host_port_test $(TEST_VERBOSE) || rval=`expr $$rval + $$?`; \
+	    exit $$rval; \
+	fi
+
+check-verbose:
+	exec $(MAKE) $(MFLAGS) TEST_VERBOSE=-v FUZZ_VERBOSE=-verbosity=1 check
+
+clean:
+	-$(LIBTOOL) $(LTFLAGS) --mode=clean rm -f $(TEST_PROGS) $(FUZZ_PROGS) \
+	    *.lo *.o *.la
+	-rm -f *.i *.plog stamp-* core *.core core.* regress/*/*.out \
+	    regress/*/*.err
+	-rm -rf regress/corpus/iolog_json regress/corpus/iolog_legacy \
+	    regress/corpus/iolog_timing
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile .libs
+
+clobber: distclean
+
+realclean: distclean
+	rm -f TAGS tags
+
+cleandir: realclean
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean \
+	$(FUZZ_SEED_CORPUS) run-fuzz_iolog_json run-fuzz_iolog_legacy \
+	run-fuzz_iolog_timing
+
+# Autogenerated dependencies, do not modify
+check_iolog_filter.lo: $(srcdir)/regress/iolog_filter/check_iolog_filter.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                       $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                       $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/iolog_filter/check_iolog_filter.c
+check_iolog_filter.i: $(srcdir)/regress/iolog_filter/check_iolog_filter.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                       $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                       $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+check_iolog_filter.plog: check_iolog_filter.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/iolog_filter/check_iolog_filter.c --i-file $< --output-file $@
+check_iolog_mkpath.lo: $(srcdir)/regress/iolog_mkpath/check_iolog_mkpath.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                       $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                       $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/iolog_mkpath/check_iolog_mkpath.c
+check_iolog_mkpath.i: $(srcdir)/regress/iolog_mkpath/check_iolog_mkpath.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                       $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                       $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+check_iolog_mkpath.plog: check_iolog_mkpath.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/iolog_mkpath/check_iolog_mkpath.c --i-file $< --output-file $@
+check_iolog_path.lo: $(srcdir)/regress/iolog_path/check_iolog_path.c \
+                     $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                     $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                     $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                     $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/iolog_path/check_iolog_path.c
+check_iolog_path.i: $(srcdir)/regress/iolog_path/check_iolog_path.c \
+                     $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                     $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                     $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                     $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+check_iolog_path.plog: check_iolog_path.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/iolog_path/check_iolog_path.c --i-file $< --output-file $@
+check_iolog_timing.lo: $(srcdir)/regress/iolog_timing/check_iolog_timing.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                       $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                       $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/iolog_timing/check_iolog_timing.c
+check_iolog_timing.i: $(srcdir)/regress/iolog_timing/check_iolog_timing.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                       $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                       $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+check_iolog_timing.plog: check_iolog_timing.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/iolog_timing/check_iolog_timing.c --i-file $< --output-file $@
+fuzz_iolog_json.lo: $(srcdir)/regress/fuzz/fuzz_iolog_json.c \
+                    $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                    $(incdir)/sudo_debug.h $(incdir)/sudo_eventlog.h \
+                    $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                    $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                    $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/fuzz/fuzz_iolog_json.c
+fuzz_iolog_json.i: $(srcdir)/regress/fuzz/fuzz_iolog_json.c \
+                    $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                    $(incdir)/sudo_debug.h $(incdir)/sudo_eventlog.h \
+                    $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                    $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                    $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+fuzz_iolog_json.plog: fuzz_iolog_json.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/fuzz/fuzz_iolog_json.c --i-file $< --output-file $@
+fuzz_iolog_legacy.lo: $(srcdir)/regress/fuzz/fuzz_iolog_legacy.c \
+                      $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                      $(incdir)/sudo_debug.h $(incdir)/sudo_eventlog.h \
+                      $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/fuzz/fuzz_iolog_legacy.c
+fuzz_iolog_legacy.i: $(srcdir)/regress/fuzz/fuzz_iolog_legacy.c \
+                      $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                      $(incdir)/sudo_debug.h $(incdir)/sudo_eventlog.h \
+                      $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+fuzz_iolog_legacy.plog: fuzz_iolog_legacy.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/fuzz/fuzz_iolog_legacy.c --i-file $< --output-file $@
+fuzz_iolog_timing.lo: $(srcdir)/regress/fuzz/fuzz_iolog_timing.c \
+                      $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                      $(incdir)/sudo_debug.h $(incdir)/sudo_eventlog.h \
+                      $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/fuzz/fuzz_iolog_timing.c
+fuzz_iolog_timing.i: $(srcdir)/regress/fuzz/fuzz_iolog_timing.c \
+                      $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                      $(incdir)/sudo_debug.h $(incdir)/sudo_eventlog.h \
+                      $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+fuzz_iolog_timing.plog: fuzz_iolog_timing.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/fuzz/fuzz_iolog_timing.c --i-file $< --output-file $@
+host_port.lo: $(srcdir)/host_port.c $(incdir)/compat/stdbool.h \
+              $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+              $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+              $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+              $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/host_port.c
+host_port.i: $(srcdir)/host_port.c $(incdir)/compat/stdbool.h \
+              $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+              $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+              $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+              $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+host_port.plog: host_port.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/host_port.c --i-file $< --output-file $@
+host_port_test.lo: $(srcdir)/regress/host_port/host_port_test.c \
+                   $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                   $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                   $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                   $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/host_port/host_port_test.c
+host_port_test.i: $(srcdir)/regress/host_port/host_port_test.c \
+                   $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                   $(incdir)/sudo_fatal.h $(incdir)/sudo_iolog.h \
+                   $(incdir)/sudo_plugin.h $(incdir)/sudo_util.h \
+                   $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+host_port_test.plog: host_port_test.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/host_port/host_port_test.c --i-file $< --output-file $@
+hostcheck.lo: $(srcdir)/hostcheck.c $(incdir)/compat/stdbool.h \
+              $(incdir)/hostcheck.h $(incdir)/sudo_compat.h \
+              $(incdir)/sudo_debug.h $(incdir)/sudo_queue.h \
+              $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/hostcheck.c
+hostcheck.i: $(srcdir)/hostcheck.c $(incdir)/compat/stdbool.h \
+              $(incdir)/hostcheck.h $(incdir)/sudo_compat.h \
+              $(incdir)/sudo_debug.h $(incdir)/sudo_queue.h \
+              $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+hostcheck.plog: hostcheck.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/hostcheck.c --i-file $< --output-file $@
+iolog_clearerr.lo: $(srcdir)/iolog_clearerr.c $(incdir)/compat/stdbool.h \
+                   $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                   $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                   $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_clearerr.c
+iolog_clearerr.i: $(srcdir)/iolog_clearerr.c $(incdir)/compat/stdbool.h \
+                   $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                   $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                   $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_clearerr.plog: iolog_clearerr.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_clearerr.c --i-file $< --output-file $@
+iolog_close.lo: $(srcdir)/iolog_close.c $(incdir)/compat/stdbool.h \
+                $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_close.c
+iolog_close.i: $(srcdir)/iolog_close.c $(incdir)/compat/stdbool.h \
+                $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_close.plog: iolog_close.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_close.c --i-file $< --output-file $@
+iolog_conf.lo: $(srcdir)/iolog_conf.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(incdir)/sudo_util.h $(top_builddir)/config.h \
+               $(top_builddir)/pathnames.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_conf.c
+iolog_conf.i: $(srcdir)/iolog_conf.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(incdir)/sudo_util.h $(top_builddir)/config.h \
+               $(top_builddir)/pathnames.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_conf.plog: iolog_conf.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_conf.c --i-file $< --output-file $@
+iolog_eof.lo: $(srcdir)/iolog_eof.c $(incdir)/compat/stdbool.h \
+              $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+              $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+              $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_eof.c
+iolog_eof.i: $(srcdir)/iolog_eof.c $(incdir)/compat/stdbool.h \
+              $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+              $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+              $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_eof.plog: iolog_eof.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_eof.c --i-file $< --output-file $@
+iolog_filter.lo: $(srcdir)/iolog_filter.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_filter.c
+iolog_filter.i: $(srcdir)/iolog_filter.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_filter.plog: iolog_filter.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_filter.c --i-file $< --output-file $@
+iolog_flush.lo: $(srcdir)/iolog_flush.c $(incdir)/compat/stdbool.h \
+                $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_flush.c
+iolog_flush.i: $(srcdir)/iolog_flush.c $(incdir)/compat/stdbool.h \
+                $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_flush.plog: iolog_flush.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_flush.c --i-file $< --output-file $@
+iolog_gets.lo: $(srcdir)/iolog_gets.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_gets.c
+iolog_gets.i: $(srcdir)/iolog_gets.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_gets.plog: iolog_gets.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_gets.c --i-file $< --output-file $@
+iolog_json.lo: $(srcdir)/iolog_json.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_eventlog.h $(incdir)/sudo_iolog.h \
+               $(incdir)/sudo_queue.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_json.c
+iolog_json.i: $(srcdir)/iolog_json.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_eventlog.h $(incdir)/sudo_iolog.h \
+               $(incdir)/sudo_queue.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_json.plog: iolog_json.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_json.c --i-file $< --output-file $@
+iolog_legacy.lo: $(srcdir)/iolog_legacy.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                 $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+                 $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                 $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_legacy.c
+iolog_legacy.i: $(srcdir)/iolog_legacy.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                 $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+                 $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                 $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_legacy.plog: iolog_legacy.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_legacy.c --i-file $< --output-file $@
+iolog_loginfo.lo: $(srcdir)/iolog_loginfo.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                  $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+                  $(incdir)/sudo_json.h $(incdir)/sudo_plugin.h \
+                  $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                  $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_loginfo.c
+iolog_loginfo.i: $(srcdir)/iolog_loginfo.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                  $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+                  $(incdir)/sudo_json.h $(incdir)/sudo_plugin.h \
+                  $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                  $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_loginfo.plog: iolog_loginfo.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_loginfo.c --i-file $< --output-file $@
+iolog_mkdirs.lo: $(srcdir)/iolog_mkdirs.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_mkdirs.c
+iolog_mkdirs.i: $(srcdir)/iolog_mkdirs.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_mkdirs.plog: iolog_mkdirs.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_mkdirs.c --i-file $< --output-file $@
+iolog_mkdtemp.lo: $(srcdir)/iolog_mkdtemp.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                  $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                  $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                  $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_mkdtemp.c
+iolog_mkdtemp.i: $(srcdir)/iolog_mkdtemp.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                  $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                  $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                  $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_mkdtemp.plog: iolog_mkdtemp.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_mkdtemp.c --i-file $< --output-file $@
+iolog_mkpath.lo: $(srcdir)/iolog_mkpath.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                 $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_mkpath.c
+iolog_mkpath.i: $(srcdir)/iolog_mkpath.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                 $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_mkpath.plog: iolog_mkpath.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_mkpath.c --i-file $< --output-file $@
+iolog_nextid.lo: $(srcdir)/iolog_nextid.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_nextid.c
+iolog_nextid.i: $(srcdir)/iolog_nextid.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_nextid.plog: iolog_nextid.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_nextid.c --i-file $< --output-file $@
+iolog_open.lo: $(srcdir)/iolog_open.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_open.c
+iolog_open.i: $(srcdir)/iolog_open.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_open.plog: iolog_open.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_open.c --i-file $< --output-file $@
+iolog_openat.lo: $(srcdir)/iolog_openat.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_openat.c
+iolog_openat.i: $(srcdir)/iolog_openat.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                 $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                 $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+                 $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_openat.plog: iolog_openat.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_openat.c --i-file $< --output-file $@
+iolog_path.lo: $(srcdir)/iolog_path.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+               $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+               $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_path.c
+iolog_path.i: $(srcdir)/iolog_path.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+               $(incdir)/sudo_queue.h $(incdir)/sudo_util.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_path.plog: iolog_path.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_path.c --i-file $< --output-file $@
+iolog_read.lo: $(srcdir)/iolog_read.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_read.c
+iolog_read.i: $(srcdir)/iolog_read.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_read.plog: iolog_read.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_read.c --i-file $< --output-file $@
+iolog_seek.lo: $(srcdir)/iolog_seek.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_seek.c
+iolog_seek.i: $(srcdir)/iolog_seek.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_seek.plog: iolog_seek.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_seek.c --i-file $< --output-file $@
+iolog_swapids.lo: $(srcdir)/iolog_swapids.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                  $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                  $(incdir)/sudo_queue.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_swapids.c
+iolog_swapids.i: $(srcdir)/iolog_swapids.c $(incdir)/compat/stdbool.h \
+                  $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                  $(incdir)/sudo_fatal.h $(incdir)/sudo_gettext.h \
+                  $(incdir)/sudo_iolog.h $(incdir)/sudo_plugin.h \
+                  $(incdir)/sudo_queue.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_swapids.plog: iolog_swapids.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_swapids.c --i-file $< --output-file $@
+iolog_timing.lo: $(srcdir)/iolog_timing.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                 $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+                 $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                 $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_timing.c
+iolog_timing.i: $(srcdir)/iolog_timing.c $(incdir)/compat/stdbool.h \
+                 $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                 $(incdir)/sudo_eventlog.h $(incdir)/sudo_fatal.h \
+                 $(incdir)/sudo_gettext.h $(incdir)/sudo_iolog.h \
+                 $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                 $(incdir)/sudo_util.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_timing.plog: iolog_timing.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_timing.c --i-file $< --output-file $@
+iolog_util.lo: $(srcdir)/iolog_util.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_util.c
+iolog_util.i: $(srcdir)/iolog_util.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+               $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_util.plog: iolog_util.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_util.c --i-file $< --output-file $@
+iolog_write.lo: $(srcdir)/iolog_write.c $(incdir)/compat/stdbool.h \
+                $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/iolog_write.c
+iolog_write.i: $(srcdir)/iolog_write.c $(incdir)/compat/stdbool.h \
+                $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                $(incdir)/sudo_iolog.h $(incdir)/sudo_queue.h \
+                $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iolog_write.plog: iolog_write.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/iolog_write.c --i-file $< --output-file $@

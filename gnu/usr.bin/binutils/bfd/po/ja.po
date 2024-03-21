@@ -1,0 +1,6183 @@
+# Japanese message for bfd
+# This file is distributed under the same license as the binutils package.
+# Copyright (C) 2001, 2010 Free Software Foundation, Inc.
+# Daisuke Yamashita <yamad@mb.infoweb.ne.jp>, 2001
+# Yasuaki Taniguchi <yasuakit@gmail.com>, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: bfd 2.21.53\n"
+"Report-Msgid-Bugs-To: bug-binutils@gnu.org\n"
+"POT-Creation-Date: 2011-06-02 14:25+0100\n"
+"PO-Revision-Date: 2011-10-23 16:09+0900\n"
+"Last-Translator: Yasuaki Taniguchi <yasuakit@gmail.com>\n"
+"Language-Team: Japanese <translation-team-ja@lists.sourceforge.net>\n"
+"Language: ja\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nulurals=1; plural=0;\n"
+
+# BFD 内で利用される書式文字列については bfd/bfd.c を参照してください。
+# BFD の書式文字列では位置パラメータ (%1$A, %2$B 等) が使用出来ないので注意してください。
+# フラグが c-format となっていても、%A, %B の内部で利用されている書式変換で
+# 位置が変更になる場合があります。
+# C 標準の書式文字のみ使用されている場合でも _bfd_default_error_handler() の仕様変更などにより
+# 動作しなくなる場合があるので位置パラメータを使用しないことを推奨します。
+#     - 2010/12/27 binutils-2.20.90 で書式文字列の位置パラメータが動作しないことを確認 (谷口)
+#
+#: aout-adobe.c:127
+msgid "%B: Unknown section type in a.out.adobe file: %x\n"
+msgstr "%B: a.out.adobe ファイルに不明なセクション型があります: %x\n"
+
+#: aout-cris.c:199
+#, c-format
+msgid "%s: Invalid relocation type exported: %d"
+msgstr "%s: エクスポートされた再配置型が無効です: %d"
+
+#: aout-cris.c:242
+msgid "%B: Invalid relocation type imported: %d"
+msgstr "%B: インポートされた再配置型が無効です: %d"
+
+#: aout-cris.c:253
+msgid "%B: Bad relocation record imported: %d"
+msgstr "%B: インポートされた再配置レコードが誤っています: %d"
+
+#: aoutx.h:1273 aoutx.h:1611
+#, c-format
+msgid "%s: can not represent section `%s' in a.out object file format"
+msgstr "%s: a.out オブジェクトファイル形式ではセクション `%s' を表現できません"
+
+#: aoutx.h:1577
+#, c-format
+msgid "%s: can not represent section for symbol `%s' in a.out object file format"
+msgstr "%s: a.out オブジェクトファイル形式ではシンボル `%s' 用のセクションを表現できません"
+
+#: aoutx.h:1579 vms-alpha.c:7668
+msgid "*unknown*"
+msgstr "*不明*"
+
+#: aoutx.h:4017 aoutx.h:4343
+msgid "%P: %B: unexpected relocation type\n"
+msgstr "%P: %B: 予期しない再配置タイプです\n"
+
+#: aoutx.h:5374
+#, c-format
+msgid "%s: relocatable link from %s to %s not supported"
+msgstr "%s: %s から %s への再配置可能リンクはサポートされていません"
+
+#: archive.c:2194
+msgid "Warning: writing archive was slow: rewriting timestamp\n"
+msgstr "警告: 書庫への書き込みが遅れました: タイムスタンプを書き換えます\n"
+
+#: archive.c:2482
+msgid "Reading archive file mod timestamp"
+msgstr "書庫ファイルの更新日時を読み込んでいます"
+
+#: archive.c:2506
+msgid "Writing updated armap timestamp"
+msgstr "更新された armap 日時を書き込み中です"
+
+#: bfd.c:398
+msgid "No error"
+msgstr "エラーはありません"
+
+#: bfd.c:399
+msgid "System call error"
+msgstr "システムコールエラー"
+
+#: bfd.c:400
+msgid "Invalid bfd target"
+msgstr "無効な bfd ターゲットです"
+
+#: bfd.c:401
+msgid "File in wrong format"
+msgstr "誤った形式のファイルです"
+
+#: bfd.c:402
+msgid "Archive object file in wrong format"
+msgstr "誤った形式のオブジェクトファイル書庫です"
+
+#: bfd.c:403
+msgid "Invalid operation"
+msgstr "無効な操作です"
+
+#: bfd.c:404
+msgid "Memory exhausted"
+msgstr "メモリを使い果たしました"
+
+#: bfd.c:405
+msgid "No symbols"
+msgstr "シンボルがありません"
+
+#: bfd.c:406
+msgid "Archive has no index; run ranlib to add one"
+msgstr "書庫に索引がありません。追加するために ranlib を実行してください"
+
+#: bfd.c:407
+msgid "No more archived files"
+msgstr "これ以上書庫ファイルはありません"
+
+#: bfd.c:408
+msgid "Malformed archive"
+msgstr "不正な形式の書庫です"
+
+#: bfd.c:409
+msgid "File format not recognized"
+msgstr "ファイル形式が認識できません"
+
+#: bfd.c:410
+msgid "File format is ambiguous"
+msgstr "ファイル形式が曖昧です"
+
+#: bfd.c:411
+msgid "Section has no contents"
+msgstr "セクションに内容がありません"
+
+#: bfd.c:412
+msgid "Nonrepresentable section on output"
+msgstr "出力に対応するセクションがありません"
+
+#: bfd.c:413
+msgid "Symbol needs debug section which does not exist"
+msgstr "存在していないデバッグセクションをシンボルが必要としています"
+
+#: bfd.c:414
+msgid "Bad value"
+msgstr "不正な値です"
+
+#: bfd.c:415
+msgid "File truncated"
+msgstr "ファイルが途切れています"
+
+#: bfd.c:416
+msgid "File too big"
+msgstr "ファイルが大きすぎます"
+
+#: bfd.c:417
+#, c-format
+msgid "Error reading %s: %s"
+msgstr "%s を読み込み中にエラーが発生しました: %s"
+
+#: bfd.c:418
+msgid "#<Invalid error code>"
+msgstr "#<無効なエラーコード>"
+
+#: bfd.c:945
+#, c-format
+msgid "BFD %s assertion fail %s:%d"
+msgstr "BFD %s アサーション失敗 %s:%d"
+
+#: bfd.c:957
+#, c-format
+msgid "BFD %s internal error, aborting at %s line %d in %s\n"
+msgstr "BFD %s 内部エラー。位置 %s、行 %d、%s 内で中止しました\n"
+
+#: bfd.c:961
+#, c-format
+msgid "BFD %s internal error, aborting at %s line %d\n"
+msgstr "BFD %s 内部エラー。位置 %s、行 %d で中止しました\n"
+
+#: bfd.c:963
+msgid "Please report this bug.\n"
+msgstr "このバグを報告してください。\n"
+
+#: bfdwin.c:206
+#, c-format
+msgid "not mapping: data=%lx mapped=%d\n"
+msgstr "マップしません: データ=%lx マップ済=%d\n"
+
+#: bfdwin.c:209
+#, c-format
+msgid "not mapping: env var not set\n"
+msgstr "マップしません: 環境変数が設定されていません\n"
+
+#: binary.c:271
+#, c-format
+msgid "Warning: Writing section `%s' to huge (ie negative) file offset 0x%lx."
+msgstr "警告: セクション `%s' で巨大な (例: 負数) ファイルオフセット 0x%lx への書き込みです"
+
+#: bout.c:1146 elf-m10300.c:2075 elf32-avr.c:1654 elf32-frv.c:5731
+#: elfxx-sparc.c:2796 reloc.c:5677 reloc16.c:162 elf32-ia64.c:360
+#: elf64-ia64.c:360
+msgid "%P%F: --relax and -r may not be used together\n"
+msgstr "%P%F: --relax および -r は同時に使用できません\n"
+
+#: cache.c:226
+msgid "reopening %B: %s\n"
+msgstr "%B を再オープンしています: %s\n"
+
+#: coff-alpha.c:491
+msgid ""
+"%B: Cannot handle compressed Alpha binaries.\n"
+"   Use compiler flags, or objZ, to generate uncompressed binaries."
+msgstr ""
+"%B: 圧縮された Alpha バイナリを扱うことができません。\n"
+"   コンパイラのフラグまたは objZ で非圧縮のバイナリを作成してください。"
+
+#: coff-alpha.c:648
+msgid "%B: unknown/unsupported relocation type %d"
+msgstr "%B: 不明/サポートされない再配置型 %d です"
+
+#: coff-alpha.c:900 coff-alpha.c:937 coff-alpha.c:2025 coff-mips.c:1003
+msgid "GP relative relocation used when GP not defined"
+msgstr "GP が未定義の時に GP 関連再配置が使われました"
+
+#: coff-alpha.c:1502
+msgid "using multiple gp values"
+msgstr "複数の gp 値を使用しています"
+
+#: coff-alpha.c:1561
+msgid "%B: unsupported relocation: ALPHA_R_GPRELHIGH"
+msgstr "%B: サポートされていない再配置です: ALPHA_R_GPRELHIGH"
+
+#: coff-alpha.c:1568
+msgid "%B: unsupported relocation: ALPHA_R_GPRELLOW"
+msgstr "%B: サポートされていない再配置です: ALPHA_R_GPRELLOW"
+
+#: coff-alpha.c:1575 elf32-m32r.c:2493 elf64-alpha.c:4079 elf64-alpha.c:4228
+#: elf32-ia64.c:3845 elf64-ia64.c:3845
+msgid "%B: unknown relocation type %d"
+msgstr "%B: 不明な再配置型 %d です"
+
+#: coff-arm.c:1038
+#, c-format
+msgid "%B: unable to find THUMB glue '%s' for `%s'"
+msgstr "%B: Thumb 糊 '%s' (`%s' 用) が見つかりません"
+
+#: coff-arm.c:1067
+#, c-format
+msgid "%B: unable to find ARM glue '%s' for `%s'"
+msgstr "%B: ARM 糊 '%s' (`%s' 用) が見つかりません"
+
+#: coff-arm.c:1369 elf32-arm.c:6980
+#, c-format
+msgid ""
+"%B(%s): warning: interworking not enabled.\n"
+"  first occurrence: %B: arm call to thumb"
+msgstr ""
+"%B(%s): 警告: ARM/Thumb 命令相互利用が有効になっていません。\n"
+"  最初の出現箇所: %B: Thumb を呼び出す ARM 命令"
+
+#: coff-arm.c:1459
+#, c-format
+msgid ""
+"%B(%s): warning: interworking not enabled.\n"
+"  first occurrence: %B: thumb call to arm\n"
+"  consider relinking with --support-old-code enabled"
+msgstr ""
+"%B(%s): 警告: ARM/Thumb 命令相互利用が有効になっていません。\n"
+"  最初の出現箇所: %B: ARM を呼び出す Thumb 命令\n"
+"  --support-old-code を有効にして再リンクすることを検討してください"
+
+#: coff-arm.c:1754 coff-tic80.c:695 cofflink.c:3081
+msgid "%B: bad reloc address 0x%lx in section `%A'"
+msgstr "%B: 誤った再配置アドレス 0x%lx がセクション `%A' 内にあります"
+
+#: coff-arm.c:2079
+msgid "%B: illegal symbol index in reloc: %d"
+msgstr "%B: 再配置内のシンボル索引が不正です: %d"
+
+#: coff-arm.c:2210
+#, c-format
+msgid "error: %B is compiled for APCS-%d, whereas %B is compiled for APCS-%d"
+msgstr "エラー: %B は APCS-%d に対してコンパイルされているにもかかわらず、 %B は APCS-%d に対してコンパイルされています"
+
+#: coff-arm.c:2226 elf32-arm.c:15580
+#, c-format
+msgid "error: %B passes floats in float registers, whereas %B passes them in integer registers"
+msgstr "エラー: %B は浮動小数を浮動小数レジスタに渡しているにもかかわらず、 %B は浮動小数を整数レジスタに渡しています"
+
+#: coff-arm.c:2229 elf32-arm.c:15584
+#, c-format
+msgid "error: %B passes floats in integer registers, whereas %B passes them in float registers"
+msgstr "エラー: %B は浮動小数を整数レジスタに渡しているにもかかわらず、 %B は浮動小数を浮動小数レジスタに渡しています"
+
+#: coff-arm.c:2243
+#, c-format
+msgid "error: %B is compiled as position independent code, whereas target %B is absolute position"
+msgstr "エラー: %B は位置非依存コードとしてコンパイルされているにも関わらず、ターゲット %B は絶対位置コードになっています"
+
+#: coff-arm.c:2246
+#, c-format
+msgid "error: %B is compiled as absolute position code, whereas target %B is position independent"
+msgstr "エラー: %B は絶対位置コードとしてコンパイルされているにもかかわらず、ターゲット %B は位置非依存コードになっています"
+
+#: coff-arm.c:2274 elf32-arm.c:15649
+#, c-format
+msgid "Warning: %B supports interworking, whereas %B does not"
+msgstr "警告: %B は ARM/Thumb 命令相互利用をサポートしているにもかかわらず、 %B はサポートしていません"
+
+#: coff-arm.c:2277 elf32-arm.c:15655
+#, c-format
+msgid "Warning: %B does not support interworking, whereas %B does"
+msgstr "警告: %B は ARM/Thumb 命令相互利用をサポートしていないにもかかわらず、 %B はサポートしています"
+
+#: coff-arm.c:2301
+#, c-format
+msgid "private flags = %x:"
+msgstr "private フラグ = %x:"
+
+#: coff-arm.c:2309 elf32-arm.c:11752
+#, c-format
+msgid " [floats passed in float registers]"
+msgstr " [浮動小数が浮動小数レジスタに渡されました]"
+
+#: coff-arm.c:2311
+#, c-format
+msgid " [floats passed in integer registers]"
+msgstr " [浮動小数が整数レジスタに渡されました]"
+
+#: coff-arm.c:2314 elf32-arm.c:11755
+#, c-format
+msgid " [position independent]"
+msgstr " [位置非依存]"
+
+#: coff-arm.c:2316
+#, c-format
+msgid " [absolute position]"
+msgstr " [絶対位置]"
+
+#: coff-arm.c:2320
+#, c-format
+msgid " [interworking flag not initialised]"
+msgstr " [ARM/Thumb 命令相互利用のフラグは初期化されていません]"
+
+#: coff-arm.c:2322
+#, c-format
+msgid " [interworking supported]"
+msgstr " [ARM/Thumb 命令相互利用がサポートされています]"
+
+#: coff-arm.c:2324
+#, c-format
+msgid " [interworking not supported]"
+msgstr " [ARM/Thumb 命令相互利用はサポートされていません]"
+
+#: coff-arm.c:2370 elf32-arm.c:10787
+#, c-format
+msgid "Warning: Not setting interworking flag of %B since it has already been specified as non-interworking"
+msgstr "警告: ARM/Thumb 命令相互利用をしないように既に指定されているため、 %B の ARM/Thumb 命令相互利用フラグを設定しません"
+
+#: coff-arm.c:2374 elf32-arm.c:10791
+#, c-format
+msgid "Warning: Clearing the interworking flag of %B due to outside request"
+msgstr "警告: 要求外のため %s の ARM/Thumb 命令相互利用フラグをクリアします"
+
+#: coff-h8300.c:1122
+#, c-format
+msgid "cannot handle R_MEM_INDIRECT reloc when using %s output"
+msgstr "%s 出力を利用している時には R_MEM_INDIRECT 再配置を扱えません"
+
+#: coff-i860.c:147
+#, c-format
+msgid "relocation `%s' not yet implemented"
+msgstr "再配置 `%s' はまだ実装されていません"
+
+#: coff-i860.c:605 coff-tic54x.c:398 coffcode.h:5192
+msgid "%B: warning: illegal symbol index %ld in relocs"
+msgstr "%B: 警告: 不正なシンボル索引 %ld が再配置領域内にあります"
+
+#: coff-i960.c:143 coff-i960.c:506
+msgid "uncertain calling convention for non-COFF symbol"
+msgstr "非 COFF シンボルに対する呼び出し規約が不確定です"
+
+#: coff-m68k.c:506 elf32-bfin.c:5689 elf32-cr16.c:2897 elf32-m68k.c:4677
+msgid "unsupported reloc type"
+msgstr "サポートされていない再配置型です"
+
+#: coff-mips.c:688 elf32-mips.c:1014 elf32-score.c:430 elf32-score7.c:330
+#: elf64-mips.c:2019 elfn32-mips.c:1832
+msgid "GP relative relocation when _gp not defined"
+msgstr "GP 関連の再配置が _gp が未定義の時点で現れました"
+
+#: coff-or32.c:229
+msgid "Unrecognized reloc"
+msgstr "認識できない再配置です"
+
+#: coff-rs6000.c:2676
+#, c-format
+msgid "%s: unsupported relocation type 0x%02x"
+msgstr "%s: 再配置型 0x%02x はサポートされていません"
+
+#: coff-rs6000.c:2761
+#, c-format
+msgid "%s: TOC reloc at 0x%x to symbol `%s' with no TOC entry"
+msgstr "%s: TOC 再配置(0x%x, シンボル `%s') に TOC エントリがありません"
+
+#: coff-rs6000.c:3512 coff64-rs6000.c:2111
+msgid "%B: symbol `%s' has unrecognized smclas %d"
+msgstr "%B: シンボル `%s' は認識できない smclas %d を持っています"
+
+#: coff-sh.c:521
+#, c-format
+msgid "SH Error: unknown reloc type %d"
+msgstr "SH エラー: 不明な再配置型 %d です"
+
+#: coff-tic4x.c:195 coff-tic54x.c:299 coff-tic80.c:458
+#, c-format
+msgid "Unrecognized reloc type 0x%x"
+msgstr "認識できない再配置型 0x%x です"
+
+#: coff-tic4x.c:240
+#, c-format
+msgid "%s: warning: illegal symbol index %ld in relocs"
+msgstr "%s: 警告: 不正なシンボル索引 %ld が再配置領域内にあります"
+
+#: coff-w65.c:367
+#, c-format
+msgid "ignoring reloc %s\n"
+msgstr "再配置 %s を無視しています\n"
+
+#: coffcode.h:991
+msgid "%B: warning: COMDAT symbol '%s' does not match section name '%s'"
+msgstr "%B: 警告: COMDAT シンボル '%s' はセクション名 '%s' に適合しません"
+
+#. Generate a warning message rather using the 'unhandled'
+#. variable as this will allow some .sys files generate by
+#. other toolchains to be processed.  See bugzilla issue 196.
+#: coffcode.h:1215
+msgid "%B: Warning: Ignoring section flag IMAGE_SCN_MEM_NOT_PAGED in section %s"
+msgstr "%B: 警告: セクション %s 内の IMAGE_SCN_MEM_NOT_PAGED セクションフラグを無視しています"
+
+#: coffcode.h:1282
+msgid "%B (%s): Section flag %s (0x%x) ignored"
+msgstr "%B (%s): セクションフラグ %s (0x%x) を無視しました"
+
+#: coffcode.h:2424
+#, c-format
+msgid "Unrecognized TI COFF target id '0x%x'"
+msgstr "TI COFF ターゲット id '0x%x' を認識できません"
+
+#: coffcode.h:2738
+msgid "%B: reloc against a non-existant symbol index: %ld"
+msgstr "%B: 存在しないシンボル索引に対する再配置です: %ld"
+
+#: coffcode.h:3296
+msgid "%B: too many sections (%d)"
+msgstr "%B: セクションが多すぎます (%d)"
+
+#: coffcode.h:3712
+msgid "%B: section %s: string table overflow at offset %ld"
+msgstr "%B: セクション %s: オフセット %ld で文字列表が溢れました"
+
+#: coffcode.h:4517
+msgid "%B: warning: line number table read failed"
+msgstr "%B: 警告: 行番号表の読み込みに失敗しました"
+
+#: coffcode.h:4547
+msgid "%B: warning: illegal symbol index %ld in line numbers"
+msgstr "%B: 警告: 無効なシンボル索引 %ld が行番号中にあります"
+
+#: coffcode.h:4561
+msgid "%B: warning: duplicate line number information for `%s'"
+msgstr "%B: 警告: `%s' に対する行番号情報が重複しています"
+
+#: coffcode.h:4961
+msgid "%B: Unrecognized storage class %d for %s symbol `%s'"
+msgstr "%B:  認識できない記憶域クラス %d (%s シンボル `%s' 用) です"
+
+#: coffcode.h:5087
+msgid "warning: %B: local symbol `%s' has no section"
+msgstr "警告: %B: 局所シンボル `%s' がセクションを持っていません"
+
+#: coffcode.h:5231
+msgid "%B: illegal relocation type %d at address 0x%lx"
+msgstr "%B: 不正な再配置型 %d がアドレス 0x%lx にあります"
+
+#: coffgen.c:1578
+msgid "%B: bad string table size %lu"
+msgstr "%s: 文字列表サイズ %lu が誤っています"
+
+#: cofflink.c:533 elflink.c:4353
+msgid "Warning: type of symbol `%s' changed from %d to %d in %B"
+msgstr "警告: シンボル `%s' の型が %d から %d に %B 内で変更されました"
+
+#: cofflink.c:2330
+msgid "%B: relocs in section `%A', but it has no contents"
+msgstr "%B: セクション `%A' に再配置領域がありますが、中身がありません"
+
+#: cofflink.c:2392 elflink.c:9554
+msgid "%X`%s' referenced in section `%A' of %B: defined in discarded section `%A' of %B\n"
+msgstr "%X`%s' で `%A' セクション (%B 内) で参照されているもの: 破棄されたセクション `%A' (%B 内) で定義されています\n"
+
+#: cofflink.c:2690 coffswap.h:826
+#, c-format
+msgid "%s: %s: reloc overflow: 0x%lx > 0xffff"
+msgstr "%s: %s: 再配置領域が溢れました: 0x%lx > 0xffff"
+
+#: cofflink.c:2699 coffswap.h:812
+#, c-format
+msgid "%s: warning: %s: line number overflow: 0x%lx > 0xffff"
+msgstr "%s: 警告: %s: 行番号が溢れました: 0x%lx > 0xffff"
+
+#: cpu-arm.c:189 cpu-arm.c:200
+msgid "error: %B is compiled for the EP9312, whereas %B is compiled for XScale"
+msgstr "エラー: %B は EP9312 に対してコンパイルされているにもかかわらず、 %B は XScale に対してコンパイルされています"
+
+#: cpu-arm.c:333
+#, c-format
+msgid "warning: unable to update contents of %s section in %s"
+msgstr "警告: %s セクション (%s 内) の内容を更新できません"
+
+#: dwarf2.c:490
+#, c-format
+msgid "Dwarf Error: Can't find %s section."
+msgstr "Dwarf エラー: %s セクションが見つかりません。"
+
+#: dwarf2.c:518
+#, c-format
+msgid "Dwarf Error: Offset (%lu) greater than or equal to %s size (%lu)."
+msgstr "Dwarf エラー: オフセット (%lu) が %s のサイズ (%lu) 以上です。"
+
+#: dwarf2.c:940
+#, c-format
+msgid "Dwarf Error: Invalid or unhandled FORM value: %u."
+msgstr "Dwarf エラー: 無効または扱えない FORM 値です: %u"
+
+#: dwarf2.c:1191
+msgid "Dwarf Error: mangled line number section (bad file number)."
+msgstr "Dwarf エラー: 行番号セクションが変形されました（不正なファイル番号）。"
+
+#: dwarf2.c:1443
+#, c-format
+msgid "Dwarf Error: Unhandled .debug_line version %d."
+msgstr "Dwarf エラー: .debug_line バージョン %d を扱えませんでした。"
+
+#: dwarf2.c:1465
+msgid "Dwarf Error: Invalid maximum operations per instruction."
+msgstr "Dwarf エラー: 無効な命令ごとの最大操作数です。"
+
+#: dwarf2.c:1652
+msgid "Dwarf Error: mangled line number section."
+msgstr "Dwarf エラー: 行番号セクションが変形されました。"
+
+#: dwarf2.c:1978 dwarf2.c:2098 dwarf2.c:2383
+#, c-format
+msgid "Dwarf Error: Could not find abbrev number %u."
+msgstr "Dwarf エラー: abbrev 番号 %u が見つかりませんでした。"
+
+#: dwarf2.c:2344
+#, c-format
+msgid "Dwarf Error: found dwarf version '%u', this reader only handles version 2, 3 and 4 information."
+msgstr "Dwarf エラー: dwarf バージョン '%u' が見つかりましたが、この処理系はバージョン 2, 3 および 4 の情報しか読み込めません。"
+
+#: dwarf2.c:2351
+#, c-format
+msgid "Dwarf Error: found address size '%u', this reader can not handle sizes greater than '%u'."
+msgstr "Dwarf エラー: アドレスサイズ '%u' が見つかりましたが、この処理系はサイズ '%u' より大きいサイズを扱えません。"
+
+#: dwarf2.c:2374
+#, c-format
+msgid "Dwarf Error: Bad abbrev number: %u."
+msgstr "Dwarf エラー: 不正な abbrev 番号です: %u"
+
+#: ecoff.c:1237
+#, c-format
+msgid "Unknown basic type %d"
+msgstr "基本型 %d が不明です"
+
+#: ecoff.c:1494
+#, c-format
+msgid ""
+"\n"
+"      End+1 symbol: %ld"
+msgstr ""
+"\n"
+"      End+1 シンボル: %ld"
+
+#: ecoff.c:1501 ecoff.c:1504
+#, c-format
+msgid ""
+"\n"
+"      First symbol: %ld"
+msgstr ""
+"\n"
+"      最初のシンボル: %ld"
+
+#: ecoff.c:1516
+#, c-format
+msgid ""
+"\n"
+"      End+1 symbol: %-7ld   Type:  %s"
+msgstr ""
+"\n"
+"      End+1 シンボル: %-7ld   タイプ:  %s"
+
+#: ecoff.c:1523
+#, c-format
+msgid ""
+"\n"
+"      Local symbol: %ld"
+msgstr ""
+"\n"
+"      局所シンボル: %ld"
+
+#: ecoff.c:1531
+#, c-format
+msgid ""
+"\n"
+"      struct; End+1 symbol: %ld"
+msgstr ""
+"\n"
+"      struct; End+1 シンボル: %ld"
+
+#: ecoff.c:1536
+#, c-format
+msgid ""
+"\n"
+"      union; End+1 symbol: %ld"
+msgstr ""
+"\n"
+"      union; End+1 シンボル: %ld"
+
+#: ecoff.c:1541
+#, c-format
+msgid ""
+"\n"
+"      enum; End+1 symbol: %ld"
+msgstr ""
+"\n"
+"      enum; End+1 シンボル: %ld"
+
+#: ecoff.c:1547
+#, c-format
+msgid ""
+"\n"
+"      Type: %s"
+msgstr ""
+"\n"
+"      型: %s"
+
+#: elf-attrs.c:569
+msgid "error: %B: Object has vendor-specific contents that must be processed by the '%s' toolchain"
+msgstr "エラー: %B: オブジェクトにはベンダ固有の内容があり '%s' ツール群で処理されなければいけません"
+
+#: elf-attrs.c:578
+msgid "error: %B: Object tag '%d, %s' is incompatible with tag '%d, %s'"
+msgstr "エラー: %B: オブジェクトタグ '%d, %s' はタグ '%d, %s' と互換性がありません"
+
+#: elf-eh-frame.c:913
+msgid "%P: error in %B(%A); no .eh_frame_hdr table will be created.\n"
+msgstr "%P: %B(%A) 内にエラーが発生しました。.eh_frame_hdr 表は作成されません。\n"
+
+#: elf-eh-frame.c:1165
+msgid "%P: fde encoding in %B(%A) prevents .eh_frame_hdr table being created.\n"
+msgstr "%P: %B(%A) 内の fde エンコードは .eh_frame_hdr 表の作成を阻害します。\n"
+
+#: elf-eh-frame.c:1583
+msgid "%P: DW_EH_PE_datarel unspecified for this architecture.\n"
+msgstr "%P: このアーキテクチャ用には DW_EH_PE_datarel は指定されていません\n"
+
+#: elf-ifunc.c:179
+msgid "%F%P: dynamic STT_GNU_IFUNC symbol `%s' with pointer equality in `%B' can not be used when making an executable; recompile with -fPIE and relink with -pie\n"
+msgstr "%F%P: ポインタが等しい動的 STT_GNU_IFUNC シンボル `%s' (`%B' 内) は実行ファイルを作成する時に使用できません。-fPIE を付けて再コンパイルした後、-pie を付けてリンクしてください\n"
+
+#: elf-m10200.c:450 elf-m10300.c:1571 elf32-avr.c:1221 elf32-bfin.c:3209
+#: elf32-cr16.c:1482 elf32-cr16c.c:780 elf32-cris.c:2077 elf32-crx.c:922
+#: elf32-d10v.c:509 elf32-fr30.c:609 elf32-frv.c:4102 elf32-h8300.c:509
+#: elf32-i860.c:1211 elf32-ip2k.c:1468 elf32-iq2000.c:684 elf32-lm32.c:1168
+#: elf32-m32c.c:553 elf32-m32r.c:3111 elf32-m68hc1x.c:1138 elf32-mep.c:535
+#: elf32-microblaze.c:1231 elf32-moxie.c:282 elf32-msp430.c:486 elf32-mt.c:395
+#: elf32-openrisc.c:404 elf32-score.c:2731 elf32-score7.c:2540
+#: elf32-spu.c:5042 elf32-v850.c:2143 elf32-xstormy16.c:941 elf64-mmix.c:1522
+msgid "internal error: out of range error"
+msgstr "内部エラー: 範囲外エラーです"
+
+#: elf-m10200.c:454 elf-m10300.c:1575 elf32-avr.c:1225 elf32-bfin.c:3213
+#: elf32-cr16.c:1486 elf32-cr16c.c:784 elf32-cris.c:2081 elf32-crx.c:926
+#: elf32-d10v.c:513 elf32-fr30.c:613 elf32-frv.c:4106 elf32-h8300.c:513
+#: elf32-i860.c:1215 elf32-iq2000.c:688 elf32-lm32.c:1172 elf32-m32c.c:557
+#: elf32-m32r.c:3115 elf32-m68hc1x.c:1142 elf32-mep.c:539
+#: elf32-microblaze.c:1235 elf32-moxie.c:286 elf32-msp430.c:490
+#: elf32-openrisc.c:408 elf32-score.c:2735 elf32-score7.c:2544
+#: elf32-spu.c:5046 elf32-v850.c:2147 elf32-xstormy16.c:945 elf64-mmix.c:1526
+#: elfxx-mips.c:9193
+msgid "internal error: unsupported relocation error"
+msgstr "内部エラー: 未サポートの再配置エラー"
+
+#: elf-m10200.c:458 elf32-cr16.c:1490 elf32-cr16c.c:788 elf32-crx.c:930
+#: elf32-d10v.c:517 elf32-h8300.c:517 elf32-lm32.c:1176 elf32-m32r.c:3119
+#: elf32-m68hc1x.c:1146 elf32-microblaze.c:1239 elf32-score.c:2739
+#: elf32-score7.c:2548 elf32-spu.c:5050
+msgid "internal error: dangerous error"
+msgstr "内部エラー: 危険なエラー"
+
+#: elf-m10200.c:462 elf-m10300.c:1591 elf32-avr.c:1233 elf32-bfin.c:3221
+#: elf32-cr16.c:1494 elf32-cr16c.c:792 elf32-cris.c:2089 elf32-crx.c:934
+#: elf32-d10v.c:521 elf32-fr30.c:621 elf32-frv.c:4114 elf32-h8300.c:521
+#: elf32-i860.c:1223 elf32-ip2k.c:1483 elf32-iq2000.c:696 elf32-lm32.c:1180
+#: elf32-m32c.c:565 elf32-m32r.c:3123 elf32-m68hc1x.c:1150 elf32-mep.c:547
+#: elf32-microblaze.c:1243 elf32-moxie.c:294 elf32-msp430.c:498 elf32-mt.c:403
+#: elf32-openrisc.c:416 elf32-score.c:2748 elf32-score7.c:2552
+#: elf32-spu.c:5054 elf32-v850.c:2167 elf32-xstormy16.c:953 elf64-mmix.c:1534
+msgid "internal error: unknown error"
+msgstr "内部エラー: 不明なエラー"
+
+#: elf-m10300.c:1515 elf32-arm.c:10365 elf32-i386.c:4107 elf32-m32r.c:2604
+#: elf32-m68k.c:4156 elf32-s390.c:3010 elf32-sh.c:4223 elf32-xtensa.c:3067
+#: elf64-s390.c:2985 elf64-sh64.c:1636 elf64-x86-64.c:3882 elfxx-sparc.c:3807
+msgid "%B(%A+0x%lx): unresolvable %s relocation against symbol `%s'"
+msgstr "%B(%A+0x%lx): 解決できない %s 再配置 (シンボル `%s' に対する) です"
+
+#: elf-m10300.c:1580
+msgid "error: inappropriate relocation type for shared library (did you forget -fpic?)"
+msgstr "エラー: 共有ライブラリに対する不適切な再配置型です (-fpic を忘れていませんか?)"
+
+#: elf-m10300.c:1583
+msgid "%B: error: taking the address of protected function '%s' cannot be done when making a shared library"
+msgstr "%B: エラー: 保護された関数 '%s' のアドレスは共有ライブラリ作成時には取得できません"
+
+#: elf-m10300.c:1586
+msgid "internal error: suspicious relocation type used in shared library"
+msgstr "内部エラー: 共有ライブラリ内に疑問の残る再配置型が使用されています"
+
+#: elf-m10300.c:4384 elf32-arm.c:12743 elf32-cr16.c:2451 elf32-cris.c:3044
+#: elf32-hppa.c:1894 elf32-i370.c:503 elf32-i386.c:2043 elf32-lm32.c:1868
+#: elf32-m32r.c:1927 elf32-m68k.c:3252 elf32-s390.c:1652 elf32-sh.c:2931
+#: elf32-tic6x.c:2160 elf32-vax.c:1040 elf64-s390.c:1635 elf64-sh64.c:3377
+#: elf64-x86-64.c:1985 elfxx-sparc.c:2104
+#, c-format
+msgid "dynamic variable `%s' is zero size"
+msgstr "動的変数 `%s' のサイズが 0 です"
+
+#: elf.c:334
+msgid "%B: invalid string offset %u >= %lu for section `%s'"
+msgstr "%B: 無効な文字列オフセット %u >= %lu (セクション `%s' 用) です"
+
+#: elf.c:446
+msgid "%B symbol number %lu references nonexistent SHT_SYMTAB_SHNDX section"
+msgstr "%B シンボル番号 %lu が存在しない SHT_SYMTAB_SHNDX セクションを参照しています"
+
+#: elf.c:602
+msgid "%B: Corrupt size field in group section header: 0x%lx"
+msgstr "%B: グループセクションヘッダ内に壊れたサイズフィールドがあります: 0x%lx"
+
+#: elf.c:638
+msgid "%B: invalid SHT_GROUP entry"
+msgstr "%B: 無効な SHT_GROUP エントリです"
+
+#: elf.c:708
+msgid "%B: no group info for section %A"
+msgstr "%B: セクション %A にグループ情報がありません"
+
+#: elf.c:737 elf.c:3121 elflink.c:10144
+msgid "%B: warning: sh_link not set for section `%A'"
+msgstr "%B: 警告: セクション `%A' に対する sh_link が設定されていません"
+
+#: elf.c:756
+msgid "%B: sh_link [%d] in section `%A' is incorrect"
+msgstr "%B: sh_link [%d] (セクション `%A' 内) に誤りがあります"
+
+#: elf.c:791
+msgid "%B: unknown [%d] section `%s' in group [%s]"
+msgstr "%B: 不明な [%d] セクション `%s' がグループ [%s] 内にあります "
+
+#: elf.c:1041
+msgid "%B: unable to initialize commpress status for section %s"
+msgstr "%B: セクション %s に対する圧縮状態を初期化できません"
+
+#: elf.c:1061
+msgid "%B: unable to initialize decommpress status for section %s"
+msgstr "%B: セクション %s に対する伸張状態を初期化できません"
+
+#: elf.c:1181
+#, c-format
+msgid ""
+"\n"
+"Program Header:\n"
+msgstr ""
+"\n"
+"プログラムヘッダ:\n"
+
+#: elf.c:1223
+#, c-format
+msgid ""
+"\n"
+"Dynamic Section:\n"
+msgstr ""
+"\n"
+"動的セクション:\n"
+
+#: elf.c:1359
+#, c-format
+msgid ""
+"\n"
+"Version definitions:\n"
+msgstr ""
+"\n"
+"バージョン定義:\n"
+
+#: elf.c:1384
+#, c-format
+msgid ""
+"\n"
+"Version References:\n"
+msgstr ""
+"\n"
+"バージョン参照:\n"
+
+#: elf.c:1389
+#, c-format
+msgid "  required from %s:\n"
+msgstr "  %s からの要求:\n"
+
+#: elf.c:1796
+msgid "%B: invalid link %lu for reloc section %s (index %u)"
+msgstr "%B: 無効なリンク %lu (再配置セクション %s 用) です (索引 %u)"
+
+#: elf.c:1966
+msgid "%B: don't know how to handle allocated, application specific section `%s' [0x%8x]"
+msgstr "%B: 割り当て済みのアプリケーション固有のセクション `%s' [0x%8x] を扱う方法が分かりません"
+
+#: elf.c:1978
+msgid "%B: don't know how to handle processor specific section `%s' [0x%8x]"
+msgstr "%B: プロセッサ固有のセクション `%s' [0x%8x] を扱う方法が分かりません"
+
+#: elf.c:1989
+msgid "%B: don't know how to handle OS specific section `%s' [0x%8x]"
+msgstr "%B: OS 固有のセクション `%s' [0x%8x] を扱う方法が分かりません"
+
+#: elf.c:1999
+msgid "%B: don't know how to handle section `%s' [0x%8x]"
+msgstr "%B: セクション `%s' [0x%8x] を扱う方法が分かりません"
+
+#: elf.c:2634
+#, c-format
+msgid "warning: section `%A' type changed to PROGBITS"
+msgstr "警告: セクション `%A' の型が PROGBITS に変更されました"
+
+#: elf.c:3078
+msgid "%B: sh_link of section `%A' points to discarded section `%A' of `%B'"
+msgstr "%B: セクション `%A' の sh_link が破棄されたセクション `%A' (`%B' 内) を指しています"
+
+#: elf.c:3101
+msgid "%B: sh_link of section `%A' points to removed section `%A' of `%B'"
+msgstr "%B: セクション `%A' の sh_link が 削除されたセクション `%A' (`%B' 内) を指しています "
+
+#: elf.c:4527
+msgid "%B: The first section in the PT_DYNAMIC segment is not the .dynamic section"
+msgstr "%B: PT_DYNAMIC セグメントの最初のセクションが .dynamic セクションではありません"
+
+#: elf.c:4554
+msgid "%B: Not enough room for program headers, try linking with -N"
+msgstr "%B: プログラムヘッダ用の空間が不十分です。-N を付けてリンクしてみてください"
+
+#: elf.c:4641
+msgid "%B: section %A lma %#lx adjusted to %#lx"
+msgstr "%B: セクション %A の lma %#lx が %#lx に調節されました"
+
+#: elf.c:4774
+msgid "%B: section `%A' can't be allocated in segment %d"
+msgstr "%B: セクション `%A' をセグメント %d 内で割り当てることができません"
+
+#: elf.c:4822
+msgid "%B: warning: allocated section `%s' not in segment"
+msgstr "%B: 警告: 割り当て済みのセクション `%s' がセグメント内にありません"
+
+#: elf.c:5322
+msgid "%B: symbol `%s' required but not present"
+msgstr "%B: シンボル `%s' が要求されましたが存在しません"
+
+#: elf.c:5660
+msgid "%B: warning: Empty loadable segment detected, is this intentional ?\n"
+msgstr "%B: 警告: 空のロード可能セグメントが検出されました。これは意図したものですか?\n"
+
+#: elf.c:6688
+#, c-format
+msgid "Unable to find equivalent output section for symbol '%s' from section '%s'"
+msgstr "シンボル '%s' 用の等価な出力セクションをセクション '%s' から見つけることが出来ません"
+
+#: elf.c:7684
+msgid "%B: unsupported relocation type %s"
+msgstr "%B: サポートされていない再配置型 %s です"
+
+#: elf32-arm.c:3590
+msgid ""
+"%B(%s): warning: interworking not enabled.\n"
+"  first occurrence: %B: Thumb call to ARM"
+msgstr ""
+"%B(%s): 警告: ARM/Thumb 命令相互利用が有効ではありません\n"
+"  最初の出現箇所: %B: ARM を呼び出す Thumb 命令"
+
+#: elf32-arm.c:3637
+msgid ""
+"%B(%s): warning: interworking not enabled.\n"
+"  first occurrence: %B: ARM call to Thumb"
+msgstr ""
+"%B(%s):  警告: ARM/Thumb 命令相互利用が有効ではありません\n"
+"  最初の出現箇所: %B: Thumb を呼び出す ARM 命令"
+
+#: elf32-arm.c:3849 elf32-arm.c:5286
+#, c-format
+msgid "%s: cannot create stub entry %s"
+msgstr "%s: スタブエントリ %s を作成できません"
+
+#: elf32-arm.c:5402
+#, c-format
+msgid "unable to find THUMB glue '%s' for '%s'"
+msgstr "Thumb 糊 '%s' ('%s' 用) が見つかりません"
+
+#: elf32-arm.c:5438
+#, c-format
+msgid "unable to find ARM glue '%s' for '%s'"
+msgstr "ARM 糊 '%s' ('%s' 用) が見つかりません"
+
+#: elf32-arm.c:5964
+msgid "%B: BE8 images only valid in big-endian mode."
+msgstr "%B: BE8 イメージはビッグエンディアンモードでのみ有効です"
+
+#. Give a warning, but do as the user requests anyway.
+#: elf32-arm.c:6194
+msgid "%B: warning: selected VFP11 erratum workaround is not necessary for target architecture"
+msgstr "%B: 警告: 選択された VFP11 エラッタ回避はターゲットアーキテクチャでは必要ではありません"
+
+#: elf32-arm.c:6738 elf32-arm.c:6758
+msgid "%B: unable to find VFP11 veneer `%s'"
+msgstr ""
+
+#: elf32-arm.c:6806
+#, c-format
+msgid "Invalid TARGET2 relocation type '%s'."
+msgstr "無効な TARGET2 再配置型 '%s' です。"
+
+#: elf32-arm.c:6890
+msgid ""
+"%B(%s): warning: interworking not enabled.\n"
+"  first occurrence: %B: thumb call to arm"
+msgstr ""
+"%B(%s):  警告: ARM/Thumb 命令相互利用が有効ではありません\n"
+"  最初の出現箇所: %B: ARM を呼び出す Thumb 命令"
+
+#: elf32-arm.c:7674
+msgid "%B(%A+0x%lx):unexpected Thumb instruction '0x%x' in TLS trampoline"
+msgstr "%B(%A+0x%lx): TLS トランポリン内に予期しない Thumb 命令 '0x%x' があります"
+
+#: elf32-arm.c:7713
+msgid "%B(%A+0x%lx):unexpected ARM instruction '0x%x' in TLS trampoline"
+msgstr "%B(%A+0x%lx): TLS トランポリン内に予期しない ARM 命令 '0x%x' があります"
+
+#: elf32-arm.c:8166
+msgid "\\%B: Warning: Arm BLX instruction targets Arm function '%s'."
+msgstr "\\%B: 警告: ARM の BLX 命令が ARM 関数 '%s' を指しています。"
+
+#: elf32-arm.c:8575
+msgid "%B: Warning: Thumb BLX instruction targets thumb function '%s'."
+msgstr "%B: 警告: Thumb の BLX 命令が Thumb 関数 '%s' を指しています。"
+
+#: elf32-arm.c:9408
+msgid "%B(%A+0x%lx):unexpected Thumb instruction '0x%x' referenced by TLS_GOTDESC"
+msgstr "%B(%A+0x%lx): 予期しない Thumb 命令 '0x%x' が TLS_GOTDESC によって参照されています"
+
+#: elf32-arm.c:9431
+msgid "%B(%A+0x%lx):unexpected ARM instruction '0x%x' referenced by TLS_GOTDESC"
+msgstr "%B(%A+0x%lx): 予期しない ARM 命令 '0x%x' が TLS_GOTDESC によって参照されています"
+
+#: elf32-arm.c:9460
+msgid "%B(%A+0x%lx): R_ARM_TLS_LE32 relocation not permitted in shared object"
+msgstr "%B(%A+0x%lx): R_ARM_TLS_LE32 再配置は共有オブジェクト内では許可されていません"
+
+#: elf32-arm.c:9675
+msgid "%B(%A+0x%lx): Only ADD or SUB instructions are allowed for ALU group relocations"
+msgstr "%B(%A+0x%lx): ALU グループ再配置に対しては ADD または SUB 命令のみ許可されています"
+
+#: elf32-arm.c:9715 elf32-arm.c:9802 elf32-arm.c:9885 elf32-arm.c:9970
+msgid "%B(%A+0x%lx): Overflow whilst splitting 0x%lx for group relocation %s"
+msgstr "%B(%A+0x%lx):  0x%lx をクループ再配置 %s 用に分割中にオーバーフローしました"
+
+#: elf32-arm.c:10209 elf32-sh.c:4112 elf64-sh64.c:1544
+msgid "%B(%A+0x%lx): %s relocation against SEC_MERGE section"
+msgstr "%B(%A+0x%lx): SEC_MERGE セクションに対する %s 再配置です"
+
+#: elf32-arm.c:10320 elf32-m68k.c:4191 elf32-xtensa.c:2805
+msgid "%B(%A+0x%lx): %s used with TLS symbol %s"
+msgstr "%B(%A+0x%lx): %s が TLS シンボル %s と併せて使用されました"
+
+#: elf32-arm.c:10321 elf32-m68k.c:4192 elf32-xtensa.c:2806
+msgid "%B(%A+0x%lx): %s used with non-TLS symbol %s"
+msgstr "%B(%A+0x%lx): %s が TLS ではないシンボル %s と併せて使用されました"
+
+#: elf32-arm.c:10399 elf32-tic6x.c:2751
+msgid "out of range"
+msgstr "範囲外"
+
+#: elf32-arm.c:10403 elf32-tic6x.c:2755
+msgid "unsupported relocation"
+msgstr "サポートされていない再配置"
+
+#: elf32-arm.c:10411 elf32-tic6x.c:2763
+msgid "unknown error"
+msgstr "不明なエラー"
+
+#: elf32-arm.c:10836
+msgid "Warning: Clearing the interworking flag of %B because non-interworking code in %B has been linked with it"
+msgstr "警告: %B の ARM/Thumb 命令相互利用フラグをクリアしています (%B 内の非 ARM/Thumb 命令相互利用コードがリンクされたため)"
+
+#: elf32-arm.c:10930
+msgid "%B: Unknown mandatory EABI object attribute %d"
+msgstr "%B: 不明な必須 EABI オブジェクト属性 %d です"
+
+#: elf32-arm.c:10938
+msgid "Warning: %B: Unknown EABI object attribute %d"
+msgstr "警告: %B: 不明なEABI オブジェクト属性 %d です"
+
+#: elf32-arm.c:11119
+msgid "error: %B: Unknown CPU architecture"
+msgstr "エラー: %B: 不明な CPU アーキテクチャです"
+
+#: elf32-arm.c:11157
+msgid "error: %B: Conflicting CPU architectures %d/%d"
+msgstr "エラー: %B: CPU アーキテクチャ %d/%d が競合しています"
+
+#: elf32-arm.c:11206
+msgid "Error: %B has both the current and legacy Tag_MPextension_use attributes"
+msgstr "エラー: %B は現在と昔の Tag_MPextension_use 属性を両方とも持っています"
+
+#: elf32-arm.c:11231
+msgid "error: %B uses VFP register arguments, %B does not"
+msgstr "エラー: %B は VFP レジスタ引数を使用していますが、%B は使用していません"
+
+#: elf32-arm.c:11376
+msgid "error: %B: unable to merge virtualization attributes with %B"
+msgstr "エラー: %B: 仮想属性を %B と併合できません"
+
+#: elf32-arm.c:11402
+msgid "error: %B: Conflicting architecture profiles %c/%c"
+msgstr "エラー: %B: アーキテクチャプロファイル %c/%c が競合しています"
+
+#: elf32-arm.c:11503
+msgid "Warning: %B: Conflicting platform configuration"
+msgstr "警告: %B: プラットフォーム設定が競合しています"
+
+#: elf32-arm.c:11512
+msgid "error: %B: Conflicting use of R9"
+msgstr "エラー: %B: R9 の使用が競合しています"
+
+#: elf32-arm.c:11524
+msgid "error: %B: SB relative addressing conflicts with use of R9"
+msgstr "error: %B: SB 相対アドレスの使用は R9 の使用と競合しています"
+
+#: elf32-arm.c:11537
+msgid "warning: %B uses %u-byte wchar_t yet the output is to use %u-byte wchar_t; use of wchar_t values across objects may fail"
+msgstr "警告: %B は %u バイトの wchar_t を使用していますが、出力は %u バイトの wchar_t を使用しています。オブジェクトをまたがる wchar_t 値の使用は失敗するかもしれません"
+
+#: elf32-arm.c:11568
+msgid "warning: %B uses %s enums yet the output is to use %s enums; use of enum values across objects may fail"
+msgstr "警告: %B は %s enum を使用していますが、出力は %s enum を使用します。オブジェクトをまたがる enum 値の使用は失敗するかもしれません"
+
+#: elf32-arm.c:11580
+msgid "error: %B uses iWMMXt register arguments, %B does not"
+msgstr "エラー: %B は iWMMXt レジスタ引数を使用していますが、 %B は使用していません"
+
+#: elf32-arm.c:11597
+msgid "error: fp16 format mismatch between %B and %B"
+msgstr "エラー: fp16 の形式が %B と %B の間で一致しません"
+
+#: elf32-arm.c:11621
+msgid "DIV usage mismatch between %B and %B"
+msgstr "DIV の使用法が %B と %B の間で一致しません"
+
+#: elf32-arm.c:11640
+msgid "%B has has both the current and legacy Tag_MPextension_use attributes"
+msgstr "%B は現在と昔のの Tag_MPextension_use 属性を持っています"
+
+#. Ignore init flag - it may not be set, despite the flags field
+#. containing valid data.
+#. Ignore init flag - it may not be set, despite the flags field containing valid data.
+#: elf32-arm.c:11728 elf32-bfin.c:5075 elf32-cris.c:4162 elf32-m68hc1x.c:1282
+#: elf32-m68k.c:1235 elf32-score.c:3996 elf32-score7.c:3803 elf32-vax.c:528
+#: elfxx-mips.c:12857
+#, c-format
+msgid "private flags = %lx:"
+msgstr "private フラグ = %lx:"
+
+#: elf32-arm.c:11737
+#, c-format
+msgid " [interworking enabled]"
+msgstr " [ARM/Thumb 命令相互利用は有効]"
+
+#: elf32-arm.c:11745
+#, c-format
+msgid " [VFP float format]"
+msgstr " [VFP 浮動小数形式]"
+
+#: elf32-arm.c:11747
+#, c-format
+msgid " [Maverick float format]"
+msgstr " [Maverick 浮動小数形式]"
+
+#: elf32-arm.c:11749
+#, c-format
+msgid " [FPA float format]"
+msgstr " [FPA 浮動小数形式]"
+
+#: elf32-arm.c:11758
+#, c-format
+msgid " [new ABI]"
+msgstr " [新 ABI]"
+
+#: elf32-arm.c:11761
+#, c-format
+msgid " [old ABI]"
+msgstr " [旧 ABI]"
+
+#: elf32-arm.c:11764
+#, c-format
+msgid " [software FP]"
+msgstr " [ソフトウェア浮動小数点]"
+
+#: elf32-arm.c:11773
+#, c-format
+msgid " [Version1 EABI]"
+msgstr " [バージョン 1 EABI]"
+
+#: elf32-arm.c:11776 elf32-arm.c:11787
+#, c-format
+msgid " [sorted symbol table]"
+msgstr " [ソート済シンボル表]"
+
+#: elf32-arm.c:11778 elf32-arm.c:11789
+#, c-format
+msgid " [unsorted symbol table]"
+msgstr " [未ソートシンボル表]"
+
+#: elf32-arm.c:11784
+#, c-format
+msgid " [Version2 EABI]"
+msgstr " [バージョン 2 EABI]"
+
+#: elf32-arm.c:11792
+#, c-format
+msgid " [dynamic symbols use segment index]"
+msgstr ""
+
+#: elf32-arm.c:11795
+#, c-format
+msgid " [mapping symbols precede others]"
+msgstr ""
+
+#: elf32-arm.c:11802
+#, c-format
+msgid " [Version3 EABI]"
+msgstr " [バージョン 3 EABI]"
+
+#: elf32-arm.c:11806
+#, c-format
+msgid " [Version4 EABI]"
+msgstr " [バージョン 4 EABI]"
+
+#: elf32-arm.c:11810
+#, c-format
+msgid " [Version5 EABI]"
+msgstr " [バージョン 5 EABI]"
+
+#: elf32-arm.c:11813
+#, c-format
+msgid " [BE8]"
+msgstr " [BE8]"
+
+#: elf32-arm.c:11816
+#, c-format
+msgid " [LE8]"
+msgstr " [LE8]"
+
+#: elf32-arm.c:11822
+#, c-format
+msgid " <EABI version unrecognised>"
+msgstr " <EABI バージョンを認識できません>"
+
+#: elf32-arm.c:11829
+#, c-format
+msgid " [relocatable executable]"
+msgstr " [再配置可能実行ファイル]"
+
+#: elf32-arm.c:11832
+#, c-format
+msgid " [has entry point]"
+msgstr " [エントリポイントを持っています]"
+
+#: elf32-arm.c:11837
+#, c-format
+msgid "<Unrecognised flag bits set>"
+msgstr "<フラグビットセットを認識できません>"
+
+#: elf32-arm.c:12135 elf32-i386.c:1323 elf32-s390.c:1000 elf32-tic6x.c:2827
+#: elf32-xtensa.c:1009 elf64-s390.c:960 elf64-x86-64.c:1172 elfxx-sparc.c:1370
+msgid "%B: bad symbol index: %d"
+msgstr "%B: シンボル索引に誤りがあります: %d"
+
+#: elf32-arm.c:12283 elf64-x86-64.c:1370 elf64-x86-64.c:1541 elfxx-mips.c:7949
+msgid "%B: relocation %s against `%s' can not be used when making a shared object; recompile with -fPIC"
+msgstr "%B: 再配置 %s (`%s' に対する) は共有オブジェクト作成時には使用できません。-fPIC を付けて再コンパイルしてください。"
+
+#: elf32-arm.c:13412
+#, c-format
+msgid "Errors encountered processing file %s"
+msgstr "ファイル %s を処理中にエラーが発生しました"
+
+#: elf32-arm.c:14795
+msgid "%B: error: Cortex-A8 erratum stub is allocated in unsafe location"
+msgstr "%B: エラー: Cortex-A8 エラッタスタブが安全でない位置に配置されています"
+
+#. There's not much we can do apart from complain if this
+#. happens.
+#: elf32-arm.c:14822
+msgid "%B: error: Cortex-A8 erratum stub out of range (input file too large)"
+msgstr "%B: エラー: Cortex-A8 エラッタスタブが範囲外です (入力ファイルが大きすぎます)"
+
+#: elf32-arm.c:14916 elf32-arm.c:14938
+msgid "%B: error: VFP11 veneer out of range"
+msgstr ""
+
+#: elf32-arm.c:15477
+msgid "error: %B is already in final BE8 format"
+msgstr "エラー: %B は既に最終 BE8 形式です"
+
+#: elf32-arm.c:15553
+msgid "error: Source object %B has EABI version %d, but target %B has EABI version %d"
+msgstr "エラー: ソースオブジェクト %B は EABI バージョン %d ですが、ターゲット %B は EABI バージョン %d です"
+
+#: elf32-arm.c:15569
+msgid "error: %B is compiled for APCS-%d, whereas target %B uses APCS-%d"
+msgstr "エラー: %B は APCS-%d に対してコンパイルされています。一方ターゲット %B は APCS-%d を使用しています"
+
+#: elf32-arm.c:15594
+msgid "error: %B uses VFP instructions, whereas %B does not"
+msgstr "error: %B は VFP 命令を使用しています。一方 %B は使用していません"
+
+#: elf32-arm.c:15598
+msgid "error: %B uses FPA instructions, whereas %B does not"
+msgstr "エラー: %B は FPA 命令を使用しています。一方 %B は使用していません"
+
+#: elf32-arm.c:15608
+msgid "error: %B uses Maverick instructions, whereas %B does not"
+msgstr "エラー: %B は Maverick 命令を使用しています。一方 %B は使用していません"
+
+#: elf32-arm.c:15612
+msgid "error: %B does not use Maverick instructions, whereas %B does"
+msgstr "エラー: %B は Maverick 命令を使用していません。一方 %B は使用しています"
+
+#: elf32-arm.c:15631
+msgid "error: %B uses software FP, whereas %B uses hardware FP"
+msgstr "エラー: %B はソフトウェア浮動小数点を使用しています。一方 %B はハードウェア浮動小数点を使用しています"
+
+#: elf32-arm.c:15635
+msgid "error: %B uses hardware FP, whereas %B uses software FP"
+msgstr "エラー: %B はハードウェア浮動小数点を使用しています。一方 %B はソフトウェア浮動小数点を使用しています"
+
+#: elf32-avr.c:1229 elf32-bfin.c:3217 elf32-cris.c:2085 elf32-fr30.c:617
+#: elf32-frv.c:4110 elf32-i860.c:1219 elf32-ip2k.c:1479 elf32-iq2000.c:692
+#: elf32-m32c.c:561 elf32-mep.c:543 elf32-moxie.c:290 elf32-msp430.c:494
+#: elf32-mt.c:399 elf32-openrisc.c:412 elf32-v850.c:2151 elf32-xstormy16.c:949
+#: elf64-mmix.c:1530
+msgid "internal error: dangerous relocation"
+msgstr "内部エラー: 危険な再配置です"
+
+#: elf32-avr.c:2415 elf32-hppa.c:598 elf32-m68hc1x.c:166
+msgid "%B: cannot create stub entry %s"
+msgstr "%B: スタブエントリ %s を作成できません"
+
+#: elf32-bfin.c:107 elf32-bfin.c:363
+msgid "relocation should be even number"
+msgstr ""
+
+#: elf32-bfin.c:1591
+msgid "%B(%A+0x%lx): unresolvable relocation against symbol `%s'"
+msgstr "%B(%A+0x%lx): シンボル `%s' に対する解決できない再配置です"
+
+#: elf32-bfin.c:1624 elf32-i386.c:4150 elf32-m68k.c:4233 elf32-s390.c:3062
+#: elf64-s390.c:3037 elf64-x86-64.c:3923
+msgid "%B(%A+0x%lx): reloc against `%s': error %d"
+msgstr "%B(%A+0x%lx): `%s' に対する再配置: エラー %d"
+
+#: elf32-bfin.c:2723
+msgid "%B: relocation at `%A+0x%x' references symbol `%s' with nonzero addend"
+msgstr ""
+
+#: elf32-bfin.c:2737
+msgid "relocation references symbol not defined in the module"
+msgstr "再配置がモジュール内で定義されていないシンボルを参照しています"
+
+#: elf32-bfin.c:2834
+msgid "R_BFIN_FUNCDESC references dynamic symbol with nonzero addend"
+msgstr ""
+
+#: elf32-bfin.c:2875 elf32-bfin.c:2998
+msgid "cannot emit fixups in read-only section"
+msgstr "読み込み専用セクション内で修正を行うことができません"
+
+#: elf32-bfin.c:2906 elf32-bfin.c:3036 elf32-lm32.c:1103 elf32-sh.c:5021
+msgid "cannot emit dynamic relocations in read-only section"
+msgstr "読み込み専用セクション内で動的再配置を行うことができません"
+
+#: elf32-bfin.c:2956
+msgid "R_BFIN_FUNCDESC_VALUE references dynamic symbol with nonzero addend"
+msgstr ""
+
+#: elf32-bfin.c:3121
+msgid "relocations between different segments are not supported"
+msgstr "異なるセグメント間の再配置はサポートされていません"
+
+#: elf32-bfin.c:3122
+msgid "warning: relocation references a different segment"
+msgstr "警告: 再配置が異なるセグメントを参照しています"
+
+#: elf32-bfin.c:4967
+msgid "%B: unsupported relocation type %i"
+msgstr "%B: サポートされていない再配置型 %i です"
+
+#: elf32-bfin.c:5121 elf32-frv.c:6805
+#, c-format
+msgid "%s: cannot link non-fdpic object file into fdpic executable"
+msgstr "%s: fdpic 実行ファイル内に非 fdpic オブジェクトをリンクすることはできません"
+
+#: elf32-bfin.c:5125 elf32-frv.c:6809
+#, c-format
+msgid "%s: cannot link fdpic object file into non-fdpic executable"
+msgstr "%s: 非 fdpic 実行ファイル内に fdpic オブジェクトをリンクすることはできません"
+
+#: elf32-bfin.c:5279
+#, c-format
+msgid "*** check this relocation %s"
+msgstr "*** 再配置 %s を確認してください"
+
+#: elf32-cris.c:1172
+msgid "%B, section %A: unresolvable relocation %s against symbol `%s'"
+msgstr "%B セクション %A: 解決できない再配置 %s (シンボル `%s' に対する) です"
+
+#: elf32-cris.c:1234
+msgid "%B, section %A: No PLT nor GOT for relocation %s against symbol `%s'"
+msgstr "%B, セクション %A: 再配置 %s (シンボル `%s' に対する) に関する PLT または GOT がありません"
+
+#: elf32-cris.c:1236
+msgid "%B, section %A: No PLT for relocation %s against symbol `%s'"
+msgstr "%B, セクション %A: 再配置 %s (シンボル `%s' に対する) に関する PLT がありません"
+
+#: elf32-cris.c:1242 elf32-cris.c:1375 elf32-cris.c:1635 elf32-cris.c:1718
+#: elf32-cris.c:1871 elf32-tic6x.c:2660
+msgid "[whose name is lost]"
+msgstr "[名前が無くなっています]"
+
+#: elf32-cris.c:1361 elf32-tic6x.c:2645
+msgid "%B, section %A: relocation %s with non-zero addend %d against local symbol"
+msgstr ""
+
+#: elf32-cris.c:1369 elf32-cris.c:1712 elf32-cris.c:1865 elf32-tic6x.c:2653
+msgid "%B, section %A: relocation %s with non-zero addend %d against symbol `%s'"
+msgstr ""
+
+#: elf32-cris.c:1395
+msgid "%B, section %A: relocation %s is not allowed for global symbol: `%s'"
+msgstr "%B、セクション %A: 再配置 %s は大域シンボルに対して許可されていません: `%s'"
+
+#: elf32-cris.c:1411
+msgid "%B, section %A: relocation %s with no GOT created"
+msgstr "%B、セクション %A: GOT が無い再配置 %s が作成されました"
+
+#. We shouldn't get here for GCC-emitted code.
+#: elf32-cris.c:1626
+msgid "%B, section %A: relocation %s has an undefined reference to `%s', perhaps a declaration mixup?"
+msgstr "%B、セクション %A: 再配置 %s には未定義の `%s' への参照があります。おそらく宣言が混乱しています。"
+
+#: elf32-cris.c:1998
+msgid "%B, section %A: relocation %s is not allowed for symbol: `%s' which is defined outside the program, perhaps a declaration mixup?"
+msgstr "%B、セクション %A: 再配置 %s はシンボル用としては許可されていません: `%s' はプログラム外で定義されています。おそらく宣言が混乱しています。"
+
+#: elf32-cris.c:2051
+msgid "(too many global variables for -fpic: recompile with -fPIC)"
+msgstr "(-fpic に対する大域変数が多すぎます: -fPIC を付けて再コンパイルをしてください)"
+
+#: elf32-cris.c:2058
+msgid "(thread-local data too big for -fpic or -msmall-tls: recompile with -fPIC or -mno-small-tls)"
+msgstr "(-fpic または -msmall-tls に対するスレッド局所データが大きすぎます: -fPIC または -mno-small-tls を付けて再コンパイルしてください)"
+
+#: elf32-cris.c:3248
+msgid ""
+"%B, section %A:\n"
+"  v10/v32 compatible object %s must not contain a PIC relocation"
+msgstr ""
+"%B、セクション %A:\n"
+"  v10/v32 互換オブジェクト %s は PIC 再配置を含んでいてはいけません"
+
+#: elf32-cris.c:3353
+msgid ""
+"%B, section %A:\n"
+"  relocation %s not valid in a shared object; typically an option mixup, recompile with -fPIC"
+msgstr ""
+"%B、セクション %A:\n"
+"  再配置 %s は共有オブジェクト内では無効です。通常はオプションが混乱しています。-fPIC を付けて再コンパイルしてください"
+
+#: elf32-cris.c:3567
+msgid ""
+"%B, section %A:\n"
+"  relocation %s should not be used in a shared object; recompile with -fPIC"
+msgstr ""
+"%B、セクション %A:\n"
+"  再配置 %s は共有オブジェクト内で使用すべきではありません。-fPIC を付けて再コンパイルしてください"
+
+#: elf32-cris.c:3992
+msgid ""
+"%B, section `%A', to symbol `%s':\n"
+"  relocation %s should not be used in a shared object; recompile with -fPIC"
+msgstr ""
+"%B、セクション `%A'、シンボル `%s' に関して:\n"
+"  再配置 %s は共有オブジェクト内で使用すべきではありません。-fPIC を付けて再コンパイルしてください"
+
+#: elf32-cris.c:4111
+msgid "Unexpected machine number"
+msgstr "予期しないマシン番号です"
+
+#: elf32-cris.c:4165
+#, c-format
+msgid " [symbols have a _ prefix]"
+msgstr " [ _ 接頭辞つきシンボル]"
+
+#: elf32-cris.c:4168
+#, c-format
+msgid " [v10 and v32]"
+msgstr " [v10 および v32]"
+
+#: elf32-cris.c:4171
+#, c-format
+msgid " [v32]"
+msgstr " [v32]"
+
+#: elf32-cris.c:4216
+msgid "%B: uses _-prefixed symbols, but writing file with non-prefixed symbols"
+msgstr "%B: _ 接頭辞付きシンボルを使用していますが、ファイルには _ 接頭辞無しシンボルとして書き込みます"
+
+#: elf32-cris.c:4217
+msgid "%B: uses non-prefixed symbols, but writing file with _-prefixed symbols"
+msgstr "%B: _ 接頭辞無しシンボルを使用していますが、ファイルには _ 接頭辞付きシンボルとして書き込みます"
+
+#: elf32-cris.c:4236
+msgid "%B contains CRIS v32 code, incompatible with previous objects"
+msgstr "%B には CRIS v32 コードが含まれています。これは前のオブジェクトと互換性がありません"
+
+#: elf32-cris.c:4238
+msgid "%B contains non-CRIS-v32 code, incompatible with previous objects"
+msgstr "%B には非-CRIS-v32 コードが含まれています。これは前のオブジェクトと互換性がありません"
+
+#: elf32-dlx.c:142
+#, c-format
+msgid "BFD Link Error: branch (PC rel16) to section (%s) not supported"
+msgstr "BFD リンクエラー: セクション (%s) への分岐 (PC rel16) はサポートされていません"
+
+#: elf32-dlx.c:204
+#, c-format
+msgid "BFD Link Error: jump (PC rel26) to section (%s) not supported"
+msgstr "BFD リンクエラー: セクション (%s) へのジャンプ (PC rel26) はサポートされていません"
+
+#: elf32-frv.c:1509 elf32-frv.c:1658
+msgid "relocation requires zero addend"
+msgstr ""
+
+#: elf32-frv.c:2888
+msgid "%H: relocation to `%s+%v' may have caused the error above\n"
+msgstr "%H: `%s+%v' への再配置が上のエラーの原因かもしれません\n"
+
+#: elf32-frv.c:2902
+msgid "%H: relocation references symbol not defined in the module\n"
+msgstr "%H: 再配置がモジュール内で定義されていないシンボルを参照しています\n"
+
+#: elf32-frv.c:2978
+msgid "%H: R_FRV_GETTLSOFF not applied to a call instruction\n"
+msgstr "%H: R_FRV_GETTLSOFF は call 命令には適用されません\n"
+
+#: elf32-frv.c:3019
+msgid "%H: R_FRV_GOTTLSDESC12 not applied to an lddi instruction\n"
+msgstr "%H: R_FRV_GOTTLSDESC12 は lddi 命令には適用されません\n"
+
+#: elf32-frv.c:3090
+msgid "%H: R_FRV_GOTTLSDESCHI not applied to a sethi instruction\n"
+msgstr "%H: R_FRV_GOTTLSDESCHI は sethi 命令には適用されません\n"
+
+#: elf32-frv.c:3127
+msgid "%H: R_FRV_GOTTLSDESCLO not applied to a setlo or setlos instruction\n"
+msgstr "%H: R_FRV_GOTTLSDESCLO は setlo または setlos 命令には適用されません\n"
+
+#: elf32-frv.c:3174
+msgid "%H: R_FRV_TLSDESC_RELAX not applied to an ldd instruction\n"
+msgstr "%H: R_FRV_TLSDESC_RELAX は ldd 命令には適用されません\n"
+
+#: elf32-frv.c:3258
+msgid "%H: R_FRV_GETTLSOFF_RELAX not applied to a calll instruction\n"
+msgstr "%H: R_FRV_GETTLSOFF_RELAX は calll 命令には適用されません\n"
+
+#: elf32-frv.c:3312
+msgid "%H: R_FRV_GOTTLSOFF12 not applied to an ldi instruction\n"
+msgstr "%H: R_FRV_GOTTLSOFF12 は ldi 命令には適用されません\n"
+
+#: elf32-frv.c:3342
+msgid "%H: R_FRV_GOTTLSOFFHI not applied to a sethi instruction\n"
+msgstr "%H: R_FRV_GOTTLSOFFHI は sethi 命令には適用されません\n"
+
+#: elf32-frv.c:3371
+msgid "%H: R_FRV_GOTTLSOFFLO not applied to a setlo or setlos instruction\n"
+msgstr "%H: R_FRV_GOTTLSOFFLO は setlo または setlos 命令には適用されません\n"
+
+#: elf32-frv.c:3401
+msgid "%H: R_FRV_TLSOFF_RELAX not applied to an ld instruction\n"
+msgstr "%H: R_FRV_TLSOFF_RELAX は ld 命令には適用されません\n"
+
+#: elf32-frv.c:3446
+msgid "%H: R_FRV_TLSMOFFHI not applied to a sethi instruction\n"
+msgstr "%H: R_FRV_TLSMOFFHI は sethi 命令には適用されません\n"
+
+#: elf32-frv.c:3473
+msgid "R_FRV_TLSMOFFLO not applied to a setlo or setlos instruction\n"
+msgstr "R_FRV_TLSMOFFLO は setlo または setlos 命令には適用されません\n"
+
+#: elf32-frv.c:3594
+msgid "%H: R_FRV_FUNCDESC references dynamic symbol with nonzero addend\n"
+msgstr ""
+
+#: elf32-frv.c:3635 elf32-frv.c:3757
+msgid "%H: cannot emit fixups in read-only section\n"
+msgstr "%H: 読み込み専用セクション内で修正を行うことができません\n"
+
+#: elf32-frv.c:3666 elf32-frv.c:3800
+msgid "%H: cannot emit dynamic relocations in read-only section\n"
+msgstr "%H: 読み込み専用セクション内で動的再配置を行うことができません\n"
+
+#: elf32-frv.c:3715
+msgid "%H: R_FRV_FUNCDESC_VALUE references dynamic symbol with nonzero addend\n"
+msgstr ""
+
+#: elf32-frv.c:3971
+msgid "%H: reloc against `%s' references a different segment\n"
+msgstr "%H: `%s' への再配置が異なるセグメントを参照しています\n"
+
+#: elf32-frv.c:4121
+msgid "%H: reloc against `%s': %s\n"
+msgstr "%H: `%s' に対する再配置: %s\n"
+
+#: elf32-frv.c:6397
+msgid "%B: unsupported relocation type %i\n"
+msgstr "%B: サポートされていない再配置型 %i です\n"
+
+#: elf32-frv.c:6719
+#, c-format
+msgid "%s: compiled with %s and linked with modules that use non-pic relocations"
+msgstr "%s: %s 付きでコンパイルされていますが、非 pic 再配置を使用するモジュールとリンクしています"
+
+#: elf32-frv.c:6772 elf32-iq2000.c:845 elf32-m32c.c:807
+#, c-format
+msgid "%s: compiled with %s and linked with modules compiled with %s"
+msgstr "%s: %s 付きでコンパイルされていますが、 %s 付きでコンパイルしたモジュールとリンクしています"
+
+#: elf32-frv.c:6784
+#, c-format
+msgid "%s: uses different unknown e_flags (0x%lx) fields than previous modules (0x%lx)"
+msgstr "%s: 不明な e_flags (0x%lx) フィールドを使用しています。これは前のモジュールと異なるフィールド (0x%lx) です"
+
+#: elf32-frv.c:6834 elf32-iq2000.c:882 elf32-m32c.c:843 elf32-mt.c:576
+#: elf32-rx.c:2937
+#, c-format
+msgid "private flags = 0x%lx:"
+msgstr "private フラグ = 0x%lx:"
+
+#: elf32-gen.c:69 elf64-gen.c:69
+msgid "%B: Relocations in generic ELF (EM: %d)"
+msgstr "%B: 一般的な ELF 内の再配置 (EM: %d)"
+
+#: elf32-hppa.c:850 elf32-hppa.c:3610
+msgid "%B(%A+0x%lx): cannot reach %s, recompile with -ffunction-sections"
+msgstr "%B(%A+0x%lx): %s に届きません。-ffunction-sections を付けて再コンパイルしてください"
+
+#: elf32-hppa.c:1284
+msgid "%B: relocation %s can not be used when making a shared object; recompile with -fPIC"
+msgstr "%B: 再配置 %s は共有オブジェクトを作成するときには使えません。-fPIC を付けて再コンパイルしてください"
+
+#: elf32-hppa.c:2803
+msgid "%B: duplicate export stub %s"
+msgstr "%B: export スタブ %s が重複しています"
+
+#: elf32-hppa.c:3449
+msgid "%B(%A+0x%lx): %s fixup for insn 0x%x is not supported in a non-shared link"
+msgstr "%B(%A+0x%lx): %s 修正 (命令 0x%x 用) は非共有リンクではサポートされていません"
+
+#: elf32-hppa.c:4296
+msgid "%B(%A+0x%lx): cannot handle %s for %s"
+msgstr "%B(%A+0x%lx): %s (%s) を取り扱えません"
+
+#: elf32-hppa.c:4608
+msgid ".got section not immediately after .plt section"
+msgstr ".got セクションが .plt セクションの直後にありません"
+
+#. Unknown relocation.
+#: elf32-i386.c:372 elf32-m68k.c:383 elf32-ppc.c:1675 elf32-s390.c:379
+#: elf32-tic6x.c:2682 elf64-ppc.c:2285 elf64-s390.c:403 elf64-x86-64.c:243
+msgid "%B: invalid relocation type %d"
+msgstr "%B: 無効な再配置型 %d です"
+
+#: elf32-i386.c:1266 elf64-x86-64.c:1116
+msgid "%B: TLS transition from %s to %s against `%s' at 0x%lx in section `%A' failed"
+msgstr "%B: %s から %s へのTLS 移行 (`%s' に対する、位置 0x%lx、セクション `%A' 内) に失敗しました"
+
+#: elf32-i386.c:1411 elf32-i386.c:3090 elf64-x86-64.c:1296 elf64-x86-64.c:2909
+#: elfxx-sparc.c:3077
+msgid "%B: relocation %s against STT_GNU_IFUNC symbol `%s' isn't handled by %s"
+msgstr "%B: 再配置  %s (STT_GNU_IFUNC シンボル `%s' に対する) は %s によって取り扱われません"
+
+#: elf32-i386.c:1573 elf32-s390.c:1182 elf32-sh.c:6367 elf32-xtensa.c:1182
+#: elf64-s390.c:1151 elfxx-sparc.c:1547
+msgid "%B: `%s' accessed both as normal and thread local symbol"
+msgstr "%B: `%s' が通常のシンボルとスレッド局所シンボルにアクセスしました"
+
+#: elf32-i386.c:2405 elf64-x86-64.c:2320
+msgid "%P: %B: warning: relocation against `%s' in readonly section `%A'.\n"
+msgstr "%P: %B: 警告: `%s' に対する再配置 (読み取り専用セクション `%A' から) です。\n"
+
+#: elf32-i386.c:2496 elf64-x86-64.c:2407
+msgid "%P: %B: warning: relocation in readonly section `%A'.\n"
+msgstr "%P: %B: 警告: 読み取り専用セクション `%A' にある再配置です。\n"
+
+#: elf32-i386.c:2932
+msgid "%B: unrecognized relocation (0x%x) in section `%A'"
+msgstr "%B: 認識できない再配置 (0x%x) がセクション `%A' にあります"
+
+#: elf32-i386.c:3339 elf64-x86-64.c:3295
+msgid "hidden symbol"
+msgstr "隠されたシンボル"
+
+#: elf32-i386.c:3342 elf64-x86-64.c:3298
+msgid "internal symbol"
+msgstr "内部シンボル"
+
+#: elf32-i386.c:3345 elf64-x86-64.c:3301
+msgid "protected symbol"
+msgstr "保護されたシンボル"
+
+#: elf32-i386.c:3348 elf64-x86-64.c:3304
+msgid "symbol"
+msgstr "シンボル"
+
+#: elf32-i386.c:3353
+msgid "%B: relocation R_386_GOTOFF against undefined %s `%s' can not be used when making a shared object"
+msgstr "%B: 未定義の%s `%s' に対する再配置 R_386_GOTOFF は共有オブジェクト作成時には使用できません"
+
+#: elf32-i386.c:3363
+msgid "%B: relocation R_386_GOTOFF against protected function `%s' can not be used when making a shared object"
+msgstr "%B: 未定義の保護された関数 `%s' に対する再配置 R_386_GOTOFF は共有オブジェクト作成時には使用できません"
+
+#: elf32-i386.c:4660 elf64-x86-64.c:4378
+#, c-format
+msgid "discarded output section: `%A'"
+msgstr "破棄された出力セクション: `%A'"
+
+#: elf32-ip2k.c:857 elf32-ip2k.c:863 elf32-ip2k.c:930 elf32-ip2k.c:936
+msgid "ip2k relaxer: switch table without complete matching relocation information."
+msgstr "ip2k relaxer: 完全に一致する再配置情報が無い switch 表です。"
+
+#: elf32-ip2k.c:880 elf32-ip2k.c:963
+msgid "ip2k relaxer: switch table header corrupt."
+msgstr "ip2k relaxer: switch 表ヘッダが破損しています。"
+
+#: elf32-ip2k.c:1292
+#, c-format
+msgid "ip2k linker: missing page instruction at 0x%08lx (dest = 0x%08lx)."
+msgstr ""
+
+#: elf32-ip2k.c:1308
+#, c-format
+msgid "ip2k linker: redundant page instruction at 0x%08lx (dest = 0x%08lx)."
+msgstr ""
+
+#. Only if it's not an unresolved symbol.
+#: elf32-ip2k.c:1475
+msgid "unsupported relocation between data/insn address spaces"
+msgstr "データアドレス空間と命令アドレス空間の間の再配置はサポートされていません"
+
+#: elf32-iq2000.c:858 elf32-m32c.c:819
+#, c-format
+msgid "%s: uses different e_flags (0x%lx) fields than previous modules (0x%lx)"
+msgstr "%s: 使用している e_flags(0x%lx) が以前のモジュール (0x%lx) と異なっています"
+
+#: elf32-lm32.c:706
+msgid "global pointer relative relocation when _gp not defined"
+msgstr "_gp が未定義の時に大域ポインタ関連再配置があります"
+
+#: elf32-lm32.c:761
+msgid "global pointer relative address out of range"
+msgstr "大域ポインタ関連アドレスが範囲外です"
+
+#: elf32-lm32.c:1057
+msgid "internal error: addend should be zero for R_LM32_16_GOT"
+msgstr ""
+
+#: elf32-m32r.c:1453
+msgid "SDA relocation when _SDA_BASE_ not defined"
+msgstr "_SDA_BASE_ が未定義の時点での SDA 再配置です"
+
+#: elf32-m32r.c:3048
+msgid "%B: The target (%s) of an %s relocation is in the wrong section (%A)"
+msgstr "%B: ターゲット %s (%s 再配置の) が間違ったセクション (%A) 内にあります"
+
+#: elf32-m32r.c:3576
+msgid "%B: Instruction set mismatch with previous modules"
+msgstr "%B: 命令セットが以前のモジュールと適合しません"
+
+#: elf32-m32r.c:3597
+#, c-format
+msgid "private flags = %lx"
+msgstr "private フラグ = %lx"
+
+#: elf32-m32r.c:3602
+#, c-format
+msgid ": m32r instructions"
+msgstr ": m32r 命令"
+
+#: elf32-m32r.c:3603
+#, c-format
+msgid ": m32rx instructions"
+msgstr ": m32rx 命令"
+
+#: elf32-m32r.c:3604
+#, c-format
+msgid ": m32r2 instructions"
+msgstr ": m32r2 命令"
+
+#: elf32-m68hc1x.c:1050
+#, c-format
+msgid "Reference to the far symbol `%s' using a wrong relocation may result in incorrect execution"
+msgstr "間違った再配置を利用した遠いシンボル `%s' への参照は正しくない実行結果になるかもしれません"
+
+#: elf32-m68hc1x.c:1073
+#, c-format
+msgid "banked address [%lx:%04lx] (%lx) is not in the same bank as current banked address [%lx:%04lx] (%lx)"
+msgstr ""
+
+#: elf32-m68hc1x.c:1092
+#, c-format
+msgid "reference to a banked address [%lx:%04lx] in the normal address space at %04lx"
+msgstr ""
+
+#: elf32-m68hc1x.c:1225
+msgid "%B: linking files compiled for 16-bit integers (-mshort) and others for 32-bit integers"
+msgstr "%B: リンク中のファイルは 16 ビット整数用  (-mshort) にコンパイルされましたが、他のものは 32 ビット整数用です"
+
+#: elf32-m68hc1x.c:1232
+msgid "%B: linking files compiled for 32-bit double (-fshort-double) and others for 64-bit double"
+msgstr "%B: リンク中のファイルは 32 ビット倍精度浮動小数用 (-fshort-double) にコンパイルされましたが、他のものは 64 ビット倍精度浮動小数用です"
+
+#: elf32-m68hc1x.c:1241
+msgid "%B: linking files compiled for HCS12 with others compiled for HC12"
+msgstr "%B: リンク中のファイルは HCS12 用にコンパイルされましたが、他のものは HC12 用です"
+
+#: elf32-m68hc1x.c:1257 elf32-ppc.c:4214 elf64-sparc.c:705 elfxx-mips.c:12719
+msgid "%B: uses different e_flags (0x%lx) fields than previous modules (0x%lx)"
+msgstr "%B: 使用している e_flags (0x%lx) が前のモジュール (0x%lx) と異なります"
+
+#: elf32-m68hc1x.c:1285
+#, c-format
+msgid "[abi=32-bit int, "
+msgstr "[abi=32-ビット整数, "
+
+#: elf32-m68hc1x.c:1287
+#, c-format
+msgid "[abi=16-bit int, "
+msgstr "[abi=16-ビット整数, "
+
+#: elf32-m68hc1x.c:1290
+#, c-format
+msgid "64-bit double, "
+msgstr "64-ビット倍精度浮動小数, "
+
+#: elf32-m68hc1x.c:1292
+#, c-format
+msgid "32-bit double, "
+msgstr "32-ビット倍精度浮動小数, "
+
+#: elf32-m68hc1x.c:1295
+#, c-format
+msgid "cpu=HC11]"
+msgstr "cpu=HC11]"
+
+#: elf32-m68hc1x.c:1297
+#, c-format
+msgid "cpu=HCS12]"
+msgstr "cpu=HCS12]"
+
+#: elf32-m68hc1x.c:1299
+#, c-format
+msgid "cpu=HC12]"
+msgstr "cpu=HC12]"
+
+#: elf32-m68hc1x.c:1302
+#, c-format
+msgid " [memory=bank-model]"
+msgstr " [memory=bank-model]"
+
+#: elf32-m68hc1x.c:1304
+#, c-format
+msgid " [memory=flat]"
+msgstr " [memory=flat]"
+
+#: elf32-m68k.c:1250 elf32-m68k.c:1251 vms-alpha.c:7311 vms-alpha.c:7326
+msgid "unknown"
+msgstr "不明"
+
+#: elf32-m68k.c:1714
+msgid "%B: GOT overflow: Number of relocations with 8-bit offset > %d"
+msgstr "%B: GOT オーバーフロー: 8ビットオフセットを持つ再配置の数が %d より大きいです"
+
+#: elf32-m68k.c:1720
+msgid "%B: GOT overflow: Number of relocations with 8- or 16-bit offset > %d"
+msgstr "%B: GOT オーバーフロー: 8 ビットまたは 16 ビットオフセットを持つ再配置の数が > %d より大きいです"
+
+#: elf32-m68k.c:3959
+msgid "%B(%A+0x%lx): R_68K_TLS_LE32 relocation not permitted in shared object"
+msgstr "%B(%A+0x%lx): R_68K_TLS_LE32 再配置は共有オブジェクト内では許可されていません"
+
+#: elf32-mcore.c:99 elf32-mcore.c:442
+msgid "%B: Relocation %s (%d) is not currently supported.\n"
+msgstr "%B: 再配置 %s (%d) は現在のところサポートされていません。\n"
+
+#: elf32-mcore.c:428
+msgid "%B: Unknown relocation type %d\n"
+msgstr "%B: 不明な再配置型 %d です\n"
+
+#. Pacify gcc -Wall.
+#: elf32-mep.c:157
+#, c-format
+msgid "mep: no reloc for code %d"
+msgstr "mep: コード %d 用の再配置がありません"
+
+#: elf32-mep.c:163
+#, c-format
+msgid "MeP: howto %d has type %d"
+msgstr ""
+
+#: elf32-mep.c:648
+msgid "%B and %B are for different cores"
+msgstr "%B および %B は異なるコアに対するものです"
+
+#: elf32-mep.c:665
+msgid "%B and %B are for different configurations"
+msgstr "%B および %B は異なる設定に対するものです"
+
+#: elf32-mep.c:702
+#, c-format
+msgid "private flags = 0x%lx"
+msgstr "private フラグ = 0x%lx"
+
+#: elf32-microblaze.c:742
+#, c-format
+msgid "%s: unknown relocation type %d"
+msgstr "%s: 再配置型 %d が不明です"
+
+#: elf32-microblaze.c:867 elf32-microblaze.c:912
+#, c-format
+msgid "%s: The target (%s) of an %s relocation is in the wrong section (%s)"
+msgstr "%s: ターゲット (%s, %s 再配置) が間違ったセクション (%s) 内にあります"
+
+#: elf32-microblaze.c:1155 elfxx-sparc.c:3451
+msgid "%B: probably compiled without -fPIC?"
+msgstr "%B: 恐らく -fPIC を付けずにコンパイルしたのでは?"
+
+#: elf32-microblaze.c:2074
+msgid "%B: bad relocation section name `%s'"
+msgstr "%B: 誤った再配置セクション名 `%s' です"
+
+#: elf32-mips.c:1045 elf64-mips.c:2084 elfn32-mips.c:1888
+msgid "literal relocation occurs for an external symbol"
+msgstr "リテラル再配置が外部シンボル用に発生しました"
+
+#: elf32-mips.c:1085 elf32-score.c:569 elf32-score7.c:469 elf64-mips.c:2127
+#: elfn32-mips.c:1929
+msgid "32bits gp relative relocation occurs for an external symbol"
+msgstr "32ビット gp 関連再配置が外部シンボル用に発生しました"
+
+#: elf32-ppc.c:1740
+#, c-format
+msgid "generic linker can't handle %s"
+msgstr "一般的リンカは %s を扱えません"
+
+#: elf32-ppc.c:2183
+msgid "corrupt %s section in %B"
+msgstr "%s セクション (%B 内) が破損しています"
+
+#: elf32-ppc.c:2202
+msgid "unable to read in %s section from %B"
+msgstr "%s セクションを %B から読み込めません"
+
+#: elf32-ppc.c:2243
+msgid "warning: unable to set size of %s section in %B"
+msgstr "警告: %s セクション (%B 内) のサイズを設定できません"
+
+#: elf32-ppc.c:2293
+msgid "failed to allocate space for new APUinfo section."
+msgstr "新しい APUinfo セクション用の空間割り当てに失敗しました"
+
+#: elf32-ppc.c:2312
+msgid "failed to compute new APUinfo section."
+msgstr "新しい APUinfo セクションの計算に失敗しました"
+
+#: elf32-ppc.c:2315
+msgid "failed to install new APUinfo section."
+msgstr "新しい APUinfo セクションのインストールに失敗しました"
+
+#: elf32-ppc.c:3343
+msgid "%B: relocation %s cannot be used when making a shared object"
+msgstr "%B: 再配置 %s は共有ライブラリ作成時には使用できません"
+
+#. It does not make sense to have a procedure linkage
+#. table entry for a local symbol.
+#: elf32-ppc.c:3687
+msgid "%H: %s reloc against local symbol\n"
+msgstr "%H: 局所シンボルに対する %s 再配置です\n"
+
+#: elf32-ppc.c:4026 elf32-ppc.c:4041 elfxx-mips.c:12423 elfxx-mips.c:12449
+#: elfxx-mips.c:12471 elfxx-mips.c:12497
+msgid "Warning: %B uses hard float, %B uses soft float"
+msgstr "警告: %B はハードウェア浮動小数を使用しています。%B はソフトウェア浮動小数を利用しています"
+
+#: elf32-ppc.c:4029 elf32-ppc.c:4033
+msgid "Warning: %B uses double-precision hard float, %B uses single-precision hard float"
+msgstr "警告: %B はハードウェア倍精度浮動小数を使用しています。%B はハードウェア単精度浮動小数を使用しています"
+
+#: elf32-ppc.c:4037
+msgid "Warning: %B uses soft float, %B uses single-precision hard float"
+msgstr "警告: %B はソフトウェア浮動小数を使用しています。%B はハードウェア単精度浮動小数を使用しています"
+
+#: elf32-ppc.c:4044 elf32-ppc.c:4048 elfxx-mips.c:12403 elfxx-mips.c:12407
+msgid "Warning: %B uses unknown floating point ABI %d"
+msgstr "警告: %B は不明な浮動小数点 ABI %d を使用しています"
+
+#: elf32-ppc.c:4090 elf32-ppc.c:4094
+msgid "Warning: %B uses unknown vector ABI %d"
+msgstr "警告: %B は不明なベクトル ABI %d を使用しています"
+
+#: elf32-ppc.c:4098
+msgid "Warning: %B uses vector ABI \"%s\", %B uses \"%s\""
+msgstr "警告: %B はベクトル ABI \"%s\" を使用しています。%B はベクトル ABI \"%s\" を使用しています"
+
+#: elf32-ppc.c:4115 elf32-ppc.c:4118
+msgid "Warning: %B uses r3/r4 for small structure returns, %B uses memory"
+msgstr "警告: %B は小さな構造体の戻り値に r3/r4 を使用しています。%B はメモリを使用しています"
+
+#: elf32-ppc.c:4121 elf32-ppc.c:4125
+msgid "Warning: %B uses unknown small structure return convention %d"
+msgstr "警告: %B は不明な小さな構造体戻り値変換 %d を使用しています"
+
+#: elf32-ppc.c:4179
+msgid "%B: compiled with -mrelocatable and linked with modules compiled normally"
+msgstr "%B: -mrelocatable を付けてコンパイルされたものと普通にコンパイルされたモジュールとをリンクしました"
+
+#: elf32-ppc.c:4187
+msgid "%B: compiled normally and linked with modules compiled with -mrelocatable"
+msgstr "%B: 普通にコンパイルされたものと -mrelocatable を付けてコンパイルされたモジュールとをリンクしました"
+
+#: elf32-ppc.c:4275
+msgid "Using bss-plt due to %B"
+msgstr "%B のために bss-plt を使用しています"
+
+#. Uh oh, we didn't find the expected call.  We
+#. could just mark this symbol to exclude it
+#. from tls optimization but it's safer to skip
+#. the entire optimization.
+#: elf32-ppc.c:4771 elf64-ppc.c:7778
+msgid "%H arg lost __tls_get_addr, TLS optimization disabled\n"
+msgstr "%H 引数に __tls_get_addr が無くなりました。TLS 最適化は無効になります\n"
+
+#: elf32-ppc.c:5006 elf64-ppc.c:6494
+#, c-format
+msgid "dynamic variable `%s' is zero size\n"
+msgstr "動的変数 `%s' のサイズが 0 です\n"
+
+#: elf32-ppc.c:7204 elf64-ppc.c:12431
+msgid "%B: unknown relocation type %d for symbol %s\n"
+msgstr "%B: 不明な再配置型 %d (シンボル %s 用) です\n"
+
+#: elf32-ppc.c:7465
+msgid "%H: non-zero addend on %s reloc against `%s'\n"
+msgstr ""
+
+#: elf32-ppc.c:7661 elf64-ppc.c:12936
+msgid "%H: relocation %s for indirect function %s unsupported\n"
+msgstr "%H: 再配置 %s (間接関数 %s 用) はサポートされていません\n"
+
+#: elf32-ppc.c:7889 elf32-ppc.c:7919 elf32-ppc.c:7966
+msgid "%B: the target (%s) of a %s relocation is in the wrong output section (%s)\n"
+msgstr "%B: ターゲット (%s) (%s 再配置の) は間違った出力セクション (%s) 内にあります\n"
+
+#: elf32-ppc.c:8038
+msgid "%B: relocation %s is not yet supported for symbol %s\n"
+msgstr "%B: 再配置 %s (シンボル %s 用) はまだサポートされていません\n"
+
+#: elf32-ppc.c:8097 elf64-ppc.c:13237
+msgid "%H: unresolvable %s relocation against symbol `%s'\n"
+msgstr "%H: 解決できない %s 再配置 (シンボル `%s' に対する) です\n"
+
+#: elf32-ppc.c:8144 elf64-ppc.c:13282
+msgid "%H: %s reloc against `%s': error %d\n"
+msgstr "%H: %s 再配置 (`%s' に対する): エラー %d\n"
+
+#: elf32-ppc.c:8635
+#, c-format
+msgid "%s not defined in linker created %s\n"
+msgstr "%s はリンカが作成した %s 内では定義されていません\n"
+
+#: elf32-rx.c:553
+msgid "%B:%A: Warning: deprecated Red Hat reloc "
+msgstr "%B:%A: 警告: 廃止された Red Hat 再配置です "
+
+#: elf32-rx.c:1095
+msgid "Warning: RX_SYM reloc with an unknown symbol"
+msgstr "警告: 不明なシンボルがある RX_SYM 再配置です"
+
+#: elf32-rx.c:1260
+msgid "%B(%A): error: call to undefined function '%s'"
+msgstr "%B(%A): エラー: 定義されていない関数 '%s' の呼び出しです"
+
+#: elf32-rx.c:1274
+msgid "%B(%A): warning: unaligned access to symbol '%s' in the small data area"
+msgstr "%B(%A): 警告: small データ領域内にシンボル '%s' への整列されていないアクセスがあります"
+
+#: elf32-rx.c:1278
+msgid "%B(%A): internal error: out of range error"
+msgstr "%B(%A): 内部エラー: 範囲外エラーです"
+
+#: elf32-rx.c:1282
+msgid "%B(%A): internal error: unsupported relocation error"
+msgstr "%B(%A): 内部エラー: サポートされていない再配置エラーです"
+
+#: elf32-rx.c:1286
+msgid "%B(%A): internal error: dangerous relocation"
+msgstr "%B(%A): 内部エラー: 危険な再配置です"
+
+#: elf32-rx.c:1290
+msgid "%B(%A): internal error: unknown error"
+msgstr "%B(%A): 内部エラー: 不明なエラーです"
+
+#: elf32-rx.c:2940
+#, c-format
+msgid " [64-bit doubles]"
+msgstr " [64 ビット倍精度浮動小数]"
+
+#: elf32-rx.c:2942
+#, c-format
+msgid " [dsp]"
+msgstr " [dsp]"
+
+#: elf32-s390.c:2209 elf64-s390.c:2196
+msgid "%B(%A+0x%lx): invalid instruction for TLS relocation %s"
+msgstr "%B(%A+0x%lx): TLS 再配置 %s 用の無効な命令です"
+
+#: elf32-score.c:1522 elf32-score7.c:1382 elfxx-mips.c:3324
+msgid "not enough GOT space for local GOT entries"
+msgstr "局所 GOT エントリ用の GOT 空間が不十分です"
+
+#: elf32-score.c:2744
+msgid "address not word align"
+msgstr "アドレスが WORD に整列されていません"
+
+#: elf32-score.c:2829 elf32-score7.c:2634
+#, c-format
+msgid "%s: Malformed reloc detected for section %s"
+msgstr "%s: セクション %s に対する誤った形式の再配置が検出されました"
+
+#: elf32-score.c:2880 elf32-score7.c:2685
+msgid "%B: CALL15 reloc at 0x%lx not against global symbol"
+msgstr "%B: 位置 0x%lx にある CALL15 再配置が大域シンボルに対するものではありません"
+
+#: elf32-score.c:3999 elf32-score7.c:3806
+#, c-format
+msgid " [pic]"
+msgstr " [pic]"
+
+#: elf32-score.c:4003 elf32-score7.c:3810
+#, c-format
+msgid " [fix dep]"
+msgstr ""
+
+#: elf32-score.c:4045 elf32-score7.c:3852
+msgid "%B: warning: linking PIC files with non-PIC files"
+msgstr "%B: 警告: PIC ファイルに非 PIC ファイルをリンクしています"
+
+#: elf32-sh-symbian.c:130
+msgid "%B: IMPORT AS directive for %s conceals previous IMPORT AS"
+msgstr "%B: %s 用の IMPORT AS 指示が前の IMPORT AS 指示を隠します"
+
+#: elf32-sh-symbian.c:383
+msgid "%B: Unrecognised .directive command: %s"
+msgstr "%B: 認識できない .directive コマンドです: %s"
+
+#: elf32-sh-symbian.c:504
+msgid "%B: Failed to add renamed symbol %s"
+msgstr "%B: 名前を変更したシンボル %s を追加するのに失敗しました"
+
+#: elf32-sh.c:568
+msgid "%B: 0x%lx: warning: bad R_SH_USES offset"
+msgstr "%B: 0x%lx: 警告: 誤った R_SH_USES オフセットです"
+
+#: elf32-sh.c:580
+msgid "%B: 0x%lx: warning: R_SH_USES points to unrecognized insn 0x%x"
+msgstr "%B: 0x%lx: 警告: R_SH_USES が認識できない命令 0x%x を指しています"
+
+#: elf32-sh.c:597
+msgid "%B: 0x%lx: warning: bad R_SH_USES load offset"
+msgstr "%B: 0x%lx: 警告: 誤った R_SH_USES ロードオフセットです"
+
+#: elf32-sh.c:612
+msgid "%B: 0x%lx: warning: could not find expected reloc"
+msgstr "%B: 0x%lx: 警告: 予期される再配置を見つかりませんでした"
+
+#: elf32-sh.c:640
+msgid "%B: 0x%lx: warning: symbol in unexpected section"
+msgstr "%B: 0x%lx: 警告: 予期しないセクション内にシンボルがあります"
+
+#: elf32-sh.c:766
+msgid "%B: 0x%lx: warning: could not find expected COUNT reloc"
+msgstr "%B: 0x%lx: 警告: 予期される COUNT 再配置が見つかりませんでした"
+
+#: elf32-sh.c:775
+msgid "%B: 0x%lx: warning: bad count"
+msgstr "%B: 0x%lx: 警告: 誤った count です"
+
+#: elf32-sh.c:1179 elf32-sh.c:1549
+msgid "%B: 0x%lx: fatal: reloc overflow while relaxing"
+msgstr "%B: 0x%lx: 致命的: 緩和中に再配置が溢れました"
+
+#: elf32-sh.c:4057 elf64-sh64.c:1514
+msgid "Unexpected STO_SH5_ISA32 on local symbol is not handled"
+msgstr "局所シンボルに関する予期しない STO_SH5_ISA32 は取り扱われません"
+
+#: elf32-sh.c:4304
+msgid "%B: 0x%lx: fatal: unaligned branch target for relax-support relocation"
+msgstr "%B: 0x%lx: 致命的: 緩和をサポートする再配置用の分岐ターゲットが整列されていません"
+
+#: elf32-sh.c:4337 elf32-sh.c:4352
+msgid "%B: 0x%lx: fatal: unaligned %s relocation 0x%lx"
+msgstr "%B: 0x%lx: 致命的: 整列されていない %s 再配置 0x%lx です"
+
+#: elf32-sh.c:4366
+msgid "%B: 0x%lx: fatal: R_SH_PSHA relocation %d not in range -32..32"
+msgstr "%B: 0x%lx: 致命的: R_SH_PSHA 再配置 %d が -32..32 の範囲内にありません"
+
+#: elf32-sh.c:4380
+msgid "%B: 0x%lx: fatal: R_SH_PSHL relocation %d not in range -32..32"
+msgstr "%B: 0x%lx: 致命的: R_SH_PSHL 再配置 %d が -32..32 のの範囲内にありません"
+
+#: elf32-sh.c:4524 elf32-sh.c:4994
+msgid "%B(%A+0x%lx): cannot emit fixup to `%s' in read-only section"
+msgstr "%B(%A+0x%lx): 読み取り専用セクション内にある `%s' への修正を発行できません"
+
+#: elf32-sh.c:5101
+msgid "%B(%A+0x%lx): %s relocation against external symbol \"%s\""
+msgstr "%B(%A+0x%lx): %s 再配置 (外部シンボル \"%s\" に対する) です"
+
+#: elf32-sh.c:5574
+#, c-format
+msgid "%X%C: relocation to \"%s\" references a different segment\n"
+msgstr "%X%C: \"%s\" への再配置が異なるセグメントを参照しています\n"
+
+#: elf32-sh.c:5580
+#, c-format
+msgid "%C: warning: relocation to \"%s\" references a different segment\n"
+msgstr "%C: 警告: \"%s\" への再配置が異なるセグメントを参照しています\n"
+
+#: elf32-sh.c:6358 elf32-sh.c:6441
+msgid "%B: `%s' accessed both as normal and FDPIC symbol"
+msgstr "%B: `%s' が通常のシンボルと FDPIC シンボルの両方としてアクセスされました"
+
+#: elf32-sh.c:6363 elf32-sh.c:6445
+msgid "%B: `%s' accessed both as FDPIC and thread local symbol"
+msgstr "%B: `%s' が FDPIC シンボルと局所シンボルの両方としてアクセスされました"
+
+#: elf32-sh.c:6393
+msgid "%B: Function descriptor relocation with non-zero addend"
+msgstr ""
+
+#: elf32-sh.c:6629 elf64-alpha.c:4648
+msgid "%B: TLS local exec code cannot be linked into shared objects"
+msgstr "%B: TLS 局所実行コードは共有オブジェクト内にリンクできません"
+
+#: elf32-sh64.c:223 elf64-sh64.c:2314
+#, c-format
+msgid "%s: compiled as 32-bit object and %s is 64-bit"
+msgstr "%s: 32-bit オブジェクトとしてコンパイルされましたが %s は 64 ビットとしてコンパイルされました"
+
+#: elf32-sh64.c:226 elf64-sh64.c:2317
+#, c-format
+msgid "%s: compiled as 64-bit object and %s is 32-bit"
+msgstr "%s: 64 ビットオブジェクトとしてコンパイルされましたが %s は32 ビットオブジェクトとしてコンパイルされました"
+
+#: elf32-sh64.c:228 elf64-sh64.c:2319
+#, c-format
+msgid "%s: object size does not match that of target %s"
+msgstr "%s: オブジェクトサイズはターゲット %s に適合しません"
+
+#: elf32-sh64.c:451 elf64-sh64.c:2833
+#, c-format
+msgid "%s: encountered datalabel symbol in input"
+msgstr ""
+
+#: elf32-sh64.c:528
+msgid "PTB mismatch: a SHmedia address (bit 0 == 1)"
+msgstr "PTB 不一致: SHmedia アドレス (ビット0 == 1)"
+
+#: elf32-sh64.c:531
+msgid "PTA mismatch: a SHcompact address (bit 0 == 0)"
+msgstr "PTA 不一致: SHcompact アドレス (ビット0 == 0)"
+
+#: elf32-sh64.c:549
+#, c-format
+msgid "%s: GAS error: unexpected PTB insn with R_SH_PT_16"
+msgstr "%s: GAS エラー: 予期しない PTB 命令 (R_SH_PT_16 付き) です"
+
+#: elf32-sh64.c:598
+msgid "%B: error: unaligned relocation type %d at %08x reloc %p\n"
+msgstr "%B: エラー: 整列されていない再配置型 %d です (位置 %08x、再配置 %p)\n"
+
+#: elf32-sh64.c:674
+#, c-format
+msgid "%s: could not write out added .cranges entries"
+msgstr "%s: 追加された .cranges エントリを書き出せませんでした"
+
+#: elf32-sh64.c:734
+#, c-format
+msgid "%s: could not write out sorted .cranges entries"
+msgstr "%s: ソートされた .cranges エントリを書き出せませんでした"
+
+#: elf32-sparc.c:89
+msgid "%B: compiled for a 64 bit system and target is 32 bit"
+msgstr "%B: 64 ビットシステム用にコンパイルされましたがターゲットが 32 ビットです"
+
+#: elf32-sparc.c:102
+msgid "%B: linking little endian files with big endian files"
+msgstr "%B: リトルエンディアンのファイルとビッグエンディアンのファイルとをリンクしています"
+
+#: elf32-spu.c:719
+msgid "%X%P: overlay section %A does not start on a cache line.\n"
+msgstr ""
+
+#: elf32-spu.c:727
+msgid "%X%P: overlay section %A is larger than a cache line.\n"
+msgstr ""
+
+#: elf32-spu.c:747
+msgid "%X%P: overlay section %A is not in cache area.\n"
+msgstr ""
+
+#: elf32-spu.c:787
+msgid "%X%P: overlay sections %A and %A do not start at the same address.\n"
+msgstr ""
+
+#: elf32-spu.c:1011
+msgid "warning: call to non-function symbol %s defined in %B"
+msgstr "警告: 非関数シンボル %s (%B 内で定義された) の呼び出しです"
+
+#: elf32-spu.c:1361
+msgid "%A:0x%v lrlive .brinfo (%u) differs from analysis (%u)\n"
+msgstr "%A:0x%v lrlive .brinfo (%u) は分析内容 (%u) と異なります\n"
+
+#: elf32-spu.c:1880
+msgid "%B is not allowed to define %s"
+msgstr "%B は %s を定義することは許可されていません"
+
+#: elf32-spu.c:1888
+#, c-format
+msgid "you are not allowed to define %s in a script"
+msgstr "スクリプト内で %s を定義することは許可されていません"
+
+#: elf32-spu.c:1922
+#, c-format
+msgid "%s in overlay section"
+msgstr ""
+
+#: elf32-spu.c:1951
+msgid "overlay stub relocation overflow"
+msgstr ""
+
+#: elf32-spu.c:1960
+msgid "stubs don't match calculated size"
+msgstr "スタブが計算したサイズと一致していません"
+
+#: elf32-spu.c:2542
+#, c-format
+msgid "warning: %s overlaps %s\n"
+msgstr "警告: %s が %s と重なり合っています\n"
+
+#: elf32-spu.c:2558
+#, c-format
+msgid "warning: %s exceeds section size\n"
+msgstr "警告: %s がセクション長を超えています\n"
+
+#: elf32-spu.c:2589
+msgid "%A:0x%v not found in function table\n"
+msgstr "%A:0x%v が関数表内に見つかりません\n"
+
+#: elf32-spu.c:2729
+msgid "%B(%A+0x%v): call to non-code section %B(%A), analysis incomplete\n"
+msgstr "%B(%A+0x%v): 非コードセクション %B(%A) の呼び出しです。分析が不完全です\n"
+
+#: elf32-spu.c:3297
+#, c-format
+msgid "Stack analysis will ignore the call from %s to %s\n"
+msgstr "スタック分析は %s から %s への呼び出しで無視されます\n"
+
+#: elf32-spu.c:3988
+msgid "  %s: 0x%v\n"
+msgstr "  %s: 0x%v\n"
+
+#: elf32-spu.c:3989
+msgid "%s: 0x%v 0x%v\n"
+msgstr "%s: 0x%v 0x%v\n"
+
+#: elf32-spu.c:3994
+msgid "  calls:\n"
+msgstr "  呼び出し:\n"
+
+#: elf32-spu.c:4002
+#, c-format
+msgid "   %s%s %s\n"
+msgstr "   %s%s %s\n"
+
+#: elf32-spu.c:4307
+#, c-format
+msgid "%s duplicated in %s\n"
+msgstr "%s が %s 内で重複しています\n"
+
+#: elf32-spu.c:4311
+#, c-format
+msgid "%s duplicated\n"
+msgstr "%s が重複しています\n"
+
+#: elf32-spu.c:4318
+msgid "sorry, no support for duplicate object files in auto-overlay script\n"
+msgstr ""
+
+#: elf32-spu.c:4359
+msgid "non-overlay size of 0x%v plus maximum overlay size of 0x%v exceeds local store\n"
+msgstr ""
+
+#: elf32-spu.c:4514
+msgid "%B:%A%s exceeds overlay size\n"
+msgstr ""
+
+#: elf32-spu.c:4676
+msgid "Stack size for call graph root nodes.\n"
+msgstr ""
+
+#: elf32-spu.c:4677
+msgid ""
+"\n"
+"Stack size for functions.  Annotations: '*' max stack, 't' tail call\n"
+msgstr ""
+
+#: elf32-spu.c:4687
+msgid "Maximum stack required is 0x%v\n"
+msgstr "要求される最大スタックは 0x%v です\n"
+
+#: elf32-spu.c:4778
+msgid "fatal error while creating .fixup"
+msgstr ".fixup 作成中に致命的エラーが発生しました"
+
+#: elf32-spu.c:5006
+msgid "%B(%s+0x%lx): unresolvable %s relocation against symbol `%s'"
+msgstr "%B(%s+0x%lx): 解決できない %s 再配置 (シンボル `%s' に対する) です"
+
+#: elf32-tic6x.c:1602
+msgid "warning: generating a shared library containing non-PIC code"
+msgstr "警告: 非 PIC コードを含む共有ライブラリを生成しています"
+
+#: elf32-tic6x.c:1607
+msgid "warning: generating a shared library containing non-PID code"
+msgstr "警告: 非 PID コードを含む共有ライブラリを生成しています"
+
+#: elf32-tic6x.c:2539
+msgid "%B: SB-relative relocation but __c6xabi_DSBT_BASE not defined"
+msgstr "%B: SB に関連した再配置ですが、__c6xabi_DSBT_BASE が定義されていません"
+
+#: elf32-tic6x.c:2759
+msgid "dangerous relocation"
+msgstr "危険な再配置です"
+
+#: elf32-tic6x.c:3740
+msgid "%B: error: unknown mandatory EABI object attribute %d"
+msgstr "%B: エラー: 不明な必須 EABI オブジェクト属性 %d です"
+
+#: elf32-tic6x.c:3748
+msgid "%B: warning: unknown EABI object attribute %d"
+msgstr "%B: 警告: 不明なEABI オブジェクト属性 %d です"
+
+#: elf32-tic6x.c:3860 elf32-tic6x.c:3868
+msgid "error: %B requires more stack alignment than %B preserves"
+msgstr "error: %B は %B が保持しているより大きなスタック整列を必要とします"
+
+#: elf32-tic6x.c:3878 elf32-tic6x.c:3887
+msgid "error: unknown Tag_ABI_array_object_alignment value in %B"
+msgstr "エラー: %B 内で不明な Tag_ABI_array_object_alignment 値です"
+
+#: elf32-tic6x.c:3896 elf32-tic6x.c:3905
+msgid "error: unknown Tag_ABI_array_object_align_expected value in %B"
+msgstr "エラー: %B 内で不明な Tag_ABI_array_object_align_expected 値です"
+
+#: elf32-tic6x.c:3913 elf32-tic6x.c:3920
+msgid "error: %B requires more array alignment than %B preserves"
+msgstr "エラー: %B は %B が保持しているより大きな配列整列を必要とします"
+
+#: elf32-tic6x.c:3942
+msgid "warning: %B and %B differ in wchar_t size"
+msgstr "警告: %B と %B で wchar_t サイズが異なります"
+
+#: elf32-tic6x.c:3960
+msgid "warning: %B and %B differ in whether code is compiled for DSBT"
+msgstr "警告: %B と %B でコードが DSBT 用にコンパイルされたかが異なります"
+
+#: elf32-v850.c:173
+#, c-format
+msgid "Variable `%s' cannot occupy in multiple small data regions"
+msgstr "変数 `%s' は複数の small データ領域を占有することができません"
+
+#: elf32-v850.c:176
+#, c-format
+msgid "Variable `%s' can only be in one of the small, zero, and tiny data regions"
+msgstr "変数 `%s' は small, zero 及び tiny データ領域の内一つにのみ置くことができます"
+
+#: elf32-v850.c:179
+#, c-format
+msgid "Variable `%s' cannot be in both small and zero data regions simultaneously"
+msgstr "変数 `%s' を small と zero データ領域へ同時に置くことはできません"
+
+#: elf32-v850.c:182
+#, c-format
+msgid "Variable `%s' cannot be in both small and tiny data regions simultaneously"
+msgstr "変数 `%s' を small と tiny データ領域へ同時に置くことはできません"
+
+#: elf32-v850.c:185
+#, c-format
+msgid "Variable `%s' cannot be in both zero and tiny data regions simultaneously"
+msgstr "変数 `%s' は zero と tiny データ領域へ同時に置くことはできません"
+
+#: elf32-v850.c:483
+msgid "FAILED to find previous HI16 reloc"
+msgstr "以前の HI16 再配置を見つけられませんでした"
+
+#: elf32-v850.c:2155
+msgid "could not locate special linker symbol __gp"
+msgstr "特殊リンカシンボル __gp の位置を特定できませんでした"
+
+#: elf32-v850.c:2159
+msgid "could not locate special linker symbol __ep"
+msgstr "特殊リンカシンボル __ep の位置を特定できませんでした"
+
+#: elf32-v850.c:2163
+msgid "could not locate special linker symbol __ctbp"
+msgstr "特殊リンカシンボル __ctbp の位置を特定できませんでした"
+
+#: elf32-v850.c:2341
+msgid "%B: Architecture mismatch with previous modules"
+msgstr "%B: 前のモジュールとアーキテクチャが一致しません"
+
+#. xgettext:c-format.
+#: elf32-v850.c:2360
+#, c-format
+msgid "private flags = %lx: "
+msgstr "private フラグ = %lx: "
+
+#: elf32-v850.c:2365
+#, c-format
+msgid "v850 architecture"
+msgstr "v850 アーキテクチャ"
+
+#: elf32-v850.c:2366
+#, c-format
+msgid "v850e architecture"
+msgstr "v850e アーキテクチャ"
+
+#: elf32-v850.c:2367
+#, c-format
+msgid "v850e1 architecture"
+msgstr "v850e1 アーキテクチャ"
+
+#: elf32-v850.c:2368
+#, c-format
+msgid "v850e2 architecture"
+msgstr "v850e2 アーキテクチャ"
+
+#: elf32-v850.c:2369
+#, c-format
+msgid "v850e2v3 architecture"
+msgstr "v850e2v3 アーキテクチャ"
+
+#: elf32-vax.c:531
+#, c-format
+msgid " [nonpic]"
+msgstr ""
+
+#: elf32-vax.c:534
+#, c-format
+msgid " [d-float]"
+msgstr ""
+
+#: elf32-vax.c:537
+#, c-format
+msgid " [g-float]"
+msgstr ""
+
+#: elf32-vax.c:654
+#, c-format
+msgid "%s: warning: GOT addend of %ld to `%s' does not match previous GOT addend of %ld"
+msgstr ""
+
+#: elf32-vax.c:1587
+#, c-format
+msgid "%s: warning: PLT addend of %d to `%s' from %s section ignored"
+msgstr ""
+
+#: elf32-vax.c:1714
+#, c-format
+msgid "%s: warning: %s relocation against symbol `%s' from %s section"
+msgstr "%s: 警告: %s 再配置 (シンボル `%s' に対する %s セクションから) です"
+
+#: elf32-vax.c:1720
+#, c-format
+msgid "%s: warning: %s relocation to 0x%x from %s section"
+msgstr "%s: 警告: %s 再配置 (0x%x へ %s セクションから) です"
+
+#: elf32-xstormy16.c:451 elf32-ia64.c:2342 elf64-ia64.c:2342
+msgid "non-zero addend in @fptr reloc"
+msgstr ""
+
+#: elf32-xtensa.c:918
+msgid "%B(%A): invalid property table"
+msgstr "%B(%A): 無効なプロパティ表です"
+
+#: elf32-xtensa.c:2780
+msgid "%B(%A+0x%lx): relocation offset out of range (size=0x%x)"
+msgstr "%B(%A+0x%lx): 再配置オフセットが範囲外です (サイズ=0x%x)"
+
+#: elf32-xtensa.c:2859 elf32-xtensa.c:2980
+msgid "dynamic relocation in read-only section"
+msgstr "動的再配置が読み込み専用セクションにあります"
+
+#: elf32-xtensa.c:2956
+msgid "TLS relocation invalid without dynamic sections"
+msgstr "動的セクションがない場合は TLS 再配置は無効です"
+
+#: elf32-xtensa.c:3173
+msgid "internal inconsistency in size of .got.loc section"
+msgstr ".got.loc セクションのサイズに内部一貫性がありません"
+
+#: elf32-xtensa.c:3486
+msgid "%B: incompatible machine type. Output is 0x%x. Input is 0x%x"
+msgstr "%B: 互換性のないマシン型です。出力は 0x%x、入力は 0x%x です"
+
+#: elf32-xtensa.c:4715 elf32-xtensa.c:4723
+msgid "Attempt to convert L32R/CALLX to CALL failed"
+msgstr "L32R/CALLX から CALL への変換の試みに失敗しました"
+
+#: elf32-xtensa.c:6333 elf32-xtensa.c:6409 elf32-xtensa.c:7525
+msgid "%B(%A+0x%lx): could not decode instruction; possible configuration mismatch"
+msgstr "%B(%A+0x%lx): 命令をデコードできません。設定が適合していない可能性があります"
+
+#: elf32-xtensa.c:7265
+msgid "%B(%A+0x%lx): could not decode instruction for XTENSA_ASM_SIMPLIFY relocation; possible configuration mismatch"
+msgstr "%B(%A+0x%lx): XTENSA_ASM_SIMPLIFY 再配置用の命令をデコードできません。設定が適合していない可能性があります"
+
+#: elf32-xtensa.c:9024
+msgid "invalid relocation address"
+msgstr "無効な再配置アドレスです"
+
+#: elf32-xtensa.c:9073
+msgid "overflow after relaxation"
+msgstr "緩和後にオーバーフローしました"
+
+#: elf32-xtensa.c:10205
+msgid "%B(%A+0x%lx): unexpected fix for %s relocation"
+msgstr "%B(%A+0x%lx): %s 再配置用の予期しない修正です"
+
+#: elf64-alpha.c:460
+msgid "GPDISP relocation did not find ldah and lda instructions"
+msgstr "GPDISP 再配置が ldah と lda 命令を見つけませんでした"
+
+#: elf64-alpha.c:2495
+msgid "%B: .got subsegment exceeds 64K (size %d)"
+msgstr "%B: .got サブセグメントが 64K を超えています (サイズ %d)"
+
+#: elf64-alpha.c:4392 elf64-alpha.c:4404
+msgid "%B: gp-relative relocation against dynamic symbol %s"
+msgstr "%B: 動的シンボル %s に対する gp 関連再配置です"
+
+#: elf64-alpha.c:4430 elf64-alpha.c:4565
+msgid "%B: pc-relative relocation against dynamic symbol %s"
+msgstr "%B: 動的シンボル %s に対する pc 関連再配置です"
+
+#: elf64-alpha.c:4458
+msgid "%B: change in gp: BRSGP %s"
+msgstr "%B: gp 内に変更があります: BRSGP %s"
+
+#: elf64-alpha.c:4483
+msgid "<unknown>"
+msgstr "<不明>"
+
+#: elf64-alpha.c:4488
+msgid "%B: !samegp reloc against symbol without .prologue: %s"
+msgstr "%B: .prologue が無いシンボルに対する !samegp 再配置です: %s"
+
+#: elf64-alpha.c:4540
+msgid "%B: unhandled dynamic relocation against %s"
+msgstr "%B: %s に対する取り扱われない動的再配置です"
+
+#: elf64-alpha.c:4572
+msgid "%B: pc-relative relocation against undefined weak symbol %s"
+msgstr "%B: 未定義の弱いシンボル %s に対する pc 関連の再配置です"
+
+#: elf64-alpha.c:4632
+msgid "%B: dtp-relative relocation against dynamic symbol %s"
+msgstr "%B: 動的シンボル %s に対する dtp 関連の再配置です"
+
+#: elf64-alpha.c:4655
+msgid "%B: tp-relative relocation against dynamic symbol %s"
+msgstr "%B: 動的シンボル %s に対する tp 関連の再配置です"
+
+#: elf64-hppa.c:2094
+#, c-format
+msgid "stub entry for %s cannot load .plt, dp offset = %ld"
+msgstr "%s 用のスタブエントリは .plt をロードできません。 dp オフセット = %ld"
+
+#: elf64-hppa.c:3292
+msgid "%B(%A+0x%lx): cannot reach %s"
+msgstr "%B(%A+0x%lx): %s まで到達できません"
+
+#: elf64-mmix.c:1177
+#, c-format
+msgid ""
+"%s: Internal inconsistency error for value for\n"
+" linker-allocated global register: linked: 0x%lx%08lx != relaxed: 0x%lx%08lx\n"
+msgstr "%s: リンカの配置した大域レジスタの値の内部一貫性が保たれていないエラーです: リンク: 0x%lx%08lx != 緩和: 0x%lx%08lx\n"
+
+#: elf64-mmix.c:1607
+#, c-format
+msgid "%s: base-plus-offset relocation against register symbol: (unknown) in %s"
+msgstr "%s: レジスタシンボルに対する base-plus-offset 再配置です: (不明) (%s 内)"
+
+#: elf64-mmix.c:1612
+#, c-format
+msgid "%s: base-plus-offset relocation against register symbol: %s in %s"
+msgstr "%s: レジスタシンボルに対する base-plus-offset 再配置です: %s (%s 内)"
+
+#: elf64-mmix.c:1656
+#, c-format
+msgid "%s: register relocation against non-register symbol: (unknown) in %s"
+msgstr "%s: 非レジスタシンボルに対するレジスタ再配置です: (不明) (%s 内)"
+
+#: elf64-mmix.c:1661
+#, c-format
+msgid "%s: register relocation against non-register symbol: %s in %s"
+msgstr "%s: 非レジスタシンボルに対するレジスタ再配置です: %s (%s 内)"
+
+#: elf64-mmix.c:1698
+#, c-format
+msgid "%s: directive LOCAL valid only with a register or absolute value"
+msgstr "%s: LOCAL 指示はレジスタまたは絶対値に対してのみ有効です"
+
+#: elf64-mmix.c:1726
+#, c-format
+msgid "%s: LOCAL directive: Register $%ld is not a local register.  First global register is $%ld."
+msgstr "%s: LOCAL 指示: レジスタ $%ld は局所レジスタではありません。最初の大域レジスタは $%ld です。"
+
+#: elf64-mmix.c:2190
+#, c-format
+msgid "%s: Error: multiple definition of `%s'; start of %s is set in a earlier linked file\n"
+msgstr "%s: エラー: `%s' が複数定義されています; %s の開始は先にリンクされたファイルに設定されます\n"
+
+#: elf64-mmix.c:2248
+msgid "Register section has contents\n"
+msgstr "レジスタセクションに内容があります\n"
+
+#: elf64-mmix.c:2440
+#, c-format
+msgid ""
+"Internal inconsistency: remaining %u != max %u.\n"
+"  Please report this bug."
+msgstr ""
+"内部一貫性が保たれていません: 残り %u != 最大 %u。\n"
+"  このバグを報告してください。"
+
+#: elf64-ppc.c:2744 libbfd.c:1012
+msgid "%B: compiled for a big endian system and target is little endian"
+msgstr "%B: ビッグエンディアンシステム用にコンパイルされましたが、ターゲットはリトルエンディアンです"
+
+#: elf64-ppc.c:2747 libbfd.c:1014
+msgid "%B: compiled for a little endian system and target is big endian"
+msgstr "%B: リトルエンディアンシステム用にコンパイルされましたが、ターゲットはビッグエンディアンです"
+
+#: elf64-ppc.c:4160
+msgid "%B: cannot create stub entry %s\n"
+msgstr "%B: スタブエントリ %s を作成できません\n"
+
+#: elf64-ppc.c:6484
+#, c-format
+msgid "copy reloc against `%s' requires lazy plt linking; avoid setting LD_BIND_NOW=1 or upgrade gcc\n"
+msgstr ""
+
+#: elf64-ppc.c:6912
+msgid "dynreloc miscount for %B, section %A\n"
+msgstr "動的再配置数が合いません (ファイル %B, セクション %A)\n"
+
+#: elf64-ppc.c:6996
+msgid "%B: .opd is not a regular array of opd entries"
+msgstr "%B: .opd は opd エントリの通常配列ではありません"
+
+#: elf64-ppc.c:7005
+msgid "%B: unexpected reloc type %u in .opd section"
+msgstr "%B: .opd セクション内に予期しない再配置型 %u です"
+
+#: elf64-ppc.c:7026
+msgid "%B: undefined sym `%s' in .opd section"
+msgstr "%B: .opd セクション内に未定義シンボル `%s' です"
+
+#: elf64-ppc.c:7584
+msgid "%H __tls_get_addr lost arg, TLS optimization disabled\n"
+msgstr "%H __tls_get_addr の引数が失われました。TLS 最適化は無効になります\n"
+
+#: elf64-ppc.c:7929 elf64-ppc.c:8450
+#, c-format
+msgid "%s defined on removed toc entry"
+msgstr "削除された toc エントリで %s が定義されています"
+
+#: elf64-ppc.c:9474
+#, c-format
+msgid "cannot find opd entry toc for %s\n"
+msgstr ""
+
+#: elf64-ppc.c:9556
+#, c-format
+msgid "long branch stub `%s' offset overflow\n"
+msgstr "長い分岐スタブ `%s' のオフセットがオーバーフローしました\n"
+
+#: elf64-ppc.c:9615
+#, c-format
+msgid "can't find branch stub `%s'\n"
+msgstr "分岐スタブ `%s' が見つかりません\n"
+
+#: elf64-ppc.c:9677 elf64-ppc.c:9819
+#, c-format
+msgid "linkage table error against `%s'\n"
+msgstr "`%s' に対するリンク表エラーです\n"
+
+#: elf64-ppc.c:9993
+#, c-format
+msgid "can't build branch stub `%s'\n"
+msgstr "分岐スタブ `%s' を構築できません\n"
+
+#: elf64-ppc.c:10814
+msgid "%B section %A exceeds stub group size"
+msgstr "%B セクション %A はスタブグループサイズを超過しています"
+
+#: elf64-ppc.c:11457
+msgid "stubs don't match calculated size\n"
+msgstr "スタブが計算したサイズと一致していません\n"
+
+#: elf64-ppc.c:11469
+#, c-format
+msgid ""
+"linker stubs in %u group%s\n"
+"  branch       %lu\n"
+"  toc adjust   %lu\n"
+"  long branch  %lu\n"
+"  long toc adj %lu\n"
+"  plt call     %lu"
+msgstr ""
+"%u グループ%s 内のリンクスタブ\n"
+"  分岐         %lu\n"
+"  toc 調整     %lu\n"
+"  長分岐       %lu\n"
+"  長 toc 調整  %lu\n"
+"  plt 呼び出し %lu"
+
+#: elf64-ppc.c:11819
+msgid "%H: %s used with TLS symbol %s\n"
+msgstr "%H: %s が TLS シンボル %s と併せて使用されました\n"
+
+#: elf64-ppc.c:11820
+msgid "%H: %s used with non-TLS symbol %s\n"
+msgstr "%H: %s が非-TLS シンボル %s と併せて使用されました\n"
+
+#: elf64-ppc.c:12318
+msgid "%H: automatic multiple TOCs not supported using your crt files; recompile with -mminimal-toc or upgrade gcc\n"
+msgstr "%H: 自動的な複数 TOC は使用している crt ファイルではサポートされていません。 -mminimal-toc を付けて再コンパイルするか、 gcc をアップグレードしてください\n"
+
+#: elf64-ppc.c:12324
+msgid "%H: sibling call optimization to `%s' does not allow automatic multiple TOCs; recompile with -mminimal-toc or -fno-optimize-sibling-calls, or make `%s' extern\n"
+msgstr ""
+
+#: elf64-ppc.c:13041
+msgid "%B: relocation %s is not supported for symbol %s\n"
+msgstr "%B: 再配置 %s (シンボル %s 用) はサポートされていません\n"
+
+#: elf64-ppc.c:13218
+msgid "%H: error: %s not a multiple of %u\n"
+msgstr "%H: エラー: %s が %u の倍数ではありません\n"
+
+#: elf64-sh64.c:1682
+#, c-format
+msgid "%s: error: unaligned relocation type %d at %08x reloc %08x\n"
+msgstr "%s: エラー: 整列されていない再配置型 %d です (位置 %08x、再配置 %08x)\n"
+
+#: elf64-sparc.c:445
+msgid "%B: Only registers %%g[2367] can be declared using STT_REGISTER"
+msgstr "%B: STT_REGISTER を使うと宣言できるのはレジスタ %%g[2367] だけです"
+
+#: elf64-sparc.c:465
+msgid "Register %%g%d used incompatibly: %s in %B, previously %s in %B"
+msgstr "レジスタ %%g%d が互換性のない方法で使用されています: %s (%B 内)ですが、前は %s (%B 内) です"
+
+#: elf64-sparc.c:488
+msgid "Symbol `%s' has differing types: REGISTER in %B, previously %s in %B"
+msgstr "シンボル `%s' が異なる型を持っています: REGISTER (%B 内) ですが、前は %s (%B 内) です"
+
+#: elf64-sparc.c:533
+msgid "Symbol `%s' has differing types: %s in %B, previously REGISTER in %B"
+msgstr "シンボル `%s' が異なる型を持っています: %s (%B 内) ですが、前は REGISTER (%B 内) です"
+
+#: elf64-sparc.c:686
+msgid "%B: linking UltraSPARC specific with HAL specific code"
+msgstr "%B: UltraSPARC 特有のコードと HAL 特有のコードをリンクしています"
+
+#: elf64-x86-64.c:1236
+msgid "%B: relocation %s against symbol `%s' isn't supported in x32 mode"
+msgstr "%B: 再配置 %s (シンボル `%s' に対する) は x32 モードではサポートされません"
+
+#: elf64-x86-64.c:1465
+msgid "%B: '%s' accessed both as normal and thread local symbol"
+msgstr "%B: '%s' が通常シンボルとスレッド局所シンボルの両方としてアクセスされました"
+
+#: elf64-x86-64.c:2934
+msgid "%B: relocation %s against STT_GNU_IFUNC symbol `%s' has non-zero addend: %d"
+msgstr ""
+
+#: elf64-x86-64.c:3193
+msgid "%B: relocation R_X86_64_GOTOFF64 against protected function `%s' can not be used when making a shared object"
+msgstr "%B: 保護された関数 `%s' に対する再配置 R_X86_64_GOTOFF64  は共有オブジェクト作成時には使用出来ません"
+
+#: elf64-x86-64.c:3305
+msgid "; recompile with -fPIC"
+msgstr "。 -fPIC を付けて再コンパイルしてください。"
+
+#: elf64-x86-64.c:3310
+msgid "%B: relocation %s against %s `%s' can not be used when making a shared object%s"
+msgstr "%B: 再配置 %s (%s `%s' に対する) は共有オブジェクト作成時には使用出来ません%s"
+
+#: elf64-x86-64.c:3312
+msgid "%B: relocation %s against undefined %s `%s' can not be used when making a shared object%s"
+msgstr "%B: 再配置 %s (未定義 %s `%s' に対する) は共有オブジェクト作成時には使用出来ません%s"
+
+#: elfcode.h:827
+#, c-format
+msgid "warning: %s has a corrupt string table index - ignoring"
+msgstr "警告: %s は破損した文字列表索引を持っています。無視しています"
+
+#: elfcode.h:1237
+#, c-format
+msgid "%s: version count (%ld) does not match symbol count (%ld)"
+msgstr "%s: バージョンカウント (%ld) がシンボルカウント (%ld) と一致しません"
+
+#: elfcode.h:1491
+#, c-format
+msgid "%s(%s): relocation %d has invalid symbol index %ld"
+msgstr "%s(%s): 再配置 %d が無効なシンボル索引 %ld を持っています"
+
+#: elfcore.h:312
+msgid "Warning: %B is truncated: expected core file size >= %lu, found: %lu."
+msgstr "警告: %B は切り詰められています: 予期されるコアファイルサイズ >= %lu。見つかったサイズ: %lu。"
+
+#: elflink.c:1119
+msgid "%s: TLS definition in %B section %A mismatches non-TLS definition in %B section %A"
+msgstr "%s: %B 内セクション %A の TLS 定義は、%B 内セクション %A の非 TLS 定義と一致しません"
+
+#: elflink.c:1123
+msgid "%s: TLS reference in %B mismatches non-TLS reference in %B"
+msgstr "%s: %B 内の TLS 参照は %B 内の非 TLS 参照と一致しません"
+
+#: elflink.c:1127
+msgid "%s: TLS definition in %B section %A mismatches non-TLS reference in %B"
+msgstr "%s: %B 内セクション %A の TLS 定義は %B 内の非 TLS 参照と一致しません"
+
+#: elflink.c:1131
+msgid "%s: TLS reference in %B mismatches non-TLS definition in %B section %A"
+msgstr "%s: %B 内の TLS 参照は %B 内セクション %A の非 TLS 定義と一致しません"
+
+#: elflink.c:1764
+msgid "%B: unexpected redefinition of indirect versioned symbol `%s'"
+msgstr "%B: 間接バージョン付きシンボル `%s' の予期しない再定義です"
+
+#: elflink.c:2077
+msgid "%B: version node not found for symbol %s"
+msgstr "%B: シンボル %s 用のバージョンノードが見つかりません"
+
+#: elflink.c:2167
+msgid "%B: bad reloc symbol index (0x%lx >= 0x%lx) for offset 0x%lx in section `%A'"
+msgstr "%B: 誤った再配置シンボル索引 (0x%lx >= 0x%lx) (オフセット 0x%lx、セクション `%A' 内用) です"
+
+#: elflink.c:2178
+msgid "%B: non-zero symbol index (0x%lx) for offset 0x%lx in section `%A' when the object file has no symbol table"
+msgstr "%B: オブジェクトファイルにシンボル表が無いにもかかわらず、 0 でないシンボル索引 (0x%lx) (オフセット 0x%lx、セクション `%A' 内) があります"
+
+#: elflink.c:2368
+msgid "%B: relocation size mismatch in %B section %A"
+msgstr "%B: 再配置サイズが一致しません (%B 内セクション %A)"
+
+#: elflink.c:2663
+#, c-format
+msgid "warning: type and size of dynamic symbol `%s' are not defined"
+msgstr "警告: 動的シンボル `%s' の型とサイズが定義されていません"
+
+#: elflink.c:3421
+msgid "%P: alternate ELF machine code found (%d) in %B, expecting %d\n"
+msgstr "%P: 代替 ELF マシンコード (%d) が %B 内で見つかりました。予期されるのは %d です\n"
+
+#: elflink.c:4067
+msgid "%B: %s: invalid version %u (max %d)"
+msgstr "%B: %s: 無効なバージョン %u (最大 %d)"
+
+#: elflink.c:4103
+msgid "%B: %s: invalid needed version %d"
+msgstr "%B: %s: 無効な必要とされるバージョン %d です"
+
+#: elflink.c:4299
+msgid "Warning: alignment %u of common symbol `%s' in %B is greater than the alignment (%u) of its section %A"
+msgstr "警告: 整列 %u (共通シンボル `%s' の、%B 内) は整列 %u (セクション %A) より大きいです"
+
+#: elflink.c:4305
+msgid "Warning: alignment %u of symbol `%s' in %B is smaller than %u in %B"
+msgstr "警告: 整列 %u (シンボル `%s' の、%B 内) が %u (%B 内) より小さいです"
+
+#: elflink.c:4320
+msgid "Warning: size of symbol `%s' changed from %lu in %B to %lu in %B"
+msgstr "警告: シンボル `%s' のサイズが %lu (%B 内) から %lu (%B 内) に変更されました"
+
+#: elflink.c:4489
+msgid "%B: undefined reference to symbol '%s'"
+msgstr "%B: シンボル '%s' への未定義参照です"
+
+#: elflink.c:4492
+msgid "note: '%s' is defined in DSO %B so try adding it to the linker command line"
+msgstr "注: '%s' は DSO %B 内で定義されているのでリンカのコマンドラインに追加してみてください"
+
+#: elflink.c:5795
+#, c-format
+msgid "%s: undefined version: %s"
+msgstr "%s: 未定義バージョン: %s"
+
+#: elflink.c:5863
+msgid "%B: .preinit_array section is not allowed in DSO"
+msgstr "%B: .preinit_array セクションは DSO 内では許可されていません"
+
+#: elflink.c:7617
+#, c-format
+msgid "undefined %s reference in complex symbol: %s"
+msgstr ""
+
+#: elflink.c:7771
+#, c-format
+msgid "unknown operator '%c' in complex symbol"
+msgstr ""
+
+#: elflink.c:8110 elflink.c:8127 elflink.c:8164 elflink.c:8181
+msgid "%B: Unable to sort relocs - they are in more than one size"
+msgstr "%B: 再配置をソートできません。2個以上のサイズになっています"
+
+#: elflink.c:8141 elflink.c:8195
+msgid "%B: Unable to sort relocs - they are of an unknown size"
+msgstr "%B: 再配置をソートできません。不明なサイズです。"
+
+#: elflink.c:8246
+msgid "Not enough memory to sort relocations"
+msgstr "再配置をソートするための十分なメモリがありません"
+
+#: elflink.c:8439
+msgid "%B: Too many sections: %d (>= %d)"
+msgstr "%B: セクションが多すぎます: %d (>= %d)"
+
+#: elflink.c:8686
+msgid "%B: internal symbol `%s' in %B is referenced by DSO"
+msgstr "%B: 内部シンボル `%s' (%B 内) は DSO によって参照されています"
+
+#: elflink.c:8688
+msgid "%B: hidden symbol `%s' in %B is referenced by DSO"
+msgstr "%B: 隠されたシンボル `%s' (%B 内) は DSO によって参照されています"
+
+#: elflink.c:8690
+msgid "%B: local symbol `%s' in %B is referenced by DSO"
+msgstr "%B: 局所シンボル `%s' (%B 内) は DSO によって参照されています"
+
+#: elflink.c:8785
+msgid "%B: could not find output section %A for input section %A"
+msgstr "%B: 出力セクション %A (入力セクション %A 用) が見つかりませんでした"
+
+#: elflink.c:8908
+msgid "%B: protected symbol `%s' isn't defined"
+msgstr "%B: 保護されたシンボル `%s' が定義されていません"
+
+#: elflink.c:8910
+msgid "%B: internal symbol `%s' isn't defined"
+msgstr "%B: 内部シンボル `%s' が定義されていません"
+
+#: elflink.c:8912
+msgid "%B: hidden symbol `%s' isn't defined"
+msgstr "%B: 隠されたシンボル `%s' が定義されていません"
+
+#: elflink.c:9441
+msgid "error: %B: size of section %A is not multiple of address size"
+msgstr "エラー: %B: セクション %A のサイズがアドレスサイズの倍数ではありません"
+
+#: elflink.c:9488
+msgid "error: %B contains a reloc (0x%s) for section %A that references a non-existent global symbol"
+msgstr "エラー: %B には存在しない大域シンボルを参照する再配置 (0x%s) (セクション %A 用) が含まれます"
+
+#: elflink.c:10223
+msgid "%A has both ordered [`%A' in %B] and unordered [`%A' in %B] sections"
+msgstr "%A には順序付き [`%A' (%B 内) ] と順序無し [`%A' (%B 内)] セクションの両方があります"
+
+#: elflink.c:10228
+#, c-format
+msgid "%A has both ordered and unordered sections"
+msgstr "%A には順序付きと順序無しセクションの両方があります"
+
+#: elflink.c:10793
+msgid "%B: file class %s incompatible with %s"
+msgstr "%B: ファイルクラス %s は %s と互換性がありません"
+
+#: elflink.c:11104 elflink.c:11148
+msgid "%B: could not find output section %s"
+msgstr "%B: 出力セクション %s が見つかりませんでした"
+
+#: elflink.c:11109
+#, c-format
+msgid "warning: %s section has zero size"
+msgstr "警告: %s セクションのサイズが 0 です"
+
+#: elflink.c:11214
+msgid "%P: warning: creating a DT_TEXTREL in a shared object.\n"
+msgstr "%P: 警告: 共有オブジェクト内に DT_TEXTREL を作成しています\n"
+
+#: elflink.c:11401
+msgid "%P%X: can not read symbols: %E\n"
+msgstr "%P%X: シンボルを読み込めません: %E\n"
+
+#: elflink.c:11750
+msgid "Removing unused section '%s' in file '%B'"
+msgstr "使用されないセクション '%s' (ファイル '%B' 内) を削除しています"
+
+#: elflink.c:11962
+msgid "Warning: gc-sections option ignored"
+msgstr "警告: gc-sections オプションは無視されました"
+
+#: elflink.c:12511
+msgid "%B: ignoring duplicate section `%A'"
+msgstr "%B: 重複したセクション `%A' を無視しています"
+
+#: elflink.c:12518 elflink.c:12525
+msgid "%B: duplicate section `%A' has different size"
+msgstr "%B: 重複したセクション `%A' が異なるサイズです"
+
+#: elflink.c:12533 elflink.c:12538
+msgid "%B: warning: could not read contents of section `%A'"
+msgstr "%B: 警告: セクション `%A' の中身を読み込めません"
+
+#: elflink.c:12542
+msgid "%B: warning: duplicate section `%A' has different contents"
+msgstr "%B: 警告: 重複したセクション `%A' の中身が異なります"
+
+#: elflink.c:12643 linker.c:3086
+msgid "%F%P: already_linked_table: %E\n"
+msgstr "%F%P: already_linked_table: %E\n"
+
+#: elfxx-mips.c:1221
+msgid "static procedure (no name)"
+msgstr "静的プロシージャ(名前無し)"
+
+#: elfxx-mips.c:5628
+msgid "%B: %A+0x%lx: Direct jumps between ISA modes are not allowed; consider recompiling with interlinking enabled."
+msgstr "%B: %A+0x%lx: ISA モード間の直接のジャンプは許可されていません。相互リンクを有効にして再コンパイルしてみてください"
+
+#: elfxx-mips.c:6288 elfxx-mips.c:6511
+msgid "%B: Warning: bad `%s' option size %u smaller than its header"
+msgstr "%B: 警告: 間違った `%s' オプションサイズ %u です (ヘッダより小さいです)"
+
+#: elfxx-mips.c:7262 elfxx-mips.c:7387
+msgid "%B: Warning: cannot determine the target function for stub section `%s'"
+msgstr "%B: 警告: スタブセクション `%s' 用のターゲット関数を決定できません"
+
+#: elfxx-mips.c:7516
+msgid "%B: Malformed reloc detected for section %s"
+msgstr "%B: セクション %s に対するおかしな再配置が検出されました"
+
+#: elfxx-mips.c:7556
+msgid "%B: GOT reloc at 0x%lx not expected in executables"
+msgstr "%B: 位置 0x%lx に実行ファイル内では予期されない GOT 再配置があります"
+
+#: elfxx-mips.c:7678
+msgid "%B: CALL16 reloc at 0x%lx not against global symbol"
+msgstr "%B: 位置 0x%lx の CALL16 再配置は大域シンボルに対してではありません"
+
+#: elfxx-mips.c:8372
+#, c-format
+msgid "non-dynamic relocations refer to dynamic symbol %s"
+msgstr "非動的再配置が動的再配置 %s を参照しています"
+
+#: elfxx-mips.c:9075
+msgid "%B: Can't find matching LO16 reloc against `%s' for %s at 0x%lx in section `%A'"
+msgstr ""
+
+#: elfxx-mips.c:9214
+msgid "small-data section exceeds 64KB; lower small-data size limit (see option -G)"
+msgstr ""
+
+#: elfxx-mips.c:12038
+#, c-format
+msgid "%s: illegal section name `%s'"
+msgstr "%s: 不正なセクション名 `%s' です"
+
+#: elfxx-mips.c:12417 elfxx-mips.c:12443
+msgid "Warning: %B uses -msingle-float, %B uses -mdouble-float"
+msgstr "警告: %B は -msingle-float を使用しています。%B は -mdouble-float を使用しています"
+
+#: elfxx-mips.c:12429 elfxx-mips.c:12485
+msgid "Warning: %B uses -msingle-float, %B uses -mips32r2 -mfp64"
+msgstr "警告: %B は -msingle-float を使用しています。%B は -mips32r2 -mfp64 を使用しています"
+
+#: elfxx-mips.c:12455 elfxx-mips.c:12491
+msgid "Warning: %B uses -mdouble-float, %B uses -mips32r2 -mfp64"
+msgstr "警告: %B は -mdouble-float を使用しています。%B は -mips32r2 -mfp64 を使用しています"
+
+#: elfxx-mips.c:12533
+msgid "%B: endianness incompatible with that of the selected emulation"
+msgstr "%B: 選択したエミュレーションとエンディアンの互換性がありません"
+
+#: elfxx-mips.c:12544
+msgid "%B: ABI is incompatible with that of the selected emulation"
+msgstr "%B: 選択したエミュレーションとABI の互換性がありません"
+
+#: elfxx-mips.c:12628
+msgid "%B: warning: linking abicalls files with non-abicalls files"
+msgstr "%B: 警告: abicalls ファイルと非 abicalls ファイルをリンクしています"
+
+#: elfxx-mips.c:12645
+msgid "%B: linking 32-bit code with 64-bit code"
+msgstr "%B: 32 ビットコードと 64 ビットコードをリンクしています"
+
+#: elfxx-mips.c:12673
+msgid "%B: linking %s module with previous %s modules"
+msgstr "%B: %s モジュールを前の %s モジュールとリンクしています"
+
+#: elfxx-mips.c:12696
+msgid "%B: ABI mismatch: linking %s module with previous %s modules"
+msgstr "%B: ABI が一致しません: %s モジュールを前の %s モジュールとリンクしています"
+
+#: elfxx-mips.c:12860
+#, c-format
+msgid " [abi=O32]"
+msgstr " [abi=O32]"
+
+#: elfxx-mips.c:12862
+#, c-format
+msgid " [abi=O64]"
+msgstr " [abi=O64]"
+
+#: elfxx-mips.c:12864
+#, c-format
+msgid " [abi=EABI32]"
+msgstr " [abi=EABI32]"
+
+#: elfxx-mips.c:12866
+#, c-format
+msgid " [abi=EABI64]"
+msgstr " [abi=EABI64]"
+
+#: elfxx-mips.c:12868
+#, c-format
+msgid " [abi unknown]"
+msgstr " [abi unknown]"
+
+#: elfxx-mips.c:12870
+#, c-format
+msgid " [abi=N32]"
+msgstr " [abi=N32]"
+
+#: elfxx-mips.c:12872
+#, c-format
+msgid " [abi=64]"
+msgstr " [abi=64]"
+
+#: elfxx-mips.c:12874
+#, c-format
+msgid " [no abi set]"
+msgstr ""
+
+#: elfxx-mips.c:12895
+#, c-format
+msgid " [unknown ISA]"
+msgstr " [不明な ISA]"
+
+#: elfxx-mips.c:12906
+#, c-format
+msgid " [not 32bitmode]"
+msgstr " [非 32 ビットモード]"
+
+#: elfxx-sparc.c:595
+#, c-format
+msgid "invalid relocation type %d"
+msgstr "無効な再配置型 %d です"
+
+#: i386linux.c:454 m68klinux.c:458 sparclinux.c:452
+#, c-format
+msgid "Output file requires shared library `%s'\n"
+msgstr "出力ファイルは共有ライブラリ `%s' を必要としています\n"
+
+#: i386linux.c:462 m68klinux.c:466 sparclinux.c:460
+#, c-format
+msgid "Output file requires shared library `%s.so.%s'\n"
+msgstr "出力ファイルは共有ライブラリ `%s.so.%s' を必要としています\n"
+
+#: i386linux.c:651 i386linux.c:701 m68klinux.c:658 m68klinux.c:706
+#: sparclinux.c:650 sparclinux.c:700
+#, c-format
+msgid "Symbol %s not defined for fixups\n"
+msgstr "シンボル %s は fixup 用に定義されていません\n"
+
+#: i386linux.c:725 m68klinux.c:730 sparclinux.c:724
+msgid "Warning: fixup count mismatch\n"
+msgstr "警告: fixup カウントが一致しません\n"
+
+#: ieee.c:159
+#, c-format
+msgid "%s: string too long (%d chars, max 65535)"
+msgstr "%s: 文字列が長すぎます (%d 文字, 最大 65535)"
+
+#: ieee.c:286
+#, c-format
+msgid "%s: unrecognized symbol `%s' flags 0x%x"
+msgstr "%s: シンボル `%s' フラグ 0x%x を認識できません"
+
+#: ieee.c:792
+msgid "%B: unimplemented ATI record %u for symbol %u"
+msgstr "%B: ATI レコード %u (シンボル %u 用) は実装されていません"
+
+#: ieee.c:816
+msgid "%B: unexpected ATN type %d in external part"
+msgstr "%B: 予期しない ATN 型 %d が external 部分にあります"
+
+#: ieee.c:838
+msgid "%B: unexpected type after ATN"
+msgstr "%B: ATN の後に予期しない型です"
+
+#: ihex.c:230
+msgid "%B:%d: unexpected character `%s' in Intel Hex file"
+msgstr "%B:%d: Intel Hex ファイル内に予期しない文字 `%s' があります"
+
+#: ihex.c:337
+msgid "%B:%u: bad checksum in Intel Hex file (expected %u, found %u)"
+msgstr "%B:%u: Intel Hex ファイル内のチェックサムが間違っています (予期されるのは %u、実際は %u)"
+
+#: ihex.c:392
+msgid "%B:%u: bad extended address record length in Intel Hex file"
+msgstr "%B:%u: Intel Hex ファイル内に間違った拡張アドレスレコードがあります"
+
+#: ihex.c:409
+msgid "%B:%u: bad extended start address length in Intel Hex file"
+msgstr "%B:%u: Intel Hex ファイル内に間違った拡張開始アドレス長があります"
+
+#: ihex.c:426
+msgid "%B:%u: bad extended linear address record length in Intel Hex file"
+msgstr "%B:%u: Intel Hex ファイル内に間違った拡張線形アドレスレコード長があります"
+
+#: ihex.c:443
+msgid "%B:%u: bad extended linear start address length in Intel Hex file"
+msgstr "%B:%u: Intel Hex ファイル内に間違った拡張線形開始アドレス長があります"
+
+#: ihex.c:460
+msgid "%B:%u: unrecognized ihex type %u in Intel Hex file"
+msgstr "%B:%u: Intel Hex ファイル内で認識できない ihex 型 %u です"
+
+#: ihex.c:579
+msgid "%B: internal error in ihex_read_section"
+msgstr "%B: ihex_read_section 内で内部エラーです"
+
+#: ihex.c:613
+msgid "%B: bad section length in ihex_read_section"
+msgstr "%B: ihex_read_section 内で間違ったセクション長です"
+
+#: ihex.c:826
+#, c-format
+msgid "%s: address 0x%s out of range for Intel Hex file"
+msgstr "%s: アドレス 0x%s は Intel Hex ファイルの範囲外です"
+
+#: libbfd.c:863
+msgid "%B: unable to get decompressed section %A"
+msgstr "%B: 伸張したセクション %A を取得できません"
+
+#: libbfd.c:1043
+#, c-format
+msgid "Deprecated %s called at %s line %d in %s\n"
+msgstr "廃止された %s が呼ばれました (位置 %s、行 %d、 %s 内)\n"
+
+#: libbfd.c:1046
+#, c-format
+msgid "Deprecated %s called\n"
+msgstr "廃止された %s が呼ばれました\n"
+
+#: linker.c:1859
+msgid "%B: indirect symbol `%s' to `%s' is a loop"
+msgstr "%B: 間接シンボル `%s' (`%s' へ) が循環しています"
+
+#: linker.c:2726
+#, c-format
+msgid "Attempt to do relocatable link with %s input and %s output"
+msgstr "%s 入力と %s 出力を再配置可能リンクしようと試みました"
+
+#: linker.c:3053
+msgid "%B: warning: ignoring duplicate section `%A'\n"
+msgstr "%B: 警告: 重複しているセクション `%A' を無視しています\n"
+
+#: linker.c:3067
+msgid "%B: warning: duplicate section `%A' has different size\n"
+msgstr "%B: 警告: 重複しているセクション `%A' が異なるサイズです\n"
+
+#: mach-o.c:381
+msgid "bfd_mach_o_canonicalize_symtab: unable to load symbols"
+msgstr "bfd_mach_o_canonicalize_symtab: シンボルをロードできません"
+
+#: mach-o.c:1253
+#, c-format
+msgid "unable to write unknown load command 0x%lx"
+msgstr "不明なロードコマンド 0x%lx を書き込めません"
+
+#: mach-o.c:1654
+#, c-format
+msgid "bfd_mach_o_read_symtab_symbol: unable to read %d bytes at %lu"
+msgstr "bfd_mach_o_read_symtab_symbol: %d バイト(位置 %lu ) を読み込めません"
+
+#: mach-o.c:1671
+#, c-format
+msgid "bfd_mach_o_read_symtab_symbol: symbol name out of range (%lu >= %lu)"
+msgstr "bfd_mach_o_read_symtab_symbol: シンボル名が範囲外 (%lu >= %lu) です"
+
+#: mach-o.c:1756
+#, c-format
+msgid "bfd_mach_o_read_symtab_symbol: symbol \"%s\" specified invalid section %d (max %lu): setting to undefined"
+msgstr "bfd_mach_o_read_symtab_symbol: シンボル \"%s\" が無効なセクション %d (最大 %lu) に指定されています: 未定義に設定されました"
+
+#: mach-o.c:1764
+#, c-format
+msgid "bfd_mach_o_read_symtab_symbol: symbol \"%s\" is unsupported 'indirect' reference: setting to undefined"
+msgstr "bfd_mach_o_read_symtab_symbol: シンボル \"%s\" はサポートされていない '間接' 参照です: 未定義に設定されました"
+
+#: mach-o.c:1770
+#, c-format
+msgid "bfd_mach_o_read_symtab_symbol: symbol \"%s\" specified invalid type field 0x%x: setting to undefined"
+msgstr "bfd_mach_o_read_symtab_symbol: シンボル \"%s\" は無効なタイプフィールド 0x%x に指定されています: 未定義に設定されました"
+
+#: mach-o.c:1840
+msgid "bfd_mach_o_read_symtab_symbols: unable to allocate memory for symbols"
+msgstr "bfd_mach_o_read_symtab_symbols: シンボル用のメモリを配置できません"
+
+#: mach-o.c:1874
+#, c-format
+msgid "bfd_mach_o_read_dysymtab_symbol: unable to read %lu bytes at %lu"
+msgstr "bfd_mach_o_read_dysymtab_symbol: %lu バイト (位置 %lu) を読み込めません"
+
+#: mach-o.c:2556
+#, c-format
+msgid "unable to read unknown load command 0x%lx"
+msgstr "不明なコマンド 0x%lx をロードできません"
+
+#: mach-o.c:2736
+#, c-format
+msgid "bfd_mach_o_scan: unknown architecture 0x%lx/0x%lx"
+msgstr "bfd_mach_o_scan: 不明なアーキテクチャ 0x%lx/0x%lx です"
+
+#: mach-o.c:2832
+#, c-format
+msgid "unknown header byte-order value 0x%lx"
+msgstr "不明なヘッダバイト順の値 0x%lx です"
+
+#: mach-o.c:3402
+msgid "Mach-O header:\n"
+msgstr "Mach-O ヘッダ:\n"
+
+#: mach-o.c:3403
+#, c-format
+msgid " magic     : %08lx\n"
+msgstr " マジック番号: %08lx\n"
+
+#: mach-o.c:3404
+#, c-format
+msgid " cputype   : %08lx (%s)\n"
+msgstr " CPU タイプ : %08lx (%s)\n"
+
+#: mach-o.c:3406
+#, c-format
+msgid " cpusubtype: %08lx\n"
+msgstr " CPU サブタイプ: %08lx\n"
+
+#: mach-o.c:3407
+#, c-format
+msgid " filetype  : %08lx (%s)\n"
+msgstr " ファイルタイプ: %08lx (%s)\n"
+
+#: mach-o.c:3410
+#, c-format
+msgid " ncmds     : %08lx (%lu)\n"
+msgstr " コマンド数  : %08lx (%lu)\n"
+
+#: mach-o.c:3411
+#, c-format
+msgid " sizeofcmds: %08lx\n"
+msgstr " コマンドサイズ: %08lx\n"
+
+#: mach-o.c:3412
+#, c-format
+msgid " flags     : %08lx ("
+msgstr " フラグ    : %08lx ("
+
+#: mach-o.c:3414 vms-alpha.c:7671
+msgid ")\n"
+msgstr ")\n"
+
+#: mach-o.c:3415
+#, c-format
+msgid " reserved  : %08x\n"
+msgstr " 予約      : %08x\n"
+
+#: mach-o.c:3425
+msgid "Segments and Sections:\n"
+msgstr "セグメントとセクション:\n"
+
+#: mach-o.c:3426
+msgid " #: Segment name     Section name     Address\n"
+msgstr " #: セグメント名     セクション名     アドレス\n"
+
+#: merge.c:832
+#, c-format
+msgid "%s: access beyond end of merged section (%ld)"
+msgstr "%s: 併合したセクションの終端 (%ld) を超えたアクセスです"
+
+#: mmo.c:456
+#, c-format
+msgid "%s: No core to allocate section name %s\n"
+msgstr "%s: セクション名 %s を割り当てるためのコアがありません\n"
+
+#: mmo.c:531
+#, c-format
+msgid "%s: No core to allocate a symbol %d bytes long\n"
+msgstr "%s: %d バイト長のシンボルを割り当てるためのコアがありません\n"
+
+#: mmo.c:1187
+#, c-format
+msgid "%s: invalid mmo file: initialization value for $255 is not `Main'\n"
+msgstr "%s: 無効な mmo ファイル: $255 の初期値が `Main' ではありません\n"
+
+#: mmo.c:1332
+#, c-format
+msgid "%s: unsupported wide character sequence 0x%02X 0x%02X after symbol name starting with `%s'\n"
+msgstr "%s: サポートされていないワイド文字シーケンス 0x%02X 0x%02X が `%s' で開始するシンボル名の後にあります\n"
+
+#: mmo.c:1565
+#, c-format
+msgid "%s: invalid mmo file: unsupported lopcode `%d'\n"
+msgstr "%s: 無効な mmo ファイルです: サポートされていない lopcode `%d' です\n"
+
+#: mmo.c:1575
+#, c-format
+msgid "%s: invalid mmo file: expected YZ = 1 got YZ = %d for lop_quote\n"
+msgstr "%s: 無効な mmo ファイルです: lop_quote として予期されるのはYZ = 1 ですが、取得されたのは YZ = %d です\n"
+
+#: mmo.c:1611
+#, c-format
+msgid "%s: invalid mmo file: expected z = 1 or z = 2, got z = %d for lop_loc\n"
+msgstr "%s: 無効な mmo ファイルです: lop_loc として予期されるのは z = 1 または z = 2 ですが、取得されたのは z = %d です\n"
+
+#: mmo.c:1657
+#, c-format
+msgid "%s: invalid mmo file: expected z = 1 or z = 2, got z = %d for lop_fixo\n"
+msgstr "%s: 無効な mmo ファイルです: lop_fixo として予期されるのは z = 1 または z = 2ですが、取得されたのは got z = %d です\n"
+
+#: mmo.c:1696
+#, c-format
+msgid "%s: invalid mmo file: expected y = 0, got y = %d for lop_fixrx\n"
+msgstr "%s: 無効な mmo ファイルです: lop_fixrx として予期されるのは y = 0 ですが、取得されたのは y = %d です\n"
+
+#: mmo.c:1705
+#, c-format
+msgid "%s: invalid mmo file: expected z = 16 or z = 24, got z = %d for lop_fixrx\n"
+msgstr "%s: 無効な mmo ファイルです: lop_fixrx として予期されるのは z = 16 または z = 24 ですが、取得されたのは z = %d です\n"
+
+#: mmo.c:1728
+#, c-format
+msgid "%s: invalid mmo file: leading byte of operand word must be 0 or 1, got %d for lop_fixrx\n"
+msgstr "%s: 無効な mmo ファイルです: lop_fixrx 用の被演算子ワードの先頭バイトは 0 または 1 でなければいけませんが、取得されたのは %d です\n"
+
+#: mmo.c:1751
+#, c-format
+msgid "%s: cannot allocate file name for file number %d, %d bytes\n"
+msgstr ""
+
+#: mmo.c:1771
+#, c-format
+msgid "%s: invalid mmo file: file number %d `%s', was already entered as `%s'\n"
+msgstr ""
+
+#: mmo.c:1784
+#, c-format
+msgid "%s: invalid mmo file: file name for number %d was not specified before use\n"
+msgstr ""
+
+#: mmo.c:1890
+#, c-format
+msgid "%s: invalid mmo file: fields y and z of lop_stab non-zero, y: %d, z: %d\n"
+msgstr ""
+
+#: mmo.c:1926
+#, c-format
+msgid "%s: invalid mmo file: lop_end not last item in file\n"
+msgstr "%s: 無効な mmo ファイルです: lop_end がファイル内の最後の要素ではありません\n"
+
+#: mmo.c:1939
+#, c-format
+msgid "%s: invalid mmo file: YZ of lop_end (%ld) not equal to the number of tetras to the preceding lop_stab (%ld)\n"
+msgstr ""
+
+#: mmo.c:2649
+#, c-format
+msgid "%s: invalid symbol table: duplicate symbol `%s'\n"
+msgstr "%s: 無効なシンボル表です: 重複したシンボル `%s' があります\n"
+
+#: mmo.c:2889
+#, c-format
+msgid "%s: Bad symbol definition: `Main' set to %s rather than the start address %s\n"
+msgstr ""
+
+#: mmo.c:2981
+#, c-format
+msgid "%s: warning: symbol table too large for mmo, larger than 65535 32-bit words: %d.  Only `Main' will be emitted.\n"
+msgstr ""
+
+#: mmo.c:3026
+#, c-format
+msgid "%s: internal error, symbol table changed size from %d to %d words\n"
+msgstr "%s: 内部エラー、シンボル表のサイズが %d ワードから %d ワードに変更されました\n"
+
+#: mmo.c:3078
+#, c-format
+msgid "%s: internal error, internal register section %s had contents\n"
+msgstr "%s: 内部エラー、内部レジスタセクション %s は内容を持ちます\n"
+
+#: mmo.c:3129
+#, c-format
+msgid "%s: no initialized registers; section length 0\n"
+msgstr "%s: 初期化されたレジスタがありません。セクション長は 0 です\n"
+
+#: mmo.c:3135
+#, c-format
+msgid "%s: too many initialized registers; section length %ld\n"
+msgstr "%s: 初期化されたレジスタが多すぎます。セクション長は %ld です\n"
+
+#: mmo.c:3140
+#, c-format
+msgid "%s: invalid start address for initialized registers of length %ld: 0x%lx%08lx\n"
+msgstr "%s: 長さ %ld の初期化されたレジスタ用の無効な開始アドレスです : 0x%lx%08lx\n"
+
+#: oasys.c:882
+#, c-format
+msgid "%s: can not represent section `%s' in oasys"
+msgstr "%s: oasys ではセクション `%s' を表現できません"
+
+#: osf-core.c:140
+#, c-format
+msgid "Unhandled OSF/1 core file section type %d\n"
+msgstr "取り扱われない OSF/1 コアファイルセクション型 %d です\n"
+
+#: pe-mips.c:607
+msgid "%B: `ld -r' not supported with PE MIPS objects\n"
+msgstr "%B: `ld -r' は PE MIPS オブジェクトと併せて使用できません\n"
+
+#. OK, at this point the following variables are set up:
+#. src = VMA of the memory we're fixing up
+#. mem = pointer to memory we're fixing up
+#. val = VMA of what we need to refer to.
+#: pe-mips.c:719
+msgid "%B: unimplemented %s\n"
+msgstr "%B: 未実装の %s です\n"
+
+#: pe-mips.c:745
+msgid "%B: jump too far away\n"
+msgstr "%B: ジャンプ先が遠すぎます\n"
+
+#: pe-mips.c:771
+msgid "%B: bad pair/reflo after refhi\n"
+msgstr "%B: 誤った pair/reflo が refhi の後ろにあります\n"
+
+#: pef.c:519
+#, c-format
+msgid "bfd_pef_scan: unknown architecture 0x%lx"
+msgstr ""
+
+#: pei-x86_64.c:444
+#, c-format
+msgid "warning: .pdata section size (%ld) is not a multiple of %d\n"
+msgstr "警告: .pdata セクションサイズ (%ld) が %d の倍数ではありません\n"
+
+#: pei-x86_64.c:448 peigen.c:1618 peigen.c:1801 pepigen.c:1618 pepigen.c:1801
+#: pex64igen.c:1618 pex64igen.c:1801
+#, c-format
+msgid ""
+"\n"
+"The Function Table (interpreted .pdata section contents)\n"
+msgstr ""
+"\n"
+"関数表 (.pdata セクションの内容を解釈)\n"
+
+#: pei-x86_64.c:450
+#, c-format
+msgid "vma:\t\t\tBeginAddress\t EndAddress\t  UnwindData\n"
+msgstr ""
+
+#. XXX code yet to be written.
+#: peicode.h:751
+msgid "%B: Unhandled import type; %x"
+msgstr "%B: 取り扱えないインポート型 %x です"
+
+#: peicode.h:756
+msgid "%B: Unrecognised import type; %x"
+msgstr "%B: 認識できないインポート型 %x です"
+
+#: peicode.h:770
+msgid "%B: Unrecognised import name type; %x"
+msgstr "%B: 認識できないインポート名前型 %x です"
+
+#: peicode.h:1162
+msgid "%B: Unrecognised machine type (0x%x) in Import Library Format archive"
+msgstr "%B: インポートライブラリ形式書庫のマシン型 (0x%x) は認識できません"
+
+#: peicode.h:1174
+msgid "%B: Recognised but unhandled machine type (0x%x) in Import Library Format archive"
+msgstr "%B: インポートライブラリ形式書庫のマシン型 (0x%x) は認識できますが扱えません"
+
+#: peicode.h:1192
+msgid "%B: size field is zero in Import Library Format header"
+msgstr "%B: インポートライブラリ形式ヘッダ内のサイズフィールドが 0 です"
+
+#: peicode.h:1223
+msgid "%B: string not null terminated in ILF object file."
+msgstr "%B: ILF オブジェクトファイル内の文字列が null で終端されていません。"
+
+#: ppcboot.c:414
+#, c-format
+msgid ""
+"\n"
+"ppcboot header:\n"
+msgstr ""
+"\n"
+"ppcboot ヘッダ:\n"
+
+#: ppcboot.c:415
+#, c-format
+msgid "Entry offset        = 0x%.8lx (%ld)\n"
+msgstr "エントリオフセット  = 0x%.8lx (%ld)\n"
+
+#: ppcboot.c:417
+#, c-format
+msgid "Length              = 0x%.8lx (%ld)\n"
+msgstr "長さ                = 0x%.8lx (%ld)\n"
+
+#: ppcboot.c:421
+#, c-format
+msgid "Flag field          = 0x%.2x\n"
+msgstr "フラグフィールド    = 0x%.2x\n"
+
+#: ppcboot.c:427
+#, c-format
+msgid "Partition name      = \"%s\"\n"
+msgstr "領域名              = \"%s\"\n"
+
+#: ppcboot.c:446
+#, c-format
+msgid ""
+"\n"
+"Partition[%d] start  = { 0x%.2x, 0x%.2x, 0x%.2x, 0x%.2x }\n"
+msgstr ""
+"\n"
+"領域[%d] の開始      = { 0x%.2x, 0x%.2x, 0x%.2x, 0x%.2x }\n"
+
+#: ppcboot.c:452
+#, c-format
+msgid "Partition[%d] end    = { 0x%.2x, 0x%.2x, 0x%.2x, 0x%.2x }\n"
+msgstr "領域[%d] の末尾      = { 0x%.2x, 0x%.2x, 0x%.2x, 0x%.2x }\n"
+
+#: ppcboot.c:458
+#, c-format
+msgid "Partition[%d] sector = 0x%.8lx (%ld)\n"
+msgstr "領域[%d] セクタ = 0x%.8lx (%ld)\n"
+
+#: ppcboot.c:460
+#, c-format
+msgid "Partition[%d] length = 0x%.8lx (%ld)\n"
+msgstr "領域[%d] 長さ = 0x%.8lx (%ld)\n"
+
+#: rs6000-core.c:448
+#, c-format
+msgid "%s: warning core file truncated"
+msgstr ""
+
+#: som.c:5471
+#, c-format
+msgid ""
+"\n"
+"Exec Auxiliary Header\n"
+msgstr ""
+"\n"
+"実行補助ヘッダ\n"
+
+#: som.c:5776
+msgid "som_sizeof_headers unimplemented"
+msgstr "som_sizeof_headers は未実装です"
+
+#: srec.c:261
+msgid "%B:%d: Unexpected character `%s' in S-record file\n"
+msgstr "%B:%d: S-record ファイル内に予期しない文字 `%s' があります\n"
+
+#: srec.c:567 srec.c:600
+msgid "%B:%d: Bad checksum in S-record file\n"
+msgstr "%B:%d: S-record ファイル内のチェックサムが誤っています\n"
+
+#: stabs.c:279
+msgid "%B(%A+0x%lx): Stabs entry has invalid string index."
+msgstr ""
+
+#: syms.c:1079
+msgid "Unsupported .stab relocation"
+msgstr ".stab 再配置はサポートされていません"
+
+#: vms-alpha.c:1299
+#, c-format
+msgid "Unknown EGSD subtype %d"
+msgstr "不明な EGSD サブタイプ %d です"
+
+#: vms-alpha.c:1330
+#, c-format
+msgid "Stack overflow (%d) in _bfd_vms_push"
+msgstr "_bfd_vms_push でスタックオーバーフロー(%d)しました"
+
+#: vms-alpha.c:1343
+msgid "Stack underflow in _bfd_vms_pop"
+msgstr "_bfd_vms_pop でスタックアンダーフローしました"
+
+#. These names have not yet been added to this switch statement.
+#: vms-alpha.c:1580
+#, c-format
+msgid "unknown ETIR command %d"
+msgstr "不明な ETIR コマンド %d です"
+
+#: vms-alpha.c:1767
+#, c-format
+msgid "bad section index in %s"
+msgstr ""
+
+#: vms-alpha.c:1780
+#, c-format
+msgid "unsupported STA cmd %s"
+msgstr "サポートされていない STA cmd %s です"
+
+#. Insert field.
+#. Unsigned shift.
+#. Rotate.
+#. Redefine symbol to current location.
+#. Define a literal.
+#: vms-alpha.c:1956 vms-alpha.c:1987 vms-alpha.c:2234
+#, c-format
+msgid "%s: not supported"
+msgstr "%s: サポートされていません"
+
+#: vms-alpha.c:1962
+#, c-format
+msgid "%s: not implemented"
+msgstr "%s: 実装されていません"
+
+#: vms-alpha.c:2218
+#, c-format
+msgid "invalid use of %s with contexts"
+msgstr ""
+
+#: vms-alpha.c:2252
+#, c-format
+msgid "reserved cmd %d"
+msgstr "予約された cmd %d です"
+
+#: vms-alpha.c:2337
+msgid "Object module NOT error-free !\n"
+msgstr "オブジェクトモジュールがエラー無しではありません!\n"
+
+#: vms-alpha.c:2766
+#, c-format
+msgid "Symbol %s replaced by %s\n"
+msgstr "シンボル %s は %s で置き換えられました\n"
+
+#: vms-alpha.c:3769
+#, c-format
+msgid "SEC_RELOC with no relocs in section %s"
+msgstr "セクション %s 内に再配置が無い SEC_RELOC があります"
+
+#: vms-alpha.c:3822 vms-alpha.c:4053
+#, c-format
+msgid "Size error in section %s"
+msgstr "セクション %s 内でサイズエラーです"
+
+#: vms-alpha.c:3992
+msgid "Spurious ALPHA_R_BSR reloc"
+msgstr "疑わしい ALPHA_R_BSR 再配置です"
+
+#: vms-alpha.c:4040
+#, c-format
+msgid "Unhandled relocation %s"
+msgstr "取り扱われない再配置 %s です"
+
+#: vms-alpha.c:4330
+#, c-format
+msgid "unknown source command %d"
+msgstr "不明なソースコマンド %d です"
+
+#: vms-alpha.c:4391
+msgid "DST__K_SET_LINUM_INCR not implemented"
+msgstr "DST__K_SET_LINUM_INCR は実装されていません"
+
+#: vms-alpha.c:4397
+msgid "DST__K_SET_LINUM_INCR_W not implemented"
+msgstr "DST__K_SET_LINUM_INCR_W は実装されていません"
+
+#: vms-alpha.c:4403
+msgid "DST__K_RESET_LINUM_INCR not implemented"
+msgstr "DST__K_RESET_LINUM_INCR は実装されていません"
+
+#: vms-alpha.c:4409
+msgid "DST__K_BEG_STMT_MODE not implemented"
+msgstr "DST__K_BEG_STMT_MODE は実装されていません"
+
+#: vms-alpha.c:4415
+msgid "DST__K_END_STMT_MODE not implemented"
+msgstr "DST__K_END_STMT_MODE は実装されていません"
+
+#: vms-alpha.c:4442
+msgid "DST__K_SET_PC not implemented"
+msgstr "DST__K_SET_PC は実装されていません"
+
+#: vms-alpha.c:4448
+msgid "DST__K_SET_PC_W not implemented"
+msgstr "DST__K_SET_PC_W は実装されていません"
+
+#: vms-alpha.c:4454
+msgid "DST__K_SET_PC_L not implemented"
+msgstr "DST__K_SET_PC_L は実装されていません"
+
+#: vms-alpha.c:4460
+msgid "DST__K_SET_STMTNUM not implemented"
+msgstr "DST__K_SET_STMTNUM は実装されていません"
+
+#: vms-alpha.c:4503
+#, c-format
+msgid "unknown line command %d"
+msgstr "不明な行コマンド %d です"
+
+#: vms-alpha.c:4957 vms-alpha.c:4974 vms-alpha.c:4988 vms-alpha.c:5003
+#: vms-alpha.c:5015 vms-alpha.c:5026 vms-alpha.c:5038
+#, c-format
+msgid "Unknown reloc %s + %s"
+msgstr "不明な再配置 %s + %s です"
+
+#: vms-alpha.c:5093
+#, c-format
+msgid "Unknown reloc %s"
+msgstr "不明な再配置 %s です"
+
+#: vms-alpha.c:5106
+msgid "Invalid section index in ETIR"
+msgstr "ETIR 内に無効なセクション索引があります。"
+
+#: vms-alpha.c:5153
+#, c-format
+msgid "Unknown symbol in command %s"
+msgstr "コマンド %s 内の不明なシンボルです"
+
+#: vms-alpha.c:5668
+#, c-format
+msgid "  EMH %u (len=%u): "
+msgstr "  EMH %u (長さ=%u): "
+
+#: vms-alpha.c:5677
+#, c-format
+msgid "Module header\n"
+msgstr "モジュールヘッダ\n"
+
+#: vms-alpha.c:5678
+#, c-format
+msgid "   structure level: %u\n"
+msgstr "   構造体レベル   : %u\n"
+
+#: vms-alpha.c:5679
+#, c-format
+msgid "   max record size: %u\n"
+msgstr "   最大レコードサイズ: %u\n"
+
+#: vms-alpha.c:5682
+#, c-format
+msgid "   module name    : %.*s\n"
+msgstr "   モジュール名   : %.*s\n"
+
+#: vms-alpha.c:5684
+#, c-format
+msgid "   module version : %.*s\n"
+msgstr "   モジュールバージョン: %.*s\n"
+
+#: vms-alpha.c:5686
+#, c-format
+msgid "   compile date   : %.17s\n"
+msgstr "   コンパイル日   : %.17s\n"
+
+#: vms-alpha.c:5691
+#, c-format
+msgid "Language Processor Name\n"
+msgstr "言語処理系名\n"
+
+#: vms-alpha.c:5692
+#, c-format
+msgid "   language name: %.*s\n"
+msgstr "   言語名       : %.*s\n"
+
+#: vms-alpha.c:5699
+#, c-format
+msgid "Source Files Header\n"
+msgstr "ソースファイルヘッダ\n"
+
+#: vms-alpha.c:5700
+#, c-format
+msgid "   file: %.*s\n"
+msgstr "   ファイル: %.*s\n"
+
+#: vms-alpha.c:5707
+#, c-format
+msgid "Title Text Header\n"
+msgstr "タイトルテキストヘッダ\n"
+
+#: vms-alpha.c:5708
+#, c-format
+msgid "   title: %.*s\n"
+msgstr "   タイトル: %.*s\n"
+
+#: vms-alpha.c:5715
+#, c-format
+msgid "Copyright Header\n"
+msgstr "著作権ヘッダ\n"
+
+#: vms-alpha.c:5716
+#, c-format
+msgid "   copyright: %.*s\n"
+msgstr "   著作権   : %.*s\n"
+
+#: vms-alpha.c:5722
+#, c-format
+msgid "unhandled emh subtype %u\n"
+msgstr "取り扱えない emh サブタイプ %u です\n"
+
+#: vms-alpha.c:5732
+#, c-format
+msgid "  EEOM (len=%u):\n"
+msgstr "  EEOM (長さ=%u):\n"
+
+#: vms-alpha.c:5733
+#, c-format
+msgid "   number of cond linkage pairs: %u\n"
+msgstr ""
+
+#: vms-alpha.c:5735
+#, c-format
+msgid "   completion code: %u\n"
+msgstr ""
+
+#: vms-alpha.c:5739
+#, c-format
+msgid "   transfer addr flags: 0x%02x\n"
+msgstr ""
+
+#: vms-alpha.c:5740
+#, c-format
+msgid "   transfer addr psect: %u\n"
+msgstr ""
+
+#: vms-alpha.c:5742
+#, c-format
+msgid "   transfer address   : 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:5751
+msgid " WEAK"
+msgstr " WEAK"
+
+#: vms-alpha.c:5753
+msgid " DEF"
+msgstr " DEF"
+
+#: vms-alpha.c:5755
+msgid " UNI"
+msgstr " UNI"
+
+#: vms-alpha.c:5757 vms-alpha.c:5778
+msgid " REL"
+msgstr " REL"
+
+#: vms-alpha.c:5759
+msgid " COMM"
+msgstr " COMM"
+
+#: vms-alpha.c:5761
+msgid " VECEP"
+msgstr " VECEP"
+
+#: vms-alpha.c:5763
+msgid " NORM"
+msgstr " NORM"
+
+#: vms-alpha.c:5765
+msgid " QVAL"
+msgstr " QVAL"
+
+#: vms-alpha.c:5772
+msgid " PIC"
+msgstr " PIC"
+
+#: vms-alpha.c:5774
+msgid " LIB"
+msgstr " LIB"
+
+#: vms-alpha.c:5776
+msgid " OVR"
+msgstr " OVR"
+
+#: vms-alpha.c:5780
+msgid " GBL"
+msgstr " GBL"
+
+#: vms-alpha.c:5782
+msgid " SHR"
+msgstr " SHR"
+
+#: vms-alpha.c:5784
+msgid " EXE"
+msgstr " EXE"
+
+#: vms-alpha.c:5786
+msgid " RD"
+msgstr " RD"
+
+#: vms-alpha.c:5788
+msgid " WRT"
+msgstr " WRT"
+
+#: vms-alpha.c:5790
+msgid " VEC"
+msgstr " VEC"
+
+#: vms-alpha.c:5792
+msgid " NOMOD"
+msgstr " NOMOD"
+
+#: vms-alpha.c:5794
+msgid " COM"
+msgstr " COM"
+
+#: vms-alpha.c:5796
+msgid " 64B"
+msgstr " 64B"
+
+#: vms-alpha.c:5805
+#, c-format
+msgid "  EGSD (len=%u):\n"
+msgstr "  EGSD (長さ=%u):\n"
+
+#: vms-alpha.c:5817
+#, c-format
+msgid "  EGSD entry %2u (type: %u, len: %u): "
+msgstr "  EGSD エントリ %2u (型: %u, 長さ: %u): "
+
+#: vms-alpha.c:5829
+#, c-format
+msgid "PSC - Program section definition\n"
+msgstr "PSC - プログラムセクション定義\n"
+
+#: vms-alpha.c:5830 vms-alpha.c:5847
+#, c-format
+msgid "   alignment  : 2**%u\n"
+msgstr "   整列       : 2**%u\n"
+
+#: vms-alpha.c:5831 vms-alpha.c:5848
+#, c-format
+msgid "   flags      : 0x%04x"
+msgstr "   フラグ     : 0x%04x"
+
+#: vms-alpha.c:5835
+#, c-format
+msgid "   alloc (len): %u (0x%08x)\n"
+msgstr ""
+
+#: vms-alpha.c:5836 vms-alpha.c:5893 vms-alpha.c:5942
+#, c-format
+msgid "   name       : %.*s\n"
+msgstr "   名前       : %.*s\n"
+
+#: vms-alpha.c:5846
+#, c-format
+msgid "SPSC - Shared Image Program section def\n"
+msgstr "SPSC - 共有イメージプログラムセクション定義\n"
+
+#: vms-alpha.c:5852
+#, c-format
+msgid "   alloc (len)   : %u (0x%08x)\n"
+msgstr ""
+
+#: vms-alpha.c:5853
+#, c-format
+msgid "   image offset  : 0x%08x\n"
+msgstr "   イメージオフセット : 0x%08x\n"
+
+#: vms-alpha.c:5855
+#, c-format
+msgid "   symvec offset : 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:5857
+#, c-format
+msgid "   name          : %.*s\n"
+msgstr "   名前          : %.*s\n"
+
+#: vms-alpha.c:5870
+#, c-format
+msgid "SYM - Global symbol definition\n"
+msgstr "SYM - 大域シンボル定義\n"
+
+#: vms-alpha.c:5871 vms-alpha.c:5931 vms-alpha.c:5952 vms-alpha.c:5971
+#, c-format
+msgid "   flags: 0x%04x"
+msgstr "   フラグ: 0x%04x"
+
+#: vms-alpha.c:5874
+#, c-format
+msgid "   psect offset: 0x%08x\n"
+msgstr "   psect オフセット: 0x%08x\n"
+
+#: vms-alpha.c:5878
+#, c-format
+msgid "   code address: 0x%08x\n"
+msgstr "   コードアドレス: 0x%08x\n"
+
+#: vms-alpha.c:5880
+#, c-format
+msgid "   psect index for entry point : %u\n"
+msgstr ""
+
+#: vms-alpha.c:5883 vms-alpha.c:5959 vms-alpha.c:5978
+#, c-format
+msgid "   psect index : %u\n"
+msgstr "   psect 索引 : %u\n"
+
+#: vms-alpha.c:5885 vms-alpha.c:5961 vms-alpha.c:5980
+#, c-format
+msgid "   name        : %.*s\n"
+msgstr "   名前        : %.*s\n"
+
+#: vms-alpha.c:5892
+#, c-format
+msgid "SYM - Global symbol reference\n"
+msgstr "SYM - 大域シンボル参照\n"
+
+#: vms-alpha.c:5904
+#, c-format
+msgid "IDC - Ident Consistency check\n"
+msgstr ""
+
+#: vms-alpha.c:5905
+#, c-format
+msgid "   flags         : 0x%08x"
+msgstr "   フラグ        : 0x%08x"
+
+#: vms-alpha.c:5909
+#, c-format
+msgid "   id match      : %x\n"
+msgstr ""
+
+#: vms-alpha.c:5911
+#, c-format
+msgid "   error severity: %x\n"
+msgstr ""
+
+#: vms-alpha.c:5914
+#, c-format
+msgid "   entity name   : %.*s\n"
+msgstr "   エントリ名    : %.*s\n"
+
+#: vms-alpha.c:5916
+#, c-format
+msgid "   object name   : %.*s\n"
+msgstr "   オブジェクト名: %.*s\n"
+
+#: vms-alpha.c:5919
+#, c-format
+msgid "   binary ident  : 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:5922
+#, c-format
+msgid "   ascii ident   : %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:5930
+#, c-format
+msgid "SYMG - Universal symbol definition\n"
+msgstr "SYMG - ユニバーサルシンボル定義\n"
+
+#: vms-alpha.c:5934
+#, c-format
+msgid "   symbol vector offset: 0x%08x\n"
+msgstr "   シンボルベクトルオフセット: 0x%08x\n"
+
+#: vms-alpha.c:5936
+#, c-format
+msgid "   entry point: 0x%08x\n"
+msgstr "   エントリポイント: 0x%08x\n"
+
+#: vms-alpha.c:5938
+#, c-format
+msgid "   proc descr : 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:5940
+#, c-format
+msgid "   psect index: %u\n"
+msgstr ""
+
+#: vms-alpha.c:5951
+#, c-format
+msgid "SYMV - Vectored symbol definition\n"
+msgstr "SYMV - ベクトル化されたシンボル定義\n"
+
+#: vms-alpha.c:5955
+#, c-format
+msgid "   vector      : 0x%08x\n"
+msgstr "   ベクトル    : 0x%08x\n"
+
+#: vms-alpha.c:5957 vms-alpha.c:5976
+#, c-format
+msgid "   psect offset: %u\n"
+msgstr ""
+
+#: vms-alpha.c:5970
+#, c-format
+msgid "SYMM - Global symbol definition with version\n"
+msgstr "SYMM - バージョン付き大域シンボル定義\n"
+
+#: vms-alpha.c:5974
+#, c-format
+msgid "   version mask: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:5985
+#, c-format
+msgid "unhandled egsd entry type %u\n"
+msgstr ""
+
+#: vms-alpha.c:6019
+#, c-format
+msgid "    linkage index: %u, replacement insn: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6022
+#, c-format
+msgid "    psect idx 1: %u, offset 1: 0x%08x %08x\n"
+msgstr ""
+
+#: vms-alpha.c:6026
+#, c-format
+msgid "    psect idx 2: %u, offset 2: 0x%08x %08x\n"
+msgstr ""
+
+#: vms-alpha.c:6031
+#, c-format
+msgid "    psect idx 3: %u, offset 3: 0x%08x %08x\n"
+msgstr ""
+
+#: vms-alpha.c:6036
+#, c-format
+msgid "    global name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6046
+#, c-format
+msgid "  %s (len=%u+%u):\n"
+msgstr ""
+
+#: vms-alpha.c:6061
+#, c-format
+msgid "   (type: %3u, size: 4+%3u): "
+msgstr ""
+
+#: vms-alpha.c:6065
+#, c-format
+msgid "STA_GBL (stack global) %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6069
+#, c-format
+msgid "STA_LW (stack longword) 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6073
+#, c-format
+msgid "STA_QW (stack quadword) 0x%08x %08x\n"
+msgstr ""
+
+#: vms-alpha.c:6078
+#, c-format
+msgid "STA_PQ (stack psect base + offset)\n"
+msgstr ""
+
+#: vms-alpha.c:6079
+#, c-format
+msgid "    psect: %u, offset: 0x%08x %08x\n"
+msgstr ""
+
+#: vms-alpha.c:6085
+#, c-format
+msgid "STA_LI (stack literal)\n"
+msgstr ""
+
+#: vms-alpha.c:6088
+#, c-format
+msgid "STA_MOD (stack module)\n"
+msgstr ""
+
+#: vms-alpha.c:6091
+#, c-format
+msgid "STA_CKARG (compare procedure argument)\n"
+msgstr ""
+
+#: vms-alpha.c:6095
+#, c-format
+msgid "STO_B (store byte)\n"
+msgstr ""
+
+#: vms-alpha.c:6098
+#, c-format
+msgid "STO_W (store word)\n"
+msgstr ""
+
+#: vms-alpha.c:6101
+#, c-format
+msgid "STO_LW (store longword)\n"
+msgstr ""
+
+#: vms-alpha.c:6104
+#, c-format
+msgid "STO_QW (store quadword)\n"
+msgstr ""
+
+#: vms-alpha.c:6110
+#, c-format
+msgid "STO_IMMR (store immediate repeat) %u bytes\n"
+msgstr ""
+
+#: vms-alpha.c:6117
+#, c-format
+msgid "STO_GBL (store global) %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6121
+#, c-format
+msgid "STO_CA (store code address) %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6125
+#, c-format
+msgid "STO_RB (store relative branch)\n"
+msgstr ""
+
+#: vms-alpha.c:6128
+#, c-format
+msgid "STO_AB (store absolute branch)\n"
+msgstr ""
+
+#: vms-alpha.c:6131
+#, c-format
+msgid "STO_OFF (store offset to psect)\n"
+msgstr ""
+
+#: vms-alpha.c:6137
+#, c-format
+msgid "STO_IMM (store immediate) %u bytes\n"
+msgstr ""
+
+#: vms-alpha.c:6144
+#, c-format
+msgid "STO_GBL_LW (store global longword) %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6148
+#, c-format
+msgid "STO_OFF (store LP with procedure signature)\n"
+msgstr ""
+
+#: vms-alpha.c:6151
+#, c-format
+msgid "STO_BR_GBL (store branch global) *todo*\n"
+msgstr ""
+
+#: vms-alpha.c:6154
+#, c-format
+msgid "STO_BR_PS (store branch psect + offset) *todo*\n"
+msgstr ""
+
+#: vms-alpha.c:6158
+#, c-format
+msgid "OPR_NOP (no-operation)\n"
+msgstr ""
+
+#: vms-alpha.c:6161
+#, c-format
+msgid "OPR_ADD (add)\n"
+msgstr ""
+
+#: vms-alpha.c:6164
+#, c-format
+msgid "OPR_SUB (substract)\n"
+msgstr ""
+
+#: vms-alpha.c:6167
+#, c-format
+msgid "OPR_MUL (multiply)\n"
+msgstr ""
+
+#: vms-alpha.c:6170
+#, c-format
+msgid "OPR_DIV (divide)\n"
+msgstr ""
+
+#: vms-alpha.c:6173
+#, c-format
+msgid "OPR_AND (logical and)\n"
+msgstr ""
+
+#: vms-alpha.c:6176
+#, c-format
+msgid "OPR_IOR (logical inclusive or)\n"
+msgstr ""
+
+#: vms-alpha.c:6179
+#, c-format
+msgid "OPR_EOR (logical exclusive or)\n"
+msgstr ""
+
+#: vms-alpha.c:6182
+#, c-format
+msgid "OPR_NEG (negate)\n"
+msgstr ""
+
+#: vms-alpha.c:6185
+#, c-format
+msgid "OPR_COM (complement)\n"
+msgstr ""
+
+#: vms-alpha.c:6188
+#, c-format
+msgid "OPR_INSV (insert field)\n"
+msgstr ""
+
+#: vms-alpha.c:6191
+#, c-format
+msgid "OPR_ASH (arithmetic shift)\n"
+msgstr ""
+
+#: vms-alpha.c:6194
+#, c-format
+msgid "OPR_USH (unsigned shift)\n"
+msgstr ""
+
+#: vms-alpha.c:6197
+#, c-format
+msgid "OPR_ROT (rotate)\n"
+msgstr ""
+
+#: vms-alpha.c:6200
+#, c-format
+msgid "OPR_SEL (select)\n"
+msgstr ""
+
+#: vms-alpha.c:6203
+#, c-format
+msgid "OPR_REDEF (redefine symbol to curr location)\n"
+msgstr ""
+
+#: vms-alpha.c:6206
+#, c-format
+msgid "OPR_REDEF (define a literal)\n"
+msgstr ""
+
+#: vms-alpha.c:6210
+#, c-format
+msgid "STC_LP (store cond linkage pair)\n"
+msgstr ""
+
+#: vms-alpha.c:6214
+#, c-format
+msgid "STC_LP_PSB (store cond linkage pair + signature)\n"
+msgstr ""
+
+#: vms-alpha.c:6215
+#, c-format
+msgid "   linkage index: %u, procedure: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6218
+#, c-format
+msgid "   signature: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6221
+#, c-format
+msgid "STC_GBL (store cond global)\n"
+msgstr ""
+
+#: vms-alpha.c:6222
+#, c-format
+msgid "   linkage index: %u, global: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6226
+#, c-format
+msgid "STC_GCA (store cond code address)\n"
+msgstr ""
+
+#: vms-alpha.c:6227
+#, c-format
+msgid "   linkage index: %u, procedure name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6231
+#, c-format
+msgid "STC_PS (store cond psect + offset)\n"
+msgstr ""
+
+#: vms-alpha.c:6233
+#, c-format
+msgid "   linkage index: %u, psect: %u, offset: 0x%08x %08x\n"
+msgstr ""
+
+#: vms-alpha.c:6240
+#, c-format
+msgid "STC_NOP_GBL (store cond NOP at global addr)\n"
+msgstr ""
+
+#: vms-alpha.c:6244
+#, c-format
+msgid "STC_NOP_PS (store cond NOP at psect + offset)\n"
+msgstr ""
+
+#: vms-alpha.c:6248
+#, c-format
+msgid "STC_BSR_GBL (store cond BSR at global addr)\n"
+msgstr ""
+
+#: vms-alpha.c:6252
+#, c-format
+msgid "STC_BSR_PS (store cond BSR at psect + offset)\n"
+msgstr ""
+
+#: vms-alpha.c:6256
+#, c-format
+msgid "STC_LDA_GBL (store cond LDA at global addr)\n"
+msgstr ""
+
+#: vms-alpha.c:6260
+#, c-format
+msgid "STC_LDA_PS (store cond LDA at psect + offset)\n"
+msgstr ""
+
+#: vms-alpha.c:6264
+#, c-format
+msgid "STC_BOH_GBL (store cond BOH at global addr)\n"
+msgstr ""
+
+#: vms-alpha.c:6268
+#, c-format
+msgid "STC_BOH_PS (store cond BOH at psect + offset)\n"
+msgstr ""
+
+#: vms-alpha.c:6273
+#, c-format
+msgid "STC_NBH_GBL (store cond or hint at global addr)\n"
+msgstr ""
+
+#: vms-alpha.c:6277
+#, c-format
+msgid "STC_NBH_PS (store cond or hint at psect + offset)\n"
+msgstr ""
+
+#: vms-alpha.c:6281
+#, c-format
+msgid "CTL_SETRB (set relocation base)\n"
+msgstr ""
+
+#: vms-alpha.c:6287
+#, c-format
+msgid "CTL_AUGRB (augment relocation base) %u\n"
+msgstr ""
+
+#: vms-alpha.c:6291
+#, c-format
+msgid "CTL_DFLOC (define location)\n"
+msgstr "CTL_DFLOC (定義位置)\n"
+
+#: vms-alpha.c:6294
+#, c-format
+msgid "CTL_STLOC (set location)\n"
+msgstr ""
+
+#: vms-alpha.c:6297
+#, c-format
+msgid "CTL_STKDL (stack defined location)\n"
+msgstr "CTL_STKDL (スタック定義位置)\n"
+
+#: vms-alpha.c:6300 vms-alpha.c:6714
+#, c-format
+msgid "*unhandled*\n"
+msgstr ""
+
+#: vms-alpha.c:6330 vms-alpha.c:6369
+#, c-format
+msgid "cannot read GST record length\n"
+msgstr "GST レコード長を読み込めません\n"
+
+#. Ill-formed.
+#: vms-alpha.c:6351
+#, c-format
+msgid "cannot find EMH in first GST record\n"
+msgstr ""
+
+#: vms-alpha.c:6377
+#, c-format
+msgid "cannot read GST record header\n"
+msgstr "GST レコードヘッダを読み込めません\n"
+
+#: vms-alpha.c:6390
+#, c-format
+msgid " corrupted GST\n"
+msgstr " 破損している GST です\n"
+
+#: vms-alpha.c:6398
+#, c-format
+msgid "cannot read GST record\n"
+msgstr "GST レコードを読み込めません\n"
+
+#: vms-alpha.c:6427
+#, c-format
+msgid " unhandled EOBJ record type %u\n"
+msgstr "扱えない EOBJ レコード型 %u です\n"
+
+#: vms-alpha.c:6450
+#, c-format
+msgid "  bitcount: %u, base addr: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6463
+#, c-format
+msgid "   bitmap: 0x%08x (count: %u):\n"
+msgstr ""
+
+#: vms-alpha.c:6470
+#, c-format
+msgid " %08x"
+msgstr " %08x"
+
+#: vms-alpha.c:6495
+#, c-format
+msgid "  image %u (%u entries)\n"
+msgstr ""
+
+#: vms-alpha.c:6500
+#, c-format
+msgid "   offset: 0x%08x, val: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6521
+#, c-format
+msgid "  image %u (%u entries), offsets:\n"
+msgstr ""
+
+#: vms-alpha.c:6528
+#, c-format
+msgid " 0x%08x"
+msgstr ""
+
+#. 64 bits.
+#: vms-alpha.c:6650
+#, c-format
+msgid "64 bits *unhandled*\n"
+msgstr ""
+
+#: vms-alpha.c:6654
+#, c-format
+msgid "class: %u, dtype: %u, length: %u, pointer: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6665
+#, c-format
+msgid "non-contiguous array of %s\n"
+msgstr ""
+
+#: vms-alpha.c:6669
+#, c-format
+msgid "dimct: %u, aflags: 0x%02x, digits: %u, scale: %u\n"
+msgstr ""
+
+#: vms-alpha.c:6673
+#, c-format
+msgid "arsize: %u, a0: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6677
+#, c-format
+msgid "Strides:\n"
+msgstr ""
+
+#: vms-alpha.c:6682
+#, c-format
+msgid "[%u]: %u\n"
+msgstr ""
+
+#: vms-alpha.c:6687
+#, c-format
+msgid "Bounds:\n"
+msgstr ""
+
+#: vms-alpha.c:6692
+#, c-format
+msgid "[%u]: Lower: %u, upper: %u\n"
+msgstr ""
+
+#: vms-alpha.c:6704
+#, c-format
+msgid "unaligned bit-string of %s\n"
+msgstr ""
+
+#: vms-alpha.c:6708
+#, c-format
+msgid "base: %u, pos: %u\n"
+msgstr ""
+
+#: vms-alpha.c:6728
+#, c-format
+msgid "vflags: 0x%02x, value: 0x%08x "
+msgstr ""
+
+#: vms-alpha.c:6734
+#, c-format
+msgid "(no value)\n"
+msgstr "(値無し)\n"
+
+#: vms-alpha.c:6737
+#, c-format
+msgid "(not active)\n"
+msgstr ""
+
+#: vms-alpha.c:6740
+#, c-format
+msgid "(not allocated)\n"
+msgstr "(未割り当て)\n"
+
+#: vms-alpha.c:6743
+#, c-format
+msgid "(descriptor)\n"
+msgstr "(記述子)\n"
+
+#: vms-alpha.c:6747
+#, c-format
+msgid "(trailing value)\n"
+msgstr "(後続の値)\n"
+
+#: vms-alpha.c:6750
+#, c-format
+msgid "(value spec follows)\n"
+msgstr ""
+
+#: vms-alpha.c:6753
+#, c-format
+msgid "(at bit offset %u)\n"
+msgstr ""
+
+#: vms-alpha.c:6756
+#, c-format
+msgid "(reg: %u, disp: %u, indir: %u, kind: "
+msgstr ""
+
+#: vms-alpha.c:6763
+msgid "literal"
+msgstr ""
+
+#: vms-alpha.c:6766
+msgid "address"
+msgstr "アドレス"
+
+#: vms-alpha.c:6769
+msgid "desc"
+msgstr ""
+
+#: vms-alpha.c:6772
+msgid "reg"
+msgstr ""
+
+#: vms-alpha.c:6847
+#, c-format
+msgid "Debug symbol table:\n"
+msgstr "デバッグシンボル表:\n"
+
+#: vms-alpha.c:6858
+#, c-format
+msgid "cannot read DST header\n"
+msgstr ""
+
+#: vms-alpha.c:6863
+#, c-format
+msgid " type: %3u, len: %3u (at 0x%08x): "
+msgstr ""
+
+#: vms-alpha.c:6877
+#, c-format
+msgid "cannot read DST symbol\n"
+msgstr ""
+
+#: vms-alpha.c:6920
+#, c-format
+msgid "standard data: %s\n"
+msgstr ""
+
+#: vms-alpha.c:6923 vms-alpha.c:7007
+#, c-format
+msgid "    name: %.*s\n"
+msgstr "    名前: %.*s\n"
+
+#: vms-alpha.c:6930
+#, c-format
+msgid "modbeg\n"
+msgstr ""
+
+#: vms-alpha.c:6931
+#, c-format
+msgid "   flags: %d, language: %u, major: %u, minor: %u\n"
+msgstr ""
+
+#: vms-alpha.c:6937 vms-alpha.c:7203
+#, c-format
+msgid "   module name: %.*s\n"
+msgstr "   モジュール名: %.*s\n"
+
+#: vms-alpha.c:6940
+#, c-format
+msgid "   compiler   : %.*s\n"
+msgstr "   コンパイラ : %.*s\n"
+
+#: vms-alpha.c:6945
+#, c-format
+msgid "modend\n"
+msgstr ""
+
+#: vms-alpha.c:6952
+msgid "rtnbeg\n"
+msgstr ""
+
+#: vms-alpha.c:6953
+#, c-format
+msgid "    flags: %u, address: 0x%08x, pd-address: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6958
+#, c-format
+msgid "    routine name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:6966
+#, c-format
+msgid "rtnend: size 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6974
+#, c-format
+msgid "prolog: bkpt address 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:6982
+#, c-format
+msgid "epilog: flags: %u, count: %u\n"
+msgstr ""
+
+#: vms-alpha.c:6991
+#, c-format
+msgid "blkbeg: address: 0x%08x, name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7000
+#, c-format
+msgid "blkend: size: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:7006
+#, c-format
+msgid "typspec (len: %u)\n"
+msgstr ""
+
+#: vms-alpha.c:7013
+#, c-format
+msgid "septyp, name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7022
+#, c-format
+msgid "recbeg: name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7029
+#, c-format
+msgid "recend\n"
+msgstr ""
+
+#: vms-alpha.c:7032
+#, c-format
+msgid "enumbeg, len: %u, name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7036
+#, c-format
+msgid "enumelt, name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7040
+#, c-format
+msgid "enumend\n"
+msgstr ""
+
+#: vms-alpha.c:7057
+#, c-format
+msgid "discontiguous range (nbr: %u)\n"
+msgstr ""
+
+#: vms-alpha.c:7059
+#, c-format
+msgid "    address: 0x%08x, size: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7069
+#, c-format
+msgid "line num  (len: %u)\n"
+msgstr ""
+
+#: vms-alpha.c:7086
+#, c-format
+msgid "delta_pc_w %u\n"
+msgstr ""
+
+#: vms-alpha.c:7093
+#, c-format
+msgid "incr_linum(b): +%u\n"
+msgstr ""
+
+#: vms-alpha.c:7099
+#, c-format
+msgid "incr_linum_w: +%u\n"
+msgstr ""
+
+#: vms-alpha.c:7105
+#, c-format
+msgid "incr_linum_l: +%u\n"
+msgstr ""
+
+#: vms-alpha.c:7111
+#, c-format
+msgid "set_line_num(w) %u\n"
+msgstr ""
+
+#: vms-alpha.c:7116
+#, c-format
+msgid "set_line_num_b %u\n"
+msgstr ""
+
+#: vms-alpha.c:7121
+#, c-format
+msgid "set_line_num_l %u\n"
+msgstr ""
+
+#: vms-alpha.c:7126
+#, c-format
+msgid "set_abs_pc: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:7130
+#, c-format
+msgid "delta_pc_l: +0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:7135
+#, c-format
+msgid "term(b): 0x%02x"
+msgstr ""
+
+#: vms-alpha.c:7137
+#, c-format
+msgid "        pc: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:7142
+#, c-format
+msgid "term_w: 0x%04x"
+msgstr ""
+
+#: vms-alpha.c:7144
+#, c-format
+msgid "    pc: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:7150
+#, c-format
+msgid "delta pc +%-4d"
+msgstr ""
+
+#: vms-alpha.c:7153
+#, c-format
+msgid "    pc: 0x%08x line: %5u\n"
+msgstr "    pc: 0x%08x 行: %5u\n"
+
+#: vms-alpha.c:7158
+#, c-format
+msgid "    *unhandled* cmd %u\n"
+msgstr ""
+
+#: vms-alpha.c:7173
+#, c-format
+msgid "source (len: %u)\n"
+msgstr ""
+
+#: vms-alpha.c:7187
+#, c-format
+msgid "   declfile: len: %u, flags: %u, fileid: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7191
+#, c-format
+msgid "   rms: cdt: 0x%08x %08x, ebk: 0x%08x, ffb: 0x%04x, rfo: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7200
+#, c-format
+msgid "   filename   : %.*s\n"
+msgstr "   ファイル名 : %.*s\n"
+
+#: vms-alpha.c:7209
+#, c-format
+msgid "   setfile %u\n"
+msgstr ""
+
+#: vms-alpha.c:7214 vms-alpha.c:7219
+#, c-format
+msgid "   setrec %u\n"
+msgstr ""
+
+#: vms-alpha.c:7224 vms-alpha.c:7229
+#, c-format
+msgid "   setlnum %u\n"
+msgstr ""
+
+#: vms-alpha.c:7234 vms-alpha.c:7239
+#, c-format
+msgid "   deflines %u\n"
+msgstr ""
+
+#: vms-alpha.c:7243
+#, c-format
+msgid "   formfeed\n"
+msgstr ""
+
+#: vms-alpha.c:7247
+#, c-format
+msgid "   *unhandled* cmd %u\n"
+msgstr ""
+
+#: vms-alpha.c:7259
+#, c-format
+msgid "*unhandled* dst type %u\n"
+msgstr ""
+
+#: vms-alpha.c:7291
+#, c-format
+msgid "cannot read EIHD\n"
+msgstr ""
+
+#: vms-alpha.c:7294
+#, c-format
+msgid "EIHD: (size: %u, nbr blocks: %u)\n"
+msgstr ""
+
+#: vms-alpha.c:7297
+#, c-format
+msgid " majorid: %u, minorid: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7305
+msgid "executable"
+msgstr ""
+
+#: vms-alpha.c:7308
+msgid "linkable image"
+msgstr ""
+
+#: vms-alpha.c:7314
+#, c-format
+msgid " image type: %u (%s)"
+msgstr ""
+
+#: vms-alpha.c:7320
+msgid "native"
+msgstr ""
+
+#: vms-alpha.c:7323
+msgid "CLI"
+msgstr ""
+
+#: vms-alpha.c:7329
+#, c-format
+msgid ", subtype: %u (%s)\n"
+msgstr ""
+
+#: vms-alpha.c:7335
+#, c-format
+msgid " offsets: isd: %u, activ: %u, symdbg: %u, imgid: %u, patch: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7339
+#, c-format
+msgid " fixup info rva: "
+msgstr ""
+
+#: vms-alpha.c:7341
+#, c-format
+msgid ", symbol vector rva: "
+msgstr ""
+
+#: vms-alpha.c:7344
+#, c-format
+msgid ""
+"\n"
+" version array off: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7348
+#, c-format
+msgid " img I/O count: %u, nbr channels: %u, req pri: %08x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:7354
+#, c-format
+msgid " linker flags: %08x:"
+msgstr " リンカフラグ: %08x:"
+
+#: vms-alpha.c:7384
+#, c-format
+msgid " ident: 0x%08x, sysver: 0x%08x, match ctrl: %u, symvect_size: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7390
+#, c-format
+msgid " BPAGE: %u"
+msgstr ""
+
+#: vms-alpha.c:7396
+#, c-format
+msgid ", ext fixup offset: %u, no_opt psect off: %u"
+msgstr ""
+
+#: vms-alpha.c:7399
+#, c-format
+msgid ", alias: %u\n"
+msgstr ""
+
+#: vms-alpha.c:7407
+#, c-format
+msgid "system version array information:\n"
+msgstr "システムバージョン配列情報:\n"
+
+#: vms-alpha.c:7411
+#, c-format
+msgid "cannot read EIHVN header\n"
+msgstr "EIHVN ヘッダを読み込めません\n"
+
+#: vms-alpha.c:7421
+#, c-format
+msgid "cannot read EIHVN version\n"
+msgstr "EIHVN バージョンを読み込めません\n"
+
+#: vms-alpha.c:7424
+#, c-format
+msgid "   %02u "
+msgstr ""
+
+#: vms-alpha.c:7428
+msgid "BASE_IMAGE       "
+msgstr ""
+
+#: vms-alpha.c:7431
+msgid "MEMORY_MANAGEMENT"
+msgstr ""
+
+#: vms-alpha.c:7434
+msgid "IO               "
+msgstr ""
+
+#: vms-alpha.c:7437
+msgid "FILES_VOLUMES    "
+msgstr ""
+
+#: vms-alpha.c:7440
+msgid "PROCESS_SCHED    "
+msgstr ""
+
+#: vms-alpha.c:7443
+msgid "SYSGEN           "
+msgstr ""
+
+#: vms-alpha.c:7446
+msgid "CLUSTERS_LOCKMGR "
+msgstr ""
+
+#: vms-alpha.c:7449
+msgid "LOGICAL_NAMES    "
+msgstr ""
+
+#: vms-alpha.c:7452
+msgid "SECURITY         "
+msgstr ""
+
+#: vms-alpha.c:7455
+msgid "IMAGE_ACTIVATOR  "
+msgstr ""
+
+#: vms-alpha.c:7458
+msgid "NETWORKS         "
+msgstr ""
+
+#: vms-alpha.c:7461
+msgid "COUNTERS         "
+msgstr ""
+
+#: vms-alpha.c:7464
+msgid "STABLE           "
+msgstr ""
+
+#: vms-alpha.c:7467
+msgid "MISC             "
+msgstr ""
+
+#: vms-alpha.c:7470
+msgid "CPU              "
+msgstr ""
+
+#: vms-alpha.c:7473
+msgid "VOLATILE         "
+msgstr ""
+
+#: vms-alpha.c:7476
+msgid "SHELL            "
+msgstr ""
+
+#: vms-alpha.c:7479
+msgid "POSIX            "
+msgstr ""
+
+#: vms-alpha.c:7482
+msgid "MULTI_PROCESSING "
+msgstr ""
+
+#: vms-alpha.c:7485
+msgid "GALAXY           "
+msgstr ""
+
+#: vms-alpha.c:7488
+msgid "*unknown*        "
+msgstr "*不明*           "
+
+#: vms-alpha.c:7491
+#, c-format
+msgid ": %u.%u\n"
+msgstr ""
+
+#: vms-alpha.c:7504 vms-alpha.c:7763
+#, c-format
+msgid "cannot read EIHA\n"
+msgstr "EIHA を読み込めません\n"
+
+#: vms-alpha.c:7507
+#, c-format
+msgid "Image activation:  (size=%u)\n"
+msgstr ""
+
+#: vms-alpha.c:7509
+#, c-format
+msgid " First address : 0x%08x 0x%08x\n"
+msgstr " 1番目のアドレス: 0x%08x 0x%08x\n"
+
+#: vms-alpha.c:7512
+#, c-format
+msgid " Second address: 0x%08x 0x%08x\n"
+msgstr " 2番目のアドレス: 0x%08x 0x%08x\n"
+
+#: vms-alpha.c:7515
+#, c-format
+msgid " Third address : 0x%08x 0x%08x\n"
+msgstr " 3番目のアドレス: 0x%08x 0x%08x\n"
+
+#: vms-alpha.c:7518
+#, c-format
+msgid " Fourth address: 0x%08x 0x%08x\n"
+msgstr " 4番目のアドレス: 0x%08x 0x%08x\n"
+
+#: vms-alpha.c:7521
+#, c-format
+msgid " Shared image  : 0x%08x 0x%08x\n"
+msgstr " 共有イメージ  : 0x%08x 0x%08x\n"
+
+#: vms-alpha.c:7532
+#, c-format
+msgid "cannot read EIHI\n"
+msgstr "EIHI を読み込めません\n"
+
+#: vms-alpha.c:7535
+#, c-format
+msgid "Image identification: (major: %u, minor: %u)\n"
+msgstr ""
+
+#: vms-alpha.c:7538
+#, c-format
+msgid " image name       : %.*s\n"
+msgstr " イメージ名       : %.*s\n"
+
+#: vms-alpha.c:7540
+#, c-format
+msgid " link time        : %s\n"
+msgstr " リンク時刻       : %s\n"
+
+#: vms-alpha.c:7542
+#, c-format
+msgid " image ident      : %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7544
+#, c-format
+msgid " linker ident     : %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7546
+#, c-format
+msgid " image build ident: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7556
+#, c-format
+msgid "cannot read EIHS\n"
+msgstr "EIHS を読み込めません\n"
+
+#: vms-alpha.c:7559
+#, c-format
+msgid "Image symbol & debug table: (major: %u, minor: %u)\n"
+msgstr "イメージシンボル&デバッグ表: (メジャー: %u、マイナー: %u)\n"
+
+#: vms-alpha.c:7564
+#, c-format
+msgid " debug symbol table : vbn: %u, size: %u (0x%x)\n"
+msgstr " デバッグシンボル表 : vbn: %u、サイズ: %u (0x%x)\n"
+
+#: vms-alpha.c:7568
+#, c-format
+msgid " global symbol table: vbn: %u, records: %u\n"
+msgstr " 大域シンボル表     : vbn: %u、レコード: %u\n"
+
+#: vms-alpha.c:7572
+#, c-format
+msgid " debug module table : vbn: %u, size: %u\n"
+msgstr " デバッグモジュール表: vbn: %u、サイズ: %u\n"
+
+#: vms-alpha.c:7585
+#, c-format
+msgid "cannot read EISD\n"
+msgstr "EISD を読み込めません\n"
+
+#: vms-alpha.c:7595
+#, c-format
+msgid "Image section descriptor: (major: %u, minor: %u, size: %u, offset: %u)\n"
+msgstr "イメージセクション記述子: (メジャー: %u、マイナー: %u、サイズ: %u、オフセット: %u)\n"
+
+#: vms-alpha.c:7602
+#, c-format
+msgid " section: base: 0x%08x%08x size: 0x%08x\n"
+msgstr ""
+
+#: vms-alpha.c:7607
+#, c-format
+msgid " flags: 0x%04x"
+msgstr "フラグ: 0x%04x"
+
+#: vms-alpha.c:7644
+#, c-format
+msgid " vbn: %u, pfc: %u, matchctl: %u type: %u ("
+msgstr ""
+
+#: vms-alpha.c:7650
+msgid "NORMAL"
+msgstr "NORMAL"
+
+#: vms-alpha.c:7653
+msgid "SHRFXD"
+msgstr "SHRFXD"
+
+#: vms-alpha.c:7656
+msgid "PRVFXD"
+msgstr "PRVFXD"
+
+#: vms-alpha.c:7659
+msgid "SHRPIC"
+msgstr "SHRPIC"
+
+#: vms-alpha.c:7662
+msgid "PRVPIC"
+msgstr "PRVPIC"
+
+#: vms-alpha.c:7665
+msgid "USRSTACK"
+msgstr "USRSTACK"
+
+#: vms-alpha.c:7673
+#, c-format
+msgid " ident: 0x%08x, name: %.*s\n"
+msgstr ""
+
+#: vms-alpha.c:7683
+#, c-format
+msgid "cannot read DMT\n"
+msgstr "DMT を読み込めません\n"
+
+#: vms-alpha.c:7687
+#, c-format
+msgid "Debug module table:\n"
+msgstr "デバッグモジュール表:\n"
+
+#: vms-alpha.c:7696
+#, c-format
+msgid "cannot read DMT header\n"
+msgstr "DMT ヘッダを読み込めません\n"
+
+#: vms-alpha.c:7701
+#, c-format
+msgid " module offset: 0x%08x, size: 0x%08x, (%u psects)\n"
+msgstr " モジュールオフセット: 0x%08x, サイズ: 0x%08x, (%u psects)\n"
+
+#: vms-alpha.c:7711
+#, c-format
+msgid "cannot read DMT psect\n"
+msgstr "DMT psect を読み込めません\n"
+
+#: vms-alpha.c:7714
+#, c-format
+msgid "  psect start: 0x%08x, length: %u\n"
+msgstr "  psect 開始: 0x%08x, 長さ: %u\n"
+
+#: vms-alpha.c:7727
+#, c-format
+msgid "cannot read DST\n"
+msgstr "DST を読み込めません\n"
+
+#: vms-alpha.c:7737
+#, c-format
+msgid "cannot read GST\n"
+msgstr "GST を読み込めません\n"
+
+#: vms-alpha.c:7741
+#, c-format
+msgid "Global symbol table:\n"
+msgstr "大域シンボル表:\n"
+
+#: vms-alpha.c:7769
+#, c-format
+msgid "Image activator fixup: (major: %u, minor: %u)\n"
+msgstr ""
+
+#: vms-alpha.c:7772
+#, c-format
+msgid "  iaflink : 0x%08x %08x\n"
+msgstr "  iaflink : 0x%08x %08x\n"
+
+#: vms-alpha.c:7775
+#, c-format
+msgid "  fixuplnk: 0x%08x %08x\n"
+msgstr "  fixuplnk: 0x%08x %08x\n"
+
+#: vms-alpha.c:7778
+#, c-format
+msgid "  size : %u\n"
+msgstr "  サイズ: %u\n"
+
+#: vms-alpha.c:7780
+#, c-format
+msgid "  flags: 0x%08x\n"
+msgstr "  フラグ: 0x%08x\n"
+
+#: vms-alpha.c:7784
+#, c-format
+msgid "  qrelfixoff: %5u, lrelfixoff: %5u\n"
+msgstr "  qrelfixoff: %5u, lrelfixoff: %5u\n"
+
+#: vms-alpha.c:7788
+#, c-format
+msgid "  qdotadroff: %5u, ldotadroff: %5u\n"
+msgstr "  qdotadroff: %5u, ldotadroff: %5u\n"
+
+#: vms-alpha.c:7792
+#, c-format
+msgid "  codeadroff: %5u, lpfixoff  : %5u\n"
+msgstr "  codeadroff: %5u, lpfixoff  : %5u\n"
+
+#: vms-alpha.c:7795
+#, c-format
+msgid "  chgprtoff : %5u\n"
+msgstr "  chgprtoff : %5u\n"
+
+#: vms-alpha.c:7798
+#, c-format
+msgid "  shlstoff  : %5u, shrimgcnt : %5u\n"
+msgstr "  shlstoff  : %5u, shrimgcnt : %5u\n"
+
+#: vms-alpha.c:7800
+#, c-format
+msgid "  shlextra  : %5u, permctx   : %5u\n"
+msgstr "  shlextra  : %5u, permctx   : %5u\n"
+
+#: vms-alpha.c:7803
+#, c-format
+msgid "  base_va : 0x%08x\n"
+msgstr "  base_va : 0x%08x\n"
+
+#: vms-alpha.c:7805
+#, c-format
+msgid "  lppsbfixoff: %5u\n"
+msgstr "  lppsbfixoff: %5u\n"
+
+#: vms-alpha.c:7813
+#, c-format
+msgid " Shareable images:\n"
+msgstr " 共有可能イメージ:\n"
+
+#: vms-alpha.c:7817
+#, c-format
+msgid "  %u: size: %u, flags: 0x%02x, name: %.*s\n"
+msgstr "  %u: サイズ: %u, フラグ: 0x%02x, 名前: %.*s\n"
+
+#: vms-alpha.c:7824
+#, c-format
+msgid " quad-word relocation fixups:\n"
+msgstr " 4倍ワード再配置修正:\n"
+
+#: vms-alpha.c:7829
+#, c-format
+msgid " long-word relocation fixups:\n"
+msgstr " 長ワード再配置修正:\n"
+
+#: vms-alpha.c:7834
+#, c-format
+msgid " quad-word .address reference fixups:\n"
+msgstr " 4倍ワード .address 参照修正:\n"
+
+#: vms-alpha.c:7839
+#, c-format
+msgid " long-word .address reference fixups:\n"
+msgstr " 長ワード .address 参照修正:\n"
+
+#: vms-alpha.c:7844
+#, c-format
+msgid " Code Address Reference Fixups:\n"
+msgstr " コードアドレス参照修正:\n"
+
+#: vms-alpha.c:7849
+#, c-format
+msgid " Linkage Pairs Referece Fixups:\n"
+msgstr ""
+
+#: vms-alpha.c:7858
+#, c-format
+msgid " Change Protection (%u entries):\n"
+msgstr ""
+
+#: vms-alpha.c:7863
+#, c-format
+msgid "  base: 0x%08x %08x, size: 0x%08x, prot: 0x%08x "
+msgstr "  ベース: 0x%08x %08x, サイズ: 0x%08x, prot: 0x%08x "
+
+#. FIXME: we do not yet support relocatable link.  It is not obvious
+#. how to do it for debug infos.
+#: vms-alpha.c:8694
+msgid "%P: relocatable link is not supported\n"
+msgstr "%P: 再配置可能リンクはサポートされていません\n"
+
+#: vms-alpha.c:8764
+msgid "%P: multiple entry points: in modules %B and %B\n"
+msgstr "%P: 複数のエントリポイント: モジュール %B 内と %B 内\n"
+
+#: vms-lib.c:1421
+#, c-format
+msgid "could not open shared image '%s' from '%s'"
+msgstr "共有イメージ '%s' ('%s' から) を開くことができません"
+
+#: vms-misc.c:360
+msgid "_bfd_vms_output_counted called with zero bytes"
+msgstr "_bfd_vms_output_counted がゼロバイトで呼び出されました"
+
+#: vms-misc.c:365
+msgid "_bfd_vms_output_counted called with too many bytes"
+msgstr "_bfd_vms_output_counted 呼び出し時のバイト数が大きすぎます"
+
+#: xcofflink.c:836
+#, c-format
+msgid "%s: XCOFF shared object when not producing XCOFF output"
+msgstr "%s: XCOFF が XCOFF 出力生成時以外にオブジェクトを共有しました"
+
+#: xcofflink.c:857
+#, c-format
+msgid "%s: dynamic object with no .loader section"
+msgstr "%s: 動的オブジェクトに .loader セクションがありません"
+
+#: xcofflink.c:1416
+msgid "%B: `%s' has line numbers but no enclosing section"
+msgstr "%B: `%s' は行番号を持ちますが、セクションを囲い込んでいません"
+
+#: xcofflink.c:1468
+msgid "%B: class %d symbol `%s' has no aux entries"
+msgstr "%B: クラス %d シンボル `%s' は補助エントリを持っていません"
+
+#: xcofflink.c:1490
+msgid "%B: symbol `%s' has unrecognized csect type %d"
+msgstr "%B: シンボル `%s' が認識できない csect 型 %d を持っています"
+
+#: xcofflink.c:1502
+msgid "%B: bad XTY_ER symbol `%s': class %d scnum %d scnlen %d"
+msgstr "%B: 間違った XTY_ER シンボル `%s': クラス %d scnum %d scnlen %d"
+
+#: xcofflink.c:1531
+msgid "%B: XMC_TC0 symbol `%s' is class %d scnlen %d"
+msgstr "%B: XMC_TC0 シンボル `%s' は class %d scnlen %d です"
+
+#: xcofflink.c:1677
+msgid "%B: csect `%s' not in enclosing section"
+msgstr "%B: csect `%s' がセクションの囲みの中にありません"
+
+#: xcofflink.c:1784
+msgid "%B: misplaced XTY_LD `%s'"
+msgstr "%B: 間違った位置にある XTY_LD `%s' です"
+
+#: xcofflink.c:2103
+msgid "%B: reloc %s:%d not in csect"
+msgstr "%B: 再配置 %s:%d が csect 内にありません"
+
+#: xcofflink.c:3194
+#, c-format
+msgid "%s: no such symbol"
+msgstr "%s: そのようなシンボルはありません"
+
+#: xcofflink.c:3299
+#, c-format
+msgid "warning: attempt to export undefined symbol `%s'"
+msgstr "警告: 未定義シンボル `%s' をエクスポートしようとしています"
+
+#: xcofflink.c:3681
+msgid "error: undefined symbol __rtinit"
+msgstr "エラー: 未定義シンボル __rtinit です"
+
+#: xcofflink.c:4060
+msgid "%B: loader reloc in unrecognized section `%s'"
+msgstr "%B: 認識できないセクション `%s' 内にあるローダ再配置です"
+
+#: xcofflink.c:4071
+msgid "%B: `%s' in loader reloc but not loader sym"
+msgstr "%B: ローダ再配置内に `%s' がありますがローダシンボルがありません"
+
+#: xcofflink.c:4087
+msgid "%B: loader reloc in read-only section %A"
+msgstr "%B: 読み込み専用セクション %A 内にあるローダ再配置です"
+
+#: xcofflink.c:5109
+#, c-format
+msgid "TOC overflow: 0x%lx > 0x10000; try -mminimal-toc when compiling"
+msgstr "TOC オーバーフロー: 0x%lx > 0x10000 -- コンパイル時に -mminimal-toc を試しましょう"
+
+#: elf32-ia64.c:628 elf64-ia64.c:628
+msgid "%B: Can't relax br at 0x%lx in section `%A'. Please use brl or indirect branch."
+msgstr ""
+
+#: elf32-ia64.c:2290 elf64-ia64.c:2290
+msgid "@pltoff reloc against local symbol"
+msgstr "局所シンボルに対する @pltoff 再配置です"
+
+#: elf32-ia64.c:3693 elf64-ia64.c:3693
+#, c-format
+msgid "%s: short data segment overflowed (0x%lx >= 0x400000)"
+msgstr "%s: 短いデータセグメントが溢れました (0x%lx >= 0x400000)"
+
+#: elf32-ia64.c:3704 elf64-ia64.c:3704
+#, c-format
+msgid "%s: __gp does not cover short data segment"
+msgstr ""
+
+#: elf32-ia64.c:3971 elf64-ia64.c:3971
+msgid "%B: non-pic code with imm relocation against dynamic symbol `%s'"
+msgstr "%B: 動的シンボル `%s' に対する iim 再配置付き非 pic コードです"
+
+#: elf32-ia64.c:4038 elf64-ia64.c:4038
+msgid "%B: @gprel relocation against dynamic symbol %s"
+msgstr "%B: 動的シンボル %s に対する @gprel 再配置です"
+
+#: elf32-ia64.c:4101 elf64-ia64.c:4101
+msgid "%B: linking non-pic code in a position independent executable"
+msgstr "%B: 位置非依存実行ファイル内に非 pic コードをリンクしています"
+
+#: elf32-ia64.c:4238 elf64-ia64.c:4238
+msgid "%B: @internal branch to dynamic symbol %s"
+msgstr "%B: 動的シンボル %s への @internal 分岐です"
+
+#: elf32-ia64.c:4240 elf64-ia64.c:4240
+msgid "%B: speculation fixup to dynamic symbol %s"
+msgstr ""
+
+#: elf32-ia64.c:4242 elf64-ia64.c:4242
+msgid "%B: @pcrel relocation against dynamic symbol %s"
+msgstr "%B: 動的シンボル %s に対する @pcrel 再配置です"
+
+#: elf32-ia64.c:4439 elf64-ia64.c:4439
+msgid "unsupported reloc"
+msgstr "サポートされていない再配置です"
+
+#: elf32-ia64.c:4477 elf64-ia64.c:4477
+msgid "%B: missing TLS section for relocation %s against `%s' at 0x%lx in section `%A'."
+msgstr "%B:  再配置 %s (`%s' に対する、位置 0x%lx、セクション `%A') 用の TLS セクションがありません。"
+
+#: elf32-ia64.c:4492 elf64-ia64.c:4492
+msgid "%B: Can't relax br (%s) to `%s' at 0x%lx in section `%A' with size 0x%lx (> 0x1000000)."
+msgstr ""
+
+#: elf32-ia64.c:4754 elf64-ia64.c:4754
+msgid "%B: linking trap-on-NULL-dereference with non-trapping files"
+msgstr ""
+
+#: elf32-ia64.c:4763 elf64-ia64.c:4763
+msgid "%B: linking big-endian files with little-endian files"
+msgstr "%B: ビッグエンディアンのファイルとリトルエンディアンのファイルをリンクしています"
+
+#: elf32-ia64.c:4772 elf64-ia64.c:4772
+msgid "%B: linking 64-bit files with 32-bit files"
+msgstr "%B: 64 ビットファイルと 32 ビットファイルをリンクしています"
+
+#: elf32-ia64.c:4781 elf64-ia64.c:4781
+msgid "%B: linking constant-gp files with non-constant-gp files"
+msgstr "%B: 定数 gp ファイルと非定数 gp ファイルをリンクしています"
+
+#: elf32-ia64.c:4791 elf64-ia64.c:4791
+msgid "%B: linking auto-pic files with non-auto-pic files"
+msgstr "%B: 自動 pic ファイルと非自動 pic ファイルをリンクしています"
+
+#: peigen.c:1002 pepigen.c:1002 pex64igen.c:1002
+#, c-format
+msgid "%s: line number overflow: 0x%lx > 0xffff"
+msgstr "%s: 行番号が溢れました: 0x%lx > 0xffff"
+
+#: peigen.c:1029 pepigen.c:1029 pex64igen.c:1029
+msgid "Export Directory [.edata (or where ever we found it)]"
+msgstr "エクスポートディレクトリ [.edata (またはここまでに見つかった場所)]"
+
+#: peigen.c:1030 pepigen.c:1030 pex64igen.c:1030
+msgid "Import Directory [parts of .idata]"
+msgstr "インポートディレクトリ [.idata の部分]"
+
+#: peigen.c:1031 pepigen.c:1031 pex64igen.c:1031
+msgid "Resource Directory [.rsrc]"
+msgstr "リソースディレクトリ [.rsrc]"
+
+#: peigen.c:1032 pepigen.c:1032 pex64igen.c:1032
+msgid "Exception Directory [.pdata]"
+msgstr "例外ディレクトリ [.pdata]"
+
+#: peigen.c:1033 pepigen.c:1033 pex64igen.c:1033
+msgid "Security Directory"
+msgstr "セキュリティディレクトリ"
+
+#: peigen.c:1034 pepigen.c:1034 pex64igen.c:1034
+msgid "Base Relocation Directory [.reloc]"
+msgstr "基本再配置ディレクトリ [.reloc]"
+
+#: peigen.c:1035 pepigen.c:1035 pex64igen.c:1035
+msgid "Debug Directory"
+msgstr "デバッグディレクトリ"
+
+#: peigen.c:1036 pepigen.c:1036 pex64igen.c:1036
+msgid "Description Directory"
+msgstr "記述子ディレクトリ"
+
+#: peigen.c:1037 pepigen.c:1037 pex64igen.c:1037
+msgid "Special Directory"
+msgstr "スペシャルディレクトリ"
+
+#: peigen.c:1038 pepigen.c:1038 pex64igen.c:1038
+msgid "Thread Storage Directory [.tls]"
+msgstr "スレッド記憶ディレクトリ [.tls]"
+
+#: peigen.c:1039 pepigen.c:1039 pex64igen.c:1039
+msgid "Load Configuration Directory"
+msgstr "ロード設定ディレクトリ"
+
+#: peigen.c:1040 pepigen.c:1040 pex64igen.c:1040
+msgid "Bound Import Directory"
+msgstr "境界 Import ディレクトリ"
+
+#: peigen.c:1041 pepigen.c:1041 pex64igen.c:1041
+msgid "Import Address Table Directory"
+msgstr "インポートアドレス表ディレクトリ"
+
+#: peigen.c:1042 pepigen.c:1042 pex64igen.c:1042
+msgid "Delay Import Directory"
+msgstr "遅延インポートディレクトリ"
+
+#: peigen.c:1043 pepigen.c:1043 pex64igen.c:1043
+msgid "CLR Runtime Header"
+msgstr "CLR ランタイムヘッダ"
+
+#: peigen.c:1044 pepigen.c:1044 pex64igen.c:1044
+msgid "Reserved"
+msgstr "予約済"
+
+#: peigen.c:1104 pepigen.c:1104 pex64igen.c:1104
+#, c-format
+msgid ""
+"\n"
+"There is an import table, but the section containing it could not be found\n"
+msgstr ""
+"\n"
+"インポート表がありますが、ここを含んでいるセクションを見つけられませんでした\n"
+
+#: peigen.c:1109 pepigen.c:1109 pex64igen.c:1109
+#, c-format
+msgid ""
+"\n"
+"There is an import table in %s at 0x%lx\n"
+msgstr ""
+"\n"
+"%s 内の 0x%lx にインポート表があります\n"
+
+#: peigen.c:1151 pepigen.c:1151 pex64igen.c:1151
+#, c-format
+msgid ""
+"\n"
+"Function descriptor located at the start address: %04lx\n"
+msgstr ""
+"\n"
+"開始アドレスに位置している関数記述子: %04lx\n"
+
+#: peigen.c:1154 pepigen.c:1154 pex64igen.c:1154
+#, c-format
+msgid "\tcode-base %08lx toc (loadable/actual) %08lx/%08lx\n"
+msgstr "\tコードベース %08lx toc (loadable/actual) %08lx/%08lx\n"
+
+#: peigen.c:1162 pepigen.c:1162 pex64igen.c:1162
+#, c-format
+msgid ""
+"\n"
+"No reldata section! Function descriptor not decoded.\n"
+msgstr ""
+"\n"
+"reldata セクションがありません! 関数記述子がデコードされませんでした。\n"
+
+#: peigen.c:1167 pepigen.c:1167 pex64igen.c:1167
+#, c-format
+msgid ""
+"\n"
+"The Import Tables (interpreted %s section contents)\n"
+msgstr ""
+"\n"
+"インポート表 ( %sセクションの内容を解釈)\n"
+
+#: peigen.c:1170 pepigen.c:1170 pex64igen.c:1170
+#, c-format
+msgid ""
+" vma:            Hint    Time      Forward  DLL       First\n"
+"                 Table   Stamp     Chain    Name      Thunk\n"
+msgstr ""
+" vma:            Hint    Time      Forward  DLL       First\n"
+"                 Table   Stamp     Chain    Name      Thunk\n"
+
+#: peigen.c:1218 pepigen.c:1218 pex64igen.c:1218
+#, c-format
+msgid ""
+"\n"
+"\tDLL Name: %s\n"
+msgstr ""
+"\n"
+"\tDLL 名: %s\n"
+
+#: peigen.c:1229 pepigen.c:1229 pex64igen.c:1229
+#, c-format
+msgid "\tvma:  Hint/Ord Member-Name Bound-To\n"
+msgstr ""
+
+#: peigen.c:1254 pepigen.c:1254 pex64igen.c:1254
+#, c-format
+msgid ""
+"\n"
+"There is a first thunk, but the section containing it could not be found\n"
+msgstr ""
+
+#: peigen.c:1415 pepigen.c:1415 pex64igen.c:1415
+#, c-format
+msgid ""
+"\n"
+"There is an export table, but the section containing it could not be found\n"
+msgstr ""
+"\n"
+"エクスポート表がありますが、それを含むセクションが見つかりませんでした\n"
+
+#: peigen.c:1424 pepigen.c:1424 pex64igen.c:1424
+#, c-format
+msgid ""
+"\n"
+"There is an export table in %s, but it does not fit into that section\n"
+msgstr ""
+"\n"
+"%s 内にエクスポート表がありますが、そのセクション内に入りません\n"
+
+#: peigen.c:1430 pepigen.c:1430 pex64igen.c:1430
+#, c-format
+msgid ""
+"\n"
+"There is an export table in %s at 0x%lx\n"
+msgstr ""
+"\n"
+"%s の 0x%lx にエクスポート表があります\n"
+
+#: peigen.c:1458 pepigen.c:1458 pex64igen.c:1458
+#, c-format
+msgid ""
+"\n"
+"The Export Tables (interpreted %s section contents)\n"
+"\n"
+msgstr ""
+"\n"
+"エクスポート表 (%s セクションの内容を解釈)\n"
+"\n"
+
+#: peigen.c:1462 pepigen.c:1462 pex64igen.c:1462
+#, c-format
+msgid "Export Flags \t\t\t%lx\n"
+msgstr "エクスポートフラグ \t\t\t%lx\n"
+
+#: peigen.c:1465 pepigen.c:1465 pex64igen.c:1465
+#, c-format
+msgid "Time/Date stamp \t\t%lx\n"
+msgstr "時刻/日付スタンプ \t\t%lx\n"
+
+#: peigen.c:1468 pepigen.c:1468 pex64igen.c:1468
+#, c-format
+msgid "Major/Minor \t\t\t%d/%d\n"
+msgstr "Major/Minor \t\t\t%d/%d\n"
+
+#: peigen.c:1471 pepigen.c:1471 pex64igen.c:1471
+#, c-format
+msgid "Name \t\t\t\t"
+msgstr "名前 \t\t\t\t"
+
+#: peigen.c:1477 pepigen.c:1477 pex64igen.c:1477
+#, c-format
+msgid "Ordinal Base \t\t\t%ld\n"
+msgstr "序数ベース \t\t\t%ld\n"
+
+#: peigen.c:1480 pepigen.c:1480 pex64igen.c:1480
+#, c-format
+msgid "Number in:\n"
+msgstr "各種の数値:\n"
+
+#: peigen.c:1483 pepigen.c:1483 pex64igen.c:1483
+#, c-format
+msgid "\tExport Address Table \t\t%08lx\n"
+msgstr "\tExport アドレステーブル\t\t%08lx\n"
+
+#: peigen.c:1487 pepigen.c:1487 pex64igen.c:1487
+#, c-format
+msgid "\t[Name Pointer/Ordinal] Table\t%08lx\n"
+msgstr "\t[名前ポインタ/序数] テーブル\t%08lx\n"
+
+#: peigen.c:1490 pepigen.c:1490 pex64igen.c:1490
+#, c-format
+msgid "Table Addresses\n"
+msgstr "表アドレス\n"
+
+#: peigen.c:1493 pepigen.c:1493 pex64igen.c:1493
+#, c-format
+msgid "\tExport Address Table \t\t"
+msgstr "\tエクスポートアドレス表\t\t"
+
+#: peigen.c:1498 pepigen.c:1498 pex64igen.c:1498
+#, c-format
+msgid "\tName Pointer Table \t\t"
+msgstr "\t名前ポインタテーブル \t\t"
+
+#: peigen.c:1503 pepigen.c:1503 pex64igen.c:1503
+#, c-format
+msgid "\tOrdinal Table \t\t\t"
+msgstr "\t序数テーブル \t\t\t"
+
+#: peigen.c:1517 pepigen.c:1517 pex64igen.c:1517
+#, c-format
+msgid ""
+"\n"
+"Export Address Table -- Ordinal Base %ld\n"
+msgstr ""
+"\n"
+"Export アドレステーブル -- 序数ベース %ld\n"
+
+#: peigen.c:1536 pepigen.c:1536 pex64igen.c:1536
+msgid "Forwarder RVA"
+msgstr "Forwarder RVA"
+
+#: peigen.c:1547 pepigen.c:1547 pex64igen.c:1547
+msgid "Export RVA"
+msgstr "Export RVA"
+
+#: peigen.c:1554 pepigen.c:1554 pex64igen.c:1554
+#, c-format
+msgid ""
+"\n"
+"[Ordinal/Name Pointer] Table\n"
+msgstr ""
+"\n"
+"[序数/名前ポインタ] テーブル\n"
+
+#: peigen.c:1614 peigen.c:1797 pepigen.c:1614 pepigen.c:1797 pex64igen.c:1614
+#: pex64igen.c:1797
+#, c-format
+msgid "Warning, .pdata section size (%ld) is not a multiple of %d\n"
+msgstr "警告、.pdata セクションサイズ (%ld) が %d の倍数ではありません\n"
+
+#: peigen.c:1621 pepigen.c:1621 pex64igen.c:1621
+#, c-format
+msgid " vma:\t\t\tBegin Address    End Address      Unwind Info\n"
+msgstr " vma:\t\t\t開始アドレス    終了アドレス      Unwind 情報\n"
+
+#: peigen.c:1623 pepigen.c:1623 pex64igen.c:1623
+#, c-format
+msgid ""
+" vma:\t\tBegin    End      EH       EH       PrologEnd  Exception\n"
+"     \t\tAddress  Address  Handler  Data     Address    Mask\n"
+msgstr ""
+" vma:\t\t開始     終了     EH       EH       PrologEnd  例外\n"
+"     \t\tアドレス アドレス ハンドラ データ   アドレス   マスク\n"
+
+#: peigen.c:1697 pepigen.c:1697 pex64igen.c:1697
+#, c-format
+msgid " Register save millicode"
+msgstr " レジスタ保存ミリコード"
+
+#: peigen.c:1700 pepigen.c:1700 pex64igen.c:1700
+#, c-format
+msgid " Register restore millicode"
+msgstr " レジスタ復元ミリコード"
+
+#: peigen.c:1703 pepigen.c:1703 pex64igen.c:1703
+#, c-format
+msgid " Glue code sequence"
+msgstr " グルーコード列"
+
+#: peigen.c:1803 pepigen.c:1803 pex64igen.c:1803
+#, c-format
+msgid ""
+" vma:\t\tBegin    Prolog   Function Flags    Exception EH\n"
+"     \t\tAddress  Length   Length   32b exc  Handler   Data\n"
+msgstr ""
+" vma:\t\t開始     Prolog   関数     フラグ   例外      EH\n"
+"     \t\tアドレス 長       長       32b exc  ハンドラ  データ\n"
+
+#: peigen.c:1929 pepigen.c:1929 pex64igen.c:1929
+#, c-format
+msgid ""
+"\n"
+"\n"
+"PE File Base Relocations (interpreted .reloc section contents)\n"
+msgstr ""
+"\n"
+"\n"
+"PE ファイルベース再配置 (.reloc セクションの内容を解釈)\n"
+
+#: peigen.c:1958 pepigen.c:1958 pex64igen.c:1958
+#, c-format
+msgid ""
+"\n"
+"Virtual Address: %08lx Chunk size %ld (0x%lx) Number of fixups %ld\n"
+msgstr ""
+"\n"
+"仮想アドレス: %08lx チャンクサイズ %ld (0x%lx) fixups の個数 %ld\n"
+
+#: peigen.c:1971 pepigen.c:1971 pex64igen.c:1971
+#, c-format
+msgid "\treloc %4d offset %4x [%4lx] %s"
+msgstr "\treloc %4d オフセット %4x [%4lx] %s"
+
+#. The MS dumpbin program reportedly ands with 0xff0f before
+#. printing the characteristics field.  Not sure why.  No reason to
+#. emulate it here.
+#: peigen.c:2010 pepigen.c:2010 pex64igen.c:2010
+#, c-format
+msgid ""
+"\n"
+"Characteristics 0x%x\n"
+msgstr ""
+"\n"
+"固有 0x%x\n"
+
+#: peigen.c:2310 pepigen.c:2310 pex64igen.c:2310
+msgid "%B: unable to fill in DataDictionary[1] because .idata$2 is missing"
+msgstr "%B: .idata$2 が無いため DataDictionary[1] を埋めることができません"
+
+#: peigen.c:2330 pepigen.c:2330 pex64igen.c:2330
+msgid "%B: unable to fill in DataDictionary[1] because .idata$4 is missing"
+msgstr "%B: .idata$4 が無いため DataDictionary[1] を埋めることができません"
+
+#: peigen.c:2351 pepigen.c:2351 pex64igen.c:2351
+msgid "%B: unable to fill in DataDictionary[12] because .idata$5 is missing"
+msgstr "%B: .idata$5 が無いため DataDictionary[12] を埋めることができません"
+
+#: peigen.c:2371 pepigen.c:2371 pex64igen.c:2371
+msgid "%B: unable to fill in DataDictionary[PE_IMPORT_ADDRESS_TABLE (12)] because .idata$6 is missing"
+msgstr "%B: .idata$6 が無いため DataDictionary[PE_IMPORT_ADDRESS_TABLE (12)] を埋めることができません"
+
+#: peigen.c:2413 pepigen.c:2413 pex64igen.c:2413
+msgid "%B: unable to fill in DataDictionary[PE_IMPORT_ADDRESS_TABLE(12)] because .idata$6 is missing"
+msgstr "%B: .idata$6 が無いため DataDictionary[PE_IMPORT_ADDRESS_TABLE(12)] を埋めることができません"
+
+#: peigen.c:2438 pepigen.c:2438 pex64igen.c:2438
+msgid "%B: unable to fill in DataDictionary[9] because __tls_used is missing"
+msgstr "%B: __tls_used が無いため DataDictionary[9] を埋めることができません"
+
+#~ msgid "%B: relocation type %d not implemented"
+#~ msgstr "%B: 再配置型 %d は実装されていません"
+
+#~ msgid "warning: %B and %B differ in position-dependence of data addressing"
+#~ msgstr "警告: %B と %B でデータアドレス割り当てに関する位置依存性が異なります"
+
+#~ msgid "warning: %B and %B differ in position-dependence of code addressing"
+#~ msgstr "警告: %B と %B でコードアドレス割り当てに関する位置依存性が異なります"

@@ -1,0 +1,230 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test 'quot' and 'boldquot' filter.
+
+cat <<\EOF > mfi.po
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2014-04-10 16:40+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=US-ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "\"double quoted\""
+msgstr "\"double quoted\""
+
+msgid "\"\"double quoted\""
+msgstr "\"\"double quoted\""
+
+msgid "\"foo\" \"bar\" \"baz\""
+msgstr "\"foo\" \"bar\" \"baz\""
+
+msgid "double quoted but empty \"\""
+msgstr "double quoted but empty \"\""
+
+msgid "'single quoted'"
+msgstr "'single quoted'"
+
+msgid "'foo' 'bar' 'baz'"
+msgstr "'foo' 'bar' 'baz'"
+
+msgid "prefix'single quoted without surrounding spaces'suffix"
+msgstr "prefix'single quoted without surrounding spaces'suffix"
+
+msgid "prefix 'single quoted with surrounding spaces' suffix"
+msgstr "prefix 'single quoted with surrounding spaces' suffix"
+
+msgid "single quoted with apostrophe, empty '' "
+msgstr "single quoted with apostrophe, empty '' "
+
+msgid "'single quoted at the beginning of string' "
+msgstr "'single quoted at the beginning of string' "
+
+msgid " 'single quoted at the end of string'"
+msgstr " 'single quoted at the end of string'"
+
+msgid ""
+"line 1\n"
+"'single quoted at the beginning of line' \n"
+"line 3"
+msgstr ""
+"line 1\n"
+"'single quoted at the beginning of line' \n"
+"line 3"
+
+msgid ""
+"line 1\n"
+" 'single quoted at the end of line'\n"
+"line 3"
+msgstr ""
+"line 1\n"
+" 'single quoted at the end of line'\n"
+"line 3"
+
+msgid "`single quoted with grave'"
+msgstr "`single quoted with grave'"
+
+msgid "single quoted with grave, empty `'"
+msgstr "single quoted with grave, empty `'"
+
+msgid "``double grave'"
+msgstr "``double grave'"
+EOF
+
+: ${MSGFILTER=msgfilter}
+LC_ALL=C ${MSGFILTER} -i mfi.po -o mfi-quot.out quot 2>&1 2>/dev/null || Exit 1
+
+cat <<\EOF > mfi-quot.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2014-04-10 16:40+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "\"double quoted\""
+msgstr "“double quoted”"
+
+msgid "\"\"double quoted\""
+msgstr "\"\"double quoted\""
+
+msgid "\"foo\" \"bar\" \"baz\""
+msgstr "“foo” “bar” “baz”"
+
+msgid "double quoted but empty \"\""
+msgstr "double quoted but empty \"\""
+
+msgid "'single quoted'"
+msgstr "'single quoted'"
+
+msgid "'foo' 'bar' 'baz'"
+msgstr "‘foo’ ‘bar’ ‘baz’"
+
+msgid "prefix'single quoted without surrounding spaces'suffix"
+msgstr "prefix'single quoted without surrounding spaces'suffix"
+
+msgid "prefix 'single quoted with surrounding spaces' suffix"
+msgstr "prefix ‘single quoted with surrounding spaces’ suffix"
+
+msgid "single quoted with apostrophe, empty '' "
+msgstr "single quoted with apostrophe, empty ‘’ "
+
+msgid "'single quoted at the beginning of string' "
+msgstr "‘single quoted at the beginning of string’ "
+
+msgid " 'single quoted at the end of string'"
+msgstr " ‘single quoted at the end of string’"
+
+msgid ""
+"line 1\n"
+"'single quoted at the beginning of line' \n"
+"line 3"
+msgstr ""
+"line 1\n"
+"‘single quoted at the beginning of line’ \n"
+"line 3"
+
+msgid ""
+"line 1\n"
+" 'single quoted at the end of line'\n"
+"line 3"
+msgstr ""
+"line 1\n"
+" ‘single quoted at the end of line’\n"
+"line 3"
+
+msgid "`single quoted with grave'"
+msgstr "‘single quoted with grave’"
+
+msgid "single quoted with grave, empty `'"
+msgstr "single quoted with grave, empty ‘’"
+
+msgid "``double grave'"
+msgstr "`‘double grave’"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mfi-quot.ok mfi-quot.out || Exit 1
+
+LC_ALL=C ${MSGFILTER} -i mfi.po -o mfi-boldquot.out boldquot 2>&1 2>/dev/null || Exit 1
+
+cat <<\EOF > mfi-boldquot.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2014-04-10 16:40+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "\"double quoted\""
+msgstr "“[1mdouble quoted[0m”"
+
+msgid "\"\"double quoted\""
+msgstr "\"\"double quoted\""
+
+msgid "\"foo\" \"bar\" \"baz\""
+msgstr "“[1mfoo[0m” “[1mbar[0m” “[1mbaz[0m”"
+
+msgid "double quoted but empty \"\""
+msgstr "double quoted but empty \"\""
+
+msgid "'single quoted'"
+msgstr "'single quoted'"
+
+msgid "'foo' 'bar' 'baz'"
+msgstr "‘[1mfoo[0m’ ‘[1mbar[0m’ ‘[1mbaz[0m’"
+
+msgid "prefix'single quoted without surrounding spaces'suffix"
+msgstr "prefix'single quoted without surrounding spaces'suffix"
+
+msgid "prefix 'single quoted with surrounding spaces' suffix"
+msgstr "prefix ‘[1msingle quoted with surrounding spaces[0m’ suffix"
+
+msgid "single quoted with apostrophe, empty '' "
+msgstr "single quoted with apostrophe, empty ‘[1m[0m’ "
+
+msgid "'single quoted at the beginning of string' "
+msgstr "‘[1msingle quoted at the beginning of string[0m’ "
+
+msgid " 'single quoted at the end of string'"
+msgstr " ‘[1msingle quoted at the end of string[0m’"
+
+msgid ""
+"line 1\n"
+"'single quoted at the beginning of line' \n"
+"line 3"
+msgstr ""
+"line 1\n"
+"‘[1msingle quoted at the beginning of line[0m’ \n"
+"line 3"
+
+msgid ""
+"line 1\n"
+" 'single quoted at the end of line'\n"
+"line 3"
+msgstr ""
+"line 1\n"
+" ‘[1msingle quoted at the end of line[0m’\n"
+"line 3"
+
+msgid "`single quoted with grave'"
+msgstr "‘[1msingle quoted with grave[0m’"
+
+msgid "single quoted with grave, empty `'"
+msgstr "single quoted with grave, empty ‘[1m[0m’"
+
+msgid "``double grave'"
+msgstr "`‘[1mdouble grave[0m’"
+EOF
+
+${DIFF} mfi-boldquot.ok mfi-boldquot.out || Exit 1

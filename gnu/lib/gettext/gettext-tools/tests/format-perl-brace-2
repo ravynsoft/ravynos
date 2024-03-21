@@ -1,0 +1,64 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of Perl brace format strings.
+
+cat <<\EOF > f-pb-2.data
+# Valid: same named arguments
+msgid  "abc{date}{time}"
+msgstr "xyz{date}{time}"
+# Valid: permutation
+msgid  "abc{x3}{x1}{x2}def"
+msgstr "xyz{x2}{x1}{x3}"
+# Invalid: missing argument
+msgid  "abc{x2}def{x1}"
+msgstr "xyz{x1}"
+# Invalid: missing argument
+msgid  "abc{x1}def{x2}"
+msgstr "xyz{x2}"
+# Valid: added argument (valid since "{zoo}" expands to itself)
+msgid  "abc{foo}def"
+msgstr "xyz{foo}uvw{zoo}"
+# Valid: multiple reuse of same argument
+msgid  "{foo} {bar} {baz}"
+msgstr "{baz} {bar} {foo} {bar}"
+# Valid: single reuse of same argument
+msgid  "{baz} {bar} {foo} {bar}"
+msgstr "{foo} {bar} {baz}"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-pb-2-$n.po
+#, perl-brace-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-pb-2-$n.mo f-pb-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-pb-2-$n.mo f-pb-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-pb-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-pb-2-$n.po f-pb-2-$n.mo
+done < f-pb-2.data
+
+Exit 0

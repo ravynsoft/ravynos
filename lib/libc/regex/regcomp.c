@@ -36,14 +36,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)regcomp.c	8.5 (Berkeley) 3/20/94
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char sccsid[] = "@(#)regcomp.c	8.5 (Berkeley) 3/20/94";
-#endif /* LIBC_SCCS and not lint */
-#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
@@ -828,10 +822,10 @@ p_simp_re(struct parse *p, struct branchc *bc)
 	handled = false;
 
 	assert(MORE());		/* caller should have ensured this */
-	c = GETNEXT();
+	c = (uch)GETNEXT();
 	if (c == '\\') {
 		(void)REQUIRE(MORE(), REG_EESCAPE);
-		cc = GETNEXT();
+		cc = (uch)GETNEXT();
 		c = BACKSL | cc;
 #ifdef LIBREGEX
 		if (p->gnuext) {
@@ -992,7 +986,7 @@ p_count(struct parse *p)
 	int ndigits = 0;
 
 	while (MORE() && isdigit((uch)PEEK()) && count <= DUPMAX) {
-		count = count*10 + (GETNEXT() - '0');
+		count = count*10 + ((uch)GETNEXT() - '0');
 		ndigits++;
 	}
 
@@ -1302,7 +1296,7 @@ may_escape(struct parse *p, const wint_t ch)
 
 	if ((p->pflags & PFLAG_LEGACY_ESC) != 0)
 		return (true);
-	if (isalpha(ch) || ch == '\'' || ch == '`')
+	if (iswalpha(ch) || ch == '\'' || ch == '`')
 		return (false);
 	return (true);
 #ifdef NOTYET
@@ -1592,17 +1586,32 @@ singleton(cset *cs)
 {
 	wint_t i, s, n;
 
+	/* Exclude the complicated cases we don't want to deal with */
+	if (cs->nranges != 0 || cs->ntypes != 0 || cs->icase != 0)
+		return (OUT);
+
+	if (cs->nwides > 1)
+		return (OUT);
+
+	/* Count the number of characters present in the bitmap */
 	for (i = n = 0; i < NC; i++)
 		if (CHIN(cs, i)) {
 			n++;
 			s = i;
 		}
-	if (n == 1)
-		return (s);
-	if (cs->nwides == 1 && cs->nranges == 0 && cs->ntypes == 0 &&
-	    cs->icase == 0)
+
+	if (n > 1)
+		return (OUT);
+
+	if (n == 1) {
+		if (cs->nwides == 0)
+			return (s);
+		else
+			return (OUT);
+	}
+	if (cs->nwides == 1)
 		return (cs->wides[0]);
-	/* Don't bother handling the other cases. */
+
 	return (OUT);
 }
 

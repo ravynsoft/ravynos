@@ -1,0 +1,249 @@
+#compdef mysql mysqlshow mysqldump mysqlimport mysqladmin
+
+_mysql_get_identity() {
+  local _mysql_pass _mysql_sock
+
+  _mysql_user=${(v)opt_args[(i)-u|--user]}
+  _mysql_port=${(v)opt_args[(i)-P|--port]}
+  _mysql_host=${(v)opt_args[(i)-h|--host]}
+  _mysql_pass=${(v)opt_args[(i)-p|--password]}
+  _mysql_sock=${(v)opt_args[(i)-S|--socket]}
+
+  _mysql_params=(
+    ${_mysql_user:+"--user=$_mysql_user"}
+    ${_mysql_host:+"--host=$_mysql_host"}
+    ${_mysql_port:+"--port=$_mysql_port"}
+    ${_mysql_pass:+"--password=$_mysql_pass"}
+    ${_mysql_sock:+"--socket=$_mysql_sock"}
+  )
+}
+
+_mysql_hosts() {
+  local _mysql_user _mysql_port _mysql_host _mysql_params
+  _mysql_get_identity
+
+  _wanted hosts expl 'server host' \
+    _combination -s '[:@]' '' hosts-ports-users \
+      ${_mysql_user:+users=${_mysql_user:q}} \
+      ${_mysql_port:+ports=${_mysql_port:q}} \
+      hosts -
+}
+
+_mysql_ports() {
+  local _mysql_user _mysql_port _mysql_host _mysql_params
+  _mysql_get_identity
+
+  _wanted ports expl 'server port' \
+    _combination -s '[:@]' '' hosts-ports-users \
+      ${_mysql_user:+users=${_mysql_user:q}} \
+      ${_mysql_host:+hosts=${_mysql_host:q}} \
+      ports -
+}
+
+_mysql_users() {
+  local _mysql_user _mysql_port _mysql_host _mysql_params
+  _mysql_get_identity
+
+  _wanted users expl 'server username' \
+    _combination -s '[:@]' '' hosts-ports-users \
+      ${_mysql_host:+hosts=${_mysql_host:q}} \
+      ${_mysql_port:+ports=${_mysql_port:q}} \
+      users -
+}
+
+_mysql_databases() {
+  local _mysql_user _mysql_port _mysql_host _mysql_params
+  _mysql_get_identity
+
+  compadd "$@" - ${${(f)~~"$(_call_program databases \
+      mysql "$_mysql_params[@]" <<<'show databases' 2>/dev/null)"}[2,-1]}
+}
+
+_mysql_tables() {
+  local _mysql_user _mysql_port _mysql_host _mysql_params
+  _mysql_get_identity
+
+  compadd "$@" - ${${(f)~~"$(_call_program tables \
+      mysql "$_mysql_params[@]" $1 <<< 'show tables' 2>/dev/null)"}[2,-1]}
+}
+
+_mysql() {
+  _arguments -s \
+    "$_mysql_common_opts[@]" "$_mysql_variables_opts[@]" \
+    '(--disable-auto-rehash)--auto-rehash[enable automatic rehashing]' \
+    '(-t --table)'{-B,--batch}'[batch mode (no pretty ASCII)]' \
+    '--character-sets-dir=[specify directory containing character sets]:directory:_directories' \
+    '--default-character-set=[specify character set]:character set' \
+    {-T,--debug-info}'[print debug info on exit]' \
+    '(:)'{-D+,--database=}'[specify database to use]' \
+    {-e+,--exec=}':[execute specified command]:mysql command' \
+    {-f,--force}'[continue through errors]' \
+    '(--disable-named-commands)'{-G,--named-commands}'[enable named commands]' \
+    {-i,--ignore-spaces}'[ignore space after function names]' \
+    --local-infile \
+    {-b,--no-beep}'[turn off beep on error]' \
+    {-H,--html}'[produce HTML output]' \
+    {-x,--xml}'[produce XML output]' \
+    '(--skip-line-numbers)--line-numbers[write line numbers for errors]' \
+    "(--line-numbers)--skip-line-numbers[don't write line numbers for errors]" \
+    {-n,--unbuffered}'[flush the buffer after each query]' \
+    '--column-names[write column names in results]' \
+    "--skip-column-names[don't write column names in results]" \
+    {-o,--one-database}'[only update the default database]' \
+    '--pager=[specify pager to use for displaying results]::pager' \
+    '--prompt=[set the mysql prompt to specified value]:prompt' \
+    {-q,--quick}'[disable caching of the result]' \
+    {-r,--raw}'[write fields without conversion]' \
+    {-s,--silent}'[silent mode]' \
+    '(-B --batch)'{-t,--table}'[output in table format]' \
+    '(-B --batch)--tee=[append all output to file]:file:_files' \
+    {-U,--safe-updates}'[only allow UPDATE and DELETE that uses keys]' \
+    {-E,--vertical}'[print query output vertically]' \
+    {-w,--wait}'[wait and retry server connection if necessary]' \
+    '(--pager)--disable-pager[print directly to stdout]' \
+    '(--auto-rehash)--disable-auto-rehash[disable automatic hashing]' \
+    '(-G --named-commands)--disable-named-commands' \
+    ':MySQL database:_mysql_databases'
+}
+
+_mysqlshow() {
+  _arguments -s \
+    "$_mysql_common_opts[@]" \
+    ':MySQL database to show:_mysql_databases' \
+    ':table to show:{ _mysql_tables "$line[1]" }' \
+    ':field wildcard'
+}
+
+_mysqldump() {
+  _arguments -s \
+    "$_mysql_common_opts[@]" "$_mysql_variables_opts[@]" \
+    {-a,--all}'[include all create options]' \
+    {-c,--complete-insert}'[use complete insert statements]' \
+    {-e,--extended-insert}'[allow new INSERT syntax]' \
+    "--add-drop-table[add a 'drop table' before each create]" \
+    "--add-locks[add locks around insert statements]" \
+    "--allow-keywords[allow creation of column names that are keywords]" \
+    "--delayed[insert rows with INSERT DELAYED]" \
+    {-F,--flush-logs}'[flush logs file in server before dump]' \
+    {-l,--lock-tables}'[lock all tables for read]' \
+    {-t,--no-create-info}"[don't write table creation info]" \
+    {-d,--no-data}"[don't write row information]" \
+    '--opt[create fastest possible dump for reading]' \
+    {-q,--quick}"[don't buffer, dump directly to stdout]" \
+    {-T,--tab=}"[dump tab-separated text files for each table]:directory to store text files:_files -/" \
+    {-w+,--where=}'[dump only selected records]:WHERE clause to limit records to dump: ' \
+    '--fields-terminated-by=:(with --tab) fields in textfile terminated by ...:' \
+    '--fields-enclosed-by=:(with --tab) fields in import file enclosed by ...:' \
+    '--fields-optionally-enclosed-by=:(with --tab) fields in import file optionally enclosed by ...:' \
+    '--fields-escaped-by=:(with --tab) fields in import file escaped by ...:' \
+    '--lines-terminated-by=:(with --tab) lines in import file terminated by ...:' \
+    ':MySQL database to dump:_mysql_databases' \
+    '*:tables to dump:{ _mysql_tables "$line[1]" }'
+}
+
+_mysqlimport() {
+  _arguments -s \
+    "$_mysql_common_opts[@]" "$_mysql_variables_opts[@]" \
+    '(-c --columns)'{-c,--columns=}'[use only specified columns to import the data to]:column list' \
+    '(-d --delete)'{-d,--delete}'[first delete all rows from table]' \
+    '--fields-terminated-by=:fields in textfile terminated by ...:' \
+    '--fields-enclosed-by=:fields in import file enclosed by ...:' \
+    '--fields-optionally-enclosed-by=:fields in import file optionally enclosed by ...:' \
+    '--fields-escaped-by=:fields in import file escaped by ...:' \
+    '(-f --force)'{-f,--force}'[continue through errors]' \
+    '(-r --replace -i --ignore)'{-i,--ignore}'[if duplicate key found, keep old row]' \
+    '--ignore-lines=[ignore specified number of lines from input file]:number of lines' \
+    '--lines-terminated-by=[specify line terminator in input file]:terminator' \
+    '(-L --local)'{-L,--local}'[read all files through the client]' \
+    '(-l --lock-tables)'{-l,--lock-tables}'[lock all tables for write]' \
+    '--low-priority[use LOW_PRIORITY when updating the table]' \
+    '(-i --ignore -r --replace)'{-r,--replace}'[if duplicate key found, replace old row]' \
+    ':MySQL database:_mysql_databases'
+}
+_mysqladmin() {
+  local curcontext="$curcontext" state line expl ret=1
+  typeset -A opt_args
+
+  _arguments -C -s \
+    "$_mysql_common_opts[@]" \
+    '(-f --force)'{-f,--force}'[continue through errors]' \
+    '(-i --sleep)'{-i+,--sleep=}'[repeat commands periodically]:number of seconds between executions' \
+    '(-s --silent)'{-s,--silent}"[silently exit if can't connect to server]" \
+    '(-t --timeout)'{-t+,--timeout=}'[specify timeout for connection]:time (seconds)' \
+    '(-w --wait)'{-w+,--wait=}'[wait and retry server connection if necessary]:number of retries' \
+    '*::mysqladmin command:->mysqladmin-commands' && ret=0
+
+  if [[ -n "$state" ]]; then
+    if (( CURRENT == 1 )); then
+      _wanted commands expl 'mysqladmin command' compadd - \
+	  create drop extended-status \
+	  flush-{hosts,logs,status,tables,threads,privileges} \
+	  kill password ping processlist \
+	  reload refresh shutdown \
+	  status start-slave stop-slave variables version && ret=0
+    else
+      case "${words[1]:t}" in
+	create|drop)
+	  _wanted databases expl "MySQL database" _mysql_databases && ret=0
+	;;
+	kill)
+	  _message -e ids 'thread id'
+	;;
+	password)
+	  _message -e passwords 'new password'
+	;;
+      esac
+    fi
+  fi
+
+  return ret
+}
+
+_mysql_utils() {
+  local _mysql_common_opts _mysql_variables_opts
+
+  _mysql_common_opts=(
+    '(- *)'{-\?,--help}'[display help]'
+    '(- *)'{-V,--version}'[display version information]' \
+    {-\#+,--debug=}'[specify debug log file]:log file:_files'
+    '--print-defaults[print the program argument list and exit]'
+    "--no-defaults[don't read default options from any options file]"
+    '--defaults-file=[read defaults from the given file]:file:_files'
+    '--defaults-extra-file=[read specified file after the global files]:defaults file:_files'
+    '(-S --socket)'{-S+,--socket=}'[specify socket file to use for connection]:server socket file:_files'
+    '(-h --host)'{-h+,--host=}'[specify server hostname]:hostname:_mysql_hosts'
+    '(-P --port)'{-P+,--port=}'[specify port number for connection]:server port:_mysql_ports'
+    '(-u --user)'{-u+,--user=}'[specify username for login]:server username:_mysql_users'
+    '(-p --password)'{-p-,--password=}'[specify password to use for connection]:server password'
+    '(-C --compress)'{-C,--compress}'[use compression in server/client protocol]'
+    \*{-v,--verbose}'[more verbose output]'
+  )
+
+  _mysql_variables_opts=(
+    '--max_allowed_packet[maximum allowed packet size]:packet size (bytes)'
+    '--net_buffer_length[network buffer length]:buffer length (bytes)'
+    '--connect_timeout:timeout'
+    '--select_limit:limit'
+    '--max_join_size:size'
+  )
+
+  case "$service" in
+    mysql)
+      _mysql "$@"
+    ;;
+    mysqlshow)
+      _mysqlshow "$@"
+    ;;
+    mysqldump)
+      _mysqldump "$@"
+    ;;
+    mysqlimport)
+      _mysqlimport "$@"
+    ;;
+    mysqladmin)
+      _mysqladmin "$@"
+    ;;
+  esac
+}
+
+_mysql_utils "$@"

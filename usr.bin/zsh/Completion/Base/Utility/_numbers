@@ -1,0 +1,87 @@
+#autoload
+
+# Usage: _numbers [compadd options] [-t tag] [-f|-N] [-u units] [-l min] [-m max] \
+#                 [-d default] ["description"] [unit-suffix...]
+
+#   -t : specify a tag (defaults to 'numbers')
+#   -u : indicate the units, e.g. seconds
+#   -l : lowest possible value
+#   -m : maximum possible value
+#   -d : default value
+#   -N : allow negative numbers (implied by range including a negative)
+#   -f : allow decimals (float)
+
+# For a unit-suffix, an initial colon indicates a unit that asserts the default
+# otherwise, colons allow for descriptions, e.g:
+
+#   :s:seconds m:minutes h:hours
+
+# unit-suffixes are not sorted by the completion system when listed
+# Specify them in order of magnitude, this tends to be ascending unless
+# the default is of a higher magnitude, in which case, descending.
+# So for, example
+#   bytes kB MB GB
+#   s ms us ns
+# Where the compadd options include matching control or suffixes, these
+# are applied to the units
+
+# For each unit-suffix, the format style is looked up with the
+# unit-suffixes tag and the results concatenated. Specs used are:
+#   x : the suffix
+#   X : suffix description
+#   d : indicate suffix is for the default unit
+#   i : list index
+#   r : reverse list index
+# The latter three of these are useful with ternary expressions.
+
+# _description is called with the x token set to make the completed
+# list of suffixes available to the normal format style
+
+local desc tag range suffixes suffix suffixfmt pat='<->' partial=''
+local -a expl formats
+local -a default max min keep tags units
+local -i i
+local -A opts
+
+zparseopts -K -D -A opts M+:=keep q:=keep s+:=keep S+:=keep J+: V+: 1 2 o+: n F: x+: X+: \
+  t:=tags u:=units l:=min m:=max d:=default f=type e=type N=type
+
+desc="${1:-number}" tag="${tags[2]:-numbers}"
+(( $# )) && shift
+
+[[ -n ${(M)type:#-f} ]] && pat='(<->.[0-9]#|[0-9]#.<->|<->)' partial='(|.)'
+[[ -n ${(M)type:#-N} || $min[2] = -* || $max[2] = -* ]] && \
+    pat="(|-)$pat" partial="(|-)$partial"
+
+if (( $#argv )) && compset -P "$pat"; then
+  zstyle -s ":completion:${curcontext}:units" list-separator sep || sep=--
+  _description -V units expl unit
+  disp=( ${${argv#:}/:/ $sep } )
+  compadd -M 'r:|/=* r:|=*' -d disp "$keep[@]" "$expl[@]" - ${${argv#:}%%:*}
+  return
+elif [[ -prefix $~pat || $PREFIX = $~partial ]]; then
+  formats=( "h:$desc" )
+  (( $#units )) && formats+=( m:${units[2]} ) desc+=" ($units[2])"
+  (( $#min )) && range="$min[2]-"
+  (( $#max )) && range="${range:--}$max[2]"
+  [[ -n $range ]] && formats+=( r:$range ) desc+=" ($range)"
+  (( $#default )) && formats+=( o:${default[2]} ) desc+=" [$default[2]]"
+
+  zstyle -s ":completion:${curcontext}:unit-suffixes" format suffixfmt || \
+      suffixfmt='%(d.%U.)%x%(d.%u.)%(r..|)'
+  for ((i=0;i<$#;i++)); do
+    zformat -f suffix "$suffixfmt" "x:${${argv[i+1]#:}%%:*}" \
+        "X:${${argv[i+1]#:}#*:}" "d:${#${argv[i+1]}[1]#:}" \
+	i:i r:$(( $# - i - 1))
+    suffixes+="$suffix"
+  done
+  [[ -n $suffixes ]] && formats+=( x:$suffixes )
+
+  _comp_mesg=yes
+  _description -x $tag expl "$desc" $formats
+  [[ $compstate[insert] = *unambiguous* ]] && compstate[insert]=
+  compadd "$expl[@]"
+  return 0
+fi
+
+return 1

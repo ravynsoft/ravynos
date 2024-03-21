@@ -1,0 +1,46 @@
+#compdef -K _bash_complete-word complete-word \e~ _bash_list-choices list-choices ^X~
+#
+# This function is for bash compatibility.  As some of the bash bindings
+# are already taken up in zsh, only Esc ~ and \C-x ~ are bound, and
+# you must add the rest by hand.  The bindings expected are:
+#
+# Esc ! -> command name
+# Esc $ -> environment variables
+# Esc @ -> machine names
+# Esc / -> file name
+# Esc ~ -> a user name
+# 
+# C-x instead of Esc with one of the above will list matches and won't
+# attempt any completion.
+#
+# The following will bind the remaining set; simply put it in .zshrc
+# after compinit is run.
+#
+# for key in '!' '$' '@' '/'; do
+#   bindkey "\e$key" _bash_complete-word
+#   bindkey "^X$key" _bash_list-choices
+# done
+#
+# If for some reason \e~ or ^X~ were already bound to something else,
+# that will not have been overridden, so you should add '~' to the
+# list of keys at the top of the for-loop.
+
+eval "$_comp_setup"
+
+local key=$KEYS[-1] expl
+
+case $key in
+  '!') _main_complete _command_names
+       ;;
+  '$') _main_complete - parameters _wanted parameters expl 'exported parameter' \
+                                       _parameters -g '*export*'
+       ;;
+  '@') _main_complete _hosts
+       ;;
+  '/') _main_complete _files
+       ;;
+  '~') _main_complete _users
+       ;;
+  *) _message "Key $key is not understood"
+     ;;
+esac

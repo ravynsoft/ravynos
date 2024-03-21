@@ -1,0 +1,25 @@
+#compdef getopts unset
+
+# This will handle completion of keys of associative arrays, e.g. at
+# `vared foo[<TAB>' could complete to `vared foo[key]'.
+
+local ret=1
+
+if [[ $PREFIX = *\[* ]]; then
+  compstate[parameter]=${PREFIX%%(|\\)\[*}
+
+  IPREFIX=${PREFIX%%\[*}\[
+  PREFIX=${PREFIX#*\[}
+
+  _subscript -q
+else
+  _parameters -g '^a*' "$@" && ret=0
+  
+  if compset -S '\[*'; then
+    set - -S "" "$@"
+  else
+    set - -qS"${${QIPREFIX:+[}:-\[}" "$@"
+  fi
+  _parameters -g 'a*' "$@" && ret=0
+  return ret
+fi

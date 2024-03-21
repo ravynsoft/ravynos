@@ -1,0 +1,84 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: comments.
+
+cat <<EOF > xg-c-comment-2.c
+int
+main()
+{
+  /* This is a comment which immediately before a keyword.  */
+  gettext ("1");
+
+  // This
+  // one
+  // too
+  // although many blank lines come before the token itself.
+
+      
+
+
+ gettext("2");
+
+  /* this one also counts */ gettext ("3");
+
+  gettext("4");
+
+  /* this one is also copied */ nada
+  gettext ("5");
+
+  /* I hope you do not see the following */
+  break;
+  gettext("6");
+
+  /* An unnice
+     multi-line comment */ evil;
+  gettext("7");
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -c --c++ -d xg-c-comment-2.tmp xg-c-comment-2.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-comment-2.tmp.po > xg-c-comment-2.po || Exit 1
+
+cat <<EOF > xg-c-comment-2.ok
+#. This is a comment which immediately before a keyword.
+msgid "1"
+msgstr ""
+
+#. This
+#. one
+#. too
+#. although many blank lines come before the token itself.
+msgid "2"
+msgstr ""
+
+#. this one also counts
+msgid "3"
+msgstr ""
+
+msgid "4"
+msgstr ""
+
+#. this one is also copied
+msgid "5"
+msgstr ""
+
+msgid "6"
+msgstr ""
+
+#. An unnice
+#. multi-line comment
+msgid "7"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-comment-2.ok xg-c-comment-2.po
+result=$?
+
+exit $result
+
+Local Variables:
+ nuke-trailing-whitespace-p:nil
+End:

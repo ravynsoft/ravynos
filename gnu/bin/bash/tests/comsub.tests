@@ -1,0 +1,84 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# command substution parsing tests
+
+TABSIZE=`grep -v '^[ #]' $CAPS </dev/null | grep -v "^$" | grep -v "^capalias"| grep -v "^infoalias" | wc -l`
+
+recho `echo ab cd #efg
+hijkl`
+
+recho ab$(echo mn; echo op)yz
+
+a=`echo 'a b c' | sed 's/ /\\
+/g' | grep 'b'`
+recho $a
+
+recho `echo 'a\' b`
+
+recho `echo '\$' bab`
+
+recho `echo '\`' ab`
+
+recho `echo '\\' ab`
+
+# old-style command substitution parsing compatibility tests -- post bash-3.1
+recho 'foo \\
+bar'
+
+recho 'foo \
+bar'
+
+echo `recho sed -e 's/[	:]/\\
+/g'`
+
+echo `recho sed -e 's/[	:]/\
+/g'`
+
+echo `recho 'foo\\
+bar'`
+
+echo `recho 'foo\
+bar'`  
+
+echo $(recho 'foo\
+bar')
+
+# long-standing parse error in all versions up through bash-4.3
+echo ${foo:-$(echo a{b,c})} >/dev/null
+
+# parsing problem based on recursively calling bison parser through bash-4.4
+for (( INDEX=0; INDEX<$((10-$(echo length $V_NAME))); INDEX++ ))
+do
+	:
+done
+
+# problem with four-character words followed by a metachar through bash-4.4
+comsub_foo_1()
+{
+  echo $(while true; do case $HOME in /*) echo abs ;; esac; done)
+}
+
+echo $(
+echo $(
+echo $(echo $( echo nested )
+)
+)
+)
+
+${THIS_SH} ./comsub1.sub
+${THIS_SH} ./comsub2.sub
+${THIS_SH} ./comsub3.sub
+${THIS_SH} ./comsub4.sub
+${THIS_SH} ./comsub5.sub
+${THIS_SH} ./comsub6.sub

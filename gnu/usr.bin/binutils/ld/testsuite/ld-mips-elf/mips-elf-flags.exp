@@ -1,0 +1,326 @@
+#   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+if {![istarget mips*-*-*] || ![is_elf_format]} {
+    return
+}
+
+if {[istarget mips*-*-irix6*]} {
+    set ldemul "-melf32bsmip"
+} elseif {[istarget mips*el-*-linux*]} {
+    set ldemul "-melf32ltsmip"
+} elseif {[istarget mips*-*-linux*]} {
+    set ldemul "-melf32btsmip"
+} elseif {[istarget mips*el-*-*freebsd*]} {
+    set ldemul "-melf32ltsmip_fbsd"
+} elseif {[istarget mips*-*-*freebsd*]} {
+    set ldemul "-melf32btsmip_fbsd"
+} else {
+    set ldemul ""
+}
+
+# Check is ld supported 32bit emulations.
+proc check_ld_support_32bit { } {
+    global ld
+    global echo
+
+    set ld_output [remote_exec host $ld "-V"]
+    if [string match "*elf32*" $ld_output] then {
+	return 1
+    } else {
+	return 0
+    }
+}
+
+# Check args is 32bit abis.
+proc check_is_32bit_args {arg} {
+
+    if { [string match "*-32*" $arg]
+         || [string match "*-mabi=32*" $arg]
+         || [string match "*-mabi=o64*" $arg]
+         || [string match "*-mgp32*" $arg] } {
+	return 1
+    } else {
+	return 0
+    }
+}
+
+# Assemble jr.s using each of the argument lists in ARGLIST.  Return the
+# list of object files on success and an empty list on failure.
+proc assemble_for_flags {arglist} {
+    global as srcdir subdir
+
+    set objs {}
+    set index 1
+
+    foreach args $arglist {
+	set obj "tmpdir/mips-flags-${index}.o"
+	if {![ld_assemble $as "$args $srcdir/$subdir/jr.s" $obj]} {
+	    return ""
+	}
+	lappend objs $obj
+	incr index
+    }
+    return $objs
+}
+
+# Assemble a file using each set of arguments in ARGLIST.  Check that
+# the objects can be linked together and that the `readelf -h' output
+# includes each flag named in FLAGS.  Additional one or more arguments
+# request the addition of the `-A' option to `readelf' invocation.  In
+# this case check MIPS ABI Flags reported for the ISA to match the
+# first of these arguments, the ISA Extension to match the second, and
+# the ASEs listed are exactly the same as those listed in the third,
+# passed as a TCL list.
+proc good_combination {arglist flags args} {
+    global ld ldemul READELF
+
+    set finalobj "tmpdir/mips-flags.o"
+    set testname "MIPS compatible objects: $arglist"
+    set objs [assemble_for_flags $arglist]
+
+    foreach argsl $arglist {
+        if { [check_is_32bit_args $argsl] && ![check_ld_support_32bit] } {
+	    unsupported $testname
+	    return 0
+	}
+    }
+
+    if {$objs == ""} {
+	fail $testname
+    } elseif {![ld_link "$ld $ldemul" $finalobj "-r $objs"]} {
+	fail $testname
+    } else {
+	set A [expr {[llength $args] > 0} ? {"A"} : {""}]
+	set cmd "$READELF -h$A $finalobj"
+	send_log "$cmd\n"
+	set cmdret [remote_exec host [concat sh -c [list "$cmd 2>&1"]]]
+	set output [lindex $cmdret 1]
+	set cmdret [lindex $cmdret 0]
+	if {$cmdret != 0 \
+	    || ![regexp "Flags: *(\[^\n\r\]*)" $output full gotflags]} {
+	    fail $testname
+	} else {
+	    set failed 0
+
+	    # GOTFLAGS is a list of flags separated by ", ".
+	    # Convert it to a tcl list.
+	    regsub -all ", " $gotflags "," gotflags
+	    set gotflags [split $gotflags ","]
+
+	    foreach flag $flags {
+		if {[lsearch -exact $gotflags $flag] < 0} {
+		    # The mips*-*-irix* not use o32 flags.
+		    if {[istarget mips*-*-irix*] && $flag == "o32"} {
+			set failed 0
+		    } else {
+			set failed 1
+		    }
+		}
+	    }
+
+	    set isa [string trim [lindex $args 0]]
+	    if {$isa != ""
+		&& (![regexp "ISA: *(\[^\n\r\]*)" $output full gotisa]
+		    || ![string match $isa $gotisa])} {
+		set failed 1
+	    }
+
+	    set ext [string trim [lindex $args 1]]
+	    if {$ext != ""
+		&& (![regexp "ISA Extension: *(\[^\n\r\]*)" \
+		      $output full gotext]
+		    || ![string match $ext $gotext])} {
+		set failed 1
+	    }
+
+	    set ases [string trim [lindex $args 2]]
+	    if {[llength $ases] > 0} {
+		if {![regexp "ASEs:\[\n\r\]+((?:\t\[^\n\r\]*\[\n\r\]+)*)" \
+		      $output full gotases]} {
+		    set failed 1
+		} else {
+		    # GOTASES is a list of strings separated by tab and
+		    # line separator characters.  Convert it to a TCL list.
+		    regsub -all "\[\n\r\t\]+" $gotases "\n" gotases
+		    set gotases [split [string trim $gotases] "\n"]
+
+		    foreach ase $ases {
+			set aseidx [lsearch -exact $gotases $ase]
+			if {$aseidx >= 0} {
+			    set gotases [lreplace $gotases $aseidx $aseidx]
+			} else {
+			    set failed 1
+			}
+		    }
+		    if {[llength $gotases] > 0} {
+			set failed 1
+		    }
+		}
+	    }
+
+	    if {$failed} {
+		fail $testname
+	    } else {
+		pass $testname
+	    }
+	}
+    }
+}
+
+# Like good_combination, but check that the objects can't be linked
+# together successfully and that the output includes MESSAGE.
+proc bad_combination {arglist message} {
+    global link_output ld ldemul
+
+    set finalobj "tmpdir/mips-flags.o"
+    set testname "MIPS incompatible objects: $arglist"
+    set objs [assemble_for_flags $arglist]
+
+    foreach argsl $arglist {
+        if { [check_is_32bit_args $argsl] && ![check_ld_support_32bit] } {
+	    unsupported $testname
+	    return 0
+	}
+    }
+
+    if {$objs == ""} {
+	fail $testname
+    } elseif {[ld_link "$ld $ldemul" $finalobj "-r $objs"]
+	      || [string first $message $link_output] < 0} {
+	fail $testname
+    } else {
+	pass $testname
+    }
+}
+
+# Routines to check for various kinds of incompatibility.
+
+proc abi_conflict {arglist firstabi secondabi} {
+    bad_combination $arglist \
+      "linking $secondabi module with previous $firstabi modules"
+}
+
+proc isa_conflict {arglist firstisa secondisa} {
+    bad_combination $arglist \
+      "linking mips:$secondisa module with previous mips:$firstisa modules"
+}
+
+proc regsize_conflict {arglist} {
+    bad_combination $arglist \
+      "linking 32-bit code with 64-bit code"
+}
+
+abi_conflict { "-mabi=eabi -mgp32" "-mips4 -mabi=32" } EABI32 O32
+abi_conflict { "-mips4 -mabi=o64"  "-mips3 -mabi=eabi" } O64 EABI64
+
+isa_conflict { "-march=vr5500 -32"     "-march=sb1 -32" } 5500 sb1
+isa_conflict { "-march=vr5400 -32"     "-march=4120 -32" } 5400 4120
+isa_conflict { "-march=r3900 -32"      "-march=r6000 -32" } 3900 6000
+isa_conflict { "-march=r4010 -32"      "-march=r4650 -32" } 4010 4650
+isa_conflict { "-mips3 -mgp32 -32"     "-mips32 -32" } 4000 isa32
+isa_conflict { "-march=sb1 -mgp32 -32" "-mips32r2 -32" } sb1 isa32r2
+isa_conflict { "-march=sb1 -32"        "-mips64r2 -32" } sb1 isa64r2
+
+isa_conflict { "-march=vr4100 -32"     "-march=r10000 -32" } 4100 8000
+isa_conflict { "-march=r5900 -32"      "-march=vr4111 -32" } 5900 4111
+isa_conflict { "-march=loongson2e -32" "-march=loongson2f -32" } loongson_2e loongson_2f
+isa_conflict { "-march=gs464 -32" "-march=loongson2f -32" } gs464 loongson_2f
+
+isa_conflict { "-march=interaptiv-mr2 -32" \
+	       "-march=r4010 -32" } interaptiv-mr2 4010
+isa_conflict { "-march=interaptiv-mr2 -mnan=2008 -mfp64 -32" \
+	       "-mips32r6 -32" } interaptiv-mr2 isa32r6
+isa_conflict { "-march=interaptiv-mr2 -32" \
+	       "-mips3 -32" } interaptiv-mr2 4000
+isa_conflict { "-march=interaptiv-mr2 -32" \
+	       "-mips64r2 -32" } interaptiv-mr2 isa64r2
+isa_conflict { "-march=interaptiv-mr2 -32" \
+	       "-march=octeon -32" } interaptiv-mr2 octeon
+
+regsize_conflict { "-mips4 -mgp64 -mabi=o64"         "-mips2 -32" }
+regsize_conflict { "-mips4 -mabi=o64"                "-mips4 -mabi=32" }
+regsize_conflict { "-mips4 -mabi=eabi -mgp32"        "-mips4 -mabi=eabi -mgp64" }
+regsize_conflict { "-march=vr5000 -mgp64 -mabi=o64"  "-march=vr5000 -mgp32 -32" }
+regsize_conflict { "-mips32 -32"                     "-mips64 -mabi=o64" }
+regsize_conflict { "-mips32r2 -32"                   "-mips64 -mabi=o64" }
+regsize_conflict { "-mips32r2 -32"                   "-mips64r2 -mabi=o64" }
+
+good_combination { "-mips4 -mgp32 -32"  "-mips2 -32" } { mips4 o32 }
+good_combination { "-mips4 -mabi=32"    "-mips2 -32" } { mips4 o32 }
+good_combination { "-mips2 -32"         "-mips4 -mabi=32" } { mips4 o32 }
+good_combination { "-mips2 -mabi=eabi"  "-mips4 -mabi=eabi -mgp32" } { mips4 eabi32 }
+good_combination { "-mips2 -32"         "-mips32 -32" "-mips32r2 -32" } { mips32r2 }
+good_combination { "-mips1 -32"         "-mips32r2 -32" "-mips32 -32" } { mips32r2 }
+
+good_combination { "-march=vr4100 -32"  "-march=vr4120 -32" } { 4120 }
+good_combination { "-march=vr5400 -32"  "-march=vr5500 -32" "-mips4 -32" } { 5500 }
+good_combination { "-mips3 -32"         "-mips4 -32"        "-march=sb1 -32"  "-mips5 -32" } { sb1 }
+good_combination { "-mips1 -32"         "-march=3900 -32" } { 3900 }
+good_combination { "-mips3 -32"         "-mips64r2 -32" "   -mips64 -32" } { mips64r2 }
+
+good_combination { "-march=vr4120 -mabi=32"  "-mips3 -mabi=32" } { 4120 o32 }
+good_combination { "-march=sb1 -mgp32 -32"   "-march=4000 -mgp32 -32" } { sb1 o32 }
+good_combination { "-mips32 -mabi=32"        "-march=sb1 -mabi=32" } { sb1 o32 }
+good_combination { "-mips64r2 -mabi=32"      "-mips32 -mabi=32" } { mips64r2 o32 }
+good_combination { "-mips5 -mabi=o64"        "-mips64r2 -mabi=o64" } { mips64r2 o64 }
+
+good_combination { "-march=interaptiv-mr2 -32" "-mips1 -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r3 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" "MT ASE" }
+good_combination { "-march=interaptiv-mr2 -32" "-mips32r2 -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r3 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" "MT ASE" }
+good_combination { "-march=interaptiv-mr2 -32" "-march=interaptiv -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r3 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" "MT ASE" }
+good_combination { "-march=interaptiv-mr2 -32" "-mips32r3 -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r3 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" "MT ASE" }
+good_combination { "-march=interaptiv-mr2 -32" "-mips32r3 -mips16 -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r3 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" "MT ASE" "MIPS16 ASE" }
+good_combination { "-march=interaptiv-mr2 -mips16 -32" "-mips32r3 -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r3 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" "MT ASE" \
+		   "MIPS16 ASE" "MIPS16e2 ASE" }
+good_combination { "-march=interaptiv-mr2 -32" "-mips32r5 -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r5 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" "MT ASE" }
+good_combination { "-march=interaptiv-mr2 -32" "-march=m5100 -32" } \
+		 { mips32r2 interaptiv-mr2 } \
+		 MIPS32r5 "Imagination interAptiv MR2" \
+		 { "DSP ASE" "Enhanced VA Scheme" \
+		   "MCU (MicroController) ASE" "MT ASE" }
+
+good_combination { "-march=gs464 -32" "-march=gs464e -32" }	\
+		 { gs464e o32 }					\
+		 MIPS64r2 "None"				\
+		 { "Loongson MMI ASE" "Loongson CAM ASE" "Loongson EXT ASE" "Loongson EXT2 ASE" }
+good_combination { "-march=gs264e -32" "-march=gs464e -32" }	\
+		 { gs264e o32 }					\
+		 MIPS64r2 "None"				\
+		 { "Loongson MMI ASE" "Loongson CAM ASE" "Loongson EXT ASE" "Loongson EXT2 ASE" }

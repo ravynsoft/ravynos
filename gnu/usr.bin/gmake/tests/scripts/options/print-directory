@@ -1,0 +1,70 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the -w option to GNU Make.";
+
+my $enter = "#MAKE#: Entering directory '#PWD#'";
+my $leave = "#MAKE#: Leaving directory '#PWD#'";
+
+# Simple test without -w
+run_make_test(q!
+all: ; @echo hi
+!,
+        "", "hi\n");
+
+my $ans = "$enter\nhi\n$leave\n";
+
+# Simple test with -w
+run_make_test(undef, "-w", $ans);
+
+# Simple test with overriding -w
+run_make_test(undef, "-w --no-print-directory", "hi\n");
+
+# Simple test with overriding --no-print-directory
+run_make_test(undef, "--no-print-directory --print-directory", $ans);
+
+# Test makefile rebuild to ensure no enter/leave
+run_make_test(q!
+include foo
+all: ;@:
+foo: ; touch foo
+!,
+        "", "touch foo\n");
+unlink('foo');
+
+$ans = "$enter\ntouch foo\n$leave\n";
+
+# Test makefile rebuild with -w
+run_make_test(undef, "-w", $ans);
+unlink('foo');
+
+# Test makefile rebuild with -w overridden
+run_make_test(undef, "-w --no-print-directory", "touch foo\n");
+unlink('foo');
+
+# Test makefile rebuild with --no-print-directory overridden
+run_make_test(undef, "--no-print-directory --print-directory", $ans);
+unlink('foo');
+
+my $enter1 = "#MAKE#[1]: Entering directory '#PWD#'";
+my $leave1 = "#MAKE#[1]: Leaving directory '#PWD#'";
+
+$ans = "$enter1\nhi\n$leave1\n";
+
+# Test makefile recursion with default enter/leave
+run_make_test(q!
+all: ;@$(MAKE) -f #MAKEFILE# recurse
+recurse: ; @echo hi
+!,
+        "", $ans);
+
+# Disable enter/leave
+run_make_test(undef, "--no-print-directory", "hi\n");
+
+# Re-enable enter/leave
+$ans = "$enter\n$ans$leave\n";
+run_make_test(undef, "--no-print-directory -w", $ans);
+
+# Override enter/leave
+run_make_test(undef, "-w --no-print-directory", "hi\n");
+
+1;

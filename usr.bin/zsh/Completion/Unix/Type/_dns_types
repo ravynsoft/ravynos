@@ -1,0 +1,8 @@
+#autoload
+
+local expl
+_description dns-types expl 'DNS type'
+compadd "$@" "$expl[@]" -M 'm:{a-z}={A-Z}' \
+    ANY A AAAA AFSDB APL AXFR CAA CDNSKEY CDS CERT CNAME DHCID DLV DNAME \
+    DNSKEY DS HIP HINFO IPSECKEY IXFR KEY KX LOC MX NAPTR NS NSEC NSEC3 \
+    NSEC3PARAM OPT PTR RRSIG RP SIG SOA SPF SRV SSHFP TA TKEY TLSA TSIG TXT

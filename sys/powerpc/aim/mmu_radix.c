@@ -27,7 +27,6 @@
 
 #include "opt_platform.h"
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/kernel.h>
 #include <sys/systm.h>
@@ -67,6 +66,7 @@
 #include <vm/vm_extern.h>
 #include <vm/vm_pageout.h>
 #include <vm/vm_phys.h>
+#include <vm/vm_radix.h>
 #include <vm/vm_reserv.h>
 #include <vm/vm_dumpset.h>
 #include <vm/uma.h>
@@ -1843,6 +1843,7 @@ mmu_radix_setup_pagetables(vm_size_t hwphyssz)
 
 	bzero(kernel_pmap, sizeof(struct pmap));
 	PMAP_LOCK_INIT(kernel_pmap);
+	vm_radix_init(&kernel_pmap->pm_radix);
 
 	ptpages = allocpages(3);
 	l1phys = moea64_bootstrap_alloc(RADIX_PGD_SIZE, RADIX_PGD_SIZE);

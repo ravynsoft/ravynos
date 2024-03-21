@@ -1,0 +1,69 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --add-location=file option.
+
+cat <<EOF > mm-test25.in1
+# first
+#. this should be discarded
+msgid "1"
+msgstr "1x"
+# second
+#: bogus:1
+msgid "2"
+msgstr	"this is a really long msgstr "
+	"used to test the wrapping to "
+	"make sure it works after all "
+	"what is a test for if not to test things?"
+# third
+msgid "3"
+msgstr "3z"
+EOF
+
+cat <<EOF > mm-test25.in2
+#. this is the first
+#: snark.c:345
+msgid "1"
+msgstr ""
+#. this is the second
+#: hunt.c:759
+msgid "2"
+msgstr ""
+#. this is the third
+#: boojum.c:300
+msgid "3"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} --add-location=file -q -o mm-test25.tmp mm-test25.in1 mm-test25.in2 \
+    || Exit 1
+LC_ALL=C tr -d '\r' < mm-test25.tmp > mm-test25.out || Exit 1
+
+cat << EOF > mm-test25.ok
+# first
+#. this is the first
+#: snark.c
+msgid "1"
+msgstr "1x"
+
+# second
+#. this is the second
+#: hunt.c
+msgid "2"
+msgstr ""
+"this is a really long msgstr used to test the wrapping to make sure it works "
+"after all what is a test for if not to test things?"
+
+# third
+#. this is the third
+#: boojum.c
+msgid "3"
+msgstr "3z"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test25.ok mm-test25.out
+result=$?
+
+exit $result

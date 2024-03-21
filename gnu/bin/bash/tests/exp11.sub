@@ -1,0 +1,105 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+set -- '1 2'
+
+unset var
+recho ${var-${*:1}}
+
+unset var
+recho ${var=$*}
+
+unset var
+recho ${var=${*:1}}
+recho "$var"
+
+# posix interp 221
+unset var
+recho ${var:-a\ b}
+
+recho ${var:=a\ b}
+recho "$var"
+
+set -- 1 2
+IFS=
+
+unset a b c
+recho $*
+recho ${a-$*}
+recho ${b-${*/}}
+recho ${c=${*/}}
+recho "$c"
+recho ${b-${*,,}}
+recho ${d-${*,,}}
+
+unset -v a b c
+IFS=$' \t\n'
+
+set -- ' '
+A=(' ')
+
+IFS=
+unset var
+var=${*@E}
+recho "$var"
+
+unset var
+var=${A[*]@E}
+recho "$var"
+
+unset var
+var=${@@E}
+recho "$var"
+
+unset var
+var=${A[@]@E}
+recho "$var"
+
+unset novar
+recho ${novar-${A[*]@E}}
+
+unset -v var novar
+IFS=$' \t\n'
+
+set -- 1 2
+A=( 1 2 )
+IFS=
+
+a=$* 
+recho "$a"
+b=${*@E}
+recho "$b"
+
+unset a b
+a=${A[*]}
+recho "$a"
+b=${A[*]@E}
+recho "$b"
+
+set -- $'\t'
+A=$1
+
+IFS=$1
+[[ ${A[@]} ]] && echo ok 1
+[[ ${A[*]} ]] && echo ok 2
+[[ ${A[0]} ]] && echo ok 3
+
+IFS=$' \t\n'
+[[ ${A[@]} ]] && echo ok 4
+[[ ${A[*]} ]] && echo ok 5
+[[ ${A[0]} ]] && echo ok 6
+
+IFS=
+[[ ${A[@]} ]] && echo ok 7
+[[ ${A[*]} ]] && echo ok 8
+[[ ${A[0]} ]] && echo ok 9

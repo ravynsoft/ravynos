@@ -191,6 +191,8 @@ typedef enum {
 	ZFS_PROP_REDACTED,
 	ZFS_PROP_REDACT_SNAPS,
 	ZFS_PROP_SNAPSHOTS_CHANGED,
+	ZFS_PROP_PREFETCH,
+	ZFS_PROP_VOLTHREADING,
 	ZFS_NUM_PROPS
 } zfs_prop_t;
 
@@ -363,6 +365,7 @@ typedef enum {
 	VDEV_PROP_CHECKSUM_T,
 	VDEV_PROP_IO_N,
 	VDEV_PROP_IO_T,
+	VDEV_PROP_RAIDZ_EXPANDING,
 	VDEV_NUM_PROPS
 } vdev_prop_t;
 
@@ -543,6 +546,12 @@ typedef enum zfs_key_location {
 	ZFS_KEYLOCATION_LOCATIONS
 } zfs_keylocation_t;
 
+typedef enum {
+	ZFS_PREFETCH_NONE = 0,
+	ZFS_PREFETCH_METADATA = 1,
+	ZFS_PREFETCH_ALL = 2
+} zfs_prefetch_type_t;
+
 #define	DEFAULT_PBKDF2_ITERATIONS 350000
 #define	MIN_PBKDF2_ITERATIONS 100000
 
@@ -716,6 +725,7 @@ typedef struct zpool_load_policy {
 #define	ZPOOL_CONFIG_SCAN_STATS		"scan_stats"	/* not stored on disk */
 #define	ZPOOL_CONFIG_REMOVAL_STATS	"removal_stats"	/* not stored on disk */
 #define	ZPOOL_CONFIG_CHECKPOINT_STATS	"checkpoint_stats" /* not on disk */
+#define	ZPOOL_CONFIG_RAIDZ_EXPAND_STATS	"raidz_expand_stats" /* not on disk */
 #define	ZPOOL_CONFIG_VDEV_STATS		"vdev_stats"	/* not stored on disk */
 #define	ZPOOL_CONFIG_INDIRECT_SIZE	"indirect_size"	/* not stored on disk */
 
@@ -781,6 +791,8 @@ typedef struct zpool_load_policy {
 #define	ZPOOL_CONFIG_SPARES		"spares"
 #define	ZPOOL_CONFIG_IS_SPARE		"is_spare"
 #define	ZPOOL_CONFIG_NPARITY		"nparity"
+#define	ZPOOL_CONFIG_RAIDZ_EXPANDING	"raidz_expanding"
+#define	ZPOOL_CONFIG_RAIDZ_EXPAND_TXGS	"raidz_expand_txgs"
 #define	ZPOOL_CONFIG_HOSTID		"hostid"
 #define	ZPOOL_CONFIG_HOSTNAME		"hostname"
 #define	ZPOOL_CONFIG_LOADED_TIME	"initial_load_time"
@@ -898,6 +910,15 @@ typedef struct zpool_load_policy {
 
 #define	VDEV_TOP_ZAP_ALLOCATION_BIAS \
 	"org.zfsonlinux:allocation_bias"
+
+#define	VDEV_TOP_ZAP_RAIDZ_EXPAND_STATE \
+	"org.openzfs:raidz_expand_state"
+#define	VDEV_TOP_ZAP_RAIDZ_EXPAND_START_TIME \
+	"org.openzfs:raidz_expand_start_time"
+#define	VDEV_TOP_ZAP_RAIDZ_EXPAND_END_TIME \
+	"org.openzfs:raidz_expand_end_time"
+#define	VDEV_TOP_ZAP_RAIDZ_EXPAND_BYTES_COPIED \
+	"org.openzfs:raidz_expand_bytes_copied"
 
 /* vdev metaslab allocation bias */
 #define	VDEV_ALLOC_BIAS_LOG		"log"
@@ -1129,6 +1150,16 @@ typedef struct pool_removal_stat {
 	 */
 	uint64_t prs_mapping_memory;
 } pool_removal_stat_t;
+
+typedef struct pool_raidz_expand_stat {
+	uint64_t pres_state; /* dsl_scan_state_t */
+	uint64_t pres_expanding_vdev;
+	uint64_t pres_start_time;
+	uint64_t pres_end_time;
+	uint64_t pres_to_reflow; /* bytes that need to be moved */
+	uint64_t pres_reflowed; /* bytes moved so far */
+	uint64_t pres_waiting_for_resilver;
+} pool_raidz_expand_stat_t;
 
 typedef enum dsl_scan_state {
 	DSS_NONE,
@@ -1569,6 +1600,7 @@ typedef enum {
 	ZFS_ERR_NOT_USER_NAMESPACE,
 	ZFS_ERR_RESUME_EXISTS,
 	ZFS_ERR_CRYPTO_NOTSUP,
+	ZFS_ERR_RAIDZ_EXPAND_IN_PROGRESS,
 } zfs_errno_t;
 
 /*
@@ -1593,6 +1625,7 @@ typedef enum {
 	ZPOOL_WAIT_RESILVER,
 	ZPOOL_WAIT_SCRUB,
 	ZPOOL_WAIT_TRIM,
+	ZPOOL_WAIT_RAIDZ_EXPAND,
 	ZPOOL_WAIT_NUM_ACTIVITIES
 } zpool_wait_activity_t;
 

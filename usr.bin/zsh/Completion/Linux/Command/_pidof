@@ -1,0 +1,27 @@
+#compdef pidof
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+local exargs="-h --help -V --version"
+_arguments -C -s -w \
+  '(- *)'{-h,--help}'[display help information]' \
+  '(- *)'{-V,--version}'[print program version]' \
+  "(-s --single-shot $exargs)"{-s,--single-shot}'[return one PID only]' \
+  "(-c --check-root $exargs)"{-c,--check-root}'[omit processes with different root]' \
+  '-q[quiet mode, only set the exit code]' \
+  '(-w --with-workers)'{-w,--with-workers}'[show kernel workers too]' \
+  "(-x $exargs)"-x'[include shells running named scripts]' \
+  "($exargs)"\*{-o+,--omit-pid=}'[omit processes with PIDs]:pids:_sequence -s , _pids' \
+  '(-S --separator)'{-S+,--separator=}'[specify separator put between PIDs]:separator' \
+  '*:process:->procnames' \
+  && return 0
+
+case $state in
+  procnames)
+    # Handle defunct processes and "avahi-daemon:"
+    _wanted process-names expl process compadd ${${${${${(@)${(f)"$(ps -N --ppid 2 -p 2 o args=)"}%% *}##*/}%:}#\[}%]} && ret=0
+  ;;
+esac
+
+return ret

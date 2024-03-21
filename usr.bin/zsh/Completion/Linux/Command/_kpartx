@@ -1,0 +1,14 @@
+#compdef kpartx
+
+_arguments -s -S : \
+  '(-d -u -l)-a[add partition mappings]' \
+  '-r[read-only partition mappings]' \
+  '(-a -u -l)-d[delete partition mappings]' \
+  '(-a -d -l)-u[update partition mappings]' \
+  '(-a -d -u)-l[list partition mappings]' \
+  '-p[set device name-partition number delimiter]' \
+  '-f[force creation of mappings]' \
+  '-g[force GUID partition table]' \
+  '-v[operate verbosely]' \
+  '-n[return before the partitions are created]' '!(-n)-s' \
+  '1: : _files'

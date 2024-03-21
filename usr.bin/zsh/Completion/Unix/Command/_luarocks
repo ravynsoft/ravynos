@@ -1,0 +1,637 @@
+#compdef luarocks
+
+# Start of options' arguments' helpers
+(( $+functions[__luarocks_command] )) ||
+__luarocks_command(){
+  local -a commands=(
+    build:'build/compile a rock'
+    config:'query information about the LuaRocks configuration'
+    doc:'show documentation for an installed rock'
+    download:'download a specific rock file from a rocks server'
+    help:'help on commands'
+    init:'initialize a directory for a Lua project using LuaRocks'
+    install:'install a rock'
+    lint:'check syntax of a rockspec'
+    list:'list currently installed rocks'
+    make:'compile package in current directory using a rockspec'
+    new_version:'auto-write a rockspec for a new version of a rock'
+    pack:'create a rock, packing sources or binaries'
+    path:'return the currently configured package path'
+    purge:'remove all installed rocks from a tree'
+    remove:'uninstall a rock'
+    search:'query the LuaRocks servers'
+    show:'show information about an installed rock'
+    test:'run the test suite in the current directory'
+    unpack:'unpack the contents of a rock'
+    upload:'upload a rockspec to the public rocks repository'
+    which:'indicate which file corresponds to a given module name'
+    write_rockspec:'write a template for a rockspec file'
+  )
+  _describe -t commands 'command' commands "$@"
+}
+
+local option_deps_modes='--deps-mode=[specify how to handle dependencies]:mode:__luarocks_deps_modes'
+
+local rockspec_options=(
+  '--license=[specify a license string]:license (e.g. "MIT/X11" or "GNU GPL v3")'
+  '--summary=[a short one-line description summary]:summary'
+  '--detailed=[a longer description string]:detailed description'
+  '--homepage=[project homepage]:URL:_urls'
+  '--lua-versions=[specify supported Lua versions]:lua version:_sequence compadd - 5.{1,2,3,4}'
+  '--rockspec-format=[rockspec format version, such as "1.0" or "1.1"]:VER: '
+  '--lib=[comma separated list of C library files to link to]:library files'
+)
+
+(( $+functions[__luarocks_deps_modes] )) ||
+__luarocks_deps_modes(){
+  local modes=(
+    'all:use all trees from the rocks_trees list for finding dependencies'
+    'one:use only the current tree (possibly set with --tree)'
+    'order:use trees based on order (use the current tree and all trees below it on the rocks_trees list)'
+    'none:ignore dependencies altogether'
+  )
+  _describe 'dependencies mode' modes
+}
+(( $+functions[__luarocks_rock_version] )) ||
+__luarocks_rock_version(){
+  local i=2
+  while [[ -n "${words[$i]}" ]]; do
+    if [[ ! "${words[$i]}" =~ '^-' ]]; then
+      case "$1" in
+        "external_or_local")
+          if [[ ! -f "${words[$i]}" ]]; then
+            _message -e "version for external rock ${words[$i]}"
+            return
+          else
+            _message -e "version for local rock ${words[$i]}"
+          fi
+          ;;
+        "installed")
+          tree="$2"
+          __luarocks_installed_rocks "${tree}" "${words[$i]}"
+          return
+          ;;
+        "new_version")
+          if [[ -f "${words[$i]}" ]]; then
+            _message -e "new version for rock ${words[$i]}"
+            return
+          fi
+          ;;
+        "new_rock")
+          _message -e "version for new rock ${words[$i]}"
+          return
+          ;;
+      esac
+    fi
+    i=$(( i + 1 ))
+  done
+}
+
+(( $+functions[___luarocks_manually_store_cache_configs_paths] )) ||
+___luarocks_manually_store_cache_configs_paths(){
+  user_config_path="$(_call_program user_config_path luarocks config --user-config)"
+  system_config_path="$(_call_program system_config_path luarocks config --system-config)"
+  {
+    print -r user_config_path=${(qq)user_config_path}
+    print -r system_config_path=${(qq)system_config_path}
+  } >! ${cache_dir}/luarocks_configs_paths
+}
+(( $+functions[___luarocks_manually_store_cache_configured_values] )) ||
+___luarocks_manually_store_cache_configured_values(){
+  local default_trees=($(_call_program rock_trees luarocks config --rock-trees))
+  # The following command usually gives somethins like this
+  #
+  #   /home/me/.luarocks	user
+  #   /usr	system
+  #
+  # We'll just use the 1st and 3rd elements in the array for the default trees
+  configured_user_tree="${default_trees[1]}"
+  configured_system_tree="${default_trees[3]}"
+  configured_lua_version="$(_call_program lua_ver luarocks config --lua-ver)"
+  {
+    print -r configured_lua_version=${(qq)configured_lua_version}
+    print -r configured_user_tree=${(qq)configured_user_tree}
+    print -r configured_system_tree=${(qq)configured_system_tree}
+  } >! ${cache_dir}/luarocks_configured_values
+}
+(( $+functions[___luarocks_installed_rocks_cache_policy] )) ||
+___luarocks_installed_rocks_cache_policy(){
+  local cache_file="$1"
+  # Before checking the modification date of the manifests files vs the
+  # installed rocks cache files, we need to perform the following checks:
+  # - luarocks executable modification date vs modification date of cache file
+  #   holding the default configuration files' locations
+  # ) if configuration files' locations were possibly changed, we need to:
+  #   * set and cache the *possibly* new locations of the configuration files
+  # ) else:
+  #   * retrieve from cache the configuration files' locations
+  # ) end if
+  # - configuration files' modification date vs modification date of cache file
+  #   holding the values from `luarocks config --lua-ver` and `luarocks config
+  #   --rock-trees`
+  # ) if the configuration files' locations were changed:
+  #   * set and cache the values from the commands above
+  # ) else:
+  #   ) if configuration files are newer:
+  #     * set and cache the values from the commands above
+  #   ) else:
+  #     * retrieve from cache the values of the commands above
+  #   ) end if
+  # ) end if
+
+  # Decide which directory to retrieve cache from, and ensure it exists
+  local cache_dir
+  zstyle -s ":completion:${curcontext}:" cache-path cache_dir
+  : ${cache_dir:=${ZDOTDIR:-$HOME}/.zcompcache}
+  if [[ ! -d "$cache_dir" ]]; then
+    [[ -e "$cache_dir" ]] &&
+      _message "cache-dir ($cache_dir) isn't a directory\!"
+  fi
+  local where_luarocks="${commands[luarocks]}"
+  # luarocks_configured_values
+  local configured_lua_version configured_user_tree configured_system_tree
+  # luarocks_configs_paths
+  local user_config_path system_config_path
+  if [[ -e ${cache_dir}/luarocks_configs_paths ]]; then
+    if [[ ${where_luarocks} -nt ${cache_dir}/luarocks_configs_paths ]]; then
+      ___luarocks_manually_store_cache_configs_paths
+    else
+      . ${cache_dir}/luarocks_configs_paths
+    fi
+  else
+    ___luarocks_manually_store_cache_configs_paths
+  fi
+  if [[ -e ${cache_dir}/luarocks_configured_values ]]; then
+    if [[ ${user_config_path} -nt ${cache_dir}/luarocks_configured_values ]] || [[ ${system_config_path} -nt ${cache_dir}/luarocks_configured_values ]]; then
+      ___luarocks_manually_store_cache_configured_values
+    else
+      . ${cache_dir}/luarocks_configured_values
+    fi
+  else
+    ___luarocks_manually_store_cache_configured_values
+  fi
+
+  local user_manifest_file="${configured_user_tree}/lib/luarocks/rocks-${configured_lua_version}/manifest"
+  local system_manifest_file="${configured_system_tree}/lib/luarocks/rocks-${configured_lua_version}/manifest"
+  local cache_status=0
+  if [[ -f ${cache_file} ]]; then
+    if [[ -f ${user_manifest_file} ]]; then
+      if [[ ${cache_file} -nt ${user_manifest_file} ]]; then
+        cache_status=1
+      fi
+    fi
+    if [[ -f ${system_manifest_file} ]]; then
+      if [[ ${cache_file} -nt ${system_manifest_file} ]]; then
+        cache_status=1
+      fi
+    fi
+  fi
+  return cache_status
+}
+(( $+functions[__luarocks_installed_rocks] )) ||
+__luarocks_installed_rocks(){
+  # This function optionally receives one argument of the tree in which
+  # installed rocks are searched for. If this argument is used, the installed
+  # rocks which will be completed by this function will not use the cache which
+  # is valid only for installed rocks on default trees like /usr/lib/luarocks
+  # and ~/.luarocks
+  #
+  # The second argument (optional as well) is meant for telling the function to
+  # complete a version of a installed rock and not the rock itself from the list
+  local tree="$1"
+  local complete_version_for_rock="$2"
+  if [[ -z ${tree} ]]; then
+    local update_policy
+    zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+    if [[ -z "$update_policy" ]]; then
+      zstyle ":completion:${curcontext}:" cache-policy ___luarocks_installed_rocks_cache_policy
+    fi
+    if _cache_invalid luarocks_installed_list; then
+      rocks_list=($(luarocks list --porcelain))
+      _store_cache luarocks_installed_list rocks_list
+    else
+      _retrieve_cache luarocks_installed_list
+    fi
+    if [[ -z ${rocks_list} ]]; then
+      _message -r "no installed rocks"
+      return
+    fi
+    if _cache_invalid luarocks_installed_names; then
+      rocks_names=()
+      for i in {1.."${#rocks_list[@]}"..4}; do
+        rocks_names+=("${rocks_list[$i]}")
+      done
+      _store_cache luarocks_installed_names rocks_names
+    else
+      _retrieve_cache luarocks_installed_names
+    fi
+    if _cache_invalid luarocks_installed_versions; then
+      rocks_versions=()
+      for i in {2.."${#rocks_list[@]}"..4}; do
+        rocks_versions+=("${rocks_list[$i]}")
+      done
+      _store_cache luarocks_installed_versions rocks_versions
+    else
+      _retrieve_cache luarocks_installed_versions
+    fi
+    if _cache_invalid luarocks_installed_descriptions; then
+      rocks_descriptions=()
+      for i in {1.."${#rocks_names[@]}"}; do
+        name_version_description="$(luarocks show ${rocks_names[$i]} ${rocks_versions[$i]} 2>/dev/null | head -2 | tail -1)"
+        total_length=${#name_version_description}
+        garbage_length="$((${#rocks_names[$i]} + ${#rocks_versions[$i]} + 5))"
+        description="${name_version_description[${garbage_length},${total_length}]}"
+        rocks_descriptions+=("${description}")
+      done
+      _store_cache luarocks_installed_descriptions rocks_descriptions
+    else
+      _retrieve_cache luarocks_installed_descriptions
+    fi
+    if _cache_invalid luarocks_installed_names_and_descriptions; then
+      rocks_names_and_descriptions=()
+      for i in {1.."${#rocks_names[@]}"}; do
+        name_and_description=${rocks_names[$i]}:"${rocks_versions[$i]} "${rocks_descriptions[$i]}
+        rocks_names_and_descriptions+=(${name_and_description})
+      done
+    else
+      _store_cache luarocks_installed_names_and_descriptions rocks_names_and_descriptions
+    fi
+  else
+    rocks_list=($(luarocks --tree="${tree}" list --porcelain 2> /dev/null))
+    if [[ -z ${rocks_list} ]]; then
+      _message "no installed rocks in the specified tree"
+      return
+    fi
+    rocks_names=()
+    for i in {1.."${#rocks_list[@]}"..4}; do
+      rocks_names+=("${rocks_list[$i]}")
+    done
+    rocks_versions=()
+    for i in {2.."${#rocks_list[@]}"..4}; do
+      rocks_versions+=("${rocks_list[$i]}")
+    done
+    rocks_descriptions=()
+    for i in {1.."${#rocks_names[@]}"}; do
+      name_version_description="$(luarocks show ${rocks_names[$i]} ${rocks_versions[$i]} 2> /dev/null | head -2 | tail -1)"
+      total_length=${#name_version_description}
+      garbage_length="$((${#rocks_names[$i]} + ${#rocks_versions[$i]} + 5))"
+      description="${name_version_description[${garbage_length},${total_length}]}"
+      rocks_descriptions+=("${description}")
+    done
+    rocks_names_and_descriptions=()
+    for i in {1.."${#rocks_names[@]}"}; do
+      name_and_description=${rocks_names[$i]}:"${rocks_versions[$i]} "${rocks_descriptions[$i]}
+      rocks_names_and_descriptions+=(${name_and_description})
+    done
+  fi
+  if [[ -z "$complete_version_for_rock" ]]; then
+    _describe 'installed rock' rocks_names_and_descriptions
+  else
+    if [[ ! -z "${rocks_names[(r)${complete_version_for_rock}]}" ]]; then  # checks if the requested rock exists in the list of rocks_names
+      local rock="${complete_version_for_rock}"
+      local first_match_index=${rocks_names[(i)${rock}]}
+      local last_match_index=${rocks_names[(I)${rock}]}
+      local versions=()
+      for i in {${first_match_index}..${last_match_index}}; do
+        versions+=("${rocks_versions[$i]}")
+      done
+      _values "rock's version" $versions
+    else
+      if [[ -z "${tree}" ]]; then
+        _message -r "no such rock installed"
+      else
+        _message -r "no such rock installed in tree ${tree}"
+      fi
+    fi
+  fi
+}
+# Used to complete one or more of the following:
+# - .rockspec file
+# - .src.rock file
+# - external rock
+(( $+functions[__luarocks_rock] )) ||
+__luarocks_rock(){
+  local -a alts=()
+  while [[ $# -gt 0 ]]; do
+    arg="$1"
+    case "$arg" in
+      (rockspec)
+        alts+=('files:rock file:_files -g "*.rockspec(-.)"')
+        shift 1
+        continue
+        ;;
+      (rockpack)
+        alts+=( ':rock file:_files -g "*.src.rock(-.)"' )
+        shift 1
+        continue
+        ;;
+      (external)
+        alts+=(':external rock:')
+        shift 1
+        continue
+        ;;
+      (installed)
+        tree="$2"
+        alts+=(":local rock: __luarocks_installed_rocks ${tree}")
+        if [[ -z "${tree}" ]]; then
+          shift
+        else
+          shift 2
+        fi
+        continue
+        ;;
+    esac
+    shift
+    continue
+  done
+  _alternative ${alts[@]}
+}
+(( $+functions[__luarocks_git_tags] )) ||
+__luarocks_git_tags(){
+  # Copied straight from definition of _git
+  local expl
+  declare -a tags
+  tags=(${${(f)"$(_call_program tagrefs git for-each-ref --format='"%(refname)"' refs/tags 2>/dev/null)"}#refs/tags/})
+  __git_command_successful $pipestatus || return 1
+  _wanted tags expl tag compadd -M 'r:|/=**' "$@" -a - tags
+}
+
+# End of options' arguments' helpers & Start of sub commands helpers
+
+# arguments:
+# - must: .rockspec file / external rock
+# - optional: version (only when chossing external rock)
+local make_command_options=(
+  '--pack-binary-rock[produce a .rock file with the contents of compilation inside the current directory instead of installing it]'
+  '--keep[do not remove previously installed versions of the rock after building a new one]'
+  '--branch=[override the `source.branch` field in the loaded rockspec]:branch name'
+)
+local build_command_options=(
+  "${make_command_options[@]}"
+  '--only-deps[installs only the dependencies of the rock]'
+  $option_deps_modes
+)
+(( $+functions[_luarocks_build] )) ||
+_luarocks_build(){
+  _arguments -A "-*" \
+    "${build_command_options[@]}" \
+    '1: : __luarocks_rock "rockspec" "external"' \
+    '2:: : __luarocks_rock_version "external_or_local"'
+}
+# arguments:
+# - must: option
+local config_command_options=(
+  '--lua-incdir[path to Lua header files]'
+  '--lua-libdir[path to Lua library files]'
+  '--lua-ver[lua version (in major.minor format)]'
+  '--system-config[location of the system config file]'
+  '--user-config[location of the user config file]'
+  '--rock-trees[rocks trees in useFirst the user tree, then the system tree]'
+)
+(( $+functions[_luarocks_config] )) ||
+_luarocks_config(){
+  _arguments "${config_command_options[@]}"
+}
+# arguments:
+# - must: installed rock
+local doc_command_options=(
+  '--home[open the home page of project]'
+  '--list[list documentation files only]'
+)
+(( $+functions[_luarocks_doc] )) ||
+_luarocks_doc(){
+  _arguments \
+    "${doc_command_options[@]}" \
+    "1: : __luarocks_rock installed ${opt_args[--tree]}"
+}
+# arguments:
+# - must: external only rockspec
+local download_command_options=(
+  '--all[download all files if there are multiple matches]'
+  '--source[download .src.rock if available]'
+  '--rockspec[download .rockspec if available]'
+  '--arch=[download rock for a specific architecture]:ARCH:'
+)
+(( $+functions[_luarocks_download] )) ||
+_luarocks_download(){
+  _arguments -A "-*" \
+    "${download_command_options[@]}" \
+    '1: : __luarocks_rock "external"' \
+    '2:: : __luarocks_rock_version "external_or_local"'
+}
+# arguments:
+# must: luarocks sub command
+(( $+functions[_luarocks_help] )) ||
+_luarocks_help(){
+  _arguments '1: : __luarocks_command'
+}
+
+(( $+functions[_luarocks_init] )) ||
+_luarocks_init(){
+  _arguments $rockspec_options \
+    '--reset[regenerate files if they already exist]' \
+    '1: :_guard "^-*" "name"'\
+    '2: :_guard "^-*" "version"'
+}
+
+# arguments:
+# - must: .rockspec file / external rock
+# - optional: version
+# NOTE: it receives the same argument as the build command and it accepts the same options as well
+(( $+functions[_luarocks_install] )) ||
+_luarocks_install(){
+  _luarocks_build
+}
+# arguments:
+# - must: rockspec file (first and last)
+(( $+functions[_luarocks_lint] )) ||
+_luarocks_lint(){
+  _arguments '1:: : __luarocks_rock "rockspec"'
+}
+# arguments:
+# NOTE: receives only options
+local list_command_options=(
+  '--outdated[list only rocks for which there is a higher version available in the rocks server]'
+  '--porcelain[produce machine-friendly output]'
+)
+(( $+functions[_luarocks_list] )) ||
+_luarocks_list(){
+  _arguments "${list_command_options[@]}"
+}
+# arguments:
+# - optional: rockspec file
+# NOTE: it's options were already described above.
+(( $+functions[_luarocks_make] )) ||
+_luarocks_make(){
+  _arguments '1:: : __luarocks_rock "rockspec"'
+}
+# arguments:
+# - optional: .rockspec file / external rock
+# - optional: version (unless a --tag was given)
+# - optional: URL
+local new_version_command_options=(
+  '--tag=[if no version is specified, this option'"'"'s argument is used instead]:tag:__luarocks_git_tags'
+)
+(( $+functions[_luarocks_new_version] )) ||
+_luarocks_new_version(){
+  _arguments -A "-*" \
+    "${new_version_command_options[@]}" \
+    '1:: : __luarocks_rock "external" "rockspec"' \
+    '2:: : __luarocks_rock_version "external_or_local"' \
+    '3:: :_urls'
+}
+# arguments:
+# - must: .rockspec file / external rock
+# - optional: version
+(( $+functions[_luarocks_pack] )) ||
+_luarocks_pack(){
+  _luarocks_build
+}
+# arguments:
+# NOTE: receives only options
+local path_command_options=(
+  "--no-bin[don't export the PATH variable]"
+  '--append[append the paths to the existing paths]'
+  '--lr-path[export the Lua path (not formatted as shell command)]'
+  '--lr-cpath[export the Lua cpath (not formatted as shell command)]'
+  '--lr-bin[export the system path (not formatted as shell command)]'
+)
+(( $+functions[_luarocks_path] )) ||
+_luarocks_path(){
+  _arguments "${path_command_options[@]}"
+}
+# NOTE: receives only options yet --tree is mandatory
+# NOTE: --force can be used only in conjunction with --old-versions
+local option_force='--force[force removing old versions when]'
+local purge_command_options=(
+  '--old-versions[keep the highest-numbered version of each rock and remove the other ones]'
+  $option_force
+)
+(( $+functions[_luarocks_purge] )) ||
+_luarocks_purge(){
+  _arguments "${purge_command_options[@]}"
+}
+# arguments:
+# - must: locally installed rock
+# - optional: version
+local option_force_fast='--force-fast[works like --force but doesn'"'"'t reports forced removals]'
+local remove_command_options=(
+  $option_deps_modes
+  $option_force
+  $option_force_fast
+)
+(( $+functions[_luarocks_remove] )) ||
+_luarocks_remove(){
+  _arguments -A "-*" \
+    "${remove_command_options[@]}" \
+    "1: : __luarocks_rock installed ${opt_args[--tree]}" \
+    "2:: : __luarocks_rock_version installed ${opt_args[--tree]}"
+}
+# arguments:
+# - must: string as a search query
+local search_command_options=(
+  '--source[return only rockspecs and source rocks]'
+  '--binary[return only pure Lua and binary rocks (rocks that can be used with the "install" command without requiring a C toolchain)]'
+  "--all[list all contents of the server that are suitable for this platform, don't filter by name]"
+  '--porcelain[produce machine readable output]'
+)
+(( $+functions[_luarocks_search] )) ||
+_luarocks_search(){
+  _arguments \
+    "${search_command_options[@]}" \
+    '*: :_guard "^--*" "search query"'
+}
+# arguments:
+# - must: installed rock
+local show_command_options=(
+  '--home[home page of project]'
+  '--modules[all modules provided by this package as used by require()]'
+  '--deps[packages this package depends on]'
+  '--build-deps[show build-only dependencies for package]'
+  '--test-deps[show dependencies for testing package]'
+  '--rockspec[the full path of the rockspec file]'
+  '--mversion[the package version]'
+  '--rock-tree[local tree where rock is installed]'
+  '--rock-dir[data directory of the installed rock]'
+)
+(( $+functions[_luarocks_show] )) ||
+_luarocks_show(){
+  _arguments \
+    "${show_command_options[@]}" \
+    "1: : __luarocks_rock installed "${opt_args[--tree]}"" \
+    "2:: : __luarocks_rock_version installed ${opt_args[--tree]}"
+}
+
+(( $+functions[_luarocks_test] )) ||
+_luarocks_test(){
+  _arguments $option_deps_modes \
+    '--test-type=[specify the test suite type manually]:test suite type' \
+    '--reset[regenerate files if they already exist]' \
+    '1: : __luarocks_rock' \
+    '*:arg'
+}
+
+# arguments:
+# - must: rockpack file / external rock
+# - optional: version (only when chossing external rock)
+local unpack_command_options=(
+  '--force[unpack files even if the output directory already exists]'
+)
+(( $+functions[_luarocks_unpack] )) ||
+_luarocks_unpack(){
+  _arguments \
+    "${unpack_command_options[@]}" \
+    '1: : __luarocks_rock "rockpack" "external"'
+}
+# arguments:
+# - must: rockspec file
+local upload_command_options=(
+  "--skip-pack[don't pack and send source rock]"
+  '(--temp-key)--api-key=[use and save specified API key]:api key'
+  '(--api-key)--temp-key=[use specified temporary API key in this invocation only]:api key'
+  '--force[replace existing rockspec if the same revision of a module already exists]'
+)
+(( $+functions[_luarocks_upload] )) ||
+_luarocks_upload(){
+  _arguments \
+    "${upload_command_options[@]}" \
+    '1: : __luarocks_rock "rockspec"'
+}
+
+(( $+functions[_luarocks_which] )) ||
+_luarocks_which(){
+  _message -e modules 'module name'
+}
+
+(( $+functions[_luarocks_write_rockspec] )) ||
+_luarocks_write_rockspec(){
+  _arguments -A "-*" \
+    "${rockspec_options[@]}" \
+    '--output=[write the rockspec with the given file]:file:_files' \
+    '--tag=[specify tag to use. Will attempt to extract version number from it]:tag:__git_tag' \
+    '1::new rock name' \
+    '2:: : __luarocks_rock_version "new_rock"' \
+    '3:: :_urls'
+}
+
+# The real thing
+_arguments -C \
+  '--dev[enable the sub-repositories in rocks servers]' \
+  '(--server --only-server)--server=[fetch rocks/rockspecs from specified server]:host:_hosts' \
+  '(--server --only-server)--only-server=[fetch rocks/rockspecs from specified server only]:host:_hosts' \
+  '--only-sources=[restrict downloads to paths matching the given URL]:URL:_urls' \
+  '--lua-dir=[specify location of lua installation]:path:_directories' \
+  '--tree=[specify which tree to operate on]:tree:_directories' \
+  '--local[use the tree in the user'"'"'s home directory]' \
+  '--verbose[display verbose output of commands executed]' \
+  '--timeout=[specify timeout for network operations]:timeout (seconds)' \
+  '1: :__luarocks_command' \
+  '*::arg:->args'
+
+case "$state" in
+  (args)
+    curcontext="${curcontext%:*:*}:luarocks-${words[1]}:"
+    if [[ $? != 1 ]]; then
+      _call_function ret _luarocks_${words[1]}
+    fi
+esac

@@ -1,0 +1,19 @@
+digraph stack
+{
+  compound=true;
+  rankdir="LR";
+  node [
+    shape="box";
+  ]
+
+  kernel [label="Kernel"];
+
+  libinput;
+  xserver [label="X Server"];
+
+  kernel -> libinput
+  libinput -> xserver
+
+  kernel -> evemu
+  evemu -> stdout
+}

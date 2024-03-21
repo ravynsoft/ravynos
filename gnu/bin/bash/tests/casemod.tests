@@ -1,0 +1,126 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+S1=acknowledgement
+S2=oenophile
+
+echo ${S1^}
+echo ${S1^^}
+
+echo ${S2^[aeiou]}
+echo ${S2^^[aeiou]}
+
+U1=${S1^^}
+U2=${S2^^}
+
+echo ${U1,}
+echo ${U1,,}
+
+echo ${U2,}
+echo ${U2,[AEIOU]}
+echo ${U2,,[AEIOU]}
+
+A1=( $S1 $S2 )
+
+echo ${A1[@]^[aeiou]}
+echo ${A1[@]^^[aeiou]}
+
+A2=( $U1 $U2 )
+
+echo ${A2[@],[AEIOU]}
+echo ${A2[@],,[AEIOU]}
+
+echo ${A2[@],?}
+echo ${A2[@],,?}
+
+declare -A AA1 AA2
+
+AA1[ack]=$S1
+AA1[oen]=$S2
+
+echo ${AA1[@]^}
+echo ${AA1[@]^^}
+
+echo ${AA1[@]^[aeiou]}
+echo ${AA1[@]^^[aeiou]}
+
+AA2[ACK]=$U1
+AA2[OEN]=$U2
+
+echo ${AA2[@],}
+echo ${AA2[@],,}
+
+echo ${AA2[@],[AEIOU]}
+echo ${AA2[@],,[AEIOU]}
+
+set -- $S1 $S2
+
+echo ${@^}
+echo ${@^^}
+
+
+echo ${S1^[rstlne]} ${S2^[rstlne]}
+echo ${S1^^[rstlne]} ${S2^^[rstlne]}
+
+echo ${@^[rstlne]}
+echo ${@^^[rstlne]}
+
+echo ${S1,[rstlne]} ${S2,[rstlne]}
+echo ${S1,,[rstlne]} ${S2,,[rstlne]}
+
+echo ${@,[rstlne]}
+echo ${@,,[rstlne]}
+
+echo ${@^?}
+echo ${@^^?}
+
+# make sure that multiple words in the string are handled as other expansions
+TEXT="Be Conservative in what you send and Liberal in what you accept"
+TEXT2="be conservative in what you send and liberal in what you accept"
+
+declare -u foo
+foo=$TEXT
+echo $foo
+
+declare -l bar
+bar=$TEXT
+echo $bar
+
+declare -c qux
+qux=$TEXT
+echo $qux
+qux=$TEXT2
+echo $qux
+
+echo ${TEXT,}
+echo ${TEXT,,}
+
+echo ${TEXT^}
+echo ${TEXT^^}
+
+echo ${TEXT2^}
+echo ${TEXT2^^}
+
+M1=${S1^^[aeiou]}
+M2=${U2,,[AEIOU]}
+
+#echo ${M1} ${M1~}
+#echo ${M2} ${M2~~}
+
+declare -l lower=aBcDe
+lower+=XyZ
+echo $lower
+
+declare -u upper=aBcDe
+upper+=xYZ
+echo $upper

@@ -1,0 +1,40 @@
+#compdef -k complete-word \C-x?
+
+eval "$_comp_setup"
+
+(( $+_debug_count )) || integer -g _debug_count
+local tmp=${TMPPREFIX}${$}${words[1]:t}$[++_debug_count]
+local pager w="${(qq)words}"
+
+integer debug_fd=-1
+{
+  if [[ -t 2 ]]; then
+    zmodload -F zsh/files b:zf_ln 2>/dev/null &&
+    zf_ln -fn =(<<<'') $tmp &&
+    exec {debug_fd}>&2 2>| $tmp
+  fi
+
+  local -a debug_indent
+  () {
+    setopt localoptions no_ignorebraces
+    debug_indent=( '%'{3..20}'(e. .)' )
+  }
+  local PROMPT4 PS4="${(j::)debug_indent}+%N:%i> "
+  setopt xtrace
+  : $ZSH_NAME $ZSH_VERSION
+  ${1:-_main_complete}
+  integer ret=$?
+  unsetopt xtrace
+
+  if (( debug_fd != -1 )); then
+    zstyle -s ':completion:complete-debug::::' pager pager
+    print -sR "${pager:-${PAGER:-${VISUAL:-${EDITOR:-more}}}} ${(q)tmp} ;: $w"
+    _message -r "Trace output left in $tmp (up-history to view)"
+    if [[ $compstate[nmatches] -le 1 && $compstate[list] != *force* ]]; then
+        compstate[list]='list force messages'
+    fi
+  fi
+} always {
+  (( debug_fd != -1 )) && exec 2>&$debug_fd {debug_fd}>&-
+}
+return ret

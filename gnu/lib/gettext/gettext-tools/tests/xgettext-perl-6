@@ -1,0 +1,125 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test whether the right number of arguments are extracted.
+
+cat <<\EOPERL > xg-pl-6.pl
+use strict;
+
+# For 'gettext', xgettext needs to extract the first argument.
+
+# Don't extract further strings (second argument to gettext or unrelated
+# expressions).
+print gettext "extracted1", "$shouldnotbeextracted";
+print gettext ("extracted2"), "$shouldnotbeextracted";
+print gettext ("extracted3")."$notextracted", "$shouldnotbeextracted";
+print (gettext ("extracted4")), "$shouldnotbeextracted";
+
+# Likewise, inside a call to an arbitrary 'foobar' function.
+print foobar gettext "extracted5", "$shouldnotbeextracted";
+print foobar gettext ("extracted6"), "$shouldnotbeextracted";
+print foobar gettext ("extracted7")."$notextracted", "$shouldnotbeextracted";
+print foobar (gettext ("extracted8")), "$shouldnotbeextracted";
+print foobar (gettext "extracted9", "$shouldnotbeextracted");
+print foobar (gettext ("extracted10"), "$shouldnotbeextracted");
+print foobar (gettext ("extracted11")."$notextracted", "$shouldnotbeextracted");
+
+# Don't extract strings that are inside a function call to an arbitrary
+# 'foobar' function, and don't extract a second argument to gettext
+print gettext foobar "$notextracted", "$shouldnotbeextracted";
+print gettext foobar ("$notextracted"), "$shouldnotbeextracted";
+print gettext foobar ("$notextracted")."$notextracted", "$shouldnotbeextracted";
+print (gettext foobar ("$notextracted")), "$shouldnotbeextracted";
+print gettext (foobar "$notextracted"), "$shouldnotbeextracted";
+print gettext (foobar ("$notextracted")), "$shouldnotbeextracted";
+print gettext (foobar ("$notextracted"))."$notextracted", "$shouldnotbeextracted";
+print gettext (foobar ("$notextracted")."$notextracted"), "$shouldnotbeextracted";
+print (gettext (foobar ("$notextracted"))), "$shouldnotbeextracted";
+
+# For 'dgettext', xgettext needs to extract the second argument.
+
+# The first argument should not be extracted.
+print dgettext "$shouldnotbeextracted", "extracted12";
+
+# For a built-in unary function with parentheses, it's clear where dgettext's
+# first argument ends.
+print dgettext sin (17), "extracted13";
+
+# For a built-in unary function, it's clear where dgettext's first argument
+# ends.
+print dgettext sin 17, "extracted14";
+
+# For a function call with parentheses, it's clear where dgettext's first
+# argument ends.
+print dgettext foo (17), "extracted15";
+
+# This one is hairy. If foo is a function with a prototype and one argument,
+# this parses like
+#   print dgettext (foo (17), "extracted16");
+# otherwise it parses like
+#   print dgettext (foo (17, "extracted16"));
+# But in the latter case dgettext has no second argument at all; this is
+# therefore not the interpretation intended by the programmer.
+print dgettext foo 17, "extracted16";
+EOPERL
+
+: ${XGETTEXT=xgettext}
+LC_MESSAGES=C LC_ALL= \
+${XGETTEXT} --omit-header --no-location -o xg-pl-6.tmp xg-pl-6.pl || Exit 1
+LC_ALL=C tr -d '\r' < xg-pl-6.tmp > xg-pl-6.pot || Exit 1
+
+cat <<\EOF > xg-pl-6.ok
+msgid "extracted1"
+msgstr ""
+
+msgid "extracted2"
+msgstr ""
+
+msgid "extracted3"
+msgstr ""
+
+msgid "extracted4"
+msgstr ""
+
+msgid "extracted5"
+msgstr ""
+
+msgid "extracted6"
+msgstr ""
+
+msgid "extracted7"
+msgstr ""
+
+msgid "extracted8"
+msgstr ""
+
+msgid "extracted9"
+msgstr ""
+
+msgid "extracted10"
+msgstr ""
+
+msgid "extracted11"
+msgstr ""
+
+msgid "extracted12"
+msgstr ""
+
+msgid "extracted13"
+msgstr ""
+
+msgid "extracted14"
+msgstr ""
+
+msgid "extracted15"
+msgstr ""
+
+msgid "extracted16"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-pl-6.ok xg-pl-6.pot
+result=$?
+
+exit $result

@@ -1,0 +1,91 @@
+# Test the use of zformat, if the zsh/zutil module is available.
+
+%prep
+
+  if ! zmodload zsh/zutil 2>/dev/null; then
+    ZTST_unimplemented="can't load the zsh/zutil module for testing"
+  fi
+
+  # Helper function.  Expects a single format using %s and a value for it.
+  zformat_and_print_s() {
+    zformat -f REPLY "$1" "s:$2"
+    print -r - ${(qq)REPLY}
+  }
+
+%test
+
+ zformat_and_print_s '%s'   foo
+ zformat_and_print_s '%5s'  min
+ zformat_and_print_s '%-5s' neg
+ zformat_and_print_s '%5.s' empty
+ zformat_and_print_s '%.5s' max
+ zformat_and_print_s '%.5s' truncated
+0:basic zformat test
+>'foo'
+>'min  '
+>'  neg'
+>'empty'
+>'max'
+>'trunc'
+
+ # There may be a set of digits either before or after the opening parenthesis.
+ zformat_and_print_s 'The answer is "%3(s.yes.no)".' 3
+ zformat_and_print_s 'The answer is "%(3s.yes.no)".' 3
+ # The test number defaults to zero.
+ zformat_and_print_s '%(s.equal.unequal)' -1
+ zformat_and_print_s '%(s.equal.unequal)' 0
+ zformat_and_print_s '%(s.equal.unequal)' 1
+ # Negative numbers are allowed
+ # The delimiter is arbitrary
+ zformat_and_print_s '%-4(s.minus four.)' -4
+ zformat_and_print_s '%(-4s//minus four)' -4
+ # The argument is evaluated as a math expression
+ zformat_and_print_s '%18(s.math.)' '6*3'
+0:basic conditionals test
+>'The answer is "yes".'
+>'The answer is "yes".'
+>'unequal'
+>'equal'
+>'unequal'
+>'minus four'
+>''
+>'math'
+
+ () {
+   zformat -f 1 '%(8n.%(5j.yes.no).no)' 'n:8' 'j:5'
+   echo $1
+ }
+0:nested conditionals test
+>yes
+
+ () {
+   zformat -f 1 '%(w.zero.fail) %(x.fail.present) %(y.empty.fail) %(z.missing.fail)' w:0 x:1 y:
+   zformat -F 2 '%(w.zero.fail) %(x.present.fail) %(y.fail.empty) %(z.fail.missing)' w:0 x:1 y:
+   echo $1
+   echo $2
+ }
+0:conditionals with empty and missing values
+>zero present empty missing
+>zero present empty missing
+
+ () {
+   local l
+   for l in 0 1 2 3; do
+     zformat -F 1 "%$l(a.a.A)%$l(b.b.B)%$l(c.c.C)%$l(d.d.D)" a: b:1 c:12 d:123
+     zformat -F 2 "%-$l(a.a.A)%-$l(b.b.B)%-$l(c.c.C)%-$l(d.d.D)" a: b:1 c:12 d:123
+     print - $1 $2
+   done
+ }
+0:minimum and maximum widths
+>Abcd aBCD
+>ABcd abCD
+>ABCd abcD
+>ABCD abcd
+
+ zformat -a argv . foo:lorem ipsum:bar bazbaz '\\esc\:ape'
+ print -rl -- "$@"
+0:basic -a test
+>foo  .lorem
+>ipsum.bar
+>bazbaz
+>\esc:ape

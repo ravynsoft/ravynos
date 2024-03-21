@@ -1,0 +1,95 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+args() { printf '<%s> ' "$@"; echo; }
+
+set -- 1 2 3 4 5
+
+args "${@} ${1}"
+args "${1} ${@}"
+args "${1}${@}${1}"
+args "${1} ${@} ${1}"
+args ${1}"$@"${1}
+args "$@"${1}
+args ${1}"$@"
+
+args "$@""${1}"
+args "${1}""$@"
+
+args "${@}foo"
+args ${@}${1}
+args ${@}foo
+
+IFS=
+args "$@""${1}"
+args "${1}""$@"
+
+args ${@}${1}
+args ${1}${@}
+args ${@}foo
+
+echo second set:
+IFS=$' \t\n'
+set -- '1 2' 3 4 5
+
+args "${@} ${1}"
+args "${1} ${@}"
+
+args "${1}${@}${1}"
+args "${1} ${@} ${1}"
+args ${1}"$@"${1}
+args "$@"${1}
+args ${1}"$@"
+
+args "$@""${1}"
+args "${1}""$@"
+
+args "${@}foo"
+args ${@}${1}
+args ${@}foo
+
+IFS=
+
+args "$@""${1}"
+args "${1}""$@"
+
+args ${@}${1}
+args ${1}${@}
+args ${@}foo
+
+echo third set:
+IFS=$' \t\n'
+
+alias declare=typeset
+
+a(){ echo
+     echo '"${@:2}a3 a2" a$1    #works as long as $1 and 3 are swapped'
+     echo  "${@:2}a3 a2" a$1
+           "${@:2}a3 a2" a$1
+     echo   $?
+        a=("${@}");}
+b(){ echo
+     echo '"${@:2}b$1 b2" b3    #fails!  why?'
+     echo  "${@:2}b$1 b2" b3
+           "${@:2}b$1 b2" b3
+     echo   $?
+        b=("${@}");}
+c(){ echo
+     echo  '${@:2}c$1 c2 c3     #works as long as quoting omitted'
+     echo   ${@:2}c$1 c2 c3
+            ${@:2}c$1 c2 c3
+     echo   $?
+        c=("${@}");}
+a x set y z;declare -p a
+b x set y z;declare -p b
+c x set y z;declare -p c

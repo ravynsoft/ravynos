@@ -1,0 +1,42 @@
+$ ######## Activate optimized mode as described in the README ########
+$ __shellmath_isOptimized=1
+
+$ ######## Addition ########
+$ time { for ((i=0; i<100; i++)); do _shellmath_add  3.1415926  2.7182818; _shellmath_getReturnValue sum; done; }
+real    0m0.196s
+user    0m0.195s
+sys     0m0.000s
+$ time { for ((i=0; i<100; i++)); do sum=$(bc <<< "3.1415926+2.7182818"); done; }
+real    0m0.488s
+user    0m0.092s
+sys     0m0.384s
+
+$ ######## Subtraction ########
+$ time { for ((i=0; i<100; i++)); do _shellmath_subtract  3.1415926  2.7182818; _shellmath_getReturnValue diff; done; }
+real    0m0.236s
+user    0m0.234s
+sys     0m0.001s
+$ time { for ((i=0; i<100; i++)); do diff=$(bc <<< "3.1415926-2.7182818"); done; }
+real    0m0.461s
+user    0m0.090s
+sys     0m0.388s
+
+$ ######## Multiplication ########
+$ time { for ((i=0; i<100; i++)); do _shellmath_multiply  3.1415926 2.7182818; _shellmath_getReturnValue prod; done; }
+real    0m0.340s
+user    0m0.333s
+sys     0m0.005s
+$ time { for ((i=0; i<100; i++)); do prod=$(bc <<< "3.1415926*2.7182818"); done; }
+real    0m0.465s
+user    0m0.105s
+sys     0m0.377s
+
+$ ######## Division ########
+$ time { for ((i=0; i<100; i++)); do _shellmath_divide  3.1415926/2.7182818; _shellmath_getReturnValue quot; done; }
+real    0m0.196s
+user    0m0.195s
+sys     0m0.000s
+$ time { for ((i=0; i<100; i++)); do quot=$(bc <<< "scale=8; 3.1415926/2.7182818"); done; }
+real    0m0.463s
+user    0m0.116s
+sys     0m0.364s

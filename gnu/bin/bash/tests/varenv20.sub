@@ -1,0 +1,13 @@
+# tests of local variables with the same name as variables passed in the
+# temporary environment
+
+f() { local v=x; local -p; }
+v=t f
+
+f() { local v; declare -p v; }
+v=t f
+
+f() { local v=x; unset v; declare -p v; }
+v=g
+f
+v=t f

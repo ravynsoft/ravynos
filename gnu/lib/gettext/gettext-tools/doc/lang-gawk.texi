@@ -1,0 +1,61 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node gawk
+@subsection GNU awk
+@cindex awk
+@cindex gawk
+
+@table @asis
+@item RPMs
+gawk 3.1 or newer
+
+@item Ubuntu packages
+gawk
+
+@item File extension
+@code{awk}, @code{gawk}, @code{twjr}.
+The file extension @code{twjr} is used by TexiWeb Jr
+(@uref{https://github.com/arnoldrobbins/texiwebjr}).
+
+@item String syntax
+@code{"abc"}
+
+@item gettext shorthand
+@code{_"abc"}
+
+@item gettext/ngettext functions
+@code{dcgettext}, missing @code{dcngettext} in gawk-3.1.0
+
+@item textdomain
+@code{TEXTDOMAIN} variable
+
+@item bindtextdomain
+@code{bindtextdomain} function
+
+@item setlocale
+automatic, but missing @code{setlocale (LC_MESSAGES, "")} in gawk-3.1.0
+
+@item Prerequisite
+---
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+@code{printf "%2$d %1$d"} (GNU awk only)
+
+@item Portability
+On platforms without gettext, no translation.  On non-GNU awks, you must
+define @code{dcgettext}, @code{dcngettext} and @code{bindtextdomain}
+yourself.
+
+@item po-mode marking
+---
+@end table
+
+An example is available in the @file{examples} directory: @code{hello-gawk}.

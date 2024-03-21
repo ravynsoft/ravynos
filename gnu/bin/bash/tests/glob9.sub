@@ -1,0 +1,13 @@
+LANG=en_US.UTF-8	# safest
+: ${TMPDIR:=/var/tmp}
+HOME=${TMPDIR}
+
+mkdir ~/ಇಳಿಕೆಗಳು
+touch ~/ಇಳಿಕೆಗಳು/{a,b}.txt
+echo ~/ಇಳಿಕೆಗಳು/*.txt >/dev/null
+
+rm -rf ${TMPDIR}/ಇಳಿಕೆಗಳು
+
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+echo é/*
+echo 'é'/*

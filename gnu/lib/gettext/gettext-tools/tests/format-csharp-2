@@ -1,0 +1,73 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of Java format strings.
+
+cat <<\EOF > f-cs-2.data
+# Invalid: invalid msgstr
+msgid  "abc{0}def"
+msgstr "abc{"
+# Valid: same arguments
+msgid  "abc{1}def"
+msgstr "xyz{1}"
+# Valid: same arguments, differently written
+msgid  "abc{1}def"
+msgstr "xyz{01}"
+# Valid: permutation
+msgid  "abc{2}{0}{1}def"
+msgstr "xyz{1}{0}{2}"
+# Invalid: too few arguments
+msgid  "abc{1}def{0}"
+msgstr "xyz{0}"
+# Invalid: too many arguments
+msgid  "abc{0}def"
+msgstr "xyz{0}uvw{1}"
+# Valid: missing non-final argument
+msgid  "abc{1}def{0}"
+msgstr "xyz{1}"
+# Valid: added non-final argument
+msgid  "abc{1}def"
+msgstr "xyz{0}{1}"
+# Invalid: different number of arguments
+msgid  "abc{500000000}def"
+msgstr "xyz{500000001}"
+# Valid: type compatibility
+msgid  "abc{1:X}"
+msgstr "xyz{1:g}"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-cs-2-$n.po
+#, csharp-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-cs-2-$n.mo f-cs-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-cs-2-$n.mo f-cs-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-cs-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-cs-2-$n.po f-cs-2-$n.mo
+done < f-cs-2.data
+
+Exit 0

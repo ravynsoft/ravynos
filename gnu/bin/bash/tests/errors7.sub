@@ -1,0 +1,30 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${THIS_SH:=./bash}
+readonly x=4
+
+# in posix mode, these are all variable assignment errors, so strict conformance
+# implies that we exit after any of them. ksh93 doesn't do that. we more-or-less
+# emulate the ksh93 behavior
+
+x=8 notthere
+echo after no such command: $?
+x=8 echo echo builtin
+echo after non-special builtin: $?
+( x=8 : nosuchdir
+echo after special builtin: $? )
+( x=8 $nocmd 
+echo after assignment error: $? )
+( x=8
+echo after assignment statement error: $? )

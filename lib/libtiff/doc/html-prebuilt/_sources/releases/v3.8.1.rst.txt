@@ -1,0 +1,147 @@
+Changes in TIFF v3.8.1
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.8.1 (:tag:`Release-v3-8-1`)
+  Previous Version        :doc:`v3.8.0 <v3.8.0>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+Major changes
+-------------
+
+* Bug-fix release.
+
+
+Software configuration changes
+------------------------------
+
+* libtool related stuff updated from the 2.1a branch.
+
+* Fix ``with_default_strip_size`` comparison as reported by
+  Norihiko Murase.
+
+
+Library changes
+---------------
+
+* :file:`tif_dirread.c`: Fixed error reporting in :c:func:`TIFFFetchAnyArray`
+  function as per bug
+  :bugzilla-rs:`1102`
+
+* :file:`tif_jpeg.c`, :file:`tif_pixarlog.c`, :file:`tif_fax3.c`, :file:`tif_zip.c`:
+  Properly restore ``setfield``/``getfield`` methods in cleanup functions. As
+  per bug
+  :bugzilla-rs:`1102`
+
+* :file:`tif_lzw.c`, :file:`tif_pixarlog.c`, :file:`tif_zip.c`: Use
+  :c:func:`TIFFPredictorCleanup` in codec cleanup methods. As per bug
+  :bugzilla-rs:`1102`
+
+* :file:`tif_predict.c`, :file:`tif_predict.h`: Added new function
+  :c:func:`TIFFPredictorCleanup` to restore parent decode/encode/field methods.
+
+* :file:`tif_dirread.c`: Fixed integer overflow condition in
+  :c:func:`TIFFFetchData` function. As per bug
+  :bugzilla-rs:`1102`
+
+* :file:`tif_ojpeg.c`: Set the ``ReferenceBlackWhite`` with the
+  :c:func:`TIFFSetField` method, not directly. As per bug
+  :bugzilla-rs:`1043`
+
+* :file:`tif_write.c`: Small code rearrangement in :c:func:`TIFFWriteScanline`
+  to avoid crash as per bug
+  :bugzilla-rs:`1081`
+
+* :file:`tif_dirwrite.c`: Properly write ``TIFFTAG_DOTRANGE`` tag as per
+  bug :bugzilla-rs:`1088`
+
+* :file:`tif_print.c`: Properly read :c:macro:`TIFFTAG_PAGENUMBER`,
+  :c:macro:`TIFFTAG_HALFTONEHINTS`, :c:macro:`TIFFTAG_YCBCRSUBSAMPLING`
+  and :c:macro:`TIFFTAG_DOTRANGE` tags as per bug
+  :bugzilla-rs:`1088`
+
+* :file:`tif_tile.c`: Fix error reporting in :c:func:`TIFFCheckTile` as per
+  bug :bugzilla-rs:`1063`
+
+* :file:`tif_color.c`: Avoid overflow in case of wrong input as per
+  bug :bugzilla-rs:`1065`
+
+* :file:`tif_dirinfo.c`: Use :c:enumerator:`TIFF_NOTYPE` instead of 0 when
+  appropriate. As per bug
+  :bugzilla-rs:`1033`
+
+* :file:`tif_aux.c`: Fixed type of temporary variable in
+  :c:func:`_TIFFCheckMalloc` as per bug
+  :bugzilla-rs:`103`
+
+* :file:`tif_aux.c`: Return static array when fetching default
+  ``YCbCrCoefficients`` (another problem, reported a the
+  :bugzilla-rs:`1029`
+  entry).
+
+* :file:`tif_dir.c`: Special handling for ``PageNumber``, ``HalftoneHints``,
+  ``YCbCrSubsampling`` and ``DotRange`` tags as per bugs
+  :bugzilla-rs:`1029`
+  :bugzilla-rs:`1034`
+
+* :file:`tif_dirread.c`: Use :c:func:`_TIFFGetExifFieldInfo` instead of
+  :c:func:`_TIFFGetFieldInfo` in :c:func:`TIFFReadEXIFDirectory` call as per bug
+  :bugzilla-rs:`1026`
+
+* :file:`tif_dirinfo.c`: Change definitions for :c:macro:`TIFFTAG_ICCPROFILE`,
+  :c:macro:`TIFFTAG_PHOTOSHOP`, :c:macro:`TIFFTAG_RICHTIFFIPTC`,
+  :c:macro:`TIFFTAG_XMLPACKET`: readcount should be :c:type:`uint32` value.
+
+
+Tools changes
+-------------
+
+* :file:`ppm2tiff.c`: Added support for PBM files as per bug
+  :bugzilla-rs:`1044`
+
+* :file:`tiff2pdf.c`: Functions :c:func:`t2p_sample_rgbaa_to_rgb` and
+  :c:func:`t2p_sample_rgba_to_rgb` was used in place of each other, that was
+  resulted in problems with RGBA images with associated alpha.
+  As per bug
+  :bugzilla-rs:`1097`
+
+* :file:`tiff2ps.c`: Properly scale all the pages when converting
+  multipage TIFF with /width/height/center options set. As per bug
+  :bugzilla-rs:`1080`
+
+* :file:`tiff2pdf.c`: Do not create output file until all option checks
+  will be done. As per bug
+  :bugzilla-rs:`1072`
+
+* :file:`bmp2tiff.c`: Added ability to create multipage TIFFs from the
+  list of input files as per bug
+  :bugzilla-rs:`1077`
+
+* :file:`tiffgt.c`: Avoid crashing in case of image unsupported by
+  TIFFRGBAImage interface.
+
+* :file:`tiff2pdf.c`: Fixed support for non-YCbCr encoded JPEG
+  compressed TIFF files, per submission from Dan Cobra.
+
+* :program:`bmp2tiff`, :program:`pal2rgb`, :program:`ppm2tiff`, :program:`ras2tiff`,
+  :program:`raw2tiff`, :program:`sgi2tiff`, :program:`tiff2bw`, :program:`tiffcp`:
+  Fixed jpeg option processing so ``-c jpeg:r:50`` works
+  properly as per bug:
+  :bugzilla-rs:`1025`
+
+Contributed software changes
+----------------------------
+
+None.

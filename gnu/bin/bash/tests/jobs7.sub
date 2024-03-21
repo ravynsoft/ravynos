@@ -1,0 +1,8 @@
+# make sure fg in a subshell doesn't try to start a parent's job
+set -m
+sleep 20 &
+echo $(jobs)
+echo $(fg %% ; jobs)
+# suppress any message about sleep 20 being terminated
+exec 2>/dev/null
+kill %1

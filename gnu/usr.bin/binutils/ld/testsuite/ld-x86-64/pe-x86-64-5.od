@@ -1,0 +1,35 @@
+
+.*: +file format .*
+
+SYMBOL TABLE:
+0+402014 g       .bss	0000000000000000 non_initdummy
+0+402010 g       .data	0000000000000000 initdummy
+0+400000 g       .text\$mn	0000000000000000 __executable_start
+0+401000 g       .text\$mn	0000000000000000 begin
+0+402012 g       .bss	0000000000000000 __bss_start
+0+402000 g       .data	0000000000000000 Struct
+0+402011 g       .data	0000000000000000 initializedVar
+0+402012 g       .data	0000000000000000 _edata
+0+402018 g       .bss	0000000000000000 _end
+0+402015 g       .bss	0000000000000000 non_initialVar
+
+
+
+Disassembly of section .text\$mn:
+
+0+401000 <begin>:
+ +[a-f0-9]+:	66 90                	xchg   %ax,%ax
+ +[a-f0-9]+:	cc                   	int3
+ +[a-f0-9]+:	48 8d 05 07 10 00 00 	lea    0x1007\(%rip\),%rax        # 402011 <initializedVar>
+ +[a-f0-9]+:	48 3b 05 ef 0f 00 00 	cmp    0xfef\(%rip\),%rax        # 402000 <Struct>
+ +[a-f0-9]+:	74 01                	je     401014 <begin\+0x14>
+ +[a-f0-9]+:	cc                   	int3
+ +[a-f0-9]+:	48 8d 05 fa 0f 00 00 	lea    0xffa\(%rip\),%rax        # 402015 <non_initialVar>
+ +[a-f0-9]+:	48 3b 05 e6 0f 00 00 	cmp    0xfe6\(%rip\),%rax        # 402008 <Struct\+0x8>
+ +[a-f0-9]+:	74 01                	je     401025 <begin\+0x25>
+ +[a-f0-9]+:	cc                   	int3
+ +[a-f0-9]+:	66 ba 80 00          	mov    \$0x80,%dx
+ +[a-f0-9]+:	b0 12                	mov    \$0x12,%al
+ +[a-f0-9]+:	ee                   	out    %al,\(%dx\)
+ +[a-f0-9]+:	c3                   	ret
+#pass

@@ -3,7 +3,7 @@ MK_WERROR= no
 WARN?= 1
 WORLDTMP= /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}
 CPPFLAGS+= -isystem ${WORLDTMP}/tmp/usr/include
-#CFLAGS+=	-B ${WORLDTMP}/usr/bin
+CFLAGS+=	-B ${WORLDTMP}/usr/bin
 LDFLAGS+= -B ${WORLDTMP}/usr/bin \
 	-L ${WORLDTMP}/tmp/lib -L ${WORLDTMP}/tmp/usr/lib
 

@@ -1,0 +1,19 @@
+#compdef shred gshred
+
+_arguments -s -S : \
+  '(: * -)--help[display help information]' \
+  '(: * -)--version[display version information]' \
+  '(-f --force)'{-f,--force}'[bypass lack of write permissions]' \
+  '(-n --iterations)'{-n+,--iterations=}'[specify number of overwrites]:overwrites [3]' \
+  '--random-source=[get random bytes from specified file]:random source file:_files' \
+  '(-s --size)'{-s+,--size=}'[shred specified number of bytes]:bytes' \
+  '(--remove)-u[deallocate and remove file after overwriting]' \
+  '(-u)--remove=-[like -u, or specify how to remove]::how to remove [wipesync]:((
+    unlink\:"use standard unlink call"
+    wipe\:"like unlink, but obfuscate bytes in name first"
+    wipesync\:"like wipe, but sync each obfuscated byte to disk"
+  ))' \
+  '(-v --verbose)'{-v,--verbose}'[display progress]' \
+  '(-x --exact)'{-x,--exact}'[do not round file sizes up to nearest block]' \
+  '(-z --zero)'{-z,--zero}'[add final overwrite with zeros]' \
+  '*: :_files'

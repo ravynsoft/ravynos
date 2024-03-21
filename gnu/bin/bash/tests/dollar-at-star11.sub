@@ -1,0 +1,80 @@
+a[0]='/'
+set -- /
+
+# these should all result in the empty (null) string
+
+recho "${a[0]%?}"
+recho "${a[*]%?}"
+recho "${a[@]%?}"
+
+recho "${*%?}"
+recho "${@%?}"
+
+recho "${a[0]#?}"
+recho "${a[*]#?}"
+recho "${a[@]#?}"
+
+recho "${*#?}"
+recho "${@#?}"
+
+recho "${a[0]/\//}"
+recho "${a[*]/\//}"
+recho "${a[@]/\//}"
+
+recho "${*/\//}"
+recho "${@/\//}"
+
+recho "${a[0]:1:1}"
+# these next four will all echo /
+
+# arrays are zero-based
+recho "${a[*]:0:1}"
+recho "${a[@]:0:1}"
+# but the positional parameters start at 1
+recho "${*:1:1}"
+recho "${@:1:1}"
+
+a[0]=''
+set -- ''
+
+# arrays are zero-based
+recho "${a[*]:0:1}"
+recho "${a[@]:0:1}"
+
+recho "${*:1:1}"
+recho "${@:1:1}"
+
+# these should all result in the empty (null) string, or quoted as such
+
+recho "${a[0]@Q}"
+recho "${a[*]@Q}"
+recho "${a[@]@Q}"
+
+recho "${*@Q}"
+recho "${@@Q}"
+
+recho "${a[0]@L}"
+recho "${a[*]@L}"
+recho "${a[@]@L}"
+
+recho "${*@L}"
+recho "${@@L}"
+
+# examples from the bug report
+unset -v a
+
+a[0]='/'
+for i in "${a[@]%/}"; do recho "$i"; done
+
+a[0]=''
+for i in "${a[@]}"; do recho "$i"; done
+
+a[0]='/'
+a[1]="//"
+for i in "${a[@]%/}"; do recho "$i"; done
+
+unset -v x y
+x=('/')
+y=("${x[@]%/}")
+
+echo "${#x[@]}:${#y[@]}"

@@ -1,0 +1,247 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# A test suite for the POSIX.2 (BRE) pattern matching code
+LC_ALL=C
+LANG=C
+
+# First, test POSIX.2 character classes
+
+case e in
+[[:xdigit:]])	echo ok 1;;
+esac
+
+case a in
+[[:alpha:]123])	echo ok 2;;
+esac
+
+case 1 in
+[[:alpha:]123])	echo ok 3;;
+esac
+
+case 9 in
+[![:alpha:]])	echo ok 4;;
+esac
+
+case a in
+[:al:])		echo ok 5;;
+esac
+
+# invalid character class expressions are no longer just characters to be
+# matched
+case a in
+[[:al:])	echo bad 6;;
+*)		echo ok 6;;
+esac
+
+case '!' in
+[abc[:punct:][0-9])	echo ok 7;;
+esac
+
+# let's try to match the start of a valid sh identifier
+case 'PATH' in
+[_[:alpha:]]*)	echo ok 8;;
+esac
+
+# let's try to match the first two characters of a valid sh identifier
+case PATH in
+[_[:alpha:]][_[:alnum:]]*)	echo ok 9;;
+esac
+
+# is ^C a cntrl character?
+case $'\003' in
+[[:cntrl:]])	echo ok 10;;
+esac
+
+# how about A?
+case A in
+[[:cntrl:]])	echo oops -- cntrl ;;
+*)		echo ok 11;;
+esac
+
+case 9 in
+[[:digit:]])	echo ok 12;;
+esac
+
+case X in
+[[:digit:]])	echo oops -- digit;;
+*)		echo ok 13;;
+esac
+
+case $'\033' in
+[[:graph:]])	echo oops -- graph;;
+*)		echo ok 14;;
+esac
+
+case $'\040' in
+[[:graph:]])	echo oops -- graph 2;;
+*)		echo ok 15;;
+esac
+
+case ' ' in
+[[:graph:]])	echo oops -- graph 3;;
+*)		echo ok 16;;
+esac
+
+case 'aB' in
+[[:lower:]][[:upper:]])	echo ok 17;;
+esac
+
+case $'\040' in
+[[:print:]])	echo ok 18;;
+*)		echo oops -- print;;
+esac
+
+case PS3 in
+[_[:alpha:]][_[:alnum:]][_[:alnum:]]*)	echo ok 19;;
+esac
+
+case a in
+[[:alpha:][:digit:]])	echo ok 20;;
+*)			echo oops - skip brackpat ;;
+esac
+
+case a in
+[[:alpha:]\])	echo oops -- dangling backslash in brackpat ;;
+*)		echo ok 21 ;;
+esac
+
+# what's a newline?  is it a blank? a space?
+case $'\n' in
+[[:blank:]])	echo ok -- blank ;;
+[[:space:]])	echo ok -- space ;;
+*)		echo oops newline ;;
+esac
+
+# OK, what's a tab?  is it a blank? a space?
+case $'\t' in
+[[:blank:]])	echo ok -- blank ;;
+[[:space:]])	echo ok -- space ;;
+*)		echo oops newline ;;
+esac
+
+# let's check out characters in the ASCII range
+case $'\377' in
+[[:ascii:]])	echo oops -- ascii\?;;
+esac
+
+case 9 in
+[1[:alpha:]123]) echo oops 1;;
+esac
+
+# however, an unterminated brace expression containing a valid char class
+# that matches had better fail
+case a in
+[[:alpha:])	echo oops 2;;
+esac
+
+case $'\b' in
+[[:graph:]])	echo oops 3;;
+esac
+
+case $'\b' in
+[[:print:]])	echo oops 4;;
+esac
+
+case $' ' in
+[[:punct:]])	echo oops 5;;
+esac
+
+# Next, test POSIX.2 collating symbols
+
+case 'a' in
+[[.a.]])	echo ok 1;;
+esac
+
+case '-' in
+[[.hyphen.]-9])	echo ok 2;;
+esac
+
+case 'p' in
+[[.a.]-[.z.]])	echo ok 3;;
+esac
+
+case '-' in
+[[.-.]])	echo ok 4;;
+esac
+
+case ' ' in
+[[.space.]])	echo ok 5;;
+esac
+
+case ' ' in
+[[.grave-accent.]])	echo oops - grave;;
+*)		echo ok 6;;
+esac
+
+case '4' in
+[[.-.]-9])	echo ok 7;;
+esac
+
+# an invalid collating symbol cannot be the first part of a range
+case 'c' in
+[[.yyz.]-[.z.]])	echo oops - yyz;;
+*)		echo ok 8;;
+esac
+
+case 'c' in
+[[.yyz.][.a.]-z])   echo ok 9;;
+esac
+
+# but when not part of a range is not an error
+case 'c' in
+[[.yyz.][.a.]-[.z.]])   echo ok 10 ;;
+esac
+
+case 'p' in
+[[.a.]-[.Z.]])		echo oops -- bad range ;; 
+*)			echo ok 11;;
+esac
+
+case p in
+[[.a.]-[.zz.]p])	echo ok 12;;
+*)			echo oops -- bad range 2;;
+esac
+
+case p in
+[[.aa.]-[.z.]p])	echo ok 13;;
+*)			echo oops -- bad range 3;;
+esac
+
+case c in
+[[.yyz.]cde])		echo ok 14;;
+esac
+
+case abc in
+[[.cb.]a-Za]*)		echo ok 15;;
+esac
+
+case $'\t' in
+[[.space.][.tab.][.newline.]])	echo ok 16;;
+esac
+
+# and finally, test POSIX.2 equivalence classes
+
+case "abc" in
+[[:alpha:]][[=b=]][[:ascii:]])	echo ok 1;;
+esac
+
+case "abc" in
+[[:alpha:]][[=B=]][[:ascii:]])	echo oops -- =B=;;
+*)	echo ok 2 ;;
+esac
+
+case a in
+[[=b=])		echo oops;;	# an incomplete equiv class is just a string
+*)		echo ok 3;;
+esac

@@ -1,0 +1,1932 @@
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.6 released.
+
+2015-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	gnulib-local: Fix Java compilation on mingw
+	* lib/clean-temp.c.diff: New file, from m4.
+	Suggested by Eric Blake in:
+	<https://lists.gnu.org/archive/html/bug-gnulib/2013-09/msg00044.html>.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.5 released.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	gnulib-local: Suppress compiler warning with -Wunused
+	* lib/diffseq.h.diff: New file.
+
+2014-12-16  Daiki Ueno  <ueno@gnu.org>
+
+	Backport iOS check from Gnulib
+	* lib/unistd.in.h.diff: Update.
+
+2014-12-15  Daiki Ueno  <ueno@gnu.org>
+
+	Work around interoperability with preinstalled libunistring
+	* modules/unilbrk/base.diff: New file; bump minimum version of
+	unilbrk.h.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* tests/test-term-ostream-xterm-basic-italic.out: New file.
+	* tests/test-term-ostream-xterm: Use it as possible test result.
+	* modules/term-ostream-tests (Files): Add new file.
+	* Makefile.am (EXTRA_DIST): Add new file.
+	Needed for ncurses >= 5.9-20140906 that defines sitm/ritm in the
+	xterm-basic terminfo definition.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	Update after gnulib changed.
+	* lib/execute.c.diff: Update.
+	* lib/spawn-pipe.c.diff: Update.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-03  Daiki Ueno  <ueno@gnu.org>
+
+	build: Handle 'environ' global variable differently on cygwin x86_64
+	Amendment to commit c97dafde.
+	* tests/test-environ.c.diff: New file.
+	* Makefile.am (EXTRA_DIST): Add new patch.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	build: Handle 'environ' global variable differently on cygwin x86_64
+	Problem reported by Vasyl Khalak in:
+	<https://cygwin.com/ml/cygwin/2013-06/msg00228.html>.
+	* lib/execute.c.diff: New file.
+	* lib/spawn-pipe.c.diff: Likewise.
+	* Makefile.am (EXTRA_DIST): Add new patches.
+
+2014-05-14  Daiki Ueno  <ueno@gnu.org>
+
+	Update after gnulib changed.
+	* modules/regex.diff: Remove.  modules/regex no longer depends on
+	malloc-gnu thus this patch is not needed anymore.
+
+2014-04-07  Daiki Ueno  <ueno@gnu.org>
+
+	Update after gnulib changed.
+	* lib/obstack.h.diff: Update.
+
+2013-08-07  Daiki Ueno  <ueno@gnu.org>
+
+	Update after gnulib changed.
+	* modules/regex.diff: Update.
+
+2013-07-21  Daiki Ueno  <ueno@gnu.org>
+
+	Update after gnulib changed.
+	* lib/localcharset.c.diff: Remove file.
+
+2013-06-25  Daiki Ueno  <ueno@gnu.org>
+
+	Work around localcharset issue under OS X multi-threaded scenario.
+	* lib/localcharset.c.diff: New patch originally posted to Gnulib
+	<https://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00091.html>.
+
+2013-06-16  Andreas Schwab  <schwab@linux-m68k.org>  (tiny change)
+
+	* m4/libxml.m4 (gl_LIBXML): Remove extra quotes.
+
+2013-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* modules/libxml: Use $(MKDIR_P) instead of $(mkdir_p).
+	* modules/libglib: Likewise.
+	Suggested by Stefano Lattarini in
+	<https://lists.gnu.org/archive/html/bug-gettext/2013-04/msg00044.html>.
+
+2013-02-25  Daiki Ueno  <ueno@gnu.org>
+
+	Update after gnulib changed.
+	* lib/unistd.in.h.diff: Update.
+
+2013-02-25  Daiki Ueno  <ueno@gnu.org>
+
+	* modules/gettext-runtime-misc (AM_CPPFLAGS): Augment by
+	INTL_EXPORTS_FLAGS.
+
+2013-01-03  Daiki Ueno  <ueno@gnu.org>
+
+	Update after gnulib changed.
+	* modules/regex.diff: Update.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	Work around error_* symbol conflict with Cygwin 1.7 DLL.
+	* lib/error.h.diff: Rename the error_* symbol if
+	GNULIB_REPLACE_ERROR is defined.
+
+2012-12-12  Daiki Ueno  <ueno@unixuser.org>
+
+	Add notice about included external libraries.
+	As per "External Libraries" in the (maintain) manual.
+	* lib/glib/README: New file.
+	* lib/libcroco/README: New file.
+	* lib/libxml/README: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2012-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Do not assume '#define ... defined ...' behavior.
+	* lib/gettext.h (_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS):
+	Do not use '#define FOO ... defined BAR ...', as the C standard says
+	it's not portable to expect that this works after macro expansion.
+	Problem reported for gzip by Steven M. Schweda in
+	<http://lists.gnu.org/archive/html/bug-gzip/2012-07/msg00000.html>.
+
+2012-06-03  Jim Meyering  <jim@meyering.net>
+
+	* lib/tparm.c: Spelling fixes.
+
+2012-02-17  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* lib/exitfail.h.diff: Update.
+
+2012-01-26  Bruno Haible  <bruno@clisp.org>
+
+	Modernize quoting.
+	* lib/backupfile.c: Quote 'like this', not `like this', as per the
+	recent change to the GNU coding standards.
+	* lib/basename.c: Likewise.
+	* lib/closeout.c: Likewise.
+	* lib/xmalloc.c: Likewise.
+
+2012-01-06  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* lib/argmatch.h.diff: Update.
+	* lib/error.h.diff: Update.
+	* lib/fnmatch_loop.c.diff: Update.
+	* lib/getopt.in.h.diff: Update.
+	* lib/obstack.h.diff: Update.
+
+2011-10-18  Daniel Richard G.  <skunk@iskunk.org>  (tiny change)
+
+	Support for old NeXTstep 3.3 gcc.
+	* lib/gettext.h (_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS): Write
+	'defined __STRICT_ANSI__', not '__STRICT_ANSI__'.
+
+2011-09-12  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* modules/backupfile (Depends-on): Add opendir, readdir,
+	closedir.
+
+2011-08-12  Bruno Haible  <bruno@clisp.org>
+
+	Comment.
+	* m4/libxml.m4 (gl_LIBXML): Add comment about Cygwin 1.7.
+
+2011-08-04  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* lib/xgetcwd.c (PATH_MAX): Provide a fallback value.
+
+2011-07-12  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* modules/fnmatch.diff: Update.
+
+2011-06-16  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* m4/quote.m4.diff: Remove file.
+	* m4/quotearg.m4.diff: Remove file.
+	* modules/quote.diff: Remove file.
+	* modules/quotearg.diff: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2011-06-03  Bruno Haible  <bruno@clisp.org>
+
+	libxml: Detect installed libxml2 versions which don't define xmlFree().
+	* m4/libxml.m4 (gl_LIBXML): Also try linking an xmlFree() invocation.
+
+2011-06-03  Bruno Haible  <bruno@clisp.org>
+
+	Copyright: Use LGPL 2.1 instead of LGPL 2.0.
+	* lib/gettext.h: Update copyright header.
+	* lib/hash.h: Likewise.
+	* lib/moo.h: Likewise.
+	* lib/tparm.c: Likewise.
+	* lib/tputs.c: Likewise.
+
+2011-06-02  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* modules/fnmatch.diff: Update.
+	* modules/regex.diff: Likewise.
+	* m4/alloca.m4 (gl_FUNC_ALLOCA): Likewise.
+
+2011-02-12  Bruno Haible  <bruno@clisp.org>
+
+	Prefer gnulib's setlocale override over libintl's override.
+	* lib/gettext.h (setlocale): Redefine to rpl_setlocale if
+	GNULIB_defined_setlocale is set.
+
+2011-02-12  Bruno Haible  <bruno@clisp.org>
+
+	Update after gnulib changed.
+	* modules/fnmatch.diff: Update.
+
+2010-03-25  Bruno Haible  <bruno@clisp.org>
+
+	Minor formatting changes.
+	* lib/gettext.h: Insert space before function argument list.
+
+2010-11-20  Bruno Haible  <bruno@clisp.org>
+
+	Port to uClibc.
+	* lib/basename.h: Treat uClibc like glibc.
+	* lib/basename.c: Likewise.
+	* lib/iconv-ostream.oo.c (iconv_ostream::write_mem,
+	iconv_ostream::free, iconv_ostream_create): Likewise.
+
+2010-11-20  Bruno Haible  <bruno@clisp.org>
+
+	Port to uClibc.
+	* lib/gettext.h: Treat uClibc like a non-glibc platform.
+	Reported by Mike Frysinger <vapier@gentoo.org>.
+
+2010-10-10  Bruno Haible  <bruno@clisp.org>
+
+	Rely more on libtool.
+	* modules/gettext-tools-misc (Makefile.am): Remove @LTLIBC@ flag from
+	libgettextlib_la_LDFLAGS, relying more on libtool. Remove @LTNOUNDEF@
+	flag from libgettextlib_la_LDFLAGS, now generated by gnulib-tool.
+
+2010-10-10  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Makefile.am): Remove flags from
+	libgettextlib_la_LDFLAGS that are now generated by gnulib-tool.
+
+2010-08-29  Bruno Haible  <bruno@clisp.org>
+
+	* modules/regex.diff: Update after gnulib changed.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-05-19  Bruno Haible  <bruno@clisp.org>
+
+	Link with libunistring, if it exists.
+	* modules/gettext-tools-misc (lib_LDFLAGS): Add LTLIBUNISTRING.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Use the newest regex module from gnulib.
+	* modules/gettext-tools-misc (Files): Remove m4/mbrtowc.m4 and
+	m4/memchr.m4.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Use regex module without dependency on 'malloc'.
+	* lib/regex_internal.h.diff: New file.
+	* lib/regexec.c.diff: New file.
+	* modules/regex.diff: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2010-05-23  Bruno Haible  <bruno@clisp.org>
+
+	Do regex matching purely with regex, not regex + dfa + kwset.
+	* modules/gettext-tools-misc (Files): Remove m4/hard-locale.m4.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	Avoid test suite failure on mingw.
+	* tests/test-term-ostream-xterm: Convert CR/LF to LF before comparing.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	Export rpl_optind, rpl_optarg from DLL depending on platform.
+	* modules/gettext-tools-misc (AM_CPPFLAGS): Augment by
+	GETTEXTLIB_EXPORTS_FLAGS.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	Avoid compilation error in libgettextpo directory on Solaris 8.
+	* lib/unistd.in.h.diff: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2010-03-28  Bruno Haible  <bruno@clisp.org>
+
+	* modules/closeout (Depends-on): Add stdlib, remove exit.
+	* modules/fd-ostream (Depends-on): Likewise.
+	* modules/html-styled-ostream (Depends-on): Likewise.
+	* modules/iconv-ostream (Depends-on): Likewise.
+	* modules/memory-ostream (Depends-on): Likewise.
+	* modules/term-ostream (Depends-on): Likewise.
+	* modules/xalloc (Depends-on): Likewise.
+
+2010-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* m4/exitfail.m4.diff: Remove file.
+	* modules/exitfail.diff: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2010-02-19  Bruno Haible  <bruno@clisp.org>
+
+	* modules/wait-process.diff: Remove trailing space.
+
+2010-01-14  Bruno Haible  <bruno@clisp.org>
+
+	Use full 'vasnprintf' module from gnulib. The reduced one did not
+	support NULL arguments.
+	* lib/vasprintf.c: Remove file.
+	* m4/vasprintf.m4: Remove file.
+	* modules/vasprintf.diff: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove them.
+	Reported by LRN at <http://savannah.gnu.org/bugs/?28593>.
+
+2010-01-11  Bruno Haible  <bruno@clisp.org>
+
+	* modules/html-ostream (Depends-on): Remove utf8-ucs4. Instead add
+	unistr/u8-mbtouc.
+
+2009-12-25  Bruno Haible  <bruno@clisp.org>
+
+	* lib/html-ostream.oo.c: Include gl_xlist.h instead of gl_list.h.
+	* modules/html-ostream (Depends-on): Add xlist. Remove list.
+
+2009-12-12  Bruno Haible  <bruno@clisp.org>
+
+	* lib/*.h, lib/*.c: Untabify.
+	* m4/unionwait.m4: Untabify.
+	* tests/*.c: Untabify.
+
+2009-12-12  Bruno Haible  <bruno@clisp.org>
+
+	* lib/fnmatch_loop.c.diff: Update after gnulib changed.
+
+2009-08-15  Bruno Haible  <bruno@clisp.org>
+
+	Stop using gnulib module 'strdup'.
+	* modules/gettext-tools-misc (Files): Remove m4/strdup.m4.
+
+2009-08-10  Bruno Haible  <bruno@clisp.org>
+
+	Avoid gcc warning on Cygwin.
+	* lib/html-ostream.oo.c (html_ostream::write_mem): Change type of local
+	variable 'uc'.
+
+2009-05-23  Bruno Haible  <bruno@clisp.org>
+
+	Avoid gcc warning "cast from pointer to integer of different size".
+	* lib/glibconfig.in.h (GPOINTER_TO_INT, GINT_TO_POINTER): Cast through
+	intptr_t.
+	(GPOINTER_TO_UINT, GUINT_TO_POINTER: Cast through uintptr_t.
+
+2009-05-01  Bruno Haible  <bruno@clisp.org>
+
+	Avoid compiler warnings when redefining macros defined by <libintl.h>.
+	* lib/gettext.h [!ENABLE_NLS] (gettext, dgettext, dcgettext, ngettext,
+	dngettext, dcngettext, textdomain, bindtextdomain,
+	bind_textdomain_codeset): Undefine before redefining.
+
+2009-03-25  Bruno Haible  <bruno@clisp.org>
+
+	* m4/quotearg.m4.diff: Update after gnulib changed.
+
+2008-12-18  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Files): Add m4/locale-ja.m4.
+
+2008-12-07  Bruno Haible  <bruno@clisp.org>
+
+	Avoid gcc -Wmissing-prototypes warnings.
+	* lib/html-ostream.oo.c: Mark all method implementations as static.
+	* lib/term-ostream.oo.c: Likewise.
+
+2008-12-07  Bruno Haible  <bruno@clisp.org>
+
+	Avoid gcc -Wmissing-prototypes warnings.
+	* build-aux/moopp (func_emit_source_c): Emit a prototype before the
+	synthetized functions.
+
+2008-09-14  Bruno Haible  <bruno@clisp.org>
+
+	* modules/libxml: Use $(mkdir_p) to create the libxml directory.
+	* modules/libglib: Use $(mkdir_p) to create the glib directory.
+	Suggested by Ralf Wildenhues <Ralf.Wildenhues@gmx.de>.
+
+2008-09-14  Bruno Haible  <bruno@clisp.org>
+
+	* modules/libglib (Depends-on): Add strerror.
+
+2008-08-16  Bruno Haible  <bruno@clisp.org>
+
+	Recognize installed libxml2 version 2.6.x.
+	* m4/libxml.m4 (gl_LIBXML): Determine libxml2_include_dir by looking
+	for <libxml/xmlexports.h> as well.
+	Reported by Steve Trotman <steve_trotman@hotmail.com>
+	via <http://savannah.gnu.org/bugs/?22831>.
+
+2008-05-18  Bruno Haible  <bruno@clisp.org>
+
+	* modules/propername: Remove file, moved to gnulib.
+	* lib/propername.h: Remove file, moved to gnulib.
+	* lib/propername.c: Remove file, moved to gnulib.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2008-05-18  Bruno Haible  <bruno@clisp.org>
+
+	* lib/propername.c: Include <stdbool.h>, <ctype.h>, trim.h, mbchar.h,
+	mbuiter.h. Don't include c-strstr.h.
+	(mbsstr_trimmed_wordbounded): New function.
+	(proper_name, proper_name_utf8): Use it instead of mbsstr or c_strstr.
+	* modules/propername (Depends-on): Add stdbool, trim, mbchar, mbuiter.
+	Remove c-strstr.
+	Reported by Paul Eggert <eggert@cs.ucla.edu>.
+
+2008-05-18  Bruno Haible  <bruno@clisp.org>
+
+	* modules/propername (Notice): New field.
+	(configure.ac): Invoke AM_GETTEXT_OPTION.
+	* lib/propername.h: Add more comments.
+	Reported by Ben Pfaff <blp@cs.stanford.edu>.
+
+2008-05-11  Bruno Haible  <bruno@clisp.org>
+
+	* lib/gen-lbrkprop.c: Move to gnulib as lib/unilbrk/gen-lbrk.c.
+	* lib/3level.h: Remove file.
+	* modules/gen-lbrkprop: Move to gnulib as modules/unilbrk/gen-lbrk.
+	* Makefile.am (EXTRA_DIST): Remove lib/gen-lbrkprop.c, lib/3level.h,
+	modules/gen-lbrkprop.
+
+2008-05-11  Bruno Haible  <bruno@clisp.org>
+
+	* lib/gen-lbrkprop.c (output_lbp): Output to two different streams.
+	(output_tables): Accept two filename arguments.
+	(main): Generate lbrkprop1.h and lbrkprop2.h instead of lbrkprop.h.
+
+	* lib/gen-lbrkprop.c (unicode_combining): Remove variable.
+	(fill_combining): Remove function.
+	(main): Take one argument less.
+	* lib/Combining.txt: Remove file.
+	* modules/gen-lbrkprop (Files): Remove Combining.txt.
+	* Makefile.am (EXTRA_DIST): Likewise.
+
+	* lib/gen-lbrkprop.c: Change copyright to GPLv3+.
+	(output_tables): Emit a GPLv3+ header.
+
+2008-05-10  Bruno Haible  <bruno@clisp.org>
+
+	* lib/linebreak.c.diff: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove it.
+
+2008-01-13  Bruno Haible  <bruno@clisp.org>
+
+	New configure option --disable-curses.
+	* m4/curses.m4: New file.
+	* m4/termcap.m4 (gl_TERMCAP_BODY): Require gl_CURSES and consider its
+	result.
+	* m4/terminfo.m4 (gl_TERMINFO_BODY): Likewise.
+	* modules/termcap (Files): Add m4/curses.m4.
+	* modules/terminfo (Files): Likewise.
+	* Makefile.am (EXTRA_DIST): Add m4/curses.m4.
+
+2007-11-09  Bruno Haible  <bruno@clisp.org>
+
+	* m4/libglib.m4 (gl_LIBGLIB): Ensure that the <glib.h> is from a glib
+	version >= 2.0.
+	Reported by Paul Eggert <eggert@cs.ucla.edu>.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2007-10-27  Bruno Haible  <bruno@clisp.org>
+
+	* modules/libcroco (Makefile.am): When using the preinstalled libcroco,
+	add INCCROCO to AM_CPPFLAGS.
+	* lib/term-styled-ostream.oo.c: Work around broken double-inclusion
+	guard in libcroco-0.6.1.
+
+2007-10-27  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Makefile.am): Use @LTLIBC@ instead of
+	hardcoding -lc. Needed for HP-UX 11.
+
+2007-10-27  Bruno Haible  <bruno@clisp.org>
+
+	* tests/test-term-ostream-xterm-linux-debian.out: New file.
+	* tests/test-term-ostream-xterm-linux-mandriva.out: New file.
+	* tests/test-term-ostream-xterm: Use them as possible test results.
+	* modules/term-ostream-tests (Files): Add the new files.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+	Needed on Mandriva Linux Corporate Server release 2006.0 and
+	Debian 4.0.0.
+
+2007-10-27  Bruno Haible  <bruno@clisp.org>
+
+	* tests/test-term-ostream-xterm-netbsd3.out: New file.
+	* tests/test-term-ostream-xterm: Use it as possible test result.
+	* modules/term-ostream-tests (Files): Add it.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2007-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* modules/libxml (Depends-on): Add snprintf, vsnprintf. Needed for
+	OSF/1 4.0.
+
+2007-10-25  Bruno Haible  <bruno@clisp.org>
+
+	* tests/test-term-ostream-xterm: Redirect stderr into a pipe.
+	* tests/test-term-ostream-xterm-aix51.out: Remove padding.
+
+2007-10-21  Bruno Haible  <bruno@clisp.org>
+
+	* tests/test-term-ostream-xterm-solaris10.out: New file.
+	* tests/test-term-ostream-xterm-aix51.out: New file.
+	* tests/test-term-ostream-xterm-osf51.out: New file.
+	* tests/test-term-ostream-xterm-irix65.out: New file.
+	* tests/test-term-ostream-xterm-mingw.out: New file.
+	* tests/test-term-ostream-xterm: Use them as possible test results.
+	* modules/term-ostream-tests (Files): Add the new files.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2007-10-17  Bruno Haible  <bruno@clisp.org>
+
+	* lib/gl_array_list.h.diff: New file.
+	* lib/gl_linkedhash_list.h.diff: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2007-10-07  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp (func_version): In the --version output, say GPLv3+.
+
+2007-10-06  Bruno Haible  <bruno@clisp.org>
+
+	* tests/test-term-ostream-xterm-r6.out: New file.
+	* tests/test-term-ostream-xterm-xf86-v32.out: New file.
+	* tests/test-term-ostream-xterm-basic.out: New file.
+	* tests/test-term-ostream-xterm-8bit.out: New file.
+	* tests/test-term-ostream-xterm.out: Remove file.
+	* tests/test-term-ostream-xterm: Test against 4 possible expected
+	results.
+	* modules/term-ostream-tests (Files): Replace
+	tests/test-term-ostream-xterm.out with
+	tests/test-term-ostream-xterm-*.out.
+	* Makefile.am (EXTRA_DIST): Update.
+
+2007-03-30  Bruno Haible  <bruno@clisp.org>
+
+	* alloca.in.h: Change prefix of double-inclusion guard macro to _GL_.
+
+2006-06-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloca.in.h (alloca) [defined alloca]: Don't define or declare.
+
+2007-10-04  Bruno Haible  <bruno@clisp.org>
+
+	* lib/libxml/c14n.in.h: Renamed from lib/libxml/c14n_.h.
+	* lib/libxml/catalog.in.h: Renamed from lib/libxml/catalog_.h.
+	* lib/libxml/chvalid.in.h: Renamed from lib/libxml/chvalid_.h.
+	* lib/libxml/debugXML.in.h: Renamed from lib/libxml/debugXML_.h.
+	* lib/libxml/dict.in.h: Renamed from lib/libxml/dict_.h.
+	* lib/libxml/DOCBparser.in.h: Renamed from lib/libxml/DOCBparser_.h.
+	* lib/libxml/encoding.in.h: Renamed from lib/libxml/encoding_.h.
+	* lib/libxml/entities.in.h: Renamed from lib/libxml/entities_.h.
+	* lib/libxml/globals.in.h: Renamed from lib/libxml/globals_.h.
+	* lib/libxml/hash.in.h: Renamed from lib/libxml/hash_.h.
+	* lib/libxml/HTMLparser.in.h: Renamed from lib/libxml/HTMLparser_.h.
+	* lib/libxml/HTMLtree.in.h: Renamed from lib/libxml/HTMLtree_.h.
+	* lib/libxml/list.in.h: Renamed from lib/libxml/list_.h.
+	* lib/libxml/nanoftp.in.h: Renamed from lib/libxml/nanoftp_.h.
+	* lib/libxml/nanohttp.in.h: Renamed from lib/libxml/nanohttp_.h.
+	* lib/libxml/parser.in.h: Renamed from lib/libxml/parser_.h.
+	* lib/libxml/parserInternals.in.h: Renamed from lib/libxml/parserInternals_.h.
+	* lib/libxml/pattern.in.h: Renamed from lib/libxml/pattern_.h.
+	* lib/libxml/relaxng.in.h: Renamed from lib/libxml/relaxng_.h.
+	* lib/libxml/SAX2.in.h: Renamed from lib/libxml/SAX2_.h.
+	* lib/libxml/SAX.in.h: Renamed from lib/libxml/SAX_.h.
+	* lib/libxml/schemasInternals.in.h: Renamed from lib/libxml/schemasInternals_.h.
+	* lib/libxml/schematron.in.h: Renamed from lib/libxml/schematron_.h.
+	* lib/libxml/threads.in.h: Renamed from lib/libxml/threads_.h.
+	* lib/libxml/tree.in.h: Renamed from lib/libxml/tree_.h.
+	* lib/libxml/uri.in.h: Renamed from lib/libxml/uri_.h.
+	* lib/libxml/valid.in.h: Renamed from lib/libxml/valid_.h.
+	* lib/libxml/xinclude.in.h: Renamed from lib/libxml/xinclude_.h.
+	* lib/libxml/xlink.in.h: Renamed from lib/libxml/xlink_.h.
+	* lib/libxml/xmlautomata.in.h: Renamed from lib/libxml/xmlautomata_.h.
+	* lib/libxml/xmlerror.in.h: Renamed from lib/libxml/xmlerror_.h.
+	* lib/libxml/xmlexports.in.h: Renamed from lib/libxml/xmlexports_.h.
+	* lib/libxml/xmlIO.in.h: Renamed from lib/libxml/xmlIO_.h.
+	* lib/libxml/xmlmemory.in.h: Renamed from lib/libxml/xmlmemory_.h.
+	* lib/libxml/xmlmodule.in.h: Renamed from lib/libxml/xmlmodule_.h.
+	* lib/libxml/xmlreader.in.h: Renamed from lib/libxml/xmlreader_.h.
+	* lib/libxml/xmlregexp.in.h: Renamed from lib/libxml/xmlregexp_.h.
+	* lib/libxml/xmlsave.in.h: Renamed from lib/libxml/xmlsave_.h.
+	* lib/libxml/xmlschemas.in.h: Renamed from lib/libxml/xmlschemas_.h.
+	* lib/libxml/xmlschemastypes.in.h: Renamed from lib/libxml/xmlschemastypes_.h.
+	* lib/libxml/xmlstring.in.h: Renamed from lib/libxml/xmlstring_.h.
+	* lib/libxml/xmlunicode.in.h: Renamed from lib/libxml/xmlunicode_.h.
+	* lib/libxml/xmlversion.in.h: Renamed from lib/libxml/xmlversion_.h.
+	* lib/libxml/xmlwriter.in.h: Renamed from lib/libxml/xmlwriter_.h.
+	* lib/libxml/xpath.in.h: Renamed from lib/libxml/xpath_.h.
+	* lib/libxml/xpathInternals.in.h: Renamed from lib/libxml/xpathInternals_.h.
+	* lib/libxml/xpointer.in.h: Renamed from lib/libxml/xpointer_.h.
+	* modules/libxml (Files, Makefile.am): Update.
+	* Makefile.am (EXTRA_DIST): Update.
+
+	* lib/glib/ghash.in.h: Renamed from lib/glib/ghash_.h.
+	* lib/glib/glist.in.h: Renamed from lib/glib/glist_.h.
+	* lib/glib/gprimes.in.h: Renamed from lib/glib/gprimes_.h.
+	* lib/glib/gstrfuncs.in.h: Renamed from lib/glib/gstrfuncs_.h.
+	* lib/glib/gstring.in.h: Renamed from lib/glib/gstring_.h.
+	* lib/glib/gtypes.in.h: Renamed from lib/glib/gtypes_.h.
+	* lib/glib.in.h: Renamed from lib/glib_.h.
+	* lib/glibconfig.in.h: Renamed from lib/glibconfig_.h.
+	* modules/libglib (Files, Makefile.am): Update.
+	* Makefile.am (EXTRA_DIST): Update.
+
+	* lib/getopt.in.h.diff: Renamed from lib/getopt_.h.diff.
+	* Makefile.am (EXTRA_DIST): Update.
+
+	* lib/alloca.in.h: Renamed from lib/alloca_.h.
+	* Makefile.am (EXTRA_DIST): Update.
+
+2007-10-01  Bruno Haible  <bruno@clisp.org>
+
+	* tests/test-term-ostream-xterm.out: Update expected result after
+	code changes on 2006-12-23.
+
+2007-09-29  Bruno Haible  <bruno@clisp.org>
+
+	* modules/fnmatch.diff: Update.
+
+2007-09-26  Bruno Haible  <bruno@clisp.org>
+
+	* lib/vasprintf.c (int_vasprintf): Pass the args as a va_list,
+	not as a 'va_list *'. Needed on x86_64-linux, where va_list is an
+	array type: taking the address of a parameter of type va_list does
+	not yield a 'va_list *'. We have to assume that platforms where
+	passing a va_list by reference is useful (either because va_end is
+	not a no-op or because sizeof(va_list) is large) have already defined
+	va_list to an array type; no need to try to enforce passing by
+	reference.
+	Reported by Cristian Baboi <cristi@ot.onrc.ro>.
+
+2007-09-24  Bruno Haible  <bruno@clisp.org>
+
+	* lib/vasprintf.c (int_vasprintf): Use va_copy and va_end.
+	* modules/vasprintf.diff: Add dependency to stdarg.
+	Reported by Cristian Baboi <cristi@ot.onrc.ro>.
+
+2007-09-01  Bruno Haible  <bruno@clisp.org>
+
+	* lib/linebreak.c.diff: Update.
+
+2007-08-18  Bruno Haible  <bruno@clisp.org>
+
+	* modules/fstrcmp: Remove file, moved to gnulib.
+	* lib/fstrcmp.h: Remove file, moved to gnulib.
+	* lib/fstrcmp.c: Remove file, moved to gnulib.
+	* lib/diffseq.h: Remove file, moved to gnulib.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2007-07-01  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp (func_version): Use the standard --version output,
+	see
+	<http://lists.gnu.org/archive/html/bug-gnulib/2007-03/msg00302.html>.
+
+2007-05-13  Bruno Haible  <bruno@clisp.org>
+
+	* m4/vasprintf.m4 (gl_REPLACE_VASPRINTF, gl_PREREQ_VASPRINTF_H): New
+	macros, partially copied from gnulib.
+	(gl_FUNC_VASPRINTF): Copied from gnulib.
+
+2007-05-13  Bruno Haible  <bruno@clisp.org>
+
+	* lib/vasprintf.c: Include stdio.h instead of vasprintf.h.
+	* lib/glibconfig_.h: Likewise.
+
+2007-05-13  Bruno Haible  <bruno@clisp.org>
+
+	* modules/vasprintf.diff: Update.
+	* lib/linebreak.c.diff: Update.
+
+2007-05-01  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c: Don't include sigprocmask.h.
+
+2007-03-24  Bruno Haible  <bruno@clisp.org>
+
+	* lib/html-ostream.oo.c: Include unistr.h instead of utf8-ucs4.h.
+
+2007-03-16  Bruno Haible  <bruno@clisp.org>
+
+	* lib/html-ostream.oo.c (html_ostream_create): Update after signature
+	of gl_list_create_empty changed.
+
+2007-03-04  Bruno Haible  <bruno@clisp.org>
+
+	* lib/propername.c (proper_name, proper_name_utf8): Use mbsstr instead
+	of strstr.
+	* modules/propername (Depends-on): Remove strstr. Add mbsstr.
+
+2007-03-04  Bruno Haible  <bruno@clisp.org>
+
+	Moved --enable-relocatable infrastructure to gnulib.
+	* modules/gettext-tools-libgettextpo-misc: Remove file.
+	* modules/progreloc: Remove file.
+	* modules/relocatable: Remove file.
+	* modules/relocwrapper: Remove file.
+	* lib/strerror.c.diff: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove these files.
+
+2007-02-28  Bruno Haible  <bruno@clisp.org>
+
+	Move relocatability infrastructure to gnulib.
+	* lib/relocatable.c: Remove file.
+	* lib/relocatable.h: Remove file.
+	* lib/relocwrapper.c: Remove file.
+	* m4/relocatable.m4: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove these files.
+
+2007-02-28  Bruno Haible  <bruno@clisp.org>
+
+	Move module xreadlink to gnulib.
+	* modules/xreadlink: Remove file.
+	* lib/xreadlink.h: Remove file.
+	* lib/xreadlink.c: Remove file.
+	* m4/xreadlink.m4: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove these files.
+
+2007-02-19  Bruno Haible  <bruno@clisp.org>
+
+	* lib/closeout.c: Include <stdlib.h> instead of exit.h.
+	* lib/fd-ostream.oo.c: Don't include exit.h.
+	* lib/html-styled-ostream.oo.c: Include <stdlib.h> instead of exit.h.
+	* lib/iconv-ostream.oo.c: Don't include exit.h.
+	* lib/memory-ostream.oo.c: Likewise.
+	* lib/term-ostream.oo.c: Likewise.
+	* lib/xmalloc.c: Likewise.
+
+2007-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Files): Add m4/locale-fr.m4.
+
+2007-02-01  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Makefile.am): Add @LIB_ACL@ to
+	lib_LDFLAGS.
+	Reported by Ralf Wildenhues <Ralf.Wildenhues@gmx.de>.
+
+2007-01-28  Bruno Haible  <bruno@clisp.org>
+
+	* lib/linebreak.c.diff: Update.
+
+2007-01-27  Bruno Haible  <bruno@clisp.org>
+
+	Move a patch to gnulib.
+	* lib/javacomp.c.diff: Remove file.
+	* modules/javacomp.diff: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2007-01-26  Bruno Haible  <bruno@clisp.org>
+
+	* lib/propername.c: Don't include strstr.h, use <string.h> instead.
+
+2007-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* lib/xreadlink.c (xreadlink): Handle an ERANGE error. Needed for
+	AIX and HP-UX. Based on a gnulib patch from Paul Eggert on 2004-11-03.
+
+2006-12-23  Bruno Haible  <bruno@clisp.org>
+
+	* term-ostream.oo.c (out_attr_change): Consider the side effects of
+	exit_attribute_mode: Turn off all attributes before turning on others.
+	Also re-enable the colors after turning off attributes.
+
+2006-12-23  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp (func_emit_source_h, func_emit_source_c): Accept the
+	newfile_base as second argument. Emit #line directives without a
+	directory.
+
+2006-12-22  Bruno Haible  <bruno@clisp.org>
+
+	* modules/html-styled-ostream (Makefile.am) [WOE32DLL]: Use a C++
+	wrapper file.
+	* modules/term-styled-ostream (Makefile.am) [WOE32DLL]: Likewise.
+
+2006-12-22  Bruno Haible  <bruno@clisp.org>
+
+	Test for CC=c++ at configure-time.
+	* m4/moo.m4: New file.
+	* build-aux/moopp: Emit test of IS_CPLUSPLUS instead of __cplusplus.
+	* modules/moo (Files): Add m4/moo.m4.
+	(configure.ac): Set to gl_MOO.
+	* Makefile.am (EXTRA_DIST): Add m4/moo.m4.
+
+2006-12-23  Bruno Haible  <bruno@clisp.org>
+
+	Support platforms with neither terminfo nor termcap functions, like
+	mingw.
+	* lib/tputs.c: New file.
+
+	* modules/termcap (Files): Add lib/tputs.c.
+	* m4/termcap.m4 (gl_TERMCAP): Add tputs replacement.
+	(gl_TERMCAP_BODY): Define HAVE_TERMCAP if tgetent is available.
+	* lib/termcap.h (tgetent, tgetnum, tgetflag, tgetstr): Declare only
+	if HAVE_TERMCAP.
+	(tgoto): Declare only if HAVE_TERMCAP || HAVE_TERMINFO.
+
+	* modules/terminfo (Files): Add lib/tputs.c.
+	* m4/terminfo.m4 (gl_TERMINFO): Add tputs replacement.
+	(gl_TERMINFO_BODY): Define HAVE_TERMCAP if tgetent is available.
+	* lib/terminfo.h (tgetent, tgetnum, tgetflag, tgetstr): Declare only
+	if HAVE_TERMCAP.
+	(tgoto): Declare only if HAVE_TERMINFO || HAVE_TERMCAP.
+
+	* lib/term-ostream.oo.c (term_ostream_create): Use ANSI color escape
+	sequences when neither terminfo nor termcap functions exist.
+	* Makefile.am (EXTRA_DIST): Add lib/tputs.c.
+
+2006-12-23  Bruno Haible  <bruno@clisp.org>
+
+	Improve cross-compilation support.
+	* m4/gcj.m4 (gt_GCJ): Use AC_CHECK_TOOL instead of AC_CHECK_PROGS.
+
+2006-12-23  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c (term_ostream_create): Fix up the
+	no_color_video value for cygwin.
+
+2006-12-22  Bruno Haible  <bruno@clisp.org>
+
+	Move no-c++ module to gnulib.
+	* modules/no-c++: Remove file.
+	* m4/no-c++.m4: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2006-12-21  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Makefile.am): Move modifications of
+	AUTOMAKE_OPTIONS, AM_CPPFLAGS and settings of gettextsrcdir,
+	gettextsrc_DATA, pkgdatadir to ../gettext-tools/gnulib-lib/Makefile.am.
+
+2006-12-21  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp (func_usage, func_version): New functions.
+	(dllexports): New variable.
+	Parse command-line options.
+	(func_emit_source_h): Emit DLL_VARIABLE marks if the class is to be
+	exported.
+
+2006-12-21  Bruno Haible  <bruno@clisp.org>
+
+	* modules/moo (Makefile.am): Declare MOOPPFLAGS.
+	* modules/moo-tests (Makefile.am): Pass the MOOPPFLAGS to every moopp
+	invocation.
+	* modules/ostream (Makefile.am): Likewise.
+	* modules/fd-ostream (Makefile.am): Likewise.
+	* modules/file-ostream (Makefile.am): Likewise.
+	* modules/html-ostream (Makefile.am): Likewise.
+	* modules/iconv-ostream (Makefile.am): Likewise.
+	* modules/memory-ostream (Makefile.am): Likewise.
+	* modules/term-ostream (Makefile.am): Likewise.
+	* modules/styled-ostream (Makefile.am): Likewise.
+	* modules/html-styled-ostream (Makefile.am): Likewise.
+	* modules/term-styled-ostream (Makefile.am): Likewise.
+
+2006-12-21  Bruno Haible  <bruno@clisp.org>
+
+	* lib/diffseq.h (diag, compareseq): Use the EQUAL macro.
+
+2006-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* m4/libxml.m4 (gl_LIBXML): Check for arpa/nameser.h and resolv.h
+	with some prerequisite headers. Needed for AIX 4.3.2.
+
+2006-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c (term_ostream_create): Add color information
+	about xterm if the platform lacks it.
+
+2006-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c: Include terminfo.h instead of termcap.h.
+	* modules/term-ostream (Depends-on): Add terminfo-h, remove termcap-h.
+
+2006-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* lib/terminfo.h: New file.
+	* modules/terminfo-h: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2006-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* m4/terminfo.m4: New file.
+	* modules/terminfo: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2006-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* m4/termcap.m4 (gl_TERMCAP, gl_TERMCAP_BODY): Rename cache variables.
+
+2006-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* lib/diffseq.h: New file, extracted from fstrcmp.c and GNU diff's
+	analyze.c.
+	* lib/fstrcmp.c: Use it.
+	* modules/fstrcmp (Files): Add lib/diffseq.h.
+
+2006-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* lib/fstrcmp.c: Make generic.
+	(EXTRA_CONTEXT_FIELDS, NOTE_DELETE, NOTE_INSERT): New macros.
+
+2006-10-07  Bruno Haible  <bruno@clisp.org>
+
+	* lib/fstrcmp.c: Include minmax.h.
+	* modules/fstrcmp (Depends-on): Add minmax.
+
+	* lib/fstrcmp.c (IF_LINT): New macro.
+
+	* lib/fstrcmp.c: Make comments and variable syntax closer to GNU
+	diff's analyze.c.
+
+	* lib/fstrcmp.c: Fix FSF address in copyright header.
+
+	* lib/fstrcmp.c: Rename macro MINUS_H_FLAG to USE_HEURISTIC. Use bool.
+
+	* lib/fstrcmp.c: Update comments. Talk about vectors instead of
+	strings, and about elements instead of characters.
+
+	* lib/fstrcmp.c: Make generic.
+	(OFFSET_MAX): New macro.
+
+	* lib/fstrcmp.c: Modernize the coding style.
+
+	* lib/fstrcmp.c: Include <stdbool.h>. Use bool where appropriate.
+	Rename 'minimal' to 'find_minimal'.
+
+	* lib/fstrcmp.c: Make generic.
+	(ELEMENT, EQUAL, OFFSET): New macros.
+
+2006-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* lib/fstrcmp.c (diag): Change return type to void.
+	(compareseq): Remove verification that the change count is > 1.
+
+2006-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* m4/termcap.m4 (gl_TERMCAP_BODY): Also test for the terminfo
+	functions.
+	* lib/termcap.h (setupterm, tigetnum, tigetflag, tigetstr): New
+	declarations.
+	* lib/term-ostream.oo.c (xstrdup0) [HAVE_TERMINFO]: Handle (char*)-1
+	return value from tigetstr.
+	(term_ostream_create) [HAVE_TERMINFO]: Prefer the terminfo API.
+
+2006-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c (term_ostream_create): Fix tgetstr argument
+	for stream->no_color_video.
+
+2006-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c (term_ostream_create): Don't ignore tgetent's
+	return value.
+
+2006-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* lib/libcroco/cr-style.h (enum CRPositionType): Remove trailing
+	comma. Needed for compilation on AIX with xlc.
+
+2006-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* modules/libxml (Depends-on): Add stdarg.
+	* m4/libxml.m4 (gl_LIBXML): Define VA_COPY, needed for xmlwriter.c.
+
+2006-12-16  Bruno Haible  <bruno@clisp.org>
+
+	* lib/libxml/xmlwriter.c: Include libxml.h first, not after string.h.
+
+2006-12-13  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp: Add check for GNU sed. Generate the 4 files in the
+	source directory, not in the current directory.
+	* modules/ostream (Makefile.am): Test for the .h file in the source
+	directory, not in the current directory. Augment MAINTAINERCLEANFILES
+	and EXTRA_DIST, not CLEANFILES.
+	* modules/fd-ostream (Makefile.am): Likewise.
+	* modules/file-ostream (Makefile.am): Likewise.
+	* modules/html-ostream (Makefile.am): Likewise.
+	* modules/iconv-ostream (Makefile.am): Likewise.
+	* modules/memory-ostream (Makefile.am): Likewise.
+	* modules/term-ostream (Makefile.am): Likewise.
+	* modules/styled-ostream (Makefile.am): Likewise.
+	* modules/html-styled-ostream (Makefile.am): Likewise.
+	* modules/term-styled-ostream (Makefile.am): Likewise.
+
+2006-12-13  Bruno Haible  <bruno@clisp.org>
+
+	Avoid crash on NetBSD.
+	* lib/term-ostream.oo.c (term_ostream_create): Pass a non-NULL area
+	pointer to tgetstr.
+
+2006-12-13  Bruno Haible  <bruno@clisp.org>
+
+	* lib/tparm.c: New file, based on a public-domain implementation part
+	of Cygwin.
+	* m4/termcap.m4 (gl_TERMCAP): AC_LIBOBJ of tparm.c if needed.
+	(gl_TERMCAP_BODY): Test whether the system has tparm().
+	* modules/termcap (Files): Add lib/tparm.c.
+	(Depends-on): Add c-ctype.
+	* Makefile.am (EXTRA_DIST): Add lib/tparm.c.
+
+2006-12-13  Bruno Haible  <bruno@clisp.org>
+
+	* modules/termcap-h (Include): Add termcap.h.
+
+2006-12-13  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp (sed_remove_comments): Fix handling of character
+	constants. Example:  '"' /* comment */ '"'
+	(sed_remove_comments_ERE): New variable.
+
+2006-12-13  Bruno Haible  <bruno@clisp.org>
+
+	* modules/ostream (Makefile.am): List all generated files in the moopp
+	rule.
+	* modules/fd-ostream (Makefile.am): Likewise.
+	* modules/file-ostream (Makefile.am): Likewise.
+	* modules/html-ostream (Makefile.am): Likewise.
+	* modules/iconv-ostream (Makefile.am): Likewise.
+	* modules/memory-ostream (Makefile.am): Likewise.
+	* modules/term-ostream (Makefile.am): Likewise.
+	* modules/styled-ostream (Makefile.am): Likewise.
+	* modules/html-styled-ostream (Makefile.am): Likewise.
+	* modules/term-styled-ostream (Makefile.am): Likewise.
+
+2006-12-12  Bruno Haible  <bruno@clisp.org>
+
+	Fix moopp rules for parallel make.
+	* build-aux/moopp: Generate source.h first and source.c last.
+	* modules/ostream (Makefile.am): Rewrite the moopp rule so that all
+	generated files depend on the generated .h file.
+	* modules/fd-ostream (Makefile.am): Likewise.
+	* modules/file-ostream (Makefile.am): Likewise.
+	* modules/html-ostream (Makefile.am): Likewise.
+	* modules/iconv-ostream (Makefile.am): Likewise.
+	* modules/memory-ostream (Makefile.am): Likewise.
+	* modules/term-ostream (Makefile.am): Likewise.
+	* modules/styled-ostream (Makefile.am): Likewise.
+	* modules/html-styled-ostream (Makefile.am): Likewise.
+	* modules/term-styled-ostream (Makefile.am): Likewise.
+	Reported by Ralf Wildenhues.
+
+2006-12-12  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp (func_emit_priv_h, func_emit_vt_h,
+	func_emit_source_h, func_emit_source_c): New functions.
+
+2006-12-02  Bruno Haible  <bruno@clisp.org>
+
+	Support 'text-decoration: underline' in terminal mode.
+	* lib/term-styled-ostream.oo.c: Include cr-string.h.
+	(enum CRXTextDecorationType): New type.
+	(CRXStyle): New type.
+	(crx_style_new, crx_style_destroy, crx_sel_eng_get_matched_style): New
+	functions.
+	(style_compute_text_underline_value): Take a CRXStyle as argument.
+	(match): Build a chain of CRXStyle instead of CRStyle.
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	* modules/term-styled-ostream: New file.
+	* lib/term-styled-ostream.oo.c: New file.
+	* lib/term-styled-ostream.oo.h: New file.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	* modules/html-styled-ostream: New file.
+	* lib/html-styled-ostream.oo.c: New file.
+	* lib/html-styled-ostream.oo.h: New file.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	* modules/styled-ostream: New file.
+	* lib/styled-ostream.oo.c: New file.
+	* lib/styled-ostream.oo.h: New file.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-12-11  Bruno Haible  <bruno@clisp.org>
+
+	Portability to BeOS.
+	* lib/term-ostream.oo.c (term_ostream_create) [BeOS]: Correct the
+	values of stream->set_a_foreground and stream->set_a_background.
+
+2006-12-11  Bruno Haible  <bruno@clisp.org>
+
+	Portability to systems with GNU termcap.
+	* m4/termcap.m4 (gl_TERMCAP_BODY): Also test for the tparam function.
+	* lib/termcap.h (tparam): New declaration.
+	* lib/term-ostream.oo.c (tparambuf): New variable.
+	(tparm): Define in terms of tparam when tparam exists.
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	* modules/term-ostream: Depend on termcap-h, not termcap.
+	* lib/term-ostream.oo.c: Include termcap.h.
+	(tgetent, tgetnum, tgetflag, tgetstr, tparm, tgoto, tputs): Remove
+	declarations.
+
+	Move termcap function declarations to a header file.
+	* modules/termcap-h: New file.
+	* lib/termcap.h: New file.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	* modules/moo-tests: New file.
+	* tests/test-moo-aroot.oo.c: New file.
+	* tests/test-moo-aroot.oo.h: New file.
+	* tests/test-moo-assign.c: New file.
+	* tests/test-moo-asub1.oo.c: New file.
+	* tests/test-moo-asub1.oo.h: New file.
+	* tests/test-moo-root.oo.c: New file.
+	* tests/test-moo-root.oo.h: New file.
+	* tests/test-moo-sub1.oo.c: New file.
+	* tests/test-moo-sub1.oo.h: New file.
+	* tests/test-moo-sub2.oo.c: New file.
+	* tests/test-moo-sub2.oo.h: New file.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	* modules/term-ostream-tests: New file.
+	* tests/test-term-ostream.c: New file.
+	* tests/test-term-ostream-xterm: New file.
+	* tests/test-term-ostream-xterm.out: New file.
+	* tests/test-term-ostream-xterm-16color.out: New file.
+	* tests/test-term-ostream-xterm-88color.out: New file.
+	* tests/test-term-ostream-xterm-256color.out: New file.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-12-02  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c (term_ostream_create): Recognize also the
+	terminal types rxvt[-16color] and konsole[-16color].
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	Preserve the hue of bright colors.
+	* lib/term-ostream.oo.c (colors_of_common8): New variable.
+	(rgb_to_color_common8): Rewritten.
+	(colors_of_xterm8): New variable.
+	(rgb_to_color_xterm8): Rewritten.
+
+2006-12-01  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c (out_attr_change): Fix typo.
+
+2006-11-30  Bruno Haible  <bruno@clisp.org>
+
+	Add special color support for xterm-16color, xterm-88color,
+	xterm-256color.
+	* lib/term-ostream.oo.h (term_color_t): Define as int.
+	(COLOR_BLACK, COLOR_BLUE, COLOR_GREEN, COLOR_CYAN, COLOR_RED,
+	COLOR_MAGENTA, COLOR_YELLOW, COLOR_WHITE): Remove enum items.
+	(term_ostream): Add method rgb_to_color.
+	* lib/term-ostream.oo.c (rgb_t, hsv_t): New types.
+	(rgb_to_hsv, color_distance, nearest_color, color_luminance): New
+	functions.
+	(colormodel_t): New type.
+	(rgb_to_color_monochrome): New function.
+	(rgb_to_color_common8): New function.
+	(rgb_to_color_xterm8): New function.
+	(colors_of_xterm16): New variable.
+	(rgb_to_color_xterm16): New function.
+	(colors_of_xterm88): New variable.
+	(rgb_to_color_xterm88): New function.
+	(colors_of_xterm256): New variable.
+	(rgb_to_color_xterm256): New function.
+	(attributes_t): Reserve more bits for the colors.
+	(term_ostream): Add colormodel field.
+	(out_error): New function.
+	(out_char): Use it.
+	(out_attr_change): Add support for the xterm color models.
+	(term_ostream::rgb_to_color): New function.
+	(term_ostream_create): Initialize the colormodel field.
+
+2006-11-28  Bruno Haible  <bruno@clisp.org>
+
+	* lib/term-ostream.oo.c (out_attr_change): Fix uses of color_bgr.
+
+2006-11-28  Bruno Haible  <bruno@clisp.org>
+
+	Guard against interruption with Ctrl-Z.
+	* lib/term-ostream.oo.c: Include also signal.h and sigprocmask.h.
+	(SIZEOF): New macro.
+	(stopping_signals): New variable.
+	(num_stopping_signals): New macro.
+	(stopping_signal_set): New variable.
+	(init_stopping_signal_set): New function.
+	(block_stopping_signals, unblock_stopping_signals): New functions.
+	(output_buffer): Use them.
+	* modules/term-ostream (Depends-on): Add sigprocmask.
+
+2006-11-28  Bruno Haible  <bruno@clisp.org>
+
+	* lib/libcroco/cr-fonts.h: Fix double-inclusion guard.
+
+2006-11-27  Paul Eggert  <eggert@cs.ucla.edu>
+            Bruno Haible  <bruno@clisp.org>
+
+	* lib/gettext.h (_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS): Define to 0
+	if compiling with "gcc -ansi".
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	Build the imported libraries with a C compiler, even when CC=g++.
+
+	* modules/libcroco (Depends-on): Add no-c++.
+	(Makefile.am): Define libcroco_rpl_la_SOURCES,
+	libcroco_rpl_la_CPPFLAGS.
+	Augment lib_LIBADD, lib_DEPENDENCIES, noinst_LTLIBRARIES.
+	* m4/libcroco.m4 (gl_LIBCROCO): Don't use AC_LIBOBJ.
+
+	* modules/libglib (Depends-on): Add no-c++.
+	(Makefile.am): Define libglib_rpl_la_SOURCES, libglib_rpl_la_CPPFLAGS.
+	Augment lib_LIBADD, lib_DEPENDENCIES, noinst_LTLIBRARIES.
+	* m4/libglib.m4 (gl_LIBGLIB): Don't use AC_LIBOBJ. New condition
+	INCLUDED_LIBGLIB.
+
+	* modules/libxml (Depends-on): Add no-c++.
+	(Makefile.am): Define libxml_rpl_la_SOURCES, libxml_rpl_la_CPPFLAGS.
+	Augment lib_LIBADD, lib_DEPENDENCIES, noinst_LTLIBRARIES.
+	* m4/libxml.m4 (gl_LIBXML): Don't use AC_LIBOBJ. New condition
+	INCLUDED_LIBXML.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	libcroco uses vasprintf.h, which requires <config.h>.
+	* lib/libcroco/cr-additional-sel.c: Include <config.h>.
+	* lib/libcroco/cr-attr-sel.c: Likewise.
+	* lib/libcroco/cr-cascade.c: Likewise.
+	* lib/libcroco/cr-declaration.c: Likewise.
+	* lib/libcroco/cr-doc-handler.c: Likewise.
+	* lib/libcroco/cr-enc-handler.c: Likewise.
+	* lib/libcroco/cr-fonts.c: Likewise.
+	* lib/libcroco/cr-input.c: Likewise.
+	* lib/libcroco/cr-num.c: Likewise.
+	* lib/libcroco/cr-om-parser.c: Likewise.
+	* lib/libcroco/cr-parser.c: Likewise.
+	* lib/libcroco/cr-parsing-location.c: Likewise.
+	* lib/libcroco/cr-prop-list.c: Likewise.
+	* lib/libcroco/cr-pseudo.c: Likewise.
+	* lib/libcroco/cr-rgb.c: Likewise.
+	* lib/libcroco/cr-sel-eng.c: Likewise.
+	* lib/libcroco/cr-selector.c: Likewise.
+	* lib/libcroco/cr-simple-sel.c: Likewise.
+	* lib/libcroco/cr-statement.c: Likewise.
+	* lib/libcroco/cr-string.c: Likewise.
+	* lib/libcroco/cr-style.c: Likewise.
+	* lib/libcroco/cr-stylesheet.c: Likewise.
+	* lib/libcroco/cr-term.c: Likewise.
+	* lib/libcroco/cr-tknzr.c: Likewise.
+	* lib/libcroco/cr-token.c: Likewise.
+	* lib/libcroco/cr-utils.c: Likewise.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	* modules/no-c++: New file.
+	* m4/no-c++.m4: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	Support for VPATH builds.
+	* modules/libglib (glib/*.h): Create the glib directory if necessary.
+	* modules/libxml (libxml/*.h): Create the libxml directory if
+	necessary.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	* lib/xalloc.h (xmemdup): Add a typesafe C++ template variant.
+	Based on a patch from Paul Eggert in gnulib.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	Optimize IS_INSTANCE.
+	* build-aux/moopp: Emit also a classname_SUPERCLASSES_LENGTH macro.
+	* lib/moo.h (IS_INSTANCE): Use the value of this macro, known at
+	compile time.
+	(IS_INSTANCE_PRIVATE): Remove macro.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	* lib/moo.h (IS_INSTANCE): Fix reference to vtable.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	* build-aux/moopp: In the C++ class definition, add 'operator ==',
+	'operator !=' members, and add constructors for downcasting.
+
+2006-11-25  Bruno Haible  <bruno@clisp.org>
+
+	* lib/glibconfig_.h (g_return_if_fail, g_return_val_if_fail,
+	g_return_if_reached, g_return_val_if_reached): Return instead of
+	calling abort().
+
+2006-11-12  Bruno Haible  <bruno@clisp.org>
+
+	* modules/libcroco: New file.
+	* m4/libcroco.m4: New file.
+	* lib/libcroco/cr-additional-sel.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-additional-sel.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-attr-sel.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-attr-sel.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-cascade.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-cascade.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-declaration.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-declaration.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-doc-handler.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-doc-handler.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-enc-handler.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-enc-handler.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-fonts.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-fonts.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-input.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-input.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-num.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-num.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-om-parser.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-om-parser.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-parser.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-parser.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-parsing-location.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-parsing-location.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-prop-list.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-prop-list.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-pseudo.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-pseudo.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-rgb.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-rgb.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-sel-eng.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-sel-eng.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-selector.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-selector.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-simple-sel.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-simple-sel.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-statement.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-statement.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-string.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-string.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-style.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-style.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-stylesheet.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-stylesheet.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-term.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-term.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-tknzr.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-tknzr.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-token.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-token.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-utils.c: New file, from libcroco-0.6.1.
+	* lib/libcroco/cr-utils.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/libcroco-config.h: New file, from libcroco-0.6.1.
+	* lib/libcroco/libcroco.h: New file, from libcroco-0.6.1.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-11-12  Bruno Haible  <bruno@clisp.org>
+
+	* modules/libglib: New file.
+	* m4/libglib.m4: New file.
+	* lib/glib_.h: New file, from glib-2.12.4 with modifications.
+	* lib/glibconfig_.h: New file, based on glib-2.12.4.
+	* lib/glib/ghash.c: New file, from glib-2.12.4 with modifications.
+	* lib/glib/ghash_.h: New file, from glib-2.12.4 with modifications.
+	* lib/glib/glist.c: New file, from glib-2.12.4 with modifications.
+	* lib/glib/glist_.h: New file, from glib-2.12.4 with modifications.
+	* lib/glib/gmessages.c: New file.
+	* lib/glib/gprimes.c: New file, from glib-2.12.4 with modifications.
+	* lib/glib/gprimes_.h: New file, from glib-2.12.4 with modifications.
+	* lib/glib/gstrfuncs.c: New file, from glib-2.12.4 with modifications.
+	* lib/glib/gstrfuncs_.h: New file, from glib-2.12.4 with modifications.
+	* lib/glib/gstring.c: New file, from glib-2.12.4 with modifications.
+	* lib/glib/gstring_.h: New file, from glib-2.12.4 with modifications.
+	* lib/glib/gtypes_.h: New file, from glib-2.12.4 with modifications.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-11-12  Bruno Haible  <bruno@clisp.org>
+
+	* modules/xalloc (Depends-on): Add error, gettext-h, exit.
+
+2006-11-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/gettext.h (dgettext, dcgettext, ngettext) [! ENABLE_NLS]:
+	(dngettext, dcngettext, bindtextdomain) [! ENABLE_NLS]:
+	(bind_textdomain_codeset) [! ENABLE_NLS]:
+	Evaluate all the arguments.  That way, callers get compatible behavior
+	if the arguments have side effects.  Also, it avoids some GCC
+	diagnostics in some cases; Joel E. Denny reported problems when Bison
+	was configured with --enable-gcc-warnigs.
+
+2006-11-05  Bruno Haible  <bruno@clisp.org>
+
+	Include libxml2 as a fallback.
+	* modules/libxml: New file.
+	* m4/libxml.m4: New file.
+	* lib/libxml/elfgcchack.h: New empty file.
+	* lib/libxml/xmlversion_.h: New file, from libxml2-2.6.27 with
+	modifications.
+	* lib/libxml/libxml.h: New file, from libxml2-2.6.27.
+	* lib/libxml/COPYING: New file, from libxml2-2.6.27.
+	* lib/libxml/DOCBparser.c: New file, from libxml2-2.6.27.
+	* lib/libxml/DOCBparser_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/HTMLparser.c: New file, from libxml2-2.6.27.
+	* lib/libxml/HTMLparser_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/HTMLtree.c: New file, from libxml2-2.6.27.
+	* lib/libxml/HTMLtree_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/SAX.c: New file, from libxml2-2.6.27.
+	* lib/libxml/SAX2.c: New file, from libxml2-2.6.27.
+	* lib/libxml/SAX2_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/SAX_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/c14n.c: New file, from libxml2-2.6.27.
+	* lib/libxml/c14n_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/catalog.c: New file, from libxml2-2.6.27.
+	* lib/libxml/catalog_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/chvalid.c: New file, from libxml2-2.6.27.
+	* lib/libxml/chvalid_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/debugXML.c: New file, from libxml2-2.6.27.
+	* lib/libxml/debugXML_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/dict.c: New file, from libxml2-2.6.27.
+	* lib/libxml/dict_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/encoding.c: New file, from libxml2-2.6.27.
+	* lib/libxml/encoding_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/entities.c: New file, from libxml2-2.6.27.
+	* lib/libxml/entities_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/error.c: New file, from libxml2-2.6.27.
+	* lib/libxml/globals.c: New file, from libxml2-2.6.27.
+	* lib/libxml/globals_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/hash.c: New file, from libxml2-2.6.27.
+	* lib/libxml/hash_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/legacy.c: New file, from libxml2-2.6.27.
+	* lib/libxml/list.c: New file, from libxml2-2.6.27.
+	* lib/libxml/list_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/nanoftp.c: New file, from libxml2-2.6.27.
+	* lib/libxml/nanoftp_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/nanohttp.c: New file, from libxml2-2.6.27.
+	* lib/libxml/nanohttp_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/parser.c: New file, from libxml2-2.6.27.
+	* lib/libxml/parserInternals.c: New file, from libxml2-2.6.27.
+	* lib/libxml/parserInternals_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/parser_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/pattern.c: New file, from libxml2-2.6.27.
+	* lib/libxml/pattern_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/relaxng.c: New file, from libxml2-2.6.27.
+	* lib/libxml/relaxng_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/schemasInternals_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/schematron.c: New file, from libxml2-2.6.27.
+	* lib/libxml/schematron_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/threads.c: New file, from libxml2-2.6.27.
+	* lib/libxml/threads_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/tree.c: New file, from libxml2-2.6.27.
+	* lib/libxml/tree_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/uri.c: New file, from libxml2-2.6.27.
+	* lib/libxml/uri_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/valid.c: New file, from libxml2-2.6.27.
+	* lib/libxml/valid_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xinclude.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xinclude_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xlink.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xlink_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlIO.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlIO_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlautomata_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlerror_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlexports_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlmemory.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlmemory_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlmodule.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlmodule_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlreader.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlreader_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlregexp.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlregexp_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlsave.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlsave_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlschemas.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlschemas_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlschemastypes.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlschemastypes_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlstring.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlstring_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlunicode.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlunicode_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlwriter.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xmlwriter_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xpath.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xpathInternals_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xpath_.h: New file, from libxml2-2.6.27.
+	* lib/libxml/xpointer.c: New file, from libxml2-2.6.27.
+	* lib/libxml/xpointer_.h: New file, from libxml2-2.6.27.
+	* Makefile.am (EXTRA_DIST): Add the new files.
+
+2006-11-05  Bruno Haible  <bruno@clisp.org>
+
+	* modules/term-ostream: New file.
+	* m4/term-ostream.m4: New file.
+	* lib/term-ostream.oo.h: New file.
+	* lib/term-ostream.oo.c: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/termcap: New file.
+	* m4/termcap.m4: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/memory-ostream: New file.
+	* lib/memory-ostream.oo.h: New file.
+	* lib/memory-ostream.oo.c: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/iconv-ostream: New file.
+	* lib/iconv-ostream.oo.h: New file.
+	* lib/iconv-ostream.oo.c: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/html-ostream: New file.
+	* lib/html-ostream.oo.h: New file.
+	* lib/html-ostream.oo.c: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/file-ostream: New file.
+	* lib/file-ostream.oo.h: New file.
+	* lib/file-ostream.oo.c: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/fd-ostream: New file.
+	* lib/fd-ostream.oo.h: New file.
+	* lib/fd-ostream.oo.c: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/ostream: New file.
+	* lib/ostream.oo.h: New file.
+	* lib/ostream.oo.c: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+	* modules/moo: New file.
+	* build-aux/moopp: New file.
+	* lib/moo.h: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2006-11-06  Bruno Haible  <bruno@clisp.org>
+
+	* lib/xalloc.h (xcharalloc): New macro.
+	(xmemdup): New declaration.
+	* lib/xstrdup.c (xmemdup): New function.
+
+2006-11-03  Bruno Haible  <bruno@clisp.org>
+
+	* lib/xalloc.h (XMALLOC, XNMALLOC, XZALLOC, XCALLOC): New macros.
+	(xnboundedmalloc): New inline function.
+	* lib/fstrcmp.c (fstrcmp): Use xnmalloc instead of xmalloc.
+	* lib/hash.c (hash_init, resize): Use XCALLOC instead of xcalloc.
+	* lib/propername.c (proper_name, proper_name_utf8): Use XNMALLOC
+	instead of xmalloc.
+	* lib/xgetcwd.c (xgetcwd): Use XNMALLOC instead of xmalloc.
+	* lib/xstrdup.c (xstrdup): Likewise.
+
+2006-11-06  Bruno Haible  <bruno@clisp.org>
+
+	* lib/getopt_.h.diff: Update.
+
+2006-11-06  Bruno Haible  <bruno@clisp.org>
+
+	Moved canonicalize to gnulib.
+	* modules/canonicalize: Remove file.
+	* lib/canonicalize.h: Remove file.
+	* lib/canonicalize.c: Remove file.
+	* m4/canonicalize.m4: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove these files.
+	* modules/progreloc (Depends-on): Replace 'canonicalize' with
+	'canonicalize-lgpl'.
+
+2006-11-06  Bruno Haible  <bruno@clisp.org>
+
+	* lib/canonicalize.h (canonicalize_file_name): Fix wrong comment
+	borrowed from glibc.
+
+2006-11-02  Bruno Haible  <bruno@clisp.org>
+
+	* lib/xalloc.h (xnmalloc): New declaration. From gnulib xalloc.h.
+	* lib/xmalloc.c (fixup_null_alloc): Write NULL, not 0.
+	(xnmalloc): New function.
+
+2006-10-29  Bruno Haible  <bruno@clisp.org>
+
+	* lib/fstrcmp.h: Wrap declarations in extern "C".
+
+2006-10-29  Bruno Haible  <bruno@clisp.org>
+
+	Make it compile in C++ mode.
+	* lib/backupfile.c (find_backup_file_name): Cast malloc result.
+	* lib/xalloc.h (xrealloc): Define as template with appropriate return
+	type.
+	* lib/xstrdup.c (xstrdup): Cast xmalloc result.
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* modules/canonicalize (Makefile.am): Remove EXTRA_DIST. Now done by
+	gnulib-tool.
+	* modules/relocatable (Makefile.am): Likewise.
+	* modules/relocwrapper (Makefile.am): Likewise.
+
+2006-10-25  Bruno Haible  <bruno@clisp.org>
+
+	* m4/relocatable.m4 (AC_RELOCATABLE_BODY): Renamed from AC_RELOCATABLE,
+	without the AC_LIBOBJ invocation.
+	(AC_RELOCATABLE): New macro. Invoke AC_LIBOBJ here.
+	* modules/relocwrapper (configure.ac): Invoke AC_RELOCATABLE instead
+	of requiring it.
+	* modules/gettext-tools-libgettextpo-misc: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2006-10-25  Bruno Haible  <bruno@clisp.org>
+
+	* lib/gettext.h (_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS): Define to
+	false for non-gcc C++ compilers.
+	Reported by Nelson H. F. Beebe <beebe@math.utah.edu>.
+
+2006-10-24  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Makefile.am): Add also $(top_srcdir) to
+	AM_CPPFLAGS. Needed so that woe32dll/export.h is found while compiling
+	gettextlib-exports.c in a VPATH build.
+	Reported by Charles Wilson <cygwin@cwilson.fastmail.fm>.
+
+2006-10-24  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools/misc (Makefile.am): Use rm -f instead of
+	$(RM).
+
+2006-10-24  Bruno Haible  <bruno@clisp.org>
+
+	* lib/fstrcmp.c (keys_init_once): Remove semicolon after
+	gl_once_define invocation.
+
+2006-10-23  Bruno Haible  <bruno@clisp.org>
+
+	Moved last change to gnulib.
+	* lib/obstack.h.diff: Undo last change.
+	* lib/obstack.c.diff: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove it.
+
+2006-10-20  Bruno Haible  <bruno@clisp.org>
+
+	* lib/obstack.h.diff: Use _obstack_free instead of obstack_free, but
+	define _obstack_free to obstack_free by default.
+	* lib/obstack.c.diff: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2006-10-17  Bruno Haible  <bruno@clisp.org>
+
+	* lib/gettext.h (gettext, ngettext, pgettext, npgettext): Define
+	differently if DEFAULT_TEXT_DOMAIN is set.
+
+2006-10-16  Bruno Haible  <bruno@clisp.org>
+
+	Use newer modules from gnulib.
+	* lib/getline.h: Remove file.
+	* lib/getline.c: Remove file.
+	* m4/getline.m4: Remove file.
+	* modules/getline: Remove file.
+	* lib/getndelim2.h: Remove file.
+	* lib/getndelim2.c: Remove file.
+	* m4/getndelim2.m4: Remove file.
+	* modules/getndelim2: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2006-10-13  Bruno Haible  <bruno@clisp.org>
+
+	* modules/exitfail.diff: Update.
+	* modules/quote.diff: Update.
+	* modules/quotearg.diff: Update.
+
+2006-10-12  Bruno Haible  <bruno@clisp.org>
+
+	* modules/exitfail: Update.
+	* modules/quote: Update.
+	* modules/quotearg: Update.
+
+2006-10-12  Bruno Haible  <bruno@clisp.org>
+
+	* modules/canonicalize (Makefile.am): Distribute all files in lib/
+	through EXTRA_DIST.
+	* modules/getline (Makefile.am): Likewise.
+	* modules/getndelim2 (Makefile.am): Likewise.
+	* modules/relocatable (Makefile.am): Likewise.
+
+2006-10-02  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-runtime-misc (Makefile.am): Add no-dependencies to
+	AUTOMAKE_OPTIONS.
+	* modules/gettext-tools-misc (Makefile.am): Likewise.
+
+2006-09-29  Bruno Haible  <bruno@clisp.org>
+
+	* lib/closeout.c (close_stdout_status): Remove function.
+	(close_stdout): Inline it. Call fwriteerror_no_ebadf instead of
+	fwriteerror. Also close stderr.
+
+2006-09-14  Bruno Haible  <bruno@clisp.org>
+
+	* lib/addext.c: Include <config.h> unconditionally.
+	* lib/backupfile.c: Likewise.
+	* lib/basename.c: Likewise.
+	* lib/canonicalize.c: Likewise.
+	* lib/closeout.c: Likewise.
+	* lib/error-progname.c: Likewise.
+	* lib/fstrcmp.c: Likewise.
+	* lib/getline.c: Likewise.
+	* lib/getndelim2.c: Likewise.
+	* lib/hash.c: Likewise.
+	* lib/propername.c: Likewise.
+	* lib/relocatable.c: Likewise.
+	* lib/relocwrapper.c: Likewise.
+	* lib/vasprintf.c: Likewise.
+	* lib/xerror.c: Likewise.
+	* lib/xgetcwd.c: Likewise.
+	* lib/xmalloc.c: Likewise.
+	* lib/xreadlink.c: Likewise.
+	* lib/xstrdup.c: Likewise.
+
+2006-09-09  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Makefile.am): Augment lib_LDFLAGS
+	instead of setting it.
+
+2006-09-06  Bruno Haible  <bruno@clisp.org>
+
+	* modules/iconvstring: Remove file.
+	* lib/iconvstring.h: Remove file.
+	* lib/iconvstring.c: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove modules/iconvstring,
+	lib/iconvstring.h, lib/iconvstring.c.
+
+	* lib/propername.c: Include xstriconv.h instead of iconvstring.h.
+	(convert_name): Remove function.
+	(proper_name_utf8): Use xstr_iconv instead of convert_name.
+	* modules/propername: Depend on xstriconv instead of iconvstring.
+
+2006-08-30  Bruno Haible  <bruno@clisp.org>
+
+	* lib/xerror.h: Don't include error.h.
+	* lib/xerror.c: Include error.h here.
+
+2006-08-28  Bruno Haible  <bruno@clisp.org>
+
+	* modules/c-strstr: Remove file, now in gnulib.
+	* lib/c-strstr.h: Remove file, now in gnulib.
+	* lib/c-strstr.c: Remove file, now in gnulib.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2006-08-22  Bruno Haible  <bruno@clisp.org>
+
+	* modules/pathmax.diff: Remove file.
+	* modules/unlocked-io.diff: Remove file.
+	* modules/exitfail.diff: Update.
+	* modules/quote.diff: Update.
+	* modules/quotearg.diff: Update.
+	* m4/pathmax.m4.diff: Remove file.
+	* m4/strdup.m4.diff: Remove file.
+	* m4/unlocked-io.m4.diff: Remove file.
+	* m4/exitfail.m4.diff: Update.
+	* m4/hard-locale.m4.diff: Update.
+	* m4/quote.m4.diff: Update.
+	* m4/quotearg.m4.diff: Update.
+	* Makefile.am (EXTRA_DIST): Remove the removed files.
+
+2006-08-22  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Makefile.am): New variable
+	lib_LTLIBRARIES.
+
+2006-08-18  Bruno Haible  <bruno@clisp.org>
+
+	* modules/bison-i18n: Remove file. Now taken from gnulib.
+	* m4/bison-i18n.m4: Remove file. Now taken from gnulib.
+	* Makefile.am (EXTRA_DIST): Remove them.
+
+2006-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-tools-misc (Files): Remove m4/restrict.m4, no longer
+	in gnulib.
+
+2006-07-31  Bruno Haible  <bruno@clisp.org>
+
+	* lib/propername.c: Remove temporary hack.
+
+2006-07-31  Bruno Haible  <bruno@clisp.org>
+
+	* modules/gettext-runtime-misc: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2006-08-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am: New file.
+
+2006-07-30  Bruno Haible  <bruno@clisp.org>
+
+	* lib/argmatch.h.diff: New file.
+	* lib/error.h.diff: New file.
+	* lib/exitfail.h.diff: New file.
+	* lib/fnmatch.c.diff: New file.
+	* lib/fnmatch_loop.c.diff: New file.
+	* lib/getopt_.h.diff: New file.
+	* lib/javacomp.c.diff: New file.
+	* lib/linebreak.c.diff: New file.
+	* lib/obstack.h.diff: New file.
+	* lib/progname.h.diff: New file.
+	* lib/strerror.c.diff: New file.
+	* m4/exitfail.m4.diff: New file.
+	* m4/hard-locale.m4.diff: New file.
+	* m4/pathmax.m4.diff: New file.
+	* m4/quote.m4.diff: New file.
+	* m4/quotearg.m4.diff: New file.
+	* m4/strdup.m4.diff: New file.
+	* m4/unlocked-io.m4.diff: New file.
+	* m4/vasprintf.m4: New file.
+	* modules/backupfile: New file.
+	* modules/basename: New file.
+	* modules/bison-i18n: New file.
+	* modules/c-strstr: New file.
+	* modules/canonicalize: New file.
+	* modules/closeout: New file.
+	* modules/error-progname: New file.
+	* modules/exitfail.diff: New file.
+	* modules/fnmatch.diff: New file.
+	* modules/fstrcmp: New file.
+	* modules/gcj: New file.
+	* modules/gen-lbrkprop: New file.
+	* modules/getline: New file.
+	* modules/getndelim2: New file.
+	* modules/gettext-tools-misc: New file.
+	* modules/hash: New file.
+	* modules/iconvstring: New file.
+	* modules/java: New file.
+	* modules/javacomp.diff: New file.
+	* modules/pathmax.diff: New file.
+	* modules/progreloc: New file.
+	* modules/propername: New file.
+	* modules/quote.diff: New file.
+	* modules/quotearg.diff: New file.
+	* modules/relocatable: New file.
+	* modules/relocwrapper: New file.
+	* modules/unlocked-io.diff: New file.
+	* modules/vasprintf.diff: New file.
+	* modules/wait-process.diff: New file.
+	* modules/xalloc: New file.
+	* modules/xalloc-die: New file.
+	* modules/xerror: New file.
+	* modules/xgetcwd: New file.
+	* modules/xreadlink: New file.
+

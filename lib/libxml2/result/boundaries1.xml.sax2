@@ -1,0 +1,33 @@
+SAX.setDocumentLocator()
+SAX.startDocument()
+SAX.internalSubset(d, , )
+SAX.entityDecl(a, 1, (null), (null), ]>)
+SAX.getEntity(a)
+SAX.entityDecl(b, 1, (null), (null), ]>)
+SAX.getEntity(b)
+SAX.comment(> ]> )
+SAX.externalSubset(d, , )
+SAX.processingInstruction(pi, p1)
+SAX.comment(> c1 )
+SAX.startElementNs(d, NULL, NULL, 0, 2, 0, a='>" b...', 1, b='>'>
+...', 1)
+SAX.characters(
+text, 5)
+SAX.getEntity(a)
+SAX.characters(]>, 2)
+SAX.reference(a)
+SAX.characters(text
+, 5)
+SAX.pcdata(cdata, 5)
+SAX.characters(
+, 1)
+SAX.processingInstruction(pi, p2)
+SAX.characters(
+, 1)
+SAX.comment(> c2 )
+SAX.characters(
+, 1)
+SAX.endElementNs(d, NULL, NULL)
+SAX.processingInstruction(pi, p3)
+SAX.comment(> c3 )
+SAX.endDocument()

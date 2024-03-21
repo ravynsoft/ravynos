@@ -1,0 +1,13 @@
+#autoload
+
+local -a __targs __gopt
+
+zparseopts -D -a __gopt 1 2 V J x C:=__targs
+
+_tags "$__targs[@]" "$1"
+
+while _tags; do
+  _all_labels "$__gopt[@]" "$@" && return 0
+done
+
+return 1

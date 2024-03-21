@@ -1,0 +1,468 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Libxml2 set of examples</title>
+  </head>
+  <body>
+    <h1>Libxml2 set of examples</h1>
+    <p> The examples are stored per section depending on the main focus
+    of the example:</p>
+    <ul>
+      <li>
+        <p><a href="#xmlWriter">xmlWriter</a> :</p>
+        <ul>
+          <li><a href="#testWriter.c">testWriter.c</a>: use various APIs for the xmlWriter</li>
+        </ul>
+      </li>
+      <li>
+        <p><a href="#InputOutput">InputOutput</a> :</p>
+        <ul>
+          <li><a href="#io1.c">io1.c</a>: Example of custom Input/Output</li>
+          <li><a href="#io2.c">io2.c</a>: Output to char buffer</li>
+        </ul>
+      </li>
+      <li>
+        <p><a href="#Tree">Tree</a> :</p>
+        <ul>
+          <li><a href="#tree1.c">tree1.c</a>: Navigates a tree to print element names</li>
+          <li><a href="#tree2.c">tree2.c</a>: Creates a tree</li>
+        </ul>
+      </li>
+      <li>
+        <p><a href="#XPath">XPath</a> :</p>
+        <ul>
+          <li><a href="#xpath1.c">xpath1.c</a>: Evaluate XPath expression and prints result node set.</li>
+          <li><a href="#xpath2.c">xpath2.c</a>: Load a document, locate subelements with XPath, modify said elements and save the resulting document.</li>
+        </ul>
+      </li>
+      <li>
+        <p><a href="#Parsing">Parsing</a> :</p>
+        <ul>
+          <li><a href="#parse1.c">parse1.c</a>: Parse an XML file to a tree and free it</li>
+          <li><a href="#parse2.c">parse2.c</a>: Parse and validate an XML file to a tree and free the result</li>
+          <li><a href="#parse3.c">parse3.c</a>: Parse an XML document in memory to a tree and free it</li>
+          <li><a href="#parse4.c">parse4.c</a>: Parse an XML document chunk by chunk to a tree and free it</li>
+        </ul>
+      </li>
+      <li>
+        <p><a href="#xmlReader">xmlReader</a> :</p>
+        <ul>
+          <li><a href="#reader1.c">reader1.c</a>: Parse an XML file with an xmlReader</li>
+          <li><a href="#reader2.c">reader2.c</a>: Parse and validate an XML file with an xmlReader</li>
+          <li><a href="#reader3.c">reader3.c</a>: Show how to extract subdocuments with xmlReader</li>
+          <li><a href="#reader4.c">reader4.c</a>: Parse multiple XML files reusing an xmlReader</li>
+        </ul>
+      </li>
+    </ul>
+    <p> Getting the compilation options and libraries dependencies needed
+to generate binaries from the examples is best done on Linux/Unix by using
+the xml2-config script which should have been installed as part of <i>make
+install</i> step or when installing the libxml2 development package:</p>
+    <pre>gcc -o example `xml2-config --cflags` example.c `xml2-config --libs`</pre>
+    <h2><a name="InputOutput" id="InputOutput"></a>InputOutput Examples</h2>
+    <h3><a name="io1.c" href="io1.c" id="io1.c">io1.c</a>: Example of custom Input/Output</h3>
+    <p>Demonstrate the use of xmlRegisterInputCallbacks to build a custom I/O layer, this is used in an XInclude method context to show how dynamic document can be built in a clean way.</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xinclude.html">&lt;libxml/xinclude.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlIO.html">&lt;libxml/xmlIO.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 106: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocPtr">xmlDocPtr</a> from tree.h</li>
+      <li> line 118: Macro <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlversion.html#LIBXML_TEST_VERSION">LIBXML_TEST_VERSION</a> from xmlversion.h</li>
+      <li> line 118: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlIO.html#xmlRegisterInputCallbacks">xmlRegisterInputCallbacks</a> from xmlIO.h</li>
+      <li> line 125: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlReadMemory">xmlReadMemory</a> from parser.h</li>
+      <li> line 135: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xinclude.html#xmlXIncludeProcess">xmlXIncludeProcess</a> from xinclude.h</li>
+      <li> line 144: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocDump">xmlDocDump</a> from tree.h</li>
+      <li> line 150: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlFreeDoc">xmlFreeDoc</a> from tree.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>io1</p>
+    <p>Author: Daniel Veillard</p>
+    <h3><a name="io2.c" href="io2.c" id="io2.c">io2.c</a>: Output to char buffer</h3>
+    <p>Demonstrate the use of xmlDocDumpMemory to output document to a character buffer</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 19: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNodePtr">xmlNodePtr</a> from tree.h</li>
+      <li> line 20: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocPtr">xmlDocPtr</a> from tree.h</li>
+      <li> line 27: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewDoc">xmlNewDoc</a> from tree.h</li>
+      <li> line 28: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewDocNode">xmlNewDocNode</a> from tree.h</li>
+      <li> line 29: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNodeSetContent">xmlNodeSetContent</a> from tree.h</li>
+      <li> line 30: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocSetRootElement">xmlDocSetRootElement</a> from tree.h</li>
+      <li> line 36: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocDumpFormatMemory">xmlDocDumpFormatMemory</a> from tree.h</li>
+      <li> line 43: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlFreeDoc">xmlFreeDoc</a> from tree.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>io2</p>
+    <p>Author: John Fleck</p>
+    <h2><a name="Parsing" id="Parsing"></a>Parsing Examples</h2>
+    <h3><a name="parse1.c" href="parse1.c" id="parse1.c">parse1.c</a>: Parse an XML file to a tree and free it</h3>
+    <p>Demonstrate the use of xmlReadFile() to read an XML file into a tree and xmlFreeDoc() to free the resulting tree</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 24: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocPtr">xmlDocPtr</a> from tree.h</li>
+      <li> line 26: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlReadFile">xmlReadFile</a> from parser.h</li>
+      <li> line 31: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlFreeDoc">xmlFreeDoc</a> from tree.h</li>
+      <li> line 45: Macro <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlversion.html#LIBXML_TEST_VERSION">LIBXML_TEST_VERSION</a> from xmlversion.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>parse1 test1.xml</p>
+    <p>Author: Daniel Veillard</p>
+    <h3><a name="parse2.c" href="parse2.c" id="parse2.c">parse2.c</a>: Parse and validate an XML file to a tree and free the result</h3>
+    <p>Create a parser context for an XML file, then parse and validate the file, creating a tree, check the validation result and xmlFreeDoc() to free the resulting tree.</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 25: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlParserCtxtPtr">xmlParserCtxtPtr</a> from tree.h</li>
+      <li> line 26: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocPtr">xmlDocPtr</a> from tree.h</li>
+      <li> line 29: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlNewParserCtxt">xmlNewParserCtxt</a> from parser.h</li>
+      <li> line 35: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlCtxtReadFile">xmlCtxtReadFile</a> from parser.h</li>
+      <li> line 44: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlFreeDoc">xmlFreeDoc</a> from tree.h</li>
+      <li> line 47: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlFreeParserCtxt">xmlFreeParserCtxt</a> from parser.h</li>
+      <li> line 61: Macro <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlversion.html#LIBXML_TEST_VERSION">LIBXML_TEST_VERSION</a> from xmlversion.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>parse2 test2.xml</p>
+    <p>Author: Daniel Veillard</p>
+    <h3><a name="parse3.c" href="parse3.c" id="parse3.c">parse3.c</a>: Parse an XML document in memory to a tree and free it</h3>
+    <p>Demonstrate the use of xmlReadMemory() to read an XML file into a tree and xmlFreeDoc() to free the resulting tree</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 27: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocPtr">xmlDocPtr</a> from tree.h</li>
+      <li> line 33: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlReadMemory">xmlReadMemory</a> from parser.h</li>
+      <li> line 38: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlFreeDoc">xmlFreeDoc</a> from tree.h</li>
+      <li> line 49: Macro <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlversion.html#LIBXML_TEST_VERSION">LIBXML_TEST_VERSION</a> from xmlversion.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>parse3</p>
+    <p>Author: Daniel Veillard</p>
+    <h3><a name="parse4.c" href="parse4.c" id="parse4.c">parse4.c</a>: Parse an XML document chunk by chunk to a tree and free it</h3>
+    <p>Demonstrate the use of xmlCreatePushParserCtxt() and xmlParseChunk() to read an XML file progressively into a tree and xmlFreeDoc() to free the resulting tree</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 45: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlParserCtxtPtr">xmlParserCtxtPtr</a> from tree.h</li>
+      <li> line 47: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocPtr">xmlDocPtr</a> from tree.h</li>
+      <li> line 67: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlCreatePushParserCtxt">xmlCreatePushParserCtxt</a> from parser.h</li>
+      <li> line 80: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlParseChunk">xmlParseChunk</a> from parser.h</li>
+      <li> line 94: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlFreeParserCtxt">xmlFreeParserCtxt</a> from parser.h</li>
+      <li> line 103: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlFreeDoc">xmlFreeDoc</a> from tree.h</li>
+      <li> line 120: Macro <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlversion.html#LIBXML_TEST_VERSION">LIBXML_TEST_VERSION</a> from xmlversion.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>parse4 test3.xml</p>
+    <p>Author: Daniel Veillard</p>
+    <h2><a name="Tree" id="Tree"></a>Tree Examples</h2>
+    <h3><a name="tree1.c" href="tree1.c" id="tree1.c">tree1.c</a>: Navigates a tree to print element names</h3>
+    <p>Parse a file to a tree, use xmlDocGetRootElement() to get the root element, then walk the document and print all the element name in document order.</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 67: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlReadFile">xmlReadFile</a> from parser.h</li>
+      <li> line 74: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocGetRootElement">xmlDocGetRootElement</a> from tree.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>tree1 filename_or_URL</p>
+    <p>Author: Dodji Seketeli</p>
+    <h3><a name="tree2.c" href="tree2.c" id="tree2.c">tree2.c</a>: Creates a tree</h3>
+    <p>Shows how to create document, nodes and dump it to stdout or file.</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 38: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewDoc">xmlNewDoc</a> from tree.h</li>
+      <li> line 39: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewDocNode">xmlNewDocNode</a> from tree.h</li>
+      <li> line 40: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocSetRootElement">xmlDocSetRootElement</a> from tree.h</li>
+      <li> line 45: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlCreateIntSubset">xmlCreateIntSubset</a> from tree.h</li>
+      <li> line 51: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewChild">xmlNewChild</a> from tree.h</li>
+      <li> line 65: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewProp">xmlNewProp</a> from tree.h</li>
+      <li> line 74: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewDocText">xmlNewDocText</a> from tree.h</li>
+      <li> line 76: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlAddChild">xmlAddChild</a> from tree.h</li>
+      <li> line 95: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlSaveFormatFileEnc">xmlSaveFormatFileEnc</a> from tree.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>tree2 &lt;filename&gt;  -Default output: stdout</p>
+    <p>Author: Lucas Brasilino &lt;brasilino@recife.pe.gov.br&gt;</p>
+    <h2><a name="XPath" id="XPath"></a>XPath Examples</h2>
+    <h3><a name="xpath1.c" href="xpath1.c" id="xpath1.c">xpath1.c</a>: Evaluate XPath expression and prints result node set.</h3>
+    <p>Shows how to evaluate XPath expression and register known namespaces in XPath context.</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html">&lt;libxml/xpath.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpathInternals.html">&lt;libxml/xpathInternals.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 39: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlInitParser">xmlInitParser</a> from parser.h</li>
+      <li> line 80: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathContextPtr">xmlXPathContextPtr</a> from xpath.h</li>
+      <li> line 81: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathObjectPtr">xmlXPathObjectPtr</a> from xpath.h</li>
+      <li> line 87: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlParseFile">xmlParseFile</a> from parser.h</li>
+      <li> line 94: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathNewContext">xmlXPathNewContext</a> from xpath.h</li>
+      <li> line 104: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathFreeContext">xmlXPathFreeContext</a> from xpath.h</li>
+      <li> line 110: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathEvalExpression">xmlXPathEvalExpression</a> from xpath.h</li>
+      <li> line 122: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathFreeObject">xmlXPathFreeObject</a> from xpath.h</li>
+      <li> line 149: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlstring.html#xmlStrdup">xmlStrdup</a> from xmlstring.h</li>
+      <li> line 163: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlstring.html#xmlStrchr">xmlStrchr</a> from xmlstring.h</li>
+      <li> line 179: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpathInternals.html#xmlXPathRegisterNs">xmlXPathRegisterNs</a> from xpathInternals.h</li>
+      <li> line 199: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNodePtr">xmlNodePtr</a> from tree.h</li>
+      <li> line 211: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNsPtr">xmlNsPtr</a> from tree.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>xpath1 &lt;xml-file&gt; &lt;xpath-expr&gt; [&lt;known-ns-list&gt;]</p>
+    <p>Author: Aleksey Sanin</p>
+    <h3><a name="xpath2.c" href="xpath2.c" id="xpath2.c">xpath2.c</a>: Load a document, locate subelements with XPath, modify said elements and save the resulting document.</h3>
+    <p>Shows how to make a full round-trip from a load/edit/save</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html">&lt;libxml/tree.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html">&lt;libxml/xpath.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpathInternals.html">&lt;libxml/xpathInternals.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 41: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlInitParser">xmlInitParser</a> from parser.h</li>
+      <li> line 80: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathContextPtr">xmlXPathContextPtr</a> from xpath.h</li>
+      <li> line 81: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathObjectPtr">xmlXPathObjectPtr</a> from xpath.h</li>
+      <li> line 88: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#xmlParseFile">xmlParseFile</a> from parser.h</li>
+      <li> line 95: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathNewContext">xmlXPathNewContext</a> from xpath.h</li>
+      <li> line 103: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathEvalExpression">xmlXPathEvalExpression</a> from xpath.h</li>
+      <li> line 106: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathFreeContext">xmlXPathFreeContext</a> from xpath.h</li>
+      <li> line 116: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xpath.html#xmlXPathFreeObject">xmlXPathFreeObject</a> from xpath.h</li>
+      <li> line 120: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocDump">xmlDocDump</a> from tree.h</li>
+      <li> line 155: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNodeSetContent">xmlNodeSetContent</a> from tree.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>xpath2 &lt;xml-file&gt; &lt;xpath-expr&gt; &lt;new-value&gt;</p>
+    <p>Author: Aleksey Sanin and Daniel Veillard</p>
+    <h2><a name="xmlReader" id="xmlReader"></a>xmlReader Examples</h2>
+    <h3><a name="reader1.c" href="reader1.c" id="reader1.c">reader1.c</a>: Parse an XML file with an xmlReader</h3>
+    <p>Demonstrate the use of xmlReaderForFile() to parse an XML file and dump the information about the nodes found in the process. (Note that the XMLReader functions require libxml2 version later than 2.6.)</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html">&lt;libxml/xmlreader.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 29: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderConstName">xmlTextReaderConstName</a> from xmlreader.h</li>
+      <li> line 33: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderConstValue">xmlTextReaderConstValue</a> from xmlreader.h</li>
+      <li> line 36: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderDepth">xmlTextReaderDepth</a> from xmlreader.h</li>
+      <li> line 37: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderNodeType">xmlTextReaderNodeType</a> from xmlreader.h</li>
+      <li> line 39: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderIsEmptyElement">xmlTextReaderIsEmptyElement</a> from xmlreader.h</li>
+      <li> line 40: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderHasValue">xmlTextReaderHasValue</a> from xmlreader.h</li>
+      <li> line 44: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlstring.html#xmlStrlen">xmlStrlen</a> from xmlstring.h</li>
+      <li> line 59: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderPtr">xmlTextReaderPtr</a> from xmlreader.h</li>
+      <li> line 62: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlReaderForFile">xmlReaderForFile</a> from xmlreader.h</li>
+      <li> line 64: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderRead">xmlTextReaderRead</a> from xmlreader.h</li>
+      <li> line 69: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlFreeTextReader">xmlFreeTextReader</a> from xmlreader.h</li>
+      <li> line 89: Macro <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlversion.html#LIBXML_TEST_VERSION">LIBXML_TEST_VERSION</a> from xmlversion.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>reader1 &lt;filename&gt;</p>
+    <p>Author: Daniel Veillard</p>
+    <h3><a name="reader2.c" href="reader2.c" id="reader2.c">reader2.c</a>: Parse and validate an XML file with an xmlReader</h3>
+    <p>Demonstrate the use of xmlReaderForFile() to parse an XML file validating the content in the process and activating options like entities substitution, and DTD attributes defaulting. (Note that the XMLReader functions require libxml2 version later than 2.6.)</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html">&lt;libxml/xmlreader.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 31: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderConstName">xmlTextReaderConstName</a> from xmlreader.h</li>
+      <li> line 35: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderConstValue">xmlTextReaderConstValue</a> from xmlreader.h</li>
+      <li> line 38: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderDepth">xmlTextReaderDepth</a> from xmlreader.h</li>
+      <li> line 39: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderNodeType">xmlTextReaderNodeType</a> from xmlreader.h</li>
+      <li> line 41: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderIsEmptyElement">xmlTextReaderIsEmptyElement</a> from xmlreader.h</li>
+      <li> line 42: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderHasValue">xmlTextReaderHasValue</a> from xmlreader.h</li>
+      <li> line 46: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlstring.html#xmlStrlen">xmlStrlen</a> from xmlstring.h</li>
+      <li> line 61: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderPtr">xmlTextReaderPtr</a> from xmlreader.h</li>
+      <li> line 69: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlReaderForFile">xmlReaderForFile</a> from xmlreader.h</li>
+      <li> line 74: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderRead">xmlTextReaderRead</a> from xmlreader.h</li>
+      <li> line 82: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderIsValid">xmlTextReaderIsValid</a> from xmlreader.h</li>
+      <li> line 85: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlFreeTextReader">xmlFreeTextReader</a> from xmlreader.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>reader2 &lt;valid_xml_filename&gt;</p>
+    <p>Author: Daniel Veillard</p>
+    <h3><a name="reader3.c" href="reader3.c" id="reader3.c">reader3.c</a>: Show how to extract subdocuments with xmlReader</h3>
+    <p>Demonstrate the use of xmlTextReaderPreservePattern() to parse an XML file with the xmlReader while collecting only some subparts of the document. (Note that the XMLReader functions require libxml2 version later than 2.6.)</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html">&lt;libxml/xmlreader.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 32: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderPtr">xmlTextReaderPtr</a> from xmlreader.h</li>
+      <li> line 38: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlReaderForFile">xmlReaderForFile</a> from xmlreader.h</li>
+      <li> line 43: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderPreservePattern">xmlTextReaderPreservePattern</a> from xmlreader.h</li>
+      <li> line 50: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderRead">xmlTextReaderRead</a> from xmlreader.h</li>
+      <li> line 56: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlFreeTextReader">xmlFreeTextReader</a> from xmlreader.h</li>
+      <li> line 62: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderCurrentDoc">xmlTextReaderCurrentDoc</a> from xmlreader.h</li>
+      <li> line 96: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocDump">xmlDocDump</a> from tree.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>reader3</p>
+    <p>Author: Daniel Veillard</p>
+    <h3><a name="reader4.c" href="reader4.c" id="reader4.c">reader4.c</a>: Parse multiple XML files reusing an xmlReader</h3>
+    <p>Demonstrate the use of xmlReaderForFile() and xmlReaderNewFile to parse XML files while reusing the reader object and parser context.  (Note that the XMLReader functions require libxml2 version later than 2.6.)</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html">&lt;libxml/xmlreader.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 24: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderRead">xmlTextReaderRead</a> from xmlreader.h</li>
+      <li> line 34: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderCurrentDoc">xmlTextReaderCurrentDoc</a> from xmlreader.h</li>
+      <li> line 54: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlTextReaderPtr">xmlTextReaderPtr</a> from xmlreader.h</li>
+      <li> line 72: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlReaderForFile">xmlReaderForFile</a> from xmlreader.h</li>
+      <li> line 83: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlReaderNewFile">xmlReaderNewFile</a> from xmlreader.h</li>
+      <li> line 104: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlreader.html#xmlFreeTextReader">xmlFreeTextReader</a> from xmlreader.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>reader4 &lt;filename&gt; [ filename ... ]</p>
+    <p>Author: Graham Bennett</p>
+    <h2><a name="xmlWriter" id="xmlWriter"></a>xmlWriter Examples</h2>
+    <h3><a name="testWriter.c" href="testWriter.c" id="testWriter.c">testWriter.c</a>: use various APIs for the xmlWriter</h3>
+    <p>tests a number of APIs for the xmlWriter, especially the various methods to write to a filename, to a memory buffer, to a new document, or to a subtree. It shows how to do encoding string conversions too. The resulting documents are then serialized.</p>
+    <p>Includes:</p>
+    <ul>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-encoding.html">&lt;libxml/encoding.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html">&lt;libxml/xmlwriter.h&gt;</a>
+      </li>
+      <li>
+        <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html">&lt;libxml/parser.h&gt;</a>
+      </li>
+    </ul>
+    <p>Uses:</p>
+    <ul>
+      <li> line 65: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterPtr">xmlTextWriterPtr</a> from xmlwriter.h</li>
+      <li> line 69: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlNewTextWriterFilename">xmlNewTextWriterFilename</a> from xmlwriter.h</li>
+      <li> line 78: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterStartDocument">xmlTextWriterStartDocument</a> from xmlwriter.h</li>
+      <li> line 87: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterStartElement">xmlTextWriterStartElement</a> from xmlwriter.h</li>
+      <li> line 100: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterWriteComment">xmlTextWriterWriteComment</a> from xmlwriter.h</li>
+      <li> line 117: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterWriteAttribute">xmlTextWriterWriteAttribute</a> from xmlwriter.h</li>
+      <li> line 136: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterWriteFormatComment">xmlTextWriterWriteFormatComment</a> from xmlwriter.h</li>
+      <li> line 155: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterWriteFormatElement">xmlTextWriterWriteFormatElement</a> from xmlwriter.h</li>
+      <li> line 174: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterWriteElement">xmlTextWriterWriteElement</a> from xmlwriter.h</li>
+      <li> line 193: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterEndElement">xmlTextWriterEndElement</a> from xmlwriter.h</li>
+      <li> line 313: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlTextWriterEndDocument">xmlTextWriterEndDocument</a> from xmlwriter.h</li>
+      <li> line 320: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlFreeTextWriter">xmlFreeTextWriter</a> from xmlwriter.h</li>
+      <li> line 334: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlBufferPtr">xmlBufferPtr</a> from tree.h</li>
+      <li> line 340: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlBufferCreate">xmlBufferCreate</a> from tree.h</li>
+      <li> line 348: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlNewTextWriterMemory">xmlNewTextWriterMemory</a> from xmlwriter.h</li>
+      <li> line 606: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlBufferFree">xmlBufferFree</a> from tree.h</li>
+      <li> line 625: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlNewTextWriterDoc">xmlNewTextWriterDoc</a> from xmlwriter.h</li>
+      <li> line 856: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlSaveFileEnc">xmlSaveFileEnc</a> from tree.h</li>
+      <li> line 873: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNodePtr">xmlNodePtr</a> from tree.h</li>
+      <li> line 878: Macro <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-parser.html#XML_DEFAULT_VERSION">XML_DEFAULT_VERSION</a> from parser.h</li>
+      <li> line 878: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewDoc">xmlNewDoc</a> from tree.h</li>
+      <li> line 887: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlNewDocNode">xmlNewDocNode</a> from tree.h</li>
+      <li> line 894: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-tree.html#xmlDocSetRootElement">xmlDocSetRootElement</a> from tree.h</li>
+      <li> line 897: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-xmlwriter.html#xmlNewTextWriterTree">xmlNewTextWriterTree</a> from xmlwriter.h</li>
+      <li> line 1144: Type <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-encoding.html#xmlCharEncodingHandlerPtr">xmlCharEncodingHandlerPtr</a> from encoding.h</li>
+      <li> line 1149: Function <a href="https://gnome.pages.gitlab.gnome.org/libxml2/devhelp/libxml2-encoding.html#xmlFindCharEncodingHandler">xmlFindCharEncodingHandler</a> from encoding.h</li>
+    </ul>
+    <p>Usage:</p>
+    <p>testWriter</p>
+    <p>Author: Alfred Mickautsch</p>
+  </body>
+</html>

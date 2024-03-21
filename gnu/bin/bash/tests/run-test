@@ -1,0 +1,4 @@
+unset GROUPS UID 2>/dev/null
+
+${THIS_SH} ./test.tests >${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} test.right && rm -f ${BASH_TSTOUT}

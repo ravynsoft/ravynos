@@ -1,0 +1,74 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+cd ${TMPDIR:=/var/tmp}
+rm -f u
+
+${THIS_SH} -c 'exec 10>&1; echo fd 10 >&10' 10>u
+cat u
+rm -f u
+
+${THIS_SH} -c 'exec 8>&1; echo fd 8 >&8' 8>u
+cat u
+rm -f u
+
+exec 10>u
+exec 10>&1; echo 'fd 10' >&10
+cat u
+rm -f u
+exec 10>&-
+
+exec 8>u
+exec 8>&1; echo 'fd 8' >&8
+cat u
+rm -f u
+exec 8>&-
+
+rm -f infile
+cat > infile <<EOF
+1
+2
+3
+4
+EOF
+
+exec 7<&0
+exec 10<infile
+exec 0<&10; cat <&10
+exec 0<&7
+exec 7<&-
+
+exec 7<&0
+exec 8<infile
+exec 0<&8 ; cat <&8
+exec 0<&7
+exec 7<&-
+
+exec 7<&0
+exec 0</dev/null
+exec 10<infile
+exec 10<&0; cat <&10
+exec 0<&7
+exec 7<&-
+
+exec 7<&0
+exec 0</dev/null
+exec 8<infile
+exec 8<&0; cat <&8
+exec 0<&7
+exec 7<&-
+
+rm -f infile
+
+cd $OLDPWD
+exit 0

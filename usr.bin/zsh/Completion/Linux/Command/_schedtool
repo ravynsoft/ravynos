@@ -1,0 +1,25 @@
+#compdef schedtool
+
+local curcontext="$curcontext" line state ret=1
+
+_arguments -C \
+  '(-p    -F -R -B -I -D -M)-N[for SCHED_NORMAL]' \
+  '(   -N    -R -B -I -D -M)-F[for SCHED_FIFO]' \
+  '(   -N -F    -B -I -D -M)-R[for SCHED_RR]' \
+  '(-p -N -F -R    -I -D -M)-B[for SCHED_BATCH]' \
+  '(   -N -F -R -B    -D -M)-I[for SCHED_ISO]' \
+  '(-p -N -F -R -B -I    -M)-D[for SCHED_IDLEPRIO]' \
+  '(   -N -F -R -B -I -D   )-M[for manual mode; raw number for POLICY]:raw policy number' \
+  '(   -N       -B    -D   )-p[usually 1-99; only for FIFO, RR or ISO]:static priority' \
+  '-a[cpu affinity]:mask or list' \
+  '-n[set niceness to NICE_LEVEL]:priority' \
+  '-e[start COMMAND with specified policy/priority]:program: _command_names -e:*::program arguments: _normal' \
+  '-v[be verbose]' \
+  '*:processes:->processes' && ret=0
+
+if [[ -n "$state" ]]; then
+  _alternative \
+    'processes:: _pids' && ret=0
+fi
+
+return ret

@@ -1,0 +1,33 @@
+#compdef ngrep
+
+_arguments -s -S \
+   '(- 1 *)-h[display help information]' \
+   '(- 1 *)-V[display version information]' \
+   "-q[be quiet (don't print packet reception hash marks)]" \
+   '-e[show empty packets]' \
+   '-i[ignore case]' \
+   '-v[invert match]' \
+   "-R[don't do privilege revocation logic]" \
+   '(-W)-x[print in alternate hexdump format]' \
+   '-X[interpret match expression as hexadecimal]' \
+   '-w[word-regex (expression must match as a word)]' \
+   "-p[don't go into promiscuous mode]" \
+   '-l[make stdout line buffered]' \
+   '-D[replay pcap_dumps with their recorded time intervals]' \
+   '-t[print timestamp every time a packet is matched]' \
+   '-T[print delta timestamp every time a packet is matched specify twice for delta from first match]' \
+   "-M[don't do multi-line match (do single-line match instead)]" \
+   '(-d -s)-I+[read packet stream from pcap format file]:file:_files' \
+   '-O+[dump matched packets in pcap format file]:file:_files' \
+   '-n+[look at only specified number of packets]:packets' \
+   '-A+[dump specified number of context packets after a match]:packets' \
+   '(-I)-s+[set the bpf caplen]:length (bytes) [65535]' \
+   '-S+[set the upper limit on size of packets matched]:size (bytes)' \
+   '(-x)-W+[set the dump format]:packet display format:(normal byline single none)' \
+   '-c+[force the column width to the specified size]:columns' \
+   '-P+[set the non-printable display char to what is specified]:character [.]' \
+   '-F+[read the bpf filter from the specified file]:file:_files' \
+   '-N[show sub protocol number]' \
+   '(-I)-d+[use specified device instead of the pcap default]:interface:_net_interfaces' \
+   '1: :_guard "^-*" pattern' \
+   '*::expression:_bpf_filters'

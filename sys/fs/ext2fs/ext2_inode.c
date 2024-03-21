@@ -33,8 +33,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)ffs_inode.c	8.5 (Berkeley) 12/30/93
  */
 
 #include <sys/param.h>
@@ -232,7 +230,9 @@ ext2_ind_truncate(struct vnode *vp, off_t length, int flags, struct ucred *cred,
 	struct inode *oip;
 	e4fs_daddr_t bn, lbn, lastiblock[EXT2_NIADDR], indir_lbn[EXT2_NIADDR];
 	uint32_t oldblks[EXT2_NDADDR + EXT2_NIADDR];
+#ifdef INVARIANTS
 	uint32_t newblks[EXT2_NDADDR + EXT2_NIADDR];
+#endif
 	struct m_ext2fs *fs;
 	struct buf *bp;
 	int offset, size, level;
@@ -348,11 +348,15 @@ ext2_ind_truncate(struct vnode *vp, off_t length, int flags, struct ucred *cred,
 	 * when we are done.
 	 */
 	for (i = 0; i < EXT2_NDADDR; i++) {
+#ifdef INVARIANTS
 		newblks[i] = oip->i_db[i];
+#endif
 		oip->i_db[i] = oldblks[i];
 	}
 	for (i = 0; i < EXT2_NIADDR; i++) {
+#ifdef INVARIANTS
 		newblks[EXT2_NDADDR + i] = oip->i_ib[i];
+#endif
 		oip->i_ib[i] = oldblks[EXT2_NDADDR + i];
 	}
 	oip->i_size = osize;

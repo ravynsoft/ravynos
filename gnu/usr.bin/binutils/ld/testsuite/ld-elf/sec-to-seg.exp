@@ -1,0 +1,101 @@
+# Test the assigment of sections to segments.
+#
+# Copyright (C) 2008-2023 Free Software Foundation, Inc.
+# Contributed by Red Hat.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+set testname "assignment of ELF sections to segments"
+
+if {! [is_elf_format] } {
+    unsupported $testname
+    return
+}
+
+if {   ! [ld_assemble $as $srcdir/$subdir/sec-to-seg1.s tmpdir/sec-to-seg1.o]
+    || ! [ld_assemble $as $srcdir/$subdir/sec-to-seg2.s tmpdir/sec-to-seg2.o]} then {
+    unsupported $testname
+    return
+}
+
+proc sec_to_seg_test { testname scriptname same_seg } {
+    global srcdir
+    global subdir
+    global ld
+    global exec_output
+    global READELF
+    
+    if {! [ld_link $ld tmpdir/sec-to-seg "-T $srcdir/$subdir/$scriptname tmpdir/sec-to-seg1.o tmpdir/sec-to-seg2.o"] } then {
+	fail $testname
+	return 0
+    }
+
+    send_log "$READELF --program-headers --section-headers tmpdir/sec-to-seg\n"
+    set exec_output [run_host_cmd "$READELF" "--program-headers --section-headers tmpdir/sec-to-seg"]
+
+    if { $same_seg == 1 } {
+      if {! [regexp ".*.sec1 .sec2" $exec_output] } {
+	  fail $testname
+	  return 0
+      }
+    } else {
+      if {  [regexp ".*.sec1 .sec2" $exec_output] } {
+	  fail $testname
+	  return 0
+      }
+    }
+
+    pass $testname
+    return 1
+}
+
+# Assuming a pagesize of 0x1000 then:
+#
+# Test  Sec1 End  Sec 2 Start    Expected Result
+# ----  --------  -----------    ---------------
+#  A    00001042   00001043      Both sections on same page: assign to same segment.
+#  B    00001042   00002044      Sections on adjacent pages: assign to same segment.
+#  C    00001042   00003044      Sections on disjoint pages: assign to separate segments.
+
+# These targets have a pagesize of 1, so they will always end up
+# placing the two sections in separate segments in the B test.
+if {    [istarget avr-*-*]
+     || [istarget cr16-*-*]
+     || [istarget crx-*-*]
+     || [istarget dlx-*-*]
+     || [istarget ft32-*-*]
+     || [istarget h8300-*-*]
+     || [istarget ip2k-*-*]
+     || [istarget m32r-*-*]
+     || [istarget moxie-*-*]
+     || [istarget msp430-*-*]
+     || [istarget mt-*-*]
+     || [istarget pru-*-*]
+     || [istarget visium-*-*]
+    } {
+    set B_test_same_seg 0
+} else {
+    set B_test_same_seg 1
+}
+
+sec_to_seg_test "assignment of ELF sections to segments (same page)"      "sec-to-seg-script-same-page.t" 1
+sec_to_seg_test "assignment of ELF sections to segments (adjacent pages)" "sec-to-seg-script-adjoining-pages.t" $B_test_same_seg
+sec_to_seg_test "assignment of ELF sections to segments (disjoint pages)" "sec-to-seg-script-disjoint-pages.t" 0
+
+
+# FIXME: Add more tests to check other rules of section to segment assignment.

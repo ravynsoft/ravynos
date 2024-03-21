@@ -1,0 +1,106 @@
+%prep
+  PAGER=cat
+  unalias run-help
+  autoload +X -Uz ${^fpath}/run-help*(N)
+  builtin() {
+    case "$1 $2" in
+      ( 'getln cmd_args' )
+        cmd_args="$BUFFER_STACK"
+      ;;
+      ( 'print -z' )
+      ;;
+      ( 'whence -va' )
+        print -l "$3 is WHENCE:{$3}"
+      ;;
+      ( * )
+        eval $@
+      ;;
+    esac
+  }
+  man() {
+    [[ $1 == -w && -n $NO_SUBCMD_MANUALS ]] &&
+        return 1
+    print "MAN:{${(qq)@}}"
+  }
+  git svn () {
+    print "${(U)0}:{${(qq)@}}"
+  }
+
+
+%test
+
+  BUFFER_STACK='btrfs --help'
+  run-help btrfs
+0:btrfs with option flag, no subcmd
+>btrfs is WHENCE:{btrfs}
+>MAN:{'btrfs'}
+
+  BUFFER_STACK='btrfs subvolume snapshot –r /btrfs/SV1 /btrfs/SV1-rosnap'
+  run-help btrfs
+0:btrfs with subcmd
+>btrfs is WHENCE:{btrfs}
+>MAN:{'btrfs-subvolume'}
+
+  BUFFER_STACK="sudo $BUFFER_STACK"
+  run-help btrfs
+0:sudo btrfs with subcmd
+>btrfs is WHENCE:{btrfs}
+>MAN:{'btrfs-subvolume'}
+
+  BUFFER_STACK='ip addr add 192.168.50.5 dev eth1'
+  run-help ip
+0:ip with subcmd
+>ip is WHENCE:{ip}
+>MAN:{'ip-address'}
+
+  NO_SUBCMD_MANUALS=1
+  run-help ip
+  unset NO_SUBCMD_MANUALS
+0:ip with subcmd, but no subcmd manuals
+>ip is WHENCE:{ip}
+>MAN:{'ip'}
+
+  BUFFER_STACK='ip -s -s link ls up'
+  run-help ip
+0:ip with options and subcmd
+>ip is WHENCE:{ip}
+>MAN:{'ip-link'}
+
+  BUFFER_STACK="sudo $BUFFER_STACK"
+  run-help ip
+0:sudo ip with options and subcmd
+>ip is WHENCE:{ip}
+>MAN:{'ip-link'}
+
+  BUFFER_STACK='svn -vq'
+  run-help svn
+0:svn with options
+>svn is WHENCE:{svn}
+>SVN:{'help'}
+
+  BUFFER_STACK+=' commit -m "log messages"'
+  run-help svn
+0:svn with options and subcmd
+>svn is WHENCE:{svn}
+>SVN:{'help' 'commit'}
+
+  BUFFER_STACK='git --exec-path'
+  run-help git
+0:git with option
+>git is WHENCE:{git}
+>GIT:{'help' 'git'}
+
+  BUFFER_STACK='git -C $PWD/.. difftool --no-prompt --tool opendiff --dir-diff'
+  run-help git
+0:git with option, file & subcmd
+>git is WHENCE:{git}
+>GIT:{'help' 'difftool'}
+
+  BUFFER_STACK='git -c http.proxy=someproxy clone https://github.com/user/repo.git'
+  run-help git
+0:git with option, assignment & subcmd
+>git is WHENCE:{git}
+>GIT:{'help' 'clone'}
+
+
+%clean

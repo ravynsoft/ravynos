@@ -200,7 +200,7 @@ SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, honor_sbrk, CTLFLAG_RW,
     &__elfN(aslr_honor_sbrk), 0,
     __XSTRING(__CONCAT(ELF, __ELF_WORD_SIZE)) ": assume sbrk is used");
 
-static int __elfN(aslr_stack) = 1;
+static int __elfN(aslr_stack) = __ELF_WORD_SIZE == 64;
 SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, stack, CTLFLAG_RWTUN,
     &__elfN(aslr_stack), 0,
     __XSTRING(__CONCAT(ELF, __ELF_WORD_SIZE))
@@ -247,7 +247,6 @@ __elfN(freebsd_trans_osrel)(const Elf_Note *note, int32_t *osrel)
 	return (true);
 }
 
-static const char GNU_ABI_VENDOR[] = "GNU";
 static int GNU_KFREEBSD_ABI_DESC = 3;
 
 Elf_Brandnote __elfN(kfreebsd_brandnote) = {
@@ -863,6 +862,9 @@ __elfN(load_file)(struct proc *p, const char *file, u_long *addr,
 	if (error != 0)
 		goto fail;
 
+	if (p->p_sysent->sv_protect != NULL)
+		p->p_sysent->sv_protect(imgp, SVP_INTERP);
+
 	*addr = base_addr;
 	*entry = (unsigned long)hdr->e_entry + rbase;
 
@@ -1370,6 +1372,9 @@ __CONCAT(exec_, __elfN(imgact))(struct image_params *imgp)
 	entry = (u_long)hdr->e_entry + imgp->et_dyn_addr;
 	imgp->entry_addr = entry;
 
+	if (sv->sv_protect != NULL)
+		sv->sv_protect(imgp, SVP_IMAGE);
+
 	if (interp != NULL) {
 		VOP_UNLOCK(imgp->vp);
 		if ((map->flags & MAP_ASLR) != 0) {
@@ -1434,7 +1439,8 @@ __elfN(freebsd_copyout_auxargs)(struct image_params *imgp, uintptr_t base)
 	Elf_Auxinfo *argarray, *pos;
 	struct vmspace *vmspace;
 	rlim_t stacksz;
-	int error, bsdflags, oc;
+	int error, oc;
+	uint32_t bsdflags;
 
 	argarray = pos = malloc(AT_COUNT * sizeof(*pos), M_TEMP,
 	    M_WAITOK | M_ZERO);
@@ -2704,7 +2710,7 @@ __elfN(note_procstat_auxv)(void *arg, struct sbuf *sb, size_t *sizep)
 	}
 }
 
-static bool
+bool
 __elfN(parse_notes)(struct image_params *imgp, Elf_Note *checknote,
     const char *note_vendor, const Elf_Phdr *pnote,
     bool (*cb)(const Elf_Note *, void *, bool *), void *cb_arg)

@@ -1,0 +1,37 @@
+#compdef unexpand gunexpand expand gexpand
+
+local all tabs
+local -a args
+
+all="convert all whitespace, instead of just initial whitespace"
+tabs="[use comma separated list of tab positions]:list of tab positions"
+
+if _pick_variant gnu="Free Soft" unix --version; then
+  if [[ $service = *un* ]]; then
+    args=(
+      "(-a --help --version)--all[$all]"
+      '(--help --version)--first-only[convert only leading sequences of whitespace]'
+    )
+  else
+    args=(
+      '(-i --initial --help --version)'{-i,--initial}"[don't convert tabs after non blanks]"
+    )
+  fi
+
+  args+=(
+    "(-t --help --version)--tabs=${tabs}"
+    '(* -)--help[display usage information]'
+    '(* -)--version[display version information]'
+  )
+elif [[ $OSTYPE = (*bsd*|dragonfly*|darwin*) ]]; then
+  args=( -A "-*" )
+fi
+[[ $service = *un* ]] && args+=(  "(--all --help --version)-a[$all]" )
+
+# Most (un)expand variants, excluding BusyBox, allow e.g. -4 instead of -t4
+[[ $_cmd_variant[$service] == *busybox* ]] ||
+args+=( '!(-0 -1 -2 -3 -4 -5 -6 -7 -8 -9 -t --tabs)-'{0..9} )
+
+_arguments -s -S "$args[@]" \
+  "(--tabs --help)-t+${tabs}" \
+  '*:file:_files'

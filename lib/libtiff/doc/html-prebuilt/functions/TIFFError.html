@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFError &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFFieldDataType" href="TIFFFieldDataType.html" />
+    <link rel="prev" title="TIFFDeferStrileArrayWriting" href="TIFFDeferStrileArrayWriting.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFFieldDataType.html" title="TIFFFieldDataType"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFDeferStrileArrayWriting.html" title="TIFFDeferStrileArrayWriting"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFError</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tifferror">
+<h1>TIFFError<a class="headerlink" href="#tifferror" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdarg.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFError">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFError</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFError" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFErrorExt">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFErrorExt</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="n"><span class="pre">fd</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFErrorExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFErrorExtR">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFErrorExtR</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span>, <span class="p"><span class="pre">...</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFErrorExtR" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFErrorHandler">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFErrorHandler</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFErrorHandler" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFErrorHandlerExt">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFErrorHandlerExt</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">thandle_t</span></span><span class="w"> </span><span class="n"><span class="pre">fd</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFErrorHandlerExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c type">
+<dt class="sig sig-object c" id="c.TIFFErrorHandlerExtR">
+<span class="k"><span class="pre">typedef</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFErrorHandlerExtR</span></span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">user_data</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">fmt</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">va_list</span></span><span class="w"> </span><span class="n"><span class="pre">ap</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#c.TIFFErrorHandlerExtR" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetErrorHandler">
+<a class="reference internal" href="#c.TIFFErrorHandler" title="TIFFErrorHandler"><span class="n"><span class="pre">TIFFErrorHandler</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetErrorHandler</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TIFFErrorHandler" title="TIFFErrorHandler"><span class="n"><span class="pre">TIFFErrorHandler</span></span></a><span class="w"> </span><span class="n"><span class="pre">handler</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetErrorHandler" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetErrorHandlerExt">
+<a class="reference internal" href="#c.TIFFErrorHandlerExt" title="TIFFErrorHandlerExt"><span class="n"><span class="pre">TIFFErrorHandlerExt</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetErrorHandlerExt</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#c.TIFFErrorHandlerExt" title="TIFFErrorHandlerExt"><span class="n"><span class="pre">TIFFErrorHandlerExt</span></span></a><span class="w"> </span><span class="n"><span class="pre">handler</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetErrorHandlerExt" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFError" title="TIFFError"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFError()</span></code></a> invokes the library-wide error handler function
+to (normally) write an error message to <code class="docutils literal notranslate"><span class="pre">stderr</span></code>.
+The <em>fmt</em> parameter is a <code class="xref c c-func docutils literal notranslate"><span class="pre">printf()</span></code> format string, and any number
+arguments can be supplied. The <em>module</em> parameter is interpreted as a
+string that, if non-zero, should be printed before the message; it
+typically is used to identify the software module in which an error is
+detected.</p>
+<p>Applications that desire to capture control in the event of an error
+should use <a class="reference internal" href="#c.TIFFSetErrorHandler" title="TIFFSetErrorHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetErrorHandler()</span></code></a> to override the default
+error handler. A <code class="xref c c-macro docutils literal notranslate"><span class="pre">NULL</span></code> (0) error handler function may be
+installed to suppress error messages.</p>
+<p>Two more application-specific error handler callbacks are available,
+each with different call parameters and passing parameters to the handler.
+Each handler is also linked with an error message function, i.e.
+<a class="reference internal" href="#c.TIFFErrorExt" title="TIFFErrorExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExt()</span></code></a> and <a class="reference internal" href="#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> if the application
+intends to call the handler with those extended parameters.</p>
+<p><a class="reference internal" href="#c.TIFFErrorExt" title="TIFFErrorExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExt()</span></code></a>  provides a file handle as parameter.
+Within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> <a class="reference internal" href="#c.TIFFErrorExt" title="TIFFErrorExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExt()</span></code></a> is called passing <code class="docutils literal notranslate"><span class="pre">tif-&gt;tif_clientdata</span></code>
+as <em>fd</em>, which represents the TIFF file handle (file descriptor).
+The application-specific and library-wide handler for <a class="reference internal" href="#c.TIFFErrorExt" title="TIFFErrorExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExt()</span></code></a>
+is setup with <a class="reference internal" href="#c.TIFFSetErrorHandlerExt" title="TIFFSetErrorHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetErrorHandlerExt()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> (introduced with libtiff 4.5) is called with its
+TIFF handle and thus provides access to a per-TIFF handle (re-entrant)
+error handler. That means for different TIFF handles, different error
+handlers can be setup. This application-specific handler
+can be setup when a TIFF file is opened with one of the following functions:
+<a class="reference internal" href="TIFFOpen.html#c.TIFFOpenExt" title="TIFFOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenExt()</span></code></a>, <a class="reference internal" href="TIFFOpen.html#c.TIFFOpenWExt" title="TIFFOpenWExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenWExt()</span></code></a>, <a class="reference internal" href="TIFFOpen.html#c.TIFFFdOpenExt" title="TIFFFdOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpenExt()</span></code></a>
+or <a class="reference internal" href="TIFFOpen.html#c.TIFFClientOpenExt" title="TIFFClientOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpenExt()</span></code></a>.
+Furthermore, a <strong>custom defined data structure</strong> <em>user_data</em> for the
+error handler can be given along.</p>
+</section>
+<section id="note">
+<h2>Note<a class="headerlink" href="#note" title="Permalink to this heading">¶</a></h2>
+<p>Both functions <a class="reference internal" href="#c.TIFFError" title="TIFFError"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFError()</span></code></a> and <a class="reference internal" href="#c.TIFFErrorExt" title="TIFFErrorExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExt()</span></code></a>
+each attempt to call both handler functions if they are defined.
+First <a class="reference internal" href="#c.TIFFErrorHandler" title="TIFFErrorHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandler()</span></code></a> is called and then <a class="reference internal" href="#c.TIFFErrorHandlerExt" title="TIFFErrorHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandlerExt()</span></code></a>.
+However, <a class="reference internal" href="#c.TIFFError" title="TIFFError"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFError()</span></code></a> passes a “0” as a file handle to
+<a class="reference internal" href="#c.TIFFErrorHandlerExt" title="TIFFErrorHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandlerExt()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> tries first to call the per-TIFF handle defined
+error handler. If <a class="reference internal" href="#c.TIFFErrorHandlerExtR" title="TIFFErrorHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandlerExtR()</span></code></a> is not defined or
+returns 0, <a class="reference internal" href="#c.TIFFErrorHandler" title="TIFFErrorHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandler()</span></code></a> and then <a class="reference internal" href="#c.TIFFErrorHandlerExt" title="TIFFErrorHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandlerExt()</span></code></a>
+are called. From libtiff 4.5 onwards <a class="reference internal" href="#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> is used
+within the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> library where the TIFF handle is available.
+Otherwise, <a class="reference internal" href="#c.TIFFErrorExt" title="TIFFErrorExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExt()</span></code></a> is used!</p>
+</section>
+<section id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFSetErrorHandler" title="TIFFSetErrorHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetErrorHandler()</span></code></a> and <a class="reference internal" href="#c.TIFFSetErrorHandlerExt" title="TIFFSetErrorHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetErrorHandlerExt()</span></code></a>
+returns a reference to the previous error handler function.</p>
+<p><a class="reference internal" href="#c.TIFFErrorHandlerExtR" title="TIFFErrorHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandlerExtR()</span></code></a> returns an integer as “stop” to control the call
+of further error handler functions within <a class="reference internal" href="#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>0: both functions <a class="reference internal" href="#c.TIFFErrorHandler" title="TIFFErrorHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandler()</span></code></a> and <a class="reference internal" href="#c.TIFFErrorHandlerExt" title="TIFFErrorHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorHandlerExt()</span></code></a> are called.</p></li>
+<li><p>non-zero: no further error message function is called.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="TIFFWarning.html"><span class="doc">TIFFWarning</span></a> (3tiff),
+<a class="reference internal" href="TIFFOpen.html"><span class="doc">TIFFOpen</span></a> (3tiff),
+<a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff),
+printf (3)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFError</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#note">Note</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFDeferStrileArrayWriting.html"
+                          title="previous chapter">TIFFDeferStrileArrayWriting</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFFieldDataType.html"
+                          title="next chapter">TIFFFieldDataType</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFError.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFFieldDataType.html" title="TIFFFieldDataType"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFDeferStrileArrayWriting.html" title="TIFFDeferStrileArrayWriting"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFError</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

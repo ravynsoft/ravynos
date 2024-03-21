@@ -1,0 +1,61 @@
+-------------------
+FTP ARCHIVE FOR ZSH
+-------------------
+
+General
+-------
+
+README
+   You're reading it.
+
+META-FAQ
+   Information about zsh ftp sites, web sites, and mailing lists.
+
+FAQ
+   The zsh Frequently Asked Questions (FAQ) list.
+
+pubring.pgp
+   PGP keys of some major Zsh developers.
+
+MD5SUM
+   MD5 checksums of each file.
+
+Source Code
+-----------
+
+zsh.tar.gz
+   Latest production release of zsh.  Includes the source files of all
+   documentation.
+
+zsh-dev.tar.gz
+   The current development version of zsh.  Not guaranteed to be stable.
+
+zsh-*.tar.gz
+   Specific zsh versions.  If you just want the latest zsh then use
+   zsh.tar.gz or zsh-dev.tar.gz.
+
+zsh-*-*.diff.gz
+   Context diffs between releases.  Note that if you use this for
+   upgrading and you do not have the latest version of GNU autoconf
+   installed on your system you have to touch stamp.h.in and configure
+   in the main directory after applying the patches otherwise make will
+   think that these files are not up-to-date and will try to remake them.
+   Do not forget to specify the -p0 flag to patch.  Without -p0 new
+   files will be created in the current directory.
+
+old/*
+   Older zsh versions.  Of historical interest only.
+
+Documentation
+-------------
+
+zsh-doc.tar.gz
+   Pre-built Postscript, Info, DVI and HTML versions of the documentation
+   contained in the stable zsh distribution zsh.tar.gz.
+
+zsh-dev-doc.tar.gz
+   Pre-built Postscript, Info, DVI and HTML versions of the documentation
+   contained in the development zsh distribution zsh-dev.tar.gz.
+
+zsh-*-doc.tar.gz
+   Pre-built documentation for specific zsh versions.

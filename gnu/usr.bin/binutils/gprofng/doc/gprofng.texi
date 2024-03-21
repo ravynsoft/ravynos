@@ -1,0 +1,308 @@
+@c ----------------------------------------------------------------------------
+@c This is the Texinfo source file for the gprofng man page.
+@c
+@c Author: Ruud van der Pas
+@c ----------------------------------------------------------------------------
+@ifset man
+\input texinfo @c -*-texinfo-*-
+@setfilename gprofng
+@settitle The next generation GNU application profiling tool
+@include gp-macros.texi
+@end ifset
+
+@c @ManPageStart{NAME}
+@c @ManPageStart{SYNOPSIS}
+@c @ManPageStart{DESCRIPTION}
+@c @ManPageStart{OPTIONS}
+@c @ManPageStart{NOTES}
+@c @ManPageStart{SEEALSO}
+@c @ManPageStart{COPYRIGHT}
+
+@c ----------------------------------------------------------------------------
+@c This is from the man-pages(7) man page
+@c
+@c "The list below shows conventional or suggested sections.  Most manual pages
+@c  should include at least the highlighted sections.  Arrange a new manual
+@c  page so that sections are placed in the order shown in the list."
+@c
+@c              NAME
+@c              SYNOPSIS
+@c              CONFIGURATION    [Normally only in Section 4]
+@c              DESCRIPTION
+@c              OPTIONS          [Normally only in Sections 1, 8]
+@c              EXIT STATUS      [Normally only in Sections 1, 8]
+@c              RETURN VALUE     [Normally only in Sections 2, 3]
+@c              ERRORS           [Typically only in Sections 2, 3]
+@c              ENVIRONMENT
+@c              FILES
+@c              VERSIONS         [Normally only in Sections 2, 3]
+@c              ATTRIBUTES       [Normally only in Sections 2, 3]
+@c              CONFORMING TO
+@c              NOTES
+@c              BUGS
+@c              EXAMPLES
+@c              AUTHORS          [Discouraged]
+@c              REPORTING BUGS   [Not used in man-pages]
+@c              COPYRIGHT        [Not used in man-pages]
+@c              SEE ALSO
+@c
+@c This is what the texi2pod.pl tool recognizes:
+@c
+@c for $sect (qw(NAME SYNOPSIS TARGET DESCRIPTION OPTIONS ENVIRONMENT FILES
+@c               BUGS NOTES FOOTNOTES SEEALSO AUTHOR COPYRIGHT)) {
+@c
+@c What is interesting is that it places "SEE ALSO" before "COPYRIGHT", which
+@c makes sense and adhered to for the other formats.
+@c ----------------------------------------------------------------------------
+
+@c ----------------------------------------------------------------------------
+@c NAME section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NAME}
+@c man begin NAME
+
+gprofng - The driver for the gprofng application profiling tool
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SYNOPSIS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SYNOPSIS}
+@c man begin SYNOPSIS
+
+@command{gprofng} [@var{option(s)}] @var{action} [@var{qualifier}] [@var{option(s)}] @var{target} [@var{options}]
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c DESCRIPTION section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{DESCRIPTION}
+@c man begin DESCRIPTION
+
+This is the driver for the gprofng tools suite to gather and analyze performance
+data.
+
+The driver executes the @var{action} specified. An example of an action is
+@samp{collect} to collect performance data. Depending on the action, a
+@var{qualifier} may be needed to further define the command.
+The last item is the @var{target} that the command applies to.
+
+There are three places where options are supported.  The driver supports
+options.  These can be found below.  The @var{action}, possibly in combination
+with the @var{qualifier} also supports options. A description of these can be
+found in the man page for the command.  Any options needed to execute the
+target command should follow the target name.
+
+For example, to collect performance data for an application called
+@command{a.out} and store the results in experiment directory @samp{mydata.er},
+the following command may be used:
+
+@smallexample
+$ gprofng collect app -o mydata.er a.out -t 2
+@end smallexample
+
+In this example, the action is @samp{collect}, the qualifier is @samp{app}, the single
+argument to the command is @code{-o mydata.er} and the target is @command{a.out}.
+The target command is invoked with the @samp{-t 2} option.
+
+If gprofng is executed without any additional option, action, or target, a usage
+overview is printed.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c OPTIONS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{OPTIONS}
+@c man begin OPTIONS
+
+@table @gcctabopt
+
+@item @var{--version}
+@ifclear man
+@IndexSubentry{Options, @code{--version}}
+@end ifclear
+Print the version number and exit.
+
+@item @var{--help}
+@ifclear man
+@IndexSubentry{Options, @code{--help}}
+@end ifclear
+Print usage information and exit.
+
+@end table
+
+@c man end
+@ManPageEnd{}
+
+@c -----------------------------------------------------------------------------
+@c ENVIRONMENT SECTION
+@c -----------------------------------------------------------------------------
+
+@ManPageStart{ENVIRONMENT}
+@c man begin ENVIRONMENT
+
+The following environment variables are supported:
+
+@table @samp
+
+@item @env{GPROFNG_MAX_CALL_STACK_DEPTH}
+@cindex Environment variables
+Set the depth of the call stack (default is 256).
+
+@item @env{GPROFNG_USE_JAVA_OPTIONS}
+@cindex Environment variables
+May be set when profiling a C/C++ application that uses dlopen() to execute
+Java code.
+
+@c -- deferred @item @env{GPROFNG_SSH_REMOTE_DISPLAY}
+@c -- deferred Use this variable to define the ssh command executed by the remote display tool.
+
+@c -- deferred @item @env{GPROFNG_SKIP_VALIDATION}
+@c -- deferred Set this variable to disable checking hardware, system, and Java versions.
+
+@item @env{GPROFNG_ALLOW_CORE_DUMP}
+@cindex Environment variables
+Set this variable to allow a core file to be generated; otherwise an error
+report is created on /tmp.
+
+@item @env{GPROFNG_ARCHIVE}
+@cindex Environment variables
+Use this variable to define the settings for automatic archiving upon experiment
+recording completion.
+
+@item @env{GPROFNG_ARCHIVE_COMMON_DIR}
+@cindex Environment variables
+Set this variable to the location of the common archive.
+
+@item @env{GPROFNG_JAVA_MAX_CALL_STACK_DEPTH}
+@cindex Environment variables
+Set the depth of the Java call stack; the default is 256; set to 0 to disable
+capturing of call stacks.
+
+@item @env{GPROFNG_JAVA_NATIVE_MAX_CALL_STACK_DEPTH}
+@cindex Environment variables
+Set the depth of the Java native call stack; the default is 256; set to 0 to
+disable capturing of call stacks (JNI and assembly call stacks are not
+captured).
+
+@end table
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c NOTES section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NOTES}
+@c man begin NOTES
+
+The gprofng driver supports the following commands.
+@vspace{1}
+
+@c The man pages for the commands below can be viewed using the command name with "gprofng" replaced by "gp" and the spaces replaced by a dash ("-"). For example the man page
+@c        name for "gprofng collect app" is "gp-collect-app".
+
+@i{Collect performance data:}
+
+@table @code
+
+@item gprofng collect app
+Collect application performance data.
+
+@end table
+
+@i{Display the performance results:}
+
+@table @code
+
+@item gprofng display text
+Display the performance data in ASCII format.
+
+@item gprofng display html
+Generate an HTML file from one or more experiments.
+
+@end table
+
+@i{Miscellaneous commands:}
+
+@table @code
+
+@item gprofng display src
+Display source or disassembly with compiler annotations.
+
+@item gprofng archive
+Include binaries and source code in an experiment directory.
+
+@end table
+
+It is also possible to invoke the lower level commands directly, but since
+these are subject to change, in particular the options, we recommend to
+use the driver.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SEEALSO section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SEEALSO}
+@c man begin SEEALSO
+
+gp-archive(1), gp-collect-app(1), gp-display-html(1), gp-display-src(1),
+gp-display-text(1)
+
+Each gprofng command also supports the @option{--help} option. This lists the
+options and a short description for each option.
+
+For example this displays the options supported on the
+@command{gprofng collect app} command:
+
+@smallexample
+$ gprofng collect app --help
+@end smallexample
+
+The user guide for gprofng is maintained as a Texinfo manual.  If the
+@command{info} and @command{gprofng} programs are correctly installed, the
+command @command{info gprofng} should give access to this document.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c COPYRIGHT section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{COPYRIGHT}
+@c man begin COPYRIGHT
+
+Copyright @copyright{} 2022-2023 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, with no Front-Cover Texts, and with no
+Back-Cover Texts.  A copy of the license is included in the
+section entitled ``GNU Free Documentation License''.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c If this text is used for a man page, exit.  Otherwise we need to continue.
+@c ----------------------------------------------------------------------------
+
+@ifset man
+@bye
+@end ifset

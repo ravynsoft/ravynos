@@ -1,0 +1,74 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+binfalse()
+{
+	$binfalse || return 1	# normalize return value
+}
+
+if [ -x /usr/bin/true ]; then
+	bintrue=/usr/bin/true
+elif [ -x /bin/true ]; then
+	bintrue=/bin/true
+else
+	bintrue=true
+fi
+if [ -x /usr/bin/false ]; then
+	binfalse=/usr/bin/false
+elif [ -x /bin/false ]; then
+	binfalse=/bin/false
+else
+	binfalse=false
+fi
+
+shopt -s lastpipe
+
+unset foo bar
+echo a b c | read foo
+echo after 1: foo = $foo
+
+unset tot
+declare -i tot
+printf "%d\n" 1 2 3 | while read foo; do tot+=$foo; done
+echo after 2: tot = $tot
+
+unset bar
+echo g h i | bar=7
+echo after: $bar
+
+unset foo last
+printf "%s\n" a b c | while read foo; do last=$foo; done
+echo last = $last
+
+exit 142 | false
+echo $? -- ${PIPESTATUS[@]}
+
+true | false | $bintrue
+echo $? -- ${PIPESTATUS[@]}
+
+true | $bintrue | false
+echo $? -- ${PIPESTATUS[@]}
+
+set -o pipefail
+true | $bintrue | false
+echo $? -- ${PIPESTATUS[@]}
+
+true | binfalse | true
+echo $? -- ${PIPESTATUS[@]}
+set +o pipefail
+
+${THIS_SH} ./lastpipe1.sub
+echo lastpipe1.sub returns $?
+
+${THIS_SH} ./lastpipe2.sub
+${THIS_SH} ./lastpipe3.sub

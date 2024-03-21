@@ -1,0 +1,205 @@
+# Expect script for various MSP430 ELF tests.
+#   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { ![istarget "msp430*elf*"] } {
+    return
+}
+
+# List contains test-items with 3 items followed by 2 lists, one item and
+# one optional item:
+#  0:name
+#  1:ld/ar leading options, placed before object files
+#  2:ld/ar trailing options, placed after object files
+#  3:assembler options
+#  4:filenames of assembler files
+#  5:list of actions, options and expected outputs.
+#  6:name of output file
+#  7:compiler flags (optional)
+#
+# Actions: { command command-line-options file-containg-expected-output-regexps }
+# Commands:
+#   objdump: Apply objdump options on result.
+#   nm: Apply nm options on result.
+#   readelf: Apply readelf options on result.
+#   ld: Don't apply anything on result.  Compare output during linking with
+#     the file containing regexps (which is the second arg, not the third).
+#     Note that this *must* be the first action if it is to be used at all;
+#     in all other cases, any output from the linker during linking is
+#     treated as a sign of an error and FAILs the test.
+#
+#
+
+set msp430regionprefixtests {
+  {"Move main() to .upper.text" "-T msp430.ld --code-region=upper"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-text-upper.d}} "main-upper"}
+  {"Move main() to .upper.text. No .lower.text in ld script" "-T msp430-no-lower.ld --code-region=upper"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-text-upper.d}} "main-upper"}
+  {"Move main() to .lower.text" "-T msp430.ld --code-region=lower"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-text-lower.d}} "main-lower"}
+  {"Move \"either\" main() to .lower.text" "-T msp430.ld --code-region=either"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-text-lower.d}} "main-either"}
+
+  {"Move glob_var to .upper.data" "-T msp430.ld --data-region=upper"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-var-upper.d}} "main-var-upper"}
+  {"Move glob_var to .upper.data. No .lower.data in ld script" "-T msp430-no-lower.ld --data-region=upper"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-var-upper.d}} "main-var-upper"}
+  {"Move glob_var to .lower.data" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-var-lower.d}} "main-var-lower"}
+  {"Move \"either\" glob_var to .lower.data" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-var-lower.d}} "main-var-lower"}
+
+  {"Move glob_zero to .upper.bss" "-T msp430.ld --data-region=upper"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-bss-upper.d}} "main-bss-upper"}
+  {"Move glob_zero to .upper.bss. No .lower.bss in ld script." "-T msp430-no-lower.ld --data-region=upper"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-bss-upper.d}} "main-bss-upper"}
+  {"Move glob_zero to .lower.bss" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-bss-lower.d}} "main-bss-lower"}
+  {"Move \"either\" glob_zero to .lower.bss" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss.s} {{objdump -wh main-bss-lower.d}} "main-bss-lower"}
+
+  {"Move glob_const to .upper.rodata" "-T msp430.ld --data-region=upper"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-const-upper.d}} "main-const-upper"}
+  {"Move glob_const to .upper.rodata. No .lower.rodata in ld script." "-T msp430-no-lower.ld --data-region=upper"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-const-upper.d}} "main-const-upper"}
+  {"Move glob_const to .lower.rodata" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-const-lower.d}} "main-const-lower"}
+  {"Move \"either\" glob_const to .lower.rodata" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-text-rodata.s} {{objdump -wh main-const-lower.d}} "main-const-lower"}
+}
+
+set msp430regionprefixuniquesectiontests {
+  {"Move main() to .upper.text, with -ffunction/data-sections" "-T msp430.ld --code-region=upper"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-text-upper.d}} "main-upper"}
+  {"Move main() to .upper.text. No .lower.text in ld script, with -ffunction/data-sections" "-T msp430-no-lower.ld --code-region=upper"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-text-upper.d}} "main-upper"}
+  {"Move main() to .lower.text, with -ffunction/data-sections" "-T msp430.ld --code-region=lower"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-text-lower.d}} "main-lower"}
+  {"Move \"either\" main() to .lower.text, with -ffunction/data-sections" "-T msp430.ld --code-region=either"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-text-lower.d}} "main-either"}
+
+  {"Move glob_var to .upper.data, with -ffunction/data-sections" "-T msp430.ld --data-region=upper"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-var-upper.d}} "main-var-upper"}
+  {"Move glob_var to .upper.data. No .lower.data in ld script, with -ffunction/data-sections" "-T msp430-no-lower.ld --data-region=upper"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-var-upper.d}} "main-var-upper"}
+  {"Move glob_var to .lower.data, with -ffunction/data-sections" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-var-lower.d}} "main-var-lower"}
+  {"Move \"either\" glob_var to .lower.data, with -ffunction/data-sections" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-var-lower.d}} "main-var-lower"}
+
+  {"Move glob_zero to .upper.bss, with -ffunction/data-sections" "-T msp430.ld --data-region=upper"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-bss-upper.d}} "main-bss-upper"}
+  {"Move glob_zero to .upper.bss. No .lower.bss in ld script., with -ffunction/data-sections" "-T msp430-no-lower.ld --data-region=upper"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-bss-upper.d}} "main-bss-upper"}
+  {"Move glob_zero to .lower.bss, with -ffunction/data-sections" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-bss-lower.d}} "main-bss-lower"}
+  {"Move \"either\" glob_zero to .lower.bss, with -ffunction/data-sections" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-data-bss-unique-sec.s} {{objdump -wh main-bss-lower.d}} "main-bss-lower"}
+
+  {"Move glob_const to .upper.rodata, with -ffunction/data-sections" "-T msp430.ld --data-region=upper"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-const-upper.d}} "main-const-upper"}
+  {"Move glob_const to .upper.rodata. No .lower.rodata in ld script., with -ffunction/data-sections" "-T msp430-no-lower.ld --data-region=upper"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-const-upper.d}} "main-const-upper"}
+  {"Move glob_const to .lower.rodata, with -ffunction/data-sections" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-const-lower.d}} "main-const-lower"}
+  {"Move \"either\" glob_const to .lower.rodata, with -ffunction/data-sections" "-T msp430.ld --data-region=lower"
+    "" "" {main-with-text-rodata-unique-sec.s} {{objdump -wh main-const-lower.d}} "main-const-lower"}
+}
+
+set msp430eithershuffletests {
+  {"Move \"either\" main() to .upper.text when it doesn\'t fit in .lower.text"
+    "-T msp430-tiny-rom.ld --code-region=either --data-region=either" "" "" {main-with-text-rodata.s}
+    {{objdump -wh main-text-upper.d}} "either-to-upper-text"}
+  {"Move \"either\" glob_var_array to .upper.data when it doesn\'t fit in .lower.data"
+    "-T msp430-tiny-ram.ld --data-region=either" "" "" {main-with-data-bss.s}
+    {{objdump -wh main-var-upper.d}} "either-to-upper-data"}
+  {"Move \"either\" glob_bss_array to .upper.bss when it doesn\'t fit in .lower.bss"
+    "-T msp430-tiny-ram.ld --data-region=either" "" "" {main-with-data-bss.s}
+    {{objdump -wh main-bss-upper.d}} "either-to-upper-bss"}
+  {"Move \"either\" glob_const_array to .upper.rodata when it doesn\'t fit in .lower.rodata"
+    "-T msp430-tiny-rom.ld --code-region=either --data-region=either" "" "" {main-with-text-rodata.s}
+    {{objdump -wh main-const-upper.d}} "either-to-upper-const"}
+
+  {"Move \"either\" main() to .upper.text when it doesn\'t fit in .lower.text, with -ffunction/data-sections"
+    "-T msp430-tiny-rom.ld --code-region=either --data-region=either" "" "" {main-with-text-rodata-unique-sec.s}
+    {{objdump -wh main-text-upper.d}} "either-to-upper-text-unique-sec"}
+  {"Move \"either\" glob_var_array to .upper.data when it doesn\'t fit in .lower.data, with -ffunction/data-sections"
+    "-T msp430-tiny-ram.ld --data-region=either" "" "" {main-with-data-bss-unique-sec.s}
+    {{objdump -wh main-var-upper.d}} "either-to-upper-data-unique-sec"}
+  {"Move \"either\" glob_bss_array to .upper.bss when it doesn\'t fit in .lower.bss, with -ffunction/data-sections"
+    "-T msp430-tiny-ram.ld --data-region=either" "" "" {main-with-data-bss-unique-sec.s}
+    {{objdump -wh main-bss-upper.d}} "either-to-upper-bss-unique-sec"}
+  {"Move \"either\" glob_const_array to .upper.rodata when it doesn\'t fit in .lower.rodata, with -ffunction/data-sections"
+    "-T msp430-tiny-rom.ld --code-region=either --data-region=either" "" "" {main-with-text-rodata-unique-sec.s}
+    {{objdump -wh main-const-upper.d}} "either-to-upper-const-unique-sec"}
+}
+
+set msp430warntests {
+    {"Warn when section cannot be transformed because output section does not exist in linker script (text,data,bss,rodata)"
+        "-T msp430-no-lower.ld --code-region=lower --data-region=lower" "" "" {warn-no-lower.s}
+        {{ld warn-no-lower.r}} "warn-no-lower"}
+    {"Warn when section cannot be transformed because output section does not exist in linker script (text only)"
+        "-T msp430-no-lower.ld --code-region=lower" "" "" {warn-no-lower.s}
+        {{ld warn-no-lower-code.r}} "warn-no-lower-code"}
+    {"Warn when section cannot be transformed because output section does not exist in linker script (data,bss,rodata)"
+        "-T msp430-no-lower.ld --data-region=lower" "" "" {warn-no-lower.s}
+        {{ld warn-no-lower-data.r}} "warn-no-lower-data"}
+}
+
+set msp430arraytests {
+    { "Warn when __preinit_array_start is not word aligned" "-T preinitarray-warn.ld" "" ""
+        {initarray.s} {{ld preinitarray-warn.r}} "preinitarray-warn"}
+    { "Warn when __init_array_start is not word aligned" "-T initarray-warn.ld" "" ""
+        {initarray.s} {{ld initarray-warn.r}} "initarray-warn"}
+    { "Warn when __fini_array_start is not word aligned" "-T finiarray-warn.ld" "" ""
+        {initarray.s} {{ld finiarray-warn.r}} "finiarray-warn"}
+    { "Don't warn when __{preinit,init,fini}_array_start are word aligned" "-T initarray-nowarn.ld" "" ""
+        {initarray.s} {{ld initarray-nowarn.r}} "initarray-nowarn"}
+}
+
+run_ld_link_tests $msp430arraytests
+
+run_dump_test uleb128_430
+run_dump_test uleb128_430x
+
+# Don't run further tests when msp430 ISA is selected
+if {[string match "*-mcpu=msp430 *" [board_info [target_info name] multilib_flags]]
+  || [string match "*-mcpu=msp430" [board_info [target_info name] multilib_flags]]} {
+    return
+}
+run_ld_link_tests $msp430regionprefixtests
+run_ld_link_tests $msp430regionprefixuniquesectiontests
+run_ld_link_tests $msp430eithershuffletests
+run_ld_link_tests $msp430warntests
+
+run_dump_test valid-map
+run_ld_link_tests {{ "Check no reloc overflow with #lo and data in the upper region"
+        "-m msp430X" "" "" {reloc-lo-430x.s} {} "reloc-lo-430x"}}
+run_ld_link_tests {{ "Check .upper prefixed input sections can be placed"
+        "-m msp430X" "" "" {upper-input-sections.s} {} "upper-input-sections"}}
+
+# Don't run data region tests if a data region is specified
+if {[string match "*-mdata-region*" [board_info [target_info name] multilib_flags]]} {
+    return
+}
+# GNU object attribute dump tests
+run_dump_test attr-gnu-region-lower
+run_dump_test attr-gnu-region-upper
+run_dump_test attr-gnu-region-lower-upper

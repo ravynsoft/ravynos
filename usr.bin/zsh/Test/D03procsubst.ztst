@@ -1,0 +1,191 @@
+# Tests for process substitution: <(...), >(...) and =(...).
+
+%prep
+  if grep '#define PATH_DEV_FD' $ZTST_testdir/../config.h > /dev/null 2>&1 ||
+     grep '#define HAVE_FIFOS' $ZTST_testdir/../config.h > /dev/null 2>&1; then
+    mkdir procsubst.tmp
+    cd procsubst.tmp
+    print 'First\tSecond\tThird\tFourth' >FILE1
+    print 'Erste\tZweite\tDritte\tVierte' >FILE2
+  else
+    ZTST_unimplemented="process substitution is not supported"
+    true
+  fi
+
+  function copycat { cat "$@" }
+
+%test
+  paste <(cut -f1 FILE1) <(cut -f3 FILE2)
+0:<(...) substitution
+>First	Dritte
+
+# slightly desperate hack to force >(...) to be synchronous
+  { paste <(cut -f2 FILE1) <(cut -f4 FILE2) } > >(sed 's/e/E/g' >OUTFILE)
+  cat OUTFILE
+0:>(...) substitution
+>SEcond	ViErtE
+
+  diff =(cat FILE1) =(cat FILE2)
+1:=(...) substitution
+>1c1
+>< First	Second	Third	Fourth
+>---
+>> Erste	Zweite	Dritte	Vierte
+
+  copycat <(print First) <(print Zweite)
+0:FDs remain open for external commands called from functions
+>First
+>Zweite
+
+  catfield2() {
+    local -a args
+    args=(${(s.,.)1})
+    print $args[1]
+    cat $args[2]
+    print $args[3]
+  }
+  catfield2 up,<(print $'\x64'own),sideways
+0:<(...) when embedded within an argument
+>up
+>down
+>sideways
+
+  outputfield2() {
+    local -a args
+    args=(${(s.,.)1})
+    print $args[1]
+    echo 'How sweet the moonlight sits upon the bank' >$args[2]
+    print $args[3]
+  }
+  outputfield2 muddy,>(sed -e s/s/th/g >outputfield2.txt),vesture
+  # yuk
+  while [[ ! -e outputfield2.txt || ! -s outputfield2.txt ]]; do :; done
+  cat outputfield2.txt
+0:>(...) when embedded within an argument
+>muddy
+>vesture
+>How thweet the moonlight thitth upon the bank
+
+  catfield1() {
+    local -a args
+    args=(${(s.,.)1})
+    cat $args[1]
+    print $args[2]
+  }
+  catfield1 =(echo s$'\x69't),jessica
+0:=(...) followed by something else without a break
+>sit
+>jessica
+
+  (
+  setopt nonomatch
+  # er... why is this treated as a glob?
+  print everything,=(here is left),alone
+  )
+0:=(...) preceded by other stuff has no special effect
+>everything,=(here is left),alone
+
+  print something=${:-=(echo 'C,D),(F,G)'}
+1: Graceful handling of bad substitution in enclosed context
+?(eval):1: unterminated `=(...)'
+# '`
+
+  () {
+     print -n "first: "
+     cat $1
+     print -n "second: "
+     cat $2
+  } =(echo This becomes argument one) =(echo and this argument two)
+  function {
+     print -n "third: "
+     cat $1
+     print -n "fourth: "
+     cat $2
+  } =(echo This becomes argument three) =(echo and this argument four)
+0:Process environment of anonymous functions
+>first: This becomes argument one
+>second: and this argument two
+>third: This becomes argument three
+>fourth: and this argument four
+
+  () {
+     # Make sure we don't close the file descriptor too early
+     eval 'print "Execute a complicated command first" | sed s/command/order/'
+     cat $1
+  } <(echo This line was brought to you by the letters F and D)
+0:Process substitution as anonymous function argument
+>Execute a complicated order first
+>This line was brought to you by the letters F and D
+
+  alias foo='cat <('
+  eval 'foo echo this is bound to work)'
+0:backtacking within command string parsing with alias still pending
+>this is bound to work
+
+  alias foo='cat <( print'
+  eval 'foo here is some output)'
+0:full alias expanded when substitution starts in alias
+>here is some output
+
+  if ! (mkfifo test_pipe >/dev/null 2>&1); then
+    ZTST_skip="mkfifo not available"
+  else
+    echo 1 | tee >(cat > test_pipe) | (){
+      local pipein
+      read pipein <test_pipe
+      print $pipein
+      read pipein
+      print $pipein
+    }
+  fi
+0:proc subst fd in forked subshell closed in parent
+>1
+>1
+
+  if [[ ! -e test_pipe ]]; then
+    ZTST_skip="mkfifo not available"
+  else
+    echo 1 | tee >(cat > test_pipe) | paste - test_pipe
+  fi
+0:proc subst fd in forked subshell closed in parent (external command)
+>1	1
+
+  procfunc() {
+    cat <(cat "$@")
+  }
+  procfunc <(echo argument)
+0:With /proc/self file descriptors must not be tidied up too early
+>argument
+
+  $ZTST_testdir/../Src/zsh -df -o shfileexpansion -c 'cat =(echo hi)'
+0:EQUALS expansion followed by =(...) (sh ordering) should work
+>hi
+
+  () {
+    local TMPPREFIX=$PWD/tmp
+    command true =(true) =(true) | :
+    print -rC1 -- $TMPPREFIX*(N)
+  }
+0f:external command with =(...) on LHS of pipeline cleans up its tempfiles
+F:subshells including pipe LHS do not pass through zexit()
+# (Expected result: no output.)
+
+# Confirm tempfile exists in the function, but not after exit
+  () {
+    local -x TMPPREFIX=$PWD/exit
+    $ZTST_testdir/../Src/zsh -fc '
+     () {
+       print -rC1 -- $TMPPREFIX*
+       exit
+     } =(sleep 5)
+    '
+    print -rC1 -- $TMPPREFIX*(N)
+  }
+0:regression test: exit in shell function cleans up tempfiles
+F:see preceding test
+*>*.tmp/exit*
+
+  print -u $ZTST_fd 'This test hangs the shell when it fails...'
+  true | false =(nosuchcommand$$)
+1:regression test: race condition with pipe and procsubst
+*?\(eval\):2: command not found: nosuchcommand*

@@ -1,0 +1,209 @@
+# static.at -- test flags for sysrooting          -*- Autotest -*-
+#
+#   Copyright (C) 2009, 2011-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#   Written by Paolo Bonzini, 2009
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+m4_define([SYSROOT_TEST], [
+AT_SETUP([$1])
+AT_KEYWORDS([libtool sysroot])
+
+gcc_sysroot=`$CC --print-sysroot 2> /dev/null`
+if test $? != 0; then
+  gcc_sysroot=
+fi
+AT_CHECK([test -n "$gcc_sysroot" || exit 77])
+
+# Detect installation prefix for the compiler
+prefix=
+for i in crt0.o crt1.o crt2.o crti.o; do
+  j=`$CC --print-file-name $i 2> /dev/null`
+  test $? = 0 || continue
+  case $j in
+    $gcc_sysroot*/lib/$i)
+      prefix=`echo "$j" | $SED "s|^$gcc_sysroot\\(.*\\)/lib/$i\$|\\1|"`
+      break ;;
+  esac
+done
+AT_CHECK([test -n "$prefix" || exit 77])
+
+sysroot=`pwd`/sys-root
+
+# difficult to use AS_DIRNAME inside the AT_CHECK macro, so
+# encapsulate as a shell function.
+local_dirname() {
+  AS_DIRNAME(["$[]1"])
+}
+
+AT_CHECK([
+(cd "$gcc_sysroot" && find ".$prefix/bin" ".$prefix/include" ".$prefix/lib" \! -type d) | \
+while read file; do
+  dir=`local_dirname "$sysroot/$file"`
+  test -d "$dir" || mkdir -p "$dir"
+  rm -f "$sysroot/$file"
+  ln -s "$gcc_sysroot/$file" "$sysroot/$file" || \
+    cp "$gcc_sysroot/$file" "$sysroot/$file"
+done])
+
+LDFLAGS="$LDFLAGS --sysroot=$sysroot -no-undefined"
+configure_options="$configure_options --with-sysroot=$sysroot --prefix=$prefix"
+
+#???
+if test PATH = "$shlibpath_var"; then
+  configure_options="$configure_options --libdir=/$prefix/bin"
+fi
+
+AT_CHECK([mkdir lib1 lib2 prog])
+
+# Build and install package 1.
+AT_DATA([lib1/configure.ac],
+[[AC_INIT([lib1], [1.0])
+AM_INIT_AUTOMAKE([foreign])
+AC_PROG_CC
+AC_CONFIG_SRCDIR([lib1.c])
+LT_INIT
+AC_OUTPUT(Makefile)
+]])
+
+AT_DATA([lib1/Makefile.am],
+[[lib_LTLIBRARIES = lib1.la
+lib1_la_SOURCES = lib1.c
+lib1_la_LDFLAGS = -rpath $(libdir)
+]])
+
+AT_DATA([lib1/lib1.c],
+[[#include <string.h>
+#include <stdlib.h>
+char *f(const char *s)
+{
+  return strdup (s);
+}
+]])
+
+cd lib1
+LT_AT_BOOTSTRAP([], [-I $abs_top_srcdir/libltdl/m4], [ignore],
+	        [--add-missing], [], [], [all])
+
+AT_CHECK([$MAKE install DESTDIR=$sysroot], [0], [ignore], [ignore])
+AT_CHECK([test -f "$sysroot/$prefix/lib/lib1.la"])
+AT_CHECK([$GREP -F "$sysroot" "$sysroot/$prefix/lib/lib1.la"], [1])
+cd ..
+
+# Build and install package 2.
+AT_DATA([lib2/configure.ac],
+[[AC_INIT([lib2], [1.0])
+AM_INIT_AUTOMAKE([foreign])
+AC_PROG_CC
+AC_CONFIG_SRCDIR([lib2.c])
+LT_INIT
+sysroot=$with_sysroot
+AC_SUBST([sysroot])
+AC_OUTPUT(Makefile)
+]])
+
+AT_DATA([lib2/Makefile.am],
+[[lib_LTLIBRARIES = lib2.la
+lib2_la_SOURCES = lib2.c
+lib2_la_LDFLAGS = -rpath $(libdir)
+lib2_la_LIBADD = $2]1[$3
+]])
+
+AT_DATA([lib2/lib2.c],
+[[#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+extern char *f(const char *s);
+char *g(const char *s)
+{
+  char *q = f(s);
+  puts (q);
+  return q;
+}
+]])
+
+cd lib2
+LT_AT_BOOTSTRAP([], [-I $abs_top_srcdir/libltdl/m4], [ignore],
+	        [--add-missing], [], [], [all])
+
+AT_CHECK([$MAKE install DESTDIR=$sysroot], [0], [ignore], [ignore])
+AT_CHECK([test -f "$sysroot/$prefix/lib/lib2.la"])
+AT_CHECK([$GREP -F "$sysroot" "$sysroot/$prefix/lib/lib2.la"], [1])
+cd ..
+
+# Build and install a program.
+AT_DATA([prog/configure.ac],
+[[AC_INIT([prog], [1.0])
+AM_INIT_AUTOMAKE([foreign])
+AC_PROG_CC
+AC_CONFIG_SRCDIR([prog.c])
+LT_INIT
+sysroot=$with_sysroot
+AC_SUBST([sysroot])
+AC_OUTPUT(Makefile)
+]])
+
+AT_DATA([prog/Makefile.am],
+[[bin_PROGRAMS = prog
+prog_SOURCES = prog.c
+prog_LDADD = $2]2[$3
+]])
+
+AT_DATA([prog/prog.c],
+[[#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+extern char *g(const char *s);
+int main()
+{
+  char *q = g("hello world");
+  free (q);
+  return 0;
+}
+]])
+
+cd prog
+LT_AT_BOOTSTRAP([], [-I $abs_top_srcdir/libltdl/m4], [ignore],
+	        [--add-missing], [], [], [all])
+
+AT_CHECK([$MAKE install DESTDIR=$sysroot], [0], [ignore], [ignore])
+AT_CHECK([test -f "$sysroot/$prefix/bin/prog$EXEEXT"])
+AT_CHECK([$GREP -F "$sysroot" "$sysroot/$prefix/bin/prog$EXEEXT"], [1])
+AT_CHECK([$GREP "'.*=" $sysroot/$prefix/lib/lib2.la], [0], [ignore])
+AT_CHECK([./libtool --mode=finish $sysroot/$prefix/lib/lib@<:@12@:>@.la], [0], [ignore])
+AT_CHECK([$GREP "'.*=" $sysroot/$prefix/lib/lib@<:@12@:>@.la], [1])
+
+# missing tests
+# 1) pass absolute .la files
+# 2) pass absolute -L
+# 2) pass relative .la files
+
+cd ..
+AT_CLEANUP
+])
+
+AT_BANNER([sysroot tests])
+SYSROOT_TEST([-L=.../lib -l],	      [-L=$(libdir) -l], [])
+SYSROOT_TEST([-L SYSROOT/.../lib -l], [-L$(sysroot)$(libdir) -l], [])
+SYSROOT_TEST([SYSROOT/.../*.la],      [$(sysroot)$(libdir)/lib], [.la])
+
+dnl This one does not make sense.
+dnl SYSROOT_TEST([=.../*.la],	      [=$(libdir)/lib], [.la])

@@ -1,6 +1,5 @@
 /*-
  * Copyright (c) 2014 Ruslan Bukin <br@bsdpad.com>
- * All rights reserved.
  *
  * This software was developed by SRI International and the University of
  * Cambridge Computer Laboratory under DARPA/AFRL contract (FA8750-10-C-0237)
@@ -49,6 +48,8 @@
 #define	TX_DESC_SIZE	(sizeof(struct dwc_hwdesc) * TX_DESC_COUNT)
 #define	TX_MAP_MAX_SEGS	32
 
+#define	DMA_DEFAULT_PBL	8
+
 struct dwc_bufmap {
 	bus_dmamap_t		map;
 	struct mbuf		*mbuf;
@@ -59,7 +60,7 @@ struct dwc_bufmap {
 struct dwc_softc {
 	struct resource		*res[2];
 	device_t		dev;
-	int			mactype;
+	phandle_t		node;
 	int			mii_clk;
 	device_t		miibus;
 	struct mii_data *	mii_softc;
@@ -74,6 +75,21 @@ struct dwc_softc {
 	int			tx_watchdog_count;
 	int			stats_harvest_count;
 	int			phy_mode;
+
+	/* clocks and reset */
+	clk_t			clk_stmmaceth;
+	clk_t			clk_pclk;
+	hwreset_t		rst_stmmaceth;
+	hwreset_t		rst_ahb;
+
+	/* DMA config */
+	uint32_t		txpbl;	/* TX Burst lenght */
+	uint32_t		rxpbl;	/* RX Burst lenght */
+	bool			nopblx8;
+	bool			fixed_burst;
+	bool			mixed_burst;
+	bool			aal;
+	bool			dma_ext_desc;
 
 	/* RX */
 	bus_dma_tag_t		rxdesc_tag;
@@ -98,5 +114,15 @@ struct dwc_softc {
 	int			tx_desccount;
 	int			tx_mapcount;
 };
+
+#define	READ4(_sc, _reg) \
+	bus_read_4((_sc)->res[0], _reg)
+#define	WRITE4(_sc, _reg, _val) \
+	bus_write_4((_sc)->res[0], _reg, _val)
+
+#define	DWC_LOCK(sc)			mtx_lock(&(sc)->mtx)
+#define	DWC_UNLOCK(sc)			mtx_unlock(&(sc)->mtx)
+#define	DWC_ASSERT_LOCKED(sc)		mtx_assert(&(sc)->mtx, MA_OWNED)
+#define	DWC_ASSERT_UNLOCKED(sc)		mtx_assert(&(sc)->mtx, MA_NOTOWNED)
 
 #endif	/* __IF_DWCVAR_H__ */

@@ -1,0 +1,118 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of PHP format strings.
+
+cat <<\EOF > f-ph-2.data
+# Valid: %% doesn't count
+msgid  "abc%%def"
+msgstr "xyz"
+# Invalid: invalid msgstr
+msgid  "abc%%def"
+msgstr "xyz%"
+# Valid: same arguments
+msgid  "abc%s%gdef"
+msgstr "xyz%s%g"
+# Valid: same arguments, with different widths
+msgid  "abc%2sdef"
+msgstr "xyz%3s"
+# Valid: same arguments but in numbered syntax
+msgid  "abc%s%gdef"
+msgstr "xyz%1$s%2$g"
+# Valid: permutation
+msgid  "abc%s%g%cdef"
+msgstr "xyz%3$c%2$g%1$s"
+# Invalid: too few arguments
+msgid  "abc%2$udef%1$s"
+msgstr "xyz%1$s"
+# Invalid: too few arguments
+msgid  "abc%sdef%u"
+msgstr "xyz%s"
+# Invalid: too many arguments
+msgid  "abc%udef"
+msgstr "xyz%uvw%c"
+# Valid: same numbered arguments, with different widths
+msgid  "abc%2$5s%1$4s"
+msgstr "xyz%2$4s%1$5s"
+# Invalid: missing argument
+msgid  "abc%2$sdef%1$u"
+msgstr "xyz%1$u"
+# Invalid: missing argument
+msgid  "abc%1$sdef%2$u"
+msgstr "xyz%2$u"
+# Invalid: added argument
+msgid  "abc%1$udef"
+msgstr "xyz%1$uvw%2$c"
+# Valid: type compatibility
+msgid  "abc%b"
+msgstr "xyz%d"
+# Valid: type compatibility
+msgid  "abc%u"
+msgstr "xyz%d"
+# Valid: type compatibility
+msgid  "abc%o"
+msgstr "xyz%d"
+# Valid: type compatibility
+msgid  "abc%x"
+msgstr "xyz%d"
+# Valid: type compatibility
+msgid  "abc%X"
+msgstr "xyz%d"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%f"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%d"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%e"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%c"
+# Invalid: type incompatibility
+msgid  "abc%d"
+msgstr "xyz%e"
+# Invalid: type incompatibility
+msgid  "abc%d"
+msgstr "xyz%c"
+# Invalid: type incompatibility
+msgid  "abc%e"
+msgstr "xyz%c"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-ph-2-$n.po
+#, php-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-ph-2-$n.mo f-ph-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-ph-2-$n.mo f-ph-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-ph-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-ph-2-$n.po f-ph-2-$n.mo
+done < f-ph-2.data
+
+Exit 0

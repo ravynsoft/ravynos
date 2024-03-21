@@ -1,0 +1,3 @@
+# Test continuation character when there is nothing to continue
+# Used to leak "~ron" when run under address sanitizer
+foo ALL = CWD=~ron /bin/ls \

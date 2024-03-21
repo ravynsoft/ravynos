@@ -1,0 +1,72 @@
+#compdef rxvt urxvt urxvtc urxvt256c urxvt256cc urxvt256c-ml urxvt256c-mlc
+
+local curcontext="$curcontext" state line expl ret=1
+local -a suf long_args
+typeset -A opt_args
+typeset -U extensions
+
+[[ -prefix -- ]] || zstyle -T ":completion:${curcontext}:options" prefix-needed &&
+  : ${(A)long_args:=${${${${${${${(M)${(f)"$(urxvt --help 2>&1)"}:#  *:*}/  /--}// /}/fontname/fontname:->fonts}/:color/:color:_x_color}/boolean/boolean:(true false)}/:(searchpath|file)/:path:_files}}
+
+_x_arguments \
+  -+{rv,ls,j,ss,ptab,sb,sr,st,si,sk,sw,ip,tr,ut,vb,tcw,insecure,uc,bc,pb,is,override-redirect,hold,bl,sbg,ssc,ssr} \
+  '-tn[specify value of TERM]:terminal type:_terminals' \
+  '-C[intercept console messages]' \
+  '-iconic[start iconic]' \
+  '-cd[start shell in specific directory]:directory:_files -/' \
+  '-sbt[scroll bar thickness]:pixels' \
+  '-tint[tint color]:color:_x_color' \
+  '-fade[make colors darker when losing focus]:percentage' \
+  '-fadecolor[specify target color for off-focus fading]:color:_x_color' \
+  '-sh[shade background when tinting]:percentage' \
+  '-bg[background color]:color:_x_color' \
+  '-fg[foreground color]:color:_x_color' \
+  '-hc[highlight color]:color:_x_color' \
+  '-cr[cursor color]:color:_x_color' \
+  '-pr[pointer color]:color:_x_color' \
+  '-pr2[pointer background color]:color:_x_color' \
+  '-bd[border color]:color:_x_color' \
+  '-pixmap:pixmap:_files' \
+  '-icon[specify icon image]:image file:_files' \
+  '-fn:normal font:->fonts' \
+  '-fb:bold font:->fonts' \
+  '-fi:italic font:->fonts' \
+  '-fbi:bold italic font:->fonts' \
+  '-im:input method:(SCIM)' \
+  '-pe[enable perl extension]:perl extension:->extensions' \
+  '-pt:input style:(OverTheSpot OffTheSpot Root)' \
+  '-imlocale:locale input method:_locales' \
+  '-imfont:fontset for styles OverTheSpot and OffTheSpot:_x_font' \
+  '-name:client instance, icon, and title strings' \
+  '(-T -title)'{-T,-title}':title name for window' \
+  '-n:icon name for window' \
+  '-sl:save lines' \
+  '-embed:window id to embed terminal in:_x_window' \
+  '-pty-fd:file descriptor of pty to use' \
+  {-bw,-w}':external border (pixels)' \
+  '-b:internal border (pixels)' \
+  '-lsp:number of extra pixels between rows' \
+  '-letsp:letter spacing adjustment' \
+  '-mod:meta modifier:_x_modifier' \
+  '-e:program: _command_names -e:*::program arguments: _normal' \
+  '-help[print help]' \
+  '--help[list long options]' $long_args && ret=0
+
+case $state in
+  fonts)
+    if compset -P xft:; then
+      _xft_fonts && ret=0
+    else
+      _x_font && ret=0
+    fi
+  ;;
+  extensions)
+    compset -S ',*' || suf=( -qS , )
+    compset -P '*,'; compset -P -
+    extensions=( {$commands[urxvt]:h:h,/usr,/usr/local}/lib{,64}/urxvt/perl(N) )
+    _wanted extensions expl 'perl extension' compadd $suf[@] default \
+        $extensions/*(:t) && ret=0
+  ;;
+esac
+
+return ret

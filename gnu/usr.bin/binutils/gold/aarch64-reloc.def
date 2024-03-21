@@ -1,0 +1,130 @@
+// aarch64-reloc.def -- AArch64 relocation definitions.
+
+// Copyright (C) 2014-2023 Free Software Foundation, Inc.
+// Written by Han Shen <shenhan@google.com> and Jing Yu <jingyu@google.com>.
+
+// This file is part of gold.
+
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+// MA 02110-1301, USA.
+//
+//
+//
+// Insn modified by relocation, see enum Reloc_inst -------------------------------------------------------------------------------------------------+
+// Symbol reference type -----------------------------------------------------------------------------+                                              |
+// Portion off X to retrieve -------------------------------------------------------------------+     |                                              |
+// Checking function, see Note(A)---------------------------------------+                       |     |                                              |
+// Group index---------------------------------------------------+      |                       |     |                                              |
+// Implemented----------------------------------------------+    |      |                       |     |                                              |
+// Class-------------------------------------+              |    |      |                       |     |                                              |
+// Type----------------------------+         |              |    |      |                       |     |                                              |
+// Name                            |         |              |    |      |                       |     |                                              |
+//  |                              |         |              |    |      |                       |     |                                              |
+ARD(NONE                         , STATIC  , NONE       ,   Y,  -1,    0,0                ,    0,0  , 0                    ,                         DATA  )
+// Above is from Table 4-5, Null relocation codes
+
+ARD(ABS64                        , STATIC ,  DATA       ,   Y,  -1,    0,0                ,    0,0  , Symbol::ABSOLUTE_REF ,                         DATA  )
+ARD(ABS32                        , STATIC ,  DATA       ,   Y,  -1,   31,32               ,    0,0  , Symbol::ABSOLUTE_REF ,                         DATA  )
+ARD(ABS16                        , STATIC ,  DATA       ,   Y,  -1,   15,16               ,    0,0  , Symbol::ABSOLUTE_REF ,                         DATA  )
+ARD(PREL64                       , STATIC ,  DATA       ,   Y,  -1,    0,0                ,    0,0  , Symbol::RELATIVE_REF ,                         DATA  )
+ARD(PREL32                       , STATIC ,  DATA       ,   Y,  -1,   31,32               ,    0,0  , Symbol::RELATIVE_REF ,                         DATA  )
+ARD(PREL16                       , STATIC ,  DATA       ,   Y,  -1,   15,16               ,    0,0  , Symbol::RELATIVE_REF ,                         DATA  )
+// Above is from Table 4-6, Data relocations, 257-262.
+
+ARD(MOVW_UABS_G0                 , STATIC ,  AARCH64    ,   Y,   0,    0,16               ,    0,15 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_UABS_G0_NC              , STATIC ,  AARCH64    ,   Y,   0,    0,0                ,    0,15 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_UABS_G1                 , STATIC ,  AARCH64    ,   Y,   0,    0,32               ,   16,31 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_UABS_G1_NC              , STATIC ,  AARCH64    ,   Y,   0,    0,0                ,   16,31 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_UABS_G2                 , STATIC ,  AARCH64    ,   Y,   0,    0,48               ,   32,47 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_UABS_G2_NC              , STATIC ,  AARCH64    ,   Y,   0,    0,0                ,   32,47 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_UABS_G3                 , STATIC ,  AARCH64    ,   Y,   0,    0,0                ,   48,63 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+// Above is from Table 4-7, Group relocations to create a 16-, 32-, 48-, or 64-bit unsigned data value or address inline.
+
+ARD(MOVW_SABS_G0                 , STATIC ,  AARCH64    ,   Y,   0,   16,16               ,    0,15 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_SABS_G1                 , STATIC ,  AARCH64    ,   Y,   0,   32,32               ,   16,31 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+ARD(MOVW_SABS_G2                 , STATIC ,  AARCH64    ,   Y,   0,   48,48               ,   32,47 , Symbol::ABSOLUTE_REF ,                         MOVW  )
+// Above is from Table 4-8, Group relocations to create a 16, 32, 48, or 64 bit signed data or offset value inline.
+
+ARD(LD_PREL_LO19		 , STATIC ,  AARCH64    ,   Y,  -1,   20,20		  ,    2,20 , Symbol::RELATIVE_REF , 			     LDST  )
+ARD(ADR_PREL_LO21		 , STATIC ,  AARCH64    ,   Y,  -1,   20,20		  ,    0,20 , Symbol::RELATIVE_REF , 			     ADR   )
+ARD(ADR_PREL_PG_HI21             , STATIC ,  AARCH64    ,   Y,  -1,   32,32               ,   12,32 , Symbol::RELATIVE_REF ,                         ADRP  )
+ARD(ADR_PREL_PG_HI21_NC          , STATIC ,  AARCH64    ,   Y,  -1,    0,0                ,   12,32 , Symbol::RELATIVE_REF ,                         ADRP  )
+ARD(ADD_ABS_LO12_NC              , STATIC ,  AARCH64    ,   Y,  -1,    0,0                ,    0,11 , Symbol::ABSOLUTE_REF ,                         ADD   )
+ARD(LDST8_ABS_LO12_NC            , STATIC ,  AARCH64    ,   Y,  -1,    0,0                ,    0,11 , Symbol::ABSOLUTE_REF ,                         LDST  )
+ARD(LDST16_ABS_LO12_NC           , STATIC ,  AARCH64    ,   Y,  -1,    0,RL_CHECK_ALIGN2  ,    1,11 , Symbol::ABSOLUTE_REF ,                         LDST  )
+ARD(LDST32_ABS_LO12_NC           , STATIC ,  AARCH64    ,   Y,  -1,    0,RL_CHECK_ALIGN4  ,    2,11 , Symbol::ABSOLUTE_REF ,                         LDST  )
+ARD(LDST64_ABS_LO12_NC           , STATIC ,  AARCH64    ,   Y,  -1,    0,RL_CHECK_ALIGN8  ,    3,11 , Symbol::ABSOLUTE_REF ,                         LDST  )
+ARD(LDST128_ABS_LO12_NC          , STATIC ,  AARCH64    ,   Y,  -1,    0,RL_CHECK_ALIGN16 ,    4,11 , Symbol::ABSOLUTE_REF ,                         LDST  )
+// Above 10 relocs are from Table 4-9, Relocations to generate 19, 21 and 33 bit PC-relative addresses.
+
+ARD(ADR_GOT_PAGE                 , STATIC ,  AARCH64    ,   Y,  -1,   32,32               ,   12,32 , Symbol::RELATIVE_REF ,                         ADRP  )
+ARD(LD64_GOT_LO12_NC             , STATIC ,  AARCH64    ,   Y,  -1,    0,RL_CHECK_ALIGN8  ,    3,11 , Symbol::ABSOLUTE_REF ,                         LDST  )
+ARD(LD64_GOTPAGE_LO15            , STATIC ,  AARCH64    ,   Y,  -1,    0,15               ,    3,14 , Symbol::RELATIVE_REF ,                         LDST  )
+// Above 2 relocs are from Table 4-14, GOT-relative instruction relocations. (Some relocs in the table are not implemented yet.)
+
+ARD(TSTBR14                      , STATIC ,  CFLOW      ,   N,  -1,   15,15               ,    2,15 , (Symbol::FUNCTION_CALL|Symbol::ABSOLUTE_REF) , TBZNZ )
+ARD(CONDBR19                     , STATIC ,  CFLOW      ,   N,  -1,   20,20               ,    2,20 , (Symbol::FUNCTION_CALL|Symbol::ABSOLUTE_REF) , CONDB )
+ARD(CALL26                       , STATIC ,  CFLOW      ,   Y,  -1,   27,27               ,    2,27 , (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF) , CALL  )
+ARD(JUMP26                       , STATIC ,  CFLOW      ,   Y,  -1,   27,27               ,    2,27 , (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF) , B     )
+// Above is from Table 4-10, Relocations for control-flow instructions,
+// 279-283.
+
+ARD(TLSGD_ADR_PAGE21             , STATIC ,  AARCH64    ,   Y,  -1,   32,32               ,   12,32 , Symbol::TLS_REF ,                              ADRP  )
+ARD(TLSGD_ADD_LO12_NC            , STATIC ,  AARCH64    ,   Y,  -1,    0,0                ,    0,11 , Symbol::TLS_REF ,                              ADD   )
+// Above is from Table 4-15, General Dynamic TLS relocations, 512-516.
+
+ARD(TLSLD_ADR_PAGE21             , STATIC ,  AARCH64    ,   Y,  -1,   32,32               ,   12,32 , Symbol::TLS_REF ,                              ADRP  )
+ARD(TLSLD_ADD_LO12_NC            , STATIC ,  AARCH64    ,   Y,  -1,    0,0                ,    0,11 , Symbol::TLS_REF ,                              ADD   )
+ARD(TLSLD_MOVW_DTPREL_G1         , STATIC ,  AARCH64    ,   Y,   1,   32,32               ,   16,31 , Symbol::TLS_REF ,                              ADRP  )
+ARD(TLSLD_MOVW_DTPREL_G0_NC      , STATIC ,  AARCH64    ,   Y,   0,    0,0                ,    0,15 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSLD_ADD_DTPREL_HI12        , STATIC ,  AARCH64    ,   Y,  -1,    0,24               ,   12,23 , Symbol::TLS_REF ,                              ADD   )
+ARD(TLSLD_ADD_DTPREL_LO12_NC     , STATIC ,  AARCH64    ,   Y,  -1,    0,0                ,    0,11 , Symbol::TLS_REF ,                              ADD   )
+// Above is from Table 4-16, Local Dynamic TLS relocations, 517-573.
+
+ARD(TLSIE_MOVW_GOTTPREL_G1       , STATIC ,  AARCH64    ,   N,  -1,   32,32               ,   16,31 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSIE_MOVW_GOTTPREL_G0_NC    , STATIC ,  AARCH64    ,   N,  -1,    0,0                ,    0,15 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSIE_ADR_GOTTPREL_PAGE21    , STATIC ,  AARCH64    ,   Y,  -1,   32,32               ,   12,32 , Symbol::TLS_REF ,                              ADRP  )
+ARD(TLSIE_LD64_GOTTPREL_LO12_NC  , STATIC ,  AARCH64    ,   Y,  -1,    0,RL_CHECK_ALIGN8  ,    3,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSIE_LD_GOTTPREL_PREL19     , STATIC ,  AARCH64    ,   N,  -1,   20,20               ,    2,20 , Symbol::TLS_REF ,                              LD    )
+// Above is from Table 4-17, Initial Exec TLS relocations, 539-543.
+
+ARD(TLSLE_MOVW_TPREL_G2          , STATIC ,  AARCH64   ,    Y,   2,   48,48               ,   32,47 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSLE_MOVW_TPREL_G1          , STATIC ,  AARCH64   ,    Y,   1,   32,32               ,   16,31 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSLE_MOVW_TPREL_G1_NC       , STATIC ,  AARCH64   ,    Y,   1,    0,0                ,   16,31 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSLE_MOVW_TPREL_G0          , STATIC ,  AARCH64   ,    Y,   0,   16,16               ,    0,15 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSLE_MOVW_TPREL_G0_NC       , STATIC ,  AARCH64   ,    Y,   0,    0,0                ,    0,15 , Symbol::TLS_REF ,                              MOVW  )
+ARD(TLSLE_ADD_TPREL_HI12         , STATIC ,  AARCH64   ,    Y,  -1,    0,24               ,   12,23 , Symbol::TLS_REF ,                              ADD   )
+ARD(TLSLE_ADD_TPREL_LO12         , STATIC ,  AARCH64   ,    Y,  -1,    0,12               ,    0,11 , Symbol::TLS_REF ,                              ADD   )
+ARD(TLSLE_ADD_TPREL_LO12_NC      , STATIC ,  AARCH64   ,    Y,  -1,    0,0                ,    0,11 , Symbol::TLS_REF ,                              ADD   )
+ARD(TLSLE_LDST8_TPREL_LO12       , STATIC ,  AARCH64   ,    Y,  -1,    0,12               ,    0,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSLE_LDST8_TPREL_LO12_NC    , STATIC ,  AARCH64   ,    Y,  -1,    0,0                ,    0,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSLE_LDST16_TPREL_LO12      , STATIC ,  AARCH64   ,    Y,  -1,    0,12               ,    1,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSLE_LDST16_TPREL_LO12_NC   , STATIC ,  AARCH64   ,    Y,  -1,    0,0                ,    1,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSLE_LDST32_TPREL_LO12      , STATIC ,  AARCH64   ,    Y,  -1,    0,12               ,    2,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSLE_LDST32_TPREL_LO12_NC   , STATIC ,  AARCH64   ,    Y,  -1,    0,0                ,    2,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSLE_LDST64_TPREL_LO12      , STATIC ,  AARCH64   ,    Y,  -1,    0,12               ,    3,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSLE_LDST64_TPREL_LO12_NC   , STATIC ,  AARCH64   ,    Y,  -1,    0,0                ,    3,11 , Symbol::TLS_REF ,                              LDST  )
+// Above is from Table 4-18, Local Exec TLS relocations, 544-571.
+
+ARD(TLSDESC_ADR_PAGE21           , STATIC ,  AARCH64   ,    Y,  -1,    32,32              ,   12,32 , Symbol::TLS_REF ,                              ADRP  )
+ARD(TLSDESC_LD64_LO12            , STATIC ,  AARCH64   ,    Y,  -1,    0,RL_CHECK_ALIGN8  ,    3,11 , Symbol::TLS_REF ,                              LDST  )
+ARD(TLSDESC_ADD_LO12             , STATIC ,  AARCH64   ,    Y,  -1,    0,0                ,    0,11 , Symbol::TLS_REF ,                              ADD   )
+ARD(TLSDESC_CALL                 , STATIC ,  CFLOW     ,    Y,  -1,    0,0                ,    0,0  , Symbol::TLS_REF ,                              CALL  )
+// Above is from Table 4-19, TLS descriptor relocations, 560-569.
+
+// Note -
+// A - Checking X, (L,U), if L == 0 && U == 0, no check. Otherwise, L!=0,
+//     check that -2^L<=X<2^U. Also an extra alignment check could be embedded
+//     into U.

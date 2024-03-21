@@ -1,0 +1,213 @@
+texiifnottex(\
+texinode(Top)(The Z Shell Manual)((dir))((dir))
+texitop(The Z Shell Manual)
+)\
+texiifinfo(\
+This Info file documents Zsh, a freely available UNIX command interpreter
+(shell), which of the standard shells most closely resembles the Korn shell
+(ksh), although it is not completely compatible.  Zsh is able to emulate
+POSIX shells, but its default mode is not POSIX compatible, either.
+
+cindex(version)
+Version version(), last updated date().
+)\
+
+startmenu()
+menu(The Z Shell Manual)
+menu(Introduction)
+menu(Roadmap)
+menu(Invocation)
+menu(Files)
+menu(Shell Grammar)
+menu(Redirection)
+menu(Command Execution)
+menu(Functions)
+menu(Jobs & Signals)
+menu(Arithmetic Evaluation)
+menu(Conditional Expressions)
+menu(Prompt Expansion)
+menu(Expansion)
+menu(Parameters)
+menu(Options)
+menu(Shell Builtin Commands)
+menu(Zsh Line Editor)
+menu(Completion Widgets)
+menu(Completion System)
+menu(Completion Using compctl)
+menu(Zsh Modules)
+menu(Calendar Function System)
+menu(TCP Function System)
+menu(Zftp Function System)
+menu(User Contributions)
+
+ --- Indices ---
+
+menu(Concept Index)
+menu(Variables Index)
+menu(Options Index)
+menu(Functions Index)
+menu(Editor Functions Index)
+menu(Style and Tag Index)
+
+ --- The Detailed Node Listing ---
+
+Introduction
+
+menu(Author)
+menu(Availability)
+menu(Mailing Lists)
+menu(The Zsh FAQ)
+menu(The Zsh Web Page)
+menu(The Zsh Userguide)
+menu(See Also)
+
+Invocation
+
+menu(Compatibility)
+menu(Restricted Shell)
+
+Shell Grammar
+
+menu(Simple Commands & Pipelines)
+menu(Precommand Modifiers)
+menu(Complex Commands)
+menu(Alternate Forms For Complex Commands)
+menu(Reserved Words)
+menu(Comments)
+menu(Aliasing)
+menu(Quoting)
+
+Expansion
+
+menu(History Expansion)
+menu(Process Substitution)
+menu(Parameter Expansion)
+menu(Command Substitution)
+menu(Arithmetic Expansion)
+menu(Brace Expansion)
+menu(Filename Expansion)
+menu(Filename Generation)
+
+Parameters
+
+menu(Array Parameters)
+menu(Positional Parameters)
+menu(Local Parameters)
+menu(Parameters Set By The Shell)
+menu(Parameters Used By The Shell)
+
+Options
+
+menu(Specifying Options)
+menu(Description of Options)
+menu(Option Aliases)
+menu(Single Letter Options)
+
+Zsh Line Editor
+
+menu(Keymaps)
+menu(Zle Builtins)
+menu(Zle Widgets)
+menu(User-Defined Widgets)
+menu(Standard Widgets)
+menu(Character Highlighting)
+
+Completion Widgets
+
+menu(Completion Special Parameters)
+menu(Completion Builtin Commands)
+menu(Completion Condition Codes)
+menu(Completion Matching Control)
+menu(Completion Widget Example)
+
+Completion System
+
+menu(Initialization)
+menu(Completion System Configuration)
+menu(Control Functions)
+menu(Bindable Commands)
+menu(Completion Functions)
+menu(Completion Directories)
+
+Completion Using compctl
+
+menu(Command Flags)
+menu(Option Flags)
+menu(Alternative Completion)
+menu(Extended Completion)
+menu(Example)
+
+Zsh Modules
+
+includefile(Zsh/manmodmenu.yo)
+
+Calendar Function System
+
+menu(Calendar File and Date Formats)
+menu(Calendar System User Functions)
+menu(Calendar Styles)
+menu(Calendar Utility Functions)
+menu(Calendar Bugs)
+
+TCP Function System
+
+menu(TCP Functions)
+menu(TCP Parameters)
+menu(TCP Examples)
+menu(TCP Bugs)
+
+Zftp Function System
+
+menu(Installation)
+menu(Zftp Functions)
+menu(Miscellaneous Features)
+
+User Contributions
+
+menu(Utilities)
+menu(Recent Directories)
+menu(Other Directory Functions)
+menu(Version Control Information)
+menu(Prompt Themes)
+menu(ZLE Functions)
+menu(Exception Handling)
+menu(MIME Functions)
+menu(Mathematical Functions)
+menu(User Configuration Functions)
+menu(Other Functions)
+
+endmenu()
+texinode(The Z Shell Manual)(Introduction)(Top)(Top)
+chapter(The Z Shell Manual)
+This document has been produced from the texinfo file tt(zsh.texi),
+included in the tt(Doc) sub-directory of the Zsh distribution.
+sect(Producing documentation from zsh.texi)
+The texinfo source may be converted into several formats:
+
+startitem()
+item(The Info manual)(
+The Info format allows searching for topics, commands, functions, etc.
+from the many Indices. The command `tt(makeinfo zsh.texi)' is used to
+produce the Info documentation.
+)
+item(The printed manual)(
+The command `tt(texi2dvi zsh.texi)' will output tt(zsh.dvi) which can
+then be processed with bf(dvips) and optionally bf(gs) (Ghostscript) to
+produce a nicely formatted printed manual.
+)
+item(The HTML manual)(
+An HTML version of this manual is available at the Zsh web site via:
+
+uref(https://zsh.sourceforge.io/Doc/).
+
+(The HTML version is produced with bf(texi2html), which may be obtained
+from uref(http://www.nongnu.org/texi2html/). The command is
+`tt(texi2html --output .  --ifinfo --split=chapter --node-files zsh.texi)'.
+If necessary, upgrade to version 1.78 of texi2html.)
+)
+enditem()
+
+For those who do not have the necessary tools to process texinfo,
+precompiled documentation (PostScript, dvi, PDF, info and HTML formats)
+is available from the zsh archive site or its mirrors, in the file
+tt(zsh-doc.tar.gz). (See noderef(Availability) for a list of sites.)

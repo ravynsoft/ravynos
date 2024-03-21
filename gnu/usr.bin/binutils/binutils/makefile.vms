@@ -1,0 +1,90 @@
+#
+# Makefile for binutils under openVMS (Alpha and Itanium)
+#
+# For use with gnu-make for vms
+#
+# Created by Klaus Kaempf, kkaempf@rmi.de
+#
+#   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+#
+
+DEFS=/define=("OBJDUMP_PRIVATE_VECTORS=")
+OPT=/noopt/debug
+CFLAGS=$(OPT)/include=([],"../include",[-.bfd])$(DEFS)\
+ /name=(as_is,shortened)\
+ /prefix=(all,except=("getopt","optarg","optopt","optind","opterr"))\
+ /warns=(info=(ptrmismatch,shiftcount))
+
+LIBBFD = [-.bfd]libbfd.olb/lib
+LIBBFD_DEP = [-.bfd]libbfd.olb
+LIBIBERTY_DEP = [-.libiberty]libiberty.olb
+LIBIBERTY = [-.libiberty]libiberty.olb/lib
+OPCODES_DEP = [-.opcodes]libopcodes.olb
+OPCODES = [-.opcodes]libopcodes.olb/lib
+
+DEBUG_OBJS = rddbg.obj,debug.obj,stabs.obj,rdcoff.obj,dwarf.obj,\
+  elfcomm.obj
+
+BULIBS = bucomm.obj,version.obj,filemode.obj
+
+ADDL_DEPS = $(BULIBS),$(LIBBFD_DEP),$(LIBIBERTY_DEP)
+ADDL_LIBS = $(BULIBS),$(LIBBFD),$(LIBIBERTY)
+
+SIZEOBJS = $(ADDL_DEPS),size.obj
+
+STRINGSOBJS = $(ADDL_DEPS),strings.obj
+
+NMOBJS = $(ADDL_DEPS),nm.obj
+
+ADDR2LINEOBJS = $(ADDL_DEPS),addr2line.obj
+
+OBJDUMPOBJS = objdump.obj,prdbg.obj,$(DEBUG_OBJS),$(ADDL_DEPS),$(OPCODES_DEP)
+
+READELFOBJS = readelf.obj,dwarf.obj,unwind-ia64.obj,$(ADDL_DEPS)
+
+all: config.h size.exe strings.exe objdump.exe nm.exe addr2line.exe
+
+size.exe: $(SIZEOBJS)
+	link/exe=$@ size.obj,$(ADDL_LIBS)
+
+strings.exe: $(STRINGSOBJS)
+	link/exe=$@ strings.obj,$(ADDL_LIBS)
+
+nm.exe: $(NMOBJS)
+	link/exe=$@ nm.obj,$(ADDL_LIBS)
+
+addr2line.exe: $(ADDR2LINEOBJS)
+	link/exe=$@ addr2line.obj,$(ADDL_LIBS)
+
+objdump.exe: $(OBJDUMPOBJS)
+	link/exe=$@ objdump.obj,prdbg.obj,$(DEBUG_OBJS),$(ADDL_LIBS),$(OPCODES)
+
+readelf.exe: $(READELFOBJS)
+	link/exe=$@ readelf.obj,dwarf.obj,unwind-ia64.obj,$(ADDL_LIBS)
+
+config.h:
+	$$ @configure
+	$(MAKE) -f makefile.vms "CC=$(CC)"
+
+clean:
+	$$ purge
+	$(RM) *.obj;
+	$(RM) *.exe;
+
+distclean: clean
+	$(RM) config.h;
+	$(RM) makefile.vms;

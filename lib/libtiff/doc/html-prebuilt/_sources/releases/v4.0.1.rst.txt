@@ -1,0 +1,60 @@
+Changes in TIFF v4.0.1
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.1 (:tag:`Release-v4-0-1`)
+    Previous Version        :doc:`v4.0.0 <v4.0.0>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site        `<https://download.osgeo.org/libtiff/>`_
+    ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* None
+
+
+Software configuration changes
+------------------------------
+
+* ``--enable-ld-version-script``: New :program:`configure` option to
+  enable shared library symbol versioning on ELF-based systems
+  (e.g. Linux and FreeBSD) which use the GNU linker.  This
+  allows multiple major versions of libtiff to be loaded
+  simultaneously into the same application or library without
+  conflict, as long as all libtiffs involved are built with
+  versioned symbols.  This option is not enabled by default.
+
+* Added libtiff private dependency on ``-llzma`` for pkg-config.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_dir.c`, :file:`libtiff/tif_dirread.c`: Extra caution around
+  assumption tag fetching is always successful.
+
+* :file:`libtiff/tif_jpeg.c`: Extra caution for case where :c:var:`sp` is :c:macro:`NULL`.
+
+
+Tools changes
+-------------
+
+* None
+
+
+Contributed software changes
+----------------------------
+
+* None

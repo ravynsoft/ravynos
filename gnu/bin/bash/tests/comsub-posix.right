@@ -1,0 +1,100 @@
+abmnopyz
+abmnopyz
+ab
+
+
+abcd
+abcd
+mnop
+qrst
+sh_352.26ax
+sh_352.26ay
+sh_352.25a sh_352.25b
+sh_352.27 ) ) )
+abc
+def
+here doc with )
+)
+bad' syntax
+a
+sh_352.26a
+sh_352.26a
+sh_352.26
+sh_352.26
+sh_352.26
+1
+sh_352.28 )
+sh_352.28 )
+k
+abcd
+ab
+ab
+abcde
+
+argv[1] = <abcde^J  >
+abcdefoo
+argv[1] = <abcde>
+argv[2] = <foo>
+argv[1] = <wxabcdeyz>
+argv[1] = <abcde>
+'
+after 1
+'
+after 2
+'
+after 3
+`
+after 4
+hello
+after 5
+'
+after 6
+x
+x
+x
+quoted )
+comment
+here-doc with )
+here-doc with \()
+here-doc terminated with a parenthesis
+' # or a single back- or doublequote
+line terminated with a backslash
+./comsub-posix1.sub: line 1: syntax error near unexpected token `)'
+./comsub-posix1.sub: line 1: `echo $( if x; then echo foo )'
+swap32_posix is a function
+swap32_posix () 
+{ 
+    local funcname=swap32_posix;
+    local arg;
+    for arg in "$@";
+    do
+        echo $((
+                        ($arg & 4278190080) >> 24 |
+                        ($arg & 16711680) >> 8 |
+                        ($arg & 65280) << 8 |
+                        ($arg & 255) << 24
+                ));
+    done
+}
+bash: -c: line 1: syntax error near unexpected token `done'
+bash: -c: line 1: `: $(case x in x) ;; x) done esac)'
+bash: -c: line 1: syntax error near unexpected token `done'
+bash: -c: line 1: `: $(case x in x) ;; x) done ;; esac)'
+bash: -c: line 1: syntax error near unexpected token `esac'
+bash: -c: line 1: `: $(case x in x) (esac) esac)'
+bash: -c: line 1: syntax error near unexpected token `in'
+bash: -c: line 1: `: $(case x in esac|in) foo;; esac)'
+bash: -c: line 1: syntax error near unexpected token `done'
+bash: -c: line 1: `: $(case x in x) ;; x) done)'
+case: -c: line 3: syntax error near unexpected token `esac'
+case: -c: line 3: `$( esac ; bar=foo ; echo "$bar")) echo bad 2;;'
+ok 2
+inside outside
+ok 3
+syntax-error: -c: line 2: syntax error near unexpected token `done'
+syntax-error: -c: line 2: `: $(case x in x) ;; x) done ;; esac)'
+yes
+
+
+
+ab cde

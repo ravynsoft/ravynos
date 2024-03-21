@@ -1,0 +1,134 @@
+Description:
+Substitute for libcroco version 0.6.13.
+
+Files:
+lib/libcroco/cr-additional-sel.c
+lib/libcroco/cr-additional-sel.h
+lib/libcroco/cr-attr-sel.c
+lib/libcroco/cr-attr-sel.h
+lib/libcroco/cr-cascade.c
+lib/libcroco/cr-cascade.h
+lib/libcroco/cr-declaration.c
+lib/libcroco/cr-declaration.h
+lib/libcroco/cr-doc-handler.c
+lib/libcroco/cr-doc-handler.h
+lib/libcroco/cr-enc-handler.c
+lib/libcroco/cr-enc-handler.h
+lib/libcroco/cr-fonts.c
+lib/libcroco/cr-fonts.h
+lib/libcroco/cr-input.c
+lib/libcroco/cr-input.h
+lib/libcroco/cr-num.c
+lib/libcroco/cr-num.h
+lib/libcroco/cr-om-parser.c
+lib/libcroco/cr-om-parser.h
+lib/libcroco/cr-parser.c
+lib/libcroco/cr-parser.h
+lib/libcroco/cr-parsing-location.c
+lib/libcroco/cr-parsing-location.h
+lib/libcroco/cr-prop-list.c
+lib/libcroco/cr-prop-list.h
+lib/libcroco/cr-pseudo.c
+lib/libcroco/cr-pseudo.h
+lib/libcroco/cr-rgb.c
+lib/libcroco/cr-rgb.h
+lib/libcroco/cr-sel-eng.c
+lib/libcroco/cr-sel-eng.h
+lib/libcroco/cr-selector.c
+lib/libcroco/cr-selector.h
+lib/libcroco/cr-simple-sel.c
+lib/libcroco/cr-simple-sel.h
+lib/libcroco/cr-statement.c
+lib/libcroco/cr-statement.h
+lib/libcroco/cr-string.c
+lib/libcroco/cr-string.h
+lib/libcroco/cr-style.c
+lib/libcroco/cr-style.h
+lib/libcroco/cr-stylesheet.c
+lib/libcroco/cr-stylesheet.h
+lib/libcroco/cr-term.c
+lib/libcroco/cr-term.h
+lib/libcroco/cr-tknzr.c
+lib/libcroco/cr-tknzr.h
+lib/libcroco/cr-token.c
+lib/libcroco/cr-token.h
+lib/libcroco/cr-utils.c
+lib/libcroco/cr-utils.h
+lib/libcroco/libcroco-config.h
+lib/libcroco/libcroco.h
+m4/libcroco.m4
+m4/absolute-header.m4
+
+Depends-on:
+libglib
+libxml
+no-c++
+
+configure.ac:
+# In libtextstyle, we don't want to use an external libcroco, because its
+# dependencies and their dynamic relocations have an impact on the startup
+# time of a program that is linked with it. As you can see by using
+# 'readelf -r ... | wc -l' and 'readelf -d ... | grep NEEDED':
+# - libcroco.so depends on libxml2.
+#   - libxml2.so has more than 3300 relocations and depends on libicuuc.
+#     - libicuuc.so has more than 4900 relocations and depends on libstdc++.
+#       - libstdc++.so has more than 4600 relocations.
+# These are more than 12800 relocations, to perform at program startup.
+# So, force the use of the included libcroco part.
+gl_LIBCROCO([yes])
+
+Makefile.am:
+AM_CPPFLAGS += $(INCGLIB)
+AM_CPPFLAGS += $(INCXML)
+if INCLUDED_LIBCROCO
+AM_CPPFLAGS += -I$(srcdir)/libcroco
+lib_LIBADD += libcroco_rpl.la
+lib_DEPENDENCIES += libcroco_rpl.la
+noinst_LTLIBRARIES += libcroco_rpl.la
+else
+AM_CPPFLAGS += $(INCCROCO)
+endif
+
+libcroco_rpl_la_SOURCES = \
+  libcroco/cr-additional-sel.c \
+  libcroco/cr-attr-sel.c \
+  libcroco/cr-cascade.c \
+  libcroco/cr-declaration.c \
+  libcroco/cr-doc-handler.c \
+  libcroco/cr-enc-handler.c \
+  libcroco/cr-fonts.c \
+  libcroco/cr-input.c \
+  libcroco/cr-num.c \
+  libcroco/cr-om-parser.c \
+  libcroco/cr-parser.c \
+  libcroco/cr-parsing-location.c \
+  libcroco/cr-prop-list.c \
+  libcroco/cr-pseudo.c \
+  libcroco/cr-rgb.c \
+  libcroco/cr-sel-eng.c \
+  libcroco/cr-selector.c \
+  libcroco/cr-simple-sel.c \
+  libcroco/cr-statement.c \
+  libcroco/cr-string.c \
+  libcroco/cr-style.c \
+  libcroco/cr-stylesheet.c \
+  libcroco/cr-term.c \
+  libcroco/cr-tknzr.c \
+  libcroco/cr-token.c \
+  libcroco/cr-utils.c
+libcroco_rpl_la_CPPFLAGS = $(AM_CPPFLAGS) $(NO_CXX)
+libcroco_rpl_la_CFLAGS = @FOREIGN_WARN_CFLAGS@
+
+if GL_COND_LIBTOOL
+lib_LDFLAGS += $(LTLIBCROCO)
+endif
+
+Include:
+<libcroco.h>
+
+License:
+LGPL
+
+Maintainer:
+libcroco
+

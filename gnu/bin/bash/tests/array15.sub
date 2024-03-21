@@ -1,0 +1,52 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# fixes for make_internal_declare not handling integer attribute for arrays
+declare -ai -g foo=(1 2 xx 3)
+echo "${foo[@]}"
+
+unset foo
+declare -ai -g foo='(1 2 xx 3)'
+echo "${foo[@]}"
+
+unset foo
+declare -ia -g foo=(1 2 xx 3)
+echo "${foo[@]}" 
+
+unset foo
+declare -ia -g foo='(1 2 xx 3)'
+echo "${foo[@]}" 
+
+unset foo
+func()
+{
+	declare -ai -g foo=(1 2 xx 3)
+}
+
+func
+echo "${foo[@]}" 
+
+unset foo
+
+# test options to declare that disable attributes that affect how values
+# are expanded
+#
+# we already handle options that set attributes specially, so we should
+# handle attributes that unset those attributes specially as well
+
+unset arr
+declare -i -a arr=(1+1 2+2 3+3)
+declare -p arr 
+
+declare +i arr=(hello world)
+declare -p arr

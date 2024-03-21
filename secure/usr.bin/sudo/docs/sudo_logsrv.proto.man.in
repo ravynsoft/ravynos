@@ -1,0 +1,911 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2019-2022 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDO_LOGSRV.PROTO" "@mansectform@" "September 13, 2022" "Sudo @PACKAGE_VERSION@" "File Formats Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo_logsrv.proto\fR
+\- Sudo log server protocol
+.SH "DESCRIPTION"
+Starting with version 1.9.0,
+\fBsudo\fR
+supports sending event and I/O logs to a log server.
+The protocol used is written in Google's Protocol Buffers domain
+specific language.
+The
+\fIEXAMPLES\fR
+section includes a complete description of the protocol in Protocol
+Buffers format.
+.PP
+Because there is no way to determine message boundaries when using
+Protocol Buffers, the wire size of each message is sent immediately
+preceding the message itself as a 32-bit unsigned integer in network
+byte order.
+This is referred to as
+\(lqlength-prefix framing\(rq
+and is how Google suggests handling the lack of message delimiters.
+.PP
+The protocol is made up of two basic messages,
+\fIClientMessage\fR
+and
+\fIServerMessage\fR,
+described below.
+The server must accept messages up to two megabytes in size.
+The server may return an error if the client tries to send a message
+larger than two megabytes.
+.SH "Client Messages"
+A
+\fIClientMessage\fR
+is a container used to encapsulate all the possible message types
+a client may send to the server.
+.nf
+.sp
+.RS 0n
+message ClientMessage {
+  oneof type {
+    AcceptMessage accept_msg = 1;
+    RejectMessage reject_msg = 2;
+    ExitMessage exit_msg = 3;
+    RestartMessage restart_msg = 4;
+    AlertMessage alert_msg = 5;
+    IoBuffer ttyin_buf = 6;
+    IoBuffer ttyout_buf = 7;
+    IoBuffer stdin_buf = 8;
+    IoBuffer stdout_buf = 9;
+    IoBuffer stderr_buf = 10;
+    ChangeWindowSize winsize_event = 11;
+    CommandSuspend suspend_event = 12;
+    ClientHello hello_msg = 13;
+  }
+}
+.RE
+.fi
+.PP
+The different
+\fIClientMessage\fR
+sub-messages the client may sent to the server are described below.
+.SS "TimeSpec"
+.nf
+.RS 0n
+message TimeSpec {
+    int64 tv_sec = 1;
+    int32 tv_nsec = 2;
+}
+.RE
+.fi
+.PP
+A
+\fITimeSpec\fR
+is the equivalent of a POSIX
+\fIstruct timespec\fR,
+containing seconds and nanoseconds members.
+The
+\fItv_sec\fR
+member is a 64-bit integer to support dates after the year 2038.
+.SS "InfoMessage"
+.nf
+.RS 0n
+message InfoMessage {
+  message StringList {
+    repeated string strings = 1;
+  }
+  message NumberList {
+    repeated int64 numbers = 1;
+  }
+  string key = 1;
+  oneof value {
+    int64 numval = 2;
+    string strval = 3;
+    StringList strlistval = 4;
+    NumberList numlistval = 5;
+  }
+}
+.RE
+.fi
+.PP
+An
+\fIInfoMessage\fR
+is used to represent information about the invoking user as well as the
+execution environment the command runs in the form of key-value pairs.
+The key is always a string but the value may be a 64-bit integer,
+a string, an array of strings, or an array of 64-bit integers.
+The event log data is composed of
+\fIInfoMessage\fR
+entries.
+See the
+\fIEVENT LOG VARIABLES\fR
+section for more information.
+.SS "ClientHello hello_msg"
+.nf
+.RS 0n
+message ClientHello {
+  string client_id = 1;
+}
+.RE
+.fi
+.PP
+A
+\fIClientHello\fR
+message consists of client information that may be sent to the
+server when the client first connects.
+.TP 8n
+client_id
+A free-form client description.
+This usually includes the name and version of the client implementation.
+.SS "AcceptMessage accept_msg"
+.nf
+.RS 0n
+message AcceptMessage {
+  TimeSpec submit_time = 1;
+  repeated InfoMessage info_msgs = 2;
+  bool expect_iobufs = 3;
+}
+.RE
+.fi
+.PP
+An
+\fIAcceptMessage\fR
+is sent by the client when a command is allowed by the security policy.
+It contains the following members:
+.TP 8n
+submit_time
+The wall clock time when the command was submitted to the security policy.
+.TP 8n
+info_msgs
+An array of
+\fIInfoMessage\fR
+describing the user who submitted the command as well as the execution
+environment of the command.
+This information is used to generate an event log entry and may also be
+used by server to determine where and how the I/O log is stored.
+.TP 8n
+expect_iobufs
+Set to true if the server should expect
+\fIIoBuffer\fR
+messages to follow (for I/O logging) or false if the server should only
+store the event log.
+.PP
+If an
+\fIAcceptMessage\fR
+is sent, the client must not send a
+\fIRejectMessage\fR
+or
+\fIRestartMessage\fR.
+.SS "RejectMessage reject_msg"
+.nf
+.RS 0n
+message RejectMessage {
+  TimeSpec submit_time = 1;
+  string reason = 2;
+  repeated InfoMessage info_msgs = 3;
+}
+.RE
+.fi
+.PP
+A
+\fIRejectMessage\fR
+is sent by the client when a command is denied by the security policy.
+It contains the following members:
+.TP 8n
+submit_time
+The wall clock time when the command was submitted to the security policy.
+.TP 8n
+reason
+The reason the security policy gave for denying the command.
+.TP 8n
+info_msgs
+An array of
+\fIInfoMessage\fR
+describing the user who submitted the command as well as the execution
+environment of the command.
+This information is used to generate an event log entry.
+.PP
+If a
+\fIRejectMessage\fR
+is sent, the client must not send an
+\fIAcceptMessage\fR
+or
+\fIRestartMessage\fR.
+.SS "ExitMessage exit_msg"
+.nf
+.RS 0n
+message ExitMessage {
+  TimeSpec run_time = 1;
+  int32 exit_value = 2;
+  bool dumped_core = 3;
+  string signal = 4;
+  string error = 5;
+}
+.PP
+.RE
+.fi
+An
+\fIExitMessage\fR
+is sent by the client after the command has exited or has been
+terminated by a signal.
+It contains the following members:
+.TP 8n
+run_time
+The total amount of elapsed time since the command started,
+calculated using a monotonic clock where possible.
+This is not the wall clock time.
+.TP 8n
+exit_value
+The command's exit value in the range 0-255.
+.TP 8n
+dumped_core
+True if the command was terminated by a signal and dumped core.
+.TP 8n
+signal
+If the command was terminated by a signal, this is set to the
+name of the signal without the leading
+\(lqSIG\(rq.
+For example,
+\fRINT\fR,
+\fRTERM\fR,
+\fRKILL\fR,
+\fRSEGV\fR.
+.TP 8n
+error
+A message from the client indicating that the command was terminated
+unexpectedly due to an error.
+.PP
+When performing I/O logging, the client should wait for a
+\fIcommit_point\fR
+corresponding to the final
+\fIIoBuffer\fR
+before closing the connection unless the final
+\fIcommit_point\fR
+has already been received.
+.SS "RestartMessage restart_msg"
+.nf
+.RS 0n
+message RestartMessage {
+  string log_id = 1;
+  TimeSpec resume_point = 2;
+}
+.RE
+.fi
+.PP
+A
+\fIRestartMessage\fR
+is sent by the client to resume sending an existing I/O log that
+was previously interrupted.
+It contains the following members:
+.TP 8n
+log_id
+The the server-side name for an I/O log that was previously
+sent to the client by the server.
+This may be a path name on the server or some other kind of server-side
+identifier.
+.TP 8n
+resume_point
+The point in time after which to resume the I/O log.
+This is in the form of a
+\fITimeSpec\fR
+representing the amount of time since the command started, not
+the wall clock time.
+The
+\fIresume_point\fR
+should correspond to a
+\fIcommit_point\fR
+previously sent to the client by the server.
+If the server receives a
+\fIRestartMessage\fR
+containing a
+\fIresume_point\fR
+it has not previously seen, an error will be returned to the client
+and the connection will be dropped.
+.PP
+If a
+\fIRestartMessage\fR
+is sent, the client must not send an
+\fIAcceptMessage\fR
+or
+\fIRejectMessage\fR.
+.SS "AlertMessage alert_msg"
+.nf
+.RS 0n
+message AlertMessage {
+  TimeSpec alert_time = 1;
+  string reason = 2;
+  repeated InfoMessage info_msgs = 3;
+}
+.RE
+.fi
+.PP
+An
+\fIAlertMessage\fR
+is sent by the client to indicate a problem detected by the security
+policy while the command is running that should be stored in the event log.
+It contains the following members:
+.TP 8n
+alert_time
+The wall clock time when the alert occurred.
+.TP 8n
+reason
+The reason for the alert.
+.TP 8n
+info_msgs
+An optional array of
+\fIInfoMessage\fR
+describing the user who submitted the command as well as the execution
+environment of the command.
+This information is used to generate an event log entry.
+.SS "IoBuffer ttyin_buf | ttyout_buf | stdin_buf | stdout_buf | stderr_buf"
+.nf
+.RS 0n
+message IoBuffer {
+  TimeSpec delay = 1;
+  bytes data = 2;
+}
+.RE
+.fi
+.PP
+An
+\fIIoBuffer\fR
+is used to represent data from terminal input, terminal
+output, standard input, standard output, or standard error.
+It contains the following members:
+.TP 8n
+delay
+The elapsed time since the last record in the form of a
+\fITimeSpec\fR.
+The
+\fIdelay\fR
+should be calculated using a monotonic clock where possible.
+.TP 8n
+data
+The binary I/O log data from terminal input, terminal output,
+standard input, standard output, or standard error.
+.SS "ChangeWindowSize winsize_event"
+.nf
+.RS 0n
+message ChangeWindowSize {
+  TimeSpec delay = 1;
+  int32 rows = 2;
+  int32 cols = 3;
+}
+.RE
+.fi
+.PP
+A
+\fIChangeWindowSize\fR
+message is sent by the client when the terminal running the command
+changes size.
+It contains the following members:
+.TP 8n
+delay
+The elapsed time since the last record in the form of a
+\fITimeSpec\fR.
+The
+\fIdelay\fR
+should be calculated using a monotonic clock where possible.
+.TP 8n
+rows
+The new number of terminal rows.
+.TP 8n
+cols
+The new number of terminal columns.
+.SS "CommandSuspend suspend_event"
+.nf
+.RS 0n
+message CommandSuspend {
+  TimeSpec delay = 1;
+  string signal = 2;
+}
+.RE
+.fi
+.PP
+A
+\fICommandSuspend\fR
+message is sent by the client when the command is either suspended
+or resumed.
+It contains the following members:
+.TP 8n
+delay
+The elapsed time since the last record in the form of a
+\fITimeSpec\fR.
+The
+\fIdelay\fR
+should be calculated using a monotonic clock where possible.
+.TP 8n
+signal
+The signal name without the leading
+\(lqSIG\(rq.
+For example,
+\fRSTOP\fR,
+\fRTSTP\fR,
+\fRCONT\fR.
+.SH "Server Messages"
+A
+\fIServerMessage\fR
+is a container used to encapsulate all the possible message types
+the server may send to a client.
+.nf
+.sp
+.RS 0n
+message ServerMessage {
+  oneof type {
+    ServerHello hello = 1;
+    TimeSpec commit_point = 2;
+    string log_id = 3;
+    string error = 4;
+    string abort = 5;
+  }
+}
+.RE
+.fi
+.PP
+The different
+\fIServerMessage\fR
+sub-messages the server may sent to the client are described below.
+.SS "ServerHello hello"
+.nf
+.RS 0n
+message ServerHello {
+  string server_id = 1;
+  string redirect = 2;
+  repeated string servers = 3;
+  bool subcommands = 4;
+}
+.RE
+.fi
+.PP
+The
+\fIServerHello\fR
+message consists of server information sent when the client first connects.
+It contains the following members:
+.TP 8n
+server_id
+A free-form server description.
+Usually this includes the name and version of the implementation
+running on the log server.
+This member is always present.
+.TP 8n
+redirect
+A host and port separated by a colon
+(\(oq\(cq):
+that the client should connect to instead.
+The host may be a host name, an IPv4 address, or an IPv6 address
+in square brackets.
+This may be used for server load balancing.
+The server will disconnect after sending the
+\fIServerHello\fR
+when it includes a
+\fBredirect\fR.
+.TP 8n
+servers
+.br
+A list of other known log servers.
+This can be used to implement log server redundancy and allows the
+client to discover all other log servers simply by connecting to
+one known server.
+This member may be omitted when there is only a single log server.
+.TP 8n
+subcommands
+If set, the server supports logging additional commands during a session.
+The client may send an
+\fIAcceptMessage\fR
+or
+\fIRejectMessage\fR
+when
+\fBsudo\fR
+is running in
+\fIintercept\fR
+mode.
+In this mode, commands spawned from the initial command authorized by
+\fBsudo\fR
+are subject to policy restrictions and/or are logged.
+If
+\fIsubcommands\fR
+is false, the client must not attempt to log additional commands.
+.SS "TimeSpec commit_point"
+A periodic time stamp sent by the server to indicate when I/O log
+buffers have been committed to storage.
+This message is not sent after every
+\fIIoBuffer\fR
+but rather at a server-configurable interval.
+When the server receives an
+\fIExitMessage\fR,
+it will respond with a
+\fIcommit_point\fR
+corresponding to the last received
+\fIIoBuffer\fR
+before closing the connection.
+.SS "string log_id"
+The server-side ID of the I/O log being stored, sent in response
+to an
+\fIAcceptMessage\fR
+where
+\fIexpect_iobufs\fR
+is true.
+.SS "string error"
+A fatal server-side error.
+The server will close the connection after sending the
+\fIerror\fR
+message.
+.SS "string abort"
+An
+\fIabort\fR
+message from the server indicates that the client should kill the
+command and terminate the session.
+It may be used to implement simple server-side policy.
+The server will close the connection after sending the
+\fIabort\fR
+message.
+.SH "Protocol flow of control"
+The expected protocol flow is as follows:
+.TP 5n
+1.\&
+Client connects to the first available server.
+If the client is configured to use TLS, a TLS handshake will be
+attempted.
+.TP 5n
+2.\&
+Client sends
+\fIClientHello\fR.
+This is currently optional but allows the server to detect a
+non-TLS connection on the TLS port.
+.TP 5n
+3.\&
+Server sends
+\fIServerHello\fR.
+.TP 5n
+4.\&
+Client responds with either
+\fIAcceptMessage\fR,
+\fIRejectMessage\fR,
+or
+\fIRestartMessage\fR.
+.TP 5n
+5.\&
+If client sent a
+\fIAcceptMessage\fR
+with
+\fIexpect_iobufs\fR
+set, server creates a new I/O log and responds with a
+\fIlog_id\fR.
+.TP 5n
+6.\&
+Client sends zero or more
+\fIIoBuffer\fR
+messages.
+.TP 5n
+7.\&
+Server periodically responds to
+\fIIoBuffer\fR
+messages with a
+\fIcommit_point\fR.
+.TP 5n
+8.\&
+Client sends an
+\fIExitMessage\fR
+when the command exits or is killed.
+.TP 5n
+9.\&
+Server sends the final
+\fIcommit_point\fR
+if one is pending.
+.TP 5n
+10.\&
+Server closes the connection.
+After receiving the final
+\fIcommit_point\fR,
+the client shuts down its side of the TLS connection if TLS
+is in use, and closes the connection.
+.TP 5n
+11.\&
+Server shuts down its side of the TLS connection if TLS is in use,
+and closes the connection.
+.PP
+At any point, the server may send an
+\fIerror\fR
+or
+\fIabort\fR
+message to the client at which point the server will close the
+connection.
+If an
+\fIabort\fR
+message is received, the client should terminate the running command.
+.SH "EVENT LOG VARIABLES"
+\fIAcceptMessage\fR,
+\fIAlertMessage\fR
+and
+\fIRejectMessage\fR
+classes contain an array of
+\fIInfoMessage\fR
+that should contain information about the user who submitted the command
+as well as information about the execution environment of the command
+if it was accepted.
+.PP
+Some variables have a
+\fIclient\fR,
+\fIrun\fR,
+or
+\fIsubmit\fR
+prefix.
+These prefixes are used to eliminate ambiguity for variables that
+could apply to the client program, the user submitting the command,
+or the command being run.
+Variables with a
+\fIclient\fR
+prefix pertain to the program performing the connection to the log
+server, for example
+\fBsudo\fR.
+Variables with a
+\fIrun\fR
+prefix pertain to the command that the user requested be run.
+Variables with a
+\fIsubmit\fR
+prefix pertain to the user submitting the request
+(the user running \fBsudo\fR).
+.PP
+The following
+\fIInfoMessage\fR
+entries are required:
+.TS
+l l l.
+.PP
+\fBKey\fR	\fBType\fR	\fBDescription\fR
+.PP
+command	string	command that was submitted
+.PP
+runuser	string	name of user the command was run as
+.PP
+submithost	string	name of host the command was submitted on
+.PP
+submituser	string	name of user submitting the command
+.TE
+.PP
+The following
+\fIInfoMessage\fR
+entries are recognized, but not required:
+.TS
+l l l.
+.PP
+\fBKey\fR	\fBType\fR	\fBDescription\fR
+.PP
+clientargv	StringList	client's original argument vector
+.PP
+clientpid	int64	client's process ID
+.PP
+clientppid	int64	client's parent process ID
+.PP
+clientsid	int64	client's terminal session ID
+.PP
+columns	int64	number of columns in the terminal
+.PP
+lines	int64	number of lines in the terminal
+.PP
+runargv	StringList	argument vector of command to run
+.PP
+runchroot	string	root directory of command to run
+.PP
+runcwd	string	running command's working directory
+.PP
+runenv	StringList	the running command's environment
+.PP
+rungid	int64	primary group-ID of the command
+.PP
+rungids	NumberList	supplementary group-IDs for the command
+.PP
+rungroup	string	primary group name of the command
+.PP
+rungroups	StringList	supplementary group names for the command
+.PP
+runuid	int64	run user's user-ID
+.PP
+submitcwd	string	submit user's current working directory
+.PP
+submitenv	StringList	the submit user's environment
+.PP
+submitgid	int64	submit user's primary group-ID
+.PP
+submitgids	NumberList	submit user's supplementary group-IDs
+.PP
+submitgroup	string	submitting user's primary group name
+.PP
+submitgroups	StringList	submit user's supplementary group names
+.PP
+submituid	int64	submit user's user-ID
+.PP
+ttyname	string	the terminal the command was submitted from
+.TE
+.PP
+The server must accept other variables not listed above but may
+ignore them.
+.SH "EXAMPLES"
+The Protocol Buffers description of the log server protocol, using
+\(lqproto3\(rq
+syntax, is included in full below.
+.nf
+.sp
+.RS 0n
+syntax = "proto3";
+
+/*
+ * Client message to the server.  Messages on the wire are
+ * prefixed with a 32-bit size in network byte order.
+ */
+message ClientMessage {
+  oneof type {
+    AcceptMessage accept_msg = 1;
+    RejectMessage reject_msg = 2;
+    ExitMessage exit_msg = 3;
+    RestartMessage restart_msg = 4;
+    AlertMessage alert_msg = 5;
+    IoBuffer ttyin_buf = 6;
+    IoBuffer ttyout_buf = 7;
+    IoBuffer stdin_buf = 8;
+    IoBuffer stdout_buf = 9;
+    IoBuffer stderr_buf = 10;
+    ChangeWindowSize winsize_event = 11;
+    CommandSuspend suspend_event = 12;
+  }
+}
+
+/* Equivalent of POSIX struct timespec */
+message TimeSpec {
+    int64 tv_sec = 1;		/* seconds */
+    int32 tv_nsec = 2;		/* nanoseconds */
+}
+
+/* I/O buffer with keystroke data */
+message IoBuffer {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  bytes data = 2;		/* keystroke data */
+}
+
+/*
+ * Key/value pairs, like Privilege Manager struct info.
+ * The value may be a number, a string, or a list of strings.
+ */
+message InfoMessage {
+  message StringList {
+    repeated string strings = 1;
+  }
+  message NumberList {
+    repeated int64 numbers = 1;
+  }
+  string key = 1;
+  oneof value {
+    int64 numval = 2;
+    string strval = 3;
+    StringList strlistval = 4;
+    NumberList numlistval = 5;
+  }
+}
+
+/*
+ * Event log data for command accepted by the policy.
+ */
+message AcceptMessage {
+  TimeSpec submit_time = 1;		/* when command was submitted */
+  repeated InfoMessage info_msgs = 2;	/* key,value event log data */
+  bool expect_iobufs = 3;		/* true if I/O logging enabled */
+}
+
+/*
+ * Event log data for command rejected by the policy.
+ */
+message RejectMessage {
+  TimeSpec submit_time = 1;		/* when command was submitted */
+  string reason = 2;			/* reason command was rejected */
+  repeated InfoMessage info_msgs = 3;	/* key,value event log data */
+}
+
+/* Message sent by client when command exits. */
+/* Might revisit runtime and use end_time instead */
+message ExitMessage {
+  TimeSpec run_time = 1;	/* total elapsed run time */
+  int32 exit_value = 2;		/* 0-255 */
+  bool dumped_core = 3;		/* true if command dumped core */
+  string signal = 4;		/* signal name if killed by signal */
+  string error = 5;		/* if killed due to other error */
+}
+
+/* Alert message, policy module-specific. */
+message AlertMessage {
+  TimeSpec alert_time = 1;		/* time alert message occurred */
+  string reason = 2;			/* policy alert error string */
+  repeated InfoMessage info_msgs = 3;	/* key,value event log data */
+}
+
+/* Used to restart an existing I/O log on the server. */
+message RestartMessage {
+  string log_id = 1;		/* ID of log being restarted */
+  TimeSpec resume_point = 2;	/* resume point (elapsed time) */
+}
+
+/* Window size change event. */
+message ChangeWindowSize {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  int32 rows = 2;		/* new number of rows */
+  int32 cols = 3;		/* new number of columns */
+}
+
+/* Command suspend/resume event. */
+message CommandSuspend {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  string signal = 2;		/* signal that caused suspend/resume */
+}
+
+/*
+ * Server messages to the client.  Messages on the wire are
+ * prefixed with a 32-bit size in network byte order.
+ */
+message ServerMessage {
+  oneof type {
+    ServerHello hello = 1;	/* server hello message */
+    TimeSpec commit_point = 2;	/* cumulative time of records stored */
+    string log_id = 3;		/* ID of server-side I/O log */
+    string error = 4;		/* error message from server */
+    string abort = 5;		/* abort message, kill command */
+  }
+}
+
+/* Hello message from server when client connects. */
+message ServerHello {
+  string server_id = 1;		/* free-form server description */
+  string redirect = 2;		/* optional redirect if busy */
+  repeated string servers = 3;	/* optional list of known servers */
+}
+.RE
+.fi
+.SH "SEE ALSO"
+sudo_logsrvd.conf(@mansectform@),
+sudoers(@mansectform@),
+sudo(8),
+sudo_logsrvd(8)
+.PP
+\fIProtocol Buffers\fR,
+https://developers.google.com/protocol-buffers/.
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

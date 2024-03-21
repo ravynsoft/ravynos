@@ -1,0 +1,419 @@
+2015-01-06  Alan Modra  <amodra@gmail.com>
+
+	PR binutils/17754
+	* internal.h (internal_auxent): Increase size of x_fname field to
+	20 to allow for PE format's longer file names.
+
+2015-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+2014-08-20  Daniel Micay  <danielmicay@gmail.com>
+
+	* pe.h: Add HIGH_ENTROPY_VA flag
+
+2014-04-22  Christian Svensson  <blue@cmd.nu>
+
+	* or32.h: Delete.
+
+2014-04-08  Jon TURNEY  <jon.turney@dronecode.org.uk>
+
+	* pe.h (external_IMAGE_DEBUG_DIRECTORY, _CV_INFO_PDB70)
+	(_CV_INFO_PDB20): Add structures and constants for debug directory
+	and codeview records.
+	* internal.h (internal_IMAGE_DEBUG_DIRECTORY, CODEVIEW_INFO):
+	Add structures and constants for internal representation of debug
+	directory and codeview records.
+
+2014-03-13  Tristan Gingold  <gingold@adacore.com>
+
+	* pe.h (struct external_ANON_OBJECT_HEADER_BIGOBJ): Declare.
+	(FILHSZ_BIGOBJ): Define.
+	(struct external_SYMBOL_EX): Declare.
+	(SYMENT_BIGOBJ, SYMESZ_BIGOBJ): Define.
+	(union external_AUX_SYMBOL_EX): Declare.
+	(AUXENT_BIGOBJ, AUXESZ_BIGOBJ): Define.
+	* internal.h (struct internal_filehdr): Change type
+	of f_nscns.
+
+2014-03-05  Alan Modra  <amodra@gmail.com>
+
+	Update copyright years.
+
+2013-12-06  Tristan Gingold  <gingold@adacore.com>
+
+	* pe.h (UWOP_EPILOG, UWOP_PARE): Define.
+
+2013-07-10  Tristan Gingold  <gingold@adacore.com>
+
+	* rs6000.h (external_core_dumpx): New structure.
+	(external_ld_info32): Ditto.
+
+2013-07-02  Tristan Gingold  <gingold@adacore.com>
+
+	* internal.h (C_STTLS, C_GTLS): Define.
+	* xcoff.h (XMC_TL, XMC_TU, XMC_TE): Define.
+
+2013-02-04  Alan Modra  <amodra@gmail.com>
+
+	* ti.h (SWAP_OUT_RELOC_EXTRA): Define.
+
+2013-01-02  Martin Storsjo <martin@martin.st>
+
+	* arm.h (ARMV7PEMAGIC): Define.
+	(ARMBADMAG): Update.
+
+2011-06-02  Nick Clifton  <nickc@redhat.com>
+
+	* i860.h: Fix spelling mistake in comment.
+
+2011-05-04  Tristan Gingold  <gingold@adacore.com>
+
+	* rs6000.h (union external_auxent): Add x_ftype field.
+	* rs6k64.h: (struct external_auxent): Remap x_file field.
+
+2011-05-04  Tristan Gingold  <gingold@adacore.com>
+
+	* rs6000.h (struct external_exceptab): New struct.
+	(EXCEPTSZ): New macro.
+	* rs6k64.h: (struct external_exceptab): New struct.
+	(EXCEPTSZ): New macro.
+
+2011-05-03  Tristan Gingold  <gingold@adacore.com>
+
+	* rs6000.h (struct external_ldsym): Use E_SYMNMLEN instead of
+	SYMNMLEN.
+
+2011-04-27  Tristan Gingold  <gingold@adacore.com>
+
+	* xcoff.h (F_FDPR_PROF, F_FDPR_OPTI, F_DSA, F_VARPG)
+	(STYP_DWARF, SSUBTYP_DWINFO)
+	(SSUBTYP_DWLINE, SSUBTYP_DWPBNMS, SSUBTYP_DWPBTYP)
+	(SSUBTYP_DWARNGE, SSUBTYP_DWABREV, SSUBTYP_DWSTR)
+	(SSUBTYP_DWRNGES, STYP_TDATA, STYP_TBSS, R_TLS, R_TLS_IE)
+	(R_TLS_LD, R_TLS_LE, R_TLSM, R_TLSML, R_TOCU, R_TOCL, C_DWARF):
+	New macros.
+
+2011-03-31  Tristan Gingold  <gingold@adacore.com>
+
+	* internal.h (C_NULL_VALUE): Define.
+
+2010-06-29  Alan Modra  <amodra@gmail.com>
+
+	* maxq.h: Delete file.
+
+2010-04-15  Nick Clifton  <nickc@redhat.com>
+
+	* alpha.h: Update copyright notice to use GPLv3.
+	* apollo.h: Likewise.
+	* arm.h: Likewise.
+	* aux-coff.h: Likewise.
+	* ecoff.h: Likewise.
+	* external.h: Likewise.
+	* go32exe.h: Likewise.
+	* h8300.h: Likewise.
+	* h8500.h: Likewise.
+	* i386.h: Likewise.
+	* i860.h: Likewise.
+	* i960.h: Likewise.
+	* ia64.h: Likewise.
+	* internal.h: Likewise.
+	* m68k.h: Likewise.
+	* m88k.h: Likewise.
+	* maxq.h: Likewise.
+	* mcore.h: Likewise.
+	* mips.h: Likewise.
+	* mipspe.h: Likewise.
+	* or32.h: Likewise.
+	* pe.h: Likewise.
+	* powerpc.h: Likewise.
+	* rs6000.h: Likewise.
+	* rs6k64.h: Likewise.
+	* sh.h: Likewise.
+	* sparc.h: Likewise.
+	* ti.h: Likewise.
+	* tic30.h: Likewise.
+	* tic4x.h: Likewise.
+	* tic54x.h: Likewise.
+	* tic80.h: Likewise.
+	* w65.h: Likewise.
+	* we32k.h: Likewise.
+	* x86_64.h: Likewise.
+	* xcoff.h: Likewise.
+	* z80.h: Likewise.
+	* z8k.h: Likewise.
+
+2009-12-02  Jerker Bäck  <jerker.back@gmail.com>
+
+	PR binutils/11017
+	* i386lh (COFF_PAGE_SIZE): Define.
+	* x86_64.h (COFF_PAGE_SIZE): Define.
+
+2009-10-17  Arnold Metselaar  <arnold.metselaar@planet.nl>
+
+	* z80.h: Store alignment requirement in section header, to allow
+	ld to preserve alignment. Some code was copied from ti.h.
+
+2009-09-05  Martin Thuresson  <martin@mtme.org>
+
+	* ti.h (GET_LNSZ_SIZE, PUT_LNSZ_SIZE): Updated name of class
+	variable to in_class to match changes in function that use this
+	macro.
+
+2009-08-10  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	Fix references past allocated memory for i386-*-go32.
+	* ti.h (COFF_ADJUST_FILEHDR_IN_POST, COFF_ADJUST_FILEHDR_OUT_POST):
+	Reference F_TARGET_ID only when !COFF0_P.
+
+2009-08-10  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	Stop using bfd_usrdata in libbfd.
+	* go32exe.h (struct external_filehdr_go32_exe <stub>, FILHSZ): Replace
+	STUBSIZE by GO32_STUBSIZE.
+	(STUBSIZE): Move the definition ...
+	* internal.h (GO32_STUBSIZE): ... here and rename it.
+	(struct internal_filehdr <go32stub>, F_GO32STUB): New.
+
+2009-06-03  Ulrich Weigand  <uweigand@de.ibm.com>
+
+	* symconst.h (btLong64, btULong64, btLongLong64, btULongLong64,
+	btAdr64, btInt64, btUInt64): New defines.
+
+2009-04-21  Kai Tietz  <kai.tietz@onevision.com>
+
+	* pe.h (pex64_runtime_function): New structure.
+	(external_pex64_runtime_function): Likewise.
+	(pex64_unwind_code): Likewise.
+	(external_pex64_unwind_code): Likewise.
+	(pex64_unwind_info): Likewise.
+	(external_pex64_unwind_info): Likewise.
+	(external_pex64_scope): Likewise.
+	(pex64_scope): Likewise.
+	(pex64_scope_entry):  Likewise.
+	(external_pex64_scope_entry): Likewise.
+	(PEX64_IS_RUNTIME_FUNCTION_CHAINED): New macro.
+	(PEX64_GET_UNWINDDATA_UNIFIED_RVA): Likewise.
+	(PEX64_UNWCODE_CODE): Likewise.
+	(PEX64_UNWCODE_INFO): Likewise.
+	(UWOP_...): Add defines for unwind code.
+	(UNW_FLAG_...): Add defined for unwind info flags.
+	(PEX64_SCOPE_ENTRY_SIZE): New macro.
+	(PEX64_UWI_VERSION): Likewise.
+	(PEX64_UWI_FLAGS): Likewise.
+	(PEX64_UWI_FRAMEREG): Likewise.
+	(PEX64_UWI_FRAMEOFF): Likewise.
+	(PEX64_UWI_SIZEOF_UWCODE_ARRAY): Likewise.
+	(PEX64_OFFSET_TO_UNWIND_CODE): Likewise.
+	(PEX64_OFFSET_TO_HANDLER_RVA): Likewise.
+	(PEX64_OFFSET_TO_SCOPE_COUNT): Likewise.
+	(PEX64_SCOPE_ENTRY): Likewise.
+
+2009-04-17  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* pe.h (IMAGE_SUBSYSTEM_EFI_ROM): Renamed to ...
+	(IMAGE_SUBSYSTEM_SAL_RUNTIME_DRIVER): This.
+
+2009-04-01  Richard Sandiford  <r.sandiford@uk.ibm.com>
+
+	* xcoff.h (xcoff_link_hash_table): Move to bfd/xcofflink.c.
+
+2009-03-14  Richard Sandiford  <r.sandiford@uk.ibm.com>
+
+	* xcoff.h (XCOFF_EXPALL, XCOFF_EXPFULL): New flags.
+	(xcoff_loader_info): Add auto_export_flags.
+
+2009-03-14  Richard Sandiford  <r.sandiford@uk.ibm.com>
+
+	* internal.h (C_AIX_WEAKEXT): New macro.
+	(C_WEAKEXT): Use the GNU definition in the generic part of the file,
+	and conditionally reset it to C_AIX_WEAKEXT in the XCOFF part of
+	the file.
+	(CSECT_SYM_P): New macro.
+	* xcoff.h (L_WEAK): Define.
+	(EXTERN_SYM_P): New macro.
+
+2009-03-14  Richard Sandiford  <r.sandiford@uk.ibm.com>
+
+	* xcoff.h (XCOFF_ALLOCATED): New flag.
+
+2009-03-14  Richard Sandiford  <r.sandiford@uk.ibm.com>
+
+	* xcoff.h (XCOFF_CALLED, XCOFF_IMPORT): Update comments.
+	(XCOFF_WAS_UNDEFINED): New flag.
+	(xcoff_link_hash_table): Add an "rtld" field.
+
+2009-03-14  Dave Korn  <dave.korn.cygwin@gmail.com>
+
+	* internal.h (struct internal_extra_pe_aouthdr):  Correct type
+	of DllCharacteristics flags field to unsigned.
+	* pe.h (IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE,
+	IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE,
+	IMAGE_DLL_CHARACTERISTICS_NX_COMPAT,
+	IMAGE_DLLCHARACTERISTICS_NO_ISOLATION,
+	IMAGE_DLLCHARACTERISTICS_NO_SEH,
+	IMAGE_DLLCHARACTERISTICS_NO_BIND,
+	IMAGE_DLLCHARACTERISTICS_WDM_DRIVER,
+	IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE):  New macros to
+	define flag bit values for DllCharacteristics field of PEAOUTHDR,
+	PEPAOUTHDR.
+
+2008-12-23  Johan Olmutz Nielsen  <jnielsen@ddci.com>
+
+	* ti.h (COFF_ADJUST_SCNHDR_OUT_PRE): Define.
+
+2008-06-17  Nick Clifton  <nickc@redhat.com>
+
+	* ti.h (GET_SCNHDR_NLNNO): Provide an alternative version of this
+	macro which does not trigger an array bounds warning in gcc.
+	(PUT_SCNHDR_NLNNO): Likewise.
+	(GET_SCNHDR_FLAGS): Likewise.
+	(PUT_SCNHDR_FLAGS): Likewise.
+	(GET_SCNHDR_PAGE): Likewise.
+	(PUT_SCNHDR_PAGE): Likewise.
+
+2007-11-05  Danny Smith  <dannysmith@users.sourceforge.net>
+
+	* pe.h (COFF_ENCODE_ALIGNMENT) Define.
+
+2007-08-02  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* pe.h (IMAGE_SCN_ALIGN_POWER_BIT_POS): New.
+	(IMAGE_SCN_ALIGN_POWER_BIT_MASK): Likewise.
+	(IMAGE_SCN_ALIGN_POWER_NUM): Likewise.
+	(IMAGE_SCN_ALIGN_POWER_CONST): Likewise.
+	(IMAGE_SCN_ALIGN_128BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_256BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_512BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_1024BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_2048BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_4096BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_8192BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_1BYTES): Redefined with
+	IMAGE_SCN_ALIGN_POWER_CONST.
+	(IMAGE_SCN_ALIGN_2BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_4BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_8BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_16BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_32BYTES): Likewise.
+	(IMAGE_SCN_ALIGN_64BYTES): Likewise.
+
+2007-07-12  Kai Tietz   <kai.tietz@onevision.com>
+
+	* internal.h (struct internal_syment): Use bfd_hostptr_t for
+	_n_zeroes and _n_offset fields.
+
+2007-04-27  Alan Modra  <amodra@bigpond.net.au>
+
+	* rs6000.h: Write Mimi's name in ASCII.
+
+2007-03-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* internal.h (internal_extra_pe_aouthdr): Add Magic,
+	MajorLinkerVersion, MinorLinkerVersion, SizeOfCode,
+	SizeOfInitializedData, SizeOfUninitializedData,
+	AddressOfEntryPoint, BaseOfCode and BaseOfData.
+
+2006-12-05  Michael Tautschnig  <tautschn@model.in.tum.de>
+	    Nick Clifton  <nickc@redhat.com>
+
+	* external.h (struct external_aouthdr): Add ATTRIBUTE_PACKED.
+	(struct external_syment): Likewise.
+	(union external_auxent): Likewise.
+
+2006-11-14  Phil Lello  <phil.lello@homecall.co.uk>
+
+	* pe.h: Added defines for IMAGE_SUBSYSTEM_EFI_ROM and
+	IMAGE_SUBSYSTEM_XBOX.
+	* internal.h: Added defines for PE directory entry types.
+	NB: in internal.h because IMAGE_NUMBEROF_DIRECTORY_ENTRYIES is in
+	pe.h
+
+2006-09-20  Kai Tietz  <Kai.Tietz@onevision.com>
+
+	* external.h: Add proper external_aouthdr64 structure (without
+	data_start member).
+	(AOUTHDRSZ64): Set according structure size.
+	(AOUTHDR64): As typedef of external_aouthdr64 structure.
+	* internal.h: Add relocation identifiers for coff.
+	* pe.h:	Add define IMAGE_FILE_MACHINE_AMD64 the coff signature.
+	(PEPAOUTHDR): Adjust structure to have proper size (using AOUTHDR64).
+	(PEPAOUTSZ): Calculated size of 240.
+	* x86_64.h: Coff information for x86_64 (AMD64).
+
+2006-02-05  Arnold Metselaar  <arnold.metselaar@planet.nl>
+
+	* internal.h: Add relocation number R_IMM24 for Z80.
+
+2005-10-25  Arnold Metselaar  <arnold.metselaar@planet.nl>
+
+	* internal.h: Add relocation number for Z80
+	* z80.h: New file.
+
+2005-08-18  Alan Modra  <amodra@bigpond.net.au>
+
+	* a29k.h: Delete.
+
+2005-07-14  Daniel Marques  <marques@cs.cornell.edu>
+
+	* alpha.h (ALPHA_ECOFF_COMPRESSEDMAG): Define.
+	* ecoff.h (ALPHA_MAGIC_COMPRESSED): Define.
+
+2005-05-10  Nick Clifton  <nickc@redhat.com>
+
+	* Update the address and phone number of the FSF organization in
+	the GPL notices in the following files:
+	a29k.h,	alpha.h, apollo.h, arm.h, aux-coff.h, ecoff.h, external.h,
+	go32exe.h, h8300.h, h8500.h, i386.h, i860.h, i960.h, ia64.h,
+	internal.h, m68k.h, m88k.h, maxq.h, mcore.h, mips.h, mipspe.h,
+	or32.h, pe.h, powerpc.h, rs6k64.h, sh.h, sparc.h, ti.h, tic30.h,
+	tic4x.h, tic54x.h, tic80.h, w65.h, we32k.h, xcoff.h, z8k.h
+
+2005-02-21  Alan Modra  <amodra@bigpond.net.au>
+
+	* xcoff.h (struct xcoff_loader_info): Warning fix.
+
+2005-01-10  Inderpreet Singh <inderpreetb@noida.hcltech.com>
+
+	* maxq.h (F_MAXQ10, F_MAXQ20): Define.
+
+2004-11-08  Inderpreet Singh   <inderpreetb@nioda.hcltech.com>
+	    Vineet Sharma      <vineets@noida.hcltech.com>
+
+	* maxq.h: New file: Defintions for the maxq port.
+
+2004-11-08  Aaron W. LaFramboise <aaron98wiridge9@aaronwl.com>
+
+	* pe.h (IMAGE_WEAK_EXTERN_SEARCH_NOLIBRARY): Define.
+	(IMAGE_WEAK_EXTERN_SEARCH_LIBRARY): Same.
+	(IMAGE_WEAK_EXTERN_SEARCH_ALIAS): Same.
+
+2004-08-13  Mark Kettenis  <kettenis@gnu.org>
+
+	* symconst.h (langMax): Fix typo in comment.
+
+2004-04-23  Chris Demetriou  <cgd@broadcom.com>
+
+	* mips.h (MIPS_R_RELHI, MIPS_R_RELLO, MIPS_R_SWITCH): Remove
+	(MIPS_R_PCREL16): Update comment.
+	* ecoff.h (struct ecoff_value_adjust): Remove structure.
+	(struct ecoff_debug_info): Remove 'adjust' member.
+
+2004-04-20  DJ Delorie  <dj@redhat.com>
+
+	* internal.h (R_SECREL32): Add.
+
+For older changes see ChangeLog-9103
+
+Copyright (C) 2004-2015 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

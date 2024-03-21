@@ -1,0 +1,123 @@
+# subproject.at -- test subproject Libltdl builds             -*- Autotest -*-
+#
+#   Copyright (C) 2005, 2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Subproject Libltdl.])
+
+# _LT_AT_LTDL_SETUP
+# -----------------
+m4_pushdef([_LT_AT_LTDL_SETUP],
+[AT_DATA([configure.ac],
+[[AC_INIT([subproject-demo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+LT_CONFIG_LTDL_DIR([sub/ltdl])
+AC_CONFIG_AUX_DIR([sub/ltdl/config])
+AC_CONFIG_MACRO_DIRS([sub/ltdl/m4])
+AM_INIT_AUTOMAKE([foreign])
+LT_INIT
+LT_WITH_LTDL
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[ACLOCAL_AMFLAGS = -I sub/ltdl/m4
+AUTOMAKE_OPTIONS = 1.9
+SUBDIRS = sub/ltdl
+lib_LTLIBRARIES = foo.la
+foo_la_LDFLAGS = -module -avoid-version -no-undefined
+]])
+
+echo 'int dummy = 0;' > foo.c
+])# _LT_AT_LTDL_SETUP
+
+## ------------------------ ##
+## Softlinked libltdl tree. ##
+## ------------------------ ##
+
+AT_SETUP([compiling softlinked libltdl])
+
+_LT_AT_LTDL_SETUP
+
+LT_AT_BOOTSTRAP([--ltdl], [-I sub/ltdl/m4], [ignore], [--add-missing --copy],
+	[], [], [all $tst_dist])
+
+AT_CHECK([test -f sub/ltdl/libltdlc.la])
+
+AT_CLEANUP
+
+
+## -------------------- ##
+## Copied libltdl tree. ##
+## -------------------- ##
+
+AT_SETUP([compiling copied libltdl])
+
+_LT_AT_LTDL_SETUP
+
+LT_AT_BOOTSTRAP([--copy --ltdl], [-I sub/ltdl/m4], [ignore],
+	[--add-missing --copy], [], [], [all $tst_dist])
+
+AT_CHECK([test -f sub/ltdl/libltdlc.la])
+
+AT_CLEANUP
+
+
+## ------------------------- ##
+## Installable libltdl tree. ##
+## ------------------------- ##
+
+AT_SETUP([installable libltdl])
+
+prefix=`pwd`/_inst
+
+_LT_AT_LTDL_SETUP
+
+LT_AT_BOOTSTRAP([--copy --ltdl], [-I sub/ltdl/m4], [ignore],
+	[--add-missing --copy], [], [--enable-ltdl-install --prefix=$prefix],
+	[all install $tst_dist])
+
+AT_CHECK([test -f "$prefix/lib/libltdl.la"])
+AT_CHECK([test -f "$prefix/include/ltdl.h"])
+
+AT_CLEANUP
+
+
+## ----------------------------------------------- ##
+## libltdl is usable without Autoconf or Automake. ##
+## ----------------------------------------------- ##
+
+AT_SETUP([linking libltdl without autotools])
+
+_LTDL_PROJECT_FILES([sub/ltdl])
+LT_AT_LIBTOOLIZE([--copy --ltdl=sub/ltdl])
+LT_AT_MAKE([], [CC="$CC" LIBTOOLFLAGS="$LIBTOOLFLAGS" CPPFLAGS="$CPPFLAGS" ]dnl
+     [CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" SHELL="$SHELL" MAKE="${MAKE-make}" ]dnl
+     [CONFIGURE_OPTIONS="$configure_options"])
+
+LT_AT_EXEC_CHECK([./ltdldemo], 0, [ignore])
+
+AT_CLEANUP
+
+dnl Be careful not to let the definition leak into other tests
+m4_popdef([_LT_AT_LTDL_SETUP])

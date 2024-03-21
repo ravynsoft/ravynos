@@ -1,0 +1,131 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# arithmetic operators for conditional commands and arithmetic commands
+
+declare -A assoc
+declare -a index
+
+key='x],b[$(echo uname >&2)'
+key1=']'
+key2='` echo >&2 foo`'
+key3='~'
+key4='7<(4+2)'
+key5='$( echo 2>& date)'
+key6='$(echo foo)'
+
+[[ -n assoc[$key] ]]
+declare -p assoc
+
+assoc[$key]=42
+assoc[$key1]=12
+assoc[$key2]=128
+assoc[$key3]=42
+assoc[0]=0
+
+[[ assoc[$key] -eq assoc[$key] ]]
+echo $?
+
+[[ assoc[$key] -gt assoc[$key1] ]]
+echo $?
+
+[[ assoc[$key2] -lt assoc[$key] ]]
+echo $?
+
+[[ assoc[$key] -eq assoc[$key3] ]]
+echo $?
+
+[[ index[7<(4+2)] -le assoc[0] ]]
+echo $?
+[[ index[$key4] -le assoc[0] ]]
+echo $?
+
+assoc[$key5]=foo
+declare -p assoc
+
+echo "${assoc[$key5]}"
+
+[[ -v assoc[$key5] ]]
+echo $?
+[[ -v assoc[$key] ]]
+echo $?
+
+unset assoc
+
+declare -a array
+index='0],b[1';
+((array[$index]++))
+
+declare -p array
+
+unset array
+
+declare -A assoc
+
+assoc[$key]=42
+assoc[$key4]=42
+
+[[ -v assoc[$key] ]]
+echo $?
+[[ -v assoc["$key"] ]]
+echo $?
+
+[[ -v assoc[$key4] ]]
+echo $?
+[[ -v assoc["$key4"] ]]
+echo $?
+
+[[ -v assoc['$key'] ]]
+echo $?
+[[ -v assoc['$key4'] ]]
+echo $?
+
+unset -v assoc
+
+declare -A aa
+aa[$key5]=foo
+
+declare -p aa
+echo "${aa[$key5]}"
+
+[[ -v aa[$key5] ]]
+echo $?
+
+[[ -v aa[$key] ]]
+echo $?
+
+aa[$key6]=42
+# this still performs expansion
+test -v aa["$key6"]
+echo $?
+# should be an error
+test -v aa[$key6]
+echo $?
+
+unset aa key
+
+declare -A assoc
+    
+mytest ()
+{
+        assoc["$1"]=123
+        [[ -v assoc["$1"] ]]
+        printf '[[ -v assoc[%s] ]]; $?=%s\n' "$1" "$?"
+}
+    
+mytest 'a' 
+mytest '"' 
+declare -p assoc
+unset -v assoc
+unset -f mytest

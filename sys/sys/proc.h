@@ -32,8 +32,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)proc.h	8.15 (Berkeley) 5/19/95
  */
 
 #ifndef _SYS_PROC_H_
@@ -280,6 +278,7 @@ struct thread {
 	int		td_rw_rlocks;	/* (k) Count of rwlock read locks. */
 	int		td_sx_slocks;	/* (k) Count of sx shared locks. */
 	int		td_lk_slocks;	/* (k) Count of lockmgr shared locks. */
+	struct lock_object *td_wantedlock; /* (k) Lock we are contending on */
 	struct turnstile *td_blocked;	/* (t) Lock thread is blocked on. */
 	const char	*td_lockname;	/* (t) Name of lock blocked on. */
 	LIST_HEAD(, turnstile) td_contested;	/* (q) Contested locks. */
@@ -317,8 +316,8 @@ struct thread {
 	struct osd	td_osd;		/* (k) Object specific data. */
 	struct vm_map_entry *td_map_def_user; /* (k) Deferred entries. */
 	pid_t		td_dbg_forked;	/* (c) Child pid for debugger. */
-	struct vnode	*td_vp_reserved;/* (k) Preallocated vnode. */
 	u_int		td_no_sleeping;	/* (k) Sleeping disabled count. */
+	struct vnode	*td_vp_reserved;/* (k) Preallocated vnode. */
 	void		*td_su;		/* (k) FFS SU private */
 	sbintime_t	td_sleeptimo;	/* (t) Sleep timeout. */
 	int		td_rtcgen;	/* (s) rtc_generation of abs. sleep */
@@ -971,7 +970,7 @@ MALLOC_DECLARE(M_SUBPROC);
  * in a pid_t, as it is used to represent "no process group".
  */
 #define	PID_MAX		99999
-#define	NO_PID		100000
+#define	NO_PID		(PID_MAX + 1)
 #define	THREAD0_TID	NO_PID
 extern pid_t pid_max;
 
@@ -1089,6 +1088,16 @@ extern pid_t pid_max;
 
 #define	THREAD_CAN_SLEEP()		((curthread)->td_no_sleeping == 0)
 
+#define	THREAD_CONTENDS_ON_LOCK(lo)		do {			\
+	MPASS(curthread->td_wantedlock == NULL);			\
+	curthread->td_wantedlock = lo;					\
+} while (0)
+
+#define	THREAD_CONTENTION_DONE(lo)		do {			\
+	MPASS(curthread->td_wantedlock == lo);				\
+	curthread->td_wantedlock = NULL;				\
+} while (0)
+
 #define	PIDHASH(pid)	(&pidhashtbl[(pid) & pidhash])
 #define	PIDHASHLOCK(pid) (&pidhashtbl_lock[((pid) & pidhashlock)])
 extern LIST_HEAD(pidhashhead, proc) *pidhashtbl;
@@ -1178,11 +1187,9 @@ void	ast_sched(struct thread *td, int tda);
 void	ast_unsched_locked(struct thread *td, int tda);
 
 struct	thread *choosethread(void);
+int	cr_bsd_visible(struct ucred *u1, struct ucred *u2);
 int	cr_cansee(struct ucred *u1, struct ucred *u2);
 int	cr_canseesocket(struct ucred *cred, struct socket *so);
-int	cr_canseeothergids(struct ucred *u1, struct ucred *u2);
-int	cr_canseeotheruids(struct ucred *u1, struct ucred *u2);
-int	cr_canseejailproc(struct ucred *u1, struct ucred *u2);
 int	cr_cansignal(struct ucred *cred, struct proc *proc, int signum);
 int	enterpgrp(struct proc *p, pid_t pgid, struct pgrp *pgrp,
 	    struct session *sess);
@@ -1266,7 +1273,7 @@ void	cpu_fork_kthread_handler(struct thread *, void (*)(void *), void *);
 int	cpu_procctl(struct thread *td, int idtype, id_t id, int com,
 	    void *data);
 void	cpu_set_syscall_retval(struct thread *, int);
-void	cpu_set_upcall(struct thread *, void (*)(void *), void *,
+int	cpu_set_upcall(struct thread *, void (*)(void *), void *,
 	    stack_t *);
 int	cpu_set_user_tls(struct thread *, void *tls_base);
 void	cpu_thread_alloc(struct thread *);

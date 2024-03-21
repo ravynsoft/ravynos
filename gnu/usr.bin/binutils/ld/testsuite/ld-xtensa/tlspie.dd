@@ -1,0 +1,66 @@
+#source: tlsbin.s
+#as:
+#ld: -melf32xtensa
+#objdump: -dRj.text
+#target: xtensa*-*-linux*
+
+.*: +file format elf32-xtensa-.e
+
+
+Disassembly of section \.text:
+#...
+[0-9a-f]+ <_start>:
+ [0-9a-f]+:	[0-9a-f]+[ 	]+entry	a1, 32
+#  GD -> IE because variable is not defined in executable
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 1ec <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  GD -> IE because variable is not defined in executable where
+#  the variable is referenced through IE too
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 1f4 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  GD -> LE with global variable defined in executable
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 1fc <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  GD -> LE with local variable defined in executable
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 204 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  GD -> LE with hidden variable defined in executable
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a10, 20c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a10, a10, a8
+#  LD -> LE
+ [0-9a-f]+:	[0-9a-f]+[ 	]+nop.*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+nop.*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a10
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a12, 218 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a12, a12, a10
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a13, 21c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a13, a13, a10
+#  LD -> LE against hidden variables
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a12, 220 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a12, a12, a10
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a13, 224 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a13, a13, a10
+#
+#  IE against global var
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a2
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a3, 228 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a3, a3, a2
+#  IE -> LE against global var defined in exec
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a4
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a5, 22c <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a5, a5, a4
+#  IE -> LE against local var
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a6
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a7, 230 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a7, a7, a6
+#  IE -> LE against hidden var
+ [0-9a-f]+:	[0-9a-f]+[ 	]+rur.threadptr	a8
+ [0-9a-f]+:	[0-9a-f]+[ 	]+l32r	a9, 234 <.*> .*
+ [0-9a-f]+:	[0-9a-f]+[ 	]+add.*	a9, a9, a8
+#
+ [0-9a-f]+:	[0-9a-f]+[ 	]+retw.*

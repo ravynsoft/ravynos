@@ -1,0 +1,362 @@
+@c Copyright (C) 2011-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+
+@ifset GENERIC
+@page
+@node TILE-Gx-Dependent
+@chapter TILE-Gx Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter TILE-Gx Dependent Features
+@end ifclear
+
+@cindex TILE-Gx support
+@menu
+* TILE-Gx Options::		TILE-Gx Options
+* TILE-Gx Syntax::		TILE-Gx Syntax
+* TILE-Gx Directives::		TILE-Gx Directives
+@end menu
+
+@node TILE-Gx Options
+@section Options
+
+The following table lists all available TILE-Gx specific options:
+
+@c man begin OPTIONS
+@table @gcctabopt
+@cindex @samp{-m32} option, TILE-Gx
+@cindex @samp{-m64} option, TILE-Gx
+@item -m32 | -m64
+Select the word size, either 32 bits or 64 bits.
+
+@cindex @samp{-EB} option, TILE-Gx
+@cindex @samp{-EL} option, TILE-Gx
+@item -EB | -EL
+Select the endianness, either big-endian (-EB) or little-endian (-EL).
+
+@end table
+@c man end
+
+@node TILE-Gx Syntax
+@section Syntax
+@cindex TILE-Gx syntax
+@cindex syntax, TILE-Gx
+
+Block comments are delimited by @samp{/*} and @samp{*/}.  End of line
+comments may be introduced by @samp{#}.
+
+Instructions consist of a leading opcode or macro name followed by
+whitespace and an optional comma-separated list of operands:
+
+@smallexample
+@var{opcode} [@var{operand}, @dots{}]
+@end smallexample
+
+Instructions must be separated by a newline or semicolon.
+
+There are two ways to write code: either write naked instructions,
+which the assembler is free to combine into VLIW bundles, or specify
+the VLIW bundles explicitly.
+
+Bundles are specified using curly braces:
+
+@smallexample
+@{ @var{add} r3,r4,r5 ; @var{add} r7,r8,r9 ; @var{lw} r10,r11 @}
+@end smallexample
+
+A bundle can span multiple lines. If you want to put multiple
+instructions on a line, whether in a bundle or not, you need to
+separate them with semicolons as in this example.
+
+A bundle may contain one or more instructions, up to the limit
+specified by the ISA (currently three). If fewer instructions are
+specified than the hardware supports in a bundle, the assembler
+inserts @code{fnop} instructions automatically.
+
+The assembler will prefer to preserve the ordering of instructions
+within the bundle, putting the first instruction in a lower-numbered
+pipeline than the next one, etc.  This fact, combined with the
+optional use of explicit @code{fnop} or @code{nop} instructions,
+allows precise control over which pipeline executes each instruction.
+
+If the instructions cannot be bundled in the listed order, the
+assembler will automatically try to find a valid pipeline
+assignment. If there is no way to bundle the instructions together,
+the assembler reports an error.
+
+The assembler does not yet auto-bundle (automatically combine multiple
+instructions into one bundle), but it reserves the right to do so in
+the future.  If you want to force an instruction to run by itself, put
+it in a bundle explicitly with curly braces and use @code{nop}
+instructions (not @code{fnop}) to fill the remaining pipeline slots in
+that bundle.
+
+@menu
+* TILE-Gx Opcodes::              Opcode Naming Conventions.
+* TILE-Gx Registers::            Register Naming.
+* TILE-Gx Modifiers::            Symbolic Operand Modifiers.
+@end menu
+
+@node TILE-Gx Opcodes
+@subsection Opcode Names
+@cindex TILE-Gx opcode names
+@cindex opcode names, TILE-Gx
+
+For a complete list of opcodes and descriptions of their semantics,
+see @cite{TILE-Gx Instruction Set Architecture}, available upon
+request at www.tilera.com.
+
+@node TILE-Gx Registers
+@subsection Register Names
+@cindex TILE-Gx register names
+@cindex register names, TILE-Gx
+
+General-purpose registers are represented by predefined symbols of the
+form @samp{r@var{N}}, where @var{N} represents a number between
+@code{0} and @code{63}.  However, the following registers have
+canonical names that must be used instead:
+
+@table @code
+@item r54
+sp
+
+@item r55
+lr
+
+@item r56
+sn
+
+@item r57
+idn0
+
+@item r58
+idn1
+
+@item r59
+udn0
+
+@item r60
+udn1
+
+@item r61
+udn2
+
+@item r62
+udn3
+
+@item r63
+zero
+
+@end table
+
+The assembler will emit a warning if a numeric name is used instead of
+the non-numeric name.  The @code{.no_require_canonical_reg_names}
+assembler pseudo-op turns off this
+warning. @code{.require_canonical_reg_names} turns it back on.
+
+@node TILE-Gx Modifiers
+@subsection Symbolic Operand Modifiers
+@cindex TILE-Gx modifiers
+@cindex symbol modifiers, TILE-Gx
+
+The assembler supports several modifiers when using symbol addresses
+in TILE-Gx instruction operands.  The general syntax is the following:
+
+@smallexample
+modifier(symbol)
+@end smallexample
+
+The following modifiers are supported:
+
+@table @code
+
+@item hw0
+
+This modifier is used to load bits 0-15 of the symbol's address.
+
+@item hw1
+
+This modifier is used to load bits 16-31 of the symbol's address.
+
+@item hw2
+
+This modifier is used to load bits 32-47 of the symbol's address.
+
+@item hw3
+
+This modifier is used to load bits 48-63 of the symbol's address.
+
+@item hw0_last
+
+This modifier yields the same value as @code{hw0}, but it also checks
+that the value does not overflow.
+
+@item hw1_last
+
+This modifier yields the same value as @code{hw1}, but it also checks
+that the value does not overflow.
+
+@item hw2_last
+
+This modifier yields the same value as @code{hw2}, but it also checks
+that the value does not overflow.
+
+A 48-bit symbolic value is constructed by using the following idiom:
+
+@smallexample
+moveli r0, hw2_last(sym)
+shl16insli r0, r0, hw1(sym)
+shl16insli r0, r0, hw0(sym)
+@end smallexample
+
+@item hw0_got
+
+This modifier is used to load bits 0-15 of the symbol's offset in the
+GOT entry corresponding to the symbol.
+
+@item hw0_last_got
+
+This modifier yields the same value as @code{hw0_got}, but it also
+checks that the value does not overflow.
+
+@item hw1_last_got
+
+This modifier is used to load bits 16-31 of the symbol's offset in the
+GOT entry corresponding to the symbol, and it also checks that the
+value does not overflow.
+
+@item plt
+
+This modifier is used for function symbols.  It causes a
+@emph{procedure linkage table}, an array of code stubs, to be created
+at the time the shared object is created or linked against, together
+with a global offset table entry.  The value is a pc-relative offset
+to the corresponding stub code in the procedure linkage table.  This
+arrangement causes the run-time symbol resolver to be called to look
+up and set the value of the symbol the first time the function is
+called (at latest; depending environment variables).  It is only safe
+to leave the symbol unresolved this way if all references are function
+calls.
+
+@item hw0_plt
+
+This modifier is used to load bits 0-15 of the pc-relative address of
+a plt entry.
+
+@item hw1_plt
+
+This modifier is used to load bits 16-31 of the pc-relative address of
+a plt entry.
+
+@item hw1_last_plt
+
+This modifier yields the same value as @code{hw1_plt}, but it also
+checks that the value does not overflow.
+
+@item hw2_last_plt
+
+This modifier is used to load bits 32-47 of the pc-relative address of
+a plt entry, and it also checks that the value does not overflow.
+
+@item hw0_tls_gd
+
+This modifier is used to load bits 0-15 of the offset of the GOT entry
+of the symbol's TLS descriptor, to be used for general-dynamic TLS
+accesses.
+
+@item hw0_last_tls_gd
+
+This modifier yields the same value as @code{hw0_tls_gd}, but it also
+checks that the value does not overflow.
+
+@item hw1_last_tls_gd
+
+This modifier is used to load bits 16-31 of the offset of the GOT
+entry of the symbol's TLS descriptor, to be used for general-dynamic
+TLS accesses.  It also checks that the value does not overflow.
+
+@item hw0_tls_ie
+
+This modifier is used to load bits 0-15 of the offset of the GOT entry
+containing the offset of the symbol's address from the TCB, to be used
+for initial-exec TLS accesses.
+
+@item hw0_last_tls_ie
+
+This modifier yields the same value as @code{hw0_tls_ie}, but it also
+checks that the value does not overflow.
+
+@item hw1_last_tls_ie
+
+This modifier is used to load bits 16-31 of the offset of the GOT
+entry containing the offset of the symbol's address from the TCB, to
+be used for initial-exec TLS accesses.  It also checks that the value
+does not overflow.
+
+@item hw0_tls_le
+
+This modifier is used to load bits 0-15 of the offset of the symbol's
+address from the TCB, to be used for local-exec TLS accesses.
+
+@item hw0_last_tls_le
+
+This modifier yields the same value as @code{hw0_tls_le}, but it also
+checks that the value does not overflow.
+
+@item hw1_last_tls_le
+
+This modifier is used to load bits 16-31 of the offset of the symbol's
+address from the TCB, to be used for local-exec TLS accesses.  It
+also checks that the value does not overflow.
+
+@item tls_gd_call
+
+This modifier is used to tag an instruction as the ``call'' part of a
+calling sequence for a TLS GD reference of its operand.
+
+@item tls_gd_add
+
+This modifier is used to tag an instruction as the ``add'' part of a
+calling sequence for a TLS GD reference of its operand.
+
+@item tls_ie_load
+
+This modifier is used to tag an instruction as the ``load'' part of a
+calling sequence for a TLS IE reference of its operand.
+
+@end table
+
+@node TILE-Gx Directives
+@section TILE-Gx Directives
+@cindex machine directives, TILE-Gx
+@cindex TILE-Gx machine directives
+
+@table @code
+
+@cindex @code{.align} directive, TILE-Gx
+@item .align @var{expression} [, @var{expression}]
+This is the generic @var{.align} directive.  The first argument is the
+requested alignment in bytes.
+
+@cindex @code{.allow_suspicious_bundles} directive, TILE-Gx
+@item .allow_suspicious_bundles
+Turns on error checking for combinations of instructions in a bundle
+that probably indicate a programming error.  This is on by default.
+
+@item .no_allow_suspicious_bundles
+Turns off error checking for combinations of instructions in a bundle
+that probably indicate a programming error.
+
+@cindex @code{.require_canonical_reg_names} directive, TILE-Gx
+@item .require_canonical_reg_names
+Require that canonical register names be used, and emit a warning if
+the numeric names are used.  This is on by default.
+
+@item .no_require_canonical_reg_names
+Permit the use of numeric names for registers that have canonical
+names.
+
+@end table

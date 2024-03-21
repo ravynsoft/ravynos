@@ -1,0 +1,224 @@
+# Expect script for LD selective linking tests
+#   Copyright (C) 1998-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Catherine Moore (clm@cygnus.com)
+# Make sure that constructors are handled correctly.
+
+# Only ELF based ports support selective linking
+if { ![is_elf_format] || ![check_gc_sections_available] } {
+    return
+}
+
+# List contains test-items with three items followed by four lists:
+# 1:name 2:test-type (CC or C++; add as needed) 3:filename 4:ld-flags
+# 5:must-have-symbols 6:must-not-have-symbols 7:xfail-targets.
+#
+# If a must(-not)-have symbol is a list, then that list must have two
+# items; the symbol name and a value the symbol must (not) have.
+#
+# Note: ld_nm trims leading `_' from _start
+#
+# FIXME: Instead of table, read settings from each source-file.
+set seltests {
+  {selective1 C   1.c  {}       {}    {dropme1 dropme2} {}}
+  {selective2 C   2.c  {}       {}    {foo} {}}
+  {selective3 C   2.c  {-u foo} {foo} {{foo 0}} {}}
+  {selective4 C++ 3.cc {}       {start a A::foo() B::foo()} {A::bar()} {mips*-*}}
+  {selective5 C++ 4.cc {}       {start a A::bar()} {A::foo() B::foo()} {mips*-*}}
+  {selective6 C++ 5.cc {}       {start a A::bar()}
+    {A::foo() B::foo() dropme1() dropme2()} {*-*-*}}
+}
+
+set cflags "-w -O -ffunction-sections -fdata-sections $NOSANITIZE_CFLAGS $NOLTO_CFLAGS"
+set cxxflags "-fno-exceptions -fno-rtti $NOSANITIZE_CFLAGS $NOLTO_CFLAGS"
+set ldflags "--gc-sections -Bstatic"
+
+if [istarget mips*-*] {
+    # MIPS16 doesn't support PIC code.
+    set cflags "-mno-abicalls $cflags"
+    # MIPS ELF uses __start by default, we override it.
+    set ldflags "-e _start $ldflags"
+}
+
+if [istarget avr-*-*] {
+    # Make .text start at a non-zero address, as some tests expect
+    # valid symbols to have non-zero values.
+    set ldflags "--section-start=.text=0x2 $ldflags"
+}
+
+# If we don't have g++ for the target, mark all tests as untested.
+if { ![is_remote host] && [which $CXX_FOR_TARGET] == 0 } {
+    foreach testitem $seltests {
+	untested "[lindex $testitem 0]"
+    }
+    return
+}
+
+foreach testitem $seltests {
+    set testname [lindex $testitem 0]
+    set testtype [lindex $testitem 1]
+    set testfile [lindex $testitem 2]
+    set objfile "tmpdir/[file rootname $testfile].o"
+    set ldfile "tmpdir/[file rootname $testfile].x"
+    set failed 0
+
+    set ldargs [lindex $testitem 3]
+    set mustsyms [lindex $testitem 4]
+    set mustnotsyms [lindex $testitem 5]
+    set xfails [lindex $testitem 6]
+
+    foreach xfail_target $xfails {
+	setup_xfail $xfail_target
+    }
+
+    # It's either C or C++ at the moment.
+    if { $testtype == "C++" } {
+	set compiler "$CXX_FOR_TARGET"
+	# Starting with 3.4.0, -fvtable-gc is no longer supported and thus
+	# the functionality we try to test for cannot be expected to work.
+	set version [remote_exec host "$CXX_FOR_TARGET -dumpversion"]
+	set version [lindex $version 1]
+	if { [regexp "^(\[1-9\]\[0-9\]+|\[4-9\]|3.(\[1-9\]\[0-9\]+))\\." $version] \
+	     || [regexp "^(\[1-9\]\[0-9\]+|\[4-9\])" $version] } {
+	    set testflags "$cflags $cxxflags"
+	    setup_xfail {*-*-*}
+	} else {
+	    set testflags "$cflags $cxxflags -fvtable-gc"
+	}
+    } else {
+	set testflags "$cflags"
+	set compiler "$CC_FOR_TARGET"
+    }
+
+    # Note that we do not actually *use* CXX; we just add cxxflags for C++
+    # tests.  It might have been a buglet originally; now I think better
+    # leave as is.
+    if { ![ld_compile "$compiler $testflags" $srcdir/$subdir/$testfile $objfile] } {
+	unsupported $testname
+	continue
+    }
+
+    # V850 targets need libgcc.a
+    if [istarget v850*-*-elf] {
+	set libgcc [remote_exec host "$compiler -print-libgcc-file-name"]
+	set libgcc [lindex $libgcc 1]
+	regsub -all "\[\r\n\]" $libgcc "" libgcc
+	set objfile "$objfile $libgcc"
+    }
+
+    # ARM targets need libgcc.a in THUMB mode so that __call_via_r3 is provided
+    if {[istarget arm-*-*]} {
+	set libgcc [remote_exec host "$compiler -print-libgcc-file-name"]
+	set libgcc [lindex $libgcc 1]
+	regsub -all "\[\r\n\]" $libgcc "" libgcc
+	set objfile "$objfile $libgcc"
+    }
+
+    # HPPA linux targets need libgcc.a for millicode routines ($$dyncall).
+    if [istarget hppa*-*-linux*] {
+	set libgcc [remote_exec host "$compiler -print-libgcc-file-name"]
+	set libgcc [lindex $libgcc 1]
+	regsub -all "\[\r\n\]" $libgcc "" libgcc
+	set objfile "$objfile $libgcc"
+    }
+
+    # m6811/m6812 code has references to soft registers.
+    if {[istarget m6811-*-*] || [istarget m6812-*-*] || [istarget m68hc1*-*-*]} {
+	set objfile "$objfile --defsym _.frame=0 --defsym _.d1=0"
+	set objfile "$objfile --defsym _.d2=0"
+    }
+
+    if ![ld_link $ld $ldfile "$ldflags [join $ldargs] $objfile"] {
+	fail $testname
+	continue
+    }
+
+    if ![ld_nm $nm --demangle $ldfile] {
+	fail $testname
+	continue
+    }
+
+    # Must make V2 demangled names look like V3
+    foreach nm_output_key [array names nm_output] {
+	if [regsub \\(void\\) $nm_output_key () new_nm_output_key] {
+	    set nm_output($new_nm_output_key) nm_output($nm_output_key)
+	}
+    }
+
+    # Check each mandated symbol and optionally mandated values.
+    foreach mustsym $mustsyms {
+	if { [llength [concat $mustsym]] == 1 } {
+	    if { ![info exists nm_output($mustsym)] } {
+		verbose -log "$testname: missing $mustsym"
+		fail $testname
+		set failed 1
+		break
+	    }
+	} {
+	    set mustsymname [lindex $mustsym 0]
+	    set mustsymvalue [lindex $mustsym 1]
+	    if { ![info exists nm_output($mustsymname)] } {
+		verbose -log "$testname: missing $mustsymname"
+		fail $testname
+		set failed 1
+		break
+	    } {
+		if { $nm_output($mustsymname) != $mustsymvalue } {
+		    verbose -log "$testname: $mustsymname != $mustsymvalue"
+		    verbose -log "is instead $nm_output($mustsymname)"
+		    fail $testname
+		    set failed 1
+		    break
+		}
+	    }
+	}
+    }
+
+    if { $failed != 0 } {
+	continue
+    }
+
+    # Check each unwanted symbol, or that symbols do not have specific
+    # values.
+    foreach mustnotsym $mustnotsyms {
+	if { [llength [concat $mustnotsym]] == 1 } {
+	    if { [info exists nm_output($mustnotsym)] } {
+		verbose -log "$testname: $mustnotsym == $nm_output($mustnotsym)"
+		fail $testname
+		set failed 1
+		break
+	    }
+	} {
+	    set mustnotsymname [lindex $mustnotsym 0]
+	    set mustnotsymvalue [lindex $mustnotsym 1]
+	    if { [info exists nm_output($mustnotsymname)] \
+		    && $nm_output($mustnotsymname) == $mustnotsymvalue} {
+		verbose -log "$testname: $mustnotsymname == $mustnotsymvalue"
+		fail $testname
+		set failed 1
+		break
+	    }
+	}
+    }
+
+    if { $failed == 0 } {
+	pass $testname
+    }
+}

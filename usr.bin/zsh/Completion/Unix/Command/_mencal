@@ -1,0 +1,27 @@
+#compdef mencal
+
+local curcontext="$curcontext" state line ret=1
+
+_arguments -C \
+  '(--monday -m)'{-m,--monday}'[monday as first day of work]' \
+  '-1[current month]' \
+  '-3[previous, current, and next month]' \
+  '-y[all-year calendar]::year:' \
+  '(--quiet -q)'{-q,--quiet}'[no top information]' \
+  '(--nocolor -n)'{-n,--nocolor}'[noncolored output]' \
+  '(--icolor -i)'{-i,--icolor}'[intersection color]:color:(red green blue yellow violet cyan shiny bold)' \
+  '(-)'{-h,--help}'[display help information]' \
+  '(-)'{-V,--version}'[print version information]' \
+  \*{-c,--config}'[config]:options:->option' && ret=0
+
+if [[ $state = option ]]; then
+  _values -s , 'config option' \
+    '(s start)'{s,start}'[start day]:day' \
+    '(l length)'{l,length}'[period length]:length' \
+    '(d duration)'{d,duration}'[menstruation duration]:duration' \
+    '(n name)'{n,name}'[name of subject]:name' \
+    '(f file)'{f,file}'[filename]:file:_files' \
+    '(c color)'{c,color}'[color for menstruation days]:color:(red green blue yellow violet cyan shiny bold)' && ret=0
+fi
+
+return ret

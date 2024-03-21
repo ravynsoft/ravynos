@@ -673,7 +673,7 @@ dnode_cursor_init(zfs_opt_t *zfs, zfs_objset_t *os, dnode_phys_t *dnode,
 }
 
 static void
-_dnode_cursor_flush(zfs_opt_t *zfs, struct dnode_cursor *c, int levels)
+_dnode_cursor_flush(zfs_opt_t *zfs, struct dnode_cursor *c, unsigned int levels)
 {
 	blkptr_t *bp, *pbp;
 	void *buf;
@@ -681,14 +681,14 @@ _dnode_cursor_flush(zfs_opt_t *zfs, struct dnode_cursor *c, int levels)
 	off_t blkid, blksz, loc;
 
 	assert(levels > 0);
-	assert(levels <= c->dnode->dn_nlevels - 1);
+	assert(levels <= c->dnode->dn_nlevels - 1U);
 
 	blksz = MAXBLOCKSIZE;
 	blkid = (c->dataoff / c->datablksz) / BLKPTR_PER_INDIR;
-	for (int level = 1; level <= levels; level++) {
+	for (unsigned int level = 1; level <= levels; level++) {
 		buf = c->inddir[level - 1];
 
-		if (level == c->dnode->dn_nlevels - 1) {
+		if (level == c->dnode->dn_nlevels - 1U) {
 			pbp = &c->dnode->dn_blkptr[0];
 		} else {
 			uint64_t iblkid;
@@ -724,7 +724,7 @@ blkptr_t *
 dnode_cursor_next(zfs_opt_t *zfs, struct dnode_cursor *c, off_t off)
 {
 	off_t blkid, l1id;
-	int levels;
+	unsigned int levels;
 
 	if (c->dnode->dn_nlevels == 1) {
 		assert(off < MAXBLOCKSIZE);
@@ -736,7 +736,7 @@ dnode_cursor_next(zfs_opt_t *zfs, struct dnode_cursor *c, off_t off)
 	/* Do we need to flush any full indirect blocks? */
 	if (off > 0) {
 		blkid = off / c->datablksz;
-		for (levels = 0; levels < c->dnode->dn_nlevels - 1; levels++) {
+		for (levels = 0; levels < c->dnode->dn_nlevels - 1U; levels++) {
 			if (blkid % BLKPTR_PER_INDIR != 0)
 				break;
 			blkid /= BLKPTR_PER_INDIR;
@@ -753,8 +753,9 @@ dnode_cursor_next(zfs_opt_t *zfs, struct dnode_cursor *c, off_t off)
 void
 dnode_cursor_finish(zfs_opt_t *zfs, struct dnode_cursor *c)
 {
-	int levels;
+	unsigned int levels;
 
+	assert(c->dnode->dn_nlevels > 0);
 	levels = c->dnode->dn_nlevels - 1;
 	if (levels > 0)
 		_dnode_cursor_flush(zfs, c, levels);

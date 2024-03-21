@@ -1,0 +1,2 @@
+${THIS_SH} ./rhs-exp.tests 2>&1 > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} rhs-exp.right && rm -f ${BASH_TSTOUT}

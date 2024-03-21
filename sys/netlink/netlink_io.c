@@ -26,9 +26,6 @@
  * SUCH DAMAGE.
  */
 
-#include "opt_netlink.h"
-
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/ck.h>
 #include <sys/lock.h>

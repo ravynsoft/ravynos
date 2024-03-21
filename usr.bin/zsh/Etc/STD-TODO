@@ -1,0 +1,76 @@
+Last updated: Tue Aug  7 08:44:03 PDT 2001			-*- text -*-
+
+In this file we maintain a list of "standard shell features" (many of them
+proposed as POSIX extensions by David Korn and the shell@research.att.com
+mailing list) that will require changes to zsh behavior for compatibility.
+
+This file is not part of the packaged zsh distribution.
+
+Syntax and Parsing
+------------------
+
+Redirections following a function body definition should be considered
+part of the function definition, and positional parameter references in
+those redirections refer to the function's positionals.
+
+Subscript brackets do not imply double-quoting and in fact other quotings
+are respected when inside the brackets.  (The exact syntax of associative
+array subscripts has not been decided as of this writing.)
+
+The "typeset" builtin and its synonyms are language keywords and apply
+assignment syntax to their argument lists.  (This violates POSIX?)
+
+Equals signs are special inside the parens in a name=(...) assignment:
+- name=( [x]=a [y]=b ) is the same as name[x]=a name[y]=b
+- name=( x=(a b c) y=(e f g) ) is a compound assignment (semantics not
+  yet agreed upon as of this writing, and might not be standardized).
+
+Positional parameter references may not go higher than 9 in POSIX shell
+emulation; that is, $12 should be ${1}2, not ${12}.
+
+
+Semantics
+---------
+
+Zsh's handling of "precommand modifiers" is completely unlike anything
+done by any other shell.
+- "noglob" and "nocorrect" are impossible and should not be treated as
+  special words when emulating a standard shell.
+- "builtin", "command", and "exec" are true commands in other shells, and
+  as such take command line options etc., which is not possible with the
+  special rules zsh uses for these commands.
+
+POSIX requires that shell functions behave like macros, but does not have
+the "function name { ..." syntax.  Ksh uses the latter as an indicator
+that extended function semantics are allowed.
+- The value of $0 behaves as if FUNCTION_ARGZERO in "function name()", but
+  never does so in bare "name()" syntax functions.
+- Local variables are statically scoped in the "function" form, but all
+  variables are global in the POSIX form.  (Zsh uses local dynamic scope.)
+- XTRACE is always local and turned off in the "function" form, unless
+  explicitly enabled with "typeset -ft".
+
+Ksh automatically searches FPATH for any command not found in PATH, and
+autoloads the file if found.  The "autoload" command is only required if
+you want FPATH to be searched before PATH, e.g. because the function has
+the same name as a command in PATH.
+
+All parameters in ksh are indexed arrays.  That's why $array has to mean
+${array[0]}, and why subscripts can't be used to extract substrings from
+scalars.
+
+`typeset a' in ksh does not initialise `a' to be a scalar with the empty
+string as its value but leaves it undefined. If it is used in array
+context, its value will be that of an empty array so, for example
+"${a[@]}" will return nothing.
+
+In ksh,
+	exec 3<file
+causes file 3 to be close on exec.  DGK says: "This allows scripts to
+use file descriptors 3-9 without side effects on commands that are
+subsequently executed.
+	command 3< file
+will not use close on exec, and
+	{
+	} 3< file
+will not use close on exec for any commands inside {...}."

@@ -1,0 +1,596 @@
+Compatibility with previous versions
+====================================
+
+This document details the incompatibilities between this version of bash,
+bash-5.2, and the previous widely-available versions, bash-3.2 (which is
+still the `standard' version for Mac OS X), 4.2/4.3 (which are still
+standard on a few Linux distributions), and bash-4.4/bash-5.0/bash-5.1,
+the current widely-available versions.  These were discovered by users of
+bash-2.x through 5.x, so this list is not comprehensive.  Some of these
+incompatibilities occur between the current version and versions 2.0 and
+above. 
+
+1.  Bash uses a new quoting syntax, $"...", to do locale-specific
+    string translation.  Users who have relied on the (undocumented)
+    behavior of bash-1.14 will have to change their scripts.  For
+    instance, if you are doing something like this to get the value of
+    a variable whose name is the value of a second variable:
+
+	eval var2=$"$var1"
+
+    you will have to change to a different syntax.
+
+    This capability is directly supported by bash-2.0:
+
+	var2=${!var1}
+
+    This alternate syntax will work portably between bash-1.14 and bash-2.0:
+
+	eval var2=\$${var1}
+
+2.  One of the bugs fixed in the YACC grammar tightens up the rules
+    concerning group commands ( {...} ).  The `list' that composes the
+    body of the group command must be terminated by a newline or
+    semicolon.  That's because the braces are reserved words, and are
+    recognized as such only when a reserved word is legal.  This means
+    that while bash-1.14 accepted shell function definitions like this:
+
+	foo() { : }
+
+    bash-2.0 requires this:
+
+	foo() { :; }
+
+    This is also an issue for commands like this:
+
+	mkdir dir || { echo 'could not mkdir' ; exit 1; }
+
+    The syntax required by bash-2.0 is also accepted by bash-1.14.
+
+3.  The options to `bind' have changed to make them more consistent with
+    the rest of the bash builtins.  If you are using `bind -d' to list
+    the readline key bindings in a form that can be re-read, use `bind -p'
+    instead.  If you were using `bind -v' to list the key bindings, use
+    `bind -P' instead.
+
+4.  The `long' invocation options must now be prefixed by `--' instead
+    of `-'.  (The old form is still accepted, for the time being.)
+
+5.  There was a bug in the version of readline distributed with bash-1.14
+    that caused it to write badly-formatted key bindings when using 
+    `bind -d'.  The only key sequences that were affected are C-\ (which
+    should appear as \C-\\ in a key binding) and C-" (which should appear
+    as \C-\").  If these key sequences appear in your inputrc, as, for
+    example,
+
+	"\C-\": self-insert
+
+    they will need to be changed to something like the following:
+
+	"\C-\\": self-insert
+
+6.  A number of people complained about having to use ESC to terminate an
+    incremental search, and asked for an alternate mechanism.  Bash-2.03
+    uses the value of the settable readline variable `isearch-terminators'
+    to decide which characters should terminate an incremental search.  If
+    that variable has not been set, ESC and Control-J will terminate a
+    search.
+
+7.  Some variables have been removed:  MAIL_WARNING, notify, history_control,
+    command_oriented_history, glob_dot_filenames, allow_null_glob_expansion,
+    nolinks, hostname_completion_file, noclobber, no_exit_on_failed_exec, and
+    cdable_vars.  Most of them are now implemented with the new `shopt'
+    builtin; others were already implemented by `set'.  Here is a list of
+    correspondences:
+
+	MAIL_WARNING			shopt mailwarn
+	notify				set -o notify
+	history_control			HISTCONTROL
+	command_oriented_history	shopt cmdhist
+	glob_dot_filenames		shopt dotglob
+	allow_null_glob_expansion	shopt nullglob
+	nolinks				set -o physical
+	hostname_completion_file	HOSTFILE
+	noclobber			set -o noclobber
+	no_exit_on_failed_exec		shopt execfail
+	cdable_vars			shopt cdable_vars
+
+8. `ulimit' now sets both hard and soft limits and reports the soft limit
+    by default (when neither -H nor -S is specified).  This is compatible
+    with versions of sh and ksh that implement `ulimit'.  The bash-1.14
+    behavior of, for example,
+
+		ulimit -c 0
+
+    can be obtained with
+
+		ulimit -S -c 0
+
+    It may be useful to define an alias:
+
+		alias ulimit="ulimit -S"
+
+9.  Bash-2.01 uses a new quoting syntax, $'...' to do ANSI-C string
+    translation.  Backslash-escaped characters in ... are expanded and
+    replaced as specified by the ANSI C standard.
+
+10. The sourcing of startup files has changed somewhat.  This is explained
+    more completely in the INVOCATION section of the manual page.
+
+    A non-interactive shell not named `sh' and not in posix mode reads
+    and executes commands from the file named by $BASH_ENV.  A
+    non-interactive shell started by `su' and not in posix mode will read
+    startup files.  No other non-interactive shells read any startup files.
+
+    An interactive shell started in posix mode reads and executes commands
+    from the file named by $ENV.
+
+11. The <> redirection operator was changed to conform to the POSIX.2 spec.
+    In the absence of any file descriptor specification preceding the `<>',
+    file descriptor 0 is used.  In bash-1.14, this was the behavior only
+    when in POSIX mode.  The bash-1.14 behavior may be obtained with
+
+	<>filename 1>&0
+
+12. The `alias' builtin now checks for invalid options and takes a `-p'
+    option to display output in POSIX mode.  If you have old aliases beginning
+    with `-' or `+', you will have to add the `--' to the alias command
+    that declares them:
+
+	alias -x='chmod a-x' --> alias -- -x='chmod a-x'
+
+13. The behavior of range specificiers within bracket matching expressions
+    in the pattern matcher (e.g., [A-Z]) depends on the current locale,
+    specifically the value of the LC_COLLATE environment variable.  Setting
+    this variable to C or POSIX will result in the traditional ASCII behavior
+    for range comparisons.  If the locale is set to something else, e.g.,
+    en_US (specified by the LANG or LC_ALL variables), collation order is
+    locale-dependent.  For example, the en_US locale sorts the upper and
+    lower case letters like this:
+
+	AaBb...Zz
+
+    so a range specification like [A-Z] will match every letter except `z'.
+    Other locales collate like
+
+        aAbBcC...zZ
+
+    which means that [A-Z] matches every letter except `a'.
+
+    The portable way to specify upper case letters is [:upper:] instead of
+    A-Z; lower case may be specified as [:lower:] instead of a-z.
+
+    Look at the manual pages for setlocale(3), strcoll(3), and, if it is
+    present, locale(1).
+
+    You can find your current locale information by running locale(1):
+
+	caleb.ins.cwru.edu(2)$ locale
+	LANG=en_US
+	LC_CTYPE="en_US"
+	LC_NUMERIC="en_US"
+	LC_TIME="en_US"
+	LC_COLLATE="en_US"
+	LC_MONETARY="en_US"
+	LC_MESSAGES="en_US"
+	LC_ALL=en_US
+
+    My advice is to put
+
+	export LC_COLLATE=C
+
+    into /etc/profile and inspect any shell scripts run from cron for
+    constructs like [A-Z].  This will prevent things like
+
+	rm [A-Z]*
+
+    from removing every file in the current directory except those beginning
+    with `z' and still allow individual users to change the collation order.
+    Users may put the above command into their own profiles as well, of course.
+
+14. Bash versions up to 1.14.7 included an undocumented `-l' operator to
+    the `test/[' builtin.  It was a unary operator that expanded to the
+    length of its string argument.  This let you do things like
+
+	test -l $variable -lt 20
+
+    for example.
+
+    This was included for backwards compatibility with old versions of the
+    Bourne shell, which did not provide an easy way to obtain the length of
+    the value of a shell variable.
+
+    This operator is not part of the POSIX standard, because one can (and
+    should) use ${#variable} to get the length of a variable's value.
+    Bash-2.x does not support it.
+
+15. Bash no longer auto-exports the HOME, PATH, SHELL, TERM, HOSTNAME,
+    HOSTTYPE, MACHTYPE, or OSTYPE variables.  If they appear in the initial
+    environment, the export attribute will be set, but if bash provides a
+    default value, they will remain local to the current shell.
+
+16. Bash no longer initializes the FUNCNAME, GROUPS, or DIRSTACK variables
+    to have special behavior if they appear in the initial environment.
+
+17. Bash no longer removes the export attribute from the SSH_CLIENT or
+    SSH2_CLIENT variables, and no longer attempts to discover whether or
+    not it has been invoked by sshd in order to run the startup files.
+
+18. Bash no longer requires that the body of a function be a group command;
+    any compound command is accepted.
+
+19. As of bash-3.0, the pattern substitution operators no longer perform
+    quote removal on the pattern before attempting the match.  This is the
+    way the pattern removal functions behave, and is more consistent.
+
+20. After bash-3.0 was released, I reimplemented tilde expansion, incorporating
+    it into the mainline word expansion code.  This fixes the bug that caused
+    the results of tilde expansion to be re-expanded.  There is one
+    incompatibility:  a ${paramOPword} expansion within double quotes will not
+    perform tilde expansion on WORD.  This is consistent with the other
+    expansions, and what POSIX specifies.
+
+21. A number of variables have the integer attribute by default, so the +=
+    assignment operator returns expected results: RANDOM, LINENO, MAILCHECK,
+    HISTCMD, OPTIND.
+
+22. Bash-3.x is much stricter about $LINENO correctly reflecting the line
+    number in a script; assignments to LINENO have little effect.
+
+23. By default, readline binds the terminal special characters to their
+    readline equivalents.  As of bash-3.1/readline-5.1, this is optional and
+    controlled by the bind-tty-special-chars readline variable.
+
+24. The \W prompt string expansion abbreviates $HOME as `~'.  The previous
+    behavior is available with ${PWD##/*/}.
+
+25. The arithmetic exponentiation operator is right-associative as of bash-3.1.
+
+26. The rules concerning valid alias names are stricter, as per POSIX.2.
+
+27. The Readline key binding functions now obey the convert-meta setting active
+    when the binding takes place, as the dispatch code does when characters
+    are read and processed.
+
+28. The historical behavior of `trap' reverting signal disposition to the
+    original handling in the absence of a valid first argument is implemented
+    only if the first argument is a valid signal number.
+
+29. In versions of bash after 3.1, the ${parameter//pattern/replacement}
+    expansion does not interpret `%' or `#' specially.  Those anchors don't
+    have any real meaning when replacing every match.
+
+30. Beginning with bash-3.1, the combination of posix mode and enabling the
+    `xpg_echo' option causes echo to ignore all options, not looking for `-n'
+
+31. Beginning with bash-3.2, bash follows the Bourne-shell-style (and POSIX-
+    style) rules for parsing the contents of old-style backquoted command
+    substitutions.  Previous versions of bash attempted to recursively parse
+    embedded quoted strings and shell constructs; bash-3.2 uses strict POSIX
+    rules to find the closing backquote and simply passes the contents of the
+    command substitution to a subshell for parsing and execution.
+
+32. Beginning with bash-3.2, bash uses access(2) when executing primaries for
+    the test builtin and the [[ compound command, rather than looking at the
+    file permission bits obtained with stat(2).  This obeys restrictions of
+    the file system (e.g., read-only or noexec mounts) not available via stat.
+
+33. Bash-3.2 adopts the convention used by other string and pattern matching
+    operators for the `[[' compound command, and matches any quoted portion
+    of the right-hand-side argument to the =~ operator as a string rather
+    than a regular expression.
+
+34. Bash-4.0 allows the behavior in the previous item to be modified using
+    the notion of a shell `compatibility level'.  If the compat31 shopt
+    option is set, quoting the pattern has no special effect.
+
+35. Bash-3.2 (patched) and Bash-4.0 fix a bug that leaves the shell in an
+    inconsistent internal state following an assignment error.  One of the
+    changes means that compound commands or { ... } grouping commands are
+    aborted under some circumstances in which they previously were not.
+    This is what Posix specifies.
+
+36. Bash-4.0 now allows process substitution constructs to pass unchanged
+    through brace expansion, so any expansion of the contents will have to be
+    separately specified, and each process substitution will have to be
+    separately entered.
+
+37. Bash-4.0 now allows SIGCHLD to interrupt the wait builtin, as Posix
+    specifies, so the SIGCHLD trap is no longer always invoked once per
+    exiting child if you are using `wait' to wait for all children.  As
+    of bash-4.2, this is the status quo only when in posix mode.
+
+38. Since bash-4.0 now follows Posix rules for finding the closing delimiter
+    of a $() command substitution, it will not behave as previous versions
+    did, but will catch more syntax and parsing errors before spawning a
+    subshell to evaluate the command substitution.
+
+39. The programmable completion code uses the same set of delimiting characters
+    as readline when breaking the command line into words, rather than the
+    set of shell metacharacters, so programmable completion and readline
+    should be more consistent.
+
+40. When the read builtin times out, it attempts to assign any input read to
+    specified variables, which also causes variables to be set to the empty
+    string if there is not enough input.  Previous versions discarded the
+    characters read.
+
+41. Beginning with bash-4.0, when one of the commands in a pipeline is killed
+    by a SIGINT while executing a command list, the shell acts as if it
+    received the interrupt.  This can be disabled by setting the compat31 or
+    compat32 shell options.
+
+42. Bash-4.0 changes the handling of the set -e option so that the shell exits
+    if a pipeline fails (and not just if the last command in the failing
+    pipeline is a simple command).  This is not as Posix specifies.  There is
+    work underway to update this portion of the standard; the bash-4.0
+    behavior attempts to capture the consensus at the time of release.
+
+43. Bash-4.0 fixes a Posix mode bug that caused the . (source) builtin to
+    search the current directory for its filename argument, even if "." is
+    not in $PATH.  Posix says that the shell shouldn't look in $PWD in this
+    case.
+
+44. Bash-4.1 uses the current locale when comparing strings using the < and
+    > operators to the `[[' command.  This can be reverted to the previous
+    behavior (ASCII collating and strcmp(3)) by setting one of the
+    `compatNN' shopt options, where NN is less than 41.
+
+45. Bash-4.1 conforms to the current Posix specification for `set -u':
+    expansions of $@ and $* when there are no positional parameters do not
+    cause the shell to exit.
+
+46. Bash-4.1 implements the current Posix specification for `set -e' and
+    exits when any command fails, not just a simple command or pipeline.
+
+47. Command substitutions now remove the caller's trap strings when trap is
+    run to set a new trap in the subshell.  Previous to bash-4.2, the old
+    trap strings persisted even though the actual signal handlers were reset.
+
+48. When in Posix mode, a single quote is not treated specially in a
+    double-quoted ${...} expansion, unless the expansion operator is
+    # or % or the new `//', `^', or `,' expansions.  In particular, it
+    does not define a new quoting context.  This is from Posix interpretation
+    221.
+
+49. Posix mode shells no longer exit if a variable assignment error occurs
+    with an assignment preceding a command that is not a special builtin.
+
+50. Bash-4.2 attempts to preserve what the user typed when performing word
+    completion, instead of, for instance, expanding shell variable
+    references to their value.
+
+51. When in Posix mode, bash-4.2 exits if the filename supplied as an argument
+    to `.' is not found and the shell is not interactive.
+
+52. When compiled for strict Posix compatibility, bash-4.3 does not enable
+    history expansion by default in interactive shells, since it results in
+    a non-conforming environment.
+
+53. Bash-4.3 runs the replacement string in the pattern substitution word
+    expansion through quote removal.  The code already treats quote
+    characters in the replacement string as special; if it treats them as
+    special, then quote removal should remove them.
+
+54. Bash-4.4 no longer considers a reference to ${a[@]} or ${a[*]}, where `a'
+    is an array without any elements set, to be a reference to an unset
+    variable.  This means that such a reference will not cause the shell to
+    exit when the `-u' option is enabled.
+
+55. Bash-4.4 allows double quotes to quote the history expansion character (!)
+    when in Posix mode, since Posix specifies the effects of double quotes.
+
+56. Bash-4.4 does not inherit $PS4 from the environment if running as root.
+
+57. Bash-4.4 doesn't allow a `break' or `continue' in a function to affect
+    loop execution in the calling context.
+
+58. Bash-4.4 no longer expands tildes in $PATH elements when in Posix mode.
+
+59. Bash-4.4 does not attempt to perform a compound array assignment if an
+    argument to `declare' or a similar builtin expands to a word that looks
+    like a compound array assignment (e.g. declare w=$x where x='(foo)').
+
+60. Bash-5.0 only sets up BASH_ARGV and BASH_ARGC at startup if extended
+    debugging mode is active. The old behavior of unconditionally setting
+    BASH_ARGC and BASH_ARGV is available at compatibility levels less than
+    or equal to 44.
+
+61. Bash-5.0 doesn't allow a `break' or `continue' in a subshell to attempt
+    to break or continue loop execution inherited from the calling context.
+
+62. Bash-5.0 doesn't allow variable assignments preceding builtins like
+    export and readonly to modify variables with the same name in preceding
+    contexts (including the global context) unless the shell is in posix
+    mode, since export and readonly are special builtins.
+
+63. Bash-5.1 changes the way posix-mode shells handle assignment statements
+    preceding shell function calls. Previous versions of POSIX specified that
+    such assignments would persist after the function returned; subsequent
+    versions of the standard removed that requirement (interpretation #654).
+    Bash-5.1 posix mode assignment statements preceding shell function calls
+    do not persist after the function returns.
+
+64. Bash-5.1 reverts to the bash-4.4 treatment of pathname expansion of words
+    containing backslashes but no other special globbing characters. This comes
+    after a protracted discussion and a POSIX interpretation (#1234).
+
+65. In bash-5.1, disabling posix mode attempts to restore the state of several
+    options that posix mode modifies to the state they had before enabling
+    posix mode. Previous versions restored these options to default values.
+
+66. Bash-5.2 attempts to prevent double-expansion of array subscripts under
+    certain circumstances, especially arithmetic evaluation, by acting as if
+    the `assoc_expand_once' shell option were set.
+
+67. The `unset' builtin in bash-5.2 treats array subscripts `@' and `*'
+    differently than previous versions, and differently depending on whether
+    the array is indexed or associative.
+
+
+Shell Compatibility Level
+=========================
+
+Bash-4.0 introduced the concept of a `shell compatibility level', specified
+as a set of options to the shopt builtin (compat31, compat32, compat40,
+compat41, and so on).  There is only one current compatibility level --
+each option is mutually exclusive.  The compatibility level is intended to
+allow users to select behavior from previous versions that is incompatible
+with newer versions while they migrate scripts to use current features and
+behavior.  It's intended to be a temporary solution. 
+
+This section does not mention behavior that is standard for a particular
+version (e.g., setting compat32 means that quoting the rhs of the regexp
+matching operator quotes special regexp characters in the word, which is
+default behavior in bash-3.2 and above). 
+
+If a user enables, say, compat32, it may affect the behavior of other
+compatibility levels up to and including the current compatibility level. 
+The idea is that each compatibility level controls behavior that changed in
+that version of bash, but that behavior may have been present in earlier
+versions.  For instance, the change to use locale-based comparisons with
+the `[[' command came in bash-4.1, and earlier versions used ASCII-based
+comparisons, so enabling compat32 will enable ASCII-based comparisons as
+well.  That granularity may not be sufficient for all uses, and as a result
+users should employ compatibility levels carefully.  Read the documentation
+for a particular feature to find out the current behavior. 
+
+Bash-4.3 introduced a new shell variable: BASH_COMPAT. The value assigned
+to this variable (a decimal version number like 4.2, or an integer
+corresponding to the compatNN option, like 42) determines the compatibility
+level.
+
+Starting with bash-4.4, bash has begun deprecating older compatibility
+levels.  Eventually, the options will be removed in favor of the
+BASH_COMPAT variable. 
+
+Bash-5.0 is the final version for which there will be an individual shopt
+option for the previous version.  Users should use the BASH_COMPAT variable
+on bash-5.0 and later versions. 
+
+The following table describes the behavior changes controlled by each
+compatibility level setting.  The `compatNN' tag is used as shorthand for
+setting the compatibility level to NN using one of the following
+mechanisms.  For versions prior to bash-5.0, the compatibility level may be
+set using the corresponding compatNN shopt option.  For bash-4.3 and later
+versions, the BASH_COMPAT variable is preferred, and it is required for
+bash-5.1 and later versions. 
+
+compat31
+	- the < and > operators to the [[ command do not consider the current
+	  locale when comparing strings; they use ASCII ordering
+	- quoting the rhs of the [[ command's regexp matching operator (=~)
+	  has no special effect
+
+compat32
+	- the < and > operators to the [[ command do not consider the current
+	  locale when comparing strings; they use ASCII ordering
+	- interrupting a command list such as "a ; b ; c" causes the execution
+	  of the next command in the list (in bash-4.0 and later versions,
+	  the shell acts as if it received the interrupt, so interrupting
+	  one command in a list aborts the execution of the entire list)
+
+compat40
+	- the < and > operators to the [[ command do not consider the current
+	  locale when comparing strings; they use ASCII ordering.
+	  Bash versions prior to bash-4.1 use ASCII collation and strcmp(3);
+	  bash-4.1 and later use the current locale's collation sequence and
+	  strcoll(3).
+
+compat41
+	- in posix mode, `time' may be followed by options and still be
+	  recognized as a reserved word (this is POSIX interpretation 267)
+	- in posix mode, the parser requires that an even number of single
+	  quotes occur in the `word' portion of a double-quoted ${...}
+	  parameter expansion and treats them specially, so that characters
+	  within the single quotes are considered quoted (this is POSIX
+	  interpretation 221)
+
+compat42
+	- the replacement string in double-quoted pattern substitution is not
+	  run through quote removal, as it is in versions after bash-4.2
+	- in posix mode, single quotes are considered special when expanding
+	  the `word' portion of a double-quoted ${...} parameter expansion
+	  and can be used to quote a closing brace or other special character
+	  (this is part of POSIX interpretation 221); in later versions,
+	  single quotes are not special within double-quoted word expansions
+
+compat43
+	- the shell does not print a warning message if an attempt is made to
+	  use a quoted compound assignment as an argument to declare
+	  (declare -a foo='(1 2)'). Later versions warn that this usage is
+	  deprecated.
+	- word expansion errors are considered non-fatal errors that cause the
+	  current command to fail, even in posix mode (the default behavior is
+	  to make them fatal errors that cause the shell to exit)
+	- when executing a shell function, the loop state (while/until/etc.)
+	  is not reset, so `break' or `continue' in that function will break
+	  or continue loops in the calling context. Bash-4.4 and later reset
+	  the loop state to prevent this
+
+compat44
+	- the shell sets up the values used by BASH_ARGV and BASH_ARGC so
+	  they can expand to the shell's positional parameters even if extended
+	  debug mode is not enabled
+	- a subshell inherits loops from its parent context, so `break'
+	  or `continue' will cause the subshell to exit. Bash-5.0 and later
+	  reset the loop state to prevent the exit
+	- variable assignments preceding builtins like export and readonly
+	  that set attributes continue to affect variables with the same
+	  name in the calling environment even if the shell is not in posix
+	  mode
+
+compat50 (set using BASH_COMPAT)
+	- Bash-5.1 changed the way $RANDOM is generated to introduce slightly
+	  more randomness. If the shell compatibility level is set to 50 or
+	  lower, it reverts to the method from bash-5.0 and previous versions,
+	  so seeding the random number generator by assigning a value to
+	  RANDOM will produce the same sequence as in bash-5.0
+	- If the command hash table is empty, bash versions prior to bash-5.1
+	  printed an informational message to that effect even when writing
+	  output in a format that can be reused as input (-l). Bash-5.1
+	  suppresses that message if -l is supplied
+	- Bash-5.1 and later use pipes for here-documents and here-strings if
+	  they are smaller than the pipe capacity. If the shell compatibility
+	  level is set to 50 or lower, it reverts to using temporary files.
+
+compat51 (set using BASH_COMPAT)
+	- The `unset' builtin will unset the array a given an argument like
+	  `a[@]'. Bash-5.2 will unset an element with key `@' (associative
+	  arrays) or remove all the elements without unsetting the array
+	  (indexed arrays)
+	- arithmetic commands ( ((...)) ) and the expressions in an arithmetic
+	  for statement can be expanded more than once
+	- expressions used as arguments to arithmetic operators in the [[
+	  conditional command can be expanded more than once
+	- indexed and associative array subscripts used as arguments to the
+	  operators in the [[ conditional command (e.g., `[[ -v') can be
+	  expanded more than once. Bash-5.2 behaves as if the
+	  `assoc_expand_once' option were enabled.
+	- the expressions in substring parameter brace expansion can be
+	  expanded more than once
+	- the expressions in the $(( ... )) word expansion can be expanded
+	  more than once
+	- arithmetic expressions used as indexed array subscripts can be
+	  expanded more than once;
+	- `test -v', when given an argument of A[@], where A is an existing
+	  associative array, will return true if the array has any set
+	  elements. Bash-5.2 will look for a key named `@';
+	- the ${param[:]=value} word expansion will return VALUE, before any
+	  variable-specific transformations have been performed (e.g.,
+	  converting to lowercase). Bash-5.2 will return the final value
+	  assigned to the variable, as POSIX specifies;
+	- Parsing command substitutions will act as if extended glob is
+	  enabled, so that parsing a command substitution containing an extglob
+	  pattern (say, as part of a shell function) will not fail. This
+	  assumes the intent is to enable extglob before the command is
+	  executed and word expansions are performed. It will fail at word
+	  expansion time if extglob hasn't been enabled by the time the
+	  command is executed.
+
+-------------------------------------------------------------------------------
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.

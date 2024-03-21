@@ -1,0 +1,175 @@
+@c This file contains the entry for the -w/--debug-dump (readelf) and
+@c  -W/--dwarf (objdump) option that is common to both readelf and objdump.
+
+Displays the contents of the DWARF debug sections in the file, if any
+are present.  Compressed debug sections are automatically decompressed
+(temporarily) before they are displayed.  If one or more of the
+optional letters or words follows the switch then only those type(s)
+of data will be dumped.  The letters and words refer to the following
+information:
+
+@c Please Keep This Table Alpha Sorted.
+@table @code
+@item a
+@itemx =abbrev
+Displays the contents of the @samp{.debug_abbrev} section.
+
+@item A
+@itemx =addr
+Displays the contents of the @samp{.debug_addr} section.
+
+@item c
+@itemx =cu_index
+Displays the contents of the @samp{.debug_cu_index} and/or
+@samp{.debug_tu_index} sections.
+
+@item f
+@itemx =frames
+Display the raw contents of a @samp{.debug_frame} section.
+
+@item F
+@item =frames-interp
+Display the interpreted contents of a @samp{.debug_frame} section.
+
+@item g
+@itemx =gdb_index
+Displays the contents of the @samp{.gdb_index} and/or
+@samp{.debug_names} sections.
+
+@item i
+@itemx =info
+Displays the contents of the @samp{.debug_info} section.  Note: the
+output from this option can also be restricted by the use of the 
+@option{--dwarf-depth} and @option{--dwarf-start} options.
+
+@item k
+@itemx =links
+Displays the contents of the @samp{.gnu_debuglink},
+@samp{.gnu_debugaltlink} and @samp{.debug_sup} sections, if any of
+them are present.  Also displays any links to separate dwarf object
+files (dwo), if they are specified by the DW_AT_GNU_dwo_name or
+DW_AT_dwo_name attributes in the @samp{.debug_info} section.
+
+@item K
+@itemx =follow-links
+Display the contents of any selected debug sections that are found in
+linked, separate debug info file(s).  This can result in multiple
+versions of the same debug section being displayed if it exists in
+more than one file.
+
+In addition, when displaying DWARF attributes, if a form is found that
+references the separate debug info file, then the referenced contents
+will also be displayed.
+
+Note - in some distributions this option is enabled by default.  It
+can be disabled via the @option{N} debug option.  The default can be
+chosen when configuring the binutils via the
+@option{--enable-follow-debug-links=yes} or
+@option{--enable-follow-debug-links=no} options.  If these are not
+used then the default is to enable the following of debug links.
+
+Note - if support for the debuginfod protocol was enabled when the
+binutils were built then this option will also include an attempt to
+contact any debuginfod servers mentioned in the @var{DEBUGINFOD_URLS}
+environment variable.  This could take some time to resolve.  This
+behaviour can be disabled via the @option{=do-not-use-debuginfod} debug
+option.
+
+@item N
+@itemx =no-follow-links
+Disables the following of links to separate debug info files.
+
+@item D
+@itemx =use-debuginfod
+Enables contacting debuginfod servers if there is a need to follow
+debug links.  This is the default behaviour.
+
+@item E
+@itemx =do-not-use-debuginfod
+Disables contacting debuginfod servers when there is a need to follow
+debug links.
+
+@item l
+@itemx =rawline
+Displays the contents of the @samp{.debug_line} section in a raw
+format.
+
+@item L
+@item =decodedline
+Displays the interpreted contents of the @samp{.debug_line} section.
+
+@item m
+@itemx =macro
+Displays the contents of the @samp{.debug_macro} and/or
+@samp{.debug_macinfo} sections.
+
+@item o
+@itemx =loc
+Displays the contents of the @samp{.debug_loc} and/or
+@samp{.debug_loclists} sections.
+
+@item O
+@itemx =str-offsets
+Displays the contents of the @samp{.debug_str_offsets} section.
+
+@item p
+@itemx =pubnames
+Displays the contents of the @samp{.debug_pubnames} and/or
+@samp{.debug_gnu_pubnames} sections.
+
+@item r
+@itemx =aranges
+Displays the contents of the @samp{.debug_aranges} section.
+
+@item R
+@itemx =Ranges
+Displays the contents of the @samp{.debug_ranges} and/or
+@samp{.debug_rnglists} sections.
+
+@item s
+@itemx =str
+Displays the contents of the @samp{.debug_str}, @samp{.debug_line_str}
+and/or @samp{.debug_str_offsets} sections.
+
+@item t
+@itemx =pubtype
+Displays the contents of the @samp{.debug_pubtypes} and/or
+@samp{.debug_gnu_pubtypes} sections.
+
+@item T
+@itemx =trace_aranges
+Displays the contents of the @samp{.trace_aranges} section.
+
+@item u
+@itemx =trace_abbrev
+Displays the contents of the @samp{.trace_abbrev} section.
+
+@item U
+@itemx =trace_info
+Displays the contents of the @samp{.trace_info} section.
+
+@end table
+
+Note: displaying the contents of @samp{.debug_static_funcs},
+@samp{.debug_static_vars} and @samp{debug_weaknames} sections is not
+currently supported.
+
+@item --dwarf-depth=@var{n}
+Limit the dump of the @code{.debug_info} section to @var{n} children.
+This is only useful with @option{--debug-dump=info}.  The default is
+to print all DIEs; the special value 0 for @var{n} will also have this
+effect.
+
+With a non-zero value for @var{n}, DIEs at or deeper than @var{n}
+levels will not be printed.  The range for @var{n} is zero-based.
+
+@item --dwarf-start=@var{n}
+Print only DIEs beginning with the DIE numbered @var{n}.  This is only
+useful with @option{--debug-dump=info}.
+
+If specified, this option will suppress printing of any header
+information and all DIEs before the DIE numbered @var{n}.  Only
+siblings and children of the specified DIE will be printed.
+
+This can be used in conjunction with @option{--dwarf-depth}.
+

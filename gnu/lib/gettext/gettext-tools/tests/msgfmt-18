@@ -1,0 +1,35 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test accelerators.
+
+cat <<\EOF > mf-18.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU bison\n"
+"PO-Revision-Date: 2001-04-05 19:47+0200\n"
+"Last-Translator: ABC DEF <abc@gnu.uucp>\n"
+"Language-Team: test <test@li.org>\n"
+"Language: test\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Open &File"
+msgstr "Open File"
+
+msgid "Show _Help"
+msgstr "Show Help"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check-accelerators -o /dev/null mf-18.po 2>/dev/null
+test $? = 1 || { Exit 1; }
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check-accelerators='_' -o /dev/null mf-18.po 2>/dev/null
+test $? = 1 || { Exit 1; }

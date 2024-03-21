@@ -1,0 +1,195 @@
+@c Copyright (C) 2012-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+@ifset GENERIC
+@page
+@node C-SKY-Dependent
+@chapter C-SKY Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter C-SKY Dependent Features
+@end ifclear
+
+@cindex C-SKY support
+@menu
+* C-SKY Options::              Options
+* C-SKY Syntax::               Syntax
+@end menu
+
+@node C-SKY Options
+@section Options
+@cindex C-SKY options
+@cindex options for C-SKY
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @code{march} command-line option, C-SKY
+@item -march=@var{archname}
+Assemble for architecture @var{archname}.  The @option{--help} option
+lists valid values for @var{archname}.
+
+@cindex @code{mcpu} command-line option, C-SKY
+@item -mcpu=@var{cpuname}
+Assemble for architecture @var{cpuname}.  The @option{--help} option
+lists valid values for @var{cpuname}.
+
+@cindex @code{EL} command-line option, C-SKY
+@cindex @code{mlittle-endian} command-line option, C-SKY
+@item -EL
+@itemx -mlittle-endian
+Generate little-endian output.
+
+@cindex @code{EB} command-line option, C-SKY
+@cindex @code{mbig-endian} command-line option, C-SKY
+@item -EB
+@itemx -mbig-endian
+Generate big-endian output.
+
+@cindex @code{fpic} command-line option, C-SKY
+@cindex @code{pic} command-line option, C-SKY
+@item -fpic
+@itemx -pic
+Generate position-independent code.
+
+@cindex @code{mljump} command-line option, C-SKY
+@cindex @code{mno-ljump} command-line option, C-SKY
+@item -mljump
+@itemx -mno-ljump
+Enable/disable transformation of the short branch instructions
+@code{jbf}, @code{jbt}, and @code{jbr} to @code{jmpi}.
+This option is for V2 processors only.
+It is ignored on CK801 and CK802 targets, which do not support the @code{jmpi}
+instruction, and is enabled by default for other processors.
+
+@cindex @code{mbranch-stub} command-line option, C-SKY
+@cindex @code{mno-branch-stub} command-line option, C-SKY
+@item -mbranch-stub
+@itemx -mno-branch-stub
+Pass through @code{R_CKCORE_PCREL_IMM26BY2} relocations for @code{bsr}
+instructions to the linker.
+
+This option is only available for bare-metal C-SKY V2 ELF targets,
+where it is enabled by default.  It cannot be used in code that will be
+dynamically linked against shared libraries.
+
+@cindex @code{force2bsr} command-line option, C-SKY
+@cindex @code{mforce2bsr} command-line option, C-SKY
+@cindex @code{no-force2bsr} command-line option, C-SKY
+@cindex @code{mno-force2bsr} command-line option, C-SKY
+@item -force2bsr
+@itemx -mforce2bsr
+@itemx -no-force2bsr
+@itemx -mno-force2bsr
+Enable/disable transformation of @code{jbsr} instructions to @code{bsr}.
+This option is always enabled (and @option{-mno-force2bsr} is ignored)
+for CK801/CK802 targets.  It is also always enabled when
+@option{-mbranch-stub} is in effect.
+
+@cindex @code{jsri2bsr} command-line option, C-SKY
+@cindex @code{mjsri2bsr} command-line option, C-SKY
+@cindex @code{no-jsri2bsr} command-line option, C-SKY
+@cindex @code{mno-jsri2bsr} command-line option, C-SKY
+@item -jsri2bsr
+@itemx -mjsri2bsr
+@itemx -no-jsri2bsr
+@itemx -mno-jsri2bsr
+Enable/disable transformation of @code{jsri} instructions to @code{bsr}.
+This option is enabled by default.
+
+@cindex @code{mnolrw} command-line option, C-SKY
+@cindex @code{mno-lrw} command-line option, C-SKY
+@item -mnolrw
+@itemx -mno-lrw
+Enable/disable transformation of @code{lrw} instructions into a
+@code{movih}/@code{ori} pair.
+
+@cindex @code{melrw} command-line option, C-SKY
+@cindex @code{mno-elrw} command-line option, C-SKY
+@item -melrw
+@itemx -mno-elrw
+Enable/disable extended @code{lrw} instructions.
+This option is enabled by default for CK800-series processors.
+
+@cindex @code{mlaf} command-line option, C-SKY
+@cindex @code{mliterals-after-func} command-line option, C-SKY
+@cindex @code{mno-laf} command-line option, C-SKY
+@cindex @code{mno-literals-after-func} command-line option, C-SKY
+@item -mlaf
+@itemx -mliterals-after-func
+@itemx -mno-laf
+@itemx -mno-literals-after-func
+Enable/disable placement of literal pools after each function.
+
+@cindex @code{mlabr} command-line option, C-SKY
+@cindex @code{mliterals-after-br} command-line option, C-SKY
+@cindex @code{mno-labr} command-line option, C-SKY
+@cindex @code{mnoliterals-after-br} command-line option, C-SKY
+@item -mlabr
+@itemx -mliterals-after-br
+@itemx -mno-labr
+@itemx -mnoliterals-after-br
+Enable/disable placement of literal pools after unconditional branches.
+This option is enabled by default.
+
+@cindex @code{mistack} command-line option, C-SKY
+@cindex @code{mno-istack} command-line option, C-SKY
+@item -mistack
+@itemx -mno-istack
+Enable/disable interrupt stack instructions.  This option is enabled by
+default on CK801, CK802, and CK802 processors.
+
+@end table
+
+The following options explicitly enable certain optional instructions.
+These features are also enabled implicitly by using @code{-mcpu=} to specify
+a processor that supports it.
+
+@table @gcctabopt
+@cindex @code{mhard-float} command-line option, C-SKY
+@item -mhard-float
+Enable hard float instructions.
+
+@cindex @code{mmp} command-line option, C-SKY
+@item -mmp
+Enable multiprocessor instructions.
+
+@cindex @code{mcp} command-line option, C-SKY
+@item -mcp
+Enable coprocessor instructions.
+
+@cindex @code{mcache} command-line option, C-SKY
+@item -mcache
+Enable cache prefetch instruction.
+
+@cindex @code{msecurity} command-line option, C-SKY
+@item -msecurity
+Enable C-SKY security instructions.
+
+@cindex @code{mtrust} command-line option, C-SKY
+@item -mtrust
+Enable C-SKY trust instructions.
+
+@cindex @code{mdsp} command-line option, C-SKY
+@item -mdsp
+Enable DSP instructions.
+
+@cindex @code{medsp} command-line option, C-SKY
+@item -medsp
+Enable enhanced DSP instructions.
+
+@cindex @code{mvdsp} command-line option, C-SKY
+@item -mvdsp
+Enable vector DSP instructions.
+
+@end table
+@c man end
+
+@node C-SKY Syntax
+@section Syntax
+
+@code{@value{AS}} implements the standard C-SKY assembler syntax
+documented in the
+@cite{C-SKY V2 CPU Applications Binary Interface Standards Manual}.

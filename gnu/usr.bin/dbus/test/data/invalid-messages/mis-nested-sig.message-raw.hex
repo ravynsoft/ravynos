@@ -1,0 +1,26 @@
+# Copyright 2022 Evgeny Vereshchagin
+# Copyright 2022 Collabora Ltd.
+# SPDX-License-Identifier: MIT
+#
+# Simplified from fuzzer output (see issue418.message-raw.hex).
+#
+# To output as binary:
+# sed -e 's/#.*//' test/data/invalid-messages/mis-nested-sig.message-raw.hex |
+# xxd -p -r - test/data/invalid-messages/mis-nested-sig.message-raw
+
+# Offset % 0x10:
+# 0001 0203 0405 0607 0809 0a0b 0c0d 0e0f
+
+  6c                                       # little-endian
+    ff                                     # an undefined message type
+       00                                  # flags
+         01                                # major protocol version 1
+            0000 0000                      # message body is 0 bytes
+                      0100 0000            # serial number 1
+                                1800 0000  # header is an array of 0x18 bytes of struct (yv)
+  ff                                       # header field code 0xff (an undefined header)
+    15                                     # signature is 0x15 = 21 bytes
+       2874 617b 7961 7b64 617b 7961 7b79  # "(ta{ya{da{ya{y"...
+  6171 7d7d 7d29 7d00                      # "aq}}})}" \0
+
+#sha1 90533a4ddb9aa5e82c67789a5624762367620b24

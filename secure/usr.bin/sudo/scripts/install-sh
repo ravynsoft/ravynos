@@ -1,0 +1,239 @@
+#! /bin/sh
+
+## (From INN-1.4, written by Rich Salz)
+##  $Revision$
+##  A script to install files and directories.
+
+PROGNAME=`basename $0`
+
+##  Paths to programs.  CHOWN, STRIP and WHOAMI are checked below.
+CHOWN=chown
+CHGRP=chgrp
+CHMOD=chmod
+CP=cp
+LN=ln
+MKDIR=mkdir
+MV=mv
+RM=rm
+STRIP=strip
+WHOAMI="echo root"
+
+##  Some systems don't support -x, so we have to use -f.
+for d in /sbin /etc /usr/sbin /usr/etc; do
+    if [ -f $d/chown ]; then
+	CHOWN=${d}/chown
+	break
+    fi
+done
+
+for d in /usr/bin /bin /usr/ucb /usr/bsd; do
+    if [ -f $d/whoami ]; then
+	WHOAMI=${d}/whoami
+	break
+    elif [ -f $d/id ]; then
+	WHOAMI=${d}/id | sed -n 's/^[^(]*(\([^)]*\)).*/\1/p'
+    fi
+done
+
+for d in /usr/ccs/bin /usr/bin /bin; do
+    if [ -f $d/strip ]; then
+	STRIP=${d}/strip
+	break
+    fi
+done
+
+##  Defaults.
+CHOWNIT=false
+CHGROUPIT=false
+CHMODIT=false
+STRIPIT=false
+BACKIT=false
+TOUCHIT=true
+DIRMODE=false
+
+# INSTALL_BACKUP is like -b but for use with libtool
+if test X"${INSTALL_BACKUP}" != X""; then
+    BACKIT=true
+    BACKUP="${INSTALL_BACKUP}"
+fi
+
+case `${WHOAMI}` in
+root)
+    ROOT=true
+    ;;
+*)
+    ROOT=false
+    ;;
+esac
+
+##  Process JCL.
+MORETODO=true
+while ${MORETODO} ; do
+    case X"$1" in
+    X-b)
+	BACKIT=true
+	BACKUP="$2"
+	shift
+	;;
+    X-b*)
+	BACKIT=true
+	BACKUP="`echo \"$1\" | sed 's/^..//'`"
+	;;
+    X-c)
+	# backward compatibility
+	;;
+    X-d)
+	DIRMODE=true
+	;;
+    X-g)
+	GROUP="$2"
+	CHGROUPIT=true
+	shift
+	;;
+    X-g*)
+	GROUP="`echo \"$1\" | sed 's/^..//'`"
+	CHGROUPIT=true
+	;;
+    X-G)
+	GROUP="$2"
+	shift
+	${ROOT} && CHGROUPIT=true
+	;;
+    X-G*)
+	if ${ROOT} ; then
+	    GROUP="`echo \"$1\" | sed 's/^..//'`"
+	    CHGROUPIT=true
+	fi
+	;;
+    X-m)
+	MODE="$2"
+	CHMODIT=true
+	shift
+	;;
+    X-m*)
+	MODE="`echo \"$1\" | sed 's/^..//'`"
+	CHMODIT=true
+	;;
+    X-M)
+	MODE="$2"
+	${ROOT} && CHMODIT=true
+	shift
+	;;
+    X-M*)
+	MODE="`echo \"$1\" | sed 's/^..//'`"
+	${ROOT} && CHMODIT=true
+	;;
+    X-n)
+	TOUCHIT=false
+	;;
+    X-o)
+	OWNER="$2"
+	CHOWNIT=true
+	shift
+	;;
+    X-o*)
+	OWNER="`echo \"$1\" | sed 's/^..//'`"
+	CHOWNIT=true
+	;;
+    X-O)
+	OWNER="$2"
+	shift
+	${ROOT} && CHOWNIT=true
+	;;
+    X-O*)
+	if ${ROOT} ; then
+	    OWNER="`echo \"$1\" | sed 's/^..//'`"
+	    CHOWNIT=true
+	fi
+	;;
+    X-s)
+	STRIPIT=true
+	;;
+    X--)
+	shift
+	MORETODO=false
+	;;
+    X-*)
+	echo "${PROGNAME}:  Unknown flag $1" 1>&2
+	exit 1
+	;;
+    *)
+	MORETODO=false
+	;;
+    esac
+    ${MORETODO} && shift
+done
+
+##  Making a directory?
+if ${DIRMODE} ; then
+    while test $# != 0; do
+	DEST="$1"
+	if [ ! -d "${DEST}" ] ; then
+	    ${MKDIR} "${DEST}" || exit 1
+	fi
+	if ${CHOWNIT} ; then
+	    ${CHOWN} "${OWNER}" "${DEST}" || exit 1
+	fi
+	if ${CHGROUPIT} ; then
+	    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
+	fi
+	if ${CHMODIT} ; then
+	    ${CHMOD} "${MODE}"  "${DEST}" || exit 1
+	fi
+	shift;
+    done
+    exit 0
+fi
+
+##  Process arguments.
+if [ $# -ne 2 ] ; then
+    echo "Usage:  ${PROGNAME} [flags] source destination"
+    exit 1
+fi
+
+##  Get the destination and a temp file in the destination directory.
+if [ -d "$2" ] ; then
+    DEST="$2/`basename $1`"
+    TEMP="$2/$$.tmp"
+else
+    DEST="$2"
+    TEMP="`expr "$2" : '\(.*\)/.*'`/$$.tmp"
+fi
+
+##  If not given the same name, we must try to copy.
+if [ X"$1" != X"$2" ] ; then
+    if cmp -s "$1" "${DEST}" ; then
+	##  Files are same; touch or not.
+	${TOUCHIT} && touch "${DEST}"
+    else
+	##  If destination exists and we wish to backup, link to backup.
+	if [ -f "${DEST}" ] ; then
+	    if ${BACKIT} ; then
+		${RM} -f "${DEST}${BACKUP}"
+		${LN} "${DEST}" "${DEST}${BACKUP}"
+	    fi
+	fi
+	##  Copy source to the right dir, then move to right spot.
+	##  Done in two parts so we can hope for atomicity.
+	##  We need to rm DEST due to bugs in "mv -f" on some systems.
+	${RM} -f "${TEMP}" || exit 1
+	${CP} "$1" "${TEMP}" || exit 1
+	${RM} -f "${DEST}" || exit 1
+	${MV} -f "${TEMP}" "${DEST}" || exit 1
+    fi
+fi
+
+##  Strip and set the owner/mode.
+if ${STRIPIT} ; then
+    ${STRIP} "${DEST}" || exit 1
+fi
+if ${CHOWNIT} ; then
+    ${CHOWN} "${OWNER}" "${DEST}" || exit 1
+fi
+if ${CHGROUPIT} ; then
+    ${CHGRP} "${GROUP}" "${DEST}" || exit 1
+fi
+if ${CHMODIT} ; then
+    ${CHMOD} "${MODE}" "${DEST}" || exit 1
+fi
+exit 0

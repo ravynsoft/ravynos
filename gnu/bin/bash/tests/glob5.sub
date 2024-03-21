@@ -1,0 +1,78 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+[ $UID -eq 0 ] && { echo "glob5.sub: the test suite should not be run as root" >&2 ; }
+
+ORIGD=$PWD
+: ${TMPDIR:=/var/tmp}
+
+SD=$TMPDIR/bash-glob-$$
+[ -d $SD ] || mkdir $SD
+builtin cd $SD || { echo "glob5.sub: cannot change directory to $SD" >&2 ; exit 1; }
+mkdir tmp
+
+D=./tmp/a
+D1='./t\mp/a'
+
+mkdir -m700 ./tmp/a ./tmp/a/b
+touch ./tmp/a/b/c
+
+echo ./tmp/a/b/* "./tmp/a/"b/* "./tmp/a/b"/*
+
+chmod -r ./tmp/a            
+echo ./tmp/a/b/* "./tmp/a/"b/* "./tmp/a/b"/*
+echo "./tmp/a/b"/*
+
+bs=\\
+echo ./tmp${bs}/a/b/*
+echo ./tmp${bs}/a/b/c
+echo ./tm[p]${bs}/a/b/c
+echo ./t${bs}mp/a/b/*
+
+recho "./tmp/a"/*
+recho "$D"/*
+recho "$D"/b/*
+
+recho $D/*
+recho $D/b/*
+recho $D1/*
+recho $D1/b/*
+recho $D/
+recho $D/b/
+recho $D1/
+recho $D1/b/
+
+recho ./t\mp/a/*
+recho ./t\mp/a/b/*
+
+recho ./tmp/a*
+recho ./tmp/a/b*
+recho ./t\mp/a*
+recho ./t\mp/a/b*
+
+recho ./t\mp/
+
+chmod +r ./tmp/a
+rm -rf ./tmp/a
+
+a='$foo'
+b='$bar'
+a=$(echo "$a" | sed 's/\$/\\$/g')
+
+recho $a "$a"
+recho 'mixed'$a/
+
+unset a b
+
+cd $ORIGD
+rm -rf $SD

@@ -1,0 +1,68 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --update: nothing changed; don't normalize second message
+
+cat <<\EOF > mm-u-1.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cog_training 1.0\n"
+"POT-Creation-Date: 2001-04-29 22:40+0200\n"
+"PO-Revision-Date: 2001-04-29 21:19+02:00\n"
+"Last-Translator: Felix N. <xyz@zyx.uucp>\n"
+"Language-Team: German <de@li.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: cogarithmetic.cc:12
+msgid "white"
+msgstr "weiﬂ"
+
+# stay away from normalizing
+#: cogarithmetic.cc:12
+msgid "black"
+msgstr ""
+"schwarz"
+EOF
+
+cat <<EOF > mm-u-1.pot
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2001-04-29 22:40+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: cogarithmetic.cc:12
+msgid "white"
+msgstr ""
+
+#: cogarithmetic.cc:12
+msgid "black"
+msgstr ""
+EOF
+
+cp mm-u-1.po mm-u-1.bak
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q --update mm-u-1.po mm-u-1.pot || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mm-u-1.bak mm-u-1.po
+result=$?
+
+exit $result

@@ -1,0 +1,141 @@
+#compdef sbuild
+
+_sbuild_distributions() {
+  _deb_codenames
+  compadd "$@" -- unstable
+}
+
+_deb_identities() {
+  local identity
+
+  if [[ -n "${DEBEMAIL}" ]]; then
+    if [[ -n "${DEBFULLNAME}" ]]; then
+      identity="${DEBFULLNAME} <${DEBEMAIL}>"
+    else
+      identity="${DEBEMAIL}"
+    fi
+    compadd "$@" -- "${identity}"
+  fi
+}
+
+_sbuild_signing_keys() {
+  local -a expl lines uids
+  local line
+
+  lines=( ${(M)${(f)"$(_call_program keys gpg -K --with-colons)"}:#uid:u*} )
+
+  for line in "${lines[@]}"; do
+    uids+=("${${(s.:.)line}[5][(ws:<:)2,(ws:>:)1]}")
+  done
+
+  _description keys expl "gpg key"
+  compadd "$@" "$expl[@]" -- "${uids[@]}"
+}
+
+_sbuild() {
+  _arguments \
+    '(-h --help)'{-h,--help}'[show help message]' \
+    '(-V --version)'{-V,--version}'[show version information]' \
+    '(-D --debug)'{-D,--debug}'[enable debug output]' \
+    '--add-depends=[add dependencies to source package]:packages' \
+    '--add-conflicts=[add conflicts to source package]:packages' \
+    '--add-depends-arch=[add arch dependencies to source package]:packages' \
+    '--add-conflicts-arch=[add arch conflicts to source package]:packages' \
+    '--add-depends-indep=[add indep dependencies to source package]:packages' \
+    '--add-conflicts-indep=[add indep conflicts to source package]:packages' \
+    '--arch=[architecture]:architecture:_deb_architectures' \
+    '--host=[host architecture]:architecture:_deb_architectures' \
+    '--build=[build architecture]:architecture:_deb_architectures' \
+    '(-A --arch-all --no-arch-all)'{-A,--arch-all}'[build Architecture: all packages]' \
+    '(-A --arch-all --no-arch-all)--no-arch-all[do not build Architecture: all packages]' \
+    '(--arch-any --no-arch-any)--arch-any[build Architecture: any packages]' \
+    '(--arch-any --no-arch-any)--no-arch-any[do not build Architecture: any packages]' \
+    '(-b --batch)'{-b,--batch}'[operate in batchmode]' \
+    '(-c --chroot)'{-c=,--chroot=}'[chroot to use]:chroot' \
+    '(--chroot-mode)--chroot-mode=[chroot mode]:mode:(schroot sudo autopkgtest unshare)' \
+    '(-d --dist)'{-d=,--dist=}'[distribution]:distribution:_sbuild_distributions' \
+    '--archive=[use specified archive]' \
+    '(--apt-clean --no-apt-clean)--apt-clean[force apt-get clean]' \
+    '(--apt-clean --no-apt-clean)--no-apt-clean[do not apt-get clean]' \
+    '(--apt-upgrade --no-apt-upgrade)--apt-upgrade[force apt-get upgrade]' \
+    '(--apt-upgrade --no-apt-upgrade)--no-apt-upgrade[do not apt-get upgrade]' \
+    '(--apt-distupgrade --no-apt-distupgrade)--apt-distupgrade[force apt-get distupgrade]' \
+    '(--apt-distupgrade --no-apt-distupgrade)--no-apt-distupgrade[do not apt-get distupgrade]' \
+    '(-m --maintainer)'{-m=,--maintainer=}'[maintainer field for .changes]:maintainer:_deb_identities' \
+    '(-e --uploader)'{-e=,--uploader=}'[uploader field for .changes]:uploader:_deb_identities' \
+    '(-k --keyid)'{-k=,--keyid=}'[GPG Key to sign packages]: :_sbuild_signing_keys' \
+    '(-j --jobs)'{-j=,--jobs=}'[jobs to run simultaneously]:number of jobs' \
+    '--debbuildopt=[option to dpkg-buildpackage]:option' \
+    '--debbuildopts=[options to dpkg-buildpackage]:options' \
+    '--dpkg-source-opt=[option to dpkg-source]:option' \
+    '--dpkg-source-opts=[options to dpkg-source]:options' \
+    '--mail-log-to=[send log to mail]:recipient:_email_addresses -c' \
+    '--mailfrom=[mail from]:sender:_email_addresses -c' \
+    '(-n --nolog)'{-n,--nolog}'[no build log file]' \
+    '--profiles=[profiles for dpkg-buildpackage]:profile list (comma separated)' \
+    '(-p --purge)'{-p=,--purge=}'[purge mode]:purge mode:(never successful always)' \
+    '--purge-build=[build purge mode]:purge mode:(never successful always)' \
+    '--purge-deps=[deps purge mode]:purge mode:(never successful always)' \
+    '--purge-session=[session purge mode]:purge mode:(never successful always)' \
+    '(-s --source --no-source)'{-s,--source}'[build source package]' \
+    '(-s --source --no-source)--no-source[do not build source package]' \
+    '--force-orig-source[force orig.tar.gz in .changes]' \
+    '--use-snapshot[use latest gcc snapshot]' \
+    '(-v --verbose)'{-v,--verbose}'[be verbose]' \
+    '(-q --quiet)'{-q,--quiet}'[be quiet]' \
+    '--make-binNMU=[create binNMU with changelog entry]:changelog entry' \
+    '--binNMU=[binNMU version]:version' \
+    '--append-to-version=[append string to version]:string' \
+    '--binNMU-timestamp=[binNMU timestamp]:timestamp' \
+    '--binNMU-changelog=[use this file as binNMU changelog]:file:_files' \
+    '--build-dir=[build directory]:directory:_files -/' \
+    '(--clean-source --no-clean-source)--clean-source[clean inside an unpacked source tree]' \
+    '(--clean-source --no-clean-source)--no-clean-source[do not clean inside an unpacked source tree]' \
+    '(--run-lintian --no-run-lintian)--run-lintian[run lintian]' \
+    '(--run-lintian --no-run-lintian)--no-run-lintian[do not run lintian]' \
+    '(--no-run-lintian --lintian-opt)--lintian-opt=[option for lintian]:option' \
+    '(--no-run-lintian --lintian-opts)--lintian-opts=[options for lintian]:options' \
+    '(--run-piuparts --no-run-piuparts)--run-piuparts[run piuparts]' \
+    '(--run-piuparts --no-run-piuparts)--no-run-piuparts[do not run piuparts]' \
+    '(--no-run-piuparts --piuparts-opt)--piuparts-opt=[option for piuparts]:option' \
+    '(--no-run-piuparts --piuparts-opts)--piuparts-opts=[options for piuparts]:options' \
+    '(--no-run-piuparts --piuparts-root-arg)--piuparts-root-arg=[root-argion for piuparts]:argument' \
+    '(--no-run-piuparts --piuparts-root-args)--piuparts-root-args=[root-argions for piuparts]:arguments' \
+    '(--run-autopkgtest --no-run-autopkgtest)--run-autopkgtest[run autopkgtest]' \
+    '(--run-autopkgtest --no-run-autopkgtest)--no-run-autopkgtest[do not run autopkgtest]' \
+    '(--no-run-autopkgtest --autopkgtest-opt)--autopkgtest-opt=[option for autopkgtest]:option' \
+    '(--no-run-autopkgtest --autopkgtest-opts)--autopkgtest-opts=[options for autopkgtest]:options' \
+    '(--no-run-autopkgtest --autopkgtest-root-arg)--autopkgtest-root-arg=[root-argion for autopkgtest]:argument' \
+    '(--no-run-autopkgtest --autopkgtest-root-args)--autopkgtest-root-args=[root-argions for autopkgtest]:arguments' \
+    '--pre-build-commands=[run commands before starting anything]:commands' \
+    '--chroot-setup-commands=[run commands after chroot initialization]:commands' \
+    '--chroot-update-failed-commands=[run commands after chroot update fails]:commands' \
+    '--build-deps-failed-commands=[run commands after installing build deps fails]:commands' \
+    '--starting-build-commands=[run commands after dependencies are installed]:commands' \
+    '--finished-build-commands=[run commands after package is built]:commands' \
+    '--build-failed-commands=[run commands after dpkg-buildpackage fails]:commands' \
+    '--chroot-cleanup-commands=[run commands after chroot cleanup]:commands' \
+    '--post-build-commands=[run commands after package is built successfully]:commands' \
+    '--post-build-failed-commands[run commands after package failed to build]:commands' \
+    '--anything-failed-commands=[run commands for all --xxx-failed-commands option]:commands' \
+    '--log-external-command-output[external commands output are logged]' \
+    '--log-external-command-error[external commands error output are logged]' \
+    '--build-dep-resolver=[resolver for build dependency]:resolver:(apt aptitude aspcud xapt null)' \
+    '--aspcud-criteria=[Optimization for aspcud]:criteria' \
+    '(--resolve-alternatives --no-resolve-alternatives)--resolve-alternatives[allow alternatives in Build-Depends*]' \
+    '(--resolve-alternatives --no-resolve-alternatives)--no-resolve-alternatives[disallow alternatives in Build-Depends*]' \
+    '--extra-package=[make a package or directory available to the resolver]:package:_files -g "*deb(-.)' \
+    '--extra-repository=[add a repository to the resolver]:url' \
+    '--extra-repository-key=[add key to the resolver]:key:_files -g "*.asc(-.)"' \
+    '--build-path=[place to build the package inside chroot]:path:_files -/' \
+    '--autopkgtest-virt-server=[autopkgtest virtualization server]:type:(schroot lxc chroot qemu ssh)' \
+    '--autopkgtest-virt-server-opt=[option for autopkgtest virtialization server]:option' \
+    '--autopkgtest-virt-server-opts=[options for autopkgtest virtialization server]:options' \
+    '--sbuild-mode=[switch to buildd mode]:mode:(user buildd)' \
+    '--stats-dir=[write stats to directory]:path:_files -/' \
+    '--purge-extra-packages[remove all but strictly required dependencies (experimental)]' \
+    '--bd-uninstallable-explainer=[choose the method to explain why dependencies failed]:method:(dose3 apt)' \
+    '*:dsc file:_files -g "*.dsc(-.)"'
+  }
+
+_sbuild "$@"

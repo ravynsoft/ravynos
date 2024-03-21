@@ -1,0 +1,56 @@
+#compdef lldb
+
+local curcontext=$curcontext state state_descr line expl ret=1
+typeset -A opt_args
+typeset -a opts args
+[[ $EUID = 0 || $_comp_priv_prefix[1] = sudo ]] && opts=( -a )
+
+args=(
+  '*'{-o+,--one-line}'[run one-line lldb command after loading executable]:lldb command: '
+  '*'{-s+,--source}'[run lldb commands from a file after loading executable]:file:_files'
+  '*'{-O+,--one-line-before-file}'[run one-line lldb command before loading executable]:lldb command'
+  '*'{-S+,--source-before-file}'[run lldb commands from a file before loading executable]:file:_files'
+  '(-k --one-line-on-crash)'{-k+,--one-line-on-crash}'[run one-line lldb command if target crashes in batch mode]:lldb command'
+  '(-K --source-on-crash)'{-K+,--source-on-crash}'[run lldb commands from a file if target crashes in batch mode]:file:_files'
+  '(-b --batch)'{-b,--batch}'[run commands from -s -S -o -O and quit]'
+  '(-Q --source-quietly)'{-Q,--source-quietly}'[suppress output from -s, -S, -o or -O]'
+  '(-e --editor)'{-e,--editor}'[open source files using "external editor" mechanism]'
+  '(-x --no-lldbinit)'{-x,--no-lldbinit}'[do not automatically parse .lldbinit files]'
+  '(-X --no-use-colors)'{-X,--no-use-colors}'[do not use colors]'
+  '(-d --debug)'{-d,--debug}'[print extra information for debugging itself]'
+  '(-r --repl)'{-r,--repl}'[run lldb in REPL mode]'
+  '(-l --script-language)'{-l+,--script-language}'[use the specified scripting language]:language:(Python Perl Ruby Tcl)'
+  - info
+    '(-)'{-h,--help}'[print the usage information]'
+    '(-)'{-v,--version}'[print the current version number]'
+    '(-)'{-P,--python-path}'[print path to the lldb.py file]'
+  - file
+    '(-f --file)'{-f+,--file}'[specify executable file to debug]:executable:_files -g "*(-*)"'
+    '(-a --arch)'{-a+,--arch}'[use the specified architecture]:arch'
+    '(-c --core)'{-c+,--core}'[specify core file to open]:core file:_files -g "*core*(-.)"'
+    '*::executable and arguments:->exe_args'
+  - name
+    '(-n --attach-name)'{-n+,--attach-name}"[attach to the named process]: :_process_names $opts"
+    '(-w --wait-for)'{-w,--wait-for}'[wait for the specified process to launch]'
+  - pid
+    '(-p --attach-pid)'{-p+,--attach-pid}'[attach to the specified process]:pid:_pids'
+)
+
+_arguments -C -s -S : $args && return 0
+
+case $state in
+  (exe_args)
+    if [[ -z $opt_args[(I)file-(-f|--file)] ]]; then
+      if [[ $CURRENT -eq 1 ]]; then
+        _wanted executables expl 'executable' _files -g '*(-*)' && ret=0
+      else
+	_normal && ret=0
+      fi
+    else
+      words=( ${(v)opt_args[(i)file-(-f|--file)]} "$words[@]" )
+      (( CURRENT++ ))
+      _normal && ret=0
+    fi
+esac
+
+return ret

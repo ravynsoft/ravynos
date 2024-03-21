@@ -1,0 +1,86 @@
+@c Copyright (C) 2013-2023 Free Software Foundation, Inc.
+@c Contributed by Imagination Technologies Ltd.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+
+@ifset GENERIC
+@page
+@node Meta-Dependent
+@chapter Meta Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter Meta Dependent Features
+@end ifclear
+
+@cindex Meta support
+@menu
+* Meta Options::                Options
+* Meta Syntax::                 Meta Assembler Syntax
+@end menu
+
+@node Meta Options
+@section Options
+
+@cindex options for Meta
+@cindex Meta options
+@cindex architectures, Meta
+@cindex Meta architectures
+
+The Imagination Technologies Meta architecture is implemented in a
+number of versions, with each new version adding new features such as
+instructions and registers. For precise details of what instructions
+each core supports, please see the chip's technical reference manual.
+
+The following table lists all available Meta options.
+
+@c man begin OPTIONS
+@table @code
+@item -mcpu=metac11
+Generate code for Meta 1.1.
+
+@item -mcpu=metac12
+Generate code for Meta 1.2.
+
+@item -mcpu=metac21
+Generate code for Meta 2.1.
+
+@item -mfpu=metac21
+Allow code to use FPU hardware of Meta 2.1.
+
+@end table
+@c man end
+
+@node Meta Syntax
+@section Syntax
+
+@menu
+* Meta-Chars::                Special Characters
+* Meta-Regs::                 Register Names
+@end menu
+
+@node Meta-Chars
+@subsection Special Characters
+
+@cindex line comment character, Meta
+@cindex Meta line comment character
+@samp{!} is the line comment character.
+
+@cindex line separator, Meta
+@cindex statement separator, Meta
+@cindex Meta line separator
+You can use @samp{;} instead of a newline to separate statements.
+
+@cindex symbol names, @samp{$} in
+@cindex @code{$} in symbol names
+Since @samp{$} has no special meaning, you may use it in symbol names.
+
+@node Meta-Regs
+@subsection Register Names
+
+@cindex Meta registers
+@cindex registers, Meta
+Registers can be specified either using their mnemonic names, such as
+@samp{D0Re0}, or using the unit plus register number separated by a @samp{.},
+such as @samp{D0.0}.

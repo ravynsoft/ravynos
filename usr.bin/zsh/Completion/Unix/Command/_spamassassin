@@ -1,0 +1,15 @@
+#compdef spamassassin
+
+_arguments \
+    '-P[pipe to STDOUT]' \
+    '-e[error code on spam]' \
+    '-h[help]' \
+    '-t[test mode]' \
+    '-r[report message as verified spam]' \
+    '-w[set from addr of reply mail]:fromaddr:_user_at_host' \
+    '-l[log to file]:filename:_files' \
+    '-L[perform only local tests]' \
+    '-d[remove SpamAssassin markup]' \
+    '-c[config]:config file:_files' \
+    '-p[score preferences]:preference file:_files' \
+    '-D[diagnostic output]'

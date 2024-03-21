@@ -1,0 +1,12 @@
+#autoload
+
+local distro codenames ret=1
+
+for distro in /usr/share/distro-info/*.csv(N); do
+  # TODO: magic number "6"
+  codenames=( ${(f)"$(<$distro tail -n6 | cut -d, -f3,1)"} )
+  codenames=( ${codenames/(#b)(*),(*)/${match[2]}:${match[1]}} )
+  _describe -V -t codename-${distro:t:r} "${distro:t:r} codenames" codenames && ret=0
+done
+
+return ret

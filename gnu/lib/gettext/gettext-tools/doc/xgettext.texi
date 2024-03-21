@@ -1,0 +1,659 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2023 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex xgettext
+@cindex @code{xgettext} program, usage
+@example
+xgettext [@var{option}] [@var{inputfile}] @dots{}
+@end example
+
+The @code{xgettext} program extracts translatable strings from given
+input files.
+
+@subsection Input file location
+
+@table @samp
+@item @var{inputfile} @dots{}
+Input files.
+
+@item -f @var{file}
+@itemx --files-from=@var{file}
+@opindex -f@r{, @code{xgettext} option}
+@opindex --files-from@r{, @code{xgettext} option}
+Read the names of the input files from @var{file} instead of getting
+them from the command line.
+
+@item -D @var{directory}
+@itemx --directory=@var{directory}
+@opindex -D@r{, @code{xgettext} option}
+@opindex --directory@r{, @code{xgettext} option}
+Add @var{directory} to the list of directories.  Source files are
+searched relative to this list of directories.  The resulting @file{.po}
+file will be written relative to the current directory, though.
+
+@end table
+
+If @var{inputfile} is @samp{-}, standard input is read.
+
+@subsection Output file location
+
+@table @samp
+@item -d @var{name}
+@itemx --default-domain=@var{name}
+@opindex -d@r{, @code{xgettext} option}
+@opindex --default-domain@r{, @code{xgettext} option}
+Use @file{@var{name}.po} for output (instead of @file{messages.po}).
+
+@item -o @var{file}
+@itemx --output=@var{file}
+@opindex -o@r{, @code{xgettext} option}
+@opindex --output@r{, @code{xgettext} option}
+Write output to specified file (instead of @file{@var{name}.po} or
+@file{messages.po}).
+
+@item -p @var{dir}
+@itemx --output-dir=@var{dir}
+@opindex -p@r{, @code{xgettext} option}
+@opindex --output-dir@r{, @code{xgettext} option}
+Output files will be placed in directory @var{dir}.
+
+@end table
+
+@cindex output to stdout, @code{xgettext}
+If the output @var{file} is @samp{-} or @samp{/dev/stdout}, the output
+is written to standard output.
+
+@subsection Choice of input file language
+
+@table @samp
+@item -L @var{name}
+@itemx --language=@var{name}
+@opindex -L@r{, @code{xgettext} option}
+@opindex --language@r{, @code{xgettext} option}
+@cindex supported languages, @code{xgettext}
+Specifies the language of the input files.  The supported languages
+are @code{C}, @code{C++}, @code{ObjectiveC}, @code{PO}, @code{Shell},
+@code{Python}, @code{Lisp}, @code{EmacsLisp}, @code{librep}, @code{Scheme},
+@code{Smalltalk}, @code{Java}, @code{JavaProperties}, @code{C#}, @code{awk},
+@code{YCP}, @code{Tcl}, @code{Perl}, @code{PHP}, @code{Ruby},
+@code{GCC-source}, @code{NXStringTable}, @code{RST}, @code{RSJ}, @code{Glade},
+@code{Lua}, @code{JavaScript}, @code{Vala}, @code{GSettings}, @code{Desktop}.
+
+@item -C
+@itemx --c++
+@opindex -C@r{, @code{xgettext} option}
+@opindex --c++@r{, @code{xgettext} option}
+This is a shorthand for @code{--language=C++}.
+
+@end table
+
+By default the language is guessed depending on the input file name
+extension.
+
+@subsection Input file interpretation
+
+@table @samp
+@item --from-code=@var{name}
+@opindex --from-code@r{, @code{xgettext} option}
+Specifies the encoding of the input files.  This option is needed only
+if some untranslated message strings or their corresponding comments
+contain non-ASCII characters.  Note that Tcl and Glade input files are
+always assumed to be in UTF-8, regardless of this option.
+
+@end table
+
+By default the input files are assumed to be in ASCII.
+
+@subsection Operation mode
+
+@table @samp
+@item -j
+@itemx --join-existing
+@opindex -j@r{, @code{xgettext} option}
+@opindex --join-existing@r{, @code{xgettext} option}
+Join messages with existing file.
+
+@item -x @var{file}
+@itemx --exclude-file=@var{file}
+@opindex -x@r{, @code{xgettext} option}
+@opindex --exclude-file@r{, @code{xgettext} option}
+Entries from @var{file} are not extracted.  @var{file} should be a PO or
+POT file.
+
+@item -c[@var{tag}]
+@itemx --add-comments[=@var{tag}]
+@opindex -c@r{, @code{xgettext} option}
+@opindex --add-comments@r{, @code{xgettext} option}
+Place comment blocks starting with @var{tag} and preceding keyword lines
+in the output file.  Without a @var{tag}, the option means to put @emph{all}
+comment blocks preceding keyword lines in the output file.
+
+Note that comment blocks are only extracted if there is no program code
+between the comment and the string that gets extracted.
+For example, in the following C source code:
+
+@example
+/* This is the first comment.  */
+gettext ("foo");
+
+/* This is the second comment: not extracted  */
+gettext (
+  "bar");
+
+gettext (
+  /* This is the third comment.  */
+  "baz");
+
+/* This is the fourth comment.  */
+
+gettext ("I love blank lines in my programs");
+@end example
+
+@noindent
+the second comment line will not be extracted, because there is a line
+with some tokens between the comment line and the line that contains
+the string.  But the fourth comment is extracted, because between it and
+the line with the string there is merely a blank line.
+
+@item --check[=@var{CHECK}]
+@opindex --check@r{, @code{xgettext} option}
+@cindex supported syntax checks, @code{xgettext}
+Perform a syntax check on msgid and msgid_plural.  The supported checks
+are:
+
+@table @samp
+@item ellipsis-unicode
+Prefer Unicode ellipsis character over ASCII @code{...}
+
+@item space-ellipsis
+Prohibit whitespace before an ellipsis character
+
+@item quote-unicode
+Prefer Unicode quotation marks over ASCII @code{"'`}
+
+@item bullet-unicode
+Prefer Unicode bullet character over ASCII @code{*} or @code{-}
+
+@end table
+
+The option has an effect on all input files.  To enable or disable
+checks for a certain string, you can mark it with an @code{xgettext:}
+special comment in the source file.  For example, if you specify the
+@code{--check=space-ellipsis} option, but want to suppress the check on
+a particular string, add the following comment:
+
+@example
+/* xgettext: no-space-ellipsis-check */
+gettext ("We really want a space before ellipsis here ...");
+@end example
+
+The @code{xgettext:} comment can be followed by flags separated with a
+comma.  The possible flags are of the form @samp{[no-]@var{name}-check},
+where @var{name} is the name of a valid syntax check.  If a flag is
+prefixed by @code{no-}, the meaning is negated.
+
+Some tests apply the checks to each sentence within the msgid, rather
+than the whole string.  xgettext detects the end of sentence by
+performing a pattern match, which usually looks for a period followed by
+a certain number of spaces.  The number is specified with the
+@code{--sentence-end} option.
+
+@item --sentence-end[=@var{TYPE}]
+@opindex --sentence-end@r{, @code{xgettext} option}
+@cindex sentence end markers, @code{xgettext}
+The supported values are:
+
+@table @samp
+@item single-space
+Expect at least one whitespace after a period
+
+@item double-space
+Expect at least two whitespaces after a period
+
+@end table
+
+@end table
+
+@subsection Language specific options
+
+@table @samp
+@item -a
+@itemx --extract-all
+@opindex -a@r{, @code{xgettext} option}
+@opindex --extract-all@r{, @code{xgettext} option}
+Extract all strings.
+
+This option has an effect with most languages, namely C, C++, ObjectiveC,
+Shell, Python, Lisp, EmacsLisp, librep, Java, C#, awk, Tcl, Perl, PHP,
+GCC-source, Glade, Lua, JavaScript, Vala, GSettings.
+
+@item -k[@var{keywordspec}]
+@itemx --keyword[=@var{keywordspec}]
+@opindex -k@r{, @code{xgettext} option}
+@opindex --keyword@r{, @code{xgettext} option}
+Specify @var{keywordspec} as an additional keyword to be looked for.
+Without a @var{keywordspec}, the option means to not use default keywords.
+
+@cindex adding keywords, @code{xgettext}
+@cindex context, argument specification in @code{xgettext}
+If @var{keywordspec} is a C identifier @var{id}, @code{xgettext} looks
+for strings in the first argument of each call to the function or macro
+@var{id}.  If @var{keywordspec} is of the form
+@samp{@var{id}:@var{argnum}}, @code{xgettext} looks for strings in the
+@var{argnum}th argument of the call.  If @var{keywordspec} is of the form
+@samp{@var{id}:@var{argnum1},@var{argnum2}}, @code{xgettext} looks for
+strings in the @var{argnum1}st argument and in the @var{argnum2}nd argument
+of the call, and treats them as singular/plural variants for a message
+with plural handling.  Also, if @var{keywordspec} is of the form
+@samp{@var{id}:@var{contextargnum}c,@var{argnum}} or
+@samp{@var{id}:@var{argnum},@var{contextargnum}c}, @code{xgettext} treats
+strings in the @var{contextargnum}th argument as a context specifier.
+And, as a special-purpose support for GNOME, if @var{keywordspec} is of the
+form @samp{@var{id}:@var{argnum}g}, @code{xgettext} recognizes the
+@var{argnum}th argument as a string with context, using the GNOME @code{glib}
+syntax @samp{"msgctxt|msgid"}.
+@*
+Furthermore, if @var{keywordspec} is of the form
+@samp{@var{id}:@dots{},@var{totalnumargs}t}, @code{xgettext} recognizes this
+argument specification only if the number of actual arguments is equal to
+@var{totalnumargs}.  This is useful for disambiguating overloaded function
+calls in C++.
+@*
+Finally, if @var{keywordspec} is of the form
+@samp{@var{id}:@var{argnum}...,"@var{xcomment}"}, @code{xgettext}, when
+extracting a message from the specified argument strings, adds an extracted
+comment @var{xcomment} to the message.  Note that when used through a normal
+shell command line, the double-quotes around the @var{xcomment} need to be
+escaped.
+
+This option has an effect with most languages, namely C, C++, ObjectiveC,
+Shell, Python, Lisp, EmacsLisp, librep, Java, C#, awk, Tcl, Perl, PHP,
+GCC-source, Glade, Lua, JavaScript, Vala, GSettings, Desktop.
+
+The default keyword specifications, which are always looked for if not
+explicitly disabled, are language dependent.  They are:
+
+@itemize
+@item
+For C, C++, and GCC-source: @code{gettext}, @code{dgettext:2},
+@code{dcgettext:2}, @code{ngettext:1,2}, @code{dngettext:2,3},
+@code{dcngettext:2,3}, @code{gettext_noop}, and @code{pgettext:1c,2},
+@code{dpgettext:2c,3}, @code{dcpgettext:2c,3}, @code{npgettext:1c,2,3},
+@code{dnpgettext:2c,3,4}, @code{dcnpgettext:2c,3,4}.
+
+@item
+For Objective C: Like for C, and also @code{NSLocalizedString}, @code{_},
+@code{NSLocalizedStaticString}, @code{__}.
+
+@item
+For Shell scripts: @code{gettext}, @code{ngettext:1,2}, @code{eval_gettext},
+@code{eval_ngettext:1,2}, @code{eval_pgettext:1c,2},
+@code{eval_npgettext:1c,2,3}.
+
+@item
+For Python: @code{gettext}, @code{ugettext}, @code{dgettext:2},
+@code{ngettext:1,2}, @code{ungettext:1,2}, @code{dngettext:2,3}, @code{_}.
+
+@item
+For Lisp: @code{gettext}, @code{ngettext:1,2}, @code{gettext-noop}.
+
+@item
+For EmacsLisp: @code{_}.
+
+@item
+For librep: @code{_}.
+
+@item
+For Scheme: @code{gettext}, @code{ngettext:1,2}, @code{gettext-noop}.
+
+@item
+For Java: @code{GettextResource.gettext:2},
+@code{GettextResource.ngettext:2,3}, @code{GettextResource.pgettext:2c,3},
+@code{GettextResource.npgettext:2c,3,4}, @code{gettext}, @code{ngettext:1,2},
+@code{pgettext:1c,2}, @code{npgettext:1c,2,3}, @code{getString}.
+
+@item
+For C#: @code{GetString}, @code{GetPluralString:1,2},
+@code{GetParticularString:1c,2}, @code{GetParticularPluralString:1c,2,3}.
+
+@item
+For awk: @code{dcgettext}, @code{dcngettext:1,2}.
+
+@item
+For Tcl: @code{::msgcat::mc}.
+
+@item
+For Perl: @code{gettext}, @code{%gettext}, @code{$gettext}, @code{dgettext:2},
+@code{dcgettext:2}, @code{ngettext:1,2}, @code{dngettext:2,3},
+@code{dcngettext:2,3}, @code{gettext_noop}.
+
+@item
+For PHP: @code{_}, @code{gettext}, @code{dgettext:2}, @code{dcgettext:2},
+@code{ngettext:1,2}, @code{dngettext:2,3}, @code{dcngettext:2,3}.
+
+@item
+For Glade 1: @code{label}, @code{title}, @code{text}, @code{format},
+@code{copyright}, @code{comments}, @code{preview_text}, @code{tooltip}.
+
+@item
+For Lua: @code{_}, @code{gettext.gettext}, @code{gettext.dgettext:2},
+@code{gettext.dcgettext:2}, @code{gettext.ngettext:1,2},
+@code{gettext.dngettext:2,3}, @code{gettext.dcngettext:2,3}.
+
+@item
+For JavaScript: @code{_}, @code{gettext}, @code{dgettext:2},
+@code{dcgettext:2}, @code{ngettext:1,2}, @code{dngettext:2,3},
+@code{pgettext:1c,2}, @code{dpgettext:2c,3}.
+
+@item
+For Vala: @code{_}, @code{Q_}, @code{N_}, @code{NC_}, @code{dgettext:2},
+@code{dcgettext:2}, @code{ngettext:1,2}, @code{dngettext:2,3},
+@code{dpgettext:2c,3}, @code{dpgettext2:2c,3}.
+
+@item
+For Desktop: @code{Name}, @code{GenericName}, @code{Comment},
+@code{Keywords}.
+@end itemize
+
+To disable the default keyword specifications, the option @samp{-k} or
+@samp{--keyword} or @samp{--keyword=}, without a @var{keywordspec}, can be
+used.
+
+@item --flag=@var{word}:@var{arg}:@var{flag}
+@opindex --flag@r{, @code{xgettext} option}
+Specifies additional flags for strings occurring as part of the @var{arg}th
+argument of the function @var{word}.  The possible flags are the possible
+format string indicators, such as @samp{c-format}, and their negations,
+such as @samp{no-c-format}, possibly prefixed with @samp{pass-}.
+@*
+@cindex function attribute, __format__
+The meaning of @code{--flag=@var{function}:@var{arg}:@var{lang}-format}
+is that in language @var{lang}, the specified @var{function} expects as
+@var{arg}th argument a format string.  (For those of you familiar with
+GCC function attributes, @code{--flag=@var{function}:@var{arg}:c-format} is
+roughly equivalent to the declaration
+@samp{__attribute__ ((__format__ (__printf__, @var{arg}, ...)))} attached
+to @var{function} in a C source file.)
+For example, if you use the @samp{error} function from GNU libc, you can
+specify its behaviour through @code{--flag=error:3:c-format}.  The effect of
+this specification is that @code{xgettext} will mark as format strings all
+@code{gettext} invocations that occur as @var{arg}th argument of
+@var{function}.
+This is useful when such strings contain no format string directives:
+together with the checks done by @samp{msgfmt -c} it will ensure that
+translators cannot accidentally use format string directives that would
+lead to a crash at runtime.
+@*
+@cindex function attribute, __format_arg__
+The meaning of @code{--flag=@var{function}:@var{arg}:pass-@var{lang}-format}
+is that in language @var{lang}, if the @var{function} call occurs in a
+position that must yield a format string, then its @var{arg}th argument
+must yield a format string of the same type as well.  (If you know GCC
+function attributes, the @code{--flag=@var{function}:@var{arg}:pass-c-format}
+option is roughly equivalent to the declaration
+@samp{__attribute__ ((__format_arg__ (@var{arg})))} attached to @var{function}
+in a C source file.)
+For example, if you use the @samp{_} shortcut for the @code{gettext} function,
+you should use @code{--flag=_:1:pass-c-format}.  The effect of this
+specification is that @code{xgettext} will propagate a format string
+requirement for a @code{_("string")} call to its first argument, the literal
+@code{"string"}, and thus mark it as a format string.
+This is useful when such strings contain no format string directives:
+together with the checks done by @samp{msgfmt -c} it will ensure that
+translators cannot accidentally use format string directives that would
+lead to a crash at runtime.
+@*
+This option has an effect with most languages, namely C, C++, ObjectiveC,
+Shell, Python, Lisp, EmacsLisp, librep, Scheme, Java, C#, awk, YCP, Tcl, Perl, PHP,
+GCC-source, Lua, JavaScript, Vala.
+
+@item -T
+@itemx --trigraphs
+@opindex -T@r{, @code{xgettext} option}
+@opindex --trigraphs@r{, @code{xgettext} option}
+@cindex C trigraphs
+Understand ANSI C trigraphs for input.
+@*
+This option has an effect only with the languages C, C++, ObjectiveC.
+
+@item --qt
+@opindex --qt@r{, @code{xgettext} option}
+@cindex Qt format strings
+Recognize Qt format strings.
+@*
+This option has an effect only with the language C++.
+
+@item --kde
+@opindex --kde@r{, @code{xgettext} option}
+@cindex KDE format strings
+Recognize KDE 4 format strings.
+@*
+This option has an effect only with the language C++.
+
+@item --boost
+@opindex --boost@r{, @code{xgettext} option}
+@cindex Boost format strings
+Recognize Boost format strings.
+@*
+This option has an effect only with the language C++.
+
+@item --debug
+@opindex --debug@r{, @code{xgettext} option}
+@cindex debugging messages marked as format strings
+Use the flags @code{c-format} and @code{possible-c-format} to show who was
+responsible for marking a message as a format string.  The latter form is
+used if the @code{xgettext} program decided, the former form is used if
+the programmer prescribed it.
+
+By default only the @code{c-format} form is used.  The translator should
+not have to care about these details.
+
+@end table
+
+This implementation of @code{xgettext} is able to process a few awkward
+cases, like strings in preprocessor macros, ANSI concatenation of
+adjacent strings, and escaped end of lines for continued strings.
+
+@subsection Output details
+
+@c --no-escape and --escape omitted on purpose.  They are not useful.
+
+@table @samp
+@item --color
+@itemx --color=@var{when}
+@opindex --color@r{, @code{xgettext} option}
+Specify whether or when to use colors and other text attributes.
+See @ref{The --color option} for details.
+
+@item --style=@var{style_file}
+@opindex --style@r{, @code{xgettext} option}
+Specify the CSS style rule file to use for @code{--color}.
+See @ref{The --style option} for details.
+
+@item --force-po
+@opindex --force-po@r{, @code{xgettext} option}
+Always write an output file even if no message is defined.
+
+@item -i
+@itemx --indent
+@opindex -i@r{, @code{xgettext} option}
+@opindex --indent@r{, @code{xgettext} option}
+Write the .po file using indented style.
+
+@item --no-location
+@opindex --no-location@r{, @code{xgettext} option}
+Do not write @samp{#: @var{filename}:@var{line}} lines.  Note that using
+this option makes it harder for technically skilled translators to understand
+each message's context.
+
+@item -n
+@itemx --add-location=@var{type}
+@opindex -n@r{, @code{xgettext} option}
+@opindex --add-location@r{, @code{xgettext} option}
+Generate @samp{#: @var{filename}:@var{line}} lines (default).
+
+The optional @var{type} can be either @samp{full}, @samp{file}, or
+@samp{never}.  If it is not given or @samp{full}, it generates the
+lines with both file name and line number.  If it is @samp{file}, the
+line number part is omitted.  If it is @samp{never}, it completely
+suppresses the lines (same as @code{--no-location}).
+
+@item --strict
+@opindex --strict@r{, @code{xgettext} option}
+Write out a strict Uniforum conforming PO file.  Note that this
+Uniforum format should be avoided because it doesn't support the
+GNU extensions.
+
+@item --properties-output
+@opindex --properties-output@r{, @code{xgettext} option}
+Write out a Java ResourceBundle in Java @code{.properties} syntax.  Note
+that this file format doesn't support plural forms and silently drops
+obsolete messages.
+
+@item --stringtable-output
+@opindex --stringtable-output@r{, @code{xgettext} option}
+Write out a NeXTstep/GNUstep localized resource file in @code{.strings} syntax.
+Note that this file format doesn't support plural forms.
+
+@item --its=@var{file}
+@opindex --its@r{, @code{xgettext} option}
+Use ITS rules defined in @var{file}.
+Note that this is only effective with XML files.
+
+@item --itstool
+@opindex --itstool@r{, @code{xgettext} option}
+Write out comments recognized by itstool (@uref{http://itstool.org}).
+Note that this is only effective with XML files.
+
+@item -w @var{number}
+@itemx --width=@var{number}
+@opindex -w@r{, @code{xgettext} option}
+@opindex --width@r{, @code{xgettext} option}
+Set the output page width.  Long strings in the output files will be
+split across multiple lines in order to ensure that each line's width
+(= number of screen columns) is less or equal to the given @var{number}.
+
+@item --no-wrap
+@opindex --no-wrap@r{, @code{xgettext} option}
+Do not break long message lines.  Message lines whose width exceeds the
+output page width will not be split into several lines.  Only file reference
+lines which are wider than the output page width will be split.
+
+@item -s
+@itemx --sort-output
+@opindex -s@r{, @code{xgettext} option}
+@opindex --sort-output@r{, @code{xgettext} option}
+@cindex sorting output of @code{xgettext}
+Generate sorted output (deprecated).  Note that using this option makes it
+much harder for the translator to understand each message's context.
+
+@item -F
+@itemx --sort-by-file
+@opindex -F@r{, @code{xgettext} option}
+@opindex --sort-by-file@r{, @code{xgettext} option}
+Sort output by file location.
+
+@item --omit-header
+@opindex --omit-header@r{, @code{xgettext} option}
+Don't write header with @samp{msgid ""} entry.
+
+@cindex testing @file{.po} files for equivalence
+This is useful for testing purposes because it eliminates a source
+of variance for generated @code{.gmo} files.  With @code{--omit-header},
+two invocations of @code{xgettext} on the same files with the same
+options at different times are guaranteed to produce the same results.
+
+Note that using this option will lead to an error if the resulting file
+would not entirely be in ASCII.
+
+@item --copyright-holder=@var{string}
+@opindex --copyright-holder@r{, @code{xgettext} option}
+Set the copyright holder in the output.  @var{string} should be the
+copyright holder of the surrounding package.  (Note that the msgstr
+strings, extracted from the package's sources, belong to the copyright
+holder of the package.)  Translators are expected to transfer or disclaim
+the copyright for their translations, so that package maintainers can
+distribute them without legal risk.  If @var{string} is empty, the output
+files are marked as being in the public domain; in this case, the translators
+are expected to disclaim their copyright, again so that package maintainers
+can distribute them without legal risk.
+
+The default value for @var{string} is the Free Software Foundation, Inc.,
+simply because @code{xgettext} was first used in the GNU project.
+
+@item --foreign-user
+@opindex --foreign-user@r{, @code{xgettext} option}
+Omit FSF copyright in output.  This option is equivalent to
+@samp{--copyright-holder=''}.  It can be useful for packages outside the GNU
+project that want their translations to be in the public domain.
+
+@item --package-name=@var{package}
+@opindex --package-name@r{, @code{xgettext} option}
+Set the package name in the header of the output.
+
+@item --package-version=@var{version}
+@opindex --package-version@r{, @code{xgettext} option}
+Set the package version in the header of the output.  This option has an
+effect only if the @samp{--package-name} option is also used.
+
+@item --msgid-bugs-address=@var{email@@address}
+@opindex --msgid-bugs-address@r{, @code{xgettext} option}
+Set the reporting address for msgid bugs.  This is the email address or URL
+to which the translators shall report bugs in the untranslated strings:
+
+@itemize -
+@item Strings which are not entire sentences; see the maintainer guidelines
+in @ref{Preparing Strings}.
+@item Strings which use unclear terms or require additional context to be
+understood.
+@item Strings which make invalid assumptions about notation of date, time or
+money.
+@item Pluralisation problems.
+@item Incorrect English spelling.
+@item Incorrect formatting.
+@end itemize
+
+It can be your email address, or a mailing list address where translators
+can write to without being subscribed, or the URL of a web page through
+which the translators can contact you.
+
+The default value is empty, which means that translators will be clueless!
+Don't forget to specify this option.
+
+@item -m[@var{string}]
+@itemx --msgstr-prefix[=@var{string}]
+@opindex -m@r{, @code{xgettext} option}
+@opindex --msgstr-prefix@r{, @code{xgettext} option}
+Use @var{string} (or "" if not specified) as prefix for msgstr values.
+
+@item -M[@var{string}]
+@itemx --msgstr-suffix[=@var{string}]
+@opindex -M@r{, @code{xgettext} option}
+@opindex --msgstr-suffix@r{, @code{xgettext} option}
+Use @var{string} (or "" if not specified) as suffix for msgstr values.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{xgettext} option}
+@opindex --help@r{, @code{xgettext} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{xgettext} option}
+@opindex --version@r{, @code{xgettext} option}
+Output version information and exit.
+
+@item -v
+@itemx --verbose
+@opindex -v@r{, @code{xgettext} option}
+@opindex --verbose@r{, @code{xgettext} option}
+Increase verbosity level.
+
+@end table

@@ -1,0 +1,126 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the RST format.
+
+cat <<\EOF > prog.rst
+# From the rstconv program itself.
+rstconv.help='rstconv [-h|--help]    Displays this help'#10+
+'rstconv options        Convert rst file'#10#10+
+'Options are:'#10+
+'  -i file    Use specified file instead of stdin as input .rst (OPTIONAL)'#10+
+'  -o file    Write output to specified file (REQUIRED)'#10+
+'  -f format  Specifies the output format:'#10+
+'             po    GNU gettext .po (portable) format (DEFAULT)'#10
+
+rstconv.InvalidOption='Invalid option - '
+rstconv.OptionAlreadySpecified='Option has already been specified - '
+rstconv.NoOutFilename='No output filename specified'
+rstconv.InvalidOutputFormat='Invalid output format -'
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --add-location prog.rst || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+#: rstconv.help
+msgid ""
+"rstconv [-h|--help]    Displays this help\n"
+"rstconv options        Convert rst file\n"
+"\n"
+"Options are:\n"
+"  -i file    Use specified file instead of stdin as input .rst (OPTIONAL)\n"
+"  -o file    Write output to specified file (REQUIRED)\n"
+"  -f format  Specifies the output format:\n"
+"             po    GNU gettext .po (portable) format (DEFAULT)\n"
+msgstr ""
+
+#: rstconv.InvalidOption
+msgid "Invalid option - "
+msgstr ""
+
+#: rstconv.OptionAlreadySpecified
+msgid "Option has already been specified - "
+msgstr ""
+
+#: rstconv.NoOutFilename
+msgid "No output filename specified"
+msgstr ""
+
+#: rstconv.InvalidOutputFormat
+msgid "Invalid output format -"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+# The output of rstconv is slightly different:
+# - ModuleName:ConstName instead of ModuleName.ConstName
+# - no line wrapping in fpc versions < 2.6.0
+# - extra newline at the end
+
+: ${RSTCONV=rstconv}
+if (${RSTCONV} -o prog.pot -i prog.rst) >/dev/null 2>&1; then
+
+cat <<EOF > prog.ok1
+#: rstconv:help
+msgid "rstconv [-h|--help]    Displays this help\nrstconv options        Convert rst file\n\nOptions are:\n  -i file    Use specified file instead of stdin as input .rst (OPTIONAL)\n  -o file    Write output to specified file (REQUIRED)\n  -f format  Specifies the output format:\n             po    GNU gettext .po (portable) format (DEFAULT)\n"
+msgstr ""
+
+#: rstconv:InvalidOption
+msgid "Invalid option - "
+msgstr ""
+
+#: rstconv:OptionAlreadySpecified
+msgid "Option has already been specified - "
+msgstr ""
+
+#: rstconv:NoOutFilename
+msgid "No output filename specified"
+msgstr ""
+
+#: rstconv:InvalidOutputFormat
+msgid "Invalid output format -"
+msgstr ""
+
+EOF
+
+cat <<EOF > prog.ok2
+#: rstconv:help
+msgid ""
+"rstconv [-h|--help]    Displays this help\n"
+"rstconv options        Convert rst file\n"
+"\n"
+"Options are:\n"
+"  -i file    Use specified file instead of stdin as input .rst (OPTIONAL)\n"
+"  -o file    Write output to specified file (REQUIRED)\n"
+"  -f format  Specifies the output format:\n"
+"             po    GNU gettext .po (portable) format (DEFAULT)\n"
+msgstr ""
+
+#: rstconv:InvalidOption
+msgid "Invalid option - "
+msgstr ""
+
+#: rstconv:OptionAlreadySpecified
+msgid "Option has already been specified - "
+msgstr ""
+
+#: rstconv:NoOutFilename
+msgid "No output filename specified"
+msgstr ""
+
+#: rstconv:InvalidOutputFormat
+msgid "Invalid output format -"
+msgstr ""
+
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok1 prog.pot >/dev/null || ${DIFF} prog.ok2 prog.pot || Exit 1
+
+fi
+
+Exit 0

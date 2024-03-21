@@ -1,0 +1,41 @@
+# function zfautocheck {
+# This function is used to implement auto-open behaviour.
+#
+# With first argument including n, don't change to the old directory; else do.
+#
+# Set do_close to 1 if the connection was not previously open, 0 otherwise
+# With first argument including d, don't set do_close to 1.  Broadly
+# speaking, we use this mechanism to shut the connection after use
+# if the connection had been explicitly closed (i.e. didn't time out,
+# which zftp test investigates) and we are not using a directory
+# command, which implies we are looking for something so should stay open
+# for it.
+
+# Remember the old location:  will be overwritten by
+# a successful open.
+local lastloc=$zfconfig[lastloc_$ZFTP_SESSION]
+
+# Don't print out user messages when re-opening the connection.
+local ZFTP_VERBOSE=${ZFTP_VERBOSE//0}
+
+# Unset the delay counter from the progress meter in case there was an
+# abnormal exit.
+(( ${+zftpseconds} )) && unset zftpseconds
+
+if [[ -z $ZFTP_HOST ]]; then
+  zfopen || return 1
+  [[ $1 == *d* ]] || do_close=1
+elif zftp test 2>/dev/null; then
+  return 0
+else
+  zfopen || return 1
+fi
+
+if [[ $1 == *n* ]]; then
+  return 0
+elif [[ -n $lastloc && $ZFTP_HOST == ${lastloc%%:*} ]]; then
+  # don't print directory since we're just going back where we were.
+  zfcd ${lastloc#*:} >& /dev/null
+fi
+
+# }

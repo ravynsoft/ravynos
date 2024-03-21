@@ -1,0 +1,744 @@
+argv[1] = <>
+argv[1] = <a b>
+argv[1] = <ab>
+argv[1] = <a b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <3>
+argv[1] = <bob>
+argv[1] = <tom dick harry>
+argv[1] = <joe>
+argv[1] = <3>
+argv[1] = <bob>
+argv[1] = <tom dick harry>
+argv[1] = <joe>
+argv[1] = <3>
+argv[1] = <bob>
+argv[1] = <tom dick harry>
+argv[1] = <joe>
+argv[1] = <3>
+argv[1] = <bob>
+argv[1] = <tom dick harry>
+argv[1] = <joe>
+argv[1] = <3>
+argv[1] = <bob>
+argv[1] = <tom dick harry>
+argv[1] = <joe>
+argv[1] = <3>
+argv[1] = <bob>
+argv[1] = <tom dick harry>
+argv[1] = <joe>
+argv[1] = <5>
+argv[1] = <bob>
+argv[1] = <tom>
+argv[1] = <dick>
+argv[1] = <5>
+argv[1] = <bob>
+argv[1] = <tom>
+argv[1] = <dick>
+argv[1] = <1>
+argv[1] = <bob>
+argv[2] = <tom>
+argv[3] = <dick>
+argv[4] = <harry>
+argv[5] = <joe>
+argv[1] = <3>
+argv[1] = <bob>
+argv[1] = <tom>
+argv[2] = <dick>
+argv[3] = <harry>
+argv[1] = <joe>
+argv[1] = <a>
+argv[2] = <b>
+argv[3] = <c>
+argv[4] = <d>
+argv[5] = <e>
+argv[1] = <a>
+argv[2] = <b>
+argv[3] = <c>
+argv[4] = <d>
+argv[5] = <e>
+argv[1] = <foo>
+argv[2] = <bar>
+argv[3] = <bam>
+argv[1] = <foobarbam>
+argv[1] = <foo>
+argv[2] = <bar>
+argv[3] = <bam>
+argv[1] = <foo>
+argv[2] = <bar>
+argv[3] = <bam>
+argv[1] = <foo bar bam>
+foo = 1:2:3:4:5:6:7:8:9:10
+bar = 1:2:3:4:5:6:7:8:9:10
+foo1 = 1 2 3 4 5 6 7 8 9 10
+bar1 = 1 2 3 4 5 6 7 8 9 10
+foo2 = 1:2:3:4:5:6:7:8:9:10
+bar2 = 1:2:3:4:5:6:7:8:9:10
+foo3 = 1:2:3:4:5:6:7:8:9:10
+bar3 = 1:2:3:4:5:6:7:8:9:10
+ok 1
+ok 2
+ok 3
+ok 4
+foo = 1 2 3 4 5 6 7 8 9 10
+bar = 1 2 3 4 5 6 7 8 9 10
+foo1 = 1 2 3 4 5 6 7 8 9 10
+bar1 = 1 2 3 4 5 6 7 8 9 10
+foo2 = 1 2 3 4 5 6 7 8 9 10
+bar2 = 1 2 3 4 5 6 7 8 9 10
+foo3 = 1 2 3 4 5 6 7 8 9 10
+bar3 = 1 2 3 4 5 6 7 8 9 10
+ok 1
+ok 2
+ok 3
+ok 4
+var=${a[*]}   ... one:::two:three:::four
+var="${a[*]}" ... one:::two:three:::four
+var=$*        ... one:::two:three:::four
+var="$*"      ... one:::two:three:::four
+var=${a[@]}   ... one:::two three:::four
+var="${a[@]}" ... one:::two three:::four
+var=$@        ... one:::two three:::four
+var="$@"      ... one:::two three:::four
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+ok 6
+ok 7
+ok 8
+ok 9
+ok 10
+ok 11
+ok 12
+ok 13
+ok 14
+ok at 1
+ok at 2
+ok star 1
+ok star 2
+   ,foo
+   ,foo
+   ,foo
+   ,foo
+ok at 1
+ok at 2
+ok at 3
+ok star 1
+ok star 2
+ok star 3
+ok at-star 1
+ok at-star 2
+a b c
+a|b|c
+a b c
+a|b|c
+ok at 1
+ok at 2
+ok at 3
+ok at 4
+ok at 5
+ok at 1
+ok at 2
+ok at 3
+ok at 4
+ok at 5
+ok at 1
+ok at 2
+ok at 3
+ok at 4
+ok at 5
+ok at 6
+ok at 7
+ok at 8
+ok at 9
+argv[1] = <a>
+argv[1] = <a>
+argv[1] = <a>
+argv[1] = <a>
+argv[1] = <a>
+argv[1] = <a>
+argv[1] = <a>
+argv[1] = <one>
+argv[1] = <o>
+argv[1] = <o>
+argv[1] = <one>
+<123 abc> <def> <ghi 456> 
+<123 abc> <def> <ghi\ 456> 
+<c>
+a bc
+a b
+ab
+<a><b>
+a b
+a b
+<a><b><c><d>
+<a><b><c><d>
+<a><b><c d>
+<a><b><c d>
+<a><b>
+<a:b>
+<a><b>
+<a b>
+abcd
+d
+abcd
+d
+c
+argv[1] = <a b>
+argv[1] = <abcd>
+argv[1] = <abcd>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a b>
+<c>
+<c>
+<d>
+<d>
+0
+0
+1
+1
+1
+0
+0
+0
+1
+0
+0
+0
+1
+after 1
+after 2
+after 3
+same as 1
+argv[1] = <>
+same as 2
+argv[1] = <>
+null fields
+argv[1] = <>
+argv[1] = <>
+null fields in rhs
+null string with unquoted $@
+argv[1] = <>
+null string with quoted $@
+argv[1] = <>
+assignment
+argv[1] = <>
+variable
+argv[1] = <>
+dollar-at
+argv[1] = <'a'>
+argv[2] = <'b'>
+argv[3] = <'c'>
+argv[1] = <'a'>
+argv[2] = <'b'>
+argv[3] = <'c'>
+argv[1] = <>
+argv[2] = <a>
+argv[3] = <>
+argv[4] = <>
+argv[5] = <b>
+argv[6] = <>
+argv[7] = <>
+argv[8] = <c>
+argv[1] = <'a'>
+argv[2] = <'b'>
+argv[3] = <'c'>
+argv[1] = <>
+argv[2] = <a>
+argv[3] = <>
+argv[4] = <>
+argv[5] = <b>
+argv[6] = <>
+argv[7] = <>
+argv[8] = <c>
+argv[1] = <'a'>
+argv[2] = <'b'>
+argv[3] = <'c'>
+argv[1] = <>
+argv[2] = <a>
+argv[1] = <'a'>
+argv[1] = <'a'>
+argv[2] = <'b'>
+argv[3] = <'c'>
+argv[1] = <'a'>
+argv[2] = <'b'>
+argv[3] = <'c'>
+|this|
+|is|
+|a|
+|test|
+
+|this|
+|is|
+|a|
+|test|
+
+|this|
+|is|
+|a|
+|test|
+
+|this|
+|this|
+
+|this is a test|
+|this is a test|
+|this|
+|is|
+|a|
+|test|
+|this|
+|is|
+|a|
+|test|
+
+a1=a b c a,b,c a b c a,b,c a b c a,b,c
+a2=a b c a,b,c a b c a,b,c a b c a,b,c
+a3=a b c a,b,c a b c a,b,c a b c a,b,c
+a4=a b c a,b,c a b c a,b,c a b c a,b,c
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <   >
+argv[1] = <   >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = <  >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = <>
+argv[1] = < X >
+argv[1] = <>
+argv[1] = < X >
+argv[1] = <>
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X>
+argv[2] = <Y >
+argv[1] = < X>
+argv[2] = <Y >
+argv[1] = < X>
+argv[2] = <Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < XY >
+argv[1] = < XY >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X Y >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = <ba>
+argv[1] = <ba>
+argv[1] = <ba>
+argv[1] = <b>
+argv[2] = <a>
+argv[1] = <a:b>
+argv[1] = <a:b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = <a>
+argv[2] = <b>
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = < X >
+argv[1] = <^?>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <^?>
+argv[1] = <^?>
+argv[1] = <^?>
+argv[1] = <^?>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <^?>
+argv[1] = <^?>
+argv[1] = <nonnull>
+argv[1] = <^?>
+argv[1] = <^?>
+argv[1] = <nonnull>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = </>
+argv[1] = </>
+argv[1] = </>
+argv[1] = </>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <''>
+argv[1] = <''>
+argv[1] = <''>
+argv[1] = <''>
+argv[1] = <''>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = </>
+1:1
+xa|xb|xc
+xa|xb|xc
+a|b|c
+a|b|c
+a b c
+a b c
+xa xb xc
+xa xb xc
+a|b
+b|c
+a b
+b c
+a|b|c
+a|b|c
+xa|xb|xc
+xa|xb|xc
+3
+3
+3
+3
+3
+3
+3
+3
+argv[1] = <echo 1 ; echo 1>
+argv[1] = <echo 1 2 ; echo 1>
+argv[2] = <2>
+argv[1] = <echo 1 ; echo 1>
+argv[1] = <echo 1 2 ; echo 1>
+argv[2] = <2>
+argv[1] = <AB>
+argv[1] = <AB>
+argv[1] = <A BC D>
+argv[1] = <A BC D>
+argv[1] = <A BC D>
+argv[1] = <A B>
+argv[2] = <C D>
+argv[1] = <A BC D>
+argv[1] = <A BC D>
+argv[1] = <fooq//barq/>
+argv[1] = <fooq>
+argv[2] = <>
+argv[3] = <barq>
+argv[4] = <>
+argv[1] = <foo!//bar!/>
+argv[1] = <foo!>
+argv[2] = <>
+argv[3] = <bar!>
+argv[4] = <>
+argv[1] = <ooq//arq/>
+argv[1] = <ooq>
+argv[2] = <>
+argv[3] = <arq>
+argv[4] = <>
+0
+bar
+
+after 1
+
+after 2
+0
+bar
+
+after 1
+
+after 2
+a b
+ab
+cd
+ok 1
+ok 2
+argv[1] = <a  b>
+argv[2] = <c  d>
+argv[1] = <a>
+argv[2] = <b>
+argv[3] = <c>
+argv[4] = <d>
+argv[1] = <a  b c  d>
+argv[1] = <a  b c  d>
+<1> <2> <3> <4> <5 1> 
+<1 1> <2> <3> <4> <5> 
+<11> <2> <3> <4> <51> 
+<1 1> <2> <3> <4> <5 1> 
+<11> <2> <3> <4> <51> 
+<1> <2> <3> <4> <51> 
+<11> <2> <3> <4> <5> 
+<1> <2> <3> <4> <51> 
+<11> <2> <3> <4> <5> 
+<1> <2> <3> <4> <5foo> 
+<1> <2> <3> <4> <51> 
+<1> <2> <3> <4> <5foo> 
+<1> <2> <3> <4> <51> 
+<11> <2> <3> <4> <5> 
+<1> <2> <3> <4> <51> 
+<11> <2> <3> <4> <5> 
+<1> <2> <3> <4> <5foo> 
+second set:
+<1 2> <3> <4> <5 1 2> 
+<1 2 1 2> <3> <4> <5> 
+<1 21 2> <3> <4> <51 2> 
+<1 2 1 2> <3> <4> <5 1 2> 
+<1> <21 2> <3> <4> <51> <2> 
+<1 2> <3> <4> <51> <2> 
+<1> <21 2> <3> <4> <5> 
+<1 2> <3> <4> <51 2> 
+<1 21 2> <3> <4> <5> 
+<1 2> <3> <4> <5foo> 
+<1> <2> <3> <4> <51> <2> 
+<1> <2> <3> <4> <5foo> 
+<1 2> <3> <4> <51 2> 
+<1 21 2> <3> <4> <5> 
+<1 2> <3> <4> <51 2> 
+<1 21 2> <3> <4> <5> 
+<1 2> <3> <4> <5foo> 
+third set:
+
+"${@:2}a3 a2" a$1    #works as long as $1 and 3 are swapped
+set y za3 a2 ax
+0
+declare -a a=([0]="y" [1]="za3 a2" [2]="ax")
+
+"${@:2}b$1 b2" b3    #fails!  why?
+set y zbx b2 b3
+0
+declare -a b=([0]="y" [1]="zbx b2" [2]="b3")
+
+${@:2}c$1 c2 c3     #works as long as quoting omitted
+set y zcx c2 c3
+0
+declare -a c=([0]="y" [1]="zcx" [2]="c2" [3]="c3")
+argv[1] = <>
+argv[2] = <x>
+argv[1] = <>
+argv[2] = <x>
+1
+argv[1] = <>
+argv[2] = <>
+argv[3] = <x>
+argv[1] = <>
+argv[2] = <x>
+argv[1] = <>
+argv[2] = <>
+argv[3] = <x>
+argv[1] = <>
+argv[2] = <x>
+argv[1] = <>
+argv[2] = <x>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <>
+argv[1] = <AwR>
+argv[1] = <AwR>
+argv[1] = <AR>
+argv[1] = <AwR>
+argv[1] = <AR>
+argv[1] = <AR>
+argv[1] = <AwR>
+argv[1] = <AwR>
+argv[1] = <A^?R>
+argv[1] = <AwR>
+argv[1] = <AwR>
+argv[1] = <A^?R>
+<a> <b> <ca> <b> <c-a-b-c> 
+after 1: IFS -
+argv[1] = <a-b-c>
+<a> <b> <c> <da> <b c> <d-a-b c-d> 
+after 2: IFS -
+argv[1] = <a-b c-d>
+argv[1] = <a>
+argv[2] = <b>
+argv[3] = <c>
+argv[4] = <d>
+argv[1] = <a b c d>
+argv[1] = <a>
+argv[2] = <b>
+argv[3] = <c>
+argv[4] = <d>
+argv[1] = <a b c d>
+<3>
+<abc>
+<def ghi>
+<jkl>
+<3>
+<abc>
+<def ghi>
+<jkl>
+<abc>
+<def ghi>
+<jkl>
+<abc>
+<def ghi>
+<jkl>
+<abcdef ghijkl>
+<abc>
+<def ghi>
+<jkl>
+<abc>
+<def ghi>
+<jkl>
+<abc:def ghi:jkl>
+<abc>
+<def>
+<ghi>
+<jkl>
+<abc>
+<def>
+<ghi>
+<jkl>
+argv[1] = <1>
+argv[2] = <>
+argv[1] = <2>
+argv[2] = <>
+argv[1] = <3>
+argv[2] = <>
+argv[1] = <4>
+argv[2] = <>
+-----
+argv[1] = <1>
+argv[2] = <>
+argv[1] = <2>
+argv[2] = <>
+argv[1] = <3>
+argv[1] = <4>
+argv[2] = <>
+------
+argv[1] = <1>
+argv[2] = <>
+argv[1] = <2>
+argv[2] = <>
+argv[1] = <3>
+argv[2] = <>
+argv[1] = <4>
+argv[2] = <>
+argv[1] = <5>
+argv[2] = <>
+argv[1] = <6>
+argv[2] = <>
+-----
+argv[1] = <1>
+argv[2] = <>
+argv[1] = <2>
+argv[2] = <>
+argv[1] = <3>
+argv[2] = <>
+argv[1] = <4>
+argv[2] = <>
+argv[1] = <5>
+argv[2] = <>
+argv[1] = <6>
+argv[2] = <>
+-----
+argv[1] = <1>
+argv[2] = <>
+argv[1] = <2>
+argv[2] = <>
+<12><12><12><12><12><12>
+<12><12><12><12><12><12>
+<12><'1''2'>
+1 2
+1 2
+1 2
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1>
+argv[2] = <2>
+argv[1] = <1 2>
+argv[1] = <1 2>
+argv[1] = <1>
+argv[2] = <2>
+var=1 2
+argv[1] = <1>
+argv[2] = <2>
+var=1 2
+argv[1] = <1 2>
+argv[1] = <1 2>

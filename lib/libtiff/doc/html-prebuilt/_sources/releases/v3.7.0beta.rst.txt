@@ -1,0 +1,98 @@
+Changes in TIFF v3.7.0beta
+==========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.0beta (:tag:`Release-v3-7-0beta`)
+  Previous Version        :doc:`v3.7.0alpha <v3.7.0alpha>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+* LZW compression enabled by default. You don't need the separate
+  compression kit anymore.
+
+* :program:`bmp2tiff`: Added new utility to convert Windows BMP files
+  into TIFFs.
+
+* The first attempt to implement a test suite.
+
+
+Software configuration changes
+------------------------------
+
+* Many portability fixes in the new autotooled build suite.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_luv.c`, :file:`libtiff/tif_next.c`, :file:`libtiff/tif_thunder.c`:
+  Several buffer overruns fixed, as noted by Chris Evans.
+
+* BSD data types (:c:type:`u_char`, :c:type:`u_short`, :c:type:`u_int`, :c:type:`u_long`)
+  is no longer used internally in the libtiff. Should result in simpler configuration
+  and better portability.
+
+* :file:`libtiff/tiff.h`: Fix column tagging. Reference current Adobe XMP
+  specification. Reference libtiff bug tracking system to submit
+  private tag additions.
+
+* :file:`libtiff/tif_dirread.c`: Don't reject to read tags of the
+  ``SamplesPerPixel`` size when the tag count is greater than number of
+  samples as per bug
+  :bugzilla-rs:`576`.
+
+* :file:`libtiff/tiffio.h`, :file:`libtiff/tif_open.c`: Applied patches from
+  Joris Van Damme  to avoid requirement for :file:`tiffiop.h` inclusion in
+  some applications. Look for details here:
+  `<http://www.asmail.be/msg0054799560.html>`_.
+
+* :file:`libtiff/tiffiop.h`, :file:`libtiff/tif_dirinfo.c`: Fixed problem with the static
+  variable as per bug
+  :bugzilla-rs:`593`.
+  
+* :file:`libtiff/tif_lzw.c`: LZW compression code is merged back from the
+  separate package. All libtiff tools are updated to not advertise an
+  absence of LZW support.
+
+* :file:`libtiff/tif_dir.c`: Call :c:func:`TIFFError` instead of producing warnings
+  when setting custom tags by value. Reported by Eric Fieleke.
+
+
+Tools changes
+-------------
+
+* :program:`tiff2ps`: Avoid zero division in :c:func:`setupPageState` function;
+  properly initialize array in :c:func:`PSDataBW`.
+
+* :program:`tiff2pdf`: Multiple bugfixes.
+
+* :program:`ras2tiff`:  Fixed issue with missed big-endian checks as per bug
+  :bugzilla-rs:`586`.
+
+* :program:`bmp2tiff`: Added new utility to convert Windows BMP files
+  into TIFFs.
+
+
+Contributed software changes
+----------------------------
+
+* No changes.
+
+LZW compression kit changes
+---------------------------
+
+* This one is not longer needed.

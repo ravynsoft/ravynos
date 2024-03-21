@@ -1,0 +1,276 @@
+#autoload
+
+local state=qual expl char delim timespec default MATCH
+integer MBEGIN MEND
+local -a alts tdisp sdisp tmatch smatch
+local -A specmap
+
+while [[ -n $PREFIX ]]; do
+  char=$PREFIX[1]
+  compset -p 1
+  case $char in
+    ([-/F.@=p*rwxAIERWXsStUG^MTNDn,])
+    # no argument
+    ;;
+
+    (%)
+    # optional b, c
+    if [[ $PREFIX[1] = [bc] ]]; then
+      compset -p 1
+    fi
+    ;;
+
+    (f)
+    if ! compset -P "[-=+][0-7?]##"; then
+      if [[ -z $PREFIX ]]; then
+        _delimiters qualifier-f
+        return
+      elif ! _globqual_delims; then
+        # still completing mode spec
+        _message -e modes "mode spec"
+        return
+      fi
+    fi
+    ;;
+
+    (P)
+    # skip delimited prefix
+    if [[ -z $PREFIX ]]; then
+      _delimiters qualifier-P
+      return
+    elif ! _globqual_delims; then
+      # can't suggest anything here
+      _message -e prefix prefix
+      return
+    fi
+    ;;
+
+    (e)
+    # complete/skip delimited command line
+    if [[ -z $PREFIX ]]; then
+      _delimiters qualifier-e
+      return
+    elif ! _globqual_delims; then
+      # still completing command to eval
+      compset -q
+      _normal
+      return
+    fi
+    ;;
+
+    (+)
+    # complete/skip command name (no delimiters)
+    if [[ $PREFIX = [[:IDENT:]]# ]]; then
+      # either nothing there yet, or still on name
+      _command_names
+      return
+    fi
+    compset -P '[[:IDENT:]]##'
+    ;;
+
+    (d)
+    # complete/skip device
+    if ! compset -p '[[:digit:]]##'; then
+      _message -e device-ids "device ID"
+      return
+    fi
+    ;;
+
+    (l)
+    # complete/skip link count
+    if ! compset -P '([-+]|)[[:digit:]]##'; then
+      _message -e numbers "link count"
+      return
+    fi
+    ;;
+
+    (u)
+    # complete/skip UID or delimited user
+    if ! compset -P '[[:digit:]]##'; then
+      if [[ -z $PREFIX ]]; then
+        _delimiters qualifier-u
+        return
+      elif ! _globqual_delims; then
+        # still completing user
+        _users -S $delim
+        return
+      fi
+    fi
+    ;;
+
+    (g)
+    # complete/skip GID or delimited group
+    if ! compset -P '[[:digit:]]##'; then
+      if [[ -z $PREFIX ]]; then
+        _delimiters qualifier-g
+        return
+      elif ! _globqual_delims; then
+        # still completing group
+        _groups -S $delim
+        return
+      fi
+    fi
+    ;;
+
+    ([amc])
+    if ! compset -P '([Mwhmsd]|)([-+]|)<->'; then
+      # complete/skip relative time spec
+      alts=()
+      timespec=$PREFIX[1]
+      if ! compset -P '[Mwhmsd]' && [[ -z $PREFIX ]]; then
+	tdisp=( seconds minutes hours days weeks Months )
+	tmatch=( s m h d w M )
+	if zstyle -t ":completion:${curcontext}:time-specifiers" verbose; then
+	  zstyle -s ":completion:${curcontext}:time-specifiers" list-separator sep || sep=--
+          print -v tdisp -f "%s ${sep//(#m)[%\\]/$MATCH$MATCH} %s" ${tmatch:^^tdisp}
+	fi
+	alts+=( "time-specifiers:time specifier:compadd -E 0 -d tdisp -S '' -a tmatch" )
+      fi
+      if ! compset -P '[-+]' && [[ -z $PREFIX ]]; then
+	if zstyle -t ":completion:${curcontext}:senses" verbose; then
+	  zstyle -s ":completion:${curcontext}:senses" list-separator sep || sep=--
+	  default=" [default exactly]"
+          sdisp=( "+ $sep before (older files)" "- $sep since (newer files)" )
+	  smatch=( + - )
+	else
+	  sdisp=( before exactly since )
+	  smatch=( + '' - )
+	fi
+        alts+=( "senses:sense${default}:compadd -E 0 -d sdisp -S '' -a smatch" )
+      fi
+      specmap=( M months w weeks h hours m minutes s seconds '(|+|-|d)' days)
+      alts+=('digits:digit ('${${specmap[(K)${timespec:-d}]}:-invalid time specifier}'):_dates -f ${${timespec/[-+]/d}:-d} -S ""' )
+      _alternative $alts
+      return
+    fi
+    ;;
+
+    (L)
+    # complete/skip file size
+    if ! compset -P '([kKmMgGtTpP]|)([-+]|)<->'; then
+      # complete/skip size spec
+      alts=()
+      if ! compset -P '[kKmMgGtTpP]' && [[ -z $PREFIX ]]; then
+        alts+=(
+          "size-specifiers:size specifier:\
+((k\:kb m\:mb g\:gb t\:tb p\:512-byte\ blocks))")
+      fi
+      if ! compset -P '[-+]' && [[ -z $PREFIX ]]; then
+        alts+=("senses:sense:((-\:less\ than +\:more\ than))")
+      fi
+      alts+=('digits:digit: ')
+      _alternative $alts
+      return
+    fi
+    ;;
+    
+    ([oO])
+    # complete/skip sort spec
+    if ! compset -p 1; then
+      alts=(
+        "n:lexical order of name"
+        "L:size of file"
+        "l:number of hard links"
+        "a:last access time"
+        "m:last modification time"
+        "c:last inode change time"
+        "d:directory depth"
+        "N:no sorting"
+        "e:execute code"
+        "+:+ command name"
+        )
+      _describe -t sort-specifiers "sort specifier" alts -Q -S ''
+      return
+    elif [[ $IPREFIX[-1] = e ]]; then
+      if [[ -z $PREFIX ]]; then
+        _delimiters qualifier-oe
+        return
+      elif ! _globqual_delims; then
+        compset -q
+        _normal
+        return
+      fi
+    elif [[ $IPREFIX[-1] = + ]]; then
+      if [[ $PREFIX = [[:IDENT:]]# ]]; then
+        # either nothing there yet, or still on name
+        _command_names
+        return
+      fi
+    fi
+    ;;
+
+    (\[)
+    # complete/skip range: check for closing bracket
+    if ! compset -P "(-|)[[:digit:]]##(,(-|)[[:digit:]]##|)]"; then
+      if compset -P "(-|)[[:digit:]]##,"; then
+        _message "end of range"
+      else
+        _message "start of range"
+      fi
+      return
+    fi
+    ;;
+
+    (:)
+    # complete modifiers and don't stop completing them
+    _history_modifiers q
+    return
+    ;;
+  esac
+done
+
+case $state in
+  (qual)
+  local -a quals
+  quals=(
+    "/:directories"
+    "F:non-empty directories"
+    ".:plain files"
+    "@:symbolic links"
+    "=:sockets"
+    "p:named pipes (FIFOs)"
+    "*:executable plain files"
+    "%:device files"
+    "r:owner-readable"
+    "w:owner-writeable"
+    "x:owner-executable"
+    "A:group-readable"
+    "I:group-writeable"
+    "E:group-executable"
+    "R:world-readable"
+    "W:world-writeable"
+    "X:world-executable"
+    "s:setuid"
+    "S:setgid"
+    "t:sticky bit set"
+    "f:+ access rights"
+    "e:execute code"
+    "+:+ command name"
+    "d:+ device"
+    "l:+ link count"
+    "U:owned by EUID"
+    "G:owned by EGID"
+    "u:+ owning user"
+    "g:+ owning group"
+    "a:+ access time"
+    "m:+ modification time"
+    "c:+ inode change time"
+    "L:+ size"
+    "^:negate qualifiers"
+    "-:follow symlinks toggle"
+    "M:mark directories"
+    "T:mark types"
+    "N:use NULL_GLOB"
+    "D:glob dots"
+    "n:numeric glob sort"
+    "o:+ sort order, up"
+    "O:+ sort order, down"
+    "P:prepend word"
+    "Y:+ at most ARG matches"
+    "[:+ range of files"
+    "):end of qualifiers"
+    "\::modifier"
+    )
+  _describe -t globquals "glob qualifier" quals -Q -S ''
+  ;;
+esac

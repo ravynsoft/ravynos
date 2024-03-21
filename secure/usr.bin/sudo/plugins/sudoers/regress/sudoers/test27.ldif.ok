@@ -1,0 +1,60 @@
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: always_query_group_plugin
+
+dn: cn=root,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: root
+sudoUser: root
+sudoHost: ALL
+sudoRunAsUser: root
+sudoRunAsGroup: wheel
+sudoCommand: ALL
+sudoOrder: 1
+
+dn: cn=millert,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: millert
+sudoUser: millert
+sudoHost: ALL
+sudoRunAsUser:
+sudoRunAsGroup: wheel
+sudoCommand: ALL
+sudoOrder: 2
+
+dn: cn=%sudo,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: %sudo
+sudoUser: %sudo
+sudoHost: ALL
+sudoRunAsUser:
+sudoRunAsGroup: ALL
+sudoCommand: ALL
+sudoOrder: 3
+
+dn: cn=operator,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: operator
+sudoUser: operator
+sudoHost: ALL
+sudoRunAsUser: %wheel
+sudoCommand: ALL
+sudoOrder: 4
+
+dn: cn=\+netusers,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: \+netusers
+sudoUser: +netusers
+sudoHost: +nethosts
+sudoRunAsUser: +netrunas
+sudoCommand: ALL
+sudoOrder: 5
+

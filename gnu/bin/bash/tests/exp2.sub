@@ -1,0 +1,12 @@
+K=dvb0.net A=${K#dvb} eval echo \$A
+unset K A
+x=${K:=dvb0.net0} A=${K#dvb} eval echo \$A
+
+unset K A
+K=dvb0.net A=${K#dvb} echo "$A"
+unset K A
+K=dvb0.net A=${K#dvb} ; echo "$A"
+unset K A
+K=dvb0.net A=${K#dvb} eval echo '$A'
+unset K A
+K=dvb0.net A=${K#dvb} eval echo \$A

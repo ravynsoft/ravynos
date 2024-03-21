@@ -1,0 +1,199 @@
+#autoload
+
+# A simple compiler for _arguments descriptions.  The first argument of
+# _arg_compile is the name of an array parameter in which the parse is
+# returned.  The remaining arguments form a series of `phrases'.  Each
+# `phrase' begins with one of the keywords "argument", "option", or "help"
+# and consists of a series of keywords and/or values.  The syntax is as
+# free-form as possible, but "argument" phrases generally must appear in
+# the same relative position as the corresponding argument on the command
+# line to be completed, and there are some restrictions on ordering of
+# keywords and values within each phrase.
+#
+# Anything appearing before the first phrase or after the last is passed
+# through verbatim.  (See TODO.)  If more detailed mixing of compiled and
+# uncompiled fragments is necessary, use two or more calls, either with
+# different array names or by passing the output of each previous call
+# through the next.
+#
+# In the documentation below, brackets [ ] indicate optional elements and
+# braces { } indicate elements that may be repeated zero or more times.
+# Except as noted, bracketed or braced elements may appear in any order
+# relative to each other, but tokens within each element are ordered.
+#
+#   argument [POS] [means MSG] [action ACT]
+#
+#     POS may be an integer N for the Nth argument or "*" for all, and
+#      must appear first if it appears at all.
+#     MSG is a string to be displayed above the matches in a listing.
+#     ACT is (currently) as described in the compsys manual.
+#
+#   option OPT [follow HOW] [explain STR] {unless XOR} \
+#    {[means MSG] [action ACT]} [through PAT [means MSG] [action ACT]]
+#
+#     OPT is the option, prefixed with "*" if it may appear more than once.
+#     HOW refers to a following argument, and may be one of:
+#       "close"   must appear in the same word (synonyms "join" or "-")
+#       "next"    the argument must appear in the next word (aka "split")
+#       "loose"   the argument may appear in the same or the next word ("+")
+#       "assign"  as loose, but must follow an "=" in the same word ("=")
+#     HOW should be suffixed with a colon if the following argument is
+#      _not_ required to appear.
+#     STR is to be displayed based on style `description'
+#     XOR is another option in combination with which OPT may not appear.
+#      It may be ":" to disable non-option completions when OPT is present.
+#     MSG is a string to be displayed above the matches in a listing.
+#     ACT is (currently) as described in the compsys manual.
+#     PAT is either "*" for "all remaining words on the line" or a pattern
+#      that, if matched, marks the end of the arguments of this option.
+#      The "through PAT ..." description must be the last.
+#     PAT may be suffixed with one colon to narrow the $words array to
+#      the remainder of the command line, or with two colons to narrow
+#      to the words before (not including) the next that matches PAT.
+#
+#   help PAT [means MSG] action ACT
+#
+#     ACT is applied to any option output by --help that matches PAT.
+#      Do not use "help" with commands that do not support --help.
+#     PAT may be suffixed with a colon if the following argument is
+#      _not_ required to appear (this is usually inferred from --help).
+#     MSG is a string to be displayed above the matches in a listing.
+
+# EXAMPLE:
+# This is from _gprof in the standard distribution.  Note that because of
+# the brace expansion trick used in the "function name" case, no attempt
+# is made to use `phrase' form; that part gets passed through unchanged.
+# It could simply be moved to the _arguments call ahead of "$args[@]".
+#
+# _arg_compile args -s -{a,b,c,D,h,i,l,L,s,T,v,w,x,y,z} \
+#              -{A,C,e,E,f,F,J,n,N,O,p,P,q,Q,Z}:'function name:->funcs' \
+#              option -I means directory action _dir_list \
+#              option -d follow close means "debug level" \
+#              option -k means "function names" action '->pair' \
+#              option -m means "minimum execution count" \
+#              argument means executable action '_files -g \*\(-\*\)' \
+#              argument means "profile file" action '_files -g gmon.\*' \
+#              help '*=name*' means "function name" action '->funcs' \
+#              help '*=dirs*' means "directory" action _dir_list
+# _arguments "$args[@]"
+
+# TODO:
+# Verbose forms of various actions, e.g. (but not exactly)
+#   "state foo"                  becomes "->foo"
+#   "completion X explain Y ..." becomes "((X\:Y ...))"
+#   etc.
+# Represent leading "*" in OPT some other way.
+# Represent trailing colons in HOW and PAT some other way.
+# Stricter syntax checking on HOW, sanity checks on XOR.
+# Something less obscure than "unless :" would be nice.
+# Warning or other syntax check for stuff after the last phrase.
+
+emulate -L zsh
+local -h argspec dspec helpspec prelude xor
+local -h -A amap dmap safe
+
+[[ -n "$1" ]] || return 1
+[[ ${(tP)${1}} = *-local ]] && { print -R NAME CONFLICT: $1 1>&2; return 1 }
+safe[reply]="$1"; shift
+
+# First consume and save anything before the argument phrases
+
+helpspec=()
+prelude=()
+
+while (($#))
+do
+  case $1 in
+  (argument|help|option) break;;
+  (*) prelude=("$prelude[@]" "$1"); shift;;
+  esac
+done
+
+# Consume all the argument phrases and build the argspec array
+
+while (($#))
+do
+  amap=()
+  dspec=()
+  case $1 in
+
+  # argument [POS] [means MSG] [action ACT]
+  (argument)
+    shift
+    while (($#))
+    do
+      case $1 in
+      (<1->|\*) amap[position]="$1"; shift;;
+      (means|action) amap[$1]="$2"; shift 2;;
+      (argument|option|help) break;;
+      (*) print -R SYNTAX ERROR at "$@" 1>&2; return 1;;
+      esac
+    done
+    if (( $#amap ))
+    then
+      argspec=("$argspec[@]" "${amap[position]}:${amap[means]}:${amap[action]}")
+    fi;;
+
+  # option OPT [follow HOW] [explain STR] {unless XOR} \
+  #  {[through PAT] [means MSG] [action ACT]}
+  (option)
+    amap[option]="$2"; shift 2
+    dmap=()
+    xor=()
+    while (( $# ))
+    do
+      (( ${+amap[$1]} || ${+dmap[through]} )) && break;
+      case $1 in
+      (follow)
+	amap[follow]="${2:s/join/-/:s/close/-/:s/next//:s/split//:s/loose/+/:s/assign/=/:s/none//}"
+	shift 2;;
+      (explain) amap[explain]="[$2]" ; shift 2;;
+      (unless) xor=("$xor[@]" "${(@)=2}"); shift 2;;
+      (through|means|action)
+	while (( $# ))
+	do
+	  (( ${+dmap[$1]} )) && break 2
+	  case $1 in
+	  (through|means|action) dmap[$1]=":${2}"; shift 2;;
+	  (argument|option|help|follow|explain|unless) break;;
+	  (*) print -R SYNTAX ERROR at "$@" 1>&2; return 1;;
+	  esac
+	done;;
+      (argument|option|help) break;;
+      (*) print -R SYNTAX ERROR at "$@" 1>&2; return 1;;
+      esac
+      if (( $#dmap ))
+      then
+	dspec=("$dspec[@]" "${dmap[through]}${dmap[means]:-:}${dmap[action]:-:}")
+      fi
+    done
+    if (( $#amap ))
+    then
+      argspec=("$argspec[@]" "${xor:+($xor)}${amap[option]}${amap[follow]}${amap[explain]}${dspec}")
+    fi;;
+
+  # help PAT [means MSG] action ACT
+  (help)
+    amap[pattern]="$2"; shift 2
+    while (($#))
+    do
+      (( ${+amap[$1]} )) && break;
+      case $1 in
+      (means|action) amap[$1]="$2"; shift 2;;
+      (argument|option|help) break;;
+      (*) print -R SYNTAX ERROR at "$@" 1>&2; return 1;;
+      esac
+    done
+    if (( $#amap ))
+    then
+      helpspec=("$helpspec[@]" "${amap[pattern]}:${amap[means]}:${amap[action]}")
+    fi;;
+  (*) break;;
+  esac
+done
+
+eval $safe[reply]'=( "${prelude[@]}" "${argspec[@]}" ${helpspec:+"-- ${helpspec[@]}"} "$@" )'
+
+# print -R _arguments "${prelude[@]:q}" "${argspec[@]:q}" ${helpspec:+"-- ${helpspec[@]:q}"} "$@:q"
+
+return 0

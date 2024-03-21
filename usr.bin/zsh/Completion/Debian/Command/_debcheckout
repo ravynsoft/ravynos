@@ -1,0 +1,21 @@
+#compdef debcheckout
+
+# The helpstrings use the term 'checkout' (rather than 'clone' or 'branch' or
+# 'fork') to be consistent with the name of the tool.
+
+local -a args=(
+'(-a --auth)'{-a,--auth}'[rewrite anonymous checkout URLs to authenticated ones]'
+'(-p --print -d --details)'{-d,--details}'[print detailed information; do not checkout]'
+'(-h --help)'{-h,--help}'[show usage message]'
+'(-p --print -d --details)'{-p,--print}'[print summary information; do not checkout]'
+'(-P --package)'{-P+,--package=}'[specify package name explicitly (when target is a URL)]:package name:_deb_packages available'
+'(-t --type)'{-t+,--type=}'[specify repository type]:repository type:((arch\:Arch bzr\:Bazaar cvs\:CVS darcs\:Darcs git\:Git hg\:Mercurial svn\:Subversion))'
+'(-u --username)'{-u+,--username=}'[specify username (implies --auth)]:username: '
+\*{-f+,--file=}'[extract named file]:remote filename'
+'--source=:policy for .orig.tar.gz file:(never auto download-only always)'
+'--git-track=[specify branches to track]:branches (separated by spaces) or '\'\*\'
+'1:package or URL: _alternative "_deb_packages available" "_urls"'
+'2::destination directory:_path_files -/'
+)
+
+_arguments -s -S : "$args[@]"

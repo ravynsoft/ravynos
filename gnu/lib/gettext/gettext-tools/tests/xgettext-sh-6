@@ -1,0 +1,26 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Shell support: --add-comments option.
+
+cat <<\EOF > xg-sh-6.sh
+# a
+_ "hello world" # b
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-sh-6.tmp xg-sh-6.sh || Exit 1
+LC_ALL=C tr -d '\r' < xg-sh-6.tmp.po > xg-sh-6.po || Exit 1
+
+cat <<EOF > xg-sh-6.ok
+#. a
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sh-6.ok xg-sh-6.po
+result=$?
+
+exit $result

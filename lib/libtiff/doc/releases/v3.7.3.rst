@@ -1,0 +1,169 @@
+Changes in TIFF v3.7.3
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.3 (:tag:`Release-v3-7-3`)
+  Previous Version        :doc:`v3.7.2 <v3.7.2>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+Major changes
+-------------
+
+* Replace runtime endianness check with the compile time one.
+
+* Added support for the new predictor type (floating point
+  predictor), defined at the TIFF Technical Note 3.
+
+* Added Support for custom tags, passed by value.
+
+* Added support for all DNG tags.
+
+
+Software configuration changes
+------------------------------
+
+* Do not use empty ``-R`` option when linking with ``--enable-rpath``.
+
+* Added workaround for OpenBSD/MirOS soname problem as per bug
+  :bugzilla-rs:`838`
+
+* Fixed parallel compilation of the libtiff and
+  libtiffxx libraries as per bug
+  :bugzilla-rs:`826`
+
+* :file:`configure.ac`, :file:`libtiff/Makefile.am`: Use libtool machinery to pass
+  ``rpath`` option.
+
+* :file:`make.opt`: Build with Win32 CRT library by default.
+
+
+Library changes
+---------------
+
+* :file:`tiffiop.h`, :file:`tif_open.c`: Added open option "``h``" to avoid reading
+  the first IFD when needed. As per bug
+  :bugzilla-rs:`875`
+
+* :file:`tiff.h`: Use correct :c:expr:`int` size on Sparc 64bit/Sun compiler
+  platform. As per bug
+  :bugzilla-rs:`855`
+
+* :file:`tif_dirinfo.c`: Added support for ``ClipPath``, ``XClipPathUnits``
+  and ``YClipPathUnits`` tags.
+
+* :file:`tif_dirinfo.c`, :file:`tif_dir.h`, :file:`tif_dir.c`, :file:`tif_print.c`: Make
+  ``DocumentName``, ``Artist``, ``HostComputer``, ``ImageDescription``, ``Make``, ``Model``,
+  ``Copyright``, ``DateTime``, ``PageName``, ``TextureFormat``, ``TextureWrapModes`` and
+  ``TargetPrinter`` tags custom.
+
+* :file:`tif_jpeg.c`: Cleanup the codec state depending on :c:macro:`TIFF_CODERSETUP`
+  flag (to fix memory leaks).
+
+* :file:`tif_dirwrite.c`: Use :c:member:`tdir_count` when calling
+  :c:func:`TIFFCvtNativeToIEEEDouble` in the :c:func:`TIFFWriteDoubleArray` function as
+  per bug :bugzilla-rs:`845`
+
+* :file:`tif_dirinfo.c`, :file:`tif_print.c`: :c:func:`TIFFFetchByteArray` returns
+  :c:type:`uint16` array when fetching the ``BYTE`` and ``SBYTE`` fields, so we should
+  consider result as pointer to :c:type:`uint16` array and not as array of :c:expr:`char`.
+  As per bug
+  :bugzilla-rs:`831`
+
+* :file:`tif_dir.c`: More efficient custom tags retrieval as per bug
+  :bugzilla-rs:`830`
+
+* :file:`tif_win32.c`: Use ``FILE_SHARE_READ | FILE_SHARE_WRITE`` share
+  mode in :c:func:`CreateFile` call as per bug
+  :bugzilla-rs:`829`
+
+* :file:`tif_jpeg.c`: Substantial fix for :program:`addtiffo` problems with
+  JPEG encoded TIFF files.  Pre-allocate lots of space for jpegtables
+  in directory.
+
+* :file:`tif_dirread.c`: Changed the code that computes
+  ``stripbytecount[0]`` if it appears bogus to ignore if ``stripoffset[0]`` is
+  zero. This is a common case with GDAL indicating a "null" tile/strip.
+
+* :file:`tif_jpeg.c`: added ``LIB_JPEG_MK1`` support in :c:func:`JPEGDecodeRaw`.
+
+* :file:`tif_dirread.c`: Ensure that broken files with too many
+  values in :c:func:`TIFFFetchPerSampleShorts`, :c:func:`TIFFFetchPerSampleLongs` and
+  :c:func:`TIFFFetchPerSampleAnys` work ok instead of crashing.
+  :bugzilla-rs:`843`
+
+* :file:`tif_predict.h`, :file:`tif_predict.c`: Added ability to decode and encode
+  floating point predictor, as per TIFF Technical Note 3.
+  See http://chriscox.org/TIFF_TN3_Draft2.pdf for details.
+
+* :file:`tiffio.h`, :file:`tiffiop.h`, :file:`tif_dir.c`, :file:`tif_read.c`, :file:`tif_swab.c`:
+  Added :c:func:`_TIFFSwab24BitData` and :c:func:`TIFFSwabArrayOfLong` functions used to
+  swap 24-bit floating point values.
+
+* :file:`tiff.h`: Added predictor constants.
+
+* :file:`tiffiop.h`, :file:`tif_dir.c`: Use :c:type:`uint32` type for appropriate values
+  in :c:func:`_TIFFVSetField` function. Inspired by the bug
+  :bugzilla-rs:`816`
+
+* :file:`tif_open.c`: Do not read header in case the output file should
+  be truncated (Ron).
+
+* :file:`tif_dirinfo.c`, :file:`tif_config.h`.vc: Use :c:func:`lfind` instead of :c:func:`bsearch`
+  in :c:func:`_TIFFFindFieldInfoByName` function (Ron).
+
+* :file:`tif_dir.c`, :file:`tif_print.c`: Properly handle all data types in custom
+  tags.
+
+* :file:`dirinfo.c`: Added DNG tags.
+
+* :file:`tiff.h`: Added missed DNG tag (``LensInfo``); added DNG 1.1.0.0 tags.
+
+* :file:`tif_dir.c`, :file:`tif_print.c`: Added Support for custom tags, passed
+  by value.
+
+* :file:`tiff.h`, :file:`tif_dirinfo.c`, :file:`tiffiop.h`: Added EXIF related tags.
+
+
+Tools changes
+-------------
+
+* :file:`tiff2pdf.c`: Print two characters per loop in the
+  :c:func:`t2p_write_pdf_trailer`. As per bug
+  :bugzilla-rs:`594`
+
+* :file:`tiffgt.c`: Use MacOS X OpenGL framework when appropriate. As
+  per bug :bugzilla-rs:`844`
+
+* :file:`ppm2tiff.c`: Fixed format string when read PPM file header with
+  the :c:func:`fscanf` function. As per bug
+  :bugzilla-rs:`861`
+
+* :file:`tiffsplit.c`: Check for ``JPEGTables`` tag presence before copying.
+
+* :file:`tiff2pdfr.c`: Calculate the tile width properly; added new
+  option "``-b``" to use interpolation in output PDF files (Bruno Ledoux).
+
+* :file:`tiffdither.c`: Copy the `PhotometricInterpretation` tag from the
+  input file.
+
+* :file:`tif2pdf.c`: Fixed problem with alpha channel handling as per
+  bug :bugzilla-rs:`794`.
+
+
+Contributed software changes
+----------------------------
+
+* :file:`addtiffo/tif_overview.c`, :file:`addtiffo/tif_ovrcache.c`,
+  :file:`addtiffo/tif_ovrcache.h`:
+  Make overviews working for contiguous images. 

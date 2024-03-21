@@ -1,0 +1,25 @@
+#compdef analyseplugin
+
+local expl context state line nopts ret=1
+typeset -A opt_args
+
+_arguments \
+    '-l[gives a brief listing (one line per plugin)]' \
+    '(-)1:plugin file:->pfile' \
+    '(-)2::plugin label:->plabel' && ret=0
+
+case "$state" in
+    pfile)
+	_wanted plugin-files expl 'plugin file' compadd \
+	    ${~${^${${(f)"$(_call_program ladspa-plugins listplugins 2> /dev/null)"}:#[[:space:]]*}/%:/(:t:r)}} \
+	    && return
+	;;
+    plabel)
+	typeset -a plabel
+	nopts=(${words:#-*})
+	plabel=(${${(f)"$($nopts[1] -l $nopts[2] 2> /dev/null)"}/[[:space:]]##/:})
+	_describe -t plugin-label 'plugin label' plabel && return
+	;;
+esac
+
+return ret

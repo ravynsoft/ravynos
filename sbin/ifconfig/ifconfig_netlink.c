@@ -171,7 +171,7 @@ prepare_ifmap(struct snl_state *ss)
 	hdr->nlmsg_flags |= NLM_F_DUMP;
 	snl_reserve_msg_object(&nw, struct ifinfomsg);
 
-	if (!snl_finalize_msg(&nw) || !snl_send_message(ss, hdr))
+	if (! (hdr = snl_finalize_msg(&nw)) || !snl_send_message(ss, hdr))
 		return (NULL);
 
 	uint32_t nlmsg_seq = hdr->nlmsg_seq;
@@ -212,7 +212,7 @@ if_nametoindex_nl(struct snl_state *ss, const char *ifname)
 	snl_reserve_msg_object(&nw, struct ifinfomsg);
 	snl_add_msg_attr_string(&nw, IFLA_IFNAME, ifname);
 
-	if (!snl_finalize_msg(&nw) || !snl_send_message(ss, hdr))
+	if (! (hdr = snl_finalize_msg(&nw)) || !snl_send_message(ss, hdr))
 		return (0);
 
 	hdr = snl_read_reply(ss, hdr->nlmsg_seq);
@@ -247,7 +247,7 @@ prepare_ifaddrs(struct snl_state *ss, struct ifmap *ifmap)
 	hdr->nlmsg_flags |= NLM_F_DUMP;
 	snl_reserve_msg_object(&nw, struct ifaddrmsg);
 
-	if (!snl_finalize_msg(&nw) || !snl_send_message(ss, hdr))
+	if (! (hdr = snl_finalize_msg(&nw)) || !snl_send_message(ss, hdr))
 		return;
 
 	uint32_t nlmsg_seq = hdr->nlmsg_seq;
@@ -388,6 +388,7 @@ status_nl(if_ctx *ctx, struct iface *iface)
 {
 	if_link_t *link = &iface->link;
 	struct ifconfig_args *args = ctx->args;
+	char *drivername = NULL;
 
 	printf("%s: ", link->ifla_ifname);
 
@@ -432,6 +433,22 @@ status_nl(if_ctx *ctx, struct iface *iface)
 		args->afp->af_other_status(ctx);
 
 	print_ifstatus(ctx);
+	if (args->drivername || args->verbose) {
+		if (ifconfig_get_orig_name(lifh, link->ifla_ifname,
+		    &drivername) != 0) {
+			if (ifconfig_err_errtype(lifh) == OTHER)
+				fprintf(stderr, "get original name: %s\n",
+				    strerror(ifconfig_err_errno(lifh)));
+			else
+				fprintf(stderr,
+				    "get original name: error type %d\n",
+				    ifconfig_err_errtype(lifh));
+			exit_code = 1;
+		}
+		if (drivername != NULL)
+			printf("\tdrivername: %s\n", drivername);
+		free(drivername);
+	}
 	if (args->verbose > 0)
 		sfp_status(ctx);
 }

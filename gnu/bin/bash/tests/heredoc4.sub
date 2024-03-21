@@ -1,0 +1,12 @@
+cat <<EO`true`F
+heredoc1
+EO`false`F
+EO`true`F
+echo Ok:$? 
+
+one=one
+four=four
+five='fi ve'
+
+recho $one`echo two three`$four
+recho `echo two three`$five

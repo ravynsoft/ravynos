@@ -1,0 +1,153 @@
+#compdef pmpath pmvers pmdesc pmload pmexp pmeth pmls pmcat pman pmfunc podgrep podtoc podpath
+#
+# _perl_modules - zsh completion function
+#
+# Adam Spiers <adam@spiers.net>
+#
+# Calculate all installed Perl modules.  The result is cached
+# for future use.
+# 
+# Options:
+# 
+# -t[types]: indicate file types; currently the only one is -tP,
+# to include .pod files as well as modules.
+# 
+# --perl-hierarchy=...: restrict results to modules under this hierarchy.
+# Note that this does not affect the filesystem searching or caching,
+# which always collect all results on the premise that anyone using
+# completion of Perl modules will use the results in various contexts,
+# so this only affects the results compadd'd.
+#
+# --strip-prefix: when using --perl-hierarchy, strip off that prefix when
+# passing to compadd.
+#
+# All other options passed onto compadd.
+#
+# Available styles:
+#
+# * try-to-use-pminst
+#
+#   Set this if you have pminst and want to use it.  The zsh code
+#   actually produces better results because pminst misses modules of
+#   the form Foo/bar/Baz.pm through its clumsy -d && /^[A-Z]/ && prune
+#   algorithm (the zsh code does almost the same, but only misses
+#   modules which don't begin with an uppercase letter).
+
+_perl_modules () {
+  # Set a sensible default caching policy.  This has to be done inside
+  # this function otherwise we wouldn't know the context for the style.
+  local update_policy sufpat=".pm" with_pod
+  local restrict_hierarchy=''
+  local -i strip_perl_prefix
+  zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+  if [[ -z "$update_policy" ]]; then
+    zstyle ":completion:${curcontext}:" cache-policy \
+      _perl_modules_caching_policy
+  fi
+
+  if [[ -n $argv[(r)--perl-hierarchy=*] ]]; then
+    restrict_hierarchy="${argv[(r)--perl-hierarchy=*]#--perl-hierarchy=}"
+    restrict_hierarchy="${restrict_hierarchy%::}::"
+    argv[(r)--perl-hierarchy=*]=()
+  fi
+  if [[ -n $argv[(r)--strip-prefix] ]]; then
+    strip_perl_prefix=1
+    argv[(r)--strip-prefix]=()
+  fi
+  if [[ -n $argv[(r)-tP] ]]; then
+    argv[(r)-tP]=()
+    sufpat="(.pm|.pod)"
+    with_pod=_with_pod
+  fi
+
+  local perl perl_modules
+  if [[ $service == (perl|perldoc) ]] && whence -- ${${(Q)words[1]}%doc} >/dev/null; then
+    perl=$_
+    perl_modules=_${${perl//[^[:alnum:]]/_}#_}_modules$with_pod
+  elif whence perl > /dev/null; then
+    perl=perl
+    perl_modules=_perl_modules$with_pod
+  else
+    perl=
+    perl_modules=_unknown_perl_modules$with_pod
+  fi
+
+  if ( [[ ${(P)+perl_modules} -eq 0 ]] || _cache_invalid ${perl_modules#_} ) &&
+     ! _retrieve_cache ${perl_modules#_};
+  then
+    if zstyle -t ":completion:${curcontext}:modules" try-to-use-pminst &&
+       (( ${+commands[pminst]} ));
+    then
+      set -A $perl_modules $(pminst)
+    else
+      local inc libdir new_pms
+
+      if [[ -n $perl ]]; then
+        inc=( $( _call_program perl-inc ${(q)perl}$' -e \'print "@INC"\'' ) )
+      else
+        # If perl isn't there, one wonders why the user's trying to
+        # complete Perl modules.  Maybe her $path is wrong?
+        _message "didn't find perl on \$PATH; guessing @INC ..."
+
+        inc=( /usr/lib/perl5{,/{site_perl/,}<5->.([0-9]##)}(N) 
+              ${(s.:.)PERL5LIB} )
+      fi
+
+      typeset -agU $perl_modules  # $perl_modules is global, no duplicates
+      set -A $perl_modules
+
+      for libdir in $inc; do
+        # Ignore cwd - could be too expensive e.g. if we're near /
+        if [[ $libdir == '.' ]]; then continue; fi
+
+        # Find all modules
+        if [[ -d $libdir && -x $libdir ]]; then
+          new_pms=( $libdir/{[A-Za-z]*/***/,}*${~sufpat}~*blib* )
+          new_pms=( "${(@)new_pms##$libdir/##}" )
+        fi
+
+        # Convert to Perl nomenclature
+        new_pms=( ${new_pms:r:fs#/#::#} )
+
+        set -A $perl_modules $new_pms ${(P)perl_modules}
+      done
+    fi
+
+    _store_cache ${perl_modules#_} $perl_modules
+  fi
+
+  # Nothing above here should have filtered the results per-caller, so that
+  # the cache is always complete.  From here on, it's safe to filter.
+  local -a perl_subset
+  if [[ -n $restrict_hierarchy ]]; then
+    perl_subset=( ${(PM)perl_modules:#${restrict_hierarchy}*} )
+    if (( strip_perl_prefix )); then
+      perl_subset=( ${perl_subset#$restrict_hierarchy} )
+    fi
+    perl_modules=perl_subset
+  fi
+
+  local expl
+  _wanted modules expl 'Perl module' compadd "$@" -a - $perl_modules
+}
+
+_perl_modules_caching_policy () {
+  local _perllocals
+  local -a oldp
+
+  # rebuild if cache is more than a week old
+  oldp=( "$1"(mw+1) )
+  (( $#oldp )) && return 0
+
+  _perllocals=( /usr/lib/perl5/**/perllocal.pod )
+
+  if (( $#_perllocals )); then
+    for pod in $_perllocals; do
+      [[ "$pod" -nt "$1" ]] && return 0
+    done
+  fi
+
+  return 1
+}
+
+_perl_modules "$@"

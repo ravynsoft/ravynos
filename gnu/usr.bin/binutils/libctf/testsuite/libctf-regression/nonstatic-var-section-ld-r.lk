@@ -1,0 +1,6 @@
+# source: nonstatic-var-section-ld-r-ctf.c
+# nonshared: on
+# link: on
+# link_flags: -Wl,--ctf-variables -r
+foo is of type [0-9a-f]*
+bar is of type [0-9a-f]*

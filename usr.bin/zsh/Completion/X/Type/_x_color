@@ -1,0 +1,37 @@
+#autoload
+
+# This tries to automatically find the rgb.txt color database. If this
+# in an unusual place on your system or you want a personal database,
+# you can use the configuration key:
+#
+#  colors_path
+#    Path to a file containing the names of colors you want to
+#    complete. In the form of a X11 rgb.txt file.
+
+local expl
+
+if (( ! $+_cache_x_colors )); then
+  typeset -ga _cache_x_colors
+  local file
+
+  # Cache of color names doesn't exist yet, create it.
+
+  zstyle -s ":completion:${curcontext}:colors" path file
+  if [[ -n "$file" ]]; then
+    _cache_x_colors=( "${(@)${(@f)$(< $file)}[2,-1]##*		}" )
+  elif (( $+commands[showrgb] )); then
+    _cache_x_colors=( "${(@)${(@)${(@f)$(_call_program colors showrgb)}[2,-1]##*		}:#* *}" )
+  else
+    file=( /usr/{lib,{{X11R6,openwin},local{,/X11{,R6}}}/lib}/X11/rgb.txt(N) )
+
+    (( $#file )) &&
+        _cache_x_colors=( "${(@)${(@)${(@f)$(< $file[1])}[2,-1]##*		}:#* *}" )
+  fi
+
+  # Stupid default value.
+
+  (( $#_cache_x_colors )) || _cache_x_colors=(white black gray red blue green)
+fi
+
+_wanted colors expl 'color specification' compadd "$@" -M \
+    'm:{a-z}={A-Z} m:-=\  r:[^ A-Z0-9]||[ A-Z0-9]=* r:|=*' -a - _cache_x_colors

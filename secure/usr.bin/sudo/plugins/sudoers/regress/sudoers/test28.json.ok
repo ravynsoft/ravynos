@@ -1,0 +1,199 @@
+{
+    "Defaults": [
+        {
+            "Options": [
+                {
+                    "operation": "list_assign",
+                    "passprompt_regex": [
+                        "(?i)password:",
+                        "*"
+                    ]
+                }
+            ]
+        }
+    ],
+    "User_Specs": [
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "/bin/ls ^/etc/(hosts|motd|issue)$" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "/usr/bin/c* ^/etc/(hosts|motd|issue)$" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "^/usr/bin/(who|w|id|whoami)$" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "^/usr/bin/(who|w|id|whoami)$ \"\"" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "^/usr/bin/(who|w|id|whoami)$ root" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "^/usr/bin/(who|w|id|whoami)$ -*" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "^/usr/bin/(who|w|id|whoami)$ ^(-[ahi] ?)+$" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "sudoedit ^/etc/(hosts|motd|issue)$" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "^/usr/bin/\\$tree$" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "host1" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "/bin/ls ^/etc/(hosts|motd|issue)$" },
+                        { "command": "/usr/bin/c* ^/etc/(hosts|motd|issue)$" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "host2" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "^/usr/bin/(who|w|id|whoami)$ \"\"" },
+                        { "command": "^/usr/bin/(who|w|id|whoami)$ root" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user" }
+            ],
+            "Host_List": [
+                { "hostname": "host3" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Commands": [
+                        { "command": "/bin/echo ^\\$foo$" }
+                    ]
+                }
+            ]
+        }
+    ]
+}

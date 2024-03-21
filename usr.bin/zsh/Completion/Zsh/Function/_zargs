@@ -1,0 +1,48 @@
+#compdef zargs -value-,-default-,-command-
+
+local arguments eofstr pos=$((CURRENT)) numeofs=0 ret=1 cmdpos=1
+
+#this doesn't handle '--' on the command line, only --
+#it also by extension doesn't handle eofstr being the empty string
+#it also doesn't handle eofstr being -e or --eof, and everything will
+# probably also be confused if the command at the end takes a -e, --eof= or --
+eofstr=${${${${words[(r)(--eof=*|-e*)]}#--eof=}#-e}:---}
+while {
+  pos=$(( words[(b:pos-1:I)$eofstr] ))
+  (( numeofs == 0 )) && (( cmdpos = pos ))
+  (( pos )) && (( numeofs++ ))
+  (( pos ))
+} {}
+case $numeofs in
+  0)
+    #zargs arguments
+    arguments=(
+      '(--eof -e)'{--eof=,-e+}'[change the end-of-input-args string from "--" to eof-str]'
+      '(--exit -x)'{--exit,-x}'[exit if the size (see --max-chars) is exceeded]'
+      '--help[print summary and exit]'
+      '(--interactive -p)'{--interactive,-p}'[prompt before executing each command line]'
+      '(--max-args -n)'{--max-args=,-n+}'[use at most max-args arguments per command line]'
+      '(--max-chars -s)'{--max-chars=,-s+}'[use at most max-chars characters per command line]'
+      '(--max-lines -l)'{--max-lines=,-l+}'[use at most max-lines of the input-args per command line]'
+      '(--max-procs -P)'{--max-procs=,-P+}'[run up to max-procs command lines in the background at once]'
+      '(--no-run-if-empty -r)'{--no-run-if-empty,-r}'[do nothing if there are no input arguments before the eof-str]'
+      '(--null -0)'{--null,-0}'[split each input-arg at null bytes, for xargs compatibility]'
+      '(--replace -i)'{--replace=,-i}'[substitute replace-str in the initial-args by each initial-arg]'
+      '(--verbose -t)'{--verbose,-t}'[print each command line to stderr before executing it]'
+      '--version[print the version number of zargs and exit]'
+    )
+    _arguments -S -s $arguments[@] && ret=0
+  ;;
+  1)
+    #argument list for command
+    _files && ret=0
+  ;;
+  *)
+    #command and command arguments
+    shift cmdpos words
+    (( CURRENT -= cmdpos ))
+    _normal
+  ;;
+esac
+
+return ret

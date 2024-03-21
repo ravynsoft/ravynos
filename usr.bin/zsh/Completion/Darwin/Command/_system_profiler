@@ -1,0 +1,20 @@
+#compdef system_profiler
+
+typeset -A opt_args
+local context state state_descr line
+local -a _data_types
+
+# TODO: Should this be static?  Calling `system_profiler -listDataTypes` takes
+# about 0.07-0.08 secs on my machine.  Does this list ever change (between
+# different versions of OS X)?
+_data_types=( SP{AirPort,Applications,Audio,Bluetooth,Camera,CardReader,Component,ConfigurationProfile,DeveloperTools,Diagnostics,DisabledSoftware,DiscBurning,Displays,Ethernet,Extensions,FibreChannel,FireWire,Firewall,Fonts,Frameworks,Hardware,HardwareRAID,InstallHistory,Logs,ManagedClient,Memory,Network,NetworkLocation,NetworkVolume,PCI,ParallelATA,ParallelSCSI,Power,PrefPane,Printers,PrintersSoftware,SAS,SPI,SerialATA,Software,StartupItem,Storage,SyncServices,Thunderbolt,USB,UniversalAccess,WWAN}DataType )
+# the dynamic alternative is:
+#_data_types=( ${${(f)"$(_call_program path system_profiler -listDataTypes 2>/dev/null)"}[2,-1]} )
+
+_arguments \
+  '(- *)-usage' \
+  '(- *)-listDataTypes[lists the available datatypes]' \
+  '(-listDataTypes -usage)-xml[generate xml output]' \
+  '(-listDataTypes -usage)-detailLevel[level of detail for the report]:detail level:(mini basic full)' \
+  '(-listDataTypes -usage)-timeout+[maximum time to wait in seconds]' \
+  '(-listDataTypes -usage)*:data type:'"($_data_types)"

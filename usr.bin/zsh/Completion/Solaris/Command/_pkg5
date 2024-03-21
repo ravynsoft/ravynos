@@ -1,0 +1,431 @@
+#compdef pkg
+
+_pkg5_pkgs() {
+	local cache_policy cache_id=pkg5_installed_pkgs:$HOST:${pkg5_root//\//+}
+	typeset -a -g _pkg5_installed_pkgs
+
+	zstyle -s ":completion:${curcontext}:" cache-policy cache_policy
+	if [[ -z "$cache_policy" ]]; then
+		zstyle ":completion:${curcontext}:" cache-policy _pkg5_installed_caching_policy
+	fi
+
+	if ( [[ $#_pkg5_installed_pkgs -eq 0 ]] || _cache_invalid $cache_id ) && ! _retrieve_cache $cache_id; then
+		_pkg5_installed_pkgs=( $(
+			pkg -R $pkg5_root list -H | while read pkg junk; do
+				pkga=( ${(s:/:)pkg} )
+				for i in {1..$#pkga}; do
+					print ${(j:/:)${pkga[$i,-1]}}
+				done
+			done) )
+		_store_cache $cache_id _pkg5_installed_pkgs
+	fi
+
+	compadd "$@" - ${_pkg5_installed_pkgs}
+}
+
+_pkg5_pkgs_a() {
+	local cache_policy cache_id=pkg5_known_pkgs:$HOST:${pkg5_root//\//+}
+	typeset -a -g _pkg5_known_pkgs
+
+	zstyle -s ":completion:${curcontext}:" cache-policy cache_policy
+	if [[ -z "$cache_policy" ]]; then
+		zstyle ":completion:${curcontext}:" cache-policy _pkg5_known_caching_policy
+	fi
+
+	if ( [[ $#_pkg5_known_pkgs -eq 0 ]] || _cache_invalid $cache_id ) && ! _retrieve_cache $cache_id; then
+		_pkg5_known_pkgs=( $(
+			pkg -R $pkg5_root list -aH --no-refresh | while read pkg junk; do
+				pkga=( ${(s:/:)pkg} )
+				for i in {1..$#pkga}; do
+					print ${(j:/:)${pkga[$i,-1]}}
+				done
+			done) )
+		_store_cache $cache_id _pkg5_known_pkgs
+	fi
+
+	compadd "$@" - ${_pkg5_known_pkgs}
+}
+
+_pkg5_avoided_pkgs() {
+	compadd "$@" - $(pkg -R $pkg5_root unavoid)
+}
+
+_pkg5_pubs() {
+	compadd "$@" - $(pkg -R $pkg5_root publisher -H | awk '{print $1}')
+}
+
+_pkg5_variants() {
+	compadd "$@" - $(pkg -R $pkg5_root variant -H | awk '{print $1}')
+}
+
+_pkg5_facets() {
+	compadd "$@" - $(pkg -R $pkg5_root facet -H | awk '{print $1}')
+}
+
+_pkg5_known_caching_policy() {
+	[[ $pkg5_root/var/pkg/state/known/catalog.attrs -nt "$1" ]]
+}
+
+_pkg5_installed_caching_policy() {
+	[[ $pkg5_root/var/pkg/state/installed/catalog.attrs -nt "$1" ]]
+}
+
+_pkg5() {
+	local expl context state line pkg5_root prop
+	typeset -A opt_args
+	local -a subcmds pkg5_actions pkg5_cattr pkg5_sattr be_opts
+	local -a publisher_properties image_properties certs
+
+	subcmds=(
+		install uninstall list update refresh version help
+		info search verify fix revert contents image-create
+		{change-,}{variant,facet} avoid unavoid history
+		{{un,}set-,}property {add,remove}-property-value
+		{{un,}set-,}publisher purge-history rebuild-index
+		update-format freeze unfreeze {{un,}set-,}mediator
+	)
+
+	pkg5_actions=(
+		set depend dir driver file group hardlink legacy license link
+		signature unknown user
+	)
+
+	# Pseudo attributes for the contents subcommand
+	pkg5_cattr=(
+		action.hash action.key action.name action.raw
+		pkg.fmri pkg.name pkg.publisher pkg.shortfmri
+	)
+
+	# Pseudo attributes for the search subcommand
+	pkg5_sattr=(
+		$pkg5_cattr search.match search.match_type
+	)
+
+	publisher_properties=(
+		"signature-policy:value:(ignore verify require-signatures require-names)"
+		"signature-required-names:value:"
+	)
+
+	image_properties=(
+	    "be-policy:value:(default always-new create-backup when-required)"
+	    "ca-path:value:_path_files -/"
+	    "check-certificate-revocation:value:(true false)"
+	    "flush-content-cache-on-success:value:(true false)"
+	    "mirror-discovery:value:(true false)"
+	    "send-uuid:value:(true false)"
+	    "signature-policy:value:(ignore verify require-signatures require-names)"
+	    "signature-required-names:value:"
+	    "trust-anchor-directory:value:_path_files -/"
+	    "use-system-repo:value:(true false)"
+	)
+
+	if [[ $service == "pkg" ]]; then
+		_arguments -C -A "-*" \
+			'(-\? --help)'{-\?,--help}'[Help]' \
+			'-R[Root directory]:directory:_path_files -/' \
+			'*::command:->subcmd' && return 0
+
+		if (( CURRENT == 1 )); then
+			_wanted commands expl "pkg subcommand" compadd -a subcmds
+			return
+		fi
+		service="$words[1]"
+		curcontext="${curcontext%:*}=$service:"
+	fi
+
+	pkg5_root=${${${opt_args[-R]}:-$PKG_IMAGE}:-/}
+
+	certs=( $(pkg -R $pkg5_root property -H ca-path | awk '{print $2}')/* )
+
+	# Options common to subcommands which might have to deal with BEs.
+	# Note that --backup-be-name needs to precede --be-name in order to
+	# ensure that completion sees "--b" as being ambiguous.
+	be_opts=(
+		"(--require-new-be)--deny-new-be[Fail the operation if a new BE would be required]"
+		"(--deny-new-be)--require-new-be[Force a new BE to be created]"
+		"--backup-be-name[Specify the name for the backup BE]:BE name: "
+		"--be-name[Specify a BE name]:BE name: "
+		"--no-be-activate[Don't activate the new BE]"
+		"(--require-backup-be)--no-backup-be[Don't leave behind a backup BE]"
+		"(--no-backup-be)--require-backup-be[Force leaving behind a backup BE]"
+	)
+
+	case $service in
+	("install")
+		_arguments -A "-*" \
+			'-n[Dry run]' \
+			'-q[Quiet]' \
+			'-v[Verbose]' \
+			'-g[Specify additional source of packages]:source:_path_files -/' \
+			"--accept[Accept all licenses]" \
+			"--licenses[Display all licenses]" \
+			"--reject[Specify an FMRI to exclude from the result]:fmri:_pkg5_pkgs" \
+			"--no-refresh[Don't refresh catalogs]" \
+			"--no-index[Don't reindex search database]" \
+			$be_opts \
+			'*:package:_pkg5_pkgs_a'
+		;;
+
+	("uninstall")
+		_arguments -A "-*" \
+			'-n[Dry run]' \
+			'-q[Quiet]' \
+			'-v[Verbose]' \
+			$be_opts \
+			"--no-index[Don't reindex search database]" \
+			'*:package:_pkg5_pkgs'
+		;;
+
+	("update")
+		_arguments -A "-*" \
+			"-f[Don't check for pkg(5) updates]" \
+			'-n[Dry run]' \
+			'-q[Quiet]' \
+			'-v[Verbose]' \
+			'-g[Specify additional source of packages]:source:_path_files -/' \
+			"--accept[Accept all licenses]" \
+			"--licenses[Display all licenses]" \
+			$be_opts \
+			"--reject[Specify an FMRI to exclude from the result]:fmri:_pkg5_pkgs" \
+			"--no-refresh[Don't refresh catalogs]" \
+			"--no-index[Don't reindex search database]" \
+			'*:package:_pkg5_pkgs'
+		;;
+
+	("list")
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'-a[Show not-installed packages]' \
+			'-f[Show all versions]' \
+			'-g[Specify additional source of packages]:source:_path_files -/' \
+			'-n[Show newest versions]' \
+			'-s[Show summaries]' \
+			'-u[Show upgradable versions]' \
+			'-v[Show verbose pkg: FMRIs]' \
+			"--no-refresh[Don't refresh catalogs]" \
+			'*:package:_pkg5_pkgs_a'
+		;;
+
+	("refresh")
+		_arguments -A "-*" \
+			"--full[Full refresh]" \
+			'*:publisher:_pkg5_pubs'
+		;;
+
+	("info")
+		_arguments -A "-*" \
+			'--license[Display license text(s)]' \
+			'(-r)-l[Installed package]' \
+			'(-l)-r[Uninstalled package; fetch info from depot]:*:package:_pkg5_pkgs_a' \
+			'*:package:_pkg5_pkgs'
+		;;
+
+	("search")
+		_arguments -A "-*" \
+			"(-p)-a[Show matching actions]" \
+			'-l[Local search]' \
+			'(-a)-p[Show packages]' \
+			'-r[Remote search]' \
+			'-H[Omit headers]' \
+			'-I[Case sensitive search]' \
+			'-s[Depot URI]' \
+			'*-o[Attribute output]:attributes:_values -s , "attribute" $pkg5_sattr' \
+			':query:'
+		;;
+
+	("verify")
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'-q[Quiet]' \
+			'-v[Verbose]' \
+			'*:package:_pkg5_pkgs'
+		;;
+
+	("fix")
+		_arguments -A "-*" \
+			'--accept[Accept all licenses]' \
+			'--licenses[Display all licenses]' \
+			'*:package:_pkg5_pkgs'
+		;;
+
+	("revert")
+		_arguments -A "-*" \
+			'-n[Dry run]' \
+			'-v[Verbose]' \
+			'--tagged[Revert all tagged files]:tag:' \
+			$be_opts \
+			"--no-refresh[Don't refresh catalogs]" \
+			"--no-index[Don't reindex search database]" \
+			'*:file:_path_files'
+		;;
+
+	("contents")
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'-m[Print raw manifests]' \
+			'*-a[Attribute matching]:attribute=pattern:' \
+			'*-o[Attribute output]:attributes:_values -s , "attribute" $pkg5_cattr' \
+			'*-s[Sort key]:attribute:' \
+			'*-t[Action type]:action:_values -s , "action" $pkg5_actions' \
+			'-r[Fetch manifests from depot]:*:package:_pkg5_pkgs_a' \
+			'*:package:_pkg5_pkgs'
+		;;
+
+	("image-create")
+		_arguments -A "-*" \
+			'(-f --force)'{-f,--force}'[Force image creation]' \
+			'(-F --full -P --partial -U --user)'{-F,--full}'[Full image]' \
+			'(-F --full -P --partial -U --user)'{-P,--partial}'[Partial image]' \
+			'(-F --full -P --partial -U --user)'{-U,--user}'[User image]' \
+			'(-z --zone)'{-z,--zone}'[Zoned image]' \
+			'-k[Path to SSL key]:file:_path_files' \
+			'-c[Path to SSL cert]:file:_path_files' \
+			"--no-refresh[Don't refresh catalogs]" \
+			"*--variant[Specify image variants]:variant=instance:" \
+			"*--facet[Specify image facets]:facet=True/False:" \
+			'(-p --publisher)'{-p,--publisher}'[Specify publisher]:prefix=URI:' \
+			':directory:_path_files -/'
+		;;
+
+	("change-variant")
+		_arguments -A "-*" \
+			'-n[Dry run]' \
+			'-q[Quiet'] \
+			'-v[Verbose'] \
+			'-g[Specify additional source of packages]:source:_path_files -/' \
+			'--accept[Accept all licenses]' \
+			'--licenses[Display all licenses]' \
+			$be_opts \
+			"*:variant:_values -s , 'variant' $(pkg -R $pkg5_root variant -H | awk '{print $1}')" \
+		;;
+
+	("change-facet")
+		_arguments -A "-*" \
+			'-n[Dry run]' \
+			'-q[Quiet'] \
+			'-v[Verbose'] \
+			'-g[Specify additional source of packages]:source:_path_files -/' \
+			'--accept[Accept all licenses]' \
+			'--licenses[Display all licenses]' \
+			$be_opts \
+			"*:facet:_values -s , 'facet' $(pkg -R $pkg5_root facet -H | awk '{print $1}')" \
+		;;
+
+	("variant")
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'*:variant:_pkg5_variants'
+		;;
+
+	("facet")
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'*:facet:_pkg5_facets'
+		;;
+
+	("avoid")
+		_arguments -A "-*" \
+			'*:package:_pkg5_pkgs_a'
+		;;
+
+	("unavoid")
+		_arguments -A "-*" \
+			'*:package:_pkg5_avoided_pkgs'
+		;;
+
+	("set-property")
+		_arguments -A "-*" \
+			':property:_values "property" $image_properties' \
+			':value:'
+		;;
+
+	("add-property-value")
+		_arguments -A "-*" \
+			':property:_values "property" $image_properties' \
+			':value:'
+		;;
+
+	("remove-property-value")
+		_arguments -A "-*" \
+			':property:(${image_properties%%\:*})' \
+			':value:'
+		;;
+
+	("unset-property")
+		_arguments -A "-*" \
+			'*:property:(${image_properties%%\:*})'
+		;;
+
+	("property")
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'*:property:(${image_properties%%\:*})'
+		;;
+
+	("set-publisher")
+		_arguments -A "-*" \
+			'-P[Make preferred]' \
+			'(-e --enable)'{-e,--enable}'[Enable publisher]' \
+			'(-d --disable)'{-d,--disable}'[Disable publisher]' \
+			'(-g --add-origin)'{-g,--add-origin}'[Add origin URI]:uri:' \
+			'(-G --remove-origin)'{-G,--remove-origin}'[Remove origin URI]:uri:' \
+			'(-m --add-mirror)'{-m,--add-mirror}'[Add mirror URI]:uri:' \
+			'(-M --remove-mirror)'{-M,--remove-mirror}'[Remove mirror URI]:uri:' \
+			'-p[Repository URI]:url:' \
+			"--no-refresh[Don't refresh catalogs]" \
+			'--reset-uuid[Reset the image UUID for this publisher]' \
+			'--sticky[Make this publisher sticky]' \
+			'--non-sticky[Make this publisher non-sticky]' \
+			'--search-after[Set publisher search-order]:publisher:_pkg5_pubs' \
+			'--search-before[Set publisher search-order]:publisher:_pkg5_pubs' \
+			'--approve-ca-cert[Add trusted CA certificate]:CA cert path:_path_files' \
+			'--revoke-ca-cert[Revoke CA certificate]:CA cert hash:(${${certs#/etc/openssl/certs/}%.0})' \
+			'--unset-ca-cert[Remove trusted CA certificate]:CA cert hash:' \
+			'--set-property[Set publisher property]:property:_values "property" $publisher_properties' \
+			'--unset-property[Remove publisher property]:property:(${publisher_properties%%\:*})' \
+			'--add-property-value[Add publisher property value]:property:_values "property" $publisher_properties' \
+			'--remove-property-value[Remove publisher property value]:property:(${publisher_properties%%\:*})' \
+			':publisher:_pkg5_pubs'
+		;;
+
+	("unset-publisher")
+		_arguments -A "-*" \
+			'*:publisher:_pkg5_pubs'
+		;;
+
+	("publisher")
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'-P[Display only preferred publisher]' \
+			'-n[Display only enabled publishers]' \
+			'*:publisher:_pkg5_pubs'
+		;;
+
+	("history")
+		local -a hist_columns
+		hist_columns=(
+			"be" "be_uuid" "client" "client_ver" "command" "finish"
+			"id" "new_be" "new_be_uuid" "operation" "outcome"
+			"reason" "snapshot" "start" "time" "user"
+		)
+		_arguments -A "-*" \
+			'-H[Omit headers]' \
+			'-l[Long history]' \
+			'-n[Last n records]:number:' \
+			'-o[Column]:number:_values -s , "column" $hist_columns' \
+			'-t[Time range]'
+		;;
+
+	("freeze"|"unfreeze")
+		;;
+
+	("mediator"|"set-mediator"|"unset-mediator")
+		;;
+
+	(*)
+		_message "unknown pkg subcommand: $service" ;;
+
+	esac
+}
+
+_pkg5 "$@"

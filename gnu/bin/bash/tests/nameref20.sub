@@ -1,0 +1,84 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# a collection of cases in bug reports after bash-5.0-alpha was released
+
+declare -n r=v[0]
+v=(X); r=Y
+declare -p ${!v*}
+printf "%s: <%s>\n" "r" "$r" "v" "$v"
+
+unset -n r
+unset -v v
+
+declare -n ref=var; declare -a ref
+ref=(X)
+declare -p ref var
+
+unset -n ref
+unset -v var
+
+f() { declare -n ref=var; declare ref=(X); declare -p ref var; };
+f
+
+unset -f f
+
+f() { declare -n ref=var; declare -g ref=(X); declare -p ref var; };
+
+declare -n ref=foo
+f
+echo outside:
+declare -p foo
+
+unset -n ref
+unset -v foo
+unset -f f
+
+f() { declare -n ref=var; declare -a ref; ref=(X); declare -p ref var; }
+
+f
+echo outside:
+declare -p ref var
+unset -f f
+
+f() { declare -n ref=var; declare ref; ref=X; declare -p ref var; }
+
+f
+echo outside:
+declare -p ref var
+
+unset -f f
+
+unset -n ref; unset var
+
+f()
+{
+	declare var=X; declare -n ref=var; declare ref=(Y)
+	declare -p ref var
+}
+f
+
+unset -f f
+
+declare -n ref=var
+f() { local ref=Y; declare -p ref var; local; }
+
+var=X
+f
+
+unset -v var
+f
+
+unset -n ref
+unset -f f
+

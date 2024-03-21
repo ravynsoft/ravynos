@@ -1,0 +1,150 @@
+#compdef gradle gradlew
+
+local -i ret=1
+local curcontext="$curcontext" state state_descr outputline
+local gradle_inspect=yes gradle_buildfile cache_policy cache_name tag_order filter
+local -A opt_args task_map
+local -aU gradle_subprojects gradle_tasks tasks
+local -a match mbegin mend
+
+_gradle_caching_policy() {
+    # Invalidate the cache if it cannot be read.
+    [[ -r "$1" ]] ||
+            return 0
+
+    # Invalidate the cache if it's older than the build file.
+    [[ $gradle_buildfile -nt $1 ]] &&
+            return
+
+    # Invalidate the cache if it doesn't contain the required arrays.
+    local cache="$( < $1 )"
+    [[ "$cache" != *'gradle_subprojects=('*')'* || "$cache" != *'gradle_tasks=('*')'* ]]
+}
+
+zstyle -s ":completion:*:*:$service:*" cache-policy cache_policy || \
+    zstyle ":completion:*:*:$service:*" cache-policy _gradle_caching_policy
+
+# By default, we only complete main tasks (belonging to a group). Secondary tasks are
+# completed if no main tasks are found.
+zstyle -a ":completion:*:*:$service:*" tag-order tag_order || \
+    zstyle ":completion:*:*:$service:*" tag-order 'gradle_group' 'gradle_all'
+
+# The completion inspects the current build file to find tasks to complete. Setting
+# this style to 'no' or 'false' turns off inspection. In that case only the built-in tasks
+# are completed.
+zstyle -T ":completion:*:*:$service:*" gradle-inspect || gradle_inspect=no
+
+_arguments -C \
+    '(-)'{-\?,-h,--help}'[Shows a help message.]' \
+    {-a,--no-rebuild}'[Do not rebuild project dependencies.]' \
+    {-b,--build-file}'[Specifies the build file.]:build file:_files -g "*.gradle(-.)"' \
+    {-C,--cache}'[Specifies how compiled build scripts should be cached.]:cache policy:(on rebuild)' \
+    {-c,--settings-file}'[Specifies the settings file.]:settings file:_files -g "*.properties(-.)"' \
+    '--continue[Continues task execution after a task failure.]' \
+    \*{-D+,--system-prop}'[Set system property of the JVM (e.g. -Dmyprop=myvalue).]:system property (prop=val):' \
+    '(-i --info -q --quiet)'{-d,--debug}'[Log in debug mode (includes normal stacktrace).]' \
+    '(--nodaemon)--daemon[Uses the Gradle daemon to run the build. Starts the daemon if not running.]' \
+    '--foreground[Starts the Gradle daemon in the foreground.]' \
+    {-g,--gradle-user-home}'[Specifies the gradle user home directory.]:home directory:_directories' \
+    '(-)--gui[Launches the Gradle GUI.]' \
+    {-I,--init-script}'[Specifies an initialization script.]:init script:_files -g "*.gradle(-.)"' \
+    '(-d --debug -q --quiet)'{-i,--info}'[Set log level to info.]' \
+    {-m,--dry-run}'[Runs the builds with all task actions disabled.]' \
+    '--no-color[Do not use color in the console output.]' \
+    '(--daemon)--no-daemon[Do not use the Gradle daemon to run the build.]' \
+    '--no-opt[Ignore any task optimization.]' \
+    '--offline[The build should operate without accessing network resources.]' \
+    \*{-P+,--project-prop}'[Set project property for the build script (e.g. -Pmyprop=myvalue).]:project property (prop=val):' \
+    {-p,--project-dir}'[Specifies the start directory for Gradle.]:start directory:_directories' \
+    '--parallel[Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.]' \
+    '--parallel-threads[Build projects in parallel, using the specified number of executor threads.]' \
+    '--profile[Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.]' \
+    '--project-cache-dir[Specifies the project-specific cache directory.]:cache directory:_directories' \
+    '(-d --debug -i --info)'{-q,--quiet}'[Log errors only.]' \
+    '--recompile-scripts[Force build script recompiling.]' \
+    '--refresh[Refresh the state of resources of the type(s) specified.]:refresh policy:(dependencies)' \
+    '--refresh-dependencies[Refresh the state of dependencies.]' \
+    '--rerun-tasks[Ignore previously cached task results.]' \
+    '(-S --full-stacktrace)'{-s,--stacktrace}'[Print out the stacktrace for all exceptions.]' \
+    '(-s --stacktrace)'{-S,--full-stacktrace}'[Print out the full (very verbose) stacktrace for all exceptions.]' \
+    '(-)--stop[Stops the Gradle daemon if it is running.]' \
+    {-u,--no-search-upward}"[Don't search in parent folders for a settings.gradle file.]" \
+    '(-)'{-v,--version}'[Print version info.]' \
+    {-x,--exclude-task}'[Specify a task to be excluded from execution.]:task to exclude:->task' \
+    '*:task:->task' \
+    && ret=0
+
+if [[ $state == task && ! -prefix - ]]; then
+    # :<task> runs <task> in the root project only.
+    # :<subproject>:<task> is the same as <subproject>:<task> (without the leading colon).
+    compset -P \:
+
+    if [[ $gradle_inspect == yes ]]; then
+        # If a build file is specified after '-b' or '--build-file', use this file. Otherwise,
+        # default is the file 'build.gradle' in the current directory.
+        gradle_buildfile=${${(v)opt_args[(i)-b|--build-file]}:-build.gradle}
+
+        if [[ -f $gradle_buildfile ]]; then
+            # Cache name is constructed from the absolute path of the build file.
+            cache_name=${${gradle_buildfile:a}//[^[:alnum:]]/_}
+
+            if _cache_invalid $cache_name || ! _retrieve_cache $cache_name; then
+                zle -R "Generating cache from $gradle_buildfile"
+
+                # Run gradle/gradlew and retrieve possible tasks.
+                for outputline in ${(f)"$($service --build-file $gradle_buildfile -q tasks --all)"}; do
+
+                    # Tasks and subprojects each start with a lowercase letter, but whereas tasks are in camelCase, each
+                    # subproject consists of one or more sections of kebab-case, with each section ending in a ':'.
+                    # A subproject task is a task prefixed with a subproject and runs in that project only.
+                    # Specifying a task without a subproject prefix runs the task in all subprojects where it exists.
+                    # Tasks prefixed by whitespace are dependencies of the task above them and should be ignored.
+                    if [[ $outputline == (#b)([[:lower:]][-[:lower:][:digit:]]#\:)#([[:lower:]][[:alnum:]]#)(|' - '*) ]]
+                    then
+                        task=$match[-2]
+                        task_descr=${match[-1]# - }
+                        shift -p 2 match
+                        subproject=${(j::)match//:/'\:'}
+
+                        if [[ -n $subproject ]]; then
+                            gradle_subprojects+=( ${subproject%'\:'} )
+                            task_map[$subproject$task]=$task_descr
+
+                            # We cannot count on the description of a subproject task to be representative of the task
+                            # in general.
+                            : ${task_map[$task]=}
+                        else
+                            task_map[$task]=$task_descr
+                        fi
+                    fi
+                done
+                printf -v gradle_tasks '%s:%s' "${(kv@)task_map}"
+                _store_cache $cache_name gradle_subprojects gradle_tasks
+            fi
+
+            if [[ $IPREFIX == *: ]] || ! zstyle -T ":completion:${curcontext}:subprojects" prefix-needed; then
+                _describe -t subprojects 'gradle subproject' gradle_subprojects -S \: &&
+                        ret=0
+            fi
+            if [[ $PREFIX == *:* ]] || ! zstyle -T ":completion:${curcontext}:tasks" prefix-needed; then
+                tasks=( $gradle_tasks[@] )
+            else
+                # If no subproject is specified, then filter out all subproject tasks.
+                tasks=( ${gradle_tasks[@]:#*'\:'*} )
+            fi
+            _describe -t tasks 'gradle task' tasks &&
+                    ret=0
+        fi
+    else
+        _describe -t tasks 'built-in task' '(
+            "dependencies:Displays all dependencies declared in root project."
+            "dependencyInsight:Displays the insight into a specific dependency in root project."
+            "help:Displays a help message."
+            "projects:Displays the sub-projects of root project."
+            "properties:Displays the properties of root project."
+            "tasks:Displays the tasks runnable from root project."
+            )' && ret=0
+    fi
+fi
+
+return ret

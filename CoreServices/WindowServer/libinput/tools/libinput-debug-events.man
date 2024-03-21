@@ -1,0 +1,132 @@
+.TH libinput-debug-events "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-debug\-events \- debug helper for libinput
+.SH SYNOPSIS
+.B libinput debug\-events \fI[options]\fB
+.PP
+.B libinput debug\-events \fI[options]\fB \-\-udev \fI<seat>\fB
+.PP
+.B libinput debug\-events \fI[options]\fB [\-\-device] \fI/dev/input/event0\fB [\fI/dev/input/event1\fB...]
+.SH DESCRIPTION
+.PP
+The
+.B "libinput debug\-events"
+tool creates a libinput context and prints all events from these devices.
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+.TP 8
+.B \-\-device \fI/dev/input/event0\fR
+Use the given device(s) with the path backend. The \fB\-\-device\fR argument may be
+omitted.
+.TP 8
+.B \-\-grab
+Exclusively grab all opened devices. This will prevent events from being
+delivered to the host system.
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-quiet
+Only print libinput messages, don't print anything from this tool. This is
+useful in combination with --verbose for internal state debugging.
+.TP 8
+.B \-\-show\-keycodes
+Key events shown by this tool are partially obfuscated to avoid passwords
+and other sensitive information showing up in the output. Use the
+.B \-\-show\-keycodes
+argument to make all keycodes visible.
+.TP 8
+.B \-\-udev \fI<seat>\fR
+Use the udev backend to listen for device notifications on the given seat.
+The default behavior is equivalent to \-\-udev "seat0".
+.TP 8
+.B \-\-verbose
+Use verbose output
+.SS libinput configuration options
+.TP 8
+.B \-\-apply-to="pattern"
+Configuration options are only applied where the device name matches the
+pattern. This pattern has no effect on the \fB\-\-disable-sendevents\fR
+option.
+.TP 8
+.B \-\-disable-sendevents="pattern"
+Set the send-events option to disabled for the devices matching patterns.
+This option is not affected by the \fB\-\-apply-to="pattern"\fR option.
+.TP 8
+.B \-\-enable\-tap|\-\-disable\-tap
+Enable or disable tap-to-click
+.TP 8
+.B \-\-enable-drag|\-\-disable\-drag
+Enable or disable tap-and-drag
+.TP 8
+.B \-\-enable\-drag-lock|\-\-disable\-drag\-lock
+Enable or disable drag-lock
+.TP 8
+.B \-\-enable\-natural\-scrolling|\-\-disable\-natural\-scrolling
+Enable or disable natural scrolling
+.TP 8
+.B \-\-enable\-left\-handed|\-\-disable\-left\-handed
+Enable or disable left handed button configuration
+.TP 8
+.B \-\-enable\-middlebutton|\-\-disable\-middlebutton
+Enable or disable middle button emulation
+.TP 8
+.B \-\-enable\-dwt|\-\-disable\-dwt
+Enable or disable disable-while-typing
+.TP 8
+.B \-\-enable\-dwtp|\-\-disable\-dwtp
+Enable or disable disable-while-trackpointing
+.TP 8
+.B \-\-enable\-scroll-button-lock|\-\-disable\-scroll-button-lock
+Enable or disable the scroll button lock
+.TP 8
+.B \-\-set\-click\-method=[none|clickfinger|buttonareas]
+Set the desired click method
+.TP 8
+.B \-\-set\-scroll\-method=[none|twofinger|edge|button]
+Set the desired scroll method
+.TP 8
+.B \-\-set\-scroll\-button=BTN_MIDDLE
+Set the button to the given button code
+.TP 8
+.B \-\-set\-profile=[adaptive|flat|custom]
+Set pointer acceleration profile
+.TP 8
+.B \-\-set\-speed=<value>
+Set pointer acceleration speed. The allowed range is [-1, 1].
+This only applies to the flat or adaptive profile.
+.TP 8
+.B \-\-set\-custom\-points="<value>;...;<value>"
+Sets the n points defining a custom acceleration function
+The points are defined in a semicolon-separated list of floating point
+non-negative numbers. Defaults to "0.0;1.0".
+This only applies to the custom profile.
+.TP 8
+.B \-\-set\-custom\-step=<value>
+Sets the distance along the x-axis between each point, starting from 0.
+Defaults to 1.0.
+This only applies to the custom profile.
+.TP 8
+.B \-\-set\-custom\-type=[fallback|motion|scroll]
+Sets the type of the custom acceleration function.
+Defaults to fallback.
+This only applies to the custom profile.
+.TP 8
+.B \-\-set\-tap\-map=[lrm|lmr]
+Set button mapping for tapping
+.TP 8
+.B \-\-set\-rotation\-angle=<degrees>
+Set the rotation angle in degrees (0 to 360).
+.SH NOTES
+.PP
+Events shown by this tool may not correspond to the events seen by a
+different user of libinput. This tool initializes a separate context.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

@@ -1,0 +1,40 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify that msgcat complains when the same msgid occurs with and without
+# msgid_plural.
+
+cat <<\EOF > mcat-test21.in1
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "File"
+msgstr "Soumettre"
+EOF
+
+cat <<\EOF > mcat-test21.in2
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "File"
+msgid_plural "Files"
+msgstr[0] "fichier"
+msgstr[1] "fichiers"
+EOF
+
+rm -f mcat-test21.out1
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test21.out1 mcat-test21.in1 mcat-test21.in2 2>/dev/null
+test $? = 1 || { Exit 1; }
+
+rm -f mcat-test21.out2
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test21.out2 mcat-test21.in2 mcat-test21.in1 2>/dev/null
+test $? = 1 || { Exit 1; }
+
+Exit 0

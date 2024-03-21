@@ -1,0 +1,28 @@
+`Say' echos its argument. Its return value is of no interest.
+`Truth' echos its argument and returns a TRUE result.
+`False' echos its argument and returns a FALSE result.
+
+  Truth 1 && Truth 2   || Say 3   output=12
+( Truth 1 && Truth 2 ) || Say 3   output=12
+
+  Truth 1 && False 2   || Say 3   output=123
+( Truth 1 && False 2 ) || Say 3   output=123
+
+  False 1 && Truth 2   || Say 3   output=13
+( False 1 && Truth 2 ) || Say 3   output=13
+
+  False 1 && False 2   || Say 3   output=13
+( False 1 && False 2 ) || Say 3   output=13
+
+Truth 1 ||   Truth 2 && Say 3     output=13
+Truth 1 || ( Truth 2 && Say 3 )   output=1
+
+Truth 1 ||   False 2 && Say 3     output=13
+Truth 1 || ( False 2 && Say 3 )   output=1
+
+False 1 ||   Truth 2 && Say 3     output=123
+False 1 || ( Truth 2 && Say 3 )   output=123
+
+False 1 ||   False 2 && Say 3     output=12
+False 1 || ( False 2 && Say 3 )   output=12
+

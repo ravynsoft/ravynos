@@ -1,0 +1,142 @@
+#compdef ipset
+
+local offset=0
+local -a args from_to hash cmds listopts addopts
+
+_set_types () {
+	_values -S \  "set type" \
+		'bitmap\:ip[uses a memory range to store IPv4 host (default) or IPv4 subnet addresses up to 65536 elements]'\
+		'bitmap\:ip,mac[uses a memory range to store an IPv4 host/subnet and mac address pair up to 65536 elements]'\
+		'bitmap\:port[uses a memory range to store port numbers independent of L4 protocol at up to 65536 elements]'\
+		'hash\:ip[stores IPv4/IPv6 host/subnet addresses. 0.0.0.0 and :: cannot be stored]'\
+		'hash\:net[stores varying sizes of IPv4/IPv6 addresses. 0.0.0.0 and :: cannot be stored]'\
+		'hash\:ip,port[stores IPv4/IPv6 addresses and port numbers, including L4 proto - port 0 cannot be stored]'\
+		'hash\:net,port[stores varying sizes of IPv4/IPv6 addresses and port numbers, including L4 proto]'\
+		'hash\:ip,port,ip[stores IPv4/IPv6 addresses, a port with L4 proto and another IPv4/IPv6 address]'\
+		'hash\:ip,port,net[stores an IPv4/IPv6 address, port with L4 proto and an arbitrary size IPv4/IPv6 subnet]'\
+		'hash\:net,iface[stores an IPv4/IPv6 address and an interface name]'\
+		'list\:set[a simple list which stores names of other sets]'
+}
+
+#if [[ $words[2] = (-q|--quiet) ]]; then
+#	offset=1
+#fi
+
+_ipsets () {
+	local -a vals
+	vals=( ${${(M)${(f)"$(_call_program ipsets ipset -L)"}%Name: *}#Name: } )
+	_describe -t ipsets "IP set" vals
+}
+_sets () {
+	_ipsets
+	local -a vals
+}
+
+from_to=('(--network)--from[from IP or network (with --netmask)]:IP'
+	'(--network)--to[to IP or network (with --netmask)]:IP'
+	'(--from --to)--network[network]:IP/mask'
+)
+
+hash=(	'--hashsize[the initial hash size aligned to a power of 2]:hashsize [1024]'
+	'--maxelem[the maximum number of elements in the set]:max elements [65536]'
+        '--family[the protocol family of addresses to be stored in the set]:address family [inet]:(inet inet6)'
+	'--timeout[adds timeout support to the set with your specified value as default, (0 = forever)]:entrytimeout'
+	'--probes[max number of tries to resolve clashing, altering this is discouraged]:tries [8]'
+	'--resize[ratio of increasing hash size after unsuccessful <probes> of double-hashing, altering discouraged]:percent'
+)
+
+case $words[offset+2]; in
+  -N|--create)
+	case $words[offset+4]; in
+	  bitmap\:ip)
+	  	args=(  $from_to
+			'--netmask[store network addresses instead of IP addresses]:CIDR'
+		)
+	  ;;
+	  bitmap\:ip,mac)
+	  	args=(  $from_to
+			'--netmask[store network addresses instead of IP addresses]:CIDR'
+		)
+	  ;;
+	  bitmap\:port)
+	  	args=(	'--from[from port]:port:_ports'
+			'--to[to port]:port:_ports'
+		)
+	  ;;
+	  hash\:ip)
+	  	args=(  $hash
+			'--netmask[store network addresses instead of IP addresses]:CIDR'
+		)
+	  ;;
+	  hash\:net)
+	  	args=(	$hash  )
+	  ;;
+	  hash\:ip,port)
+	  	args=(	$hash
+			'--netmask[store network addresses instead of IP addresses]:CIDR'
+		)
+	  ;;
+	  hash\:net,port)
+	  	args=(	$hash  )
+	  ;;
+	  hash\:ip,port,ip)
+	  	args=(	$hash
+			'--netmask[store network addresses instead of IP addresses]:CIDR'
+		)
+	  ;;
+	  hash\:ip,port,net)
+	  	args=(	$hash
+			'--netmask[store network addresses instead of IP addresses]:CIDR'
+		)
+	  ;;
+	  hash\:net,iface)
+	  	args=(	$hash  )
+	  ;;
+	  list\:set)
+		args=( '--size[size of the new setlist]:size [8]' )
+	  ;;
+	esac
+  ;;
+esac
+
+_ips () {
+	if [[ $CURRENT -eq ((offset+4)) ]]; then
+		local ips=1 default
+		local -a vals vals1 vals2 bindings
+		vals=( ${${${(f)"$(_call_program ipsets ipset -L $words[offset+3])"}[4,-1]}//\:/\\:} )
+		for i in $vals; do
+			if [[ $i = Default\ binding\\:* ]]; then default=${i#Default binding\\: }; continue; fi
+			if [[ $i = (Header\\:*|Members\\:*|Size in memory\\:*|References\\:*) ]]; then continue; fi
+			if [[ $i = 'Bindings\:' ]]; then ips=0; continue; fi
+			if (( $ips )); then vals1+=$i; else bindings+=${i/ ->/:}; fi
+		done
+		_describe -t ips "IPs from $words[offset+3] set" vals1
+		_describe -t special_values "special value" vals2
+	fi
+}
+
+cmds=(-N -X -F -E -W -S -R -A -D -T -B -U -H --create --destroy --flush --rename --swap --save --restore --add --del --test --help)
+listopts=(-n --name -s --sorted -t --terse -r --resolve -L --list)
+addopts=(--timeout --timeout -! --exist -A --add)
+
+_arguments \
+	"($cmds $listopts $addopts)"{-N,--create}'[create a set]:set name::::_set_types' \
+	"($cmds $listopts)"{-X,--destroy}'[destroy specified set (or all if none specified)]:set name:_sets' \
+	"($cmds $listopts)"{-F,--flush}'[flush specified set (or all if none specified)]:set name:_sets' \
+	"($cmds $listopts)"{-E,--rename}'[rename set]:current set name:_ipsets:new set name:' \
+	"($cmds $listopts)"{-W,--swap}'[swap two sets]:::_ipsets:::_ipsets' \
+	"($cmds -L --list -q --quiet )"{-L,--list}'[list the entries and bindings for the specified set (or all if none specified)]:::_sets' \
+	"($cmds $listopts)"{-S,--save}'[save the given set (or all if none specified)]:::_sets' \
+	"($cmds $listopts)"{-R,--restore}'[restore a saved session generated by --save from stdin]' \
+	"($cmds $listopts)"{-A,--add}'[add an IP to a set]:::_ipsets:IP' \
+	"($cmds $listopts)"{-D,--del}'[delete an IP from a set]:::_ipsets:::_ips' \
+	"($cmds $listopts)"{-T,--test}'[test whether an IP is in a set]:::_ipsets:::_ips' \
+	"($cmds $listopts)"{-H,--help}'[print help and settype specific help if settype specified]:::_set_types' \
+	"(-q --quiet $listopts)"{-q,--quiet}'[suppress any output to stdout and stderr]' \
+	"(-t --terse $listopts)"{-t,--terse}'[list set names and headers without entries]' \
+	"(-r --resolve $listopts)"{-r,--resolve}'[enforce DNS name lookup of addresses, slow!]' \
+	"(-! --exist $addopts)"{-!,--exist}'[ignore errors when creating an identical set, adding existing entry or deleting a non-existent one]'\
+	"(--timeout --timeout $addopts)"{--timeout,--timeout}'[set the timeout for this entry. set must have been created with timeout support]:timeout'\
+	"($cmds -s --sorted  -q --quiet)"{-s,--sorted}'[sorted output]' \
+	"($cmds -n --name -q --quiet)"{-n,--name}"[name output only; suppresses showing of set information]" \
+	"$args[@]"

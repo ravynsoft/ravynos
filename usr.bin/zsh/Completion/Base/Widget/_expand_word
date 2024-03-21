@@ -1,0 +1,13 @@
+#compdef -K _expand_word complete-word \C-xe _list_expansions list-choices \C-xd
+
+# Simple completion front-end implementing expansion.
+
+local curcontext="$curcontext"
+
+if [[ -z "$curcontext" ]]; then
+  curcontext="expand-word:::"
+else
+  curcontext="expand-word:${curcontext#*:}"
+fi
+
+_main_complete _expand

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.7.1 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v3.7.0" href="v3.7.0.html" />
+    <link rel="prev" title="Changes in TIFF v3.7.2" href="v3.7.2.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.7.0.html" title="Changes in TIFF v3.7.0"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v3.7.2.html" title="Changes in TIFF v3.7.2"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.7.1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-7-1">
+<h1>Changes in TIFF v3.7.1<a class="headerlink" href="#changes-in-tiff-v3-7-1" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.7.1 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v3-7-1">tag Release-v3-7-1</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.7.0.html"><span class="doc">v3.7.0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>This is mostly bugfix release. Most important fix is the one
+related to wrong custom tag read/write code.</p></li>
+</ul>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">autogen.sh</span></code>: <strong class="program">aclocal</strong> and <strong class="program">autoheader</strong>
+should be executed after <strong class="program">libtoolize</strong>.
+Also add <code class="docutils literal notranslate"><span class="pre">-I</span> <span class="pre">.</span></code> to aclocal invocation to check
+current directory for macros.</p></li>
+<li><p>nmake.opt: Link with the <code class="file docutils literal notranslate"><span class="pre">user32.lib</span></code> in windowed mode. As per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=697">Remote Sensing bugzilla #697 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">nmake.opt</span></code>, <code class="file docutils literal notranslate"><span class="pre">makefile.vc</span></code>: make it easier to rename the libtiff DLL.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>, <code class="file docutils literal notranslate"><span class="pre">configure.ac</span></code>: Added <code class="docutils literal notranslate"><span class="pre">--enable-rpath</span></code> option to embed
+linker paths into library binary.</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">tiff.h</span></code>: Revert back libtiff data type definitions as per
+bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=687">Remote Sensing bugzilla #687 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirread.c</span></code>: Do not forget about <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_VARIABLE2</span></code> when
+checking for tag count in <a class="reference internal" href="../functions/TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a> function. As per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=713">Remote Sensing bugzilla #713 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_getimage.c</span></code>: Support for multiple-alpha-channelled
+RGB-images as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=718">Remote Sensing bugzilla #718 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_getimage.c</span></code>: <code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">A1</span></code> bracketing for clean build on
+SunPro compiler.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirwrite.c</span></code>: Always write <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SUBIFD</span></code> using <code class="docutils literal notranslate"><span class="pre">LONG</span></code> type
+as per bugs
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=703">Remote Sensing bugzilla #703 [no longer available]</a> and
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=704">Remote Sensing bugzilla #704 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_win32.c</span></code>: Use <span class="c-expr sig sig-inline c"><span class="kt">char</span><span class="p">*</span></span> strings instead of <code class="xref c c-type docutils literal notranslate"><span class="pre">TCHAR</span></code> in windowed
+mode as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=697">Remote Sensing bugzilla #697 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dir.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">tif_dirread.c</span></code>: Remove <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReassignTagToIgnore()</span></code>
+call from the <a class="reference internal" href="../functions/TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a> function. <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReassignTagToIgnore()</span></code>
+must be removed in the future, as it was never used properly. As per
+bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=692">Remote Sensing bugzilla #692 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_jpeg.c</span></code>: Added a work-around in order to allow
+compilation with the heavily modified version of libjpeg delivered
+with Cygwin.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dir.c</span></code>: Properly handle tags, which have the <code class="xref c c-type docutils literal notranslate"><span class="pre">uint32</span></code>
+counts. As per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=693">Remote Sensing bugzilla #693 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_unix.c</span></code>: Make UNIX module compilable (and usable)
+on Windows.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tiff.h</span></code>: Added Adobe DNG tags.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_aux.c</span></code>: Set the appropriate <code class="docutils literal notranslate"><span class="pre">ReferenceBlackWhite</span></code> array for
+YCbCr image which lacks that tag (noted by Hans Petter Selasky).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_color.c</span></code>: Division by zero fixed (Hans Petter Selasky).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_stream.cxx</span></code>, <code class="file docutils literal notranslate"><span class="pre">tiffio.h</span></code>: Added C++ stream interface
+contributed by Edward Lam (see
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=654">Remote Sensing bugzilla #654 [no longer available]</a>
+for details). Those who want to use C++ streams should
+<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;tiffio.hxx&gt;</span></code>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_open.c</span></code>: Removed <code class="xref c c-func docutils literal notranslate"><span class="pre">close()</span></code> in <a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a> if file
+is bad. This is the callers responsibility.
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=651">Remote Sensing bugzilla #651 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tiffio.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">tif_win32.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff.def</span></code>: Added <a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFOpenW" title="TIFFOpenW"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenW()</span></code></a>
+function to work with the double byte strings (used to represent
+filenames in some locales). As per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=625">Remote Sensing bugzilla #625 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirread.c</span></code>: Fixed problem when fetching <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Compression</span></code> tags of type <code class="docutils literal notranslate"><span class="pre">LONG</span></code> from broken TIFFs as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=662">Remote Sensing bugzilla #662 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code>: Fixed definition for <code class="docutils literal notranslate"><span class="pre">TIFFTAG_RICHTIFFIPTC</span></code>,
+the writecount should have <code class="xref c c-type docutils literal notranslate"><span class="pre">uint32</span></code> type. As per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=662">Remote Sensing bugzilla #662 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_write.c</span></code>: Fixed wrong <code class="docutils literal notranslate"><span class="pre">if()</span></code> statement in
+<code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFAppendToStrip()</span></code> function as per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=660">Remote Sensing bugzilla #660 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirinfo.c</span></code>: Change definition for <code class="docutils literal notranslate"><span class="pre">TIFFTAG_EXTRASAMPLES</span></code>
+field. The caller should supply a count when setting this field. As
+per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=648">Remote Sensing bugzilla #648 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_jpeg.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">tif_ojpeg.c</span></code>: <code class="docutils literal notranslate"><span class="pre">TIFFTAG_JPEGTABLES</span></code> should have
+uint32 count. Use this type everywhere.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_next.c</span></code>: avoid use of <code class="xref c c-type docutils literal notranslate"><span class="pre">u_long</span></code> and <code class="xref c c-type docutils literal notranslate"><span class="pre">u_char</span></code> types.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_fax3.c</span></code>: Fixed case with the wrong decode routines
+choosing when the incorrect <code class="docutils literal notranslate"><span class="pre">Group4Options</span></code> tag set. As per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=323">Remote Sensing bugzilla #323 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirwrite.c</span></code>: Fixed problem with passing count variable of
+wrong type when writing the <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_BYTE</span></code>/<code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFF_SBYTE</span></code> tags in
+<code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteNormalTag()</span></code>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_compress.c</span></code>: Zero division problem fixed (Vladimir Nadvornik,
+Dmitry V. Levin).</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">fax2ps.c</span></code>: Be able to extract the first page (#0). As per bug
+<a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=690">Remote Sensing bugzilla #690 [no longer available]</a></p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tiff2ps.c</span></code>: Fixed wrong variable data type when read <code class="docutils literal notranslate"><span class="pre">Position</span></code>
+tags (Tristan Hill).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tiff2ps.c</span></code>: Fixed wrong variable data type when read <code class="docutils literal notranslate"><span class="pre">Resolution</span></code>
+tags (Peter Fales).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tiffset.c</span></code>: Check the <code class="xref c c-func docutils literal notranslate"><span class="pre">malloc()</span></code> return value (Dmitry V. Levin).</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>None.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.7.1</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.7.2.html"
+                          title="previous chapter">Changes in TIFF v3.7.2</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v3.7.0.html"
+                          title="next chapter">Changes in TIFF v3.7.0</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.7.1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.7.0.html" title="Changes in TIFF v3.7.0"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v3.7.2.html" title="Changes in TIFF v3.7.2"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.7.1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

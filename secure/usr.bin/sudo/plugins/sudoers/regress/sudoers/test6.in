@@ -1,0 +1,15 @@
+# Check that uids work in per-user and per-runas Defaults
+Defaults:#123 set_home
+Defaults>#123 set_home
+Defaults:"#123" set_home
+Defaults>"#123" set_home
+
+# Check that uids work in a Command_Spec
+#0 ALL = ALL
+#0 ALL = (#0 : #0) ALL
+"#0" ALL = ALL
+"#0" ALL = ("#0" : "#0") ALL
+
+# Check that gids work in a Command_Spec
+%#0 ALL = ALL
+"%#0" ALL = ALL

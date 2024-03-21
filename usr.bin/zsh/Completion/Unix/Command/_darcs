@@ -1,0 +1,38 @@
+#compdef darcs
+## Darcs completion snippet for zsh.
+##
+## Copyright (C) 2009  Nicolas Pouillard
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+local expl
+
+if (($CURRENT == 2)); then
+  # We're completing the first word after "darcs" -- the command.
+  _wanted command expl 'darcs command' \
+    compadd -- $( darcs --commands )
+else
+  case "${words[$CURRENT]}"; in
+    # If it looks like an URL...
+    ht*|ft*)
+        _arguments '*:URL:_urls'
+        ;;
+    # If it looks like an explicit path...
+    /*|./*|\~*|../*)
+        _arguments '*:file:_files'
+        ;;
+    # Otherwise, let's ask darcs for all possible options
+    *)
+      _wanted args expl 'arg for darcs command' \
+        compadd -- $( darcs ${words[2]} --list-option )
+      ;;
+  esac
+fi

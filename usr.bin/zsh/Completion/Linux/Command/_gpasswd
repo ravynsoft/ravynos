@@ -1,0 +1,12 @@
+#compdef gpasswd
+
+_arguments -s \
+  '(-a --add -d --delete)'{-a,--add}'[add user to group]: : _users' \
+  '(-d --delete -a --add)'{-d,--delete}'[remove user from group]: : _users' \
+  '(-)'{-h,--help}'[display help]' \
+  '(-Q --root)'{-Q,--root}'[specify directory to chroot into]: : _files -/' \
+  '(-r --remove-password)'{-r,--remove-password}'[remove the group password]' \
+  '(-R --restrict)'{-R,--restrict}'[restrict access to GROUP to its members]' \
+  '(-M --members -A --administrators)'{-M,--members}'[set the list of members of GROUP]: :_sequence _users' \
+  '(-A --administrators -M --members)'{-A,--administrators}'[set the list of admins for GROUP]: :_sequence _users' \
+  '1: : _groups'

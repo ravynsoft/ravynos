@@ -1,0 +1,55 @@
+#compdef installpkg upgradepkg removepkg pkgtool explodepkg makepkg
+
+local expl
+
+case "$service" in
+  installpkg)
+    _arguments \
+      '-warn[warn if files would be overwritten, but do not install]' \
+      '-root=[specify alternate install location]:root directory:_path_files -/' \
+      '-infobox[use dialog to draw an info box]' \
+      '-menu[confirm package installation with a menu]' \
+      "-ask[always ask on package installation regardless of package's priority]" \
+      '-priority[provide a priority for the entire package list to use]:priority list:(ADD REC OPT SKP)' \
+      '-tagfile[specify a different file to use for package priorities]:tagfile:_files -/' \
+      '*:package file:_files -g "*.t[gblx]z(-.)"'
+  ;;
+
+  removepkg)
+    _arguments \
+      '-warn[list which files & directories would be removed, skip actual removal]' \
+      '-preserve[reconstruct complete package subtree in /tmp/preserved_packages]' \
+      '-copy[construct a copy of the package in /tmp/preserved_packages]' \
+      '-keep[save the intermediate files created]' \
+      '*:package:_files -W /var/log/packages/ -/'
+  ;;
+
+  upgradepkg)
+    _arguments \
+      '--install-new[install new packages in addition to upgrading existing ones]' \
+      '--reinstall[upgrade even when the same version is already installed]' \
+      '--verbose[show all the gory details of the upgrade]' \
+      '*:package file:_files -g "*.t[gblx]z(-.)"'
+  ;;
+
+  explodepkg)
+    _wanted file expl 'package file' _files -g '*.t[gblx]z(-.)'
+  ;;
+
+  makepkg)
+    _arguments -s \
+      '(--linkadd -l)'{--linkadd,-l}'[move symlinks into doinst.sh]:answer:(y n)' \
+      '(--chown -c)'{--chown,-c}'[reset all permissions to root:root 755]:answer:(y n)'
+  ;;
+
+  pkgtool)
+    _arguments \
+      "-sets[install the disk sets A, B, C]" \
+      "(-source_device)-source_mounted[don't attempt to unmount and remount source device with each disk]" \
+      '-ignore_tagfile[install every package encountered regardless of tagfiles]' \
+      '-tagfile[specify tagfile to be used for the installation]:tagfile:_files -/' \
+      '-source_dir[specify directory containing each disk subdirectory]:source directory:_path_files -/' \
+      '-target_dir[specify directory where the target root directory is located]:target directory:_path_files -/' \
+      '(-source_mounted)-source_device[specify source device to install from]:source device:{compadd "$expl[@]" /dev/*}'
+  ;;
+esac

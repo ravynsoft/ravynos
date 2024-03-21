@@ -1,0 +1,9 @@
+# lookup: nonstatic-var-section-ld.c
+# source: nonstatic-var-section-ld-r-ctf.c
+# nonshared: on
+# link: on
+# link_flags: -Wl,--ctf-variables
+foo is of type [0-9a-f]*
+bar is of type [0-9a-f]*
+foo missing from the data object section
+bar missing from the data object section

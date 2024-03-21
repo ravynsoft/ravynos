@@ -1,0 +1,68 @@
+#compdef crontab
+
+# Notes:
+# - We assume a cronie-, dcron-, or Vixie-esque crontab
+# - BusyBox crontab is forked from dcron
+# - Generally only the super-user can use -c/-u; we aren't that restrictive
+# - @todo As usual, BusyBox multi-call isn't handled
+
+local variant sluser
+local -a args etargs ccargs clargs rcargs aopts
+
+_pick_variant -r variant \
+  dcron='-c*(#i)dir' \
+  cronie-selinux='(#i)selinux' \
+  cronie='(#i)cluster' \
+  unix --help
+variant+=-$OSTYPE
+
+# On Solaris, instead of using -u, the user can be specified as an optional
+# first operand with -e/-l/-r. We'll treat it as an optional *argument* to one
+# of those options, though, since the logic is a bit simpler
+if [[ $variant == *-solaris* ]]; then
+  sluser='::user whose crontab to work with:_users'
+else
+  etargs+=( '(cl)-u+[specify user whose crontab to work with]: :_users' )
+fi
+
+case $variant in
+  dcron-*)
+    etargs+=( '-c+[specify crontab directory]:crontab directory:_directories' )
+    ;;
+  cronie-selinux-*)
+    ccargs+=( '(-l cl nc rc)-s[append SELinux context (with -e)]' )
+    ;& # FALL THROUGH
+  cronie-*)
+    etargs+=( '(: * -)-V[display version information]' )
+    clargs+=(
+      '(: * -)-c[display cluster host]'
+      '(: * -)-n+[specify cluster host]: :_hosts'
+    )
+    ;& # FALL THROUGH
+  *-linux*)
+    rcargs+=( '(cc cl nc)-i[prompt for confirmation (with -r)]' )
+    ;;
+  *-freebsd*)
+    rcargs+=( '(cc cl nc)-f[bypass confirmation prompt (with -r)]' )
+    ;;
+esac
+
+(( $#etargs )) && args+=( + et $etargs ) # Misc.
+(( $#clargs )) && args+=( + cl $clargs ) # Work with cluster
+args+=(
+  + nc # Install new crontab
+  '(cc cl rc sl):crontab to install:_files'
+  + cc # Edit/display current crontab
+  "(-l cl nc rc)-e[edit current crontab]$sluser"
+  "(-e -s cl nc rc)-l[display current crontab]$sluser"
+  $ccargs
+  + rc # Remove current crontab
+  "(cc cl nc)-r[remove current crontab]$sluser"
+  $rcargs
+)
+
+# Implementations that use GNU's getopt(3) probably support permutation; this
+# should be accurate enough
+[[ $OSTYPE == linux* ]] || aopts=( -A '-*' )
+
+_arguments -s -S $aopts : $args

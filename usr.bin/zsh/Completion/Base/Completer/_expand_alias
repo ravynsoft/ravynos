@@ -1,0 +1,67 @@
+#compdef -K _expand_alias complete-word \C-xa
+
+local word expl tmp pre sel what
+local -a tmpa suf
+
+eval "$_comp_setup"
+
+if [[ -n $funcstack[2] ]]; then
+  if [[ "$funcstack[2]" = _prefix ]]; then
+    word="$IPREFIX$PREFIX$SUFFIX"
+  else
+    word="$IPREFIX$PREFIX$SUFFIX$ISUFFIX"
+  fi
+  pre=()
+else
+  local curcontext="$curcontext"
+
+  if [[ -z "$curcontext" ]]; then
+    curcontext="expand-alias-word:::"
+  else
+    curcontext="expand-alias-word:${curcontext#*:}"
+  fi
+
+  word="$IPREFIX$PREFIX$SUFFIX$ISUFFIX"
+  pre=(_main_complete - aliases)
+fi
+
+zstyle -s ":completion:${curcontext}:" regular tmp || tmp=yes
+case $tmp in
+always) sel=r;;
+yes|1|true|on) [[ CURRENT -eq 1 ]] && sel=r;;
+esac
+zstyle -T ":completion:${curcontext}:" global && sel="g$sel"
+zstyle -t ":completion:${curcontext}:" disabled && sel="${sel}${(U)sel}"
+
+tmp=
+[[ $sel = *r* ]] && tmp=$aliases[$word]
+[[ -z $tmp && $sel = *g* ]] && tmp=$galiases[$word]
+[[ -z $tmp && $sel = *R* ]] && tmp=$dis_aliases[$word]
+[[ -z $tmp && $sel = *G* ]] && tmp=$dis_galiases[$word]
+
+if [[ -n $tmp ]]; then
+  # We used to remove the quoting from the value in the parameter.
+  # That was probably just an oversight: an alias is always replaced
+  # literally.
+  tmp=${tmp%%[[:blank:]]##}
+  if [[ $tmp[1] = [[:alnum:]_] ]]; then
+    tmpa=(${(z)tmp})
+    if [[ $tmpa[1] = $word && $tmp = $aliases[$word] ]]; then
+      # This is an active regular alias and the first word in the result
+      # is the same as what was on the line already.  Quote it so
+      # that it doesn't get reexanded on execution.
+      #
+      # Strictly we also need to check if the original word matches
+      # a later word in the expansion and the previous words are
+      # all aliases where the expansion ends in " ", but I'm
+      # too lazy.
+      tmp="\\$tmp"
+    fi
+  fi
+  zstyle -T ":completion:${curcontext}:" add-space || suf=( -S '' )
+  $pre _wanted aliases expl alias compadd -UQ "$suf[@]" -- ${tmp%%[[:blank:]]##}
+elif (( $#pre )) && zstyle -t ":completion:${curcontext}:" complete; then
+  $pre _aliases -s "$sel" -S ''
+else
+  return 1
+fi

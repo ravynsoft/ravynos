@@ -1,0 +1,105 @@
+#compdef cdrecord wodim
+
+local curcontext="$curcontext" state line expl ret=1
+local devices btypes
+
+_arguments -C \
+  '-version[print version information]' \
+  '*-d[increase debug level]' \
+  \*{-verbose,-v}'[increase verbosity level]' \
+  \*{-Verbose,-V}'[increase scsi command transport verbosity level]' \
+  '(-silent -s)'{-silent,-s}'[do not print a status report for failed scsi commands]' \
+  '-setdropts[set driver specific options and exit]' \
+  '-checkdrive[check if a driver for the device is present]' \
+  '-prcap[print drive capabilities for MMC compliant drives]' \
+  '-inq[do an inquiry for the drive and exit]' \
+  '-scanbus[scan the scsi bus and exit]' \
+  '-reset[reset the scsi bus with the cdrecorder]' \
+  '-overburn[allow writing of more than the official size of a medium]' \
+  '-ignsize[ignore the known size of a medium (may cause problems)]' \
+  '-useinfo[use .inf files to overwrite audio options]' \
+  '-format[format a CD-RW/DVD-RW/DVD+RW disc]' \
+  '-load[load the disk and exit]' \
+  '-lock[load and lock disc in tray loader]' \
+  '-eject[eject the disk after doing the work]' \
+  '-dummy[do everything with laser turned off]' \
+  '-msinfo[retrieve multi-session info for mkisofs]' \
+  '-toc[retrieve and print TOC/PMA data]' \
+  '-atip[retrieve and print ATIP data]' \
+  '-multi[generate a TOC that allows multi session]' \
+  '-fix[fixate a corrupt or unfixated disk]' \
+  '-nofix[do not fixate disk after writing tracks]' \
+  '-waiti[wait until input is available before opening SCSI]' \
+  '-immed[try to use scsi IMMED flag]' \
+  '-force[force continuation on some errors]' \
+  '-dao[set disk at once mode]' \
+  '-raw[set raw writing mode]' \
+  '-raw96r[write disk in raw/raw96r mode]' \
+  '-raw96p[write disk in raw/raw96p mode]' \
+  '-raw16[write disk in raw/raw16 mode]' \
+  '-text[write CD-Text from .inf/.cue files]' \
+  '*-audio[subsequent tracks are CD-DA audio tracks]' \
+  '*-data[subsequent tracks are CD-ROM data mode 1 (default)]' \
+  '*-mode2[subsequent tracks are CD-ROM data mode 2]' \
+  '*-xa[subsequent tracks are CD-ROM XA mode 2 form 1 - 2048 bytes]' \
+  '*-xa1[subsequent tracks are CD-ROM XA mode 2 form 1 - 2056 bytes]' \
+  '*-xa2[subsequent tracks are CD-ROM XA mode 2 form 2 - 2324 bytes]' \
+  '*-cdi[subsequent tracks are CDI tracks]' \
+  '-isosize[use iso9660 file system size for next data track]' \
+  '(-nopreemp)-preemp[audio tracks are mastered with 50/15 preemphasis]' \
+  '(-preemp)-nopreemp[audio tracks are mastered with no preemphasis (default)]' \
+  '-copy[audio tracks have unlimited copy permission]' \
+  '-nocopy[audio tracks may only be copied once for personal use]' \
+  '-scms[audio tracks will not not have any copy permission at all]' \
+  '(-nopad)-pad[pad tracks]' \
+  '(-pad)-nopad[do not pad data tracks (default)]' \
+  '*-shorttrack[subsequent tracks may be non Red Book if in DAO mode]' \
+  '*-noshorttrack[subsequent tracks must be >= 4 seconds]' \
+  '-swab[audio data source is byte-swapped (little-endian/Intel)]' \
+  '*: :->values'
+
+if [[ -n $state ]]; then
+  _tags values files
+  while _tags; do
+    if _requested values && (( ! ${#words[2,CURRENT-1]:#(-*|*=*)} )); then
+      _values -C -s ' ' 'option' \
+	'dev[specify scsi device to use]:device:->device' \
+	'gracetime[set grace time before starting to write]:time (seconds)' \
+	'timeout[set default scsi timeout]:timeout (seconds)' \
+	'debug[specify debug level]:debug level' \
+	{kdebug,kd}'[specify kernel debug level]:debug level' \
+	'driver[user supplied driver name]:drive' \
+	'driveropts[a comma separated list of driver specific options]:driver options' \
+	'speed[set speed of drive]:speed' \
+	'blank[blank a CD-RW disc]:blank type:->blank' \
+	'fs[set fifo size]:size' \
+	'tsize[length of valid data in next track]:length' \
+	'padsize[amount of padding for next track]:amount of padding' \
+	'pregap[amount of pre-gap sectors before next track]:amount' \
+	'defpregap[amount of pre-gap sectors for all but first track]:amount' \
+	'mcn[set media catalog number for this CD]:text' \
+	'isrc[set isrc number for the next track]:text' \
+	'index[set the index list for the next track]:list' \
+	'textfile[set the file with CD-Text data]:name:_files -g "*.inf(-.)"' \
+	'cuefile[set the file with CDRWIN CUE data]:name:_files -g "*.cue(-.)"' && ret=0
+    fi
+    _requested files expl track _files && ret=0
+    (( ret )) || break
+  done
+  
+  case $state in
+    device)
+      devices=( ${(f)"$(_call_program device $service -scanbus 2>/dev/null \
+          |grep '^	'|cut -c2-6,23-|sed 's/ /:/')"} )
+      _describe -t devices device devices && return
+    ;;
+    blank)
+      btypes=(
+        'help:display list of available blanking types'
+	${${${${(f)"$(_call_program blank-types $service blank=help 2>&1)"}[2,-1]}#?}/[[:blank:]]##/:}
+      )
+      _describe -t blank-types 'blanking type' btypes && return
+    ;;
+  esac
+  
+fi

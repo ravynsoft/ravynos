@@ -1,0 +1,203 @@
+Changes in TIFF v3.9.0
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.9.0 (:tag:`Release-v3-9-0`)
+  Previous Version        :doc:`v3.9.0beta <v3.9.0beta>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* All of the major changes since 3.8.0 were incorporated in
+  the v3.9.0beta release.  This is a stable release from a
+  stable maintenance branch which incorporates many bug and
+  security fixes needed by existing users of 3.X.X series
+  libraries.  Any future major changes will be in the 4.0.X
+  series of releases.
+
+
+Software configuration changes
+------------------------------
+
+* Updated autotools: Autoconf 2.64, Automake 1.11, libtool
+  2.2.6.
+
+* Enabled support for Automake silent build rules
+  (``--enable-silent-rules`` or ``make V=0``)
+
+* Enabled support for Automake colorized tests.
+
+* Added detection of a 64-bit integer type so that bundled
+  utilities (like :program:`tiffcrop`) can use it when necessary.  Note
+  that this version of libtiff does not require a 64-bit integer
+  type but libtiff 4.0 does.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/Makefile.am`, :file:`libtiff/Makefile.v`: Do not distribute
+  :file:`tiffconf.h`, remove :file:`tif_config.h`/:file:`tiffconf.h` during cleaning. As
+  per bug :bugzilla-rs:`1573`
+
+* :file:`tif_dirinfo.c`: :c:func:`_TIFFMergeFields()` now only merges in
+  field definitions that are missing.  Existing definitions are
+  silently ignored.  (:bugzilla-rs:`1585`)
+
+* :file:`tif_write.c`: Rip out the fancy logic in
+  :c:func:`TIFFAppendToStrip` for establishing if an existing tile can
+  be rewritten to the same location by comparing the current
+  size to all the other blocks in the same directory.  This is
+  dangerous in many situations and can easily corrupt a file.
+  (observed in esoteric GDAL situation that's hard to document).
+  This change involves leaving the :c:expr:`stripbytecount[]` values
+  unaltered till :c:func:`TIFFAppendToStrip`.  Now we only write a block
+  back to the same location it used to be at if the new data is
+  the same size or smaller - otherwise we move it to the end of
+  file.
+
+* :file:`tif_dirwrite.c`: Try to avoid writing out a full
+  readbuffer of tile data when writing the directory just
+  because we have :c:macro:`TIFF_BEENWRITING` at some point in the past.  This
+  was causing odd junk to be written out in a tile of data when
+  a single tile had an interleaving of reading and writing with
+  reading last.  (highlighted by gdal
+  :file:`autotest/gcore/tif_write.py` test 7.)
+
+* :file:`tif_predict.c`: use working buffer in :c:func:`PredictorEncodeTile`
+  to avoid modifying callers buffer.
+  :gdal-trac:`1965`
+
+* :file:`tif_predict.c`, :file:`tif_predict.h`, :file:`tif_lzw.c`, :file:`tif_zip.c`: Improvements so
+  that predictor based encoding and decoding works in read-write
+  update mode properly.
+  :gdal-trac:`1948`
+
+* :file:`configure.com`, :file:`libtiff/tif_vms.c`: Better OpenVMS
+  support. Patches from Alexey Chupahin.
+
+* :file:`tif_fax3.c`: fix leak of ``FAXCS`` state (per bug :bugzilla-rs:`1603`).
+
+* :file:`tif_fax3.c`: Make :c:func:`find0span` and :c:func:`find1span` non-inline
+  to make MSVC 6.0 compiler happy.
+
+* :file:`tif_codec.c`: Avoid :c:macro:`NULL` pointer dereferencing for exotic
+  compression codec codes.
+
+* :file:`tif_dirread.c`: zero ``tif->tif_dir`` after freeing the
+  directory in :c:func:`TIFFReadCustomDirectory`.  I don't exactly
+  remember why this was important.
+
+* :file:`tif_dirwrite.c`: Fix potential memory leak writing large
+  double tags.
+
+* :file:`tif_dirread.c`: Fix unchecked :c:func:`malloc` result.
+
+* :file:`libtiff/tif_lzw.c`: Properly zero out the codetable. As
+  per bug :bugzilla:`1929`
+
+* :file:`libtiff/tif_lzw.c`: Properly zero out the string
+  table. Fixes :cve:`2008-2327` security issue.
+
+* :file:`libtiff/tif_jbig.c`: Support the JBIG-KIT 2.0
+  (compatibility with the older versions retained).
+
+* :file:`libtiff/tif_getimage.c`, :file:`tiffio.h`: removed all use of
+  ``UaToAa`` and ``Bitmap16to8`` arrays in :c:struct:`TIFFRGBAImage` structure to
+  restore ABI compatibility.  These were just an attempt to
+  speed up processing with precalculated tables.
+  :bugzilla:`1979`
+
+* :file:`libtiff/tif_codec.c`: Avoid printing ``c->name`` if it does not exist.
+
+* :file:`libtiff/tif_getimage.c`, :file:`tiffio.h`: More ABI corrections.
+  Removed ``SubsamplingHor/Ver`` from :c:struct:`TIFFRGBAImage` structure.
+  :bugzilla:`1980`
+
+* :file:`libtiff/tif_jpeg.c`: Avoid errors if the application
+  writes a full strip for the last partial strip in a jpeg
+  compressed file.  :bugzilla:`1981`
+
+* :file:`libtiff/tiffio.h`: GCC will now validate format
+  specifications for :c:func:`TIFFError`, :c:func:`TIFFErrorExt`, :c:func:`TIFFWarning`,
+  and :c:func:`TIFFWarningExt` in order to reveal bugs.  Cleaned up
+  resulting warnings throughout for 32 bit build only.
+
+* :file:`libtiff/tiffiop.h`: Add private type declarations for
+  :c:type:`int64`, and :c:type:`uint64` so that bundled utilities (like :program:`tiffcrop`)
+  can use it when necessary.
+
+* :file:`libtiff/tif_predict.c`: Add support for 32bit integer
+  horz. predictors.
+  :bugzilla:`1911`
+
+* :file:`libtiff/tif_luv.c`: Fix handling of tiled logluv images.
+  :bugzilla:`2005`
+
+* :file:`libtiff/tif_write.c`: do not override the planar
+  configuration to be contig for one sample files if planar
+  configuration is already set.
+  :bugzilla:`2057`
+
+* :file:`libtiff/tif_lzw.c`: Fix buffer underflow bug.
+  :bugzilla:`2065`
+
+* :file:`libtiff/tif_luv.c`: correct return codes from ``encoderow`` to
+  be 1 on success instead of zero.
+  :bugzilla:`2069`
+
+* :file:`libtiff/tif_print.c` (:c:func:`TIFFPrintDirectory`): Applied patch
+  for "tag error may cause segfault in tif_print.c."
+  :bugzilla:`1896`
+
+
+Tools changes
+-------------
+
+* :file:`tools/tiff2pdf.c`: Fixed setting of alpha value per report
+  on list.
+
+* :file:`tools/tiffsplit.c`: Get rid of unsafe :c:func:`strcpy`/:c:func:`strcat`
+  calls when doing the filename/path construction.
+
+* :file:`tools/tiff2pdf.c`: More appropriate format string in
+  :c:func:`t2p_write_pdf_string`; avoid signed/unsigned mismatch.
+
+* :file:`tools/tiffsplit.c`: Use dynamically allocated array
+  instead of static when constructing output file names.
+
+* :file:`tools/tiffcrop.c`, :file:`man/tiffcrop.1`: Incorporated
+  significant functionality update from Richard Nolde.
+
+* :file:`tools/tiff2ps.c`: Incorporated significant functionality
+  update from Richard Nolde.  In particular, support for
+  rotating the image by 90, 180, 270, and 'auto' has been added.
+
+* :file:`tools/tiff2ps.c`: Remove spurious message printed to
+  ``stderr``.
+
+* :file:`tools/tiffsplit.c`: fix ``sampleformat`` to be :c:type:`shortv` instead
+  of :c:type:`longv`.
+
+* :file:`tools/rgb2ycbcr.c`, :file:`tools/tiff2rgba.c`: Applied patch for
+  :cve:`2009-2347` libtiff: integer overflows in various
+  inter-color space conversion tools.
+  :bugzilla:`2079`
+
+Contributed software changes
+----------------------------
+
+* None

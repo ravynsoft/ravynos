@@ -1,0 +1,27 @@
+
+.*\.so:     file format elf32-or1k
+
+
+Disassembly of section \.plt:
+
+[0-9a-f]+ <\.plt>:
+ [0-9a-f]+:	85 f0 00 08 	l\.lwz r15,8\(r16\)
+ [0-9a-f]+:	44 00 78 00 	l\.jr r15
+ [0-9a-f]+:	85 90 00 04 	l\.lwz r12,4\(r16\)
+ [0-9a-f]+:	15 00 00 00 	l\.nop 0x0
+ [0-9a-f]+:	85 90 00 0c 	l\.lwz r12,12\(r16\)
+ [0-9a-f]+:	44 00 60 00 	l\.jr r12
+ [0-9a-f]+:	a9 60 00 00 	l\.ori r11,r0,0x0
+ [0-9a-f]+:	15 00 00 00 	l\.nop 0x0
+ [0-9a-f]+:	85 90 00 10 	l\.lwz r12,16\(r16\)
+ [0-9a-f]+:	44 00 60 00 	l\.jr r12
+ [0-9a-f]+:	a9 60 00 0c 	l\.ori r11,r0,0xc
+ [0-9a-f]+:	15 00 00 00 	l\.nop 0x0
+
+Disassembly of section \.text:
+
+[0-9a-f]+ <_start>:
+ [0-9a-f]+:	03 ff ff f8 	l\.j [0-9a-f]+ <.plt\+0x10>
+ [0-9a-f]+:	15 00 00 00 	l\.nop 0x0
+ [0-9a-f]+:	03 ff ff fa 	l\.j [0-9a-f]+ <.plt\+0x20>
+ [0-9a-f]+:	15 00 00 00 	l\.nop 0x0

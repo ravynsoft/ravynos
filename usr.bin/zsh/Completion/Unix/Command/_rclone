@@ -1,0 +1,346 @@
+#compdef rclone
+
+local curcontext="$curcontext" ret=1
+local -A opt_args
+local -a state line commands remotes
+
+commands=(
+  "about\:'get quota information from the remote'"
+  "authorize\:'remote authorization'"
+  "cachestats\:'print cache stats for a remote'"
+  "cat\:'concatenate any files and send them to stdout'"
+  "check\:'check files on the source and destination match'"
+  "cleanup\:'clean up the remote if possible'"
+  "config\:'enter an interactive configuration session'"
+  "copy\:'copy files from source to dest, skipping already copied'"
+  "copyto\:'copy files from source to dest, skipping already copied'"
+  "copyurl\:'copy url content to dest'"
+  "cryptcheck\:'check the integrity of a crypted remote'"
+  "cryptdecode\:'return unencrypted file names'"
+  "dbhashsum\:'produce a Dropbox hash file for all the objects in the path'"
+  "dedupe\:'interactively find duplicate files and delete/rename them'"
+  "delete\:'remove the contents of path'"
+  "deletefile\:'remove a single file from remote'"
+  "genautocomplete\:'output completion script for a given shell'"
+  "gendocs\:'output markdown docs for rclone to the directory supplied'"
+  "hashsum\:'produce an hashsum file for all the objects in the path'"
+  "help\:'show help for rclone commands, flags and backends'"
+  "link\:'generate public link to file/folder'"
+  "listremotes\:'list all the remotes in the config file'"
+  "ls\:'list the objects in the path with size and path'"
+  "lsd\:'list all directories/containers/buckets in the path'"
+  "lsf\:'list directories and objects on remote:path formatted for parsing'"
+  "lsjson\:'list directories and objects in the path in JSON format'"
+  "lsl\:'list the objects in path with modification time, size and path'"
+  "md5sum\:'produce an md5sum file for all the objects in the path'"
+  "mkdir\:'make the path if it does not already exist'"
+  "mount\:'mount the remote as file system on a mountpoint'"
+  "move\:'move files from source to dest'"
+  "moveto\:'move file or directory from source to dest'"
+  "ncdu\:'explore a remote with a text based user interface'"
+  "obscure\:'obscure password for use in the rclone.conf'"
+  "purge\:'remove the path and all of its contents'"
+  "rc\:'run a command against a running rclone'"
+  "rcat\:'copy standard input to file on remote'"
+  "rcd\:'run rclone listening to remote control commands only'"
+  "rmdir\:'remove the path if empty'"
+  "rmdirs\:'remove empty directories under the path'"
+  "serve\:'serve a remote over a protocol'"
+  "settier\:'change storage class/tier of objects on remote'"
+  "sha1sum\:'produce an sha1sum file for all the objects in the path'"
+  "size\:'print the total size and number of objects on remote:path'"
+  "sync\:'make source and dest identical, modifying destination only'"
+  "touch\:'create new file or change file modification time'"
+  "tree\:'list the contents of the remote in a tree like fashion'"
+  "version\:'show the version number'"
+)
+
+_arguments -C \
+  ":command:(($commands))" \
+  '--ask-password[prompt for password for encrypted configuration]' \
+  "--auto-confirm[don't request console confirmation]" \
+  '--backup-dir[make backups into hierarchy based at specified directory]:directory:_directories' \
+  '--bind[specify socal address to bind to for outgoing connections]:IPv4, IPv6 or name' \
+  '--buffer-size[specify in memory buffer size when reading files for each --transfer]:size [16M]' \
+  '--bwlimit[specify bandwidth limit]: :_numbers -u kBytes/s limit b k M G' \
+  '--cache-dir[specify directory rclone will use for caching]:directory [~/.cache/rclone]:_directories' \
+  '--checkers[specify number of checkers to run in parallel]:number [8]': \
+  '(-c --checksum)'{-c,--checksum}'[skip based on checksum & size, not mod-time & size]' \
+  '--config[specify config file]:file [~/.config/rclone/rclone.conf]:_files' \
+  '--contimeout[specify connect timeout]:duration [1m0s]' \
+  '--cpuprofile[write cpu profile to specified file]:file:_files' \
+  '(--delete-before --delete-during)--delete-after[when synchronizing, delete files on destination after transferring (default)]' \
+  '(--delete-after --delete-during)--delete-before[when synchronizing, delete files on destination before transferring]' \
+  '(--delete-before --delete-after)--delete-during[when synchronizing, delete files during transfer]' \
+  '--delete-excluded[delete files on dest excluded from sync]' \
+  '--disable[disable a comma separated list of features]:feature' \
+  '(-n --dry-run)'{-n,--dry-run}'[do a trial run with no permanent changes]' \
+  '--dump[list of items to dump from]:string:_sequence compadd - headers bodies requests responses auth filters goroutines openfiles' \
+  '--dump-bodies[dump HTTP headers and bodies - may contain sensitive info]' \
+  '--dump-headers[dump HTTP headers - may contain sensitive info]' \
+  '--exclude[exclude files matching pattern]:stringArray' \
+  '--exclude-from[read exclude patterns from file]:file:_files' \
+  '--exclude-if-present[exclude directories if filename is present]:string' \
+  '--fast-list[use recursive list if available]' \
+  '--files-from[read list of source-file names from file]:file:_files' \
+  {-f,--filter}'[add a file-filtering rule]:stringArray' \
+  '--filter-from[read filtering patterns from a file]:file:_files' \
+  '--ignore-case[ignore case in filters (case insensitive)]' \
+  '--ignore-case-sync[ignore case when synchronizing]' \
+  '--ignore-checksum[skip post copy check of checksums]' \
+  '--ignore-errors[delete even if there are I/O errors]' \
+  '--ignore-existing[skip all files that exist on destination]' \
+  '--ignore-size[ignore size when skipping use mod-time or checksum]' \
+  '(-I --ignore-times)'{-I,--ignore-times}"[don't skip files that match on size and time - transfer all files]" \
+  "--immutable[don't modify files, fail if existing files have been modified]" \
+  '--include[include files matching pattern]:stringArray' \
+  '--include-from[read include patterns from file]:file:_files' \
+  '--log-file[log everything to this file]:file:_files' \
+  '--log-format[specify comma separated list of log format options]:string ["date,time"]' \
+  '--log-level[specify log level]:string [NOTICE]:(DEBUG INFO NOTICE ERROR)'  \
+  '--low-level-retries[number of low level retries to do]:int [10]' \
+  '--max-age[only transfer files younger than specified age]: :_numbers -u seconds age ms\:milliseconds \:s\:seconds m\:minutes h\:hours d\:days w\:weeks M\:months y\:years' \
+  '--max-backlog[maximum number of objects in sync or check backlog]:int [10000]' \
+  '--max-delete[when synchronizing, limit the number of deletes]:delete limit [-1]' \
+  '--max-depth[limit the recursion depth]:depth [-1]' \
+  '--max-size[only transfer files smaller than specified size]: :_numbers -u kBytes size \:k M G' \
+  '--max-transfer[maximum size of data to transfer]:int [default off]' \
+  '--memprofile[write memory profile to file]:file:_files' \
+  '--min-age[only transfer files older than specified age]: :_numbers -u seconds age ms\:milliseconds \:s\:seconds m\:minutes h\:hours d\:days w\:weeks M\:months y\:years' \
+  '--min-size[only transfer files bigger than specified size]: :_numbers -u kBytes size \:k M G' \
+  '--modify-window[specify max time delta to be considered the same]:duration [1ns]' \
+  '--multi-thread-cutoff[use multi-threaded downloads for files above specified size]:size (250M)' \
+  '--multi-thread-streams[specify max number of streams to use for multi-threaded downloads]:number (4)' \
+  "--no-check-certificate[don't verify the server SSL certificate (insecure)]" \
+  "--no-gzip-encoding[don't set Accept-Encoding: gzip]" \
+  '!--no-traverse' \
+  "--no-update-modtime[don't update destination mod-time if files are identical]" \
+  '(-P --progress)'{-P,--progress}'[show progress during transfer]' \
+  {-q,--quiet}'[print as little as possible]' \
+  '--rc[enable the remote control server]' \
+  '--rc-addr[IPaddress\:port or \:port to bind server to]:string [localhost\:5572]' \
+  '--rc-cert[SSL PEM key (concatenation of certificate and CA certificate)]:string' \
+  '--rc-client-ca[client certificate authority to verify clients with]:string' \
+  '--rc-files[path to local files to serve on the HTTP server]:directory:_path_files -/' \
+  '--rc-htpasswd[htpasswd file - if not provided no authentication is done]:file:_files' \
+  '--rc-job-expire-duration[expire finished async jobs older than specified duration]:duration (1m0s)' \
+  '--rc-job-expire-interval[specify interval to check for expired async jobs]:interval (10s)' \
+  '--rc-key[SSL PEM Private key]:string' \
+  '--rc-max-header-bytes[maximum size of request header]:int [4096]' \
+  "--rc-no-auth[don't require auth for certain methods]" \
+  '--rc-pass[password for authentication]:string' \
+  '--rc-realm[realm for authentication]:string [rclone]' \
+  '--rc-serve[enable the serving of remote objects]' \
+  '--rc-server-read-timeout[timeout for server reading data]:duration [1h0m0s]' \
+  '--rc-server-write-timeout[timeout for server writing data]:duration [1h0m0s]' \
+  '--rc-user[user name for authentication]:string' \
+  '--retries[retry operations this many times if they fail]:int [3]' \
+  '--retries-sleep[interval between retrying operations if they fail, e.g 500ms, 60s, 5m. (0 to disable)]:interval' \
+  '--size-only[skip based on size only, not mod-time or checksum]' \
+  '--stats[interval between printing stats, e.g 500ms, 60s, 5m. (0 to disable)]:duration [1m0s]' \
+  '--stats-file-name-length[max file name length in stats. 0 for no limit]:int [40]' \
+  '--stats-log-level[log level to show --stats output]:string [INFO]:(DEBUG INFO NOTICE ERROR)' \
+  '--stats-one-line[make the stats fit on one line]' \
+  '--stats-one-line-date[enable --stats-one-line and add current date/time prefix]' \
+  '--stats-one-line-date-format[enable --stats-one-line-date and use custom formatted date]:date format' \
+  '--stats-unit[specify units for data rate in stats]:unit [bytes]:(bits bytes)' \
+  '--streaming-upload-cutoff[specify size cutoff for switching to chunked upload]:size [100k]' \
+  '--suffix[specify suffix for use with --backup-dir]:string' \
+  '--syslog[use syslog for logging]' \
+  '--syslog-facility[facility for syslog, eg KERN,USER,...]:string [DAEMON]' \
+  '--timeout[specify IO idle timeout]:duration [5m0s]' \
+  '--tpslimit[limit HTTP transactions per second to this]:float' \
+  '--tpslimit-burst[max burst of transactions for --tpslimit]:int [1]' \
+  '--track-renames[when synchronizing, track file renames and do a server side move if possible]' \
+  '--transfers[number of file transfers to run in parallel]:int [4]' \
+  {-u,--update}'[skip files that are newer on the destination]' \
+  '--use-server-modtime[use server modified time instead of object metadata]' \
+  '--user-agent[set the user-agent to the specified string]:user-agent [rclone/version]' \
+  \*{-v,--verbose}'[print lots more stuff]:count' \
+  '--acd-auth-url[auth server URL]:string' \
+  '--acd-client-id[Amazon Application Client ID]:string' \
+  '--acd-client-secret[Amazon Application Client Secret]:string' \
+  '--acd-templink-threshold[files >= this size will be downloaded via their tempLink]:size [9G]' \
+  '--acd-token-url[token server url]:string' \
+  '--acd-upload-wait-per-gb[additional time per GB to wait after a failed complete upload to see if it appears]:Duration [3m0s]' \
+  '--alias-remote[remote or path to alias]:string' \
+  '--azureblob-access-tier[access tier of blob: hot, cool or archive]:string' \
+  '--azureblob-account[specify storage account name]:string' \
+  '--azureblob-chunk-size[upload chunk size (<= 100MB)]:size [4M]' \
+  '--azureblob-endpoint[endpoint for the service]:string' \
+  '--azureblob-key[storage account key (leave blank to use connection string or SAS URL)]:string' \
+  '--azureblob-list-chunk[size of blob list]:int [5000]' \
+  '--azureblob-sas-url[SAS URL for container level access only]:string' \
+  '--azureblob-upload-cutoff[cutoff for switching to chunked upload (<= 256MB)]:size [256M]' \
+  '--b2-account[account ID or application key ID]:string' \
+  '--b2-chunk-size[specify upload chunk size]:size [96M]' \
+  '--b2-endpoint[endpoint for the service]:string' \
+  '--b2-hard-delete[permanently delete files on remote removal, otherwise hide files]' \
+  '--b2-key[application key]:string' \
+  '--b2-test-mode[a flag string for X-Bz-Test-Mode header for debugging]:string' \
+  '--b2-upload-cutoff[cutoff for switching to chunked upload]:size [200M]' \
+  '--b2-versions[include old versions in directory listings]' \
+  '--box-client-id[specify Box app client Id]:client ID' \
+  '--box-client-secret[specify Box app client secret]:secret' \
+  '--box-commit-retries[max number of times to try committing a multipart file]:int [100]' \
+  '--box-upload-cutoff[cutoff for switching to multipart upload (>= 50MB)]:size [50M]' \
+  '--cache-chunk-clean-interval[how often should the cache perform cleanups of the chunk storage]:Duration [1m0s]' \
+  '--cache-chunk-no-memory[disable the in-memory cache for storing chunks during streaming]' \
+  '--cache-chunk-path[directory to cache chunk files]:directory [~/.cache/rclone/cache-backend]:_path_files -/' \
+  '--cache-chunk-size[the size of a chunk (partial file data)]:size [5M]' \
+  '--cache-chunk-total-size[the total size that the chunks can take up on the local disk]:size [10G]' \
+  '--cache-db-path[directory to store file structure metadata DB]:directory [~/.cache/rclone/cache-backend]:_path_files -/' \
+  '--cache-db-purge[clear all the cached data for this remote on start]' \
+  '--cache-db-wait-time[how long to wait for the DB to be available - 0 is unlimited]:Duration [1s]' \
+  '--cache-info-age[how long to cache file structure information (directory listings, file size, times etc)]:duration [6h0m0s]' \
+  '--cache-plex-insecure[skip all certificate verifications when connecting to the Plex server]:string' \
+  '--cache-plex-password[the password of the Plex user]:string' \
+  '--cache-plex-url[the URL of the Plex server]:string' \
+  '--cache-plex-username[the username of the Plex user]:string' \
+  '--cache-read-retries[how many times to retry a read from a cache storage]:int [10]' \
+  '--cache-remote[remote to cache]:string' \
+  '--cache-rps[limits the number of requests per second to the source FS (-1 to disable)]:int [-1]' \
+  '--cache-tmp-upload-path[directory to keep temporary files until they are uploaded]:directory:_path_files -/' \
+  '--cache-tmp-wait-time[how long should files be stored in local cache before being uploaded]:Duration [15s]' \
+  '--cache-workers[how many workers should run in parallel to download chunks]:int [4]' \
+  '--cache-writes[cache file data on writes through the FS]' \
+  {-L,--copy-links}'[follow symlinks and copy the pointed to item]' \
+  '--crypt-directory-name-encryption[option to either encrypt directory names or leave them intact. (default true)]' \
+  '--crypt-filename-encryption[specify how to encrypt the filenames]:string [standard]' \
+  '--crypt-password[specify password or pass phrase for encryption]:string' \
+  '--crypt-password2[specify password or pass phrase for salt]:string' \
+  '--crypt-remote[remote to encrypt/decrypt]:string' \
+  '--crypt-show-mapping[for all files listed show how the names encrypt]' \
+  '--drive-acknowledge-abuse[set to allow files which return cannotDownloadAbusiveFile to be downloaded]' \
+  '--drive-allow-import-name-change[allow the filetype to change when uploading Google docs (e.g. file.doc to file.docx)]' \
+  '--drive-alternate-export[use alternate export URLs for google documents export.,]' \
+  '--drive-auth-owner-only[only consider files owned by the authenticated user]' \
+  '--drive-chunk-size[upload chunk size]:size [8M]' \
+  '--drive-client-id[Google application client ID]:client ID' \
+  '--drive-client-secret[Google application client secret]:secret' \
+  '--drive-export-formats[list of preferred formats for downloading Google docs]:comma-separated format list [docx,xlsx,pptx,svg]' \
+  '!--drive-formats:string' \
+  '--drive-impersonate[impersonate specified user when using a service account]:user' \
+  '--drive-import-formats[specify preferred formats for uploading Google docs]:formats' \
+  '--drive-keep-revision-forever[keep new head revision of each file forever]' \
+  '--drive-list-chunk[size of listing chunk 100-1000. 0 to disable]:int [1000]' \
+  '--drive-root-folder-id[specify ID of the root folder]:string' \
+  '--drive-scope[scope that rclone should use when requesting access from drive]:scope' \
+  '--drive-server-side-across-configs[allow server side operations (eg copy) to work across different drive configs]' \
+  '--drive-service-account-credentials[specify service account credentials JSON blob]:string' \
+  '--drive-service-account-file[specify service account credentials JSON file path]:file:_files' \
+  '--drive-shared-with-me[only show files that are shared with me]' \
+  '--drive-size-as-quota[show storage quota usage for file size]' \
+  '--drive-skip-gdocs[skip google documents in all listings]' \
+  '--drive-team-drive[specify ID of the team drive]:ID' \
+  '--drive-trashed-only[only show files that are in the trash]' \
+  '--drive-upload-cutoff[cutoff for switching to chunked upload]:size [8M]' \
+  '--drive-use-created-date[use file created date instead of modified date.,]' \
+  '--drive-use-trash[send files to the trash instead of deleting permanently. (default true)]' \
+  "--drive-v2-download-min-size[if object's are larger, use drive v2 API to download]:size [off]" \
+  '--dropbox-chunk-size[specify upload chunk size]:size [48M]' \
+  '--dropbox-client-id[specify Dropbox app client ID]:client ID' \
+  '--dropbox-client-secret[specify Dropbox app client secret]:secret' \
+  '--dropbox-impersonate[impersonate specified user]:user' \
+  '--ftp-host[specify FTP host to connect to]:host:_hosts' \
+  "--ftp-no-check-certificate[don't verify the TLS certificate of the server]" \
+  '--ftp-pass[specify FTP password]:password' \
+  '--ftp-port[specify FTP port]:port [21]:_ports' \
+  '--ftp-tls[use FTP over TLS (implicit)]' \
+  '--ftp-user[specify FTP username]::username' \
+  '--gcs-bucket-acl[access control list for new buckets]:string' \
+  '--gcs-client-id[Google application client id]:client id' \
+  '--gcs-client-secret[Google application client secret]:secret' \
+  '--gcs-location[specify location for the newly created buckets]:string' \
+  '--gcs-object-acl[specify access control list for new objects]:string' \
+  '--gcs-project-number[project number]:string' \
+  '--gcs-service-account-file[service account credentials JSON file path]:file:_files' \
+  '--gcs-storage-class[specify storage class to use when storing objects in Google cloud storage]:string' \
+  '--http-url[URL of http host to connect to]:string' \
+  '--hubic-chunk-size[above this size files will be chunked into a _segments container]:size [5G]' \
+  '--hubic-client-id[Hubic client ID]:client ID' \
+  '--hubic-client-secret[Hubic client secret]:secret' \
+  '--jottacloud-hard-delete[delete files permanently rather than putting them into the trash]' \
+  '--jottacloud-md5-memory-limit[files bigger than this will be cached on disk to calculate the MD5 if required]:size [10M]' \
+  '--jottacloud-pass[password]:string' \
+  '--jottacloud-unlink[remove existing public link to file/folder with link command rather than creating]' \
+  '--jottacloud-user[user name]:string' \
+  "--local-no-check-updated[don't check to see if the files change during upload]" \
+  "--local-no-unicode-normalization[don't apply unicode normalization to paths and filenames (Deprecated)]" \
+  '--local-nounc[disable UNC (long path names) conversion on windows]:string' \
+  '(-x --one-file-system)'{-x,--one-file-system}"[don't cross filesystem boundaries (unix/macOS only)]" \
+  '--onedrive-chunk-size[chunk size to upload files with - must be multiple of 320k]:size [10M]' \
+  '--onedrive-client-id[specify Microsoft app client ID]:client ID' \
+  '--onedrive-client-secret[specify Microsoft app client secret]:secret' \
+  '--onedrive-drive-id[specify the ID of the drive to use]:string' \
+  '--onedrive-drive-type[the type of the drive]:string:(personal business documentLibrary)' \
+  '--onedrive-expose-onenote-files[set to make OneNote files show up in directory listings]' \
+  '--opendrive-password[specify password]:string' \
+  '--opendrive-username[specify username]:string' \
+  '--pcloud-client-id[specify Pcloud app client ID]:client ID' \
+  '--pcloud-client-secret[specify Pcloud app client secret]:secret' \
+  '--s3-access-key-id[specify AWS access key ID]:string' \
+  '--s3-acl[canned ACL used when creating buckets and storing or copying objects]:string' \
+  '--s3-chunk-size[chunk size to use for uploading]:size [5M]' \
+  "--s3-disable-checksum[don't store MD5 checksum with object metadata]" \
+  '--s3-endpoint[endpoint for S3 API]:string' \
+  '--s3-env-auth[get AWS credentials from runtime (environment variables or EC2/ECS meta data if no env vars)]' \
+  '--s3-force-path-style[if true use path style access if false use virtual hosted style. (default true)]' \
+  '--s3-location-constraint[location constraint - must be set to match the region]:string' \
+  '--s3-provider[choose your S3 provider]:string' \
+  '--s3-region[region to connect to]:string' \
+  '--s3-secret-access-key[AWS Secret access key (password)]:string' \
+  '--s3-server-side-encryption[the server-side encryption algorithm used when storing this object in S3]:string' \
+  '--s3-session-token[an AWS session token]:string' \
+  '--s3-sse-kms-key-id[if using KMS ID you must provide the ARN of key]:string' \
+  '--s3-storage-class[the storage class to use when storing new objects in S3]:string' \
+  '--s3-upload-concurrency[concurrency for multipart uploads]:int [2]' \
+  '--s3-v2-auth[if true use v2 authentication]' \
+  '--s3-use-accelerate-endpoint[use the AWS S3 accelerated endpoint]' \
+  '--sftp-ask-password[allow asking for SFTP password when needed]' \
+  '--sftp-disable-hashcheck[disable the execution of SSH commands to determine if remote file hashing is available]' \
+  '--sftp-host[SSH host to connect to]:string' \
+  '--sftp-key-file[path to unencrypted PEM-encoded private key file, leave blank to use ssh-agent]:string' \
+  '--sftp-pass[SSH password, leave blank to use ssh-agent]:string' \
+  '--sftp-path-override[override path used by SSH connection]:string' \
+  '--sftp-port[SSH port, leave blank to use default]:string [22]' \
+  '--sftp-set-modtime[set the modified time on the remote if set. (default true)]' \
+  '--sftp-use-insecure-cipher[enable the use of the aes128-cbc cipher]' \
+  '--sftp-user[SSH username, leave blank for current username]:string' \
+  "--skip-links[don't warn about skipped symlinks]" \
+  '--swift-auth[authentication URL for server (OS_AUTH_URL)]:string' \
+  '--swift-auth-token[aUTH token from alternate authentication - optional (OS_AUTH_TOKEN)]:string' \
+  '--swift-auth-version[AuthVersion - optional - set to (1,2,3) if your auth URL has no version (ST_AUTH_VERSION)]:int' \
+  '--swift-chunk-size[above this size files will be chunked into a _segments container]:size [5G]' \
+  '--swift-domain[user domain - optional (v3 auth) (OS_USER_DOMAIN_NAME)]:string' \
+  '--swift-endpoint-type[endpoint type to choose from the service catalogue (OS_ENDPOINT_TYPE)]:string [public]' \
+  '--swift-env-auth[get swift credentials from environment variables in standard OpenStack form]' \
+  '--swift-key[API key or password (OS_PASSWORD)]:string' \
+  '--swift-region[region name - optional (OS_REGION_NAME)]:string' \
+  '--swift-storage-policy[the storage policy to use when creating a new container]:string' \
+  '--swift-storage-url[storage URL - optional (OS_STORAGE_URL)]:string' \
+  '--swift-tenant[tenant name - optional for v1 auth, this or tenant_id required otherwise (OS_TENANT_NAME or OS_PROJECT_NAME)]:string' \
+  '--swift-tenant-domain[tenant domain - optional (v3 auth) (OS_PROJECT_DOMAIN_NAME)]:string' \
+  '--swift-tenant-id[tenant ID - optional for v1 auth, this or tenant required otherwise (OS_TENANT_ID)]:string' \
+  '--swift-user[user name to log in (OS_USERNAME)]:string' \
+  '--swift-user-id[user ID to log in - optional - most swift systems use user and leave this blank (v3 auth) (OS_USER_ID)]:string' \
+  '--union-remotes[list of space separated remotes]:string' \
+  '--webdav-bearer-token[bearer token instead of user/pass (eg a Macaroon)]:string' \
+  '--webdav-pass[password]:string' \
+  '--webdav-url[URL of http host to connect to]:string' \
+  '--webdav-user[user name]:string' \
+  '--webdav-vendor[name of the Webdav site/service/software you are using]:string' \
+  '--yandex-client-id[Yandex client ID]:client ID' \
+  '--yandex-client-secret[Yandex client secret]:secret' \
+  '--yandex-unlink[remove existing public link to file/folder with link command rather than creating]' \
+  "*: :->files_or_remotes" \
+  && ret=0
+
+if [[ $state == 'files_or_remotes' ]]; then
+  remotes=( $(_call_program rclone-remotes rclone listremotes) )
+  _alternative \
+    "rclone-remotes:remote:compadd -a remotes" \
+    "files:file:_files" && ret=0
+fi
+
+return ret

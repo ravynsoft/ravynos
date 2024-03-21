@@ -132,9 +132,9 @@ sysctl_mb_use_ext_pgs(SYSCTL_HANDLER_ARGS)
 	}
 	return (error);
 }
-SYSCTL_PROC(_kern_ipc, OID_AUTO, mb_use_ext_pgs, CTLTYPE_INT | CTLFLAG_RW,
-    &mb_use_ext_pgs, 0,
-    sysctl_mb_use_ext_pgs, "IU",
+SYSCTL_PROC(_kern_ipc, OID_AUTO, mb_use_ext_pgs,
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH,
+    &mb_use_ext_pgs, 0, sysctl_mb_use_ext_pgs, "IU",
     "Use unmapped mbufs for sendfile(2) and TLS offload");
 
 static quad_t maxmbufmem;	/* overall real memory limit for all mbufs */
@@ -222,8 +222,8 @@ sysctl_nmbclusters(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 SYSCTL_PROC(_kern_ipc, OID_AUTO, nmbclusters,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, &nmbclusters, 0,
-    sysctl_nmbclusters, "IU",
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
+    &nmbclusters, 0, sysctl_nmbclusters, "IU",
     "Maximum number of mbuf clusters allowed");
 
 static int
@@ -244,8 +244,8 @@ sysctl_nmbjumbop(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 SYSCTL_PROC(_kern_ipc, OID_AUTO, nmbjumbop,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, &nmbjumbop, 0,
-    sysctl_nmbjumbop, "IU",
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
+    &nmbjumbop, 0, sysctl_nmbjumbop, "IU",
     "Maximum number of mbuf page size jumbo clusters allowed");
 
 static int
@@ -266,8 +266,8 @@ sysctl_nmbjumbo9(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 SYSCTL_PROC(_kern_ipc, OID_AUTO, nmbjumbo9,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, &nmbjumbo9, 0,
-    sysctl_nmbjumbo9, "IU",
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
+    &nmbjumbo9, 0, sysctl_nmbjumbo9, "IU",
     "Maximum number of mbuf 9k jumbo clusters allowed");
 
 static int
@@ -288,8 +288,8 @@ sysctl_nmbjumbo16(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 SYSCTL_PROC(_kern_ipc, OID_AUTO, nmbjumbo16,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, &nmbjumbo16, 0,
-    sysctl_nmbjumbo16, "IU",
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
+    &nmbjumbo16, 0, sysctl_nmbjumbo16, "IU",
     "Maximum number of mbuf 16k jumbo clusters allowed");
 
 static int
@@ -310,7 +310,7 @@ sysctl_nmbufs(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 SYSCTL_PROC(_kern_ipc, OID_AUTO, nmbufs,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE,
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
     &nmbufs, 0, sysctl_nmbufs, "IU",
     "Maximum number of mbufs allowed");
 
@@ -703,7 +703,7 @@ mb_dtor_pack(void *mem, int size, void *arg)
 	KASSERT(m->m_ext.ext_size == MCLBYTES, ("%s: ext_size != MCLBYTES", __func__));
 	KASSERT(m->m_ext.ext_type == EXT_PACKET, ("%s: ext_type != EXT_PACKET", __func__));
 #if defined(INVARIANTS) && !defined(KMSAN)
-	trash_dtor(m->m_ext.ext_buf, MCLBYTES, arg);
+	trash_dtor(m->m_ext.ext_buf, MCLBYTES, zone_clust);
 #endif
 	/*
 	 * If there are processes blocked on zone_clust, waiting for pages
@@ -782,7 +782,7 @@ mb_zfini_pack(void *mem, int size)
 #endif
 	uma_zfree_arg(zone_clust, m->m_ext.ext_buf, NULL);
 #if defined(INVARIANTS) && !defined(KMSAN)
-	trash_dtor(mem, size, NULL);
+	trash_dtor(mem, size, zone_clust);
 #endif
 }
 
@@ -804,7 +804,7 @@ mb_ctor_pack(void *mem, int size, void *arg, int how)
 	MPASS((flags & M_NOFREE) == 0);
 
 #if defined(INVARIANTS) && !defined(KMSAN)
-	trash_ctor(m->m_ext.ext_buf, MCLBYTES, arg, how);
+	trash_ctor(m->m_ext.ext_buf, MCLBYTES, zone_clust, how);
 #endif
 
 	error = m_init(m, how, type, flags);

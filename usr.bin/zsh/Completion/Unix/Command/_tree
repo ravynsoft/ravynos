@@ -1,0 +1,55 @@
+#compdef tree
+
+_arguments -s -S \
+  '-a[show all files, including hidden ones]' \
+  '-d[list directories only]' \
+  '-l[follow symlinks that point to directories]' \
+  '-f[print full path prefix for each file]' \
+  '-x[stay on current filesystem]' \
+  '-L[specify max tree depth to descend]:level' \
+  '-R[recursively cross down the tree and execute tree again]' \
+  '-P[only list files matching a pattern]:pattern:_files' \
+  "-I[don't list files matching a pattern]:pattern:_files" \
+  '--ignore-case[ignore case when pattern matching]' \
+  '--matchdirs[include directory names in -P pattern matching]' \
+  '--noreport[omit file and directory report at end]' \
+  '--charset=[character set for HTML and for line drawing]:charset' \
+  "--filelimit=[don't descend directories with more than specified number of entries]:entries" \
+  '--timefmt=[use specified time format]:format:_date_formats' \
+  '-o[output to specified file]:file:_files' \
+  '--du[print directory sizes]' \
+  '--prune[exclude empty directories from the output]' \
+  '(-N)-q[print non-printable characters as question mark, not caret]' \
+  '(-q)-N[print non-printable characters as is, not as caret]' \
+  '-Q[quote filenames with double quotes]' \
+  '-p[print file type and permissions, like ls -l]' \
+  '-u[print file owner]' \
+  '-g[print file group]' \
+  '(-h --si)-s[print size of each file in bytes]' \
+  '(-s --si)-h[print human readable file size]' \
+  '(-s -h)--si[print human readable file size in SI units (powers of 1000)]' \
+  '-D[print last modification date or change time (with -c)]' \
+  '-F[append descriptive character to end, like ls -F]' \
+  '--inodes[print inode numbers]' \
+  '--device[print device number to which file or directory belongs]' \
+  '(--sort -t -c -U)-v[sort the output as version]' \
+  '(-v --sort -c -U)-t[sort output by modification time]' \
+  '(-v --sort -t -U)-c[sort output by change time]' \
+  '(-v --sort -t -c -r --dirsfirst)-U[leave files unsorted]' \
+  '(-U)-r[sort in reversed order]' \
+  '(-v -t -c -U)--sort[sort in specified order]:order:(name version size mtime ctime)' \
+  '(-U)--dirsfirst[list directories before files]' \
+  "-i[don't print indentation lines]" \
+  '(-S -X)-A[use ANSI line graphics hack when printing indentation lines]' \
+  '(-A -X)-S[use console (CP437) line graphics]' \
+  '(-C)-n[turn colorization off always, over-ridden by the -C option]' \
+  '(-n)-C[turn colorization on always]' \
+  '(-A -S -n -C -J -H -T --nolinks)-X[XML output]' \
+  '(-A -S -n -C -X -H -T --nolinks)-J[JSON output]' \
+  '(-n -C -X)-H[turn on HTML output]:base HREF' \
+  '(-n -C -X)-T[title for HTML output]:title' \
+  '(-n -C -X)--nolinks[turn off hyperlinks in HTML output]' \
+  '--fromfile[read paths from specified files]' \
+  '(-)--version[version of tree]' \
+  '(-)--help[verbose usage listing]' \
+  '*:directory:_files -/'

@@ -1,0 +1,43 @@
+Description:
+Abstract output stream data type.
+
+Files:
+lib/ostream.oo.h
+lib/ostream.oo.c
+
+Depends-on:
+moo
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/ostream.h : $(top_srcdir)/build-aux/moopp ostream.oo.h ostream.oo.c
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/ostream.oo.c $(srcdir)/ostream.oo.h
+$(srcdir)/ostream.c $(srcdir)/ostream.priv.h $(srcdir)/ostream.vt.h : ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf ostream.lock' 1 2 13 15; \
+	  if mkdir ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/ostream.oo.c $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/ostream.oo.c $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf ostream.lock; exit $$result; \
+	  else \
+	    while test -d ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += ostream.h ostream.c ostream.priv.h ostream.vt.h
+MAINTAINERCLEANFILES += ostream.h ostream.c ostream.priv.h ostream.vt.h
+EXTRA_DIST += ostream.h ostream.c ostream.priv.h ostream.vt.h
+
+Include:
+"ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

@@ -1,0 +1,40 @@
+#autoload +X
+
+local -xi COLUMNS=999
+local curcontext="${curcontext}" tmp err_fd=-1 clocale='_comp_locale;'
+local -a prefix
+
+if [[ "$1" = -p ]]; then
+  shift
+  if (( $#_comp_priv_prefix )); then
+    curcontext="${curcontext%:*}/${${(@M)_comp_priv_prefix:#^*[^\\]=*}[1]}:"
+    zstyle -t ":completion:${curcontext}:${1}" gain-privileges &&
+	prefix=( $_comp_priv_prefix )
+  fi
+elif [[ "$1" = -l ]]; then
+  shift
+  clocale=''
+fi
+
+if (( ${debug_fd:--1} > 2 )) || [[ ! -t 2 ]]
+then exec {err_fd}>&2	# debug_fd is saved stderr, 2 is trace or redirect
+else exec {err_fd}>/dev/null
+fi
+
+{	# Begin "always" block
+
+if zstyle -s ":completion:${curcontext}:${1}" command tmp; then
+  if [[ "$tmp" = -* ]]; then
+    eval $clocale "$tmp[2,-1]" "$argv[2,-1]"
+  else
+    eval $clocale $prefix "$tmp"
+  fi
+else
+  eval $clocale $prefix "$argv[2,-1]"
+fi 2>&$err_fd
+
+} always {
+
+exec {err_fd}>&-
+
+}

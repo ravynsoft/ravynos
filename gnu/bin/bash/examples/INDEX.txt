@@ -1,0 +1,103 @@
+Path	Description	X-Ref
+./obashdb	Deprecated sample implementation of a bash debugger	
+
+./complete	Shell completion code	
+
+./functions	Example functions	
+./functions/array-stuff	Various array functions (ashift, array_sort, reverse).	
+./functions/array-to-string	Convert an array to a string.	
+./functions/autoload	An almost ksh-compatible 'autoload' (no lazy load).	ksh
+./functions/autoload.v2	An almost ksh-compatible 'autoload' (no lazy load).	ksh
+./functions/autoload.v3	A more ksh-compatible 'autoload' (with lazy load).	ksh
+./functions/autoload.v4	An updated ksh-compatible 'autoload'.	ksh
+./functions/basename	A replacement for basename(1).	basename
+./functions/csh-compat	A C-shell compatibility package.	csh
+./functions/dirname	A replacement for dirname(1).	dirname
+./functions/dirstack	Directory stack functions.
+./functions/exitstat	Display the exit status of processes.	
+./functions/external	Like 'command' but FORCES use of external command.	
+./functions/fact	Recursive factorial function.	
+./functions/fstty	Front end to sync TERM changes to both stty(1) and readline 'bind'.	stty.bash
+./functions/inetaddr	Internet address conversion (inet2hex & hex2inet).	
+./functions/inpath	Return zero if the argument is in the path and executable.	inpath
+./functions/isnum2	Test user input on numeric values, with floating point.	
+./functions/isvalidip	Test user input for valid IP Addresses.	
+./functions/ksh-cd	ksh-like 'cd': cd [-LP] [dir [change]].	ksh
+./functions/ksh-compat-test	ksh-like arithmetic test replacements.	ksh
+./functions/kshenv	Functions and aliases to provide the beginnings of a ksh environment for bash.	ksh
+./functions/login	Replace the 'login' and 'newgrp' builtins in old Bourne shells.	
+./functions/notify.bash	Notify when jobs change status.	
+./functions/README	README	
+./functions/seq	Generate a sequence from m to n, m defaults to 1.	
+./functions/seq2	Generate a sequence from m to n, m defaults to 1.	
+./functions/shcat	Readline-based pager.	cat, readline pager
+./functions/shcat2	Readline-based pagers.	cat, readline pager
+./functions/sort-pos-params	Sort the positional parameters.	
+./functions/substr	A function to emulate the ancient ksh builtin.	ksh
+./functions/substr2	A function to emulate the ancient ksh builtin.	ksh
+./functions/whatis	An implementation of the 10th Edition Unix sh builtin 'whatis(1)' command.	
+./functions/whence	An almost-ksh compatible 'whence(1)' command.	
+./functions/which	An emulation of 'which(1)' as it appears in FreeBSD.	
+
+./loadables/	Example loadable replacements	
+./loadables/basename.c	Return non-directory portion of pathname.	basename
+./loadables/cat.c	cat(1) replacement with no options - the way cat was intended.	cat, readline pager
+./loadables/dirname.c	Return directory portion of pathname.	dirname
+./loadables/fdflags.c	Display or modify file descriptor flags
+./loadables/finfo.c	Print file info.	
+./loadables/head.c	Copy first part of files.	
+./loadables/hello.c	Obligatory "Hello World" / sample loadable.	
+./loadables/id.c	POSIX.2 user identity.	
+./loadables/ln.c	Make links.	
+./loadables/logname.c	Print login name of current user.	
+./loadables/Makefile.in	Simple makefile for the sample loadable builtins.	
+./loadables/Makefile.inc.in	Sample makefile to use for loadable builtin development.
+./loadables/mkdir.c	Make directories.	
+./loadables/mypid.c	Demonstrate how a loadable builtin can create and delete shell variables.
+./loadables/necho.c	echo without options or argument interpretation.	
+./loadables/pathchk.c	Check pathnames for validity and portability.	
+./loadables/print.c	Loadable ksh-93 style print builtin.	
+./loadables/printenv.c	Minimal builtin clone of BSD printenv(1).
+./loadables/push.c	Anyone remember TOPS-20?
+./loadables/README	README
+./loadables/realpath.c	Canonicalize pathnames, resolving symlinks.
+./loadables/rm.c	Remove file.
+./loadables/rmdir.c	Remove directory.
+./loadables/setpgid.c	Set a child process's process group.
+./loadables/sleep.c	sleep for fractions of a second.
+./loadables/stat.c	Load an associative array with stat information about a file.
+./loadables/strftime.c	Loadable builtin interface to strftime(3).
+./loadables/sync.c	Sync the disks by forcing pending filesystem writes to complete.
+./loadables/tee.c	Duplicate standard input.
+./loadables/template.c	Example template for loadable builtin.
+./loadables/truefalse.c	True and false builtins.
+./loadables/tty.c	Return terminal name.
+./loadables/uname.c	Print system information.
+./loadables/unlink.c	Remove a directory entry.
+./loadables/whoami.c	Print out username of current user.
+
+./loadables/perl/	Illustrate how to build a Perl interpreter into bash.	
+
+./misc	Miscellaneous	
+./misc/aliasconv.bash	Convert csh aliases to bash aliases and functions.	csh, xalias
+./misc/aliasconv.sh	Convert csh aliases to bash aliases and functions.	csh, xalias
+./misc/cshtobash	Convert csh aliases, environment variables, and variables to bash equivalents.	csh, xalias
+./misc/README	README	
+
+./scripts	Example scripts	
+./scripts/cat.sh	Readline-based pager.	cat, readline pager
+./scripts/center	Center - center a group of lines.	
+./scripts/inpath	Search $PATH for a file the same name as $1; return TRUE if found.	inpath
+./scripts/shprompt	Display a prompt and get an answer satisfying certain criteria.	ask
+./scripts/spin.bash	Display a 'spinning wheel' to show progress.	
+./scripts/xterm_title	Print the contents of the xterm title bar.	
+./scripts/zprintf	Emulate printf (obsolete since it's now a bash builtin).	
+
+./startup-files	Example Start-up files.	
+./startup-files/Bash_aliases	Some useful aliases (Fox).	
+./startup-files/Bash_profile	Sample startup file for bash login shells (Fox).	
+./startup-files/bash-profile	Sample startup file for bash login shells (Ramey).	
+./startup-files/bashrc	Sample Bourne Again SHell init file (Ramey).	
+./startup-files/Bashrc.bfox	Sample Bourne Again SHell init file (Fox).	
+./startup-files/README	README	
+

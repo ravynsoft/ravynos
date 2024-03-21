@@ -1,0 +1,8 @@
+shift [ -p ] [ n ] [ name ... ]
+       The  positional  parameters  ${n+1}  ...  are renamed to $1 ...,
+       where n is an arithmetic expression that defaults to 1.  If  any
+       names are given then the arrays with these names are shifted in-
+       stead of the positional parameters.
+
+       If the option -p is given arguments are instead removed (popped)
+       from the end rather than the start of the array.

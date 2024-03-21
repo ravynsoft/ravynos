@@ -1,0 +1,130 @@
+All you need to know when hacking (modifying) GNU libtextstyle or when building
+it off the git repository.
+
+
+Requirements
+============
+
+You will need reasonably recent versions of the build tools:
+
+  * A C compiler; on Cygwin or mingw also a C++ compiler. Such as GNU GCC.
+    + Homepage:
+      https://gcc.gnu.org/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: gcc, gcc-doc,
+      - On Red Hat distributions: gcc.
+      - Other: https://repology.org/project/gcc/versions
+
+  * GNU automake 1.13 or newer
+    + Homepage:
+      https://www.gnu.org/software/automake/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: automake,
+      - On Red Hat distributions: automake.
+      - Other: https://repology.org/project/automake/versions
+
+  * GNU autoconf
+    + Homepage:
+      https://www.gnu.org/software/autoconf/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: autoconf, autoconf-doc,
+      - On Red Hat distributions: autoconf.
+      - Other: https://repology.org/project/autoconf/versions
+
+  * GNU m4
+    + Homepage:
+      https://www.gnu.org/software/m4/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: m4, m4-doc,
+      - On Red Hat distributions: m4.
+      - Other: https://repology.org/project/m4/versions
+
+  * GNU texinfo
+    + Homepage:
+      https://www.gnu.org/software/texinfo/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: texinfo,
+      - On Red Hat distributions: texinfo.
+      - Other: https://repology.org/project/texinfo/versions
+
+  * Perl
+    + Homepage:
+      https://www.perl.org/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: perl, perl-doc,
+      - On Red Hat distributions: perl.
+      - Other: https://repology.org/project/perl/versions
+
+  * TeX (for making the doc in .dvi, .ps or .pdf format)
+    + Homepage:
+      https://tug.org/texlive/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: texlive-base, texlive-latex-base,
+      - On Red Hat distributions: texlive-base.
+      - Other: https://repology.org/project/texlive/versions
+
+  * Either an internet connection or a recent copy of GNU gnulib.
+    + Homepage:
+      https://www.gnu.org/software/gnulib/
+
+  * GNU tar (for creating distributable tarballs)
+    + Homepage:
+      https://www.gnu.org/software/tar/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: tar, tar-doc,
+      - On Red Hat distributions: tar.
+      - Other: https://repology.org/project/tar/versions
+
+  * GNU Wget
+    + Homepage:
+      https://www.gnu.org/software/wget/
+    + Pre-built package name:
+      - On Debian and Debian-based systems: wget,
+      - On Red Hat distributions: wget.
+      - Other: https://repology.org/project/wget/versions
+
+And, of course, the packages listed in the DEPENDENCIES file.
+
+
+Building off the git repository
+===============================
+
+Access to the git repository is described at
+  https://savannah.gnu.org/git/?group=gettext
+
+After fetching the sources from the repository, go into the 'libtextstyle'
+directory, peek at the comments in autogen.sh, then run
+  ./autopull.sh
+  ./autogen.sh
+Then you can proceed with "./configure" as usual.
+
+
+Submitting patches
+==================
+
+Patches should be sent to bug-gettext@gnu.org, the bug/feature mailing
+list.  You can subscribe to the mailing list, or see the list
+archives, by following links from
+https://savannah.gnu.org/mail/?group=gettext .
+
+To email a patch you can use a shell command like 'git format-patch
+-1' to create a file, and then attach the file to your email.  
+
+Changes you commit should contain the log entries in the commit message.
+For the style of a ChangeLog entry, see the "Change Logs" section of
+the GNU coding standards:
+
+  https://www.gnu.org/prep/standards/html_node/Change-Logs.html
+
+
+Testing
+=======
+
+The unit tests don't cover much of the functionality.
+
+To test the output on various terminal emulators, use the --color=test
+option on the 'color-hello' or 'color-filter' program.
+
+To test the signal handling, use the 'color-filter' program: run
+  yes | ./filter '.*'
+and exercise the various signals.

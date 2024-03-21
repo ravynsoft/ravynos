@@ -26,7 +26,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/module.h>
 #include <sys/systm.h>
@@ -189,6 +188,8 @@ ata_intel_probe(device_t dev)
      { ATA_ISCH,         0,          0, 1, ATA_UDMA5, "SCH" },
      { ATA_COLETOCRK_S1, 0, INTEL_6CH2, 0, ATA_SA300, "COLETOCRK" },
      { ATA_COLETOCRK_S2, 0, INTEL_6CH2, 0, ATA_SA300, "COLETOCRK" },
+     { ATA_IBT_S1,       0,          0, 0, ATA_SA300, "BayTrail" },
+     { ATA_IBT_S2,       0,          0, 0, ATA_SA300, "BayTrail" },
      { 0, 0, 0, 0, 0, 0}};
 
     if (pci_get_vendor(dev) != ATA_INTEL_ID)

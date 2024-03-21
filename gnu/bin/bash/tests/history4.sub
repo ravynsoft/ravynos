@@ -1,0 +1,47 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+HISTFILE=$TMPDIR/newhistory-$$
+export HISTFILE
+
+trap 'rm -f $HISTFILE' EXIT
+
+HISTSIZE=32
+HISTFILESIZE=32
+echo
+set -o history
+history -c
+echo 0
+echo 1
+echo 2
+echo "(left
+mid
+right)"
+echo A
+echo B
+history -w
+set +o history
+
+echo
+printf $'HISTFILE=\n\cRleft\cO\cO\cO\cO\n' | HISTSIZE= ${THIS_SH} --norc -i 2>/dev/null
+echo
+printf $'HISTFILE=\n\cRleft\cO\cO\cO\cO\n' | HISTSIZE=8 ${THIS_SH} --norc -i 2>/dev/null
+
+input="$(cat $HISTFILE)
+"$'\cP\cP\cP\cO\cO
+'
+
+echo
+printf "$input" | HISTSIZE= HISTFILE= ${THIS_SH} --norc -i 2>/dev/null
+echo
+printf "$input" | HISTSIZE=6 HISTFILE= ${THIS_SH} --norc -i 2>/dev/null

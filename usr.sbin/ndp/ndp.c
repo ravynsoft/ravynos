@@ -64,10 +64,7 @@
 
 /*
  * Based on:
- * "@(#) Copyright (c) 1984, 1993\n\
  *	The Regents of the University of California.  All rights reserved.\n";
- *
- * "@(#)arp.c	8.2 (Berkeley) 1/2/94";
  */
 
 /*
@@ -201,6 +198,7 @@ main(int argc, char **argv)
 {
 	int ch, mode = 0;
 	char *arg = NULL;
+	int ret = 0;
 
 	pid = getpid();
 	thiszone = utc_offset();
@@ -280,7 +278,7 @@ main(int argc, char **argv)
 			/*NOTREACHED*/
 		}
 		xo_open_list("neighbor-cache");
-		delete(arg);
+		ret = delete(arg);
 		xo_close_list("neighbor-cache");
 		break;
 	case 'I':
@@ -353,7 +351,8 @@ main(int argc, char **argv)
 	}
 	xo_close_container("ndp");
 	xo_finish();
-	exit(0);
+
+	return (ret);
 }
 
 /*
@@ -841,7 +840,7 @@ static int
 delete(char *host)
 {
 #ifndef WITHOUT_NETLINK
-	return (delete_nl(0, host));
+	return (delete_nl(0, host, true)); /* do warn */
 #else
 	return (delete_rtsock(host));
 #endif
@@ -1544,7 +1543,7 @@ ts_print(const struct timeval *tvp)
 
 	/* Default */
 	sec = (tvp->tv_sec + thiszone) % 86400;
-	xo_emit("{:tv_sec/%lld}{:tv_usec/%lld}%02d:%02d:%02d.%06u ",
+	xo_emit("{e:tv_sec/%lld}{e:tv_usec/%lld}{d:/%02d:%02d:%02d.%06u} ",
 	    tvp->tv_sec, tvp->tv_usec,
 	    sec / 3600, (sec % 3600) / 60, sec % 60, (u_int32_t)tvp->tv_usec);
 }

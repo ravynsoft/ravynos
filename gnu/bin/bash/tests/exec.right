@@ -1,0 +1,172 @@
+before exec1.sub: one two three
+calling exec1.sub
+aa bb cc dd ee
+after exec1.sub with args: 0
+
+after exec1.sub without args: 0
+after exec1.sub: one two three
+./execscript: line 21: notthere: command not found
+127
+/tmp/bash: notthere: No such file or directory
+127
+/bin/sh: /bin/sh: cannot execute binary file
+126
+./execscript: line 40: /: Is a directory
+126
+/: /: Is a directory
+126
+./execscript: line 47: .: /: is a directory
+1
+126
+0
+this is bashenv
+trap -- 'echo EXIT' EXIT
+trap -- '' SIGTERM
+trap -- 'echo USR1' SIGUSR1
+USR1
+./exec3.sub: line 27: /tmp/bash-notthere: No such file or directory
+./exec3.sub: after failed exec: 127
+trap -- 'echo EXIT' EXIT
+trap -- '' SIGTERM
+trap -- 'echo USR1' SIGUSR1
+USR1
+EXIT
+./execscript: line 71: notthere: No such file or directory
+127
+./execscript: line 74: notthere: No such file or directory
+127
+./execscript: line 77: notthere: command not found
+127
+this is sh
+this is sh
+unset
+ok
+5
+./exec5.sub: line 4: exec: bash-notthere: not found
+127
+this is ohio-state
+0
+1
+1
+0
+42
+42
+0
+1
+1
+0
+0
+1
+0
+1
+testb
+expand_aliases 	on
+1
+1
+1
+1
+0
+0
+0
+0
+/usr/local/bin:/usr/GNU/bin:/usr/bin:/bin:.
+cannot find cat in $TMPDIR
+cannot find cat with empty $PATH
+PATH = /usr/local/bin:/usr/GNU/bin:/usr/bin:/bin:.
+cannot find cat in $TMPDIR with hash
+cannot find cat with empty $PATH with hash
+PATH = /usr/local/bin:/usr/GNU/bin:/usr/bin:/bin:.
+trap -- 'echo foo $BASH_SUBSHELL' EXIT
+trap -- 'echo USR1 $BASHPID' SIGUSR1
+between
+trap -- 'echo foo $BASH_SUBSHELL' EXIT
+trap -- 'echo USR1 $BASHPID' SIGUSR1
+between 2
+trap -- 'echo foo $BASH_SUBSHELL' EXIT
+trap -- 'echo USR1 $BASHPID' SIGUSR1
+in subshell: 1
+in subshell pipeline: 1
+group pipeline: 1
+EXIT-group.1
+foo 0
+after
+exit code: 1
+exit code: 1
+exit code: 1
+exit code: 1
+exit code: 1
+exit code: 1
+a
+b
+c
+A
+B
+c
+d
+c
+d
+e
+x1
+x1a
+x2
+x2a
+x2b
+x3
+x3a
+x3b
+WORKS
+done
+WORKS
+WORKS
+a
+b
+c
+d
+a
+b
+c
+d
+e
+A
+B
+c
+d
+c
+d
+e
+x
+y
+z
+WORKS
+w
+x
+y
+z
+=====
+WORKS
+done
+WORKS
+a
+b
+c
+d
+a
+b
+c
+d
+e
+A
+B
+c
+d
+c
+d
+e
+x
+y
+z
+WORKS
+w
+x
+y
+z

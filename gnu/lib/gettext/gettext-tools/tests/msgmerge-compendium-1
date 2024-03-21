@@ -1,0 +1,46 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test compendium option.
+
+cat <<EOF > mm-c-1.in1
+#: file.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mm-c-1.com
+#: file.c:345
+msgid "2"
+msgstr "2x"
+EOF
+
+cat <<EOF > mm-c-1.pot
+#: file.c:123
+msgid "1"
+msgstr ""
+
+#: file.c:345
+msgid "2"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -C mm-c-1.com -o mm-c-1.tmp mm-c-1.in1 mm-c-1.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-1.tmp > mm-c-1.out || Exit 1
+
+cat << EOF > mm-c-1.ok
+#: file.c:123
+msgid "1"
+msgstr "1x"
+
+#: file.c:345
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-c-1.ok mm-c-1.out
+result=$?
+
+exit $result

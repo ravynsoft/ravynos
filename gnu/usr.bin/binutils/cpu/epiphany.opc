@@ -1,0 +1,417 @@
+/* Adapteva epiphany opcode support.  -*- C -*-
+
+   Copyright 2009, 2011 Free Software Foundation, Inc.
+
+   Contributed by Embecosm on behalf of Adapteva, Inc.
+
+   This file is part of the GNU Binutils and of GDB.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+/*
+   Each section is delimited with start and end markers.
+
+   <arch>-opc.h additions use: "-- opc.h"
+   <arch>-opc.c additions use: "-- opc.c"
+   <arch>-asm.c additions use: "-- asm.c"
+   <arch>-dis.c additions use: "-- dis.c"
+   <arch>-ibd.h additions use: "-- ibd.h".  */
+
+/* -- opc.h */
+
+/* enumerate relaxation types for gas. */
+typedef enum epiphany_relax_types
+{
+  EPIPHANY_RELAX_NONE=0,
+  EPIPHANY_RELAX_NEED_RELAXING,
+
+  EPIPHANY_RELAX_BRANCH_SHORT,	/* Fits into +127..-128 */
+  EPIPHANY_RELAX_BRANCH_LONG,	/* b/bl/b<cond> +-2*16 */
+
+  EPIPHANY_RELAX_ARITH_SIMM3,	/* add/sub -7..3 */
+  EPIPHANY_RELAX_ARITH_SIMM11,	/* add/sub -2**11-1 .. 2**10-1 */
+
+  EPIPHANY_RELAX_MOV_IMM8,		/* mov r,imm8 */
+  EPIPHANY_RELAX_MOV_IMM16,	/* mov r,imm16 */
+
+  EPIPHANY_RELAX_LDST_IMM3,	/* (ldr|str)* r,[r,disp3] */
+  EPIPHANY_RELAX_LDST_IMM11	/* (ldr|str)* r,[r,disp11] */
+
+} EPIPHANY_RELAX_TYPES;
+
+/* Override disassembly hashing... */
+
+/* Can only depend on instruction having 4 decode bits which gets us to the
+   major groups of 16/32 instructions. */
+#undef CGEN_DIS_HASH_SIZE
+#if 1
+
+/* hash code on the 4 LSBs */
+#define CGEN_DIS_HASH_SIZE 16
+
+#define CGEN_DIS_HASH(buf, value) ((*buf) & 0xf)
+#else
+#define CGEN_DIS_HASH_SIZE 1
+#define CGEN_DIS_HASH(buf, value) 0
+#endif
+
+extern const char * parse_shortregs (CGEN_CPU_DESC cd,
+				     const char ** strp,
+				     CGEN_KEYWORD * keywords,
+				     long * valuep);
+
+extern const char * parse_branch_addr (CGEN_CPU_DESC cd,
+				       const char ** strp,
+				       int opindex,
+				       int opinfo,
+				       enum cgen_parse_operand_result * resultp,
+				       bfd_vma *valuep);
+
+/* Allows reason codes to be output when assembler errors occur.  */
+#define CGEN_VERBOSE_ASSEMBLER_ERRORS
+
+
+/* -- opc.c */
+
+
+
+/* -- asm.c */
+const char *
+parse_shortregs (CGEN_CPU_DESC cd,
+		 const char ** strp,
+		 CGEN_KEYWORD * keywords,
+		 long * regno)
+{
+  const char * errmsg;
+
+  /* Parse register.  */
+  errmsg = cgen_parse_keyword (cd, strp, keywords, regno);
+
+  if (errmsg)
+    return errmsg;
+
+  if (*regno > 7)
+    errmsg = _("register unavailable for short instructions");
+
+  return errmsg;
+}
+
+static const char * parse_simm_not_reg (CGEN_CPU_DESC, const char **, int,
+					long *);
+
+static const char *
+parse_uimm_not_reg (CGEN_CPU_DESC cd,
+		    const char ** strp,
+		    int opindex,
+		    unsigned long * valuep)
+{
+  long * svalp = (void *) valuep;
+  return parse_simm_not_reg (cd, strp, opindex, svalp);
+}
+
+/* Handle simm3/simm11/imm3/imm12.  */
+
+static const char *
+parse_simm_not_reg (CGEN_CPU_DESC cd,
+		   const char ** strp,
+		   int opindex,
+		   long * valuep)
+{
+  const char * errmsg;
+
+  int   sign = 0;
+  int   bits = 0;
+
+  switch (opindex)
+    {
+    case EPIPHANY_OPERAND_SIMM3:
+      sign = 1; bits = 3; break;
+    case EPIPHANY_OPERAND_SIMM11:
+      sign = 1; bits = 11; break;
+    case EPIPHANY_OPERAND_DISP3:
+      sign = 0; bits = 3; break;
+    case EPIPHANY_OPERAND_DISP11:
+      /* Load/store displacement is a sign-magnitude 12 bit value.  */
+      sign = 0; bits = 11; break;
+    }
+
+  /* First try to parse as a register name and reject the operand.  */
+  errmsg = cgen_parse_keyword (cd, strp, & epiphany_cgen_opval_gr_names,valuep);
+  if (!errmsg)
+    return _("register name used as immediate value");
+
+  errmsg = (sign ? cgen_parse_signed_integer (cd, strp, opindex, valuep)
+	    : cgen_parse_unsigned_integer (cd, strp, opindex,
+					  (unsigned long *) valuep));
+  if (errmsg)
+    return errmsg;
+
+  if (sign)
+    errmsg = cgen_validate_signed_integer (*valuep,
+					  -((1L << bits) - 1), (1 << (bits - 1)) - 1);
+  else
+    errmsg = cgen_validate_unsigned_integer (*valuep, 0, (1L << bits) - 1);
+
+  return errmsg;
+}
+
+static const char *
+parse_postindex (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+		 const char ** strp,
+		 int opindex ATTRIBUTE_UNUSED,
+		 unsigned long *valuep)
+{
+  if (**strp == '#')
+    ++*strp;			/* Skip leading hashes.  */
+
+  if (**strp == '-')
+    {
+      *valuep = 1;
+      ++*strp;
+    }
+  else if (**strp == '+')
+    {
+      *valuep = 0;
+      ++*strp;
+    }
+  else
+    *valuep = 0;
+
+  return NULL;
+}
+
+static const char *
+parse_imm8 (CGEN_CPU_DESC cd,
+	    const char ** strp,
+	    int opindex,
+	    bfd_reloc_code_real_type code,
+	    enum cgen_parse_operand_result * result_type,
+	    bfd_vma * valuep)
+{
+  const char * errmsg;
+  enum cgen_parse_operand_result rt;
+  long dummyval;
+
+  if (!result_type)
+    result_type = &rt;
+
+  code = BFD_RELOC_NONE;
+
+  if (!cgen_parse_keyword (cd, strp, &epiphany_cgen_opval_gr_names, &dummyval)
+      || !cgen_parse_keyword (cd, strp, &epiphany_cgen_opval_cr_names,
+			      &dummyval))
+    /* Don't treat "mov ip,ip" as a move-immediate.  */
+    return _("register source in immediate move");
+
+  errmsg = cgen_parse_address (cd, strp, opindex, code, result_type, valuep);
+  if (errmsg)
+    return errmsg;
+
+  if (*result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    errmsg = cgen_validate_unsigned_integer (*valuep, 0, 0xff);
+  else
+    errmsg = _("byte relocation unsupported");
+
+  *valuep &= 0xff;
+  return errmsg;
+}
+
+static const char * MISSING_CLOSE_PARENTHESIS = N_("missing `)'");
+
+static const char *
+parse_imm16 (CGEN_CPU_DESC cd,
+	     const char ** strp,
+	     int opindex,
+	     bfd_reloc_code_real_type code ATTRIBUTE_UNUSED,
+	     enum cgen_parse_operand_result * result_type,
+	     bfd_vma * valuep)
+{
+  const char * errmsg;
+  enum cgen_parse_operand_result rt;
+  long dummyval;
+
+  if (!result_type)
+    result_type = &rt;
+
+  if (strncasecmp (*strp, "%high(", 6) == 0)
+    {
+      *strp += 6;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_EPIPHANY_HIGH,
+				   result_type, valuep);
+      if (**strp != ')')
+	return MISSING_CLOSE_PARENTHESIS;
+      ++*strp;
+      *valuep >>= 16;
+    }
+  else if (strncasecmp (*strp, "%low(", 5) == 0)
+    {
+      *strp += 5;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_EPIPHANY_LOW,
+				   result_type, valuep);
+      if (**strp != ')')
+	return MISSING_CLOSE_PARENTHESIS;
+      ++*strp;
+    }
+  else if (!cgen_parse_keyword (cd, strp, &epiphany_cgen_opval_gr_names,
+				&dummyval)
+	   || !cgen_parse_keyword (cd, strp, &epiphany_cgen_opval_cr_names,
+				   &dummyval))
+    /* Don't treat "mov ip,ip" as a move-immediate.  */
+    return _("register source in immediate move");
+  else
+    errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_16,
+				 result_type, valuep);
+
+  if (!errmsg && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    errmsg = cgen_validate_unsigned_integer (*valuep, 0, 0xffff);
+
+  *valuep &= 0xffff;
+  return errmsg;
+}
+
+const char *
+parse_branch_addr (CGEN_CPU_DESC cd,
+		   const char ** strp,
+		   int opindex,
+		   int opinfo ATTRIBUTE_UNUSED,
+		   enum cgen_parse_operand_result * resultp ATTRIBUTE_UNUSED,
+		   bfd_vma *valuep ATTRIBUTE_UNUSED)
+{
+  const char * errmsg;
+  enum cgen_parse_operand_result result_type;
+  bfd_reloc_code_real_type code = BFD_RELOC_NONE;
+  bfd_vma value;
+
+  switch (opindex)
+    {
+    case EPIPHANY_OPERAND_SIMM24:
+      code = BFD_RELOC_EPIPHANY_SIMM24;
+      break;
+
+    case EPIPHANY_OPERAND_SIMM8:
+      code = BFD_RELOC_EPIPHANY_SIMM8;
+      break;
+
+    default:
+      errmsg = _("ABORT: unknown operand");
+      return errmsg;
+    }
+
+  errmsg = cgen_parse_address (cd, strp, opindex, code,
+			       &result_type, &value);
+  if (errmsg == NULL)
+    {
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	{
+	  /* Act as if we had done a PC-relative branch, ala .+num.  */
+	  char buf[20];
+	  const char * bufp = (const char *) buf;
+
+	  sprintf (buf, ".+%ld", (long) value);
+	  errmsg = cgen_parse_address (cd, &bufp, opindex, code, &result_type,
+				       &value);
+	}
+
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_QUEUED)
+	{
+	  /* This will happen for things like (s2-s1) where s2 and s1
+	     are labels.  */
+	  /* Nothing further to be done.  */
+	}
+      else
+	errmsg = _("Not a pc-relative address.");
+    }
+  return errmsg;
+}
+
+/* -- dis.c */
+
+#define CGEN_PRINT_INSN epiphany_print_insn
+
+static int
+epiphany_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
+{
+  bfd_byte buf[CGEN_MAX_INSN_SIZE];
+  int buflen;
+  int status;
+
+  info->bytes_per_chunk = 2;
+  info->bytes_per_line = 4;
+
+  /* Attempt to read the base part of the insn.  */
+  buflen = cd->base_insn_bitsize / 8;
+  status = (*info->read_memory_func) (pc, buf, buflen, info);
+
+  /* Try again with the minimum part, if min < base.  */
+  if (status != 0 && (cd->min_insn_bitsize < cd->base_insn_bitsize))
+    {
+      buflen = cd->min_insn_bitsize / 8;
+      status = (*info->read_memory_func) (pc, buf, buflen, info);
+    }
+
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
+    }
+
+  return print_insn (cd, pc, info, buf, buflen);
+}
+
+
+static void
+print_postindex (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+		 void * dis_info,
+		 long value,
+		 unsigned int attrs ATTRIBUTE_UNUSED,
+		 bfd_vma pc ATTRIBUTE_UNUSED,
+		 int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = (disassemble_info *) dis_info;
+  (*info->fprintf_func) (info->stream, value ? "-" : "+");
+}
+
+static void
+print_simm_not_reg (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+		    void * dis_info,
+		    long value,
+		    unsigned int attrs ATTRIBUTE_UNUSED,
+		    bfd_vma pc ATTRIBUTE_UNUSED,
+		    int length ATTRIBUTE_UNUSED)
+{
+  print_address (cd, dis_info, value, attrs, pc, length);
+}
+
+static void
+print_uimm_not_reg (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+		    void * dis_info,
+		    unsigned long value,
+		    unsigned int attrs ATTRIBUTE_UNUSED,
+		    bfd_vma pc ATTRIBUTE_UNUSED,
+		    int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = (disassemble_info *)dis_info;
+
+  if (value & 0x800)
+    (*info->fprintf_func) (info->stream, "-");
+
+  value &= 0x7ff;
+  print_address (cd, dis_info, value, attrs, pc, length);
+}
+
+
+/* -- */
+

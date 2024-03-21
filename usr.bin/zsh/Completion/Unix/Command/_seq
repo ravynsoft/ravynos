@@ -1,0 +1,28 @@
+#compdef seq gseq
+
+local variant args
+
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+args=( ':: :_guard "^-[^0-9]*" '{first,step,last} )
+case $variant in
+  gnu)
+    args+=(
+      '(--help --version)'{-f+,--format=}'[use printf style floating-point format]:format'
+      '(--help --version -s --separator)'{-s+,--separator=}'[use specified separator for numbers]:separator [\n]'
+      '(--help --version -w --equal-width)'{-w,--equal-width}'[equalize width by padding with leading zeroes]'
+      '(- 1 2 3)--help[display usage information]'
+      '(- 1 2 3)--version[display version information]'
+     )
+  ;;
+  *)
+    args+=(
+      '-f+[use printf style floating-point format]:format'
+      '-s+[use specified separator for numbers]:separator [\n]'
+      '-t+[use specified string to terminate numbers]:string [\n]'
+      '-w[equalize width by padding with leading zeroes]'
+    )
+  ;;
+esac
+
+_arguments -s -A '-[^1-9]*' $args

@@ -1,0 +1,16 @@
+ -- Plugin STARTED --
+EXEC id --help
+EXEC info [
+    "command=/bin/id",
+    "runas_uid=0"
+]
+STD IN stdin for plugin 1
+STD OUT stdout for plugin 1
+STD ERR stderr for plugin 1
+SUSPEND SIGTSTP
+SUSPEND SIGCONT
+WINSIZE 20x10
+TTY IN tty input for plugin 1
+TTY OUT tty output for plugin 1
+CLOSE Command returned 1
+ -- Plugin DESTROYED --

@@ -1,0 +1,239 @@
+#compdef ping ping6
+
+local variant
+local -a args
+
+_pick_variant -r variant iputils=iputils $OSTYPE -V
+              
+case ${variant}:${${service#ping}:-4} in
+  iputils*) args=( -A "-*" ) ;|
+  *)
+    args+=(
+      '-d[set SO_DEBUG on the socket]'
+      '-n[show network addresses as numbers]'
+      '-v[verbose output]'
+    )
+  ;|
+  iputils*|aix*|*bsd*|darwin*|dragonfly*)
+    args+=(
+      '-c+[specify number of packets to send]:count'
+      '-f[flood ping]'
+      '-i+[specify delay between packets]:interval (seconds) [1]'
+      '-l+[send specified number of initial packets as fast as possible]:number of packets'
+      '-p+[specify pad bytes to fill sent packet with]:padding pattern'
+      '-q[quiet]'
+      '-s+[specify packet size]:size (bytes) [56]'
+    )
+  ;|
+  iputils:*|solaris:*|(*bsd|darwin|dragonfly)*:4)
+    args+=(
+      '-L[disable loopback of multicast packets]'
+      '-R[record route]'
+    )
+  ;|
+  iputils:*|solaris:*|((free|net)bsd|darwin|dragonfly)*:4)
+    args+=( '-r[bypass normal routing tables]' )
+  ;|
+  (iputils|freebsd<13->.*):*|(freebsd<-12>.|netbsd|darwin|dragonfly)*:4)
+    args+=( '-a[audible bell for each packet]' )
+  ;|
+  iputils:*|netbsd*:4|openbsd*)
+    args+=( '-w+[specify timeout after which ping exits]:deadline (seconds)' )
+  ;|
+  iputils:*|openbsd*:4|solaris*)
+    args+=(
+      '-t+[set IP Time to Live for outgoing packets]:ttl'
+    )
+  ;|
+  (*bsd|darwin|dragonfly)*)
+    args+=( '-I+[specify source interface for multicast packets]:interface:_net_interfaces' )
+  ;|
+  freebsd<13->.*|openbsd*)
+    args+=( '-H[try reverse-lookups of addresses]' )
+  ;|
+  freebsd*|darwin*|dragonfly*|netbsd*:6)
+    args+=( '-S+[specify source address]:source address' )
+  ;|
+  freebsd*|darwin*|dragonfly*:4|netbsd*:4)
+    args+=( '-o[exit after receiving one packet]' )
+  ;|
+  (*bsd|darwin|dragonfly)*:4)
+    args+=( "-D[set the don't fragment bit]" )
+  ;|
+  (freebsd|openbsd|darwin)*:6)
+    args+=( '-D[disable IPv6 fragmentation]' )
+  ;|
+  ((free|net)bsd|darwin|dragonfly)*:4)
+    args+=( '-Q[somewhat quiet]')
+  ;|
+  freebsd<-12>.*:6|darwin*:6|solaris*|netbsd*)
+    args+=(
+      '*-g+[specify gateway to use as the next hop to the destination]:gateway:_hosts'
+    )
+  ;|
+  (*bsd|darwin|dragonfly)*:6)
+    args+=( '-h+[set the IPv6 hoplimit]:hop limit' )
+  ;|
+  ((free|net)bsd|darwin|dragonfly)*:6)
+    args+=(
+      '-b+[set socket buffer size]:buffer size'
+      '-N[probe node information multicast group address]'
+    )
+  ;|
+  (freebsd<-12>.|netbsd|darwin|dragonfly)*:6)
+    args+=(
+      '-a+[generate ICMPv6 Node Information Node Addresses query]:address type:(a c g s l A)'
+      '-H[try reverse-lookups of IPv6 addresses]'
+      '(-s)-t[generate ICMPv6 Node Information supported query types query]'
+      '(-s)-w[generate ICMPv6 Node Information DNS Name query]' '!(-s)-W'
+    )
+  ;|
+  (*bsd|darwin)*:6)
+    args+=( '*-m[suppress fragmenting of packets into the minimum IPv6 MTU]' )
+  ;|
+  freebsd*|darwin*|netbsd*:6)
+    args+=( '-P+[specify IPsec policy to be used for the probe]:policy' )
+  ;|
+  solaris2.<11->)
+    args+=(
+      '-b[bypass global IPsec policy and send and receive packets in the clear]'
+      '-N+[specify a next-hop router that the probe packet should go through]:router:_hosts'
+    )
+  ;|
+  freebsd<13->.*:6|(freebsd|darwin|dragonfly)*:4)
+    args+=(
+      '-A[audible bell for no packet]'
+      '-t+[specify timeout after which ping exits]:deadline (seconds)'
+      '-W+[specify time to wait for a response]:wait time (ms)'
+    )
+  ;|
+  (freebsd|darwin|dragonfly)*:4)
+    args+=(
+      '-G+[specify maximum size for ICMP payload for sweeping pings]:size'
+      '-g+[specify minimum size for ICMP payload for sweeping pings]:size [0]'
+      '-h+[specify size increment for ICMP payload for sweeping pings]:size [1]'
+      '-M+[use ICMP_MASKREQ or ICMP_TSTAMP instead of ICMP_ECHO]:ICMP:(mask time)'
+      '-m+[set IP Time to Live for outgoing packets]:ttl'
+      '-T+[set IP Time to Live for multicasted packets]:ttl'
+      '-z+[specify type of service]:type of service'
+    )
+  ;|
+  (freebsd<-12>.*|darwin*):6)
+    args+=(
+      '-R[audible bell for no packet]'
+      '-r[audible bell for each packet]'
+    )
+  ;|
+  (iputils|freebsd<13->.*):4)
+    args+=(
+      '(-F -N)-4[use IPv4 only]'
+      '-6[use IPv6 only]'
+    )
+  ;|
+  freebsd<13->.*:4)
+    args+=(
+      '-C+[add an 802.1p Ethernet Priority Code Point when sending a packet]:pcp:(-1 0 1 2 3 4 5 6 7)'
+    )
+  ;|
+  freebsd<13->.*:6)
+    args+=(
+      '*-e+[specify gateway to use as the next hop to the destination]:gateway:_hosts'
+      '-k+[generate ICMPv6 Node Information Node Addresses query]:address type:(a c g s l A)'
+      '(-s)-O[generate ICMPv6 Node Information supported query types query]'
+      '*-u[suppress fragmentation to minimum MTU]'
+      '(-s)-Y[generate ICMPv6 Node Information DNS Name query with old packet format]'
+      '(-s)-y[generate ICMPv6 Node Information DNS Name query]'
+      '-E[enable transport-mode IPsec encapsulated security payload]'
+      '-Z[enables transport-mode IPsec authentication header]'
+    )
+  ;|
+  freebsd<-12>.*:6)
+    args+=(
+      '-x+[specify time to wait for a response]:wait time (ms)'
+      '-X+[specify timeout after which ping exits]:deadline (seconds)'
+    )
+  ;;
+  netbsd*:4)
+    args+=(
+      '-C[send timestamps in compat format]'
+      '-E+[specify IPsec policy to be used for the probe]:policy'
+      '-h+[specify target host]:host:_hosts'
+      '-P+[use a pseudo-random sequence for the data]'
+      '-T+[set IP Time to Live for outgoing packets]:ttl'
+      '-t+[specify type of service]:type of service'
+    )
+  ;;
+  (dragonfly|netbsd)*:6)
+    args+=( '-R[inject reachability confirmation hint for target host/first hop]' )
+  ;;
+  darwin*:4)
+    args+=( '-b+[bind the socket to specified interface for sending]:interface:_net_interfaces')
+  ;|
+  darwin*:6)
+    args+=(
+      '-B+[bind the socket to specified interface for sending]:interface:_net_interfaces'
+      '-G+[specify max,min,increment size for ICMP payload for sweeping pings]:max,min,incr (default min=0 incr=1)'
+      '-z+[specify traffic class]:traffic class'
+    )
+  ;|
+  darwin*)
+    args+=(
+      '-C[prohibit socket from using cellular network interface]'
+      '-K+[specify network service type for sending ICMP packets]:serviece type:(BK_SYS BK BE RV AV RD OAM VI SIG VO)'
+      '-k+[specify traffic class to use for sending ICMP packets]:traffic class [CTL]:(BK_SYS BK BE RD OAM AV RV VI VO CTL)'
+      '--apple-connect[connects the socket to the destination address]'
+      '--apple-time[prints the time a packet was received]'
+    )
+  ;;
+  openbsd*)
+    args+=(
+      '-E[audible bell for no packet]'
+      '-e[audible bell for each packet]'
+      '-g[provide a visual display of packets received and lost]'
+      '-T+[change TOS value]:TOS value:(critical inetcontrol lowdelay netcontrol throughput reliability ef af cs)'
+      '-V+[specify routing table to be used]:routing table:_routing_tables'
+    )
+  ;;
+  iputils:*)
+    args+=(
+      '-A[adaptive]'
+      '-b[allow pinging a broadcast address]'
+      "-B[don't allow ping to change source address]"
+      '-D[print timestamp before each line]'
+      '(-4)-F+[allocate and set 20-bit flow label]:flow label (hex)'
+      '(-)-h[show usage information]'
+      '-I+[specify source interface]:interface:_net_interfaces'
+      '-m+[specify mark to tag outgoing packets]:mark'
+      "-M+[specify path MTU discovery strategy]:strategy:((
+        do\:prohibit\ fragmentation,\ even\ local\ one
+	want\:do\ PMTU\ discovery
+	dont\:don\'t\ set\ DF\ flag))"
+      '(-4)-N+[send ICMPv6 node information queries instead of echo request]:sub option'
+      '-O[report outstanding ICMP ECHO reply before sending next packet]'
+      '-Q+[set Quality of Service-related bits in ICMP datagrams]:QoS TOS bits'
+      '-S+[set socket sndbuf]:sndbuf'
+      '-T+[set special IP timestamp options]:timestamp option:(tsonly tsandaddr tsprespec)'
+      '-U[print full user-to-user latency]'
+      '(-)-V[display version information]'
+      '-W+[specify time to wait for a response]:wait time (seconds)'
+    )
+  ;;
+  solaris*)
+    args+=(
+      '-A+[specify address family]:address family:(inet inet6)'
+      '-F+[specify the flow label of probe packets]:number'
+      '-I+[specify delay between packets]:interval (seconds) [1]'
+      '-P+[specify type of service]:type of service (0-255) [0]'
+      '-U[send UDP packets instead of ICMP]'
+      '-a[ping all addresses, both IPv4 and IPv6 of multihomed destination]'
+      '-c+[specify the traffic class of probe packets]:traffic class (0-255)'
+      '-i+[specify source interface]:interface:_net_interfaces'
+      '-l[send the probe using loose source routing]'
+      '-p+[set base UDP port]:port [33434]'
+      '-s[send one datagram per second and collect statistics]'
+    )
+  ;;
+esac
+
+_arguments -s -S $args \
+  '*:host:_hosts'

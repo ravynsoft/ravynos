@@ -1,0 +1,127 @@
+#   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if {![istarget "arm*-*-*"]} then {
+  return
+}
+
+if {![is_remote host] && [which $OBJDUMP] == 0} then {
+    perror "$OBJDUMP does not exist"
+    return
+}
+
+send_user "Version [binutil_version $OBJDUMP]"
+
+###########################
+# Set up the test of movem.s
+###########################
+
+if {![binutils_assemble $srcdir/$subdir/thumb2-cond.s tmpdir/thumb2-cond.o]} then {
+    fail "thumb2-cond (assembling)"
+} else {
+
+    if [is_remote host] {
+	set objfile [remote_download host tmpdir/thumb2-cond.o]
+    } else {
+	set objfile tmpdir/thumb2-cond.o
+    }
+
+    # Make sure that conditional instructions are correctly decoded.
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --disassemble --disassembler-color=off --start-address=6 $objfile"]
+
+    set want "bcc.w\[ \t\]*e12.*bx\[ \t\]*lr"
+
+    if [regexp $want $got] then {
+	pass "thumb2-cond test1"
+    } else {
+	fail "thumb2-cond test1"
+    }
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --disassemble --disassembler-color=off --start-address=10 $objfile"]
+
+    set want "bx\[ \t\]*lr"
+
+    if [regexp $want $got] then {
+	pass "thumb2-cond test2"
+    } else {
+	fail "thumb2-cond test2"
+    }
+}
+
+###########################
+# Set up the test of multiple disassemblies
+###########################
+
+if {![binutils_assemble $srcdir/$subdir/simple.s tmpdir/simple.o]} then {
+    fail "multiple input files"
+} else {
+
+    if [is_remote host] {
+	set objfile [remote_download host tmpdir/simple.o]
+    } else {
+	set objfile tmpdir/simple.o
+    }
+
+    # Make sure multiple disassemblies come out the same
+
+    set got [binutils_run $OBJDUMP "-dr --disassembler-color=off $objfile $objfile"]
+
+    set want "$objfile:\[ \]*file format.*$objfile:\[ \]*file format.*push.*add.*sub.*str.*add.*ldmfd"
+
+    if [regexp $want $got] then {
+	pass "multiple input files"
+    } else {
+	fail "multiple input files"
+    }
+}
+
+if {![binutils_assemble $srcdir/$subdir/rvct_symbol.s tmpdir/rvct_symbol.o]} then {
+    fail "skip rvct symbol"
+} else {
+
+    if [is_remote host] {
+	set objfile [remote_download host tmpdir/rvct_symbol.o]
+    } else {
+	set objfile tmpdir/rvct_symbol.o
+    }
+
+    # Make sure multiple disassemblies come out the same
+
+    set got [binutils_run $OBJDUMP "-D $objfile $objfile"]
+
+    set want "foo.*global_a.*global_b"
+
+    if [regexp $want $got] then {
+	pass "skip rvct symbol"
+    } else {
+	fail "skip rvct symbol"
+    }
+}
+
+###########################
+# Set up generic test framework
+###########################
+
+set tempfile tmpdir/armtemp.o
+set copyfile tmpdir/armcopy
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}

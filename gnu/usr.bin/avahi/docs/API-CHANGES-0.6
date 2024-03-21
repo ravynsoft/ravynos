@@ -1,0 +1,74 @@
+-*-text-*-
+
+A terse (and incomplete) list of API changes between 0.5.2 and 0.6:
+
+ * Most browsing and registration functions and their callbacks gained
+   new "flags" parameters. Passing 0 results in similar behaviour as
+   in 0.5.2
+
+ * avahi-client/client.h has been split into client.h, publish.h and lookup.h
+ 
+ * avahi-core/core.h has been split into core.h publish.h lookup.h
+
+ * avahi_client_is_service_local() has been removed. Use instead the special
+   flags AVAHI_LOOKUP_RESULT_LOCAL and AVAHI_LOOKUP_RESULT_OUR_OWN which are
+   set when resolving or browsing for services. AVAHI_LOOKUP_RESULT_OUR_OWN is
+   what most people should use.
+
+ * AVAHI_RESOLVER_TIMEOUT and AVAHI_RESOLVER_NOT_FOUND have been
+   removed. Instead AVAHI_RESOLVER_FAILURE is used and the exact error
+   code is available from avahi_client_errno()/avahi_server_errno()
+
+ * The events AVAHI_BROWSER_CACHE_EXHAUSTED, AVAHI_BROWSER_ALL_FOR_NOW
+   have been introduced. Failures during browsing are now passed as
+   AVAHI_BROWSER_FAILURE and the error code is made available through
+   avahi_client_errno()/avahi_server_errno().
+
+ * The server gained a new state AVAHI_SERVER_FAILURE if some fatal
+   error happens. The reason can be found in
+   avahi_server_errno(). Clients can safely ignore this state.
+
+ * You can now update existing records by setting the
+   AVAHI_PUBLISH_UPDATE flags for add_service() and friends. Consider
+   using avahi_server_update_service_txt_strlst() if you need to
+   update only the TXT record for a service.
+
+ * Proper support for service subtypes is now available. Use
+   avahi_server_add_service_subtype() for that.
+
+ * Entry groups gained the new state AVAHI_ENTRY_GROUP_FAILURE. The
+   reason is available using
+   avahi_server_errno()/avahi_client_errno().
+
+ * Many superfluous functions have been removed from the public API or
+   entirely.
+
+ * avahi_simple_poll_iterate() has been split up into three
+   functions. avahi_simple_poll_loop() has been introduced.
+
+ * Some new limits have been introduced: AVAHI_ADDRESS_STR_MAX,
+   AVAHI_DOMAIN_NAME_MAX, AVAHI_LABEL_MAX
+
+ * The functions avahi_service_name_join() and
+   avahi_service_name_split() have been introduced.
+ 
+ * AVAHI_ERR_LOCAL_COLLISION has been renamed to AVAHI_ERR_COLLSION
+
+ * The values of AVAHI_PROTO_xxx have changed, they are no longer
+   identical to the BSD AF_xxx constants
+
+ * avahi_client_new() now takes an additional flags parameter. Most
+   interesting flag here is AVAHI_CLIENT_NO_FAIL, which can be used to
+   create an AvahiClient object even when the daemon is not
+   running. This is useful to deal with daemon restarts.
+
+ * AvahiClient gained a new state AVAHI_CLIENT_FAILURE.  (superseding
+   AVAHI_CLIENT_DISCONNECTED). If this event happens,
+   avahi_client_errno() will return the reason. If the error returned
+   is AVAHI_ERR_DISCONNECTED, the situation where
+   AVAHI_CLIENT_DISCONNECTED was previously thrown is entered. You may
+   choose to reconnect in that case by freeing your AvahiClient new
+   and create a new one with passing AVAHI_CLIENT_NO_FAIL.
+
+ * There's now a client side AvahiRecordBrowser, and 
+   avahi_entry_group_add_record().

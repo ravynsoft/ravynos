@@ -1,0 +1,35 @@
+#compdef -vared-
+
+local also
+
+# Completion inside vared.
+
+if [[ $compstate[vared] = *\[* ]]; then
+  if [[ $compstate[vared] = *\]* ]]; then
+    # vared on an array-element
+    compstate[parameter]=${${compstate[vared]%%\]*}//\[/-}
+    compstate[context]=value
+    also=-value-
+  else
+    # vared on an array-value
+    compstate[parameter]=${compstate[vared]%%\[*}
+    compstate[context]=value
+    also=-value-
+  fi
+else
+  # vared on a parameter, let's see if it is an array
+  compstate[parameter]=$compstate[vared]
+  if [[ ${(tP)compstate[vared]} = *(array|assoc)* ]]; then
+    compstate[context]=array_value
+    also=-array-value-
+  else
+    compstate[context]=value
+    also=-value-
+  fi
+fi
+
+# Don't insert TAB in first column. Never.
+
+compstate[insert]="${compstate[insert]//tab /}"
+
+_dispatch "$also" "$also"

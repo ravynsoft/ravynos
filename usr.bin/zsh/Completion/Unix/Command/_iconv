@@ -1,0 +1,81 @@
+#compdef iconv
+
+local expl curcontext="$curcontext" state line variant ret=1
+
+if _pick_variant -r variant libiconv='GNU*libiconv' glibc='(Free Soft|GNU*libc|GLIBC|Gentoo)' unix --version; then
+  local -a args
+  local exargs="-l --list -? --help --usage --version -V"
+
+  args=(
+    "(-f --from-code $exargs)"{-f+,--from-code=}'[specify code set of input file]:code set:->from_codeset'
+    "(-t --to-code $exargs)"{-t+,--to-code=}'[specify code set for output]:code set:->to_codeset'
+    '(- 1 -l --list)'{-l,--list}'[list all character code sets]'
+    "($exargs)-c[omit invalid characters from output]"
+    "(-s --silent --verbose $exargs)"{-s,--silent}'[suppress warnings]'
+    '(-)'{-\?,--help}'[display help information]'
+    '(-)'{-V,--version}'[print program version]'
+    '1:input file:_files' 
+  )
+
+  case $variant in
+    (libiconv)
+      args=( ${(R)args:#(|\*)(|\(*\))-[V\?]*} )  # remove -V and -?
+      args+=(
+        '--byte-subst=[format for unconvertible bytes]:format string'
+        '--widechar-subst=[format for unconvertible wide chars]:format string'
+        '--unicode-subst=[format for unconvertible Unicode chars]:format string'
+      )
+      ;;
+    (glibc)
+      args+=( 
+        '(-)--usage[display a short usage message]'
+        "(-o --output $exargs)"{-o+,--output=}'[specify output file]:output file:_files'
+        "(-s --silent $exargs)--verbose[print progress information]"
+      )
+      ;;
+  esac
+
+  _arguments -C -S -s : $args && return 0
+
+  if [[ $state = *_codeset ]]; then
+    # suffix is meaningful only for output encoding
+    if [[ $state = to_codeset ]] && compset -P '*[^/]/'; then
+      _wanted suffix expl suffix compadd "$@" /TRANSLIT /IGNORE && ret=0
+    else
+      _wanted codesets expl 'code set' compadd "$@" \
+        -M 'm:{a-zA-Z}={A-Za-z} r:|-=* r:|=*' \
+        ${$(_call_program codesets $words[1] --list)%//} && ret=0
+    fi
+  fi
+
+  return ret
+
+else
+  local LOCPATH="${LOCPATH:-/usr/lib/nls/loc}"
+  local -U codeset
+
+  _arguments -C \
+    '(-l)-f[specify code set of input file]:code set:->codeset' \
+    '(-l)-t[specify code set for output]:code set:->codeset' \
+    '(-l)-c[omit invalid characters from output]' \
+    '(-l)-s[suppress warnings]' \
+    '(- 1)-l[list all character code sets]' \
+    '1:file:_files' && return 0
+
+  if [[ $state = codeset ]]; then
+    if [[ $OSTYPE = freebsd* ]]; then
+      codeset=( $(_call_program codesets $words[1] -l) )
+    elif [[ -f /usr/lib/iconv/iconv_data ]]; then  # IRIX & Solaris
+      codeset=( ${${(f)"$(</usr/lib/iconv/iconv_data)"}%%[[:blank:]]*} )
+      codeset+=( /usr/lib/iconv/*%*.so(Ne.'reply=( ${${REPLY:t}%%%*} ${${REPLY:r}#*%} )'.) )
+    elif [[ -d $LOCPATH/iconv ]]; then  # OSF
+      codeset=( $LOCPATH/iconv/*(N:t) )
+      codeset=( ${(j:_:s:_:)codeset} )
+    else
+      return 1
+    fi
+
+    _wanted codesets expl 'code set' compadd -a codeset
+  fi
+
+fi

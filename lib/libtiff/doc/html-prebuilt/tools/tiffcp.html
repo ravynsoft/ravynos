@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>tiffcp &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="tiffdump" href="tiffdump.html" />
+    <link rel="prev" title="TIFF Tools Overview" href="../tools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="tiffdump.html" title="tiffdump"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../tools.html" title="TIFF Tools Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tools.html" accesskey="U">TIFF Tools Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tiffcp</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffcp">
+<h1>tiffcp<a class="headerlink" href="#tiffcp" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<p><strong>tiffcp</strong> [ <em>options</em> ] <em>src1.tif</em> … <em>srcN.tif</em> <em>dst.tif</em></p>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">tiffcp</strong> combines one or more files created according
+to the Tag Image File Format, Revision 6.0 into a single TIFF file.
+Because the output file may be compressed using a different
+algorithm than the input files, <strong class="program">tiffcp</strong> is most often
+used to convert between different compression schemes.</p>
+<p>By default, <strong class="program">tiffcp</strong> will copy all the understood tags in a
+TIFF directory of an input file to the associated directory in the output file.</p>
+<p><strong class="program">tiffcp</strong> can be used to reorganize the storage characteristics of data
+in a file, but it is explicitly intended to not alter or convert
+the image data content in any way.</p>
+</section>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this heading">¶</a></h2>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-a">
+<span class="sig-name descname"><span class="pre">-a</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-a" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append to an existing output file instead of overwriting it.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-b">
+<span class="sig-name descname"><span class="pre">-b</span></span><span class="sig-prename descclassname"> <span class="pre">image</span></span><a class="headerlink" href="#cmdoption-tiffcp-b" title="Permalink to this definition">¶</a></dt>
+<dd><p>subtract the following monochrome image from all others
+processed.  This can be used to remove a noise bias
+from a set of images.  This bias image is typically an
+image of noise the camera saw with its shutter closed.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-B">
+<span class="sig-name descname"><span class="pre">-B</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-B" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force output to be written with Big-Endian byte order.
+This option only has an effect when the output file is created or
+overwritten and not when it is appended to.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-C">
+<span class="sig-name descname"><span class="pre">-C</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-C" title="Permalink to this definition">¶</a></dt>
+<dd><p>Suppress the use of “strip chopping” when reading images
+that have a single strip/tile of uncompressed data.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-c">
+<span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the compression to use for data written to the output file:
+<strong class="command">-c none</strong> for no compression,
+<strong class="command">-c packbits</strong> for PackBits compression,
+<strong class="command">-c lzw</strong> for Lempel-Ziv &amp; Welch compression,
+<strong class="command">-c zip</strong> for Deflate compression,
+<strong class="command">-c lzma</strong> for LZMA2 compression,
+<strong class="command">-c jpeg</strong> for baseline JPEG compression,
+<strong class="command">-c g3</strong> for CCITT Group 3 (T.4) compression,
+<strong class="command">-c g4</strong> for CCITT Group 4 (T.6) compression, or
+<strong class="command">-c sgilog</strong> for SGILOG compression.</p>
+<p>By default <strong class="program">tiffcp</strong> will compress data according to the
+value of the <code class="docutils literal notranslate"><span class="pre">Compression</span></code> tag found in the source file.</p>
+<p>The CCITT Group 3 and Group 4 compression algorithms can only
+be used with bilevel data.</p>
+<p>Group 3 compression can be specified together with several
+T.4-specific options:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">1d</span></code> for 1-dimensional encoding,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2d</span></code> for 2-dimensional encoding, and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fill</span></code> to force each encoded scanline to be zero-filled so that the
+terminating EOL code lies on a byte boundary.</p></li>
+</ul>
+<p>Group 3-specific options are specified by appending a <code class="docutils literal notranslate"><span class="pre">:</span></code>-separated
+list to the <code class="docutils literal notranslate"><span class="pre">g3</span></code> option; e.g. <strong class="command">-c g3:2d:fill</strong>
+to get 2D-encoded data with byte-aligned EOL codes.</p>
+<p>LZW, Deflate and LZMA2 compression can be specified together with a
+<code class="docutils literal notranslate"><span class="pre">predictor</span></code> value. A predictor value of 2 causes each scanline of the output image to
+undergo horizontal differencing before it is encoded; a value of 1 forces each
+scanline to be encoded without differencing. A value 3 is for floating point
+predictor which you can use if the encoded data are in floating point format.
+LZW-specific options are specified by appending a <code class="docutils literal notranslate"><span class="pre">:</span></code>-separated list to the
+<code class="docutils literal notranslate"><span class="pre">lzw</span></code> option; e.g. <strong class="command">-c lzw:2</strong> for LZW compression with horizontal differencing.</p>
+<p>Deflate and LZMA2 encoders support various compression levels (or encoder presets) set as
+character <code class="docutils literal notranslate"><span class="pre">p</span></code> and a preset number. <code class="docutils literal notranslate"><span class="pre">p1</span></code> is the fastest one with the worst
+compression ratio and <code class="docutils literal notranslate"><span class="pre">p9</span></code> is the slowest but with the best possible ratio;
+e.g. <strong class="command">-c zip:3:p9</strong> for
+Deflate encoding with maximum compression level and floating point predictor.</p>
+<p>For the Deflate codec, and in a libtiff build with libdeflate enabled, <code class="docutils literal notranslate"><span class="pre">p12</span></code> is
+actually the maximum level.</p>
+<p>For the Deflate codec, and in a libtiff build with libdeflate enabled, <code class="docutils literal notranslate"><span class="pre">s0</span></code> can be used to
+require zlib to be used, and <code class="docutils literal notranslate"><span class="pre">s1</span></code> for libdeflate (defaults to libdeflate when
+it is available).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-f">
+<span class="sig-name descname"><span class="pre">-f</span></span><span class="sig-prename descclassname"> <span class="pre">fillorder</span></span><a class="headerlink" href="#cmdoption-tiffcp-f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the bit fill order to use in writing output data.  By default, <strong class="program">tiffcp</strong>
+will create a new file with the same fill order as the original.  Specifying <strong class="command">-f lsb2msb</strong>
+will force data to be written with the <code class="docutils literal notranslate"><span class="pre">FillOrder</span></code> tag set to <code class="docutils literal notranslate"><span class="pre">LSB2MSB</span></code>, while
+<strong class="command">-f msb2lsb</strong> will force data to be written with the <code class="docutils literal notranslate"><span class="pre">FillOrder</span></code> tag set to
+<code class="docutils literal notranslate"><span class="pre">MSB2LSB</span></code>.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-i">
+<span class="sig-name descname"><span class="pre">-i</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-i" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ignore non-fatal read errors and continue processing of the input file.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-l">
+<span class="sig-name descname"><span class="pre">-l</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-l" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the length of a tile (in pixels).</p>
+<p><strong class="program">tiffcp</strong> attempts to set the tile dimensions so
+that no more than 8 kilobytes of data appear in a tile.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-L">
+<span class="sig-name descname"><span class="pre">-L</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-L" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force output to be written with Little-Endian byte order.
+This option only has an effect when the output file is created or
+overwritten and not when it is appended to.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-M">
+<span class="sig-name descname"><span class="pre">-M</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-M" title="Permalink to this definition">¶</a></dt>
+<dd><p>Suppress the use of memory-mapped files when reading images.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-o">
+<span class="sig-name descname"><span class="pre">-o</span></span><span class="sig-prename descclassname"> <span class="pre">offset</span></span><a class="headerlink" href="#cmdoption-tiffcp-o" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set initial directory offset.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-p">
+<span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the planar configuration to use in writing image data
+that has one 8-bit sample per pixel. By default, <strong class="program">tiffcp</strong>
+will create a new file with the same planar configuration as
+the original.  Specifying <strong class="command">-p contig</strong>
+will force data to be written with multi-sample data packed
+together, while <strong class="command">-p separate</strong>
+will force samples to be written in separate planes.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-r">
+<span class="sig-name descname"><span class="pre">-r</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the number of rows (scanlines) in each strip of data
+written to the output file.  By default (or when value <strong>0</strong>
+is specified), <strong class="program">tiffcp</strong> attempts to set the rows/strip
+that no more than 8 kilobytes of data appear in a strip. If you specify
+special value <strong>-1</strong> it will results in infinite number of the rows per
+strip. The entire image will be the one strip in that case.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-s">
+<span class="sig-name descname"><span class="pre">-s</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-s" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force the output file to be written with data organized in strips
+(rather than tiles).</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-t">
+<span class="sig-name descname"><span class="pre">-t</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force the output file to be written with data organized in tiles (rather than
+strips). options can be used to force the resultant image to be written as
+strips or tiles of data, respectively.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-w">
+<span class="sig-name descname"><span class="pre">-w</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-w" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specify the width of a tile (in pixels). :program::<cite>tiffcp</cite>
+attempts to set the tile dimensions so that no more than 8 kilobytes of data
+appear in a tile.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-x">
+<span class="sig-name descname"><span class="pre">-x</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force the output file to be written with <code class="docutils literal notranslate"><span class="pre">PAGENUMBER</span></code> value in sequence.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-8">
+<span class="sig-name descname"><span class="pre">-8</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-tiffcp-8" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write BigTIFF instead of classic TIFF format.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-0">
+<span class="sig-name descname"><span class="pre">-,</span></span><span class="sig-prename descclassname"><span class="pre">=</span> <span class="pre">character</span></span><a class="headerlink" href="#cmdoption-tiffcp-0" title="Permalink to this definition">¶</a></dt>
+<dd><p>substitute <em>character</em> for <code class="docutils literal notranslate"><span class="pre">,</span></code>
+in parsing image directory indices
+in files.  This is necessary if filenames contain commas.
+Note that <code class="docutils literal notranslate"><span class="pre">-,=</span></code>
+with whitespace immediately following will disable
+the special meaning of the <code class="docutils literal notranslate"><span class="pre">,</span></code> entirely.  See examples.</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-tiffcp-m">
+<span class="sig-name descname"><span class="pre">-m</span></span><span class="sig-prename descclassname"> <span class="pre">size</span></span><a class="headerlink" href="#cmdoption-tiffcp-m" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set maximum memory allocation size (in MiB). The default is 256MiB.
+Set to 0 to disable the limit.</p>
+</dd></dl>
+
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">¶</a></h2>
+<p>The following concatenates two files and writes the result using LZW encoding:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffcp<span class="w"> </span>-c<span class="w"> </span>lzw<span class="w"> </span>a.tif<span class="w"> </span>b.tif<span class="w"> </span>result.tif
+</pre></div>
+</div>
+<p>To convert a G3 1d-encoded TIFF to a single strip of G4-encoded data the following might be used:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffcp<span class="w"> </span>-c<span class="w"> </span>g4<span class="w"> </span>-r<span class="w"> </span><span class="m">10000</span><span class="w"> </span>g3.tif<span class="w"> </span>g4.tif
+</pre></div>
+</div>
+<p>(1000 is just a number that is larger than the number of rows in
+the source file.)</p>
+<p>To extract a selected set of images from a multi-image TIFF file, the file
+name may be immediately followed by a <code class="docutils literal notranslate"><span class="pre">,</span></code> separated list of image directory
+indices.  The first image is always in directory 0.  Thus, to copy the 1st and
+3rd images of image file <code class="file docutils literal notranslate"><span class="pre">album.tif</span></code> to <code class="file docutils literal notranslate"><span class="pre">result.tif</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffcp<span class="w"> </span>album.tif,0,2<span class="w"> </span>result.tif
+</pre></div>
+</div>
+<p>A trailing comma denotes remaining images in sequence.  The following command
+will copy all image with except the first one:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffcp<span class="w"> </span>album.tif,1,<span class="w"> </span>result.tif
+</pre></div>
+</div>
+<p>Given file <code class="file docutils literal notranslate"><span class="pre">CCD.tif</span></code> whose first image is a noise bias
+followed by images which include that bias,
+subtract the noise from all those images following it
+(while decompressing) with the command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffcp<span class="w"> </span>-c<span class="w"> </span>none<span class="w"> </span>-b<span class="w"> </span>CCD.tif<span class="w"> </span>CCD.tif,1,<span class="w"> </span>result.tif
+</pre></div>
+</div>
+<p>If the file above were named <code class="file docutils literal notranslate"><span class="pre">CCD,X.tif</span></code>, the <code class="docutils literal notranslate"><span class="pre">-,=</span></code>
+option would be required to correctly parse this filename with image numbers,
+as follows:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tiffcp<span class="w"> </span>-c<span class="w"> </span>none<span class="w"> </span>-,<span class="o">=</span>%<span class="w"> </span>-b<span class="w"> </span>CCD,X.tif<span class="w"> </span>CCD,X%1%.tif<span class="w"> </span>result.tif
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="tiffinfo.html"><span class="doc">tiffinfo</span></a> (1),
+<a class="reference internal" href="tiffdump.html"><span class="doc">tiffdump</span></a> (1),
+<a class="reference internal" href="tiffsplit.html"><span class="doc">tiffsplit</span></a> (1),
+<a class="reference internal" href="../functions/libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">tiffcp</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../tools.html"
+                          title="previous chapter">TIFF Tools Overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="tiffdump.html"
+                          title="next chapter">tiffdump</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/tools/tiffcp.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="tiffdump.html" title="tiffdump"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../tools.html" title="TIFF Tools Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../tools.html" >TIFF Tools Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">tiffcp</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

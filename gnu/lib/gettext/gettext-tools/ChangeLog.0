@@ -1,0 +1,1212 @@
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.6 released.
+
+2015-07-28  Daiki Ueno  <ueno@gnu.org>
+
+	* configure.ac (ARCHIVE_VERSION): New substituted variable.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.5 released.
+
+2015-06-25  Daiki Ueno  <ueno@gnu.org>
+
+	* woe32dll/gettextsrc-exports.c: Export syntax_check_name.
+	Reported by Michele Locati.
+
+2015-06-24  Daiki Ueno  <ueno@gnu.org>
+
+	* woe32dll/gettextsrc-exports.c: Export formatstring_kde_kuit.
+	Reported by Vincent Torri.
+
+2015-06-23  Daiki Ueno  <ueno@gnu.org>
+
+	* ABOUT-NLS: Regenerate for 0.19.5.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-12-04  Daiki Ueno  <ueno@gnu.org>
+
+	intl: Make the LCOV workaround non-intrusive
+	* configure.ac: Replace PLURAL_OBJECT in intl/Makefile.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-05-14  Daiki Ueno  <ueno@gnu.org>
+
+	* configure.ac: Adjust $docdir assuming that AC_PACKAGE_TARNAME is
+	set.
+
+2014-05-12  Daiki Ueno  <ueno@gnu.org>
+
+	build: Fix Woe32 cross build
+	* woe32dll/gettextsrc-exports.c: Don't export line_comment and
+	po_lex_iconv if undefined.
+
+2014-04-22  Daiki Ueno  <ueno@gnu.org>
+
+	build: Use git-version-gen intead of version.sh
+	* configure.ac: Use git-version-gen in AC_INIT.
+
+2014-03-11  Daiki Ueno  <ueno@gnu.org>
+
+	* configure.ac: Remove unnecessary make-variable expansion,
+	previously needed for LIBTOOL.
+
+2014-01-28  Roumen Petrov <bugtrack@roumenpetrov.info>  (tiny change)
+
+	tests: fix "make check" under VPATH builds
+	Reported at:
+	<https://lists.gnu.org/archive/html/bug-gettext/2014-01/msg00012.html>.
+	* configure.ac: Output init-env instead of init.cfg.
+
+2013-07-25  Daiki Ueno  <ueno@gnu.org>
+
+	tests: allow each test to run individually without 'make'
+	* configure.ac: Replace occurrences of make variables in
+	tests/init.cfg with shell variables so they can be adjusted in
+	test scripts.
+
+2013-07-25  Daiki Ueno  <ueno@gnu.org>
+
+	tests: fix path adjustment for LTLIBINTL
+	* configure.ac: Output tests/init.cfg.
+
+2013-05-29  Stefano Lattarini  <stefano.lattarini@gmail.com>  (tiny change)
+
+	* configure.ac (AM_INIT_AUTOMAKE): Add 'parallel-tests' option.
+	Require Automake 1.11.1 or later, so that the 'parallel-tests'
+	will be certainly available.
+	(AC_INIT): Require Autoconf 2.62 or later; that is the minimal
+	version supported by Automake 1.11.1 or later.
+
+2013-04-26  Daiki Ueno  <ueno@gnu.org>
+
+	Support for Python brace format.
+	* woe32dll/gettextsrc-exports.c: Export formatstring_python_brace.
+
+2013-04-17  Andreas Stricker  <astricker@futurelab.ch>
+
+	Support for JavaScript.
+	* woe32dll/gettextsrc-exports.c: Export formatstring_javascript.
+
+2013-04-15  Daiki Ueno  <ueno@gnu.org>
+
+	* woe32dll/gettextsrc-exports.c: Export formatstring_lua.
+
+2012-12-27  Daiki Ueno  <ueno@gnu.org>
+
+	Determine imported C symbol prefix at configure time.
+	Suggested by Evgeny Grin in <http://savannah.gnu.org/bugs/?29946>.
+	* woe32dll/export.h (IMP): Define depending on the result of the
+	configure run.
+	* configure.ac (GETTEXTLIB_EXPORTS_FLAGS): Add
+	-DUSER_LABEL_PREFIX_UNDERSCORE if imported C symbol has
+	underscore prefix.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* woe32dll/export.h (IMP): Check __MINGW32__ as well as _WIN64.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	Work around error_* symbol conflict with Cygwin 1.7 DLL.
+	* configure.ac: Reset ac_cv_lib_error_at_line on Cygwin.
+	(GETTEXTLIB_EXPORTS_FLAGS): Add -DGNULIB_DEFINED_ERROR if the
+	error facility is replaced by gnulib.
+	(GNULIB_REPLACE_ERROR): Define if the error facility is replaced
+	by gnulib.
+	* woe32dll/gettextlib-exports.c (rpl_error_message_count)
+	(rpl_error_one_per_line, rpl_error_print_progname): Export only
+	if GNULIB_DEFINED_ERROR is set.
+
+2012-12-21  Daiki Ueno  <ueno@gnu.org>
+
+	Fix W64 build errors.
+	* woe32dll/export.h (IMP) [_WIN64]: Prefix "__imp_" instead of
+	"_imp__".
+
+2012-12-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* configure.ac: Use AC_CONFIG_HEADERS instead of AM_CONFIG_HEADER.
+	Suggested by Stefano Lattarini <stefano.lattarini@gmail.com>.
+
+2012-01-26  Bruno Haible  <bruno@clisp.org>
+
+	Modernize quoting.
+	* INSTALL: Process through sed -e "s/\`\([^']*\)'/‘\1’/g"
+
+2012-01-15  Bruno Haible  <bruno@clisp.org>
+
+	Support for MSVC 9.
+	* woe32dll/export.h (VARIABLE): Define to empty if not using GCC.
+
+2011-11-27  Bruno Haible  <bruno@clisp.org>
+
+	Speed up configure a bit.
+	* configure.ac: Don't invoke AM_PATH_LISPDIR if the user specified
+	--without-emacs.
+	Based on a patch by DJ Lucas <dj@linuxfromscratch.org>.
+
+2011-06-03  Bruno Haible  <bruno@clisp.org>
+
+	Update after gl_PROG_ANSI_CXX changed in gnulib.
+	* configure.ac: Test whether CXX is "no", not ":".
+
+2011-06-03  Bruno Haible  <bruno@clisp.org>
+
+	Fix link error on Cygwin 1.5.x.
+	* woe32dll/gettextsrc-exports.c: Add color_test_mode.
+
+2011-01-28  Bruno Haible  <bruno@clisp.org>
+
+	Add a comment.
+	* woe32dll/export.h: Add a reference to the woe32dll writeup.
+
+2010-10-10  Bruno Haible  <bruno@clisp.org>
+
+	Rely more on libtool.
+	* configure.ac (LTNOUNDEF): Remove variable.
+
+2010-07-31  Bruno Haible  <bruno@clisp.org>
+
+	Use new ansi-c++.m4 from gnulib.
+	* configure.ac: Invoke gl_PROG_ANSI_CXX instead of gt_PROG_ANSI_CXX.
+	Reported at <https://savannah.gnu.org/bugs/?30607>.
+
+2010-06-06  Bruno Haible  <bruno@clisp.org>
+
+	New options --with-xz and --with-bzip2 for compressing the archive.
+	* configure.ac: New options --without-bzip2, --without-xz.
+	(ARCHIVE_FORMAT): Rename value 'dir' to 'dirgz'. Recognize also values
+	'dirxz' or 'dirbz2', depending on options.
+
+2010-06-06  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (ARCHIVE_FORMAT): If neither --with-git nor --with-cvs
+	is specified, don't use the git format if the 'git' program if older
+	than version 1.6.
+	Suggested by Karl Berry <karl@freefriends.org>.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (ARCHIVE_FORMAT): If neither --with-git nor --with-cvs
+	is specified, use the git format only if the 'git' program exists.
+
+2010-06-03  Bruno Haible  <bruno@clisp.org>
+
+	Deprecate the --with-cvs option.
+	* configure.ac: Document options --without-git, --with-cvs.
+	(ARCHIVE_FORMAT): Use cvs only when explicitly asked for.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	Use the newest regex module from gnulib.
+	* configure.ac: Invoke grgl_EARLY and grgl_INIT. Don't invoke
+	gt_LIBGREP.
+	* Makefile.am (ACLOCAL_AMFLAGS): Add -I libgrep/gnulib-m4.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	Export rpl_optind, rpl_optarg from DLL depending on platform.
+	* configure.ac (GETTEXTLIB_EXPORTS_FLAGS): New substituted variable.
+	* woe32dll/gettextlib-exports.c (rpl_optarg, rpl_optind): Export only
+	if GNULIB_DEFINED_GETOPT is set.
+
+2010-04-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): Remove "-I ../autoconf-lib-link/m4"
+	option.
+	(gettextsrc_SCRIPTS): Update.
+
+2009-12-26  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Don't define USE_IN_GETTEXT_TESTS. Test for uselocale.
+
+2009-12-12  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/export.h: Untabify.
+
+2009-09-27  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Accept --without-cvs, --with-git options. Substitute
+	ARCHIVE_FORMAT.
+	(AC_CONFIG_FILES): Add misc/convert-archive.
+
+2009-08-10  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/gettextsrc-exports.c: Export formatstring_gfc_internal,
+	formatstring_qt_plural.
+
+2009-05-31  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (doc/Makefile.am): Don't invoke FIX_MAKEFILE_DISTRIB.
+
+2009-05-29  Bruno Haible  <bruno@clisp.org>
+
+	Avoid lang-c++ test failure.
+	* configure.ac: Invoke LT_LANG also for C++.
+
+2009-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (AM_INIT_AUTOMAKE): Add 'silent-rules' option.
+	* gnulib-lib/Makefile.am (libgettextlib_la_LINK): Add $(AM_V_lt) flag.
+
+2009-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_INIT_PACKAGE. Use the preferred form of
+	AM_INIT_AUTOMAKE.
+
+2009-05-21  Bruno Haible  <bruno@clisp.org>
+
+	Assume automake >= 1.10.2.
+	* configure.ac (AC_CONFIG_FILES): Remove FIX_MAKEFILE_COMPILE,
+	FIX_MAKEFILE_INFO invocations.
+
+2009-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (gt_GLOBAL_SYMBOL_PIPE): Remove macro, moved to
+	m4/exported.m4.
+
+2009-03-25  Bruno Haible  <bruno@clisp.org>
+
+	Fix the handling of Windows resources in shared libraries.
+	* configure.ac: Invoke LT_LANG for 'Windows Resource'.
+
+2009-01-14  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: More consistent m4 quoting.
+
+2008-09-14  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure.ac: Use AC_TYPE_UNSIGNED_LONG_LONG_INT instead of
+	gl_AC_TYPE_UNSIGNED_LONG_LONG.
+
+2008-08-17  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Adapt AC_C_BIGENDIAN invocation to autoconf 2.62: make
+	it work for universal binary builds on MacOS X.
+
+2008-04-20  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Use LT_INIT instead of AC_PROG_LIBTOOL.
+
+2007-11-15  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Check for getrlimit and setrlimit.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* styles: New directory.
+	* Makefile.am (SUBDIRS): Add styles.
+	* configure.ac (AC_CONFIG_FILES): Add styles/Makefile.
+
+2007-10-17  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/gettextlib-exports.c: Export gl_array_list_implementation,
+	gl_linkedhash_list_implementation.
+
+2007-10-01  Bruno Haible  <bruno@clisp.org>
+
+	* gnulib-tests: New directory.
+	* Makefile.am (SUBDIRS): Add gnulib-tests.
+	* configure.ac (AC_CONFIG_FILES): Add gnulib-tests/Makefile.
+
+2007-09-30  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/gettextsrc-exports.c: Add formatstring_kde.
+
+2007-07-07  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Don't create libuniname/Makefile.
+	* Makefile.am (SUBDIRS): Remove libuniname.
+
+2007-05-28  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (WOE32): New conditional.
+
+2007-05-27  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (gt_OPENMP): Remove invocation.
+
+2007-02-10  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (MSGMERGE_LIBM): Avoid inlining of the ceil, sqrt calls
+	on glibc systems.
+	Reported by I. Thomas Cundiff <tcundiff@eclipse.net>.
+
+2006-12-23  Bruno Haible  <bruno@clisp.org>
+
+	* gnulib-lib/Makefile.am (libgettextlib_la_LINK): New variable.
+
+2006-12-23  Bruno Haible  <bruno@clisp.org>
+
+	* gnulib-lib/Makefile.am (AM_CPPFLAGS): Define LIBXML_STATIC.
+	Needed for mingw and cygwin.
+
+2006-12-22  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/c++html-styled-ostream.cc: New file.
+	* woe32dll/c++term-styled-ostream.cc: New file.
+
+2006-12-21  Bruno Haible  <bruno@clisp.org>
+
+	* gnulib-lib/Makefile.am: New file, partially taken from
+	../gnulib-local/modules/gettext-tools-misc.
+
+2006-12-21  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/gettextlib-exports.c: Export styled_ostream_typeinfo.
+	* woe32dll/gettextsrc-exports.c: Export color_mode, style_file_name.
+
+2006-12-10  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gt_LOCALE_JA.
+
+2006-10-27  Bruno Haible  <bruno@clisp.org>
+
+	Work around automake-1.10 annoyance.
+	* Makefile.am (ACLOCAL): New macro.
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-10-25  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Don't invoke AC_RELOCATABLE; now done through the
+	relocwrapper and gettext-tools-libgettextpo-misc modules.
+
+2006-10-25  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (DLL_VARIABLE): Define to empty if IN_RELOCWRAPPER is
+	defined.
+
+2006-10-20  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): Add -I libgettextpo/gnulib-m4.
+	* configure.ac: Also invoke gtpo_EARLY, gtpo_INIT.
+
+2006-10-18  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/gettextsrc-exports.c: Add {input,output}_format_*.
+
+2006-10-16  Bruno Haible  <bruno@clisp.org>
+
+	* libgettextpo: New directory.
+	* Makefile.am (SUBDIRS): Add libgettextpo.
+	* configure.ac (gt_GLOBAL_SYMBOL_PIPE): New macro.
+	(AC_CONFIG_FILES): Add libgettextpo/Makefile, libgettextpo/exported.sh.
+
+2006-10-15  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/gettextsrc-exports.c: Remove input_syntax.
+
+2006-10-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (EXTRA_DIST): Add gnulib-m4/gnulib-cache.m4.
+
+2006-10-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): Move gnulib-m4 to the end, since
+	sometime we have newer m4 files than gnulib.
+
+2006-08-28  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Remove bh_C_SIGNED invocation.
+
+2006-07-30  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): Append gnulib-m4 to search path.
+	(SUBDIRS): Replace lib with gnulib-lib.
+	(examplesbuildauxdir, examplesbuildaux_DATA): New variables.
+	* configure.ac (AC_PREREQ): Bump to 2.59.
+	(gl_EARLY): Invoke.
+	(AC_GNU_SOURCE, gl_USE_SYSTEM_EXTENSIONS): Remove invocations.
+	(gl_INIT): Invoke.
+	(limits.h, malloc.h, string.h, unistd.h, utime.h, values.h,
+	gl_STDARG_H, AM_STDBOOL_H, gl_HEADER_UNISTD, gl_AC_TYPE_UINTMAX_T,
+	AC_TYPE_MODE_T, gt_TYPE_SIG_ATOMIC_T, gl_SIZE_MAX, gl_ALLOCSA,
+	chown, getcwd, posix_spawn, raise, strerror, strtoul, uname, utime,
+	utimes, waitid, atexit, memmove, memset, stpcpy, strcspn, strpbrk,
+	vasprintf, AM_FUNC_GETLINE, getdelim, gl_EXITFAIL,
+	gl_FUNC_FNMATCH_POSIX, gl_GETOPT, gl_FUNC_EACCESS, gl_FUNC_STPNCPY,
+	gl_FUNC_STRTOUL, gl_FUNC_WCWIDTH, gl_MBSWIDTH, gt_PREREQ_BACKUPFILE,
+	gt_UNION_WAIT, gt_TMPDIR, gt_FUNC_MKDTEMP, gt_SIGNALBLOCKING,
+	gt_FUNC_SETENV, gl_FUNC_STRERROR, gl_FUNC_GLIBC_UNLOCKED_IO, gl_ERROR,
+	gl_QUOTEARG, gl_QUOTE, gl_PATHMAX, gl_FUNC_READLINK, gl_XREADLINK,
+	gl_CANONICALIZE, gl_XSIZE, gl_MINMAX, gl_LIST, gl_LOCK, gl_TLS,
+	gl_BYTESWAP): Remove tests done directly or indirectly by gl_INIT
+	or that are now unused.
+	(AC_CONFIG_FILES): Add gnulib-lib/Makefile, remove lib/Makefile.
+	Remove lib/javacomp.sh, lib/javaexec.sh, lib/csharpcomp.sh,
+	lib/csharpexec.sh.
+
+2006-07-30  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Don't test for the strstr function.
+
+2006-07-30  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Update for changed location of javacomp.sh.in,
+	javaexec.sh.in, csharpcomp.sh.in, csharpexec.sh.in.
+
+2006-07-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gt_OPENMP.
+
+2006-07-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_LOCK and gl_TLS.
+
+2006-07-22  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_SIZE_MAX and gl_LIST.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* windows: Remove directory.
+	* Makefile.msvc: Remove file.
+	* Makefile.am (config.h.msvc, windows/stdbool.h): Remove rules.
+	(EXTRA_DIST): Remove Makefile.msvc, config.h.msvc, windows/*.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: Remove file.
+	* Makefile.am (config.h_vms): Remove rule.
+	(EXTRA_DIST): Remove Makefile.vms, config.h_vms.
+
+2006-07-22  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_FUNC_WCWIDTH, gl_MINMAX.
+
+2006-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.15 released.
+
+2006-07-20  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Bump version number to 0.15.0.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2006-07-14  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (MOSTLYCLEANFILES): New variable.
+
+2006-06-29  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Remove AC_CONFIG_FILES for files in examples subdir.
+	Use AC_CONFIG_SUBDIRS instead.
+
+2006-06-27  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Remove AC_ISC_POSIX invocation.
+
+2006-06-27  Bruno Haible  <bruno@clisp.org>
+
+	Assume ANSI C header files and <ctype.h> functions.
+	* configure.ac: Remove AC_HEADER_STDC invocation.
+
+2006-06-27  Bruno Haible  <bruno@clisp.org>
+
+	Assume vprintf function.
+	* configure.ac: Remove AC_FUNC_VPRINTF invocation.
+	* Makefile.am (config.h_vms, config.h.msvc): Remove unused HAVE_VPRINTF
+	substitution.
+
+2006-06-27  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms, config.h.msvc): Drop unused HAVE_LOCALE_H
+	substitution.
+
+2006-04-14  Bruno Haible  <bruno@clisp.org>
+
+	Assume autoconf >= 2.60.
+	* configure.ac (localedir): Remove variable.
+	(docdir): If --docdir value was given, use that.
+	(mandir): Remove customization.
+
+2006-05-15  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/export.h: Renamed from cygwin/export.h.
+	* woe32dll/gettextlib-exports: Renamed from cygwin/gettextlib-exports.h.
+	* woe32dll/gettextsrc-exports: Renamed from cygwin/gettextsrc-exports.h.
+	* woe32dll/gettextpo-exports: Renamed from cygwin/gettextpo-exports.h.
+	* configure.ac (WOE32DLL): Renamed from CYGWINDLL.
+	(DLL_VARIABLE): Define as nonempty on mingw if and only if
+	--enable-shared was specified.
+	* Makefile.am (EXTRA_DIST): Update.
+
+2006-05-11  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll: Directory renamed from mingw.
+	* cygwin/export.h: New file.
+	* cygwin/gettextlib-exports.c: New file.
+	* cygwin/gettextsrc-exports.c: New file.
+	* cygwin/gettextpo-exports.c: New file.
+	* configure.ac (WOE32DLL): Condition renamed from MINGW. Activate it
+	also on Cygwin. Only activate it when compiling shared libraries.
+	(CYGWINDLL): New condition.
+	(CYGWINDLL): New define.
+	(DLL_VARIABLE): Use dllimport also on Cygwin.
+	* Makefile.am (EXTRA_DIST): Add cygwin/export.h.
+
+2006-05-11  Bruno Haible  <bruno@clisp.org>
+
+	* woe32dll/c++format.cc: New file.
+
+2006-05-02  Charles Wilson  <cygwin@cwilson.fastmail.fm>
+
+	* configure.ac (LTNOUNDEF): Set to -no-undefined also on mingw and
+	Cygwin.
+
+2006-05-08  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (windows/stdbool.h): Create directory if needed.
+	Based on a patch by Charles Wilson.
+
+2006-04-30  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_STDARG_H.
+
+2006-05-01  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Pass a source-version to gt_JAVACOMP. Move gt_JAVAEXEC
+	call before the gt_JAVACOMP call.
+
+2006-04-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_HEADER_UNISTD.
+
+2006-04-17  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (gettextsrc_SCRIPTS): Remove mkinstalldirs.
+
+2006-03-11  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (MSGMERGE_LIBM): New variable. Test for presence of
+	ceil() and sqrt().
+
+2005-11-23  Bruno Haible  <bruno@clisp.org>
+
+	Cygwin portability.
+	* configure.ac: Invoke gl_WOE32_DLL.
+
+2005-11-24  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms, config.h.msvc): Treat HAVE_FWPRINTF like
+	HAVE_WPRINTF. Needed since 2003-09-17.
+	Reported by Svante Seleborg <svante@axantum.com>.
+
+2005-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Remove gl_STRCASE invocation.
+
+2005-09-20  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke BISON_I18N.
+
+2005-08-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_BYTESWAP. Define ENDIANNESS.
+
+2005-08-13  Bruno Haible  <bruno@clisp.org>
+
+	New configure options --disable-java, --disable-native-java.
+	* configure.ac: Invoke gt_JAVA_CHOICE.
+	(BUILDJAVAEXE, BUILDJAVA): Use it.
+
+2005-08-11  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Accept --without-emacs option.
+
+2005-08-03  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (intl/Makefile): Remove the VPATH line.
+	Reported by Jason Keltz <jas@cs.yorku.ca>.
+
+2005-07-26  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Move the AM_GNU_GETTEXT invocation early, since it
+	modifies CPPFLAGS.
+
+2005-07-05  Bruno Haible  <bruno@clisp.org>
+
+	* mingw: New directory.
+	* configure.ac (LTNOUNDEF): New macro.
+	(MINGW): New conditional.
+	(DLL_VARIABLE): Define also as nonempty when building shared libraries
+	with mingw.
+
+2005-05-01  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Call gt_CSHARPEXEC with parameters.
+
+2005-03-20  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Test for field __names in struct __locale_struct.
+	Also define USE_IN_GETTEXT_TESTS.
+
+2006-06-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.6 released.
+
+2006-06-21  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Bump version number to 0.14.6.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.5 released.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Bump version number to 0.14.5.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.4 released.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Bump version number to 0.14.4.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2005-03-22  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (AC_CONFIG_AUX_DIR): Use ../build-aux.
+	* Makefile.am (ACLOCAL_AMFLAGS): Replace config/m4 with m4.
+	(gettextsrc_SCRIPTS): Replace config with build-aux.
+
+2005-03-14  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.3 released.
+
+2005-03-08  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Bump version number to 0.14.3.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2005-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.2 released.
+
+2005-02-13  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gt_LOCALE_FR_UTF8.
+
+2005-02-13  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_FUNC_STRTOUL. Keep AC_CHECK_FUNCS(strtoul)
+	because plural-exp.c needs it.
+
+2005-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextsrc.def: Remove po_parse_comment_filepos. Add
+	check_msgid_msgstr_format, is_ascii_msgdomain_list,
+	message_list_insert_at, string_list_join.
+
+2005-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* windows/getopt.h: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2005-02-11  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Bump version number to 0.14.2.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2005-02-10  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.def: Add po_header_set_field.
+
+2005-02-10  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.def: Add libgettextpo_version.
+
+2005-02-10  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.def: Add po_message_remove_filepos,
+	po_message_add_filepos.
+
+2005-02-10  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.def: Add po_message_set_extracted_comments.
+
+2005-02-07  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.def: Add c_strcasecmp, c_strncasecmp.
+
+2005-01-08  Bruno Haible  <bruno@clisp.org>
+
+	* libgrep: New subdirectory.
+	* configure.ac: Invoke gt_LIBGREP. Declare libgrep/Makefile.am.
+	* Makefile.am (SUBDIRS): Add libgrep.
+	(config.h_vms, config.h.msvc): Define HAVE_DECL_STRDUP, HAVE_MEMCHR,
+	restrict.
+	* Makefile.msvc: Recurse into libgrep as well.
+	* Makefile.vms: Likewise.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_STRCASE. Don't test for strcasecmp and
+	strncasecmp here.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_FUNC_STPNCPY.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_ERROR instead of gt_FUNC_ERROR_AT_LINE.
+	* Makefile.am (config.h_vms, config.h.msvc): Remove setting of
+	HAVE_DECL_STRERROR.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_QUOTE.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_EXITFAIL.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_GETOPT.
+	* Makefile.am (config.h_vms, config.h.msvc): Define __GETOPT_PREFIX
+	to empty.
+	* Makefile.msvc: Update.
+	* Makefile.vms: Update.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms, config.h.msvc): Define HAVE_WMEMCHR and
+	HAVE_WMEMCPY to 1.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms, config.h.msvc): Define USE_UNLOCKED_IO
+	to 1.
+
+2005-01-05  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Update copyright year.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2004-12-10  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.def: Export obstack_free, not _obstack_free.
+
+2004-09-06  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.def: Add po_message_check_format.
+
+2004-09-05  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextsrc.def: Add the variables names from po-error.h.
+	* windows/gettextpo.def: Add many new function names.
+
+2004-04-19  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.m4: Change jm_ to gl_ in all uses of AC_DEFINE'd names.
+
+2004-03-11  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h.msvc): Fix the value of SIZE_MAX.
+
+2004-02-07  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_QUOTEARG.
+
+2004-01-29  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.1 released.
+
+2004-01-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14 released.
+
+2004-01-24  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms): Set MALLOC_0_IS_NONNULL to 0.
+	(config.h.msvc): Set MALLOC_0_IS_NONNULL to 1.
+
+2004-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.def: Add compile_csharp_class,
+	execute_csharp_program.
+	* windows/gettextsrc.def: Add formatstring_csharp. Rename
+	get_c99_format_directives to get_sysdep_c_format_directives.
+
+2004-01-17  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Bump version number to 0.14.
+	* windows/gettextsrc.rc: Likewise.
+	* windows/gettextpo.rc: Likewise.
+
+2004-01-10  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: When --disable-csharp was given, set BUILDCSHARP=no.
+
+2003-12-26  Bruno Haible  <bruno@clisp.org>
+
+	Support for C#.
+	* configure.ac: Invoke gt_CSHARPCOMP, gt_CSHARPEXEC. Set BUILDCSHARP
+	and TESTCSHARP.
+	(AC_CONFIG_FILES): Add lib/csharpcomp.sh and lib/csharpexec.sh.
+
+2003-12-27  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Set and AC_SUBST the TESTLIBASPRINTF variable.
+
+2003-12-12  Bruno Haible  <bruno@clisp.org>
+
+	Assume automake-1.8.
+	* Makefile.am (html): Remove rule.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Remove computation of LTALLOCA.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_ALLOCSA instead of gl_FUNC_ALLOCA.
+	* windows/gettextlib.def: Add mallocsa, xmallocsa, freesa.
+
+2003-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13.1 released.
+
+2003-12-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.msvc (all, install, installdirs, uninstall, check,
+	mostlyclean, clean, distclean, maintainer-clean): Create the intl
+	directory if it doesn't exist. Needed because a widespread archiving
+	tool on Windows doesn't extract empty directories that are present in
+	.tar.gz files.
+	Reported by Stefan Kowski <stefan.kowski@parks-informatik.de>.
+
+2003-12-02  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke FIX_MAKEFILE_DISTRIB for examples/Makefile.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13 released.
+
+2003-11-28  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h.msvc): Define SIZE_MAX and inline.
+
+2003-11-28  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.def: Add at_fatal_signal, block_fatal_signals,
+	unblock_fatal_signals, _obstack_begin, _obstack_free,
+	_obstack_newchunk.
+	* windows/gettextsrc.def: Add message_print_syntax_stringtable.
+
+2003-11-16  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (man/Makefile): Postprocess with FIX_MAKEFILE_DISTRIB.
+
+2003-11-16  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.rc: Bump version number to 0.13.
+
+2003-11-15  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (AC_CONFIG_FILES): Create examples/Makefile,
+	examples, installpaths, examples/po/Makefile.
+	* Makefile.am (SUBDIRS): Add examples.
+	* Makefile.msvc (all, install, installdirs, uninstall, check,
+	mostlyclean, clean, distclean, maintainer-clean): Recurse into
+	examples.
+	* Makefile.vms (all, install, installdirs, uninstall, check,
+	mostlyclean, clean, distclean, maintainer-clean): Recurse into
+	examples.
+
+2003-11-13  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (docdir): New variable.
+
+2003-11-05  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (localedir): New variable.
+	(src/user-email): Generate from src/user-email.sh.in.
+
+2003-11-04  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_XSIZE.
+
+2003-10-31  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Also check for waitid.
+
+2003-10-31  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Remove argument of FIX_MAKEFILE_COMPILE,
+	FIX_MAKEFILE_DISTRIB, FIX_MAKEFILE_INFO.
+
+2003-10-07  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Drop PARAMS definition from config.h.in.
+
+2003-10-08  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gt_SIG_ATOMIC_T.
+	* Makefile.am (config.h_vms, config.h.msvc): Define HAVE_SIG_ATOMIC_T.
+
+2003-10-04  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Remove gt_PROG_LEX invocation.
+
+2003-09-18  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.def: Add po_file_domain_header, po_header_field,
+	po_message_is_obsolete, po_message_is_fuzzy, po_message_is_format.
+	* windows/gettextpo.rc: Bump version number to 0.12.2.
+
+2003-09-16  Bruno Haible  <bruno@clisp.org>
+
+	Portability to SunOS 4.
+	* configure.ac: Also check for atexit.
+
+2003-09-14  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.def: Export fwriteerror.
+
+2003-09-13  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.def: Export close_stdout.
+
+2003-09-09  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Don't test for putc_unlocked.
+
+2003-08-31  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextsrc.def: Add formatstring_sh.
+
+2003-08-29  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h.msvc): Define HAVE_DECL__SNPRINTF,
+	HAVE_DECL__SNWPRINTF.
+
+2003-08-24  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Define DLL_VARIABLE in config.h through AH_BOTTOM.
+
+2003-08-24  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextsrc.def: Add formatstring_gcc_internal,
+	formatstring_perl, formatstring_perl_brace to the export list.
+
+2003-08-24  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextpo.def: New file.
+	* windows/gettextpo.rc: New file.
+	* Makefile.am (EXTRA_DIST): Add them.
+
+2003-08-23  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms): Define HAVE_BTOWC, HAVE_DECL_GETENV,
+	HAVE_MBSTATE_T, HAVE_READLINK, HAVE_WCSLEN, HAVE_WINT_T, HAVE_WPRINTF.
+	(config.h.msvc): Define .HAVE_BTOWC, HAVE_DECL_GETENV, HAVE_WCSLEN,
+	HAVE_WINT_T, HAVE_WPRINTF.
+
+2003-08-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_USE_SYSTEM_EXTENSIONS.
+
+2003-08-23  Bruno Haible  <bruno@clisp.org>
+
+	* windows/fnmatch.h: Include fnmatch_.h.
+
+2003-08-23  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke AM_STDBOOL_H instead of gt_STDBOOL_H.
+	Invoke gl_FUNC_FNMATCH_POSIX instead of gt_FUNC_FNMATCH.
+	Invoke gl_MBSWIDTH instead of jm_PREREQ_MBSWIDTH.
+
+2003-07-01  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_FUNC_READLINK.
+
+2003-07-01  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (windows/stdbool.h): Use stdbool_.h instead of
+	stdbool.h.in.
+
+2003-06-19  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gt_LOCALE_FR.
+
+2003-06-08  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms): Don't define HAVE_ENVIRON_DECL. Define
+	eaccess.
+	* Makefile.vms (all, install, installdirs, uninstall, check,
+	mostlyclean, clean, distclean, maintainer-clean): Fix passing of srcdir
+	to sub-Makefile.
+	Reported by Jouk Jansen <joukj@hrem.stm.tudelft.nl>.
+
+2003-05-22  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.12.1 released.
+
+2003-05-20  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms, config.h.msvc, windows/stdbool.h):
+	Don't use $< here.
+
+2003-05-19  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextlib.rc: Include <winver.h>.
+	* windows/gettextsrc.rc: Likewise.
+	Reported by Perry Rapp.
+
+2003-05-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.12 released.
+
+2003-05-17  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h.msvc): Define HAVE_STRPBRK.
+
+2003-05-15  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms, config.h.msvc): Define HAVE_DECL_STRERROR.
+
+2003-05-12  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke AC_GNU_SOURCE and jm_FUNC_GLIBC_UNLOCKED_IO.
+
+2003-05-12  Bruno Haible  <bruno@clisp.org>
+
+	* windows/gettextsrc.def: Update.
+	Based on a patch by Perry Rapp.
+
+2003-04-12  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h_vms): Renamed from config.h.vms.
+	* Makefile.vms: Don't use the force target. Use config.h_vms, not
+	config.h.vms. Create intl subdirectory. Correct wildcard syntax.
+	Suggested by Jouk Jansen <joukj@hrem.stm.tudelft.nl>.
+
+2003-04-12  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (mandir): Change default value.
+	* Makefile.msvc (mandir, docdir): Use datadir instead of prefix.
+
+2003-04-10  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_FUNC_EACCESS.
+
+2003-04-05  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h.msvc): Remove redundant sed expression.
+
+2003-04-03  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac (INVALID_PATH_CHAR): Add a definition for Woe32.
+	Reported by Perry Rapp.
+
+2003-03-30  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: New file.
+	* Makefile.am (config.h.vms): New rule.
+	(EXTRA_DIST): Add Makefile.vms and config.h.vms.
+
+2003-03-30  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Add checks for <pwd.h> and chown().
+
+2003-03-17  Bruno Haible  <bruno@clisp.org>
+
+	Native Woe32/MSVC support.
+	* Makefile.msvc: New file.
+	* README.woe32: New file.
+	* windows/gettextlib.def: New file.
+	* windows/gettextlib.rc: New file.
+	* windows/gettextsrc.def: New file.
+	* windows/gettextsrc.rc: New file.
+	* windows/alloca.h: New file.
+	* windows/fnmatch.h: New file.
+	* Makefile.am (EXTRA_DIST): Add them and config.h.msvc,
+	windows/stdbool.h.
+	(config.h.msvc, intl/libgnuintl.h.msvc-shared, windows/stdbool.h): New
+	rules.
+	* configure.ac: Invoke AC_TYPE_MODE_T.
+
+2003-02-28  Bruno Haible  <bruno@clisp.org>
+
+	Support for relocatable installation.
+	* configure.ac: Invoke AC_RELOCATABLE, AC_REPLACE_FUNCS([memmove]),
+	gl_FUNC_STRERROR, gl_XREADLINK, gl_CANONICALIZE.
+	* INSTALL: Document --enable-relocatable and --with-libintl-prefix.
+
+2003-02-28  Bruno Haible  <bruno@clisp.org>
+
+	* configure.ac: Invoke gl_PATHMAX.
+
+2003-02-22  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (ps, pdf): Remove rules, redundant with automake 1.7.2.
+
+2003-02-18  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am: Don't install ABOUT-NLS in $(datadir)/gettext. This is
+	now done by the gettext-runtime package.
+
+2003-02-12  Bruno Haible  <bruno@clisp.org>
+
+	Big restructuring.
+	* configure.ac: New file.
+	* Makefile.am: New file.
+

@@ -1,0 +1,13 @@
+#source: relax-static.s
+#source: relax-static-defs.s
+#ld: -pie
+#readelf: -r
+#...
+Relocation section '\.rela\.dyn' .* 2 .*
+#...
+.*R_XTENSA_RELATIVE.*
+.*R_XTENSA_RELATIVE.*
+#failif
+#...
+Relocation section '\.rela\.plt' .*
+#...

@@ -1,0 +1,29 @@
+
+.*:     file format .*
+
+Contents of section \.got:
+#
+# The order of the TLS entries in this GOT is:
+#
+#     foo2
+#     foo3
+#     foo0
+#     foo1
+#
+# The order and address don't matter; the important thing is that the
+# addresses match the relocs in the .r dump and that there is a separate
+# entry for each symbol.
+#
+#...
+ 1c4010 00000000 0000abc8 0000abcc 0000abc0  .*
+ 1c4020 0000abc4 00000000 80000000 00000000  .*
+#
+# Likewise, but the order of the entries in this GOT is:
+#
+#     foo3
+#     foo0
+#     foo2
+#     foo1
+#...
+ 1d0020 00000000 00000000 00000000 0000abcc  .*
+ 1d0030 0000abc0 0000abc8 0000abc4           .*

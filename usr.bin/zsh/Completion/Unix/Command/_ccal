@@ -1,0 +1,17 @@
+#compdef ccal
+
+_arguments \
+  '-nodata[ignore appointment descriptions file]' \
+  '-data-file=[load appointments from file]:caldat file:_files' \
+  '-future[show only future appointments on current month]' \
+  "-today[show only today's appointments on current month]" \
+  '-europe[European format (first day is Monday)]' \
+  '-american[North American format (first day is Sunday)]' \
+  '-maxappts=[display maximum of n appointments]:number of appointments:('{8..50}')' \
+  '-pause[pause for keystroke before exiting]' \
+  '-nocolor[inhibit use of colors]' \
+  '-color-file=[load color definitions from file]:calcol file:_files' \
+  '-8bit[display 8-bit ascii characters]' \
+  '1:month:(1 2 3 4 5 6 7 8 9 10 11 12 jan feb mar apr may jun jul aug sep oct nov dec)' \
+  '2:year:'
+

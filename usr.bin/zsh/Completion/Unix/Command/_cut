@@ -1,0 +1,58 @@
+#compdef cut gcut
+
+typeset -A _cut_args
+
+case $LANG in
+  (de_DE.UTF-8)
+    _cut_args=(
+      bytes           "nur diese Bytes ausgeben"
+      characters      "nur diese Zeichen ausgeben"
+      delimiter       "Delimiter anstelle von Tabulator als Trenner benutzen"
+      fields          "nur diese Felder und alle Zeilen OHNE Trennzeichen ausgeben"
+      complement      $'das Komplement der Menge der gew\u00e4hlten Bytes, Zeichen oder Felder bilden'
+      only-delimited  "keine Zeilen ausgeben, die keinen Trenner enthalten"
+      output-delimiter "Zeichenkette als Ausgabetrennzeichen benutzen"
+      help            "diese Hilfe anzeigen und beenden"
+      version         "Versionsinformation anzeigen und beenden"
+    )
+  ;;
+  (*)
+    _cut_args=(
+      bytes           "select only specified bytes"
+      characters      "select only specified characters"
+      delimiter       "use alternate field delimiter"
+      fields          "select only specified fields"
+      complement      "negate the set of selected bytes, characters or fields"
+      only-delimited  "suppress lines with no delimiters"
+      output-delimiter "use specified string as the output delimiter"
+      help            "display help information"
+      version         "output version information"
+    )
+  ;;
+esac
+
+if _pick_variant gnu="Free Soft" unix --version; then
+  _arguments \
+    '(--bytes -b)'{--bytes=,-b+}'['$_cut_args[bytes]']:list' \
+    '(--characters -c)'{--characters=,-c+}'['$_cut_args[characters]']:list' \
+    '(--delimiter -d)'{--delimiter=,-d+}'['$_cut_args[delimiter]']:delimiter' \
+    '(--fields -f)'{--fields=,-f+}'['$_cut_args[fields]']:list' \
+    '--complement['$_cut_args[complement]']' \
+    '(--only-delimited -s)'{--only-delimited,-s}'['$_cut_args[only-delimited]']' \
+    '--output-delimiter=['$_cut_args[output-delimiter]']:delimiter' \
+    '(- *)--help['$_cut_args[help]']' \
+    '(- *)--version['$_cut_args[version]']' \
+    '*:file:_files'
+else
+  case $OSTYPE in
+    freebsd*|dragonfly*) args+=( '(-d)-w[use whitespace as the delimiter]' ) ;;
+  esac
+  _arguments $args \
+    "-b[${_cut_args[bytes]}]:list" \
+    "-c[${_cut_args[characters]}]:list" \
+    "(-w)-d[${_cut_args[delimiter]}]:delimiter" \
+    "-f[${_cut_args[fields]}]:list" \
+    "-n[do not split multi-byte characters]" \
+    "-s[${_cut_args[only-delimited]}]" \
+    '*:file:_files'
+fi

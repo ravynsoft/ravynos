@@ -1,0 +1,29 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test YCP support: string literal concatenation.
+
+cat <<\EOF > xg-y-3.ycp
+print (_("John\n"
+"Paul\n"
+"George and "
+"Ringo"));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-y-3.tmp xg-y-3.ycp || Exit 1
+LC_ALL=C tr -d '\r' < xg-y-3.tmp.po > xg-y-3.po || Exit 1
+
+cat <<\EOF > xg-y-3.ok
+msgid ""
+"John\n"
+"Paul\n"
+"George and Ringo"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-y-3.ok xg-y-3.po
+result=$?
+
+exit $result

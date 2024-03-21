@@ -1,0 +1,7 @@
+#compdef syspatch
+
+_arguments \
+  '(   -l -R -r)-c[list available patches]' \
+  '(-c    -R -r)-l[list installed patches]' \
+  '(-c -l    -r)-R[revert all patches]' \
+  '(-c -l -R   )-r[revert the most recently installed patch]'

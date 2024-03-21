@@ -1,0 +1,164 @@
+# Expect script for the PROVIDE_HIDDEN linker script command.
+#
+# Copyright (C) 2013-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+#
+# Written by Maciej W. Rozycki <macro@codesourcery.com>
+#
+
+# Export classes only make sense for ELF shared-library targets.
+if { ![is_elf_format] || ![check_shared_lib_support] } {
+    return
+}
+
+# This target requires extra GAS options when building code for shared
+# libraries.
+set AFLAGS_PIC ""
+if [istarget "tic6x-*-*"] {
+    append AFLAGS_PIC " -mpic -mpid=near"
+}
+# These targets do not default to linking with shared libraries.
+if { [istarget "mips*vr4100*-*-elf*"] \
+     || [istarget "mips*vr4300*-*-elf*"] \
+     || [istarget "mips*vr5000*-*-elf*"] } {
+    append LFLAGS " -call_shared"
+}
+
+set testname "PROVIDE_HIDDEN test"
+
+run_ld_link_tests [list \
+    [list \
+	"$testname (auxiliary shared object)" \
+	"-shared -T provide-hidden-s.ld" "" \
+	"$AFLAGS_PIC" \
+	[list provide-hidden-1.s ] \
+	[list "readelf -s provide-hidden-s.nd"] \
+	"provide-hidden-s.so"]]
+
+run_ld_link_tests [list \
+    [list \
+	"$testname 1" \
+	"-T provide-hidden-1.ld" "" \
+	"" \
+	[list provide-hidden-1.s] \
+	[list \
+	    [list readelf -s provide-hidden-def.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-1"] \
+    [list \
+	"$testname 2" \
+	"-T provide-hidden-1.ld" "" \
+	"" \
+	[list provide-hidden-2.s] \
+	[list \
+	    [list readelf -s provide-hidden-def.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-2"] \
+    [list \
+	"$testname 3" \
+	"-T provide-hidden-1.ld" "" \
+	"" \
+	[list provide-hidden-3.s] \
+	[list \
+	    [list readelf -s provide-hidden-sec.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-3"] \
+    [list \
+	"$testname 4" \
+	"$LFLAGS -T provide-hidden-1.ld" "tmpdir/provide-hidden-s.so" \
+	"" \
+	[list provide-hidden-3.s] \
+	[list \
+	    [list readelf -s provide-hidden-sec.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-4"] \
+    [list \
+	"$testname 5" \
+	"-T provide-hidden-1.ld" "" \
+	"" \
+	[list provide-hidden-4.s] \
+	[list \
+	    [list readelf -s provide-hidden-sec.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-5"] \
+    [list \
+	"$testname 6" \
+	"$LFLAGS -T provide-hidden-1.ld" "tmpdir/provide-hidden-s.so" \
+	"" \
+	[list provide-hidden-4.s] \
+	[list \
+	    [list readelf -s provide-hidden-sec.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-6"] \
+    [list \
+	"$testname 7" \
+	"-T provide-hidden-2.ld" "" \
+	"" \
+	[list provide-hidden-1.s] \
+	[list \
+	    [list readelf -s provide-hidden-def.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-7"] \
+    [list \
+	"$testname 8" \
+	"-T provide-hidden-2.ld" "" \
+	"" \
+	[list provide-hidden-2.s] \
+	[list \
+	    [list readelf -s provide-hidden-def.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-8"] \
+    [list \
+	"$testname 9" \
+	"-T provide-hidden-2.ld" "" \
+	"" \
+	[list provide-hidden-3.s] \
+	[list \
+	    [list readelf -s provide-hidden-abs.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-9"] \
+    [list \
+	"$testname 10" \
+	"$LFLAGS -T provide-hidden-2.ld" "tmpdir/provide-hidden-s.so" \
+	"" \
+	[list provide-hidden-3.s] \
+	[list \
+	    [list readelf -s provide-hidden-abs.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-10"] \
+    [list \
+	"$testname 11" \
+	"-T provide-hidden-2.ld" "" \
+	"" \
+	[list provide-hidden-4.s] \
+	[list \
+	    [list readelf -s provide-hidden-abs.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-11"] \
+    [list \
+	"$testname 12" \
+	"$LFLAGS -T provide-hidden-2.ld" "tmpdir/provide-hidden-s.so" \
+	"" \
+	[list provide-hidden-4.s] \
+	[list \
+	    [list readelf -s provide-hidden-abs.nd] \
+	    [list readelf -s provide-hidden-dyn.nd]] \
+	"provide-hidden-12"]]

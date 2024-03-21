@@ -1,0 +1,33 @@
+Description:
+A dummy replacement for libtextstyle.
+
+Files:
+lib/textstyle.in.h
+
+Depends-on:
+stdbool
+unistd
+fsync
+
+configure.ac:
+AC_REQUIRE([AC_C_INLINE])
+AC_CHECK_FUNCS_ONCE([tcdrain])
+
+Makefile.am:
+BUILT_SOURCES += textstyle.h
+
+# We need the following in order to create a dummy placeholder for
+# <textstyle.h>.
+textstyle.h: textstyle.in.h $(top_builddir)/config.status
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/textstyle.in.h; \
+	} > $@-t && \
+	mv $@-t $@
+MOSTLYCLEANFILES += textstyle.h textstyle.h-t
+
+Include:
+#include <textstyle.h>
+
+License:
+GPL

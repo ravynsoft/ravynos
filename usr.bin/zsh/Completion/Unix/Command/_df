@@ -1,0 +1,111 @@
+#compdef df gdf
+
+local curcontext="$curcontext" state state_descr line args spec ret=1
+local -A opt_args
+
+if _pick_variant gnu=GNU unix --version; then
+  args=(
+    '--total[produce a grand total]'
+    '(-T --print-type)'{-T,--print-type}'[print file system type]'
+    '(-a --all)'{-a,--all}'[include dummy file systems]'
+    '--direct[show statistics for a file instead of mount point]'
+    '(-l --local)'{-l,--local}'[limit listing to local file systems]'
+    '*'{-t+,--type=}'[limit listing to file systems of specified type]:file system type:_file_systems'
+    '*'{-x+,--exclude-type=}'[exclude file systems of specified type]:file system type:_file_systems'
+    '(--no-sync)--sync[invoke sync before getting usage info]'
+    '(--sync)--no-sync[do not invoke sync before getting usage info (default)]'
+    '--output=-[output all or specified fields]::field:_values -s , "field"
+      source fstype itotal iused iavail ipcent size used avail pcent file target'
+    '!-v'
+    '(- : *)--help[display help and exit]'
+    '(- : *)--version[output version information and exit]'
+    '*: :_umountable'
+    - '(format)'
+    {-B+,--block-size=}'[specify block size]:size (bytes)'
+    '-k[like --block-size=1K]'
+    {-P,--portability}'[use the POSIX output format]'
+    {-h,--human-readable}'[print sizes in human readable format]'
+    {-H,--si}'[human readable format, but use powers of 1000 not 1024]'
+    {-i,--inodes}'[list inode information instead of block usage]'
+  )
+elif [[ "$OSTYPE" == (darwin|dragonfly|freebsd|netbsd*|openbsd)* ]]; then
+  args=(
+    '(-b -g -H -h -k -m --si)-h[human-readable output (base 2)]'
+    '(-b -g -H -h -k -m --si)-k[use 1024-byte blocks]'
+    '(-G -i -P)-P[POSIX compliant output]'
+    '(-G -i -P)-i[include inode usage statistics (default)]'
+    '-l[only display locally-mounted file systems]'
+    '-n[use previously obtained statistics]'
+    '*: :_umountable'
+  )
+  spec='[only display file systems of specified types]:file system type:->fslist'
+  case "$OSTYPE" in
+    (darwin*|dragonfly*|freebsd*|netbsd*)
+      args+=(
+        '-a[show all mount points]'
+        '(-b -g -H -h -k -m --si)-g[use 1024^3-byte blocks]'
+        '(-b -g -H -h -k -m --si)-m[use 1024*1024-byte blocks]'
+      )
+      ;|
+    (darwin*|dragonfly*|freebsd*)
+      args+=(
+        '(-b -g -H -h -k -m --si)-b[use 512-byte blocks (default)]'
+        '(-b -g -H -h -k -m --si)-H[human-readable output (base 10)]'
+      )
+      ;|
+    (darwin*|freebsd*)
+      args+=(
+        '-c[display a grand total]'
+      )
+      ;|
+    (darwin*)
+      args+=(
+        "-T+$spec"
+        "!-t+$spec" # obsolete
+      )
+      ;;
+    (dragonfly*|freebsd*|netbsd*|openbsd*)
+      args+=(
+        "-t+$spec"
+      )
+      ;|
+    (dragonfly*|freebsd*)
+      args+=(
+        '-T[include file system type]'
+      )
+      ;|
+    (freebsd*)
+      args+=(
+        '--libxo[generate output via libxo]'
+        '(-b -g -H -h -k -m --si)--si[human-readable output (base 10)]'
+        '-,[separate thousands]'
+      )
+      ;;
+    (netbsd*)
+      args+=(
+        '(-G -i -P)-G[display all fields in statvfs]'
+      )
+      ;;
+  esac
+else
+  # POSIX
+  args=(
+    '-k[use 1024-byte blocks]'
+    '-P[POSIX compliant output]'
+    '-t[include total allocated-space figures in the output]'
+    '*: :_umountable'
+  )
+fi
+
+_arguments -C -s -S : $args && ret=0
+
+case "$state" in
+  (fslist)
+    [[ ! -prefix *, ]] && ! compset -P 'no' &&
+        _describe -t list-prefixes 'prefix to list' \
+        '( no:exclude\ file\ system\ types\ in\ the\ list )' && ret=0
+    _sequence -s , _file_systems && ret=0
+    ;;
+esac
+
+return ret

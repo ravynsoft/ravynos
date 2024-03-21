@@ -63,7 +63,6 @@
   $Id: svc_auth_gss.c,v 1.27 2002/01/15 15:43:00 andros Exp $
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/jail.h>
@@ -174,8 +173,7 @@ struct svc_rpc_gss_cookedcred {
 u_int svc_rpc_gss_client_max = CLIENT_MAX;
 u_int svc_rpc_gss_client_hash_size = CLIENT_HASH_SIZE;
 
-SYSCTL_NODE(_kern, OID_AUTO, rpc, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
-    "RPC");
+SYSCTL_DECL(_kern_rpc);
 SYSCTL_NODE(_kern_rpc, OID_AUTO, gss, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "GSS");
 
@@ -454,6 +452,37 @@ rpc_gss_get_principal_name(rpc_gss_principal_t *principal,
 	gss_release_buffer(&min_stat, &buf);
 
 	*principal = result;
+	return (TRUE);
+}
+
+/*
+ * Note that the ip_addr and srv_principal pointers can point to the same
+ * buffer, so long as ip_addr is at least strlen(srv_name) + 1 > srv_principal.
+ */
+bool_t
+rpc_gss_ip_to_srv_principal(char *ip_addr, const char *srv_name,
+    char *srv_principal)
+{
+	OM_uint32		maj_stat, min_stat;
+	size_t			len;
+
+	/*
+	 * First fill in the service name and '@'.
+	 */
+	len = strlen(srv_name);
+	if (len > NI_MAXSERV)
+		return (FALSE);
+	memcpy(srv_principal, srv_name, len);
+	srv_principal[len] = '@';
+
+	/*
+	 * Do reverse DNS to get the DNS name for the ip_addr.
+	 */
+	maj_stat = gss_ip_to_dns(&min_stat, ip_addr, &srv_principal[len + 1]);
+	if (maj_stat != GSS_S_COMPLETE) {
+		rpc_gss_log_status("gss_ip_to_dns", NULL, maj_stat, min_stat);
+		return (FALSE);
+	}
 	return (TRUE);
 }
 

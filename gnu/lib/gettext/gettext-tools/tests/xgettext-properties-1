@@ -1,0 +1,76 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C, C++, JavaProperties extractors.
+
+cat <<EOF > xg-pr-1.in.properties
+#: file1.c:199
+#, fuzzy
+!extract\ me=some text to get fuzzy copied to result
+
+#: file2.cc:200
+!what\ about\ me=
+
+#: file3.c:10
+#, c-format, fuzzy
+!hello=Again some text for fuzzy
+EOF
+
+cat <<EOF > xg-pr-1.c
+#include <libintl.h>
+#include <stdio.h>
+int
+main (int argc, char *argv[])
+{
+  printf (dcgettext ("hello", "Hello, world."));
+  return 0;
+}
+EOF
+
+cat <<EOF > xg-pr-1.cc
+#include <iostream.h>
+#include <libintl.h>
+#include <locale.h>
+int
+main (int argc, char *argv[])
+{
+  cout << dcgettext ("hello", "Hello world!", LC_MESSAGES) << endl;
+  return 0;
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header -n \
+  -d xg-pr-1.tmp xg-pr-1.in.properties xg-pr-1.c xg-pr-1.cc || Exit 1
+LC_ALL=C tr -d '\r' < xg-pr-1.tmp.po > xg-pr-1.po || Exit 1
+
+cat <<EOF > xg-pr-1.ok
+#: file1.c:199
+#, fuzzy
+msgid "extract me"
+msgstr "some text to get fuzzy copied to result"
+
+#: file2.cc:200
+msgid "what about me"
+msgstr ""
+
+#: file3.c:10
+#, fuzzy, c-format
+msgid "hello"
+msgstr "Again some text for fuzzy"
+
+#: xg-pr-1.c:6
+#, c-format
+msgid "Hello, world."
+msgstr ""
+
+#: xg-pr-1.cc:7
+msgid "Hello world!"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-pr-1.ok xg-pr-1.po
+result=$?
+
+exit $result

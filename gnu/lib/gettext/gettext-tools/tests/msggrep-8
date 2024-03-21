@@ -1,0 +1,66 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --extracted-comment option.
+
+cat <<\EOF > mg-test8.po
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.11-pre1\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 2001-11-04 12:25+0100\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Warum ist das nicht als c-form markiert?
+#: widgets.c:87
+msgid "About <tt>GNOME</tt>"
+msgstr "Über <tt>GNOME</tt>"
+
+#. c-form
+#: widgets.c:118
+msgid "click <b>here</b>"
+msgstr "Klicken Sie <b>hier</b>."
+
+#: widgets.c:152
+#, c-format
+msgid "repeat %d times"
+msgstr "%d mal wiederholen"
+EOF
+
+: ${MSGGREP=msggrep}
+LC_MESSAGES=C LC_ALL= \
+${MSGGREP} -X -e c-form -o mg-test8.tmp mg-test8.po >mg-test8.err 2>&1
+result=$?
+cat mg-test8.err | grep -v 'warning: Locale charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+LC_ALL=C tr -d '\r' < mg-test8.tmp > mg-test8.out || Exit 1
+
+cat <<\EOF > mg-test8.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.11-pre1\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 2001-11-04 12:25+0100\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. c-form
+#: widgets.c:118
+msgid "click <b>here</b>"
+msgstr "Klicken Sie <b>hier</b>."
+EOF
+
+: ${DIFF=diff}
+${DIFF} mg-test8.ok mg-test8.out
+result=$?
+
+exit $result

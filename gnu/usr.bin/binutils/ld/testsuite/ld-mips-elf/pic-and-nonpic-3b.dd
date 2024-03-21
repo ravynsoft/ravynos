@@ -1,0 +1,53 @@
+# GOT layout:
+#
+# -32752: lazy resolution function
+# -32748: reserved for module pointer
+# -32744: GOT page entry.
+# -32740: bar's GOT entry
+
+.*
+
+Disassembly of section \.plt:
+
+00043020 <.*>:
+.*:	3c1c0008 	lui	gp,0x8
+.*:	8f991000 	lw	t9,4096\(gp\)
+.*:	279c1000 	addiu	gp,gp,4096
+.*:	031cc023 	subu	t8,t8,gp
+.*:	03e07825 	move	t7,ra
+.*:	0018c082 	srl	t8,t8,0x2
+.*:	0320f809 	jalr	t9
+.*:	2718fffe 	addiu	t8,t8,-2
+
+00043040 <foo@plt>:
+.*:	3c0f0008 	lui	t7,0x8
+.*:	8df91008 	lw	t9,4104\(t7\)
+.*:	03200008 	jr	t9
+.*:	25f81008 	addiu	t8,t7,4104
+
+Disassembly of section \.text:
+
+00044000 <__start>:
+.*:	0c010c10 	jal	43040 <foo@plt>
+.*:	00000000 	nop
+.*:	08011004 	j	44010 <ext>
+.*:	00000000 	nop
+
+00044010 <ext>:
+.*:	3c1c000a 	lui	gp,0xa
+.*:	279c7ff0 	addiu	gp,gp,32752
+.*:	8f828018 	lw	v0,-32744\(gp\)
+.*:	24421000 	addiu	v0,v0,4096
+.*:	8f99801c 	lw	t9,-32740\(gp\)
+.*:	03200008 	jr	t9
+.*:	00000000 	nop
+.*:	00000000 	nop
+
+Disassembly of section \.MIPS\.stubs:
+
+00044030 <_MIPS_STUBS_>:
+.*:	8f998010 	lw	t9,-32752\(gp\)
+.*:	03e07825 	move	t7,ra
+.*:	0320f809 	jalr	t9
+.*:	24180005 	li	t8,5
+	\.\.\.

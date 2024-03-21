@@ -1,0 +1,53 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+shopt -s expand_aliases
+
+: ${TMPDIR:=/var/tmp}
+
+echo '((echo abc; echo def;); echo ghi)' > $TMPDIR/x28-$$
+. $TMPDIR/x28-$$
+rm -f $TMPDIR/x28-$$
+
+echo after
+
+TMPFILE=$TMPDIR/x29-$$
+
+echo "#! ${THIS_SH}" >$TMPFILE
+cat >> $TMPFILE << \EOF
+
+(echo -n "$1 "; echo subshell)
+EOF
+chmod 755 $TMPFILE
+
+alias foo1='$TMPFILE one.1; source $TMPFILE two.1; source $TMPFILE three.1; $TMPFILE four.1'
+alias foo2='$TMPFILE one.2;
+source $TMPFILE two.2;
+source $TMPFILE three.2;
+$TMPFILE four.2;
+'
+
+foo1
+foo2
+
+echo x29 - done
+rm -f $TMPFILE
+
+# this is also treated similarly to an alias expansion internally
+((echo abc; echo def;); echo ghi)
+
+if (((4+4) + (4 + 7))); then
+	echo ok
+fi
+
+(())	# make sure the null expression works OK

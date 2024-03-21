@@ -1,0 +1,23 @@
+#compdef host
+
+# Note: This command is closely related to (and shares some options with) dig
+_arguments -s -S -A '-*' : \
+  '(: * -)-V[display version information]' \
+  '(-6)-4[use IPv4 only]' \
+  '(-4)-6[use IPv6 only]' \
+  '(-v -t)-a[query for all record types or (with -l) list all zone records]' \
+  '(-d -v)'{-d,-v}'[increase output verbosity]' \
+  '-c+[specify query class]:query class:compadd -M "m\:{a-z}={A-Z}" - CH CS HS IN' \
+  '-C[check SOA consistency]' \
+  '-l[list zone records]' \
+  '-N+[specify number of dots required to consider host name absolute]:number of dots' \
+  '-r[query non-recursively (clear RD bit)]' \
+  '-R+[specify number of retries for UDP queries]:number of retries [1]' \
+  '-s[do not try next name server after SERVFAIL]' \
+  '-t+[specify query type]: :_dns_types' \
+  '-T[query via TCP]' \
+  '*-m+[specify memory-usage debug flag]:debug flag:(record usage trace)' \
+  '(-W)-w[disable query timeout (wait forever)]' \
+  '(-w)-W+[specify query timeout]:query timeout (seconds) [5 (UDP), 10 (TCP)]' \
+  '1: :_hosts' \
+  '2::DNS server:_hosts'

@@ -1,0 +1,42 @@
+#compdef watch
+
+local variant ret=1
+local -a context line state state_descr
+local -A opt_args
+
+_pick_variant -r variant procps=procps $OSTYPE --version
+
+case $variant in
+  (procps)
+    _arguments -s -S -A '-*' : \
+      '(: * -)'{-h,--help}'[display help information]' \
+      '(: * -)'{-v,--version}'[display version information]' \
+      '(-b --beep)'{-b,--beep}'[beep on non-zero command exit]' \
+      '(-c --color)'{-c,--color}'[interpret ANSI color/style sequences]' \
+      '(-d --differences)'{-d-,--differences=-}'[highlight changes between updates]::how to highlight:(permanent)' \
+      '(-e --errexit)'{-e,--errexit}'[freeze updates on non-zero command exit]' \
+      '(-g --chgexit)'{-g,--chgexit}'[exit on command output change]' \
+      '(-n --interval)'{-n+,--interval=}'[specify update interval]:update interval (seconds) [2]' \
+      '(-p --precise)'{-p,--precise}'[run command at precise intervals]' \
+      '(-t --no-title)'{-t,--no-title}'[disable header]' \
+      '(-x --exec)'{-x,--exec}'[pass command to exec(2) instead of `sh -c`]' \
+      '(-)*::: :->cmd' \
+    && ret=0
+
+    [[ $state == cmd ]] &&
+    if
+      (( CURRENT == 1 )) &&
+      [[ $words[1] == (\"|\'|\$\')* ]] &&
+      [[ -z $opt_args[(i)(-x|--exec)] ]]
+    then
+      _cmdstring && ret=0
+    else
+      _normal && ret=0
+    fi
+    ;;
+  # watch(1) has completely different semantics on freebsd compared to linux, hence:
+  (freebsd*|dragonfly*) _watch-snoop "$@" && ret=0 ;;
+  (*) _default && ret=0 ;;
+esac
+
+return ret

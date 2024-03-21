@@ -1,0 +1,121 @@
+V_0.5.0 {
+global:
+    xkb_keysym_get_name;
+    xkb_keysym_from_name;
+    xkb_keysym_to_utf8;
+    xkb_keysym_to_utf32;
+    xkb_context_new;
+    xkb_context_ref;
+    xkb_context_unref;
+    xkb_context_set_user_data;
+    xkb_context_get_user_data;
+    xkb_context_include_path_append;
+    xkb_context_include_path_append_default;
+    xkb_context_include_path_reset_defaults;
+    xkb_context_include_path_clear;
+    xkb_context_num_include_paths;
+    xkb_context_include_path_get;
+    xkb_context_set_log_level;
+    xkb_context_get_log_level;
+    xkb_context_set_log_verbosity;
+    xkb_context_get_log_verbosity;
+    xkb_context_set_log_fn;
+    xkb_keymap_new_from_names;
+    xkb_keymap_new_from_file;
+    xkb_keymap_new_from_string;
+    xkb_keymap_new_from_buffer;
+    xkb_keymap_ref;
+    xkb_keymap_unref;
+    xkb_keymap_get_as_string;
+    xkb_keymap_min_keycode;
+    xkb_keymap_max_keycode;
+    xkb_keymap_key_for_each;
+    xkb_keymap_num_mods;
+    xkb_keymap_mod_get_name;
+    xkb_keymap_mod_get_index;
+    xkb_keymap_num_layouts;
+    xkb_keymap_layout_get_name;
+    xkb_keymap_layout_get_index;
+    xkb_keymap_num_leds;
+    xkb_keymap_led_get_name;
+    xkb_keymap_led_get_index;
+    xkb_keymap_num_layouts_for_key;
+    xkb_keymap_num_levels_for_key;
+    xkb_keymap_key_get_syms_by_level;
+    xkb_keymap_key_repeats;
+    xkb_state_new;
+    xkb_state_ref;
+    xkb_state_unref;
+    xkb_state_get_keymap;
+    xkb_state_update_key;
+    xkb_state_update_mask;
+    xkb_state_key_get_syms;
+    xkb_state_key_get_utf8;
+    xkb_state_key_get_utf32;
+    xkb_state_key_get_one_sym;
+    xkb_state_key_get_layout;
+    xkb_state_key_get_level;
+    xkb_state_serialize_mods;
+    xkb_state_serialize_layout;
+    xkb_state_mod_name_is_active;
+    xkb_state_mod_names_are_active;
+    xkb_state_mod_index_is_active;
+    xkb_state_mod_indices_are_active;
+    xkb_state_mod_index_is_consumed;
+    xkb_state_mod_mask_remove_consumed;
+    xkb_state_key_get_consumed_mods;
+    xkb_state_layout_name_is_active;
+    xkb_state_layout_index_is_active;
+    xkb_state_led_name_is_active;
+    xkb_state_led_index_is_active;
+    xkb_compose_table_new_from_locale;
+    xkb_compose_table_new_from_file;
+    xkb_compose_table_new_from_buffer;
+    xkb_compose_table_ref;
+    xkb_compose_table_unref;
+    xkb_compose_state_new;
+    xkb_compose_state_ref;
+    xkb_compose_state_unref;
+    xkb_compose_state_get_compose_table;
+    xkb_compose_state_feed;
+    xkb_compose_state_reset;
+    xkb_compose_state_get_status;
+    xkb_compose_state_get_utf8;
+    xkb_compose_state_get_one_sym;
+local:
+    *;
+};
+
+V_0.6.0 {
+global:
+    xkb_keymap_key_get_name;
+    xkb_keymap_key_by_name;
+} V_0.5.0;
+
+V_0.7.0 {
+global:
+    xkb_state_key_get_consumed_mods2;
+    xkb_state_mod_index_is_consumed2;
+} V_0.6.0;
+
+V_0.8.0 {
+global:
+    xkb_keysym_to_lower;
+    xkb_keysym_to_upper;
+} V_0.7.0;
+
+V_1.0.0 {
+global:
+    xkb_utf32_to_keysym;
+    xkb_keymap_key_get_mods_for_level;
+} V_0.8.0;
+
+V_1.6.0 {
+global:
+    xkb_compose_table_entry_sequence;
+    xkb_compose_table_entry_keysym;
+    xkb_compose_table_entry_utf8;
+    xkb_compose_table_iterator_new;
+    xkb_compose_table_iterator_free;
+    xkb_compose_table_iterator_next;
+} V_1.0.0;

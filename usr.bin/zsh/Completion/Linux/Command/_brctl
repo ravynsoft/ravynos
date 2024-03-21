@@ -1,0 +1,67 @@
+#compdef brctl
+
+local curcontext="$curcontext" expl ret=1
+local subcmd
+
+if (( CURRENT == 2 )); then
+  _describe 'brctl command' '(
+    addbr:create\ instance\ of\ ethernet\ bridge
+    delbr:deletes\ specified\ bridge\ instance
+    show:show\ all\ current\ bridge\ instances
+    addif:add\ interface\ to\ bridge
+    delif:remove\ interface\ from\ bridge
+    hairpin:toggle\ hairpin\ mode\ on\ a\ port
+    showmacs:show\ a\ list\ of\ learned\ MAC\ addresses
+    setageing:set\ MAC\ address\ ageing\ time
+    setgcint:set\ garbage\ collection\ interval
+    stp:control\ use\ of\ spanning\ tree\ protocol
+    showstp:show\ bridge\ stp\ info
+    setbridgeprio:set\ bridge\ priority
+    setfd:set\ bridge\ forward\ delay
+    sethello:set\ bridge\ hello\ time
+    setmaxage:set\ maximum\ message\ age
+    setpathcost:set\ cost\ of\ port
+    setportprio:set\ priority\ of\ port
+  )' && ret=0
+else
+  shift words
+  (( CURRENT-- ))
+  subcmd="$words[1]"
+  curcontext="${curcontext%:*}-${subcmd}:"
+  
+  if (( CURRENT == 2 )); then
+    _wanted bridges expl 'bridge' compadd \
+    	${${(f)"$(brctl show 2>/dev/null)"}[2,-1]%%	*} && ret=0
+  elif (( CURRENT == 3 )); then
+    case $subcmd in
+      addif|delif)
+      	_net_interfaces && ret=0
+      ;;
+      setageing|setgcint|setfd|sethello|setmaxage)
+      	_message -e time 'time (seconds)'
+      ;;
+      setbridgeprio)
+      	_message -e priority 'priority'
+      ;;
+      setpathcost|setportprio|hairpin)
+        _message -e ports 'port'
+      ;;
+      stp)
+        _wanted states expl 'state' compadd on off && ret=0
+      ;;
+      *)
+        _message 'unknown subcommand: $subcmd'
+      ;;
+    esac
+  elif (( CURRENT == 4 )); then
+    if [[ $subcmd == setpathcost ]]; then
+      _message -e cost 'cost'
+    elif [[ $subcmd == setportprio ]]; then
+      _message -e priority 'priority'
+    elif [[ $subcmd == hairpin ]]; then
+      _message -e onoff 'on|off'
+    fi
+  fi
+fi
+
+return ret

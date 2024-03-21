@@ -1,0 +1,8 @@
+#compdef tg
+local expl
+
+if (( CURRENT == 2 )); then
+  _wanted subcmd expl 'topgit command' compadd create delete export import info patch remote summary update
+else
+  _files
+fi

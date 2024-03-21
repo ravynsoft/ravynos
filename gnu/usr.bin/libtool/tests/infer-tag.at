@@ -1,0 +1,98 @@
+# infer-tag.at -- libtool without --tag             -*- Autotest -*-
+#
+#   Copyright (C) 2008, 2010-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Check that func_infer_tag works.
+
+# We add one test per tag, so that only those tests are skipped
+# for which the tags are disabled (otherwise we only ever test
+# on systems where all tags are enabled).
+
+AT_SETUP([inferred tag])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a.c],
+[[int a (void) { return 0; }
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP
+
+AT_SETUP([CXX inferred tag])
+LT_AT_TAG([CXX])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a.cpp],
+[[int a (void) { return 0; }
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $CXX $CPPFLAGS $CXXFLAGS -c a.cpp],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP
+
+AT_SETUP([F77 inferred tag])
+LT_AT_TAG([F77])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a.f],
+[[      program main
+      end
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $F77 $FFLAGS -c a.f],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP
+
+AT_SETUP([FC inferred tag])
+LT_AT_TAG([FC])
+AT_KEYWORDS([libtool])
+
+AT_DATA([a.f],
+[[      program main
+      end
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $FC $FCFLAGS -c a.f],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP
+
+AT_SETUP([GCJ inferred tag])
+LT_AT_TAG([GCJ])
+AT_KEYWORDS([libtool])
+
+AT_DATA([A.java],
+[[public class A {
+  private int a;
+  public A () { a = 0; }
+};
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $GCJ $GCJCFLAGS -c A.java],
+	 [], [ignore], [ignore])
+
+AT_CLEANUP

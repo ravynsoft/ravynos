@@ -1,0 +1,91 @@
+#compdef -k complete-word \C-xh
+
+_complete_help() {
+  eval "$_comp_setup"
+
+  local _sort_tags=_help_sort_tags text i j k tmp
+  typeset -A help_funcs help_tags help_sfuncs help_styles
+
+  local -H _help_scan_funcstack="main_complete|complete|approximate|normal"
+  local -H _help_filter_funcstack="alternative|call_function|describe|dispatch|wanted|requested|all_labels|next_label"
+
+  {
+    compadd() { return 1 }
+    compcall() { _help_sort_tags use-compctl }
+    zstyle() {
+      local _f="${${(@)${(@)funcstack[2,(i)_($~_help_scan_funcstack)]}:#(_($~_help_filter_funcstack)|\((eval|anon)\))}% *}"
+  
+      [[ -z "$_f" ]] && _f="${${(@)funcstack[2,(i)_($~_help_scan_funcstack)]}:#(_($~_help_filter_funcstack)|\((eval|anon)\))}"
+  
+      if [[ "$help_sfuncs[$2]" != *${_f}* ||
+            "$help_styles[${2}${_f}]" != *${3}* ]]; then
+  
+        [[ "$help_sfuncs[$2]" != *${_f}* ]] && help_sfuncs[$2]+=$'\0'"${_f}"
+        local _t
+  
+        case "$1" in
+        -s) _t='[string] ';;
+        -a) _t='[array]  ';;
+        -h) _t='[assoc]  ';;
+        *)  _t='[boolean]';;
+        esac
+        help_styles[${2}${_f}]+=",${_t} ${3}:${_f}"
+      fi
+  
+      # No need to call the completers more than once with different match specs.
+  
+      if [[ "$3" = matcher-list ]]; then
+        set -A "$4" ''
+      else
+        builtin zstyle "$@"
+      fi
+    }
+
+    ${1:-_main_complete}
+  } always {
+    unfunction compadd compcall zstyle
+  }
+
+  for i in "${(@ok)help_funcs}"; do
+    text+=$'\n'"tags in context :completion:${i}:"
+    tmp=()
+    for j in "${(@ps.\0.)help_funcs[$i][2,-1]}"; do
+      tmp+=( "${(@s.,.)help_tags[${i}${j}][2,-1]}" )
+    done
+    zformat -a tmp '  (' "$tmp[@]"
+    tmp=( $'\n    '${^tmp}')' )
+    text+="${tmp}"
+  done
+
+  if [[ ${NUMERIC:-1} -ne 1 ]]; then
+    text+=$'\n'
+    for i in "${(@ok)help_sfuncs}"; do
+      text+=$'\n'"styles in context ${i}"
+      tmp=()
+      for j in "${(@ps.\0.)help_sfuncs[$i][2,-1]}"; do
+        tmp+=( "${(@s.,.)help_styles[${i}${j}][2,-1]}" )
+      done
+      zformat -a tmp '  (' "$tmp[@]"
+      tmp=( $'\n    '${^tmp}')' )
+      text+="${tmp}"
+    done
+  fi
+  compstate[list]='list force'
+  compstate[insert]=''
+
+  compadd -UX "$text[2,-1]" -n ''
+}
+
+_help_sort_tags() {
+  local f="${${(@)${(@)funcstack[3,(i)_($~_help_scan_funcstack)]}:#(_($~_help_filter_funcstack)|\((eval|anon)\))}% *}"
+
+  if [[ "$help_funcs[$curcontext]" != *${f}* ||
+        "$help_tags[${curcontext}${f}]" != *(${(j:|:)~argv})* ]]; then
+    [[ "$help_funcs[$curcontext]" != *${f}* ]] &&
+        help_funcs[$curcontext]+=$'\0'"${f}"
+    help_tags[${curcontext}${f}]+=",${argv}:${f}"
+    comptry "$@" 2>/dev/null
+  fi
+}
+
+_complete_help "$@"

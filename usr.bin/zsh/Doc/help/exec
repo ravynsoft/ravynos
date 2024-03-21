@@ -1,0 +1,18 @@
+exec [ -cl ] [ -a argv0 ] [ command [ arg ... ] ]
+       Replace the current shell with command rather than forking.   If
+       command  is  a  shell  builtin  command or a shell function, the
+       shell executes it, and exits when the command is complete.
+
+       With -c clear the environment; with -l prepend - to the  argv[0]
+       string of the command executed (to simulate a login shell); with
+       -a argv0 set the argv[0] string of the  command  executed.   See
+       the section `Precommand Modifiers' in zshmisc(1).
+
+       If  the  option  POSIX_BUILTINS  is set, command is never inter-
+       preted as a shell builtin command or shell function.  This means
+       further precommand modifiers such as builtin and noglob are also
+       not interpreted within the shell.  Hence command is always found
+       by searching the command path.
+
+       If  command  is omitted but any redirections are specified, then
+       the redirections will take effect in the current shell.

@@ -1,0 +1,17 @@
+#autoload
+
+# This function is used to generate file names for Debian package files (.deb
+# and friends). In addition to the options supported by _files, it understands
+# the following:
+#
+#   -c  Include .changes and .dsc files
+
+local -a _expl _fopts _c _exts=( deb ddeb udeb )
+
+zparseopts -a _fopts -D -E - \
+  c=_c 1 2 F+: J+: M+: n P+: q r+: R+: S+: V+: W+: X+:
+
+(( $#_c )) && _exts+=( changes dsc )
+
+_description files _expl 'Debian package'
+_files "${(@)_fopts}" "${(@)_expl}" -g "*.(${(j<|>)_exts})(-.)"

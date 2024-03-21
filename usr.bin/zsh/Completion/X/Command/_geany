@@ -1,0 +1,30 @@
+#compdef geany
+
+local ign
+
+(( $#words > 2 )) && ign='!'
+_arguments -s -S \
+  "${ign}(- *)"{-h,--help}'[display usage information]' \
+  "${ign}(- *)--help-all[display all options]" \
+  "${ign}(- *)--help-gtk[display GTK+ Options]" \
+  '--column=[set initial column number for the first opened file]:column number' \
+  '(-c --config)'{-c,--config=}'[use an alternate configuration directory]:configuration directory:_directories' \
+  "${ign}(- *)--ft-names[print internal filetype names]" \
+  {-g,--generate-tags}'[generate global tags file]:tags file:_files -g "*.tags(-.)":*:source file:_files' \
+  '(-P --no-preprocessing)'{-P,--no-preprocessing}"[don't preprocess C/C++ files when generating tags]" \
+  '(-i --new-instance --socket-file)'{-i,--new-instance}"[don't open files in a running instance, force opening a new instance]" \
+  '(-i --new-instance)--socket-file=[use specified socket file to communicate with a Geany instance]:socket:_files -g "*(-=)"' \
+  "${ign}(- *)--list-documents[return a list of open documents in a running Geany instance]" \
+  '(-l --line)'{-l,--line=}'[set initial line number for the first opened file]:line number' \
+  '(-m --no-msgwin)'{-m,--no-msgwin}"[don't show message window at startup]" \
+  '(-n --no-ctags)'{-n,--no-ctags}"[don't load completion and call tip data]" \
+  '(-p --no-plugins)'{-p,--no-plugins}"[don't load plugins]" \
+  "${ign}(- *)--print-prefix[print Geany's installation prefix]" \
+  '(-r --read-only)'{-r,--read-only}'[open all given files in read-only mode]' \
+  '(-s --no-session)'{-s,--no-session}"[don't load the previous session's files]" \
+  '(-t --no-terminal --vte-lib)'{-t,--no-terminal}"[don't load terminal support]" \
+  '(-t --no-terminal)--vte-lib=[specify path and filename of VTE library]:libvte.so filename:_files -g "*.so(-.)"' \
+  '(-v --verbose)'{-v,--verbose}'[be verbose]' \
+  "${ign}(- *)"{-V,--version}'[display version information]' \
+  '--display=[specify X display to use]:display:_x_display' \
+  '(-g --generate-tags)*: :_files'

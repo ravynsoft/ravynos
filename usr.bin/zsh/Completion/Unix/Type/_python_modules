@@ -1,0 +1,42 @@
+#autoload
+
+_python_module_caching_policy () {
+  local -a newer
+  # rebuild if cache does not exist or is more than a week old
+  newer=( "$1"(Nmw-1) )
+  return $#newer
+}
+
+_python_modules () {
+  local update_policy python expl
+
+  case $words[1] in
+    (python*) python=$words[1] ;;
+    (pydoc*)  python=${words[1]/#pydoc/python} ;;
+    (*)       python="python" ;;
+  esac
+  local cache_id=${${python//[^[:alnum:]]/_}#_}_modules
+  local array_name=_${cache_id}
+
+  zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+  [[ -z "$update_policy" ]] && \
+    zstyle ":completion:${curcontext}:" \
+      cache-policy _python_module_caching_policy
+
+  if ( [[ ${(P)+array_name} -eq 0 ]] || _cache_invalid $cache_id ) &&
+      ! _retrieve_cache $cache_id; then
+
+   local script='import pkgutil
+for importer, name, ispkg in pkgutil.iter_modules(): print(name)'
+
+    typeset -agU $array_name
+    set -A $array_name \
+      $(_call_program modules $python -c ${(q)script} 2>/dev/null)
+
+    _store_cache $cache_id $array_name
+  fi
+
+  _wanted modules expl module compadd "$@" -a -- $array_name
+}
+
+_python_modules "$@"

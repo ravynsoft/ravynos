@@ -1,0 +1,68 @@
+#compdef debfoster
+
+local curcontext="$curcontext" state line expl ret=1
+
+_arguments -C \
+  '(-v --verbose)'{-v,--verbose}'[be a loudmouth]' \
+  '(-V --version)'{-V,--versuib}'[show version and copyright information]' \
+  '(-h --help)'{-h,--help}'[show help information]' \
+  '(-q --quiet)'{-q,--quiet}'[silently build keeper file]' \
+  '(-f --force)'{-f,--force}'[force system to conform to keeper file]' \
+  '(-m --mark-only)'{-m,--mark-only}'[do not install or delete packages]' \
+  '(-u --upgrade)'{-u,--upgrade}'[try to upgrade dependencies]' \
+  '(-c --config)'{-c,--config}'[specify configuration file]:file:_files' \
+  '(-k --keeperfile)'{-k,--keeperfile}'[specify keeper file]:file:_files' \
+  '(-n --no-keeperfile)'{-n,--no-keeperfile}'[do not read keeper file]' \
+  '(-i --ignore-default-rules)'{-i,--ignore-default-rules}'[ignore default rules]' \
+  '(-a --show-keepers)'{-a,--show-keepers}'[show packages on keeper list]' \
+  '(-s --show-orphans)'{-s,--show-orphans}'[show orphaned packages]' \
+  '(-d --show-depends)'{-d,--show-depends}'[show all depends of specified package]:package:_deb_packages avail'   \
+  '(-e --show-dependents)'{-e,--show-dependents}'[show dependents of specified package]:package:_deb_packages avail' \
+  '(-p --show-providers)'{-p,--show-providers}'[show packages providing specified package]:package:_deb_packages avail' \
+  '(-r --show-related)'{-r,--show-related}'[show packages brought in by specified package]:package:_deb_packages avail' \
+  '(-t --use-tasks)'{-t,--use-tasks}'[make tasks visible as packages]' \
+  '*-'{-option,o}'[override any configuration option]:option string:->option' \
+  '*:package markings: _alternative "installed:installed packages:_deb_packages -S- installed" "uninstalled:uninstalled packages:_deb_packages uninstalled"' \
+  && ret=0
+
+if [[ -n "$state" ]]; then
+  if compset -P 1 '*='; then
+    case "$IPREFIX" in
+    *(#i)(install|remove|info)cmd*)
+      _wanted values expl 'command string' _cmdstring && ret=0
+      ;;
+    *(#i)(keeperfile|dpkg(status|available))*)
+      _wanted values expl 'metadata file' _files && ret=0
+      ;;
+    *(#i)maxpriority*)
+      _wanted values expl 'package priority' \
+	compadd required important standard optional extra ANY && ret=0
+      ;;
+    *(#i)(use(hold|essential|predepends|recommends|suggests|tasks)|negativekeepers|verbose|force|quiet)*)
+      _wanted values expl 'truth value' \
+	compadd yes no && ret=0
+      ;;
+    *(#i)(no|)keepsections*)
+      _wanted values expl 'section' compadd \
+	  x11 web utils text tex sound shells science \
+	  otherosfs oldlibs news net misc math mail libs \
+	  interpreters hamradio graphics games electronics \
+	  editors doc devel comm base admin && ret=0
+      ;;
+    *(#i)guessdepends*)
+      _wanted values expl 'name extension' \
+	  compadd doc dev && ret=0
+      ;;
+    esac
+  else
+    _wanted values expl 'configure file option' \
+	compadd -M 'm:{a-z}={A-Z}' -S '=' - \
+	    InstallCmd RemoveCmd InfoCmd KeeperFile DpkgStatus \
+	    DpkgAvailable MaxPriority UseHold UseEssential \
+	    UsePreDepends UseRecommends UseSuggests UseTasks \
+	    KeepSections NokeepSections GuessDepends NegativeKeepers \
+	    Verbose Force Quiet && ret=0
+  fi
+fi
+
+return ret

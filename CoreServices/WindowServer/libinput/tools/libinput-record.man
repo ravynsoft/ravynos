@@ -1,0 +1,331 @@
+.TH libinput-record "1"
+.SH NAME
+libinput\-record \- record kernel events
+.SH SYNOPSIS
+.B libinput record [options] [\fI/dev/input/event0\fB [\fI/dev/input/event1\fB ...]]
+.SH DESCRIPTION
+.PP
+The \fBlibinput record\fR tool records kernel events from a device and
+prints them in a format that can later be replayed with the \fBlibinput
+replay(1)\fR tool.  This tool needs to run as root to read from the device.
+.PP
+The output of this tool is YAML, see \fBFILE FORMAT\fR for more details.
+By default it prints to stdout unless an output file is provided. For
+example, these are valid invocations:
+
+.B libinput record /dev/input/event3 touchpad.yml
+
+.B libinput record recording.yml
+
+.B libinput record --all all-devices.yml
+
+.B libinput record /dev/input/event3 /dev/input/event4 tp-and-keyboard.yml
+
+.PP
+The events recorded are independent of libinput itself, updating or
+removing libinput will not change the event stream.
+.SH OPTIONS
+If one or more device nodes are given, this tool opens those device nodes.
+Otherwise, a list of devices is presented and the user can select the device
+to record. If unsure, run without any arguments.
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-all
+Record all \fI/dev/input/event*\fR devices available on the system. This
+option should be used in exceptional cases only, the output file is almost
+always too noisy and replaying the recording may not be possible.
+This option requires \fB\-\-output-file\fR and no device
+nodes may be provided on the commandline.
+.TP 8
+.B \-\-autorestart=s
+Terminate the current recording after
+.I s
+seconds of device inactivity. This option requires that a
+\fB\-\-output-file\fR is specified. The output filename is used as prefix,
+suffixed with the date and time of the recording. The timeout must be
+greater than 0.
+.TP 8
+.B \-o filename.yml
+.PD 0
+.TP 8
+.B \-\-output-file=filename.yml
+.PD 1
+Specifies the output file to use. If \fB\-\-autorestart\fR is given,
+the filename is used as prefix only.
+Where \-\-output-file is not given and the first \fBor\fR last argument is
+not an input device, the first \fBor\fR last argument will be the output
+file.
+.TP 8
+.B \-\-grab
+Exclusively grab all opened devices. This will prevent events from being
+delivered to the host system.
+.TP 8
+.B \-\-show\-keycodes
+Show keycodes as-is in the recording. By default, common keys are obfuscated
+and printed as \fBKEY_A\fR to avoid information leaks.
+.TP 8
+.B \-\-with-libinput
+Record libinput events alongside device events.
+.B THIS FEATURE IS EXPERIMENTAL.
+See section
+.B RECORDING LIBINPUT EVENTS
+for more details.
+.TP 8
+.B \-\-with-hidraw
+Record hidraw events alongside device events.
+.B DO NOT TYPE SENSITIVE DATA.
+See
+.B RECORDING HID REPORTS
+for more details.
+
+.SH RECORDING MULTIPLE DEVICES
+Sometimes it is necessary to record the events from multiple devices
+simultaneously, e.g.  when an interaction between a touchpad and a keyboard
+causes a bug. \fBlibinput record\fR records multiple devices with
+an identical time offset, allowing for correct replay of the interaction.
+.PP
+If multiple devices are recorded, an output filename must be provided.
+.PP
+All devices to be recorded must be provided on the commandline, an example
+invocation is:
+
+.B libinput record \-o tap-bug /dev/input/event3 /dev/input/event7
+
+Note that when recording multiple devices, only the first device is printed
+immediately, all other devices and their events are printed on exit.
+
+.SH RECORDING LIBINPUT EVENTS
+When the \fB\-\-with-libinput\fR commandline option is given,
+\fBlibinput\-record\fR initializes a libinput context for the devices being
+recorded. Events from these contexts are printed alongside the evdev events.
+.B THIS FEATURE IS EXPERIMENTAL.
+.PP
+The primary purpose of this feature is debugging and event analysis, no
+caller may rely on any specific format of the events.
+.PP
+Note that while libinput and \fBlibinput\-record\fR see the same events from
+the device nodes, no guarantee can be given about the correct order of
+events. libinput events may come in earlier or later than the events from
+the device nodes and for some devices, libinput may internally alter the
+event stream before processing.
+.PP
+Note that the libinput context created by \fBlibinput\-record\fR does not
+affect the running desktop session and does not (can not!) copy any
+configuration options from that session.
+
+.SH RECORDING HID REPORTS
+When the \fB\-\-with-hidraw\fR commandline option is given,
+\fBlibinput\-record\fR searches for the hidraw node(s) of the given devices
+and prints any incoming HID reports from those devices.
+.PP
+HID reports are \fBnot obfuscated\fR and a sufficiently
+motivated person could recover the key strokes from the logs. Do not type
+passwords while recording HID reports.
+
+.SH FILE FORMAT
+The output file format is in YAML and intended to be both human-readable and
+machine-parseable. Below is a short example YAML file, all keys are detailed
+further below.
+.PP
+Any parsers must ignore keys not specified in the file format description.
+The version number field is only used for backwards-incompatible changes.
+.PP
+.nf
+.sp
+version: 1
+ndevices: 2
+libinput:
+  version: 1.10.0
+system:
+  os: "fedora:26"
+  kernel: "4.13.9-200.fc26.x86_64"
+  dmi: "dmi:bvnLENOVO:bvrGJET72WW(2.22):bd02/21/2014:svnLENOVO:..."
+devices:
+  - node: /dev/input/event9
+    evdev:
+      # Name: Synaptics TM2668-002
+      # ID: bus 0x1d vendor 0x6cb product 00 version 00
+      # Size in mm: 97x68
+      # Supported Events:
+      # Event type 0 (EV_SYN)
+
+      #.. abbreviated for man page ...
+
+      #
+      name: Synaptics TM2668-002
+      id: [29, 1739, 0, 0]
+      codes:
+        0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] # EV_SYN
+        1: [272, 325, 328, 330, 333, 334, 335] # EV_KEY
+        3: [0, 1, 24, 47, 48, 49, 52, 53, 54, 55, 57, 58] # EV_ABS
+      absinfo:
+        0: [0, 4089, 0, 0, 42]
+        1: [0, 2811, 0, 0, 41]
+        24: [0, 255, 0, 0, 0]
+        47: [0, 4, 0, 0, 0]
+        48: [0, 15, 0, 0, 0]
+        49: [0, 15, 0, 0, 0]
+        52: [0, 1, 0, 0, 0]
+        53: [0, 4089, 0, 0, 42]
+        54: [0, 2811, 0, 0, 41]
+        55: [0, 2, 0, 0, 0]
+        57: [0, 65535, 0, 0, 0]
+        58: [0, 255, 0, 0, 0]
+      properties: [0, 2, 4]
+    hid: [12, 23, 34, 45, ...]
+    udev:
+      properties:
+      - ID_INPUT_MOUSE=1
+      - ID_INPUT=1
+    quirks:
+      - ModelAppleTouchpad=1
+      - AttrSizeHint=32x32
+    events:
+      - hid:
+         time: [ 0, 0]
+	 hidraw0: [1, 2, 3, 4]
+      - evdev:
+        - [  0,      0,   3,  57,  1420] # EV_ABS / ABS_MT_TRACKING_ID   1420
+        - [  0,      0,   3,  53,  1218] # EV_ABS / ABS_MT_POSITION_X    1218
+        - [  0,      0,   3,  54,  1922] # EV_ABS / ABS_MT_POSITION_Y    1922
+        - [  0,      0,   3,  52,     0] # EV_ABS / ABS_MT_ORIENTATION      0
+        - [  0,      0,   3,  58,    47] # EV_ABS / ABS_MT_PRESSURE        47
+        - [  0,      0,   1, 330,     1] # EV_KEY / BTN_TOUCH               1
+        - [  0,      0,   1, 325,     1] # EV_KEY / BTN_TOOL_FINGER         1
+        - [  0,      0,   3,   0,  1218] # EV_ABS / ABS_X                1218
+        - [  0,      0,   3,   1,  1922] # EV_ABS / ABS_Y                1922
+        - [  0,      0,   3,  24,    47] # EV_ABS / ABS_PRESSURE           47
+        - [  0,      0,   0,   0,     0] # ------------ SYN_REPORT (0) ------- +0ms
+      - evdev:
+        - [  0,  11879,   3,  53,  1330] # EV_ABS / ABS_MT_POSITION_X    1330
+        - [  0,  11879,   3,  54,  1928] # EV_ABS / ABS_MT_POSITION_Y    1928
+        - [  0,  11879,   3,  58,    46] # EV_ABS / ABS_MT_PRESSURE        46
+        - [  0,  11879,   3,   0,  1330] # EV_ABS / ABS_X                1330
+        - [  0,  11879,   3,   1,  1928] # EV_ABS / ABS_Y                1928
+        - [  0,  11879,   3,  24,    46] # EV_ABS / ABS_PRESSURE           46
+        - [  0,  11879,   0,   0,     0] # ------------ SYN_REPORT (0) ------- +0ms
+  # second device (if any)
+  - node: /dev/input/event9
+    evdev: ...
+.PP
+.fi
+.in
+Top-level keys are listed below, see the respective
+subsection for details on each key.
+.PP
+
+.TP 8
+.B version: int
+The file format version. This version is only increased for
+backwards-incompatible changes. A parser must ignore unknown keys to be
+forwards-compatible.
+.TP 8
+.B ndevices: int
+The number of device recordings in this file. Always 1 unless recorded with
+.B --multiple
+.TP 8
+.B libinput: {...}
+A dictionary with libinput-specific information.
+.TP 8
+.B system: {...}
+A dictionary with system information.
+.TP 8
+.B devices: {...}
+A list of devices containing the description and and events of each device.
+
+.SS libinput
+.TP 8
+.B version: string
+libinput version
+
+.SS system
+Information about the system
+.TP 8
+.B os: string
+Distribution ID and version, see \fIos-release(5)\fR
+.TP 8
+.B kernel: string
+Kernel version, see \fIuname(1)\fR
+.TP 8
+.B dmi: string
+DMI modalias, see \fI/sys/class/dmi/id/modalias\fR
+
+.SS devices
+Information about and events from the recorded device nodes
+.TP 8
+.B node: string
+the device node recorded
+.TP 8
+.B evdev
+A dictionary with the evdev device information.
+.TP 8
+.B hid
+A list of integers representing the HID report descriptor bytes.
+.TP 8
+.B udev
+A dictionary with the udev device information.
+.TP 8
+.B events
+A list of dictionaries with the recorded events
+.SS evdev
+.TP 8
+.B name: string
+The device name
+.TP 8
+.B id: [bustype, vendor, product, version]
+The data from the \fBstruct input_id\fR, bustype, vendor, product, version.
+.TP 8
+.B codes: {type: [a, b, c ], ...}
+All evdev types and codes as nested dictionary. The evdev type is the key,
+the codes are a list.
+.TP 8
+.B absinfo: {code: [min, max, fuzz, flat, resolution], ...}
+An array of arrays with 6 decimal elements each, denoting the contents of a
+\fBstruct input_absinfo\fR. The first element is the code (e.g. \fBABS_X\fR)
+in decimal format.
+.TP 8
+.B properties: [0, 1, ...]
+Array with all \fBINPUT_PROP_FOO\fR constants. May be an empty array.
+.SS udev
+.TP 8
+.B properties: list of strings
+A list of udev properties in the \fBkey=value\fR format. This is not the
+complete list of properties assigned to the device but a subset that is
+relevant to libinput. These properties may include properties set on a
+parent device.
+.TP 8
+.B quirks: list of strings
+A list of device quirks the \fBkey=value\fR format.
+
+.SS events
+A list of the recorded events. The list contains dictionaries
+Information about the events. The content is a list of dictionaries, with
+the string identifying the type of event sequence.
+.TP 8
+.B { evdev: [ [sec, usec, type, code, value], ...] }
+Each \fBevdev\fR dictionary contains the contents of a \fBstruct
+input_event\fR in decimal format. The last item in the list is always the
+\fBSYN_REPORT\fR of this event frame. The next event frame starts a new
+\fBevdev\fR dictionary entry in the parent \fBevents\fR list.
+.TP 8
+.B { hid: "hidrawX": [ 12, 34, 56 ], ...] }
+The \fBhid\fR dictionary contains the hid reports in decimal format, with
+the hidraw node as key. The special key \fBtime\fR denotes the current time
+when the report was read from the kernel.
+.PP
+Note that the kernel does not provide timestamps for hidraw events and the
+timestamps provided are from \fBclock_gettime(3)\fR. They may be greater
+than a subsequent evdev event's timestamp.
+.SH NOTES
+.PP
+This tool records events from the kernel and is independent of libinput. In
+other words, updating or otherwise changing libinput will not alter the
+output from this tool. libinput itself does not need to be in use to record
+events.
+.SH LIBINPUT
+.PP
+Part of the
+.B libinput(1)
+suite

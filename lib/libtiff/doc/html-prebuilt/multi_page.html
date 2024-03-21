@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Multi Page / Multi Image TIFF &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="TIFF Functions Overview" href="functions.html" />
+    <link rel="prev" title="Using The TIFF Library" href="libtiff.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="functions.html" title="TIFF Functions Overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="libtiff.html" title="Using The TIFF Library"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Multi Page / Multi Image TIFF</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="multi-page-multi-image-tiff">
+<h1>Multi Page / Multi Image TIFF<a class="headerlink" href="#multi-page-multi-image-tiff" title="Permalink to this heading">¶</a></h1>
+<p>There may be more than one <a class="reference internal" href="terms.html#imagefiledirectory"><span class="std std-ref">Image File Directory (IFD)</span></a>
+in a TIFF file. Each IFD defines a <a class="reference internal" href="terms.html#subfile"><span class="std std-ref">subfile</span></a>.</p>
+<p>One potential use of <em>subfiles</em> is to describe related images,
+such as the pages of a facsimile transmission or reduced-resolution images
+of the first full-resolution image.
+Such files are also named “<em>multi-page</em> TIFF” or “<em>multi-image</em> TIFF”.</p>
+<p>There are two mechanisms for storing multiple images in a TIFF file:</p>
+<ol class="arabic simple">
+<li><p>A <strong>main-IFD chain</strong>, where the images are stored in linked IFDs (directories).
+This mechanism is widely used.</p></li>
+<li><p>A <strong>SubIFD chain</strong>, where additional images are stored within the SubIFD tag
+of a main-IFD. Such child images provide extra information for the parent image
+- such as a subsampled version of the parent image.
+SubIFD chains are rarely supported.
+For SubIFD refer also to
+<a class="reference external" href="https://www.awaresystems.be/imaging/tiff/specification/TIFFPM6.pdf">Adobe PageMaker® 6.0 TIFF Technical Notes</a></p></li>
+</ol>
+<section id="sub-ifd-chains">
+<span id="subifdaccess"></span><h2>Sub IFD chains<a class="headerlink" href="#sub-ifd-chains" title="Permalink to this heading">¶</a></h2>
+<p>In the case of several SubIFDs of a main image, there are two possibilities
+that are not even mutually exclusive.</p>
+<ol class="loweralpha simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">SubIFD</span></code> tag contains an array with all offsets of the SubIFDs.
+This is called SubIFD tree and DNG recommends the use of SubIFD trees,
+as described in the TIFF-EP specification. SubIFD chains are not supported.</p></li>
+<li><p>The SubIFDs are concatenated with their <code class="docutils literal notranslate"><span class="pre">NextIFD</span></code> parameters
+to a SubIFD chain.</p></li>
+</ol>
+<p>LibTiff does support SubIFD chains partially. When the first
+<code class="docutils literal notranslate"><span class="pre">SubIFD</span></code> tag is activated and read with <a class="reference internal" href="functions/TIFFSetDirectory.html#c.TIFFSetSubDirectory" title="TIFFSetSubDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetSubDirectory()</span></code></a>,
+the following can be parsed with <a class="reference internal" href="functions/TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a>.
+The <em>tif_curdir</em> is just incremented from its current value
+and thus gets arbitrary values when parsing through SubIFD chains.
+When the SubIFDs are not chained, each offset
+within the SubIFD array has to be activated and read individually.
+<a class="reference internal" href="functions/TIFFSetDirectory.html#c.TIFFSetDirectory" title="TIFFSetDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetDirectory()</span></code></a> only works with main-IFD chains because
+allways starts with the first main-IFD and thus is able to reset
+the SubIFD reading chain to the main-IFD chain.</p>
+</section>
+<section id="writing-multi-page-tiff">
+<h2>Writing Multi Page TIFF<a class="headerlink" href="#writing-multi-page-tiff" title="Permalink to this heading">¶</a></h2>
+<p>The following example code shows how to write multi-page TIFF
+as main-IFD chain and as SubIFD chain.
+<code class="docutils literal notranslate"><span class="pre">libtiff</span></code> writes SubIFDs as an array of IFDs that are not chained
+additionally, as Adobe PageMaker® 6.0 TIFF Technical Notes suggests.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">TIFF</span><span class="w"> </span><span class="o">*</span><span class="n">tiff</span><span class="p">;</span>
+
+<span class="w">    </span><span class="cm">/* Define the number of pages/images (main-IFDs) you are going to write */</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">number_of_images</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+
+<span class="cm">/* Define the number of sub - IFDs you are going to write */</span>
+<span class="cp">#define NUMBER_OF_SUBIFDs 2</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">number_of_sub_IFDs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NUMBER_OF_SUBIFDs</span><span class="p">;</span>
+<span class="w">    </span><span class="n">toff_t</span><span class="w"> </span><span class="n">sub_IFDs_offsets</span><span class="p">[</span><span class="n">NUMBER_OF_SUBIFDs</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="mi">0UL</span><span class="p">};</span><span class="w"> </span><span class="cm">/* array for SubIFD tag */</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">blnWriteSubIFD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">tiff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TIFFOpen</span><span class="p">(</span><span class="s">&quot;multiPageTiff2.tif&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;w&quot;</span><span class="p">)))</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">number_of_images</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">char</span><span class="w"> </span><span class="n">pixel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">128</span><span class="p">};</span>
+
+<span class="w">        </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_IMAGEWIDTH</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">        </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_IMAGELENGTH</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">        </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_SAMPLESPERPIXEL</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">        </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_BITSPERSAMPLE</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">);</span>
+<span class="w">        </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_PHOTOMETRIC</span><span class="p">,</span><span class="w"> </span><span class="n">PHOTOMETRIC_MINISBLACK</span><span class="p">);</span>
+
+<span class="w">        </span><span class="cm">/* For the last but one multi-page image, add a SubIFD e.g. for a</span>
+<span class="cm">        * thumbnail */</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">number_of_images</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">i</span><span class="p">)</span>
+<span class="w">            </span><span class="n">blnWriteSubIFD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">blnWriteSubIFD</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">           </span><span class="cm">/* Now here is the trick: the next n directories written</span>
+<span class="cm">            * will be sub-IFDs of the main-IFD (where n is number_of_sub_IFDs</span>
+<span class="cm">            * specified when you set the TIFFTAG_SUBIFD field.</span>
+<span class="cm">            * The SubIFD offset array sub_IFDs_offsets is filled automatically</span>
+<span class="cm">            * with the proper offset values by the following number_of_sub_IFDs</span>
+<span class="cm">            * TIFFWriteDirectory() calls and updated in the related main-IFD</span>
+<span class="cm">            * with the last call.</span>
+<span class="cm">            */</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_SUBIFD</span><span class="p">,</span><span class="w"> </span><span class="n">number_of_sub_IFDs</span><span class="p">,</span>
+<span class="w">                              </span><span class="n">sub_IFDs_offsets</span><span class="p">))</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="cm">/* Write dummy pixel to image */</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFWriteScanline</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">pixel</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">        </span><span class="cm">/* Write image / directory to file */</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">TIFFWriteDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">))</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">blnWriteSubIFD</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">           </span><span class="cm">/* A SubIFD tag has been written for that main-IFD and this</span>
+<span class="cm">            * triggers that pervious TIFFWriteDirectory() to switch to the</span>
+<span class="cm">            * SubIFD-chain for the next number_of_sub_IFDs writings.</span>
+<span class="cm">            * Thus, only the thumbnail images need to be</span>
+<span class="cm">            * set up and written to file using TIFFWriteDirectory().</span>
+<span class="cm">            * The last of this TIFFWriteDirectory() calls will setup</span>
+<span class="cm">            * the next fresh main-IFD.</span>
+<span class="cm">            */</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">number_of_sub_IFDs</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_IMAGEWIDTH</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">                </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_IMAGELENGTH</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">                </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_SAMPLESPERPIXEL</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">                </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_BITSPERSAMPLE</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">);</span>
+<span class="w">                </span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_PHOTOMETRIC</span><span class="p">,</span><span class="w"> </span><span class="n">PHOTOMETRIC_MINISBLACK</span><span class="p">);</span>
+<span class="w">                </span><span class="cm">/* SUBFILETYPE tag is not mandatory for SubIFD writing, but a</span>
+<span class="cm">                * good idea to indicate thumbnails */</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">TIFFSetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_SUBFILETYPE</span><span class="p">,</span>
+<span class="w">                                  </span><span class="n">FILETYPE_REDUCEDIMAGE</span><span class="p">))</span>
+<span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">                </span><span class="cm">/* Write dummy pixel to thumbnail image */</span>
+<span class="w">                </span><span class="n">pixel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="p">;</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFWriteScanline</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">pixel</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">                </span><span class="cm">/* Writes now in the SubIFD chain */</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">TIFFWriteDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">))</span>
+<span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">                </span><span class="n">blnWriteSubIFD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">TIFFClose</span><span class="p">(</span><span class="n">tiff</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="reading-multi-page-tiff">
+<h2>Reading Multi Page TIFF<a class="headerlink" href="#reading-multi-page-tiff" title="Permalink to this heading">¶</a></h2>
+<p>For a reading example see code of <cite>tools/tiffinfo.c</cite> or below:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Reading of multi-page and SubIFD images (subfiles) */</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">tiff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TIFFOpen</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;r&quot;</span><span class="p">)))</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="n">tdir_t</span><span class="w"> </span><span class="n">currentDirNumber</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TIFFCurrentDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">);</span>
+
+<span class="cm">/* The first directory is already read through TIFFOpen() */</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">blnRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="k">do</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="cm">/*Check if there are SubIFD subfiles */</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFGetField</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">TIFFTAG_SUBIFD</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">number_of_sub_IFDs</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ptr</span><span class="p">))</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="cm">/* Copy SubIFD array from pointer */</span>
+<span class="w">        </span><span class="n">memcpy</span><span class="p">(</span><span class="n">sub_IFDs_offsets</span><span class="p">,</span><span class="w"> </span><span class="n">ptr</span><span class="p">,</span>
+<span class="w">               </span><span class="n">number_of_sub_IFDs</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">sub_IFDs_offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span>
+
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">number_of_sub_IFDs</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="cm">/* Read first SubIFD directory */</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">TIFFSetSubDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">sub_IFDs_offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">            </span><span class="cm">/* Check if there is a SubIFD chain behind the first one from</span>
+<span class="cm">             * the array, as specified by Adobe */</span>
+<span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">TIFFReadDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">))</span>
+<span class="w">                </span><span class="cm">/* analyse subfile */</span>
+<span class="w">                </span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="cm">/* Go back to main-IFD chain and re-read that main-IFD directory */</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">TIFFSetDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">,</span><span class="w"> </span><span class="n">currentDirNumber</span><span class="p">))</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="cm">/* Read next main-IFD directory (subfile) */</span>
+<span class="w">    </span><span class="n">blnRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TIFFReadDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">);</span>
+<span class="w">    </span><span class="n">currentDirNumber</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TIFFCurrentDirectory</span><span class="p">(</span><span class="n">tiff</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">blnRead</span><span class="p">);</span>
+<span class="n">TIFFClose</span><span class="p">(</span><span class="n">tiff</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="terms.html"><span class="doc">Terminology</span></a>,
+<a class="reference internal" href="functions/TIFFSetDirectory.html"><span class="doc">TIFFSetDirectory</span></a> (3tiff),
+<a class="reference internal" href="functions/TIFFWriteDirectory.html"><span class="doc">TIFFWriteDirectory</span></a> (3tiff),
+<a class="reference external" href="https://www.awaresystems.be/imaging/tiff/specification/TIFFPM6.pdf">Adobe PageMaker® 6.0 TIFF Technical Notes</a>,
+<a class="reference external" href="https://stackoverflow.com/questions/11959617/in-a-tiff-create-a-sub-ifd-with-thumbnail-libtiff">Example from StackOverflow</a></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Multi Page / Multi Image TIFF</a><ul>
+<li><a class="reference internal" href="#sub-ifd-chains">Sub IFD chains</a></li>
+<li><a class="reference internal" href="#writing-multi-page-tiff">Writing Multi Page TIFF</a></li>
+<li><a class="reference internal" href="#reading-multi-page-tiff">Reading Multi Page TIFF</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="libtiff.html"
+                          title="previous chapter">Using The TIFF Library</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="functions.html"
+                          title="next chapter">TIFF Functions Overview</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/multi_page.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="functions.html" title="TIFF Functions Overview"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="libtiff.html" title="Using The TIFF Library"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Multi Page / Multi Image TIFF</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

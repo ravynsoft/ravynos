@@ -1,0 +1,91 @@
+Changes in TIFF v3.5.5
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.5.5 (:tag:`Release-v3-5-5`)
+  Previous Version        :doc:`v3.5.4 <v3.5.4>`
+  Master Download Site    `<ftp://ftp.onshore.com/pub/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* :file:`configure`: added test for libc6 for linux targets.  Bug reported by
+  `Stanislav Brabec <utx@k332.feld.cvut.cz>`_.
+* :file:`configure`: fixed bugs in sed scripts
+  (applied sed script ``s:/@:s;@:;s:/s;;:;:`` to configure).
+  fix submitted by `Stanislav Brabec <utx@k332.feld.cvut.cz>`_.
+* :file:`tools/iptcutil` was not in files list, and wasn't being
+  added to tar archive.  :file:`Updated Makefile.in`.
+* Added 3.5 docs to :file:`html/Makefile.in`.
+  Thanks to  `Stanislav Brabec <utx@k332.feld.cvut.cz>`_
+* Fixed :file:`tools/tiffcmp` so that ``stopondiff`` testing works.
+  Patch care of `Joseph Orost <joe@sanskrit.lz.att.com>`_.
+* Added :file:`fax3sm_winnt.c` to distribution list in :file:`Makefile.in`.
+* Added :file:`libtiff/libtiff.def` to ``TIFFILES`` distribution list.
+
+
+Library changes
+---------------
+
+* :file:`tif_fax3.c`: Fixed serious bug introduced during the ``uint16->uint32``
+  conversion for the run arrays.  
+* Set :c:member:`td_sampleformat` default to :c:macro:`SAMPLEFORMAT_UINT` instead of
+  :c:macro:`SAMPLEFORMAT_VOID` in :c:func:`TIFFDefaultDirectory` in :file:`tif_dir.c`.
+* Added "GetDefaulted" support for :c:macro:`TIFFTAG_SAMPLEFORMAT` in :file:`tif_aux.c`.
+* Patched :file:`tif_fax3.c` so that ``dsp->runs`` is allocated a bit bigger
+  to avoid overruns encountered with :file:`frle_bug.tif`.
+* Modified :file:`tif_unix.c` to support 2-4GB seeks if :c:macro:`USE_64BIT_API` is
+  set to 1, and added default (off) setting in :file:`tiffconf.h`.  This
+  should eventually be set by the configure script somehow.
+  The original work on all these 2-4GB changes was done by 
+  `Peter Smith <psmith@creo.com>`_.
+* Modified :file:`tif_win32.c` to support 2-4GB seeks.
+* tentatively changed :c:type:`toff_t` to be unsigned instead of signed to
+  facilitate support for 2-4GB files. 
+* Updated a variety of files to use :c:type:`toff_t`.  Fixed some mixups
+  between :c:type:`toff_t` and :c:type:`tsize_t`.
+* Set :c:member:`tif_rawdatasize` to zero when freeing raw data buffer in
+  :c:func:`TIFFWriteDirectory`.
+* Enabled :c:macro:`REWRITE_HACK` in :file:`tif_write.c` by default.
+* Fix bug in :file:`tif_write.c` when switching between reading one directory
+  and writing to another. 
+* Made :c:func:`TIFFWriteCheck` public, and added :c:func:`TIFFCreateDirectory`
+* Added :doc:`/functions/TIFFmemory` functions to :file:`libtiff.def`.
+* Added :file:`libtiff/libtiff.def` to ``TIFFILES`` distribution list.
+
+
+Tools changes
+-------------
+
+* :program:`fax2ps`:
+
+  * Fixed mixup of width and height in bounding box statement
+    as per submission by `Nalin Dahyabhai <nalin@redhat.com>`_.
+  * Modified :c:var:`printruns` to take :c:type:`uint32` instead of :c:type:`uint16`.
+    Patch courtesy of `Bernt Herd <herd@herdsoft.com>`_.
+* Largely reimplemented :file:`contrib/addtiffo` to avoid temp files,
+  updating the TIFF file in place.  Fixed a few other bugs to.
+* Altered descriptions in tools to reflect "by default" lzw not supported
+
+
+LZW compression kit changes
+---------------------------
+
+* created :file:`mangle-src.sh` -- sed scripts to munge src into LZW enabled format.
+  Thanks to `Stanislav Brabec <utx@k332.feld.cvut.cz>`_.
+* created :file:`Makefile`
+* merged :file:`tif_dir.c` with current source.
+* Created lzw compression kit, as a new CVS module (``libtiff-lzw-compression-kit``).
+* Updated :file:`index.html` to note lzw compression kit.

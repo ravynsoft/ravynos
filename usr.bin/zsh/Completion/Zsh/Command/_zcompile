@@ -1,0 +1,29 @@
+#compdef zcompile
+
+local state line expl curcontext="$curcontext" ret=1
+typeset -A opt_args
+
+_arguments -C -s \
+  "(-t -c -m -a)-U[don't expand aliases]" \
+  '(-t -M)-R[mark as read]' \
+  '(-t -R)-M[mark as mapped]' \
+  '(-t -c -m -a)*-k[ksh-style autoloading]' \
+  '(-t -c -m -a)*-z[zsh-style autoloading]' \
+  '(-t -U -z -k)-c[currently defined functions]' \
+  '(-t -U -z -k)-m[use names as patterns]' \
+  '(-t -U -z -k)-a[write autoload functions]' \
+  '(-M -R -U -z -k -a -c -m)-t[show table of contents]' \
+  '(-M -R -U -a -c -m -t):file:->file' \
+  '*:function:->function' && ret=0
+
+if [[ $state = function && -n $opt_args[(i)-[ac]] ]]; then
+  _wanted functions expl 'function to write' compadd -k functions && ret=0
+elif [[ -n $opt_args[(i)-[tca]] ]]; then
+  _description files expl 'zwc file'
+  _files -g '*.zwc(-.)' "$expl[@]" && ret=0
+else
+  _description files expl 'file'
+  _files "$expl[@]" && ret=0
+fi
+
+return ret

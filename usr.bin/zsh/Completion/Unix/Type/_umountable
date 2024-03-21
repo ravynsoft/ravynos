@@ -1,0 +1,44 @@
+#autoload
+local tmp
+local dev_tmp dpath_tmp mp_tmp mline
+
+case "$OSTYPE" in
+linux*|irix*)
+  tmp=( "${(@f)$(< /etc/mtab)}" )
+  dev_tmp=( "${(@)${(@)tmp%% *}:#none}" )
+  mp_tmp=( "${(@)${(@)tmp#* }%% *}" )
+  ;;
+freebsd*|dragonfly*)
+  /sbin/mount | while read mline; do
+    dev_tmp+=( $mline[(w)1] )
+    mp_tmp+=( $mline[(w)3] )
+  done
+;;
+darwin*)
+  tmp=( "${(@f)$(/sbin/mount)}" )
+  dev_tmp=( "${(@)${(@)tmp%% *}:#map}" )
+  mp_tmp=( "${(@)${(@)tmp#* on }%% \(*}" )
+  ;;
+*)
+  /sbin/mount | while read mline; do
+    mp_tmp+=( $mline[(w)1] )
+    dev_tmp+=( $mline[(w)3] )
+  done
+  ;;
+esac
+
+local MATCH MBEGIN MEND
+# The complicated substitution for mount point names is required because
+# characters in /etc/mtab that might confuse programs reading the names
+# are encoded as exactly 3 octal digits, like for example \040 for space.
+# The cleaner-looking ${(g::)mp_tmp} might consume too many digits.
+# Both mp_tmp and dev_tmp are derived from /etc/mtab or "mount" output.
+mp_tmp=("${(@)mp_tmp//(#m)\\[0-7](#c3)/${(#)$(( 8#${MATCH[2,-1]} ))}}")
+dev_tmp=("${(@)dev_tmp//(#m)\\[0-7](#c3)/${(#)$(( 8#${MATCH[2,-1]} ))}}")
+dpath_tmp=( "${(@M)dev_tmp:#/*}" )
+dev_tmp=( "${(@)dev_tmp:#/*}" )
+
+_alternative \
+  'device-labels:device label:compadd -a dev_tmp' \
+  'device-paths: device path:_canonical_paths -A dpath_tmp -N -M "r:|/=* r:|=*" device-paths device\ path' \
+  'directories:mount point:_canonical_paths -A mp_tmp -N -M "r:|/=* r:|=*" directories mount\ point'

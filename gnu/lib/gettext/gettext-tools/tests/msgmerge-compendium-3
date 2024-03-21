@@ -1,0 +1,54 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test compendium option.
+
+# Translation is available within the compendium (mm-c-3.com)
+# the old translation file (mm-c-3.in1) contains the same msgid
+# Why not make use of the translation from the compendium?
+
+cat <<EOF > mm-c-3.in1
+#: file.c:123
+msgid "1"
+msgstr "1x"
+
+#: file.c:345
+msgid "one, two, three"
+msgstr ""
+EOF
+
+cat <<EOF > mm-c-3.com
+#: file.c:345
+msgid "one, two, three"
+msgstr "1, 2, 3"
+EOF
+
+cat <<EOF > mm-c-3.pot
+#: file.c:123
+msgid "1"
+msgstr ""
+
+#: file.c:345
+msgid "one, two, three"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -C mm-c-3.com -o mm-c-3.tmp mm-c-3.in1 mm-c-3.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-3.tmp > mm-c-3.out || Exit 1
+
+cat << EOF > mm-c-3.ok
+#: file.c:123
+msgid "1"
+msgstr "1x"
+
+#: file.c:345
+msgid "one, two, three"
+msgstr "1, 2, 3"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-c-3.ok mm-c-3.out
+result=$?
+
+exit $result

@@ -1,0 +1,135 @@
+/**
+@mainpage
+
+This is the libinput API reference.
+
+This documentation is aimed at developers of Wayland compositors. User
+documentation is available
+[here](https://wayland.freedesktop.org/libinput/doc/latest).
+
+@section concepts Concepts
+
+@subsection concepts_initialization Initialization of a libinput context
+
+libinput provides two different backends:
+- a @ref libinput_udev_create_context "udev backend" where notifications
+  about new and removed devices are provided by udev, and
+- a @ref libinput_path_create_context "path backend" where
+  @ref libinput_path_add_device "device addition" and
+  @ref libinput_path_remove_device "device removal" need to be handled by
+  the caller.
+
+See section @ref base for information about initializing a libinput context.
+
+@subsection concepts_events Monitoring for events
+
+libinput exposes a single @ref libinput_get_fd "file descriptor" to the
+caller. This file descriptor should be monitored by the caller, whenever
+data is available the caller **must** immediately call libinput_dispatch().
+Failure to do so will result in erroneous behavior.
+
+libinput_dispatch() may result in one or more events being available to the
+caller. After libinput_dispatch() a caller **should** call
+libinput_get_event() to retrieve and process this event. Whenever
+libinput_get_event() returns `NULL`, no further events are available.
+
+See section @ref event for more information about events.
+
+@subsection concepts_seats Device grouping into seats
+
+All devices are grouped into physical and logical seats. Button and key
+states are available per-device and per-seat. See @ref seat for more
+information.
+
+@subsection concepts_devices Device capabilities
+
+libinput does not use device types. All devices have @ref
+libinput_device_has_capability "capabilities" that define which events may
+be generated. See @ref device for more information about devices.
+
+Specific event types include:
+- @ref event_keyboard
+- @ref event_pointer
+- @ref event_touch
+- @ref event_gesture
+- @ref event_tablet
+- @ref event_tablet_pad
+- @ref event_switch
+
+
+@subsection concepts_configuration Device configuration
+
+libinput relies on the caller for device configuration. See
+@ref config for more information.
+
+@subsection example An example libinput program
+
+The simplest libinput program looks like this:
+
+@code
+static int open_restricted(const char *path, int flags, void *user_data)
+{
+	int fd = open(path, flags);
+	return fd < 0 ? -errno : fd;
+}
+
+static void close_restricted(int fd, void *user_data)
+{
+	close(fd);
+}
+
+const static struct libinput_interface interface = {
+	.open_restricted = open_restricted,
+	.close_restricted = close_restricted,
+};
+
+
+int main(void) {
+	struct libinput *li;
+	struct libinput_event *event;
+
+	li = libinput_udev_create_context(&interface, NULL, udev);
+	libinput_udev_assign_seat(li, "seat0");
+	libinput_dispatch(li);
+
+	while ((event = libinput_get_event(li)) != NULL) {
+
+		// handle the event here
+
+		libinput_event_destroy(event);
+		libinput_dispatch(li);
+	}
+
+	libinput_unref(li);
+
+	return 0;
+}
+
+@endcode
+
+@section building_against Building against libinput
+
+libinput provides a
+[pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) file.
+Software that uses libinput should use pkg-config and the
+`PKG_CHECK_MODULES` autoconf macro.
+Otherwise, the most rudimentary way to compile and link a program against
+libinput is:
+
+@verbatim
+    gcc -o myprogram myprogram.c `pkg-config --cflags --libs libinput`
+@endverbatim
+
+For further information on using pkgconfig see the pkg-config documentation.
+
+@section stability Backwards-compatibility
+
+libinput promises backwards-compatibility across all the 1.x.y version. An
+application built against libinput 1.x.y will work with any future 1.*.*
+release.
+
+@section About
+
+Documentation generated from git commit [__GIT_VERSION__](https://gitlab.freedesktop.org/libinput/libinput/commit/__GIT_VERSION__)
+
+*/

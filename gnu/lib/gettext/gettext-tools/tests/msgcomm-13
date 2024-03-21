@@ -1,0 +1,95 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that --less-than=2 removes entries which occur more than twice.
+
+# one msg occurs 3 times (has to go away).
+# An unique msg in in3 has to stay.
+
+cat <<EOF > mcomm-test13.in1
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# occurs 3 times
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test13.in2
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:759
+msgid "1"
+msgstr ""
+EOF
+
+cat <<EOF > mcomm-test13.in3
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hunt.c:789
+msgid "1"
+msgstr ""
+
+# unique
+#: hunt.c:890
+msgid "2"
+msgstr ""
+EOF
+
+: ${MSGCOMM=msgcomm}
+
+# --unique is shorthand for --less-than=2; do we've to test both
+# switches?  Are 'for' loops allowed? -ke-
+${MSGCOMM} --less-than=2 --no-location --force-po -o mcomm-test13.tmp \
+    mcomm-test13.in1 mcomm-test13.in2 mcomm-test13.in3 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test13.tmp > mcomm-test13.out || Exit 1
+
+cat << EOF > mcomm-test13.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU one 1.2.3\n"
+"POT-Creation-Date: 2000-12-11 20:49+0100\n"
+"PO-Revision-Date: 2000-03-18 15:25+01:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# unique
+msgid "2"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test13.ok mcomm-test13.out
+result=$?
+
+exit $result

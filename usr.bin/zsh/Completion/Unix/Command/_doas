@@ -1,0 +1,23 @@
+#compdef doas
+
+local environ e cmd cpp
+local -a _comp_priv_prefix
+local -A opt_args
+
+zstyle -a ":completion:${curcontext}:" environ environ
+
+for e in "${environ[@]}"
+do local -x "$e"
+done
+
+cmd="$words[1]"
+cpp='_comp_priv_prefix=( $cmd -n ${(kv)opt_args[(I)-u]} )'
+_arguments -s -S -A '-*' : \
+  '(: * -)-L[clear any persisted authorizations]' \
+  '(-L)-a+[specify authentication style]:authentication style' \
+  '(-L -n -s)-C+[check config file and report on command matching]:config:_files' \
+  '(-C -L)-n[non-interactive: fail rather than prompt for a password]' \
+  '(-C -L *)-s[run a shell]' \
+  '(-L)-u+[run command as specified user]: :_users' \
+  "(-)1: :{ $cpp; _command_names -e }" \
+  "*:: :{ $cpp; _normal }"

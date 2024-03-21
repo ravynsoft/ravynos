@@ -1,0 +1,54 @@
+#compdef mondoarchive
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '(-V)-O[create backup]' \
+  '(-O)-V[verify backup]' \
+  '(-c -C -i -n -w)-c[use CD-R as backup media]:CD-R burn speed' \
+  '(-c -C -i -n -w)-C[use CD-R as streaming device (experimental)]:CD-R burn speed' \
+  '(-c -C -i -n -w)-i[use ISO image as backup media]' \
+  '(-c -C -i -n -w)-n[use NFS mountpoint as backup media]:NFS mountpoint' \
+  '(-c -C -i -n -w)-w[use CD-RW as backup media]:CD-RW burn speed' \
+  '-D[differential backup]' \
+  '-E[exclude path(s) from backup]:paths to exclude from backup:->quoted_path' \
+  '-I[path(s) to backup]:paths to include in backup:->quoted_path' \
+  '-d[backup device]:backup device' \
+  '-g[run in fullscreen mode]' \
+  '-k[path to kernel]:path to kernel:->kernel_or_magic' \
+  '-m[manual eject]' \
+  '-s[media size]:media size]' \
+  '-x[non-linux partition]:non-linux partition:_files -g "*(%b)"' \
+  '(-1 -2 -3 -4 -5 -6 -7 -8 -9)-'{1,2,3,4,5,6,7,8,9}'[compression level]' \
+  '-A[post ISO-creation command]:pre ISO-creation command' \
+  '-B[pre iSO-creation command]:post ISO-creation command' \
+  '-F[do not create floppy]' \
+  '-H[create autorestore image]' \
+  '-L[use lzo instead of bzip2]' \
+  '-P[post-nuke tarball]:post-nuke tarball:_files -g "*.(#i)(tar.gz|tgz)(-.)"' \
+  '-S[scratch directory]:scratch directory:_files -/' \
+  '-T[temporary directory]:temporary directory:_files -/' \
+  '-f[device with MBR]:device with MBR:_files -g "*(%b)"' \
+  '-l[bootloader type]:bootloader type:(GRUB LILO)' && ret=0
+
+case $state in
+  quoted_path)
+    local suf="/ \t\n"
+    [[ -n $compstate[quote] ]] && { suf="$compstate[quote]$suf"; compset -q; }
+    _files -r $suf && ret=0
+  ;;
+  kernel_or_magic)
+    _tags kernel magic
+    while _tags; do
+      _requested magic expl "keyword" \
+	compadd -- FAILSAFE && ret=0
+      _requested kernel expl "path to kernel image" \
+	_files && ret=0
+  
+      (( ret )) || break
+    done
+  ;;
+esac
+
+return ret

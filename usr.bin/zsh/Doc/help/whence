@@ -1,0 +1,64 @@
+whence [ -vcwfpamsS ] [ -x num ] name ...
+       For each name, indicate how it would be interpreted if used as a
+       command name.
+
+       If  name  is  not  an alias, built-in command, external command,
+       shell function, hashed command, or a  reserved  word,  the  exit
+       status  shall be non-zero, and -- if -v, -c, or -w was passed --
+       a message will be written to standard output.  (This is  differ-
+       ent  from  other  shells that write that message to standard er-
+       ror.)
+
+       whence is most useful when name is only the last path  component
+       of  a  command, i.e. does not include a `/'; in particular, pat-
+       tern matching only succeeds if just the non-directory  component
+       of the command is passed.
+
+       -v     Produce a more verbose report.
+
+       -c     Print  the  results  in  a  csh-like  format.  This takes
+              precedence over -v.
+
+       -w     For each name, print `name: word' where word  is  one  of
+              alias,  builtin,  command,  function, hashed, reserved or
+              none, according  as  name  corresponds  to  an  alias,  a
+              built-in  command, an external command, a shell function,
+              a command defined with the hash builtin, a reserved word,
+              or  is not recognised.  This takes precedence over -v and
+              -c.
+
+       -f     Causes the contents of a shell function to be  displayed,
+              which  would otherwise not happen unless the -c flag were
+              used.
+
+       -p     Do a path search for name even if it  is  an  alias,  re-
+              served word, shell function or builtin.
+
+       -a     Do  a  search  for all occurrences of name throughout the
+              command path.  Normally  only  the  first  occurrence  is
+              printed.
+
+       -m     The  arguments  are taken as patterns (pattern characters
+              should be quoted), and the information is  displayed  for
+              each command matching one of these patterns.
+
+       -s     If  a  pathname contains symlinks, print the symlink-free
+              pathname as well.
+
+       -S     As -s, but if the pathname had to be resolved by  follow-
+              ing   multiple   symlinks,  the  intermediate  steps  are
+              printed, too.  The symlink resolved at each step might be
+              anywhere in the path.
+
+       -x num Expand  tabs when outputting shell functions using the -c
+              option.  This has the same effect as the -x option to the
+              functions builtin.
+
+type [ -wfpamsS ] name ...
+       Equivalent to whence -v.
+
+where [ -wpmsS ] [ -x num ] name ...
+       Equivalent to whence -ca.
+
+which [ -wpamsS ] [ -x num ] name ...
+       Equivalent to whence -c.

@@ -1,0 +1,32 @@
+#autoload
+
+# Utility function to call a function if it exists.
+#
+# Usage: _call_function <return> <name> [ <args> ... ]
+#
+# If a function named <name> is defined (or defined to be autoloaded),
+# it is called. If <return> is given not the string `-' or empty, it is
+# taken as the name of a parameter and the return status of the function
+# called is stored in this parameter. All other arguments are given
+# to the function called.
+# The return value of this function is zero if the function was
+# called and non-zero otherwise.
+
+local _name _ret
+
+[[ "$1" != (|-) ]] && _name="$1"
+
+shift
+
+if (( $+functions[$1] )); then
+  "$@"
+  _ret="$?"
+
+  [[ -n "$_name" ]] && eval "${_name}=${_ret}"
+
+  compstate[restore]=''
+
+  return 0
+fi
+
+return 1

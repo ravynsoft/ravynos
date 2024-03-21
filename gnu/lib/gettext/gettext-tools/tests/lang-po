@@ -1,0 +1,61 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the PO/POT format.
+
+# Test with POT format.
+
+cat <<\EOF > prog-in.pot
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, c-format
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format
+msgid "%s is replaced by %s."
+msgstr ""
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --add-location prog-in.pot || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+: ${DIFF=diff}
+${DIFF} prog-in.pot prog.pot || Exit 1
+
+# Test with PO format.
+
+cat <<\EOF > prog-in.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, c-format
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "%d morceaux de gateau"
+
+# Reverse the arguments.
+#, c-format
+msgid "%s is replaced by %s."
+msgstr "%2$s remplace %1$s."
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp.po --omit-header --add-location prog-in.po || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp.po > prog.po || Exit 1
+
+: ${DIFF=diff}
+${DIFF} prog-in.po prog.po || Exit 1
+
+Exit 0

@@ -1240,12 +1240,18 @@ zfs_prune_aliases(zfsvfs_t *zfsvfs, unsigned long nr_to_scan)
  * and inode caches.  This can occur when the ARC needs to free meta data
  * blocks but can't because they are all pinned by entries in these caches.
  */
+#if defined(HAVE_SUPER_BLOCK_S_SHRINK)
+#define	S_SHRINK(sb)	(&(sb)->s_shrink)
+#elif defined(HAVE_SUPER_BLOCK_S_SHRINK_PTR)
+#define	S_SHRINK(sb)	((sb)->s_shrink)
+#endif
+
 int
 zfs_prune(struct super_block *sb, unsigned long nr_to_scan, int *objects)
 {
 	zfsvfs_t *zfsvfs = sb->s_fs_info;
 	int error = 0;
-	struct shrinker *shrinker = &sb->s_shrink;
+	struct shrinker *shrinker = S_SHRINK(sb);
 	struct shrink_control sc = {
 		.nr_to_scan = nr_to_scan,
 		.gfp_mask = GFP_KERNEL,
@@ -1257,7 +1263,7 @@ zfs_prune(struct super_block *sb, unsigned long nr_to_scan, int *objects)
 #if defined(HAVE_SPLIT_SHRINKER_CALLBACK) && \
 	defined(SHRINK_CONTROL_HAS_NID) && \
 	defined(SHRINKER_NUMA_AWARE)
-	if (sb->s_shrink.flags & SHRINKER_NUMA_AWARE) {
+	if (shrinker->flags & SHRINKER_NUMA_AWARE) {
 		*objects = 0;
 		for_each_online_node(sc.nid) {
 			*objects += (*shrinker->scan_objects)(shrinker, &sc);
@@ -1330,12 +1336,11 @@ zfsvfs_teardown(zfsvfs_t *zfsvfs, boolean_t unmounting)
 		 * may add the parents of dir-based xattrs to the taskq
 		 * so we want to wait for these.
 		 *
-		 * We can safely read z_nr_znodes without locking because the
-		 * VFS has already blocked operations which add to the
-		 * z_all_znodes list and thus increment z_nr_znodes.
+		 * We can safely check z_all_znodes for being empty because the
+		 * VFS has already blocked operations which add to it.
 		 */
 		int round = 0;
-		while (zfsvfs->z_nr_znodes > 0) {
+		while (!list_is_empty(&zfsvfs->z_all_znodes)) {
 			taskq_wait_outstanding(dsl_pool_zrele_taskq(
 			    dmu_objset_pool(zfsvfs->z_os)), 0);
 			if (++round > 1 && !unmounting)
@@ -1489,7 +1494,7 @@ zfs_domount(struct super_block *sb, zfs_mnt_t *zm, int silent)
 	 * read-only flag, pretend it was set, as done for snapshots.
 	 */
 	if (!canwrite)
-		vfs->vfs_readonly = true;
+		vfs->vfs_readonly = B_TRUE;
 
 	error = zfsvfs_create(osname, vfs->vfs_readonly, &zfsvfs);
 	if (error) {

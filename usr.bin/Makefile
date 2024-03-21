@@ -1,4 +1,3 @@
-#	From: @(#)Makefile	8.3 (Berkeley) 1/7/94
 
 .include <src.opts.mk>
 
@@ -22,6 +21,7 @@ SUBDIR=	alias \
 	chat \
 	chpass \
 	cksum \
+        cmake \
 	cmp \
 	col \
 	colrm \
@@ -91,6 +91,7 @@ SUBDIR=	alias \
 	m4 \
 	mandoc \
 	mesg \
+        meson \
 	migcom \
 	ministat \
 	mkdep \
@@ -99,12 +100,14 @@ SUBDIR=	alias \
 	mktemp \
 	mkuzip \
 	mt \
+        nasm \
 	ncal \
 	ncurses \
 	netstat \
 	newgrp \
 	nfsstat \
 	nice \
+        ninja \
 	nl \
 	nohup \
 	notifyutil \
@@ -160,6 +163,7 @@ SUBDIR=	alias \
 	truncate \
 	tsort \
 	tty \
+        turbo-editor \
 	uname \
 	unexpand \
 	uniq \
@@ -184,6 +188,7 @@ SUBDIR=	alias \
 	xz \
 	xzdec \
 	yes \
+        zsh \
 	zstd
 
 # NB: keep these sorted by MK_* knobs

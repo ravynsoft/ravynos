@@ -1,0 +1,64 @@
+Changes in TIFF v4.0.2
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.2 (:tag:`Release-v4-0-2`)
+    Previous Version        :doc:`v4.0.1 <v4.0.1>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site        `<https://download.osgeo.org/libtiff/>`_
+    ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here
+
+
+Major changes
+-------------
+
+* None
+
+
+Software configuration changes
+------------------------------
+
+* None
+
+
+Library changes
+---------------
+
+* :file:`tif_getimage.c`: added support for _SEPARATED CMYK images.
+
+* :file:`tif_getimage.c`: Added support for greyscale + alpha.
+
+* Added :c:func:`TIFFCreateCustomDirectory` and :file:`TIFFCreateEXIFDirectory` functions.
+
+* :file:`tif_print.c`: Lots of fixes around printing corrupt or hostile input.
+    
+* Improve handling of corrupt ycbcrsubsampling values. 
+
+* :file:`tif_unix.c`: use :c:func:`strerror` to get meaningful error messages.
+
+* :file:`tif_jpeg.c`: fix serious bugs in :c:func:`JPEGDecodeRaw`.
+
+* :file:`tif_jpeg.c`: Fix size overflow (zdi-can-1221, :cve:`2012-1173`).
+
+
+Tools changes
+-------------
+
+* :program:`tiff2pdf`:  Defend against integer overflows while
+  calculating required buffer sizes (:cve:`2012-2113`).
+
+
+Contributed software changes
+----------------------------
+
+* None

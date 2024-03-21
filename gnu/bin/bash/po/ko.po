@@ -1,0 +1,5541 @@
+# Korean Translation for bash
+# Copyright (C) 2019 Free Software Foundation, Inc.
+# This file is distributed under the same license as the bash package.
+# SooHyun Kim <soohyunkim@kw.ac.kr>, 2019.
+# Seong-ho Cho <darkcircle.0426@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bash-5.2-rc1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-01-11 14:50-0500\n"
+"PO-Revision-Date: 2022-06-25 01:50+0900\n"
+"Last-Translator: Seong-ho Cho <darkcircle.0426@gmail.com>\n"
+"Language-Team: Korean <translation-team-ko@googlegroups.com>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 2.3.1\n"
+
+#: arrayfunc.c:66
+msgid "bad array subscript"
+msgstr "잘못된 배열 첨자"
+
+#: arrayfunc.c:471 builtins/declare.def:709 variables.c:2242 variables.c:2268
+#: variables.c:3101
+#, c-format
+msgid "%s: removing nameref attribute"
+msgstr "%s: 이름 참조 속성을 지우는 중"
+
+#: arrayfunc.c:496 builtins/declare.def:868
+#, c-format
+msgid "%s: cannot convert indexed to associative array"
+msgstr "%s: 색인 배열을 연관 배열로 변환할 수 없음"
+
+#: arrayfunc.c:777
+#, c-format
+msgid "%s: cannot assign to non-numeric index"
+msgstr "%s: 숫자가 아닌 인덱스에 할당할 수 없음"
+
+#: arrayfunc.c:822
+#, c-format
+msgid "%s: %s: must use subscript when assigning associative array"
+msgstr "%s: %s: 연관 배열을 할당하려면 반드시 첨자를 사용해야 함"
+
+#: bashhist.c:455
+#, c-format
+msgid "%s: cannot create: %s"
+msgstr "%s: 생성할 수 없음: %s"
+
+#: bashline.c:4479
+msgid "bash_execute_unix_command: cannot find keymap for command"
+msgstr "bash_execute_unix_command: 명령의 keymap을 찾을 수 없음"
+
+#: bashline.c:4637
+#, c-format
+msgid "%s: first non-whitespace character is not `\"'"
+msgstr "%s: 공백이 아닌 첫 문자가 `\"'가 아님"
+
+#: bashline.c:4666
+#, c-format
+msgid "no closing `%c' in %s"
+msgstr "%2$s에 닫는 `%1$c' 없음"
+
+#: bashline.c:4697
+#, c-format
+msgid "%s: missing colon separator"
+msgstr "%s: 콜론 구분자 없음"
+
+#: bashline.c:4733
+#, c-format
+msgid "`%s': cannot unbind in command keymap"
+msgstr "`%s': 명령 keymap의 바인딩을 해제할 수 없음"
+
+#: braces.c:327
+#, c-format
+msgid "brace expansion: cannot allocate memory for %s"
+msgstr "괄호 확장: %s의 메모리를 할당할 수 없음"
+
+#: braces.c:406
+#, c-format
+msgid "brace expansion: failed to allocate memory for %u elements"
+msgstr "괄호 확장: 요소 %u개에서 메모리 할당 실패"
+
+#: braces.c:451
+#, c-format
+msgid "brace expansion: failed to allocate memory for `%s'"
+msgstr "괄호 확장: `%s'의 메모리 할당 실패"
+
+#: builtins/alias.def:131 variables.c:1817
+#, c-format
+msgid "`%s': invalid alias name"
+msgstr "`%s': 부적절한 별명"
+
+#: builtins/bind.def:122 builtins/bind.def:125
+msgid "line editing not enabled"
+msgstr "줄 편집 기능 꺼짐"
+
+#: builtins/bind.def:212
+#, c-format
+msgid "`%s': invalid keymap name"
+msgstr "`%s': 부적절한 keymap 이름"
+
+#: builtins/bind.def:252
+#, c-format
+msgid "%s: cannot read: %s"
+msgstr "%s: %s을(를) 읽을 수 없음"
+
+#: builtins/bind.def:328 builtins/bind.def:358
+#, c-format
+msgid "`%s': unknown function name"
+msgstr "`%s': 알 수 없는 함수 이름"
+
+#: builtins/bind.def:336
+#, c-format
+msgid "%s is not bound to any keys.\n"
+msgstr "%s은(는) 어떤 키에도 바인딩하지 않음.\n"
+
+#: builtins/bind.def:340
+#, c-format
+msgid "%s can be invoked via "
+msgstr "%s은(는) 다음을 통해 호출될 수 있음 "
+
+#: builtins/bind.def:378 builtins/bind.def:395
+#, c-format
+msgid "`%s': cannot unbind"
+msgstr "`%s': 바인딩 해제 불가"
+
+#: builtins/break.def:77 builtins/break.def:119
+msgid "loop count"
+msgstr "반복 횟수"
+
+#: builtins/break.def:139
+msgid "only meaningful in a `for', `while', or `until' loop"
+msgstr "'for', 'while', 'until' 반복문에서만 의미 있음"
+
+#: builtins/caller.def:136
+msgid ""
+"Returns the context of the current subroutine call.\n"
+"    \n"
+"    Without EXPR, returns \"$line $filename\".  With EXPR, returns\n"
+"    \"$line $subroutine $filename\"; this extra information can be used to\n"
+"    provide a stack trace.\n"
+"    \n"
+"    The value of EXPR indicates how many call frames to go back before the\n"
+"    current one; the top frame is frame 0."
+msgstr ""
+"현재 하위루틴 호출의 컨텍스트를 반환합니다.\n"
+"    \n"
+"    <표현식>을 지정하지 않으면 \"$line $filename\"을 반환합니다.\n"
+"    <표현식>을 지정하면 \"$line $subroutine $filename\"을 반환합니다.\n"
+"    추가 정보는 스택 추적을 제공할 때 활용할 수 있습니다.\n"
+"    \n"
+"    <표현식>의 값은 현재 호출 프레임에서 얼마나 뒤로 돌아가야 하는지를\n"
+"    나타냅니다. 최상단 호출 프레임은 프레임 0번입니다."
+
+#: builtins/cd.def:327
+msgid "HOME not set"
+msgstr "HOME 설정하지 않음"
+
+#: builtins/cd.def:335 builtins/common.c:161 test.c:916
+msgid "too many arguments"
+msgstr "인자가 너무 많음"
+
+#: builtins/cd.def:342
+msgid "null directory"
+msgstr "디렉터리 값이 비어있음"
+
+#: builtins/cd.def:353
+msgid "OLDPWD not set"
+msgstr "OLDPWD 설정하지 않음"
+
+#: builtins/common.c:96
+#, c-format
+msgid "line %d: "
+msgstr "행 %d번: "
+
+#: builtins/common.c:134 error.c:264
+#, c-format
+msgid "warning: "
+msgstr "경고: "
+
+#: builtins/common.c:148
+#, c-format
+msgid "%s: usage: "
+msgstr "%s: 사용법: "
+
+#: builtins/common.c:193 shell.c:524 shell.c:866
+#, c-format
+msgid "%s: option requires an argument"
+msgstr "%s: 옵션에 인자가 필요함"
+
+#: builtins/common.c:200
+#, c-format
+msgid "%s: numeric argument required"
+msgstr "%s: 숫자 인자가 필요함"
+
+#: builtins/common.c:207
+#, c-format
+msgid "%s: not found"
+msgstr "%s: 찾을 수 없음"
+
+#: builtins/common.c:216 shell.c:879
+#, c-format
+msgid "%s: invalid option"
+msgstr "%s: 부적절한 옵션"
+
+#: builtins/common.c:223
+#, c-format
+msgid "%s: invalid option name"
+msgstr "%s: 부적절한 옵션 이름"
+
+#: builtins/common.c:230 execute_cmd.c:2402 general.c:368 general.c:373
+#, c-format
+msgid "`%s': not a valid identifier"
+msgstr "`%s': 적절한 식별자 아님"
+
+#: builtins/common.c:240
+msgid "invalid octal number"
+msgstr "부적절한 8진수"
+
+#: builtins/common.c:242
+msgid "invalid hex number"
+msgstr "부적절한 16진수"
+
+#: builtins/common.c:244 expr.c:1574
+msgid "invalid number"
+msgstr "부적절한 숫자"
+
+#: builtins/common.c:252
+#, c-format
+msgid "%s: invalid signal specification"
+msgstr "%s: 부적절한 시그널 정의"
+
+#: builtins/common.c:259
+#, c-format
+msgid "`%s': not a pid or valid job spec"
+msgstr "`%s': PID가 아니거나 적절한 작업 명세 없음"
+
+#: builtins/common.c:266 error.c:536
+#, c-format
+msgid "%s: readonly variable"
+msgstr "%s: 읽기 전용 변수임"
+
+#: builtins/common.c:273
+#, c-format
+msgid "%s: cannot assign"
+msgstr "%s: 할당할 수 없음"
+
+#: builtins/common.c:281
+#, c-format
+msgid "%s: %s out of range"
+msgstr "%s: %s이(가) 범위를 벗어남"
+
+#: builtins/common.c:281 builtins/common.c:283
+msgid "argument"
+msgstr "인자"
+
+#: builtins/common.c:283
+#, c-format
+msgid "%s out of range"
+msgstr "%s이(가) 범위를 벗어남"
+
+#: builtins/common.c:291
+#, c-format
+msgid "%s: no such job"
+msgstr "%s: 그런 작업이 없음"
+
+#: builtins/common.c:299
+#, c-format
+msgid "%s: no job control"
+msgstr "%s: 작업 컨트롤 없음"
+
+#: builtins/common.c:301
+msgid "no job control"
+msgstr "작업 컨트롤 없음"
+
+#: builtins/common.c:311
+#, c-format
+msgid "%s: restricted"
+msgstr "%s: 제한됨"
+
+#: builtins/common.c:313
+msgid "restricted"
+msgstr "제한됨"
+
+#: builtins/common.c:321
+#, c-format
+msgid "%s: not a shell builtin"
+msgstr "%s: 셸 내장 명령이 아님"
+
+#: builtins/common.c:330
+#, c-format
+msgid "write error: %s"
+msgstr "쓰기 오류: %s"
+
+#: builtins/common.c:338
+#, c-format
+msgid "error setting terminal attributes: %s"
+msgstr "터미널 속성 설정 오류: %s"
+
+#: builtins/common.c:340
+#, c-format
+msgid "error getting terminal attributes: %s"
+msgstr "터미널 속성 읽기 오류: %s"
+
+#: builtins/common.c:642
+#, c-format
+msgid "%s: error retrieving current directory: %s: %s\n"
+msgstr "%s: 현재 디렉터리 가져오는 중 오류 발생: %s: %s\n"
+
+#: builtins/common.c:708 builtins/common.c:710
+#, c-format
+msgid "%s: ambiguous job spec"
+msgstr "%s: 모호한 작업 명세"
+
+#: builtins/common.c:971
+msgid "help not available in this version"
+msgstr "이 버전에는 도움말이 없습니다"
+
+#: builtins/common.c:1038 builtins/set.def:953 variables.c:3825
+#, c-format
+msgid "%s: cannot unset: readonly %s"
+msgstr "%s: 설정 해제할 수 없음: %s이(가) 읽기 전용임"
+
+#: builtins/common.c:1043 builtins/set.def:932 variables.c:3830
+#, c-format
+msgid "%s: cannot unset"
+msgstr "%s: 설정 해제할 수 없음"
+
+#: builtins/complete.def:287
+#, c-format
+msgid "%s: invalid action name"
+msgstr "%s: 부적절한 액션 이름"
+
+#: builtins/complete.def:486 builtins/complete.def:642
+#: builtins/complete.def:873
+#, c-format
+msgid "%s: no completion specification"
+msgstr "%s: 완성 명세 없음"
+
+#: builtins/complete.def:696
+msgid "warning: -F option may not work as you expect"
+msgstr "경고: -F 옵션이 예상대로 작동하지 않을 수 있음"
+
+#: builtins/complete.def:698
+msgid "warning: -C option may not work as you expect"
+msgstr "경고: -C 옵션이 예상대로 작동하지 않을 수 있음"
+
+#: builtins/complete.def:846
+msgid "not currently executing completion function"
+msgstr "완성 함수를 현재 실행하고 있지 않음"
+
+#: builtins/declare.def:137
+msgid "can only be used in a function"
+msgstr "함수에서만 사용할 수 있음"
+
+#: builtins/declare.def:437
+msgid "cannot use `-f' to make functions"
+msgstr "함수 구성에 `-f' 옵션을 사용할 수 없음"
+
+#: builtins/declare.def:464 execute_cmd.c:6132
+#, c-format
+msgid "%s: readonly function"
+msgstr "%s: 읽기 전용 함수"
+
+#: builtins/declare.def:521 builtins/declare.def:804
+#, c-format
+msgid "%s: reference variable cannot be an array"
+msgstr "%s: 참조 변수로 배열이 올 수 없음"
+
+#: builtins/declare.def:532 variables.c:3359
+#, c-format
+msgid "%s: nameref variable self references not allowed"
+msgstr "%s: 이름 참조 변수의 자가 참조를 허용하지 않음"
+
+#: builtins/declare.def:537 variables.c:2072 variables.c:3278 variables.c:3286
+#: variables.c:3356
+#, c-format
+msgid "%s: circular name reference"
+msgstr "%s: 순환 이름 참조"
+
+#: builtins/declare.def:541 builtins/declare.def:811 builtins/declare.def:820
+#, c-format
+msgid "`%s': invalid variable name for name reference"
+msgstr "`%s': 이름 참조의 부적절한 변수 이름"
+
+#: builtins/declare.def:856
+#, c-format
+msgid "%s: cannot destroy array variables in this way"
+msgstr "%s: 이 방법으로 배열 변수를 해체할 수 없음"
+
+#: builtins/declare.def:862 builtins/read.def:887
+#, c-format
+msgid "%s: cannot convert associative to indexed array"
+msgstr "%s: 참조 배열을 색인 배열로 변환할 수 없음"
+
+#: builtins/declare.def:891
+#, c-format
+msgid "%s: quoted compound array assignment deprecated"
+msgstr "%s: 따옴표를 이용한 복합 배열 할당은 향후 제거 예정"
+
+#: builtins/enable.def:145 builtins/enable.def:153
+msgid "dynamic loading not available"
+msgstr "동적 불러오기 불가"
+
+#: builtins/enable.def:376
+#, c-format
+msgid "cannot open shared object %s: %s"
+msgstr "%s 공유 객체를 열 수 없음: %s"
+
+#: builtins/enable.def:405
+#, c-format
+msgid "cannot find %s in shared object %s: %s"
+msgstr "%2$s 공유 객체에서 %1$s을(를) 찾을 수 없음: %3$s"
+
+#: builtins/enable.def:422
+#, c-format
+msgid "%s: dynamic builtin already loaded"
+msgstr "%s: 동적 내장 명령을 이미 불러왔습니다"
+
+#: builtins/enable.def:426
+#, c-format
+msgid "load function for %s returns failure (%d): not loaded"
+msgstr "%s에 대한 함수 불러오기 중 실패 반환 (%d): 불러오지 않음"
+
+#: builtins/enable.def:551
+#, c-format
+msgid "%s: not dynamically loaded"
+msgstr "%s: 동적으로 불러오지 않음"
+
+#: builtins/enable.def:577
+#, c-format
+msgid "%s: cannot delete: %s"
+msgstr "%s: 삭제할 수 없음: %s"
+
+#: builtins/evalfile.c:138 builtins/hash.def:185 execute_cmd.c:5959
+#, c-format
+msgid "%s: is a directory"
+msgstr "%s: 디렉터리임"
+
+#: builtins/evalfile.c:144
+#, c-format
+msgid "%s: not a regular file"
+msgstr "%s: 일반 파일이 아님"
+
+#: builtins/evalfile.c:153
+#, c-format
+msgid "%s: file is too large"
+msgstr "%s: 파일이 너무 큼"
+
+#: builtins/evalfile.c:188 builtins/evalfile.c:206 shell.c:1673
+#, c-format
+msgid "%s: cannot execute binary file"
+msgstr "%s: 이진 파일을 실행할 수 없음"
+
+#: builtins/exec.def:158 builtins/exec.def:160 builtins/exec.def:246
+#, c-format
+msgid "%s: cannot execute: %s"
+msgstr "%s: 실행할 수 없음: %s"
+
+#: builtins/exit.def:64
+#, c-format
+msgid "logout\n"
+msgstr "로그아웃\n"
+
+#: builtins/exit.def:89
+msgid "not login shell: use `exit'"
+msgstr "로그인 셸이 아님: `exit'를 사용하십시오"
+
+#: builtins/exit.def:121
+#, c-format
+msgid "There are stopped jobs.\n"
+msgstr "멈춘 작업이 있습니다.\n"
+
+#: builtins/exit.def:123
+#, c-format
+msgid "There are running jobs.\n"
+msgstr "실행 중인 작업이 있습니다.\n"
+
+#: builtins/fc.def:275 builtins/fc.def:373 builtins/fc.def:417
+msgid "no command found"
+msgstr "명령을 찾을 수 없음"
+
+#: builtins/fc.def:363 builtins/fc.def:368 builtins/fc.def:407
+#: builtins/fc.def:412
+msgid "history specification"
+msgstr "기록 명세"
+
+#: builtins/fc.def:444
+#, c-format
+msgid "%s: cannot open temp file: %s"
+msgstr "%s: 임시 파일을 열 수 없음: %s"
+
+#: builtins/fg_bg.def:152 builtins/jobs.def:284
+msgid "current"
+msgstr "현재"
+
+#: builtins/fg_bg.def:161
+#, c-format
+msgid "job %d started without job control"
+msgstr "작업 %d번이 작업 컨트롤 없이 시작했습니다"
+
+#: builtins/getopt.c:110
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: 잘못된 옵션 -- %c\n"
+
+#: builtins/getopt.c:111
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s: 옵션에 인자가 필요함 -- %c\n"
+
+#: builtins/hash.def:91
+msgid "hashing disabled"
+msgstr "해싱 비활성화됨"
+
+#: builtins/hash.def:139
+#, c-format
+msgid "%s: hash table empty\n"
+msgstr "%s: 해시 테이블이 비어있음\n"
+
+#: builtins/hash.def:267
+#, c-format
+msgid "hits\tcommand\n"
+msgstr "hits\tcommand\n"
+
+#: builtins/help.def:133
+msgid "Shell commands matching keyword `"
+msgid_plural "Shell commands matching keywords `"
+msgstr[0] "다음 키워드에 일치하는 셸 명령어 '"
+
+#: builtins/help.def:135
+msgid ""
+"'\n"
+"\n"
+msgstr ""
+"'\n"
+"\n"
+
+#: builtins/help.def:185
+#, c-format
+msgid "no help topics match `%s'.  Try `help help' or `man -k %s' or `info %s'."
+msgstr "`%s'에 해당하는 도움말 주제가 없습니다. `man -k %s' 또는 `info %s' 명령을 입력하십시오."
+
+#: builtins/help.def:223
+#, c-format
+msgid "%s: cannot open: %s"
+msgstr "%s: 열 수 없음: %s"
+
+#: builtins/help.def:523
+#, c-format
+msgid ""
+"These shell commands are defined internally.  Type `help' to see this list.\n"
+"Type `help name' to find out more about the function `name'.\n"
+"Use `info bash' to find out more about the shell in general.\n"
+"Use `man -k' or `info' to find out more about commands not in this list.\n"
+"\n"
+"A star (*) next to a name means that the command is disabled.\n"
+"\n"
+msgstr ""
+"이 셸 명령어는 내부에 지정했습니다.  목록을 보려면 `help'를 입력하십시오.\n"
+"`help name'을 입력하면 함수 `name'의 정보를 더 확인할 수 있습니다.\n"
+"셸에 대한 일반적인 정보를 더 확인하려면 `info bash'를 사용하십시오.\n"
+"이 목록에 없는 명령어에 대해 더 알아보려면 `man -k' 또는 `info'를 사용하십시오.\n"
+"\n"
+"명령어 이름 다음의 별(*) 표시는 해당 명령어의 비활성 상태을 의미합니다.\n"
+"\n"
+
+#: builtins/history.def:159
+msgid "cannot use more than one of -anrw"
+msgstr "-anrw를 한 개 이상 사용할 수 없음"
+
+#: builtins/history.def:192 builtins/history.def:204 builtins/history.def:215
+#: builtins/history.def:228 builtins/history.def:240 builtins/history.def:247
+msgid "history position"
+msgstr "기록 위치"
+
+#: builtins/history.def:338
+#, c-format
+msgid "%s: invalid timestamp"
+msgstr "%s: 부적절한 타임스탬프"
+
+#: builtins/history.def:449
+#, c-format
+msgid "%s: history expansion failed"
+msgstr "%s: 기록 확장 실패"
+
+#: builtins/inlib.def:71
+#, c-format
+msgid "%s: inlib failed"
+msgstr "%s: inlib 실패"
+
+#: builtins/jobs.def:109
+msgid "no other options allowed with `-x'"
+msgstr "`-x'와 다른 옵션을 같이 사용할 수 없음"
+
+#: builtins/kill.def:211
+#, c-format
+msgid "%s: arguments must be process or job IDs"
+msgstr "%s: 인자는 반드시 프로세스 또는 작업 ID이어야 함"
+
+#: builtins/kill.def:274
+msgid "Unknown error"
+msgstr "알 수 없는 오류"
+
+#: builtins/let.def:97 builtins/let.def:122 expr.c:640 expr.c:658
+msgid "expression expected"
+msgstr "표현식이 필요합니다"
+
+#: builtins/mapfile.def:180
+#, c-format
+msgid "%s: not an indexed array"
+msgstr "%s: 색인 배열이 아님"
+
+#: builtins/mapfile.def:276 builtins/read.def:336
+#, c-format
+msgid "%s: invalid file descriptor specification"
+msgstr "%s: 부적절한 파일 서술자 명세"
+
+#: builtins/mapfile.def:284 builtins/read.def:343
+#, c-format
+msgid "%d: invalid file descriptor: %s"
+msgstr "%d: 부적절한 파일 서술자: %s"
+
+#: builtins/mapfile.def:293 builtins/mapfile.def:331
+#, c-format
+msgid "%s: invalid line count"
+msgstr "%s: 부적절한 줄 수"
+
+#: builtins/mapfile.def:304
+#, c-format
+msgid "%s: invalid array origin"
+msgstr "%s: 부적절한 배열의 시작"
+
+#: builtins/mapfile.def:321
+#, c-format
+msgid "%s: invalid callback quantum"
+msgstr "%s: 부적절한 콜백 양자"
+
+#: builtins/mapfile.def:354
+msgid "empty array variable name"
+msgstr "빈 배열 변수 이름"
+
+#: builtins/mapfile.def:375
+msgid "array variable support required"
+msgstr "배열 변수 지원이 필요함"
+
+#: builtins/printf.def:430
+#, c-format
+msgid "`%s': missing format character"
+msgstr "`%s': 서식 문자 없음"
+
+#: builtins/printf.def:485
+#, c-format
+msgid "`%c': invalid time format specification"
+msgstr "`%c': 부적절한 시간 포맷 사양"
+
+#: builtins/printf.def:708
+#, c-format
+msgid "`%c': invalid format character"
+msgstr "`%c': 부적절한 서식 문자"
+
+#: builtins/printf.def:734
+#, c-format
+msgid "warning: %s: %s"
+msgstr "경고: %s: %s"
+
+#: builtins/printf.def:822
+#, c-format
+msgid "format parsing problem: %s"
+msgstr "형식 해석 문제: %s"
+
+#: builtins/printf.def:919
+msgid "missing hex digit for \\x"
+msgstr "\\x에 16진수 숫자 없음"
+
+#: builtins/printf.def:934
+#, c-format
+msgid "missing unicode digit for \\%c"
+msgstr "\\%c에 유니코드 문자 없음"
+
+#: builtins/pushd.def:199
+msgid "no other directory"
+msgstr "다른 디렉터리 없음"
+
+#: builtins/pushd.def:360
+#, c-format
+msgid "%s: invalid argument"
+msgstr "%s: 부적절한 인자"
+
+#: builtins/pushd.def:480
+msgid "<no current directory>"
+msgstr "<현재 디렉터리 없음>"
+
+#: builtins/pushd.def:524
+msgid "directory stack empty"
+msgstr "디렉터리 스택이 비어있음"
+
+#: builtins/pushd.def:526
+msgid "directory stack index"
+msgstr "디렉터리 스택 색인"
+
+#: builtins/pushd.def:701
+msgid ""
+"Display the list of currently remembered directories.  Directories\n"
+"    find their way onto the list with the `pushd' command; you can get\n"
+"    back up through the list with the `popd' command.\n"
+"    \n"
+"    Options:\n"
+"      -c\tclear the directory stack by deleting all of the elements\n"
+"      -l\tdo not print tilde-prefixed versions of directories relative\n"
+"    \tto your home directory\n"
+"      -p\tprint the directory stack with one entry per line\n"
+"      -v\tprint the directory stack with one entry per line prefixed\n"
+"    \twith its position in the stack\n"
+"    \n"
+"    Arguments:\n"
+"      +N\tDisplays the Nth entry counting from the left of the list shown by\n"
+"    \tdirs when invoked without options, starting with zero.\n"
+"    \n"
+"      -N\tDisplays the Nth entry counting from the right of the list shown by\n"
+"\tdirs when invoked without options, starting with zero."
+msgstr ""
+"현재 기억한 디렉터리의 목록을 보여줍니다.  디렉터리는\n"
+"    `pushd' 명령으로 목록에 경로를 저장할 수 있고 'popd' \n"
+"    명령으로 거슬러 올라갈 수 있습니다.\n"
+"    \n"
+"    옵션:\n"
+"      -c\t원소를 전부 삭제하여 디렉터리 스택을 초기화합니다\n"
+"      -l\t홈 디렉터리까지 ~ 축약 상대경로를 표시하지 않습니다\n"
+"      -p\t한 줄에 하나씩 디렉터리 스택을 표시합니다\n"
+"      -v\t한 줄에 하나씩 스택의 위치와 디렉터리 스택을 표시합니다\n"
+"    \n"
+"    인자:\n"
+"      +N\t인자 없이 실행할 때 dirs에서 보여주는 목록의 왼쪽부터 N번째\n"
+"    \t항목을 보여줍니다. 세는 수는 0부터 시작합니다.\n"
+"    \n"
+"      -N\t인자 없이 실행할 때 dirs에서 보여주는 목록의 오른쪽부터 N번째\n"
+"   \t 항목을 보여줍니다. 세는 수는 0부터 시작합니다."
+
+#: builtins/pushd.def:723
+msgid ""
+"Adds a directory to the top of the directory stack, or rotates\n"
+"    the stack, making the new top of the stack the current working\n"
+"    directory.  With no arguments, exchanges the top two directories.\n"
+"    \n"
+"    Options:\n"
+"      -n\tSuppresses the normal change of directory when adding\n"
+"    \tdirectories to the stack, so only the stack is manipulated.\n"
+"    \n"
+"    Arguments:\n"
+"      +N\tRotates the stack so that the Nth directory (counting\n"
+"    \tfrom the left of the list shown by `dirs', starting with\n"
+"    \tzero) is at the top.\n"
+"    \n"
+"      -N\tRotates the stack so that the Nth directory (counting\n"
+"    \tfrom the right of the list shown by `dirs', starting with\n"
+"    \tzero) is at the top.\n"
+"    \n"
+"      dir\tAdds DIR to the directory stack at the top, making it the\n"
+"    \tnew current working directory.\n"
+"    \n"
+"    The `dirs' builtin displays the directory stack."
+msgstr ""
+"디렉터리 스택의 최상위에 디렉터리를 추가하거나 스택을 회전\n"
+"    하거나, 현재 작업중인 디렉터리에서 스택의 새 최상위를 \n"
+"    만듭니다.  인자가 없다면 상위 두 디렉터리를 교환합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -n\t스택에 디렉터리를 추가할 때 디렉터리 일반 변경 동작을\n"
+"    \t억제해서 스택만 바뀌게 합니다.\n"
+"    \n"
+"    인자:\n"
+"      +N\tN번째 디렉터리가 최상단이 되도록(0부터 시작해서\n"
+"    \t`dirs' 내장 명령 목록 왼쪽부터 갯수를 셈) 스택을 뒤집습니다.\n"
+"    \n"
+"      -N\tN 번째 디렉터리가 최상단이 되도록(0부터 시작해서\n"
+"    \t`dirs' 내장 명령 목록 오른쪽부터 갯수를 셈) 스택을 뒤집습니다.\n"
+"    \n"
+"      dir\t새 현재 작업 디렉터리로 만들 DIR을 상단 디렉터리\n"
+"    \t 스택에 추가합니다.\n"
+"    \n"
+"    `dirs' 내장 명령은 디렉터리 스택을 보여줍니다."
+
+#: builtins/pushd.def:748
+msgid ""
+"Removes entries from the directory stack.  With no arguments, removes\n"
+"    the top directory from the stack, and changes to the new top directory.\n"
+"    \n"
+"    Options:\n"
+"      -n\tSuppresses the normal change of directory when removing\n"
+"    \tdirectories from the stack, so only the stack is manipulated.\n"
+"    \n"
+"    Arguments:\n"
+"      +N\tRemoves the Nth entry counting from the left of the list\n"
+"    \tshown by `dirs', starting with zero.  For example: `popd +0'\n"
+"    \tremoves the first directory, `popd +1' the second.\n"
+"    \n"
+"      -N\tRemoves the Nth entry counting from the right of the list\n"
+"    \tshown by `dirs', starting with zero.  For example: `popd -0'\n"
+"    \tremoves the last directory, `popd -1' the next to last.\n"
+"    \n"
+"    The `dirs' builtin displays the directory stack."
+msgstr ""
+"디렉터리 스택에서 항목을 제거합니다.  주어진 인자가 없을 경우\n"
+"    최상위 디렉터리를 스택에서 제거하고 새 최상위 디렉터리로 변경합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -n\t스택에 디렉터리를 제거할 때 디렉터리 일반 변경 동작을\n"
+"    \t억제해서 스택만 바뀌게 합니다.\n"
+"    \n"
+"    인자:\n"
+"      +N\t0부터 시작해서 `dirs' 내장 명령 목록 왼쪽부터 갯수를 세어\n"
+"    \tN번째 항목을 제거합니다. 예: `popd +0'는 첫번째 디렉터리를, \n"
+"    \t`popd +1'는 두번째 디렉터리를 제거합니다.\n"
+"    \n"
+"      -N\t0부터 시작해서 `dirs' 내장 명령 목록 오른쪽부터 갯수를 세어\n"
+"    \tN번째 항목을 제거합니다. 예: `popd -0'는 마지막 디렉터리를, \n"
+"    \t`popd -1'는 마지막의 그 전 디렉터리를 제거합니다.\n"
+"    \n"
+"    `dirs' 내장 명령은 디렉터리 스택을 나타냅니다."
+
+#: builtins/read.def:308
+#, c-format
+msgid "%s: invalid timeout specification"
+msgstr "%s: 부적절한 타임아웃 정의"
+
+#: builtins/read.def:827
+#, c-format
+msgid "read error: %d: %s"
+msgstr "읽기 오류: %d: %s"
+
+#: builtins/return.def:68
+msgid "can only `return' from a function or sourced script"
+msgstr "함수 또는 원본 참조 스크립트에서만 'return' 할 수 있음"
+
+#: builtins/set.def:869
+msgid "cannot simultaneously unset a function and a variable"
+msgstr "함수와 변수를 동시에 설정 해제할 수 없음"
+
+#: builtins/set.def:969
+#, c-format
+msgid "%s: not an array variable"
+msgstr "%s: 배열 변수가 아님"
+
+#: builtins/setattr.def:189
+#, c-format
+msgid "%s: not a function"
+msgstr "%s: 함수가 아님"
+
+#: builtins/setattr.def:194
+#, c-format
+msgid "%s: cannot export"
+msgstr "%s: 환경으로 내보낼 수 없음"
+
+#: builtins/shift.def:72 builtins/shift.def:79
+msgid "shift count"
+msgstr "시프트 횟수"
+
+#: builtins/shopt.def:323
+msgid "cannot set and unset shell options simultaneously"
+msgstr "셸 옵션을 동시에 설정 및 설정 해제할 수 없음"
+
+#: builtins/shopt.def:444
+#, c-format
+msgid "%s: invalid shell option name"
+msgstr "%s: 부적절한 셸 옵션 이름"
+
+#: builtins/source.def:128
+msgid "filename argument required"
+msgstr "인자로 파일 이름이 반드시 필요함"
+
+#: builtins/source.def:154
+#, c-format
+msgid "%s: file not found"
+msgstr "%s: 파일을 찾을 수 없음"
+
+#: builtins/suspend.def:102
+msgid "cannot suspend"
+msgstr "일시 정지할 수 없음"
+
+#: builtins/suspend.def:112
+msgid "cannot suspend a login shell"
+msgstr "로그인 셸을 일시 정지할 수 없음"
+
+#: builtins/type.def:235
+#, c-format
+msgid "%s is aliased to `%s'\n"
+msgstr "%s은(는) `%s'의 별칭임\n"
+
+#: builtins/type.def:256
+#, c-format
+msgid "%s is a shell keyword\n"
+msgstr "%s은(는) 셸 키워드임\n"
+
+#: builtins/type.def:275
+#, c-format
+msgid "%s is a function\n"
+msgstr "%s은(는) 함수임\n"
+
+#: builtins/type.def:299
+#, c-format
+msgid "%s is a special shell builtin\n"
+msgstr "%s은(는) 특수 셸 내장 명령임\n"
+
+#: builtins/type.def:301
+#, c-format
+msgid "%s is a shell builtin\n"
+msgstr "%s은(는) 셸 내장임\n"
+
+#: builtins/type.def:323 builtins/type.def:408
+#, c-format
+msgid "%s is %s\n"
+msgstr "%s은(는) %s 임\n"
+
+#: builtins/type.def:343
+#, c-format
+msgid "%s is hashed (%s)\n"
+msgstr "%s은(는) 해시됨 (%s)\n"
+
+#: builtins/ulimit.def:400
+#, c-format
+msgid "%s: invalid limit argument"
+msgstr "%s: 부적절한 제한 인자"
+
+#: builtins/ulimit.def:426
+#, c-format
+msgid "`%c': bad command"
+msgstr "`%c': 잘못된 명령어"
+
+#: builtins/ulimit.def:464
+#, c-format
+msgid "%s: cannot get limit: %s"
+msgstr "%s: 제한을 읽을 수 없음: %s"
+
+#: builtins/ulimit.def:490
+msgid "limit"
+msgstr "제한"
+
+#: builtins/ulimit.def:502 builtins/ulimit.def:802
+#, c-format
+msgid "%s: cannot modify limit: %s"
+msgstr "%s: 제한을 바꿀 수 없음: %s"
+
+#: builtins/umask.def:115
+msgid "octal number"
+msgstr "8진수"
+
+#: builtins/umask.def:232
+#, c-format
+msgid "`%c': invalid symbolic mode operator"
+msgstr "`%c': 부적절한 심볼릭 모드 연산자"
+
+#: builtins/umask.def:287
+#, c-format
+msgid "`%c': invalid symbolic mode character"
+msgstr "`%c': 부적절한 심볼릭 모드 문자"
+
+#: error.c:89 error.c:373 error.c:375 error.c:377
+msgid " line "
+msgstr " 줄 "
+
+#: error.c:164
+#, c-format
+msgid "last command: %s\n"
+msgstr "마지막 명령: %s\n"
+
+#: error.c:172
+#, c-format
+msgid "Aborting..."
+msgstr "취소중..."
+
+#. TRANSLATORS: this is a prefix for informational messages.
+#: error.c:287
+#, c-format
+msgid "INFORM: "
+msgstr "정보: "
+
+#: error.c:310
+#, c-format
+msgid "DEBUG warning: "
+msgstr "디버깅 경고: "
+
+#: error.c:488
+msgid "unknown command error"
+msgstr "알 수 없는 명령 오류"
+
+#: error.c:489
+msgid "bad command type"
+msgstr "잘못된 명령 형식"
+
+#: error.c:490
+msgid "bad connector"
+msgstr "잘못된 커넥터"
+
+#: error.c:491
+msgid "bad jump"
+msgstr "잘못된 점프"
+
+#: error.c:529
+#, c-format
+msgid "%s: unbound variable"
+msgstr "%s: 바인딩 해제한 변수"
+
+#: eval.c:243
+msgid "\atimed out waiting for input: auto-logout\n"
+msgstr "\a입력 대기중 시간 초과: 자동으로 로그아웃\n"
+
+#: execute_cmd.c:555
+#, c-format
+msgid "cannot redirect standard input from /dev/null: %s"
+msgstr "표준 입력을 /dev/null에서 방향재지정 처리할 수 없음: %s"
+
+#: execute_cmd.c:1317
+#, c-format
+msgid "TIMEFORMAT: `%c': invalid format character"
+msgstr "TIMEFORMAT: `%c': 부적절한 서식 문자"
+
+#: execute_cmd.c:2391
+#, c-format
+msgid "execute_coproc: coproc [%d:%s] still exists"
+msgstr "execute_coproc: coproc [%d:%s] 가 여전히 존재"
+
+#: execute_cmd.c:2524
+msgid "pipe error"
+msgstr "파이프 오류"
+
+#: execute_cmd.c:4923
+#, c-format
+msgid "eval: maximum eval nesting level exceeded (%d)"
+msgstr "eval: 최대 eval 중첩 레벨 초과 (%d)"
+
+#: execute_cmd.c:4935
+#, c-format
+msgid "%s: maximum source nesting level exceeded (%d)"
+msgstr "%s: 최대 소스 중첩 레벨 초과 (%d)"
+
+#: execute_cmd.c:5043
+#, c-format
+msgid "%s: maximum function nesting level exceeded (%d)"
+msgstr "%s: 최대 함수 중첩 레벨 초과 (%d)"
+
+#: execute_cmd.c:5598
+#, c-format
+msgid "%s: restricted: cannot specify `/' in command names"
+msgstr "%s: 제한됨: 명령 이름에 '/'를 지정할 수 없음"
+
+#: execute_cmd.c:5715
+#, c-format
+msgid "%s: command not found"
+msgstr "%s: 명령어를 찾을 수 없음"
+
+#: execute_cmd.c:5957
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: execute_cmd.c:5975
+#, c-format
+msgid "%s: cannot execute: required file not found"
+msgstr "%s: 실행할 수 없음: 필요한 파일이 없습니다"
+
+#: execute_cmd.c:6000
+#, c-format
+msgid "%s: %s: bad interpreter"
+msgstr "%s: %s: 잘못된 인터프리터"
+
+#: execute_cmd.c:6037
+#, c-format
+msgid "%s: cannot execute binary file: %s"
+msgstr "%s: 이진 파일을 실행할 수 없음: %s"
+
+#: execute_cmd.c:6123
+#, c-format
+msgid "`%s': is a special builtin"
+msgstr "`%s': 특수한 내장 명령임"
+
+#: execute_cmd.c:6175
+#, c-format
+msgid "cannot duplicate fd %d to fd %d"
+msgstr "파일 서술자 %d번을 파일 서술자 %d번으로 복제할 수 없음"
+
+#: expr.c:263
+msgid "expression recursion level exceeded"
+msgstr "표현식 재귀 레벨 초과"
+
+#: expr.c:291
+msgid "recursion stack underflow"
+msgstr "재귀 스택 언더플로우"
+
+#: expr.c:478
+msgid "syntax error in expression"
+msgstr "표현식 문법 오류"
+
+#: expr.c:522
+msgid "attempted assignment to non-variable"
+msgstr "비 변수에 할당 시도"
+
+#: expr.c:531
+msgid "syntax error in variable assignment"
+msgstr "변수 할당 문법 오류"
+
+#: expr.c:545 expr.c:912
+msgid "division by 0"
+msgstr "0으로 나눔"
+
+#: expr.c:593
+msgid "bug: bad expassign token"
+msgstr "버그: 잘못된 표현식 토큰"
+
+#: expr.c:647
+msgid "`:' expected for conditional expression"
+msgstr "조건문에 ':' 필요함"
+
+#: expr.c:973
+msgid "exponent less than 0"
+msgstr "지수가 0보다 작음"
+
+#: expr.c:1030
+msgid "identifier expected after pre-increment or pre-decrement"
+msgstr "전위 증가 또는 후위 감소 후에 식별자가 필요함"
+
+#: expr.c:1057
+msgid "missing `)'"
+msgstr "')' 빠짐"
+
+#: expr.c:1108 expr.c:1492
+msgid "syntax error: operand expected"
+msgstr "문법 오류: 피연산자 필요함"
+
+#: expr.c:1494
+msgid "syntax error: invalid arithmetic operator"
+msgstr "문법 오류: 부적절한 산술 연산자"
+
+#: expr.c:1518
+#, c-format
+msgid "%s%s%s: %s (error token is \"%s\")"
+msgstr "%s%s%s: %s (오류 토큰은 \"%s\" 임)"
+
+#: expr.c:1578
+msgid "invalid arithmetic base"
+msgstr "부적절한 진법"
+
+#: expr.c:1587
+msgid "invalid integer constant"
+msgstr "부적절한 정수 상수"
+
+#: expr.c:1603
+msgid "value too great for base"
+msgstr "해당 진법에서 표현할 수 없는 값"
+
+#: expr.c:1652
+#, c-format
+msgid "%s: expression error\n"
+msgstr "%s: 표현식 오류\n"
+
+#: general.c:70
+msgid "getcwd: cannot access parent directories"
+msgstr "getcwd: 상위 디렉터리에 접근할 수 없음"
+
+#: input.c:99 subst.c:6208
+#, c-format
+msgid "cannot reset nodelay mode for fd %d"
+msgstr "파일 서술자 %d번에 nodelay 모드를 초기화할 수 없음"
+
+#: input.c:266
+#, c-format
+msgid "cannot allocate new file descriptor for bash input from fd %d"
+msgstr "파일 서술자 %d번에서 bash 입력용 새 파일 서술자를 할당할 수 없음"
+
+#: input.c:274
+#, c-format
+msgid "save_bash_input: buffer already exists for new fd %d"
+msgstr "save_bash_input: 새 파일 서술자 %d번의 버퍼가 이미 존재함"
+
+#: jobs.c:543
+msgid "start_pipeline: pgrp pipe"
+msgstr "start_pipeline: pgrp pipe"
+
+#: jobs.c:907
+#, c-format
+msgid "bgp_delete: LOOP: psi (%d) == storage[psi].bucket_next"
+msgstr "bgp_delete: LOOP: psi (%d) == storage[psi].bucket_next"
+
+#: jobs.c:960
+#, c-format
+msgid "bgp_search: LOOP: psi (%d) == storage[psi].bucket_next"
+msgstr "bgp_search: LOOP: psi (%d) == storage[psi].bucket_next"
+
+#: jobs.c:1279
+#, c-format
+msgid "forked pid %d appears in running job %d"
+msgstr "포크한 PID %d번이 실행중인 작업 %d에 나타남"
+
+#: jobs.c:1397
+#, c-format
+msgid "deleting stopped job %d with process group %ld"
+msgstr "프로세스 그룹 %2$ld번의 멈춘 작업 %1$d번을 삭제중"
+
+#: jobs.c:1502
+#, c-format
+msgid "add_process: pid %5ld (%s) marked as still alive"
+msgstr "add_process: pid %5ld (%s)이(가) 여전히 살아있다고 나타남"
+
+#: jobs.c:1839
+#, c-format
+msgid "describe_pid: %ld: no such pid"
+msgstr "describe_pid: %ld: 그런 pid가 없음"
+
+#: jobs.c:1854
+#, c-format
+msgid "Signal %d"
+msgstr "시그널 %d번"
+
+#: jobs.c:1868 jobs.c:1894
+msgid "Done"
+msgstr "완료"
+
+#: jobs.c:1873 siglist.c:123
+msgid "Stopped"
+msgstr "멈춤"
+
+#: jobs.c:1877
+#, c-format
+msgid "Stopped(%s)"
+msgstr "멈춤(%s)"
+
+#: jobs.c:1881
+msgid "Running"
+msgstr "실행중"
+
+#: jobs.c:1898
+#, c-format
+msgid "Done(%d)"
+msgstr "완료(%d)"
+
+#: jobs.c:1900
+#, c-format
+msgid "Exit %d"
+msgstr "나감 %d"
+
+#: jobs.c:1903
+msgid "Unknown status"
+msgstr "알 수 없는 상태"
+
+#: jobs.c:1990
+#, c-format
+msgid "(core dumped) "
+msgstr "(코어 덤프됨) "
+
+#: jobs.c:2009
+#, c-format
+msgid "  (wd: %s)"
+msgstr "  (wd: %s)"
+
+#: jobs.c:2250
+#, c-format
+msgid "child setpgid (%ld to %ld)"
+msgstr "child setpgid (%ld에서 %ld(으)로)"
+
+#: jobs.c:2608 nojobs.c:666
+#, c-format
+msgid "wait: pid %ld is not a child of this shell"
+msgstr "wait: pid %ld번은 이 셸의 자식이 아님"
+
+#: jobs.c:2884
+#, c-format
+msgid "wait_for: No record of process %ld"
+msgstr "wait_for: 프로세스 %ld번의 기록 없음"
+
+#: jobs.c:3223
+#, c-format
+msgid "wait_for_job: job %d is stopped"
+msgstr "wait_for_job: 작업 %d번이 멈춤"
+
+#: jobs.c:3551
+#, c-format
+msgid "%s: no current jobs"
+msgstr "%s: 현재 작업이 없음"
+
+#: jobs.c:3558
+#, c-format
+msgid "%s: job has terminated"
+msgstr "%s: 작업이 종료됨"
+
+#: jobs.c:3567
+#, c-format
+msgid "%s: job %d already in background"
+msgstr "%s: 작업 %d번은 이미 백그라운드에 있음"
+
+#: jobs.c:3793
+msgid "waitchld: turning on WNOHANG to avoid indefinite block"
+msgstr "waitchld: 미지정 차단 동작 회피 목적으로 WNOHANG를 켜는 중"
+
+#: jobs.c:4307
+#, c-format
+msgid "%s: line %d: "
+msgstr "%s: 줄 %d: "
+
+#: jobs.c:4321 nojobs.c:921
+#, c-format
+msgid " (core dumped)"
+msgstr " (코어 덤프됨)"
+
+#: jobs.c:4333 jobs.c:4346
+#, c-format
+msgid "(wd now: %s)\n"
+msgstr "(wd now: %s)\n"
+
+#: jobs.c:4378
+msgid "initialize_job_control: getpgrp failed"
+msgstr "initialize_job_control: getpgrp 실패"
+
+#: jobs.c:4434
+msgid "initialize_job_control: no job control in background"
+msgstr "initialize_job_control: 백그라운드에 작업 컨트롤 없음"
+
+#: jobs.c:4450
+msgid "initialize_job_control: line discipline"
+msgstr "initialize_job_control: 라인 제어"
+
+#: jobs.c:4460
+msgid "initialize_job_control: setpgid"
+msgstr "initialize_job_control: setpgid"
+
+#: jobs.c:4481 jobs.c:4490
+#, c-format
+msgid "cannot set terminal process group (%d)"
+msgstr "터미털 프로세스 그룹(%d)을 설정할 수 없음"
+
+#: jobs.c:4495
+msgid "no job control in this shell"
+msgstr "이 셸에 작업 제어 없음"
+
+#: lib/malloc/malloc.c:367
+#, c-format
+msgid "malloc: failed assertion: %s\n"
+msgstr "malloc: assertion 실패: %s\n"
+
+#: lib/malloc/malloc.c:383
+#, c-format
+msgid ""
+"\r\n"
+"malloc: %s:%d: assertion botched\r\n"
+msgstr ""
+"\r\n"
+"malloc: %s:%d: assertion 망가짐\r\n"
+
+#: lib/malloc/malloc.c:384 lib/malloc/malloc.c:941
+msgid "unknown"
+msgstr "알 수 없음"
+
+#: lib/malloc/malloc.c:892
+msgid "malloc: block on free list clobbered"
+msgstr "malloc: 해제 목록 처리중 중단"
+
+#: lib/malloc/malloc.c:980
+msgid "free: called with already freed block argument"
+msgstr "free: 이미 해제된 블록 인자를 가지고 호출됨"
+
+#: lib/malloc/malloc.c:983
+msgid "free: called with unallocated block argument"
+msgstr "free: 할당되지 않은 블록 인자와 호출됨"
+
+#: lib/malloc/malloc.c:1001
+msgid "free: underflow detected; mh_nbytes out of range"
+msgstr "free: 언더플로우 감지! mh_nbytes가 범위를 벗어남"
+
+#: lib/malloc/malloc.c:1007
+msgid "free: underflow detected; magic8 corrupted"
+msgstr "free: 언더플로우 감지! magic8 손상"
+
+#: lib/malloc/malloc.c:1014
+msgid "free: start and end chunk sizes differ"
+msgstr "free: 시작과 끝의 청크 사이즈가 다름"
+
+#: lib/malloc/malloc.c:1176
+msgid "realloc: called with unallocated block argument"
+msgstr "realloc: 할당되지 않은 블록 인자를 가지고 호출됨"
+
+#: lib/malloc/malloc.c:1191
+msgid "realloc: underflow detected; mh_nbytes out of range"
+msgstr "realloc: 언더플로우 감지! mh_nbytes가 범위를 벗어남"
+
+#: lib/malloc/malloc.c:1197
+msgid "realloc: underflow detected; magic8 corrupted"
+msgstr "realloc: 언더플로우 감지! magic8 손상"
+
+#: lib/malloc/malloc.c:1205
+msgid "realloc: start and end chunk sizes differ"
+msgstr "realloc: 시작과 끝의 청크 사이즈가 다름"
+
+#: lib/malloc/table.c:191
+#, c-format
+msgid "register_alloc: alloc table is full with FIND_ALLOC?\n"
+msgstr "register_alloc: FIND_ALLOC이 할당 테이블이 가득참?\n"
+
+#: lib/malloc/table.c:200
+#, c-format
+msgid "register_alloc: %p already in table as allocated?\n"
+msgstr "register_alloc: %p이(가) 할당한 테이블에 있음?\n"
+
+#: lib/malloc/table.c:253
+#, c-format
+msgid "register_free: %p already in table as free?\n"
+msgstr "register_free: %p이(가) 이미 해제한 테이블에 있음?\n"
+
+#: lib/sh/fmtulong.c:102
+msgid "invalid base"
+msgstr "부적절한 진법"
+
+#: lib/sh/netopen.c:168
+#, c-format
+msgid "%s: host unknown"
+msgstr "%s: 알 수 없는 호스트"
+
+#: lib/sh/netopen.c:175
+#, c-format
+msgid "%s: invalid service"
+msgstr "%s: 부적절한 서비스"
+
+#: lib/sh/netopen.c:306
+#, c-format
+msgid "%s: bad network path specification"
+msgstr "%s: 잘못된 네트워크 경로 사양"
+
+#: lib/sh/netopen.c:347
+msgid "network operations not supported"
+msgstr "네트워크 작업은 지원되지 않음"
+
+#: locale.c:219
+#, c-format
+msgid "setlocale: LC_ALL: cannot change locale (%s)"
+msgstr "setlocale: LC_ALL: 로캘을 바꿀 수 없음 (%s)"
+
+#: locale.c:221
+#, c-format
+msgid "setlocale: LC_ALL: cannot change locale (%s): %s"
+msgstr "setlocale: LC_ALL: 로캘을 바꿀 수 없음 (%s): %s"
+
+#: locale.c:294
+#, c-format
+msgid "setlocale: %s: cannot change locale (%s)"
+msgstr "setlocale: %s: 로캘을 바꿀 수 없음 (%s)"
+
+#: locale.c:296
+#, c-format
+msgid "setlocale: %s: cannot change locale (%s): %s"
+msgstr "setlocale: %s: 로캘을 바꿀 수 없음 (%s): %s"
+
+#: mailcheck.c:439
+msgid "You have mail in $_"
+msgstr "$_에 메일이 있습니다"
+
+#: mailcheck.c:464
+msgid "You have new mail in $_"
+msgstr "$_에 새로운 메일이 있습니다"
+
+#: mailcheck.c:480
+#, c-format
+msgid "The mail in %s has been read\n"
+msgstr "%s의 메일을 읽었습니다\n"
+
+#: make_cmd.c:314
+msgid "syntax error: arithmetic expression required"
+msgstr "문법 오류: 산술 표현식이 필요함"
+
+#: make_cmd.c:316
+msgid "syntax error: `;' unexpected"
+msgstr "문법 오류: ';' 필요하지 않음"
+
+#: make_cmd.c:317
+#, c-format
+msgid "syntax error: `((%s))'"
+msgstr "문법 오류: `((%s))'"
+
+#: make_cmd.c:569
+#, c-format
+msgid "make_here_document: bad instruction type %d"
+msgstr "make_here_document: 잘못된 명령어 형식 %d"
+
+#: make_cmd.c:668
+#, c-format
+msgid "here-document at line %d delimited by end-of-file (wanted `%s')"
+msgstr "here-document가 %d번 행에서 파일의 끝으로 구분함 (`%s'아(가) 필요함)"
+
+#: make_cmd.c:769
+#, c-format
+msgid "make_redirection: redirection instruction `%d' out of range"
+msgstr "make_redirection: 방향재지정 처리 명령어 `%d' 범위 벗어남"
+
+#: parse.y:2428
+#, c-format
+msgid "shell_getc: shell_input_line_size (%zu) exceeds SIZE_MAX (%lu): line truncated"
+msgstr "shell_getc: shell_input_line_size(%zu)가 SIZE_MAX(%lu)를 초과함: 줄 잘림"
+
+#: parse.y:2921
+msgid "maximum here-document count exceeded"
+msgstr "최대 here-document 카운트 초과"
+
+#: parse.y:3684 parse.y:4244 parse.y:6148
+#, c-format
+msgid "unexpected EOF while looking for matching `%c'"
+msgstr "`%c'을(를) 찾는 도중 예상치 못한 파일의 끝"
+
+#: parse.y:4452
+msgid "unexpected EOF while looking for `]]'"
+msgstr "']]'를 찾던 도중 예상치 못한 파일의 끝"
+
+#: parse.y:4457
+#, c-format
+msgid "syntax error in conditional expression: unexpected token `%s'"
+msgstr "조건 표현식에 문법 오류: 예상치 못한 토큰 `%s'"
+
+#: parse.y:4461
+msgid "syntax error in conditional expression"
+msgstr "조건 표현식에 문법 오류"
+
+#: parse.y:4539
+#, c-format
+msgid "unexpected token `%s', expected `)'"
+msgstr "예상치 못한 토큰 `%s', ')' 필요함"
+
+#: parse.y:4543
+msgid "expected `)'"
+msgstr "')' 필요함"
+
+#: parse.y:4571
+#, c-format
+msgid "unexpected argument `%s' to conditional unary operator"
+msgstr "조건 단항 연산자에 예기치 않은 인자 `%s'"
+
+#: parse.y:4575
+msgid "unexpected argument to conditional unary operator"
+msgstr "조건 단항 연산자에 예기치 않은 인자"
+
+#: parse.y:4621
+#, c-format
+msgid "unexpected token `%s', conditional binary operator expected"
+msgstr "예기치 않은 토큰 `%s', 조건 이항 연산자 필요함"
+
+#: parse.y:4625
+msgid "conditional binary operator expected"
+msgstr "조건 이항 연산자 필요함"
+
+#: parse.y:4647
+#, c-format
+msgid "unexpected argument `%s' to conditional binary operator"
+msgstr "조건 이항 연산자에 대해 예기치 않은 인자 `%s'"
+
+#: parse.y:4651
+msgid "unexpected argument to conditional binary operator"
+msgstr "조건 이항 연산자에 대해 예기치 않은 인자"
+
+#: parse.y:4662
+#, c-format
+msgid "unexpected token `%c' in conditional command"
+msgstr "조건 명령어에서 예기치 않은 토큰 `%c'"
+
+#: parse.y:4665
+#, c-format
+msgid "unexpected token `%s' in conditional command"
+msgstr "조건 명령어에서 예기치 않은 토큰 `%s'"
+
+#: parse.y:4669
+#, c-format
+msgid "unexpected token %d in conditional command"
+msgstr "조건 명령어에서 예기치 않은 토큰 %d"
+
+#: parse.y:6118
+#, c-format
+msgid "syntax error near unexpected token `%s'"
+msgstr "예기치 않은 토큰 `%s' 근처에서 문법 오류"
+
+#: parse.y:6137
+#, c-format
+msgid "syntax error near `%s'"
+msgstr "`%s' 근처에서 문법 오류"
+
+#: parse.y:6151
+msgid "syntax error: unexpected end of file"
+msgstr "문법 오류: 예기치 않은 파일의 끝"
+
+#: parse.y:6151
+msgid "syntax error"
+msgstr "문법 오류"
+
+#: parse.y:6216
+#, c-format
+msgid "Use \"%s\" to leave the shell.\n"
+msgstr "셸을 나가려면 \"%s\" 명령을 사용하십시오.\n"
+
+#: parse.y:6394
+msgid "unexpected EOF while looking for matching `)'"
+msgstr "맞는 ')'를 찾던 도중 예기치 않은 파일의 끝"
+
+#: pcomplete.c:1132
+#, c-format
+msgid "completion: function `%s' not found"
+msgstr "completion: `%s' 함수를 찾을 수 없음"
+
+#: pcomplete.c:1722
+#, c-format
+msgid "programmable_completion: %s: possible retry loop"
+msgstr "programmable_completion: %s: 가능한 재시도 루프"
+
+#: pcomplib.c:182
+#, c-format
+msgid "progcomp_insert: %s: NULL COMPSPEC"
+msgstr "progcomp_insert: %s: NULL COMPSPEC"
+
+#: print_cmd.c:302
+#, c-format
+msgid "print_command: bad connector `%d'"
+msgstr "print_command: 잘못된 커넥터 `%d'"
+
+#: print_cmd.c:375
+#, c-format
+msgid "xtrace_set: %d: invalid file descriptor"
+msgstr "xtrace_set: %d: 부적절한 파일 서술자"
+
+#: print_cmd.c:380
+msgid "xtrace_set: NULL file pointer"
+msgstr "xtrace_set: NULL 파일 포인터"
+
+#: print_cmd.c:384
+#, c-format
+msgid "xtrace fd (%d) != fileno xtrace fp (%d)"
+msgstr "xtrace fd (%d) != fileno xtrace fp (%d)"
+
+#: print_cmd.c:1545
+#, c-format
+msgid "cprintf: `%c': invalid format character"
+msgstr "cprintf: `%c': 잘못된 서식 문자"
+
+#: redir.c:150 redir.c:198
+msgid "file descriptor out of range"
+msgstr "파일 서술자 범위 벗어남"
+
+#: redir.c:205
+#, c-format
+msgid "%s: ambiguous redirect"
+msgstr "%s: 모호한 리다이렉트"
+
+#: redir.c:209
+#, c-format
+msgid "%s: cannot overwrite existing file"
+msgstr "%s: 이미 있는 파일을 덮어쓸 수 없음"
+
+#: redir.c:214
+#, c-format
+msgid "%s: restricted: cannot redirect output"
+msgstr "%s: 제한됨: 출력을 방향 재지정할 수 없음"
+
+#: redir.c:219
+#, c-format
+msgid "cannot create temp file for here-document: %s"
+msgstr "here-document를 위한 임시 파일을 생성할 수 없음: %s"
+
+#: redir.c:223
+#, c-format
+msgid "%s: cannot assign fd to variable"
+msgstr "%s: 파일 서술자를 변수에 할당할 수 없음"
+
+#: redir.c:650
+msgid "/dev/(tcp|udp)/host/port not supported without networking"
+msgstr "/dev/(tcp|udp)/host/port는 네트워킹 없이 지원하지 않음"
+
+#: redir.c:945 redir.c:1065 redir.c:1130 redir.c:1303
+msgid "redirection error: cannot duplicate fd"
+msgstr "방향재지정 처리 오류: 파일 서술자를 복제할 수 없음"
+
+#: shell.c:353
+msgid "could not find /tmp, please create!"
+msgstr "/tmp를 찾을 수 없음, 만드십시오!"
+
+#: shell.c:357
+msgid "/tmp must be a valid directory name"
+msgstr "/tmp는 반드시 적절한 디렉터리 이름이어야 함"
+
+#: shell.c:826
+msgid "pretty-printing mode ignored in interactive shells"
+msgstr "대화형 셸에서는 정돈 출력 모드를 무시함"
+
+#: shell.c:972
+#, c-format
+msgid "%c%c: invalid option"
+msgstr "%c%c: 부적절한 옵션"
+
+#: shell.c:1343
+#, c-format
+msgid "cannot set uid to %d: effective uid %d"
+msgstr "uid를 %d번으로 설정할 수 없음: 효력상 사용자 ID %d번"
+
+#: shell.c:1354
+#, c-format
+msgid "cannot set gid to %d: effective gid %d"
+msgstr "gid를 %d번으로 설정할 수 없음: 효력상 그룹 ID %d번"
+
+#: shell.c:1544
+msgid "cannot start debugger; debugging mode disabled"
+msgstr "디버거를 시작할 수 없음! 디버깅 모드 꺼짐"
+
+#: shell.c:1658
+#, c-format
+msgid "%s: Is a directory"
+msgstr "%s: 디렉터리임"
+
+#: shell.c:1907
+msgid "I have no name!"
+msgstr "이름 없음!"
+
+#: shell.c:2061
+#, c-format
+msgid "GNU bash, version %s-(%s)\n"
+msgstr "GNU 배시, 버전 %s-(%s)\n"
+
+#: shell.c:2062
+#, c-format
+msgid ""
+"Usage:\t%s [GNU long option] [option] ...\n"
+"\t%s [GNU long option] [option] script-file ...\n"
+msgstr ""
+"사용법:\t%s [<GNU_긴_옵션>] [<옵션>] ...\n"
+"\t%s [<GNU_긴_옵션>] [<옵션>] <스크립트파일> ...\n"
+
+#: shell.c:2064
+msgid "GNU long options:\n"
+msgstr "GNU 긴 옵션:\n"
+
+#: shell.c:2068
+msgid "Shell options:\n"
+msgstr "셸 옵션:\n"
+
+#: shell.c:2069
+msgid "\t-ilrsD or -c command or -O shopt_option\t\t(invocation only)\n"
+msgstr "\t-ilrsD 또는 -c <명령> 또는 -O shopt_option\t\t(invocation 전용)\n"
+
+#: shell.c:2088
+#, c-format
+msgid "\t-%s or -o option\n"
+msgstr "\t-%s 또는 -o 옵션\n"
+
+#: shell.c:2094
+#, c-format
+msgid "Type `%s -c \"help set\"' for more information about shell options.\n"
+msgstr "`%s -c \"help set\"' 명령을 사용하면 셸 옵션에 관해 더 많은 정보를 확인할 수 있습니다.\n"
+
+#: shell.c:2095
+#, c-format
+msgid "Type `%s -c help' for more information about shell builtin commands.\n"
+msgstr "`%s -c help' 명령을 사용하면 셸 내장 명령어에 관해 더 많은 정보를 확인할 수 있습니다.\n"
+
+#: shell.c:2096
+#, c-format
+msgid "Use the `bashbug' command to report bugs.\n"
+msgstr "버그를 보고하려면 'bashbug' 명령을 사용하십시오.\n"
+
+#: shell.c:2098
+#, c-format
+msgid "bash home page: <http://www.gnu.org/software/bash>\n"
+msgstr "bash 홈페이지: <http://www.gnu.org/software/bash>\n"
+
+#: shell.c:2099
+#, c-format
+msgid "General help using GNU software: <http://www.gnu.org/gethelp/>\n"
+msgstr "GNU 소프트웨어 사용자 일반 도움말: <http://www.gnu.org/gethelp/>\n"
+
+#: sig.c:765
+#, c-format
+msgid "sigprocmask: %d: invalid operation"
+msgstr "sigprocmask: %d: 부적절한 작업"
+
+#: siglist.c:48
+msgid "Bogus signal"
+msgstr "가짜 시그널"
+
+#: siglist.c:51
+msgid "Hangup"
+msgstr "수행 중단(Hangup)"
+
+#: siglist.c:55
+msgid "Interrupt"
+msgstr "인터럽트"
+
+#: siglist.c:59
+msgid "Quit"
+msgstr "나가기"
+
+#: siglist.c:63
+msgid "Illegal instruction"
+msgstr "부적절한 명령"
+
+#: siglist.c:67
+msgid "BPT trace/trap"
+msgstr "BPT 추적/중단"
+
+#: siglist.c:75
+msgid "ABORT instruction"
+msgstr "ABORT 명령"
+
+#: siglist.c:79
+msgid "EMT instruction"
+msgstr "EMT 명령"
+
+#: siglist.c:83
+msgid "Floating point exception"
+msgstr "부동 소수점 예외"
+
+#: siglist.c:87
+msgid "Killed"
+msgstr "죽었음"
+
+#: siglist.c:91
+msgid "Bus error"
+msgstr "버스 오류"
+
+#: siglist.c:95
+msgid "Segmentation fault"
+msgstr "세그먼테이션 오류"
+
+#: siglist.c:99
+msgid "Bad system call"
+msgstr "잘못된 시스템 콜"
+
+#: siglist.c:103
+msgid "Broken pipe"
+msgstr "파이프 깨짐"
+
+#: siglist.c:107
+msgid "Alarm clock"
+msgstr "알림 시계"
+
+#: siglist.c:111
+msgid "Terminated"
+msgstr "중단됨"
+
+#: siglist.c:115
+msgid "Urgent IO condition"
+msgstr "긴급 입출력 상태"
+
+#: siglist.c:119
+msgid "Stopped (signal)"
+msgstr "멈춤 (시그널)"
+
+#: siglist.c:127
+msgid "Continue"
+msgstr "계속"
+
+#: siglist.c:135
+msgid "Child death or stop"
+msgstr "하위 요소가 죽거나 멈춤"
+
+#: siglist.c:139
+msgid "Stopped (tty input)"
+msgstr "멈춤 (tty 입력)"
+
+#: siglist.c:143
+msgid "Stopped (tty output)"
+msgstr "멈춤 (tty 출력)"
+
+#: siglist.c:147
+msgid "I/O ready"
+msgstr "I/O 준비"
+
+#: siglist.c:151
+msgid "CPU limit"
+msgstr "CPU 제한"
+
+#: siglist.c:155
+msgid "File limit"
+msgstr "파일 제한"
+
+#: siglist.c:159
+msgid "Alarm (virtual)"
+msgstr "알림 (가상)"
+
+#: siglist.c:163
+msgid "Alarm (profile)"
+msgstr "알림 (프로파일)"
+
+#: siglist.c:167
+msgid "Window changed"
+msgstr "윈도우 바뀜"
+
+#: siglist.c:171
+msgid "Record lock"
+msgstr "기록 잠금"
+
+#: siglist.c:175
+msgid "User signal 1"
+msgstr "사용자 시그널 1"
+
+#: siglist.c:179
+msgid "User signal 2"
+msgstr "사용자 시그널 2"
+
+#: siglist.c:183
+msgid "HFT input data pending"
+msgstr "HFT 입력 데이터 대기중"
+
+#: siglist.c:187
+msgid "power failure imminent"
+msgstr "전원 문제 임박"
+
+#: siglist.c:191
+msgid "system crash imminent"
+msgstr "시스템 충돌 임박"
+
+#: siglist.c:195
+msgid "migrate process to another CPU"
+msgstr "다른 CPU로 프로세스 이전"
+
+#: siglist.c:199
+msgid "programming error"
+msgstr "프로그래밍 오류"
+
+#: siglist.c:203
+msgid "HFT monitor mode granted"
+msgstr "HFT 모니터 모드 승인함"
+
+#: siglist.c:207
+msgid "HFT monitor mode retracted"
+msgstr "HFT 모니터 모드 철회함"
+
+#: siglist.c:211
+msgid "HFT sound sequence has completed"
+msgstr "HFT 사운드 시퀀스가 끝남"
+
+#: siglist.c:215
+msgid "Information request"
+msgstr "정보 요청"
+
+#: siglist.c:223 siglist.c:225
+#, c-format
+msgid "Unknown Signal #%d"
+msgstr "알 수 없는 시그널 #%d"
+
+#: subst.c:1480 subst.c:1670
+#, c-format
+msgid "bad substitution: no closing `%s' in %s"
+msgstr "잘못된 대체: %2$s에 닫는 `%1$s' 없음"
+
+#: subst.c:3307
+#, c-format
+msgid "%s: cannot assign list to array member"
+msgstr "%s: 리스트를 배열 멤버로 할당할 수 없음"
+
+#: subst.c:6048 subst.c:6064
+msgid "cannot make pipe for process substitution"
+msgstr "프로세스 대체용 파이프를 만들 수 없음"
+
+#: subst.c:6124
+msgid "cannot make child for process substitution"
+msgstr "프로세스 대체용 하위 요소를 만들 수 없음"
+
+#: subst.c:6198
+#, c-format
+msgid "cannot open named pipe %s for reading"
+msgstr "읽기용 명명 파이프 %s을(를) 열 수 없음"
+
+#: subst.c:6200
+#, c-format
+msgid "cannot open named pipe %s for writing"
+msgstr "쓰기용 명명 파이프 %s을(를) 열 수 없음"
+
+#: subst.c:6223
+#, c-format
+msgid "cannot duplicate named pipe %s as fd %d"
+msgstr "명명된 파이프 %s을(를) 파일 서술자 %d번으로 복제할 수 없음"
+
+#: subst.c:6370
+msgid "command substitution: ignored null byte in input"
+msgstr "command substitution: 입력의 null 바이트 무시"
+
+#: subst.c:6533
+msgid "cannot make pipe for command substitution"
+msgstr "명령어 대체용 파이프를 만들 수 없음"
+
+#: subst.c:6580
+msgid "cannot make child for command substitution"
+msgstr "명령어 대체용 하위 요소를 만들 수 없음"
+
+#: subst.c:6613
+msgid "command_substitute: cannot duplicate pipe as fd 1"
+msgstr "command_substitute: 파이프를 파일 서술자 1번으로 복제할 수 없음"
+
+#: subst.c:7082 subst.c:10252
+#, c-format
+msgid "%s: invalid variable name for name reference"
+msgstr "%s: 이름 참조에 부적절한 변수 이름"
+
+#: subst.c:7178 subst.c:7196 subst.c:7369
+#, c-format
+msgid "%s: invalid indirect expansion"
+msgstr "%s: 부적절한 간접 확장"
+
+#: subst.c:7212 subst.c:7377
+#, c-format
+msgid "%s: invalid variable name"
+msgstr "%s: 부적절한 변수 이름"
+
+#: subst.c:7478
+#, c-format
+msgid "%s: parameter not set"
+msgstr "%s: 매개변수값 설정 안함"
+
+#: subst.c:7480
+#, c-format
+msgid "%s: parameter null or not set"
+msgstr "%s: 매개변수 값이 null 이거나 설정하지 않음"
+
+#: subst.c:7727 subst.c:7742
+#, c-format
+msgid "%s: substring expression < 0"
+msgstr "%s: 부분 문자열 표현식 < 0"
+
+#: subst.c:9560 subst.c:9587
+#, c-format
+msgid "%s: bad substitution"
+msgstr "%s: 잘못된 대체"
+
+#: subst.c:9678
+#, c-format
+msgid "$%s: cannot assign in this way"
+msgstr "$%s: 이 방법으로 할당할 수 없음"
+
+#: subst.c:10111
+msgid "future versions of the shell will force evaluation as an arithmetic substitution"
+msgstr "향후 버전의 셸에서는 산술 대체로 연산이 강제됩니다"
+
+#: subst.c:10795
+#, c-format
+msgid "bad substitution: no closing \"`\" in %s"
+msgstr "잘못된 대체: %s에 닫는 \"`\" 없음"
+
+#: subst.c:11874
+#, c-format
+msgid "no match: %s"
+msgstr "일치 없음: %s"
+
+#: test.c:147
+msgid "argument expected"
+msgstr "인자 필요함"
+
+#: test.c:156
+#, c-format
+msgid "%s: integer expression expected"
+msgstr "%s: 정수 표현식 필요함"
+
+#: test.c:265
+msgid "`)' expected"
+msgstr "`)'가 필요함"
+
+#: test.c:267
+#, c-format
+msgid "`)' expected, found %s"
+msgstr "`)'가 있어야 하지만, %s이(가) 있습니다"
+
+#: test.c:469 test.c:814
+#, c-format
+msgid "%s: binary operator expected"
+msgstr "%s: 이항 연산자가 필요합니다"
+
+#: test.c:771 test.c:774
+#, c-format
+msgid "%s: unary operator expected"
+msgstr "%s: 단항 연산자가 필요합니다"
+
+#: test.c:896
+msgid "missing `]'"
+msgstr "']' 빠짐"
+
+#: test.c:914
+#, c-format
+msgid "syntax error: `%s' unexpected"
+msgstr "문법 오류: `%s' 필요하지 않음"
+
+#: trap.c:220
+msgid "invalid signal number"
+msgstr "부적절한 시그널 번호"
+
+#: trap.c:323
+#, c-format
+msgid "trap handler: maximum trap handler level exceeded (%d)"
+msgstr "trap handler: 최대 트랩 핸들러 레벨 초과 (%d)"
+
+#: trap.c:412
+#, c-format
+msgid "run_pending_traps: bad value in trap_list[%d]: %p"
+msgstr "run_pending_traps: trap_list[%d]에 잘못된 값: %p"
+
+#: trap.c:416
+#, c-format
+msgid "run_pending_traps: signal handler is SIG_DFL, resending %d (%s) to myself"
+msgstr "run_pending_traps: 시그널 핸들러는 SIG_DFL 이고, %d (%s)를 자신에게 다시 보내는 중"
+
+#: trap.c:509
+#, c-format
+msgid "trap_handler: bad signal %d"
+msgstr "trap_handler: 잘못된 시그널 %d번"
+
+#: variables.c:424
+#, c-format
+msgid "error importing function definition for `%s'"
+msgstr "`%s'의 함수 정의 가져오기 오류"
+
+#: variables.c:838
+#, c-format
+msgid "shell level (%d) too high, resetting to 1"
+msgstr "셸 레벨 (%d)이 너무 높습니다, 1로 재설정합니다"
+
+#: variables.c:2642
+msgid "make_local_variable: no function context at current scope"
+msgstr "make_local_variable: 현재 범위에서 함수 컨텍스트 없음"
+
+#: variables.c:2661
+#, c-format
+msgid "%s: variable may not be assigned value"
+msgstr "%s: 변수는 할당 값이 아님"
+
+#: variables.c:2818 variables.c:2874
+#, c-format
+msgid "%s: cannot inherit value from incompatible type"
+msgstr "%s: 비호환 형식의 값을 가져올 수 없음"
+
+#: variables.c:3459
+#, c-format
+msgid "%s: assigning integer to name reference"
+msgstr "%s: 이름 참조에 정수를 할당하고 있음"
+
+#: variables.c:4390
+msgid "all_local_variables: no function context at current scope"
+msgstr "all_local_variables: 현재 범위에서 함수 컨텍스트 없음"
+
+#: variables.c:4757
+#, c-format
+msgid "%s has null exportstr"
+msgstr "%s이(가) null exportstr을 가짐"
+
+#: variables.c:4762 variables.c:4771
+#, c-format
+msgid "invalid character %d in exportstr for %s"
+msgstr "%2$s의 exportstr에서 부적절한 문자 %1$d"
+
+#: variables.c:4777
+#, c-format
+msgid "no `=' in exportstr for %s"
+msgstr "%s의 exportstr에 '=' 없음"
+
+#: variables.c:5317
+msgid "pop_var_context: head of shell_variables not a function context"
+msgstr "pop_var_context: shell_variables의 시작이 함수의 컨텍스트가 아님"
+
+#: variables.c:5330
+msgid "pop_var_context: no global_variables context"
+msgstr "pop_var_context: 컨텍스트에 global_variables 없음"
+
+#: variables.c:5410
+msgid "pop_scope: head of shell_variables not a temporary environment scope"
+msgstr "pop_scope: shell_variables의 시작이 임시 환경 범위가 아님"
+
+#: variables.c:6400
+#, c-format
+msgid "%s: %s: cannot open as FILE"
+msgstr "%s: %s: <파일>로 열 수 없음"
+
+#: variables.c:6405
+#, c-format
+msgid "%s: %s: invalid value for trace file descriptor"
+msgstr "%s: %s: 추척 파일 서술자에 부적절한 값"
+
+#: variables.c:6450
+#, c-format
+msgid "%s: %s: compatibility value out of range"
+msgstr "%s: %s: 호환 값이 범위를 벗어남"
+
+#: version.c:46 version2.c:46
+msgid "Copyright (C) 2022 Free Software Foundation, Inc."
+msgstr "Copyright (C) 2022 Free Software Foundation, Inc."
+
+#: version.c:47 version2.c:47
+msgid "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+msgstr "라이선스 GPLv3+: GNU GPL 버전 3 이상 <http://gnu.org/license/gpl.html>\n"
+
+#: version.c:86 version2.c:86
+#, c-format
+msgid "GNU bash, version %s (%s)\n"
+msgstr "GNU bash, 버전 %s (%s)\n"
+
+#: version.c:91 version2.c:91
+msgid "This is free software; you are free to change and redistribute it."
+msgstr "이 프로그램은 자유 소프트웨어입니다. 자유롭게 바꾸고 재배포할 수 있습니다."
+
+#: version.c:92 version2.c:92
+msgid "There is NO WARRANTY, to the extent permitted by law."
+msgstr "법률이 허용하는 모든 범위내의 보증은 없습니다."
+
+#: xmalloc.c:93
+#, c-format
+msgid "%s: cannot allocate %lu bytes (%lu bytes allocated)"
+msgstr "%s: %lu 바이트를 할당할 수 없음 (%lu 바이트 할당함)"
+
+#: xmalloc.c:95
+#, c-format
+msgid "%s: cannot allocate %lu bytes"
+msgstr "%s: %lu 바이트를 할당할 수 없음"
+
+#: xmalloc.c:165
+#, c-format
+msgid "%s: %s:%d: cannot allocate %lu bytes (%lu bytes allocated)"
+msgstr "%s: %s:%d: %lu 바이트를 할당할 수 없음 (%lu 바이트 할당함)"
+
+#: xmalloc.c:167
+#, c-format
+msgid "%s: %s:%d: cannot allocate %lu bytes"
+msgstr "%s: %s:%d: %lu 바이트를 할당할 수 없음"
+
+#: builtins.c:45
+msgid "alias [-p] [name[=value] ... ]"
+msgstr "alias [-p] [<이름>[=<값>] ... ]"
+
+#: builtins.c:49
+msgid "unalias [-a] name [name ...]"
+msgstr "unalias [-a] <이름> [<이름> ...]"
+
+#: builtins.c:53
+msgid "bind [-lpsvPSVX] [-m keymap] [-f filename] [-q name] [-u name] [-r keyseq] [-x keyseq:shell-command] [keyseq:readline-function or readline-command]"
+msgstr "bind [-lpsvPSVX] [-m <키매핑>] [-f <파일이름>] [-q <이름>] [-u <이름>] [-r <키시퀀스>] [-x <키시퀀스>:<셸명령>] [<키시퀀스>:<행읽기함수> 또는 <행읽기명령>]"
+
+#: builtins.c:56
+msgid "break [n]"
+msgstr "break [<번호>]"
+
+#: builtins.c:58
+msgid "continue [n]"
+msgstr "continue [<번호>]"
+
+#: builtins.c:60
+msgid "builtin [shell-builtin [arg ...]]"
+msgstr "builtin [<셸내장명령> [<인자> ...]]"
+
+#: builtins.c:63
+msgid "caller [expr]"
+msgstr "caller [<표현식>]"
+
+#: builtins.c:66
+msgid "cd [-L|[-P [-e]] [-@]] [dir]"
+msgstr "cd [-L|[-P [-e]] [-@]] [<디렉터리>]"
+
+#: builtins.c:68
+msgid "pwd [-LP]"
+msgstr "pwd [-LP]"
+
+#: builtins.c:76
+msgid "command [-pVv] command [arg ...]"
+msgstr "<명령> [-pVv] <명령> [<인자> ...]"
+
+#: builtins.c:78
+msgid "declare [-aAfFgiIlnrtux] [name[=value] ...] or declare -p [-aAfFilnrtux] [name ...]"
+msgstr "declare [-aAfFgilnrtux] [-p] [<이름>[=<값>] ...]"
+
+#: builtins.c:80
+msgid "typeset [-aAfFgiIlnrtux] name[=value] ... or typeset -p [-aAfFilnrtux] [name ...]"
+msgstr "typeset [-aAfFgilnrtux] [-p] <이름>[=<값>] ..."
+
+#: builtins.c:82
+msgid "local [option] name[=value] ..."
+msgstr "local [<옵션>] <이름>[=<값>] ..."
+
+#: builtins.c:85
+msgid "echo [-neE] [arg ...]"
+msgstr "echo [-neE] [<인자> ...]"
+
+#: builtins.c:89
+msgid "echo [-n] [arg ...]"
+msgstr "echo [-n] [<인자> ...]"
+
+#: builtins.c:92
+msgid "enable [-a] [-dnps] [-f filename] [name ...]"
+msgstr "enable [-a] [-dnps] [-f <파일이름>] [<이름> ...]"
+
+#: builtins.c:94
+msgid "eval [arg ...]"
+msgstr "eval [인자 ...]"
+
+#: builtins.c:96
+msgid "getopts optstring name [arg ...]"
+msgstr "getopts optstring name [<인자> ...]"
+
+#: builtins.c:98
+msgid "exec [-cl] [-a name] [command [argument ...]] [redirection ...]"
+msgstr "exec [-cl] [-a <이름>] [<명령> [<인자> ...]] [<방향재지정> ...]"
+
+#: builtins.c:100
+msgid "exit [n]"
+msgstr "exit [<번호>]"
+
+#: builtins.c:102
+msgid "logout [n]"
+msgstr "logout [<번호>]"
+
+#: builtins.c:105
+msgid "fc [-e ename] [-lnr] [first] [last] or fc -s [pat=rep] [command]"
+msgstr "fc [-e <편집기이름>] [-lnr] [<처음>] [<종결>] 또는 fc -s [<패턴>=<대체>] [<명령>]"
+
+#: builtins.c:109
+msgid "fg [job_spec]"
+msgstr "fg [<JOBSPEC>]"
+
+#: builtins.c:113
+msgid "bg [job_spec ...]"
+msgstr "bg [<JOBSPEC> ...]"
+
+#: builtins.c:116
+msgid "hash [-lr] [-p pathname] [-dt] [name ...]"
+msgstr "hash [-lr] [-p <경로이름>] [-dt] [<이름> ...]"
+
+#: builtins.c:119
+msgid "help [-dms] [pattern ...]"
+msgstr "help [-dms] [<패턴> ...]"
+
+#: builtins.c:123
+msgid "history [-c] [-d offset] [n] or history -anrw [filename] or history -ps arg [arg...]"
+msgstr "history [-c] [-d <오프셋>] [n] 또는 history -anrw [<파일이름>] 또는 history -ps <인자> [<인자>...]"
+
+#: builtins.c:127
+msgid "jobs [-lnprs] [jobspec ...] or jobs -x command [args]"
+msgstr "jobs [-lnprs] [jobspec ...] 또는 jobs -x command [args]"
+
+#: builtins.c:131
+msgid "disown [-h] [-ar] [jobspec ... | pid ...]"
+msgstr "disown [-h] [-ar] [<JOBSPEC> ... | <PID> ...]"
+
+#: builtins.c:134
+msgid "kill [-s sigspec | -n signum | -sigspec] pid | jobspec ... or kill -l [sigspec]"
+msgstr "kill [-s <시그널명세> | -n <시그널번호> | -<시그널명세>] <PID> | <JOBSPEC> ... 또는 kill -l [<시그널명세>]"
+
+#: builtins.c:136
+msgid "let arg [arg ...]"
+msgstr "let <인자> [<인자> ...]"
+
+#: builtins.c:138
+msgid "read [-ers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]"
+msgstr "read [-ers] [-a <배열>] [-d <구분자>] [-i <텍스트>] [-n <문자수>] [-N <문자수>] [-p <프롬프트>] [-t <제한시간>] [-u <파일서술자>] [<이름> ...]"
+
+#: builtins.c:140
+msgid "return [n]"
+msgstr "return [n]"
+
+#: builtins.c:142
+msgid "set [-abefhkmnptuvxBCEHPT] [-o option-name] [--] [-] [arg ...]"
+msgstr "set [-abefhkmnptuvxBCHP] [-o <옵션-이름>] [--] [<인자> ...]"
+
+#: builtins.c:144
+msgid "unset [-f] [-v] [-n] [name ...]"
+msgstr "unset [-f] [-v] [-n] [<이름> ...]"
+
+#: builtins.c:146
+msgid "export [-fn] [name[=value] ...] or export -p"
+msgstr "export [-fn] [<이름>[=<값>] ...] 또는 export -p"
+
+#: builtins.c:148
+msgid "readonly [-aAf] [name[=value] ...] or readonly -p"
+msgstr "readonly [-aAf] [<이름>[=<값>] ...] 또는 readonly -p"
+
+#: builtins.c:150
+msgid "shift [n]"
+msgstr "shift [n]"
+
+#: builtins.c:152
+msgid "source filename [arguments]"
+msgstr "source <파일이름> [<인자>]"
+
+#: builtins.c:154
+msgid ". filename [arguments]"
+msgstr ". <파일이름> [<인자>]"
+
+#: builtins.c:157
+msgid "suspend [-f]"
+msgstr "suspend [-f]"
+
+#: builtins.c:160
+msgid "test [expr]"
+msgstr "test [<표현식>]"
+
+#: builtins.c:162
+msgid "[ arg... ]"
+msgstr "[ <인자>... ]"
+
+#: builtins.c:166
+msgid "trap [-lp] [[arg] signal_spec ...]"
+msgstr "trap [-lp] [[<인자>] <시그널_명세> ...]"
+
+#: builtins.c:168
+msgid "type [-afptP] name [name ...]"
+msgstr "type [-afptP] <이름> [<이름> ...]"
+
+#: builtins.c:171
+msgid "ulimit [-SHabcdefiklmnpqrstuvxPRT] [limit]"
+msgstr "ulimit [-SHabcdefiklmnpqrstuvxPT] [<한계값>]"
+
+#: builtins.c:174
+msgid "umask [-p] [-S] [mode]"
+msgstr "umask [-p] [-S] [<모드>]"
+
+#: builtins.c:177
+msgid "wait [-fn] [-p var] [id ...]"
+msgstr "wait [-fn] [<ID> ...]"
+
+#: builtins.c:181
+msgid "wait [pid ...]"
+msgstr "wait [<PID> ...]"
+
+#: builtins.c:184
+msgid "for NAME [in WORDS ... ] ; do COMMANDS; done"
+msgstr "for <이름> [in <여러단어> ... ] ; do <명령>; done"
+
+#: builtins.c:186
+msgid "for (( exp1; exp2; exp3 )); do COMMANDS; done"
+msgstr "for (( <조건식1>; <조건식2>; <조건식3> )); do <명령>; done"
+
+#: builtins.c:188
+msgid "select NAME [in WORDS ... ;] do COMMANDS; done"
+msgstr "select <이름> [in <여러단어> ... ;] do <명령>; done"
+
+#: builtins.c:190
+msgid "time [-p] pipeline"
+msgstr "time [-p] <파이프라인>"
+
+#: builtins.c:192
+msgid "case WORD in [PATTERN [| PATTERN]...) COMMANDS ;;]... esac"
+msgstr "case <단어> in [<패턴> [| <패턴>]...) <명령> ;;]... esac"
+
+#: builtins.c:194
+msgid "if COMMANDS; then COMMANDS; [ elif COMMANDS; then COMMANDS; ]... [ else COMMANDS; ] fi"
+msgstr "if <명령>; then <명령>; [ elif <명령>; then <명령>; ]... [ else <명령>; ] fi"
+
+#: builtins.c:196
+msgid "while COMMANDS; do COMMANDS-2; done"
+msgstr "while <명령>; do <명령-2>; done"
+
+#: builtins.c:198
+msgid "until COMMANDS; do COMMANDS-2; done"
+msgstr "until <명령>; do <명령-2>; done"
+
+#: builtins.c:200
+msgid "coproc [NAME] command [redirections]"
+msgstr "coproc [<이름>] <명령> [<방향재지정>]"
+
+#: builtins.c:202
+msgid "function name { COMMANDS ; } or name () { COMMANDS ; }"
+msgstr "function <이름> { <명령> ; } 또는 <이름> () { <명령> ; }"
+
+#: builtins.c:204
+msgid "{ COMMANDS ; }"
+msgstr "{ <명령> ; }"
+
+#: builtins.c:206
+msgid "job_spec [&]"
+msgstr "job_spec [&]"
+
+#: builtins.c:208
+msgid "(( expression ))"
+msgstr "(( <표현식> ))"
+
+#: builtins.c:210
+msgid "[[ expression ]]"
+msgstr "[[ <표현식> ]]"
+
+#: builtins.c:212
+msgid "variables - Names and meanings of some shell variables"
+msgstr "variables - 이름이자 일부 셸 변수를 의미합니다"
+
+#: builtins.c:215
+msgid "pushd [-n] [+N | -N | dir]"
+msgstr "pushd [-n] [+<갯수> | -<갯수> | <디렉터리>]"
+
+#: builtins.c:219
+msgid "popd [-n] [+N | -N]"
+msgstr "popd [-n] [+<갯수> | -<갯수>]"
+
+#: builtins.c:223
+msgid "dirs [-clpv] [+N] [-N]"
+msgstr "dirs [-clpv] [+<갯수>] [-<갯수>]"
+
+#: builtins.c:226
+msgid "shopt [-pqsu] [-o] [optname ...]"
+msgstr "shopt [-pqsu] [-o] [<옵션이름>...]"
+
+#: builtins.c:228
+msgid "printf [-v var] format [arguments]"
+msgstr "printf [-v <변수>] <출력형식> [<인자>]"
+
+#: builtins.c:231
+msgid "complete [-abcdefgjksuv] [-pr] [-DEI] [-o option] [-A action] [-G globpat] [-W wordlist] [-F function] [-C command] [-X filterpat] [-P prefix] [-S suffix] [name ...]"
+msgstr "complete [-abcdefgjksuv] [-pr] [-DEI] [-o <옵션>] [-A <동작>] [-G <글롭패턴>] [-W <단어목록>]  [-F <함수>] [-C <명령>] [-X <필터패턴>] [-P <접두어>] [-S <접미어>] [<이름> ...]"
+
+#: builtins.c:235
+msgid "compgen [-abcdefgjksuv] [-o option] [-A action] [-G globpat] [-W wordlist] [-F function] [-C command] [-X filterpat] [-P prefix] [-S suffix] [word]"
+msgstr "compgen [-abcdefgjksuv] [-o <옵션>] [-A <동작>] [-G <글롭패턴>] [-W <단어목록>]  [-F <함수>] [-C <명령>] [-X <필터패턴>] [-P <접두어>] [-S <접미어>] [<단어>]"
+
+#: builtins.c:239
+msgid "compopt [-o|+o option] [-DEI] [name ...]"
+msgstr "compopt [-o|+o <옵션>] [-DEI] [<이름> ...]"
+
+#: builtins.c:242
+msgid "mapfile [-d delim] [-n count] [-O origin] [-s count] [-t] [-u fd] [-C callback] [-c quantum] [array]"
+msgstr "mapfile [-d <구분자>] [-n <갯수>] [-O <시작>] [-s <갯수>] [-t] [-u <파일서술자>] [-C <콜백>] [-c <양자>] [<배열>]"
+
+#: builtins.c:244
+msgid "readarray [-d delim] [-n count] [-O origin] [-s count] [-t] [-u fd] [-C callback] [-c quantum] [array]"
+msgstr "readarray [-d <구분자>] [-n <갯수>] [-O <시작>] [-s <갯수>] [-t] [-u <파일서술자>] [-C <콜백>] [-c <양자>] [<배열>]"
+
+#: builtins.c:256
+msgid ""
+"Define or display aliases.\n"
+"    \n"
+"    Without arguments, `alias' prints the list of aliases in the reusable\n"
+"    form `alias NAME=VALUE' on standard output.\n"
+"    \n"
+"    Otherwise, an alias is defined for each NAME whose VALUE is given.\n"
+"    A trailing space in VALUE causes the next word to be checked for\n"
+"    alias substitution when the alias is expanded.\n"
+"    \n"
+"    Options:\n"
+"      -p\tprint all defined aliases in a reusable format\n"
+"    \n"
+"    Exit Status:\n"
+"    alias returns true unless a NAME is supplied for which no alias has been\n"
+"    defined."
+msgstr ""
+"별칭을 지정하거나 표시합니다.\n"
+"    \n"
+"    인자가 없다면, `alias'는 `alias <이름>=<값>' 형식으로 표준 출력에\n"
+"    별칭 목록을 출력합니다.\n"
+"    \n"
+"    그렇지 않으면 <값>을 부여한 각 <이름>을 지정합니다.\n"
+"    <값>에 공백 문자를 덧붙이면 별칭을 확장할 때 별칭 대체 대상\n"
+"    문자열의 다음 단어를 확인합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -p\t재사용 형식으로 지정한 모든 별칭을 출력합니다\n"
+"    \n"
+"    종료 상태:\n"
+"    별칭으로 지정한 <이름>을 확인하면 참을 반환합니다."
+
+#: builtins.c:278
+msgid ""
+"Remove each NAME from the list of defined aliases.\n"
+"    \n"
+"    Options:\n"
+"      -a\tremove all alias definitions\n"
+"    \n"
+"    Return success unless a NAME is not an existing alias."
+msgstr ""
+"지정 별칭의 목록에서 각 <이름>을 제거합니다\n"
+"    \n"
+"    옵션:\n"
+"      -a\t모든 별칭 지정 항목을 제거합니다.\n"
+"    \n"
+"    <이름>이 기존 별칭일 경우 성공을 반환합니다."
+
+#: builtins.c:291
+msgid ""
+"Set Readline key bindings and variables.\n"
+"    \n"
+"    Bind a key sequence to a Readline function or a macro, or set a\n"
+"    Readline variable.  The non-option argument syntax is equivalent to\n"
+"    that found in ~/.inputrc, but must be passed as a single argument:\n"
+"    e.g., bind '\"\\C-x\\C-r\": re-read-init-file'.\n"
+"    \n"
+"    Options:\n"
+"      -m  keymap         Use KEYMAP as the keymap for the duration of this\n"
+"                         command.  Acceptable keymap names are emacs,\n"
+"                         emacs-standard, emacs-meta, emacs-ctlx, vi, vi-move,\n"
+"                         vi-command, and vi-insert.\n"
+"      -l                 List names of functions.\n"
+"      -P                 List function names and bindings.\n"
+"      -p                 List functions and bindings in a form that can be\n"
+"                         reused as input.\n"
+"      -S                 List key sequences that invoke macros and their values\n"
+"      -s                 List key sequences that invoke macros and their values\n"
+"                         in a form that can be reused as input.\n"
+"      -V                 List variable names and values\n"
+"      -v                 List variable names and values in a form that can\n"
+"                         be reused as input.\n"
+"      -q  function-name  Query about which keys invoke the named function.\n"
+"      -u  function-name  Unbind all keys which are bound to the named function.\n"
+"      -r  keyseq         Remove the binding for KEYSEQ.\n"
+"      -f  filename       Read key bindings from FILENAME.\n"
+"      -x  keyseq:shell-command\tCause SHELL-COMMAND to be executed when\n"
+"    \t\t\t\tKEYSEQ is entered.\n"
+"      -X                 List key sequences bound with -x and associated commands\n"
+"                         in a form that can be reused as input.\n"
+"    \n"
+"    Exit Status:\n"
+"    bind returns 0 unless an unrecognized option is given or an error occurs."
+msgstr ""
+"readline 키 바인딩과 값을 설정합니다.\n"
+"    \n"
+"    키 시퀀스를 readline 함수 또는 매크로에 바인딩하거나, readline\n"
+"    변수에 설정합니다.  옵션을 지정하지 않은 인자 문법은 ~/.inputrc\n"
+"    에서 찾을 수 있는 문법과 동일합니다만 단일 인자로 전달해야 합니다.\n"
+"    예: bind '\"\\C-x\\C-r\": re-read-init-file'\n"
+"    \n"
+"    옵션:\n"
+"    -m <키매핑>        <키매핑>을 이 명령 실행동안 사용하는 키매핑\n"
+"                         으로 활용합니다.  허용할 수 있는 키매핑 이름은 emacs,\n"
+"                         emacs-standard, emacs-meta, emacs-ctlx, vi, vi-move,\n"
+"                         vi-command, vi-insert가 있습니다.\n"
+"      -l                 함수 이름 목록.\n"
+"      -P                 함수 이름 및 바인딩 목록.\n"
+"      -p                 입력에 다시 활용할 수 있는 형식의 함수 이름과 바인딩 목록.\n"
+"      -S                 매크로와 값을 실행하는 키 시퀀스 목록\n"
+"      -s                 입력으로 다시 활용할 수 있는 매크로와 값을 실행하는\n"
+"                         키 시퀀스 목록.\n"
+"      -V                 변수 이름과 값 목록\n"
+"      -v                 입력으로 다시 활용할 수 있는 변수 이름과 값 목록.\n"
+"      -q  <함수이름>     어떤 키가 명명 함수를 실행하는지 요청.\n"
+"      -u  <함수이름>     명명 함수에 바인딩한 모든 키의 바인딩 해제.\n"
+"      -r  <키시퀀스>     <키시퀀스>의 바인딩 제거.\n"
+"      -f  <파일이름>     <파일이름>의 키 바인딩 읽기.\n"
+"      -x  <키시퀀스>:<셸명령>\t<키시퀀스>를 입력하면 <셸명령>을\n"
+"    \t\t\t\t실행하게 합.\n"
+"      -X                 입력으로 다시 활용할 수 있는 -x로 지정한 키 시퀀스\n"
+"                         및 관련 명령 목록\n"
+"    \n"
+"    종료 상태:\n"
+"    알 수 없는 옵션을 지정하지 않았거나 오류가 없으면 0을 반환합니다."
+
+#: builtins.c:330
+msgid ""
+"Exit for, while, or until loops.\n"
+"    \n"
+"    Exit a FOR, WHILE or UNTIL loop.  If N is specified, break N enclosing\n"
+"    loops.\n"
+"    \n"
+"    Exit Status:\n"
+"    The exit status is 0 unless N is not greater than or equal to 1."
+msgstr ""
+"for, while, until 반복문을 나갑니다.\n"
+"    \n"
+"    FOR, WHILE, UNTIL 반복문을 나갑니다. <횟수>를 지정하면,\n"
+"    반복 <횟수>에 도달했을 때 중단합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <횟수>가 1보다 크거나 같으면 0입니다."
+
+#: builtins.c:342
+msgid ""
+"Resume for, while, or until loops.\n"
+"    \n"
+"    Resumes the next iteration of the enclosing FOR, WHILE or UNTIL loop.\n"
+"    If N is specified, resumes the Nth enclosing loop.\n"
+"    \n"
+"    Exit Status:\n"
+"    The exit status is 0 unless N is not greater than or equal to 1."
+msgstr ""
+"for, while, until 반복문을 다시 실행합니다.\n"
+"    \n"
+"    FOR, WHILE, UNTIL 반복문의 다음 반복 실행을 진행합니다.\n"
+"    <횟수>를 지정하면 <횟수> 만큼 다시 실행합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <횟수>가 1보다 크거나 같으면 0입니다."
+
+#: builtins.c:354
+msgid ""
+"Execute shell builtins.\n"
+"    \n"
+"    Execute SHELL-BUILTIN with arguments ARGs without performing command\n"
+"    lookup.  This is useful when you wish to reimplement a shell builtin\n"
+"    as a shell function, but need to execute the builtin within the function.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the exit status of SHELL-BUILTIN, or false if SHELL-BUILTIN is\n"
+"    not a shell builtin."
+msgstr ""
+"셸 내장 명령을 실행합니다.\n"
+"    \n"
+"    <셸내장명령>을 명령 검색 동작 없이 <인자>를 지정하여 실행합니다.\n"
+"    셸 내장 명령을 셸 함수로 재구현할 때 쓸만합니다만, 내장 명령은\n"
+"    함수 안에서 실행해야합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <셸내장명령>의 종료 상태를 반환하거나 <셸내장명령>이 내장\n"
+"    명령이 아닐 경우 거짓을 반환합니다."
+
+#: builtins.c:369
+msgid ""
+"Return the context of the current subroutine call.\n"
+"    \n"
+"    Without EXPR, returns \"$line $filename\".  With EXPR, returns\n"
+"    \"$line $subroutine $filename\"; this extra information can be used to\n"
+"    provide a stack trace.\n"
+"    \n"
+"    The value of EXPR indicates how many call frames to go back before the\n"
+"    current one; the top frame is frame 0.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns 0 unless the shell is not executing a shell function or EXPR\n"
+"    is invalid."
+msgstr ""
+"현재 하위루틴 호출 컨텍스트를 반환합니다.\n"
+"    \n"
+"    <표현식>이 없다면 \"$line $filename\"을 반환하며, <표현식>을 지정했다면\n"
+"    \"$line $subroutine $filename\"을 반환합니다. 추가 정보는 스택 트레이스\n"
+"    에 활용할 수 있습니다.\n"
+"    \n"
+"    <표현식>의 값은 현재 호출 프레임으로부터 얼마나 되돌아가야 하는지를\n"
+"    나타냅니다. 최상단 프레임은 프레임 0번입니다."
+
+#: builtins.c:387
+msgid ""
+"Change the shell working directory.\n"
+"    \n"
+"    Change the current directory to DIR.  The default DIR is the value of the\n"
+"    HOME shell variable.\n"
+"    \n"
+"    The variable CDPATH defines the search path for the directory containing\n"
+"    DIR.  Alternative directory names in CDPATH are separated by a colon (:).\n"
+"    A null directory name is the same as the current directory.  If DIR begins\n"
+"    with a slash (/), then CDPATH is not used.\n"
+"    \n"
+"    If the directory is not found, and the shell option `cdable_vars' is set,\n"
+"    the word is assumed to be  a variable name.  If that variable has a value,\n"
+"    its value is used for DIR.\n"
+"    \n"
+"    Options:\n"
+"      -L\tforce symbolic links to be followed: resolve symbolic\n"
+"    \t\tlinks in DIR after processing instances of `..'\n"
+"      -P\tuse the physical directory structure without following\n"
+"    \t\tsymbolic links: resolve symbolic links in DIR before\n"
+"    \t\tprocessing instances of `..'\n"
+"      -e\tif the -P option is supplied, and the current working\n"
+"    \t\tdirectory cannot be determined successfully, exit with\n"
+"    \t\ta non-zero status\n"
+"      -@\ton systems that support it, present a file with extended\n"
+"    \t\tattributes as a directory containing the file attributes\n"
+"    \n"
+"    The default is to follow symbolic links, as if `-L' were specified.\n"
+"    `..' is processed by removing the immediately previous pathname component\n"
+"    back to a slash or the beginning of DIR.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns 0 if the directory is changed, and if $PWD is set successfully when\n"
+"    -P is used; non-zero otherwise."
+msgstr ""
+"셸 작업 디렉터리를 바꿉니다.\n"
+"    \n"
+"    현재 디렉터리를 <디렉터리>로 바꿉니다. 기본 <디렉터리>는 HOME 셸 변수\n"
+"    값입니다.\n"
+"    \n"
+"    CDPATH 변수에는 <디렉터리> 값이 들어간 디렉터리 검색 경로를 지정합니다.\n"
+"    CDPATH의 대안 디렉터리 이름은 콜론으로 구분합니다. 널 디렉터리 이름은 \n"
+"    현재 디렉터리와 같습니다.  <디렉터리> 값이 슬래시 문자(/)로 시작하면, \n"
+"    CDPATH 변수를 사용하지 않습니다.\n"
+"    \n"
+"    디렉터리가 없고, `cdable_vars' 셸 옵션을 설정했다면, 단어를 변수 이름으로\n"
+"    가정합니다. 변수에 값이 들어가있다면, 해당 값을 <디렉터리> 값으로 활용\n"
+"    합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -L\t강제로 심볼릭 링크를 따라갑니다. <디렉터리>의 심볼릭 링크를\n"
+"    \t\t`..' 인스턴스를 처리한 다음에 해석합니다.\n"
+"      -P\t심볼릭 링크를 따르지 않고 실제 디렉터리 구조를 활용합니다.\n"
+"    \t\t`..' 인스턴스를 처리하기 전에 <디렉터리>의 심볼릭 링크를\n"
+"    \t\t해석합니다.\n"
+"      -e\t-P 옵션을 지정하고, 현재 디렉터리를 제대로 식별하지 못하면\n"
+"    \t\t0이 아닌 상태 값으로 나갑니다\n"
+"      -@\t이 옵션을 지원하는 시스템에서는 파일 속성이 들어간\n"
+"    \t\t디렉터리처럼 확장 속성을 가진 파일을 나타냅니다\n"
+"    \n"
+"    `-L' 옵션을 지정했을 때와 같이 심볼릭 링크를 따라가는게 기본 동작입니다.\n"
+"    `..'은 이전 경로 이름 요소를 즉시 제거하여 슬래시 경로로 돌아가거나\n"
+"    <디렉터리>의 시작점으로 돌아갑니댜.\n"
+"    \n"
+"    종료 상태:\n"
+"    디렉터리가 바뀌었고 -P 옵션을 사용했을 때 $PWD 값을 제대로 설정하면\n"
+"    0 값을 반환하며, 그렇지 않으면 0이 아닌 값을 반환합니다."
+
+#: builtins.c:425
+msgid ""
+"Print the name of the current working directory.\n"
+"    \n"
+"    Options:\n"
+"      -L\tprint the value of $PWD if it names the current working\n"
+"    \t\tdirectory\n"
+"      -P\tprint the physical directory, without any symbolic links\n"
+"    \n"
+"    By default, `pwd' behaves as if `-L' were specified.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns 0 unless an invalid option is given or the current directory\n"
+"    cannot be read."
+msgstr ""
+"현재 작업 디렉터리의 이름을 출력합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -L\t$PWD값의 이름이 현재 작업 디렉터리일 경우 값을 출력\n"
+"      -P\t심볼릭 링크가 아닌 물리 디렉터리를 출력\n"
+"    \n"
+"    기본적으로 `pwd'에는 `-L' 옵션이 붙어있습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션이 붙었거나 현재 디렉터리를 읽을 수 있다면 0을 반환합니다."
+
+#: builtins.c:442
+msgid ""
+"Null command.\n"
+"    \n"
+"    No effect; the command does nothing.\n"
+"    \n"
+"    Exit Status:\n"
+"    Always succeeds."
+msgstr ""
+"Null 명령.\n"
+"    \n"
+"    효과 없음. 아무것도 하지 않습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    항상 성공합니다."
+
+#: builtins.c:453
+msgid ""
+"Return a successful result.\n"
+"    \n"
+"    Exit Status:\n"
+"    Always succeeds."
+msgstr ""
+"성공 결과를 반환합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    항상 성공합니다."
+
+#: builtins.c:462
+msgid ""
+"Return an unsuccessful result.\n"
+"    \n"
+"    Exit Status:\n"
+"    Always fails."
+msgstr ""
+"실패 결과를 반환합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    항상 실패합니다."
+
+#: builtins.c:471
+msgid ""
+"Execute a simple command or display information about commands.\n"
+"    \n"
+"    Runs COMMAND with ARGS suppressing  shell function lookup, or display\n"
+"    information about the specified COMMANDs.  Can be used to invoke commands\n"
+"    on disk when a function with the same name exists.\n"
+"    \n"
+"    Options:\n"
+"      -p    use a default value for PATH that is guaranteed to find all of\n"
+"            the standard utilities\n"
+"      -v    print a description of COMMAND similar to the `type' builtin\n"
+"      -V    print a more verbose description of each COMMAND\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns exit status of COMMAND, or failure if COMMAND is not found."
+msgstr ""
+"간단한 명령을 실행하거나 명령 정보를 표시합니다.\n"
+"    \n"
+"    셸 함수 탐색을 억제하는 <인자>로 <명령>을 실행하거나, 지정 <명령>의 정보를\n"
+"    나타냅니다.  동일한 이름을 가진 함수가 있을 때 디스크의 명령을 실행할 경우\n"
+"    활용할 수 있습니다.\n"
+"    \n"
+"    옵션:\n"
+"      -p    표준 유틸리티를 전부 찾을 수 있다고 보장하는\n"
+"            PATH 기본값을 사용합니다.\n"
+"      -v    `type' 내장 명령과 비슷하게 <명령>의 설명을 보여줍니다\n"
+"      -V    각 <명령>의 더 자세한 정보를 보여줍니다\n"
+"    \n"
+"    종료 상태:\n"
+"    <명령>의 실행 결과를 반환하거나 <명령>이 없을 경우 오류를 반환합니다."
+
+#: builtins.c:490
+msgid ""
+"Set variable values and attributes.\n"
+"    \n"
+"    Declare variables and give them attributes.  If no NAMEs are given,\n"
+"    display the attributes and values of all variables.\n"
+"    \n"
+"    Options:\n"
+"      -f\trestrict action or display to function names and definitions\n"
+"      -F\trestrict display to function names only (plus line number and\n"
+"    \t\tsource file when debugging)\n"
+"      -g\tcreate global variables when used in a shell function; otherwise\n"
+"    \t\tignored\n"
+"      -I\tif creating a local variable, inherit the attributes and value\n"
+"    \t\tof a variable with the same name at a previous scope\n"
+"      -p\tdisplay the attributes and value of each NAME\n"
+"    \n"
+"    Options which set attributes:\n"
+"      -a\tto make NAMEs indexed arrays (if supported)\n"
+"      -A\tto make NAMEs associative arrays (if supported)\n"
+"      -i\tto make NAMEs have the `integer' attribute\n"
+"      -l\tto convert the value of each NAME to lower case on assignment\n"
+"      -n\tmake NAME a reference to the variable named by its value\n"
+"      -r\tto make NAMEs readonly\n"
+"      -t\tto make NAMEs have the `trace' attribute\n"
+"      -u\tto convert the value of each NAME to upper case on assignment\n"
+"      -x\tto make NAMEs export\n"
+"    \n"
+"    Using `+' instead of `-' turns off the given attribute.\n"
+"    \n"
+"    Variables with the integer attribute have arithmetic evaluation (see\n"
+"    the `let' command) performed when the variable is assigned a value.\n"
+"    \n"
+"    When used in a function, `declare' makes NAMEs local, as with the `local'\n"
+"    command.  The `-g' option suppresses this behavior.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is supplied or a variable\n"
+"    assignment error occurs."
+msgstr ""
+"변수 값과 속성을 설정합니다.\n"
+"    \n"
+"    변수를 선언하고 속성을 부여합니다. <이름>을 정하지 않으면,\n"
+"    속성과 모든 변수 값을 나타냅니다.\n"
+"    \n"
+"    옵션:\n"
+"      -f\t함수 이름과 정의로 동작과 표시를 제한합니다\n"
+"      -F\t함수 이름만 표시를 제한합니다 (디버깅할 때는 행 번호와\n"
+"    \t\t소스 파일 포함)\n"
+"      -g\t셸 함수에서 사용할 때 전역 변수를 만듭니다. 아니면 무시\n"
+"      -I\t지역 변수를 만들 때, 이전 범위의 같은 이름을 가진 속성과\n"
+"    \t\t변수값을 이어받습니다\n"
+"      -p\t속성과 각 <이름>의 값을 표시합니다\n"
+"    \n"
+"    속성을 설정하는 옵션:\n"
+"      -a\t<이름>을 색인 배열로 만듬 (지원할 경우)\n"
+"      -A\t<이름>을 연관 배열로 만듬 (지원할 경우)\n"
+"      -i\t<이름>을 `정수' 속성을 가지게 함\n"
+"      -l\t각 <이름>의 할당 값을 소문자로 변환\n"
+"      -n\t<이름> 값으로 지정한 이름을 참조하게 함\n"
+"      -r\t<이름>을 읽기 전용으로 설정\n"
+"      -t\t<이름>에 `trace' 속성을 가지게 함\n"
+"      -u\t각 <이름>의 할당 값을 대문자로 변환\n"
+"      -x\t<이름>을 내보냄\n"
+"    \n"
+"    주어진 속성을 사용하려면 `+'를 끄려면 `-'를 사용합니다.\n"
+"    \n"
+"    정수 속성 변수는 변수에 값을 할당하면 산술 연산을 수행\n"
+"    합니다 (`let' 명령 참고).\n"
+"    \n"
+"    함수에서 사용할 때, `declare' 명령은 `local' 명령처럼\n"
+"    <이름>을 로컬 변수로 만듭니다.  `-g' 옵션은 이 동작을\n"
+"    억제합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 설정했거나 변수 할당 오류가 없다면\n"
+"    성공을 반환합니다."
+
+#: builtins.c:532
+msgid ""
+"Set variable values and attributes.\n"
+"    \n"
+"    A synonym for `declare'.  See `help declare'."
+msgstr ""
+"변수의 값과 속성을 설정합니다.\n"
+"    \n"
+"    `declare'의 동의어 입니다.  `help declare'를 보십시오."
+
+#: builtins.c:540
+msgid ""
+"Define local variables.\n"
+"    \n"
+"    Create a local variable called NAME, and give it VALUE.  OPTION can\n"
+"    be any option accepted by `declare'.\n"
+"    \n"
+"    Local variables can only be used within a function; they are visible\n"
+"    only to the function where they are defined and its children.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is supplied, a variable\n"
+"    assignment error occurs, or the shell is not executing a function."
+msgstr ""
+"지역 변수를 지정합니다.\n"
+"    \n"
+"    <이름> 지역 변수를 만들고 <값>을 부여합니다.  <옵션>은 `declare'\n"
+"    로 받아들일 수 있는 어떤 옵션도 가능합니다.\n"
+"    \n"
+"    지역 변수는 함수 내에서만 활용할 수 있습니다. 하위 요소에서 지정했다면,\n"
+"    역시 하위 함수에서만 볼 수 있습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 지정했거나, 변수 할당에 오류가 없거나,\n"
+"    셸에서 함수를 실행하면 성공을 반환합니다."
+
+#: builtins.c:557
+msgid ""
+"Write arguments to the standard output.\n"
+"    \n"
+"    Display the ARGs, separated by a single space character and followed by a\n"
+"    newline, on the standard output.\n"
+"    \n"
+"    Options:\n"
+"      -n\tdo not append a newline\n"
+"      -e\tenable interpretation of the following backslash escapes\n"
+"      -E\texplicitly suppress interpretation of backslash escapes\n"
+"    \n"
+"    `echo' interprets the following backslash-escaped characters:\n"
+"      \\a\talert (bell)\n"
+"      \\b\tbackspace\n"
+"      \\c\tsuppress further output\n"
+"      \\e\tescape character\n"
+"      \\E\tescape character\n"
+"      \\f\tform feed\n"
+"      \\n\tnew line\n"
+"      \\r\tcarriage return\n"
+"      \\t\thorizontal tab\n"
+"      \\v\tvertical tab\n"
+"      \\\\\tbackslash\n"
+"      \\0nnn\tthe character whose ASCII code is NNN (octal).  NNN can be\n"
+"    \t\t0 to 3 octal digits\n"
+"      \\xHH\tthe eight-bit character whose value is HH (hexadecimal).  HH\n"
+"    \t\tcan be one or two hex digits\n"
+"      \\uHHHH\tthe Unicode character whose value is the hexadecimal value HHHH.\n"
+"    \t\tHHHH can be one to four hex digits.\n"
+"      \\UHHHHHHHH the Unicode character whose value is the hexadecimal value\n"
+"    \t\tHHHHHHHH. HHHHHHHH can be one to eight hex digits.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless a write error occurs."
+msgstr ""
+"표준 출력에 인자를 기록합니다.\n"
+"    \n"
+"    단일 공백문자로 구분하며 개행 문자가 따라오는 <인자>를\n"
+"    표준 출력에 나타냅니다.\n"
+"    \n"
+"    옵션:\n"
+"      -n\t개행 문자 추가 안함\n"
+"      -e\t추가 백슬래시 탈출 문자 처리 활성\n"
+"      -E\t백슬래시 탈출 문자 처리를 명백하게 무시\n"
+"    \n"
+"    `echo' 명령은 다음 백슬래시 탈출 문자를 처리합니다:\n"
+"      \a\t경고 (알림음)\n"
+"      \\b\t백스페이스\n"
+"      \\c\t이후 출력 무시\n"
+"      \\e\t탈출 문자\n"
+"      \\E\t탈출 문자\n"
+"      \\f\t폼 피드\n"
+"      \\n\t개행 문자\n"
+"      \\r\t캐리지 리턴\n"
+"      \\t\t수평 탭\n"
+"      \\v\t수직탭\n"
+"      \\\\\t백슬래시\n"
+"      \\0nnn\t8진수 ASCII 코드 문자.  NNN은 최대 3자리 8진수\n"
+"      \\xHH\t16진수 8비트 문자.  HH는 2자리 16진수\n"
+"      \\uHHHH\t16진수 유니코드 문자. HHHH는 4자리 16진수\n"
+"      \\UHHHHHHHH 16진수 유니코드 문자. HHHHHHHH는 8자리 16진수\n"
+"    \n"
+"    종료 상태:\n"
+"    기록 오류가 없으면 성공을 반환합니다."
+
+#: builtins.c:597
+msgid ""
+"Write arguments to the standard output.\n"
+"    \n"
+"    Display the ARGs on the standard output followed by a newline.\n"
+"    \n"
+"    Options:\n"
+"      -n\tdo not append a newline\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless a write error occurs."
+msgstr ""
+"표준 출력에 인자를 기록합니다.\n"
+"    \n"
+"    <인자> 값과 줄바꿈을 표준 출력에 나타냅니다.\n"
+"    \n"
+"    옵션:\n"
+"      -n\t개행 문자 추가 안함\n"
+"    \n"
+"    종료 상태:\n"
+"    기록 오류가 없다면 성공을 반환합니다."
+
+#: builtins.c:612
+msgid ""
+"Enable and disable shell builtins.\n"
+"    \n"
+"    Enables and disables builtin shell commands.  Disabling allows you to\n"
+"    execute a disk command which has the same name as a shell builtin\n"
+"    without using a full pathname.\n"
+"    \n"
+"    Options:\n"
+"      -a\tprint a list of builtins showing whether or not each is enabled\n"
+"      -n\tdisable each NAME or display a list of disabled builtins\n"
+"      -p\tprint the list of builtins in a reusable format\n"
+"      -s\tprint only the names of Posix `special' builtins\n"
+"    \n"
+"    Options controlling dynamic loading:\n"
+"      -f\tLoad builtin NAME from shared object FILENAME\n"
+"      -d\tRemove a builtin loaded with -f\n"
+"    \n"
+"    Without options, each NAME is enabled.\n"
+"    \n"
+"    To use the `test' found in $PATH instead of the shell builtin\n"
+"    version, type `enable -n test'.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless NAME is not a shell builtin or an error occurs."
+msgstr ""
+"셸 내장 명령을 사용 혹은 미사용처리 합니다.\n"
+"    \n"
+"    내장 셸 명령을 사용/미사용 처리합니다. 미사용 처리하면 전체 경로 이름을\n"
+"    지정하지 않고도 셸 내장명령처럼 동일한 이름을 가진 디스크 명령을 실행할\n"
+"    수 있습니다\n"
+"    \n"
+"    옵션:\n"
+"      -a\t내장 명령의 활성 여부를 나타내는 목록을 출력합니다\n"
+"      -n\t각 <이름>을 미사용 처리하거나 미사용 내장 명령 목록을 출력합니다\n"
+"      -p\t재활용 형식으로 내장 명령 목록을 출력합니다\n"
+"      -s\tPOSIX `특수' 내장 명령 이름만 출력합니다\n"
+"    \n"
+"    동적 불러오기를 제어하는 옵션은 다음과 같습니다:\n"
+"      -f\t<파일이름> 공유 객체의 내장 <이름>을 불러옵니다\n"
+"      -d\t-f로 불러온 내장 명령을 제거합니다\n"
+"    \n"
+"    옵션을 지정하지 않으면, 각 <이름>을 사용합니다.\n"
+"    \n"
+"    셸 내장 버전 대신 $PATH에서 찾은 `test'를 활용하려면,\n"
+"    `enable -n test'를 입력하십시오.\n"
+"    \n"
+"    종료 상태:\n"
+"    <이름>이 셸 내장 명령이고 오류가 없으면 성공을 반환합니다."
+
+#: builtins.c:640
+msgid ""
+"Execute arguments as a shell command.\n"
+"    \n"
+"    Combine ARGs into a single string, use the result as input to the shell,\n"
+"    and execute the resulting commands.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns exit status of command or success if command is null."
+msgstr ""
+"인자를 셸 명령으로 실행합니다.\n"
+"    \n"
+"    <인자>를 단일 문자열에 결합하여 셸 입력 결과로 할용한 다음,\n"
+"    결과를 내는 명령으로 실행합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    명령 값이 있다면 종료 상태를, null 이라면 성공을 반환합니다."
+
+#: builtins.c:652
+msgid ""
+"Parse option arguments.\n"
+"    \n"
+"    Getopts is used by shell procedures to parse positional parameters\n"
+"    as options.\n"
+"    \n"
+"    OPTSTRING contains the option letters to be recognized; if a letter\n"
+"    is followed by a colon, the option is expected to have an argument,\n"
+"    which should be separated from it by white space.\n"
+"    \n"
+"    Each time it is invoked, getopts will place the next option in the\n"
+"    shell variable $name, initializing name if it does not exist, and\n"
+"    the index of the next argument to be processed into the shell\n"
+"    variable OPTIND.  OPTIND is initialized to 1 each time the shell or\n"
+"    a shell script is invoked.  When an option requires an argument,\n"
+"    getopts places that argument into the shell variable OPTARG.\n"
+"    \n"
+"    getopts reports errors in one of two ways.  If the first character\n"
+"    of OPTSTRING is a colon, getopts uses silent error reporting.  In\n"
+"    this mode, no error messages are printed.  If an invalid option is\n"
+"    seen, getopts places the option character found into OPTARG.  If a\n"
+"    required argument is not found, getopts places a ':' into NAME and\n"
+"    sets OPTARG to the option character found.  If getopts is not in\n"
+"    silent mode, and an invalid option is seen, getopts places '?' into\n"
+"    NAME and unsets OPTARG.  If a required argument is not found, a '?'\n"
+"    is placed in NAME, OPTARG is unset, and a diagnostic message is\n"
+"    printed.\n"
+"    \n"
+"    If the shell variable OPTERR has the value 0, getopts disables the\n"
+"    printing of error messages, even if the first character of\n"
+"    OPTSTRING is not a colon.  OPTERR has the value 1 by default.\n"
+"    \n"
+"    Getopts normally parses the positional parameters, but if arguments\n"
+"    are supplied as ARG values, they are parsed instead.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success if an option is found; fails if the end of options is\n"
+"    encountered or an error occurs."
+msgstr ""
+"옵션 인자를 해석합니다.\n"
+"   \n"
+"    getopts는 위치 매개변수를 옵션으로 해석하는 셸 프로시저에서\n"
+"    활용합니다.\n"
+"    \n"
+"    <옵션문자열>에는 식별할 옵션 문자가 들어갑니다. 문자에 콜론이\n"
+"    뒤따라 붙을 경우, 옵션에 공백 문자로 구분한 인자가 뒤따라오는\n"
+"    것으로 간주합니다.\n"
+"    \n"
+"    실행할 때마다, getopts에서 $name 셸 변수의 다음 옵션을 확인하여\n"
+"    해당 옵션이 없을 경우  이름을 초기화하고 OPTIND 셸 변수에 다음\n"
+"    인자의 색인을 처리합니다.  OPTIND는 셸 또는 셸 스크립트를 실행\n"
+"    할 때마다 1로 초기화합니다.  옵션에 인자가 필요하면, getopts에서\n"
+"    해당 인자를 OPTARG 셸 변수에 넣습니다.\n"
+"    \n"
+"    getopts는 두가지 방법으로 오류를 나타냅니다.  OPTSTRING의 첫번째\n"
+"    문자가 콜론이면, getopts에서는 오류 보고시 조용한 상태로 바뀝니다.\n"
+"    이 때, 어떤 오류 메시지도 나타나지 않습니다.  그런데 부적절한 옵션이\n"
+"    나타나면, getopts에서 OPTARG의 잘못된 옵션 문자를 찾아 가리킵니다.\n"
+"    필요한 인자가 없다면, getopts는 콜론을 <이름>에 대입하고, OPTARG \n"
+"    변수에는 찾은 옵션 문자를 할당합니다. getopts가 미출력 상태가 아니고,\n"
+"    부적절한 옵션을 확인했다면, getopts는 '?' 값을 <이름>에 대입하고, \n"
+"    OPTARG 설정을 해제합니다. 필요한 인자가 없다면 '?' 값이 <이름>에\n"
+"    들어가고, OPTARG 변수 설정을 해제하며, 진단 메시지를 출력합니다.\n"
+"    \n"
+"    OPTERR 셸 변수값이 0이면, getopts에서는 오류 메시지 출력을 하지\n"
+"    않습니다. OPTSTRING 첫번째 문자가 콜론이 아니더라도, 기본적으로\n"
+"    OPTERR 셸 변수값에는 1이 들어가 있습니다.\n"
+"    \n"
+"    getopts는 보통 위치 매개변수를 해석하지만, <인자> 값처럼 인자를\n"
+"    지정하면, 해당 값을 먼저 해석합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    옵션을 찾으면 성공을 반환합니다.옵션의 끝에 도달했거나, 오류가\n"
+"     나타나면 실패를 반환합니다."
+
+#: builtins.c:694
+msgid ""
+"Replace the shell with the given command.\n"
+"    \n"
+"    Execute COMMAND, replacing this shell with the specified program.\n"
+"    ARGUMENTS become the arguments to COMMAND.  If COMMAND is not specified,\n"
+"    any redirections take effect in the current shell.\n"
+"    \n"
+"    Options:\n"
+"      -a name\tpass NAME as the zeroth argument to COMMAND\n"
+"      -c\texecute COMMAND with an empty environment\n"
+"      -l\tplace a dash in the zeroth argument to COMMAND\n"
+"    \n"
+"    If the command cannot be executed, a non-interactive shell exits, unless\n"
+"    the shell option `execfail' is set.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless COMMAND is not found or a redirection error occurs."
+msgstr ""
+"셸을 주어진 명령으로 대체합니다.\n"
+"    \n"
+"    이 셸을 지정 프로그램으로 대체하는 <명령>을 실행합니다.\n"
+"     <인자>는 <명령>을 따라갑니다. <명령>을 지정하지 않으면,\n"
+"    현재 셸의 어떤 방향재지정 명령이든 결과가 나타납니다.\n"
+"    \n"
+"    옵션:\n"
+"      -a <이름>\t<이름>을 <명령>의 0번째 인자로 전달합니다\n"
+"      -c\t빈 환경에서 <명령>을 실행합니다\n"
+"      -l\t<명령>의 0번째 인자로 대시 문자를 둡니다\n"
+"    \n"
+"    명령을 실행할 수 없다면, `execfail' 셸 옵션을 설정하지 않았을 경우,\n"
+"    비대화식 셸을 나갑니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <명령>이 있거나 방향재지정 실행시 오류가 없다면 성공을 반환합니다."
+
+#: builtins.c:715
+msgid ""
+"Exit the shell.\n"
+"    \n"
+"    Exits the shell with a status of N.  If N is omitted, the exit status\n"
+"    is that of the last command executed."
+msgstr ""
+"셸을 나갑니다.\n"
+"    \n"
+"    <번호> 값 상태로 셸을 나갑니다.  <번호>를 지정하지 않으면,\n"
+"    종료 상태는 최종 명령 실행 상태와 동일합니다."
+
+#: builtins.c:724
+msgid ""
+"Exit a login shell.\n"
+"    \n"
+"    Exits a login shell with exit status N.  Returns an error if not executed\n"
+"    in a login shell."
+msgstr ""
+"로그인 셸을 나갑니다.\n"
+"    \n"
+"    종료 상태 N으로 로그인 셸을 나갑니다.  로그인 셸에서 실행되지 않는 경우\n"
+"    에러가 발생합니다."
+
+#: builtins.c:734
+msgid ""
+"Display or execute commands from the history list.\n"
+"    \n"
+"    fc is used to list or edit and re-execute commands from the history list.\n"
+"    FIRST and LAST can be numbers specifying the range, or FIRST can be a\n"
+"    string, which means the most recent command beginning with that\n"
+"    string.\n"
+"    \n"
+"    Options:\n"
+"      -e ENAME\tselect which editor to use.  Default is FCEDIT, then EDITOR,\n"
+"    \t\tthen vi\n"
+"      -l \tlist lines instead of editing\n"
+"      -n\tomit line numbers when listing\n"
+"      -r\treverse the order of the lines (newest listed first)\n"
+"    \n"
+"    With the `fc -s [pat=rep ...] [command]' format, COMMAND is\n"
+"    re-executed after the substitution OLD=NEW is performed.\n"
+"    \n"
+"    A useful alias to use with this is r='fc -s', so that typing `r cc'\n"
+"    runs the last command beginning with `cc' and typing `r' re-executes\n"
+"    the last command.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success or status of executed command; non-zero if an error occurs."
+msgstr ""
+"기록 목록의 명령을 표시하거나 실행합니다.\n"
+"    \n"
+"    fc는 기록 목록의 명령을 보여주거나 편집하고 다시 실행할 때 사용합니다.\n"
+"    <처음>과 <종결>은 범위 지정 숫자이며, <처음>은 문자열일 수도 있습니다.\n"
+"    이는, 최근 명령이 <처음>에 지정한 문자열로 시작함을 의미합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -e <편집기이름>\t사용할 편집기를 선택합니다.  기본은 FCEDIT, EDITOR, \n"
+"    \t\t그 다음은 vi입니다\n"
+"      -l \t편집하지 않고 목록 행을 보여줍니다\n"
+"      -n\t목록을 나타낼 때 번호를 생략합니다\n"
+"      -r\t행 순서를 뒤집습니다 (최신 항목을 먼저)\n"
+"    \n"
+"    `fc -s [<패턴>=<대체> ...] [<명령>]' 형식에서, <명령> 은\n"
+"    <이전>=<최신> 대체 동작을 수행한 다음 다시 실행합니다.\n"
+"    \n"
+"    r='fc -s'(으)로 쓸만한 별칭을 만들어 쓸 수 있는데, `r cc'를 입력하면\n"
+"    `cc'로 시작하는 최근 명령을 실행하고 `r'을 입력하면 직전에 입력한\n"
+"    최근 명령을 다시 실행할 수 있습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    성공 또는 실행 명령 상태를 반환합니다. 오류가 있다면 0이 아닌 값을 반환합니다."
+
+#: builtins.c:764
+msgid ""
+"Move job to the foreground.\n"
+"    \n"
+"    Place the job identified by JOB_SPEC in the foreground, making it the\n"
+"    current job.  If JOB_SPEC is not present, the shell's notion of the\n"
+"    current job is used.\n"
+"    \n"
+"    Exit Status:\n"
+"    Status of command placed in foreground, or failure if an error occurs."
+msgstr ""
+"작업을 포그라운드로 이동합니다.\n"
+"    \n"
+"    JOB_SPEC으로 식별하는 작업을 포그라운드에 두어, 현재 작업으로\n"
+"    전환합니다. JOB_SPEC이 현재 작업이 아니면, 셸의 개념상 현재 작업을\n"
+"    활용합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    포그라운드에 있는 명령의 상태를 반환합니다. 오류가 있다면 실패를 반환합니다."
+
+#: builtins.c:779
+msgid ""
+"Move jobs to the background.\n"
+"    \n"
+"    Place the jobs identified by each JOB_SPEC in the background, as if they\n"
+"    had been started with `&'.  If JOB_SPEC is not present, the shell's notion\n"
+"    of the current job is used.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless job control is not enabled or an error occurs."
+msgstr ""
+"작업을 백그라운드로 이동합니다.\n"
+"    \n"
+"    `&'로 시작했을 때와 마찬가지로, 각 JOB_SPEC으로 식별하는 작업을\n"
+"    백그라운드에 둡니다. JOB_SPEC이 없다면, 셸의 개념상 현재 작업을\n"
+"    활용합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    작업 컨트롤이 있고 오류가 없다면 성공을 반환합니다."
+
+#: builtins.c:793
+msgid ""
+"Remember or display program locations.\n"
+"    \n"
+"    Determine and remember the full pathname of each command NAME.  If\n"
+"    no arguments are given, information about remembered commands is displayed.\n"
+"    \n"
+"    Options:\n"
+"      -d\tforget the remembered location of each NAME\n"
+"      -l\tdisplay in a format that may be reused as input\n"
+"      -p pathname\tuse PATHNAME as the full pathname of NAME\n"
+"      -r\tforget all remembered locations\n"
+"      -t\tprint the remembered location of each NAME, preceding\n"
+"    \t\teach location with the corresponding NAME if multiple\n"
+"    \t\tNAMEs are given\n"
+"    Arguments:\n"
+"      NAME\tEach NAME is searched for in $PATH and added to the list\n"
+"    \t\tof remembered commands.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless NAME is not found or an invalid option is given."
+msgstr ""
+"프로그램 위치를 기억하거나 표시합니다.\n"
+"    \n"
+"    명령 <이름>의 전체 경로 이름을 판단하거나 기억합니다.  어떤 인자도\n"
+"    설정하지 않으면, 기억한 명령의 정보를 표시합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -d\t각 <이름>의 기억 위치를 소거합니다\n"
+"      -l\t입력으로 재활용할 형식을 표시합니다\n"
+"      -p <경로이름>\t<이름> 의 전체 경로 이름으로 <경로이름>을 활용합니다\n"
+"      -r\t기억한 모든 위치를 소거합니다\n"
+"      -t\t각 <이름>의 기억 위치를 출력하며 여러 <이름>을 지정했을 경우,\n"
+"    \t\t<이름>에 해당하는 각 위치를 우선 나타냅니다\n"
+"    인자:\n"
+"      <이름>\t각 <이름>은 $PATH에서 검색하며 기억 명령에 대해 목록에\n"
+"    \t\t추가합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <이름>을 찾았거나 적절한 옵션을 지정했다면 성공을 반환합니다."
+
+#: builtins.c:818
+msgid ""
+"Display information about builtin commands.\n"
+"    \n"
+"    Displays brief summaries of builtin commands.  If PATTERN is\n"
+"    specified, gives detailed help on all commands matching PATTERN,\n"
+"    otherwise the list of help topics is printed.\n"
+"    \n"
+"    Options:\n"
+"      -d\toutput short description for each topic\n"
+"      -m\tdisplay usage in pseudo-manpage format\n"
+"      -s\toutput only a short usage synopsis for each topic matching\n"
+"    \t\tPATTERN\n"
+"    \n"
+"    Arguments:\n"
+"      PATTERN\tPattern specifying a help topic\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless PATTERN is not found or an invalid option is given."
+msgstr ""
+"내장 명령 정보를 표시합니다.\n"
+"    \n"
+"    내장 명령 요약 정보를 표시합니다.  <패턴>을 지정하면 <패턴>에 일치\n"
+"    하는 모든 명령의 자세한 내용을 나타내며, 그렇지 않으면 도움말 주제 \n"
+"    목록을 나타냅니다.\n"
+"    \n"
+"    옵션:\n"
+"      -d\t각 주제의 간단한 설명을 출력합니다\n"
+"      -m\t유사 맨 페이지 형식으로 사용법을 출력합니다.\n"
+"      -s\t<패턴>에 일치하는 주제의 간단한 개요만 출력합니다\n"
+"    \n"
+"    인자:\n"
+"      <패턴>\t도움말 주제를 지정합니다\n"
+"    \n"
+"    종료 상태:\n"
+"    <패턴>에 일치하는 주제를 찾았거나 적절한 옵션을 지정하면 성공을 반환합니다."
+
+#: builtins.c:842
+msgid ""
+"Display or manipulate the history list.\n"
+"    \n"
+"    Display the history list with line numbers, prefixing each modified\n"
+"    entry with a `*'.  An argument of N lists only the last N entries.\n"
+"    \n"
+"    Options:\n"
+"      -c\tclear the history list by deleting all of the entries\n"
+"      -d offset\tdelete the history entry at position OFFSET. Negative\n"
+"    \t\toffsets count back from the end of the history list\n"
+"    \n"
+"      -a\tappend history lines from this session to the history file\n"
+"      -n\tread all history lines not already read from the history file\n"
+"    \t\tand append them to the history list\n"
+"      -r\tread the history file and append the contents to the history\n"
+"    \t\tlist\n"
+"      -w\twrite the current history to the history file\n"
+"    \n"
+"      -p\tperform history expansion on each ARG and display the result\n"
+"    \t\twithout storing it in the history list\n"
+"      -s\tappend the ARGs to the history list as a single entry\n"
+"    \n"
+"    If FILENAME is given, it is used as the history file.  Otherwise,\n"
+"    if HISTFILE has a value, that is used, else ~/.bash_history.\n"
+"    \n"
+"    If the HISTTIMEFORMAT variable is set and not null, its value is used\n"
+"    as a format string for strftime(3) to print the time stamp associated\n"
+"    with each displayed history entry.  No time stamps are printed otherwise.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or an error occurs."
+msgstr ""
+"기록 목록을 표시하거나 편집합니다.\n"
+"    \n"
+"    기록 목록에 행번호를 붙여 나타내며, 수정한 항목은 `*' 표시가\n"
+"    앞에 붙습니다.  인자 N은 최근 항목 N개만 나타냄을 의미합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -c\t모든 항목을 삭제하여 기록 목록을 지웁니다\n"
+"      -d <오프셋>\t<오프셋> 포지션에 있는 항목을 삭제합니다. 음수\n"
+"    \t\t오프셋은 기록 목록 끝부터 거꾸로 셉니다\n"
+"    \n"
+"      -a\t이 세선의 기록 파일에 기록 행을 추가합니다\n"
+"      -n\t기록 파일에서 이미 읽은 부분은 읽지 않고 모든 기록 항목을\n"
+"    \t\t읽어 기록 목록에 추가합니다\n"
+"      -r\t기록 파일을 읽고 기록 목록에 내용을 추가합니다\n"
+"      -w\t현재 기록을 기록 파일에 기록합니다\n"
+"    \n"
+"      -p\t각 <인자>의 기록 확장을 수행한 후 기록 목록에 저장하지\n"
+"    \t\t않고 결과를 표시합니다\n"
+"      -s\t<인자>를 기록 목록에 단일 항목으로 추가합니다\n"
+"    \n"
+"    <파일이름>을 지정하면 기록 파일로 사용합니다.  아니면,\n"
+"    HISTFILE 변수에 값을 지정했다면 해당 값을 사용하고, \n"
+"    아니면 ~/.bash_history를 활용합니다.\n"
+"    \n"
+"    HISTTIMEFORMAT 변수에 값을 설정하여 널 상태가 아니라면 해당 값을\n"
+"    앞으로 표시할 각 기록 항목에 대한 타임스탬프를 출력할 때 strftime(3)의\n"
+"    형식 문자열로 활용합니다.  그렇지 않으면 타임스탬프를 출력하지 않습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 설정했거나 오류가 없다면 성공을 반환합니다."
+
+#: builtins.c:879
+msgid ""
+"Display status of jobs.\n"
+"    \n"
+"    Lists the active jobs.  JOBSPEC restricts output to that job.\n"
+"    Without options, the status of all active jobs is displayed.\n"
+"    \n"
+"    Options:\n"
+"      -l\tlists process IDs in addition to the normal information\n"
+"      -n\tlists only processes that have changed status since the last\n"
+"    \t\tnotification\n"
+"      -p\tlists process IDs only\n"
+"      -r\trestrict output to running jobs\n"
+"      -s\trestrict output to stopped jobs\n"
+"    \n"
+"    If -x is supplied, COMMAND is run after all job specifications that\n"
+"    appear in ARGS have been replaced with the process ID of that job's\n"
+"    process group leader.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or an error occurs.\n"
+"    If -x is used, returns the exit status of COMMAND."
+msgstr ""
+"작업 상태를 표시합니다.\n"
+"    \n"
+"    활성 작업을 나타냅니다.  JOBSPEC에는 해당 작업의 출력을\n"
+"    제한합니다. 옵션을 지정하지 않으면 모든 활성 작업 상태를\n"
+"    나타냅니다.\n"
+"    \n"
+"    옵션:\n"
+"      -l\t일반 정보 및 프로세스 ID를 보여줍니다.\n"
+"      -n\t최근 알림 이후 상태가 바뀐 프로세스만 보여줍니다.\n"
+"      -p\t프로세스 ID만 보여줍니다\n"
+"      -r\t출력 대상을 실행 작업으로 제한합니다\n"
+"      -s\t출력 대상을 멈춘 작업으로 제한합니다\n"
+"    \n"
+"    -x 옵션을 지정하면 <인자>에 나타난 모든 작업 명세가 프로세스 그룹의\n"
+"    리더 프로세스 ID로 바뀐 후 <명령> 을 실행합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 설정했거나 오류가 없다면 성공을 반환합니다.\n"
+"    -x 옵션을 사용했다면 <명령>의 종료 상태를 반환합니다."
+
+#: builtins.c:906
+msgid ""
+"Remove jobs from current shell.\n"
+"    \n"
+"    Removes each JOBSPEC argument from the table of active jobs.  Without\n"
+"    any JOBSPECs, the shell uses its notion of the current job.\n"
+"    \n"
+"    Options:\n"
+"      -a\tremove all jobs if JOBSPEC is not supplied\n"
+"      -h\tmark each JOBSPEC so that SIGHUP is not sent to the job if the\n"
+"    \t\tshell receives a SIGHUP\n"
+"      -r\tremove only running jobs\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option or JOBSPEC is given."
+msgstr ""
+"현재 셸에서 작업을 제거합니다.\n"
+"    \n"
+"    각 <JOBSPEC> 인자를 활성 작업 테이블에서 제거합니다.  어떤 <JOBSPEC>도\n"
+"    지정하지 않으면, 현재 작업을 지정한 것으로 간주합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -a\t<JOBSPEC>를 지정하지 않으면 모든 작업을 제거합니다\n"
+"      -h\t각 <JOBSPEC>을 마킹해서 셸에서 SIGHUP 시그널을 받았다면\n"
+"    \t\t작업에 해당 시그널을 보내지 않게 합니다.\n"
+"      -r\t실행 작업만 제거합니다\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 지정하고 주어진 <JOBSPEC> 값이 올바를 경우 성공을 반환합니다."
+
+#: builtins.c:925
+msgid ""
+"Send a signal to a job.\n"
+"    \n"
+"    Send the processes identified by PID or JOBSPEC the signal named by\n"
+"    SIGSPEC or SIGNUM.  If neither SIGSPEC nor SIGNUM is present, then\n"
+"    SIGTERM is assumed.\n"
+"    \n"
+"    Options:\n"
+"      -s sig\tSIG is a signal name\n"
+"      -n sig\tSIG is a signal number\n"
+"      -l\tlist the signal names; if arguments follow `-l' they are\n"
+"    \t\tassumed to be signal numbers for which names should be listed\n"
+"      -L\tsynonym for -l\n"
+"    \n"
+"    Kill is a shell builtin for two reasons: it allows job IDs to be used\n"
+"    instead of process IDs, and allows processes to be killed if the limit\n"
+"    on processes that you can create is reached.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or an error occurs."
+msgstr ""
+"작업에 시그널을 보냅니다..\n"
+"    \n"
+"    <PID> 또는 <JOBSPEC>으로 식별하는 프로세스에 SIGSPEC 또는\n"
+"    SIGNUM으로 이름이 붙은 시그널을 보냅니다. SIGSPEC, SIGNUM \n"
+"    돌 다 없을 경우, SIGTERM을 고려합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -s <시그널>\t<시그널>은 시그널 이름입니다\n"
+"      -n <시그널>\t<시그널>은 시그널 번호입니다\n"
+"      -l\t시그널 이름 목록을 나타냅니다. 인자에 `-l'을 붙이면 나타낼 이름에\n"
+"    \t\t대한 시그널 번호를 나타내라는 의미입니다\n"
+"      -L\t-l과 동일한 의미\n"
+"    \n"
+"    두가지 이유로 kill은 셸 내장 명령입니다: 프로세스 ID  대신 작업 ID를\n"
+"    허용하며, 만들 수 있는 프로세스 수의 한계에 도달했을 때 강제로 끝내야\n"
+"    할 프로세스를 강제로 끝낼 수 있습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 설정했거나 오류가 없다면 성공을 반환합니다."
+
+#: builtins.c:949
+msgid ""
+"Evaluate arithmetic expressions.\n"
+"    \n"
+"    Evaluate each ARG as an arithmetic expression.  Evaluation is done in\n"
+"    fixed-width integers with no check for overflow, though division by 0\n"
+"    is trapped and flagged as an error.  The following list of operators is\n"
+"    grouped into levels of equal-precedence operators.  The levels are listed\n"
+"    in order of decreasing precedence.\n"
+"    \n"
+"    \tid++, id--\tvariable post-increment, post-decrement\n"
+"    \t++id, --id\tvariable pre-increment, pre-decrement\n"
+"    \t-, +\t\tunary minus, plus\n"
+"    \t!, ~\t\tlogical and bitwise negation\n"
+"    \t**\t\texponentiation\n"
+"    \t*, /, %\t\tmultiplication, division, remainder\n"
+"    \t+, -\t\taddition, subtraction\n"
+"    \t<<, >>\t\tleft and right bitwise shifts\n"
+"    \t<=, >=, <, >\tcomparison\n"
+"    \t==, !=\t\tequality, inequality\n"
+"    \t&\t\tbitwise AND\n"
+"    \t^\t\tbitwise XOR\n"
+"    \t|\t\tbitwise OR\n"
+"    \t&&\t\tlogical AND\n"
+"    \t||\t\tlogical OR\n"
+"    \texpr ? expr : expr\n"
+"    \t\t\tconditional operator\n"
+"    \t=, *=, /=, %=,\n"
+"    \t+=, -=, <<=, >>=,\n"
+"    \t&=, ^=, |=\tassignment\n"
+"    \n"
+"    Shell variables are allowed as operands.  The name of the variable\n"
+"    is replaced by its value (coerced to a fixed-width integer) within\n"
+"    an expression.  The variable need not have its integer attribute\n"
+"    turned on to be used in an expression.\n"
+"    \n"
+"    Operators are evaluated in order of precedence.  Sub-expressions in\n"
+"    parentheses are evaluated first and may override the precedence\n"
+"    rules above.\n"
+"    \n"
+"    Exit Status:\n"
+"    If the last ARG evaluates to 0, let returns 1; let returns 0 otherwise."
+msgstr ""
+"산술 연산을 처리합니다.\n"
+"    \n"
+"    각 <인자>의 산술 연산을 처리합니다. 오버플로우를 검사하지 않고\n"
+"    고정 길이 정수로 처리하며, 0나누기 동작은 잡혀서 오류로 표시합니다.\n"
+"    다음 연산자 목록은 동일한 우선순위별로 묶었습니다. 우선순위 수준은\n"
+"    우선순위가 감소하는 순서대로 나열했습니다.\n"
+"    \n"
+"    \tid++, id--\t변수의 후위 증가, 후위 감소\n"
+"    \t++id, --id\t변수의 전위 증가, 전위 감소\n"
+"    \t-, +\t\t음, 양 부호\n"
+"    \t!, ~\t\t논리, 비트 반전\n"
+"    \t**\t\t지수 연산\n"
+"    \t*, /, %\t\t곱하기, 나누기, 나머지\n"
+"    \t+, -\t\t더하기, 빼기\n"
+"    \t<<, >>\t\t좌측, 우측 비트 이동\n"
+"    \t<=, >=, <, >\t비교\n"
+"    \t==, !=\t\t동등, 상이\n"
+"    \t&\t\t비트 논리곱\n"
+"    \t^\t\t비트 배타합\n"
+"    \t|\t\t비트 논리합\n"
+"    \t&&\t\t논리 논리곱\n"
+"    \t||\t\t논리 논리합\n"
+"    \t<수식> ? <수식> : <수식>\n"
+"    \t\t\t3항 조건 연산자\n"
+"    \t=, *=, /=, %=,\n"
+"    \t+=, -=, <<=, >>=,\n"
+"    \t&=, ^=, |=\t할당\n"
+"    \n"
+"    셸 변수를 피연산자로 활용할 수 있습니다. 수식 내 변수 이름은 값으로 \n"
+"    바뀝니다(고정 길이 정수로 강제 변환)  변수는 수식에서 활용할 정수 \n"
+"    속성을 가질 필요는 없습니다.\n"
+"    \n"
+"    연산자는 우선순위 순서대로 처리합니다.  괄호 내 하위 연산을 우선\n"
+"    처리하며, 이 또한 위의 우선순위 규칙을 따릅니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <인자>가 0을 계산하면 1을 반환하고 그렇지 않으면 0을 반환합니다."
+
+#: builtins.c:994
+msgid ""
+"Read a line from the standard input and split it into fields.\n"
+"    \n"
+"    Reads a single line from the standard input, or from file descriptor FD\n"
+"    if the -u option is supplied.  The line is split into fields as with word\n"
+"    splitting, and the first word is assigned to the first NAME, the second\n"
+"    word to the second NAME, and so on, with any leftover words assigned to\n"
+"    the last NAME.  Only the characters found in $IFS are recognized as word\n"
+"    delimiters. By default, the backslash character escapes delimiter characters\n"
+"    and newline.\n"
+"    \n"
+"    If no NAMEs are supplied, the line read is stored in the REPLY variable.\n"
+"    \n"
+"    Options:\n"
+"      -a array\tassign the words read to sequential indices of the array\n"
+"    \t\tvariable ARRAY, starting at zero\n"
+"      -d delim\tcontinue until the first character of DELIM is read, rather\n"
+"    \t\tthan newline\n"
+"      -e\tuse Readline to obtain the line\n"
+"      -i text\tuse TEXT as the initial text for Readline\n"
+"      -n nchars\treturn after reading NCHARS characters rather than waiting\n"
+"    \t\tfor a newline, but honor a delimiter if fewer than\n"
+"    \t\tNCHARS characters are read before the delimiter\n"
+"      -N nchars\treturn only after reading exactly NCHARS characters, unless\n"
+"    \t\tEOF is encountered or read times out, ignoring any\n"
+"    \t\tdelimiter\n"
+"      -p prompt\toutput the string PROMPT without a trailing newline before\n"
+"    \t\tattempting to read\n"
+"      -r\tdo not allow backslashes to escape any characters\n"
+"      -s\tdo not echo input coming from a terminal\n"
+"      -t timeout\ttime out and return failure if a complete line of\n"
+"    \t\tinput is not read within TIMEOUT seconds.  The value of the\n"
+"    \t\tTMOUT variable is the default timeout.  TIMEOUT may be a\n"
+"    \t\tfractional number.  If TIMEOUT is 0, read returns\n"
+"    \t\timmediately, without trying to read any data, returning\n"
+"    \t\tsuccess only if input is available on the specified\n"
+"    \t\tfile descriptor.  The exit status is greater than 128\n"
+"    \t\tif the timeout is exceeded\n"
+"      -u fd\tread from file descriptor FD instead of the standard input\n"
+"    \n"
+"    Exit Status:\n"
+"    The return code is zero, unless end-of-file is encountered, read times out\n"
+"    (in which case it's greater than 128), a variable assignment error occurs,\n"
+"    or an invalid file descriptor is supplied as the argument to -u."
+msgstr ""
+"표준 입력에서 행을 읽고 필드 단위로 분리합니다.\n"
+"    \n"
+"    표준 입력 또는 -u 옵션을 지정했을 경우 파일 서술자에서 단일 행을\n"
+"    읽습니다.  행은 단어를 분리할 때처럼 필드로 분리하며, 첫번째 단어는\n"
+"    처음 <이름>으로, 두번째 단어는 두번째 <이름>으로 이런 식으로 할당\n"
+"    하여 나머지 단어에서도 역시 그 다음 <이름>으로 할당합니다. 오직 $IFS\n"
+"    의 문자만 단어 구분자로 인식합니다. 기본적으로 백슬래시 문자는 구분\n"
+"    문자와 개행 문자를 이스케이핑합니다.\n"
+"    \n"
+"    <이름>을 지정하지 않으면, 해당 행을 REPLY 변수에 저장합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -a <배열>\t0부터 시작하는 ARRAY 배열 변수의 순차 색인을 읽을\n"
+"    \t\t단어를 할당합니다\n"
+"      -d <구분>\t개행 문자가 아닌 DELIM의 첫 글자를 읽을 때까지 계속합니다\n"
+"      -e\t행 읽기에 readline을 활용합니다\n"
+"      -i <텍스트>\treadline 초기 텍스트 값으로 TEXT를 활용합니다.\n"
+"      -n <문자수>\t개행 문자를 기다리기 보다는 <문자수> 만큼의 문자를 읽은 다음\n"
+"    \t\t반환합니다만, 구분 문자가 나타나기 전에 <문자수> 만큼 읽었을 때 개행 문자가\n"
+"    \t\t먼저 오면 구분 문자보다 개행 문자를 우선 처리합니다.\n"
+"      -N <문자수>\tEOF가 나타났거나, 읽기 시간 초과가 있지 않은 한,\n"
+"    \t\t<문자수> 만큼 문자를 읽은 다음 구분자를 무시하고 값을 반환합니다.\n"
+"      -p <프롬프트>\t읽기 전, 개행 문자를 제외하고 PROMPT 문자열을 출력합니다\n"
+"      -r\t문자를 이스케이핑하는 백슬래시 문자를 허용하지 않습니다\n"
+"      -s\t터미널의 입력에 대해 반향 출력 처리하지 않습니다\n"
+"      -t <제한시간>\tTIIMEOUT 초 이내에 입력 행을 완전히 읽지 않으면 실패를\n"
+"    \t\t반환합니다.  TMOUT 변수 기본 값은 기본 제한시간입니다. TIMEOUT은\n"
+"    \t\t분수 값입니다. 이 값을 0으로 지정하면, 어떤 결과를 읽으려 시도하지 않고\n"
+"    \t\t읽은 결과를 바로 반환하며, 지정 파일 서술자에 입력이 있을 경우에만\n"
+"    \t\t성공을 반환합니다. 시간을 초과하면 종료 상태값은 128보다 큽니다.\n"
+"      -u <파일서술자>\t표준 입력 대신 파일 서술자에서 읽습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    EOF가 나타나지 않았다거나, 읽기 시간을 초과하지 않았다거나(초과하면 \n"
+"    128보다 큰 수 반환), 변수 할당 오류가 없었다거나, -u 옵션에 잘못된 파일\n"
+"     서술자를 지정하지 않았다면 0 값을 반환합니다."
+
+#: builtins.c:1042
+msgid ""
+"Return from a shell function.\n"
+"    \n"
+"    Causes a function or sourced script to exit with the return value\n"
+"    specified by N.  If N is omitted, the return status is that of the\n"
+"    last command executed within the function or script.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns N, or failure if the shell is not executing a function or script."
+msgstr ""
+"셸 함수로부터 값을 반환합니다.\n"
+"    \n"
+"    함수 또는 소싱 스크립트로 하여금 반환 값을 내놓도록 합니다.\n"
+"    <횟수>로 지정합니다. <횟수> 값을 생략하면, 반환 상태는\n"
+"    스크립트 함수 내 최종 명령 실행 결과에 따릅니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <횟수>를 반환하거나, 셸에서 함수 또는 스크립트를\n"
+"    실행하지 않으면 실패를 반환합니다."
+
+#: builtins.c:1055
+msgid ""
+"Set or unset values of shell options and positional parameters.\n"
+"    \n"
+"    Change the value of shell attributes and positional parameters, or\n"
+"    display the names and values of shell variables.\n"
+"    \n"
+"    Options:\n"
+"      -a  Mark variables which are modified or created for export.\n"
+"      -b  Notify of job termination immediately.\n"
+"      -e  Exit immediately if a command exits with a non-zero status.\n"
+"      -f  Disable file name generation (globbing).\n"
+"      -h  Remember the location of commands as they are looked up.\n"
+"      -k  All assignment arguments are placed in the environment for a\n"
+"          command, not just those that precede the command name.\n"
+"      -m  Job control is enabled.\n"
+"      -n  Read commands but do not execute them.\n"
+"      -o option-name\n"
+"          Set the variable corresponding to option-name:\n"
+"              allexport    same as -a\n"
+"              braceexpand  same as -B\n"
+"              emacs        use an emacs-style line editing interface\n"
+"              errexit      same as -e\n"
+"              errtrace     same as -E\n"
+"              functrace    same as -T\n"
+"              hashall      same as -h\n"
+"              histexpand   same as -H\n"
+"              history      enable command history\n"
+"              ignoreeof    the shell will not exit upon reading EOF\n"
+"              interactive-comments\n"
+"                           allow comments to appear in interactive commands\n"
+"              keyword      same as -k\n"
+"              monitor      same as -m\n"
+"              noclobber    same as -C\n"
+"              noexec       same as -n\n"
+"              noglob       same as -f\n"
+"              nolog        currently accepted but ignored\n"
+"              notify       same as -b\n"
+"              nounset      same as -u\n"
+"              onecmd       same as -t\n"
+"              physical     same as -P\n"
+"              pipefail     the return value of a pipeline is the status of\n"
+"                           the last command to exit with a non-zero status,\n"
+"                           or zero if no command exited with a non-zero status\n"
+"              posix        change the behavior of bash where the default\n"
+"                           operation differs from the Posix standard to\n"
+"                           match the standard\n"
+"              privileged   same as -p\n"
+"              verbose      same as -v\n"
+"              vi           use a vi-style line editing interface\n"
+"              xtrace       same as -x\n"
+"      -p  Turned on whenever the real and effective user ids do not match.\n"
+"          Disables processing of the $ENV file and importing of shell\n"
+"          functions.  Turning this option off causes the effective uid and\n"
+"          gid to be set to the real uid and gid.\n"
+"      -t  Exit after reading and executing one command.\n"
+"      -u  Treat unset variables as an error when substituting.\n"
+"      -v  Print shell input lines as they are read.\n"
+"      -x  Print commands and their arguments as they are executed.\n"
+"      -B  the shell will perform brace expansion\n"
+"      -C  If set, disallow existing regular files to be overwritten\n"
+"          by redirection of output.\n"
+"      -E  If set, the ERR trap is inherited by shell functions.\n"
+"      -H  Enable ! style history substitution.  This flag is on\n"
+"          by default when the shell is interactive.\n"
+"      -P  If set, do not resolve symbolic links when executing commands\n"
+"          such as cd which change the current directory.\n"
+"      -T  If set, the DEBUG and RETURN traps are inherited by shell functions.\n"
+"      --  Assign any remaining arguments to the positional parameters.\n"
+"          If there are no remaining arguments, the positional parameters\n"
+"          are unset.\n"
+"      -   Assign any remaining arguments to the positional parameters.\n"
+"          The -x and -v options are turned off.\n"
+"    \n"
+"    Using + rather than - causes these flags to be turned off.  The\n"
+"    flags can also be used upon invocation of the shell.  The current\n"
+"    set of flags may be found in $-.  The remaining n ARGs are positional\n"
+"    parameters and are assigned, in order, to $1, $2, .. $n.  If no\n"
+"    ARGs are given, all shell variables are printed.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given."
+msgstr ""
+"셸 옵션과 위치 매개변수를 설정 또는 설정 해제합니다.\n"
+"    \n"
+"    셸 속성 값 및 위치 매개변수를 바꾸거나, 셸 변수의 이름과 값을\n"
+"    표시합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -a  환경으로 내보내려 수정하거나 만든 변수를 표시합니다.\n"
+"      -b  작업 중단 알림을 즉시 수행.\n"
+"      -e  명령이 0 값이 아닌 상태를 내보냈다면 즉시 나감.\n"
+"      -f  파일 이름 생성 사용 안힘(글로빙).\n"
+"      -h  찾은 명령 위치 기억.\n"
+"      -k  명령 이름에 앞선 요소 뿐만 아니라 명령 실행에 필요한 모든\n"
+"          할당 인자를 환경에 설정합니다.\n"
+"      -m  작업 컨트롤을 활성합니다..\n"
+"      -n  명령은 읽되 실행하지는 않습니다.\n"
+"      -o <명령-이름>\n"
+"          <옵션-이름>과 관련한 변수를 설정합니다:\n"
+"              allexport    -a와 동일\n"
+"              braceexpand  -B와 동일\n"
+"              emacs        이맥스 방식 행 편집 인터페이스 활용\n"
+"              errexit      -e와 동일\n"
+"              errtrace     -E와 동일\n"
+"              functrace    -T와 동일\n"
+"              hashall      -h와 동일\n"
+"              histexpand   -H와 동일\n"
+"              history      명령 기록 사용\n"
+"              ignoreeof    EOF를 읽고 나서 셸을 나가지 않음\n"
+"              interactive-comments\n"
+"                           interactive commands에 나타난 주석 허용\n"
+"              keyword      -k와 동일\n"
+"              monitor      -m과 동일\n"
+"              noclobber    -C와 동일\n"
+"              noexec       -n과 동일\n"
+"              noglob       -f와 동일\n"
+"              nolog        현재 허용하나 무시함\n"
+"              notify       -b와 동일\n"
+"              nounset      -u와 동일\n"
+"              onecmd       -t와 동일\n"
+"              physical     -P와 동일\n"
+"              pipefail     파이프라인 반환 값은 최종 명령의 0이 아닌\n"
+"                           종료 상태이거나, 0이 아닌 종료 상태를 반환한 명령이\n"
+"                           없다면 0 값을 반환함\n"
+"              posix        배시 동작을 바꾸어 POSIX 표준과 다른 기본 동작\n"
+"                           부분을 표준에 맞춤\n"
+"              privileged   -p와 동일\n"
+"              verbose      -v와 동일\n"
+"              vi           vi 방식 행 종결 인터페이스\n"
+"              xtrace       -x와 동일\n"
+"      -p  실제 ID와 효력상 ID가 일치하지 않을 때라도 켭니다.\n"
+"          $ENV 파일의 처리와 셸 함수 가져오기 동작을 끕니다.\n"
+"          이 옵션을 끄면 효력상 사용자 ID와 그룹 ID를 실제\n"
+"          사용자 ID와 그룹 ID로 설정합니다.\n"
+"      -t  명령하나를 읽고 실행한 후 나갑니다.\n"
+"      -u  설정 해제한 변수를 대체할 때 오류로 간주.\n"
+"      -v  셸 입력 행을 읽는대로 출력합니다.\n"
+"      -x  명령과 인자를 실행하는 대로 출력합니다.\n"
+"      -B  셸에 중괄호 확장을 수행하게 합니다\n"
+"      -C  이 옵션을 설정하면, 기존 일반 파일에 출력 방향 재지정을 통한\n"
+"          내용 덮어쓰기를 허용하지 않습니다.\n"
+"      -E  이 옵션을 설정하면, ERR 트랩을 셸 함수에서 승계합니다.\n"
+"      -H  ! 방식 기록 대체를 활성화합니다.  이 플래그는 셸이 대화모드일 떄\n"
+"          기본적으로 사용 상태입니다..\n"
+"      -P  이 옵션을 설정하면, 현재 디렉터리를 바꾸는 cd 명령과 같은 그련\n"
+"          명령을 실행할 때 심볼릭 링크를 해석하지 않습니다.\n"
+"      -T  이 옵션을 설정하면, DEBUG와 RETURN을 셸 함수에서 계승합니다..\n"
+"      --  남은 인자를 위치 매개변수로 할당합니다. 남은 인자가 없으면\n"
+"          위치 매개변수를 삭제합니다.\n"
+"      -   남은 인자를 위치 매개변수로 할당합니다. -x 옵션과 -v 옵션을 끕니다.\n"
+"    \n"
+"    플래그를 사용하려면 + 를, 아니면 - 기호를 씁니다.  플래그는 셸 실행애\n"
+"    활용할 수도 있습니다. 현재 플래그 셋은 $-에 있습니다. 남은 <인자>는\n"
+"    $1, $2, ... $n 순으로 할당한 위치 매개변수입니다. 지정 <인자>가 없으면\n"
+"    모든 셸 변수를 출력합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 지정하면 성공을 반환합니다."
+
+#: builtins.c:1140
+msgid ""
+"Unset values and attributes of shell variables and functions.\n"
+"    \n"
+"    For each NAME, remove the corresponding variable or function.\n"
+"    \n"
+"    Options:\n"
+"      -f\ttreat each NAME as a shell function\n"
+"      -v\ttreat each NAME as a shell variable\n"
+"      -n\ttreat each NAME as a name reference and unset the variable itself\n"
+"    \t\trather than the variable it references\n"
+"    \n"
+"    Without options, unset first tries to unset a variable, and if that fails,\n"
+"    tries to unset a function.\n"
+"    \n"
+"    Some variables cannot be unset; also see `readonly'.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or a NAME is read-only."
+msgstr ""
+"셸 변수와 함수의 값과 속성 설정을 해제합니다.\n"
+"    \n"
+"    각 <이름>에 대해 관련 변수 또는 함수를 제거합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -f\t각 <이름>을 셸 함수로 취급합니다.\n"
+"      -v\t각 <이름>을 셸 변수로 취급합니다.\n"
+"      -n\t각 <이름>을 이름 참조자로 활용하며, 이름을 참조하는 변수가 아닌\n"
+"    \t\t변수 자체를 참조하는 이름 설정을 해제합니다\n"
+"    \n"
+"    옵션을 지정하지 않으면, 변수를 우선 설정 해제하려고 하며, 실패했다면,\n"
+"    함수 설정 해제를 시도합니다.\n"
+"    \n"
+"    일부 변수는 설정을 해제할 수 없습니다. `readonly' 참조.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 지정했거나 <이름>이 읽기 전용이 아니면 성공을 반환합니다."
+
+#: builtins.c:1162
+msgid ""
+"Set export attribute for shell variables.\n"
+"    \n"
+"    Marks each NAME for automatic export to the environment of subsequently\n"
+"    executed commands.  If VALUE is supplied, assign VALUE before exporting.\n"
+"    \n"
+"    Options:\n"
+"      -f\trefer to shell functions\n"
+"      -n\tremove the export property from each NAME\n"
+"      -p\tdisplay a list of all exported variables and functions\n"
+"    \n"
+"    An argument of `--' disables further option processing.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or NAME is invalid."
+msgstr ""
+"셸 변수 속성을 내보내기 설정합니다.\n"
+"    \n"
+"    각 <이름>은 명령을 계속 실행해나가면서 환경에 내보내기(export)처리 합니다.\n"
+"    <값>을 지정했다면 내보내기(export) 전, <값>을 할당합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -f\t셸 함수를 참조합니다\n"
+"      -n\t각 <이름>의 내보내기 속성을 제거합니다\n"
+"      -p\t환경에 내보낸 변수와 함수 목록을 나타냅니다\n"
+"    \n"
+"    `--' 인자는 이후 옵션 처리를 막습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 설정했거나 <이름>이 올바르면 성공을 반환합니다."
+
+#: builtins.c:1181
+msgid ""
+"Mark shell variables as unchangeable.\n"
+"    \n"
+"    Mark each NAME as read-only; the values of these NAMEs may not be\n"
+"    changed by subsequent assignment.  If VALUE is supplied, assign VALUE\n"
+"    before marking as read-only.\n"
+"    \n"
+"    Options:\n"
+"      -a\trefer to indexed array variables\n"
+"      -A\trefer to associative array variables\n"
+"      -f\trefer to shell functions\n"
+"      -p\tdisplay a list of all readonly variables or functions,\n"
+"    \t\tdepending on whether or not the -f option is given\n"
+"    \n"
+"    An argument of `--' disables further option processing.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or NAME is invalid."
+msgstr ""
+"셸 변수를 바꾸지 못하게 합니다.\n"
+"    \n"
+"    각 <이름>을 읽기 전용으로 만듭니다. 이 <이름>의 값은 앞으로의 할당\n"
+"    동작에서 바뀌지 않습니다. <값>을 지정했다면 읽기 전용으로 지정하기 전\n"
+"    <값>부터 할당합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -a\t색인 배열 변수를 참조합니다\n"
+"      -A\t연관 배열 변수를 참조합니다\n"
+"      -f\t셸 함수를 참조합니다\n"
+"      -p\t-f 옵션의 지정 여부에 따라 모든 읽기 전용 변수\n"
+"    \t\t또는 함수를 표시합니다\n"
+"    \n"
+"    `--' 인자는 이후 옵션 처리를 중단합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 지정했거나 <이름>이 올바르면 성공을 반환합니다."
+
+#: builtins.c:1203
+msgid ""
+"Shift positional parameters.\n"
+"    \n"
+"    Rename the positional parameters $N+1,$N+2 ... to $1,$2 ...  If N is\n"
+"    not given, it is assumed to be 1.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless N is negative or greater than $#."
+msgstr ""
+"위치 매개변수를 이동합니다.\n"
+"    \n"
+"    <초기횟수> 값을 지정하지 않으면 , $<초기횟수>+1, $<초기횟수>+2,\n"
+"     ... $1, $2 ... 로 위치 매개변수 이름을 바꾸며, <초기횟수> 값은 1로 가정합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <횟수>가 양수거나 $# 보다 작거나 같으면 성공을 반환합니다."
+
+#: builtins.c:1215 builtins.c:1230
+msgid ""
+"Execute commands from a file in the current shell.\n"
+"    \n"
+"    Read and execute commands from FILENAME in the current shell.  The\n"
+"    entries in $PATH are used to find the directory containing FILENAME.\n"
+"    If any ARGUMENTS are supplied, they become the positional parameters\n"
+"    when FILENAME is executed.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed in FILENAME; fails if\n"
+"    FILENAME cannot be read."
+msgstr ""
+"현재 셸의 파일에서 명령을 실행합니다.\n"
+"    \n"
+"    현제 셸의 <파일이름>에서 명령을 읽고 실행합니다. $PATH 항목은 <파일\n"
+"    이름>에 있는 디렉터리를 찾을 때 활용합니다. <인자>를 지정했다면, \n"
+"    <파일이름>을 실행할 때 위치 매개 변수가 따라옵니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <파일이름>의 마지막 명령 실행 상태를 반환합니다. <파일이름>을\n"
+"    읽지 못하면, 실패를 반환합니다."
+
+#: builtins.c:1246
+msgid ""
+"Suspend shell execution.\n"
+"    \n"
+"    Suspend the execution of this shell until it receives a SIGCONT signal.\n"
+"    Unless forced, login shells cannot be suspended.\n"
+"    \n"
+"    Options:\n"
+"      -f\tforce the suspend, even if the shell is a login shell\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless job control is not enabled or an error occurs."
+msgstr ""
+"셸 실행을 잠시 멈춥니다.\n"
+"    \n"
+"    SIGCONT 시그널를 받을 때 까지 셸의 실행을 일시 정지합니다.\n"
+"    강제 옵션이 없는 경우 로그인 셸은 일시 정지될 수 없습니다.\n"
+"    \n"
+"    옵션:\n"
+"      -f\t로그인 셸의 경우에도 일시 정지를 강제합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    작업 컨트롤이 동작하거나 오류가 없으면 성공을 반환합니다."
+
+#: builtins.c:1262
+msgid ""
+"Evaluate conditional expression.\n"
+"    \n"
+"    Exits with a status of 0 (true) or 1 (false) depending on\n"
+"    the evaluation of EXPR.  Expressions may be unary or binary.  Unary\n"
+"    expressions are often used to examine the status of a file.  There\n"
+"    are string operators and numeric comparison operators as well.\n"
+"    \n"
+"    The behavior of test depends on the number of arguments.  Read the\n"
+"    bash manual page for the complete specification.\n"
+"    \n"
+"    File operators:\n"
+"    \n"
+"      -a FILE        True if file exists.\n"
+"      -b FILE        True if file is block special.\n"
+"      -c FILE        True if file is character special.\n"
+"      -d FILE        True if file is a directory.\n"
+"      -e FILE        True if file exists.\n"
+"      -f FILE        True if file exists and is a regular file.\n"
+"      -g FILE        True if file is set-group-id.\n"
+"      -h FILE        True if file is a symbolic link.\n"
+"      -L FILE        True if file is a symbolic link.\n"
+"      -k FILE        True if file has its `sticky' bit set.\n"
+"      -p FILE        True if file is a named pipe.\n"
+"      -r FILE        True if file is readable by you.\n"
+"      -s FILE        True if file exists and is not empty.\n"
+"      -S FILE        True if file is a socket.\n"
+"      -t FD          True if FD is opened on a terminal.\n"
+"      -u FILE        True if the file is set-user-id.\n"
+"      -w FILE        True if the file is writable by you.\n"
+"      -x FILE        True if the file is executable by you.\n"
+"      -O FILE        True if the file is effectively owned by you.\n"
+"      -G FILE        True if the file is effectively owned by your group.\n"
+"      -N FILE        True if the file has been modified since it was last read.\n"
+"    \n"
+"      FILE1 -nt FILE2  True if file1 is newer than file2 (according to\n"
+"                       modification date).\n"
+"    \n"
+"      FILE1 -ot FILE2  True if file1 is older than file2.\n"
+"    \n"
+"      FILE1 -ef FILE2  True if file1 is a hard link to file2.\n"
+"    \n"
+"    String operators:\n"
+"    \n"
+"      -z STRING      True if string is empty.\n"
+"    \n"
+"      -n STRING\n"
+"         STRING      True if string is not empty.\n"
+"    \n"
+"      STRING1 = STRING2\n"
+"                     True if the strings are equal.\n"
+"      STRING1 != STRING2\n"
+"                     True if the strings are not equal.\n"
+"      STRING1 < STRING2\n"
+"                     True if STRING1 sorts before STRING2 lexicographically.\n"
+"      STRING1 > STRING2\n"
+"                     True if STRING1 sorts after STRING2 lexicographically.\n"
+"    \n"
+"    Other operators:\n"
+"    \n"
+"      -o OPTION      True if the shell option OPTION is enabled.\n"
+"      -v VAR         True if the shell variable VAR is set.\n"
+"      -R VAR         True if the shell variable VAR is set and is a name\n"
+"                     reference.\n"
+"      ! EXPR         True if expr is false.\n"
+"      EXPR1 -a EXPR2 True if both expr1 AND expr2 are true.\n"
+"      EXPR1 -o EXPR2 True if either expr1 OR expr2 is true.\n"
+"    \n"
+"      arg1 OP arg2   Arithmetic tests.  OP is one of -eq, -ne,\n"
+"                     -lt, -le, -gt, or -ge.\n"
+"    \n"
+"    Arithmetic binary operators return true if ARG1 is equal, not-equal,\n"
+"    less-than, less-than-or-equal, greater-than, or greater-than-or-equal\n"
+"    than ARG2.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success if EXPR evaluates to true; fails if EXPR evaluates to\n"
+"    false or an invalid argument is given."
+msgstr ""
+"조건식을 처리합니다.\n"
+"    \n"
+"    <표현식>의 계산 결과에 따라 0(참) 또는 1(거짓) 상태 값을\n"
+"    내며 빠져나옵니다.  수식은 단항 수식 또는 이항 수식일 수 있습니다.\n"
+"    단항 수식은 보통 파일 상태를 확인할 때 사용합니다.  숫자 비교 \n"
+"    연산자와 마찬가지로 문자열 연산자도 있습니다.\n"
+"    \n"
+"    테스트 동작은 인자 갯수에 따릅니다. 완전한 내용을 알아보려면,\n"
+"    배시 설명서 페이지를 읽어보십시오.\n"
+"    \n"
+"    파일 연산자:\n"
+"    \n"
+"      -a <파일>        파일이 있으면 참.\n"
+"      -b <파일>        블록 특수 파일이면 참.\n"
+"      -c <파일>        문자 특수 파일이면 참.\n"
+"      -d <파일>        파일이 디렉터리면 참.\n"
+"      -e <파일>        파일이 있으면 참.\n"
+"      -f <파일>        일반 파일이 있으면 참.\n"
+"      -g <파일>        파일이 그룹 ID 모음이면 참.\n"
+"      -h <파일>        파일이 심볼릭 링크면 참.\n"
+"      -L <파일>        파일이 심볼릭 링크면 참.\n"
+"      -k <파일>        파일에 `끈적이' 비트 설정이 있으면 참.\n"
+"      -p <파일>        파일이 명명 파이프면 참.\n"
+"      -r <파일>        파일을 읽을 수 잇으면 참.\n"
+"      -s <파일>        비아있지 않은 파일이 있으면 참.\n"
+"      -S <파일>        소켓 파일이면 참.\n"
+"      -t <파일서술자>          <파일서술자>를 터미널에서 열면 참.\n"
+"      -u <파일>        파일이 사용자 ID 세트면 참.\n"
+"      -w <파일>        파일을 기록할 수 있으면 참.\n"
+"      -x <파일>        파일을 실행할 수 있으면 참.\n"
+"      -O <파일>        파일을 명백히 소유하면 참.\n"
+"      -G <파일>        파일을 명백시 소속 그룹에서 소유하면 참.\n"
+"      -N <파일>        파일을 읽은 후 수정했다면 참.\n"
+"    \n"
+"      <파일1> -nt <파일2>  파일1이 파일2보다 최신이면\n"
+"                       (수정일자에 따라)참.\n"
+"    \n"
+"      <파일1> -ot <파일2>  파일2가 파일1보다 최신이면 참.\n"
+"    \n"
+"      <파일1> -ef <파일2>  파일1이 파일2의 하드링크라면 참.\n"
+"    \n"
+"    문자열 연산자:\n"
+"    \n"
+"      -z <문자열>      문자열이 비었으면 참.\n"
+"    \n"
+"      -n <문자열>\n"
+"         <문자열>      문자열이 있으면 참.\n"
+"    \n"
+"      <문자열1> = <문자열2>\n"
+"                     문자열이 같으면 참.\n"
+"      <문자열1> != <문자열2>\n"
+"                     문자열이 다르면 참.\n"
+"      <문자열1> < <문자열2>\n"
+"                     문자열1이 문자열2보다 문자 순서상 먼저일 경우 참.\n"
+"      <문자열1> > <문자열2>\n"
+"                     문자열1이 문자열2보다 문자 순서상 나중일 경우 참.\n"
+"    \n"
+"    기타 연산:\n"
+"    \n"
+"      -o <옵션>      셸 <옵션>을 사용할 수 있으면 참.\n"
+"      -v <변수>         셸 <변수>를 설정하면 참.\n"
+"      -R <변수>         셸 <변수>를 이름 참조로 설정하면 참.\n"
+"    \n"
+"      ! <표현식>         표현식이 거짓이면 참.\n"
+"      <표현식1> -a <표현식2> <표현식1>, <표현식2>가 모두 참이면 참.\n"
+"      <표현식1> -o <표현식2> <표현식1> 또는 <표현식2> 둘 중 하나가 참이면 참.\n"
+"    \n"
+"      <변수1> <연산자> <변수2>   산술 시험.  <연산자>는  -eq, -ne,\n"
+"                     -lt, -le, -gt, or -ge 중 하나.\n"
+"    \n"
+"    산술 이진 연산자는 <인자1>과 <인자2>가 같거나, 다르거나, 작거나, 작고\n"
+"    같거나, 크거나, 크고 같을 경우 참을 반환합니다\n"
+"    \n"
+"    종료 상태:\n"
+"    <표현식>이 참이면 성공을 반환합니다. <표현식>이 거짓을 결과로 냈거나\n"
+"    부적절한 인자를 대입하면 실패를 반환합니다."
+
+#: builtins.c:1344
+msgid ""
+"Evaluate conditional expression.\n"
+"    \n"
+"    This is a synonym for the \"test\" builtin, but the last argument must\n"
+"    be a literal `]', to match the opening `['."
+msgstr ""
+"조건식을 처리합니다.\n"
+"    \n"
+"    \"test\" 내장 명령의 동의 명령입니다만, 마지막 인자는 반드시\n"
+"    `]' 문자로 마무리하여 열기 괄호 `['와 일치해야합니다."
+
+#: builtins.c:1353
+msgid ""
+"Display process times.\n"
+"    \n"
+"    Prints the accumulated user and system times for the shell and all of its\n"
+"    child processes.\n"
+"    \n"
+"    Exit Status:\n"
+"    Always succeeds."
+msgstr ""
+"프로세스 시간을 표시합니다.\n"
+"    \n"
+"    셸의 사용자 및 시스템 누적 시간, 하위 프로세스의 누적 시간을\n"
+"    나타냅니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    항상 성공."
+
+#: builtins.c:1365
+msgid ""
+"Trap signals and other events.\n"
+"    \n"
+"    Defines and activates handlers to be run when the shell receives signals\n"
+"    or other conditions.\n"
+"    \n"
+"    ARG is a command to be read and executed when the shell receives the\n"
+"    signal(s) SIGNAL_SPEC.  If ARG is absent (and a single SIGNAL_SPEC\n"
+"    is supplied) or `-', each specified signal is reset to its original\n"
+"    value.  If ARG is the null string each SIGNAL_SPEC is ignored by the\n"
+"    shell and by the commands it invokes.\n"
+"    \n"
+"    If a SIGNAL_SPEC is EXIT (0) ARG is executed on exit from the shell.  If\n"
+"    a SIGNAL_SPEC is DEBUG, ARG is executed before every simple command.  If\n"
+"    a SIGNAL_SPEC is RETURN, ARG is executed each time a shell function or a\n"
+"    script run by the . or source builtins finishes executing.  A SIGNAL_SPEC\n"
+"    of ERR means to execute ARG each time a command's failure would cause the\n"
+"    shell to exit when the -e option is enabled.\n"
+"    \n"
+"    If no arguments are supplied, trap prints the list of commands associated\n"
+"    with each signal.\n"
+"    \n"
+"    Options:\n"
+"      -l\tprint a list of signal names and their corresponding numbers\n"
+"      -p\tdisplay the trap commands associated with each SIGNAL_SPEC\n"
+"    \n"
+"    Each SIGNAL_SPEC is either a signal name in <signal.h> or a signal number.\n"
+"    Signal names are case insensitive and the SIG prefix is optional.  A\n"
+"    signal may be sent to the shell with \"kill -signal $$\".\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless a SIGSPEC is invalid or an invalid option is given."
+msgstr ""
+"시그널과 기타 이벤트를 잡습니다.\n"
+"    \n"
+"    셸에서 시그널 또는 기타 상태를 받았을 때 실행할 핸들러를 지정하고 활성\n"
+"    상태로 전환합니다.\n"
+"    \n"
+"    <인자>는 <시그널명세>의 시그널을 셸에서 받았을 때 읽고 실행할 명령\n"
+"    입니다.  <인자>값이 빠지면 (그리고 단일 <시그널명세> 값을 지정하면)\n"
+"    또는 값이 `-'으로 설정했다면, 각 지정 시그널을 원래 값으로 되돌립니다.\n"
+"    <인자>에 널 문자열이 들어갔다면, 각 <시그널명세> 값은 셸과 실행 명령\n"
+"    에서 무시합니다.\n"
+"    \n"
+"    <시그널명세>가 EXIT(0) 이면 <인자>는 셸을 빠져나갈 떄 실행합니다.\n"
+"    <시그널명세>가 DEBUG면, 모든 단순 명령을 실행하기 전에 <인자>를\n"
+"    실행 합니다. <시그널명세>가 RETURN이면, <인자>는 . 또는 원시 내장 \n"
+"    명령 실행을 끝내는 셸 함수 또는 스크립트를 실행할 때마다 실행합니다.\n"
+"    <오류> <시그널명세> 는 -e 옵션을 넣었을 때, 셸을 빠져나오게 하는 \n"
+"    명령 실패를 겪을 때마다 <인자>를 실행합니다.\n"
+"    \n"
+"    어떤 인자도 지정하지 않으면 trap에서 각 시그널 별로 실행하는 명령\n"
+"    목록을 출력합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -l\t시그널 이름과 관련 숫자 목록을 출력합니다\n"
+"      -p\t각 <시그널명세> 관련 처리 명령을 표시합니다\n"
+"    \n"
+"    각 <시그널명세>는 <signal.h>에 지정한 시그널 이름이거나 시그널\n"
+"    번호입니다. 시그널 이름은 대소문자 무관하며, SIG 접두사는 선택사항\n"
+"    입니다.  시그널은 \"kill -signal $$\" 처럼 셸에 보낼 수 있습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 <시그널명세> 또는 옵션을 지정했다면 성공을 반환합니다."
+
+#: builtins.c:1401
+msgid ""
+"Display information about command type.\n"
+"    \n"
+"    For each NAME, indicate how it would be interpreted if used as a\n"
+"    command name.\n"
+"    \n"
+"    Options:\n"
+"      -a\tdisplay all locations containing an executable named NAME;\n"
+"    \t\tincludes aliases, builtins, and functions, if and only if\n"
+"    \t\tthe `-p' option is not also used\n"
+"      -f\tsuppress shell function lookup\n"
+"      -P\tforce a PATH search for each NAME, even if it is an alias,\n"
+"    \t\tbuiltin, or function, and returns the name of the disk file\n"
+"    \t\tthat would be executed\n"
+"      -p\treturns either the name of the disk file that would be executed,\n"
+"    \t\tor nothing if `type -t NAME' would not return `file'\n"
+"      -t\toutput a single word which is one of `alias', `keyword',\n"
+"    \t\t`function', `builtin', `file' or `', if NAME is an alias,\n"
+"    \t\tshell reserved word, shell function, shell builtin, disk file,\n"
+"    \t\tor not found, respectively\n"
+"    \n"
+"    Arguments:\n"
+"      NAME\tCommand name to be interpreted.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success if all of the NAMEs are found; fails if any are not found."
+msgstr ""
+"명령 형식 정보를 표시합니다.\n"
+"    \n"
+"    각 <이름>에 대해 명령 이름으로 활용할 때 어떻게 해석하는지\n"
+"     나타냅니다.\n"
+"    \n"
+"    옵션:\n"
+"      -a\t<이름>이 들어간 모든 실행 파일 보관 위치를 나타냅니다.\n"
+"    \t\t별칭, 내장명령, 함수가 해당하며, `-p' 옵션은 사용하지\n"
+"    \t\t 말아야합니다.\n"
+"      -f\t셸 함수 찾기 동작을 멈춥니다\n"
+"      -P\t각 <이름>별로 별칭, 내장 명령, 함수로 해도  PATH 검색을 강제\n"
+"    \t\t시행하며, 실행 파일 디스크 이름을 반환합니다\n"
+"      -p\t실행할 디스크 파일 이름을 반환하거나 , `type -t <이름>'을\n"
+"    \t\t`file'로 반환하지 않으면 아무것도 반환하지 않습니다.\n"
+"      -t\t<이름>이 별칭, 셸 예약 단어, 셸 함수, 셸 내장 명령, 디스크 파일\n"
+"    \t\t 또는 없음 여부에 따라 `alias', `keyword', `function', `builtin',\n"
+"    \t\t `file', `' 중 하나를 반환합니다.\n"
+"    \n"
+"    인자:\n"
+"      <이름>\t해석할 명령 이름.\n"
+"    \n"
+"    종료 상태:\n"
+"    모든 <이름>을 찾으면 성공을 반환, 그렇지 않으면 실패를 반환합니다."
+
+#: builtins.c:1432
+msgid ""
+"Modify shell resource limits.\n"
+"    \n"
+"    Provides control over the resources available to the shell and processes\n"
+"    it creates, on systems that allow such control.\n"
+"    \n"
+"    Options:\n"
+"      -S\tuse the `soft' resource limit\n"
+"      -H\tuse the `hard' resource limit\n"
+"      -a\tall current limits are reported\n"
+"      -b\tthe socket buffer size\n"
+"      -c\tthe maximum size of core files created\n"
+"      -d\tthe maximum size of a process's data segment\n"
+"      -e\tthe maximum scheduling priority (`nice')\n"
+"      -f\tthe maximum size of files written by the shell and its children\n"
+"      -i\tthe maximum number of pending signals\n"
+"      -k\tthe maximum number of kqueues allocated for this process\n"
+"      -l\tthe maximum size a process may lock into memory\n"
+"      -m\tthe maximum resident set size\n"
+"      -n\tthe maximum number of open file descriptors\n"
+"      -p\tthe pipe buffer size\n"
+"      -q\tthe maximum number of bytes in POSIX message queues\n"
+"      -r\tthe maximum real-time scheduling priority\n"
+"      -s\tthe maximum stack size\n"
+"      -t\tthe maximum amount of cpu time in seconds\n"
+"      -u\tthe maximum number of user processes\n"
+"      -v\tthe size of virtual memory\n"
+"      -x\tthe maximum number of file locks\n"
+"      -P\tthe maximum number of pseudoterminals\n"
+"      -R\tthe maximum time a real-time process can run before blocking\n"
+"      -T\tthe maximum number of threads\n"
+"    \n"
+"    Not all options are available on all platforms.\n"
+"    \n"
+"    If LIMIT is given, it is the new value of the specified resource; the\n"
+"    special LIMIT values `soft', `hard', and `unlimited' stand for the\n"
+"    current soft limit, the current hard limit, and no limit, respectively.\n"
+"    Otherwise, the current value of the specified resource is printed.  If\n"
+"    no option is given, then -f is assumed.\n"
+"    \n"
+"    Values are in 1024-byte increments, except for -t, which is in seconds,\n"
+"    -p, which is in increments of 512 bytes, and -u, which is an unscaled\n"
+"    number of processes.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is supplied or an error occurs."
+msgstr ""
+"셸 자원 제한을 조정합니다.\n"
+"    \n"
+"    셸과 생성 프로세스를 제어하는 시스템에서 사용할 수 있는 자원의\n"
+"    제어 전반을 제공합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -S\t`soft' 자원 제한을 활용합니다\n"
+"      -H\t`hard' 자원 제한을 활용합니다\n"
+"      -a\t현재 모든 제한 현황을 보고합니다\n"
+"      -b\t소켓 버퍼 킂기\n"
+"      -c\t생성 핵심 파일 최대 크기\n"
+"      -d\t프로세스 데이터 세그먼트 최대 크기\n"
+"      -e\t최대 스케쥴링 우선순위 (`nice')\n"
+"      -f\t셸과 하위 프로세스에서 작성한 파일의 최대 크기\n"
+"      -i\t최대 대기 시그널 수\n"
+"      -k\t프로세스에 할당한 커널 큐 최대 수\n"
+"      -l\t메모리에서 잠글 프로세스 최대 수\n"
+"      -m\t최대 점유 설정 크기\n"
+"      -n\t파일 서술자 개방 최대 갯수\n"
+"      -p\t파이프 버퍼 크기\n"
+"      -q\tPOSIX 메시지 큐 최대 바이트 단위 크기\n"
+"      -r\t최대 실시간 스케쥴링 우선순위\n"
+"      -s\t최대 스택 크기\n"
+"      -t\t초단위 최대 CPU 시간\n"
+"      -u\t최대 사용자 프로세스 수\n"
+"      -v\t가상 메모리 크기\n"
+"      -x\t최대 파일 잠금 수\n"
+"      -P\t가상 터미널 최대 갯수\n"
+"      -R\t블로킹 전 실시간 프로세스 최대 실행 가능 시간\n"
+"      -T\t최대 스레드 수\n"
+"    \n"
+"    모든 플랫폼에서 모든 옵션을 활용할 수 있는건 아닙니다.\n"
+"    \n"
+"    <한계>값이 주어지면, 지정 자원의 새 값이 됩니다. `soft', `hard', \n"
+"    `unlimited' <한계> 값은 현재 soft 한계, hard 한계, 한계 없음을 각각\n"
+"    의미합니다. 아니면, 지정 자원의 현재 값을 출력합니다. 옵션을 지정\n"
+"    하지 않으면, -f 옵션을 설정한 걸로 간주합니다.\n"
+"    \n"
+"    초 단위를 취급하는 -t 옵션과 512 바이트 단위로 증가하는 -p 옵션,\n"
+"    그리고 크기를 갖지 않는 프로세스 수를 취급하는 -u 옵션을 제외하고,\n"
+"    1024 바이트씩 값을 증가합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    옵션을 올바르게 설정했거나 오류가 없다면 성공을 반환합니다."
+
+#: builtins.c:1483
+msgid ""
+"Display or set file mode mask.\n"
+"    \n"
+"    Sets the user file-creation mask to MODE.  If MODE is omitted, prints\n"
+"    the current value of the mask.\n"
+"    \n"
+"    If MODE begins with a digit, it is interpreted as an octal number;\n"
+"    otherwise it is a symbolic mode string like that accepted by chmod(1).\n"
+"    \n"
+"    Options:\n"
+"      -p\tif MODE is omitted, output in a form that may be reused as input\n"
+"      -S\tmakes the output symbolic; otherwise an octal number is output\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless MODE is invalid or an invalid option is given."
+msgstr ""
+"파일 모드 마스크를 표시하거나 설정합니다.\n"
+"    \n"
+"    사용자 파일 생성 마스크를 <모드>로 설정합니다. <모드>를 생략하면,\n"
+"    마스크 현재 값을 출력합니다.\n"
+"    \n"
+"    <모드>를 숫자로 시작하면, 8진수로 해석합니다. 그렇지 않으면 chmod(1)\n"
+"    에서 인식하는 심볼릭 모드 문자열이 됩니다.\n"
+"    \n"
+"    웁션:\n"
+"      -p\t<모드>를 생략하면 입력으로 재활용할 형식으로 출력합니다\n"
+"      -S\t출력 심볼릭을 만듭니다. 그렇지 않으면 8진수로 출력합니다\n"
+"    \n"
+"    종료 상태:\n"
+"    <모드>가 올바르거나 옵션을 적절하게 설정하면 성공을 반환합니다."
+
+#: builtins.c:1503
+msgid ""
+"Wait for job completion and return exit status.\n"
+"    \n"
+"    Waits for each process identified by an ID, which may be a process ID or a\n"
+"    job specification, and reports its termination status.  If ID is not\n"
+"    given, waits for all currently active child processes, and the return\n"
+"    status is zero.  If ID is a job specification, waits for all processes\n"
+"    in that job's pipeline.\n"
+"    \n"
+"    If the -n option is supplied, waits for a single job from the list of IDs,\n"
+"    or, if no IDs are supplied, for the next job to complete and returns its\n"
+"    exit status.\n"
+"    \n"
+"    If the -p option is supplied, the process or job identifier of the job\n"
+"    for which the exit status is returned is assigned to the variable VAR\n"
+"    named by the option argument. The variable will be unset initially, before\n"
+"    any assignment. This is useful only when the -n option is supplied.\n"
+"    \n"
+"    If the -f option is supplied, and job control is enabled, waits for the\n"
+"    specified ID to terminate, instead of waiting for it to change status.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last ID; fails if ID is invalid or an invalid\n"
+"    option is given, or if -n is supplied and the shell has no unwaited-for\n"
+"    children."
+msgstr ""
+"작업 완료를 기다리며 종료 상태를 반환합니다.\n"
+"    \n"
+"    프로세스 ID 또는 작업 명세가 될 ID로 식별하는 각 프로세스를 \n"
+"    기다리며, 중단 상태를 보고합니다. ID가 주어지지 않으면 현재의\n"
+"    모든 활성 하위 프로세스를 기다리며, 반환 상태 값은 0입니다.\n"
+"    ID가 작업 명세라면 작업 파이프라인의 모든 프로세스를 기다립니다.\n"
+"    \n"
+"    -n 옵션을 지정하면 ID 목록의 단일 작업을 기다리며, ID를 지정하지\n"
+"    않으면, 다음 작업 완료시까지 기다리고 해당 작업의 종료 상태를 반환\n"
+"    합니다.\n"
+"    \n"
+"    -p 옵션을 지정하면 종료 상태를 반환할 작업의 프로세스 또는 작업\n"
+"    식별자룰 옵션 인자가 명명한 <변수>에 할당합니다. 변수는 할당 전\n"
+"    설정을 해제할 수 있습니다. 보통 -n 옵션을 지정할 때만 쓸만합니다.\n"
+"    \n"
+"    -f 옵션을 지정하고 작업 컨트롤을 사용하면 지정 ID의 상태가 바뀌기를\n"
+"    기다리기보다는, 중단 시기를 기다립니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 ID의 상태를 반환합니다. ID가 잘못되었거나 잘못된 옵션을 지정\n"
+"    했다든지, -n 옵션을 지정하고 셸에서 하위 프로세스를 기다리지 않는\n"
+"    다면 실패를 반환합니다."
+
+#: builtins.c:1534
+msgid ""
+"Wait for process completion and return exit status.\n"
+"    \n"
+"    Waits for each process specified by a PID and reports its termination status.\n"
+"    If PID is not given, waits for all currently active child processes,\n"
+"    and the return status is zero.  PID must be a process ID.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last PID; fails if PID is invalid or an invalid\n"
+"    option is given."
+msgstr ""
+"프로세스 처리 완료를 기다리고 종료 상태를 반환합니다.\n"
+"    \n"
+"    지정 <PID>의 각 프로세스를 기다리며, 종료 상태를 보고합니다.\n"
+"    <PID>를 지정하지 않으면 모든 현재 하위 활성 프로세스를 기다리며,\n"
+"    반환 상태는 0이 됩니다.  <PID>는 프로세스 ID여야 합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 PID의 상태를 반환합니다. PID 값이 잘못되었거나,\n"
+"    부적절한 옵션을 지정하면 실패를 반환합니다."
+
+#: builtins.c:1549
+msgid ""
+"Execute commands for each member in a list.\n"
+"    \n"
+"    The `for' loop executes a sequence of commands for each member in a\n"
+"    list of items.  If `in WORDS ...;' is not present, then `in \"$@\"' is\n"
+"    assumed.  For each element in WORDS, NAME is set to that element, and\n"
+"    the COMMANDS are executed.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"목록 각 구성 요소의 명령을 실행합니다.\n"
+"    \n"
+"    `for' 반복문은 항목 목록 각 구성요소의 명령 목록을 실행합니다.\n"
+"    `in <단어> ...;' 식으로 나타나지 않으면, `in $@\"'으로 가정합니다.\n"
+"    <단어>의 각 요소에 대해 <이름>을 해당 요소에 설정하고,\n"
+"    <명령>을 실행합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 명령 실행 상태를 반환합니다."
+
+#: builtins.c:1563
+msgid ""
+"Arithmetic for loop.\n"
+"    \n"
+"    Equivalent to\n"
+"    \t(( EXP1 ))\n"
+"    \twhile (( EXP2 )); do\n"
+"    \t\tCOMMANDS\n"
+"    \t\t(( EXP3 ))\n"
+"    \tdone\n"
+"    EXP1, EXP2, and EXP3 are arithmetic expressions.  If any expression is\n"
+"    omitted, it behaves as if it evaluates to 1.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"반복문의 산술 연산을 실행합니다.\n"
+"    \n"
+"    다음과 동일합니다\n"
+"    \t(( <표현식1> ))\n"
+"    \twhile (( <표현식2> )); do\n"
+"    \t\t <명령>\n"
+"    \t\t (( 표현식3 ))\n"
+"    \tdone\n"
+"    <표현식1>, <표현식2>, <표현식3> 은 산술 수식입니다.   어떤 수식이든 생략하면\n"
+"    1 값을 계산한걸로 간주합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 명령 실행 상태를 반환합니다."
+
+#: builtins.c:1581
+msgid ""
+"Select words from a list and execute commands.\n"
+"    \n"
+"    The WORDS are expanded, generating a list of words.  The\n"
+"    set of expanded words is printed on the standard error, each\n"
+"    preceded by a number.  If `in WORDS' is not present, `in \"$@\"'\n"
+"    is assumed.  The PS3 prompt is then displayed and a line read\n"
+"    from the standard input.  If the line consists of the number\n"
+"    corresponding to one of the displayed words, then NAME is set\n"
+"    to that word.  If the line is empty, WORDS and the prompt are\n"
+"    redisplayed.  If EOF is read, the command completes.  Any other\n"
+"    value read causes NAME to be set to null.  The line read is saved\n"
+"    in the variable REPLY.  COMMANDS are executed after each selection\n"
+"    until a break command is executed.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"단어를 목록에서 선택하고 명령을 실행합니다.\n"
+"    \n"
+"    <단어>는 단어 목록을 만들 때 확장합니다.   확장 단어는 표준 오류에\n"
+"    출력하며, 출력행에 숫자가 붙습니다. 각 `in <단어>'가 없다면 `in \"$@\"'\n"
+"    를 고려합니다. 그 다음 PS3 프롬프트를 나타내고 표준 입력에서 \n"
+"    읽습니다. 표시 단어 중 하나의 숫자로 행을 구성했다면, <이름>\n"
+"    을 해당 단어에 설정합니다. 행이 비어있으면, <단어>와 프롬프트는\n"
+"    다시 나타납니다.  EOF (파일 끝)을 읽으면, 명령 실행이 끝납니다.\n"
+"    다른 값을 읽으면 <이름>을 null로 설정할 수도 있습니다.  읽은 행은\n"
+"    REPLY 변수에 저장합니다. <명령>은 break 명령을 실행하기 전까지\n"
+"    각 선택 때마다 실행합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    마지막 명령 실행 상태를 반환합니다."
+
+#: builtins.c:1602
+msgid ""
+"Report time consumed by pipeline's execution.\n"
+"    \n"
+"    Execute PIPELINE and print a summary of the real time, user CPU time,\n"
+"    and system CPU time spent executing PIPELINE when it terminates.\n"
+"    \n"
+"    Options:\n"
+"      -p\tprint the timing summary in the portable Posix format\n"
+"    \n"
+"    The value of the TIMEFORMAT variable is used as the output format.\n"
+"    \n"
+"    Exit Status:\n"
+"    The return status is the return status of PIPELINE."
+msgstr ""
+"파이프라인 실행의 소요 시간을 보고합니다.\n"
+"    \n"
+"    <파이프라인>을 실행한 후 파이프라인이 멈췄을 때, <파이프라인> 실행에\n"
+"    걸린 실제 시간, 사용자 CPU 시간, 시스템 CPU 시간 요약 내용을 출력합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -p\t이식성이 있는 POSIX 형식의 타이밍 요약 내용을 출력합니다.\n"
+"    \n"
+"    TIMEFORMAT 변수의 값은 출력 형식에 활용합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <파이프라인>의 반환 상태가 곧 반환 상태 입니다."
+
+#: builtins.c:1619
+msgid ""
+"Execute commands based on pattern matching.\n"
+"    \n"
+"    Selectively execute COMMANDS based upon WORD matching PATTERN.  The\n"
+"    `|' is used to separate multiple patterns.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"패턴 일치에 기반하여 명령을 실행합니다.\n"
+"    \n"
+"    <패턴>에 일치하는 <단어> 기반으로 <명령>을 별도로 실행합니다.\n"
+"    `|' 문자로 여러 패턴을 나눌 수 있습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 명령 실행 상태를 반환합니다."
+
+#: builtins.c:1631
+msgid ""
+"Execute commands based on conditional.\n"
+"    \n"
+"    The `if COMMANDS' list is executed.  If its exit status is zero, then the\n"
+"    `then COMMANDS' list is executed.  Otherwise, each `elif COMMANDS' list is\n"
+"    executed in turn, and if its exit status is zero, the corresponding\n"
+"    `then COMMANDS' list is executed and the if command completes.  Otherwise,\n"
+"    the `else COMMANDS' list is executed, if present.  The exit status of the\n"
+"    entire construct is the exit status of the last command executed, or zero\n"
+"    if no condition tested true.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"조건 기반으로 명령을 실행합니다.\n"
+"    \n"
+"    `if <명령>' 목록을 실행합니다.  종료 상태값이 0이면, `then <명령>'\n"
+"    목록도 실행합니다.  아니면, `elif <명령>' 목록도 실행하며, 종료 상태\n"
+"    값이 0이면 관련 `then <명령>' 목록을 실행하여 if 명령의 처리가 끝\n"
+"    납니다.  위 과정에 만족하지 않으면 `else <명령>' 목록이 있을 경우\n"
+"    실행합니다.  전체 명령 구성의 종료 상태 값은 최종 명령 실행 종료\n"
+"    상태값이며, 또는 어떤 조건에서도 참이 아닌 경우 0이 됩니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 명령 실행 상태 값을 반환합니다."
+
+#: builtins.c:1648
+msgid ""
+"Execute commands as long as a test succeeds.\n"
+"    \n"
+"    Expand and execute COMMANDS-2 as long as the final command in COMMANDS has\n"
+"    an exit status of zero.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"테스트에 성공하는 동안 명령을 실행합니다.\n"
+"    \n"
+"    <명령>의 최종 명령 종료 상태가 0인 동안 <명령-2>로 확장 실행합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 명령 상태를 반환합니다."
+
+#: builtins.c:1660
+msgid ""
+"Execute commands as long as a test does not succeed.\n"
+"    \n"
+"    Expand and execute COMMANDS-2 as long as the final command in COMMANDS has\n"
+"    an exit status which is not zero.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"테스트에 실패하는 동안 명령을 실행합니다.\n"
+"    \n"
+"    <명령>의 최종 명령 종료 상태가 0이 아니면 <명령-2>로 확장 실행합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 명령 실행 상태를 반환합니다."
+
+#: builtins.c:1672
+msgid ""
+"Create a coprocess named NAME.\n"
+"    \n"
+"    Execute COMMAND asynchronously, with the standard output and standard\n"
+"    input of the command connected via a pipe to file descriptors assigned\n"
+"    to indices 0 and 1 of an array variable NAME in the executing shell.\n"
+"    The default NAME is \"COPROC\".\n"
+"    \n"
+"    Exit Status:\n"
+"    The coproc command returns an exit status of 0."
+msgstr ""
+"<이름>으로 병행 프로세스를 만듭니다.\n"
+"    \n"
+"    <명령>을 비동기 실행합니다. 명령의 표준 출력과 표준 입력은 실행하는 \n"
+"    셸에서 배열 변수 <이름>의 색인 0번과 1번에 할당한 파일 서술자와\n"
+"    파이프로 연결합니다. 기본 <이름>은 \"COPROC\" 입니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    coproc 명령이 종료 상태 0을 반환합니다."
+
+#: builtins.c:1686
+msgid ""
+"Define shell function.\n"
+"    \n"
+"    Create a shell function named NAME.  When invoked as a simple command,\n"
+"    NAME runs COMMANDs in the calling shell's context.  When NAME is invoked,\n"
+"    the arguments are passed to the function as $1...$n, and the function's\n"
+"    name is in $FUNCNAME.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless NAME is readonly."
+msgstr ""
+"셸 함수를 정의합니다.\n"
+"    \n"
+"    <이름>을 가진 셸 함수를 만듭니다.  단순 명령으로 실행할 경우, <이름>은\n"
+"    셸 컨텍스트를 호출할 때 <명령>을 실행합니다.  <이름>을 실행하면, 함수에\n"
+"    전달하는 인자는 $1,...$N 이며, 함수 이름은 $FUNCNAME이 됩니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <이름>이 읽기 전용이 아니라면 참을 반환합니다."
+
+#: builtins.c:1700
+msgid ""
+"Group commands as a unit.\n"
+"    \n"
+"    Run a set of commands in a group.  This is one way to redirect an\n"
+"    entire set of commands.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the last command executed."
+msgstr ""
+"여러 명령을 단위로 묶습니다.\n"
+"    \n"
+"    여러 명령을 그룹 하나로 묶어 실행합니다.  명령 전체를 방향재지정\n"
+"    처리하는 방법 중 하나입니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    최종 명령 실행 상태를 반환합니다."
+
+#: builtins.c:1712
+msgid ""
+"Resume job in foreground.\n"
+"    \n"
+"    Equivalent to the JOB_SPEC argument to the `fg' command.  Resume a\n"
+"    stopped or background job.  JOB_SPEC can specify either a job name\n"
+"    or a job number.  Following JOB_SPEC with a `&' places the job in\n"
+"    the background, as if the job specification had been supplied as an\n"
+"    argument to `bg'.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns the status of the resumed job."
+msgstr ""
+"포그라운드의 작업을 재개합니다.\n"
+"    \n"
+"    `fg' 명령의 JOB_SPEC 인자와 동일합니다.  멈춘 작업 또는 백그라운드\n"
+"    작업을 재개합니다.  JOB_SPEC은 작업 이름 또는 작업 번호를 지정할 수\n"
+"    있습니다.  JOB_SPEC 다음에 `&'를 입력하여 백그라운드에서 실행하게\n"
+"    합니다. `bg' 인자로 지정할 때처럼 작업 명세를 지정합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    재개한 작업의 상태를 반환합니다."
+
+#: builtins.c:1727
+msgid ""
+"Evaluate arithmetic expression.\n"
+"    \n"
+"    The EXPRESSION is evaluated according to the rules for arithmetic\n"
+"    evaluation.  Equivalent to `let \"EXPRESSION\"'.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns 1 if EXPRESSION evaluates to 0; returns 0 otherwise."
+msgstr ""
+"산술 연산을 수행합니다.\n"
+"    \n"
+"    <표현식>은 산술 연산 규칙에 따라 실행합니다. `let \"<표현식>\"'과 동일합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <표현식> 결과가 0이면 1을 반환하고 그렇지 않으면 0을 반환합니다."
+
+#: builtins.c:1739
+msgid ""
+"Execute conditional command.\n"
+"    \n"
+"    Returns a status of 0 or 1 depending on the evaluation of the conditional\n"
+"    expression EXPRESSION.  Expressions are composed of the same primaries used\n"
+"    by the `test' builtin, and may be combined using the following operators:\n"
+"    \n"
+"      ( EXPRESSION )\tReturns the value of EXPRESSION\n"
+"      ! EXPRESSION\t\tTrue if EXPRESSION is false; else false\n"
+"      EXPR1 && EXPR2\tTrue if both EXPR1 and EXPR2 are true; else false\n"
+"      EXPR1 || EXPR2\tTrue if either EXPR1 or EXPR2 is true; else false\n"
+"    \n"
+"    When the `==' and `!=' operators are used, the string to the right of\n"
+"    the operator is used as a pattern and pattern matching is performed.\n"
+"    When the `=~' operator is used, the string to the right of the operator\n"
+"    is matched as a regular expression.\n"
+"    \n"
+"    The && and || operators do not evaluate EXPR2 if EXPR1 is sufficient to\n"
+"    determine the expression's value.\n"
+"    \n"
+"    Exit Status:\n"
+"    0 or 1 depending on value of EXPRESSION."
+msgstr ""
+"조건 명령을 수행합니다.\n"
+"    \n"
+"    <표현식>의 조건문 수행의 처리 결과에 따라 상태값을 0 또는 1로 반환합니다.\n"
+"    표현식은 `test' 내장 명령에서 활용하는 동일한 규칙에 따라 작성하며,\n"
+"    다음 연산자로 결합합니다:\n"
+"    ( <표현식> )\t<표현식>의 값을 반환\n"
+"    ! <표현식>\t\t <표현식> 결과가 거짓이면 참을, 그렇지 않으면 거짓을 반환\n"
+"    <표현식1> && <표현식2>\t\t<표현식1>과 <표현식2>가 모두 참이면 참을\n"
+"    \t\t\t\t그렇지 않으면 거짓을 반환\n"
+"    <표현식1> || <표현식2>\t\t<표현식1> 또는 <표현식2> 둘 중 하나가 참이면 참을\n"
+"    \t\t\t\t그렇지 않으면 거짓을 반환\n"
+"    \n"
+"    `=='과 `!=' 연산자를 사용한다면 우항의 문자열은 패턴으로 활용하며, 패턴 검사를\n"
+"    수행합니다. `=~' 연산자를 사용할 때는 우항의 문자열은 정규표현식으로 간주합니다.\n"
+"    \n"
+"     && 연산자와 || 연산자는 <표현식1>이 표현식 값을 내는데 충분하다면 <표현식2>를\n"
+"    처리하지는 않습니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    <표현식> 값에 따라 0 또는 1을 반환합니다."
+
+#: builtins.c:1765
+msgid ""
+"Common shell variable names and usage.\n"
+"    \n"
+"    BASH_VERSION\tVersion information for this Bash.\n"
+"    CDPATH\tA colon-separated list of directories to search\n"
+"    \t\tfor directories given as arguments to `cd'.\n"
+"    GLOBIGNORE\tA colon-separated list of patterns describing filenames to\n"
+"    \t\tbe ignored by pathname expansion.\n"
+"    HISTFILE\tThe name of the file where your command history is stored.\n"
+"    HISTFILESIZE\tThe maximum number of lines this file can contain.\n"
+"    HISTSIZE\tThe maximum number of history lines that a running\n"
+"    \t\tshell can access.\n"
+"    HOME\tThe complete pathname to your login directory.\n"
+"    HOSTNAME\tThe name of the current host.\n"
+"    HOSTTYPE\tThe type of CPU this version of Bash is running under.\n"
+"    IGNOREEOF\tControls the action of the shell on receipt of an EOF\n"
+"    \t\tcharacter as the sole input.  If set, then the value\n"
+"    \t\tof it is the number of EOF characters that can be seen\n"
+"    \t\tin a row on an empty line before the shell will exit\n"
+"    \t\t(default 10).  When unset, EOF signifies the end of input.\n"
+"    MACHTYPE\tA string describing the current system Bash is running on.\n"
+"    MAILCHECK\tHow often, in seconds, Bash checks for new mail.\n"
+"    MAILPATH\tA colon-separated list of filenames which Bash checks\n"
+"    \t\tfor new mail.\n"
+"    OSTYPE\tThe version of Unix this version of Bash is running on.\n"
+"    PATH\tA colon-separated list of directories to search when\n"
+"    \t\tlooking for commands.\n"
+"    PROMPT_COMMAND\tA command to be executed before the printing of each\n"
+"    \t\tprimary prompt.\n"
+"    PS1\t\tThe primary prompt string.\n"
+"    PS2\t\tThe secondary prompt string.\n"
+"    PWD\t\tThe full pathname of the current directory.\n"
+"    SHELLOPTS\tA colon-separated list of enabled shell options.\n"
+"    TERM\tThe name of the current terminal type.\n"
+"    TIMEFORMAT\tThe output format for timing statistics displayed by the\n"
+"    \t\t`time' reserved word.\n"
+"    auto_resume\tNon-null means a command word appearing on a line by\n"
+"    \t\titself is first looked for in the list of currently\n"
+"    \t\tstopped jobs.  If found there, that job is foregrounded.\n"
+"    \t\tA value of `exact' means that the command word must\n"
+"    \t\texactly match a command in the list of stopped jobs.  A\n"
+"    \t\tvalue of `substring' means that the command word must\n"
+"    \t\tmatch a substring of the job.  Any other value means that\n"
+"    \t\tthe command must be a prefix of a stopped job.\n"
+"    histchars\tCharacters controlling history expansion and quick\n"
+"    \t\tsubstitution.  The first character is the history\n"
+"    \t\tsubstitution character, usually `!'.  The second is\n"
+"    \t\tthe `quick substitution' character, usually `^'.  The\n"
+"    \t\tthird is the `history comment' character, usually `#'.\n"
+"    HISTIGNORE\tA colon-separated list of patterns used to decide which\n"
+"    \t\tcommands should be saved on the history list.\n"
+msgstr ""
+"일반 셸 변수 이름과 사용법입니다.\n"
+"    \n"
+"    BASH_VERSION\t배시 버전 정보입니다.\n"
+"    CDPATH\t`cd' 인자처럼 디렉터리 검색에 주어지는 콜론으로 구분한\n"
+"    \t\t디렉터리 목록입니다.\n"
+"    GLOBIGNORE\t경로 이름을 확장하여 무시할 콜론 이름으로 구분한 파일 이름\n"
+"    \t\t특징 패턴 목록입니다.\n"
+"    HISTFILE\t명령을 기록에 저장하는 파일 이름입니다.\n"
+"    HISTFILESIZE\t파일에 넣을 수 있는 최대 줄 수 입니다.\n"
+"    HISTSIZE\t동작 중인 셸에서 접근할 수 있는 최대 기록 줄 수 입니다.\n"
+"    HOME\t로그인 후 접근하는 완전한 경로 이름입니다.\n"
+"    HOSTNAME\t현재 호스트 이름입니다.\n"
+"    HOSTTYPE\t이 배시 버전이 실행하고 있는 시스템의 CPU 형식입니다.\n"
+"    IGNOREEOF\n"
+"EOF 문자 입력을 유일한 입력으로 받는 셸의 동작을\n"
+"    \t\t제어합니다.  설정하면, 이 변수의 값은 셸을 나가기\n"
+"    \t\t전 빈 줄에 한줄로 나타낼 EOF 문자 수 입니다 (기본 10개).\n"
+"    \t\t설정을 해제하면, EOF는 입력 끝을 나타냅니다.\n"
+"    MACHTYPE\t현재 배시를 실행하고 있는 시스템을 설명하는 문자열입니다.\n"
+"    MAILCHECK\t배시에서 새 메일을 확인하는 초단위 빈도 시간입니다.\n"
+"    MAILPATH\t배시에서 새 메일을 확인할 콜론 구분 파일 목록입니다.\n"
+"    OSTYPE\t이 배시 버전을 실행하고 있는 유닉스 버전입니다.\n"
+"    PATH\t명령을 찾을 때 검색할 콜론 구분 디렉터리 목록입니다.\n"
+"    PROMPT_COMMAND\t각 기본 프롬프트를 출력하기 전에 실행할\n"
+"    \t\t명령입니다.\n"
+"    PS1\t\t기본 프롬프트 문자열입니다.\n"
+"    PS2\t\t2차 프롬프트 문자열입니다.\n"
+"    PWD\t\t현재 디렉터리의 전체 경로 이름 입니다.\n"
+"    SHELLOPTS\t콜론으로 구분한 활성 셸 옵션 목록입니다.\n"
+"    TERM\t현재 터미널 형식 이름입니다.\n"
+"    TIMEFORMAT\t`time' 역방향 단어로 표시하는 시간 통계의\n"
+"    \t\t출력 형식입니다.\n"
+"    <자동_재개>\tnull 값이 아니라면 자체에서 나타내는 명령행을\n"
+"    \t\t먼저 나타내고, 현재 멈춘 작업 목록의 첫번째 확인 요소임을\n"
+"    \t\t의미합니다.  이 상태가 나타나면 작업을 포 그라운드에서\n"
+"    \t\t실행헙니다. `exact' 값은 명령 단어가 멈춘 작업 목록의\n"
+"    \t\t명령과 정확히 일치해야 함을 의미합니다.\n"
+"    \t\t`substring' 값은 명령 단어가 작업의 부분 문자열과\n"
+"    \t\t일치해야 하는 의미를 담고 있습니다.  다른 값은\n"
+"    \t\t명령이 멈춘 작업의 접두어여야 하는 의미를 담고 있습니다.\n"
+"    <기록 문자>\t기록 확장과 빠른 대체를 제어하는 문자입니다.\n"
+"    \t\t첫번째는 기록 제거 문자로, 보통 `!'을 활용합니다.\n"
+"    \t\t두번째는 보통 `^'으로 표기하는 `빠른 대체문자' 입니다.\n"
+"    \t\t세번째는 `기록 주석' 문자로 보통 `#'으로 표기합니다.\n"
+"    HISTIGNORE\t어떤 명령을 기록 목록에 저장해야 하는지 판단할 때\n"
+"    \t\t활용하는 콜론 구분 패턴 목록입니다.\n"
+
+#: builtins.c:1822
+msgid ""
+"Add directories to stack.\n"
+"    \n"
+"    Adds a directory to the top of the directory stack, or rotates\n"
+"    the stack, making the new top of the stack the current working\n"
+"    directory.  With no arguments, exchanges the top two directories.\n"
+"    \n"
+"    Options:\n"
+"      -n\tSuppresses the normal change of directory when adding\n"
+"    \t\tdirectories to the stack, so only the stack is manipulated.\n"
+"    \n"
+"    Arguments:\n"
+"      +N\tRotates the stack so that the Nth directory (counting\n"
+"    \t\tfrom the left of the list shown by `dirs', starting with\n"
+"    \t\tzero) is at the top.\n"
+"    \n"
+"      -N\tRotates the stack so that the Nth directory (counting\n"
+"    \t\tfrom the right of the list shown by `dirs', starting with\n"
+"    \t\tzero) is at the top.\n"
+"    \n"
+"      dir\tAdds DIR to the directory stack at the top, making it the\n"
+"    \t\tnew current working directory.\n"
+"    \n"
+"    The `dirs' builtin displays the directory stack.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid argument is supplied or the directory\n"
+"    change fails."
+msgstr ""
+"디렉터리를 스택에 추가합니다.\n"
+"    \n"
+"    디렉터리를 디렉터리 스택 상단에 추가하거나, 스택을 돌리거나,\n"
+"    스택의 새 상단에 현재 작업 디렉터리를 둡니다. 인자를 지정하지\n"
+"    않으면 상단 디렉터리 둘을 바꿉니다.\n"
+"    \n"
+"    옵션:\n"
+"      -n\t스택에 디렉터리를 추가할 때 디렉터리 일반 변경 동작을\n"
+"    \t\t막은 상태에서, 스택만 다루게 합니다.\n"
+"    \n"
+"    인자:\n"
+"      +N\t`dirs' 내장 명령에 나타난 항목을 0부터 시작해서 왼쪽부터\n"
+"    \t\t세어 N번째 항목을 스택의 최상단에 오도록 회전합니다.\n"
+"    \n"
+"      -N\t`dirs' 내장 명령에 나타난 항목을 0부터 시작해서 오른쪽부터\n"
+"    \t\t세어 N번째 항목을 스택의 최상단에 오도록 회전합니다.\n"
+"    \n"
+"      <디렉터리>\t<디렉터리>를 스택 상단에 추가하여 새 현재 작업\n"
+"    \t\t디렉터리로 지정합니다.\n"
+"    \n"
+"    `dirs' 내장 명령은 디렉터리 스택을 표시합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 인자를 지정하고 디렉터리 변경에 성공하면 성공을 반환\n"
+"    합니다."
+
+#: builtins.c:1856
+msgid ""
+"Remove directories from stack.\n"
+"    \n"
+"    Removes entries from the directory stack.  With no arguments, removes\n"
+"    the top directory from the stack, and changes to the new top directory.\n"
+"    \n"
+"    Options:\n"
+"      -n\tSuppresses the normal change of directory when removing\n"
+"    \t\tdirectories from the stack, so only the stack is manipulated.\n"
+"    \n"
+"    Arguments:\n"
+"      +N\tRemoves the Nth entry counting from the left of the list\n"
+"    \t\tshown by `dirs', starting with zero.  For example: `popd +0'\n"
+"    \t\tremoves the first directory, `popd +1' the second.\n"
+"    \n"
+"      -N\tRemoves the Nth entry counting from the right of the list\n"
+"    \t\tshown by `dirs', starting with zero.  For example: `popd -0'\n"
+"    \t\tremoves the last directory, `popd -1' the next to last.\n"
+"    \n"
+"    The `dirs' builtin displays the directory stack.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid argument is supplied or the directory\n"
+"    change fails."
+msgstr ""
+"스택에서 디렉터리를 제거합니다.\n"
+"    \n"
+"    디렉터리 스택에서 항목을 제거합니다.  인자를 지정하지 않으면,\n"
+"    스택의 상단 디렉터리를 제거하며, 새 상단 디렉터리로 바꿉니다.\n"
+"    \n"
+"    옵션:\n"
+"      -n\t스택에서 디렉터리를 제거할 때 디렉터리 일반 변경동작을\n"
+"    \t\t막아 스택만 처리하게합니다.\n"
+"    \n"
+"    인자:\n"
+"      +N\t0부터 시작해서 `dirs' 내장 명령에 나타난 항목을 왼쪽부터\n"
+"    \t\t세어 N번째 항목을 제거합니다. 예를 들어 `popd +0' 명령은\n"
+"    \t\t처음 디렉터리를 `popd +1' 명령은  두번째 디렉터리를\n"
+"    \t\t제거합니다.\n"
+"      -N\t0부터 시작해서 `dirs' 내장 명령에 나타난 항목을 오른쪽부터\n"
+"    \t\t세어 N번째 항목을 제거합니다. 예를 들어 `popd -0' 명령은\n"
+"    \t\t마지막 디렉터리를 `popd -1' 명령은 마지막에서 두번째의\n"
+"    \t\t디렉터리를 제거합니다.\n"
+"    \n"
+"    `dirs' 내장 명령은 디렉터리 스택을 보여줍니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 인자를 지정했거나 디렉터리를 제대로 이동했다면\n"
+"    성공을 반환합니다.전"
+
+#: builtins.c:1886
+msgid ""
+"Display directory stack.\n"
+"    \n"
+"    Display the list of currently remembered directories.  Directories\n"
+"    find their way onto the list with the `pushd' command; you can get\n"
+"    back up through the list with the `popd' command.\n"
+"    \n"
+"    Options:\n"
+"      -c\tclear the directory stack by deleting all of the elements\n"
+"      -l\tdo not print tilde-prefixed versions of directories relative\n"
+"    \t\tto your home directory\n"
+"      -p\tprint the directory stack with one entry per line\n"
+"      -v\tprint the directory stack with one entry per line prefixed\n"
+"    \t\twith its position in the stack\n"
+"    \n"
+"    Arguments:\n"
+"      +N\tDisplays the Nth entry counting from the left of the list\n"
+"    \t\tshown by dirs when invoked without options, starting with\n"
+"    \t\tzero.\n"
+"    \n"
+"      -N\tDisplays the Nth entry counting from the right of the list\n"
+"    \t\tshown by dirs when invoked without options, starting with\n"
+"    \t\tzero.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is supplied or an error occurs."
+msgstr ""
+"디렉터리 스택을 표시합니다.\n"
+"    \n"
+"    현재 기억한 디렉터리 목록을 보여줍니다.  디렉터리는\n"
+"    `pushd' 명령으로 목록에 경로를 저장할 수 있고, 'popd' \n"
+"    명령으로 거슬러 올라갈 수 있습니다.\n"
+"    \n"
+"    옵션:\n"
+"      -c\t원소를 전부 삭제함으로써 디렉터리 스택을 초기화합니다\n"
+"      -l\t홈 디렉터리까지 ~로 축약된 상대경로를 표시하지 않습니다\n"
+"      -p\t한 줄에 하나씩 디렉터리 스택을 표시합니다\n"
+"      -v\t한 줄에 하나씩 스택의 위치 및 디렉터리 스택을 표시합니다\n"
+"    \n"
+"    인자:\n"
+"      +N\t인자 없이 실행될 때 보여지는 목록의 왼쪽부터 N번째 항목을 보여줍니다.\n"
+"    \t세는 수는 0부터 시작합니다.\n"
+"    \n"
+"      -N\t인자 없이 실행될 때 보여지는 목록의 오른쪽부터 N번째 항목을 보여줍니다.\n"
+"\t세는 수는 0부터 시작합니다.\n"
+"    종료 상태:\n"
+"    부적절한 옵션이 주어지거나 오류가 발생하지 않는다면 성공을 반환합니다."
+
+#: builtins.c:1917
+msgid ""
+"Set and unset shell options.\n"
+"    \n"
+"    Change the setting of each shell option OPTNAME.  Without any option\n"
+"    arguments, list each supplied OPTNAME, or all shell options if no\n"
+"    OPTNAMEs are given, with an indication of whether or not each is set.\n"
+"    \n"
+"    Options:\n"
+"      -o\trestrict OPTNAMEs to those defined for use with `set -o'\n"
+"      -p\tprint each shell option with an indication of its status\n"
+"      -q\tsuppress output\n"
+"      -s\tenable (set) each OPTNAME\n"
+"      -u\tdisable (unset) each OPTNAME\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success if OPTNAME is enabled; fails if an invalid option is\n"
+"    given or OPTNAME is disabled."
+msgstr ""
+"셸 옵션을 설정 또는 해제합니다.\n"
+"    \n"
+"    <옵션이름> 셸 옵션의 설정을 바꿉니다. 어떤 옵션 인자도 지정하지 않으면\n"
+"    <옵션이름>에 지정한 항목을 보여주거나, <옵션이름>이 없을 경우 모든\n"
+"    셸 옵션을 보여주든지 설정 여부를 함께 나타냅니다.\n"
+"    \n"
+"    옵션:\n"
+"      -o\t`set -o'로 지정한 <옵션이름>으로 제한합니다\n"
+"      -p\t각 셸 옵션과 상태를 출력합니다\n"
+"      -q\t출력을 끕니다\n"
+"      -s\t각 <옵션이름>을 사용합니다 (설정)\n"
+"      -u\t각 <옵션이름>을 사용하지 않습니다 (설정해제)\n"
+"    \n"
+"    종료 상태:\n"
+"    <옵션이름>을 활성화했다면 성공을 반환합니다. 부적절한 옵션을\n"
+"    지정했거나 <옵션이름>을 사용하지 않으면 실패를 반환합니다."
+
+#: builtins.c:1938
+msgid ""
+"Formats and prints ARGUMENTS under control of the FORMAT.\n"
+"    \n"
+"    Options:\n"
+"      -v var\tassign the output to shell variable VAR rather than\n"
+"    \t\tdisplay it on the standard output\n"
+"    \n"
+"    FORMAT is a character string which contains three types of objects: plain\n"
+"    characters, which are simply copied to standard output; character escape\n"
+"    sequences, which are converted and copied to the standard output; and\n"
+"    format specifications, each of which causes printing of the next successive\n"
+"    argument.\n"
+"    \n"
+"    In addition to the standard format specifications described in printf(1),\n"
+"    printf interprets:\n"
+"    \n"
+"      %b\texpand backslash escape sequences in the corresponding argument\n"
+"      %q\tquote the argument in a way that can be reused as shell input\n"
+"      %Q\tlike %q, but apply any precision to the unquoted argument before\n"
+"    \t\tquoting\n"
+"      %(fmt)T\toutput the date-time string resulting from using FMT as a format\n"
+"    \t        string for strftime(3)\n"
+"    \n"
+"    The format is re-used as necessary to consume all of the arguments.  If\n"
+"    there are fewer arguments than the format requires,  extra format\n"
+"    specifications behave as if a zero value or null string, as appropriate,\n"
+"    had been supplied.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or a write or assignment\n"
+"    error occurs."
+msgstr ""
+"<형식>에 따라 <인자>를 구성하고 출력합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -v <변수>\t표준 출력에 나타내는 대신 셸 <변수>에 할당합니다.\n"
+"    \n"
+"    <형식>은 세가지 형식의 객체가 들어간 문자열입니다. 표준 출력에 그냥\n"
+"    복사하는 일반 문자, 표준 출력에 변환하여 복사하는 문자 이스케이핑 시퀀스,\n"
+"    그리고 다음 뒤따라오는 인자를 형식에 맞춰 출력하는 형식 지정자가 바로\n"
+"    세가지 형식 입니다.\n"
+"    \n"
+"    게다가 printf(1)에 표준 형식 지정자에서 printf는 다음과 같이 해석합니다:\n"
+"    \n"
+"      %b\t관련 인자의 백슬래시 이스케이프 시퀀스를 확장합니다\n"
+"      %q\t셸 입력으로 다시 사용할 수 있도록 변수를 따옴표 처리합니다\n"
+"      %Q\t%q와 비슷하지만, 따옴표 처리하기 전의 인자에 정빌도를 적용합니다\n"
+"      %(fmt)T\tstrftime(3)의 형식 문자열로 <형식>을 사용하도록 날짜-시간\n"
+"    \t        문자열을 출력합니다\n"
+"    \n"
+"    형식은 모든 인자에 대해 필요한대로 재활용합니다. 필요한 형식보다\n"
+"    적은 인자를 지정했다면,  추가 형식 지정 부분에 대해 적당하게 널 문자열\n"
+"    이 들어간 것처럼 처리해줍니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 설정했거나 기록, 할당 오류가 나타나지 않으면 성공을\n"
+"    반환합니다."
+
+#: builtins.c:1974
+msgid ""
+"Specify how arguments are to be completed by Readline.\n"
+"    \n"
+"    For each NAME, specify how arguments are to be completed.  If no options\n"
+"    are supplied, existing completion specifications are printed in a way that\n"
+"    allows them to be reused as input.\n"
+"    \n"
+"    Options:\n"
+"      -p\tprint existing completion specifications in a reusable format\n"
+"      -r\tremove a completion specification for each NAME, or, if no\n"
+"    \t\tNAMEs are supplied, all completion specifications\n"
+"      -D\tapply the completions and actions as the default for commands\n"
+"    \t\twithout any specific completion defined\n"
+"      -E\tapply the completions and actions to \"empty\" commands --\n"
+"    \t\tcompletion attempted on a blank line\n"
+"      -I\tapply the completions and actions to the initial (usually the\n"
+"    \t\tcommand) word\n"
+"    \n"
+"    When completion is attempted, the actions are applied in the order the\n"
+"    uppercase-letter options are listed above. If multiple options are supplied,\n"
+"    the -D option takes precedence over -E, and both take precedence over -I.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is supplied or an error occurs."
+msgstr ""
+"readline에서 인자를 어떻게 완성 처리할 지 지정합니다.\n"
+"    \n"
+"    각 <이름>에 대해 인자를 어떻게 완성할 지 지정합니다.  옵션을 지정하지\n"
+"    않으면, 입력할 때 다시 활용할 수 있게 하는 방식으로 기존 완성 명세를\n"
+"    출력합니다.\n"
+"    \n"
+"    옵션:\n"
+"      -p\t기존 완성 명세를 재사용 형식으로 출력합니다\n"
+"      -r\t각 <이름>별 완성 명세를 제거하거나, <이름>을 지정하지 않았다면\n"
+"    \t\t모든 완성 명세를 제거합니다\n"
+"      -D\t어떤 개별 완성 명세 없이 명령에 대해 기본 완성 명세와 동작을\n"
+"    \t\t적용합니다\n"
+"      -E\t\"빈\" 명령에 대해 완성 명세와 동작을 적용합니다 -- 빈 줄 상태에서\n"
+"    \t\t완성 동작을 시도합니다\n"
+"      -I\t초기 단어(보통 명령) 완성 명세와 동작을 적용합니다\n"
+"    \n"
+"    완성 동작을 시도할 때 상단에 대문자 옵션 순서대로 동작을 적용합니다. 여러\n"
+"    옵션을 지정하면 -D 옵션은 -E 옵션보다 우선하며, 두 옵션은 -I 옵션보다\n"
+"    우선합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 지정했거나 오류가 발생하지 않으면 성공을 반환합니다."
+
+#: builtins.c:2004
+msgid ""
+"Display possible completions depending on the options.\n"
+"    \n"
+"    Intended to be used from within a shell function generating possible\n"
+"    completions.  If the optional WORD argument is supplied, matches against\n"
+"    WORD are generated.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is supplied or an error occurs."
+msgstr ""
+"옵션에 따라 가능한 완성 명세를 표시합니다.\n"
+"    \n"
+"    가능한 완성 명세를 만드는 셸 함수에서 사용하도록 의도했습니다.\n"
+"    추가 <단어> 인자를 지정하면, <단어>에 일치하는 항목을 만듭니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    적절한 옵션을 지정했거나 오류가 없으면 성공을 반환합니다."
+
+#: builtins.c:2019
+msgid ""
+"Modify or display completion options.\n"
+"    \n"
+"    Modify the completion options for each NAME, or, if no NAMEs are supplied,\n"
+"    the completion currently being executed.  If no OPTIONs are given, print\n"
+"    the completion options for each NAME or the current completion specification.\n"
+"    \n"
+"    Options:\n"
+"    \t-o option\tSet completion option OPTION for each NAME\n"
+"    \t-D\t\tChange options for the \"default\" command completion\n"
+"    \t-E\t\tChange options for the \"empty\" command completion\n"
+"    \t-I\t\tChange options for completion on the initial word\n"
+"    \n"
+"    Using `+o' instead of `-o' turns off the specified option.\n"
+"    \n"
+"    Arguments:\n"
+"    \n"
+"    Each NAME refers to a command for which a completion specification must\n"
+"    have previously been defined using the `complete' builtin.  If no NAMEs\n"
+"    are supplied, compopt must be called by a function currently generating\n"
+"    completions, and the options for that currently-executing completion\n"
+"    generator are modified.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is supplied or NAME does not\n"
+"    have a completion specification defined."
+msgstr ""
+"자동 완성 옵션을 수정하거나 표시합니다.\n"
+"\n"
+"    각 <이름> 별로 자동 완성 옵션을 수정하거나, 지정 <이름>이 없다면,\n"
+"    현재 실행하는 명령의 자동완성 옵션을 수정합니다.  주어진 <옵션>이 없다면\n"
+"    각 <이름> 별 자동 완성 옵션을 출력하거나 현재 자동 완성 명세를 출력합니다.\n"
+"    \n"
+"    옵션:\n"
+"    \t-o <옵션>\t각 <이름>별 <옵션>을 설정합니다\n"
+"    \t-D\t\t\"기본\"  명령 자동 완성 옵션을 바꿉니다\n"
+"    \t-E\t\t\"빈\" 명령 자동 완성 옵션을 바꿉니다\n"
+"    \t-I\t\t초기 단어의 자동 완성 옵션을 바꿉니다\n"
+"    \n"
+"    지정 옵션을 끄는 `-o' 대신 `+o'를 사용하십시오.\n"
+"    \n"
+"    인자:\n"
+"    \n"
+"    각 <이름>은 `complete' 내장 명령으로 앞서 지정해야 하는 자동 완성\n"
+"    명세 명령을 참조합니다. <이름>이 없다면 현재 자동 완성 규칙을 생성하는\n"
+"    compopt를 호출해야 하며, 현재 실행하는 자동 완성 생성자의 옵션도\n"
+"    역시 마찬가지로 수정해야합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    부적절한 옵션을 지정하지 않았거나 <이름>에 자동 완성 명세를 지정했다면\n"
+"    성공을 반환합니다."
+
+#: builtins.c:2050
+msgid ""
+"Read lines from the standard input into an indexed array variable.\n"
+"    \n"
+"    Read lines from the standard input into the indexed array variable ARRAY, or\n"
+"    from file descriptor FD if the -u option is supplied.  The variable MAPFILE\n"
+"    is the default ARRAY.\n"
+"    \n"
+"    Options:\n"
+"      -d delim\tUse DELIM to terminate lines, instead of newline\n"
+"      -n count\tCopy at most COUNT lines.  If COUNT is 0, all lines are copied\n"
+"      -O origin\tBegin assigning to ARRAY at index ORIGIN.  The default index is 0\n"
+"      -s count\tDiscard the first COUNT lines read\n"
+"      -t\tRemove a trailing DELIM from each line read (default newline)\n"
+"      -u fd\tRead lines from file descriptor FD instead of the standard input\n"
+"      -C callback\tEvaluate CALLBACK each time QUANTUM lines are read\n"
+"      -c quantum\tSpecify the number of lines read between each call to\n"
+"    \t\t\tCALLBACK\n"
+"    \n"
+"    Arguments:\n"
+"      ARRAY\tArray variable name to use for file data\n"
+"    \n"
+"    If -C is supplied without -c, the default quantum is 5000.  When\n"
+"    CALLBACK is evaluated, it is supplied the index of the next array\n"
+"    element to be assigned and the line to be assigned to that element\n"
+"    as additional arguments.\n"
+"    \n"
+"    If not supplied with an explicit origin, mapfile will clear ARRAY before\n"
+"    assigning to it.\n"
+"    \n"
+"    Exit Status:\n"
+"    Returns success unless an invalid option is given or ARRAY is readonly or\n"
+"    not an indexed array."
+msgstr ""
+"표준 입력을 읽어 색인 배열 변수에 대입합니다.\n"
+"    \n"
+"    표준 입력에서 행을 읽어 색인 <배열> 변수에 넣거나 -u 옵션을 지정하여\n"
+"    <파일서술자>에서 행을 읽어 색인 <배열> 변수에 넣습니다.  <매핑파일>\n"
+"    변수는 기본적으로 <배열> 취급합니다.\n"
+"    \n"
+"    옵션:\n"
+"    -d <구분자>\t개행 문자 대신 <구분자>로 행을 끊습니다.\n"
+"    -n <갯수>\t\t<갯수>만큼 행을 읽습니다. <갯수> 값이 0이면\n"
+"            \t\t 모든 행을 복사합니다.\n"
+"    -O <시작>\t\t<시작> 인덱스에 <배열> 할당을 시작합니다.\n"
+"            \t\t기본 인덱스는 0 입니다.\n"
+"    -s <갯수>\t\t처음 <갯수>만큼 읽은 행을 무시합니다\n"
+"    -t\t\t읽은 각 행 끝에 뒤다라오는 <구분자>를 제거합니다\n"
+"           \t\t(기본 값은 개행 문자)\n"
+"    -u <파일서술자>\t표준 입력 대신 <파일서술자>에서 행을 읽습니다\n"
+"    -C <콜백>\t\t<양자> 행을 읽을 때마다 실행할 <콜백> 입니다\n"
+"    -c <양자>\t\t<콜백>을 실행할 때마다 읽을 행 갯수를 지정합니다\n"
+"    \n"
+"    인자:\n"
+"      <배열>\t파일 데이터에 활용할 배열 변수 이름\n"
+"    \n"
+"    -c 옵션 없이 -C를 지정하면, 기본 양자 수는 5000입니다.  <콜백>을\n"
+"    실행하면, 다음 배열 요소의 색인 번호를 할당하고, 해당 요소에 할당할 행을\n"
+"    추가 인자로 지정합니다.\n"
+"    \n"
+"    <시작> 색인 번호를 제대로 지정하지 않으면, mapfile에서 <배열>에\n"
+"    할당하기 전에 <배열>값을 삭제합니다.\n"
+"    \n"
+"    종료 상태:\n"
+"    부적절한 옵션을 주지 않았거나 <배열>을 읽기 전용으로 두지 않았거나\n"
+"    색인 배열로 올바르게 지정했다면 성공을 반환합니다."
+
+#: builtins.c:2086
+msgid ""
+"Read lines from a file into an array variable.\n"
+"    \n"
+"    A synonym for `mapfile'."
+msgstr ""
+"파일에서 줄을 읽어 배열 변수에 넣습니다.\n"
+"    \n"
+"    `mapfile'의 동의어."

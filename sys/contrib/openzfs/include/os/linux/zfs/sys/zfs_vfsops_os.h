@@ -45,6 +45,8 @@ extern "C" {
 typedef struct zfsvfs zfsvfs_t;
 struct znode;
 
+extern int zfs_bclone_enabled;
+
 /*
  * This structure emulates the vfs_t from other platforms.  It's purpose
  * is to facilitate the handling of mount options and minimize structural
@@ -105,7 +107,6 @@ struct zfsvfs {
 	rrmlock_t	z_teardown_lock;
 	krwlock_t	z_teardown_inactive_lock;
 	list_t		z_all_znodes;	/* all znodes in the fs */
-	uint64_t	z_nr_znodes;	/* number of znodes in the fs */
 	unsigned long	z_rollback_time; /* last online rollback time */
 	unsigned long	z_snap_defer_time; /* last snapshot unmount deferral */
 	kmutex_t	z_znodes_lock;	/* lock for z_all_znodes */

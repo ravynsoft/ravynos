@@ -1,0 +1,3 @@
+.thumb
+.syntax unified
+clrex

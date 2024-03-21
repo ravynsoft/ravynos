@@ -1,0 +1,66 @@
+# checks for array variables and positional parameter expansions losing quoted
+# null string expansions -- problem through bash-5.1
+
+set -- ''
+myvar[0]=
+a="${myvar[*]}"
+
+recho "$*"
+recho "${*}"
+
+recho "${a}"
+recho "${myvar[*]}"
+
+recho "${a:+nonnull}"
+recho "${myvar[*]:+nonnull}"
+
+a="${myvar[@]}"
+
+recho "$@"
+recho "${@}"
+
+recho "${a}"
+recho "${myvar[@]}"
+
+recho "${a:+nonnull}"
+recho "${myvar[@]:+nonnull}"
+
+# check to make sure literal CTLNULs are handled correctly
+set -- $'\x7f'
+
+recho "$@"
+recho "${@}"
+recho "${@:+nonnull}"
+
+recho "$*"
+recho "${*}"
+recho "${*:+nonnull}"
+
+shift $#
+
+# these should echo nothing
+recho "${@}"
+recho "${@:+nonnull}"
+
+unset -v a
+
+# make sure that other null expansions result in null strings where appropriate
+set -- ''
+a[0]=
+
+recho "$*"$x
+recho "${*}"$x
+
+recho "$@"$x
+recho "${@}"$x
+
+recho "${a[*]}"$x
+recho "${a[@]}"$x
+
+
+recho "$@"$x
+recho "${@}"$x
+
+recho "${a[*]}"
+recho "${a[@]}"
+

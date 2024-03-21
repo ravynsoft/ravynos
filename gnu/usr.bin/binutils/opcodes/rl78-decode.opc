@@ -1,0 +1,1298 @@
+/* -*- c -*- */
+/* Copyright (C) 2012-2023 Free Software Foundation, Inc.
+   Contributed by Red Hat.
+   Written by DJ Delorie.
+
+   This file is part of the GNU opcodes library.
+
+   This library is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   It is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+   License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+#include "sysdep.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "bfd.h"
+#include "opintl.h"
+#include "opcode/rl78.h"
+
+static int trace = 0;
+
+typedef struct
+{
+  RL78_Opcode_Decoded * rl78;
+  int (* getbyte)(void *);
+  void * ptr;
+  unsigned char * op;
+} LocalData;
+
+#define ID(x) rl78->id = RLO_##x, rl78->lineno = __LINE__
+#define OP(n,t,r,a) (rl78->op[n].type = t, \
+		     rl78->op[n].reg = r,	     \
+		     rl78->op[n].addend = a )
+#define OPX(n,t,r1,r2,a) \
+	(rl78->op[n].type = t, \
+	rl78->op[n].reg = r1, \
+	rl78->op[n].reg2 = r2, \
+	rl78->op[n].addend = a )
+
+#define W() rl78->size = RL78_Word
+
+#define AU ATTRIBUTE_UNUSED
+
+#define OP_BUF_LEN 20
+#define GETBYTE() (ld->rl78->n_bytes < (OP_BUF_LEN - 1) ? ld->op [ld->rl78->n_bytes++] = ld->getbyte (ld->ptr): 0)
+#define B ((unsigned long) GETBYTE())
+
+#define SYNTAX(x) rl78->syntax = x
+
+#define UNSUPPORTED() \
+  rl78->syntax = "*unknown*"
+
+#define RB(x) ((x)+RL78_Reg_X)
+#define RW(x) ((x)+RL78_Reg_AX)
+
+#define Fz	rl78->flags = RL78_PSW_Z
+#define Fza	rl78->flags = RL78_PSW_Z | RL78_PSW_AC
+#define Fzc	rl78->flags = RL78_PSW_Z | RL78_PSW_CY
+#define Fzac	rl78->flags = RL78_PSW_Z | RL78_PSW_AC | RL78_PSW_CY
+#define Fa	rl78->flags = RL78_PSW_AC
+#define Fc	rl78->flags = RL78_PSW_CY
+#define Fac	rl78->flags = RL78_PSW_AC | RL78_PSW_CY
+
+#define IMMU(bytes)   immediate (bytes, 0, ld)
+#define IMMS(bytes)   immediate (bytes, 1, ld)
+
+static int
+immediate (int bytes, int sign_extend, LocalData * ld)
+{
+  unsigned long i = 0;
+
+  switch (bytes)
+    {
+    case 1:
+      i |= B;
+      if (sign_extend && (i & 0x80))
+	i -= 0x100;
+      break;
+    case 2:
+      i |= B;
+      i |= B << 8;
+      if (sign_extend && (i & 0x8000))
+	i -= 0x10000;
+      break;
+    case 3:
+      i |= B;
+      i |= B << 8;
+      i |= B << 16;
+      if (sign_extend && (i & 0x800000))
+	i -= 0x1000000;
+      break;
+    default:
+      opcodes_error_handler
+	/* xgettext:c-format */
+	(_("internal error: immediate() called with invalid byte count %d"),
+	   bytes);
+      abort();
+    }
+  return i;
+}
+
+#define DC(c)		OP (0, RL78_Operand_Immediate, 0, c)
+#define DR(r)		OP (0, RL78_Operand_Register, RL78_Reg_##r, 0)
+#define DRB(r)		OP (0, RL78_Operand_Register, RB(r), 0)
+#define DRW(r)		OP (0, RL78_Operand_Register, RW(r), 0)
+#define DM(r,a)		OP (0, RL78_Operand_Indirect, RL78_Reg_##r, a)
+#define DM2(r1,r2,a)	OPX (0, RL78_Operand_Indirect, RL78_Reg_##r1, RL78_Reg_##r2, a)
+#define DE()		rl78->op[0].use_es = 1
+#define DB(b)		set_bit (rl78->op, b)
+#define DCY()		DR(PSW); DB(0)
+#define DPUSH()		OP (0, RL78_Operand_PreDec, RL78_Reg_SP, 0);
+
+#define SC(c)		OP (1, RL78_Operand_Immediate, 0, c)
+#define SR(r)		OP (1, RL78_Operand_Register, RL78_Reg_##r, 0)
+#define SRB(r)		OP (1, RL78_Operand_Register, RB(r), 0)
+#define SRW(r)		OP (1, RL78_Operand_Register, RW(r), 0)
+#define SM(r,a)		OP (1, RL78_Operand_Indirect, RL78_Reg_##r, a)
+#define SM2(r1,r2,a)	OPX (1, RL78_Operand_Indirect, RL78_Reg_##r1, RL78_Reg_##r2, a)
+#define SE()		rl78->op[1].use_es = 1
+#define SB(b)		set_bit (rl78->op+1, b)
+#define SCY()		SR(PSW); SB(0)
+#define COND(c)		rl78->op[1].condition = RL78_Condition_##c
+#define SPOP()		OP (1, RL78_Operand_PostInc, RL78_Reg_SP, 0);
+
+static void
+set_bit (RL78_Opcode_Operand *op, int bit)
+{
+  op->bit_number = bit;
+  switch (op->type) {
+  case RL78_Operand_Register:
+    op->type = RL78_Operand_Bit;
+    break;
+  case RL78_Operand_Indirect:
+    op->type = RL78_Operand_BitIndirect;
+    break;
+  default:
+    break;
+  }
+}
+
+static int
+saddr (int x)
+{
+  if (x < 0x20)
+    return 0xfff00 + x;
+  return 0xffe00 + x;
+}
+
+static int
+sfr (int x)
+{
+  return 0xfff00 + x;
+}
+
+#define SADDR saddr (IMMU (1))
+#define SFR sfr (IMMU (1))
+
+int
+rl78_decode_opcode (unsigned long pc AU,
+		  RL78_Opcode_Decoded * rl78,
+		  int (* getbyte)(void *),
+		  void * ptr,
+		  RL78_Dis_Isa isa)
+{
+  LocalData lds, * ld = &lds;
+  unsigned char op_buf[OP_BUF_LEN] = {0};
+  unsigned char *op = op_buf;
+  int op0, op1;
+
+  lds.rl78 = rl78;
+  lds.getbyte = getbyte;
+  lds.ptr = ptr;
+  lds.op = op;
+
+  memset (rl78, 0, sizeof (*rl78));
+
+ start_again:
+
+/* Byte registers, not including A.  */
+/** VARY rba 000 010 011 100 101 110 111 */
+/* Word registers, not including AX.  */
+/** VARY ra 01 10 11 */
+
+/*----------------------------------------------------------------------*/
+/* ES: prefix								*/
+
+/** 0001 0001			es:					*/
+  DE(); SE();
+  op ++;
+  pc ++;
+  goto start_again;
+
+/*----------------------------------------------------------------------*/
+
+/** 0000 1111			add	%0, %e!1			*/
+  ID(add); DR(A); SM(None, IMMU(2)); Fzac;
+
+/** 0000 1101			add	%0, %e1				*/
+  ID(add); DR(A); SM(HL, 0); Fzac;
+
+/** 0110 0001 1000 000		add	%0, %e1				*/
+  ID(add); DR(A); SM2(HL, B, 0); Fzac;
+
+/** 0000 1110			add	%0, %ea1			*/
+  ID(add); DR(A); SM(HL, IMMU(1)); Fzac;
+
+/** 0110 0001 1000 0010		add	%0, %e1				*/
+  ID(add); DR(A); SM2(HL, C, 0); Fzac;
+
+/** 0000 1100			add	%0, #%1				*/
+  ID(add); DR(A); SC(IMMU(1)); Fzac;
+
+/** 0110 0001 0000 1rba		add	%0, %1				*/
+  ID(add); DR(A); SRB(rba); Fzac;
+
+/** 0000 1011			add	%0, %1				*/
+  ID(add); DR(A); SM(None, SADDR); Fzac;
+
+/** 0110 0001 0000 0reg		add	%0, %1				*/
+  ID(add); DRB(reg); SR(A); Fzac;
+
+/** 0000 1010			add	%0, #%1				*/
+  ID(add); DM(None, SADDR); SC(IMMU(1)); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0001 1111			addc	%0, %e!1			*/
+  ID(addc); DR(A); SM(None, IMMU(2)); Fzac;
+
+/** 0001 1101			addc	%0, %e1				*/
+  ID(addc); DR(A); SM(HL, 0); Fzac;
+
+/** 0110 0001 1001 0000		addc	%0, %e1				*/
+  ID(addc); DR(A); SM2(HL, B, 0); Fzac;
+
+/** 0110 0001 1001 0010		addc	%0, %e1				*/
+  ID(addc); DR(A); SM2(HL, C, 0); Fzac;
+
+/** 0001 1110			addc	%0, %ea1			*/
+  ID(addc); DR(A); SM(HL, IMMU(1)); Fzac;
+
+/** 0001 1100			addc	%0, #%1				*/
+  ID(addc); DR(A); SC(IMMU(1)); Fzac;
+
+/** 0110 0001 0001 1rba		addc	%0, %1				*/
+  ID(addc); DR(A); SRB(rba); Fzac;
+
+/** 0110 0001 0001 0reg		addc	%0, %1				*/
+  ID(addc); DRB(reg); SR(A); Fzac;
+
+/** 0001 1011			addc	%0, %1				*/
+  ID(addc); DR(A); SM(None, SADDR); Fzac;
+
+/** 0001 1010			addc	%0, #%1				*/
+  ID(addc); DM(None, SADDR); SC(IMMU(1)); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0000 0010			addw	%0, %e!1			*/
+  ID(add); W(); DR(AX); SM(None, IMMU(2)); Fzac;
+
+/** 0110 0001 0000 1001		addw	%0, %ea1			*/
+  ID(add); W(); DR(AX); SM(HL, IMMU(1)); Fzac;
+
+/** 0000 0100			addw	%0, #%1				*/
+  ID(add); W(); DR(AX); SC(IMMU(2)); Fzac;
+
+/** 0000 0rw1			addw	%0, %1				*/
+  ID(add); W(); DR(AX); SRW(rw); Fzac;
+
+/** 0000 0110			addw	%0, %1				*/
+  ID(add); W(); DR(AX); SM(None, SADDR); Fzac;
+
+/** 0001 0000			addw	%0, #%1				*/
+  ID(add); W(); DR(SP); SC(IMMU(1)); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0101 1111			and	%0, %e!1			*/
+  ID(and); DR(A); SM(None, IMMU(2)); Fz;
+
+/** 0101 1101			and	%0, %e1			*/
+  ID(and); DR(A); SM(HL, 0); Fz;
+
+/** 0110 0001 1101 0000		and	%0, %e1			*/
+  ID(and); DR(A); SM2(HL, B, 0); Fz;
+
+/** 0101 1110			and	%0, %ea1			*/
+  ID(and); DR(A); SM(HL, IMMU(1)); Fz;
+
+/** 0110 0001 1101 0010		and	%0, %e1			*/
+  ID(and); DR(A); SM2(HL, C, 0); Fz;
+
+/** 0101 1100	       		and	%0, #%1				*/
+  ID(and); DR(A); SC(IMMU(1)); Fz;
+
+/** 0110 0001 0101 1rba		and	%0, %1				*/
+  ID(and); DR(A); SRB(rba); Fz;
+
+/** 0110 0001 0101 0reg		and	%0, %1				*/
+  ID(and); DRB(reg); SR(A); Fz;
+
+/** 0101 1011	       		and	%0, %1				*/
+  ID(and); DR(A); SM(None, SADDR); Fz;
+
+/** 0101 1010	       		and	%0, #%1				*/
+  ID(and); DM(None, SADDR); SC(IMMU(1)); Fz;
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 0001 1bit 0101		and1	cy, %e1			*/
+  ID(and); DCY(); SM(HL, 0); SB(bit);
+
+/** 0111 0001 1bit 1101		and1	cy, %1				*/
+  ID(and); DCY(); SR(A); SB(bit);
+
+/** 0111 0001 0bit 1101		and1	cy, %s1				*/
+  ID(and); DCY(); SM(None, SFR); SB(bit);
+
+/** 0111 0001 0bit 0101		and1	cy, %s1				*/
+  ID(and); DCY(); SM(None, SADDR); SB(bit);
+
+/*----------------------------------------------------------------------*/
+
+/* Note that the branch insns need to be listed before the shift
+   ones, as "shift count of zero" means "branch insn" */
+
+/** 1101 1100			bc	$%a0				*/
+  ID(branch_cond); DC(pc+IMMS(1)+2); SR(None); COND(C);
+
+/** 1101 1110			bnc	$%a0				*/
+  ID(branch_cond); DC(pc+IMMS(1)+2); SR(None); COND(NC);
+
+/** 0110 0001 1100 0011		bh	$%a0				*/
+  ID(branch_cond); DC(pc+IMMS(1)+3); SR(None); COND(H);
+
+/** 0110 0001 1101 0011		bnh	$%a0				*/
+  ID(branch_cond); DC(pc+IMMS(1)+3); SR(None); COND(NH);
+
+/** 1101 1101			bz	$%a0				*/
+  ID(branch_cond); DC(pc+IMMS(1)+2); SR(None); COND(Z);
+
+/** 1101 1111			bnz	$%a0				*/
+  ID(branch_cond); DC(pc+IMMS(1)+2); SR(None); COND(NZ);
+
+/*----------------------------------------------------------------------*/
+
+/** 0011 0001 1bit 0101		bf	%e1, $%a0			*/
+  ID(branch_cond); DC(pc+IMMS(1)+3); SM(HL,0); SB(bit); COND(F);
+
+/** 0011 0001 0bit 0101		bf	%1, $%a0			*/
+  ID(branch_cond); DC(pc+IMMS(1)+3); SR(A); SB(bit); COND(F);
+
+/** 0011 0001 1bit 0100		bf	%s1, $%a0			*/
+  ID(branch_cond); SM(None, SFR); SB(bit); DC(pc+IMMS(1)+4); COND(F);
+
+/** 0011 0001 0bit 0100		bf	%s1, $%a0			*/
+  ID(branch_cond); SM(None, SADDR); SB(bit); DC(pc+IMMS(1)+4); COND(F);
+
+/*----------------------------------------------------------------------*/
+
+/** 1110 1100			br	!%!a0				*/
+  ID(branch); DC(IMMU(3));
+
+/** 1110 1101			br	%!a0				*/
+  ID(branch); DC(IMMU(2));
+
+/** 1110 1110			br	$%!a0				*/
+  ID(branch); DC(pc+IMMS(2)+3);
+
+/** 1110 1111			br	$%a0				*/
+  ID(branch); DC(pc+IMMS(1)+2);
+
+/** 0110 0001 1100 1011		br	ax				*/
+  ID(branch); DR(AX);
+
+/*----------------------------------------------------------------------*/
+
+/** 1111 1111			brk1					*/
+  ID(break);
+
+/** 0110 0001 1100 1100		brk					*/
+  ID(break);
+
+/*----------------------------------------------------------------------*/
+
+/** 0011 0001 1bit 0011		bt	%e1, $%a0			*/
+  ID(branch_cond); DC(pc+IMMS(1)+3); SM(HL,0); SB(bit); COND(T);
+
+/** 0011 0001 0bit 0011		bt	%1, $%a0			*/
+  ID(branch_cond); DC(pc+IMMS(1)+3); SR(A); SB(bit); COND(T);
+
+/** 0011 0001 1bit 0010		bt	%s1, $%a0			*/
+  ID(branch_cond); SM(None, SFR); SB(bit); DC(pc+IMMS(1)+4); COND(T);
+
+/** 0011 0001 0bit 0010		bt	%s1, $%a0			*/
+  ID(branch_cond); SM(None, SADDR); SB(bit); DC(pc+IMMS(1)+4); COND(T);
+
+/*----------------------------------------------------------------------*/
+
+/** 0011 0001 1bit 0001		btclr	%e1, $%a0			*/
+  ID(branch_cond_clear); DC(pc+IMMS(1)+3); SM(HL,0); SB(bit); COND(T);
+
+/** 0011 0001 0bit 0001		btclr	%1, $%a0			*/
+  ID(branch_cond_clear); DC(pc+IMMS(1)+3); SR(A); SB(bit); COND(T);
+
+/** 0011 0001 1bit 0000		btclr	%s1, $%a0			*/
+  ID(branch_cond_clear); SM(None, SFR); SB(bit); DC(pc+IMMS(1)+4); COND(T);
+
+/** 0011 0001 0bit 0000		btclr	%s1, $%a0			*/
+  ID(branch_cond_clear); SM(None, SADDR); SB(bit); DC(pc+IMMS(1)+4); COND(T);
+
+/*----------------------------------------------------------------------*/
+
+/** 1111 1100			call	!%!a0				*/
+  ID(call); DC(IMMU(3));
+
+/** 1111 1101			call	%!a0				*/
+  ID(call); DC(IMMU(2));
+
+/** 1111 1110			call	$%!a0				*/
+  ID(call); DC(pc+IMMS(2)+3);
+
+/** 0110 0001 11rg 1010		call	%0				*/
+  ID(call); DRW(rg);
+
+/** 0110 0001 1nnn 01mm		callt	[%x0]				*/
+  ID(call); DM(None, 0x80 + mm*16 + nnn*2);
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 0001 0bit 1000		clr1	%e!0				*/
+  ID(mov); DM(None, IMMU(2)); DB(bit); SC(0);
+
+/** 0111 0001 1bit 0011		clr1	%e0				*/
+  ID(mov); DM(HL, 0); DB(bit); SC(0);
+
+/** 0111 0001 1bit 1011		clr1	%0				*/
+  ID(mov); DR(A); DB(bit); SC(0);
+
+/** 0111 0001 1000 1000		clr1	cy				*/
+  ID(mov); DCY(); SC(0);
+
+/** 0111 0001 0bit 1011		clr1	%s0				*/
+  op0 = SFR;
+  ID(mov); DM(None, op0); DB(bit); SC(0);
+  if (op0 == RL78_SFR_PSW && bit == 7)
+    rl78->syntax = "di";
+
+/** 0111 0001 0bit 0011		clr1	%0				*/
+  ID(mov); DM(None, SADDR); DB(bit); SC(0);
+
+/*----------------------------------------------------------------------*/
+
+/** 1111 0101			clrb	%e!0				*/
+  ID(mov); DM(None, IMMU(2)); SC(0);
+
+/** 1111 00rg			clrb	%0				*/
+  ID(mov); DRB(rg); SC(0);
+
+/** 1111 0100			clrb	%0				*/
+  ID(mov); DM(None, SADDR); SC(0);
+
+/*----------------------------------------------------------------------*/
+
+/** 1111 0110			clrw	%0				*/
+  ID(mov); DR(AX); SC(0);
+
+/** 1111 0111			clrw	%0				*/
+  ID(mov); DR(BC); SC(0);
+
+/*----------------------------------------------------------------------*/
+
+/** 0100 0000			cmp	%e!0, #%1			*/
+  ID(cmp); DM(None, IMMU(2)); SC(IMMU(1)); Fzac;
+
+/** 0100 1010			cmp	%0, #%1				*/
+  ID(cmp); DM(None, SADDR); SC(IMMU(1)); Fzac;
+
+/** 0100 1111			cmp	%0, %e!1			*/
+  ID(cmp); DR(A); SM(None, IMMU(2)); Fzac;
+
+/** 0100 1101			cmp	%0, %e1				*/
+  ID(cmp); DR(A); SM(HL, 0); Fzac;
+
+/** 0110 0001 1100 0000		cmp	%0, %e1				*/
+  ID(cmp); DR(A); SM2(HL, B, 0); Fzac;
+
+/** 0110 0001 1100 0010		cmp	%0, %e1				*/
+  ID(cmp); DR(A); SM2(HL, C, 0); Fzac;
+
+/** 0100 1110			cmp	%0, %ea1			*/
+  ID(cmp); DR(A); SM(HL, IMMU(1)); Fzac;
+
+/** 0100 1100			cmp	%0, #%1				*/
+  ID(cmp); DR(A); SC(IMMU(1)); Fzac;
+
+/** 0110 0001 0100 1rba		cmp	%0, %1				*/
+  ID(cmp); DR(A); SRB(rba); Fzac;
+
+/** 0110 0001 0100 0reg		cmp	%0, %1				*/
+  ID(cmp); DRB(reg); SR(A); Fzac;
+
+/** 0100 1011			cmp	%0, %1				*/
+  ID(cmp); DR(A); SM(None, SADDR); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 1101 0101			cmp0	%e!0				*/
+  ID(cmp); DM(None, IMMU(2)); SC(0); Fzac;
+
+/** 1101 00rg			cmp0	%0				*/
+  ID(cmp); DRB(rg); SC(0); Fzac;
+
+/** 1101 0100			cmp0	%0				*/
+  ID(cmp); DM(None, SADDR); SC(0); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 1101 1110		cmps	%0, %ea1			*/
+  ID(cmp); DR(X); SM(HL, IMMU(1)); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0100 0010			cmpw	%0, %e!1			*/
+  ID(cmp); W(); DR(AX); SM(None, IMMU(2)); Fzac;
+
+/** 0110 0001 0100 1001		cmpw	%0, %ea1			*/
+  ID(cmp); W(); DR(AX); SM(HL, IMMU(1)); Fzac;
+
+/** 0100 0100			cmpw	%0, #%1				*/
+  ID(cmp); W(); DR(AX); SC(IMMU(2)); Fzac;
+
+/** 0100 0ra1			cmpw	%0, %1				*/
+  ID(cmp); W(); DR(AX); SRW(ra); Fzac;
+
+/** 0100 0110			cmpw	%0, %1				*/
+  ID(cmp); W(); DR(AX); SM(None, SADDR); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 1011 0000			dec	%e!0				*/
+  ID(sub); DM(None, IMMU(2)); SC(1); Fza;
+
+/** 0110 0001 0110 1001		dec	%ea0				*/
+  ID(sub); DM(HL, IMMU(1)); SC(1); Fza;
+
+/** 1001 0reg			dec	%0				*/
+  ID(sub); DRB(reg); SC(1); Fza;
+
+/** 1011 0100			dec	%0				*/
+  ID(sub); DM(None, SADDR); SC(1); Fza;
+
+/*----------------------------------------------------------------------*/
+
+/** 1011 0010			decw	%e!0				*/
+  ID(sub); W(); DM(None, IMMU(2)); SC(1);
+
+/** 0110 0001 1000 1001		decw	%ea0				*/
+  ID(sub); W(); DM(HL, IMMU(1)); SC(1);
+
+/** 1011 0rg1 			decw	%0				*/
+  ID(sub); W(); DRW(rg); SC(1);
+
+/** 1011 0110			decw	%0				*/
+  ID(sub); W(); DM(None, SADDR); SC(1);
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 1110 1101		halt					*/
+  ID(halt);
+
+/*----------------------------------------------------------------------*/
+
+/** 1010 0000			inc	%e!0				*/
+  ID(add); DM(None, IMMU(2)); SC(1); Fza;
+
+/** 0110 0001 0101 1001		inc	%ea0				*/
+  ID(add); DM(HL, IMMU(1)); SC(1); Fza;
+
+/** 1000 0reg			inc	%0				*/
+  ID(add); DRB(reg); SC(1); Fza;
+
+/** 1010 0100			inc	%0				*/
+  ID(add); DM(None, SADDR); SC(1); Fza;
+
+/*----------------------------------------------------------------------*/
+
+/** 1010 0010			incw	%e!0				*/
+  ID(add); W(); DM(None, IMMU(2)); SC(1);
+
+/** 0110 0001 0111 1001		incw	%ea0				*/
+  ID(add); W(); DM(HL, IMMU(1)); SC(1);
+
+/** 1010 0rg1			incw	%0				*/
+  ID(add); W(); DRW(rg); SC(1);
+
+/** 1010 0110			incw	%0				*/
+  ID(add); W(); DM(None, SADDR); SC(1);
+
+/*----------------------------------------------------------------------*/
+
+/** 1100 1111			mov	%e!0, #%1			*/
+  ID(mov); DM(None, IMMU(2)); SC(IMMU(1));
+
+/** 1001 1111			mov	%e!0, %1			*/
+  ID(mov); DM(None, IMMU(2)); SR(A);
+
+/** 1001 1001			mov	%e0, %1				*/
+  ID(mov); DM(DE, 0); SR(A);
+
+/** 1100 1010			mov	%ea0, #%1			*/
+  ID(mov); DM(DE, IMMU(1)); SC(IMMU(1));
+
+/** 1001 1010			mov	%ea0, %1				*/
+  ID(mov); DM(DE, IMMU(1)); SR(A);
+
+/** 1001 1011			mov	%e0, %1				*/
+  ID(mov); DM(HL, 0); SR(A);
+
+/** 0110 0001 1101 1001		mov	%e0, %1				*/
+  ID(mov); DM2(HL, B, 0); SR(A);
+
+/** 1100 1100			mov	%ea0, #%1			*/
+  ID(mov); DM(HL, IMMU(1)); SC(IMMU(1));
+
+/** 1001 1100			mov	%ea0, %1			*/
+  ID(mov); DM(HL, IMMU(1)); SR(A);
+
+/** 0110 0001 1111 1001		mov	%e0, %1				*/
+  ID(mov); DM2(HL, C, 0); SR(A);
+
+/** 1100 1000			mov	%a0, #%1			*/
+  ID(mov); DM(SP, IMMU(1)); SC(IMMU(1));
+
+/** 1001 1000			mov	%a0, %1				*/
+  ID(mov); DM(SP, IMMU(1)); SR(A);
+
+/** 1000 1111			mov	%0, %e!1			*/
+  ID(mov); DR(A); SM(None, IMMU(2));
+
+/** 1000 1001			mov	%0, %e1				*/
+  ID(mov); DR(A); SM(DE, 0);
+
+/** 1000 1010			mov	%0, %ea1			*/
+  ID(mov); DR(A); SM(DE, IMMU(1));
+
+/** 1000 1011			mov	%0, %e1				*/
+  ID(mov); DR(A); SM(HL, 0);
+
+/** 1000 1100			mov	%0, %ea1			*/
+  ID(mov); DR(A); SM(HL, IMMU(1));
+
+/** 0110 0001 1100 1001		mov	%0, %e1				*/
+  ID(mov); DR(A); SM2(HL, B, 0);
+
+/** 0110 0001 1110 1001		mov	%0, %e1				*/
+  ID(mov); DR(A); SM2(HL, C, 0);
+
+/** 1000 1000			mov	%0, %ea1			*/
+  ID(mov); DR(A); SM(SP, IMMU(1));
+
+/** 0101 0reg			mov	%0, #%1				*/
+  ID(mov); DRB(reg); SC(IMMU(1));
+
+/** 0110 0rba			mov	%0, %1				*/
+  ID(mov); DR(A); SRB(rba);
+
+/** 1000 1110 1111 1101		mov	%0, %1				*/
+  ID(mov); DR(A); SR(ES);
+
+/** 0000 1001			mov	%0, %e1				*/
+  ID(mov); DR(A); SM(B, IMMU(2));
+
+/** 0100 1001			mov	%0, %e1				*/
+  ID(mov); DR(A); SM(BC, IMMU(2));
+
+/** 0010 1001			mov	%0, %e1				*/
+  ID(mov); DR(A); SM(C, IMMU(2));
+
+/** 1000 1110			mov	%0, %s1				*/
+  ID(mov); DR(A); SM(None, SFR);
+
+/** 1000 1101			mov	%0, %1				*/
+  ID(mov); DR(A); SM(None, SADDR);
+
+/** 1110 1001			mov	%0, %e!1			*/
+  ID(mov); DR(B); SM(None, IMMU(2));
+
+/** 0111 0rba			mov	%0, %1				*/
+  ID(mov); DRB(rba); SR(A);
+
+/** 1110 1000			mov	%0, %1				*/
+  ID(mov); DR(B); SM(None, SADDR);
+
+/** 1111 1001			mov	%0, %e!1			*/
+  ID(mov); DR(C); SM(None, IMMU(2));
+
+/** 1111 1000			mov	%0, %1				*/
+  ID(mov); DR(C); SM(None, SADDR);
+
+/** 1101 1001			mov	%0, %e!1			*/
+  ID(mov); DR(X); SM(None, IMMU(2));
+
+/** 1101 1000			mov	%0, %1				*/
+  ID(mov); DR(X); SM(None, SADDR);
+
+/** 1001 1110 1111 1100		mov	%0, %1				*/
+  ID(mov); DR(CS); SR(A);
+
+/** 0100 0001			mov	%0, #%1				*/
+  ID(mov); DR(ES); SC(IMMU(1));
+
+/** 1001 1110 1111 1101		mov	%0, %1				*/
+  ID(mov); DR(ES); SR(A);
+
+/** 0110 0001 1011 1000		mov	%0, %1				*/
+  ID(mov); DR(ES); SM(None, SADDR);
+
+/** 0001 1001			mov	%e0, #%1			*/
+  ID(mov); DM(B, IMMU(2)); SC(IMMU(1));
+
+/** 0001 1000			mov	%e0, %1				*/
+  ID(mov); DM(B, IMMU(2)); SR(A);
+
+/** 0011 1001			mov	%e0, #%1			*/
+  ID(mov); DM(BC, IMMU(2)); SC(IMMU(1));
+
+/** 0100 1000			mov	%e0, %1				*/
+  ID(mov); DM(BC, IMMU(2)); SR(A);
+
+/** 0011 1000			mov	%e0, #%1			*/
+  ID(mov); DM(C, IMMU(2)); SC(IMMU(1));
+
+/** 0010 1000			mov	%e0, %1				*/
+  ID(mov); DM(C, IMMU(2)); SR(A);
+
+/** 1100 1101			mov	%0, #%1				*/
+  ID(mov); DM(None, SADDR); SC(IMMU(1));
+
+/** 1001 1101			mov	%0, %1				*/
+  ID(mov); DM(None, SADDR); SR(A);
+
+/** 1100 1110			mov	%s0, #%1			*/
+  op0 = SFR;
+  op1 = IMMU(1);
+  ID(mov); DM(None, op0); SC(op1);
+  if (op0 == 0xffffb && isa == RL78_ISA_G14)
+    switch (op1)
+      {
+      case 0x01:
+	rl78->syntax = "mulhu"; ID(mulhu);
+	break;
+      case 0x02:
+	rl78->syntax = "mulh"; ID(mulh);
+	break;
+      case 0x03:
+	rl78->syntax = "divhu"; ID(divhu);
+	break;
+      case 0x04:
+	rl78->syntax = "divwu <old-encoding>"; ID(divwu);
+	break;
+      case 0x05:
+	rl78->syntax = "machu"; ID(machu);
+	break;
+      case 0x06:
+	rl78->syntax = "mach"; ID(mach);
+	break;
+      case 0x0b:
+	rl78->syntax = "divwu"; ID(divwu);
+	break;
+      }
+
+/** 1001 1110			mov	%s0, %1				*/
+  ID(mov); DM(None, SFR); SR(A);
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 0001 1bit 0001		mov1	%e0, cy				*/
+  ID(mov); DM(HL, 0); DB(bit); SCY();
+
+/** 0111 0001 1bit 1001		mov1	%e0, cy				*/
+  ID(mov); DR(A); DB(bit); SCY();
+
+/** 0111 0001 1bit 0100		mov1	cy, %e1				*/
+  ID(mov); DCY(); SM(HL, 0); SB(bit);
+
+/** 0111 0001 1bit 1100		mov1	cy, %e1				*/
+  ID(mov); DCY(); SR(A); SB(bit);
+
+/** 0111 0001 0bit 0100		mov1	cy, %1				*/
+  ID(mov); DCY(); SM(None, SADDR); SB(bit);
+
+/** 0111 0001 0bit 1100		mov1	cy, %s1				*/
+  ID(mov); DCY(); SM(None, SFR); SB(bit);
+
+/** 0111 0001 0bit 0001		mov1	%0, cy				*/
+  ID(mov); DM(None, SADDR); DB(bit); SCY();
+
+/** 0111 0001 0bit 1001		mov1	%s0, cy				*/
+  ID(mov); DM(None, SFR); DB(bit); SCY();
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 1100 1110		movs	%ea0, %1			*/
+  ID(mov); DM(HL, IMMU(1)); SR(X); Fzc;
+
+/*----------------------------------------------------------------------*/
+
+/** 1011 1111			movw	%e!0, %1			*/
+  ID(mov); W(); DM(None, IMMU(2)); SR(AX);
+
+/** 1011 1001			movw	%e0, %1				*/
+  ID(mov); W(); DM(DE, 0); SR(AX);
+
+/** 1011 1010			movw	%ea0, %1				*/
+  ID(mov); W(); DM(DE, IMMU(1)); SR(AX);
+
+/** 1011 1011			movw	%e0, %1				*/
+  ID(mov); W(); DM(HL, 0); SR(AX);
+
+/** 1011 1100			movw	%ea0, %1			*/
+  ID(mov); W(); DM(HL, IMMU(1)); SR(AX);
+
+/** 1011 1000			movw	%a0, %1				*/
+  ID(mov); W(); DM(SP, IMMU(1)); SR(AX);
+
+/** 1010 1111			movw	%0, %e!1			*/
+  ID(mov); W(); DR(AX); SM(None, IMMU(2));
+
+
+/** 1010 1001			movw	%0, %e1				*/
+  ID(mov); W(); DR(AX); SM(DE, 0);
+
+/** 1010 1010			movw	%0, %ea1				*/
+  ID(mov); W(); DR(AX); SM(DE, IMMU(1));
+
+/** 1010 1011			movw	%0, %e1				*/
+  ID(mov); W(); DR(AX); SM(HL, 0);
+
+/** 1010 1100			movw	%0, %ea1			*/
+  ID(mov); W(); DR(AX); SM(HL, IMMU(1));
+
+/** 1010 1000			movw	%0, %a1				*/
+  ID(mov); W(); DR(AX); SM(SP, IMMU(1));
+
+/** 0011 0rg0			movw	%0, #%1				*/
+  ID(mov); W(); DRW(rg); SC(IMMU(2));
+
+/** 0001 0ra1			movw	%0, %1				*/
+  ID(mov); W(); DR(AX); SRW(ra);
+
+/** 0001 0ra0			movw	%0, %1				*/
+  ID(mov); W(); DRW(ra); SR(AX);
+
+/** 0101 1001			movw	%0, %e1				*/
+  ID(mov); W(); DR(AX); SM(B, IMMU(2));
+
+/** 0110 1001			movw	%0, %e1				*/
+  ID(mov); W(); DR(AX); SM(C, IMMU(2));
+
+/** 0111 1001			movw	%0, %e1				*/
+  ID(mov); W(); DR(AX); SM(BC, IMMU(2));
+
+/** 0101 1000			movw	%e0, %1				*/
+  ID(mov); W(); DM(B, IMMU(2)); SR(AX);
+
+/** 0110 1000			movw	%e0, %1				*/
+  ID(mov); W(); DM(C, IMMU(2)); SR(AX);
+
+/** 0111 1000			movw	%e0, %1				*/
+  ID(mov); W(); DM(BC, IMMU(2)); SR(AX);
+
+/** 1010 1101			movw	%0, %1				*/
+  ID(mov); W(); DR(AX); SM(None, SADDR);
+
+/** 1010 1110			movw	%0, %s1				*/
+  ID(mov); W(); DR(AX); SM(None, SFR);
+
+/** 11ra 1011			movw	%0, %es!1			*/
+  ID(mov); W(); DRW(ra); SM(None, IMMU(2));
+
+/** 11ra 1010			movw	%0, %1				*/
+  ID(mov); W(); DRW(ra); SM(None, SADDR);
+
+/** 1100 1001			movw	%0, #%1				*/
+  ID(mov); W(); DM(None, SADDR); SC(IMMU(2));
+
+/** 1011 1101			movw	%0, %1				*/
+  ID(mov); W(); DM(None, SADDR); SR(AX);
+
+/** 1100 1011			movw	%s0, #%1			*/
+  ID(mov); W(); DM(None, SFR); SC(IMMU(2));
+
+/** 1011 1110			movw	%s0, %1				*/
+  ID(mov); W(); DM(None, SFR); SR(AX);
+
+/*----------------------------------------------------------------------*/
+
+/** 1101 0110			mulu	x				*/
+  ID(mulu);
+
+/*----------------------------------------------------------------------*/
+
+/** 0000 0000			nop					*/
+  ID(nop);
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 0001 1100 0000		not1	cy				*/
+  ID(xor); DCY(); SC(1);
+
+/*----------------------------------------------------------------------*/
+
+/** 1110 0101			oneb	%e!0				*/
+  ID(mov); DM(None, IMMU(2)); SC(1);
+
+/** 1110 00rg			oneb	%0				*/
+  ID(mov); DRB(rg); SC(1);
+
+/** 1110 0100			oneb	%0				*/
+  ID(mov); DM(None, SADDR); SC(1);
+
+/*----------------------------------------------------------------------*/
+
+/** 1110 0110			onew	%0				*/
+  ID(mov); DR(AX); SC(1);
+
+/** 1110 0111			onew	%0				*/
+  ID(mov); DR(BC); SC(1);
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 1111			or	%0, %e!1			*/
+  ID(or); DR(A); SM(None, IMMU(2)); Fz;
+
+/** 0110 1101			or	%0, %e1				*/
+  ID(or); DR(A); SM(HL, 0); Fz;
+
+/** 0110 0001 1110 0000		or	%0, %e1				*/
+  ID(or); DR(A); SM2(HL, B, 0); Fz;
+
+/** 0110 1110			or	%0, %ea1			*/
+  ID(or); DR(A); SM(HL, IMMU(1)); Fz;
+
+/** 0110 0001 1110 0010		or	%0, %e1				*/
+  ID(or); DR(A); SM2(HL, C, 0); Fz;
+
+/** 0110 1100	       		or	%0, #%1				*/
+  ID(or); DR(A); SC(IMMU(1)); Fz;
+
+/** 0110 0001 0110 1rba		or	%0, %1				*/
+  ID(or); DR(A); SRB(rba); Fz;
+
+/** 0110 0001 0110 0reg		or	%0, %1				*/
+  ID(or); DRB(reg); SR(A); Fz;
+
+/** 0110 1011	       		or	%0, %1				*/
+  ID(or); DR(A); SM(None, SADDR); Fz;
+
+/** 0110 1010	       		or	%0, #%1				*/
+  ID(or); DM(None, SADDR); SC(IMMU(1)); Fz;
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 0001 1bit 0110		or1	cy, %e1				*/
+  ID(or); DCY(); SM(HL, 0); SB(bit);
+
+/** 0111 0001 1bit 1110		or1	cy, %1				*/
+  ID(or); DCY(); SR(A); SB(bit);
+
+/** 0111 0001 0bit 1110		or1	cy, %s1				*/
+  ID(or); DCY(); SM(None, SFR); SB(bit);
+
+/** 0111 0001 0bit 0110		or1	cy, %s1				*/
+  ID(or); DCY(); SM(None, SADDR); SB(bit);
+
+/*----------------------------------------------------------------------*/
+
+/** 1100 0rg0			pop	%0				*/
+  ID(mov); W(); DRW(rg); SPOP();
+
+/** 0110 0001 1100 1101		pop	%s0				*/
+  ID(mov); W(); DR(PSW); SPOP();
+
+/*----------------------------------------------------------------------*/
+
+/** 1100 0rg1			push	%1				*/
+  ID(mov); W(); DPUSH(); SRW(rg);
+
+/** 0110 0001 1101 1101		push	%s1				*/
+  ID(mov); W(); DPUSH(); SR(PSW);
+
+/*----------------------------------------------------------------------*/
+
+/** 1101 0111			ret					*/
+  ID(ret);
+
+/** 0110 0001 1111 1100		reti					*/
+  ID(reti);
+
+/** 0110 0001 1110 1100		retb					*/
+  ID(reti);
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 1110 1011		rol	%0, %1				*/
+  ID(rol); DR(A); SC(1);
+
+/** 0110 0001 1101 1100		rolc	%0, %1				*/
+  ID(rolc); DR(A); SC(1);
+
+/** 0110 0001 111r 1110		rolwc	%0, %1				*/
+  ID(rolc); W(); DRW(r); SC(1);
+
+/** 0110 0001 1101 1011		ror	%0, %1				*/
+  ID(ror); DR(A); SC(1);
+
+/** 0110 0001 1111 1011		rorc	%0, %1				*/
+  ID(rorc); DR(A); SC(1);
+
+/*----------------------------------------------------------------------*/
+
+/* Note that the branch insns need to be listed before the shift
+   ones, as "shift count of zero" means "branch insn" */
+
+/** 0011 0001 0cnt 1011		sar	%0, %1				*/
+  ID(sar); DR(A); SC(cnt);
+
+/** 0011 0001 wcnt 1111		sarw	%0, %1				*/
+  ID(sar); W(); DR(AX); SC(wcnt);
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 11rb 1111		sel	rb%1				*/
+  ID(sel); SC(rb);
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 0001 0bit 0000		set1	%e!0				*/
+  ID(mov); DM(None, IMMU(2)); DB(bit); SC(1);
+
+/** 0111 0001 1bit 0010		set1	%e0				*/
+  ID(mov); DM(HL, 0); DB(bit); SC(1);
+
+/** 0111 0001 1bit 1010		set1	%0				*/
+  ID(mov); DR(A); DB(bit); SC(1);
+
+/** 0111 0001 1000 0000		set1	cy				*/
+  ID(mov); DCY(); SC(1);
+
+/** 0111 0001 0bit 1010		set1	%s0				*/
+  op0 = SFR;
+  ID(mov); DM(None, op0); DB(bit); SC(1);
+  if (op0 == RL78_SFR_PSW && bit == 7)
+    rl78->syntax = "ei";
+
+/** 0111 0001 0bit 0010		set1	%0				*/
+  ID(mov); DM(None, SADDR); DB(bit); SC(1);
+
+/*----------------------------------------------------------------------*/
+
+/** 0011 0001 0cnt 1001		shl	%0, %1				*/
+  ID(shl); DR(A); SC(cnt);
+
+/** 0011 0001 0cnt 1000		shl	%0, %1				*/
+  ID(shl); DR(B); SC(cnt);
+
+/** 0011 0001 0cnt 0111		shl	%0, %1				*/
+  ID(shl); DR(C); SC(cnt);
+
+/** 0011 0001 wcnt 1101		shlw	%0, %1				*/
+  ID(shl); W(); DR(AX); SC(wcnt);
+
+/** 0011 0001 wcnt 1100		shlw	%0, %1				*/
+  ID(shl); W(); DR(BC); SC(wcnt);
+
+/*----------------------------------------------------------------------*/
+
+/** 0011 0001 0cnt 1010		shr	%0, %1				*/
+  ID(shr); DR(A); SC(cnt);
+
+/** 0011 0001 wcnt 1110		shrw	%0, %1				*/
+  ID(shr); W(); DR(AX); SC(wcnt);
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 1100 1000		sk%c1					*/
+  ID(skip); COND(C);
+
+/** 0110 0001 1110 0011		sk%c1					*/
+  ID(skip); COND(H);
+
+/** 0110 0001 1101 1000		sk%c1					*/
+  ID(skip); COND(NC);
+
+/** 0110 0001 1111 0011		sk%c1					*/
+  ID(skip); COND(NH);
+
+/** 0110 0001 1111 1000		sk%c1					*/
+  ID(skip); COND(NZ);
+
+/** 0110 0001 1110 1000		sk%c1					*/
+  ID(skip); COND(Z);
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 1111 1101	stop						*/
+  ID(stop);
+
+/*----------------------------------------------------------------------*/
+
+/** 0010 1111			sub	%0, %e!1			*/
+  ID(sub); DR(A); SM(None, IMMU(2)); Fzac;
+
+/** 0010 1101			sub	%0, %e1				*/
+  ID(sub); DR(A); SM(HL, 0); Fzac;
+
+/** 0110 0001 1010 000		sub	%0, %e1				*/
+  ID(sub); DR(A); SM2(HL, B, 0); Fzac;
+
+/** 0010 1110			sub	%0, %ea1			*/
+  ID(sub); DR(A); SM(HL, IMMU(1)); Fzac;
+
+/** 0110 0001 1010 0010		sub	%0, %e1				*/
+  ID(sub); DR(A); SM2(HL, C, 0); Fzac;
+
+/** 0010 1100			sub	%0, #%1				*/
+  ID(sub); DR(A); SC(IMMU(1)); Fzac;
+
+/** 0110 0001 0010 1rba		sub	%0, %1				*/
+  ID(sub); DR(A); SRB(rba); Fzac;
+
+/** 0010 1011			sub	%0, %1				*/
+  ID(sub); DR(A); SM(None, SADDR); Fzac;
+
+/** 0110 0001 0010 0reg		sub	%0, %1				*/
+  ID(sub); DRB(reg); SR(A); Fzac;
+
+/** 0010 1010			sub	%0, #%1				*/
+  ID(sub); DM(None, SADDR); SC(IMMU(1)); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0011 1111			subc	%0, %e!1			*/
+  ID(subc); DR(A); SM(None, IMMU(2)); Fzac;
+
+/** 0011 1101			subc	%0, %e1				*/
+  ID(subc); DR(A); SM(HL, 0); Fzac;
+
+/** 0110 0001 1011 0000		subc	%0, %e1				*/
+  ID(subc); DR(A); SM2(HL, B, 0); Fzac;
+
+/** 0110 0001 1011 0010		subc	%0, %e1				*/
+  ID(subc); DR(A); SM2(HL, C, 0); Fzac;
+
+/** 0011 1110			subc	%0, %ea1			*/
+  ID(subc); DR(A); SM(HL, IMMU(1)); Fzac;
+
+/** 0011 1100			subc	%0, #%1				*/
+  ID(subc); DR(A); SC(IMMU(1)); Fzac;
+
+/** 0110 0001 0011 1rba		subc	%0, %1				*/
+  ID(subc); DR(A); SRB(rba); Fzac;
+
+/** 0110 0001 0011 0reg		subc	%0, %1				*/
+  ID(subc); DRB(reg); SR(A); Fzac;
+
+/** 0011 1011			subc	%0, %1				*/
+  ID(subc); DR(A); SM(None, SADDR); Fzac;
+
+/** 0011 1010			subc	%0, #%1				*/
+  ID(subc); DM(None, SADDR); SC(IMMU(1)); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0010 0010			subw	%0, %e!1			*/
+  ID(sub); W(); DR(AX); SM(None, IMMU(2)); Fzac;
+
+/** 0110 0001 0010 1001		subw	%0, %ea1			*/
+  ID(sub); W(); DR(AX); SM(HL, IMMU(1)); Fzac;
+
+/** 0010 0100			subw	%0, #%1				*/
+  ID(sub); W(); DR(AX); SC(IMMU(2)); Fzac;
+
+/** 0010 0rw1			subw	%0, %1				*/
+  ID(sub); W(); DR(AX); SRW(rw); Fzac;
+
+/** 0010 0110			subw	%0, %1				*/
+  ID(sub); W(); DR(AX); SM(None, SADDR); Fzac;
+
+/** 0010 0000			subw	%0, #%1				*/
+  ID(sub); W(); DR(SP); SC(IMMU(1)); Fzac;
+
+/*----------------------------------------------------------------------*/
+
+/** 0110 0001 1010 1010		xch	%0, %e!1			*/
+  ID(xch); DR(A); SM(None, IMMU(2));
+
+/** 0110 0001 1010 1110		xch	%0, %e1				*/
+  ID(xch); DR(A); SM(DE, 0);
+
+/** 0110 0001 1010 1111		xch	%0, %ea1				*/
+  ID(xch); DR(A); SM(DE, IMMU(1));
+
+/** 0110 0001 1010 1100		xch	%0, %e1				*/
+  ID(xch); DR(A); SM(HL, 0);
+
+/** 0110 0001 1011 1001		xch	%0, %e1				*/
+  ID(xch); DR(A); SM2(HL, B, 0);
+
+/** 0110 0001 1010 1101		xch	%0, %ea1			*/
+  ID(xch); DR(A); SM(HL, IMMU(1));
+
+/** 0110 0001 1010 1001		xch	%0, %e1				*/
+  ID(xch); DR(A); SM2(HL, C, 0);
+
+/** 0110 0001 1000 1reg		xch	%0, %1				*/
+  /* Note: DECW uses reg == X, so this must follow DECW */
+  ID(xch); DR(A); SRB(reg);
+
+/** 0110 0001 1010 1000	       	xch	%0, %1				*/
+  ID(xch); DR(A); SM(None, SADDR);
+
+/** 0110 0001 1010 1011	       	xch	%0, %s1				*/
+  ID(xch); DR(A); SM(None, SFR);
+
+/** 0000 1000			xch	a, x				*/
+  ID(xch); DR(A); SR(X);
+
+/*----------------------------------------------------------------------*/
+
+/** 0011 0ra1			xchw	%0, %1				*/
+  ID(xch); W(); DR(AX); SRW(ra);
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 1111			xor	%0, %e!1			*/
+  ID(xor); DR(A); SM(None, IMMU(2)); Fz;
+
+/** 0111 1101			xor	%0, %e1				*/
+  ID(xor); DR(A); SM(HL, 0); Fz;
+
+/** 0110 0001 1111 0000		xor	%0, %e1				*/
+  ID(xor); DR(A); SM2(HL, B, 0); Fz;
+
+/** 0111 1110			xor	%0, %ea1			*/
+  ID(xor); DR(A); SM(HL, IMMU(1)); Fz;
+
+/** 0110 0001 1111 0010		xor	%0, %e1				*/
+  ID(xor); DR(A); SM2(HL, C, 0); Fz;
+
+/** 0111 1100	       		xor	%0, #%1				*/
+  ID(xor); DR(A); SC(IMMU(1)); Fz;
+
+/** 0110 0001 0111 1rba		xor	%0, %1				*/
+  ID(xor); DR(A); SRB(rba); Fz;
+
+/** 0110 0001 0111 0reg		xor	%0, %1				*/
+  ID(xor); DRB(reg); SR(A); Fz;
+
+/** 0111 1011	       		xor	%0, %1				*/
+  ID(xor); DR(A); SM(None, SADDR); Fz;
+
+/** 0111 1010	       		xor	%0, #%1				*/
+  ID(xor); DM(None, SADDR); SC(IMMU(1)); Fz;
+
+/*----------------------------------------------------------------------*/
+
+/** 0111 0001 1bit 0111		xor1	cy, %e1				*/
+  ID(xor); DCY(); SM(HL, 0); SB(bit);
+
+/** 0111 0001 1bit 1111		xor1	cy, %1				*/
+  ID(xor); DCY(); SR(A); SB(bit);
+
+/** 0111 0001 0bit 1111		xor1	cy, %s1				*/
+  ID(xor); DCY(); SM(None, SFR); SB(bit);
+
+/** 0111 0001 0bit 0111		xor1	cy, %s1				*/
+  ID(xor); DCY(); SM(None, SADDR); SB(bit);
+
+/*----------------------------------------------------------------------*/
+
+/** */
+
+  return rl78->n_bytes;
+}

@@ -1,0 +1,6 @@
+#compdef - nohup eval time rusage noglob nocorrect catchsegv aoss hilite eatmydata
+
+shift words
+(( CURRENT-- ))
+
+_normal -p $service

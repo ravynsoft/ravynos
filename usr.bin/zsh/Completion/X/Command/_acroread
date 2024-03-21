@@ -1,0 +1,119 @@
+#compdef acroread
+
+local curcontext="$curcontext" state line
+local cmdfile
+
+if [[ -z $_acroread_version ]]; then
+  _acroread_version="$($words[1] -version 2>/dev/null)"
+fi
+
+if [[ -z $_acroread_version ]]; then
+  if [[ $words[1] = */* && -x $words[1] ]]; then
+    cmdfile=$words[1]
+  elif [[ -x $commands[$words[1]] ]]; then
+    cmdfile=$commands[$words[1]]
+  fi
+
+  # Try extracting the version number directly from the executable.
+  # (This will fail if the executable is a wrapper script for acroread.)
+  _acroread_version=${${(M)${(f)"$(<$cmdfile)"}:#ver=*}##ver=}
+
+  if [[ -z $_acroread_version ]]; then
+    local acropath=${${(s. .)${${(f)"$($words[1] -help 2>&1)"}[1]}}[2]}
+    if [[ -r $acropath ]]; then
+      _acroread_version=${${(M)${(f)"$(<$acropath)"}:#ver=*}##ver=}
+    fi
+  fi
+fi
+
+if [[ $_acroread_version == [789].* ]]; then
+  local -a extra_args
+  extra_args=()
+  if [[ $_acroread_version == [89].* ]]; then
+    extra_args+=(-man '-installCertificate:server ip::server port')
+  fi
+  if [[ $_acroread_version == 9.* ]]; then
+    extra_args+=(-openInNewInstance)
+  fi
+  _arguments -C \
+    "${extra_args[@]}" \
+    '--display=:X display:_x_display' \
+    '--screen=:X screen (overrides the screen part of DISPLAY)' \
+    --sync \
+    '-geometry:[<width>x<height>][{+|-}<x offset>{+|-}<y offset>]' \
+    -help \
+    -iconic \
+    '*-setenv:<var>=<value>' \
+    -tempFile \
+    '-tempFileTitle:title' \
+    -openInNewWindow \
+    -version \
+    '-visual:X visual:_x_visual' \
+    '-toPostScript:*::PostScript conversion options:= ->tops' \
+    '*:PDF file:_files -g "*.(#i)pdf(-.)"' && return
+
+  [[ -n "$state" ]] && _arguments \
+    '-pairs:*:pdf_file_1 ps_file_1 ...:_files -g "*.(#i)(pdf|ps)(-.)"' \
+    -binary \
+    '-start:integer' \
+    '-end:integer' \
+    -optimizeForSpeed \
+    -landscape \
+    -reverse \
+    '(-even)-odd' \
+    '(-odd)-even' \
+    -commentsOff \
+    -annotsOff \
+    -stampsOff \
+    -markupsOn \
+    '(-level3)-level2' \
+    '(-level2)-level3' \
+    -printerhalftones \
+    -saveVM \
+    '-scale:integer' \
+    -shrink \
+    -expand \
+    '-size:page size (or custom size wxh in points):(letter tabloid ledger legal executive a3 a4 a5 b4 b5)' \
+    '-transQuality:transparency flattening level:(1 2 3 4 5)' \
+    '*:PDF file:_files -g "*.(#i)pdf(-.)"' && return
+else
+  _x_arguments -C \
+    -help \
+    -helpall \
+    \*-iconic \
+    \*+iconic \
+    '-name:application name:_x_name' \
+    '*-setenv:<var>=<value>' \
+    -tempFile \
+    '-tempFileTitle:title' \
+    '(+useFrontEndProgram)-useFrontEndProgram' \
+    '(-useFrontEndProgram)+useFrontEndProgram' \
+    '-visual:X visual:_x_visual' \
+    '-xrm:X resource specification:_x_resource' \
+    '-toPostScript:*::PostScript conversion options:= ->tops' \
+    '*:PDF file:_files -g "*.(#i)pdf(-.)"' && return
+
+  [[ -n "$state" ]] && _arguments \
+    '-pairs:*:pdf_file_1 ps_file_1 ...:_files -g "*.(#i)(pdf|ps)(-.)"' \
+    -binary \
+    '-start:integer' \
+    '-end:integer' \
+    -optimizeForSpeed \
+    -landscape \
+    -reverse \
+    '(-even)-odd' \
+    '(-odd)-even' \
+    -commentsOff \
+    '(-level2 -level3)-level1' \
+    '(-level1 -level3)-level2' \
+    '(-level1 -level2)-level3' \
+    -printerhalftones \
+    -saveVM \
+    '-scale:integer' \
+    -shrink \
+    '-size:page size (or custom size wxh in points):(letter tabloid ledger legal executive a3 a4 a5 b4 b5)' \
+    '-transQuality:transparency flattening level:(1 2 3 4 5)' \
+    '*:PDF file:_files -g "*.(#i)pdf(-.)"' && return
+fi
+
+return 1

@@ -29,14 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)announce.c	8.3 (Berkeley) 4/28/95";
-#endif
-static const char rcsid[] =
-  "$FreeBSD$";
-#endif /* not lint */
-
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/stat.h>

@@ -1,0 +1,25 @@
+#compdef free
+
+_arguments -s \
+  '(-l --lohi)'{-l,--lohi}'[show detailed low and high memory statistics]' \
+  '(-t --total)'{-t,--total}'[show total for RAM + swap]' \
+  '(-w --wide)'{-w,--wide}'[wide mode]' \
+  '(-s --seconds)'{-s,--seconds}'[specify the delay between display]:seconds: ' \
+  '(-c --count)'{-c+,--count=}'[specify the display count]:count: ' \
+  '(-C --full-cache)'{-C,--full-cache}'[add further cache lines to main cache]' \
+  '--si[use power of 1000 instead of power of 1024]' \
+  '(-)--help[print help and exit]' \
+  '(-)'{-V,--version}'[print version information and exit]' \
+  + '(unit)' \
+  {-b,--bytes}'[display the amount of memory in bytes]' \
+  {-k,--kibi}'[display the amount of memory in kibibytes (default)]' \
+  {-m,--mebi}'[display the amount of memory in mebibytes]' \
+  {-g,--gibi}'[display the amount of memory in gibibytes]' \
+  '--tebi[display the amount of memory in tebibytes]' \
+  '--pebi[display the amount of memory in pebibytes]' \
+  '(--si)--kilo[display the amount of memory in kilobytes]' \
+  '(--si)--mega[display the amount of memory in megabytes]' \
+  '(--si)--giga[display the amount of memory in gigabytes]' \
+  '(--si)--tera[display the amount of memory in terabytes]' \
+  '(--si)--peta[display the amount of memory in petabytes]' \
+  {-h,--human}'[automatically select unit]'

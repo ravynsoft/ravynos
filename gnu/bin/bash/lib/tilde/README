@@ -1,0 +1,5 @@
+If you're building this separately from bash or the readline library, add
+$(srcdir)/shell.c to the CSOURCES variable and shell.o to the OBJECTS
+variable in Makefile.in.  (Not that this is very useful without readline
+or bash.)
+

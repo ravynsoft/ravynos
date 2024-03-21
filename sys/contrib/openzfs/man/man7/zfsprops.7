@@ -1197,6 +1197,18 @@ are equivalent to the
 and
 .Sy noexec
 mount options.
+.It Sy volthreading Ns = Ns Sy on Ns | Ns Sy off
+Controls internal zvol threading.
+The value
+.Sy off
+disables zvol threading, and zvol relies on application threads.
+The default value is
+.Sy on ,
+which enables threading within a zvol.
+Please note that this property will be overridden by
+.Sy zvol_request_sync
+module parameter.
+This property is only applicable to Linux.
 .It Sy filesystem_limit Ns = Ns Ar count Ns | Ns Sy none
 Limits the number of filesystems and volumes that can exist under this point in
 the dataset tree.
@@ -1248,10 +1260,18 @@ Otherwise, they are automatically remounted in the new location if the property
 was previously
 .Sy legacy
 or
-.Sy none ,
-or if they were mounted before the property was changed.
+.Sy none .
 In addition, any shared file systems are unshared and shared in the new
 location.
+.Pp
+When the
+.Sy mountpoint
+property is set with
+.Nm zfs Cm set Fl u
+, the
+.Sy mountpoint
+property is updated but dataset is not mounted or unmounted and remains
+as it was before.
 .It Sy nbmand Ns = Ns Sy on Ns | Ns Sy off
 Controls whether the file system should be mounted with
 .Sy nbmand
@@ -1605,6 +1625,23 @@ If this property is set to
 then only metadata is cached.
 The default value is
 .Sy all .
+.It Sy prefetch Ns = Ns Sy all Ns | Ns Sy none Ns | Ns Sy metadata
+Controls what speculative prefetch does.
+If this property is set to
+.Sy all ,
+then both user data and metadata are prefetched.
+If this property is set to
+.Sy none ,
+then neither user data nor metadata are prefetched.
+If this property is set to
+.Sy metadata ,
+then only metadata are prefetched.
+The default value is
+.Sy all .
+.Pp
+Please note that the module parameter zfs_disable_prefetch=1 can
+be used to totally disable speculative prefetch, bypassing anything
+this property does.
 .It Sy setuid Ns = Ns Sy on Ns | Ns Sy off
 Controls whether the setuid bit is respected for the file system.
 The default value is
@@ -1656,6 +1693,13 @@ by default.
 This means that any additional access control
 (disallow specific user specific access etc) must be done on the underlying file
 system.
+.Pp
+When the
+.Sy sharesmb
+property is updated with
+.Nm zfs Cm set Fl u
+, the property is set to desired value, but the operation to share, reshare
+or unshare the the dataset is not performed.
 .It Sy sharenfs Ns = Ns Sy on Ns | Ns Sy off Ns | Ns Ar opts
 Controls whether the file system is shared via NFS, and what options are to be
 used.
@@ -1699,6 +1743,13 @@ or if they were shared before the property was changed.
 If the new property is
 .Sy off ,
 the file systems are unshared.
+.Pp
+When the
+.Sy sharenfs
+property is updated with
+.Nm zfs Cm set Fl u
+, the property is set to desired value, but the operation to share, reshare
+or unshare the the dataset is not performed.
 .It Sy logbias Ns = Ns Sy latency Ns | Ns Sy throughput
 Provide a hint to ZFS about handling of synchronous requests in this dataset.
 If

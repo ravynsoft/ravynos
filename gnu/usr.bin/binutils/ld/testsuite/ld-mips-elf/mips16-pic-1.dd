@@ -1,0 +1,1227 @@
+
+.*
+
+
+Disassembly of section \.text:
+
+00040400 <a_unused1>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040404 <b_unused1>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040408 <callpic_unused1_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+# 0x40400: a_unused1
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,1025
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+# 0x40404: b_unused2
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,1029
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+00040444 <a_unused2>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040448 <b_unused2>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004044c <jals_unused2_mips16>:
+.*:	[^\t]*	jal	.* <a_unused2>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_unused2>
+.*:	[^\t]*	nop
+
+00040458 <a_unused3>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004045c <b_unused3>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040460 <a_unused4>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040464 <b_unused4>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040468 <callpic_unused4_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32740\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32736\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+0004049c <a_unused5>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404a0 <b_unused5>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404a4 <jals_unused5_mips16>:
+.*:	[^\t]*	jal	.* <a_unused5>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_unused5>
+.*:	[^\t]*	nop
+
+000404b0 <a_unused6>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404b4 <b_unused6>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404b8 <a_unused7>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404bc <b_unused7>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404c0 <a_unused8>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404c4 <b_unused8>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404c8 <a_unused9>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404cc <b_unused9>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404d0 <jals_unused9_mips16>:
+.*:	[^\t]*	jal	.* <a_unused9>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_unused9>
+.*:	[^\t]*	nop
+
+000404dc <a_unused10>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404e0 <b_unused10>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404e4 <a_unused11>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404e8 <b_unused11>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404ec <a_used1>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404f0 <b_used1>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000404f4 <callpic_used1_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+# 0x40b10: __fn_a_used1
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,v0,2832
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+# 0x40b24: __fn_b_used1
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,v0,2852
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+0004054c <a_used2>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040550 <b_used2>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040554 <jals_used2_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used2>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used2>
+.*:	[^\t]*	nop
+
+00040564 <a_used3>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040568 <b_used3>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004056c <callpic_used3_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+# 0x40b80: __fn_a_used3
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,v0,2944
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+# 0x40b94: __fn_b_used3
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,v0,2964
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+000405c4 <callpic_used3_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+# 0x40564: a_used3
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,1381
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+# 0x40568: b_used3
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,1385
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+00040600 <a_used4>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040604 <b_used4>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040608 <jals_used4_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used4>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used4>
+.*:	[^\t]*	nop
+
+00040618 <jals_used4_mips16>:
+.*:	[^\t]*	jal	.* <a_used4>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_used4>
+.*:	[^\t]*	nop
+
+00040624 <a_used5>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040628 <b_used5>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004062c <jals_used5_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used5>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used5>
+.*:	[^\t]*	nop
+
+0004063c <callpic_used5_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+# 0x40624: a_used5
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,1573
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+# 0x40628: b_used5
+.*:	[^\t]*	lw	v0,-32744\(v0\)
+.*:	[^\t]*	addiu	v0,1577
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+00040678 <a_used6>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004067c <b_used6>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040680 <callpic_used6_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32732\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32728\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+000406d0 <a_used7>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000406d4 <b_used7>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000406d8 <jals_used7_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used7>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used7>
+.*:	[^\t]*	nop
+
+000406e8 <a_used8>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000406ec <b_used8>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000406f0 <a_used9>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000406f4 <b_used9>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000406f8 <a_used10>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000406fc <b_used10>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040700 <callpic_used10_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32724\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32720\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+00040750 <callpic_used10_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32724\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32720\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+00040784 <a_used11>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040788 <b_used11>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004078c <jals_used11_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used11>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used11>
+.*:	[^\t]*	nop
+
+0004079c <jals_used11_mips16>:
+.*:	[^\t]*	jal	.* <a_used11>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_used11>
+.*:	[^\t]*	nop
+
+000407a8 <a_used12>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000407ac <b_used12>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000407b0 <jals_used12_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used12>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used12>
+.*:	[^\t]*	nop
+
+000407c0 <callpic_used12_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32716\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32712\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+000407f4 <.mips16.a_used13>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000407f8 <.mips16.b_used13>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000407fc <callpic_used13_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32708\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32704\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+0004084c <a_used14>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040850 <b_used14>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040854 <jals_used14_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used14>
+.*:	[^\t]*	nop
+ .*:	[^\t]*	jal	.* <__fn_b_used14>
+.*:	[^\t]*	nop
+
+00040864 <.mips16.a_used15>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040868 <.mips16.b_used15>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004086c <a_used16>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040870 <b_used16>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040874 <.mips16.a_used17>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040878 <.mips16.b_used17>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004087c <callpic_used17_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32700\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32696\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+000408cc <callpic_used17_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32700\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32696\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+00040900 <a_used18>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040904 <b_used18>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040908 <jals_used18_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used18>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used18>
+.*:	[^\t]*	nop
+
+00040918 <jals_used18_mips16>:
+.*:	[^\t]*	jal	.* <a_used18>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_used18>
+.*:	[^\t]*	nop
+
+00040924 <.mips16.a_used19>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040928 <.mips16.b_used19>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+0004092c <jals_used19_nomips16>:
+.*:	[^\t]*	jal	.* <a_used19>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_used19>
+.*:	[^\t]*	nop
+
+0004093c <callpic_used19_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32692\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32688\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+00040970 <.mips16.a_used20>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040974 <.mips16.b_used20>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+00040978 <callpic_used20_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32684\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32680\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+000409ac <.mips16.a_used21>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+
+000409b0 <.mips16.b_used21>:
+.*:	[^\t]*	jr	ra
+.*:	[^\t]*	nop
+#...
+
+000409c0 <callpic_unused6_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32676\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32672\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+000409f4 <jals_unused7_mips16>:
+.*:	[^\t]*	jal	.* <a_unused7>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_unused7>
+.*:	[^\t]*	nop
+
+00040a00 <jals_unused10_mips16>:
+.*:	[^\t]*	jal	.* <a_unused10>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <b_unused10>
+.*:	[^\t]*	nop
+
+00040a0c <callpic_used8_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32668\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32664\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+00040a5c <jals_used9_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used9>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used9>
+.*:	[^\t]*	nop
+
+00040a6c <callpic_used15_nomips16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+.*:	[^\t]*	move	v0,gp
+.*:	[^\t]*	addiu	sp,sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32660\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32656\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,sp,32
+
+00040abc <jals_used16_nomips16>:
+.*:	[^\t]*	jal	.* <__fn_a_used16>
+.*:	[^\t]*	nop
+.*:	[^\t]*	jal	.* <__fn_b_used16>
+.*:	[^\t]*	nop
+
+00040acc <callpic_used21_mips16>:
+.*:	[^\t]*	li	v0,1
+.*:	[^\t]*	la	v1,47ff0 <.*>
+.*:	[^\t]*	sll	v0,16
+.*:	[^\t]*	addu	v0,v1
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	addiu	sp,-32
+.*:	[^\t]*	sw	v0,16\(sp\)
+.*:	[^\t]*	sw	ra,20\(sp\)
+.*:	[^\t]*	lw	v0,-32652\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,-32648\(v0\)
+.*:	[^\t]*	jalr	v0
+.*:	[^\t]*	move	t9,v0
+.*:	[^\t]*	lw	v0,16\(sp\)
+.*:	[^\t]*	move	gp,v0
+.*:	[^\t]*	lw	v0,20\(sp\)
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	addiu	sp,32
+
+00040b00 <__start>:
+	\.\.\.
+
+00040b10 <__fn_a_used1>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040b24 <__fn_b_used1>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x404f0: b_used1
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1265
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040b48 <__fn_a_used2>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040b5c <__fn_b_used2>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40550: b_used2
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1361
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040b80 <__fn_a_used3>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040b94 <__fn_b_used3>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40568: b_used3
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1385
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040bb8 <__fn_a_used4>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040bcc <__fn_b_used4>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40604: b_used4
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1541
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040bf0 <__fn_a_used5>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040c04 <__fn_b_used5>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40628: b_used5
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1577
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040c28 <__fn_a_used6>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040c3c <__fn_b_used6>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x4067c: b_used6
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1661
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040c60 <__fn_a_used7>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040c74 <__fn_b_used7>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x406d4: b_used7
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1749
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040c98 <__fn_a_used8>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040cac <__fn_b_used8>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x406ec: b_used8
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1773
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040cd0 <__fn_a_used9>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040ce4 <__fn_b_used9>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x406f4: b_used9
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1781
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040d08 <__fn_a_used10>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040d1c <__fn_b_used10>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x406fc: b_used10
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1789
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040d40 <__fn_a_used11>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040d54 <__fn_b_used11>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40788: b_used11
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1929
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040d78 <__fn_a_used12>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040d8c <__fn_b_used12>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x407ac: b_used12
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,1965
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040db0 <a_used13>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040dc4 <b_used13>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x407f8: .mips16.b_used13
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2041
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040de8 <__fn_a_used14>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040dfc <__fn_b_used14>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40850: b_used14
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2129
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040e20 <a_used15>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040e34 <b_used15>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40628: .mips16.b_used15
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2153
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040e58 <__fn_a_used16>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040e6c <__fn_b_used16>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40870: b_used16
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2161
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040e90 <a_used17>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040ea4 <b_used17>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40878: .mips16.b_used17
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2169
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040ec8 <__fn_a_used18>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040edc <__fn_b_used18>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40904: b_used18
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2309
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040f00 <a_used19>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040f14 <b_used19>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40928: .mips16.b_used19
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2345
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040f38 <a_used20>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040f4c <b_used20>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x40974: .mips16.b_used20
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2421
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040f70 <a_used21>:
+.*:	[^\t]*	lui	v0,.*
+.*:	[^\t]*	addiu	v0,v0,.*
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop
+
+00040f84 <b_used21>:
+.*:	[^\t]*	lui	gp,.*
+.*:	[^\t]*	addiu	gp,gp,.*
+.*:	[^\t]*	addu	gp,gp,t9
+# 0x409b0: .mips16.b_used21
+.*:	[^\t]*	lw	v0,-32744\(gp\)
+.*:	[^\t]*	nop
+.*:	[^\t]*	addiu	v0,v0,2481
+.*:	[^\t]*	mfc1	a0,\$f12
+.*:	[^\t]*	jr	v0
+.*:	[^\t]*	nop

@@ -1,0 +1,87 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --empty option.
+
+cat <<\EOF > ma-test19.po
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Bonnie Tyler\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: married-men:4
+#, fuzzy
+msgid "The world is full of married men"
+msgstr "So viele verheiratete Männer"
+
+#: married-men:5
+msgid "with wives who never understand"
+msgstr "und ihre Frauen verstehen sie nicht"
+
+#: married-men:6
+msgid "They're looking for someone to share"
+msgstr ""
+
+#, fuzzy, c-format
+msgid "One file deleted."
+msgid_plural "%u files deleted."
+msgstr[0] "Ein Fehler."
+msgstr[1] "%u Fehler."
+
+#~ msgid "You fly on the wings of romance"
+#~ msgstr "Die Flügel der frischen Liebe heben dich zum Himmel"
+
+#, fuzzy
+#~ msgid "In the eyes of the world"
+#~ msgstr "Für die anderen"
+EOF
+
+: ${MSGATTRIB=msgattrib}
+${MSGATTRIB} --clear-fuzzy --empty -o ma-test19.tmp ma-test19.po \
+    || Exit 1
+LC_ALL=C tr -d '\r' < ma-test19.tmp > ma-test19.out || Exit 1
+
+cat <<\EOF > ma-test19.ok
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Bonnie Tyler\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: married-men:4
+msgid "The world is full of married men"
+msgstr ""
+
+#: married-men:5
+msgid "with wives who never understand"
+msgstr "und ihre Frauen verstehen sie nicht"
+
+#: married-men:6
+msgid "They're looking for someone to share"
+msgstr ""
+
+#, c-format
+msgid "One file deleted."
+msgid_plural "%u files deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#~ msgid "You fly on the wings of romance"
+#~ msgstr "Die Flügel der frischen Liebe heben dich zum Himmel"
+
+#~ msgid "In the eyes of the world"
+#~ msgstr "Für die anderen"
+EOF
+
+: ${DIFF=diff}
+${DIFF} ma-test19.ok ma-test19.out
+result=$?
+
+exit $result

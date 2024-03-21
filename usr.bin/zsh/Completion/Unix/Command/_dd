@@ -1,0 +1,101 @@
+#compdef dd gdd
+
+local -a vals conv flags units
+local variant
+
+units=( w:word b:block k:1024 m g t )
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+vals=(
+  '(ibs obs)bs[block size]: :_numbers -u bytes "block size" $units'
+  'cbs[conversion buffer size]: :_numbers -u bytes "buffer size" $units'
+  'conv[specify conversions to apply]: :_values -s , conversion $conv'
+  'count[number of input blocks to copy]:blocks'
+  '(bs)ibs[input block size]: :_numbers -u bytes -d 512 "block size" $units'
+  'if[specify input file]:input file:_tilde_files'
+  '(bs)obs[output block size]: :_numbers -u bytes -d 512 "block size" $units'
+  'of[specify output file]:output file:_tilde_files'
+  'seek[output blocks initially skipped]:blocks'
+  'skip[input blocks initially skipped]:blocks'
+)
+conv=(
+  '(ascii asciib oldascii ebcdic ebcdicb oldebcdic ibm ibmb oldibm)'{ascii,ebcdic,ibm}
+  '(unblock)block' '(block)unblock'
+  '(ucase)lcase' '(lcase)ucase'
+  swab sync noerror notrunc
+)
+
+case $variant in
+  ^gnu)
+    vals+=(
+      'files[specify number of input files to copy and concatenate]:number of files'
+    )
+  ;|
+  (gnu|darwin|dragonfly|(free|net)bsd*)
+    conv+=( sparse )
+  ;|
+  gnu|netbsd*)
+    vals+=(
+      '*iflag[specify read flags]:flag:_sequence compadd - $flags'
+      '*oflag[specify write flags]:flag:_sequence compadd - $flags'
+    )
+    flags=( append direct directory dsync sync nonblock noctty nofollow )
+  ;|
+  darwin*|dragonfly*|(free|net)bsd*)
+    vals+=(
+      'oseek[output blocks initially skipped]:blocks'
+    )
+    conv+=(
+      '(ascii oldascii ebcdic oldebcdic oldibm)'old{ascii,ebcdic,ibm}
+    )
+  ;|
+  (darwin|dragonfly|freebsd|netbsd|solaris)*)
+    vals+=(
+      'iseek[input blocks initially skipped]:blocks'
+    )
+  ;|
+  (open|free)bsd*)
+    vals+=(
+      'status[specify level of information to print to stderr]:level:(none noxfer)'
+    )
+    conv+=( osync )
+  ;|
+
+  freebsd*)
+    vals+=(
+      'fillchar[specify padding character]:character'
+      'speed[limit copying speed]: :_numbers -u bytes/second speed $units'
+    )
+    conv+=(
+      '(pareven parnone parodd parset)'{pareven,parnone,parodd,parset}
+    )
+  ;;
+  gnu)
+    vals+=(
+      'status[specify level of information to print to stderr]:level:(none noxfer progress)'
+    )
+    flags+=( fullblock noatime nocache count_bytes skip_bytes seek_bytes )
+    conv+=( excl nocreat fdatasync fsync )
+    units=( c:1 w:2 b:512 kB:1000 K:1024 MB:1000^2 M:1024\^2 GB G TB T PB P EB E ZB Z YB Y )
+  ;;
+  netbsd*)
+    vals+=(
+      'msgfmt[specify format for information summary]:format:(quiet posix human)'
+      'progress[enable progress display]:enable:(1)'
+    )
+    flags+=(
+      wronly rdwr creat trunc excl shlock exlock cloexec nosigpipe rsync alt_io async
+    )
+  ;;
+  solaris*)
+    vals+=(
+      'files[specify number of input files to copy and concatenate]:number of files'
+      'oseek[output blocks initially skipped (via seek, not NUL-padding)]:blocks'
+    )
+    conv+=(
+      '(ascii asciib ebcdic ebcdicb ibmb)'{ascii,ebcdic,ibm}b
+    )
+  ;;
+esac
+
+_values -w 'option' $vals

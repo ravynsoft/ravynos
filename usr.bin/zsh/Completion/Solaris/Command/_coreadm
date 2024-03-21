@@ -1,0 +1,45 @@
+#compdef coreadm
+
+local -a content option
+
+content=(
+  "anon[anonymous private mappings]"
+  "ctf[CTF type information]"
+  "data[writable private file mappings]"
+  "dism[DISM mappings]"
+  "heap[process heap]"
+  "ism[ISM mappings]"
+  "rodata[read-only private file mappings]"
+  "shanon[anonymous shared mappings]"
+  "shfile[file-backed shared mappings]"
+  "shm[System V shared memory]"
+  "stack[process stack]"
+  "symtab[symbol table sections for loaded files]"
+  "text[readable and executable private file mappings]"
+)
+
+option=(
+  'global:allow global core dumps'
+  'process:allow per-process core dumps'
+  'global-setid:allow set-id global core dumps'
+  'proc-setid:allow set-id per-process core dumps'
+  'log:generate a syslog message on global core dump'
+  'kzone:allow kernel zone core dumps'
+)
+
+# _values doesn't quite work for us here -- the separator can be either
+# "+" or "-"
+_arguments -s \
+  - set1 \
+  '-g[global core file name pattern]:' \
+  '-G[global core file content]:content:_values -s + "content" $content' \
+  '-i[per-process core file name pattern]:' \
+  '-I[per-process core file content]:content:_values -s + "content" $content' \
+  '*-d[disable core option]:option:(($option))' \
+  '*-e[enable core option]:option:(($option))' \
+  - set2 \
+  '-p[PID-specific per-process core file name pattern]:' \
+  '-P[PID-specific per-process core file content]:content:_values -s + "content" $content' \
+  '*:pid:_pids' \
+  - set3 \
+  '-u[update options from coreadm.conf]'

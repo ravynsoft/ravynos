@@ -1,0 +1,27 @@
+#compdef basename gbasename
+
+local args variant
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+case $variant in
+  gnu)
+    args=( -s -S -A "-*"
+      '(2 -a --multiple)'{-a,--multiple}'[support multiple arguments, handling each]'
+      '(2 -a --multiple -s --suffix)'{-s+,--suffix=}'[remove a trailing suffix]:suffix'
+      '(-z --zero)'{-z,--zero}'[separate output with NUL rather than newline]'
+      '(- *)--version[display version information]'
+      '(- *)--help[display help information]'
+    )
+  ;;
+  darwin*|dragonfly*|freebsd*)
+    args=( -s -S -A "-*"
+      '(2)-a[support multiple arguments, handling each]'
+      '(-a 2)-s+[remove a trailing suffix]:suffix'
+    )
+  ;;
+esac
+
+_arguments $args \
+  '1:file:_files' \
+  '(*)2:suffix' \
+  '*:file:_files'

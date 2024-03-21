@@ -33,7 +33,6 @@
  *
  */
 
-#include <sys/cdefs.h>
 #include <sys/capsicum.h>
 #include <sys/extattr.h>
 
@@ -116,6 +115,11 @@ static int nfs_commit_miss;
 extern int nfsrv_issuedelegs;
 extern int nfsrv_dolocallocks;
 extern struct nfsdevicehead nfsrv_devidhead;
+
+/* Map d_type to vnode type. */
+static uint8_t dtype_to_vnode[DT_WHT + 1] = { VNON, VFIFO, VCHR, VNON, VDIR,
+    VNON, VBLK, VNON, VREG, VNON, VLNK, VNON, VSOCK, VNON, VNON };
+#define	NFS_DTYPETOVTYPE(t)	((t) <= DT_WHT ? dtype_to_vnode[(t)] : VNON)
 
 static int nfsrv_createiovec(int, struct mbuf **, struct mbuf **,
     struct iovec **);
@@ -2310,7 +2314,7 @@ nfsrvd_readdirplus(struct nfsrv_descript *nd, int isdgram,
 	caddr_t bpos0, bpos1;
 	u_int64_t off, toff, verf __unused;
 	uint64_t *cookies = NULL, *cookiep;
-	nfsattrbit_t attrbits, rderrbits, savbits;
+	nfsattrbit_t attrbits, rderrbits, savbits, refbits;
 	struct uio io;
 	struct iovec iv;
 	struct componentname cn;
@@ -2361,9 +2365,20 @@ nfsrvd_readdirplus(struct nfsrv_descript *nd, int isdgram,
 		if (error)
 			goto nfsmout;
 		NFSSET_ATTRBIT(&savbits, &attrbits);
+		NFSSET_ATTRBIT(&refbits, &attrbits);
 		NFSCLRNOTFILLABLE_ATTRBIT(&attrbits, nd);
 		NFSZERO_ATTRBIT(&rderrbits);
 		NFSSETBIT_ATTRBIT(&rderrbits, NFSATTRBIT_RDATTRERROR);
+		/*
+		 * If these 4 bits are the only attributes requested by the
+		 * client, they can be satisfied without acquiring the vnode
+		 * for the file object unless it is a directory.
+		 * This will be indicated by savbits being all 0s.
+		 */
+		NFSCLRBIT_ATTRBIT(&savbits, NFSATTRBIT_TYPE);
+		NFSCLRBIT_ATTRBIT(&savbits, NFSATTRBIT_FILEID);
+		NFSCLRBIT_ATTRBIT(&savbits, NFSATTRBIT_MOUNTEDONFILEID);
+		NFSCLRBIT_ATTRBIT(&savbits, NFSATTRBIT_RDATTRERROR);
 	} else {
 		NFSZERO_ATTRBIT(&attrbits);
 	}
@@ -2606,7 +2621,10 @@ again:
 			new_mp = mp;
 			mounted_on_fileno = (uint64_t)dp->d_fileno;
 			if ((nd->nd_flag & ND_NFSV3) ||
-			    NFSNONZERO_ATTRBIT(&savbits)) {
+			    NFSNONZERO_ATTRBIT(&savbits) ||
+			    dp->d_type == DT_UNKNOWN ||
+			    (dp->d_type == DT_DIR &&
+			     nfsrv_enable_crossmntpt != 0)) {
 				if (nd->nd_flag & ND_NFSV4)
 					refp = nfsv4root_getreferral(NULL,
 					    vp, dp->d_fileno);
@@ -2743,6 +2761,11 @@ again:
 						break;
 					}
 				}
+			} else if (NFSNONZERO_ATTRBIT(&attrbits)) {
+				/* Only need Type and/or Fileid. */
+				VATTR_NULL(&nvap->na_vattr);
+				nvap->na_fileid = dp->d_fileno;
+				nvap->na_type = NFS_DTYPETOVTYPE(dp->d_type);
 			}
 
 			/*
@@ -2774,7 +2797,7 @@ again:
 					supports_nfsv4acls = 0;
 				if (refp != NULL) {
 					dirlen += nfsrv_putreferralattr(nd,
-					    &savbits, refp, 0,
+					    &refbits, refp, 0,
 					    &nd->nd_repstat);
 					if (nd->nd_repstat) {
 						if (nvp != NULL)

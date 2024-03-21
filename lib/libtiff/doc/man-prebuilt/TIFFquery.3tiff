@@ -1,0 +1,201 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFQUERY" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+TIFFquery \- query routines
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tdir_t  TIFFCurrentDirectory(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B uint64_t  TIFFCurrentDirOffset(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFLastDirectory(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tdir_t  TIFFNumberOfDirectories(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B uint32_t  TIFFCurrentRow(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B tstrip_t  TIFFCurrentStrip(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B ttile_t  TIFFCurrentTile(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFFileno(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B char  *TIFFFileName(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFGetMode(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFIsTiled(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFIsBigEndian(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFIsBigTIFF(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFIsByteSwapped(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFIsMSB2LSB(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFIsUpSampled(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B const  char  *TIFFGetVersion(void) 
+.UNINDENT
+.SH DESCRIPTION
+.sp
+The following query routines return status information about the directory
+structure of an open TIFF file.
+.sp
+\fI\%TIFFCurrentDirectory()\fP returns the index of the current directory
+(directories are numbered starting at 0). This number is suitable for
+use with the \fI\%TIFFSetDirectory()\fP routine.
+A value of 65535 (non\-existing directory) is returned if the directory
+has not yet been written to the file after opening it.
+.sp
+\fI\%TIFFCurrentDirOffset()\fP returns the file offset of the current
+directory (instead of an index).
+The file offset is suitable for use with the \fI\%TIFFSetSubDirectory()\fP
+routine. This is required for accessing subdirectories linked through a
+\fBSubIFD\fP tag.
+.sp
+\fI\%TIFFLastDirectory()\fP returns a non\-zero value if the current
+directory is the last directory in the file; otherwise zero is returned.
+.sp
+\fI\%TIFFNumberOfDirectories()\fP returns the number of directories in a
+file. Be aware that just created directories, which are not “written” to
+file do not count.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+Be aware that the return value of the above directory query functions
+is not valid until the directory is “written” to file AND read back
+e.g. \fI\%TIFFSetDirectory()\fP or \fI\%TIFFReadDirectory()\fP\&.
+.UNINDENT
+.UNINDENT
+.sp
+The following query routines return information about an open TIFF file
+and its image data.
+.sp
+\fI\%TIFFCurrentRow()\fP, \fI\%TIFFCurrentStrip()\fP, and
+\fI\%TIFFCurrentTile()\fP return the current row, strip, and tile,
+respectively, that is being read or written. These values are updated each
+time a read or write is done.
+.sp
+\fI\%TIFFFileno()\fP returns the underlying file descriptor used to access
+the TIFF image in the filesystem.
+.sp
+\fI\%TIFFFileName()\fP returns the pathname argument passed to
+\fI\%TIFFOpen()\fP or \fI\%TIFFFdOpen()\fP\&.
+.sp
+\fI\%TIFFGetMode()\fP returns the mode with which the underlying file
+was opened. On UNIX systems, this is the value passed to the
+\fBopen()\fP (2) system call.
+.sp
+\fI\%TIFFIsTiled()\fP returns a non\-zero value if the image data has a tiled
+organization. Zero is returned if the image data is organized in strips.
+.sp
+\fI\%TIFFIsBigEndian()\fP returns a non\-zero value if the file is BigEndian
+and zero if the file is LittleEndian.
+.sp
+\fI\%TIFFIsBigTIFF()\fP returns a non\-zero value if the file is in
+BigTIFF style.
+.sp
+\fI\%TIFFIsByteSwapped()\fP returns a non\-zero value if the image data
+was in a different byte\-order than the host machine. Zero is returned if
+the TIFF file and local host byte\-orders are the same.  Note that
+\fI\%TIFFReadTile()\fP, \fI\%TIFFReadEncodedStrip()\fP and
+\fI\%TIFFReadScanline()\fP functions already normally perform byte
+swapping to local host order if needed.
+.sp
+\fI\%TIFFIsMSB2LSB()\fP returns a non\-zero value if the image data is being
+returned with bit 0 as the most significant bit.
+.sp
+\fI\%TIFFIsUpSampled()\fP returns a non\-zero value if image data returned
+through the read interface routines is being up\-sampled. This can be
+useful to applications that want to calculate I/O buffer sizes to reflect
+this usage (though the usual strip and tile size routines already do this).
+.sp
+\fI\%TIFFGetVersion()\fP returns an \fBASCII\fP string that has a version
+stamp for the TIFF library software.
+.SH DIAGNOSTICS
+.sp
+None.
+.SH SEE ALSO
+.sp
+\fI\%libtiff\fP (3tiff),
+\fI\%TIFFOpen\fP (3tiff)
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

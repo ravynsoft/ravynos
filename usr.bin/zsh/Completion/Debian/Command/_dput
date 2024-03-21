@@ -1,0 +1,61 @@
+#compdef dput
+
+_dput() {
+  local -a all_opts dput_opts dput_ng_opts
+
+  all_opts=(
+    '(-c --config)'{-c,--config}'[specify config file]:config file:_files'
+    '(-h --help)'{-h,--help}'[show help message and exit]'
+    '(-f --force)'{-f,--force}'[force an upload]'
+    '(-P --passive)'{-P,--passive}'[use passive FTP for uploads]'
+    '(-U --no-upload-log)'{-U,--no-upload-log}'[do not write an .upload log after uploading]'
+    '(-D --dinstall)'{-D,--dinstall}'[run dinstall after upload]'
+    '(-e --delayed)'{-e,--delayed}'[number of days in delayed queue]:number of days:(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)'
+    '(-l --lintian)'{-l,--lintian}'[run lintian before upload]'
+    '(-o --check-only)'{-o,--check-only}'[check the package, do not upload]'
+    '(-u --unchecked)'{-u,--unchecked}'[do not check GPG signature on the changes file]'
+    '(-v --version)'{-v,--version}'[show version information]'
+    '1::host:_dput_hosts'
+    '*:changes file:_files -g "*.changes(-.)"'
+  )
+
+  dput_opts=(
+    '(-d --debug)'{-d,--debug}'[debug mode]'
+    '(-H --host-list)'{-H,--host-list}'[display host list]'
+    '(-s --simulate)'{-s,--simulate}'[simulate an upload only]'
+    '(-p --print)'{-p,--print}'[print configuration]'
+  )
+
+  dput_ng_opts=(
+    '*'{-d,--debug}'[enable debug messages, repeat twice to increase the verbosity level]'
+    '*'{-s,--simulate}'[simulate an upload only, repeat twice to increase level of simulation]'
+    '(-F --full-upload-log)'{-F,--full-upload-log}'[write more verbose .upload logs]'
+  )
+
+  if _pick_variant dputng="usage: dput" dput -H ; then
+    _arguments \
+      "$all_opts[@]" "$dput_ng_opts[@]"
+  else
+    _arguments \
+      "$all_opts[@]" "$dput_opts[@]"
+  fi
+}
+
+_dput_hosts() {
+  local expl
+
+  if ( [[ ${+_dput_cfhosts} -eq 0 ]] || _cache_invalid dputhosts ) && ! _retrieve_cache dputhosts; then
+    local cmd
+    if _pick_variant dputng="usage: dput" dput -H ; then
+      cmd=(dirt hosts)
+    else
+      cmd=(dput -H)
+    fi
+     _dput_cfhosts=(${${(M)${(f)"$($cmd)"}:#*=>*}/ =>*/})
+    _store_cache dputhosts _dput_cfhosts
+  fi
+
+  _wanted dputhosts expl 'target host' compadd -a _dput_cfhosts
+}
+
+_dput "$@"

@@ -1,0 +1,654 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+if (( $UID == 0 )); then
+	echo "new-exp.tests: the test suite should not be run as root" >&2
+fi
+
+# must do this because posix mode causes process substitution to be disabled
+# and flagged as a syntax error, which causes the shell to exit
+set +o posix
+
+expect()
+{
+        echo expect "$@"
+}
+
+HOME=/usr/homes/chet	# to make the check against new-exp.right work
+expect '<foo bar>'
+recho "${undef-"foo bar"}"	# should be foo bar
+expect '<foo>'
+recho "${und="foo"}"		# should be foo
+
+expect "<$HOME>"
+recho ${HOME-"}"}
+expect "<$HOME>"
+recho "${HOME-'}'}"
+expect "<$HOME>"
+recho "${HOME-"}"}"
+
+expect $0: 'HOME: }: syntax error: operand expected (error token is "}")'
+recho "${HOME:`echo }`}"	# should be a math error -- bad substring substitution
+
+expect unset
+_ENV=oops
+x=${_ENV[(_$-=0)+(_=1)-_${-%%*i*}]}
+echo ${x:-unset}
+
+expect "<$HOME>"
+recho ${HOME}
+expect "<$HOME>"
+recho ${HOME:-`echo }`}
+expect "<$HOME>"
+recho ${HOME:-`echo "}"`}
+expect "<$HOME>"
+recho "${HOME:-`echo "}"`}"
+expect "<$HOME>"
+recho "$(echo "${HOME}")"
+expect "<$HOME>"
+recho "$(echo "$(echo ${HOME})")"
+expect "<$HOME>"
+recho "$(echo "$(echo "${HOME}")")"
+
+P=*@*
+expect '<*@>'
+recho "${P%"*"}"	# 
+expect '<*@>'
+recho "${P%'*'}"	# 
+expect '<@*>'
+recho "${P#\*}"		# should be @*
+
+expect '<)>'
+recho "$(echo ")")"	# should be )
+expect '<")">'
+recho "$(echo "\")\"")"	# should be ")"
+
+foo='abcd   '
+expect '<-abcd> <->'
+recho -${foo}-		# should be -abcd -
+expect '<-abcd> <->'
+recho -${foo% *}-	# should be -abcd -
+expect '<-abcd->'
+recho -${foo%% *}-	# should be -abcd-
+
+foo=bar
+expect '<bar foo>'
+echo -n $foo' ' ; echo foo
+
+expect '<bar foo>'
+echo -n $foo" " ; echo foo
+
+expect '<bar foo>'
+echo -n "$foo " ; echo foo
+
+expect '<barfoo>'
+echo -e "$foo\c " ; echo foo
+
+expect '<barfoo>'
+echo -e $foo"\c " ; echo foo
+
+# make sure backslashes are preserved in front of characters that are not
+# valid backslash escapes
+expect '<\x>'
+echo -e '\x'
+
+# substring tests
+z=abcdefghijklmnop
+expect '<abcd>'
+recho ${z:0:4}
+
+expect '<efg> <nop>'
+recho ${z:4:3} ${z:${#z}-3:3}
+
+expect '<efg> <nop>'
+recho ${z:4:3} ${z: -3:3}
+
+expect '<hijklmnop>'
+recho ${z:7:30}
+
+expect '<abcdefghijklmnop>'
+recho ${z:0:100}
+
+expect '<abcdefghijklmnop>'
+recho ${z:0:${#z}}
+
+set 'ab cd' 'ef' 'gh ij' 'kl mn' 'op'
+expect '<ab cd> <ef>'
+recho "${@:1:2}"
+
+expect '<gh ij> <kl mn>'
+recho "${@:3:2}"
+
+expect '<gh ij> <kl mn> <op>'
+recho "${@:3:4}"
+
+expect '<ab cd> <ef> <gh ij> <kl mn> <op>'
+recho "${@:1:$#}"
+
+# code to ad-hoc parse arithmetic expressions in substring expansions was
+# broken until post-2.04
+base=/home/chet/foo//bar
+string1=$base/abcabcabc
+x=1 j=4
+
+expect '</home/chet/foo//bar/abcabcabc>'
+recho ${string1:0}
+
+expect '<home/chet/foo//bar/abcabcabc>'
+recho ${string1:1}
+
+expect '<home>'
+recho ${string1:(j?1:0):j}
+
+expect '<home>'
+recho ${string1:j?1:0:j}
+
+expect '<home>'
+recho ${string1:(j?(x?1:0):0):j}
+
+expect '<home>'
+recho ${string1:j?(x?1:0):0:j}
+
+unset base string1 x j
+
+# indirect variable references
+expect '<abcdefghijklmnop>'
+recho ${!9:-$z}
+
+ef=4
+expect '<4>'
+recho ${!2}
+
+expect '<op>'
+recho ${!#}
+
+set a b c d e
+a=
+expect '<abcdefghijklmnop>'
+recho ${a:-$z}
+expect '<abcdefghijklmnop>'
+recho ${!1:-$z}
+
+expect nothing
+recho ${a-$z}
+expect nothing
+recho ${!1-$z}
+
+set -- a 'b c' d
+unset foo
+foo=@
+expect '<a> <b> <c> <d>'
+recho ${!foo}
+expect '<a> <b c> <d>'
+recho "${!foo}"
+
+set -u
+expect $0: ABX: unbound variable
+( recho ${ABX} )
+set +u
+
+expect $0: '$6: cannot assign in this way'
+recho ${6="arg6"}
+
+v=abcde
+
+# sed-like variable substitution
+expect '<xxcde>'
+recho ${v/a[a-z]/xx}
+expect '<axxde>'
+recho ${v/a??/axx}
+expect '<abxyz>'
+recho ${v/c??/xyz}
+expect '<abbcde>'
+recho ${v/#a/ab}
+expect '<abcde>'
+recho ${v/#d/ab}
+expect '<abcabe>'
+recho ${v/d/ab}
+expect '<abcdlast>'
+recho ${v/%?/last}
+expect '<abcde>'
+recho ${v/%x/last}
+
+av=(abcd efgh ijkl mnop qrst uvwx)
+
+expect '<xxcd>'
+recho ${av/??/xx}
+expect '<abxx>'
+recho ${av/%??/xx}
+expect '<xxgh>'
+recho ${av[1]/??/xx}
+expect '<efgh>'
+recho ${av[1]/%ab/xx}
+expect '<xxfgh>'
+recho ${av[1]/#?/xx}
+expect '<zagh>'
+recho ${av[1]/??/za}
+expect '<zaza>'
+recho ${av[1]//??/za}
+expect '<zagh>'
+recho ${av[1]/#??/za}
+expect '<efza>'
+recho ${av[1]/%??/za}
+
+expect '<yyy> <yyy> <yyy> <yyy> <yyy> <yyy>'
+recho ${av[@]/*/yyy}
+expect '<yyy> <yyy> <yyy> <yyy> <yyy> <yyy>'
+recho ${av[@]/#*/yyy}
+expect '<yyy> <yyy> <yyy> <yyy> <yyy> <yyy>'
+recho ${av[@]/%*/yyy}
+expect '<yyy> <efgh> <ijkl> <mnop> <qrst> <uvwx>'
+recho ${av[@]/a*/yyy}
+expect '<abxx> <efxx> <ijxx> <mnxx> <qrxx> <uvxx>'
+recho ${av[@]/%??/xx}
+
+set abcd efgh ijkl mnop qrst uvwx
+
+expect '<xxcd>'
+recho ${1/??/xx}
+expect '<xxcd> <xxgh> <xxkl> <xxop> <xxst> <xxwx>'
+recho ${@/??/xx}
+expect '<xxcd> <xxgh> <xxkl> <xxop> <xxst> <xxwx>'
+recho ${@/%??/xx}
+expect '<zaza>'
+recho ${3//??/za}
+expect '<efza>'
+recho ${3/%??/za}
+expect '<zaza> <zaza> <zaza> <zaza> <zaza> <zaza>'
+recho ${@//??/za}
+expect '<zacd> <zagh> <zakl> <zaop> <zast> <zawx>'
+recho ${@/#??/za}
+expect '<yyy> <yyy> <yyy> <yyy> <yyy> <yyy>'
+recho ${@//*/yyy}
+expect '<yyy> <efgh> <ijkl> <mnop> <qrst> <uvwx>'
+recho ${@//a*/yyy}
+expect '<abcd> <efgh> <ijkl> <mnop> <qrst> <uvwyyy>'
+recho ${@/%x*/yyy}
+
+expect a newline
+echo $abmcde
+
+# sneaky way to replace a newline in a variable value with something else
+AVAR=$'This\nstring\nhas\nmultiple\nlines.'
+echo "${AVAR}"
+
+eval BVAR=\"\${AVAR//$'\n'/-}\"
+echo "$BVAR"
+
+unset AVAR BVAR
+
+# run process substitution tests in a subshell so that syntax errors
+# caused by a shell not implementing process substitution (e.g., one
+# built on a NeXT) will not cause the whole test to exit prematurely
+${THIS_SH} ./new-exp1.sub
+
+# run the tests of $(<filename) in a subshell to avoid cluttering up
+# this script
+${THIS_SH} ./new-exp2.sub
+
+expect '<6>'
+recho ${#:-foo}
+expect $0: '${#:}: bad substitution'
+echo ${#:}
+
+expect "<'>"
+recho "'"
+expect '<">'
+recho '"'
+expect '<"hello">'
+recho "\"hello\""
+
+shift $#
+unset foo
+z=abcdef
+z1='abc def'
+
+expect '<>'
+recho ${foo:-""}
+expect nothing
+recho ${foo:-"$@"}
+expect '<>'
+recho "${foo:-$@}"
+
+# unset var
+expect '<>'
+recho ${foo:-"$zbcd"}
+expect nothing
+recho ${foo:-$zbcd}
+
+# set var
+expect '<abcdef>'
+recho ${foo:-"$z"}
+expect '<abc def>'
+recho ${foo:-"$z1"}
+
+expect '<abcdef>'
+recho ${foo:-$z}
+expect '<abc> <def>'
+recho ${foo:-$z1}
+
+expect '<abcdef>'
+recho "${foo:-$z}"
+expect '<abc def>'
+recho "${foo:-$z1}"
+
+expect '<abcdef>'
+recho "${foo:-"$z"}"
+# this disagrees with sh and ksh, but I think it is right according
+# to posix.2.
+expect '<abc def>'
+recho "${foo:-"$z1"}"
+
+set ab cd ef gh
+expect '<ab> <cd> <ef> <gh>'
+recho ${foo:-"$@"}
+expect '<ab> <cd> <ef> <gh>'
+recho "${foo:-$@}"
+expect '<ab> <cd> <ef> <gh>'
+recho "${foo:-"$@"}"
+
+shift ${#}
+expect nothing
+recho $xxx"$@"
+expect nothing
+recho ${foo:-$xxx"$@"}
+expect '<>'
+recho "${foo:-$xxx$@}"
+expect '<>'
+recho "${foo:-$xxx"$@"}"
+
+expect nothing
+recho $xxx"$@"
+expect nothing
+recho "$xxx$@"
+expect nothing
+recho "$@"$xxx
+
+expect '<>'
+recho $xxx""
+expect '<>'
+recho $xxx''
+expect '<>'
+recho ''$xxx
+expect '<>'
+recho ""$xxx
+
+AB='abcdefghijklmnopqrstuvwxyz'
+
+recho ${AB:7:15}
+recho ${AB:15:7}
+
+recho ${AB:20}
+
+recho ${AB:0}
+recho ${AB:0:20}
+
+recho ${AB:10:7}
+recho ${AB:10:3+4}
+recho ${AB:20/2:3+4}
+
+set 1 2 3 4 5 6
+recho \""${*:2:2}"\"
+
+IFS=:
+recho \""${*:2:2}"\"
+
+IFS=$' \t\n'
+
+z=123456
+
+recho \""${z:2:2}"\"
+recho \""${z:2}"\"
+recho \""${z:2:4}"\"
+recho \""${z:2:6}"\"
+
+set $'\1' $'\2' $'\177'
+
+recho $*
+recho $@
+
+recho ${*}
+recho ${@}
+
+xx=one/two/two
+recho ${xx%/*}
+recho ${xx/\/two}
+
+yy=oneonetwo
+recho ${yy//one}
+recho ${yy/\/one}
+
+xx=oneonetwo
+
+recho ${xx/one}
+recho ${xx//one}
+recho ${xx/\/one}
+
+# out-of-range substrings
+var=abc
+c=${var:3}
+expect nothing
+recho $c
+c=${var:4}
+expect nothing
+recho $c
+# as of bash-4.2, negative LENGTH means offset from the end
+c=${var:0:-2}
+expect '<a>'
+recho $c
+
+var=abcdefghi
+c=${var:3:12}
+recho $c
+c=${var:4:20}
+recho $c
+
+# make sure null patterns work
+xxx=endocrine
+yyy=n
+unset zzz
+
+recho ${xxx/$yyy/*}
+recho ${xxx//$yyy/*}
+
+recho ${xxx/$zzz/*}
+recho ${xxx//$zzz/*}
+
+recho ${xxx//%${zzz}/}
+recho ${xxx//%${zzz}}
+recho ${xxx//#${zzz}/}
+recho ${xxx//#${zzz}}
+
+# make sure null strings are replaced appropriately
+unset var
+var=
+echo "${var/#/x}"
+echo "${var/*/x}"
+echo "${var//*/x}"
+
+var=abc
+echo "${var/#/x}"
+echo "${var/*/x}"
+echo "${var//*/x}"
+unset var
+
+# another case that caused a core dump in bash-2.0
+XPATH=/usr/bin:/bin:/usr/local/bin:/usr/gnu/bin::/usr/bin/X11:/sbin:/usr/sbin
+
+recho ${XPATH//:/ }
+
+xx=(ar as at au av aw ax ay az)
+
+recho ${xx[@]/a/}
+recho ${xx[@]//a/}
+
+recho ${xx[*]/a/}
+recho ${xx[*]//a/}
+
+recho ${xx[@]%?}
+recho ${xx[*]%?}
+
+recho ${xx[@]#?}
+recho ${xx[*]#?}
+
+set -- ar as at au av aw ax ay az
+
+recho ${@/a/}
+recho ${@//a/}
+
+recho ${*/a/}
+recho ${*//a/}
+
+recho ${@%?}
+recho ${*%?}
+
+recho ${@#?}
+recho ${*#?}
+
+shift ${#}
+set -u
+( recho $9 ; echo after 1)
+( recho ${9} ; echo after 2)
+( recho $UNSET ; echo after 3)
+( recho ${UNSET} ; echo after 4)
+( recho "$UNSET" ; echo after 5)
+( recho "${UNSET}" ; echo after 6)
+( recho "${#UNSET}" ; echo after 7)
+set +u
+
+RECEIVED="12345"
+recho "${RECEIVED:$((${#RECEIVED}-1)):1}"
+RECEIVED="12345#"
+recho "${RECEIVED:$((${#RECEIVED}-1)):1}"
+RECEIVED="#"
+recho "${RECEIVED:$((${#RECEIVED}-1)):1}"
+RECEIVED=""
+recho "${RECEIVED:$((${#RECEIVED}-1)):1}"
+
+# tests of new prefix expansion ${!prefix*}
+${THIS_SH} ./new-exp3.sub
+
+# bug with indirect expansion through bash-2.05b
+${THIS_SH} ./new-exp4.sub
+
+# these caused errors and core dumps in versions before bash-2.04
+c=""
+echo ${c//${$(($#-1))}/x/}
+
+set a b c d e f g
+recho "$@"
+
+set -- ${@:1:$(($# - 2))}
+recho "$@"
+
+set a b
+recho ${@:1:$(($# - 2))}
+
+recho ${@:1:0}
+recho ${@:1:1}
+recho ${@:1:2}
+
+recho "${*:1:0}"
+
+# this is an error -- negative expression
+set a
+recho ${@:1:$(($# - 2))}
+set a b c d e
+recho ${@: -3:-2}
+
+XPATH=/bin:/usr/bin:/usr/ucb:/usr/local/bin:.:/sbin:/usr/sbin
+set $( IFS=: ; echo $XPATH ) 
+
+recho ${@##*/}
+recho ${@%%[!/]*}
+
+recho ${@#/*}
+recho ${@%*/}
+
+set /full/path/to/x16 /another/full/path
+
+recho ${1%/*}
+recho ${1%%[!/]*}
+recho ${1#*/}
+recho ${1##*/}
+
+${THIS_SH} ./new-exp5.sub
+
+unset var
+var=blah
+
+# these had better agree
+echo ${var[@]:3}
+echo ${var:3}
+echo ${var[@]/#/--}
+echo ${var/#/--}
+echo ${var[@]##?}
+echo ${var##?}
+
+unset var
+var=(abcde abcfg abchi)
+
+# problems with anchoring pattern replacements
+echo ${var[*]//#abc/foo}
+echo ${var[*]/#abc/foo}
+unset var
+
+${THIS_SH} ./new-exp6.sub
+
+${THIS_SH} ./new-exp7.sub
+
+${THIS_SH} ./new-exp8.sub
+
+# tests to check whether things like indirect expansion of a variable whose
+# value is 'anothervar[@]' stop working
+${THIS_SH} ./new-exp9.sub
+
+# new parameter transformation `@' expansion operator
+${THIS_SH} ./new-exp10.sub
+
+# parameter substring replacement and removal operators with multibyte chars
+${THIS_SH} ./new-exp11.sub
+
+# indirect expansion with arrays and local variables
+${THIS_SH} ./new-exp12.sub
+
+# more indirect expansion and parameter transformation issues
+${THIS_SH} ./new-exp13.sub
+
+# new K parameter transformation operator
+${THIS_SH} ./new-exp14.sub
+
+# ongoing work with a/A parameter transformations and `nounset'
+${THIS_SH} ./new-exp15.sub
+
+# pattern substitution with `&' (quoted and unquoted) in the replacement string
+${THIS_SH} ./new-exp16.sub
+
+
+# problems with stray CTLNUL in bash-4.0-alpha
+unset a
+a=/a
+recho "/${a%/*}"
+recho "/${a///a/}"
+
+patfunc()
+{
+	echo ${1##*"${1##*}"}
+}
+patfunc foo
+
+# caused core dumps because of bad bracket expression parsing in bash-5.0
+eval : $'${x/#[0\xef\xbf\xbd\\Z[:]]}'
+
+expect $0: 'ABXD: parameter unset'
+${THIS_SH} -c 'recho ${ABXD:?"parameter unset"}' $0

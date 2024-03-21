@@ -1,0 +1,540 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2019-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+devdir = @devdir@
+scriptdir = $(top_srcdir)/scripts
+incdir = $(top_srcdir)/include
+cross_compiling = @CROSS_COMPILING@
+
+# Compiler & tools to use
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+EGREP = @EGREP@
+SED = @SED@
+AWK = @AWK@
+
+# Our install program supports extra flags...
+INSTALL = $(SHELL) $(scriptdir)/install-sh -c
+INSTALL_OWNER = -o $(install_uid) -g $(install_gid)
+INSTALL_BACKUP = @INSTALL_BACKUP@
+
+# Libraries
+LT_LIBS = $(top_builddir)/lib/util/libsudo_util.la
+LIBS = $(LT_LIBS)
+
+LIBPYTHONPLUGIN = python_plugin.la
+
+# C preprocessor flags
+CPPFLAGS = -I$(incdir) -I$(top_builddir) -I$(top_srcdir) -DPLUGIN_DIR=\"$(plugindir)\" -DSRC_DIR=\"$(abs_srcdir)\" @CPPFLAGS@ @PYTHON_INCLUDE@
+
+# Usually -O and/or -g
+CFLAGS = @CFLAGS@
+
+# Flags to pass to the link stage
+LDFLAGS = @LDFLAGS@ @PYTHON_LIBS@
+LT_LDFLAGS = @LT_LDFLAGS@ @LT_LDEXPORTS@
+
+# Flags to pass to libtool
+LTFLAGS = --tag=disable-static
+
+# Address sanitizer flags
+ASAN_CFLAGS = @ASAN_CFLAGS@
+ASAN_LDFLAGS = @ASAN_LDFLAGS@
+
+# PIE flags
+PIE_CFLAGS = @PIE_CFLAGS@
+PIE_LDFLAGS = @PIE_LDFLAGS@
+
+# Stack smashing protection flags
+HARDENING_CFLAGS = @HARDENING_CFLAGS@
+HARDENING_LDFLAGS = @HARDENING_LDFLAGS@
+
+# cppcheck options, usually set in the top-level Makefile
+CPPCHECK_OPTS = -q --enable=warning,performance,portability --suppress=constStatement --suppress=compareBoolExpressionWithInt --error-exitcode=1 --inline-suppr -Dva_copy=va_copy -U__cplusplus -UQUAD_MAX -UQUAD_MIN -UUQUAD_MAX -U_POSIX_HOST_NAME_MAX -U_POSIX_PATH_MAX -U__NBBY -DNSIG=64
+
+# splint options, usually set in the top-level Makefile
+SPLINT_OPTS = -D__restrict= -checks
+
+# PVS-studio options
+PVS_CFG = $(top_srcdir)/PVS-Studio.cfg
+PVS_IGNORE = 'V707,V011,V002,V536'
+PVS_LOG_OPTS = -a 'GA:1,2' -e -t errorfile -d $(PVS_IGNORE)
+
+# Where to install things...
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+sbindir = @sbindir@
+sysconfdir = @sysconfdir@
+adminconfdir = @adminconfdir@
+libexecdir = @libexecdir@
+datarootdir = @datarootdir@
+localstatedir = @localstatedir@
+plugindir = @plugindir@
+docdir = @docdir@
+exampledir = @exampledir@
+
+# File mode and map file to use for shared libraries/objects
+shlib_enable = @SHLIB_ENABLE@
+shlib_mode = @SHLIB_MODE@
+shlib_exp = $(srcdir)/python_plugin.exp
+shlib_map = python_plugin.map
+shlib_opt = python_plugin.opt
+
+# User and group ids the installed files should be "owned" by
+install_uid = 0
+install_gid = 0
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+EXAMPLES = example_approval_plugin.py example_audit_plugin.py \
+           example_conversation.py example_debugging.py \
+           example_group_plugin.py example_io_plugin.py example_policy_plugin.py
+
+OBJS = python_plugin_common.lo python_plugin_policy.lo python_plugin_io.lo \
+       python_plugin_group.lo pyhelpers.lo python_loghandler.lo \
+       python_convmessage.lo sudo_python_module.lo sudo_python_debug.lo \
+       python_baseplugin.lo python_plugin_audit.lo python_plugin_approval.lo
+
+IOBJS = $(OBJS:.lo=.i)
+
+POBJS = $(IOBJS:.i=.plog)
+
+LIBOBJDIR = $(top_builddir)/@ac_config_libobj_dir@/
+
+VERSION = @PACKAGE_VERSION@
+
+TEST_PROGS = check_python_examples
+TEST_VERBOSE =
+
+CHECK_PYTHON_EXAMPLES_OBJS = check_python_examples.o iohelpers.o testhelpers.o pyhelpers.o sudo_python_debug.o
+
+all: python_plugin.la
+
+depend:
+	$(scriptdir)/mkdep.pl --srcdir=$(abs_top_srcdir) \
+	    --builddir=$(abs_top_builddir) plugins/python/Makefile.in
+	cd $(top_builddir) && ./config.status --file plugins/python/Makefile
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file plugins/python/Makefile
+
+.SUFFIXES: .c .h .i .lo .plog .o
+
+.c.o:
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $<
+
+.c.lo:
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $<
+
+.c.i:
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+
+.i.plog:
+	ifile=$<; rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $${ifile%i}c --i-file $< --output-file $@
+
+$(shlib_map): $(shlib_exp)
+	@$(AWK) 'BEGIN { print "{\n\tglobal:" } { print "\t\t"$$0";" } END { print "\tlocal:\n\t\t*;\n};" }' $(shlib_exp) > $@
+
+$(shlib_opt): $(shlib_exp)
+	@$(SED) 's/^/+e /' $(shlib_exp) > $@
+
+python_plugin.la: $(OBJS) $(LT_LIBS) @LT_LDDEP@
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) $(LDFLAGS) $(ASAN_LDFLAGS) $(HARDENING_LDFLAGS) $(LT_LDFLAGS) -o $@ $(OBJS) $(LIBS) -module -avoid-version -rpath $(plugindir) -shrext .so
+
+pre-install:
+
+install: install-plugin install-doc
+
+install-dirs:
+	$(SHELL) $(scriptdir)/mkinstalldirs $(DESTDIR)$(plugindir) $(DESTDIR)$(exampledir)
+
+install-binaries:
+
+install-includes:
+
+install-doc: install-dirs
+	for f in $(EXAMPLES); do $(INSTALL) $(INSTALL_OWNER) -m 0644 $(srcdir)/$$f $(DESTDIR)$(exampledir); done
+
+install-plugin: install-dirs python_plugin.la
+	if [ X"$(shlib_enable)" = X"yes" ]; then \
+	    INSTALL_BACKUP='$(INSTALL_BACKUP)' $(LIBTOOL) $(LTFLAGS) --mode=install $(INSTALL) $(INSTALL_OWNER) -m $(shlib_mode) python_plugin.la $(DESTDIR)$(plugindir); \
+	fi
+
+install-fuzzer:
+
+uninstall:
+	-$(LIBTOOL) $(LTFLAGS) --mode=uninstall rm -f $(DESTDIR)$(plugindir)/python_plugin.la
+	-test -z "$(INSTALL_BACKUP)" || \
+	    rm -f $(DESTDIR)$(plugindir)/python_plugin.so$(INSTALL_BACKUP)
+
+splint:
+	splint $(SPLINT_OPTS) -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(srcdir)/*.c
+
+cppcheck:
+	cppcheck $(CPPCHECK_OPTS) -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(srcdir)/*.c
+
+pvs-log-files: $(POBJS)
+
+pvs-studio: $(POBJS)
+	plog-converter $(PVS_LOG_OPTS) $(POBJS)
+
+clean:
+	-$(LIBTOOL) $(LTFLAGS) --mode=clean rm -f *.lo *.o *.la
+	-rm -f *.i *.plog stamp-* core *.core core.* $(TEST_PROGS)
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile .libs $(shlib_map) $(shlib_opt)
+
+clobber: distclean
+
+realclean: distclean
+	rm -f TAGS tags
+
+cleandir: realclean
+
+fuzz:
+
+check-fuzzer:
+
+check: $(TEST_PROGS) check-fuzzer
+	@if test X"$(cross_compiling)" != X"yes"; then \
+	    l=`locale -a 2>&1 | $(EGREP) -i '^C\.UTF-?8$$' | $(SED) 1q` || true; \
+	    test -n "$$l" || l="C"; \
+	    LC_ALL="$$l"; export LC_ALL; \
+	    unset LANG || LANG=; \
+	    unset LANGUAGE || LANGUAGE=; \
+	    MALLOC_OPTIONS=S; export MALLOC_OPTIONS; \
+	    MALLOC_CONF="abort:true,junk:true"; export MALLOC_CONF; \
+	    LSAN_OPTIONS=suppressions=$(srcdir)/lsan_suppr.txt \
+		./check_python_examples $(TEST_VERBOSE) \
+		    ".libs/python_plugin.so"; \
+	fi
+
+check-verbose:
+	exec $(MAKE) $(MFLAGS) TEST_VERBOSE=-v FUZZ_VERBOSE=-verbosity=1 check
+
+update_test_data: $(TEST_PROGS)
+	@if test X"$(cross_compiling)" != X"yes"; then \
+            UPDATE_TESTDATA=1 ./check_python_examples ".libs/python_plugin.so"; \
+	fi
+
+check_python_examples: $(CHECK_PYTHON_EXAMPLES_OBJS) $(LIBPYTHONPLUGIN)
+	$(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(CHECK_PYTHON_EXAMPLES_OBJS) $(LDFLAGS) $(ASAN_LDFLAGS) $(PIE_LDFLAGS) $(HARDENING_LDFLAGS) $(LIBS)
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean
+
+# Autogenerated dependencies, do not modify
+check_python_examples.o: $(srcdir)/regress/check_python_examples.c \
+                         $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                         $(incdir)/sudo_conf.h $(incdir)/sudo_debug.h \
+                         $(incdir)/sudo_dso.h $(incdir)/sudo_plugin.h \
+                         $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                         $(srcdir)/pyhelpers_cpychecker.h \
+                         $(srcdir)/regress/iohelpers.h \
+                         $(srcdir)/regress/testhelpers.h \
+                         $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/check_python_examples.c
+check_python_examples.i: $(srcdir)/regress/check_python_examples.c \
+                         $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                         $(incdir)/sudo_conf.h $(incdir)/sudo_debug.h \
+                         $(incdir)/sudo_dso.h $(incdir)/sudo_plugin.h \
+                         $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                         $(srcdir)/pyhelpers_cpychecker.h \
+                         $(srcdir)/regress/iohelpers.h \
+                         $(srcdir)/regress/testhelpers.h \
+                         $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+check_python_examples.plog: check_python_examples.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/check_python_examples.c --i-file $< --output-file $@
+iohelpers.o: $(srcdir)/regress/iohelpers.c $(incdir)/compat/stdbool.h \
+             $(incdir)/sudo_compat.h $(srcdir)/regress/iohelpers.h \
+             $(top_builddir)/config.h
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/iohelpers.c
+iohelpers.i: $(srcdir)/regress/iohelpers.c $(incdir)/compat/stdbool.h \
+             $(incdir)/sudo_compat.h $(srcdir)/regress/iohelpers.h \
+             $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+iohelpers.plog: iohelpers.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/iohelpers.c --i-file $< --output-file $@
+pyhelpers.lo: $(srcdir)/pyhelpers.c $(incdir)/compat/stdbool.h \
+              $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+              $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+              $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+              $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h \
+              $(top_builddir)/pathnames.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/pyhelpers.c
+pyhelpers.i: $(srcdir)/pyhelpers.c $(incdir)/compat/stdbool.h \
+              $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+              $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+              $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+              $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h \
+              $(top_builddir)/pathnames.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+pyhelpers.plog: pyhelpers.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/pyhelpers.c --i-file $< --output-file $@
+pyhelpers.o: $(srcdir)/pyhelpers.c $(incdir)/compat/stdbool.h \
+             $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+             $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+             $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+             $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h \
+             $(top_builddir)/pathnames.h
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/pyhelpers.c
+python_baseplugin.lo: $(srcdir)/python_baseplugin.c $(incdir)/compat/stdbool.h \
+                      $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+                      $(srcdir)/sudo_python_debug.h \
+                      $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_baseplugin.c
+python_baseplugin.i: $(srcdir)/python_baseplugin.c $(incdir)/compat/stdbool.h \
+                      $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+                      $(srcdir)/sudo_python_debug.h \
+                      $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_baseplugin.plog: python_baseplugin.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_baseplugin.c --i-file $< --output-file $@
+python_convmessage.lo: $(srcdir)/python_convmessage.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                       $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                       $(srcdir)/pyhelpers_cpychecker.h \
+                       $(srcdir)/sudo_python_debug.h \
+                       $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_convmessage.c
+python_convmessage.i: $(srcdir)/python_convmessage.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                       $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                       $(srcdir)/pyhelpers_cpychecker.h \
+                       $(srcdir)/sudo_python_debug.h \
+                       $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_convmessage.plog: python_convmessage.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_convmessage.c --i-file $< --output-file $@
+python_loghandler.lo: $(srcdir)/python_loghandler.c $(incdir)/compat/stdbool.h \
+                      $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+                      $(srcdir)/sudo_python_debug.h \
+                      $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_loghandler.c
+python_loghandler.i: $(srcdir)/python_loghandler.c $(incdir)/compat/stdbool.h \
+                      $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                      $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                      $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+                      $(srcdir)/sudo_python_debug.h \
+                      $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_loghandler.plog: python_loghandler.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_loghandler.c --i-file $< --output-file $@
+python_plugin_approval.lo: $(srcdir)/python_plugin_approval.c \
+                           $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                           $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                           $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                           $(srcdir)/pyhelpers_cpychecker.h \
+                           $(srcdir)/python_plugin_approval_multi.inc \
+                           $(srcdir)/python_plugin_common.h \
+                           $(srcdir)/sudo_python_debug.h \
+                           $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_plugin_approval.c
+python_plugin_approval.i: $(srcdir)/python_plugin_approval.c \
+                           $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                           $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                           $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                           $(srcdir)/pyhelpers_cpychecker.h \
+                           $(srcdir)/python_plugin_approval_multi.inc \
+                           $(srcdir)/python_plugin_common.h \
+                           $(srcdir)/sudo_python_debug.h \
+                           $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_plugin_approval.plog: python_plugin_approval.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_plugin_approval.c --i-file $< --output-file $@
+python_plugin_audit.lo: $(srcdir)/python_plugin_audit.c \
+                        $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                        $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                        $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                        $(srcdir)/pyhelpers_cpychecker.h \
+                        $(srcdir)/python_plugin_audit_multi.inc \
+                        $(srcdir)/python_plugin_common.h \
+                        $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_plugin_audit.c
+python_plugin_audit.i: $(srcdir)/python_plugin_audit.c \
+                        $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                        $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                        $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                        $(srcdir)/pyhelpers_cpychecker.h \
+                        $(srcdir)/python_plugin_audit_multi.inc \
+                        $(srcdir)/python_plugin_common.h \
+                        $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_plugin_audit.plog: python_plugin_audit.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_plugin_audit.c --i-file $< --output-file $@
+python_plugin_common.lo: $(srcdir)/python_plugin_common.c \
+                         $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                         $(incdir)/sudo_conf.h $(incdir)/sudo_debug.h \
+                         $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                         $(srcdir)/pyhelpers.h \
+                         $(srcdir)/pyhelpers_cpychecker.h \
+                         $(srcdir)/python_plugin_common.h \
+                         $(srcdir)/sudo_python_debug.h \
+                         $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_plugin_common.c
+python_plugin_common.i: $(srcdir)/python_plugin_common.c \
+                         $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                         $(incdir)/sudo_conf.h $(incdir)/sudo_debug.h \
+                         $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                         $(srcdir)/pyhelpers.h \
+                         $(srcdir)/pyhelpers_cpychecker.h \
+                         $(srcdir)/python_plugin_common.h \
+                         $(srcdir)/sudo_python_debug.h \
+                         $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_plugin_common.plog: python_plugin_common.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_plugin_common.c --i-file $< --output-file $@
+python_plugin_group.lo: $(srcdir)/python_plugin_group.c \
+                        $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                        $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                        $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                        $(srcdir)/pyhelpers_cpychecker.h \
+                        $(srcdir)/python_plugin_common.h \
+                        $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_plugin_group.c
+python_plugin_group.i: $(srcdir)/python_plugin_group.c \
+                        $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                        $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                        $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                        $(srcdir)/pyhelpers_cpychecker.h \
+                        $(srcdir)/python_plugin_common.h \
+                        $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_plugin_group.plog: python_plugin_group.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_plugin_group.c --i-file $< --output-file $@
+python_plugin_io.lo: $(srcdir)/python_plugin_io.c $(incdir)/compat/stdbool.h \
+                     $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                     $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                     $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+                     $(srcdir)/python_plugin_common.h \
+                     $(srcdir)/python_plugin_io_multi.inc \
+                     $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_plugin_io.c
+python_plugin_io.i: $(srcdir)/python_plugin_io.c $(incdir)/compat/stdbool.h \
+                     $(incdir)/sudo_compat.h $(incdir)/sudo_debug.h \
+                     $(incdir)/sudo_plugin.h $(incdir)/sudo_queue.h \
+                     $(srcdir)/pyhelpers.h $(srcdir)/pyhelpers_cpychecker.h \
+                     $(srcdir)/python_plugin_common.h \
+                     $(srcdir)/python_plugin_io_multi.inc \
+                     $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_plugin_io.plog: python_plugin_io.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_plugin_io.c --i-file $< --output-file $@
+python_plugin_policy.lo: $(srcdir)/python_plugin_policy.c \
+                         $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                         $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                         $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                         $(srcdir)/pyhelpers_cpychecker.h \
+                         $(srcdir)/python_plugin_common.h \
+                         $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/python_plugin_policy.c
+python_plugin_policy.i: $(srcdir)/python_plugin_policy.c \
+                         $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                         $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                         $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                         $(srcdir)/pyhelpers_cpychecker.h \
+                         $(srcdir)/python_plugin_common.h \
+                         $(srcdir)/sudo_python_debug.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+python_plugin_policy.plog: python_plugin_policy.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/python_plugin_policy.c --i-file $< --output-file $@
+sudo_python_debug.lo: $(srcdir)/sudo_python_debug.c $(incdir)/compat/stdbool.h \
+                      $(incdir)/sudo_compat.h $(incdir)/sudo_conf.h \
+                      $(incdir)/sudo_debug.h $(incdir)/sudo_fatal.h \
+                      $(incdir)/sudo_gettext.h $(incdir)/sudo_plugin.h \
+                      $(incdir)/sudo_queue.h $(srcdir)/sudo_python_debug.h \
+                      $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/sudo_python_debug.c
+sudo_python_debug.i: $(srcdir)/sudo_python_debug.c $(incdir)/compat/stdbool.h \
+                      $(incdir)/sudo_compat.h $(incdir)/sudo_conf.h \
+                      $(incdir)/sudo_debug.h $(incdir)/sudo_fatal.h \
+                      $(incdir)/sudo_gettext.h $(incdir)/sudo_plugin.h \
+                      $(incdir)/sudo_queue.h $(srcdir)/sudo_python_debug.h \
+                      $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+sudo_python_debug.plog: sudo_python_debug.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/sudo_python_debug.c --i-file $< --output-file $@
+sudo_python_debug.o: $(srcdir)/sudo_python_debug.c $(incdir)/compat/stdbool.h \
+                     $(incdir)/sudo_compat.h $(incdir)/sudo_conf.h \
+                     $(incdir)/sudo_debug.h $(incdir)/sudo_fatal.h \
+                     $(incdir)/sudo_gettext.h $(incdir)/sudo_plugin.h \
+                     $(incdir)/sudo_queue.h $(srcdir)/sudo_python_debug.h \
+                     $(top_builddir)/config.h
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/sudo_python_debug.c
+sudo_python_module.lo: $(srcdir)/sudo_python_module.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                       $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                       $(srcdir)/pyhelpers_cpychecker.h \
+                       $(srcdir)/sudo_python_debug.h \
+                       $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/sudo_python_module.c
+sudo_python_module.i: $(srcdir)/sudo_python_module.c \
+                       $(incdir)/compat/stdbool.h $(incdir)/sudo_compat.h \
+                       $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+                       $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+                       $(srcdir)/pyhelpers_cpychecker.h \
+                       $(srcdir)/sudo_python_debug.h \
+                       $(srcdir)/sudo_python_module.h $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+sudo_python_module.plog: sudo_python_module.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/sudo_python_module.c --i-file $< --output-file $@
+testhelpers.o: $(srcdir)/regress/testhelpers.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_conf.h \
+               $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+               $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+               $(srcdir)/pyhelpers_cpychecker.h $(srcdir)/regress/iohelpers.h \
+               $(srcdir)/regress/testhelpers.h $(srcdir)/sudo_python_debug.h \
+               $(top_builddir)/config.h
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/regress/testhelpers.c
+testhelpers.i: $(srcdir)/regress/testhelpers.c $(incdir)/compat/stdbool.h \
+               $(incdir)/sudo_compat.h $(incdir)/sudo_conf.h \
+               $(incdir)/sudo_debug.h $(incdir)/sudo_plugin.h \
+               $(incdir)/sudo_queue.h $(srcdir)/pyhelpers.h \
+               $(srcdir)/pyhelpers_cpychecker.h $(srcdir)/regress/iohelpers.h \
+               $(srcdir)/regress/testhelpers.h $(srcdir)/sudo_python_debug.h \
+               $(top_builddir)/config.h
+	$(CC) -E -o $@ $(CPPFLAGS) $<
+testhelpers.plog: testhelpers.i
+	rm -f $@; pvs-studio --cfg $(PVS_CFG) --sourcetree-root $(top_srcdir) --skip-cl-exe yes --source-file $(srcdir)/regress/testhelpers.c --i-file $< --output-file $@

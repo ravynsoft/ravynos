@@ -1,0 +1,40 @@
+LIBSFRAME_0.0 { };
+
+LIBSFRAME_1.0 {
+  global:
+    sframe_decoder_free;
+    sframe_fde_create_func_info;
+    sframe_calc_fre_type;
+    sframe_fre_get_base_reg_id;
+    sframe_fre_get_cfa_offset;
+    sframe_fre_get_fp_offset;
+    sframe_fre_get_ra_offset;
+    sframe_fre_get_ra_mangled_p;
+    sframe_decode;
+    sframe_decoder_get_hdr_size;
+    sframe_decoder_get_abi_arch;
+    sframe_decoder_get_version;
+    sframe_decoder_get_fixed_fp_offset;
+    sframe_decoder_get_fixed_ra_offset;
+    sframe_get_funcdesc_with_addr;
+    sframe_find_fre;
+    sframe_decoder_get_num_fidx;
+    sframe_decoder_get_funcdesc;
+    sframe_decoder_get_funcdesc_v2;
+    sframe_decoder_get_fre;
+    sframe_encode;
+    sframe_encoder_free;
+    sframe_encoder_get_hdr_size;
+    sframe_encoder_get_abi_arch;
+    sframe_encoder_get_version;
+    sframe_encoder_get_num_fidx;
+    sframe_encoder_add_fre;
+    sframe_encoder_add_funcdesc;
+    sframe_encoder_add_funcdesc_v2;
+    sframe_encoder_write;
+    dump_sframe;
+    sframe_errmsg;
+
+  local:
+    *;
+} LIBSFRAME_0.0;

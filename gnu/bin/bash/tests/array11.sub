@@ -1,0 +1,48 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# problems with associative array keys with ] and unbalanced [ ]
+# fixed after bash-4.2
+
+declare -A foo
+
+foo=(["version[agent]"]=version.agent)
+
+echo ${!foo[@]}
+echo ${foo[@]}
+
+unset foo
+declare -A foo
+foo["version[agent]"]=version.agent
+
+echo ${!foo[@]}
+echo ${foo[@]}
+
+declare foo["foo[bar]"]=bowl
+
+echo ${!foo[@]}
+echo ${foo[@]}
+
+declare -A array2["foo[bar]"]=bleh
+
+array2["foobar]"]=bleh
+array2["foo"]=bbb
+
+echo ${!array2[@]}
+echo ${array2[@]}
+
+declare -A foo
+foo=( ['ab]']=bar )
+
+echo ${!foo[@]}
+echo ${foo[@]}

@@ -1,0 +1,82 @@
+Some examples of ready-to-dynamic-load builtins.  Most of the
+examples given are reimplementations of standard commands whose
+execution time is dominated by process startup time.  Some
+exceptions are sleep, which allows you to sleep for fractions
+of a second, finfo, which provides access to the rest of the
+elements of the `stat' structure that `test' doesn't let you
+see, csv, which allows you to manipulate data from comma-separated
+values files, fdflags, which lets you change the flags associated
+with one of the shell's file descriptors, and pushd/popd/dirs, which
+allows you to compile them out of the shell.
+
+All of the new builtins in ksh93 that bash didn't already have
+are included here, as is the ksh `print' builtin.
+
+The configure script in the top-level source directory uses the
+support/shobj-conf script to set the right values in the Makefile,
+so you should not need to change the Makefile.  If your system
+is not supported by support/shobj-conf, and it has the necessary
+facilities for building shared objects and support for the
+dlopen/dlsyn/dlclose/dlerror family of functions, please make
+the necessary changes to support/shobj-conf and send the changes
+to bash-maintainers@gnu.org.
+
+Loadable builtins are loaded into a running shell with
+
+	enable -f filename builtin-name
+
+enable uses a simple reference-counting scheme to avoid unloading a
+shared object that implements more than one loadable builtin before
+all loadable builtins implemented in the object are removed.
+
+Many of the details needed by builtin writers are found in hello.c,
+the canonical example.  There is no real `builtin writers' programming
+guide'.  The file template.c provides a template to use for creating
+new loadable builtins.
+
+The file "Makefile.inc" is created using the same values that configure
+writes into Makefile.in, and is installed in the same directory as the
+rest of the example builtins. It's intended to be a start at something
+that can be modified or included to help you build your own loadables
+without having to search for the right CFLAGS and LDFLAGS.
+
+basename.c	Return non-directory portion of pathname.
+cat.c		cat(1) replacement with no options - the way cat was intended.
+csv.c		Process a line of csv data and store it in an indexed array.
+cut.c		Cut out selected portions of each line of a file.
+dirname.c	Return directory portion of pathname.
+fdflags.c	Change the flag associated with one of bash's open file descriptors.
+finfo.c		Print file info.
+head.c		Copy first part of files.
+hello.c		Obligatory "Hello World" / sample loadable.
+id.c		POSIX.2 user identity.
+ln.c		Make links.
+loadables.h	File loadable builtins can include for shell definitions.
+logname.c	Print login name of current user.
+Makefile.in	Simple makefile for the sample loadable builtins.
+Makefile.inc.in	Sample makefile to use for loadable builtin development.
+mkdir.c		Make directories.
+mkfifo.c	Create named pipes.
+mktemp.c	Make unique temporary file name.
+mypid.c		Add $MYPID variable, demonstrate use of unload hook function.
+necho.c		echo without options or argument interpretation.
+pathchk.c	Check pathnames for validity and portability.
+print.c		Loadable ksh-93 style print builtin.
+printenv.c	Minimal builtin clone of BSD printenv(1).
+push.c		Anyone remember TOPS-20?
+realpath.c	Canonicalize pathnames, resolving symlinks.
+rm.c		Remove files and directories.
+rmdir.c		Remove directory.
+seq.c		Print a sequence of decimal or floating point numbers.
+setpgid.c	Set a process's pgrp; example of how to wrap a system call.
+sleep.c		sleep for fractions of a second.
+stat.c		populate an associative array with information about a file
+strftime.c	Loadable builtin interface to strftime(3).
+sync.c		Sync the disks by forcing pending filesystem writes to complete.
+tee.c		Duplicate standard input.
+template.c	Example template for loadable builtin.
+truefalse.c	True and false builtins.
+tty.c		Return terminal name.
+uname.c		Print system information.
+unlink.c	Remove a directory entry.
+whoami.c	Print out username of current user.

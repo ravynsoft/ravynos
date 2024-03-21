@@ -1,0 +1,64 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test suite contribution from Martijn Dekker
+
+defaultIFS=$IFS
+set -o errexit -o noglob
+(set -o pipefail) 2>/dev/null && set -o pipefail
+teststring=$(printf '\1\2\3\177')
+n=0
+
+trim_od() {
+	od -t a | sed -n '1 { s/^0*[[:blank:]]*//; s/[[:blank:]]*$//; p; }'
+}
+
+doTest() {
+	set -- "$teststring"
+	eval "$testcmd"
+	case ${IFS+s}${IFS:+n} in
+	( sn )	i=$(printf %s "$IFS" | trim_od) ;;
+	( s )	i='(null)' ;;
+	( '' )	i='(unset)' ;;
+	( * )	echo 'internal error!' >&2; exit 125 ;;
+	esac
+	printf '\n%03d: IFS = %s: %s\n' "$((n+=1))" "$i" "$testcmd"
+	printf %s "$*${foo+/}${foo-}" | trim_od
+}
+
+doAllTests() {
+	for testcmd in \
+		'unset -v foo; set -- ${foo=$*}' \
+		'unset -v foo; set -- ${foo="$*"}' \
+		'unset -v foo; set -- "${foo=$*}"' \
+		\
+		'foo=; set -- ${foo:=$*}' \
+		'foo=; set -- ${foo:="$*"}' \
+		'foo=; set -- "${foo:=$*}"' \
+		\
+		'unset -v foo; set -- ${foo=$@}' \
+		'unset -v foo; set -- ${foo="$@"}' \
+		'unset -v foo; set -- "${foo=$@}"' \
+		\
+		'foo=; set -- ${foo:=$@}' \
+		'foo=; set -- ${foo:="$@"}' \
+		'foo=; set -- "${foo:=$@}"'
+	do
+		doTest "$testcmd"
+	done
+}
+
+unset -v IFS; doAllTests
+IFS=''; doAllTests
+IFS='x'; doAllTests
+IFS=$defaultIFS; doAllTests

@@ -1,0 +1,115 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test extractor of Free Pascal .rsj files.
+
+cat <<\EOF > xg-rst-2-oldstyle.pas
+program oldstyle;
+
+resourcestring
+  testcase = 'Böse Bübchen ärgern über die Maßen';
+
+begin
+end.
+EOF
+
+cat <<\EOF > xg-rst-2-hello.pas
+program hello;
+{$codepage utf8}
+
+resourcestring
+  hello_world = 'Hello, world!';
+  running_as = 'This program is running as process number %d.';
+  russian = 'Russian (Русский): Здравствуйте';
+  vietnamese = 'Vietnamese (Tiếng Việt): Chào bạn';
+  japanese = 'Japanese (日本語): こんにちは';
+  thai = 'Thai (ภาษาไทย): สวัสดีครับ';
+  { fpc 3.0.0 chokes on this: "Error: UTF-8 code greater than 65535 found" }
+  script = '𝒞';
+
+begin
+end.
+EOF
+
+# Result of "iconv -f UTF-8 -t ISO-8859-1 < xg-rst-2-oldstyle.pas > oldstyle.pas ; ppcx64 oldstyle.pas"
+cat <<\EOF > xg-rst-2-oldstyle.rsj
+{"version":1,"strings":[
+{"hash":197750254,"name":"oldstyle.testcase","sourcebytes":[66,246,115,101,32,66,252,98,99,104,101,110,32,228,114,103,101,114,110,32,252,98,101,114,32,100,105,101,32,77,97,223,101,110],"value":"B\u00F6se B\u00FCbchen \u00E4rgern \u00FCber die Ma\u00DFen"}
+]}
+EOF
+
+# Expected result of "ppcx64 xg-rst-2-hello.pas"
+cat <<\EOF > xg-rst-2-hello.rsj
+{"version":1,"strings":[
+{"hash":153469889,"name":"hello.hello_world","sourcebytes":[72,101,108,108,111,44,32,119,111,114,108,100,33],"value":"Hello, world!"},
+{"hash":1323310,"name":"hello.running_as","sourcebytes":[84,104,105,115,32,112,114,111,103,114,97,109,32,105,115,32,114,117,110,110,105,110,103,32,97,115,32,112,114,111,99,101,115,115,32,110,117,109,98,101,114,32,37,100,46],"value":"This program is running as process number %d."},
+{"hash":8471413,"name":"hello.russian","sourcebytes":[82,117,115,115,105,97,110,32,40,208,160,209,131,209,129,209,129,208,186,208,184,208,185,41,58,32,208,151,208,180,209,128,208,176,208,178,209,129,209,130,208,178,209,131,208,185,209,130,208,181],"value":"Russian (\u0420\u0443\u0441\u0441\u043A\u0438\u0439): \u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435"},
+{"hash":12693150,"name":"hello.vietnamese","sourcebytes":[86,105,101,116,110,97,109,101,115,101,32,40,84,105,225,186,191,110,103,32,86,105,225,187,135,116,41,58,32,67,104,195,160,111,32,98,225,186,161,110],"value":"Vietnamese (Ti\u1EBFng Vi\u1EC7t): Ch\u00E0o b\u1EA1n"},
+{"hash":48190495,"name":"hello.japanese","sourcebytes":[74,97,112,97,110,101,115,101,32,40,230,151,165,230,156,172,232,170,158,41,58,32,227,129,147,227,130,147,227,129,171,227,129,161,227,129,175],"value":"Japanese (\u65E5\u672C\u8A9E): \u3053\u3093\u306B\u3061\u306F"},
+{"hash":121047034,"name":"hello.thai","sourcebytes":[84,104,97,105,32,40,224,184,160,224,184,178,224,184,169,224,184,178,224,185,132,224,184,151,224,184,162,41,58,32,224,184,170,224,184,167,224,184,177,224,184,170,224,184,148,224,184,181,224,184,132,224,184,163,224,184,177,224,184,154],"value":"Thai (\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22): \u0E2A\u0E27\u0E31\u0E2A\u0E14\u0E35\u0E04\u0E23\u0E31\u0E1A"},
+{"hash":123456789,"name":"hello.script","sourcebytes":[240,157,146,158],"value":"\uD835\uDC9E"}
+]}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-rst-2.tmp xg-rst-2-oldstyle.rsj xg-rst-2-hello.rsj || Exit 1
+func_filter_POT_Creation_Date xg-rst-2.tmp xg-rst-2.po
+
+cat <<\EOF > xg-rst-2.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: oldstyle.testcase
+msgid "Böse Bübchen ärgern über die Maßen"
+msgstr ""
+
+#: hello.hello_world
+msgid "Hello, world!"
+msgstr ""
+
+#: hello.running_as
+#, object-pascal-format
+msgid "This program is running as process number %d."
+msgstr ""
+
+#: hello.russian
+msgid "Russian (Русский): Здравствуйте"
+msgstr ""
+
+#: hello.vietnamese
+msgid "Vietnamese (Tiếng Việt): Chào bạn"
+msgstr ""
+
+#: hello.japanese
+msgid "Japanese (日本語): こんにちは"
+msgstr ""
+
+#: hello.thai
+msgid "Thai (ภาษาไทย): สวัสดีครับ"
+msgstr ""
+
+#: hello.script
+msgid "𝒞"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-rst-2.ok xg-rst-2.po
+result=$?
+
+exit $result

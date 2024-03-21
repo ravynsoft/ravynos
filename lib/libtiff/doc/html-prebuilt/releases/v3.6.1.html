@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.6.1 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v3.6.0" href="v3.6.0.html" />
+    <link rel="prev" title="Changes in TIFF v3.7.0alpha" href="v3.7.0alpha.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.6.0.html" title="Changes in TIFF v3.6.0"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v3.7.0alpha.html" title="Changes in TIFF v3.7.0alpha"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.6.1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-6-1">
+<h1>Changes in TIFF v3.6.1<a class="headerlink" href="#changes-in-tiff-v3-6-1" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.6.1 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v3-6-1">tag Release-v3-6-1</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.6.0.html"><span class="doc">v3.6.0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>New utility <strong class="program">tiff2pdf</strong>
+for converting TIFF images directly into PDF.</p></li>
+<li><p>New <a class="reference internal" href="../functions/TIFFcolor.html"><span class="doc">TIFFcolor</span></a> color conversion module.</p></li>
+<li><p>Full support for <code class="docutils literal notranslate"><span class="pre">Orientation</span></code> tag in <code class="docutils literal notranslate"><span class="pre">TIFFRGBAImage</span></code> interface.</p></li>
+<li><p>Many bugs fixed.</p></li>
+</ul>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/makefile.vc</span></code>, <code class="file docutils literal notranslate"><span class="pre">tools/makefile.vc</span></code>: Support for IJG JPEG library.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">Makefile.in</span></code>: Add an absolute path to the <code class="file docutils literal notranslate"><span class="pre">test_pics.sh</span></code> call.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">Makefile.in</span></code>: Add an absolute path to the <code class="file docutils literal notranslate"><span class="pre">test_pics.sh</span></code> call.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffcomp.h</span></code>: <code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">_BSDTYPES_DEFINED</span></code> when defining BSD typedefs.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/Makefile.in</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/mkversion.c</span></code>: Relative buildings fixed.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">Makefile.in</span></code>: Add an absolute path to the <code class="file docutils literal notranslate"><span class="pre">test_pics.sh</span></code> call.</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_color.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code>:
+Added support for <code class="docutils literal notranslate"><span class="pre">ReferenceBlackWhite</span></code> tag handling when converted from YCbCr color space as
+per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=120">Remote Sensing bugzilla #120 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_aux.c</span></code>: Read <code class="docutils literal notranslate"><span class="pre">WhitePoint</span></code> tag from the
+file and properly use it for CIE Lab 1976 to RGB transform.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code>: Finally resolved problems with
+orientation handling. <code class="docutils literal notranslate"><span class="pre">TIFFRGBAImage</span></code> interface now properly supports all
+possible orientations, i.e. images will be flipped both in horizontal and
+vertical directions if required. ‘Known bugs’ section now removed from the
+appropriate manual pages.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_luv.c</span></code>: Fixed bug in 48-bit to 24-bit conversion routine,
+reported by Antonio Scuri.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_codec.c</span></code>: Added new function
+<a class="reference internal" href="../functions/TIFFcodec.html#c.TIFFIsCODECConfigured" title="TIFFIsCODECConfigured"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsCODECConfigured()</span></code></a>, suggested by Ross Finlayson.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_ojpeg.c</span></code>: <a class="reference internal" href="../functions/TIFFGetField.html#c.TIFFVGetField" title="TIFFVGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVGetField()</span></code></a> function now can properly extract
+the fields from the OJPEG files. Patch supplied by Ross  Finlayson.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dir.h</span></code>: <code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFFindOrRegisterdInfo()</span></code> declaration replaced
+with <code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFFindOrRegisterFieldInfo()</span></code> as reported by Ross Finlayson.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirinfo.c</span></code>: Implemented binary search in <code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFMergeFieldInfo()</span></code>.
+Patch supplied by Ross Finlayson.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_dirread.c</span></code>: do not mark all anonymously defined tags to be <code class="docutils literal notranslate"><span class="pre">IGNORE</span></code> (as
+it was done in 3.6.0).</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiff.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_dirinfo.c</span></code>: Added support for IFD (13) datatype,
+introduced in “Adobe PageMaker TIFF Technical Notes”.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_color.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_getimage.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code>: New color space
+conversion code: CIE L*a*b* 1976 images now supported by the <code class="docutils literal notranslate"><span class="pre">TIFFRGBAImage</span></code>
+interface. YCbCr to RGB conversion code also moved there and now has
+<a class="reference internal" href="../functions/TIFFcolor.html"><span class="doc">TIFFcolor</span></a> publicly available interface. These
+routines currently used in <code class="docutils literal notranslate"><span class="pre">TIFFRGBAImage</span></code> interface only and not supported in
+other libtiff tools yet. So if you want, for example, to convert CIE Lab image
+into PostScript file you should do it in two steps: change colorspace to RGB
+using <strong class="program">tiff2rgba</strong> utility and then process
+it with the <strong class="program">tiff2ps</strong>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_tile.c</span></code>: Remove spurious use of “s” (sample) in the
+<code class="docutils literal notranslate"><span class="pre">planarconfig_contig</span></code> case in <a class="reference internal" href="../functions/TIFFtile.html#c.TIFFComputeTile" title="TIFFComputeTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFComputeTile()</span></code></a> as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=387">Remote Sensing bugzilla #387 [no longer available]</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffiop.h</span></code>: New macros: <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFmax</span></code> and <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFmin</span></code>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tiffio.h</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_strip.c</span></code>: Added <a class="reference internal" href="../functions/TIFFstrip.html#c.TIFFRawStripSize" title="TIFFRawStripSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRawStripSize()</span></code></a> function
+as suggested by Chris Hanson.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">libtiff/tif_lzw.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">libtiff/tif_fax3.c</span></code>: Proper support for update mode
+as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=424">Remote Sensing bugzilla #424 [no longer available]</a>.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">tiff2pdf</strong>:: New tool, written by
+Ross Finlayson, to directly convert TIFF files to PDF.</p></li>
+<li><p><strong class="program">tiffgt</strong>: Unmaintained and platform
+dependent sgigt utility removed and replaced with the completely rewritten
+portable tool (depend on OpenGL and
+GLUT). This tool will not build by default.</p></li>
+<li><p><strong class="program">ras2tiff</strong>: Properly determine
+SUN Rasterfiles with the reverse byte order (it is reported by the magic
+header field). Problem reported by Andreas Wiesmann.</p></li>
+<li><p><strong class="program">raw2tiff</strong>: Implemented image size
+guessing using correlation coefficient calculation between two neighbour
+lines.</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">contrib/pds/tif_pdsdirread.c</span></code>, <code class="file docutils literal notranslate"><span class="pre">contrib/pds/tif_pdsdirwrite.c</span></code>:
+Use <a class="reference internal" href="../functions/TIFFDataWidth.html#c.TIFFDataWidth" title="TIFFDataWidth"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDataWidth()</span></code></a> function instead of <code class="xref c c-var docutils literal notranslate"><span class="pre">tiffDataWidth</span></code> array.</p></li>
+</ul>
+</section>
+<section id="lzw-compression-kit-changes">
+<h2>LZW compression kit changes<a class="headerlink" href="#lzw-compression-kit-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Proper support for update mode as per bug <a class="reference external" href="http://bugzilla.remotesensing.org/show_bug.cgi?id=424">Remote Sensing bugzilla #424 [no longer available]</a>.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.6.1</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+<li><a class="reference internal" href="#lzw-compression-kit-changes">LZW compression kit changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.7.0alpha.html"
+                          title="previous chapter">Changes in TIFF v3.7.0alpha</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v3.6.0.html"
+                          title="next chapter">Changes in TIFF v3.6.0</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.6.1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.6.0.html" title="Changes in TIFF v3.6.0"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v3.7.0alpha.html" title="Changes in TIFF v3.7.0alpha"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.6.1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

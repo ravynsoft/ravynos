@@ -1,0 +1,14 @@
+trap 'echo DEBUG' DEBUG
+
+# make sure that the right command name appears in the error messages and
+# that the DEBUG trap doesn't overwrite it
+
+[[ ++ -gt 3 ]]
+
+(( -- ))
+
+for (( -- ; ++; -- ))
+do
+	echo bogus
+done
+

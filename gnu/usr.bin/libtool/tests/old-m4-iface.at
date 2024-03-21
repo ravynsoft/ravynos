@@ -1,0 +1,197 @@
+# old-m4-iface.at -- exercise old m4 interface to libtool     -*- Autotest -*-
+#
+#   Copyright (C) 2005, 2008-2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Support for older m4 interface.])
+
+########################################################################
+##
+## TODO:
+##   test all the interfaces currently supported by AU_DEFUN/AU_ALIAS
+##   test autoupdate on all of those tests' configure.in
+##
+########################################################################
+
+## -------------------------------------------------------- ##
+## An overtly simple old-school AM_PROG_LIBTOOL invocation. ##
+## -------------------------------------------------------- ##
+
+AT_SETUP([AM_PROG_LIBTOOL])
+
+AT_DATA([configure.in],
+[[AC_INIT(old.c)
+AM_PROG_LIBTOOL
+AC_SUBST([LIBTOOL_DEPS])
+AC_OUTPUT(Makefile)
+]])
+
+AT_DATA([Makefile.in],
+[[COMPILE = @CC@ @CPPFLAGS@ @CFLAGS@
+LINK      = @CC@ @CFLAGS@ @LDFLAGS@ -o $@
+SHELL     = @SHELL@
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+
+all: libtool old@EXEEXT@
+
+old@EXEEXT@: old.@OBJEXT@
+	$(LINK) old.@OBJEXT@
+
+.SUFFIXES:
+.SUFFIXES: .c .@OBJEXT@
+
+.c.@OBJEXT@:
+	$(COMPILE) -c $<
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+]])
+
+
+AT_DATA([old.c],
+[[#include <stdio.h>
+
+int main (void)
+{
+  printf ("Hello, World!");
+  return 0;
+}
+]])
+
+LT_AT_LIBTOOLIZE([--install])
+
+# This is slightly bogus, since only libtool.m4 was required in aclocal.m4
+# with libtool-1.5x...
+AT_CHECK([test -f aclocal.m4 ||
+  cat "$tst_aclocaldir/libtool.m4" "$tst_aclocaldir/ltoptions.m4" \
+    "$tst_aclocaldir/ltsugar.m4" "$tst_aclocaldir/ltversion.m4" \
+    "$tst_aclocaldir/lt~obsolete.m4" > aclocal.m4])
+
+LT_AT_BOOTSTRAP([ignore], [ignore], [ignore], [ignore], [--force])
+
+LT_AT_EXEC_CHECK([./old], 0, [Hello, World!])
+
+# Now, test that libtoolize doesn't mistakenly think the user called
+# any libtool macros if in fact she didn't.
+$SED '/AM_PROG_LIBTOOL/d' configure.in >configure.int
+mv -f configure.int configure.in
+AT_CHECK([$LIBTOOLIZE -n], [0], [stdout], [stderr])
+# ensure no shell errors:
+AT_CHECK([$GREP -v "^libtoolize: " stderr], [1])
+AT_CHECK([$GREP "Remember to add.*LT_INIT.*to configure.in" stdout], [0], [ignore])
+AT_CHECK([$GREP "Consider adding.*LT_WITH_LTDL" stdout], [1])
+AT_CHECK([$GREP "Remember to add.*LT_CONFIG_LTDL_DIR" stdout], [1])
+
+AT_CLEANUP
+
+
+## --------------------------- ##
+## An old style libltdl build. ##
+## --------------------------- ##
+
+AT_SETUP([AC_WITH_LTDL])
+
+_LTDL_PROJECT_FILES
+
+AT_DATA([configure.in],
+[[AC_PREREQ(2.50)
+AC_INIT([main.c])
+AC_PROG_MAKE_SET
+AC_LIBTOOL_DLOPEN
+AM_PROG_LIBTOOL
+AC_WITH_LTDL
+AC_OUTPUT(Makefile)
+]])
+
+AT_DATA([Makefile.in],
+[[top_srcdir	= .
+top_builddir	= .
+COMPILE		= @CC@ @INCLTDL@  @CPPFLAGS@ @CFLAGS@
+LTCOMPILE	= @LIBTOOL@ --mode=compile $(COMPILE)
+LTLINK		= @LIBTOOL@ --mode=link @CC@ -no-undefined @CFLAGS@ @LDFLAGS@ -o $@
+SHELL		= @SHELL@
+@SET_MAKE@
+
+TARGETS    = libltdl/libltdlc.la module.la ltdldemo@EXEEXT@
+
+all: $(TARGETS)
+
+libltdl/libltdlc.la:
+	cd libltdl && $(MAKE)
+
+module.la: module.lo
+	$(LTLINK) module.lo -module -avoid-version -rpath /dev/null
+
+ltdldemo@EXEEXT@: main.@OBJEXT@ module.la libltdl/libltdlc.la
+	$(LTLINK) main.@OBJEXT@ -dlopen module.la @LIBLTDL@ @LIBS@
+
+.SUFFIXES:
+.SUFFIXES: .c .@OBJEXT@ .lo
+
+.c.@OBJEXT@:
+	$(COMPILE) -c $<
+
+.c.lo:
+	$(LTCOMPILE) -c -o $@ $<
+]])
+
+# Be sure to use the in-tree libltdl, somebody might have removed
+# an installed libltdl.la file.
+LT_AT_BOOTSTRAP([--ltdl --install], [-I libltdl/m4], [ignore], [ignore],
+	[--force], [--with-included-ltdl])
+
+LT_AT_EXEC_CHECK([./ltdldemo], 0, [ignore])
+
+AT_CLEANUP
+
+
+## ---------------------------- ##
+## AC_CONFIG_MACRO_DIR support. ##
+## ---------------------------- ##
+
+AT_SETUP([AC_CONFIG_MACRO_DIR])
+
+AT_DATA([configure.ac],
+[[AC_INIT([libtoolize-demo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([m4])
+LT_INIT
+AC_OUTPUT
+]])
+
+AT_DATA(expout,
+[[libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, 'build-aux'.
+libtoolize: copying file 'build-aux/ltmain.sh'
+libtoolize: putting macros in AC_CONFIG_MACRO_DIRS, 'm4'.
+libtoolize: copying file 'm4/libtool.m4'
+libtoolize: copying file 'm4/ltoptions.m4'
+libtoolize: copying file 'm4/ltsugar.m4'
+libtoolize: copying file 'm4/ltversion.m4'
+libtoolize: copying file 'm4/lt~obsolete.m4'
+libtoolize: Consider adding '-I m4' to ACLOCAL_AMFLAGS in Makefile.am.
+]])
+
+LT_AT_CHECK_LIBTOOLIZE([--copy], 0, expout)
+
+AT_CLEANUP

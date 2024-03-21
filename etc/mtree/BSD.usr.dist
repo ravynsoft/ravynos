@@ -36,9 +36,11 @@
     ..
     lib
         clang
-            16
+            17
                 include
                     cuda_wrappers
+                        bits
+                        ..
                     ..
                     fuzzer
                     ..
@@ -349,6 +351,8 @@
             smbfs
                 print
                 ..
+            ..
+            sound
             ..
             sunrpc
                 dir

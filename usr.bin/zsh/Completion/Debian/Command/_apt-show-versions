@@ -1,0 +1,13 @@
+#compdef apt-show-versions
+
+_arguments \
+   '(--status-file -stf)'{--status-file=,-stf}'[specify dpkg status file]:status file:_files' \
+   '(--list-dir -ld)'{--list-dir=,-ld}"[specify dir for apt's list files]:apt list dir:_files -/" \
+   '(--package -p)'{--package=,-p}'[restrict to specified package]:package:_deb_packages avail' \
+   '(--regex -r)'{--regex,-r}'[interpret -p argument as regex]' \
+   '(--upgradeable -u)'{--upgradeable,-u}'[print only upgradeable packages]' \
+   '(--allversions -a)'{--allversions,-a}'[print all available versions]' \
+   '(--brief -b)'{--brief,-b}'[brief output]' \
+   '(--verbose -v)'{--verbose,-v}'[verbose output]' \
+   '(--help -h)'{--help,-h}'[display help information]' \
+   ':package:_deb_packages avail'

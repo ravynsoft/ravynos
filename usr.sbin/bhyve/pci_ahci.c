@@ -27,7 +27,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/linker_set.h>
 #include <sys/stat.h>
@@ -118,7 +117,6 @@ static FILE *dbg;
 #else
 #define DPRINTF(format, arg...)
 #endif
-#define WPRINTF(format, arg...) printf(format, ##arg)
 
 #define AHCI_PORT_IDENT 20 + 1
 
@@ -343,7 +341,7 @@ ahci_write_fis(struct ahci_port *p, enum sata_fis_type ft, uint8_t *fis)
 		irq = (fis[1] & (1 << 6)) ? AHCI_P_IX_PS : 0;
 		break;
 	default:
-		WPRINTF("unsupported fis type %d", ft);
+		EPRINTLN("unsupported fis type %d", ft);
 		return;
 	}
 	if (fis[2] & ATA_S_ERROR) {
@@ -1802,7 +1800,7 @@ ahci_handle_cmd(struct ahci_port *p, int slot, uint8_t *cfis)
 			handle_packet_cmd(p, slot, cfis);
 		break;
 	default:
-		WPRINTF("Unsupported cmd:%02x", cfis[2]);
+		EPRINTLN("Unsupported cmd:%02x", cfis[2]);
 		ahci_write_fis_d2h(p, slot, cfis,
 		    (ATA_E_ABORT << 8) | ATA_S_READY | ATA_S_ERROR);
 		break;
@@ -1847,7 +1845,7 @@ ahci_handle_slot(struct ahci_port *p, int slot)
 #endif
 
 	if (cfis[0] != FIS_TYPE_REGH2D) {
-		WPRINTF("Not a H2D FIS:%02x", cfis[0]);
+		EPRINTLN("Not a H2D FIS:%02x", cfis[0]);
 		return;
 	}
 
@@ -2134,7 +2132,7 @@ pci_ahci_port_write(struct pci_ahci_softc *sc, uint64_t offset, uint64_t value)
 	case AHCI_P_TFD:
 	case AHCI_P_SIG:
 	case AHCI_P_SSTS:
-		WPRINTF("pci_ahci_port: read only registers 0x%"PRIx64"", offset);
+		EPRINTLN("pci_ahci_port: read only registers 0x%"PRIx64"", offset);
 		break;
 	case AHCI_P_SCTL:
 		p->sctl = value;
@@ -2209,7 +2207,7 @@ pci_ahci_write(struct pci_devinst *pi, int baridx, uint64_t offset, int size,
 	else if (offset < (uint64_t)AHCI_OFFSET + sc->ports * AHCI_STEP)
 		pci_ahci_port_write(sc, offset, value);
 	else
-		WPRINTF("pci_ahci: unknown i/o write offset 0x%"PRIx64"", offset);
+		EPRINTLN("pci_ahci: unknown i/o write offset 0x%"PRIx64"", offset);
 
 	pthread_mutex_unlock(&sc->mtx);
 }
@@ -2307,7 +2305,7 @@ pci_ahci_read(struct pci_devinst *pi, int baridx, uint64_t regoff, int size)
 		value = pci_ahci_port_read(sc, offset);
 	else {
 		value = 0;
-		WPRINTF("pci_ahci: unknown i/o read offset 0x%"PRIx64"",
+		EPRINTLN("pci_ahci: unknown i/o read offset 0x%"PRIx64"",
 		    regoff);
 	}
 	value >>= 8 * (regoff & 0x3);
@@ -2611,7 +2609,7 @@ pci_ahci_snapshot(struct vm_snapshot_meta *meta)
 		/* Mostly for restore; save is ensured by the lines above. */
 		if (((bctx == NULL) && (port->bctx != NULL)) ||
 		    ((bctx != NULL) && (port->bctx == NULL))) {
-			fprintf(stderr, "%s: ports not matching\r\n", __func__);
+			EPRINTLN("%s: ports not matching", __func__);
 			ret = EINVAL;
 			goto done;
 		}
@@ -2620,9 +2618,8 @@ pci_ahci_snapshot(struct vm_snapshot_meta *meta)
 			continue;
 
 		if (port->port != i) {
-			fprintf(stderr, "%s: ports not matching: "
-					"actual: %d expected: %d\r\n",
-					__func__, port->port, i);
+			EPRINTLN("%s: ports not matching: "
+			    "actual: %d expected: %d", __func__, port->port, i);
 			ret = EINVAL;
 			goto done;
 		}

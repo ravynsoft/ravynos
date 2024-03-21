@@ -1,0 +1,142 @@
+Changes in TIFF v3.7.2
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.2 (:tag:`Release-v3-7-2`)
+  Previous Version        :doc:`v3.7.1 <v3.7.1>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+Major changes
+-------------
+
+* Maintenance release. Many bugfixes in the build environment
+  and compatibility improvements.
+
+
+Software configuration changes
+------------------------------
+
+* :file:`configure.ac`: Use ``-rpath`` option instead of ``-R`` as per bug
+  :bugzilla-rs:`732`
+
+* :file:`tif_stream.cxx`: Fixes for C++ stream interface from
+  Michael Rinne and Edward Lam.
+
+* :file:`configure.ac`: Make the documentation directory location
+  configurable via the ``--with-docdir`` option (as suggested by
+  Jeremy C. Reed).
+
+* Place the C++ stream API in the separate library called
+  ``libtiffxx`` to avoid unneeded dependencies. Probably there will be
+  more C++ API in the future. As per bugs
+  :bugzilla-rs:`733`
+  and :bugzilla-rs:`730`
+  
+* :file:`configure`, :file:`configure.ac`: Replace ``--disable-c++`` with the
+  ``--disable-cxx`` option as  per bug
+  :bugzilla-rs:`730`.
+
+
+Library changes
+---------------
+
+* Applied patch from Lee Howard to support a new tag ``TIFFTAG_FAXDCS``
+  (34911) used in HylaFax software. As per bug
+  :bugzilla-rs:`771`
+
+* :file:`tif_open.c`: Remove unnecessary :c:func:`TIFFSeekFile` call as per
+  bug :bugzilla-rs:`756`
+
+* :file:`tiff.h`: Changed the :c:type:`int8` definition to be always :c:expr:`signed char`
+  as per bug
+  :bugzilla-rs:`727`
+
+* :file:`tiffio.h`: Move :c:func:`TIFFOpenW` function into the ``extern "C"{}``
+  block as per bug
+  :bugzilla-rs:`763`
+
+* :file:`tif_dirread.c`: Estimate strip size in case of wrong or
+  suspicious values in the tags. As per bugs
+  :bugzilla-rs:`705`
+  and :bugzilla-rs:`320`
+
+* :file:`tif_color.c`: Use double as the second argument of :c:func:`pow`
+  function in :c:func:`TIFFCIELabToRGBInit`. As per bug
+  :bugzilla-rs:`741`
+
+* :file:`tif_pixarlog.c`: Avoid warnings when converting float to
+  integer as per bug
+  :bugzilla-rs:`740`
+
+* :file:`tif_getimage.c`: Always fill the error message buffer in
+  :c:func:`TIFFRGBAImageBegin` as per bug
+  :bugzilla-rs:`739`
+
+* :file:`tif_jpeg.c`: Added ability to read/write the fax specific
+  :c:macro:`TIFFTAG_FAXRECVPARAMS`, :c:macro:`TIFFTAG_FAXSUBADDRESS`
+  and :c:macro:`TIFFTAG_FAXRECVTIME` tags as per bug
+  :bugzilla-rs:`736`
+
+* :file:`tif_win32.c`: Fixed message formatting in functions
+  :c:func:`Win32WarningHandler` and :c:func:`Win32ErrorHandler` as per bug
+  :bugzilla-rs:`735`
+
+* :file:`tiffio.h`: Move the color conversion routines in the ``extern
+  "C"`` section as per bug
+  :bugzilla-rs:`727`
+
+* :file:`tiff.h`: Restore back the workaround for AIX Visual Age C
+  compiler to avoid double definition of BSD types as per bug
+  :bugzilla-rs:`39`
+
+* :file:`tif_getimage.c`: More fixes for multiple-alpha-channelled
+  RGB-images as per bug
+  :bugzilla-rs:`713`
+
+
+Tools changes
+-------------
+
+* :file:`tiffcmp.c`: Added ability to compare the 32-bit integer and
+  floating point data; complain on unsupported bit depths.
+
+* :file:`tiffcmp.c`: Use properly sized buffer in short arrays comparison
+  as per bug
+  :bugzilla-rs:`785`
+
+* :file:`fax2ps.c`: Replace insecure :c:func:`mktemp` function with the
+  :c:func:`tmpfile` as per bug
+  :bugzilla-rs:`786`
+
+* :file:`tiffgt.c`: Fix problem on big-endian CPUs so that images
+  display more correctly.  Images display brighter than they should
+  on a Sun workstation.
+
+* :file:`tiff2ps.c`: Fixed problem with page sizes as per bug
+  :bugzilla-rs:`742`
+
+* :file:`tiff2ps.c`: Interpret the "``-w``" and "``-h``" options independently. As
+  per bug
+  :bugzilla-rs:`689`
+
+* :file:`tiffdump.c`: Fixed problem when read broken TIFFs with the
+  wrong tag counts (Dmitry V. Levin, Martin Pitt).
+
+* :file:`tiffset.c`: Convert character option to integer value as per
+  bug :bugzilla-rs:`725`.
+
+Contributed software changes
+----------------------------
+
+* None.

@@ -1,0 +1,1433 @@
+# Check 64bit AVX512-FP16,AVX512VL instructions
+
+	.allow_index_reg
+	.text
+_start:
+	vaddph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vaddph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vaddph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vaddph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vaddph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vaddph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vaddph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vaddph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vaddph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vaddph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vaddph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vaddph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcmpph	$123, %ymm28, %ymm29, %k5	 #AVX512-FP16,AVX512VL
+	vcmpph	$123, %ymm28, %ymm29, %k5{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	$123, %xmm28, %xmm29, %k5	 #AVX512-FP16,AVX512VL
+	vcmpph	$123, %xmm28, %xmm29, %k5{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	$123, 0x10000000(%rbp, %r14, 8), %xmm29, %k5{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	$123, (%r9){1to8}, %xmm29, %k5	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcmpph	$123, 2032(%rcx), %xmm29, %k5	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcmpph	$123, -256(%rdx){1to8}, %xmm29, %k5{%k7}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vcmpph	$123, 0x10000000(%rbp, %r14, 8), %ymm29, %k5{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	$123, (%r9){1to16}, %ymm29, %k5	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcmpph	$123, 4064(%rcx), %ymm29, %k5	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcmpph	$123, -256(%rdx){1to16}, %ymm29, %k5{%k7}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vcvtdq2ph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtdq2ph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtdq2ph	%ymm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtdq2ph	%ymm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtdq2phx	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtdq2ph	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtdq2phx	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtdq2ph	-512(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtdq2ph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtdq2phy	4064(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtdq2ph	-512(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtpd2ph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtpd2ph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtpd2ph	%ymm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtpd2ph	%ymm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtpd2phx	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtpd2ph	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtpd2phx	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtpd2ph	-1024(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtpd2ph	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtpd2phy	4064(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtpd2ph	-1024(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2dq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2dq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2dq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2dq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2dq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2dq	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2dq	1016(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2dq	-256(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2dq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2dq	(%r9){1to8}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2dq	2032(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2dq	-256(%rdx){1to8}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2pd	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2pd	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2pd	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2pd	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2pd	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2pd	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2pd	508(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2pd	-256(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2pd	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2pd	(%r9){1to4}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2pd	1016(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2pd	-256(%rdx){1to4}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2psx	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2psx	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2psx	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2psx	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2psx	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2psx	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2psx	1016(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2psx	-256(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2psx	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2psx	(%r9){1to8}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2psx	2032(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2psx	-256(%rdx){1to8}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2qq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2qq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2qq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2qq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2qq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2qq	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2qq	508(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2qq	-256(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2qq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2qq	(%r9){1to4}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2qq	1016(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2qq	-256(%rdx){1to4}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2udq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2udq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2udq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2udq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2udq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2udq	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2udq	1016(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2udq	-256(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2udq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2udq	(%r9){1to8}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2udq	2032(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2udq	-256(%rdx){1to8}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uqq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2uqq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uqq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2uqq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uqq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uqq	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uqq	508(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uqq	-256(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uqq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uqq	(%r9){1to4}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uqq	1016(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uqq	-256(%rdx){1to4}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uw	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2uw	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uw	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2uw	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uw	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uw	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uw	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uw	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uw	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uw	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uw	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uw	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2w	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtph2w	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2w	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtph2w	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2w	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2w	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2w	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2w	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2w	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2w	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2w	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2w	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtps2phx	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtps2phx	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtps2phx	%ymm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtps2phx	%ymm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtps2phxx	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtps2phx	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtps2phxx	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtps2phx	-512(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtps2phx	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtps2phxy	4064(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtps2phx	-512(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtqq2ph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtqq2ph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtqq2ph	%ymm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtqq2ph	%ymm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtqq2phx	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtqq2ph	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtqq2phx	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtqq2ph	-1024(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtqq2ph	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtqq2phy	4064(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtqq2ph	-1024(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2dq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvttph2dq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2dq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvttph2dq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2dq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2dq	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2dq	1016(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2dq	-256(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2dq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2dq	(%r9){1to8}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2dq	2032(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2dq	-256(%rdx){1to8}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2qq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvttph2qq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2qq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvttph2qq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2qq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2qq	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2qq	508(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2qq	-256(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2qq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2qq	(%r9){1to4}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2qq	1016(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2qq	-256(%rdx){1to4}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2udq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvttph2udq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2udq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvttph2udq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2udq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2udq	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2udq	1016(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2udq	-256(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2udq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2udq	(%r9){1to8}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2udq	2032(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2udq	-256(%rdx){1to8}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uqq	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvttph2uqq	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uqq	%xmm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvttph2uqq	%xmm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uqq	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uqq	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uqq	508(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uqq	-256(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uqq	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uqq	(%r9){1to4}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uqq	1016(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uqq	-256(%rdx){1to4}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uw	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvttph2uw	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uw	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvttph2uw	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uw	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uw	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uw	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uw	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uw	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uw	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uw	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uw	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2w	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvttph2w	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2w	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvttph2w	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2w	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2w	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2w	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2w	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2w	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2w	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2w	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2w	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtudq2ph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtudq2ph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtudq2ph	%ymm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtudq2ph	%ymm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtudq2phx	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtudq2ph	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtudq2phx	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtudq2ph	-512(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtudq2ph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtudq2phy	4064(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtudq2ph	-512(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuqq2ph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtuqq2ph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuqq2ph	%ymm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtuqq2ph	%ymm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuqq2phx	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtuqq2ph	(%r9){1to2}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuqq2phx	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuqq2ph	-1024(%rdx){1to2}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuqq2ph	(%r9){1to4}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuqq2phy	4064(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuqq2ph	-1024(%rdx){1to4}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuw2ph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtuw2ph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuw2ph	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtuw2ph	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuw2ph	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtuw2ph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuw2ph	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuw2ph	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuw2ph	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtuw2ph	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuw2ph	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuw2ph	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtw2ph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vcvtw2ph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtw2ph	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vcvtw2ph	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtw2ph	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtw2ph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtw2ph	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtw2ph	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtw2ph	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtw2ph	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtw2ph	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtw2ph	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vdivph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vdivph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vdivph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vdivph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vdivph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vdivph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vdivph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vdivph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vdivph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vdivph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vdivph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vdivph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmaddcph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfcmaddcph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmaddcph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfcmaddcph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmaddcph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmaddcph	(%r9){1to8}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmaddcph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmaddcph	-512(%rdx){1to8}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmaddcph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmaddcph	(%r9){1to4}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmaddcph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmaddcph	-512(%rdx){1to4}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmulcph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfcmulcph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmulcph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfcmulcph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmulcph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmulcph	(%r9){1to8}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmulcph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmulcph	-512(%rdx){1to8}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmulcph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmulcph	(%r9){1to4}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmulcph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmulcph	-512(%rdx){1to4}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd132ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmadd132ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd132ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmadd132ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd132ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd132ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd132ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd132ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd132ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd132ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd132ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd132ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd213ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmadd213ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd213ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmadd213ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd213ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd213ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd213ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd213ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd213ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd213ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd213ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd213ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd231ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmadd231ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd231ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmadd231ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd231ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd231ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd231ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd231ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd231ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd231ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd231ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd231ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddcph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmaddcph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddcph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmaddcph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddcph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddcph	(%r9){1to8}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddcph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddcph	-512(%rdx){1to8}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddcph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddcph	(%r9){1to4}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddcph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddcph	-512(%rdx){1to4}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmaddsub132ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmaddsub132ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub132ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub132ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub132ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub132ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub132ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub132ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmaddsub213ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmaddsub213ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub213ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub213ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub213ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub213ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub213ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub213ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmaddsub231ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmaddsub231ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub231ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub231ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub231ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub231ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub231ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub231ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub132ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmsub132ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub132ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmsub132ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub132ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub132ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub132ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub132ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub132ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub132ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub132ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub132ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub213ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmsub213ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub213ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmsub213ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub213ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub213ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub213ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub213ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub213ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub213ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub213ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub213ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub231ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmsub231ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub231ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmsub231ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub231ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub231ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub231ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub231ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub231ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub231ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub231ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub231ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmsubadd132ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmsubadd132ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd132ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd132ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd132ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd132ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd132ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd132ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmsubadd213ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmsubadd213ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd213ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd213ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd213ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd213ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd213ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd213ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmsubadd231ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmsubadd231ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd231ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd231ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd231ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd231ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd231ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd231ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmulcph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfmulcph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmulcph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfmulcph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmulcph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmulcph	(%r9){1to8}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmulcph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmulcph	-512(%rdx){1to8}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmulcph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmulcph	(%r9){1to4}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmulcph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmulcph	-512(%rdx){1to4}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd132ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfnmadd132ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd132ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfnmadd132ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd132ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd132ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd132ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd132ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd132ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd132ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd132ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd132ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd213ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfnmadd213ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd213ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfnmadd213ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd213ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd213ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd213ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd213ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd213ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd213ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd213ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd213ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd231ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfnmadd231ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd231ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfnmadd231ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd231ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd231ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd231ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd231ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd231ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd231ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd231ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd231ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub132ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfnmsub132ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub132ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfnmsub132ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub132ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub132ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub132ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub132ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub132ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub132ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub132ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub132ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub213ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfnmsub213ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub213ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfnmsub213ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub213ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub213ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub213ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub213ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub213ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub213ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub213ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub213ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub231ph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vfnmsub231ph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub231ph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vfnmsub231ph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub231ph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub231ph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub231ph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub231ph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub231ph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub231ph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub231ph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub231ph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfpclassph	$123, %xmm30, %k5	 #AVX512-FP16,AVX512VL
+	vfpclassph	$123, %xmm30, %k5{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfpclassph	$123, %ymm30, %k5	 #AVX512-FP16,AVX512VL
+	vfpclassph	$123, %ymm30, %k5{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfpclassphx	$123, 0x10000000(%rbp, %r14, 8), %k5{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfpclassph	$123, (%r9){1to8}, %k5	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfpclassphx	$123, 2032(%rcx), %k5	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfpclassph	$123, -256(%rdx){1to8}, %k5{%k7}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vfpclassph	$123, (%r9){1to16}, %k5	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfpclassphy	$123, 4064(%rcx), %k5	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfpclassph	$123, -256(%rdx){1to16}, %k5{%k7}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vgetexpph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vgetexpph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetexpph	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vgetexpph	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetexpph	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetexpph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetexpph	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetexpph	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vgetexpph	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetexpph	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetexpph	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetexpph	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vgetmantph	$123, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vgetmantph	$123, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetmantph	$123, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vgetmantph	$123, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetmantph	$123, 0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetmantph	$123, (%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetmantph	$123, 2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetmantph	$123, -256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vgetmantph	$123, 0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetmantph	$123, (%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetmantph	$123, 4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetmantph	$123, -256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmaxph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vmaxph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmaxph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vmaxph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmaxph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmaxph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmaxph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmaxph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmaxph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmaxph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmaxph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmaxph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vminph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vminph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vminph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vminph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vminph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vminph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vminph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vminph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vminph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vminph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vminph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vminph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmulph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vmulph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmulph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vmulph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmulph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmulph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmulph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmulph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmulph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmulph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmulph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmulph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrcpph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vrcpph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrcpph	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vrcpph	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrcpph	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrcpph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrcpph	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrcpph	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrcpph	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrcpph	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrcpph	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrcpph	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vreduceph	$123, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vreduceph	$123, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vreduceph	$123, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vreduceph	$123, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vreduceph	$123, 0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vreduceph	$123, (%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vreduceph	$123, 2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vreduceph	$123, -256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vreduceph	$123, 0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vreduceph	$123, (%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vreduceph	$123, 4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vreduceph	$123, -256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrndscaleph	$123, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vrndscaleph	$123, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrndscaleph	$123, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vrndscaleph	$123, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrndscaleph	$123, 0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrndscaleph	$123, (%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrndscaleph	$123, 2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrndscaleph	$123, -256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrndscaleph	$123, 0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrndscaleph	$123, (%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrndscaleph	$123, 4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrndscaleph	$123, -256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrsqrtph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vrsqrtph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrsqrtph	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vrsqrtph	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrsqrtph	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrsqrtph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrsqrtph	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrsqrtph	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrsqrtph	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrsqrtph	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrsqrtph	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrsqrtph	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vscalefph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vscalefph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vscalefph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vscalefph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vscalefph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vscalefph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vscalefph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vscalefph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vscalefph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vscalefph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vscalefph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vscalefph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsqrtph	%xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vsqrtph	%xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsqrtph	%ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vsqrtph	%ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsqrtph	0x10000000(%rbp, %r14, 8), %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsqrtph	(%r9){1to8}, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsqrtph	2032(%rcx), %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsqrtph	-256(%rdx){1to8}, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsqrtph	0x10000000(%rbp, %r14, 8), %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsqrtph	(%r9){1to16}, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsqrtph	4064(%rcx), %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsqrtph	-256(%rdx){1to16}, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsubph	%ymm28, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL
+	vsubph	%ymm28, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsubph	%xmm28, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL
+	vsubph	%xmm28, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsubph	0x10000000(%rbp, %r14, 8), %ymm29, %ymm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsubph	(%r9){1to16}, %ymm29, %ymm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsubph	4064(%rcx), %ymm29, %ymm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsubph	-256(%rdx){1to16}, %ymm29, %ymm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsubph	0x10000000(%rbp, %r14, 8), %xmm29, %xmm30{%k7}	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsubph	(%r9){1to8}, %xmm29, %xmm30	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsubph	2032(%rcx), %xmm29, %xmm30	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsubph	-256(%rdx){1to8}, %xmm29, %xmm30{%k7}{z}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+
+.intel_syntax noprefix
+	vaddph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vaddph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vaddph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vaddph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vaddph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vaddph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vaddph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vaddph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vaddph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vaddph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vaddph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vaddph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcmpph	k5, ymm29, ymm28, 123	 #AVX512-FP16,AVX512VL
+	vcmpph	k5{k7}, ymm29, ymm28, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	k5, xmm29, xmm28, 123	 #AVX512-FP16,AVX512VL
+	vcmpph	k5{k7}, xmm29, xmm28, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	k5{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	k5, xmm29, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcmpph	k5, xmm29, XMMWORD PTR [rcx+2032], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcmpph	k5{k7}, xmm29, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vcmpph	k5{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcmpph	k5, ymm29, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcmpph	k5, ymm29, YMMWORD PTR [rcx+4064], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcmpph	k5{k7}, ymm29, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vcvtdq2ph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtdq2ph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtdq2ph	xmm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtdq2ph	xmm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtdq2ph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtdq2ph	xmm30, DWORD BCST [r9]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtdq2ph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtdq2ph	xmm30{k7}{z}, DWORD BCST [rdx-512]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtdq2ph	xmm30, DWORD BCST [r9]{1to8}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtdq2ph	xmm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtdq2ph	xmm30{k7}{z}, DWORD BCST [rdx-512]{1to8}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtpd2ph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtpd2ph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtpd2ph	xmm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtpd2ph	xmm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtpd2ph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtpd2ph	xmm30, QWORD BCST [r9]{1to2}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtpd2ph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtpd2ph	xmm30{k7}{z}, QWORD BCST [rdx-1024]{1to2}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtpd2ph	xmm30, QWORD BCST [r9]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtpd2ph	xmm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtpd2ph	xmm30{k7}{z}, QWORD BCST [rdx-1024]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2dq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2dq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2dq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2dq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2dq	xmm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2dq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2dq	xmm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2dq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2dq	ymm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2dq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2dq	ymm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2dq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2pd	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2pd	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2pd	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2pd	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2pd	xmm30{k7}, DWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2pd	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2pd	xmm30, DWORD PTR [rcx+508]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2pd	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2pd	ymm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2pd	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2pd	ymm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2pd	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2psx	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2psx	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2psx	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2psx	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2psx	xmm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2psx	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2psx	xmm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2psx	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2psx	ymm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2psx	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2psx	ymm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2psx	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2qq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2qq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2qq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2qq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2qq	xmm30{k7}, DWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2qq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2qq	xmm30, DWORD PTR [rcx+508]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2qq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2qq	ymm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2qq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2qq	ymm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2qq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2udq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2udq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2udq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2udq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2udq	xmm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2udq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2udq	xmm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2udq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2udq	ymm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2udq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2udq	ymm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2udq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uqq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2uqq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uqq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2uqq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uqq	xmm30{k7}, DWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uqq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uqq	xmm30, DWORD PTR [rcx+508]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uqq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uqq	ymm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uqq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uqq	ymm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uqq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uw	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2uw	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uw	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtph2uw	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2uw	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uw	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uw	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uw	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2uw	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2uw	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2uw	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2uw	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2w	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtph2w	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2w	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtph2w	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtph2w	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2w	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2w	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2w	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtph2w	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtph2w	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtph2w	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtph2w	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtps2phx	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtps2phx	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtps2phx	xmm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtps2phx	xmm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtps2phx	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtps2phx	xmm30, DWORD BCST [r9]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtps2phx	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtps2phx	xmm30{k7}{z}, DWORD BCST [rdx-512]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtps2phx	xmm30, DWORD BCST [r9]{1to8}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtps2phx	xmm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtps2phx	xmm30{k7}{z}, DWORD BCST [rdx-512]{1to8}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtqq2ph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtqq2ph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtqq2ph	xmm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtqq2ph	xmm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtqq2ph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtqq2ph	xmm30, QWORD BCST [r9]{1to2}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtqq2ph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtqq2ph	xmm30{k7}{z}, QWORD BCST [rdx-1024]{1to2}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtqq2ph	xmm30, QWORD BCST [r9]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtqq2ph	xmm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtqq2ph	xmm30{k7}{z}, QWORD BCST [rdx-1024]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2dq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2dq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2dq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2dq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2dq	xmm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2dq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2dq	xmm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2dq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2dq	ymm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2dq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2dq	ymm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2dq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2qq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2qq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2qq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2qq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2qq	xmm30{k7}, DWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2qq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2qq	xmm30, DWORD PTR [rcx+508]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2qq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2qq	ymm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2qq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2qq	ymm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2qq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2udq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2udq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2udq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2udq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2udq	xmm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2udq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2udq	xmm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2udq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2udq	ymm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2udq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2udq	ymm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2udq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uqq	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2uqq	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uqq	ymm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2uqq	ymm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uqq	xmm30{k7}, DWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uqq	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uqq	xmm30, DWORD PTR [rcx+508]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uqq	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uqq	ymm30{k7}, QWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uqq	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uqq	ymm30, QWORD PTR [rcx+1016]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uqq	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uw	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2uw	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uw	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvttph2uw	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2uw	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uw	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uw	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uw	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2uw	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2uw	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2uw	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2uw	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2w	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvttph2w	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2w	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvttph2w	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvttph2w	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2w	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2w	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2w	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvttph2w	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvttph2w	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvttph2w	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvttph2w	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtudq2ph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtudq2ph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtudq2ph	xmm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtudq2ph	xmm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtudq2ph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtudq2ph	xmm30, DWORD BCST [r9]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtudq2ph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtudq2ph	xmm30{k7}{z}, DWORD BCST [rdx-512]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtudq2ph	xmm30, DWORD BCST [r9]{1to8}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtudq2ph	xmm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtudq2ph	xmm30{k7}{z}, DWORD BCST [rdx-512]{1to8}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuqq2ph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtuqq2ph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuqq2ph	xmm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtuqq2ph	xmm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuqq2ph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtuqq2ph	xmm30, QWORD BCST [r9]{1to2}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuqq2ph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuqq2ph	xmm30{k7}{z}, QWORD BCST [rdx-1024]{1to2}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuqq2ph	xmm30, QWORD BCST [r9]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuqq2ph	xmm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuqq2ph	xmm30{k7}{z}, QWORD BCST [rdx-1024]{1to4}	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuw2ph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtuw2ph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuw2ph	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtuw2ph	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtuw2ph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtuw2ph	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuw2ph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuw2ph	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtuw2ph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtuw2ph	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtuw2ph	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtuw2ph	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtw2ph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vcvtw2ph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtw2ph	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vcvtw2ph	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vcvtw2ph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtw2ph	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtw2ph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtw2ph	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vcvtw2ph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vcvtw2ph	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vcvtw2ph	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vcvtw2ph	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vdivph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vdivph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vdivph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vdivph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vdivph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vdivph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vdivph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vdivph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vdivph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vdivph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vdivph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vdivph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmaddcph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfcmaddcph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmaddcph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfcmaddcph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmaddcph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmaddcph	ymm30, ymm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmaddcph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmaddcph	ymm30{k7}{z}, ymm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmaddcph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmaddcph	xmm30, xmm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmaddcph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmaddcph	xmm30{k7}{z}, xmm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmulcph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfcmulcph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmulcph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfcmulcph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfcmulcph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmulcph	ymm30, ymm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmulcph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmulcph	ymm30{k7}{z}, ymm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfcmulcph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfcmulcph	xmm30, xmm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfcmulcph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfcmulcph	xmm30{k7}{z}, xmm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd132ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmadd132ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd132ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmadd132ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd132ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd132ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd132ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd132ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd132ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd132ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd132ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd132ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd213ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmadd213ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd213ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmadd213ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd213ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd213ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd213ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd213ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd213ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd213ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd213ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd213ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd231ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmadd231ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd231ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmadd231ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmadd231ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd231ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd231ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd231ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmadd231ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmadd231ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmadd231ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmadd231ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddcph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmaddcph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddcph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmaddcph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddcph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddcph	ymm30, ymm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddcph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddcph	ymm30{k7}{z}, ymm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddcph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddcph	xmm30, xmm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddcph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddcph	xmm30{k7}{z}, xmm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmaddsub132ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmaddsub132ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub132ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub132ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub132ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub132ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub132ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub132ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub132ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmaddsub213ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmaddsub213ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub213ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub213ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub213ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub213ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub213ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub213ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub213ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmaddsub231ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmaddsub231ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub231ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub231ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub231ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmaddsub231ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmaddsub231ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmaddsub231ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmaddsub231ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub132ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmsub132ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub132ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmsub132ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub132ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub132ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub132ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub132ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub132ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub132ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub132ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub132ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub213ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmsub213ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub213ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmsub213ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub213ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub213ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub213ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub213ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub213ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub213ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub213ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub213ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub231ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmsub231ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub231ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmsub231ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsub231ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub231ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub231ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub231ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsub231ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsub231ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsub231ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsub231ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmsubadd132ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmsubadd132ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd132ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd132ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd132ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd132ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd132ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd132ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd132ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmsubadd213ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmsubadd213ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd213ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd213ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd213ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd213ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd213ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd213ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd213ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmsubadd231ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmsubadd231ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd231ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd231ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd231ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmsubadd231ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmsubadd231ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmsubadd231ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmsubadd231ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmulcph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfmulcph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmulcph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfmulcph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfmulcph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmulcph	ymm30, ymm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmulcph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmulcph	ymm30{k7}{z}, ymm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfmulcph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfmulcph	xmm30, xmm29, DWORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfmulcph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfmulcph	xmm30{k7}{z}, xmm29, DWORD BCST [rdx-512]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd132ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfnmadd132ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd132ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfnmadd132ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd132ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd132ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd132ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd132ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd132ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd132ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd132ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd132ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd213ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfnmadd213ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd213ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfnmadd213ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd213ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd213ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd213ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd213ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd213ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd213ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd213ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd213ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd231ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfnmadd231ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd231ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfnmadd231ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmadd231ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd231ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd231ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd231ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmadd231ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmadd231ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmadd231ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmadd231ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub132ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfnmsub132ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub132ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfnmsub132ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub132ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub132ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub132ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub132ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub132ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub132ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub132ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub132ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub213ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfnmsub213ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub213ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfnmsub213ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub213ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub213ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub213ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub213ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub213ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub213ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub213ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub213ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub231ph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vfnmsub231ph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub231ph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vfnmsub231ph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vfnmsub231ph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub231ph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub231ph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub231ph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfnmsub231ph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfnmsub231ph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfnmsub231ph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfnmsub231ph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vfpclassph	k5, xmm30, 123	 #AVX512-FP16,AVX512VL
+	vfpclassph	k5{k7}, xmm30, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfpclassph	k5, ymm30, 123	 #AVX512-FP16,AVX512VL
+	vfpclassph	k5{k7}, ymm30, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfpclassph	k5{k7}, XMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vfpclassph	k5, WORD BCST [r9]{1to8}, 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfpclassph	k5, XMMWORD PTR [rcx+2032], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfpclassph	k5{k7}, WORD BCST [rdx-256]{1to8}, 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vfpclassph	k5, WORD BCST [r9]{1to16}, 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vfpclassph	k5, YMMWORD PTR [rcx+4064], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vfpclassph	k5{k7}, WORD BCST [rdx-256]{1to16}, 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING
+	vgetexpph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vgetexpph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetexpph	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vgetexpph	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetexpph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetexpph	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetexpph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetexpph	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vgetexpph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetexpph	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetexpph	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetexpph	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vgetmantph	ymm30, ymm29, 123	 #AVX512-FP16,AVX512VL
+	vgetmantph	ymm30{k7}{z}, ymm29, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetmantph	xmm30, xmm29, 123	 #AVX512-FP16,AVX512VL
+	vgetmantph	xmm30{k7}{z}, xmm29, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vgetmantph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetmantph	xmm30, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetmantph	xmm30, XMMWORD PTR [rcx+2032], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetmantph	xmm30{k7}{z}, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vgetmantph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vgetmantph	ymm30, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vgetmantph	ymm30, YMMWORD PTR [rcx+4064], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vgetmantph	ymm30{k7}{z}, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmaxph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vmaxph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmaxph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vmaxph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmaxph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmaxph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmaxph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmaxph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmaxph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmaxph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmaxph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmaxph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vminph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vminph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vminph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vminph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vminph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vminph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vminph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vminph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vminph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vminph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vminph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vminph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmulph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vmulph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmulph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vmulph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vmulph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmulph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmulph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmulph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vmulph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vmulph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vmulph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vmulph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrcpph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vrcpph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrcpph	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vrcpph	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrcpph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrcpph	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrcpph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrcpph	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrcpph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrcpph	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrcpph	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrcpph	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vreduceph	ymm30, ymm29, 123	 #AVX512-FP16,AVX512VL
+	vreduceph	ymm30{k7}{z}, ymm29, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vreduceph	xmm30, xmm29, 123	 #AVX512-FP16,AVX512VL
+	vreduceph	xmm30{k7}{z}, xmm29, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vreduceph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vreduceph	xmm30, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vreduceph	xmm30, XMMWORD PTR [rcx+2032], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vreduceph	xmm30{k7}{z}, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vreduceph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vreduceph	ymm30, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vreduceph	ymm30, YMMWORD PTR [rcx+4064], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vreduceph	ymm30{k7}{z}, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrndscaleph	ymm30, ymm29, 123	 #AVX512-FP16,AVX512VL
+	vrndscaleph	ymm30{k7}{z}, ymm29, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrndscaleph	xmm30, xmm29, 123	 #AVX512-FP16,AVX512VL
+	vrndscaleph	xmm30{k7}{z}, xmm29, 123	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrndscaleph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrndscaleph	xmm30, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrndscaleph	xmm30, XMMWORD PTR [rcx+2032], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrndscaleph	xmm30{k7}{z}, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrndscaleph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000], 123	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrndscaleph	ymm30, WORD BCST [r9], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrndscaleph	ymm30, YMMWORD PTR [rcx+4064], 123	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrndscaleph	ymm30{k7}{z}, WORD BCST [rdx-256], 123	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrsqrtph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vrsqrtph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrsqrtph	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vrsqrtph	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vrsqrtph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrsqrtph	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrsqrtph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrsqrtph	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vrsqrtph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vrsqrtph	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vrsqrtph	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vrsqrtph	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vscalefph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vscalefph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vscalefph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vscalefph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vscalefph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vscalefph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vscalefph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vscalefph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vscalefph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vscalefph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vscalefph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vscalefph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsqrtph	xmm30, xmm29	 #AVX512-FP16,AVX512VL
+	vsqrtph	xmm30{k7}{z}, xmm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsqrtph	ymm30, ymm29	 #AVX512-FP16,AVX512VL
+	vsqrtph	ymm30{k7}{z}, ymm29	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsqrtph	xmm30{k7}, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsqrtph	xmm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsqrtph	xmm30, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsqrtph	xmm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsqrtph	ymm30{k7}, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsqrtph	ymm30, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsqrtph	ymm30, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsqrtph	ymm30{k7}{z}, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsubph	ymm30, ymm29, ymm28	 #AVX512-FP16,AVX512VL
+	vsubph	ymm30{k7}{z}, ymm29, ymm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsubph	xmm30, xmm29, xmm28	 #AVX512-FP16,AVX512VL
+	vsubph	xmm30{k7}{z}, xmm29, xmm28	 #AVX512-FP16,AVX512VL MASK_ENABLING ZEROCTL
+	vsubph	ymm30{k7}, ymm29, YMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsubph	ymm30, ymm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsubph	ymm30, ymm29, YMMWORD PTR [rcx+4064]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsubph	ymm30{k7}{z}, ymm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL
+	vsubph	xmm30{k7}, xmm29, XMMWORD PTR [rbp+r14*8+0x10000000]	 #AVX512-FP16,AVX512VL MASK_ENABLING
+	vsubph	xmm30, xmm29, WORD BCST [r9]	 #AVX512-FP16,AVX512VL BROADCAST_EN
+	vsubph	xmm30, xmm29, XMMWORD PTR [rcx+2032]	 #AVX512-FP16,AVX512VL Disp8(7f)
+	vsubph	xmm30{k7}{z}, xmm29, WORD BCST [rdx-256]	 #AVX512-FP16,AVX512VL BROADCAST_EN Disp8(80) MASK_ENABLING ZEROCTL

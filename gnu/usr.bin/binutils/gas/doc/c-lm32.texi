@@ -1,0 +1,232 @@
+@c Copyright (C) 2008-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+
+@ifset GENERIC
+@page
+@node LM32-Dependent
+@chapter LM32 Dependent Features
+@end ifset
+
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter LM32 Dependent Features
+@end ifclear
+
+@cindex LM32 support
+@menu
+* LM32 Options::              Options
+* LM32 Syntax::               Syntax
+* LM32 Opcodes::              Opcodes
+@end menu
+
+@node LM32 Options
+@section Options
+@cindex LM32 options (none)
+@cindex options for LM32 (none)
+
+@table @code
+
+@cindex @code{-mmultiply-enabled} command-line option, LM32
+@item -mmultiply-enabled
+Enable multiply instructions.
+
+@cindex @code{-mdivide-enabled} command-line option, LM32
+@item -mdivide-enabled
+Enable divide instructions.
+
+@cindex @code{-mbarrel-shift-enabled} command-line option, LM32
+@item -mbarrel-shift-enabled
+Enable barrel-shift instructions.
+
+@cindex @code{-msign-extend-enabled} command-line option, LM32
+@item -msign-extend-enabled
+Enable sign extend instructions.
+
+@cindex @code{-muser-enabled} command-line option, LM32
+@item -muser-enabled
+Enable user defined instructions.
+
+@cindex @code{-micache-enabled} command-line option, LM32
+@item -micache-enabled
+Enable instruction cache related CSRs.
+
+@cindex @code{-mdcache-enabled} command-line option, LM32
+@item -mdcache-enabled
+Enable data cache related CSRs.
+
+@cindex @code{-mbreak-enabled} command-line option, LM32
+@item -mbreak-enabled
+Enable break instructions.
+
+@cindex @code{-mall-enabled} command-line option, LM32
+@item -mall-enabled
+Enable all instructions and CSRs.
+
+@end table
+
+
+@node LM32 Syntax
+@section Syntax
+@menu
+* LM32-Regs::                 Register Names
+* LM32-Modifiers::            Relocatable Expression Modifiers
+* LM32-Chars::                Special Characters
+@end menu
+
+@node LM32-Regs
+@subsection Register Names
+
+@cindex LM32 register names
+@cindex register names, LM32
+
+LM32 has 32 x 32-bit general purpose registers @samp{r0},
+@samp{r1}, ... @samp{r31}.
+
+The following aliases are defined: @samp{gp} - @samp{r26},
+@samp{fp} - @samp{r27}, @samp{sp} - @samp{r28},
+@samp{ra} - @samp{r29}, @samp{ea} - @samp{r30},
+@samp{ba} - @samp{r31}.
+
+LM32 has the following Control and Status Registers (CSRs).
+
+@table @code
+@item IE
+Interrupt enable.
+@item IM
+Interrupt mask.
+@item IP
+Interrupt pending.
+@item ICC
+Instruction cache control.
+@item DCC
+Data cache control.
+@item CC
+Cycle counter.
+@item CFG
+Configuration.
+@item EBA
+Exception base address.
+@item DC
+Debug control.
+@item DEBA
+Debug exception base address.
+@item JTX
+JTAG transmit.
+@item JRX
+JTAG receive.
+@item BP0
+Breakpoint 0.
+@item BP1
+Breakpoint 1.
+@item BP2
+Breakpoint 2.
+@item BP3
+Breakpoint 3.
+@item WP0
+Watchpoint 0.
+@item WP1
+Watchpoint 1.
+@item WP2
+Watchpoint 2.
+@item WP3
+Watchpoint 3.
+@end table
+
+@node LM32-Modifiers
+@subsection Relocatable Expression Modifiers
+
+@cindex LM32 modifiers
+@cindex syntax, LM32
+
+The assembler supports several modifiers when using relocatable addresses
+in LM32 instruction operands.  The general syntax is the following:
+
+@smallexample
+modifier(relocatable-expression)
+@end smallexample
+
+@table @code
+@cindex symbol modifiers
+
+@item lo
+
+This modifier allows you to use bits 0 through 15 of
+an address expression as 16 bit relocatable expression.
+
+@item hi
+
+This modifier allows you to use bits 16 through 23 of an address expression
+as 16 bit relocatable expression.
+
+For example
+
+@smallexample
+ori  r4, r4, lo(sym+10)
+orhi r4, r4, hi(sym+10)
+@end smallexample
+
+@item gp
+
+This modified creates a 16-bit relocatable expression that is
+the offset of the symbol from the global pointer.
+
+@smallexample
+mva r4, gp(sym)
+@end smallexample
+
+@item got
+
+This modifier places a symbol in the GOT and creates a 16-bit
+relocatable expression that is the offset into the GOT of this
+symbol.
+
+@smallexample
+lw r4, (gp+got(sym))
+@end smallexample
+
+@item gotofflo16
+
+This modifier allows you to use the bits 0 through 15 of an
+address which is an offset from the GOT.
+
+@item gotoffhi16
+
+This modifier allows you to use the bits 16 through 31 of an
+address which is an offset from the GOT.
+
+@smallexample
+orhi r4, r4, gotoffhi16(lsym)
+addi r4, r4, gotofflo16(lsym)
+@end smallexample
+
+@end table
+
+@node LM32-Chars
+@subsection Special Characters
+
+@cindex line comment character, LM32
+@cindex LM32 line comment character
+The presence of a @samp{#} on a line indicates the start of a comment
+that extends to the end of the current line.  Note that if a line
+starts with a @samp{#} character then it can also be a logical line
+number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, LM32
+@cindex statement separator, LM32
+@cindex LM32 line separator
+A semicolon (@samp{;}) can be used to separate multiple statements on
+the same line.
+
+@node LM32 Opcodes
+@section Opcodes
+
+@cindex LM32 opcode summary
+@cindex opcode summary, LM32
+@cindex mnemonics, LM32
+@cindex instruction summary, LM32
+For detailed information on the LM32 machine instruction set, see
+@url{http://www.latticesemi.com/products/intellectualproperty/ipcores/mico32/}.
+
+@code{@value{AS}} implements all the standard LM32 opcodes.

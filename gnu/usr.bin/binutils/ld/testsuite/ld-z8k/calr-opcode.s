@@ -1,0 +1,4 @@
+
+	.text
+	calr	target
+	.end

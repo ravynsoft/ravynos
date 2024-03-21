@@ -1,0 +1,4 @@
+# signals ignored at shell startup cannot be trapped or reset
+trap 'echo USR2' USR2
+
+trap -p USR2

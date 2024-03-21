@@ -1,0 +1,68 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+m=1
+readonly m=4
+declare -p m
+
+n=1
+f() { readonly n=4; echo -n in func: ; declare -p n ; }
+f
+declare -p n
+
+p=1
+readonly p
+
+readonly p=4
+declare -p p
+
+r=(1)
+readonly r
+
+f() { readonly r=(4) ; }
+f
+declare -p r
+
+f() { readonly r='(5)' ; }
+f
+declare -p r
+
+f() { readonly -a r=(6) ; }
+f
+declare -p r
+
+f() { readonly -a r='(7)' ; }
+f
+declare -p r
+
+x=(1)
+readonly x=(4)
+declare -p x
+
+y=(1)
+f() { readonly y=(4); echo -n in func: ; declare -p y; }
+f
+declare -p y
+
+z=(1)
+f() { readonly -a z=(4); echo -n in func: ; declare -p z; }
+f
+declare -p z
+
+f() { readonly y1=(4); echo -n in func: ; declare -p y1; }
+f
+declare -p y1
+
+f() { readonly -a z1=(4); echo -n in func: ; declare -p z1; }
+f
+declare -p z1

@@ -1,0 +1,10 @@
+# problems with word splitting unquoted here-strings present since bash-3.2
+
+x="foo        bar"
+cat <<< $x     # Word-splitting appears to collapse the run of whitespace
+cat <<< "$x"  # Whitespace preserved, as with here doc
+
+x="qux:::::bax"
+IFS=':'
+cat <<< $x     # Word-splitting appears to collapse the run of whitespace
+cat <<< "$x"  # Whitespace preserved, as with here doc

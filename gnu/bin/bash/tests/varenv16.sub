@@ -1,0 +1,51 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test whether or not temporary environment assignments are exported
+# in posix mode. works now, posix says it will not work in the future
+
+show2()
+{
+        printf %s "foo=${foo-<unset>}"
+        echo -n ' environment foo='
+        printenv foo || echo
+}
+
+showfoo()
+{
+	local foo
+
+	foo=showfoo show2
+}
+
+unset foo
+showfoo
+foo=foo showfoo
+showfoo
+echo outside: "foo=${foo-<unset>}"
+
+echo ; echo 'posix mode'
+set -o posix
+unset foo
+showfoo
+echo outside 1.0: "foo=${foo-<unset>}"
+foo=foo showfoo
+showfoo
+echo outside 1.1: "foo=${foo-<unset>}"
+
+unset foo
+show2
+echo outside 2.0: "foo=${foo-<unset>}"
+foo=foo show2
+show2
+echo outside 2.1: "foo=${foo-<unset>}"

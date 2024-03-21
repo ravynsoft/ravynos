@@ -1,0 +1,33 @@
+#autoload
+
+# Options:
+#
+# -0        include jid 0 as a match for the host system
+# -o param  jail parameter to complete instead of jid -
+#              e.g. name, path, ip4.addr, host.hostname
+
+local addhost host param desc=1
+local -a jails args expl
+zparseopts -D -K -E 0=addhost o:=param
+param=${param[2]:-name}
+
+jails=( ${${(f)"$(_call_program jails jls $param name)"}/ /:} )
+case $param in
+  jid) host=0 ;;
+  name)
+    host=0
+    desc=0
+  ;;
+  path)
+    host=/
+    args=( -M 'r:|/=* r:|=*' )
+  ;;
+  ip4.addr) args=( -M 'r:|.=* r:|=*' ) ;;
+esac
+[[ -n $addhost && -n $host ]] && jails+=( "$host:$HOST" )
+
+if (( desc )); then
+  _describe -t jails jail jails "$@" "$args[@]"
+else
+  _wanted jails expl jail compadd "$@" "$args[@]" - ${jails%:*}
+fi

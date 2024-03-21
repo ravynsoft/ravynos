@@ -1,0 +1,10 @@
+[^:]*: Assembler messages:
+[^:]*:3: Error: Destination registers may not be the same -- `vmov r0,r0,q0\[2\],q0\[0\]'
+[^:]*:4: Error: r13 not allowed here -- `vmov sp,r0,q0\[2\],q0\[0\]'
+[^:]*:5: Error: r13 not allowed here -- `vmov r0,sp,q0\[2\],q0\[0\]'
+[^:]*:6: Error: r15 not allowed here -- `vmov pc,r0,q0\[2\],q0\[0\]'
+[^:]*:7: Error: r15 not allowed here -- `vmov r0,pc,q0\[2\],q0\[0\]'
+[^:]*:8: Error: r13 not allowed here -- `vmov q0\[2\],q0\[0\],sp,r0'
+[^:]*:9: Error: r13 not allowed here -- `vmov q0\[2\],q0\[0\],r0,sp'
+[^:]*:10: Error: r15 not allowed here -- `vmov q0\[2\],q0\[0\],pc,r0'
+[^:]*:11: Error: r15 not allowed here -- `vmov q0\[2\],q0\[0\],r0,pc'

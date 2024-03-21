@@ -1,0 +1,1207 @@
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2018, 2021-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd January 16, 2023
+.Dt CVTSUDOERS 1
+.Os Sudo @PACKAGE_VERSION@
+.Sh NAME
+.Nm cvtsudoers
+.Nd convert between sudoers file formats
+.Sh SYNOPSIS
+.Nm cvtsudoers
+.Op Fl ehMpV
+.Op Fl b Ar dn
+.Op Fl c Ar conf_file
+.Op Fl d Ar deftypes
+.Op Fl f Ar output_format
+.Op Fl i Ar input_format
+.Op Fl I Ar increment
+.Op Fl l Ar log_file
+.Op Fl m Ar filter
+.Op Fl o Ar output_file
+.Op Fl O Ar start_point
+.Op Fl P Ar padding
+.Op Fl s Ar sections
+.Op Ar input_file ...
+.Sh DESCRIPTION
+The
+.Nm
+utility accepts one or more security policies in either
+.Em sudoers
+or LDIF format as input, and generates a single
+policy of the specified format as output.
+The default input format is
+.Em sudoers.
+The default output format is LDIF.
+It is only possible to convert a policy file that is syntactically correct.
+.Pp
+If no
+.Ar input_file
+is specified, or if it is
+.Ql - ,
+the policy is read from the standard input.
+Input files may be optionally prefixed with a host name followed by a colon
+.Pq Ql :\&
+to make the policy rules specific to a host when merging multiple files.
+By default, the result is written to the standard output.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl b Ar dn , Fl -base Ns = Ns Ar dn
+The base DN (distinguished name) that will be used when performing
+LDAP queries.
+Typically this is of the form
+.Dq ou=SUDOers,dc=my-domain,dc=com
+for the domain my-domain.com.
+If this option is not specified, the value of the
+.Ev SUDOERS_BASE
+environment variable will be used instead.
+Only necessary when converting to LDIF format.
+.It Fl c Ar conf_file , Fl -config Ns = Ns Ar conf_file
+Specify the path to the configuration file.
+Defaults to
+.Pa @sysconfdir@/cvtsudoers.conf .
+.It Fl d Ar deftypes , Fl -defaults Ns = Ns Ar deftypes
+Only convert
+.Em Defaults
+entries of the specified types.
+One or more
+.Em Defaults
+types may be specified, separated by a comma
+.Pq Ql \&, .
+The supported types are:
+.Bl -tag -width "command"
+.It all
+All Defaults entries.
+.It global
+Global Defaults entries that are applied regardless of
+user, runas, host, or command.
+.It user
+Per-user Defaults entries.
+.It runas
+Per-runas user Defaults entries.
+.It host
+Per-host Defaults entries.
+.It command
+Per-command Defaults entries.
+.El
+.Pp
+See the
+.Sy Defaults
+section in
+.Xr sudoers @mansectform@
+for more information.
+.Pp
+If the
+.Fl d
+option is not specified, all
+.Em Defaults
+entries will be converted.
+.It Fl e , Fl -expand-aliases
+Expand aliases in
+.Ar input_file .
+Aliases are preserved by default when the output
+.Ar format
+is JSON or sudoers.
+.It Fl f Ar output_format , Fl -output-format Ns = Ns Ar output_format
+Specify the output format (case-insensitive).
+The following formats are supported:
+.Bl -tag -width "sudoers"
+.It CSV
+CSV (comma-separated value) files are often used by spreadsheets
+and report generators.
+See
+.Sx CSV output format
+for more details.
+.It JSON
+JSON (JavaScript Object Notation) files are usually easier for
+third-party applications to consume than the traditional
+.Em sudoers
+format.
+The various values have explicit types which removes much of the
+ambiguity of the
+.Em sudoers
+format.
+See
+.Sx JSON output format
+for more details.
+.It LDIF
+LDIF (LDAP Data Interchange Format) files can be imported into an LDAP
+server for use with
+.Xr sudoers.ldap @mansectform@ .
+.Pp
+Conversion to LDIF has the following limitations:
+.Bl -bullet -width 1n
+.It
+Command, host, runas, and user-specific Defaults lines cannot be
+translated as they don't have an equivalent in the sudoers LDAP schema.
+.It
+Command, host, runas, and user aliases are not supported by the
+sudoers LDAP schema so they are expanded during the conversion.
+.El
+.It sudoers
+Traditional sudoers format.
+A new sudoers file will be reconstructed from the parsed input file.
+Comments are not preserved and data from any include files will be
+output inline.
+.El
+.It Fl -group-file Ns = Ns Ar file
+When the
+.Fl M
+option is also specified, perform group queries using
+.Ar file
+instead of the system group database.
+.It Fl h , Fl -help
+Display a short help message to the standard output and exit.
+.It Fl i Ar input_format , Fl -input-format Ns = Ns Ar input_format
+Specify the input format.
+The following formats are supported:
+.Bl -tag -width "sudoers"
+.It LDIF
+LDIF (LDAP Data Interchange Format) files can be exported from an LDAP
+server to convert security policies used by
+.Xr sudoers.ldap @mansectform@ .
+If a base DN (distinguished name) is specified, only sudoRole objects
+that match the base DN will be processed.
+Not all sudoOptions specified in a sudoRole can be translated from
+LDIF to sudoers format.
+.It sudoers
+Traditional sudoers format.
+This is the default input format.
+.El
+.It Fl I Ar increment , Fl -increment Ns = Ns Ar increment
+When generating LDIF output, increment each sudoOrder attribute by
+the specified number.
+Defaults to an increment of 1.
+.It Fl l Ar log_file , Fl -logfile Ns = Ns Ar log_file
+Log conversion warnings to
+.Ar log_file
+instead of to the standard error.
+This is particularly useful when merging multiple
+.Em sudoers
+files, which can generate a large number of warnings.
+.It Fl m Ar filter , Fl -match Ns = Ns Ar filter
+Only output rules that match the specified
+.Ar filter .
+A
+.Ar filter
+expression is made up of one or more
+.Sy key = Ar value
+pairs, separated by a comma
+.Pq Ql \&, .
+The
+.Sy key
+may be
+.Dq cmnd
+.Pq or Dq cmd ,
+.Dq host ,
+.Dq group ,
+or
+.Dq user .
+For example,
+.Sy user No = Ar operator
+or
+.Sy host No = Ar www .
+An upper-case
+.Em Cmnd_Alias ,
+.Em Host_alias ,
+or
+.Em User_Alias
+may be specified as the
+.Dq cmnd ,
+.Dq host ,
+or
+.Dq user .
+.Pp
+A matching
+.Em sudoers
+rule may also include users, groups, and hosts that are not part of the
+.Ar filter .
+This can happen when a rule includes multiple users, groups, or hosts.
+To prune out any non-matching user, group, or host from the rules, the
+.Fl p
+option may be used.
+.Pp
+By default, the password and group databases are not consulted when matching
+against the filter so the users and groups do not need to be present
+on the local system (see the
+.Fl M
+option).
+Only aliases that are referenced by the filtered policy rules will
+be displayed.
+.It Fl M , Fl -match-local
+When the
+.Fl m
+option is also specified, use password and group database information
+when matching users and groups in the filter.
+Only users and groups in the filter that exist on the local system will match,
+and a user's groups will automatically be added to the filter.
+If the
+.Fl M
+is
+.Em not
+specified, users and groups in the filter do not need to exist on the
+local system, but all groups used for matching must be explicitly listed
+in the filter.
+.It Fl o Ar output_file , Fl -output Ns = Ns Ar output_file
+Write the converted output to
+.Ar output_file .
+If no
+.Ar output_file
+is specified, or if it is
+.Ql - ,
+the converted
+.Em sudoers
+policy will be written to the standard output.
+.It Fl O Ar start_point , Fl -order-start Ns = Ns Ar start_point
+When generating LDIF output, use the number specified by
+.Ar start_point
+in the sudoOrder attribute of the first sudoRole object.
+Subsequent sudoRole object use a sudoOrder value generated by adding an
+.Ar increment ,
+see the
+.Fl I
+option for details.
+Defaults to a starting point of 1.
+A starting point of 0 will disable the generation of sudoOrder
+attributes in the resulting LDIF file.
+.It Fl -passwd-file Ns = Ns Ar file
+When the
+.Fl M
+option is also specified, perform passwd queries using
+.Ar file
+instead of the system passwd database.
+.It Fl p , Fl -prune-matches
+When the
+.Fl m
+option is also specified,
+.Nm
+will prune out non-matching users, groups, and hosts from
+matching entries.
+.It Fl P Ar padding , Fl -padding Ns = Ns Ar padding
+When generating LDIF output, construct the initial sudoOrder value by
+concatenating
+.Ar order_start
+and
+.Ar increment ,
+padding the
+.Ar increment
+with zeros until it consists of
+.Ar padding
+digits.
+For example, if
+.Ar order_start
+is 1027,
+.Ar padding
+is 3, and
+.Ar increment
+is 1, the value of sudoOrder for the first entry will be 1027000,
+followed by 1027001, 1027002, etc.
+If the number of sudoRole entries is larger than the padding would allow,
+.Nm
+will exit with an error.
+By default, no padding is performed.
+.It Fl s Ar sections , Fl -suppress Ns = Ns Ar sections
+Suppress the output of specific
+.Ar sections
+of the security policy.
+One or more section names may be specified, separated by a comma
+.Pq Ql \&, .
+The supported section name are:
+.Sy defaults ,
+.Sy aliases
+and
+.Sy privileges
+(which may be shortened to
+.Sy privs ) .
+.It Fl V , -version
+Print the
+.Nm
+and
+.Em sudoers
+grammar versions and exit.
+.El
+.Ss Merging multiple files
+When multiple input files are specified,
+.Nm
+will attempt to merge them into a single policy file.
+It is assumed that user and group names are consistent among
+the policy files to be merged.
+For example, user
+.Dq bob
+on one host is the same as user
+.Dq bob
+on another host.
+.Pp
+When merging policy files, it is possible to prefix the input file name
+with a host name, separated by a colon
+.Pq Ql :\& .
+When the files are merged, the host name will be used to restrict
+the policy rules to that specific host where possible.
+.Pp
+The merging process is performed as follows:
+.Bl -bullet -width 1n
+.It
+Each input file is parsed into internal sudoers data structures.
+.It
+Aliases are merged and renamed as necessary to avoid conflicts.
+In the event of a conflict, the first alias found is left as-is and
+subsequent aliases of the same name are renamed with a numeric suffix
+separated with a underscore
+.Pq Ql _ .
+For example, if there are two different aliases named
+.Dv SERVERS ,
+the first will be left as-is and the second will be renamed
+.Dv SERVERS_1 .
+References to the renamed alias are also updated in the policy file.
+Duplicate aliases (those with identical contents) are pruned.
+.It
+Defaults settings are merged and duplicates are removed.
+If there are conflicts in the Defaults settings, a warning is emitted for
+each conflict.
+If a host name is specified with the input file,
+.Nm
+will change the global Defaults settings in that file to be host-specific.
+A warning is emitted for command, user, or runas-specific Defaults settings
+which cannot be made host-specific.
+.It
+Per-user rules are merged and duplicates are removed.
+If a host name is specified with the input file,
+.Nm
+will change rules that specify a host name of
+.Sy ALL
+to the host name associated with the policy file being merged.
+The merging of rules is currently fairly simplistic but will be
+improved in a later release.
+.El
+.Pp
+It is possible to merge policy files with differing formats.
+.Ss The cvtsudoers.conf file
+Options in the form
+.Dq keyword = value
+may also be specified in a configuration file,
+.Pa @sysconfdir@/cvtsudoers.conf
+by default.
+The following keywords are recognized:
+.Bl -tag -width 4n
+.It Sy defaults = Ar deftypes
+See the description of the
+.Fl d
+command line option.
+.It Sy expand_aliases = Ar yes | no
+See the description of the
+.Fl e
+command line option.
+.It Sy group_file = Ar file
+See the description of the
+.Fl -group-file
+command line option.
+.It Sy input_format = Ar ldif | sudoers
+See the description of the
+.Fl i
+command line option.
+.It Sy match = Ar filter
+See the description of the
+.Fl m
+command line option.
+.It Sy match_local = Ar yes | no
+See the description of the
+.Fl M
+command line option.
+.It Sy order_increment = Ar increment
+See the description of the
+.Fl I
+command line option.
+.It Sy order_start = Ar start_point
+See the description of the
+.Fl O
+command line option.
+.It Sy output_format = Ar csv | json | ldif | sudoers
+See the description of the
+.Fl f
+command line option.
+.It Sy padding = Ar padding
+See the description of the
+.Fl P
+command line option.
+.It Sy passwd_file = Ar file
+See the description of the
+.Fl -passwd-file
+command line option.
+.It Sy prune_matches = Ar yes | no
+See the description of the
+.Fl p
+command line option.
+.It Sy sudoers_base = Ar dn
+See the description of the
+.Fl b
+command line option.
+.It Sy suppress = Ar sections
+See the description of the
+.Fl s
+command line option.
+.El
+.Pp
+Options on the command line will override values from the
+configuration file.
+.Ss JSON output format
+The
+.Em sudoers
+JSON format may contain any of the following top-level objects:
+.Bl -tag -width 4n
+.It Defaults
+An array of objects, each containing an
+.Em Options
+array and an optional
+.Em Binding
+array.
+.Pp
+The
+.Em Options
+array consists of one or more objects, each containing a
+.Dq name:value
+pair that corresponds to a
+.Em sudoers
+.Em Defaults
+setting.
+.Em Options
+that operate on a list will also include an
+.Em operation
+entry in the object, with a value of
+.Dq list_assign
+for
+.Ql = ,
+.Dq list_add
+for
+.Ql += ,
+or
+.Dq list_remove
+for
+.Ql -= .
+.Pp
+The optional
+.Em Binding
+array consists of one or more objects, each containing a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+If a
+.Em Binding
+is present, the setting will only take effect if one of the specified
+.Em command ,
+.Em hostname ,
+.Em netgroup ,
+.Em networkaddr ,
+.Em nonunixgid ,
+.Em nonunixgroup ,
+.Em usergid ,
+.Em usergroup ,
+.Em userid ,
+.Em username ,
+or alias entries match.
+.Pp
+For example, the following
+.Em sudoers
+entry:
+.Bd -literal
+Defaults@somehost set_home, env_keep += DISPLAY
+.Ed
+.Pp
+converts to:
+.Bd -literal
+"Defaults": [
+    {
+        "Binding": [
+            { "hostname": "somehost" }
+        ],
+        "Options": [
+            { "set_home": true },
+            {
+                "operation": "list_add",
+                "env_keep": [
+                    "DISPLAY"
+                ]
+            }
+        ]
+    }
+]
+.Ed
+.It User_Aliases
+A JSON object containing one or more
+.Em sudoers
+.Em User_Alias
+entries where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be one of
+.Em netgroup ,
+.Em nonunixgid ,
+.Em nonunixgroup ,
+.Em useralias ,
+.Em usergid ,
+.Em usergroup ,
+.Em userid ,
+or
+.Em username .
+.Pp
+For example, the following
+.Em sudoers
+entry:
+.Bd -literal
+User_Alias SYSADMIN = will, %wheel, +admin
+.Ed
+.Pp
+converts to:
+.Bd -literal
+"User_Aliases": {
+    "SYSADMIN": [
+        { "username": "will" },
+        { "usergroup": "wheel" },
+        { "netgroup": "admin" }
+    ]
+}
+.Ed
+.It Runas_Aliases
+A JSON object containing one or more
+.Em sudoers
+.Em Runas_Alias
+entries, where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be one of
+.Em netgroup ,
+.Em nonunixgid ,
+.Em nonunixgroup ,
+.Em runasalias ,
+.Em usergid ,
+.Em usergroup ,
+.Em userid ,
+or
+.Em username .
+.Pp
+For example, the following
+.Em sudoers
+entry:
+.Bd -literal
+Runas_Alias DB = oracle, sybase : OP = root, operator
+.Ed
+.Pp
+converts to:
+.Bd -literal
+"Runas_Aliases": {
+    "DB": [
+        { "username": "oracle" },
+        { "username": "sybase" }
+    ],
+    "OP": [
+        { "username": "root" },
+        { "username": "operator" }
+    ]
+}
+.Ed
+.It Host_Aliases
+A JSON object containing one or more
+.Em sudoers
+.Em Host_Alias
+entries where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be one of
+.Em hostalias ,
+.Em hostname ,
+.Em netgroup ,
+or
+.Em networkaddr .
+.Pp
+For example, the following
+.Em sudoers
+entries:
+.Bd -literal
+Host_Alias DORMNET = 128.138.243.0, 128.138.204.0/24
+Host_Alias SERVERS = boulder, refuge
+.Ed
+.Pp
+convert to:
+.Bd -literal
+"Host_Aliases": {
+    "DORMNET": [
+        { "networkaddr": "128.138.243.0" },
+        { "networkaddr": "128.138.204.0/24" }
+    ],
+    "SERVERS": [
+        { "hostname": "boulder" },
+        { "hostname": "refuge" }
+    ]
+}
+.Ed
+.It Cmnd_Aliases
+A JSON object containing one or more
+.Em sudoers
+.Em Cmnd_Alias
+entries where each named alias has as its value an array
+containing one or more objects.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be either another
+.Em cmndalias
+or a
+.Em command .
+For example, the following
+.Em sudoers
+entries:
+.Bd -literal
+Cmnd_Alias SHELLS = /bin/bash, /bin/csh, /bin/sh, /bin/zsh
+Cmnd_Alias VIPW = /usr/bin/chpass, /usr/bin/chfn, /usr/bin/chsh, \e
+                  /usr/bin/passwd, /usr/sbin/vigr, /usr/sbin/vipw
+.Ed
+.Pp
+convert to:
+.Bd -literal
+"Cmnd_Aliases": {
+    "SHELLS": [
+        { "command": "/bin/bash" },
+        { "command": "/bin/csh" },
+        { "command": "/bin/sh" },
+        { "command": "/bin/zsh" }
+    ],
+    "VIPW": [
+        { "command": "/usr/bin/chpass" },
+        { "command": "/usr/bin/chfn" },
+        { "command": "/usr/bin/chsh" },
+        { "command": "/usr/bin/passwd" },
+        { "command": "/usr/sbin/vigr" },
+        { "command": "/usr/sbin/vipw" }
+    ]
+}
+.Ed
+.It User_Specs
+A JSON array containing one or more objects, each representing a
+.Em sudoers
+User_Spec.
+Each object in the
+.Em User_Specs
+array should contain a
+.Em User_List
+array, a
+.Em Host_List
+array and a
+.Em Cmnd_Specs
+array.
+.Pp
+A
+.Em User_List
+consists of one or more objects.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be one of
+.Em netgroup ,
+.Em nonunixgid ,
+.Em nonunixgroup ,
+.Em useralias ,
+.Em usergid ,
+.Em usergroup ,
+.Em userid ,
+or
+.Em username .
+If
+.Em username
+is set to the special value
+.Sy ALL ,
+it will match any user.
+.Pp
+A
+.Em Host_List
+consists of one or more objects.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be one of
+.Em hostalias ,
+.Em hostname ,
+.Em netgroup ,
+or
+.Em networkaddr .
+If
+.Em hostname
+is set to the special value
+.Sy ALL ,
+it will match any host.
+.Pp
+The
+.Em Cmnd_Specs
+array consists of one or more JSON objects describing a command that
+may be run.
+Each
+.Em Cmnd_Specs
+is made up of a
+.Em Commands
+array, an optional
+.Em runasusers
+array, an optional
+.Em runasgroups
+array, and an optional
+.Em Options array.
+.Pp
+The
+.Em Commands
+array consists of one or more objects containing
+.Dq name:value
+pair elements.
+The following names and values are supported:
+.Bl -tag -width "command"
+.It command
+A string containing the command to run.
+The special value
+.Sy ALL
+it will match any command.
+.It negated
+A boolean value that, if true, will negate any comparison performed
+with the object.
+.It sha224
+A string containing the SHA224 digest of the
+.Em command .
+.It sha256
+A string containing the SHA256 digest of the
+.Em command .
+.It sha384
+A string containing the SHA384 digest of the
+.Em command .
+.It sha512
+A string containing the SHA512 digest of the
+.Em command .
+.El
+.Pp
+The
+.Em runasusers
+array consists of objects describing users the command may be run as.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be one of
+.Em netgroup ,
+.Em nonunixgid ,
+.Em nonunixgroup ,
+.Em runasalias ,
+.Em usergid ,
+.Em usergroup ,
+.Em userid ,
+or
+.Em username .
+If
+.Em username
+is set to the special value
+.Sy ALL ,
+it will match any user.
+If
+.Em username
+is set to the empty string
+.Dq "" ,
+it will match the invoking user.
+.Pp
+The
+.Em runasgroups
+array consists of objects describing groups the command may be run as.
+Each object contains a
+.Dq name:value
+pair and an optional
+.Em negated
+entry, which will negate any comparison performed with the object.
+The name may be one of
+.Em runasalias ,
+.Em usergid ,
+or
+.Em usergroup .
+If
+.Em usergroup
+is set to the special value
+.Sy ALL ,
+it will match any group.
+.Pp
+The
+.Em Options
+array is of the same format as the one in the
+.Em Defaults
+object.
+Any
+.Em Tag_Spec
+entries in
+.Em sudoers
+are converted to
+.Em Options .
+A user with
+.Dq sudo ALL
+privileges will automatically have the
+.Em setenv
+option enabled to match the implicit behavior provided by
+.Em sudoers .
+.Pp
+For example, the following
+.Em sudoers
+entry:
+.Bd -literal
+millert ALL = (ALL : ALL) NOPASSWD: ALL, !/usr/bin/id
+.Ed
+.Pp
+converts to:
+.Bd -literal
+"User_Specs": [
+    {
+        "User_List": [
+            { "username": "millert" }
+        ],
+        "Host_List": [
+            { "hostname": "ALL" }
+        ],
+        "Cmnd_Specs": [
+            {
+                "runasusers": [
+                    { "username": "ALL" }
+                ],
+                "runasgroups": [
+                    { "usergroup": "ALL" }
+                ],
+                "Options": [
+                    { "authenticate": false },
+                    { "setenv": true }
+                ],
+                "Commands": [
+                    { "command": "ALL" },
+                    {
+                        "command": "/usr/bin/id",
+                        "negated": true
+                    }
+                ]
+            }
+        ]
+    }
+]
+.Ed
+.El
+.Ss CSV output format
+CSV (comma-separated value) files are often used by spreadsheets
+and report generators.
+For CSV output,
+.Nm
+double quotes strings that contain commas.
+For each literal double quote character present inside the string,
+two double quotes are output.
+This method of quoting commas is compatible with most spreadsheet programs.
+.Pp
+There are three possible sections in
+.Nm cvtsudoers Ns 's
+CSV output, each separated by a blank line:
+.Bl -tag -width 4n
+.It defaults
+This section includes any
+.Em Defaults
+settings in
+.Em sudoers .
+The
+.Em defaults
+section begins with the following heading:
+.Bd -literal -offset indent
+defaults_type,binding,name,operator,value
+.Ed
+.Pp
+The fields are as follows:
+.Bl -tag -width 4n
+.It defaults_type
+The type of
+.Em Defaults
+setting; one of
+.Em defaults ,
+.Em defaults_command ,
+.Em defaults_host ,
+.Em defaults_runas ,
+or
+.Em defaults_user .
+.It binding
+For
+.Em defaults_command ,
+.Em defaults_host ,
+.Em defaults_runas ,
+and
+.Em defaults_user
+this is the value that must match for the setting to be applied.
+.It name
+The name of the
+.Em Defaults
+setting.
+.It operator
+The operator determines how the value is applied to the setting.
+It may be either
+.Ql =
+(assignment),
+.Ql +=
+(append),
+or
+.Ql -=
+(remove).
+.It value
+The setting's value, usually a string or, for
+settings used in a boolean context,
+.Em true
+or
+.Em false .
+.El
+.It aliases
+This section includes any
+.Em Cmnd_Alias
+.Em Host_Alias ,
+.Em Runas_Alias ,
+or
+.Em User_Alias ,
+entries from
+.Em sudoers .
+The
+.Em aliases
+section begins with the following heading:
+.Bd -literal -offset indent
+alias_type,alias_name,members
+.Ed
+.Pp
+The fields are as follows:
+.Bl -tag -width 4n
+.It alias_type
+The type of alias; one of
+.Em Cmnd_Alias ,
+.Em Host_Alias ,
+.Em Runas_Alias ,
+or
+.Em User_Alias .
+.It alias_name
+The name of the alias; a string starting with an upper-case letter that
+consists of upper-case letters, digits, or underscores.
+.It members
+A comma-separated list of members belonging to the alias.
+Due to the use of commas,
+.Em members
+is surrounded by double quotes if it contains more than one member.
+.El
+.It rules
+This section includes the
+.Em sudoers
+rules that grant privileges.
+The
+.Em rules
+section begins with the following heading:
+.Bd -literal -offset indent
+rule,user,host,runusers,rungroups,options,command
+.Ed
+.Pp
+The fields are as follows:
+.Bl -tag -width 4n
+.It rule
+This field indicates a
+.Em sudoers
+.Em rule
+entry.
+.It user
+The user the rule applies to.
+This may also be a Unix group (preceded by a
+.Ql %
+character), a non-Unix group (preceded by
+.Ql %: )
+or a netgroup (preceded by a
+.Ql +
+character)
+or a
+.Em User_Alias .
+If set to the special value
+.Sy ALL ,
+it will match any user.
+.It host
+The host the rule applies to.
+This may also be a netgroup (preceded by a
+.Ql +
+character)
+or a
+.Em Host_Alias .
+If set to the special value
+.Sy ALL ,
+it will match any host.
+.It runusers
+An optional comma-separated list of users (or
+.Em Runas_Alias Ns No es )
+the command may be run as.
+If it contains more than one member, the value is surrounded by
+double quotes.
+If set to the special value
+.Sy ALL ,
+it will match any user.
+If empty, the root user is assumed.
+.It rungroups
+An optional comma-separated list of groups (or
+.Em Runas_Alias Ns No es )
+the command may be run as.
+If it contains more than one member, the value is surrounded by
+double quotes.
+If set to the special value
+.Sy ALL ,
+it will match any group.
+If empty, the
+.Em runuser Ns 's
+group is used.
+.It options
+An optional list of
+.Em Defaults
+settings to apply to the command.
+Any
+.Em Tag_Spec
+entries in
+.Em sudoers
+are converted to
+.Em options .
+.It commands
+A list of commands, with optional arguments, that the user is allowed to run.
+If set to the special value
+.Sy ALL ,
+it will match any command.
+.El
+.Pp
+For example, the following
+.Em sudoers
+entry:
+.Bd -literal
+millert ALL = (ALL : ALL) NOPASSWD: ALL, !/usr/bin/id
+.Ed
+.Pp
+converts to:
+.Bd -literal
+rule,millert,ALL,ALL,ALL,"!authenticate","ALL,!/usr/bin/id"
+.Ed
+.El
+.Sh FILES
+.Bl -tag -width 24n
+.It Pa @sysconfdir@/cvtsudoers.conf
+default configuration for cvtsudoers
+.El
+.Sh EXAMPLES
+Convert
+.Pa /etc/sudoers
+to LDIF (LDAP Data Interchange Format) where the
+.Pa ldap.conf
+file uses a
+.Em sudoers_base
+of my-domain,dc=com, storing the result in
+.Pa sudoers.ldif :
+.Bd -literal -offset 4n
+$ cvtsudoers -b ou=SUDOers,dc=my-domain,dc=com -o sudoers.ldif \e
+             /etc/sudoers
+.Ed
+.Pp
+Convert
+.Pa /etc/sudoers
+to JSON format, storing the result in
+.Pa sudoers.json :
+.Bd -literal -offset 4n
+$ cvtsudoers -f json -o sudoers.json /etc/sudoers
+.Ed
+.Pp
+Parse
+.Pa /etc/sudoers
+and display only rules that match user
+.Em ambrose
+on host
+.Em hastur :
+.Bd -literal -offset 4n
+$ cvtsudoers -f sudoers -m user=ambrose,host=hastur /etc/sudoers
+.Ed
+.Pp
+Same as above, but expand aliases and prune out any non-matching
+users and hosts from the expanded entries.
+.Bd -literal -offset 4n
+$ cvtsudoers -ep -f sudoers -m user=ambrose,host=hastur /etc/sudoers
+.Ed
+.Pp
+Convert
+.Pa sudoers.ldif
+from LDIF to traditional
+.Em sudoers
+format:
+.Bd -literal -offset 4n
+$ cvtsudoers -i ldif -f sudoers -o sudoers.new sudoers.ldif
+.Ed
+.Pp
+Merge a global
+.Em sudoers
+file with two host-specific policy files from the hosts
+.Dq xyzzy
+and
+.Dq plugh :
+.Bd -literal -offset 4n
+$ cvtsudoers -f sudoers -o sudoers.merged sudoers \e
+    xyzzy:sudoers.xyzzy plugh:sudoers.plugh
+.Ed
+.Sh SEE ALSO
+.Xr sudoers @mansectform@ ,
+.Xr sudoers.ldap @mansectform@ ,
+.Xr sudo @mansectsu@
+.Sh AUTHORS
+Many people have worked on
+.Nm sudo
+over the years; this version consists of code written primarily by:
+.Bd -ragged -offset indent
+.An Todd C. Miller
+.Ed
+.Pp
+See the CONTRIBUTORS.md file in the
+.Nm sudo
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+.Nm sudo .
+.Sh BUGS
+If you believe you have found a bug in
+.Nm ,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.Sh SUPPORT
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.Sh DISCLAIMER
+.Nm
+is provided
+.Dq AS IS
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+.Nm sudo
+or https://www.sudo.ws/about/license/ for complete details.

@@ -1,0 +1,57 @@
+#
+# Makefile for libopcodes under openVMS
+#
+# For use with gnu-make for vms
+#
+# Created by Klaus K"ampf, kkaempf@progis.de
+#
+#   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+#
+
+ifeq ($(ARCH),IA64)
+OBJS=ia64-dis.obj,ia64-opc.obj
+ARCHDEF="ARCH_ia64"
+endif
+ifeq ($(ARCH),ALPHA)
+OBJS=alpha-dis.obj,alpha-opc.obj
+ARCHDEF="ARCH_alpha"
+endif
+ifeq ($(ARCH),VAX)
+OBJS=vax-dis.obj
+ARCHDEF="ARCH_vax"
+endif
+
+OBJS:=$(OBJS),dis-init.obj,dis-buf.obj,disassemble.obj
+
+ifeq ($(CC),gcc)
+DEFS=/define=($(ARCHDEF))
+CFLAGS=/include=([],[-.include],[-.bfd])$(DEFS)
+else
+DEFS=/define=($(ARCHDEF))
+OPT=/noopt/debug
+CFLAGS=$(OPT)/include=([],"../include",[-.bfd])$(DEFS)\
+ /name=(as_is,shortened)
+endif
+
+libopcodes.olb: $(OBJS)
+	purge
+	lib/create libopcodes *.obj
+
+clean:
+	$$ purge
+	$(RM) *.obj;
+	$(RM) libopcodes.olb;

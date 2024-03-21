@@ -1,0 +1,17 @@
+#source: tlspic1.s
+#source: tlspic2.s
+#as:
+#ld: -shared -melf32xtensa
+#objdump: -sj.text --stop-address=0x350
+#target: xtensa*-*-linux*
+
+.*: +file format elf32-xtensa-.e
+
+Contents of section .text:
+ 0+2e0 0+ 0+ 0+ 0+  .*
+ 0+2f0 0+ 0+ 0+ 0+  .*
+ 0+300 0+ 0+ 0+ 0+  .*
+ 0+310 0+ 0+ 0+ 0+  .*
+ 0+320 0+ 0+ 0*200* 0*260*  .*
+ 0+330 0*400* 0*470* 0*600* 0*650*  .*
+ 0+340 0+ 0+ 0+ 0+  .*

@@ -1,0 +1,1 @@
+	.cpu quarkse_em

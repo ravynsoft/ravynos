@@ -1,0 +1,225 @@
+Changes in TIFF v3.9.0beta
+==========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.9.0beta (:tag:`Release-v3-9-0beta`)
+  Previous Version        :doc:`v3.8.2 <v3.8.2>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+Major changes
+-------------
+
+* New :program:`tiffcrop` utility contributed by Richard Nolde.
+  :program:`tiffcrop` does the same as :program:`tiffcp`, but also can crop,
+  extract, rotate and mirror images.
+
+* :file:`tif_jbig.c`:  Added  support for JBIG compression scheme
+  (34661 code), contributed by Lee Howard.
+
+* Totally new implementation of OJPEG module from
+  Joris Van Damme. No need to patch libjpeg anymore. Many OJPEG files
+  should be supported now that was not supported previously.
+
+Software configuration changes
+------------------------------
+
+* :file:`tif_config.wince.h`, :file:`tiffconf.wince.h`, :file:`tif_wince.c`: WinCE-specific
+  compatibility stuff from Mateusz Loskot.
+
+* Rename :file:`config.h.vc` and :file:`tif_config.h.vc` to :file:`config.vc.h` and
+  :file:`tif_config.vc.h` for easier identification by folks using an IDE.
+
+* :file:`configure`, :file:`configure.ac`: OJPEG support enabled by default (i.e.,
+  when conformant JPEG support is enabled).
+
+* :file:`README.vms`, :file:`Makefile.am`, :file:`configure.com`, :file:`libtiff/Makefile.am`,
+  :file:`libtiff/tif_config.h-vms`, :file:`libtiff/tif_stream.cxx`,
+  :file:`libtiff/tif_vms.c`, :file:`libtiff/tiffconf.h-vms`:
+  Added support for OpenVMS by Alexey Chupahin.
+
+* :file:`nmake.opt`: use ``/EHsc`` for VS2005 compatibility.  Also define
+  :c:macro:`_CRT_SECURE_NO_DEPRECATE` to avoid noise on VS2005.
+
+
+Library changes
+---------------
+
+* :file:`tif_dirinfo.c` (:c:func:`_TIFFFindFieldInfo`): Don't attempt to
+  :c:func:`bsearch` on a :c:macro:`NULL` fieldinfo list.
+  (:c:func:`_TIFFFindFieldInfoByName`): Don't attempt to :c:func:`lfind` on a :c:macro:`NULL`
+  fieldinfo list.
+
+* :file:`tif_jpeg.c`: Changed :c:func:`JPEGInitializeLibJPEG` so that it
+  will convert from decompressor to compressor or compress to decompress
+  if required by the force arguments.  This works around a problem in
+  where the :c:func:`JPEGFixupTestSubsampling` may cause a decompressor to
+  be setup on a directory when later a compressor is required with the
+  force flag set.  Occurs with the :program:`addtiffo` program for instance.
+
+* :file:`tif_dirwrite.c`: Fixed swapping of byte arrays stored
+  in-place in tag offsets as per bug
+  :bugzilla-rs:`1363`
+
+* :file:`tif_getimage.c`: workaround for "Fractional scanline" error
+  reading OJPEG images with rowsperstrip that is not a multiple of
+  vertical subsampling factor. This bug is mentioned in
+  :bugzilla-rs:`1390` and
+  `<http://www.asmail.be/msg0054766825.html>`_
+
+* :file:`tif_dirread.c`: Added special function to handle
+  ``SubjectDistance`` EXIF tag as per bug
+  :bugzilla-rs:`1362`
+
+* :file:`tif_dirread.c`, :file:`tif_read.c`: Type of the byte counters
+  changed from :c:type:`tsize_t` to :c:type:`uint32` to be able to work with data arrays
+  larger than 2GB. Fixes bug
+  :bugzilla-rs:`890`.
+  Idea submitted by Matt Hancher.
+
+* :file:`tif_dir.c`: Workaround for incorrect TIFFs with
+  ``ExtraSamples == 999`` produced by Corel Draw. As per bug
+  :bugzilla-rs:`1490`
+
+* :file:`tif_write.c`: :c:func:`TIFFAppendToStrip` - clear sorted flag if
+  we move a strip.
+  :bugzilla-rs:`1359`
+
+* :file:`tif_fax3.c`: Save the state of printdir codec dependent method.
+
+* :file:`tif_jpeg.c`: Save the state of printdir codec dependent method
+  as per bug
+  :bugzilla-rs:`1273`
+
+* :file:`tif_win32.c`: Fixed problem with offset value manipulation
+  as per bug
+  :bugzilla-rs:`1322`
+
+* :file:`tif_fax3.c`, :file:`tif_next.c`, :file:`tif_pixarlog.c`: Fixed multiple
+  vulnerabilities, as per  Gentoo bug ():
+  `<http://bugs.gentoo.org/show_bug.cgi?id=142383>`_
+
+* :file:`tif_lzw.c`, :file:`tif_zip.c`: Fixed problems with mixing
+  encoding and decoding on the same read-write TIFF handle.  The LZW
+  code can now maintain encode and decode state at the same time. The
+  ZIP code will switch back and forth as needed.
+  :bugzilla-rs:`757`
+
+* :file:`tif_msdos.c`: Avoid handle leak for failed opens.
+  c/o Thierry Pierron
+
+* :file:`tif_dirwrite.c`: take care not to flush out buffer of strip/tile
+  data in :c:func:`_TIFFWriteDirectory` if :c:macro:`TIFF_BEENWRITING` not set.  Relates
+  to bug report by Peng Gao with black strip at bottom of images.
+
+* :file:`tif_dirwrite.c`: make sure to use :c:type:`uint32` for wordcount in
+  :c:func:`TIFFWriteNormalTag` if ``writecount`` is :c:macro:`VARIABLE2` for ASCII fields.
+  It already seems to have been done for other field types.  Needed
+  for :program:`tiffset` on files with geotiff ascii text.
+
+* :file:`tif_dirinfo.c`: Added missed EXIF tag ``ColorSpace`` (40961).
+
+* :file:`tif_dirread.c`: Move IFD fetching code in the separate
+  function :c:func:`TIFFFetchDirectory` avoiding code duplication in
+  :c:func:`TIFFReadDirectory` and :c:func:`TIFFReadCustomDirectory`.
+
+* :file:`tif_readdir.c`: Added case in :c:func:`EstimateStripByteCounts` for tiled
+  files.  Modified :c:func:`TIFFReadDirectory` to not invoke
+  :c:func:`EstimateStripByteCounts` for case where entry 0 and 1 are unequal but
+  one of them is zero.
+  :bugzilla-rs:`1204`
+
+* :file:`tif_open.c`, :file:`tif_dirread.c`, :file:`tiffiop.h`: Move IFD looping
+  checking code in the separate function :c:func:`TIFFCheckDirOffset`.
+
+* :file:`tif_aux.c`: Added :c:func:`_TIFFCheckRealloc` function.
+
+* :file:`tif_fax3.c`: Fixed problems in fax decoder as per bug
+  :bugzilla-rs:`1194`
+
+* :file:`tif_jbig.c`:  Added  support for JBIG compression scheme
+  (34661 code) contributed by Lee Howard. As per bug
+  :bugzilla-rs:`896`.
+
+* :file:`tif_getimage.c`: Added support for planarconfig separate
+  non-subsampled YCbCr (i.e. separate YCbCr with subsampling ``[1,1]``).
+
+* :file:`tif_getimage.c`: Revision of all RGB(A) put routines:
+
+  * Conversion of unassociated alpha to associated alpha
+    now done with more performant LUT, and calculation more
+    correct.
+  * Conversion of 16bit data to 8bit data now done with
+    more performant LUT, and calculation more correct
+  * Bugfix of handling of 16bit RGB with unassociated alpha
+
+* :file:`tif_ojpeg.c`: totally new implementation
+
+* :file:`tif_getimage.c`: removed :c:macro:`TIFFTAG_JPEGCOLORMODE` handling
+  of OJPEG images in favor of tif_getimage.c native handling of
+  YCbCr and desubsampling.
+
+* :file:`tif_jpeg.c`: :c:func:`JPEGVSetField` so that altering the photometric
+  interpretation causes the "upsampled" flag to be recomputed.  Fixes
+  peculiar bug where photometric flag had to be set before jpegcolormode
+  flag.
+
+Tools changes
+-------------
+
+* :file:`tiff2ps.c`:  Added support 16-bit images as per bug
+  :bugzilla-rs:`1566`.
+  Patch from William Bader.
+
+* :file:`tiff2pdf.c`: Fix for :c:macro:`TIFFTAG_JPEGTABLES` tag fetching and
+  significant upgrade of the whole utility as per bug
+  :bugzilla-rs:`1560`.
+  Now we don't need :file:`tiffiop.h` in :program:`tiff2pdf` anymore and will open output
+  PDF file using :c:func:`TIFFClientOpen` machinery as it is implemented
+  by Leon Bottou.
+
+* :file:`tiffcrop.c`:  New tiffcrop utility contributed
+  by Richard Nolde. As per bug
+  :bugzilla-rs:`1383`
+
+* :file:`tiff2pdf.c`: Do not assume inches when the resolution units
+  do not specified. As per bug
+  :bugzilla-rs:`1366`
+
+* :file:`tiffset.c`: Properly handle tags with :c:macro:`TIFF_VARIABLE` writecount.
+  As per bug
+  :bugzilla-rs:`1350`
+
+* :file:`tif2rgba.c`: This utility does not work properly on big-endian
+  architectures. It was fixed including the bug
+  :bugzilla-rs:`1149`
+
+* :file:`tiff2pdf.c`: Fix handling of ``-q`` values.
+  :bugzilla-rs:`587`
+
+* :file:`tiffcmp.c`: Fixed floating point comparison logic as per bug
+  :bugzilla-rs:`1191`
+
+* :file:`tiff2pdf.c`: Fixed buffer overflow condition in
+  :c:func:`t2p_write_pdf_string` as per bug
+  :bugzilla-rs:`1196`
+
+Contributed software changes
+----------------------------
+
+* :file:`contrib/addtiffo/tif_overview.c`: Fix problems with odd sized
+  output blocks in :c:func:`TIFF_DownSample_Subsampled`
+  (:bugzilla-rs:`1542`).
+
+* :file:`contrib/dbs/xtiff/xtiff.c`: Make xtiff utility compilable.
+  Though it is still far from the state of being working and useful.

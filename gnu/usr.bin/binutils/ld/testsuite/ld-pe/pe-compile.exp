@@ -1,0 +1,140 @@
+# Expect script for complex PE tests that require a C compiler
+# in addition to the just-built binutils.
+#   Copyright (C) 2009-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# These tests can only be run on PE/COFF platforms.
+if {![is_pecoff_format]} {
+    return
+}
+
+# No compiler, no test.
+if { ![check_compiler_available] } {
+    untested "PE version scripts"
+    untested "aligned common tests"
+    # Add more "untested" directives here when adding more tests below.
+    return
+}
+
+proc build_basefile1_o {} {
+    global CC_FOR_TARGET
+    global srcdir
+    global subdir
+
+    # Compile the object file.
+    if ![ld_compile $CC_FOR_TARGET $srcdir/$subdir/basefile1.s tmpdir/basefile1.o] {
+	fail "compiling basefile1 object"
+    }
+}
+
+proc run_basefile_test { testname } {
+    global LD
+    global DLLTOOL
+    global srcdir
+    global subdir
+    global verbose
+
+    if ![ld_link "$LD -e start \
+	    --base-file=tmpdir/$testname.base \
+	    --export-all-symbols" tmpdir/$testname.dll \
+	    "tmpdir/basefile1.o"] {
+	fail "linking DLL"
+	return
+    }
+
+    if { $verbose > 2 } then { verbose "output is [file_contents tmpdir/$testname.base]" 3 }
+
+    catch "exec wc -c tmpdir/$testname.base" err
+
+    if ![string match "0 tmpdir/$testname.base" [string trim $err]] then {
+      send_log "$err\n"
+      if { $verbose == 2 } then { verbose "$err" 2 }
+      fail $testname
+      return
+    }
+
+    pass "$testname"
+}
+
+proc build_vers_script_dll_o {} {
+    global CC_FOR_TARGET
+    global srcdir
+    global subdir
+
+    # Compile the object file.
+    if ![ld_compile "$CC_FOR_TARGET -shared" $srcdir/$subdir/vers-script-dll.c tmpdir/vers-script-dll.o] {
+	fail "compiling shared lib object"
+    }
+}
+
+proc run_ver_script_test { testname } {
+    global CC_FOR_TARGET
+    global srcdir
+    global subdir
+    global verbose
+
+    if ![ld_link "$CC_FOR_TARGET -shared \
+	    -Wl,--version-script,$srcdir/$subdir/$testname.ver \
+	    -Wl,--output-def,tmpdir/$testname.def" tmpdir/$testname.dll \
+	    "tmpdir/vers-script-dll.o"] {
+	fail "linking DLL"
+    }
+
+    if { $verbose > 2 } then { verbose "output is [file_contents tmpdir/$testname.def]" 3 }
+    if { [regexp_diff tmpdir/$testname.def $srcdir/$subdir/$testname.d] } then {
+	fail $testname
+	if { $verbose == 2 } then { verbose "output is [file_contents tmpdir/$testname.def]" 2 }
+	return
+    }
+
+    pass "$testname"
+}
+
+
+build_vers_script_dll_o
+
+run_ver_script_test "vers-script-1"
+run_ver_script_test "vers-script-2"
+run_ver_script_test "vers-script-3"
+run_ver_script_test "vers-script-4"
+
+if {[istarget i*86-*-cygwin*]
+    || [istarget i*86-*-pe]
+    || [istarget i*86-*-mingw*]
+    || [istarget x86_64-*-mingw*] } {
+
+   build_basefile1_o
+   run_basefile_test "basefile-secrel"
+ } else {
+    untested "PE basefile test"
+ }
+
+set align_tests {
+  {"aligned common 1" "" "" "" {aligncomm-1.c}
+   {{nm -C aligncomm.d}} "aligncomm-1.x"}
+  {"aligned common 2" "" "" "" {aligncomm-2.c}
+   {{nm -C aligncomm.d}} "aligncomm-2.x"}
+  {"aligned common 3" "" "" "" {aligncomm-3.c}
+   {{nm -C aligncomm.d}} "aligncomm-3.x"}
+  {"aligned common 4" "" "" "" {aligncomm-4.c}
+   {{nm -C aligncomm.d}} "aligncomm-4.x"}
+}
+
+run_ld_link_tests $align_tests

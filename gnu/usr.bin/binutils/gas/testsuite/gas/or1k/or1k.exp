@@ -1,0 +1,6 @@
+# OR1K assembler testsuite. -*- Tcl -*-
+
+if [istarget or1k*-*-*] {
+        run_dump_tests [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+	run_list_test "reloc-2" ""
+}

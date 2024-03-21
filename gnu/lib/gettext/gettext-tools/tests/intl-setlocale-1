@@ -1,0 +1,57 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that on glibc systems, gettext() works right even with intermediate
+# setlocale() calls.
+
+# This test works only on glibc systems, because it relies on HAVE_LOCALE_NULL
+# being set.
+: ${GLIBC2=no}
+test "$GLIBC2" = yes || {
+  echo "Skipping test: not a glibc system"
+  Exit 77
+}
+
+# This test works only on systems that have a de_DE.UTF-8 and fr_FR.UTF-8 locale installed.
+LC_ALL=de_DE.UTF-8 ../testlocale || {
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: locale de_DE.UTF-8 not installed"
+  else
+    echo "Skipping test: locale de_DE.UTF-8 not supported"
+  fi
+  Exit 77
+}
+LC_ALL=fr_FR.UTF-8 ../testlocale || {
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: locale fr_FR.UTF-8 not installed"
+  else
+    echo "Skipping test: locale fr_FR.UTF-8 not supported"
+  fi
+  Exit 77
+}
+
+test -d in-sl-1 || mkdir in-sl-1
+test -d in-sl-1/de_DE || mkdir in-sl-1/de_DE
+test -d in-sl-1/de_DE/LC_MESSAGES || mkdir in-sl-1/de_DE/LC_MESSAGES
+test -d in-sl-1/fr_FR || mkdir in-sl-1/fr_FR
+test -d in-sl-1/fr_FR/LC_MESSAGES || mkdir in-sl-1/fr_FR/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o in-sl-1/de_DE/LC_MESSAGES/tstprog.mo "$wabs_srcdir"/intl-setlocale-1-1.po
+${MSGFMT} -o in-sl-1/fr_FR/LC_MESSAGES/tstprog.mo "$wabs_srcdir"/intl-setlocale-1-2.po
+
+cat <<EOF > in-sl-1.ok
+String1 - Lang1: 1st string
+String2 - Lang1: 2nd string
+String1 - Lang2: 1st string
+String2 - Lang2: 2nd string
+String1 - First string for testing.
+String2 - Another string for testing.
+EOF
+
+../intl-setlocale-1-prg > in-sl-1.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} in-sl-1.ok in-sl-1.out || Exit 1
+
+Exit 0

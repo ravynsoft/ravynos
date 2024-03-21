@@ -1,0 +1,36 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# test relax
+
+if [istarget score-*-*] then {
+    run_dump_test "ldi"
+    run_dump_test "nop"
+    run_dump_test "tcond"
+    run_dump_test "ls32ls16"
+    run_dump_test "ls32ls16p"
+    run_dump_test "postlw"
+    run_dump_test "presw"
+    run_dump_test "rD_rA_rB"
+    run_dump_test "bittst"
+    run_dump_test "addi"
+    run_dump_test "br"
+    run_dump_test "b"
+    run_dump_test "move"
+    run_dump_test "rD_rA_BN"
+    run_dump_test "rD_rA"
+}
+

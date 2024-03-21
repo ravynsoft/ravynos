@@ -1,0 +1,10 @@
+#compdef trap
+
+local expl
+
+if [[ CURRENT -eq 2 ]]; then
+  compset -q
+  _normal
+else
+  _signals -a
+fi

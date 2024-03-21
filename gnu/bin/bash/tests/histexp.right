@@ -1,0 +1,246 @@
+echo $BASH_VERSION
+./histexp.tests: line 37: history: !!:z: history expansion failed
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+    5  HISTFILE=$TMPDIR/newhistory
+    6  echo line 2 for history
+echo line 2 for history
+echo line 2 for history
+set -H
+echo line 2 for history
+line 2 for history
+    1  for i in one two three; do echo $i; done
+    2  /bin/sh -c 'echo this is $0'
+    3  ls
+    4  echo $BASH_VERSION
+    5  HISTFILE=$TMPDIR/newhistory
+    6  echo line 2 for history
+    7  set -H
+    8  echo line 2 for history
+a b c d e
+echo a b c d e
+a b c d e
+echo line 2 for history
+line 2 for history
+echo line 8 for history
+line 8 for history
+/bin/sh -c 'echo this is $0'
+this is /bin/sh
+echo sh
+sh
+echo /bin
+/bin
+echo e
+e
+a b c d e
+echo b c d e
+b c d e
+echo b c d
+b c d
+echo d e
+d e
+echo d e
+d e
+echo b c d
+b c d
+file.c
+echo file
+file
+echo .c
+.c
+echo 'file'
+file
+bax.c
+echo $file
+bax
+echo .c
+.c
+echo '$file'
+$file
+a b c d e
+echo 'a' 'b' 'c' 'd' 'e'
+a b c d e
+echo 'a b c d e'
+a b c d e
+foo.c foo.o foo.html foo.h
+echo bar.c foo.o foo.html foo.h
+bar.c foo.o foo.html foo.h
+echo bar.c bar.o bar.html bar.h
+bar.c bar.o bar.html bar.h
+echo xbar.c xbar.o xbar.html xbar.h
+xbar.c xbar.o xbar.html xbar.h
+echo xbar.c xbar.o xbar.html xbar.h
+xbar.c xbar.o xbar.html xbar.h
+echo xwhix.c xwhix.o xwhix.html xwhix.h
+xwhix.c xwhix.o xwhix.html xwhix.h
+echo xwhix.c xwhix.o xwhix.html xwhix.h
+echo 'xwhix'
+xwhix
+echo 'xwhix.h'
+xwhix.h
+echo 'xwhix.h'
+xwhix.h
+echo 'xwhix.h'
+xwhix.h
+    7  set -H
+    8  echo line 2 for history
+    9  echo a b c d e
+   10  echo line 2 for history
+   11  echo line 8 for history
+   12  /bin/sh -c 'echo this is $0'
+   13  echo sh
+   14  echo /bin
+   15  echo e
+   16  echo a b c d e
+   17  echo b c d e
+   18  echo b c d
+   19  echo d e
+   20  echo b c d
+   21  echo file.c
+   22  echo file
+   23  echo .c
+   24  echo 'file'
+   25  echo $file.c
+   26  echo $file
+   27  echo .c
+   28  echo '$file'
+   29  echo a b c d e
+   30  echo 'a' 'b' 'c' 'd' 'e'
+   31  echo 'a b c d e'
+   32  echo foo.c foo.o foo.html foo.h
+   33  echo bar.c foo.o foo.html foo.h
+   34  echo bar.c bar.o bar.html bar.h
+   35  echo xbar.c xbar.o xbar.html xbar.h
+   36  echo xwhix.c xwhix.o xwhix.html xwhix.h
+   37  echo 'xwhix'
+   38  echo 'xwhix.h'
+!!
+!!
+echo '!!' \!\!
+!! !!
+ok 1
+ok 2
+ok 3
+echo shopt a
+shopt a
+echo a b c d 2> /dev/null
+a b c d
+one two three four
+echo two ; echo four  
+one two three four
+echo four ; echo two
+!
+!
+!
+!
+!
+!
+!
+!
+!
+\!
+\!
+\!
+\!
+a
+b
+c
+echo "#!/bin/bash" set -o posix
+#!/bin/bash set -o posix
+!!
+!!
+a
+echo $(echo echo a)
+echo a
+a
+echo echo a $(echo echo a)
+echo a echo a
+b
+!! $(echo !!)
+c
+echo "echo c" "$(echo echo c)"
+echo c echo c
+d
+echo "echo d" $(echo "echo d")
+echo d echo d
+e
+!! !!
+f
+!!
+f
+!!
+g
+echo "echo g"
+echo g
+g
+eval echo "echo g"
+echo g
+h
+echo \!\! `echo echo h`
+!! echo h
+i
+echo echo i `echo echo i`
+echo i echo i
+j
+echo `echo j` echo j
+j echo j
+a
+cat < <(echo echo a)
+echo a
+b
+echo echo b `echo echo b`
+echo b echo b
+c
+!
+d
+!
+e
+! !
+./histexp4.sub: line 33: !': event not found
+/tmp/Step1
+echo /$(echo tmp)/Step1
+/tmp/Step1
+echo /<(echo tmp)/Step1 > /dev/null
+/tmp/Step1
+echo $(echo /tmp)/Step1
+/tmp/Step1
+echo <(echo /tmp)/Step1 > /dev/null
+/+(one|two|three)/Step1
+echo /+(one|two|three)/Step1
+/+(one|two|three)/Step1
+/*(tmp|dev|usr)/Step1
+echo /*(tmp|dev|usr)/Step1
+/*(tmp|dev|usr)/Step1
++(/one|/two|/three)/Step1
+echo +(/one|/two|/three)/Step1
++(/one|/two|/three)/Step1
+*(/tmp|/dev|/usr)/Step1
+echo *(/tmp|/dev|/usr)/Step1
+*(/tmp|/dev|/usr)/Step1
+one
+	echo echo one
+echo one
+echo one
+echo one
+    1  set -o histexpand
+    2  echo one
+    3  for f in a b c; do 	echo echo one; done
+    4  history
+two
+	echo echo two
+echo two
+echo two
+echo two
+    1  echo two
+    2  for f in a b c; do 	echo echo two; done
+    3  history
+a
+echo !!
+--between--
+echo !!

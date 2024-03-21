@@ -1,0 +1,42 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node bash
+@subsection bash - Bourne-Again Shell Script
+@cindex bash
+
+GNU @code{bash} 2.0 or newer has a special shorthand for translating a
+string and substituting variable values in it: @code{$"msgid"}.  But
+the use of this construct is @strong{discouraged}, due to the security
+holes it opens and due to its portability problems.
+
+The security holes of @code{$"..."} come from the fact that after looking up
+the translation of the string, @code{bash} processes it like it processes
+any double-quoted string: dollar and backquote processing, like @samp{eval}
+does.
+
+@enumerate
+@item
+In a locale whose encoding is one of BIG5, BIG5-HKSCS, GBK, GB18030, SHIFT_JIS,
+JOHAB, some double-byte characters have a second byte whose value is
+@code{0x60}.  For example, the byte sequence @code{\xe0\x60} is a single
+character in these locales.  Many versions of @code{bash} (all versions
+up to bash-2.05, and newer versions on platforms without @code{mbsrtowcs()}
+function) don't know about character boundaries and see a backquote character
+where there is only a particular Chinese character.  Thus it can start
+executing part of the translation as a command list.  This situation can occur
+even without the translator being aware of it: if the translator provides
+translations in the UTF-8 encoding, it is the @code{gettext()} function which
+will, during its conversion from the translator's encoding to the user's
+locale's encoding, produce the dangerous @code{\x60} bytes.
+
+@item
+A translator could - voluntarily or inadvertently - use backquotes
+@code{"`...`"} or dollar-parentheses @code{"$(...)"} in her translations.
+The enclosed strings would be executed as command lists by the shell.
+@end enumerate
+
+The portability problem is that @code{bash} must be built with
+internationalization support; this is normally not the case on systems
+that don't have the @code{gettext()} function in libc.

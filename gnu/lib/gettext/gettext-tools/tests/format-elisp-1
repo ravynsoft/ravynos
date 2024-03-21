@@ -1,0 +1,131 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Emacs Lisp format strings.
+
+cat <<\EOF > f-el-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one character argument
+"abc%c"
+# Valid: one integer argument
+"abc%d"
+# Valid: one integer argument
+"abc%x"
+# Valid: one integer argument
+"abc%X"
+# Valid: one integer argument
+"abc%o"
+# Valid: one floating-point argument
+"abc%e"
+# Valid: one floating-point argument
+"abc%E"
+# Valid: one floating-point argument
+"abc%f"
+# Valid: one floating-point argument
+"abc%g"
+# Valid: one floating-point argument
+"abc%G"
+# Valid: one object argument
+"abc%s"
+# Valid: one object argument
+"abc%S"
+# Valid: one argument with flags
+"abc%0#g"
+# Valid: one argument with width
+"abc%2g"
+# Valid: one argument with width
+"abc%*g"
+# Valid: one argument with precision
+"abc%.4g"
+# Valid: one argument with precision
+"abc%.*g"
+# Valid: one argument with width and precision
+"abc%14.4g"
+# Valid: one argument with width and precision
+"abc%14.*g"
+# Valid: one argument with width and precision
+"abc%*.4g"
+# Valid: one argument with width and precision
+"abc%*.*g"
+# Invalid: unterminated
+"abc%"
+# Invalid: unknown format specifier
+"abc%y"
+# Invalid: flags after width
+"abc%2^d"
+# Invalid: twice precision
+"abc%.4.2d"
+# Valid: three arguments
+"abc%d%x%x"
+# Valid: a numbered argument
+"abc%1$d"
+# Invalid: zero
+"abc%0$d"
+# Valid: two-digit numbered arguments
+"abc%11$def%10$dgh%9$dij%8$dkl%7$dmn%6$dop%5$dqr%4$dst%3$duv%2$dwx%1$dyz"
+# Invalid: unterminated number
+"abc%1"
+# Invalid: flags before number
+"abc%^1$d"
+# Valid: three arguments, two with same number
+"abc%1$4x,%2$c,%1$X"
+# Invalid: argument with conflicting types
+"abc%1$4x,%2$c,%1$s"
+# Valid: no conflict
+"abc%1$4x,%2$c,%1$d"
+# Valid: mixing of numbered and unnumbered arguments
+"abc%d%2$x"
+# Valid: mixing of numbered and unnumbered arguments
+"abc%5$d%x"
+# Valid: numbered argument with constant precision
+"abc%1$.9x"
+# Valid: missing non-final argument
+"abc%2$x%3$s"
+# Valid: permutation
+"abc%2$ddef%1$d"
+# Valid: multiple uses of same argument
+"abc%2$xdef%1$Sghi%2$x"
+# Valid: one argument with width
+"abc%2$#*g"
+# Valid: one argument with width and precision
+"abc%3$*.*g"
+# Invalid: zero
+"abc%0$*.*g"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-el-1-$n.in
+(_ ${string});
+EOF
+  ${XGETTEXT} -L EmacsLisp -o f-el-1-$n.po f-el-1-$n.in || Exit 1
+  test -f f-el-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep elisp-format f-el-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep elisp-format f-el-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-el-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-el-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-el-1-$n.in f-el-1-$n.po
+done < f-el-1.data
+
+Exit 0

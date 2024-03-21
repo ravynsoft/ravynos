@@ -1,0 +1,30 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Shell support: backslashed double-quotes inside single-quotes
+# and ANSI-C quoting.
+
+cat <<\EOF > xg-sh-3.sh
+echo `gettext 'abc\"def'`
+echo `gettext $'\'\"\a\b\e\f\n\r\t\v\x61\x3a\x3A\075\\'`
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-sh-3.tmp xg-sh-3.sh || Exit 1
+LC_ALL=C tr -d '\r' < xg-sh-3.tmp.po > xg-sh-3.po || Exit 1
+
+cat <<\EOF > xg-sh-3.ok
+msgid "abc\\\"def"
+msgstr ""
+
+msgid ""
+"'\"\a\b\f\n"
+"\r\t\va::=\\"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sh-3.ok xg-sh-3.po
+result=$?
+
+exit $result

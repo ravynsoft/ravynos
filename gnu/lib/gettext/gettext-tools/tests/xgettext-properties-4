@@ -1,0 +1,45 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test JavaProperties extractor with UTF-8 input.
+
+cat <<\EOF > xg-pr-4.properties
+dialog.open = Öffnen
+dialog.close = Datei wurde verändert. Trotzdem schließen?
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-pr-4.tmp xg-pr-4.properties || Exit 1
+func_filter_POT_Creation_Date xg-pr-4.tmp xg-pr-4.po
+
+cat <<\EOF > xg-pr-4.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "dialog.open"
+msgstr "Öffnen"
+
+msgid "dialog.close"
+msgstr "Datei wurde verändert. Trotzdem schließen?"
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-pr-4.ok xg-pr-4.po
+result=$?
+
+exit $result

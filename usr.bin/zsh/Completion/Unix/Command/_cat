@@ -1,0 +1,62 @@
+#compdef cat gcat
+
+local -a args
+
+if _pick_variant gnu=GNU unix --version; then
+  args=(
+    '(-A --show-all)'{-A,--show-all}'[equivalent to -vET]'
+    '(-b --number-nonblank -n --number)'{-b,--number-nonblank}'[number nonempty output lines, overrides -n]'
+    '-e[equivalent to -vE]'
+    '(-E --show-ends)'{-E,--show-ends}'[display $ at end of each line]'
+    '(-n --number)'{-n,--number}'[number all output lines]'
+    '(-s --squeeze-blank)'{-s,--squeeze-blank}'[suppress repeated empty output lines]'
+    '-t[equivalent to -vT]'
+    '(-T --show-tabs)'{-T,--show-tabs}'[display TAB characters as ^I]'
+    '-u[ignored]'
+    '(-v --show-nonprinting)'{-v,--show-nonprinting}'[use ^ and M- notation, except for LFD and TAB]'
+    '(- : *)--help[display help and exit]'
+    '(- : *)--version[output version information and exit]'
+    '*: :_files'
+  )
+
+elif [[ "$OSTYPE" == (*bsd|dragonfly|darwin)* ]]; then
+  args=(
+    -A "-*"
+    '(-n)-b[number non-blank output lines]'
+    '(-v)-e[display $ at the end of each line (implies -v)]'
+    '-n[number all output lines]'
+    '-s[squeeze multiple blank lines into one]'
+    '(-v)-t[display tab as ^I (implies -v)]'
+    '-u[do not buffer output]'
+    '-v[display non-printing chars as ^X or M-a]'
+    '*: :_files'
+  )
+  [[ $OSTYPE = (free|net)bsd* ]] && args+=(
+    '-l[set a lock on the stdout file descriptor]'
+  )
+  [[ $OSTYPE = netbsd* ]] && args+=(
+    '-B+[read with buffer of specified size]:size (bytes)'
+    '-f[only attempt to display regular files]'
+  )
+elif [[ $OSTYPE = solaris* ]]; then
+  args=(
+    -A "-*"
+    '(-b)-n[number all output lines]'
+    '(-n)-b[number non-blank output lines]'
+    "-u[don't buffer output]"
+    '-s[be silent about non-existent files]'
+    '-v[display non-printing chars as ^X or M-a]'
+    '-e[display $ at the end of each line (requires -v)]'
+    '-t[display tab as ^I and formfeeds and ^L (requires -v)]'
+    '*: :_files'
+  )
+else
+  # POSIX requires '-u', and most OSes may support '-n'
+  args=(
+    '-n[number all output lines]'
+    '-u[do not buffer output]'
+    '*: :_files'
+  )
+fi
+
+_arguments -s -S $args

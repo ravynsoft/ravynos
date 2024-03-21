@@ -1,0 +1,39 @@
+#compdef scl
+
+local curcontext="$curcontext" dashes ret=1
+local -a state line force alts cmd
+
+[[ $words[2] = deregister ]] &&
+    force=( '--force[deregister even SCL installed as packages]' )
+
+_arguments -C $force \
+  '(- 1)'{-l,--list}'[list installed software collections or packages within a collection]' \
+  '(-l --list)1:action:(enable run load unload list-collections list-enabled list-packages man register deregister)' \
+  '(- *)--help' \
+  '(-)*:collections:->collections' && ret=0
+
+if [[ -n $state ]]; then
+  (( $#line > 1 )) && curcontext="${curcontext%:*}-$line[1]:"
+  if [[ $line[1] = register ]]; then
+    _directories -P / -W /
+    return
+  fi
+  if (( ${dashes:=$words[(I)--]} )); then
+    shift dashes words
+    (( CURRENT -= dashes ))
+    _normal
+    return
+  fi
+  if [[ $CURRENT -gt 3 && $words[CURRENT] = - ]]; then
+    compadd - --
+    return
+  fi
+  [[ $line[1] = enable && $CURRENT -gt 3 ]] &&
+    cmd='command:command:_cmdstring'
+
+  _alternative 'collections:collection:compadd
+      $(_call_program collections "${words[1]} list-collections || ${words[1]} -l")' \
+      $cmd && ret=0
+fi
+
+return ret

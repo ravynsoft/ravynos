@@ -1,0 +1,15 @@
+
+.*
+
+
+Disassembly of section \.text:
+
+.*<foo>:
+.*	bla * 144d000 <.*>
+.*	l(wz|) * r1,80\(r1\)
+.*	bla * 1451000 <.*>
+.*	(oril * r0,r0,0|nop)
+.*	bla * 1452800 <.*>
+.*	(oril * r0,r0,0|nop)
+.*	bla * 1450000 <.*>
+#pass

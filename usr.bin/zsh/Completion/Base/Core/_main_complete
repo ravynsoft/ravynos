@@ -1,0 +1,422 @@
+#autoload
+
+# The main loop of the completion code. This is what is called when 
+# completion is attempted from the command line.
+
+# Note that this function is parsed before $_comp_setup is evaluated,
+# so that it should make conservative assumptions about the setting
+# of the various options that affect parsing.
+
+# In case non-standard separators are in use.
+local IFS=$' \t\n\0'
+
+# If you want to complete only set or unset options for the unsetopt
+# and setopt builtin, un-comment these lines:
+#
+#   local _options_set _options_unset
+#
+#   _options_set=(${(k)options[(R)on]})
+#   _options_unset=(${(k)options[(R)off]})
+#
+# This is needed because completion functions may set options locally
+# which makes the output of setopt and unsetopt reflect a different
+# state than the global one for which you are completing.
+
+eval "$_comp_setup"
+
+local func funcs ret=1 tmp _compskip format nm call match min max i num\
+      _completers _completer _completer_num curtag _comp_force_list \
+      _matchers _matcher _c_matcher _matcher_num _comp_tags _comp_mesg  \
+      mesg str context state state_descr line opt_args val_args \
+      curcontext="$curcontext" \
+      _last_nmatches=-1 _last_menu_style _def_menu_style _menu_style sel \
+      _tags_level=0 \
+      _saved_exact="${compstate[exact]}" \
+      _saved_lastprompt="${compstate[last_prompt]}" \
+      _saved_list="${compstate[list]}" \
+      _saved_insert="${compstate[insert]}" \
+      _saved_colors="$ZLS_COLORS" \
+      _saved_colors_set=${+ZLS_COLORS} \
+      _ambiguous_color=''
+# Hide any '_comp_priv_prefix' variable that happens to be defined in the calling scope.
+local _comp_priv_prefix
+unset _comp_priv_prefix
+
+# _precommand sets this to indicate we are following a precommand modifier
+local -a precommands
+
+# Precommands which allow their wrapped command to be a builtin.
+# All of these are necessarily builtins or reserved words themselves,
+# but not all builtin precommands are listed here:
+# for one, the 'command' builtin is excluded.
+local -ar builtin_precommands=(- builtin eval exec nocorrect noglob time)
+
+typeset -U _lastdescr _comp_ignore _comp_colors
+
+{
+
+[[ -z "$curcontext" ]] && curcontext=:::
+
+zstyle -s ":completion:${curcontext}:" insert-tab tmp || tmp=yes
+
+if [[ ( "$tmp" = *pending(|[[:blank:]]*) && PENDING -gt 0 ) ||
+      ( "$tmp" = *pending=(#b)([0-9]##)(|[[:blank:]]*) &&
+        PENDING -ge $match[1] ) ]]; then
+  compstate[insert]=tab
+
+  return 0
+fi
+
+if [[ "$compstate[insert]" = tab* ]]; then
+  if [[ "$tmp" = (|*[[:blank:]])(yes|true|on|1)(|[[:blank:]]*) ]]; then
+    if [[ "$curcontext" != :* || -z "$compstate[vared]" ]] ||
+      zstyle -t ":completion:vared${curcontext}:" insert-tab; then
+      return 0
+    fi
+  fi
+
+  compstate[insert]="${compstate[insert]//tab /}"
+fi
+
+# Second attempt at GLOB_COMPLETE
+
+if [[ "$compstate[pattern_match]" = "*" &&
+      "$_lastcomp[unambiguous]" = "$PREFIX" &&
+      -n "$_lastcomp[unambiguous_cursor]" ]]; then
+  integer upos="$_lastcomp[unambiguous_cursor]"
+  SUFFIX="$PREFIX[upos,-1]$SUFFIX"
+  PREFIX="$PREFIX[1,upos-1]"
+fi
+
+# Special completion contexts after `~' and `='.
+
+if [[ -z "$compstate[quote]" ]]; then
+  if [[ -o equals ]] && compset -P 1 '='; then
+    compstate[context]=equal
+  elif [[ "$PREFIX" != */* && "$PREFIX[1]" = '~' ]]; then
+    if [[ "$PREFIX" = '~['[^\]]# ]]; then
+      # Inside ~[...] should be treated as a subscript.
+      compset -p 2
+      # To be consistent, we ignore all but the contents of the square
+      # brackets.
+      compset -S '\]*'
+      compstate[context]=subscript
+      [[ -n $_comps[-subscript-] ]] && $_comps[-subscript-] && return
+    else
+      compset -p 1
+      compstate[context]=tilde
+    fi
+  fi
+fi
+
+# Initial setup.
+
+_setup default
+_def_menu_style=( "$_last_menu_style[@]"
+
+# We can't really do that because the current value of $MENUSELECT
+# may be the one set by this function.
+# There is a similar problem with $ZLS_COLORS in _setup.
+
+#                  ${MENUSELECT+select${MENUSELECT:+\=$MENUSELECT}}
+
+                )
+_last_menu_style=()
+
+if zstyle -s ":completion:${curcontext}:default" list-prompt tmp; then
+  LISTPROMPT="$tmp"
+  zmodload -i zsh/complist
+fi
+if zstyle -s ":completion:${curcontext}:default" select-prompt tmp; then
+  MENUPROMPT="$tmp"
+  zmodload -i zsh/complist
+fi
+if zstyle -s ":completion:${curcontext}:default" select-scroll tmp; then
+  MENUSCROLL="$tmp"
+  zmodload -i zsh/complist
+fi
+
+# Get the names of the completers to use in the positional parameters.
+
+if (( $# )); then
+  if [[ "$1" = - ]]; then
+    if [[ $# -lt 3 ]]; then
+      _completers=()
+    else
+      _completers=( "$2" )
+      call=yes
+    fi
+  else
+    _completers=( "$@" )
+  fi
+else
+  zstyle -a ":completion:${curcontext}:" completer _completers ||
+      _completers=( _complete _ignored )
+fi
+
+# And now just call the completer functions defined.
+
+_completer_num=1
+
+# We assume localtraps to be in effect here ...
+integer SECONDS=0
+TRAPINT() {
+  zle -M "Killed by signal in ${funcstack[2]} after ${SECONDS}s";
+  zle -R
+  return 130
+}
+TRAPQUIT() {
+  zle -M "Killed by signal in ${funcstack[2]} after ${SECONDS}s";
+  zle -R
+  return 131
+}
+
+# Call the pre-functions.
+
+funcs=( "$compprefuncs[@]" )
+compprefuncs=()
+for func in "$funcs[@]"; do
+  "$func"
+done
+
+for tmp in "$_completers[@]"; do
+
+  if [[ -n "$call" ]]; then
+    _completer="${tmp}"
+  elif [[ "$tmp" = *:-* ]]; then
+    _completer="${${tmp%:*}[2,-1]//_/-}${tmp#*:}"
+    tmp="${tmp%:*}"
+  elif [[ $tmp = *:* ]]; then
+    _completer="${tmp#*:}"
+    tmp="${tmp%:*}"
+  else
+    _completer="${tmp[2,-1]//_/-}"
+  fi
+
+  curcontext="${curcontext/:[^:]#:/:${_completer}:}"
+  zstyle -t ":completion:${curcontext}:" show-completer &&
+    zle -R "Trying completion for :completion:${curcontext}"
+
+  zstyle -a ":completion:${curcontext}:" matcher-list _matchers ||
+      _matchers=( '' )
+
+  _matcher_num=1
+  _matcher=''
+  for _c_matcher in "$_matchers[@]"; do
+    if [[ "$_c_matcher" == +* ]]; then
+      _matcher="$_matcher $_c_matcher[2,-1]"
+    else
+      _matcher="$_c_matcher"
+    fi
+
+    _comp_mesg=
+    if [[ -n "$call" ]]; then
+      if "${(@)argv[3,-1]}"; then
+        ret=0
+        break 2
+      fi
+    elif "$tmp"; then
+      ret=0
+      break 2
+    fi
+    (( _matcher_num++ ))
+  done
+  [[ -n "$_comp_mesg" ]] && break
+
+  (( _completer_num++ ))
+done
+
+curcontext="${curcontext/:[^:]#:/::}"
+if [[ $compstate[old_list] = keep ]]; then
+  # We are keeping the old list of matches, so keep the
+  # number of matches we found last time rather than the
+  # number just generated.
+  nm=$_lastcomp[nmatches]
+else
+  nm=$compstate[nmatches]
+fi
+
+if [[ $compstate[old_list] = keep || nm -gt 1 ]]; then
+  [[ _last_nmatches -ge 0 && _last_nmatches -ne nm ]] &&
+      _menu_style=( "$_last_menu_style[@]" "$_menu_style[@]" )
+
+  tmp=$(( compstate[list_lines] + BUFFERLINES + 1 ))
+
+  _menu_style=( "$_menu_style[@]" "$_def_menu_style[@]" )
+
+  if [[ "$compstate[list]" = *list(| *) && tmp -gt LINES &&
+        ( -n "$_menu_style[(r)select=long-list]" ||
+          -n "$_menu_style[(r)(yes|true|on|1)=long-list]" ) ]]; then
+    compstate[insert]=menu
+  elif [[ "$compstate[insert]" = "$_saved_insert" ]]; then
+    if [[ -n "$compstate[insert]" &&
+          -n "$_menu_style[(r)(yes|true|1|on)=long]" && tmp -gt LINES ]]; then
+        compstate[insert]=menu
+    else
+      sel=( "${(@M)_menu_style:#(yes|true|1|on)*}" )
+
+      if (( $#sel )); then
+	min=9999999
+        for i in "$sel[@]"; do
+          if [[ "$i" = *\=[0-9]* ]]; then
+  	    num="${i#*\=}"
+  	    [[ num -lt 0 ]] && num=0
+  	  elif [[ "$i" != *\=* ]]; then
+  	    num=0
+          else
+	    num=9999999
+  	  fi
+  	  [[ num -lt min ]] && min="$num"
+  
+	  (( min )) || break
+        done
+      fi
+      sel=( "${(@M)_menu_style:#(no|false|0|off)*}" )
+
+      if (( $#sel )); then
+	max=9999999
+        for i in "$sel[@]"; do
+          if [[ "$i" = *\=[0-9]* ]]; then
+  	    num="${i#*\=}"
+  	    [[ num -lt 0 ]] && num=0
+          elif [[ "$i" != *\=* ]]; then
+  	    num=0
+  	  else
+  	    num=9999999
+  	  fi
+  	  [[ num -lt max ]] && max="$num"
+  
+	  (( max )) || break
+        done
+      fi
+      if [[ ( -n "$min" && nm -ge min && ( -z "$max" || nm -lt max ) ) ||
+            ( -n "$_menu_style[(r)auto*]" &&
+              "$compstate[insert]" = automenu ) ]]; then
+        compstate[insert]=menu
+      elif [[ -n "$max" && nm -ge max ]]; then
+        compstate[insert]=unambiguous
+      elif [[ -n "$_menu_style[(r)auto*]" &&
+              "$compstate[insert]" != automenu ]]; then
+        compstate[insert]=automenu-unambiguous
+      fi
+    fi
+  fi
+
+  if [[ "$compstate[insert]" = *menu* ]]; then
+    [[ "$MENUSELECT" = 00 ]] && MENUSELECT=0
+    if [[ -n "$_menu_style[(r)no-select*]" ]]; then
+      unset MENUSELECT
+    elif [[ -n "$_menu_style[(r)select=long*]" ]]; then
+      if [[ tmp -gt LINES ]]; then
+        zmodload -i zsh/complist
+        MENUSELECT=00
+      fi
+    fi
+    if [[ "$MENUSELECT" != 00 ]]; then
+      sel=( "${(@M)_menu_style:#select*}" )
+
+      if (( $#sel )); then
+	min=9999999
+        for i in "$sel[@]"; do
+          if [[ "$i" = *\=[0-9]* ]]; then
+  	    num="${i#*\=}"
+  	    [[ num -lt 0 ]] && num=0
+  	  elif [[ "$i" != *\=* ]]; then
+  	    num=0
+          else
+	    num=9999999
+  	  fi
+  	  [[ num -lt min ]] && min="$num"
+  
+	  (( min )) || break
+        done
+
+        zmodload -i zsh/complist
+        MENUSELECT="$min"
+      else
+        unset MENUSELECT
+      fi
+    fi
+    if [[ -n "$MENUSELECT" ]]; then
+      if [[ -n "$_menu_style[(r)interactive*]" ]]; then
+        MENUMODE=interactive
+      elif [[ -n "$_menu_style[(r)search*]" ]]; then
+        if [[ -n "$_menu_style[(r)*backward*]" ]]; then
+          MENUMODE=search-backward
+        else
+          MENUMODE=search-forward
+        fi
+      else
+        unset MENUMODE
+      fi
+    fi
+  fi
+elif [[ nm -lt 1 && -n "$_comp_mesg" ]]; then
+  compstate[insert]=''
+  compstate[list]='list force'
+elif [[ nm -eq 0 && -z "$_comp_mesg" &&
+        $#_lastdescr -ne 0 && $compstate[old_list] != keep ]] &&
+     zstyle -s ":completion:${curcontext}:warnings" format format; then
+
+  compstate[list]='list force'
+  compstate[insert]=''
+
+  tmp=( "\`${(@)^_lastdescr:#}'" )
+
+  case $#tmp in
+  1) str="$tmp[1]";;
+  2) str="$tmp[1] or $tmp[2]";;
+  *) str="${(j:, :)tmp[1,-2]}, or $tmp[-1]";;
+  esac
+
+  _setup warnings
+  zformat -f mesg "$format" "d:$str" "D:${(F)${(@)_lastdescr:#}}"
+  compadd -x "$mesg"
+fi
+
+if [[ -n "$_ambiguous_color" ]]; then
+  local toquote='[=\(\)\|~^?*[\]#<>]'
+  local prefix=${${compstate[unambiguous]}[1,${compstate[unambiguous_cursor]}-1]}
+  [[ -n $prefix ]] &&
+    _comp_colors+=( "=(#i)${prefix[1,-2]//?/(}${prefix[1,-2]//(#m)?/${MATCH/$~toquote/\\$MATCH}|)}${prefix[-1]//(#m)$~toquote/\\$MATCH}(#b)(?|)*==$_ambiguous_color" )
+fi
+
+[[ "$_comp_force_list" = always ||
+   ( "$_comp_force_list" = ?*  && nm -ge _comp_force_list ) ]] &&
+    compstate[list]="${compstate[list]//messages} force"
+
+} always {
+  # Stuff we always do to clean up.
+  if [[ "$compstate[old_list]" = keep ]]; then
+    if [[ $_saved_colors_set = 1 ]]; then
+      ZLS_COLORS="$_saved_colors"
+    else
+      unset ZLS_COLORS
+    fi
+  elif (( $#_comp_colors )); then
+    ZLS_COLORS="${(j.:.)_comp_colors}"
+  else
+    unset ZLS_COLORS
+  fi
+}
+
+# Now call the post-functions.
+
+funcs=( "$comppostfuncs[@]" )
+comppostfuncs=()
+for func in "$funcs[@]"; do
+  "$func"
+done
+
+_lastcomp=( "${(@kv)compstate}" )
+_lastcomp[nmatches]=$nm
+_lastcomp[completer]="$_completer"
+_lastcomp[prefix]="$PREFIX"
+_lastcomp[suffix]="$SUFFIX"
+_lastcomp[iprefix]="$IPREFIX"
+_lastcomp[isuffix]="$ISUFFIX"
+_lastcomp[qiprefix]="$QIPREFIX"
+_lastcomp[qisuffix]="$QISUFFIX"
+_lastcomp[tags]="$_comp_tags"
+
+return ret

@@ -1,0 +1,187 @@
+#autoload
+# options:
+#
+# -n plugin - can complete nicknames from specified plugin
+# -s sep    - complete a list of addresses separated by specified character
+# -c        - e-mail address must be of form user@host (no comments or aliases)
+#
+# TODO: with -n, have the named plugin complete not only aliases but also addresses?
+# 
+# Plugins are written as separate functions with names starting `_email-'.
+# They should either do their own completion or return the addresses in the
+# reply array in the form 'alias:address' and return 300. The -c option is
+# passed on to plugins (and -n could be if needed ever). New plugins will be
+# picked up and run automatically.
+
+# plugins
+(( $+functions[_email-mail] )) ||
+_email-mail() {
+  local rc rcfiles i
+
+  rcfiles=( $files[$plugin] )
+  for ((i=1;i<=$#rcfiles;i++)); do
+    rcfiles+=( ${~${(M)${(f)"$(<$rcfiles[i])"}:#source*}##source[[:blank:]]##}(N) )
+  done
+  reply=()
+  for rc in $rcfiles; do
+    reply+=( ${${${(M)${(f)"$(<$rc)"}:#alias*}##alias[[:blank:]]##}/[[:blank:]]##/:} )
+  done
+  return 300
+}
+(( $+functions[_email-mutt] )) || _email-mutt() { _email-mail }
+(( $+functions[_email-mush] )) || _email-mush() { _email-mail }
+
+(( $+functions[_email-MH] )) ||
+_email-MH() {
+  reply=( ${${(f)"$(_call_program aliases ali 2>/dev/null)"}/: /:} )
+  return 300
+}
+
+(( $+functions[_email-pine] )) ||
+_email-pine() {
+  reply=( ${${${${${(f)"$(<~/.addressbook)"}:#*DELETED*}:#\ *}/	[^	]#	/:}%%	*} )
+  return 300
+}
+
+(( $+functions[_email-ldap] )) ||
+_email-ldap() {
+  local -a expl ali res filter
+  local -A opts
+  local dn cn mail
+  
+  zparseopts -D -E -A opts c
+
+  zstyle -a ":completion:${curcontext}:$curtag" filter filter
+  (( $#filter )) || return
+  
+  filter=( "("${filter}"=${PREFIX}*${SUFFIX})" )
+  (( $#filter > 1 )) && filter="(|"${(j..)filter}")"
+  res=( ${(f)"$(_call_program $curtag ldapsearch -LLL \$filter cn mail 2>/dev/null)"} )
+  (( $#res > 1 )) || return
+
+  for dn cn mail in "${res[@]}"; do
+    if (( $+opts[-c] )); then
+      ali+=( "${mail#*: }" )
+    else
+      cn="${cn#*: }"
+      [[ $cn = *$~__specials* ]] && cn="\"$cn\""
+      ali+=( "$cn <${mail#*: }>" )
+    fi
+  done
+  compstate[insert]=menu
+  _wanted email-ldap expl 'matching name' \
+      compadd -U -i "$IPREFIX" -I "$ISUFFIX" "$@" -a - ali
+}
+
+(( $+functions[_email-local] )) ||
+_email-local() {
+  local suf opts
+  zparseopts -D -E -A opts c S:=suf
+
+  if compset -P '*@'; then
+    _hosts "$@" "$suf[@]"
+  else
+    suf=()
+    compset -S '@*' || suf=( -qS @ )
+    _users "$suf[@]" "$@"
+  fi
+}
+
+_email_addresses() {
+  local -a plugins reply list args
+  local -A opts files
+  local plugin rcfile muttrc expl sep ret fret
+
+  local __specialx='][()<>@,;:\\".'
+  local __spacex=" 	"				# Space, tab
+  local __specials="[$__specialx]"
+  local __atom="[^$__specialx$__spacex]##"
+  local __space="[$__spacex]#"				# Really, space or comment
+  local __qtext='[^"\\]'
+  local __qpair='\\?'
+  local __beginq='"'
+  local __endq='(|[^\\])"'
+  local __dot="$__space.$__space"
+
+  local __domainref="$__atom"
+  local __domainlit='\[([^]]|'"$__qpair"')#(|[^\\])\]'
+  local __quotedstring="$__beginq($__qtext|$__qpair)#$__endq"
+  local __word="($__atom|$__quotedstring)"
+  local __phrase="($__space$__word$__space)#"		# Strictly, should use `##'
+  local __localpart="$__word($__dot$__word)#"
+
+  local __subdomain="($__domainref|$__domainlit)"
+  local __domain="$__subdomain($__dot$__subdomain)#"
+  local __addrspec="$__localpart$__space@$__space$__domain"
+
+  local __addresses="($__qtext|$__quotedstring)##"
+
+  zparseopts -D -E -A opts n: s: c
+  set -- "$@" -M 'r:|[.@]=* r:|=* m:{a-zA-Z}={A-Za-z}'
+
+  if [[ -n $opts[-s] ]]; then
+    # remove up to the last unquoted separator
+    if [[ ${(Q)PREFIX} = (#b)($~__addresses$opts[-s])* ]]; then
+      IFS="$opts[-s]" eval 'compset -P $(( ${#${=${:-x${match[1]}x}}} - 1 )) "*${opts[-s]}"'
+    fi
+
+    # for the suffix, I'm too lazy to work out how to preserve quoted separators
+    compset -S "$opts[-s]*" || set -- -q -S "$opts[-s]" "$@"
+  fi
+
+  # get list of all plugins except any with missing config files
+  if ! zstyle -s ":completion:${curcontext}:email-addresses" muttrc muttrc; then
+    [[ -e ~/mutt/muttrc ]] && muttrc="~/mutt/muttrc" || muttrc="~/.muttrc"
+  fi
+  files=( MH ${MH:-~/.mh_profile} mutt $~muttrc mush ~/.mushrc mail ${MAILRC:-~/.mailrc} pine ~/.addressbook )
+  plugins=( 
+    ${${(k)functions[(I)_email-*]#*-}:#(${(kj.|.)~files})}
+    $files(Ne:'REPLY=( ${(k)files[(r)$REPLY]} ):')
+  )
+
+  ret=1
+  _tags email-$plugins
+  while _tags; do
+    for plugin in $plugins; do
+      if _requested email-$plugin; then
+	while _next_label email-$plugin expl 'email address'; do
+
+          args=()
+	  if (( $+opts[-c] )) || zstyle -t \
+	      ":completion:${curcontext}:$curtag" strip-comments
+	  then
+	    args=( '-c' )
+	  fi
+	  
+	  if ! _call_function fret _email-$plugin "$@" $args; then
+	    _message "$plugin: plugin not found"
+	    continue
+	  fi
+	  ret=$(( ret && fret ))
+
+	  if (( fret == 300 )); then
+	    if (( ! $+opts[-c] )) && [[ $opts[-n] = $plugin ]]; then
+	      zstyle -s ":completion:${curcontext}:$curtag" list-separator sep || sep=--
+	      zformat -a list " $sep " "${reply[@]}"
+	      _wanted mail-aliases expl 'alias' compadd "$@" \
+		  -d list - ${reply%%:*} && ret=0
+	    else
+	      if (( $#args )); then
+		reply=( ${(SM)${reply#*:}##$~__addrspec} )
+	      else
+		# remove lines not containing `@' as they probably aren't addresses
+		reply=( "${(@)${(M@)reply:#*@*}#*:}" )
+	      fi
+	      compadd -a "$@" "$expl[@]" reply && ret=0
+	    fi
+	  fi
+	done
+      fi
+    done
+    (( ret )) || return 0
+  done
+
+  return 1
+}
+
+_email_addresses "$@"

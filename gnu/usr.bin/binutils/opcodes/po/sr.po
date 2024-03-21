@@ -1,0 +1,2623 @@
+# Serbian translation of opcodes.
+# Copyright © 2020 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2016-2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: opcodes-2.40.90\n"
+"Report-Msgid-Bugs-To: https://sourceware.org/bugzilla/\n"
+"POT-Creation-Date: 2023-07-03 11:31+0100\n"
+"PO-Revision-Date: 2023-07-21 07:56+0200\n"
+"Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
+"Language-Team: Serbian <(nothing)>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Gtranslator 41.0\n"
+
+#: aarch64-asm.c:834
+msgid "specified register cannot be read from"
+msgstr "не могу да читам из наведеног регистра"
+
+#: aarch64-asm.c:843
+msgid "specified register cannot be written to"
+msgstr "не могу да пишем у наведени регистар"
+
+#. Invalid option.
+#: aarch64-dis.c:103 arc-dis.c:807 arm-dis.c:12303
+#, c-format
+msgid "unrecognised disassembler option: %s"
+msgstr "непозната опција разложитеља: %s"
+
+#: aarch64-dis.c:3730
+#, c-format
+msgid "this `%s' should have an immediately preceding `%s'"
+msgstr "ово „%s“ треба да има одмах претходеће „%s“"
+
+#: aarch64-dis.c:3737
+#, c-format
+msgid "expected `%s' after previous `%s'"
+msgstr "очекивах „%s“ након претходног „%s“"
+
+#: aarch64-dis.c:4156
+#, c-format
+msgid ""
+"\n"
+"The following AARCH64 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „AARCH64“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба да се раздвајају зарезима):\n"
+
+#: aarch64-dis.c:4160
+#, c-format
+msgid ""
+"\n"
+"  no-aliases         Don't print instruction aliases.\n"
+msgstr ""
+"\n"
+"  no-aliases         Не исписује алијасе инструкције.\n"
+
+#: aarch64-dis.c:4163
+#, c-format
+msgid ""
+"\n"
+"  aliases            Do print instruction aliases.\n"
+msgstr ""
+"\n"
+"  aliases            Исписује алијасе инструкције.\n"
+
+#: aarch64-dis.c:4166
+#, c-format
+msgid ""
+"\n"
+"  no-notes         Don't print instruction notes.\n"
+msgstr ""
+"\n"
+"  no-notes           Не исписује напомене инструкције.\n"
+
+#: aarch64-dis.c:4169
+#, c-format
+msgid ""
+"\n"
+"  notes            Do print instruction notes.\n"
+msgstr ""
+"\n"
+"  notes              Исписује напомене инструкције.\n"
+
+#: aarch64-dis.c:4173
+#, c-format
+msgid ""
+"\n"
+"  debug_dump         Temp switch for debug trace.\n"
+msgstr ""
+"\n"
+"  debug_dump         Временски прекидач за праћење прочишћавања.\n"
+
+#: aarch64-dis.c:4177 arc-dis.c:1607 arc-dis.c:1630 arc-dis.c:1633
+#: loongarch-dis.c:332 mips-dis.c:2903 mips-dis.c:2915 mips-dis.c:2918
+#: nfp-dis.c:2995 riscv-dis.c:1362 riscv-dis.c:1365
+#, c-format
+msgid "\n"
+msgstr "\n"
+
+#: aarch64-opc.c:1431
+msgid "immediate value"
+msgstr "вредност непосредног"
+
+#: aarch64-opc.c:1441
+msgid "immediate offset"
+msgstr "померај непосредног"
+
+#: aarch64-opc.c:1451
+msgid "register number"
+msgstr "број регистра"
+
+#: aarch64-opc.c:1461
+msgid "register element index"
+msgstr "индекс елемента регистра"
+
+#: aarch64-opc.c:1471
+msgid "shift amount"
+msgstr "износ помака"
+
+#: aarch64-opc.c:1483
+msgid "multiplier"
+msgstr "множилац"
+
+#: aarch64-opc.c:1602
+msgid "expected a selection register in the range w12-w15"
+msgstr "очекивах регистар избора у опсегу „w12-w15“"
+
+#: aarch64-opc.c:1606
+msgid "expected a selection register in the range w8-w11"
+msgstr "очекивах регистар избора у опсегу „w8-w11“"
+
+#: aarch64-opc.c:1625
+msgid "starting offset is not a multiple of 2"
+msgstr "помак почетка није множилац броја 2"
+
+#: aarch64-opc.c:1626
+msgid "starting offset is not a multiple of 4"
+msgstr "помак почетка није множилац броја 4"
+
+#: aarch64-opc.c:1634
+msgid "expected a single offset rather than a range"
+msgstr "очекивах један помак уместо тог опсега"
+
+#: aarch64-opc.c:1638
+msgid "expected a range of two offsets"
+msgstr "очекивах опсег од два помака"
+
+#: aarch64-opc.c:1641
+msgid "expected a range of four offsets"
+msgstr "очекивах опсег од четири помака"
+
+#: aarch64-opc.c:1700
+msgid "reg pair must start from even reg"
+msgstr "пар израза мора почети на парном изразу"
+
+#: aarch64-opc.c:1706
+msgid "reg pair must be contiguous"
+msgstr "пар израза мора бити непрекидан"
+
+#: aarch64-opc.c:1720
+msgid "extraneous register"
+msgstr "страни регистар"
+
+#: aarch64-opc.c:1726
+msgid "missing register"
+msgstr "недостаје регистар"
+
+#: aarch64-opc.c:1737
+msgid "stack pointer register expected"
+msgstr "очекиван је регистар показивача спремника"
+
+#: aarch64-opc.c:1840 aarch64-opc.c:1856
+msgid "start register out of range"
+msgstr "регистар почетка је ван опсега"
+
+#: aarch64-opc.c:1985 aarch64-opc.c:1993
+msgid "unexpected address writeback"
+msgstr "неочекивано повратно писање адресе"
+
+#: aarch64-opc.c:2004
+msgid "address writeback expected"
+msgstr "очекивано је повратно писање адресе"
+
+#: aarch64-opc.c:2051
+msgid "negative or unaligned offset expected"
+msgstr "очекиван је негативан или непоравнат померај"
+
+#: aarch64-opc.c:2108
+msgid "invalid register offset"
+msgstr "неисправан померај регистра"
+
+#: aarch64-opc.c:2130
+msgid "invalid post-increment amount"
+msgstr "неисправан износ пост-увећања"
+
+#: aarch64-opc.c:2146 aarch64-opc.c:2665
+msgid "invalid shift amount"
+msgstr "неисправан износ помака"
+
+#: aarch64-opc.c:2159
+msgid "invalid extend/shift operator"
+msgstr "неисправан оператор проширења/помака"
+
+#: aarch64-opc.c:2205 aarch64-opc.c:2465 aarch64-opc.c:2500 aarch64-opc.c:2519
+#: aarch64-opc.c:2527 aarch64-opc.c:2618 aarch64-opc.c:2795 aarch64-opc.c:2895
+#: aarch64-opc.c:2908
+msgid "immediate out of range"
+msgstr "непосредни је ван опсега"
+
+#: aarch64-opc.c:2235 aarch64-opc.c:2277 aarch64-opc.c:2340 aarch64-opc.c:2374
+msgid "invalid addressing mode"
+msgstr "непознат режим адресирања"
+
+#: aarch64-opc.c:2332
+msgid "index register xzr is not allowed"
+msgstr "регистар индекса „xzr“ није допуштен"
+
+#: aarch64-opc.c:2453 aarch64-opc.c:2475 aarch64-opc.c:2698 aarch64-opc.c:2706
+#: aarch64-opc.c:2772 aarch64-opc.c:2801
+msgid "invalid shift operator"
+msgstr "неисправан оператор помака"
+
+#: aarch64-opc.c:2459
+msgid "shift amount must be 0 or 12"
+msgstr "износ помака мора бити 0 или 12"
+
+#: aarch64-opc.c:2482
+msgid "shift amount must be a multiple of 16"
+msgstr "износ помака мора бити множилац од 16"
+
+#: aarch64-opc.c:2494
+msgid "negative immediate value not allowed"
+msgstr "негативна вредност непосредног није дозвољена"
+
+#: aarch64-opc.c:2629
+msgid "immediate zero expected"
+msgstr "очекиван је непосредни нула"
+
+#: aarch64-opc.c:2643
+msgid "rotate expected to be 0, 90, 180 or 270"
+msgstr "очекивано је да заокрет буде 0, 90, 180 или 270"
+
+#: aarch64-opc.c:2654
+msgid "rotate expected to be 90 or 270"
+msgstr "очекивано је да заокрет буде 90 или 270"
+
+#: aarch64-opc.c:2714
+msgid "shift is not permitted"
+msgstr "помак није допуштен"
+
+#: aarch64-opc.c:2739
+msgid "invalid value for immediate"
+msgstr "неисправна вредност за непосредног"
+
+#: aarch64-opc.c:2764
+msgid "shift amount must be 0 or 16"
+msgstr "износ помака мора бити 0 или 16"
+
+#: aarch64-opc.c:2785
+msgid "floating-point immediate expected"
+msgstr "очекиван је непосредни са покретним зарезом"
+
+#: aarch64-opc.c:2819
+msgid "no shift amount allowed for 8-bit constants"
+msgstr "износ помака није допуштен за 8-битне константе"
+
+#: aarch64-opc.c:2829
+msgid "shift amount must be 0 or 8"
+msgstr "износ помака мора бити 0 или 8"
+
+#: aarch64-opc.c:2842
+msgid "immediate too big for element size"
+msgstr "непосредни је превелик за величину елеммента"
+
+#: aarch64-opc.c:2849
+msgid "invalid arithmetic immediate"
+msgstr "неисправан непосредни аритметике"
+
+#: aarch64-opc.c:2863
+msgid "floating-point value must be 0.5 or 1.0"
+msgstr "вредност покретног зареза мора бити 0.5 или 1.0"
+
+#: aarch64-opc.c:2873
+msgid "floating-point value must be 0.5 or 2.0"
+msgstr "вредност покретног зареза мора бити 0.5 или 2.0"
+
+#: aarch64-opc.c:2883
+msgid "floating-point value must be 0.0 or 1.0"
+msgstr "вредност покретног зареза мора бити 0.0 или 1.0"
+
+#: aarch64-opc.c:2914
+msgid "invalid replicated MOV immediate"
+msgstr "неисправан реплицирани „MOV“ непосредни"
+
+#: aarch64-opc.c:2972
+msgid "byte index must be a multiple of 8"
+msgstr "индекс бајта мора бити множилац броја 8"
+
+#: aarch64-opc.c:3002
+msgid "the register-index form of PRFM does not accept opcodes in the range 24-31"
+msgstr "облик индекс регистра „PRFM“-а не прихвата опкодове у опсегу 24-31"
+
+#: aarch64-opc.c:3055
+msgid "extend operator expected"
+msgstr "очекиван је проширени оператор"
+
+#: aarch64-opc.c:3068
+msgid "missing extend operator"
+msgstr "недостаје проширени оператор"
+
+#: aarch64-opc.c:3074
+msgid "'LSL' operator not allowed"
+msgstr "„LSL“ оператор није допуштен"
+
+#: aarch64-opc.c:3095
+msgid "W register expected"
+msgstr "„W“ регистар је очекиван"
+
+#: aarch64-opc.c:3106
+msgid "shift operator expected"
+msgstr "очекиван је оператор помака"
+
+#: aarch64-opc.c:3113
+msgid "'ROR' operator not allowed"
+msgstr "„ROR“ оператор није допуштен"
+
+#: aarch64-opc.c:4525
+msgid "reading from a write-only register"
+msgstr "читам из регистра само за писање"
+
+#: aarch64-opc.c:4527
+msgid "writing to a read-only register"
+msgstr "пишем у регистар само за читање"
+
+#: aarch64-opc.c:6166
+msgid "the three register operands must be distinct from one another"
+msgstr "операнди три регистра морају бити различити"
+
+#: aarch64-opc.c:6277
+msgid "destination register differs from preceding instruction"
+msgstr "регистар одредишта се разликује од претходеће инструкције"
+
+#: aarch64-opc.c:6280
+msgid "source register differs from preceding instruction"
+msgstr "регистар изворишта се разликује од претходеће инструкције"
+
+#: aarch64-opc.c:6283
+msgid "size register differs from preceding instruction"
+msgstr "регистар величине се разликује од претходеће инструкције"
+
+#: aarch64-opc.c:6331
+msgid "instruction opens new dependency sequence without ending previous one"
+msgstr "инструкција је отворила нови низ зависности а да није завршила претходни"
+
+#: aarch64-opc.c:6360
+msgid "previous `movprfx' sequence not closed"
+msgstr "претходни „movprfx“ низ није затворен"
+
+#: aarch64-opc.c:6379
+msgid "SVE instruction expected after `movprfx'"
+msgstr "инструкција „SVE“ је очекивана након „movprfx“"
+
+#: aarch64-opc.c:6392
+msgid "SVE `movprfx' compatible instruction expected"
+msgstr "очекивана је „SVE movprfx“ сагласна инструкција"
+
+#: aarch64-opc.c:6480
+msgid "predicated instruction expected after `movprfx'"
+msgstr "предвиђена инструкција је очекивана након „movprfx“"
+
+#: aarch64-opc.c:6492
+msgid "merging predicate expected due to preceding `movprfx'"
+msgstr "стапање предиката је очекивано услед претходећег „movprfx“"
+
+#: aarch64-opc.c:6504
+msgid "predicate register differs from that in preceding `movprfx'"
+msgstr "регистрар предиката се разликује од оног у претходећем „movprfx“"
+
+#: aarch64-opc.c:6523
+msgid "output register of preceding `movprfx' not used in current instruction"
+msgstr "регистар излаза претходеће „movprfx“ није коришћен у текућој инструкцији"
+
+#: aarch64-opc.c:6536
+msgid "output register of preceding `movprfx' expected as output"
+msgstr "регистар излаза претходеће „movprfx“ је очекиван као излаз"
+
+#: aarch64-opc.c:6548
+msgid "output register of preceding `movprfx' used as input"
+msgstr "регистар излаза претходеће „movprfx“ је коришћен као улаз"
+
+#: aarch64-opc.c:6564
+msgid "register size not compatible with previous `movprfx'"
+msgstr "величина регистра није сагласна са претходним „movprfx“"
+
+#: alpha-opc.c:154
+msgid "branch operand unaligned"
+msgstr "операнд гране није поравнат"
+
+#: alpha-opc.c:170 alpha-opc.c:186
+msgid "jump hint unaligned"
+msgstr "погодак скока није поравнат"
+
+#: arc-dis.c:380
+msgid ""
+"\n"
+"Warning: disassembly may be wrong due to guessed opcode class choice.\n"
+"Use -M<class[,class]> to select the correct opcode class(es).\n"
+"\t\t\t\t"
+msgstr ""
+"\n"
+"Упозорење: рашчлањивање може бити погрешно услед погођеног избора класе опкода.\n"
+"Користите „-M<class[,class]>“ да изаберете исправан разред опкода.\n"
+"\t\t\t\t"
+
+#: arc-dis.c:442
+msgid "An error occurred while generating the extension instruction operations"
+msgstr "Дошло је до грешке приликом стварања радњи инструкција проширења"
+
+#: arc-dis.c:850
+#, c-format
+msgid "unrecognised disassembler CPU option: %s"
+msgstr "непозната опција процесора разложитеља: %s"
+
+#: arc-dis.c:1323
+msgid ""
+"\n"
+"Warning: illegal use of double register pair.\n"
+msgstr ""
+"\n"
+"Упозорење: неисправна употреба двоструког пара регистра.\n"
+
+#: arc-dis.c:1489
+msgid "Enforce the designated architecture while decoding."
+msgstr "Приморава осмишљену архитектуру приликом декодирања."
+
+#: arc-dis.c:1491
+msgid "Recognize DSP instructions."
+msgstr "Препознаје „DSP“ инструкције."
+
+#: arc-dis.c:1493
+msgid "Recognize FPX SP instructions."
+msgstr "Препознаје „FPX SP“ инструкције."
+
+#: arc-dis.c:1495
+msgid "Recognize FPX DP instructions."
+msgstr "Препознаје „FPX DP“ инструкције."
+
+#: arc-dis.c:1497
+msgid "Recognize FPU QuarkSE-EM instructions."
+msgstr "Препознаје „FPU QuarkSE-EM“ инструкције."
+
+#: arc-dis.c:1499
+msgid "Recognize double assist FPU instructions."
+msgstr "Препознаје двоструко припомогнуте „FPU“ инструкције."
+
+#: arc-dis.c:1501
+msgid "Recognize single precision FPU instructions."
+msgstr "Препознаје „FPU“ инструкције једноструке тачности."
+
+#: arc-dis.c:1503
+msgid "Recognize double precision FPU instructions."
+msgstr "Препознаје „FPU“ инструкције двоструке тачности."
+
+#: arc-dis.c:1505
+msgid "Recognize NPS400 instructions."
+msgstr "Препознаје „NPS400“ инструкције."
+
+#: arc-dis.c:1507
+msgid "Use only hexadecimal number to print immediates."
+msgstr "Користи само хексадецимални број за исписивање непосредних."
+
+#: arc-dis.c:1582
+#, c-format
+msgid ""
+"\n"
+"The following ARC specific disassembler options are supported for use \n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „ARC“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба да се раздвајају зарезима):\n"
+
+#: arc-dis.c:1616 mips-dis.c:2910 riscv-dis.c:1357
+#, c-format
+msgid ""
+"\n"
+"  For the options above, the following values are supported for \"%s\":\n"
+"   "
+msgstr ""
+"\n"
+"  За опције изнад, следеће опције су подржане за „%s“:\n"
+"   "
+
+#: arc-dis.c:1626
+#, c-format
+msgid ""
+"\n"
+"   "
+msgstr ""
+"\n"
+"   "
+
+#: arc-opc.c:41 arc-opc.c:64 arc-opc.c:90 arc-opc.c:114
+msgid "LP_COUNT register cannot be used as destination register"
+msgstr "„LP_COUNT“ регистар се не може користити као регистар одредишта"
+
+#: arc-opc.c:88
+msgid "cannot use odd number destination register"
+msgstr "не могу користити одредишни регистар непарног броја"
+
+#: arc-opc.c:101 arc-opc.c:112
+msgid "cannot use odd number source register"
+msgstr "не могу користити изворни регистар непарног броја"
+
+#: arc-opc.c:127
+msgid "operand is not zero"
+msgstr "операнд није нула"
+
+#: arc-opc.c:186
+msgid "register R30 is a limm indicator"
+msgstr "регистр „R30“ је указивач ограничења"
+
+#: arc-opc.c:188
+msgid "register out of range"
+msgstr "регистар је ван опсега"
+
+#: arc-opc.c:207
+msgid "register must be R0"
+msgstr "регистар мора бити „R0“"
+
+#: arc-opc.c:225
+msgid "register must be R1"
+msgstr "регистар мора бити „R1“"
+
+#: arc-opc.c:242
+msgid "register must be R2"
+msgstr "регистар мора бити „R2“"
+
+#: arc-opc.c:259
+msgid "register must be R3"
+msgstr "регистар мора бити „R3“"
+
+#: arc-opc.c:276
+msgid "register must be SP"
+msgstr "регистар мора бити „SP“"
+
+#: arc-opc.c:293
+msgid "register must be GP"
+msgstr "регистар мора бити „GP“"
+
+#: arc-opc.c:310
+msgid "register must be PCL"
+msgstr "регистар мора бити „PCL“"
+
+#: arc-opc.c:327
+msgid "register must be BLINK"
+msgstr "регистар мора бити „BLINK“"
+
+#: arc-opc.c:344
+msgid "register must be ILINK1"
+msgstr "регистар мора бити „ILINK1“"
+
+#: arc-opc.c:361
+msgid "register must be ILINK2"
+msgstr "регистар мора бити „ILINK2“"
+
+#. ARC NPS400 Support: See comment near head of file.
+#: arc-opc.c:392 arc-opc.c:430 arc-opc.c:468 arc-opc.c:737
+msgid "register must be either r0-r3 or r12-r15"
+msgstr "регистар мора бити „r0-r3“ или „r12-r15“"
+
+#: arc-opc.c:519
+msgid "accepted values are from -1 to 6"
+msgstr "очекиване вредности су од -1 до 6"
+
+#: arc-opc.c:548
+msgid "first register of the range should be r13"
+msgstr "први регистар опсега треба бити „r13“"
+
+#: arc-opc.c:550
+msgid "last register of the range doesn't fit"
+msgstr "последњи регистар опсега не може да стане"
+
+#: arc-opc.c:570 arc-opc.c:585
+msgid "invalid register number, should be fp"
+msgstr "неисправан број регистра, треба бити „fp“"
+
+#: arc-opc.c:607
+msgid "invalid register number, should be blink"
+msgstr "неисправан број регистра, треба бити „blink“"
+
+#: arc-opc.c:629
+msgid "invalid register number, should be pcl"
+msgstr "неисправан број регистра, треба бити „pcl“"
+
+#: arc-opc.c:785
+msgid "invalid size, should be 1, 2, 4, or 8"
+msgstr "неисправна величина, треба бити 1, 2, 4 или 8"
+
+#: arc-opc.c:830
+msgid "invalid immediate, must be 1, 2, or 4"
+msgstr "неисправан непосредни, мора бит 1, 2 или 4"
+
+#: arc-opc.c:869
+msgid "invalid value for CMEM ld/st immediate"
+msgstr "неисправна вредност за „CMEM ld/st“ непосредног"
+
+#: arc-opc.c:896
+msgid "invalid position, should be 0, 16, 32, 48 or 64."
+msgstr "неисправан положај, треба бити 0, 16, 32, 48 или 64."
+
+#: arc-opc.c:930
+msgid "invalid position, should be 16, 32, 64 or 128."
+msgstr "неисправан положај, треба бити 16, 32, 64 или 128."
+
+#: arc-opc.c:952
+msgid "invalid size value must be on range 1-64."
+msgstr "неисправна вредност величине мора бити у опсегу 1-64."
+
+#: arc-opc.c:983
+msgid "invalid position, should be 0, 8, 16, or 24"
+msgstr "неисправан положај, треба бити 0, 8, 16 или 24"
+
+#: arc-opc.c:1008
+msgid "invalid size, value must be "
+msgstr "неисправна величина, вредност мора бити "
+
+#: arc-opc.c:1082
+msgid "value out of range 1 - 256"
+msgstr "вредност је ван опсега 1 – 256"
+
+#: arc-opc.c:1091
+msgid "value must be power of 2"
+msgstr "величина мора бити степен 2"
+
+#: arc-opc.c:1144
+msgid "value must be in the range 0 to 28"
+msgstr "вредност мор бити у опсегу од 0 до 28"
+
+#: arc-opc.c:1166
+msgid "value must be in the range 1 to "
+msgstr "вредност мор бити у опсегу од 1 до "
+
+#: arc-opc.c:1196
+msgid "value must be in the range 0 to 240"
+msgstr "вредност мор бити у опсегу од 0 до 240"
+
+#: arc-opc.c:1198
+msgid "value must be a multiple of 16"
+msgstr "вредност мора бити множилац од 16"
+
+#: arc-opc.c:1218
+msgid "invalid address type for operand"
+msgstr "неисправна врста адресе за операнд"
+
+#: arc-opc.c:1252
+msgid "value must be in the range 0 to 31"
+msgstr "вредност мор бити у опсегу од 0 до 31"
+
+#: arc-opc.c:1277
+msgid "invalid position, should be one of: 0,4,8,...124."
+msgstr "неисправан положај, треба да буде: 0,4,8,...или 124."
+
+#: arm-dis.c:5204
+msgid "Select raw register names"
+msgstr "Бира сирове називе регистра"
+
+#: arm-dis.c:5206
+msgid "Select register names used by GCC"
+msgstr "Бира називе регистра које користи „GCC“"
+
+#: arm-dis.c:5208
+msgid "Select register names used in ARM's ISA documentation"
+msgstr "Бира називе регистра коришћене у „ISA“ документацији „ARM“-а"
+
+#: arm-dis.c:5210
+msgid "Assume all insns are Thumb insns"
+msgstr "Претпоставља да су сви инснси „Thumb“ инснси"
+
+#: arm-dis.c:5211
+msgid "Examine preceding label to determine an insn's type"
+msgstr "Происпитује претходећи натпис да одреди врсту „insn“-а"
+
+#: arm-dis.c:5212
+msgid "Select register names used in the APCS"
+msgstr "Бира називе регистра који се користе у „APCS“-у"
+
+#: arm-dis.c:5214
+msgid "Select register names used in the ATPCS"
+msgstr "Бира називе регистра који се користе у „ATPCS“-у"
+
+#: arm-dis.c:5216
+msgid "Select special register names used in the ATPCS"
+msgstr "Бира посебне називе регистра који се користе у „ATPCS“-у"
+
+#: arm-dis.c:5218
+msgid "Enable CDE extensions for coprocessor N space"
+msgstr "Укључује „CDE“ проширења за N простор копроцесора"
+
+#: arm-dis.c:8530
+msgid "<illegal precision>"
+msgstr "<неисправна тачност>"
+
+#: arm-dis.c:12264
+#, c-format
+msgid "unrecognised register name set: %s"
+msgstr "непознат назив регистра је подешен: %s"
+
+#: arm-dis.c:12278
+#, c-format
+msgid "cde coprocessor not between 0-7: %s"
+msgstr "„cde“ копроцесор није између 0-7: %s"
+
+#: arm-dis.c:12284
+#, c-format
+msgid "coproc must have an argument: %s"
+msgstr "копроцесор мора имати аргумент: %s"
+
+#: arm-dis.c:12297
+#, c-format
+msgid "coprocN argument takes options \"generic\", \"cde\", or \"CDE\": %s"
+msgstr "аргумент копроцN може да има опције „generic“, „cde“, или „CDE“: %s"
+
+#: arm-dis.c:13016
+#, c-format
+msgid ""
+"\n"
+"The following ARM specific disassembler options are supported for use with\n"
+"the -M switch:\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „ARM“ су подржане за коришћење са\n"
+"прекидачем „-M“:\n"
+
+#: avr-dis.c:130 avr-dis.c:152
+#, c-format
+msgid "undefined"
+msgstr "неодређено"
+
+#: avr-dis.c:251
+#, c-format
+msgid "internal disassembler error"
+msgstr "унутрашња грешка разложитеља"
+
+#: avr-dis.c:312
+#, c-format
+msgid "unknown constraint `%c'"
+msgstr "непознато ограничење „%c“"
+
+#: bpf-asm.c:97
+msgid "expected 16, 32 or 64 in"
+msgstr "очекивах 16, 32 или 64 у"
+
+#: bpf-asm.c:181 epiphany-asm.c:456 fr30-asm.c:311 frv-asm.c:1264
+#: ip2k-asm.c:512 iq2000-asm.c:460 lm32-asm.c:350 m32c-asm.c:1585
+#: m32r-asm.c:329 mep-asm.c:1286 mt-asm.c:596 or1k-asm.c:576
+#: xstormy16-asm.c:277
+#, c-format
+msgid "internal error: unrecognized field %d while parsing"
+msgstr "унутрашња грешка: непознато поље %d приликом обраде"
+
+#: bpf-asm.c:233 epiphany-asm.c:508 fr30-asm.c:363 frv-asm.c:1316
+#: ip2k-asm.c:564 iq2000-asm.c:512 lm32-asm.c:402 m32c-asm.c:1637
+#: m32r-asm.c:381 mep-asm.c:1338 mt-asm.c:648 or1k-asm.c:628
+#: xstormy16-asm.c:329
+msgid "missing mnemonic in syntax string"
+msgstr "недостаје мнемоник у нисци синтаксе"
+
+#. We couldn't parse it.
+#: bpf-asm.c:368 bpf-asm.c:372 bpf-asm.c:461 bpf-asm.c:568 epiphany-asm.c:643
+#: epiphany-asm.c:647 epiphany-asm.c:736 epiphany-asm.c:843 fr30-asm.c:498
+#: fr30-asm.c:502 fr30-asm.c:591 fr30-asm.c:698 frv-asm.c:1451 frv-asm.c:1455
+#: frv-asm.c:1544 frv-asm.c:1651 ip2k-asm.c:699 ip2k-asm.c:703 ip2k-asm.c:792
+#: ip2k-asm.c:899 iq2000-asm.c:647 iq2000-asm.c:651 iq2000-asm.c:740
+#: iq2000-asm.c:847 lm32-asm.c:537 lm32-asm.c:541 lm32-asm.c:630
+#: lm32-asm.c:737 m32c-asm.c:1772 m32c-asm.c:1776 m32c-asm.c:1865
+#: m32c-asm.c:1972 m32r-asm.c:516 m32r-asm.c:520 m32r-asm.c:609 m32r-asm.c:716
+#: mep-asm.c:1473 mep-asm.c:1477 mep-asm.c:1566 mep-asm.c:1673 mt-asm.c:783
+#: mt-asm.c:787 mt-asm.c:876 mt-asm.c:983 or1k-asm.c:763 or1k-asm.c:767
+#: or1k-asm.c:856 or1k-asm.c:963 xstormy16-asm.c:464 xstormy16-asm.c:468
+#: xstormy16-asm.c:557 xstormy16-asm.c:664
+msgid "unrecognized instruction"
+msgstr "непозната инструкција"
+
+#: bpf-asm.c:415 epiphany-asm.c:690 fr30-asm.c:545 frv-asm.c:1498
+#: ip2k-asm.c:746 iq2000-asm.c:694 lm32-asm.c:584 m32c-asm.c:1819
+#: m32r-asm.c:563 mep-asm.c:1520 mt-asm.c:830 or1k-asm.c:810
+#: xstormy16-asm.c:511
+#, c-format
+msgid "syntax error (expected char `%c', found `%c')"
+msgstr "грешка синтаксе (очекивах знак „%c“, нађох „%c“)"
+
+#: bpf-asm.c:425 epiphany-asm.c:700 fr30-asm.c:555 frv-asm.c:1508
+#: ip2k-asm.c:756 iq2000-asm.c:704 lm32-asm.c:594 m32c-asm.c:1829
+#: m32r-asm.c:573 mep-asm.c:1530 mt-asm.c:840 or1k-asm.c:820
+#: xstormy16-asm.c:521
+#, c-format
+msgid "syntax error (expected char `%c', found end of instruction)"
+msgstr "грешка синтаксе (очекивах знак „%c“, нађох крај инструкције)"
+
+#: bpf-asm.c:455 epiphany-asm.c:730 fr30-asm.c:585 frv-asm.c:1538
+#: ip2k-asm.c:786 iq2000-asm.c:734 lm32-asm.c:624 m32c-asm.c:1859
+#: m32r-asm.c:603 mep-asm.c:1560 mt-asm.c:870 or1k-asm.c:850
+#: xstormy16-asm.c:551
+msgid "junk at end of line"
+msgstr "ђубре на крају реда"
+
+#: bpf-asm.c:567 epiphany-asm.c:842 fr30-asm.c:697 frv-asm.c:1650
+#: ip2k-asm.c:898 iq2000-asm.c:846 lm32-asm.c:736 m32c-asm.c:1971
+#: m32r-asm.c:715 mep-asm.c:1672 mt-asm.c:982 or1k-asm.c:962
+#: xstormy16-asm.c:663
+msgid "unrecognized form of instruction"
+msgstr "непознат облик инструкције"
+
+#: bpf-asm.c:581 epiphany-asm.c:856 fr30-asm.c:711 frv-asm.c:1664
+#: ip2k-asm.c:912 iq2000-asm.c:860 lm32-asm.c:750 m32c-asm.c:1985
+#: m32r-asm.c:729 mep-asm.c:1686 mt-asm.c:996 or1k-asm.c:976
+#: xstormy16-asm.c:677
+#, c-format
+msgid "bad instruction `%.50s...'"
+msgstr "лоша инструкција „%.50s...“"
+
+#: bpf-asm.c:584 epiphany-asm.c:859 fr30-asm.c:714 frv-asm.c:1667
+#: ip2k-asm.c:915 iq2000-asm.c:863 lm32-asm.c:753 m32c-asm.c:1988
+#: m32r-asm.c:732 mep-asm.c:1689 mt-asm.c:999 or1k-asm.c:979
+#: xstormy16-asm.c:680
+#, c-format
+msgid "bad instruction `%.50s'"
+msgstr "лоша инструкција „%.50s“"
+
+#: bpf-desc.c:1768
+#, c-format
+msgid "internal error: bpf_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: bpf_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: bpf-desc.c:1856
+#, c-format
+msgid "internal error: bpf_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: bpf_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: bpf-desc.c:1875
+#, c-format
+msgid "internal error: bpf_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: bpf_cgen_cpu_open: нису наведене крајњости"
+
+#. Default text to print if an instruction isn't recognized.
+#: bpf-dis.c:41 epiphany-dis.c:41 fr30-dis.c:41 frv-dis.c:41 ip2k-dis.c:41
+#: iq2000-dis.c:41 lm32-dis.c:41 m32c-dis.c:41 m32r-dis.c:41 mep-dis.c:41
+#: mmix-dis.c:293 mt-dis.c:41 nds32-dis.c:64 or1k-dis.c:41 xstormy16-dis.c:41
+msgid "*unknown*"
+msgstr "*непознато*"
+
+#: bpf-dis.c:203 epiphany-dis.c:279 fr30-dis.c:300 frv-dis.c:397
+#: ip2k-dis.c:289 iq2000-dis.c:190 lm32-dis.c:148 m32c-dis.c:892
+#: m32r-dis.c:280 mep-dis.c:1202 mt-dis.c:288 or1k-dis.c:175
+#: xstormy16-dis.c:169
+#, c-format
+msgid "internal error: unrecognized field %d while printing insn"
+msgstr "унутрашња грешка: непознато поље %d приликом исписивања инсн-а"
+
+#: bpf-ibld.c:166 epiphany-ibld.c:166 fr30-ibld.c:166 frv-ibld.c:166
+#: ip2k-ibld.c:166 iq2000-ibld.c:166 lm32-ibld.c:166 m32c-ibld.c:166
+#: m32r-ibld.c:166 mep-ibld.c:166 mt-ibld.c:166 or1k-ibld.c:166
+#: xstormy16-ibld.c:166
+#, c-format
+msgid "operand out of range (%ld not between %ld and %lu)"
+msgstr "операнд је ван опсега (%ld није између %ld и %lu)"
+
+#: bpf-ibld.c:187 epiphany-ibld.c:187 fr30-ibld.c:187 frv-ibld.c:187
+#: ip2k-ibld.c:187 iq2000-ibld.c:187 lm32-ibld.c:187 m32c-ibld.c:187
+#: m32r-ibld.c:187 mep-ibld.c:187 mt-ibld.c:187 or1k-ibld.c:187
+#: xstormy16-ibld.c:187
+#, c-format
+msgid "operand out of range (0x%lx not between 0 and 0x%lx)"
+msgstr "операнд је ван опсега (0x%lx није између 0 и 0x%lx)"
+
+#: bpf-ibld.c:203 cgen-asm.c:351 epiphany-ibld.c:203 fr30-ibld.c:203
+#: frv-ibld.c:203 ip2k-ibld.c:203 iq2000-ibld.c:203 lm32-ibld.c:203
+#: m32c-ibld.c:203 m32r-ibld.c:203 mep-ibld.c:203 mt-ibld.c:203
+#: or1k-ibld.c:203 xstormy16-ibld.c:203
+#, c-format
+msgid "operand out of range (%ld not between %ld and %ld)"
+msgstr "операнд је ван опсега (%ld није између %ld и %ld)"
+
+#: bpf-ibld.c:630 epiphany-ibld.c:885 fr30-ibld.c:740 frv-ibld.c:866
+#: ip2k-ibld.c:617 iq2000-ibld.c:723 lm32-ibld.c:644 m32c-ibld.c:1741
+#: m32r-ibld.c:675 mep-ibld.c:1218 mt-ibld.c:759 or1k-ibld.c:738
+#: xstormy16-ibld.c:688
+#, c-format
+msgid "internal error: unrecognized field %d while building insn"
+msgstr "унутрашња грешка: непознато поље %d приликом изградње инсн-а"
+
+#: bpf-ibld.c:714 epiphany-ibld.c:1180 fr30-ibld.c:946 frv-ibld.c:1184
+#: ip2k-ibld.c:693 iq2000-ibld.c:899 lm32-ibld.c:749 m32c-ibld.c:2903
+#: m32r-ibld.c:813 mep-ibld.c:1818 mt-ibld.c:980 or1k-ibld.c:897
+#: xstormy16-ibld.c:835
+#, c-format
+msgid "internal error: unrecognized field %d while decoding insn"
+msgstr "унутрашња грешка: непознато поље %d приликом декодирања инсн-а"
+
+#: bpf-ibld.c:783 epiphany-ibld.c:1324 fr30-ibld.c:1093 frv-ibld.c:1463
+#: ip2k-ibld.c:768 iq2000-ibld.c:1031 lm32-ibld.c:839 m32c-ibld.c:3521
+#: m32r-ibld.c:927 mep-ibld.c:2289 mt-ibld.c:1181 or1k-ibld.c:993
+#: xstormy16-ibld.c:946
+#, c-format
+msgid "internal error: unrecognized field %d while getting int operand"
+msgstr "унутрашња грешка: непознато поље %d приликом добављања инт операнда"
+
+#: bpf-ibld.c:834 epiphany-ibld.c:1450 fr30-ibld.c:1222 frv-ibld.c:1724
+#: ip2k-ibld.c:825 iq2000-ibld.c:1145 lm32-ibld.c:911 m32c-ibld.c:4121
+#: m32r-ibld.c:1023 mep-ibld.c:2742 mt-ibld.c:1364 or1k-ibld.c:1071
+#: xstormy16-ibld.c:1039
+#, c-format
+msgid "internal error: unrecognized field %d while getting vma operand"
+msgstr "унутрашња грешка: непознато поље %d приликом добављања вма операнда"
+
+#: bpf-ibld.c:892 epiphany-ibld.c:1583 fr30-ibld.c:1354 frv-ibld.c:1992
+#: ip2k-ibld.c:885 iq2000-ibld.c:1266 lm32-ibld.c:990 m32c-ibld.c:4709
+#: m32r-ibld.c:1125 mep-ibld.c:3156 mt-ibld.c:1554 or1k-ibld.c:1156
+#: xstormy16-ibld.c:1139
+#, c-format
+msgid "internal error: unrecognized field %d while setting int operand"
+msgstr "унутрашња грешка: непознато поље %d приликом подешавања инт операнда"
+
+#: bpf-ibld.c:940 epiphany-ibld.c:1706 fr30-ibld.c:1476 frv-ibld.c:2250
+#: ip2k-ibld.c:935 iq2000-ibld.c:1377 lm32-ibld.c:1059 m32c-ibld.c:5287
+#: m32r-ibld.c:1217 mep-ibld.c:3560 mt-ibld.c:1734 or1k-ibld.c:1231
+#: xstormy16-ibld.c:1229
+#, c-format
+msgid "internal error: unrecognized field %d while setting vma operand"
+msgstr "унутрашња грешка: непознато поље %d приликом подешавања вма операнда"
+
+#: cgen-asm.c:373
+#, c-format
+msgid "operand out of range (%lu not between %lu and %lu)"
+msgstr "операнд је ван опсега (%lu није између %lu и %lu)"
+
+#: cris-desc.c:2622
+#, c-format
+msgid "internal error: cris_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: cris_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: cris-desc.c:2710
+#, c-format
+msgid "internal error: cris_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: cris_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: cris-desc.c:2729
+#, c-format
+msgid "internal error: cris_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: cris_cgen_cpu_open: нису наведене крајњости"
+
+#: d30v-dis.c:232
+#, c-format
+msgid "illegal id (%d)"
+msgstr "неисправан иб (%d)"
+
+#: d30v-dis.c:259
+#, c-format
+msgid "<unknown register %d>"
+msgstr "<непознат регистар %d>"
+
+#. Can't happen.
+#: dis-buf.c:61
+#, c-format
+msgid "Unknown error %d\n"
+msgstr "Непозната грешка %d\n"
+
+#: dis-buf.c:67
+#, c-format
+msgid "Address 0x%<PRIx64> is out of bounds.\n"
+msgstr "Адреса 0х%<PRIx64> је изван граница.\n"
+
+#: disassemble.c:887
+#, c-format
+msgid "assertion fail %s:%d"
+msgstr "неуспех тврдње „%s:%d“"
+
+#: disassemble.c:888
+msgid "Please report this bug"
+msgstr "Известите о овој грешци"
+
+#: epiphany-asm.c:68
+msgid "register unavailable for short instructions"
+msgstr "регистар није доступан за кратке инструкције"
+
+#: epiphany-asm.c:115
+msgid "register name used as immediate value"
+msgstr "назив регистра је коришћен као вредност непосредног"
+
+#. Don't treat "mov ip,ip" as a move-immediate.
+#: epiphany-asm.c:178 epiphany-asm.c:234
+msgid "register source in immediate move"
+msgstr "извор регистра у померају непосредног"
+
+#: epiphany-asm.c:187
+msgid "byte relocation unsupported"
+msgstr "премештање бајта није подржано"
+
+#. -- assembler routines inserted here.
+#. -- asm.c
+#: epiphany-asm.c:193 frv-asm.c:972 iq2000-asm.c:56 lm32-asm.c:95
+#: lm32-asm.c:127 lm32-asm.c:157 lm32-asm.c:187 lm32-asm.c:217 lm32-asm.c:247
+#: m32c-asm.c:140 m32c-asm.c:235 m32c-asm.c:276 m32c-asm.c:334 m32c-asm.c:355
+#: m32r-asm.c:53 mep-asm.c:241 mep-asm.c:259 mep-asm.c:274 mep-asm.c:289
+#: mep-asm.c:301 or1k-asm.c:54
+msgid "missing `)'"
+msgstr "недостаје )"
+
+#: epiphany-asm.c:270
+msgid "ABORT: unknown operand"
+msgstr "ПРЕКИДАМ: непознат операнд"
+
+#: epiphany-asm.c:296
+msgid "Not a pc-relative address."
+msgstr "Није адреса која се односи на пц."
+
+#: epiphany-desc.c:2110
+#, c-format
+msgid "internal error: epiphany_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: epiphany_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: epiphany-desc.c:2198
+#, c-format
+msgid "internal error: epiphany_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: epiphany_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: epiphany-desc.c:2217
+#, c-format
+msgid "internal error: epiphany_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: epiphany_cgen_cpu_open: нису наведене крајњости"
+
+#: fr30-asm.c:93 m32c-asm.c:872 m32c-asm.c:879
+msgid "Register number is not valid"
+msgstr "Број регистра није исправан"
+
+#: fr30-asm.c:95
+msgid "Register must be between r0 and r7"
+msgstr "Регистар мора бити између r0 и r7"
+
+#: fr30-asm.c:97
+msgid "Register must be between r8 and r15"
+msgstr "Регистар мора бити између r8 и r15"
+
+#: fr30-asm.c:116 m32c-asm.c:910
+msgid "Register list is not valid"
+msgstr "Списак регистра није исправан"
+
+#: fr30-desc.c:1587
+#, c-format
+msgid "internal error: fr30_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: fr30_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: fr30-desc.c:1675
+#, c-format
+msgid "internal error: fr30_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: fr30_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: fr30-desc.c:1694
+#, c-format
+msgid "internal error: fr30_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: fr30_cgen_cpu_open: нису наведене крајњости"
+
+#: frv-asm.c:608
+msgid "missing `]'"
+msgstr "недостаје ]"
+
+#: frv-asm.c:611 frv-asm.c:621
+msgid "Special purpose register number is out of range"
+msgstr "Број регистра посебне намене је ван опсега"
+
+#: frv-asm.c:908
+msgid "Value of A operand must be 0 or 1"
+msgstr "Вредност операнда A мора бити 0 или 1"
+
+#: frv-asm.c:944
+msgid "register number must be even"
+msgstr "број регистра мора бити паран"
+
+#: frv-desc.c:6327
+#, c-format
+msgid "internal error: frv_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: frv_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: frv-desc.c:6415
+#, c-format
+msgid "internal error: frv_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: frv_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: frv-desc.c:6434
+#, c-format
+msgid "internal error: frv_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: frv_cgen_cpu_open: нису наведене крајњости"
+
+#: frv-opc.c:459
+#, c-format
+msgid "internal error: bad vliw->next_slot value"
+msgstr "унутрашња грешка: лоша „vliw->next_slot“ вредност"
+
+#: frv-opc.c:769
+#, c-format
+msgid "internal error: bad major code"
+msgstr "унутрашња грешка: лош главни код"
+
+#: frv-opc.c:819
+#, c-format
+msgid "internal error: bad insn unit"
+msgstr "унутрашња грешка: лоша инсн јединица"
+
+#: h8300-dis.c:309
+#, c-format
+msgid "Hmmmm 0x%x"
+msgstr "Hmmmm 0x%x"
+
+#: h8300-dis.c:617
+#, c-format
+msgid "Don't understand 0x%x \n"
+msgstr "Не разумем 0x%x \n"
+
+#: i386-dis.c:8819
+msgid "<internal disassembler error>"
+msgstr "<унутрашња грешка разложитеља>"
+
+#: i386-dis.c:9047
+#, c-format
+msgid ""
+"\n"
+"The following i386/x86-64 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „i386/x86-64“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба да се раздвајају зарезима):\n"
+
+#: i386-dis.c:9051
+#, c-format
+msgid "  x86-64      Disassemble in 64bit mode\n"
+msgstr "  x86-64      Разлаже у режиму 64-бита\n"
+
+#: i386-dis.c:9052
+#, c-format
+msgid "  i386        Disassemble in 32bit mode\n"
+msgstr "  i386        Разлаже у режиму 32-бита\n"
+
+#: i386-dis.c:9053
+#, c-format
+msgid "  i8086       Disassemble in 16bit mode\n"
+msgstr "  i8086       Разлаже у режиму 16-бита\n"
+
+#: i386-dis.c:9054
+#, c-format
+msgid "  att         Display instruction in AT&T syntax\n"
+msgstr "  att         Приказује инструкцију у синтакси „AT&T“-ја\n"
+
+#: i386-dis.c:9055
+#, c-format
+msgid "  intel       Display instruction in Intel syntax\n"
+msgstr "  intel       Приказује инструкцију у синтакси Интела\n"
+
+#: i386-dis.c:9056
+#, c-format
+msgid ""
+"  att-mnemonic\n"
+"              Display instruction in AT&T mnemonic\n"
+msgstr ""
+"  att-mnemonic\n"
+"              Приказује инструкцију у мнемонику „AT&T“-а\n"
+
+#: i386-dis.c:9058
+#, c-format
+msgid ""
+"  intel-mnemonic\n"
+"              Display instruction in Intel mnemonic\n"
+msgstr ""
+"  intel-mnemonic\n"
+"              Приказује инструкцију у мнемонику Интела\n"
+
+#: i386-dis.c:9060
+#, c-format
+msgid "  addr64      Assume 64bit address size\n"
+msgstr "  addr64      Претпоставља величину адресе од 64 бита\n"
+
+#: i386-dis.c:9061
+#, c-format
+msgid "  addr32      Assume 32bit address size\n"
+msgstr "  addr32      Претпоставља величину адресе од 32 бита\n"
+
+#: i386-dis.c:9062
+#, c-format
+msgid "  addr16      Assume 16bit address size\n"
+msgstr "  addr16      Претпоставља величину адресе од 16 бита\n"
+
+#: i386-dis.c:9063
+#, c-format
+msgid "  data32      Assume 32bit data size\n"
+msgstr "  data32      Претпоставља величину података од 32 бита\n"
+
+#: i386-dis.c:9064
+#, c-format
+msgid "  data16      Assume 16bit data size\n"
+msgstr "  data16      Претпоставља величину података од 16 бита\n"
+
+#: i386-dis.c:9065
+#, c-format
+msgid "  suffix      Always display instruction suffix in AT&T syntax\n"
+msgstr "  suffix      Увек приказује суфикс инструкције у синтакси „AT&T“-ја\n"
+
+#: i386-dis.c:9066
+#, c-format
+msgid "  amd64       Display instruction in AMD64 ISA\n"
+msgstr "  amd64       Приказује инструкцију у „AMD64 ISA“\n"
+
+#: i386-dis.c:9067
+#, c-format
+msgid "  intel64     Display instruction in Intel64 ISA\n"
+msgstr "  intel64     Приказује инструкције у „Intel64 ISA“\n"
+
+#: i386-dis.c:9760
+msgid "64-bit address is disabled"
+msgstr "64-битна адреса је искључена"
+
+#. We've been passed a w.  Return with an error message so that
+#. cgen will try the next parsing option.
+#: ip2k-asm.c:81
+msgid "W keyword invalid in FR operand slot."
+msgstr "„W“ кључна реч је неисправна у урезу „FR“ операнда."
+
+#. Invalid offset present.
+#: ip2k-asm.c:106
+msgid "offset(IP) is not a valid form"
+msgstr "померај(ИП) није исправан облик"
+
+#. Found something there in front of (DP) but it's out
+#. of range.
+#: ip2k-asm.c:154
+msgid "(DP) offset out of range."
+msgstr "(DP) померај је ван опсега."
+
+#. Found something there in front of (SP) but it's out
+#. of range.
+#: ip2k-asm.c:195
+msgid "(SP) offset out of range."
+msgstr "(SP) померај је ван опсега."
+
+#: ip2k-asm.c:211
+msgid "illegal use of parentheses"
+msgstr "неисправна употреба заграда"
+
+#: ip2k-asm.c:218
+msgid "operand out of range (not between 1 and 255)"
+msgstr "операнд је ван опсега (није између 1 и 255)"
+
+#. Something is very wrong. opindex has to be one of the above.
+#: ip2k-asm.c:242
+msgid "parse_addr16: invalid opindex."
+msgstr "„parse_addr16“: неисправан индекс опције."
+
+#: ip2k-asm.c:296
+msgid "Byte address required. - must be even."
+msgstr "Затражена је адреса бајта. — мора бити парна."
+
+#: ip2k-asm.c:305
+msgid "cgen_parse_address returned a symbol. Literal required."
+msgstr "„cgen_parse_address“ је дао симбол. Потребна је дословност."
+
+#: ip2k-asm.c:360
+msgid "percent-operator operand is not a symbol"
+msgstr "„percent-operator“ операнд није симбол"
+
+#: ip2k-asm.c:413
+msgid "Attempt to find bit index of 0"
+msgstr "Покушавам да нађем индекс бита 0"
+
+#: ip2k-desc.c:1016
+#, c-format
+msgid "internal error: ip2k_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: ip2k_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: ip2k-desc.c:1104
+#, c-format
+msgid "internal error: ip2k_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: ip2k_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: ip2k-desc.c:1123
+#, c-format
+msgid "internal error: ip2k_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: ip2k_cgen_cpu_open: нису наведене крајњости"
+
+#: iq2000-asm.c:112 iq2000-asm.c:142
+msgid "immediate value cannot be register"
+msgstr "вредност непосредног не може бити регистар"
+
+#: iq2000-asm.c:123 iq2000-asm.c:153 lm32-asm.c:70
+msgid "immediate value out of range"
+msgstr "вредност непосредног је ван опсега"
+
+#: iq2000-asm.c:182
+msgid "21-bit offset out of range"
+msgstr "Померај 21 бита је ван опсега"
+
+#: iq2000-desc.c:2021
+#, c-format
+msgid "internal error: iq2000_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: iq2000_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: iq2000-desc.c:2109
+#, c-format
+msgid "internal error: iq2000_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: iq2000_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: iq2000-desc.c:2128
+#, c-format
+msgid "internal error: iq2000_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: iq2000_cgen_cpu_open: нису наведене крајњости"
+
+#: lm32-asm.c:166
+msgid "expecting gp relative address: gp(symbol)"
+msgstr "очекујем „gp“ односну адресу: gp(symbol)"
+
+#: lm32-asm.c:196
+msgid "expecting got relative address: got(symbol)"
+msgstr "очекујем „got“ односну адресу: got(symbol)"
+
+#: lm32-asm.c:226
+msgid "expecting got relative address: gotoffhi16(symbol)"
+msgstr "очекујем „got“ односну адресу: gotoffhi16(symbol)"
+
+#: lm32-asm.c:256
+msgid "expecting got relative address: gotofflo16(symbol)"
+msgstr "очекујем „got“ односну адресу: gotofflo16(symbol)"
+
+#: lm32-desc.c:1003
+#, c-format
+msgid "internal error: lm32_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: lm32_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: lm32-desc.c:1091
+#, c-format
+msgid "internal error: lm32_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: lm32_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: lm32-desc.c:1110
+#, c-format
+msgid "internal error: lm32_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: lm32_cgen_cpu_open: нису наведене крајњости"
+
+#: loongarch-dis.c:324
+#, c-format
+msgid ""
+"\n"
+"The following LoongArch disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља „LoongArch“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба раздвојити зарезима):\n"
+
+#: loongarch-dis.c:328
+#, c-format
+msgid ""
+"\n"
+"    no-aliases    Use canonical instruction forms.\n"
+msgstr ""
+"\n"
+"    no-aliases    Користи облике прописне инструкције.\n"
+
+#: loongarch-dis.c:330
+#, c-format
+msgid ""
+"\n"
+"    numeric       Print numeric register names, rather than ABI names.\n"
+msgstr ""
+"\n"
+"  numeric         Исписује бројчане називе регистра, радије него „ABI“ називе.\n"
+
+#: m10200-dis.c:151 m10300-dis.c:574
+#, c-format
+msgid "unknown\t0x%04lx"
+msgstr "непознато 0x%04lx"
+
+#: m10200-dis.c:321
+#, c-format
+msgid "unknown\t0x%02lx"
+msgstr "непознато 0x%02lx"
+
+#: m32c-asm.c:117
+msgid "imm:6 immediate is out of range"
+msgstr "имм:6 непосредни је ван опсега"
+
+#: m32c-asm.c:145
+#, c-format
+msgid "%dsp8() takes a symbolic address, not a number"
+msgstr "„%dsp8()“ узима симболичку адресу, а не број"
+
+#: m32c-asm.c:159 m32c-asm.c:163 m32c-asm.c:253
+msgid "dsp:8 immediate is out of range"
+msgstr "дсп:8 непосредни је ван опсега"
+
+#: m32c-asm.c:184 m32c-asm.c:188
+msgid "Immediate is out of range -8 to 7"
+msgstr "Непосредни је ван опсега од -8 до 7"
+
+#: m32c-asm.c:209 m32c-asm.c:213
+msgid "Immediate is out of range -7 to 8"
+msgstr "Непосредни је ван опсега од -7 до 8"
+
+#: m32c-asm.c:281
+#, c-format
+msgid "%dsp16() takes a symbolic address, not a number"
+msgstr "„%dsp16()“ узима симболичку адресу, а не број"
+
+#: m32c-asm.c:305 m32c-asm.c:312 m32c-asm.c:373
+msgid "dsp:16 immediate is out of range"
+msgstr "дсп:16 непосредни је ван опсега"
+
+#: m32c-asm.c:399
+msgid "dsp:20 immediate is out of range"
+msgstr "дсп:20 непосредни је ван опсега"
+
+#: m32c-asm.c:425 m32c-asm.c:445
+msgid "dsp:24 immediate is out of range"
+msgstr "дсп:24 непосредни је ван опсега"
+
+#: m32c-asm.c:478
+msgid "immediate is out of range 1-2"
+msgstr "непосредни је ван опсега 1-2"
+
+#: m32c-asm.c:496
+msgid "immediate is out of range 1-8"
+msgstr "непосредни је ван опсега 1-8"
+
+#: m32c-asm.c:514
+msgid "immediate is out of range 0-7"
+msgstr "непосредни је ван опсега 0-7"
+
+#: m32c-asm.c:550
+msgid "immediate is out of range 2-9"
+msgstr "непосредни је ван опсега 2-9"
+
+#: m32c-asm.c:568
+msgid "Bit number for indexing general register is out of range 0-15"
+msgstr "Број бита за индексирање општег регистра је ван опсега 0-15"
+
+#: m32c-asm.c:606 m32c-asm.c:662
+msgid "bit,base is out of range"
+msgstr "бит,основа је ван опсега"
+
+#: m32c-asm.c:613 m32c-asm.c:618 m32c-asm.c:666
+msgid "bit,base out of range for symbol"
+msgstr "бит,основа је ван опсега за симбол"
+
+#: m32c-asm.c:802
+msgid "not a valid r0l/r0h pair"
+msgstr "није исправан пар „r0l/r0h“"
+
+#: m32c-asm.c:832
+msgid "Invalid size specifier"
+msgstr "Неисправан одредник величине"
+
+#: m32c-desc.c:63034
+#, c-format
+msgid "internal error: m32c_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: m32_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: m32c-desc.c:63122
+#, c-format
+msgid "internal error: m32c_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: m32_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: m32c-desc.c:63141
+#, c-format
+msgid "internal error: m32c_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: m32_cgen_cpu_open: нису наведене крајњости"
+
+#: m32r-desc.c:1366
+#, c-format
+msgid "internal error: m32r_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: m32r_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: m32r-desc.c:1454
+#, c-format
+msgid "internal error: m32r_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: m32r_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: m32r-desc.c:1473
+#, c-format
+msgid "internal error: m32r_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: m32r_cgen_cpu_open: нису наведене крајњости"
+
+#: m68k-dis.c:1403
+#, c-format
+msgid "<function code %d>"
+msgstr "<код функције %d>"
+
+#: m68k-dis.c:1567
+#, c-format
+msgid "<internal error in opcode table: %s %s>\n"
+msgstr "<унутрашња грешка у табели опкода: %s %s>\n"
+
+#: mep-asm.c:129
+msgid "Only $tp or $13 allowed for this opcode"
+msgstr "Само „$tp“ или „$13“ је дозвољено за овај опкод"
+
+#: mep-asm.c:143
+msgid "Only $sp or $15 allowed for this opcode"
+msgstr "Само „$sp“ или „$15“ је дозвољено за овај опкод"
+
+#: mep-asm.c:308 mep-asm.c:504
+#, c-format
+msgid "invalid %function() here"
+msgstr "неисправна је „%function()“ овде"
+
+#: mep-asm.c:336
+msgid "Immediate is out of range -32768 to 32767"
+msgstr "Непосредни је ван опсега од -32768 до 32767"
+
+#: mep-asm.c:356
+msgid "Immediate is out of range 0 to 65535"
+msgstr "Непосредни је ван опсега од 0 до 65535"
+
+#: mep-asm.c:549 mep-asm.c:562
+msgid "Immediate is out of range -512 to 511"
+msgstr "Непосредни је ван опсега од -512 до 511"
+
+#: mep-asm.c:554 mep-asm.c:563
+msgid "Immediate is out of range -128 to 127"
+msgstr "Непосредни је ван опсега од -128 до 127"
+
+#: mep-asm.c:558
+msgid "Value is not aligned enough"
+msgstr "Вредност није довољно поравната"
+
+#: mep-desc.c:6227
+#, c-format
+msgid "internal error: mep_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: mep_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: mep-desc.c:6315
+#, c-format
+msgid "internal error: mep_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: mep_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: mep-desc.c:6334
+#, c-format
+msgid "internal error: mep_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: mep_cgen_cpu_open: нису наведене крајњости"
+
+#: mep-dis.c:662
+#, c-format
+msgid "illegal MEP INDEX setting '%x' in ELF header e_flags field"
+msgstr "неисправна „MEP INDEX“ поставка „%x“ у пољу „e_flags“ ЕЛФ заглавља"
+
+#: mips-dis.c:1907 mips-dis.c:2140
+#, c-format
+msgid "# internal error, undefined operand in `%s %s'"
+msgstr "# унутрашња грешка, неодређени операнд у „%s %s“"
+
+#: mips-dis.c:2745
+msgid "Use canonical instruction forms.\n"
+msgstr "Користи облике прописне инструкције.\n"
+
+#: mips-dis.c:2747
+msgid "Recognize MSA instructions.\n"
+msgstr "Препознаје „MSA“ инструкције.\n"
+
+#: mips-dis.c:2749
+msgid "Recognize the virtualization ASE instructions.\n"
+msgstr "Препознаје „ASE“ инструкције виртуелизације.\n"
+
+#: mips-dis.c:2751
+msgid ""
+"Recognize the eXtended Physical Address (XPA) ASE\n"
+"                  instructions.\n"
+msgstr ""
+"Препознаје „eXtended Physical Address (XPA) ASE“\n"
+"                  инструкције.\n"
+
+#: mips-dis.c:2754
+msgid "Recognize the Global INValidate (GINV) ASE instructions.\n"
+msgstr "Препознаје „Global INValidate (GINV) ASE“ инструкције.\n"
+
+#: mips-dis.c:2758
+msgid "Recognize the Loongson MultiMedia extensions Instructions (MMI) ASE instructions.\n"
+msgstr "Препознаје „Loongson MultiMedia extensions Instructions (MMI) ASE“ инструкције.\n"
+
+#: mips-dis.c:2762
+msgid "Recognize the Loongson Content Address Memory (CAM)  instructions.\n"
+msgstr "Препознаје „Loongson Content Address Memory (CAM)“ инструкције.\n"
+
+#: mips-dis.c:2766
+msgid "Recognize the Loongson EXTensions (EXT)  instructions.\n"
+msgstr "Препознаје „Loongson EXTensions (EXT)“ инструкције.\n"
+
+#: mips-dis.c:2770
+msgid "Recognize the Loongson EXTensions R2 (EXT2)  instructions.\n"
+msgstr "Препознаје „Loongson EXTensions R2 (EXT2)“ инструкције.\n"
+
+#: mips-dis.c:2773
+msgid ""
+"Print GPR names according to specified ABI.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"Исписује „GPR“ називе у складу са наведеним „ABI“-јем.\n"
+"                   Основно: у зависности од разложеног бинарног.\n"
+
+#: mips-dis.c:2776
+msgid ""
+"Print FPR names according to specified ABI.\n"
+"                  Default: numeric.\n"
+msgstr ""
+"Исписује „FPR“ називе у складу са наведеним „ABI“-јем.\n"
+"                   Основно: број.\n"
+
+#: mips-dis.c:2779
+msgid ""
+"Print CP0 register names according to specified architecture.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"Исписује „CP0“ називе регистра у складу са наведеном архитектуром.\n"
+"                   Основно: у зависности од разложеног бинарног.\n"
+
+#: mips-dis.c:2783
+msgid ""
+"Print HWR names according to specified architecture.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"Исписује „HWR“ називе у складу са наведеном архитектуром.\n"
+"                   Основно: у зависности од разложеног бинарног.\n"
+
+#: mips-dis.c:2786
+msgid "Print GPR and FPR names according to specified ABI.\n"
+msgstr "Исписује „GPR“ и „FPR“ називе у складу са наведеним „ABI“-јем.\n"
+
+#: mips-dis.c:2788
+msgid ""
+"Print CP0 register and HWR names according to specified\n"
+"                  architecture."
+msgstr ""
+"Исписује „CP0“ регистар и „HWR“ називе у складу са наведеном\n"
+"                   архитектуром."
+
+#: mips-dis.c:2874
+#, c-format
+msgid ""
+"\n"
+"The following MIPS specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+"\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „MIPS“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба да се раздвајају зарезима):\n"
+"\n"
+
+#: mmix-dis.c:33
+#, c-format
+msgid "bad case %d (%s) in %s:%d"
+msgstr "лош случај %d (%s) у „%s:%d“"
+
+#: mmix-dis.c:42
+#, c-format
+msgid "internal: non-debugged code (test-case missing): %s:%d"
+msgstr "унутрашње: не-прочишћени код (недостаје случај теста): %s:%d"
+
+#: mmix-dis.c:52
+msgid "(unknown)"
+msgstr "(непознато)"
+
+#: mmix-dis.c:247 mmix-dis.c:255
+msgid "*illegal*"
+msgstr "*неисправно*"
+
+#: mmix-dis.c:529
+#, c-format
+msgid "*unknown operands type: %d*"
+msgstr "*непозната врста операнда: %d*"
+
+#: msp430-decode.opc:145 rl78-decode.opc:106
+#, c-format
+msgid "internal error: immediate() called with invalid byte count %d"
+msgstr "унутрашња грешка: „immediate()“ је позвано са неисправним бројем бајта %d"
+
+#: msp430-dis.c:59
+#, c-format
+msgid "Warning: disassembly unreliable - not enough bytes available"
+msgstr "Упозорење: разложитељ је непоуздан – недовољно доступних бајтова"
+
+#: msp430-dis.c:65
+#, c-format
+msgid "Error: read from memory failed"
+msgstr "Грешка: читање из меморије није успело"
+
+#: msp430-dis.c:499
+msgid "Warning: illegal as emulation instr"
+msgstr "Упозорењ: неисправно као инструкција емулације"
+
+#. R2/R3 are illegal as dest: may be data section.
+#: msp430-dis.c:591
+msgid "Warning: illegal as 2-op instr"
+msgstr "Упозорење: неисправно као 2-оп инструкција"
+
+#: msp430-dis.c:1002
+msgid "Warning: unrecognised CALLA addressing mode"
+msgstr "Упозорење: непознат режим „CALLA“ адресирања"
+
+#: msp430-dis.c:1303 msp430-dis.c:1324 msp430-dis.c:1345
+#, c-format
+msgid "Warning: reserved use of A/L and B/W bits detected"
+msgstr "Упозорење: откривена је резервисана употреба „A/L“ и „B/W“ битова"
+
+#: mt-asm.c:110 mt-asm.c:190
+msgid "Operand out of range. Must be between -32768 and 32767."
+msgstr "Операнд је ван опсега. Мора бити између -32768 и 32767."
+
+#: mt-asm.c:149
+msgid "Biiiig Trouble in parse_imm16!"
+msgstr "Веееелики проблем у „parse_imm16“!"
+
+#: mt-asm.c:157
+msgid "The percent-operator's operand is not a symbol"
+msgstr "„percent-operator“-ов операнд није симбол"
+
+#: mt-asm.c:395
+msgid "invalid operand.  type may have values 0,1,2 only."
+msgstr "неисправан операнд.  врста може имати само вредности 0,1,2."
+
+#: mt-desc.c:1147
+#, c-format
+msgid "internal error: mt_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: mt_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: mt-desc.c:1235
+#, c-format
+msgid "internal error: mt_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: mt_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: mt-desc.c:1254
+#, c-format
+msgid "internal error: mt_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: mt_cgen_cpu_open: нису наведене крајњости"
+
+#: nds32-asm.c:1760
+#, c-format
+msgid "internal error: unknown operand, %s"
+msgstr "унутрашња грешка: непознат операнд, „%s“"
+
+#: nds32-asm.c:2396
+#, c-format
+msgid "internal error: don't know how to handle parsing results"
+msgstr "унутрашња грешка: немам појма шта даље са резултатима обраде"
+
+#: nds32-asm.c:2404
+#, c-format
+msgid "internal error: unknown hardware resource"
+msgstr "унутрашња грешка: непознати хардверски ресурси"
+
+#: nds32-dis.c:1178
+msgid "insufficient data to decode instruction"
+msgstr "недовољно података за декодирање инструкције"
+
+#: nfp-dis.c:930
+msgid "<invalid_instruction>:"
+msgstr "<неисправна_инструкција>:"
+
+#: nfp-dis.c:1334
+msgid ", <invalid CRC operator>, "
+msgstr ", <неисправан „CRC“ оператор>, "
+
+#: nfp-dis.c:1686
+msgid "<invalid branch>["
+msgstr "<неисправна грана>["
+
+#: nfp-dis.c:2055 nfp-dis.c:2326
+#, c-format
+msgid "<invalid cmd target %d:%d:%d>[]"
+msgstr "<неисправна мета наредбе %d:%d:%d>[]"
+
+#: nfp-dis.c:2066 nfp-dis.c:2337
+#, c-format
+msgid "<invalid cmd action %d:%d:%d>[]"
+msgstr "<неисправна радња наредбе %d:%d:%d>[]"
+
+#: nfp-dis.c:2558
+msgid "File has no ME-Config section."
+msgstr "Датотека нема одељак „ME“-Подешавања."
+
+#: nfp-dis.c:2572
+msgid "File has invalid ME-Config section."
+msgstr "Датотека има неисправан одељак „ME“-Подешавања."
+
+#: nfp-dis.c:2719
+#, c-format
+msgid "Error processing section %u "
+msgstr "Грешка обраде одељка %u "
+
+#: nfp-dis.c:2748
+#, c-format
+msgid "Invalid NFP option: %s"
+msgstr "Неисправна „NFP“ опција: %s"
+
+#: nfp-dis.c:2986
+#, c-format
+msgid ""
+"\n"
+"The following NFP specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „NFP“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба да се раздвајају зарезима):\n"
+
+#: nfp-dis.c:2990
+#, c-format
+msgid ""
+"\n"
+"  no-pc\t\t    Don't print program counter prefix.\n"
+"  ctx4\t\t    Force disassembly using 4-context mode.\n"
+"  ctx8\t\t    Force 8-context mode, takes precedence."
+msgstr ""
+"\n"
+"  no-pc\t\t    Не исписује префикс бројача прогама.\n"
+"  ctx4\t\t    Приморава разложитеља да користи 4-контекстни режим.\n"
+"  ctx8\t\t    Приморава 8-контекстни режим, таје предност."
+
+#: nios2-dis.c:135
+#, c-format
+msgid "out of memory"
+msgstr "нема више меморије"
+
+#: nios2-dis.c:263
+#, c-format
+msgid "internal error: broken opcode descriptor for `%s %s'"
+msgstr "унутрашња грешка: оштећен описник опкода за „%s %s“"
+
+#. I and Z are output operands and can`t be immediate
+#. A is an address and we can`t have the address of
+#. an immediate either. We don't know how much to increase
+#. aoffsetp by since whatever generated this is broken
+#. anyway!
+#: ns32k-dis.c:533
+#, c-format
+msgid "$<undefined>"
+msgstr "$<неодређено>"
+
+#: or1k-asm.c:55
+msgid "relocation invalid for store"
+msgstr "премештај је неисправан за спремиште"
+
+#: or1k-asm.c:56
+msgid "internal relocation type invalid"
+msgstr "унутрашња врста премештаја је неисправна"
+
+#: or1k-desc.c:2041
+#, c-format
+msgid "internal error: or1k_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: or1k_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: or1k-desc.c:2129
+#, c-format
+msgid "internal error: or1k_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: or1k_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: or1k-desc.c:2148
+#, c-format
+msgid "internal error: or1k_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: or1k_cgen_cpu_open: нису наведене крајњости"
+
+#: ppc-dis.c:418
+#, c-format
+msgid "warning: ignoring unknown -M%s option"
+msgstr "упозорење: занемарујем непознату опцију „-M%s“"
+
+#: ppc-dis.c:1256
+#, c-format
+msgid ""
+"\n"
+"The following PPC specific disassembler options are supported for use with\n"
+"the -M switch:\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „PPC“ су подржане за коришћење са\n"
+"прекидачем „-M“:\n"
+
+#: ppc-opc.c:52 ppc-opc.c:75 ppc-opc.c:101 ppc-opc.c:131
+msgid "invalid register"
+msgstr "неисправан регистар"
+
+#: ppc-opc.c:397
+msgid "invalid conditional option"
+msgstr "неисправна условна опција"
+
+#: ppc-opc.c:400
+msgid "invalid counter access"
+msgstr "неисправан приступ бројача"
+
+#: ppc-opc.c:464
+msgid "BO value implies no branch hint, when using + or - modifier"
+msgstr "„BO“ вредност подразумева без поготка гране, када користим + или - измењивач"
+
+#: ppc-opc.c:469
+msgid "attempt to set y bit when using + or - modifier"
+msgstr "покуђавам да подесим „y“ бит када користим + или - измењивач"
+
+#: ppc-opc.c:471
+msgid "attempt to set 'at' bits when using + or - modifier"
+msgstr "покуђавам да подесим „at“ битове када користим + или - измењивач"
+
+#: ppc-opc.c:575
+msgid "invalid offset: must be in the range [-512, -8] and be a multiple of 8"
+msgstr "неисправан померај: мора бити у опсегу [-512, -8] и мора бити производ 8"
+
+#: ppc-opc.c:706
+msgid "invalid R operand"
+msgstr "неисправан „R“ операнд"
+
+#: ppc-opc.c:761
+msgid "invalid mask field"
+msgstr "неисправно поље маске"
+
+#: ppc-opc.c:784
+msgid "invalid mfcr mask"
+msgstr "неисправна „mfcr“ маска"
+
+#: ppc-opc.c:902 ppc-opc.c:920
+msgid "illegal L operand value"
+msgstr "неисправна вредност „L“ операнда"
+
+#: ppc-opc.c:943
+msgid "illegal WC operand value"
+msgstr "неисправна вредност „WC“ операнда"
+
+#: ppc-opc.c:1040
+msgid "incompatible L operand value"
+msgstr "несагласна вредност „L“ операнда"
+
+#: ppc-opc.c:1239 ppc-opc.c:1274
+msgid "illegal bitmask"
+msgstr "неисправна битмаска"
+
+#: ppc-opc.c:1418
+msgid "address register in load range"
+msgstr "регистар адресе у опсегу учитавања"
+
+#: ppc-opc.c:1458
+msgid "illegal PL operand value"
+msgstr "неисправна вредност „PL“ операнда"
+
+#: ppc-opc.c:1539
+msgid "index register in load range"
+msgstr "регистар индекса у опсегу учитавања"
+
+#: ppc-opc.c:1568 ppc-opc.c:1654
+msgid "source and target register operands must be different"
+msgstr "операнди изворног и циљног регистра морају бити различити"
+
+#: ppc-opc.c:1599
+msgid "invalid register operand when updating"
+msgstr "неисправан операнд регистра приликом освежавања"
+
+#: ppc-opc.c:1717
+msgid "illegal immediate value"
+msgstr "неисправна вредност непосредног"
+
+#: ppc-opc.c:2024
+msgid "invalid bat number"
+msgstr "неисправан бат број"
+
+#: ppc-opc.c:2059
+msgid "invalid sprg number"
+msgstr "неисправан спрг број"
+
+#: ppc-opc.c:2096
+msgid "invalid tbr number"
+msgstr "неисправан тбр број"
+
+#: ppc-opc.c:2203 ppc-opc.c:2271
+msgid "VSR overlaps ACC operand"
+msgstr "„VSR“ преклапа „ACC“ операнд"
+
+#: ppc-opc.c:2380
+msgid "invalid constant"
+msgstr "неисправна константа"
+
+#: ppc-opc.c:2482 ppc-opc.c:2505 ppc-opc.c:2528 ppc-opc.c:2551
+msgid "UIMM = 00000 is illegal"
+msgstr "„UIMM = 00000“ је неисправно"
+
+#: ppc-opc.c:2574
+msgid "UIMM values >7 are illegal"
+msgstr "„UIMM“ вредности >7 су неисправне"
+
+#: ppc-opc.c:2597
+msgid "UIMM values >15 are illegal"
+msgstr "„UIMM“ вредности >15 су неисправне"
+
+#: ppc-opc.c:2620
+msgid "GPR odd is illegal"
+msgstr "непарно „GPR“ је неисправно"
+
+#: ppc-opc.c:2643 ppc-opc.c:2666
+msgid "invalid offset"
+msgstr "неисправан померај"
+
+#: ppc-opc.c:2689
+msgid "invalid Ddd value"
+msgstr "неисправна „Ddd“ вредност"
+
+#: ppc-opc.c:2742 ppc-opc.c:2769
+msgid "invalid TH value"
+msgstr "неисправна „TH“ вредност"
+
+#. The option without '=' should be defined above.
+#: riscv-dis.c:120 riscv-dis.c:157
+#, c-format
+msgid "unrecognized disassembler option: %s"
+msgstr "непозната опција разложитеља: %s"
+
+#. Invalid options with '=', no option name before '=',
+#. and no value after '='.
+#: riscv-dis.c:128
+#, c-format
+msgid "unrecognized disassembler option with '=': %s"
+msgstr "непозната опција разложитеља са знаком =: %s"
+
+#: riscv-dis.c:142
+#, c-format
+msgid "unknown privileged spec set by %s=%s"
+msgstr "непозната одредба привилегије постављена са „%s=%s“"
+
+#: riscv-dis.c:149
+#, c-format
+msgid "mis-matched privilege spec set by %s=%s, the elf privilege attribute is %s"
+msgstr "неодговарајућу одредбу привилегије је поставио „%s=%s“, атрибут елф привилегије је „%s“"
+
+#: riscv-dis.c:670
+#, c-format
+msgid "# internal error, undefined modifier (%c)"
+msgstr "# унутрашња грешка, неодређени измењивач (%c)"
+
+#: riscv-dis.c:1238
+msgid "Print numeric register names, rather than ABI names."
+msgstr "Исписује бројчане називе регистра, уместо „ABI“ називе."
+
+#: riscv-dis.c:1241
+msgid "Disassemble only into canonical instructions."
+msgstr "Рашчлањује само у канонске инструкције."
+
+#: riscv-dis.c:1244
+msgid "Print the CSR according to the chosen privilege spec."
+msgstr "Исписује „CSR“ у складу са изабраном одредбом привилегије."
+
+#: riscv-dis.c:1320
+#, c-format
+msgid ""
+"\n"
+"The following RISC-V specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „RISC-V“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба да се раздвајају зарезима):\n"
+
+#: rx-dis.c:139 rx-dis.c:163 rx-dis.c:171 rx-dis.c:179 rx-dis.c:187
+msgid "<invalid register number>"
+msgstr "<неисправан број регистра>"
+
+#: rx-dis.c:147 rx-dis.c:195
+msgid "<invalid condition code>"
+msgstr "<неисправан код услова>"
+
+#: rx-dis.c:155
+msgid "<invalid flag>"
+msgstr "<неисправн азаставица>"
+
+#: rx-dis.c:203
+msgid "<invalid opsize>"
+msgstr "<неисправна оп_величина>"
+
+#: rx-dis.c:211
+msgid "<invalid size>"
+msgstr "<неисправна величина>"
+
+#: s12z-dis.c:239 s12z-dis.c:296 s12z-dis.c:307
+msgid "<illegal reg num>"
+msgstr "<неисправан број регистра>"
+
+#: s12z-dis.c:370
+msgid "<bad>"
+msgstr "<лоше>"
+
+#: s12z-dis.c:380
+msgid ".<bad>"
+msgstr ".<лоше>"
+
+#: s390-dis.c:42
+msgid "Disassemble in ESA architecture mode"
+msgstr "Разлаже у режиму „ESA“ архитектуре"
+
+#: s390-dis.c:43
+msgid "Disassemble in z/Architecture mode"
+msgstr "Разлаже у режиму z/Архитектуре"
+
+#: s390-dis.c:44
+msgid "Print unknown instructions according to length from first two bits"
+msgstr "Исписује непознате инструкције у складу са дужином из прва два бита"
+
+#: s390-dis.c:76
+#, c-format
+msgid "unknown S/390 disassembler option: %s"
+msgstr "непозната опција „S/390“ разложитеља: %s"
+
+#: s390-dis.c:471
+#, c-format
+msgid ""
+"\n"
+"The following S/390 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Следеће опције разложитеља специфичне за „S/390“ су подржане за коришћење\n"
+"са прекидачем „-M“ (више опција треба да се раздвајају зарезима):\n"
+
+#: score-dis.c:653 score-dis.c:871 score-dis.c:1032 score-dis.c:1138
+#: score-dis.c:1146 score-dis.c:1153 score7-dis.c:691 score7-dis.c:854
+msgid "<illegal instruction>"
+msgstr "<неисправна инструкција>"
+
+#: sparc-dis.c:308 sparc-dis.c:318
+#, c-format
+msgid "internal error: bad sparc-opcode.h: \"%s\", %#.8lx, %#.8lx\n"
+msgstr "унутрашња грешка: лоше „sparc-opcode.h“: „%s“, %#.8lx, %#.8lx\n"
+
+#: sparc-dis.c:377
+#, c-format
+msgid "internal error: bad sparc-opcode.h: \"%s\" == \"%s\"\n"
+msgstr "унутрашња грешка: лоше „sparc-opcode.h“: „%s“ == „%s“\n"
+
+#. Mark as non-valid instruction.
+#: sparc-dis.c:1094
+msgid "unknown"
+msgstr "непознато"
+
+#: v850-dis.c:190
+msgid "<invalid s-reg number>"
+msgstr "<неисправан „s-reg“ број>"
+
+#: v850-dis.c:206
+msgid "<invalid reg number>"
+msgstr "<неисправан „reg“ број>"
+
+#: v850-dis.c:222
+msgid "<invalid v-reg number>"
+msgstr "<неисправан „v-reg“ број>"
+
+#: v850-dis.c:236
+msgid "<invalid CC-reg number>"
+msgstr "<неисправан „CC--reg“ број>"
+
+#: v850-dis.c:250
+msgid "<invalid float-CC-reg number>"
+msgstr "<neispravan „float-CC-reg“ broj>"
+
+#: v850-dis.c:264
+msgid "<invalid cacheop number>"
+msgstr "<неисправан „casheop“ број>"
+
+#: v850-dis.c:275
+msgid "<invalid prefop number>"
+msgstr "<неисправан „prefop“ број>"
+
+#: v850-dis.c:510
+#, c-format
+msgid "unknown operand shift: %x"
+msgstr "непознат помак операнда: %x"
+
+#: v850-dis.c:526
+#, c-format
+msgid "unknown reg: %d"
+msgstr "непознат регистар: %d"
+
+#. The functions used to insert and extract complicated operands.
+#. Note: There is a conspiracy between these functions and
+#. v850_insert_operand() in gas/config/tc-v850.c.  Error messages
+#. containing the string 'out of range' will be ignored unless a
+#. specific command line option is given to GAS.
+#: v850-opc.c:53
+msgid "displacement value is not in range and is not aligned"
+msgstr "вредност размештања није у опсегу и није поравната"
+
+#: v850-opc.c:54
+msgid "displacement value is out of range"
+msgstr "вредност размештања је ван опсега"
+
+#: v850-opc.c:55
+msgid "displacement value is not aligned"
+msgstr "вредност размештања није поравната"
+
+#: v850-opc.c:57
+msgid "immediate value is out of range"
+msgstr "вредност непосредног је ван опсега"
+
+#: v850-opc.c:58
+msgid "branch value out of range"
+msgstr "вредност гране је ван опсега"
+
+#: v850-opc.c:59
+msgid "branch value not in range and to odd offset"
+msgstr "вредност гране није у опсегу и непарном померају"
+
+#: v850-opc.c:60
+msgid "branch to odd offset"
+msgstr "грана у непарном померају"
+
+#: v850-opc.c:61
+msgid "position value is out of range"
+msgstr "вредност положаја је ван опсега"
+
+#: v850-opc.c:62
+msgid "width value is out of range"
+msgstr "вредност ширине је ван опсега"
+
+#: v850-opc.c:63
+msgid "SelID is out of range"
+msgstr "СелИД је ван опсега"
+
+#: v850-opc.c:64
+msgid "vector8 is out of range"
+msgstr "вектор8 је ван опсега"
+
+#: v850-opc.c:65
+msgid "vector5 is out of range"
+msgstr "вектор5 је ван опсега"
+
+#: v850-opc.c:66
+msgid "imm10 is out of range"
+msgstr "имм10 је ван опсега"
+
+#: v850-opc.c:67
+msgid "SR/SelID is out of range"
+msgstr "СР/СелИД је ван опсега"
+
+#: v850-opc.c:508
+msgid "invalid register for stack adjustment"
+msgstr "неисправан регистар за поравнање спремника"
+
+#: v850-opc.c:526
+msgid "invalid register name"
+msgstr "неисправан назив регистра"
+
+#: wasm32-dis.c:93
+msgid "Disassemble \"register\" names"
+msgstr "Разлаже „register“ називе"
+
+#: wasm32-dis.c:94
+msgid "Name well-known globals"
+msgstr "Називу добро познати општи"
+
+#: wasm32-dis.c:549
+#, c-format
+msgid ""
+"The following WebAssembly-specific disassembler options are supported for use\n"
+"with the -M switch:\n"
+msgstr ""
+"Следеће опције разложитеља специфичне за „WebAssembly“ су подржане за коришћење са\n"
+"прекидачем „-M“:\n"
+
+#: xstormy16-asm.c:71
+msgid "Bad register in preincrement"
+msgstr "Лош регистар у предувећању"
+
+#: xstormy16-asm.c:76
+msgid "Bad register in postincrement"
+msgstr "Лош регистар у постувећању"
+
+#: xstormy16-asm.c:78
+msgid "Bad register name"
+msgstr "Лош назив регистра"
+
+#: xstormy16-asm.c:82
+msgid "Label conflicts with register name"
+msgstr "Натпис се сукобљава са називом регистра"
+
+#: xstormy16-asm.c:86
+msgid "Label conflicts with `Rx'"
+msgstr "Натпис се сукобљава са „Rx“-ом"
+
+#: xstormy16-asm.c:88
+msgid "Bad immediate expression"
+msgstr "Лош израз непосредног"
+
+#: xstormy16-asm.c:109
+msgid "No relocation for small immediate"
+msgstr "Нема премештања за малог непосредног"
+
+#: xstormy16-asm.c:119
+msgid "Small operand was not an immediate number"
+msgstr "Мали операнд није био број непосредног"
+
+#: xstormy16-asm.c:157
+msgid "Operand is not a symbol"
+msgstr "Операнд није симбол"
+
+#: xstormy16-asm.c:165
+msgid "Syntax error: No trailing ')'"
+msgstr "Грешка синтаксе: Нема пратеће )"
+
+#: xstormy16-desc.c:1318
+#, c-format
+msgid "internal error: xstormy16_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "унутрашња грешка: xstormy16_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#: xstormy16-desc.c:1406
+#, c-format
+msgid "internal error: xstormy16_cgen_cpu_open: unsupported argument `%d'"
+msgstr "унутрашња грешка: xstormy16_cgen_cpu_open: неподржан аргумент „%d“"
+
+#: xstormy16-desc.c:1425
+#, c-format
+msgid "internal error: xstormy16_cgen_cpu_open: no endianness specified"
+msgstr "унутрашња грешка: xstormy16_cgen_cpu_open: нису наведене крајњости"
+
+#~ msgid "z0-z15 expected"
+#~ msgstr "очекивано је „z0-z15“"
+
+#~ msgid "z0-z7 expected"
+#~ msgstr "очекивано је „z0-z7“"
+
+#~ msgid "invalid register list"
+#~ msgstr "неисправан списак регистра"
+
+#~ msgid "p0-p7 expected"
+#~ msgstr "очекивано је „p0-p7“"
+
+#~ msgid "%s: error: "
+#~ msgstr "%s: грешка: "
+
+#~ msgid "%s: %d: unknown bitfield: %s\n"
+#~ msgstr "%s: %d: непознато поље бита: %s\n"
+
+#~ msgid "unknown bitfield: %s\n"
+#~ msgstr "непознато поље бита: %s\n"
+
+#~ msgid "%s: %d: missing `)' in bitfield: %s\n"
+#~ msgstr "%s: %d: недостаје ) у пољу бита: %s\n"
+
+#~ msgid "%s: %d: no memory operand\n"
+#~ msgstr "%s: %d: нема операнда меморије\n"
+
+#~ msgid "%s: %d: unknown element size: %s\n"
+#~ msgstr "%s: %d: непозната величина елемента: %s\n"
+
+#~ msgid "%s:%d: Conflicting opcode space specifications\n"
+#~ msgstr "%s:%d: Сукобљавајуће одредбе опкод размака\n"
+
+#~ msgid "%s:%d: Warning: redundant opcode space specification\n"
+#~ msgstr "%s:%d: Упозорење: понављајућа одредба опкод размака\n"
+
+#~ msgid "%s:%d: Conflicting prefix specifications\n"
+#~ msgstr "%s:%d: Сукобљавајуће одредбе префикса\n"
+
+#~ msgid "%s:%d: Warning: redundant prefix specification\n"
+#~ msgstr "%s:%d: Упозорење: понављајућа одредба префикса\n"
+
+#~ msgid "%s:%d: %s: unrecognized opcode encoding space\n"
+#~ msgstr "%s:%d: %s: непознат размак опкод кодирања\n"
+
+#~ msgid "%s:%d: %s: residual opcode (0x%0*llx) too large\n"
+#~ msgstr "%s:%d: %s: заостали опкод (0x%0*llx) је превелик\n"
+
+#~ msgid "%s: %d: (continued) line too long\n"
+#~ msgstr "%s: %d: (настављено) ред је предуг\n"
+
+#~ msgid "can't find i386-reg.tbl for reading, errno = %s\n"
+#~ msgstr "не могу да нађем „i386-reg.tbl“ за читање, грешка = %s\n"
+
+#~ msgid "can't create i386-init.h, errno = %s\n"
+#~ msgstr "не могу да направим „i386-init.h“, грешка = %s\n"
+
+#~ msgid "unable to change directory to \"%s\", errno = %s\n"
+#~ msgstr "не могу да пређем у директоријум „%s“, гршка = %s\n"
+
+#~ msgid "CpuMax != %d!\n"
+#~ msgstr "CpuMax != %d!\n"
+
+#~ msgid "%d unused bits in i386_cpu_flags.\n"
+#~ msgstr "%d некоришћена бита у „i386_cpu_flags“.\n"
+
+#~ msgid "%d unused bits in i386_operand_type.\n"
+#~ msgstr "%d некоришћена бита у „i386_operand_type“.\n"
+
+#~ msgid "can't create i386-tbl.h, errno = %s\n"
+#~ msgstr "не могу да направим „i386-tbl.h“, грешка = %s\n"
+
+#~ msgid "%s: Error: "
+#~ msgstr "%s: Грешка: "
+
+#~ msgid "%s: Warning: "
+#~ msgstr "%s: Упозорење: "
+
+#~ msgid "multiple note %s not handled\n"
+#~ msgstr "нисам одрадио више белешки „%s“\n"
+
+#~ msgid "can't find ia64-ic.tbl for reading\n"
+#~ msgstr "не могу да нађем „ia64-ic.tbl“ за читање\n"
+
+#~ msgid "can't find %s for reading\n"
+#~ msgstr "не могу да нађем „%s“ за читање\n"
+
+#~ msgid ""
+#~ "most recent format '%s'\n"
+#~ "appears more restrictive than '%s'\n"
+#~ msgstr ""
+#~ "најновији формат „%s“\n"
+#~ "изгледа ограниченији него „%s“\n"
+
+#~ msgid "overlapping field %s->%s\n"
+#~ msgstr "преклапам поље %s—>%s\n"
+
+#~ msgid "overwriting note %d with note %d (IC:%s)\n"
+#~ msgstr "преписујем белешку %d белешком %d (IC:%s)\n"
+
+#~ msgid "don't know how to specify %% dependency %s\n"
+#~ msgstr "не знам како да наведем %% зависност „%s“\n"
+
+#~ msgid "Don't know how to specify # dependency %s\n"
+#~ msgstr "Не знам како да наведем # зависност „%s“\n"
+
+#~ msgid "IC:%s [%s] has no terminals or sub-classes\n"
+#~ msgstr "„IC:%s“ [%s] нема терминале или под-класе\n"
+
+#~ msgid "IC:%s has no terminals or sub-classes\n"
+#~ msgstr "„IC:%s“ нема терминале или под-класе\n"
+
+#~ msgid "no insns mapped directly to terminal IC %s [%s]"
+#~ msgstr "ниједна инструкција није мапирана директно у терминал „IC %s“ [%s]"
+
+#~ msgid "no insns mapped directly to terminal IC %s\n"
+#~ msgstr "ниједна инструкција није мапирана директно у терминал „IC %s“\n"
+
+#~ msgid "class %s is defined but not used\n"
+#~ msgstr "класа „%s“ је дефинисана али се не користи\n"
+
+#~ msgid "Warning: rsrc %s (%s) has no chks\n"
+#~ msgstr "Упозорење: „rsrc“ „%s“ (%s) нема „chks“\n"
+
+#~ msgid "Warning: rsrc %s (%s) has no chks or regs\n"
+#~ msgstr "Упозорење: „rsrc“ „%s“ (%s) нема „chks“ или „regs“\n"
+
+#~ msgid "rsrc %s (%s) has no regs\n"
+#~ msgstr "„rsrc“ „%s“ (%s) нема „regs“\n"
+
+#~ msgid "IC note %d in opcode %s (IC:%s) conflicts with resource %s note %d\n"
+#~ msgstr "ИЦ белешка %d у опкоду „%s“ (IC:%s) се сукобљава са извориштем „%s“ белешка %d\n"
+
+#~ msgid "IC note %d for opcode %s (IC:%s) conflicts with resource %s note %d\n"
+#~ msgstr "ИЦ белешка %d за опкод „%s“ (IC:%s) се сукобљава са извориштем „%s“ белешка %d\n"
+
+#~ msgid "opcode %s has no class (ops %d %d %d)\n"
+#~ msgstr "опкод „%s“ нема класу (опције %d %d %d)\n"
+
+#~ msgid "unknown broadcast operand: %s\n"
+#~ msgstr "непознат операнд емитовања: %s\n"
+
+#~ msgid "Missing '#' prefix"
+#~ msgstr "Недостаје префикс „#“"
+
+#~ msgid "Missing '.' prefix"
+#~ msgstr "Недостаје префикс „.“"
+
+#~ msgid "Missing 'pof:' prefix"
+#~ msgstr "Недостаје префикс „pof:“"
+
+#~ msgid "Missing 'pag:' prefix"
+#~ msgstr "Недостаје префикс „pag:“"
+
+#~ msgid "Missing 'sof:' prefix"
+#~ msgstr "Недостаје префикс „sof:“"
+
+#~ msgid "Missing 'seg:' prefix"
+#~ msgstr "Недостаје префикс „seg:“"
+
+#~ msgid "internal error: xc16x_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+#~ msgstr "унутрашња грешка: xc16x_cgen_rebuild_tables: сукобљене „insn-chunk-bitsize“ вредности: %d наспрам %d"
+
+#~ msgid "internal error: xc16x_cgen_cpu_open: unsupported argument `%d'"
+#~ msgstr "унутрашња грешка: xc16x_cgen_cpu_open: неподржан аргумент „%d“"
+
+#~ msgid "internal error: xc16x_cgen_cpu_open: no endianness specified"
+#~ msgstr "унутрашња грешка: xc16x_cgen_cpu_open: нису наведене крајњости"
+
+#~ msgid ""
+#~ "\n"
+#~ "  no-aliases      Disassemble only into canonical instructions, rather\n"
+#~ "                  than into pseudoinstructions.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  no-aliases      Разлаже само у прописне инструкције, радије него\n"
+#~ "                  у псеудоинструкције.\n"
+
+#~ msgid "  dsp             Recognize DSP instructions.\n"
+#~ msgstr "  dsp             Препознаје „DSP“ инструкције.\n"
+
+#~ msgid "  spfp            Recognize FPX SP instructions.\n"
+#~ msgstr "  spfp            Препознаје „FPX SP“ инструкције.\n"
+
+#~ msgid "  dpfp            Recognize FPX DP instructions.\n"
+#~ msgstr "  dpfp            Препознаје „FPX DP“ инструкције.\n"
+
+#~ msgid "  nps400          Recognize NPS400 instructions.\n"
+#~ msgstr "  nps400          Препознаје „NPS400“ инструкције.\n"
+
+#~ msgid "%s: %s: (base_opcode >> 24) != 0: %s\n"
+#~ msgstr "%s: %s: (base_opcode >> 24) != 0: %s\n"
+
+#~ msgid "%s: %s: (base_opcode >> 16) != 0: %s\n"
+#~ msgstr "%s: %s: (base_opcode >> 16) != 0: %s\n"
+
+#~ msgid "%s: %s: (base_opcode >> 8) != 0: %s\n"
+#~ msgstr "%s: %s: (base_opcode >> 8) != 0: %s\n"
+
+#~ msgid "%s: %s: base_opcode != 0: %s\n"
+#~ msgstr "%s: %s: base_opcode != 0: %s\n"
+
+#~ msgid "internal error, h8_disassemble_init"
+#~ msgstr "унутрашња грешка, „h8_disassemble_init“"
+
+#~ msgid "Illegal limm reference in last instruction!\n"
+#~ msgstr "Неисправна лимм упута у последњој инструкцији!\n"
+
+#~ msgid "unable to fit different valued constants into instruction"
+#~ msgstr "не могу да уклопим другачије вредноване константе у инструкцији"
+
+#~ msgid "auxiliary register not allowed here"
+#~ msgstr "помоћни регистар није дозвољен овде"
+
+#~ msgid "too many long constants"
+#~ msgstr "превише дугих константи"
+
+#~ msgid "too many shimms in load"
+#~ msgstr "превише „shimms“-ија у учитавању"
+
+#~ msgid "impossible store"
+#~ msgstr "немогућ смештај"
+
+#~ msgid "st operand error"
+#~ msgstr "грешка ст операнда"
+
+#~ msgid "address writeback not allowed"
+#~ msgstr "повратно писање адресе није дозвољено"
+
+#~ msgid "invalid load/shimm insn"
+#~ msgstr "неисправна „load/shimm“ инструкција"
+
+#~ msgid "ld operand error"
+#~ msgstr "грешка лд операнда"
+
+#~ msgid "jump flags, but no .f seen"
+#~ msgstr "заставице скока, али не видех „.f“"
+
+#~ msgid "jump flags, but no limm addr"
+#~ msgstr "заставице скока, али нема лимм адресе"
+
+#~ msgid "flag bits of jump address limm lost"
+#~ msgstr "лимм губитак битова заставице адресе скока"
+
+#~ msgid "attempt to set HR bits"
+#~ msgstr "покушавам да подесим ХР бите"
+
+#~ msgid "bad jump flags value"
+#~ msgstr "лоша вредност заставица скока"
+
+#~ msgid "branch address not on 4 byte boundary"
+#~ msgstr "адреса гране није на граници 4 бајта"
+
+#~ msgid "must specify .jd or no nullify suffix"
+#~ msgstr "морате навести „.jd“ или суфикс не нулирања"
+
+#~ msgid "Internal disassembler error"
+#~ msgstr "Унутрашња грешка разложитеља"
+
+#~ msgid "can't cope with insert %d\n"
+#~ msgstr "не могу да умножим са уметком %d\n"
+
+#~ msgid "%02x\t\t*unknown*"
+#~ msgstr "%02x\t\t*непознато*"
+
+#~ msgid "can't find i386-opc.tbl for reading, errno = %s\n"
+#~ msgstr "не могу да нађем „i386-opc.tbl“ за читање, грешка = %s\n"
+
+#~ msgid "# <dis error: %08lx>"
+#~ msgstr "# <грешка дис-а: %08lx>"
+
+#~ msgid ""
+#~ "\n"
+#~ "  cp0-names=ARCH           Print CP0 register names according to\n"
+#~ "                           specified architecture.\n"
+#~ "                           Default: based on binary being disassembled.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  cp0-names=АРХТ           Исписује називе ЦП0 регистра у складу\n"
+#~ "                           са наведеном архитектуром.\n"
+#~ "                           Основно: у зависности од разложеног бинарног.\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "  For the options above, The following values are supported for \"ARCH\":\n"
+#~ "   "
+#~ msgstr ""
+#~ "\n"
+#~ "  За опције изнад, следеће опције су подржане за „АРХТ“:\n"
+#~ "   "
+
+#~ msgid "Internal error:  bad sparc-opcode.h: \"%s\", %#.8lx, %#.8lx\n"
+#~ msgstr "Унутрашња грешка:  лоше „sparc-opcode.h“: „%s“, %#.8lx, %#.8lx\n"

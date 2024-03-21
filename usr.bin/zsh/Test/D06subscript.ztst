@@ -1,0 +1,296 @@
+# Test parameter subscripting.
+
+%prep
+
+  s='Twinkle, twinkle, little *, [how] I [wonder] what?  You are!'
+  a=('1' ']'  '?' '\2'  '\]' '\?'  '\\3' '\\]'  '\\?' '\\\4'  '\\\]' '\\\?')
+  typeset -g -A A
+  A=($a)
+
+%test
+
+  x=','
+  print $s[(i)winkle] $s[(I)winkle]
+  print ${s[(i)You are]} $#s
+  print ${s[(r)$x,(R)$x]}
+0:Scalar pattern subscripts without wildcards
+>2 11
+>53 60
+>, twinkle, little *,
+
+  x='*'
+  print $s[(i)*] $s[(i)\*] $s[(i)$x*] $s[(i)${(q)x}*] $s[(I)$x\*]
+  print $s[(r)?,(R)\?] $s[(r)\?,(R)?]
+  print $s[(r)\*,(R)*]
+  print $s[(r)\],(R)\[]
+0:Scalar pattern subscripts with wildcards
+>1 26 1 26 26
+>Twinkle, twinkle, little *, [how] I [wonder] what? ?  You are!
+>*, [how] I [wonder] what?  You are!
+>] I [
+
+  print $s[(i)x] : $s[(I)x]
+  print $s[(r)x] : $s[(R)x]
+0:Scalar pattern subscripts that do not match
+>61 : 0
+>:
+
+  print -R $s[$s[(i)\[]] $s[(i)$s[(r)\*]] $s[(i)${(q)s[(r)\]]}]
+0:Scalar subscripting using a pattern subscript to get the index
+>[ 1 33
+
+  print -R $a[(r)?] $a[(R)?]
+  print $a[(n:2:i)?] $a[(n:2:I)?]
+  print $a[(i)\?] $a[(I)\?]
+  print $a[(i)*] $a[(i)\*]
+0:Array pattern subscripts
+>1 ?
+>2 2
+>3 3
+>1 13
+
+  # It'd be nice to do some of the following with (r), but we run into
+  # limitations of the ztst script parsing of backslashes in the output.
+  print -R $a[(i)\\\\?] $a[(i)\\\\\?]
+  print -R $a[(i)\\\\\\\\?] $a[(i)\\\\\\\\\?]
+  print -R ${a[(i)\\\\\\\\?]} ${a[(i)\\\\\\\\\?]}
+  print -R "$a[(i)\\\\\\\\?] $a[(i)\\\\\\\\\?]"
+  print -R $a[(i)\]] $a[(i)\\\\\]] $a[(i)\\\\\\\\\]] $a[(i)\\\\\\\\\\\\\]]
+  print -R $a[(i)${(q)a[5]}] $a[(i)${(q)a[8]}] $a[(i)${(q)a[11]}]
+  print -R $a[(i)${a[3]}] $a[(i)${a[6]}] $a[(i)${a[9]}] $a[(i)${a[12]}]
+0:Array pattern subscripts with multiple backslashes
+>4 6
+>7 9
+>7 9
+>7 9
+>2 5 8 11
+>5 8 11
+>1 3 4 6
+
+  print -R $A[1] $A[?] $A[\\\\3] $A[\\\]]
+  print -R $A[$a[11]]
+  print -R $A[${(q)a[5]}]
+0:Associative array lookup (direct subscripting)
+>] \2 \\] \?
+>\\\?
+>\\\?
+
+  # The (o) is necessary here for predictable output ordering
+  print -R $A[(I)\?] ${(o)A[(I)?]}
+  print -R $A[(i)\\\\\\\\3]
+  print -R $A[(I)\\\\\\\\\?] ${(o)A[(I)\\\\\\\\?]}
+0:Associative array lookup (pattern subscripting)
+>? 1 ?
+>\\3
+>\\? \\3 \\?
+
+  print -R $A[(R)\?] : ${(o)A[(R)?]}
+  print -R $A[(R)\\\\\?] ${(o)A[(R)\\\\?]} ${(o)A[(R)\\\\\?]}
+  print -R ${(o)A[(R)\\\\\\\\\]]}
+0:Associative array lookup (reverse subscripting)
+>: ]
+>\? \2 \? \?
+>\\]
+
+  eval 'A[*]=star'
+1:Illegal associative array assignment
+?(eval):1: A: attempt to set slice of associative array
+
+  x='*'
+  A[$x]=xstar
+  A[${(q)x}]=qxstar
+  print -R ${(k)A[(r)xstar]} $A[$x]
+  print -R ${(k)A[(r)qxstar]} $A[${(q)x}]
+  A[(e)*]=star
+  A[\*]=backstar
+  print -R ${(k)A[(r)star]} $A[(e)*]
+  print -R ${(k)A[(r)backstar]} $A[\*]
+0:Associative array assignment
+>* xstar
+>\* qxstar
+>* star
+>\* backstar
+
+  o='['
+  c=']'
+  A[\]]=cbrack
+  A[\[]=obrack
+  A[\\\[]=backobrack
+  A[\\\]]=backcbrack
+  print -R $A[$o] $A[$c] $A[\[] $A[\]] $A[\\\[] $A[\\\]]
+  print -R $A[(i)\[] $A[(i)\]] $A[(i)\\\\\[] $A[(i)\\\\\]]
+0:Associative array keys with open and close brackets
+>obrack cbrack obrack cbrack backobrack backcbrack
+>[ ] \[ \]
+
+  print -R $A[$o] $A[$s[(r)\[]]
+  print -R $A[(r)$c] $A[(r)$s[(r)\]]]
+  print -R $A[$A[(i)\\\\\]]]
+0:Associative array lookup using a pattern subscript to get the key
+>obrack obrack
+>] ]
+>backcbrack
+
+  print -R ${A[${A[(r)\\\\\\\\\]]}]::=zounds}
+  print -R ${A[${A[(r)\\\\\\\\\]]}]}
+  print -R $A[\\\\\]]
+0:Associative array substitution-assignment with reverse pattern subscript key
+>zounds
+>zounds
+>zounds
+
+  print -R ${(o)A[(K)\]]}
+  print -R ${(o)A[(K)\\\]]}
+0:Associative array keys interpreted as patterns
+>\2 backcbrack cbrack star
+>\\\4 \\\? star zounds
+
+# It doesn't matter which element we get, since we never guarantee
+# ordering of an associative array.  So just test the number of matches.
+  array=(${(o)A[(k)\]]})
+  print ${#array}
+  array=(${(o)A[(k)\\\]]})
+  print ${#array}
+0:Associative array keys interpreted as patterns, single match
+>1
+>1
+
+  typeset -g "A[one\"two\"three\"quotes]"=QQQ
+  typeset -g 'A[one\"two\"three\"quotes]'=qqq
+  print -R "$A[one\"two\"three\"quotes]"
+  print -R $A[one\"two\"three\"quotes]
+  A[one"two"three"four"quotes]=QqQq
+  print -R $A[one"two"three"four"quotes]
+  print -R $A[$A[(i)one\"two\"three\"quotes]]
+  print -R "$A[$A[(i)one\"two\"three\"quotes]]"
+0:Associative array keys with double quotes
+>QQQ
+>qqq
+>QqQq
+>qqq
+>QQQ
+
+  print ${x::=$A[$A[(i)one\"two\"three\"quotes]]}
+  print $x
+  print ${x::="$A[$A[(i)one\"two\"three\"quotes]]"}
+  print $x
+0:More keys with double quotes, used in assignment-expansion
+>qqq
+>qqq
+>QQQ
+>QQQ
+
+  qqq=lower
+  QQQ=upper
+  print ${(P)A[one\"two\"three\"quotes]}
+  print "${(P)A[$A[(i)one\"two\"three\"quotes]]}"
+0:Keys with double quotes and the (P) expansion flag
+>lower
+>upper
+
+  typeset -ga empty
+  echo X${${empty##*}[-1]}X
+0:Negative index applied to substitution result from empty array
+>XX
+
+  print $empty[(i)] $empty[(I)]
+0:(i) returns 1 for empty array, (I) returns 0.
+>1 0
+
+  array=(one two three four)
+  print X$array[0]X
+0:Element zero is empty if KSH_ZERO_SUBSCRIPT is off.
+>XX
+
+  array[0]=fumble
+1:Can't set element zero if KSH_ZERO_SUBSCRIPT is off.
+?(eval):1: array: assignment to invalid subscript range
+
+  print X$array[(R)notfound]X
+0:(R) returns empty if not found if KSH_ZERO_SUBSCRIPT is off.
+>XX
+
+  setopt KSH_ZERO_SUBSCRIPT
+  print X$array[0]X
+0:Element zero is element one if KSH_ZERO_SUBSCRIPT is on.
+>XoneX
+
+  array[0]=fimble
+  print $array
+0:Can set element zero if KSH_ZERO_SUBSCRIPT is on.
+>fimble two three four
+
+  print X$array[(R)notfound]X
+0:(R) yuckily returns the first element on failure with KSH_ZERO_SUBSCRIPT
+>XfimbleX
+
+  unsetopt KSH_ZERO_SUBSCRIPT
+  array[(R)notfound,(r)notfound]=(help help here come the seventies retreads)
+  print $array
+0:[(R)notfound,(r)notfound] replaces the whole array
+>help help here come the seventies retreads
+
+  string="Why, if it isn't Officer Dibble"
+  print "[${string[0]}][${string[1]}][${string[0,3]}]"
+0:String subscripts with KSH_ZERO_SUBSCRIPT unset
+>[][W][Why]
+
+  setopt KSH_ZERO_SUBSCRIPT
+  print "[${string[0]}][${string[1]}][${string[0,3]}]"
+0:String subscripts with KSH_ZERO_SUBSCRIPT set
+>[W][W][Why]
+
+  unsetopt KSH_ZERO_SUBSCRIPT
+  string[0,3]="Goodness"
+  print $string
+0:Assignment to chunk of string ignores element 0
+>Goodness, if it isn't Officer Dibble
+
+  string[0]=!
+1:Can't set only element zero of string
+?(eval):1: string: assignment to invalid subscript range
+
+  typeset -A assoc=(leader topcat officer dibble sidekick choochoo)
+  alias myind='echo leader' myletter='echo 1' myletter2='echo 4'
+  print ${assoc[$(myind)]}
+  print $assoc[$(myind)]
+  print ${assoc[$(myind)][$(myletter)]}${assoc[$(myind)][$(myletter2)]}
+  assoc[$(myind)]='of the gang'
+  print ${assoc[$(myind)]}
+  print $assoc[$(myind)]
+  print $assoc[leader]
+0: Parsing subscript with non-trivial tokenisation
+>topcat
+>topcat
+>tc
+>of the gang
+>of the gang
+>of the gang
+
+ string='abcde'
+ twoarg() { return $(( $2 - $1 )) }
+ functions -M twoarg
+ print ${string[1,twoarg(1,4)]}
+0:Commas inside parentheses do not confuse subscripts
+>abc
+
+  string='foobarbaz foob?rbaz foob?rbaz'
+  print $string[(i)b?r] $string[(I)b?r]
+  print $string[(r)b?r] $string[(R)b?r]
+  print $string[(r)b?r,(R)b?r]
+  print $string[(ei)b?r] $string[(eI)b?r]
+  print $string[(er)b?r] $string[(eR)b?r]
+  print $string[(er)b?r,(eR)b?r]
+0:Pattern handling with scalars
+F:Regression test for workers/42297
+>4 24
+>b b
+>barbaz foob?rbaz foob?r
+>14 24
+>b b
+>b?rbaz foob?r
+
+  i=1,3
+  [[ ${a[$i]} = ${a[i]} ]]
+0f:Math evaluation of commas in array subscripts
+F:In math, (($i)) should be the same as ((i)), see workers/47748.

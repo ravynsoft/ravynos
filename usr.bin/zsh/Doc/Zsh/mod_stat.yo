@@ -1,0 +1,177 @@
+COMMENT(!MOD!zsh/stat
+A builtin command interface to the tt(stat) system call.
+!MOD!)
+The tt(zsh/stat) module makes available one builtin command under
+two possible names:
+
+startitem()
+findex(zstat)
+findex(stat)
+cindex(files, listing)
+cindex(files, examining)
+redef(SPACES)(0)(tt(ifztexi(NOTRANS(@ @ @ @ @ @ ))ifnztexi(      )))
+xitem(tt(zstat )[ tt(-gnNolLtTrs) ] [ tt(-f) var(fd) ] \
+    [ tt(-H) var(hash) ] [ tt(-A) var(array) ] \
+    [ tt(-F) var(fmt) ])
+xitem(SPACES()[ tt(PLUS())var(element) ] [ var(file) ... ])
+item(tt(stat) var(...))(
+The command acts as a front end to the tt(stat) system call (see
+manref(stat)(2)).  The same command is provided with two names; as
+the name tt(stat) is often used by an external command it is recommended
+that only the tt(zstat) form of the command is used.  This can be
+arranged by loading the module with the command `tt(zmodload -F zsh/stat
+b:zstat)'.
+
+If the tt(stat) call fails, the appropriate system error message
+printed and status 1 is returned.
+The fields of tt(struct stat) give information about
+the files provided as arguments to the command.  In addition to those
+available from the tt(stat) call, an extra element `tt(link)' is provided.
+These elements are:
+
+startitem()
+item(tt(device))(
+The number of the device on which the file resides.
+)
+item(tt(inode))(
+The unique number of the file on this device (`em(inode)' number).
+)
+item(tt(mode))(
+The mode of the file; that is, the file's type and access permissions.
+With the tt(-s) option, this will
+be returned as a string corresponding to the first column in the
+display of the tt(ls -l) command.
+)
+item(tt(nlink))(
+The number of hard links to the file.
+)
+item(tt(uid))(
+The user ID of the owner of the file.  With the tt(-s)
+option, this is displayed as a user name.
+)
+item(tt(gid))(
+The group ID of the file.  With the tt(-s) option, this
+is displayed as a group name.
+)
+item(tt(rdev))(
+The raw device number.  This is only useful for special devices.
+)
+item(tt(size))(
+The size of the file in bytes.
+)
+xitem(tt(atime))
+xitem(tt(mtime))
+item(tt(ctime))(
+The last access, modification and inode change times
+of the file, respectively, as the number of seconds since
+midnight GMT on 1st January, 1970.  With the tt(-s) option,
+these are printed as strings for the local time zone; the format
+can be altered with the tt(-F) option, and with the tt(-g)
+option the times are in GMT.
+)
+item(tt(blksize))(
+The number of bytes in one allocation block on the
+device on which the file resides.
+)
+item(tt(block))(
+The number of disk blocks used by the file.
+)
+item(tt(link))(
+If the file is a link and the tt(-L) option is in
+effect, this contains the name of the file linked to, otherwise
+it is empty.  Note that if this element is selected (``tt(zstat PLUS()link)'')
+then the tt(-L) option is automatically used.
+)
+enditem()
+
+A particular element may be selected by including its name
+preceded by a `tt(PLUS())' in the option list; only one element is allowed.
+The element may be shortened to any unique set of leading
+characters.  Otherwise, all elements will be shown for all files.
+
+Options:
+
+startitem()
+item(tt(-A) var(array))(
+Instead of displaying the results on standard
+output, assign them to an var(array), one tt(struct stat) element per array
+element for each file in order.  In this case neither the name
+of the element nor the name of the files appears in var(array) unless the
+tt(-t) or tt(-n) options were given, respectively.  If tt(-t) is given,
+the element name appears as a prefix to the
+appropriate array element; if tt(-n) is given, the file name
+appears as a separate array element preceding all the others.
+Other formatting options are respected.
+)
+item(tt(-H) var(hash))(
+Similar to tt(-A), but instead assign the values to var(hash).  The keys
+are the elements listed above.  If the tt(-n) option is provided then the
+name of the file is included in the hash with key tt(name).
+)
+item(tt(-f) var(fd))(
+Use the file on file descriptor var(fd) instead of
+named files; no list of file names is allowed in this case.
+)
+item(tt(-F) var(fmt))(
+Supplies a tt(strftime) (see manref(strftime)(3)) string for the
+formatting of the time elements.  The format string supports all of the
+zsh extensions described in
+ifzman(the section EXPANSION OF PROMPT SEQUENCES in zmanref(zshmisc))\
+ifnzman(noderef(Prompt Expansion)).
+In particular, tt(-F %s.%N) can be used to show timestamps with nanosecond
+precision if supported by the system.
+The tt(-s) option is implied.
+)
+item(tt(-g))(
+Show the time elements in the GMT time zone.  The
+tt(-s) option is implied.
+)
+item(tt(-l))(
+List the names of the type elements (to standard
+output or an array as appropriate) and return immediately;
+arguments, and options other than tt(-A), are ignored.
+)
+item(tt(-L))(
+Perform an tt(lstat) (see manref(lstat)(2)) rather than a tt(stat)
+system call.  In this case, if the file is a link, information
+about the link itself rather than the target file is returned.
+This option is required to make the tt(link) element useful.
+It's important to note that this is the exact opposite from manref(ls)(1),
+etc.
+)
+item(tt(-n))(
+Always show the names of files.  Usually these are
+only shown when output is to standard output and there is more
+than one file in the list.
+)
+item(tt(-N))(
+Never show the names of files.
+)
+item(tt(-o))(
+If a raw file mode is printed, show it in octal, which is more useful for
+human consumption than the default of decimal.  A leading zero will be
+printed in this case.  Note that this does not affect whether a raw or
+formatted file mode is shown, which is controlled by the tt(-r) and tt(-s)
+options, nor whether a mode is shown at all.
+)
+item(tt(-r))(
+Print raw data (the default format) alongside string
+data (the tt(-s) format); the string data appears in parentheses
+after the raw data.
+)
+item(tt(-s))(
+Print tt(mode), tt(uid), tt(gid) and the three time
+elements as strings instead of numbers.  In each case the format
+is like that of tt(ls -l).
+)
+item(tt(-t))(
+Always show the type names for the elements of
+tt(struct stat).  Usually these are only shown when output is to
+standard output and no individual element has been selected.
+)
+item(tt(-T))(
+Never show the type names of the tt(struct stat) elements.
+)
+enditem()
+)
+enditem()

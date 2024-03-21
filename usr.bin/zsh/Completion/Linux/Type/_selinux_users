@@ -1,0 +1,8 @@
+#autoload
+
+local -a seusers expl
+
+seusers=( ${(f)"$(_call_program selinux-users seinfo --flat -u)"} )
+(( $#seusers )) || seusers=( guest_u root staff_u sysadm_u system_u unconfined_u user_u )
+_description selinux-users expl "selinux user"
+compadd "$@" "$expl[@]" -a seusers

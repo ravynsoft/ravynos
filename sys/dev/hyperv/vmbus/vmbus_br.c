@@ -26,7 +26,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/lock.h>
 #include <sys/mutex.h>
@@ -684,7 +683,8 @@ vmbus_rxbr_idxadv(struct vmbus_rxbr *rbr, uint32_t idx_adv,
  * We assume (dlen + skip) == sizeof(channel packet).
  */
 int
-vmbus_rxbr_read(struct vmbus_rxbr *rbr, void *data, int dlen, uint32_t skip)
+vmbus_rxbr_read(struct vmbus_rxbr *rbr, void *data, int dlen, uint32_t skip,
+    boolean_t *need_sig)
 {
 	uint32_t rindex, br_dsize = rbr->rxbr_dsize;
 
@@ -716,6 +716,12 @@ vmbus_rxbr_read(struct vmbus_rxbr *rbr, void *data, int dlen, uint32_t skip)
 	atomic_store_rel_32(&rbr->rxbr_rindex, rindex);
 
 	mtx_unlock_spin(&rbr->rxbr_lock);
+
+	if (need_sig) {
+		*need_sig =
+		    vmbus_rxbr_need_signal(rbr,
+		    dlen + skip + sizeof(uint64_t));
+	}
 
 	return (0);
 }

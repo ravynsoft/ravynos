@@ -1,0 +1,18 @@
+#compdef zmv zln zcp
+
+_arguments -s -S -A '-*' \
+  '(-C -L -s -p)-M[force mv]' \
+  '(-M -L -s -p)-C[force cp]' \
+  '(-M -C -p)-L[force ln]' \
+  '-f[force overwriting of destination files]' \
+  '-i[interactive: prompt for each operation]' \
+  '-n[no execution: just print what would happen]' \
+  '-Q[force bare glob qualifiers on]' \
+  '(-C -M)-s[symbolic, passed down to ln]' \
+  '-v[verbose: print line as it is executed]' \
+  '-o[specify options to pass to underlying command]: opt string' \
+  '(-M -C -L -s)-p+[specify program to run instead of cp, ln or mv]:program:_command_names -e' \
+  '(-W)-w[implicitly add parenthesis to wildcards in the pattern]' \
+  '(-w)-W[like -w, but turn wildcards in replacement patterns into references]' \
+  '1:source pattern:_files' \
+  '2:destination pattern:_files'

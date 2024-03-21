@@ -1,0 +1,8 @@
+#compdef dirs
+
+_arguments -s \
+  '(-)-c[clear the directory stack]' \
+  '(* -c)-l[display directory names in full]' \
+  '(* -c)-v[display numbered list of directory stack]' \
+  '(* -c)-p[display directory entries one per line]' \
+  '(-)*:directory:_directories'

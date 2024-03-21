@@ -39,7 +39,6 @@
 #include "opt_acpi.h"
 #include "opt_platform.h"
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/bus.h>
@@ -617,7 +616,10 @@ arm_tmr_attach(device_t dev)
 	phandle_t node;
 	pcell_t clock;
 #endif
-	int error, user_phys;
+#ifdef __aarch64__
+	int user_phys;
+#endif
+	int error;
 	int i, first_timer, last_timer;
 
 	sc = device_get_softc(dev);
@@ -693,6 +695,7 @@ arm_tmr_attach(device_t dev)
 		last_timer = GT_PHYS_NONSECURE;
 	}
 
+#ifdef __aarch64__
 	/*
 	 * The virtual timer is always available on arm and arm64, tell
 	 * userspace to use it.
@@ -702,6 +705,13 @@ arm_tmr_attach(device_t dev)
 	if (TUNABLE_INT_FETCH("hw.userspace_allow_phys_counter", &user_phys) &&
 	    user_phys != 0)
 		sc->physical_user = sc->physical_sys;
+#else
+	/*
+	 * The virtual timer depends on setting cntvoff from the hypervisor
+	 * privilege level/el2, however this is only set on arm64.
+	 */
+	sc->physical_user = true;
+#endif
 
 	arm_tmr_sc = sc;
 

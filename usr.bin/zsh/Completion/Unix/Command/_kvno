@@ -1,0 +1,25 @@
+#compdef kvno
+
+local curcontext="$curcontext" state line ret=1
+
+_arguments -C \
+  '-c[specify credentials cache to use]:cache:_files' \
+  '-e[specify encryption type]:encryption type' \
+  '-q[suppress printing]' \
+  '(- :)-h[display help information]' \
+  '-P[acquire credentials for the principal during S4U2Self]' \
+  '-S[specify the service name of the principal]:service' \
+  '-U[specify user for S4U2Self]:user:_users' \
+  ':principal:->principal' && ret=0
+
+if [[ $state = principal ]]; then
+  if compset -P '*/'; then
+    _hosts && ret=0
+  else
+    _alternative \
+      'users:user:_users' \
+      'services:service:compadd -S/ host' && ret=0
+  fi
+fi
+
+return ret

@@ -1,0 +1,4 @@
+	.text
+bar:
+	call foo
+

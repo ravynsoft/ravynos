@@ -1,0 +1,135 @@
+2008-12-18  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure: Regenerate.
+
+2008-11-19  Nick Clifton  <nickc@redhat.com>
+
+	* fdl.texi: New file.
+	* gprof.texi: Change license to v1.3.
+
+2008-09-29  Peter O'Gorman  <pogma@thewrittenword.com>
+	    Steve Ellcey  <sje@cup.hp.com>
+
+	* configure: Regenerate for new libtool.
+	* aclocal.m4: Ditto.
+	* Makefile.in: Ditto.
+
+2008-09-29  Nick Clifton  <nickc@redhat.com>
+
+	* po/vi.po: Updated Vietnamese translation.
+
+2008-09-11  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* configure.in: Call AC_SYS_LARGEFILE.
+	* gconfig.in: Regenerate.
+	* configure: Regenerate.
+
+2008-09-11  Alan Modra  <amodra@bigpond.net.au>
+
+	* po/ro.po: New file.
+
+2008-08-25  Alan Modra  <amodra@bigpond.net.au>
+
+	* gmon_io.h: Don't include sysdep.h here.
+	(O_BINARY, SET_BINARY): Don't define here.
+	* gmon_io.c: Include "binary-io.h".
+	(gmon_out_read): Remove #ifdef SET_BINARY.
+	* Makefile.am: Run "make dep-am"
+	* Makefile.in: Regenerate.
+
+2008-08-24  Alan Modra  <amodra@bigpond.net.au>
+
+	* configure.in: Update a number of obsolete autoconf macros.
+
+2008-08-15  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 6526
+	* configure.in: Invoke AC_USE_SYSTEM_EXTENSIONS.
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Regenerate.
+	* configure: Regenerate.
+	* gconfig.in: Regenerate.
+
+2008-08-05  Brian Dessent  <brian@dessent.net>
+
+	* gmon_io.c (gmon_out_read): When reading old format gmon.out,
+	set num_histograms and hist_scale.
+
+2008-08-04  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am (POTFILES.in): Set LC_ALL=C.
+	* Makefile.in: Regenerate.
+
+2008-07-30  Alan Modra  <amodra@bigpond.net.au>
+
+	* corefile.c, symtab.c: Silence gcc warnings.
+
+2008-06-19  Andreas Schwab  <schwab@suse.de>
+
+	* basic_blocks.c: Always include "gprof.h" first.
+	* cg_arcs.c: Likewise.
+	* cg_dfn.c: Likewise.
+	* cg_print.c: Likewise.
+	* corefile.c: Likewise.
+	* gprof.c: Likewise.
+	* hist.c: Likewise.
+	* search_list.c: Likewise.
+	* sym_ids.c: Likewise.
+	* utils.c: Likewise.
+
+2008-06-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure: Regenerate.
+
+2008-06-04  Nick Clifton  <nickc@redhat.com>
+
+	* po/nl.po: New file: Dutch translation.
+	* configure.in (ALL_LINGUAS): Add nl.
+	* configure: Regenerate.
+
+2008-05-14  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.in: Regenerate.
+
+2008-04-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* aclocal.m4: Regenerate.
+	* configure: Regenerate.
+
+2008-03-31  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2008-03-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* aclocal.m4: Regenerate.
+	* configure: Likewise.
+	* Makefile.in: Likewise.
+
+2008-03-13  Alan Modra  <amodra@bigpond.net.au>
+
+	* configure: Regenerate.
+
+2008-02-06  Nick Clifton  <nickc@redhat.com>
+
+	* po/ms.po: Updated Malasian translation.
+
+2008-02-04  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR 5715
+	* configure: Regenerated.
+
+For older changes see ChangeLog-2007
+
+Copyright (C) 2008 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

@@ -1,0 +1,15 @@
+#autoload
+
+local func
+integer ret=1
+
+if [[ -n $functions[zsh_directory_name] || \
+  ${+zsh_directory_name_functions} -ne 0 ]] ; then
+  [[ -n $functions[zsh_directory_name] ]] && zsh_directory_name c && ret=0
+  for func in $zsh_directory_name_functions; do
+    $func c && ret=0
+  done
+  return ret
+else
+  _message 'dynamic directory name: implemented as zsh_directory_name c'
+fi

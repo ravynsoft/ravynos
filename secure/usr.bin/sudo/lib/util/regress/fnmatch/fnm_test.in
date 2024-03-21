@@ -1,0 +1,6 @@
+/bin/[[:alpha:][:alnum:]]* /bin/ls FNM_PATHNAME 0
+/bin/[[:alpha:][:alnum:]]* /bin/LS FNM_CASEFOLD 0
+/bin/[[:opper:][:alnum:]]* /bin/ls NONE 1
+[[:alpha:][:alnum:]]*.c foo1.c FNM_PERIOD 0
+[[:upper:]]* FOO NONE 0
+[![:space:]]* bar NONE 0

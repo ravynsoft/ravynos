@@ -1,0 +1,41 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify that msgcat leaves #: lines in place even if they have a bizarre
+# syntax.
+
+cat <<\EOF > mcat-test11.in
+#: basctl/source\basicide\basidesh.src#RID_STR_NOMODULE.text
+msgid "Simple"
+msgstr "Einfach"
+
+#: basctl/source\basicide\basidesh.src:RID_STR_NOMODULE.text
+msgid "Different"
+msgstr "Anders"
+
+#: file:4
+msgid "where"
+msgstr "wo"
+
+#: line:4
+msgid "what"
+msgstr "was"
+
+#: number:4
+msgid "who"
+msgstr "wer"
+
+#: foobar:4a
+msgid "whenever"
+msgstr "immer"
+EOF
+
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test11.tmp mcat-test11.in || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test11.tmp > mcat-test11.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mcat-test11.in mcat-test11.out
+result=$?
+
+exit $result

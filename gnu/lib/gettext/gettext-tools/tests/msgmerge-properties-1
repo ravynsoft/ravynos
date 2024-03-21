@@ -1,0 +1,53 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test handling of obsolete/untranslated messages with Java .properties syntax.
+
+cat <<EOF > mm-p-1.in1
+#
+# def.po
+#
+#: file:100
+not\ existing=but with translation
+
+#: file2:101
+!not\ existing\ without\ translation=
+
+#: file3:102
+still\ existing=translation
+
+#
+# trailing comments should be removed
+EOF
+
+cat <<EOF > mm-p-1.in2
+#
+# ref.po
+#
+#: file3:102
+still\ existing=here is normally no comment
+
+#: file4:10
+!untranslated=
+
+#
+# trailing comments should be removed, even here
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q --properties-input --properties-output -o mm-p-1.tmp mm-p-1.in1 mm-p-1.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mm-p-1.tmp > mm-p-1.out || Exit 1
+
+cat << EOF > mm-p-1.ok
+#: file3:102
+still\ existing=translation
+
+#: file4:10
+!untranslated=
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-p-1.ok mm-p-1.out
+result=$?
+
+exit $result

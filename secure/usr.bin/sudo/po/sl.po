@@ -1,0 +1,810 @@
+# Slovenian translation of sudo.
+# This file is put in the public domain.
+# This file is distributed under the same license as the sudo package.
+#
+# Damir Jerovšek <damir.jerovsek@gmail.com>, 2012.
+# Klemen Košir <klemen.kosir@gmx.com>, 2012 - 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sudo 1.8.7b1\n"
+"Report-Msgid-Bugs-To: http://www.sudo.ws/bugs\n"
+"POT-Creation-Date: 2013-04-02 10:40-0400\n"
+"PO-Revision-Date: 2013-04-06 09:33+0100\n"
+"Last-Translator: Klemen Košir <klemen913@gmail.com>\n"
+"Language-Team: Slovenian <translation-team-sl@lists.sourceforge.net>\n"
+"Language: sl\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.5\n"
+
+#: common/aix.c:150
+#, c-format
+msgid "unable to open userdb"
+msgstr "ni mogoče odpreti userdb"
+
+#: common/aix.c:153
+#, c-format
+msgid "unable to switch to registry \"%s\" for %s"
+msgstr "ni mogoče preklopiti na vpisnik \"%s\" za %s"
+
+#: common/aix.c:170
+#, c-format
+msgid "unable to restore registry"
+msgstr "ni mogoče obnoviti  vpisnika"
+
+#: common/alloc.c:82
+msgid "internal error, tried to emalloc(0)"
+msgstr "notranja napaka, poskus uporabe emalloc(0)"
+
+#: common/alloc.c:99
+msgid "internal error, tried to emalloc2(0)"
+msgstr "notranja napaka, poskus uporabe emalloc2(0)"
+
+#: common/alloc.c:101 common/alloc.c:123 common/alloc.c:163 common/alloc.c:187
+#, c-format
+msgid "internal error, %s overflow"
+msgstr "notranja napaka, prekoračitev funkcije %s"
+
+#: common/alloc.c:120
+msgid "internal error, tried to ecalloc(0)"
+msgstr "notranja napaka med izvajanjem funkcije ecalloc(0)"
+
+#: common/alloc.c:142
+msgid "internal error, tried to erealloc(0)"
+msgstr "notranja napaka, poskus uporabe erealloc(0)"
+
+#: common/alloc.c:161
+msgid "internal error, tried to erealloc3(0)"
+msgstr "notranja napaka, poskus uporabe erealloc3(0)"
+
+#: common/alloc.c:185
+msgid "internal error, tried to erecalloc(0)"
+msgstr "notranja napaka, poskus uporabe erealloc(0)"
+
+#: common/error.c:154
+#, c-format
+msgid "%s: %s: %s\n"
+msgstr "%s: %s: %s\n"
+
+#: common/error.c:157 common/error.c:161
+#, c-format
+msgid "%s: %s\n"
+msgstr "%s: %s\n"
+
+#: common/sudo_conf.c:172
+#, c-format
+msgid "unsupported group source `%s' in %s, line %d"
+msgstr "nepodprt vir skupine %s v datoteki %s v %d. vrstici"
+
+#: common/sudo_conf.c:186
+#, c-format
+msgid "invalid max groups `%s' in %s, line %d"
+msgstr "neveljavna največja skupina %s v datoteki %s v %d. vrstici"
+
+#: common/sudo_conf.c:382
+#, c-format
+msgid "unable to stat %s"
+msgstr "stanja datoteke %s ni mogoče izpisati"
+
+#: common/sudo_conf.c:385
+#, c-format
+msgid "%s is not a regular file"
+msgstr "%s ni običajna datoteka"
+
+#: common/sudo_conf.c:388
+#, c-format
+msgid "%s is owned by uid %u, should be %u"
+msgstr "%s je v lasti uporabnika z ID-jem %u, moral bi biti %u"
+
+#: common/sudo_conf.c:392
+#, c-format
+msgid "%s is world writable"
+msgstr "v datoteko %s lahko zapisujejo vsi uporabniki"
+
+#: common/sudo_conf.c:395
+#, c-format
+msgid "%s is group writable"
+msgstr "%s"
+
+#: common/sudo_conf.c:405 src/selinux.c:196 src/selinux.c:209 src/sudo.c:328
+#, c-format
+msgid "unable to open %s"
+msgstr "ni mogoče odpreti %s"
+
+#: compat/strsignal.c:50
+msgid "Unknown signal"
+msgstr "Neznan signal"
+
+#: src/exec.c:127 src/exec_pty.c:685
+#, c-format
+msgid "policy plugin failed session initialization"
+msgstr "vstavek za pravilnik ni mogel zagnati seje"
+
+#: src/exec.c:132 src/exec_pty.c:701 src/exec_pty.c:1066 src/tgetpass.c:220
+#, c-format
+msgid "unable to fork"
+msgstr "ni mogoče razvejiti"
+
+#: src/exec.c:259
+#, c-format
+msgid "unable to create sockets"
+msgstr "ni mogoče ustvariti vtičev"
+
+#: src/exec.c:347 src/exec_pty.c:1130 src/exec_pty.c:1268
+#, c-format
+msgid "select failed"
+msgstr "izbira je spodletela"
+
+#: src/exec.c:449
+#, c-format
+msgid "unable to restore tty label"
+msgstr "ni mogoče obnoviti oznake tty"
+
+#: src/exec_common.c:70
+#, c-format
+msgid "unable to remove PRIV_PROC_EXEC from PRIV_LIMIT"
+msgstr "ni mogoče odstraniti PRIV_PROC_EXEC iz PRIV_LIMIT"
+
+#: src/exec_pty.c:183
+#, c-format
+msgid "unable to allocate pty"
+msgstr "ni mogoče dodeliti pty"
+
+#: src/exec_pty.c:623 src/exec_pty.c:632 src/exec_pty.c:640 src/exec_pty.c:986
+#: src/exec_pty.c:1063 src/signal.c:126 src/tgetpass.c:217
+#, c-format
+msgid "unable to create pipe"
+msgstr "ni mogoče ustvariti cevi"
+
+#: src/exec_pty.c:676
+#, c-format
+msgid "unable to set terminal to raw mode"
+msgstr "ni mogoče postaviti terminala v surov način"
+
+#: src/exec_pty.c:1042
+#, c-format
+msgid "unable to set controlling tty"
+msgstr "ni mogoče nastaviti nadzora tty"
+
+#: src/exec_pty.c:1139
+#, c-format
+msgid "error reading from signal pipe"
+msgstr "napaka med branjem iz cevi signala"
+
+#: src/exec_pty.c:1160
+#, c-format
+msgid "error reading from pipe"
+msgstr "napaka med branjem iz cevovoda"
+
+#: src/exec_pty.c:1176
+#, c-format
+msgid "error reading from socketpair"
+msgstr "napaka med branjem iz para vtičev"
+
+#: src/exec_pty.c:1180
+#, c-format
+msgid "unexpected reply type on backchannel: %d"
+msgstr "nepričakovana vrsta odgovora na ozadnem kanalu: %d"
+
+#: src/load_plugins.c:70 src/load_plugins.c:79 src/load_plugins.c:132
+#: src/load_plugins.c:138 src/load_plugins.c:144 src/load_plugins.c:185
+#: src/load_plugins.c:192 src/load_plugins.c:199 src/load_plugins.c:205
+#, c-format
+msgid "error in %s, line %d while loading plugin `%s'"
+msgstr "v datoteki %s (vrstica %d) je prišlo do napake med nalaganjem vstavka %s"
+
+#: src/load_plugins.c:72
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: src/load_plugins.c:81
+#, c-format
+msgid "%s%s: %s"
+msgstr "%s%s: %s"
+
+#: src/load_plugins.c:140
+#, c-format
+msgid "%s must be owned by uid %d"
+msgstr "%s mora biti v lasti ID-ja uporabnika %d"
+
+#: src/load_plugins.c:146
+#, c-format
+msgid "%s must be only be writable by owner"
+msgstr "%s mora biti zapisljiv samo za lastnika"
+
+#: src/load_plugins.c:187
+#, c-format
+msgid "unable to dlopen %s: %s"
+msgstr "ni mogoče uporabiti dlopen %s: %s"
+
+#: src/load_plugins.c:194
+#, c-format
+msgid "unable to find symbol `%s' in %s"
+msgstr "ni mogoče najti simbola '%s' v %s"
+
+#: src/load_plugins.c:201
+#, c-format
+msgid "unknown policy type %d found in %s"
+msgstr "neznana vrsta pravilnika %d v %s"
+
+#: src/load_plugins.c:207
+#, c-format
+msgid "incompatible plugin major version %d (expected %d) found in %s"
+msgstr "nezdružljiva različica vstavka %d (pričakovana %d) v %s"
+
+#: src/load_plugins.c:216
+#, c-format
+msgid "ignoring policy plugin `%s' in %s, line %d"
+msgstr "vstavek pravilnika %s v datoteki %s v %d. vrstici bo prezrt"
+
+#: src/load_plugins.c:218
+#, c-format
+msgid "only a single policy plugin may be specified"
+msgstr "naložen je lahko le en vstavek pravilnika"
+
+#: src/load_plugins.c:221
+#, c-format
+msgid "ignoring duplicate policy plugin `%s' in %s, line %d"
+msgstr "podvojeni vstavek pravilnika %s v datoteki %s v %d. vrstici bo prezrt"
+
+#: src/load_plugins.c:236
+#, c-format
+msgid "ignoring duplicate I/O plugin `%s' in %s, line %d"
+msgstr "podvojeni vstavek I/O %s v datoteki %s v %d. vrstici bo prezrt"
+
+#: src/load_plugins.c:313
+#, c-format
+msgid "policy plugin %s does not include a check_policy method"
+msgstr "vstavek pravilnika %s ne vključuje načina check_policy"
+
+#: src/net_ifs.c:156 src/net_ifs.c:165 src/net_ifs.c:177 src/net_ifs.c:186
+#: src/net_ifs.c:297 src/net_ifs.c:321
+#, c-format
+msgid "load_interfaces: overflow detected"
+msgstr "load_interfaces: zaznana je bila prekoračitev"
+
+#: src/net_ifs.c:226
+#, c-format
+msgid "unable to open socket"
+msgstr "ni mogoče odpreti vtiča"
+
+#: src/parse_args.c:197
+#, c-format
+msgid "the argument to -C must be a number greater than or equal to 3"
+msgstr "argument k -C mora biti številka, večja kot ali enaka 3"
+
+#: src/parse_args.c:286
+#, c-format
+msgid "unknown user: %s"
+msgstr "neznan uporabnik: %s"
+
+#: src/parse_args.c:345
+#, c-format
+msgid "you may not specify both the `-i' and `-s' options"
+msgstr "možnosti `-i' in `-s' ne smeta biti navedeni hkrati"
+
+#: src/parse_args.c:349
+#, c-format
+msgid "you may not specify both the `-i' and `-E' options"
+msgstr "možnosti `-i' in `-E' ne smeta biti navedeni hkrati"
+
+#: src/parse_args.c:359
+#, c-format
+msgid "the `-E' option is not valid in edit mode"
+msgstr "možnost `-E' ni veljavna v načinu urejanja"
+
+#: src/parse_args.c:361
+#, c-format
+msgid "you may not specify environment variables in edit mode"
+msgstr "v načinu urejanja se ne sme podati spremenljivk okolja"
+
+#: src/parse_args.c:369
+#, c-format
+msgid "the `-U' option may only be used with the `-l' option"
+msgstr "možnost `-U' se lahko uporabi samo z možnostjo `-l'"
+
+#: src/parse_args.c:373
+#, c-format
+msgid "the `-A' and `-S' options may not be used together"
+msgstr "možnosti `-A' in `-S' se ne smeta uporabljati hkrati"
+
+#: src/parse_args.c:456
+#, c-format
+msgid "sudoedit is not supported on this platform"
+msgstr "sudoedit ni podprt v tem okolju"
+
+#: src/parse_args.c:529
+#, c-format
+msgid "Only one of the -e, -h, -i, -K, -l, -s, -v or -V options may be specified"
+msgstr "Od -e, -h, -i, -K, -l, -s, -v ali -V je lahko navedena samo ena možnost"
+
+#: src/parse_args.c:543
+#, c-format
+msgid ""
+"%s - edit files as another user\n"
+"\n"
+msgstr ""
+"%s - urejaj datoteke kot drug uporabnik\n"
+"\n"
+
+#: src/parse_args.c:545
+#, c-format
+msgid ""
+"%s - execute a command as another user\n"
+"\n"
+msgstr ""
+"%s - izvedi ukaz kot drug uporabnik\n"
+"\n"
+
+#: src/parse_args.c:550
+#, c-format
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"Možnosti:\n"
+
+#: src/parse_args.c:552
+msgid "use helper program for password prompting\n"
+msgstr "uporabi program pomagalnik za pozive za vnos gesla\n"
+
+#: src/parse_args.c:555
+msgid "use specified BSD authentication type\n"
+msgstr "uporabi navedeno vrsto urejanja BSD\n"
+
+#: src/parse_args.c:558
+msgid "run command in the background\n"
+msgstr "zaženi ukaz v ozadju\n"
+
+#: src/parse_args.c:560
+msgid "close all file descriptors >= fd\n"
+msgstr "zapri vse opisnike datotek >= fd\n"
+
+#: src/parse_args.c:563
+msgid "run command with specified login class\n"
+msgstr "zaženi ukaz z navedenim prijavnim razredom\n"
+
+#: src/parse_args.c:566
+msgid "preserve user environment when executing command\n"
+msgstr "ohrani okolje uporabnika, kadar se izvajajo ukazi\n"
+
+#: src/parse_args.c:568
+msgid "edit files instead of running a command\n"
+msgstr "namesto izvedbe ukaza uredi datoteke\n"
+
+#: src/parse_args.c:570
+msgid "execute command as the specified group\n"
+msgstr "izvedi ukaz kot navedena skupina\n"
+
+#: src/parse_args.c:572
+msgid "set HOME variable to target user's home dir.\n"
+msgstr "nastavi spremenljivko HOME kot cilj v domači mapi uporabnika\n"
+
+#: src/parse_args.c:574
+msgid "display help message and exit\n"
+msgstr "prikaži sporočilo pomoči in končaj\n"
+
+#: src/parse_args.c:576
+msgid "run a login shell as target user\n"
+msgstr "zaženi lupino prijave kot ciljni uporabnik\n"
+
+#: src/parse_args.c:578
+msgid "remove timestamp file completely\n"
+msgstr "popolnoma odstrani datoteko s časovnimi žigi\n"
+
+#: src/parse_args.c:580
+msgid "invalidate timestamp file\n"
+msgstr "razveljavi veljavnost datoteke s časovnimi žigi\n"
+
+#: src/parse_args.c:582
+msgid "list user's available commands\n"
+msgstr "prikaži razpoložljive ukaze uporabnika\n"
+
+#: src/parse_args.c:584
+msgid "non-interactive mode, will not prompt user\n"
+msgstr "nevzajemni način, ne bo poziva uporabnika\n"
+
+#: src/parse_args.c:586
+msgid "preserve group vector instead of setting to target's\n"
+msgstr "ohrani vektor skupine namesto nastavitve tarči\n"
+
+#: src/parse_args.c:588
+msgid "use specified password prompt\n"
+msgstr "uporabi določen poziv za vnos gesla\n"
+
+#: src/parse_args.c:591 src/parse_args.c:599
+msgid "create SELinux security context with specified role\n"
+msgstr "ustvari varnostno vsebino SELinux z določeno vlogo\n"
+
+#: src/parse_args.c:594
+msgid "read password from standard input\n"
+msgstr "preberi geslo s standardnega vnosa\n"
+
+#: src/parse_args.c:596
+msgid "run a shell as target user\n"
+msgstr "zaženi lupino kot ciljni uporabnik\n"
+
+#: src/parse_args.c:602
+msgid "when listing, list specified user's privileges\n"
+msgstr "med naštevanjem prikaži določena dovoljenja uporabnika\n"
+
+#: src/parse_args.c:604
+msgid "run command (or edit file) as specified user\n"
+msgstr "zaženi ukaz (ali uredi datoteko) kot določen uporabnik\n"
+
+#: src/parse_args.c:606
+msgid "display version information and exit\n"
+msgstr "prikaži podrobnosti različice in končaj\n"
+
+#: src/parse_args.c:608
+msgid "update user's timestamp without running a command\n"
+msgstr "posodobi časovni žig uporabnika brez izvajanja ukaza\n"
+
+#: src/parse_args.c:610
+msgid "stop processing command line arguments\n"
+msgstr "zaustavi obdelovanje argumentov ukazne vrstice\n"
+
+#: src/selinux.c:77
+#, c-format
+msgid "unable to open audit system"
+msgstr "ni mogoče odpreti nadzornega sistema"
+
+#: src/selinux.c:85
+#, c-format
+msgid "unable to send audit message"
+msgstr "ni mogoče poslati nadzornega sporočila"
+
+#: src/selinux.c:113
+#, c-format
+msgid "unable to fgetfilecon %s"
+msgstr "ni mogoče uporabiti fgetfilecon %s"
+
+#: src/selinux.c:118
+#, c-format
+msgid "%s changed labels"
+msgstr "%s spremenjenih oznak"
+
+#: src/selinux.c:123
+#, c-format
+msgid "unable to restore context for %s"
+msgstr "ni mogoče obnoviti vsebine za %s"
+
+#: src/selinux.c:163
+#, c-format
+msgid "unable to open %s, not relabeling tty"
+msgstr "ni mogoče odpreti %s, brez ponovnega označevanja tty"
+
+#: src/selinux.c:172
+#, c-format
+msgid "unable to get current tty context, not relabeling tty"
+msgstr "ni mogoče pridobiti trenutne vsebine tty, brez ponovnega označevanja tty"
+
+#: src/selinux.c:179
+#, c-format
+msgid "unable to get new tty context, not relabeling tty"
+msgstr "ni mogoče pridobiti nove vsebine tty, brez ponovnega označevanja tty"
+
+#: src/selinux.c:186
+#, c-format
+msgid "unable to set new tty context"
+msgstr "ni mogoče nastaviti nove vsebine tty"
+
+#: src/selinux.c:252
+#, c-format
+msgid "you must specify a role for type %s"
+msgstr "podati morate vlogo za vrsto %s"
+
+#: src/selinux.c:258
+#, c-format
+msgid "unable to get default type for role %s"
+msgstr "ni mogoče pridobiti privzete vrste za vlogo %s"
+
+#: src/selinux.c:276
+#, c-format
+msgid "failed to set new role %s"
+msgstr "nastavitev nove vloge %s ni uspela"
+
+#: src/selinux.c:280
+#, c-format
+msgid "failed to set new type %s"
+msgstr "nastavitev nove vrste %s ni uspela"
+
+#: src/selinux.c:289
+#, c-format
+msgid "%s is not a valid context"
+msgstr "%s ni veljavna vsebina"
+
+#: src/selinux.c:324
+#, c-format
+msgid "failed to get old_context"
+msgstr "pridobitev stare_vsebine je spodletela"
+
+#: src/selinux.c:330
+#, c-format
+msgid "unable to determine enforcing mode."
+msgstr "ni mogoče določiti načina vsiljenja"
+
+#: src/selinux.c:342
+#, c-format
+msgid "unable to setup tty context for %s"
+msgstr "ni mogoče nastaviti vsebine tty za %s"
+
+#: src/selinux.c:381
+#, c-format
+msgid "unable to set exec context to %s"
+msgstr "ni mogoče nastavite izvedene vsebine k %s"
+
+#: src/selinux.c:388
+#, c-format
+msgid "unable to set key creation context to %s"
+msgstr "ni mogoče nastaviti vsebine ustvarjenja ključa k %s"
+
+#: src/sesh.c:57
+#, c-format
+msgid "requires at least one argument"
+msgstr "zahteva vsaj en argument"
+
+#: src/sesh.c:78 src/sudo.c:1126
+#, c-format
+msgid "unable to execute %s"
+msgstr "ni mogoče izvršiti %s"
+
+#: src/solaris.c:88
+#, c-format
+msgid "resource control limit has been reached"
+msgstr "meja omejitve virov je bila dosežena"
+
+#: src/solaris.c:91
+#, c-format
+msgid "user \"%s\" is not a member of project \"%s\""
+msgstr "uporabnik \"%s\" ni član projekta \"%s\""
+
+#: src/solaris.c:95
+#, c-format
+msgid "the invoking task is final"
+msgstr "priklicana naloga je končna"
+
+#: src/solaris.c:98
+#, c-format
+msgid "could not join project \"%s\""
+msgstr "ni mogoče pridružiti projekta \"%s\""
+
+#: src/solaris.c:103
+#, c-format
+msgid "no resource pool accepting default bindings exists for project \"%s\""
+msgstr "nobene zaloge virov, ki sprejemajo privzete vezi, ne obstajajo za projekt \"% s\""
+
+#: src/solaris.c:107
+#, c-format
+msgid "specified resource pool does not exist for project \"%s\""
+msgstr "določen vir zalog ne obstaja za projekt \"%s\""
+
+#: src/solaris.c:111
+#, c-format
+msgid "could not bind to default resource pool for project \"%s\""
+msgstr "ni mogoče vezati na privzet vir zalog za projekt \"%s\""
+
+#: src/solaris.c:117
+#, c-format
+msgid "setproject failed for project \"%s\""
+msgstr "setproject je spodletel za projekt \"%s\""
+
+#: src/solaris.c:119
+#, c-format
+msgid "warning, resource control assignment failed for project \"%s\""
+msgstr "opozorilo, naloga nadzora virov je spodletela za projekt \"%s\""
+
+#: src/sudo.c:196
+#, c-format
+msgid "Sudo version %s\n"
+msgstr "Sudo različica %s\n"
+
+#: src/sudo.c:198
+#, c-format
+msgid "Configure options: %s\n"
+msgstr "Nastavitev možnosti: %s\n"
+
+#: src/sudo.c:203
+#, c-format
+msgid "fatal error, unable to load plugins"
+msgstr "usodna napaka, ni mogoče naložiti vstavka"
+
+#: src/sudo.c:211
+#, c-format
+msgid "unable to initialize policy plugin"
+msgstr "ni mogoče začenjati vstavka pravilnika"
+
+#: src/sudo.c:268
+#, c-format
+msgid "error initializing I/O plugin %s"
+msgstr "napaka med začenjanjem I/O vstavka %s"
+
+#: src/sudo.c:293
+#, c-format
+msgid "unexpected sudo mode 0x%x"
+msgstr "nepričakovan način sudo 0x%x"
+
+#: src/sudo.c:413
+#, c-format
+msgid "unable to get group vector"
+msgstr "ni mogoče pridobiti vektorja skupine"
+
+#: src/sudo.c:465
+#, c-format
+msgid "unknown uid %u: who are you?"
+msgstr "neznan ID uporabnika %u: kdo ste?"
+
+#: src/sudo.c:802
+#, c-format
+msgid "%s must be owned by uid %d and have the setuid bit set"
+msgstr "%s si mora lastiti uporabnik z ID-jem %d and mora imeti nastavljen bit setuid"
+
+#: src/sudo.c:805
+#, c-format
+msgid "effective uid is not %d, is %s on a file system with the 'nosuid' option set or an NFS file system without root privileges?"
+msgstr "trenutni ID uporabnika ni %d. Ali je %s na datotečnem sistemu z nastavljeno možnostjo \"nosuid\" ali datotečnem sistemu NFS brez dovoljenj skrbnika?"
+
+#: src/sudo.c:811
+#, c-format
+msgid "effective uid is not %d, is sudo installed setuid root?"
+msgstr "trenutni uid ni %d. Ali je sudo pravilno nameščen?"
+
+#: src/sudo.c:915
+#, c-format
+msgid "unknown login class %s"
+msgstr "neznan razred prijave %s"
+
+#: src/sudo.c:929 src/sudo.c:932
+#, c-format
+msgid "unable to set user context"
+msgstr "ni mogoče nastaviti vsebine uporabnika"
+
+#: src/sudo.c:944
+#, c-format
+msgid "unable to set supplementary group IDs"
+msgstr "ni mogoče nastaviti dopolnilnih ID-jev skupin"
+
+#: src/sudo.c:951
+#, c-format
+msgid "unable to set effective gid to runas gid %u"
+msgstr "ni mogoče nastaviti učinkovitega ID-ja skupine, da se zažene kot ID skupine %u"
+
+#: src/sudo.c:957
+#, c-format
+msgid "unable to set gid to runas gid %u"
+msgstr "ni mogoče nastaviti ID-ja skupine, da se zažene kot ID skupine %u"
+
+#: src/sudo.c:964
+#, c-format
+msgid "unable to set process priority"
+msgstr "ni mogoče nastaviti prednosti opravil"
+
+#: src/sudo.c:972
+#, c-format
+msgid "unable to change root to %s"
+msgstr "ni mogoče spremeniti skrbnika v %s"
+
+#: src/sudo.c:979 src/sudo.c:985 src/sudo.c:991
+#, c-format
+msgid "unable to change to runas uid (%u, %u)"
+msgstr "ni mogoče spremeniti ID uporabnika zaženi kot (%u, %u)"
+
+#: src/sudo.c:1005
+#, c-format
+msgid "unable to change directory to %s"
+msgstr "ni mogoče spremeniti mape v %s"
+
+#: src/sudo.c:1089
+#, c-format
+msgid "unexpected child termination condition: %d"
+msgstr "nepričakovan pogoj uničenja podrejenega opravila: %d"
+
+#: src/sudo.c:1146
+#, c-format
+msgid "policy plugin %s is missing the `check_policy' method"
+msgstr "vstavek pravilnika %s ne vključuje načina check_policy"
+
+#: src/sudo.c:1159
+#, c-format
+msgid "policy plugin %s does not support listing privileges"
+msgstr "vstavek pravilnika %s ne podpira navajanja dovoljenj"
+
+#: src/sudo.c:1171
+#, c-format
+msgid "policy plugin %s does not support the -v option"
+msgstr "vstavek pravilnika %s ne podpira možnosti -v"
+
+#: src/sudo.c:1183
+#, c-format
+msgid "policy plugin %s does not support the -k/-K options"
+msgstr "vstavek pravilnika %s ne podpira možnosti -k/-K"
+
+#: src/sudo_edit.c:110
+#, c-format
+msgid "unable to change uid to root (%u)"
+msgstr "ni mogoče spremeniti ID-ja uporabnika v skrbnika (%u)"
+
+#: src/sudo_edit.c:142
+#, c-format
+msgid "plugin error: missing file list for sudoedit"
+msgstr "napaka vstavka: manjka seznam datotek za sudoedit"
+
+#: src/sudo_edit.c:170 src/sudo_edit.c:270
+#, c-format
+msgid "%s: not a regular file"
+msgstr "%s: ni običajna datoteka"
+
+#: src/sudo_edit.c:204 src/sudo_edit.c:306
+#, c-format
+msgid "%s: short write"
+msgstr "%s: kratko pisanje"
+
+#: src/sudo_edit.c:271
+#, c-format
+msgid "%s left unmodified"
+msgstr "%s je ostalo nespremenjeno"
+
+#: src/sudo_edit.c:284
+#, c-format
+msgid "%s unchanged"
+msgstr "%s nespremenjeno"
+
+#: src/sudo_edit.c:296 src/sudo_edit.c:317
+#, c-format
+msgid "unable to write to %s"
+msgstr "ni mogoče pisati v %s"
+
+#: src/sudo_edit.c:297 src/sudo_edit.c:315 src/sudo_edit.c:318
+#, c-format
+msgid "contents of edit session left in %s"
+msgstr "vsebina seje urejanja je ostala v %s"
+
+#: src/sudo_edit.c:314
+#, c-format
+msgid "unable to read temporary file"
+msgstr "ni mogoče brati začasne datoteke"
+
+#: src/tgetpass.c:89
+#, c-format
+msgid "no tty present and no askpass program specified"
+msgstr "prisotnega ni nobenega tty in določen ni noben program askpass"
+
+#: src/tgetpass.c:98
+#, c-format
+msgid "no askpass program specified, try setting SUDO_ASKPASS"
+msgstr "določenega ni nobenega programa askpass, poskusite nastaviti SUDO_ASKPASS"
+
+#: src/tgetpass.c:230
+#, c-format
+msgid "unable to set gid to %u"
+msgstr "ni mogoče nastaviti ID skupine v %u"
+
+#: src/tgetpass.c:234
+#, c-format
+msgid "unable to set uid to %u"
+msgstr "ni mogoče nastaviti ID uporabnika v %u"
+
+#: src/tgetpass.c:239
+#, c-format
+msgid "unable to run %s"
+msgstr "ni mogoče zagnati %s"
+
+#: src/utmp.c:278
+#, c-format
+msgid "unable to save stdin"
+msgstr "ni mogoče shraniti stdin"
+
+#: src/utmp.c:280
+#, c-format
+msgid "unable to dup2 stdin"
+msgstr "ni mogoče uporabiti dup2 za stdin"
+
+#: src/utmp.c:283
+#, c-format
+msgid "unable to restore stdin"
+msgstr "ni mogoče obnoviti stdin"

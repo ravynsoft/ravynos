@@ -1,0 +1,48 @@
+#compdef readlink greadlink
+
+local variant ret=1
+local -a context line state state_descr args copts aopts=( -A '-*' )
+local -A opt_args
+
+# We can't use groups here because it would complicate the option filtering
+copts=( -e -f -m --canonicalize --canonicalize-existing --canonicalize-missing )
+
+args=(
+  '(: -)--help[display help information]'
+  '(: -)--version[display version information]'
+  # Delimiter options
+  # (Note: GNU `readlink` won't let you use -n with multiple files)
+  '(-n -z --no-newline --zero)'{-n,--no-newline}'[suppress trailing newline]'
+  '(-n -z --no-newline --zero)'{-z,--zero}'[use NUL as output delimiter]'
+  # Verbosity options
+  '(-q -s -v --quiet --silent --verbose)'{-q,-s,--quiet,--silent}'[suppress most error messages]'
+  '(-q -s -v --quiet --silent --verbose)'{-v,--verbose}'[show error messages]'
+  # Canonicalisation options
+  "(${(j< >)copts})"{-e,--canonicalize-existing}'[canonicalize paths (all components must exist)]'
+  "(${(j< >)copts})"{-f,--canonicalize}'[canonicalize paths]'
+  "(${(j< >)copts})"{-m,--canonicalize-missing}'[canonicalize paths (components may be missing)]'
+)
+
+# Filter out non-GNU options if applicable
+if _pick_variant gnu='Free Soft' unix --version; then
+  aopts=( )
+else
+  case $OSTYPE in
+    darwin*)          args=( ${(@M)args:#(|*\))-[n]\[*} ) ;;
+    netbsd*)          args=( ${(@M)args:#(|*\))-[fnqsv]\[*} ) ;;
+    dragonfly*|*bsd*) args=( ${(@M)args:#(|*\))-[fn]\[*} ) ;;
+    *) args=( ) ;;
+  esac
+fi
+
+_arguments -s -S $aopts : $args '*: :->files' && ret=0
+
+# File arguments must be symlinks unless a canonicalisation option is given
+[[ $state == files ]] &&
+if [[ ${opt_args[(i)(${~${(j<|>)copts}})]} ]]; then
+  _files && ret=0
+else
+  _files -g '*(@)' && ret=0
+fi
+
+return ret

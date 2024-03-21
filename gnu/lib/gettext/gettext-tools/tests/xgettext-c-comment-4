@@ -1,0 +1,45 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: --add-comments option.
+
+cat <<EOF > xg-c-comment-4.in.C
+/* This comment will not be extracted.  */
+gettext ("help");
+
+/*   XXX: But this one will.  */
+gettext_noop ("me");
+
+//XXX: ..and this
+dcgettext ("foo", "quick", LC_MESSAGES);
+
+  /* not not not */
+dgettext ("bar", "!");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=XXX \
+  -d xg-c-comment-4.tmp xg-c-comment-4.in.C || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-comment-4.tmp.po > xg-c-comment-4.po || Exit 1
+
+cat <<EOF > xg-c-comment-4.ok
+msgid "help"
+msgstr ""
+
+#. XXX: But this one will.
+msgid "me"
+msgstr ""
+
+#. XXX: ..and this
+msgid "quick"
+msgstr ""
+
+msgid "!"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-comment-4.ok xg-c-comment-4.po
+result=$?
+
+exit $result

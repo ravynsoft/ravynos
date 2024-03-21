@@ -1,0 +1,10 @@
+set -o history
+HISTSIZE=256
+HISTFILE=/dev/null
+
+# these two lines should be the same
+echo ${BASH_VERSION%\.*}
+echo $(fc -nl -1)
+
+echo ${BASH_VERSION%\.*}
+fc -nl -1

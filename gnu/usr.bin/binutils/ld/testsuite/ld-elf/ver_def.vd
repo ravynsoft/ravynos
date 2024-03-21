@@ -1,0 +1,15 @@
+# Verify correct version information output from `readelf' and that there
+# is no:
+#
+#   Version definition past end of section
+#
+# line at the end in particular (hence #pass must not be used here).
+
+Version symbols section '\.gnu\.version' contains 4 entries:
+ +Addr: 0x[0-9a-f]+ +Offset: 0x[0-9a-f]+ +Link: 2 \(\.dynsym\)
+ +000: +0 \(\*local\*\) +2 \(ver_foo\) +1 \(\*global\*\) +2 \(ver_foo\) +
+
+Version definition section '\.gnu\.version_d' contains 2 entries:
+ +Addr: 0x[0-9a-f]+ +Offset: 0x[0-9a-f]+ +Link: 3 \(\.dynstr\)
+ +000000: Rev: 1 +Flags: BASE +Index: 1 +Cnt: 1 +Name: ver_def
+ +0x001c: Rev: 1 +Flags: none +Index: 2 +Cnt: 1 +Name: ver_foo

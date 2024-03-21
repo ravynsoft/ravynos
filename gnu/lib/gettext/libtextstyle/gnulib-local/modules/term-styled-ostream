@@ -1,0 +1,48 @@
+Description:
+Output stream for CSS styled text, producing ANSI escape sequences.
+
+Files:
+lib/term-styled-ostream.oo.h
+lib/term-styled-ostream.oo.c
+
+Depends-on:
+styled-ostream
+term-ostream
+libcroco
+libxml
+mem-hash-map
+xalloc
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += term-styled-ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/term-styled-ostream.h : $(top_srcdir)/build-aux/moopp term-styled-ostream.oo.h term-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-styled-ostream.oo.c $(srcdir)/term-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
+$(srcdir)/term-styled-ostream.c $(srcdir)/term_styled_ostream.priv.h $(srcdir)/term_styled_ostream.vt.h : term-styled-ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf term-styled-ostream.lock' 1 2 13 15; \
+	  if mkdir term-styled-ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-styled-ostream.oo.c $(srcdir)/term-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-styled-ostream.oo.c $(srcdir)/term-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf term-styled-ostream.lock; exit $$result; \
+	  else \
+	    while test -d term-styled-ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/term-styled-ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += term-styled-ostream.h term-styled-ostream.c term_styled_ostream.priv.h term_styled_ostream.vt.h
+MAINTAINERCLEANFILES += term-styled-ostream.h term-styled-ostream.c term_styled_ostream.priv.h term_styled_ostream.vt.h
+EXTRA_DIST += term-styled-ostream.h term-styled-ostream.c term_styled_ostream.priv.h term_styled_ostream.vt.h
+
+Include:
+"term-styled-ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

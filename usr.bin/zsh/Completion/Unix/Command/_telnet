@@ -1,0 +1,91 @@
+#compdef telnet
+
+# Parameter used:
+#
+#  telnet_hosts_ports_users
+#    The array that contains 3-tuples `host:port:user'.
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+if (( ! $+_telnet_args )); then
+  local help="$(_call_program options 'telnet -\?' < /dev/null 2>&1)"
+  local -A optionmap
+  optionmap=(
+    '*\[-4\]*' '-4[force IPv4 address resolution]'
+    '*\[-6\]*' '-6[force IPv6 address resolution]'
+    '*\[-8\]*' '-8[allow 8-Bit data]'
+    '*\[-E\]*' '-E[disable an escape character]'
+    '*\[-K\]*' '-K[no automatic login]'
+    '*\[-L\]*' '-L[allow 8-Bit data on output]'
+    '*\[-N\]*' '-N[suppress reverse lookup]'
+    '*\[-S tos\]*' '-S+:IP type-of-service:'
+    '*\[-X atype\]*' '-X+:authentication type to disable:'
+    '*\[-a\]*' '-a[attempt automatic login]'
+    '*\[-c\]*' '-c[disable .telnetrc]'
+    '*\[-d\]*' '-d[debug mode]'
+    '*\[-e char\]*' '-e+[specify escape character]:escape character:'
+    '*\[-f/*' '-f'
+    '*/-F\]*' '-F'
+    '*\[-k realm\]*' '-k+:realm:'
+    '*\[-l user\]*' '-l+[specify user]:user:->users'
+    '*\[-n tracefile\]*' '-n+[specify tracefile]:tracefile:_files'
+    '*\[-r\]*' '-r[rlogin like user interface]'
+    '*\[-s src_addr\]*' '-s+[set source IP address]:src_addr:'
+    '*\[ -b addr \]*' '-b+[set source IP address]:src_addr:'
+    '*\[-x\]*' '-x'
+    '*\[-t transcom\]*' '-t+:transcom:'
+    '*\[-noasynch\]*' '-noasynch'
+    '*\[-noasyncnet\]*' '-noasyncnet'
+    '*\[-noasynctty\]*' '-noasynctty'
+    '*\[-z ssl\]*' '*-z[SSL parameters]:SSL parameter:->ssl'
+  )
+  _telnet_args=($optionmap[(K)"$help"])
+  (( $#_telnet_args )) || _telnet_args=( '-l+[specify user]:user:->users' )
+fi
+
+_arguments -C -s \
+  "$_telnet_args[@]" \
+  ':host:->hosts' \
+  ':port:->ports' && ret=0
+
+case "$state" in
+ssl)
+  _values -w 'SSL parameter' \
+    'debug[send SSL debugging info to stderr]' \
+    '(nossl)ssl[negotiate SSL connection]' \
+    '(ssl)nossl[switch off SSL negotiation]' \
+    'certrequired[require server certificate]' \
+    'secure[no fallback to unencrypted mode]' \
+    'verbose[be verbose about certificates, etc.]' \
+    'verify[set SSL verify flags]:int' \
+    'cert[specify certificate file]:certificate file:_path_files' \
+    'key[specify key file]:key file:_path_files' \
+    'cipher[set preferred cipher list]:cipher' && ret=0
+  ;;
+
+hosts)
+  _wanted hosts expl host \
+      _combination -s '[@:]' '' users-hosts-ports \
+          ${opt_args[-l]:+users=${opt_args[-l]:q}} \
+          hosts - && ret=0
+  ;;
+
+ports)
+  _wanted ports expl port \
+      _combination -s '[@:]' '' users-hosts-ports \
+          ${opt_args[-l]:+users=${opt_args[-l]:q}} \
+          hosts="${line[1]:q}" \
+          ports - && ret=0
+  ;;
+
+users)
+  _wanted users expl user \
+      _combination -s '[@:]' '' users-hosts-ports \
+      ${line[2]:+hosts="${line[2]:q}"} \
+      ${line[3]:+ports="${line[3]:q}"} \
+      users - && ret=0
+  ;;
+esac
+
+return ret

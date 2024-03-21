@@ -1,0 +1,616 @@
+%prep
+
+  mkdir funcdef.tmp
+  cd funcdef.tmp
+  setopt chaselinks
+  cd .
+  unsetopt chaselinks
+  mydir=$PWD
+
+%test
+
+  fn1() { return 1; }
+  fn2() {
+      fn1
+      print $?
+      return 2
+  }
+  fn2
+2:Basic status returns from functions
+>1
+
+  fnz() { }
+  false
+  fnz
+0:Empty function body resets status
+
+  fn3() { return 3; }
+  fnstat() { print $?; }
+  fn3
+  fnstat
+0:Status is not reset on non-empty function body
+>3
+
+  function f$$ () {
+    print regress expansion of function names
+  }
+  f$$
+0:Regression test: 'function f$$ () { ... }'
+>regress expansion of function names
+
+  function foo () print bar
+  foo
+0:Function definition without braces
+>bar
+
+  a a b() {
+    read word
+    print $0: $word
+  } <<<redirection
+  b
+  a
+0:Multiple function definition with duplicate name and redirection
+>b: redirection
+>a: redirection
+
+  functions -M m1
+  m1() { (( $# )) }
+  print $(( m1() ))
+  print $(( m1(1) ))
+  print $(( m1(1,2) ))
+0:User-defined math functions, argument handling
+>0
+>1
+>2
+
+  functions -M m2
+  m2() {
+    integer sum
+    local val
+    for val in $*; do
+      (( sum += $val ))
+    done
+  }
+  print $(( m2(1) ))
+  print $(( m2(1,3+3,4**2) ))
+0:User-defined math functions, complex argument handling
+>1
+>23
+
+  functions -M m3 1 2
+  m3() { (( 1 )) }
+  print zero
+  (print $(( m3() )))
+  print one
+  print $(( m3(1) ))
+  print two
+  print $(( m3(1,2) ))
+  print three
+  (print $(( m3(1,2,3) )))
+1:User-defined math functions, argument checking
+>zero
+>one
+>1
+>two
+>1
+>three
+?(eval):4: wrong number of arguments: m3()
+?(eval):10: wrong number of arguments: m3(1,2,3)
+
+  functions -M m4 0 0 testmathfunc
+  functions -M m5 0 0 testmathfunc
+  testmathfunc() {
+    if [[ $0 = m4 ]]; then
+      (( 4 ))
+    else
+      (( 5 ))
+    fi
+  }
+  print $(( m4() ))
+  print $(( m5() ))
+0:User-defined math functions, multiple interfaces
+>4
+>5
+
+  strmathfunc() {
+    if [[ $0 = stralpha ]]; then
+       set -- ${1//[^[:alpha:]]}
+    fi
+    (( $#1 ))
+  }
+  functions -Ms strlen 1 1 strmathfunc
+  functions -Ms stralpha 1 1 strmathfunc
+  print $(( strlen(this, is, a, raw, string) ))
+  print $(( strlen() ))
+  print $(( stralpha(this, is, a, raw, string) ))
+  print $(( stralpha() ))
+0:User-defined math functions, string arguments
+>24
+>0
+>16
+>0
+
+  command_not_found_handler() {
+    print "Great News!  I've handled the command:"
+    print "$1"
+    print "with arguments:"
+    print -l ${argv[2,-1]}
+  }
+  ACommandWhichHadBetterNotExistOnTheSystem and some "really useful" args
+0:Command not found handler, success
+>Great News!  I've handled the command:
+>ACommandWhichHadBetterNotExistOnTheSystem
+>with arguments:
+>and
+>some
+>really useful
+>args
+
+# ' deconfuse emacs
+
+  command_not_found_handler() {
+     print "Your command:" >&2
+     print "$1" >&2
+     print "has gone down the tubes.  Sorry." >&2
+     return 42
+  }
+  ThisCommandDoesNotExistEither
+42:Command not found handler, failure
+?Your command:
+?ThisCommandDoesNotExistEither
+?has gone down the tubes.  Sorry.
+
+  local variable=outside
+  print "I am $variable"
+  function {
+    local variable=inside
+    print "I am $variable"
+  }
+  print "I am $variable"
+  () {
+    local variable="inside again"
+    print "I am $variable"
+  }
+  print "I am $variable"
+0:Anonymous function scope
+>I am outside
+>I am inside
+>I am outside
+>I am inside again
+>I am outside
+
+  integer i
+  for (( i = 0; i < 10; i++ )); do function {
+    case $i in
+    ([13579])
+    print $i is odd
+    ;|
+    ([2468])
+    print $i is even
+    ;|
+    ([2357])
+    print $i is prime
+    ;;
+    esac
+  }; done
+0:Anonymous function with patterns in loop
+>1 is odd
+>2 is even
+>2 is prime
+>3 is odd
+>3 is prime
+>4 is even
+>5 is odd
+>5 is prime
+>6 is even
+>7 is odd
+>7 is prime
+>8 is even
+>9 is odd
+
+  echo stuff in file >file.in
+  function {
+    sed 's/stuff/rubbish/'
+  } <file.in >file.out
+  cat file.out
+0:Anonymous function redirection
+>rubbish in file
+
+  variable="Do be do"
+  print $variable
+  function {
+     print $variable
+     local variable="Da de da"
+     print $variable
+     function {
+       print $variable
+       local variable="Dum da dum"
+       print $variable
+     }
+     print $variable
+  }
+  print $variable
+0:Nested anonymous functions
+>Do be do
+>Do be do
+>Da de da
+>Da de da
+>Dum da dum
+>Da de da
+>Do be do
+
+  () (cat $1 $2) <(print process expanded) =(print expanded to file)
+0:Process substitution with anonymous functions
+>process expanded
+>expanded to file
+
+  () { print This has arguments $*; } of all sorts; print After the function
+  function { print More stuff $*; } and why not; print Yet more
+0:Anonymous function with arguments
+>This has arguments of all sorts
+>After the function
+>More stuff and why not
+>Yet more
+
+  fn() {
+    (){ print Anonymous function 1 $*; } with args
+    function { print Anonymous function 2 $*; } with more args
+    print Following bit
+  }
+  functions fn
+0:Text representation of anonymous function with arguments
+>fn () {
+>	() {
+>		print Anonymous function 1 $*
+>	} with args
+>	() {
+>		print Anonymous function 2 $*
+>	} with more args
+>	print Following bit
+>}
+
+  touch yes no
+  () { echo $1 } (y|z)*
+  (echo here)
+  () { echo $* } some (y|z)*
+  () { echo empty };(echo here)
+0:Anonymous function arguments and command arguments
+>yes
+>here
+>some yes
+>empty
+>here
+
+  if true; then f() { echo foo1; } else f() { echo bar1; } fi; f
+  if false; then f() { echo foo2; } else f() { echo bar2; } fi; f
+0:Compatibility with other shells when not anonymous functions
+>foo1
+>bar2
+
+  (
+  setopt ignorebraces
+  fpath=(.)
+  print "{ echo OK }\n[[ -o ignorebraces ]] || print 'ignorebraces is off'" \
+      >emufunctest
+  (autoload -z emufunctest; emufunctest) 2>&1
+  emulate zsh -c 'autoload -Uz emufunctest'
+  emufunctest
+  [[ -o ignorebraces ]] && print 'ignorebraces is still on here'
+  )
+0:sticky emulation applies to autoloads and autoloaded function execution
+>emufunctest:3: parse error near `\n'
+>OK
+>ignorebraces is off
+>ignorebraces is still on here
+#` (matching error message for editors parsing the file)
+
+# lsfoo should not be expanded as an anonymous function argument
+ alias lsfoo='This is not ls.'
+ () (echo anon func; echo "$@") lsfoo
+0:Anonymous function with arguments in a form nobody sane would ever use but unfortunately we have to support anyway
+>anon func
+>lsfoo
+
+ print foo | () cat
+0:Simple anonymous function should not simplify enclosing pipeline
+>foo
+
+ alias fooalias=barexpansion
+ funcwithalias() { echo $(fooalias); }
+ functions funcwithalias
+ barexpansion() { print This is the correct output.; }
+ funcwithalias
+0:Alias expanded in command substitution does not appear expanded in text
+>funcwithalias () {
+>	echo $(fooalias)
+>}
+>This is the correct output.
+
+ unfunction command_not_found_handler # amusing but unhelpful
+ alias first='firstfn1 firstfn2' second='secondfn1 secondfn2'
+ function first second { print This is function $0; }
+ first
+ second
+ firstfn1
+ secondfn1
+127:No alias expansion after "function" keyword
+>This is function first
+>This is function second
+?(eval):6: command not found: firstfn1
+?(eval):7: command not found: secondfn1
+
+  (
+    fpath=(.)
+    print  "print oops was successfully autoloaded" >oops
+    oops() { eval autoload -X }
+    oops
+    which -x2 oops
+  )
+0:autoload containing eval
+>oops was successfully autoloaded
+>oops () {
+>  print oops was successfully autoloaded
+>}
+
+  (
+    fpath=(.)
+    printf '%s\n' 'oops(){}' 'ninjas-earring(){}' 'oops "$@"' >oops
+    autoload oops
+    oops
+    whence -v oops
+  )
+0q:whence -v of zsh-style autoload
+>oops is a shell function from $mydir/oops
+
+  (
+    fpath=(.)
+    mkdir extra
+    print 'print "I have been loaded by explicit path."' >extra/spec
+    autoload -Uz $PWD/extra/spec
+    spec
+  )
+0:autoload with explicit path
+>I have been loaded by explicit path.
+
+  (
+    fpath=(.)
+    print 'print "I have been loaded by default path."' >def
+    autoload -Uz $PWD/extra/def
+    def
+  )
+1:autoload with explicit path with function in normal path, no -d
+?(eval):5: def: function definition file not found
+
+  (
+    fpath=(.)
+    autoload -dUz $PWD/extra/def
+    def
+  )
+0:autoload with explicit path with function in normal path, with -d
+>I have been loaded by default path.
+
+  (
+    cd extra
+    fpath=(.)
+    autoload -r spec
+    cd ..
+    spec
+  )
+0:autoload -r
+>I have been loaded by explicit path.
+
+  (
+    cd extra
+    fpath=(.)
+    autoload -r def
+    cd ..
+    def
+  )
+0:autoload -r is permissive
+>I have been loaded by default path.
+
+  (
+    cd extra
+    fpath=(.)
+    autoload -R def
+  )
+1:autoload -R is not permissive
+?(eval):4: def: function definition file not found
+
+  (
+    spec() { autoload -XUz $PWD/extra; }
+    spec
+  )
+0:autoload -X with path
+>I have been loaded by explicit path.
+
+# The line number 1 here and in the next test seems suspect,
+# but this example proves it's not down to the new features
+# being tested here.
+  (
+    fpath=(.)
+    cod() { autoload -XUz; }
+    cod
+  )
+1:autoload -X with no path, failure
+?(eval):1: cod: function definition file not found
+
+  (
+    fpath=(.)
+    def() { autoload -XUz $PWD/extra; }
+    def
+  )
+1:autoload -X with wrong path and no -d
+?(eval):1: def: function definition file not found
+
+  (
+    fpath=(.)
+    def() { autoload -dXUz $PWD/extra; }
+    def
+  )
+0:autoload -dX with path
+>I have been loaded by default path.
+
+  (
+    fpath=(.)
+    print 'loadthisfunc() { autoload -X }' >loadthisfunc_sourceme
+    print 'print Function was loaded correctly.' >loadthisfunc
+    source $PWD/loadthisfunc_sourceme
+    loadthisfunc
+  )
+0: autoload -X interaction with absolute filename used for source location
+>Function was loaded correctly.
+
+  (
+    fpath=()
+    mkdir extra2
+    for f in fun2a fun2b; do
+      print "print $f" >extra2/$f
+    done
+    repeat 3; do
+      autoload $PWD/extra2/fun2{a,b} $PWD/extra/spec
+      fun2a
+      fun2b
+      spec
+      unfunction fun2a fun2b spec
+      autoload $PWD/extra2/fun2{a,b} $PWD/extra/spec
+      spec
+      fun2b
+      fun2a
+      unfunction fun2a fun2b spec
+    done
+  )
+0: Exercise the directory name cache for autoloads
+>fun2a
+>fun2b
+>I have been loaded by explicit path.
+>I have been loaded by explicit path.
+>fun2b
+>fun2a
+>fun2a
+>fun2b
+>I have been loaded by explicit path.
+>I have been loaded by explicit path.
+>fun2b
+>fun2a
+>fun2a
+>fun2b
+>I have been loaded by explicit path.
+>I have been loaded by explicit path.
+>fun2b
+>fun2a
+
+  not_trashed() { print This function was not trashed; }
+  autoload -Uz /foo/bar/not_trashed
+  not_trashed
+0:autoload with absolute path does not trash loaded function
+>This function was not trashed
+
+  # keep spec from getting loaded in parent shell for simplicity
+  (
+    if [[ $(whence -v spec) = 'spec is a shell function from '$PWD/* ]]
+    then print spec already loaded >&2; exit 1; fi
+    autoload -Uz $PWD/spec
+    autoload -Uz $PWD/extra/spec
+    spec
+  )
+0:autoload with absolute path can be overridden if not yet loaded
+>I have been loaded by explicit path.
+
+  (
+    if [[ $(whence -v spec) = 'spec is a shell function from '$PWD/* ]]
+    then print spec already loaded >&2; exit 1; fi
+    autoload -Uz $PWD/extra/spec
+    autoload spec
+    spec
+  )
+0:autoload with absolute path not cancelled by bare autoload
+>I have been loaded by explicit path.
+
+  (
+    FUNCNEST=0
+    fn() { true; }
+    fn
+  )
+1:
+?fn:4: maximum nested function level reached; increase FUNCNEST?
+
+  (
+     fpath=(.)
+     print "foo-bar() { print this should run automatically; }" >foo-bar
+     autoload -Uz foo-bar
+     foo-bar
+  )
+0:autoload containing dash
+>this should run automatically
+
+  tbc() {
+     print This function is called $0.
+  }
+  tbc
+  functions -c tbc newcopy
+  newcopy
+  unfunction tbc
+  newcopy
+0:functions -c
+>This function is called tbc.
+>This function is called newcopy.
+>This function is called newcopy.
+
+  (
+    fpath=(.)
+    print >tbc_auto 'print This autoloaded function is called $0.'
+    autoload -Uz tbc_auto
+    functions -c tbc_auto newcopy_auto
+    newcopy_auto
+    tbc_auto
+  )
+0:functions -c with autoload
+>This autoloaded function is called newcopy_auto.
+>This autoloaded function is called tbc_auto.
+
+  (
+    fpath=(.)
+    print >tbc_redef "print This is the core of the old function."
+    autoload -Uz tbc_redef
+    functions -c tbc_redef tbc_original
+    tbc_redef() {
+	print About to call the original.
+	tbc_original
+	print Stopped calling the original because once is enough.
+    }
+    tbc_redef
+  )
+0:function -c with redefinition
+>About to call the original.
+>This is the core of the old function.
+>Stopped calling the original because once is enough.
+
+  (
+    fpath=(.)
+    print >line_info '\nprint -P "%1x:%I is where we are."'
+    autoload -Uz line_info
+    functions -c line_info preserve_file
+    preserve_file
+  )
+0:functions -c preserves file information
+>line_info:2 is where we are.
+
+  (
+    fpath=(.)
+    print >func_info '\nprint -P "%N:%i is where we are."'
+    autoload -Uz func_info
+    functions -c func_info change_output
+    change_output
+  )
+0:functions -c updates non-file function information
+>change_output:2 is where we are.
+
+  autoload -Uz cant_autoload_for_copying
+  functions -c cant_autoload_for_copying not_copied
+1:functions -c gracefully rejects failed autoload
+?(eval):2: cant_autoload_for_copying: function definition file not found
+
+%clean
+
+ rm -f file.in file.out

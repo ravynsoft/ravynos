@@ -1,0 +1,59 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# pattern matching and replacement operators with multibyte characters
+
+LANG=en_US.UTF-8
+
+s1='abcÃ¥def'
+s2='Ã¥'
+s3='ḅć'
+
+s23=${s2}${s3}
+
+echo ${s1/$s2/xxx}
+echo ${s1/$s3/xxx}
+
+echo ${s23/#$s2/}
+echo ${s23/%$s3/}
+
+echo ${s23/#$s2/prepend}
+echo ${s23/%$s3/append}
+
+echo ${s2/#/prepend}
+echo ${s3/%/append}
+
+echo ${s2/#/}
+echo ${s3/%/}
+
+recho ${s2/$s2/}
+recho ${s3/$s3/}
+
+# posix pattern replacements
+
+echo ${s23##$s2}
+echo ${s23#$s2}
+
+echo ${s23%%$s3}
+echo ${s23%$s3}
+
+# fail
+
+echo ${s2/#ab/xx}
+echo ${s3/%ab/xx}
+
+echo ${s2#ab}
+echo ${s2##ab}
+
+echo ${s3%ab}
+echo ${s3%%ab}

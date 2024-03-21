@@ -1,0 +1,10 @@
+echo "warning: two of these tests will fail if your OS does not support" >&2
+echo "warning: named pipes or the /dev/fd filesystem.  If the tests of the" >&2
+echo "warning: process substitution mechanism fail, please do not consider" >&2
+echo "warning: this a test failure" >&2
+echo "warning: if you have exported variables beginning with the string _Q," >&2
+echo "warning: diff output may be generated.  If so, please do not consider" >&2
+echo "warning: this a test failure" >&2
+
+${THIS_SH} ./new-exp.tests 2>&1 | grep -v '^expect' > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} new-exp.right && rm -f ${BASH_TSTOUT}

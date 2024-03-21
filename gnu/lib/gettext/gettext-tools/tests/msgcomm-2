@@ -1,0 +1,35 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --no-location option.
+
+cat <<EOF > mcomm-test2.in1
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test2.in2
+#: hunt.c:759
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --more-than=0 --no-location -o mcomm-test2.tmp \
+    mcomm-test2.in1 mcomm-test2.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test2.tmp > mcomm-test2.out || Exit 1
+
+cat << EOF > mcomm-test2.ok
+msgid "1"
+msgstr "1x"
+
+msgid "2"
+msgstr "2x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test2.ok mcomm-test2.out
+result=$?
+
+exit $result

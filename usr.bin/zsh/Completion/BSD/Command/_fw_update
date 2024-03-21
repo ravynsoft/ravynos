@@ -1,0 +1,10 @@
+#compdef fw_update
+
+_arguments -s -S -A "-*" \
+  '(*)-a[install or update firmware for all drivers]' \
+  '-d[delete drivers instead of adding them]' \
+  '-i[display information]' \
+  '-n[dry run]' \
+  '-p[use the firmware at specified path]:path:' \
+  '*-v[verbose output]' \
+  '(-a)*:driver:'

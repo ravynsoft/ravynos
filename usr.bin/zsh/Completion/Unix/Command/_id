@@ -1,0 +1,56 @@
+#compdef id gid
+
+local args choices
+
+if _pick_variant gnu=GNU $OSTYPE --version; then
+  choices='--help --version -Z --context -g --group -G --groups -u --user'
+  _arguments \
+    "($choices)"{-Z,--context}'[print only security context]' \
+    "($choices)"{-g,--group}'[print only EGID]' \
+    "($choices -r --real)"{-G,--groups}'[print all GIDs]' \
+    '(-n --name --help --version)'{-n,--name}'[show name instead of number]' \
+    '(-r --real -g --groups --help --version)'{-r,--real}'[show real ID instead of effective]' \
+    "($choices)"{-u,--user}'[print only EUID]' \
+    '(-z --zero --help --version)'{-z,--zero}'[delimit entries with NUL characters]' \
+    '(- :)--help[display help information]' \
+    '(- :)--version[display version]' \
+    ':user:_users'
+else
+  choices="-A -a -c -G -g -M -p -P -R -u"
+  args=(
+    "($choices)-g[print only EGID]"
+    "($choices -r)-G[print all GIDs]"
+    "($choices)-u[print only EUID]"
+    '(-A -c -M -P)-n[show name instead of number]'
+    '(-A -c -M -P)-r[show real ID instead of effective]'
+  )
+  case $OSTYPE in
+    solaris*)
+      args+=(
+        '(-g -G -u -n -r)-a[show user name, user ID and all the groups]'
+	'(-g -G -u -n -r)-p[show project membership]'
+      )
+    ;;
+    openbsd*)
+      args+=(
+        '(-)-c[display the login class]'
+        '(-)-p[make the output human readable]'
+        '(-)-R[display the routing table of the current process]'
+      )
+    ;;
+    darwin*|dragonfly*|freebsd*)
+      args+=( '(-)-P[print id in the form of a password file entry]' )
+    ;|
+    darwin*|freebsd*)
+      args+=(
+	'(-)-A[print process audit user ID]'
+	'(-)-M[print MAC label of the current process]'
+      )
+    ;|
+    freebsd*) args+=( '(-)-c[print current login class]' ) ;|
+    darwin*|dragonfly*|freebsd*|netbsd*|openbsd*)
+      args+=( '(-)-p[human readable output]' )
+    ;;
+  esac
+  _arguments -s $args ':user:_users'
+fi

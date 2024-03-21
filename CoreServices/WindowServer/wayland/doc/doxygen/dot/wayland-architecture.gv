@@ -1,0 +1,36 @@
+digraph arch_wayland {
+    edge[
+        fontname="DejaVu Sans",
+        dir="both",
+        arrowtail="dot",
+        arrowsize=.5,
+        fontname="DejaVu Sans",
+        fontsize="18",
+    ]
+
+    node[
+        color=none,
+        margin=0,
+        fontname="DejaVu Sans",
+        fontsize="18",
+   ]
+
+    c1 [label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD>Wayland Client</TD></TR></TABLE>>, URL="#c1"]
+    c2 [label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD>Wayland Client</TD></TR></TABLE>>, URL="#c2"]
+
+    comp [tooltip="Wayland Compositor", label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD><BR/>Wayland<BR/>Compositor<BR/><BR/></TD></TR></TABLE>>, URL="#comp"]
+
+    impl [tooltip="KMS evdev Kernel", label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD>KMS</TD><TD>evdev</TD></TR><TR><TD COLSPAN="2">Kernel</TD></TR></TABLE>>, URL="#impl"]
+
+    c1 -> comp [taillabel="③", labeldistance=2.5, URL="#step_3"];
+    c2 -> comp;
+
+    comp -> c1 [label="②", URL="#step_2"];
+    comp -> c2;
+
+    comp -> impl [xlabel = "④", URL="#step_4"];
+    comp -> impl [style = invis, label="    "];
+    impl -> comp [xlabel = "①", URL="#step_1"];
+
+    c1 -> c2 [style=invis];
+}

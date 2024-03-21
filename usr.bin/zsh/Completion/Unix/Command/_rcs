@@ -1,0 +1,26 @@
+#compdef co ci rcs rcsdiff merge
+
+local ret=1
+
+if [[ $service = merge ]]; then
+  _arguments \
+    '-E[output unmerged changes, bracketing conflicts]' \
+    '-A[output conflicts using the -A style of diff3]' \
+    '-e[output unmerged changes]' \
+    '*-L[specify labels for corresponding files]' \
+    '-p[send results to standard output]' \
+    '-q[do not warn about conflicts (quiet)]' \
+    '-V[display version information]' \
+    '1:file:_files' \
+    '2:original file:_files' \
+    '3:modified file:_files' && ret=0
+elif [[ -d RCS && $service != ci ]]; then
+  local rep expl
+
+  rep=(RCS/*,v(D:t:s/\,v//))
+  (( $#rep )) && _wanted files expl 'RCS file' compadd -a rep && ret=0
+fi
+
+[[ $service = ci || $service = rcs || ret -eq 1 ]] && _files && ret=0
+
+return ret

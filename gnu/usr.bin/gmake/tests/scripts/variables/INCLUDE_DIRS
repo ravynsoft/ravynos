@@ -1,0 +1,94 @@
+#                                                                    -*-perl-*-
+$description = "Test the .INCLUDE_DIRS special variable.";
+
+$details = "";
+
+use Cwd;
+
+$dir = cwd;
+$dir =~ s,.*/([^/]+)$,../$1,;
+
+if (-d '/usr/include') {
+  # Test #1: The content of .INCLUDE_DIRS depends on the platform for which
+  #          make was built. What we know for sure is that it shouldn't be
+  #          empty.
+  #
+  run_make_test('
+ifeq ($(.INCLUDE_DIRS),)
+$(warning .INCLUDE_DIRS is empty)
+endif
+
+.PHONY: all
+all:;@:
+',
+                '', '');
+}
+
+# Test #2: Make sure -I paths end up in .INCLUDE_DIRS.
+#
+run_make_test('
+ifeq ($(dir),)
+$(warning dir is empty)
+endif
+
+ifeq ($(filter $(dir),$(.INCLUDE_DIRS)),)
+$(warning .INCLUDE_DIRS does not contain $(dir): $(.INCLUDE_DIRS))
+endif
+
+.PHONY: all
+all:;@:
+',
+              "-I$dir dir=$dir", '');
+
+# Find the default .INCLUDE_DIRS
+create_file('defaultdirs.mk', "\$(info \$(.INCLUDE_DIRS))\nall:;\@:\n");
+my $cmd = subst_make_string("#MAKEPATH# -f defaultdirs.mk");
+my @dirs = `$cmd`;
+my $dirs = $dirs[0];
+$dirs =~ s/\r?\n//g;
+unlink('defaultdirs.mk');
+
+run_make_test("
+ifneq (\$(.INCLUDE_DIRS),$dirs)
+\$(warning Mismatched \$(.INCLUDE_DIRS) != $dirs)
+endif
+all:;\@:
+",
+              '', '');
+
+# Verify that -I- disables content from .INCLUDE_DIRS
+
+run_make_test(q/
+ifneq ($(.INCLUDE_DIRS),)
+$(warning Mismatched $(.INCLUDE_DIRS) != )
+endif
+all:;@:
+/,
+              '-I-', '');
+
+# Prefix -I dirs to the front
+mkdir('somedir', 0777);
+
+my $xdirs = $dirs ? " $dirs" : '';
+run_make_test("
+ifneq (\$(.INCLUDE_DIRS),somedir$xdirs)
+\$(warning Mismatched '\$(.INCLUDE_DIRS)' != 'somedir$xdirs')
+endif
+all:;\@:
+",
+              '-I somedir', '');
+
+# Verify .INCLUDE_DIRS contains files after -I-
+
+run_make_test(q/
+ifneq ($(.INCLUDE_DIRS),somedir)
+$(warning Mismatched $(.INCLUDE_DIRS) != somedir)
+endif
+all:;@:
+/,
+              '-I - -I somedir', '');
+
+rmdir('somedir');
+
+# This tells the test driver that the perl test script executed properly.
+1;

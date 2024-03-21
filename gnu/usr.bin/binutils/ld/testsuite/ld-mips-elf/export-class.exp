@@ -1,0 +1,96 @@
+# Expect script for symbol export classes, MIPS variation.
+#
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+#
+# Written by Maciej W. Rozycki <macro@codesourcery.com>
+#
+
+# Exclude non-Linux targets; feel free to include your favorite one
+# if you like.
+if { ![istarget mips*-*-linux*] } {
+    return
+}
+
+proc mips_export_class_test { abi flag emul } {
+
+    set testname "MIPS $abi symbol export class test"
+
+    set dump [string map {o32 32 n32 32 n64 64} $abi]
+
+    set AFLAGS "$flag -EB"
+    set LDFLAGS "-m$emul"
+
+    # Build an auxiliary shared object with conflicting versioned symbol
+    # definitions.
+    run_ld_link_tests [list \
+	[list \
+	    "$testname (auxiliary shared object)" \
+	    "$LDFLAGS -shared -version-script ../ld-elf/export-class-lib.ver" "" \
+	    "$AFLAGS" \
+	    { ../ld-elf/export-class-lib.s } \
+	    {} \
+	    "mips-$abi-export-class-lib.so" \
+	] \
+    ]
+
+    # Build a static object that pulls symbol definitions.  It has to come
+    # first before the auxiliary shared object and other static objects on
+    # the linker's command line and hence we need to build it separately.
+    run_ld_link_tests [list \
+	[list \
+	    "$testname (initial static object)" \
+	    "$LDFLAGS -r" "" \
+	    "$AFLAGS" \
+	    { ../ld-elf/export-class-ref.s } \
+	    {} \
+	    "mips-$abi-export-class-ref-r.o" \
+	] \
+    ]
+
+    # Build static objects that satisfy symbol dependencies and preempt
+    # shared-object symbol definitions, and link all the objects built into
+    # the final shared object.  The command-line order of objects linked is
+    # important to make sure the linker correctly preempts versioned symbols
+    # from the auxiliary shared object and is as follows: ref, lib, dep, def.
+    # Get a dump to make sure symbol dependencies are resolved internally.
+    run_ld_link_tests [list \
+	[list \
+	    "$testname (final shared object)" \
+	    "$LDFLAGS -shared -Tdata=0x12340000 tmpdir/mips-$abi-export-class-ref-r.o tmpdir/mips-$abi-export-class-lib.so" "" \
+	    "$AFLAGS" \
+	    { ../ld-elf/export-class-dep.s ../ld-elf/export-class-def.s } \
+	    [list \
+		[list readelf -r mips-$dump-export-class.rd] \
+		[list readelf "-x .data" mips-$dump-export-class.xd] \
+	    ] \
+	    "mips-$abi-export-class.so" \
+	] \
+    ]
+}
+
+# For targets that default to a specific ISA (instead of "from-abi"),
+# the 64-bit -march option is required to override it, like for
+# "mipsisa32r2el-*-*".
+set abis { o32 -32 elf32btsmip n32 "-n32 -march=mips3" elf32btsmipn32 n64 "-64 -march=mips3" elf64btsmip }
+foreach { abi flag emul } $abis {
+    mips_export_class_test $abi $flag $emul
+}

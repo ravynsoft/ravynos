@@ -37,11 +37,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)kern_subr.c	8.3 (Berkeley) 1/21/94
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
@@ -216,6 +213,8 @@ uiomove_faultflag(void *cp, int n, struct uio *uio, int nofault)
 	    ("uiomove: mode"));
 	KASSERT(uio->uio_segflg != UIO_USERSPACE || uio->uio_td == curthread,
 	    ("uiomove proc"));
+	KASSERT(uio->uio_resid >= 0,
+	    ("%s: uio %p resid underflow", __func__, uio));
 
 	if (uio->uio_segflg == UIO_USERSPACE) {
 		newflags = TDP_DEADLKTREAT;
@@ -234,6 +233,9 @@ uiomove_faultflag(void *cp, int n, struct uio *uio, int nofault)
 	}
 
 	while (n > 0 && uio->uio_resid) {
+		KASSERT(uio->uio_iovcnt > 0,
+		    ("%s: uio %p iovcnt underflow", __func__, uio));
+
 		iov = uio->uio_iov;
 		cnt = iov->iov_len;
 		if (cnt == 0) {

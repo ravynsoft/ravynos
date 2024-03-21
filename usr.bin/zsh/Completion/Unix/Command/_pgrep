@@ -1,0 +1,191 @@
+#compdef pgrep pkill
+
+# Notes:
+# - We assume that Linux systems use procps-ng - specifically, procps-ng >=3.3.4
+#   (which changed the behaviour of -f and added -a)
+# - We don't really need to keep pgopts and pkopts separate, but it seems like
+#   it should make things a bit easier to follow
+
+local curcontext="$curcontext" state line ret=1 expl pgopts pkopts no
+typeset -A opt_args
+typeset -a arguments sig_arguments aopts
+
+# These arguments (a) are common to all variants (like -x), (b) are the most
+# common amongst all variants (like -a), or (c) have a single unambiguous
+# meaning amongst all variants (like --help). Many of them are filtered out or
+# overridden below
+arguments=(
+  '-a[include process ancestors in match list]'
+  '-c+[match only on specified login class]:login class:_login_classes'
+  '(-F --pidfile)'{-F+,--pidfile=}'[match only processes in specified PID file]:PID file:_files'
+  '(-f --full)'{-f,--full}'[match against full command line]'
+  '(-G --group)'{-G+,--group=}'[match only on specified real group IDs]: :_sequence _groups'
+  '(-g --pgroup)'{-g+,--pgroup=}'[match only on specified process group IDs]: :->pgid'
+  '(: * -)'{-h,--help}'[display help information]'
+  '-I[request confirmation before signalling each process]'
+  '-i[ignore case distinctions]'
+  '-j+[match only on specified jail IDs]:jail:_sequence _jails -0 -o jid'
+  '(-L --logpidfile)'{-L,--logpidfile}'[fail if PID file not locked (with -F)]'
+  '(-N)-M+[extract name list from specified core]:core file:_files'
+  '(-M)-N+[extract name list from specified system]:system file:_files'
+  '(-o -n --oldest --newest)'{-n,--newest}'[match newest process]'
+  '(-o -n --oldest --newest)'{-o,--oldest}'[match oldest process]'
+  '(-O --older)'{-O+,--older=}'[select where older than specified age]:age (seconds)'
+  '(-P --parent)'{-P+,--parent=}'[match only on specified parent process IDs]: :->ppid'
+  '(-l)-q[suppress normal output]'
+  '(-r --runstates)'{-r+,--runstates}'[match runstates]:run state:compadd -S "" D I R S T t W X Z'
+  '-S[search also in system processes (kernel threads)]'
+  '(-s --session)'{-s+,--session=}'[match only on specified process session IDs]: :->sid'
+  # _signals is OK here - we do it differently below
+  '(ss)--signal=[specify signal to send to process]: :_signals -s'
+  '-T+[match only on specified routing table]:routing table:_routing_tables'
+  '(-t --terminal)'{-t+,--terminal=}'[match only on specified controlling terminals]: :_sequence _ttys -do'
+  '(-U --uid)'{-U+,--uid=}'[match only on specified real user IDs]: :_sequence _users'
+  '(-u --euid)'{-u+,--euid=}'[match only on specified effective user IDs]: :_sequence _users'
+  '(-v --inverse)'{-v,--inverse}'[negate matching]'
+  '(-x --exact)'{-x,--exact}'[match process name or command line (with -f) exactly]'
+  '--ns=[match only on same namespaces as specified PID]: :_pids'
+  '--nslist=[match only on specified namespaces (with --ns)]:namespace:(ipc mnt net pid user uts)'
+  '(: * -)'{-V,--version}'[display version information]'
+  '-z+[match only on specified zone IDs]:zone:_sequence _zones'
+)
+[[ $service == pgrep ]] && arguments+=(
+  '(-d --delimiter)'{-d+,--delimiter=}'[specify output delimiter]:delimiter:compadd ${(s<>)IFS}'
+  '(-q)-l[display process name (and arguments with -f)]'
+  '(-w --lightweight)'{-w,--lightweight}'[show all thread IDs instead of PID]'
+)
+[[ $service == pkill ]] && arguments+=(
+  '(-e --echo)'{-e,--echo}'[display signalled process]'
+  '-l[display kill command]'
+)
+
+case $OSTYPE in
+  linux*)
+    # Note: We deliberately exclude -v but not --inverse from pkill
+    pgopts=acdFfGghLlnoOPrstUuVvwx-
+    pkopts=ceFfGghLnoOPstUuVx-
+    arguments=(
+      ${arguments:#((#s)|*\))(\*|)-[acl]*}
+      '(-c --count)'{-c,--count}'[display count of matching processes]'
+    )
+    [[ $service == pgrep ]] && arguments+=(
+      '(-a -l --list-full --list-name)'{-a,--list-full}'[display full command line]'
+      '(-a -l --list-full --list-name)'{-l,--list-name}'[display process name]'
+    )
+    ;;
+  dragonfly*|freebsd*)
+    pgopts=acdFfGgijLlMNnoPqSstUuvx
+    pkopts=acFfGgIijLlMNnoPstUuvx
+    ;;
+  openbsd*)
+    pgopts=dfGglnoPqsTtUuvx
+    pkopts=fGgIlnoPqsTtUuvx
+    ;;
+  darwin*)
+    pgopts=adFfGgiLlnoPqtUuvx
+    pkopts=aFfGgIiLlnoPtUuvx
+    ;;
+  solaris*)
+    pgopts=cdfGglnoPsTtUuvxz
+    pkopts=cfGgnoPsTtUuvxz
+    arguments=(
+      ${arguments:#((#s)|*\))(\*|)-[cT]*}
+      '-c+[match only on specified contract IDs]: :->contract'
+      '-J+[match only on specified project IDs]: :->projid'
+      '-T+[match only on specified task IDs]: :->task'
+    )
+    ;;
+  *)
+    pgopts=dfGgilnPstUuvx
+    pkopts=fGgilnPstUuvx
+    ;;
+esac
+
+if [[ $service == pgrep ]]; then
+  arguments=( ${(M)arguments:#((#s)|*\))(\*|)-[$pgopts]*} )
+else
+  arguments=( ${(M)arguments:#((#s)|*\))(\*|)-[$pkopts]*} )
+
+  # Signals on non-Linux systems can only be completed as the first argument
+  (( CURRENT != 2 )) && [[ $OSTYPE != linux* ]] && no='!'
+
+  # This is used for exclusion with --signal
+  sig_arguments=( + '(ss)' )
+
+  # This is very similar to _signals, but i've avoided it here because it
+  # doesn't behave the way i want it to
+  sig_arguments+=( $no'(--signal)-'${^signals[2,-3]} )
+  sig_arguments+=( '!(--signal)-'{0..$(( $#signals - 3 ))} )
+
+  # Complete the -SIG* variant if it's requested
+  if [[ $PREFIX$SUFFIX == -S* ]]; then
+    sig_arguments+=( '(--signal)-SIG'${^${(@)signals[2,-3]:#<->}} )
+  else
+    sig_arguments+=( '!(--signal)-SIG'${^${(@)signals[2,-3]:#<->}} )
+  fi
+fi
+
+if [[ $OSTYPE = dragonfly* ]]; then
+  arguments+=( '(-t)-T[match only processes associated with the current terminal]' )
+fi
+
+arguments+=( $sig_arguments + o '*: :->pname' )
+
+[[ $OSTYPE == linux* ]] || aopts+=( -A '*-' )
+_arguments -C -s -S $aopts : $arguments && ret=0
+
+# complete comma-separated list of various IDs
+# $1: tag, $2: description, $3: keyword for 'ps -o'
+_pgrep_sequence () {
+    _sequence _wanted $1 expl "$2" \
+	      compadd - ${(un)$(_call_program $1 ps -A -o $3=)}
+}
+
+case $state in
+  (sid)
+    if [[ $OSTYPE == openbsd* ]]; then
+      _message 'session ID'
+    else
+      _pgrep_sequence session-ids 'session ID' sid
+    fi
+    ;;
+  (ppid)
+    _pgrep_sequence ppids 'parent process ID' ppid
+    ;;
+  (pgid)
+    _sequence _pgids
+    ;;
+  (projid)
+    _pgrep_sequence project-ids 'project ID' project
+    ;;
+  (contract)
+    _pgrep_sequence contract-ids 'contract ID' ctid
+    ;;
+  (task)
+    _pgrep_sequence task-ids 'task ID' taskid
+    ;;
+  (pname)
+    local ispat="pattern matching "
+    if (( ${+opt_args[-x]} )); then
+      ispat+="full "
+    fi
+    if (( ${+opt_args[-f]} )); then
+      local -a opts=( -lf )
+      [[ $OSTYPE == linux* ]] && opts=( -a )
+      local -a matches=( ${(f)"$(
+              _call_program process-args pgrep ${(@q)opts} -- \
+                  ${(q)${${:-$PREFIX$SUFFIX}:-.\*}}
+          )"} )
+      local -a displ=( "${${matches[@]//:/\:}[@]/ /:}" )
+      matches=( "${matches[@]##<-> }" )
+
+      local desc=$ispat'process command line'
+      _description process-args expl "$desc"
+      _describe -t process-args "$desc" displ matches "$@" -U "$expl[@]"
+    else
+      _wanted processes-names expl $ispat'process name' _process_names -a -t
+    fi
+    ;;
+esac && ret=0
+
+return ret

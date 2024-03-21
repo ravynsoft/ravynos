@@ -1,0 +1,101 @@
+<Type Name="DomainBrowser" FullName="Avahi.DomainBrowser">
+  <TypeSignature Language="C#" Value="public class DomainBrowser : Avahi.BrowserBase, System.IDisposable" />
+  <AssemblyInfo>
+    <AssemblyName>avahi-sharp</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>Avahi.BrowserBase</BaseTypeName>
+  </Base>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>System.IDisposable</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Members>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public DomainBrowser (Avahi.Client client);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="client" Type="Avahi.Client" />
+      </Parameters>
+      <Docs>
+        <param name="client">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="DomainAdded">
+      <MemberSignature Language="C#" Value="public event Avahi.DomainInfoHandler DomainAdded;" />
+      <MemberType>Event</MemberType>
+      <ReturnValue>
+        <ReturnType>Avahi.DomainInfoHandler</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="DomainRemoved">
+      <MemberSignature Language="C#" Value="public event Avahi.DomainInfoHandler DomainRemoved;" />
+      <MemberType>Event</MemberType>
+      <ReturnValue>
+        <ReturnType>Avahi.DomainInfoHandler</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Dispose">
+      <MemberSignature Language="C#" Value="public void Dispose ();" />
+      <MemberType>Method</MemberType>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Domains">
+      <MemberSignature Language="C#" Value="public Avahi.DomainInfo[] Domains { get; };" />
+      <MemberType>Property</MemberType>
+      <ReturnValue>
+        <ReturnType>Avahi.DomainInfo[]</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <value>To be added.</value>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public DomainBrowser (Avahi.Client client, int iface, Avahi.Protocol proto, string domain, Avahi.DomainBrowserType btype, Avahi.LookupFlags flags);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="client" Type="Avahi.Client" />
+        <Parameter Name="iface" Type="System.Int32" />
+        <Parameter Name="proto" Type="Avahi.Protocol" />
+        <Parameter Name="domain" Type="System.String" />
+        <Parameter Name="btype" Type="Avahi.DomainBrowserType" />
+        <Parameter Name="flags" Type="Avahi.LookupFlags" />
+      </Parameters>
+      <Docs>
+        <param name="client">To be added.</param>
+        <param name="iface">To be added.</param>
+        <param name="proto">To be added.</param>
+        <param name="domain">To be added.</param>
+        <param name="btype">To be added.</param>
+        <param name="flags">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+</Type>

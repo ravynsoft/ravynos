@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=${prefix}/include
+
+Name: avahi-glib
+Description: Avahi Multicast DNS Responder (GLib Support)
+Version: @PACKAGE_VERSION@
+Requires: glib-2.0
+Libs: -L${libdir} -lavahi-glib
+Cflags: -D_REENTRANT -I${includedir}

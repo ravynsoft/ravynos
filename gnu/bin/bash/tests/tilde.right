@@ -1,0 +1,28 @@
+~chet
+/usr/xyz/foo
+~chet/foo
+~chet/foo
+~chet/bar
+~chet/bar
+~chet/bar
+:~chet/
+abcd~chet
+SHELL=~/bash
+/usr/xyz/bash
+abcd:~chet
+/usr/ucb:/bin:/usr/xyz/bin:/usr/xyz/tmp/bin:/usr/bin
+/usr
+/tmp
+/bin:/usr/bin:.:/usr/xyz/bin
+/bin:/usr/bin:.:~/bin
+/bin:/usr/bin:.:/usr/xyz/bin
+/bin:/usr/bin:.:/usr/xyz/bin
+/bin:/usr/bin:.:~/bin
+/bin:/usr/bin:.:~/bin
+\~
+ok 1
+ok 2
+ok 3
+~root
+foo=bar:/usr/xyz
+foo=bar:~

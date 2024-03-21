@@ -1,0 +1,38 @@
+#compdef nc netcat
+
+# handle name clash with the nedit client
+if [[ $service = nc ]] && ! _pick_variant netcat=connect nedit -h; then
+  _nedit
+  return
+fi
+
+if (( ! $#_cache_nc_args )); then
+  typeset -ga _cache_nc_args
+  local help="$(_call_program options $words[1] -h < /dev/null 2>&1)"
+  local -A optionmap
+  optionmap=(
+    '*-e prog*' '-e+[program to exec after connect]:program:_command_names -e'
+     '*-g gateway*' '-g+[source-routing hop point]:gateway:_hosts'
+     '*-G num*' '-G[source-routing pointer: 4, 8, 12]'
+     '*-i secs*' '-i+[delay interval for lines sent or ports scanned]:delay (secs)'
+     '*-l*' '-l[listen mode]'
+     '*-n*' '-n[numeric-only IP addresses, no DNS]'
+     '*-o file*' '-o+[hex dump of traffic]:file:_files'
+     '*-p port*' '-p+[local port number]:port:_ports'
+     '*-r*' '-r[randomize local and remote ports]'
+     '*-q secs*' '-q+[quit after EOF on stdin and delay of secs]:delay (secs)'
+     '*-t*' '-t[answer TELNET negotiation]'
+     '*-u*' '-u[UDP mode]'
+     '*-v*' '-v[verbose]'
+     '*-w secs*' '-w+[timeout for connects and final net reads]:timeout (secs)'
+     '*-z*' '-z[zero-I/O mode]'
+     '*-x*' '-x'
+     '*-b*' '-b[allow broadcasts]'
+  )
+  _cache_nc_args=( $optionmap[(K)"$help"] )
+fi
+
+_arguments -s \
+  "$_cache_nc_args[@]" \
+  ':host:_hosts' \
+  ':port:_ports'

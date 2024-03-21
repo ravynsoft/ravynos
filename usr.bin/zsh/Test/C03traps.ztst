@@ -1,0 +1,913 @@
+# Tests for both trap builtin and TRAP* functions.
+
+%prep
+
+  setopt localtraps
+  mkdir traps.tmp && cd traps.tmp
+
+%test
+
+  fn1() {
+    trap 'print EXIT1' EXIT
+    fn2() { trap 'print EXIT2' EXIT; }
+    fn2
+  }
+  fn1
+0:Nested `trap ... EXIT'
+>EXIT2
+>EXIT1
+
+  fn1() {
+    TRAPEXIT() { print EXIT1; }
+    fn2() { TRAPEXIT() { print EXIT2; }; }
+    fn2
+  }
+  fn1
+0: Nested TRAPEXIT
+>EXIT2
+>EXIT1
+
+  fn1() {
+    trap 'print EXIT1' EXIT
+    fn2() { trap - EXIT; }
+    fn2
+  }
+  fn1
+0:Nested `trap - EXIT' on `trap ... EXIT'
+>EXIT1
+
+  fn1() {
+    TRAPEXIT() { print EXIT1; }
+    fn2() { trap - EXIT; }
+    fn2
+  }
+  fn1
+0:Nested `trap - EXIT' on `TRAPEXIT'
+>EXIT1
+
+# We can't test an EXIT trap for the shell as a whole, because
+# we're inside a function scope which we don't leave when the
+# subshell exits.  Not sure if that's the correct behaviour, but
+# it's sort of consistent.
+  ( fn1() { trap 'print Function 1 going' EXIT; exit; print Not reached; }
+    fn2() { trap 'print Function 2 going' EXIT; fn1; print Not reached; }
+    fn2
+  )
+0:EXIT traps on functions when exiting from function
+>Function 1 going
+>Function 2 going
+
+# $ZTST_exe is relative to the parent directory.
+# We ought to fix this in ztst.zsh...
+  (cd ..
+  $ZTST_exe -fc 'TRAPEXIT() { print Exited.; }')
+0:EXIT traps on a script
+>Exited.
+
+  trap -
+  trap
+  trap int INT
+  trap sigterm SIGTERM
+  trap quit 3
+  trap
+0: Outputting traps correctly
+>trap -- int INT
+>trap -- quit QUIT
+>trap -- sigterm TERM
+
+  fn1() {
+    trap -
+    trap
+    trap 'print INT1' INT
+    fn2() { trap 'print INT2' INT; trap; }
+    trap
+    fn2
+    trap
+  }
+  fn1
+0: Nested `trap ... INT', not triggered
+>trap -- 'print INT1' INT
+>trap -- 'print INT2' INT
+>trap -- 'print INT1' INT
+
+   fn1() {
+    trap -
+    trap
+    TRAPINT() { print INT1; }
+    fn2() { TRAPINT() { print INT2; }; trap; }
+    trap
+    fn2
+    trap
+  }
+  fn1
+0: Nested TRAPINT, not triggered
+>TRAPINT () {
+>	print INT1
+>}
+>TRAPINT () {
+>	print INT2
+>}
+>TRAPINT () {
+>	print INT1
+>}
+
+  fn1() {
+    trap -
+    trap 'print INT1' INT
+    fn2() { trap - INT; trap; }
+    trap
+    fn2
+    trap
+  }
+  fn1
+0: Nested `trap - INT' on untriggered `trap ... INT'
+>trap -- 'print INT1' INT
+>trap -- 'print INT1' INT
+
+# Testing the triggering of traps here is very unpleasant.
+# The delays are attempts to avoid race conditions, though there is
+# no guarantee that they will work.  Note the subtlety that the
+# `sleep' in the function which receives the trap does *not* get the
+# signal, only the parent shell, which is waiting for a SIGCHILD.
+# (At least, that's what I think is happening.) Thus we have to wait at
+# least the full two seconds to make sure we have got the output from the
+# execution of the trap.
+
+  print -u $ZTST_fd 'This test takes at least three seconds...'
+  fn1() {
+    trap 'print TERM1' TERM
+    fn2() { trap 'print TERM2; return 1' TERM; sleep 2; }
+    fn2 &
+    sleep 1
+    kill -TERM $!
+    sleep 2
+  }
+  fn1
+0: Nested `trap ... TERM', triggered on inner loop
+>TERM2
+
+  print -u $ZTST_fd 'This test, too, takes at least three seconds...'
+  fn1() {
+    trap 'print TERM1; return 1' TERM
+    fn2() { trap 'print TERM2; return 1' TERM; }
+    fn2
+    sleep 2
+  }
+  fn1 &
+  sleep 1
+  kill -TERM $!
+  sleep 2
+0: Nested `trap ... TERM', triggered on outer loop
+>TERM1
+
+  TRAPZERR() { print error activated; }
+  fn() { print start of fn; false; print end of fn; }
+  fn
+  fn() {
+    setopt localoptions localtraps
+    unfunction TRAPZERR
+    print start of fn
+    false
+    print end of fn
+  }
+  fn
+  unfunction TRAPZERR
+  print finish
+0: basic localtraps handling
+>start of fn
+>error activated
+>end of fn
+>start of fn
+>end of fn
+>finish
+
+  TRAPZERR() { print 'ERR-or!'; }
+  f() { print f; false; }
+  t() { print t; }
+  f
+  f && t
+  t && f && true
+  t && f
+  testunset() {
+    setopt localtraps
+    unset -f TRAPZERR
+    print testunset
+    false
+    true
+  }
+  testunset
+  f
+  print status $?
+  unfunction TRAPZERR
+0: more sophisticated error trapping
+>f
+>ERR-or!
+>f
+>t
+>f
+>t
+>f
+>ERR-or!
+>testunset
+>f
+>ERR-or!
+>status 1
+
+  f() {
+    setopt localtraps
+    TRAPWINCH() { print "Window changed.  That wrecked the test."; }
+  }
+  f
+  f
+  functions TRAPWINCH
+1:Unsetting ordinary traps with localtraps.
+
+#
+# Returns from within traps are a perennial problem.
+# The following two apply to returns in and around standard
+# ksh-style traps.  The intention is that a return value from
+# within the function is preserved (i.e. statuses set by the trap
+# are ignored) unless the trap explicitly executes `return', which makes
+# it return from the enclosing function.
+#
+  fn() { trap 'true' EXIT; return 1; }
+  fn
+1: ksh-style EXIT traps preserve return value
+
+  inner() { trap 'return 3' EXIT; return 2; }
+  outer() { inner; return 1; }
+  outer
+3: ksh-style EXIT traps can force return status of enclosing function
+
+# Autoloaded traps are horrid, but unfortunately people expect
+# them to work if we support them.
+  echo "print Running exit trap" >TRAPEXIT
+  ${${ZTST_exe##[^/]*}:-$ZTST_testdir/$ZTST_exe} -fc '
+    fpath=(. $fpath)
+    autoload TRAPEXIT
+    print "Exiting, attempt 1"
+    exit
+    print "What?"
+  '
+  ${${ZTST_exe##[^/]*}:-$ZTST_testdir/$ZTST_exe} -fc '
+    fpath=(. $fpath)
+    autoload TRAPEXIT;
+    fn() { print Some function }
+    fn
+    print "Exiting, attempt 2"
+    exit
+  '
+0: autoloaded TRAPEXIT (exit status > 128 indicates an old bug is back)
+>Exiting, attempt 1
+>Running exit trap
+>Some function
+>Exiting, attempt 2
+>Running exit trap
+
+  print -u $ZTST_fd Another test that takes three seconds
+  gotsig=0
+  signal_handler() {
+   echo "parent received signal"
+   gotsig=1
+  }
+  child() {
+   sleep 1
+   echo "child sending signal"
+   kill -15 $parentpid
+   sleep 2
+   echo "child exiting" 
+   exit 33
+  } 
+  parentpid=$$
+  child &
+  childpid=$!
+  trap signal_handler 15
+  echo "parent waiting"
+  wait $childpid
+  cstatus=$?
+  echo "wait #1 finished, gotsig=$gotsig, status=$cstatus"
+  gotsig=0
+  wait $childpid
+  cstatus=$?
+  echo "wait #2 finished, gotsig=$gotsig, status=$cstatus"
+0:waiting for trapped signal
+>parent waiting
+>child sending signal
+>parent received signal
+>wait #1 finished, gotsig=1, status=143
+>child exiting
+>wait #2 finished, gotsig=0, status=33
+
+  fn1() {
+    setopt errexit
+    trap 'echo error1' ZERR
+    false
+    print Shouldn\'t get here 1a
+  }
+  fn2() {
+    setopt errexit
+    trap 'echo error2' ZERR
+    return 1
+    print Shouldn\'t get here 2a
+  }
+  fn3() {
+    setopt errexit
+    TRAPZERR() { echo error3; }
+    false
+    print Shouldn\'t get here 3a
+  }
+  fn4() {
+    setopt errexit
+    TRAPZERR() { echo error4; }
+    return 1
+    print Shouldn\'t get here 4a
+  }
+  (fn1; print Shouldn\'t get here 1b)
+  (fn2; print Shouldn\'t get here 2b)
+  (fn3; print Shouldn\'t get here 3b)
+  (fn4; print Shouldn\'t get here 4b)
+1: Combination of ERR_EXIT and ZERR trap
+>error1
+>error2
+>error3
+>error4
+
+   fn1() { TRAPZERR() { print trap; return 42; }; false; print Broken; }
+   (fn1)
+   print Working $?
+0: Force return of containing function from TRAPZERR.
+>trap
+>Working 42
+
+   fn2() { trap 'print trap; return 42' ZERR; false; print Broken }
+   (fn2)
+   print Working $?
+0: Return with non-zero status triggered from within trap '...' ZERR.
+>trap
+>Working 42
+
+   fn3() { TRAPZERR() { print trap; return 0; }; false; print OK this time; }
+   (fn3)
+   print Working $?
+0: Normal return from TRAPZERR.
+>trap
+>OK this time
+>Working 0
+
+   fn4() { trap 'print trap; return 0' ZERR; false; print Broken; }
+   (fn4)
+   print Working $?
+0: Return with zero status triggered from within trap '...' ZERR.
+>trap
+>Working 0
+
+   { trap 'echo This subshell is exiting' EXIT; } | cat
+0: EXIT trap set in current shell at left of pipeline
+>This subshell is exiting
+
+   ( trap 'echo This subshell is also exiting' EXIT; ) | cat
+0: EXIT trap set in subshell at left of pipeline
+>This subshell is also exiting
+
+   ( trap 'echo Should only appear once at the end' EXIT
+     ( : trap reset here ) | cat
+     : trap not reset but not part of shell command list | cat
+     echo nothing after this should appear $( : trap reset here too)
+   )
+0: EXIT trap set in subshell reset in subsubshell
+>nothing after this should appear
+>Should only appear once at the end
+
+   echo $( trap 'echo command substitution exited' EXIT )
+0: EXIT trap set in command substitution
+>command substitution exited
+
+   (cd ..; $ZTST_exe -fc 'setopt posixtraps;
+   TRAPEXIT() { print Exited; }
+   fn1() { trap; }
+   setopt localtraps # should be ignored by EXIT
+   fn2() { TRAPEXIT() { print No, really exited; } }
+   fn1
+   fn2
+   fn1')
+0:POSIX_TRAPS option
+>TRAPEXIT () {
+>	print Exited
+>}
+>TRAPEXIT () {
+>	print No, really exited
+>}
+>No, really exited
+
+   (cd ..; $ZTST_exe -fc 'unsetopt posixtraps;
+   echo start program
+   emulate sh -c '\''testfn() {
+     echo start function
+     set -o | grep posixtraps
+     trap "echo EXIT TRAP TRIGGERED" EXIT
+     echo end function
+   }'\''
+   testfn
+   echo program continuing
+   echo end of program')
+0:POSIX_TRAPS effect on EXIT trap is sticky
+>start program
+>start function
+>noposixtraps          off
+>end function
+>program continuing
+>end of program
+>EXIT TRAP TRIGGERED
+
+   (cd ..; $ZTST_exe -fc '
+     echo entering program
+     emulate sh -c '\''trap "echo POSIX exit trap triggered" EXIT'\''
+     fn() {
+        trap "echo native zsh function-local exit trap triggered" EXIT
+        echo entering native zsh function
+     }
+     fn
+     echo exiting program
+   ')
+0:POSIX EXIT trap can have nested native mode EXIT trap
+>entering program
+>entering native zsh function
+>native zsh function-local exit trap triggered
+>exiting program
+>POSIX exit trap triggered
+
+   (cd ..; $ZTST_exe -fc '
+     echo entering program
+     emulate sh -c '\''spt() { trap "echo POSIX exit trap triggered" EXIT; }'\''
+     fn() {
+	trap "echo native zsh function-local exit trap triggered" EXIT
+	echo entering native zsh function
+     }
+     spt
+     fn
+     echo exiting program
+   ')
+0:POSIX EXIT trap not replaced if defined within function
+>entering program
+>entering native zsh function
+>native zsh function-local exit trap triggered
+>exiting program
+>POSIX exit trap triggered
+
+    (set -e
+    printf "a\nb\n" | while read line
+    do
+       [[ $line = a* ]] || continue
+       ((ctr++))
+       [[ $line = foo ]]
+    done
+    echo "ctr = $ctr"
+   )
+1:ERREXIT in loop with simple commands
+
+  (set -e
+  f()
+  {
+    false && false
+  }
+  if false; then
+    :
+  else
+    # ERR_EXIT should trigger on return from function, not in function.
+    f
+    echo Fail 1
+    echo Fail 2
+    f
+    echo Fail 3
+  fi)
+1:ERREXIT with false from inside && within function
+
+  (set -e
+  f()
+  {
+  }
+  if false; then
+    :
+  else
+    f
+    echo Succeed 1
+    echo Succeed 2
+    f
+    echo Succeed 3
+  fi)
+0:ERREXIT not triggered on empty function after false in if.
+>Succeed 1
+>Succeed 2
+>Succeed 3
+
+  (set -e
+   if false; then
+   else
+       a=$(false)
+       print This should not appear
+   fi
+  )
+1:ERREXIT is triggered in an else block after a cmd subst returning false
+
+  fn() {
+    emulate -L zsh
+    setopt errreturn
+    if false; then
+      false
+      print No.
+    else
+      print Oh, yes
+    fi
+  }
+  fn
+0:ERR_RETURN not triggered in if condition
+>Oh, yes
+
+  fn() {
+    emulate -L zsh
+    setopt errreturn
+    if true; then
+      false
+      print No.
+    else
+      print No, no.
+    fi
+  }
+  fn
+1:ERR_RETURN in "if"
+
+  fn() {
+    emulate -L zsh
+    setopt errreturn
+    if false; then
+      print No.
+    else
+      false
+      print No, no.
+    fi
+  }
+  fn
+1:ERR_RETURN in "else" branch (regression test)
+
+  $ZTST_testdir/../Src/zsh -f =(<<<"
+  if false; then
+    :
+  else
+    if [[ -n '' ]]; then
+        a=2  
+    fi
+    print Yes
+  fi
+  ")
+0:ERR_RETURN when false "if" is the first statement in an "else" (regression)
+>Yes
+F:Must be tested with a top-level script rather than source or function
+
+  fn() {
+      emulate -L zsh
+      setopt errreturn
+      print before
+      false
+      print after
+  }
+  fn
+1:ERR_RETURN, basic case
+>before
+
+  fn() {
+      emulate -L zsh
+      setopt errreturn
+      print before
+      ! true
+      ! false
+      print after
+  }
+  fn
+0:ERR_RETURN with "!"
+>before
+>after
+
+  fn() {
+      emulate -L zsh
+      setopt errreturn
+      print before
+      ! true
+      ! false
+      false
+      print after
+  }
+  fn
+1:ERR_RETURN with "!" and a following false
+>before
+
+  fn() {
+      emulate -L zsh
+      setopt errreturn
+      print before
+      ! if true; then
+        false
+      fi
+      print after
+  }
+  fn
+0:ERR_RETURN with "!" suppressed inside complex structure
+>before
+>after
+
+  fn() {
+      emulate -L zsh
+      setopt errreturn
+      print before
+      if true; then
+        false
+      fi
+      print after
+  }
+  fn
+1:ERR_RETURN with no "!" suppression (control case)
+>before
+
+  (setopt err_return
+    fn() {
+      print before-in
+      false && false
+    }
+    print before-out
+    fn
+    print after-out
+  )
+1:ERR_RETURN with "&&" in function (regression test)
+>before-out
+>before-in
+
+  (setopt err_return
+    fn() {
+      print before-in
+      false && false
+      print after-in
+    }
+    print before-out
+    fn
+    print after-out
+  )
+0:ERR_RETURN not triggered on LHS of "&&" in function
+>before-out
+>before-in
+>after-in
+>after-out
+
+  (setopt err_return
+    fn() {
+      print before-in
+      true && false
+      print after-in
+    }
+    print before-out
+    fn
+    print after-out
+  )
+1:ERR_RETURN triggered on RHS of "&&" in function
+>before-out
+>before-in
+
+  mkdir -p zdotdir
+  print >zdotdir/.zshenv '
+  setopt norcs errreturn
+  fn() {
+    if false; then
+      print Bad
+    else
+      print Good
+    fi
+    print Better
+  }
+  fn
+  print In .zshenv'
+  ZDOTDIR=$PWD/zdotdir $ZTST_testdir/../Src/zsh -c 'true'
+0:ERR_RETURN within initialisation code with special flags
+>Good
+>Better
+>In .zshenv
+
+  unsetopt errreturn
+  fn2() {
+    if true; then
+      false
+    fi
+  }
+  fn1() {
+    setopt localoptions errreturn
+    fn2
+    print $?
+  }
+  fn1
+  print fn1 done
+0:ERR_RETURN caused by function returning false from within shell construct
+>fn1 done
+
+  fn2() {
+    if false; then
+      print Bad
+    else
+      print Good
+    fi
+  }
+  fn() {
+    setopt err_return
+    fn2 || true
+  }
+  fn
+0:ERR_RETURN in "else" branch in nested function
+>Good
+
+  (setopt err_exit
+  for x in y; do
+    false && true
+  done
+  print OK
+  )
+0:ERR_EXIT not triggered by status 1 at end of for
+>OK
+
+  (setopt err_exit
+  integer x=0
+  while (( ! x++ )); do
+    false && true
+  done
+  print OK
+  )
+0:ERR_EXIT not triggered by status 1 at end of while
+>OK
+
+  (setopt err_exit
+  repeat 1; do
+    false && true
+  done
+  print OK
+  )
+0:ERR_EXIT not triggered by status 1 at end of repeat
+>OK
+
+  (setopt err_exit
+  if true; then
+    false && true
+  fi
+  print OK
+  )
+0:ERR_EXIT not triggered by status 1 at end of if
+>OK
+
+  (setopt err_exit
+  {
+    false && true
+  }
+  print OK
+  )
+0:ERR_EXIT not triggered by status 1 at end of { }
+>OK
+
+  unsetopt err_exit err_return
+  (setopt err_exit
+  for x in y; do
+    false
+  done
+  print OK
+  )
+1:ERR_EXIT triggered by status 1 within for
+
+  (setopt err_exit
+  integer x=0
+  while (( ! x++ )); do
+    false
+  done
+  print OK
+  )
+1:ERR_EXIT triggered by status 1 within while
+
+  (setopt err_exit
+  repeat 1; do
+    false
+  done
+  print OK
+  )
+1:ERR_EXIT triggered by status 1 within repeat
+
+  (setopt err_exit
+  if true; then
+    false
+  fi
+  print OK
+  )
+1:ERR_EXIT triggered by status 1 within if
+
+  (setopt err_exit
+  {
+    false
+  }
+  print OK
+  )
+1:ERR_EXIT triggered by status 1 within { }
+
+  (setopt err_exit
+  () {
+     false && true
+     print Still functioning
+     false && true
+  }
+  print OK
+  )
+1:ERR_EXIT triggered by status 1 at end of anon func
+>Still functioning
+
+  if zmodload zsh/system 2>/dev/null; then
+  (
+    trap 'echo TERM; exit 2' TERM
+    trap 'echo EXIT' EXIT
+    kill -s TERM "$sysparams[pid]"
+    echo 'FATAL: we should never get here!' 1>&2
+    exit 1
+  )
+  else
+    ZTST_skip="zsh/system library not found."
+  fi
+2:EXIT trap from TERM trap
+>TERM
+>EXIT
+
+  # Should not get "hello" in the single quotes.
+  (
+    trap "echo hello" EXIT;
+    { :; } | { read line; print "'$line'"; }
+  )
+0:EXIT trap not called in LHS of pipeline: Shell construct on LHS
+>''
+>hello
+
+  (
+    trap "echo hello" EXIT;
+    cat </dev/null | { read line; print "'$line'"; }
+  )
+0:EXIT trap not called in LHS of pipeline: External command on LHS
+>''
+>hello
+
+  $ZTST_testdir/../Src/zsh -f =(<<<"
+    trap handler EXIT
+    handler() {
+      echoa
+      echo b
+    }
+    echoa() {
+      echo a
+    }
+    exit0() {
+      exit
+    }
+    main() {
+      exit0
+    }
+    main
+  ")
+0:No early exit from nested function in EXIT trap.
+>a
+>b
+
+  $ZTST_testdir/../Src/zsh -fc 'fn() { exit 13; }; trap fn EXIT; exit'
+13:Explicit exit in exit trap overrides status
+
+  $ZTST_testdir/../Src/zsh -fc 'fn() { exit $?+8; }; trap fn EXIT; exit 7'
+15:Progated exit status through exit trap
+
+  $ZTST_testdir/../Src/zsh -fc 'fn() { exit 13; }; trap fn EXIT'
+13:Explicit exit in exit trap overrides implicit exit status
+
+  $ZTST_testdir/../Src/zsh -fc 'fn() { exit 0; }; trap fn EXIT; false'
+0:Explicit exit status 0 in exit trap overrides implicit non-zero status
+
+  $ZTST_testdir/../Src/zsh -f <<<'fn() { exit 13; }; trap fn EXIT; false'
+13:Exit status from exit trap, script-like path
+
+  $ZTST_testdir/../Src/zsh -f <<<'fn() { exit 0; }; trap fn EXIT; false'
+0:Explicit exit status overrides implicit: script-like code path
+
+ $ZTST_testdir/../Src/zsh -f <<<$'
+ trap \'echo $1; exit; echo $2\' USR1
+ fn() {
+         echo fn1
+         kill -s USR1 $$
+         echo fn2
+ }
+ echo out1
+ fn trap1 trap2
+ echo out2
+ '
+0:'exit' in trap causes calling function to return
+>out1
+>fn1
+>trap1
+# As of 5.7.1-test-2, the output was "out1 fn1 trap1 fn2" (on separate lines).
+
+%clean
+
+  rm -f TRAPEXIT
+

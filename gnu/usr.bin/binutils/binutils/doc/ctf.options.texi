@@ -1,0 +1,24 @@
+@c This file contains the entry for the --ctf, --ctf-parent, --ctf-symbols, -and
+@c --ctf-strings options that are common to both readelf and objdump.
+
+@item --ctf[=@var{section}]
+@cindex CTF
+@cindex Compact Type Format
+
+Display the contents of the specified CTF section.  CTF sections themselves
+contain many subsections, all of which are displayed in order.
+
+By default, display the name of the section named @var{.ctf}, which is the
+name emitted by @command{ld}.
+
+@item --ctf-parent=@var{member}
+
+If the CTF section contains ambiguously-defined types, it will consist
+of an archive of many CTF dictionaries, all inheriting from one
+dictionary containing unambiguous types.  This member is by default
+named @var{.ctf}, like the section containing it, but it is possible to
+change this name using the @code{ctf_link_set_memb_name_changer}
+function at link time.  When looking at CTF archives that have been
+created by a linker that uses the name changer to rename the parent
+archive member, @option{--ctf-parent} can be used to specify the name
+used for the parent.

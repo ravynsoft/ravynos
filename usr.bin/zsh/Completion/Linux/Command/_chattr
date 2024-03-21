@@ -1,0 +1,42 @@
+#compdef chattr
+
+local ret=1
+local -a context line state state_descr
+local -A opt_args val_args
+
+_arguments -s -S : \
+  '-f[suppress most error messages]' \
+  "-p+[set file's project number]:project number" \
+  '-R[act recursively]' \
+  '-V[output verbosely]' \
+  "-v+[set file's version/generation number]:version/generation number" \
+  '1: :->attrs' \
+  '*: :_files' \
+&& ret=0
+
+[[ $state == attrs ]] &&
+if compset -P '*[=+-]'; then
+  # These modes can't be changed with chattr: [EhINXZ]
+  _values -S '' attribute \
+    'A[no atime updates]' \
+    'a[append only]' \
+    'C[no copy on write]' \
+    'c[compressed]' \
+    'D[no synchronous directory updates]' \
+    'd[no dump]' \
+    'e[extent format]' \
+    'i[immutable]' \
+    'j[data journalling]' \
+    'P[project hierarchy]' \
+    'S[synchronous updates]' \
+    's[secure deletion]' \
+    'T[top of directory hierarchy]' \
+    't[no tail-merging]' \
+    'u[undeletable]' \
+  && ret=0
+else
+  compset -P '*'
+  _values -S '' operator = + - && ret=0
+fi
+
+return ret

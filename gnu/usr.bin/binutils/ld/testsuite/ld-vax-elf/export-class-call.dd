@@ -1,0 +1,26 @@
+
+.*: +file format .*vax.*
+
+Disassembly of section \.text:
+
+12340000 <foo>:
+12340000:	00 00       	\.word 0x0000 # Entry mask: < >
+12340002:	fb 00 ef 0f 	calls \$0x0,12340018 <protected_foo>
+12340006:	00 00 00 
+12340009:	fb 00 ef 0b 	calls \$0x0,1234001b <hidden_foo>
+1234000d:	00 00 00 
+12340010:	fb 00 ef 07 	calls \$0x0,1234001e <internal_foo>
+12340014:	00 00 00 
+12340017:	04          	ret
+
+12340018 <protected_foo>:
+12340018:	00 00       	\.word 0x0000 # Entry mask: < >
+1234001a:	04          	ret
+
+1234001b <hidden_foo>:
+1234001b:	00 00       	\.word 0x0000 # Entry mask: < >
+1234001d:	04          	ret
+
+1234001e <internal_foo>:
+1234001e:	00 00       	\.word 0x0000 # Entry mask: < >
+12340020:	04          	ret

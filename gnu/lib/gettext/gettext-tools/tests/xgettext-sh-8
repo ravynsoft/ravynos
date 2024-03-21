@@ -1,0 +1,23 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Shell support: maximum needed for phase1_pushback.
+
+cat <<\EOF > xg-sh-8.sh
+echo `gettext $'\'\x'`
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-sh-8.tmp xg-sh-8.sh || Exit 1
+LC_ALL=C tr -d '\r' < xg-sh-8.tmp.po > xg-sh-8.po || Exit 1
+
+cat <<\EOF > xg-sh-8.ok
+msgid "'\\x"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sh-8.ok xg-sh-8.po
+result=$?
+
+exit $result

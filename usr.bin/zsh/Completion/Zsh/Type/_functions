@@ -1,0 +1,9 @@
+#compdef unfunction
+
+local expl ffilt
+
+zstyle -t ":completion:${curcontext}:functions" prefix-needed && \
+ [[ $PREFIX != [_.]* ]] && \
+ ffilt='[(I)[^_.]*]'
+
+_wanted functions expl 'shell function' compadd -k "$@" - "functions$ffilt"

@@ -1,0 +1,287 @@
+@c Copyright (C) 2018-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node S12Z-Dependent
+@chapter   S12Z Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter   S12Z Dependent Features
+@end ifclear
+
+The Freescale S12Z version of @code{@value{AS}} has a few machine
+dependent features.
+
+@cindex S12Z support
+@menu
+* S12Z Options::                S12Z Options
+* S12Z Syntax::                 Syntax
+@end menu
+
+@node S12Z Options
+@section S12Z Options
+
+@cindex options, S12Z
+@cindex S12Z options
+
+The S12Z version of @code{@value{AS}} recognizes the following options:
+
+@table @samp
+
+@item -mreg-prefix=@var{prefix}
+@cindex @samp{-mreg-prefix=@var{prefix}} option, reg-prefix
+You can use the @samp{-mreg-prefix=@var{pfx}} option to indicate
+that the assembler should expect all register names to be prefixed with the
+string @var{pfx}.
+
+For an explanation of what this means and why it might be needed,
+see @ref{S12Z Register Notation}.
+
+
+@item -mdollar-hex
+@cindex @samp{-mdollar-hex} option, dollar-hex
+@cindex hexadecimal prefix, S12Z
+The @samp{-mdollar-hex} option affects the way that literal hexadecimal constants
+are represented.  When this option is specified, the assembler will consider
+the @samp{$} character as the start of a hexadecimal integer constant.  Without
+this option, the standard value of @samp{0x} is expected.
+
+If you use this option, then you cannot have symbol names starting with @samp{$}.
+@samp{-mdollar-hex} is implied if the @samp{--traditional-format}
+(@pxref{traditional-format}) is used.
+@end table
+
+@node S12Z Syntax
+@section Syntax
+
+
+@menu
+* S12Z Syntax Overview::                  General description
+* S12Z Addressing Modes::                 Operands and their semantics
+* S12Z Register Notation::                How to refer to registers
+@end menu
+
+
+@cindex S12Z syntax
+@cindex syntax, S12Z
+
+@node S12Z Syntax Overview
+@subsection Overview
+
+In the S12Z syntax, the instruction name comes first and it may
+be followed by one, or by several operands.
+In most cases the maximum number of operands is three.
+Operands are separated by a comma (@samp{,}).
+A comma however does not act as a separator if it appears within parentheses
+(@samp{()}) or within square brackets (@samp{[]}).
+@code{@value{AS}} will complain if too many, too few or inappropriate operands
+are specified for a given instruction.
+
+Some instructions accept and (in certain situations require) a suffix
+indicating the size of the operand.
+The suffix is separated from the instruction name by a period (@samp{.})
+and may be one of @samp{b}, @samp{w}, @samp{p} or @samp{l} indicating
+`byte' (a single byte), `word' (2 bytes), `pointer' (3 bytes) or `long' (4 bytes)
+respectively.
+
+Example:
+
+@smallexample
+	bset.b  0xA98, #5
+	mov.b   #6, 0x2409
+	ld      d0, #4
+	mov.l   (d0, x), 0x2409
+	inc     d0
+	cmp     d0, #12
+	blt     *-4
+	lea     x, 0x2409
+	st      y,  (1, x)
+@end smallexample
+
+@cindex line comment character, S12Z
+The presence of a @samp{;} character anywhere
+on a line indicates the start of a comment that extends to the end of
+that line.
+
+A @samp{*} or a @samp{#} character at the start of a line also
+introduces a line comment, but these characters do not work elsewhere
+on the line.  If the first character of the line is a @samp{#} then as
+well as starting a comment, the line could also be logical line number
+directive (@pxref{Comments}) or a preprocessor control command
+(@pxref{Preprocessing}).
+
+@cindex line separator, S12Z
+@cindex statement separator, S12Z
+@cindex S12Z line separator
+The S12Z assembler does not currently support a line separator
+character.
+
+
+@node S12Z Addressing Modes
+@subsection Addressing Modes
+@cindex S12Z addressing modes
+@cindex addressing modes, S12Z
+
+The following addressing modes are understood for the S12Z.
+@table @dfn
+@item Immediate
+@samp{#@var{number}}
+
+@item Immediate Bit Field
+@samp{#@var{width}:@var{offset}}
+
+Bit field instructions in the immediate mode require the width and offset to
+be specified.
+The @var{width} parameter specifies the number of bits in the field.
+It should be a number in the range [1,32].
+@var{Offset} determines the position within the field where the operation
+should start.
+It should be a number in the range [0,31].
+
+@item Relative
+@samp{*@var{symbol}}, or @samp{*[+-]@var{digits}}
+
+Program counter relative addresses have a width of 15 bits.
+Thus, they must be within the range [-32768, 32767].
+
+@item Register
+@samp{@var{reg}}
+
+@cindex register names, S12Z
+Some instructions accept a register as an operand.
+In general, @var{reg} may be a
+data register (@samp{D0}, @samp{D1} @dots{} @samp{D7}),
+the @samp{X} register or the @samp{Y} register.
+
+A few instructions accept as an argument the stack pointer
+register (@samp{S}), and/or the program counter (@samp{P}).
+
+Some very special instructions accept arguments which refer to the
+condition code register.  For these arguments the  syntax is
+@samp{CCR}, @samp{CCH} or @samp{CCL} which refer to the complete
+condition code register, the condition code register high byte
+and the condition code register low byte respectively.
+
+
+@item Absolute Direct
+@samp{@var{symbol}}, or @samp{@var{digits}}
+
+@item Absolute Indirect
+@samp{[@var{symbol}}, or @samp{@var{digits}]}
+
+
+@item Constant Offset Indexed
+@samp{(@var{number},@var{reg})}
+
+@var{Reg} may be either @samp{X}, @samp{Y}, @samp{S} or
+@samp{P} or one of the data registers @samp{D0}, @samp{D1} @dots{}
+@samp{D7}.
+If any of the registers @samp{D2} @dots{} @samp{D5} are specified, then the
+register value is treated as a signed value.
+Otherwise it is treated as unsigned.
+@var{Number} may be any integer in the range [-8388608,8388607].
+
+@item Offset Indexed Indirect
+@samp{[@var{number},@var{reg}]}
+
+@var{Reg} may be either @samp{X}, @samp{Y}, @samp{S} or
+@samp{P}.
+@var{Number} may be any integer in the range [-8388608,8388607].
+
+@item Auto Pre-Increment/Pre-Decrement/Post-Increment/Post-Decrement
+@samp{-@var{reg}},
+@samp{+@var{reg}},
+@samp{@var{reg}-} or
+@samp{@var{reg}+}
+
+This addressing mode is typically used to access a value at an address,
+and simultaneously to increment/decrement the register pointing to that
+address.
+Thus @var{reg} may be any of the 24 bit registers @samp{X}, @samp{Y}, or
+@samp{S}.
+Pre-increment and post-decrement are not available for
+register @samp{S} (only post-increment and pre-decrement are available).
+
+@item Register Offset Direct
+@samp{(@var{data-reg},@var{reg})}
+
+@var{Reg} can be either @samp{X}, @samp{Y}, or @samp{S}.
+@var{Data-reg}
+must be one of the data registers @samp{D0}, @samp{D1} @dots{} @samp{D7}.
+If any of the registers @samp{D2} @dots{} @samp{D5} are specified, then
+the register value is treated as a signed value.
+Otherwise it is treated as unsigned.
+
+@item Register Offset Indirect
+@samp{[@var{data-reg},@var{reg}]}
+
+@var{Reg} can be either @samp{X} or @samp{Y}.
+@var{Data-reg}
+must be one of the data registers @samp{D0}, @samp{D1} @dots{} @samp{D7}.
+If any of the registers @samp{D2} @dots{} @samp{D5} are specified, then
+the register value is treated as a signed value.
+Otherwise it is treated as unsigned.
+@end table
+
+For example:
+
+@smallexample
+	trap    #197        ;; Immediate mode
+	bra     *+49        ;; Relative mode
+	bra     .L0         ;;     ditto
+	jmp     0xFE0034    ;; Absolute direct mode
+	jmp     [0xFD0012]  ;; Absolute indirect mode
+	inc.b   (4,x)       ;; Constant offset indexed mode
+	jsr     (45, d0)    ;;     ditto
+	dec.w   [4,y]       ;; Constant offset indexed indirect mode
+	clr.p   (-s)        ;; Pre-decrement mode
+	neg.l   (d0, s)     ;; Register offset direct mode
+	com.b   [d1, x]     ;; Register offset indirect mode
+	psh     cch         ;; Register mode
+@end smallexample
+
+@node S12Z Register Notation
+@subsection Register Notation
+
+@cindex register notation, S12Z
+Without a register prefix (@pxref{S12Z Options}), S12Z assembler code is expected in the traditional
+format like this:
+@smallexample
+lea s, (-2,s)
+st d2, (0,s)
+ld x,  symbol
+tfr d2, d6
+cmp d6, #1532
+@end smallexample
+
+@noindent
+However, if @code{@value{AS}} is started with (for example) @samp{-mreg-prefix=%}
+then all register names must be prefixed with @samp{%} as follows:
+@smallexample
+lea %s, (-2,%s)
+st %d2, (0,%s)
+ld %x,  symbol
+tfr %d2, %d6
+cmp %d6, #1532
+@end smallexample
+
+The register prefix feature is intended to be used by compilers
+to avoid ambiguity between symbols and register names.
+Consider the following assembler instruction:
+@smallexample
+st d0, d1
+@end smallexample
+@noindent
+The destination operand of this instruction could either refer to the register
+@samp{D1}, or it could refer to the symbol named ``d1''.
+If the latter is intended then @code{@value{AS}} must be invoked with
+@samp{-mreg-prefix=@var{pfx}} and the code written as
+@smallexample
+st @var{pfx}d0, d1
+@end smallexample
+@noindent
+where @var{pfx} is the chosen register prefix.
+For this reason, compiler back-ends should choose a register prefix which
+cannot be confused with a symbol name.

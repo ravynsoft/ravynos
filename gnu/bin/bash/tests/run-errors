@@ -1,0 +1,3 @@
+unset OLDPWD	# make sure shell doesn't inherit OLDPWD
+${THIS_SH} ./errors.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} errors.right && rm -f ${BASH_TSTOUT}

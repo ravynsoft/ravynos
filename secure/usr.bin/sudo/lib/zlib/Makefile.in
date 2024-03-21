@@ -1,0 +1,231 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2011-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+scriptdir = $(top_srcdir)/scripts
+cross_compiling = @CROSS_COMPILING@
+
+# Where to install things...
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+sbindir = @sbindir@
+sysconfdir = @sysconfdir@
+adminconfdir = @adminconfdir@
+libexecdir = @libexecdir@
+datarootdir = @datarootdir@
+localstatedir = @localstatedir@
+
+# File extension, mode and map file to use for shared libraries/objects
+shlib_enable = @SHLIB_ENABLE@
+shlib_mode = @SHLIB_MODE@
+shlib_exp = $(srcdir)/zlib.exp
+shlib_map = zlib.map
+shlib_opt = zlib.opt
+
+# Compiler & tools to use
+CC = @CC@
+LIBTOOL = @LIBTOOL@
+SED = @SED@
+AWK = @AWK@
+
+# Our install program supports extra flags...
+INSTALL = $(SHELL) $(scriptdir)/install-sh -c
+INSTALL_OWNER = -o $(install_uid) -g $(install_gid)
+INSTALL_BACKUP = @INSTALL_BACKUP@
+
+# C preprocessor flags
+CPPFLAGS = -I. -I$(srcdir)
+
+# Usually -O and/or -g
+CFLAGS = @CFLAGS@
+
+# Flags to pass to the link stage
+LDFLAGS =
+LT_LDFLAGS = @ZLIB_LDFLAGS@ @LT_LDFLAGS@ @LT_LDEXPORTS@
+
+# Flags to pass to libtool
+LTFLAGS =
+
+# Address sanitizer flags
+ASAN_CFLAGS = @ASAN_CFLAGS@
+ASAN_LDFLAGS = @ASAN_LDFLAGS@
+
+# PIE flags
+PIE_CFLAGS = @PIE_CFLAGS@
+PIE_LDFLAGS = @PIE_LDFLAGS@
+
+# Stack smashing protection flags
+HARDENING_CFLAGS = @HARDENING_CFLAGS@
+HARDENING_LDFLAGS = @HARDENING_LDFLAGS@
+
+# Libtool style shared library version
+SHLIB_VERSION = 0:0:0
+
+# User and group ids the installed files should be "owned" by
+install_uid = 0
+install_gid = 0
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+LTOBJS = adler32.lo compress.lo crc32.lo deflate.lo gzclose.lo gzlib.lo \
+	 gzread.lo gzwrite.lo infback.lo inffast.lo inflate.lo inftrees.lo \
+	 trees.lo uncompr.lo zutil.lo
+
+all: libsudo_z.la
+
+depend:
+	$(scriptdir)/mkdep.pl --srcdir=$(abs_top_srcdir) \
+	    --builddir=$(abs_top_builddir) lib/zlib/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/zlib/Makefile
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file lib/zlib/Makefile
+
+.SUFFIXES: .c .h .lo
+
+.c.lo:
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $<
+
+$(shlib_map): $(shlib_exp)
+	@$(AWK) 'BEGIN { print "{\n\tglobal:" } { print "\t\t"$$0";" } END { print "\tlocal:\n\t\t*;\n};" }' $(shlib_exp) > $@
+
+$(shlib_opt): $(shlib_exp)
+	@$(SED) 's/^/+e /' $(shlib_exp) > $@
+
+libsudo_z.la: $(LTOBJS) @LT_LDDEP@
+	case "$(LT_LDFLAGS)" in \
+	*-no-install*) \
+	    $(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(LDFLAGS) $(LT_LDFLAGS) $(LTOBJS);; \
+	*) \
+	    $(LIBTOOL) $(LTFLAGS) --mode=link $(CC) -o $@ $(LDFLAGS) $(ASAN_LDFLAGS) $(HARDENING_LDFLAGS) $(LT_LDFLAGS) $(LTOBJS) -version-info $(SHLIB_VERSION) -rpath $(libexecdir)/sudo;; \
+	esac
+
+pre-install:
+
+install:
+	case "$(LT_LDFLAGS)" in \
+	*-no-install*) ;; \
+	*)  if [ X"$(shlib_enable)" = X"yes" ]; then \
+		INSTALL_BACKUP='$(INSTALL_BACKUP)' $(LIBTOOL) $(LTFLAGS) --quiet --mode=install $(INSTALL) $(INSTALL_OWNER) libsudo_z.la $(DESTDIR)$(libexecdir)/sudo; \
+	    fi;; \
+	esac
+
+install-dirs:
+
+install-binaries:
+
+install-includes:
+
+install-doc:
+
+install-plugin:
+
+install-fuzzer:
+
+uninstall:
+	$(LIBTOOL) $(LTFLAGS) --mode=uninstall rm -f $(DESTDIR)$(libexecdir)/sudo/libsudo_z.la
+	-test -z "$(INSTALL_BACKUP)" || \
+	    rm -f $(DESTDIR)$(libexecdir)/sudo/libsudo_z.*~
+
+splint:
+
+cppcheck:
+
+pvs-log-files:
+
+pvs-studio:
+
+fuzz:
+
+check-fuzzer:
+
+check: check-fuzzer
+
+check-verbose: check
+
+clean:
+	-$(LIBTOOL) $(LTFLAGS) --mode=clean rm -f *.lo *.o *.la
+	-rm -f stamp-* core *.core core.*
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile .libs zconf.h
+
+clobber: distclean
+
+realclean: distclean
+	rm -f TAGS tags
+
+cleandir: realclean
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean
+
+# Autogenerated dependencies, do not modify
+adler32.lo: $(srcdir)/adler32.c $(srcdir)/zlib.h $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/adler32.c
+compress.lo: $(srcdir)/compress.c $(srcdir)/zlib.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/compress.c
+crc32.lo: $(srcdir)/crc32.c $(srcdir)/crc32.h $(srcdir)/zlib.h \
+          $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/crc32.c
+deflate.lo: $(srcdir)/deflate.c $(srcdir)/deflate.h $(srcdir)/zlib.h \
+            $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/deflate.c
+gzclose.lo: $(srcdir)/gzclose.c $(srcdir)/gzguts.h $(srcdir)/zlib.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/gzclose.c
+gzlib.lo: $(srcdir)/gzlib.c $(srcdir)/gzguts.h $(srcdir)/zlib.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/gzlib.c
+gzread.lo: $(srcdir)/gzread.c $(srcdir)/gzguts.h $(srcdir)/zlib.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/gzread.c
+gzwrite.lo: $(srcdir)/gzwrite.c $(srcdir)/gzguts.h $(srcdir)/zlib.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/gzwrite.c
+infback.lo: $(srcdir)/infback.c $(srcdir)/inffast.h $(srcdir)/inffixed.h \
+            $(srcdir)/inflate.h $(srcdir)/inftrees.h $(srcdir)/zlib.h \
+            $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/infback.c
+inffast.lo: $(srcdir)/inffast.c $(srcdir)/inffast.h $(srcdir)/inflate.h \
+            $(srcdir)/inftrees.h $(srcdir)/zlib.h $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/inffast.c
+inflate.lo: $(srcdir)/inflate.c $(srcdir)/inffast.h $(srcdir)/inffixed.h \
+            $(srcdir)/inflate.h $(srcdir)/inftrees.h $(srcdir)/zlib.h \
+            $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/inflate.c
+inftrees.lo: $(srcdir)/inftrees.c $(srcdir)/inftrees.h $(srcdir)/zlib.h \
+             $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/inftrees.c
+trees.lo: $(srcdir)/trees.c $(srcdir)/deflate.h $(srcdir)/trees.h \
+          $(srcdir)/zlib.h $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/trees.c
+uncompr.lo: $(srcdir)/uncompr.c $(srcdir)/zlib.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/uncompr.c
+zutil.lo: $(srcdir)/zutil.c $(srcdir)/gzguts.h $(srcdir)/zlib.h \
+          $(srcdir)/zutil.h ./zconf.h
+	$(LIBTOOL) $(LTFLAGS) --mode=compile $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $(ASAN_CFLAGS) $(PIE_CFLAGS) $(HARDENING_CFLAGS) $(srcdir)/zutil.c

@@ -1,0 +1,53 @@
+digraph arch_x {
+    edge[
+        fontname="DejaVu Sans",
+        dir="both",
+        arrowtail="dot",
+        arrowsize=.5,
+        fontname="DejaVu Sans",
+        fontsize="18",
+    ]
+
+    node[
+        shape="none",
+        color=none,
+        margin=0,
+        fontname="DejaVu Sans",
+        fontsize="18",
+    ]
+
+    {
+        rank=same;
+        c1 [label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD>X Client</TD></TR></TABLE>>, URL="#c1"]
+        c3 [label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD>X Client</TD></TR></TABLE>>, URL="#c3"]
+    }
+    c2 [label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD>X Client</TD></TR></TABLE>>, URL="#c2"]
+
+    {
+        rank=same;
+        xserver [tooltip="X Server", label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD><BR/>X Server<BR/><BR/></TD></TR></TABLE>>, URL="#xserver"]
+        comp [tooltip="Compositor", label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD><BR/>Compositor<BR/><BR/></TD></TR></TABLE>>, URL="#comp"]
+    }
+
+    impl [tooltip="KMS evdev Kernel", label=<<TABLE STYLE="rounded" BGCOLOR="#ffbc00"><TR><TD>KMS</TD><TD>evdev</TD></TR><TR><TD COLSPAN="2">Kernel</TD></TR></TABLE>>, URL="#impl"]
+
+    c1 -> xserver [taillabel="③", labeldistance=2, URL="#step_3"];
+    c2 -> xserver;
+    c3 -> xserver;
+
+    xserver -> c1 [taillabel="②", labeldistance=2, URL="#step_2"];
+    xserver -> c2;
+    xserver -> c3;
+
+    xserver -> impl [taillabel="⑥", labeldistance=1.75, URL="#step_6"];
+    xserver -> impl [style=invis, label="    "];
+    impl -> xserver [taillabel="①", labeldistance=1.75, URL="#step_1"];
+
+    xserver -> comp [style=invis];
+    xserver -> comp [taillabel="④", labeldistance=1.75, labelangle=-45, URL="#step_4"];
+    comp -> xserver [taillabel="⑤", URL="#step_5"];
+    comp -> xserver [style=invis]
+
+    c1 -> c2 [style=invis];
+    c3 -> c2 [style=invis];
+ }

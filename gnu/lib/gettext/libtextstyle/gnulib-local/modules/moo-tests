@@ -1,0 +1,33 @@
+Files:
+tests/test-moo-root.oo.h
+tests/test-moo-root.oo.c
+tests/test-moo-sub1.oo.h
+tests/test-moo-sub1.oo.c
+tests/test-moo-sub2.oo.h
+tests/test-moo-sub2.oo.c
+tests/test-moo-aroot.oo.h
+tests/test-moo-aroot.oo.c
+tests/test-moo-asub1.oo.h
+tests/test-moo-asub1.oo.c
+tests/test-moo-assign.c
+
+Depends-on:
+
+configure.ac:
+
+Makefile.am:
+test-moo-root.h test-moo-root.c root.priv.h root.vt.h : $(top_srcdir)/build-aux/moopp test-moo-root.oo.h test-moo-root.oo.c
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/test-moo-root.oo.c $(srcdir)/test-moo-root.oo.h
+
+test-moo-sub1.h test-moo-sub1.c sub1.priv.h sub1.vt.h : $(top_srcdir)/build-aux/moopp test-moo-root.oo.h test-moo-sub1.oo.h test-moo-sub1.oo.c
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/test-moo-sub1.oo.c $(srcdir)/test-moo-sub1.oo.h $(srcdir)/test-moo-root.oo.h
+
+test-moo-sub2.h test-moo-sub2.c sub2.priv.h sub2.vt.h : $(top_srcdir)/build-aux/moopp test-moo-root.oo.h test-moo-sub1.oo.h test-moo-sub2.oo.h test-moo-sub2.oo.c
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/test-moo-sub2.oo.c $(srcdir)/test-moo-sub2.oo.h $(srcdir)/test-moo-sub1.oo.h $(srcdir)/test-moo-root.oo.h
+
+test-moo-aroot.h test-moo-aroot.c aroot.priv.h aroot.vt.h : $(top_srcdir)/build-aux/moopp test-moo-aroot.oo.h test-moo-aroot.oo.c
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/test-moo-aroot.oo.c $(srcdir)/test-moo-aroot.oo.h
+
+test-moo-asub1.h test-moo-asub1.c asub1.priv.h asub1.vt.h : $(top_srcdir)/build-aux/moopp test-moo-aroot.oo.h test-moo-asub1.oo.h test-moo-asub1.oo.c
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/test-moo-asub1.oo.c $(srcdir)/test-moo-asub1.oo.h $(srcdir)/test-moo-aroot.oo.h
+

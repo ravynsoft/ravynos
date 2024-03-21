@@ -1,0 +1,18 @@
+Defaults@xerxes, xyzzy log_output
+Defaults!/usr/bin/sudoreplay !log_output
+Defaults!/usr/local/bin/sudoreplay !log_output
+Defaults!REBOOT !log_output
+Defaults\
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User_Alias ADMINS = millert, dowdy, mikef
+Cmnd_Alias PROCESSES = /usr/bin/nice, /bin/kill, /usr/bin/renice,\
+    /usr/bin/pkill, /usr/bin/top
+Cmnd_Alias REBOOT = /sbin/halt, /sbin/reboot, /sbin/poweroff
+Host_Alias WEBSERVERS = www1, www2, www3
+Host_Alias WEBSERVERS_1 = www1, www2, www3, www5
+Host_Alias WEBSERVERS_2 = www1, www2, www3, www4
+
+root ALL = (ALL) ALL
+
+ALL ALL = (ALL) /usr/bin/id

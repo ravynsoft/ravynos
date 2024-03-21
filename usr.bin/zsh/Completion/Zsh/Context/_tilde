@@ -1,0 +1,32 @@
+#compdef -tilde-
+
+# We use all named directories and user names here. If this is too slow
+# for you or if there are too many of them, you may want to use
+# `compadd -qS/ -a friends' or something like that.
+
+[[ -n "$compstate[quote]" ]] && return 1
+
+local expl suf ret=1
+
+if [[ "$SUFFIX" = */* ]]; then
+  ISUFFIX="/${SUFFIX#*/}$ISUFFIX"
+  SUFFIX="${SUFFIX%%/*}"
+  suf=(-S '')
+else
+  suf=(-qS/)
+fi
+
+_tags users named-directories directory-stack
+
+while _tags; do
+  _requested users && _users "$suf[@]" "$@" && ret=0
+
+  _requested named-directories expl 'named directory' \
+      compadd "$suf[@]" "$@" -k nameddirs && ret=0
+
+  _requested directory-stack && _directory_stack "$suf[@]" && ret=0
+
+  (( ret )) || return 0
+done
+
+return ret

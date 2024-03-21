@@ -1,0 +1,1105 @@
+2008-12-23  Jon Beniston <jon@beniston.com>
+
+	* Makefile.am: Add LM32 object files and dependencies.
+	* Makefile.in: Regenate.
+	* NEWS: Record that support for LM32 has been added.
+	* configure.tgt: Add LM32 targets.
+	* emulparams/elf32lm32.sh: New file.
+	* emulparams/elf32lm32fd.sh: New file.
+
+2008-12-23  Tristan Gingold  <gingold@adacore.com>
+
+	* Makefile.am (EXTRA_DIST): Add deffilep.c and deffilep.h
+	* Makefile.in: Regenerate.
+
+2008-12-23  Nick Clifton  <nickc@redhat.com>
+
+	* NEWS: Remove mention of support for STT_IFUNC.
+
+2008-12-18  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure: Regenerate.
+
+2008-12-10  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em (params): Init new field.
+	(OPTION_SPU_NUM_REGIONS): Define.
+	(PARSE_AND_LIST_LONGOPTS, PARSE_AND_LIST_OPTIONS): Add --num-regions.
+	(PARSE_AND_LIST_ARGS_CASES): Handle --num-regions.
+
+2008-12-10  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em (params): New var, used instead of various others.
+	Adjust use throughout file.
+	(spu_after_open): Call spu_elf_setup.
+	(spu_place_special_section): Tidy.
+	(spu_elf_load_ovl_mgr): Return total size of sections loaded.  Move
+	code setting overlay section alignment to..
+	(spu_before_allocation): ..here.
+
+2008-12-03  Nick Clifton  <nickc@redhat.com>
+
+	* NEWS: Mention new feature.
+	* pe-dll.c (process_def_file): Replace use of redundant
+	BFD_FORT_COMM_DEFAULT_VALUE with 0.
+	* scripttempl/elf.sc: Add .rel.ifunc.dyn and .rela.ifunc.dyn
+	sections.
+
+2008-12-02  Kai Tietz  <kai.tietz@onevision.com>
+
+	* pe-dll.c (make_runtime_pseudo_reloc): Make symtab big enough to
+	hold relocations.
+
+2008-11-27  M R Swami Reddy <MR.Swami.Reddy@nsc.com>
+
+	* emultempl/cr16elf.em (cr16_after_open): New function to handle
+	CR16 ELF embedded reloc creation (ld --embedded-relocs).
+	(check_sections): New function.
+	(LDEMUL_AFTER_OPEN): Define.
+	* emulparams/elf32cr16.sh (EMBEDDED): Define.
+
+2008-11-26  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 7047
+	* emultempl/ppc64elf.em (gld${EMULATION_NAME}_new_vers_pattern): Update
+	for changes to struct bfd_elf_version_expr.
+	* ldlang.c (lang_vers_match, version_expr_head_hash): Likewise.
+	(version_expr_head_eq, lang_finalize_version_expr_head): Likewise.
+	(lang_register_vers_node): Likewise.
+	(lang_new_vers_pattern): Likewise.  Ensure "literal" is set when
+	no glob chars found in "pattern".
+	(realsymbol): Correct backslash quote logic.
+	* ld.texinfo (VERSION): Warn about global wildcards.
+
+2008-11-24  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldlang.c (lang_record_phdrs): Don't add orphans to PT_INTERP header.
+
+2008-11-19  Nick Clifton  <nickc@redhat.com>
+
+	* fdl.texi: Update to v1.3
+	* ld.texinfo: Change license to v1.3.
+
+2008-11-17  Ulrich Weigand  <uweigand@de.ibm.com>
+
+	* configure.tgt [spu-*-elf*]: Set NATIVE_LIB_DIRS to '/lib'.
+
+2008-11-17  Nick Clifton  <nickc@redhat.com>
+
+	* ldver.c: Update copyright year.
+
+2008-11-14  Kai Tietz  <kai.tietz@onevision.com>
+
+	* emultempl/pep.em (..._before_parse): initialize
+	pei386_runtime_pseudo_reloc by version 2.
+	(OPTION_DLL_ENABLE_RUNTIME_PSEUDO_RELOC_V1): New option.
+	(OPTION_DLL_ENABLE_RUNTIME_PSEUDO_RELOC_V2): New option.
+	(make_import_fixup): Use relocation size to read addend.
+	* emultempl/pe.em (..._before_parse): initialize
+	pei386_runtime_pseudo_reloc by version 1.
+	(OPTION_DLL_ENABLE_RUNTIME_PSEUDO_RELOC_V1): New option.
+	(OPTION_DLL_ENABLE_RUNTIME_PSEUDO_RELOC_V2): New option.
+	* pe-dll.c (pe-dll.h): Remove useless include.
+	(make_runtime_pseudo_reloc): Change addend to use bfd_vma.
+	Handle the two variants of pseudo-relocation.
+	(pe_create_import_fixup): Change addend to type bfd_vma.
+	Modify for the two pseudo_relocation variants.
+	(runtime_pseudp_reloc_v2_init): New static variable.
+	* pe-dll.h (pe_create_import_fixup): Change addend argument type
+	to bfd_vma.
+	* pep-dll.h (pep_create_import_fixup): Likewise.
+	* NEWS: Add comment.
+
+2008-11-14  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am (spu_ovl.o_c): Add missing line continuations.
+	* Makefile.in: Regenerate.
+
+2008-11-06  Joel Sherrill <joel.sherrill@oarcorp.com>
+
+	* configure.tgt: Add m32c-*-rtems* and m32r-*-rtems*.
+
+2008-11-03  Bob Wilson  <bob.wilson@acm.org>
+
+	* emulparams/elf32xtensa.sh (NO_REL_RELOCS): Set.
+	* scripttempl/elfxtensa.sc (NO_REL_RELOCS, NO_RELA_RELOCS)
+	(NON_ALLOC_DYN): Import changes from elf.sc.
+
+2008-10-25  Nick Clifton  <nickc@redhat.com>
+
+	PR 6945
+	* ldlang.c (lang_size_sections_1): Do not update the VMAs of
+	output sections when performing a relocatable link on COFF
+	objects.
+
+2008-10-22  Nick Clifton  <nickc@redhat.com>
+
+	* emultempl/armelf.em (arm_elf_after_open): Move check for using a
+	non-arm output target from here...
+	(arm_elf_create_output_section_statements): ... to here, so that
+	the check is made at the earliest possible opportunity.
+
+2008-10-22  Alan Modra  <amodra@bigpond.net.au>
+
+	* emulparams/elf32_i960.sh (TEMPLATE_NAME): "generic", not "elf32".
+	(EXTRA_EM_FILE): Define.
+
+2008-10-22  Alan Modra  <amodra@bigpond.net.au>
+
+	* scripttempl/elf.sc (NO_REL_RELOCS, NO_RELA_RELOCS, NON_ALLOC_DYN):
+	Handle these defines.
+	* emulparams/criself.sh, * emulparams/crislinux.sh,
+	* emulparams/elf32am33lin.sh, * emulparams/elf32fr30.sh,
+	* emulparams/elf32_i860.sh, * emulparams/elf32ip2k.sh,
+	* emulparams/elf32mcore.sh, * emulparams/elf32ppccommon.sh,
+	* emulparams/elf32ppcwindiss.sh, * emulparams/elf32_sparc.sh,
+	* emulparams/elf32_spu.sh, * emulparams/elf32vax.sh,
+	* emulparams/elf64alpha.sh, * emulparams/elf64mmix.sh,
+	* emulparams/elf64ppc.sh, * emulparams/elf64_s390.sh,
+	* emulparams/elf64_sparc.sh, * emulparams/elf_s390.sh,
+	* emulparams/elf_x86_64.sh, * emulparams/h8300elf.sh,
+	* emulparams/hppa64linux.sh, * emulparams/hppalinux.sh,
+	* emulparams/m68kelf.sh, * emulparams/mn10200.sh,
+	* emulparams/pjelf.sh, * emulparams/ppclynx.sh,
+	* emulparams/shelf32.sh, * emulparams/shelf_nto.sh,
+	* emulparams/shelf.sh, * emulparams/shelf_vxworks.sh,
+	* emulparams/shlelf32_linux.sh, * emulparams/shlelf_linux.sh,
+	* emulparams/shlelf_nto.sh (NO_REL_RELOCS): Set.
+	* emulparams/arcelf.sh, * emulparams/elf32_i960.sh,
+	* emulparams/elf32openrisc.sh, * emulparams/elf_i386_be.sh,
+	* emulparams/elf_i386_ldso.sh, * emulparams/elf_i386.sh,
+	* emulparams/elf_i386_vxworks.sh, * emulparams/i386lynx.sh,
+	* emulparams/i386moss.sh, * emulparams/i386nto.sh,
+	* emulparams/or32elf.sh, * emulparams/scoreelf.sh (NO_RELA_RELOCS): Set.
+
+2008-10-22  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldlang.c (lang_output_section_find_by_flags): Handle non-alloc
+	sections.
+	* emultempl/elf32.em (enum orphan_save_index): Add orphan_nonalloc.
+	(hold): Likewise.
+	(gld${EMULATION_NAME}_place_orphan): Handle non-alloc orphans.
+
+2008-10-22  Bernhard Reutner-Fischer  <aldot@gcc.gnu.org>
+
+	* emultempl/armelf.em (PARSE_AND_LIST_OPTIONS): Correct typo in
+	help text of --be8.
+
+2008-10-20  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldemul.h (ldemul_place_orphan): Update prototype.
+	(struct ld_emulation_xfer_struct <place_orphan>): Likewise.
+	* ldemul.c (ldemul_place_orphan): Return pointer to output
+	section statement.
+	* emultempl/beos.em (gld${EMULATION_NAME}_place_orphan): Likewise.
+	* emultempl/elf32.em (gld${EMULATION_NAME}_place_orphan): Likewise.
+	* emultempl/mmo.em (mmo_place_orphan): Likewise.
+	* emultempl/pe.em (gld_${EMULATION_NAME}_place_orphan): Likewise.
+	* emultempl/pep.em (gld_${EMULATION_NAME}_place_orphan): Likewise.
+
+2008-10-08  Nick Clifton  <nickc@redhat.com>
+
+	* configure.in (ALL_LINGUAS): Add "id".
+	* configure: Regenerate.
+	* po/id.po: New Indonesian translation.
+
+2008-10-05  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 6943
+	* scripttempl/avr.sc (.bss): Set lma when relocating.
+	(.bss, .noinit): No need to set vma when relocating.
+	(.text, .bss, ,noinit): Set vma to zero when not relocating.
+
+2008-10-04  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 6931
+	* ldemul.c (ldemul_place_orphan): Add "constraint" param.
+	* ldemul.h (ldemul_place_orphan): Update prototype.
+	(struct ld_emulation_xfer_struct <place_orphan>): Likewise add param.
+	* ldlang.c (unique_section_p): Make static.
+	(lang_output_section_statement_lookup): Optimise creation of SPECIAL
+	sections.
+	(lang_insert_orphan): Add "constraint" param.  Pass to
+	lang_enter_output_section_statement.
+	(init_os): Don't use an existing bfd section for SPECIAL sections.
+	(lang_place_orphans): Don't rename unique output sections, instead
+	mark their output section statements SPECIAL.
+	* ldlang.h (lang_insert_orphan): Update prototype.
+	(unique_section_p): Delete.
+	* emultempl/beos.em (place_orphan): Add "constraint" param.
+	* emultempl/elf32.em (place_orphan): Likewise.  Don't match existing
+	output sections if set.
+	* emultempl/pe.em (place_orphan): Likewise.
+	* emultempl/pep.em (place_orphan): Likewise.
+	* emultempl/mmo.em (mmo_place_orphan): Update.
+	* emultempl/spuelf.em (spu_place_special_section): Update.
+
+2008-10-03  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 6931
+	* ldemul.c (ldemul_place_orphan): Add "name" param.
+	* ldemul.h (ldemul_place_orphan): Update prototype.
+	(struct ld_emulation_xfer_struct <place_orphan>): Likewise.
+	* ldlang.c (lang_place_orphans): Generate unique section names here..
+	* emultempl/elf32.em (place_orphan): ..rather than here.  Don't
+	directly use an existing output section statement that has no
+	bfd section.
+	* emultempl/pe.em (place_orphan): Likewise.
+	* emultempl/pep.em (place_orphan): Likewise.
+	* emultempl/beos.em (place_orphan): Adjust.
+	* emultempl/spuelf.em (spu_place_special_section): Adjust
+	place_orphan call.
+	* emultempl/genelf.em (gld${EMULATION_NAME}_after_open): New function.
+	(LDEMUL_AFTER_OPEN): Define.
+
+2008-09-30  Joseph Myers  <joseph@codesourcery.com>
+
+	* emulparams/elf64ppc.sh (OTHER_GOT_RELOC_SECTIONS): Add .rela.opd
+	and .rela.branch_lt.
+
+2008-09-30  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am: Run "make dep-am".
+	* Makefile.in: Regenerate.
+
+2008-09-29  Peter O'Gorman  <pogma@thewrittenword.com>
+	    Steve Ellcey  <sje@cup.hp.com>
+
+	* configure: Regenerate for new libtool.
+	* aclocal.m4: Ditto.
+	* Makefile.in: Ditto.
+
+2008-09-29  Kai Tietz  <kai.tietz@onevision.com>
+
+	* pe-dll.c (make_import_fixup_entry): Make sure reloc is addend.
+
+2008-09-29  Nick Clifton  <nickc@redhat.com>
+
+	* po/vi.po: Updated Vietnamese translation.
+
+2008-09-25  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldexp.c (fold_binary): Evaluate rhs when lhs not valid.
+
+2008-09-11  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* configure.in: Call AC_SYS_LARGEFILE.
+	* config.in: Regenerate.
+	* configure: Regenerate.
+
+2008-09-09  Peter Rosin  <peda@lysator.liu.se>  (tiny change)
+
+	* emultempl/pe.em (pe_find_data_imports): Add trailing newline
+	to warning message.
+	* emultempl/pep.em (pep_find_data_imports): Likewise.
+
+2008-09-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	2008-09-07  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/beos.em (gld${EMULATION_NAME}_place_orphan): Updated.
+	* emultempl/sunos.em (gld${EMULATION_NAME}_before_allocation): Likewise.
+
+2008-09-08  Tristan Gingold  <gingold@adacore.com>
+
+	* NEWS: Add a marker for the 2.19 features.
+
+2008-09-07  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldlang.h (lang_output_section_find): Define.
+	(lang_output_section_statement_lookup): Update prototype.
+	* ldlang.c (lang_output_section_find,
+	lang_output_section_statement_lookup_1): Merge into..
+	(lang_output_section_statement_lookup): ..here.  Update all callers.
+	(process_insert_statements): Set constraint negative
+	for output section statements we might be inserting.  Make error
+	fatal on not finding insertion section.
+	(lang_output_section_find): Rather than comparing
+	output_section_statement.constraint against -1, test whether
+	it is postive.
+	(lang_output_section_statement_lookup_1): Likewise.
+	(output_prev_sec_find, strip_excluded_output_sections): Likewise.
+	(lang_record_phdrs): Likewise.
+	* emultempl/elf32.em (output_rel_find): Likewise.
+	* NEWS: Mention INSERT.
+
+2008-08-26  Nick Clifton  <nickc@redhat.com>
+
+	PR 6727
+	* emultempl/armelf.em (arm_elf_set_bfd_for_interworking): Scan all
+	input sections in all input bfds and always select the last
+	suitable one, so that interworking stubs are always processed
+	after all other input sections.
+	(arm_elf_before_allocation): Remove redundant use of
+	output_has_begun flag.
+
+2008-08-24  Alan Modra  <amodra@bigpond.net.au>
+
+	* configure.in: Update a number of obsolete autoconf macros.
+	* configure: Regenerate.
+	* aclocal.m4: Regenerate.
+
+2008-08-21  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	PR ld/6833
+	* ldexp.c (fold_binary <DATA_SEGMENT_ALIGN>): Do not align
+	EXPLD.DATASEG.MIN_BASE.
+	* ldlang.c (lang_size_sections): New variable OLD_BASE.  Rename
+	OLD_MIN_BASE to MIN_BASE with the former alignment from `ldexp.c'.
+	Use OLD_BASE now for the minimal base check after the base decrease by
+	the maximum alignment found.
+
+2008-08-17  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 6478
+	* ldcref.c (check_local_sym_xref): Use bfd_generic_link_read_symbols.
+	Don't free symbol pointer array.
+	(check_refs): Likewise.
+	* ldmain.c (warning_callback): Likewise.
+	* ldmisc.c (vfinfo): Likewise.
+	* pe-dll.c (process_def_file): Likewise.
+	(pe_walk_relocs_of_symbol, generate_reloc): Likewise.
+	* emultempl/pe.em (pe_find_data_imports): Likewise.
+	(gld_${EMULATION_NAME}_after_open): Likewise.
+	* emultempl/pep.em (pep_find_data_imports): Likewise.
+	(gld_${EMULATION_NAME}_after_open): Likewise.
+	* ldlang.h (lang_input_statement_type): Delete asymbols, symbol_count,
+	passive_position, closed.
+	* ldlang.c (new_afile): Don't set asymbols and symbol_count.
+	* ldmain.c (add_archive_element): xcalloc lang_input_statement_type.
+
+2008-08-15  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 6526
+	* configure.in: Invoke AC_USE_SYSTEM_EXTENSIONS.
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Regenerate.
+	* config.in: Regenerate.
+	* configure: Regenerate.
+
+2008-08-09  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 6753
+	* ldmain.c (check_for_scripts_dir, set_scripts_dir): Delete.
+	(main): Don't set_scripts_dir here.
+	* ldfile.c (check_for_scripts_dir, find_scripts_dir): New functions,
+	largely based on ldmain.c versions.
+	(ldfile_find_command_file): Set up search in script dir here without
+	affecting library search.
+	* Makefile.am (ldmain.o): No need to define SCRIPTDIR.
+	(ldfile.o): New rule.
+	* Makefile.in: Regenerate.
+
+2008-08-08  Anatoly Sokolov  <aesok@post.ru>
+
+	* Makefile.am (ALL_EMULATIONS): Add eavr25.o, eavr31.o, eavr35.o,
+	and eavr51.o.
+	Add rules for eavr25.c, eavr31.c, eavr35.c, eavr51.c.
+	* Makefile.in: Regenerate.
+	* configure.tgt (avr-*-*, targ_extra_emuls): Add avr25, avr31, avr35
+	and avr51.
+	* emulparams/avr25.sh: New file.
+	* emulparams/avr31.sh: New file.
+	* emulparams/avr35.sh: New file.
+	* emulparams/avr51.sh: New file.
+
+2008-08-08  Richard Sandiford  <rdsandiford@googlemail.com>
+	    Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* emulparams/elf32bmip.sh (GOT): Define, moving .got.plt to...
+	(OTHER_RELRO_SECTIONS, OTHER_READWRITE_SECTIONS): ...one of these
+	two variables.
+	* emulparams/elf32bmipn32-defs.sh: Likewise.
+	* emultempl/mipself.em: Include ldctor.h, elf/mips.h and elfxx-mips.h.
+	(is_mips_elf): New macro.
+	(stub_file, stub_bfd): New variables.
+	(hook_stub_info): New structure.
+	(hook_in_stub): New function.
+	(mips_add_stub_section): Likewise.
+	(mips_create_output_section_statements): Likewise.
+	(mips_before_allocation): Likewise.
+	(real_func): New variable.
+	(mips_for_each_input_file_wrapper): New function.
+	(mips_lang_for_each_input_file): Likewise.
+	(lang_for_each_input_file): Define.
+	(LDEMUL_BEFORE_ALLOCATION): Likewise.
+	(LDEMUL_CREATE_OUTPUT_SECTION_STATEMENTS): Likewise.
+
+2008-08-08  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldfile.c (ldfile_open_file_search): Use concat.
+	(try_open): Don't use a fixed size pathname buffer.
+	(ldfile_find_command_file): Likewise.
+	* emultempl/elf32.em (gld${EMULATION_NAME}_open_dynamic_archive): If
+	using EXTRA_SHLIB_EXTENSION, don't open twice.
+
+2008-08-04  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am (POTFILES.in): Set LC_ALL=C.
+	* Makefile.in: Regenerate.
+	* po/POTFILES.in: Regenerate.
+
+2008-08-03  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am (spu_ovl.o): Merge rule into..
+	(spu_ovl.o_c): ..this one.  Only run cpp for spu target.
+	* Makefile.in: Regenerate.
+
+2008-08-02  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	Include the spu_ovl ASCII form in the repository files.
+	* emultempl/spuelf.em: No longer use `bin2c', use now `spu_ovl.o_c'.
+	* Makefile.am (eelf32_spu.c): Depend now on `spu_ovl.o_c'.
+	($(srcdir)/emultempl/spu_ovl.o_c): New target.
+	($(srcdir)/emultempl/spu_ovl.o): Rename to...
+	(spu_ovl.o): ...this one.
+	* Makefile.in: Regenerate.
+	* emultempl/spu_ovl.o_c: New file.
+	* emultempl/spu_ovl.o: File removed.
+
+2008-07-31  Takashi Ono  <t_ono@hkfreak.net>
+
+	* pe-dll.c (generate_relocs): Don't generate relocs for
+	undefined weak symbols.
+
+2008-07-31  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* emultempl/spuelf.em: Abort on the missing required `spu_ovl.o'.
+
+2008-07-30  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/pe.em, emultempl/pep.em: Silence gcc warnings.
+
+2008-07-18  Joseph Myers  <joseph@codesourcery.com>
+
+	* ld.texinfo (--no-wchar-size-warning): Document new ARM option.
+	* emultempl/armelf.em (no_wchar_size_warning): New.
+	(arm_elf_create_output_section_statements): Pass
+	no_wchar_size_warning to arm_elf_create_output_section_statements.
+	(OPTION_NO_WCHAR_SIZE_WARNING): New.
+	(PARSE_AND_LIST_LONGOPTS): Add no-wchar-size-warning.
+	(PARSE_AND_LIST_OPTIONS): List --no-wchar-size-warning.
+	(PARSE_AND_LIST_ARGS_CASES): Handle --no-wchar-size-warning.
+
+2008-07-15  Jie Zhang  <jie.zhang@analog.com>
+
+	* emulparams/elf32bfinfd.sh (OTHER_SECTIONS): Define.
+
+2008-07-12  Craig Silverstein  <csilvers@google.com>
+
+	PR ld/6741
+	* configure.in: Check for, and include, libz.a if it is present.
+	* configure: Regenerate.
+	* config.in: Regenerate.
+
+2008-07-12  Jie Zhang  <jie.zhang@analog.com>
+
+	Revert
+	2008-07-12  Jie Zhang  <jie.zhang@analog.com>
+	* Makefile.am (eelf32bfin.c): Depend on bfin.em.
+	(eelf32bfinfd.c): Likewise.
+	* Makefile.in: Regenerate.
+	* gen-doc.texi: Set Blackfin.
+	* ld.texinfo: Document --sep-code and Blackfin specific
+	options.
+	* ldmain.c (main): Initialize link_info.sep_code.
+	* lexsup.c (enum option_values): Add OPTION_SEP_CODE.
+	(ld_options[]): Add --sep-code.
+	(parse_args): Deal with --sep-code.
+	* emulparams/bfin.sh (EXTRA_EM_FILE): Define.
+	* emulparams/elf32bfinfd.sh (OTHER_SECTIONS): Define.
+	* emultempl/bfin.em: New file.
+
+2008-07-12  Jie Zhang  <jie.zhang@analog.com>
+
+	* Makefile.am (eelf32bfin.c): Depend on bfin.em.
+	(eelf32bfinfd.c): Likewise.
+	* Makefile.in: Regenerate.
+	* gen-doc.texi: Set Blackfin.
+	* ld.texinfo: Document --sep-code and Blackfin specific
+	options.
+	* ldmain.c (main): Initialize link_info.sep_code.
+	* lexsup.c (enum option_values): Add OPTION_SEP_CODE.
+	(ld_options[]): Add --sep-code.
+	(parse_args): Deal with --sep-code.
+	* emulparams/bfin.sh (EXTRA_EM_FILE): Define.
+	* emulparams/elf32bfinfd.sh (OTHER_SECTIONS): Define.
+	* emultempl/bfin.em: New file.
+
+2008-07-09  Danny Smith  <dannysmith@users.sourceforge.net>
+
+	*pe-dll.c (autofilter_symbolprefixlist): Excude all symbols
+	starting with ".".
+	Exclude "_IMPORT_DESCRIPTOR_".
+	(autofilter_symbolsuffixlist): Exclude "_NULL_THUNK_DATA".
+	(autofilter_symbollist_generic): Don't check for ".text".
+	Exclude "_NULL_IMPORT_DESCRIPTOR".
+	(autofilter_symbollist_i386): Likewise.
+
+2008-07-07  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/armelf.em (elf32_arm_add_stub_section): Use
+	bfd_make_section_with_flags.
+	* emultempl/avrelf.em (avr_elf_create_output_section_statements):
+	Likewise.
+	* emultempl/hppaelf.em (hppaelf_add_stub_section): Likewise.
+	* emultempl/m68hc1xelf.em (m68hc11elf_add_stub_section): Likewise.
+	* emultempl/m68kcoff.em (gld${EMULATION_NAME}_after_open): Likewise.
+	* emultempl/m68kelf.em (m68k_elf_after_open): Likewise.
+	* emultempl/ppc64elf.em (ppc_add_stub_section): Likewise.
+	* emultempl/sh64elf.em (sh64_elf_${EMULATION_NAME}_before_allocation):
+	Likewise.
+
+2008-07-06  Nathan Sidwell  <nathan@codesourcery.com>
+
+	* ld.texinfo (File Commands): Document that INCLUDE can be used in
+	several different places.
+	* ldgram.y (statement, memory_spec, section): Allow INCLUDE.
+	(memory, memory_spec_list): Simplify BNF
+	(memory_spec_list_opt): New rule.
+	* ldlex.l (INCLUDE): Recognize in EXPRESSION.
+
+2008-06-20  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em (gld${EMULATION_NAME}_finish): Make "can not
+	build overlay stubs" a fatal error.
+
+2008-06-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* config.in: Regenerate.
+	* configure: Regenerate.
+
+2008-06-17  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em (extra_stack_space): New variable.
+	(gld${EMULATION_NAME}_finish): Pass it to spu_elf_check_vma.
+	(PARSE_AND_LIST_LONGOPTS, PARSE_AND_LIST_OPTIONS,
+	PARSE_AND_LIST_ARGS_CASES): Handle --extra-stack-space.
+	* emultempl/spu_ovl.S: Mask interrupts during dma and update of
+	overlay manager structures.
+	* emultempl/spu_ovl.o: Regenerate.
+
+2008-06-16  Hans-Peter Nilsson  <hp@bitrange.com>
+
+	* ld.texinfo (@node MMIX): For the __.MMIX.start. prefix, only
+	mention it as being special for global symbols.
+
+2008-06-12  Nick Clifton  <nickc@redhat.com>
+
+	* ldlang.c (print_output_section_statement): If the output section
+	statement has an update_dot_tree expression, apply it to
+	print_dot.
+	(print_input_section): Do not update print_dot if it would move
+	print_dot backwards.
+	(lang_do_assignments_1): If the output section statement has an
+	update_dot_tree expression apply it to dot.
+
+2008-06-07  Alan Modra  <amodra@bigpond.net.au>
+
+	* NEWS: Mention archive:path patterns.
+	* ld.texinfo: Likewise.
+	* ldlang.c: Formatting throughout.
+	(archive_path): Only assume "[A-Za-z]:" is a dos drive.
+	(input_statement_is_archive_path): New function, extracted from..
+	(walk_wild): ..here.
+	(walk_wild_consider_section): Match archive:path here too.
+	(init_map_userdata, sort_def_symbol): Convert to ISO C.
+	* ldmain.c (main): Set link_info.path_separator.
+	* emultempl/spuelf.em (choose_target): Don't set it here.
+
+2008-06-06  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldlang.c (name_match): New function.
+	(unique_section_p, walk_wild_consider_section): Use it here.
+	(walk_wild_section_general): And here.
+	(archive_path): New function.
+	(walk_wild): Match archive:path filespecs.
+	(open_input_bfds): Don't load archive:path files.
+	* emultempl/spuelf.em (choose_target): Set path_separator.
+	* emulparams/elf32_spu.sh: Add ._ea.* sections to ._ea output.
+
+2008-06-04  Nick Clifton  <nickc@redhat.com>
+
+	* ld.texinfo (Orphan Sections): Fix texi typo.
+
+2008-06-04  Chris Metcalf  <cmetcalf@tilera.com>
+
+	* lexsup.c (option_values): Add OPTION_NO_WARN_FATAL.
+	(ld_options): Add entry for --no-fatal-warnings.
+	(parse_args): Handle OPTION_NO_WARN_FATAL.
+	* ld.texinfo (Options): Document new command line switch.
+
+2008-06-04  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em (spu_elf_relink): Correct --no-auto-overlay arg.
+
+2008-06-02  Nathan Sidwell  <nathan@codesourcery.com>
+
+	* ldlang.c (closest_target_match): Skip generic big and little
+	endian ELF targets.
+
+2008-05-31  Evandro Menezes  <evandro@yahoo.com>
+
+	PR ld/6430
+	* ld.h (enum sort_order): New.
+	* ldlang.c (lang_check: Fix comment.
+	(lang_common): Sort commons in ascending or descending order.
+	(lang_one_common): Likewise.
+	* lexsup.c (ld_options): Have --sort-common take an option
+	argument.
+	(parse_args): Handle argument to --sort-common.
+	* ld.texinfo (--sort-common): Document new optional argument.
+	* NEWS: Mention new feature.
+
+2008-05-28  Christophe Lyon  <christophe.lyon@st.com>
+
+	* ld.texinfo: State that farcalls stubs are supported for ARM-EABI
+	only.
+
+2008-05-27  Kai Tietz  <kai.tietz@onevision.com>
+
+	* pe-dll.c (fill_edata): Make sure we calculate vma's in
+	type bfd_vma.
+	(generate_reloc): Likewise.
+	(pe_implied_import_dll): Likewise.
+
+2008-05-21  Nick Clifton  <nickc@redhat.com>
+
+	PR ld/6519
+	* ld.texinfo (Orphan Sections): Mention that the linker will
+	provide start and stop symbols for orphaned sections if their
+	names are valid C identifiers.
+	* NEWS: Add an addendum to the description of the linker feature
+	for providing orphan section start and end symbols.
+
+2008-05-21  Maxim Kuvyrkov  <maxim@codesourcery.com>
+
+	* configure.in (--enable-got): New option.  Handle it.
+	* configure: Regenerate.
+	* config.in: Regenerate.
+	* emultempl/m68kelf.em: (got_handling_target_default): New shell
+	variable.
+	(GOT_HANDLING_TARGET_DEFAULT): New macro.
+	(GOT_HANDLING_DEFAULT): New macro.  Initialize it from configure
+	option if one was given.
+	(got_handling): New static variable.
+	(elf_m68k_create_output_section_statements): New static function
+	implementing hook.
+	(PARSE_AND_LIST_PROLOGUE): Define shell variable.
+	(OPTION_GOT): New macro.
+	(PARSE_AND_LIST_LONGOPTS): Define shell variable.  Specify
+	--got option.
+	(got): New linker option.
+	(PARSE_AND_LIST_OPTIONS): Define shell variable.  Print help string
+	for --got option.
+	(PARSE_AND_LIST_ARGS_CASES): Define shell variable.  Handle --got
+	option.
+	* ld.texinfo: Document --got=<type> option.
+	* gen-doc.texi: Add M68K.
+	* NEWS: Mention the new feature.
+
+2008-05-21  Evandro Menezes  <evandro@yahoo.com>
+
+	PR ld/6430
+	* ld.texinfo (--sort-common): Correct documentation to indicate
+	that sorting is performed by alignment, not size, biggest
+	alignment first.
+
+2008-05-21  Christophe Lyon  <christophe.lyon@st.com>
+	    Nick Clifton  <nickc@redhat.com>
+
+	* ld.texinfo (ARM): Document --stub-group-size=N option.
+	Move description of --pic-veneer option into the ARM section.
+	* NEWS: Mention the support for long function calls.
+
+2008-05-15  Christophe Lyon  <christophe.lyon@st.com>
+
+	* emultempl/armelf.em (build_section_lists): New function.
+	(stub_file): Define.
+	(need_laying_out): Define.
+	(group_size): Define.
+	(hook_stub_info): Define.
+	(hook_in_stub): New function.
+	(elf32_arm_add_stub_section): New function.
+	(gldarm_layout_sections_again): New function.
+	(gld${EMULATION_NAME}_finish): Replace arm_elf_finish(). Generate
+	stubs for long calls if needed.
+	(arm_elf_create_output_section_statements): create stub_file bfd.
+	(arm_for_each_input_file_wrapper): New function.
+	(arm_lang_for_each_input_file): New function.
+	(lang_for_each_input_file): Define.
+	(PARSE_AND_LIST_PROLOGUE): Add option token OPTION_STUBGROUP_SIZE.
+	(PARSE_AND_LIST_LONGOPTS): Add option stub-group-size.
+	(PARSE_AND_LIST_OPTIONS): Add option stub-group-size.
+	(PARSE_AND_LIST_ARGS_CASES): Add OPTION_STUBGROUP_SIZE case.
+	(LDEMUL_FINISH): Update to gld${EMULATION_NAME}_finish.
+	* lang.c (print_input_statement): Skip if bfd has
+	BFD_LINKER_CREATED.
+
+2008-05-14  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.in: Regenerate.
+
+2008-05-09  Kai Tietz  <kai.tietz@onevision.com>
+
+	ld/PR6502
+	* emultempl/pep.em (compute_dll_image_base): Use bfd_vma instead
+	of long and change return type to bfd_vma.
+	(definfo): Change type of address from long to bfd_vma.
+	(set_pep_value): Replace strtoul to strtoull.
+	(gld_${EMULATION_NAME}_set_symbols): use bfd_vma instead of long..
+	* pe-dll.c (pe_dll_generate_def_file): Use fprintf_vma to print
+	ImageBase.
+	(quick_reloc): Change argument address from int to bfd_size_type.
+
+2008-05-08  Tom Tromey  <tromey@redhat.com>
+
+	* ld.texinfo (PowerPC64 ELF64): Fix typo.
+
+2008-05-08  Alan Modra  <amodra@bigpond.net.au>
+
+	* elf32_spu.sh (OTHER_SECTIONS): Add "._ea".
+	* elf32ppc.sh: If building with spu support, put ".data.spehandle"
+	sections at the start of ".data" and provide a symbol to locate
+	the directory of embedded spe programs.
+
+2008-05-08  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldexp.c (exp_print_token): Add ABSOLUTE, MIN_K, ASSERT_K.  Correct
+	MAX_K.
+	(fold_binary <SEGMENT_START>): Set expld.result.section to
+	current section.  Expand comment.  Formatting.
+	(fold_name <DEFINED>): Set expld.result.section to current section.
+
+2008-04-28  Nathan Sidwell  <nathan@codesourcery.com>
+
+	* ldlang.c (lang_size_sections_1): Don't check LMA overflow on
+	non-load sections.
+
+2008-04-25  Michael Frysinger  <vapier@gentoo.org>
+
+	* configure.tgt (bfin-*-linux-uclibc*): Set targ_emul to elf32bfinfd
+	and targ_extra_emuls to elf32bfin.
+
+2008-04-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* aclocal.m4: Regenerate.
+	* configure: Regenerate.
+
+2008-04-03  Kai Tietz  <kai.tietz@onevision.com>
+
+	* scripttempl/pep.sc: Align start of symbol __CTOR_LIST__.
+
+2008-04-08  Alan Modra  <amodra@bigpond.net.au>
+
+	* po/POTFILES.in: Regenerate.
+
+2008-04-08  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em (auto_overlay, auto_overlay_file,
+	auto_overlay_fixed, auto_overlay_reserved, my_argc, my_argv): New vars.
+	(spu_before_allocation): Warn on --auto-overlay and existing overlays.
+	(struct tflist, clean_tmp): Move.
+	(new_tmp_file): New function, extracted from..
+	(embedded_spu_file): ..here.
+	(spu_elf_open_overlay_script, spu_elf_relink): New function.
+	(gld${EMULATION_NAME}_finish): Pass a bunch of --auto-overlay params.
+	Warn on --auto-overlay and zero local store.
+	(gld${EMULATION_NAME}_choose_target): New function to stash argv.
+	(OPTION_SPU_AUTO_OVERLAY, OPTION_SPU_AUTO_RELINK,
+	OPTION_SPU_OVERLAY_RODATA, OPTION_SPU_FIXED_SPACE,
+	OPTION_SPU_RESERVED_SPACE, OPTION_SPU_NO_AUTO_OVERLAY): Define.
+	(PARSE_AND_LIST_LONGOPTS): Add entries for new options.
+	(PARSE_AND_LIST_OPTIONS): Likewise.
+	(PARSE_AND_LIST_ARGS_CASES): Likewise.
+	(LDEMUL_CHOOSE_TARGET): Define.
+
+2008-04-03  Kai Tietz  <kai.tietz@onevision.com>
+
+	PR ld/6026
+	* pe-dll.c (make_head): Fix iat and thunk addend offset.
+
+2008-03-31  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2008-03-24  Ian Lance Taylor  <iant@google.com>
+
+	The sha1 code is now in libiberty.
+	* sha1.c: Remove.
+	* sha1.h: Remove.
+	* Makefile.am (CFILES): Remove sha1.c.
+	(HFILES): Remove sha1.h.
+	(OFILES): Remove sha1.o.
+	(ld_new_SOURCES): Remove sha1.c.
+	(sha1.o): Remove target.
+	* Makefile.in: Rebuild.
+
+2008-03-20  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em: Update calls to elf32-spu.c funcs.
+
+2008-03-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* aclocal.m4: Regenerate.
+	* configure: Likewise.
+	* Makefile.in: Likewise.
+
+2008-03-14  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spuelf.em (gld${EMULATION_NAME}_finish): Protect
+	spu_elf_build_stubs with is_spu_target.
+
+2008-03-13  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am: Run "make dep-am".
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+
+2008-03-06  Joseph Myers  <joseph@codesourcery.com>
+	    Roman Zippel  <zippel@linux-m68k.org>
+
+	* emulparams/m68kelf.sh (GENERATE_PIE_SCRIPT): Define.
+	(COMMONPAGESIZE): Define.
+
+2008-02-22  Nick Clifton  <nickc@redhat.com>
+
+	PR ld/5785
+	* ldlang.c (lang_size_sections_1): Honour the setting of an
+	lma_region even if there is no vma region set, or the vma region
+	is the same as the lma region.
+
+2008-02-18  Nick Clifton  <nickc@redhat.com>
+
+	* scripttempl/armbpabi.sc (ENTRY): Do not define when performing a
+	relocatable link.
+	* scripttempl/elf32cr16.sc: Likewise.
+	* scripttempl/elf32cr16c.sc: Likewise.
+	* scripttempl/elf32crx.sc: Likewise.
+	* scripttempl/elf32sh-symbian.sc: Likewise.
+	* scripttempl/elf_chaos.sc: Likewise.
+	* scripttempl/elfd10v.sc: Likewise.
+	* scripttempl/elfi370.sc: Likewise.
+	* scripttempl/elfm68hc11.sc: Likewise.
+	* scripttempl/elfm68hc12.sc: Likewise.
+	* scripttempl/ip2k.sc: Likewise.
+	* scripttempl/iq2000.sc: Likewise.
+	* scripttempl/mep.sc: Likewise.
+	* scripttempl/v850.sc: Likewise.
+	* scripttempl/xstormy16.sc: Likewise.
+
+2008-02-16  Alan Modra  <amodra@bigpond.net.au>
+
+	PR ld/5761
+	* ldexp.c (fold_name <LOADADDR>): Check result of evaluating
+	load_base before calling make_abs.
+
+2008-02-15  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/alphaelf.em (alpha_after_open): Use elf_object_id.
+	* emultempl/hppaelf.em (hppaelf_create_output_section_statements):
+	Likewise.
+	* emultempl/ppc64elf.em (ppc_create_output_section_statements):
+	Likewise.
+	* emultempl/ppc32elf.em (is_ppc_elf32_vec): Delete.  Replace all
+	uses with..
+	(is_ppc_elf): ..this new macro.
+
+2008-02-15  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldmain.h (output_bfd): Delete.
+	* ldmain.c (output_bfd): Delete.
+	Replace all occurrences of output_bfd with link_info.output_bfd.
+	* ldcref.c: Likewise.
+	* ldctor.c: Likewise.
+	* ldemul.c: Likewise.
+	* ldexp.c: Likewise.
+	* ldfile.c: Likewise.
+	* ldlang.c: Likewise.
+	* ldmisc.c: Likewise.
+	* ldwrite.c: Likewise.
+	* pe-dll.c: Likewise.
+	* emultempl/aix.em: Likewise.
+	* emultempl/alphaelf.em: Likewise.
+	* emultempl/armcoff.em: Likewise.
+	* emultempl/armelf.em: Likewise.
+	* emultempl/avrelf.em: Likewise.
+	* emultempl/beos.em: Likewise.
+	* emultempl/elf-generic.em: Likewise.
+	* emultempl/elf32.em: Likewise.
+	* emultempl/gld960.em: Likewise.
+	* emultempl/hppaelf.em: Likewise.
+	* emultempl/irix.em: Likewise.
+	* emultempl/linux.em: Likewise.
+	* emultempl/lnk960.em: Likewise.
+	* emultempl/m68hc1xelf.em: Likewise.
+	* emultempl/mmix-elfnmmo.em: Likewise.
+	* emultempl/mmo.em: Likewise.
+	* emultempl/pe.em: Likewise.
+	* emultempl/pep.em: Likewise.
+	* emultempl/ppc32elf.em: Likewise.
+	* emultempl/ppc64elf.em: Likewise.
+	* emultempl/scoreelf.em: Likewise.
+	* emultempl/sh64elf.em: Likewise.
+	* emultempl/spuelf.em: Likewise.
+	* emultempl/sunos.em: Likewise.
+	* emultempl/vanilla.em: Likewise.
+	* emultempl/vxworks.em: Likewise.
+	* emultempl/xtensaelf.em: Likewise.
+	* emultempl/z80.em: Likewise.
+	* ldlang.c (open_output): Don't return output, instead write
+	link_info_output_bfd directly.
+	* emultempl/alphaelf.em: Replace occurrences of link_info.hash->creator
+	with link_info.output_bfd->xvec.
+	* emultempl/hppaelf.em: Likewise.
+	* emultempl/ppc32elf.em: Likewise.
+	* emultempl/ppc64elf.em: Likewise.
+	* emultempl/spuelf.em: Likewise.
+
+2008-02-07  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldlang.c (new_afile): Don't pass unadorned NULL to concat.
+	* ldfile.c (ldfile_add_library_path): Likewise.
+	* emultempl/elf32.em (check_ld_elf_hints, check_ld_so_conf): Likewise.
+	* emultempl/lnk960.em (lnk960_before_parse): Likewise.
+	* emultempl/spuelf.em (embedded_spu_file): Likewise.
+
+2008-02-07  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spu_ovl.S: Use low bit of _ovly_table.size as
+	a "present" bit rather than low bit of .buf.  Correct indexing
+	into _ovly_buf_table.  Use relative loads and stores to access
+	overlay manager local vars.
+	* emultempl/spu_ovl.o: Regenerate.
+
+2008-02-04  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR 5715
+	* configure: Regenerated.
+
+2008-01-31  Marc Gauthier  <marc@tensilica.com>
+
+	* configure.tgt (xtensa*-*-*): Recognize processor variants.
+
+2008-01-28  Fabian Groffen  <grobian@gentoo.org>
+
+	* configure.tgt (x86_64-*-solaris2): Add support for this target.
+
+2008-01-28  Vincent Riviere  <vincent.riviere@freesbee.fr>
+
+	PR ld/5652
+	* genscripts.sh: Check for the existence of BASH_LINENO not just
+	the BASH shell before generating line numbers in the emulation
+	file.
+
+2008-01-28  Alan Modra  <amodra@bigpond.net.au>
+
+	* emultempl/spu_ovl.S: Rewrite.
+	* emultempl/spu_ovl.o: Regenerate.
+	* emultempl/spuelf.em (toe): Delete.
+	(spu_place_special_section): Add param to control section placement.
+	Adjust callers.
+	(spu_elf_load_ovl_mgr): Adjust for struct _spu_elf_section_data
+	changes.
+	(spu_before_allocation): Adjust spu_elf_size_stubs call.
+	(gld${EMULATION_NAME}_finish): Adjust spu_elf_build_stubs call.
+
+2008-01-25  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/5670
+	* ldlang.c (process_insert_statements): Silence gcc 4.1 alias
+	warning.
+
+2008-01-25  Alan Modra  <amodra@bigpond.net.au>
+
+	* ld.texinfo (INSERT): Describe.
+	* ldgram.y (ldgram_in_script, ldgram_had_equals): Delete.
+	(INSERT_K, AFTER, BEFORE): Add as tokens.
+	(ifile_p1): Handle INSERT statements.
+	(saved_script_handle, force_make_executable): Move to..
+	* ldmain.c: ..here.
+	(previous_script_handle): New global var.
+	* ldmain.h (saved_script_handle, force_make_executable): Declare.
+	(previous_script_handle): Likewise.
+	* ldlex.l (INSERT_K, AFTER, BEFORE): Add tokens.
+	* lexsup.c (parge_args <-T>): Set previous_script_handle.
+	* ldlang.c (lang_for_each_statement_worker): Handle insert statement.
+	(map_input_to_output_sections, print_statement): Likewise.
+	(lang_size_sections_1, lang_do_assignments_1): Likewise.
+	(insert_os_after): New function, extracted from..
+	(lang_insert_orphan): ..here.
+	(process_insert_statements): New function.
+	(lang_process): Call it.
+	(lang_add_insert): New function.
+	* ldlang.h (lang_insert_statement_enum): New.
+	(lang_insert_statement_type): New.
+	(lang_statement_union_type): Add insert_statement.
+	(lang_add_insert): Declare.
+
+2008-01-18  Bob Wilson  <bob.wilson@acm.org>
+
+	* scripttempl/elfxtensa.sc: Merge ENTRY and .note.gnu.build-id
+	changes from elf.sc.
+
+2008-01-16  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldlang.c (lang_size_sections_1): Simplify SEC_NEVER_LOAD test.
+
+2008-01-16  Alan Modra  <amodra@bigpond.net.au>
+
+	* ldlang.h (lang_afile_asection_pair_statement_enum): Delete.
+	(lang_afile_asection_pair_statement_type): Delete.
+	(lang_statement_union_type): Delete afile_asection_pair_statement.
+	* ldlang.c (lang_insert_orphan): Delete case handling the above.
+	(map_input_to_output_sections, print_statement): Likewise.
+
+2008-01-15  Kaz Kojima  <kkojima@rr.iij4u.or.jp>
+
+	* emulparams/shlelf_linux.sh (DATA_START_SYMBOLS): Use PROVIDE
+	with __data_start.
+	* emulparams/shelf_nbsd.sh (DATA_START_SYMBOLS): Likewise.
+
+2008-01-15  Alan Modra  <amodra@bigpond.net.au>
+
+	PR 5604
+	* ldlang.c (lang_gc_sections): Move code to set SEC_KEEP on entry
+	syms to _bfd_elf_gc_keep.
+	* emultempl/ppc64elf.em (ppc_before_allocation): Don't call
+	ppc64_elf_edit_opd if no_opd_opt.
+
+2008-01-11  Tristan Gingold  <gingold@adacore.com>
+	    Eric Botcazou  <ebotcazou@adacore.com>
+
+	* ldlang.c (lang_end): Warns if the entry point is not found when
+	--gc-sections.
+	Emit an error if no root is specified when --gc-sections -r.
+	* ld.texinfo (Options): Document that --gc-sections is compatible
+	with -r and -q.
+	* ldmain.c (main): Do not error out if -r and --gc-sections.
+	* scripttempl/elf.sc: Emit ENTRY command only if relocating.
+
+2008-01-10  Daniel Jacobowitz  <drow@sources.redhat.com>
+
+	PR ld/5533
+	* ldlang.c (lang_end): Issue a warning for a missing start symbol
+	of a shared library if the symbol was specified on the command
+	line.
+
+2008-01-10  Alan Modra  <amodra@bigpond.net.au>
+
+	* ld.texinfo (--gc-sections): Describe linker behaviour.
+
+For older changes see ChangeLog-2007
+
+Copyright (C) 2008 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

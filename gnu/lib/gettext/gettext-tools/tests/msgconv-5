@@ -1,0 +1,104 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgconv on a PO file with contexts.
+
+cat <<\EOF > mco-test5.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+EOF
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=UTF-8 -o mco-test5.tmp mco-test5.po || Exit 1
+LC_ALL=C tr -d '\r' < mco-test5.tmp > mco-test5.out || Exit 1
+
+cat <<\EOF > mco-test5.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "FermÃ©"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "OcÃ©"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mco-test5.ok mco-test5.out
+result=$?
+
+exit $result

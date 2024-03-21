@@ -58,26 +58,6 @@ _PREMK_LIBDIR:=	${LIBDIR}
 .include "src.sys.mk"
 .-include <site.sys.mk>
 
-.if make(*-jobs) && empty(JOB_MAX)
-# provide a reasonable? default for JOB_MAX based on ncpu
-JOB_MAX_FACTOR?= 1.33
-NPROC?= ${(type nproc || true) 2> /dev/null:L:sh:M/*:[1]}
-NPROC:= ${NPROC}
-.if !empty(NPROC)
-ncpu!= ${NPROC}
-.elif ${.MAKE.OS:NDarwin:NFreeBSD} == ""
-ncpu!= sysctl -n hw.ncpu
-.endif
-.if ${ncpu:U0} > 1
-.if ${JOB_MAX_FACTOR} == 1
-JOB_MAX:= ${ncpu}
-.else
-jm!= echo ${ncpu} \* ${JOB_MAX_FACTOR} | bc
-JOB_MAX:= ${jm:R}
-.endif
-.endif
-.endif
-
 # this will be set via local.meta.sys.env.mk if appropriate
 MK_host_egacy?= no
 
@@ -114,5 +94,14 @@ META_NOPHONY?=
 META_COOKIE_RM?=
 META_COOKIE_TOUCH?=
 META_DEPS+=	${META_NOPHONY}
+
+.if ${MK_DIRDEPS_BUILD} == "yes"
+.if ${MACHINE:Nhost*:Ncommon} != "" && ${MACHINE} != ${HOST_MACHINE}
+# cross-building
+CROSS_TARGET_FLAGS?= -target ${MACHINE_ARCH}-unknown-freebsd${FREEBSD_REVISION}
+CFLAGS+= ${CROSS_TARGET_FLAGS}
+ACFLAGS+= ${CROSS_TARGET_FLAGS}
+.endif
+.endif
 
 .endif

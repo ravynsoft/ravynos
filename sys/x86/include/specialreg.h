@@ -27,8 +27,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	from: @(#)specialreg.h	7.1 (Berkeley) 5/9/91
  */
 
 #ifndef _MACHINE_SPECIALREG_H_
@@ -1162,11 +1160,17 @@
 #define	MSR_IC_CFG	0xc0011021	/* Instruction Cache Configuration */
 #define	MSR_DE_CFG	0xc0011029	/* Decode Configuration */
 
+/* MSR_AMDK8_IPM */
+#define	AMDK8_SMIONCMPHALT	(1ULL << 27)
+#define	AMDK8_C1EONCMPHALT	(1ULL << 28)
+
 /* MSR_VM_CR related */
 #define	VM_CR_SVMDIS		0x10	/* SVM: disabled by BIOS */
 
-#define	AMDK8_SMIONCMPHALT	(1ULL << 27)
-#define	AMDK8_C1EONCMPHALT	(1ULL << 28)
+/* MSR_DE_CFG */
+#define DE_CFG_10H_12H_STACK_POINTER_JUMP_FIX_BIT	0x1
+#define DE_CFG_ZEN_LOAD_STALE_DATA_FIX_BIT		0x2000
+#define DE_CFG_ZEN2_FP_BACKUP_FIX_BIT			0x200
 
 /* VIA ACE crypto featureset: for via_feature_rng */
 #define	VIA_HAS_RNG		1	/* cpu has RNG */

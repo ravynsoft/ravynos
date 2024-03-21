@@ -1,0 +1,25 @@
+#compdef xautolock
+_arguments \
+  '(-enable -toggle)-disable' \
+  '(-disable -toggle)-enable' \
+  '(-locknow)-unlocknow' \
+  '(-unlocknow)-locknow' \
+  '(-restart)-exit' \
+  '(-exit)-restart' \
+  '-killer:program: _command_names -e' \
+  '-locker:program: _command_names -e' \
+  '-notifier:program: _command_names -e' \
+  '-nowlocker:program: _command_names -e' \
+  -bell:percent: \
+  -cornerdelay:seconds: \
+  -cornerredelay:seconds: \
+  -corners:corners: \
+  -cornersize:pixels: \
+  -killtime:minutes: \
+  -noclose{,out,err} \
+  -notify:seconds: \
+  -time:minutes: \
+  -secure \
+  -resetsaver \
+  -detectsleep \
+  -{help,version}

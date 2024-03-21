@@ -1,0 +1,46 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Lisp support: --add-comments option.
+
+cat <<EOF > xg-ls-1.lisp
+; This comment will not be extracted.
+(write-line (gettext "help"))
+;;  TRANSLATORS: This is an extracted comment.
+(write-line (gettext "me"))
+#| Not extracted either. |#
+(write-line (gettext "Hey Jude"))
+#|  TRANSLATORS:
+     Nickname of the Beatles
+|#
+(write-line (gettext "The Fabulous Four"))
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-ls-1.tmp xg-ls-1.lisp || Exit 1
+LC_ALL=C tr -d '\r' < xg-ls-1.tmp.po > xg-ls-1.po || Exit 1
+
+cat <<EOF > xg-ls-1.ok
+msgid "help"
+msgstr ""
+
+#. TRANSLATORS: This is an extracted comment.
+msgid "me"
+msgstr ""
+
+msgid "Hey Jude"
+msgstr ""
+
+#. TRANSLATORS:
+#. Nickname of the Beatles
+#.
+msgid "The Fabulous Four"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ls-1.ok xg-ls-1.po
+result=$?
+
+exit $result

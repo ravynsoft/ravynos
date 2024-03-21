@@ -1,0 +1,266 @@
+#compdef valgrind -value-,VALGRIND_OPTS,-default-
+
+local curcontext="$curcontext" state line
+local -a cmd common_{own_malloc,read_varinfo,report_errors,partial}
+local -a args args_{addrcheck,drd,memcheck,cachegrind,helgrind,lackey,massif,none,exp_{bbv,dhat,sgcheck}}
+
+cmd=(
+  '1: : _command_names -e'
+  '*::args :_normal'
+)
+
+if [[ $service = *_OPTS* ]]; then
+  compset -q
+  words=( fake "$words[@]" )
+  (( CURRENT++ ))
+  cmd=()
+fi
+
+common_own_malloc=(
+  '--alignment=-[set minimum alignment of heap allocations]:number [16]'
+  '--redzone-size=-[set minimum size of redzones added before/after heap blocks]:size (bytes) [16]'
+  '--xtree-memory=-[profile heap memory in an xtree [none]:(none allocs full)'
+  '--xtree-memory-file=-[specify xtree memory report file]:file [xtmemory.kcg.%%p]:_files'
+)
+
+common_read_varinfo=(
+  '--read-var-info=-[read DWARF3 debug info]:enable:(yes no)'
+)
+
+common_report_errors=(
+  '--xml=-[output everything in XML]:enable:(yes no)'
+  '--xml-fd=-[send XML output to file descriptor]:file descriptor:_file_descriptors'
+  '--xml-file=-[send XML output to specified file]:file:_files'
+  '--xml-socket=-[send XML output to specified socket]:socket:_hosts'
+  '--xml-user-comment=-[copy specified string verbatim to XML output]:string'
+  '--demangle=-[automatically demangle C++ names]:enable:(yes no)' \
+  '--num-callers=-[specify no of callers to show in stack traces]:number' \
+  '--error-limit=-[stop showing new errors if too many]:enable:(yes no)' \
+  '--exit-on-first-error=-[exit on the first error]:enable:(yes no)' \
+  '--error-exitcode=-[exit code to return if errors found]:exit code' \
+  '--error-markers=-[add lines with begin/end markers before/after]:markers (begin,end)' \
+  '(--show-error-list)-s[show detected errors list and suppression counts at exit]' \
+  '--show-error-list=-[show detected errors list and suppression counts at exit]:enable [no]:(yes no)'
+  '--keep-debuginfo=-[keep symbols etc for unloaded code]:enable:(yes no)' \
+  '--show-below-main=-[continue stack traces below main()]:enable [no]:(yes no)' \
+  '--default-suppression=-[load default suppressions]:enable [yes]:(yes no)' \
+  '--suppressions=-[suppress errors described in specified file]:file:_files' \
+  '--gen-suppressions=-[print suppressions for errors detected]:enable:(yes no)' \
+  '--input-fd=-[specify file descriptor for input]:file descriptor:_file_descriptors' \
+  '--max-stackframe=-[assume stack switch for SP changes larger than specified size]:size (bytes)' \
+  "--main-stacksize=-[set size of main thread's stack]:size (bytes)" \
+)
+[[ $OSTYPE = darwin* ]] && common_report_errors+=(
+  '--dsymutil=-[run dsymutil on Mac OS X when helpful]:enable [yes]:(yes no)'
+)
+
+common_partial='--partial-loads-ok=-:enable:(yes no)'
+
+args_addrcheck=(
+  $common_own_malloc
+  $common_mem_null
+  '--leak-check=-[search for memory leaks at exit]:enable [summary]:(no summary full)'
+  '--leak-resolution=-[specify differentiation of leak stack traces]:level [high]:(low med high)'
+  '(--show-reachable --show-possibly-lost)--show-leak-kinds=-[specify leak kinds to show]:leak kind [definite,possible]:_sequence compadd - definite indirect possible reachable'
+  '--errors-for-leak-kinds=-[specify which leak kinds are errors]:leak kind [definite,possible]:_sequence compadd - definite indirect possible reachable all none'
+  '--leak-check-heuristics=-[specify heuristics to use for during leak searches]:heuristic:_sequence compadd - stdstring length64 newarray multipleinheritance all none'
+  '(--show-leak-kinds)--show-reachable=-[show reachable blocks in leak check]:enable:(yes no)'
+  '(--show-leak-kinds)--show-possibly-lost=-:enable:(yes no)'
+  '--xtree-leak=-[output leak result in xtree format]:enable [no]:(yes no)'
+  '--xtree-leak-file=-[specify xtree leak report file]:file [xtleak.kcg.%%p]:_files'
+  '--undef-value-errors=-[check for undefined value errors]:enable [yes]:(yes no)'
+  '--track-origins=-[show origins of undefined values]:enable [no]:(yes no)'
+  $common_partial
+  '--expensive-definedness-checks=-[use extra-precise definedness tracking]:enable [auto]:(no auto yes)'
+  '--freelist-vol=-[specify volume of freed blocks queue]:blocks [20000000]'
+  '--freelist-big-blocks=-[release first blocks larger than specified size]:size [1000000]'
+  '--workaround-gcc296-bugs=-:enable [no]:(yes no)'
+  '--ignore-ranges=-[assume given addresses are OK]:address ranges'
+  "--ignore-range-below-sp=-[don't report errors for accesses at the given offsets below SP]:offsets"
+  "--malloc-fill=-[fill malloc'd areas with given value]:value (hex)"
+  "--free-fill=-[fill free'd areas with given value]:value (hex)"
+  "--keep-stacktraces=-[control which stack traces to keep for malloc'd/free'd areas]:stack traces [alloc-and-free]:(alloc free alloc-and-free alloc-then-free none)"
+  "--show-mismatched-frees=-[show frees that don't match the allocator]:enable [yes]:(yes no)"
+)
+
+args_drd=(
+  $common_own_malloc
+  $common_read_varinfo
+  $common_report_errors
+  '--check-stack-var=-[detect data races on stack variables]:enable [no]:(yes no)'
+  '--exclusive-threshold=-[print an error if any mutex or writer lock is held longer than specified time]:time (ms)'
+  '--first-race-only=-[report only the first detected data race]:enable [no]:(yes no)'
+  '--free-is-write=-[report races between accessing memory and freeing memory]:enable [no]:(yes no)'
+  '--join-list-vol=-[specify how many joined threads to retain memory access information for]:number of threads [10]'
+  '--report-signal-unlocked=-[report calls to pthread_cond_signal etc where the mutex is not locked]:enable [yes]:(yes no)'
+  '--segment-merging=-[control segment merging]:enable [yes]:(yes no)'
+  '--segment-merging-interval=-[perform segment merging only after the specified number of new segments have been created]:number of segments [10]'
+  '--shared-threshold=-[print an error if a reader lock is held longer than the specified time]:time (ms)'
+  '--show-confl-seg=-[show conflicting segments in race reports]:enable [yes]:(yes no)'
+  '--show-stack-usage=-[print stack usage at thread exit time]:enable [no]:(yes no)'
+  '--ignore-thread-creation=-[control whether all activities during thread creation should be ignored]:enable [no]:(yes no)'
+  '*--ptrace-addr=-[trace all load and store activity for specified address even after free]:address'
+  '*--trace-addr=-[trace all load and store activity for specified address]:address'
+  '--trace-alloc=-[trace all memory allocations and deallocations]:enable [no]:(yes no)'
+  '--trace-barrier=-[trace all barrier activity]:enable [no]:(yes no)'
+  '--trace-cond=-[trace all condition variable activity]:enable [no]:(yes no)'
+  '--trace-fork-join=-[trace all thread creation and all thread termination events]:enable [no]:(yes no)'
+  '--trace-hb=-[trace execution of the ANNOTATE_HAPPENS_BEFORE(), ANNOTATE_HAPPENS_AFTER() and ANNOTATE_HAPPENS_DONE() client requests]:enable [no]:(yes no)'
+  '--trace-mutex=-[trace all mutex activity]:enable [no]:(yes no)'
+  '--trace-rwlock=-[trace all reader-writer lock activity]:enable [no]:(yes no)'
+  '--trace-semaphore=-[trace all semaphore activity]:enable [no]:(yes no)'
+)
+
+args_memcheck=(
+  $args_addrcheck
+  $common_read_varinfo
+  $common_report_errors
+)
+
+args_cachegrind=(
+  '--I1=-[set I1 cache manually]:size,assoc,line_size'
+  '--D1=-[set D1 cache manually]:size,assoc,line_size'
+  '--LL=-[set LL cache manually]:size,assoc,line_size'
+  '--cache-sim=-[collect cache stats]:enable [yes]:(yes no)'
+  '--branch-sim=-[collect branch prediction stats]:enable [no]:(yes no)'
+  '--cachegrind-out-file=-[specify output file name]:file name [cachegrind.out.%%p]:_files'
+)
+
+args_helgrind=(
+  $common_own_malloc
+  $common_read_varinfo
+  $common_report_errors
+  '--free-is-write=-[treat heap frees as writes]:enable [no]:(yes no)'
+  '--track-lockorders=-[show lock ordering errors]:enable [yes]:(no yes)'
+  '--history-level=-[specify amount of history to show for data races]:level [full]:((
+    full\:show\ both\ stack\ traces\ for\ a\ data\ race\ \(slow\)
+    approx\:full\ trace\ for\ one\ thread,\ approx\ for\ the\ other\ \(faster\)
+    none\:only\ show\ trace\ for\ one\ thread\ in\ a\ race\ \(fastest\)
+  ))'
+  '--delta-stacktrace=-[derive a stacktrace from the previous stacktrace]:enable:(yes no)'
+  '--conflict-cache-size=-[specify size of full history cache]:size [2000000]'
+  '--check-stack-refs=-[race-check reads and writes on the main stack and thread stacks]:enable [yes]:(no yes)'
+  '--ignore-thread-creation=-[ignore activities during thread creation]:enable [no]:(yes no)'
+)
+
+args_lackey=(
+  '--basic-counts=-[count instructions, jumps, etc.]:enable [yes]:(yes no)'
+  '--detailed-counts=-[count loads, stores and alu ops]:enable [no]:(yes no)'
+  '--trace-mem=-[trace all loads and stores]:enable [no]:(yes no)'
+  '--trace-superblocks=-[trace all superblock entries]:enable [no]:(yes no)'
+  '--fnname=-[count calls to specified name]:name [main]'
+)
+
+args_massif=(
+  $common_own_malloc
+  '--heap=-[profile heap blocks]:enable [yes]:(yes no)'
+  '--heap-admin=-[specify average admin bytes per heap block]:size (bytes) [8]'
+  '--stacks=-[profile stacks]:enable [no]:(yes no)'
+  '--pages-as-heap=-[profile memory at the page level]:enable [no]:(yes no)'
+  '--depth=-[depth of contexts]:depth [30]'
+  '*--alloc-fn=-[specify alloc function]:function'
+  '*--ignore-fn=-[ignore heap allocations within specified function]:function'
+  '--threshold=-[specify significance threshold]:threshold (percentage) [1.0]'
+  '--peak-inaccuracy=-[specify maximum peak inaccuracy]:inaccuracy (percentage) [1.0]'
+  "--time-unit=-[specify time unit]:unit [i]:((
+    i\:instructions\ executed
+    ms\:milliseconds
+    b\:heap\ bytes\ alloc\'d/dealloc\'d
+  ))"
+  '--detailed-freq=-[every Nth snapshot should be detailed]:snapshot interval [10]'
+  '--max-snapshots=-[specofy maximum number of snapshots recorded]:maximum [100]'
+  '--massif-out-file=-[specify output file name]:filename [massif.out.%%p]:_files'
+)
+
+args_exp_bbv=(
+  '--bb-out-file=-[specify filename for BBV info]:filename:_files'
+  '--pc-out-file=-[specify filename for BB addresses and function names]:filename:_files'
+  '--interval-size=-[specify interval size]:size (instructions) [100000000]'
+  '--instr-count-only=-[only print total instruction count]:enable:(yes no)'
+)
+
+args_exp_dhat=(
+  '--show-top-n=-[show specified number of the top alloc points]:number [10]'
+  '--sort-by=-[sort the allocation points by specified metric]:metric [max-bytes-live]:((
+    max-bytes-live\:maximum\ live\ bytes
+    tot-bytes-allocd\:bytes\ allocated\ in\ total\ \(turnover\)
+    max-blocks-live\:maximum\ live\ blocks
+    tot-blocks-allocd\:blocks\ allocated\ in\ total\ \(turnover\)
+  ))'
+)
+
+args_exp_sgcheck=(
+  $common_partial
+  $common_report_errors
+  '--enable-sg-checks=-[enable stack & global array checking]:enable [yes]:(yes no)'
+)
+
+args_none=(
+  $common_mem_null
+)
+
+args="args_${${${words[(r)--tool=*]#*=}/-/_}:-memcheck}"
+
+_arguments -C ${(P)args} $cmd \
+  '(--version)--tool=-[specify valgrind tool]:valgrind tool:->tools' \
+  '(-h --help)'{-h,--help}'[show help information]' \
+  '--help-debug[show help info including debugging options]' \
+  '--help-dyn-options[show the dynamically changeable options]' \
+  '(-)--version[show version]' \
+  '(-q --quiet)'{-q,--quiet}'[run silently; only print error msgs]' \
+  '(-v --verbose)'{-v,--verbose}'[be more verbose]' \
+  '--trace-children=-[valgrind-ise child processes]:enable:(yes no)' \
+  '--trace-children-skip=-[specify a list of executables not to trace into]:executables' \
+  '--trace-children-skip-by-arg=-[specify a list of executables matched by argv not to trace into]:executables' \
+  '--child-silent-after-fork=-[omit child output between fork & exec]:enable:(yes no)' \
+  '--vgdb=-[activate gdbserver]:enable [yes]:(yes no full)' \
+  '--vgdb-error=-[invoke gdbserver after specified number of errors]:errors [999999999]:errors' \
+  '--vgdb-stop-at=-[invoke gdbserver for given events]:event:_sequence compadd - startup exit valgrindabexit all none' \
+  '--track-fds=-[track open file descriptors]:enable:(yes no)' \
+  '--time-stamp=-[add timestamps to log messages]:enable:(yes no)' \
+  '--log-fd=-[log messages to specified file descriptor]:file descriptor:_file_descriptors' \
+  '--log-file=-[log messages to specified file with pid appended]:file:_files' \
+  '--log-socket=-[log messages to socket]:ipaddr\:port' \
+  '*--fullpath-after=-[show full source paths in call stacks]::prefix to remove from paths:_directories' \
+  '--extra-debuginfo-path=-[specify absolute path to search for additional debug symbols]:path:_directories' \
+  '--debuginfo-server=-[specify server to query for debug symbols]:server:_hosts' \
+  "--allow-mismatched-debuginfo=-[accept debuginfo objects that don't match the main object]:enable [no]:(yes no)" \
+  '--smc-check=-[check for self-modifying code]:checks [all-non-file]:(none stack all all-non-file)' \
+  '--read-inline-info=-[read debug info about inlined functions to improve stack traces]:enable:(yes no)' \
+  '--vgdb-poll=-[specify gdbserver poll max]:basic blocks [5000]' \
+  '--vgdb-shadow-registers=-[let gdb see the shadow registers]:enable [yes]:(yes no)' \
+  '--vgdb-prefix=-[specify prefix for bgdb FIFOs]:prefix:_files' \
+  '--run-libc-freeres=-[free up glibc memory at exit]:enable [yes]:(yes no)' \
+  '--run-cxx-freeres=-[free up libstdc++ memory at exit]:enable [yes]:(yes no)' \
+  '--sim-hints=-[activate unusual sim behaviours]:hint [none]:_sequence compadd - lax-ioctls lax-doors fuse-compatible enable-outer no-inner-prefix no-nptl-pthread-stackcache fallback-llsc none' \
+  '--fair-sched=-[schedule threads fairly on multicore systems]:enable [no]:(yes no try)' \
+  '--kernel-variant=-[handle non-standard kernel variants]:kernel variant:_sequence compadd - bproc android-no-hw-tls android-gpu-sgx5xx android-gpu-adreno3xx' \
+  '--merge-recursive-frames=-[merge frames between identical program counters in specified max frames]:frames [0]' \
+  '--num-transtab-sectors=-[specify size of translated code cache]:size (sectors) [32]' \
+  '--avg-transtab-entry-size=-[specify average size of a translated basic block]:size (bytes)' \
+  '--aspace-minaddr=-[avoid mapping memory below address]:address (0xPP) [guessed]' \
+  "--valgrind-stacksize=-[specify size of valgrind (host) thread's stack]:size (bytes) [1048576]" \
+  '--show-emwarns=-[show warnings about emulation limits]:enable [no]:(yes no)' \
+  '*--require-text-symbol=-[abort run if the specified shared object lacks specified symbol]:\:soname pattern\:symbol pattern' \
+  '*--soname-synonyms=-[specify patterns to map sonames to replacements]:soname=replacement' \
+  '--sigill-diagnostics=-[warn about illegal instructions]:enable [yes]:(yes no)' \
+  '--unw-stack-scan-thresh=-[enable stack-scan unwind if fewer than specified number of good frames found]:frames' \
+  '--resync-filter=-[attempt to avoid expensive address-space-resync operations]:enable:(yes no verbose)' \
+  '--max-threads=-[specify maximum number of threads that valgrind can handle]:threads [500]' \
+  && return
+
+typeset -a tools
+
+if [[ -n "$state" ]]; then
+  # `valgrind --tool=` no longer works.
+  # The method below is even more hackish, but the only one I could find.
+  # Basically uses debug output to find out the directory where the tools are
+  # present and lists all executables in that directory.
+  # Hope the program provides a neater interface some day!
+  tools=( ${${${${(M)${(f)"$(_call_program tools $words[1] --tool=something -d 2>&1)"}:#*launcher launching *something*}##*launcher launching }%%something*}:-${commands[valgrind]:h:h}/lib/valgrind/}*~*.*(*:t) )
+  tools=( ${tools%-*-*} )
+  typeset -U tools
+  _wanted tools exl 'valgrind tool' compadd -a tools && return
+fi
+
+return 1

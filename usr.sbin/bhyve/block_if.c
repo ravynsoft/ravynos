@@ -27,7 +27,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #ifndef WITHOUT_CAPSICUM
 #include <sys/capsicum.h>
@@ -1025,7 +1024,7 @@ blockif_pause(struct blockif_ctxt *bc)
 	pthread_mutex_unlock(&bc->bc_mtx);
 
 	if (!bc->bc_rdonly && blockif_flush_bc(bc))
-		fprintf(stderr, "%s: [WARN] failed to flush backing file.\r\n",
+		EPRINTLN("%s: [WARN] failed to flush backing file.",
 			__func__);
 }
 

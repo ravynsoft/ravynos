@@ -1,0 +1,120 @@
+'\" t
+.\"     Title: ndisasm
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 12/21/2022
+.\"    Manual: The Netwide Assembler Project
+.\"    Source: NASM
+.\"  Language: English
+.\"
+.TH "NDISASM" "1" "12/21/2022" "NASM" "The Netwide Assembler Project"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+ndisasm \- the Netwide Disassembler, an 80x86 binary file disassembler
+.SH "SYNOPSIS"
+.sp
+\fBndisasm\fR [ \fB\-o\fR origin ] [ \fB\-s\fR sync\-point [\&...]] [ \fB\-a\fR | \fB\-i\fR ] [ \fB\-b\fR bits ] [ \fB\-u\fR ] [ \fB\-e\fR hdrlen ] [ \fB\-p\fR vendor ] [ \fB\-k\fR offset,length [\&...]] infile
+.SH "DESCRIPTION"
+.sp
+The \fBndisasm\fR command generates a disassembly listing of the binary file infile and directs it to stdout\&.
+.SH "OPTIONS"
+.PP
+\fB\-h\fR
+.RS 4
+Causes
+\fBndisasm\fR
+to exit immediately, after giving a summary of its invocation options\&.
+.RE
+.PP
+\fB\-r\fR|\fB\-v\fR
+.RS 4
+Causes
+\fBndisasm\fR
+to exit immediately, after displaying its version number\&.
+.RE
+.PP
+\fB\-o\fR \fIorigin\fR
+.RS 4
+Specifies the notional load address for the file\&. This option causes
+\fBndisasm\fR
+to get the addresses it lists down the left hand margin, and the target addresses of PC\-relative jumps and calls, right\&.
+.RE
+.PP
+\fB\-s\fR \fIsync\-point\fR
+.RS 4
+Manually specifies a synchronisation address, such that
+\fBndisasm\fR
+will not output any machine instruction which encompasses bytes on both sides of the address\&. Hence the instruction which starts at that address will be correctly disassembled\&.
+.RE
+.PP
+\fB\-e\fR \fIhdrlen\fR
+.RS 4
+Specifies a number of bytes to discard from the beginning of the file before starting disassembly\&. This does not count towards the calculation of the disassembly offset: the first
+\fIdisassembled\fR
+instruction will be shown starting at the given load address\&.
+.RE
+.PP
+\fB\-k\fR \fIoffset,length\fR
+.RS 4
+Specifies that
+\fIlength\fR
+bytes, starting from disassembly offset
+\fIoffset\fR, should be skipped over without generating any output\&. The skipped bytes still count towards the calculation of the disassembly offset\&.
+.RE
+.PP
+\fB\-a\fR|\fB\-i\fR
+.RS 4
+Enables automatic (or intelligent) sync mode, in which
+\fBndisasm\fR
+will attempt to guess where synchronisation should be performed, by means of examining the target addresses of the relative jumps and calls it disassembles\&.
+.RE
+.PP
+\fB\-b\fR \fIbits\fR
+.RS 4
+Specifies 16\-, 32\- or 64\-bit mode\&. The default is 16\-bit mode\&.
+.RE
+.PP
+\fB\-u\fR
+.RS 4
+Specifies 32\-bit mode, more compactly than using \(oq\-b 32\(cq\&.
+.RE
+.PP
+\fB\-p\fR \fIvendor\fR
+.RS 4
+Prefers instructions as defined by
+\fIvendor\fR
+in case of a conflict\&. Known
+\fIvendor\fR
+names include
+\fBintel\fR,
+\fBamd\fR,
+\fBcyrix\fR, and
+\fBidt\fR\&. The default is
+\fBintel\fR\&.
+.RE
+.SH "RESTRICTIONS"
+.sp
+\fBndisasm\fR only disassembles binary files: it has no understanding of the header information present in object or executable files\&. If you want to disassemble an object file, you should probably be using \fBobjdump\fR(1)\&.
+.sp
+Auto\-sync mode won\(cqt necessarily cure all your synchronisation problems: a sync marker can only be placed automatically if a jump or call instruction is found to refer to it \fIbefore\fR \fBndisasm\fR actually disassembles that part of the code\&. Also, if spurious jumps or calls result from disassembling non\-machine\-code data, sync markers may get placed in strange places\&. Feel free to turn auto\-sync off and go back to doing it manually if necessary\&.
+.SH "SEE ALSO"
+.sp
+\fBobjdump\fR(1)

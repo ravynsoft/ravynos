@@ -1,0 +1,20 @@
+#compdef qtplay
+
+_arguments -S \
+  '(- *)-cd[play a CD]' \
+  '(-)-f[read files as playlist]:*:playlist:_files' \
+  '-l[loop]' \
+  '-q[quiet]' \
+  '-Q[quicktime only]' \
+  '-s[speak filenames]' \
+  '-S[sound manager only]' \
+  '-v[verbose]' \
+  '-z[shuffle play]' \
+  '-Z[random play]' \
+  '-1[play one random file]' \
+  '-t[specify update time]:update time (seconds)' \
+  '-T[kill time]:ticks' \
+  '-V[volume]:percentage of normal volume' \
+  '(-)'{-\?,--help,-h}'[display help information]' \
+  '(-)*:quicktime file:_files'
+

@@ -1,0 +1,3 @@
+	.text
+lbasename:
+	 .nop

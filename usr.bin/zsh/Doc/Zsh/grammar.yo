@@ -1,0 +1,693 @@
+texinode(Shell Grammar)(Redirection)(Files)(Top)
+chapter(Shell Grammar)
+cindex(shell grammar)
+cindex(grammar, shell)
+startmenu()
+menu(Simple Commands & Pipelines)
+menu(Precommand Modifiers)
+menu(Complex Commands)
+menu(Alternate Forms For Complex Commands)
+menu(Reserved Words)
+menu(Errors)
+menu(Comments)
+menu(Aliasing)
+menu(Quoting)
+endmenu()
+texinode(Simple Commands & Pipelines)(Precommand Modifiers)()(Shell Grammar)
+sect(Simple Commands & Pipelines)
+cindex(simple commands)
+cindex(commands, simple)
+A em(simple command) is a sequence of optional parameter
+assignments followed by blank-separated words,
+with optional redirections interspersed.  For a description
+of assignment, see the beginning of
+ifnzman(noderef(Parameters))\
+ifzman(zmanref(zshparam)).
+
+The first word is the command to be executed, and the remaining
+words, if any, are arguments to the command.
+If a command name is given, the parameter assignments modify
+the environment of the command when it is executed.
+The value of a simple command is its exit status,
+or 128 plus the signal number if terminated by a signal.
+For example,
+
+example(echo foo)
+
+is a simple command with arguments.
+
+cindex(pipeline)
+A em(pipeline) is either a simple command, or a sequence of two or more
+simple commands where each command is separated from the next by `tt(|)'
+or `tt(|&)'.  Where commands are separated by `tt(|)', the standard
+output of the first command is connected to the
+standard input of the next.  `tt(|&)' is shorthand for `tt(2>&1 |)', which
+connects both the standard output and the standard error of the
+command to the standard input of the next.  The value of a pipeline
+is the value of the last command, unless the pipeline is preceded by
+`tt(!)' in which case the value is the logical inverse of the value of the
+last command.
+For example,
+
+example(echo foo | sed 's/foo/bar/')
+
+is a pipeline, where the output (`tt(foo)' plus a newline) of the first
+command will be passed to the input of the second.
+
+findex(coproc)
+cindex(coprocess)
+If a pipeline is preceded by `tt(coproc)', it is executed as a coprocess;
+a two-way pipe is established between it and the parent shell.  The
+shell can read from or write to the coprocess by means of the `tt(>&p)'
+and `tt(<&p)' redirection operators or with `tt(print -p)' and `tt(read -p)'.
+A pipeline cannot be preceded by both `tt(coproc)' and `tt(!)'.
+If job control is active, the coprocess can be treated in other than input
+and output as an ordinary background job.
+
+cindex(sublist)
+A em(sublist) is either a single pipeline, or a sequence of two or more
+pipelines separated by `tt(&&)' or `tt(||)'.  If two pipelines are separated
+by `tt(&&)', the second pipeline is executed only if the first succeeds
+(returns a zero status).  If two pipelines are separated by `tt(||)', the
+second is executed only if the first fails (returns a nonzero status).
+Both operators have equal precedence and are left associative.
+The value of the sublist is the value of the last pipeline executed.
+For example,
+
+example(dmesg | grep panic && print yes)
+
+is a sublist consisting of two pipelines, the second just a simple command
+which will be executed if and only if the tt(grep) command returns a zero
+status.  If it does not, the value of the sublist is that return status, else
+it is the status returned by the tt(print) (almost certainly zero).
+
+cindex(list)
+A em(list) is a sequence of zero or more sublists, in which each sublist
+is terminated by `tt(;)', `tt(&)', `tt(&|)', `tt(&!)', or a newline.
+This terminator
+may optionally be omitted from the last sublist in the list when the
+list appears as a complex command inside `tt(LPAR())...tt(RPAR())'
+or `tt({)...tt(})'.  When a
+sublist is terminated by `tt(;)' or newline, the shell waits for it to
+finish before executing the next sublist.  If a sublist is terminated
+by a `tt(&)', `tt(&|)', or `tt(&!)',
+the shell executes the last pipeline in it in the background, and
+does not wait for it to finish (note the difference from other shells
+which execute the whole sublist in the background).
+A backgrounded pipeline returns a status of zero.
+
+More generally, a list can be seen as a set of any shell commands
+whatsoever, including the complex commands below; this is implied wherever
+the word `list' appears in later descriptions.  For example, the commands
+in a shell function form a special sort of list.
+texinode(Precommand Modifiers)(Complex Commands)(Simple Commands & Pipelines)(Shell Grammar)
+sect(Precommand Modifiers)
+cindex(precommand modifiers)
+cindex(modifiers, precommand)
+A simple command may be preceded by a em(precommand modifier),
+which will alter how the command is interpreted.  These modifiers are
+shell builtin commands with the exception of tt(nocorrect) which is
+a reserved word.
+
+startitem()
+findex(-)
+item(tt(-))(
+The command is executed with a `tt(-)' prepended to its
+tt(argv[0]) string.
+)
+findex(builtin)
+item(tt(builtin))(
+The command word is taken to be the name of a builtin command,
+rather than a shell function or external command.
+)
+findex(command)
+item(tt(command) [ tt(-pvV) ])(
+The command word is taken to be the name of an external command,
+rather than a shell function or builtin.   If the tt(POSIX_BUILTINS) option
+is set, builtins will also be executed but certain special properties
+of them are suppressed. The tt(-p) flag causes a default path to be
+searched instead of that in tt($path). With the tt(-v) flag, tt(command)
+is similar to tt(whence) and with tt(-V), it is equivalent to tt(whence
+-v).
+)
+findex(exec)
+item(tt(exec) [ tt(-cl) ] [ tt(-a) var(argv0) ])(
+The following command together with any arguments is run in place
+of the current process, rather than as a sub-process.  The shell does not
+fork and is replaced.  The shell does not invoke tt(TRAPEXIT), nor does it
+source tt(zlogout) files.
+The options are provided for compatibility with other shells.
+
+The tt(-c) option clears the environment.
+
+The tt(-l) option is equivalent to the tt(-) precommand modifier, to
+treat the replacement command as a login shell; the command is executed
+with a tt(-) prepended to its tt(argv[0]) string.  This flag has no effect
+if used together with the tt(-a) option.
+
+The tt(-a) option is used to specify explicitly the tt(argv[0]) string
+(the name of the command as seen by the process itself) to be used by the
+replacement command and is directly equivalent to setting a value
+for the tt(ARGV0) environment variable.
+)
+findex(nocorrect)
+item(tt(nocorrect))(
+Spelling correction is not done on any of the words.  This must appear
+before any other precommand modifier, as it is interpreted immediately,
+before any parsing is done.  It has no effect in non-interactive shells.
+)
+findex(noglob)
+item(tt(noglob))(
+Filename generation (globbing) is not performed on any of
+the words.
+)
+enditem()
+texinode(Complex Commands)(Alternate Forms For Complex Commands)(Precommand Modifiers)(Shell Grammar)
+sect(Complex Commands)
+cindex(complex commands)
+cindex(commands, complex)
+A em(complex command) in zsh is one of the following:
+
+startitem()
+findex(if)
+cindex(if construct)
+item(tt(if) var(list) tt(then) var(list) [ tt(elif) var(list) tt(then) var(list) ] ... [ tt(else) var(list) ] tt(fi))(
+The tt(if) var(list) is executed, and if it returns a zero exit status,
+the tt(then) var(list) is executed.
+Otherwise, the tt(elif) var(list) is executed and if its status is zero,
+the tt(then) var(list) is executed.
+If each tt(elif) var(list) returns nonzero status, the tt(else) var(list)
+is executed.
+)
+findex(for)
+cindex(for loops)
+cindex(loops, for)
+item(tt(for) var(name) ... [ tt(in) var(word) ... ] var(term) tt(do) var(list) tt(done))(
+Expand the list of var(word)s, and set the parameter
+var(name) to each of them in turn, executing var(list)
+each time.  If the `tt(in) var(word)' is omitted,
+use the positional parameters instead of the var(word)s.
+
+The var(term) consists of one or more newline or tt(;)
+which terminate the var(word)s, and are optional when the
+`tt(in) var(word)' is omitted.
+
+More than one parameter var(name) can appear before the list of
+var(word)s.  If var(N) var(name)s are given, then on each execution of the
+loop the next var(N) var(word)s are assigned to the corresponding
+parameters.  If there are more var(name)s than remaining var(word)s, the
+remaining parameters are each set to the empty string.  Execution of the
+loop ends when there is no remaining var(word) to assign to the first
+var(name).  It is only possible for tt(in) to appear as the first var(name)
+in the list, else it will be treated as marking the end of the list.
+)
+item(tt(for LPAR()LPAR()) [var(expr1)] tt(;) [var(expr2)] tt(;) [var(expr3)] tt(RPAR()RPAR() do) var(list) tt(done))(
+The arithmetic expression var(expr1) is evaluated first (see
+noderef(Arithmetic Evaluation)).  The arithmetic expression
+var(expr2) is repeatedly evaluated until it evaluates to zero and
+when non-zero, var(list) is executed and the arithmetic expression
+var(expr3) evaluated.  If any expression is omitted, then it behaves
+as if it evaluated to 1.
+)
+findex(while)
+cindex(while loops)
+cindex(loops, while)
+item(tt(while) var(list) tt(do) var(list) tt(done))(
+Execute the tt(do) var(list) as long as the tt(while) var(list)
+returns a zero exit status.
+)
+findex(until)
+cindex(until loops)
+cindex(loops, until)
+item(tt(until) var(list) tt(do) var(list) tt(done))(
+Execute the tt(do) var(list) as long as tt(until) var(list)
+returns a nonzero exit status.
+)
+findex(repeat)
+cindex(repeat loops)
+cindex(loops, repeat)
+item(tt(repeat) var(word) tt(do) var(list) tt(done))(
+var(word) is expanded and treated as an arithmetic expression,
+which must evaluate to a number var(n).
+var(list) is then executed var(n) times.
+
+The tt(repeat) syntax is disabled by default when the
+shell starts in a mode emulating another shell.  It can be enabled
+with the command `tt(enable -r repeat)'
+)
+findex(case)
+cindex(case selection)
+cindex(selection, case)
+item(tt(case) var(word) tt(in) [ [tt(LPAR())] var(pattern) [ tt(|) var(pattern) ] ... tt(RPAR()) var(list) (tt(;;)|tt(;&)|tt(;|)) ] ... tt(esac))(
+Execute the var(list) associated with the first var(pattern)
+that matches var(word), if any.  The form of the patterns
+is the same as that used for filename generation.  See
+noderef(Filename Generation).
+
+Note further that, unless the tt(SH_GLOB) option is set, the whole
+pattern with alternatives is treated by the shell as equivalent to a
+group of patterns within parentheses, although white space may appear
+about the parentheses and the vertical bar and will be stripped from the
+pattern at those points.  White space may appear elsewhere in the
+pattern; this is not stripped.  If the tt(SH_GLOB) option is set, so
+that an opening parenthesis can be unambiguously treated as part of the
+case syntax, the expression is parsed into separate words and these are
+treated as strict alternatives (as in other shells).
+
+If the var(list) that is executed is terminated with tt(;&) rather than
+tt(;;), the following list is also executed.  The rule for
+the terminator of the following list tt(;;), tt(;&) or tt(;|) is
+applied unless the tt(esac) is reached.
+
+If the var(list) that is executed is terminated with tt(;|) the
+shell continues to scan the var(pattern)s looking for the next match,
+executing the corresponding var(list), and applying the rule for
+the corresponding terminator tt(;;), tt(;&) or tt(;|).
+Note that var(word) is not re-expanded; all applicable var(pattern)s
+are tested with the same var(word).
+)
+findex(select)
+cindex(user selection)
+cindex(selection, user)
+item(tt(select) var(name) [ tt(in) var(word) ... var(term) ] tt(do) var(list) tt(done))(
+where var(term) is one or more newline or tt(;) to terminate the var(word)s.
+vindex(REPLY, use of)
+Print the set of var(word)s, each preceded by a number.
+If the tt(in) var(word) is omitted, use the positional parameters.
+The tt(PROMPT3) prompt is printed and a line is read from the line editor
+if the shell is interactive and that is active, or else standard input.
+If this line consists of the
+number of one of the listed var(word)s, then the parameter var(name)
+is set to the var(word) corresponding to this number.
+If this line is empty, the selection list is printed again.
+Otherwise, the value of the parameter var(name) is set to null.
+The contents of the line read from standard input is saved
+in the parameter tt(REPLY).  var(list) is executed
+for each selection until a break or end-of-file is encountered.
+)
+cindex(subshell)
+item(tt(LPAR()) var(list) tt(RPAR()))(
+Execute var(list) in a subshell.  Traps set by the tt(trap) builtin
+are reset to their default values while executing var(list); an
+exception is that ignored signals will continue to be ignored
+if the option tt(POSIXTRAPS) is set.
+)
+item(tt({) var(list) tt(}))(
+Execute var(list).
+)
+findex(always)
+cindex(always blocks)
+cindex(try blocks)
+item(tt({) var(try-list) tt(} always {) var(always-list) tt(}))(
+First execute var(try-list).  Regardless of errors, or tt(break) or
+tt(continue) commands encountered within var(try-list),
+execute var(always-list).  Execution then continues from the
+result of the execution of var(try-list); in other words, any error,
+or tt(break) or tt(continue) command is treated in the
+normal way, as if var(always-list) were not present.  The two
+chunks of code are referred to as the `try block' and the `always block'.
+
+Optional newlines or semicolons may appear after the tt(always);
+note, however, that they may em(not) appear between the preceding
+closing brace and the tt(always).
+
+An `error' in this context is a condition such as a syntax error which
+causes the shell to abort execution of the current function, script, or
+list.  Syntax errors encountered while the shell is parsing the
+code do not cause the var(always-list) to be executed.  For example,
+an erroneously constructed tt(if) block in var(try-list) would cause the
+shell to abort during parsing, so that var(always-list) would not be
+executed, while an erroneous substitution such as tt(${*foo*}) would
+cause a run-time error, after which var(always-list) would be executed.
+
+An error condition can be tested and reset with the special integer
+variable tt(TRY_BLOCK_ERROR).  Outside an var(always-list) the value is
+irrelevant, but it is initialised to tt(-1).  Inside var(always-list), the
+value is 1 if an error occurred in the var(try-list), else 0.  If
+tt(TRY_BLOCK_ERROR) is set to 0 during the var(always-list), the error
+condition caused by the var(try-list) is reset, and shell execution
+continues normally after the end of var(always-list).  Altering the value
+during the var(try-list) is not useful (unless this forms part of an
+enclosing tt(always) block).
+
+Regardless of tt(TRY_BLOCK_ERROR), after the end of var(always-list) the
+normal shell status tt($?) is the value returned from var(try-list).
+This will be non-zero if there was an error, even if tt(TRY_BLOCK_ERROR)
+was set to zero.
+
+The following executes the given code, ignoring any errors it causes.
+This is an alternative to the usual convention of protecting code by
+executing it in a subshell.
+
+example({
+    # code which may cause an error
+  } always {
+    # This code is executed regardless of the error.
+    (( TRY_BLOCK_ERROR = 0 ))
+}
+# The error condition has been reset.)
+
+When a tt(try) block occurs outside of any function, 
+a tt(return) or a tt(exit) encountered in var(try-list) does em(not) cause
+the execution of var(always-list).  Instead, the shell exits immediately
+after any tt(EXIT) trap has been executed.
+Otherwise, a tt(return) command encountered in var(try-list) will cause the
+execution of var(always-list), just like tt(break) and tt(continue).
+
+COMMENT(The semantics of calling 'exit' in try-list inside a function are
+deliberately left unspecified, because historically there was a mismatch between
+the documented and implemented behaviours.  Cf. 20076, 21734/21735, 45075.)
+)
+findex(function)
+xitem(tt(function) [ tt(-T) ] var(word) ... [ tt(()) ] [ var(term) ] tt({) var(list) tt(}))
+xitem(var(word) ... tt(()) [ var(term) ] tt({) var(list) tt(}))
+item(var(word) ... tt(()) [ var(term) ] var(command))(
+where var(term) is one or more newline or tt(;).
+Define a function which is referenced by any one of var(word).
+Normally, only one var(word) is provided; multiple var(word)s
+are usually only useful for setting traps.
+The body of the function is the var(list) between
+the tt({) and tt(}).  See noderef(Functions).
+
+The options of tt(function) have the following meanings:
+
+startitem()
+item(-T)(
+Enable tracing for this function, as though with tt(functions -T).  See the
+documentation of the tt(-f) option to the tt(typeset) builtin, in
+ifzman(zmanref(zshbuiltins))\
+ifnzman(noderef(Shell Builtin Commands)).
+)
+enditem()
+
+If the option tt(SH_GLOB) is set for compatibility with other shells, then
+whitespace may appear between the left and right parentheses when
+there is a single var(word);  otherwise, the parentheses will be treated as
+forming a globbing pattern in that case.
+
+In any of the forms above, a redirection may appear outside the
+function body, for example
+
+example(func+LPAR()RPAR() { ... } 2>&1)
+
+The redirection is stored with the function and applied whenever the
+function is executed.  Any variables in the redirection are expanded
+at the point the function is executed, but outside the function scope.
+)
+cindex(timing)
+findex(time)
+item(tt(time) [ var(pipeline) ])(
+The var(pipeline) is executed, and timing statistics are
+reported on the standard error in the form specified
+by the tt(TIMEFMT) parameter.
+If var(pipeline) is omitted, print statistics about the
+shell process and its children.
+)
+cindex(conditional expression)
+findex([[)
+item(tt([[) var(exp) tt(]]))(
+Evaluates the conditional expression var(exp)
+and return a zero exit status if it is true.
+See noderef(Conditional Expressions)
+for a description of var(exp).
+)
+enditem()
+texinode(Alternate Forms For Complex Commands)(Reserved Words)(Complex Commands)(Shell Grammar)
+sect(Alternate Forms For Complex Commands)
+cindex(alternate forms for complex commands)
+cindex(commands, alternate forms for complex)
+Many of zsh's complex commands have alternate forms.  These are
+non-standard and are likely not to be obvious even to seasoned shell
+programmers; they should not be used anywhere that portability of shell
+code is a concern.
+
+The short versions below only work if var(sublist) is of the form `tt({)
+var(list) tt(})' or if the tt(SHORT_LOOPS) option is set.  For the tt(if),
+tt(while) and tt(until) commands, in both these cases the test part of the
+loop must also be suitably delimited, such as by `tt([[) var(...) tt(]])' or
+`tt(LPAR()LPAR()) var(...) tt(RPAR()RPAR())',
+else the end of the test will not be recognized.  For the
+tt(for), tt(repeat), tt(case) and tt(select) commands no such special form
+for the arguments is necessary, but the other condition (the special form
+of var(sublist) or use of the tt(SHORT_LOOPS) option) still applies.
+The tt(SHORT_REPEAT) option is available to enable the short version only
+for the tt(repeat) command.
+
+startitem()
+item(tt(if) var(list) tt({) var(list) tt(}) [ tt(elif) var(list) tt({) var(list) tt(}) ] ... [ tt(else {) var(list) tt(}) ])(
+An alternate form of tt(if).  The rules mean that
+
+example(if [[ -o ignorebraces ]] {
+  print yes
+})
+
+works, but
+
+example(if true {  # Does not work!
+  print yes
+})
+
+does em(not), since the test is not suitably delimited.
+)
+item(tt(if) var(list) var(sublist))(
+A short form of the alternate tt(if).  The same limitations on the form of
+var(list) apply as for the previous form.
+)
+item(tt(for) var(name) ... tt(LPAR()) var(word) ... tt(RPAR()) var(sublist))(
+A short form of tt(for).
+)
+item(tt(for) var(name) ... [ tt(in) var(word) ... ] var(term) var(sublist))(
+where var(term) is at least one newline or tt(;).
+Another short form of tt(for).
+)
+item(tt(for LPAR()LPAR()) [var(expr1)] tt(;) [var(expr2)] tt(;) [var(expr3)] tt(RPAR()RPAR()) var(sublist))(
+A short form of the arithmetic tt(for) command.
+)
+findex(foreach)
+item(tt(foreach) var(name) ... tt(LPAR()) var(word) ... tt(RPAR()) var(list) tt(end))(
+Another form of tt(for).
+)
+item(tt(while) var(list) tt({) var(list) tt(}))(
+An alternative form of tt(while).  Note the limitations on the form of
+var(list) mentioned above.
+)
+item(tt(until) var(list) tt({) var(list) tt(}))(
+An alternative form of tt(until).  Note the limitations on the form of
+var(list) mentioned above.
+)
+item(tt(repeat) var(word) var(sublist))(
+This is a short form of tt(repeat).
+)
+item(tt(case) var(word) tt({) [ [tt(LPAR())] var(pattern) [ tt(|) var(pattern) ] ... tt(RPAR()) var(list) (tt(;;)|tt(;&)|tt(;|)) ] ... tt(}))(
+An alternative form of tt(case).
+)
+item(tt(select) var(name) [ tt(in) var(word) ... var(term) ] var(sublist))(
+where var(term) is at least one newline or tt(;).
+A short form of tt(select).
+)
+item(tt(function) var(word) ... [ tt(+LPAR()+RPAR()) ] [ var(term) ] var(sublist))(
+This is a short form of tt(function).
+)
+enditem()
+texinode(Reserved Words)(Errors)(Alternate Forms For Complex Commands)(Shell Grammar)
+sect(Reserved Words)
+cindex(reserved words)
+findex(disable, use of)
+The following words are recognized as reserved words when used as the first
+word of a command unless quoted or disabled using tt(disable -r):
+
+tt(do done esac then elif else fi for case
+if while function repeat time until
+select coproc nocorrect foreach end ! [[ { }
+declare export float integer local readonly typeset)
+
+Additionally, `tt(})' is recognized in any position if neither the
+tt(IGNORE_BRACES) option nor the tt(IGNORE_CLOSE_BRACES) option is set.
+texinode(Errors)(Comments)(Reserved Words)(Shell Grammar)
+sect(Errors)
+cindex(errors, handling of)
+Certain errors are treated as fatal by the shell: in an interactive
+shell, they cause control to return to the command line, and in a
+non-interactive shell they cause the shell to be aborted.  In older
+versions of zsh, a non-interactive shell running a script would not
+abort completely, but would resume execution at the next command to be
+read from the script, skipping the remainder of any functions or
+shell constructs such as loops or conditions; this somewhat illogical
+behaviour can be recovered by setting the option tt(CONTINUE_ON_ERROR).
+
+Fatal errors found in non-interactive shells include:
+
+startitemize()
+itemiz(Failure to parse shell options passed when invoking the shell)
+itemiz(Failure to change options with the tt(set) builtin)
+itemiz(Parse errors of all sorts, including failures to parse
+mathematical expressions)
+itemiz(Failures to set or modify variable behaviour with tt(typeset),
+tt(local), tt(declare), tt(export), tt(integer), tt(float))
+itemiz(Execution of incorrectly positioned loop control structures
+(tt(continue), tt(break)))
+itemiz(Attempts to use regular expression with no regular expression
+module available)
+itemiz(Disallowed operations when the tt(RESTRICTED) options is set)
+itemiz(Failure to create a pipe needed for a pipeline)
+itemiz(Failure to create a multio)
+itemiz(Failure to autoload a module needed for a declared shell feature)
+itemiz(Errors creating command or process substitutions)
+itemiz(Syntax errors in glob qualifiers)
+itemiz(File generation errors where not caught by the option tt(BAD_PATTERN))
+itemiz(All bad patterns used for matching within case statements)
+itemiz(File generation failures where not caused by tt(NO_MATCH) or
+similar options)
+itemiz(All file generation errors where the pattern was used to create a
+multio)
+itemiz(Memory errors where detected by the shell)
+itemiz(Invalid subscripts to shell variables)
+itemiz(Attempts to assign read-only variables)
+itemiz(Logical errors with variables such as assignment to the wrong type)
+itemiz(Use of invalid variable names)
+itemiz(Errors in variable substitution syntax)
+itemiz(Failure to convert characters in tt($')...tt(') expressions)
+enditemize()
+
+If the tt(POSIX_BUILTINS) option is set, more errors associated with
+shell builtin commands are treated as fatal, as specified by the POSIX
+standard.
+
+texinode(Comments)(Aliasing)(Errors)(Shell Grammar)
+sect(Comments)
+cindex(comments)
+pindex(INTERACTIVE_COMMENTS, use of)
+vindex(histchars, use of)
+In non-interactive shells, or in interactive shells with the
+tt(INTERACTIVE_COMMENTS) option set, a word beginning
+with the third character of the tt(histchars) parameter
+(`tt(#)' by default) causes that word and all the following
+characters up to a newline to be ignored.
+texinode(Aliasing)(Quoting)(Comments)(Shell Grammar)
+sect(Aliasing)
+cindex(aliasing)
+Every eligible em(word) in the shell input is checked to see if there
+is an alias defined for it.
+If so, it is replaced by the text of the alias if it is in command
+position (if it could be the first word of a simple command),
+or if the alias is global.
+If the replacement text ends with a space, the next word in the shell input
+is always eligible for purposes of alias expansion.
+
+It is an error for the function name, var(word), in the sh-compatible function
+definition syntax `var(word) tt(+LPAR()+RPAR()) ...' to be a word that resulted
+from alias expansion, unless the tt(ALIAS_FUNC_DEF) option is set.
+
+findex(alias, use of)
+cindex(aliases, global)
+An alias is defined using the tt(alias) builtin; global aliases
+may be defined using the tt(-g) option to that builtin.
+
+A em(word) is defined as:
+
+startitemize()
+itemiz(Any plain string or glob pattern)
+itemiz(Any quoted string, using any quoting method (note that the quotes
+must be part of the alias definition for this to be eligible))
+itemiz(Any parameter reference or command substitution)
+itemiz(Any series of the foregoing, concatenated without whitespace or
+other tokens between them)
+itemiz(Any reserved word (tt(case), tt(do), tt(else), etc.))
+itemiz(With global aliasing, any command separator, any redirection
+operator, and `tt(LPAR())' or `tt(RPAR())' when not part of a glob pattern)
+enditemize()
+
+Alias expansion is done on the shell input before any other expansion
+except history expansion.  Therefore, if an alias is defined for the
+word tt(foo), alias expansion may be avoided by quoting part of the
+word, e.g. tt(\foo).  Any form of quoting works, although there is
+nothing to prevent an alias being defined for the quoted form such as
+tt(\foo) as well.
+
+In particular, note that quoting must be used when using tt(unalias) to remove
+global aliases:
+
+example(% alias -g foo=bar
+% unalias foo
+unalias: no such hash table element: bar
+% unalias \foo
+% )
+
+When tt(POSIX_ALIASES) is set, only plain unquoted strings are eligible
+for aliasing.  The tt(alias) builtin does not reject ineligible aliases,
+but they are not expanded.
+
+For use with completion, which would remove an initial backslash followed
+by a character that isn't special, it may be more convenient to quote the
+word by starting with a single quote, i.e. tt('foo); completion will
+automatically add the trailing single quote.
+
+subsect(Alias difficulties)
+
+Although aliases can be used in ways that bend normal shell syntax, not
+every string of non-white-space characters can be used as an alias.
+
+Any set of characters not listed as a word above is not a word, hence no
+attempt is made to expand it as an alias, no matter how it is defined
+(i.e. via the builtin or the special parameter tt(aliases) described in
+ifnzman(noderef(The zsh/parameter Module))\
+ifzman(the section THE ZSH/PARAMETER MODULE in zmanref(zshmodules))).
+However, as noted in the case of tt(POSIX_ALIASES) above, the shell does
+not attempt to deduce whether the string corresponds to a word at the
+time the alias is created.
+
+For example, an expression containing an tt(=) at the start of
+a command line is an assignment and cannot be expanded as an alias;
+a lone tt(=) is not an assignment but can only be set as an alias
+using the parameter, as otherwise the tt(=) is taken part of the
+syntax of the builtin command.
+
+It is not presently possible to alias the `tt(LPAR()LPAR())' token that
+introduces arithmetic expressions, because until a full statement has been
+parsed, it cannot be distinguished from two consecutive `tt(LPAR())'
+tokens introducing nested subshells.
+Also, if a separator such as tt(&&) is aliased,
+tt(\&&) turns into the two tokens tt(\&) and tt(&), each of which may
+have been aliased separately.  Similarly for tt(\<<), tt(\>|), etc.
+
+There is a commonly encountered problem with aliases
+illustrated by the following code:
+
+example(alias echobar='echo bar'; echobar)
+
+This prints a message that the command tt(echobar) could not be found.
+This happens because aliases are expanded when the code is read in;
+the entire line is read in one go, so that when tt(echobar) is executed it
+is too late to expand the newly defined alias.  This is often
+a problem in shell scripts, functions, and code executed with `tt(source)'
+or `tt(.)'.  Consequently, use of functions rather than aliases is
+recommended in non-interactive code.
+
+texinode(Quoting)()(Aliasing)(Shell Grammar)
+sect(Quoting)
+cindex(quoting)
+A character may be em(quoted) (that is, made
+to stand for itself) by preceding it with a `tt(\)'.
+`tt(\)' followed by a newline is ignored.
+
+A string enclosed between `tt($')' and `tt(')' is
+processed the same way as the string arguments of the
+tt(print) builtin, and the resulting string is considered to be
+entirely quoted.  A literal `tt(')' character can be included in the
+string by using the `tt(\')' escape.
+
+pindex(RC_QUOTES, use of)
+All characters enclosed between a pair of single quotes (tt('')) that
+is not preceded by a `tt($)' are quoted.  A single quote cannot appear
+within single quotes unless the option tt(RC_QUOTES) is set, in which case
+a pair of single quotes are turned into a single quote.  For example,
+
+example(print '''')
+
+outputs nothing apart from a newline if tt(RC_QUOTES) is not set, but one
+single quote if it is set.
+
+Inside double quotes (tt("")), parameter and
+command substitution occur, and `tt(\)' quotes the characters
+`tt(\)', `tt(`)', `tt(")', `tt($)', and the first character
+of tt($histchars) (default `tt(!)').

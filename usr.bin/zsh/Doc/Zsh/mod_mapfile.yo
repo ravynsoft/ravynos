@@ -1,0 +1,58 @@
+COMMENT(!MOD!zsh/mapfile
+Access to external files via a special associative array.
+!MOD!)
+cindex(parameter, file access via)
+The tt(zsh/mapfile) module provides one special associative array parameter of
+the same name.
+
+startitem()
+vindex(mapfile)
+item(tt(mapfile))(
+This associative array takes as keys the names of files; the resulting
+value is the content of the file.  The value is treated identically to any
+other text coming from a parameter.  The value may also be assigned to, in
+which case the file in question is written (whether or not it originally
+existed); or an element may be unset, which will delete the file in
+question.  For example, `tt(vared 'mapfile[myfile]')' works as expected,
+editing the file `tt(myfile)'.
+
+When the array is accessed as a whole, the keys are the names of files in
+the current directory, and the values are empty (to save a huge overhead in
+memory).  Thus tt(${(k)mapfile}) has the same effect as the glob operator
+tt(*(D)), since files beginning with a dot are not special.  Care must be
+taken with expressions such as tt(rm ${(k)mapfile}), which will delete
+every file in the current directory without the usual `tt(rm *)' test.
+
+The parameter tt(mapfile) may be made read-only; in that case, files
+referenced may not be written or deleted.
+
+A file may conveniently be read into an array as one line per element
+with the form
+`var(array)tt(=LPAR()"${(f@)mapfile[)var(filename)tt(]}"RPAR())'.
+The double quotes and the `tt(@)' are necessary to prevent empty lines
+from being removed.  Note that if the file ends with a newline,
+the shell will split on the final newline, generating an additional
+empty field; this can be suppressed by using
+`var(array)tt(=LPAR()"${(f@)${mapfile[)var(filename)tt(]%$'\n'}}"RPAR())'.
+)
+enditem()
+
+subsect(Limitations)
+
+Although reading and writing of the file in question is efficiently
+handled, zsh's internal memory management may be arbitrarily baroque;
+however, tt(mapfile) is usually very much more efficient than
+anything involving a loop.  Note in particular that
+the whole contents of the file will always reside physically in memory when
+accessed (possibly multiple times, due to standard parameter substitution
+operations).  In particular, this means handling of sufficiently long files
+(greater than the machine's swap space, or than the range of the pointer
+type) will be incorrect.
+
+No errors are printed or flagged for non-existent, unreadable, or
+unwritable files, as the parameter mechanism is too low in the shell
+execution hierarchy to make this convenient.
+
+It is unfortunate that the mechanism for loading modules does not yet allow
+the user to specify the name of the shell parameter to be given the special
+behaviour.

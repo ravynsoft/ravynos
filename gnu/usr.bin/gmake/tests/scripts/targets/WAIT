@@ -1,0 +1,193 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the behaviour of the .WAIT target.";
+
+$details = "";
+
+# Ensure .WAIT doesn't appear in any automatic variables
+
+run_make_test(q!
+all: .WAIT pre1 .WAIT pre2 | .WAIT pre3 ; @echo '<=$< ^=$^ ?=$? +=$+ |=$|'
+pre1 pre2 pre3:;
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+    '', '<=pre1 ^=pre1 pre2 ?=pre1 pre2 +=pre1 pre2 |=pre3');
+
+run_make_test(q!
+.SECONDEXPANSION:
+all: $$(pre) ; @echo '<=$< ^=$^ ?=$? +=$+ |=$|'
+pre1 pre2 pre3:;
+
+pre = .WAIT pre1 .WAIT pre2 | .WAIT pre3
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+    '', '<=pre1 ^=pre1 pre2 ?=pre1 pre2 +=pre1 pre2 |=pre3');
+
+run_make_test(q!
+all: pre
+p% : .WAIT p%1 .WAIT p%2 | .WAIT p%3; @echo '<=$< ^=$^ ?=$? +=$+ |=$|'
+pre1 pre2 pre3: ;
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '', "<=pre1 ^=pre1 pre2 ?=pre1 pre2 +=pre1 pre2 |=pre3\n");
+
+# Unfortunately I don't think we can get away from using sleep here; at least
+# I can't think of any way to make sure .WAIT works without it.  Even with it,
+# it's not reliable (in that even if .WAIT is not working we MIGHT succeed the
+# test--it shouldn't ever be the case that we fail the test unexpectedly).
+# That makes this test suite slow to run :-/.
+
+run_make_test(q!
+all : pre1 .WAIT pre2
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\nend-pre1\npre2\n");
+
+# Ensure .WAIT doesn't add extra a dependency between its targets
+
+run_make_test(undef, '-j10 pre2', "pre2\n");
+
+# Ensure .WAIT doesn't wait between all targets
+
+run_make_test(q!
+all : pre1 .WAIT pre2 pre3
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out start-$@ file TWO wait THREE out end-$@
+pre3: ; @#HELPER# -q wait TWO out $@ file THREE
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\nend-pre1\nstart-pre2\npre3\nend-pre2\n");
+
+unlink(qw(TWO THREE));
+
+# Ensure .WAIT waits for ALL targets on the left before ANY targets on the right
+
+run_make_test(q!
+all : pre1 pre2 .WAIT post1 post2
+pre1: ; @#HELPER# -q out start-$@ file PRE1 wait PRE2 sleep 1 out end-$@
+pre2: ; @#HELPER# -q wait PRE1 out $@ file PRE2
+
+post1: ; @#HELPER# -q wait POST2 out $@ file POST1
+post2: ; @#HELPER# -q file POST2 wait POST1 out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\npre2\nend-pre1\npost1\npost2\n");
+
+unlink(qw(PRE1 PRE2 POST1 POST2));
+
+# See if .WAIT takes effect between different lists of prereqs
+# In the current implementation, .WAIT waits only between two prerequisites
+# in a given target.  These same two targets might be run in a different
+# order if they appear as prerequisites of another target.  This is the way
+# other implementations of .WAIT work.  I personally think it's gross and
+# makes .WAIT just a toy when it comes to ordering, but it's much simpler
+# to implement than creating an actual edge in the DAG to represent .WAIT
+# and since that's what users expect, we'll do the same for now.
+
+run_make_test(q!
+all : one two
+one: pre1 .WAIT pre2
+two: pre2 pre1
+pre1: ; @#HELPER# -q out start-$@ file PRE1 wait PRE2 out end-$@
+pre2: ; @#HELPER# -q wait PRE1 out $@ file PRE2
+
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\npre2\nend-pre1\n");
+unlink(qw(PRE1 PRE2));
+
+# Check that .WAIT works with pattern rules
+
+run_make_test(q!
+all: pre
+p% : p%1 .WAIT p%2;
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\nend-pre1\npre2\n");
+
+# Check that .WAIT works with secondarily expanded rules
+
+run_make_test(q!
+.SECONDEXPANSION:
+all: $$(pre)
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+pre3: ; @#HELPER# -q out $@
+
+pre = .WAIT pre1 .WAIT pre2 | .WAIT pre3
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10', "start-pre1\nend-pre1\npre2\npre3\n");
+
+# Verify NOTPARALLEL works
+
+run_make_test(q!
+all : pre1 pre2
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+.NOTPARALLEL:
+!,
+              '-j10', "start-pre1\nend-pre1\npre2\n");
+
+run_make_test(q!
+all : p1 .WAIT np1
+
+p1: pre1 pre2
+pre1: ; @#HELPER# -q out start-$@ file PRE1 wait PRE2 out end-$@
+pre2: ; @#HELPER# -q wait PRE1 out $@ file PRE2
+
+
+np1: npre1 npre2
+npre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+npre2: ; @#HELPER# -q out $@
+
+.NOTPARALLEL: np1
+!,
+              '-j10', "start-pre1\npre2\nend-pre1\nstart-npre1\nend-npre1\nnpre2\n");
+unlink(qw(PRE1 PRE2));
+
+# Ensure we don't shuffle if .WAIT is set
+
+run_make_test(q!
+all : pre1 .WAIT pre2
+pre1: ; @#HELPER# -q out start-$@ sleep 1 out end-$@
+pre2: ; @#HELPER# -q out $@
+
+# This is just here so we don't fail with older versions of make
+.WAIT:
+!,
+              '-j10 --shuffle=reverse', "start-pre1\nend-pre1\npre2\n");
+
+# Warn about invalid .WAIT definitions
+
+run_make_test(q!
+.WAIT: foo
+.WAIT: ; echo oops
+all:;@:
+!,
+              '', "#MAKEFILE#:2: .WAIT should not have prerequisites\n#MAKEFILE#:3: .WAIT should not have commands\n");
+
+# This tells the test driver that the perl test script executed properly.
+1;

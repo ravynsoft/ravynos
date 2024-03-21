@@ -1,0 +1,16 @@
+.*: +file format .*mips.*
+
+Disassembly of section \.MIPS\.stubs:
+
+000800ec <_MIPS_STUBS_>:
+   800ec:	ff3c 8010 	lw	t9,-32752\(gp\)
+   800f0:	0dff      	move	t7,ra
+   800f2:	45d9      	jalr	t9
+   800f4:	3300 0002 	li	t8,2
+   800f8:	ff3c 8010 	lw	t9,-32752\(gp\)
+   800fc:	0dff      	move	t7,ra
+   800fe:	45d9      	jalr	t9
+   80100:	3300 0001 	li	t8,1
+   80104:	0000 0000 	nop
+   80108:	0000 0000 	nop
+   8010c:	0000 0000 	nop

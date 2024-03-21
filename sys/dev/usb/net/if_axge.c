@@ -28,7 +28,8 @@
 
 #include <sys/cdefs.h>
 /*
- * ASIX Electronics AX88178A/AX88179 USB 2.0/3.0 gigabit ethernet driver.
+ * ASIX Electronics AX88178A/AX88179/AX88179A USB 2.0/3.0 gigabit ethernet
+ * driver.
  */
 
 #include <sys/param.h>
@@ -70,13 +71,15 @@
  */
 
 static const STRUCT_USB_HOST_ID axge_devs[] = {
-#define	AXGE_DEV(v,p) { USB_VP(USB_VENDOR_##v, USB_PRODUCT_##v##_##p) }
-	AXGE_DEV(ASIX, AX88178A),
-	AXGE_DEV(ASIX, AX88179),
-	AXGE_DEV(BELKIN, B2B128),
-	AXGE_DEV(DLINK, DUB1312),
-	AXGE_DEV(LENOVO, GIGALAN),
-	AXGE_DEV(SITECOMEU, LN032),
+#define	AXGE_DEV(v,p,i,...)	\
+	{ USB_VPI(USB_VENDOR_##v, USB_PRODUCT_##v##_##p, i), __VA_ARGS__ }
+	AXGE_DEV(ASIX, AX88178A, AXGE_FLAG_178A),
+	AXGE_DEV(ASIX, AX88179, AXGE_FLAG_179, USB_DEV_BCD_LTEQ(0x0100)),
+	AXGE_DEV(ASIX, AX88179, AXGE_FLAG_179A, USB_DEV_BCD_GTEQ(0x0200)),
+	AXGE_DEV(BELKIN, B2B128, AXGE_FLAG_179),
+	AXGE_DEV(DLINK, DUB1312, AXGE_FLAG_179),
+	AXGE_DEV(LENOVO, GIGALAN, AXGE_FLAG_179),
+	AXGE_DEV(SITECOMEU, LN032, AXGE_FLAG_179),
 #undef AXGE_DEV
 };
 
@@ -410,6 +413,24 @@ axge_chip_init(struct axge_softc *sc)
 	axge_write_cmd_1(sc, AXGE_ACCESS_MAC, AXGE_CLK_SELECT,
 	    AXGE_CLK_SELECT_ACS | AXGE_CLK_SELECT_BCS);
 	uether_pause(&sc->sc_ue, hz / 10);
+
+	if ((sc->sc_flags & AXGE_FLAG_179A) != 0) {
+		/*
+		 * 179A chip has two firmware modes that each use different
+		 * transfer layouts for Ethernet over USB. The newer fw mode has
+		 * larger rx packet headers which seem to
+		 * accomodate for ethernet frames up to 9K length and a VLAN
+		 * field for hardware tagging, but is not backward compatible
+		 * with 178A/179 bulk transfer code due to the change in size
+		 * and field alignments. The other fw mode uses the same packet
+		 * headers as the older 178A/179 chips, which this driver uses.
+		 *
+		 * As we do not currently have VLAN hw tagging or jumbo support
+		 * in this driver anyway, we're ok forcing 179A into its compat
+		 * mode by default.
+		 */
+		axge_write_cmd_1(sc, AXGE_FW_MODE, AXGE_FW_MODE_178A179, 0);
+	}
 }
 
 static void
@@ -550,6 +571,8 @@ axge_attach(device_t dev)
 
 	device_set_usb_desc(dev);
 	mtx_init(&sc->sc_mtx, device_get_nameunit(dev), NULL, MTX_DEF);
+
+	sc->sc_flags = USB_GET_DRIVER_INFO(uaa);
 
 	iface_index = AXGE_IFACE_IDX;
 	error = usbd_transfer_setup(uaa->device, &iface_index,
@@ -959,8 +982,16 @@ axge_rx_frame(struct usb_ether *ue, struct usb_page_cache *pc, int actlen)
 	hdr_off = pkt_end = (rxhdr >> 16) & 0xFFFF;
 
 	/*
+	 * On older firmware:
 	 * <----------------------- actlen ------------------------>
 	 * [frame #0]...[frame #N][pkt_hdr #0]...[pkt_hdr #N][rxhdr]
+	 *
+	 * On newer firmware:
+	 * <----------------------- actlen -----------------
+	 * [frame #0]...[frame #N][pkt_hdr #0][dummy_hdr]...
+	 *                         -------------------------------->
+	 *                         ...[pkt_hdr #N][dummy_hdr][rxhdr]
+	 *
 	 * Each RX frame would be aligned on 8 bytes boundary. If
 	 * RCR_IPE bit is set in AXGE_RCR register, there would be 2
 	 * padding bytes and 6 dummy bytes(as the padding also should
@@ -968,6 +999,10 @@ axge_rx_frame(struct usb_ether *ue, struct usb_page_cache *pc, int actlen)
 	 * IP header on 32bits boundary.  Driver don't set RCR_IPE bit
 	 * of AXGE_RCR register, so there should be no padding bytes
 	 * which simplifies RX logic a lot.
+	 *
+	 * Further, newer firmware interweaves dummy headers that have
+	 * pktlen == 0 and should be skipped without being seen as
+	 * dropped frames.
 	 */
 	while (pkt_cnt--) {
 		/* verify the header offset */
@@ -978,6 +1013,12 @@ axge_rx_frame(struct usb_ether *ue, struct usb_page_cache *pc, int actlen)
 		usbd_copy_out(pc, hdr_off, &pkt_hdr, sizeof(pkt_hdr));
 		pkt_hdr.status = le32toh(pkt_hdr.status);
 		pktlen = AXGE_RXBYTES(pkt_hdr.status);
+		hdr_off += sizeof(pkt_hdr);
+
+		/* Skip dummy packet header. */
+		if (pktlen == 0)
+			continue;
+
 		if (pos + pktlen > pkt_end) {
 			DPRINTF("Data position reached end\n");
 			break;
@@ -989,7 +1030,6 @@ axge_rx_frame(struct usb_ether *ue, struct usb_page_cache *pc, int actlen)
 		} else
 			axge_rxeof(ue, pc, pos, pktlen, pkt_hdr.status);
 		pos += (pktlen + 7) & ~7;
-		hdr_off += sizeof(pkt_hdr);
 	}
 }
 

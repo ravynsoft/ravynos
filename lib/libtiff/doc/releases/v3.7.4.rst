@@ -1,0 +1,84 @@
+Changes in TIFF v3.7.4
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.4 (:tag:`Release-v3-7-4`)
+  Previous Version        :doc:`v3.7.3 <v3.7.3>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+Major changes
+-------------
+
+* Fixed important bug in custom tags handling code.
+
+
+Software configuration changes
+------------------------------
+
+* Applied patch from Patrick Welche (all scripts moved in the
+  :file:`config` and :file:`m4` directories).
+
+* :file:`SConstruct`, :file:`libtiff/SConstruct`: Added the first very preliminary
+  support for SCons software building tool (`<http://www.scons.org/>`_).
+  This is experimental infrastructure and it will exist along with the
+  autotools stuff.
+
+* :file:`port/lfind.c`: Added :c:func:`lfind` replacement module.
+
+
+Library changes
+---------------
+
+* :file:`tif_dir.c`: When prefreeing ``tv->value`` in :c:func:`TIFFSetFieldV`
+  also set it to :c:macro:`NULL` to avoid double free when re-setting custom
+  string fields as per:
+  :bugzilla-rs:`922`
+
+* tif_dir.c: Fixed up support for swapping "double complex"
+  values (128 bits as 2 64 bits doubles).  GDAL gcore tests now
+  pass on bigendian (macosx) system.
+
+* :file:`libtiff/tif_dirread.c`, :file:`libtiff/tif_dirinfo.c`: Do not upcast ``BYTE`` to
+  ``SHORT`` in the :c:func:`TIFFFetchByteArray`. Remove :c:func:`TIFFFetchExtraSamples`
+  function, use :c:func:`TIFFFetchNormalTag` instead as per bug
+  :bugzilla-rs:`831`
+
+  Remove :c:func:`TIFFFetchExtraSamples` function, use :c:func:`TIFFFetchNormalTag`
+  instead.
+
+* :file:`tif_print.c`: Fixed printing of the ``BYTE`` and ``SBYTE`` arrays.
+
+* :file:`tif_write.c`: Do not check the ``PlanarConfiguration`` field in
+  the :c:func:`TIFFWriteCheck` function in case of single band images (as per
+  TIFF spec).
+
+* :file:`libtiff/tif_dir.c`, :file:`libtiff/tif_dir.h`,
+  :file:`libtiff/tif_dirinfo.c`, :file:`libtiff/tif_print.c`:
+  Make ``FieldOfViewCotangent``, ``MatrixWorldToScreen``, ``MatrixWorldToCamera``,
+  ``ImageFullWidth``, ``ImageFullLength`` and ``PrimaryChromaticities`` tags custom.
+
+Tools changes
+-------------
+
+* :file:`tiffcp.c`: Fixed ``WhitePoint`` tag copying.
+
+
+Contributed software changes
+----------------------------
+
+* :file:`tiffdump.c`: Added support for :c:enumerator:`TIFF_IFD` datatype.
+
+* :file:`addtiffo/tif_overview.c`, :file:`addtiffo/tif_ovrcache.c`,
+  :file:`addtiffo/tif_ovrcache.h`:
+  Make overviews working for contiguous images. 

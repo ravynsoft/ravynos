@@ -1,0 +1,17 @@
+# test behavior of FUNCNAME in and out of parse_and_execute scenarios
+
+# in parse_and_execute
+${THIS_SH} -c 'trap "echo trap:\$FUNCNAME" EXIT ; trap ; f() { exit; } ; f' bash
+
+${THIS_SH} << \EOF
+eval "trap 'echo trap:\$FUNCNAME' EXIT ; trap; f() { exit; } ; f"
+EOF
+
+# not in parse_and_execute
+${THIS_SH} << \EOF
+trap 'echo trap:$FUNCNAME' EXIT ; trap; f() { exit; } ; f
+EOF
+
+# this has to be last
+trap 'echo trap:$FUNCNAME' EXIT ; trap; f() { exit; } ; f
+

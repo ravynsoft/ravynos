@@ -1,0 +1,6 @@
+# test mapfile -d DELIM functionality added after bash-4.3
+
+printf "abc\0def\0ghi\0jkl\0" | {
+	mapfile -C echo -c 1 -d '' A
+	echo "${A[@]}"
+}

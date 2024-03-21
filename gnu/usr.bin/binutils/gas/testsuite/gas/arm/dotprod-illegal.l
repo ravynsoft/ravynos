@@ -1,0 +1,10 @@
+[^:]*: Assembler messages:
+[^:]*:4: Error: bad type in SIMD instruction -- `vudot.s8 d0,d2,d5'
+[^:]*:6: Error: bad type in SIMD instruction -- `vudot.u16 d0,d2,d5'
+[^:]*:7: Error: bad type in SIMD instruction -- `vsdot.s16 d1,d12,d18'
+[^:]*:9: Error: bad type in SIMD instruction -- `vudot.u32 d2,d22,d1'
+[^:]*:10: Error: bad type in SIMD instruction -- `vsdot.s32 d3,d30,d9'
+[^:]*:12: Error: scalar out of range for multiply instruction -- `vudot.u8 d31,d2,d16\[0\]'
+[^:]*:13: Error: scalar out of range for multiply instruction -- `vsdot.s8 q13,q14,d22\[1\]'
+[^:]*:15: Error: scalar out of range for multiply instruction -- `vudot.u8 d1,d8,d15\[2\]'
+[^:]*:16: Error: scalar out of range for multiply instruction -- `vsdot.s8 q14,q7,d15\[3\]'

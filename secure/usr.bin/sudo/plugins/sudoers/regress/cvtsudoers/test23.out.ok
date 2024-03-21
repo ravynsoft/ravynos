@@ -1,0 +1,20 @@
+Defaults logfile=/var/log/sudo
+
+root ALL = (ALL) ALL
+
+%wheel ALL = (ALL) ALL
+
++admins ALL = NOPASSWD: ALL
+
+jack 128.138.204.0/24, 128.138.242.0, 128.138.243.0 = ALL
+
+lisa 128.138.0.0/255.255.0.0 = ALL
+
+operator ALL = /usr/sbin/dump, /usr/sbin/rdump, /usr/sbin/restore,\
+    /usr/sbin/rrestore, /usr/bin/mt,\
+    sha224:0GomF8mNN3wlDt1HD9XldjJ3SNgpFdbjO1+NsQ==\
+    /home/operator/bin/start_backups, /usr/bin/kill, /usr/bin/top,\
+    /usr/sbin/shutdown, /usr/sbin/halt, /usr/sbin/reboot, /usr/sbin/lpc,\
+    /usr/bin/lprm, sudoedit /etc/printcap, /usr/oper/bin/
+
+joe ALL = /usr/bin/su operator

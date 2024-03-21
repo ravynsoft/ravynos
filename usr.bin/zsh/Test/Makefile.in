@@ -1,0 +1,80 @@
+#
+# Makefile for Test subdirectory
+#
+# Copyright (c) 1999 Peter Stephensons
+# All rights reserved.
+#
+# Permission is hereby granted, without written agreement and without
+# license or royalty fees, to use, copy, modify, and distribute this
+# software and to distribute modified versions of this software for any
+# purpose, provided that the above copyright notice and the following
+# two paragraphs appear in all copies of this software.
+#
+# In no event shall Peter Stephenson or the Zsh Development Group be liable
+# to any party for direct, indirect, special, incidental, or consequential
+# damages arising out of the use of this software and its documentation,
+# even if Peter Stephenson and the Zsh Development Group have been advised of
+# the possibility of such damage.
+#
+# Peter Stephenson and the Zsh Development Group specifically disclaim any
+# warranties, including, but not limited to, the implied warranties of
+# merchantability and fitness for a particular purpose.  The software
+# provided hereunder is on an "as is" basis, and Peter Stephenson and the
+# Zsh Development Group have no obligation to provide maintenance,
+# support, updates, enhancements, or modifications.
+#
+
+subdir = Test
+dir_top = ..
+SUBDIRS = 
+
+@VERSION_MK@
+
+# source/build directories
+VPATH           = @srcdir@
+sdir            = @srcdir@
+sdir_top        = @top_srcdir@
+INSTALL         = @INSTALL@
+
+@DEFS_MK@
+
+# ========== DEPENDENCIES FOR TESTING ==========
+
+# If ZTST_handler is not empty, run that instead of runtests.zsh.
+# It's assumed to be found in the source directory.
+check test:
+	if test -n "$(DLLD)"; then \
+	  cd $(dir_top) && DESTDIR= \
+	  $(MAKE) MODDIR=`pwd`/$(subdir)/Modules install.modules > /dev/null; \
+	fi
+	if test -z "$$ZTST_handler"; then \
+	  ZTST_handler=runtests.zsh; \
+	fi; \
+	if ZTST_testlist="`for f in $(sdir)/$(TESTNUM)*.ztst; \
+           do echo $$f; done`" \
+	 ZTST_srcdir="$(sdir)" \
+	 ZTST_exe=$(dir_top)/Src/zsh@EXEEXT@ \
+	 $(dir_top)/Src/zsh@EXEEXT@ +Z -f $(sdir)/$$ZTST_handler; then \
+	 stat=0; \
+	else \
+	 stat=1; \
+	fi; \
+	sleep 1; \
+	rm -rf Modules .zcompdump; \
+	exit $$stat
+
+# ========== DEPENDENCIES FOR CLEANUP ==========
+
+@CLEAN_MK@
+
+mostlyclean-here:
+	rm -rf Modules .zcompdump *.tmp
+
+distclean-here:
+	rm -f Makefile
+
+realclean-here:
+
+# ========== DEPENDENCIES FOR MAINTENANCE ==========
+
+@CONFIG_MK@

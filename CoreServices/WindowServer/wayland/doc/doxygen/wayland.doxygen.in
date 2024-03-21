@@ -1,0 +1,23 @@
+# Wayland-specific overrides
+PROJECT_NAME           = "Wayland"
+PROJECT_NUMBER         = @VERSION@
+OUTPUT_DIRECTORY       = @top_builddir@/doc/doxygen
+JAVADOC_AUTOBRIEF      = YES
+TAB_SIZE               = 8
+QUIET                  = YES
+HTML_TIMESTAMP         = YES
+GENERATE_LATEX         = NO
+MAN_LINKS              = NO
+PREDEFINED             = WL_EXPORT=              \
+                         WL_PRINTF(x,y)=
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+DOT_MULTI_TARGETS      = YES
+ALIASES                += comment{1}="/* \1 *<!-- -->/"
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+# These must be set in the Makefile
+GENERATE_HTML          = NO
+GENERATE_XML           = NO
+GENERATE_MAN           = NO

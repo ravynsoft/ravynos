@@ -1,0 +1,220 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+OIFS="$IFS"
+foo='   ,foo'
+set -- "$foo"
+
+if [[ $foo = ,* ]]; then echo bad 1; else echo ok 1; fi
+if [[ $@ = ,* ]]; then echo bad 2; else echo ok 2; fi
+if [[ $* = ,* ]]; then echo bad 3; else echo ok 3; fi
+if [[ ${@} = ,* ]]; then echo bad 4; else echo ok 4; fi
+if [[ ${*} = ,* ]]; then echo bad 5; else echo ok 5; fi
+if [[ $1 = ,* ]]; then echo bad 6; else echo ok 6; fi
+
+set -- '   ,foo'
+if [[ $foo = ,* ]]; then echo bad 7; else echo ok 7; fi
+if [[ $@ = ,* ]]; then echo bad 8; else echo ok 8; fi
+if [[ $* = ,* ]]; then echo bad 9; else echo ok 9; fi
+if [[ ${@} = ,* ]]; then echo bad 10; else echo ok 10; fi
+if [[ ${*} = ,* ]]; then echo bad 11; else echo ok 11; fi
+if [[ $1 = ,* ]]; then echo bad 12; else echo ok 12; fi
+
+IFS=
+if [[ $@ = ,* ]]; then echo bad 13; else echo ok 13; fi
+if [[ $* = ,* ]]; then echo bad 14; else echo ok 14; fi
+IFS="$OIFS"
+
+foo='   ,foo'
+set -- '   ' ',foo'
+
+if [[ $@ = ,* ]]; then echo bad at 1; else echo ok at 1; fi
+if [[ ${@} = ,* ]]; then echo bad at 2; else echo ok at 2; fi
+
+if [[ $* = ,* ]]; then echo bad star 1; else echo ok star 1; fi
+if [[ ${*} = ,* ]]; then echo bad star 2; else echo ok star 2; fi
+
+foo='   ,foo'
+set -- "$foo"
+
+# expand_string_for_rhs
+
+foo2=$@
+echo "$foo2"
+
+foo2=$*
+echo "$foo2"
+
+foo2="$@"
+echo "$foo2"
+
+foo2="$*"
+echo "$foo2"
+
+# expand_word_unsplit
+case $@ in
+$foo2)	echo ok at 1 ;;
+*)	echo bad at 1 ;;
+esac
+
+# also uses expand_word_leave_quoted
+case $@ in
+$@)	echo ok at 2;;
+*)	echo bad at 2;;
+esac
+
+case $@ in
+$foo)	echo ok at 3 ;;
+*)	echo bad at 3;;
+esac
+
+# expand_word_unsplit
+case $* in
+$foo2)	echo ok star 1 ;;
+*)	echo bad star 1 ;;
+esac
+
+# also uses expand_word_leave_quoted
+case $* in
+$*)	echo ok star 2;;
+*)	echo bad star 2;;
+esac
+
+case $* in
+$foo)	echo ok star 3 ;;
+*)	echo bad star 3;;
+esac
+
+case $@ in
+$*)	echo ok at-star 1;;
+*)	echo bad at-star 1;;
+esac
+
+case $* in
+$@)	echo ok at-star 2;;
+*)	echo bad at-star 2;;
+esac
+
+foo='a b c'
+set -- $foo
+
+# expand_string_for_rhs
+IFS='|'
+foo2=$@
+echo "$foo2"
+
+foo2=$*
+echo "$foo2"
+
+foo2="$@"
+echo "$foo2"
+
+foo2="$*"
+echo "$foo2"
+
+foo="a b c"
+set -- $foo
+
+if [[ $@ = $foo ]]; then echo ok at 1; else echo bad at 1; fi
+if [[ $foo = $@ ]]; then echo ok at 2; else echo bad at 2; fi
+
+case $@ in
+$@)	echo ok at 3 ;;
+*)	echo bad at 3 ;;
+esac
+
+case $@ in
+$foo)	echo ok at 4;;
+*)	echo bad at 4;;
+esac
+
+case $foo in
+$@)	echo ok at 5;;
+*)	echo bad at 5;;
+esac
+IFS="$OIFS"
+
+foo="a b c"
+set -- $foo
+
+IFS=:
+if [[ $@ = $foo ]]; then echo ok at 1; else echo bad at 1; fi
+if [[ $foo = $@ ]]; then echo ok at 2; else echo bad at 2; fi
+
+case $@ in
+$@)	echo ok at 3 ;;
+*)	echo bad at 3 ;;
+esac
+
+case $@ in
+$foo)	echo ok at 4;;
+*)	echo bad at 4;;
+esac
+
+case $foo in
+$@)	echo ok at 5;;
+*)	echo bad at 5;;
+esac
+IFS="$OIFS"
+
+foo="a b c"
+set -- $foo
+
+IFS='|'
+foo2=$@
+
+case $@ in
+$@)	echo ok at 1 ;;
+*)	echo bad at 1 ;;
+esac
+
+case $foo2 in
+$foo)	echo ok at 2;;
+*)	echo bad at 2;;
+esac
+
+case $foo in
+$foo2)	echo ok at 3;;
+*)	echo bad at 3;;
+esac
+
+case $foo in
+$foo)	echo ok at 4;;
+*)	echo bad at 4;;
+esac
+
+case $foo2 in
+$foo2)	echo ok at 5;;
+*)	echo bad at 5;;
+esac
+
+case $foo2 in
+$@)	echo ok at 6;;
+*)	echo bad at 6;;
+esac
+
+case $@ in
+$foo2)	echo ok at 7;;
+*)	echo bad at 7;;
+esac
+
+case $foo in
+$@)	echo ok at 8;;
+*)	echo bad at 8;;
+esac
+
+case $@ in
+$foo)	echo ok at 9;;
+*)	echo bad at 9;;
+esac
+IFS="$OIFS"

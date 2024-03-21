@@ -1,0 +1,53 @@
+#autoload
+
+local ret long rawret nm=${compstate[nmatches]} fsopt cvalsvar
+typeset -a fargs opts
+
+fargs=(
+  '(-d -f)-d[enable debug output]'
+  '-f[enable foreground operation]'
+  '-r[mount filesystem read-only]'
+  '-s[disable multi-threaded operation]'
+  '(-h --help)'{-h,--help}'[display help and exit]'
+  '(-V --version)'{-V,--version}'[show version information and exit]'
+)
+
+(( $# )) || fargs+='*:default: _default'
+
+long=$argv[(I)--]
+if (( long )); then
+  argv[long]=($fargs --)
+else
+  set -- "$@" $fargs
+fi
+
+while [[ $1 == -(O*|F*|[CRWsw]) ]]; do
+  if [[ $1 == -F?* ]]; then
+    cvalsvar=${1[3,-1]}
+  elif [[ $1 == -F ]]; then
+    cvalsvar=$2
+    shift
+  else
+    opts+=$1
+    [[ $1 == -R ]] && rawret=yes
+  fi
+  shift
+done
+
+if [[ $cvalsvar != - ]]; then
+  fsopt='*-o[specify mount options]:mount option:_fuse_values'
+  [[ -n $cvalsvar ]] && fsopt+=" -A $cvalsvar"
+  fsopt+=' mount\ option'
+  set -- "$@" $fsopt
+fi
+
+_arguments -R $opts "$@"
+
+ret=$?
+
+if [[ $ret == 300 ]]; then
+  compstate[restore]=
+  [[ -z $rawret ]] && ret=$(( nm == $compstate[nmatches] ))
+fi
+
+return ret

@@ -1,0 +1,21 @@
+return [ n ]
+       Causes  a shell function or `.' script to return to the invoking
+       script with the return status specified by an arithmetic expres-
+       sion n.  For example, the following prints `42':
+
+              () { integer foo=40; return "foo + 2" }
+              echo $?
+
+       If  n  is omitted, the return status is that of the last command
+       executed.
+
+       If return was executed from a trap in a  TRAPNAL  function,  the
+       effect  is  different for zero and non-zero return status.  With
+       zero status (or after an implicit  return  at  the  end  of  the
+       trap),  the shell will return to whatever it was previously pro-
+       cessing; with a non-zero status, the shell will behave as inter-
+       rupted  except  that  the return status of the trap is retained.
+       Note that the numeric value of the signal which caused the  trap
+       is  passed  as  the  first  argument,  so  the statement `return
+       "128+$1"' will return the same status as if the signal  had  not
+       been trapped.

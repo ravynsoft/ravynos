@@ -1,0 +1,29 @@
+#compdef getopt ggetopt
+
+local -a args aopts
+
+# @todo BusyBox getopt is borrowed straight from util-linux, so they're nearly
+# identical, but not quite: BusyBox doesn't have -h and -V and often doesn't
+# support long options. So possibly this could be more accurate
+if _pick_variant busybox=BusyBox util-linux='(enhanced|util-linux)' unix --version; then
+  args=(
+    '(-a --alternative)'{-a,--alternative}'[allow long options with single -]'
+    '(: -)'{-h,--help}'[display help information]'
+    '*'{-l+,--longoptions=}'[specify long options]:long options'
+    '(-n --name)'{-n+,--name=}'[specify program name]:program name'
+    '(1 -o --options)'{-o+,--options=}'[specify short options]:short options'
+    '(-q --quiet)'{-q,--quiet}'[suppress getopt(3) error messages]'
+    '(-Q --quiet-output)'{-Q,--quiet-output}'[suppress normal output]'
+    '(-s --shell)'{-s+,--shell=}'[specify shell quoting conventions]:shell:(bash csh tcsh sh)'
+    '(: -)'{-T,--test}'[test for enhanced getopt]'
+    '(-u --unquoted)'{-u,--unquoted}'[do not quote output]'
+    '(: -)'{-V,--version}'[display version information]'
+    '(-o --options)1: :_guard "^-*" "short options"'
+    '*:argument'
+  )
+  [[ -n $POSIXLY_CORRECT ]] && aopts+=( -A '-*' )
+else
+  args=( '1:short options' '*:argument' )
+fi
+
+_arguments -s -S $aopts : $args

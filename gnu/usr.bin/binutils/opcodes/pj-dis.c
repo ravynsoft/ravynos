@@ -1,0 +1,179 @@
+/* pj-dis.c -- Disassemble picoJava instructions.
+   Copyright (C) 1999-2023 Free Software Foundation, Inc.
+   Contributed by Steve Chamberlain, of Transmeta (sac@pobox.com).
+
+   This file is part of the GNU opcodes library.
+
+   This library is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   It is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+   License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+#include "sysdep.h"
+#include <stdio.h>
+#include "libiberty.h"
+#include "opcode/pj.h"
+#include "disassemble.h"
+
+extern const pj_opc_info_t pj_opc_info[512];
+
+static int
+get_int (bfd_vma memaddr, int *iptr, struct disassemble_info *info)
+{
+  unsigned char ival[4];
+  int status = info->read_memory_func (memaddr, ival, 4, info);
+
+  *iptr = (((unsigned) ival[0] << 24)
+	   | (ival[1] << 16)
+	   | (ival[2] << 8)
+	   | (ival[3] << 0));
+
+  return status;
+}
+
+int
+print_insn_pj (bfd_vma addr, struct disassemble_info *info)
+{
+  fprintf_ftype fprintf_fn = info->fprintf_func;
+  void *stream = info->stream;
+  unsigned char opcode;
+  int status;
+
+  if ((status = info->read_memory_func (addr, &opcode, 1, info)))
+    goto fail;
+
+  if (opcode == 0xff)
+    {
+      unsigned char byte_2;
+
+      if ((status = info->read_memory_func (addr + 1, &byte_2, 1, info)))
+	goto fail;
+      fprintf_fn (stream, "%s", pj_opc_info[opcode + byte_2].u.name);
+      return 2;
+    }
+  else
+    {
+      char *sep = "\t";
+      int insn_start = addr;
+      const pj_opc_info_t *op = &pj_opc_info[opcode];
+      unsigned int a;
+
+      addr++;
+      fprintf_fn (stream, "%s", op->u.name);
+
+      /* The tableswitch instruction is followed by the default
+	 address, low value, high value and the destinations.  */
+
+      if (strcmp (op->u.name, "tableswitch") == 0)
+	{
+	  int lowval;
+	  int highval;
+	  int val;
+
+	  addr = (addr + 3) & ~3;
+	  if ((status = get_int (addr, &val, info)))
+	    goto fail;
+
+	  fprintf_fn (stream, " default: ");
+	  (*info->print_address_func) (val + insn_start, info);
+	  addr += 4;
+
+	  if ((status = get_int (addr, &lowval, info)))
+	    goto fail;
+	  addr += 4;
+
+	  if ((status = get_int (addr, &highval, info)))
+	    goto fail;
+	  addr += 4;
+
+	  while (lowval <= highval)
+	    {
+	      if ((status = get_int (addr, &val, info)))
+		goto fail;
+	      fprintf_fn (stream, " %d:[", lowval);
+	      (*info->print_address_func) (val + insn_start, info);
+	      fprintf_fn (stream, " ]");
+	      addr += 4;
+	      lowval++;
+	    }
+	  return addr - insn_start;
+	}
+
+      /* The lookupswitch instruction is followed by the default
+	 address, element count and pairs of values and
+	 addresses.  */
+      if (strcmp (op->u.name, "lookupswitch") == 0)
+	{
+	  int count;
+	  int val;
+
+	  addr = (addr + 3) & ~3;
+	  if ((status = get_int (addr, &val, info)))
+	    goto fail;
+	  addr += 4;
+
+	  fprintf_fn (stream, " default: ");
+	  (*info->print_address_func) (val + insn_start, info);
+
+	  if ((status = get_int (addr, &count, info)))
+	    goto fail;
+	  addr += 4;
+
+	  while (count--)
+	    {
+	      if ((status = get_int (addr, &val, info)))
+		goto fail;
+	      addr += 4;
+	      fprintf_fn (stream, " %d:[", val);
+
+	      if ((status = get_int (addr, &val, info)))
+		goto fail;
+	      addr += 4;
+
+	      (*info->print_address_func) (val + insn_start, info);
+	      fprintf_fn (stream, " ]");
+	    }
+	  return addr - insn_start;
+	}
+
+      for (a = 0; a < ARRAY_SIZE (op->arg) && op->arg[a]; a++)
+	{
+	  unsigned char data[4];
+	  int val = 0;
+	  int i;
+	  int size = ASIZE (op->arg[a]);
+
+	  if ((status = info->read_memory_func (addr, data, size, info)))
+	    goto fail;
+
+	  val = (UNS (op->arg[0]) || ((data[0] & 0x80) == 0)) ? 0 : -1;
+
+	  for (i = 0; i < size; i++)
+	    val = ((unsigned) val << 8) | (data[i] & 0xff);
+
+	  fprintf_fn (stream, "%s", sep);
+	  if (PCREL (op->arg[a]))
+	    (*info->print_address_func) (val + insn_start, info);
+	  else
+	    fprintf_fn (stream, "%d", val);
+
+	  sep = ",";
+	  addr += size;
+	}
+      return op->len;
+    }
+
+ fail:
+  info->memory_error_func (status, addr, info);
+  return -1;
+}

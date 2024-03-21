@@ -1,0 +1,171 @@
+#compdef sccs admin cdc comb delta get help prs prt rmdel sact sccsdiff unget val what
+
+(( $+functions[_sccs_files] )) ||
+_sccs_files() {
+  local dir expl ret=1 pref=$PREFIX ipref=$IPREFIX
+  dir="${(M)PREFIX##*/}$finalpath"
+  [[ $~dir = (.|..|)/* ]] || dir="${PROJECTDIR:-~+}/$dir"
+  compset -P "*/"
+  _wanted file expl file compadd "$@" - $~dir/s.*(N.:t:s/s.//) && ret=0
+  PREFIX="$pref"
+  IPREFIX="$ipref"
+  _wanted sccs-files expl 'sccs file' _files -W ${PROJECTDIR:-~+} \
+      -g 's.*(-.)' && ret=0
+  
+  return ret
+}
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+local subcmds ropt copt sfiles finalpath
+
+subcmds=(
+  'admin:modify the flags or checksum of an sccs history file'
+  'cdc:annotate the commentary of an sccs delta'
+  'check:check for files currently being edited'
+  'clean:remove files that can be retrieved from sccs history'
+  'comb:generate scripts to combine deltas'
+  'create:create (initialize) history files'
+  'deledit:check file in and straight out again'
+  'delget:check file in and maintain read-only copy'
+  'delta:check in changes'
+  'diffs:compare working copy with version in sccs history'
+  'edit:retrieve file for editing (check out)'
+  "enter:like create, but omits the final 'sccs get'"
+  'fix:revise a (leaf) delta'
+  'get:retrieve a version from the sccs history'
+  'help:get information on sccs commands and error messages'
+  {info,tell}':list files being edited'
+  'print:print history of specified files'
+  'prs:display delta table for an sccs file'
+  'prt:display the delta table, but omit the MR field'
+  'rmdel:remove specified delta from history file'
+  'sact:show editing activity status of an sccs file'
+  'sccsdiff:compare two versions from sccs history'
+  {unedit,unget}':undo check out'
+  'val:validate history file'
+  'what:display any ID keyword strings in a file'
+)
+
+ropt='-r+[specify sccs delta id]:sccs delta id'
+copt='-c+[specify date]:date-stamp'
+sfiles=':file:_files -g "s.*(-.)"'
+
+if [[ $service = sccs ]]; then
+  _arguments -C -A "-*" \
+    '-r[run with real and not effective user ID]' \
+    '-d+[specify root prefix]:root prefix:_directories' \
+    '-p+[specify subdirectory of history file]:path to history file:_directories' \
+    '*::command:->subcmd' && ret=0
+
+  if (( CURRENT == 1 )); then
+    _describe -t commands 'sccs command' subcmds && ret=0
+  fi
+  (( ret )) || return 0
+
+  service="$words[1]"
+  sfiles=':file:_sccs_files'
+  curcontext="${curcontext%:*}-$service:"
+fi
+finalpath="${opt_args[-p]:-SCCS}"
+
+case $service in
+  admin)
+    _arguments "$ropt" "$sfiles" \
+      '-b[force encoding of binary data]' \
+      '-h[check structure of s.file]' \
+      '-n[create a new history file]' \
+      '-z[recompute file checksum]' \
+      '-a+[add access for a user or group]:user or group:_users' \
+      '-e+[erase access for a user or group]:user or group:_users' \
+      '-d+[delete flag from file]:flag' \
+      '-f+[set specified flag]:flag' \
+      '-i+[initialise history from specified file]:file:_files' \
+      '-m+[insert specified MR numbers into commentary]' \
+      '-t+[insert descriptive text from specified file]:file:_files' \
+      '-y+[specify comment for initial delta]'
+  ;;
+  cdc)
+    _arguments "$ropt" "$sfiles" \
+      '-m+[specify MR numbers to add/delete in delta comment]' \
+      '-y+[specify the comment]:comment' \
+  ;;
+  check|info|tell)
+    _arguments "$sfiles" \
+      '-b[ignore branches]' \
+      '(-U)-u+[restrict to files being modified by specified user]::user:_users' \
+      '(-u)-U[restrict to files being modified by current user]'
+  ;;
+  clean)
+    _arguments '-b[ignore branches]'
+  ;;
+  comb)
+    _arguments "$sfiles" \
+      '-o[access reconstructed file at delta to be created]' \
+      '-s[generate script that will produce a report]' \
+      '-p+[specify SID of oldest delta to preserve]:sccs delta id'
+      '-c+[specify list of deltas to preserve]:sccs delta list'
+  ;;
+  sact|print) _sccs_files;;
+  create|enter) _files;;
+  deledit|delget|delta)
+    _arguments "$sfiles" \
+	'-s[silent]' \
+	'-y+[specify delta commentary]:comment' \
+  ;;
+  diffs)
+    _diff_options diff "$sfiles" "$ropt" "$copt" \
+      '-C[output a context diff]'
+  ;;
+  edit|get)
+    _arguments "$sfiles" "$ropt" "$copt" \
+      '-e[retrieve for editing]' \
+      '-k[retrieve writable copy without checking out]' \
+      '-m[precede each line with the delta in which it was added]' \
+      '-p[produce retrieved version on standard output]' \
+      '-s[silent]'
+  ;;
+  fix) _arguments "$ropt" "$sfiles";;
+  help)
+    [[ $PREFIX$SUFFIX = [0-9]# ]] &&
+        _message -e message-codes "sccs message code"
+    subcmds+=( "stuck:help on help" )
+    _describe -t commands 'sccs command' subcmds
+  ;;
+  prs)
+    _arguments "$sfiles" "$ropt" "$copt" \
+      '-a[include all deltas including those marked removed]' \
+      '-e[display delta info for all deltas earlier than that specified]' \
+      '-l[display delta info for all deltas later than that specified]' \
+      '-d+[specify format of report]:data spec'
+  ;;
+  prt)
+    _arguments "$sfiles" "$copt" \
+      '-a[include all deltas including those marked removed]' \
+      '-b[print the body of the s.file]' \
+      '-d[print delta table entries]' \
+      '(-d -i -u -f -t)-e[everything - imply other options]' \
+      '-i[print serial numbers of included, excluded and ignored deltas]' \
+      '-s[print first line only of delta table entries]' \
+      '-t[print descriptive text held in s.file]' \
+      '-u[print usernames of users allowed to make deltas]' \
+      '-r+[exclude delta entries newer than date]:date-time' \
+      '-y+[exclude delta entries prior to sid]'
+    ;;
+  rmdel) _arguments "$ropt" "$sfiles";;
+  sccsdiff) _diff_options diff "$ropt" "$sfiles";;
+  unedit|unget)
+    _arguments "$sfiles" "$ropt" \
+      '-s[silent]' \
+      '-n[retain the retrieved version]'
+    ;;
+  val)
+    _arguments "$sfiles" "$ropt" \
+      '-s[silent]' \
+      '-m+[compare specified name with the ID keyword in the s.file]:name' \
+      '-y+[compare specified type with the ID keyword]:type'
+    ;;
+  what) _arguments '-s[stop after first occurrence]' '*:file:_files';;
+
+  *) _message "unknown sccs command: $service";;
+esac

@@ -1,0 +1,72 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+declare -lr VAR1
+declare -lr VAR2=zzz
+declare -alr VAR3
+
+var=VAR2
+
+echo ${!var@Q}
+echo ${VAR2@Q}
+
+echo ${VAR1@A}
+echo ${VAR1[@]@A}
+echo "${VAR1@A}"
+echo "${VAR1[@]@A}"
+
+echo "${VAR1[@]@a}"
+echo ${VAR1[@]@a}
+echo "${VAR1@a}"
+echo ${VAR1@a}
+
+echo ${VAR3@A}
+echo ${VAR3[@]@A}
+echo "${VAR3@A}"
+echo "${VAR3[@]@A}"
+
+echo "${VAR3[@]@a}"
+echo ${VAR3[@]@a}
+echo "${VAR3@a}"
+echo ${VAR3@a}
+
+var=one
+
+echo ${var}
+echo ${var[@]}
+
+VAR4=(aaa bbb)
+
+varname=VAR4
+
+echo ${!varname[@]@Q}
+
+echo ${VAR4[@]@Q}
+echo ${!VAR4[@]@Q}
+
+echo ${VAR4[@]}
+echo ${!VAR4[@]}
+
+VAR5=(aaa bbb)
+varname="VAR5[@]"
+
+echo "${VAR5@Q}"
+echo "${VAR5[@]@Q}"
+
+echo "${!varname@Q}"
+echo "${!varname[@]@Q}"
+
+# caused core dumps through bash-5.0
+echo "${!varname##aa}"
+echo "${!varname[@]%b}"

@@ -1,0 +1,7 @@
+echo "warning: the text of a system error message may vary between systems and" >&2
+echo "warning: produce diff output." >&2
+echo "warning: if the text of an error message concerning \`redir1.*' not being" >&2
+echo "warning: found or messages concerning bad file descriptors produce diff" >&2
+echo "warning: output, please do not consider it a test failure" >&2
+${THIS_SH} ./redir.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} redir.right && rm -f ${BASH_TSTOUT}

@@ -1,0 +1,45 @@
+# This file is a shell script that caches the results of configure
+# tests for x86 BeOS so they don't need to be done when cross-compiling.
+
+# AC_FUNC_GETPGRP should also define GETPGRP_VOID
+ac_cv_func_getpgrp_void=${ac_cv_func_getpgrp_void='yes'}
+# AC_FUNC_SETVBUF_REVERSED should not define anything else
+ac_cv_func_setvbuf_reversed=${ac_cv_func_setvbuf_reversed='no'}
+# on BeOS, system calls do not restart
+ac_cv_sys_restartable_syscalls=${ac_cv_sys_restartable_syscalls='no'}
+bash_cv_sys_restartable_syscalls=${bash_cv_sys_restartable_syscalls='no'}
+
+ac_cv_func_tcgetattr=${ac_cv_func_tcgetattr='yes'}
+
+# x86 BeOS is little endian
+ac_cv_c_bigendian=${ac_cv_c_bigendian='no'}
+ac_cv_sizeof_char_p=${ac_cv_sizeof_char_p='4'}
+ac_cv_sizeof_int=${ac_cv_sizeof_int='4'}
+ac_cv_sizeof_long=${ac_cv_sizeof_long='4'}
+ac_cv_sizeof_double=${ac_cv_sizeof_double='8'}
+
+bash_cv_dev_fd=${bash_cv_dev_fd='absent'}
+bash_cv_dup2_broken=${bash_cv_dup2_broken='no'}
+bash_cv_pgrp_pipe=${bash_cv_pgrp_pipe='no'}
+bash_cv_type_rlimit=${bash_cv_type_rlimit='long'}
+bash_cv_decl_under_sys_siglist=${bash_cv_decl_under_sys_siglist='no'}
+bash_cv_under_sys_siglist=${bash_cv_under_sys_siglist='no'}
+bash_cv_sys_siglist=${bash_cv_sys_siglist='yes'}
+bash_cv_opendir_not_robust=${bash_cv_opendir_not_robust='no'}
+bash_cv_getenv_redef=${bash_cv_getenv_redef='yes'}
+bash_cv_printf_declared=${bash_cv_printf_declared='yes'}
+bash_cv_ulimit_maxfds=${bash_cv_ulimit_maxfds='no'}
+bash_cv_getcwd_calls_popen=${bash_cv_getcwd_calls_popen='no'}
+bash_cv_must_reinstall_sighandlers=${bash_cv_must_reinstall_sighandlers='no'}
+bash_cv_job_control_missing=${bash_cv_job_control_missing='present'}
+bash_cv_sys_named_pipes=${bash_cv_sys_named_pipes='present'}
+bash_cv_func_sigsetjmp=${bash_cv_func_sigsetjmp='missing'}
+bash_cv_mail_dir=${bash_cv_mail_dir='unknown'}
+bash_cv_func_strcoll_broken=${bash_cv_func_strcoll_broken='no'}
+
+bash_cv_type_int32_t=${bash_cv_type_int32_t='int'}
+bash_cv_type_u_int32_t=${bash_cv_type_u_int32_t='int'}
+
+ac_cv_type_bits64_t=${ac_cv_type_bits64_t='no'}
+
+# end of cross-build/x86-beos.cache

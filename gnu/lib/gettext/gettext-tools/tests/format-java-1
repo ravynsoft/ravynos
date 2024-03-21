@@ -1,0 +1,153 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Java format strings.
+
+cat <<\EOF > f-j-1.data
+# Valid: one argument
+"abc{0}def"
+# Valid: ten arguments
+"abc{9}def"
+# Valid: two-digit argument numbers
+"abc{00}def"
+# Valid: huge argument numbers
+"abc{500000000}def"
+# Invalid: unterminated
+"abc{"
+# Invalid: unterminated
+"abc{0"
+# Invalid: missing number
+"abc{}def"
+# Invalid: non-digit
+"abc{number}def"
+# Invalid: non-digit
+"abc{-0}def"
+# Valid: two arguments
+"abc{1}def{0}"
+# Valid: multiple uses of same argument
+"abc{1}def{0}ghi{1}"
+# Invalid: broken elementFormat
+"abc{0,}def"
+# Invalid: invalid elementFormat
+"abc{1,string}def"
+# Valid: elementFormat of length 1
+"abc{1,number}def"
+# Valid: elementFormat of length 1
+"abc{1,date}def"
+# Valid: elementFormat of length 1
+"abc{1,time}def"
+# Valid: elementFormat of length 1
+"abc{1,choice}def"
+# Invalid: broken elementFormat
+"abc{1,number,}def"
+# Valid: builtin numberStyle
+"abc{1,number,currency}def"
+# Valid: builtin numberStyle
+"abc{1,number,percent}def"
+# Valid: builtin numberStyle
+"abc{1,number,integer}def"
+# Valid: builtin datetimeStyle
+"abc{1,date,short}def"
+# Valid: builtin datetimeStyle
+"abc{1,date,medium}def"
+# Valid: builtin datetimeStyle
+"abc{1,date,long}def"
+# Valid: builtin datetimeStyle
+"abc{1,date,full}def"
+# Valid: builtin datetimeStyle
+"abc{1,time,short}def"
+# Valid: builtin datetimeStyle
+"abc{1,time,medium}def"
+# Valid: builtin datetimeStyle
+"abc{1,time,long}def"
+# Valid: builtin datetimeStyle
+"abc{1,time,full}def"
+# Valid: dateFormatPattern
+"abc{1,date,foobar}"
+# Valid: dateFormatPattern
+"abc{1,time,foobar}"
+# Valid: dateFormatPattern with comma
+"abc{1,date,foo,bar}"
+# Valid: numberFormatPattern
+"abc{1,number,###,##0}def"
+# Invalid: numberFormatPattern
+"abc{1,number,foobar}"
+# Valid: empty choiceFormatPattern
+"abc{1,choice,}def"
+# Valid: choiceFormatPattern
+"abc{1,choice,0#zero|1#one|2#many}def"
+# Invalid: empty clause in choiceFormatPattern
+"abc{1,choice,|0#zero|1#one|2#many}def"
+# Valid: empty clause at end of choiceFormatPattern
+"abc{1,choice,0#zero|1#one|2#many|}def"
+# Invalid: short clause in choiceFormatPattern
+"abc{1,choice,-1|0#zero|1#one|2#many}def"
+# Valid: short clause at end of choiceFormatPattern
+"abc{1,choice,0#zero|1#one|2#many|3}def"
+# Valid: choiceFormatPattern with different argument
+"abc{1,choice,1#one|2#{0,date}}def"
+# Valid: choiceFormatPattern with same argument
+"abc{1,choice,1#one|2#{1}}def"
+# Valid: choiceFormatPattern with same argument
+"abc{1,choice,1#one|2#{1,number}}def"
+# Invalid: choiceFormatPattern with same argument, type conflict
+"abc{1,choice,1#one|2#{1,date}}def"
+# Invalid: missing opening brace
+"abc1}def{0}"
+# Valid: quoted brace
+"abc1'}'def{0}"
+# Invalid: quoted brace
+"abc{1'}'def"
+# Valid: unterminated quote
+"abc{0}1'}"
+# Valid: quoted brace, '' counts as a single quote
+"abc''1'}'def{0}"
+# Invalid: '' counts as a single quote
+"abc{1''}def"
+# Valid: quote inside elementFormat is hidden
+"abc{1,date,x'y}def"
+# Valid: numberFormatPattern with quote
+"abc{1,number,#0';'}def"
+# Invalid: numberFormatPattern with wrong number syntax
+"abc{1,number,#0;}def"
+# Valid: numberFormatPattern with quote
+"abc{1,number,0.##'E}def"
+# Valid: numberFormatPattern without quote
+"abc{1,number,0.##E}def"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-j-1-$n.in
+gettext(${string});
+EOF
+  ${XGETTEXT} -L Java -o f-j-1-$n.po f-j-1-$n.in || Exit 1
+  test -f f-j-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep java-format f-j-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep java-format f-j-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-j-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-j-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-j-1-$n.in f-j-1-$n.po
+done < f-j-1.data
+
+Exit 0

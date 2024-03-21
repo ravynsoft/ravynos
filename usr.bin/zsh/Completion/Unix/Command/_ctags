@@ -1,0 +1,244 @@
+#compdef ctags arduino-ctags ctags-exuberant ctags-universal
+
+local context state line expl
+local -A opt_args
+local -a arguments
+
+if [ -z "$_ctags_type" ]; then
+  local output=`ctags --version 2>&1`
+  if [[ "$output" = *Universal\ Ctags* ]]; then
+    _ctags_type="universal"
+  elif [[ "$output" = *Exuberant\ Ctags* ]]; then
+    _ctags_type="exuberant"
+  elif [[ "$output" = *usage:\ ctags* ]]; then
+    _ctags_type="bsd"
+  elif [[ "$output" = *Emacs* ]]; then
+    _ctags_type="etags"
+  else
+    _ctags_type="universal"
+  fi
+fi
+
+if [ "$_ctags_type" = "etags" ]; then
+  _etags
+  return $?
+fi
+
+_ctags_languages() {
+  _call_program languages $service --list-languages | sed -n 's/^\([A-Za-z][A-Za-z0-9#_+]*\).*/\1/p'
+}
+
+if [[ "$PREFIX" = --alias-*=* ]]; then
+  _message pattern
+  return 1
+elif [[ "$PREFIX" = --extras-*=* ]]; then
+  _message flags
+  return 1
+elif [[ "$PREFIX" = --fields-*=* ]]; then
+  _message flags
+  return 1
+elif [[ "$PREFIX" = --input-encoding-*=* ]]; then
+  _message encoding
+  return 1
+elif [[ "$PREFIX" = --kinddef-*=* ]]; then
+  _message kind
+  return 1
+elif [[ "$PREFIX" = --kinds-*=* ]]; then
+  _message kind
+  return 1
+elif [[ "$PREFIX" = --map-*=* ]]; then
+  _message pattern
+  return 1
+elif [[ "$PREFIX" = --mline-regex-*=* ]]; then
+  _message pattern
+  return 1
+elif [[ "$PREFIX" = --param-*=* ]]; then
+  _message argument
+  return 1
+elif [[ "$PREFIX" = --regex-*=* ]]; then
+  _message pattern
+  return 1
+elif [[ "$PREFIX" = --roles-*.*=* ]] then
+  _message role
+  return 1
+elif [[ "$PREFIX" = --roles-*.* ]] then
+  _message kind
+  return 1
+fi
+
+if [ "$_ctags_type" = "universal" ]; then
+  arguments=(
+    "-a[append to tags file]"
+    "-B[use backward searching patterns (?...?)]"
+    "-D[give definition for macro]:macro definition:"
+    "-e[output tag file for use with emacs]"
+    {-f+,-o+}"[write tags to specified file]:output file:_files"
+    "-F[use forward searching patterns (/.../)]"
+    "-h[specify a list of file extensions to be treated as include files]:extensions"
+    "-I[specify a list of tokens to be specially handled]:identifier list"
+    "-L[read a list of input file names from the specified file]:input file:_files"
+    "-n[equivalent to --excmd=number]"
+    "-N[equivalent to --excmd=pattern]"
+    "(--recurse -R)--recurse=-[search files recursively]::bool:(yes no)"
+    "(--recurse -R)-R[search files recursively]"
+    "-u[equivalent to --sort=no]"
+    "-x[print a tabular cross reference file to stdout]"
+    "--alias--[add a pattern detecting a name, can be used as an alt name for lang]:language:->languageequals"
+    "--append=-[should tags be appended to existing tag file]:bool:(yes no)"
+    "--etags-include=-[include reference to file in emacs style tag file]:file:_files"
+    "--exclude=-[exclude files and directories matching pattern]:pattern"
+    "--exclude-exception=-[don't exclude files and directories matching pattern even if they match the pattern specified with --exclude]:pattern"
+    "--excmd=-[uses the specified type of ex command to locate tags]:ex command type:(number pattern mix combine)"
+    "--extras=-[include extra tag entries for selected information]:flags (fFgpqrs)"
+    "--extras--[include <lang> own extra tag entries for selected information]:language:->languageequals"
+    "--fields=-[include selected extension fields]:flags (aCeEfFikKlmnNpPrRsStxzZ)"
+    "--fields--[include selected <lang> own extension fields]:language:->languageequals"
+    "--filter=-[behave as a filter, reading file names from stdin and writing tags to stdout]:bool:(yes no)"
+    "--filter-terminator=-[specify string to print to stdout following the tags for each file parsed when --filter is enabled]:string"
+    "--format=-[force output of specified tag file format]:level"
+    "(--guess-language-eagerly -G)"{--guess-language-eagerly,-G}"[guess the language of input file more eagerly]"
+    {--help,-?}"[display help text]"
+    "--help-full[display help text with experimental features]"
+    "--if0=-[should code within #if 0 conditionals be parsed]:bool:(yes no)"
+    "--input-encoding=-[specify encoding of all input files]:encoding"
+    "--input-encoding--[specify encoding of the <lang> input files]:language:->languageequals"
+    "--kinddef--[define new kind for <lang>]:language:->languageequals"
+    "--kinds--[enable/disable tag kinds for <lang>]:language:->languageequals"
+    "--langdef=-[define a new language to be parsed with regular expressions]:name"
+    "--langmap=-[override default mapping of language to input file extension]:maps"
+    "--language-force=-[force all files to be interpreted using specified language]:language:->language"
+    "--languages=-[restrict files scanned to these comma-separated languages]:language:->languages"
+    "--license[print details of software license]"
+    "--line-directives=-[should #line directives be processed]:bool:(yes no)"
+    "--links=-[indicate whether symlinks should be followed]:bool:(yes no)"
+    "--list-aliases=-[list of alias patterns]:language:->language"
+    "--list-excludes[list of exclude patterns for files/dirs]"
+    "--list-extras=-[list of extra tag flags]:language:->language"
+    "--list-features[list of compiled features]"
+    "--list-fields=-[list of fields]:language:->language"
+    "--list-kinds=-[list of all tag kinds for lang]:language:->language"
+    "--list-kinds-full=-[list details of all tag kinds for lang]:language:->language"
+    "--list-languages[list of supported languages]"
+    "--list-map-extensions=-[list of language extensions in mapping]:language:->language"
+    "--list-map-patterns=-[list of language patterns in mapping]:language:->language"
+    "--list-maps=-[list of language mappings (both extensions and patterns)]:language:->language"
+    "--list-mline-regex-flags[list of flags which can be used in a multiline regex parser definition]"
+    "--list-params=-[list of language parameters. works with --machinable]:language:->language"
+    "--list-pseudo-tags[list of pseudo tags]"
+    "--list-regex-flags[list of flags which can be used in a regex parser definition]"
+    "--list-roles=-[list of all roles of tag kinds specified for langs]:language:->language"
+    "--list-subparsers=-[list of subparsers for the base lang]:language:->language"
+    "--machinable=-[use tab separated representation in --list-* output]:bool:(yes no)"
+    "--map--[set, add(+), or remove(-) the map for <lang>]:language:->languageequals"
+    "--maxdepth=-[specify maximum recursion depth]:depth"
+    "--mline-regex--[define multiline regex for locating tags in <lang>]:language:->languageequals"
+    "--options=-[specify file (or dir) from which command line options should be read]:file:_files"
+    "--options-maybe=-[same as --options but doesn't error]:file:_files"
+    "--optlib-dir=-[add or set dir to optlib search path]:dir:_files -/"
+    "--output-encoding=-[the encoding to write the tag file in]:encoding"
+    "--output-format=-[specify the output format]:format:(u-ctags e-ctags etags xref)"
+    "--param--[set <lang> specific parameter]:language:->languageequals"
+    "--pattern-length-limit=-[cutoff patterns of tag entries after N characters]:number"
+    "--print-language[don't make tags file but just print the guessed lang name for input file]"
+    "--pseudo-tags=-[enable/disable emitting pseudo tag named ptag. if *, enable emitting all pseudo tags]:ptag"
+    "--put-field-prefix[put UCTAGS as prefix for the name of fields newly introducted in universal ctags]"
+    "--quiet=-[don't print notice class messages]:bool:(yes no)"
+    "--regex--[define regex for locating tags in specific lang]:language:->languageequals"
+    "--roles--[enable/disable tag roles for kinds of <lang>]:language:->languagedot"
+    "--sort=-[should tags be sorted]:argument:(yes no foldcase)"
+    "--tag-relative=-[should paths be relative to location of tag file]:argument:(yes no always never)"
+    "--totals=-[print stats about input and tag files]:argument:(yes no extra)"
+    "(--verbose -V)--verbose=-[enable verbose messages describing actions]:bool:(yes no)"
+    "(--verbose -V)-V[enable verbose messages describing actions]"
+    "--version[print version]"
+    "--with-list-header=-[prepend the column descriptions in --list-* output]:bool:(yes no)"
+    "*:file:_files"
+  )
+elif [ "$_ctags_type" = "exuberant" ]; then
+  arguments=(
+    "-a[append to tags file]"
+    "-B[use backward searching patterns (?...?)]"
+    "-e[output tag file for use with emacs]"
+    {-f+,-o+}"[write tags to specified file]:output file:_files"
+    "-F[use forward searching patterns (/.../)]"
+    "-h[specify a list of file extensions to be treated as include files]:extensions"
+    "-I[specify a list of tokens to be specially handled]:identifier list"
+    "-L[read a list of input file names from the specified file]:input file:_files"
+    "-n[equivalent to --excmd=number]"
+    "-N[equivalent to --excmd=pattern]"
+    "(--recurse -R)--recurse=-[search files recursively]::bool:(yes no)"
+    "(--recurse -R)-R[search files recursively]"
+    "-u[equivalent to --sort=no]"
+    "-x[print a tabular cross reference file to stdout]"
+    "--append=-[should tags be appended to existing tag file]:bool:(yes no)"
+    "--etags-include=-[include reference to file in emacs style tag file]:file:_files"
+    "--exclude=-[exclude files and directories matching pattern]:pattern"
+    "--excmd=-[uses the specified type of ex command to locate tags]:ex command type:(number pattern mix)"
+    "--extra=-[include extra tag entries for selected information]:flags (fg)"
+    "--fields=-[include selected extension fields]:flags (afmikKlnsStz)"
+    "--file-scope=-[should tags scoped only for a single file be included in output]:bool:(yes no)"
+    "--filter=-[behave as a filter, reading file names from stdin and writing tags to stdout]:bool:(yes no)"
+    "--filter-terminator=-[specify string to print to stdout following the tags for each file parsed when --filter is enabled]:string"
+    "--format=-[force output of specified tag file format]:level"
+    "--help[display help text]"
+    "--if0=-[should code within #if 0 conditionals be parsed]:bool:(yes no)"
+    "--langdef=-[define a new language to be parsed with regular expressions]:name"
+    "--langmap=-[override default mapping of language to input file extension]:maps"
+    "--language-force=-[force all files to be interpreted using specified language]:language:->language"
+    "--languages=-[restrict files scanned to these comma-separated languages]:language:->languages"
+    "--license[print details of software license]"
+    "--line-directives=-[should #line directives be processed]:bool:(yes no)"
+    "--links=-[indicate whether symlinks should be followed]:bool:(yes no)"
+    "--list-kinds=-[list of all tag kinds for lang]:language:->language"
+    "--list-languages[list of supported languages]"
+    "--list-maps=-[list of language mappings (both extensions and patterns)]:language:->language"
+    "--options=-[specify file (or dir) from which command line options should be read]:file:_files"
+    "--regex--[define regex for locating tags in specific lang]:language:->language"
+    "--sort=-[should tags be sorted]:argument:(yes no foldcase)"
+    "--tag-relative=-[should paths be relative to location of tag file]:argument:(yes no)"
+    "--totals=-[print stats about input and tag files]:argument:(yes no)"
+    "(--verbose -V)--verbose=-[enable verbose messages describing actions]:bool:(yes no)"
+    "(--verbose -V)-V[enable verbose messages describing actions]"
+    "--version[print version]"
+    "*:file:_files"
+  )
+  if [[ "$PREFIX" = -* ]]; then
+    local -a languages=(`_ctags_languages`)
+    local -a languages2
+    for language in $languages; do
+      arguments+=("--$language-kinds=-:kinds")
+    done
+  fi
+elif [ "$_ctags_type" = "bsd" ]; then
+  arguments=(
+    "-a[append to tags file]"
+    "-B[use backward searching patterns (?...?)]"
+    "-d[create tags for #defines that don't take arguments]"
+    "-F[use forward searching patterns (/.../)]"
+    "-f+[write tags to specified file]:output file:_files"
+    "-t[create tags for typedefs, structs, unions, and enums]"
+    "-u[update the specified files in the tags file]"
+    "-v[an index of the form expected by vgrind(1) is produced]"
+    "-w[suppress warning diagnostics]"
+    "-x[ctags produces a simple function index]"
+    "*:file:_files"
+  )
+fi
+
+_arguments -s $arguments
+
+if [ "$state" = "language" ]; then
+  local -a languages=(`_ctags_languages`)
+  _wanted languages expl language compadd -a languages
+elif [ "$state" = "languageequals" ]; then
+  local -a languages=(`_ctags_languages`)
+  _wanted languages expl language compadd -S = -a languages
+elif [ "$state" = "languagedot" ]; then
+  local -a languages=(`_ctags_languages`)
+  _wanted languages expl language compadd -S . -a languages
+elif [ "$state" = "languages" ]; then
+  local -a languages=(`_ctags_languages`)
+  _values -s , languages $languages
+fi
+
+return $(( compstate[nmatches] > 0 ? 0 : 1 ))

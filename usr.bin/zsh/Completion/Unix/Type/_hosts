@@ -1,0 +1,78 @@
+#compdef ftp rwho rup xping traceroute aaaa zone mx ns soa txt
+
+# avoid calling variable "hosts", it's an obvious candidate for use in
+#  zstyle -e '*' hosts 'reply=($hosts)'
+local expl _hosts tmp useip
+
+if ! zstyle -a ":completion:${curcontext}:hosts" hosts _hosts; then
+  if (( $+_cache_hosts == 0 )); then
+    # uniquify
+    typeset -gUa _cache_hosts
+    local ipstrip='[:blank:]#[^[:blank:]]#'
+
+    # This boolean style determines whether hosts completes IP addresses. The
+    # default is no (not using IP addresses).
+    zstyle -t ":completion:${curcontext}:hosts" use-ip && useip=yes
+    [[ -n $useip ]] && ipstrip=
+    if (( ${+commands[getent]} )); then
+      # pws: we were using the horrible ": ${(A)...:=}" syntax to assign
+      # to _cache_hosts, overriding the typeset as well as being unreadable
+      # and having obscure splitting behaviour.  Why?  We've just
+      # tested _cache_hosts doesn't exist.
+      _cache_hosts=(${(s: :)${(ps:\t:)${(f)~~"$(_call_program hosts getent hosts 2>/dev/null)"}##${~ipstrip}}})
+    else
+      _cache_hosts=(${(s: :)${(ps:\t:)${${(f)~~"$(</etc/hosts)"}%%\#*}##${~ipstrip}}})
+      if (( ${+commands[ypcat]} )) &&
+    	tmp=$(_call_program hosts ypcat hosts.byname 2>/dev/null); then
+        _cache_hosts+=( ${=${(f)tmp}##${~ipstrip}} ) # If you use YP
+      fi
+    fi
+
+    local khostfile
+    typeset -Ua khostfiles
+
+    # This style specifies a list of files to look up for host names and IP
+    # addresses, if asked to. The files can contain comma separated host names
+    # and IP's, and any text on a line after the first whitespace,| or # is
+    # discarded. ssh's known_hosts files are thus supported. This style defaults
+    # to the list /etc/ssh/ssh_known_hosts, ~/.ssh/known_hosts
+    zstyle -a ":completion:${curcontext}:hosts" known-hosts-files khostfiles ||
+    khostfiles=(/etc/ssh/ssh_known_hosts ~/.ssh/known_hosts)
+
+    for khostfile in $khostfiles; do
+      if [[ -r $khostfile ]]; then
+        khosts=(${(s/,/j/,/u)${(f)"$(<$khostfile)"}%%[ |#]*})
+
+        # known_hosts syntax supports the host being in the form [hostname]:port
+        # The filter below extracts the hostname from lines using this format.
+        #
+        # known_hosts syntax supports wildcards.  The filter below removes wildcard
+        # entries.
+        () {
+          local host
+          local -a match mbegin mend
+          khosts=()
+          for host; do
+            if [[ $host == *[*?]* ]]; then
+              continue
+            elif [[ $host = (#b)*\[(*)\]:[[:digit:]]#* ]]; then
+              khosts+=${match[1]}
+            else
+              khosts+=$host
+            fi
+          done
+        } "$khosts[@]"
+
+        if [[ -z $useip ]]; then
+          khosts=(${${khosts:#(#s)[0-9]##.[0-9]##.[0-9]##.[0-9]##(#e)}:#(#s)[0-9a-f:]##(#e)})
+        fi
+        _cache_hosts+=($khosts)
+      fi
+    done
+  fi
+
+  _hosts=( "$_cache_hosts[@]" )
+fi
+
+_wanted hosts expl host \
+    compadd -M 'm:{a-zA-Z}={A-Za-z} r:|.=* r:|=*' -a "$@" - _hosts

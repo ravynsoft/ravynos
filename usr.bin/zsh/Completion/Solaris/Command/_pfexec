@@ -1,0 +1,36 @@
+#compdef pfexec
+
+# This is a _values-like function that completes privileges and !-prefixed
+# privileges, comma-separated, and unique.
+_privset() {
+	local expl p
+	local -a privs
+
+	privs=( ${(f)"$(ppriv -l)"} all none zone basic )
+
+	# Ignore existing values
+	compset -P '*,'
+	# Ignore a leading !, maybe backslash-quoted
+	compset -P '\\#!'
+
+	# Remove already-referenced privs
+	for p in ${(s:,:)${IPREFIX//\\#\!/}}; do
+		privs=( ${privs:#$p} )
+	done
+
+	_wanted privs expl 'privilege' compadd -qS , -a privs
+}
+
+_pfexec() {
+	local cmd cpp
+	local -a _comp_priv_prefix
+	local -A opt_args
+	cmd="$words[1]"
+	cpp='_comp_priv_prefix=( $cmd ${(kv)opt_args[(I)-P]} )'
+	_arguments \
+		'-P+[privileges to acquire]:privspec:_privset' \
+		"(-): :{ $cpp; _command_names -e }" \
+		"*:: :{ $cpp; _normal }"
+}
+
+_pfexec "$@"

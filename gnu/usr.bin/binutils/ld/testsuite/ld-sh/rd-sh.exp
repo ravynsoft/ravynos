@@ -1,0 +1,58 @@
+# Expect script for run_dump_test based ld-sh tests.
+#   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Hans-Peter Nilsson (hp@bitrange.com)
+#
+
+# This file is kept separate from sh.exp, because having it separate
+# simplifies selective testing, like in "make check-ld
+# RUNTESTFLAGS=rd-sh.exp=shared-1".  It is assumed that sh.exp is a place
+# for constructs where the name of the test is harder to extract and
+# select than here.
+
+if ![istarget sh*-*-*] {
+    return
+}
+
+set asflags_save "$ASFLAGS"
+set ldflags_save "$LDFLAGS"
+
+set rd_test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach shtest $rd_test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $shtest]
+    # vxworks-static.d relies on files created by sh-vxworks.exp.
+    # We run it there instead of here.
+    if { [file tail $shtest] != "vxworks1-static.d" } {
+	run_dump_test [file rootname $shtest]
+    }
+    if [string match $srcdir/$subdir/*-dso.d $shtest] {
+	# Copy the output of the DSO-createing test to .so file.
+	# Notice that a DSO-creating test must precede the tests
+	# which need that DSO in sort-order by name.
+	set cmd "cp tmpdir/dump tmpdir/[file rootname [file tail $shtest]].so"
+	send_log "$cmd\n"
+	set cmdret [catch "exec $cmd" comp_output]
+	send_log "$comp_output\n"
+	# FIXME: What if it fails?  Need we do something?
+    }
+}
+set ASFLAGS "$asflags_save"
+set LDFLAGS "$ldflags_save"

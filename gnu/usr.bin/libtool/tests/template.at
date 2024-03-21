@@ -1,0 +1,324 @@
+# template.at -- test C++ templates with libtool              -*- Autotest -*-
+#
+#   Copyright (C) 2005, 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Markus Christen, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([C++ template tests.])
+
+AT_SETUP([simple template test])
+LT_AT_TAG([CXX])
+AT_KEYWORDS([libtool])
+
+AT_DATA(aclib.h,
+[[int cf(int);
+]])
+
+AT_DATA(aclib.cpp,
+[[#include "aclib.h"
+template<typename T>
+
+T cq(T b)
+{
+  return b * 3;
+}
+
+int cf(int i)
+{
+  return cq(i);
+}
+]])
+
+AT_DATA(alib.h,
+[[int f(int);
+]])
+
+AT_DATA(alib.cpp,
+[[#include "alib.h"
+
+template<typename T>
+T q(T b)
+{
+  return b * 2;
+}
+
+int f(int i)
+{
+  return q(i);
+}
+]])
+
+AT_DATA(prog.cpp,
+[[#include "alib.h"
+#include "aclib.h"
+
+int main()
+{
+  return f(3) + 3 - cf(3) != 0;
+}
+]])
+
+AT_CHECK([$LIBTOOL --tag=CXX --mode=compile $CXX -I. $CPPFLAGS $CXXFLAGS -c -o alib.lo alib.cpp],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=compile $CXX -I. $CPPFLAGS $CXXFLAGS -c -o aclib.lo aclib.cpp],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CPPFLAGS $CXXFLAGS $LDFLAGS -o libaclib.la aclib.lo],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CPPFLAGS $CXXFLAGS $LDFLAGS -o libalib.la -rpath /nonexistent alib.lo libaclib.la],
+	 [0], [ignore], [ignore])
+AT_CHECK([$CXX -I. $CPPFLAGS $CXXFLAGS -c prog.cpp],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CPPFLAGS $CXXFLAGS $LDFLAGS -o prog$EXEEXT prog.$OBJEXT libalib.la],
+	 [0], [ignore], [ignore])
+
+LT_AT_EXEC_CHECK([./prog], [0], [ignore], [ignore])
+
+
+dnl with autoreconf, use:
+
+dnl AT_DATA(configure.ac,
+dnl [[AC_INIT([template_1], ]]AT_PACKAGE_VERSION[[, ]]AT_PACKAGE_BUGREPORT[[)
+dnl AC_CONFIG_HEADERS([config.h:config-h.in])
+dnl AC_CONFIG_MACRO_DIRS([m4])
+dnl AC_CONFIG_AUX_DIR([config])
+dnl AM_INIT_AUTOMAKE([foreign])
+dnl AC_LANG([C++])
+dnl AC_PROG_CXX
+dnl AC_PROG_LIBTOOL
+dnl AC_CONFIG_FILES([Makefile])
+dnl AC_OUTPUT
+dnl ]])
+
+dnl AT_DATA(Makefile.am,
+dnl [[ACLOCAL_AMFLAGS = -I m4
+dnl noinst_LTLIBRARIES = libaclib.la
+dnl libaclib_la_SOURCES = aclib.cpp aclib.h
+dnl lib_LTLIBRARIES = libalib.la
+dnl include_HEADERS = alib.h
+dnl libalib_la_SOURCES = alib.cpp
+dnl libalib_la_LIBADD = libaclib.la
+dnl bin_PROGRAMS = prog
+dnl prog_SOURCES = prog.cpp
+dnl LDADD = libalib.la
+dnl ]])
+
+AT_CLEANUP
+
+
+AT_SETUP([template test with subdirs])
+LT_AT_TAG([CXX])
+AT_KEYWORDS([libtool])
+
+noskip=:
+withundef=:
+# Mac OS X.
+# The linker has issues with this test.
+case $host in
+*-darwin*) noskip=false ;;
+*-aix*) withundef=false ;;
+esac
+
+
+CPPFLAGS="$CPPFLAGS -I../src/lib -I../src/lib2"
+
+mkdir src obj
+( cd src; mkdir lib lib2 sub )
+( cd obj; mkdir lib lib2 sub )
+
+AT_DATA(src/lib/a.hh,
+[[template <class T>
+unsigned int a(const T&);
+
+template <class T>
+unsigned int a(const T& t)
+{
+  return sizeof t;
+}
+
+extern int a2(char t);
+
+inline int a3(const double* t)
+{
+  return a(t);
+}
+]])
+
+AT_DATA(src/lib/a.cpp,
+[[#include "a.hh"
+
+int a2(char t)
+{
+  return a(t);
+}
+]])
+
+AT_DATA(src/lib2/b.hh,
+[[#include "a.hh"
+
+template <class T>
+unsigned int b(T& t)
+{
+  return a(t);
+}
+extern int b2(char* t);
+struct bs { int bi; };
+extern int b3(bs t);
+]])
+
+AT_DATA(src/lib2/b.cpp,
+[[#include "b.hh"
+
+int b2(char* t)
+{
+  return a2(t[0]);
+}
+
+int b3(bs t)
+{
+  return b(t);
+}
+]])
+
+AT_DATA(src/sub/main.cpp,
+[[#include "b.hh"
+
+int main()
+{
+  double foo;
+  const char s = ' ';
+  char d;
+  char *t = &d;
+  return b(foo) + a3(&foo) + b2(t) - a(s)
+         - (sizeof(double) + sizeof(double*));
+}
+]])
+
+cd obj
+
+# If the compiler supports -c -o, we want to use it:
+# it may make a difference for templates
+eval `$LIBTOOL --tag=CXX --config | $GREP ^compiler_c_o=`
+case $compiler_c_o in
+yes)
+  main_o=sub/main.$OBJEXT
+  AT_CHECK([$CXX $CPPFLAGS $CXXFLAGS -c -o $main_o ../src/sub/main.cpp],
+	   [0], [ignore], [ignore])
+  ;;
+*)
+  main_o=main.$OBJEXT
+  AT_CHECK([$CXX $CPPFLAGS $CXXFLAGS -c ../src/sub/main.cpp],
+	   [0], [ignore], [ignore])
+  ;;
+esac
+
+AT_CHECK([$LIBTOOL --tag=CXX --mode=compile $CXX $CPPFLAGS $CXXFLAGS -c -o lib/a.lo ../src/lib/a.cpp],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=compile $CXX $CPPFLAGS $CXXFLAGS -c -o lib2/b.lo ../src/lib2/b.cpp],
+	 [0], [ignore], [ignore])
+AT_CHECK([$CXX $CPPFLAGS $CXXFLAGS -c ../src/sub/main.cpp],
+	 [0], [ignore], [ignore])
+# both convenience
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib/liba.la lib/a.lo],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib2/libb.la lib2/b.lo],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o sub/main$EXEEXT $main_o lib2/libb.la lib/liba.la],
+	 [0], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./sub/main], [ignore])
+# lib convenience
+if $noskip && $withundef; then
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib2/libb.la lib2/b.lo -rpath /foo],
+	   [0], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o sub/main$EXEEXT $main_o lib2/libb.la lib/liba.la],
+	   [0], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./sub/main])
+fi
+
+# both installed
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib/liba.la lib/a.lo -rpath /foo],
+	 [0], [ignore], [ignore])
+if $withundef; then
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib2/libb.la lib2/b.lo -rpath /bar],
+	   [0], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o sub/main$EXEEXT $main_o lib2/libb.la lib/liba.la],
+	   [0], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./sub/main])
+fi
+
+# both convenience, libb depending on liba
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib/liba.la lib/a.lo],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib2/libb.la lib2/b.lo lib/liba.la],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o sub/main$EXEEXT $main_o lib2/libb.la],
+	 [0], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./sub/main])
+# lib convenience
+if $noskip; then
+
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib2/libb.la lib2/b.lo lib/liba.la -rpath /foo],
+	 [0], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o sub/main$EXEEXT $main_o lib2/libb.la],
+	 [0], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./sub/main])
+fi
+# both installed
+if $noskip; then
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o lib2/libb.la lib2/b.lo lib/liba.la -rpath /bar],
+	 [0], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --tag=CXX --mode=link $CXX $CXXFLAGS $LDFLAGS -o sub/main$EXEEXT $main_o lib2/libb.la],
+	 [0], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./sub/main])
+fi
+
+cd ..
+
+AT_CHECK([$noskip || (exit 77)])
+
+dnl with autoreconf use:
+dnl
+dnl AT_DATA(src/configure.ac,
+dnl [[AC_INIT([template_2], ]]AT_PACKAGE_VERSION[[, ]]AT_PACKAGE_BUGREPORT[[)
+dnl AC_CONFIG_HEADERS([config.h:config-h.in])
+dnl AC_CONFIG_MACRO_DIRS([m4])
+dnl AC_CONFIG_AUX_DIR([config])
+dnl AM_INIT_AUTOMAKE([foreign subdir-objects])
+dnl AC_LANG([C++])
+dnl AC_PROG_CXX
+dnl AC_PROG_LIBTOOL
+dnl AC_CONFIG_FILES([Makefile])
+dnl AC_OUTPUT
+dnl ]])
+dnl
+dnl AT_DATA(src/Makefile.am,
+dnl [[ACLOCAL_AMFLAGS = -I m4
+dnl INCLUDES = -I$(srcdir)/lib -I$(srcdir)/lib2
+dnl bin_PROGRAMS = sub/main
+dnl noinst_LTLIBRARIES = lib/liba.la lib2/libb.la
+dnl lib_liba_la_SOURCES = lib/a.cpp lib/a.hh
+dnl lib2_libb_la_SOURCES = lib2/b.cpp lib2/b.hh
+dnl #lib2_libb_la_LIBADD = lib/liba.la
+dnl sub_main_SOURCES = sub/main.cpp
+dnl sub_main_LDADD = lib2/libb.la lib/liba.la
+dnl ]])
+
+AT_CLEANUP

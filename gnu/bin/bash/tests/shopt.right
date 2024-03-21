@@ -1,0 +1,312 @@
+./shopt.tests: line 15: shopt: -z: invalid option
+shopt: usage: shopt [-pqsu] [-o] [optname ...]
+--
+shopt -u autocd
+shopt -u assoc_expand_once
+shopt -u cdable_vars
+shopt -s cdspell
+shopt -u checkhash
+shopt -u checkjobs
+shopt -u checkwinsize
+shopt -s cmdhist
+shopt -u compat31
+shopt -u compat32
+shopt -u compat40
+shopt -u compat41
+shopt -u compat42
+shopt -u compat43
+shopt -u compat44
+shopt -s complete_fullquote
+shopt -u direxpand
+shopt -u dirspell
+shopt -u dotglob
+shopt -u execfail
+shopt -s expand_aliases
+shopt -u extdebug
+shopt -u extglob
+shopt -s extquote
+shopt -u failglob
+shopt -s force_fignore
+shopt -s globasciiranges
+shopt -s globskipdots
+shopt -u globstar
+shopt -u gnu_errfmt
+shopt -u histappend
+shopt -u histreedit
+shopt -u histverify
+shopt -s hostcomplete
+shopt -u huponexit
+shopt -u inherit_errexit
+shopt -s interactive_comments
+shopt -u lastpipe
+shopt -u lithist
+shopt -u localvar_inherit
+shopt -u localvar_unset
+shopt -u login_shell
+shopt -u mailwarn
+shopt -u no_empty_cmd_completion
+shopt -u nocaseglob
+shopt -u nocasematch
+shopt -u noexpand_translation
+shopt -u nullglob
+shopt -s patsub_replacement
+shopt -s progcomp
+shopt -u progcomp_alias
+shopt -s promptvars
+shopt -u restricted_shell
+shopt -u shift_verbose
+shopt -s sourcepath
+shopt -u varredir_close
+shopt -u xpg_echo
+--
+shopt -u huponexit
+shopt -u checkwinsize
+shopt -s sourcepath
+--
+shopt -s cdspell
+shopt -s cmdhist
+shopt -s complete_fullquote
+shopt -s expand_aliases
+shopt -s extquote
+shopt -s force_fignore
+shopt -s globasciiranges
+shopt -s globskipdots
+shopt -s hostcomplete
+shopt -s interactive_comments
+shopt -s patsub_replacement
+shopt -s progcomp
+shopt -s promptvars
+shopt -s sourcepath
+--
+shopt -u autocd
+shopt -u assoc_expand_once
+shopt -u cdable_vars
+shopt -u checkhash
+shopt -u checkjobs
+shopt -u checkwinsize
+shopt -u compat31
+shopt -u compat32
+shopt -u compat40
+shopt -u compat41
+shopt -u compat42
+shopt -u compat43
+shopt -u compat44
+shopt -u direxpand
+shopt -u dirspell
+shopt -u dotglob
+shopt -u execfail
+shopt -u extdebug
+shopt -u extglob
+shopt -u failglob
+shopt -u globstar
+shopt -u gnu_errfmt
+shopt -u histappend
+shopt -u histreedit
+shopt -u histverify
+shopt -u huponexit
+shopt -u inherit_errexit
+shopt -u lastpipe
+shopt -u lithist
+shopt -u localvar_inherit
+shopt -u localvar_unset
+shopt -u login_shell
+shopt -u mailwarn
+shopt -u no_empty_cmd_completion
+shopt -u nocaseglob
+shopt -u nocasematch
+shopt -u noexpand_translation
+shopt -u nullglob
+shopt -u progcomp_alias
+shopt -u restricted_shell
+shopt -u shift_verbose
+shopt -u varredir_close
+shopt -u xpg_echo
+--
+autocd         	off
+assoc_expand_once	off
+cdable_vars    	off
+checkhash      	off
+checkjobs      	off
+checkwinsize   	off
+compat31       	off
+compat32       	off
+compat40       	off
+compat41       	off
+compat42       	off
+compat43       	off
+compat44       	off
+direxpand      	off
+dirspell       	off
+dotglob        	off
+execfail       	off
+extdebug       	off
+extglob        	off
+failglob       	off
+globstar       	off
+gnu_errfmt     	off
+histappend     	off
+histreedit     	off
+histverify     	off
+huponexit      	off
+inherit_errexit	off
+lastpipe       	off
+lithist        	off
+localvar_inherit	off
+localvar_unset 	off
+login_shell    	off
+mailwarn       	off
+no_empty_cmd_completion	off
+nocaseglob     	off
+nocasematch    	off
+noexpand_translation	off
+nullglob       	off
+progcomp_alias 	off
+restricted_shell	off
+shift_verbose  	off
+varredir_close 	off
+xpg_echo       	off
+--
+set +o allexport
+set -o braceexpand
+set -o emacs
+set +o errexit
+set +o errtrace
+set +o functrace
+set -o hashall
+set -o histexpand
+set -o history
+set +o ignoreeof
+set -o interactive-comments
+set +o keyword
+set -o monitor
+set +o noclobber
+set +o noexec
+set +o noglob
+set +o nolog
+set +o notify
+set +o nounset
+set +o onecmd
+set +o physical
+set +o pipefail
+set +o posix
+set -o privileged
+set +o verbose
+set +o vi
+set +o xtrace
+--
+allexport      	off
+braceexpand    	on
+emacs          	on
+errexit        	off
+errtrace       	off
+functrace      	off
+hashall        	on
+histexpand     	on
+history        	on
+ignoreeof      	off
+interactive-comments	on
+keyword        	off
+monitor        	on
+noclobber      	off
+noexec         	off
+noglob         	off
+nolog          	off
+notify         	off
+nounset        	off
+onecmd         	off
+physical       	off
+pipefail       	off
+posix          	off
+privileged     	on
+verbose        	off
+vi             	off
+xtrace         	off
+--
+set +o allexport
+set -o braceexpand
+set -o emacs
+set +o errexit
+set +o errtrace
+set +o functrace
+set -o hashall
+set -o histexpand
+set -o history
+set +o ignoreeof
+set -o interactive-comments
+set +o keyword
+set -o monitor
+set +o noclobber
+set +o noexec
+set +o noglob
+set +o nolog
+set +o notify
+set +o nounset
+set +o onecmd
+set +o physical
+set +o pipefail
+set +o posix
+set -o privileged
+set +o verbose
+set +o vi
+set +o xtrace
+--
+set -o history
+set +o verbose
+--
+set -o braceexpand
+set -o emacs
+set -o hashall
+set -o histexpand
+set -o history
+set -o interactive-comments
+set -o monitor
+set -o privileged
+--
+set +o allexport
+set +o errexit
+set +o errtrace
+set +o functrace
+set +o ignoreeof
+set +o keyword
+set +o noclobber
+set +o noexec
+set +o noglob
+set +o nolog
+set +o notify
+set +o nounset
+set +o onecmd
+set +o physical
+set +o pipefail
+set +o posix
+set +o verbose
+set +o vi
+set +o xtrace
+--
+allexport      	off
+errexit        	off
+errtrace       	off
+functrace      	off
+ignoreeof      	off
+keyword        	off
+noclobber      	off
+noexec         	off
+noglob         	off
+nolog          	off
+notify         	off
+nounset        	off
+onecmd         	off
+physical       	off
+pipefail       	off
+posix          	off
+verbose        	off
+vi             	off
+xtrace         	off
+--
+./shopt.tests: line 106: shopt: xyz1: invalid shell option name
+./shopt.tests: line 107: shopt: xyz1: invalid option name
+28c28
+< globskipdots   	off
+---
+> globskipdots   	on
+expand_aliases 	on
+expand_aliases 	on

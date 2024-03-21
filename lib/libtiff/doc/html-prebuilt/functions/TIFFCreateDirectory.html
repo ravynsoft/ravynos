@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFCreateDirectory &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFCustomDirectory" href="TIFFCustomDirectory.html" />
+    <link rel="prev" title="TIFFcolor" href="TIFFcolor.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFCustomDirectory.html" title="TIFFCustomDirectory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFcolor.html" title="TIFFcolor"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFCreateDirectory</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffcreatedirectory">
+<h1>TIFFCreateDirectory<a class="headerlink" href="#tiffcreatedirectory" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCreateDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCreateDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCreateDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFFreeDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFFreeDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFFreeDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFUnlinkDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFUnlinkDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">tdir_t</span></span><span class="w"> </span><span class="n"><span class="pre">dirn</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFUnlinkDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>The following routines create or release a directory.</p>
+<p><a class="reference internal" href="#c.TIFFCreateDirectory" title="TIFFCreateDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateDirectory()</span></code></a> setup for a directory in a open TIFF file.
+The newly created directory will not exist on the file till
+<a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>, <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a>,
+<a class="reference internal" href="TIFFFlush.html#c.TIFFFlush" title="TIFFFlush"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFlush()</span></code></a> or <a class="reference internal" href="TIFFClose.html#c.TIFFClose" title="TIFFClose"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClose()</span></code></a> is called.
+<a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a> also creates a new directory,
+frees the <code class="docutils literal notranslate"><span class="pre">*tif</span></code> structure and sets up a new one.</p>
+<p><a class="reference internal" href="#c.TIFFFreeDirectory" title="TIFFFreeDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFreeDirectory()</span></code></a> releases allocated storage associated with a
+directory, especially custom-fields.
+However, the main part of the directory is not touched. Routine
+<a class="reference internal" href="TIFFClose.html#c.TIFFCleanup" title="TIFFCleanup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCleanup()</span></code></a> calls <a class="reference internal" href="#c.TIFFFreeDirectory" title="TIFFFreeDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFreeDirectory()</span></code></a> to release
+the directory part of the <cite>tif</cite> structure.</p>
+<p><a class="reference internal" href="#c.TIFFUnlinkDirectory" title="TIFFUnlinkDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFUnlinkDirectory()</span></code></a> unlink the specified directory from the
+directory chain.
+The parameter <em>dirn</em> specifies the subfile/directory
+as an integer number, with the first directory numbered one (1).
+This is different to <a class="reference internal" href="TIFFSetDirectory.html#c.TIFFSetDirectory" title="TIFFSetDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetDirectory()</span></code></a> or <a class="reference internal" href="TIFFquery.html#c.TIFFCurrentDirectory" title="TIFFCurrentDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirectory()</span></code></a> where the first
+directory starts with zero (0).</p>
+<p>Directory query functions <a class="reference internal" href="TIFFquery.html#c.TIFFCurrentDirectory" title="TIFFCurrentDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirectory()</span></code></a>,
+<a class="reference internal" href="TIFFquery.html#c.TIFFCurrentDirOffset" title="TIFFCurrentDirOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirOffset()</span></code></a>, <a class="reference internal" href="TIFFquery.html#c.TIFFLastDirectory" title="TIFFLastDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFLastDirectory()</span></code></a> and
+<a class="reference internal" href="TIFFquery.html#c.TIFFNumberOfDirectories" title="TIFFNumberOfDirectories"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfDirectories()</span></code></a> retrieve information about directories
+in an open TIFF file. Be aware that until a directory is
+not written to file AND read back, the query functions won’t retrieve
+the correct information!</p>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this heading">¶</a></h2>
+<p>Be aware:</p>
+<ul class="simple">
+<li><p>that until a directory is not written to file AND read back, the
+query functions won’t retrieve the correct information!</p></li>
+<li><p>that the newly created directory will not exist on the file till
+<a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>, <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a>,
+<a class="reference internal" href="TIFFFlush.html#c.TIFFFlush" title="TIFFFlush"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFlush()</span></code></a> or <a class="reference internal" href="TIFFClose.html#c.TIFFClose" title="TIFFClose"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClose()</span></code></a> has been called.</p></li>
+<li><p>that <a class="reference internal" href="#c.TIFFCreateDirectory" title="TIFFCreateDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateDirectory()</span></code></a> and <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>
+create a new directory, free the <code class="docutils literal notranslate"><span class="pre">*tif</span></code> structure and set up a new one.</p></li>
+<li><p>that unlike <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>, <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a>
+does not free up the directory data structures in memory.</p></li>
+</ul>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed to the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.
+Likewise, warning messages are directed to the <a class="reference internal" href="TIFFWarning.html#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> routine.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff),
+<a class="reference internal" href="TIFFCustomDirectory.html"><span class="doc">TIFFCustomDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFquery.html"><span class="doc">TIFFquery</span></a> (3tiff),
+<a class="reference internal" href="TIFFSetDirectory.html"><span class="doc">TIFFSetDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFWriteDirectory.html"><span class="doc">TIFFWriteDirectory</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFCreateDirectory</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFcolor.html"
+                          title="previous chapter">TIFFcolor</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFCustomDirectory.html"
+                          title="next chapter">TIFFCustomDirectory</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFCreateDirectory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFCustomDirectory.html" title="TIFFCustomDirectory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFcolor.html" title="TIFFcolor"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFCreateDirectory</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

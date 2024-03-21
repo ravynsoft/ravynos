@@ -1,0 +1,71 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+f()
+{
+	local -a v
+	local -a w
+
+	g
+	echo "f: ${v[@]}, ${w[@]}"
+}
+
+g()
+{
+	aux=v
+	declare -ga "$aux=( asdf fdsa )"
+	declare -ga w=( asdf fdsa )
+
+	echo "g: ${v[@]}, ${w[@]}"
+}
+
+f
+echo "FIN: ${v[@]}, ${w[@]}"
+
+unset v w
+unset -f f g
+
+f()
+{
+	local  v
+	local  w
+
+	g
+	echo f: v = $v, w = $w
+}
+
+g()
+{
+	aux=v
+	declare -g w=one
+	declare -g "$aux=two"
+
+	echo g: v = $v, w = $w
+}
+
+f
+echo FIN: v = $v, w = $w
+
+# problem with error return propagation through bash-4.3
+unset -f aaa bbb
+unset unique
+
+aaa() {
+    declare -g -a unique=()
+}
+bbb() {
+    declare -g -A unique=()
+}
+aaa
+bbb
+echo after bbb: $?

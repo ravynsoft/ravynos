@@ -1,0 +1,116 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# fixes for bugs in bash-4.2 regarding empty strings in expand_string_for_rhs
+
+f=abc
+recho ${f##""a}
+recho ${f##"$v"a}
+
+recho ${f%%""c}
+recho ${f%%"$v"c}
+
+recho ${f//""a}
+recho ${f//"$v"a}
+
+recho ${f/""a""b/}
+recho ${f/""c/}
+recho ${f/"$v"c/}
+
+unset foo empty
+foo=aabbcc
+
+recho ${foo/bb/}
+recho ${foo/bb/$empty}
+
+recho ${foo/}
+recho ${empty/}
+
+recho ${foo/ }
+recho ${empty/ }
+unset foo empty
+
+S2=oenophile
+
+recho ${S2^"$v"[aeiou]}
+recho ${S2^^"$v"[aeiou]}
+
+recho ${foo:-""}
+recho ${foo:-""abc}
+
+recho "${foo:-''}"
+recho "${foo:-}"
+
+if [[ $var == "" ]]; then
+	echo good 1
+fi
+
+if [[ "$var"X == ""X ]]; then
+	echo good 2
+fi
+
+if [ "$var"X == ""X"" ]; then
+	echo good 3
+fi
+
+if [ X"" == X ]; then
+	echo good 4
+fi
+
+if [[ X"" == X ]]; then
+	echo good 5
+fi
+
+case x"" in
+  x) echo 'ok 1'
+     ;;
+  x??) echo 'this would be really odd'
+     ;;
+  x?) echo 'does this prove anything?'
+      echo x""x
+     ;;
+  *) echo 'no match'
+     ;;
+esac
+
+if [[ x"" == x ]]; then
+	echo ok 2
+fi
+
+if [[ x"" == x"" ]]; then
+	echo ok 3
+else
+	echo bad 3
+fi
+
+case x"" in
+x"")	echo ok 4 ;;
+*)	echo bad 4;;
+esac
+
+if [[ x"" == x"" ]]; then
+	echo ok 5
+else
+	echo bad 5
+fi
+
+case x"" in
+"x")	echo ok 6 ;;
+*)	echo bad 6;;
+esac
+
+case x"" in
+"x")	echo CTLNUL 7 ;;
+x)	echo ok 7 ;;
+*)	echo bad 7 ;;
+esac

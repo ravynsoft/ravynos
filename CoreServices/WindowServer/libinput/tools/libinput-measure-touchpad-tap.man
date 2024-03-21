@@ -1,0 +1,80 @@
+.TH libinput-measure-touchpad-tap "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-measure\-touchpad\-tap \- measure tap-to-click properties of devices
+.SH SYNOPSIS
+.B libinput measure touchpad\-tap [\-\-help] [\-\-format=\fI<format>\fB] \fI[/dev/input/event0]\fR
+.SH DESCRIPTION
+.PP
+The
+.B "libinput measure touchpad\-tap"
+tool measures properties of the tap\-to\-click behavior of the user. This is
+an interactive tool. When executed, the tool will prompt the user to
+interact with the touchpad. On termination, the tool prints a summary of the
+tap interactions seen. This data should be attached to any tap\-related bug
+report.
+.PP
+For a full description on how libinput's tap-to-click behavior works, see
+the online documentation here:
+.I https://wayland.freedesktop.org/libinput/doc/latest/tapping.html
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+If a device node is given, this tool opens that device node. Otherwise, this
+tool searches for the first node that looks like a touchpad and uses that
+node.
+.TP 8
+.B \-\-help
+Print help
+.TP 8
+.B \-\-format=summary|dat
+Specify the data format to be printed. The default (or if
+.B \-\-format
+is omitted) is "summary". See section
+.B DATA FORMATS
+
+.SH DATA FORMATS
+This section describes the data formats printed with the
+.B \-\-format
+commandline argument. Note that any of the output may change at any time.
+.RE
+.PP
+summary
+.RS 4
+The
+.I summary
+format prints a summary of the data collected. This format is useful to
+get a quick overview of a user's tapping behavior and why some taps may or
+may not be detected.
+.RE
+.PP
+dat
+.RS 4
+The
+.I dat
+format prints the touch sequence data (raw and processed) in column-style
+format, suitable for processing by other tools such as
+.B gnuplot(1).
+The data is aligned in one row per touch with each column containing a
+separate data entry.
+.B libinput\-measure\-touchpad\-tap
+prints comments at the top of the file to describe each column.
+.PP
+.B WARNING:
+The data contained in the output is grouped by different sort orders. For
+example, the first few columns may list tap information in the 'natural'
+sort order (i.e. as they occurred), the data in the next few columns may list
+tap information sorted by the delta time between touch down and touch up.
+Comparing columns across these group boundaries will compare data of two
+different touch points and result in invalid analysis.
+.SH BUGS
+This tool does not take finger pressure into account. The tap it detects may
+be different to those detected by libinput if libinput's pressure thresholds
+differ significantly to the kernel's pressure thresholds.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

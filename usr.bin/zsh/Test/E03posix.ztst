@@ -1,0 +1,161 @@
+# Test POSIX-specific behavior
+# Currently this covers only POSIXBUILTINS, other behaviors are in their
+# more directly related sections
+#
+
+%prep
+ setopt POSIX_BUILTINS TYPESET_TO_UNSET
+
+%test
+
+ local parentenv=preserved
+ fn() {
+  typeset -h +g -m \*
+  unset -m \*
+  integer i=9
+  float -H f=9
+  declare -t scalar
+  declare -H -a array
+  typeset
+  typeset +
+ }
+ fn
+ echo $parentenv
+0:Parameter hiding and tagging, printing types and values
+>array local array
+>float local f
+>integer local i=9
+>local tagged scalar
+>array local array
+>float local f
+>integer local i
+>local tagged scalar
+>preserved
+
+  readonly foo=bar novalue
+  readonly -p
+0:readonly -p output (no readonly specials)
+>readonly foo=bar
+>readonly novalue
+
+  local -a myarray
+  typeset -p1 myarray
+  myarray=("&" sand '""' "" plugh)
+  typeset -p1 myarray
+0:typeset -p1 output for array
+>typeset -a myarray
+>typeset -a myarray=(
+>  '&'
+>  sand
+>  '""'
+>  ''
+>  plugh
+>)
+
+  local -A myhash
+  typeset -p1 myhash
+  myhash=([one]=two [three]= [four]="[]")
+  typeset -p1 myhash
+0:typeset -p1 output for associative array
+>typeset -A myhash
+>typeset -A myhash=(
+>  [four]='[]'
+>  [one]=two
+>  [three]=''
+>)
+
+  str=s
+  arr=(a)
+  typeset -A ass
+  ass=(a a)
+  integer i=0
+  float f=0
+  print ${(t)str} ${(t)arr} ${(t)ass} ${(t)i} ${(t)f}
+0:${(t)...}
+>scalar array association-local integer-local float-local
+
+  print $empty[(i)] $empty[(I)]
+0:(i) and (I) return nothing for empty array
+>
+
+  (
+  # reserved words are handled during parsing,
+  # hence eval...
+  disable -r typeset
+  eval '
+  setopt kshtypeset
+  ktvars=(ktv1 ktv2)
+  typeset ktfoo=`echo arg1 arg2` $ktvars
+  () {
+    local ktfoo
+    print $+ktv1 $+ktv2 $+ktv3 $+ktfoo
+  }
+  print $ktfoo
+  unsetopt kshtypeset
+  typeset noktfoo=`echo noktarg1 noktarg2`
+  print $noktfoo
+  print $+noktarg1 $+noktarg2
+  unset ktfoo ktv1 ktv2 noktfoo noktarg2
+  '
+  )
+0:KSH_TYPESET option
+>0 0 0 0
+>arg1 arg2
+>noktarg1
+>0 0
+
+  () {
+    local var
+    print ${(t)var}
+  }
+0:(t) returns correct type
+>scalar-local
+
+  () {
+    readonly var
+    typeset -p var
+  }
+0:readonly with typeset -p
+>typeset -g -r var
+
+# Tests expected to fail
+
+  echo -
+0f:A single "-" for echo does not end the arguments
+F:POSIX requires a solitary "-" to be a plain argument
+>-
+
+  ARGV0=sh $ZTST_testdir/../Src/zsh -c 'foreach() { true; }'
+-f:"foreach" is not a reserved word
+
+  ARGV0=sh $ZTST_testdir/../Src/zsh -c 'end() { true; }
+-f:"end" is not a reserved word
+
+  a='a:b:' ARGV0=sh $ZTST_testdir/../Src/zsh -c 'IFS=:; printf "<%s>\n" $a'
+0f:IFS is a separator, not a delimiter
+><a>
+><b>
+
+  a=$'\ra\r\rb' ARGV0=sh $ZTST_testdir/../Src/zsh -c 'IFS=:; printf "<%s>\n" $a'
+0f:All whitespace characters are "IFS whitespace"
+F:isspace('\r') is true so \r should behave like space, \t, \n
+F:This may also need to apply to multibyte whitespace
+><a>
+><b>
+
+  ARGV0=sh $ZTST_testdir/../Src/zsh -c 'IFS=2; printf "<%s>\n" $((11*11))'
+0f:IFS applies to math results (numbers treated as strings)
+><1>
+><1>
+
+  ARGV0=sh $ZTST_testdir/../Src/zsh -c 'inf=42; echo $((inf))'
+0:All identifiers are variable references in POSIX arithmetic
+F:POSIX has neither math functions nor floating point
+>42
+
+  ARGV0=sh $ZTST_testdir/../Src/zsh -c 'EUID=1; EUID=10; echo $EUID'
+-f:EUID is not a special variable
+>10
+
+  PPID=foo
+-f:PPID is not a readonly variable

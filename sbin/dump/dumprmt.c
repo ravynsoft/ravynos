@@ -29,14 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)dumprmt.c	8.3 (Berkeley) 4/28/95";
-#endif
-static const char rcsid[] =
-  "$FreeBSD$";
-#endif /* not lint */
-
 #include <sys/param.h>
 #include <sys/mtio.h>
 #include <sys/socket.h>

@@ -1,0 +1,367 @@
+2021-05-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h: Moved to ../sim/callback.h.
+	* remote-sim.h: Moved to ../sim/sim.h.
+
+2021-02-04  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim-riscv.h: New file.
+
+2021-01-07  Mike Frysinger  <vapier@gentoo.org>
+
+	* remote-sim.h (sim_memory_map): Define.
+
+2016-07-15  John Baldwin  <jhb@FreeBSD.org>
+
+	* signals.def: Add GDB_SIGNAL_LIBRT.
+
+2016-01-06  Mike Frysinger  <vapier@gentoo.org>
+
+	* remote-sim.h (sim_open): Mark argv const.
+	(sim_create_inferior): Mark argv and env const.
+
+2015-11-24  Nick Clifton  <nickc@redhat.com>
+
+	* sim-aarch64.h: New file.
+
+2015-11-15  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim-cr16.h (SIM_CR16_MEMORY_UNIFIED, SIM_CR16_MEMORY_INSN,
+	SIM_CR16_MEMORY_DATA, SIM_CR16_MEMORY_DMAP, SIM_CR16_MEMORY_IMAP):
+	Delete.
+
+2015-11-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim-arm.h: Delete __cplusplus checks and extern "C" linkage.
+	* sim-cr16.h, sim-d10v.h, sim-frv.h, sim-h8300.h, sim-lm32.h,
+	sim-sh.h: Likewise.
+
+2015-11-10  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim-cr16.h (sim_cr16_translate_dmap_addr): Delete.
+	(sim_cr16_translate_imap_addr): Likewise.
+	(sim_cr16_translate_addr): Likewise.
+	* sim-d10v.h (sim_d10v_translate_dmap_addr): Delete.
+	(sim_d10v_translate_imap_addr): Likewise.
+	(sim_d10v_translate_addr): Likewise.
+
+2015-06-17  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h (CB_TARGET_DEFS_MAP): Add name member.
+	(cb_host_str_syscall, cb_host_str_errno, cb_host_str_signal,
+	cb_target_str_syscall, cb_target_str_errno, cb_target_str_signal):
+	Declare.
+
+2015-03-28  James Bowman  <james.bowman@ftdichip.com>
+
+	* sim-ft32.h: New file.
+
+2015-05-15  Mike Frysinger  <vapier@gentoo.org>
+
+	* remote-sim.h (struct host_callback_struct): Define.
+
+2015-01-31  Doug Evans  <xdje42@gmail.com>
+
+	* section-scripts.h: Remove "future extension" comment.
+	(SECTION_SCRIPT_ID_PYTHON_TEXT): New macro.
+	(SECTION_SCRIPT_ID_SCHEME_TEXT): New macro.
+
+2014-12-03  Joel Brobecker  <brobecker@adacore.com>
+
+	* callback.h (struct host_callback_struct) <to_stat>: Renamed
+	from "stat".
+	<to_fstat>: Renamed from "fstat".
+	<to_lstat>: Renamed from "lstat".
+
+2014-03-10  Mike Frysinger  <vapier@gentoo.org>
+
+	* remote-sim.h (sim_do_command): Add const to cmd.
+
+2014-03-05  Alan Modra  <amodra@gmail.com>
+
+	Update copyright notice.
+
+2014-03-05  Mike Frysinger  <vapier@gentoo.org>
+
+	* remote-sim.h (sim_load): Add const to prog.
+
+2014-02-09  Doug Evans  <xdje42@gmail.com>
+
+	* section-scripts.h: New file.
+
+2013-10-22  Sterling Augustine  <saugustine@google.com>
+
+	* gdb-index.h: Merge from gdb tree.
+
+2013-03-15  Steve Ellcey  <sellcey@mips.com>
+
+	* remote-sim.h (sim_command_completer): Make char arguments const.
+
+2013-01-01  Joel Brobecker  <brobecker@adacore.com>
+
+	Update year range in copyright notice of all files.
+
+2012-06-23  Doug Evans  <dje@google.com>
+
+	* gdb-index.h: New file.
+
+2012-05-24  Pedro Alves  <palves@redhat.com>
+
+	PR gdb/7205
+
+	Replace TARGET_SIGNAL_ with GDB_SIGNAL_ throughout.
+
+2012-05-24  Pedro Alves  <palves@redhat.com>
+
+	PR gdb/7205
+
+	Replace target_signal with gdb_signal throughout.
+
+2012-04-12  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h (CB_SYS_argc, CB_SYS_argnlen, CB_SYS_argn): Define.
+
+2012-02-03  Kevin Buettner  <kevinb@redhat.com>
+
+	* sim-rl78.h: New file.
+
+2011-12-03  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h (cb_get_string): New prototype.
+
+2011-04-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* remote-sim.h (sim_complete_command): New prototype.
+
+2011-03-05  Mike Frysinger  <vapier@gentoo.org>
+
+	* sim-bfin.h: New file.
+
+2011-01-11  Andrew Burgess  <aburgess@broadcom.com>
+
+	* remote-sim.h (sim_store_register): Update the API
+	documentation for this function.
+
+2010-09-06  Pedro Alves  <pedro@codesourcery.com>
+
+	* signals.def: Replace all ANY uses by SET with specific numbers.
+	* signals.h (ANY): Remove.
+
+2010-07-31  Jan Kratochvil  <jan.kratochvil@redhat.com>
+
+	* signals.h (enum target_signal): Move the content to signals.def.
+	Include it.
+	* signals.def: New file.
+
+2010-06-24  Kevin Buettner  <kevinb@redhat.com>
+
+	* sim-rx.h (sim_rx_regnum): Add sim_rx_acc_regnum.  Adjust
+	register order.
+
+2010-04-13  Mike Frysinger  <vapier@gentoo.org>
+
+	* callback.h: Strip PARAMS from prototypes.
+	* remote-sim.h: Likewise.
+
+2010-04-13  Mike Frysinger  <vapier@gentoo.org>
+
+	* remote-sim.h (sim_write): Add const to buf arg.
+
+2009-11-24  DJ Delorie  <dj@redhat.com>
+
+	* sim-rx.h: New.
+
+2009-05-18  Jon Beniston <jon@beniston.com>
+
+	* sim-lm32.h: New file.
+
+2009-01-07  Hans-Peter Nilsson  <hp@axis.com>
+
+	* callback.h (struct host_callback_struct): Mark member error as
+	pointing to a noreturn function.
+
+2008-02-12  M Ranga Swami Reddy <MR.Swami.Reddy@nsc.com>
+
+	* sim-cr16.h: New file.
+
+2008-01-01  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	Updated copyright notices for most files.
+
+2007-10-15  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* sim-ppc.h (sim_spr_register_name): New prototype.
+
+2007-10-11  Jesper Nilsson  <jesper.nilsson@axis.com>
+
+	* callback.h (cb_is_stdin, cb_is_stdout, cb_is_stderr): Add prototypes.
+
+2007-08-23  Joel Brobecker  <brobecker@adacore.com>
+
+	Switch the license of all .h files to GPLv3.
+
+2007-01-09  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	Updated copyright notices for most files.
+
+2005-07-08  Ben Elliston  <bje@au.ibm.com>
+
+	* callback.h: Remove ANSI_PROTOTYPES conditional code.
+
+2005-01-28  Hans-Peter Nilsson  <hp@axis.com>
+
+	* callback.h (struct host_callback_struct): New members pipe,
+	pipe_empty, pipe_nonempty, ispipe, pipe_buffer and
+	target_sizeof_int.
+	(CB_SYS_pipe): New macro.
+
+	* callback.h: Include "bfd.h".
+	(struct host_callback_struct): New member target_endian.
+	(cb_store_target_endian): Declare.
+
+2004-12-15  Hans-Peter Nilsson  <hp@axis.com>
+
+	* callback.h (CB_SYS_truncate, CB_SYS_ftruncate): New macros.
+
+2004-12-13  Hans-Peter Nilsson  <hp@axis.com>
+
+	* callback.h (struct host_callback_struct): New member lstat.
+	(CB_SYS_lstat): New macro.
+	(CB_SYS_rename): New macro.
+
+2004-09-08  Michael Snyder  <msnyder@redhat.com>
+
+	Commited by Corinna Vinschen <vinschen@redhat.com>
+	* sim-sh.h: Add new sh2a banked registers.
+
+2004-08-04  Andrew Cagney  <cagney@gnu.org>
+
+	* sim-ppc.h: Add extern "C" wrapper.
+	(enum sim_ppc_regnum): Add full list of SPRs.
+
+2004-08-04  Jim Blandy  <jimb@redhat.com>
+
+	* sim-ppc.h: New file.
+
+2004-06-25  J"orn Rennecke <joern.rennecke@superh.com>
+
+	* callback.h (host_callback_struct): Replace members fdopen and
+	alwaysopen with fd_buddy.
+	[sim/common: * callback.c: Changed all users.  ]
+
+2003-10-31  Kevin Buettner  <kevin@redhat.com>
+
+	* sim-frv.h: New file.
+
+2003-10-15  J"orn Rennecke <joern.rennecke@superh.com>
+
+	* callback.h (struct host_callback_struct): New members ftruncate
+	and truncate.
+
+2003-06-10  Corinna Vinschen  <vinschen@redhat.com>
+
+	* fileio.h: New file.
+
+2003-05-07  Andrew Cagney  <cagney@redhat.com>
+
+	* sim-d10v.h (sim_d10v_translate_addr): Add regcache parameter.
+	(sim_d10v_translate_imap_addr): Add regcache parameter.
+	(sim_d10v_translate_dmap_addr): Ditto.
+
+2003-03-27  Nick Clifton  <nickc@redhat.com>
+
+	* sim-arm.h (sim_arm_regs): Add iWMMXt registers.
+
+2003-03-20  Nick Clifton  <nickc@redhat.com>
+
+	* sim-arm.h (sim_arm_regs): Add Maverick co-processor
+	registers.
+
+2003-02-27  Andrew Cagney  <cagney@redhat.com>
+
+	* remote-sim.h (sim_open, sim_load, sim_create_inferior): Rename
+	_bfd to bfd.
+
+2003-02-20  Andrew Cagney  <ac131313@redhat.com>
+
+	* remote-sim.h (SIM_RC): Delete unused SIM_RC_UNKNOWN_BREAKPOINT,
+	SIM_RC_INSUFFICIENT_RESOURCES and SIM_RC_DUPLICATE_BREAKPOINT.
+	(sim_set_breakpoint, sim_clear_breakpoint): Delete declarations.
+	(sim_clear_all_breakpoints, sim_enable_breakpoint): Ditto.
+	(sim_enable_all_breakpoints, sim_disable_breakpoint): Ditto.
+	(sim_disable_all_breakpoints): Ditto.
+
+2002-12-26  Kazu Hirata  <kazu@cs.umass.edu>
+
+	* sim-h8300.h: Remove ^M.
+
+2002-07-29  Andrey Volkov  <avolkov@transas.com>
+
+	* sim-h8300.h: Rename all enums from H8300_ to SIM_H8300_
+	prefix.
+
+2002-07-23  Andrey Volkov  <avolkov@transas.com>
+
+	* sim-h8300.h: New file.
+
+2002-07-17  Andrew Cagney  <cagney@redhat.com>
+
+	* remote-sim.h: Update copyright.
+	(sim_set_callbacks, sim_size, sim_trace)
+	(sim_set_trace, sim_set_profile_size, sim_kill): Delete.  Moved to
+	"sim/common/run-sim.h".
+
+Wed Jul 17 19:36:38 2002  J"orn Rennecke <joern.rennecke@superh.com>
+
+	* sim-sh.h: Add enum constants for sh[1-4], sh3e, sh3?-dsp,
+	renumbering the sh-dsp registers to use distinct numbers.
+
+2002-06-15  Andrew Cagney  <ac131313@redhat.com>
+
+	* sim-arm.h (enum sim_arm_regs): Rename sim_arm_regnum.
+
+2002-06-12  Andrew Cagney  <ac131313@redhat.com>
+
+	* sim-arm.h: New file.
+
+2002-06-08  Andrew Cagney  <cagney@redhat.com>
+
+	* callback.h: Copy to here from directory above.
+	* remote-sim.h: Copy to here from directory above.
+
+2002-06-01  Andrew Cagney  <ac131313@redhat.com>
+
+	* sim-d10v.h (sim_d10v_regs): Expand to include all registers.
+	Update copyright.
+
+2002-05-23  Andrew Cagney  <ac131313@redhat.com>
+
+	* sim-d10v.h: New file.  Moved from include/sim-d10v.h.
+
+2002-05-10  Elena Zannoni  <ezannoni@redhat.com>
+
+	* sim-sh.h: New file, for sh gdb<->sim interface.
+
+2002-05-09  Daniel Jacobowitz  <drow@mvista.com>
+
+	* signals.h: Update comments.
+	(enum target_signal): Remove conditional compilation around
+	Mach-specific signals.  Move them to after TARGET_SIGNAL_DEFAULT.
+
+2002-03-10  Daniel Jacobowitz  <drow@mvista.com>
+
+	* signals.h: New file, from gdb/defs.h.
+
+
+Copyright (C) 2002-2023 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

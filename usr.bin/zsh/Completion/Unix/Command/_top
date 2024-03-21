@@ -1,0 +1,190 @@
+#compdef top
+
+local curcontext="$curcontext" state state_descr line ret=1
+local -A opt_args
+local -a specs fields order opts
+
+opts=( -s -w -C )
+
+case $OSTYPE in
+  *linux*)
+    # based on procps-ng-3.3.15
+    fields=(
+      '%CPU:CPU usage' '%MEM:memory usage (res)' 'CGROUPS:control groups'
+      'CODE:code size' 'COMMAND:Command name/line' 'DATA:data + stack size'
+      'ENVIRON:environment variables' 'Flags:task flags' 'GID:group id'
+      'GROUP:group name' 'NI:nice value' 'P:last used CPU (SMP)'
+      'PGRP:process group id' 'PID:process id' 'PPID:parent pid' 'PR:priority'
+      'RES:resident memory size' 'RUID:real user id' 'RUSER:real uid'
+      'S:process status' 'SHR:shared memory size' 'SID:session id'
+      'SUID:saved uid' 'SUPGIDS:supplementary gids'
+      'SUPGRPS:supplementary group names' 'SUSER:saved username'
+      'SWAP:swapped sized' 'TGID:thread gid' 'TIME:CPU time'
+      'TIME+:CPU time (hundredths)' 'TPGID:TTY gid' 'TTY:controlling TTY'
+      'UID:user id' 'USED:memory in use' 'USER:user name'
+      'VIRT:virtual memory size' 'WCHAN:sleeping in function'
+      'nDRT:dirty pages count' 'nMaj:major page count' 'nMin:minor page count'
+      'nTH:number of threads' 'nsIPC:IPC namespace' 'nsMNT:MNT namespace'
+      'nsNET:NET namespace' 'nsPID:PID namespace' 'nsUSER:USER namespace'
+      'nsUTS:UTS namespace' 'vMj:major page fault count delta'
+      'vMn:minor page fault count delta' 'LXC:lxc container name'
+      'OOMa:out of memory adjustment factor' 'OOMs:out of memory source'
+      'Rsan:resident anonymous memory size'
+      'RSfd:resident file-backed memory size' 'RSlk:resident locked memory size'
+      'RSsh:resident shared memory size' 'CGNAME:control group name'
+      'NU:last known NUMA node'
+    )
+    order=( '+:descending (default)' '-:ascending' )
+    local -a units=( 'k:KiB' 'm:MiB' 'g:GiB' 't:TiB' 'p:PiB' 'e:EiB' )
+    specs=(
+      '(-)-'{h,v}'[show version and usage]'
+      '-b[batch mode]'
+      '-c[command line/program name toggle]'
+      '-d+[delay time interval]:interval'
+      '-E+[specify the memory scaling unit]: : _describe -V -t units unit units'
+      '-H[threads mode operation]'
+      '-i[idle process toggle]'
+      '-n+[number of iterations]:number of iterations'
+      '-o+[override sort field]:fieldname:->sortkey'
+      '-O[output field names]'
+      '(-u -U)*-p+[monitor pids]: :_sequence -s , _pids'
+      '-s[secure mode operation]'
+      '-S[cumulative time toggle]'
+      '(-U -p)-u+[effective user filter mode]: :_users'
+      '(-u -p)-U+[user filter mode]: :_users'
+      '-w+[output width override]::number'
+      '-1[single/separate cpu states toggle]'
+    );;
+  freebsd*|openbsd*)
+    fields=( cpu size res time pri pid )
+    specs=(
+      '-b[batch mode]'
+      '-d+[show only specified number of displays then exit]:count:'
+      '-H[display individual threads]'
+      '-I[do not display idle processes]'
+      '-i[interactive mode]'
+      '-n[non-interactive mode (identical to batch mode)]'
+      '-p+[filter by the specified pid]: :_pids'
+      '-q[renice top to -20]'
+      '-S[show system processes]'
+      '-s+[specify delay interval]:seconds:'
+      '-u[do not translate uid to name]'
+      '1: :_guard "^-*" "number of processes to display"'
+    );|
+  freebsd*)
+    fields+=( threads total read write fault vcsw ivcsw jid swap )
+    specs+=(
+      '-C[CPU display mode]'
+      '-a[display command names via argv]'
+      '-j[display the jail ID]'
+      '-t[do not display the top process]'
+      '-m+[specify statistic type]:type:(( cpu\:default io ))'
+      '-o+[sort process display by the specified field]:field:( $fields )'
+      '-P[per-cpu CPU usage statistics]'
+      '(1 -)-v[write version number and exit]'
+      '-w[display approximate swap usage]'
+      "-z[don't display system idle process]"
+      '-J+[show processes owned by the specified jail]:jail:_jails -0'
+      '-U+[show processes owned by the specified username]: :_users'
+    );;
+  openbsd*)
+    fields+=( command )
+    order=( '-:reverse order' )
+    specs+=(
+      '-1[combine CPU statistic into one line]'
+      '-t[show the routing table instead of the wait channel]'
+      '-C[show command arguments as well as process name]'
+      '-g+[filter processes by the specified string]:string'
+      '-o+[sort process display by the specified field]:field:->sortkey'
+      '-T+[filter processes by the specified routing table]:routing table:_routing_tables'
+      '-U+[filter processes by the specified user]: :_users -M "L\:|-="'
+    );;
+  darwin*)
+    local -a modes
+    opts=( -C )   # no option stacking
+    modes=(
+      'a:count events cumulatively'
+      'd:count events relative to the previous sample'
+      'e:count events using absolute counters'
+      'n:non-event mode (default)'
+    )
+    fields=(
+      'pid:process id'
+      'command:command name'
+      'cpu:CPU usage'
+      'cpu_me:CPU time charged to me by other processes'
+      'cpu_others:CPU time charged to other processes by me'
+      'csw:number of context switches'
+      'time:execution time'
+      {threads,th}':number of threads'
+      {ports,prt}':number of Mach ports'
+      {mregion,mreg,reg}':number of memory regions'
+      'mem:internal memory size'
+      'rprvt:resident private address space size'
+      'purg:purgeable memory size'
+      'vsize:total memory size'
+      'vprvt:private address space size'
+      'kprvt:private kernel memory size'
+      'kshrd:shared kernel memory size'
+      'pgrp:process group id'
+      'ppid:parent process id'
+      {state,pstate}':process state'
+      'uid:user id'
+      {wq,'#wq',workqueue}':workqueue total/running'
+      {faults,fault}':number of page faults'
+      {cow,cow_faults}':copy-on-write faults'
+      {user,username}':username'
+      'msgsent:total number of Mach messages sent'
+      'msgrecv:total number of Mach messages received'
+      'sysbsd:total BSD syscalls'
+      'sysmach:total Mach syscalls'
+      'pageins:total pageins'
+      'boosts:number of boosts held by the process'
+      'instrs:number of instructions retired by the process'
+      'cycles:number of cycles spent in the process'
+    )
+    order=( '-:descending (default)' '+:ascending' )
+    specs=(
+      '-a[count events cumulatively]'
+      '-c[set event counting mode]:mode:(( $modes ))'
+      '-d[count events relative to the previous sample]'
+      '-e[count events using absolute counters]'
+      '-F[do not calculate statistics on shared libraries]'
+      '-f[calculate statistics on shared libraries]'
+      '(-)-h[print usage information and exit]'
+      '-i+[specify interval between samples for -f option]:interval'
+      '-l+[logging mode. output specified number of samples periodically]:number of samples'
+      '-ncols[output specified number of columns in logging mode]:number of columns'
+      '-n+[only display up to the specified number of processes]:number of processes:'
+      '-O+[specify the secondary sort key]:key:->sortkey'
+      '-o+[specify the primary sort key]:key:->sortkey'
+      '-R[do not traverse and report memory object map for each process]'
+      '-r[traverse and report memory object map for each process]'
+      '-S[display global statistics for swap and purgeable memory]'
+      '-s[set the delay between update]:number of seconds'
+      '-stats[only display the specified fields]:list of fields:->fieldlist'
+      '*-pid[only display the specified process]:pid:_pids'
+      {-user,-U+}'[only display processes owned by the specified user]:user:_users'
+      '-u[same as -o cpu -O time]'
+    );;
+esac
+
+if (( $#specs == 0 )); then
+  _default
+  return
+fi
+
+_arguments $opts : "$specs[@]" && ret=0
+
+case $state in
+  (sortkey)
+    compset -P '(+|-)' && order=()
+    _alternative 'sort-orders:sort order:(( $order ))' \
+	'sort-keys:sort key:(( $fields ))' && ret=0
+    ;;
+  (fieldlist)
+    _sequence -s , _describe -t fields 'field' fields && ret=0
+    ;;
+esac
+
+return ret

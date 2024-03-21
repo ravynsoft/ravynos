@@ -1,0 +1,28 @@
+# bash.pc.in
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+includedir=@includedir@
+libdir=@libdir@
+
+loadablesdir=@loadablesdir@
+headersdir=${includedir}/@PACKAGE_NAME@
+
+LOCAL_CFLAGS = @LOCAL_CFLAGS@
+LOCAL_DEFS = @LOCAL_DEFS@
+CCFLAGS = ${LOCAL_DEFS} ${LOCAL_CFLAGS}
+
+CC = @CC@
+SHOBJ_CC = @SHOBJ_CC@
+SHOBJ_CFLAGS = @SHOBJ_CFLAGS@
+SHOBJ_LD = @SHOBJ_LD@
+SHOBJ_LDFLAGS = @SHOBJ_LDFLAGS@
+SHOBJ_XLDFLAGS = @SHOBJ_XLDFLAGS@
+SHOBJ_LIBS = @SHOBJ_LIBS@
+
+Name: @PACKAGE_NAME@
+Description: Bash headers for bash loadable builtins
+Version: @PACKAGE_VERSION@
+Url: @PACKAGE_URL@
+Libs: ${SHOBJ_LIBS}
+Cflags: ${SHOBJ_CFLAGS} ${CCFLAGS} -I${headersdir} -I${headersdir}/builtins -I${headersdir}/include

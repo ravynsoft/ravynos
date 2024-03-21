@@ -1,0 +1,22 @@
+#...
+[a-f0-9]+ <main>:
+[ 	]*[a-f0-9]+:	83 ec 0c             	sub    \$0xc,%esp
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	addr16 call [a-f0-9]+ <foo>
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	call   \*0x[a-f0-9]+
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	call   \*0x[a-f0-9]+
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	mov   *\$0x[a-f0-9]+,%eax
+[ 	]*[a-f0-9]+:	ff d0                	call   \*%eax
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	mov   *0x[a-f0-9]+,%eax
+[ 	]*[a-f0-9]+:	ff d0                	call   \*%eax
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	mov   *0x[a-f0-9]+,%eax
+[ 	]*[a-f0-9]+:	ff d0                	call   \*%eax
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	call   [a-f0-9]+ <__x86.get_pc_thunk.cx>
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	add    \$0x[a-f0-9]+,%ecx
+[ 	]*[a-f0-9]+:	[ a-f0-9]+    	mov   *\$0x[a-f0-9]+,%ecx
+[ 	]*[a-f0-9]+:	ff d1                	call   \*%ecx
+[ 	]*[a-f0-9]+:	83 ec 0c             	sub    \$0xc,%esp
+[ 	]*[a-f0-9]+:	6a 00                	push   \$0x0
+[ 	]*[a-f0-9]+:	6a 00                	push   \$0x0
+[ 	]*[a-f0-9]+:	[ a-f0-9]+       	jmp    [a-f0-9]+ <myexit>
+[ 	]*[a-f0-9]+:	90                   	nop
+#pass

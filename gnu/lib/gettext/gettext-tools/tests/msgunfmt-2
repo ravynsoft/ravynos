@@ -1,0 +1,26 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test ISO C 99 <inttypes.h> format string directives.
+# Verify that msgunfmt, applied to a .mo file of major revision 1 (with
+# system-dependent strings), yields a PO file with c-format annotation, so that
+# msgfmt applied to it will again produce a .mo file of major revision 1.
+
+cat <<EOF > mu-2.in
+#, c-format
+msgid "truncating at %<PRIuMAX> bytes in output file %s"
+msgstr "schneide bei %<PRIuMAX> Bytes in Ausgabedatei %s ab"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --no-redundancy -o mu-2.mo mu-2.in || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+${MSGUNFMT} -o mu-2.tmp mu-2.mo || Exit 1
+LC_ALL=C tr -d '\r' < mu-2.tmp > mu-2.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mu-2.in mu-2.out
+result=$?
+
+exit $result

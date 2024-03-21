@@ -1,0 +1,281 @@
+1000
+a
+end-1
+a
+end-2
+a:x
+end-a
+b:x
+end-b
+c:x
+end-c
+end-3
+a:x
+end
+a
+b
+c
+end-1
+a
+b
+c
+end-2
+a:x
+a:y
+a:z
+end-a
+b:x
+b:y
+b:z
+end-b
+c:x
+c:y
+c:z
+end-c
+end-3
+a:x
+b:x
+c:x
+end
+$BVAR
+$BVAR
+$BVAR
+$BVAR
+foo
+bar
+xxx
+0022
+u=rwx,g=rx,o=rx
+0002
+u=rwx,g=rwx,o=rx
+umask 0002
+umask -S u=rwx,g=rwx,o=rx
+u=rwx,g=rwx,o=rwx
+enable .
+enable :
+enable break
+enable continue
+enable eval
+enable exec
+enable exit
+enable export
+enable readonly
+enable return
+enable set
+enable shift
+enable source
+enable times
+enable trap
+enable unset
+enable .
+enable :
+enable break
+enable continue
+enable eval
+enable exec
+enable exit
+enable export
+enable readonly
+enable return
+enable set
+enable shift
+enable source
+enable times
+enable trap
+enable unset
+enable -n test worked
+enable test worked
+specialname
+-specialname
+FOO=BAR
+FOO=BAR
+hash: hash table empty
+0
+AVAR
+foo
+in source.sub2, calling return
+5
+a b c
+a b c
+x y z
+a b c
+a b c
+m n o p
+a b c
+m n o p
+/tmp/bash-dir-a
+/tmp/bash-dir-a
+/tmp/bash-dir-a
+./source5.sub: line 23: /tmp/source-notthere: No such file or directory
+after bad source 1
+./source5.sub: line 30: /tmp/source-notthere: No such file or directory
+one - OK
+0
+0
+two - OK
+0
+three - OK
+0
+four - OK
+0
+abc
+def
+ghi
+after
+one.1 subshell
+two.1 subshell
+three.1 subshell
+four.1 subshell
+one.2 subshell
+two.2 subshell
+three.2 subshell
+four.2 subshell
+x29 - done
+abc
+def
+ghi
+ok
+AVAR
+foo
+foo
+AVAR
+foo
+foo
+AVAR
+foo
+declare -x foo=""
+declare -x FOO="\$\$"
+./builtins.tests: line 228: declare: FOO: not found
+declare -x FOO="\$\$"
+ok
+ok
+./builtins.tests: line 260: kill: 4096: invalid signal specification
+1
+a\n\n\nb
+a
+
+
+b
+before: f = 4
+inside
+after: f = 8 bar = 4
+declare -a c
+declare -A d
+declare -a c=([0]="4")
+declare -A c=([0]="4" )
+declare -a c=([0]="1" [1]="2" [2]="3")
+declare -A c=([two]="2" [three]="3" [one]="1" )
+declare -a c=([0]="1" [1]="2" [2]="3")
+declare -a c=([0]="1" [1]="2" [2]="3")
+unset
+unset
+assoc 1 unset
+array 1 unset
+assoc 2 unset
+array 2 unset
+unset1
+unset2
+1
+1
+1
+1
+0
+0
+assoc A unset
+array a
+assoc A
+array a
+assoc B unset
+array b unset
+assoc B unset
+array b unset
+scalar 1
+scalar 2
+scalar 3 unset
+argv[1] = <one two three>
+assoc: 3
+array: 3
+scalar: 13
+scalar: 1
+scalar: 0
+scalar: 1
+scalar: 0
+scalar: 0
+all set:
+one
+two
+f1 () 
+{ 
+    echo f1
+}
+f2 () 
+{ 
+    echo f2
+}
+all unset:
+unset1
+unset2
+./builtins6.sub: line 41: declare: f1: not found
+./builtins6.sub: line 41: declare: f2: not found
+all reset:
+one-one
+two-one
+f1 () 
+{ 
+    echo f1
+}
+f2 () 
+{ 
+    echo f2
+}
+vars unset:
+unset1
+unset2
+f1 () 
+{ 
+    echo f1
+}
+f2 () 
+{ 
+    echo f2
+}
+funcs unset:
+one-two
+two-two
+bash: line 1: notthere: No such file or directory
+one
+bash: line 1: notthere: No such file or directory
+two
+bash: line 1: .: notthere: file not found
+one
+bash: line 1: .: notthere: file not found
+0
+0
+0
+0
+argv[1] = <one>
+0
+argv[1] = <two>
+0
+three
+0
+four
+0
+./builtins7.sub: line 19: : command not found
+127
+0
+./builtins7.sub: line 27: notthere: No such file or directory
+after 1
+./builtins7.sub: line 28: notthere: No such file or directory
+after 2
+type is a shell builtin
++ command -v type
+type
++ command command -v type
+type
++ command -p command -v type
+type
++ command -p -- command -v type
+type
++ set +x
+./builtins.tests: line 284: exit: status: numeric argument required

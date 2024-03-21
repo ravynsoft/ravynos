@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Newer versions of llvm-symbolizer require libxml2 themselves. Running
+# a test program with LD_LIBRARY_PATH set to .libs makes llvm-symbolizer
+# pick up the tested development version of libxml2 which breaks
+# completely if the build is instrumented with ASan. This wrapper script
+# invokes llvm-symbolizer with an empty LD_LIBRARY_PATH.
+
+LD_LIBRARY_PATH='' llvm-symbolizer "$@"

@@ -1,0 +1,64 @@
+# Expect script for ld-xtensa tests
+#   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { !([istarget "xtensa*-*-linux*"]) } {
+    return
+}
+
+# List contains test-items with 3 items followed by 2 lists:
+# 0:name 1:ld early options 2:ld late options 3:assembler options
+# 4:filenames of assembler files 5: action and options. 6: name of output file
+
+# Actions:
+# objdump: Apply objdump options on result.  Compare with regex (last arg).
+# nm: Apply nm options on result.  Compare with regex (last arg).
+# readelf: Apply readelf options on result.  Compare with regex (last arg).
+
+set xtensatests {
+    {"TLS -shared transitions"
+     "-shared -melf32xtensa --hash-style=sysv" ""
+     "" {tlspic1.s tlspic2.s}
+     {{readelf -WSsrl tlspic.rd}
+      {objdump "-drj.text --start-address=0x350" tlspic.dd}
+      {objdump "-sj.text --stop-address=0x350" tlspic.sd}
+      {objdump -sj.tdata tlspic.td}}
+      "libtlspic.so"}
+    {"Helper shared library" "-shared -melf32xtensa" ""
+     "" {tlslib.s} {} "libtlslib.so"}
+    {"TLS exec transitions"
+     "-melf32xtensa tmpdir/libtlslib.so --hash-style=sysv" ""
+     "" {tlsbin.s}
+     {{readelf -WSsrl tlsbin.rd}
+      {objdump "-drj.text --start-address=0x400238" tlsbin.dd}
+      {objdump "-sj.text --stop-address=0x400238" tlsbin.sd}
+      {objdump -sj.tdata tlsbin.td}}
+      "tlsbin"}
+    {"TLS PIE transitions"
+     "-pie -melf32xtensa tmpdir/libtlslib.so --hash-style=sysv" ""
+     "" {tlsbin.s}
+     {{readelf -WSsrl tlspie.rd}
+      {objdump "-dRj.text --start-address=0x238" tlspie.dd}
+      {objdump "-sj.text --stop-address=0x238" tlspie.sd}
+      {objdump -sj.tdata tlspie.td}}
+      "tlspie"}
+}
+
+run_ld_link_tests $xtensatests

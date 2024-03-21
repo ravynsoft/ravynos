@@ -1,0 +1,99 @@
+# Expect script for ld-or1k tests
+#   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { ![istarget "or1k*-*-*"] } {
+    return
+}
+
+# List contains test-items with 3 items followed by 2 lists:
+# 0:name 1:ld early options 2:ld late options 3:assembler options
+# 4:filenames of assembler files 5: action and options. 6: name of output file
+
+# Actions:
+# objdump: Apply objdump options on result.  Compare with regex (last arg).
+# nm: Apply nm options on result.  Compare with regex (last arg).
+# readelf: Apply readelf options on result.  Compare with regex (last arg).
+
+set or1ktests {
+    {"offsets1" "" "" "" {offsets1.s}
+     {{objdump -drj.text offsets1.d}}
+     "offsets1"}
+}
+
+set or1kplttests {
+    {"PLTA -fpic -shared" "-fpic -shared" ""
+     "" {plta1.s}
+     {{objdump -dr plta1.dd}}
+     "libplta1.so"}
+    {"PLT -fpic -shared" "-fpic -shared" ""
+     "" {plt1.s}
+     {{objdump -dr plt1.dd}}
+     "libplt1.so"}
+    {"Helper shared library" "-fpic -shared" ""
+     "" {pltlib.s} {} "libpltlib.so"}
+    {"PLT -fno-pic exec -relax" "-relax tmpdir/libpltlib.so" ""
+     "" {plt1.s}
+     {{objdump -dr plt1.x.dd}}
+     "plt1.x"}
+    {"gotha exec plt" "tmpdir/libpltlib.so" ""
+     "" {gotha1.s}
+     {{objdump -dr gotha1.dd}}
+     "gotha1.x"}
+    {"gotha -fpic -shared" "-fpic -shared" ""
+     "" {gotha2.s}
+     {{objdump -dr gotha2.dd}}
+     "gotha2.x"}
+}
+
+# Not implemented yet
+#   {"TLS -fpic -shared" "-shared -melf64alpha" ""
+#    "" {align.s tlspic1.s tlspic2.s}
+#    {{readelf -WSsrl tlspic.rd} {objdump -drj.text tlspic.dd}
+#     {objdump -sj.got tlspic.sd} {objdump -sj.tdata tlspic.td}}
+#    "libtlspic.so"}
+#   {"Helper shared library" "-shared -melf64alpha" ""
+#    "" {tlslib.s} {} "libtlslib.so"}
+#   {"TLS -fpic and -fno-pic exec"
+#    "-melf64alpha tmpdir/libtlslib.so" "" "" {align.s tlsbinpic.s tlsbin.s}
+#    {{readelf -WSsrl tlsbin.rd} {objdump -drj.text tlsbin.dd}
+#     {objdump -sj.got tlsbin.sd} {objdump -sj.tdata tlsbin.td}}
+#    "tlsbin"}
+#   {"TLS -fpic and -fno-pic exec -relax"
+#    "-relax -melf64alpha tmpdir/libtlslib.so" ""
+#    "" {align.s tlsbinpic.s tlsbin.s}
+#    {{readelf -WSsrl tlsbinr.rd} {objdump -drj.text tlsbinr.dd}
+#     {objdump -sj.got tlsbinr.sd}}
+#    "tlsbinr"}
+#   {"empty got"
+#    "-melf64alpha" "" ""
+#    {emptygot.s}
+#    {{nm "-n" emptygot.nm}}
+#    "emptygot"}
+#   {"TLS in debug sections" "-melf64alpha" ""
+#    "" {tlsg.s}
+#    {{objdump -sj.debug_foobar tlsg.sd}} "tlsg"}
+
+# Shared objects not supported on newlib
+run_ld_link_tests $or1ktests
+if { ![istarget "or1k*-*-elf*"] } {
+    run_ld_link_tests $or1kplttests
+    return
+}

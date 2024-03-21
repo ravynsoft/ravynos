@@ -1,0 +1,29 @@
+#compdef join gjoin
+
+local args variant
+args=(
+  '*-a+[print unpairable lines from specified file]:file number:(1 2)'
+  '-e+[replace missing input fields with specified string]:replacement string'
+  "(-1 -2)-j+[join on specified field for both files]:field number"
+  '-o+[use specified output format]:format string'
+  '-t+[use specified character as field separator]:separator'
+  '*-v+[like -a, but suppress joined output lines]:file number:(1 2)'
+  '(-j -1 -j1)'{-j1,-1+}'[join on specified field of first file]:field number'
+  '(-j -2 -j2)'{-j2,-2+}'[join on specified field of second file]:field number'
+  '1:file:_files' '2:file:_files'
+)
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+case $variant in
+  gnu)
+    args+=(
+      '(-i --ignore-case)'{-i,--ignore-case}'[ignore differences in case when comparing fields]'
+      '(-)--help[display help information]'
+      '(-)--version[output version information]'
+      '(--check-order --nocheck-order)'{--check-order,--nocheck-order}
+      '--header[treat first line in each file as field headers]'
+      '(-z --zero-terminated)'{-z,--zero-terminated}'[end lines with 0 byte, not newline]'
+    )
+  ;;
+esac
+
+_arguments -s $args

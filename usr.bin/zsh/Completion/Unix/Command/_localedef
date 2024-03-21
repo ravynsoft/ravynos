@@ -1,0 +1,92 @@
+#compdef localedef
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+if _pick_variant gnu='(Free Soft|GNU|GLIBC)' unix --version; then
+
+  local exargs="-? --help --usage -V --version"
+  _arguments -A "-*" -C -S -s \
+    '(- *)'{-\?,--help}'[display help information]' \
+    '(- *)--usage[display a short usage message]' \
+    '(- *)'{-V,--version}'[print program version]' \
+    "(-A --alias-file $exargs)"{-A+,--alias-file=}'[specify locale alias file]:alias file:_files' \
+    "($exargs)--prefix=[specify path prefix]:prefix:_files" \
+    "(-c --force $exargs)"{-c,--force}'[force write despite of warnings]' \
+    "(-v --verbose $exargs)"{-v,--verbose}'[display additional information]' \
+    "($exargs)--quiet[suppress messages and warnings]" \
+    - set1 \
+    "(-f --charmap $exargs)"{-f+,--charmap=}'[specify locale charmap file]:charmap:->charmap' \
+    "(-i --inputfile $exargs)"{-i+,--inputfile=}'[specify locale definition file]:locale file:_files' \
+    "(-u --repertoire-map $exargs)"{-u+,--repertoire-map=}'[specify repertoire map file]:repertoire map file:_files' \
+    '1:path:_files' \
+    - set2 \
+    "(--list-archive $exargs)--list-archive[list locales in archive]" \
+    - set3 \
+    "(--delete-from-archive $exargs)--delete-from-archive[delete locale from archive]" \
+    '*:locale:->locale' \
+    - set4 \
+    "(--add-to-archive $exargs)--add-to-archive[add locale to archive]" \
+    "(--replace $exargs)--replace[replace locale in archive]" \
+    "(--no-archive $exargs)--no-archive[use subdir not archive]" \
+    '*:compiled path:_files -/' \
+    && return 0
+
+  case "$state" in
+    charmap)
+      if [[ $words[-1] == */* ]]; then
+        _wanted charmaps expl charmap _files && ret=0
+      else
+        typeset -a charmaps
+        charmaps=( ${(f)"$(locale -m)"} )
+        _wanted charmaps expl charmap compadd -a charmaps && ret=0
+      fi
+    ;;
+    locale)
+      typeset -a locales
+      local pref=${opt_args[--prefix]}
+      local p=${pref:+--prefix}
+      locales=( ${(f)"$(localedef --list-archive $p $pref)"} )
+      _wanted locales expl locale compadd -a locales && ret=0
+    ;;
+  esac
+
+  return ret
+
+else
+
+  typeset -a u_opt bsd_opts
+  [[ $OSTYPE != darwin* ]] && u_opt=(
+      '-u+[specify target codeset]:codeset:_files'
+    )
+  [[ $OSTYPE == (freebsd*|dragonfly*) ]] && bsd_opts=(
+      '-D[create BSD-style output]' \
+      '-U[ignore undefined character symbols]' \
+      '-v[verbose debug output]' \
+      '-w+[specify width file]:width file:_files' \
+    )
+
+  _arguments -A "-*" -C \
+    '-c[force write despite of warnings]' \
+    '-f+[specify locale charmap file]:charmap:->charmap' \
+    '-i+[specify locale definition file]:locale file:_files' \
+    $u_opt \
+    $bsd_opts \
+    '1:path:_files' \
+    && return 0
+
+  case "$state" in
+    charmap)
+      if [[ $words[-1] == */* ]]; then
+        _wanted charmaps expl charmap _files && ret=0
+      else
+        typeset -a charmaps
+        charmaps=( ${(f)"$(locale -m)"} )
+        _wanted charmaps expl charmap compadd -a charmaps && ret=0
+      fi
+    ;;
+  esac
+
+  return ret
+
+fi

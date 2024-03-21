@@ -1,0 +1,12 @@
+.*
+
+Sections:
+Idx Name * Size * VMA * LMA * File off *Algn
+ *0 \.text * 0+00 * 0*100001c0 * 0*100001c0 * [^ ]+ * 2\*\*2
+ *ALLOC, LOAD, CODE
+ *1 \.data * 0+20 * 0*200001c0 * 0*200001c0 * [^ ]+ * 2\*\*3
+ *CONTENTS, ALLOC, LOAD, DATA
+# Should only have 3 three common symbols.
+ *2 \.bss  * 0+0c * 0*200001e0 * 0*200001e0 * [^ ]+ * 2\*\*3
+ *ALLOC
+#pass

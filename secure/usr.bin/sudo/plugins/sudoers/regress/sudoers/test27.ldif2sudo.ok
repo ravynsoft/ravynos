@@ -1,0 +1,16 @@
+Defaults always_query_group_plugin
+
+# sudoRole root
+root ALL = (root : wheel) ALL
+
+# sudoRole millert
+millert ALL = ( : wheel) ALL
+
+# sudoRole %sudo
+%sudo ALL = ( : ALL) ALL
+
+# sudoRole operator
+operator ALL = (%wheel) ALL
+
+# sudoRole +netusers
++netusers +nethosts = (+netrunas) ALL

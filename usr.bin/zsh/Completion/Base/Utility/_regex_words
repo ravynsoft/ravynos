@@ -1,0 +1,52 @@
+#autoload
+
+local opt OPTARG matches end
+local term=$'\0'
+
+while getopts "t:" opt; do
+  case $opt in
+    (t)
+    term=$OPTARG
+    ;;
+
+    (*)
+    return 1
+    ;;
+  esac
+done
+shift $(( OPTIND - 1 ))
+
+local tag=$1
+local desc=$2
+shift 2
+
+if (( $# )); then
+  reply=(\()
+else
+  # ### Is this likely to happen in callers?  Should we warn?
+  reply=()
+  return
+fi
+
+integer i
+local -a wds
+
+if [[ $term = $'\0' ]]; then
+  matches=":${tag}:${desc}:(( "
+  end="))"
+else
+  matches=":${tag}:${desc}:_values -s ${(q)term} ${(q)desc}"
+fi
+
+for (( i = 1; i <= $#; i++ )); do
+  wds=(${(s.:.)argv[i]})
+  reply+=(/${wds[1]//\**/"[^$term]#"}"$term"/)
+  if [[ $term = $'\0' ]]; then
+    matches+="${wds[1]//\*}${wds[2]:+\\:${wds[2]//(#m)[: \(\)]/\\$MATCH}} "
+  else
+    matches+=" ${(q)${${wds[1]//\*}//(#m)[:\[\]]/\\$MATCH}}\\[${(q)${wds[2]//(#m)[:\[\]]/\\$MATCH}}\\]"
+  fi
+  eval "reply+=($wds[3])"
+  reply+=(\|)
+done
+reply+=( /'[]'/ "${matches}${end}" \) )

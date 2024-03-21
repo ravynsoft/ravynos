@@ -1,0 +1,56 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# getopts tests
+# this should fail
+getopts
+echo $?
+getopts opts
+echo $?
+
+# maybe someday we will have a ksh93-like -a argument to set the name
+# used in error messages, but not yet
+getopts -a opts name
+
+${THIS_SH} ./getopts1.sub -a -b bval one two three
+# make sure getopts works when there are more than 9 positional parameters
+${THIS_SH} ./getopts1.sub -a -b bval one two three four five six seven eight nine ten eleven twelve
+${THIS_SH} ./getopts1.sub -a -b 
+
+${THIS_SH} ./getopts2.sub -ad -c cval three four five
+
+${THIS_SH} ./getopts3.sub
+
+# make sure that `-b bval' and `-bbval' are equivalent
+${THIS_SH} ./getopts4.sub -a -b bval one two three
+${THIS_SH} ./getopts4.sub -a -bbval one two three
+# this tests `silent' error reporting
+${THIS_SH} ./getopts4.sub -a -b
+${THIS_SH} ./getopts4.sub -a -c
+
+# make sure that `--' can be used to end the list of options
+${THIS_SH} ./getopts4.sub -a -- -b bval one two three
+
+${THIS_SH} ./getopts5.sub -a -c
+
+${THIS_SH} ./getopts6.sub -a
+${THIS_SH} ./getopts6.sub -a -c
+${THIS_SH} ./getopts6.sub -ac
+echo $? # this should be 2
+
+${THIS_SH} ./getopts7.sub -a
+
+${THIS_SH} ./getopts8.sub
+${THIS_SH} ./getopts9.sub
+
+${THIS_SH} ./getopts10.sub

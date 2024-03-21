@@ -1,0 +1,10 @@
+name=zsh/zftp
+link=dynamic
+load=no
+functions='Functions/Zftp/*'
+
+autofeatures="b:zftp"
+
+moddeps="zsh/net/tcp"
+
+objects="zftp.o"

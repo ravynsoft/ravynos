@@ -1,0 +1,396 @@
+# tagdemo.at -- C++ Language support.			 -*- Autotest -*-
+#
+#   Copyright (C) 2003-2005, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2003
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([C++ language support.])
+
+
+# _LT_SETUP
+# ---------
+m4_define([_LT_SETUP],
+[LT_AT_TAG([CXX])
+AT_KEYWORDS([libtool])
+
+AT_DATA([configure.ac],
+[[AC_INIT([tagdemo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIRS([m4])
+AC_CANONICAL_TARGET
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CC_C_O
+AC_PROG_CXX
+AC_PROG_CXXCPP
+
+# Check for namespace support and new-style headers
+AC_LANG_PUSH([C++])
+AC_MSG_CHECKING([whether the compiler implements namespaces])
+AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([[namespace A { namespace B { int i = 0; }}]],
+		     [[using namespace A::B; return i;]])],
+    [AC_MSG_RESULT([yes])
+     AC_DEFINE([HAVE_NAMESPACES],[1],
+	       [define if the compiler implements namespaces])],
+    [AC_MSG_RESULT([no])])
+
+AC_MSG_CHECKING([whether the compiler has ISO C++ iostream])
+AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([[#include <iostream>
+#ifdef HAVE_NAMESPACES
+using namespace std;
+#endif ]], [[cout << "bingo\n"; return 0;]])],
+    [AC_MSG_RESULT([yes])
+     AC_DEFINE([HAVE_IOSTREAM],[1],
+	       [define if the compiler has ISO C++ iostream])],
+    [AC_MSG_RESULT([no])])
+AC_LANG_POP([C++])
+
+AC_LANG([C++])
+LT_INIT
+
+LT_LIB_M
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_HEADERS([config.h:config.in.h])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS = no-dependencies foreign
+ACLOCAL_AMFLAGS = -I m4
+
+noinst_LTLIBRARIES = libconv.la
+lib_LTLIBRARIES = libfoo.la libbaz.la
+
+libfoo_la_SOURCES = foo.cpp
+libfoo_la_LDFLAGS = -no-undefined
+libfoo_la_LIBADD = libconv.la $(LIBM)
+
+# Test some of the ILD support when using tagged configurations.
+libbaz_la_SOURCES = baz.cpp
+libbaz_la_LDFLAGS = -no-undefined
+libbaz_la_LIBADD = libfoo.la
+
+# Test convenience libraries.
+libconv_la_SOURCES = conv.cpp
+libconv_la_LDFLAGS = -no-undefined
+
+noinst_HEADERS = foo.h baz.h conv.h
+
+bin_PROGRAMS = tagdemo
+
+tagdemo_SOURCES = main.cpp
+tagdemo_LDADD = libbaz.la libfoo.la
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+]])
+
+AT_DATA([main.cpp],
+[[#include <config.h>
+#if HAVE_IOSTREAM
+# include <iostream>
+#else
+# include <iostream.h>
+#endif
+
+#include "foo.h"
+#include "baz.h"
+#include "conv.h"
+
+#if HAVE_NAMESPACES
+namespace std { }
+using namespace std;
+#endif
+
+int main (int, char *[])
+{
+  cout << "Welcome to GNU libtool tagdemo C++!" << endl;
+
+  foobar_derived FB;
+  // Instantiate the derived class.
+
+  foobar *fb = &FB;
+  // Have some fun with polymorphism.
+
+  int value = fb->hello();
+
+  cout << "foobar::hello returned: " << value << endl;
+  if (value = HELLO_RET)
+    cout << "foobar::hello is ok!" << endl;
+
+  if (fb->foo() == FOO_RET)
+    cout << "foobar::foo is ok!" << endl;
+
+  // --------------
+
+  barbaz_derived BB;
+  // Instantiate the derived class.
+
+  barbaz *bb = &BB;
+  // Have some fun with polymorphism.
+
+  // barbaz_derived::baz() should return FOO_RET since it calls
+  // foobar_derived::foo(), which in turn calls ::foo().
+  if (bb->baz() == FOO_RET)
+    cout << "barbaz::baz is ok!" << endl;
+
+  // --------------
+
+  if (convenience())
+    cout << "convenience is ok!" << endl;
+
+  return 0;
+}
+]])
+
+AT_DATA([foo.h],
+[[#ifndef FOO_H
+#define FOO_H
+// Silly constants that the functions return.
+#define HELLO_RET 0xe110
+#define FOO_RET 0xf00
+
+// Our C test functions.
+extern "C"
+{
+  int foo(void);
+  int hello(void);
+}
+
+// Our test C++ base class.
+class foobar
+{
+public:
+  virtual int foo(void) = 0;
+  virtual int hello(void) = 0;
+  // Some dummy pure virtual functions.
+};
+
+
+// Our test C++ derived class.
+class foobar_derived : public foobar
+{
+public:
+  virtual int foo(void);
+  virtual int hello(void);
+  // Override the base class' pure virtual functions.
+};
+
+#endif
+]])
+
+AT_DATA([foo.cpp],
+[[#include <config.h>
+#ifdef HAVE_IOSTREAM
+# include <iostream>
+#else
+# include <iostream.h>
+#endif
+
+#ifdef HAVE_NAMESPACES
+namespace std { }
+using namespace std;
+#endif
+
+#include <math.h>
+
+#include "foo.h"
+
+// Our C functions.
+int
+foo(void)
+{
+  cout << "cos (0.0) = " << (double) cos ((double) 0.0) << endl;
+  return FOO_RET;
+}
+
+int
+hello(void)
+{
+  cout << "** This is libfoo (tagdemo) **" << endl;
+  return HELLO_RET;
+}
+
+
+// --------------------------------------------------------------------
+// Our C++ derived class methods.
+
+
+int
+foobar_derived::foo(void)
+{
+  return ::foo();
+}
+
+int
+foobar_derived::hello(void)
+{
+  return ::hello();
+}
+]])
+
+AT_DATA([baz.h],
+[[#ifndef BAZ_H
+#define BAZ_H 1
+
+// Our test C++ base class.
+class barbaz
+{
+public:
+  virtual int baz(void) = 0;
+  // Some dummy pure virtual functions.
+};
+
+// Our test C++ derived class.
+class barbaz_derived : public barbaz
+{
+public:
+  virtual int baz(void);
+  // Override the base class' pure virtual functions.
+};
+
+#endif
+]])
+
+AT_DATA([baz.cpp],
+[[#include <config.h>
+
+#include "foo.h"
+#include "baz.h"
+
+// --------------------------------------------------------------------
+// Our C++ derived class methods.
+
+
+int
+barbaz_derived::baz(void)
+{
+  foobar_derived FB;
+
+  return FB.foo();
+}
+]])
+
+AT_DATA([conv.h],
+[[#ifndef CONV_H
+#define CONV_H
+
+// Our C test functions.
+extern "C"
+{
+  int convenience(void);
+}
+
+#endif
+]])
+
+AT_DATA([conv.cpp],
+[[#include <config.h>
+
+#include "conv.h"
+
+//Our C function.
+int convenience (void) { return 1; }
+]])
+
+LT_AT_HOST_DATA([expout],
+[[Welcome to GNU libtool tagdemo C++!
+** This is libfoo (tagdemo) **
+foobar::hello returned: 57616
+foobar::hello is ok!
+cos (0.0) = 1
+foobar::foo is ok!
+cos (0.0) = 1
+barbaz::baz is ok!
+convenience is ok!
+]])
+
+prefix=`pwd`/_inst
+]) # _LT_SETUP
+
+
+## --------------- ##
+## Tagdemo static. ##
+## --------------- ##
+
+AT_SETUP([static library])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-shared],
+                   [^build_old_libs=yes], [^build_libtool_libs=no])
+LT_AT_CHECK_EXECUTE([], [./tagdemo])
+
+AT_CLEANUP
+
+
+## --------------- ##
+## Tagdemo shared. ##
+## --------------- ##
+
+AT_SETUP([shared library])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-static],
+                   [^build_old_libs=no], [^build_libtool_libs=yes])
+LT_AT_CHECK_EXECUTE([], [./tagdemo])
+
+AT_CLEANUP
+
+
+## ------------- ##
+## Tagdemo conf. ##
+## ------------- ##
+
+AT_SETUP([shared and static together])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([],
+                   [^build_old_libs=yes], [^build_libtool_libs=yes])
+LT_AT_CHECK_EXECUTE([], [./tagdemo])
+
+AT_CLEANUP
+
+
+## -------------- ##
+## Tagdemo undef. ##
+## -------------- ##
+
+AT_SETUP([allow_undefined_flag])
+
+_LT_SETUP
+
+LT_AT_BOOTSTRAP([], [-I m4], [], [--add-missing], [],
+                [--disable-static], [ignore])
+AT_CHECK([$GREP "^allow_undefined_flag=.\{0,1\}unsupported.\{0,1\}$" libtool && (exit 77)],
+          1, [ignore])
+$SED 's|allow_undefined=no|allow_undefined=yes|g' libtool > ltnew && mv -f ltnew libtool
+LT_AT_CHECK_EXECUTE([], [./tagdemo])
+
+
+AT_CLEANUP

@@ -1,0 +1,246 @@
+#
+# .kshenv -- functions and aliases to provide the beginnings of a ksh 
+#	     environment for bash.
+#
+# Chet Ramey
+# chet@ins.CWRU.Edu
+#
+
+#
+#  Copyright 2002 Chester Ramey
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2, or (at your option)
+#   any later version.
+#
+#   TThis program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+#
+# These are definitions for the ksh compiled-in `exported aliases'.  There
+# are others, but we already have substitutes for them: "history", "type",
+# and "hash".
+#
+alias r="fc -s"
+alias functions="typeset -f"
+alias integer="typeset -i"
+alias nohup="nohup "
+alias command="command "
+alias stop="kill -s STOP"
+alias redirect="command exec"
+alias hist="fc"
+
+#
+# An almost-ksh compatible `whence' command.  This is as hairy as it is 
+# because of the desire to exactly mimic ksh (whose behavior was determined
+# empirically).
+# 
+# This depends somewhat on knowing the format of the output of the bash
+# `builtin type' command.
+#
+
+whence()
+{
+	local vflag pflag fflag defarg c
+	local path
+
+	vflag= aflag= pflag= fflag=
+	path=
+	if [ "$#" = "0" ] ; then
+		echo "whence: usage: whence [-afpv] name..." >&2
+		return 2
+	fi
+
+	OPTIND=1
+	while getopts "avfp" c
+	do
+		case "$c" in
+		a) defarg=-a ;;
+		f) fflag=1 ;;	# no-op
+		p) pflag=1 ;;
+		v) vflag=1 ;;
+		?) echo "whence: $1: unknown option" >&2
+		   echo "whence: usage: whence [-afpv] name..." >&2
+		   return 2 ;;
+		esac
+	done
+
+	shift $(( $OPTIND - 1 ))
+
+	if [ "$#" = "0" ] ; then
+		echo "whence: usage: whence [-afpv] name..." >&2
+		return 2
+	fi
+
+	for cmd
+	do
+		if [ "$vflag" ]	 ; then
+			if [ -z "$defarg" ]; then
+				builtin type $cmd | sed 1q
+			else
+				if builtin type $defarg -t $cmd | grep 'function$' >/dev/null 2>&1; then
+					# HAIRY awk script to suppress
+					# printing of function body -- could
+					# do it with sed, but I don't have
+					# that kind of time
+					builtin type $defarg $cmd | awk '
+BEGIN {printit = 1;}
+$1 == "'$cmd'" && $2 == "()" {printit=0; next; }
+/^}$/ { if (printit == 0) printit=1 ; else print $0; next ; }
+/.*/ { if (printit) print $0; }'
+				else
+					builtin type $defarg $cmd
+				fi
+			fi
+		else
+			path=$(builtin type $defarg -p $cmd)
+			if [ "$path" ] ; then
+				echo $path
+			else
+				case "$cmd" in
+				/*) echo "" ;;
+				 *) case "$(builtin type -t $cmd)" in
+				    "") echo "" ;;
+				    *) echo "$cmd" ;;
+				    esac
+				    ;;
+				esac
+			fi
+		fi
+	done
+	return 0
+}
+
+#
+# For real ksh homeboy fanatics, redefine the `type' builtin with a ksh
+# version.
+#
+#type()
+#{
+#	whence -v "$*"
+#}
+
+#
+# ksh-like `cd': cd [-LP] [dir [change]]
+#
+cd()
+{
+	OPTIND=1
+	while getopts "LP" opt
+	do
+		case $opt in
+		L|P)	CDOPTS="$CDOPTS -$opt" ;;
+		*)	echo "$FUNCNAME: usage: $FUNCNAME [-LP] [dir] [change]" >&2
+			return 2;;
+		esac
+	done
+
+	shift $(( $OPTIND - 1 ))
+
+	case $# in
+	0)	builtin cd $CDOPTS "$HOME" ;;
+	1) 	builtin cd $CDOPTS "$@" ;;
+	2)	old="$1" new="$2"
+		case "$PWD" in
+		*$old*)	;;
+		*)	 echo "${0##*/}: $FUNCNAME: bad substitution" >&2 ; return 1 ;;
+		esac
+
+		dir=${PWD//$old/$new}
+
+		builtin cd $CDOPTS "$dir" && echo "$PWD"
+
+		;;
+	*)	echo "${0##*/}: $FUNCNAME: usage: $FUNCNAME [-LP] [dir] [change]" >&2
+		return 2 ;;
+	esac
+}
+
+#
+# ksh print emulation
+#
+#	print [-Rnprsu[n]] [-f format] [arg ...]
+#
+#	-	end of options
+#	-R	BSD-style -- only accept -n, no escapes
+#	-n	do not add trailing newline
+#	-p	no-op (no coprocesses)
+#	-r	no escapes
+#	-s	print to the history file
+#	-u n	redirect output to fd n
+#	-f format	printf "$format" "$@"
+#
+
+print()
+{
+	local eflag=-e
+	local nflag= fflag= c
+	local fd=1
+
+	OPTIND=1
+	while getopts "fRnprsu:" c
+	do
+		case $c in
+		R)	eflag= ;;
+		r)	eflag= ;;
+		n)	nflag=-n ;;
+		s)	sflag=y ;;
+		f)	fflag=y ;;
+		u)	fd=$OPTARG ;;
+		p)	;;
+		esac
+	done
+	shift $(( $OPTIND - 1 ))
+
+	if [ -n "$fflag" ]; then
+		builtin printf "$@" >&$fd
+		return
+	fi
+
+	case "$sflag" in
+	y)	builtin history -s "$*" ;;
+	*)	builtin echo $eflag $nflag "$@" >&$fd
+	esac
+}
+
+# substring function
+# this function should be equivalent to the substring built-in which was
+# eliminated after the 06/29/84 version
+substring ()
+{
+	local lpat flag str	#local variables
+	set -f
+	case $1 in
+	-l|-L)
+		flag=$1
+		lpat=$2
+		shift 2
+		;;
+	esac
+	# test for too few or too many arguments
+	if [ x"$1" = x ] || [ $# -gt 2 ]; then
+		print -u2 'substring: bad argument count'
+		return 1
+	fi
+	str=$1
+	if [ x"$flag" = x-l ]; then		#substring -l lpat
+		str=${str#$lpat}
+	elif [ x"$flag" = x-L ]; then
+		str=${str##$lpat}		#substring -L lpat
+	fi
+
+	if [ x"$2" != x ]; then
+		echo ${str%$2}
+	else
+		echo $str
+	fi
+
+	return 0
+}

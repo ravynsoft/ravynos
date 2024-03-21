@@ -1,0 +1,4 @@
+
+	.text
+	jr	target
+	.end

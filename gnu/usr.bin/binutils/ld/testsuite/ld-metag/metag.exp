@@ -1,0 +1,61 @@
+# Expect script for ld-metag tests
+#
+#   Copyright (C) 2013-2023 Free Software Foundation, Inc.
+#   Contributed by Imagination Technologies Ltd.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if {!([istarget "metag-*-*"]) } {
+    return
+}
+
+# Set up a list as described in ld-lib.exp
+
+set metag_tests {
+    {"Meta pc-relative relocs linker test" "" "" ""
+     { "pcrel.s" "external.s" }
+     { {objdump -Dz pcrel.d} }
+     "pcrel"
+    }
+    {"Simple PIC shared library" "-shared --hash-style=sysv" "" ""
+     {shared.s}
+     { {objdump -fdw shared.d} {objdump -Rw shared.r} }
+     "shared.so"
+    }
+    {"Long branch stub" "" "" ""
+     {stub.s}
+     { {objdump -fdw stub.d} }
+     "stub"
+    }
+    {"Shared library for stub tests" "-shared --hash-style=sysv" "" ""
+     {stub_shared.s}
+     { {objdump -fdw stub_shared.d} {objdump -Rw stub_shared.r} }
+     "stub_shared.so"
+    }
+    {"Long branch stub (PIC, app)" "--hash-style=sysv tmpdir/stub_shared.so" "" ""
+     {stub_pic_app.s}
+     { {objdump -fdw stub_pic_app.d} {objdump -Rw stub_pic_app.r} }
+     "stub_pic_app"
+    }
+    {"Long branch stub (PIC, shared)" "-shared --hash-style=sysv" "" ""
+     {stub_pic_shared.s}
+     { {objdump -fdw stub_pic_shared.d} }
+     "stub_pic_shared.so"
+    }
+}
+
+run_ld_link_tests $metag_tests

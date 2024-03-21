@@ -1,0 +1,66 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test behavior of native readline timeouts
+
+# turn off bracketed paste to avoid spurious output
+bind 'set enable-bracketed-paste off' 2>/dev/null
+
+read -t 0.00001 -e var
+estat=$?
+if [ $estat -gt 128 ]; then
+	echo timeout 1: ok
+else
+	echo $estat
+fi
+echo ${var:-unset or null 1}
+
+read -e -t 0.1 var
+estat=$?
+if [ $estat -gt 128 ]; then
+	echo timeout 2: ok
+else
+	echo $estat
+fi
+echo ${var:-unset or null 2}
+
+read -e -t 1 var < /dev/tty
+estat=$?
+if [ $estat -gt 128 ]; then
+	echo timeout 3: ok
+else
+	echo $estat
+fi
+echo ${var:-unset or null 3}
+
+sleep 1 | read -t 0.25 -e a
+estat=$?
+if [ $estat -gt 128 ]; then
+	echo timeout 4: ok
+else
+	echo $estat
+fi
+
+# the above should all time out
+echo abcde | {
+	read -e -t 0.5 a
+	echo $a
+}
+
+read -e -t .0001 a <<<abcde
+echo $a
+
+set -o posix
+read -t 0.1 a </dev/tty
+echo $a
+

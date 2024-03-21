@@ -48,7 +48,7 @@
 
 #define	LENTRY(sym)						\
 	.text; .align 2; .type sym,#function; sym:		\
-	.cfi_startproc; DTRACE_NOP
+	.cfi_startproc; BTI_C; DTRACE_NOP
 #define	ENTRY(sym)						\
 	.globl sym; LENTRY(sym)
 #define	EENTRY(sym)						\
@@ -113,6 +113,108 @@
 	eret;								\
 	dsb	sy;							\
 	isb
+
+/*
+ * When a CPU that implements FEAT_BTI uses a BR/BLR instruction (or the
+ * pointer authentication variants, e.g. BLRAA) and the target location
+ * has the GP attribute in its page table, then the target of the BR/BLR
+ * needs to be a valid BTI landing pad.
+ *
+ * BTI_C should be used at the start of a function and is used in the
+ * ENTRY macro. It can be replaced by PACIASP or PACIBSP, however these
+ * also need an appropriate authenticate instruction before returning.
+ *
+ * BTI_J should be used as the target instruction when branching with a
+ * BR instruction within a function.
+ *
+ * When using a BR to branch to a new function, e.g. a tail call, then
+ * the target register should be x16 or x17 so it is compatible with
+ * the BRI_C instruction.
+ *
+ * As these instructions are in the hint space they are a NOP when
+ * the CPU doesn't implement FEAT_BTI so are safe to use.
+ */
+#ifdef __ARM_FEATURE_BTI_DEFAULT
+#define	BTI_C	hint	#34
+#define	BTI_J	hint	#36
+#else
+#define	BTI_C
+#define	BTI_J
+#endif
+
+/*
+ * To help protect against ROP attacks we can use Pointer Authentication
+ * to sign the return address before pushing it to the stack.
+ *
+ * PAC_LR_SIGN can be used at the start of a function to sign the link
+ * register with the stack pointer as the modifier. As this is in the hint
+ * space it is safe to use on CPUs that don't implement pointer
+ * authentication. It can be used in place of the BTI_C instruction above as
+ * a valid BTI landing pad instruction.
+ *
+ * PAC_LR_AUTH is used to authenticate the link register using the stack
+ * pointer as the modifier. It should be used in any function that uses
+ * PAC_LR_SIGN. The stack pointer must be identical in each case.
+ */
+#ifdef __ARM_FEATURE_PAC_DEFAULT
+#define	PAC_LR_SIGN	hint	#25	/* paciasp */
+#define	PAC_LR_AUTH	hint	#29	/* autiasp */
+#else
+#define	PAC_LR_SIGN
+#define	PAC_LR_AUTH
+#endif
+
+/*
+ * GNU_PROPERTY_AARCH64_FEATURE_1_NOTE can be used to insert a note that
+ * the current assembly file is built with Pointer Authentication (PAC) or
+ * Branch Target Identification support (BTI). As the linker requires all
+ * object files in an executable or library to have the GNU property
+ * note to emit it in the created elf file we need to add a note to all
+ * assembly files that support BTI so the kernel and dynamic linker can
+ * mark memory used by the file as guarded.
+ *
+ * The GNU_PROPERTY_AARCH64_FEATURE_1_VAL macro encodes the combination
+ * of PAC and BTI that have been enabled. It can be used as follows:
+ * GNU_PROPERTY_AARCH64_FEATURE_1_NOTE(GNU_PROPERTY_AARCH64_FEATURE_1_VAL);
+ *
+ * To use this you need to include <sys/elf_common.h> for
+ * GNU_PROPERTY_AARCH64_FEATURE_1_*
+ */
+#if defined(__ARM_FEATURE_BTI_DEFAULT)
+#if defined(__ARM_FEATURE_PAC_DEFAULT)
+/* BTI, PAC */
+#define	GNU_PROPERTY_AARCH64_FEATURE_1_VAL				\
+    (GNU_PROPERTY_AARCH64_FEATURE_1_BTI | GNU_PROPERTY_AARCH64_FEATURE_1_PAC)
+#else
+/* BTI, no PAC */
+#define	GNU_PROPERTY_AARCH64_FEATURE_1_VAL				\
+    (GNU_PROPERTY_AARCH64_FEATURE_1_BTI)
+#endif
+#elif defined(__ARM_FEATURE_PAC_DEFAULT)
+/* No BTI, PAC */
+#define	GNU_PROPERTY_AARCH64_FEATURE_1_VAL				\
+    (GNU_PROPERTY_AARCH64_FEATURE_1_PAC)
+#else
+/* No BTI, no PAC */
+#define	GNU_PROPERTY_AARCH64_FEATURE_1_VAL	0
+#endif
+
+#if defined(__ARM_FEATURE_BTI_DEFAULT) || defined(__ARM_FEATURE_PAC_DEFAULT)
+#define	GNU_PROPERTY_AARCH64_FEATURE_1_NOTE(x)				\
+    .section .note.gnu.property, "a";					\
+    .balign 8;								\
+    .4byte 0x4;				/* sizeof(vendor) */		\
+    .4byte 0x10;			/* sizeof(note data) */		\
+    .4byte (NT_GNU_PROPERTY_TYPE_0);					\
+    .asciz "GNU";			/* vendor */			\
+    /* note data: */							\
+    .4byte (GNU_PROPERTY_AARCH64_FEATURE_1_AND);			\
+    .4byte 0x4;				/* sizeof(property) */		\
+    .4byte (x);				/* property */			\
+    .4byte 0
+#else
+#define	GNU_PROPERTY_AARCH64_FEATURE_1_NOTE(x)
+#endif
 
 #endif /* _MACHINE_ASM_H_ */
 

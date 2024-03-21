@@ -1,0 +1,42 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of ISO C 99 <inttypes.h> format string directives.
+
+cat <<EOF > xg-c-format-2.c
+void foo ()
+{
+  printf (_("File size is: %" PRId64), size);
+  printf (_("File age is %10" PRIdMAX " microseconds"), age);
+  printf (_(PRIXFAST16 " errors"), nerrs);
+  printf (_(PRIXFAT16 " mistakes"), nerrs);
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -k_ -o xg-c-format-2.tmp xg-c-format-2.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-format-2.tmp > xg-c-format-2.po || Exit 1
+
+cat <<EOF > xg-c-format-2.ok
+#, c-format
+msgid "File size is: %<PRId64>"
+msgstr ""
+
+#, c-format
+msgid "File age is %10<PRIdMAX> microseconds"
+msgstr ""
+
+#, c-format
+msgid "<PRIXFAST16> errors"
+msgstr ""
+
+#, c-format
+msgid " mistakes"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-format-2.ok xg-c-format-2.po
+result=$?
+
+exit $result

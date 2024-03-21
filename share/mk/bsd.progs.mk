@@ -22,9 +22,9 @@ PROGS += ${PROGS_CXX}
 .if defined(PROG)
 # just one of many
 PROG_OVERRIDE_VARS +=	BINDIR BINGRP BINOWN BINMODE CSTD CXXSTD DPSRCS MAN \
-			NO_SHARED MK_WERROR PROGNAME SRCS STRIP WARNS MK_ASAN MK_UBSAN
-PROG_VARS +=	CFLAGS CXXFLAGS DEBUG_FLAGS DPADD INTERNALPROG LDADD LIBADD \
-		LINKS LDFLAGS MLINKS ${PROG_OVERRIDE_VARS}
+			NO_SHARED MK_WERROR PROGNAME STRIP WARNS MK_ASAN MK_UBSAN
+PROG_VARS +=	SRCS CFLAGS CXXFLAGS DEBUG_FLAGS DPADD INTERNALPROG LDADD \
+		LIBADD LINKS LDFLAGS MLINKS ${PROG_OVERRIDE_VARS}
 .for v in ${PROG_VARS:O:u}
 .if empty(${PROG_OVERRIDE_VARS:M$v})
 .if defined(${v}.${PROG})
@@ -64,6 +64,8 @@ all: ${PROGS}
 .endif
 
 META_XTRAS+=	${cat ${PROGS:S/$/*.meta_files/} 2>/dev/null || true:L:sh}
+# the above does no use unless we pass it on to gendirdeps.mk
+GENDIRDEPS_ENV += META_XTRAS='${META_XTRAS}'
 
 .if ${MK_STAGING} != "no" && !empty(PROGS)
 # Stage from parent while respecting PROGNAME and BINDIR overrides.
@@ -88,15 +90,14 @@ $v =
 .endfor
 .endif
 
-# handle being called [bsd.]progs.mk
 .include <bsd.prog.mk>
 
 .if !defined(_SKIP_BUILD)
 # Find common sources among the PROGS to depend on them before building
 # anything.  This allows parallelization without them each fighting over
 # the same objects.
-_PROGS_COMMON_SRCS= ${DPSRCS}
-_PROGS_ALL_SRCS=
+_PROGS_COMMON_SRCS= ${DPSRCS} ${SRCS}
+_PROGS_ALL_SRCS= ${SRCS}
 .for p in ${PROGS}
 .for s in ${SRCS.${p}}
 .if ${_PROGS_ALL_SRCS:M${s}} && !${_PROGS_COMMON_SRCS:M${s}}

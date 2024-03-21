@@ -1,0 +1,364 @@
+#   Copyright (C) 1993-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+# Please email any bugs, comments, and/or additions to this file to:
+# bug-dejagnu@prep.ai.mit.edu
+
+# This file was written by Rob Savoye <rob@cygnus.com>
+# and rewritten by Ian Lance Taylor <ian@cygnus.com>
+
+if ![is_remote host] {
+    if {[which $NM] == 0} then {
+        perror "$NM does not exist"
+        return
+    }
+}
+
+send_user "Version [binutil_version $NM]"
+
+
+if {![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.o]} then {
+    fail "nm (assembling)"
+} else {
+
+    if [is_remote host] {
+	set tempfile [remote_download host tmpdir/bintest.o]
+    } else {
+	set tempfile tmpdir/bintest.o
+    }
+
+    # Test nm with no arguments.
+
+    # This test does not work correctly on ECOFF targets, because ECOFF
+    # stores most symbols twice, which messes up the nm output.
+    setup_xfail "alpha*-*-*ecoff" "alpha*-*-osf*"
+
+    # This test does not work correctly on XCOFF targets, because XCOFF
+    # does not enter static symbols in the symbol table.
+    if [is_xcoff_format] {
+	setup_xfail *-*-*
+    }
+
+    set got [binutils_run $NM "$NMFLAGS $tempfile"]
+
+    if [info exists vars] then { unset vars }
+    while {[regexp "(\[a-zA-Z\]) (\[a-z_\]*_symbol)(.*)" $got all type symbol rest]} {
+	set vars($symbol) $type
+	set got $rest
+    }
+
+    if {![info exists vars(text_symbol)] \
+	    || $vars(text_symbol) != "T" \
+	    || ![info exists vars(data_symbol)] \
+	    || $vars(data_symbol) != "D" \
+	    || ![info exists vars(common_symbol)] \
+	    || $vars(common_symbol) != "C" \
+	    || ![info exists vars(external_symbol)] \
+	    || $vars(external_symbol) != "U" \
+	    || ![info exists vars(static_text_symbol)] \
+	    || $vars(static_text_symbol) != "t" \
+	    || ![info exists vars(static_data_symbol)] \
+	    || $vars(static_data_symbol) != "d"} {
+	fail "nm (no arguments)"
+    } else {
+	pass "nm (no arguments)"
+    }
+
+    # Test nm -g
+
+    set got [binutils_run $NM "$NMFLAGS -g $tempfile"]
+
+    if [info exists vars] then { unset vars }
+    while {[regexp "(\[a-z_\]*_symbol)(.*)" $got all symbol rest]} {
+	set vars($symbol) 1
+	set got $rest
+    }
+
+    if {![info exists vars(text_symbol)] \
+	    || ![info exists vars(data_symbol)] \
+	    || ![info exists vars(common_symbol)] \
+	    || ![info exists vars(external_symbol)] \
+	    || [info exists vars(static_text_symbol)] \
+	    || [info exists vars(static_data_symbol)]} {
+	fail "nm -g"
+    } else {
+	pass "nm -g"
+    }
+
+    # Test nm -P
+
+    # This test does not work correctly on ECOFF targets, because ECOFF
+    # stores most symbols twice, which messes up the nm output.
+    setup_xfail "alpha*-*-*ecoff" "alpha*-*-osf*"
+
+    # This test does not work correctly on XCOFF targets, because XCOFF
+    # does not enter static symbols in the symbol table.
+    if [is_xcoff_format] {
+	setup_xfail *-*-*
+    }
+
+    set got [binutils_run $NM "$NMFLAGS -P $tempfile"]
+
+    set want "common_symbol C \[0\]*4.*data_symbol D \[0-9a-fA-F\]*.*external_symbol U.*static_data_symbol d \[0-9a-fA-F\]*.*static_text_symbol t \[0-9a-fA-F\]*.*text_symbol T \[0-9a-fA-F\]*"
+
+    if [regexp $want $got] then {
+	pass "nm -P"
+    } else {
+	fail "nm -P"
+    }
+
+    # Test nm -t d
+    # Look for leading zeroes and only the digits 0..9 in the actual value.
+    set got [binutils_run $NM "$NMFLAGS -t d $tempfile"]
+    if [regexp "0+\[1-9\]\[0-9\]* T text_symbol3" $got] then {
+	pass "nm -t d"
+    } else {
+	fail "nm -t d"
+    }
+
+    # Test nm --format=posix
+    # ref: PR 24507 - no leading zeros.
+    set got [binutils_run $NM "$NMFLAGS --format=posix $tempfile"]
+    if [regexp "text_symbol3 T \[1-9a-f\]\[0-9a-f\]*" $got] then {
+	pass "nm --format posix"
+    } else {
+	fail "nm --format posix"
+    }
+}
+
+# Test nm --size-sort
+
+# The target exceptions here are intended for targets that have ELF as
+# an intermediate format or otherwise require the ELF-variant syntax
+# for proper size annotation.  It would be nice if is_elf_format found
+# all the ELF variants, but adding the patterns here to that proc then
+# introduces a whole slew of new regressions in the GAS and LD testsuites.
+if {   [is_elf_format]
+    || [istarget *-*-beos]
+    || [istarget *-*-dragonfly*]
+    || [istarget *-*-*elf]
+    || [istarget *-*-freebsd*]
+    || [istarget *-*-lynxos*]
+    || [istarget *-*-moss*]
+    || [istarget "mmix-knuth-mmixware"]
+    || [istarget *-*-nto*]
+    || [istarget *-*-rdos*]
+    || [istarget *-*-tpf*]
+    || [istarget *-*-uclinux*]
+    || [istarget ia64-*-*vms*]
+    || [istarget *-*-vxworks*]
+    || [istarget wasm32-*-*]
+    || [istarget bpf-*-*]} {
+    set nm_1_src "nm-elf-1.s"
+} else {
+    set nm_1_src "nm-1.s"
+}
+
+if {![binutils_assemble $srcdir/$subdir/$nm_1_src tmpdir/nm-1.o]} then {
+    fail "nm --size-sort (assembling)"
+} else {
+
+    if [is_remote host] {
+	set tempfile [remote_download host tmpdir/nm-1.o]
+    } else {
+	set tempfile tmpdir/nm-1.o
+    }
+
+    set got [binutils_run $NM "$NMFLAGS --size-sort $tempfile"]
+
+    set want "0*4 T text_symbol3.*0*8 T text_symbol2.*0*c T text_symbol1"
+
+    if [regexp $want $got] then {
+	pass "nm --size-sort"
+    } else {
+	fail "nm --size-sort"
+    }
+}
+
+if [is_elf_format] {
+    # PR binutils/12753
+    # Test nm -g on a unique global symbol.
+    if {![binutils_assemble $srcdir/$subdir/unique.s tmpdir/unique.o]} then {
+	unsupported "nm -g on unique symbols"
+    } else {
+	if [is_remote host] {
+	    set tmpfile [remote_download host tmpdir/unique.o]
+	} else {
+	    set tmpfile tmpdir/unique.o
+	}
+
+	set got [binutils_run $NM "$NMFLAGS -g $tmpfile"]
+
+	if [regexp "u foo" $got] then {
+	    pass "nm -g on unique symbols"
+	} else {
+	    fail "nm -g on unique symbols"
+	}
+
+	if { $verbose < 1 } {
+	    remote_file host delete "tmpdir/unique.o"
+	}
+    }
+
+    # PR binutils/20751
+    # Test nm --with-symbol-versions
+
+    if {![binutils_assemble $srcdir/$subdir/nm-ver.s tmpdir/nm-ver.o]} then {
+	fail "nm --with-symbol-versions (assembling)"
+    } else {
+	if [is_remote host] {
+	    set tmpfile [remote_download host tmpdir/nm-ver.o]
+	} else {
+	    set tmpfile tmpdir/nm-ver.o
+	}
+	
+	set got [binutils_run $NM "$NMFLAGS --with-symbol-versions --format sysv $tmpfile"]
+
+	if {! [regexp "foo@VER_1" $got]} then {
+	    fail "nm --with-symbol-versions (grep for @VER_1)"
+	} else {
+	    if {! [regexp "foo@VER_1" $got]} then {
+		fail "nm --with-symbol-versions (grep for @@VER_2)"
+	    } else {
+		pass "nm --with-symbol-versions"
+	    }
+	}
+
+	if { $verbose < 1 } {
+	    remote_file host delete "tmpdir/nm-ver.o"
+	}
+    }
+
+    # PR binutils/25676
+    # Test nm --line-numbers on DWARF-4 debug info.    
+    set testname "nm --line-numbers on DWARF-4 debug info"
+
+    # The SH targets complain that the pseudo-ops used to construct
+    # the DWARF data are misaligned.
+    setup_xfail "sh*-*-*"
+    # The pre-compiled dwarf info in dw4.s is not compatible with the
+    # ALPHA, HPPA, IA64 and MIPS targets.
+    setup_xfail "alpha*-*-*" "hppa*-*-*" "ia64*-*-*" "mips*-*-*"
+    # Assembling the source file triggers an ICE in the FT32 assembler.
+    # FIXME: Fix the ICE...
+    setup_xfail "ft32-*-*"
+    # The AVR, MSP430, NDS32, PRU and XTENSA targets do not assemble the
+    # (64-bit) source file.
+    setup_xfail "avr-*-*" "msp430-*-*" "nds32*-*-*" "pru-*-*" "xtensa-*-*"
+    
+    if {![binutils_assemble $srcdir/$subdir/dw4.s tmpdir/dw4.o]} then {
+	fail "$testname (assembly)"
+    } else {
+	# The test source is only intended for 64-bit targets.
+	# FIXME: Create a 32-bit version of this test.
+	if {! [is_elf64 tmpdir/dw4.o]} {
+	    unsupported "$testname (needs a 64-bit target)"
+	} else {
+	    if [is_remote host] {
+		set tmpfile [remote_download host tmpdir/dw4r.o]
+	    } else {
+		set tmpfile tmpdir/dw4.o
+	    }
+
+	    set got [binutils_run $NM "$NMFLAGS --line-numbers $tmpfile"]
+
+	    if {! [regexp "g_my_externd_global.*tests/main.c:3" $got]} then {
+		fail "$testname (grep for externd global file/line)"
+	    } else {
+		pass $testname
+	    }
+	}
+
+	if { $verbose < 1 } {
+	    remote_file host delete $tmpfile
+	}
+    }
+
+    # PR 22967
+    # Test nm --ifunc-chars on a indirect symbols.
+    
+    # The following targets are known to not support ifuncs.
+    setup_xfail "alpha*-*-*"
+    setup_xfail "arm*-elf" "arm*-*-nto*" "arm*-*-netbsd*"
+    setup_xfail "*-*-hpux*"
+    setup_xfail "mips*-*-*" "tx39*-*-*"
+    setup_xfail "msp430*-*-*"
+    setup_xfail "visium*-*-*"
+    setup_xfail "x86_64-*-cloudabi*"
+
+    set testname "nm --ifunc-chars"
+    if {![binutils_assemble $srcdir/$subdir/ifunc.s tmpdir/ifunc.o]} then {
+	fail "$testname (assembly)"
+    } else {
+	if [is_remote host] {
+	    set tmpfile [remote_download host tmpdir/ifunc.o]
+	} else {
+	    set tmpfile tmpdir/ifunc.o
+	}
+
+	set got [binutils_run $NM "$NMFLAGS --ifunc-chars=Ff $tmpfile"]
+
+	if [regexp "F global_foo" $got] then {
+	    pass "$testname (global ifunc)"
+	} else {
+	    fail "$testname (global ifunc)"
+	}
+
+	if [regexp "f local_foo" $got] then {
+	    pass "$testname (local ifunc)"
+	} else {
+	    fail "$testname (local ifunc)"
+	}
+
+	if { $verbose < 1 } {
+	    remote_file host delete "tmpdir/ifunc.o"
+	}
+    }
+
+    set testname "nm --no-weak"
+    if {![binutils_assemble $srcdir/$subdir/no-weak.s tmpdir/no-weak.o]} then {
+	fail "$testname (assembly)"
+    } else {
+	if [is_remote host] {
+	    set tmpfile [remote_download host tmpdir/no-weak.o]
+	} else {
+	    set tmpfile tmpdir/no-weak.o
+	}
+
+	set got [binutils_run $NM "$NMFLAGS --no-weak $tmpfile"]
+
+	if [regexp "weak_with_default_value" $got] then {
+	    fail "$testname (weak symbol with default value)"
+	} else {
+	    pass "$testname (weak symbol with default value)"
+	}
+
+	if [regexp "weak_without_default_value" $got] then {
+	    fail "$testname (weak symbol without default value)"
+	} else {
+	    pass "$testname (weak symbol without default value)"
+	}
+
+	# FIXME: We should re run this test without the --no-weak option
+	# and verify that the expected symbol names *are* shown...
+
+	if { $verbose < 1 } {
+	    remote_file host delete "tmpdir/no0weak.o"
+	}
+    }    
+}
+
+# There are certainly other tests that could be run.

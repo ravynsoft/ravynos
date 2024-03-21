@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=${prefix}/include
+
+Name: avahi-qt5
+Description: Avahi Multicast DNS Responder (QT5 Support)
+Version: @PACKAGE_VERSION@
+Requires: Qt5Core >= 5.0.0
+Libs: -L${libdir} -lavahi-qt5
+Cflags: -D_REENTRANT -I${includedir}

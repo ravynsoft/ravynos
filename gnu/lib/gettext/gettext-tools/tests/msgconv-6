@@ -1,0 +1,50 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgconv on a PO file with previous msgids.
+
+cat <<\EOF > mco-test6.po
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, fuzzy
+#| msgid "Â© Frobby Inc."
+msgid "(C) Frobby Inc."
+msgstr "(C) Dingsbums GmbH"
+
+#, fuzzy
+#| msgid "full 360Â°"
+msgid "full turn"
+msgstr "Volle 360 Grad"
+EOF
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=ISO-8859-1 -o mco-test6.tmp mco-test6.po || Exit 1
+LC_ALL=C tr -d '\r' < mco-test6.tmp > mco-test6.out || Exit 1
+
+cat <<\EOF > mco-test6.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, fuzzy
+#| msgid "© Frobby Inc."
+msgid "(C) Frobby Inc."
+msgstr "(C) Dingsbums GmbH"
+
+#, fuzzy
+#| msgid "full 360°"
+msgid "full turn"
+msgstr "Volle 360 Grad"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mco-test6.ok mco-test6.out
+result=$?
+
+exit $result

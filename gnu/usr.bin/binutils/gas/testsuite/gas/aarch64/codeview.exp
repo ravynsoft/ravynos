@@ -1,0 +1,332 @@
+# Copyright (C) 2022-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if { ![istarget "aarch64-*-*"] } then {
+    return
+}
+
+if { ![istarget "*-*-mingw*"] && ![istarget "*-*-pe*"] } then {
+    return
+}
+
+proc read_subsection { fi } {
+    set data [read $fi 4]
+    binary scan $data i type
+
+    set data [read $fi 4]
+    binary scan $data i len
+
+    set data [read $fi $len]
+
+    if { [expr $len % 4] != 0 } {
+	seek $fi [expr 4 - ($len % 4)] current
+    }
+
+    return [list $type $data]
+}
+
+proc check_file_checksums { chksums string_table } {
+    set off 0
+
+    # check first file
+
+    set data [string range $chksums $off [expr $off + 3]]
+    incr off 4
+    binary scan $data i string_off
+
+    set filename [string range $string_table $string_off [expr [string first \000 $string_table $string_off] - 1]]
+
+    if ![string match "*codeview1.s" $filename] {
+	fail "Incorrect filename for first source file"
+    } else {
+	pass "Correct filename for first source file"
+    }
+
+    set data [string range $chksums $off $off]
+    incr off
+    binary scan $data c hash_length
+
+    if { $hash_length != 16 } {
+	fail "Incorrect hash length"
+    } else {
+	pass "Correct hash length"
+    }
+
+    set data [string range $chksums $off $off]
+    incr off
+    binary scan $data c hash_type
+
+    if { $hash_type != 1 } {
+	fail "Incorrect hash type"
+    } else {
+	pass "Correct hash type"
+    }
+
+    set data [string range $chksums $off [expr $off + $hash_length - 1]]
+    incr off $hash_length
+    binary scan $data H* hash
+
+    if ![string equal $hash "e396a2450f45912c0818c2b779ff05df"] {
+	fail "Incorrect MD5 hash"
+    } else {
+	pass "Correct MD5 hash"
+    }
+
+    # skip padding
+    if { [expr $off % 4] != 0 } {
+	incr off [expr 4 - ($off % 4)]
+    }
+
+    # check second file
+
+    set data [string range $chksums $off [expr $off + 3]]
+    incr off 4
+    binary scan $data i string_off
+
+    set filename [string range $string_table $string_off [expr [string first \000 $string_table $string_off] - 1]]
+
+    if ![string match "*codeview2.s" $filename] {
+	fail "Incorrect filename for second source file"
+    } else {
+	pass "Correct filename for second source file"
+    }
+
+    set data [string range $chksums $off $off]
+    incr off
+    binary scan $data c hash_length
+
+    if { $hash_length != 16 } {
+	fail "Incorrect hash length"
+    } else {
+	pass "Correct hash length"
+    }
+
+    set data [string range $chksums $off $off]
+    incr off
+    binary scan $data c hash_type
+
+    if { $hash_type != 1 } {
+	fail "Incorrect hash type"
+    } else {
+	pass "Correct hash type"
+    }
+
+    set data [string range $chksums $off [expr $off + $hash_length - 1]]
+    incr off $hash_length
+    binary scan $data H* hash
+
+    if ![string equal $hash "0374189e155c0a8aaa09c4ffdc23ec11"] {
+	fail "Incorrect MD5 hash"
+    } else {
+	pass "Correct MD5 hash"
+    }
+}
+
+proc check_lines { lines } {
+    global OBJDUMP
+    global srcdir
+    global subdir
+
+    set fi [open tmpdir/codeview-lines w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $lines
+    close $fi
+
+    gas_host_run "$OBJDUMP -s --target=binary tmpdir/codeview-lines" ">& tmpdir/codeview-lines-text"
+
+    set exp [file_contents "$srcdir/$subdir/codeview-lines"]
+    set got [file_contents "tmpdir/codeview-lines-text"]
+
+    if [string equal $exp $got] {
+	pass "Correct lines info"
+    } else {
+	fail "Incorrect lines info"
+    }
+}
+
+proc check_objname { sym } {
+    binary scan $sym s type
+
+    if { $type != 0x1101 } {
+	fail "Symbol was not S_OBJNAME"
+	return
+    } else {
+	pass "Symbol was S_OBJNAME"
+    }
+
+    binary scan [string range $sym 2 5] i signature
+
+    if { $signature != 0 } {
+	fail "S_OBJNAME signature was not 0"
+	return
+    } else {
+	pass "S_OBJNAME signature was 0"
+    }
+
+    set filename [string range $sym 6 [expr [string first \000 $sym 6] - 1]]
+
+    if ![string match "*codeview1.o" $filename] {
+	fail "Incorrect object name in S_OBJNAME"
+    } else {
+	pass "Correct object name in S_OBJNAME"
+    }
+}
+
+proc check_compile3 { sym } {
+    binary scan $sym s type
+
+    if { $type != 0x113c } {
+	fail "Symbol was not S_COMPILE3"
+	return
+    } else {
+	pass "Symbol was S_COMPILE3"
+    }
+
+    set data [string range $sym 6 7]
+    binary scan $data s machine
+
+    if { $machine != 0xf6 } {
+	fail "Incorrect machine type in S_COMPILE3"
+    } else {
+	pass "Correct machine type in S_COMPILE3"
+    }
+
+    set assembler_name [string range $sym 24 [expr [string first \000 $sym 24] - 1]]
+
+    if ![string match "GNU AS *" $assembler_name] {
+	fail "Incorrect assembler name"
+    } else {
+	pass "Correct assembler name"
+    }
+}
+
+proc check_symbols { symbols } {
+    set off 0
+
+    # check S_OBJNAME record
+
+    set data [string range $symbols $off [expr $off + 1]]
+    incr off 2
+    binary scan $data s sym_len
+
+    set sym [string range $symbols $off [expr $off + $sym_len - 1]]
+    incr off $sym_len
+
+    check_objname $sym
+
+    # check S_COMPILE3 record
+
+    set data [string range $symbols $off [expr $off + 1]]
+    incr off 2
+    binary scan $data s sym_len
+
+    set sym [string range $symbols $off [expr $off + $sym_len - 1]]
+    incr off $sym_len
+
+    check_compile3 $sym
+}
+
+gas_run codeview1.s "-gcodeview -I $srcdir/$subdir -o tmpdir/codeview1.o" ">&dump.out"
+
+if { [file size "dump.out"] != 0 } {
+    fail "Failed to assemble codeview1.s"
+    return
+} else {
+    pass "Assembled codeview1.s"
+}
+
+gas_host_run "$OBJCOPY --dump-section .debug\\\$S=tmpdir/codeview-debug tmpdir/codeview1.o" ">&dump.out"
+
+if { [file size "dump.out"] != 0 } {
+    fail "Failed to extract .debug\$S section from codeview1.o"
+    return
+} else {
+    pass "Extracted .debug\$S section from codeview1.o"
+}
+
+set fi [open tmpdir/codeview-debug]
+fconfigure $fi -translation binary
+
+# check signature
+
+set data [read $fi 4]
+binary scan $data i cv_sig
+
+if { $cv_sig != 4 } {
+    fail "Invalid CodeView signature"
+    close $fi
+    return
+} else {
+    pass "Correct CodeView signature"
+}
+
+# read string table (DEBUG_S_STRINGTABLE)
+
+set result [read_subsection $fi]
+
+if { [lindex $result 0] != 0xf3 } {
+    fail "Subsection was not string table"
+    close $fi
+    return
+} else {
+    pass "Read string table"
+}
+
+set string_table [lindex $result 1]
+
+# read file checksums (DEBUG_S_FILECHKSMS)
+
+set result [read_subsection $fi]
+
+if { [lindex $result 0] != 0xf4 } {
+    fail "Subsection was not file checksums"
+    close $fi
+    return
+} else {
+    pass "Read file checksums"
+}
+
+check_file_checksums [lindex $result 1] $string_table
+
+# read line info (DEBUG_S_LINES)
+
+set result [read_subsection $fi]
+
+if { [lindex $result 0] != 0xf2 } {
+    fail "Subsection was not line info"
+    close $fi
+    return
+} else {
+    pass "Read line info"
+}
+
+check_lines [lindex $result 1]
+
+# read CodeView symbols (DEBUG_S_SYMBOLS)
+
+set result [read_subsection $fi]
+
+if { [lindex $result 0] != 0xf1 } {
+    fail "Subsection was not symbols"
+    close $fi
+    return
+} else {
+    pass "Read symbols"
+}
+
+check_symbols [lindex $result 1]
+
+close $fi

@@ -1,0 +1,76 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# make sure redirections do not have access to the temporary environment, even
+# in subshells and command substitutions
+
+a=1
+a=4 b=7 ss=4 echo $a
+
+# use grep to avoid differences due to different system error messages
+a=42
+a=2 echo foo 2>&1 >&$a | { grep -q '\$a: Bad file' || echo 'redir11 bad 1'; }
+a=2 echo foo 2>&1 >&$(echo $a) | { grep -q 'Bad file' || echo 'redir11 bad 2'; }
+
+foo()
+{
+	local -i a
+	local v=0 x=1
+	a+=3
+	echo $a
+}
+
+a=4 b=7 ss=4 declare -i ss
+a=4 b=7 foo
+echo after: $a
+
+unset a
+a=4 echo foo 2>&1 >&$(foo) | { grep -q 'Bad file' || echo 'redir11 bad 3'; }
+a=1 echo foo 2>&1 >&$(foo) | { grep -q 'Bad file' || echo 'redir11 bad 4'; }
+a=1 echo foo 2>&1 >&$(a=4 foo) | { grep -q 'Bad file' || echo 'redir11 bad 5'; }
+echo foo 2>&1 >&$(a=4 foo) | { grep -q 'Bad file' || echo 'redir11 bad 6'; }
+
+a=42
+a=2 echo foo 2>&1 >&$a | { grep -q 'Bad file' || echo 'redir11 bad 7'; }
+a=2 echo foo 2>&1 >&$(echo $a) | { grep -q 'Bad file' || echo 'redir11 bad 8'; }
+
+unset -f foo
+foo()
+{
+	local -i a
+	local v=0 x=1
+	a+=3
+	echo $a >&$(ss= declare -i ss)
+}
+
+a=4 b=7 foo
+echo after: $a
+
+unset a
+typeset -i a
+a=4 eval echo $(echo a+=3)
+a=2
+a=9 echo foo >&$(echo $a)
+a=2
+a=9 eval echo foo >&$(echo $a)
+a=2
+a=9 eval echo foo '2>&1 >&$(echo $a)' | { grep -q 'Bad file' || echo 'redir11 bad 9'; }
+
+# double expansion of filenames when used in redirection error messages
+# present in bash versions back to at least bash-1.13
+# this is executed in the tests subdirectory of the source directory, so there
+# definitely should not be a file named `42'
+
+unset foo
+: <$((foo+=42))
+echo $foo

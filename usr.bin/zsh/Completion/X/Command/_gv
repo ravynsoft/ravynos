@@ -1,0 +1,44 @@
+#compdef gv
+
+_arguments \
+  '-geometry:geometry:_x_geometry' \
+  '(--nosafer)--safer' \
+  '(--safer)--nosafer' \
+  '(--noquiet)--quiet' \
+  '(--quiet)--noquiet' \
+  '(--nocenter)--center' \
+  '(--center)--nocenter' \
+  '(--noswap)--swap' \
+  '(--swap)--noswap' \
+  '(--noantialias)--antialias' \
+  '(--antialias)--noantialias' \
+  '(--nodsc)--dsc' \
+  '(--dsc)--nodsc' \
+  '(--noeof)--eof' \
+  '(--eof)--noeof' \
+  '(--nopixmap)--pixmap' \
+  '(--pixmap)--nopixmap' \
+  '(--nowatch)--watch' \
+  '(--watch)--nowatch' \
+  '(--noresize)--resize' \
+  '(--resize)--noresize' \
+  '(--monochrome --color)--grayscale' \
+  '(--grayscale --color)--monochrome' \
+  '(--landscape --seascape --upsidedown)--portrait' \
+  '(--portrait --seascape --upsidedown)--landscape' \
+  '(--portrait --landscape --upsidedown)--seascape' \
+  '(--portrait --landscape --seascape)--upsidedown' \
+  -{h,v} \
+  -{,-}{help,version} \
+  -{,-}{spartan,widgetless,presentation,fullscreen} \
+  -{,-}{infoSilent,infoErrors,infoAll} \
+  -{,-}'password=:password:' \
+  '--arguments=:ghostscript arguments:' \
+  '--page=:label of first page:' \
+  '--media=:page size:(Letter Legal Statement Tabloid Ledger Folio Quarto 10x14 Executive A3 A4 A5 B4 B5)' \
+  '--orientation=:orientation:(landscape seascape upsidedown portrait)' \
+  '--scale=:scale entry:' \
+  '--scalebase=:scale base:' \
+  '--ad=:resource file:_files' \
+  '--style=:resource file:_files' \
+  '*:file: _pspdf -z'

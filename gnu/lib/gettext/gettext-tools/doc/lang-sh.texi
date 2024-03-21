@@ -1,0 +1,296 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node sh
+@subsection sh - Shell Script
+@cindex shell scripts
+
+@table @asis
+@item RPMs
+bash, gettext
+
+@item Ubuntu packages
+bash, gettext-base
+
+@item File extension
+@code{sh}
+
+@item String syntax
+@code{"abc"}, @code{'abc'}, @code{abc}
+
+@item gettext shorthand
+@code{"`gettext \"abc\"`"}
+
+@item gettext/ngettext functions
+@pindex gettext
+@pindex ngettext
+@code{gettext}, @code{ngettext} programs
+@*@code{eval_gettext}, @code{eval_ngettext}, @code{eval_pgettext},
+@code{eval_npgettext} shell functions
+
+@item textdomain
+@vindex TEXTDOMAIN@r{, environment variable}
+environment variable @code{TEXTDOMAIN}
+
+@item bindtextdomain
+@vindex TEXTDOMAINDIR@r{, environment variable}
+environment variable @code{TEXTDOMAINDIR}
+
+@item setlocale
+automatic
+
+@item Prerequisite
+@code{. gettext.sh}
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+---
+
+@item Portability
+fully portable
+
+@item po-mode marking
+---
+@end table
+
+An example is available in the @file{examples} directory: @code{hello-sh}.
+
+@menu
+* Preparing Shell Scripts::     Preparing Shell Scripts for Internationalization
+* gettext.sh::                  Contents of @code{gettext.sh}
+* gettext Invocation::          Invoking the @code{gettext} program
+* ngettext Invocation::         Invoking the @code{ngettext} program
+* envsubst Invocation::         Invoking the @code{envsubst} program
+* eval_gettext Invocation::     Invoking the @code{eval_gettext} function
+* eval_ngettext Invocation::    Invoking the @code{eval_ngettext} function
+* eval_pgettext Invocation::    Invoking the @code{eval_pgettext} function
+* eval_npgettext Invocation::   Invoking the @code{eval_npgettext} function
+@end menu
+
+@node Preparing Shell Scripts
+@subsubsection Preparing Shell Scripts for Internationalization
+@cindex preparing shell scripts for translation
+
+Preparing a shell script for internationalization is conceptually similar
+to the steps described in @ref{Sources}.  The concrete steps for shell
+scripts are as follows.
+
+@enumerate
+@item
+Insert the line
+
+@smallexample
+. gettext.sh
+@end smallexample
+
+near the top of the script.  @code{gettext.sh} is a shell function library
+that provides the functions
+@code{eval_gettext} (see @ref{eval_gettext Invocation}),
+@code{eval_ngettext} (see @ref{eval_ngettext Invocation}),
+@code{eval_pgettext} (see @ref{eval_pgettext Invocation}), and
+@code{eval_npgettext} (see @ref{eval_npgettext Invocation}).
+You have to ensure that @code{gettext.sh} can be found in the @code{PATH}.
+
+@item
+Set and export the @code{TEXTDOMAIN} and @code{TEXTDOMAINDIR} environment
+variables.  Usually @code{TEXTDOMAIN} is the package or program name, and
+@code{TEXTDOMAINDIR} is the absolute pathname corresponding to
+@code{$prefix/share/locale}, where @code{$prefix} is the installation location.
+
+@smallexample
+TEXTDOMAIN=@@PACKAGE@@
+export TEXTDOMAIN
+TEXTDOMAINDIR=@@LOCALEDIR@@
+export TEXTDOMAINDIR
+@end smallexample
+
+@item
+Prepare the strings for translation, as described in @ref{Preparing Strings}.
+
+@item
+Simplify translatable strings so that they don't contain command substitution
+(@code{"`...`"} or @code{"$(...)"}), variable access with defaulting (like
+@code{$@{@var{variable}-@var{default}@}}), access to positional arguments
+(like @code{$0}, @code{$1}, ...) or highly volatile shell variables (like
+@code{$?}). This can always be done through simple local code restructuring.
+For example,
+
+@smallexample
+echo "Usage: $0 [OPTION] FILE..."
+@end smallexample
+
+becomes
+
+@smallexample
+program_name=$0
+echo "Usage: $program_name [OPTION] FILE..."
+@end smallexample
+
+Similarly,
+
+@smallexample
+echo "Remaining files: `ls | wc -l`"
+@end smallexample
+
+becomes
+
+@smallexample
+filecount="`ls | wc -l`"
+echo "Remaining files: $filecount"
+@end smallexample
+
+@item
+For each translatable string, change the output command @samp{echo} or
+@samp{$echo} to @samp{gettext} (if the string contains no references to
+shell variables) or to @samp{eval_gettext} (if it refers to shell variables),
+followed by a no-argument @samp{echo} command (to account for the terminating
+newline). Similarly, for cases with plural handling, replace a conditional
+@samp{echo} command with an invocation of @samp{ngettext} or
+@samp{eval_ngettext}, followed by a no-argument @samp{echo} command.
+
+When doing this, you also need to add an extra backslash before the dollar
+sign in references to shell variables, so that the @samp{eval_gettext}
+function receives the translatable string before the variable values are
+substituted into it. For example,
+
+@smallexample
+echo "Remaining files: $filecount"
+@end smallexample
+
+becomes
+
+@smallexample
+eval_gettext "Remaining files: \$filecount"; echo
+@end smallexample
+
+If the output command is not @samp{echo}, you can make it use @samp{echo}
+nevertheless, through the use of backquotes. However, note that inside
+backquotes, backslashes must be doubled to be effective (because the
+backquoting eats one level of backslashes). For example, assuming that
+@samp{error} is a shell function that signals an error,
+
+@smallexample
+error "file not found: $filename"
+@end smallexample
+
+is first transformed into
+
+@smallexample
+error "`echo \"file not found: \$filename\"`"
+@end smallexample
+
+which then becomes
+
+@smallexample
+error "`eval_gettext \"file not found: \\\$filename\"`"
+@end smallexample
+@end enumerate
+
+@node gettext.sh
+@subsubsection Contents of @code{gettext.sh}
+
+@code{gettext.sh}, contained in the run-time package of GNU gettext, provides
+the following:
+
+@itemize @bullet
+@item $echo
+The variable @code{echo} is set to a command that outputs its first argument
+and a newline, without interpreting backslashes in the argument string.
+
+@item eval_gettext
+See @ref{eval_gettext Invocation}.
+
+@item eval_ngettext
+See @ref{eval_ngettext Invocation}.
+
+@item eval_pgettext
+See @ref{eval_pgettext Invocation}.
+
+@item eval_npgettext
+See @ref{eval_npgettext Invocation}.
+@end itemize
+
+@node gettext Invocation
+@subsubsection Invoking the @code{gettext} program
+
+@include rt-gettext.texi
+
+Note: @code{xgettext} supports only the one-argument form of the
+@code{gettext} invocation, where no options are present and the
+@var{textdomain} is implicit, from the environment.
+
+@node ngettext Invocation
+@subsubsection Invoking the @code{ngettext} program
+
+@include rt-ngettext.texi
+
+Note: @code{xgettext} supports only the three-arguments form of the
+@code{ngettext} invocation, where no options are present and the
+@var{textdomain} is implicit, from the environment.
+
+@node envsubst Invocation
+@subsubsection Invoking the @code{envsubst} program
+
+@include rt-envsubst.texi
+
+@node eval_gettext Invocation
+@subsubsection Invoking the @code{eval_gettext} function
+
+@cindex @code{eval_gettext} function, usage
+@example
+eval_gettext @var{msgid}
+@end example
+
+@cindex lookup message translation
+This function outputs the native language translation of a textual message,
+performing dollar-substitution on the result.  Note that only shell variables
+mentioned in @var{msgid} will be dollar-substituted in the result.
+
+@node eval_ngettext Invocation
+@subsubsection Invoking the @code{eval_ngettext} function
+
+@cindex @code{eval_ngettext} function, usage
+@example
+eval_ngettext @var{msgid} @var{msgid-plural} @var{count}
+@end example
+
+@cindex lookup plural message translation
+This function outputs the native language translation of a textual message
+whose grammatical form depends on a number, performing dollar-substitution
+on the result.  Note that only shell variables mentioned in @var{msgid} or
+@var{msgid-plural} will be dollar-substituted in the result.
+
+@node eval_pgettext Invocation
+@subsubsection Invoking the @code{eval_pgettext} function
+
+@cindex @code{eval_pgettext} function, usage
+@example
+eval_pgettext @var{msgctxt} @var{msgid}
+@end example
+
+@cindex lookup message translation with context
+This function outputs the native language translation of a textual message
+in the given context @var{msgctxt} (see @ref{Contexts}), performing
+dollar-substitution on the result.  Note that only shell variables mentioned
+in @var{msgid} will be dollar-substituted in the result.
+
+@node eval_npgettext Invocation
+@subsubsection Invoking the @code{eval_npgettext} function
+
+@cindex @code{eval_npgettext} function, usage
+@example
+eval_npgettext @var{msgctxt} @var{msgid} @var{msgid-plural} @var{count}
+@end example
+
+@cindex lookup plural message translation with context
+This function outputs the native language translation of a textual message
+whose grammatical form depends on a number in the given context @var{msgctxt}
+(see @ref{Contexts}), performing dollar-substitution on the result.  Note
+that only shell variables mentioned in @var{msgid} or @var{msgid-plural}
+will be dollar-substituted in the result.

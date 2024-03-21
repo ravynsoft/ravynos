@@ -1,0 +1,42 @@
+.TH libinput-measure "1" "" "libinput @LIBINPUT_VERSION@" "libinput Manual"
+.SH NAME
+libinput\-measure \- measure properties of devices
+.SH SYNOPSIS
+.B libinput measure [\-\-help] \fI<feature> [<args>]\fR
+.SH DESCRIPTION
+.PP
+The
+.B "libinput measure"
+tool measures properties of one (or more) devices. Depending on what is to
+be measured, this tool may not create a libinput context.
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+.TP 8
+.B \-\-help
+Print help
+.SH FEATURES
+Features that can be measured include
+.TP 8
+.B libinput\-measure\-fuzz(1)
+Measure touch fuzz to avoid pointer jitter
+.TP 8
+.B libinput\-measure\-touch\-size(1)
+Measure touch size and orientation
+.TP 8
+.B libinput\-measure\-touchpad\-size(1)
+Measure the size of a touchpad
+.TP 8
+.B libinput\-measure\-touchpad\-tap(1)
+Measure tap-to-click time
+.TP 8
+.B libinput\-measure\-touchpad\-pressure(1)
+Measure touch pressure
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

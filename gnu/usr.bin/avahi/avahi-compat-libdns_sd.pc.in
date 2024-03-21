@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=${prefix}/include/avahi-compat-libdns_sd/
+
+Name: avahi-compat-libdns_sd
+Description: Avahi Multicast DNS Responder (libdns_sd Compatibility)
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -ldns_sd
+Cflags: -D_REENTRANT -I${includedir}

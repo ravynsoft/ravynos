@@ -1,0 +1,85 @@
+# Expect script for ELF tests with pe-x86-64 inputs.
+#   Copyright (C) 2020-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Only for Linux/x86-64.
+if {![istarget "x86_64-*-linux*"] } {
+    return
+}
+
+run_ld_link_tests [list \
+    [list \
+	"Build pe-x86-64-1" \
+	"-m elf_x86_64 --entry=begin -z max-page-size=0x1000 -z separate-code" \
+	"" \
+	"" \
+	{pe-x86-64-1a.obj.bz2 pe-x86-64-1b.obj.bz2 pe-x86-64-1c.obj.bz2} \
+	{{objdump {-dw --sym} pe-x86-64-1.od}} \
+	"pe-x86-64-1" \
+    ] \
+    [list \
+	"Build pe-x86-64-2" \
+	"-m elf_x86_64 --entry=begin -z max-page-size=0x1000 -z separate-code" \
+	"" \
+	"" \
+	{pe-x86-64-2a.obj.bz2 pe-x86-64-2b.obj.bz2 pe-x86-64-2c.obj.bz2} \
+	{{objdump {-dw --sym} pe-x86-64-2.od}} \
+	"pe-x86-64-2" \
+    ] \
+    [list \
+	"Build pe-x86-64-3" \
+	"-m elf_x86_64 --entry=begin -z max-page-size=0x1000 -z separate-code" \
+	"" \
+	"" \
+	{pe-x86-64-3a.obj.bz2 pe-x86-64-3b.obj.bz2 pe-x86-64-3c.obj.bz2 \
+	 pe-x86-64-3d.obj.bz2 } \
+	{{objdump {-dw --sym} pe-x86-64-3.od}} \
+	"pe-x86-64-3" \
+    ] \
+    [list \
+	"Build pe-x86-64-4" \
+	"-m elf_x86_64 --entry=begin -z max-page-size=0x1000 -z separate-code" \
+	"" \
+	"" \
+	{pe-x86-64-4a.obj.bz2 pe-x86-64-4b.obj.bz2 pe-x86-64-4c.obj.bz2 \
+	 pe-x86-64-4d.obj.bz2 } \
+	{{objdump {-dw --sym} pe-x86-64-4.od}} \
+	"pe-x86-64-4" \
+    ] \
+    [list \
+	"Build pe-x86-64-5" \
+	"-m elf_x86_64 --entry=begin -z max-page-size=0x1000 -z separate-code" \
+	"" \
+	"" \
+	{pe-x86-64-5.obj.bz2 } \
+	{{objdump {-dw --sym} pe-x86-64-5.od} \
+	 {readelf {-s -x .data} pe-x86-64-5.rd}} \
+	"pe-x86-64-5" \
+    ] \
+    [list \
+	"Build pe-x86-64-6" \
+	"-m elf_x86_64 --entry=main -z max-page-size=0x1000 -z separate-code" \
+	"" \
+	"" \
+	{pe-x86-64-6.obj.bz2 } \
+	{{objdump {-dw --sym} pe-x86-64-6.od}} \
+	"pe-x86-64-6" \
+    ] \
+]

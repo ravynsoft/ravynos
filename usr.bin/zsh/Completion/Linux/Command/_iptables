@@ -1,0 +1,248 @@
+#compdef iptables iptables-save iptables-restore ip6tables ip6tables-save ip6tables-restore
+
+local curcontext="$curcontext" state line expl i ret=1
+local -a cmds rcmds ropts rules states prev args
+
+case $service in
+  iptables-save | ip6tables-save)
+    _arguments -s \
+      {-c,--counters}'[include values of packet and byte counters in output]' \
+      {-t,--table}'[specify table]:table:(filter nat mangle raw security)'
+    return
+  ;;
+  iptables-restore | ip6tables-restore)
+    _arguments -s \
+      {-c,--counters}'[restore the values of all packet and byte counters]' \
+      {-n,--noflush}"[don't flush the previous contents of the table]"
+    return
+  ;;
+esac
+
+rcmds=( -A --append -D --delete -I --insert -R --replace )
+cmds=(
+  -L --list -F --flush -Z --zero -N --new --new-chain -X --delete-chain
+  -P --policy -E --rename-chain -h --help -V --version
+)
+ropts=(
+  -p --protocol -s --src --source -d --dst --destination -j --jump -i
+  --in-interface -o --out-interface -f --fragment -c --set-counters
+)
+
+prev=( ${words[1,CURRENT-1]} )
+case ${prev[${prev[(I)-p|--protocol]}+1]}; in
+  tcp)
+    args=(
+      '--tcp-flags[match based on TCP flags in a packet]: :->tcp-flags: :->tcp-flags'
+      '--syn[match packets with the SYN flag set]'
+      '--tcp-option[match based on TCP options]:option'
+    )
+  ;&
+  udp)
+    args+=(
+      '(--sport --source-port)'{--sport,--source-port}'[match packets based on source port]:*^!:port:_ports'
+      '(--dport --destination-port)'{--dport,--destination-port}'[match packets based on destination port]:*^!:port:_ports'
+    )
+  ;;
+  icmp) args=( '--icmp-type[match specified ICMP type]:*^!:ICMP type:->icmp-types' ) ;;
+esac
+
+case ${prev[${prev[(I)-j|--jump]}+1]}; in
+  DNAT) args+=( '(--to --to-destination)'{--to,--to-destination}':address' ) ;;
+  DSCP)
+    args+=(
+      '--set-dscp[set the DSCP field]:value'
+      '--set-dscp-class[set the DiffServ class]:class'
+    )
+  ;;
+  ECN) args+=( '--ecn-tcp-remove[remove all ECN bits from TCP header]' ) ;;
+  LOG)
+    args+=(
+      '--log-level[specify level of logging]:log level:(debug info notice warning err crit alert emerg)'
+      '--log-prefix[specify prefix string for log message]:string'
+      '--log-tcp-sequence[log TCP sequence numbers]'
+      '--log-tcp-options[log TCP options]'
+      '--log-ip-options[log IP options]'
+    )
+  ;;
+  MARK) args+=( '--set-mark[set fwmark in packet]:number' ) ;;
+  REDIRECT|MASQUERADE) args+=( '--to-ports[port (range) to map to]:port range:_ports' ) ;;
+  REJECT) args+=( '--reject-with[drop packet and send reply]:reject type:->reject-types' ) ;;
+  SNAT) args+=( '(--to --to-source)*'{--to,--to-source}'[specify address to map source to]:address' ) ;;
+  TCPMSS)
+    args+=(
+      '--set-mss[explicitly set MSS option]:value'
+      '--clamp-mss-to-pmtu[automatically clamp MSS value]'
+    )
+  ;;
+  TOS) args+=( '--set-tos[set type of service field]:type of service:->tos' ) ;;
+  ULOG)
+    args+=(
+      '--ulog-nlgroup[specify netlink group used for logging]:netlink group'
+      '--ulog-prefix[specify prefix string for log message]:string'
+      '--ulog-cprange[specify size of each packet to be passed]:size (bytes)'
+      '--ulog-qthreshold[specify threshold of in-kernel queue]:size'
+    )
+  ;;
+esac
+
+# loop through all -m options preceding the cursor
+local i=1
+typeset -U args
+while
+  (( i=words[(ib.i.)-m|--match]+1 ))
+(( i<CURRENT )); do
+  case ${words[i]}; in
+    ah) args+=( '--ahspi[match SPIs in AH header]:*^!:spi' ) ;;
+    conntrack)
+      args+=(
+        '--ctstate[match packet state]:state:->cfstates'
+	'--ctproto[match protocol]:protocol:_ports'
+	'--ctorigsrc[match original source address]:*^!:network:_hosts'
+	'--ctorigdst[match original destination address]:*^!:network:_hosts'
+	'--ctreplsrc[match reply source address]:*^!:network:_hosts'
+	'--ctrepldst[match reply destination address]:*^!:network:_hosts'
+	'--ctstatus[match internal conntrack states]:state:(NONE EXPECTED SEEN_REPLY ASSURED)'
+	'--ctexpire[match remaining lifetime]:time'
+      )
+    ;;
+    dscp)
+      args+=(
+        '--dscp[match DSCP field]:value'
+	'--dscp-class[match the DiffServ class]:class'
+      )
+    ;;
+    esp) args+=( '--espspi[match SPIs in ESP header]:*^!:spi' ) ;;
+    helper) args+=( '--helper[match packets related to a conntrack-helper]:helper:(ftp)' ) ;;
+    length) args+=( '--length[match packet length]:length' ) ;;
+    limit)
+      args+=(
+        '--limit[specify max matches limit]:number'
+	'--limit-burst[specify max burst before limit applies]:number'
+      )
+    ;;
+    mac) args+=( '--mac-source[match source ethernet address]:*^!:ethernet address' ) ;;
+    mark) args+=( '--mark[match fwmark in packet]:number' ) ;;
+    multiport)
+      args+=(
+	'--source-ports[match packets based on source ports]:ports:->port-list'
+	'(--dports --destination-ports)'{--dports,--destination-ports}'[match packets based on destination ports]:ports:->port-list'
+	'--ports[match where source and destination ports are equal]:ports:->port-list'
+      )
+    ;;
+    owner)
+      args+=(
+        '--uid-owner[match packet by user id of creating process]:user id'
+	'--gid-owner[match packet by ggroup id of creating process]:group id'
+	'--pid-owner[match packet by process id of creating process]:process id:_pids'
+	'--sid-owner[match packet by session id of creating process]:session id'
+	'--cmd-owner[match packet by name of creating command]:command:_command_names -e'
+      )
+    ;;
+    physdev)
+      args+=(
+        '--physdev-in[specify bridge port via which packet is received]:name'
+        '--physdev-out[specify bridge port via which packet is sent]:name'
+      )
+    ;;
+    pkttype) args+=( '--pkt-type[match link-layer packet type]:type:(unicast broadcast multicast)' ) ;;
+    state)
+      args+=(
+        '--state[match packet state]:state:->states'
+      )
+    ;;
+    tos) args+=( '--tos[match type of service field]:type of service:->tos' ) ;;
+    ttl) args+=( '--ttl[match type to live]:TTL value' ) ;;
+  esac
+done
+
+_arguments -C -s \
+  '(-)'{-h,--help}'[print program information]' \
+  '(-)'{-V,--version}'[print version information]' \
+  '(-h --help -V --version)'{-t,--table}'[specify table]:table:(filter nat mangle raw security)' \
+  "($rcmds $cmds)"{-A,--append}'[append rules to end of specified chain]:chain:->chains' \
+  "($rcmds $cmds -c --set-counters)"{-D,--delete}'[delete rules from specified chain]:chain:->chains::rule number:->rulenums' \
+  "($rcmds $cmds)"{-I,--insert}'[insert rules before specified rule number]:chain:->chains::rule number:->rulenums' \
+  "($rcmds $cmds)"{-R,--replace}'[replace a rule]:chain:->chains::rule number:->rulenums' \
+  "($rcmds "${(j. .)cmds:#(-Z|--zero)}" $ropts)"{-L,--list}'[list rules in selected chain]::chain:->chains' \
+  "($rcmds $cmds $ropts)"{-F,--flush}'[flush specified chain (delete all rules)]::chain:->chains' \
+  "($rcmds "${(j. .)cmds:#(-L|--list)}" $ropts)"{-Z,--zero}'[zero the packet and byte counters]::chain:->chains' \
+  "($rcmds $cmds)"{-N,--new,--new-chain}'[create a new user-defined chain]:chain name' \
+  "($rcmds $cmds)"{-X,--delete-chain}'[delete a user-defined chain]:: :->user-chains' \
+  "($rcmds $cmds)"{-P,--policy}'[set the policy for a chain to given target]:chain:->chains:target:->targets' \
+  "($rcmds $cmds)"{-E,--rename-chain}'[rename a user-defined chain]:old chain:->user-chains:new chain name' \
+  "($cmds -p --protocol)"{-p,--protocol}'[specify protocol of rule]:*^!:protocol:(! tcp udp icmp all)' \
+  "($cmds -s --src --source)"{-s,--src,--source}'[specify source]:*^!:network:_hosts' \
+  "($cmds -d --dst --destination)"{-d,--dst,--destination}'[specify destination]:*^!:network:_hosts' \
+  "($cmds -j --jump)"{-j,--jump}'[specify rule target]:target:->targets' \
+  "($cmds -i --in-interface)"{-i,--in-interface}'[specify interface via which packet is received]:*^!:interface:_net_interfaces' \
+  "($cmds -o --out-interface)"{-o,--out-interface}'[specify interface via which packet is to be sent]:*^!:interface:_net_interfaces' \
+  "($cmds -f --fragment)"{-f,--fragment}'[match second or further fragments only]' \
+  "($cmds -D --delete -c --set-counters)"{-c,--set-counters}'[initialise packet and byte counters]:packets: :bytes' \
+  '(-v --verbose)'{-v,--verbose}'[enable verbose output]' \
+  '(-n --numeric)'{-n,--numeric}'[print IP addresses and port numbers in numeric format]' \
+  '(-x --exact)'{-x,--exact}'[expand numbers (display exact values)]' \
+  '--line-numbers[print line numbers when listing]' \
+  '--modprobe=[specify command to load modules with]:command:_command_names -e' \
+  "($cmds)*"{-m,--match}'[extended match (may load extension)]:extension:(ah conntrack dscp esp helper icmp length limit mac mark multiport owner physdev pkttype state tcp tos ttl udp unclean)' \
+  "$args[@]" && ret=0
+
+case "$state" in
+  targets)
+    _wanted targets expl 'builtin target' compadd \
+        ACCEPT DROP QUEUE RETURN DNAT DSCP ECN LOG MARK MASQUERADE MIRROR \
+	REDIRECT REJECT SNAT TCPMSS TOS ULOG && ret=0
+  ;&
+  user-chains)
+    _wanted chains expl 'user-defined chain' compadd \
+	${${${${(M)${(f)"$(_call_program chains $words[1] \
+	${(kv)opt_args[(i)-t|--table]} -nL \
+	2>/dev/null)"}:#Chain*}#* }%% *}:#(INPUT|OUTPUT|FORWARD|PREROUTING|POSTROUTING)} && ret=0
+  ;;
+  chains)
+    _wanted chains expl 'chain' compadd \
+        ${${${(M)${(f)"$(_call_program chains $words[1] \
+	${(kv)opt_args[(i)-t|--table]} -nL \
+	2>/dev/null)"}:#Chain*}#* }%% *} && ret=0
+  ;;
+  rulenums)
+    rules=(
+      ${${${(f)"$(_call_program chains $words[1] ${(kv)opt_args[(i)-t|--table]} \
+      --line-numbers -nL ${(v)opt_args[(i)-D|--delete|-I|--insert|-R|--replace]%:*} \
+      2>/dev/null)"}[3,-1]}/ ##/:}
+    )
+    _describe -t rulenum 'rule number' rules && ret=0
+  ;;
+  tcp-flags)
+    _values -s , 'tcp flag' SYN ACK FIN RST URG PSH NONE ALL && ret=0
+  ;;
+  icmp-types)
+    _wanted icmp-types expl 'icmp type' compadd \
+        ${${${(f)"$(_call_program icmp-types ${words[1]} -p icmp --help \
+	2>/dev/null)"}[(r)any,-1]## #}%% *} && ret=0
+  ;;
+  reject-types)
+    _wanted reject-types expl 'reject type' compadd \
+        ${${${(f)"$(_call_program icmp-types ${words[1]} -j REJECT --help \
+	2>/dev/null)"}[(r)*types:,-1]## #}[2,-1]%% *} && ret=0
+  ;;
+  *states)
+    states=( NEW ESTABLISHED RELATED INVALID )
+    [[ "$state" = cf* ]] && states+=( SNAT DNAT )
+    _values -s , 'state' $states && return
+  ;;
+  port-list)
+    compset -P '*,'
+    if compset -S ',*'; then
+      _ports && ret=0
+    else
+      _ports -qS, && ret=0
+    fi
+  ;;
+  tos)
+    _wanted tos expl 'type of service' compadd \
+       ${${${(f)"$(_call_program tos ${words[1]} -m tos --help \
+       2>/dev/null)"}[(r)*16*,-1]## #}%% *} && ret=0
+  ;;
+esac
+
+return ret

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFF Functions Overview &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="libtiff" href="functions/libtiff.html" />
+    <link rel="prev" title="Multi Page / Multi Image TIFF" href="multi_page.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="functions/libtiff.html" title="libtiff"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="multi_page.html" title="Multi Page / Multi Image TIFF"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFF Functions Overview</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiff-functions-overview">
+<h1>TIFF Functions Overview<a class="headerlink" href="#tiff-functions-overview" title="Permalink to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="functions/libtiff.html">libtiff</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFAccessTagMethods.html">TIFFAccessTagMethods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFbuffer.html">TIFFbuffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFClientInfo.html">TIFFClientInfo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFClose.html">TIFFClose</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFcodec.html">TIFFcodec</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFcolor.html">TIFFcolor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFCreateDirectory.html">TIFFCreateDirectory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFCustomDirectory.html">TIFFCustomDirectory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFCustomTagList.html">TIFFCustomTagList</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFDataWidth.html">TIFFDataWidth</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFDeferStrileArrayWriting.html">TIFFDeferStrileArrayWriting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFError.html">TIFFError</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFieldDataType.html">TIFFFieldDataType</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFieldName.html">TIFFFieldName</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFieldPassCount.html">TIFFFieldPassCount</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFieldQuery.html">TIFFFieldQuery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFieldReadCount.html">TIFFFieldReadCount</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFieldTag.html">TIFFFieldTag</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFieldWriteCount.html">TIFFFieldWriteCount</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFFlush.html">TIFFFlush</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFGetField.html">TIFFGetField</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFmemory.html">TIFFmemory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFMergeFieldInfo.html">TIFFMergeFieldInfo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFOpen.html">TIFFOpen</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFOpenOptions.html">TIFFOpenOptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFPrintDirectory.html">TIFFPrintDirectory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFProcFunctions.html">TIFFProcFunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFquery.html">TIFFquery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadDirectory.html">TIFFReadDirectory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadEncodedStrip.html">TIFFReadEncodedStrip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadEncodedTile.html">TIFFReadEncodedTile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadFromUserBuffer.html">TIFFReadFromUserBuffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadRawStrip.html">TIFFReadRawStrip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadRawTile.html">TIFFReadRawTile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadRGBAImage.html">TIFFReadRGBAImage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadRGBAStrip.html">TIFFReadRGBAStrip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadRGBATile.html">TIFFReadRGBATile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadScanline.html">TIFFReadScanline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFReadTile.html">TIFFReadTile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFRGBAImage.html">TIFFRGBAImage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFSetDirectory.html">TIFFSetDirectory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFSetField.html">TIFFSetField</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFSetTagExtender.html">TIFFSetTagExtender</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFsize.html">TIFFsize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFStrileQuery.html">TIFFStrileQuery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFstrip.html">TIFFstrip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFswab.html">TIFFswab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFtile.html">TIFFtile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWarning.html">TIFFWarning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWriteDirectory.html">TIFFWriteDirectory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWriteEncodedStrip.html">TIFFWriteEncodedStrip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWriteEncodedTile.html">TIFFWriteEncodedTile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWriteRawStrip.html">TIFFWriteRawStrip</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWriteRawTile.html">TIFFWriteRawTile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWriteScanline.html">TIFFWriteScanline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/TIFFWriteTile.html">TIFFWriteTile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/_TIFFauxiliary.html">_TIFFauxiliary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions/_TIFFRewriteField.html">_TIFFRewriteField</a></li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="multi_page.html"
+                          title="previous chapter">Multi Page / Multi Image TIFF</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="functions/libtiff.html"
+                          title="next chapter">libtiff</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/functions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="functions/libtiff.html" title="libtiff"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="multi_page.html" title="Multi Page / Multi Image TIFF"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFF Functions Overview</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

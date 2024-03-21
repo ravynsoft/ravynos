@@ -1,0 +1,65 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${TMPDIR:=/var/tmp}
+SHELLSFILE=$TMPDIR/shells-$$
+
+cat > $TMPDIR/shells-$$ <<EOF
+/bin/bash
+/bin/csh
+/bin/ksh
+/bin/sh
+/bin/tcsh
+/bin/zsh
+EOF
+
+oclosev()
+{
+exec {v}>&-
+}
+
+iclosev()
+{
+exec {v}<&-
+}
+
+exec {v}>&1
+echo $v
+
+echo foo 1 >&$v
+echo foo 2 >&$v
+echo foo 3 >&$v
+
+oclosev
+
+exec {v}<$SHELLSFILE
+echo $v
+
+while read line <&$v
+do
+	echo $line
+done
+
+iclosev
+
+type oclosev
+type iclosev
+
+while read -r -u ${fd}
+do
+	echo $REPLY
+done {fd}<$SHELLSFILE
+
+rm -f $SHELLSFILE
+
+exit 0

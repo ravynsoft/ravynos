@@ -38,7 +38,6 @@
  * John Polstra <jdp@polstra.com>.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/mount.h>
 #include <sys/mman.h>
@@ -225,6 +224,8 @@ static Obj_Entry *obj_main;	/* The main program shared object */
 static Obj_Entry obj_rtld;	/* The dynamic linker shared object */
 static unsigned int obj_count;	/* Number of objects in obj_list */
 static unsigned int obj_loads;	/* Number of loads of objects (gen count) */
+size_t ld_static_tls_extra =	/* Static TLS extra space (bytes) */
+  RTLD_STATIC_TLS_EXTRA;
 
 static Objlist list_global =	/* Objects dlopened with RTLD_GLOBAL */
   STAILQ_HEAD_INITIALIZER(list_global);
@@ -365,6 +366,7 @@ enum {
 	LD_TRACE_LOADED_OBJECTS_FMT2,
 	LD_TRACE_LOADED_OBJECTS_ALL,
 	LD_SHOW_AUXV,
+	LD_STATIC_TLS_EXTRA,
 };
 
 struct ld_env_var_desc {
@@ -398,6 +400,7 @@ static struct ld_env_var_desc ld_env_vars[] = {
 	LD_ENV_DESC(TRACE_LOADED_OBJECTS_FMT2, false),
 	LD_ENV_DESC(TRACE_LOADED_OBJECTS_ALL, false),
 	LD_ENV_DESC(SHOW_AUXV, false),
+	LD_ENV_DESC(STATIC_TLS_EXTRA, false),
 };
 
 static const char *
@@ -515,7 +518,7 @@ _rtld(Elf_Addr *sp, func_ptr_type *exit_proc, Obj_Entry **objp)
     struct stat st;
     Elf_Addr *argcp;
     char **argv, **env, **envp, *kexecpath;
-    const char *argv0, *binpath, *library_path_rpath;
+    const char *argv0, *binpath, *library_path_rpath, *static_tls_extra;
     struct ld_env_var_desc *lvd;
     caddr_t imgentry;
     char buf[MAXPATHLEN];
@@ -738,9 +741,16 @@ _rtld(Elf_Addr *sp, func_ptr_type *exit_proc, Obj_Entry **objp)
 	    else
 		    ld_library_path_rpath = false;
     }
+    static_tls_extra = ld_get_env_var(LD_STATIC_TLS_EXTRA);
+    if (static_tls_extra != NULL && static_tls_extra[0] != '\0') {
+	sz = parse_integer(static_tls_extra);
+	if (sz >= RTLD_STATIC_TLS_EXTRA && sz <= SIZE_T_MAX)
+	    ld_static_tls_extra = sz;
+    }
     dangerous_ld_env = libmap_disable || libmap_override != NULL ||
 	ld_library_path != NULL || ld_preload != NULL ||
-	ld_elf_hints_path != NULL || ld_loadfltr || !ld_dynamic_weak;
+	ld_elf_hints_path != NULL || ld_loadfltr || !ld_dynamic_weak ||
+	static_tls_extra != NULL;
     ld_tracing = ld_get_env_var(LD_TRACE_LOADED_OBJECTS);
     ld_utrace = ld_get_env_var(LD_UTRACE);
 
@@ -1073,6 +1083,7 @@ _rtld_error(const char *fmt, ...)
 	    fmt, ap);
 	va_end(ap);
 	*lockinfo.dlerror_seen() = 0;
+	dbg("rtld_error: %s", lockinfo.dlerror_loc());
 	LD_UTRACE(UTRACE_RTLD_ERROR, NULL, NULL, 0, 0, lockinfo.dlerror_loc());
 }
 
@@ -3744,7 +3755,7 @@ dlopen_object(const char *name, int fd, Obj_Entry *refobj, int lo_flags,
 	if (!obj->init_done) {
 	    /* We loaded something new and have to init something. */
 	    if ((lo_flags & RTLD_LO_DEEPBIND) != 0)
-		obj->symbolic = true;
+		obj->deepbind = true;
 	    result = 0;
 	    if ((lo_flags & (RTLD_LO_EARLY | RTLD_LO_IGNSTLS)) == 0 &&
 	      obj->static_tls && !allocate_tls_offset(obj)) {
@@ -4570,7 +4581,8 @@ symlook_default(SymLook *req, const Obj_Entry *refobj)
     if (refobj->symbolic || req->defobj_out != NULL)
 	donelist_check(&donelist, refobj);
 
-    symlook_global(req, &donelist);
+    if (!refobj->deepbind)
+        symlook_global(req, &donelist);
 
     /* Search all dlopened DAGs containing the referencing object. */
     STAILQ_FOREACH(elm, &refobj->dldags, link) {
@@ -4585,6 +4597,9 @@ symlook_default(SymLook *req, const Obj_Entry *refobj)
 	    assert(req->defobj_out != NULL);
 	}
     }
+
+    if (refobj->deepbind)
+        symlook_global(req, &donelist);
 
     /*
      * Search the dynamic linker itself, and possibly resolve the
@@ -6104,13 +6119,15 @@ parse_args(char* argv[], int argc, bool *use_pathp, int *fdp,
 				    "Env prefix %s\n"
 				    "Default hint file %s\n"
 				    "Hint file %s\n"
-				    "libmap file %s\n",
+				    "libmap file %s\n"
+				    "Optional static TLS size %zd bytes\n",
 				    machine,
 				    __FreeBSD_version, ld_standard_library_path,
 				    gethints(false),
 				    ld_env_prefix, ld_elf_hints_default,
 				    ld_elf_hints_path,
-				    ld_path_libmap_conf);
+				    ld_path_libmap_conf,
+				    ld_static_tls_extra);
 				_exit(0);
 			} else {
 				_rtld_error("Invalid argument: '%s'", arg);

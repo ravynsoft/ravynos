@@ -1,0 +1,69 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+minus=-
+
+# standard input
+fd=0
+
+exec 3<&$fd
+
+read line <&3
+echo from stdin: $line
+
+# close fd 3
+exec 3<&${minus}
+
+# should give `bad fd', but exact error messages vary
+# read line <&3
+
+# standard output
+fd=1
+
+exec 4>&$fd
+
+echo to stdout >&4
+
+exec 4>&$minus
+
+# should give `bad fd', but exact error messages vary
+# echo to stdout >&4
+
+unset fd
+
+# these are ambiguous redirects
+exec 3<&$fd
+exec 4>&$fd
+
+exec 3>&1 4>&2
+
+exec >&${TMPDIR}/err-and-out
+echo to stdout
+echo to stderr >&2
+
+exec 1>&3 2>&4
+echo err-and-out:
+cat ${TMPDIR}/err-and-out
+
+rm ${TMPDIR}/err-and-out
+
+fd=${TMPDIR}/err-and-out
+exec >&$fd
+echo to stdout
+echo to stderr >&2
+
+exec 1>&3 2>&4
+echo err-and-out:
+cat ${TMPDIR}/err-and-out
+
+rm ${TMPDIR}/err-and-out

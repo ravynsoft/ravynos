@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="small_test">
+
+  <copyright>
+    Copyright © 2016 Collabora, Ltd.
+
+    Permission is hereby granted, free of charge, to any person
+    obtaining a copy of this software and associated documentation files
+    (the "Software"), to deal in the Software without restriction,
+    including without limitation the rights to use, copy, modify, merge,
+    publish, distribute, sublicense, and/or sell copies of the Software,
+    and to permit persons to whom the Software is furnished to do so,
+    subject to the following conditions:
+
+    The above copyright notice and this permission notice (including the
+    next paragraph) shall be included in all copies or substantial
+    portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+    NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+    BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+    ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+  </copyright>
+
+  <interface name="intf_A" version="3">
+    <description summary="the thing A">
+      A useless example trying to tickle the scanner.
+    </description>
+
+    <request name="rq1">
+      <arg name="untyped_new" type="new_id"/>
+    </request>
+
+    <request name="rq2">
+      <arg name="typed_new" type="new_id" interface="intf_not_here"/>
+      <arg name="str" type="string"/>
+      <arg name="i" type="int"/>
+      <arg name="u" type="uint"/>
+      <arg name="f" type="fixed"/>
+      <arg name="fd" type="fd"/>
+      <arg name="obj" type="object" interface="another_intf"/>
+    </request>
+
+    <request name="destroy" type="destructor"/>
+
+    <event name="hey"/>
+
+    <enum name="foo">
+	<entry name="first" value="0" summary="this is the first"/>
+	<entry name="second" value="1" summary="this is the second"/>
+	<entry name="third" value="2" since="2" summary="this is the third"/>
+    </enum>
+  </interface>
+</protocol>

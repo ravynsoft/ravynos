@@ -1,0 +1,98 @@
+# lt_dlopen_a.at -- test libltdl functionality                -*- Autotest -*-
+#
+#   Copyright (C) 2009, 2011-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([lt_dlopen archive])
+AT_KEYWORDS([libltdl lt_dlopen_a])
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+
+/* This dlopen() in the main executable should override any dlopen()s in
+   shared libraries etc.
+
+   If that is not the case (or the platform does not use dlopen()) then this
+   test should exit 77, causing the test to SKIP.
+*/
+static int retcde = 77;
+
+void * dlopen(const char *path, int mode) {
+  if (!(strcmp(path,"plugin.a") && strcmp(path,"plugin.lib")))
+    {
+      fprintf(stderr,"Tried to open archive %s\n",path);
+      retcde = 1;
+    }
+  else
+    {
+      fprintf(stderr,"Opening ... %s\n", path);
+      if (retcde == 77) retcde = 0;
+    }
+  return NULL;
+}
+
+int
+main (int argc, char* argv[])
+{
+  int err = 0;
+  lt_dlhandle plugin_handle;
+
+  lt_dlinit ();
+  plugin_handle = lt_dlopenext (argv[1]);
+  lt_dlexit ();
+  return retcde;
+}
+]])
+
+AT_DATA([plugin.c],
+[[
+int i = 1;
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+inst=`pwd`/inst
+libdir=$inst/lib
+bindir=$inst/bin
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c main.c || exit 77],[],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c plugin.c || exit 77],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o plugin.la -rpath ]dnl
+	 [$libdir -module -no-undefined -avoid-version plugin.lo || exit 77],
+	 [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT ]dnl
+	 [main.$OBJEXT -dlopen plugin.la $LIBLTDL || exit 77],
+	 [], [ignore], [ignore])
+
+mkdir -p $libdir
+mkdir -p $bindir
+
+AT_CHECK([$LIBTOOL --mode=install cp plugin.la $libdir],[], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp main$EXEEXT $bindir],[], [ignore], [ignore])
+AT_CHECK([test -f "$libdir/plugin.a" || exit 77])
+LT_AT_EXEC_CHECK([$bindir/main], [], [ignore], [ignore],[$libdir/plugin.la])
+
+AT_CLEANUP

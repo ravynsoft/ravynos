@@ -1,0 +1,31 @@
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <!-- Our well-known bus type, don't change this -->
+  <type>session</type>
+  <listen>@TEST_LISTEN@</listen>
+
+  <policy context="default">
+    <!-- Allow everything -->
+    <allow send_destination="*"/>
+    <allow receive_sender="*"/>
+    <allow own="*"/>
+
+    <!-- Exception: some messages are forbidden -->
+    <deny send_interface="com.example.CannotSend"/>
+
+    <deny send_interface="com.example.CannotBroadcast" send_broadcast="true"/>
+    <deny send_interface="com.example.CannotUnicast" send_broadcast="false"/>
+
+    <!-- A more long-winded way to spell the same things. -->
+    <deny send_interface="com.example.CannotBroadcast2"/>
+    <allow send_interface="com.example.CannotBroadcast2" send_broadcast="false"/>
+    <deny send_interface="com.example.CannotUnicast2"/>
+    <allow send_interface="com.example.CannotUnicast2" send_broadcast="true"/>
+
+    <deny receive_interface="com.example.CannotReceive"/>
+
+    <!-- Used to reproduce dbus#457 -->
+    <deny receive_interface="org.freedesktop.DBus" receive_member="NameAcquired"/>
+  </policy>
+</busconfig>

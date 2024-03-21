@@ -1,0 +1,78 @@
+#compdef rm grm zf_rm
+
+local variant
+declare -a args opts=( -A '-*' )
+args=(
+  '(-f --force)'{-f,--force}'[ignore nonexistent files, never prompt]'
+  '(-I --interactive)-i[prompt before every removal]'
+  '(-r -R --recursive)'{-r,-R,--recursive}'[remove directories and their contents recursively]'
+  '*:: :->file'
+)
+_pick_variant -r variant -b zsh gnu=gnu $OSTYPE --help
+case $variant; in
+  gnu)
+    opts=()
+    args+=(
+      '(-i --interactive)-I[prompt when removing many files]'
+      '(-i -I)--interactive=-[prompt under given condition (defaulting to always)]::when:((once\:"prompt when removing many files"
+                                                                                           always\:"prompt before every removal"))'
+      '--one-file-system[stay within filesystems of files given as arguments]'
+      '(                   --preserve-root)--no-preserve-root[do not treat / specially]'
+      '(--no-preserve-root                )--preserve-root[do not remove / (default)]'
+      '(-d --dir)'{-d,--dir}'[remove directories as well]'
+      '(-v --verbose)'{-v,--verbose}'[explain what is being done]'
+      '(- *)--help[display help message and exit]'
+      '(- *)--version[output version information and exit]'
+    )
+    ;;
+  *)
+    args=(${args:#*)--*\[*})
+    ;|
+  darwin*|dragonfly*|freebsd*|netbsd*|openbsd*|zsh)
+    args+=(
+      '-d[remove directories as well]'
+    )
+    ;|
+  zsh)
+    args+=(
+      '-s[enable paranoid behavior]'
+    )
+    ;;
+  darwin*|dragonfly*|freebsd*|netbsd*|openbsd*)
+    args+=(
+      '-P[overwrite files before deleting them]'
+      '-v[explain what is being done]'
+    )
+    ;|
+  darwin*|dragonfly*|freebsd*|netbsd*)
+    args+=(
+      '-W[attempt to undelete named files]'
+    )
+    ;|
+  dragonfly*|freebsd*|netbsd*)
+    args+=(
+      "-x[don't cross file systems when removing a hierarchy]"
+    )
+    ;|
+  dragonfly*|freebsd*)
+    args+=(
+      '(-i)-I[prompt when removing many files]'
+    )
+    ;;
+esac
+
+local curcontext=$curcontext state line ret=1
+declare -A opt_args
+
+_arguments -C -s -S $opts \
+  $args && ret=0
+
+case $state in
+  (file)
+    (( CURRENT > 0 )) && line[CURRENT]=()
+    line=( ${line//(#m)[\[\]()\\*?#<>~\^\|]/\\$MATCH} )
+    _files -F line && ret=0
+    ;;
+esac
+
+return $ret

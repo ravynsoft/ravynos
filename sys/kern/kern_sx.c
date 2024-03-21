@@ -42,7 +42,6 @@
 #include "opt_hwpmc_hooks.h"
 #include "opt_no_adaptive_sx.h"
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kdb.h>
@@ -653,6 +652,8 @@ _sx_xlock_hard(struct sx *sx, uintptr_t x, int opts LOCK_FILE_LINE_ARG_DEF)
 	GIANT_SAVE(extra_work);
 #endif
 
+	THREAD_CONTENDS_ON_LOCK(&sx->lock_object);
+
 	for (;;) {
 		if (x == SX_LOCK_UNLOCKED) {
 			if (atomic_fcmpset_acq_ptr(&sx->sx_lock, &x, tid))
@@ -852,10 +853,17 @@ retry_sleepq:
 		sleepq_add(&sx->lock_object, NULL, sx->lock_object.lo_name,
 		    SLEEPQ_SX | ((opts & SX_INTERRUPTIBLE) ?
 		    SLEEPQ_INTERRUPTIBLE : 0), SQ_EXCLUSIVE_QUEUE);
+		/*
+		 * Hack: this can land in thread_suspend_check which will
+		 * conditionally take a mutex, tripping over an assert if a
+		 * lock we are waiting for is set.
+		 */
+		THREAD_CONTENTION_DONE(&sx->lock_object);
 		if (!(opts & SX_INTERRUPTIBLE))
 			sleepq_wait(&sx->lock_object, 0);
 		else
 			error = sleepq_wait_sig(&sx->lock_object, 0);
+		THREAD_CONTENDS_ON_LOCK(&sx->lock_object);
 #ifdef KDTRACE_HOOKS
 		sleep_time += lockstat_nsecs(&sx->lock_object);
 		sleep_cnt++;
@@ -872,6 +880,7 @@ retry_sleepq:
 			    __func__, sx);
 		x = SX_READ_VALUE(sx);
 	}
+	THREAD_CONTENTION_DONE(&sx->lock_object);
 	if (__predict_true(!extra_work))
 		return (error);
 #ifdef ADAPTIVE_SX
@@ -1074,6 +1083,8 @@ _sx_slock_hard(struct sx *sx, int opts, uintptr_t x LOCK_FILE_LINE_ARG_DEF)
 	GIANT_SAVE(extra_work);
 #endif
 
+	THREAD_CONTENDS_ON_LOCK(&sx->lock_object);
+
 	/*
 	 * As with rwlocks, we don't make any attempt to try to block
 	 * shared locks once there is an exclusive waiter.
@@ -1204,10 +1215,17 @@ retry_sleepq:
 		sleepq_add(&sx->lock_object, NULL, sx->lock_object.lo_name,
 		    SLEEPQ_SX | ((opts & SX_INTERRUPTIBLE) ?
 		    SLEEPQ_INTERRUPTIBLE : 0), SQ_SHARED_QUEUE);
+		/*
+		 * Hack: this can land in thread_suspend_check which will
+		 * conditionally take a mutex, tripping over an assert if a
+		 * lock we are waiting for is set.
+		 */
+		THREAD_CONTENTION_DONE(&sx->lock_object);
 		if (!(opts & SX_INTERRUPTIBLE))
 			sleepq_wait(&sx->lock_object, 0);
 		else
 			error = sleepq_wait_sig(&sx->lock_object, 0);
+		THREAD_CONTENDS_ON_LOCK(&sx->lock_object);
 #ifdef KDTRACE_HOOKS
 		sleep_time += lockstat_nsecs(&sx->lock_object);
 		sleep_cnt++;
@@ -1224,6 +1242,7 @@ retry_sleepq:
 			    __func__, sx);
 		x = SX_READ_VALUE(sx);
 	}
+	THREAD_CONTENTION_DONE(&sx->lock_object);
 #if defined(KDTRACE_HOOKS) || defined(LOCK_PROFILING)
 	if (__predict_true(!extra_work))
 		return (error);

@@ -1,0 +1,183 @@
+# Expect script for ld-sh tests
+#   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Ian Lance Taylor (ian@cygnus.com)
+#
+
+# Test SH relaxing.  This tests the compiler and assembler as well as
+# the linker.
+
+if ![istarget sh*-*-*] {
+    return
+}
+
+set testsimple "SH simple relaxing"
+
+if { ![is_elf_format] } {
+    unsupported $testsimple
+} elseif { ![ld_assemble $as "-relax $srcdir/$subdir/sh1.s" tmpdir/sh1.o] } {
+    fail $testsimple
+} elseif { ![ld_link $ld tmpdir/sh1 "-relax tmpdir/sh1.o"] } {
+    fail $testsimple
+} elseif { ![ld_nm $nm "" tmpdir/sh1] } {
+    fail $testsimple
+} elseif { ![info exists nm_output(bar)]
+	   || ![info exists nm_output(foo)]} {
+    send_log "bad output from nm\n"
+    verbose "bad output from nm"
+    fail $testsimple
+} elseif {$nm_output(bar) != $nm_output(foo) + 0xc} {
+    send_log "foo == $nm_output(foo)\n"
+    verbose "foo == $nm_output(foo)"
+    send_log "bar == $nm_output(bar)\n"
+    verbose "bar == $nm_output(bar)"
+    fail $testsimple
+} else {
+    pass $testsimple
+}
+
+set testsrec "SH relaxing to S-records"
+
+if { ![remote_file host exists tmpdir/sh1] } {
+    unsupported $testsrec
+} else {
+    if { [istarget sh*-linux-*] || [istarget sh-*-vxworks] } {
+	# On these "non-embedded" targets, the default ELF and srec start
+	# addresses will be SIZEOF_HEADERS bytes apart.  Ensure consistency
+	# by feeding the ELF start address to the srec link line.
+	catch "exec $objdump -x tmpdir/sh1 | grep start\\ address | sed s/start\\ address//" entry_addr
+	set srec_relax_arg "-Ttext $entry_addr -relax --oformat srec tmpdir/sh1.o"
+    } else {
+	set srec_relax_arg "-relax --oformat srec tmpdir/sh1.o"
+    }
+    if ![ld_link $ld tmpdir/sh1.s1 $srec_relax_arg ] {
+	fail $testsrec
+    } else {
+	# The file name is embedded in the S-records, so create both
+	# files with the same name.
+	catch "exec rm -f tmpdir/sh1.s2" exec_output
+	send_log "mv tmpdir/sh1.s1 tmpdir/sh1.s2\n"
+	verbose "mv tmpdir/sh1.s1 tmpdir/sh1.s2"
+	catch "exec mv tmpdir/sh1.s1 tmpdir/sh1.s2" exec_output
+	if ![string match "" $exec_output] {
+	    send_log "$exec_output\n"
+	    verbose "$exec_output"
+	    fail $testsrec
+	} else {
+	    send_log "$objcopy -O srec tmpdir/sh1 tmpdir/sh1.s1\n"
+	    verbose "$objcopy -O srec tmpdir/sh1 tmpdir/sh1.s1"
+	    catch "exec $objcopy -O srec tmpdir/sh1 tmpdir/sh1.s1" exec_output
+	    if ![string match "" $exec_output] {
+		send_log "$exec_output\n"
+		verbose "$exec_output"
+		fail $testsrec
+	    } else {
+		send_log "cmp tmpdir/sh1.s1 tmpdir/sh1.s2\n"
+		verbose "cmp tmpdir/sh1.s1 tmpdir/sh1.s2"
+		catch "exec cmp tmpdir/sh1.s1 tmpdir/sh1.s2" exec_output
+		set exec_output [prune_warnings $exec_output]
+		if ![string match "" $exec_output] {
+		    send_log "$exec_output\n"
+		    verbose "$exec_output"
+		    fail $testsrec
+		} else {
+		    pass $testsrec
+		}
+	    }
+	}
+    }
+}
+
+set testadjsw8 "SH switch8 adjustment after relax"
+if { ![is_elf_format] } {
+    unsupported $testadjsw8
+} elseif { ![ld_assemble $as "-relax $srcdir/$subdir/adjsw8.s" tmpdir/adjsw8.o] } {
+    fail $testadjsw8
+} elseif { ![ld_link $ld tmpdir/adjsw8 "-relax tmpdir/adjsw8.o"] } {
+    fail $testadjsw8
+} else {
+    send_log "exec $objdump -s tmpdir/adjsw8\n"
+    verbose "exec $objdump -s tmpdir/adjsw8"
+    catch "exec $objdump -s tmpdir/adjsw8" exec_output
+    if [string match "*04080c00*" $exec_output] {
+	pass $testadjsw8
+    } else {
+	send_log "bad switch table\n"
+	verbose "bad switch table"
+	fail $testadjsw8
+    }
+}
+
+set testlink "SH relaxing"
+set testjsr "SH confirm relaxing"
+set testrun "SH relaxing execution"
+
+if { ![check_compiler_available] } {
+    untested $testlink
+    untested $testjsr
+    untested $testrun
+    return
+}
+
+if [istarget sh*-*linux*] {
+    exec sed -e s/_main/main/ -e s/_trap/trap/ -e s/_stack/stack/ \
+	    < $srcdir/$subdir/start.s >tmpdir/start.s
+} else {
+    exec cp $srcdir/$subdir/start.s tmpdir/start.s
+}
+
+if {![ld_assemble $as "-relax tmpdir/start.s" tmpdir/start.o] \
+    || ![ld_compile $CC_FOR_TARGET "-O -mrelax -foptimize-sibling-calls $srcdir/$subdir/sh2.c" tmpdir/sh2.o]} {
+    unsupported $testlink
+    unsupported $testjsr
+    unsupported $testrun
+    return
+}
+
+if ![ld_link $ld tmpdir/sh2 "-relax tmpdir/start.o tmpdir/sh2.o"] {
+    fail $testlink
+    unsupported $testjsr
+    unsupported $testrun
+    return
+}
+
+pass $testlink
+
+send_log "$objdump -d tmpdir/sh2\n"
+verbose "$objdump -d tmpdir/sh2"
+catch "exec $objdump -d tmpdir/sh2" exec_output
+if {[string match "*jsr*" $exec_output]
+    || [string match "*jmp*" $exec_output]} {
+    fail $testjsr
+} else {
+    pass $testjsr
+}
+
+if { ![info exists SIM] || [which $SIM] == 0 } {
+    untested $testrun
+    return
+}
+
+set status [catch "exec $SIM tmpdir/sh2" exec_output]
+if { $status == 0 } {
+    pass $testrun
+} else {
+    fail $testrun
+}

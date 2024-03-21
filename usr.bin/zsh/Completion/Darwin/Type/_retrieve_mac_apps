@@ -1,0 +1,109 @@
+#autoload
+
+# Find paths of applications and preserve them into _mac_apps.
+# Used by _mac_applications and _mac_files_for_application.
+
+_mac_apps_caching_policy () {
+  # Rebuild if cache is more than a day old
+  local -a oldp
+  oldp=( "$1"(Nmw+1) )
+  (( $#oldp ))
+}
+
+
+# _mac_apps_*_retrieve
+# 
+# Get search applications from directories specified in app_dir_root.
+# Paths to applications are stored in _mac_apps.
+
+_mac_apps_spotlight_retrieve () {
+  typeset mdfind_query="kMDItemContentType == 'com.apple.application-*'"
+
+  for i in ${app_dir_root}; do
+    _mac_apps+=(${(f)"$(_call_program command \
+        mdfind -onlyin ${(q)i} ${(q)mdfind_query})"})
+  done
+}
+
+_mac_apps_old_retrieve () {
+  # Get directories which may contain applications
+  typeset -aU app_dir 
+  if [[ -z "$app_dir" ]] && \
+    ! zstyle -a ":completion:${curcontext}:commands" application-dir app_dir
+  then
+    typeset -a app_dir_stop_pattern
+    app_dir_stop_pattern=( "*.app" "contents#" "*data" "*plugins#" "*plug?ins#" "fonts#" "document[[:alpha:]]#" "*help" "resources#" "images#" "*configurations#" )
+    typeset app_dir_pattern
+    app_dir_pattern="(^(#i)(${(j/|/)app_dir_stop_pattern}))"
+    app_dir=( ${^app_dir_root}/(${~app_dir_pattern}/)#(N) )
+  fi
+
+  # Get application bundles
+  local -a app_result
+
+  if ! zstyle -t ":completion:${curcontext}:commands" ignore-bundle; then
+    app_result=( ${^app_dir}*/Contents/(MacOS|MacOSClassic)(N) )
+    _mac_apps+=( ${app_result[@]%/Contents/MacOS*} )
+  fi
+
+  # Get single file applications
+  if ! zstyle -t ":completion:${curcontext}:commands" ignore-single; then
+    autoload -Uz zargs
+    local app_cand nargs envvars
+    app_cand=( ${^app_dir}^*.[a-z]#/..namedfork/rsrc(.UrN,.RN^U) )
+    envvars="$(builtin typeset -x)"
+    nargs=$(( $(command sysctl -n kern.argmax) - $#envvars - 2048 ))
+    app_result="$(zargs --max-chars $nargs ${app_cand[@]} -- grep -l APPL)"
+    _mac_apps+=( ${${(f)app_result}%/..namedfork/rsrc} )
+  fi
+}
+
+
+_retrieve_mac_apps() {
+  local cache_policy
+  zstyle -s ":completion:*:*:$service:*" cache-policy cache_policy
+  if [[ -z "$cache_policy" ]]; then
+    zstyle ":completion:*:*:$service:*" cache-policy _mac_apps_caching_policy
+  fi
+
+  if ( (( ${#_mac_apps} == 0 )) || _cache_invalid Mac_applications ) \
+        && ! _retrieve_cache Mac_applications; then
+
+    # Get application search method
+    typeset retrieve
+    if ! zstyle -s ":completion:*:*:${service}:commands" search-method retrieve
+    then
+      if [[ "$( command mdutil -s / 2>&1 )" == *enabled* ]]; then
+        # / is indexed to use Spotlight
+        retrieve=_mac_apps_spotlight_retrieve
+      else
+        # Fall back to the old way
+        retrieve=_mac_apps_old_retrieve 
+      fi
+      zstyle ":completion:*:*:${service}:commands" search-method $retrieve
+    fi
+
+    # Get root directories to search applications
+    typeset -a app_dir_root
+    if ! zstyle -a ":completion:${curcontext}:" application-path app_dir_root
+    then
+      if [[ $retrieve = _mac_apps_old_retrieve ]]; then
+        app_dir_root=(
+          {,/Developer,/Network,/System,$HOME}/{Applications*(N),Desktop}
+        )
+        app_dir_root=( $^app_dir_root(N) )
+      else
+        app_dir_root=( / )
+      fi
+
+      zstyle ":completion:*" application-path $app_dir_root
+    fi
+
+    typeset -g -Ua _mac_apps
+    $retrieve
+
+    _store_cache Mac_applications _mac_apps
+  fi
+}
+
+_retrieve_mac_apps "$@"

@@ -1,0 +1,121 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test 'I' format directive flag.
+
+# Note: As part of the system-tests, this test fails on Linux with musl libc
+# versions, because its *gettext() implementation in libc does not support
+# system dependent strings and our workaround in write-mo.c does not cover
+# this case.
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o fc5.tmp --omit-header --no-location "$wabs_srcdir"/format-c-5-prg.c || Exit 1
+LC_ALL=C tr -d '\r' < fc5.tmp > fc5.pot || Exit 1
+
+cat <<EOF > fc5.ok
+msgid "the president"
+msgstr ""
+
+#, c-format
+msgid "father of %d children"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} fc5.ok fc5.pot || Exit 1
+
+# This should better be Farsi, not German. Can some translator help me?
+cat <<EOF > fa.po
+msgid "the president"
+msgstr "der Vorsitzende"
+
+#, c-format
+msgid "father of %d children"
+msgstr "Vater von %Id Kindern"
+EOF
+
+test -d fa || mkdir fa
+test -d fa/LC_MESSAGES || mkdir fa/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fa/LC_MESSAGES/fc5.mo fa.po
+
+: ${MSGUNFMT=msgunfmt}
+${MSGUNFMT} -o fa.po.tmp fa/LC_MESSAGES/fc5.mo || Exit 1
+LC_ALL=C tr -d '\r' < fa.po.tmp > fa.po.un || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fa.po fa.po.un || Exit 1
+
+if test -z "$USE_SYSTEM_LIBINTL"; then
+  # In the tests/ dir: Rely on a fake setlocale, so that we can exercise
+  # the test on all platforms.
+
+  LANGUAGE= ../fc5 fa_IR
+  case $? in
+    0) ;;
+    77)
+      if test -f /usr/bin/localedef; then
+        echo "Skipping test: locale fa_IR not installed"
+      else
+        echo "Skipping test: locale fa_IR not supported"
+      fi
+      Exit 77;;
+    *) Exit 1;;
+  esac
+
+else
+  # In the system-tests/ dir: Don't use a fake setlocale.
+
+  skipped=true
+
+  prepare_locale_ fa fa_IR
+  LANGUAGE= ../fc5 fa_IR
+  case $? in
+    0) skipped=false ;;
+    77) ;;
+    *) Exit 1;;
+  esac
+
+  prepare_locale_ fa fa_IR.UTF-8
+  LANGUAGE= ../fc5 fa_IR.UTF-8
+  case $? in
+    0) skipped=false ;;
+    77) ;;
+    *) Exit 1;;
+  esac
+
+  # Some systems (e.g. Solaris 11) don't have a Farsi locale.
+  # Therefore try an Arabic locale as well.
+  test -d ar || mkdir ar
+  test -d ar/LC_MESSAGES || mkdir ar/LC_MESSAGES
+  cp fa/LC_MESSAGES/fc5.mo ar/LC_MESSAGES/fc5.mo
+
+  prepare_locale_ ar ar_EG
+  LANGUAGE= ../fc5 ar_EG
+  case $? in
+    0) skipped=false ;;
+    77) ;;
+    *) Exit 1;;
+  esac
+
+  prepare_locale_ ar ar_EG.UTF-8
+  LANGUAGE= ../fc5 ar_EG.UTF-8
+  case $? in
+    0) skipped=false ;;
+    77) ;;
+    *) Exit 1;;
+  esac
+
+  if $skipped; then
+    if test -f /usr/bin/localedef; then
+      echo "Skipping test: no Farsi or Arabic locale is installed"
+    else
+      echo "Skipping test: no Farsi or Arabic locale is supported"
+    fi
+    Exit 77
+  fi
+
+fi
+
+Exit 0

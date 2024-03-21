@@ -1,0 +1,139 @@
+#compdef xinput
+
+local curcontext="$curcontext" xinput=${words[1]} desc subcmd out ret=1
+local match mbegin mend
+local -a state state_descr line args cmds ids names disp expl
+local -A opt_args
+
+cmds=(
+  'get-feedbacks:display device feedbacks'
+  'set-ptr-feedback:change pointer acceleration (or feedback) parameters '
+  'set-integer-feedback:change value of an integer device feedback'
+  'get-button-map:get the button mapping of a device'
+  'set-button-map:change the button mapping of a device'
+  set-pointer
+  "set-mode:set a device's mode"
+  'list:list input devices or device features'
+  "query-state:query a device's state"
+  'test:perpetual display of extended events from a device'
+  'create-master:create a new pair of master devices on an XI2-enabled server'
+  'remove-master:remove a master and its paired master device'
+  'reattach:reattach a slave to a master'
+  'float:remove a slave from its current master device'
+  'set-cp:set the ClientPointer for the client owning window to master'
+  'test-xi2:perpetual display of XI2 events'
+  'map-to-output:restrict movements of the absolute device to an RandR crtc'
+  'list-props:list properties that can be set for a device'
+  set-int-prop set-float-prop set-atom-prop
+  'watch-props:perpetual display of property changes'
+  'delete-prop:delete a property from a device'
+  'set-prop:set a property to a given value'
+  'disable:disable a device'
+  'enable:enable a device'
+  'help:display usage information'
+  'version:display version information for program and server'
+)
+
+if (( CURRENT == 2 )); then
+  if [[ -prefix - ]]; then
+    cmds=( --$^cmds )
+    desc=option
+  else
+    desc=command
+  fi
+  _describe -t ${desc}s $desc cmds -M 'r:|-=* r:|=*'
+  return
+fi
+
+subcmd=${words[2]#--}
+curcontext="${curcontext%:*}-$subcmd:"
+
+args=( '1:device:->devices' )
+case $subcmd in
+  (set|delete)-*prop) args+=( '2:property:->properties' ) ;|
+  set-*prop) args+=( '*:value' ) ;|
+  set-ptr-feedback) args+=( '2:threshold' '3:num' '4:denom' ) ;;
+  set-integer-feedback) args+=( '2:feedback id' '3:value' ) ;;
+  set-button-map)
+    args+=( '*:::button mapping:compadd -F words -o numeric {1..12}' )
+  ;;
+  set-pointer) args+=( '2:x index' '3:y index' ) ;;
+  set-mode) args+=( '2:mode:(ABSOLUTE RELATIVE)' ) ;;
+  list) args+=( '(-)--short' '(-)--long' '(-)--name-only' '(-)--id-only' ) ;;
+  test) args+=( '-proximity' ) ;;
+  create-master)
+    args=(
+      '1:prefix'
+      '2:send core events [1]:((0\:false 1\:true))'
+      '3:enable [1]:((0\:false 1\:true))'
+    )
+  ;;
+  remove-master)
+    args=(
+      '1:master:->devices'
+      '2:slave setting:(Floating AttachToMaster)'
+      '3:pointer master:->devices'
+      '4:keyboard master:->devices'
+    )
+  ;;
+  reattach) args=( '1:slave:->devices' '2:master:->devices' ) ;;
+  float) args=( '1:slave:->devices' ) ;;
+  set-cp) args=( '1:window:_x_window' '2:device:->devices' ) ;;
+  test-xi2) args+=( '--root[select events on the root window only]' ) ;;
+  map-to-output) args+=( '2:output:->outputs' ) ;;
+  list-props) args=( '*:device:->devices' ) ;;
+  set-int-prop) args+=( '3:format:compadd -o numeric 8 16 32' ) ;;
+  set-prop)
+    args+=(
+      '--type=-:type:(atom float int)'
+      '--format=-:format:compadd -o numeric 8 16 32'
+    )
+  ;;
+  help|version) _message 'no more arguments'; return 1 ;;
+esac
+
+shift words
+(( CURRENT-- ))
+_arguments -C -A "-*" $args && ret=0
+
+case $state in
+  devices)
+    _description input-devices expl $state_descr
+
+    ids=( ${${(f)"$(_call_program input-devices $xinput list --id-only)"}#? } )
+    names=( ${${(f)"$(_call_program input-devices $xinput list --name-only)"}#? } )
+    disp=( ${(f)"$(_call_program input-devices $xinput list --short)"} )
+
+    if [[ $PREFIX$SUFFIX = [^-]*[^0-9]* ]]; then
+      # match based on the names but insert IDs
+      compadd "$expl[@]" -M 'b:=* m:{[:lower:]}={[:upper:]}' -D ids -D disp -a names
+      compadd "$expl[@]" -U -ld disp -a ids && ret=0
+
+      zstyle -s ":completion:${curcontext}:input-devices" insert-ids out || out=menu
+      case "$out" in
+        menu)   compstate[insert]=menu ;;
+        single) [[ $#ids -ne 1 && $compstate[insert] != menu ]] &&
+                    compstate[insert]= ;;
+        *)      [[ ${#:-$PREFIX$SUFFIX} -gt ${#compstate[unambiguous]} ]] &&
+                    compstate[insert]=menu ;;
+      esac
+    else
+      compadd "$expl[@]" -M 'B:0=' -o nosort -ld disp -a ids && ret=0
+    fi
+  ;;
+  properties)
+    _description input-properties expl 'property'
+    disp=( ${${${${(M)${(f)"$(_call_program input-properties
+        $xinput list-props $line[1]
+        )"}:#[[:blank:]]*}##[[:blank:]]#}%%:*}:/(#b)(*) \((<->)\)/$match[2]:$match[1]}
+    )
+    _describe -t input-properties $state_descr disp -o numeric && ret=0
+  ;;
+  outputs)
+    _description outputs expl 'output'
+    compadd "$expl[@]" - ${${(M)${(f)"$(_call_program outputs
+        xrandr)"}:#* connected*}%% *} && ret=0
+  ;;
+esac
+
+return ret

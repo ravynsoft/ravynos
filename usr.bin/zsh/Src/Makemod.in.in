@@ -1,0 +1,192 @@
+#
+# Makemod.in.in
+#
+# Copyright (c) 1995-1997 Richard Coleman
+# All rights reserved.
+#
+# Permission is hereby granted, without written agreement and without
+# license or royalty fees, to use, copy, modify, and distribute this
+# software and to distribute modified versions of this software for any
+# purpose, provided that the above copyright notice and the following
+# two paragraphs appear in all copies of this software.
+#
+# In no event shall Richard Coleman or the Zsh Development Group be liable
+# to any party for direct, indirect, special, incidental, or consequential
+# damages arising out of the use of this software and its documentation,
+# even if Richard Coleman and the Zsh Development Group have been advised of
+# the possibility of such damage.
+#
+# Richard Coleman and the Zsh Development Group specifically disclaim any
+# warranties, including, but not limited to, the implied warranties of
+# merchantability and fitness for a particular purpose.  The software
+# provided hereunder is on an "as is" basis, and Richard Coleman and the
+# Zsh Development Group have no obligation to provide maintenance,
+# support, updates, enhancements, or modifications.
+#
+
+# ========== OVERRIDABLE VARIABLES ==========
+
+# subdir is done by mkmakemod.sh
+# dir_top is done by mkmakemod.sh
+# SUBDIRS is done by mkmakemod.sh
+
+@VERSION_MK@
+
+# source/build directories
+VPATH           = @srcdir@
+sdir            = @srcdir@
+sdir_top        = @top_srcdir@
+INSTALL         = @INSTALL@
+
+@DEFS_MK@
+
+sdir_src      = $(sdir_top)/Src
+dir_src       = $(dir_top)/Src
+
+# ========== COMPILATION RULES ==========
+
+DNCFLAGS =
+
+COMPILE     = $(CC) -c -I. -I$(dir_top)/Src -I$(sdir_top)/Src -I$(sdir_top)/Src/Zle -I$(sdir) $(CPPFLAGS) $(DEFS) $(CFLAGS) $(D@L@CFLAGS)
+DLCOMPILE   = $(CC) -c -I. -I$(dir_top)/Src -I$(sdir_top)/Src -I$(sdir_top)/Src/Zle -I$(sdir) $(CPPFLAGS) $(DEFS) -DMODULE $(CFLAGS) $(DLCFLAGS)
+LINK        = $(CC) $(LDFLAGS) $(EXELDFLAGS) $(EXTRA_LDFLAGS) -o $@
+DLLINK      = $(DLLD) $(LDFLAGS) $(LIBLDFLAGS) $(DLLDFLAGS) -o $@
+
+KNR_OBJ=.o
+KNROBJ=._foo_
+
+ANSIOBJ=.o
+ANSI_OBJ=._foo_
+
+.SUFFIXES: .c .$(DL_EXT) ..o .._foo_ .o ._foo_ .syms .pro .epro
+
+.c$(ANSI@U@OBJ):
+	$(COMPILE) -o $@ $<
+	@rm -f $(dir_src)/stamp-modobjs
+
+.c$(KNR@U@OBJ):
+	@ANSI2KNR@ $< > $@.c
+	$(COMPILE) -o $@ $@.c
+	rm -f $@.c
+	@rm -f $(dir_src)/stamp-modobjs
+
+.c.$(ANSI@U@OBJ):
+	$(DLCOMPILE) -o $@ $<
+
+.c.$(KNR@U@OBJ):
+	@ANSI2KNR@ $< > $@.c
+	$(DLCOMPILE) -o $@ $@.c
+	rm -f $@.c
+
+.c.syms:
+	$(AWK) -f $(sdir_src)/makepro.awk $< $(subdir) > $@
+
+.syms.epro:
+	(echo '/* Generated automatically */'; sed -n '/^E/{s/^E//;p;}' < $<) \
+		> $@
+	(echo '/* Generated automatically */'; sed -n '/^L/{s/^L//;p;}' < $<) \
+		> `echo $@ | sed 's/\.epro$$/.pro/'`
+
+PROTODEPS = $(sdir_src)/makepro.awk
+
+# ========== DEPENDENCIES FOR BUILDING ==========
+
+all: modobjs modules
+.PHONY: all
+
+modobjs: $(MODOBJS)
+modules: $(MODULES)
+headers: $(MDHS)
+proto: $(PROTOS)
+.PHONY: modobjs modules headers proto
+
+prep:
+	@case $(sdir_top) in \
+	    /*) top_srcdir=$(sdir_top) ;; \
+	    *) top_srcdir=$(subdir)/$(sdir_top) ;; \
+	esac; \
+	export top_srcdir; \
+	cd $(dir_top) || exit 1; \
+	subdirs='$(SUBDIRS)'; \
+	for subdir in $$subdirs; do \
+	    dir=$(subdir)/$$subdir; \
+	    test -d $$dir || mkdir $$dir; \
+	    $(SHELL) $$top_srcdir/Src/mkmakemod.sh $$dir Makefile || exit 1; \
+	    ( cd $$dir && $(MAKE) $(MAKEDEFS) $@ ) || exit 1; \
+	done
+.PHONY: prep
+
+headers: $(dir_src)/modules.stamp
+$(dir_src)/modules.stamp: $(MDDS)
+	$(MAKE) -f $(makefile) $(MAKEDEFS) prep
+	echo 'timestamp for *.mdd files' > $@
+.PHONY: headers
+
+FORCE:
+.PHONY: FORCE
+
+# ========== DEPENDENCIES FOR INSTALLING ==========
+
+install: install.bin install.modules
+uninstall: uninstall.bin uninstall.modules
+.PHONY: install uninstall
+
+install.bin: install.bin-here
+uninstall.bin: uninstall.bin-here
+install.modules: install.modules-here
+uninstall.modules: uninstall.modules-here
+.PHONY: install.bin uninstall.bin install.modules uninstall.modules
+
+install.bin-here uninstall.bin-here:
+install.modules-here uninstall.modules-here:
+.PHONY: install.bin-here install.modules-here
+
+# ========== DEPENDENCIES FOR CLEANUP ==========
+
+@CLEAN_MK@
+
+mostlyclean-here:
+	rm -f *.o *.export *.$(DL_EXT)
+.PHONY: mostlyclean-here
+
+clean-here:
+	rm -f *.o.c *.syms *.pro *.epro *.mdh *.mdhi *.mdhs *.mdh.tmp
+.PHONY: clean-here
+
+distclean-here:
+	rm -f $(makefile) $(makefile).in
+.PHONY: distclean-here
+
+# ========== RECURSIVE MAKES ==========
+
+install.bin uninstall.bin install.modules uninstall.modules \
+modobjs modules headers proto:
+	@subdirs='$(SUBDIRS)'; for subdir in $$subdirs; do \
+	  ( cd $$subdir && $(MAKE) $(MAKEDEFS) $@ ) || exit 1; \
+	done
+
+# ========== DEPENDENCIES FOR MAINTENANCE ==========
+
+$(makefile): $(makefile).in $(dir_top)/config.status
+	@case $(sdir_top) in \
+	    /*) top_srcdir=$(sdir_top) ;; \
+	    *) top_srcdir=$(subdir)/$(sdir_top) ;; \
+	esac; \
+	export top_srcdir; \
+	echo 'cd $(dir_top) && $(SHELL)' \
+	    '$$top_srcdir/Src/mkmakemod.sh -m $(subdir) $(makefile)'; \
+	cd $(dir_top) && \
+	    $(SHELL) $$top_srcdir/Src/mkmakemod.sh -m $(subdir) $(makefile)
+
+$(makefile).in: $(sdir_src)/mkmakemod.sh $(sdir_src)/Makemod.in.in $(MDDS) \
+	$(dir_top)/config.modules
+	@case $(sdir_top) in \
+	    /*) top_srcdir=$(sdir_top) ;; \
+	    *) top_srcdir=$(subdir)/$(sdir_top) ;; \
+	esac; \
+	export top_srcdir; \
+	echo 'cd $(dir_top) && $(SHELL)' \
+	    '$$top_srcdir/Src/mkmakemod.sh -i $(subdir) $(makefile)'; \
+	cd $(dir_top) && \
+	    $(SHELL) $$top_srcdir/Src/mkmakemod.sh -i $(subdir) $(makefile)
+

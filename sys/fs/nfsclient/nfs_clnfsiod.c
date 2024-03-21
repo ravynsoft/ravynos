@@ -34,7 +34,6 @@
  *	from nfs_syscalls.c	8.5 (Berkeley) 3/30/95
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/sysproto.h>
@@ -123,8 +122,8 @@ out:
 	return (0);
 }
 SYSCTL_PROC(_vfs_nfs, OID_AUTO, iodmin,
-    CTLTYPE_UINT | CTLFLAG_RW | CTLFLAG_MPSAFE, 0, sizeof (nfs_iodmin),
-    sysctl_iodmin, "IU",
+    CTLTYPE_UINT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
+    0, sizeof (nfs_iodmin), sysctl_iodmin, "IU",
     "Min number of nfsiod kthreads to keep as spares");
 
 static int

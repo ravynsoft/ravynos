@@ -1,0 +1,25 @@
+	.set	mips16
+foo:
+	nop
+	.half	0xf123, 0xf456
+	.half	0xf765
+	jal	bar
+	.half	0xf432
+	jalx	baz
+	.half	0xf123, 0x6621
+	.half	0xf456, 0xe935
+	.half	0xf765, 0xea60
+	.half	0xf432, 0xece0
+	.half	0xf5aa, 0xe971
+	.half	0xf655, 0xebf1
+	.half	0x6621
+	.half	0xe935
+	.half	0xea60
+	.half	0xece0
+	.half	0xe971
+	.half	0xebf1
+	nop
+
+# Force some (non-delay-slot) zero bytes, to make 'objdump' print ...
+	.align	4, 0
+	.space	16

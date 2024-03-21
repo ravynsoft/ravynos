@@ -28,8 +28,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)if.c	8.5 (Berkeley) 1/9/95
  */
 
 #include "opt_bpf.h"
@@ -1127,6 +1125,8 @@ if_detach_internal(struct ifnet *ifp, bool vmove)
 
 	shutdown = VNET_IS_SHUTTING_DOWN(ifp->if_vnet);
 #endif
+
+	sx_assert(&ifnet_detach_sxlock, SX_XLOCKED);
 
 	/*
 	 * At this point we know the interface still was on the ifnet list

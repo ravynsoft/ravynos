@@ -1,0 +1,59 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of extracted comments specified per keyword, including the case of
+# duplicated msgids.
+
+cat <<\EOF > xg-test9.c
+/* xgettext: max-width 25 */
+label ("eagle");
+
+/* xgettext: xml-format */
+label ("seamew");
+
+title ("falcon");
+
+label ("falcon");
+
+label ("pigeon");
+label ("pigeon");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header \
+  --keyword=label:1,\"xhtml-format\",\"xml-format\" \
+  --keyword=title:1,\"xhtml-format\",\"xml-format\" \
+  -d xg-test9.tmp xg-test9.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-test9.tmp.po > xg-test9.po || Exit 1
+
+cat <<\EOF > xg-test9.ok
+#. xhtml-format
+#. xml-format
+#: xg-test9.c:2
+msgid "eagle"
+msgstr ""
+
+#. xhtml-format
+#. xml-format
+#: xg-test9.c:5
+msgid "seamew"
+msgstr ""
+
+#. xhtml-format
+#. xml-format
+#: xg-test9.c:7 xg-test9.c:9
+msgid "falcon"
+msgstr ""
+
+#. xhtml-format
+#. xml-format
+#: xg-test9.c:11 xg-test9.c:12
+msgid "pigeon"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test9.ok xg-test9.po
+result=$?
+
+exit $result

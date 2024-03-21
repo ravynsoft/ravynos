@@ -26,7 +26,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/pmc.h>
 #include <sys/pmckern.h>
@@ -339,17 +338,11 @@ pmc_tsc_initialize(struct pmc_mdep *md, int maxcpu)
 void
 pmc_tsc_finalize(struct pmc_mdep *md __diagused)
 {
-#ifdef	INVARIANTS
-	int i, ncpus;
+	PMCDBG0(MDP, INI, 1, "tsc-finalize");
 
-	ncpus = pmc_cpu_max();
-	for (i = 0; i < ncpus; i++)
+	for (int i = 0; i < pmc_cpu_max(); i++)
 		KASSERT(tsc_pcpu[i] == NULL, ("[tsc,%d] non-null pcpu cpu %d",
 		    __LINE__, i));
-
-	KASSERT(md->pmd_classdep[PMC_MDEP_CLASS_INDEX_TSC].pcd_class ==
-	    PMC_CLASS_TSC, ("[tsc,%d] class mismatch", __LINE__));
-#endif
 
 	free(tsc_pcpu, M_PMC);
 	tsc_pcpu = NULL;

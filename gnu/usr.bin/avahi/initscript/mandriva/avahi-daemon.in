@@ -1,0 +1,94 @@
+#! /bin/sh
+#
+### BEGIN INIT INFO
+# Provides: avahi
+# Required-Start: $network messagebus
+# Required-Stop: $network messagebus
+# Default-Start: 3 5
+# Description: Avahi, a ZeroConf daemon whichs implements an mDNS stack 
+### END INIT INFO
+
+AVAHI_BIN=@sbindir@/avahi-daemon
+test -x $AVAHI_BIN || exit 5
+
+# Source function library.
+. /etc/init.d/functions
+
+. /etc/sysconfig/network
+
+# Check that networking is configured.
+[ "${NETWORKING}" = "no" ] && exit 0
+
+start() {
+	echo -n $"Starting Avahi daemon: "
+	$AVAHI_BIN -D
+	RETVAL=$?
+	if [ $RETVAL = 0 ]; then
+	    touch /var/lock/subsys/avahi-daemon
+	    success $"$base startup"
+	else
+	    failure $"$base startup"
+	fi
+	echo
+	return $RETVAL
+}
+
+stop() {
+	echo -n "Shutting down Avahi daemon: "
+	$AVAHI_BIN -k
+	RETVAL=$?
+	if [ $RETVAL = 0 ]; then
+	    rm -f /var/lock/subsys/avahi-daemon
+	    success $"$base stop"
+	else
+	    failure $"$base stop"
+	fi
+	echo
+	return $RETVAL
+}
+
+reload() {
+	echo -n "Reloading Avahi daemon: "
+	$AVAHI_BIN -r
+	RETVAL=$?
+	[ $RETVAL = 0 ] && success $"$base startup" || failure $"$base startup"
+	echo
+	return $RETVAL
+}
+
+
+restart() {
+	stop
+	start
+}
+
+RETVAL=0
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+	$AVAHI_BIN -c
+	[ $? = 0 ] && echo "Avahi daemon is running" || echo "Avahi daemon is not running"
+	;;
+  restart)
+	restart
+	;;
+  reload)
+	reload 
+	;;
+  condrestart)
+	$AVAHI_BIN -c
+	[ $? = 0 ] && restart || :
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart|condrestart}"
+	exit 1
+esac
+
+exit $?

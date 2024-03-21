@@ -1,0 +1,18 @@
+<!ELEMENT service-group (name,service+)>
+<!ATTLIST service-group>
+<!ELEMENT name (#PCDATA)>
+<!ATTLIST name replace-wildcards (yes|no) "no">
+<!ELEMENT service (type,subtype*,domain-name?,host-name?,port,txt-record*)>
+<!ATTLIST service protocol (ipv4|ipv6|any) "any">
+<!ELEMENT type (#PCDATA)>
+<!ATTLIST type>
+<!ELEMENT subtype (#PCDATA)>
+<!ATTLIST subtype>
+<!ELEMENT domain-name (#PCDATA)>
+<!ATTLIST domain-name>
+<!ELEMENT host-name (#PCDATA)>
+<!ATTLIST host-name>
+<!ELEMENT port (#PCDATA)>
+<!ATTLIST port>
+<!ELEMENT txt-record (#PCDATA)>
+<!ATTLIST txt-record value-format (text|binary-hex|binary-base64) "text">

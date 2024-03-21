@@ -1,0 +1,43 @@
+#!/bin/sh
+# join-v-1 - Filter out a set of items from another set of items.
+
+# Copyright (C) 2021 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Usage: join-v-1 FILE1 FILE2
+# Produces on stdout a list of items that are contained in FILE1 but not
+# contained in FILE2.  The items are strings without whitespace.
+# FILE1 and FILE2 contain such items, one per line, sorted according to
+# the current locale.
+# FILE1 or FILE2 can be specified as '-', which denotes standard input.
+
+# The 'join' program does not exist on all platforms.  Where it exists,
+# we can use it.
+if (type join) >/dev/null 2>&1; then
+  join -v 1 "$1" "$2"
+else
+  # Two solutions based on awk, by Bernhard Voelker <mail@bernhard-voelker.de>.
+  if true; then
+    awk -v keyfile="$2" '
+      BEGIN { while ((getline < keyfile) > 0) k[$1]=1 }
+      !k[$1]
+      ' "$1"
+  else
+    awk '
+      keys { k[$1]=1; next }
+      !k[$1]
+      ' keys=1 "$2" keys=0 "$1"
+  fi
+fi

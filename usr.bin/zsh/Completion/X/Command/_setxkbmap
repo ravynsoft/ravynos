@@ -1,0 +1,101 @@
+#compdef setxkbmap
+
+# TODO:
+# model, option, symbols and types suggestions
+# take -layout and -variant into account
+
+_setxkbmap() {
+    emulate -L zsh
+    setopt extendedglob
+
+    # xkb files may be in different places depending on system
+    local dir sourcedir fullname
+    local -a searchdirs=(${XDG_DATA_HOME:-~/.local/share} ${(s.:.)XDG_DATA_DIRS:-/usr/lib:/usr/share:/usr/local/lib:/usr/local/share})
+    for dir in $searchdirs; do
+        fullname="$dir/X11/xkb"
+        if [ -d $fullname ] ; then
+           sourcedir=$fullname
+           break
+        fi
+    done
+    [ -d $sourcedir ] || return 1
+
+    local -a arguments
+
+    arguments=(
+        '-compat[compatibility map]:compatibility:_setxkbmap_compat'
+        '-config[configuration file]:configuration:_files'
+        '-display[display]:display:_x_display'
+        '-geometry[geometry component]:geometry:_setxkbmap_geometry'
+        '-model[model name]:model:'
+        '-option[xkb option]:option:'
+        '(-)'-print'[print component names]'
+        '-rules[rules file]:rules:_files'
+        '-symbols[symbols components]:symbols:'
+        '(-)'{-help,-h}'[display help message]'
+        '-synch[force synchronization]'
+        '-types[types components]:types:'
+        '(-verbose -v)'{-verbose,-v}'[set verbosity level]:verbosity:(0 1 2 3 4 5 6 7 8 9)'
+        '*::keyboard:_setxkbmap_dispatcher'
+    )
+    _arguments $arguments
+}
+
+_setxkbmap_dispatcher () {
+
+    case $CURRENT in
+        1)
+            _setxkbmap_layout
+        ;;
+        2)
+            _setxkbmap_variant "$words[1]"
+        ;;
+    esac
+}
+
+_setxkbmap_files () {
+    local dir="$1"
+    local label="$2"
+
+    local -a fullpath shortpath expl
+
+    fullpath=($sourcedir/$dir/**/*~*README(.))
+    shortpath=(${fullpath#$sourcedir\/$dir\/})
+
+    _wanted layout expl $label compadd -a - shortpath
+
+}
+
+(( $+functions[_setxkbmap_compat] )) ||
+_setxkbmap_compat() {
+    _setxkbmap_files "compat" "compatibility"
+}
+
+(( $+functions[_setxkbmap_layout] )) ||
+_setxkbmap_layout () {
+    _setxkbmap_files "symbols" "layout"
+}
+
+(( $+functions[_setxkbmap_geometry] )) ||
+_setxkbmap_geometry () {
+    _setxkbmap_files "geometry" "geometry"
+}
+
+(( $+functions[_setxkbmap_variant] )) ||
+_setxkbmap_variant () {
+    local file=$sourcedir/symbols/${1}
+    local -a variants lines expl
+
+    if [ ! -f $file ]; then
+        _message "no such layout: ${1}"
+        return 1
+    fi
+
+    lines=("${(f)$(< ${file})}")
+    variants=(${${${(M)lines:#*xkb_symbols*\"([^\"])##\"*}##*xkb_symbols([^\"])##\"}%%\"*})
+    
+    _wanted variant expl 'variant' compadd -a variants
+
+}
+
+_setxkbmap "$@"

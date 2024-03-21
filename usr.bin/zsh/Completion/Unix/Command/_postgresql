@@ -1,0 +1,1148 @@
+#compdef clusterdb createdb createuser dropdb dropuser initdb pg_config pg_ctl pg_dump pg_dumpall pg_isready pg_restore pg_upgrade postgres postmaster psql reindexdb vacuumdb
+
+# Notes:
+# - @todo We don't complete postgres:// URIs or conninfo strings, and we don't
+#   account for postgres:// URIs when calling psql
+# - @todo We don't handle a few less-used tools like ecpg and pgbench
+# - @todo We don't handle Debian's wrapper tools (pg_ctlcluster, &al.)
+
+# Construct conninfo string for use with completion helper functions
+#
+# -o <param> => include only specified parameters
+# -O <param> => exclude specified parameters
+# $1         => scalar parameter to store result in (conninfo by default)
+#
+# Explanation:
+#
+# Postgres supports a dizzying number of ways to specify connection parameters;
+# in roughly ascending order of precedence, they are (where applicable):
+#
+# - PG* environment variables
+# - Database name as first operand
+# - User name as second operand
+# - Options -d/-h/-p/-U
+# - Conninfo string as first operand
+# - URI as first operand -- authority/path component
+# - URI as first operand -- query component
+#
+# The following command demonstrates four ways to pass the user name:
+#
+#   PGUSER=foo1 psql 'postgres://foo2@localhost/mydb?user=foo3' -U foo4
+#
+# In this case, per the above, the query component of the URI wins, and foo3
+# gets used.
+#
+# Many connection parameters can only be supplied via conninfo string, URI, or
+# environment variable. Thus, in order for our helper functions to accurately
+# obtain completion possibilities, it's preferable to normalise the various
+# methods of supplying parameters. Since conninfo strings are easiest to
+# construct, we'll use those.
+#
+# See also:
+#
+# - https://www.postgresql.org/docs/current/static/libpq-envars.html
+# - https://www.postgresql.org/docs/current/static/libpq-connect.html
+# - https://github.com/postgres/postgres/blob/master/src/bin/psql/startup.c
+(( $+functions[__pgsql_get_conninfo] )) ||
+__pgsql_get_conninfo() {
+  local i_
+  local -a conninfo_
+  local -aU incl_ excl_
+
+  zparseopts -D -E -- o+:-=incl_ O+:-=excl_
+
+  (( $#incl_ )) &&
+  incl_=( ${(@s<,>)${(@)${(@)incl_#-o}//[[:punct:][:space:]]/,}} )
+  (( $#excl_ )) &&
+  excl_=( ${(@s<,>)${(@)${(@)excl_#-O}//[[:punct:][:space:]]/,}} )
+
+  # Parameters supplied via options. We must quote parameter values for conninfo
+  # strings like foo='bar\'baz'. Should we also handle -l/--maintenance-db here?
+  [[ -n ${opt_args[(i)c-(-d|--dbname)]} ]] &&
+  conninfo_+=( dbname="'${(Q)${(v)opt_args[(i)c-(-d|--dbname)]}//\'/\\\'}'" )
+  [[ -n ${opt_args[(i)c-(-h|--host)]} ]] &&
+  conninfo_+=( host="${(Q)${(v)opt_args[(i)c-(-h|--host)]}//\'/\\\'}'" )
+  [[ -n ${opt_args[(i)c-(-p|--port)]} ]] &&
+  conninfo_+=( port="'${(Q)${(v)opt_args[(i)c-(-p|--port)]}//\'/\\\'}'" )
+  [[ -n ${opt_args[(i)c-(-U|--user)]} ]] &&
+  conninfo_+=( user="'${(Q)${(v)opt_args[(i)c-(-U|--user)]}//\'/\\\'}'" )
+
+  # Parameters supplied via operands -- since these have such a high precedence
+  # they can't do much for completing the above options, but they're still
+  # useful for the helper functions
+  case ${(Q)line[1]} in
+    # First operand is URI
+    postgres(ql|)://*)
+      # @todo To parse this properly we need to handle percent-encoding; it
+      # might be nice to have a utility function for that some day
+      ;;
+    # First operand is conninfo string. The user should have already properly
+    # quoted any parameter values here, so we don't need to re-quote
+    *'='*)
+      conninfo_+=( ${(z)${(Q)line[1]}} )
+      # Normalise parameter pairs (note that empty values must be quoted)
+      for (( i_ = 1; i_ < $#conninfo_; i_++ )); do
+        # Parameter pair already one word (`param=value`)
+        if [[ $conninfo_[i_] == *?'='?* ]]; then
+          continue
+        # Parameter pair in three words (`param = value`)
+        elif [[ $conninfo_[(i_+1)] == '=' ]]; then
+          conninfo_[i_]+="=${conninfo_[(i_+2)]}"
+          conninfo_[(i_+1)]=
+          conninfo_[(i_+2)]=
+          (( i_ += 2 ))
+        # Parameter pair in two words (`param= value` or `param =value`)
+        else
+          conninfo_[i_]+=${conninfo_[(i_+1)]}
+          conninfo_[(i_+1)]=
+          (( i_ += 1 ))
+        fi
+      done
+      conninfo_=( $conninfo_ )
+      ;;
+    # First and second operands may be database/user
+    *)
+      (( $+line[1] )) && conninfo_+=( dbname="'${(Q)line[1]//\'/\\\'}'" )
+      (( $+line[2] )) && conninfo_+=( user="'${(Q)line[2]//\'/\\\'}'" )
+      ;;
+  esac
+
+  (( $#conninfo_ && $#incl_ )) &&
+  conninfo_=( ${(M@)conninfo_:#(${(~j<|>)incl_})=*} )
+  (( $#conninfo_ && $#excl_ )) &&
+  conninfo_=( ${(@)conninfo_:#(${(~j<|>)excl_})=*} )
+
+  : ${(P)${1:-conninfo}::=${(j< >)conninfo_}}
+  return $(( $#conninfo_ ? 0 : 1 ))
+}
+
+# Call psql and return results
+# -f     => keep empty lines
+# $1     => array parameter to store results in
+# $2     => _call_program tag
+# $3     => preferred conninfo string (use '' if none)
+# $4 ... => arguments to psql (usually -c ...); automatically quoted for eval
+__pgsql_call_psql() {
+  local c_ f_ psql_=psql
+  local -a tmp_
+
+  [[ $1 == -f ]] && {
+    f_=1
+    shift
+  }
+
+  (( $# >= 4 )) || {
+    print -ru2 "$0: bad argument count"
+    return 1
+  }
+
+  # Use the psql from the command line if we can
+  [[ $service == psql ]] && psql_=$words[1]
+
+  # Make a few attempts with common settings in case the first fails. Maybe this
+  # behaviour could be controlled by a user style
+  for c_ in $3{,' dbname=template1',' dbname=template1 user=postgres'}; do
+    c_+=' connect_timeout=4'
+    tmp_=( "${(@f)"$(
+      _call_program $2 $psql_ -qtAX ${(q)c_} ${(@q)@[4,-1]}
+    )"}" )
+    (( f_ )) || tmp_=( $tmp_ )
+    (( $#tmp_ )) && break
+  done
+
+  : ${(PA)1::="${(@)tmp_}"}
+  return $(( $#tmp ? 0 : 1 ))
+}
+
+# Complete PostgreSQL authentication methods
+(( $+functions[__pgsql_auth_methods] )) ||
+__pgsql_auth_methods() {
+  # See https://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html
+  local -a tmp=(
+    'trust:allow unconditionally'
+    'reject:reject unconditionally'
+    'scram-sha-256:authenticate via SCRAM-SHA-256 challenge-response'
+    'md5:authenticate via MD5 or SCRAM-SHA-256 challenge-response'
+    'password:authenticate via clear-text password'
+    'gss:authenticate via GSSAPI (TCP/IP only)'
+    'sspi:authenticate via SSPI (Windows only)'
+    'ident:authenticate via ident user name (TCP/IP only; local peer fall-back)'
+    'peer:authenticate via local OS user name (local only)'
+    'ldap:authenticate via LDAP'
+    'radius:authenticate via RADIUS'
+    'cert:authenticate via SSL client certificate'
+    'pam:authenticate via PAM'
+    'bsd:authenticate via BSD Authentication'
+  )
+  _describe -t auth-methods 'PostgreSQL authentication method' tmp "$@"
+}
+
+# Complete PostgreSQL run-time configuration parameters
+(( $+functions[__pgsql_cfg_params] )) ||
+__pgsql_cfg_params() {
+  local conninfo
+  local -a expl tmp
+
+  __pgsql_get_conninfo
+  __pgsql_call_psql tmp parameters "$conninfo" -c '
+    SELECT name
+    FROM   pg_catalog.pg_settings;
+  '
+
+  _wanted -x parameters expl 'PostgreSQL run-time configuration parameter' \
+    compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL run-time configuration parameters (name=value format)
+(( $+functions[__pgsql_cfg_params_values] )) ||
+__pgsql_cfg_params_values() {
+  if compset -P '*='; then
+    _message -e values 'PostgreSQL run-time configuration-parameter value'
+  else
+    compset -S '=*'
+    __pgsql_cfg_params "$@" -qS=
+  fi
+}
+
+# Complete PostgreSQL character encodings
+(( $+functions[__pgsql_encodings] )) ||
+__pgsql_encodings() {
+  # These rarely change, and they're most needed when creating a new database,
+  # so trying to pull them from an existing one doesn't seem that helpful; see
+  # https://www.postgresql.org/docs/current/static/multibyte.html#CHARSET-TABLE
+  local -a expl tmp=(
+    BIG5 {WIN,Windows}950
+    EUC_{CN,JP,JIS_2004,KR,TW}
+    GB18030
+    GBK {WIN,Windows}936
+    ISO_8859_{5..8}
+    JOHAB
+    KOI8{,R,U}
+    LATIN{1..10} ISO8859{{1..4},9,10,{13..16}}
+    MULE_INTERNAL
+    SJIS Mskanji ShiftJIS {WIN,Windows}932
+    SHIFT_JIS_2004
+    SQL_ASCII
+    UHC {WIN,Windows}949
+    UTF8 Unicode
+    WIN{866,874,{1250..1258}} ALT WIN ABC TCVN{,5712} VSCII
+  )
+  _wanted encodings expl 'PostgreSQL character encoding' compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL server hosts
+# -/ => exclude TCP/IP hosts (include directories only)
+# -a => include UNIX-domain socket directories
+(( $+functions[__pgsql_hosts] )) ||
+__pgsql_hosts() {
+  local -a copts tmp alts
+  local -A opts
+
+  # We want the compadd options from _sequence, but -J screws with grouping
+  zparseopts -A opts -D -E -- / a J:
+  copts=( "$@" )
+
+  (( $+opts[-/] )) || {
+    tmp=( ${(s<,>)PGHOST} $${(s<,>)PGHOSTADDR} )
+    (( $#tmp )) && alts+=(
+      "hosts:PostgreSQL server host:(${(j< >)${(@uq-)tmp}})"
+    )
+    alts=( 'hosts:PostgreSQL server host:_hosts' )
+  }
+  (( $+opts[-/] || $+opts[-a] )) && alts+=(
+    'directories:PostgreSQL UNIX-domain socket directory:_directories'
+  )
+
+  _alternative -O copts $alts
+}
+
+# Complete sequence of PostgreSQL host addresses and directories
+(( $+functions[__pgsql_hosts_seq] )) ||
+__pgsql_hosts_seq() {
+  local -a opts
+  zparseopts -a opts -D -E -- / a
+  _sequence "$@" -s , __pgsql_hosts "${(@)opts}"
+}
+
+# Complete PostgreSQL server port numbers
+(( $+functions[__pgsql_ports] )) ||
+__pgsql_ports() {
+  local -a tmp=(
+    $PGPORT $PGPORTOLD $PGPORTNEW
+    5432 # Customary
+    /tmp/.s.PGSQL.<->(#qN:e) # Customary
+    /var/run/postgresql/.s.PGSQL.<->(#qN:e) # Debian/Ubuntu
+    /var/pgsql_socket/.s.PGSQL.<->(#qN:e) # Weird macOS systems
+    /var/lib/pgsql/.s.PGSQL.<->(#qN:e) # Weird Linux systems
+    /var/lib/postgresql/.s.PGSQL.<->(#qN:e) # Weird Linux systems
+  )
+  tmp=( ${(onu)tmp} )
+  _wanted -2V ports expl 'PostgreSQL server port' compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL special variables. This is brittle and over-engineered,
+# but it suits the purpose for now
+# --pset => complete \pset options
+# --set  => complete \set options (default)
+(( $+functions[__pgsql_variables] )) ||
+__pgsql_variables() {
+  local which tmp2
+  local -a expl tmp
+  local -A opts
+
+  zparseopts -A opts -D -E -- -pset -set
+
+  if (( $+opts[--pset] )); then
+    which=--pset
+  else
+    which=--set
+  fi
+
+  __pgsql_call_psql -f tmp help-variables '' --help=variables
+  tmp+=( '' )
+
+  # `psql --help=variables` produces three sections like this:
+  #   psql variables:
+  #   Usage:
+  #     psql --set=NAME=VALUE
+  #     or \set NAME VALUE inside psql
+  #
+  #     AUTOCOMMIT ...
+  # Here, we strip up to the --set= line, then remove the next few lines so they
+  # don't confuse us
+  tmp2=${${(F)tmp}#*[[:space:]]${which}=*$'\n'}
+  [[ $tmp2 == [[:space:]]#or\ *  ]] && tmp2=${tmp2#*$'\n'}
+  [[ $tmp2 == [[:space:]]#$'\n'* ]] && tmp2=${tmp2#*$'\n'}
+  # Now we strip any following sections
+  tmp2=${tmp2%%$'\n\n'*}
+  # Now we extract the variable names
+  tmp=( ${(f)tmp2} )
+  tmp=( ${(M)tmp:#\ \ [^[:space:]]##((#e)|[[:space:]]*)} )
+  tmp=( ${(@)tmp#\ \ } )
+  tmp=( ${(@)tmp%%[[:space:]]*} )
+
+  _wanted -x variables expl 'PostgreSQL special variable' \
+    compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL special variables (name=value format)
+(( $+functions[__pgsql_variables_values] )) ||
+__pgsql_cfg_variables_values() {
+  if compset -P '*='; then
+    _message -e values 'PostgreSQL special-variable value'
+  else
+    compset -S '=*'
+    __pgsql_variables "$@" -qS=
+  fi
+}
+
+# Complete PostgreSQL databases
+(( $+functions[__pgsql_databases] )) ||
+__pgsql_databases() {
+  local conninfo
+  local -a expl tmp
+
+  __pgsql_get_conninfo -O dbname
+  __pgsql_call_psql tmp databases "$conninfo" -c '
+    SELECT datname
+    FROM   pg_catalog.pg_database;
+  '
+  # We can probably just assume that template0/1 will always exist; it's useful
+  # for database creation, anyway
+  tmp+=( $PGDATABASE template0 template1 )
+
+  _wanted databases expl 'PostgreSQL database' compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL indexes
+(( $+functions[__pgsql_indexes] )) ||
+__pgsql_indexes() {
+  local conninfo
+  local -a expl tmp
+
+  __pgsql_get_conninfo
+  __pgsql_call_psql tmp indexes "$conninfo" -c '
+    SELECT indexname
+    FROM   pg_catalog.pg_indexes;
+  '
+
+  _wanted -x indexes expl 'PostgreSQL index' compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL roles/users
+# -a => include non-user (NOLOGIN) roles
+(( $+functions[__pgsql_roles] )) ||
+__pgsql_roles() {
+  local conninfo which=role where
+  local -a expl tmp
+  local -A opts
+
+  zparseopts -A opts -D -E -- a
+  (( $+opts[-a] )) || {
+    which=user
+    where='WHERE rolcanlogin = true'
+  }
+
+  __pgsql_get_conninfo -O user
+  __pgsql_call_psql tmp users "$conninfo" -c "
+    SELECT rolname
+    FROM   pg_catalog.pg_roles
+    $where;
+  "
+  tmp+=( $PGUSER )
+
+  _wanted -x users expl "PostgreSQL $which" compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL schemas
+(( $+functions[__pgsql_schemas] )) ||
+__pgsql_schemas() {
+  local conninfo
+  local -a expl tmp
+
+  __pgsql_get_conninfo
+  __pgsql_call_psql tmp schemas "$conninfo" -c "
+    SELECT nspname
+    FROM   pg_catalog.pg_namespace
+    WHERE  nspname NOT LIKE 'pg_%'
+    AND    nspname != 'information_schema';
+  "
+  # Again, safe to assume this exists
+  tmp+=( public )
+
+  _wanted schemas expl 'PostgreSQL schema' compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL tables
+(( $+functions[__pgsql_tables] )) ||
+__pgsql_tables() {
+  local conninfo
+  local -a expl tmp
+
+  __pgsql_get_conninfo
+  __pgsql_call_psql tmp tables "$conninfo" -c "
+    SELECT    n.nspname || '.' || c.relname
+    FROM      pg_catalog.pg_class AS c
+    LEFT JOIN pg_catalog.pg_namespace AS n
+    ON        n.oid = c.relnamespace
+    WHERE     c.relkind in ('r', '')
+    AND       n.nspname != 'pg_catalog'
+    AND       n.nspname != 'information_schema'
+    AND       n.nspname NOT LIKE 'pg_toast%'
+    AND       pg_catalog.pg_table_is_visible(c.oid);
+  "
+
+  _wanted -x tables expl 'PostgreSQL table' compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL tablespaces
+(( $+functions[__pgsql_tablespaces] )) ||
+__pgsql_tablespaces() {
+  local conninfo
+  local -a expl tmp
+
+  __pgsql_get_conninfo
+  __pgsql_call_psql tmp tablespaces "$conninfo" -c '
+    SELECT spcname
+    FROM   pg_catalog.pg_tablespace;
+  '
+  # Again, safe to assume these exist
+  tmp+=( pg_default pg_global )
+
+  _wanted tablespaces expl 'PostgreSQL tablespace' compadd -a "$@" - tmp
+}
+
+# Complete PostgreSQL text-search configurations
+(( $+functions[__pgsql_ts_configs] )) ||
+__pgsql_ts_configs() {
+  local conninfo
+  local -a expl tmp
+
+  __pgsql_get_conninfo
+  __pgsql_call_psql tmp ts-configs "$conninfo" -c "
+    SELECT    n.nspname || '.' || t.cfgname
+    FROM      pg_catalog.pg_ts_config AS t
+    LEFT JOIN pg_catalog.pg_namespace AS n
+    ON        t.cfgnamespace = n.oid;
+  "
+  # We'll assume these exist since this tends to be needed on cluster init
+  tmp+=( pg_catalog.simple pg_catalog.english )
+
+  _wanted ts-configs expl 'PostgreSQL text-search configuration' \
+    compadd -a "$@" - tmp
+}
+
+# Complete clusterdb command
+(( $+functions[_pgsql_clusterdb] )) ||
+_pgsql_clusterdb() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options (not actually usable with --all)
+    $common_opts_connm
+    + '(d)' # Database connection options
+    '(a o)'{-d+,--dbname=}'[specify database name]: :__pgsql_databases'
+    + C # Misc. common options
+    $common_opts_echo
+    # -q and -v are NOT exclusive
+    '(-q --quiet)'{-q,--quiet}'[do not display progress messages]'
+    '(-v --verbose)'{-v,--verbose}'[display detailed information during processing]'
+    + a # --all-mode options
+    '(c d n -a --all)'{-a,--all}'[reindex all databases]'
+    + n # Normal-mode options
+    '(a)*'{-t+,--table=}'[cluster specified table only]: :__pgsql_tables'
+    + o # Operands
+    '(a d)1: :__pgsql_databases'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete createdb command
+(( $+functions[_pgsql_createdb] )) ||
+_pgsql_createdb() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options
+    $common_opts_connm
+    + l # Locale options
+    '(l)'{-l+,--locale=}'[specify locale (both LC_COLLATE and LC_CTYPE)]: :_locales'
+    '(-l --locale)--lc-collate=[specify LC_COLLATE setting]: :_locales'
+    '(-l --locale)--lc-ctype=[specify LC_CTYPE setting]: :_locales'
+    + o # Other arguments
+    $common_opts_echo
+    '(-D --tablespace)'{-D+,--tablespace=}'[specify default tablespace]: :__pgsql_tablespaces'
+    '(-E --encoding)'{-E+,--encoding=}'[specify character encoding]: :__pgsql_encodings'
+    '(-O --owner)'{-O+,--owner=}'[specify owner]: :__pgsql_roles -a'
+    '(-T --template)'{-T+,--template=}'[specify template database to build from]: :__pgsql_databases'
+    # Possibly not useful to complete existing databases here
+    '1: :__pgsql_databases'
+    '2: :_guard "^-*" "database description"'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete createuser command
+(( $+functions[_pgsql_createuser] )) ||
+_pgsql_createuser() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options
+    $common_opts_conn
+    + '(d)' # CREATEDB options
+    {-d,--createdb}'[grant ability to create new databases (CREATEDB)]'
+    {-D,--no-createdb}'[do not grant ability to create new databases (NOCREATEDB)]'
+    + '(i)' # INHERIT options
+    {-i,--inherit}'[grant automatic privilege inheritance from role memberships (INHERIT)]'
+    {-I,--no-inherit}'[do not grant automatic privilege inheritance from role memberships (NOINHERIT)]'
+    + '(l)' # LOGIN options
+    {-l,--login}'[grant ability to log in as user (LOGIN)]'
+    {-L,--no-login}'[do not grant ability to log in as user (NOLOGIN)]'
+    + '(r)' # CREATEROLE options
+    {-r,--createrole}'[grant ability to create new roles (CREATEROLE)]'
+    {-R,--no-createrole}'[do not grant ability to create new roles (NOCREATEROLE)]'
+    + '(R)' # REPLICATION options
+    '--replication[grant replication privileges (REPLICATION)]'
+    '--no-replication[do not grant replication privileges (NOREPLICATION)]'
+    + '(s)' # SUPERUSER options
+    {-s,--superuser}'[grant super-user privileges (SUPERUSER)]'
+    {-S,--no-superuser}'[do not grant super-user privileges (NOSUPERUSER)]'
+    + o # Other arguments
+    $common_opts_echo
+    '(-c --connection-limit)'{-c+,--connection-limit=}'[specify connection limit for new role]:number of connections'
+    # No effect, kept for backwards compatibility
+    '!'{-E,--encrypted}
+    '*'{-g+,--role=}'[grant membership to specified role]: :__pgsql_roles -a'
+    '--interactive[prompt for settings not specified on command line]'
+    '(-P --pwprompt)'{-P,--pwprompt}'[prompt for new user password]'
+    # Again, possibly not useful to complete these
+    '1: :__pgsql_roles'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete dropdb command
+(( $+functions[_pgsql_dropdb] )) ||
+_pgsql_dropdb() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options
+    $common_opts_connm
+    + o # Other arguments
+    $common_opts_echo
+    '(-i --interactive)'{-i,--interactive}'[prompt for confirmation]'
+    '--if-exists[skip non-existent database]'
+    '1: :__pgsql_databases'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete dropuser command
+(( $+functions[_pgsql_dropuser] )) ||
+_pgsql_dropuser() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options
+    $common_opts_conn
+    + o # Other arguments
+    $common_opts_echo
+    '(-i --interactive)'{-i,--interactive}'[prompt for confirmation (and user name if not specified)]'
+    '--if-exists[skip non-existent user]'
+    # We could use -a here, but it seems questionable
+    '1: :__pgsql_roles'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete initdb command
+(( $+functions[_pgsql_initdb] )) ||
+_pgsql_initdb() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + '(l)' # Locale options (general)
+    {-l+,--locale=}'[specify locale (all categories)]: :_locales'
+    '--no-locale[equivalent to --locale=C]'
+    + lc # Locale options (specific) -- unlike createdb, NOT exclusive with -l
+    '--lc-collate=[specify LC_COLLATE setting]: :_locales'
+    '--lc-ctype=[specify LC_CTYPE setting]: :_locales'
+    '--lc-messages=[specify LC_MESSAGES setting]: :_locales'
+    '--lc-monetary=[specify LC_MONETARY setting]: :_locales'
+    '--lc-numeric=[specify LC_NUMERIC setting]: :_locales'
+    '--lc-time=[specify LC_TIME setting]: :_locales'
+    + o # Other arguments
+    '(-A --auth)'{-A+,--auth=}'[specify authentication method (local and host)]: :__pgsql_auth_methods'
+    '--auth-host=[specify host (TCP/IP) authentication method]: :__pgsql_auth_methods'
+    '--auth-local=[specify local authentication method]: :__pgsql_auth_methods'
+    '(-d --debug)'{-d,--debug}'[output debug information]'
+    '(1 -D --pgdata)'{-D+,--pgdata=}'[specify data directory]:data directory:_directories'
+    '(-E --encoding)'{-E+,--encoding=}'[specify default character encoding]: :__pgsql_encodings'
+    '(-k --data-checksums)'{-k,--data-checksums}'[enable checksums on data pages]'
+    '-L+[specify input-file directory]:input-file directory:_directories'
+    '(-n --no-clean)'{-n,--no-clean}'[do not clean up after errors]'
+    '(-N --no-sync)'{-N,--no-sync}'[do not wait for disk sync]'
+    '(-W --pwprompt)--pwfile=[read super-user password from specified file]:password file:_files'
+    # This should be exclusive with everything but -D/1
+    '(-S --sync-only)'{-S,--sync-only}'[safely write all database files and exit]'
+    '(-T --text-search-config)'{-T+,--text-search-config=}'[specify default text-search configuration]: :__pgsql_ts_configs'
+    # We could just use the OS user name here, idk
+    '(-U --username)'{-U+,--username=}'[specify super-user name]: :__pgsql_roles'
+    '(-W --pwfile --pwprompt)'{-W,--pwprompt}'[prompt for super-user password]'
+    '(-X --waldir)'{-X+,--waldir=}'[specify write-ahead log directory]:write-ahead log directory:_directories'
+    '(-D --pgdata)1:database data directory:_directories'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete pg_config command
+(( $+functions[_pgsql_pg_config] )) ||
+_pgsql_pg_config() {
+  local -a args=(
+    + x # Exclusive options
+    ${(@M)common_opts_excl:#*(-\?|--help)*}
+    + o # Other options
+    ${(@)${(@M)common_opts_excl:#*--version*}#\(*\)}
+    '--bindir[display location of user executables]'
+    '--cc[display C compiler (CC) used during build]'
+    '--cflags[display C compiler flags (CFLAGS) used during build]'
+    '--cflags_sl[display C compiler flags for shared libraries (CFLAGS_SL) used during build]'
+    '--configure[display configure options used during build]'
+    '--cppflags[display C preprocessor flags (CPPFLAGS) used during build]'
+    '--docdir[display location of documentation files]'
+    '--htmldir[display location of HTML documentation files]'
+    '--includedir[display location of C header files for client interfaces]'
+    '--includedir-server[display location of C header files for server interfaces]'
+    '--ldflags[display linker flags (LDFLAGS) used during build]'
+    '--ldflags_ex[display linker flags used executables (LDFLAGS_EX) used during build]'
+    '--ldflags_sl[display linker flags used shared libraries (LDFLAGS_SL) used during build]'
+    '--libs[display linker flags for external libraries (LIBS) used during build]'
+    '--libdir[display location of library object files]'
+    '--localedir[display location of locale support files]'
+    '--mandir[display location of manual pages]'
+    '--pgxs[display location of extension makefiles]'
+    '--pkgincludedir[display location of other C header files]'
+    '--pkglibdir[display location of module object files]'
+    '--sharedir[display location of architecture-independent support files]'
+    '--sysconfdir[display location of system-wide configuration files]'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete pg_ctl command
+# @todo Exclusivity isn't great here -- it's annoying to handle properly
+# because pg_ctl accepts options interspersed with the sub-command name
+(( $+functions[_pgsql_pg_ctl] )) ||
+_pgsql_pg_ctl() {
+  local -a cmds modes args
+
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+
+  cmds=(
+    {init,initdb}'\:initialize database cluster'
+    'kill\:kill process'
+    'promote\:promote database server from stand-by to read/write mode'
+    'reload\:reload database-server configuration'
+    'restart\:restart database server'
+    'start\:start database server'
+    'status\:check status of database server'
+    'stop\:stop database server'
+  )
+  modes=(
+    {f,fast}'\:shut down cleanly, but without waiting for clients to disconnect'
+    {i,immediate}'\:shut down immediately and uncleanly'
+    {s,smart}'\:shut down cleanly after waiting for clients to disconnect'
+  )
+  args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + nk # Non-kill options
+    '(-D --pgdata)'{-D+,--pgdata=}'[specify data directory]:data directory:_directories'
+    + nks # Non-kill/status options
+    '(-s --silent)'{-s,--silent}'[suppress informational messages]'
+    + ikprs # Wait options
+    '(-t -W --no-wait --timeout)'{-t+,--timeout=}'[specify time-out interval (with -w)]:time-out interval (seconds)'
+    '(-w -W --no-wait --wait)'{-w,--wait}'[wait for operation to complete]'
+    '(-t -w -W --no-wait --timeout --wait)'{-W,--no-wait}'[do not wait for operation to complete]'
+    + isr # init/start/restart options
+    '*'{-o+,--options=}'[specify command-line options to initdb/postgres]:initdb/postgres command-line options'
+    '-p+[specify path to initdb/postgres executable]:initdb/postgres executable:_files -g "*(#q*)"'
+    + sr # start/restart options
+    '(-c --core-files)'{-c,--core-files}'[produce core files (where supported)]'
+    '(-l --log)'{-l+,--log=}'[log to specified file]:log file:_files'
+    + tr # stop/restart options
+    '(-m --mode)'{-m+,--mode=}"[specify shut-down mode]:shut-down mode:((${(j< >)${(@qq)modes}}))"
+    + o # Operands
+    "1:pg_ctl sub-command:((${(j< >)${(@qq)cmds}}))"
+  )
+  [[ -n ${words[(r)*kill*]} ]] && args+=( '2: :_pids' )
+
+  _arguments -s -S : $args
+}
+
+# Complete pg_dump/pg_dumpall commands
+(( $+functions[_pgsql_pg_dump] )) ||
+_pgsql_pg_dump() {
+  local -a fmts args
+
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+
+  fmts=(
+    {p,plain}'\:plain-text SQL script'
+    {c,custom}'\:custom-format archive'
+    {d,directory}'\:directory-format archive'
+    {t,tar}'\:tar-format archive'
+  )
+  args+=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options
+    $common_opts_conn
+    '--role=[specify role used to create dump]: :__pgsql_roles -a'
+  )
+  # pg_dump-specific connection options
+  [[ $service == pg_dump ]] && args+=(
+    '(1 -d --dbname)'{-d+,--dbname=}'[specify database name]: :__pgsql_databases'
+    # @todo Complete this properly
+    '(-d --dbname)1:PostgreSQL database name, conninfo string, or URI:__pgsql_databases'
+  )
+  # pg_dumpall-specific connection options
+  [[ $service == pg_dumpall ]] && args+=(
+    # Despite the name, -d here this actually takes a conninfo string
+    # @todo Complete this
+    '(1 -d --dbname)'{-d+,--dbname=}'[specify conninfo string]:conninfo string'
+    '(l --database)'{-l+,--database=}'[specify maintenance database name]: :__pgsql_databases'
+  )
+  args+=(
+    + '(ds)' # Data/schema options
+    '(-c --clean)'{-a,--data-only}'[dump only data (not schema/definitions)]'
+    {-s,--schema-only}'[dump only schema/definitions (not data)]'
+    + '(in)' # Insert options
+    '(-o --oids)--column-inserts[output INSERT command with explicit column names for each row]'
+    # Equivalent to above?
+    '!(-o --oids)--attribute-inserts'
+    '(-o --oids)--inserts[output INSERT command for each row]'
+  )
+  [[ $service == pg_dumpall ]] && args+=(
+    + '(grt)' # Globals/roles/tablespaces options
+    {-g,--globals-only}'[dump only roles and tablespaces (not databases)]'
+    {-r,--roles-only}'[dump only roles (not databases or tablespaces)]'
+    {-t,--tablespaces-only}'[dump only tablespaces (not databases or roles)]'
+  )
+  # It would be nice to add '(with -Fp)' and so on where applicable, but it's
+  # tedious because of pg_dumpall
+  args+=(
+    + o # Other options
+    '(-a -c --clean --data-only)'{-c,--clean}'[output commands to clean objects before creating them]'
+    '(-o --oids in)'{-o,--oids}'[dump table object IDs]'
+    '(-O --no-owner)'{-O,--no-owner}'[do not output commands to set ownership of objects]'
+    '(-S --superuser)'{-S+,--superuser=}'[specify super-user name]: :__pgsql_roles'
+    '(-v --verbose)'{-v,--verbose}'[output verbosely]'
+    '(-x --no-acl --no-privileges)'{-x,--no-acl,--no-privileges}'[do not dump access privileges]'
+    # Not meant for use by humans
+    '!--binary-upgrade'
+    '--disable-dollar-quoting[disable dollar-quoting of function bodies]'
+    '--disable-triggers[output commands to disable triggers before restoring (with -a)]'
+    '--if-exists[use conditional commands when cleaning objects (with -c)]'
+    '--lock-wait-timeout=[specify table-lock time-out interval]:time-out interval (milliseconds)'
+    '--no-publications[do not dump publications]'
+    '--no-security-labels[do not dump security labels]'
+    '--no-subscriptions[do not dump subscriptions]'
+    '--no-sync[do not wait for disk sync]'
+    '--no-tablespaces[do not output commands to select tablespaces]'
+    '--no-unlogged-table-data[do not dump data of unlogged tables]'
+    '--quote-all-identifiers[force quoting of all identifiers]'
+    '--use-set-session-authorization[output SET SESSION AUTHORIZATION commands to set ownership of objects]'
+  )
+  [[ $service == pg_dump ]] && args+=(
+    # -b and -B are NOT exclusive
+    '(-b --blobs)'{-b,--blobs}'[dump large objects]'
+    '(-B --no-blobs)'{-B,--no-blobs}'[do not dump large objects]'
+    '(-C --create)'{-C,--create}'[output commands to create and reconnect to database]'
+    '(-E --encoding)'{-E+,--encoding=}'[specify dump character encoding]: :__pgsql_encodings'
+    '(-f --file)'{-f+,--file=}'[dump to specified file (or directory with -Fd)]:dump file/directory:_files'
+    '(-F --format)'{-F+,--format=}"[dump using specified output format]:output format:((${(j< >)${(@qq)fmts}}))"
+    '(-j --jobs)'{-j+,--jobs=}'[dump specified number of tables in parallel (with -Fd)]:number of jobs/tables'
+    '*'{-n+,--schema=}'[dump only objects in schema matching specified pattern]: :__pgsql_schemas'
+    '*'{-N+,--exclude-schema=}'[do not dump objects in schema matching specified pattern]: :__pgsql_schemas'
+    # No effect, kept for backwards compatibility
+    '!'{-R,--no-reconnect}
+    '*'{-t+,--table=}'[dump only tables matching specified pattern]: :__pgsql_tables'
+    '*'{-T+,--exclude-table=}'[do not dump tables matching specified pattern]: :__pgsql_tables'
+    '(-Z --compress)'{-Z+,--compress=}"[specify output compression level]:compression level:(${(j< >):-{0..9}})"
+    '--enable-row-security[dump with row security enabled]'
+    '*--exclude-table-data=[do not dump data for tables matching specified pattern]: :__pgsql_tables'
+    '--no-synchronized-snapshots[support -j with pre-9.2 servers]'
+    '*--section=[dump only specified section]:section:(pre-data data post-data)'
+    '--serializable-deferrable[dump using serializable transaction, avoiding failure]'
+    # @todo Complete this
+    '--snapshot=[dump from specified snapshot]: :__pgsql_snapshots'
+    '--strict-names[require -n/-t patterns to match at least one schema/table]'
+  )
+  [[ $service == pg_dumpall ]] && args+=(
+    '(-f --file)'{-f+,--file=}'[dump to specified file]:dump file:_files'
+    '--no-role-passwords[do not dump passwords for roles]'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete pg_isready command
+(( $+functions[_pgsql_pg_isready] )) ||
+_pgsql_pg_isready() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options
+    ${(@)common_opts_conn:#*--*password*}
+    # @todo Complete this properly
+    '(-d --dbname)'{-d+,--dbname=}'[specify database name, conninfo string, or URI]:PostgreSQL database name, conninfo string, or URI:__pgsql_databases'
+    '(-t --timeout)'{-t+,--timeout=}'[specify time-out interval]:time-out interval (seconds)'
+    + C # Misc. common options
+    '(-q --quiet)'{-q,--quiet}'[suppress normal output]'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete pg_restore command
+(( $+functions[_pgsql_pg_restore] )) ||
+_pgsql_pg_restore() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a fmts=(
+    # Plain-text is intentionally missing here
+    {c,custom}'\:custom-format archive'
+    {d,directory}'\:directory-format archive'
+    {t,tar}'\:tar-format archive'
+  )
+  # It probably isn't that helpful to complete indexes, &c., from existing
+  # databases, but oh well
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options
+    $common_opts_conn
+    '(-d --dbname)'{-d+,--dbname=}'[restore to specified database]: :__pgsql_databases'
+    '--role=[specify role used to perform restore]: :__pgsql_roles -a'
+    + '(ds)' # Data/schema options
+    '(-c --clean)'{-a,--data-only}'[restore only data (not schema/definitions)]'
+    {-s,--schema-only}'[restore only schema/definitions (not data)]'
+    + o # Other arguments
+    '(-1 --single-transaction)'{-1,--single-transaction}'[perform restore as a single transaction]'
+    '(-a -c --clean --data-only)'{-c,--clean}'[clean objects before creating them]'
+    '(-C --create)'{-C,--create}'[create database before restoring to it]'
+    '(-e --exit-on-error)'{-e,--exit-error}'[exit immediately on error]'
+    '(-f --file)'{-f+,--file=}'[specify output file for generated script or listing]:output file:_files'
+    '(-F --format)'{-F+,--format=}"[specify archive format]:archive format:((${(j< >)${(@qq)fmts}}))"
+    '*'{-I+,--index=}'[restore only definition of specified index]: :__pgsql_indexes'
+    '(-j --jobs)'{-j+,--jobs=}'[restore in parallel with specified number of jobs]:number of jobs'
+    '(-l --list)'{-l,--list}'[list archive table of contents]'
+    '(-L --use-list)'{-L+,--use-list=}'[restore only archive elements in specified list file]:list file:_files'
+    '*'{-n+,--schema=}'[restore only objects in specified schema]: :__pgsql_schemas'
+    '*'{-N+,--exclude-schema=}'[do not restore objects in specified schema]: :__pgsql_schemas'
+    '(-O --no-owner)'{-O,--no-owner}'[do not restore ownership of objects from archive]'
+    '*'{-P+,--function=}'[restore only the specified function]:PostgreSQL function'
+    # No effect, kept for backwards compatibility
+    '!'{-R,--no-reconnect}
+    '(-S --superuser)'{-S+,--superuser=}'[specify super-user name]: :__pgsql_roles'
+    '*'{-t+,--table=}'[restore only specified table]: :__pgsql_tables'
+    '*'{-T+,--trigger=}'[restore only specified trigger]:PostgreSQL trigger'
+    '(-v --verbose)'{-v,--verbose}'[output verbosely]'
+    '(-x --no-acl --no-privileges)'{-x,--no-acl,--no-privileges}'[do not dump access privileges]'
+    '--disable-triggers[disable triggers before restoring (with -a)]'
+    '--enable-row-security[restore with row security enabled]'
+    '--if-exists[use conditional commands when cleaning objects (with -c)]'
+    '--no-data-for-failed-tables[do not restore data if table creation failed]'
+    '--no-publications[do not restore publications]'
+    '--no-security-labels[do not restore security labels]'
+    '--no-subscriptions[do not restore subscriptions]'
+    '--no-tablespaces[do not restore tablespaces]'
+    '*--section=[dump only specified section]:section:(pre-data data post-data)'
+    '--strict-names[require -n/-t qualifiers to match at least one schema/table]'
+    '--use-set-session-authorization[use SET SESSION AUTHORIZATION commands to set ownership of objects]'
+    '1:archive file:_files'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete pg_upgrade command
+(( $+functions[_pgsql_pg_upgrade] )) ||
+_pgsql_pg_upgrade() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + o # Other options
+    '(-b --old-bindir)'{-b+,--old-bindir=}'[specify old executable directory]:old executable directory:_directories'
+    '(-B --new-bindir)'{-B+,--new-bindir=}'[specify new executable directory]:new executable directory:_directories'
+    '(-c --check)'{-c,--check}"[check clusters only (don't change any data)]"
+    '(-d --old-datadir)'{-d+,--old-datadir=}'[specify old data directory]:old data directory:_directories'
+    '(-D --new-datadir)'{-D+,--new-datadir=}'[specify new data directory]:new data directory:_directories'
+    '(-j --jobs)'{-j+,--jobs=}'[upgrade in parallel with specified number of jobs]:number of jobs'
+    '(-k --link)'{-k,--link}'[use hard links instead of copying files to new cluster]'
+    '*'{-o+,--old-options=}'[specify command-line options to old postgres]:old postgres command-line options'
+    '*'{-O+,--new-options=}'[specify command-line options to new postgres]:new postgres command-line options'
+    '(-p --old-port)'{-p+,--old-port=}'[specify old port number]:old port number:__pgsql_ports'
+    '(-P --new-port)'{-P+,--new-port=}'[specify new port number]:new port number:__pgsql_ports'
+    '(-r --retain)'{-r,--retain}'[retain SQL and log files even after successful completion]'
+    '(-U --username)'{-U+,--username=}'[specify cluster install user name]: :__pgsql_roles'
+    '(-v --verbose)'{-v,--verbose}'[log verbosely]'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete postgres/postmaster commands
+(( $+functions[_pgsql_postgres] )) ||
+_pgsql_postgres() {
+  local -a args
+
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  args=(
+    + x # Exclusive options
+    $common_opts_excl
+    '--describe-config[dump internal configuration variables, descriptions, and defaults]'
+    + o # Other options
+    '-B+[specify number of shared buffers used by server processes]:number of shared buffers'
+    '*-c+[set specified run-time configuration parameter]: :__pgsql_cfg_params_values'
+    '-C+[display value of specified run-time configuration parameter]: :__pgsql_cfg_params'
+    '-d+[specify debug level]:debug level:(0 1 2 3 4 5)'
+    '-D+[specify configuration directory]:PostgreSQL configuration directory:_directories'
+    '-e[set default date style to European (DMY)]'
+    '-F[disable fsync calls]'
+    '(-i)-h+[specify TCP/IP address to listen on]:listening addresses:__pgsql_hosts_seq'
+    '(-h)-i[allow remote connections via TCP/IP]'
+    '-k+[specify directory of UNIX-domain socket to listen on]:UNIX-domain socket directory:__pgsql_hosts_seq -/'
+    '-l[enable secure connections using SSL]'
+    '-N+[specify max number of client connections]:number of client connections'
+    '*-o+[specify extra command-line options to pass down to postgres]:postgres command-line options'
+    '-p+[specify TCP/IP port or UNIX-domain socket file extension to listen on]: :__pgsql_ports'
+    '-s[display time information and other statistics after each command]'
+    '-S+[specify amount of memory for sort/hash operations]:amount of memory'
+    # These are 'semi-internal' options that we don't really complete, but we'll
+    # account for them anyway
+    '!'{-f+,-n,-O,-P,-t+,-T,-v+,-W+}
+  )
+  # --single must be the first argument on the command line
+  (( CURRENT == 2 )) && args+=(
+    '--single[enter single-user mode]'
+  )
+  (( CURRENT > 2 )) && [[ ${(Q)words[2]} == --single ]] && args+=(
+    '-E[echo SQL commands to stdout]'
+    '-j[use semicolon followed by two newlines as command-entry terminator]'
+    '-r+[send server log output to specified file]:log file:_files'
+  )
+
+  _arguments -s -S : $args
+}
+
+# Complete psql command
+(( $+functions[_pgsql_psql] )) ||
+_pgsql_psql() {
+  local -a args=(
+    + x # Exclusive options
+    ${(@M)common_opts_excl:#*version*}
+    '(: * -)'{-\?,--help=-}'[display help information]::help topic:(commands options variables)'
+    + c # Connection options
+    ${(@)common_opts_conn/#\(-U/(2 -U}
+    '(1 -d --dbname)'{-d+,--dbname=}'[specify database name]: :__pgsql_databases'
+    # @todo Complete this properly
+    '(-d --dbname)1:PostgreSQL database name, conninfo string, or URI:__pgsql_databases'
+    # @todo This shouldn't be offered if the first operand isn't a dbname
+    '(-U --username)2: :__pgsql_roles'
+    + '(e)' # Echo options (ECHO variable)
+    {-a,--echo-all}'[echo all non-empty input lines back to stdout]'
+    {-b,--echo-errors}'[echo failed SQL commands to stderr]'
+    {-e,--echo-queries}'[echo SQL commands to stdout]'
+    + '(f)' # Format options
+    '(x)'{-A,--no-align}'[display results in unaligned format]'
+    '(sf sr)'{-H,--html}'[display results in HTML table format]'
+    + '(sf)' # Field-separator options
+    '(-H --html x)'{-F+,--field-separator=}'[specify field separator (with -A)]:field separator'
+    '(-H --html x)'{-z,--field-separator-zero}'[use NUL as field separator (with -A)]'
+    + '(sr)' # Record-separator options
+    '(-H --html x)'{-R+,--record-separator=}'[specify record separator (with -A)]:record separator'
+    '(-H --html x)'{-0,--record-separator-zero}'[use NUL as record separator (with -A)]'
+    + '(t)' # HTML-table options
+    '(-A --no-align sf sr)'{-T+,--table-attr=}'[specify HTML table attributes]:HTML attributes'
+    + '(x)' # Expanded-table-formatting options
+    '(-A --no-align sf sr)'{-x,--expanded}'[enable expanded table formatting]'
+    + o # Other options
+    '(-1 --single-transaction)'{-1,--single-transaction}'[wrap all commands in a single transaction (with -c/-f)]'
+    '*'{-c+,--command=}'[execute specified command string]:command string'
+    '(-E --echo-hidden)'{-E,--echo-hidden}'[echo queries generated by backslash commands]'
+    '*'{-f+,--file=}'[execute commands from specified file]:SQL file:_files'
+    # The documentation says that all other 'non-connection' options are ignored
+    # when this one is given... but it lies. There *are* several options that
+    # get ignored, but it's irritating to enumerate them
+    '(-l --list)'{-l,--list}'[display available databases]'
+    '(-L --log-file)'{-L+,--log-file=}'[also log query output to specified file]:log file:_files'
+    '(-n --no-readline)'{-n,--no-readline}'[do not use Readline for line editing and history]'
+    '(-o --output)'{-o+,--output=}'[write query output to specified file]:output file:_files'
+    '*'{-P+,--pset=}'[specify printing option]: :__pgsql_cfg_variables_values --pset'
+    '(-q --quiet)'{-q,--quiet}'[suppress informational output]'
+    '(-s --single-step)'{-s,--single-step}'[prompt before executing each command]'
+    '(-S --single-line)'{-S,--single-line}'[treat newlines as semicolons]'
+    '(-t --tuples-only)'{-t,--tuples-only}'[do not output columns names, row counts, etc.]'
+    '*'{-v+,--set=,--variable=}'[perform specified variable assignment]: :__pgsql_cfg_variables_values --set'
+    '(-X --no-psqlrc)'{-X,--no-psqlrc}'[do not read start-up files]'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete reindexdb command
+(( $+functions[_pgsql_reindexdb] )) ||
+_pgsql_reindexdb() {
+  (( CURRENT > 2 )) && local -a common_opts_excl=( '!---null' )
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options (not actually usable with --all)
+    $common_opts_connm
+    + '(d)' # Database connection options
+    '(a o)'{-d+,--dbname=}'[specify database name]: :__pgsql_databases'
+    + C # Misc. common options
+    $common_opts_echo
+    # -q and -v are NOT exclusive. -q only seems to affect --all mode
+    '(-q --quiet)'{-q,--quiet}'[do not display progress messages]'
+    '(-v --verbose)'{-v,--verbose}'[display detailed information during processing]'
+    + a # --all-mode options
+    '(c d n o s -a --all)'{-a,--all}'[reindex all databases]'
+    + n # Normal-mode options
+    '(a s)*'{-i+,--index=}'[re-create specified index only]: :__pgsql_indexes'
+    '(a s)*'{-S+,--schema=}'[reindex specified schema only]: :__pgsql_schemas'
+    '(a s)*'{-t+,--table=}'[reindex specified table only]: :__pgsql_tables'
+    + s # --system-mode options
+    '(a n -s --system)'{-s,--system}"[reindex database's system catalogs]"
+    + o # Operands
+    '(a d)1: :__pgsql_databases'
+  )
+  _arguments -s -S : $args
+}
+
+# Complete vacuumdb command
+(( $+functions[_pgsql_vacuumdb] )) ||
+_pgsql_vacuumdb() {
+  local -a args=(
+    + x # Exclusive options
+    $common_opts_excl
+    + c # Connection options (not actually usable with --all)
+    $common_opts_connm
+    + '(d)' # Database connection options
+    '(a o)'{-d+,--dbname=}'[specify database name]: :__pgsql_databases'
+    + C # Misc. common options
+    $common_opts_echo
+    '(-j --jobs)'{-j+,--jobs=}'[run specified number of vacuum/analyze commands in parallel]:number of jobs'
+    '--min-mxid-age=[specify minimum MXID age of tables to vacuum]:minimum MXID age'
+    '--min-xid-age=[specify minimum XID age of tables to vacuum]:minimum XID age'
+    '--skip-locked[skip relations that cannot be immediately locked]'
+    # -q and -v are NOT exclusive
+    '(-q --quiet)'{-q,--quiet}'[do not display progress messages]'
+    '(-v --verbose)'{-v,--verbose}'[display detailed information during processing]'
+    + f # Options incompatible with analyse-only options
+    '(Z)--disable-page-skipping[disable all page-skipping behavior]'
+    '(Z -f --full)'{-f,--full}'[perform full vacuum]'
+    '(Z -F --freeze)'{-F,--freze}'[aggressively freeze tuples]'
+    + '(z)' # Analyse options
+    {-z,--analyze}'[also calculate statistics for use by optimizer]'
+    + '(Z)' # Analyse-only options
+    '(f)'{-Z,--analyze-only}'[only calculate statistics for use by optimizer (no vacuum)]'
+    '(f)--analyze-in-stages[like -Z, but analyze in stages for faster results]'
+    + a # --all-mode options
+    '(c d n -a --all)'{-a,--all}'[reindex all databases]'
+    + n # Normal-mode options
+    # @todo When used with -z, &al., this accepts a column name in brackets. We
+    # don't complete that
+    '(a)*'{-t+,--table=}'[vacuum/analyze specified table(column) only]: :__pgsql_tables'
+    + o # Operands
+    '(a d)1: :__pgsql_databases'
+  )
+  _arguments -s -S : $args
+}
+
+# Router
+_postgresql() {
+  # Common exclusive options
+  local -a common_opts_excl=(
+    '(: * -)'{-\?,--help}'[display help information]'
+    '(: * -)'{-V,--version}'[display version information]'
+  )
+  # Common connection options
+  local -a common_opts_conn=(
+    '(-h --host)'{-h+,--host=}'[specify database server host or socket directory]: :__pgsql_hosts_seq -a'
+    '(-p --port)'{-p+,--port=}'[specify database server port]: :__pgsql_ports'
+    '(-U --username)'{-U+,--username=}'[specify user name to connect with]: :__pgsql_roles'
+    '(-w -W --no-password --password)'{-w,--no-password}'[never prompt for password on connect]'
+    '(-w -W --no-password --password)'{-W,--password}'[force prompt for password on connect]'
+  )
+  # Common connection options + --maintenance-db
+  local -a common_opts_connm=(
+    $common_opts_conn
+    '--maintenance-db=[specify maintenance database name]: :__pgsql_databases'
+  )
+  # Common echo options
+  local -a common_opts_echo=(
+    '(-e --echo)'{-e,--echo}'[echo generated commands to stdout]'
+  )
+
+  # Special case: pg_dumpall is handled as pg_dump
+  if [[ $service == pg_dumpall ]]; then
+    _pgsql_pg_dump "$@"
+  # Special case: postmaster is handled as postgres
+  elif [[ $service == postmaster ]]; then
+    _pgsql_postgres "$@"
+  elif (( $+functions[_pgsql_$service] )); then
+    _pgsql_$service "$@"
+  else
+    _message "unsupported PostgreSQL service: $service"
+    _default
+  fi
+}
+
+_postgresql "$@"

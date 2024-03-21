@@ -1,0 +1,222 @@
+# Starting with zsh-5.1, ZLE began to recognize the "bracketed paste"
+# capability of terminal emulators, that is, the sequences $'\e[200~' to
+# start a paste and $'\e[201~' to indicate the end of the pasted text.
+# Pastes are handled by the bracketed-paste widget and insert literally
+# into the editor buffer rather than being interpreted as keystrokes.
+# 
+# This disables some common usages where the self-insert widget has been
+# replaced in order to accomplish some extra processing.  An example is
+# the contributed url-quote-magic widget.  The bracketed-paste-magic
+# widget replaces bracketed-paste with a wrapper that re-enables these
+# self-insert actions, and other actions as selected by the zstyles
+# described below.
+# 
+# Setup:
+#       autoload -Uz bracketed-paste-magic
+#       zle -N bracketed-paste bracketed-paste-magic
+
+# The following zstyles may be set to control processing of pasted text.
+#
+# active-widgets
+#  Looked up in the context :bracketed-paste-magic to obtain a list of
+#  patterns that match widget names that should be activated during the
+#  paste.  All other key sequences are processed as "zle .self-insert".
+#  The default is 'self-*' so any user-defined widgets named with that
+#  prefix are active along with the builtin self-insert.  If this style is
+#  not set (note: it must be explicitly deleted after loading this
+#  function, otherwise it becomes set by default) or has no value, no
+#  widgets are active and the pasted text is inserted literally.  If the
+#  value includes undefined-key, any unknown sequences are discarded from
+#  the pasted text.
+#
+# inactive-keys
+#  This is the inverse of active-widgets, it lists key sequences that
+#  always use "zle .self-insert" even when bound to an active-widget.
+#  Note that this is a list of literal key sequences, not patterns.
+#  This style is in context :bracketed-paste-magic and has no default.
+#
+# paste-init
+# paste-finish
+#  Also looked up in the context :bracketed-paste-magic, these styles
+#  each are a list of function names.  They are executed in widget
+#  context but are called as functions (NOT as widgets with "zle name").
+#  As with hooks, the functions are called in order until one of them
+#  returns a nonzero exit status.  The parameter PASTED contains the
+#  current state of the pasted text, other ZLE parameters are as usual.
+#  Although a nonzero status stops each list of functions, it does NOT
+#  abort the entire paste operation; use "zle send-break" for that.
+
+# IMPORTANT:  During processing of the paste (after paste-init and
+# before paste-finish), BUFFER starts empty and history is restricted,
+# so cursor motions etc. may not pass outside of the pasted content.
+# However, the paste-init functions have access to the full history and
+# the original BUFFER, so they may for example move words from BUFFER
+# into PASTED to make those words visible to the active-widgets.
+
+# Establish default values for styles, but only if not already set
+zstyle -m :bracketed-paste-magic active-widgets '*' ||
+    zstyle ':bracketed-paste-magic' active-widgets 'self-*'
+
+# Helper/example paste-init for exposing a word prefix inside PASTED.
+# Useful with url-quote-magic if you have http://... on the line and
+# are pasting additional text on the end of the URL.
+#
+# Usage:
+#       zstyle :bracketed-paste-magic paste-init backward-extend-paste
+#
+# TODO: rewrite this using match-words-by-style
+#
+backward-extend-paste() {
+    emulate -L zsh
+    integer bep_mark=$MARK bep_region=$REGION_ACTIVE
+    if (( REGION_ACTIVE && MARK < CURSOR )); then
+	zle .exchange-point-and-mark
+    fi
+    if (( CURSOR )); then
+	local -a bep_words=( ${(z)LBUFFER} )
+	if [[ -n $bep_words[-1] &&  $LBUFFER = *$bep_words[-1] ]]; then
+	    PASTED=$bep_words[-1]$PASTED
+	    LBUFFER=${LBUFFER%${bep_words[-1]}}
+	fi
+    fi
+    if (( MARK > bep_mark )); then
+	zle .exchange-point-and-mark
+    fi
+    REGION_ACTIVE=$bep_region
+}
+
+# Example paste-finish for quoting the pasted text.
+#
+# Usage e.g.:
+#       zstyle :bracketed-paste-magic paste-finish quote-paste
+#       zstyle :bracketed-paste-magic:finish quote-style qqq
+#
+# Using "zstyle -e" to examine $PASTED lets you choose different quotes
+# depending on context.
+#
+# To forcibly turn off numeric prefix quoting, use e.g.:
+#       zstyle :bracketed-paste-magic:finish quote-style none
+#
+quote-paste() {
+    emulate -L zsh
+    local qstyle
+    # If there's a quoting style, be sure .bracketed-paste leaves it alone
+    zstyle -s :bracketed-paste-magic:finish quote-style qstyle && NUMERIC=1
+    case $qstyle in
+	(b) PASTED=${(b)PASTED};;
+	(q-) PASTED=${(q-)PASTED};;
+	(\\|q) PASTED=${(q)PASTED};;
+	(\'|qq) PASTED=${(qq)PASTED};;
+	(\"|qqq) PASTED=${(qqq)PASTED};;
+	(\$|qqqq) PASTED=${(qqqq)PASTED};;
+	(Q) PASTED=${(Q)PASTED};;
+    esac
+}
+
+# Now the actual function
+
+bracketed-paste-magic() {
+    if [[ "$LASTWIDGET" = *vi-set-buffer ]]; then
+	# Fast exit in the vi-mode cut-buffer context
+	zle .bracketed-paste
+	return
+    else
+	# Capture the pasted text in $PASTED
+	local PASTED REPLY
+	zle .bracketed-paste PASTED
+    fi
+
+    # Really necessary to go to this much effort?
+    local bpm_emulate="$(emulate)" bpm_opts="$-"
+
+    emulate -L zsh
+    local -a bpm_hooks bpm_inactive
+    local bpm_func bpm_active bpm_keymap=$KEYMAP
+
+    # Run the paste-init functions
+    if zstyle -a :bracketed-paste-magic paste-init bpm_hooks; then
+	for bpm_func in $bpm_hooks; do
+	    if (( $+functions[$bpm_func] )); then
+		function () {
+		    emulate -L $bpm_emulate; set -$bpm_opts
+		    $bpm_func || break
+		}
+	    fi
+	done
+    fi
+
+    zstyle -a :bracketed-paste-magic inactive-keys bpm_inactive
+    if zstyle -s :bracketed-paste-magic active-widgets bpm_active '|'; then
+	# Save context, create a clean slate for the paste
+	integer bpm_mark=$MARK bpm_region=$REGION_ACTIVE
+	integer bpm_numeric=${NUMERIC:-1}
+	integer bpm_limit=$UNDO_LIMIT_NO bpm_undo=$UNDO_CHANGE_NO
+	zle .split-undo
+	UNDO_LIMIT_NO=$UNDO_CHANGE_NO
+	BUFFER=
+	CURSOR=1
+	fc -p -a /dev/null 0 0
+	if [[ $bmp_keymap = vicmd ]]; then
+	    zle -K viins
+	fi
+
+	# There are active widgets.  Reprocess $PASTED as keystrokes.
+	NUMERIC=1
+	zle -U - "$PASTED"
+
+	# Just in case there are active undo widgets
+
+	while [[ -n $PASTED ]] && zle .read-command; do
+	    PASTED=${PASTED#$KEYS}
+	    if [[ $KEYS = ${(~j:|:)${(b)bpm_inactive}} ]]; then
+		zle .self-insert
+	    else
+		case $REPLY in
+		    (${~bpm_active}) function () {
+			emulate -L $bpm_emulate; set -$bpm_opts
+			zle $REPLY -w
+		    };;
+		    (*) zle .self-insert;;
+		esac
+	    fi
+	done
+	PASTED=$BUFFER
+
+	# Restore state
+	zle -K $bpm_keymap
+	fc -P
+	MARK=$bpm_mark
+	REGION_ACTIVE=$bpm_region
+	NUMERIC=$bpm_numeric
+	zle .undo $bpm_undo
+	UNDO_LIMIT_NO=$bpm_limit
+    fi
+
+    # PASTED has been updated, run the paste-finish functions
+    if zstyle -a :bracketed-paste-magic paste-finish bpm_hooks; then
+	for bpm_func in $bpm_hooks; do
+	    if (( $+functions[$bpm_func] )); then
+		function () {
+		    emulate -L $bpm_emulate; set -$bpm_opts
+		    $bpm_func || break
+		}
+	    fi
+	done
+    fi
+
+    # Reprocess $PASTED as an actual paste this time
+    zle -U - $PASTED$'\e[201~'	# append paste-end marker
+    zle .bracketed-paste -- "$@"
+    zle .split-undo
+
+    # Arrange to display highlighting if necessary
+    if [[ -z $zle_highlight || -n ${(M)zle_highlight:#paste:*} ]]; then
+	zle -R
+	zle .read-command && zle -U - "$KEYS"
+    fi
+}
+
+# Handle zsh autoloading conventions
+if [[ "$zsh_eval_context" = *loadautofunc && ! -o kshautoload ]]; then
+    bracketed-paste-magic "$@"
+fi

@@ -32,8 +32,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)vfs_syscalls.c	8.13 (Berkeley) 4/15/94
  */
 
 #include <sys/cdefs.h>
@@ -4899,7 +4897,8 @@ kern_copy_file_range(struct thread *td, int infd, off_t *inoffp, int outfd,
 		len = SSIZE_MAX;
 
 	/* Get the file structures for the file descriptors. */
-	error = fget_read(td, infd, &cap_read_rights, &infp);
+	error = fget_read(td, infd,
+	    inoffp != NULL ? &cap_pread_rights : &cap_read_rights, &infp);
 	if (error != 0)
 		goto out;
 	if (infp->f_ops == &badfileops) {
@@ -4910,7 +4909,8 @@ kern_copy_file_range(struct thread *td, int infd, off_t *inoffp, int outfd,
 		error = EINVAL;
 		goto out;
 	}
-	error = fget_write(td, outfd, &cap_write_rights, &outfp);
+	error = fget_write(td, outfd,
+	    outoffp != NULL ? &cap_pwrite_rights : &cap_write_rights, &outfp);
 	if (error != 0)
 		goto out;
 	if (outfp->f_ops == &badfileops) {

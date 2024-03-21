@@ -1,0 +1,123 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Glade 2 support.
+
+cat <<EOF > xg-gl-4-empty.glade
+<?xml version="1.0"?>
+<GTK-Interface/>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gl-4.pot xg-gl-4-empty.glade 2>/dev/null
+test $? = 0 || {
+  echo "Skipping test: xgettext was built without Glade support"
+  Exit 77
+}
+
+cat <<EOF > xg-gl-4.glade
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
+<!--Generated with glade3 3.4.3 on Sat May 16 19:53:48 2009 -->
+<glade-interface>
+  <widget class="GtkWindow" id="mainWindow">
+    <child>
+      <widget class="GtkButton" id="FormButton">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <property name="label" translatable="yes" comments="Form means shape here">Form</property>
+        <property name="response_id">0</property>
+      </widget>
+    </child>
+  </widget>
+</glade-interface>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gl-4.tmp xg-gl-4.glade || Exit 1
+func_filter_POT_Creation_Date xg-gl-4.tmp xg-gl-4.pot
+
+cat <<\EOF > xg-gl-4.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Form means shape here
+#: xg-gl-4.glade:11
+msgid "Form"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-gl-4.ok xg-gl-4.pot
+result=$?
+
+test $result = 0 || {
+    rm -fr $tempfiles; exit $result
+}
+
+cat <<EOF > xg-gl-4a.glade
+<?xml version="1.0"?>
+<glade-interface>
+  <!-- interface-requires gtk+ 2.6 -->
+  <!-- interface-naming-policy toplevel-contextual -->
+  <widget class="GtkWindow" id="mainWindow">
+    <accessibility>
+      <atkproperty name="AtkObject::accessible-name" translatable="yes" comments="Also has comments">This window</atkproperty>
+    </accessibility>
+    <child>
+      <placeholder/>
+    </child>
+  </widget>
+</glade-interface>
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-gl-4a.tmp xg-gl-4a.glade || Exit 1
+func_filter_POT_Creation_Date xg-gl-4a.tmp xg-gl-4a.pot
+
+cat <<\EOF > xg-gl-4a.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Also has comments
+#: xg-gl-4a.glade:7
+msgid "This window"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-gl-4a.ok xg-gl-4a.pot
+result=$?
+
+exit $result

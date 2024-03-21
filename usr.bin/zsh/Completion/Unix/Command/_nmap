@@ -1,0 +1,78 @@
+#compdef nmap
+
+local curcontext="$curcontext" state line suf ret=1
+
+_arguments -C \
+  '!-sI:zombie host:_hosts' \
+  '!-P'{T,S,U}'+:port list' \
+  '*-s-[specify scan type]:scan type:((S\:TCP\ SYN\ scan T\:TCP\ connect\(\)\ scan F\:stealth\ FIN\ scan X\:stealth\ Xmas\ tree\ scan N\:stealth\ null\ scan P\:ping\ scanning U\:UDP\ scan O\:IP\ protocol\ scan I\:idle\ scan A\:ACK\ scan W\:window\ scan R\:RPC\ scan L\:list\ scan V\:version\ detection))' \
+  '-b[specify ftp relay host]:ftp relay host:_hosts' \
+  '*-P-[specify probe types and options]:probe type/options:->probe-opts' \
+  '-A[enable OS detection and version scanning]' \
+  '-O[enable remote OS identification]' \
+  '-6[enable IPv6 support]' \
+  '-I[enable TCP reverse ident scanning]' \
+  '-f[use tiny fragmented IP  packets]' \
+  '*-v[verbose mode]' \
+  '-h[show help information]' \
+  '*-o-[log results]:log format:->log-forms:log filename:_files' \
+  '--resume[resume cancelled scan]:log filename:_files' \
+  '--append-output[append results to any log files]' \
+  '-iL[read target specifications from file]:file:_files' \
+  '-iR[scan random hosts]:num hosts' \
+  '-p[specify ports to try]:port numbers' \
+  '-F[scan only ports listed in services file]' \
+  '-D[perform decoy scan]:host list:_sequence -s, _hosts' \
+  '-S[specify source address]:address:_hosts' \
+  '-e[specify interface to use]:network interface:_net_interfaces' \
+  '-g[specify source port number]:port number' \
+  '--data-length[add random data to packets]:data length' \
+  '(-R)-n[skip reverse DNS to speed things up]' \
+  '(-n)-R[always do reverse DNS on targets]' \
+  "-r[don't randomize order in which ports are scanned]" \
+  '-ttl[specify IPv4 time to live for sent packets]' \
+  '--randomize-hosts[scan hosts in random order]' \
+  '-M[specify maximum number of parallel TCP connects]:maximum TCP connects' \
+  '--packet-trace[show all packets sent in tcpdump-like format]' \
+  '--version-trace[show packets related to version scanning]' \
+  '--datadir[specify directory containing data files]:directory:_directories' \
+  '-T[specify timing policy]:timing policy:(Paranoid Sneaky Polite Normal Aggressive Insane)' \
+  '--host-timeout[specify maximum time for scanning a single host]:timeout (ms)' \
+  '--max-rtt-timeout[maximum time for a probe response]:timeout (ms)' \
+  '--min-rtt-timeout[minimum time to wait for a probe response]:time (ms)' \
+  '--initial-rtt-timeout[specify initial probe timeout]:timeout (ms)' \
+  '--max-parallelism[specify max number of scans to perform in parallel]:number' \
+  '--min-parallelism[scan at least specified number of ports in parallel]:number' \
+  '--scan-delay[specify minimum amount of time between probes]:delay (ms)' \
+  '--interactive[go into interactive mode]' \
+  '*:host:_hosts' && ret=0
+
+case $state in
+  probe-opts)
+    _values -S '' 'probe type/option' \
+      "0[don't try to ping hosts before scanning]" \
+      'T[use TCP "ping"]' \
+      'S[use SYN packets instead of ACK]' \
+      'U[send UDP probes]' \
+      'E[use a true ping]' \
+      'P[use an ICMP timestamp request]' \
+      'M[use a netmask request]' \
+      'B[use ACK and ICMP echo in parallel]' && ret=0
+  ;;
+  log-forms)
+    _values 'log format' \
+      'N[human readable (normal)]' \
+      'X[XML]' \
+      'G[grepable]' \
+      'A[all]' \
+      'S[S|<ipT kiDdI3]' && ret=0
+  ;;
+  host-list)
+    suf=()
+    compset -P '*,'
+    compset -S ',*' || suf=(-qS ,)
+    _hosts "$suf[@]" && ret=0
+  ;;
+esac
+   
+return ret

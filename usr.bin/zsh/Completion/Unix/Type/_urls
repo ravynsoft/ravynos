@@ -1,0 +1,182 @@
+#compdef -value-,WWW_HOME,-default- -P -value-,(ftp|http(|s))_proxy,-default-
+
+# Configuration styles used:
+#
+#  urls
+#    The path to a directory containing a URL database, such as:
+#
+#      % cd ~/.zsh/urls
+#      % find . -ls
+#      ... drwxr-xr-x ... 512 Sep  3 02:46 .
+#      ... drwxr-xr-x ... 512 Sep  3 02:48 ./http
+#      ... drwxr-xr-x ... 512 Sep  3 02:52 ./http/www.zsh.org
+#      ... drwxr-xr-x ... 512 Sep  3 03:01 ./http/www.zsh.org/mla
+#      ... drwxr-xr-x ... 512 Sep  3 03:01 ./http/www.zsh.org/mla/workers
+#      ... drwxr-xr-x ... 512 Sep  3 03:01 ./http/www.zsh.org/mla/workers/1999
+#      ... -rw-r--r-- ...   0 Sep  3 03:01 ./http/www.zsh.org/mla/workers/1999/index.html
+#      ... drwxr-xr-x ... 512 Sep  3 02:48 ./http/sunsite.dk
+#      ... drwxr-xr-x ... 512 Sep  3 02:48 ./http/sunsite.dk/zsh
+#      ... drwxr-xr-x ... 512 Sep  3 02:47 ./bookmark
+#      ... drwxr-xr-x ... 512 Sep  3 02:48 ./bookmark/zsh
+#      ... -rw-r--r-- ...  27 Sep  3 02:47 ./bookmark/zsh/home
+#      ... -rw-r--r-- ...  20 Sep  3 02:48 ./bookmark/zsh/meta
+#      % cat bookmark/zsh/home 
+#      http://sunsite.dk/zsh/
+#      % cat bookmark/zsh/meta
+#      http://www.zsh.org/
+#
+#    Alternatively it may contain the path to a normal file and the URLs will
+#    be taken from that.  Or the style may contain the URLs as its values.
+#
+#  local
+#    Specify a local web server as an array with three elements:
+#      <hostname> <doc root> <user area>
+#    where hostname is the name of the web server, doc root is the path to
+#    the default web pages for the server and user area is the directory
+#    name used by a user placing web pages within their home area.
+#    E.g.:
+#      zstyle ':completion:*:urls' local www /usr/local/apache/htdocs public_html
+
+local ipre scheme host user uhosts ret=1 expl match glob suf
+local localhttp
+zstyle -a ":completion:${curcontext}:urls" local localhttp
+local localhttp_servername="$localhttp[1]"
+local localhttp_documentroot="$localhttp[2]"
+local localhttp_userdir="$localhttp[3]"
+
+zstyle -a ":completion:${curcontext}:urls" urls urls
+
+if [[ $#urls -gt 1 || ( $#urls -eq 1 && ! -d $urls[1] ) ]]; then
+  [[ $#urls -eq 1 && -f $urls[1] ]] && urls=( $(< $urls[1]) )
+  _wanted urls expl 'URL' compadd "$@" -a urls && return 0
+  urls=()
+fi
+
+urls="$urls[1]"
+
+glob=(-g '*(^/)')
+zparseopts -D -K -E 'g:=glob'
+
+ipre="$IPREFIX"
+
+if ! compset -P '(#b)([-+.a-z0-9]#):'; then
+  _tags -C argument prefixes
+  while _tags; do
+    while _next_label prefixes expl 'URL prefix' -S '' "$@"; do
+      compset -S '[^:/]*' && compstate[to_end]=''
+      [[ -d $urls/bookmark ]] &&
+        compadd "$expl[@]" bookmark: && ret=0
+      compadd "$expl[@]" file: ftp:// gopher:// http:// https:// && ret=0
+    done
+    (( ret )) || return 0
+  done
+  return 1
+fi
+scheme="$match[1]"
+
+case "$scheme" in
+  (http(|s)|(|s)ftp|scp|gopher)
+    if ! compset -P //; then
+      _wanted -C "$scheme" prefixes expl 'end of prefix' compadd -S '' "$@" //
+      return
+    fi
+  ;;
+  file|unix)
+    [[ -prefix //(127.0.0.1|localhost)/ ]] && compset -P '//(127.0.0.1|localhost)'
+    [[ -prefix /// ]] && compset -P //
+    if ! compset -P //; then
+      _tags -C file files
+      while _tags; do
+        while _next_label files expl 'local file'; do
+          if [[ -prefix / ]]; then
+	    _path_files "$expl[@]" -S '' "${glob[@]}" && ret=0
+	    _path_files "$expl[@]" -S/ -r '/' -/ && ret=0
+          elif [[ -z "$PREFIX" ]]; then
+	    compadd -S '/' -r '/' "$expl[@]" "$@" - "${PWD%/}" && ret=0
+          fi
+        done
+	(( ret )) || return 0
+      done
+      return 1
+    fi
+  ;;
+  bookmark)
+    if [[ -f "$urls/$scheme/${(Q)PREFIX}${(Q)SUFFIX}" &&
+	  -s "$urls/$scheme/${(Q)PREFIX}${(Q)SUFFIX}" ]]; then
+      _wanted -C bookmark bookmarks expl bookmark \
+          compadd "$@" -U - \
+              "$ipre$(<"$urls/$scheme/${(Q)PREFIX}${(Q)SUFFIX}")" && ret=0
+    else
+      _tags -C bookmark files
+      while _tags; do
+        while _next_label files expl 'bookmark'; do
+          _path_files -W "$urls/$scheme" "$expl[@]" -S '' "${glob[@]}" && 
+              ret=0
+          _path_files -W "$urls/$scheme" -S/ -r '/' "$expl[@]" -/ && ret=0
+        done
+	(( ret )) || return 0
+      done
+    fi
+    return ret
+  ;;
+esac
+
+# Complete hosts
+if ! compset -P '(#b)([^:/]#)([:/])'; then
+  uhosts=($urls/$scheme/$PREFIX*$SUFFIX(/:t))
+
+  _tags hosts
+  while _tags; do
+    while _next_label hosts expl host; do
+      compset -S '[:/]*' || suf="/"
+      (( $#uhosts )) || _hosts -S "$suf" -r '/:' "$expl[@]" && ret=0
+      [[ "$scheme" = http ]] && uhosts=($uhosts $localhttp_servername)
+      compadd -S "$suf" -r '/:' "$expl[@]" -a uhosts && ret=0
+    done
+    (( ret )) || return 0
+  done
+  return 1
+fi
+host="$match[1]"
+
+[[ $match[2] = ':' ]] && ! compset -P '<->/' && _message -e ports 'port number' && return 0
+
+# Complete part after hostname
+
+_tags remote-files files || return 1
+
+if [[ "$localhttp_servername" = "$host" ]]; then
+  if compset -P \~; then
+    if ! compset -P '(#b)([^/]#)/'; then
+      _users -S/ "$@"
+      return
+    fi
+    user="$match[1]"
+    while _tags; do
+      while _next_label files expl 'local file'; do
+        _path_files "$expl[@]" "$@" -W ~$user/$localhttp_userdir "${glob[@]}" && ret=0
+        _path_files -S/ -r '/'  "$expl[@]" -W ~$user/$localhttp_userdir-/ && ret=0
+      done
+      (( ret )) || return 0
+    done
+  else
+    while _tags; do
+      while _next_label files expl 'local file'; do
+        _path_files "$expl[@]" "$@" -W $localhttp_documentroot "${glob[@]}" && ret=0
+        _path_files -S/ -r '/' "$expl[@]" -W $localhttp_documentroot -/ && ret=0
+      done
+      (( ret )) || return 0
+    done
+  fi
+else
+  while _tags; do
+    (( $#urls )) && while _next_label files expl 'local file'; do
+      _path_files "$expl[@]" "$@" -W $urls/$scheme/$host "${glob[@]}" && ret=0
+      _path_files -S/ -r '/' "$expl[@]" -W $urls/$scheme/$host -/ && ret=0
+    done
+    [[ $scheme = (scp|sftp) ]] && _requested remote-files &&
+        _remote_files -h $host -- ssh && ret=0
+    (( ret )) || return 0
+  done
+fi
+return $ret

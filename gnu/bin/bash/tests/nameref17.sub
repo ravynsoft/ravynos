@@ -1,0 +1,116 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test behavior of readonly namerefs and namerefs referencing readonly variables
+
+# readonly nameref variable referencing read-write global variable
+
+bar=one
+declare -rn foo0=bar
+unset foo0	# unsets bar
+declare -p bar
+unset -n foo0	# cannot unset
+declare -p foo0
+
+declare +r foo0		# modifies bar
+declare -p foo0 bar
+declare +r -n foo0	# error
+declare +n foo0		# error
+unset bar
+
+# readonly nameref variable without a value
+typeset -n foo1
+typeset -r foo1
+
+typeset -p foo1
+
+typeset foo1=bar		# error
+typeset +r foo1			# no-op, follows nameref chain to nothing
+typeset -p foo1
+
+# nameref pointing to read-only global variable
+foo2=bar
+typeset -n foo2
+typeset -r foo2			# changes bar
+
+typeset -p foo2 bar
+
+foo2=bar			# error?
+typeset +r foo2			# attempts to change bar, error
+typeset -p foo2 bar		# nameref unchanged
+
+# read-only nameref pointing to read-only global variable
+bar3=three
+declare -rn foo3=bar3
+unset foo3	# unsets bar3
+
+bar3=three
+declare -p bar3
+unset -n foo3	# cannot unset
+
+readonly bar3
+declare +r foo3		# error attempting to reference bar3
+declare -p foo3 bar3
+declare +r -n foo3	# error
+
+# readonly nameref pointing to read-write local -- can we remove nameref attr?
+func()
+{
+	typeset bar4=four
+
+	# readonly nameref
+	typeset -n -r foo4=bar4
+
+	typeset -p foo4 bar4
+
+	typeset +n foo4
+
+	typeset -p foo4
+}
+func
+unset -f func
+
+# readonly nameref pointing to read-write global -- can we remove nameref attr?
+bar4=four
+foo4=bar4
+# readonly nameref
+typeset -n foo4
+typeset -r -n foo4
+
+typeset -p foo4 bar4
+
+typeset +n foo4
+typeset -p foo4
+
+bar4=four
+: ${foo4=bar4}
+
+typeset -p foo4 bar4
+
+# readonly local nameref without a value -- can we remove nameref attribute?
+func()
+{
+	declare -r -n foo5
+	declare -p foo5
+	declare +n foo5
+	declare -p foo5
+}
+func
+unset -f func
+
+# readonly global nameref without a value -- can we remove nameref attribute?
+declare -n foo5
+declare -r -n foo5
+declare -p foo5
+declare +n foo5
+declare -p foo5

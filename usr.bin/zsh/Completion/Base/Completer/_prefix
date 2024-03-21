@@ -1,0 +1,67 @@
+#autoload
+
+# Try to ignore the suffix. A bit like e-o-c-prefix.
+
+[[ _matcher_num -gt 1 || -z "$SUFFIX" ]] && return 1
+
+local comp curcontext="$curcontext" tmp suf="$SUFFIX" \
+      _completer \
+      _matcher _c_matcher _matchers _matcher_num
+integer ind
+
+if ! zstyle -a ":completion:${curcontext}:" completer comp; then
+  comp=( "${(@)_completers[1,_completer_num-1]}" )
+  ind=${comp[(I)_prefix(|:*)]}
+  (( ind )) && comp=("${(@)comp[ind,-1]}")
+fi
+
+if zstyle -t ":completion:${curcontext}:" add-space; then
+  ISUFFIX=" $SUFFIX"
+else
+  ISUFFIX="$SUFFIX"
+fi
+SUFFIX=''
+
+local _completer_num=1
+
+for tmp in "$comp[@]"; do
+  if [[ "$tmp" = *:-* ]]; then
+    _completer="${${tmp%:*}[2,-1]//_/-}${tmp#*:}"
+    tmp="${tmp%:*}"
+  elif [[ $tmp = *:* ]]; then
+    _completer="${tmp#*:}"
+    tmp="${tmp%:*}"
+  else
+    _completer="${tmp[2,-1]//_/-}"
+  fi
+  curcontext="${curcontext/:[^:]#:/:${_completer}:}"
+
+  zstyle -a ":completion:${curcontext}:" matcher-list _matchers ||
+      _matchers=( '' )
+
+  _matcher_num=1
+  _matcher=''
+  for _c_matcher in "$_matchers[@]"; do
+    if [[ "$_c_matcher" == +* ]]; then
+      _matcher="$_matcher $_c_matcher[2,-1]"
+    else
+      _matcher="$_c_matcher"
+    fi
+
+    if [[ "$tmp" != _prefix ]] && "$tmp"; then
+      [[ compstate[nmatches] -gt 1 ]] && return 0
+      compadd -U -i "$IPREFIX" -I "$ISUFFIX" - "${compstate[unambiguous]%$suf}x"
+      compstate[list]=
+      if [[ -n $compstate[unambiguous] ]]; then
+        compstate[insert]=unambiguous
+      else
+        compstate[insert]=0
+      fi
+      return 0
+    fi
+    (( _matcher_num++ ))
+  done
+  (( _completer_num++ ))
+done
+
+return 1

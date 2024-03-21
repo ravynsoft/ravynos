@@ -1,0 +1,48 @@
+# Copyright (C) 2019-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+#
+# Solaris i386 tests
+#
+proc gas_64_check { } {
+    global NM
+    global NMFLAGS
+
+    set status [gas_host_run "$NM $NMFLAGS --help" ""]
+    return [regexp "targets:.*x86-64" [lindex $status 1]];
+}
+
+if [expr ([istarget "i*86-*-*"] || [istarget "x86_64-*-*"]) && [gas_64_check] && [istarget "*-*-solaris*"]] then {
+
+    global ASFLAGS
+    set old_ASFLAGS "$ASFLAGS"
+    set ASFLAGS "$ASFLAGS --64 --defsym x86_64=1 --strip-local-absolute"
+
+    run_dump_test "reloc64"
+    run_dump_test "x86-64-mpx-branch-1"
+    run_dump_test "x86-64-mpx-branch-2"
+
+    run_dump_test "x86-64-relax-2"
+    run_dump_test "x86-64-relax-3"
+
+    run_dump_test "x86-64-jump"
+
+    run_dump_test "x86-64-nop-3"
+    run_dump_test "x86-64-nop-4"
+    run_dump_test "x86-64-nop-5"
+
+    set ASFLAGS "$old_ASFLAGS"
+}

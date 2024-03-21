@@ -1,0 +1,26 @@
+#compdef uptime guptime
+
+local variant
+
+_pick_variant -r variant procps=procps gnu='Free Soft' unix --version
+
+case $variant in
+  procps)
+    _arguments -s -S : \
+      '(: -)'{-h,--help}'[display help information]' \
+      '(: -)'{-V,--version}'[display version information]' \
+      + '(excl)' \
+      {-p,--pretty}'[display uptime in pretty format]' \
+      {-s,--since}'[display date/time of system boot]'
+    return
+    ;;
+  gnu)
+    _arguments -S : \
+      '(: -)--help[display help information]' \
+      '(: -)--version[display version information]' \
+      '1:utmp/wtmp file:_files'
+    return
+    ;;
+  # *BSD, Darwin, Solaris, BusyBox
+  *) _message 'no more arguments'; return 1 ;;
+esac

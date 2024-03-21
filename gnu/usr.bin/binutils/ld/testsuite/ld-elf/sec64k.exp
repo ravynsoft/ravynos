@@ -1,0 +1,225 @@
+# Expect script for tests for >64k sections
+#   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Hans-Peter Nilsson (hp@axis.com)
+#
+
+# Exclude non-ELF targets.
+
+if ![is_elf_format] {
+    return
+}
+
+# Targets using _bfd_generic_final_link don't sort section symbols
+# before local symbols, so don't bother testing them.
+if { [is_generic] } {
+    return
+}
+
+# ft32, h8300, ip2k, m68hc11 and m68hc12 run out of address space.
+if {[istarget "ft32-*-*"]
+    || [istarget "h8300-*-*"]
+    || [istarget "ip2k-*-*"]
+    || [istarget "m68hc1*-*"] } {
+    return
+}
+
+# Test >64k sections, with and without -r.  First, create the assembly
+# files.  Have a relocation to another section and one within the local
+# section.
+
+set test1 "64ksec-r"
+set test2 "64ksec"
+
+if { ![runtest_file_p $runtests $test1] \
+	&& ![runtest_file_p $runtests $test2] } {
+    return
+}
+
+set sfiles {}
+set max_sec 66000
+set secs_per_file 1000
+for { set i 0 } { $i < $max_sec / $secs_per_file } { incr i } {
+    set sfile "./tmpdir/sec64-$i.s"
+    lappend sfiles $sfile
+    if [catch { set ofd [open $sfile w] } x] {
+	perror "$x"
+	unresolved $test1
+	unresolved $test2
+	return
+    }
+
+    if { $i == 0 } {
+	puts $ofd " .global start"
+	puts $ofd "start:"
+	puts $ofd " .global _start"
+	puts $ofd "_start:"
+	puts $ofd " .global __start"
+	puts $ofd "__start:"
+	puts $ofd " .global main"
+	puts $ofd "main:"
+	puts $ofd " .global _main"
+	puts $ofd "_main:"
+	puts $ofd " .global foo_0"
+	puts $ofd "foo_0: .dc.a 0"
+    }
+
+    # Make sure the used section is not covered by common linker scripts.
+    # They should get separate section entries even without -r.
+    puts $ofd " .altmacro"
+    puts $ofd " .macro sec secn, secp"
+    if {![istarget "frv-*-*linux*"]} then {
+	puts $ofd "  .section .foo.\\secn,\"ax\""
+    } else {
+	puts $ofd "  .section .foo.\\secn,\"aw\""
+    }
+    puts $ofd "  .global foo_\\secn"
+    puts $ofd "foo_\\secn:"
+    puts $ofd "  .dc.a foo_\\secp"
+    puts $ofd "bar_\\secn:"
+    puts $ofd "  .dc.a bar_\\secn"
+    puts $ofd " .endm"
+    if {![istarget "bfin-*-*"]} then {
+	puts $ofd " secn = [expr $i * $secs_per_file]"
+    } else {
+	puts $ofd " .set secn, [expr $i * $secs_per_file]"
+    }
+    puts $ofd " .rept $secs_per_file"
+    if {![istarget "bfin-*-*"]} then {
+	puts $ofd "  secn = secn + 1"
+    } else {
+	puts $ofd "  .set secn, secn + 1"
+    }
+    puts $ofd "  sec %(secn), %(secn-1)"
+    puts $ofd " .endr"
+
+    close $ofd
+}
+
+if [catch { set ofd [open "tmpdir/$test1.d" w] } x] {
+    perror "$x"
+    unresolved $test1
+    unresolved $test2
+    return
+}
+
+# The ld-r linked file will contain relocation-sections too, so make it
+# half the size in order to try and keep the test-time down.
+
+# The m32r target generates both REL and RELA relocs (for historical
+# reasons) so the expected number of sections will be much more than
+# 68000, which throws this particular test right off.
+if { ![istarget "m32r-*-*"] } then {
+    foreach sfile [lrange $sfiles 0 [expr [llength $sfiles] / 2]] {
+	puts $ofd "#source: $sfile"
+    }
+    #force z80 target to compile for eZ80 in ADL mode
+    if { [istarget "z80-*-*"] } then {
+	puts $ofd "#as: -ez80-adl"
+    }
+    puts $ofd "#ld: -r"
+    puts $ofd "#readelf: -W -wN -Ss"
+    puts $ofd "There are 680.. section headers.*:"
+    puts $ofd "#..."
+    puts $ofd "  \\\[ 0\\\] .* 680\[0-9\]\[0-9\]\[ \]+0\[ \]+0"
+    puts $ofd "#..."
+    puts $ofd "  \\\[ \[0-9\]\\\] \.foo\.1\[ \]+PROGBITS\[ \]+.*"
+    puts $ofd "#..."
+    puts $ofd "  \\\[65279\\\] (.rel\[a\]?)?\\.foo\\.\[0-9\]+ .*"
+    puts $ofd "  \\\[65280\\\] (.rel\[a\]?)?\\.foo\\.\[0-9\]+ .*"
+    puts $ofd "#..."
+    puts $ofd " 340..: 0+\[ \]+0\[ \]+SECTION\[ \]+LOCAL\[ \]+DEFAULT\[ \]+68... .*"
+    puts $ofd "#..."
+    puts $ofd " 340..: 0+(2|4|8)\[ \]+0\[ \]+NOTYPE\[ \]+LOCAL\[ \]+DEFAULT\[ \]+\[2-7\] bar_1$"
+    puts $ofd "#..."
+    puts $ofd ".* bar_34000$"
+    puts $ofd "#..."
+    # Global symbols are not in "alphanumeric" order, so we just check
+    # that the first and the last are present in any order (assuming no
+    # duplicates).
+    puts $ofd ".* (\[0-9\] foo_1|68... foo_34000)$"
+    puts $ofd "#..."
+    puts $ofd ".* (\[0-9\] foo_1|68... foo_34000)$"
+    puts $ofd "#pass"
+    close $ofd
+    run_dump_test "tmpdir/$test1"
+}
+
+if [catch { set ofd [open "tmpdir/$test2.d" w] } x] {
+    perror "$x"
+    unresolved $test2
+    return
+}
+
+# too big for avr, d10v and msp
+# lack of fancy orphan section handling causes overlap on fr30 and iq2000
+# bfin and lm32 complain about relocations in read-only sections
+if { ![istarget "d10v-*-*"]
+     && ![istarget "avr-*-*"]
+     && ![istarget "msp*-*-*"]
+     && ![istarget "fr30-*-*"] 
+     && ![istarget "iq2000-*-*"]
+     && ![istarget "bfin-*-linux*"]
+     && ![istarget "lm32-*-linux*"]
+     && ![istarget "pru-*-*"] } {
+    foreach sfile $sfiles { puts $ofd "#source: $sfile" }
+    if { [istarget spu*-*-*] } {
+	puts $ofd "#ld: --local-store 0:0"
+    } elseif { [istarget "i?86-*-linux*"] || [istarget "x86_64-*-linux*"] } {
+	puts $ofd "#ld: -z noseparate-code"
+    } else {
+	puts $ofd "#ld:"
+    }
+    #force z80 target to compile for eZ80 in ADL mode
+    if { [istarget "z80-*-*"] } then {
+	puts $ofd "#as: -ez80-adl"
+    }
+    puts $ofd "#readelf: -W -wN -Ss"
+    puts $ofd "There are 660.. section headers.*:"
+    puts $ofd "#..."
+    puts $ofd "  \\\[ 0\\\] .* 660..\[ \]+0\[ \]+0"
+    puts $ofd "#..."
+    puts $ofd "  \\\[65279\\\] \\.foo\\.\[0-9\]+ .*"
+    puts $ofd "  \\\[65280\\\] \\.foo\\.\[0-9\]+ .*"
+    puts $ofd "#..."
+    if { [is_elf_unused_section_symbols ] } {
+	puts $ofd " 660..: \[0-9a-f\]+\[ \]+0\[ \]+SECTION\[ \]+LOCAL\[ \]+DEFAULT\[ \]+660...*"
+	puts $ofd "#..."
+	puts $ofd " 660..: \[0-9a-f\]+\[ \]+0\[ \]+NOTYPE\[ \]+LOCAL\[ \]+DEFAULT\[ \]+\[0-9\] bar_1$"
+	puts $ofd "#..."
+	puts $ofd ".* bar_66000$"
+    } else {
+	puts $ofd " 66...: \[0-9a-f\]+\[ \]+0\[ \]+NOTYPE\[ \]+LOCAL\[ \]+DEFAULT\[ \]+660.. bar_66000$"
+    }
+    puts $ofd "#..."
+    # Global symbols are not in "alphanumeric" order, so we just check
+    # that the first and the last are present in any order (assuming no
+    # duplicates).
+    puts $ofd ".* (\[0-9\] foo_1|66... foo_66000)$"
+    puts $ofd "#..."
+    puts $ofd ".* (\[0-9\] foo_1|66... foo_66000)$"
+    puts $ofd "#pass"
+    close $ofd
+    run_dump_test "tmpdir/$test2"
+}
+
+for { set i 1 } { $i < $max_sec / $secs_per_file } { incr i } {
+    catch "exec rm -f tmpdir/dump$i.o" status
+}

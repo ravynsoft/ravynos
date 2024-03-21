@@ -1,0 +1,10 @@
+Defaults log_output
+
+# sudoRole millert
+millert ALL = (ALL : ALL) ALL
+
+# sudoRole root
+root ALL = (ALL : ALL) NOPASSWD: ALL
+
+# sudoRole %wheel
+%wheel +sudo-hosts = (ALL : ALL) NOPASSWD: ALL

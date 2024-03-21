@@ -1,0 +1,79 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test multi-domain handling.
+
+cat <<\EOF > mm-test7.po
+domain "foo-de"
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+# Das ist ein Kommentar.
+msgid "hello"
+msgstr "Hallo"
+
+# Noch einer.
+msgid "bye"
+msgstr "Tschüß"
+
+domain "foo-fr"
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+# Ceci est un commentaire.
+msgid "hello"
+msgstr "Salut"
+
+# Encore un.
+msgid "bye"
+msgstr "A bientôt"
+EOF
+
+cat <<EOF > mm-test7.pot
+domain "foo-de"
+msgid "Hello"
+msgstr ""
+domain "foo-fr"
+msgid "Hello"
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-test7.tmp mm-test7.po mm-test7.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test7.tmp > mm-test7.out || Exit 1
+
+cat <<\EOF > mm-test7.ok
+domain "foo-de"
+
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+# Das ist ein Kommentar.
+#, fuzzy
+msgid "Hello"
+msgstr "Hallo"
+
+# Noch einer.
+#~ msgid "bye"
+#~ msgstr "Tschüß"
+
+domain "foo-fr"
+
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+# Ceci est un commentaire.
+#, fuzzy
+msgid "Hello"
+msgstr "Salut"
+
+# Encore un.
+#~ msgid "bye"
+#~ msgstr "A bientôt"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test7.ok mm-test7.out
+result=$?
+
+exit $result

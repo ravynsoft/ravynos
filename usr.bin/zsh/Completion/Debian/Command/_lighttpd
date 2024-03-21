@@ -1,0 +1,16 @@
+#compdef lighty-enable-mod lighty-disable-mod
+
+local -a mods expl
+
+case "$service" in
+    lighty-enable-mod)
+		mods=( `echo /etc/lighttpd/conf-available/*.conf(N:r:t) | sed -e 's/\b[0-9][0-9]-//g'` )
+		_wanted mods expl mod compadd -a mods
+	;;
+    lighty-disable-mod)
+		mods=( `echo /etc/lighttpd/conf-enabled/*.conf(N:r:t) | sed -e 's/\b[0-9][0-9]-//g'` )
+		_wanted mods expl mod compadd -a mods
+	;;
+esac
+
+return

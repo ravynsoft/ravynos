@@ -1,0 +1,41 @@
+<Type Name="RecordInfoArgs" FullName="Avahi.RecordInfoArgs">
+  <TypeSignature Language="C#" Value="public class RecordInfoArgs : System.EventArgs" />
+  <AssemblyInfo>
+    <AssemblyName>avahi-sharp</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>System.EventArgs</BaseTypeName>
+  </Base>
+  <Interfaces />
+  <Members>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public RecordInfoArgs (Avahi.RecordInfo record);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="record" Type="Avahi.RecordInfo" />
+      </Parameters>
+      <Docs>
+        <param name="record">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Record">
+      <MemberSignature Language="C#" Value="public Avahi.RecordInfo Record { get; };" />
+      <MemberType>Property</MemberType>
+      <ReturnValue>
+        <ReturnType>Avahi.RecordInfo</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <value>To be added.</value>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+</Type>

@@ -1,0 +1,19 @@
+#! /bin/sh
+#
+# Search $PATH for a file the same name as $1; return TRUE if found.
+#
+
+command=$1
+[ -n "$command" ] || exit 1
+
+set `echo $PATH | sed 's/^:/.:/
+			s/::/:.:/g
+			s/:$/:./
+			s/:/ /g'`
+	
+while [ $# -ne 0 ] ; do
+	[ -f $1/$command ] && exit 0	# test -x not universal
+	shift
+done
+
+exit 1

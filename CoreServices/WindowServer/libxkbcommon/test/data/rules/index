@@ -1,0 +1,28 @@
+! $layouts = al az br cn us
+
+! layout        option          =       symbols
+  $layouts      some:opt        =       +extra
+
+! layout[1]     option          =       symbols
+  $layouts      some:opt        =       +extra:1
+
+! layout[2]     option          =       symbols
+  $layouts      some:opt        =       +extra:2
+
+! layout[3]     option          =       symbols
+  $layouts      some:opt        =       +extra:3
+
+! layout[4]     option          =       symbols
+  $layouts      some:opt        =       +extra:4
+
+! model         = symbols
+  *             = default_symbols
+
+! model         = keycodes
+  *             = default_keycodes
+
+! model         = types
+  *             = default_types
+
+! model         = compat
+  *             = default_compat

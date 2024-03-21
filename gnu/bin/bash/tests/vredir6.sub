@@ -1,0 +1,14 @@
+unset v
+exec {v}</dev/null
+
+if (( v >= 10 )); then echo ok 1; else echo bad 1; fi
+
+exec {v}<&-
+
+ulimit -n 6
+
+exec </dev/null
+
+unset v
+exec {v}</dev/null
+echo ${v-unset}

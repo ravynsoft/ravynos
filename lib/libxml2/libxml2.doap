@@ -1,0 +1,37 @@
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:gnome="http://api.gnome.org/doap-extensions#"
+         xmlns="http://usefulinc.com/ns/doap#">
+
+  <name xml:lang="en">libxml2</name>
+  <shortdesc xml:lang="en">XML parser and markup toolkit</shortdesc>
+  <description>Libxml2 is the XML C parser and toolkit developed for the Gnome
+project (but usable outside of the Gnome platform), it is free software
+available under the MIT License. XML itself is a metalanguage to design markup
+languages, i.e. text language where semantic and structure are added to the
+content using extra "markup" information enclosed between angle brackets. HTML
+is the most well-known markup language. Though the library is written in C a
+variety of language bindings make it available in other environments.
+
+Libxml2 is known to be very portable, the library should build and work
+without serious troubles on a variety of systems (Linux, Unix, Windows,
+CygWin, MacOS X, RISC Os, OS/2, VMS, QNX, MVS,
+...)</description>
+  <mailing-list rdf:resource="http://mail.gnome.org/mailman/listinfo/xml" />
+  <category rdf:resource="http://api.gnome.org/doap-extensions#infrastructure" />
+  <programming-language>C</programming-language>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Daniel Veillard</foaf:name>
+      <gnome:userid>veillard</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Nick Wellnhofer</foaf:name>
+      <gnome:userid>nwellnhof</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+</Project>

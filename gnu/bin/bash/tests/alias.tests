@@ -1,0 +1,65 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# place holder for future alias testing
+shopt -s expand_aliases
+
+# alias/unalias tests originally in builtins.tests
+
+unalias -a
+# this should return success, according to POSIX.2
+alias
+echo alias: $?
+alias foo=bar
+unalias foo
+# this had better return success, according to POSIX.2
+alias
+echo alias: $?
+
+# bug in all versions through bash-2.05b
+
+unalias qfoo qbar qbaz quux 2>/dev/null
+
+alias qfoo=qbar
+alias qbar=qbaz
+alias qbaz=quux
+alias quux=qfoo
+
+qfoo
+
+unalias qfoo qbar qbaz quux
+
+unalias -a
+
+alias foo='echo '
+alias bar=baz
+alias baz=quux
+
+foo bar
+
+unalias foo bar baz
+
+# post bash-5.1 problems with compound array assignment during multiline
+# alias expansion
+alias foo='a=() b=""
+for i in 1; do echo hi; done'
+foo
+
+unalias foo
+
+${THIS_SH} ./alias1.sub
+${THIS_SH} ./alias2.sub
+${THIS_SH} ./alias3.sub
+${THIS_SH} ./alias4.sub
+${THIS_SH} ./alias5.sub
+${THIS_SH} ./alias6.sub

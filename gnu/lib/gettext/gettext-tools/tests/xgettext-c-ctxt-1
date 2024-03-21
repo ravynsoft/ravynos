@@ -1,0 +1,42 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: extraction of contexts.
+
+cat <<\EOF > xg-c-ctxt-1.c
+// (KDE) The 1-argument i18n macro is a simple gettext without context.
+print (i18n ("help"));
+// (KDE) The 2-argument i18n macro has the context first.
+print (i18n ("Help", "about"));
+// (Qt) The 2-argument tr function has the context last.
+print (tr ("file"));
+print (tr ("open", "File"));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location \
+  --keyword=i18n:1 --keyword=i18n:1c,2 --keyword=tr:1 --keyword=tr:1,2c \
+  -d xg-c-ctxt-1.tmp xg-c-ctxt-1.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-ctxt-1.tmp.po > xg-c-ctxt-1.po || Exit 1
+
+cat <<EOF > xg-c-ctxt-1.ok
+msgid "help"
+msgstr ""
+
+msgctxt "Help"
+msgid "about"
+msgstr ""
+
+msgid "file"
+msgstr ""
+
+msgctxt "File"
+msgid "open"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-ctxt-1.ok xg-c-ctxt-1.po
+result=$?
+
+exit $result

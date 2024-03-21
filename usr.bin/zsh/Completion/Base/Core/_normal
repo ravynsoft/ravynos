@@ -1,0 +1,40 @@
+#compdef -command-line-
+
+local _comp_command1 _comp_command2 _comp_command precommand
+local -A opts
+
+zparseopts -A opts -D - P p+:-=precommand s
+(( $+opts[-s] )) || _compskip=
+(( $+opts[-P] )) && precommands=()
+(( $#precommand )) && precommands+=(${precommand#-p})
+
+# Check for a history reference to complete modifiers.
+# $PREFIX has a quoted form of the !, so we can't test that
+# (it might the start of a real argument), but words has the
+# raw McCoy.
+if [[ -o BANG_HIST &&
+     ( ( $words[CURRENT] = \!*: && -z $compstate[quote] ) ||
+       ( $words[CURRENT] = \"\!*: && $compstate[all_quotes] = \" ) ) ]]; then
+  # This looks like a real history expansion; in that case
+  # we'd better put the !'s back the way pfalstad intended.
+  PREFIX=${PREFIX//\\!/!}
+  compset -P '*:'
+  _history_modifiers h
+  return
+fi
+
+# Completing in command position?
+
+if [[ CURRENT -eq 1 ]]; then
+  curcontext="${curcontext%:*:*}:-command-:"
+
+  comp="$_comps[-command-]"
+  [[ -n "$comp" ]] && eval "$comp" && return
+
+  return 1
+fi
+
+_set_command
+
+_dispatch ${(k)opts[-s]} "$_comp_command" \
+          "$_comp_command1" "$_comp_command2" -default-

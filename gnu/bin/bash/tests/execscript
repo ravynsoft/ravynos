@@ -1,0 +1,160 @@
+export LC_ALL=C
+export LANG=C
+
+if [ $UID -eq 0 ]; then
+        echo "execscript: the test suite should not be run as root" >&2
+fi
+
+set -- one two three
+echo before exec1.sub: "$@"
+echo calling exec1.sub
+./exec1.sub aa bb cc dd ee
+echo after exec1.sub with args: $?
+./exec1.sub
+echo after exec1.sub without args: $?
+echo after exec1.sub: "$@"
+
+# set up a fixed path so we know notthere will not be found
+PATH=/usr/bin:/bin:/usr/local/bin:
+export PATH
+
+notthere
+echo $?
+
+# this is iffy, since the error messages may vary from system to system
+# and /tmp might not exist
+ln -s ${THIS_SH} /tmp/bash 2>/dev/null
+if [ -f /tmp/bash ]; then
+	/tmp/bash notthere
+else
+	${THIS_SH} notthere
+fi
+echo $?
+rm -f /tmp/bash
+
+# /bin/sh should be there on all systems
+${THIS_SH} /bin/sh
+echo $?
+
+# try executing a directory
+/
+echo $?
+
+${THIS_SH} /
+echo $?
+
+# try sourcing a directory
+. /
+echo $?
+
+# try sourcing a binary file -- post-2.04 versions don't do the binary file
+# check, and will probably fail with `command not found', or status 127
+# bash-4.1 and later check for 256 NUL characters and fail as binary files
+# if there are more than that, it's probably binary
+. ${THIS_SH} 2>/dev/null
+echo $?
+
+# post-bash-2.05 versions allow sourcing non-regular files
+. /dev/null
+echo $?
+
+# kill two birds with one test -- test out the BASH_ENV code
+echo echo this is bashenv > $TMPDIR/bashenv
+export BASH_ENV=$TMPDIR/bashenv
+${THIS_SH} ./exec3.sub
+rm -f $TMPDIR/bashenv
+unset BASH_ENV
+
+# we're resetting the $PATH to empty, so this should be last
+PATH=
+
+notthere
+echo $?
+
+command notthere
+echo $?
+
+command -p notthere
+echo $?
+
+# but -p should guarantee that we find all the standard utilities, even
+# with an empty or unset $PATH
+command -p sh -c 'echo this is $0'
+unset PATH
+command -p sh -c 'echo this is $0'
+
+# a bug in bash before bash-2.01 caused PATH to be set to the empty string
+# when command -p was run with PATH unset
+echo ${PATH-unset}
+
+echo "echo ok" | ${THIS_SH} -t
+
+${THIS_SH} ./exec2.sub
+echo $?
+
+${THIS_SH} ./exec4.sub
+
+# try exec'ing a command that cannot be found in $PATH
+${THIS_SH} ./exec5.sub
+
+# this was a bug in bash versions before bash-2.04
+${THIS_SH} -c 'cat </dev/null | cat >/dev/null' >&-
+
+# checks for proper return values in subshell commands with inverted return
+# values
+
+${THIS_SH} ./exec6.sub
+
+# checks for properly deciding what constitutes an executable file
+${THIS_SH} ./exec7.sub
+
+${THIS_SH} -i ${PWD}/exec8.sub
+
+${THIS_SH} ./exec9.sub
+
+${THIS_SH} ./exec10.sub
+${THIS_SH} ./exec11.sub
+
+true | `echo true` &
+
+echo after
+
+# Problem with bash at least back to version 3.0
+${THIS_SH} -c 'VAR=0; VAR=1 command exec; exit ${VAR}'
+
+# problem with bash through bash-4.1
+(
+        exec /var/empty/nosuch
+        echo bad
+) 2>/dev/null
+[ $? = 127 ] || echo FAIL: bad exit status $? at $LINENO
+
+unset FALSE
+if [ -x /bin/false ]; then
+	FALSE=/bin/false
+elif [ -x /usr/bin/false ]; then
+	FALSE=/usr/bin/false
+else
+	FALSE='command false'
+fi
+
+# problem with undoing redirections before running exit trap through bash-4.3
+
+${THIS_SH} ./exec12.sub false	# function
+${THIS_SH} ./exec12.sub command false
+${THIS_SH} ./exec12.sub $FALSE
+
+${THIS_SH} ./exec12.sub notfound
+${THIS_SH} ./exec12.sub syntaxerror
+${THIS_SH} ./exec12.sub nosuchcommand
+
+# problem with fork optimization in bash-4.4-alpha
+
+$THIS_SH -c 'echo a && /bin/echo b && echo c'
+$THIS_SH -c 'echo A && /bin/echo B'
+
+$THIS_SH -c '/bin/echo c && echo d'
+$THIS_SH -c '/bin/echo c && /bin/echo d && echo e'
+
+${THIS_SH} ./exec13.sub
+${THIS_SH} ./exec14.sub

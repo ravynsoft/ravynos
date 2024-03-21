@@ -1,0 +1,149 @@
+# Test address printed by --print-map
+# Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+set testname "map addresses"
+
+# The source file doesn't matter.  Pinch one from the sizeof test.
+if {![ld_assemble $as $srcdir/$subdir/sizeof.s tmpdir/map-address.o]} {
+    unsupported $testname
+    return
+}
+
+if { [is_pecoff_format] } then {
+    set IMAGE_BASE "--image-base 0"
+} else {
+    set IMAGE_BASE ""
+}
+
+if {![ld_link $ld tmpdir/map-address \
+	 "$LDFLAGS -T $srcdir/$subdir/map-address.t \
+	  $IMAGE_BASE tmpdir/map-address.o \
+	  -Map tmpdir/map-address.map"]} {
+    fail $testname
+    return
+}
+
+if [is_remote host] then {
+    remote_upload host "tmpdir/map_address.map"
+}
+
+if {[regexp_diff \
+	       "tmpdir/map-address.map" \
+	       "$srcdir/$subdir/map-address.d"]} {
+    fail $testname
+} else {
+    pass $testname
+}
+
+
+set testname "map to directory"
+
+if {![ld_link $ld tmpdir/map-address \
+	 "$LDFLAGS -T $srcdir/$subdir/map-address.t \
+	  $IMAGE_BASE tmpdir/map-address.o \
+	  -Map tmpdir --output fred"]} {
+    fail $testname
+    return
+}
+
+if [is_remote host] then {
+    remote_upload host "tmpdir/fred.map"
+}
+
+if {[regexp_diff \
+	       "tmpdir/fred.map" \
+	       "$srcdir/$subdir/map-address.d"]} {
+    fail $testname
+} else {
+    pass $testname
+}
+
+
+set testname "map to % directory"
+
+if {![ld_link $ld tmpdir/map-address \
+	 "$LDFLAGS -T $srcdir/$subdir/map-address.t \
+	  $IMAGE_BASE tmpdir/map-address.o \
+	  -Map=tmpdir/% --output fred"]} {
+    fail $testname
+    return
+}
+
+if [is_remote host] then {
+    remote_upload host "tmpdir/fred.map"
+}
+
+if {[regexp_diff \
+	       "tmpdir/fred.map" \
+	       "$srcdir/$subdir/map-address.d"]} {
+    fail $testname
+} else {
+    pass $testname
+}
+
+
+set testname "map to %.foo directory"
+
+if {![ld_link $ld tmpdir/map-address \
+	 "$LDFLAGS -T $srcdir/$subdir/map-address.t \
+	  $IMAGE_BASE tmpdir/map-address.o \
+	  -Map=tmpdir/%.foo --output fred"]} {
+    fail $testname
+    return
+}
+
+if [is_remote host] then {
+    remote_upload host "tmpdir/fred.foo"
+}
+
+if {[regexp_diff \
+	       "tmpdir/fred.foo" \
+	       "$srcdir/$subdir/map-address.d"]} {
+    fail $testname
+} else {
+    pass $testname
+}
+
+if { [is_elf_format] } {
+    set testname "map with locals"
+
+    if {![ld_link $ld tmpdir/map-address \
+	      "$LDFLAGS -T $srcdir/$subdir/map-address.t \
+	      $IMAGE_BASE tmpdir/map-address.o \
+	      -Map=tmpdir/map-locals.map --print-map-locals"]} {
+	fail $testname
+	return
+    }
+
+    if [is_remote host] then {
+	remote_upload host "tmpdir/map-locals.map"
+    }
+
+    # Some ELF targets do not preserve their local symbols.
+    setup_xfail "d30v-*-*" "dlx-*-*" "pj-*-*" "s12z-*-*" "xgate-*-*"
+    
+    if {[regexp_diff \
+	     "tmpdir/map-locals.map" \
+	     "$srcdir/$subdir/map-locals.d"]} {
+	fail $testname
+    } else {
+	pass $testname
+    }
+}

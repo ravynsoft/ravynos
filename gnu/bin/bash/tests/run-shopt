@@ -1,0 +1,2 @@
+${THIS_SH} ./shopt.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} shopt.right && rm -f ${BASH_TSTOUT}

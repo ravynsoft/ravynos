@@ -1,0 +1,210 @@
+texinode(Roadmap)(Invocation)(Introduction)(Top)
+chapter(Roadmap)
+cindex(roadmap)
+The Zsh Manual, like the shell itself, is large and often complicated.
+This section of the manual provides some pointers to areas of the shell
+that are likely to be of particular interest to new users, and indicates
+where in the rest of the manual the documentation is to be found.
+
+sect(When the shell starts)
+
+When it starts, the shell reads commands from various files.  These can
+be created or edited to customize the shell.  See ifzman(the section
+Startup/Shutdown Files in zmanref(zsh))\
+ifnzman(noderef(Files)).
+
+If no personal initialization files exist for the current user, a function
+is run to help you change some of the most common settings.  It won't
+appear if your administrator has disabled the tt(zsh/newuser) module.
+The function is designed to be self-explanatory.  You can run it by hand
+with `tt(autoload -Uz zsh-newuser-install; zsh-newuser-install -f)'.
+See also
+ifnzman(noderef(User Configuration Functions))\
+ifzman(the section `User Configuration Functions' in zmanref(zshcontrib)).
+
+
+sect(Interactive Use)
+
+Interaction with the shell uses the builtin Zsh Line Editor, ZLE.  This is
+described in detail in ifzman(zmanref(zshzle))\
+ifnzman(noderef(Zsh Line Editor)).
+
+The first decision a user must make is whether to use the Emacs or Vi
+editing mode as the keys for editing are substantially different.  Emacs
+editing mode is probably more natural for beginners and can be selected
+explicitly with the command tt(bindkey -e).
+
+A history mechanism for retrieving previously typed lines (most simply
+with the Up or Down arrow keys) is available; note that, unlike other
+shells, zsh will not save these lines when the shell exits unless you
+set appropriate variables, and the number of history lines retained by
+default is quite small (30 lines).  See the description of the shell
+variables (referred to in the documentation as parameters) tt(HISTFILE),
+tt(HISTSIZE) and tt(SAVEHIST) in ifzman(zmanref(zshparam))\
+ifnzman(noderef(Parameters Used By The Shell)).  Note that it's
+currently only possible to read and write files saving history
+when the shell is interactive, i.e. it does not work from scripts.
+
+The shell now supports the UTF-8 character set (and also others if
+supported by the operating system).  This is (mostly) handled transparently
+by the shell, but the degree of support in terminal emulators is variable.
+There is some discussion of this in the shell FAQ,
+uref(https://www.zsh.org/FAQ/).  Note in particular that for combining
+characters to be handled the option tt(COMBINING_CHARS) needs to be set.
+Because the shell is now more sensitive to the definition of the
+character set, note that if you are upgrading from an older version of
+the shell you should ensure that the appropriate variable, either
+tt(LANG) (to affect all aspects of the shell's operation) or
+tt(LC_CTYPE) (to affect only the handling of character sets) is set to
+an appropriate value.  This is true even if you are using a
+single-byte character set including extensions of ASCII such as
+tt(ISO-8859-1) or tt(ISO-8859-15).  See the description of tt(LC_CTYPE)
+in
+ifnzman(noderef(Parameters))\
+ifzman(zmanref(zshparam)).
+
+subsect(Completion)
+
+Completion is a feature present in many shells. It allows the user to
+type only a part (usually the prefix) of a word and have the shell fill
+in the rest.  The completion system in zsh is programmable.  For
+example, the shell can be set to complete email addresses in
+arguments to the mail command from your tt(~/.abook/addressbook);
+usernames, hostnames, and even remote paths in arguments to scp, and so
+on.  Anything that can be written in or glued together with zsh can be
+the source of what the line editor offers as possible completions.
+
+Zsh has two completion systems, an old, so called tt(compctl) completion
+(named after the builtin command that serves as its complete and only
+user interface), and a new one, referred to as tt(compsys),
+organized as library of builtin and user-defined functions.
+The two systems differ in their interface for specifying the completion
+behavior.  The new system is more customizable and is supplied with
+completions for many commonly used commands; it is therefore to be
+preferred.
+
+The completion system must be enabled explicitly when the shell starts.
+For more information see
+ifzman(zmanref(zshcompsys))\
+ifnzman(noderef(Completion System)).
+
+subsect(Extending the line editor)
+
+Apart from completion, the line editor is highly extensible by means of
+shell functions.  Some useful functions are provided with the shell; they
+provide facilities such as:
+
+startitem()
+item(tt(insert-composed-char))(
+composing characters not found on the keyboard
+)
+item(tt(match-words-by-style))(
+configuring what the line editor considers a word when moving or
+deleting by word
+)
+item(tt(history-beginning-search-backward-end), etc.)(
+alternative ways of searching the shell history
+)
+item(tt(replace-string), tt(replace-pattern))(
+functions for replacing strings or patterns globally in the command line
+)
+item(tt(edit-command-line))(
+edit the command line with an external editor.
+)
+enditem()
+
+See ifzman(the section `ZLE Functions' in zmanref(zshcontrib))\
+ifnzman(noderef(ZLE Functions)) for descriptions of these.
+
+sect(Options)
+
+The shell has a large number of options for changing its behaviour.
+These cover all aspects of the shell; browsing the full documentation is
+the only good way to become acquainted with the many possibilities.  See
+ifzman(zmanref(zshoptions))\
+ifnzman(noderef(Options)).
+
+sect(Pattern Matching)
+
+The shell has a rich set of patterns which are available for file matching
+(described in the documentation as `filename generation' and also known for
+historical reasons as `globbing') and for use when programming.  These are
+described in ifzman(the section `Filename Generation' in zmanref(zshexpn))\
+ifnzman(noderef(Filename Generation)).
+
+Of particular interest are the following patterns that are not commonly
+supported by other systems of pattern matching:
+
+startitem()
+item(tt(**))(
+for matching over multiple directories
+)
+item(tt(|))(
+for matching either of two alternatives
+)
+item(tt(~), tt(^))(
+the ability to exclude patterns from matching when the tt(EXTENDED_GLOB)
+option is set
+)
+item(tt(LPAR())var(...)tt(RPAR()))(
+glob qualifiers, included in parentheses at the end of the pattern,
+which select files by type (such as directories) or attribute (such as
+size).
+)
+enditem()
+
+sect(General Comments on Syntax)
+
+Although the syntax of zsh is in ways similar to the Korn shell, and
+therefore more remotely to the original UNIX shell, the Bourne shell,
+its default behaviour does not entirely correspond to those shells.
+General shell syntax is introduced in ifzman(the section `Shell Grammar' in
+zmanref(zshmisc))\
+ifnzman(noderef(Shell Grammar)).
+
+One commonly encountered difference is that variables substituted onto the
+command line are not split into words.  See the description of the shell option
+tt(SH_WORD_SPLIT) in
+ifzman(the section `Parameter Expansion' in zmanref(zshexpn))\
+ifnzman(noderef(Parameter Expansion)).
+In zsh, you can either explicitly request the splitting (e.g. tt(${=foo}))
+or use an array when you want a variable to expand to more than one word.  See
+ifzman(the section `Array Parameters' in zmanref(zshparam))\
+ifnzman(noderef(Array Parameters)).
+
+sect(Programming)
+
+The most convenient way of adding enhancements to the shell is typically
+by writing a shell function and arranging for it to be autoloaded.
+Functions are described in ifzman(the section `Functions' in
+zmanref(zshmisc))\
+ifnzman(noderef(Functions)).  Users changing from the C shell and its
+relatives should notice that aliases are less used in zsh as they don't
+perform argument substitution, only simple text replacement.
+
+A few general functions, other than those for the line editor described
+above, are provided with the shell and are described in
+ifzman(zmanref(zshcontrib))\
+ifnzman(noderef(User Contributions)).  Features include:
+
+startitem()
+item(tt(promptinit))(
+a prompt theme system for changing prompts easily, see ifzman(the section
+`Prompt Themes'
+)\
+ifnzman(noderef(Prompt Themes))
+)
+item(tt(zsh-mime-setup))(
+a MIME-handling system which dispatches commands according to the suffix of
+a file as done by graphical file managers
+)
+item(tt(zcalc))(
+a calculator
+)
+item(tt(zargs))(
+a version of tt(xargs) that makes the tt(find) command redundant
+)
+item(tt(zmv))(
+a command for renaming files by means of shell patterns.
+)
+enditem()

@@ -1,0 +1,7 @@
+# Make sure no hidden symbol is present in the dynamic symbol table, e.g.:
+#    Num:    Value  Size Type    Bind   Vis      Ndx Name
+#      6: 004003f0     8 FUNC    GLOBAL HIDDEN     8 f1
+#failif
+#...
+.+ +HIDDEN +.+ +f1
+#pass

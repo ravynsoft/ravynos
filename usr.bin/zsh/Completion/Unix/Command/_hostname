@@ -1,0 +1,76 @@
+#compdef hostname
+
+local variant=$OSTYPE ret=1
+local -a context line state state_descr args aopts=( -A '-*' )
+local -A opt_args
+
+# May be overridden below
+args=( '(-4 -6 -d -f -i -r -s)1: :_guard "^-*" "host name"' )
+
+# On badly behaved systems it may be dangerous to call `hostname --help` or
+# similar, so for now we'll avoid _pick_variant and just trust this. In the
+# future, we should replace this by a method that can safely detect Solaris,
+# BusyBox, etc. (@todo)
+[[ $OSTYPE == linux* ]] &&
+(( $+commands[nisdomainname] || $+commands[ypdomainname] )) &&
+variant+=-net-tools
+
+case $variant in
+  *-net-tools)
+    aopts=( )
+    args=(
+      '(: * -)'{-h,--help}'[display help information]'
+      '(: * -)'{-V,--version}'[display version information]'
+      + '(g)' # Get
+      '(: gs s)'{-A,--all-fqdns}'[display FQDNs resolved from network interface addresses]'
+      '(: gs s)'{-d,--domain}'[display DNS domain only]'
+      '(: gs s)'{-f,--fqdn,--long}'[display host name with DNS domain (FQDN)]'
+      '(: gs s)'{-i,--ip-address}'[display IP addresses for host (via DNS resolution)]'
+      '(: gs s)'{-I,--all-ip-addresses}'[display IP addresses for host (via network interfaces)]'
+      '(: gs s)'{-s,--short}'[display short host name only]'
+      + '(gs)' # Get/set
+      '(g)'{-y,--yp,--nis}'[display NIS domain only]'
+      + s # Set
+      '(-b --boot g)'{-b,--boot}'[always set a host name]'
+      '(: -F --file g)'{-F+,--file=}'[read host name to set from specified file]: :_files'
+      + o
+      '(-F --file g)1: :->host-or-domain'
+    )
+  ;;
+  darwin*|dragonfly*|freebsd*|netbsd*|openbsd*)
+    args+=(
+      '(: -4 -6 -d -f)-s[display short host name only]'
+    )
+    ;| # MATCH AGAIN
+  darwin*|freebsd*)
+    args+=(
+      '(: -d -s)-f[display host name with DNS domain (FQDN)]'
+    )
+    ;| # MATCH AGAIN
+  freebsd*)
+    args+=(
+      '(: -f -s)-d[display DNS domain only]'
+    )
+    ;;
+  dragonfly*)
+    args+=(
+      '(: -6 -r)-4[use first IPv4 address on interface (with -i)]'
+      '(: -4 -r)-6[use first IPv6 address on interface (with -i)]'
+      '(: -r)-i+[retrieve host name via specified interface]: :_net_interfaces'
+      '(: -4 -6 -i)-r+[retrieve host name via specified IP address]: :_bind_addresses'
+    )
+    ;;
+esac
+
+_arguments -s -S $aopts : $args && ret=0
+
+[[ $state == host-or-domain ]] && {
+  [[ -prefix -* ]] ||
+  if [[ -n ${opt_args[(i)*-(-y|--yp|--nis)]} ]]; then
+    _message -e nis-domains 'NIS domain' && ret=0
+  else
+    _message -e host-names 'host name' && ret=0
+  fi
+}
+
+return ret

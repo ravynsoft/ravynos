@@ -1,0 +1,70 @@
+# configure-functions.at -- shared shell functions. -*- Autotest -*-
+#
+#   Copyright (C) 2015-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Functions shared with configure and libtool.])
+
+m4_define([_AT_FUNC_SETUP], [dnl
+AT_SETUP([$1 works])dnl
+_lt_bin=$abs_top_builddir/libtool
+re_begincf='^# ### BEGIN FUNCTIONS SHARED WITH CONFIGURE'
+re_endcf='^# ### END FUNCTIONS SHARED WITH CONFIGURE'
+
+$ECHO '#!/bin/sh'       > "$1"
+$ECHO '#: ${SED=sed}'   >> "$1"
+$ECHO '#: ${ECHO=echo}' >> "$1"
+
+sed "1,/$re_begincf/d;/$re_endcf/,\$d" < "$_lt_bin" >> "$1"
+])
+
+_AT_FUNC_SETUP([func_munge_path_list])
+
+cat <<\EOF >> func_munge_path_list
+for orig in "/usr/lib" " /lib /usr/lib "; do
+  $ECHO "'$orig':"
+  for path in "/p1:" "/p3:/p2:" ":/a1" ":/a2:/a3" "/p4::/a4" "/p6:/p5::/a5:/a6"; do
+    old=$orig
+    func_munge_path_list orig "$path" || exit 1
+    $ECHO "munge ($path) = $orig"
+  done
+done
+EOF
+chmod +x func_munge_path_list
+
+AT_CHECK([ECHO="$ECHO" SED="$SED" ./func_munge_path_list], [0],
+['/usr/lib':
+munge (/p1:) = /p1 /usr/lib
+munge (/p3:/p2:) = /p3 /p2 /p1 /usr/lib
+munge (:/a1) = /p3 /p2 /p1 /usr/lib /a1
+munge (:/a2:/a3) = /p3 /p2 /p1 /usr/lib /a1 /a2 /a3
+munge (/p4::/a4) = /p4 /p3 /p2 /p1 /usr/lib /a1 /a2 /a3 /a4
+munge (/p6:/p5::/a5:/a6) = /p6 /p5 /p4 /p3 /p2 /p1 /usr/lib /a1 /a2 /a3 /a4 /a5 /a6
+' /lib /usr/lib ':
+munge (/p1:) = /p1  /lib /usr/lib @&t@
+munge (/p3:/p2:) = /p3 /p2 /p1  /lib /usr/lib @&t@
+munge (:/a1) = /p3 /p2 /p1  /lib /usr/lib  /a1
+munge (:/a2:/a3) = /p3 /p2 /p1  /lib /usr/lib  /a1 /a2 /a3
+munge (/p4::/a4) = /p4 /p3 /p2 /p1  /lib /usr/lib  /a1 /a2 /a3 /a4
+munge (/p6:/p5::/a5:/a6) = /p6 /p5 /p4 /p3 /p2 /p1  /lib /usr/lib  /a1 /a2 /a3 /a4 /a5 /a6
+], [])
+
+AT_CLEANUP

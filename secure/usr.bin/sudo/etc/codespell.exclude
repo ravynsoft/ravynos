@@ -1,0 +1,35 @@
+    "You empty-headed animal food trough wiper!",
+ * Returns true if any tags set in nt differ between ot and nt, else false.
+#define TAGS_CHANGED(ot, nt) \
+    ((TAG_SET((nt).follow) && (nt).follow != (ot).follow) || \
+    (TAG_SET((nt).intercept) && (nt).intercept != (ot).intercept) || \
+    (TAG_SET((nt).log_input) && (nt).log_input != (ot).log_input) || \
+    (TAG_SET((nt).log_output) && (nt).log_output != (ot).log_output) || \
+    (TAG_SET((nt).noexec) && (nt).noexec != (ot).noexec) || \
+    (TAG_SET((nt).nopasswd) && (nt).nopasswd != (ot).nopasswd) || \
+    (TAG_SET((nt).setenv) && (nt).setenv != (ot).setenv) || \
+    (TAG_SET((nt).send_mail) && (nt).send_mail != (ot).send_mail))
+                          sv sw ta te tg th tr uk  ur vi  wa wo zh_CN zh_HK
+    if (!PyArg_ParseTupleAndKeywords(py_args ? py_args : py_empty, py_kwargs, "Ois|i:sudo.ConvMessage", (char **)keywords,
+			$ans = <STDIN>;
+			if ($ans =~ /^[yY]/) {
+.nr BA @BAMAN@
+.if \n(BA \{\
+.Nd convert between sudoers file formats
+.Nd configuration for sudo front-end
+.Nd execute a command as another user
+.Nd Sudo log server protocol
+.Nd configuration for sudo_logsrvd
+.Nd sudo event and I/O log server
+.Nd Sudo Plugin API
+.Nd Sudo Plugin API (Python)
+.Nd send sudo I/O log to log server
+.Nd sudo LDAP configuration
+.Nd default sudo security policy plugin
+.Nd Sudoers Time Stamp Format
+.Nd replay sudo session logs
+.Nd edit the sudoers file
+ * If path doesn't end in /, return true iff cmnd & path name the same inode;
+ *	Tim Fraser
+	    echo ".Nd sudo" >> conftest
+ * as per FIPS 180-4: Secure Hash Standard (SHS)

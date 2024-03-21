@@ -1,0 +1,19 @@
+COMMENT(!MOD!zsh/deltochar
+A ZLE function duplicating EMACS' tt(zap-to-char).
+!MOD!)
+The tt(zsh/deltochar) module makes available two ZLE functions:
+
+startitem()
+tindex(delete-to-char)
+item(tt(delete-to-char))(
+Read a character from the keyboard, and
+delete from the cursor position up to and including the next
+(or, with repeat count var(n), the var(n)th) instance of that character.
+Negative repeat counts mean delete backwards.
+)
+tindex(zap-to-char)
+item(tt(zap-to-char))(
+This behaves like tt(delete-to-char), except that the final occurrence of
+the character itself is not deleted.
+)
+enditem()

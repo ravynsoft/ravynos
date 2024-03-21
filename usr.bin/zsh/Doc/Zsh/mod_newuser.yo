@@ -1,0 +1,47 @@
+COMMENT(!MOD!zsh/newuser
+Arrange for files for new users to be installed.
+!MOD!)
+The tt(zsh/newuser) module is loaded at boot if it is
+available, the tt(RCS) option is set, and the tt(PRIVILEGED) option is not
+set (all three are true by default).  This takes
+place immediately after commands in the global tt(zshenv) file (typically
+tt(zshenv())), if any, have been executed.  If the module is not
+available it is silently ignored by the shell; the module may safely be
+removed from tt($MODULE_PATH) by the administrator if it is not required.
+
+On loading, the module tests if any of the start-up files tt(.zshenv),
+tt(.zprofile), tt(.zshrc) or tt(.zlogin) exist in the directory given by
+the environment variable tt(ZDOTDIR), or the user's home directory if that
+is not set.  The test is not performed and the module halts processing if
+the shell was in an emulation mode (i.e. had been invoked as some other
+shell than zsh).
+
+If none of the start-up files were found, the module then looks for the
+file tt(newuser) first in a sitewide directory, usually the parent
+directory of the tt(site-functions) directory, and if that is not found the
+module searches in a version-specific directory, usually the parent of the
+tt(functions) directory containing version-specific functions.  (These
+directories can be configured when zsh is built using the
+tt(--enable-site-scriptdir=)var(dir) and tt(--enable-scriptdir=)var(dir)
+flags to tt(configure), respectively; the defaults are
+var(prefix)tt(/share/zsh) and var(prefix)tt(/share/zsh/$ZSH_VERSION) where
+the default var(prefix) is tt(/usr/local).)
+
+If the file tt(newuser) is found, it is then sourced in the same manner as
+a start-up file.  The file is expected to contain code to install start-up
+files for the user, however any valid shell code will be executed.
+
+The tt(zsh/newuser) module is then unconditionally unloaded.
+
+Note that it is possible to achieve exactly the same effect as the
+tt(zsh/newuser) module by adding code to tt(zshenv()).  The module
+exists simply to allow the shell to make arrangements for new users without
+the need for intervention by package maintainers and system administrators.
+
+The script supplied with the module invokes the shell function
+tt(zsh-newuser-install).  This may be invoked directly by the user
+even if the tt(zsh/newuser) module is disabled.  Note, however, that
+if the module is not installed the function will not be installed either.
+The function is documented in
+ifnzman(noderef(User Configuration Functions))\
+ifzman(the section `User Configuration Functions' in zmanref(zshcontrib)).

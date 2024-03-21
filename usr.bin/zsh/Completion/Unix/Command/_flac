@@ -1,0 +1,120 @@
+#compdef flac metaflac
+
+local shortops common shared blocktypes level
+
+shortops=(
+  --show-md5sum
+  --show-min-blocksize
+  --show-max-blocksize
+  --show-min-framesize
+  --show-max-framesize
+  --show-sample-rate
+  --show-channels
+  --show-bps
+  --show-total-samples
+  --show-vendor-tag
+  '--show-tag=:FLAC tag'
+  '--remove-tag=:FLAC tag'
+  '--remove-first-tag=:FLAC tag'
+  --remove-all-tags
+  '*--set-tag=:FLAC tag and value: '
+  '*--set-tag-from-file=:tag'
+  '--import-tags-from=:flat file:_files'
+  '--export-tags-to=:new file: '
+  '--import-cuesheet-from=:file:_files'
+  '--export-cuesheet-to=:new file:_files'
+  '--import-picture-from=:file or specification:_files'
+  '--export-picture-to=:file:_files'
+  --scan-replay-gain
+  --remove-replay-gain
+  --add-replay-gain
+  '*--add-seekpoint=:seek point'
+  '--add-padding=:length (bytes)'
+)
+
+blocktypes=( STREAMINFO PADDING APPLICATION SEEKTABLE VORBIS_COMMENT PICTURE )
+common=(
+  '--block-number=:block number'
+  '(--except-block-type)--block-type=:block type:_sequence compadd - $blocktypes'
+  '(--block-type)--except-block-type=:block type:_sequence compadd - $blocktypes'
+)
+shared=(
+  '--no-utf8-convert'
+  '--preserve-modtime'
+)
+level=( -{,-compression-level-}{0,1,2,3,4,5,6,7,8} --best --fast )
+
+case $service in
+  flac)
+    _arguments -s -S $shared \
+      '(H -c --stdout)'{-c,--stdout}'[write output to stdout]' \
+      '(H -s --silent --totally-silent)'{-s,--silent}"[don't output runtime statistics]" \
+      '(H)--totally-silent' \
+      '(H -w --warnings-as-errors)'{-w,--warnings-as-errors}'[treat all warnings as errors]' \
+      '(H -f --force)'{-f,--force}'[overwrite output files]' \
+      '(H -o --output-name -c --stdout)'{-o,--output-name=}'[specify output file name]' \
+      '(H)--output-prefix=[prepend specified string to output file names]' \
+      '(H)--delete-input-file' \
+      '(H)--keep-foreign-metadata' \
+      '(H)--skip=[skip initial samples from each input]:skip (mm:ss.ss)' \
+      '(H)--until=[stop at specified sample for each input]:stop (+-mm:ss.ss)' \
+      '(H)--ogg[use ogg as a transport layer]' \
+      '(H)--serial-number=[serial number to use for the FLAC stream]:serial number' \
+      '(H --force-aiff-format --force-rf64-format --force-wave64-format)--format-raw-format' \
+      '*:file:_files -F line -g "(#i)*.(${${opt_args[(i)decode-*]:+flac|oga}:-wav|aif|aiff|raw|rf64|w64})(-.)"' \
+      - 'H' \
+      '(-)'{-v,--version}'[display version information]' \
+      '(-)'{-h,--help}'[display help information]' \
+      '(-)'{-H,--explain}'[display detailed explanation of usage and options]' \
+      - encode \
+      '(-V --verify)'{-V,--verify}'[verify a correct encoding]' \
+      --lax --ignore-chunk-sizes '!--sector-align' --replay-gain \
+      '--cuesheet=:file:_files' \
+      '--picture=:specification:' \
+      \*{-T,--tag}'[add a FLAC tag]:field=value' \
+      '--tag-from-file=:field=file' \
+      \*{-S,--seekpoint=}':seek point' \
+      '(-P --padding)'{-P,--padding=}'[add space for metadata]:length (bytes)' \
+      "($level[*])"$^level \
+      '(-b --blocksize)'{-b,--blocksize=}'[specify block size in samples]:size:(192 576 1152 2304 4608 256 512 1024 2048 4096 8192 16384)' \
+      '(-m --mid-side -M --adaptive-mid-side)'{-m,--mid-side}'[try mid-side coding for each frame]' \
+      '(-m --mid-side -M --adaptive-mid-side)'{-M,--adaptive-mid-side}'[adaptive mid-side coding for all frames]' \
+      '(-e --exhaustive-model-search)'{-e,--exhaustive-model-search}'[do exhaustive model search]' \
+      \*{-A,--apodization=}'[window audio data with given the function]:function:(bartlett bartlett_hann blackman blackman_harris_4term_92dbconnes flattop gauss hamming hann kaiser_bessel nuttall rectangle triangle tukey welch)' \
+      '(-l --max-lpc-order)'{-l,--max-lpc-order=}'[specify max LPC order]:order' \
+      '(-p --qlp-coeff-precision-search -q --qlp-coeff-precision)'{-p,--qlp-coeff-precision-search}'[exhaustively search LP coeff quantization]' \
+      '(-p --qlp-coeff-precision-search -q --qlp-coeff-precision)'{-q,--qlp-coeff-precision=}'[specify precision]:precision (bits)' \
+      '(-r --rice-partition-order)'{-r,--rice-partition-order=}'[set min/max residual partition order]:order' \
+      '--endian=:byte order:(big little)' \
+      '--channels=:channels' \
+      '--bps=:bits per sample' \
+      '--sample-rate=:sample rate (Hz)' \
+      '--sign=:sign of samples [signed]:(signed unsigned)' \
+      '--input-size=:size (bytes)' \
+      - decode \
+      '(-d --decode -t --test -a --analyze)'{-d,--decode}'[decode a FLAC encoded file]' \
+      '(-d --decode -t --test -a --analyze --delete-input-file)'{-t,--test}'[test a FLAC encoded file]' \
+      '(-d --decode -t --test -a --analyze --delete-input-file)'{-a,--analyze}'[analyze a FLAC encoded file]' \
+      '(-d --decode -t --test)'{--residual-text,--residual-gnuplot} \
+      '(-F --decode-through-errors)'{-F,--decode-through-errors}'[continue decoding through stream errors]' \
+      '--apply-replaygain-which-is-not-lossless=:specification' \
+      '--cue=[set the beginning and ending cuepoints to decode]:cue point' \
+      '(--force-raw-format --force-rf64-format --force-wave64-format)--force-aiff-format' \
+      '(--force-raw-format --force-aiff-format --force-wave64-format)--force-rf64-format' \
+      '(--force-raw-format --force-aiff-format --force-rf64-format)--force-wave64-format' \
+  ;;
+  metaflac)
+    _arguments -S $shared \
+      '(--no-filename)--with-filename[prefix output with filename]' \
+      '(--with-filename)--no-filename' \
+      '--dont-use-padding[always rewrite the file]' \
+      "*:FLAC file:_files -g \*.flac\(-.\)" \
+      - 'short' $shortops \
+      - 'list' $common --list \
+      '--application-data-format=:format:(text hexdump)' \
+      - 'remove' $common --remove \
+      - '(ops)' \
+      '(-)--help' '(-)--version' \
+      --remove-all --merge-padding --sort-padding
+  ;;
+esac
