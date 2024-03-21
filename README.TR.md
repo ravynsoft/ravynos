@@ -20,10 +20,7 @@ Daha fazla bilgi için lütfen [ravynos.com](https://ravynos.com/) adresini ziya
 
 * Hayalimdekini gerçekleştirmede bize yardım edebilirmisin? Projenin şu anki ihtiyaç duyduğu şeyleri [CONTRIBUTING.md](CONTRIBUTING.md) üzerinde bulabilirsin!
 * [Discord](https://discord.com/invite/8caJbAGNwY) sunucumuz.
-* `#airyx:matrix.org` - [Element.io](https://app.element.io/#/room/#airyx:matrix.org) ile katılın
-* [Libera IRC](https://web.libera.chat/?channel=#airyx)'de `#airyx`
 
-_(not: matrix.org üzerindeki `#airyx` ve IRC kanalları Discord sunucumuzdaki `#general` kanalı ile bağlantılıdır.)_
 
 Yeni logo tasarımı & sanat eseri [nayaabkhan](https://nayaabkhan.me) tarafından yapılmıştır. 
 Palmiye ağacı konsepti için [llui85](https://github.com/llui85) saygılar. 
