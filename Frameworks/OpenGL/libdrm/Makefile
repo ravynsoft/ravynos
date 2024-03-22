@@ -37,6 +37,9 @@ CFLAGS+=        -I${.CURDIR}/include/drm -I${.CURDIR} \
                 -Wno-error=unused-variable \
                 -Wno-error=gnu-variable-sized-type-not-at-end \
                 -Wno-error=\#warnings
+
+LDFLAGS+=       -L${MAKEOBJDIR}/../libpciaccess -lpciaccess -Wl,-R\$$ORIGIN/Resources
+
 WARNS?=	2
 
 config.h: .PHONY
@@ -45,6 +48,8 @@ config.h: .PHONY
 generated_static_table_fourcc.h:: 
 	python3 ${.CURDIR}/gen_table_fourcc.py \
         ${.CURDIR}/include/drm/drm_fourcc.h $@
+
+beforebuild: obj
 
 .include <bsd.lib.mk>
 

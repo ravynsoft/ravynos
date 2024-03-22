@@ -32,6 +32,8 @@ WARNS?=	2
 config.h: .PHONY
 	echo >${.TARGET}
 
+beforebuild: obj
+
 .include <bsd.lib.mk>
 
 ${OBJS}: config.h

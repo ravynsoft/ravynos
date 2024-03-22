@@ -16,7 +16,7 @@ CFLAGS+= -DHAVE_ACCEPT4 \
         -DHAVE_XUCRED_CR_PID=1 \
         -DPACKAGE="${PACKAGE}" \
         -DPACKAGE_VERSION="${MAJOR}.${MINOR}.${MICRO}"
-LDFLAGS+= -lbsdxml
+LDFLAGS= -lbsdxml
 WARNS?=		2
 
 wayland.dtd.h::

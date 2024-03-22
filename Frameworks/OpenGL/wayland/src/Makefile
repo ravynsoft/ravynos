@@ -1,3 +1,5 @@
+MK_AUTO_OBJ=    yes
+.include <sys.mk>
 .include <src.opts.mk>
 
 LIB=		wayland
@@ -11,7 +13,10 @@ SRCS=		connection.c \
                 wayland-util.c \
                 wayland-protocol.c \
 		wayland-client-protocol-core.h \
-                wayland-server-protocol-core.h
+                wayland-server-protocol-core.h \
+                wayland-version.h \
+                wayland-server-protocol.h \
+                wayland-client-protocol.h 
 
 INCS=		wayland-client-protocol.h \
                 wayland-os.h \
@@ -37,7 +42,7 @@ CFLAGS+= -DHAVE_ACCEPT4 \
 	 -DPACKAGE_VERSION="${MAJOR}.${MINOR}.${MICRO}"
 
 WARNS?=	2
-SCANNER=        ${OBJTOP}/tmp/legacy/bin/wayland-scanner
+SCANNER=        ${MAKEOBJDIR}/../scanner/wayland-scanner
 PROTOCOLDIR=    ${.CURDIR}/../protocol
 
 wayland-version.h: wayland-version.h.in
@@ -63,6 +68,3 @@ wayland-client-protocol-core.h: ${PROTOCOLDIR}/wayland.xml
 
 .include <bsd.lib.mk>
 
-all: wayland-version.h wayland-server-protocol.h \
-        wayland-server-protocol-core.h wayland-client-protocol.h \
-        wayland-client-protocol-core.h
