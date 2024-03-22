@@ -1,0 +1,25 @@
+= libpciaccess support under Windows through WinIo and Cygwin =
+
+== Platforms supported ==
+
+The support should work on Windows NT/2000/XP/2003/Vista/7 and 2008 but has
+only been tested on Windows 7, 32 bits
+
+== Dependencies ==
+
+This support depends of WinIo which allows direct I/O port and physical
+memory access under Windows NT/2000/XP/2003/Vista/7 and 2008.
+
+== How to install WinIo ? ==
+
+First, you need to download WinIo from http://www.internals.com/. Then, you
+have to copy WinIo32.dll and WinIo32.sys to the same directory as the
+executables.
+
+== TODO ==
+
+Check and fix 64 bits support.
+
+== Contact ==
+
+If you have any problems, please send an email to samuel.pitoiset at gmail.com
