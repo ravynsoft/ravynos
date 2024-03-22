@@ -63,7 +63,7 @@ distribution:
 		${DESTDIR}/etc/os-release
 	${INSTALL_SYMLINK} -T "package=runtime" ../var/db/machine-id \
 		${DESTDIR}/etc/machine-id
-.for f in adduser.conf launchd_user.env motd.template shells zprofile
+.for f in adduser.conf launchd_user.env motd.template pci.ids shells zprofile
 	${INSTALL} -m 0444 -o root -g wheel ${.CURDIR}/$f ${DESTDIR}/etc/
 .endfor
 	sed -i_ -e "s/__VERSION__/${RAVYNOS_VERSION}/" \
