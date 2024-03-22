@@ -9,17 +9,21 @@ SRCS=		connection.c \
                 wayland-server.c \
                 wayland-shm.c \
                 wayland-util.c \
-                wayland-protocol.c
-INCS=		wayland-client-core.h \
-		wayland-client.h \
+                wayland-protocol.c \
+		wayland-client-protocol-core.h \
+                wayland-server-protocol-core.h
+
+INCS=		wayland-client-protocol.h \
                 wayland-os.h \
                 wayland-private.h \
-                wayland-server-core.h \
                 wayland-server-private.h \
-                wayland-server.h \
+                wayland-server-protocol.h \
                 wayland-util.h
 
 CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR}
+CFLAGS+= -Wno-error=cast-align -Wno-error=missing-variable-declarations \
+         -Wno-error=unused-parameter -Wno-error=cast-qual \
+         -Wno-error=thread-safety-analysis -Wno-error=unused-parameter
 CFLAGS+= -DHAVE_ACCEPT4 \
 	 -DHAVE_BROKEN_MSG_CMSG_CLOEXEC=0 \
 	 -DHAVE_MEMFD_CREATE \
@@ -43,14 +47,22 @@ wayland-version.h: wayland-version.h.in
             ${.CURDIR}/wayland-version.h.in > wayland-version.h
 
 wayland-protocol.c: ${PROTOCOLDIR}/wayland.xml
-	${SCANNER} private-code ${.ALLSRC} ${.TARGET}
+	${SCANNER} -s public-code ${.ALLSRC} ${.TARGET}
 
 wayland-server-protocol.h: ${PROTOCOLDIR}/wayland.xml
-	${SCANNER} server-header ${.ALLSRC} ${.TARGET}
+	${SCANNER} -s server-header ${.ALLSRC} ${.TARGET}
+
+wayland-server-protocol-core.h: ${PROTOCOLDIR}/wayland.xml
+	${SCANNER} -s server-header -c ${.ALLSRC} ${.TARGET}
 
 wayland-client-protocol.h: ${PROTOCOLDIR}/wayland.xml
-	${SCANNER} client-header ${.ALLSRC} ${.TARGET}
+	${SCANNER} -s client-header ${.ALLSRC} ${.TARGET}
+
+wayland-client-protocol-core.h: ${PROTOCOLDIR}/wayland.xml
+	${SCANNER} -s client-header -c ${.ALLSRC} ${.TARGET}
 
 .include <bsd.lib.mk>
 
-all: wayland-version.h wayland-server-protocol.h wayland-client-protocol.h
+all: wayland-version.h wayland-server-protocol.h \
+        wayland-server-protocol-core.h wayland-client-protocol.h \
+        wayland-client-protocol-core.h

@@ -51,7 +51,6 @@ SRCS=           WindowServer.m \
                 wlr-input-inhibitor-unstable-v1-protocol.c \
                 xdg-shell-protocol.c
 RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
-RESOURCES+=     ${MAKEOBJDIR}/wayland/src/libwayland.so
 
 MK_WERROR=	no
 WARNS=	        1
@@ -71,20 +70,9 @@ SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
 
 SUBDIR+=        libevdev .WAIT
 SUBDIR+=        libinput .WAIT
-SUBDIR+=        libdrm .WAIT
-SUBDIR+=        wayland
 SUBDIR+=        wayland-protocols
 SUBDIR+=        wlroots
 
-build-wayland:
-#	${MAKE} -C ${.CURDIR}/wayland
-#	cp -afv ${MAKEOBJDIR}/wayland/src/libwayland.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
-#	cp -afv ${MAKEOBJDIR}/wayland/scanner/wayland-scanner ${OBJTOP}/tmp/legacy/bin
-
-#build-wayland-protos:
-#	cd ${WLPROTOS} && CFLAGS="${SYSROOT}" \
-        meson -Dtests=false ${MAKEOBJDIR}/wayland-protocols
-#	ninja -C ${MAKEOBJDIR}/wayland-protocols
 
 #build-wlroots: build-wayland-protos 
 #	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols \
@@ -105,6 +93,5 @@ clean-deps:
 .include <bsd.subdir.mk>
 .include <rvn.app.mk>
 
-${OBJS}: build-wlroots
 clean: clean-wlroots clean-deps
 

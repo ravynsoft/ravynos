@@ -3,7 +3,8 @@ PROG=	wayland-scanner
 MK_MAN= no
 HAS_TESTS=
 SRCS=	scanner.c wayland-util.c wayland.dtd.h
-CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR}
+CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR} \
+         -Wno-error=cast-align -Wno-error=unused-parameter
 CFLAGS+= -DHAVE_ACCEPT4 \
         -DHAVE_BROKEN_MSG_CMSG_CLOEXEC=0 \
         -DHAVE_MEMFD_CREATE \
@@ -21,5 +22,8 @@ WARNS?=		2
 wayland.dtd.h::
 	python3 ${.CURDIR}/../src/embed.py \
         ${.CURDIR}/../protocol/wayland.dtd wayland_dtd >${.TARGET}
+
+_libinstall:
+	echo ${PROG} ${.TARGET}
 
 .include <bsd.prog.mk>

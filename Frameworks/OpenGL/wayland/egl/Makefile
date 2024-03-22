@@ -6,6 +6,8 @@ SRCS=		wayland-egl-abi-check.c wayland-egl.c
 INCS=		wayland-egl-backend.h wayland-egl-core.h wayland-egl.h
 
 CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR}
+CFLAGS+= -Wno-error=unused-parameter -Wno-error=cast-qual \
+         -Wno-error=cast-align
 CFLAGS+= -DHAVE_ACCEPT4 \
 	-DHAVE_BROKEN_MSG_CMSG_CLOEXEC=0 \
 	-DHAVE_MEMFD_CREATE \

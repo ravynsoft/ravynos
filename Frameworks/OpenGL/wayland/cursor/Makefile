@@ -14,6 +14,11 @@ INCS=	cursor-data.h \
         xcursor.h
 
 CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR}
+CFLAGS+= -Wno-error=incompatible-pointer-types-discards-qualifiers \
+         -Wno-error=gnu-pointer-arith \
+         -Wno-error=strict-prototypes \
+         -Wno-error=missing-prototypes \
+         -Wno-error=cast-qual -Wno-error=cast-align
 CFLAGS+= -DHAVE_ACCEPT4 \
 	-DHAVE_BROKEN_MSG_CMSG_CLOEXEC=0 \
 	-DHAVE_MEMFD_CREATE \

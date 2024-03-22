@@ -1,2 +1,4 @@
-void OpenGL() {
+void OpenGL(void);
+
+void OpenGL(void) {
 }
