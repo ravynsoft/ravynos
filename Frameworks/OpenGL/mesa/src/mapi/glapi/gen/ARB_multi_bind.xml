@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="GL_ARB_multi_bind" number="147">
+
+    <function name="BindBuffersBase">
+        <param name="target" type="GLenum"/>
+        <param name="first" type="GLuint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="buffers" type="const GLuint *" count="count"/>
+    </function>
+
+    <function name="BindBuffersRange">
+        <param name="target" type="GLenum"/>
+        <param name="first" type="GLuint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="buffers" type="const GLuint *" count="count"/>
+        <param name="offsets" type="const GLintptr *" count="count"/>
+        <param name="sizes" type="const GLsizeiptr *" count="count"/>
+    </function>
+
+    <function name="BindTextures" no_error="true">
+        <param name="first" type="GLuint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="textures" type="const GLuint *" count="count"/>
+    </function>
+
+    <function name="BindSamplers" no_error="true">
+        <param name="first" type="GLuint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="samplers" type="const GLuint *" count="count"/>
+    </function>
+
+    <function name="BindImageTextures" no_error="true">
+        <param name="first" type="GLuint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="textures" type="const GLuint *" count="count"/>
+    </function>
+
+    <function name="BindVertexBuffers" no_error="true">
+        <param name="first" type="GLuint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="buffers" type="const GLuint *" count="count"/>
+        <param name="offsets" type="const GLintptr *" count="count"/>
+        <param name="strides" type="const GLsizei *" count="count"/>
+    </function>
+
+</category>
+</OpenGLAPI>

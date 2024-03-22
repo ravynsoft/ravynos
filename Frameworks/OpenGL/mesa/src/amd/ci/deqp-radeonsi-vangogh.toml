@@ -1,0 +1,53 @@
+[[deqp]]
+deqp = "/deqp/modules/gles2/deqp-gles2"
+caselists = [ "/deqp/mustpass/gles2-master.txt" ]
+deqp_args = [
+    "--deqp-surface-width=256", "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+]
+renderer_check = "vangogh"
+
+[[deqp]]
+deqp = "/deqp/modules/gles3/deqp-gles3"
+caselists = [ "/deqp/mustpass/gles3-master.txt" ]
+deqp_args = [
+    "--deqp-surface-width=256", "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+]
+
+[[deqp]]
+deqp = "/deqp/modules/gles31/deqp-gles31"
+caselists = [ "/deqp/mustpass/gles31-master.txt" ]
+deqp_args = [
+    "--deqp-surface-width=256", "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+]
+
+[[deqp]]
+deqp = "/deqp/external/openglcts/modules/glcts"
+caselists = [
+    # The GL* tests include the tests for the previous versions, but the GLES*
+    # tests don't.
+    "/deqp/mustpass/gles2-khr-master.txt",
+    "/deqp/mustpass/gles3-khr-master.txt",
+    "/deqp/mustpass/gles31-khr-master.txt",
+    "/deqp/mustpass/gl46-master.txt",
+    "/deqp/mustpass/gl46-khr-single.txt",
+]
+deqp_args = [
+    "--deqp-surface-width=256", "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+]
+
+[[piglit]]
+piglit_folder = "/piglit"
+profile = "gpu"
+process_isolation = true
+  [piglit.env]
+  PIGLIT_NO_WINDOW = "1"
+  PIGLIT_PLATFORM = "gbm"
+  WAFFLE_PLATFORM = "gbm"

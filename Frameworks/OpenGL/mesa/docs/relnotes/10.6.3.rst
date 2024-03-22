@@ -1,0 +1,77 @@
+Mesa 10.6.3 Release Notes / July 26, 2015
+=========================================
+
+Mesa 10.6.3 is a bug fix release which fixes bugs found since the 10.6.2
+release.
+
+Mesa 10.6.3 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c27e1e33798e69a6d2d2425aee8ac7b4c0b243066a65dd76cbb182ea31b1c7f2  mesa-10.6.3.tar.gz
+   58592e07c350cd2e8969b73fa83048c657a39fe2f13f3b88f5e5818fe2e4676d  mesa-10.6.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 90728 <https://bugs.freedesktop.org/show_bug.cgi?id=90728>`__ -
+   dvd playback with vlc and vdpau causes segmentation fault
+-  `Bug 91337 <https://bugs.freedesktop.org/show_bug.cgi?id=91337>`__ -
+   OSMesaGetProcAdress("OSMesaPixelStore") returns nil
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  osmesa: fix OSMesaPixelsStore typo
+
+Chad Versace (1):
+
+-  mesa: Fix generation of git_sha1.h.tmp for gitlinks
+
+Christian König (2):
+
+-  vl: cleanup video buffer private when the decoder is destroyed
+-  st/vdpau: fix mixer size checks
+
+Emil Velikov (3):
+
+-  docs: Add sha256 checksums for the 10.6.2 release
+-  auxiliary/vl: use the correct screen index
+-  Update version to 10.6.3
+
+Francisco Jerez (1):
+
+-  i965/gen9: Use custom MOCS entries set up by the kernel.
+
+Ilia Mirkin (5):
+
+-  nv50, nvc0: enable at least one color RT if alphatest is enabled
+-  nvc0/ir: fix txq on indirect samplers
+-  nvc0/ir: don't worry about sampler in txq handling
+-  gm107/ir: fix indirect txq emission
+-  nv50: fix max level clamping on G80
+
+Kenneth Graunke (1):
+
+-  program: Allow redundant OPTION ARB_fog\_\* directives.
+
+Rob Clark (1):
+
+-  xa: don't leak fences

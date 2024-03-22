@@ -1,0 +1,283 @@
+Mesa 23.1.4 Release Notes / 2023-07-21
+======================================
+
+Mesa 23.1.4 is a bug fix release which fixes bugs found since the 23.1.3 release.
+
+Mesa 23.1.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.4 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    7261a17fb94867e3dc5a90d8a1f100fa04b0cbbde51d25302c0872b5e9a10959  mesa-23.1.4.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radeonsi: Deadlock when creating a new GL context in parallel with linking a shader on another GL context
+- robustness2 raygen tests intermittently fail in Intel Mesa CI
+- glthread: huge performance regression
+- DirectX games do not launch on Intel HD Graphics 4000 (IVB GT2) [bisected]
+- anv: GPU hangs on MSAA tests with Angle
+- AMD OpenGL texture corruption and crashing regression in java app
+- The filenumber part of the #line preprocessor directive is ignored for multiline error messages
+- Confidential issue #4103
+- r600 regression
+- [bisected][anv] newly enabled test (dEQP-VK.api.info.format_properties.g8_b8r8_2plane_420_unorm) failing
+- deqp gles3.1 gpu hangs on DG2 A380 when running zink
+- freedreno: firefox crashes on video playback
+- radeon: Basphemous graphical glitch
+- aztec ruins gl benchmark slow to compile shaders on intel
+- anv: false cacheline flushing or insufficient buffer alignment on at least ADL
+- [Vulkan][TGL] vkCmdCopyQueryPoolResults failed to write buffer after compute shader write with overlap
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (4):
+
+- nir/lower_bool_to_int32: Fix progress reporting
+- pan/mdg: Fix temp count calculation
+- nir: Add nir_foreach_function_impl helper
+- panfrost: Fix transform feedback on v9
+
+Billy Laws (1):
+
+- wgl: Fix depth/stencil image support when using zink kopper
+
+Boris Brezillon (3):
+
+- renderonly: Fix potential NULL deref in the error path
+- renderonly: Make sure we reset scanout on error in create_kms_dumb_buffer_for_resource()
+- winsys/panfrost: Make sure we reset scanout on error in create_kms_dumb_buffer_for_resource()
+
+Corentin Noël (2):
+
+- compiler: Allow the explicit_stride of aoa types to be zero
+- nir/split_64bit_vec3_and_vec4: Use the right number of components
+
+Dave Airlie (3):
+
+- lavapipe: check sampler pointer before deref
+- draw/gs: handle extra shader outputs in geometry.
+- llvmpipe/linear: don't allow linear path for shader output with location frac
+
+Eric Engestrom (11):
+
+- docs/relnotes: add sha256sum for 23.1.3
+- .pick_status.json: Update to 337908440eefc95abef9fa4464e29d299072df73
+- .pick_status.json: Update to f9e6d35f65c6c5913d54ba5306af391a8701a68a
+- asahi: drop unnecessary DRM_FORMAT_MOD_{LINEAR,INVALID} fallbacks
+- .pick_status.json: Mark af895692b3b52599e456f14e08a3beaa32b5a4c8 as denominated
+- .pick_status.json: Update to e67337bebf623e67d119f48c2d24f3b831482ede
+- .pick_status.json: Update to ba0ceb3be33766e2d96d50be6827e709c25f57dc
+- .pick_status.json: Update to 9bcdc45ee7e8c4ca0dbb18ba16077d474d5ebb31
+- util/disk_cache: fix ~/.cache/ permissions
+- .pick_status.json: Update to cfd24047a1d901d209b18828fd91f9ec36ef0fed
+- .pick_status.json: Mark 79f7882fc604515302351282f5e01ec5907727f7 as denominated
+
+Faith Ekstrand (1):
+
+- nv50/ir: Support vector movs
+
+Feng Jiang (2):
+
+- frontends/va: Fix memory leak of decrypt_key
+- virgl/video: Fix out-of-bounds access in fill_mpeg4_picture_desc()
+
+Filip Gawin (1):
+
+- crocus: Avoid fast-clear with incompatible view
+
+Francisco Jerez (1):
+
+- intel/gfx12.5: Enable L3 partial write merging for compressible surfaces among other cases.
+
+Frank Binns (1):
+
+- pvr: skip setting up SPM consts buffer when no const shared regs are used
+
+Friedrich Vock (2):
+
+- radv/rt: Enable exact on software intersection functions
+- radv/rt: Miss rays that hit the triangle's v edge
+
+Gert Wollny (2):
+
+- r600/sfn: Don't clear clear group flag on vec4 that comes from TEX or FETCH
+- r600: Pre-EG  - Set wrap texture modes to repeat when seemless cube is used
+
+Hyunjun Ko (1):
+
+- anv/video: fix to set U/V offset correctly.
+
+Iago Toral Quiroga (1):
+
+- broadcom/compiler: don't leak v3d_compile when finding a new best strategy
+
+Iván Briano (1):
+
+- anv: ensure CFE_STATE is emitted for ray tracing pipelines
+
+Janne Grunau (1):
+
+- st/mesa: Set gl_config.floatMode based on color_format
+
+Jesse Natalie (1):
+
+- d3d12: Fix indexing of local_reference_state
+
+José Roberto de Souza (1):
+
+- anv: Fix compute maximum number of threads value
+
+Juston Li (1):
+
+- radv: fix incorrect size for primitives generated query
+
+Karmjit Mahil (2):
+
+- pvr: Fix seg fault on empty descriptor set
+- pvr: Fix dynamic offset patching
+
+Karol Herbst (1):
+
+- nvc0: backport fp helper invocation fix to 2nd gen Maxwell+
+
+Kenneth Graunke (1):
+
+- intel: Initialize FF_MODE2 on all Gfx12 platforms
+
+Konstantin Seurer (2):
+
+- gallivm: Clamp the texel buffer size
+- nir/opt_dead_cf: Handle if statements ending in a jump correctly
+
+Lina Versace (1):
+
+- venus: Fix detection of push descriptor set
+
+Lionel Landwerlin (6):
+
+- anv: limit ANV_PIPE_RENDER_TARGET_BUFFER_WRITES to blorp operations using 3D
+- anv: track buffer writes from shaders for query results writes
+- anv: align buffers to a cache line
+- anv: fix utrace batch allocation
+- intel/fs: disable coarse pixel shader with interpolater messages at sample
+- anv: fix utrace signaling with Xe
+
+Marek Olšák (5):
+
+- vbo: correctly restore _VaryingInputs for display list fast path
+- glthread: determine global locking once every 64 batches to fix get_time perf
+- mesa: fix 38% decrease in display list performance of Viewperf2020/NX8_StudioAA
+- util/u_queue: fix util_queue_finish deadlock by merging lock and finish_lock
+- lima: update CI fixes and flakes
+
+Matt Turner (2):
+
+- anv: Pipe anv_physical_device to anv_get_image_format_features2
+- anv: Only expose video decode bits with KHR_video_decode_queue
+
+Mike Blumenkrantz (9):
+
+- nir/lower_tex: ignore saturate for txf ops
+- zink: fix assert for inline uniform invalidation with generated gs bound
+- zink: fix unbinding generated gs on real gs bind
+- zink: get new bda when rebinding invalidated buffers
+- zink: do initial program unref during program creation
+- zink: fix separate shader program refcounting
+- zink: don't destroy swapchain on initial CreateSwapchainKHR fail
+- aux/trace: fix bindless texture dumping
+- zink: fix batch disambiguation on first submit
+
+Patrick Lerda (3):
+
+- util/blitter: revert util_blitter_clear_buffer()
+- radeonsi: fix refcnt imbalance related to util_blitter_save_fragment_constant_buffer_slot()
+- panfrost: fix refcnt imbalance related to blitter
+
+Rhys Perry (4):
+
+- ac/llvm: fix wave32 ac_build_mbcnt_add with 64-bit mask
+- ac/llvm: skip ballot zext for 32-bit dest with wave32-as-wave64
+- radv: add conformant_trunc_coord to cache UUID
+- nir/unsigned_upper_bound: fix phi(bcsel)
+
+Rob Clark (4):
+
+- freedreno/drm: Don't try to export suballoc bo
+- freedreno: Handle export error handling
+- freedreno: Add aux-context support
+- freedreno: Reallocate on unshared export
+
+Robert Beckett (1):
+
+- winsys/panfrost: Fix a scanout resource leak
+
+Rohan Garg (1):
+
+- intel/perf: add perf query support for Intel Raptorlake
+
+Samuel Pitoiset (3):
+
+- radv/amdgpu: fix dumping cs with RADV_DEBUG=noibs
+- radv/amdgpu: skip adding per VM BOs for sparse during CS BO list build
+- radv/amdgpu: workaround a kernel bug when replacing sparse mappings
+
+Semjon Kravtsenko (1):
+
+- glx: Assign unique serial number to GLXBadFBConfig error
+
+Shan-Min Chao (1):
+
+- tu/kgsl: Fix memory overwrite with vkFlushMappedMemoryRanges when more than 1 range
+
+SoroushIMG (1):
+
+- pvr: Fix barrier insertion on merged subpasses
+
+Sviatoslav Peleshko (1):
+
+- glsl: Fix yylloc.source propagation in YYLLOC_DEFAULT
+
+Timothy Arceri (1):
+
+- glsl: call nir_opt_find_array_copies() when linking
+
+Timur Kristóf (2):
+
+- ac/nir/ngg: Call nir_convert_to_lcssa before divergence analysis.
+- aco: Fix subgroup_id intrinsic on GFX10.3+.
+
+Vinson Lee (1):
+
+- tu: Fix missing unlock
+
+Yiwei Zhang (3):
+
+- venus: suballocate feedback slot with feedback buffer alignment
+- venus: fix a cmd tmp storage leak
+- venus: fix leaks from tracked present src images
+
+Yonggang Luo (1):
+
+- mapi: Fixes check_table.cpp for DrawArraysInstancedARB and DrawElementsInstancedARB

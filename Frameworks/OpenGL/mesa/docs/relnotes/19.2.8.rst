@@ -1,0 +1,93 @@
+Mesa 19.2.8 Release Notes / 2019-12-18
+======================================
+
+Mesa 19.2.8 is a bug fix release which fixes bugs found since the 19.2.7
+release.
+
+Mesa 19.2.8 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.2.8 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       cffa8fa755c7422ce014c39ca0b770a092d9e0bbae537ceb2609c106916e5a57  mesa-19.2.8.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  i965/iris: assert when destroy GL context with active query
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+-  gallium/util: Support POLYGON in u_stream_outputs_for_vertices
+
+Bas Nieuwenhuizen (2):
+
+-  amd/common: Always use addrlib for HTILE tc-compat.
+-  amd/common: Fix tcCompatible degradation on Stoney.
+
+Dylan Baker (4):
+
+-  docs: Add SHA256 sums for 19.2.7
+-  meson/broadcom: libbroadcom_cle needs expat headers
+-  meson/broadcom: libbroadcom_cle also needs zlib
+-  cherry-ignore: Update for 19.2.8
+
+Gert Wollny (1):
+
+-  virgl: Increase the shader transfer buffer by doubling the size
+
+Iván Briano (1):
+
+-  anv: Export filter_minmax support only when it's really supported
+
+Faith Ekstrand (2):
+
+-  anv: Re-emit all compute state on pipeline switch
+-  anv: Don't leak when set_tiling fails
+
+Kenneth Graunke (1):
+
+-  iris: Default to X-tiling for scanout buffers without modifiers
+
+Lionel Landwerlin (7):
+
+-  intel/perf: fix invalid hw_id in query results
+-  intel/perf: set read buffer len to 0 to identify empty buffer
+-  intel/perf: take into account that reports read can be fairly old
+-  intel/perf: simplify the processing of OA reports
+-  intel/perf: fix improper pointer access
+-  anv: fix fence underlying primitive checks
+-  mesa: avoid triggering assert in implementation
+
+Nanley Chery (2):
+
+-  gallium/dri2: Fix creation of multi-planar modifier images
+-  gallium: Store the image format in winsys_handle
+
+Rob Clark (1):
+
+-  nir/lower_clip: Fix incorrect driver loc for clipdist outputs
+
+Timothy Arceri (1):
+
+-  glsl/nir: iterate the system values list when adding varyings

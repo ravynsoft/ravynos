@@ -1,0 +1,107 @@
+Mesa 22.1.4 Release Notes / 2022-07-15
+======================================
+
+Mesa 22.1.4 is a bug fix release which fixes bugs found since the 22.1.3 release.
+
+Mesa 22.1.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.1.4 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    670d8cbe8b72902a45ea2da68a9da4dc4a5d99c5953a926177adbce1b1640b76  mesa-22.1.4.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- r300: Segfault in shaders/closed/steam/kerbal-space-program/1017.shader_test
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (2):
+
+- ttn: Set nir->info.separate_shader
+- panfrost: Clear with a quad to avoid flushing
+
+Daniel Schürmann (3):
+
+- nir/opt_shrink_vectors: fix re-using of components for vecN
+- radv/shader_info: fix load_frag_coord and load_sample_pos read masks
+- aco: fix packed 16bit fneg/fsat optimization
+
+Dylan Baker (6):
+
+- docs: add sah256sum for mesa 22.1.3
+- .pick_status.json: Update to c017dfec62e448fea9ad9d16c575086b0de19b3b
+- .pick_status.json: Mark 4480e577a462d43f5c7701d2c1b70c601c626e18 as denominated
+- .pick_status.json: Update to 8ab1e9826db5936ff287bef7b428ebee27ada507
+- .pick_status.json: Update to 9dbfc21ab9ac99ebec56369d1e1ea9d7b615d5f5
+- .pick_status.json: Update to 0feedec9e6b630f930605d9681911fe9e2b705ce
+
+Emma Anholt (1):
+
+- zink: Do the timestamp-to-ns math in a double to have better precision.
+
+Iago Toral Quiroga (2):
+
+- v3dv: fix pool descriptor count for inline uniform buffers
+- nir: fix documentation for uadd_carry and usub_borry opcodes
+
+Faith Ekstrand (4):
+
+- vulkan/wsi: Pass the size to MapMemory in the SW path
+- vulkan/wsi/x11: Don't leak shm_reply if we don't have dri3 or present
+- anv: Inheritance info cannot be NULL
+- anv: Stop compacting surface state tables
+
+Lionel Landwerlin (5):
+
+- anv: disable non uniform indexing of UBOs
+- anv: use the right helper to invalidate memory
+- intel/fs: ray query fix for global address
+- nir/serialize: restore ray query variables
+- isl: add new helper for format component compatibility
+
+Marek Olšák (1):
+
+- radeonsi: fix random PS wave size
+
+Mike Blumenkrantz (5):
+
+- nir/types: fix glsl_matrix_type_is_row_major() assert
+- zink: enforce viewport depth clamping
+- mesa: fix SignalSemaphoreEXT behavior
+- lavapipe: don't overwrite entire VkFormatProperties3 struct
+- lavapipe: don't crash on null xfb buffer pointer
+
+Pavel Ondračka (1):
+
+- r300: Keep rc_rename_regs() from overflowing RC_REGISTER_MAX_INDEX
+
+Rhys Perry (1):
+
+- aco/ra: update register file when updating phi definition
+
+Tatsuyuki Ishi (1):
+
+- radv: Fix vkCmdCopyQueryResults -> vkCmdResetPool hazard.

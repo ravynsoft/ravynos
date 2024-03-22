@@ -1,0 +1,20 @@
+KHR-GL33.packed_pixels.*
+KHR-GL33.texture_swizzle.smoke
+
+max.*size
+streaming-texture-leak
+ppgtt_memory_alignment
+
+# @anholt was running piglit under GBM
+glx@
+
+# MESA_GLES_VERSION_OVERRIDE=3.1 skips because the HW doesn't do it.
+dEQP-GLES31.*gather
+dEQP-GLES31.functional.compute.basic.shared_atomic
+dEQP-GLES31.functional.compute.shared_var.atomic
+
+# Too slow on the hardware, times out at 60s.
+dEQP-GLES31.functional.draw_indirect.compute_interop.large.drawelements_combined_grid_1000x1000_drawcount_1
+dEQP-GLES31.functional.draw_indirect.compute_interop.large.drawelements_separate_grid_1000x1000_drawcount_1
+dEQP-GLES31.functional.draw_indirect.compute_interop.large.drawelements_combined_grid_1200x1200_drawcount_1
+dEQP-GLES31.functional.draw_indirect.compute_interop.large.drawelements_separate_grid_1200x1200_drawcount_1

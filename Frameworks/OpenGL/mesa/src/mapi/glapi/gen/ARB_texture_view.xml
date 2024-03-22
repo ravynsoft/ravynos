@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="GL_ARB_texture_view" number="124">
+
+   <function name="TextureView" no_error="true">
+      <param name="texture" type="GLuint"/>
+      <param name="target" type="GLenum"/>
+      <param name="origtexture" type="GLuint"/>
+      <param name="internalformat" type="GLenum"/>
+      <param name="minlevel" type="GLuint"/>
+      <param name="numlevels" type="GLuint"/>
+      <param name="minlayer" type="GLuint"/>
+      <param name="numlayers" type="GLuint"/>
+   </function>
+
+</category>
+
+</OpenGLAPI>

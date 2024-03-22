@@ -1,0 +1,159 @@
+Mesa 17.1.2 Release Notes / June 5, 2017
+========================================
+
+Mesa 17.1.2 is a bug fix release which fixes bugs found since the 17.1.1
+release.
+
+Mesa 17.1.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   0d2020c2115db0d13a5be0075abf0da143290f69f5817a2f277861e89166a3e1  mesa-17.1.2.tar.gz
+   0937804f43746339b1f9540d8f9c8b4a1bb3d3eec0e4020eac283b8799798239  mesa-17.1.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 98833 <https://bugs.freedesktop.org/show_bug.cgi?id=98833>`__ -
+   [REGRESSION, bisected] Wayland revert commit breaks non-Vsync
+   fullscreen frame updates
+-  `Bug 100741 <https://bugs.freedesktop.org/show_bug.cgi?id=100741>`__
+   - Chromium - Memory leak
+-  `Bug 100877 <https://bugs.freedesktop.org/show_bug.cgi?id=100877>`__
+   - vulkan/tests/block_pool_no_free regression
+-  `Bug 101110 <https://bugs.freedesktop.org/show_bug.cgi?id=101110>`__
+   - Build failure in GNOME Continuous
+
+Changes
+-------
+
+Bartosz Tomczyk (1):
+
+-  mesa: Avoid leaking surface in st_renderbuffer_delete
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Reserve space for descriptor and push constant user SGPR
+   setting.
+
+Daniel Stone (7):
+
+-  vulkan: Fix Wayland uninitialised registry
+-  vulkan/wsi/wayland: Remove roundtrip when creating image
+-  vulkan/wsi/wayland: Use per-display event queue
+-  vulkan/wsi/wayland: Use proxy wrappers for swapchain
+-  egl/wayland: Don't open-code roundtrip
+-  egl/wayland: Use per-surface event queues
+-  egl/wayland: Ensure we get a back buffer
+
+Emil Velikov (24):
+
+-  docs: add sha256 checksums for 17.1.1
+-  configure: move platform handling further up
+-  configure: rename remaining HAVE_EGL_PLATFORM\_\* guards
+-  configure: update remaining --with-egl-platforms references
+-  configure: loosen --with-platforms heuristics
+-  configure: enable the surfaceless platform by default
+-  configure: set HAVE_foo_PLATFORM as applicable
+-  configure: error out when building GLX w/o the X11 platform
+-  configure: check once for DRI3 dependencies
+-  loader: build libloader_dri3_helper.la only with HAVE_PLATFORM_X11
+-  configure: error out when building X11 Vulkan without DRI3
+-  auxiliary/vl: use vl_*_screen_create stubs when building w/o platform
+-  st/va: fix misplaced closing bracket
+-  st/omx: remove unneeded X11 include
+-  st/omx: fix building against X11-less setups
+-  gallium/targets: link against XCB only as needed
+-  configure: error out if building VA w/o supported platform
+-  configure: error out if building OMX w/o supported platform
+-  configure: error out if building VDPAU w/o supported platform
+-  configure: error out if building XVMC w/o supported platform
+-  travis: remove workarounds for the Vulkan target
+-  anv: automake: list shared libraries after the static ones
+-  radv: automake: list shared libraries after the static ones
+-  egl/wayland: select the format based on the interface used
+
+Ian Romanick (3):
+
+-  r100: Don't assume that the base mipmap of a texture exists
+-  r100,r200: Don't assume glVisual is non-NULL during context creation
+-  r100: Use \_mesa_get_format_base_format in radeon_update_wrapper
+
+Faith Ekstrand (17):
+
+-  anv: Handle color layout transitions from the UNINITIALIZED layout
+-  anv: Handle transitioning depth from UNDEFINED to other layouts
+-  anv/image: Get rid of the memset(aux, 0, sizeof(aux)) hack
+-  anv: Predicate 48bit support on gen >= 8
+-  anv: Set up memory types and heaps during physical device init
+-  anv: Set image memory types based on the type count
+-  i965/blorp: Do and end-of-pipe sync on both sides of fast-clear ops
+-  i965: Round copy size to the nearest block in intel_miptree_copy
+-  anv: Set EXEC_OBJECT_ASYNC when available
+-  anv: Determine the type of mapping based on type metadata
+-  anv: Add valid_bufer_usage to the memory type metadata
+-  anv: Stop setting BO flags in bo_init_new
+-  anv: Make supports_48bit_addresses a heap property
+-  anv: Refactor memory type setup
+-  anv: Advertise both 32-bit and 48-bit heaps when we have enough
+   memory
+-  i965: Rework Sandy Bridge HiZ and stencil layouts
+-  anv: Require vertex buffers to come from a 32-bit heap
+
+Juan A. Suarez Romero (13):
+
+-  Revert "android: fix segfault within swap_buffers"
+-  cherry-ignore: radeonsi: load patch_id for TES-as-ES when exporting
+   for PS
+-  cherry-ignore: anv: Determine the type of mapping based on type
+   metadata
+-  cherry-ignore: anv: Stop setting BO flags in bo_init_new
+-  cherry-ignore: anv: Make supports_48bit_addresses a heap property
+-  cherry-ignore: anv: Advertise both 32-bit and 48-bit heaps when we
+   have enough memory
+-  cherry-ignore: anv: Require vertex buffers to come from a 32-bit heap
+-  cherry-ignore: radv: fix regression in descriptor set freeing
+-  cherry-ignore: anv: Add valid_bufer_usage to the memory type metadata
+-  cherry-ignore: anv: Refactor memory type setup
+-  Revert "cherry-ignore: anv: [...]"
+-  Revert "cherry-ignore: anv: Require vertex buffers to come from a
+   32-bit heap"
+-  Update version to 17.1.2
+
+Marek Olšák (1):
+
+-  radeonsi/gfx9: compile shaders with +xnack
+
+Nicolai Hähnle (1):
+
+-  st/mesa: remove redundant stfb->iface checks
+
+Nicolas Boichat (1):
+
+-  configure.ac: Also match -androideabi tuple
+
+Rob Clark (1):
+
+-  freedreno: fix fence creation fail if no rendering
+
+Tapani Pälli (1):
+
+-  egl/android: fix segfault within swap_buffers
+
+Timothy Arceri (1):
+
+-  st/mesa: don't mark the program as in cache_fallback when there is
+   cache miss

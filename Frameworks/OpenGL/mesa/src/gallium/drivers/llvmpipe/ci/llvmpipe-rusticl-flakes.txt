@@ -1,0 +1,19 @@
+# corrupted size vs. prev_size
+program@execute@clz-optimizations
+
+# "malloc_consolidate(): invalid chunk size"
+# Nothing useful from valgrind:
+# ==2976980== Invalid write of size 2
+# ==2976980==    at 0x4867537: ???
+# ==2976980==    by 0x486713F: ???
+# ==2976980==    by 0x8D42AD0: ??? (in /home/anholt/src/mesa/build/src/gallium/targets/rusticl/libRusticlOpenCL.so.1.0.0)
+# ==2976980==    by 0x8D1E4EA: ??? (in /home/anholt/src/mesa/build/src/gallium/targets/rusticl/libRusticlOpenCL.so.1.0.0)
+# ==2976980==    by 0x845C227: ??? (in /home/anholt/src/mesa/build/src/gallium/targets/rusticl/libRusticlOpenCL.so.1.0.0)
+# ==2976980==    by 0x4A5E849: start_thread (pthread_create.c:442)
+# ==2976980==    by 0x4AE152F: clone (clone.S:100)
+# ==2976980==  Address 0x19faa6d0 is 0 bytes after a block of size 80 alloc'd
+# ==2976980==    at 0x4848990: memalign (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+# ==2976980==    by 0x4848AED: posix_memalign (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+# ==2976980==    by 0x8D5DB52: ??? (in /home/anholt/src/mesa/build/src/gallium/targets/rusticl/libRusticlOpenCL.so.1.0.0)
+# ==2976980==    by 0x8186CA2: ??? (in /home/anholt/src/mesa/build/src/gallium/targets/rusticl/libRusticlOpenCL.so.1.0.0)
+program@execute@bswap

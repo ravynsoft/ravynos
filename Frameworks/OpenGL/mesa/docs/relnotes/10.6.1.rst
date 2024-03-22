@@ -1,0 +1,80 @@
+Mesa 10.6.1 Release Notes / June 29, 2015
+=========================================
+
+Mesa 10.6.1 is a bug fix release which fixes bugs found since the 10.6.0
+release.
+
+Mesa 10.6.1 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   b4cccd4d0eabcc2bca00c3175d3ad88fdda57ffdb883a7998525b873a21fe607  mesa-10.6.1.tar.gz
+   6c80a2b647e57c85dc36e609d9aed17f878f0d8e0cf9ace86d14cf604101e1eb  mesa-10.6.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 90347 <https://bugs.freedesktop.org/show_bug.cgi?id=90347>`__ -
+   [NVE0+] Failure to insert texbar under some circumstances (causing
+   bad colors in Terasology)
+
+Changes
+-------
+
+Anuj Phogat (4):
+
+-  mesa: Handle integer formats in need_rgb_to_luminance_conversion()
+-  mesa: Use helper function need_rgb_to_luminance_conversion()
+-  mesa: Turn need_rgb_to_luminance_conversion() in to a global function
+-  meta: Abort meta path if ReadPixels need rgb to luminance conversion
+
+Ben Widawsky (1):
+
+-  i965/gen9: Implement Push Constant Buffer workaround
+
+Boyan Ding (2):
+
+-  egl/x11: Set version of swrastLoader to 2
+-  egl/x11: Remove duplicate call to dri2_x11_add_configs_for_visuals
+
+Emil Velikov (6):
+
+-  docs: Add sha256sums for the 10.6.0 release
+-  configure: warn about shared_glapi & xlib-glx only when both are set
+-  configure: error out when building backend-less libEGL
+-  configure: error out when building libEGL without shared-glapi
+-  gbm: do not (over)link against libglapi.so
+-  Update version to 10.6.1
+
+Frank Henigman (1):
+
+-  gbm: dlopen libglapi so gbm_create_device works
+
+Ilia Mirkin (9):
+
+-  nvc0/ir: fix collection of first uses for texture barrier insertion
+-  nv50,nvc0: clamp uniform size to 64k
+-  nvc0/ir: can't have a join on a load with an indirect source
+-  glsl: handle conversions to double when comparing param matches
+-  glsl: add version checks to conditionals for builtin variable
+   enablement
+-  mesa: add GL_PROGRAM_PIPELINE support in KHR_debug calls
+-  glsl: binding point is a texture unit, which is a combined space
+-  nvc0: always put all tfb bufs into bufctx
+-  nv50,nvc0: make sure to pushbuf_refn before putting bo into
+   pushbuf_data

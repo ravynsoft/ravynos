@@ -1,0 +1,110 @@
+Mesa 10.1.6 Release Notes / (June 24, 2014)
+===========================================
+
+Mesa 10.1.6 is a bug fix release which fixes bugs found since the 10.1.5
+release.
+
+Mesa 10.1.6 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   cde60e06b340d7598802fe4a4484b3fb8befd714f9ab9caabe1f27d3149e8815  MesaLib-10.1.6.tar.bz2
+   e4e726d7805a442f7ed07d12f71335e6126796ec85328a5989eb5348a8042d00  MesaLib-10.1.6.tar.gz
+   bf7e3f721a7ad0c2057a034834b6fea688e64f26a66cf8d1caa2827e405e72dd  MesaLib-10.1.6.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 54372 <https://bugs.freedesktop.org/show_bug.cgi?id=54372>`__ -
+   GLX_INTEL_swap_event crashes driver when swapping window buffers
+-  `Bug 74005 <https://bugs.freedesktop.org/show_bug.cgi?id=74005>`__ -
+   [i965 Bisected]Piglit/glx_glx-make-glxdrawable-current fails
+-  `Bug 78581 <https://bugs.freedesktop.org/show_bug.cgi?id=78581>`__ -
+-  `Bug 79729 <https://bugs.freedesktop.org/show_bug.cgi?id=79729>`__ -
+   [i965] glClear on a multisample texture doesn't work
+
+Changes
+-------
+
+Adrian Negreanu (7):
+
+-  add megadriver_stub_FILES
+-  android: adapt to the megadriver mechanism
+-  android: add libloader to libGLES_mesa and libmesa_egl_dri2
+-  android: add src/gallium/auxiliary as include path for
+   libmesa_dricore
+-  android, egl: add correct drm include for libmesa_egl_dri2
+-  android, mesa_gen_matypes: pull in timespec POSIX definition
+-  android, dricore: undefined reference to \_mesa_streaming_load_memcpy
+
+Beren Minor (1):
+
+-  egl/main: Fix eglMakeCurrent when releasing context from current
+   thread.
+
+Carl Worth (3):
+
+-  docs: Add SHA256 checksums for the 10.1.5 release
+-  cherry-ignore: Add a patch to ignore
+-  Update VERSION to 10.1.6
+
+Daniel Manjarres (1):
+
+-  glx: Don't crash on swap event for a Window (non-GLXWindow)
+
+Emil Velikov (1):
+
+-  configure: error out when building opencl without LLVM
+
+Iago Toral Quiroga (1):
+
+-  mesa: Copy Geom.UsesEndPrimitive when cloning a geometry program.
+
+José Fonseca (3):
+
+-  mesa/main: Make get_hash.c values constant.
+-  mesa: Make glGetIntegerv(GL_*_ARRAY_SIZE) return GL_BGRA.
+-  mesa/main: Prevent sefgault on
+   glGetIntegerv(GL_ATOMIC_COUNTER_BUFFER_BINDING).
+
+Kristian Høgsberg (1):
+
+-  mesa: Remove glClear optimization based on drawable size
+
+Michel Dänzer (1):
+
+-  configure: Only check for OpenCL without LLVM when the latter is
+   certain
+
+Neil Roberts (1):
+
+-  i965: Set the fast clear color value for texture surfaces
+
+Roland Scheidegger (1):
+
+-  draw: (trivial) fix clamping of viewport index
+
+Tobias Klausmann (1):
+
+-  nv50/ir: clear subop when folding constant expressions
+
+Tom Stellard (2):
+
+-  clover: Prevent Clang from printing number of errors and warnings to
+   stderr.
+-  clover: Don't use llvm's global context

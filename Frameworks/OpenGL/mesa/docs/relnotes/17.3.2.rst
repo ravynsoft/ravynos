@@ -1,0 +1,80 @@
+Mesa 17.3.2 Release Notes / January 8, 2018
+===========================================
+
+Mesa 17.3.2 is a bug fix release which fixes bugs found since the 17.3.1
+release.
+
+Mesa 17.3.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   f997e80f14c385f9a2ba827c2b74aebf1b7426712ca4a81c631ef9f78e437bf4  mesa-17.3.2.tar.gz
+   e2844a13f2d6f8f24bee65804a51c42d8dc6ae9c36cff7ee61d0940e796d64c6  mesa-17.3.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 97852 <https://bugs.freedesktop.org/show_bug.cgi?id=97852>`__ -
+   Unreal Engine corrupted preview viewport
+-  `Bug 103801 <https://bugs.freedesktop.org/show_bug.cgi?id=103801>`__
+   - [i965] >Observer\_ issue
+-  `Bug 104288 <https://bugs.freedesktop.org/show_bug.cgi?id=104288>`__
+   - Steamroll needs allow_glsl_cross_stage_interpolation_mismatch=true
+
+Changes
+-------
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Fix DCC compatible formats.
+
+Brendan King (1):
+
+-  egl: link libEGL against the dynamic version of libglapi
+
+Dave Airlie (6):
+
+-  radv/gfx9: add support for 3d images to blit 2d paths
+-  radv: handle depth/stencil image copy with layouts better. (v3.1)
+-  radv/meta: fix blit paths for depth/stencil (v2.1)
+-  radv: fix issue with multisample positions and interp_var_at_sample.
+-  radv/gfx9: add 3d sampler image->buffer copy shader. (v3)
+-  radv: don't do format replacement on tc compat htile surfaces.
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 17.3.1
+-  Update version to 17.3.2
+
+Eric Engestrom (1):
+
+-  egl: let each platform decided how to handle LIBGL_ALWAYS_SOFTWARE
+
+Rob Herring (1):
+
+-  egl/android: Fix build break with dri2_initialize_android
+   \_EGLDisplay parameter
+
+Samuel Pitoiset (2):
+
+-  radv/gfx9: fix primitive topology when adjacency is used
+-  radv: use a faster version for nir_op_pack_half_2x16
+
+Tapani Pälli (2):
+
+-  mesa: add AllowGLSLCrossStageInterpolationMismatch workaround
+-  drirc: set allow_glsl_cross_stage_interpolation_mismatch for more
+   games

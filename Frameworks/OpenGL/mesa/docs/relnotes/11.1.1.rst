@@ -1,0 +1,167 @@
+Mesa 11.1.1 Release Notes / January 13, 2016
+============================================
+
+Mesa 11.1.1 is a bug fix release which fixes bugs found since the 11.1.0
+release.
+
+Mesa 11.1.1 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   b15089817540ba0bffd0aad323ecf3a8ff6779568451827c7274890b4a269d58  mesa-11.1.1.tar.gz
+   64db074fc514136b5fb3890111f0d50604db52f0b1e94ba3fcb0fe8668a7fd20  mesa-11.1.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 91806 <https://bugs.freedesktop.org/show_bug.cgi?id=91806>`__ -
+   configure does not test whether assembler supports sse4.1
+-  `Bug 92229 <https://bugs.freedesktop.org/show_bug.cgi?id=92229>`__ -
+   [APITRACE] SOMA have serious graphical errors
+-  `Bug 92233 <https://bugs.freedesktop.org/show_bug.cgi?id=92233>`__ -
+   Unigine Heaven 4.0 silhuette run
+-  `Bug 93004 <https://bugs.freedesktop.org/show_bug.cgi?id=93004>`__ -
+   Guild Wars 2 crash on nouveau DX11 cards
+-  `Bug 93215 <https://bugs.freedesktop.org/show_bug.cgi?id=93215>`__ -
+   [Regression bisected] Ogles1conform Automatic mipmap generation test
+   is fail
+-  `Bug 93257 <https://bugs.freedesktop.org/show_bug.cgi?id=93257>`__ -
+   [SKL, bisected] ASTC dEQP tests segfault
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  st/mesa: check state->mesa in early return check in
+   st_validate_state()
+
+Dave Airlie (6):
+
+-  mesa/varray: set double arrays to non-normalised.
+-  mesa/shader: return correct attribute location for double matrix
+   arrays
+-  glsl: pass stage into mark function
+-  glsl/fp64: add helper for dual slot double detection.
+-  glsl: fix count_attribute_slots to allow for different 64-bit
+   handling
+-  glsl: only update doubles inputs for vertex inputs.
+
+Emil Velikov (4):
+
+-  docs: add sha256 checksums for 11.0.1
+-  cherry-ignore: drop the "re-enable" DCC on Stoney
+-  cherry-ignore: don't pick a specific i965 formats patch
+-  Update version to 11.1.1
+
+Eric Anholt (2):
+
+-  vc4: Warn instead of abort()ing on exec ioctl failures.
+-  vc4: Keep sample mask writes from being reordered after TLB writes
+
+Grazvydas Ignotas (1):
+
+-  r600: fix constant buffer size programming
+
+Ian Romanick (1):
+
+-  meta/generate_mipmap: Work-around GLES 1.x problem with
+   GL_DRAW_FRAMEBUFFER
+
+Ilia Mirkin (9):
+
+-  nv50/ir: can't have predication and immediates
+-  gk104/ir: simplify and fool-proof texbar algorithm
+-  glsl: assign varying locations to tess shaders when doing SSO
+-  glx/dri3: a drawable might not be bound at wait time
+-  nvc0: don't forget to reset VTX_TMP bufctx slot after blit completion
+-  nv50/ir: float(s32 & 0xff) = float(u8), not s8
+-  nv50,nvc0: make sure there's pushbuf space and that we ref the bo
+   early
+-  nv50,nvc0: fix crash when increasing bsp bo size for h264
+-  nvc0: scale up inter_bo size so that it's 16M for a 4K video
+
+Jonathan Gray (2):
+
+-  configure.ac: use pkg-config for libelf
+-  configure: check for python2.7 for PYTHON2
+
+Kenneth Graunke (5):
+
+-  ralloc: Fix ralloc_adopt() to the old context's last child's parent.
+-  drirc: Disable ARB_blend_func_extended for Heaven 4.0/Valley 1.0.
+-  glsl: Fix varying struct locations when varying packing is disabled.
+-  nvc0: Set winding order regardless of domain.
+-  nir: Add a lower_fdiv option, turn fdiv into fmul/frcp.
+
+Marek Olšák (7):
+
+-  tgsi/scan: add flag colors_written
+-  r600g: write all MRTs only if there is exactly one output (fixes a
+   hang)
+-  radeonsi: don't call of u_prims_for_vertices for patches and
+   rectangles
+-  radeonsi: apply the streamout workaround to Fiji as well
+-  gallium/radeon: fix Hyper-Z hangs by programming PA_SC_MODE_CNTL_1
+   correctly
+-  program: add \_mesa_reserve_parameter_storage
+-  st/mesa: fix GLSL uniform updates for glBitmap & glDrawPixels (v2)
+
+Mark Janes (1):
+
+-  Add missing platform information for KBL
+
+Miklós Máté (1):
+
+-  mesa: Don't leak ATIfs instructions in DeleteFragmentShader
+
+Neil Roberts (3):
+
+-  i965: Add MESA_FORMAT_B8G8R8X8_SRGB to brw_format_for_mesa_format
+-  i965: Add B8G8R8X8_SRGB to the alpha format override
+-  i965: Fix crash when calling glViewport with no surface bound
+
+Nicolai Hähnle (2):
+
+-  gallium/radeon: only dispose locally created target machine in
+   radeon_llvm_compile
+-  gallium/radeon: fix regression in a number of driver queries
+
+Oded Gabbay (1):
+
+-  configura.ac: fix test for SSE4.1 assembler support
+
+Patrick Rudolph (2):
+
+-  nv50,nvc0: fix use-after-free when vertex buffers are unbound
+-  gallium/util: return correct number of bound vertex buffers
+
+Rob Herring (1):
+
+-  freedreno/ir3: fix 32-bit builds with pointer-to-int-cast error
+   enabled
+
+Samuel Pitoiset (3):
+
+-  nvc0: free memory allocated by the prog which reads MP perf counters
+-  nv50,nvc0: free memory allocated by performance metrics
+-  nv50: free memory allocated by the prog which reads MP perf counters
+
+Sarah Sharp (1):
+
+-  mesa: Add KBL PCI IDs and platform information.

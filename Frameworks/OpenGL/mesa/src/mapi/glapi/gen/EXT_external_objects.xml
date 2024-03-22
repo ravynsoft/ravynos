@@ -1,0 +1,234 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="EXT_external_objects" number="503">
+
+    <enum name="TEXTURE_TILING_EXT"                     value="0x9580"/>
+    <enum name="DEDICATED_MEMORY_OBJECT_EXT"            value="0x9581"/>
+    <enum name="PROTECTED_MEMORY_OBJECT_EXT"            value="0x959B"/>
+    <enum name="NUM_TILING_TYPES_EXT"                   value="0x9582"/>
+    <enum name="TILING_TYPES_EXT"                       value="0x9583"/>
+    <enum name="OPTIMAL_TILING_EXT"                     value="0x9584"/>
+    <enum name="LINEAR_TILING_EXT"                      value="0x9585"/>
+    <enum name="NUM_DEVICE_UUIDS_EXT"                   value="0x9596"/>
+    <enum name="DEVICE_UUID_EXT"                        value="0x9597"/>
+    <enum name="DRIVER_UUID_EXT"                        value="0x9598"/>
+    <enum name="LAYOUT_GENERAL_EXT"                     value="0x958D"/>
+    <enum name="LAYOUT_COLOR_ATTACHMENT_EXT"            value="0x958E"/>
+    <enum name="LAYOUT_DEPTH_STENCIL_ATTACHMENT_EXT"    value="0x958F"/>
+    <enum name="LAYOUT_DEPTH_STENCIL_READ_ONLY_EXT"     value="0x9590"/>
+    <enum name="LAYOUT_SHADER_READ_ONLY_EXT"            value="0x9591"/>
+    <enum name="LAYOUT_TRANSFER_SRC_EXT"                value="0x9592"/>
+    <enum name="LAYOUT_TRANSFER_DST_EXT"                value="0x9593"/>
+
+    <function name="GetUnsignedBytevEXT" es2="3.2">
+        <param name="pname" type="GLenum"/>
+        <param name="data" type="GLubyte *"/>
+    </function>
+
+    <function name="GetUnsignedBytei_vEXT" es2="3.2">
+        <param name="target" type="GLenum"/>
+        <param name="index" type="GLuint"/>
+        <param name="data" type="GLubyte *"/>
+    </function>
+
+    <function name="DeleteMemoryObjectsEXT" es2="3.2">
+        <param name="n" type="GLsizei"/>
+        <param name="memoryObjects" type="const GLuint *" count="n"/>
+    </function>
+
+    <function name="IsMemoryObjectEXT" es2="3.2">
+        <param name="memoryObject" type="GLuint"/>
+        <return type="GLboolean"/>
+    </function>
+
+    <function name="CreateMemoryObjectsEXT" es2="3.2">
+        <param name="n" type="GLsizei"/>
+        <param name="memoryObjects" type="GLuint *"/>
+    </function>
+
+    <function name="MemoryObjectParameterivEXT" es2="3.2">
+        <param name="memoryObject" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLint *" count="_mesa_memobj_enum_to_count(pname)"/>
+    </function>
+
+    <function name="GetMemoryObjectParameterivEXT" es2="3.2">
+        <param name="memoryObject" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLint *"/>
+    </function>
+
+    <function name="TexStorageMem2DEXT" es2="3.2">
+        <param name="target" type="GLenum"/>
+        <param name="levels" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TexStorageMem2DMultisampleEXT" es2="3.2">
+        <param name="target" type="GLenum"/>
+        <param name="samples" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="fixedSampleLocations" type="GLboolean"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TexStorageMem3DEXT" es2="3.2">
+        <param name="target" type="GLenum"/>
+        <param name="levels" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="depth" type="GLsizei"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TexStorageMem3DMultisampleEXT" es2="3.2">
+        <param name="target" type="GLenum"/>
+        <param name="samples" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="depth" type="GLsizei"/>
+        <param name="fixedSampleLocations" type="GLboolean"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="BufferStorageMemEXT" es2="3.2" no_error="true">
+        <param name="target" type="GLenum"/>
+        <param name="size" type="GLsizeiptr"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+     </function>
+
+    <function name="TextureStorageMem2DEXT" es2="3.2">
+        <param name="texture" type="GLenum"/>
+        <param name="levels" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TextureStorageMem2DMultisampleEXT" es2="3.2">
+        <param name="texture" type="GLuint"/>
+        <param name="samples" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="fixedSampleLocations" type="GLboolean"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TextureStorageMem3DEXT" es2="3.2">
+        <param name="texture" type="GLuint"/>
+        <param name="levels" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="depth" type="GLsizei"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TextureStorageMem3DMultisampleEXT" es2="3.2">
+        <param name="texture" type="GLuint"/>
+        <param name="samples" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="depth" type="GLsizei"/>
+        <param name="fixedSampleLocations" type="GLboolean"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="NamedBufferStorageMemEXT" es2="3.2" no_error="true">
+        <param name="buffer" type="GLuint"/>
+        <param name="size" type="GLsizeiptr"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TexStorageMem1DEXT">
+        <param name="target" type="GLenum"/>
+        <param name="levels" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="TextureStorageMem1DEXT">
+        <param name="texture" type="GLuint"/>
+        <param name="levels" type="GLsizei"/>
+        <param name="internalFormat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+        <param name="memory" type="GLuint"/>
+        <param name="offset" type="GLuint64"/>
+    </function>
+
+    <function name="GenSemaphoresEXT" es2="3.2">
+        <param name="n" type="GLsizei"/>
+        <param name="semaphores" type="GLuint *"/>
+    </function>
+
+    <function name="DeleteSemaphoresEXT" es2="3.2">
+        <param name="n" type="GLsizei"/>
+        <param name="semaphores" type="const GLuint *" count="n"/>
+    </function>
+
+    <function name="IsSemaphoreEXT" es2="3.2">
+        <param name="semaphore" type="GLuint"/>
+        <return type="GLboolean"/>
+    </function>
+
+    <function name="SemaphoreParameterui64vEXT" es2="3.2">
+        <param name="semaphore" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLuint64 *" count="_mesa_semaphore_enum_to_count(pname)"/>
+    </function>
+
+    <function name="GetSemaphoreParameterui64vEXT" es2="3.2">
+        <param name="semaphore" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLuint64 *"/>
+    </function>
+
+    <function name="WaitSemaphoreEXT" es2="3.2">
+        <param name="semaphore" type="GLuint"/>
+        <param name="numBufferBarriers" type="GLuint"/>
+        <param name="buffers" type="const GLuint *" count="numBufferBarriers"/>
+        <param name="numTextureBarriers" type="GLuint"/>
+        <param name="textures" type="const GLuint *" count="numTextureBarriers"/>
+        <param name="srcLayouts" type="const GLenum *" count="numTextureBarriers"/>
+    </function>
+
+    <function name="SignalSemaphoreEXT" es2="3.2" marshal="sync">
+        <param name="semaphore" type="GLuint"/>
+        <param name="numBufferBarriers" type="GLuint"/>
+        <param name="buffers" type="const GLuint *" count="numBufferBarriers"/>
+        <param name="numTextureBarriers" type="GLuint"/>
+        <param name="textures" type="const GLuint *" count="numTextureBarriers"/>
+        <param name="dstLayouts" type="const GLenum *" count="numTextureBarriers"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

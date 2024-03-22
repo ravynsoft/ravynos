@@ -1,0 +1,104 @@
+Mesa 10.2.6 Release Notes / August 19, 2014
+===========================================
+
+Mesa 10.2.6 is a bug fix release which fixes bugs found since the 10.2.5
+release.
+
+Mesa 10.2.6 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   193314d2adba98e43697d726739ac46b4299aae324fa1821aa226890c28ac806  MesaLib-10.2.6.tar.bz2
+   f7a45a5977b485eb95ac024205c584a0c112fe3951c2313c797579bb16a7a448  MesaLib-10.2.6.tar.gz
+   6d086d6fcda8f317adfaaae40011decf2f2e2dc80819c4a7a77c76f73512e8d8  MesaLib-10.2.6.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 81450 <https://bugs.freedesktop.org/show_bug.cgi?id=81450>`__ -
+   [BDW]Piglit
+   spec_glsl-1.30_execution_tex-miplevel-selection_textureGrad_1DArray
+   cases intel_do_flush_locked failed
+
+Changes
+-------
+
+Anuj Phogat (15):
+
+-  mesa: Fix error condition for valid texture targets in glTexStorage\*
+   functions
+-  mesa: Turn target_can_be_compressed() in to a utility function
+-  mesa: Add error condition for using compressed internalformat in
+   glTexStorage3D()
+-  mesa: Fix condition for using compressed internalformat in
+   glCompressedTexImage3D()
+-  mesa: Add utility function \_mesa_is_enum_format_snorm()
+-  mesa: Don't allow snorm internal formats in glCopyTexImage*() in
+   GLES3
+-  mesa: Add a helper function \_mesa_is_enum_format_unsized()
+-  mesa: Add a gles3 error condition for sized internalformat in
+   glCopyTexImage*()
+-  mesa: Add gles3 error condition for GL_RGBA10_A2 buffer format in
+   glCopyTexImage*()
+-  mesa: Add utility function \_mesa_is_enum_format_unorm()
+-  mesa: Add gles3 condition for normalized internal formats in
+   glCopyTexImage*()
+-  mesa: Allow GL_TEXTURE_CUBE_MAP target with compressed internal
+   formats
+-  meta: Use \_mesa_get_format_bits() to get the GL_RED_BITS
+-  egl: Fix OpenGL ES version checks in \_eglParseContextAttribList()
+-  meta: Fix datatype computation in get_temp_image_type()
+
+Brian Paul (1):
+
+-  mesa: fix assertion in \_mesa_drawbuffers()
+
+Carl Worth (2):
+
+-  docs: Add sha256 sums to the 10.2.5 release notes
+-  Update VERSION to 10.2.6
+
+Ilia Mirkin (1):
+
+-  mesa/st: only convert AND(a, NOT(b)) into MAD when not using native
+   integers
+
+Jordan Justen (1):
+
+-  i965/miptree: Layout 1D Array as 2D Array with height of 1
+
+Maarten Lankhorst (1):
+
+-  configure.ac: Do not require llvm on x32
+
+Marek Olšák (4):
+
+-  st/mesa: fix blit-based partial TexSubImage for 1D arrays
+-  radeon,r200: fix buffer validation after CS flush
+-  radeonsi: fix a hang with instancing in Unigine Heaven/Valley on
+   Hawaii
+-  radeonsi: fix CMASK and HTILE allocation on Tahiti
+
+Pali Rohár (1):
+
+-  configure: check for dladdr via AC_CHECK_FUNC/AC_CHECK_LIB
+
+Roland Scheidegger (1):
+
+-  gallivm: fix up out-of-bounds level when using conformant
+   out-of-bound behavior

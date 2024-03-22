@@ -1,0 +1,43 @@
+Mesa 19.0.8 Release Notes / June 26, 2019
+=========================================
+
+Mesa 19.0.8 is an emergency bug fix release which fixes a critical bug
+found in the 19.0.7 release.
+
+Mesa 19.0.8 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   1a3dc3f2af853c76aadb4a1e03c9ba420361c04a742d457a702b781671a96a57  mesa-19.0.8.tar.gz
+   d017eb53a810c32dabeedf6ca2238ae1e897ce9090e470e9ce1d6c9e3f1b0862  mesa-19.0.8.tar.xz
+
+New features
+------------
+
+N/A
+
+Bug fixes
+---------
+
+None
+
+Changes
+-------
+
+Dylan Baker (2):
+
+-  docs: Add SHA256 sums for 19.0.7
+-  version: bump to 19.0.8
+
+Kenneth Graunke (1):
+
+-  egl/x11: calloc dri2_surf so it's properly zeroed

@@ -1,0 +1,181 @@
+Mesa 21.3.4 Release Notes / 2022-01-12
+======================================
+
+Mesa 21.3.4 is a bug fix release which fixes bugs found since the 21.3.3 release.
+
+Mesa 21.3.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.3.4 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    77104fd4a93bce69da3b0982f8ee88ba7c4fb98cfc491a669894339cdcd4a67d  mesa-21.3.4.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- i965: gen5 exposes EXT_texture_integer incorrectly
+- [radeonsi, regression, bisected]: Rendering issues with Factorio
+- mesa >= 21.x (with llvmpipe) will break the game JVGS
+- Panfrost - RK3399 - FACTORIO - glitches everywhere
+- Baldurs Gate 3 (Patch 6) - ribbon-like artifacts on textures
+- Game Starsector crashes under certain circumstances with mesa 21.3.+
+- FreeSpace models incorrectly rendered on Polaris cards, causing system freeze
+- Incomplete evaluation of nested DEFINE macros
+- [r300g, bisected] piglit glsl-fs-discard-04 fails
+- Panfrost G52 Firefox terrible glitches on youtube playback
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (3):
+
+- pan/bi: Fix load_const of 1-bit booleans
+- gallium/util: Add pixel->blocks box helper
+- lima,panfrost: Correct pixel vs block mismatches
+
+Bas Nieuwenhuizen (1):
+
+- radv: Set optimal copy alignment to 1.
+
+Boris Brezillon (1):
+
+- microsoft/compiler: Fix dxil_nir_create_bare_samplers()
+
+Connor Abbott (2):
+
+- ir3/ra: Fix logic bug in compress_regs_left
+- ir3: Bump type mismatch penalty to 3
+
+Daniel Schürmann (2):
+
+- aco: don't allow SDWA on VOP3P instructions
+- aco: validate VOP3P opsel correctly
+
+Danylo Piliaiev (1):
+
+- tu: fix workaround for depth bounds test without depth test
+
+Dave Airlie (2):
+
+- intel/genxml/gen4-5: fix more Raster Operation in BLT to be a uint
+- crocus: fail resource allocation properly.
+
+Emma Anholt (4):
+
+- freedreno/afuc: Disable the disassembler on 32-bit builds.
+- i915g: Turn off FP16 in the vertex shaders.
+- r300: Fix omod failing to increase the number of channels stored.
+- nir_to_tgsi: Fix a bug in TXP detection after backend lowering.
+
+Eric Engestrom (3):
+
+- .pick_status.json: Update to 8a78706643ecad8a1f303cc9358873abc29978b4
+- .pick_status.json: Mark 00bea38242d97e7ace1954f1bc7d32cbf0ce3ee0 as denominated
+- .pick_status.json: Mark 2a0253b9b5d21c7571555abe3a1d851468a18740 as denominated
+
+Filip Gawin (1):
+
+- r300: fix handling swizzle in transform_source_conflicts
+
+Henry Goffin (1):
+
+- intel/compiler/test: Fix build with GCC 7
+
+Ian Romanick (1):
+
+- i965: Disable EXT_texture_integer on Gfx4 and Gfx5
+
+Faith Ekstrand (1):
+
+- Revert "anv: Stop doing too much per-sample shading"
+
+Lionel Landwerlin (3):
+
+- anv: don't leave anv_batch fields undefined
+- anv: limit compiler valid color outputs using NIR variables
+- intel/dev: fixup chv workaround
+
+Lucas Stach (3):
+
+- etnaviv: initialize vertex attributes on context reset
+- etnaviv: drm: fix size limit in etna_cmd_stream_realloc
+- etnaviv: drm: properly handle reviving BOs via a lookup
+
+Michel Zou (1):
+
+- zink: fix -Warray-bounds warning
+
+Mike Blumenkrantz (4):
+
+- radv: fix xfb query copy param ordering
+- zink: always unset vertex shader variant key data when changing last vertex stage
+- zink: add extra synchronization for buffer descriptor binds
+- zink: use device-local heap for sparse backing allocations
+
+Pavel Ondračka (1):
+
+- r300: Remove broken optimization in rc_transform_KILL
+
+Pierre-Eric Pelloux-Prayer (4):
+
+- radeonsi/gfx8: use the proper dcc clear size
+- vbo/dlist: fix loopback crash
+- vbo/dlist: add vertices to incomplete primitives
+- radeonsi/gfx10: fix si_texture_get_offset for mipmapped tex
+
+Qiang Yu (1):
+
+- glapi: should not add alias function to static_data.py
+
+Rhys Perry (1):
+
+- aco: remove pack_half_2x16(a, 0) optimization
+
+Rohan Garg (1):
+
+- intel/fs: OpImageQueryLod does not support arrayed images as an operand
+
+Roman Stratiienko (1):
+
+- v3dv: Hotfix: Rename remaining V3DV_HAS_SURFACE->V3DV_USE_WSI_PLATFORM
+
+Samuel Pitoiset (1):
+
+- radv: add drirc radv_disable_htile_layers and enable it for F1 2021
+
+Tapani Pälli (3):
+
+- iris: unref syncobjs and free r/w dependencies array for slab entries
+- mesa: free idalloc storage for display lists
+- mesa: free vbo_save_vertex_list store prims
+
+Timothy Arceri (1):
+
+- glsl/glcpp: make sure to expand new token after concatenation
+
+Yiwei Zhang (1):
+
+- venus: subtract appended header size in vn_CreatePipelineCache
+
+satmandu (1):
+
+- Fix compilation on armv7l with gcc 11.2.0

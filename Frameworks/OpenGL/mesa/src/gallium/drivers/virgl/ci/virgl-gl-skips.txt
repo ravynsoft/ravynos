@@ -1,0 +1,16 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# Sometimes crashes, e.g. https://gitlab.freedesktop.org/kusma/mesa/-/jobs/4109419
+dEQP-GLES31.functional.compute.basic.empty
+
+# too slow (>15s compile on host causes timeouts that make for flakes)
+dEQP-GLES31.functional.ssbo.layout.random.all_shared_buffer.36
+dEQP-GLES31.functional.ssbo.layout.random.nested_structs_arrays_instance_arrays.22
+
+# Since switching to NIR-to-TGSI, this one is a little too slow in LLVM in
+# virglrenderer and virgl ends up timing out waiting for it.
+dEQP-GLES31.functional.ssbo.layout.random.nested_structs_arrays_instance_arrays.22
+
+KHR-GL.*.texture_swizzle.smoke

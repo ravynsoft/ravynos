@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_KHR_robustness" number="190">
+
+    <enum name="GUILTY_CONTEXT_RESET_KHR"                 value="0x8253"/>
+    <enum name="INNOCENT_CONTEXT_RESET_KHR"               value="0x8254"/>
+    <enum name="UNKNOWN_CONTEXT_RESET_KHR"                value="0x8255"/>
+
+    <enum name="RESET_NOTIFICATION_STRATEGY_KHR" count="1" value="0x8256">
+        <size name="Get" mode="get"/>
+    </enum>
+    <enum name="LOSE_CONTEXT_ON_RESET_KHR"                value="0x8252"/>
+    <enum name="NO_RESET_NOTIFICATION_KHR"                value="0x8261"/>
+
+    <enum name="CONTEXT_FLAG_ROBUST_ACCESS_BIT_KHR"       value="0x00000004"/>
+
+    <!-- This extension applies to both GL and ES. GL entrypoints have
+         no suffix, ES entrypoints have the KHR suffix. This file
+         defines entry points for ES. -->
+
+    <function name="GetGraphicsResetStatusKHR"
+	      alias="GetGraphicsResetStatusARB" es2="2.0">
+        <return type="GLenum"/>
+    </function>
+
+    <function name="ReadnPixelsKHR" alias="ReadnPixelsARB" es2="2.0">
+        <param name="x" type="GLint"/>
+        <param name="y" type="GLint"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="data" type="GLvoid *" output="true"/>
+    </function>
+
+    <function name="GetnUniformfvKHR" alias="GetnUniformfvARB" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLfloat *" output="true"/>
+    </function>
+
+    <function name="GetnUniformivKHR" alias="GetnUniformivARB" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLint *" output="true"/>
+    </function>
+
+    <function name="GetnUniformuivKHR" alias="GetnUniformuivARB" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLuint *" output="true"/>
+    </function>
+
+</category>
+
+<category name="GL_EXT_robustness" number="107">
+    <function name="GetGraphicsResetStatusEXT"
+              alias="GetGraphicsResetStatusARB" es2="2.0">
+        <return type="GLenum"/>
+    </function>
+
+    <function name="ReadnPixelsEXT" alias="ReadnPixelsARB" es2="2.0">
+        <param name="x" type="GLint"/>
+        <param name="y" type="GLint"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="data" type="GLvoid *" output="true"/>
+    </function>
+
+    <function name="GetnUniformfvEXT" alias="GetnUniformfvARB" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLfloat *" output="true"/>
+    </function>
+
+    <function name="GetnUniformivEXT" alias="GetnUniformivARB" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLint *" output="true"/>
+    </function>
+</category>
+
+</OpenGLAPI>

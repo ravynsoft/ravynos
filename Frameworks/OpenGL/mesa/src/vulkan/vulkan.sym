@@ -1,0 +1,11 @@
+{
+	global:
+		vk_icdGetInstanceProcAddr;
+		vk_icdGetPhysicalDeviceProcAddr;
+		vk_icdNegotiateLoaderICDInterfaceVersion;
+
+	local:
+		# When static linking LLVM, all its symbols are public API.
+		# That may cause symbol collision, so explicitly demote everything.
+		*;
+};

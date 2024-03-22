@@ -1,0 +1,118 @@
+New IR, or NIR, is an IR for Mesa intended to sit below GLSL IR and Mesa IR.
+Its design inherits from the various IRs that Mesa has used in the past, as
+well as Direct3D assembly, and it includes a few new ideas as well. It is a
+flat (in terms of using instructions instead of expressions), typeless IR,
+similar to TGSI and Mesa IR.  It also supports SSA (although it doesn't require
+it).
+
+Variables
+=========
+
+NIR includes support for source-level GLSL variables through a structure mostly
+copied from GLSL IR. These will be used for linking and conversion from GLSL IR
+(and later, from an AST), but for the most part, they will be lowered to
+registers (see below) and loads/stores.
+
+Registers
+=========
+
+Registers are light-weight; they consist of a structure that only contains its
+size, its index for liveness analysis, and an optional name for debugging. In
+addition, registers can be local to a function or global to the entire shader;
+the latter will be used in ARB_shader_subroutine for passing parameters and
+getting return values from subroutines. Registers can also be an array, in which
+case they can be accessed indirectly. Each ALU instruction (add, subtract, etc.)
+works directly with registers or SSA values (see below).
+
+SSA
+========
+
+Everywhere a register can be loaded/stored, an SSA value can be used instead.
+The only exception is that arrays/indirect addressing are not supported with
+SSA; although research has been done on extensions of SSA to arrays before, it's
+usually for the purpose of parallelization (which we're not interested in), and
+adds some overhead in the form of adding copies or extra arrays (which is much
+more expensive than introducing copies between non-array registers). SSA uses
+point directly to their corresponding definition, which in turn points to the
+instruction it is part of. This creates an implicit use-def chain and avoids the
+need for an external structure for each SSA register.
+
+Functions
+=========
+
+Support for function calls is mostly similar to GLSL IR. Each shader contains a
+list of functions, and each function has a list of overloads. Each overload
+contains a list of parameters, and may contain an implementation which specifies
+the variables that correspond to the parameters and return value. Inlining a
+function, assuming it has a single return point, is as simple as copying its
+instructions, registers, and local variables into the target function and then
+inserting copies to and from the new parameters as appropriate. After functions
+are inlined and any non-subroutine functions are deleted, parameters and return
+variables will be converted to global variables and then global registers. We
+don't do this lowering earlier (i.e. the fortranizer idea) for a few reasons:
+
+- If we want to do optimizations before link time, we need to have the function
+signature available during link-time.
+
+- If we do any inlining before link time, then we might wind up with the
+inlined function and the non-inlined function using the same global
+variables/registers which would preclude optimization.
+
+Intrinsics
+=========
+
+Any operation (other than function calls and textures) which touches a variable
+or is not referentially transparent is represented by an intrinsic. Intrinsics
+are similar to the idea of a "builtin function," i.e. a function declaration
+whose implementation is provided by the backend, except they are more powerful
+in the following ways:
+
+- They can also load and store registers when appropriate, which limits the
+number of variables needed in later stages of the IR while obviating the need
+for a separate load/store variable instruction.
+
+- Intrinsics can be marked as side-effect free, which permits them to be
+treated like any other instruction when it comes to optimizations. This allows
+load intrinsics to be represented as intrinsics while still being optimized
+away by dead code elimination, common subexpression elimination, etc.
+
+Intrinsics are used for:
+
+- Atomic operations
+- Memory barriers
+- Subroutine calls
+- Geometry shader emitVertex and endPrimitive
+- Loading and storing variables (before lowering)
+- Loading and storing uniforms, shader inputs and outputs, etc (after lowering)
+- Copying variables (cases where in GLSL the destination is a structure or
+array)
+- The kitchen sink
+- ...
+
+Textures
+=========
+
+Unfortunately, there are far too many texture operations to represent each one
+of them with an intrinsic, so there's a special texture instruction similar to
+the GLSL IR one. The biggest difference is that, while the texture instruction
+has a sampler dereference field used just like in GLSL IR, this gets lowered to
+a texture unit index (with a possible indirect offset) while the type
+information of the original sampler is kept around for backends. Also, all the
+non-constant sources are stored in a single array to make it easier for
+optimization passes to iterate over all the sources.
+
+Control Flow
+=========
+
+Like in GLSL IR, control flow consists of a tree of "control flow nodes", which
+include if statements and loops, and jump instructions (break, continue, and
+return). Unlike GLSL IR, though, the leaves of the tree aren't statements but
+basic blocks. Each basic block also keeps track of its successors and
+predecessors, and function implementations keep track of the beginning basic
+block (the first basic block of the function) and the ending basic block (a fake
+basic block that every return statement points to). Together, these elements
+make up the control flow graph, in this case a redundant piece of information on
+top of the control flow tree that will be used by almost all the optimizations.
+There are helper functions to add and remove control flow nodes that also update
+the control flow graph, and so usually it doesn't need to be touched by passes
+that modify control flow nodes.

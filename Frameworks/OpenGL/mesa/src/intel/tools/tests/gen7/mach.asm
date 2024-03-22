@@ -1,0 +1,13 @@
+mach(8)         null<1>D        g5.4<0>.zwwwD   g6<0>.xyyyD     { align16 1Q AccWrEnable };
+mach(8)         g12<1>UD        g10<8,8,1>UD    0xaaaaaaabUD    { align1 1Q AccWrEnable };
+mach(8)         g16<1>D         g10<8,8,1>D     1431655766D     { align1 1Q AccWrEnable };
+mach(8)         g2<1>UD         g23<8,8,1>UD    0xaaaaaaabUD    { align1 WE_all 1Q AccWrEnable };
+mach(8)         g3<1>D          g23<8,8,1>D     1431655766D     { align1 WE_all 1Q AccWrEnable };
+mach(8)         g9<1>D          g1<0>D          g1.4<0>D        { align16 1Q AccWrEnable };
+mach(8)         null<1>D        g1<4>.xD        741092396D      { align16 1Q AccWrEnable };
+mach(8)         g12<1>UD        g4<8,8,1>UD     g8<8,8,1>UD     { align1 1Q AccWrEnable };
+mach(8)         g5<1>UD         g5<8,8,1>UD     g13<8,8,1>UD    { align1 WE_all 1Q AccWrEnable };
+mach(8)         g13<1>D         g5<8,8,1>D      g9<8,8,1>D      { align1 1Q AccWrEnable };
+mach(8)         g2<1>D          g6<8,8,1>D      g14<8,8,1>D     { align1 WE_all 1Q AccWrEnable };
+mach(8)         g24<1>.xUD      g22<4>.xUD      0x80000001UD    { align16 1Q AccWrEnable };
+mach(8)         g12<1>UD        g9<4>UD         g11<4>UD        { align16 1Q AccWrEnable };

@@ -1,0 +1,73 @@
+Mesa 7.8.3 Release Notes / (date tbd)
+=====================================
+
+Mesa 7.8.3 is a bug fix release which fixes bugs found since the 7.8.2
+release.
+
+Mesa 7.8.3 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   x  MesaLib-7.8.3.tar.gz
+   x  MesaLib-7.8.3.tar.bz2
+   x  MesaLib-7.8.3.zip
+   x  MesaDemos-7.8.3.tar.gz
+   x  MesaDemos-7.8.3.tar.bz2
+   x  MesaDemos-7.8.3.zip
+   x  MesaGLUT-7.8.3.tar.gz
+   x  MesaGLUT-7.8.3.tar.bz2
+   x  MesaGLUT-7.8.3.zip
+
+New features
+------------
+
+None.
+
+Changes
+-------
+
+-  The radeon driver should use less memory when searching for a valid
+   mip image.
+
+Bug fixes
+---------
+
+-  Fix unsupported FB with D24S8 (bug
+   `29116 <https://bugs.freedesktop.org/show_bug.cgi?id=23670>`__)
+-  Fix ReadPixels crash when reading depth/stencil from an FBO
+-  Fixed a bug rendering to 16-bit buffers using swrast.
+-  Fixed a state tracker/TGSI bug that caused crashes when using
+   Windows' memory debugging features.
+-  Fixed an issue rendering to 32-bit channels with swrast (bug
+   `29487 <https://bugs.freedesktop.org/show_bug.cgi?id=29487>`__)
+-  GLSL: fix indirect ``gl_TextureMatrix`` addressing (bug
+   `28967 <https://bugs.freedesktop.org/show_bug.cgi?id=28967>`__)
+-  GLSL: fix for bug
+   `27216 <https://bugs.freedesktop.org/show_bug.cgi?id=27216>`__
+-  GLSL: fix zw fragcoord entries in some cases (bug
+   `29183 <https://bugs.freedesktop.org/show_bug.cgi?id=29183>`__)
+-  Fix texture env generation in some cases (bug
+   `28169 <https://bugs.freedesktop.org/show_bug.cgi?id=28169>`__)
+-  osmesa: a fix for calling ``OSMesaMakeCurrent`` twice was applied
+   (bug `10966 <https://bugs.freedesktop.org/show_bug.cgi?id=10966>`__
+-  A bug was fixed which could cause Mesa to ignore the
+   ``MESA_EXTENSION_OVERRIDE`` environment variable.
+-  A bug related to specular highlights on backfaces was fixed.
+-  A radeon-specific issue with ``glCopyTex(Sub)Image`` was corrected.
+-  radeon/wine: flush command stream in more cases, fixing wine d3d9
+   tests.
+-  r600: fix sin+cos normalization.
+-  r600: (properly) ignore ``GL_COORD_REPLACE`` when point sprites are
+   disabled.
+-  radeon: avoid flushing when the context is not current.
+-  r300c: a bug affecting unaligned BOs was fixed.
+-  r300c: a hardlock caused by ARB_half_float_vertex incorrectly
+   advertised on some chipsets.

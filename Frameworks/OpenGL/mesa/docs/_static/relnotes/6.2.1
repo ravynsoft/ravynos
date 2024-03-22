@@ -1,0 +1,49 @@
+
+                           Mesa 6.2.1 release notes
+
+                              December 9, 2004
+
+                              PLEASE READ!!!!
+
+
+
+Introduction
+------------
+
+Mesa uses an even/odd version number scheme like the Linux kernel.
+Odd numbered versions (such as 6.1) designate new developmental releases.
+Even numbered versions (such as 6.2.x) designate stable releases.
+
+
+This release primarily just fixes bugs found in the Mesa 6.2 release.
+See the VERSIONS file for details.
+
+
+
+Known Issues
+------------
+
+The GL_EXT_pixel_buffer_object extension isn't fully implemented for
+functions like glPolygonStipple, glConvolutionFilter, glColorTable,
+etc.  The important functions like glRead/DrawPixels, glTex[Sub]Image,
+and glBitmap work with PBOs.  This has been fixed for Mesa 6.3.
+
+
+
+
+Driver			Status
+----------------------	---------------------
+XMesa (Xlib)		implements OpenGL 1.5
+OSMesa (off-screen)	implements OpenGL 1.5
+Glide (3dfx Voodoo1/2)	implements OpenGL 1.3
+SVGA			implements OpenGL 1.3
+Wind River UGL		implements OpenGL 1.3
+Windows/Win32		implements OpenGL 1.5
+DJGPP			implements OpenGL 1.5
+GGI			implements OpenGL 1.3
+BeOS			implements OpenGL 1.5
+Allegro			needs updating
+D3D			needs updating
+
+
+----------------------------------------------------------------------

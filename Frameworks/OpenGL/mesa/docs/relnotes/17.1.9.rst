@@ -1,0 +1,114 @@
+Mesa 17.1.9 Release Notes / September 8, 2017
+=============================================
+
+Mesa 17.1.9 is a bug fix release which fixes bugs found since the 17.1.8
+release.
+
+Mesa 17.1.9 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   4325401b07b5f44759da781bc8d7c0a4a7244e09a702d16c037090986e07ee22  mesa-17.1.9.tar.gz
+   5f51ad94341696097d5df7b838183534478216858ac0fc8de183671a36ffea1a  mesa-17.1.9.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 100613 <https://bugs.freedesktop.org/show_bug.cgi?id=100613>`__
+   - Regression in Mesa 17 on s390x (zSystems)
+-  `Bug 102454 <https://bugs.freedesktop.org/show_bug.cgi?id=102454>`__
+   - glibc 2.26 doesn't provide anymore xlocale.h
+-  `Bug 102467 <https://bugs.freedesktop.org/show_bug.cgi?id=102467>`__
+   - src/mesa/state_tracker/st_cb_readpixels.c:178]: (warning) Redundant
+   assignment
+
+Changes
+-------
+
+Andres Gomez (8):
+
+-  docs: add sha256 checksums for 17.1.8
+-  cherry-ignore: added 17.2 nominations.
+-  cherry-ignore: add "nir: Fix system_value_from_intrinsic for
+   subgroups"
+-  cherry-ignore: add "i965: Fix crash in fallback GTT mapping."
+-  cherry-ignore: add "radeonsi/gfx9: always flush DB metadata on
+   framebuffer changes"
+-  cherry-ignore: add "radv: Fix vkCopyImage with both depth and stencil
+   aspects."
+-  cherry-ignore: add "radeonsi/gfx9: proper workaround for LS/HS VGPR
+   initialization bug"
+-  Update version to 17.1.9
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Fix off by one in MAX_VBS assert.
+-  radv: Fix sparse BO mapping merging.
+-  radv: Actually set the cmd_buffer usage_flags.
+
+Ben Crocker (1):
+
+-  llvmpipe: lp_build_gather_elem_vec BE fix for 3x16 load
+
+Charmaine Lee (1):
+
+-  vbo: fix offset in minmax cache key
+
+Christian Gmeiner (1):
+
+-  etnaviv: use correct param for etna_compatible_rs_format(..)
+
+Emil Velikov (3):
+
+-  egl: don't NULL deref the .get_capabilities function pointer
+-  egl/wayland: plug leaks in dri2_wl_create_window_surface() error path
+-  egl/wayland: polish object teardown in dri2_wl_destroy_surface
+
+Eric Engestrom (1):
+
+-  util: improve compiler guard
+
+Grazvydas Ignotas (2):
+
+-  radv: clear dynamic_shader_stages on create
+-  radv: don't assert on empty hash table
+
+Ilia Mirkin (2):
+
+-  glsl: fix counting of vertex shader output slots used by explicit
+   vars
+-  st/mesa: fix handling of vertex array double inputs
+
+Faith Ekstrand (2):
+
+-  anv/formats: Nicely handle unknown VkFormat enums
+-  spirv: Add support for the HelperInvocation builtin
+
+Karol Herbst (1):
+
+-  nvc0: write 0 to pipeline_statistics.cs_invocations
+
+Michael Olbrich (1):
+
+-  egl/dri2: only destroy created objects
+
+Ray Strode (1):
+
+-  gallivm: correct channel shift logic on big endian
+
+Roland Scheidegger (1):
+
+-  st/mesa: fix view template initialization in try_pbo_readpixels

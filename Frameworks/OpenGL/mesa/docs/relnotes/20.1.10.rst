@@ -1,0 +1,115 @@
+Mesa 20.1.10 Release Notes / 2020-10-14
+=======================================
+
+Mesa 20.1.10 is a bug fix release which fixes bugs found since the 20.1.9 release.
+
+Mesa 20.1.10 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.1.10 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    b1dba69910adac9fcb4cbdfd7833d99a4a8c75b91f3d2e97f0fd0a3cd8c6ee9f  mesa-20.1.10.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- \[RADV/ACO\] Star Citizen Lighting/Shadow Issue
+- Graphics corruption in Super Mega Baseball 2 with RADV on Navi
+- RADV ACO - ground line corruption in Path of Exile with Vulkan renderer
+- omx/tizonia build broken with latest mesa git
+- \[hsw][bisected][regression\] gpu hangs on dEQP-VK.subgroups.(shuffle|quad) tests
+- TGL B0 Stepping gpu hangs on many dEQP-VK.subgroups.quad nonconst tests
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- pan/bi: Handle vector moves
+
+Anuj Phogat (1):
+
+- intel/gen9: Enable MSC RAW Hazard Avoidance
+
+Bas Nieuwenhuizen (2):
+
+- radv: Use atomics to read query results.
+- radv: Fix mipmap extent adjustment on GFX9+.
+
+Dylan Baker (1):
+
+- glsl/xxd.py: fix imports
+
+Eric Engestrom (4):
+
+- docs/relnotes: add sha256 sums to 20.1.9
+- .pick_status.json: Update to 68daac28df1b2f50a43740d1905932cfde0ddf1a
+- .pick_status.json: Mark d78df70c2a85fd846d40b71b9e213122347bea1b as denominated
+- .pick_status.json: Mark c02e933de4a9a644410384f815c84d1c08107b82 as applied
+
+Faith Ekstrand (5):
+
+- nir/cf: Better handle intra-block splits
+- intel/fs: NoMask initialize the address register for shuffles
+- nir/opt_load_store_vectorize: Use bit sizes when checking mask compatibility
+- intel/fs: Don't use NoDDClk/NoDDClr for split SHUFFLEs
+- intel/nir: Don't try to emit vector load_scratch instructions
+
+Lionel Landwerlin (1):
+
+- intel/perf: fix crash when no perf queries are supported
+
+Lucas Stach (1):
+
+- etnaviv: stop leaking the dummy texure descriptor BO
+
+Marek Olšák (1):
+
+- radeonsi: Fix dead lock with aux_context_lock in si_screen_clear_buffer.
+
+Nanley Chery (2):
+
+- iris: Fix a fast-clear skipping optimization
+- anv: Enable multi-layer aux-map init for HIZ+CCS
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- omx/tizonia: fix build
+
+Rhys Perry (4):
+
+- spirv: add and use a generator id enum
+- spirv: replace discard with demote for incorrect HLSL->SPIR-V translations
+- android: fix SPIR-V -\> NIR build
+- scons: fix SPIR-V -\> NIR build
+
+Timothy Arceri (1):
+
+- glsl: don't duplicate state vars as uniforms in the NIR linker
+
+Tony Wasserka (1):
+
+- aco/isel: Always export position data from VS/NGG
+
+Vinson Lee (1):
+
+- freedreno: Move rsc NULL check to before rsc dereferences.

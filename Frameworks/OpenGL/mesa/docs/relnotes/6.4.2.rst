@@ -1,0 +1,59 @@
+Mesa 6.4.2 / February 2, 2006
+=============================
+
+Mesa 6.4.2 is a stable, bug-fix release.
+
+MD5 checksums
+-------------
+
+::
+
+   cb0d745d520fa7c2bb9178058b763544  MesaLib-6.4.2.tar.gz
+   7674d2c603b5834259e4e5a820cefd5b  MesaLib-6.4.2.tar.bz2
+   d224e1325b33ff71a0f3893fc6b4d594  MesaLib-6.4.2.zip
+   d4b345d4588fc750cd3d34f3ac26673e  MesaDemos-6.4.2.tar.gz
+   9cae1ab874af533ce356bd7dfe2e0bb0  MesaDemos-6.4.2.tar.bz2
+   2da6e1d1245e441d27813595c6ba50de  MesaDemos-6.4.2.zip
+   84427d18c3453f0ea52388eeba7169b5  MesaGLUT-6.4.2.tar.gz
+   b157ba8ad1ea63260cf5339132e7aac6  MesaGLUT-6.4.2.tar.bz2
+   fe1523744fc05edc3811dfc6a1bf4181  MesaGLUT-6.4.2.zip
+
+New features
+------------
+
+-  added OSMesaColorClamp() function/feature
+-  added wglGetExtensionStringARB() function
+
+Changes
+-------
+
+-  GLUT tarball: Starting with 6.4, the GLUT library sources are
+   distributed in a separate tarball. This was done at the request of
+   Linux distro vendors who prefer to use freeglut.
+
+Bug fixes
+---------
+
+-  fixed some problems when building on Windows
+-  GLw header files weren't installed by installmesa script (bug 5396)
+-  GL/glfbdev.h file was missing from tarballs
+-  fixed TNL initialization bug which could lead to crash (bug 5791)
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa (Xlib)        implements OpenGL 1.5
+   OSMesa (off-screen) implements OpenGL 1.5
+   Windows/Win32       implements OpenGL 1.5
+   Glide (3dfx Voodoo1/2)  requires updates    
+   SVGA            requires updates
+   DJGPP           requires updates
+   GGI         requires updates
+   BeOS            requires updates
+   Allegro         requires updates
+   D3D         requires updates

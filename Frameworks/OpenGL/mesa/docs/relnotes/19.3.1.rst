@@ -1,0 +1,78 @@
+Mesa 19.3.1 Release Notes / 2019-12-18
+======================================
+
+Mesa 19.3.1 is a bug fix release which fixes bugs found since the 19.3.0
+release.
+
+Mesa 19.3.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.6. OpenGL 4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.3.1 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       cd951db69c56a97ff0570a7ab2c0e39e6c5323f4cd8f4eb8274723e033beae59  mesa-19.3.1.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  i965/iris: assert when destroy GL context with active query
+-  Visuals without alpha bits are not sRGB-capable
+-  radv secure compile feature breaks compilation of RADV on armhf EABI
+   (19.3-rc1)
+
+Changes
+-------
+
+Bas Nieuwenhuizen (2):
+
+-  amd/common: Fix tcCompatible degradation on Stoney.
+-  amd/common: Always use addrlib for HTILE tc-compat.
+
+Dylan Baker (3):
+
+-  docs/19.3.0: Add SHA256 sums
+-  cherry-ignore: update for the 19.3.1 cycle
+-  docs: remove new_features.txt from stable branch
+
+Gert Wollny (1):
+
+-  virgl: Increase the shader transfer buffer by doubling the size
+
+Iván Briano (1):
+
+-  anv: Export filter_minmax support only when it's really supported
+
+Kenneth Graunke (1):
+
+-  iris: Default to X-tiling for scanout buffers without modifiers
+
+Lionel Landwerlin (2):
+
+-  anv: fix fence underlying primitive checks
+-  mesa: avoid triggering assert in implementation
+
+Luis Mendes (1):
+
+-  radv: fix radv secure compile feature breaks compilation on armhf
+   EABI and aarch64
+
+Tapani Pälli (2):
+
+-  dri: add \__DRI_IMAGE_FORMAT_SXRGB8
+-  i965: expose MESA_FORMAT_B8G8R8X8_SRGB visual

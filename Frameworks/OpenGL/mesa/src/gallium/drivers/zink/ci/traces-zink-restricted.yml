@@ -1,0 +1,111 @@
+%YAML 1.2
+---
+traces-db:
+  download-url: "http://caching-proxy/cache/?uri=https://s3.freedesktop.org/mesa-tracie-private/"
+
+traces:
+  AmnesiaTDD/Amnesia-f700-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: 9cd992354bf22310199406ccd83ce458
+  Anna/Anna-f692-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip]
+      text: "trace contains no swapbuffers, so no frames recorded"
+  Antichamber/antichamber-f240-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: 50664836118bb25c3a3bc91c10644233
+      text: "line widths look wrong compared to freedreno"
+  Cradle/cradle-f3000-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, slow]
+  ICEDarkness/ICEDarkness-f230-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, flakes]
+      checksum: 64ac14b2a04d510e470fb2e06b039b42
+      text: "note that this trace is stable on freedreno"
+  LifelessPlanet/LifelessPlanet-f420-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: e7cace46dfa2fe588bf55f03f5a50e1f
+  MetroLLRedux/metro-ll-redux-kf480-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, slow]
+  OilRush/OilRush-f14000-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip]
+      text: "requires allow_glsl_extension_directive_midshader"
+  Osmos/Osmos-f2660-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: 17daf7dc20dd74186d04eb54497a1690
+  PenumbraOverture/penumbra-ov-s0-2-864-f1500-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: 52e0fe3474930b1d0956128559d90c3a
+  ShadowWarrior/ShadowWarrior-f3952-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, flakes]
+      checksum: 826f966a52bc956644bf41562aa9c686
+      text: |-
+        This trace is flaky on freedreno too.
+  SirYouAreBeingHunted/sir-f750-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: 682cd837d4884dfb4ed484f6181d801b
+  SpecOps/specops-s0-1088-f1300-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, broken, flakes]
+      checksum: e4037172a61efe23a67b5cc9ea9960bb
+      text: https://gitlab.freedesktop.org/mesa/mesa/-/issues/8986
+  Superhot/superhot-f8100-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, broken, flakes]
+      checksum: 3f4ce060d0306b639565f8705abdea26
+      text: https://gitlab.freedesktop.org/mesa/mesa/-/issues/8986
+  TheRavenRemastered/Raven-f10900-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: db7b901177e7ac00cc489e0e13f71f76
+  TombRaider2013/TombRaider-f1430-v2.trace:
+    gl-zink-anv-tgl:
+      label: [crash]
+      text: |-
+        ../src/intel/isl/isl_storage_image.c:196: isl_lower_storage_image_format: Assertion `!Unknown image format' failed.
+        where the format is ISL_FORMAT_B8G8R8A8_UNORM.
+  Witcher2/witcher2-s0-1970-f2038-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip]
+      text: "many errors like 'GL_INVALID_VALUE in glBindBufferRange(offset misaligned 144/32)'"
+  alien-isolation/AlienIsolation.bin.1-trim--k-f2000-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, slow]
+      text: "Slow, just seems to display a bit of text and no gameplay, anyway (radeonsi or iris)"
+  civilization-v/CivilizationV-trim--s705-761-f762-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, broken, flakes]
+      checksum: 82e6d93321ab146d758f2d60a48f265d
+      text: https://gitlab.freedesktop.org/mesa/mesa/-/issues/8986
+  golf-with-your-friends/GolfWithYourFriends-trim--f1070-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, flakes]
+      checksum: cd01820de77063f0397f26d6cd747d1c
+      text: "has caused ../src/gallium/drivers/zink/zink_context.c:3773: zink_wait_on_batch: Assertion `batch_id' failed."
+  hollow-knight/HollowKnight-trim--f2020-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, flakes]
+      checksum: 78f9122c5dcd89826efe421fa626971c
+      text: "note that this trace is stable on freedreno"
+  ksp/KSP-trim--f4800-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: 4ff2057a3aeb911eef0cbe023ad3375a
+  overcooked2/Overcooked2-trim--f3301-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      checksum: 2c9b64b805a4e489c3e5201f16743d14
+  plague-inc-evolved/PlagueIncEvolved-trim--f1200-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip]
+      text: "renders black in CI, freedreno CI has unspecified trouble with it too"
+  slime-rancher/SlimeRancher-trim--f970-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip]
+      text: "renders black in CI, freedreno CI has unspecified trouble with it too"
+  stellaris/Stellaris-trim--f722-v20201203-v2.trace:
+    gl-zink-anv-tgl:
+      label: [skip, flakes]
+      checksum: 1c263695e5bdfcd622f26292a3b2a10e
+      text: "looks good but checksum keeps changing"

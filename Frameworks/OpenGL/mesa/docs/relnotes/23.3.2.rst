@@ -1,0 +1,177 @@
+Mesa 23.3.2 Release Notes / 2023-12-27
+======================================
+
+Mesa 23.3.2 is a bug fix release which fixes bugs found since the 23.3.1 release.
+
+Mesa 23.3.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.3.2 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    3cfcb81fa16f89c56abe3855d2637d396ee4e03849b659000a6b8e5f57e69adc  mesa-23.3.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- anv: glcts regression on zink
+- nir: Trivial loop not unrolling
+- Possible regression with AMD GPU with flatpak apps
+- Compiling Mesa with X in custom prefix fails in Intel Vulkan driver
+- radv/aco: Crysis 2 Remastered RT reflections are blocky around the edges with ACO, renders normally with LLVM
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (1):
+
+- radv: Use correct writemask for cooperative matrix ordering.
+
+Boris Brezillon (3):
+
+- util/hash_table: Use FREE() to be consistent with the CALLOC_STRUCT() call
+- util/hash_table: Don't leak hash_u64_key objects when the entry exists
+- util/hash_table: Don't leak hash_key_u64 objects when the u64 hash table is destroyed
+
+Christian Gmeiner (2):
+
+- etnaviv: Update headers from rnndb
+- etnaviv: Add static_assert(..) to catch memory corruption
+
+Dave Airlie (1):
+
+- intel/compiler: move gen5 final pass to actually be final pass
+
+David Heidelberg (2):
+
+- ci/freedreno: timestamp-get no longer fails on Adreno
+- ci/freedreno: fail introduced by ARB_post_depth_coverage
+
+Eric Engestrom (10):
+
+- docs: add sha256sum for 23.3.1
+- .pick_status.json: Update to d761871761e5fe7d498b0cc818ed627698ed1225
+- .pick_status.json: Update to 377c6b2d45ee73da3e5431846a3b4bfdd7ae2b83
+- ci/b2c: drop passthrough of unset CI_JOB_JWT
+- .pick_status.json: Updates notes for 6a92af158dc132eee449c175bdee66d92c68d191
+- vulkan/wsi: fix build when platform headers are installed in non-standard locations
+- .pick_status.json: Update to 670a799ebff9a98daafccf49324c2a01311b0c41
+- .pick_status.json: Update to e61fae6eb8ae1ae1228d6f89329324310db808ae
+- .pick_status.json: Update to 1e6fcd6a611574241b1cde306afcc416a03ac76b
+- .pick_status.json: Update to 55c262898ae7188311c89a60e4ec0fbb67b7a95b
+
+Faith Ekstrand (1):
+
+- nir: Scalarize bounds checked loads and stores
+
+Friedrich Vock (2):
+
+- radv,vtn,driconf: Add and use radv_rt_ssbo_non_uniform workaround for Crysis 2/3 Remastered
+- radv/rt: Initialize unused children in PLOC early-exit
+
+George Ouzounoudis (1):
+
+- vulkan: Fix dynamic graphics state enum usage
+
+Gert Wollny (1):
+
+- r600/sfn: keep workgroup and invocation ID registers for whole shader
+
+Jesse Natalie (1):
+
+- d3d12: Only destroy the winsys during screen destruction, not reset
+
+Jonathan Gray (1):
+
+- intel/common: add directory prefix to intel_gem.h include
+
+José Expósito (1):
+
+- egl/glx: fallback to software when Zink is forced and fails
+
+Karol Herbst (4):
+
+- rusticl/kernel: explicitly set rounding modes
+- rusticl: do not warn on empty RUSTICL_DEBUG or RUSTICL_FEATURES
+- rusticl: silence clippy::arc-with-non-send-sync for now
+- rusticl: check rustc version for flags requiring newer rustc/clippy
+
+Kenneth Graunke (3):
+
+- iris: Initialize bo->index to -1 when importing buffers
+- iris: Don't search the exec list if BOs have never been added to one
+- iris: Skip mi_builder init for indirect draws
+
+Lionel Landwerlin (4):
+
+- nir/clone: fix missing printf_info clone
+- nir/divergence: handle printf intrinsic
+- anv: fix incorrect queue_family access on command buffer
+- anv: wait for CS write completion before executing secondary
+
+Michel Dänzer (2):
+
+- gallium/dri: Return __DRI_ATTRIB_SWAP_UNDEFINED for _SWAP_METHOD
+- glx: Handle IGNORE_GLX_SWAP_METHOD_OML regardless of GLX_USE_APPLEGL
+
+Pierre-Eric Pelloux-Prayer (4):
+
+- radeonsi/sqtt: fix RGP pm4 state emit function
+- radeonsi/sqtt: clear record_counts variable
+- radeonsi/sqtt: rework pm4.reg_va_low_idx
+- radeonsi/sqtt: use calloc instead of malloc
+
+Robert Foss (1):
+
+- egl/surfaceless: Fix EGL_DEVICE_EXT implementation
+
+Sil Vilerino (1):
+
+- d3d12: Fix AV1 video encode 32 bits build
+
+Sviatoslav Peleshko (2):
+
+- nir/loop_analyze: Don't test non-positive iterations count
+- intel/fs: Don't optimize DW*1 MUL if it stores value to the accumulator
+
+Tapani Pälli (5):
+
+- anv/hasvk/drirc: change anv_assume_full_subgroups to have subgroup size
+- drirc: setup anv_assume_full_subgroups=16 for UnrealEngine5.1
+- iris: use intel_needs_workaround with 14015055625
+- mesa: fix enum support for EXT_clip_cull_distance
+- drirc/anv: disable FCV optimization for Baldur's Gate 3
+
+Timothy Arceri (1):
+
+- radeonsi: fix divide by zero in si_get_small_prim_cull_info()
+
+Vinson Lee (1):
+
+- etnaviv: Remove duplicate initializers
+
+Yiwei Zhang (1):
+
+- vulkan/wsi/wayland: ensure drm modifiers stored in chain are immutable
+
+Yonggang Luo (1):
+
+- dzn: Fixes -Werror=incompatible-pointer-type

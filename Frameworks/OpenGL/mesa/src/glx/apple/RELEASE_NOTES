@@ -1,0 +1,71 @@
+AppleSGLX Release Notes
+
+o OpenGL Support
+
+AppleSGLX supports the same version of OpenGL as Leopard (OpenGL 2.1).
+Many extensions from the OpenGL framework are now builtin.
+
+This adds support for GLSL, and a variety of other features.
+
+o Thread Support
+
+Thread support has been improved since the libGL in XQuartz 2.3.2.1.
+
+o GLX 1.4 Support
+
+The GLX 1.3 and 1.4 functions should all work with a few exceptions
+as outlined in this document.
+
+o glXMakeContextCurrent (a GLX 1.3 feature)
+
+glXMakeContextCurrent should work with the readable drawable.  The
+OpenGL functions: glReadPixels, glCopyPixels, and glCopyColorTable, 
+should use the readable drawable if it's different than the rendering 
+drawable.
+
+o glXGetProcAddress (a GLX 1.4 feature and ARB extension)
+
+glXGetProcAddress should work and allow getting the address of any 
+extension functions you may need from the X11 libGL, or OpenGL framework
+libGL.  Previous versions of the X11 libGL didn't allow getting the newer 
+OpenGL framework addresses.
+
+o GLXPixmaps
+
+New support for GLXPixmaps works well with mixed X11 and OpenGL drawing
+operations.  You can create them using glXCreateGLXPixmap or
+glXCreatePixmap.
+
+o GLXPbuffers
+
+Support for GLXPbuffers has been added.  These are drawables that are
+not possible to render to with X11, which is allowed by the spec.
+A GLXPbuffer will never generate a clobber event, however 
+glXSelectEvent and glXGetSelectedEvent should operate normally.
+
+Clobber events are not generated due to low-level architectural
+differences.  The contents of your pbuffers will not be clobbered.
+
+o Shared Contexts
+
+Due to basic low-level architectural differences the usage of shared 
+contexts requires a similar visual or GLXFBConfig be used in the 
+creation of a shared context.  It's best if you specify the same
+visual.  This is due to a CGL design difference, and not something 
+that is easily worked around.  UPDATE: some changes made seem to
+help resolve this issue in many cases, so you may be able to use a
+shared context without this restriction.
+
+
+o Indirect
+
+The X server supports indirect fairly well, so OpenGL applications
+can be run remotely and displayed by XQuartz.  This means you can run
+applications from a remote host on an XQuartz X server.
+
+AppleSGLX does not support indirect rendering.  Any indirect context
+created will appear to glXIsDirect as an indirect context, but it
+does not actually support indirect rendering to a remote X server.
+
+AppleSGLX supports GLXPixmaps and GLXPbuffers with direct and indirect
+contexts, though they are all direct contexts by definition (see above).

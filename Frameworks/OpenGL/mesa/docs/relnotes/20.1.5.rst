@@ -1,0 +1,123 @@
+Mesa 20.1.5 Release Notes / 2020-08-05
+======================================
+
+Mesa 20.1.5 is a bug fix release which fixes bugs found since the 20.1.4 release.
+
+Mesa 20.1.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.1.5 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    fac1861e6e0bf1aec893f8d86dbfb9d8a0f426ff06b05256df10e3ad7e02c69b  mesa-20.1.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- panfrost: Register allocation fails for Firefox WebRender shaders
+- VRAM leak with vuilkan external memory + opengl memory objects
+- Possible array out of bounds in brw_vec4_nir.cpp
+- [tgl][bisected][regression][iris] failure on dEQP-EGL.functional.wide_color.pbuffer_8888_colorspace_default
+- Multiply defined symbols compiling with gcc\@10.1.0
+- shrinking descriptor pool on intel+vulkan
+- dEQP-VK.renderpass2.dedicated_allocation.attachment.1.12 fails on NAVI14
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (2):
+
+- pan/mdg: Mask spills from texture write
+- pan/mdg: Test for SSA before chasing addresses
+
+Bas Nieuwenhuizen (3):
+
+- radv: Fix uninitialized variable in renderpass.
+- radv: Fix host->host signalling with legacy timeline semaphores.
+- mesa/st: Actually free the driver part of memory objects on destruction.
+
+Daniel Schürmann (3):
+
+- aco: fix scratch loads which cross element_size boundaries
+- aco: don't split store data if it was already split into more elements
+- aco: prevent infinite recursion in RA for subdword variables
+
+Daryl W. Grunau (1):
+
+- prevent multiply defined symbols
+
+Eric Engestrom (6):
+
+- docs/relnotes: add sha256 sums to 20.1.4
+- .pick_status.json: Update to caa98246a0e180a96f3fcdcd3bfcbef0b136bc11
+- .pick_status.json: Mark bd75e9923302a3d389469b7b233968576a46f4de as denominated
+- .pick_status.json: Mark 1b3be07b5faf867f698668080b060a270c5f795e as denominated
+- bin/gen_release_notes: automatically commit release notes
+- docs: add release notes for 20.1.5
+
+Francisco Jerez (1):
+
+- intel/ir/gen12+: Work around FS performance regressions due to SIMD32 discard divergence.
+
+Frank Binns (1):
+
+- egl/dri2: only take a dri2_dpy reference when binding a new context/surfaces
+
+Faith Ekstrand (2):
+
+- intel/eu: Use non-coherent mode (BTI=253) for stateless A64 messages
+- nir/deref: Don't try to compare derefs containing casts
+
+Kenneth Graunke (1):
+
+- iris: Delete shader variants when deleting the API-facing shader
+
+Kristian Høgsberg (1):
+
+- anv: Pass device to setup_gralloc0_usage for error reporting
+
+Lionel Landwerlin (1):
+
+- anv: fix descriptor set free
+
+Marcin Ślusarz (6):
+
+- iris: propagate error from gen_perf_begin_query to glBeginPerfQueryINTEL
+- i965: propagate error from gen_perf_begin_query to glBeginPerfQueryINTEL
+- util: fix possible fd leaks in os_socket_listen_abstract
+- util: fix possible buffer overflow in util_get_process_exec_path
+- mesa: fix out of bounds access in glGetFramebufferParameterivEXT
+- intel/vec4: fix out of bounds read
+
+Marek Olšák (4):
+
+- ac: update register and packet definitions for preemption
+- radeonsi: add missing initialization of registers
+- radeonsi/gfx10: set the correct value for OFFCHIP_BUFFERING
+- radeonsi: disable SDMA on gfx9
+
+Mauro Rossi (1):
+
+- radv: fix build on Android 7 (v2)
+
+Yevhenii Kolesnikov (1):
+
+- nine: fix incorrect calculation of layer count for 3D textures

@@ -1,0 +1,52 @@
+[[deqp]]
+deqp = "/deqp/external/openglcts/modules/glcts"
+caselists = [
+    "/deqp/mustpass/gles2-master.txt",
+    "/deqp/mustpass/gles2-khr-master.txt",
+]
+tests_per_group = 250
+deqp_args = [
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+    "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer",
+    "--deqp-surface-width=256",
+    "--deqp-visibility=hidden",
+]
+version_check = "GL ES 2.0.*git"
+renderer_check = "VC4"
+
+# We are getting frequent GPU hangs with piglit, but still haven't identified
+# the cause. So let's disable it for now.
+# [[piglit]]
+# piglit_folder = "/piglit"
+# profile = "quick_gl"
+# process_isolation = true
+#   [piglit.env]
+#   PIGLIT_PLATFORM = "mixed_glx_egl"
+
+[[piglit]]
+piglit_folder = "/piglit"
+profile = "quick_shader"
+process_isolation = true
+
+# wayland
+[[deqp]]
+deqp = "/deqp/modules/egl/deqp-egl-wayland"
+caselists = ["/deqp/mustpass/egl-master.txt"]
+deqp_args = [
+    "--deqp-surface-width=256", "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+]
+prefix = "wayland-"
+
+# x11
+[[deqp]]
+deqp = "/deqp/modules/egl/deqp-egl-x11"
+caselists = ["/deqp/mustpass/egl-master.txt"]
+deqp_args = [
+    "--deqp-surface-width=256", "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer", "--deqp-visibility=hidden",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+]
+prefix = "x11-"

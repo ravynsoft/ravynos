@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_INTEL_performance_query" number="443">
+
+  <function name="GetFirstPerfQueryIdINTEL" es2="2.0">
+    <param name="queryId" type="GLuint *"/>
+  </function>
+
+  <function name="GetNextPerfQueryIdINTEL" es2="2.0">
+    <param name="queryId" type="GLuint"/>
+    <param name="nextQueryId" type="GLuint *"/>
+  </function>
+
+  <function name="GetPerfQueryIdByNameINTEL" es2="2.0">
+    <param name="queryName" type="GLchar *"/>
+    <param name="queryId" type="GLuint *"/>
+  </function>
+
+  <function name="GetPerfQueryInfoINTEL" es2="2.0">
+    <param name="queryId" type="GLuint"/>
+    <param name="queryNameLength" type="GLuint"/>
+    <param name="queryName" type="GLchar *"/>
+    <param name="dataSize" type="GLuint *"/>
+    <param name="noCounters" type="GLuint *"/>
+    <param name="noInstances" type="GLuint *"/>
+    <param name="capsMask" type="GLuint *"/>
+  </function>
+
+  <function name="GetPerfCounterInfoINTEL" es2="2.0">
+    <param name="queryId" type="GLuint"/>
+    <param name="counterId" type="GLuint"/>
+    <param name="counterNameLength" type="GLuint"/>
+    <param name="counterName" type="GLchar *"/>
+    <param name="counterDescLength" type="GLuint"/>
+    <param name="counterDesc" type="GLchar *"/>
+    <param name="counterOffset" type="GLuint *"/>
+    <param name="counterDataSize" type="GLuint *"/>
+    <param name="counterTypeEnum" type="GLuint *"/>
+    <param name="counterDataTypeEnum" type="GLuint *"/>
+    <param name="rawCounterMaxValue" type="GLuint64 *"/>
+  </function>
+
+  <function name="CreatePerfQueryINTEL" es2="2.0">
+    <param name="queryId" type="GLuint"/>
+    <param name="queryHandle" type="GLuint *"/>
+  </function>
+
+  <function name="DeletePerfQueryINTEL" es2="2.0">
+    <param name="queryHandle" type="GLuint"/>
+  </function>
+
+  <function name="BeginPerfQueryINTEL" es2="2.0">
+    <param name="queryHandle" type="GLuint"/>
+  </function>
+
+  <function name="EndPerfQueryINTEL" es2="2.0">
+    <param name="queryHandle" type="GLuint"/>
+  </function>
+
+  <function name="GetPerfQueryDataINTEL" es2="2.0">
+    <param name="queryHandle" type="GLuint"/>
+    <param name="flags" type="GLuint"/>
+    <param name="dataSize" type="GLsizei"/>
+    <param name="data" type="GLvoid *"/>
+    <param name="bytesWritten" type="GLuint *"/>
+  </function>
+
+  <enum name="PERFQUERY_SINGLE_CONTEXT_INTEL" value="0x0000"/>
+  <enum name="PERFQUERY_GLOBAL_CONTEXT_INTEL" value="0x0001"/>
+  <enum name="PERFQUERY_WAIT_INTEL" value="0x83FB"/>
+  <enum name="PERFQUERY_FLUSH_INTEL" value="0x83FA"/>
+  <enum name="PERFQUERY_DONOT_FLUSH_INTEL" value="0x83F9"/>
+  <enum name="PERFQUERY_COUNTER_EVENT_INTEL" value="0x94F0"/>
+  <enum name="PERFQUERY_COUNTER_DURATION_NORM_INTEL" value="0x94F1"/>
+  <enum name="PERFQUERY_COUNTER_DURATION_RAW_INTEL" value="0x94F2"/>
+  <enum name="PERFQUERY_COUNTER_THROUGHPUT_INTEL" value="0x94F3"/>
+  <enum name="PERFQUERY_COUNTER_RAW_INTEL" value="0x94F4"/>
+  <enum name="PERFQUERY_COUNTER_TIMESTAMP_INTEL" value="0x94F5"/>
+  <enum name="PERFQUERY_COUNTER_DATA_UINT32_INTEL" value="0x94F8"/>
+  <enum name="PERFQUERY_COUNTER_DATA_UINT64_INTEL" value="0x94F9"/>
+  <enum name="PERFQUERY_COUNTER_DATA_FLOAT_INTEL" value="0x94FA"/>
+  <enum name="PERFQUERY_COUNTER_DATA_DOUBLE_INTEL" value="0x94FB"/>
+  <enum name="PERFQUERY_COUNTER_DATA_BOOL32_INTEL" value="0x94FC"/>
+  <enum name="PERFQUERY_QUERY_NAME_LENGTH_MAX_INTEL" value="0x94FD"/>
+  <enum name="PERFQUERY_COUNTER_NAME_LENGTH_MAX_INTEL" value="0x94FE"/>
+  <enum name="PERFQUERY_COUNTER_DESC_LENGTH_MAX_INTEL" value="0x94FF"/>
+  <enum name="PERFQUERY_GPA_EXTENDED_COUNTERS_INTEL" value="0x9500"/>
+</category>
+
+</OpenGLAPI>

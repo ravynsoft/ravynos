@@ -1,0 +1,8 @@
+Type "meson build && meson compile -C build" to build amdgcn_glslc.
+
+amdgcn_glslc works only if radeonsi_dri.so is loaded by libGL.
+It's just a GL application that sets R600_DEBUG and captures stderr.
+
+To run the tests, use llvm-lit from your llvm checkout and run:
+
+  llvm-lit -v *.glsl

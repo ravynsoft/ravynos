@@ -1,0 +1,217 @@
+Mesa 10.5.0 Release Notes / March 06, 2015
+==========================================
+
+Mesa 10.5.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 10.5.1.
+
+Mesa 10.5.0 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   2bb6e2e982ee4d8264d52d638c2a4e3f8a164190336d72d4e34ae1304d87ed91  mesa-10.5.0.tar.gz
+   d7ca9f9044bbdd674377e3eebceef1fae339c8817b9aa435c2053e4fea44e5d3  mesa-10.5.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ARB_framebuffer_sRGB on freedreno
+-  GL_ARB_texture_rg on freedreno
+-  GL_EXT_packed_float on freedreno
+-  GL_EXT_polygon_offset_clamp on i965, nv50, nvc0, r600, radeonsi,
+   llvmpipe
+-  GL_EXT_texture_shared_exponent on freedreno
+-  GL_EXT_texture_snorm on freedreno
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 10370 <https://bugs.freedesktop.org/show_bug.cgi?id=10370>`__ -
+   Incorrect pixels read back if draw bitmap texture through Display
+   list
+-  `Bug 45348 <https://bugs.freedesktop.org/show_bug.cgi?id=45348>`__ -
+   [swrast] piglit fbo-drawbuffers-arbfp regression
+-  `Bug 60879 <https://bugs.freedesktop.org/show_bug.cgi?id=60879>`__ -
+   [radeonsi] X11 can't start with acceleration enabled
+-  `Bug 67672 <https://bugs.freedesktop.org/show_bug.cgi?id=67672>`__ -
+   [llvmpipe] lp_test_arit fails on old CPUs
+-  `Bug 77544 <https://bugs.freedesktop.org/show_bug.cgi?id=77544>`__ -
+   i965: Try to use LINE instructions to perform MAD with immediate
+   arguments
+-  `Bug 78770 <https://bugs.freedesktop.org/show_bug.cgi?id=78770>`__ -
+   [SNB bisected]Webglc conformance/textures/texture-size-limit.html
+   fails
+-  `Bug 80568 <https://bugs.freedesktop.org/show_bug.cgi?id=80568>`__ -
+   [gen4] GPU Crash During Google Chrome Operation
+-  `Bug 82477 <https://bugs.freedesktop.org/show_bug.cgi?id=82477>`__ -
+   [softpipe] piglit fp-long-alu regression
+-  `Bug 82585 <https://bugs.freedesktop.org/show_bug.cgi?id=82585>`__ -
+   geometry shader with optional out variable segfaults
+-  `Bug 82991 <https://bugs.freedesktop.org/show_bug.cgi?id=82991>`__ -
+   Inverted bumpmap in webgl applications
+-  `Bug 83463 <https://bugs.freedesktop.org/show_bug.cgi?id=83463>`__ -
+   [swrast] piglit glsl-vs-clamp-1 regression
+-  `Bug 83500 <https://bugs.freedesktop.org/show_bug.cgi?id=83500>`__ -
+   si_dma_copy_tile causes GPU hangs
+-  `Bug 83510 <https://bugs.freedesktop.org/show_bug.cgi?id=83510>`__ -
+   Graphical glitches in Unreal Engine 4
+-  `Bug 83908 <https://bugs.freedesktop.org/show_bug.cgi?id=83908>`__ -
+   [i965] Incorrect icon colors in Steam Big Picture
+-  `Bug 84212 <https://bugs.freedesktop.org/show_bug.cgi?id=84212>`__ -
+   [BSW]ES3-CTS.shaders.loops.do_while_dynamic_iterations.vector_counter_vertex
+   fails and causes GPU hang
+-  `Bug 84651 <https://bugs.freedesktop.org/show_bug.cgi?id=84651>`__ -
+   Distorted graphics or black window when running Battle.net app on
+   Intel hardware via wine
+-  `Bug 84777 <https://bugs.freedesktop.org/show_bug.cgi?id=84777>`__ -
+   [BSW]Piglit spec_glsl-1.50_execution_geometry-basic fails
+-  `Bug 85367 <https://bugs.freedesktop.org/show_bug.cgi?id=85367>`__ -
+   [gen4] GPU hang in glmark-es2
+-  `Bug 85467 <https://bugs.freedesktop.org/show_bug.cgi?id=85467>`__ -
+   [llvmpipe] piglit gl-1.0-dlist-beginend failure with llvm-3.6.0svn
+-  `Bug 85529 <https://bugs.freedesktop.org/show_bug.cgi?id=85529>`__ -
+   Surfaces not drawn in Unvanquished
+-  `Bug 85647 <https://bugs.freedesktop.org/show_bug.cgi?id=85647>`__ -
+   Random radeonsi crashes with mesa 10.3.x
+-  `Bug 85696 <https://bugs.freedesktop.org/show_bug.cgi?id=85696>`__ -
+   r600g+nine: Bioshock shader failure after
+   7b1c0cbc90d456384b0950ad21faa3c61a6b43ff
+-  `Bug 86089 <https://bugs.freedesktop.org/show_bug.cgi?id=86089>`__ -
+   [r600g][mesa 10.4.0-dev] shader failure -
+   r600_sb::bc_finalizer::cf_peephole() when starting Second Life
+-  `Bug 86618 <https://bugs.freedesktop.org/show_bug.cgi?id=86618>`__ -
+   [NV96] neg modifiers not working in MIN and MAX operations
+-  `Bug 86760 <https://bugs.freedesktop.org/show_bug.cgi?id=86760>`__ -
+   mesa doesn't build: recipe for target 'r600_llvm.lo' failed
+-  `Bug 86764 <https://bugs.freedesktop.org/show_bug.cgi?id=86764>`__ -
+   [SNB+ Bisected]Piglit glean/pointSprite fails
+-  `Bug 86788 <https://bugs.freedesktop.org/show_bug.cgi?id=86788>`__ -
+   (bisected) 32bit UrbanTerror 4.1 timedemo sse4.1 segfault...
+-  `Bug 86811 <https://bugs.freedesktop.org/show_bug.cgi?id=86811>`__ -
+   [BDW/BSW Bisected]Piglit
+   spec_arb_shading_language_packing_execution_built-in-functions_vs-unpackSnorm4x8
+   fails
+-  `Bug 86837 <https://bugs.freedesktop.org/show_bug.cgi?id=86837>`__ -
+   kodi segfault since auxiliary/vl: rework the build of the VL code
+-  `Bug 86939 <https://bugs.freedesktop.org/show_bug.cgi?id=86939>`__ -
+   test_vf_float_conversions.cpp:63:12: error: expected
+   primary-expression before ‘union’
+-  `Bug 86944 <https://bugs.freedesktop.org/show_bug.cgi?id=86944>`__ -
+   glsl_parser_extras.cpp", line 1455: Error: Badly formed expression.
+   (Oracle Studio)
+-  `Bug 86958 <https://bugs.freedesktop.org/show_bug.cgi?id=86958>`__ -
+   lp_bld_misc.cpp:503:40: error: no matching function for call to
+   ‘llvm::EngineBuilder::setMCJITMemoryManager(ShaderMemoryManager*&)’
+-  `Bug 86969 <https://bugs.freedesktop.org/show_bug.cgi?id=86969>`__ -
+   \_drm_intel_gem_bo_references() function takes half the CPU with
+   Witcher2 game
+-  `Bug 87076 <https://bugs.freedesktop.org/show_bug.cgi?id=87076>`__ -
+   Dead Island needs allow_glsl_extension_directive_midshader
+-  `Bug 87516 <https://bugs.freedesktop.org/show_bug.cgi?id=87516>`__ -
+   glProgramBinary violates spec
+-  `Bug 87619 <https://bugs.freedesktop.org/show_bug.cgi?id=87619>`__ -
+   Changes to state such as render targets change fragment shader
+   without marking it dirty.
+-  `Bug 87658 <https://bugs.freedesktop.org/show_bug.cgi?id=87658>`__ -
+   [llvmpipe] SEGV in sse2_has_daz on ancient Pentium4-M
+-  `Bug 87694 <https://bugs.freedesktop.org/show_bug.cgi?id=87694>`__ -
+   [SNB] Crash in brw_begin_transform_feedback
+-  `Bug 87886 <https://bugs.freedesktop.org/show_bug.cgi?id=87886>`__ -
+   constant fps drops with Intel and Radeon
+-  `Bug 87887 <https://bugs.freedesktop.org/show_bug.cgi?id=87887>`__ -
+   [i965 Bisected]ES2-CTS.gtf.GL.cos.cos_float_vert_xvary fails
+-  `Bug 87913 <https://bugs.freedesktop.org/show_bug.cgi?id=87913>`__ -
+   CPU cacheline size of 0 can be returned by CPUID leaf 0x80000006 in
+   some virtual machines
+-  `Bug 88079 <https://bugs.freedesktop.org/show_bug.cgi?id=88079>`__ -
+   dEQP-GLES3.functional.fbo.completeness.renderable.renderbuffer.color0
+   tests fail due to enabling of GL_RGB and GL_RGBA
+-  `Bug 88170 <https://bugs.freedesktop.org/show_bug.cgi?id=88170>`__ -
+   32 bits opengl apps crash with latest llvm 3.6 git / mesa git /
+   radeonsi
+-  `Bug 88219 <https://bugs.freedesktop.org/show_bug.cgi?id=88219>`__ -
+   include/c11/threads_posix.h:197: undefined reference to
+   \`pthread_mutex_lock'
+-  `Bug 88227 <https://bugs.freedesktop.org/show_bug.cgi?id=88227>`__ -
+   Radeonsi: High GTT usage in Prison Architect large map
+-  `Bug 88248 <https://bugs.freedesktop.org/show_bug.cgi?id=88248>`__ -
+   Calling glClear while there is an occlusion query in progress messes
+   up the results
+-  `Bug 88335 <https://bugs.freedesktop.org/show_bug.cgi?id=88335>`__ -
+   format_pack.c:9567:22: error: expected ')'
+-  `Bug 88385 <https://bugs.freedesktop.org/show_bug.cgi?id=88385>`__ -
+   [SNB+ Bisected]Ogles3conform
+   ES3-CTS.gtf.GL3Tests.packed_pixels.packed_pixels core dumped
+-  `Bug 88467 <https://bugs.freedesktop.org/show_bug.cgi?id=88467>`__ -
+   nir.c:140: error: ‘nir_src’ has no member named ‘ssa’
+-  `Bug 88478 <https://bugs.freedesktop.org/show_bug.cgi?id=88478>`__ -
+   #error "<malloc.h> has been replaced by <stdlib.h>"
+-  `Bug 88519 <https://bugs.freedesktop.org/show_bug.cgi?id=88519>`__ -
+   sha1.c:210:22: error: 'grcy_md_hd_t' undeclared (first use in this
+   function)
+-  `Bug 88523 <https://bugs.freedesktop.org/show_bug.cgi?id=88523>`__ -
+   sha1.c:37: error: 'SHA1_CTX' undeclared (first use in this function)
+-  `Bug 88561 <https://bugs.freedesktop.org/show_bug.cgi?id=88561>`__ -
+   [radeonsi][regression,bisected] Depth test/buffer issues in Portal
+-  `Bug 88658 <https://bugs.freedesktop.org/show_bug.cgi?id=88658>`__ -
+   (bisected) Slow video playback on Kabini
+-  `Bug 88662 <https://bugs.freedesktop.org/show_bug.cgi?id=88662>`__ -
+   unaligned access to gl_dlist_node
+-  `Bug 88783 <https://bugs.freedesktop.org/show_bug.cgi?id=88783>`__ -
+   FTBFS: Clover:
+   src/gallium/state_trackers/clover/llvm/invocation.cpp:335:49: error:
+   no matching function for call to
+   'llvm::TargetLibraryInfo::TargetLibraryInfo(llvm::Triple)
+-  `Bug 88792 <https://bugs.freedesktop.org/show_bug.cgi?id=88792>`__ -
+   [BDW/BSW Bisected]Piglit
+   spec_ARB_pixel_buffer_object_pbo-read-argb8888 fails
+-  `Bug 88806 <https://bugs.freedesktop.org/show_bug.cgi?id=88806>`__ -
+   nir/nir_constant_expressions.c:2754:15: error: controlling expression
+   type 'unsigned int' not compatible with any generic association type
+-  `Bug 88841 <https://bugs.freedesktop.org/show_bug.cgi?id=88841>`__ -
+   [SNB/IVB/HSW/BDW Bisected]Piglit
+   spec_EGL_NOK_texture_from_pixmap_basic fails
+-  `Bug 88852 <https://bugs.freedesktop.org/show_bug.cgi?id=88852>`__ -
+   macros.h(181) : error C2143: syntax error : missing '{' before 'enum
+   [tag]'
+-  `Bug 88905 <https://bugs.freedesktop.org/show_bug.cgi?id=88905>`__ -
+   [SNB+ Bisected]Ogles3conform
+   ES3-CTS.gtf.GL3Tests.packed_pixels.packed_pixels fails
+-  `Bug 88930 <https://bugs.freedesktop.org/show_bug.cgi?id=88930>`__ -
+   [osmesa] osbuffer->textures should be indexed by attachment type
+-  `Bug 88962 <https://bugs.freedesktop.org/show_bug.cgi?id=88962>`__ -
+   [osmesa] Crash on postprocessing if z buffer is NULL
+-  `Bug 89032 <https://bugs.freedesktop.org/show_bug.cgi?id=89032>`__ -
+   [BDW/BSW/SKL Bisected]Piglit spec_OpenGL_1.1_infinite-spot-light
+   fails
+-  `Bug 89037 <https://bugs.freedesktop.org/show_bug.cgi?id=89037>`__ -
+   [SKL]Piglit spec_EXT_texture_array_copyteximage_1D_ARRAY_samples=2
+   sporadically causes GPU hang
+-  `Bug 89068 <https://bugs.freedesktop.org/show_bug.cgi?id=89068>`__ -
+   glTexImage2D regression by texstore_rgba switch to
+   \_mesa_format_convert
+-  `Bug 89069 <https://bugs.freedesktop.org/show_bug.cgi?id=89069>`__ -
+   Lack of grass in The Talos Principle on radeonsi (native\wine\nine)
+-  `Bug 89180 <https://bugs.freedesktop.org/show_bug.cgi?id=89180>`__ -
+   [IVB regression] Rendering issues in Mass Effect through VMware
+   Workstation
+-  `Bug 86330 <https://bugs.freedesktop.org/show_bug.cgi?id=86330>`__ -
+   lp_bld_debug.cpp:112: multiple definition of
+   \`raw_debug_ostream::write_impl(char const*, unsigned long)'
+
+Changes
+-------
+
+-  Removed support for GCC versions earlier than 4.2.0.

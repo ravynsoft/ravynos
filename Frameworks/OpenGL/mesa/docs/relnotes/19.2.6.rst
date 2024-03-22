@@ -1,0 +1,69 @@
+Mesa 19.2.6 Release Notes / 2019-11-21
+======================================
+
+Mesa 19.2.6 is a bug fix release which fixes bugs found since the 19.2.5
+release.
+
+Mesa 19.2.6 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.2.6 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       9d7b24fa60c82db34788196450042a55ce6cb2d70c7a8d5c31401619b6907797  mesa-19.2.6.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  glesv2.pc is not built since fafd20f67dec9f589
+-  textureSize(samplerExternalOES, int) missing in desktop mesa 19.1.7
+   implementation
+-  [19.2.5] lp_bld_misc: broken #if PIPE_ARCH_LITTLE_ENDIAN on ppc64l
+
+Changes
+-------
+
+Alejandro Piñeiro (1):
+
+-  v3d: adds an extra MOV for any sig.ld\*
+
+Dave Airlie (1):
+
+-  llvmpipe/ppc: fix if/ifdef confusion in backport.
+
+Dylan Baker (2):
+
+-  docs/relnotes/19.2.5: Add SHA256 sum
+-  meson: generate .pc files for gles and gles2 with old glvnd
+
+Eric Engestrom (1):
+
+-  vulkan: delete typo'd header
+
+Hyunjun Ko (1):
+
+-  freedreno/ir3: fix printing output registers of FS.
+
+Jose Maria Casanova Crespo (1):
+
+-  v3d: Fix predication with atomic image operations
+
+Yevhenii Kolesnikov (1):
+
+-  glsl: Enable textureSize for samplerExternalOES

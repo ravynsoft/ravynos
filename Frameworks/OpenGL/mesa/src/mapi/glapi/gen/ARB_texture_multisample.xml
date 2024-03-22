@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="GL_ARB_texture_multisample" number="67">
+
+   <enum name="SAMPLE_POSITION"                             value="0x8E50"/>
+   <enum name="SAMPLE_MASK"                                 value="0x8E51"/>
+   <enum name="SAMPLE_MASK_VALUE"                           value="0x8E52"/>
+
+   <enum name="TEXTURE_2D_MULTISAMPLE"                      value="0x9100"/>
+   <enum name="PROXY_TEXTURE_2D_MULTISAMPLE"                value="0x9101"/>
+   <enum name="TEXTURE_2D_MULTISAMPLE_ARRAY"                value="0x9102"/>
+   <enum name="PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY"          value="0x9103"/>
+
+   <enum name="MAX_SAMPLE_MASK_WORDS"                       value="0x8E59"/>
+   <enum name="MAX_COLOR_TEXTURE_SAMPLES"                   value="0x910E"/>
+   <enum name="MAX_DEPTH_TEXTURE_SAMPLES"                   value="0x910F"/>
+   <enum name="MAX_INTEGER_SAMPLES"                         value="0x9110"/>
+
+   <enum name="TEXTURE_BINDING_2D_MULTISAMPLE"              value="0x9104"/>
+   <enum name="TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY"        value="0x9105"/>
+
+   <enum name="TEXTURE_SAMPLES"                             value="0x9106"/>
+   <enum name="TEXTURE_FIXED_SAMPLE_LOCATIONS"              value="0x9107"/>
+
+   <enum name="SAMPLER_2D_MULTISAMPLE"                      value="0x9108"/>
+   <enum name="INT_SAMPLER_2D_MULTISAMPLE"                  value="0x9109"/>
+   <enum name="UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE"         value="0x910A"/>
+   <enum name="SAMPLER_2D_MULTISAMPLE_ARRAY"                value="0x910B"/>
+   <enum name="INT_SAMPLER_2D_MULTISAMPLE_ARRAY"            value="0x910C"/>
+   <enum name="UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY"   value="0x910D"/>
+
+   <function name="TexImage2DMultisample">
+      <param name="target" type="GLenum"/>
+      <param name="samples" type="GLsizei"/>
+      <param name="internalformat" type="GLenum"/>
+      <param name="width" type="GLsizei"/>
+      <param name="height" type="GLsizei"/>
+      <param name="fixedsamplelocations" type="GLboolean"/>
+   </function>
+
+   <function name="TexImage3DMultisample">
+      <param name="target" type="GLenum"/>
+      <param name="samples" type="GLsizei"/>
+      <param name="internalformat" type="GLenum"/>
+      <param name="width" type="GLsizei"/>
+      <param name="height" type="GLsizei"/>
+      <param name="depth" type="GLsizei"/>
+      <param name="fixedsamplelocations" type="GLboolean"/>
+   </function>
+
+   <function name="GetMultisamplefv" es2="3.1">
+      <param name="pname" type="GLenum"/>
+      <param name="index" type="GLuint"/>
+      <param name="val" type="GLfloat *"/>
+   </function>
+
+   <function name="SampleMaski" es2="3.1" no_error="true">
+      <param name="index" type="GLuint"/>
+      <param name="mask" type="GLbitfield"/>
+   </function>
+
+</category>
+
+</OpenGLAPI>

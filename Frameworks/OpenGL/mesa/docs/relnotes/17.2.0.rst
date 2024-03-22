@@ -1,0 +1,215 @@
+Mesa 17.2.0 Release Notes / September 4, 2017
+=============================================
+
+Mesa 17.2.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 17.2.1.
+
+Mesa 17.2.0 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   9484ad96b4bb6cda5bbf1aef52dfa35183dc21aa6258a2991c245996c2fdaf85  mesa-17.2.0.tar.gz
+   3123448f770eae58bc73e15480e78909defb892f10ab777e9116c9b218094943  mesa-17.2.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ARB_bindless_texture on radeonsi
+-  GL_ARB_post_depth_coverage on nvc0 (GM200+)
+-  GL_ARB_shader_ballot on i965/gen8+
+-  GL_ARB_shader_group_vote on i965 (with a no-op vec4 implementation)
+-  GL_ARB_shader_viewport_layer_array on nvc0 (GM200+)
+-  GL_AMD_vertex_shader_layer on nvc0 (GM200+)
+-  GL_AMD_vertex_shader_viewport_index on nvc0 (GM200+)
+
+Bug fixes
+---------
+
+-  `Bug 68365 <https://bugs.freedesktop.org/show_bug.cgi?id=68365>`__ -
+   [SNB Bisected]Piglit spec_ARB_framebuffer_object_fbo-blit-stretch
+   fail
+-  `Bug 77240 <https://bugs.freedesktop.org/show_bug.cgi?id=77240>`__ -
+   khrplatform.h not installed if EGL is disabled
+-  `Bug 95530 <https://bugs.freedesktop.org/show_bug.cgi?id=95530>`__ -
+   Stellaris - colored overlay of sectors doesn't render on i965
+-  `Bug 96449 <https://bugs.freedesktop.org/show_bug.cgi?id=96449>`__ -
+   Dying Light reports OpenGL version 3.0 with mesa-git
+-  `Bug 96958 <https://bugs.freedesktop.org/show_bug.cgi?id=96958>`__ -
+   [SKL] Improper rendering in Europa Universalis IV
+-  `Bug 97524 <https://bugs.freedesktop.org/show_bug.cgi?id=97524>`__ -
+   Samplers referring to the same texture unit with different types
+   should raise GL_INVALID_OPERATION
+-  `Bug 97957 <https://bugs.freedesktop.org/show_bug.cgi?id=97957>`__ -
+   Awful screen tearing in a separate X server with DRI3
+-  `Bug 98238 <https://bugs.freedesktop.org/show_bug.cgi?id=98238>`__ -
+   Witcher 2: objects are black when changing lod on Radeon Pitcairn
+-  `Bug 98428 <https://bugs.freedesktop.org/show_bug.cgi?id=98428>`__ -
+   Undefined non-weak-symbol in dri-drivers
+-  `Bug 98833 <https://bugs.freedesktop.org/show_bug.cgi?id=98833>`__ -
+   [REGRESSION, bisected] Wayland revert commit breaks non-Vsync
+   fullscreen frame updates
+-  `Bug 99467 <https://bugs.freedesktop.org/show_bug.cgi?id=99467>`__ -
+   [radv] DOOM 2016 + wine. Green screen everywhere (but can be started)
+-  `Bug 100070 <https://bugs.freedesktop.org/show_bug.cgi?id=100070>`__
+   - Rocket League: grass gets rendered incorrectly
+-  `Bug 100242 <https://bugs.freedesktop.org/show_bug.cgi?id=100242>`__
+   - radeon buffer allocation failure during startup of Factorio
+-  `Bug 100620 <https://bugs.freedesktop.org/show_bug.cgi?id=100620>`__
+   - [SKL] 48-bit addresses break DOOM
+-  `Bug 100690 <https://bugs.freedesktop.org/show_bug.cgi?id=100690>`__
+   - [Regression, bisected] TotalWar: Warhammer corrupted graphics
+-  `Bug 100741 <https://bugs.freedesktop.org/show_bug.cgi?id=100741>`__
+   - Chromium - Memory leak
+-  `Bug 100785 <https://bugs.freedesktop.org/show_bug.cgi?id=100785>`__
+   - [regression, bisected] arb_gpu_shader5 piglit fail
+-  `Bug 100854 <https://bugs.freedesktop.org/show_bug.cgi?id=100854>`__
+   - YUV to RGB Color Space Conversion result is not precise
+-  `Bug 100871 <https://bugs.freedesktop.org/show_bug.cgi?id=100871>`__
+   - gles cts hangs mesa indefinitely
+-  `Bug 100877 <https://bugs.freedesktop.org/show_bug.cgi?id=100877>`__
+   - vulkan/tests/block_pool_no_free regression
+-  `Bug 100892 <https://bugs.freedesktop.org/show_bug.cgi?id=100892>`__
+   - Polaris 12: winsys init bad switch (missing break) initializing
+   addrlib
+-  `Bug 100925 <https://bugs.freedesktop.org/show_bug.cgi?id=100925>`__
+   - [HSW/BSW/BDW/SKL] Google Earth is not resolving all the details in
+   the map correctly
+-  `Bug 100937 <https://bugs.freedesktop.org/show_bug.cgi?id=100937>`__
+   - Mesa fails to build with GCC 4.8
+-  `Bug 100945 <https://bugs.freedesktop.org/show_bug.cgi?id=100945>`__
+   - Build failure in GNOME Continuous
+-  `Bug 100988 <https://bugs.freedesktop.org/show_bug.cgi?id=100988>`__
+   - glXGetCurrentDisplay() no longer works for FakeGLX contexts?
+-  `Bug 101071 <https://bugs.freedesktop.org/show_bug.cgi?id=101071>`__
+   - compiling glsl fails with undefined reference to \`pthread_create'
+-  `Bug 101088 <https://bugs.freedesktop.org/show_bug.cgi?id=101088>`__
+   - \`gallium: remove pipe_index_buffer and set_index_buffer\` causes
+   glitches and crash in gallium nine
+-  `Bug 101110 <https://bugs.freedesktop.org/show_bug.cgi?id=101110>`__
+   - Build failure in GNOME Continuous
+-  `Bug 101189 <https://bugs.freedesktop.org/show_bug.cgi?id=101189>`__
+   - Latest git fails to compile with radeon
+-  `Bug 101252 <https://bugs.freedesktop.org/show_bug.cgi?id=101252>`__
+   - eglGetDisplay() is not thread safe
+-  `Bug 101254 <https://bugs.freedesktop.org/show_bug.cgi?id=101254>`__
+   - VDPAU videos don't start playing with r600 gallium driver
+-  `Bug 101283 <https://bugs.freedesktop.org/show_bug.cgi?id=101283>`__
+   - skylake: page fault accessing address 0
+-  `Bug 101284 <https://bugs.freedesktop.org/show_bug.cgi?id=101284>`__
+   - [G45]
+   ES2-CTS.functional.texture.specification.basic_copytexsubimage2d.cube_rgba
+-  `Bug 101294 <https://bugs.freedesktop.org/show_bug.cgi?id=101294>`__
+   - radeonsi minecraft forge splash freeze since 17.1
+-  `Bug 101306 <https://bugs.freedesktop.org/show_bug.cgi?id=101306>`__
+   - [BXT] gles asserts in cts
+-  `Bug 101326 <https://bugs.freedesktop.org/show_bug.cgi?id=101326>`__
+   - gallium/wgl: Allow context creation without prior SetPixelFormat()
+-  `Bug 101334 <https://bugs.freedesktop.org/show_bug.cgi?id=101334>`__
+   - AMD SI cards: Some vulkan apps freeze the system
+-  `Bug 101336 <https://bugs.freedesktop.org/show_bug.cgi?id=101336>`__
+   - glcpp-test.sh regression
+-  `Bug 101340 <https://bugs.freedesktop.org/show_bug.cgi?id=101340>`__
+   - i915_surface.c:108:4: error: too few arguments to function
+   ‘util_blitter_default_src_texture’
+-  `Bug 101360 <https://bugs.freedesktop.org/show_bug.cgi?id=101360>`__
+   - Assertion failure comparing result of ballotARB
+-  `Bug 101401 <https://bugs.freedesktop.org/show_bug.cgi?id=101401>`__
+   - [REGRESSION][BISECTED] GDM fails to start after
+   8ec4975cd83365c791a1
+-  `Bug 101418 <https://bugs.freedesktop.org/show_bug.cgi?id=101418>`__
+   - Build failure in GNOME Continuous
+-  `Bug 101451 <https://bugs.freedesktop.org/show_bug.cgi?id=101451>`__
+   - [G33] ES2-CTS.functional.clipping.polygon regression
+-  `Bug 101464 <https://bugs.freedesktop.org/show_bug.cgi?id=101464>`__
+   - PrimitiveRestartNV inside a render list causes a crash
+-  `Bug 101471 <https://bugs.freedesktop.org/show_bug.cgi?id=101471>`__
+   - Mesa fails to build: unknown typename bool
+-  `Bug 101535 <https://bugs.freedesktop.org/show_bug.cgi?id=101535>`__
+   - [bisected] [Skylake] Kwin won't start and glxgears coredumps
+-  `Bug 101538 <https://bugs.freedesktop.org/show_bug.cgi?id=101538>`__
+   - From "Use isl for hiz layouts" commit onwards, everything crashes
+   with Mesa
+-  `Bug 101539 <https://bugs.freedesktop.org/show_bug.cgi?id=101539>`__
+   - [Regresion] [IVB] Segment fault in recent commit in
+   intel_miptree_level_has_hiz under Ivy bridge
+-  `Bug 101558 <https://bugs.freedesktop.org/show_bug.cgi?id=101558>`__
+   - [regression][bisected] MPV playing video via opengl "randomly"
+   results in only part of the window / screen being rendered with Mesa
+   GIT.
+-  `Bug 101596 <https://bugs.freedesktop.org/show_bug.cgi?id=101596>`__
+   - Blender renders black UI elements
+-  `Bug 101607 <https://bugs.freedesktop.org/show_bug.cgi?id=101607>`__
+   - Regression in anisotropic filtering from "i965: Convert fs sampler
+   state to use genxml"
+-  `Bug 101657 <https://bugs.freedesktop.org/show_bug.cgi?id=101657>`__
+   - strtod.c:32:10: fatal error: xlocale.h: No such file or directory
+-  `Bug 101666 <https://bugs.freedesktop.org/show_bug.cgi?id=101666>`__
+   - bitfieldExtract is marked as a built-in function on OpenGL ES 3.0,
+   but was added in OpenGL ES 3.1
+-  `Bug 101683 <https://bugs.freedesktop.org/show_bug.cgi?id=101683>`__
+   - Some games hang while loading when compositing is shut off or
+   absent
+-  `Bug 101703 <https://bugs.freedesktop.org/show_bug.cgi?id=101703>`__
+   - No stencil buffer allocated when requested by GLUT
+-  `Bug 101704 <https://bugs.freedesktop.org/show_bug.cgi?id=101704>`__
+   - [regression][bisected] glReadPixels() from pbuffer failing in
+   Android CTS camera tests
+-  `Bug 101766 <https://bugs.freedesktop.org/show_bug.cgi?id=101766>`__
+   - Assertion \`!"invalid type"' failed when constant expression
+   involves literal of different type
+-  `Bug 101774 <https://bugs.freedesktop.org/show_bug.cgi?id=101774>`__
+   - gen_clflush.h:37:7: error: implicit declaration of function
+   ‘__builtin_ia32_clflush’
+-  `Bug 101775 <https://bugs.freedesktop.org/show_bug.cgi?id=101775>`__
+   - Xorg segfault since 147d7fb "st/mesa: add a winsys buffers list in
+   st_context"
+-  `Bug 101829 <https://bugs.freedesktop.org/show_bug.cgi?id=101829>`__
+   - read-after-free in st_framebuffer_validate
+-  `Bug 101831 <https://bugs.freedesktop.org/show_bug.cgi?id=101831>`__
+   - Build failure in GNOME Continuous
+-  `Bug 101851 <https://bugs.freedesktop.org/show_bug.cgi?id=101851>`__
+   - [regression] libEGL_common.a undefined reference to
+   '__gxx_personality_v0'
+-  `Bug 101867 <https://bugs.freedesktop.org/show_bug.cgi?id=101867>`__
+   - Launch options window renders black in Feral Games in current Mesa
+   trunk
+-  `Bug 101876 <https://bugs.freedesktop.org/show_bug.cgi?id=101876>`__
+   - SIGSEGV when launching Steam
+-  `Bug 101910 <https://bugs.freedesktop.org/show_bug.cgi?id=101910>`__
+   - [BYT]
+   ES31-CTS.functional.copy_image.non_compressed.viewclass_96_bits.rgb32f_rgb32f
+-  `Bug 101925 <https://bugs.freedesktop.org/show_bug.cgi?id=101925>`__
+   - playstore/webview crash
+-  `Bug 101961 <https://bugs.freedesktop.org/show_bug.cgi?id=101961>`__
+   - Serious Sam Fusion hangs system completely
+-  `Bug 101982 <https://bugs.freedesktop.org/show_bug.cgi?id=101982>`__
+   - Weston crashes when running an OpenGL program on i965
+-  `Bug 101983 <https://bugs.freedesktop.org/show_bug.cgi?id=101983>`__
+   - [G33] ES2-CTS.functional.shaders.struct.uniform.sampler_nested\*
+   regression
+-  `Bug 102024 <https://bugs.freedesktop.org/show_bug.cgi?id=102024>`__
+   - FORMAT_FEATURE_SAMPLED_IMAGE_BIT not supported for D16_UNORM and
+   D32_SFLOAT
+-  `Bug 102148 <https://bugs.freedesktop.org/show_bug.cgi?id=102148>`__
+   - Crash when running qopenglwidget example on mesa llvmpipe win32
+-  `Bug 102241 <https://bugs.freedesktop.org/show_bug.cgi?id=102241>`__
+   - gallium/wgl: SwapBuffers freezing regularly with swap interval
+   enabled
+-  `Bug 102308 <https://bugs.freedesktop.org/show_bug.cgi?id=102308>`__
+   - segfault in glCompressedTextureSubImage3D
+
+Changes
+-------
+
+-  GL_APPLE_vertex_array_object support removed.

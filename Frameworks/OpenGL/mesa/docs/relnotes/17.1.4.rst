@@ -1,0 +1,178 @@
+Mesa 17.1.4 Release Notes / June 30, 2017
+=========================================
+
+Mesa 17.1.4 is a bug fix release which fixes bugs found since the 17.1.3
+release.
+
+Mesa 17.1.4 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   f82fbbdf2dcec0e7e5aa3a8fe4bacd50bf4b7293cc6e1a56658ae6504d732362  mesa-17.1.4.tar.gz
+   06f3b0e6a28f0d20b7f3391cf67fe89ae98ecd0a686cd545da76557b6cec9cad  mesa-17.1.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 77240 <https://bugs.freedesktop.org/show_bug.cgi?id=77240>`__ -
+   khrplatform.h not installed if EGL is disabled
+-  `Bug 95530 <https://bugs.freedesktop.org/show_bug.cgi?id=95530>`__ -
+   Stellaris - colored overlay of sectors doesn't render on i965
+-  `Bug 96958 <https://bugs.freedesktop.org/show_bug.cgi?id=96958>`__ -
+   [SKL] Improper rendering in Europa Universalis IV
+-  `Bug 99467 <https://bugs.freedesktop.org/show_bug.cgi?id=99467>`__ -
+   [radv] DOOM 2016 + wine. Green screen everywhere (but can be started)
+-  `Bug 101071 <https://bugs.freedesktop.org/show_bug.cgi?id=101071>`__
+   - compiling glsl fails with undefined reference to \`pthread_create'
+-  `Bug 101252 <https://bugs.freedesktop.org/show_bug.cgi?id=101252>`__
+   - eglGetDisplay() is not thread safe
+-  `Bug 101294 <https://bugs.freedesktop.org/show_bug.cgi?id=101294>`__
+   - radeonsi minecraft forge splash freeze since 17.1
+-  `Bug 101451 <https://bugs.freedesktop.org/show_bug.cgi?id=101451>`__
+   - [G33] ES2-CTS.functional.clipping.polygon regression
+
+Changes
+-------
+
+Alex Deucher (1):
+
+-  radeonsi: add new polaris12 pci id
+
+Andres Gomez (3):
+
+-  cherry-ignore: 17.1.4 rejected commits
+-  cherry-ignore: bin/get-fixes-pick-list.sh: better identify multiple
+   "fixes:" tags
+-  Update version to 17.1.4
+
+Anuj Phogat (2):
+
+-  i965: Add and initialize l3_banks field for gen7+
+-  i965: Fix broxton 2x6 l3 config
+
+Ben Crocker (1):
+
+-  egl_dri2: swrastGetDrawableInfo: set \*x, common.py [v2]
+
+Brian Paul (2):
+
+-  svga: check return value from svga_set_shader( SVGA3D_SHADERTYPE_GS,
+   NULL)
+-  gallium/vbuf: avoid segfault when we get invalid
+   glDrawRangeElements()
+
+Chad Versace (1):
+
+-  egl/android: Change order of EGLConfig generation (v2)
+
+Chandu Babu N (1):
+
+-  change va max_entrypoints
+
+Charmaine Lee (1):
+
+-  svga: use the winsys interface to invalidate surface
+
+Emil Velikov (3):
+
+-  docs: add sha256 checksums for 17.1.3
+-  configure.ac: add -pthread to PTHREAD_LIBS
+-  radeonsi: include ac_binary.h for struct ac_shader_binary
+
+Eric Engestrom (3):
+
+-  egl: properly count configs
+-  egl/display: only detect the platform once
+-  egl/display: make platform detection thread-safe
+
+Eric Le Bihan (1):
+
+-  Fix khrplatform.h not installed if EGL is disabled.
+
+Iago Toral Quiroga (1):
+
+-  i965: update MaxTextureRectSize to match PRMs and comply with OpenGL
+   4.1+
+
+Ilia Mirkin (2):
+
+-  nv50/ir: fetch indirect sources BEFORE the op that uses them
+-  nv50/ir: fix combineLd/St to update existing records as necessary
+
+Faith Ekstrand (10):
+
+-  i965: Flush around state base address
+-  i965: Take a uint64_t immediate in emit_pipe_control_write
+-  i965: Unify the two emit_pipe_control functions
+-  i965: Do an end-of-pipe sync prior to STATE_BASE_ADDRESS
+-  i965/blorp: Do an end-of-pipe sync around CCS ops
+-  i965: Do an end-of-pipe sync after flushes
+-  i965: Disable the interleaved vertex optimization when instancing
+-  i965: Set step_rate = 0 for interleaved vertex buffers
+-  spirv: Work around the Doom shader bug
+-  i965: Clamp clear colors to the representable range
+
+Jonas Kulla (1):
+
+-  anv: Fix L3 cache programming on Bay Trail
+
+Kenneth Graunke (1):
+
+-  i965: Ignore anisotropic filtering in nearest mode.
+
+Lucas Stach (7):
+
+-  etnaviv: don't try RS blit if blit region is unaligned
+-  etnaviv: use padded width/height for resource copies
+-  etnaviv: remove bogus assert
+-  etnaviv: replace translate_clear_color with util_pack_color
+-  etnaviv: mask correct channel for RB swapped rendertargets
+-  etnaviv: advertise correct max LOD bias
+-  etnaviv: only flush resource to self if no scanout buffer exists
+
+Marek Olšák (4):
+
+-  winsys/amdgpu: fix a deadlock when waiting for submission_in_progress
+-  mesa: flush vertices before changing viewports
+-  mesa: flush vertices before updating ctx->_Shader
+-  st/mesa: fix pipe_rasterizer_state::scissor with multiple viewports
+
+Michel Dänzer (1):
+
+-  gallium/util: Break recursion in pipe_resource_reference
+
+Nicolai Hähnle (2):
+
+-  gallium/radeon/gfx9: fix PBO texture uploads to compressed textures
+-  amd/common: fix off-by-one in sid_tables.py
+
+Pierre Moreau (1):
+
+-  nv50/ir: Properly fold constants in SPLIT operation
+
+Rob Herring (1):
+
+-  Android: major/minor/makedev live in <sys/sysmacros.h>
+
+Topi Pohjolainen (2):
+
+-  i965: Add an end-of-pipe sync helper
+-  i965/gen4: Set depth offset when there is stencil attachment only
+
+Ville Syrjälä (2):
+
+-  i915: Fix gl_Fragcoord interpolation
+-  i915: Fix wpos_tex vs. -1 comparison

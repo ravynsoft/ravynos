@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_bindless_texture" number="152">
+
+   <enum name="UNSIGNED_INT64_ARB" value="0x140F" />
+   <type name="uint64EXT" unsigned="true" size="8"/>
+
+   <function name="GetTextureHandleARB" no_error="true">
+      <return type="GLuint64"/>
+      <param name="texture" type="GLuint" />
+   </function>
+
+   <function name="GetTextureSamplerHandleARB" no_error="true">
+      <return type="GLuint64"/>
+      <param name="texture" type="GLuint" />
+      <param name="sampler" type="GLuint" />
+   </function>
+
+   <function name="MakeTextureHandleResidentARB" no_error="true">
+      <param name="handle" type="GLuint64" />
+   </function>
+
+   <function name="MakeTextureHandleNonResidentARB" no_error="true">
+      <param name="handle" type="GLuint64" />
+   </function>
+
+   <function name="GetImageHandleARB" no_error="true">
+      <return type="GLuint64"/>
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="layered" type="GLboolean" />
+      <param name="layer" type="GLint" />
+      <param name="format" type="GLenum" />
+   </function>
+
+   <function name="MakeImageHandleResidentARB" no_error="true">
+      <param name="handle" type="GLuint64" />
+      <param name="access" type="GLenum" />
+   </function>
+
+   <function name="MakeImageHandleNonResidentARB" no_error="true">
+      <param name="handle" type="GLuint64" />
+   </function>
+
+   <function name="UniformHandleui64ARB">
+      <param name="location" type="GLint" />
+      <param name="value" type="GLuint64" />
+   </function>
+
+   <function name="UniformHandleui64vARB">
+      <param name="location" type="GLint" />
+      <param name="count" type="GLsizei" />
+      <param name="value" type="const GLuint64 *" count="count"/>
+   </function>
+
+   <function name="ProgramUniformHandleui64ARB">
+      <param name="program" type="GLuint" />
+      <param name="location" type="GLint" />
+      <param name="value" type="GLuint64" />
+   </function>
+
+   <function name="ProgramUniformHandleui64vARB">
+      <param name="program" type="GLuint" />
+      <param name="location" type="GLint" />
+      <param name="count" type="GLsizei" />
+      <param name="value" type="const GLuint64 *" count="count"/>
+   </function>
+
+   <function name="IsTextureHandleResidentARB" no_error="true">
+      <return type="GLboolean"/>
+      <param name="handle" type="GLuint64" />
+   </function>
+
+   <function name="IsImageHandleResidentARB" no_error="true">
+      <return type="GLboolean"/>
+      <param name="handle" type="GLuint64" />
+   </function>
+
+   <function name="VertexAttribL1ui64ARB" exec="beginend">
+      <param name="index" type="GLuint" />
+      <param name="x" type="GLuint64EXT" />
+   </function>
+
+   <function name="VertexAttribL1ui64vARB" exec="beginend">
+      <param name="index" type="GLuint" />
+      <param name="v" type="const GLuint64EXT *" count="1"/>
+   </function>
+
+   <function name="GetVertexAttribLui64vARB">
+      <param name="index" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLuint64EXT *" />
+   </function>
+
+</category>
+
+</OpenGLAPI>

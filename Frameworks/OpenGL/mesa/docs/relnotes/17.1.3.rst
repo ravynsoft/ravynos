@@ -1,0 +1,117 @@
+Mesa 17.1.3 Release Notes / June 19, 2017
+=========================================
+
+Mesa 17.1.3 is a bug fix release which fixes bugs found since the 17.1.2
+release.
+
+Mesa 17.1.3 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   81ae9127286ff8d631e466d258608d6dea9854fe7bee2e8521da44c7544f01e5  mesa-17.1.3.tar.gz
+   5f1ee9a8aea2880f887884df2dea0c16dd1b13eb42fd2e52265db0dc1b380e8c  mesa-17.1.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 100988 <https://bugs.freedesktop.org/show_bug.cgi?id=100988>`__
+   - glXGetCurrentDisplay() no longer works for FakeGLX contexts?
+
+Changes
+-------
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Set both compute and graphics SGPRS on descriptor set flush.
+-  radv: Dirty all descriptors sets when changing the pipeline.
+-  radv: Remove SI num RB override for occlusion queries.
+
+Brian Paul (1):
+
+-  xlib: fix glXGetCurrentDisplay() failure
+
+Chad Versace (1):
+
+-  i965/dri: Fix bad GL error in intel_create_winsys_renderbuffer()
+
+Chuck Atkins (1):
+
+-  configure.ac: Reduce zlib requirement from 1.2.8 to 1.2.3.
+
+Dave Airlie (3):
+
+-  radv: expose integrated device type for APUs.
+-  radv: set fmask state to all 0s when no fmask. (v2)
+-  glsl/lower_distance: only set max_array_access for 1D clip dist
+   arrays
+
+Emil Velikov (1):
+
+-  Update version to 17.1.3
+
+Grazvydas Ignotas (1):
+
+-  radv: fix trace dumping for !use_ib_bos
+
+Faith Ekstrand (4):
+
+-  i965/blorp: Take a layer range in intel_hiz_exec
+-  i965: Move the pre-depth-clear flush/stalls to intel_hiz_exec
+-  i965: Perform HiZ flush/stall prior to HiZ resolves
+-  i965: Mark depth surfaces as needing a HiZ resolve after blitting
+
+José Fonseca (1):
+
+-  automake: Link all libGL.so variants with -Bsymbolic.
+
+Juan A. Suarez Romero (1):
+
+-  docs: add sha256 checksums for 17.1.2
+
+Lucas Stach (1):
+
+-  etnaviv: always do cpu_fini in transfer_unmap
+
+Lyude (1):
+
+-  nvc0: disable BGRA8 images on Fermi
+
+Marek Olšák (3):
+
+-  st/mesa: don't load cached TGSI shaders on demand
+-  radeonsi: fix a GPU hang with tessellation on 2-CU configs
+-  radeonsi: disable the patch ID workaround on SI when the patch ID
+   isn't used (v2)
+
+Nicolai Hähnle (1):
+
+-  radv: fewer than 8 RBs are possible
+
+Nicolas Dechesne (1):
+
+-  util/rand_xor: add missing include statements
+
+Tapani Pälli (1):
+
+-  egl: fix \_eglQuerySurface in EGL_BUFFER_AGE_EXT case
+
+Thomas Hellstrom (1):
+
+-  dri3/GLX: Fix drawable invalidation v2
+
+Tim Rowley (1):
+
+-  swr: relax c++ requirement from c++14 to c++11

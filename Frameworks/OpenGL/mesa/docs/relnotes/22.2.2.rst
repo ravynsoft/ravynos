@@ -1,0 +1,145 @@
+Mesa 22.2.2 Release Notes / 2022-10-19
+======================================
+
+Mesa 22.2.2 is a bug fix release which fixes bugs found since the 22.2.1 release.
+
+Mesa 22.2.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.2.2 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    2de11fb74fc5cc671b818e49fe203cea0cd1d8b69756e97cdb06a2f4e78948f9  mesa-22.2.2.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radv: Crash in dEQP-VK.ray_query.misc.dynamic_indexing
+- glthread: radeonsi: offset textures in game starsector with glthread enabled
+- Crashing on Windows VM
+- Exanima renders with the wrong colors.
+- nouveau: tegra124: GL_OUT_OF_MEMORY error
+
+
+Changes
+-------
+
+Alejandro Tafalla (1):
+
+- freedreno: Fix graphic glitches on a4xx and a5xx
+
+Alyssa Rosenzweig (4):
+
+- nir/lower_system_values: Fix cs_local_index_to_id with variable workgroups
+- pan/mdg: Lower PIPE_COMPUTE_CAP_MAX_THREADS_PER_BLOCK on Midgard
+- pan/mdg: Fix 16-bit alignment with spiller
+- nir: Fix nir_fmax_abs_vec_comp
+
+Andri Yngvason (1):
+
+- gallium/vl: Add opaque rgb pixel formats
+
+Daniel Schürmann (1):
+
+- aco/spill: Fix spilling of Phi operands
+
+Danylo Piliaiev (1):
+
+- tu: Reset whether there is DS resolve for dynamic subpass
+
+Dave Airlie (1):
+
+- gallivm: handle llvm coroutines for llvm > 15
+
+Diogo Ivo (1):
+
+- nouveau: treat DRM_FORMAT_INVALID as implicit modifier
+
+Dylan Baker (7):
+
+- docs: Add sha256 sum for 22.2.1
+- .pick_status.json: Update to 243aa6b2ec0c2626b1333ba666a6d6d60ede8505
+- .pick_status.json: Update to c4482a3c1a973975eb27ac284a18bebca24f7876
+- .pick_status.json: Update to 3eed5931edf6e5f45378b013ca21f98f17af2b34
+- .pick_status.json: Update to b02e9ef35a0446019cda9473e4c355c7cc4bb24d
+- .pick_status.json: Mark 4c7a44413a07d3fb314f786e047bb7212c082a6c as denominated
+- .pick_status.json: Mark dbd022f2ab43ff0a9ecc05c61123467e25f109de as backported
+
+Emma Anholt (1):
+
+- turnip: Don't use the dynamic color write enable during non-dynamic.
+
+Erik Faye-Lund (1):
+
+- gallium/u_threaded_context: remove stale comment
+
+Filip Gawin (1):
+
+- r300: don't use smooth line if not requested
+
+Gert Wollny (3):
+
+- r600/sfn: Always start a new CF after a KILL instruction
+- r600/sfn: don't propagate registers into conditional test
+- virgl: Report CONSTANT_BUFFER_SIZE according to GL_MAX_UNIFORM_BLOCK_SIZE
+
+Lionel Landwerlin (3):
+
+- vulkan/runtime: don't lookup the pipeline disk cache if disabled
+- anv: initialization pipeline layout to 0s
+- anv: add missing tracepoint
+
+Liviu Prodea (1):
+
+- clc/clover: Link clang statically when shared-llvm is disabled
+
+Mike Blumenkrantz (3):
+
+- zink: clamp line_stipple_factor to 1 if stipple is disabled
+- zink: unset rp_changed after initializing renderpass attachments
+- zink: disable fbfetch when flushing clears
+
+Ryan Houdek (1):
+
+- vulkan/wsi: Add dep_libudev to idep dependencies
+
+Sil Vilerino (2):
+
+- gallium/va: vaDeriveImage to check PIPE_VIDEO_SUPPORTS_CONTIGUOUS_PLANES_MAP
+- d3d12: Implement cap PIPE_VIDEO_SUPPORTS_CONTIGUOUS_PLANES_MAP
+
+SoroushIMG (3):
+
+- zink: fix invalid Offset set for variables which do not need an offset
+- zink: stop enabling minmax filtering when not supported
+- zink: fix isNan mismatch between NIR and SPIR-V
+
+Timothy Arceri (5):
+
+- util/conf: enable init to zero workaround for Exanima
+- util/radeonsi: enable zerovram workaround for Exanima
+- radv: add radv_zero_vram workarounds for OpenGL games
+- glthread: fix matrix stack depth tracking
+- glthread: leave dlist dispatch in place for Begin/End
+
+Yonggang Luo (1):
+
+- util: Turn -DWINDOWS_NO_FUTEX to be pre_args

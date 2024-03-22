@@ -1,0 +1,126 @@
+Mesa 17.3.9 Release Notes / April 18, 2018
+==========================================
+
+Mesa 17.3.9 is a bug fix release which fixes bugs found since the 17.3.8
+release.
+
+Mesa 17.3.9 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   4d625f65a1ff4cd8cfeb39e38f047507c6dea047502a0d53113c96f54588f340  mesa-17.3.9.tar.gz
+   c5beb5fc05f0e0c294fefe1a393ee118cb67e27a4dca417d77c297f7d4b6e479  mesa-17.3.9.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 98281 <https://bugs.freedesktop.org/show_bug.cgi?id=98281>`__ -
+   'message's in ctx->Debug.LogMessages[] seem to leak.
+-  `Bug 101408 <https://bugs.freedesktop.org/show_bug.cgi?id=101408>`__
+   - [Gen8+] Xonotic fails to render one of the weapons
+-  `Bug 102342 <https://bugs.freedesktop.org/show_bug.cgi?id=102342>`__
+   - mesa-17.1.7/src/gallium/auxiliary/pipebuffer/pb_cache.c:169]:
+   (style) Suspicious condition
+-  `Bug 105317 <https://bugs.freedesktop.org/show_bug.cgi?id=105317>`__
+   - The GPU Vega 56 was hang while try to pass #GraphicsFuzz shader15
+   test
+-  `Bug 105440 <https://bugs.freedesktop.org/show_bug.cgi?id=105440>`__
+   - GEN7: rendering issue on citra
+-  `Bug 105442 <https://bugs.freedesktop.org/show_bug.cgi?id=105442>`__
+   - Hang when running nine ff lighting shader with radeonsi
+-  `Bug 105994 <https://bugs.freedesktop.org/show_bug.cgi?id=105994>`__
+   - surface state leak when creating and destroying image views with
+   aspectMask depth and stencil
+
+Changes
+-------
+
+Andres Gomez (2):
+
+-  dri_util: when overriding, always reset the core version
+-  mesa: adds some comments regarding MESA_GLES_VERSION_OVERRIDE usage
+
+Axel Davy (2):
+
+-  st/nine: Declare lighting consts for ff shaders
+-  st/nine: Do not use scratch for face register
+
+Bas Nieuwenhuizen (1):
+
+-  ac/nir: Add workaround for GFX9 buffer views.
+
+Daniel Stone (1):
+
+-  st/dri: Initialise modifier to INVALID for DRI2
+
+Emil Velikov (1):
+
+-  glsl: remove unreachable assert()
+
+Eric Engestrom (1):
+
+-  gbm: remove never-implemented function
+
+Henri Verbeet (1):
+
+-  mesa: Inherit texture view multi-sample information from the original
+   texture images.
+
+Iago Toral Quiroga (1):
+
+-  compiler/spirv: set is_shadow for depth comparitor sampling opcodes
+
+Faith Ekstrand (4):
+
+-  nir/vars_to_ssa: Remove copies from the correct set
+-  nir/lower_indirect_derefs: Support interp_var_at intrinsics
+-  intel/vec4: Set channel_sizes for MOV_INDIRECT sources
+-  nir/lower_vec_to_movs: Only coalesce if the vec had a SSA destination
+
+Juan A. Suarez Romero (3):
+
+-  docs: add sha256 checksums for 17.3.8
+-  cherry-ignore: Explicit 18.0 only nominations
+-  Update version to 17.3.9
+
+Lionel Landwerlin (1):
+
+-  anv: fix number of planes for depth & stencil
+
+Marek Olšák (1):
+
+-  mesa: simplify MESA_GL_VERSION_OVERRIDE behavior of API override
+
+Samuel Pitoiset (1):
+
+-  radv: fix picking the method for resolve subpass
+
+Sergii Romantsov (1):
+
+-  i965: Extend the negative 32-bit deltas to 64-bits
+
+Timothy Arceri (6):
+
+-  gallium/pipebuffer: fix parenthesis location
+-  glsl: always call do_lower_jumps() after loop unrolling
+-  ac: add if/loop build helpers
+-  radeonsi: make use of if/loop build helpers in ac
+-  ac: make use of if/loop build helpers
+-  mesa: free debug messages when destroying the debug state
+
+Xiong, James (1):
+
+-  i965: return the fourcc saved in \__DRIimage when possible

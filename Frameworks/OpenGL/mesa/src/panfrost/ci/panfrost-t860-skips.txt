@@ -1,0 +1,12 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# These are really slow on tiling architectures (including llvmpipe).
+dEQP-GLES[0-9]*.functional.flush_finish.*
+
+# Slow, and indirect draws are emulated in Midgard anyway.
+dEQP-GLES31.functional.draw_indirect.compute_interop.large.*
+
+# Mix of passes, flakes, and fails, with little discernible pattern. Skip.
+dEQP-GLES3.functional.draw_buffers_indexed.random.*

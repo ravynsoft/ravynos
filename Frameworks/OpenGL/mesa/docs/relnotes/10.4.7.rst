@@ -1,0 +1,107 @@
+Mesa 10.4.7 Release Notes / March 20, 2015
+==========================================
+
+Mesa 10.4.7 is a bug fix release which fixes bugs found since the 10.4.6
+release.
+
+Mesa 10.4.7 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   9e7b59267199658808f8b33e0410b86fbafbdcd52378658b9df65fac9d24947f  MesaLib-10.4.7.tar.gz
+   2c351c98671f9a7ab3fd9c601bb7a255801b1580f5dd0992639f99152801b0d2  MesaLib-10.4.7.tar.bz2
+   d14ac578b5ce16560757b53fbd1cb4d6b34652f8e110e4b10a019adc82e67ffd  MesaLib-10.4.7.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 79202 <https://bugs.freedesktop.org/show_bug.cgi?id=79202>`__ -
+   valgrind errors in glsl-fs-uniform-array-loop-unroll.shader_test;
+   random code generation
+-  `Bug 89156 <https://bugs.freedesktop.org/show_bug.cgi?id=89156>`__ -
+   r300g: GL_COMPRESSED_RED_RGTC1 / ATI1N support broken
+-  `Bug 89224 <https://bugs.freedesktop.org/show_bug.cgi?id=89224>`__ -
+   Incorrect rendering of Unigine Valley running in VM on VMware
+   Workstation
+-  `Bug 89530 <https://bugs.freedesktop.org/show_bug.cgi?id=89530>`__ -
+   FTBFS in loader: missing fstat
+
+Changes
+-------
+
+Andrey Sudnik (1):
+
+-  i965/vec4: Don't lose the saturate modifier in copy propagation.
+
+Daniel Stone (1):
+
+-  egl: Take alpha bits into account when selecting GBM formats
+
+Emil Velikov (6):
+
+-  docs: Add sha256 sums for the 10.4.6 release
+-  cherry-ignore: add not applicable/rejected commits
+-  mesa: rename format_info.c to format_info.h
+-  loader: include <sys/stat.h> for non-sysfs builds
+-  auxiliary/os: fix the android build - s/drm_munmap/os_munmap/
+-  Update version to 10.4.7
+
+Iago Toral Quiroga (1):
+
+-  i965: Fix out-of-bounds accesses into pull_constant_loc array
+
+Ilia Mirkin (4):
+
+-  freedreno: move fb state copy after checking for size change
+-  freedreno/ir3: fix array count returned by TXQ
+-  freedreno/ir3: get the # of miplevels from getinfo
+-  freedreno: fix slice pitch calculations
+
+Marc-Andre Lureau (1):
+
+-  gallium/auxiliary/indices: fix start param
+
+Marek Olšák (4):
+
+-  r300g: fix RGTC1 and LATC1 SNORM formats
+-  r300g: fix a crash when resolving into an sRGB texture
+-  r300g: fix sRGB->sRGB blits
+-  radeonsi: increase coords array size for
+   radeon_llvm_emit_prepare_cube_coords
+
+Mario Kleiner (1):
+
+-  glx: Handle out-of-sequence swap completion events correctly. (v2)
+
+Matt Turner (2):
+
+-  r300g: Use PATH_MAX instead of limiting ourselves to 100 chars.
+-  r300g: Check return value of snprintf().
+
+Rob Clark (2):
+
+-  freedreno/ir3: fix silly typo for binning pass shaders
+-  freedreno: update generated headers
+
+Samuel Iglesias Gonsalvez (1):
+
+-  glsl: optimize (0 cmp x + y) into (-x cmp y).
+
+Stefan Dösinger (1):
+
+-  r300g: Fix the ATI1N swizzle (RGTC1 and LATC1)

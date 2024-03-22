@@ -1,0 +1,418 @@
+Mesa 19.2.0 Release Notes / 2019.09.25
+======================================
+
+Mesa 19.2.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 19.2.1.
+
+Mesa 19.2.0 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.2.0 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksums
+----------------
+
+::
+
+       b060caa2a00f856431160ff7377d0e8f58f2aa48c16ee5a9e265ebdccb10852a  mesa-19.2.0.tar.xz
+
+New features
+------------
+
+-  GL_ARB_post_depth_coverage on radeonsi (Navi)
+-  GL_ARB_seamless_cubemap_per_texture on etnaviv (if GPU supports
+   SEAMLESS_CUBE_MAP)
+-  GL_EXT_shader_image_load_store on radeonsi (with LLVM >= 10)
+-  GL_EXT_shader_samples_identical on iris and radeonsi (if using NIR)
+-  GL_EXT_texture_shadow_lod on i965, iris
+-  EGL_EXT_platform_device
+-  VK_AMD_buffer_marker on radv
+-  VK_EXT_index_type_uint8 on radv
+-  VK_EXT_post_depth_coverage on radv
+-  VK_EXT_queue_family_foreign on radv
+-  VK_EXT_sample_locations on radv
+-  VK_EXT_shader_demote_to_helper_invocation on Intel.
+-  VK_KHR_depth_stencil_resolve on radv
+-  VK_KHR_imageless_framebuffer on radv
+-  VK_KHR_shader_atomic_int64 on radv
+-  VK_KHR_uniform_buffer_standard_layout on radv
+
+Bug fixes
+---------
+
+-  `Bug 103674 <https://bugs.freedesktop.org/show_bug.cgi?id=103674>`__
+   - u_queue.c:173:7: error: implicit declaration of function
+   'timespec_get' is invalid in C99
+-  `Bug 104395 <https://bugs.freedesktop.org/show_bug.cgi?id=104395>`__
+   - [CTS] GTF-GL46.gtf32.GL3Tests.packed_pixels.packed_pixels tests
+   fail on 32bit Mesa
+-  `Bug 110765 <https://bugs.freedesktop.org/show_bug.cgi?id=110765>`__
+   - ANV regression: Assertion \`pass->attachment_count ==
+   framebuffer->attachment_count' failed
+-  `Bug 110814 <https://bugs.freedesktop.org/show_bug.cgi?id=110814>`__
+   - KWin compositor crashes on launch
+-  `Bug 111069 <https://bugs.freedesktop.org/show_bug.cgi?id=111069>`__
+   - Assertion fails in nir_opt_remove_phis.c during compilation of
+   SPIR-V shader
+-  `Bug 111213 <https://bugs.freedesktop.org/show_bug.cgi?id=111213>`__
+   - VA-API nouveau SIGSEGV and asserts
+-  `Bug 111241 <https://bugs.freedesktop.org/show_bug.cgi?id=111241>`__
+   - Shadertoy shader causing hang
+-  `Bug 111248 <https://bugs.freedesktop.org/show_bug.cgi?id=111248>`__
+   - Navi10 Font rendering issue in Overwatch
+-  `Bug 111271 <https://bugs.freedesktop.org/show_bug.cgi?id=111271>`__
+   - Crash in eglMakeCurrent
+-  `Bug 111308 <https://bugs.freedesktop.org/show_bug.cgi?id=111308>`__
+   - [Regression, NIR, bisected] Black squares in Unigine Heaven via
+   DXVK
+-  `Bug 111401 <https://bugs.freedesktop.org/show_bug.cgi?id=111401>`__
+   - Vulkan overlay layer - async compute not supported, making overlay
+   disappear in Doom
+-  `Bug 111405 <https://bugs.freedesktop.org/show_bug.cgi?id=111405>`__
+   - Some infinite 'do{}while' loops lead mesa to an infinite
+   compilation
+-  `Bug 111411 <https://bugs.freedesktop.org/show_bug.cgi?id=111411>`__
+   - SPIR-V shader leads to GPU hang, sometimes making machine unstable
+-  `Bug 111414 <https://bugs.freedesktop.org/show_bug.cgi?id=111414>`__
+   - [REGRESSION] [BISECTED] Segmentation fault in si_bind_blend_state
+   after removal of the blend state NULL check
+-  `Bug 111467 <https://bugs.freedesktop.org/show_bug.cgi?id=111467>`__
+   - WOLF RPG Editor + Gallium Nine Standalone: Rendering issue when
+   using Iris driver
+-  `Bug 111490 <https://bugs.freedesktop.org/show_bug.cgi?id=111490>`__
+   - [REGRESSION] [BISECTED] Shadow Tactics: Blades of the Shogun -
+   problems rendering water
+-  `Bug 111493 <https://bugs.freedesktop.org/show_bug.cgi?id=111493>`__
+   - In the game The Surge (378540) - textures disappear then appear
+   again when I change the camera angle view
+-  `Bug 111509 <https://bugs.freedesktop.org/show_bug.cgi?id=111509>`__
+   - [regression][bisected]
+   piglit.spec.ext_image_dma_buf_import.ext_image_dma_buf_import-export
+   fails on iris
+-  `Bug 111522 <https://bugs.freedesktop.org/show_bug.cgi?id=111522>`__
+   - [bisected] Supraland no longer start
+-  `Bug 111529 <https://bugs.freedesktop.org/show_bug.cgi?id=111529>`__
+   - EGL_PLATFORM=drm doesn't expose MESA_query_driver extension
+-  `Bug 111552 <https://bugs.freedesktop.org/show_bug.cgi?id=111552>`__
+   - Geekbench 5.0 Vulkan compute benchmark fails on Anvil
+-  `Bug 111566 <https://bugs.freedesktop.org/show_bug.cgi?id=111566>`__
+   - [REGRESSION] [BISECTED] Large CS workgroup sizes broken in
+   combination with FP64 on Intel.
+-  `Bug 111576 <https://bugs.freedesktop.org/show_bug.cgi?id=111576>`__
+   - [bisected] Performance regression in X4:Foundations in 19.2
+-  `Bug 111676 <https://bugs.freedesktop.org/show_bug.cgi?id=111676>`__
+   - Tropico 6 apitrace throws error into logs
+-  `Bug 111734 <https://bugs.freedesktop.org/show_bug.cgi?id=111734>`__
+   - Geometry shader with double interpolators fails in LLVM
+
+Changes
+-------
+
+Adam Jackson (1):
+
+-  docs: Update bug report URLs for the gitlab migration
+
+Alex Smith (1):
+
+-  radv: Change memory type order for GPUs without dedicated VRAM
+
+Alyssa Rosenzweig (1):
+
+-  pan/midgard: Fix writeout combining
+
+Andres Gomez (1):
+
+-  docs: Add the maximum implemented Vulkan API version in 19.2 rel
+   notes
+
+Andres Rodriguez (1):
+
+-  radv: additional query fixes
+
+Arcady Goldmints-Orlov (1):
+
+-  anv: fix descriptor limits on gen8
+
+Bas Nieuwenhuizen (6):
+
+-  radv: Use correct vgpr_comp_cnt for VS if both prim_id and
+   instance_id are needed.
+-  radv: Emit VGT_GS_ONCHIP_CNTL for tess on GFX10.
+-  radv: Disable NGG for geometry shaders.
+-  Revert "ac/nir: Lower large indirect variables to scratch"
+-  tu: Set up glsl types.
+-  radv: Add workaround for hang in The Surge 2.
+
+Caio Marcelo de Oliveira Filho (2):
+
+-  nir/lower_explicit_io: Handle 1 bit loads and stores
+-  glsl/nir: Avoid overflow when setting max_uniform_location
+
+Connor Abbott (1):
+
+-  radv: Call nir_propagate_invariant()
+
+Danylo Piliaiev (3):
+
+-  nir/loop_unroll: Prepare loop for unrolling in wrapper_unroll
+-  nir/loop_analyze: Treat do{}while(false) loops as 0 iterations
+-  tgsi_to_nir: Translate TGSI_INTERPOLATE_COLOR as INTERP_MODE_NONE
+
+Dave Airlie (2):
+
+-  virgl: fix format conversion for recent gallium changes.
+-  gallivm: fix atomic compare-and-swap
+
+Dave Stevenson (1):
+
+-  broadcom/v3d: Allow importing linear BOs with arbitrary
+   offset/stride.
+
+Dylan Baker (9):
+
+-  bump version to 19.2-rc2
+-  nir: Add is_not_negative helper function
+-  Bump version for rc3
+-  meson: don't generate file into subdirs
+-  add patches to be ignored
+-  Bump version for 19.2.0-rc4
+-  cherry-ignore: Add patches
+-  rehardcode from origin/master to upstream/master
+-  bin/get-pick-list: use --oneline=pretty instead of --oneline
+
+Emil Velikov (1):
+
+-  Update version to 19.2.0-rc1
+
+Eric Engestrom (14):
+
+-  ttn: fix 64-bit shift on 32-bit \`1\`
+-  egl: fix deadlock in malloc error path
+-  util/os_file: fix double-close()
+-  anv: fix format string in error message
+-  freedreno/drm-shim: fix mem leak
+-  nir: fix memleak in error path
+-  anv: add support for driconf
+-  wsi: add minImageCount override
+-  anv: add support for vk_x11_override_min_image_count
+-  amd: move adaptive sync to performance section, as it is defined in
+   xmlpool
+-  radv: add support for vk_x11_override_min_image_count
+-  drirc: override minImageCount=2 for gfxbench
+-  gl: drop incorrect pkg-config file for glvnd
+-  meson: re-add incorrect pkg-config files with GLVND for backward
+   compatibility
+
+Erik Faye-Lund (2):
+
+-  gallium/auxiliary/indices: consistently apply start only to input
+-  util: fix SSE-version needed for double opcodes
+
+Haihao Xiang (1):
+
+-  i965: support AYUV/XYUV for external import only
+
+Hal Gentz (2):
+
+-  glx: Fix SEGV due to dereferencing a NULL ptr from XCB-GLX.
+-  gallium/osmesa: Fix the inability to set no context as current.
+
+Iago Toral Quiroga (1):
+
+-  v3d: make sure we have enough space in the CL for the primitive
+   counts packet
+
+Ian Romanick (8):
+
+-  nir/algrbraic: Don't optimize open-coded bitfield reverse when
+   lowering is enabled
+-  intel/compiler: Request bitfield_reverse lowering on pre-Gen7
+   hardware
+-  nir/algebraic: Mark some value range analysis-based optimizations
+   imprecise
+-  nir/range-analysis: Adjust result range of exp2 to account for
+   flush-to-zero
+-  nir/range-analysis: Adjust result range of multiplication to account
+   for flush-to-zero
+-  nir/range-analysis: Fix incorrect fadd range result for (ne_zero,
+   ne_zero)
+-  nir/range-analysis: Handle constants in nir_op_mov just like
+   nir_op_bcsel
+-  nir/algebraic: Do not apply late DPH optimization in vertex
+   processing stages
+
+Ilia Mirkin (1):
+
+-  gallium/vl: use compute preference for all multimedia, not just blit
+
+Faith Ekstrand (9):
+
+-  anv: Bump maxComputeWorkgroupSize
+-  nir: Handle complex derefs in nir_split_array_vars
+-  nir: Don't infinitely recurse in lower_ssa_defs_to_regs_block
+-  nir: Add a block_is_unreachable helper
+-  nir/repair_ssa: Repair dominance for unreachable blocks
+-  nir/repair_ssa: Insert deref casts when needed
+-  nir/dead_cf: Repair SSA if the pass makes progress
+-  intel/fs: Handle UNDEF in split_virtual_grfs
+-  nir/repair_ssa: Replace the unreachable check with the phi builder
+
+Jonathan Marek (1):
+
+-  freedreno/a2xx: ir2: fix lowering of instructions after float
+   lowering
+
+Jose Maria Casanova Crespo (1):
+
+-  mesa: recover target_check before get_current_tex_objects
+
+Juan A. Suarez Romero (1):
+
+-  bin/get-pick-list.sh: sha1 commits can be smaller than 8 chars
+
+Kenneth Graunke (20):
+
+-  gallium/ddebug: Wrap resource_get_param if available
+-  gallium/trace: Wrap resource_get_param if available
+-  gallium/rbug: Wrap resource_get_param if available
+-  gallium/noop: Implement resource_get_param
+-  iris: Replace devinfo->gen with GEN_GEN
+-  iris: Fix broken aux.possible/sampler_usages bitmask handling
+-  iris: Update fast clear colors on Gen9 with direct immediate writes.
+-  iris: Drop copy format hacks from copy region based transfer path.
+-  iris: Avoid unnecessary resolves on transfer maps
+-  iris: Fix large timeout handling in rel2abs()
+-  isl: Drop UnormPathInColorPipe for buffer surfaces.
+-  isl: Don't set UnormPathInColorPipe for integer surfaces.
+-  util: Add a \_mesa_i64roundevenf() helper.
+-  mesa: Fix \_mesa_float_to_unorm() on 32-bit systems.
+-  iris: Fix partial fast clear checks to account for miplevel.
+-  iris: Report correct number of planes for planar images
+-  iris: Fix constant buffer sizes for non-UBOs
+-  gallium: Fix util_format_get_depth_only
+-  iris: Initialize ice->state.prim_mode to an invalid value
+-  intel: Increase Gen11 compute shader scratch IDs to 64.
+
+Lepton Wu (1):
+
+-  virgl: Fix pipe_resource leaks under multi-sample.
+
+Lionel Landwerlin (9):
+
+-  util/timespec: use unsigned 64 bit integers for nsec values
+-  util: fix compilation on macos
+-  egl: fix platform selection
+-  vulkan/overlay: bounce image back to present layout
+-  radv: store engine name
+-  driconfig: add a new engine name/version parameter
+-  vulkan: add vk_x11_strict_image_count option
+-  util/xmlconfig: fix regexp compile failure check
+-  drirc: include unreal engine version 0 to 23
+
+Marek Olšák (23):
+
+-  radeonsi/gfx10: fix the legacy pipeline by storing as_ngg in the
+   shader cache
+-  radeonsi: move some global shader cache flags to per-binary flags
+-  radeonsi/gfx10: fix tessellation for the legacy pipeline
+-  radeonsi/gfx10: fix the PRIMITIVES_GENERATED query if using legacy
+   streamout
+-  radeonsi/gfx10: create the GS copy shader if using legacy streamout
+-  radeonsi/gfx10: add as_ngg variant for VS as ES to select Wave32/64
+-  radeonsi/gfx10: fix InstanceID for legacy VS+GS
+-  radeonsi/gfx10: don't initialize VGT_INSTANCE_STEP_RATE_0
+-  radeonsi/gfx10: always use the legacy pipeline for streamout
+-  radeonsi/gfx10: finish up Navi14, add PCI ID
+-  radeonsi/gfx10: add AMD_DEBUG=nongg
+-  winsys/amdgpu+radeon: process AMD_DEBUG in addition to R600_DEBUG
+-  radeonsi: add PKT3_CONTEXT_REG_RMW
+-  radeonsi/gfx10: remove incorrect ngg/pos_writes_edgeflag variables
+-  radeonsi/gfx10: set PA_CL_VS_OUT_CNTL with CONTEXT_REG_RMW to fix
+   edge flags
+-  radeonsi: consolidate determining VGPR_COMP_CNT for API VS
+-  radeonsi: unbind blend/DSA/rasterizer state correctly in delete
+   functions
+-  radeonsi: fix scratch buffer WAVESIZE setting leading to corruption
+-  radeonsi/gfx10: don't call gfx10_destroy_query with compute-only
+   contexts
+-  radeonsi/gfx10: fix wave occupancy computations
+-  radeonsi: add Navi12 PCI ID
+-  amd: add more PCI IDs for Navi14
+-  ac/addrlib: fix chip identification for Vega10, Arcturus, Raven2,
+   Renoir
+
+Mauro Rossi (2):
+
+-  android: mesa: revert "Enable asm unconditionally"
+-  android: anv: libmesa_vulkan_common: add libmesa_util static
+   dependency
+
+Paulo Zanoni (2):
+
+-  intel/fs: grab fail_msg from v32 instead of v16 when v32->run_cs
+   fails
+-  intel/fs: fix SHADER_OPCODE_CLUSTER_BROADCAST for SIMD32
+
+Pierre-Eric Pelloux-Prayer (1):
+
+-  glsl: replace 'x + (-x)' with constant 0
+
+Rafael Antognolli (1):
+
+-  anv: Only re-emit non-dynamic state that has changed.
+
+Rhys Perry (1):
+
+-  radv: always emit a position export in gs copy shaders
+
+Samuel Iglesias Gonsálvez (1):
+
+-  intel/nir: do not apply the fsin and fcos trig workarounds for consts
+
+Samuel Pitoiset (11):
+
+-  radv: allow to enable VK_AMD_shader_ballot only on GFX8+
+-  radv: add a new debug option called RADV_DEBUG=noshaderballot
+-  radv: force enable VK_AMD_shader_ballot for Wolfenstein Youngblood
+-  ac: fix exclusive scans on GFX8-GFX9
+-  radv/gfx10: don't initialize VGT_INSTANCE_STEP_RATE_0
+-  radv/gfx10: do not use NGG with NAVI14
+-  radv: fix getting the index type size for uint8_t
+-  nir: do not assume that the result of fexp2(a) is always an integral
+-  radv: fix allocating number of user sgprs if streamout is used
+-  radv: fix loading 64-bit GS inputs
+-  radv/gfx10: fix VK_KHR_pipeline_executable_properties with NGG GS
+
+Sergii Romantsov (2):
+
+-  intel/dri: finish proper glthread
+-  nir/large_constants: more careful data copying
+
+Tapani Pälli (5):
+
+-  util: fix os_create_anonymous_file on android
+-  iris/android: fix build and link with libmesa_intel_perf
+-  egl: reset blob cache set/get functions on terminate
+-  iris: close screen fd on iris_destroy_screen
+-  egl: check for NULL value like eglGetSyncAttribKHR does
+
+Thong Thai (1):
+
+-  Revert "radeonsi: don't emit PKT3_CONTEXT_CONTROL on amdgpu"
+
+Timur Kristóf (1):
+
+-  st/nine: Properly initialize GLSL types for NIR shaders.
+
+Vinson Lee (2):
+
+-  swr: Fix build with llvm-9.0 again.
+-  travis: Fail build if any command in if statement fails.

@@ -1,0 +1,161 @@
+Mesa 17.1.5 Release Notes / July 14, 2017
+=========================================
+
+Mesa 17.1.5 is a bug fix release which fixes bugs found since the 17.1.4
+release.
+
+Mesa 17.1.5 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   7e3eeee8f9c28052796eb18133c2be12c38ba34864cc496382a2fa20c29b0317  mesa-17.1.5.tar.gz
+   378516b171712687aace4c7ea8b37c85895231d7a6d61e1e27362cf6034fded9  mesa-17.1.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 100242 <https://bugs.freedesktop.org/show_bug.cgi?id=100242>`__
+   - radeon buffer allocation failure during startup of Factorio
+-  `Bug 101657 <https://bugs.freedesktop.org/show_bug.cgi?id=101657>`__
+   - strtod.c:32:10: fatal error: xlocale.h: No such file or directory
+-  `Bug 101666 <https://bugs.freedesktop.org/show_bug.cgi?id=101666>`__
+   - bitfieldExtract is marked as a built-in function on OpenGL ES 3.0,
+   but was added in OpenGL ES 3.1
+-  `Bug 101703 <https://bugs.freedesktop.org/show_bug.cgi?id=101703>`__
+   - No stencil buffer allocated when requested by GLUT
+
+Changes
+-------
+
+Aaron Watry (1):
+
+-  radeon/winsys: Limit max allocation size to 70% of VRAM
+
+Aleksander Morgado (2):
+
+-  etnaviv: fix refcnt initialization in etna_screen
+-  etnaviv: don't dereference etna_resource pointer if allocation fails
+
+Alex Smith (2):
+
+-  ac/nir: Use correct LLVM intrinsics for atomic ops on imageBuffers
+-  ac/nir: Fix ordering of parameters for image atomic cmpswap
+   intrinsics
+
+Andres Gomez (3):
+
+-  docs: add sha256 checksums for 17.1.4
+-  cherry-ignore: i965: Fix anisotropic filtering for mag filter
+-  Update version to 17.1.5
+
+Anuj Phogat (2):
+
+-  intel/isl: Use uint64_t to store total surface size
+-  intel/isl: Add the maximum surface size limit
+
+Brian Paul (3):
+
+-  draw: check for line_width != 1.0f in validate_pipeline()
+-  svga: clamp device line width to at least 1 to fix HWv8 line
+   stippling
+-  svga: fix PIPE_CAP_MAX_TEXTURE_BUFFER_SIZE value
+
+Bruce Cherniak (1):
+
+-  swr: Limit memory held by defer deleted resources.
+
+Chandu Babu N (1):
+
+-  st/va: Fix leak in VAAPI subpictures
+
+Charmaine Lee (1):
+
+-  svga: fixed surface size to include array size
+
+Connor Abbott (2):
+
+-  spirv: fix OpBitcast when the src and dst bitsize are different (v3)
+-  ac/nir: implement 64-bit packing and unpacking
+
+Iago Toral Quiroga (1):
+
+-  glsl: gl_Max{Vertex,Fragment}UniformComponents exist in all desktop
+   GL versions
+
+Ilia Mirkin (1):
+
+-  glsl: check if any of the named builtins are available first
+
+James Legg (2):
+
+-  ac/nir: Make intrinsic_name buffer long enough
+-  spirv: Fix reaching unreachable for compare exchange on images
+
+Faith Ekstrand (1):
+
+-  nir/spirv: Use the type from the deref for atomics
+
+Juan A. Suarez Romero (1):
+
+-  glsl: do not call link_xfb_stride_layout_qualifiers() for fragment
+   shaders
+
+Kenneth Graunke (2):
+
+-  i965: Use true AA line distance on G45/Ironlake.
+-  i965: Always set AALINEDISTANCE_TRUE on Sandybridge.
+
+Lucas Stach (1):
+
+-  etnaviv: fix shader miscompilation with more than 16 labels
+
+Marek Olšák (1):
+
+-  gallium/radeon: fix a possible crash for buffer exports
+
+Neha Bhende (1):
+
+-  svga: loop over box.depth for ReadBack_image on each slice
+
+Nicolai Hähnle (1):
+
+-  winsys/radeon: only call pb_slabs_reclaim when slabs are actually
+   used
+
+Olivier Lauffenburger (1):
+
+-  st/wgl: improve selection of pixel format
+
+Philipp Zabel (1):
+
+-  st/mesa: release EGLImage on EGLImageTarget\* error
+
+Plamena Manolova (1):
+
+-  mesa/main: Move NULL pointer check.
+
+Tim Rowley (2):
+
+-  swr/rast: \_mm*_undefined_\* implementations for gcc<4.9
+-  swr/rast: Correctly allocate SWR_STATS memory as cacheline aligned
+
+Tomasz Figa (1):
+
+-  intel: common: Fix link failure with standalone Android build
+
+Vinson Lee (1):
+
+-  scons: Check for xlocale.h before defining HAVE_XLOCALE_H.

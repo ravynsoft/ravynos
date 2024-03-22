@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_clip_control" number="160">
+
+    <enum name="LOWER_LEFT" value = "0x8CA1"/>
+    <enum name="UPPER_LEFT" value = "0x8CA2"/>
+
+    <enum name="NEGATIVE_ONE_TO_ONE" value = "0x935E"/>
+    <enum name="ZERO_TO_ONE" value = "0x935F"/>
+
+    <enum name="CLIP_ORIGIN" value = "0x935C"/>
+    <enum name="CLIP_DEPTH_MODE" value = "0x935D"/>
+
+    <function name="ClipControl" no_error="true" exec="dlist">
+        <param name="origin" type="GLenum"/>
+        <param name="depth" type="GLenum"/>
+        <!-- <glx rop="1340"/> -->
+    </function>
+
+</category>
+
+</OpenGLAPI>

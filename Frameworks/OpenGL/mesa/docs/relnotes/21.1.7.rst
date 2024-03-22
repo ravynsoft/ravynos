@@ -1,0 +1,186 @@
+Mesa 21.1.7 Release Notes / 2021-08-11
+======================================
+
+Mesa 21.1.7 is a bug fix release which fixes bugs found since the 21.1.6 release.
+
+Mesa 21.1.7 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.1.7 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    e9e67c10654f2e4bf15b944bb048007a614292aa4792b1b7512eb700b7b3a7bb  mesa-21.1.7.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Miscompilation of a switch case
+- [radeonsi][regression] CPU is being used ~10 times more than usual after c5478f9067f.
+- dEQP-VK.wsi.android.swapchain.create#image_swapchain_create_info crash on Android R
+- The image is distorted while use iGPU(Intel GPU) rendering and output via dGPU (AMD GPU)
+- lima: regression in plbu scissors cmd
+- Incorrect rendering
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (3):
+
+- pan/bi: Restrict swizzles on same cycle temporaries
+- nir/lower_mediump_io: Don't remap base unless needed
+- nir/lower_mediump: Fix metadata in all passes
+
+Bas Nieuwenhuizen (9):
+
+- util/fossilize_db: Update parsed_offset correctly.
+- util/fossilize_db: Reset file position to parsed_offset on cache_offset read failure.
+- util/fossilize_db: Flush files after header write.
+- util/fossilize_db: Be conservative about header length check for locking.
+- util/fossilize_db: Only allocate entries after full read.
+- util/fossilize_db: Use uint64_t for file size.
+- util/fossilize_db: Unlock the cache file if the entry already exists.
+- util/fossilize_db: Add extra flock mutex.
+- radv: Allocate space for inline push constants.
+
+Chia-I Wu (1):
+
+- vulkan/wsi/x11: do not inherit last_present_mode
+
+Connor Abbott (1):
+
+- ir3: Preserve gl_ViewportIndex in the binning shader
+
+Dave Airlie (3):
+
+- teximage: return correct desktop GL error for compressedteximage
+- intel/fs: restrict max push length on older GPUs to a smaller amount
+- virgl: disable anisotropic filtering.
+
+Dylan Baker (1):
+
+- freedreno/ir3: Add build id to the disassembler test
+
+Eric Engestrom (9):
+
+- .pick_status.json: Update to 7055282231cdad23e7b23fb49a2f953a99797f8a
+- .pick_status.json: Update to 2f06642b06c94f07f4bfe3df32b25659428c9144
+- .pick_status.json: Mark 6ccf11ac2b951963407601b5b1109b45a972e48e as denominated
+- .pick_status.json: Update to 2f06642b06c94f07f4bfe3df32b25659428c9144
+- .pick_status.json: Update to 353e6323936b812884fa677c25bdba91554881b7
+- .pick_status.json: Update to 4128acdee32eadfef1fb8c3c3ce2e512a267cdf4
+- pick-ui: drop assert that optional argument is passed
+- pick-ui: show nomination type in the UI
+- pick-ui: show commit date
+
+Erico Nunes (1):
+
+- lima: avoid crash with negative viewport values
+
+Hoe Hao Cheng (1):
+
+- zink: make codegen compatible with python 3.5
+
+Jesse Natalie (1):
+
+- mesa/main: Check for fbo attachments when importing EGL images to textures
+
+Joshua Watt (1):
+
+- v3d, vc4: Fix dmabuf import for non-scanout buffers
+
+Juan A. Suarez Romero (1):
+
+- gallium/hud: initialize query
+
+Karol Herbst (1):
+
+- nv30: fix emulated vertex index buffers
+
+Lepton Wu (1):
+
+- gallium: Reset {d,r}Priv in dri_unbind_context
+
+Lionel Landwerlin (3):
+
+- loader/dri3: create linear buffer with scanout support
+- anv: fix submission batching with perf queries
+- anv: don't try to access Android swapchains
+
+Lucas Stach (2):
+
+- renderonly: don't complain when GPU import fails
+- etnaviv: always try to create KMS side handles for imported resources
+
+Marcin Ślusarz (1):
+
+- glsl: evaluate switch expression once
+
+Mike Blumenkrantz (1):
+
+- zink: use array size in spirv bo length calculations
+
+Philipp Zabel (1):
+
+- etnaviv: fix gbm_bo_get_handle_for_plane for multiplanar images
+
+Pierre Moreau (2):
+
+- clover/spirv: Properly size 3-component vector args
+- clover/nir: Set constant buffer pointer size to host
+
+Pierre-Eric Pelloux-Prayer (3):
+
+- gallium/va: don't use key=NULL in hash tables
+- amd/registers: fix fields conflict detection
+- radeonsi: don't create an infinite number of variants
+
+Rhys Perry (1):
+
+- nir/algebraic: fix imod by negative power-of-two
+
+Samuel Pitoiset (1):
+
+- radv: fix selecting the first active CU when profiling with SQTT
+
+Simon Ser (5):
+
+- etnaviv: fix renderonly check in etna_resource_alloc
+- etnaviv: fail in get_handle(TYPE_KMS) without a scanout resource
+- freedreno: fail in get_handle(TYPE_KMS) without a scanout resource
+- panfrost: fail in get_handle(TYPE_KMS) without a scanout resource
+- lima: fail in get_handle(TYPE_KMS) without a scanout resource
+
+Thomas H.P. Andersen (1):
+
+- nine: Fix assert in tx_src_param
+
+Timothy Arceri (1):
+
+- intel/compiler: make sure swizzle is applied to if condition
+
+Yevhenii Kolesnikov (2):
+
+- glsl: Add operator for .length() method on implicitly-sized arrays
+- glsl: Properly handle .length() of an unsized array
+
+Zhu Yuliang (1):
+
+- gallium/vl: don't leak fd in vl_dri3_screen_create

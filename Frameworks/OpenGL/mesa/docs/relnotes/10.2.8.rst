@@ -1,0 +1,106 @@
+Mesa 10.2.8 Release Notes / September 19, 2014
+==============================================
+
+Mesa 10.2.8 is a bug fix release which fixes bugs found since the 10.2.7
+release.
+
+Mesa 10.2.8 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   4c5a25ccaf1a9734bbd10d62a1420cc8fd35a1060ce679f2fc846769a25fbeec  MesaLib-10.2.8.tar.gz
+   1ef9ad3f241788d454f2ff8c9d65b6849dfc31c8fe91f70fd2930b81c8af1398  MesaLib-10.2.8.tar.bz2
+   d26218da3b44734b1d555267b4c63c48803c4c8b14d2bc53071be57014da37fa  MesaLib-10.2.8.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 77493 <https://bugs.freedesktop.org/show_bug.cgi?id=77493>`__ -
+   lp_test_arit fails with llvm >= llvm-3.5svn r206094
+-  `Bug 82539 <https://bugs.freedesktop.org/show_bug.cgi?id=82539>`__ -
+   vmw_screen_dri.lo In file included from vmw_screen_dri.c:41:
+   vmwgfx_drm.h:32:17: error: drm.h: No such file or directory
+-  `Bug 82882 <https://bugs.freedesktop.org/show_bug.cgi?id=82882>`__ -
+   [swrast] piglit glsl-fs-uniform-bool-1 regression
+-  `Bug 83432 <https://bugs.freedesktop.org/show_bug.cgi?id=83432>`__ -
+   r600_query.c:269:r600_emit_query_end: Assertion
+   \`ctx->num_pipelinestat_queries > 0' failed [Gallium HUD]
+-  `Bug 83567 <https://bugs.freedesktop.org/show_bug.cgi?id=83567>`__ -
+   Mesa 10.2.6 does not compile with llvm 3.5
+-  `Bug 83735 <https://bugs.freedesktop.org/show_bug.cgi?id=83735>`__ -
+   [mesa-10.2.x] broken with llvm-3.5 and old CPUs
+
+Changes
+-------
+
+Aaron Watry (1):
+
+-  gallivm: Fix build after LLVM commit 211259
+
+Christoph Bumiller (2):
+
+-  nv50/ir/util: fix BitSet issues
+-  nvc0/ir: clarify recursion fix to finding first tex uses
+
+Emil Velikov (3):
+
+-  docs: Add sha256 sums for the 10.2.7 release
+-  configure: bail out if building svga without libdrm
+-  Update VERSION to 10.2.8
+
+Ilia Mirkin (4):
+
+-  nv50/ir: avoid array overrun when checking for supported mods
+-  nouveau: only enable the depth test if there actually is a depth
+   buffer
+-  nouveau: only enable stencil func if the visual has stencil bits
+-  nouveau: change internal variables to avoid conflicts with macro args
+
+Jonathan Gray (1):
+
+-  configure.ac: strip \_GNU_SOURCE from llvm-config output
+
+José Fonseca (1):
+
+-  gallivm: Disable workaround for PR12833 on LLVM 3.2+.
+
+Maarten Lankhorst (4):
+
+-  nouveau: re-allocate bo's on overflow
+-  nouveau: fix MPEG4 hw decoding
+-  nouveau: rework reference frame handling
+-  nouveau: remove unneeded assert
+
+Marek Olšák (3):
+
+-  r600g,radeonsi: make sure there's enough CS space before resuming
+   queries
+-  mesa: set UniformBooleanTrue = 1.0f by default
+-  st/mesa: use 1.0f as boolean true on drivers without integer support
+
+Richard Sandiford (1):
+
+-  gallivm: Fix uses of 2^24
+
+Roland Scheidegger (1):
+
+-  gallivm: set mcpu when initializing llvm execution engine
+
+Thomas Hellstrom (1):
+
+-  winsys/svga: Fix incorrect type usage in IOCTL v2

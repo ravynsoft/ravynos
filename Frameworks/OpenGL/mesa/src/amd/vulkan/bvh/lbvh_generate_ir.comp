@@ -1,0 +1,138 @@
+/*
+ * Copyright © 2022 Bas Nieuwenhuizen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference2 : require
+#extension GL_KHR_memory_scope_semantics : require
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+#include "build_interface.h"
+
+TYPE(lbvh_node_info, 4);
+
+layout(push_constant) uniform CONSTS
+{
+   lbvh_generate_ir_args args;
+};
+
+void
+main(void)
+{
+   uint32_t global_id = gl_GlobalInvocationID.x;
+
+   uint32_t idx = global_id;
+
+   uint32_t previous_id = RADV_BVH_INVALID_NODE;
+   radv_aabb previous_bounds;
+   previous_bounds.min = vec3(INFINITY);
+   previous_bounds.max = vec3(-INFINITY);
+
+   for (;;) {
+      uint32_t count = 0;
+
+      /* Check if all children have been processed. As this is an atomic the last path coming from
+       * a child will pass here, while earlier paths break.
+       */
+      count = atomicAdd(
+         DEREF(INDEX(lbvh_node_info, args.node_info, idx)).path_count, 1, gl_ScopeDevice,
+         gl_StorageSemanticsBuffer,
+         gl_SemanticsAcquireRelease | gl_SemanticsMakeAvailable | gl_SemanticsMakeVisible);
+      if (count != 2)
+         break;
+
+      /* We allocate nodes on demand with the atomic here to ensure children come before their
+       * parents, which is a requirement of the encoder.
+       */
+      uint32_t dst_idx =
+         atomicAdd(DEREF(REF(radv_ir_header)(args.header)).ir_internal_node_count, 1);
+
+      uint32_t current_offset = args.internal_node_base + dst_idx * SIZEOF(radv_ir_box_node);
+      uint32_t current_id = pack_ir_node_id(current_offset, radv_ir_node_internal);
+
+      REF(radv_ir_box_node) node = REF(radv_ir_box_node)(OFFSET(args.bvh, current_offset));
+      radv_aabb bounds = previous_bounds;
+
+      lbvh_node_info info = DEREF(INDEX(lbvh_node_info, args.node_info, idx));
+
+      uint32_t children[2] = info.children;
+
+      /* Try using the cached previous_bounds instead of fetching the bounds twice. */
+      int32_t previous_child_index = -1;
+      if (previous_id == children[0])
+         previous_child_index = 0;
+      else if (previous_id == children[1])
+         previous_child_index = 1;
+
+      if (previous_child_index == -1) {
+         if (children[0] != RADV_BVH_INVALID_NODE) {
+            uint32_t child_offset = ir_id_to_offset(children[0]);
+            REF(radv_ir_node) child = REF(radv_ir_node)(OFFSET(args.bvh, child_offset));
+            radv_aabb child_bounds = DEREF(child).aabb;
+            bounds.min = min(bounds.min, child_bounds.min);
+            bounds.max = max(bounds.max, child_bounds.max);
+         }
+         previous_child_index = 0;
+      }
+
+      /* Fetch the non-cached child */
+      if (children[1 - previous_child_index] != RADV_BVH_INVALID_NODE) {
+         uint32_t child_offset = ir_id_to_offset(children[1 - previous_child_index]);
+         REF(radv_ir_node) child = REF(radv_ir_node)(OFFSET(args.bvh, child_offset));
+         radv_aabb child_bounds = DEREF(child).aabb;
+         bounds.min = min(bounds.min, child_bounds.min);
+         bounds.max = max(bounds.max, child_bounds.max);
+      }
+
+      radv_ir_box_node node_value;
+
+      node_value.base.aabb = bounds;
+      node_value.bvh_offset = RADV_UNKNOWN_BVH_OFFSET;
+      node_value.children = children;
+
+      DEREF(node) = node_value;
+
+      if (info.parent == RADV_BVH_INVALID_NODE)
+         break;
+
+      idx = info.parent & ~LBVH_RIGHT_CHILD_BIT;
+
+      DEREF(INDEX(lbvh_node_info, args.node_info, idx))
+         .children[(info.parent >> LBVH_RIGHT_CHILD_BIT_SHIFT) & 1] = current_id;
+
+      previous_id = current_id;
+      previous_bounds = bounds;
+
+      memoryBarrierBuffer();
+   }
+}

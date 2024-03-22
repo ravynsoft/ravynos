@@ -1,0 +1,15 @@
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+renderer_check = "llvmpipe"
+fraction = 3
+
+# Do some nir clone/serialize validation, but not on the whole run.
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+renderer_check = "llvmpipe"
+fraction = 100
+prefix = "nir-stress="
+  [deqp.env]
+  NIR_DEBUG = "clone,serialize"

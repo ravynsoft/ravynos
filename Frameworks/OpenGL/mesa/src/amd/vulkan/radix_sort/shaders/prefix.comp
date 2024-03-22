@@ -1,0 +1,194 @@
+// Copyright 2021 The Fuchsia Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#version 460
+
+//
+// Prefix sum the coarse histograms.
+//
+
+// clang-format off
+#extension GL_GOOGLE_include_directive             : require
+#extension GL_EXT_control_flow_attributes          : require
+#extension GL_KHR_shader_subgroup_arithmetic       : require
+#extension GL_KHR_shader_subgroup_ballot           : require
+// clang-format on
+
+//
+//
+//
+#include "config.h"
+
+//
+// Buffer reference macros and push constants
+//
+#include "bufref.h"
+#include "push.h"
+
+//
+//
+//
+RS_STRUCT_PUSH_PREFIX();
+
+layout(push_constant) uniform block_push
+{
+  rs_push_prefix push;
+};
+
+//
+// Subgroup uniform support
+//
+#if defined(RS_HISTOGRAM_SUBGROUP_UNIFORM_DISABLE) && defined(GL_EXT_subgroupuniform_qualifier)
+#extension GL_EXT_subgroupuniform_qualifier : required
+#define RS_SUBGROUP_UNIFORM subgroupuniformEXT
+#else
+#define RS_SUBGROUP_UNIFORM
+#endif
+
+//
+// Check all switches are defined
+//
+//
+#ifndef RS_PREFIX_SUBGROUP_SIZE_LOG2
+#error "Undefined: RS_PREFIX_SUBGROUP_SIZE_LOG2"
+#endif
+
+//
+#ifndef RS_PREFIX_WORKGROUP_SIZE_LOG2
+#error "Undefined: RS_PREFIX_WORKGROUP_SIZE_LOG2"
+#endif
+
+//
+// Local macros
+//
+// clang-format off
+#define RS_KEYVAL_SIZE          (RS_KEYVAL_DWORDS * 4)
+#define RS_WORKGROUP_SIZE       (1 << RS_PREFIX_WORKGROUP_SIZE_LOG2)
+#define RS_SUBGROUP_SIZE        (1 << RS_PREFIX_SUBGROUP_SIZE_LOG2)
+#define RS_WORKGROUP_SUBGROUPS  (RS_WORKGROUP_SIZE / RS_SUBGROUP_SIZE)
+// clang-format on
+
+//
+// There is no purpose in having a workgroup size larger than the
+// radix size.
+//
+#if (RS_WORKGROUP_SIZE > RS_RADIX_SIZE)
+#error "Error: (RS_WORKGROUP_SIZE > RS_RADIX_SIZE)"
+#endif
+
+//
+//
+//
+layout(local_size_x = RS_WORKGROUP_SIZE) in;
+
+//
+// Histogram buffer reference
+//
+layout(buffer_reference, std430) buffer buffer_rs_histograms
+{
+  uint32_t extent[];
+};
+
+//
+// Load prefix limits before loading function
+//
+#include "prefix_limits.h"
+
+//
+// If multi-subgroup then define shared memory
+//
+#if (RS_WORKGROUP_SUBGROUPS > 1)
+
+//----------------------------------------
+shared uint32_t smem_sweep0[RS_SWEEP_0_SIZE];
+
+#define RS_PREFIX_SWEEP0(idx_) smem_sweep0[idx_]
+//----------------------------------------
+
+#if (RS_SWEEP_1_SIZE > 0)
+//----------------------------------------
+shared uint32_t smem_sweep1[RS_SWEEP_1_SIZE];
+
+#define RS_PREFIX_SWEEP1(idx_) smem_sweep1[idx_]
+//----------------------------------------
+#endif
+
+#if (RS_SWEEP_2_SIZE > 0)
+//----------------------------------------
+shared uint32_t smem_sweep2[RS_SWEEP_2_SIZE];
+
+#define RS_PREFIX_SWEEP2(idx_) smem_sweep2[idx_]
+//----------------------------------------
+#endif
+
+#endif
+
+//
+// Define function arguments
+//
+#define RS_PREFIX_ARGS buffer_rs_histograms rs_histograms
+
+//
+// Define load/store functions
+//
+// clang-format off
+#define RS_PREFIX_LOAD(idx_)   rs_histograms.extent[idx_]
+#define RS_PREFIX_STORE(idx_)  rs_histograms.extent[idx_]
+// clang-format on
+
+//
+// Load prefix function
+//
+#include "prefix.h"
+
+//
+// Exclusive prefix of uint32_t[256]
+//
+void
+main()
+{
+  //
+  // Define buffer reference to read histograms
+  //
+#if (RS_WORKGROUP_SUBGROUPS == 1)
+  //
+  // Define histograms bufref for single subgroup
+  //
+  // NOTE(allanmac): The histogram buffer reference could be adjusted
+  // on the host to save a couple instructions at the cost of added
+  // complexity.
+  //
+  RS_SUBGROUP_UNIFORM
+  const uint32_t histograms_base   = ((RS_KEYVAL_SIZE - 1 - gl_WorkGroupID.x) * RS_RADIX_SIZE);
+  const uint32_t histograms_offset = (histograms_base + gl_SubgroupInvocationID) * 4;
+
+  RS_BUFREF_DEFINE_AT_OFFSET_UINT32(buffer_rs_histograms,
+                                    rs_histograms,
+                                    push.devaddr_histograms,
+                                    histograms_offset);
+
+#else
+  //
+  // Define histograms bufref for workgroup
+  //
+  RS_SUBGROUP_UNIFORM
+  const uint32_t histograms_base   = ((RS_KEYVAL_SIZE - 1 - gl_WorkGroupID.x) * RS_RADIX_SIZE);
+  const uint32_t histograms_offset = (histograms_base + gl_LocalInvocationID.x) * 4;
+
+  RS_BUFREF_DEFINE_AT_OFFSET_UINT32(buffer_rs_histograms,
+                                    rs_histograms,
+                                    push.devaddr_histograms,
+                                    histograms_offset);
+
+#endif
+
+  //
+  // Compute exclusive prefix of uint32_t[256]
+  //
+  rs_prefix(rs_histograms);
+}
+
+//
+//
+//

@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="GL_ARB_draw_elements_base_vertex" number="62">
+
+    <function name="DrawElementsBaseVertex" es2="3.2" marshal="custom" exec="dlist"
+              marshal_struct="public">
+        <param name="mode" type="GLenum"/>
+        <param name="count" type="GLsizei"/>
+        <param name="type" type="GLenum"/>
+        <param name="indices" type="const GLvoid *"/>
+        <param name="basevertex" type="GLint"/>
+    </function>
+
+    <function name="DrawRangeElementsBaseVertex" es2="3.2" marshal="custom" exec="dlist">
+        <param name="mode" type="GLenum"/>
+        <param name="start" type="GLuint"/>
+        <param name="end" type="GLuint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="type" type="GLenum"/>
+        <param name="indices" type="const GLvoid *"/>
+        <param name="basevertex" type="GLint"/>
+    </function>
+
+    <function name="MultiDrawElementsBaseVertex" marshal="custom" exec="dlist">
+        <param name="mode" type="GLenum"/>
+        <param name="count" type="const GLsizei *" count="primcount"/>
+        <param name="type" type="GLenum"/>
+        <param name="indices" type="const GLvoid * const *" count="(sizeof(GLvoid *) * primcount)"/>
+        <param name="primcount" type="GLsizei"/>
+        <param name="basevertex" type="const GLint *" count="primcount"/>
+    </function>
+
+    <function name="DrawElementsInstancedBaseVertex" es2="2.0" marshal="custom" exec="dlist">
+        <param name="mode" type="GLenum"/>
+        <param name="count" type="GLsizei"/>
+        <param name="type" type="GLenum"/>
+        <param name="indices" type="const GLvoid *"/>
+        <param name="primcount" type="GLsizei"/>
+        <param name="basevertex" type="GLint"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

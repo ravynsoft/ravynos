@@ -1,0 +1,147 @@
+Mesa 21.0.1 Release Notes / 2021-03-24
+======================================
+
+Mesa 21.0.1 is a bug fix release which fixes bugs found since the 21.0.0 release.
+
+Mesa 21.0.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.0.1 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    379fc984459394f2ab2d84049efdc3a659869dc1328ce72ef0598506611712bb  mesa-21.0.1.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- \[RADV\] Halo: The Master Chief Collection: Crash in Halo Reach Firefight
+- subgroupBallotFindMSB() broken in RADV/ACO 20.3.4
+- "unknown intrinsic" assertion triggered by multiview shader in non-multiview renderpass in Vulkan on intel
+
+
+Changes
+-------
+
+Benjamin Tissoires (3):
+
+- CI: windows: augment the timeout of building the windows container
+- CI: windows: split the layers to meet new registry requirements
+- CI: windows: Force using LLVM 12
+
+Caio Marcelo de Oliveira Filho (1):
+
+- anv: Lower ViewIndex to zero when multiview is disabled
+
+Daniel Stone (1):
+
+- CI: Try really hard to get updated Windows TLS certs
+
+Dylan Baker (12):
+
+- docs: update calendar and link releases notes for 21.0.0
+- .pick_status.json: Update to b1ab69f467b7b10e383f3b6bb957c7e6669a3772
+- .pick_status.json: Mark bddc0e023c2c87d3248691ea62b77626704cc5a4 as backported
+- .pick_status.json: Mark a67d3e7c9e2c1ae9b05153a281cf73926b9f6af7 as backported
+- .pick_status.json: Mark db67d9c0d11c886c5b960126b8bf0a230e65d980 as backported
+- .pick_status.json: Mark 8955d179d3e47982ccd67b8aecb0f5bed73d60b6 as backported
+- .pick_status.json: Update to 2407952ec99ab1c2a16e01a9e300f799e4d53320
+- ci: disable panfrost and radeonsi while the runners are struggling
+- .pick_status.json: Update to e3f703e4646b57534e49e0975cc3df20bf7b4a54
+- .pick_status.json: Update to 277ea7a015cd7df10a9dc65d5def0762cf2e9599
+- Revert "ci: disable panfrost and radeonsi while the runners are struggling"
+- ci: mark a couple of LLVMPIPE tests as expected pass
+
+Erik Faye-Lund (3):
+
+- gallium/st: fix shader_has_one_variant
+- gallium/st: fix shader_has_one_variant
+- zink: fix emulation of no mipfilter
+
+Hyunjun Ko (1):
+
+- ir3: fix has_src() to return correctly in ir3_nir_lower_tex_prefetch
+
+Ilia Mirkin (2):
+
+- gallium,st: add missing viewport swizzles
+- nv50: initialize target for blit source surfaces
+
+Faith Ekstrand (1):
+
+- intel/fs: Handle payload node interference in destinations
+
+Jesse Natalie (2):
+
+- CI: Use a sha for the Windows SPIRV-LLVM-Translator dependency
+- panfrost: Add a Meson dependency on bi_opcodes.h for bifrost_compiler
+
+Jordan Justen (1):
+
+- i965/gen11: Fix must-be-ones bit positions in 3D_MODE
+
+Lionel Landwerlin (2):
+
+- anv: fix MI_PREDICATE_RESULT write
+- intel/fs/vec4: add missing dependency in write-on-write fixed GRFs
+
+Mauro Rossi (1):
+
+- android: anv: add libcutils shared dependency
+
+Michel Dänzer (1):
+
+- aco/tests: Use \_exit in child process
+
+Mike Blumenkrantz (3):
+
+- lavapipe: fix push descriptor set indexing
+- zink: always use requested format for sampler view creation
+- compiler/spirv: fix image sample queries
+
+Neha Bhende (2):
+
+- mesa: set states in fast path for restoring light attributes
+- gallium/u_vbuf: use updated pipe_draw_start_count while using draw_vbo
+
+Pierre Moreau (1):
+
+- spirv: Ignore WorkgroupSize in non-compute stages
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- frontends/va: fix protected slice data buffer read size
+
+Rhys Perry (2):
+
+- aco: set compr for fp16 exports
+- aco: implement 64-bit VGPR {u,i}find_msb
+
+Timothy Arceri (2):
+
+- Revert "glsl: default to compat shaders in compat profile"
+- glsl: fix declarations of gl_MaxVaryingFloats
+
+Timur Kristóf (1):
+
+- aco: Fix constant address offset calculation for ds_read2 instructions.
+
+Tony Wasserka (1):
+
+- radv: Fix improper max_index_count argument for indexed draws

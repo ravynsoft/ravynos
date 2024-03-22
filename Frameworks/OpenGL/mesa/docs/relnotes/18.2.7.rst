@@ -1,0 +1,134 @@
+Mesa 18.2.7 Release Notes / December 13, 2018
+=============================================
+
+Mesa 18.2.7 is a bug fix release which fixes bugs found since the 18.2.6
+release.
+
+Mesa 18.2.7 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   092351cfbcd430ec595fbd3a3d8d253fd62c29074e1740d7198b00289ab400f8  mesa-18.2.7.tar.gz
+   9c7b02560d89d77ca279cd21f36ea9a49e9ffc5611f6fe35099357d744d07ae6  mesa-18.2.7.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 106577 <https://bugs.freedesktop.org/show_bug.cgi?id=106577>`__
+   - broken rendering with nine and nouveau (GM107)
+-  `Bug 108245 <https://bugs.freedesktop.org/show_bug.cgi?id=108245>`__
+   - RADV/Vega: Low mip levels of large BCn textures get corrupted by
+   vkCmdCopyBufferToImage
+-  `Bug 108311 <https://bugs.freedesktop.org/show_bug.cgi?id=108311>`__
+   - Query buffer object support is broken on r600.
+-  `Bug 108894 <https://bugs.freedesktop.org/show_bug.cgi?id=108894>`__
+   - [anv] vkCmdCopyBuffer() and vkCmdCopyQueryPoolResults()
+   write-after-write hazard
+-  `Bug 108909 <https://bugs.freedesktop.org/show_bug.cgi?id=108909>`__
+   - Vkd3d test failure test_resolve_non_issued_query_data()
+-  `Bug 108914 <https://bugs.freedesktop.org/show_bug.cgi?id=108914>`__
+   - blocky shadow artifacts in The Forest with DXVK, RADV_DEBUG=nohiz
+   fixes this
+-  `Bug 108925 <https://bugs.freedesktop.org/show_bug.cgi?id=108925>`__
+   - vkCmdCopyQueryPoolResults(VK_QUERY_RESULT_WAIT_BIT) for timestamps
+   with large query count hangs
+
+Changes
+-------
+
+Alex Smith (1):
+
+-  radv: Flush before vkCmdWriteTimestamp() if needed
+
+Bas Nieuwenhuizen (4):
+
+-  radv: Align large buffers to the fragment size.
+-  radv: Clamp gfx9 image view extents to the allocated image extents.
+-  radv/android: Mark android WSI image as shareable.
+-  radv/android: Use buffer metadata to determine scanout compat.
+
+Dave Airlie (2):
+
+-  r600: make suballocator 256-bytes align
+-  radv: use 3d shader for gfx9 copies if dst is 3d
+
+Emil Velikov (2):
+
+-  egl/wayland: bail out when drmGetMagic fails
+-  egl/wayland: plug memory leak in drm_handle_device()
+
+Eric Anholt (3):
+
+-  v3d: Fix a leak of the transfer helper on screen destroy.
+-  vc4: Fix a leak of the transfer helper on screen destroy.
+-  v3d: Fix a leak of the disassembled instruction string during debug
+   dumps.
+
+Eric Engestrom (3):
+
+-  anv: correctly use vulkan 1.0 by default
+-  wsi/display: fix mem leak when freeing swapchains
+-  vulkan/wsi: fix s/,/;/ typo
+
+Gurchetan Singh (3):
+
+-  virgl: quadruple command buffer size
+-  virgl: avoid large inline transfers
+-  virgl: don't mark buffers as unclean after a write
+
+Juan A. Suarez Romero (4):
+
+-  docs: add sha256 checksums for 18.2.6
+-  cherry-ignore: freedreno: Fix autotools build.
+-  cherry-ignore: mesa: Revert INTEL_fragment_shader_ordering support
+-  Update version to 18.2.7
+
+Karol Herbst (1):
+
+-  nv50,nvc0: Fix gallium nine regression regarding sampler bindings
+
+Lionel Landwerlin (2):
+
+-  anv: flush pipeline before query result copies
+-  anv/query: flush render target before copying results
+
+Michal Srb (2):
+
+-  gallium: Constify drisw_loader_funcs struct
+-  drisw: Use separate drisw_loader_funcs for shm
+
+Nicolai Hähnle (2):
+
+-  egl/wayland: rather obvious build fix
+-  meson: link LLVM 'native' component when LLVM is available
+
+Samuel Pitoiset (1):
+
+-  radv: rework the TC-compat HTILE hardware bug with COND_EXEC
+
+Thomas Hellstrom (2):
+
+-  st/xa: Fix a memory leak
+-  winsys/svga: Fix a memory leak
+
+Tobias Klausmann (1):
+
+-  amd/vulkan: meson build - use radv_deps for libvulkan_radeon
+
+Vinson Lee (1):
+
+-  st/xvmc: Add X11 include path.

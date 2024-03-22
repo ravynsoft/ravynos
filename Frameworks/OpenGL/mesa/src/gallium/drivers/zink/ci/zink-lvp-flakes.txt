@@ -1,0 +1,36 @@
+dEQP-GLES2.functional.texture.filtering.cube.nearest_linear_mirror_l8_pot
+spec@khr_debug@push-pop-group_gl.*
+glx@glx-multi-window-single-context
+
+# "free(): invalid next size (fast)"
+# since it's heap corruption, it may or may not appear in a particular run
+spec@arb_compute_variable_group_size@local-size
+
+# https://gitlab.freedesktop.org/mesa/mesa/-/jobs/20908454
+# "X connection to :99 broken (explicit kill or server shutdown)."
+glx@glx-multi-context-ib-1
+
+# depth visuals
+glx@glx-visuals-depth
+glx@glx-visuals-stencil
+
+# mysterious
+glx@glx-shader-sharing
+
+spec@arb_fragment_program@no-newline
+# glx-destroycontext-1: ../../src/xcb_conn.c:215: write_vec: Assertion `!c->out.queue_len' failed.
+glx@glx-destroycontext-1
+
+glx@glx-multithread-texture
+
+# does not happen very often, but rarely does
+KHR-GL46.limits.max_fragment_interpolation_offset
+
+# no output timeout, probably stuck in some X11 connection thing
+spec@ext_framebuffer_multisample@accuracy all_samples depth_resolve depthstencil
+
+# segfault in https://gitlab.freedesktop.org/mesa/mesa/-/jobs/48719777 and others
+spec@ext_texture_array@texsubimage array
+
+# crash in https://gitlab.freedesktop.org/mesa/mesa/-/jobs/48476882 and others
+KHR-GL46.layout_location.sampler_2d_shadow

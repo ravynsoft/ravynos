@@ -1,0 +1,180 @@
+# Notes on opcodes
+
+_Notes mainly by Connor Abbott extracted from the disassembler_
+
+LOG_FREXPM:
+
+        // From the ARM patent US20160364209A1:
+        // "Decompose v (the input) into numbers x1 and s such that v = x1 * 2^s,
+        // and x1 is a floating point value in a predetermined range where the
+        // value 1 is within the range and not at one extremity of the range (e.g.
+        // choose a range where 1 is towards middle of range)."
+        //
+        // This computes x1.
+ 
+FRCP_FREXPM:
+
+        // Given a floating point number m * 2^e, returns m * 2^{-1}. This is
+        // exactly the same as the mantissa part of frexp().
+
+FSQRT_FREXPM:
+        // Given a floating point number m * 2^e, returns m * 2^{-2} if e is even,
+        // and m * 2^{-1} if e is odd. In other words, scales by powers of 4 until
+        // within the range [0.25, 1). Used for square-root and reciprocal
+        // square-root.
+
+
+
+
+FRCP_FREXPE:
+        // Given a floating point number m * 2^e, computes -e - 1 as an integer.
+        // Zero and infinity/NaN return 0.
+
+FSQRT_FREXPE:
+        // Computes floor(e/2) + 1.
+
+FRSQ_FREXPE:
+        // Given a floating point number m * 2^e, computes -floor(e/2) - 1 as an
+        // integer.
+
+LSHIFT_ADD_LOW32:
+        // These instructions in the FMA slot, together with LSHIFT_ADD_HIGH32.i32
+        // in the ADD slot, allow one to do a 64-bit addition with an extra small
+        // shift on one of the sources. There are three possible scenarios:
+        //
+        // 1) Full 64-bit addition. Do:
+        // out.x = LSHIFT_ADD_LOW32.i64 src1.x, src2.x, shift
+        // out.y = LSHIFT_ADD_HIGH32.i32 src1.y, src2.y
+        //
+        // The shift amount is applied to src2 before adding. The shift amount, and
+        // any extra bits from src2 plus the overflow bit, are sent directly from
+        // FMA to ADD instead of being passed explicitly. Hence, these two must be
+        // bundled together into the same instruction.
+        //
+        // 2) Add a 64-bit value src1 to a zero-extended 32-bit value src2. Do:
+        // out.x = LSHIFT_ADD_LOW32.u32 src1.x, src2, shift
+        // out.y = LSHIFT_ADD_HIGH32.i32 src1.x, 0
+        //
+        // Note that in this case, the second argument to LSHIFT_ADD_HIGH32 is
+        // ignored, so it can actually be anything. As before, the shift is applied
+        // to src2 before adding.
+        //
+        // 3) Add a 64-bit value to a sign-extended 32-bit value src2. Do:
+        // out.x = LSHIFT_ADD_LOW32.i32 src1.x, src2, shift
+        // out.y = LSHIFT_ADD_HIGH32.i32 src1.x, 0
+        //
+        // The only difference is the .i32 instead of .u32. Otherwise, this is
+        // exactly the same as before.
+        //
+        // In all these instructions, the shift amount is stored where the third
+        // source would be, so the shift has to be a small immediate from 0 to 7.
+        // This is fine for the expected use-case of these instructions, which is
+        // manipulating 64-bit pointers.
+        //
+        // These instructions can also be combined with various load/store
+        // instructions which normally take a 64-bit pointer in order to add a
+        // 32-bit or 64-bit offset to the pointer before doing the operation,
+        // optionally shifting the offset. The load/store op implicity does
+        // LSHIFT_ADD_HIGH32.i32 internally. Letting ptr be the pointer, and offset
+        // the desired offset, the cases go as follows:
+        //
+        // 1) Add a 64-bit offset:
+        // LSHIFT_ADD_LOW32.i64 ptr.x, offset.x, shift
+        // ld_st_op ptr.y, offset.y, ...
+        //
+        // Note that the output of LSHIFT_ADD_LOW32.i64 is not used, instead being
+        // implicitly sent to the load/store op to serve as the low 32 bits of the
+        // pointer.
+        //
+        // 2) Add a 32-bit unsigned offset:
+        // temp = LSHIFT_ADD_LOW32.u32 ptr.x, offset, shift
+        // ld_st_op temp, ptr.y, ...
+        //
+        // Now, the low 32 bits of offset << shift + ptr are passed explicitly to
+        // the ld_st_op, to match the case where there is no offset and ld_st_op is
+        // called directly.
+        //
+        // 3) Add a 32-bit signed offset:
+        // temp = LSHIFT_ADD_LOW32.i32 ptr.x, offset, shift
+        // ld_st_op temp, ptr.y, ...
+        //
+        // Again, the same as the unsigned case except for the offset.
+
+---
+
+ADD ops..
+
+F16_TO_F32.X: // take the low  16 bits, and expand it to a 32-bit float
+F16_TO_F32.Y: // take the high 16 bits, and expand it to a 32-bit float
+
+MOV: 
+        // Logically, this should be SWZ.XY, but that's equivalent to a move, and
+        // this seems to be the canonical way the blob generates a MOV.
+ 
+
+FRCP_FREXPM:
+        // Given a floating point number m * 2^e, returns m ^ 2^{-1}.
+
+FLOG_FREXPE:
+        // From the ARM patent US20160364209A1:
+        // "Decompose v (the input) into numbers x1 and s such that v = x1 * 2^s,
+        // and x1 is a floating point value in a predetermined range where the
+        // value 1 is within the range and not at one extremity of the range (e.g.
+        // choose a range where 1 is towards middle of range)."
+        //
+        // This computes s.
+
+LD_UBO.v4i32
+        // src0 = offset, src1 = binding
+
+FRCP_FAST.f32:
+        // *_FAST does not exist on G71 (added to G51, G72, and everything after)
+
+FRCP_TABLE
+        // Given a floating point number m * 2^e, produces a table-based
+        // approximation of 2/m using the top 17 bits. Includes special cases for
+        // infinity, NaN, and zero, and copies the sign bit.
+
+FRCP_FAST.f16.X
+        // Exists on G71
+
+FRSQ_TABLE:
+        // A similar table for inverse square root, using the high 17 bits of the
+        // mantissa as well as the low bit of the exponent.
+
+FRCP_APPROX:
+        // Used in the argument reduction for log. Given a floating-point number
+        // m * 2^e, uses the top 4 bits of m to produce an approximation to 1/m
+        // with the exponent forced to 0 and only the top 5 bits are nonzero. 0,
+        // infinity, and NaN all return 1.0.
+        // See the ARM patent for more information.
+
+MUX:
+        // For each bit i, return src2[i] ? src0[i] : src1[i]. In other words, this
+        // is the same as (src2 & src0) | (~src2 & src1).
+
+ST_VAR:
+        // store a varying given the address and datatype from LD_VAR_ADDR
+
+LD_VAR_ADDR:
+        // Compute varying address and datatype (for storing in the vertex shader),
+        // and store the vec3 result in the data register. The result is passed as
+        // the 3 normal arguments to ST_VAR.
+
+DISCARD
+        // Conditional discards (discard_if) in NIR. Compares the first two
+        // sources and discards if the result is true
+
+ATEST.f32:
+        // Implements alpha-to-coverage, as well as possibly the late depth and
+        // stencil tests. The first source is the existing sample mask in R60
+        // (possibly modified by gl_SampleMask), and the second source is the alpha
+        // value.  The sample mask is written right away based on the
+        // alpha-to-coverage result using the normal register write mechanism,
+        // since that doesn't need to read from any memory, and then written again
+        // later based on the result of the stencil and depth tests using the
+        // special register.
+
+BLEND:
+        // This takes the sample coverage mask (computed by ATEST above) as a
+        // regular argument, in addition to the vec4 color in the special register.

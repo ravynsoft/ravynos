@@ -1,0 +1,91 @@
+Mesa 10.3.2 Release Notes / October 24, 2014
+============================================
+
+Mesa 10.3.2 is a bug fix release which fixes bugs found since the 10.3
+release.
+
+Mesa 10.3.2 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   e65f8e691f06f111c1aeb3a376b13c9cc88cb162bee2709e0e7e6b0e6628ca75  MesaLib-10.3.2.tar.gz
+   e9849bcb9aa9acd98a753d6d46d2e7d7238d3367036e11357a60efd16de8bea3  MesaLib-10.3.2.tar.bz2
+   427dc0d670d38e713ebff2675665ec2fe4ff7d04ce227bd54de946999fc1d234  MesaLib-10.3.2.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 54372 <https://bugs.freedesktop.org/show_bug.cgi?id=54372>`__ -
+   GLX_INTEL_swap_event crashes driver when swapping window buffers
+-  `Bug 81680 <https://bugs.freedesktop.org/show_bug.cgi?id=81680>`__ -
+   [r600g] Firefox crashes with hardware acceleration turned on
+-  `Bug 84140 <https://bugs.freedesktop.org/show_bug.cgi?id=84140>`__ -
+   mplayer crashes playing some files using vdpau output
+-  `Bug 84662 <https://bugs.freedesktop.org/show_bug.cgi?id=84662>`__ -
+   Long pauses with Unreal demo Elemental on R9270X since : Always flush
+   the HDP cache before submitting a CS to the GPU
+-  `Bug 85267 <https://bugs.freedesktop.org/show_bug.cgi?id=85267>`__ -
+   vlc crashes with vdpau (Radeon 3850HD) [r600]
+
+Changes
+-------
+
+Brian Paul (3):
+
+-  mesa: fix spurious wglGetProcAddress / GL_INVALID_OPERATION error
+-  st/wgl: add WINAPI qualifiers on wgl function typedefs
+-  glsl: fix several use-after-free bugs
+
+Daniel Manjarres (1):
+
+-  glx: Fix glxUseXFont for glxWindow and glxPixmaps
+
+Dave Airlie (1):
+
+-  mesa: fix GetTexImage for 1D array depth textures
+
+Emil Velikov (2):
+
+-  docs: Add sha256 sums for the 10.3.1 release
+-  Update VERSION to 10.3.2
+
+Ilia Mirkin (4):
+
+-  gm107/ir: add dnz emission for fmul
+-  gk110/ir: add dnz flag emission for fmul/fmad
+-  nouveau: 3d textures are unsupported, limit 3d levels to 1
+-  st/gbm: fix order of arguments passed to is_format_supported
+
+Kenneth Graunke (3):
+
+-  i965: Add a BRW_MOCS_PTE #define.
+-  i965: Use BDW_MOCS_PTE for renderbuffers.
+-  i965: Fix register write checks.
+
+Marek Olšák (2):
+
+-  st/mesa: use pipe_sampler_view_release for releasing sampler views
+-  glsl_to_tgsi: fix the value of gl_FrontFacing with native integers
+
+Michel Dänzer (4):
+
+-  radeonsi: Clear sampler view flags when binding a buffer
+-  r600g,radeonsi: Always use GTT again for PIPE_USAGE_STREAM buffers
+-  winsys/radeon: Use separate caching buffer manager for each set of
+   flags
+-  r600g: Drop references to destroyed blend state

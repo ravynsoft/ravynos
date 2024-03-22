@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="GL_EXT_draw_buffers2" number="340">
+
+    <function name="ColorMaskIndexedEXT" alias="ColorMaski">
+	<param name="buf" type="GLuint"/>
+	<param name="r" type="GLboolean"/>
+	<param name="g" type="GLboolean"/>
+	<param name="b" type="GLboolean"/>
+	<param name="a" type="GLboolean"/>
+    </function>
+
+    <function name="GetBooleanIndexedvEXT" alias="GetBooleani_v">
+        <param name="value" type="GLenum"/>
+	<param name="index" type="GLuint"/>
+	<param name="data" type="GLboolean *"/>
+    </function>
+
+    <function name="GetIntegerIndexedvEXT" alias="GetIntegeri_v">
+        <param name="value" type="GLenum"/>
+	<param name="index" type="GLuint"/>
+	<param name="data" type="GLint *"/>
+    </function>
+
+    <function name="EnableIndexedEXT" alias="Enablei">
+        <param name="target" type="GLenum"/>
+	<param name="index" type="GLuint"/>
+    </function>
+
+    <function name="DisableIndexedEXT" alias="Disablei">
+        <param name="target" type="GLenum"/>
+	<param name="index" type="GLuint"/>
+    </function>
+
+    <function name ="IsEnabledIndexedEXT" alias="IsEnabledi">
+        <param name="target" type="GLenum"/>
+	<param name="index" type="GLuint"/>
+	<return type="GLboolean"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

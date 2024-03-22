@@ -1,0 +1,149 @@
+Mesa 17.2.3 Release Notes / October 19, 2017
+============================================
+
+Mesa 17.2.3 is a bug fix release which fixes bugs found since the 17.2.2
+release.
+
+Mesa 17.2.3 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   fb305eecfeec1fd771fdc96fff973c51871f7bd35fd2bd56cacc27b4b8823220  mesa-17.2.3.tar.gz
+   a0b0ec8f7b24dd044d7ab30a8c7e6d3767521e245f88d4ed5dd93315dc56f837  mesa-17.2.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 101832 <https://bugs.freedesktop.org/show_bug.cgi?id=101832>`__
+   - [PATCH][regression][bisect] Xorg fails to start after
+   f50aa21456d82c8cb6fbaa565835f1acc1720a5d
+-  `Bug 102852 <https://bugs.freedesktop.org/show_bug.cgi?id=102852>`__
+   - Scons: Support the new Scons 3.0.0
+-  `Bug 102940 <https://bugs.freedesktop.org/show_bug.cgi?id=102940>`__
+   - Regression: Vulkan KMS rendering crashes since 17.2
+
+Changes
+-------
+
+Alex Smith (1):
+
+-  radv: Add R16G16B16A16_SNORM fast clear support
+
+Bas Nieuwenhuizen (2):
+
+-  nir/spirv: Allow loop breaks in a switch body.
+-  radv: Only set the MTYPE flags on GFX9+.
+
+Ben Crocker (4):
+
+-  gallivm: fix typo in debug_printf message
+-  gallivm: allow additional llc options
+-  gallivm/ppc64le: adjust VSX code generation control.
+-  gallivm/ppc64le: allow environmental control of Altivec code
+   generation
+
+Daniel Stone (2):
+
+-  egl/wayland: Check queryImage return for wl_buffer
+-  egl/wayland: Don't use dmabuf with no modifiers
+
+Dave Airlie (2):
+
+-  radv: emit fmuladd instead of fma to llvm.
+-  radv: lower ffma in nir.
+
+Emil Velikov (6):
+
+-  cherry-ignore: add "anv: Remove unreachable cases from
+   isl_format_for_size"
+-  cherry-ignore: add "anv/wsi: Allocate enough memory for the entire
+   image"
+-  swr/rast: do not crash on NULL strings returned by getenv
+-  wayland-drm: use a copy of the wayland_drm_callbacks struct
+-  eglmesaext: add forward declaration for struct wl_buffers
+-  Update version to 17.2.3
+
+Eric Engestrom (1):
+
+-  scons: use python3-compatible print()
+
+Ilia Mirkin (2):
+
+-  nv50/ir: fix 64-bit integer shifts
+-  nv50,nvc0: fix push hint logic in presence of a start offset
+
+Faith Ekstrand (6):
+
+-  intel/compiler: Don't cmod propagate into a saturated operation
+-  intel/compiler: Don't propagate cmod into integer multiplies
+-  glsl/blob: Return false from ensure_can_read on overrun
+-  glsl/blob: Return false from grow_to_fit if we've ever failed
+-  nir/opcodes: Fix constant-folding of ufind_msb
+-  nir: Get rid of the variable on vote intrinsics
+
+Juan A. Suarez Romero (1):
+
+-  docs: add sha256 checksums for 17.2.2
+
+Józef Kucia (3):
+
+-  anv: Fix vkCmdFillBuffer()
+-  spirv: Fix SpvOpAtomicISub
+-  anv: Do not assert() on VK_ATTACHMENT_UNUSED
+
+Leo Liu (3):
+
+-  st/va: use pipe transfer_map to map upload buffer
+-  st/vdpau: don't re-allocate interlaced buffer with packed YUV format
+-  st/va: don't re-allocate interlaced buffer with pakced format
+
+Lionel Landwerlin (4):
+
+-  intel: compiler: vec4: add missing default 0 lod
+-  anv/cmd_buffer: fix push descriptors with set > 0
+-  anv/cmd_buffer: Reset state in cmd_buffer_destroy
+-  anv: bo_cache: allow importing a BO larger than needed
+
+Marek Olšák (3):
+
+-  mesa: fix texture updates for ATI_fragment_shader
+-  st/mesa: don't use pipe_surface for passing information about
+   EGLImage
+-  glsl_to_tgsi: fix instruction order for bindless textures
+
+Nicolai Hähnle (14):
+
+-  st/glsl_to_tgsi: fix conditional assignments to packed shader outputs
+-  amd/common: fix build_cube_select
+-  radeonsi/gfx9: fix geometry shaders without output vertices
+-  util/queue: fix a race condition in the fence code
+-  glsl/lower_instruction: handle denorms and overflow in ldexp
+   correctly
+-  radeonsi: move current_rast_prim to r600_common_context
+-  radeonsi: don't discard points and lines
+-  radeonsi: deduce rast_prim correctly for tessellation point mode
+-  radeonsi: fix maximum advertised point size / line width
+-  st/mesa: don't clobber glGetInternalformat\* buffer for
+   GL_NUM_SAMPLE_COUNTS
+-  st/glsl_to_tgsi: fix indirect access to 64-bit integer
+-  st/glsl_to_tgsi: fix a use-after-free in merge_two_dsts
+-  radeonsi: clamp depth comparison value only for fixed point formats
+-  radeonsi: clamp border colors for upgraded depth textures
+
+Rob Clark (2):
+
+-  freedreno/a5xx: align height to GMEM
+-  freedreno/a5xx: fix missing restore state

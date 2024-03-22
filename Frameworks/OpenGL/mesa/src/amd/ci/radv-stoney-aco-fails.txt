@@ -1,0 +1,42 @@
+# See https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/9049
+dEQP-VK.pipeline.timestamp.calibrated.calibration_test,Fail
+dEQP-VK.pipeline.monolithic.timestamp.calibrated.calibration_test,Fail
+
+
+# introduced around the time of:
+# https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/16325
+dEQP-VK.rasterization.interpolation_multisample_4_bit.lines_wide,Fail
+
+
+# mipmap failures seen since (at least) CTS 1.3.1.x
+dEQP-VK.texture.mipmap.2d.image_view_min_lod.base_level.linear_linear,Fail
+dEQP-VK.texture.mipmap.2d.image_view_min_lod.base_level.linear_linear_integer_texel_coord,Fail
+dEQP-VK.texture.mipmap.2d.image_view_min_lod.base_level.linear_nearest,Fail
+dEQP-VK.texture.mipmap.2d.image_view_min_lod.base_level.linear_nearest_integer_texel_coord,Fail
+dEQP-VK.texture.mipmap.2d.image_view_min_lod.base_level.nearest_linear,Fail
+dEQP-VK.texture.mipmap.2d.image_view_min_lod.base_level.nearest_nearest,Fail
+dEQP-VK.texture.mipmap.2d.image_view_min_lod.base_level.nearest_nearest_integer_texel_coord,Fail
+dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.linear_linear,Fail
+dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.linear_linear_integer_texel_coord,Fail
+dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.linear_nearest,Fail
+dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.nearest_linear,Fail
+dEQP-VK.texture.mipmap.3d.image_view_min_lod.base_level.nearest_linear_integer_texel_coord,Fail
+dEQP-VK.texture.mipmap.cubemap.image_view_min_lod.base_level.linear_nearest,Fail
+dEQP-VK.texture.mipmap.cubemap.image_view_min_lod.base_level.nearest_linear,Fail
+dEQP-VK.texture.mipmap.cubemap.image_view_min_lod.base_level.nearest_nearest,Fail
+
+
+# descriptor-buffer crashes
+dEQP-VK.binding_model.descriptor_buffer.multiple.compute_comp_buffers32_sets1,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_ahit_buffers2_sets4,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_ahit_buffers3_sets1,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_chit_buffers2_sets4_imm_samplers,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_comp_buffers2_sets4,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_frag_buffers32_sets1,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_geom_buffers2_sets4,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_miss_buffers1_sets3_imm_samplers,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_miss_buffers3_sets1,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_rgen_buffers1_sets3,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_rgen_buffers1_sets3_imm_samplers,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_sect_buffers8_sets1,Crash
+dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_tesc_buffers1_sets3,Crash

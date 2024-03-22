@@ -1,0 +1,162 @@
+Mesa 20.0.7 Release Notes / 2020-05-14
+======================================
+
+Mesa 20.0.7 is a bug fix release which fixes bugs found since the 20.0.6
+release.
+
+Mesa 20.0.7 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.6. OpenGL 4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 20.0.7 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+     fe6e258fe772c3cd2ac01741bf7408058c3ac02d66acff9a6e669bd72e3ea178  mesa-20.0.7.tar.xz
+
+New features
+------------
+
+Bug fixes
+---------
+
+-  radv regression on android
+-  heavy glitches on amd ryzen 5 since version 20.x
+-  [bisected] [iris] mpv under wayland: failed to import supplied
+   dmabufs: Unsupported buffer format 808669784
+-  iris: Crash when trying to capture window in OBS Studio
+-  mesa 20.0.5 causing kitty to crash
+-  radeonsi: "Torchlight II" trace showing regression on mesa-20.0.6
+   [bisected]
+-  [RADV/LLVM/ACO/Regression] After mesa commit
+   a3dc7fffbb7be0f1b2ac478b16d3acc5662dff66 all games stucks at start
+-  intel/compiler: Register coalesce doesn't move conditional modifiers
+
+Changes
+-------
+
+Axel Davy (1):
+
+-  gallium/util: Fix leak in the live shader cache
+
+Bas Nieuwenhuizen (2):
+
+-  radv: Extend tiling flags to 64-bit.
+-  winsys/amdgpu: Retrieve WC flags from imported buffers.
+
+Blaž Tomažič (1):
+
+-  radeonsi: Fix omitted flush when moving suballocated texture
+
+Christopher James Halse Rogers (1):
+
+-  egl/wayland: Fix zwp_linux_dmabuf usage
+
+D Scott Phillips (2):
+
+-  intel/fs: Update location of Render Target Array Index for gen12
+-  anv,iris: Fix input vertex max for tcs on gen12
+
+Danylo Piliaiev (1):
+
+-  i965: Fix out-of-bounds access to brw_stage_state::surf_offset
+
+Dave Airlie (1):
+
+-  llvmpipo/nir: free compute shader NIR
+
+Dylan Baker (16):
+
+-  docs: Add SHA256 sums for 20.0.6
+-  .pick_status.json: Update to 2efa76f795cb2b2bf00b317c580aeeeddd1e9bc2
+-  .pick_status.json: Update to 3fac55ce0d066d767d6c6c8308f79d0c3e566ec0
+-  .pick_status.json: Mark 3fac55ce0d066d767d6c6c8308f79d0c3e566ec0 as
+   denominated
+-  .pick_status.json: Update to b97cc41aa203fd9fb9f5cf5f5aa7fd40f567917d
+-  radeonsi: Retab si_get.c
+-  .pick_status.json: Mark bdd2f284d90b7f07ac5e878490be8d216d0d23c6 as
+   denominated
+-  .pick_status.json: Update to 6292059662dccd3e151c731a3b108fd0b9e4c606
+-  .pick_status.json: Mark d80fb024302aa6058945826a79ba0caf9611fcc1 as
+   backported
+-  .pick_status.json: Mark 9392ddab4399d796fdf37602f586965ec17f2b2a as
+   backported
+-  .pick_status.json: Update to 6d513eb0db25a272da65822f35907456b544f172
+-  radeonsi: retab si_shader_llvm_ps.c
+-  .pick_status.json: Update to d11e4738a86ecac6bb4cfaf5cad5c1d32169b18f
+-  radeonsi: retab
+-  .pick_status.json: Update to 0bea2a13212be10982e14617002a3ff851b84717
+-  .pick_status.json: Update to d76e722ed63607ecead2c66ef9f3a37a12b62bab
+
+Ian Romanick (1):
+
+-  nir/algebraic: Optimize ushr of pack_half, not ishr
+
+Ivan Molodetskikh (1):
+
+-  egl: allow INVALID format for linux_dmabuf
+
+Faith Ekstrand (3):
+
+-  nir/copy_prop_vars: Report progress when deleting self-copies
+-  intel/fs: Don't delete coalesced MOVs if they have a cmod
+-  vulkan: Allow destroying NULL debug report callbacks
+
+Jose Maria Casanova Crespo (2):
+
+-  v3d: Fix swizzle in DXT3 and DXT5 formats
+-  v3d: Include supported DXT formats to enable s3tc/dxt extensions
+
+Lionel Landwerlin (3):
+
+-  iris: don't assert on unfinished aux import in copy paths
+-  intel/perf: store the probed i915-perf version
+-  anv: don't expose VK_INTEL_performance_query without kernel support
+
+Marek Olšák (3):
+
+-  mesa: report GL_INVALID_OPERATION for invalid glTextureBuffer target
+-  radeonsi: unify and align down the max SSBO/TBO/UBO buffer binding
+   size
+-  radeonsi: fix compilation of monolithic PS
+
+Neil Armstrong (1):
+
+-  ci: disable t820/mali4xx tests
+
+Pierre Moreau (1):
+
+-  clover/nir: Check the result of spirv_to_nir
+
+Pierre-Eric Pelloux-Prayer (1):
+
+-  radeonsi: fix export count
+
+Qiang Yu (1):
+
+-  panfrost: don't always build bifrost_compiler
+
+Rhys Perry (2):
+
+-  nir: add missing group_memory_barrier handling
+-  aco: consider blocks unreachable if they are in the logical cfg
+
+Samuel Pitoiset (4):
+
+-  radv: report INITIALIZATION_FAILED when the amdgpu winsys init failed
+-  radv: don't report error with other vendor DRM devices
+-  aco: fix 64-bit trunc with negative exponents on GFX6
+-  radv: limit the Vulkan version to 1.1 for Android
+
+Tapani Pälli (1):
+
+-  st/mesa: destroy only own program variants when program is released

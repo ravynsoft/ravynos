@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="GL_NV_viewport_swizzle" number="483">
+
+    <function name="ViewportSwizzleNV" no_error="true" es2="3.1">
+        <param name="index" type="GLuint"/>
+        <param name="swizzlex" type="GLenum"/>
+        <param name="swizzley" type="GLenum"/>
+        <param name="swizzlez" type="GLenum"/>
+        <param name="swizzlew" type="GLenum"/>
+    </function>
+
+    <enum name="VIEWPORT_SWIZZLE_POSITIVE_X_NV" value="0x9350"/>
+    <enum name="VIEWPORT_SWIZZLE_NEGATIVE_X_NV" value="0x9351"/>
+    <enum name="VIEWPORT_SWIZZLE_POSITIVE_Y_NV" value="0x9352"/>
+    <enum name="VIEWPORT_SWIZZLE_NEGATIVE_Y_NV" value="0x9353"/>
+    <enum name="VIEWPORT_SWIZZLE_POSITIVE_Z_NV" value="0x9354"/>
+    <enum name="VIEWPORT_SWIZZLE_NEGATIVE_Z_NV" value="0x9355"/>
+    <enum name="VIEWPORT_SWIZZLE_POSITIVE_W_NV" value="0x9356"/>
+    <enum name="VIEWPORT_SWIZZLE_NEGATIVE_W_NV" value="0x9357"/>
+
+    <enum name="VIEWPORT_SWIZZLE_X_NV" value="0x9358"/>
+    <enum name="VIEWPORT_SWIZZLE_Y_NV" value="0x9359"/>
+    <enum name="VIEWPORT_SWIZZLE_Z_NV" value="0x935A"/>
+    <enum name="VIEWPORT_SWIZZLE_W_NV" value="0x935B"/>
+
+</category>
+
+</OpenGLAPI>

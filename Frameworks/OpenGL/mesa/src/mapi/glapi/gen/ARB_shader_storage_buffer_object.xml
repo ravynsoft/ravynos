@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_shader_storage_buffer" number="137">
+
+<enum name="SHADER_STORAGE_BUFFER" value="0x90D2" />
+<enum name="SHADER_STORAGE_BUFFER_BINDING" value="0x90D3" />
+<enum name="SHADER_STORAGE_BUFFER_START" value="0x90D4" />
+<enum name="SHADER_STORAGE_BUFFER_SIZE" value="0x90D5" />
+<enum name="MAX_VERTEX_SHADER_STORAGE_BLOCKS" value="0x90D6" />
+<enum name="MAX_GEOMETRY_SHADER_STORAGE_BLOCKS" value="0x90D7" />
+<enum name="MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS" value="0x90D8" />
+<enum name="MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS" value="0x90D9" />
+<enum name="MAX_FRAGMENT_SHADER_STORAGE_BLOCKS" value="0x90DA" />
+<enum name="MAX_COMPUTE_SHADER_STORAGE_BLOCKS" value="0x90DB" />
+<enum name="MAX_COMBINED_SHADER_STORAGE_BLOCKS" value="0x90DC" />
+<enum name="MAX_SHADER_STORAGE_BUFFER_BINDINGS" value="0x90DD" />
+<enum name="MAX_SHADER_STORAGE_BLOCK_SIZE" value="0x90DE" />
+<enum name="SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT" value="0x90DF" />
+<enum name="SHADER_STORAGE_BARRIER_BIT" value="0x2000" />
+<enum name="MAX_COMBINED_SHADER_OUTPUT_RESOURCES" value="0x8F39" />
+
+<!-- Duplicated with GL3x.xml: BindBufferRange, BindBufferBase,
+     GetIntegeri_v -->
+
+<function name="ShaderStorageBlockBinding" no_error="true">
+    <param name="program" type="GLuint" />
+    <param name="shaderStorageBlockIndex" type="GLuint" />
+    <param name="shaderStorageBlockBinding" type="GLuint" />
+</function>
+
+</category>
+
+</OpenGLAPI>

@@ -1,0 +1,279 @@
+
+                            Mesa 5.1 release notes
+
+                              December 17, 2003
+
+                                PLEASE READ!!!!
+
+
+
+Introduction
+------------
+
+Mesa uses an even/odd version number scheme like the Linux kernel.
+Even-numbered versions (such as 5.0) designate stable releases.
+Odd-numbered versions (such as 5.1) designate new developmental releases.
+
+
+Bug fixes
+---------
+See the VERSIONS file for a list of bugs fixed in this release.
+
+
+
+New Features in Mesa 5.1
+------------------------
+
+GL_ARB_vertex_program / GL_ARB_fragment_program
+   Michal Krol and Karl Rasche implemented these extensions.  Thanks!
+   Be aware that there may be some rough edges and lurking bugs.
+
+GL_ATI_texture_env_combine3 extension
+   This adds a few new texture combine modes.
+   Contributed by Ian Romanick.
+
+GL_SGI_texture_color_table
+   Adds a color table lookup to the RGBA texture path.  There's a separate
+   color table for each texture unit.
+   Contributed by Eric Plante.
+
+GL_NV_fragment_program
+   NVIDIA's fragment-level programming feature.
+   Possible lurking bugs:
+     - the DDX and DDY commands aren't fully tested
+     - there may be bugs in the parser
+     - the TEX and TXP instructions both do perspective correction
+     - the pack/unpack instructions may not be correct
+
+GL_EXT_depth_bounds_test
+   This extension adds a scissor-like test for the Z axis.  It's used to
+   optimize stencil-volume shadow algorithms.
+
+GL_NV_light_max_exponent
+   Lifts the 128 limit for max light exponent.
+
+GL_EXT_texture_rectangle
+   Identical to GL_NV_texture_rectangle
+
+GL_ARB_occlusion_query
+   Useful for visibility-based culling.
+
+GL_ARB_texture_non_power_of_two
+   Removes the restriction that texture dimensions must be powers of two.
+
+GL_ARB_vertex_buffer_object
+   Allows server-side vertex arrays, optimized host/card data transfers, etc.
+
+GL_ARB_point_sprite
+   ARB-approved version of GL_NV_point_sprite.  Basically allows textures
+   to be applied to points.
+
+GL_IBM_multimode_draw_arrays
+   Allows multiple vertex arrays to be drawn with one call, including arrays
+   of different types of primitives.
+
+GL_SUN_multi_draw_arrays
+   An alias for GL_EXT_multi_draw_arrays, standard in OpenGL 1.4.
+
+Faster glDrawPixels / glCopyPixels in X11 driver
+   If your X screen is 32bpp, glDrawPixels to the front color buffer will
+   be accelerated (via XPutImage()) if the image format is GL_BGRA and the
+   type is GL_UNSIGNED_BYTE.  No raster operations, such as depth test,
+   blend, fog, etc. can be enabled.
+
+   If your X screen is 16bpp, glDrawPixels to the front color buffer will
+   be accelerated (via XPutImage()) if the image format is GL_RGB and the
+   type is GL_UNSIGNED_SHORT_5_6_5.  No raster operations, such as depth
+   test, blend, fog, etc. can be enabled.
+
+   glCopyPixels() calls for the front color buffer will be accelerated
+   (via XCopyArea()) if no raster operations, such as depth test, blend,
+   fog, pixel zoom, etc. are enabled.
+
+   The speed-up over typical software rendering is a factor of 10 for
+   glDrawPixels and 100 for glCopyPixels.
+
+
+With the addition of GL_ARB_occlusion_query, GL_ARB_vertex_buffer_object,
+GL_ARB_texture_non_power_of_two and GL_EXT_shadow_funcs, Mesa 5.1 supports
+all the new features of OpenGL 1.5.  Mesa 6.0 (the next stable release)
+will advertise GL_VERSION = "1.5".
+ 
+
+
+Vertex/Fragment program debugger
+--------------------------------
+
+GL_MESA_program_debug is an experimental extension to support
+interactive debugging of vertex and fragment programs.  See the
+docs/specs/OLD/MESA_program_debug.spec file for details.
+
+The bulk of the vertex/fragment program debugger is implemented
+outside of Mesa.  The GL_MESA_program_debug extension just has minimal
+hooks for stopping running programs and inspecting programs.
+
+The progs/tests/debugger.c (only in CVS) program is an example of how
+the extension can be used.  Presently, the debugger code and demo code
+is in the same file.  Eventually the debugger code should be moved
+into a reusable module.
+
+As it is now, the demo lets you set breakpoings in vertex/fragment
+programs, single step, and print intermediate register values.  It's
+basically just a proof of concept.
+
+
+
+Directory tree reorganization
+-----------------------------
+
+The directory structure for Mesa has been overhauled to improve its layout.
+All source code for Mesa, GLU, GLUT, etc is now under the src/ directory
+in appropriate subdirectories.
+
+The Mesa source code and drivers has been reorganized under src/mesa/.
+
+All demonstration programs and tests are now in subdirectories under progs/.
+
+
+
+Build System Changes
+--------------------
+
+The GNU automake/autoconf support has been removed.  As it was, it seldom
+worked on anything but Linux.  The Mesa developers aren't big fans of
+automake/autoconf/libtool and didn't have the time to maintain it.
+If someone wants to contribute new automake/autoconf support (and is
+willing to maintain it), it may be re-incorporated into Mesa, subject
+to some requirements.
+
+The "old style" makefile system has been updated:
+   1. Make-config has been trimmed down to fewer, modern configurations.
+   2. Most of the bin/mklib.* scripts have been rolled into a new "mklib"
+      script that works on all sorts of systems.  There are probably some
+      bugs in it, but it's been tested on Linux, SunOS 5.8 and IRIX 6.5.
+      Improvements/contributes are greatly appreciated.
+   3. The Makefile.X11 files have been cleaned up in various ways
+
+
+
+Source File Changes
+-------------------
+
+The mmath.[ch] files are obsolete.  Their contents have been moved
+into the imports.[ch] and macros.[ch] files.
+
+The files related to vertex and fragment programming have changed.
+Old files:
+	vpexec.[ch]
+	vpparse.[ch]
+	vpstate.[ch]
+New files:
+	program.[ch]              - generic ARB/NV program code
+	arbprogram.[ch]           - ARB program API functions
+	arbfragparse.[ch]         - ARB fragment program parsing
+	arbvertparse.[ch]         - ARB vertex program parsing
+	arbparse.[ch]             - ARB vertex/fragment parsing
+	arbparse_syn.h            - vertex/fragment program syntax
+	nvprogram.[ch]            - NV program API functions
+	nvvertprog.h              - NV vertex program definitions
+	nvfragprog.h              - NV fragment program definitions
+	nvvertparse.[ch]          - NV vertex program parser
+	nvfragparse.[ch]          - NV fragment program parser
+	nvvertexec.[ch]           - NV vertex program execution
+	swrast/s_nvfragprog.[ch]  - NV fragment program execution
+
+The files related to per-vertex handling have changed.
+Old files:
+	tnl/t_eval_api.c          - old per-vertex code
+	tnl/t_imm_alloc.c         - old per-vertex code
+	tnl/t_imm_api.c           - old per-vertex code
+	tnl/t_imm_debug.c         - old per-vertex code
+	tnl/t_imm_dlist.c         - old per-vertex code
+	tnl/t_imm_elt.c           - old per-vertex code
+	tnl/t_imm_eval.c          - old per-vertex code
+	tnl/t_imm_exec.c          - old per-vertex code
+	tnl/t_imm_fixup.c         - old per-vertex code
+	tnl/t_vtx_sse.c           - old per-vertex code
+	tnl/t_vtx_x86.c           - old per-vertex code
+New files:
+	tnl/t_save_api.c          - new per-vertex code
+	tnl/t_save_loopback.c     - new per-vertex code
+	tnl/t_save_playback.c     - new per-vertex code
+	tnl/t_vtx_eval.c          - old per-vertex code
+
+Other new files:
+	bufferobj.[ch]		- GL_ARB_vertex_buffer_object functions
+	version.h		- defines the Mesa version info
+
+Other removed files:
+	swrast/s_histogram.[ch]   - moved into src/histogram.c
+
+
+
+Other Changes
+-------------
+
+The ctx->Driver.CreateTexture function has been removed - it wasn't used.
+
+New device driver hook functions:
+   NewTextureObject   - used to allocate struct gl_texture_objects
+   NewTextureImage    - used to allocate struct gl_texture_images
+
+New ctx->Texture._EnabledCoordUnits field:
+   With the addition of GL_NV_fragment_program we may need to interpolate
+   various sets of texture coordinates even when the corresponding texture
+   unit is not enabled.  That is, glEnable(GL_TEXTURE_xD) may never get
+   called but we still may have to interpolate texture coordinates across
+   triangles so that the fragment program will get them.
+   This new field indicates which sets of texture coordinates are needed.
+   If a bit is set in the ctx->Texture._EnabledUnits bitmask is set, the
+   same bit MUST be set in ctx->Texture._EnabledCoordUnits.
+
+The ctx->_TriangleCaps field is deprecated.
+   Instead of testing the DD_* bits in _TriangleCaps, you should instead
+   directly test the relevant state variables, or use one of the helper
+   functions like NEED_SECONDARY_COLOR() at the bottom of context.h
+   While testing _TriangleCaps bits was fast, it was kludgey, and setting
+   the bits in the first place could be error prone.
+
+New vertex processing code.
+   The code behind glBegin, glEnd, glVertex, glNormal, etc. has been
+   totally rewritten.  It's a cleaner implementation now and should use
+   less memory. (Keith)
+
+
+
+To Do
+-----
+Add screen-awareness to fakeglx.c
+
+
+
+
+Device Driver Status
+--------------------
+
+A number of Mesa's software drivers haven't been actively maintained for
+some time.  We rely on volunteers to maintain many of these drivers.
+Here's the current status of all included drivers:
+
+
+Driver			Status
+----------------------	---------------------
+XMesa (Xlib)		implements OpenGL 1.4
+OSMesa (off-screen)	implements OpenGL 1.4
+FX (3dfx Voodoo1/2)	implements OpenGL 1.3
+SVGA			implements OpenGL 1.3
+Wind River UGL		implements OpenGL 1.3
+Windows/Win32		implements OpenGL 1.4
+DJGPP			implements OpenGL 1.4
+GGI			implements OpenGL 1.3
+BeOS			implements OpenGL 1.4
+Allegro			needs updating
+D3D			needs updating
+
+Note: supporting OpenGL 1.4 (vs. 1.3 or 1.2) usually only requires that the
+driver call the _mesa_enable_1_4_extensions() function.
+
+
+----------------------------------------------------------------------

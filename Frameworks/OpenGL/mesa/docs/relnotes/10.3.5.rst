@@ -1,0 +1,66 @@
+Mesa 10.3.5 Release Notes / December 5, 2014
+============================================
+
+Mesa 10.3.5 is a bug fix release which fixes bugs found since the 10.3.4
+release.
+
+Mesa 10.3.5 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   7ea71c3cce89114df3dc050376afa1c6f6bf235d77a68f9703273603d6a90621  MesaLib-10.3.5.tar.gz
+   eb75d2790f1606d59d50a6acaa637b6c75f2155b3e0eca3d5099165c0d9556ae  MesaLib-10.3.5.tar.bz2
+   164bc64ba63fb07ff255ff8de6ed3c95ff545dfe8f864c44c33abe94788da910  MesaLib-10.3.5.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 86618 <https://bugs.freedesktop.org/show_bug.cgi?id=86618>`__ -
+   [NV96] neg modifiers not working in MIN and MAX operations
+
+Changes
+-------
+
+Brian Paul (2):
+
+-  mesa: fix arithmetic error in \_mesa_compute_compressed_pixelstore()
+-  mesa: fix height error check for 1D array textures
+
+Chris Forbes (2):
+
+-  i965: Handle nested uniform array indexing
+-  mesa: Fix Get(GL_TRANSPOSE_CURRENT_MATRIX_ARB) to transpose
+
+Emil Velikov (2):
+
+-  docs: Add sha256 sums for the 10.3.5 release
+-  Update version to 10.3.5
+
+Ilia Mirkin (6):
+
+-  nv50/ir: set neg modifiers on min/max args
+-  nv50,nvc0: actually check constbufs for invalidation
+-  nv50,nvc0: buffer resources can be bound as other things down the
+   line
+-  freedreno/ir3: don't pass consts to madsh.m16 in MOD logic
+-  freedreno/a3xx: only enable blend clamp for non-float formats
+-  freedreno/ir3: fix UMAD
+
+Rob Clark (1):
+
+-  configure.ac: bump libdrm_freedreno requirement

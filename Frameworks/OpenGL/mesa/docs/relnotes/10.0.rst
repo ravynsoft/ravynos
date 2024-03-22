@@ -1,0 +1,132 @@
+Mesa 10.0 Release Notes / (November 30th, 2013)
+===============================================
+
+Mesa 10.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 10.0.1.
+
+Mesa 10.0 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   b38626b96c664db67a534d7859682436  MesaLib-10.0.0.tar.gz
+   f3fe55d9735bea158bbe97ed9a0da819  MesaLib-10.0.0.tar.bz2
+   c6ee1ce51e3bf35947d2978b872daf51  MesaLib-10.0.0.zip
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_AMD_seamless_cubemap_per_texture on i965.
+-  GL_ARB_conservative_depth on i965.
+-  GL_ARB_texture_gather on i965.
+-  GL_ARB_texture_query_levels on i965.
+-  GL_ARB_texture_mirror_clamp_to_edge.
+-  GL_ARB_transform_feedback2, GL_ARB_transform_feedback3, and
+   GL_ARB_transform_feedback_instanced on i965/Gen7 (with appropriate
+   kernel support).
+-  GL_ARB_sample_shading on i965.
+-  GL_ARB_shader_atomic_counters on i965.
+-  GL_ARB_vertex_attrib_binding
+-  GL_ARB_vertex_type_10f_11f_11f_rev on i965 and r600g
+-  GL_KHR_debug
+-  GLX_MESA_query_renderer
+
+Bug fixes
+---------
+
+Attempts have been made to **not** include bugs fixed in previous 9.2
+releases or bugs that were regressions during 10.0 development. This
+list is likely incomplete.
+
+-  `Bug 47755 <https://bugs.freedesktop.org/show_bug.cgi?id=47755>`__ -
+   [glsl-compiler] no error checking when Interpolation qualifier for
+   built-in variable is different in vertex and fragment shader
+-  `Bug 52171 <https://bugs.freedesktop.org/show_bug.cgi?id=52171>`__ -
+   [gallium/r600/clover] Simple benchmarks failed to run
+-  `Bug 53077 <https://bugs.freedesktop.org/show_bug.cgi?id=53077>`__ -
+   [IVB] Output error with msaa when both of framebuffer and source
+   color's alpha are not 1
+-  `Bug 54867 <https://bugs.freedesktop.org/show_bug.cgi?id=54867>`__ -
+   bug in r300 compiler
+-  `Bug 60929 <https://bugs.freedesktop.org/show_bug.cgi?id=60929>`__ -
+   [r600-llvm] mono games with opengl are blocking on start
+-  `Bug 62142 <https://bugs.freedesktop.org/show_bug.cgi?id=62142>`__ -
+   Mesa/demo mipmap_limits upside down with running by SOFTWARE
+-  `Bug 62698 <https://bugs.freedesktop.org/show_bug.cgi?id=62698>`__ -
+   [bisected] WebGL demo "Consumed": texstate.c:628:
+   update_texture_state: Assertion „__builtin_popcount(enabledTargets)
+   == 1“ failed.
+-  `Bug 64225 <https://bugs.freedesktop.org/show_bug.cgi?id=64225>`__ -
+   bfgminer --scyte generates Segmentation Fault on Northern Island
+-  `Bug 64226 <https://bugs.freedesktop.org/show_bug.cgi?id=64226>`__ -
+   python-opencl package generate segmentation fault at pipe_r600.so
+-  `Bug 64261 <https://bugs.freedesktop.org/show_bug.cgi?id=64261>`__ -
+   [SNB Bisected]Ogles3conform
+   GL3Tests_color_buffer_float_color_buffer_float_clamp_fixed.test fail
+-  `Bug 66213 <https://bugs.freedesktop.org/show_bug.cgi?id=66213>`__ -
+   Certain Mesa Demos Rendering Inverted (vertically)
+-  `Bug 66806 <https://bugs.freedesktop.org/show_bug.cgi?id=66806>`__ -
+   [softpipe] glxgears floating point exception
+-  `Bug 67921 <https://bugs.freedesktop.org/show_bug.cgi?id=67921>`__ -
+   [bisected commit 883987] crosscompiling fails with
+   util/u_cpu_detect.c:247:4: error: 'asm' undeclared (first use in this
+   function)
+-  `Bug 68162 <https://bugs.freedesktop.org/show_bug.cgi?id=68162>`__ -
+   [radeonsi] texture rendering is broken in Source-Engine games
+-  `Bug 68451 <https://bugs.freedesktop.org/show_bug.cgi?id=68451>`__ -
+   Texture flicker in native Dota2 in mesa 9.2.0rc1
+-  `Bug 68503 <https://bugs.freedesktop.org/show_bug.cgi?id=68503>`__ -
+   Graphical glitches in Serious Sam 3 when SB is enabled
+-  `Bug 68792 <https://bugs.freedesktop.org/show_bug.cgi?id=68792>`__ -
+   Problems during playback of h264 files using UVD and VLC on AMD E-350
+   CPU
+-  `Bug 68845 <https://bugs.freedesktop.org/show_bug.cgi?id=68845>`__ -
+   VDPAU/UVD regression
+-  `Bug 69078 <https://bugs.freedesktop.org/show_bug.cgi?id=69078>`__ -
+   Modern Warfare (1, 2 and 3) broken in Wine on SNB
+-  `Bug 69321 <https://bugs.freedesktop.org/show_bug.cgi?id=69321>`__ -
+   starting openCL crashes/boots system
+-  `Bug 70042 <https://bugs.freedesktop.org/show_bug.cgi?id=70042>`__ -
+   Major texture flickering in Dota 2 (r600g on HD 6950)
+-  `Bug 70088 <https://bugs.freedesktop.org/show_bug.cgi?id=70088>`__ -
+   Glamor on r600g crashes Xserver
+-  `Bug 70123 <https://bugs.freedesktop.org/show_bug.cgi?id=70123>`__ -
+   Freeze caused by 'winsys/radeon: remove cs_queue_empty' commit
+-  `Bug 70327 <https://bugs.freedesktop.org/show_bug.cgi?id=70327>`__ -
+   Casting floating point variable to integer not working properly while
+   constant gets converted properly
+-  `Bug 70891 <https://bugs.freedesktop.org/show_bug.cgi?id=70891>`__ -
+   CL_INVALID_BUILD_OPTIONS results in CL_INVALID_DEVICE when asking for
+   build log
+-  `Bug 70913 <https://bugs.freedesktop.org/show_bug.cgi?id=70913>`__ -
+   [PIGLIT,radeonsi] crash in
+   "spec/EXT_framebuffer_multisample/sample-alpha-to-coverage 4 depth"
+   (buffer overflow)
+-  `Bug 71022 <https://bugs.freedesktop.org/show_bug.cgi?id=71022>`__ -
+   configure: error: Expat required for DRI.
+-  `Bug 71110 <https://bugs.freedesktop.org/show_bug.cgi?id=71110>`__ -
+   xorg_driver.c:1030:2: error: too many arguments to function
+   ‘DamageUnregister’
+-  `Bug 71172 <https://bugs.freedesktop.org/show_bug.cgi?id=71172>`__ -
+   Segfault when running glxinfo. NV25GL [Quadro4 900 XGL]
+-  `Bug 71512 <https://bugs.freedesktop.org/show_bug.cgi?id=71512>`__ -
+   dlopen.h:54: undefined reference to \`dlopen'
+-  `Bug 71870 <https://bugs.freedesktop.org/show_bug.cgi?id=71870>`__ -
+   Metro: Last Light rendering issues
+
+Changes
+-------
+
+-  Removed X.Org state tracker (unmaintained and broken)
+-  Removed the video-accel r300 targets
+-  Removed the video-accel softpipe targets

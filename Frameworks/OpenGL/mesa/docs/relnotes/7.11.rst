@@ -1,0 +1,375 @@
+Mesa 7.11 Release Notes / July 31, 2011
+=======================================
+
+Mesa 7.11 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 7.11.1.
+
+Mesa 7.11 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   fa2c7068503133fb2453244cda11cb2a  MesaLib-7.11.tar.gz
+   ff03aca82d0560009a076a87c888cf13  MesaLib-7.11.tar.bz2
+   ede1ac0976f6f05df586093fc17d63ed  MesaLib-7.11.zip
+   b4fb81a47c5caedaefad49af7702c23d  MesaGLUT-7.11.tar.gz
+   77a9a0bbd7f8bca882aa5709b88cb071  MesaGLUT-7.11.tar.bz2
+   c19ef0c6eb61188c96ed4ccedd70717c  MesaGLUT-7.11.zip
+
+New features
+------------
+
+-  GL_ARB_ES2_compatibility (gallium drivers)
+-  GL_ARB_color_buffer_float (gallium drivers, i965)
+-  GL_ARB_draw_buffers_blend (gallium)
+-  GL_ARB_draw_instanced extension (gallium drivers, swrast)
+-  GL_ARB_instanced_arrays extension (gallium drivers)
+-  GL_ARB_occlusion_query2 (gallium drivers, swrast)
+-  GL_ARB_robustness (all drivers)
+-  GL_ARB_sampler_objects (gallium drivers)
+-  GL_ARB_seamless_cube_map (gallium r600)
+-  GL_ARB_shader_texture_lod (gallium drivers, i965)
+-  GL_ARB_sync (gallium drivers only, intel support was in 7.6)
+-  GL_ARB_texture_compression_rgtc (gallium drivers, swrast, i965)
+-  GL_ARB_texture_float (gallium, i965)
+-  GL_EXT_packed_float (gallium r600)
+-  GL_EXT_texture_compression_latc (gallium drivers, swrast)
+-  GL_EXT_texture_compression_rgtc (gallium drivers, swrast, i965)
+-  GL_EXT_texture_filter_anisotropic (swrast)
+-  GL_EXT_texture_shared_exponent (gallium drivers, swrast)
+-  GL_EXT_texture_sRGB_decode (gallium drivers, swrast, i965)
+-  GL_EXT_texture_snorm (gallium drivers)
+-  GL_AMD_draw_buffers_blend (alias of the ARB variant)
+-  GL_AMD_seamless_cubemap_per_texture (gallium r600)
+-  GL_AMD_shader_stencil_export (alias of the ARB variant)
+-  GL_ATI_draw_buffers (all drivers)
+-  GL_ATI_texture_compression_3dc (gallium drivers, swrast)
+-  GL_ATI_texture_float (gallium, i965)
+-  GL_NV_conditional_render (i965)
+-  GL_NV_texture_barrier (gallium drivers)
+-  Enable 16-wide fragment shader execution in i965 driver. This should
+   improve performance in many applications.
+-  Initial alpha-level support for Intel "Ivybridge" chipsets in the
+   i965 driver.
+
+Bug fixes
+---------
+
+This list is likely incomplete. This list only includes bug fixes not
+included in the previous release (7.10.3). Many of these are regressions
+that did not exist in the 7.10 release series at all.
+
+-  `Bug 25871 <https://bugs.freedesktop.org/show_bug.cgi?id=25871>`__ -
+   nearest neighbour samples wrong texel (precision/rounding problem)
+-  `Bug 29162 <https://bugs.freedesktop.org/show_bug.cgi?id=29162>`__ -
+   mesa/darwin is severly broken
+-  `Bug 30080 <https://bugs.freedesktop.org/show_bug.cgi?id=30080>`__ -
+   [i915] piglit nodepth-test fails
+-  `Bug 30217 <https://bugs.freedesktop.org/show_bug.cgi?id=30217>`__ -
+   Possible sources of memory leaks reported by valgrind
+-  `Bug 30266 <https://bugs.freedesktop.org/show_bug.cgi?id=30266>`__ -
+   Regression, segfault in libdrm_intel when calling glBitmap
+-  `Bug 31561 <https://bugs.freedesktop.org/show_bug.cgi?id=31561>`__ -
+   [i915] intel_regions.c:289: intel_region_release: Assertion
+   \`region->map_refcount == 0' failed.
+-  `Bug 31744 <https://bugs.freedesktop.org/show_bug.cgi?id=31744>`__ -
+   [GLSL] overriding built-in function impacts another shader
+-  `Bug 32308 <https://bugs.freedesktop.org/show_bug.cgi?id=32308>`__ -
+   [llvmpipe]
+   src/gallium/auxiliary/gallivm/lp_bld_init.c:319:gallivm_register_garbage_collector_callback:
+   Assertion \`NumCallbacks < 32' failed.
+-  `Bug 32309 <https://bugs.freedesktop.org/show_bug.cgi?id=32309>`__ -
+   [softpipe] SIGSEGV sp_state_derived.c:204
+-  `Bug 32459 <https://bugs.freedesktop.org/show_bug.cgi?id=32459>`__ -
+   [softpipe] glean depthStencil regression
+-  `Bug 32460 <https://bugs.freedesktop.org/show_bug.cgi?id=32460>`__ -
+   [softpipe] piglit texwrap 1D regression
+-  `Bug 32534 <https://bugs.freedesktop.org/show_bug.cgi?id=32534>`__ -
+   [arrandale/sandybridge] Mesa swallowing GEM ioctl failures
+-  `Bug 32560 <https://bugs.freedesktop.org/show_bug.cgi?id=32560>`__ -
+   To fix: 64-bit-portabilty-issue state_tracker/st_program.c:427
+-  `Bug 32634 <https://bugs.freedesktop.org/show_bug.cgi?id=32634>`__ -
+   [r300g, bisected] Massive corruption in Unigine Sanctuary
+-  `Bug 32768 <https://bugs.freedesktop.org/show_bug.cgi?id=32768>`__ -
+   VBO rendering using glDrawArrays causes program termination and "cs
+   IB too big" message
+-  `Bug 32804 <https://bugs.freedesktop.org/show_bug.cgi?id=32804>`__ -
+   [swrast] glean pixelFormats regression
+-  `Bug 32814 <https://bugs.freedesktop.org/show_bug.cgi?id=32814>`__ -
+   Build error in osmesa.c due to change in
+   \_mesa_update_framebuffer_visual() signature
+-  `Bug 32859 <https://bugs.freedesktop.org/show_bug.cgi?id=32859>`__ -
+   Mesa doesn't compile under NetBSD
+-  `Bug 32912 <https://bugs.freedesktop.org/show_bug.cgi?id=32912>`__ -
+   [bisected, r300g] Unigine Sanctuary:
+   r300_emit.c:902:r300_emit_vertex_arrays: Assertion \`&buf->b.b'
+   failed with RADEON_HYPERZ=1
+-  `Bug 32945 <https://bugs.freedesktop.org/show_bug.cgi?id=32945>`__ -
+   [RADEON:KMS:R300G] HiZ: Weird behavior with 3 pipes
+-  `Bug 33046 <https://bugs.freedesktop.org/show_bug.cgi?id=33046>`__ -
+   [bisected]glean/pixelFormats and 3 oglc cases segfault
+-  `Bug 33185 <https://bugs.freedesktop.org/show_bug.cgi?id=33185>`__ -
+   [RADEON:KMS:R300G] X crashes when kwin effects are turned on
+-  `Bug 33215 <https://bugs.freedesktop.org/show_bug.cgi?id=33215>`__ -
+   [llvmpipe] piglit fbo-drawbuffers2-blend regression
+-  `Bug 33247 <https://bugs.freedesktop.org/show_bug.cgi?id=33247>`__ -
+   [swrast] tnl/t_draw.c:471: \_tnl_draw_prims: Assertion
+   \`prim[i].num_instances > 0' failed
+-  `Bug 33284 <https://bugs.freedesktop.org/show_bug.cgi?id=33284>`__ -
+   [llvmpipe] piglit fbo-drawbuffers-fragcolor fails
+-  `Bug 33306 <https://bugs.freedesktop.org/show_bug.cgi?id=33306>`__ -
+   [glsl] GLSL integer division by zero crashes GLSL compiler
+-  `Bug 33353 <https://bugs.freedesktop.org/show_bug.cgi?id=33353>`__ -
+   [softpipe] piglit fbo-srgb looks incorrect
+-  `Bug 33360 <https://bugs.freedesktop.org/show_bug.cgi?id=33360>`__ -
+   inclusion of $(TALLOC_LIBS) in src/mesa/drivers/osmesa/Makefile
+   causes a build failure
+-  `Bug 33374 <https://bugs.freedesktop.org/show_bug.cgi?id=33374>`__ -
+   [bisect] FTBFS on commit 9767d3b5 (glapi: Fix OpenGL ES 1.1 and 2.0
+   interop)
+-  `Bug 33508 <https://bugs.freedesktop.org/show_bug.cgi?id=33508>`__ -
+   [glsl] GLSL compiler modulus by zero crash
+-  `Bug 33555 <https://bugs.freedesktop.org/show_bug.cgi?id=33555>`__ -
+   [softpipe] tgsi/tgsi_sse2.c:1527:emit_tex: Assertion \`0' failed.
+-  `Bug 33885 <https://bugs.freedesktop.org/show_bug.cgi?id=33885>`__ -
+   [glsl] GLSL compiler allows recursion
+-  `Bug 33823 <https://bugs.freedesktop.org/show_bug.cgi?id=33823>`__ -
+   [glsl] ralloc.c:78: get_header: Assertion \`info->canary == 0x5A1106'
+   failed.
+-  `Bug 33934 <https://bugs.freedesktop.org/show_bug.cgi?id=33934>`__ -
+   3D blitting is orders of magnitude slower than equivalent 2D
+   blitting.
+-  `Bug 33946 <https://bugs.freedesktop.org/show_bug.cgi?id=33946>`__ -
+   Crash: Mesa checks for invalid pointer, then uses it anyway.
+-  `Bug 34008 <https://bugs.freedesktop.org/show_bug.cgi?id=34008>`__ -
+   r600g: piglit failure (regression)
+-  `Bug 34009 <https://bugs.freedesktop.org/show_bug.cgi?id=34009>`__ -
+   Automatic Mipmap Generation produces very blurry image.
+-  `Bug 34042 <https://bugs.freedesktop.org/show_bug.cgi?id=34042>`__ -
+   Surfaceless eglMakeCurrent() fails if the supplied EGLContext is not
+   a dummy context
+-  `Bug 34049 <https://bugs.freedesktop.org/show_bug.cgi?id=34049>`__ -
+   r600g: assertion failure (regression)
+-  `Bug 34119 <https://bugs.freedesktop.org/show_bug.cgi?id=34119>`__ -
+   [glsl] piglit glsl-texcoord-array regression
+-  `Bug 34323 <https://bugs.freedesktop.org/show_bug.cgi?id=34323>`__ -
+   [i915 GLSL gles2] gl_FragCoord.w not correct
+-  `Bug 34346 <https://bugs.freedesktop.org/show_bug.cgi?id=34346>`__ -
+   src/glsl relies on $PWD which can be unset
+-  `Bug 34378 <https://bugs.freedesktop.org/show_bug.cgi?id=34378>`__ -
+   st/mesa: 2a904fd6a0cb80eec6dec2bae07fd8778b04caf3 breaks sauerbraten
+-  `Bug 34419 <https://bugs.freedesktop.org/show_bug.cgi?id=34419>`__ -
+   Kwin crashes screensaver exits
+-  `Bug 34463 <https://bugs.freedesktop.org/show_bug.cgi?id=34463>`__ -
+   state_tracker/st_texture.c:370:st_texture_image_copy: Assertion
+   \`u_minify(src->width0, srcLevel) == width' failed.
+-  `Bug 34468 <https://bugs.freedesktop.org/show_bug.cgi?id=34468>`__ -
+   src/glsl/Makefile fix
+-  `Bug 34541 <https://bugs.freedesktop.org/show_bug.cgi?id=34541>`__ -
+   [ilk, wine] massive render corruption after recent patchset
+-  `Bug 34589 <https://bugs.freedesktop.org/show_bug.cgi?id=34589>`__ -
+   [pineview bisected]many cases regression
+-  `Bug 34595 <https://bugs.freedesktop.org/show_bug.cgi?id=34595>`__ -
+   [bisected piketon]oglc half_float_vertex(misc.fillmode.wireframe)
+   regressed
+-  `Bug 34597 <https://bugs.freedesktop.org/show_bug.cgi?id=34597>`__ -
+   [bisected piketon]oglc blend-constcolor and 7 draw-buffers2 subcases
+   regressed
+-  `Bug 34603 <https://bugs.freedesktop.org/show_bug.cgi?id=34603>`__ -
+   [bisected piketon]oglc vbo subcase basic.bufferdata regressed
+-  `Bug 34604 <https://bugs.freedesktop.org/show_bug.cgi?id=34604>`__ -
+   [bisected piketon]piglit fbo/fbo-depth-sample-compare regressed
+-  `Bug 34646 <https://bugs.freedesktop.org/show_bug.cgi?id=34646>`__ -
+   [bisected piketon]ogles2conform
+   GL2Tests/GL/gl_FragCoord/gl_FragCoord_w_frag.test
+-  `Bug 34656 <https://bugs.freedesktop.org/show_bug.cgi?id=34656>`__ -
+   i965: Crash when running WebGL Conformance Test in firefox-4 nightly
+   build
+-  `Bug 34691 <https://bugs.freedesktop.org/show_bug.cgi?id=34691>`__ -
+   [GLSL] matrix array member assignment with a complex subscript fails
+-  `Bug 34906 <https://bugs.freedesktop.org/show_bug.cgi?id=34906>`__ -
+   [Pineview] Some WebGL conformance tests will crash firefox
+-  `Bug 34968 <https://bugs.freedesktop.org/show_bug.cgi?id=34968>`__ -
+   Bad fps in Lightsmark benchmark
+-  `Bug 35025 <https://bugs.freedesktop.org/show_bug.cgi?id=35025>`__ -
+   [Patch] Serious compiler warnings
+-  `Bug 35312 <https://bugs.freedesktop.org/show_bug.cgi?id=35312>`__ -
+   r600g: Automatic mipmap generation doesn't work properly
+-  `Bug 35373 <https://bugs.freedesktop.org/show_bug.cgi?id=35373>`__ -
+   [[GM45] OpenGL] GL_EXT_texture_sRGB_decode broken
+-  `Bug 35434 <https://bugs.freedesktop.org/show_bug.cgi?id=35434>`__ -
+   [RADEON:KMS:R600G] etqw: broken ground textures
+-  `Bug 35441 <https://bugs.freedesktop.org/show_bug.cgi?id=35441>`__ -
+   [PATCH] Mesa does not find nouveau include files with
+   --enable-shared-dricore
+-  `Bug 35614 <https://bugs.freedesktop.org/show_bug.cgi?id=35614>`__ -
+   [SNB] random hang on piglit case shaders/glsl-max-varyings
+-  `Bug 35820 <https://bugs.freedesktop.org/show_bug.cgi?id=35820>`__ -
+   [bisected SNB] System hangs when Gnome with compiz start up
+-  `Bug 35822 <https://bugs.freedesktop.org/show_bug.cgi?id=35822>`__ -
+   [bisected pineview] many cases related to depth and stencil failed
+-  `Bug 35849 <https://bugs.freedesktop.org/show_bug.cgi?id=35849>`__ -
+   when sampling textures from both fragment and vertex shaders the
+   vertex texture has the incorrect texture bound
+-  `Bug 35852 <https://bugs.freedesktop.org/show_bug.cgi?id=35852>`__ -
+   [bisected pineview] oglc case pxconv-read failed
+-  `Bug 35961 <https://bugs.freedesktop.org/show_bug.cgi?id=35961>`__ -
+   src/gallium/auxiliary/util/u_draw.c:77:util_draw_max_index: Assertion
+   \`buffer_size - format_size <= buffer_size' failed.
+-  `Bug 36032 <https://bugs.freedesktop.org/show_bug.cgi?id=36032>`__ -
+   piglit fdo9833 regression
+-  `Bug 36033 <https://bugs.freedesktop.org/show_bug.cgi?id=36033>`__ -
+   main/shaderapi.c:1044: validate_samplers: Assertion
+   \`(sizeof(targetName)/sizeof(\*(targetName))) == NUM_TEXTURE_TARGETS'
+   failed.
+-  `Bug 36086 <https://bugs.freedesktop.org/show_bug.cgi?id=36086>`__ -
+   [wine] Segfault r300_resource_copy_region with some wine apps and
+   RADEON_HYPERZ
+-  `Bug 36182 <https://bugs.freedesktop.org/show_bug.cgi?id=36182>`__ -
+   Game Trine from https://www.humblebundle.com/ needs ATI_draw_buffers
+-  `Bug 36268 <https://bugs.freedesktop.org/show_bug.cgi?id=36268>`__ -
+   [r300g, bisected] minor flickering in Unigine Sanctuary
+-  `Bug 36282 <https://bugs.freedesktop.org/show_bug.cgi?id=36282>`__ -
+   34a5d3b9f4740601708c82093e2114356d749e65: glxgears segfaults when
+   compiled with shared glapi
+-  `Bug 36333 <https://bugs.freedesktop.org/show_bug.cgi?id=36333>`__ -
+   can't build demos if mesa build with --enable-selinux
+-  `Bug 36473 <https://bugs.freedesktop.org/show_bug.cgi?id=36473>`__ -
+   [bisected] piglit bugs/fdo23670-depth_test failed
+-  `Bug 36572 <https://bugs.freedesktop.org/show_bug.cgi?id=36572>`__ -
+   [bisected]oglc case texenv segfaults
+-  `Bug 36609 <https://bugs.freedesktop.org/show_bug.cgi?id=36609>`__ -
+   45920d2ecb38b14fdda5253fecce996570c22863 breaks sauerbraten on r300g
+-  `Bug 36648 <https://bugs.freedesktop.org/show_bug.cgi?id=36648>`__ -
+   [bisected SNB]piglit fbo/fbo-alphatest-nocolor failed
+-  `Bug 36649 <https://bugs.freedesktop.org/show_bug.cgi?id=36649>`__ -
+   [bisected SNB]oglc draw-buffers2 failed with 16-wide
+-  `Bug 36753 <https://bugs.freedesktop.org/show_bug.cgi?id=36753>`__ -
+   Some textures now rendered as completely black after register
+   allocator rewrite.
+-  `Bug 36821 <https://bugs.freedesktop.org/show_bug.cgi?id=36821>`__ -
+   [bisected SNB]oglc api-texcoord causes GPU hang
+-  `Bug 36914 <https://bugs.freedesktop.org/show_bug.cgi?id=36914>`__ -
+   r600g: add rv670 flushing workaround. Causes games and some mesa
+   demos to segfault.
+-  `Bug 36917 <https://bugs.freedesktop.org/show_bug.cgi?id=36917>`__ -
+   Rendering glitches in ETQW
+-  `Bug 36939 <https://bugs.freedesktop.org/show_bug.cgi?id=36939>`__ -
+   multitexturing is messed up in quake wars (regression)
+-  `Bug 36987 <https://bugs.freedesktop.org/show_bug.cgi?id=36987>`__ -
+   Intel GMA 4500 ARB_shader_texture_lod support
+-  `Bug 37028 <https://bugs.freedesktop.org/show_bug.cgi?id=37028>`__ -
+   Amnesia/HPL2 Demo: Strange graphical bugs on r600g
+-  `Bug 37150 <https://bugs.freedesktop.org/show_bug.cgi?id=37150>`__ -
+   sRGB textures are too bright in Starcraft 2
+-  `Bug 37154 <https://bugs.freedesktop.org/show_bug.cgi?id=37154>`__ -
+   main/texstore.c:4187: \_mesa_texstore_rgb9_e5: Assertion
+   \`baseInternalFormat == 0x1907' failed.
+-  `Bug 37157 <https://bugs.freedesktop.org/show_bug.cgi?id=37157>`__ -
+   [bisected] KDE KWin crashes on start with delayed BO mapping
+-  `Bug 37168 <https://bugs.freedesktop.org/show_bug.cgi?id=37168>`__ -
+   Regression: Severe memory leak when running Second Life
+-  `Bug 37366 <https://bugs.freedesktop.org/show_bug.cgi?id=37366>`__ -
+   [i965 bisected ILK] Fragment shader discard tests occasionally fail
+-  `Bug 37383 <https://bugs.freedesktop.org/show_bug.cgi?id=37383>`__ -
+   incorrect GLSL optimization
+-  `Bug 37476 <https://bugs.freedesktop.org/show_bug.cgi?id=37476>`__ -
+   [wine] Devil May Cry 4: TXD tgsi opcode unsupported / translation
+   from TGSI failed / missing vertex shader
+-  `Bug 37743 <https://bugs.freedesktop.org/show_bug.cgi?id=37743>`__ -
+   [bisected i965]oglc GLSLlinker subcase
+   negative.varying.beyondMaxVaryingFloats aborted
+-  `Bug 37766 <https://bugs.freedesktop.org/show_bug.cgi?id=37766>`__ -
+   Crash in dri2InvalidateBuffers when resizing Java window with OpenGL
+   pipeline enabled
+-  `Bug 37839 <https://bugs.freedesktop.org/show_bug.cgi?id=37839>`__ -
+   main/teximage.c:2393: \_mesa_choose_texture_format: Assertion \`f !=
+   MESA_FORMAT_NONE' failed.
+-  `Bug 37934 <https://bugs.freedesktop.org/show_bug.cgi?id=37934>`__ -
+   Corruption with topogun trace
+-  `Bug 38015 <https://bugs.freedesktop.org/show_bug.cgi?id=38015>`__ -
+   Some extensions enabled even when not supported by the underlying
+   driver
+-  `Bug 38134 <https://bugs.freedesktop.org/show_bug.cgi?id=38134>`__ -
+   [bisected i965]piglit fbo/fbo-blit-d24s8 crashed
+-  `Bug 38145 <https://bugs.freedesktop.org/show_bug.cgi?id=38145>`__ -
+   r600g/evergreen: Incorrect rendering of some effects in doom3
+-  `Bug 38440 <https://bugs.freedesktop.org/show_bug.cgi?id=38440>`__ -
+   ETQW: Model in team select rendering too bright
+-  `Bug 38566 <https://bugs.freedesktop.org/show_bug.cgi?id=38566>`__ -
+   [regression] ETQW crashes with
+   21972c85ea734dbfcf69629c6b0b940efb42d4ba
+-  `Bug 38584 <https://bugs.freedesktop.org/show_bug.cgi?id=38584>`__ -
+   MESA_GLSL=dump causes SEGV in ir_print_visitor::unique_name
+-  `Bug 38599 <https://bugs.freedesktop.org/show_bug.cgi?id=38599>`__ -
+   THe value of WGL_PBUFFER_HEIGHT_ARB is returned as width in
+   wglQueryPbufferARB
+-  `Bug 38602 <https://bugs.freedesktop.org/show_bug.cgi?id=38602>`__ -
+   [bisected] Wrong display after "prefer native texture formats when
+   possible" commit
+-  `Bug 38624 <https://bugs.freedesktop.org/show_bug.cgi?id=38624>`__ -
+   program/ir_to_mesa.cpp:1440: virtual void
+   ir_to_mesa_visitor::visit(ir_dereference_variable*): Assertion
+   \`var->location != -1' failed.
+-  `Bug 38626 <https://bugs.freedesktop.org/show_bug.cgi?id=38626>`__ -
+   vbo: Don't discount stride breaks piglit on softpipe/r600g
+-  `Bug 38649 <https://bugs.freedesktop.org/show_bug.cgi?id=38649>`__ -
+   piglit fbo-copyteximage regression
+-  `Bug 38762 <https://bugs.freedesktop.org/show_bug.cgi?id=38762>`__ -
+   [IVB bisected]3D demos like glxgears abort
+-  `Bug 38771 <https://bugs.freedesktop.org/show_bug.cgi?id=38771>`__ -
+   [[GM45] DRI] GPU hangs with current Mesa GIT when running certain
+   OpenGL applications
+-  `Bug 38842 <https://bugs.freedesktop.org/show_bug.cgi?id=38842>`__ -
+   Various valid GLX attributes are rejected by MESA glxChooseFBConfig
+-  `Bug 38971 <https://bugs.freedesktop.org/show_bug.cgi?id=38971>`__ -
+   [bisected]oglc glsl-autointconv subcase
+   negative.function.ambiguousMatch failed
+-  `Bug 38987 <https://bugs.freedesktop.org/show_bug.cgi?id=38987>`__ -
+   sampler allowed as non-uniform / non-function parameters
+-  `Bug 39024 <https://bugs.freedesktop.org/show_bug.cgi?id=39024>`__ -
+   [Pineview webgl] many webgl conformance cases crash the browser
+-  `Bug 39083 <https://bugs.freedesktop.org/show_bug.cgi?id=39083>`__ -
+   [regression, bisected, r600g] Wrong rendering of Bubbles3D
+   screensaver
+-  `Bug 39119 <https://bugs.freedesktop.org/show_bug.cgi?id=39119>`__ -
+   setting SQ_LDS_RESOURCE_MGMT register to zero in other applications
+   muddles up font rendering permanently
+-  `Bug 39209 <https://bugs.freedesktop.org/show_bug.cgi?id=39209>`__ -
+   [bisected] Wrong display after "prefer native texture formats when
+   possible" commit - part2
+-  `Bug 39219 <https://bugs.freedesktop.org/show_bug.cgi?id=39219>`__ -
+   libgl conflict with xbmc causes lock up on xbmc exit
+-  `Bug 39257 <https://bugs.freedesktop.org/show_bug.cgi?id=39257>`__ -
+   [bisected SNB]Mesa demos engine causes GPU hang
+-  `Bug 39487 <https://bugs.freedesktop.org/show_bug.cgi?id=39487>`__ -
+   [i965] brw_wm_surface_state.c:495: brw_update_renderbuffer_surface:
+   Assertion \`brw->has_surface_tile_offset \|\| (tile_x == 0 && tile_y
+   == 0)' failed.
+-  `Bug 39515 <https://bugs.freedesktop.org/show_bug.cgi?id=39515>`__ -
+   FTBFS: libEGL depends on libgbm, but libEGL builds first
+-  `Bug 39572 <https://bugs.freedesktop.org/show_bug.cgi?id=39572>`__ -
+   Cogs: GPU hang
+
+Changes
+-------
+
+-  The Windows MSVC project files have been removed. They haven't been
+   maintained in quite a while. Building with SCons is an alternative.
+-  Removed GL_SGI_texture_color_table support from swrast driver - the
+   only driver that implemented it.
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-7.10..mesa-7.11

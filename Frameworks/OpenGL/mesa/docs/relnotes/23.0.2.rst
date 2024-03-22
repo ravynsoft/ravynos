@@ -1,0 +1,233 @@
+Mesa 23.0.2 Release Notes / 2023-04-07
+======================================
+
+Mesa 23.0.2 is a bug fix release which fixes bugs found since the 23.0.1 release.
+
+Mesa 23.0.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.0.2 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    1b7d3399fc6f16f030361f925d33ebc7600cbf98094582f54775b6a1180529e7  mesa-23.0.2.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- allwinner a64: DRM_IOCTL_MODE_CREATE_DUMB failed: Cannot allocate memory after some time of apps usage
+- mesa: index buffer leaking
+- RadeonSI: null dereference in amdgpu_cs_add_buffer, potential refcount mismatch, running BeyondAllReason
+- eglCreateImageKHR, error: EGL_BAD_ALLOC (0x3003), message: "createImageFromDmaBufs failed" on AMD multi-gpu with explicit format modifiers
+- libgrl.a installed but not used?
+- radv: crash compiling UE5 lumen hardware RT shader
+- aco: unused vtmp_in_loop
+- radv,nir: dEQP-VK.ray_query.builtin.rayqueryterminate.* failures
+- glsl compiled error when the RHS of operator \`>>` is int64_t by enabling GL_ARB_gpu_shader_int64 extension
+- QPainter fails to render multiple shapes with a brush set since Mesa 23.0
+- eglSwapBuffers blocks in wayland when it's wl_surface_frame event is stolen.
+- plasmashell sometimes hangs with mesa_glthread
+- pps_device.h:23:11: error: ‘uint32_t’ does not name a type
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- panfrost: Don't round up Midgard polygon list BOs
+
+Daniel Schürmann (2):
+
+- radv/rt: place any-hit scratch vars after intersection scratch vars
+- radv/rt: Fix any_hit scratch variables.
+
+David Heidelberg (1):
+
+- aco: drop leftover variable
+
+Dylan Baker (5):
+
+- docs: Add sha256 sum for 23.0.1
+- .pick_status.json: Update to 5e9ea154849ebe19b96a243b9716bd264545bf8b
+- .pick_status.json: Update to 2cc9364c2061fe4a66398678cabf61e3464e4d77
+- .pick_status.json: Update to 7abd8c499b4388f1e2947d78c59aafa0b52c254a
+- .pick_status.json: Update to debc543904235ed7dfc14217bf43f33f9f768e5a
+
+Emma Anholt (1):
+
+- turnip: Don't push inline uniform buffer contents outside constlen.
+
+Eric Engestrom (1):
+
+- v3d: fix \`dirty` bitset being too small to accept V3D_DIRTY_SSBO
+
+Erico Nunes (1):
+
+- lima: don't use resource_from_handle while creating scanout
+
+Filip Gawin (1):
+
+- crocus: don't quantize the clear value
+
+Francisco Jerez (1):
+
+- intel/fs: Fix register coalesce in presence of force_writemask_all copy source writes.
+
+Gert Wollny (1):
+
+- r600/sfn: fix container allocators
+
+Iago Toral Quiroga (1):
+
+- vulkan/wsi/display: set pDisplay to NULL on error
+
+Ilya K (1):
+
+- intel/vk/grl: don't install libgrl.a
+
+Isabella Basso (2):
+
+- nir/algebraic: insert patterns inside optimizations list
+- nir/algebraic: remove duplicate bool conversion lowerings
+
+Iván Briano (1):
+
+- vulkan/wsi/display: do not dereference a NULL pointer
+
+Jesse Natalie (2):
+
+- nir: Propagate alignment when rematerializing cast derefs
+- microsoft/compiler: Fix setting bit 31 in feature flags
+
+Kai-Heng Feng (2):
+
+- iris: Retry DRM_IOCTL_I915_GEM_EXECBUFFER2 on ENOMEM
+- Revert "iris: Avoid abort() if kernel can't allocate memory"
+
+Karol Herbst (3):
+
+- nvc0: enable fp helper invocation memory loads on Turing+
+- rusticl/util: extract offset_of macro
+- rusticl/icd: Make it work in case Rustc shuffles struct around
+
+Konstantin Seurer (3):
+
+- radv/sqtt: Skip dumping pipeline libraries
+- radv/rt: Handle load_constant instructions when inlining shaders
+- nir/lower_shader_calls: Remat derefs before lowering resumes
+
+Lang Yu (1):
+
+- amd/common: fix a typo
+
+Lionel Landwerlin (12):
+
+- intel/fs: don't SEND messages as partial writes
+- intel/fs: fix nir_opt_peephole_ffma max vec assumption
+- intel/fs: fixup sources number from opt_algebraic
+- intel/fs: fix subgroup invocation read bounds checking
+- anv: fix incorrect utrace bo release
+- anv: implement recommended flush/wait of AUX-TT invalidation
+- iris: implement recommended flush/wait of AUX-TT invalidation
+- anv: take care of maxStorageBufferRange being uint32_t
+- isl: update max buffer size for SKL+
+- intel/perf: fix OA format selection on MTL
+- intel/fs: don't consider fixup_nomask_control_flow SENDs predicate
+- intel/fs: UNDEF fixup_nomask_control_flow temp register
+
+Lynne (1):
+
+- aco_validate: allow for wave32 in p_dual_src_export_gfx11
+
+Marcin Ślusarz (1):
+
+- anv,hasvk: remove stale comments
+
+Marek Olšák (1):
+
+- vbo: fix current attribs not updating gallium vertex elements
+
+Mike Blumenkrantz (9):
+
+- aux/trace: delete GALLIUM_TRACE_NIR log message
+- zink: track tc fences better
+- zink: double check layouts for possible feedback loop images
+- zink: handle swapchain creation failure less lazily
+- aux/trace: fix GALLIUM_TRACE_NIR handling
+- llvmpipe: fix linear fs analysis with nonzero fs outputs
+- llvmpipe: fix handling of unused color attachments
+- zink: block resolves where src extents > dst extents
+- zink: flag vertex buffers for rebind after vstate draws
+
+Patrick Lerda (1):
+
+- r600: fix typo that could lead to a possible crash
+
+Pierre-Eric Pelloux-Prayer (5):
+
+- yegl/wayland: fix glthread deadlocks
+- Revert "driconf: add a workaround for plasmashell freezing"
+- radeonsi: don't use alignment_log2 of imported buffers
+- mesa: fix invalid index_bo refcounting
+- util/vbuf: fix index_bo leak
+
+Qiang Yu (2):
+
+- ac/llvm: respect channel_type when ac_build_buffer_load
+- ac/llvm: add missing type convert for nir_load_buffer_amd
+
+Rhys Perry (1):
+
+- aco: fix nir_var_shader_out barriers for task shaders
+
+Sonny Jiang (1):
+
+- gallium/pipe: change PIPE_DEFAULT_DECODER_FEEDBACK_TIMEOUT_NS to 1 second
+
+Sviatoslav Peleshko (1):
+
+- glsl: Fix codegen for constant ir_binop_{l,r}shift with mixed types
+
+Tapani Pälli (1):
+
+- anv: use primitive ID override when shader does not supply it
+
+Timothy Arceri (2):
+
+- glsl: allow 64-bit integer on RHS of shift
+- util/00-mesa-defaults: add Akka Arrh workaround
+
+Timur Kristóf (3):
+
+- ac/nir: Store only lowest 8 bits for task draw ring DWORD3.
+- aco: Consider p_cbranch_nz as divergent branch too.
+- aco: Don't remove exec writes that also write other registers.
+
+Vinson Lee (1):
+
+- pps: Fix build errors.
+
+antonino (4):
+
+- zink: fix \`final_hash` update in \`zink_gfx_program_update`
+- mesa: correctly allocate space for converted primtives
+- nir: handle primitives with adjacency
+- nir: avoid generating conflicting output variables

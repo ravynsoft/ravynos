@@ -1,0 +1,77 @@
+Mesa 6.4 / October 24, 2005
+===========================
+
+Mesa 6.4 is a stable, bug-fix release.
+
+MD5 checksums
+-------------
+
+::
+
+   1cce0c1eb4fd15e9dfe837a1ce0c9812  MesaLib-6.4.tar.gz
+   85a84e47a3f718f752f306b9e0954ef6  MesaLib-6.4.tar.bz2
+   b976fea4f3ee06354c53f91b6e3f2ffc  MesaLib-6.4.zip
+   d8734f2c69bcf7ef9f5ae454a85743ba  MesaDemos-6.4.tar.gz
+   1a8c4d4fc699233f5fdb902b8753099e  MesaDemos-6.4.tar.bz2
+   607ab7c7a7de0cc5febbdde2bfa03098  MesaDemos-6.4.zip
+   3260156f66174322a092be0767962d34  MesaGLUT-6.4.tar.gz
+   0465d053f83775f44a12dec4050dfd78  MesaGLUT-6.4.tar.bz2
+   02abfcdcdf72ba938ae00f6e3b70fbe0  MesaGLUT-6.4.zip
+
+New
+---
+
+-  Added a fast XOR line drawing function in Xlib driver
+-  Added support for GL_ARB_texture_mirrored_repeat to savage driver
+   (supported only on Savage4 hardware).
+
+Changes
+-------
+
+-  Mesa now packaged in three parts: Library, Demos and GLUT
+
+Bug fixes
+---------
+
+-  GLX_X_RENDERABLE token wasn't accepted by glXChooseFBConfig
+-  Some files were present multiple times in the 6.3.2 tarballs
+-  r200_vtxtmp_x86.S file was missing from 6.3.2 tarball (bug 4207)
+-  glxgears_fbconfig demo didn't work (bug 4237)
+-  fixed bug when bilinear sampling 2d textures with borders
+-  glXCreatePbuffer() could segfault instead of returning 0 (bug 4235)
+-  fixed undefined frexp and rand in X.org libGLcore.a (bug 4242)
+-  fixed a few problems with proxy color tables (bug 4270)
+-  fixed precision problem in Z clearing (bug 4395)
+-  glBitmap, glDraw/CopyPixels mistakenly generated selection hits
+-  fixed potential segfault caused by reading pixels outside of
+   renderbuffer bounds
+-  glGetTexLevelParameter didn't accept GL_TEXTURE_DEPTH_SIZE_ARB
+-  fixed memory corruption bug involving software alpha buffers
+-  glReadPixels clipped by window bounds was sometimes broken
+-  glDraw/CopyPixels of stencil data ignored the stencil write mask
+-  glReadPixels from a texture bound to a framebuffer object didn't work
+-  glIsRender/FramebufferEXT weren't totally correct
+-  fixed a number of point size attenuation/fade bugs
+-  fixed glFogCoord bug 4729
+-  GLX encoding for transpose matrix functions was broken
+-  fixed broken fragment program KIL and SWZ instructions
+-  fragment programs that wrote result.depth.z didn't work
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa (Xlib)        implements OpenGL 1.5
+   OSMesa (off-screen) implements OpenGL 1.5
+   Windows/Win32       implements OpenGL 1.5
+   Glide (3dfx Voodoo1/2)  requires updates
+   SVGA            requires updates
+   DJGPP           requires updates
+   GGI         requires updates
+   BeOS            requires updates
+   Allegro         requires updates
+   D3D         requires updates

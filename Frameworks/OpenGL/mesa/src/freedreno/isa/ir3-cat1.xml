@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2020 Google, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ -->
+
+<isa>
+
+<!--
+	Cat1 Instruction(s):
+ -->
+
+<bitset name="#cat1-dst" size="8">
+	<doc>
+		Unlike other instruction categories, cat1 can have relative dest
+	</doc>
+	<override>
+		<expr>
+			({OFFSET} == 0) &amp;&amp; {DST_REL}
+		</expr>
+		<display>
+			r&lt;a0.x&gt;
+		</display>
+		<field name="OFFSET" low="0" high="7" type="uint"/>
+	</override>
+	<override>
+		<expr>
+			{DST_REL}
+		</expr>
+		<display>
+			r&lt;a0.x + {OFFSET}&gt;
+		</display>
+		<field name="OFFSET" low="0" high="7" type="uint"/>
+	</override>
+	<display>
+		{DST}
+	</display>
+	<field name="DST" low="0" high="7" type="#reg-gpr"/>
+	<encode type="struct ir3_register *">
+		<map name="DST">src</map>
+		<map name="OFFSET">src->array.offset</map>
+	</encode>
+</bitset>
+
+<enum name="#round">
+	<value val="0" display=""/>
+	<value val="1" display="(even)"/>
+	<value val="2" display="(pos_infinity)"/>
+	<value val="3" display="(neg_infinity)"/>
+</enum>
+
+<bitset name="#instruction-cat1" extends="#instruction">
+	<pattern pos="42">0</pattern>
+	<field name="SS" pos="44" type="bool" display="(ss)"/>
+	<field name="UL" pos="45" type="bool" display="(ul)"/>
+	<field name="ROUND" low="55" high="56" type="#round"/>
+	<field name="JP" pos="59" type="bool" display="(jp)"/>
+	<field name="SY" pos="60" type="bool" display="(sy)"/>
+	<pattern low="61" high="63">001</pattern>  <!-- cat1 -->
+	<encode>
+		<map name="SRC">src->srcs[0]</map>
+		<map name="SRC_R">!!(src->srcs[0]->flags &amp; IR3_REG_R)</map>
+		<map name="UL">!!(src->flags &amp; IR3_INSTR_UL)</map>
+		<map name="DST_REL">!!(src->dsts[0]->flags &amp; IR3_REG_RELATIV)</map>
+		<map name="ROUND">src->cat1.round</map>
+	</encode>
+</bitset>
+
+<bitset name="#instruction-cat1-typed" extends="#instruction-cat1">
+	<derived name="HALF" type="bool" display="h">
+		<expr>
+			({SRC_TYPE} == 0) /* f16 */ ||
+			({SRC_TYPE} == 2) /* u16 */ ||
+			({SRC_TYPE} == 4) /* s16 */ ||
+			({SRC_TYPE} == 6) /* u8 */  ||
+			({SRC_TYPE} == 7) /* s8 */
+		</expr>
+	</derived>
+	<derived name="DST_HALF" type="bool" display="h">
+		<expr>
+			({DST_TYPE} == 0) /* f16 */ ||
+			({DST_TYPE} == 2) /* u16 */ ||
+			({DST_TYPE} == 4) /* s16 */ ||
+			({DST_TYPE} == 6) /* u8 */  ||
+			({DST_TYPE} == 7) /* s8 */
+		</expr>
+	</derived>
+	<field name="DST_TYPE" low="46" high="48" type="#type"/>
+	<field name="SRC_TYPE" low="50" high="52" type="#type"/>
+
+	<encode>
+		<map name="DST_TYPE">src->cat1.dst_type</map>
+		<map name="SRC_TYPE">src->cat1.src_type</map>
+	</encode>
+</bitset>
+
+<bitset name="#instruction-cat1-mov" extends="#instruction-cat1-typed">
+	<override>
+		<expr>
+			({DST} == 0xf4 /* a0.x */) &amp;&amp; ({SRC_TYPE} == 4 /* s16 */) &amp;&amp; ({DST_TYPE} == 4)
+		</expr>
+		<display>
+			{SY}{SS}{JP}{REPEAT}{UL}mova {ROUND}a0.x, {SRC}
+		</display>
+		<assert low="32" high="39">11110100</assert>  <!-- DST==a0.x -->
+		<assert low="46" high="48">100</assert>       <!-- DST_TYPE==s16 -->
+		<assert low="50" high="52">100</assert>       <!-- SRC_TYPE==s16 -->
+	</override>
+	<override>
+		<expr>
+			({DST} == 0xf5 /* a0.y */) &amp;&amp; ({SRC_TYPE} == 2 /* u16 */) &amp;&amp; ({DST_TYPE} == 2)
+		</expr>
+		<display>
+			{SY}{SS}{JP}{REPEAT}{UL}mova1 {ROUND}a1.x, {SRC}
+		</display>
+		<assert low="32" high="39">11110101</assert>  <!-- DST==a0.y -->
+		<assert low="46" high="48">010</assert>       <!-- DST_TYPE==u16 -->
+		<assert low="50" high="52">010</assert>       <!-- SRC_TYPE==u16 -->
+	</override>
+	<override>
+		<expr>
+			{SRC_TYPE} != {DST_TYPE}
+		</expr>
+		<display>
+			{SY}{SS}{JP}{REPEAT}{UL}cov.{SRC_TYPE}{DST_TYPE} {ROUND}{DST_HALF}{DST}, {SRC}
+		</display>
+	</override>
+	<display>
+		{SY}{SS}{JP}{REPEAT}{UL}mov.{SRC_TYPE}{DST_TYPE} {ROUND}{DST_HALF}{DST}, {SRC}
+	</display>
+	<field name="DST" low="32" high="39" type="#cat1-dst">
+		<param name="DST_REL"/>
+	</field>
+	<field name="REPEAT" low="40" high="41" type="#rptN"/>
+	<field name="DST_REL" pos="49" type="bool"/>
+	<pattern low="57" high="58">00</pattern>  <!-- OPC -->
+</bitset>
+
+<!--
+	Helpers for displaying cat1 source forms.. split out so the toplevel
+	instruction can just refer to {SRC}.  This decouples the cov/mov/mova
+	permultations from the different src type permutations
+ -->
+
+<bitset name="#cat1-immed-src" size="32">
+	<override>
+		<expr>
+			{SRC_TYPE} == 0 /* f16 */
+		</expr>
+		<display>
+			h({IMMED})
+		</display>
+		<field name="IMMED" low="0" high="15" type="float"/>
+	</override>
+	<override>
+		<expr>
+			{SRC_TYPE} == 1 /* f32 */
+		</expr>
+		<display>
+			({IMMED})
+		</display>
+		<field name="IMMED" low="0" high="31" type="float"/>
+	</override>
+	<override>
+		<expr>
+			({SRC_TYPE} == 3 /* u32 */) &amp;&amp; ({IMMED} > 0x1000)
+		</expr>
+		<display>
+			0x{IMMED}
+		</display>
+		<field name="IMMED" low="0" high="31" type="hex"/>
+	</override>
+	<override>
+		<expr>
+			{SRC_TYPE} == 4 /* s16 */
+		</expr>
+		<field name="IMMED" low="0" high="15" type="int"/>
+	</override>
+	<override>
+		<expr>
+			{SRC_TYPE} == 5 /* s32 */
+		</expr>
+		<field name="IMMED" low="0" high="31" type="int"/>
+	</override>
+
+	<display>
+		{IMMED}
+	</display>
+
+	<field name="IMMED" low="0" high="31" type="uint"/>
+	<encode type="struct ir3_register *">
+		<map name="IMMED">extract_reg_uim(src)</map>
+	</encode>
+</bitset>
+
+<bitset name="#cat1-const-src" size="11">
+	<display>
+		{SRC_R}{HALF}{CONST}
+	</display>
+	<field name="CONST" low="0" high="10" type="#reg-const"/>
+	<encode type="struct ir3_register *">
+		<map name="CONST">src</map>
+	</encode>
+</bitset>
+
+<bitset name="#cat1-gpr-src" size="8">
+	<display>
+		{LAST}{SRC_R}{HALF}{SRC}
+	</display>
+	<field name="SRC" low="0" high="7" type="#reg-gpr"/>
+	<encode type="struct ir3_register *">
+		<map name="SRC">src</map>
+	</encode>
+</bitset>
+
+<bitset name="#cat1-relative-gpr-src" size="10">
+	<display>
+		{SRC_R}{HALF}{SRC}
+	</display>
+	<field name="SRC" low="0" high="9" type="#reg-relative-gpr"/>
+	<encode type="struct ir3_register *">
+		<map name="SRC">src</map>
+	</encode>
+</bitset>
+
+<bitset name="#cat1-relative-const-src" size="10">
+	<display>
+		{SRC_R}{HALF}{SRC}
+	</display>
+	<field name="SRC" low="0" high="9" type="#reg-relative-const"/>
+	<encode type="struct ir3_register *">
+		<map name="SRC">src</map>
+	</encode>
+</bitset>
+
+<!--
+	cov/mov/mova permutations based on src type:
+ -->
+
+<bitset name="mov-immed" extends="#instruction-cat1-mov">
+	<field name="SRC" low="0" high="31" type="#cat1-immed-src">
+		<param name="SRC_TYPE"/>
+	</field>
+	<pattern pos="43">0</pattern>   <!-- SRC_R -->
+	<pattern low="53" high="54">10</pattern>
+</bitset>
+
+<bitset name="mov-const" extends="#instruction-cat1-mov">
+	<field name="SRC" low="0" high="10" type="#cat1-const-src">
+		<param name="SRC_R"/>
+		<param name="HALF"/>
+	</field>
+	<pattern low="11" high="31">000000000000000000000</pattern>
+	<field name="SRC_R" pos="43" type="bool" display="(r)"/>
+	<pattern low="53" high="54">01</pattern>
+</bitset>
+
+<bitset name="mov-gpr" extends="#instruction-cat1-mov">
+	<field name="SRC" low="0" high="7" type="#cat1-gpr-src">
+		<param name="LAST"/>
+		<param name="SRC_R"/>
+		<param name="HALF"/>
+	</field>
+	<pattern low="8" high="9">00</pattern>
+	<field name="LAST" pos="10" type="bool" display="(last)"/>
+	<pattern low="11" high="31">000000000000000000000</pattern>
+	<field name="SRC_R" pos="43" type="bool" display="(r)"/>
+	<pattern low="53" high="54">00</pattern>
+	<encode>
+		<map name="LAST">!!(src->srcs[0]->flags &amp; IR3_REG_LAST_USE)</map>
+	</encode>
+</bitset>
+
+<bitset name="#instruction-cat1-relative" extends="#instruction-cat1-mov">
+	<pattern pos="11">1</pattern>
+	<pattern low="12" high="31">00000000000000000000</pattern>
+	<field name="SRC_R" pos="43" type="bool" display="(r)"/>
+	<pattern low="53" high="54">00</pattern>
+</bitset>
+
+<bitset name="mov-relgpr" extends="#instruction-cat1-relative">
+	<field name="SRC" low="0" high="9" type="#cat1-relative-gpr-src">
+		<param name="SRC_R"/>
+		<param name="HALF"/>
+	</field>
+	<pattern pos="10">0</pattern>
+</bitset>
+
+<bitset name="mov-relconst" extends="#instruction-cat1-relative">
+	<field name="SRC" low="0" high="9" type="#cat1-relative-const-src">
+		<param name="SRC_R"/>
+		<param name="HALF"/>
+	</field>
+	<pattern pos="10">1</pattern>
+</bitset>
+
+<!--
+	Other newer cat1 instructions
+ -->
+
+<bitset name="#cat1-multi-src" size="8">
+	<display>
+		{HALF}{REG}
+	</display>
+	<field name="REG" low="0" high="7" type="#reg-gpr"/>
+
+	<encode type="struct ir3_register *">
+		<map name="REG">src</map>
+	</encode>
+</bitset>
+
+<bitset name="#cat1-multi-dst" size="8">
+	<display>
+		{DST_HALF}{REG}
+	</display>
+
+	<field name="REG" low="0" high="7" type="#reg-gpr"/>
+
+	<encode type="struct ir3_register *">
+		<map name="REG">src</map>
+	</encode>
+</bitset>
+
+<bitset name="#instruction-cat1-multi" extends="#instruction-cat1-typed">
+	<doc>
+		These instructions all expand to a series of mov instructions,
+		like (rptN) but more flexible. They aren't any faster than the
+		equivalent sequence of mov/cov, but they guarantee that all
+		sources are read before any destination is written, so they
+		behave as-if the moves are executed in parallel.
+	</doc>
+
+	<gen min="500"/> <!-- TODO does a4xx support these? -->
+
+	<field name="SRC0" low="0" high="7" type="#cat1-multi-src">
+		<param name="HALF"/>
+	</field>
+	<field name="DST0" low="32" high="39" type="#cat1-multi-dst">
+		<param name="DST_HALF"/>
+	</field>
+	<pattern pos="43">0</pattern>   <!-- SRC_R -->
+	<pattern pos="49">0</pattern>   <!-- DST_REL -->
+	<pattern low="53" high="54">00</pattern>
+	<pattern low="57" high="58">10</pattern>  <!-- OPC -->
+
+	<encode>
+		<map name="DST0">src->dsts[0]</map>
+	</encode>
+</bitset>
+
+<bitset name="swz" extends="#instruction-cat1-multi">
+	<doc>
+                SWiZzle. Move SRC0 to DST0 and SRC1 to DST1 in parallel. In
+                particular this can be used to swap two registers.
+	</doc>
+	<display>
+		{SY}{SS}{JP}{UL}swz.{SRC_TYPE}{DST_TYPE} {ROUND}{DST0}, {DST1}, {SRC0}, {SRC1}
+	</display>
+	<field name="SRC1" low="8" high="15" type="#cat1-multi-src">
+		<param name="HALF"/>
+	</field>
+	<field name="DST1" low="16" high="23" type="#cat1-multi-dst">
+		<param name="DST_HALF"/>
+	</field>
+	<pattern low="24" high="31">00000000</pattern>
+
+	<pattern low="40" high="41">00</pattern> <!-- SUB_OPC -->
+
+	<encode>
+		<map name="SRC0">src->srcs[0]</map>
+		<map name="SRC1">src->srcs[1]</map>
+		<map name="DST1">src->dsts[1]</map>
+	</encode>
+</bitset>
+
+<bitset name="gat" extends="#instruction-cat1-multi">
+	<doc>
+		GATher. Move SRC0 to DST0, SRC1 to DST0 + 1, SRC2 to DST0 + 2, and SRC3 to DST0 + 3.
+	</doc>
+	<display>
+		{SY}{SS}{JP}{UL}gat.{SRC_TYPE}{DST_TYPE} {ROUND}{DST0}, {SRC0}, {SRC1}, {SRC2}, {SRC3}
+	</display>
+	<field name="SRC1" low="8" high="15" type="#cat1-multi-src">
+		<param name="HALF"/>
+	</field>
+	<field name="SRC2" low="16" high="23" type="#cat1-multi-src">
+		<param name="HALF"/>
+	</field>
+	<field name="SRC3" low="24" high="31" type="#cat1-multi-src">
+		<param name="HALF"/>
+	</field>
+	<pattern low="40" high="41">01</pattern> <!-- SUB_OPC -->
+
+	<encode>
+		<map name="SRC0">src->srcs[0]</map>
+		<map name="SRC1">src->srcs[1]</map>
+		<map name="SRC2">src->srcs[2]</map>
+		<map name="SRC3">src->srcs[3]</map>
+	</encode>
+</bitset>
+
+<bitset name="sct" extends="#instruction-cat1-multi">
+	<doc>
+		SCaTter. Move SRC0 to DST0, SRC0 + 1 to DST1, SRC0 + 2 to DST2 + 3, and SRC0 + 3 to DST3.
+	</doc>
+	<display>
+		{SY}{SS}{JP}{UL}sct.{SRC_TYPE}{DST_TYPE} {ROUND}{DST0}, {DST1}, {DST2}, {DST3}, {SRC0}
+	</display>
+	<field name="DST1" low="8" high="15" type="#cat1-multi-dst">
+		<param name="DST_HALF"/>
+	</field>
+	<field name="DST2" low="16" high="23" type="#cat1-multi-dst">
+		<param name="DST_HALF"/>
+	</field>
+	<field name="DST3" low="24" high="31" type="#cat1-multi-dst">
+		<param name="DST_HALF"/>
+	</field>
+	<pattern low="40" high="41">10</pattern> <!-- SUB_OPC -->
+
+	<encode>
+		<map name="SRC0">src->srcs[0]</map>
+		<map name="DST1">src->dsts[1]</map>
+		<map name="DST2">src->dsts[2]</map>
+		<map name="DST3">src->dsts[3]</map>
+	</encode>
+</bitset>
+
+<bitset name="movmsk" extends="#instruction-cat1">
+	<display>
+		{SY}{SS}{JP}{UL}movmsk.w{W} {DST}
+	</display>
+	<derived name="W" type="uint">
+		<expr>
+			({REPEAT} + 1) * 32
+		</expr>
+	</derived>
+	<pattern low="0" high="31">00000000000000000000000000000000</pattern>
+	<field name="DST" low="32" high="39" type="#cat1-dst">
+		<param name="DST_REL"/>
+	</field>
+	<field name="REPEAT" low="40" high="41" type="#rptN"/>
+	<pattern pos="43">0</pattern>   <!-- SRC_R -->
+	<pattern low="46" high="48">011</pattern>       <!-- DST_TYPE==u32 -->
+	<field name="DST_REL" pos="49" type="bool"/>
+	<pattern low="50" high="52">011</pattern>       <!-- SRC_TYPE==u32 -->
+	<pattern low="53" high="54">00</pattern>
+	<pattern low="57" high="58">11</pattern>  <!-- OPC -->
+</bitset>
+
+
+</isa>

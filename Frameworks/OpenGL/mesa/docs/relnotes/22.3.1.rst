@@ -1,0 +1,207 @@
+Mesa 22.3.1 Release Notes / 2022-12-14
+======================================
+
+Mesa 22.3.1 is a bug fix release which fixes bugs found since the 22.3.0 release.
+
+Mesa 22.3.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.3.1 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    3c9cd611c0859d307aba0659833386abdca4c86162d3c275ba5be62d16cf31eb  mesa-22.3.1.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Intel Vulkan driver failed to handle robustness behavior for single-layered array images
+- ANV: single-layer 2D_ARRAY VkImageViews read from base layer instead of out-of-bounds result with robustImageAccess2.
+- RADV: Doom Eternal: missing reflection with raytracing
+- DG2 raytracing incorrect rendering on Sascha Willems reflection demo
+- Intel Vulkan driver: Depth-Stencil MSAA mask behavior changes
+- [ANV] [A770] The Witcher 3 is a black screen and causes GPU reset
+- vulkan/hasvk: vkquake: ../src/util/bitpack_helpers.h:61: util_bitpack_uint: Assertion \`v <= max' failed.
+- [RADV] Death Stranding: Director's Cut (Steam) freezes 6800XT (ring gfx_0.0.0 timeout)
+- [regression] [bisected] i915 0000:00:02.0: [drm] GPU HANG: ecode 12:1:859ffffb, in CanvasRenderer
+- [ANV]  Geometry corruption/flickering in GravityMark  on GFX12+
+- NIR validation failed after nir_lower_subgroups
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- pan/mdg: Emulate 8-bit with the 16-bit pipe
+
+Bas Nieuwenhuizen (1):
+
+- radv: Handle nodes with 2 invalid children in internal node converter.
+
+Boyuan Zhang (1):
+
+- radeonsi: disable av1 decode for navi24
+
+Chia-I Wu (1):
+
+- nir: fix nir_link_varying_precision
+
+Connor Abbott (1):
+
+- freedreno/fdl: Set sRGB bit for storage images
+
+Daniel Stone (1):
+
+- ci: Rebalance radv/grunt testing
+
+Danylo Piliaiev (3):
+
+- ir3: Reduce the maximum allowed imm offset for shared var load/store
+- nir/nir_opt_offsets: Prevent offsets going above max
+- meson: Do not enable drm for KGSL Turnip build
+
+Dave Airlie (1):
+
+- glx: fix xshm check to init xshm_opcode.
+
+Dawn Han (1):
+
+- venus: fix deqp tests failed on iub descriptor type
+
+Eric Engestrom (3):
+
+- docs: add release notes for 22.3.0
+- .pick_status.json: Update to 264a0cabd1dd2a619f24e34f21f767c6bf36fe76
+- v3dv: skip some invalid tests
+
+Erik Faye-Lund (1):
+
+- zink: don't use defunct custom-flag
+
+Friedrich Vock (2):
+
+- nir: Do not consider phis with incompatible dests equal
+- radv: Handle NULL miss shaders
+
+Georg Lehmann (1):
+
+- aco: Use wave size specific opcode for s_or in cube map coord code.
+
+Iago Toral Quiroga (2):
+
+- v3dv: make single-sync paths more explicit
+- v3dv: fix job serialization for single sync path
+
+Ian Romanick (1):
+
+- glsl_to_nir: Fix NIR bit-size of ir_triop_bitfield_extract and ir_quadop_bitfield_insert
+
+Iván Briano (2):
+
+- vulkan: VkPolygonMode has a bit more than two values
+- hasvk: pipelineStageCreationFeedbackCount is allowed to be 0
+
+Jan Alexander Steffens (heftig) (2):
+
+- d3d12: Don't crash when libd3d12.so can't be found
+- dzn: Don't crash when libd3d12.so can't be found
+
+Jan Palus (1):
+
+- vdpau: allow building vdpau st with virgl only
+
+Faith Ekstrand (4):
+
+- nir: Use nir_const_value_for_int in nir_lower_subgroups
+- st/mesa: Use nir_const_value_for_bool() in ATIFS
+- r600/nir: Fix u64vec2 immediate lowering
+- dxil: Use nir_const_value_for_uint in dxil_nir_lower_int_samplers
+
+Kenneth Graunke (1):
+
+- intel/compiler: Set NoMask on cr0 access for float controls mode
+
+Konstantin Seurer (1):
+
+- radv/rra: Set the metadata size correctly
+
+Lionel Landwerlin (11):
+
+- iris: move bindless surface state heap inside the surface state heap
+- isl: don't report I915_FORMAT_MOD_Y_TILED_CCS on Gfx8
+- anv: correctly predicate ray tracing
+- intel: factor out dispatch PS enabling logic
+- intel: add missing restriction on fragment simd dispatch
+- Revert "anv: compile anv_acceleration_structure.c"
+- intel/nir/rt: fixup primitive id
+- anv: fixup descriptor copies
+- isl: make Wa_1806565034 conditional to non robust access
+- intel/fs: make Wa_1806565034 conditional to non robust access
+- anv: disable Wa_1806565034 when robustImageAccess is enabled
+
+Marcin Ślusarz (4):
+
+- intel/compiler: adjust [store|load]_task_payload.base too
+- nir/lower_task_shader: allow offsetting of the start of payload
+- intel/compiler: user payload starts after TUE header & its padding
+- nir/lower_task_shader: fix task payload corruption when shared memory workaround is enabled
+
+Otavio Pontes (1):
+
+- anv/hasvk: Clamping Scissor Rect values in a valid range
+
+Peng Huang (1):
+
+- intel: Fix crashes for importing drm buffer
+
+Rhys Perry (2):
+
+- aco: more carefully apply constant offsets into scratch accesses
+- aco/ra: don't swap p_create_vector operand with definition blocker for scc
+
+Ruijing Dong (2):
+
+- radeonsi/vcn: adding av1 decoding film grain block
+- frontends/va: fix gst videotestsrc h264 enc fail issue.
+
+Samuel Pitoiset (6):
+
+- radv: fix emitting invalid color attachments
+- radv: do not set ZPASS_INCREMENT_DISABLE on GFX11
+- radv: use LATE_Z for depth/stencil attachments used in feedback loops
+- radv: fix guardband if the polygon mode is points or lines
+- radv: fix hashing descriptor set layout
+- radv: do not remove the PointSize built-in for polygon mode as points
+
+Sathishkumar S (4):
+
+- radeonsi/vcn: enable yuv422 jpeg decode
+- radeonsi/vcn: fix regression in yuv422 jpeg decode
+- frontends/va: fix crash during grayscale rendering
+- gallium/vl: return the buffer plane order for yuv444p format
+
+Sviatoslav Peleshko (1):
+
+- anv: Defer flushing PIPE_CONTROL bits forbidden in CCS while in GPGPU mode
+
+Tapani Pälli (2):
+
+- intel/fs: implement Wa_14017989577
+- anv: emit sample mask state independent of fragment stage

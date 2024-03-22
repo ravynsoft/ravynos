@@ -1,0 +1,114 @@
+
+                           Mesa 6.3 release notes
+
+                              July 20, 2005
+
+                              PLEASE READ!!!!
+
+
+
+Introduction
+------------
+
+Mesa uses an even/odd version number scheme like the Linux kernel.
+Odd numbered versions (such as 6.3) designate new developmental releases.
+Even numbered versions (such as 6.2) designate stable releases.
+
+
+
+New Features
+------------
+
+GL_ARB_draw_buffers - allows a fragment program to write to a number of
+  separate color buffers, instead of just one.
+
+GL_OES_read_format - allows one to query the fastest glReadPixels format
+  and datatype.
+
+GL_ARB_pixel_buffer_object - buffer objects for pixel read/write functions.
+
+GL_EXT_framebuffer_object - allows render-to-texture and provides a
+  window-system indepedent Pbuffer facility.
+  The Mesa CVS tree contains a couple tests of this extension.
+
+DirectFB driver, contributed by Claudio Ciccani.  See docs/README.directfb
+for details.
+
+
+
+Vertex/Fragment Program PRINT Instruction
+-----------------------------------------
+
+The GL_NV_vertex_program and GL_NV_fragment_program languages have been
+extended with a PRINT instruction.
+
+
+
+glDeleteTextures(), glDeletePrograms() and glDeleteBuffers() Changed
+--------------------------------------------------------------------
+
+To match the behaviour of other OpenGL implementations, glDeleteTextures,
+glDeletePrograms and glDeleteBuffers have been modified so that:
+
+  * The named texture/program/buffer ID is immediately freed for re-use.
+
+  * The actual texture object, program or buffers isn't really deleted until
+    it is no longer bound in any rendering context (the reference count
+    is zero).
+
+Previously, the texture/program/buffer ID wasn't freed until the object
+was really deleted.
+
+Note that textures, programs and buffers can be shared by several rendering
+contexts so they can't be deleted until they're unbound in _all_ contexts.
+
+
+
+GL_EXT_framebuffer_object changes
+---------------------------------
+
+Implementing this extension involved changing a lot of code (for the better).
+
+The gl_framebuffer object now a collection of gl_renderbuffer objects.
+Renderbuffers may store colors, stencil indices, or depth values.  The
+gl_framebuffer and gl_renderbuffer types are object-oriented in design.
+
+All the old RGB, color index, stencil and depth-related span functions for
+reading/writing pixels from/to buffers has changed.  Now, all pixels are
+read/written through a set of common renderbuffer functions (methods).
+
+Most device drivers have been updated for these changes, but some haven't.
+
+
+
+To Do (someday) items
+---------------------
+ Switch to freeglut
+ Increase MAX_DRAWBUFFERS
+ driver hooks for BeginQuery/EndQuery
+
+
+
+Miscellaneous
+-------------
+
+The main/get.c file is now generated with a Python script (get_gen.py).
+
+
+
+Driver			Status
+----------------------	---------------------
+XMesa (Xlib)		implements OpenGL 1.5
+OSMesa (off-screen)	implements OpenGL 1.5
+Glide (3dfx Voodoo1/2)	implements OpenGL 1.3
+SVGA			implements OpenGL 1.3
+Wind River UGL		implements OpenGL 1.3
+Windows/Win32		implements OpenGL 1.5
+DJGPP			implements OpenGL 1.5
+GGI			implements OpenGL 1.3
+BeOS			implements OpenGL 1.5
+Allegro			needs updating
+D3D			needs updating
+
+
+----------------------------------------------------------------------

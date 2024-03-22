@@ -1,0 +1,148 @@
+Mesa 21.3.7 Release Notes / 2022-02-23
+======================================
+
+Mesa 21.3.7 is a bug fix release which fixes bugs found since the 21.3.6 release.
+
+Mesa 21.3.7 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.3.7 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    b4fa9db7aa61bf209ef0b40bef83080999d86ad98df8b8b4fada7c128a1efc3d  mesa-21.3.7.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- lavapipe: dEQP-VK.spirv_assembly.instruction.compute.float16.arithmetic_3.step fails
+- ANV: Bad output from TransformFeedback . Regression from Mesa 21. Something to do with VB+XFB -> VB+XFB dependency?
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (4):
+
+- pan/bi: Avoid \*FADD.v2f16 hazard in optimizer
+- pan/bi: Avoid \*FADD.v2f16 hazard in scheduler
+- pan/bi: Lower swizzles on CSEL.i32/MUX.i32
+- panvk: Use more reliable assert for UBO pushing
+
+Bas Nieuwenhuizen (1):
+
+- radv: Fix preamble argument order.
+
+Connor Abbott (1):
+
+- ir3/spill: Fix simplify_phi_nodes with multiple loop nesting
+
+Dave Airlie (3):
+
+- lavapipe: fix sampler + sampler view leaks.
+- lavapipe: reference gallium fences correctly.
+- crocus: fix leak on gen4/5 stencil fallback blit path.
+
+Emma Anholt (1):
+
+- i915g: Initialize the rest of the "from_nir" temporary VS struct.
+
+Eric Engestrom (2):
+
+- .pick_status.json: Update to dabba7d7263be6ffb6f3676465e92c65952fa824
+- .pick_status.json: Mark b07372312d7053f2ef5c858ceb1fbf9ade5e7c52 as denominated
+
+Ian Romanick (9):
+
+- gallivm/nir: Call nir_lower_bool_to_int32 after nir_opt_algebraic_late
+- nir: All set-on-comparison opcodes can take all float types
+- intel/fs: Don't optimize out 1.0*x and -1.0*x
+- spriv: Produce correct result for GLSLstd450Step with NaN
+- spirv: Produce correct result for GLSLstd450Modf with Inf
+- spirv: Produce correct result for GLSLstd450Tanh with NaN
+- nir: Properly handle various exceptional values in frexp
+- nir: Produce correct results for atan with NaN
+- nir: Add missing dependency on nir_opcodes.py
+
+Faith Ekstrand (1):
+
+- anv: Call vk_command_buffer_finish if create fails
+
+Jonathan Gray (1):
+
+- dri: avoid NULL deref of DrawBuffer on flush
+
+Lionel Landwerlin (2):
+
+- nir: fix lower_memcpy
+- anv/genxml/intel/fs: fix binding shader record entry
+
+Marcin Ślusarz (1):
+
+- anv: don't set color state when input state was requested
+
+Marek Olšák (1):
+
+- ac/surface: add more elements to meta equations because HTILE can use them
+
+Mike Blumenkrantz (4):
+
+- lavapipe: use util_pack_color_union() for generating clear colors
+- aux/draw: fix llvm tcs lane vec generation
+- zink: always set VkPipelineMultisampleStateCreateInfo::pSampleMask
+- zink: always invalidate streamout counter buffer if not resuming
+
+Nanley Chery (1):
+
+- iris: Don't fast clear with the view format
+
+Pavel Ondračka (1):
+
+- r300: fix transformation of abs modifiers with negate
+
+Qiang Yu (3):
+
+- radeonsi: workaround Specviewperf13 Catia hang on GFX9
+- radeonsi: fix depth stencil multi sample texture blit
+- glx: fix pbuffer refcount init
+
+Samuel Pitoiset (1):
+
+- radv/winsys: fix initializing debug/perftest options if multiple instances
+
+Tapani Pälli (5):
+
+- intel/genxml: add PIPE_CONTROL field for L3 read only cache invalidation
+- anv: invalidate L3 read only cache when VF cache is invalidated
+- iris: invalidate L3 read only cache when VF cache is invalidated
+- iris: fix a leak on surface states
+- mesa/st: always use DXT5 when transcoding ASTC format
+
+Thierry Reding (2):
+
+- tegra: Use private reference count for sampler views
+- tegra: Use private reference count for resources
+
+Timur Kristóf (1):
+
+- radv: Disable IB2 on compute queues.
+
+Yiwei Zhang (1):
+
+- venus: properly destroy deferred ahb image before real image creation

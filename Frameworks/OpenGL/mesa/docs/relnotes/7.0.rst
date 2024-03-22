@@ -1,0 +1,79 @@
+Mesa 7.0 Release Notes / June 22, 2007
+======================================
+
+Mesa 7.0 is a stable release, featuring OpenGL 2.1 API support. A number
+of bugs have been fixed since the 6.5.3 release.
+
+MD5 checksums
+-------------
+
+::
+
+   35a1698986f7ac8dc435624ee9256cda  MesaLib-7.0.tar.gz
+   50c371455fa7532c04aa0a970f9bc51f  MesaLib-7.0.tar.bz2
+   bcedb6f43c97c1bc49e5cc7f12835722  MesaLib-7.0.zip
+   9bad332c7b74f59be96556135212ca9e  MesaDemos-7.0.tar.gz
+   fada2bc1f29da513e015fda1e3abd0c0  MesaDemos-7.0.tar.bz2
+   84e3bbe470d983ae32f1f0c779faf99e  MesaDemos-7.0.zip
+   76c7bb54f9850c689eba844f6daed332  MesaGLUT-7.0.tar.gz
+   4af28296e02772ef1de00e4e79bf3d12  MesaGLUT-7.0.tar.bz2
+   9043cb0b54cc03d1874728d74b12188c  MesaGLUT-7.0.zip
+
+New features
+------------
+
+-  OpenGL 2.0 and 2.1 API support.
+
+Bug fixes
+---------
+
+-  Fixed a few fog-related bugs.
+-  Fixed broken GLSL mix() function.
+-  Fixed broken GLSL exp() functions.
+-  Fixed GLSL mod4(vec4, vec4) bug.
+-  Implemented GLSL asin(), acos(), atan() functions.
+-  Fixed an R300 driver bug that caused Xorg composite manager to crash
+-  Fixed R300 vertex program/matrix bug (10848)
+-  GLSL dFdx() and dFdy() work for fragment program inputs now
+   (texcoords)
+-  Specifying an invalid texture unit as a sampler could lead to a crash
+-  The GLX protocol request for glXDestroyPBuffer() was incorrect (bug
+   10983)
+-  ARB vp state.light[n].half value was incorrect (bug 10987)
+-  Fixed a positional light source bug (bug 11009)
+-  Fixed point size attenuation problem (bug 11042)
+-  glPopAttrib didn't restore texture object's LOD bias (bug 11049)
+-  Fixed a TLS / TEXTREL problem (bug 7459)
+
+Internal code changes
+---------------------
+
+-  Some texture code consolidation and simplifiction (Ian Romanick)
+-  R300 driver clean-ups.
+
+To Do (someday) items
+---------------------
+
+-  Switch to freeglut
+-  Fix linux-glide target/driver.
+-  Improved lambda and derivative calculation for frag progs.
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

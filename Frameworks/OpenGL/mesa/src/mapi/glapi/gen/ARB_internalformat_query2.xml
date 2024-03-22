@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_internalformat_query2" number="131">
+    <!-- Other existing enums are reused for this extension. -->
+
+        <enum name="INTERNALFORMAT_SUPPORTED"        value="0x826F"/>
+        <enum name="INTERNALFORMAT_PREFERRED"        value="0x8270"/>
+        <enum name="INTERNALFORMAT_RED_SIZE"         value="0x8271"/>
+        <enum name="INTERNALFORMAT_GREEN_SIZE"       value="0x8272"/>
+        <enum name="INTERNALFORMAT_BLUE_SIZE"        value="0x8273"/>
+        <enum name="INTERNALFORMAT_ALPHA_SIZE"       value="0x8274"/>
+        <enum name="INTERNALFORMAT_DEPTH_SIZE"       value="0x8275"/>
+        <enum name="INTERNALFORMAT_STENCIL_SIZE"     value="0x8276"/>
+        <enum name="INTERNALFORMAT_SHARED_SIZE"      value="0x8277"/>
+        <enum name="INTERNALFORMAT_RED_TYPE"         value="0x8278"/>
+        <enum name="INTERNALFORMAT_GREEN_TYPE"       value="0x8279"/>
+        <enum name="INTERNALFORMAT_BLUE_TYPE"        value="0x827A"/>
+        <enum name="INTERNALFORMAT_ALPHA_TYPE"       value="0x827B"/>
+        <enum name="INTERNALFORMAT_DEPTH_TYPE"       value="0x827C"/>
+        <enum name="INTERNALFORMAT_STENCIL_TYPE"     value="0x827D"/>
+        <enum name="MAX_WIDTH"                       value="0x827E"/>
+        <enum name="MAX_HEIGHT"                      value="0x827F"/>
+        <enum name="MAX_DEPTH"                       value="0x8280"/>
+        <enum name="MAX_LAYERS"                      value="0x8281"/>
+        <enum name="MAX_COMBINED_DIMENSIONS"         value="0x8282"/>
+        <enum name="COLOR_COMPONENTS"                value="0x8283"/>
+        <enum name="DEPTH_COMPONENTS"                value="0x8284"/>
+        <enum name="STENCIL_COMPONENTS"              value="0x8285"/>
+        <enum name="COLOR_RENDERABLE"                value="0x8286"/>
+        <enum name="DEPTH_RENDERABLE"                value="0x8287"/>
+        <enum name="STENCIL_RENDERABLE"              value="0x8288"/>
+        <enum name="FRAMEBUFFER_RENDERABLE"          value="0x8289"/>
+        <enum name="FRAMEBUFFER_RENDERABLE_LAYERED"  value="0x828A"/>
+        <enum name="FRAMEBUFFER_BLEND"               value="0x828B"/>
+        <enum name="READ_PIXELS"                     value="0x828C"/>
+        <enum name="READ_PIXELS_FORMAT"              value="0x828D"/>
+        <enum name="READ_PIXELS_TYPE"                value="0x828E"/>
+        <enum name="TEXTURE_IMAGE_FORMAT"            value="0x828F"/>
+        <enum name="TEXTURE_IMAGE_TYPE"              value="0x8290"/>
+        <enum name="GET_TEXTURE_IMAGE_FORMAT"        value="0x8291"/>
+        <enum name="GET_TEXTURE_IMAGE_TYPE"          value="0x8292"/>
+        <enum name="MIPMAP"                          value="0x8293"/>
+        <enum name="MANUAL_GENERATE_MIPMAP"          value="0x8294"/>
+        <enum name="AUTO_GENERATE_MIPMAP"            value="0x8295"/>
+        <enum name="COLOR_ENCODING"                  value="0x8296"/>
+        <enum name="SRGB_READ"                       value="0x8297"/>
+        <enum name="SRGB_WRITE"                      value="0x8298"/>
+        <enum name="SRGB_DECODE_ARB"                 value="0x8299"/>
+        <enum name="FILTER"                          value="0x829A"/>
+        <enum name="VERTEX_TEXTURE"                  value="0x829B"/>
+        <enum name="TESS_CONTROL_TEXTURE"            value="0x829C"/>
+        <enum name="TESS_EVALUATION_TEXTURE"         value="0x829D"/>
+        <enum name="GEOMETRY_TEXTURE"                value="0x829E"/>
+        <enum name="FRAGMENT_TEXTURE"                value="0x829F"/>
+        <enum name="COMPUTE_TEXTURE"                 value="0x82A0"/>
+        <enum name="TEXTURE_SHADOW"                  value="0x82A1"/>
+        <enum name="TEXTURE_GATHER"                  value="0x82A2"/>
+        <enum name="TEXTURE_GATHER_SHADOW"           value="0x82A3"/>
+        <enum name="SHADER_IMAGE_LOAD"               value="0x82A4"/>
+        <enum name="SHADER_IMAGE_STORE"              value="0x82A5"/>
+        <enum name="SHADER_IMAGE_ATOMIC"             value="0x82A6"/>
+        <enum name="IMAGE_TEXEL_SIZE"                value="0x82A7"/>
+        <enum name="IMAGE_COMPATIBILITY_CLASS"       value="0x82A8"/>
+        <enum name="IMAGE_PIXEL_FORMAT"              value="0x82A9"/>
+        <enum name="IMAGE_PIXEL_TYPE"                value="0x82AA"/>
+        <enum name="SIMULTANEOUS_TEXTURE_AND_DEPTH_TEST" value="0x82AC"/>
+        <enum name="SIMULTANEOUS_TEXTURE_AND_STENCIL_TEST" value="0x82AD"/>
+        <enum name="SIMULTANEOUS_TEXTURE_AND_DEPTH_WRITE" value="0x82AE"/>
+        <enum name="SIMULTANEOUS_TEXTURE_AND_STENCIL_WRITE" value="0x82AF"/>
+        <enum name="TEXTURE_COMPRESSED"              value="0x86A1"/>
+        <enum name="TEXTURE_COMPRESSED_BLOCK_WIDTH"  value="0x82B1"/>
+        <enum name="TEXTURE_COMPRESSED_BLOCK_HEIGHT" value="0x82B2"/>
+        <enum name="TEXTURE_COMPRESSED_BLOCK_SIZE"   value="0x82B3"/>
+        <enum name="CLEAR_BUFFER"                    value="0x82B4"/>
+        <enum name="TEXTURE_VIEW"                    value="0x82B5"/>
+        <enum name="VIEW_COMPATIBILITY_CLASS"        value="0x82B6"/>
+        <enum name="FULL_SUPPORT"                    value="0x82B7"/>
+        <enum name="CAVEAT_SUPPORT"                  value="0x82B8"/>
+        <enum name="IMAGE_CLASS_4_X_32"              value="0x82B9"/>
+        <enum name="IMAGE_CLASS_2_X_32"              value="0x82BA"/>
+        <enum name="IMAGE_CLASS_1_X_32"              value="0x82BB"/>
+        <enum name="IMAGE_CLASS_4_X_16"              value="0x82BC"/>
+        <enum name="IMAGE_CLASS_2_X_16"              value="0x82BD"/>
+        <enum name="IMAGE_CLASS_1_X_16"              value="0x82BE"/>
+        <enum name="IMAGE_CLASS_4_X_8"               value="0x82BF"/>
+        <enum name="IMAGE_CLASS_2_X_8"               value="0x82C0"/>
+        <enum name="IMAGE_CLASS_1_X_8"               value="0x82C1"/>
+        <enum name="IMAGE_CLASS_11_11_10"            value="0x82C2"/>
+        <enum name="IMAGE_CLASS_10_10_10_2"          value="0x82C3"/>
+        <enum name="VIEW_CLASS_128_BITS"             value="0x82C4"/>
+        <enum name="VIEW_CLASS_96_BITS"              value="0x82C5"/>
+        <enum name="VIEW_CLASS_64_BITS"              value="0x82C6"/>
+        <enum name="VIEW_CLASS_48_BITS"              value="0x82C7"/>
+        <enum name="VIEW_CLASS_32_BITS"              value="0x82C8"/>
+        <enum name="VIEW_CLASS_24_BITS"              value="0x82C9"/>
+        <enum name="VIEW_CLASS_16_BITS"              value="0x82CA"/>
+        <enum name="VIEW_CLASS_8_BITS"               value="0x82CB"/>
+        <enum name="VIEW_CLASS_S3TC_DXT1_RGB"        value="0x82CC"/>
+        <enum name="VIEW_CLASS_S3TC_DXT1_RGBA"       value="0x82CD"/>
+        <enum name="VIEW_CLASS_S3TC_DXT3_RGBA"       value="0x82CE"/>
+        <enum name="VIEW_CLASS_S3TC_DXT5_RGBA"       value="0x82CF"/>
+        <enum name="VIEW_CLASS_RGTC1_RED"            value="0x82D0"/>
+        <enum name="VIEW_CLASS_RGTC2_RG"             value="0x82D1"/>
+        <enum name="VIEW_CLASS_BPTC_UNORM"           value="0x82D2"/>
+        <enum name="VIEW_CLASS_BPTC_FLOAT"           value="0x82D3"/>
+
+    <function name="GetInternalformati64v" es2="3.0">
+        <param name="target" type="GLenum"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLint64 *"/>
+    </function>
+</category>
+
+</OpenGLAPI>

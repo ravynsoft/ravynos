@@ -1,0 +1,58 @@
+Mesa 7.4.2 Release Notes / May 15, 2009
+=======================================
+
+Mesa 7.4.2 is a stable development release fixing bugs since the 7.4.1
+release.
+
+Mesa 7.4.2 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   172f5193154dad731387f97bd44ab68f  MesaLib-7.4.2.tar.gz
+   b10a76e32bde4645cfc34ea0416d7d8b  MesaLib-7.4.2.tar.bz2
+   cc6dfc2efd424cc342b84e6bcd78ce5d  MesaLib-7.4.2.zip
+   182a7e78aa7a480b3650a5c956dbddd1  MesaDemos-7.4.2.tar.gz
+   bf559a0485667a3bfa4513a23501579b  MesaDemos-7.4.2.tar.bz2
+   5379e622b65e8c22022dba34aeb6f4f9  MesaDemos-7.4.2.zip
+   7cc43c1c35bf6a279a16e063dea3b8c5  MesaGLUT-7.4.2.tar.gz
+   e0dfc44d537904a030861e5b3c760c11  MesaGLUT-7.4.2.tar.bz2
+   4a6cf5bbbac190d6ba97448b3098b7f4  MesaGLUT-7.4.2.zip
+
+Bug fixes
+---------
+
+-  Fixed segfault when rendering to front buffer with DRI 1.
+-  Fixed swrast texture rectangle bug when wrap mode =
+   GL_CLAMP_TO_BORDER and filter mode = GL_LINEAR. (bug 21461)
+-  Fixed texture object mem leak during context destruction.
+-  Fixed a state validation bug in glCopyTex[Sub]Image()
+-  Fixed some i965 GLSL bugs.
+-  Fixed an R300 driver texture object bad memory reference.
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

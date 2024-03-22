@@ -1,0 +1,1 @@
+struct vk_properties {};

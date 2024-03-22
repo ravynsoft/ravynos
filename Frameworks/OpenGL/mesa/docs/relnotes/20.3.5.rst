@@ -1,0 +1,296 @@
+Mesa 20.3.5 Release Notes / 2021-03-24
+======================================
+
+Mesa 20.3.5 is a bug fix release which fixes bugs found since the 20.3.4 release.
+
+Mesa 20.3.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.3.5 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    909a72df63dfa3c0844ccf44a26ac028d148297ed333ab51560893923d7691ce  mesa-20.3.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- \[RADV][BISECTED\] The Surge 2 (644830) - In-game assets do not render correctly since 20.3.4.
+- Metal Gear Solid V: The Phantom Pain: texture issues and vertex stretches
+- Rage 2: Visual corruption on in-game menu with ACO.
+- radv: Some MSAA tests fail when DCC is forced.
+- Rendering artifacts in Barn Finders specifically on Radeon Vega
+- Mafia III Demo: Artifacts around barrels
+- subgroupBallotFindMSB() broken in RADV/ACO 20.3.4
+- Texture views on blits ignore formats
+- "unknown intrinsic" assertion triggered by multiview shader in non-multiview renderpass in Vulkan on intel
+- ANV: Weird jitter in Witcher 1
+- DXVK is broken in latest master
+- mesa/st: Uniforms are not updated after lowering alpha test
+- \[RADV\] Nioh 2 - The Complete Edition: "Bloom" on lights
+- RADV: robustBufferAccessUpdateAfterBind is not exposed
+- ANV: Weird jitter in Witcher 1
+- ANV: Weird jitter in Witcher 1
+- meson: meson-built libraries have inconsistent compatability / current versions compared to older autotools-built libraries
+- device select layer breaks other layers
+- RADV: Extreme overhead in vkQueueSubmit
+- Graphical glitch of popupping missing texture on Mesa version \>18.0.5 (Padoka Stable + Unstable/Oibaf/ubuntu-x-swat PPAs)
+- occasional corruption issue with RADV in multiple games, disappears after using amdvlk
+- OpenGL on GMA4500MHD
+- \[RADV][REGRESSION][BISECTED\] radv_GetMemoryFdPropertiesKHR returns no valid memory types for vaapi drmbuf
+- anv: vkQueueSubmit with waitSemaphore value of 0 hangs CPU
+- ttn: invalid base/range triggering nir_validate assertion
+- \[RADV][ACO\] Overwatch game crash: amd/compiler/aco_insert_exec_mask.cpp: Failed Assertion
+- Use out encoding for float immediates
+- \[RADV\] Severe performance drop when exceeding VRAM compared to AMDVLK
+- RADV: Occlusion query hangs Big Navi GPU
+- miscompiled compute shader loop on llvmpipe (and Iris)
+- Graphics glitches after upgrade to mesa 20.3 on Khadas VIM3 Pro (Mali G52 GPU)
+- glthread crash in \_mesa_glthread_upload
+- Iris driver causing graphics glitch in QEMU spice egl DMA-BUF
+- \[RADV/ACO\] Death Stranding cause a GPU hung (*ERROR* Waiting for fences timed out!)
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (3):
+
+- pan/bi: Fix M1/M2 decoding in disassembler
+- panfrost: Don't advertise OES_copy_image
+- panfrost/lcra: Fix constraint counting
+
+Anuj Phogat (2):
+
+- intel/anv: Fix condition to set MipModeFilter for YUV surface
+- intel/anv: Fix condition for planar yuv surface
+
+Bas Nieuwenhuizen (8):
+
+- radv: Do not hash vk_object_base in descriptor set layout.
+- radv: Improve spilling on discrete GPUs.
+- radv: Fix vram override with fully visible VRAM.
+- radv: Ignore WC flags for VRAM.
+- radv: Don't use dedicated memory info to indicate sharing.
+- vulkan/device_select: Stop using device properties 2.
+- radv: Expose robustBufferAccessUpdateAfterBind correctly.
+- radv: Use stricter HW resolve swizzle compat check.
+
+Boris Brezillon (2):
+
+- panfrost: Fix tiler job injection (again)
+- panfrost: Fix a polygon list corruption in the multi-context case
+
+Caio Marcelo de Oliveira Filho (2):
+
+- spirv: Allow variable pointers pointing to an array of blocks
+- anv: Lower ViewIndex to zero when multiview is disabled
+
+Daniel Schürmann (2):
+
+- aco: fix nir_intrinsic_ballot with wave32
+- aco: fix shared VGPR allocation on RDNA2
+
+Dave Airlie (3):
+
+- zink: don't pick a cpu device ever.
+- glsl: fix leak in gl_nir_link_uniform_blocks
+- glx: proposed fix for setSwapInterval
+
+Dylan Baker (10):
+
+- docs: Add sha256sum for 20.3.4
+- .pick_status.json: Update to e346f61a91266bde48cc0857f82ca6348e38dc03
+- .pick_status.json: Update to ea27f2bf092f462171fe14a44619565d14f43fb8
+- .pick_status.json: Update to 38b2e137665f36f1b0fe58e40971548d9eafa865
+- .pick_status.json: Update to 4fdbc22c42dd4672e1660e7598dcd7874880b2f1
+- .pick_status.json: Update to b1ab69f467b7b10e383f3b6bb957c7e6669a3772
+- .pick_status.json: Update to 5d2c9fd161eb1c6b29852e22431fa8bc804bf5af
+- .pick_status.json: Update to 2407952ec99ab1c2a16e01a9e300f799e4d53320
+- .pick_status.json: Update to 60ea60ec4deaf42c55bd8367a15cb0ab885d662e
+- ci: mark a couple of LLVMPIPE tests as expected pass
+
+Erico Nunes (1):
+
+- lima: fix max sampler views
+
+Georg Lehmann (1):
+
+- vulkan/device_select: Only call vkGetPhysicalDeviceProperties2 if the device supports it.
+
+Giovanni Mascellani (2):
+
+- disk_cache: Fail creation when cannot inizialize queue.
+- anv: Allow null handle in DestroyDescriptorUpdateTemplate.
+
+Hyunjun Ko (1):
+
+- ir3: fix has_src() to return correctly in ir3_nir_lower_tex_prefetch
+
+Ian Romanick (6):
+
+- i965: Don't parse driconf again
+- nir/algebraic: Fix a \>\> \#b \<\< \#b for sizes other than 32-bit
+- intel/compiler: Enable the ability to emit CMPN instructions
+- intel/compiler: Make the CMPN builder work like the CMP builder
+- intel/compiler: Use CMPN for min / max on Gen4 and Gen5
+- nir/algebraic: Fix some min/max of b2f replacements
+
+Icecream95 (2):
+
+- panfrost: Add the tiler heap to fragment jobs
+- st/mesa: Update constants on alpha test change if it's lowered
+
+James Park (1):
+
+- gallium/tessellator: Fix warning suppression
+
+Faith Ekstrand (4):
+
+- nir: Don't optimize bcsel-of-shuffle across blocks
+- intel/fs: Shuffle can't handle source modifiers
+- anv/formats: Advertise linear sampling on depth formats
+- intel/fs: Handle payload node interference in destinations
+
+Jeremy Huddleston (1):
+
+- Adjust dylib compatibility versions to match what was set by mesa-18.3's autotools-based builds
+
+Jordan Justen (1):
+
+- i965/gen11: Fix must-be-ones bit positions in 3D_MODE
+
+Lionel Landwerlin (7):
+
+- anv: only signal wsi fence BO on last command buffer
+- anv: discard all timeline wait/signal value=0
+- anv: don't wait for completion of work on vkQueuePresent()
+- anv: Fix wait_count missing increment
+- anv: reset binary syncobj to be signaled before submission
+- anv: fix MI_PREDICATE_RESULT write
+- intel/fs/vec4: add missing dependency in write-on-write fixed GRFs
+
+Marek Olšák (2):
+
+- glthread: fix interpreting vertex size == GL_BGRA for vertex attribs
+- mesa: flush glBegin/End before changing GL_DEPTH_STENCIL_TEXTURE_MODE
+
+Matt Turner (1):
+
+- turnip: Remove unused TU_DEBUG_IR3 flag
+
+Mauro Rossi (1):
+
+- android: pan/bi: reorder static dependencies in gallium/dri
+
+Michel Dänzer (1):
+
+- intel/tools: Use subprocess.Popen to read output directly from a pipe
+
+Mike Blumenkrantz (7):
+
+- radv: null bo list pointer for null descriptors on update
+- radv: zero the bo descriptor array when allocating a new set
+- zink: handle 1bit undef values in ntv
+- gallium/trace: add a pipe_screen::get_compiler_options method
+- mesa/st: clamp scissored clear regions to fb size
+- zink: fix streamout emission for super-enhanced layouts
+- compiler/spirv: fix image sample queries
+
+Nanley Chery (3):
+
+- gallium: Map \_DRI_IMAGE_FORMAT_NONE to NULL
+- gallium: Flush GL API resources in eglCreateImage
+- iris: Disable aux as needed in iris_flush_resource
+
+Pierre Moreau (1):
+
+- spirv: Ignore WorkgroupSize in non-compute stages
+
+Pierre-Eric Pelloux-Prayer (5):
+
+- radeonsi: properly set SPI_SHADER_PGM_HI_ES
+- frontends/va: fix protected slice data buffer read size
+- st/mesa: use the correct src format in ReadPixels
+- mesa/fbo: don't check_end_texture_render on fb read change
+- st/mesa: consider texture view format for fbo blits
+
+Rhys Perry (14):
+
+- radv: correctly enable WGP_MODE for tessellation control
+- aco: always set exec_live=false
+- aco: do not flag all blocks WQM to ensure we enter all nested loops in WQM
+- aco/lower_phis: fix all_preds_uniform with continue_or_break
+- aco: add missing usable_read2 check
+- radv: don't set sx_blend_opt_epsilon for V_028C70_COLOR_10_11_11
+- aco: set compr for fp16 exports
+- aco: implement 64-bit VGPR {u,i}find_msb
+- radv,aco: don't use MUBUF for multi-channel loads on GFX8 with robustness2
+- radv: correctly enable WGP_MODE for NGG and GS
+- radv: round-up num_records division in radv_flush_vertex_descriptors
+- aco: calculate all p_as_uniform and v_readfirstlane_b32 sources in WQM
+- nir/opt_shrink_vectors: add option to skip shrinking image stores
+- radv: don't shrink image stores for The Surge 2
+
+Samuel Pitoiset (9):
+
+- nir/algebraic: mark more optimization with fsat(NaN) as inexact
+- radv: fix centroid with VRS coarse shading
+- radv: fix waiting on the last enabled RB for occlusion queries
+- radv: set correct value for OFFCHIP_BUFFERING on GFX10+
+- radv: make sure FMASK compression is enabled for MSAA copies
+- radv,aco: fix shifting input VGPRs for the LS VGPR init bug on GFX9
+- radv: fix separate depth/stencil layout in render pass
+- radv: fix color resolves if the dest image has DCC
+- radv: only apply the MRT output NaN fixup to non-meta shaders
+
+Simon Ser (2):
+
+- nouveau/nvc0: fix linear buffer alignment for scan-out/cursors
+- nouveau/nv50: fix linear buffer alignment for scan-out/cursors
+
+Timothy Arceri (1):
+
+- glsl: fix declarations of gl_MaxVaryingFloats
+
+Timur Kristóf (5):
+
+- tgsi_to_nir: Fix uniform ranges.
+- radv/llvm: Fix reporting LDS stats of tess control shaders.
+- aco: Disallow LSHS temp-only I/O when VS output is written indirectly.
+- aco: Fix LDS statistics of tess control shaders.
+- aco: Fix constant address offset calculation for ds_read2 instructions.
+
+Tony Wasserka (2):
+
+- aco: Fix vector::reserve() being called with the wrong size
+- aco/ra: Fix register allocation for subdword operands
+
+Vinson Lee (2):
+
+- etnaviv: Fix memory leak in etna_vertex_elements_state_create.
+- aco: Initialize ds_state.front.writeMask.
+
+Yevhenii Kharchenko (1):
+
+- st/mesa: fix PBO download for TEXTURE_1D_ARRAY textures
+
+Yevhenii Kolesnikov (1):
+
+- nir/from_ssa: consider defs in sibling blocks

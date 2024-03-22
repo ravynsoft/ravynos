@@ -1,0 +1,5 @@
+RCP temp[0].x, const[1].x___;
+RCP temp[0].y, const[1]._y__;
+MUL temp[1].xy, const[0].xx__, temp[0].xy__;
+MOV output[0].xy, temp[1].xy;
+=

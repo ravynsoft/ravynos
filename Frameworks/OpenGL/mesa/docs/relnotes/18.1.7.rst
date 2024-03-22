@@ -1,0 +1,81 @@
+Mesa 18.1.7 Release Notes / August 24 2018
+==========================================
+
+Mesa 18.1.7 is a bug fix release which fixes bugs found since the 18.1.6
+release.
+
+Mesa 18.1.7 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   0c3c240bcd1352d179e65993214f9d55a399beac852c3ab4433e8df9b6c51c83  mesa-18.1.7.tar.gz
+   655e3b32ce3bdddd5e6e8768596e5d4bdef82d0dd37067c324cc4b2daa207306  mesa-18.1.7.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 105975 <https://bugs.freedesktop.org/show_bug.cgi?id=105975>`__
+   - i965 always reports 0 viewport subpixel bits
+-  `Bug 107098 <https://bugs.freedesktop.org/show_bug.cgi?id=107098>`__
+   - Segfault after munmap(kms_sw_dt->ro_mapped)
+
+Changes
+-------
+
+Alexander Tsoy (1):
+
+-  meson: fix build for egl platform_x11 without dri3 and gbm
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Fix missing Android platform define.
+
+Danylo Piliaiev (1):
+
+-  i965: Advertise 8 bits subpixel precision for viewport bounds on
+   gen6+
+
+Dave Airlie (1):
+
+-  r600/eg: rework atomic counter emission with flushes
+
+Dylan Baker (7):
+
+-  docs: Add sha256 sums for 18.1.6
+-  cherry-ignore: Add additional 18.2 only patches
+-  cherry-ignore: Add more 18.2 patches
+-  cherry-ignore: Add more 18.2 patches
+-  cherry-ignore: Add a couple of patches with > 1 fixes tags
+-  cherry-ignore: more 18.2 patches
+-  bump version for 18.1.7 release
+
+Faith Ekstrand (2):
+
+-  intel: Switch the order of the 2x MSAA sample positions
+-  anv/lower_ycbcr: Use the binding array size for bounds checks
+
+Ray Strode (1):
+
+-  gallium/winsys/kms: don't unmap what wasn't mapped
+
+Samuel Pitoiset (1):
+
+-  radv/winsys: fix creating the BO list for virtual buffers
+
+Timothy Arceri (1):
+
+-  radv: add Doom workaround

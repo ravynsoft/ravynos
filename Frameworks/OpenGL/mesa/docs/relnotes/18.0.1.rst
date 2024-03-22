@@ -1,0 +1,187 @@
+Mesa 18.0.1 Release Notes / April 18, 2018
+==========================================
+
+Mesa 18.0.1 is a bug fix release which fixes bugs found since the 18.0.0
+release.
+
+Mesa 18.0.1 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   0c93ba892c0610f5dd87f2e2673b9445187995c395b3ddb33fd4260bfb291e89  mesa-18.0.1.tar.gz
+   b2d2f5b5dbaab13e15cb0dcb5ec81887467f55ebc9625945b303a3647cd87954  mesa-18.0.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 101408 <https://bugs.freedesktop.org/show_bug.cgi?id=101408>`__
+   - [Gen8+] Xonotic fails to render one of the weapons
+-  `Bug 102342 <https://bugs.freedesktop.org/show_bug.cgi?id=102342>`__
+   - mesa-17.1.7/src/gallium/auxiliary/pipebuffer/pb_cache.c:169]:
+   (style) Suspicious condition
+-  `Bug 102542 <https://bugs.freedesktop.org/show_bug.cgi?id=102542>`__
+   - mesa-17.2.0/src/gallium/state_trackers/nine/nine_ff.c:1938: bad
+   assignment ?
+-  `Bug 105317 <https://bugs.freedesktop.org/show_bug.cgi?id=105317>`__
+   - The GPU Vega 56 was hang while try to pass #GraphicsFuzz shader15
+   test
+-  `Bug 105440 <https://bugs.freedesktop.org/show_bug.cgi?id=105440>`__
+   - GEN7: rendering issue on citra
+-  `Bug 105442 <https://bugs.freedesktop.org/show_bug.cgi?id=105442>`__
+   - Hang when running nine ff lighting shader with radeonsi
+-  `Bug 105567 <https://bugs.freedesktop.org/show_bug.cgi?id=105567>`__
+   - meson/ninja: 1. mesa/vdpau incorrect symlinks in DESTDIR and 2.
+   Ddri-drivers-path Dvdpau-libs-path overrides DESTDIR
+-  `Bug 105670 <https://bugs.freedesktop.org/show_bug.cgi?id=105670>`__
+   - [regression][hang] Trine1EE hangs GPU after loading screen on
+   Mesa3D-17.3 and later
+-  `Bug 105704 <https://bugs.freedesktop.org/show_bug.cgi?id=105704>`__
+   - compiler assertion hit
+-  `Bug 105717 <https://bugs.freedesktop.org/show_bug.cgi?id=105717>`__
+   - [bisected] Mesa build tests fails: BIGENDIAN_CPU or
+   LITTLEENDIAN_CPU must be defined
+-  `Bug 105942 <https://bugs.freedesktop.org/show_bug.cgi?id=105942>`__
+   - Graphical artefacts after update to mesa 18.0.0-2
+
+Changes
+-------
+
+Andres Gomez (2):
+
+-  dri_util: when overriding, always reset the core version
+-  mesa: adds some comments regarding MESA_GLES_VERSION_OVERRIDE usage
+
+Axel Davy (5):
+
+-  st/nine: Fix bad tracking of vs textures for NINESBT_ALL
+-  st/nine: Fixes warning about implicit conversion
+-  st/nine: Fix non inversible matrix check
+-  st/nine: Declare lighting consts for ff shaders
+-  st/nine: Do not use scratch for face register
+
+Bas Nieuwenhuizen (3):
+
+-  ac/nir: Add workaround for GFX9 buffer views.
+-  radv: Don't set instance count using predication.
+-  radv: Always reset draw user SGPRs after secondary command buffer.
+
+Caio Marcelo de Oliveira Filho (1):
+
+-  anv/pipeline: fail if TCS/TES compile fail
+
+Daniel Stone (1):
+
+-  st/dri: Initialise modifier to INVALID for DRI2
+
+Derek Foreman (1):
+
+-  egl/wayland: Make swrast display_sync the correct queue
+
+Dylan Baker (4):
+
+-  meson: don't use compiler.has_header
+-  autotools: include meson_get_version
+-  meson: Set .so version for xa like autotools does
+-  meson: fix megadriver symlinking
+
+Emil Velikov (1):
+
+-  docs: add sha256 checksums for 18.0.0
+
+Eric Engestrom (3):
+
+-  meson/configure: detect endian.h instead of trying to guess when it's
+   available
+-  docs: fix 18.0 release note version
+-  gbm: remove never-implemented function
+
+Henri Verbeet (1):
+
+-  mesa: Inherit texture view multi-sample information from the original
+   texture images.
+
+Iago Toral Quiroga (1):
+
+-  compiler/spirv: set is_shadow for depth comparitor sampling opcodes
+
+Ian Romanick (1):
+
+-  i965/vec4: Fix null destination register in 3-source instructions
+
+Faith Ekstrand (4):
+
+-  nir/vars_to_ssa: Remove copies from the correct set
+-  nir/lower_indirect_derefs: Support interp_var_at intrinsics
+-  intel/vec4: Set channel_sizes for MOV_INDIRECT sources
+-  nir/lower_vec_to_movs: Only coalesce if the vec had a SSA destination
+
+Juan A. Suarez Romero (5):
+
+-  cherry-ignore anv: Be more careful about fast-clear colors
+-  cherry-ignore: ac/shader: fix vertex input with components.
+-  cherry-ignore: radv: handle exporting view index to fragment shader.
+   (v1.1)
+-  cherry-ignore: omx: always define ENABLE_ST_OMX_{BELLAGIO,TIZONIA}
+-  Update version to 18.0.1
+
+Leo Liu (1):
+
+-  radeon/vce: move feedback command inside of destroy function
+
+Lionel Landwerlin (1):
+
+-  i965/perf: fix config registration when uploading to kernel
+
+Marc Dietrich (1):
+
+-  meson: fix HAVE_LLVM version define in meson build
+
+Marek Olšák (1):
+
+-  mesa: simplify MESA_GL_VERSION_OVERRIDE behavior of API override
+
+Mark Thompson (1):
+
+-  st/va: Enable vaExportSurfaceHandle()
+
+Rob Clark (3):
+
+-  nir: fix per_vertex_output intrinsic
+-  freedreno/a5xx: fix page faults on last level
+-  freedreno/a5xx: don't align height for PIPE_BUFFER
+
+Samuel Pitoiset (2):
+
+-  radv: fix picking the method for resolve subpass
+-  radv: fix radv_layout_dcc_compressed() when image doesn't have DCC
+
+Sergii Romantsov (1):
+
+-  i965: Extend the negative 32-bit deltas to 64-bits
+
+Timothy Arceri (7):
+
+-  ac: add if/loop build helpers
+-  radeonsi: make use of if/loop build helpers in ac
+-  ac: make use of if/loop build helpers
+-  glsl: fix infinite loop caused by bug in loop unrolling pass
+-  nir: fix crash in loop unroll corner case
+-  gallium/pipebuffer: fix parenthesis location
+-  glsl: always call do_lower_jumps() after loop unrolling
+
+Xiong, James (1):
+
+-  i965: return the fourcc saved in \__DRIimage when possible

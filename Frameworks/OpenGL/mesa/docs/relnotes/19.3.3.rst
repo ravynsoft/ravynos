@@ -1,0 +1,202 @@
+Mesa 19.3.3 Release Notes / 2020-01-28
+======================================
+
+Mesa 19.3.3 is a bug fix release which fixes bugs found since the 19.3.2
+release.
+
+Mesa 19.3.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.6. OpenGL 4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.3.3 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       81ce4810bb25d61300f8104856461f4d49cf7cb794aa70cb572312e370c39f09  mesa-19.3.3.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  aco: Dead Rising 4 crashes in lower_to_hw_instr() on GFX6-GFX7
+-  libvulkan_radeon.so crash with \`free(): double free detected in
+   tcache 2\`
+-  Commit be08e6a causes crash in com.android.launcher3 (Launcher)
+-  Mesa no longer compiles with GCC 10
+-  [bisected] [radeonsi] GPU hangs/resets while playing interlaced
+   content on Kodi with VAAPI
+-  [radeonsi] MSAA image not copied properly after image store through
+   texture view
+-  T-Rex and Manhattan onscreen performance issue on Android
+-  VkSamplerCreateInfo compareEnable not respected
+-  VkSamplerCreateInfo compareEnable not respected
+-  Freedreno drm softpin driver implementation leaks memory
+-  [POLARIS10] VRAM leak involving glTexImage2D with non-NULL data
+   argument
+
+Changes
+-------
+
+Adam Jackson (1):
+
+-  drisw: Cache the depth of the X drawable
+
+Andrii Simiklit (1):
+
+-  mesa/st: fix a memory leak in get_version
+
+Bas Nieuwenhuizen (2):
+
+-  radv: Disable VK_EXT_sample_locations on GFX10.
+-  radv: Remove syncobj_handle variable in header.
+
+Caio Marcelo de Oliveira Filho (1):
+
+-  intel/fs: Only use SLM fence in compute shaders
+
+Daniel Schürmann (2):
+
+-  aco: fix unconditional demote_to_helper
+-  aco: rework lower_to_cssa()
+
+Dylan Baker (3):
+
+-  docs: add SHA256 sums for 19.3.2
+-  cherry-ignore: Update for 19.3.3
+-  .pick_status.json: Update to c787b8d2a16d5e2950f209b1fcbec6e6c0388845
+
+Eric Anholt (1):
+
+-  mesa: Fix detection of invalidating both depth and stencil.
+
+Eric Engestrom (1):
+
+-  meson: use github URL for wraps instead of completely unreliable
+   wrapdb
+
+Erik Faye-Lund (8):
+
+-  docs: fix typo in html tag name
+-  docs: fix paragraphs
+-  docs: open paragraph before closing it
+-  docs: use code-tag instead of pre-tag
+-  docs: use code-tags instead of pre-tags
+-  docs: use code-tags instead of pre-tags
+-  docs: move paragraph closing tag
+-  docs: remove double-closed definition-list
+
+Francisco Jerez (3):
+
+-  glsl: Fix software 64-bit integer to 32-bit float conversions.
+-  intel/fs/gen11+: Handle ROR/ROL in lower_simd_width().
+-  intel/fs/gen8+: Fix r127 dst/src overlap RA workaround for EOT
+   message payload.
+
+Hyunjun Ko (1):
+
+-  turnip: fix invalid VK_ERROR_OUT_OF_POOL_MEMORY
+
+Jan Vesely (1):
+
+-  clover: Initialize Asm Parsers
+
+Faith Ekstrand (8):
+
+-  anv: Flag descriptors dirty when gl_NumWorkgroups is used
+-  intel/vec4: Support scoped_memory_barrier
+-  intel/blorp: Fill out all the dwords of MI_ATOMIC
+-  anv: Don't over-advertise descriptor indexing features
+-  anv: Memset array properties
+-  anv/blorp: Rename buffer image stride parameters
+-  anv: Canonicalize buffer formats for image/buffer copies
+-  anv: Stop allocating WSI event fences off the instance
+
+Jonathan Marek (1):
+
+-  st/mesa: don't lower YUV when driver supports it natively
+
+Kenneth Graunke (2):
+
+-  intel/compiler: Fix illegal mutation in get_nir_image_intrinsic_image
+-  intel: Fix aux map alignments on 32-bit builds.
+
+Lasse Lopperi (1):
+
+-  freedreno/drm: Fix memory leak in softpin implementation
+
+Lionel Landwerlin (4):
+
+-  anv: fix intel perf queries availability writes
+-  anv: only use VkSamplerCreateInfo::compareOp if enabled
+-  intel/perf: expose timestamp begin for mdapi
+-  intel/perf: report query split for mdapi
+
+Marek Olšák (4):
+
+-  ac/gpu_info: always use distributed tessellation on gfx10
+-  radeonsi: work around an LLVM crash when using
+   llvm.amdgcn.icmp.i64.i1
+-  radeonsi: clean up how internal compute dispatches are handled
+-  radeonsi: don't invoke decompression inside internal launch_grid
+
+Nataraj Deshpande (1):
+
+-  egl/android: Restrict minimum triple buffering for android
+   color_buffers
+
+Pierre-Eric Pelloux-Prayer (8):
+
+-  radeonsi: release saved resources in si_retile_dcc
+-  radeonsi: release saved resources in si_compute_expand_fmask
+-  radeonsi: release saved resources in si_compute_clear_render_target
+-  radeonsi: release saved resources in si_compute_copy_image
+-  radeonsi: release saved resources in si_compute_do_clear_or_copy
+-  radeonsi: fix fmask expand compute shader
+-  radeonsi: make sure fmask expand is done if needed
+-  util: call bind_sampler_states before setting sampler_views
+
+Rhys Perry (8):
+
+-  aco: set vm for pos0 exports on GFX10
+-  aco: fix imageSize()/textureSize() with large buffers on GFX8
+-  aco: fix uninitialized data in the binary
+-  aco: set exec_potentially_empty for demotes
+-  aco: disable add combining for ds_swizzle_b32
+-  aco: don't DCE atomics with return values
+-  aco: check if multiplication/clamp is live when applying output
+   modifier
+-  aco: fix off-by-one error when initializing sgpr_live_in
+
+Samuel Pitoiset (2):
+
+-  radv: only use VkSamplerCreateInfo::compareOp if enabled
+-  radv: fix double free corruption in radv_alloc_memory()
+
+Samuel Thibault (1):
+
+-  meson: Do not require libdrm for DRI2 on hurd
+
+Tapani Pälli (1):
+
+-  egl/android: fix buffer_count for applications setting max count
+
+Thong Thai (1):
+
+-  mesa: Prevent \_MaxLevel from being less than zero
+
+Timur Kristóf (1):
+
+-  aco/gfx10: Fix VcmpxExecWARHazard mitigation.

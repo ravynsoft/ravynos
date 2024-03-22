@@ -1,0 +1,648 @@
+<?xml version='1.0' encoding='utf-8'?>
+<genxml name="ILK" gen="5">
+  <import name="gen45.xml" />
+  <struct name="CLIP_STATE" length="11">
+    <field name="GRF Register Count" start="1" end="3" type="uint" />
+    <field name="Kernel Start Pointer" start="6" end="31" type="offset" />
+    <field name="Software Exception Enable" start="39" end="39" type="bool" />
+    <field name="Mask Stack Exception Enable" start="43" end="43" type="bool" />
+    <field name="Illegal Opcode Exception Enable" start="45" end="45" type="bool" />
+    <field name="Floating Point Mode" start="48" end="48" type="uint" prefix="FLOATING_POINT_MODE">
+      <value name="IEEE-754" value="0" />
+      <value name="Alternate" value="1" />
+    </field>
+    <field name="Thread Priority" start="49" end="49" type="uint">
+      <value name="Normal Priority" value="0" />
+      <value name="High Priority" value="1" />
+    </field>
+    <field name="Binding Table Entry Count" start="50" end="57" type="uint" />
+    <field name="Single Program Flow" start="63" end="63" type="bool" />
+    <field name="Per-Thread Scratch Space" start="64" end="67" type="uint" />
+    <field name="Scratch Space Base Pointer" start="74" end="95" type="address" />
+    <field name="Dispatch GRF Start Register For URB Data" start="96" end="99" type="uint" />
+    <field name="Vertex URB Entry Read Offset" start="100" end="105" type="uint" />
+    <field name="Vertex URB Entry Read Length" start="107" end="112" type="uint" />
+    <field name="Constant URB Entry Read Offset" start="114" end="119" type="uint" />
+    <field name="Constant URB Entry Read Length" start="121" end="126" type="uint" />
+    <field name="Number of URB Entries" start="139" end="146" type="uint" />
+    <field name="URB Entry Allocation Size" start="147" end="151" type="uint" />
+    <field name="Maximum Number of Threads" start="153" end="158" type="uint" />
+    <field name="Clip Mode" start="173" end="175" type="uint" prefix="CLIPMODE">
+      <value name="NORMAL" value="0" />
+      <value name="ALL" value="1" />
+      <value name="CLIP_NON_REJECTED" value="2" />
+      <value name="REJECT_ALL" value="3" />
+      <value name="ACCEPT_ALL" value="4" />
+    </field>
+    <field name="UserClipDistance ClipTest Enable Bitmask" start="176" end="183" type="uint" />
+    <field name="UserClipFlags MustClip Enable" start="184" end="184" type="bool" />
+    <field name="Negative W ClipTest Enable" start="185" end="185" type="bool" />
+    <field name="Guardband ClipTest Enable" start="186" end="186" type="bool" />
+    <field name="Viewport Z ClipTest Enable" start="187" end="187" type="bool" />
+    <field name="Viewport XY ClipTest Enable" start="188" end="188" type="bool" />
+    <field name="Vertex Position Space" start="189" end="189" type="uint" prefix="VPOS">
+      <value name="NDCSPACE" value="0" />
+      <value name="SCREENSPACE" value="1" />
+    </field>
+    <field name="API Mode" start="190" end="190" type="uint" prefix="APIMODE">
+      <value name="OGL" value="0" />
+      <value name="D3D" value="1" />
+    </field>
+    <field name="Clipper Viewport State Pointer" start="197" end="223" type="address" />
+    <field name="Screen Space Viewport X Min" start="224" end="255" type="float" />
+    <field name="Screen Space Viewport X Max" start="256" end="287" type="float" />
+    <field name="Screen Space Viewport Y Min" start="288" end="319" type="float" />
+    <field name="Screen Space Viewport Y Max" start="320" end="351" type="float" />
+  </struct>
+  <struct name="GS_STATE" length="7">
+    <field name="GRF Register Count" start="1" end="3" type="uint" />
+    <field name="Kernel Start Pointer" start="6" end="31" type="offset" />
+    <field name="Software Exception Enable" start="39" end="39" type="bool" />
+    <field name="Mask Stack Exception Enable" start="43" end="43" type="bool" />
+    <field name="Illegal Opcode Exception Enable" start="45" end="45" type="bool" />
+    <field name="Floating Point Mode" start="48" end="48" type="uint" prefix="FLOATING_POINT_MODE">
+      <value name="IEEE-754" value="0" />
+      <value name="Alternate" value="1" />
+    </field>
+    <field name="Binding Table Entry Count" start="50" end="57" type="uint" />
+    <field name="Single Program Flow" start="63" end="63" type="bool" />
+    <field name="Per-Thread Scratch Space" start="64" end="67" type="uint" />
+    <field name="Scratch Space Base Pointer" start="74" end="95" type="address" />
+    <field name="Dispatch GRF Start Register For URB Data" start="96" end="99" type="uint" />
+    <field name="Vertex URB Entry Read Offset" start="100" end="105" type="uint" />
+    <field name="Vertex URB Entry Read Length" start="107" end="112" type="uint" />
+    <field name="Constant URB Entry Read Offset" start="114" end="119" type="uint" />
+    <field name="Constant URB Entry Read Length" start="121" end="126" type="uint" />
+    <field name="Rendering Enabled" start="136" end="136" type="bool" />
+    <field name="SO Statistics Enable" start="137" end="137" type="bool" />
+    <field name="GS Statistics Enable" start="138" end="138" type="bool" />
+    <field name="Number of URB Entries" start="139" end="146" type="uint" />
+    <field name="URB Entry Allocation Size" start="147" end="151" type="uint" />
+    <field name="Maximum Number of Threads" start="153" end="158" type="uint" />
+    <field name="Sampler Count" start="160" end="162" type="uint" />
+    <field name="Sampler State Pointer" start="165" end="191" type="address" />
+    <field name="Maximum VPIndex" start="192" end="195" type="uint" />
+    <field name="Reorder Enable" start="222" end="222" type="bool" />
+  </struct>
+  <struct name="MEMORY_OBJECT_CONTROL_STATE" length="1">
+    <field name="Cacheability Control" start="0" end="1" type="uint" />
+    <field name="Graphics Data Type (GFDT)" start="2" end="2" type="uint" />
+    <field name="Encrypted Data" start="3" end="3" type="bool" />
+  </struct>
+  <struct name="RENDER_SURFACE_STATE" length="6">
+    <field name="Cube Face Enable - Positive Z" start="0" end="0" type="bool" />
+    <field name="Cube Face Enable - Negative Z" start="1" end="1" type="bool" />
+    <field name="Cube Face Enable - Positive Y" start="2" end="2" type="bool" />
+    <field name="Cube Face Enable - Negative Y" start="3" end="3" type="bool" />
+    <field name="Cube Face Enable - Positive X" start="4" end="4" type="bool" />
+    <field name="Cube Face Enable - Negative X" start="5" end="5" type="bool" />
+    <field name="Media Boundary Pixel Mode" start="6" end="7" type="uint">
+      <value name="NORMAL_MODE" value="0" />
+    </field>
+    <field name="Render Cache Read Write Mode" start="8" end="8" type="uint">
+      <value name="WRITE_ONLY" value="0" />
+      <value name="READ_WRITE" value="1" />
+    </field>
+    <field name="Cube Map Corner Mode" start="9" end="9" type="uint">
+      <value name="CUBE_REPLICATE" value="0" />
+      <value name="CUBE_AVERAGE" value="1" />
+    </field>
+    <field name="MIP Map Layout Mode" start="10" end="10" type="uint">
+      <value name="MIPLAYOUT_BELOW" value="0" />
+      <value name="MIPLAYOUT_RIGHT" value="1" />
+    </field>
+    <field name="Vertical Line Stride Offset" start="11" end="11" type="uint" />
+    <field name="Vertical Line Stride" start="12" end="12" type="uint" />
+    <field name="Color Blend Enable" start="13" end="13" type="bool" />
+    <field name="Color Buffer Component Write Disables" start="14" end="17" type="uint">
+      <value name="WRITEDISABLE_ALPHA" value="8" />
+      <value name="WRITEDISABLE_RED" value="4" />
+      <value name="WRITEDISABLE_GREEN" value="2" />
+      <value name="WRITEDISABLE_BLUE" value="1" />
+    </field>
+    <field name="Surface Format" start="18" end="26" type="uint" />
+    <field name="Data Return Format" start="27" end="27" type="uint">
+      <value name="DATA_RETURN_FLOAT32" value="0" />
+      <value name="DATA_RETURN_S1.14" value="1" />
+    </field>
+    <field name="Surface Type" start="29" end="31" type="uint">
+      <value name="SURFTYPE_1D" value="0" />
+      <value name="SURFTYPE_2D" value="1" />
+      <value name="SURFTYPE_3D" value="2" />
+      <value name="SURFTYPE_CUBE" value="3" />
+      <value name="SURFTYPE_BUFFER" value="4" />
+      <value name="SURFTYPE_NULL" value="7" />
+    </field>
+    <field name="Surface Base Address" start="32" end="63" type="address" />
+    <field name="Render Target Rotation" start="64" end="65" type="uint">
+      <value name="RTROTATE_0DEG" value="0" />
+      <value name="RTROTATE_90DEG" value="1" />
+      <value name="RTROTATE_270DEG" value="3" />
+    </field>
+    <field name="MIP Count / LOD" start="66" end="69" type="uint" />
+    <field name="Width" start="70" end="82" type="uint" />
+    <field name="Height" start="83" end="95" type="uint" />
+    <field name="Tile Walk" start="96" end="96" type="uint">
+      <value name="TILEWALK_XMAJOR" value="0" />
+      <value name="TILEWALK_YMAJOR" value="1" />
+    </field>
+    <field name="Tiled Surface" start="97" end="97" type="uint" />
+    <field name="Surface Pitch" start="99" end="115" type="uint" />
+    <field name="Depth" start="117" end="127" type="uint" />
+    <field name="Render Target View Extent" start="136" end="144" type="uint" />
+    <field name="Minimum Array Element" start="145" end="155" type="uint" />
+    <field name="Surface Min LOD" start="156" end="159" type="uint" />
+    <field name="Y Offset" start="180" end="183" type="uint" />
+    <field name="X Offset" start="185" end="191" type="uint" />
+  </struct>
+  <struct name="SAMPLER_BORDER_COLOR_STATE" length="12">
+    <field name="Border Color Unorm Red" start="0" end="7" type="uint" />
+    <field name="Border Color Unorm Green" start="8" end="15" type="uint" />
+    <field name="Border Color Unorm Blue" start="16" end="23" type="uint" />
+    <field name="Border Color Unorm Alpha" start="24" end="31" type="uint" />
+    <field name="Border Color Float Red" start="32" end="63" type="float" />
+    <field name="Border Color Float Green" start="64" end="95" type="float" />
+    <field name="Border Color Float Blue" start="96" end="127" type="float" />
+    <field name="Border Color Float Alpha" start="128" end="159" type="float" />
+    <field name="Border Color Float16 Red" start="160" end="175" type="uint" />
+    <field name="Border Color Float16 Green" start="176" end="191" type="uint" />
+    <field name="Border Color Float16 Blue" start="192" end="207" type="uint" />
+    <field name="Border Color Float16 Alpha" start="208" end="223" type="uint" />
+    <field name="Border Color Unorm16 Red" start="224" end="239" type="uint" />
+    <field name="Border Color Unorm16 Green" start="240" end="255" type="uint" />
+    <field name="Border Color Unorm16 Blue" start="256" end="271" type="uint" />
+    <field name="Border Color Unorm16 Alpha" start="272" end="287" type="uint" />
+    <field name="Border Color Snorm16 Red" start="288" end="303" type="int" />
+    <field name="Border Color Snorm16 Green" start="304" end="319" type="int" />
+    <field name="Border Color Snorm16 Blue" start="320" end="335" type="int" />
+    <field name="Border Color Snorm16 Alpha" start="336" end="351" type="int" />
+    <field name="Border Color Snorm8 Red" start="352" end="359" type="int" />
+    <field name="Border Color Snorm8 Green" start="360" end="367" type="int" />
+    <field name="Border Color Snorm8 Blue" start="368" end="375" type="int" />
+    <field name="Border Color Snorm8 Alpha" start="376" end="383" type="int" />
+  </struct>
+  <struct name="SF_STATE" length="8">
+    <field name="GRF Register Count" start="1" end="3" type="uint" />
+    <field name="Kernel Start Pointer" start="6" end="31" type="offset" />
+    <field name="Software Exception Enable" start="39" end="39" type="bool" />
+    <field name="Mask Stack Exception Enable" start="43" end="43" type="bool" />
+    <field name="Illegal Opcode Exception Enable" start="45" end="45" type="bool" />
+    <field name="Floating Point Mode" start="48" end="48" type="uint" prefix="FLOATING_POINT_MODE">
+      <value name="IEEE-754" value="0" />
+      <value name="Alternate" value="1" />
+    </field>
+    <field name="Thread Priority" start="49" end="49" type="uint">
+      <value name="Normal Priority" value="0" />
+      <value name="High Priority" value="1" />
+    </field>
+    <field name="Binding Table Entry Count" start="50" end="57" type="uint" />
+    <field name="Single Program Flow" start="63" end="63" type="bool" />
+    <field name="Per-Thread Scratch Space" start="64" end="67" type="uint" />
+    <field name="Scratch Space Base Pointer" start="74" end="95" type="address" />
+    <field name="Dispatch GRF Start Register For URB Data" start="96" end="99" type="uint" />
+    <field name="Vertex URB Entry Read Offset" start="100" end="105" type="uint" />
+    <field name="Vertex URB Entry Read Length" start="107" end="112" type="uint" />
+    <field name="Constant URB Entry Read Offset" start="114" end="119" type="uint" />
+    <field name="Constant URB Entry Read Length" start="121" end="126" type="uint" />
+    <field name="Number of URB Entries" start="139" end="146" type="uint" />
+    <field name="URB Entry Allocation Size" start="147" end="151" type="uint" />
+    <field name="Maximum Number of Threads" start="153" end="158" type="uint" />
+    <field name="Front Winding" start="160" end="160" type="uint">
+      <value name="FRONTWINDING_CW" value="0" />
+      <value name="FRONTWINDING_CCW" value="1" />
+    </field>
+    <field name="Viewport Transform Enable" start="161" end="161" type="bool" />
+    <field name="Setup Viewport State Offset" start="165" end="191" type="address" />
+    <field name="Destination Origin Vertical Bias" start="201" end="204" type="u0.4" />
+    <field name="Destination Origin Horizontal Bias" start="205" end="208" type="u0.4" />
+    <field name="Scissor Rectangle Enable" start="209" end="209" type="bool" />
+    <field name="2x2 Pixel Triangle Filter Disable" start="210" end="210" type="bool" />
+    <field name="Zero Pixel Triangle Filter Disable" start="211" end="211" type="bool" />
+    <field name="Point Rasterization Rule" start="212" end="213" type="uint">
+      <value name="RASTRULE_UPPER_LEFT" value="0" />
+      <value name="RASTRULE_UPPER_RIGHT" value="1" />
+    </field>
+    <field name="Line End Cap Antialiasing Region Width" start="214" end="215" type="uint">
+      <value name="0.5 pixels" value="0" />
+      <value name="1.0 pixels" value="1" />
+      <value name="2.0 pixels" value="2" />
+      <value name="4.0 pixels" value="3" />
+    </field>
+    <field name="Line Width" start="216" end="219" type="u3.1" />
+    <field name="Fast Scissor Clip Disable" start="220" end="220" type="bool" />
+    <field name="Cull Mode" start="221" end="222" type="uint" prefix="CULLMODE">
+      <value name="BOTH" value="0" />
+      <value name="NONE" value="1" />
+      <value name="FRONT" value="2" />
+      <value name="BACK" value="3" />
+    </field>
+    <field name="Antialiasing Enable" start="223" end="223" type="bool" />
+    <field name="Point Width" start="224" end="234" type="u8.3" />
+    <field name="Point Width Source" start="235" end="235" type="uint">
+      <value name="Vertex" value="0" />
+      <value name="State" value="1" />
+    </field>
+    <field name="Vertex Sub Pixel Precision Select" start="236" end="236" type="uint">
+      <value name="8 Sub-Pixel Precision Bits" value="0" />
+      <value name="4 Sub-Pixel Precision Bits" value="1" />
+    </field>
+    <field name="Sprite Point Enable" start="237" end="237" type="bool" />
+    <field name="AA Line Distance Mode" start="238" end="238" type="uint" prefix="AALINEDISTANCE">
+      <value name="MANHATTAN" value="0" />
+      <value name="TRUE" value="1" />
+    </field>
+    <field name="Triangle Fan Provoking Vertex Select" start="249" end="250" type="uint">
+      <value name="Vertex 0" value="0" />
+      <value name="Vertex 1" value="1" />
+      <value name="Vertex 2" value="2" />
+    </field>
+    <field name="Line Strip/List Provoking Vertex Select" start="251" end="252" type="uint">
+      <value name="Vertex 0" value="0" />
+      <value name="Vertex 1" value="1" />
+    </field>
+    <field name="Triangle Strip/List Provoking Vertex Select" start="253" end="254" type="uint">
+      <value name="Vertex 0" value="0" />
+      <value name="Vertex 1" value="1" />
+      <value name="Vertex 2" value="2" />
+    </field>
+    <field name="Last Pixel Enable" start="255" end="255" type="bool" />
+  </struct>
+  <struct name="VERTEX_BUFFER_STATE" length="4">
+    <field name="Buffer Pitch" start="0" end="11" type="uint" />
+    <field name="Null Vertex Buffer" start="13" end="13" type="bool" />
+    <field name="Buffer Access Type" start="26" end="26" type="uint">
+      <value name="VERTEXDATA" value="0" />
+      <value name="INSTANCEDATA" value="1" />
+    </field>
+    <field name="Vertex Buffer Index" start="27" end="31" type="uint" />
+    <field name="Buffer Starting Address" start="32" end="63" type="address" />
+    <field name="End Address" start="64" end="95" type="address" />
+    <field name="Instance Data Step Rate" start="96" end="127" type="uint" />
+  </struct>
+  <struct name="VS_STATE" length="7">
+    <field name="GRF Register Count" start="1" end="3" type="uint" />
+    <field name="Kernel Start Pointer" start="6" end="31" type="offset" />
+    <field name="Software Exception Enable" start="39" end="39" type="bool" />
+    <field name="Mask Stack Exception Enable" start="43" end="43" type="bool" />
+    <field name="Illegal Opcode Exception Enable" start="45" end="45" type="bool" />
+    <field name="Floating Point Mode" start="48" end="48" type="uint" prefix="FLOATING_POINT_MODE">
+      <value name="IEEE-754" value="0" />
+      <value name="Alternate" value="1" />
+    </field>
+    <field name="Thread Priority" start="49" end="49" type="uint">
+      <value name="Normal Priority" value="0" />
+      <value name="High Priority" value="1" />
+    </field>
+    <field name="Binding Table Entry Count" start="50" end="57" type="uint" />
+    <field name="Single Program Flow" start="63" end="63" type="bool" />
+    <field name="Per-Thread Scratch Space" start="64" end="67" type="uint" />
+    <field name="Scratch Space Base Pointer" start="74" end="95" type="address" />
+    <field name="Dispatch GRF Start Register For URB Data" start="96" end="99" type="uint" />
+    <field name="Vertex URB Entry Read Offset" start="100" end="105" type="uint" />
+    <field name="Vertex URB Entry Read Length" start="107" end="112" type="uint" />
+    <field name="Constant URB Entry Read Offset" start="114" end="119" type="uint" />
+    <field name="Constant URB Entry Read Length" start="121" end="126" type="uint" />
+    <field name="Statistics Enable" start="138" end="138" type="bool" />
+    <field name="Number of URB Entries" start="139" end="146" type="uint" />
+    <field name="URB Entry Allocation Size" start="147" end="151" type="uint" />
+    <field name="Maximum Number of Threads" start="153" end="158" type="uint" />
+    <field name="Sampler Count" start="160" end="162" type="uint" />
+    <field name="Sampler State Pointer" start="165" end="191" type="address" />
+    <field name="Enable" start="192" end="192" type="bool" />
+    <field name="Vertex Cache Disable" start="193" end="193" type="bool" />
+  </struct>
+  <struct name="WM_STATE" length="11">
+    <field name="GRF Register Count 0" start="1" end="3" type="uint" />
+    <field name="Kernel Start Pointer 0" start="6" end="31" type="offset" />
+    <field name="Software Exception Enable" start="33" end="33" type="bool" />
+    <field name="Mask Stack Exception Enable" start="34" end="34" type="bool" />
+    <field name="Illegal Opcode Exception Enable" start="36" end="36" type="bool" />
+    <field name="Depth Coefficient URB Read Offset" start="40" end="45" type="uint" />
+    <field name="Floating Point Mode" start="48" end="48" type="uint" prefix="FLOATING_POINT_MODE">
+      <value name="IEEE-754" value="0" />
+      <value name="Alternate" value="1" />
+    </field>
+    <field name="Thread Priority" start="49" end="49" type="uint">
+      <value name="High" value="1" />
+    </field>
+    <field name="Binding Table Entry Count" start="50" end="57" type="uint" />
+    <field name="Single Program Flow" start="63" end="63" type="bool" />
+    <field name="Per-Thread Scratch Space" start="64" end="67" type="uint" />
+    <field name="Scratch Space Base Pointer" start="74" end="95" type="address" />
+    <field name="Dispatch GRF Start Register For Constant/Setup Data 0" start="96" end="99" type="uint" />
+    <field name="Setup URB Entry Read Offset" start="100" end="105" type="uint" />
+    <field name="Setup URB Entry Read Length" start="107" end="112" type="uint" />
+    <field name="Constant URB Entry Read Offset" start="114" end="119" type="uint" />
+    <field name="Constant URB Entry Read Length" start="121" end="126" type="uint" />
+    <field name="Statistics Enable" start="128" end="128" type="bool" />
+    <field name="Sampler Count" start="130" end="132" type="uint" />
+    <field name="Sampler State Pointer" start="133" end="159" type="address" />
+    <field name="8 Pixel Dispatch Enable" start="160" end="160" type="bool" />
+    <field name="16 Pixel Dispatch Enable" start="161" end="161" type="bool" />
+    <field name="32 Pixel Dispatch Enable" start="162" end="162" type="bool" />
+    <field name="Contiguous 32 Pixel Dispatch Enable" start="163" end="163" type="bool" />
+    <field name="Contiguous 64 Pixel Dispatch Enable" start="164" end="164" type="bool" />
+    <field name="Fast Span Coverage Enable" start="166" end="166" type="bool" />
+    <field name="Depth Buffer Clear" start="167" end="167" type="bool" />
+    <field name="Depth Buffer Resolve Enable" start="168" end="168" type="bool" />
+    <field name="Hierarchical Depth Buffer Resolve Enable" start="169" end="169" type="bool" />
+    <field name="Legacy Global Depth Bias Enable" start="170" end="170" type="bool" />
+    <field name="Line Stipple Enable" start="171" end="171" type="bool" />
+    <field name="Global Depth Offset Enable" start="172" end="172" type="bool" />
+    <field name="Polygon Stipple Enable" start="173" end="173" type="bool" />
+    <field name="Line Antialiasing Region Width" start="174" end="175" type="uint">
+      <value name="0.5 pixels" value="0" />
+      <value name="1.0 pixels" value="1" />
+      <value name="2.0 pixels" value="2" />
+      <value name="4.0 pixels" value="3" />
+    </field>
+    <field name="Line End Cap Antialiasing Region Width" start="176" end="177" type="uint">
+      <value name="0.5 pixels" value="0" />
+      <value name="1.0 pixels" value="1" />
+      <value name="2.0 pixels" value="2" />
+      <value name="4.0 pixels" value="3" />
+    </field>
+    <field name="Early Depth Test Enable" start="178" end="178" type="bool" />
+    <field name="Thread Dispatch Enable" start="179" end="179" type="bool" />
+    <field name="Pixel Shader Uses Source Depth" start="180" end="180" type="bool" />
+    <field name="Pixel Shader Computed Depth" start="181" end="181" type="bool" />
+    <field name="Pixel Shader Kills Pixel" start="182" end="182" type="bool" />
+    <field name="Legacy Diamond Line Rasterization" start="183" end="183" type="bool" />
+    <field name="Maximum Number of Threads" start="185" end="191" type="uint" />
+    <field name="Global Depth Offset Constant" start="192" end="223" type="float" />
+    <field name="Global Depth Offset Scale" start="224" end="255" type="float" />
+    <field name="GRF Register Count 1" start="257" end="259" type="uint" />
+    <field name="Kernel Start Pointer 1" start="262" end="287" type="offset" />
+    <field name="GRF Register Count 2" start="289" end="291" type="uint" />
+    <field name="Kernel Start Pointer 2" start="294" end="319" type="offset" />
+    <field name="GRF Register Count 3" start="321" end="323" type="uint" />
+    <field name="Kernel Start Pointer 3" start="326" end="351" type="offset" />
+  </struct>
+  <instruction name="3DSTATE_CLEAR_PARAMS" bias="2" length="2" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="0" />
+    <field name="Depth Clear Value Valid" start="15" end="15" type="bool" />
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="16" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="1" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="3" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="Depth Clear Value" start="32" end="63" type="uint" />
+  </instruction>
+  <instruction name="3DSTATE_DEPTH_BUFFER" bias="2" length="6" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="4" />
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="5" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="1" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="3" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="Surface Pitch" start="32" end="48" type="uint" />
+    <field name="Surface Format" start="50" end="52" type="uint">
+      <value name="D32_FLOAT_S8X24_UINT" value="0" />
+      <value name="D32_FLOAT" value="1" />
+      <value name="D24_UNORM_S8_UINT" value="2" />
+      <value name="D24_UNORM_X8_UINT" value="3" />
+      <value name="D16_UNORM" value="5" />
+    </field>
+    <field name="Separate Stencil Buffer Enable" start="53" end="53" type="bool" />
+    <field name="Hierarchical Depth Buffer Enable" start="54" end="54" type="bool" />
+    <field name="Software Tiled Rendering Mode" start="55" end="56" type="uint">
+      <value name="NORMAL" value="0" />
+      <value name="STR1" value="1" />
+      <value name="STR2" value="3" />
+    </field>
+    <field name="Tile Walk" start="58" end="58" type="uint">
+      <value name="TILEWALK_YMAJOR" value="1" />
+    </field>
+    <field name="Tiled Surface" start="59" end="59" type="bool" />
+    <field name="Surface Type" start="61" end="63" type="uint">
+      <value name="SURFTYPE_1D" value="0" />
+      <value name="SURFTYPE_2D" value="1" />
+      <value name="SURFTYPE_3D" value="2" />
+      <value name="SURFTYPE_CUBE" value="3" />
+      <value name="SURFTYPE_NULL" value="7" />
+    </field>
+    <field name="Surface Base Address" start="64" end="95" type="address" />
+    <field name="MIP Map Layout Mode" start="97" end="97" type="uint">
+      <value name="MIPLAYOUT_BELOW" value="0" />
+      <value name="MIPLAYOUT_RIGHT" value="1" />
+    </field>
+    <field name="LOD" start="98" end="101" type="uint" />
+    <field name="Width" start="102" end="114" type="uint" />
+    <field name="Height" start="115" end="127" type="uint" />
+    <field name="Render Target View Extent" start="129" end="137" type="uint" />
+    <field name="Minimum Array Element" start="138" end="148" type="uint" />
+    <field name="Depth" start="149" end="159" type="uint" />
+    <field name="Depth Coordinate Offset X" start="160" end="175" type="int" />
+    <field name="Depth Coordinate Offset Y" start="176" end="191" type="int" />
+  </instruction>
+  <instruction name="3DSTATE_HIER_DEPTH_BUFFER" bias="2" length="3" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="1" />
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="15" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="1" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="3" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="Surface Pitch" start="32" end="48" type="uint" />
+    <field name="Surface Base Address" start="64" end="95" type="address" />
+  </instruction>
+  <instruction name="3DSTATE_LINE_STIPPLE" bias="2" length="3" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="1" />
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="8" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="1" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="3" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="Line Stipple Pattern" start="32" end="47" type="uint" />
+    <field name="Current Stipple Index" start="48" end="51" type="uint" />
+    <field name="Current Repeat Counter" start="53" end="61" type="uint" />
+    <field name="Modify Enable" start="63" end="63" type="bool" />
+    <field name="Line Stipple Repeat Count" start="64" end="72" type="uint" />
+    <field name="Line Stipple Inverse Repeat Count" start="80" end="95" type="u1.13" />
+  </instruction>
+  <instruction name="3DSTATE_STENCIL_BUFFER" bias="2" length="3" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="1" />
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="14" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="1" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="3" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="Surface Pitch" start="32" end="48" type="uint" />
+    <field name="Surface Base Address" start="64" end="95" type="address" />
+  </instruction>
+  <instruction name="CONSTANT_BUFFER" bias="2" length="2" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="0" />
+    <field name="Valid" start="8" end="8" type="bool" />
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="2" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="0" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="0" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="Buffer Length" start="32" end="37" type="uint" />
+    <field name="Buffer Starting Address" start="38" end="63" type="address" />
+  </instruction>
+  <instruction name="MI_FLUSH" bias="1" length="1" engine="render">
+    <field name="State/Instruction Cache Invalidate" start="1" end="1" type="uint">
+      <value name="Don't Invalidate" value="0" />
+      <value name="Invalidate" value="1" />
+    </field>
+    <field name="Render Cache Flush Inhibit" start="2" end="2" type="uint">
+      <value name="Flush" value="0" />
+      <value name="Don't Flush" value="1" />
+    </field>
+    <field name="Global Snapshot Count Reset" start="3" end="3" type="uint">
+      <value name="Don't Reset" value="0" />
+      <value name="Reset" value="1" />
+    </field>
+    <field name="Generic Media State Clear" start="4" end="4" type="bool" />
+    <field name="Indirect State Pointers Disable" start="5" end="5" type="bool" />
+    <field name="Protected Memory Enable" start="6" end="6" type="bool" />
+    <field name="MI Command Opcode" start="23" end="28" type="uint" default="4" />
+    <field name="Command Type" start="29" end="31" type="uint" default="0" />
+  </instruction>
+  <instruction name="MI_STORE_DATA_IMM" bias="2" length="5">
+    <field name="DWord Length" start="0" end="5" type="uint" default="2" />
+    <field name="Memory Address Type" start="22" end="22" type="bool" />
+    <field name="MI Command Opcode" start="23" end="28" type="uint" default="32" />
+    <field name="Command Type" start="29" end="31" type="uint" default="0" />
+    <field name="Physical Start Address Extension" start="32" end="35" type="address" />
+    <field name="Address" start="66" end="95" type="address" />
+    <field name="Immediate Data" start="96" end="159" type="uint" />
+  </instruction>
+  <instruction name="MI_STORE_REGISTER_MEM" bias="2" length="3">
+    <field name="DWord Length" start="0" end="7" type="uint" default="1" />
+    <field name="Use Global GTT" start="22" end="22" type="bool" />
+    <field name="MI Command Opcode" start="23" end="28" type="uint" default="36" />
+    <field name="Command Type" start="29" end="31" type="uint" default="0" />
+    <field name="Register Address" start="34" end="57" type="offset" />
+    <field name="Memory Address" start="66" end="95" type="address" />
+  </instruction>
+  <instruction name="PIPELINE_SELECT" bias="1" length="1" engine="render">
+    <field name="Pipeline Selection" start="0" end="1" type="uint">
+      <value name="3D" value="0" />
+      <value name="Media" value="1" />
+      <value name="GPGPU" value="2" />
+    </field>
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="4" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="1" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="1" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+  </instruction>
+  <instruction name="PIPE_CONTROL" bias="2" length="4" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="2" />
+    <field name="Notify Enable" start="8" end="8" type="bool" />
+    <field name="Indirect State Pointers Disable" start="9" end="9" type="bool" />
+    <field name="Texture Cache Flush Enable" start="10" end="10" type="bool" />
+    <field name="Instruction Cache Invalidate Enable" start="11" end="11" type="bool" />
+    <field name="Write Cache Flush" start="12" end="12" type="bool" />
+    <field name="Depth Stall Enable" start="13" end="13" type="bool" />
+    <field name="Post Sync Operation" start="14" end="15" type="uint">
+      <value name="No Write" value="0" />
+      <value name="Write Immediate Data" value="1" />
+      <value name="Write PS Depth Count" value="2" />
+      <value name="Write Timestamp" value="3" />
+    </field>
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="0" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="2" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="3" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="Depth Cache Flush Inhibit" start="32" end="32" type="uint">
+      <value name="Flushed" value="0" />
+      <value name="Not Flushed" value="1" />
+    </field>
+    <field name="Stall At Pixel Scoreboard" start="33" end="33" type="bool" />
+    <field name="Destination Address Type" start="34" end="34" type="uint" prefix="DAT">
+      <value name="PGTT" value="0" />
+      <value name="GGTT" value="1" />
+    </field>
+    <field name="Address" start="35" end="63" type="address" />
+    <field name="Immediate Data" start="64" end="127" type="uint" />
+  </instruction>
+  <instruction name="STATE_BASE_ADDRESS" bias="2" length="8" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="6" />
+    <field name="3D Command Sub Opcode" start="16" end="23" type="uint" default="1" />
+    <field name="3D Command Opcode" start="24" end="26" type="uint" default="1" />
+    <field name="Command SubType" start="27" end="28" type="uint" default="0" />
+    <field name="Command Type" start="29" end="31" type="uint" default="3" />
+    <field name="General State Base Address Modify Enable" start="32" end="32" type="bool" />
+    <field name="General State Base Address" start="44" end="63" type="address" />
+    <field name="Surface State Base Address Modify Enable" start="64" end="64" type="bool" />
+    <field name="Surface State Base Address" start="76" end="95" type="address" />
+    <field name="Indirect Object Base Address Modify Enable" start="96" end="96" type="bool" />
+    <field name="Indirect Object Base Address" start="108" end="127" type="address" />
+    <field name="Instruction Base Address Modify Enable" start="128" end="128" type="bool" />
+    <field name="Instruction Base Address" start="140" end="159" type="address" />
+    <field name="General State Access Upper Bound Modify Enable" start="160" end="160" type="bool" />
+    <field name="General State Access Upper Bound" start="172" end="191" type="address" />
+    <field name="Indirect Object Access Upper Bound Modify Enable" start="192" end="192" type="bool" />
+    <field name="Indirect Object Access Upper Bound" start="204" end="223" type="address" />
+    <field name="Instruction Access Upper Bound Modify Enable" start="224" end="224" type="bool" />
+    <field name="Instruction Access Upper Bound" start="236" end="255" type="address" />
+  </instruction>
+  <instruction name="XY_COLOR_BLT" bias="2" length="6" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="4" />
+    <field name="Tiling Enable" start="11" end="11" type="bool" />
+    <field name="32bpp Byte Mask" start="20" end="21" type="uint" />
+    <field name="2D Command Opcode" start="22" end="28" type="uint" default="80" />
+    <field name="Command Type" start="29" end="31" type="uint" default="2" />
+    <field name="Destination Pitch" start="32" end="47" type="int" />
+    <field name="Raster Operation" start="48" end="55" type="uint" />
+    <field name="Color Depth" start="56" end="58" type="uint" prefix="COLOR_DEPTH">
+      <value name="8 bit" value="0" />
+      <value name="565" value="1" />
+      <value name="1555" value="2" />
+      <value name="32 bit" value="3" />
+    </field>
+    <field name="Clipping Enabled" start="62" end="62" type="bool" />
+    <field name="Destination X1 Coordinate" start="64" end="79" type="int" />
+    <field name="Destination Y1 Coordinate" start="80" end="95" type="int" />
+    <field name="Destination X2 Coordinate" start="96" end="111" type="int" />
+    <field name="Destination Y2 Coordinate" start="112" end="127" type="int" />
+    <field name="Destination Base Address" start="128" end="159" type="address" />
+    <field name="Solid Pattern Color" start="160" end="191" type="int" />
+  </instruction>
+  <instruction name="XY_SETUP_BLT" bias="2" length="8" engine="blitter">
+    <field name="DWord Length" start="0" end="7" type="uint" default="6" />
+    <field name="Tiling Enable" start="11" end="11" type="bool" />
+    <field name="32bpp Byte Mask" start="20" end="21" type="uint" />
+    <field name="2D Command Opcode" start="22" end="28" type="uint" default="1" />
+    <field name="Command Type" start="29" end="31" type="uint" default="2" />
+    <field name="Destination Pitch" start="32" end="47" type="int" />
+    <field name="Raster Operation" start="48" end="55" type="uint" />
+    <field name="Color Depth" start="56" end="57" type="uint" prefix="COLOR_DEPTH">
+      <value name="8 bit" value="0" />
+      <value name="565" value="1" />
+      <value name="1555" value="2" />
+      <value name="32 bit" value="3" />
+    </field>
+    <field name="Mono Source Transparency Mode" start="60" end="60" type="bool" />
+    <field name="Clipping Enabled" start="62" end="62" type="bool" />
+    <field name="ClipRect X1 Coordinate" start="64" end="79" type="int" />
+    <field name="ClipRect Y1 Coordinate" start="80" end="95" type="int" />
+    <field name="ClipRect X2 Coordinate" start="96" end="111" type="int" />
+    <field name="ClipRect Y2 Coordinate" start="112" end="127" type="int" />
+    <field name="Destination Base Address" start="128" end="159" type="address" />
+    <field name="Background Color" start="160" end="191" type="uint" />
+    <field name="Foreground Color" start="192" end="223" type="uint" />
+    <field name="Pattern Base Address" start="224" end="255" type="uint" />
+  </instruction>
+  <instruction name="XY_SRC_COPY_BLT" bias="2" length="8" engine="render">
+    <field name="DWord Length" start="0" end="7" type="uint" default="6" />
+    <field name="Destination Tiling Enable" start="11" end="11" type="bool" />
+    <field name="Source Tiling Enable" start="15" end="15" type="bool" />
+    <field name="32bpp Byte Mask" start="20" end="21" type="uint" />
+    <field name="2D Command Opcode" start="22" end="28" type="uint" default="83" />
+    <field name="Command Type" start="29" end="31" type="uint" default="2" />
+    <field name="Destination Pitch" start="32" end="47" type="int" />
+    <field name="Raster Operation" start="48" end="55" type="uint" />
+    <field name="Color Depth" start="56" end="58" type="uint" prefix="COLOR_DEPTH">
+      <value name="8 bit" value="0" />
+      <value name="565" value="1" />
+      <value name="1555" value="2" />
+      <value name="32 bit" value="3" />
+    </field>
+    <field name="Clipping Enabled" start="62" end="62" type="bool" />
+    <field name="Destination X1 Coordinate" start="64" end="79" type="int" />
+    <field name="Destination Y1 Coordinate" start="80" end="95" type="int" />
+    <field name="Destination X2 Coordinate" start="96" end="111" type="int" />
+    <field name="Destination Y2 Coordinate" start="112" end="127" type="int" />
+    <field name="Destination Base Address" start="128" end="159" type="address" />
+    <field name="Source X1 Coordinate" start="160" end="175" type="int" />
+    <field name="Source Y1 Coordinate" start="176" end="191" type="int" />
+    <field name="Source Pitch" start="192" end="207" type="int" />
+    <field name="Source Base Address" start="224" end="255" type="address" />
+  </instruction>
+</genxml>

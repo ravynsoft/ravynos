@@ -1,0 +1,79 @@
+Mesa 9.2.4 Release Notes / (November 27, 2013)
+==============================================
+
+Mesa 9.2.4 is a bug fix release which fixes bugs found since the 9.2.3
+release.
+
+Mesa 9.2 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   28190b831b0271d69dbc44b2686eab1c  MesaLib-9.2.4.tar.gz
+   e630c0a307cec4f0f70ddd029d2fe084  MesaLib-9.2.4.tar.bz2
+   8ef5e1e92e1d30fbedec31f716a7619e  MesaLib-9.2.4.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 53077 <https://bugs.freedesktop.org/show_bug.cgi?id=53077>`__ -
+   [IVB] Output error with msaa when both of framebuffer and source
+   color's alpha are not 1
+-  Fix freedreno to compile with recent libdrm.
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.2.3..mesa-9.2.4
+
+Brian Paul (1):
+
+-  st/mesa: fix GL_FEEDBACK mode inverted Y coordinate bug
+
+Paul Berry (2):
+
+-  i965: Fix vertical alignment for multisampled buffers.
+-  glsl: Fix lowering of direct assignment in lower_clip_distance.
+
+Rob Clark (17):
+
+-  freedreno/a3xx: fix color inversion on mem->gmem restore
+-  freedreno/a3xx: fix viewport on gmem->mem resolve
+-  freedreno: add debug option to disable scissor optimization
+-  freedreno: update register headers
+-  freedreno/a3xx: some texture fixes
+-  freedreno/a3xx/compiler: fix CMP
+-  freedreno/a3xx/compiler: handle saturate on dst
+-  freedreno/a3xx/compiler: use max_reg rather than file_count
+-  freedreno/a3xx/compiler: cat4 cannot use const reg as src
+-  freedreno: fix segfault when no color buffer bound
+-  freedreno/a3xx/compiler: make compiler errors more useful
+-  freedreno/a3xx/compiler: bit of re-arrange/cleanup
+-  freedreno/a3xx/compiler: fix SGT/SLT/etc
+-  freedreno/a3xx: don't leak so much
+-  freedreno/a3xx/compiler: better const handling
+-  freedreno/a3xx/compiler: handle sync flags better
+-  freedreno: updates for msm drm/kms driver
+
+Tapani Pälli (1):
+
+-  mesa: enable GL_TEXTURE_LOD_BIAS set/get

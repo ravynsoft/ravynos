@@ -1,0 +1,149 @@
+Mesa 21.3.6 Release Notes / 2022-02-09
+======================================
+
+Mesa 21.3.6 is a bug fix release which fixes bugs found since the 21.3.5 release.
+
+Mesa 21.3.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.3.6 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    96bb761fd546e9aa41d025fcc025225c5668443839dae21e3731959beb096736  mesa-21.3.6.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radv: CullDistance fail
+- i965: Segmentation fault during glinfo context destruction, regression in 21.3.x
+- Vulkan Wayland WSI returns empty surface formats
+- [REGRESSION][BISECTED] iris: Qutebrowser/QtWebEngine sporadically flashes the window in white
+- Flickering Intel Uhd 620 Graphics
+- Broken Terraria & Glitches in Forza Horizon 4
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (1):
+
+- Revert "nir/algebraic: distribute fmul(fadd(a, b), c) when b and c are constants"
+
+Caio Oliveira (1):
+
+- anv: Fix subgroupSupportedStages physical property
+
+Charles Baker (1):
+
+- Revert "zink: handle vertex buffer offset overflows"
+
+Connor Abbott (2):
+
+- ir3: Fix copy-paste mistakes in ir3_block_remove_physical_predecessor()
+- ir3/cp: ir3: Prevent propagating shared regs out of loops harder
+
+Danylo Piliaiev (1):
+
+- ir3: opt_deref in opt loop to remove unnecessary tex casts
+
+Dave Airlie (1):
+
+- crocus: find correct relocation target for the bo.
+
+Emma Anholt (1):
+
+- vulkan: Fix leak of error messages
+
+Eric Engestrom (3):
+
+- .pick_status.json: Update to cb781fc350108584116280fc597c695d2f476c68
+- .pick_status.json: Mark 15e77504461a30038a054c87cc53a694171c9cf4 as denominated
+- .pick_status.json: Mark 960e72417f3e8885699cf384f690853e14ba44da as denominated
+
+Francisco Jerez (1):
+
+- intel/fs: Take into account region strides during SIMD lowering decision of SHUFFLE.
+
+Georg Lehmann (4):
+
+- vulkan/wsi/wayland: Fix add_wl_shm_format alpha/opaqueness.
+- vulkan/wsi/wayland: Convert  missing vulkan formats to shm formats.
+- vulkan/wsi/wayland: Add modifiers for RGB formats.
+- vulkan/wsi/wayland: Fix add_drm_format_modifier aplha/opaqueness.
+
+Faith Ekstrand (2):
+
+- anv/pass: Don't set first_subpass_layout for stencil-only attachments
+- vulkan/wsi: Set MUTABLE_FORMAT_BIT in the prime path
+
+Kenneth Graunke (1):
+
+- i965: Avoid NULL drawbuffer in brw_flush_front
+
+Lionel Landwerlin (2):
+
+- intel/fs: don't set allow_sample_mask for CS intrinsics
+- intel/nir: fix shader call lowering
+
+Manas Chaudhary (1):
+
+- panvk: Fix pointer corruption in panvk_add_wait_event_syncobjs
+
+Mike Blumenkrantz (15):
+
+- zink: never use SpvOpImageQuerySizeLod for texel buffers
+- zink: reorder fbfetch flag-setting to avoid null deref
+- zink: fix vertex buffer mask computation for null buffers
+- zink: clamp tbo creation to maxTexelBufferElements
+- zink: add vertex shader pipeline bit for generated barrier construction
+- zink: fix waiting on current batch id
+- zink: cast image atomic op params/results based on image type
+- zink: use SpvScopeDevice over SpvScopeWorkgroup for atomic shader ops
+- zink: disable PIPE_SHADER_CAP_FP16_CONST_BUFFERS
+- llvmpipe: disable PIPE_SHADER_CAP_FP16_CONST_BUFFERS
+- llvmpipe: ci updates
+- zink: add VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT for query binds
+- zink: fix PIPE_CAP_TGSI_BALLOT export conditional
+- zink: reject invalid draws
+- zink: min/max blit region in coverage functions
+
+Nanley Chery (3):
+
+- anv: Disable CCS_E for some 8/16bpp copies on TGL+
+- anv: Use ANV_FAST_CLEAR_DEFAULT_VALUE for CCS on TGL+
+- anv: Re-enable CCS_E on TGL+
+
+Paulo Zanoni (1):
+
+- iris: implement inter-context busy-tracking
+
+Rhys Perry (3):
+
+- aco: fix neg(abs(mul(a, b))) if the mul is not VOP3
+- aco: don't encode src2 for v_writelane_b32_e64
+- radv: fix R_02881C_PA_CL_VS_OUT_CNTL with mixed cull/clip distances
+
+Samuel Pitoiset (1):
+
+- radv/winsys: fix missing buffer_make_resident() for the null winsys
+
+Yiwei Zhang (1):
+
+- tu: VkExternalImageFormatProperties is optional

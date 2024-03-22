@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_NV_copy_image" number="376" no_error="true">
+    <function name="CopyImageSubDataNV" no_error="true">
+        <param name="srcName" type="GLuint"/>
+        <param name="srcTarget" type="GLenum"/>
+        <param name="srcLevel" type="GLint"/>
+        <param name="srcX" type="GLint"/>
+        <param name="srcY" type="GLint"/>
+        <param name="srcZ" type="GLint"/>
+        <param name="dstName" type="GLuint"/>
+        <param name="dstTarget" type="GLenum"/>
+        <param name="dstLevel" type="GLint"/>
+        <param name="dstX" type="GLint"/>
+        <param name="dstY" type="GLint"/>
+        <param name="dstZ" type="GLint"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="depth" type="GLsizei"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

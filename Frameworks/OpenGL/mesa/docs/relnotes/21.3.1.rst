@@ -1,0 +1,132 @@
+Mesa 21.3.1 Release Notes / 2021-12-01
+======================================
+
+Mesa 21.3.1 is a bug fix release which fixes bugs found since the 21.3.0 release.
+
+Mesa 21.3.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.3.1 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    2b0dc2540cb192525741d00f706dbc4586349185dafc65729c7fda0800cc474d  mesa-21.3.1.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- GPU Crash in Yuzu 6600xt 5.15
+- [spirv-fuzz]  lower_trivial_continues_block: Assertion \`!first_instr || instr_is_continue(first_instr)' failed.
+- [RADV] Crash in Metro Exodus in Caspain chapter and Sam's Story
+- NIR validation failed after nir_copy_prop
+- lima: Corrupted Android-12 UI on Allwinner A64
+- RADV/ACO: Rendering glitches in Forza Horizon 5 windshields
+- dEQP-GLES31.*imulextended* compiling fp64 glsl 4.00 shader
+
+
+Changes
+-------
+
+Connor Abbott (3):
+
+- ir3/ra: Consider reg file size when swapping killed sources
+- ir3/lower_pcopy: Fix shr.b illegal copy lowering
+- ir3/lower_pcopy: Fix bug with "illegal" copies and swaps
+
+Eric Engestrom (2):
+
+- docs: update sha256sum for 21.3.0
+- .pick_status.json: Update to 1ba231fb75be5bffd806cbd09ac285d1f8f15e3d
+
+Erico Nunes (1):
+
+- ci: temporarily disable lima CI
+
+Iago Toral Quiroga (3):
+
+- broadcom/compiler: don't allow RF writes from signals after thrend
+- broadcom/compiler: fix scoreboard locking checks
+- broadcom/compiler: don't move ldvary earlier if current instruction has ldunif
+
+Ian Romanick (1):
+
+- glsl/nir: Don't build soft float64 when it cannot be used
+
+Iván Briano (1):
+
+- intel/nir: also allow unknown format for getting the size of a storage image
+
+Kenneth Graunke (3):
+
+- iris: Make a helper function for cross-batch dependency flushing
+- iris: Check for cross-batch flushing whenever a buffer is newly written.
+- iris: Tidy code in iris_use_pinned_bo a bit
+
+Lionel Landwerlin (3):
+
+- anv: don't try to close fd = -1
+- intel/fs: fix shader call lowering pass
+- util/u_trace: refcount payloads
+
+Mauro Rossi (1):
+
+- android: define cpp_rtti=false because libLLVM is built w/o RTTI (v2)
+
+Mike Blumenkrantz (6):
+
+- zink: block suballocator caching for swapchain/dmabuf images
+- zink: set suballocator bo size to aligned allocation size
+- zink: stop using VK_IMAGE_LAYOUT_PREINITIALIZED for dmabuf
+- zink: always set matching resource export type for dmabuf creation
+- zink: fix memory availability reporting
+- zink: fail context creation more gracefully
+
+Mykhailo Skorokhodov (1):
+
+- nir: Fix read depth for predecessors
+
+Qiang Yu (1):
+
+- glx/dri3: fix glXQueryContext does not return GLX_RENDER_TYPE value
+
+Rhys Perry (4):
+
+- aco/spill: use spills_entry instead of spills_exit to kill linear VGPRs
+- spirv: run nir_copy_prop before nir_rematerialize_derefs_in_use_blocks_impl
+- nir/dce: fix DCE of loops with a halt or return instruction in the pre-header
+- aco: don't create DPP instructions with SGPR operands
+
+Roman Stratiienko (1):
+
+- android.mk: Add missing variables to the make target
+
+Samuel Pitoiset (4):
+
+- radv: disable HTILE for D32S8 format and mipmaps on GFX10
+- radv: fix emitting VBO when vertex input dynamic state is used
+- radv: add a workaround to fix a segfault with Metro Exodus (Linux native)
+- radv: fix resetting the entire vertex input dynamic state
+
+Thomas H.P. Andersen (1):
+
+- svga: fix bitwise/logical and mixup
+
+Vasily Khoruzhick (1):
+
+- lima: disasm: use last argument as a filename

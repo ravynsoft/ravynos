@@ -1,0 +1,76 @@
+Mesa 10.4.1 Release Notes / December 29, 2014
+=============================================
+
+Mesa 10.4.1 is a bug fix release which fixes bugs found since the 10.4.0
+release.
+
+Mesa 10.4.1 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   5311285e791a6bfaa468ad002bd1e1164acb3eaa040b5a1bf958bdb7c27e0a9d  MesaLib-10.4.1.tar.gz
+   91e8b71c8aff4cb92022a09a872b1c5d1ae5bfec8c6c84dbc4221333da5bf1ca  MesaLib-10.4.1.tar.bz2
+   e09c8135f5a86ecb21182c6f8959aafd39ae2f98858fdf7c0e25df65b5abcdb8  MesaLib-10.4.1.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 82585 <https://bugs.freedesktop.org/show_bug.cgi?id=82585>`__ -
+   geometry shader with optional out variable segfaults
+-  `Bug 82991 <https://bugs.freedesktop.org/show_bug.cgi?id=82991>`__ -
+   Inverted bumpmap in webgl applications
+-  `Bug 83908 <https://bugs.freedesktop.org/show_bug.cgi?id=83908>`__ -
+   [i965] Incorrect icon colors in Steam Big Picture
+
+Changes
+-------
+
+Andres Gomez (1):
+
+-  i965/brw_reg: struct constructor now needs explicit negate and abs
+   values.
+
+Cody Northrop (1):
+
+-  i965: Require pixel alignment for GPU copy blit
+
+Emil Velikov (3):
+
+-  docs: Add 10.4 sha256 sums, news item and link release notes
+-  Revert "glx/dri3: Request non-vsynced Present for swapinterval zero.
+   (v3)"
+-  Update version to 10.4.1
+
+Ian Romanick (2):
+
+-  linker: Wrap access of producer_var with a NULL check
+-  linker: Assign varying locations geometry shader inputs for SSO
+
+Mario Kleiner (4):
+
+-  glx/dri3: Fix glXWaitForSbcOML() to handle targetSBC==0 correctly.
+   (v2)
+-  glx/dri3: Track separate (ust, msc) for PresentPixmap vs.
+   PresentNotifyMsc (v2)
+-  glx/dri3: Request non-vsynced Present for swapinterval zero. (v3)
+-  glx/dri3: Don't fail on glXSwapBuffersMscOML(dpy, window, 0, 0, 0)
+   (v2)
+
+Maxence Le Doré (1):
+
+-  glsl: Add gl_MaxViewports to available builtin constants

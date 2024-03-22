@@ -1,0 +1,156 @@
+Mesa 21.1.4 Release Notes / 2021-06-30
+======================================
+
+Mesa 21.1.4 is a bug fix release which fixes bugs found since the 21.1.3 release.
+
+Mesa 21.1.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.1.4 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    1f177f44098164b65731c5ded4c928fd58b14f6c9d2087aa0e37bc79bf79e90b  mesa-21.1.4.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [anv] GravityMark (benchmark) crashes on ANV
+- [opengl] We happy few not being rendered correctly
+- Factorio: GPU hang when opening machine inventory
+- RuneScape on Mesa 21.1.1 (VEGA10) has bad performance and leaks memory
+- Supraland: flickering black bars on ground
+- radv: GPU hang in Cyberpunk 2077 on Big Navi
+- [amdgpu][renoir][rx5500m]: [drm:0xffffffff8198ad5e] \*ERROR* ring gfx timeout, signaled seq=10952, emitted seq=10954
+- [spirv-fuzz] SPIR-V parsing FAILED: Invalid back or cross-edge in the CFG
+- panfrost Mount and Blade: Warband (glitches)
+- anv: dEQP-VK.robustness.robustness2*no_fmt_qual.null_descriptor.samples* fail
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (3):
+
+- util/fossilize_db: Pull seek into lock.
+- util/fossilize_db: Split out reading the index.
+- util/fossilize_db: Do not lock the fossilize db permanently.
+
+Caio Marcelo de Oliveira Filho (2):
+
+- spirv: Fix handling of OpBranchConditional with same THEN and ELSE
+- nir/opt_if: Don't split ALU for single block infinite loops
+
+Daniel Stone (1):
+
+- llvmpipe: Add handle export for resource_get_param
+
+Dave Airlie (1):
+
+- i965: fix regression in pipe control on g45
+
+Eric Engestrom (2):
+
+- .pick_status.json: Update to 977355c6e5efd781dde85d834172dd23cd4852f1
+- .pick_status.json: Update to 40b67a292297606f0a7576e3ef4087028d5edd17
+
+Erik Faye-Lund (7):
+
+- zink: do not unmap dt-buffers twice
+- zink: drop repeated usage-bit
+- zink: do not check buffer-format for usage-bits
+- zink: remove unused moltenvk functions
+- libgl-gdi: add missing include
+- aux/trace: fix bool argument
+- ci/windows: work around meson encoding issues
+
+Francisco Jerez (2):
+
+- intel/fs: Teach IR about EOT instruction writing the accumulator implicitly on TGL+.
+- intel/fs: Fix synchronization of accumulator-clearing W/A move on TGL+.
+
+Icecream95 (5):
+
+- pan/mdg: Add a bundle ID to instructions
+- pan/mdg: Reorder some code in mir_spill_register
+- pan/mdg: Fill from TLS before spilling non-SSA nodes
+- pan/mdg: Fix reading a spilt register in the bundle it's written
+- pan/mdg: Add 16 bytes of padding to the end of shaders
+
+Iván Briano (1):
+
+- intel/nir: Fix txs for null surfaces
+
+Faith Ekstrand (1):
+
+- spirv: Create acceleration structure and shader record variables
+
+Karol Herbst (1):
+
+- nv50/ir: fix surface lowering when values get shared accross operations
+
+Kenneth Graunke (1):
+
+- anv: Fix dynamic primitive topology for tess on Gfx7.x too
+
+Lionel Landwerlin (1):
+
+- anv: allocate bigger batches as we grow command buffers
+
+Marek Olšák (1):
+
+- mesa: unreference zombie buffers when creating buffers to lower memory usage
+
+Martin Krastev (1):
+
+- compiler/glsl: Use mutex lock while freeing up mem_ctx
+
+Mike Blumenkrantz (2):
+
+- anv: fix dynamic primitive topology for tess
+- zink: handle custom border color without matching wrap mode case
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- radeonsi: skip instance_count==0 draws on <= GFX9
+- radeonsi: disable ngg culling on llvm < 12
+
+Samuel Pitoiset (2):
+
+- radv: reject binding buffer/image when the device memory is too small
+- radv: always decompress both aspects of a depth/stencil image
+
+Simon Ser (1):
+
+- amd/addrlib: remove Meson debug message()
+
+Thong Thai (1):
+
+- radeon/vcn/enc: Add missing line to HEVC SPS header code
+
+Timothy Arceri (1):
+
+- util: add work around for the game We Happy Few
+
+Timur Kristóf (4):
+
+- ac/nir: Update TCS output barriers with nir_var_mem_shared.
+- radv/llvm: Emit s_barrier at the beginning of NGG non-GS shaders.
+- aco/gfx10: NGG zero output workaround for conservative rasterization.
+- aco/gfx10: Emit barrier at the start of NGG VS and TES.

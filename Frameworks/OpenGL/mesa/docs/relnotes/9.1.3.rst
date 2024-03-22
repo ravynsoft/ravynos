@@ -1,0 +1,209 @@
+Mesa 9.1.3 Release Notes / May 21st, 2013
+=========================================
+
+Mesa 9.1.3 is a bug fix release which fixes bugs found since the 9.1.1
+release.
+
+Mesa 9.1 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   952ccd03547ed72333b64e1746cf8ada  MesaLib-9.1.3.tar.bz2
+   26d2f1aa8e9db388d51fcbd163c61fb7  MesaLib-9.1.3.tar.gz
+   7017b7bdf0ebfd39a5c46cee7cf6b567  MesaLib-9.1.3.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 39251 <https://bugs.freedesktop.org/show_bug.cgi?id=39251>`__ -
+   Second Life viewers from release 2.7.4.235167 to the last
+   3.4.0.264911 crash on start.
+-  `Bug 47478 <https://bugs.freedesktop.org/show_bug.cgi?id=47478>`__ -
+   [wine] GLX_DONT_CARE does not work for GLX_DRAWABLE_TYPE or
+   GLX_RENDER_TYPE
+-  `Bug 56416 <https://bugs.freedesktop.org/show_bug.cgi?id=56416>`__ -
+   [SNB bisected] SNB hang with rc6 and hiz on glxgears (and other GL
+   apps) immediately after xinit.
+-  `Bug 57436 <https://bugs.freedesktop.org/show_bug.cgi?id=57436>`__ -
+   [GLSL1.40 IVB/HSW]Piglit
+   spec/glsl-1.40/compiler_built-in-functions/inverse-mat2.frag fails
+-  `Bug 61554 <https://bugs.freedesktop.org/show_bug.cgi?id=61554>`__ -
+   [ivb] Mesa 9.1 performance regression on KWin's Lanczos shader
+-  `Bug 61773 <https://bugs.freedesktop.org/show_bug.cgi?id=61773>`__ -
+   abort is an incredibly not-smart way to handle IR validation
+-  `Bug 62868 <https://bugs.freedesktop.org/show_bug.cgi?id=62868>`__ -
+   solaris build broken with missing ffsll
+-  `Bug 62999 <https://bugs.freedesktop.org/show_bug.cgi?id=62999>`__ -
+   glXChooseFBConfig with GLX_DRAWABLE_TYPE, GLX_DONT_CARE fails
+-  `Bug 63078 <https://bugs.freedesktop.org/show_bug.cgi?id=63078>`__ -
+   EGL X11 Regression: Maximum swap interval is 0 (worked with 9.0)
+-  `Bug 63447 <https://bugs.freedesktop.org/show_bug.cgi?id=63447>`__ -
+   [i965 Bisected]Ogles1conform/Ogles2conform/Ogles3conform cases
+   segfault
+-  `Bug 64662 <https://bugs.freedesktop.org/show_bug.cgi?id=64662>`__ -
+   [SNB 9.1 Bisected]Ogles2conform
+   GL2ExtensionTests/depth_texture_cube_map/depth_texture_cube_map.test
+   fail
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.1.2..mesa-9.1.3
+
+Alex Deucher (2):
+
+-  r600g: add new richland pci ids
+-  radeonsi: add new SI pci ids
+
+Alexander Monakov (1):
+
+-  Honor GLX_DONT_CARE in MATCH_MASK
+
+Andreas Boll (2):
+
+-  mesa: Add a script to generate the list of fixed bugs
+-  mesa: add usage examples to get-pick-list and shortlog scripts
+
+Aras Pranckevicius (1):
+
+-  GLSL: fix lower_jumps to report progress properly
+
+Brian Paul (3):
+
+-  mesa: remove platform checks around \__builtin_ffs, \__builtin_ffsll
+-  gallium/u_blitter: fix is_blit_generic_supported() stencil checking
+-  mesa: enable GL_ARB_texture_float if TEXTURE_FLOAT_ENABLED is defined
+
+Chad Versace (2):
+
+-  egl/dri2: Fix min/max swap interval of configs
+-  intel: Allocate hiz in intel_renderbuffer_move_to_temp()
+
+Chris Forbes (2):
+
+-  i965/fs: Don't try to use bogus interpolation modes pre-Gen6.
+-  mesa: don't memcmp() off the end of a cache key.
+
+Dave Airlie (2):
+
+-  st/mesa: fix UBO offsets.
+-  ralloc: don't write to memory in case of alloc fail.
+
+Eric Anholt (11):
+
+-  i965/fs: Remove creation of a MOV instruction that's never used.
+-  i965/fs: Move varying uniform offset compuation into the helper func.
+-  i965: Make the constant surface interface take a normal byte size.
+-  i965/fs: Avoid inappropriate optimization with regs_written > 1.
+-  i965/fs: Do CSE on gen7's varying-index pull constant loads.
+-  i965/fs: Clean up the setup of gen4 simd16 message destinations.
+-  i965/gen7: Skip resetting SOL offsets at batch start with HW
+   contexts.
+-  i965/gen6: Reduce updates of transform feedback offsets with HW
+   contexts.
+-  i965: Fix SNB GPU hangs when a blorp batch is the first thing to
+   execute.
+-  i965: Fix hangs on HSW since the gen6 blorp fix.
+-  i965: Disable write masking when setting up texturing m0.
+
+Haixia Shi (1):
+
+-  ACTIVE_UNIFORM_MAX_LENGTH should include 3 extra characters for
+   arrays.
+
+Ian Romanick (11):
+
+-  docs: Add 9.1.2 release md5sums
+-  mesa: Note that patch 0967c36 shouldn't actually get picked to the
+   9.1 branch
+-  mesa: NULL check the pointer before trying to dereference it
+-  egl/dri2: NULL check value returned by dri2_create_surface
+-  mesa: Don't leak shared state when context initialization fails
+-  mesa: Don't leak gl_context::BeginEnd at context destruction
+-  mesa/swrast: Refactor no-memory error checking in blit_linear
+-  mesa/swrast: Move free calls outside the attachment loop
+-  intel: Don't dereference a NULL pointer of calloc fails
+-  mesa: Note that a824692 is already back ported
+-  mesa: Bump version to 9.1.3
+
+José Fonseca (1):
+
+-  winsys/sw/xlib: Prevent shared memory segment leakage.
+
+Kenneth Graunke (9):
+
+-  mesa: Add new ctx->Stencil._WriteEnabled derived state flag.
+-  i965: Fix stencil write enable flag in 3DSTATE_DEPTH_BUFFER on Gen7+.
+-  mesa: Fix unpack function for ETC2_SRGB8_PUNCHTHROUGH_ALPHA1.
+-  mesa: Add an unpack function for ARGB2101010_UINT.
+-  mesa: Add unpack functions for R/RG/RGB [U]INT8/16/32 formats.
+-  mesa: Add unpack functions for A/I/L/LA [U]INT8/16/32 formats.
+-  glsl: Ignore redundant prototypes after a function's been defined.
+-  i965: Lower textureGrad() for samplerCubeShadow.
+-  i965/vs: Fix textureGrad() with shadow samplers on Haswell.
+
+Maarten Lankhorst (1):
+
+-  nvc0: Fix fd leak in nvc0_create_decoder
+
+Marek Olšák (5):
+
+-  radeonsi: add more cases for copying unsupported formats to
+   resource_copy_region
+-  mesa: fix glGet queries depending on derived framebuffer state (v2)
+-  gallium/u_blitter: implement buffer clearing
+-  r600g: initialize CMASK and HTILE with the GPU using streamout
+-  st/mesa: depth-stencil-alpha state also depends on \_NEW_BUFFERS
+
+Martin Andersson (1):
+
+-  r600g: Fix UMAD on Cayman
+
+Michel Dänzer (1):
+
+-  radeonsi: Handle arbitrary 2-byte formats in resource_copy_region
+
+Paul Berry (7):
+
+-  glsl: Fix array indexing when constant folding built-in functions.
+-  i965: Reduce code duplication in handling of depth, stencil, and HiZ.
+-  glsl/linker: fix varying packing for non-flat integer varyings.
+-  glsl: Document lower_packed_varyings' "flat" requirement with an
+   assert.
+-  glsl/linker: Adapt flat varying handling in preparation for geometry
+   shaders.
+-  glsl/linker: Reduce scope of non-flat integer varying fix.
+-  intel: Do a depth resolve before copying images between miptrees.
+
+Ralf Jung (1):
+
+-  egl/x11: Fix initialisation of swap_interval
+
+Roland Scheidegger (1):
+
+-  gallivm: fix small but severe bug in handling multiple lod level
+   strides
+
+Vadim Girlin (1):
+
+-  gallium: handle drirc disable_glsl_line_continuations option

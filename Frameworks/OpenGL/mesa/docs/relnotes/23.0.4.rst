@@ -1,0 +1,294 @@
+Mesa 23.0.4 Release Notes / 2023-05-30
+======================================
+
+Mesa 23.0.4 is a bug fix release which fixes bugs found since the 23.0.3 release.
+
+Mesa 23.0.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.0.4 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    ee7f2cad1c58f943ea3048e59871908900b0a656ebdcf6a309e60af4270792f6  mesa-23.0.4.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radv: Battlefield {1,5} hangs on RX 7900 XTX
+- radv: graphical artifacts in MSFS running via DXVK on RX7900XT
+- [radeonsi] flickering debug chunk border lines in Minecraft
+- vulkan/device_select: no way to select between GPUs of the same model due to bugs
+- radv: cache crashing
+- nouveau: Regression in arb_transform_feedback_overflow_query-basic from multithreading patches
+- [llvm 16+] [microsoft-clc] opencl-c-base.h does not exist
+- Vulkancts clipping / tesselation tests trigger gpu hang on DG2
+- Swaped fields in picture in vlc and mythtv if hw accel is on
+- WGL: Assert assigns dwThreadId variable
+- nine regression with r600 (bisected)
+- [ACO] [RADV] Flickering squares in some areas in The Last of Us Part 1 (with workaround)
+- radv: Jedi Fallen Order flickering & blocky plants
+- nouveau: NV50 (NVAC) broken in latest master
+- rusticl failed to build with rust-bindgen 0.65.0
+- aco: s_load_dword with negative soffset cause GPU hang
+- [Intel TGL] Performance drop in 22.3.5 compared to 22.2.5
+
+
+Changes
+-------
+
+Axel Davy (1):
+
+- frontend/nine: Fix num_textures count
+
+Charmaine Lee (2):
+
+- translate: do not clamp element index in generic_run
+- svga: set PIPE_CAP_VERTEX_ATTRIB_ELEMENT_ALIGNED_ONLY for VGPU10 device
+
+Connor Abbott (1):
+
+- tu: Don't override depth for GMEM
+
+David Heidelberg (1):
+
+- panvk: clear dangling pointers
+
+Dylan Baker (17):
+
+- docs: Add sha256 sum for 23.0.3
+- bin/pick: fix issue where None for nomination_type could fail
+- bin/pick: use lineboxes to make the UI clearer
+- bin/pick: Add support for adding notes on patches
+- bin/pick: Add a Read/Write lock class
+- pick: Fix a lot of locking issues
+- pick: Add fixes/reverts of applied patches as they're applied
+- bin/pick-ui: use asyncio.new_event_loop
+- wip: 23.0 fixes for pick-ui reworks
+- .pick_status.json: Update to 41a36561491d0cd65c8813126db9ce41e4aff9c4
+- fixup! pick: Fix a lot of locking issues
+- Revert "anv: flag BO for write combine when CPU visible and potentially in lmem"
+- .pick_status.json: Update to 218aa7794136c6a9bc55d5c8c31e0ba450cf0f0b
+- intel/dev: create a helper dependency for libintel_dev
+- .pick_status.json: Update to 5039b595477589a6e39bd6e5a390ed565b89a793
+- .pick_status.json: Updates notes for 9fb9ae5ac69293ab60d5d1f7470d8f152ccde7f6
+- .pick_status.json: Updates notes for a77c88f1e897d5ab5c046b35898eadbe806e2990
+
+Emma Anholt (3):
+
+- blob: Don't valgrind assert for defined memory if we aren't writing.
+- vulkan: Handle alignment failure in the pipeline cache.
+- vulkan: Actually increment the count of objects in GetPipelineCacheData.
+
+Eric Engestrom (4):
+
+- amd: fix buggy usage of unreachable()
+- compiler: fix buggy usage of unreachable()
+- pvr: fix buggy usage of unreachable()
+- vk/util: fix buggy usage of unreachable()
+
+Erik Faye-Lund (2):
+
+- nir: fix constant-folding of 64-bit fpow
+- llvmpipe: fixup refactor copypasta
+
+Filip Gawin (1):
+
+- nine: add fallback for D3DFMT_D16 in d3d9_to_pipe_format_checked
+
+Friedrich Vock (2):
+
+- radv/rmv: Fix import memory
+- radv: Always call si_emit_cache_flush before writing timestamps
+
+Gert Wollny (1):
+
+- r600/sfn: fix cube to array lowering for LOD
+
+Hans-Kristian Arntzen (1):
+
+- wsi/x11: Fix present ID signal when IDLE comes before COMPLETE.
+
+Iago Toral Quiroga (3):
+
+- broadcom/compiler: fix v3d_qpu_uses_sfu
+- broadcom/compiler: add a v3d_qpu_instr_is_legacy_sfu helper
+- broadcom/compiler: fix incorrect check for SFU op
+
+Jonathan Gray (1):
+
+- intel/dev: remove dg2 0x5698 pci id
+
+José Fonseca (1):
+
+- wgl: Fix unintentional assignment on assert.
+
+Karol Herbst (4):
+
+- radeonsi: lower mul_high
+- ac/llvm: support shifts on 16 bit vec2
+- rusticl: don't set size_t-is-usize for >=bindgen-0.65
+- nvc0: do not randomly emit fences.
+
+Konstantin Seurer (1):
+
+- nir/lower_fp16_casts: Fix SSA dominance
+
+Lionel Landwerlin (5):
+
+- isl: don't set inconsistent fields for depth when using stencil only
+- isl: fix a number of errors on storage format support on Gfx9/12.5
+- intel/fs: fix per vertex input clamping
+- intel/fs: fix scheduling of HALT instructions
+- anv: fixup workaround 16011411144
+
+Lone_Wolf (3):
+
+- compiler/clc: Fix embedded clang headers (microsoft-clc)  for LLVM 16+
+- clc: Add clangASTMatchers to fix static llvm build of  microsoft-clc with LLVM 16+
+- clc: Add clang frontendhlsl module to fix build of  microsoft-clc with llvm 16+
+
+Luna Nova (3):
+
+- device_select_layer: fix inverted strcmp in device_select_find_dri_prime_tag_default (v1)
+- device_select_layer: apply DRI_PRIME even if default device is > 1 to match opengl behavior
+- device_select_layer: pick a default device before applying DRI_PRIME
+
+M Henning (1):
+
+- nouveau/codegen: Check nir_dest_num_components
+
+Marek Olšák (2):
+
+- nir: fix 2 bugs in nir_create_passthrough_tcs
+- radeonsi: call ac_init_llvm_once before any util_queue initialization
+
+Mark Janes (2):
+
+- util: add macro to support gcc/clang poison
+- intel/dev: generate helpers to identify platform workarounds
+
+Matt Turner (1):
+
+- intel: Disable shader cache when executing intel_clc during the build
+
+Matthieu Bouron (1):
+
+- lavapipe: honor dst base array layer when resolving color attachments
+
+Michel Zou (1):
+
+- mesa/draw: fix -Wformat warning
+
+Mike Blumenkrantz (25):
+
+- zink: add z32s8 as mandatory GL3.0 profile attachment format
+- zink: avoid zero-sized memcmp for descriptor layouts
+- nir/lower_alpha_test: rzalloc state slots
+- zink: emit demote cap when using demote
+- util/debug: move null checks out of debug message macro
+- zink: don't bitcast bool deref loads/stores
+- drisw: don't leak the winsys
+- zink: check for extendedDynamicState3DepthClipNegativeOneToOne for ds3 support
+- draw: fix viewmask iterating
+- gallivm: break out native vector width calc for reuse
+- draw: fix robust ubo size calc
+- zink: only unset a generated tcs if the bound tcs is the generated one
+- zink: set depth dynamic state values unconditionally
+- cso: unbind fb state when unbinding the context
+- zink: don't init mutable resource bit for swapchain images
+- zink: allow vk 1.2 timelineSemaphore feature if extension isn't supported
+- zink: stringify unsupported prim restart log error
+- zink: use an intermediate variable for binding ssbo slots
+- zink: unbind the ssbo slot being iterated, not the index of the buffer
+- zink: flush INDIRECT_BUFFER mem barrier for compute
+- glsl/lower_samplers_as_deref: apply bindings for unused samplers
+- zink: disable always zs feedback loop on radv
+- zink: destroy current batch state after all other batch states
+- zink: only add feedback loop usage bit if extension is supported
+- zink: add feedback loop usage for swapchains
+
+Nanley Chery (2):
+
+- iris/bufmgr: Add and use zero_bo
+- iris/bufmgr: Handle flat_ccs for BO_ALLOC_ZEROED
+
+Patrick Lerda (7):
+
+- lima: fix refcnt imbalance related to framebuffer
+- r600/sfn: fix memory leak related to sh_info->arrays
+- aux/draw: fix memory leak related to ureg_get_tokens()
+- crocus: fix refcnt imbalance related to crocus_create_surface()
+- r600: fix refcnt imbalance related to atomic_buffer_state
+- radeonsi: set proper drm_amdgpu_cs_chunk_fence alignment
+- crocus: fix scratch_bos memory leak
+
+Qiang Yu (2):
+
+- aco: fix nir_f2u64 translation
+- ac/nir/cull: fix line position w culling
+
+Rhys Perry (4):
+
+- aco: remove SMEM_instruction::prevent_overflow
+- aco: don't move exec reads around exec writes
+- aco: don't move exec writes around exec writes
+- aco/gfx11: fix VMEM/DS->VALU WaW/RaW hazard
+
+Ruijing Dong (1):
+
+- radeonsi/vcn: correct cropping for hevc case
+
+Samuel Pitoiset (1):
+
+- radv: fix usage flag for 3D compressed 128 bpp images on GFX9
+
+SoroushIMG (3):
+
+- zink: do not emit line stipple dynamic state when emulating
+- zink: take location_frac into account in lower_line_smooth_gs
+- zink: fix incorrect line mode check for bresenham
+
+Tapani Pälli (3):
+
+- isl: disable mcs (and mcs+ccs) for color msaa on gfxver 125
+- iris: implement state cache invalidate for Wa_16013063087
+- isl: fix layout for comparing surf and view properties
+
+Thong Thai (3):
+
+- mesa/main: rework locale setup/teardown
+- util: check and initialize locale before using it
+- tgsi: use locale independent float and double parsing
+
+Timur Kristóf (2):
+
+- aco: Disallow constant propagation on SOPP and fixed operands.
+- aco: Initialize vcmpx field in get_cmp_info.
+
+Yiwei Zhang (3):
+
+- radv: respect VK_QUERY_RESULT_WAIT_BIT in GetQueryPoolResults
+- pipe-loader: avoid undefined memcpy behavior
+- lvp: avoid accessing member of NULL ptr for global entries
+
+antonino (1):
+
+- nir: don't create invalid inputs in \`nir_create_passthrough_gs`

@@ -1,0 +1,135 @@
+Mesa 18.0.5 Release Notes / June 3, 2018
+========================================
+
+Mesa 18.0.5 is a bug fix release which fixes bugs found since the 18.0.4
+release.
+
+Mesa 18.0.5 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   ea3e00329cea899b1e32db812fd2f426832be37e4baa2e2fd9288a3480f30531  mesa-18.0.5.tar.gz
+   5187bba8d72aea78f2062d134ec6079a508e8216062dce9ec9048b5eb2c4fc6b  mesa-18.0.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 78097 <https://bugs.freedesktop.org/show_bug.cgi?id=78097>`__ -
+   glUniform1ui and friends not supported by display lists
+-  `Bug 102390 <https://bugs.freedesktop.org/show_bug.cgi?id=102390>`__
+   - centroid interpolation causes broken attribute values
+-  `Bug 105351 <https://bugs.freedesktop.org/show_bug.cgi?id=105351>`__
+   - [Gen6+] piglit's arb_shader_image_load_store-host-mem-barrier fails
+   with a glGetTexSubImage fallback path
+-  `Bug 106090 <https://bugs.freedesktop.org/show_bug.cgi?id=106090>`__
+   - Compiling compute shader crashes RADV
+-  `Bug 106315 <https://bugs.freedesktop.org/show_bug.cgi?id=106315>`__
+   - The witness + dxvk suffers flickering garbage
+-  `Bug 106465 <https://bugs.freedesktop.org/show_bug.cgi?id=106465>`__
+   - No test for Image Load/Store on format-incompatible texture buffer
+-  `Bug 106479 <https://bugs.freedesktop.org/show_bug.cgi?id=106479>`__
+   - NDEBUG not defined for libamdgpu_addrlib
+-  `Bug 106481 <https://bugs.freedesktop.org/show_bug.cgi?id=106481>`__
+   - No test for Image Load/Store on texture buffer sized greater than
+   MAX_TEXTURE_BUFFER_SIZE_ARB
+-  `Bug 106504 <https://bugs.freedesktop.org/show_bug.cgi?id=106504>`__
+   - vulkan SPIR-V parsing failed at ../src/compiler/spirv/vtn_cfg.c:381
+-  `Bug 106587 <https://bugs.freedesktop.org/show_bug.cgi?id=106587>`__
+   - Dota2 is very dark when using vulkan render on a Intel << AMD prime
+   setup
+-  `Bug 106629 <https://bugs.freedesktop.org/show_bug.cgi?id=106629>`__
+   - [SNB,IVB,HSW,BDW]
+   dEQP-EGL.functional.image.create.gles2_cubemap_negative_z_rgb_read_pixels
+
+Changes
+-------
+
+Anuj Phogat (1):
+
+-  i965/glk: Add l3 banks count for 2x6 configuration
+
+Bas Nieuwenhuizen (2):
+
+-  amd/addrlib: Use defines in autotools build.
+-  radv: Fix SRGB compute copies.
+
+Dave Airlie (1):
+
+-  tgsi/scan: add hw atomic to the list of memory accessing files
+
+Francisco Jerez (4):
+
+-  Revert "mesa: simplify \_mesa_is_image_unit_valid for buffers"
+-  i965: Move buffer texture size calculation into a common helper
+   function.
+-  i965: Handle non-zero texture buffer offsets in buffer object range
+   calculation.
+-  i965: Use intel_bufferobj_buffer() wrapper in image surface state
+   setup.
+
+Jan Vesely (1):
+
+-  eg/compute: Use reference counting to handle compute memory pool.
+
+Faith Ekstrand (2):
+
+-  intel/eu: Set EXECUTE_1 when setting the rounding mode in cr0
+-  intel/blorp: Support blits and clears on surfaces with offsets
+
+Jose Dapena Paz (1):
+
+-  mesa: do not leak ctx->Shader.ReferencedProgram references
+
+Juan A. Suarez Romero (8):
+
+-  docs: add sha256 checksums for 18.0.4
+-  cherry-ignore: i965/miptree: Fix handling of uninitialized MCS
+   buffers
+-  cherry-ignore: add explicit 18.1 only nominations
+-  cherry-ignore: mesa/st: handle vert_attrib_mask in nir case too
+-  cherry-ignore: Tegra is not supported
+-  cherry-ignore: st/mesa: fix assertion failures with
+   GL_UNSIGNED_INT64_ARB (v2)
+-  cherry-ignore: nv30: ensure that displayable formats are marked
+   accordingly
+-  Update version to 18.0.5
+
+Marek Olšák (3):
+
+-  st/mesa: simplify lastLevel determination in st_finalize_texture
+-  radeonsi: fix incorrect parentheses around VS-PS varying elimination
+-  mesa: handle GL_UNSIGNED_INT64_ARB properly (v2)
+
+Michel Dänzer (1):
+
+-  dri3: Stricter SBC wraparound handling
+
+Nanley Chery (1):
+
+-  i965/miptree: Zero-initialize CCS_D buffers
+
+Samuel Pitoiset (2):
+
+-  spirv: fix visiting inner loops with same break/continue block
+-  radv: fix centroid interpolation
+
+Stuart Young (1):
+
+-  etnaviv: Fix missing rnndb file in tarballs
+
+Timothy Arceri (1):
+
+-  mesa: add glUniform*ui{v} support to display lists

@@ -1,0 +1,35 @@
+.venus-rules:
+  stage: layered-backends
+  rules:
+    - !reference [.test, rules]
+    - !reference [.lavapipe-rules, rules]
+    - changes: &venus_file_list
+      - src/virtio/**/*
+      when: on_success
+    - when: never
+
+
+.venus-lavapipe-test:
+  extends:
+    - .test-vk
+    - .venus-rules
+  variables:
+    VK_DRIVER: virtio
+    CROSVM_GALLIUM_DRIVER: "llvmpipe"
+    CROSVM_VK_DRIVER: "lvp"
+    CROSVM_GPU_ARGS: "vulkan=true,gles=false,backend=virglrenderer,egl=true,surfaceless=true"
+
+venus-lavapipe:
+  extends:
+    - .deqp-test-vk
+    - .venus-lavapipe-test
+  variables:
+    DEQP_FRACTION: 35
+    DEQP_SUITE: venus
+    GPU_VERSION: venus
+    LP_NUM_THREADS: 2
+    CROSVM_MEMORY: 12288
+    CROSVM_CPU: $FDO_CI_CONCURRENT
+    FLAKES_CHANNEL: "#virgl-ci"
+  script:
+    - ./install/crosvm-runner.sh ./install/deqp-runner.sh

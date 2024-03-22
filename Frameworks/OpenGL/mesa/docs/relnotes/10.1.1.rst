@@ -1,0 +1,223 @@
+Mesa 10.1.1 Release Notes / April 18, 2014
+==========================================
+
+Mesa 10.1.1 is a bug fix release which fixes bugs found since the 10.1
+release.
+
+Mesa 10.1.1 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   96e63674ccfa98e7ec6eb4fee3f770c3  MesaLib-10.1.1.tar.gz
+   1fde7ed079df7aeb9b6a744ca033de8d  MesaLib-10.1.1.tar.bz2
+   e64d0a562638664b13d2edf22321df59  MesaLib-10.1.1.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 71547 <https://bugs.freedesktop.org/show_bug.cgi?id=71547>`__ -
+   compilation failure :#error "SSE4.1 instruction set not enabled"
+-  `Bug 74868 <https://bugs.freedesktop.org/show_bug.cgi?id=74868>`__ -
+   r600g: Diablo III Crashes After a few minutes
+-  `Bug 74988 <https://bugs.freedesktop.org/show_bug.cgi?id=74988>`__ -
+   Buffer overrun (segfault) decompressing ETC2 texture in GLBenchmark
+   3.0 Manhattan
+-  `Bug 75279 <https://bugs.freedesktop.org/show_bug.cgi?id=75279>`__ -
+   XCloseDisplay() takes one minute around nouveau_dri.so, freezing
+   Firefox startup
+-  `Bug 75543 <https://bugs.freedesktop.org/show_bug.cgi?id=75543>`__ -
+   OSMesa Gallium OSMesaMakeCurrent
+-  `Bug 75660 <https://bugs.freedesktop.org/show_bug.cgi?id=75660>`__ -
+   u_inlines.h:277:pipe_buffer_map_range: Assertion \`length' failed.
+-  `Bug 76323 <https://bugs.freedesktop.org/show_bug.cgi?id=76323>`__ -
+   GLSL compiler ignores layout(binding=N) on uniform blocks
+-  `Bug 76377 <https://bugs.freedesktop.org/show_bug.cgi?id=76377>`__ -
+   DRI3 should only be enabled on Linux due to a udev dependency
+-  `Bug 76749 <https://bugs.freedesktop.org/show_bug.cgi?id=76749>`__ -
+   [HSW] DOTA world lighting has no effect
+-  `Bug 77102 <https://bugs.freedesktop.org/show_bug.cgi?id=77102>`__ -
+   gallium nouveau has no profile in vdpau and libva
+-  `Bug 77207 <https://bugs.freedesktop.org/show_bug.cgi?id=77207>`__ -
+   [ivb/hsw] batch overwritten with garbage
+
+Changes
+-------
+
+Aaron Watry (1):
+
+-  gallium/util: Fix memory leak
+
+Alexander von Gluck IV (1):
+
+-  haiku: Fix build through scons corrections and viewport fixes
+
+Anuj Phogat (2):
+
+-  mesa: Set initial internal format of a texture to GL_RGBA
+-  mesa: Allow GL_DEPTH_COMPONENT and GL_DEPTH_STENCIL combinations in
+   glTexImage{123}D()
+
+Brian Paul (12):
+
+-  softpipe: use 64-bit arithmetic in softpipe_resource_layout()
+-  mesa: don't call ctx->Driver.ClearBufferSubData() if size==0
+-  st/osmesa: check buffer size when searching for buffers
+-  mesa: fix copy & paste bugs in pack_ubyte_SARGB8()
+-  mesa: fix copy & paste bugs in pack_ubyte_SRGB8()
+-  c11/threads: don't include assert.h if the assert macro is already
+   defined
+-  mesa: fix unpack_Z32_FLOAT_X24S8() / unpack_Z32_FLOAT() mix-up
+-  st/mesa: add null pointer checking in query object functions
+-  mesa: fix glMultiDrawArrays inside a display list
+-  cso: fix sampler view count in cso_set_sampler_views()
+-  svga: replace sampler assertion with conditional
+-  svga: move LIST_INITHEAD(dirty_buffers) earlier in
+   svga_context_create()
+
+Carl Worth (3):
+
+-  cherry-ignore: Ignore a few patches
+-  glsl: Allow explicit binding on atomics again
+-  Update VERSION to 10.1.1
+
+Chia-I Wu (1):
+
+-  i965/vec4: fix record clearing in copy propagation
+
+Christian König (2):
+
+-  st/mesa: recreate sampler view on context change v3
+-  st/mesa: fix sampler view handling with shared textures v4
+
+Courtney Goeltzenleuchter (1):
+
+-  mesa: add bounds checking to eliminate buffer overrun
+
+Emil Velikov (5):
+
+-  nv50: add missing brackets when handling the samplers array
+-  mesa: return v.value_int64 when the requested type is TYPE_INT64
+-  configure: enable dri3 only for linux
+-  glx: drop obsolete \_XUnlock_Mutex in \__glXInitialize error path
+-  configure: cleanup libudev handling
+
+Eric Anholt (1):
+
+-  i965: Fix buffer overruns in MSAA MCS buffer clearing.
+
+Hans (2):
+
+-  util: don't define isfinite(), isnan() for MSVC >= 1800
+-  mesa: don't define c99 math functions for MSVC >= 1800
+
+Ian Romanick (7):
+
+-  linker: Split set_uniform_binding into separate functions for blocks
+   and samplers
+-  linker: Various trivial clean-ups in set_sampler_binding
+-  linker: Fold set_uniform_binding into call site
+-  linker: Clean up "unused parameter" warnings
+-  linker: Set block bindings based on UniformBlocks rather than
+   UniformStorage
+-  linker: Set binding for all elements of UBO array
+-  glsl: Propagate explicit binding information from the AST all the way
+   to the linker
+
+Ilia Mirkin (8):
+
+-  nouveau: fix fence waiting logic in screen destroy
+-  nv50: adjust blit_3d handling of ms output textures
+-  loader: add special logic to distinguish nouveau from nouveau_vieux
+-  mesa/main: condition GL_DEPTH_STENCIL on ARB_depth_texture
+-  nouveau: add forgotten GL_COMPRESSED_INTENSITY to texture format list
+-  nouveau: there may not have been a texture if the fbo was incomplete
+-  nvc0/ir: move sample id to second source arg to fix sampler2DMS
+-  nouveau: fix firmware check on nvd7/nvd9
+
+Johannes Nixdorf (1):
+
+-  configure.ac: fix the detection of expat with pkg-config
+
+Jonathan Gray (7):
+
+-  gallium: add endian detection for OpenBSD
+-  loader: use 0 instead of FALSE which isn't defined
+-  loader: don't limit the non-udev path to only android
+-  megadriver_stub.c: don't use \_GNU_SOURCE to gate the compat code
+-  egl/dri2: don't require libudev to build drm/wayland platforms
+-  egl/dri2: use drm macros to construct device name
+-  configure: don't require libudev for gbm or egl drm/wayland
+
+José Fonseca (4):
+
+-  c11/threads: Fix nano to milisecond conversion.
+-  mapi/u_thread: Use GetCurrentThreadId
+-  c11/threads: Don't implement thrd_current on Windows.
+-  draw: Duplicate TGSI tokens in draw_pipe_pstipple module.
+
+Kenneth Graunke (4):
+
+-  i965/fs: Fix register comparisons in saturate propagation.
+-  glsl: Fix lack of i2u in lower_ubo_reference.
+-  i965: Stop advertising GL_MESA_ycbcr_texture.
+-  glsl: Try vectorizing when seeing a repeated assignment to a channel.
+
+Marek Olšák (13):
+
+-  r600g: fix texelFetchOffset GLSL functions
+-  r600g: fix blitting the last 2 mipmap levels for Evergreen
+-  mesa: fix the format of glEdgeFlagPointer
+-  r600g,radeonsi: fix MAX_TEXTURE_3D_LEVELS and
+   MAX_TEXTURE_ARRAY_LAYERS limits
+-  st/mesa: fix per-vertex edge flags and GLSL support (v2)
+-  mesa: mark GL_RGB9_E5 as not color-renderable
+-  mesa: fix texture border handling for cube arrays
+-  mesa: allow generating mipmaps for cube arrays
+-  mesa: fix software fallback for generating mipmaps for cube arrays
+-  mesa: fix software fallback for generating mipmaps for 3D textures
+-  st/mesa: fix generating mipmaps for cube arrays
+-  st/mesa: drop the lowering of quad strips to triangle strips
+-  r600g: implement edge flags
+
+Matt Turner (4):
+
+-  mesa: Wrap SSE4.1 code in #ifdef \__SSE4_1__.
+-  i965/fs: Fix off-by-one in saturate propagation.
+-  i965/fs: Don't propagate saturate modifiers into partial writes.
+-  i965/fs: Don't propagate saturation modifiers if there are source
+   modifiers.
+
+Michel Dänzer (1):
+
+-  r600g: Don't leak bytecode on shader compile failure
+
+Mike Stroyan (1):
+
+-  i965: Avoid dependency hints on math opcodes
+
+Thomas Hellstrom (5):
+
+-  winsys/svga: Replace the query mm buffer pool with a slab pool v3
+-  winsys/svga: Update the vmwgfx_drm.h header to latest version from
+   kernel
+-  winsys/svga: Fix prime surface references also for guest-backed
+   surfaces
+-  st/xa: Bind destination before setting new state
+-  st/xa: Make sure unused samplers are set to NULL
+
+Tom Stellard (1):
+
+-  configure: Use LLVM shared libraries by default

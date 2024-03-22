@@ -1,0 +1,68 @@
+Mesa 7.11.2 Release Notes / November 27, 2011
+=============================================
+
+Mesa 7.11.2 is a bug fix release which fixes bugs found since the 7.11
+release.
+
+Mesa 7.11 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   b9e84efee3931c0acbccd1bb5a860554  MesaLib-7.11.2.tar.gz
+   0837c52698fe3252369c3fdb5195afcc  MesaLib-7.11.2.tar.bz2
+   141273c274d12e0d2bafb497fe937da3  MesaLib-7.11.2.zip
+   39ae9926794794503815ffdc069521eb  MesaGLUT-7.11.2.tar.gz
+   35ca3a0b54cb6f9d2e0e4eae8f6bb95e  MesaGLUT-7.11.2.tar.bz2
+   f8705fcff2510b6c39cd27b575c05dba  MesaGLUT-7.11.2.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 43143 <https://bugs.freedesktop.org/show_bug.cgi?id=43143>`__ -
+   Mesa 7.11.1 fails to build at main/dlist.c:4532 with error message:
+   "format not a string literal and no format arguments"
+-  Incorrect handling of CopyTexImage from RGBA window to LA texture.
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-7.11.1..mesa-7.11.2
+
+Brian Paul (4):
+
+-  mesa: stop using ctx->Driver.CopyTexImage1D/2D() hooks
+-  mesa: fix format selection for meta CopyTexSubImage()
+-  docs: update news.html and relnotes.html for 7.11.1 release
+-  mesa: use format string in \_mesa_error() call to silence warning
+
+Chad Versace (3):
+
+-  intel: Simplify stencil detiling arithmetic
+-  intel: Fix region dimensions for stencil buffers received from DDX
+-  intel: Fix separate stencil in builtin DRI2 backend
+
+Ian Romanick (3):
+
+-  docs: Add 7.11.1 release md5sums
+-  mesa: set version string to 7.11.2-devel
+-  mesa: Bump version to 7.11.2 (final)

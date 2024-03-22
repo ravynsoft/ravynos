@@ -1,0 +1,105 @@
+Mesa 11.0.1 Release Notes / September 26, 2015
+==============================================
+
+Mesa 11.0.1 is a bug fix release which fixes bugs found since the 11.0.0
+release.
+
+Mesa 11.0.1 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   6dab262877e12c0546a0e2970c6835a0f217e6d4026ccecb3cd5dd733d1ce867  mesa-11.0.1.tar.gz
+   43d0dfcd1f1e36f07f8228cd76d90175d3fc74c1ed25d7071794a100a98ef2a6  mesa-11.0.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 38109 <https://bugs.freedesktop.org/show_bug.cgi?id=38109>`__ -
+   i915 driver crashes if too few vertices are submitted (Mesa 7.10.2)
+-  `Bug 91114 <https://bugs.freedesktop.org/show_bug.cgi?id=91114>`__ -
+   ES3-CTS.gtf.GL3Tests.shadow.shadow_execution_vert fails
+-  `Bug 91716 <https://bugs.freedesktop.org/show_bug.cgi?id=91716>`__ -
+   [bisected] piglit.shaders.glsl-vs-int-attrib regresses on 32 bit BYT,
+   HSW, IVB, SNB
+-  `Bug 91719 <https://bugs.freedesktop.org/show_bug.cgi?id=91719>`__ -
+   [SNB,HSW,BYT] dEQP regressions associated with using NIR for vertex
+   shaders
+-  `Bug 92009 <https://bugs.freedesktop.org/show_bug.cgi?id=92009>`__ -
+   ES3-CTS.gtf.GL3Tests.packed_pixels.packed_pixels fails
+
+Changes
+-------
+
+Antia Puentes (2):
+
+-  i965/vec4: Fix saturation errors when coalescing registers
+-  i965/vec4_nir: Load constants as integers
+
+Anuj Phogat (1):
+
+-  meta: Abort meta pbo path if TexSubImage need signed unsigned
+   conversion
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 11.0.0
+-  Update version to 11.0.1
+
+Iago Toral Quiroga (1):
+
+-  mesa: Fix GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE for default
+   framebuffer.
+
+Ian Romanick (5):
+
+-  t_dd_dmatmp: Make "count" actually be the count
+-  t_dd_dmatmp: Clean up improper code formatting from previous patch
+-  t_dd_dmatmp: Use '& 3' instead of '% 4' everywhere
+-  t_dd_dmatmp: Pull out common 'count -= count & 3' code
+-  t_dd_dmatmp: Use addition instead of subtraction in loop bounds
+
+Ilia Mirkin (6):
+
+-  st/mesa: avoid integer overflows with buffers >= 512MB
+-  nv50, nvc0: fix max texture buffer size to 128M elements
+-  freedreno/a3xx: fix blending of L8 format
+-  nv50,nvc0: detect underlying resource changes and update tic
+-  nv50,nvc0: flush texture cache in presence of coherent bufs
+-  radeonsi: load fmask ptr relative to the resources array
+
+Faith Ekstrand (2):
+
+-  nir: Fix a bunch of ralloc parenting errors
+-  i965/vec4: Don't reswizzle hardware registers
+
+Jeremy Huddleston (1):
+
+-  configure.ac: Add support to enable read-only text segment on x86.
+
+Ray Strode (1):
+
+-  gbm: convert gbm bo format to fourcc format on dma-buf import
+
+Tapani Pälli (2):
+
+-  mesa: fix errors when reading depth with glReadPixels
+-  i965: fix textureGrad for cubemaps
+
+Ulrich Weigand (1):
+
+-  mesa: Fix texture compression on big-endian systems

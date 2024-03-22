@@ -1,0 +1,115 @@
+Mesa 22.3.2 Release Notes / 2022-12-29
+======================================
+
+Mesa 22.3.2 is a bug fix release which fixes bugs found since the 22.3.1 release.
+
+Mesa 22.3.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.3.2 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    c15df758a8795f53e57f2a228eb4593c22b16dffd9b38f83901f76cd9533140b  mesa-22.3.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Mesa 22.3.0 SEGFAULT in nir shader creation for r600 cards on FreeBSD
+- radv: Doom Eternal randomly hangs GPU with RT on
+- etnaviv: mesa-22.3.0 regression on i.MX8M Mini
+- Static linking LLVM 15 fails with unresolved symbols if not building CLC
+- Microsoft CLC/clover: Fails to link against Clang 15 libraries
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- panfrost: Align WSI strides for tiled AFBC
+
+Emma Anholt (1):
+
+- zink: Fix reversed cap declarations for ImageBuffer
+
+Eric Engestrom (3):
+
+- docs/relnotes: add sha256sum for 22.3.1
+- docs/relnotes: add 22.3.1 to index
+- .pick_status.json: Update to def474e916b69b86ed49c895c7418ba54a0e8252
+
+Friedrich Vock (3):
+
+- radv/rt: PLOC fixes for active_leaf_count
+- radv/rt: Execute memory barrier before updating the phase end count
+- radv/rt: Refactor exiting PLOC
+
+Gert Wollny (1):
+
+- r600/sfn: Don't try to re-use the iterator when uses is updated
+
+Iago Toral Quiroga (6):
+
+- v3dv: always store/restore attachment state during meta operations
+- v3dv: don't resolve by averaging samples on depth/stencil resolves
+- v3dv: handle depth/stencil resolves we can't implement via TLB
+- v3dv: honor render area in subpass resolve fallback
+- v3dv: pipeline creation feedback may not request all stages
+- v3dv: be more careful when restoring dirty state after meta operations
+
+Konstantin Seurer (1):
+
+- radv/rra: Emit leaf node ids for leaf nodes instead of internal nodes
+
+Lionel Landwerlin (2):
+
+- anv: fixup another dirty issue with gpu_memcpy
+- anv: handle null push descriptors in deferred optimization
+
+Liviu Prodea (1):
+
+- OpenCL/draw module: Support linking with LLVM and clang 15 static libraries
+
+Lucas Stach (1):
+
+- etnaviv: disable linear PE by default
+
+Marek Vasut (1):
+
+- etnaviv: Do expose 2D texture support on pre-halti GPUs
+
+Pavel Ondračka (1):
+
+- r300: be more careful with presubtract and non-native swizzles
+
+Rhys Perry (2):
+
+- aco/gfx11: export mrtz in discard early exit for non-color shaders
+- radv/gfx11: disable mesh shaders
+
+Rohan Garg (1):
+
+- anv: Ensure we clear ANV_PIPE_PSS_STALL_SYNC_BIT on flush
+
+Timur Kristóf (3):
+
+- aco: Don't accept constants on p_bpermute.
+- radv: Destroy mesh shader scratch ring in radv_queue_state_finish.
+- radv: Include view index SET_SH_REG in ace_predication_size.

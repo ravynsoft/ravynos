@@ -1,0 +1,3469 @@
+{
+ "enums": {
+  "ArrayMode": {
+   "entries": [
+    {"name": "ARRAY_LINEAR_GENERAL", "value": 0},
+    {"name": "ARRAY_LINEAR_ALIGNED", "value": 1},
+    {"name": "ARRAY_1D_TILED_THIN1", "value": 2},
+    {"name": "ARRAY_1D_TILED_THICK", "value": 3},
+    {"name": "ARRAY_2D_TILED_THIN1", "value": 4},
+    {"name": "ARRAY_PRT_TILED_THIN1", "value": 5},
+    {"name": "ARRAY_PRT_2D_TILED_THIN1", "value": 6},
+    {"name": "ARRAY_2D_TILED_THICK", "value": 7},
+    {"name": "ARRAY_2D_TILED_XTHICK", "value": 8},
+    {"name": "ARRAY_PRT_TILED_THICK", "value": 9},
+    {"name": "ARRAY_PRT_2D_TILED_THICK", "value": 10},
+    {"name": "ARRAY_PRT_3D_TILED_THIN1", "value": 11},
+    {"name": "ARRAY_3D_TILED_THIN1", "value": 12},
+    {"name": "ARRAY_3D_TILED_THICK", "value": 13},
+    {"name": "ARRAY_3D_TILED_XTHICK", "value": 14},
+    {"name": "ARRAY_PRT_3D_TILED_THICK", "value": 15}
+   ]
+  },
+  "BUF_DATA_FORMAT": {
+   "entries": [
+    {"name": "BUF_DATA_FORMAT_INVALID", "value": 0},
+    {"name": "BUF_DATA_FORMAT_8", "value": 1},
+    {"name": "BUF_DATA_FORMAT_16", "value": 2},
+    {"name": "BUF_DATA_FORMAT_8_8", "value": 3},
+    {"name": "BUF_DATA_FORMAT_32", "value": 4},
+    {"name": "BUF_DATA_FORMAT_16_16", "value": 5},
+    {"name": "BUF_DATA_FORMAT_10_11_11", "value": 6},
+    {"name": "BUF_DATA_FORMAT_11_11_10", "value": 7},
+    {"name": "BUF_DATA_FORMAT_10_10_10_2", "value": 8},
+    {"name": "BUF_DATA_FORMAT_2_10_10_10", "value": 9},
+    {"name": "BUF_DATA_FORMAT_8_8_8_8", "value": 10},
+    {"name": "BUF_DATA_FORMAT_32_32", "value": 11},
+    {"name": "BUF_DATA_FORMAT_16_16_16_16", "value": 12},
+    {"name": "BUF_DATA_FORMAT_32_32_32", "value": 13},
+    {"name": "BUF_DATA_FORMAT_32_32_32_32", "value": 14},
+    {"name": "BUF_DATA_FORMAT_RESERVED_15", "value": 15}
+   ]
+  },
+  "BUF_NUM_FORMAT": {
+   "entries": [
+    {"name": "BUF_NUM_FORMAT_UNORM", "value": 0},
+    {"name": "BUF_NUM_FORMAT_SNORM", "value": 1},
+    {"name": "BUF_NUM_FORMAT_USCALED", "value": 2},
+    {"name": "BUF_NUM_FORMAT_SSCALED", "value": 3},
+    {"name": "BUF_NUM_FORMAT_UINT", "value": 4},
+    {"name": "BUF_NUM_FORMAT_SINT", "value": 5},
+    {"name": "BUF_NUM_FORMAT_UNORM_UINT", "value": 6},
+    {"name": "BUF_NUM_FORMAT_FLOAT", "value": 7}
+   ]
+  },
+  "BankHeight": {
+   "entries": [
+    {"name": "ADDR_SURF_BANK_HEIGHT_1", "value": 0},
+    {"name": "ADDR_SURF_BANK_HEIGHT_2", "value": 1},
+    {"name": "ADDR_SURF_BANK_HEIGHT_4", "value": 2},
+    {"name": "ADDR_SURF_BANK_HEIGHT_8", "value": 3}
+   ]
+  },
+  "BankWidth": {
+   "entries": [
+    {"name": "ADDR_SURF_BANK_WIDTH_1", "value": 0},
+    {"name": "ADDR_SURF_BANK_WIDTH_2", "value": 1},
+    {"name": "ADDR_SURF_BANK_WIDTH_4", "value": 2},
+    {"name": "ADDR_SURF_BANK_WIDTH_8", "value": 3}
+   ]
+  },
+  "EXCP_EN": {
+   "entries": [
+    {"name": "INVALID", "value": 1},
+    {"name": "INPUT_DENORMAL", "value": 2},
+    {"name": "DIVIDE_BY_ZERO", "value": 4},
+    {"name": "OVERFLOW", "value": 8},
+    {"name": "UNDERFLOW", "value": 16},
+    {"name": "INEXACT", "value": 32},
+    {"name": "INT_DIVIDE_BY_ZERO", "value": 64},
+    {"name": "ADDRESS_WATCH", "value": 128},
+    {"name": "MEMORY_VIOLATION", "value": 256}
+   ]
+  },
+  "FLOAT_MODE": {
+   "entries": [
+    {"name": "FP_32_ROUND_TOWARDS_ZERO", "value": 3},
+    {"name": "FP_16_64_ROUND_TOWARDS_ZERO", "value": 12},
+    {"name": "FP_32_DENORMS", "value": 48},
+    {"name": "FP_16_64_DENORMS", "value": 192}
+   ]
+  },
+  "IMG_DATA_FORMAT": {
+   "entries": [
+    {"name": "IMG_DATA_FORMAT_INVALID", "value": 0},
+    {"name": "IMG_DATA_FORMAT_8", "value": 1},
+    {"name": "IMG_DATA_FORMAT_16", "value": 2},
+    {"name": "IMG_DATA_FORMAT_8_8", "value": 3},
+    {"name": "IMG_DATA_FORMAT_32", "value": 4},
+    {"name": "IMG_DATA_FORMAT_16_16", "value": 5},
+    {"name": "IMG_DATA_FORMAT_10_11_11", "value": 6},
+    {"name": "IMG_DATA_FORMAT_11_11_10", "value": 7},
+    {"name": "IMG_DATA_FORMAT_10_10_10_2", "value": 8},
+    {"name": "IMG_DATA_FORMAT_2_10_10_10", "value": 9},
+    {"name": "IMG_DATA_FORMAT_8_8_8_8", "value": 10},
+    {"name": "IMG_DATA_FORMAT_32_32", "value": 11},
+    {"name": "IMG_DATA_FORMAT_16_16_16_16", "value": 12},
+    {"name": "IMG_DATA_FORMAT_32_32_32", "value": 13},
+    {"name": "IMG_DATA_FORMAT_32_32_32_32", "value": 14},
+    {"name": "IMG_DATA_FORMAT_RESERVED_15", "value": 15},
+    {"name": "IMG_DATA_FORMAT_5_6_5", "value": 16},
+    {"name": "IMG_DATA_FORMAT_1_5_5_5", "value": 17},
+    {"name": "IMG_DATA_FORMAT_5_5_5_1", "value": 18},
+    {"name": "IMG_DATA_FORMAT_4_4_4_4", "value": 19},
+    {"name": "IMG_DATA_FORMAT_8_24", "value": 20},
+    {"name": "IMG_DATA_FORMAT_24_8", "value": 21},
+    {"name": "IMG_DATA_FORMAT_X24_8_32", "value": 22},
+    {"name": "IMG_DATA_FORMAT_8_AS_8_8_8_8", "value": 23},
+    {"name": "IMG_DATA_FORMAT_ETC2_RGB", "value": 24},
+    {"name": "IMG_DATA_FORMAT_ETC2_RGBA", "value": 25},
+    {"name": "IMG_DATA_FORMAT_ETC2_R", "value": 26},
+    {"name": "IMG_DATA_FORMAT_ETC2_RG", "value": 27},
+    {"name": "IMG_DATA_FORMAT_ETC2_RGBA1", "value": 28},
+    {"name": "IMG_DATA_FORMAT_RESERVED_29", "value": 29},
+    {"name": "IMG_DATA_FORMAT_RESERVED_30", "value": 30},
+    {"name": "IMG_DATA_FORMAT_6E4", "value": 31},
+    {"name": "IMG_DATA_FORMAT_GB_GR", "value": 32},
+    {"name": "IMG_DATA_FORMAT_BG_RG", "value": 33},
+    {"name": "IMG_DATA_FORMAT_5_9_9_9", "value": 34},
+    {"name": "IMG_DATA_FORMAT_BC1", "value": 35},
+    {"name": "IMG_DATA_FORMAT_BC2", "value": 36},
+    {"name": "IMG_DATA_FORMAT_BC3", "value": 37},
+    {"name": "IMG_DATA_FORMAT_BC4", "value": 38},
+    {"name": "IMG_DATA_FORMAT_BC5", "value": 39},
+    {"name": "IMG_DATA_FORMAT_BC6", "value": 40},
+    {"name": "IMG_DATA_FORMAT_BC7", "value": 41},
+    {"name": "IMG_DATA_FORMAT_16_AS_32_32", "value": 42},
+    {"name": "IMG_DATA_FORMAT_16_AS_16_16_16_16", "value": 43},
+    {"name": "IMG_DATA_FORMAT_16_AS_32_32_32_32", "value": 44},
+    {"name": "IMG_DATA_FORMAT_FMASK", "value": 45},
+    {"name": "IMG_DATA_FORMAT_ASTC_2D_LDR", "value": 46},
+    {"name": "IMG_DATA_FORMAT_ASTC_2D_HDR", "value": 47},
+    {"name": "IMG_DATA_FORMAT_ASTC_2D_LDR_SRGB", "value": 48},
+    {"name": "IMG_DATA_FORMAT_ASTC_3D_LDR", "value": 49},
+    {"name": "IMG_DATA_FORMAT_ASTC_3D_HDR", "value": 50},
+    {"name": "IMG_DATA_FORMAT_ASTC_3D_LDR_SRGB", "value": 51},
+    {"name": "IMG_DATA_FORMAT_N_IN_16", "value": 52},
+    {"name": "IMG_DATA_FORMAT_N_IN_16_16", "value": 53},
+    {"name": "IMG_DATA_FORMAT_N_IN_16_16_16_16", "value": 54},
+    {"name": "IMG_DATA_FORMAT_N_IN_16_AS_16_16_16_16", "value": 55},
+    {"name": "IMG_DATA_FORMAT_RESERVED_56", "value": 56},
+    {"name": "IMG_DATA_FORMAT_4_4", "value": 57},
+    {"name": "IMG_DATA_FORMAT_6_5_5", "value": 58},
+    {"name": "IMG_DATA_FORMAT_RESERVED_59", "value": 59},
+    {"name": "IMG_DATA_FORMAT_RESERVED_60", "value": 60},
+    {"name": "IMG_DATA_FORMAT_8_AS_32", "value": 61},
+    {"name": "IMG_DATA_FORMAT_8_AS_32_32", "value": 62},
+    {"name": "IMG_DATA_FORMAT_32_AS_32_32_32_32", "value": 63}
+   ]
+  },
+  "IMG_NUM_FORMAT": {
+   "entries": [
+    {"name": "IMG_NUM_FORMAT_UNORM", "value": 0},
+    {"name": "IMG_NUM_FORMAT_SNORM", "value": 1},
+    {"name": "IMG_NUM_FORMAT_USCALED", "value": 2},
+    {"name": "IMG_NUM_FORMAT_SSCALED", "value": 3},
+    {"name": "IMG_NUM_FORMAT_UINT", "value": 4},
+    {"name": "IMG_NUM_FORMAT_SINT", "value": 5},
+    {"name": "IMG_NUM_FORMAT_UNORM_UINT", "value": 6},
+    {"name": "IMG_NUM_FORMAT_FLOAT", "value": 7},
+    {"name": "IMG_NUM_FORMAT_RESERVED_8", "value": 8},
+    {"name": "IMG_NUM_FORMAT_SRGB", "value": 9},
+    {"name": "IMG_NUM_FORMAT_RESERVED_10", "value": 10},
+    {"name": "IMG_NUM_FORMAT_RESERVED_11", "value": 11},
+    {"name": "IMG_NUM_FORMAT_RESERVED_12", "value": 12},
+    {"name": "IMG_NUM_FORMAT_RESERVED_13", "value": 13},
+    {"name": "IMG_NUM_FORMAT_RESERVED_14", "value": 14},
+    {"name": "IMG_NUM_FORMAT_RESERVED_15", "value": 15}
+   ]
+  },
+  "MacroTileAspect": {
+   "entries": [
+    {"name": "ADDR_SURF_MACRO_ASPECT_1", "value": 0},
+    {"name": "ADDR_SURF_MACRO_ASPECT_2", "value": 1},
+    {"name": "ADDR_SURF_MACRO_ASPECT_4", "value": 2},
+    {"name": "ADDR_SURF_MACRO_ASPECT_8", "value": 3}
+   ]
+  },
+  "MicroTileMode": {
+   "entries": [
+    {"name": "ADDR_SURF_DISPLAY_MICRO_TILING", "value": 0},
+    {"name": "ADDR_SURF_THIN_MICRO_TILING", "value": 1},
+    {"name": "ADDR_SURF_DEPTH_MICRO_TILING", "value": 2},
+    {"name": "ADDR_SURF_ROTATED_MICRO_TILING", "value": 3},
+    {"name": "ADDR_SURF_THICK_MICRO_TILING", "value": 4}
+   ]
+  },
+  "NumBanks": {
+   "entries": [
+    {"name": "ADDR_SURF_2_BANK", "value": 0},
+    {"name": "ADDR_SURF_4_BANK", "value": 1},
+    {"name": "ADDR_SURF_8_BANK", "value": 2},
+    {"name": "ADDR_SURF_16_BANK", "value": 3}
+   ]
+  },
+  "PipeConfig": {
+   "entries": [
+    {"name": "ADDR_SURF_P2", "value": 0},
+    {"name": "ADDR_SURF_P2_RESERVED0", "value": 1},
+    {"name": "ADDR_SURF_P2_RESERVED1", "value": 2},
+    {"name": "ADDR_SURF_P2_RESERVED2", "value": 3},
+    {"name": "ADDR_SURF_P4_8x16", "value": 4},
+    {"name": "ADDR_SURF_P4_16x16", "value": 5},
+    {"name": "ADDR_SURF_P4_16x32", "value": 6},
+    {"name": "ADDR_SURF_P4_32x32", "value": 7},
+    {"name": "ADDR_SURF_P8_16x16_8x16", "value": 8},
+    {"name": "ADDR_SURF_P8_16x32_8x16", "value": 9},
+    {"name": "ADDR_SURF_P8_32x32_8x16", "value": 10},
+    {"name": "ADDR_SURF_P8_16x32_16x16", "value": 11},
+    {"name": "ADDR_SURF_P8_32x32_16x16", "value": 12},
+    {"name": "ADDR_SURF_P8_32x32_16x32", "value": 13},
+    {"name": "ADDR_SURF_P8_32x64_32x32", "value": 14},
+    {"name": "ADDR_SURF_P8_RESERVED0", "value": 15},
+    {"name": "ADDR_SURF_P16_32x32_8x16", "value": 16},
+    {"name": "ADDR_SURF_P16_32x32_16x16", "value": 17}
+   ]
+  },
+  "SQ_IMG_FILTER_TYPE": {
+   "entries": [
+    {"name": "SQ_IMG_FILTER_MODE_BLEND", "value": 0},
+    {"name": "SQ_IMG_FILTER_MODE_MIN", "value": 1},
+    {"name": "SQ_IMG_FILTER_MODE_MAX", "value": 2}
+   ]
+  },
+  "SQ_IMG_RSRC_WORD4__BC_SWIZZLE": {
+   "entries": [
+    {"name": "BC_SWIZZLE_XYZW", "value": 0},
+    {"name": "BC_SWIZZLE_XWYZ", "value": 1},
+    {"name": "BC_SWIZZLE_WZYX", "value": 2},
+    {"name": "BC_SWIZZLE_WXYZ", "value": 3},
+    {"name": "BC_SWIZZLE_ZYXW", "value": 4},
+    {"name": "BC_SWIZZLE_YXWZ", "value": 5}
+   ]
+  },
+  "SQ_RSRC_BUF_TYPE": {
+   "entries": [
+    {"name": "SQ_RSRC_BUF", "value": 0},
+    {"name": "SQ_RSRC_BUF_RSVD_1", "value": 1},
+    {"name": "SQ_RSRC_BUF_RSVD_2", "value": 2},
+    {"name": "SQ_RSRC_BUF_RSVD_3", "value": 3}
+   ]
+  },
+  "SQ_RSRC_IMG_TYPE": {
+   "entries": [
+    {"name": "SQ_RSRC_IMG_RSVD_0", "value": 0},
+    {"name": "SQ_RSRC_IMG_RSVD_1", "value": 1},
+    {"name": "SQ_RSRC_IMG_RSVD_2", "value": 2},
+    {"name": "SQ_RSRC_IMG_RSVD_3", "value": 3},
+    {"name": "SQ_RSRC_IMG_RSVD_4", "value": 4},
+    {"name": "SQ_RSRC_IMG_RSVD_5", "value": 5},
+    {"name": "SQ_RSRC_IMG_RSVD_6", "value": 6},
+    {"name": "SQ_RSRC_IMG_RSVD_7", "value": 7},
+    {"name": "SQ_RSRC_IMG_1D", "value": 8},
+    {"name": "SQ_RSRC_IMG_2D", "value": 9},
+    {"name": "SQ_RSRC_IMG_3D", "value": 10},
+    {"name": "SQ_RSRC_IMG_CUBE", "value": 11},
+    {"name": "SQ_RSRC_IMG_1D_ARRAY", "value": 12},
+    {"name": "SQ_RSRC_IMG_2D_ARRAY", "value": 13},
+    {"name": "SQ_RSRC_IMG_2D_MSAA", "value": 14},
+    {"name": "SQ_RSRC_IMG_2D_MSAA_ARRAY", "value": 15}
+   ]
+  },
+  "SQ_SEL_XYZW01": {
+   "entries": [
+    {"name": "SQ_SEL_0", "value": 0},
+    {"name": "SQ_SEL_1", "value": 1},
+    {"name": "SQ_SEL_RESERVED_0", "value": 2},
+    {"name": "SQ_SEL_RESERVED_1", "value": 3},
+    {"name": "SQ_SEL_X", "value": 4},
+    {"name": "SQ_SEL_Y", "value": 5},
+    {"name": "SQ_SEL_Z", "value": 6},
+    {"name": "SQ_SEL_W", "value": 7}
+   ]
+  },
+  "SQ_TEX_BORDER_COLOR": {
+   "entries": [
+    {"name": "SQ_TEX_BORDER_COLOR_TRANS_BLACK", "value": 0},
+    {"name": "SQ_TEX_BORDER_COLOR_OPAQUE_BLACK", "value": 1},
+    {"name": "SQ_TEX_BORDER_COLOR_OPAQUE_WHITE", "value": 2},
+    {"name": "SQ_TEX_BORDER_COLOR_REGISTER", "value": 3}
+   ]
+  },
+  "SQ_TEX_CLAMP": {
+   "entries": [
+    {"name": "SQ_TEX_WRAP", "value": 0},
+    {"name": "SQ_TEX_MIRROR", "value": 1},
+    {"name": "SQ_TEX_CLAMP_LAST_TEXEL", "value": 2},
+    {"name": "SQ_TEX_MIRROR_ONCE_LAST_TEXEL", "value": 3},
+    {"name": "SQ_TEX_CLAMP_HALF_BORDER", "value": 4},
+    {"name": "SQ_TEX_MIRROR_ONCE_HALF_BORDER", "value": 5},
+    {"name": "SQ_TEX_CLAMP_BORDER", "value": 6},
+    {"name": "SQ_TEX_MIRROR_ONCE_BORDER", "value": 7}
+   ]
+  },
+  "SQ_TEX_DEPTH_COMPARE": {
+   "entries": [
+    {"name": "SQ_TEX_DEPTH_COMPARE_NEVER", "value": 0},
+    {"name": "SQ_TEX_DEPTH_COMPARE_LESS", "value": 1},
+    {"name": "SQ_TEX_DEPTH_COMPARE_EQUAL", "value": 2},
+    {"name": "SQ_TEX_DEPTH_COMPARE_LESSEQUAL", "value": 3},
+    {"name": "SQ_TEX_DEPTH_COMPARE_GREATER", "value": 4},
+    {"name": "SQ_TEX_DEPTH_COMPARE_NOTEQUAL", "value": 5},
+    {"name": "SQ_TEX_DEPTH_COMPARE_GREATEREQUAL", "value": 6},
+    {"name": "SQ_TEX_DEPTH_COMPARE_ALWAYS", "value": 7}
+   ]
+  },
+  "SQ_TEX_MIP_FILTER": {
+   "entries": [
+    {"name": "SQ_TEX_MIP_FILTER_NONE", "value": 0},
+    {"name": "SQ_TEX_MIP_FILTER_POINT", "value": 1},
+    {"name": "SQ_TEX_MIP_FILTER_LINEAR", "value": 2},
+    {"name": "SQ_TEX_MIP_FILTER_POINT_ANISO_ADJ", "value": 3}
+   ]
+  },
+  "SQ_TEX_XY_FILTER": {
+   "entries": [
+    {"name": "SQ_TEX_XY_FILTER_POINT", "value": 0},
+    {"name": "SQ_TEX_XY_FILTER_BILINEAR", "value": 1},
+    {"name": "SQ_TEX_XY_FILTER_ANISO_POINT", "value": 2},
+    {"name": "SQ_TEX_XY_FILTER_ANISO_BILINEAR", "value": 3}
+   ]
+  },
+  "SQ_TEX_Z_FILTER": {
+   "entries": [
+    {"name": "SQ_TEX_Z_FILTER_NONE", "value": 0},
+    {"name": "SQ_TEX_Z_FILTER_POINT", "value": 1},
+    {"name": "SQ_TEX_Z_FILTER_LINEAR", "value": 2}
+   ]
+  },
+  "TileSplit": {
+   "entries": [
+    {"name": "ADDR_SURF_TILE_SPLIT_64B", "value": 0},
+    {"name": "ADDR_SURF_TILE_SPLIT_128B", "value": 1},
+    {"name": "ADDR_SURF_TILE_SPLIT_256B", "value": 2},
+    {"name": "ADDR_SURF_TILE_SPLIT_512B", "value": 3},
+    {"name": "ADDR_SURF_TILE_SPLIT_1KB", "value": 4},
+    {"name": "ADDR_SURF_TILE_SPLIT_2KB", "value": 5},
+    {"name": "ADDR_SURF_TILE_SPLIT_4KB", "value": 6}
+   ]
+  }
+ },
+ "register_mappings": [
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 40, "to": "mm"},
+   "name": "SQ_WAVE_VALID_AND_IDLE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 68, "to": "mm"},
+   "name": "SQ_WAVE_MODE",
+   "type_ref": "SQ_WAVE_MODE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 72, "to": "mm"},
+   "name": "SQ_WAVE_STATUS",
+   "type_ref": "SQ_WAVE_STATUS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 76, "to": "mm"},
+   "name": "SQ_WAVE_TRAPSTS",
+   "type_ref": "SQ_WAVE_TRAPSTS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 80, "to": "mm"},
+   "name": "SQ_WAVE_HW_ID",
+   "type_ref": "SQ_WAVE_HW_ID"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 84, "to": "mm"},
+   "name": "SQ_WAVE_GPR_ALLOC",
+   "type_ref": "SQ_WAVE_GPR_ALLOC"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 88, "to": "mm"},
+   "name": "SQ_WAVE_LDS_ALLOC",
+   "type_ref": "SQ_WAVE_LDS_ALLOC"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 92, "to": "mm"},
+   "name": "SQ_WAVE_IB_STS",
+   "type_ref": "SQ_WAVE_IB_STS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 96, "to": "mm"},
+   "name": "SQ_WAVE_PC_LO"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 100, "to": "mm"},
+   "name": "SQ_WAVE_PC_HI",
+   "type_ref": "SQ_WAVE_PC_HI"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 104, "to": "mm"},
+   "name": "SQ_WAVE_INST_DW0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 108, "to": "mm"},
+   "name": "SQ_WAVE_INST_DW1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 112, "to": "mm"},
+   "name": "SQ_WAVE_IB_DBG0",
+   "type_ref": "SQ_WAVE_IB_DBG0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 116, "to": "mm"},
+   "name": "SQ_WAVE_IB_DBG1",
+   "type_ref": "SQ_WAVE_IB_DBG1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 120, "to": "mm"},
+   "name": "SQ_WAVE_FLUSH_IB"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2480, "to": "mm"},
+   "name": "SQ_WAVE_TTMP0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2484, "to": "mm"},
+   "name": "SQ_WAVE_TTMP1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2488, "to": "mm"},
+   "name": "SQ_WAVE_TTMP2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2492, "to": "mm"},
+   "name": "SQ_WAVE_TTMP3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2496, "to": "mm"},
+   "name": "SQ_WAVE_TTMP4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2500, "to": "mm"},
+   "name": "SQ_WAVE_TTMP5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2504, "to": "mm"},
+   "name": "SQ_WAVE_TTMP6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2508, "to": "mm"},
+   "name": "SQ_WAVE_TTMP7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2512, "to": "mm"},
+   "name": "SQ_WAVE_TTMP8"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2516, "to": "mm"},
+   "name": "SQ_WAVE_TTMP9"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2520, "to": "mm"},
+   "name": "SQ_WAVE_TTMP10"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2524, "to": "mm"},
+   "name": "SQ_WAVE_TTMP11"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2528, "to": "mm"},
+   "name": "SQ_WAVE_TTMP12"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2532, "to": "mm"},
+   "name": "SQ_WAVE_TTMP13"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2536, "to": "mm"},
+   "name": "SQ_WAVE_TTMP14"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2540, "to": "mm"},
+   "name": "SQ_WAVE_TTMP15"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2544, "to": "mm"},
+   "name": "SQ_WAVE_M0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2552, "to": "mm"},
+   "name": "SQ_WAVE_EXEC_LO"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 2556, "to": "mm"},
+   "name": "SQ_WAVE_EXEC_HI"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 32776, "to": "mm"},
+   "name": "GRBM_STATUS2",
+   "type_ref": "GRBM_STATUS2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 32784, "to": "mm"},
+   "name": "GRBM_STATUS",
+   "type_ref": "GRBM_STATUS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 32788, "to": "mm"},
+   "name": "GRBM_STATUS_SE0",
+   "type_ref": "GRBM_STATUS_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 32792, "to": "mm"},
+   "name": "GRBM_STATUS_SE1",
+   "type_ref": "GRBM_STATUS_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 32824, "to": "mm"},
+   "name": "GRBM_STATUS_SE2",
+   "type_ref": "GRBM_STATUS_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 32828, "to": "mm"},
+   "name": "GRBM_STATUS_SE3",
+   "type_ref": "GRBM_STATUS_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33280, "to": "mm"},
+   "name": "CP_CPC_DEBUG_CNTL",
+   "type_ref": "CP_CPC_DEBUG_CNTL"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33288, "to": "mm"},
+   "name": "CP_CPF_DEBUG_CNTL",
+   "type_ref": "CP_CPF_DEBUG_CNTL"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33296, "to": "mm"},
+   "name": "CP_CPC_STATUS",
+   "type_ref": "CP_CPC_STATUS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33300, "to": "mm"},
+   "name": "CP_CPC_BUSY_STAT",
+   "type_ref": "CP_CPC_BUSY_STAT"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33304, "to": "mm"},
+   "name": "CP_CPC_STALLED_STAT1",
+   "type_ref": "CP_CPC_STALLED_STAT1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33308, "to": "mm"},
+   "name": "CP_CPF_STATUS",
+   "type_ref": "CP_CPF_STATUS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33312, "to": "mm"},
+   "name": "CP_CPF_BUSY_STAT",
+   "type_ref": "CP_CPF_BUSY_STAT"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33316, "to": "mm"},
+   "name": "CP_CPF_STALLED_STAT1",
+   "type_ref": "CP_CPF_STALLED_STAT1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33324, "to": "mm"},
+   "name": "CP_CPC_GRBM_FREE_COUNT",
+   "type_ref": "CP_CPC_GRBM_FREE_COUNT"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33328, "to": "mm"},
+   "name": "CP_CPC_PRIV_VIOLATION_ADDR",
+   "type_ref": "CP_CPC_PRIV_VIOLATION_ADDR"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33344, "to": "mm"},
+   "name": "CP_CPC_SCRATCH_INDEX",
+   "type_ref": "CP_CPC_SCRATCH_INDEX"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33348, "to": "mm"},
+   "name": "CP_CPC_SCRATCH_DATA"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33352, "to": "mm"},
+   "name": "CP_CPF_GRBM_FREE_COUNT",
+   "type_ref": "CP_CPF_GRBM_FREE_COUNT"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 33436, "to": "mm"},
+   "name": "CP_CPC_HALT_HYST_COUNT",
+   "type_ref": "CP_CPC_HALT_HYST_COUNT"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36032, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_BASE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36036, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_SIZE",
+   "type_ref": "SQ_THREAD_TRACE_SIZE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36040, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_MASK",
+   "type_ref": "SQ_THREAD_TRACE_MASK"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36044, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_TOKEN_MASK",
+   "type_ref": "SQ_THREAD_TRACE_TOKEN_MASK"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36048, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_PERF_MASK",
+   "type_ref": "SQ_THREAD_TRACE_PERF_MASK"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36052, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_CTRL",
+   "type_ref": "SQ_THREAD_TRACE_CTRL"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36056, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_MODE",
+   "type_ref": "SQ_THREAD_TRACE_MODE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36060, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_BASE2",
+   "type_ref": "SQ_THREAD_TRACE_BASE2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36064, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_TOKEN_MASK2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36068, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_WPTR",
+   "type_ref": "SQ_THREAD_TRACE_WPTR"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36072, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_STATUS",
+   "type_ref": "SQ_THREAD_TRACE_STATUS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36076, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_HIWATER",
+   "type_ref": "SQ_THREAD_TRACE_HIWATER"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36080, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_CNTR"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36096, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_USERDATA_0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36100, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_USERDATA_1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36104, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_USERDATA_2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36108, "to": "mm"},
+   "name": "SQ_THREAD_TRACE_USERDATA_3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36608, "to": "mm"},
+   "name": "SQ_BUF_RSRC_WORD0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36612, "to": "mm"},
+   "name": "SQ_BUF_RSRC_WORD1",
+   "type_ref": "SQ_BUF_RSRC_WORD1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36616, "to": "mm"},
+   "name": "SQ_BUF_RSRC_WORD2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36620, "to": "mm"},
+   "name": "SQ_BUF_RSRC_WORD3",
+   "type_ref": "SQ_BUF_RSRC_WORD3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36624, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36628, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD1",
+   "type_ref": "SQ_IMG_RSRC_WORD1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36632, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD2",
+   "type_ref": "SQ_IMG_RSRC_WORD2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36636, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD3",
+   "type_ref": "SQ_IMG_RSRC_WORD3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36640, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD4",
+   "type_ref": "SQ_IMG_RSRC_WORD4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36644, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD5",
+   "type_ref": "SQ_IMG_RSRC_WORD5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36648, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD6",
+   "type_ref": "SQ_IMG_RSRC_WORD6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36652, "to": "mm"},
+   "name": "SQ_IMG_RSRC_WORD7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36656, "to": "mm"},
+   "name": "SQ_IMG_SAMP_WORD0",
+   "type_ref": "SQ_IMG_SAMP_WORD0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36660, "to": "mm"},
+   "name": "SQ_IMG_SAMP_WORD1",
+   "type_ref": "SQ_IMG_SAMP_WORD1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36664, "to": "mm"},
+   "name": "SQ_IMG_SAMP_WORD2",
+   "type_ref": "SQ_IMG_SAMP_WORD2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 36668, "to": "mm"},
+   "name": "SQ_IMG_SAMP_WORD3",
+   "type_ref": "SQ_IMG_SAMP_WORD3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 37120, "to": "mm"},
+   "name": "SPI_CONFIG_CNTL",
+   "type_ref": "SPI_CONFIG_CNTL"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39160, "to": "mm"},
+   "name": "GB_ADDR_CONFIG",
+   "type_ref": "GB_ADDR_CONFIG"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39184, "to": "mm"},
+   "name": "GB_TILE_MODE0",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39188, "to": "mm"},
+   "name": "GB_TILE_MODE1",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39192, "to": "mm"},
+   "name": "GB_TILE_MODE2",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39196, "to": "mm"},
+   "name": "GB_TILE_MODE3",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39200, "to": "mm"},
+   "name": "GB_TILE_MODE4",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39204, "to": "mm"},
+   "name": "GB_TILE_MODE5",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39208, "to": "mm"},
+   "name": "GB_TILE_MODE6",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39212, "to": "mm"},
+   "name": "GB_TILE_MODE7",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39216, "to": "mm"},
+   "name": "GB_TILE_MODE8",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39220, "to": "mm"},
+   "name": "GB_TILE_MODE9",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39224, "to": "mm"},
+   "name": "GB_TILE_MODE10",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39228, "to": "mm"},
+   "name": "GB_TILE_MODE11",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39232, "to": "mm"},
+   "name": "GB_TILE_MODE12",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39236, "to": "mm"},
+   "name": "GB_TILE_MODE13",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39240, "to": "mm"},
+   "name": "GB_TILE_MODE14",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39244, "to": "mm"},
+   "name": "GB_TILE_MODE15",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39248, "to": "mm"},
+   "name": "GB_TILE_MODE16",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39252, "to": "mm"},
+   "name": "GB_TILE_MODE17",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39256, "to": "mm"},
+   "name": "GB_TILE_MODE18",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39260, "to": "mm"},
+   "name": "GB_TILE_MODE19",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39264, "to": "mm"},
+   "name": "GB_TILE_MODE20",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39268, "to": "mm"},
+   "name": "GB_TILE_MODE21",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39272, "to": "mm"},
+   "name": "GB_TILE_MODE22",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39276, "to": "mm"},
+   "name": "GB_TILE_MODE23",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39280, "to": "mm"},
+   "name": "GB_TILE_MODE24",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39284, "to": "mm"},
+   "name": "GB_TILE_MODE25",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39288, "to": "mm"},
+   "name": "GB_TILE_MODE26",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39292, "to": "mm"},
+   "name": "GB_TILE_MODE27",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39296, "to": "mm"},
+   "name": "GB_TILE_MODE28",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39300, "to": "mm"},
+   "name": "GB_TILE_MODE29",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39304, "to": "mm"},
+   "name": "GB_TILE_MODE30",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39308, "to": "mm"},
+   "name": "GB_TILE_MODE31",
+   "type_ref": "GB_TILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39312, "to": "mm"},
+   "name": "GB_MACROTILE_MODE0",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39316, "to": "mm"},
+   "name": "GB_MACROTILE_MODE1",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39320, "to": "mm"},
+   "name": "GB_MACROTILE_MODE2",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39324, "to": "mm"},
+   "name": "GB_MACROTILE_MODE3",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39328, "to": "mm"},
+   "name": "GB_MACROTILE_MODE4",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39332, "to": "mm"},
+   "name": "GB_MACROTILE_MODE5",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39336, "to": "mm"},
+   "name": "GB_MACROTILE_MODE6",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39340, "to": "mm"},
+   "name": "GB_MACROTILE_MODE7",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39344, "to": "mm"},
+   "name": "GB_MACROTILE_MODE8",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39348, "to": "mm"},
+   "name": "GB_MACROTILE_MODE9",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39352, "to": "mm"},
+   "name": "GB_MACROTILE_MODE10",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39356, "to": "mm"},
+   "name": "GB_MACROTILE_MODE11",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39360, "to": "mm"},
+   "name": "GB_MACROTILE_MODE12",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39364, "to": "mm"},
+   "name": "GB_MACROTILE_MODE13",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39368, "to": "mm"},
+   "name": "GB_MACROTILE_MODE14",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 39372, "to": "mm"},
+   "name": "GB_MACROTILE_MODE15",
+   "type_ref": "GB_MACROTILE_MODE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45084, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC3_PS",
+   "type_ref": "SPI_SHADER_PGM_RSRC3_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45088, "to": "mm"},
+   "name": "SPI_SHADER_PGM_LO_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45092, "to": "mm"},
+   "name": "SPI_SHADER_PGM_HI_PS",
+   "type_ref": "SPI_SHADER_PGM_HI_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45096, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC1_PS",
+   "type_ref": "SPI_SHADER_PGM_RSRC1_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45100, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC2_PS",
+   "type_ref": "SPI_SHADER_PGM_RSRC2_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45104, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45108, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45112, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45116, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45120, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45124, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45128, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45132, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45136, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_8"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45140, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_9"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45144, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_10"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45148, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_11"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45152, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_12"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45156, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_13"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45160, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_14"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45164, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_15"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45168, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_16"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45172, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_17"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45176, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_18"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45180, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_19"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45184, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_20"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45188, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_21"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45192, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_22"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45196, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_23"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45200, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_24"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45204, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_25"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45208, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_26"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45212, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_27"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45216, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_28"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45220, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_29"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45224, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_30"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45228, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_PS_31"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45336, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC3_VS",
+   "type_ref": "SPI_SHADER_PGM_RSRC3_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45340, "to": "mm"},
+   "name": "SPI_SHADER_LATE_ALLOC_VS",
+   "type_ref": "SPI_SHADER_LATE_ALLOC_VS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45344, "to": "mm"},
+   "name": "SPI_SHADER_PGM_LO_VS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45348, "to": "mm"},
+   "name": "SPI_SHADER_PGM_HI_VS",
+   "type_ref": "SPI_SHADER_PGM_HI_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45352, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC1_VS",
+   "type_ref": "SPI_SHADER_PGM_RSRC1_VS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45356, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC2_VS",
+   "type_ref": "SPI_SHADER_PGM_RSRC2_VS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45360, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45364, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45368, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45372, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45376, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45380, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45384, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45388, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45392, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_8"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45396, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_9"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45400, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_10"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45404, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_11"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45408, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_12"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45412, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_13"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45416, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_14"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45420, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_15"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45424, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_16"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45428, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_17"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45432, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_18"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45436, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_19"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45440, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_20"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45444, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_21"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45448, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_22"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45452, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_23"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45456, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_24"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45460, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_25"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45464, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_26"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45468, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_27"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45472, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_28"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45476, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_29"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45480, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_30"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45484, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_VS_31"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45552, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC2_GS_VS",
+   "type_ref": "SPI_SHADER_PGM_RSRC2_GS_VS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45572, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC4_GS",
+   "type_ref": "SPI_SHADER_PGM_RSRC4_GS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45576, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ADDR_LO_GS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45580, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ADDR_HI_GS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45584, "to": "mm"},
+   "name": "SPI_SHADER_PGM_LO_ES"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45588, "to": "mm"},
+   "name": "SPI_SHADER_PGM_HI_ES",
+   "type_ref": "SPI_SHADER_PGM_HI_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45596, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC3_GS",
+   "type_ref": "SPI_SHADER_PGM_RSRC3_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45600, "to": "mm"},
+   "name": "SPI_SHADER_PGM_LO_GS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45604, "to": "mm"},
+   "name": "SPI_SHADER_PGM_HI_GS",
+   "type_ref": "SPI_SHADER_PGM_HI_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45608, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC1_GS",
+   "type_ref": "SPI_SHADER_PGM_RSRC1_GS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45612, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC2_GS",
+   "type_ref": "SPI_SHADER_PGM_RSRC2_GS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45872, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45876, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45880, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45884, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45888, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45892, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45896, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45900, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45904, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_8"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45908, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_9"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45912, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_10"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45916, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_11"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45920, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_12"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45924, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_13"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45928, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_14"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45932, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_15"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45936, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_16"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45940, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_17"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45944, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_18"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45948, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_19"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45952, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_20"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45956, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_21"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45960, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_22"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45964, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_23"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45968, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_24"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45972, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_25"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45976, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_26"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45980, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_27"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45984, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_28"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45988, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_29"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45992, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_30"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 45996, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ES_31"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46084, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC4_HS",
+   "type_ref": "SPI_SHADER_PGM_RSRC4_HS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46088, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ADDR_LO_HS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46092, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_ADDR_HI_HS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46096, "to": "mm"},
+   "name": "SPI_SHADER_PGM_LO_LS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46100, "to": "mm"},
+   "name": "SPI_SHADER_PGM_HI_LS",
+   "type_ref": "SPI_SHADER_PGM_HI_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46108, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC3_HS",
+   "type_ref": "SPI_SHADER_PGM_RSRC3_HS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46112, "to": "mm"},
+   "name": "SPI_SHADER_PGM_LO_HS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46116, "to": "mm"},
+   "name": "SPI_SHADER_PGM_HI_HS",
+   "type_ref": "SPI_SHADER_PGM_HI_PS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46120, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC1_HS",
+   "type_ref": "SPI_SHADER_PGM_RSRC1_HS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46124, "to": "mm"},
+   "name": "SPI_SHADER_PGM_RSRC2_HS",
+   "type_ref": "SPI_SHADER_PGM_RSRC2_HS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46128, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46132, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46136, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46140, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46144, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46148, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46152, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46156, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46160, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_8"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46164, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_9"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46168, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_10"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46172, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_11"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46176, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_12"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46180, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_13"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46184, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_14"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46188, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_15"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46192, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_16"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46196, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_17"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46200, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_18"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46204, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_19"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46208, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_20"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46212, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_21"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46216, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_22"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46220, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_23"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46224, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_24"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46228, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_25"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46232, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_26"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46236, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_27"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46240, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_28"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46244, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_29"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46248, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_30"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46252, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_LS_31"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46384, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46388, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46392, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46396, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46400, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46404, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46408, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46412, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46416, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_8"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46420, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_9"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46424, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_10"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46428, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_11"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46432, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_12"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46436, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_13"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46440, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_14"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46444, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_15"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46448, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_16"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46452, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_17"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46456, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_18"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46460, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_19"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46464, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_20"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46468, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_21"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46472, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_22"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46476, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_23"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46480, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_24"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46484, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_25"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46488, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_26"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46492, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_27"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46496, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_28"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46500, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_29"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46504, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_30"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 46508, "to": "mm"},
+   "name": "SPI_SHADER_USER_DATA_COMMON_31"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47104, "to": "mm"},
+   "name": "COMPUTE_DISPATCH_INITIATOR",
+   "type_ref": "COMPUTE_DISPATCH_INITIATOR"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47108, "to": "mm"},
+   "name": "COMPUTE_DIM_X"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47112, "to": "mm"},
+   "name": "COMPUTE_DIM_Y"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47116, "to": "mm"},
+   "name": "COMPUTE_DIM_Z"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47120, "to": "mm"},
+   "name": "COMPUTE_START_X"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47124, "to": "mm"},
+   "name": "COMPUTE_START_Y"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47128, "to": "mm"},
+   "name": "COMPUTE_START_Z"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47132, "to": "mm"},
+   "name": "COMPUTE_NUM_THREAD_X",
+   "type_ref": "COMPUTE_NUM_THREAD_X"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47136, "to": "mm"},
+   "name": "COMPUTE_NUM_THREAD_Y",
+   "type_ref": "COMPUTE_NUM_THREAD_X"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47140, "to": "mm"},
+   "name": "COMPUTE_NUM_THREAD_Z",
+   "type_ref": "COMPUTE_NUM_THREAD_X"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47144, "to": "mm"},
+   "name": "COMPUTE_PIPELINESTAT_ENABLE",
+   "type_ref": "COMPUTE_PIPELINESTAT_ENABLE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47148, "to": "mm"},
+   "name": "COMPUTE_PERFCOUNT_ENABLE",
+   "type_ref": "COMPUTE_PERFCOUNT_ENABLE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47152, "to": "mm"},
+   "name": "COMPUTE_PGM_LO"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47156, "to": "mm"},
+   "name": "COMPUTE_PGM_HI",
+   "type_ref": "COMPUTE_PGM_HI"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47160, "to": "mm"},
+   "name": "COMPUTE_DISPATCH_PKT_ADDR_LO"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47164, "to": "mm"},
+   "name": "COMPUTE_DISPATCH_PKT_ADDR_HI",
+   "type_ref": "COMPUTE_PGM_HI"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47168, "to": "mm"},
+   "name": "COMPUTE_DISPATCH_SCRATCH_BASE_LO"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47172, "to": "mm"},
+   "name": "COMPUTE_DISPATCH_SCRATCH_BASE_HI",
+   "type_ref": "COMPUTE_PGM_HI"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47176, "to": "mm"},
+   "name": "COMPUTE_PGM_RSRC1",
+   "type_ref": "COMPUTE_PGM_RSRC1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47180, "to": "mm"},
+   "name": "COMPUTE_PGM_RSRC2",
+   "type_ref": "COMPUTE_PGM_RSRC2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47184, "to": "mm"},
+   "name": "COMPUTE_VMID",
+   "type_ref": "COMPUTE_VMID"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47188, "to": "mm"},
+   "name": "COMPUTE_RESOURCE_LIMITS",
+   "type_ref": "COMPUTE_RESOURCE_LIMITS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47192, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE0",
+   "type_ref": "COMPUTE_STATIC_THREAD_MGMT_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47196, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE1",
+   "type_ref": "COMPUTE_STATIC_THREAD_MGMT_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47200, "to": "mm"},
+   "name": "COMPUTE_TMPRING_SIZE",
+   "type_ref": "COMPUTE_TMPRING_SIZE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47204, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE2",
+   "type_ref": "COMPUTE_STATIC_THREAD_MGMT_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47208, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE3",
+   "type_ref": "COMPUTE_STATIC_THREAD_MGMT_SE0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47212, "to": "mm"},
+   "name": "COMPUTE_RESTART_X"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47216, "to": "mm"},
+   "name": "COMPUTE_RESTART_Y"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47220, "to": "mm"},
+   "name": "COMPUTE_RESTART_Z"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47224, "to": "mm"},
+   "name": "COMPUTE_THREAD_TRACE_ENABLE",
+   "type_ref": "COMPUTE_THREAD_TRACE_ENABLE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47228, "to": "mm"},
+   "name": "COMPUTE_MISC_RESERVED",
+   "type_ref": "COMPUTE_MISC_RESERVED"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47232, "to": "mm"},
+   "name": "COMPUTE_DISPATCH_ID"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47236, "to": "mm"},
+   "name": "COMPUTE_THREADGROUP_ID"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47240, "to": "mm"},
+   "name": "COMPUTE_RELAUNCH",
+   "type_ref": "COMPUTE_RELAUNCH"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47244, "to": "mm"},
+   "name": "COMPUTE_WAVE_RESTORE_ADDR_LO"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47248, "to": "mm"},
+   "name": "COMPUTE_WAVE_RESTORE_ADDR_HI",
+   "type_ref": "COMPUTE_WAVE_RESTORE_ADDR_HI"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47260, "to": "mm"},
+   "name": "COMPUTE_TG_CHUNK_SIZE",
+   "type_ref": "COMPUTE_TG_CHUNK_SIZE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47280, "to": "mm"},
+   "name": "COMPUTE_SHADER_CHKSUM"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47284, "to": "mm"},
+   "name": "COMPUTE_PGM_RSRC3",
+   "type_ref": "COMPUTE_PGM_RSRC3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47360, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_0"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47364, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_1"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47368, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_2"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47372, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_3"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47376, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_4"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47380, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_5"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47384, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_6"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47388, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_7"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47392, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_8"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47396, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_9"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47400, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_10"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47404, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_11"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47408, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_12"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47412, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_13"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47416, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_14"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47420, "to": "mm"},
+   "name": "COMPUTE_USER_DATA_15"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47608, "to": "mm"},
+   "name": "COMPUTE_DISPATCH_END"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 47612, "to": "mm"},
+   "name": "COMPUTE_NOWHERE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 197092, "to": "mm"},
+   "name": "CP_COHER_BASE_HI",
+   "type_ref": "CP_COHER_BASE_HI"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 197100, "to": "mm"},
+   "name": "CP_COHER_START_DELAY",
+   "type_ref": "CP_COHER_START_DELAY"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 197104, "to": "mm"},
+   "name": "CP_COHER_CNTL",
+   "type_ref": "CP_COHER_CNTL"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 197108, "to": "mm"},
+   "name": "CP_COHER_SIZE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 197112, "to": "mm"},
+   "name": "CP_COHER_BASE"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 197116, "to": "mm"},
+   "name": "CP_COHER_STATUS",
+   "type_ref": "CP_COHER_STATUS"
+  },
+  {
+   "chips": ["gfx940"],
+   "map": {"at": 197168, "to": "mm"},
+   "name": "CP_COHER_SIZE_HI",
+   "type_ref": "CP_COHER_SIZE_HI"
+  }
+ ],
+ "register_types": {
+  "COMPUTE_DISPATCH_INITIATOR": {
+   "fields": [
+    {"bits": [0, 0], "name": "COMPUTE_SHADER_EN"},
+    {"bits": [1, 1], "name": "PARTIAL_TG_EN"},
+    {"bits": [2, 2], "name": "FORCE_START_AT_000"},
+    {"bits": [3, 3], "name": "ORDERED_APPEND_ENBL"},
+    {"bits": [4, 4], "name": "ORDERED_APPEND_MODE"},
+    {"bits": [5, 5], "name": "USE_THREAD_DIMENSIONS"},
+    {"bits": [6, 6], "name": "ORDER_MODE"},
+    {"bits": [10, 10], "name": "SCALAR_L1_INV_VOL"},
+    {"bits": [11, 11], "name": "VECTOR_L1_INV_VOL"},
+    {"bits": [12, 12], "name": "RESERVED"},
+    {"bits": [14, 14], "name": "RESTORE"}
+   ]
+  },
+  "COMPUTE_MISC_RESERVED": {
+   "fields": [
+    {"bits": [0, 1], "name": "SEND_SEID"},
+    {"bits": [5, 16], "name": "WAVE_ID_BASE"}
+   ]
+  },
+  "COMPUTE_NUM_THREAD_X": {
+   "fields": [
+    {"bits": [0, 15], "name": "NUM_THREAD_FULL"},
+    {"bits": [16, 31], "name": "NUM_THREAD_PARTIAL"}
+   ]
+  },
+  "COMPUTE_PERFCOUNT_ENABLE": {
+   "fields": [
+    {"bits": [0, 0], "name": "PERFCOUNT_ENABLE"}
+   ]
+  },
+  "COMPUTE_PGM_HI": {
+   "fields": [
+    {"bits": [0, 7], "name": "DATA"}
+   ]
+  },
+  "COMPUTE_PGM_RSRC1": {
+   "fields": [
+    {"bits": [0, 5], "name": "VGPRS"},
+    {"bits": [6, 9], "name": "SGPRS"},
+    {"bits": [10, 11], "name": "PRIORITY"},
+    {"bits": [12, 19], "enum_ref": "FLOAT_MODE", "name": "FLOAT_MODE"},
+    {"bits": [20, 20], "name": "PRIV"},
+    {"bits": [21, 21], "name": "DX10_CLAMP"},
+    {"bits": [22, 22], "name": "DEBUG_MODE"},
+    {"bits": [23, 23], "name": "IEEE_MODE"},
+    {"bits": [24, 24], "name": "BULKY"},
+    {"bits": [25, 25], "name": "CDBG_USER"},
+    {"bits": [26, 26], "name": "FP16_OVFL"}
+   ]
+  },
+  "COMPUTE_PGM_RSRC2": {
+   "fields": [
+    {"bits": [0, 0], "name": "SCRATCH_EN"},
+    {"bits": [1, 5], "name": "USER_SGPR"},
+    {"bits": [6, 6], "name": "TRAP_PRESENT"},
+    {"bits": [7, 7], "name": "TGID_X_EN"},
+    {"bits": [8, 8], "name": "TGID_Y_EN"},
+    {"bits": [9, 9], "name": "TGID_Z_EN"},
+    {"bits": [10, 10], "name": "TG_SIZE_EN"},
+    {"bits": [11, 12], "name": "TIDIG_COMP_CNT"},
+    {"bits": [13, 14], "name": "EXCP_EN_MSB"},
+    {"bits": [15, 23], "name": "LDS_SIZE"},
+    {"bits": [24, 30], "enum_ref": "EXCP_EN", "name": "EXCP_EN"},
+    {"bits": [31, 31], "name": "SKIP_USGPR0"}
+   ]
+  },
+  "COMPUTE_PGM_RSRC3": {
+   "fields": [
+    {"bits": [0, 5], "name": "ACCUM_OFFSET"},
+    {"bits": [10, 10], "name": "TRAP_ON_START"},
+    {"bits": [11, 11], "name": "TRAP_ON_END"},
+    {"bits": [16, 16], "name": "TG_SPLIT"}
+   ]
+  },
+  "COMPUTE_PIPELINESTAT_ENABLE": {
+   "fields": [
+    {"bits": [0, 0], "name": "PIPELINESTAT_ENABLE"}
+   ]
+  },
+  "COMPUTE_RELAUNCH": {
+   "fields": [
+    {"bits": [0, 29], "name": "PAYLOAD"},
+    {"bits": [30, 30], "name": "IS_EVENT"},
+    {"bits": [31, 31], "name": "IS_STATE"}
+   ]
+  },
+  "COMPUTE_RESOURCE_LIMITS": {
+   "fields": [
+    {"bits": [0, 9], "name": "WAVES_PER_SH"},
+    {"bits": [12, 15], "name": "TG_PER_CU"},
+    {"bits": [16, 21], "name": "LOCK_THRESHOLD"},
+    {"bits": [22, 22], "name": "SIMD_DEST_CNTL"},
+    {"bits": [23, 23], "name": "FORCE_SIMD_DIST"},
+    {"bits": [24, 26], "name": "CU_GROUP_COUNT"},
+    {"bits": [27, 30], "name": "SIMD_DISABLE"}
+   ]
+  },
+  "COMPUTE_STATIC_THREAD_MGMT_SE0": {
+   "fields": [
+    {"bits": [0, 15], "name": "SH0_CU_EN"},
+    {"bits": [16, 31], "name": "SH1_CU_EN"}
+   ]
+  },
+  "COMPUTE_TG_CHUNK_SIZE": {
+   "fields": [
+    {"bits": [0, 15], "name": "TG_CHUNK_SIZE"}
+   ]
+  },
+  "COMPUTE_THREAD_TRACE_ENABLE": {
+   "fields": [
+    {"bits": [0, 0], "name": "THREAD_TRACE_ENABLE"}
+   ]
+  },
+  "COMPUTE_TMPRING_SIZE": {
+   "fields": [
+    {"bits": [0, 11], "name": "WAVES"},
+    {"bits": [12, 24], "name": "WAVESIZE"}
+   ]
+  },
+  "COMPUTE_VMID": {
+   "fields": [
+    {"bits": [0, 3], "name": "DATA"}
+   ]
+  },
+  "COMPUTE_WAVE_RESTORE_ADDR_HI": {
+   "fields": [
+    {"bits": [0, 15], "name": "ADDR"}
+   ]
+  },
+  "CP_COHER_BASE_HI": {
+   "fields": [
+    {"bits": [0, 7], "name": "COHER_BASE_HI_256B"}
+   ]
+  },
+  "CP_COHER_CNTL": {
+   "fields": [
+    {"bits": [3, 3], "name": "TC_NC_ACTION_ENA"},
+    {"bits": [4, 4], "name": "TC_WC_ACTION_ENA"},
+    {"bits": [5, 5], "name": "TC_INV_METADATA_ACTION_ENA"},
+    {"bits": [15, 15], "name": "TCL1_VOL_ACTION_ENA"},
+    {"bits": [18, 18], "name": "TC_WB_ACTION_ENA"},
+    {"bits": [22, 22], "name": "TCL1_ACTION_ENA"},
+    {"bits": [23, 23], "name": "TC_ACTION_ENA"},
+    {"bits": [25, 25], "name": "CB_ACTION_ENA"},
+    {"bits": [26, 26], "name": "DB_ACTION_ENA"},
+    {"bits": [27, 27], "name": "SH_KCACHE_ACTION_ENA"},
+    {"bits": [28, 28], "name": "SH_KCACHE_VOL_ACTION_ENA"},
+    {"bits": [29, 29], "name": "SH_ICACHE_ACTION_ENA"},
+    {"bits": [30, 30], "name": "SH_KCACHE_WB_ACTION_ENA"}
+   ]
+  },
+  "CP_COHER_SIZE_HI": {
+   "fields": [
+    {"bits": [0, 7], "name": "COHER_SIZE_HI_256B"}
+   ]
+  },
+  "CP_COHER_START_DELAY": {
+   "fields": [
+    {"bits": [0, 5], "name": "START_DELAY_COUNT"}
+   ]
+  },
+  "CP_COHER_STATUS": {
+   "fields": [
+    {"bits": [24, 25], "name": "MEID"},
+    {"bits": [31, 31], "name": "STATUS"}
+   ]
+  },
+  "CP_CPC_BUSY_STAT": {
+   "fields": [
+    {"bits": [0, 0], "name": "MEC1_LOAD_BUSY"},
+    {"bits": [1, 1], "name": "MEC1_SEMAPOHRE_BUSY"},
+    {"bits": [2, 2], "name": "MEC1_MUTEX_BUSY"},
+    {"bits": [3, 3], "name": "MEC1_MESSAGE_BUSY"},
+    {"bits": [4, 4], "name": "MEC1_EOP_QUEUE_BUSY"},
+    {"bits": [5, 5], "name": "MEC1_IQ_QUEUE_BUSY"},
+    {"bits": [6, 6], "name": "MEC1_IB_QUEUE_BUSY"},
+    {"bits": [7, 7], "name": "MEC1_TC_BUSY"},
+    {"bits": [8, 8], "name": "MEC1_DMA_BUSY"},
+    {"bits": [9, 9], "name": "MEC1_PARTIAL_FLUSH_BUSY"},
+    {"bits": [10, 10], "name": "MEC1_PIPE0_BUSY"},
+    {"bits": [11, 11], "name": "MEC1_PIPE1_BUSY"},
+    {"bits": [12, 12], "name": "MEC1_PIPE2_BUSY"},
+    {"bits": [13, 13], "name": "MEC1_PIPE3_BUSY"},
+    {"bits": [16, 16], "name": "MEC2_LOAD_BUSY"},
+    {"bits": [17, 17], "name": "MEC2_SEMAPOHRE_BUSY"},
+    {"bits": [18, 18], "name": "MEC2_MUTEX_BUSY"},
+    {"bits": [19, 19], "name": "MEC2_MESSAGE_BUSY"},
+    {"bits": [20, 20], "name": "MEC2_EOP_QUEUE_BUSY"},
+    {"bits": [21, 21], "name": "MEC2_IQ_QUEUE_BUSY"},
+    {"bits": [22, 22], "name": "MEC2_IB_QUEUE_BUSY"},
+    {"bits": [23, 23], "name": "MEC2_TC_BUSY"},
+    {"bits": [24, 24], "name": "MEC2_DMA_BUSY"},
+    {"bits": [25, 25], "name": "MEC2_PARTIAL_FLUSH_BUSY"},
+    {"bits": [26, 26], "name": "MEC2_PIPE0_BUSY"},
+    {"bits": [27, 27], "name": "MEC2_PIPE1_BUSY"},
+    {"bits": [28, 28], "name": "MEC2_PIPE2_BUSY"},
+    {"bits": [29, 29], "name": "MEC2_PIPE3_BUSY"}
+   ]
+  },
+  "CP_CPC_DEBUG_CNTL": {
+   "fields": [
+    {"bits": [0, 6], "name": "DEBUG_INDX"},
+    {"bits": [8, 10], "name": "DEBUG_BUS_DC_GD_SEL"},
+    {"bits": [16, 21], "name": "DEBUG_BUS_SELECT_BITS"},
+    {"bits": [31, 31], "name": "DEBUG_BUS_FLOP_EN"}
+   ]
+  },
+  "CP_CPC_GRBM_FREE_COUNT": {
+   "fields": [
+    {"bits": [0, 5], "name": "FREE_COUNT"}
+   ]
+  },
+  "CP_CPC_HALT_HYST_COUNT": {
+   "fields": [
+    {"bits": [0, 3], "name": "COUNT"}
+   ]
+  },
+  "CP_CPC_PRIV_VIOLATION_ADDR": {
+   "fields": [
+    {"bits": [0, 0], "name": "PRIV_VIOLATION_STATUS"},
+    {"bits": [1, 1], "name": "PRIV_VIOLATION_OP"},
+    {"bits": [2, 19], "name": "PRIV_VIOLATION_ADDR"},
+    {"bits": [20, 31], "name": "PRIV_VIOLATION_APERTURE_ID"}
+   ]
+  },
+  "CP_CPC_SCRATCH_INDEX": {
+   "fields": [
+    {"bits": [0, 9], "name": "SCRATCH_INDEX"}
+   ]
+  },
+  "CP_CPC_STALLED_STAT1": {
+   "fields": [
+    {"bits": [3, 3], "name": "RCIU_TX_FREE_STALL"},
+    {"bits": [4, 4], "name": "RCIU_PRIV_VIOLATION"},
+    {"bits": [6, 6], "name": "TCIU_TX_FREE_STALL"},
+    {"bits": [8, 8], "name": "MEC1_DECODING_PACKET"},
+    {"bits": [9, 9], "name": "MEC1_WAIT_ON_RCIU"},
+    {"bits": [10, 10], "name": "MEC1_WAIT_ON_RCIU_READ"},
+    {"bits": [13, 13], "name": "MEC1_WAIT_ON_ROQ_DATA"},
+    {"bits": [16, 16], "name": "MEC2_DECODING_PACKET"},
+    {"bits": [17, 17], "name": "MEC2_WAIT_ON_RCIU"},
+    {"bits": [18, 18], "name": "MEC2_WAIT_ON_RCIU_READ"},
+    {"bits": [21, 21], "name": "MEC2_WAIT_ON_ROQ_DATA"},
+    {"bits": [22, 22], "name": "UTCL2IU_WAITING_ON_FREE"},
+    {"bits": [23, 23], "name": "UTCL2IU_WAITING_ON_TAGS"},
+    {"bits": [24, 24], "name": "UTCL1_WAITING_ON_TRANS"}
+   ]
+  },
+  "CP_CPC_STATUS": {
+   "fields": [
+    {"bits": [0, 0], "name": "MEC1_BUSY"},
+    {"bits": [1, 1], "name": "MEC2_BUSY"},
+    {"bits": [2, 2], "name": "DC0_BUSY"},
+    {"bits": [3, 3], "name": "DC1_BUSY"},
+    {"bits": [4, 4], "name": "RCIU1_BUSY"},
+    {"bits": [5, 5], "name": "RCIU2_BUSY"},
+    {"bits": [6, 6], "name": "ROQ1_BUSY"},
+    {"bits": [7, 7], "name": "ROQ2_BUSY"},
+    {"bits": [10, 10], "name": "TCIU_BUSY"},
+    {"bits": [11, 11], "name": "SCRATCH_RAM_BUSY"},
+    {"bits": [12, 12], "name": "QU_BUSY"},
+    {"bits": [13, 13], "name": "UTCL2IU_BUSY"},
+    {"bits": [14, 14], "name": "SAVE_RESTORE_BUSY"},
+    {"bits": [29, 29], "name": "CPG_CPC_BUSY"},
+    {"bits": [30, 30], "name": "CPF_CPC_BUSY"},
+    {"bits": [31, 31], "name": "CPC_BUSY"}
+   ]
+  },
+  "CP_CPF_BUSY_STAT": {
+   "fields": [
+    {"bits": [0, 0], "name": "REG_BUS_FIFO_BUSY"},
+    {"bits": [1, 1], "name": "CSF_RING_BUSY"},
+    {"bits": [2, 2], "name": "CSF_INDIRECT1_BUSY"},
+    {"bits": [3, 3], "name": "CSF_INDIRECT2_BUSY"},
+    {"bits": [4, 4], "name": "CSF_STATE_BUSY"},
+    {"bits": [5, 5], "name": "CSF_CE_INDR1_BUSY"},
+    {"bits": [6, 6], "name": "CSF_CE_INDR2_BUSY"},
+    {"bits": [7, 7], "name": "CSF_ARBITER_BUSY"},
+    {"bits": [8, 8], "name": "CSF_INPUT_BUSY"},
+    {"bits": [9, 9], "name": "OUTSTANDING_READ_TAGS"},
+    {"bits": [11, 11], "name": "HPD_PROCESSING_EOP_BUSY"},
+    {"bits": [12, 12], "name": "HQD_DISPATCH_BUSY"},
+    {"bits": [13, 13], "name": "HQD_IQ_TIMER_BUSY"},
+    {"bits": [14, 14], "name": "HQD_DMA_OFFLOAD_BUSY"},
+    {"bits": [15, 15], "name": "HQD_WAIT_SEMAPHORE_BUSY"},
+    {"bits": [16, 16], "name": "HQD_SIGNAL_SEMAPHORE_BUSY"},
+    {"bits": [17, 17], "name": "HQD_MESSAGE_BUSY"},
+    {"bits": [18, 18], "name": "HQD_PQ_FETCHER_BUSY"},
+    {"bits": [19, 19], "name": "HQD_IB_FETCHER_BUSY"},
+    {"bits": [20, 20], "name": "HQD_IQ_FETCHER_BUSY"},
+    {"bits": [21, 21], "name": "HQD_EOP_FETCHER_BUSY"},
+    {"bits": [22, 22], "name": "HQD_CONSUMED_RPTR_BUSY"},
+    {"bits": [23, 23], "name": "HQD_FETCHER_ARB_BUSY"},
+    {"bits": [24, 24], "name": "HQD_ROQ_ALIGN_BUSY"},
+    {"bits": [25, 25], "name": "HQD_ROQ_EOP_BUSY"},
+    {"bits": [26, 26], "name": "HQD_ROQ_IQ_BUSY"},
+    {"bits": [27, 27], "name": "HQD_ROQ_PQ_BUSY"},
+    {"bits": [28, 28], "name": "HQD_ROQ_IB_BUSY"},
+    {"bits": [29, 29], "name": "HQD_WPTR_POLL_BUSY"},
+    {"bits": [30, 30], "name": "HQD_PQ_BUSY"},
+    {"bits": [31, 31], "name": "HQD_IB_BUSY"}
+   ]
+  },
+  "CP_CPF_DEBUG_CNTL": {
+   "fields": [
+    {"bits": [0, 6], "name": "DEBUG_INDX"},
+    {"bits": [16, 21], "name": "DEBUG_BUS_SELECT_BITS"},
+    {"bits": [31, 31], "name": "DEBUG_BUS_FLOP_EN"}
+   ]
+  },
+  "CP_CPF_GRBM_FREE_COUNT": {
+   "fields": [
+    {"bits": [0, 2], "name": "FREE_COUNT"}
+   ]
+  },
+  "CP_CPF_STALLED_STAT1": {
+   "fields": [
+    {"bits": [0, 0], "name": "RING_FETCHING_DATA"},
+    {"bits": [1, 1], "name": "INDR1_FETCHING_DATA"},
+    {"bits": [2, 2], "name": "INDR2_FETCHING_DATA"},
+    {"bits": [3, 3], "name": "STATE_FETCHING_DATA"},
+    {"bits": [5, 5], "name": "TCIU_WAITING_ON_FREE"},
+    {"bits": [6, 6], "name": "TCIU_WAITING_ON_TAGS"},
+    {"bits": [7, 7], "name": "UTCL2IU_WAITING_ON_FREE"},
+    {"bits": [8, 8], "name": "UTCL2IU_WAITING_ON_TAGS"},
+    {"bits": [9, 9], "name": "GFX_UTCL1_WAITING_ON_TRANS"},
+    {"bits": [10, 10], "name": "CMP_UTCL1_WAITING_ON_TRANS"},
+    {"bits": [11, 11], "name": "RCIU_WAITING_ON_FREE"}
+   ]
+  },
+  "CP_CPF_STATUS": {
+   "fields": [
+    {"bits": [0, 0], "name": "POST_WPTR_GFX_BUSY"},
+    {"bits": [1, 1], "name": "CSF_BUSY"},
+    {"bits": [4, 4], "name": "ROQ_ALIGN_BUSY"},
+    {"bits": [5, 5], "name": "ROQ_RING_BUSY"},
+    {"bits": [6, 6], "name": "ROQ_INDIRECT1_BUSY"},
+    {"bits": [7, 7], "name": "ROQ_INDIRECT2_BUSY"},
+    {"bits": [8, 8], "name": "ROQ_STATE_BUSY"},
+    {"bits": [9, 9], "name": "ROQ_CE_RING_BUSY"},
+    {"bits": [10, 10], "name": "ROQ_CE_INDIRECT1_BUSY"},
+    {"bits": [11, 11], "name": "ROQ_CE_INDIRECT2_BUSY"},
+    {"bits": [12, 12], "name": "SEMAPHORE_BUSY"},
+    {"bits": [13, 13], "name": "INTERRUPT_BUSY"},
+    {"bits": [14, 14], "name": "TCIU_BUSY"},
+    {"bits": [15, 15], "name": "HQD_BUSY"},
+    {"bits": [16, 16], "name": "PRT_BUSY"},
+    {"bits": [17, 17], "name": "UTCL2IU_BUSY"},
+    {"bits": [26, 26], "name": "CPF_GFX_BUSY"},
+    {"bits": [27, 27], "name": "CPF_CMP_BUSY"},
+    {"bits": [28, 29], "name": "GRBM_CPF_STAT_BUSY"},
+    {"bits": [30, 30], "name": "CPC_CPF_BUSY"},
+    {"bits": [31, 31], "name": "CPF_BUSY"}
+   ]
+  },
+  "GB_ADDR_CONFIG": {
+   "fields": [
+    {"bits": [0, 2], "name": "NUM_PIPES"},
+    {"bits": [3, 5], "name": "PIPE_INTERLEAVE_SIZE"},
+    {"bits": [6, 7], "name": "MAX_COMPRESSED_FRAGS"},
+    {"bits": [8, 10], "name": "BANK_INTERLEAVE_SIZE"},
+    {"bits": [12, 14], "enum_ref": "NumBanks", "name": "NUM_BANKS"},
+    {"bits": [16, 18], "name": "SHADER_ENGINE_TILE_SIZE"},
+    {"bits": [19, 20], "name": "NUM_SHADER_ENGINES"},
+    {"bits": [21, 23], "name": "NUM_GPUS"},
+    {"bits": [24, 25], "name": "MULTI_GPU_TILE_SIZE"},
+    {"bits": [26, 27], "name": "NUM_RB_PER_SE"},
+    {"bits": [28, 29], "name": "ROW_SIZE"},
+    {"bits": [30, 30], "name": "NUM_LOWER_PIPES"},
+    {"bits": [31, 31], "name": "SE_ENABLE"}
+   ]
+  },
+  "GB_MACROTILE_MODE0": {
+   "fields": [
+    {"bits": [0, 1], "enum_ref": "BankWidth", "name": "BANK_WIDTH"},
+    {"bits": [2, 3], "enum_ref": "BankHeight", "name": "BANK_HEIGHT"},
+    {"bits": [4, 5], "enum_ref": "MacroTileAspect", "name": "MACRO_TILE_ASPECT"},
+    {"bits": [6, 7], "enum_ref": "NumBanks", "name": "NUM_BANKS"}
+   ]
+  },
+  "GB_TILE_MODE0": {
+   "fields": [
+    {"bits": [2, 5], "enum_ref": "ArrayMode", "name": "ARRAY_MODE"},
+    {"bits": [6, 10], "enum_ref": "PipeConfig", "name": "PIPE_CONFIG"},
+    {"bits": [11, 13], "enum_ref": "TileSplit", "name": "TILE_SPLIT"},
+    {"bits": [22, 24], "enum_ref": "MicroTileMode", "name": "MICRO_TILE_MODE_NEW"},
+    {"bits": [25, 26], "name": "SAMPLE_SPLIT"}
+   ]
+  },
+  "GRBM_STATUS": {
+   "fields": [
+    {"bits": [0, 3], "name": "ME0PIPE0_CMDFIFO_AVAIL"},
+    {"bits": [5, 5], "name": "RSMU_RQ_PENDING"},
+    {"bits": [7, 7], "name": "ME0PIPE0_CF_RQ_PENDING"},
+    {"bits": [8, 8], "name": "ME0PIPE0_PF_RQ_PENDING"},
+    {"bits": [9, 9], "name": "GDS_DMA_RQ_PENDING"},
+    {"bits": [12, 12], "name": "DB_CLEAN"},
+    {"bits": [13, 13], "name": "CB_CLEAN"},
+    {"bits": [14, 14], "name": "TA_BUSY"},
+    {"bits": [15, 15], "name": "GDS_BUSY"},
+    {"bits": [16, 16], "name": "WD_BUSY_NO_DMA"},
+    {"bits": [17, 17], "name": "VGT_BUSY"},
+    {"bits": [18, 18], "name": "IA_BUSY_NO_DMA"},
+    {"bits": [19, 19], "name": "IA_BUSY"},
+    {"bits": [20, 20], "name": "SX_BUSY"},
+    {"bits": [21, 21], "name": "WD_BUSY"},
+    {"bits": [22, 22], "name": "SPI_BUSY"},
+    {"bits": [23, 23], "name": "BCI_BUSY"},
+    {"bits": [24, 24], "name": "SC_BUSY"},
+    {"bits": [25, 25], "name": "PA_BUSY"},
+    {"bits": [26, 26], "name": "DB_BUSY"},
+    {"bits": [28, 28], "name": "CP_COHERENCY_BUSY"},
+    {"bits": [29, 29], "name": "CP_BUSY"},
+    {"bits": [30, 30], "name": "CB_BUSY"},
+    {"bits": [31, 31], "name": "GUI_ACTIVE"}
+   ]
+  },
+  "GRBM_STATUS2": {
+   "fields": [
+    {"bits": [0, 3], "name": "ME0PIPE1_CMDFIFO_AVAIL"},
+    {"bits": [4, 4], "name": "ME0PIPE1_CF_RQ_PENDING"},
+    {"bits": [5, 5], "name": "ME0PIPE1_PF_RQ_PENDING"},
+    {"bits": [6, 6], "name": "ME1PIPE0_RQ_PENDING"},
+    {"bits": [7, 7], "name": "ME1PIPE1_RQ_PENDING"},
+    {"bits": [8, 8], "name": "ME1PIPE2_RQ_PENDING"},
+    {"bits": [9, 9], "name": "ME1PIPE3_RQ_PENDING"},
+    {"bits": [10, 10], "name": "ME2PIPE0_RQ_PENDING"},
+    {"bits": [11, 11], "name": "ME2PIPE1_RQ_PENDING"},
+    {"bits": [12, 12], "name": "ME2PIPE2_RQ_PENDING"},
+    {"bits": [13, 13], "name": "ME2PIPE3_RQ_PENDING"},
+    {"bits": [14, 14], "name": "RLC_RQ_PENDING"},
+    {"bits": [15, 15], "name": "UTCL2_BUSY"},
+    {"bits": [16, 16], "name": "EA_BUSY"},
+    {"bits": [17, 17], "name": "RMI_BUSY"},
+    {"bits": [18, 18], "name": "UTCL2_RQ_PENDING"},
+    {"bits": [19, 19], "name": "CPF_RQ_PENDING"},
+    {"bits": [20, 20], "name": "EA_LINK_BUSY"},
+    {"bits": [21, 21], "name": "CANE_BUSY"},
+    {"bits": [22, 22], "name": "CANE_LINK_BUSY"},
+    {"bits": [24, 24], "name": "RLC_BUSY"},
+    {"bits": [25, 25], "name": "TC_BUSY"},
+    {"bits": [26, 26], "name": "TCC_CC_RESIDENT"},
+    {"bits": [28, 28], "name": "CPF_BUSY"},
+    {"bits": [29, 29], "name": "CPC_BUSY"},
+    {"bits": [30, 30], "name": "CPG_BUSY"},
+    {"bits": [31, 31], "name": "CPAXI_BUSY"}
+   ]
+  },
+  "GRBM_STATUS_SE0": {
+   "fields": [
+    {"bits": [1, 1], "name": "DB_CLEAN"},
+    {"bits": [2, 2], "name": "CB_CLEAN"},
+    {"bits": [21, 21], "name": "RMI_BUSY"},
+    {"bits": [22, 22], "name": "BCI_BUSY"},
+    {"bits": [23, 23], "name": "VGT_BUSY"},
+    {"bits": [24, 24], "name": "PA_BUSY"},
+    {"bits": [25, 25], "name": "TA_BUSY"},
+    {"bits": [26, 26], "name": "SX_BUSY"},
+    {"bits": [27, 27], "name": "SPI_BUSY"},
+    {"bits": [29, 29], "name": "SC_BUSY"},
+    {"bits": [30, 30], "name": "DB_BUSY"},
+    {"bits": [31, 31], "name": "CB_BUSY"}
+   ]
+  },
+  "SPI_CONFIG_CNTL": {
+   "fields": [
+    {"bits": [0, 20], "name": "GPR_WRITE_PRIORITY"},
+    {"bits": [21, 23], "name": "EXP_PRIORITY_ORDER"},
+    {"bits": [24, 24], "name": "ENABLE_SQG_TOP_EVENTS"},
+    {"bits": [25, 25], "name": "ENABLE_SQG_BOP_EVENTS"},
+    {"bits": [26, 26], "name": "RSRC_MGMT_RESET"},
+    {"bits": [27, 27], "name": "TTRACE_STALL_ALL"},
+    {"bits": [28, 28], "name": "ALLOC_ARB_LRU_ENA"},
+    {"bits": [29, 29], "name": "EXP_ARB_LRU_ENA"},
+    {"bits": [30, 31], "name": "PS_PKR_PRIORITY_CNTL"}
+   ]
+  },
+  "SPI_SHADER_LATE_ALLOC_VS": {
+   "fields": [
+    {"bits": [0, 5], "name": "LIMIT"}
+   ]
+  },
+  "SPI_SHADER_PGM_HI_PS": {
+   "fields": [
+    {"bits": [0, 7], "name": "MEM_BASE"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC1_GS": {
+   "fields": [
+    {"bits": [0, 5], "name": "VGPRS"},
+    {"bits": [6, 9], "name": "SGPRS"},
+    {"bits": [10, 11], "name": "PRIORITY"},
+    {"bits": [12, 19], "enum_ref": "FLOAT_MODE", "name": "FLOAT_MODE"},
+    {"bits": [20, 20], "name": "PRIV"},
+    {"bits": [21, 21], "name": "DX10_CLAMP"},
+    {"bits": [22, 22], "name": "DEBUG_MODE"},
+    {"bits": [23, 23], "name": "IEEE_MODE"},
+    {"bits": [24, 24], "name": "CU_GROUP_ENABLE"},
+    {"bits": [28, 28], "name": "CDBG_USER"},
+    {"bits": [29, 30], "name": "GS_VGPR_COMP_CNT"},
+    {"bits": [31, 31], "name": "FP16_OVFL"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC1_HS": {
+   "fields": [
+    {"bits": [0, 5], "name": "VGPRS"},
+    {"bits": [6, 9], "name": "SGPRS"},
+    {"bits": [10, 11], "name": "PRIORITY"},
+    {"bits": [12, 19], "enum_ref": "FLOAT_MODE", "name": "FLOAT_MODE"},
+    {"bits": [20, 20], "name": "PRIV"},
+    {"bits": [21, 21], "name": "DX10_CLAMP"},
+    {"bits": [22, 22], "name": "DEBUG_MODE"},
+    {"bits": [23, 23], "name": "IEEE_MODE"},
+    {"bits": [27, 27], "name": "CDBG_USER"},
+    {"bits": [28, 29], "name": "LS_VGPR_COMP_CNT"},
+    {"bits": [30, 30], "name": "FP16_OVFL"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC1_PS": {
+   "fields": [
+    {"bits": [0, 5], "name": "VGPRS"},
+    {"bits": [6, 9], "name": "SGPRS"},
+    {"bits": [10, 11], "name": "PRIORITY"},
+    {"bits": [12, 19], "enum_ref": "FLOAT_MODE", "name": "FLOAT_MODE"},
+    {"bits": [20, 20], "name": "PRIV"},
+    {"bits": [21, 21], "name": "DX10_CLAMP"},
+    {"bits": [22, 22], "name": "DEBUG_MODE"},
+    {"bits": [23, 23], "name": "IEEE_MODE"},
+    {"bits": [24, 24], "name": "CU_GROUP_DISABLE"},
+    {"bits": [28, 28], "name": "CDBG_USER"},
+    {"bits": [29, 29], "name": "FP16_OVFL"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC1_VS": {
+   "fields": [
+    {"bits": [0, 5], "name": "VGPRS"},
+    {"bits": [6, 9], "name": "SGPRS"},
+    {"bits": [10, 11], "name": "PRIORITY"},
+    {"bits": [12, 19], "enum_ref": "FLOAT_MODE", "name": "FLOAT_MODE"},
+    {"bits": [20, 20], "name": "PRIV"},
+    {"bits": [21, 21], "name": "DX10_CLAMP"},
+    {"bits": [22, 22], "name": "DEBUG_MODE"},
+    {"bits": [23, 23], "name": "IEEE_MODE"},
+    {"bits": [24, 25], "name": "VGPR_COMP_CNT"},
+    {"bits": [26, 26], "name": "CU_GROUP_ENABLE"},
+    {"bits": [30, 30], "name": "CDBG_USER"},
+    {"bits": [31, 31], "name": "FP16_OVFL"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC2_GS": {
+   "fields": [
+    {"bits": [0, 0], "name": "SCRATCH_EN"},
+    {"bits": [1, 5], "name": "USER_SGPR"},
+    {"bits": [6, 6], "name": "TRAP_PRESENT"},
+    {"bits": [7, 15], "enum_ref": "EXCP_EN", "name": "EXCP_EN"},
+    {"bits": [16, 17], "name": "ES_VGPR_COMP_CNT"},
+    {"bits": [18, 18], "name": "OC_LDS_EN"},
+    {"bits": [19, 26], "name": "LDS_SIZE"},
+    {"bits": [27, 27], "name": "SKIP_USGPR0"},
+    {"bits": [28, 28], "name": "USER_SGPR_MSB"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC2_GS_VS": {
+   "fields": [
+    {"bits": [0, 0], "name": "SCRATCH_EN"},
+    {"bits": [1, 5], "name": "USER_SGPR"},
+    {"bits": [6, 6], "name": "TRAP_PRESENT"},
+    {"bits": [7, 15], "enum_ref": "EXCP_EN", "name": "EXCP_EN"},
+    {"bits": [16, 17], "name": "VGPR_COMP_CNT"},
+    {"bits": [18, 18], "name": "OC_LDS_EN"},
+    {"bits": [19, 26], "name": "LDS_SIZE"},
+    {"bits": [27, 27], "name": "SKIP_USGPR0"},
+    {"bits": [28, 28], "name": "USER_SGPR_MSB"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC2_HS": {
+   "fields": [
+    {"bits": [0, 0], "name": "SCRATCH_EN"},
+    {"bits": [1, 5], "name": "USER_SGPR"},
+    {"bits": [6, 6], "name": "TRAP_PRESENT"},
+    {"bits": [7, 15], "enum_ref": "EXCP_EN", "name": "EXCP_EN"},
+    {"bits": [16, 24], "name": "LDS_SIZE"},
+    {"bits": [27, 27], "name": "SKIP_USGPR0"},
+    {"bits": [28, 28], "name": "USER_SGPR_MSB"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC2_PS": {
+   "fields": [
+    {"bits": [0, 0], "name": "SCRATCH_EN"},
+    {"bits": [1, 5], "name": "USER_SGPR"},
+    {"bits": [6, 6], "name": "TRAP_PRESENT"},
+    {"bits": [7, 7], "name": "WAVE_CNT_EN"},
+    {"bits": [8, 15], "name": "EXTRA_LDS_SIZE"},
+    {"bits": [16, 24], "enum_ref": "EXCP_EN", "name": "EXCP_EN"},
+    {"bits": [25, 25], "name": "LOAD_COLLISION_WAVEID"},
+    {"bits": [26, 26], "name": "LOAD_INTRAWAVE_COLLISION"},
+    {"bits": [27, 27], "name": "SKIP_USGPR0"},
+    {"bits": [28, 28], "name": "USER_SGPR_MSB"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC2_VS": {
+   "fields": [
+    {"bits": [0, 0], "name": "SCRATCH_EN"},
+    {"bits": [1, 5], "name": "USER_SGPR"},
+    {"bits": [6, 6], "name": "TRAP_PRESENT"},
+    {"bits": [7, 7], "name": "OC_LDS_EN"},
+    {"bits": [8, 8], "name": "SO_BASE0_EN"},
+    {"bits": [9, 9], "name": "SO_BASE1_EN"},
+    {"bits": [10, 10], "name": "SO_BASE2_EN"},
+    {"bits": [11, 11], "name": "SO_BASE3_EN"},
+    {"bits": [12, 12], "name": "SO_EN"},
+    {"bits": [13, 21], "enum_ref": "EXCP_EN", "name": "EXCP_EN"},
+    {"bits": [22, 22], "name": "PC_BASE_EN"},
+    {"bits": [24, 24], "name": "DISPATCH_DRAW_EN"},
+    {"bits": [27, 27], "name": "SKIP_USGPR0"},
+    {"bits": [28, 28], "name": "USER_SGPR_MSB"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC3_HS": {
+   "fields": [
+    {"bits": [0, 5], "name": "WAVE_LIMIT"},
+    {"bits": [6, 9], "name": "LOCK_LOW_THRESHOLD"},
+    {"bits": [10, 13], "name": "SIMD_DISABLE"},
+    {"bits": [16, 31], "name": "CU_EN"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC3_PS": {
+   "fields": [
+    {"bits": [0, 15], "name": "CU_EN"},
+    {"bits": [16, 21], "name": "WAVE_LIMIT"},
+    {"bits": [22, 25], "name": "LOCK_LOW_THRESHOLD"},
+    {"bits": [26, 29], "name": "SIMD_DISABLE"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC4_GS": {
+   "fields": [
+    {"bits": [0, 6], "name": "GROUP_FIFO_DEPTH"},
+    {"bits": [7, 13], "name": "SPI_SHADER_LATE_ALLOC_GS"}
+   ]
+  },
+  "SPI_SHADER_PGM_RSRC4_HS": {
+   "fields": [
+    {"bits": [0, 6], "name": "GROUP_FIFO_DEPTH"}
+   ]
+  },
+  "SQ_BUF_RSRC_WORD1": {
+   "fields": [
+    {"bits": [0, 15], "name": "BASE_ADDRESS_HI"},
+    {"bits": [16, 29], "name": "STRIDE"},
+    {"bits": [30, 30], "name": "CACHE_SWIZZLE"},
+    {"bits": [31, 31], "name": "SWIZZLE_ENABLE"}
+   ]
+  },
+  "SQ_BUF_RSRC_WORD3": {
+   "fields": [
+    {"bits": [0, 2], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_X"},
+    {"bits": [3, 5], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_Y"},
+    {"bits": [6, 8], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_Z"},
+    {"bits": [9, 11], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_W"},
+    {"bits": [12, 14], "enum_ref": "BUF_NUM_FORMAT", "name": "NUM_FORMAT"},
+    {"bits": [15, 18], "enum_ref": "BUF_DATA_FORMAT", "name": "DATA_FORMAT"},
+    {"bits": [19, 19], "name": "USER_VM_ENABLE"},
+    {"bits": [20, 20], "name": "USER_VM_MODE"},
+    {"bits": [21, 22], "name": "INDEX_STRIDE"},
+    {"bits": [23, 23], "name": "ADD_TID_ENABLE"},
+    {"bits": [27, 27], "name": "NV"},
+    {"bits": [30, 31], "enum_ref": "SQ_RSRC_BUF_TYPE", "name": "TYPE"}
+   ]
+  },
+  "SQ_IMG_RSRC_WORD1": {
+   "fields": [
+    {"bits": [0, 7], "name": "BASE_ADDRESS_HI"},
+    {"bits": [8, 19], "name": "MIN_LOD"},
+    {"bits": [20, 25], "enum_ref": "IMG_DATA_FORMAT", "name": "DATA_FORMAT"},
+    {"bits": [26, 29], "enum_ref": "IMG_NUM_FORMAT", "name": "NUM_FORMAT"},
+    {"bits": [30, 30], "name": "NV"},
+    {"bits": [31, 31], "name": "META_DIRECT"}
+   ]
+  },
+  "SQ_IMG_RSRC_WORD2": {
+   "fields": [
+    {"bits": [0, 13], "name": "WIDTH"},
+    {"bits": [14, 27], "name": "HEIGHT"},
+    {"bits": [28, 30], "name": "PERF_MOD"}
+   ]
+  },
+  "SQ_IMG_RSRC_WORD3": {
+   "fields": [
+    {"bits": [0, 2], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_X"},
+    {"bits": [3, 5], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_Y"},
+    {"bits": [6, 8], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_Z"},
+    {"bits": [9, 11], "enum_ref": "SQ_SEL_XYZW01", "name": "DST_SEL_W"},
+    {"bits": [12, 15], "name": "BASE_LEVEL"},
+    {"bits": [16, 19], "name": "LAST_LEVEL"},
+    {"bits": [20, 24], "name": "SW_MODE"},
+    {"bits": [28, 31], "enum_ref": "SQ_RSRC_IMG_TYPE", "name": "TYPE"}
+   ]
+  },
+  "SQ_IMG_RSRC_WORD4": {
+   "fields": [
+    {"bits": [0, 12], "name": "DEPTH"},
+    {"bits": [13, 28], "name": "PITCH"},
+    {"bits": [29, 31], "enum_ref": "SQ_IMG_RSRC_WORD4__BC_SWIZZLE", "name": "BC_SWIZZLE"}
+   ]
+  },
+  "SQ_IMG_RSRC_WORD5": {
+   "fields": [
+    {"bits": [0, 12], "name": "BASE_ARRAY"},
+    {"bits": [13, 16], "name": "ARRAY_PITCH"},
+    {"bits": [17, 24], "name": "META_DATA_ADDRESS"},
+    {"bits": [25, 25], "name": "META_LINEAR"},
+    {"bits": [26, 26], "name": "META_PIPE_ALIGNED"},
+    {"bits": [27, 27], "name": "META_RB_ALIGNED"},
+    {"bits": [28, 31], "name": "MAX_MIP"}
+   ]
+  },
+  "SQ_IMG_RSRC_WORD6": {
+   "fields": [
+    {"bits": [0, 11], "name": "MIN_LOD_WARN"},
+    {"bits": [12, 19], "name": "COUNTER_BANK_ID"},
+    {"bits": [20, 20], "name": "LOD_HDW_CNT_EN"},
+    {"bits": [21, 21], "name": "COMPRESSION_EN"},
+    {"bits": [22, 22], "name": "ALPHA_IS_ON_MSB"},
+    {"bits": [23, 23], "name": "COLOR_TRANSFORM"},
+    {"bits": [24, 27], "name": "LOST_ALPHA_BITS"},
+    {"bits": [28, 31], "name": "LOST_COLOR_BITS"}
+   ]
+  },
+  "SQ_IMG_SAMP_WORD0": {
+   "fields": [
+    {"bits": [0, 2], "enum_ref": "SQ_TEX_CLAMP", "name": "CLAMP_X"},
+    {"bits": [3, 5], "enum_ref": "SQ_TEX_CLAMP", "name": "CLAMP_Y"},
+    {"bits": [6, 8], "enum_ref": "SQ_TEX_CLAMP", "name": "CLAMP_Z"},
+    {"bits": [9, 11], "name": "MAX_ANISO_RATIO"},
+    {"bits": [12, 14], "enum_ref": "SQ_TEX_DEPTH_COMPARE", "name": "DEPTH_COMPARE_FUNC"},
+    {"bits": [15, 15], "name": "FORCE_UNNORMALIZED"},
+    {"bits": [16, 18], "name": "ANISO_THRESHOLD"},
+    {"bits": [19, 19], "name": "MC_COORD_TRUNC"},
+    {"bits": [20, 20], "name": "FORCE_DEGAMMA"},
+    {"bits": [21, 26], "name": "ANISO_BIAS"},
+    {"bits": [27, 27], "name": "TRUNC_COORD"},
+    {"bits": [28, 28], "name": "DISABLE_CUBE_WRAP"},
+    {"bits": [29, 30], "enum_ref": "SQ_IMG_FILTER_TYPE", "name": "FILTER_MODE"},
+    {"bits": [31, 31], "name": "COMPAT_MODE"}
+   ]
+  },
+  "SQ_IMG_SAMP_WORD1": {
+   "fields": [
+    {"bits": [0, 11], "name": "MIN_LOD"},
+    {"bits": [12, 23], "name": "MAX_LOD"},
+    {"bits": [24, 27], "name": "PERF_MIP"},
+    {"bits": [28, 31], "name": "PERF_Z"}
+   ]
+  },
+  "SQ_IMG_SAMP_WORD2": {
+   "fields": [
+    {"bits": [0, 13], "name": "LOD_BIAS"},
+    {"bits": [14, 19], "name": "LOD_BIAS_SEC"},
+    {"bits": [20, 21], "enum_ref": "SQ_TEX_XY_FILTER", "name": "XY_MAG_FILTER"},
+    {"bits": [22, 23], "enum_ref": "SQ_TEX_XY_FILTER", "name": "XY_MIN_FILTER"},
+    {"bits": [24, 25], "enum_ref": "SQ_TEX_Z_FILTER", "name": "Z_FILTER"},
+    {"bits": [26, 27], "enum_ref": "SQ_TEX_MIP_FILTER", "name": "MIP_FILTER"},
+    {"bits": [28, 28], "name": "MIP_POINT_PRECLAMP"},
+    {"bits": [29, 29], "name": "BLEND_ZERO_PRT"},
+    {"bits": [30, 30], "name": "FILTER_PREC_FIX"},
+    {"bits": [31, 31], "name": "ANISO_OVERRIDE"}
+   ]
+  },
+  "SQ_IMG_SAMP_WORD3": {
+   "fields": [
+    {"bits": [0, 11], "name": "BORDER_COLOR_PTR"},
+    {"bits": [12, 12], "name": "SKIP_DEGAMMA"},
+    {"bits": [30, 31], "enum_ref": "SQ_TEX_BORDER_COLOR", "name": "BORDER_COLOR_TYPE"}
+   ]
+  },
+  "SQ_THREAD_TRACE_BASE2": {
+   "fields": [
+    {"bits": [0, 3], "name": "ADDR_HI"}
+   ]
+  },
+  "SQ_THREAD_TRACE_CTRL": {
+   "fields": [
+    {"bits": [31, 31], "name": "RESET_BUFFER"}
+   ]
+  },
+  "SQ_THREAD_TRACE_HIWATER": {
+   "fields": [
+    {"bits": [0, 2], "name": "HIWATER"}
+   ]
+  },
+  "SQ_THREAD_TRACE_MASK": {
+   "fields": [
+    {"bits": [0, 4], "name": "CU_SEL"},
+    {"bits": [5, 5], "name": "SH_SEL"},
+    {"bits": [7, 7], "name": "REG_STALL_EN"},
+    {"bits": [8, 11], "name": "SIMD_EN"},
+    {"bits": [12, 13], "name": "VM_ID_MASK"},
+    {"bits": [14, 14], "name": "SPI_STALL_EN"},
+    {"bits": [15, 15], "name": "SQ_STALL_EN"}
+   ]
+  },
+  "SQ_THREAD_TRACE_MODE": {
+   "fields": [
+    {"bits": [0, 2], "name": "MASK_PS"},
+    {"bits": [3, 5], "name": "MASK_VS"},
+    {"bits": [6, 8], "name": "MASK_GS"},
+    {"bits": [9, 11], "name": "MASK_ES"},
+    {"bits": [12, 14], "name": "MASK_HS"},
+    {"bits": [15, 17], "name": "MASK_LS"},
+    {"bits": [18, 20], "name": "MASK_CS"},
+    {"bits": [21, 22], "name": "MODE"},
+    {"bits": [23, 24], "name": "CAPTURE_MODE"},
+    {"bits": [25, 25], "name": "AUTOFLUSH_EN"},
+    {"bits": [26, 26], "name": "TC_PERF_EN"},
+    {"bits": [27, 28], "name": "ISSUE_MASK"},
+    {"bits": [29, 29], "name": "TEST_MODE"},
+    {"bits": [30, 30], "name": "INTERRUPT_EN"},
+    {"bits": [31, 31], "name": "WRAP"}
+   ]
+  },
+  "SQ_THREAD_TRACE_PERF_MASK": {
+   "fields": [
+    {"bits": [0, 15], "name": "SH0_MASK"},
+    {"bits": [16, 31], "name": "SH1_MASK"}
+   ]
+  },
+  "SQ_THREAD_TRACE_SIZE": {
+   "fields": [
+    {"bits": [0, 21], "name": "SIZE"}
+   ]
+  },
+  "SQ_THREAD_TRACE_STATUS": {
+   "fields": [
+    {"bits": [0, 9], "name": "FINISH_PENDING"},
+    {"bits": [16, 25], "name": "FINISH_DONE"},
+    {"bits": [28, 28], "name": "UTC_ERROR"},
+    {"bits": [29, 29], "name": "NEW_BUF"},
+    {"bits": [30, 30], "name": "BUSY"},
+    {"bits": [31, 31], "name": "FULL"}
+   ]
+  },
+  "SQ_THREAD_TRACE_TOKEN_MASK": {
+   "fields": [
+    {"bits": [0, 15], "name": "TOKEN_MASK"},
+    {"bits": [16, 23], "name": "REG_MASK"},
+    {"bits": [24, 24], "name": "REG_DROP_ON_STALL"}
+   ]
+  },
+  "SQ_THREAD_TRACE_WPTR": {
+   "fields": [
+    {"bits": [0, 29], "name": "WPTR"},
+    {"bits": [30, 31], "name": "READ_OFFSET"}
+   ]
+  },
+  "SQ_WAVE_GPR_ALLOC": {
+   "fields": [
+    {"bits": [0, 5], "name": "VGPR_BASE"},
+    {"bits": [6, 11], "name": "VGPR_SIZE"},
+    {"bits": [12, 17], "name": "ACCV_OFFSET"},
+    {"bits": [18, 23], "name": "SGPR_BASE"},
+    {"bits": [24, 27], "name": "SGPR_SIZE"}
+   ]
+  },
+  "SQ_WAVE_HW_ID": {
+   "fields": [
+    {"bits": [0, 3], "name": "WAVE_ID"},
+    {"bits": [4, 5], "name": "SIMD_ID"},
+    {"bits": [6, 7], "name": "PIPE_ID"},
+    {"bits": [8, 11], "name": "CU_ID"},
+    {"bits": [12, 12], "name": "SH_ID"},
+    {"bits": [13, 15], "name": "SE_ID"},
+    {"bits": [16, 19], "name": "TG_ID"},
+    {"bits": [20, 23], "name": "VM_ID"},
+    {"bits": [24, 26], "name": "QUEUE_ID"},
+    {"bits": [27, 29], "name": "STATE_ID"},
+    {"bits": [30, 31], "name": "ME_ID"}
+   ]
+  },
+  "SQ_WAVE_IB_DBG0": {
+   "fields": [
+    {"bits": [0, 2], "name": "IBUF_ST"},
+    {"bits": [3, 3], "name": "PC_INVALID"},
+    {"bits": [4, 4], "name": "NEED_NEXT_DW"},
+    {"bits": [5, 7], "name": "NO_PREFETCH_CNT"},
+    {"bits": [8, 9], "name": "IBUF_RPTR"},
+    {"bits": [10, 11], "name": "IBUF_WPTR"},
+    {"bits": [16, 19], "name": "INST_STR_ST"},
+    {"bits": [24, 25], "name": "ECC_ST"},
+    {"bits": [26, 26], "name": "IS_HYB"},
+    {"bits": [27, 28], "name": "HYB_CNT"},
+    {"bits": [29, 29], "name": "KILL"},
+    {"bits": [30, 30], "name": "NEED_KILL_IFETCH"},
+    {"bits": [31, 31], "name": "NO_PREFETCH_CNT_HI"}
+   ]
+  },
+  "SQ_WAVE_IB_DBG1": {
+   "fields": [
+    {"bits": [0, 0], "name": "IXNACK"},
+    {"bits": [1, 1], "name": "XNACK"},
+    {"bits": [2, 2], "name": "TA_NEED_RESET"},
+    {"bits": [4, 8], "name": "XCNT"},
+    {"bits": [11, 15], "name": "QCNT"},
+    {"bits": [18, 22], "name": "RCNT"},
+    {"bits": [25, 31], "name": "MISC_CNT"}
+   ]
+  },
+  "SQ_WAVE_IB_STS": {
+   "fields": [
+    {"bits": [0, 3], "name": "VM_CNT"},
+    {"bits": [4, 6], "name": "EXP_CNT"},
+    {"bits": [8, 11], "name": "LGKM_CNT"},
+    {"bits": [12, 14], "name": "VALU_CNT"},
+    {"bits": [15, 15], "name": "FIRST_REPLAY"},
+    {"bits": [16, 20], "name": "RCNT"},
+    {"bits": [22, 23], "name": "VM_CNT_HI"}
+   ]
+  },
+  "SQ_WAVE_LDS_ALLOC": {
+   "fields": [
+    {"bits": [0, 7], "name": "LDS_BASE"},
+    {"bits": [12, 20], "name": "LDS_SIZE"}
+   ]
+  },
+  "SQ_WAVE_MODE": {
+   "fields": [
+    {"bits": [0, 3], "name": "FP_ROUND"},
+    {"bits": [4, 7], "name": "FP_DENORM"},
+    {"bits": [8, 8], "name": "DX10_CLAMP"},
+    {"bits": [9, 9], "name": "IEEE"},
+    {"bits": [10, 10], "name": "LOD_CLAMPED"},
+    {"bits": [11, 11], "name": "DEBUG_EN"},
+    {"bits": [12, 20], "enum_ref": "EXCP_EN", "name": "EXCP_EN"},
+    {"bits": [23, 23], "name": "FP16_OVFL"},
+    {"bits": [24, 24], "name": "POPS_PACKER0"},
+    {"bits": [25, 25], "name": "POPS_PACKER1"},
+    {"bits": [26, 26], "name": "DISABLE_PERF"},
+    {"bits": [27, 27], "name": "GPR_IDX_EN"},
+    {"bits": [28, 28], "name": "VSKIP"},
+    {"bits": [29, 31], "name": "CSP"}
+   ]
+  },
+  "SQ_WAVE_PC_HI": {
+   "fields": [
+    {"bits": [0, 15], "name": "PC_HI"}
+   ]
+  },
+  "SQ_WAVE_STATUS": {
+   "fields": [
+    {"bits": [0, 0], "name": "SCC"},
+    {"bits": [1, 2], "name": "SPI_PRIO"},
+    {"bits": [3, 4], "name": "USER_PRIO"},
+    {"bits": [5, 5], "name": "PRIV"},
+    {"bits": [6, 6], "name": "TRAP_EN"},
+    {"bits": [7, 7], "name": "TTRACE_EN"},
+    {"bits": [8, 8], "name": "EXPORT_RDY"},
+    {"bits": [9, 9], "name": "EXECZ"},
+    {"bits": [10, 10], "name": "VCCZ"},
+    {"bits": [11, 11], "name": "IN_TG"},
+    {"bits": [12, 12], "name": "IN_BARRIER"},
+    {"bits": [13, 13], "name": "HALT"},
+    {"bits": [14, 14], "name": "TRAP"},
+    {"bits": [15, 15], "name": "TTRACE_CU_EN"},
+    {"bits": [16, 16], "name": "VALID"},
+    {"bits": [17, 17], "name": "ECC_ERR"},
+    {"bits": [18, 18], "name": "SKIP_EXPORT"},
+    {"bits": [19, 19], "name": "PERF_EN"},
+    {"bits": [20, 20], "name": "COND_DBG_USER"},
+    {"bits": [21, 21], "name": "COND_DBG_SYS"},
+    {"bits": [22, 22], "name": "ALLOW_REPLAY"},
+    {"bits": [23, 23], "name": "FATAL_HALT"},
+    {"bits": [27, 27], "name": "MUST_EXPORT"},
+    {"bits": [28, 28], "name": "SCRATCH_EN"},
+    {"bits": [31, 31], "name": "IDLE"}
+   ]
+  },
+  "SQ_WAVE_TRAPSTS": {
+   "fields": [
+    {"bits": [0, 8], "enum_ref": "EXCP_EN", "name": "EXCP"},
+    {"bits": [10, 10], "name": "SAVECTX"},
+    {"bits": [11, 11], "name": "ILLEGAL_INST"},
+    {"bits": [12, 14], "name": "EXCP_HI"},
+    {"bits": [16, 21], "name": "EXCP_CYCLE"},
+    {"bits": [22, 22], "name": "HOST_TRAP"},
+    {"bits": [24, 24], "name": "WAVE_END"},
+    {"bits": [25, 25], "name": "TRAP_AFTER_INST"},
+    {"bits": [26, 26], "name": "PERF_SNAPSHOT"},
+    {"bits": [28, 28], "name": "XNACK_ERROR"},
+    {"bits": [29, 31], "name": "DP_RATE"}
+   ]
+  }
+ }
+}

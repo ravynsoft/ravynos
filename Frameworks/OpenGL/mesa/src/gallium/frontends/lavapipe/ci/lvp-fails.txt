@@ -1,0 +1,9 @@
+# Vertex 0: Expected red, got (-0.372549, -0.372549, -0.372549, -0.372549) (Fail)
+# Likely fixed by VK-GL-CTS a3ac66a77e14 ("Zero initialize XFB counter buffer")
+dEQP-VK.rasterization.provoking_vertex.transform_feedback.first.line_strip_with_adjacency,Fail
+dEQP-VK.rasterization.provoking_vertex.transform_feedback.per_pipeline.triangle_strip_with_adjacency,Fail
+
+dEQP-VK.binding_model.descriptor_buffer.basic.limits,Fail
+
+# New CTS failures in 1.3.7.0
+dEQP-VK.pipeline.shader_object_linked_spirv.vertex_input.max_attributes.query_max_attributes.binding_one_to_one.interleaved,Fail

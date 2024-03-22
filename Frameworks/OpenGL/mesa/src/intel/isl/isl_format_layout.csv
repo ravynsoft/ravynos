@@ -1,0 +1,354 @@
+# Copyright 2015 Intel Corporation
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice (including the next
+# paragraph) shall be included in all copies or substantial portions of the
+# Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+#
+# @file
+# @brief Layout of all hardware surface formats
+#
+# For the official list, see Broadwell PRM: Volume 2b: Command Reference:
+# Enumerations: SURFACE_FORMAT.
+#
+
+
+# Columns:
+#    name: format name in PRM
+#    bpb: bits per block
+#    bw: block width, in pixels
+#    bh: block height, in pixels
+#    bd: block depth, in pixels
+#    r: red channel, data type and bitwidth
+#    g: green channel
+#    b: blue channel
+#    a: alpha channel
+#    l: luminance channel
+#    i: intensity channel
+#    p: palette channel
+#    space: colorspace
+#    txc: texture compression
+#
+# Data Types:
+#     x: void
+#     r: raw
+#    un: unorm
+#    sn: snorm
+#    uf: ufloat
+#    sf: sfloat
+#    ux: ufixed
+#    sx: sfixed
+#    ui: uint
+#    si: sint
+#    us: uscaled
+#    ss: sscaled
+
+
+# Table is aligned with the Vim commands below, using the Align plugin:
+#     :AlignCtrl lr+ p8000000000000P1
+#     /^# name/,$ Align,
+
+# name                      , bpb, bw, bh, bd,    r,    g,    b,    a,    l,    i,   p, order,  space,   txc
+R32G32B32A32_FLOAT          , 128,  1,  1,  1, sf32, sf32, sf32, sf32,     ,     ,    ,  rgba, linear,
+R32G32B32A32_SINT           , 128,  1,  1,  1, si32, si32, si32, si32,     ,     ,    ,  rgba, linear,
+R32G32B32A32_UINT           , 128,  1,  1,  1, ui32, ui32, ui32, ui32,     ,     ,    ,  rgba, linear,
+R32G32B32A32_UNORM          , 128,  1,  1,  1, un32, un32, un32, un32,     ,     ,    ,  rgba, linear,
+R32G32B32A32_SNORM          , 128,  1,  1,  1, sn32, sn32, sn32, sn32,     ,     ,    ,  rgba, linear,
+R64G64_FLOAT                , 128,  1,  1,  1, sf64, sf64,     ,     ,     ,     ,    ,    rg, linear,
+R32G32B32X32_FLOAT          , 128,  1,  1,  1, sf32, sf32, sf32,  x32,     ,     ,    ,  rgba, linear,
+R32G32B32A32_SSCALED        , 128,  1,  1,  1, ss32, ss32, ss32, ss32,     ,     ,    ,  rgba, linear,
+R32G32B32A32_USCALED        , 128,  1,  1,  1, us32, us32, us32, us32,     ,     ,    ,  rgba, linear,
+R32G32B32A32_SFIXED         , 128,  1,  1,  1, sx32, sx32, sx32, sx32,     ,     ,    ,  rgba, linear,
+R64G64_PASSTHRU             , 128,  1,  1,  1,  r64,  r64,     ,     ,     ,     ,    ,    rg,       ,
+R32G32B32_FLOAT             ,  96,  1,  1,  1, sf32, sf32, sf32,     ,     ,     ,    ,   rgb, linear,
+R32G32B32_SINT              ,  96,  1,  1,  1, si32, si32, si32,     ,     ,     ,    ,   rgb, linear,
+R32G32B32_UINT              ,  96,  1,  1,  1, ui32, ui32, ui32,     ,     ,     ,    ,   rgb, linear,
+R32G32B32_UNORM             ,  96,  1,  1,  1, un32, un32, un32,     ,     ,     ,    ,   rgb, linear,
+R32G32B32_SNORM             ,  96,  1,  1,  1, sn32, sn32, sn32,     ,     ,     ,    ,   rgb, linear,
+R32G32B32_SSCALED           ,  96,  1,  1,  1, ss32, ss32, ss32,     ,     ,     ,    ,   rgb, linear,
+R32G32B32_USCALED           ,  96,  1,  1,  1, us32, us32, us32,     ,     ,     ,    ,   rgb, linear,
+R32G32B32_SFIXED            ,  96,  1,  1,  1, sx32, sx32, sx32,     ,     ,     ,    ,   rgb, linear,
+R16G16B16A16_UNORM          ,  64,  1,  1,  1, un16, un16, un16, un16,     ,     ,    ,  rgba, linear,
+R16G16B16A16_SNORM          ,  64,  1,  1,  1, sn16, sn16, sn16, sn16,     ,     ,    ,  rgba, linear,
+R16G16B16A16_SINT           ,  64,  1,  1,  1, si16, si16, si16, si16,     ,     ,    ,  rgba, linear,
+R16G16B16A16_UINT           ,  64,  1,  1,  1, ui16, ui16, ui16, ui16,     ,     ,    ,  rgba, linear,
+R16G16B16A16_FLOAT          ,  64,  1,  1,  1, sf16, sf16, sf16, sf16,     ,     ,    ,  rgba, linear,
+R32G32_FLOAT                ,  64,  1,  1,  1, sf32, sf32,     ,     ,     ,     ,    ,    rg, linear,
+R32G32_SINT                 ,  64,  1,  1,  1, si32, si32,     ,     ,     ,     ,    ,    rg, linear,
+R32G32_UINT                 ,  64,  1,  1,  1, ui32, ui32,     ,     ,     ,     ,    ,    rg, linear,
+R32_FLOAT_X8X24_TYPELESS    ,  64,  1,  1,  1, sf32,   x8,  x24,     ,     ,     ,    ,   rgb, linear,
+X32_TYPELESS_G8X24_UINT     ,  64,  1,  1,  1,  x32,  ui8,  x24,     ,     ,     ,    ,   rgb, linear,
+L32A32_FLOAT                ,  64,  1,  1,  1,     ,     ,     , sf32, sf32,     ,    ,    la, linear,
+R32G32_UNORM                ,  64,  1,  1,  1, un32, un32,     ,     ,     ,     ,    ,    rg, linear,
+R32G32_SNORM                ,  64,  1,  1,  1, sn32, sn32,     ,     ,     ,     ,    ,    rg, linear,
+R64_FLOAT                   ,  64,  1,  1,  1, sf64,     ,     ,     ,     ,     ,    ,     r, linear,
+R16G16B16X16_UNORM          ,  64,  1,  1,  1, un16, un16, un16,  x16,     ,     ,    ,  rgba, linear,
+R16G16B16X16_FLOAT          ,  64,  1,  1,  1, sf16, sf16, sf16,  x16,     ,     ,    ,  rgba, linear,
+A32X32_FLOAT                ,  64,  1,  1,  1,     ,     ,     , sf32,  x32,     ,    ,    al, linear,
+L32X32_FLOAT                ,  64,  1,  1,  1,     ,     ,     ,  x32, sf32,     ,    ,    la, linear,
+I32X32_FLOAT                ,  64,  1,  1,  1,     ,     ,     ,  x32,     , sf32,    ,    ia, linear,
+R16G16B16A16_SSCALED        ,  64,  1,  1,  1, ss16, ss16, ss16, ss16,     ,     ,    ,  rgba, linear,
+R16G16B16A16_USCALED        ,  64,  1,  1,  1, us16, us16, us16, us16,     ,     ,    ,  rgba, linear,
+R32G32_SSCALED              ,  64,  1,  1,  1, ss32, ss32,     ,     ,     ,     ,    ,    rg, linear,
+R32G32_USCALED              ,  64,  1,  1,  1, us32, us32,     ,     ,     ,     ,    ,    rg, linear,
+R32G32_FLOAT_LD             ,  64,  1,  1,  1, sf32, sf32,     ,     ,     ,     ,    ,    rg, linear,
+R32G32_SFIXED               ,  64,  1,  1,  1, sx32, sx32,     ,     ,     ,     ,    ,    rg, linear,
+R64_PASSTHRU                ,  64,  1,  1,  1,  r64,     ,     ,     ,     ,     ,    ,     r,       ,
+B8G8R8A8_UNORM              ,  32,  1,  1,  1,  un8,  un8,  un8,  un8,     ,     ,    ,  bgra, linear,
+B8G8R8A8_UNORM_SRGB         ,  32,  1,  1,  1,  un8,  un8,  un8,  un8,     ,     ,    ,  bgra,   srgb,
+R10G10B10A2_UNORM           ,  32,  1,  1,  1, un10, un10, un10,  un2,     ,     ,    ,  rgba, linear,
+R10G10B10A2_UNORM_SRGB      ,  32,  1,  1,  1, un10, un10, un10,  un2,     ,     ,    ,  rgba,   srgb,
+R10G10B10A2_UINT            ,  32,  1,  1,  1, ui10, ui10, ui10,  ui2,     ,     ,    ,  rgba, linear,
+R10G10B10_SNORM_A2_UNORM    ,  32,  1,  1,  1, sn10, sn10, sn10,  un2,     ,     ,    ,  rgba, linear,
+R8G8B8A8_UNORM              ,  32,  1,  1,  1,  un8,  un8,  un8,  un8,     ,     ,    ,  rgba, linear,
+R8G8B8A8_UNORM_SRGB         ,  32,  1,  1,  1,  un8,  un8,  un8,  un8,     ,     ,    ,  rgba,   srgb,
+R8G8B8A8_SNORM              ,  32,  1,  1,  1,  sn8,  sn8,  sn8,  sn8,     ,     ,    ,  rgba, linear,
+R8G8B8A8_SINT               ,  32,  1,  1,  1,  si8,  si8,  si8,  si8,     ,     ,    ,  rgba, linear,
+R8G8B8A8_UINT               ,  32,  1,  1,  1,  ui8,  ui8,  ui8,  ui8,     ,     ,    ,  rgba, linear,
+R16G16_UNORM                ,  32,  1,  1,  1, un16, un16,     ,     ,     ,     ,    ,    rg, linear,
+R16G16_SNORM                ,  32,  1,  1,  1, sn16, sn16,     ,     ,     ,     ,    ,    rg, linear,
+R16G16_SINT                 ,  32,  1,  1,  1, si16, si16,     ,     ,     ,     ,    ,    rg, linear,
+R16G16_UINT                 ,  32,  1,  1,  1, ui16, ui16,     ,     ,     ,     ,    ,    rg, linear,
+R16G16_FLOAT                ,  32,  1,  1,  1, sf16, sf16,     ,     ,     ,     ,    ,    rg, linear,
+B10G10R10A2_UNORM           ,  32,  1,  1,  1, un10, un10, un10,  un2,     ,     ,    ,  bgra, linear,
+B10G10R10A2_UNORM_SRGB      ,  32,  1,  1,  1, un10, un10, un10,  un2,     ,     ,    ,  bgra,   srgb,
+R11G11B10_FLOAT             ,  32,  1,  1,  1, uf11, uf11, uf10,     ,     ,     ,    ,   rgb, linear,
+R10G10B10_FLOAT_A2_UNORM    ,  32,  1,  1,  1, uf10, uf10, uf10,  un2,     ,     ,    ,  rgba, linear,
+R32_SINT                    ,  32,  1,  1,  1, si32,     ,     ,     ,     ,     ,    ,     r, linear,
+R32_UINT                    ,  32,  1,  1,  1, ui32,     ,     ,     ,     ,     ,    ,     r, linear,
+R32_FLOAT                   ,  32,  1,  1,  1, sf32,     ,     ,     ,     ,     ,    ,     r, linear,
+R24_UNORM_X8_TYPELESS       ,  32,  1,  1,  1, un24,   x8,     ,     ,     ,     ,    ,    rg, linear,
+X24_TYPELESS_G8_UINT        ,  32,  1,  1,  1,  x24,  ui8,     ,     ,     ,     ,    ,    rg, linear,
+L32_UNORM                   ,  32,  1,  1,  1,     ,     ,     ,     , un32,     ,    ,     l, linear,
+A32_UNORM                   ,  32,  1,  1,  1,     ,     ,     , un32,     ,     ,    ,     a, linear,
+L16A16_UNORM                ,  32,  1,  1,  1,     ,     ,     , un16, un16,     ,    ,    la, linear,
+I24X8_UNORM                 ,  32,  1,  1,  1,     ,     ,     ,   x8,     , un24,    ,    ia, linear,
+L24X8_UNORM                 ,  32,  1,  1,  1,     ,     ,     ,   x8, un24,     ,    ,    la, linear,
+A24X8_UNORM                 ,  32,  1,  1,  1,     ,     ,     , un24,   x8,     ,    ,    al, linear,
+I32_FLOAT                   ,  32,  1,  1,  1,     ,     ,     ,     ,     , sf32,    ,     i, linear,
+L32_FLOAT                   ,  32,  1,  1,  1,     ,     ,     ,     , sf32,     ,    ,     l, linear,
+A32_FLOAT                   ,  32,  1,  1,  1,     ,     ,     , sf32,     ,     ,    ,     a, linear,
+X8B8_UNORM_G8R8_SNORM       ,  32,  1,  1,  1,  sn8,  sn8,  un8,   x8,     ,     ,    ,  abgr, linear,
+A8X8_UNORM_G8R8_SNORM       ,  32,  1,  1,  1,  sn8,  sn8,   x8,  un8,     ,     ,    ,  abgr, linear,
+B8X8_UNORM_G8R8_SNORM       ,  32,  1,  1,  1,  sn8,  sn8,  un8,   x8,     ,     ,    ,  bagr, linear,
+B8G8R8X8_UNORM              ,  32,  1,  1,  1,  un8,  un8,  un8,   x8,     ,     ,    ,  bgra, linear,
+B8G8R8X8_UNORM_SRGB         ,  32,  1,  1,  1,  un8,  un8,  un8,   x8,     ,     ,    ,  bgra,   srgb,
+R8G8B8X8_UNORM              ,  32,  1,  1,  1,  un8,  un8,  un8,   x8,     ,     ,    ,  rgba, linear,
+R8G8B8X8_UNORM_SRGB         ,  32,  1,  1,  1,  un8,  un8,  un8,   x8,     ,     ,    ,  rgba,   srgb,
+R9G9B9E5_SHAREDEXP          ,  32,  1,  1,  1,  uf9,  uf9,  uf9,     ,     ,     ,    ,   rgb, linear,
+B10G10R10X2_UNORM           ,  32,  1,  1,  1, un10, un10, un10,   x2,     ,     ,    ,  bgra, linear,
+L16A16_FLOAT                ,  32,  1,  1,  1,     ,     ,     , sf16, sf16,     ,    ,    la, linear,
+R32_UNORM                   ,  32,  1,  1,  1, un32,     ,     ,     ,     ,     ,    ,     r, linear,
+R32_SNORM                   ,  32,  1,  1,  1, sn32,     ,     ,     ,     ,     ,    ,     r, linear,
+R10G10B10X2_USCALED         ,  32,  1,  1,  1, us10, us10, us10,   x2,     ,     ,    ,  rgba, linear,
+R8G8B8A8_SSCALED            ,  32,  1,  1,  1,  ss8,  ss8,  ss8,  ss8,     ,     ,    ,  rgba, linear,
+R8G8B8A8_USCALED            ,  32,  1,  1,  1,  us8,  us8,  us8,  us8,     ,     ,    ,  rgba, linear,
+R16G16_SSCALED              ,  32,  1,  1,  1, ss16,  ss6,     ,     ,     ,     ,    ,    rg, linear,
+R16G16_USCALED              ,  32,  1,  1,  1, us16, us16,     ,     ,     ,     ,    ,    rg, linear,
+R32_SSCALED                 ,  32,  1,  1,  1, ss32,     ,     ,     ,     ,     ,    ,     r, linear,
+R32_USCALED                 ,  32,  1,  1,  1, us32,     ,     ,     ,     ,     ,    ,     r, linear,
+B5G6R5_UNORM                ,  16,  1,  1,  1,  un5,  un6,  un5,     ,     ,     ,    ,   bgr, linear,
+B5G6R5_UNORM_SRGB           ,  16,  1,  1,  1,  un5,  un6,  un5,     ,     ,     ,    ,   bgr,   srgb,
+B5G5R5A1_UNORM              ,  16,  1,  1,  1,  un5,  un5,  un5,  un1,     ,     ,    ,  bgra, linear,
+B5G5R5A1_UNORM_SRGB         ,  16,  1,  1,  1,  un5,  un5,  un5,  un1,     ,     ,    ,  bgra,   srgb,
+B4G4R4A4_UNORM              ,  16,  1,  1,  1,  un4,  un4,  un4,  un4,     ,     ,    ,  bgra, linear,
+B4G4R4A4_UNORM_SRGB         ,  16,  1,  1,  1,  un4,  un4,  un4,  un4,     ,     ,    ,  bgra,   srgb,
+R8G8_UNORM                  ,  16,  1,  1,  1,  un8,  un8,     ,     ,     ,     ,    ,    rg, linear,
+R8G8_SNORM                  ,  16,  1,  1,  1,  sn8,  sn8,     ,     ,     ,     ,    ,    rg, linear,
+R8G8_SINT                   ,  16,  1,  1,  1,  si8,  si8,     ,     ,     ,     ,    ,    rg, linear,
+R8G8_UINT                   ,  16,  1,  1,  1,  ui8,  ui8,     ,     ,     ,     ,    ,    rg, linear,
+R16_UNORM                   ,  16,  1,  1,  1, un16,     ,     ,     ,     ,     ,    ,     r, linear,
+R16_SNORM                   ,  16,  1,  1,  1, sn16,     ,     ,     ,     ,     ,    ,     r, linear,
+R16_SINT                    ,  16,  1,  1,  1, si16,     ,     ,     ,     ,     ,    ,     r, linear,
+R16_UINT                    ,  16,  1,  1,  1, ui16,     ,     ,     ,     ,     ,    ,     r, linear,
+R16_FLOAT                   ,  16,  1,  1,  1, sf16,     ,     ,     ,     ,     ,    ,     r, linear,
+A8P8_UNORM_PALETTE0         ,  16,  1,  1,  1,     ,     ,     ,  un8,     ,     , un8,    ap, linear,
+A8P8_UNORM_PALETTE1         ,  16,  1,  1,  1,     ,     ,     ,  un8,     ,     , un8,    ap, linear,
+I16_UNORM                   ,  16,  1,  1,  1,     ,     ,     ,     ,     , un16,    ,     i, linear,
+L16_UNORM                   ,  16,  1,  1,  1,     ,     ,     ,     , un16,     ,    ,     l, linear,
+A16_UNORM                   ,  16,  1,  1,  1,     ,     ,     , un16,     ,     ,    ,     a, linear,
+L8A8_UNORM                  ,  16,  1,  1,  1,     ,     ,     ,  un8,  un8,     ,    ,    la, linear,
+I16_FLOAT                   ,  16,  1,  1,  1,     ,     ,     ,     ,     , sf16,    ,     i, linear,
+L16_FLOAT                   ,  16,  1,  1,  1,     ,     ,     ,     , sf16,     ,    ,     l, linear,
+A16_FLOAT                   ,  16,  1,  1,  1,     ,     ,     , sf16,     ,     ,    ,     a, linear,
+L8A8_UNORM_SRGB             ,  16,  1,  1,  1,     ,     ,     ,  un8,  un8,     ,    ,    la,   srgb,
+R5G5_SNORM_B6_UNORM         ,  16,  1,  1,  1,  sn5,  sn5,  un6,     ,     ,     ,    ,   rgb, linear,
+B5G5R5X1_UNORM              ,  16,  1,  1,  1,  un5,  un5,  un5,   x1,     ,     ,    ,  bgra, linear,
+B5G5R5X1_UNORM_SRGB         ,  16,  1,  1,  1,  un5,  un5,  un5,   x1,     ,     ,    ,  bgra,   srgb,
+R8G8_SSCALED                ,  16,  1,  1,  1,  ss8,  ss8,     ,     ,     ,     ,    ,    rg, linear,
+R8G8_USCALED                ,  16,  1,  1,  1,  us8,  us8,     ,     ,     ,     ,    ,    rg, linear,
+R16_SSCALED                 ,  16,  1,  1,  1, ss16,     ,     ,     ,     ,     ,    ,     r, linear,
+R16_USCALED                 ,  16,  1,  1,  1, us16,     ,     ,     ,     ,     ,    ,     r, linear,
+P8A8_UNORM_PALETTE0         ,  16,  1,  1,  1,     ,     ,     ,  un8,     ,     , un8,    pa, linear,
+P8A8_UNORM_PALETTE1         ,  16,  1,  1,  1,     ,     ,     ,  un8,     ,     , un8,    pa, linear,
+A1B5G5R5_UNORM              ,  16,  1,  1,  1,  un5,  un5,  un5,  un1,     ,     ,    ,  abgr, linear,
+A4B4G4R4_UNORM              ,  16,  1,  1,  1,  un4,  un4,  un4,  un4,     ,     ,    ,  abgr, linear,
+L8A8_UINT                   ,  16,  1,  1,  1,     ,     ,     ,  ui8,  ui8,     ,    ,    la, linear,
+L8A8_SINT                   ,  16,  1,  1,  1,     ,     ,     ,  si8,  si8,     ,    ,    la, linear,
+R8_UNORM                    ,   8,  1,  1,  1,  un8,     ,     ,     ,     ,     ,    ,     r, linear,
+R8_SNORM                    ,   8,  1,  1,  1,  sn8,     ,     ,     ,     ,     ,    ,     r, linear,
+R8_SINT                     ,   8,  1,  1,  1,  si8,     ,     ,     ,     ,     ,    ,     r, linear,
+R8_UINT                     ,   8,  1,  1,  1,  ui8,     ,     ,     ,     ,     ,    ,     r, linear,
+A8_UNORM                    ,   8,  1,  1,  1,     ,     ,     ,  un8,     ,     ,    ,     a, linear,
+I8_UNORM                    ,   8,  1,  1,  1,     ,     ,     ,     ,     ,  un8,    ,     i, linear,
+L8_UNORM                    ,   8,  1,  1,  1,     ,     ,     ,     ,  un8,     ,    ,     l, linear,
+P4A4_UNORM_PALETTE0         ,   8,  1,  1,  1,     ,     ,     ,  un4,     ,     , un4,    pa, linear,
+A4P4_UNORM_PALETTE0         ,   8,  1,  1,  1,     ,     ,     ,  un4,     ,     , un4,    ap, linear,
+R8_SSCALED                  ,   8,  1,  1,  1,  ss8,     ,     ,     ,     ,     ,    ,     r, linear,
+R8_USCALED                  ,   8,  1,  1,  1,  us8,     ,     ,     ,     ,     ,    ,     r, linear,
+P8_UNORM_PALETTE0           ,   8,  1,  1,  1,     ,     ,     ,     ,     ,     , un8,     p, linear,
+L8_UNORM_SRGB               ,   8,  1,  1,  1,     ,     ,     ,     ,  un8,     ,    ,     l,   srgb,
+P8_UNORM_PALETTE1           ,   8,  1,  1,  1,     ,     ,     ,     ,     ,     , un8,     p, linear,
+P4A4_UNORM_PALETTE1         ,   8,  1,  1,  1,     ,     ,     ,  un4,     ,     , un4,    pa, linear,
+A4P4_UNORM_PALETTE1         ,   8,  1,  1,  1,     ,     ,     ,  un4,     ,     , un4,    ap, linear,
+Y8_UNORM                    ,   8,  1,  1,  1,     ,  un8,     ,     ,     ,     ,    ,      ,    yuv,
+L8_UINT                     ,   8,  1,  1,  1,     ,     ,     ,     ,  ui8,     ,    ,     l, linear,
+L8_SINT                     ,   8,  1,  1,  1,     ,     ,     ,     ,  si8,     ,    ,     l, linear,
+I8_UINT                     ,   8,  1,  1,  1,     ,     ,     ,     ,     ,  ui8,    ,     i, linear,
+I8_SINT                     ,   8,  1,  1,  1,     ,     ,     ,     ,     ,  si8,    ,     i, linear,
+DXT1_RGB_SRGB               ,  64,  4,  4,  1,  un4,  un4,  un4,     ,     ,     ,    ,      ,   srgb,  dxt1
+R1_UNORM                    ,   1,  1,  1,  1,  un1,     ,     ,     ,     ,     ,    ,     r, linear,
+YCRCB_NORMAL                ,  16,  1,  1,  1,  un8,  un8,  un8,     ,     ,     ,    ,      ,    yuv,
+YCRCB_SWAPUVY               ,  16,  1,  1,  1,  un8,  un8,  un8,     ,     ,     ,    ,      ,    yuv,
+P2_UNORM_PALETTE0           ,   2,  1,  1,  1,     ,     ,     ,     ,     ,     , un2,     p, linear,
+P2_UNORM_PALETTE1           ,   2,  1,  1,  1,     ,     ,     ,     ,     ,     , un2,     p, linear,
+BC1_UNORM                   ,  64,  4,  4,  1,  un4,  un4,  un4,  un4,     ,     ,    ,      , linear,  dxt1
+BC2_UNORM                   , 128,  4,  4,  1,  un4,  un4,  un4,  un4,     ,     ,    ,      , linear,  dxt3
+BC3_UNORM                   , 128,  4,  4,  1,  un4,  un4,  un4,  un4,     ,     ,    ,      , linear,  dxt5
+BC4_UNORM                   ,  64,  4,  4,  1,  un8,     ,     ,     ,     ,     ,    ,      , linear, rgtc1
+BC5_UNORM                   , 128,  4,  4,  1,  un8,  un8,     ,     ,     ,     ,    ,      , linear, rgtc2
+BC1_UNORM_SRGB              ,  64,  4,  4,  1,  un4,  un4,  un4,  un4,     ,     ,    ,      ,   srgb,  dxt1
+BC2_UNORM_SRGB              , 128,  4,  4,  1,  un4,  un4,  un4,  un4,     ,     ,    ,      ,   srgb,  dxt3
+BC3_UNORM_SRGB              , 128,  4,  4,  1,  un4,  un4,  un4,  un4,     ,     ,    ,      ,   srgb,  dxt5
+MONO8                       ,   1,  1,  1,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,
+YCRCB_SWAPUV                ,  16,  1,  1,  1,  un8,  un8,  un8,     ,     ,     ,    ,      ,    yuv,
+YCRCB_SWAPY                 ,  16,  1,  1,  1,  un8,  un8,  un8,     ,     ,     ,    ,      ,    yuv,
+DXT1_RGB                    ,  64,  4,  4,  1,  un4,  un4,  un4,     ,     ,     ,    ,      , linear,  dxt1
+FXT1                        , 128,  8,  4,  1,  un4,  un4,  un4,     ,     ,     ,    ,      , linear,  fxt1
+R8G8B8_UNORM                ,  24,  1,  1,  1,  un8,  un8,  un8,     ,     ,     ,    ,   rgb, linear,
+R8G8B8_SNORM                ,  24,  1,  1,  1,  sn8,  sn8,  sn8,     ,     ,     ,    ,   rgb, linear,
+R8G8B8_SSCALED              ,  24,  1,  1,  1,  ss8,  ss8,  ss8,     ,     ,     ,    ,   rgb, linear,
+R8G8B8_USCALED              ,  24,  1,  1,  1,  us8,  us8,  us8,     ,     ,     ,    ,   rgb, linear,
+R64G64B64A64_FLOAT          , 256,  1,  1,  1, sf64, sf64, sf64, sf64,     ,     ,    ,  rgba, linear,
+R64G64B64_FLOAT             , 196,  1,  1,  1, sf64, sf64, sf64,     ,     ,     ,    ,   rgb, linear,
+BC4_SNORM                   ,  64,  4,  4,  1,  sn8,     ,     ,     ,     ,     ,    ,      , linear, rgtc1
+BC5_SNORM                   , 128,  4,  4,  1,  sn8,  sn8,     ,     ,     ,     ,    ,      , linear, rgtc2
+R16G16B16_FLOAT             ,  48,  1,  1,  1, sf16, sf16, sf16,     ,     ,     ,    ,   rgb, linear,
+R16G16B16_UNORM             ,  48,  1,  1,  1, un16, un16, un16,     ,     ,     ,    ,   rgb, linear,
+R16G16B16_SNORM             ,  48,  1,  1,  1, sn16, sn16, sn16,     ,     ,     ,    ,   rgb, linear,
+R16G16B16_SSCALED           ,  48,  1,  1,  1, ss16, ss16, ss16,     ,     ,     ,    ,   rgb, linear,
+R16G16B16_USCALED           ,  48,  1,  1,  1, us16, us16, us16,     ,     ,     ,    ,   rgb, linear,
+BC6H_SF16                   , 128,  4,  4,  1, sf16, sf16, sf16,     ,     ,     ,    ,      , linear,  bptc
+BC7_UNORM                   , 128,  4,  4,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      , linear,  bptc
+BC7_UNORM_SRGB              , 128,  4,  4,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  bptc
+BC6H_UF16                   , 128,  4,  4,  1, uf16, uf16, uf16,     ,     ,     ,    ,      , linear,  bptc
+PLANAR_420_8                ,   0,  0,  0,  0,     ,     ,     ,     ,     ,     ,    ,      ,    yuv,
+PLANAR_420_10               ,   0,  0,  0,  0,     ,     ,     ,     ,     ,     ,    ,      ,    yuv,
+PLANAR_420_12               ,   0,  0,  0,  0,     ,     ,     ,     ,     ,     ,    ,      ,    yuv,
+PLANAR_420_16               ,   0,  0,  0,  0,     ,     ,     ,     ,     ,     ,    ,      ,    yuv,
+R8G8B8_UNORM_SRGB           ,  24,  1,  1,  1,  un8,  un8,  un8,     ,     ,     ,    ,   rgb,   srgb,
+ETC1_RGB8                   ,  64,  4,  4,  1,  un8,  un8,  un8,     ,     ,     ,    ,      , linear,  etc1
+ETC2_RGB8                   ,  64,  4,  4,  1,  un8,  un8,  un8,     ,     ,     ,    ,      , linear,  etc2
+EAC_R11                     ,  64,  4,  4,  1, un11,     ,     ,     ,     ,     ,    ,      , linear,  etc2
+EAC_RG11                    , 128,  4,  4,  1, un11, un11,     ,     ,     ,     ,    ,      , linear,  etc2
+EAC_SIGNED_R11              ,  64,  4,  4,  1, sn11,     ,     ,     ,     ,     ,    ,      , linear,  etc2
+EAC_SIGNED_RG11             , 128,  4,  4,  1, sn11, sn11,     ,     ,     ,     ,    ,      , linear,  etc2
+ETC2_SRGB8                  ,  64,  4,  4,  1,  un8,  un8,  un8,     ,     ,     ,    ,      ,   srgb,  etc2
+R16G16B16_UINT              ,  48,  1,  1,  1, ui16, ui16, ui16,     ,     ,     ,    ,   rgb, linear,
+R16G16B16_SINT              ,  48,  1,  1,  1, si16, si16, si16,     ,     ,     ,    ,   rgb, linear,
+R32_SFIXED                  ,  32,  1,  1,  1, sx16,     ,     ,     ,     ,     ,    ,     r, linear,
+R10G10B10A2_SNORM           ,  32,  1,  1,  1, sn10, sn10, sn10,  sn2,     ,     ,    ,  rgba, linear,
+R10G10B10A2_USCALED         ,  32,  1,  1,  1, us10, us10, us10,  us2,     ,     ,    ,  rgba, linear,
+R10G10B10A2_SSCALED         ,  32,  1,  1,  1, ss10, ss10, ss10,  ss2,     ,     ,    ,  rgba, linear,
+R10G10B10A2_SINT            ,  32,  1,  1,  1, si10, si10, si10,  si2,     ,     ,    ,  rgba, linear,
+B10G10R10A2_SNORM           ,  32,  1,  1,  1, sn10, sn10, sn10,  sn2,     ,     ,    ,  rgba, linear,
+B10G10R10A2_USCALED         ,  32,  1,  1,  1, us10, us10, us10,  us2,     ,     ,    ,  rgba, linear,
+B10G10R10A2_SSCALED         ,  32,  1,  1,  1, ss10, ss10, ss10,  ss2,     ,     ,    ,  rgba, linear,
+B10G10R10A2_UINT            ,  32,  1,  1,  1, ui10, ui10, ui10,  ui2,     ,     ,    ,  rgba, linear,
+B10G10R10A2_SINT            ,  32,  1,  1,  1, si10, si10, si10,  si2,     ,     ,    ,  rgba, linear,
+R64G64B64A64_PASSTHRU       , 256,  1,  1,  1,  r64,  r64,  r64,  r64,     ,     ,    ,  rgba,       ,
+R64G64B64_PASSTHRU          , 192,  1,  1,  1,  r64,  r64,  r64,     ,     ,     ,    ,   rgb,       ,
+ETC2_RGB8_PTA               ,  64,  4,  4,  1,  un8,  un8,  un8,  un1,     ,     ,    ,      , linear,  etc2
+ETC2_SRGB8_PTA              ,  64,  4,  4,  1,  un8,  un8,  un8,  un1,     ,     ,    ,      ,   srgb,  etc2
+ETC2_EAC_RGBA8              , 128,  4,  4,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      , linear,  etc2
+ETC2_EAC_SRGB8_A8           , 128,  4,  4,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  etc2
+R8G8B8_UINT                 ,  24,  1,  1,  1,  ui8,  ui8,  ui8,     ,     ,     ,    ,   rgb, linear,
+R8G8B8_SINT                 ,  24,  1,  1,  1,  si8,  si8,  si8,     ,     ,     ,    ,   rgb, linear,
+RAW                         ,   0,  0,  0,  0,     ,     ,     ,     ,     ,     ,    ,      ,       ,
+ASTC_LDR_2D_4X4_U8SRGB      , 128,  4,  4,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_5X4_U8SRGB      , 128,  5,  4,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_5X5_U8SRGB      , 128,  5,  5,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_6X5_U8SRGB      , 128,  6,  5,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_6X6_U8SRGB      , 128,  6,  6,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_8X5_U8SRGB      , 128,  8,  5,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_8X6_U8SRGB      , 128,  8,  6,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_8X8_U8SRGB      , 128,  8,  8,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_10X5_U8SRGB     , 128, 10,  5,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_10X6_U8SRGB     , 128, 10,  6,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_10X8_U8SRGB     , 128, 10,  8,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_10X10_U8SRGB    , 128, 10, 10,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_12X10_U8SRGB    , 128, 12, 10,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_12X12_U8SRGB    , 128, 12, 12,  1,  un8,  un8,  un8,  un8,     ,     ,    ,      ,   srgb,  astc
+ASTC_LDR_2D_4X4_FLT16       , 128,  4,  4,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_5X4_FLT16       , 128,  5,  4,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_5X5_FLT16       , 128,  5,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_6X5_FLT16       , 128,  6,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_6X6_FLT16       , 128,  6,  6,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_8X5_FLT16       , 128,  8,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_8X6_FLT16       , 128,  8,  6,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_8X8_FLT16       , 128,  8,  8,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_10X5_FLT16      , 128, 10,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_10X6_FLT16      , 128, 10,  6,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_10X8_FLT16      , 128, 10,  8,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_10X10_FLT16     , 128, 10, 10,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_12X10_FLT16     , 128, 12, 10,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_LDR_2D_12X12_FLT16     , 128, 12, 12,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_4X4_FLT16       , 128,  4,  4,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_5X4_FLT16       , 128,  5,  4,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_5X5_FLT16       , 128,  5,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_6X5_FLT16       , 128,  6,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_6X6_FLT16       , 128,  6,  6,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_8X5_FLT16       , 128,  8,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_8X6_FLT16       , 128,  8,  6,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_8X8_FLT16       , 128,  8,  8,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_10X5_FLT16      , 128, 10,  5,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_10X6_FLT16      , 128, 10,  6,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_10X8_FLT16      , 128, 10,  8,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_10X10_FLT16     , 128, 10, 10,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_12X10_FLT16     , 128, 12, 10,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+ASTC_HDR_2D_12X12_FLT16     , 128, 12, 12,  1, sf16, sf16, sf16, sf16,     ,     ,    ,      , linear,  astc
+HIZ                         , 128,  8,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   hiz
+GFX125_HIZ                  , 128,  8,  8,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   hiz
+MCS_2X                      ,   8,  1,  1,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   mcs
+MCS_4X                      ,   8,  1,  1,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   mcs
+MCS_8X                      ,  32,  1,  1,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   mcs
+MCS_16X                     ,  64,  1,  1,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   mcs
+GFX7_CCS_32BPP_X            ,   1, 16,  2,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX7_CCS_64BPP_X            ,   1,  8,  2,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX7_CCS_128BPP_X           ,   1,  4,  2,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX7_CCS_32BPP_Y            ,   1,  8,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX7_CCS_64BPP_Y            ,   1,  4,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX7_CCS_128BPP_Y           ,   1,  2,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX9_CCS_32BPP              ,   2,  8,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX9_CCS_64BPP              ,   2,  4,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX9_CCS_128BPP             ,   2,  2,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX12_CCS_8BPP_Y0           ,   4, 32,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX12_CCS_16BPP_Y0          ,   4, 16,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX12_CCS_32BPP_Y0          ,   4,  8,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX12_CCS_64BPP_Y0          ,   4,  4,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs
+GFX12_CCS_128BPP_Y0         ,   4,  2,  4,  1,     ,     ,     ,     ,     ,     ,    ,      ,       ,   ccs

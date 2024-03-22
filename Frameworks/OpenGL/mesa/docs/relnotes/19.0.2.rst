@@ -1,0 +1,90 @@
+Mesa 19.0.2 Release Notes / April 10, 2019
+==========================================
+
+Mesa 19.0.2 is a bug fix release which fixes bugs found since the 19.0.1
+release.
+
+Mesa 19.0.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   SHA256: eb972fc11d4e1261d34ec0b91a701f158d4870c0428fb108353ae7eab64b1118  mesa-19.0.2.tar.gz
+   SHA256: 1a2edc3ce56906a676c91e6851298db45903df1f5cb9827395a922c1452db802  mesa-19.0.2.tar.xz
+
+New features
+------------
+
+Bug fixes
+---------
+
+-  `Bug 108766 <https://bugs.freedesktop.org/show_bug.cgi?id=108766>`__
+   - Mesa built with meson has RPATH entries
+-  `Bug 109648 <https://bugs.freedesktop.org/show_bug.cgi?id=109648>`__
+   - AMD Raven hang during va-api decoding
+-  `Bug 110257 <https://bugs.freedesktop.org/show_bug.cgi?id=110257>`__
+   - Major artifacts in mpeg2 vaapi hw decoding
+-  `Bug 110259 <https://bugs.freedesktop.org/show_bug.cgi?id=110259>`__
+   - radv: Sampling depth-stencil image in GENERAL layout returns
+   nothing but zero (regression, bisected)
+
+Changes
+-------
+
+Boyuan Zhang (1):
+
+-  st/va: reverse qt matrix back to its original order
+
+Caio Marcelo de Oliveira Filho (1):
+
+-  nir: Take if_uses into account when repairing SSA
+
+Dylan Baker (2):
+
+-  docs: Add SHA256 sums for mesa 19.0.1
+-  VERSION: bump version for 19.0.2
+
+Eric Anholt (3):
+
+-  dri3: Return the current swap interval from glXGetSwapIntervalMESA().
+-  v3d: Bump the maximum texture size to 4k for V3D 4.x.
+-  v3d: Don't try to use the TFU blit path if a scissor is enabled.
+
+Eric Engestrom (1):
+
+-  meson: strip rpath from megadrivers
+
+Faith Ekstrand (1):
+
+-  Revert "anv/radv: release memory allocated by glsl types during
+   spirv_to_nir"
+
+Karol Herbst (1):
+
+-  nir/print: fix printing the image_array intrinsic index
+
+Leo Liu (2):
+
+-  radeon/vcn: add H.264 constrained baseline support
+-  radeon/vcn/vp9: search the render target from the whole list
+
+Lionel Landwerlin (1):
+
+-  intel: add dependency on genxml generated files
+
+Marek Olšák (1):
+
+-  radeonsi: fix assertion failure by using the correct type
+
+Samuel Pitoiset (2):
+
+-  radv: skip updating depth/color metadata for conditional rendering
+-  radv: do not always initialize HTILE in compressed state

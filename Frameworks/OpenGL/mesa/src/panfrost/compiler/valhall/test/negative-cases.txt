@@ -1,0 +1,34 @@
+FADD.f32 r0, r1
+TEX.computed.2d.slot0 @r2, @r4:r5:r6:r7
+BRANCH
+BRANCH #0
+BRANCH #0, offset:
+BRANCH u0, offset:-123456789
+BRANCH u0, offset:123456789
+IADD_IMM.i32 r3, #12345
+FADD.v2f16 r0, r1, r0.h0
+MOV.i32.wait01.wait1 r0, r1
+MOV.i32.wait01.return r0, r1
+MOV.i32.reconverge.return r0, r1
+FROUND.f32.rtn.clamp_m1_1 r2, `r2.neg
+
+# An instruction may access no more than a single 64-bit uniform slot.
+FADD.f32 r0, u0, u4
+FADD.f32 r0, u5, u3
+FADD.f32 r0, u5, u6
+
+# An instruction may access no more than 64-bits of combined uniforms and constants.
+FMA.f32 r0, u0, u1, 0x0
+FMA.f32 r0, u0, 0x40490FDB, 0x0
+FMA.f32 r0, 0x3F317218, 0x40490FDB, 0x0
+
+# An instruction may access no more than a single special immediate (e.g. lane_id).
+IADD.u32 r0, lane_id, core_id
+IADD.u32 r0, lane_id, core_id
+IADD.u32 r0, tls_ptr, wls_ptr
+
+# If an instruction accesses multiple staging registers, they must be aligned
+# to a register pair.
+LOAD.i32.unsigned.slot0.wait0 @r1:r2, `r0, offset:0
+STORE.i32.slot0.reconverge @r3:r4:r5, `r2, offset:0
+STORE.i96.vary.slot0.return @r1:r2:r3:r4, `r4, offset:0

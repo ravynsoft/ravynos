@@ -1,0 +1,22 @@
+# Basic test set
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt", "install/freedreno-a630-asan-skips.txt"]
+fraction = 1000
+renderer_check = "Turnip Adreno .* 630"
+[deqp.env]
+# Disable leak checking as of CTS 1.3.3.0 because the CTS itself leaks memory
+ASAN_OPTIONS = "detect_leaks=0"
+
+# Force the spiller on one test so we see its memory usage.
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt", "install/freedreno-a630-asan-skips.txt"]
+include = ["dEQP-VK.graphicsfuzz.barrier-in-loop-with-break"]
+prefix = "spill-"
+[deqp.env]
+IR3_SHADER_DEBUG = "spillall"
+# Disable leak checking as of CTS 1.3.3.0 because the CTS itself leaks memory
+ASAN_OPTIONS = "detect_leaks=0"

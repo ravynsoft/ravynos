@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database xmlns="http://nouveau.freedesktop.org/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://nouveau.freedesktop.org/ rules-ng.xsd">
+<import file="freedreno_copyright.xml"/>
+
+<domain name="QFPROM" width="32">
+	<doc>
+		seems to be something external to display block, for finding
+		what features are enabled/supported?
+	</doc>
+	<reg32 offset="0x0238" name="CONFIG_ROW0_LSB">
+		<bitfield name="HDMI_DISABLE" pos="21" type="boolean"/>
+		<bitfield name="HDCP_DISABLE" pos="22" type="boolean"/>
+	</reg32>
+</domain>
+
+</database>

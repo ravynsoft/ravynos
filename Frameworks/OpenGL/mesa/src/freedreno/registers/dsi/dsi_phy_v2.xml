@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database xmlns="http://nouveau.freedesktop.org/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://nouveau.freedesktop.org/ rules-ng.xsd">
+<import file="freedreno_copyright.xml"/>
+
+<!-- These registers are used on the DSI hosts v2 to control PHY -->
+
+<domain name="DSI_PHY_8610" width="32">
+	<reg32 offset="0x00200" name="PHY_PLL_CTRL_0">
+		<bitfield name="ENABLE" pos="0" type="boolean"/>
+	</reg32>
+	<reg32 offset="0x00204" name="PHY_PLL_CTRL_1"/>
+	<reg32 offset="0x00208" name="PHY_PLL_CTRL_2"/>
+	<reg32 offset="0x0020c" name="PHY_PLL_CTRL_3"/>
+	<reg32 offset="0x00210" name="PHY_PLL_CTRL_4"/>
+	<reg32 offset="0x00214" name="PHY_PLL_CTRL_5"/>
+	<reg32 offset="0x00218" name="PHY_PLL_CTRL_6"/>
+	<reg32 offset="0x0021c" name="PHY_PLL_CTRL_7"/>
+	<reg32 offset="0x00220" name="PHY_PLL_CTRL_8"/>
+	<reg32 offset="0x00224" name="PHY_PLL_CTRL_9"/>
+	<reg32 offset="0x00228" name="PHY_PLL_CTRL_10"/>
+	<reg32 offset="0x0022c" name="PHY_PLL_CTRL_11"/>
+	<reg32 offset="0x00230" name="PHY_PLL_CTRL_12"/>
+	<reg32 offset="0x00234" name="PHY_PLL_CTRL_13"/>
+	<reg32 offset="0x00238" name="PHY_PLL_CTRL_14"/>
+	<reg32 offset="0x0023c" name="PHY_PLL_CTRL_15"/>
+	<reg32 offset="0x00240" name="PHY_PLL_CTRL_16"/>
+	<reg32 offset="0x00244" name="PHY_PLL_CTRL_17"/>
+	<reg32 offset="0x00248" name="PHY_PLL_CTRL_18"/>
+	<reg32 offset="0x0024c" name="PHY_PLL_CTRL_19"/>
+	<reg32 offset="0x00250" name="PHY_PLL_CTRL_20"/>
+
+	<reg32 offset="0x00280" name="PHY_PLL_STATUS">
+		<bitfield name="PLL_BUSY" pos="0" type="boolean"/>
+	</reg32>
+</domain>
+
+<domain name="DSI_PHY_8x60" width="32">
+	<reg32 offset="0x00258" name="PHY_TPA_CTRL_1"/>
+	<reg32 offset="0x0025c" name="PHY_TPA_CTRL_2"/>
+	<reg32 offset="0x00260" name="PHY_TIMING_CTRL_0"/>
+	<reg32 offset="0x00264" name="PHY_TIMING_CTRL_1"/>
+	<reg32 offset="0x00268" name="PHY_TIMING_CTRL_2"/>
+	<reg32 offset="0x0026c" name="PHY_TIMING_CTRL_3"/>
+	<reg32 offset="0x00270" name="PHY_TIMING_CTRL_4"/>
+	<reg32 offset="0x00274" name="PHY_TIMING_CTRL_5"/>
+	<reg32 offset="0x00278" name="PHY_TIMING_CTRL_6"/>
+	<reg32 offset="0x0027c" name="PHY_TIMING_CTRL_7"/>
+	<reg32 offset="0x00280" name="PHY_TIMING_CTRL_8"/>
+	<reg32 offset="0x00284" name="PHY_TIMING_CTRL_9"/>
+	<reg32 offset="0x00288" name="PHY_TIMING_CTRL_10"/>
+	<reg32 offset="0x0028c" name="PHY_TIMING_CTRL_11"/>
+	<reg32 offset="0x00290" name="PHY_CTRL_0"/>
+	<reg32 offset="0x00294" name="PHY_CTRL_1"/>
+	<reg32 offset="0x00298" name="PHY_CTRL_2"/>
+	<reg32 offset="0x0029c" name="PHY_CTRL_3"/>
+	<reg32 offset="0x002a0" name="PHY_STRENGTH_0"/>
+	<reg32 offset="0x002a4" name="PHY_STRENGTH_1"/>
+	<reg32 offset="0x002a8" name="PHY_STRENGTH_2"/>
+	<reg32 offset="0x002ac" name="PHY_STRENGTH_3"/>
+	<reg32 offset="0x002cc" name="PHY_REGULATOR_CTRL_0"/>
+	<reg32 offset="0x002d0" name="PHY_REGULATOR_CTRL_1"/>
+	<reg32 offset="0x002d4" name="PHY_REGULATOR_CTRL_2"/>
+	<reg32 offset="0x002d8" name="PHY_REGULATOR_CTRL_3"/>
+	<reg32 offset="0x002dc" name="PHY_REGULATOR_CTRL_4"/>
+
+	<reg32 offset="0x000f0" name="PHY_CAL_HW_TRIGGER"/>
+	<reg32 offset="0x000f4" name="PHY_CAL_CTRL"/>
+	<reg32 offset="0x000fc" name="PHY_CAL_STATUS">
+		<bitfield name="CAL_BUSY" pos="28" type="boolean"/>
+	</reg32>
+</domain>
+
+</database>

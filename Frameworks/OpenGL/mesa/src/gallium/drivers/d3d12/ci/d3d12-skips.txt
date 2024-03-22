@@ -1,0 +1,37 @@
+# The Windows piglit build doesn't produce any EGL/GLES tests
+gles
+opengl es
+egl
+glsl-es
+spec@oes
+
+# These are GLES extensions
+ext_clear_texture
+ext_disjoint_timer_query
+ext_draw_instanced
+ext_occlusion_query_boolean
+ext_render_snorm
+ext_texture_format_bgra8888
+ext_texture_norm16
+ext_unpack_subimage
+
+# These are Vulkan tests which aren't built on Windows either
+ext_external_objects@vk
+
+# Linux-specific extension
+ext_image_dma_buf_import
+
+# Requires EGL/GLES
+shaders@glsl-bug-110796
+amd_compressed_atc_texture
+intel_performance_query
+
+# This test will timeout and slows down the whole job, so just skip it
+spec@arb_tessellation_shader@arb_tessellation_shader-tes-gs-max-output
+spec@glsl-1.50@gs-max-output
+
+# The > symbol in a test name causes the log to be unable to be written
+>
+
+# This test requires glut
+windowoverlap

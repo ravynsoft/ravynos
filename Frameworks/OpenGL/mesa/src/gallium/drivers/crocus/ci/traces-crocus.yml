@@ -1,0 +1,185 @@
+%YAML 1.2
+---
+traces-db:
+  download-url: "https://s3.freedesktop.org/mesa-tracie-public/"
+
+traces:
+  0ad/0ad-v2.trace:
+    crocus-g41:
+      checksum: f4f723a73fde41b8a00a2a6518190adf
+    crocus-hsw:
+      checksum: 3ba17078e281e3d73a0e2d5d72ebf869
+  behdad-glyphy/glyphy-v2.trace:
+    crocus-g41:
+      label: [skip, flakes, broken]
+    crocus-hsw:
+      checksum: 49c62d99a21de18a3e184a57bf655849
+  glxgears/glxgears-2-v2.trace:
+    crocus-g41:
+      checksum: 18455018dcfa97f69c967f118551ae30
+    crocus-hsw:
+      checksum: f53ac20e17da91c0359c31f2fa3f401e
+  gputest/furmark-v2.trace:
+    crocus-g41:
+      checksum: c7c3df989f88852e88bef101b5c1dc22
+    crocus-hsw:
+      checksum: bb84373a69751942956d2320cff6dd1d
+  gputest/gimark-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      label: [skip, flakes]
+      text: lighting comes in from a different direction than on freedreno?
+  gputest/pixmark-julia-fp32-v2.trace:
+    crocus-g41:
+      checksum: 03776a063ee7049256acd414239a7f13
+    crocus-hsw:
+      checksum: dea71222007af1669cff54ce5e0b8c8d
+  gputest/pixmark-julia-fp64-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: 7e4948c361528a7873dad9712f629770
+  gputest/pixmark-piano-v2.trace:
+    crocus-g41:
+      label: [hang]
+    crocus-hsw:
+      label: [hang]
+  gputest/pixmark-volplosion-v2.trace:
+    crocus-g41:
+      checksum: 6fc94a69b9e1f38693ea3ed4f530c7da
+    crocus-hsw:
+      checksum: b96cddb97eb0cde8a388dad76d8dfef6
+  humus/AmbientAperture-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: 5686175a74f9ef6a3b13d30f1bd32b16
+  humus/CelShading-v2.trace:
+    crocus-g41:
+      checksum: 9b6e185ac8e8e67fc13d84f0ad6c3e3b
+    crocus-hsw:
+      checksum: 0f03835fd89b615542ece4bbb4712e48
+  humus/DynamicBranching3-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: 16e3458485d1ba75fe80f61f59d124be
+  humus/HDR-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: 0dfbc65adca38721831ffddf0ede2af6
+  humus/Portals-v2.trace:
+    crocus-g41:
+      checksum: b090e734ed332e259664851576925d7b
+    crocus-hsw:
+      checksum: 61ea77324581e86cf8d313fe3fb27270
+  humus/RaytracedShadows-v2.trace:
+    crocus-g41:
+      checksum: dbef340424f4f85eb8dc053ad3a56ae1
+    crocus-hsw:
+      checksum: bac350df35b9262efca6722faf5c4eaa
+  humus/VolumetricFogging2-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: a4f444b6ca337901ae080d8f2af812b4
+  neverball/neverball-v2.trace:
+    crocus-g41:
+      checksum: 0f14a88f511cd886c920238c80017e5d
+    crocus-hsw:
+      checksum: d77b3697a9b1a47611cde275aa6cb912
+      text: "https://gitlab.freedesktop.org/mesa/mesa/-/issues/9159"
+  paraview/pv-manyspheres-v2.trace:
+    crocus-hsw:
+      checksum: 73e5d34fb13268b0c7126297bfc34965
+  paraview/pv-waveletcontour-v2.trace:
+    crocus-hsw:
+      checksum: b384e3e81e4843fbd1d50e0c542e600a
+  paraview/pv-waveletvolume-v2.trace:
+    crocus-hsw:
+      checksum: 6ad068ac9f390bf42ab9e2db880ad07b
+  pathfinder/canvas_moire-v2.trace:
+    crocus-hsw:
+      checksum: 21bccd42f2deb6416cf6591cd6a99258
+  pathfinder/canvas_text_v2-v2.trace:
+    crocus-hsw:
+      checksum: 448886e3b24f6408e013ea13f7c96d28
+  pathfinder/demo-v2.trace:
+    crocus-hsw:
+      checksum: d9b33f0a2efe17c21b7933242afd9ec7
+  thedarkmod/thedarkmod-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      label: [skip, flakes]
+  supertuxkart/supertuxkart-mansion-egl-gles-v2.trace:
+    crocus-hsw:
+      checksum: c59dc93744d2dfcf172aa3f26ce2a62e
+  valve/counterstrike-v2.trace:
+    crocus-g41:
+      checksum: 90c01e73b3544cb477ac6109bc61bef1
+    crocus-hsw:
+      checksum: 0e1e52aaccd94a261cf9d8675039c41c
+  valve/counterstrike-source-v2.trace:
+    crocus-g41:
+      checksum: c51e21aada8e79fada36048e7d8de74a
+    crocus-hsw:
+      checksum: a78be6d590dd6c48bc6ad6090d88d9b3
+  valve/half-life-2-v2.trace:
+    crocus-g41:
+      checksum: c67b47eeefb2b7a3b6667844758d4a95
+    crocus-hsw:
+      checksum: 96dcdfa2fc7e64b8bd2da0ea7b854f6c
+  valve/portal-2-v2.trace:
+    crocus-g41:
+      checksum: fff536c4fb7753d5cf1896c4ad4c4452
+    crocus-hsw:
+      checksum: 3c9cea7f98d8e5ab93d69c4834b570c9
+  xonotic/xonotic-keybench-high-v2.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      label: [skip, flakes]
+  ror/ror-default.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: 197eba64053d9ef096a40950163adcce
+  nheko/nheko-colors.trace:
+    crocus-g41:
+      checksum: 3f4bfa1516e50194e4e86978420852c4
+    crocus-hsw:
+      checksum: 7a8b329f50653480eda50f53d715ad27
+  blender/blender-demo-cube_diorama.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      label: [skip, flakes]
+      checksum: f8cc19569c0c5a43cc4f16414167d234
+      text: Inconsistent rendering.
+  blender/blender-demo-ellie_pose.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: c07530897dc5a6882cbf35737334336b
+  unvanquished/unvanquished-lowest.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      label: [skip, flakes]
+      checksum: 884096b6dd40e2f500d0837501287fac
+      text: "https://gitlab.freedesktop.org/mesa/mesa/-/issues/7158"
+  unvanquished/unvanquished-ultra.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      label: [skip, flakes]
+      checksum: 99b3ec85e4b9335c3cffc49a63c0c62c
+      text: "Text glyphs render incorrectly sometimes."
+  warzone2100/warzone2100-default.trace:
+    crocus-g41:
+      label: [unsupported]
+    crocus-hsw:
+      checksum: 2548cf2f42ac7bbdf5d1b26fc2f1c5f5

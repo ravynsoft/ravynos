@@ -1,0 +1,76 @@
+Mesa 9.2.2 Release Notes / (October 18, 2013)
+=============================================
+
+Mesa 9.2.2 is a bug fix release which fixes bugs found since the 9.2.1
+release.
+
+Mesa 9.2 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   df801a975045150790e10e2ccf32193f  MesaLib-9.2.2.tar.gz
+   20887f8020db7d1736a01ae9cd5d8c38  MesaLib-9.2.2.tar.bz2
+   1676f4f1b157c838d077dadd31ba6c84  MesaLib-9.2.2.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 69449 <https://bugs.freedesktop.org/show_bug.cgi?id=69449>`__ -
+   Valgrind error in program_resource_visitor::recursion
+-  `Bug 70411 <https://bugs.freedesktop.org/show_bug.cgi?id=70411>`__ -
+   glInvalidateFramebuffer fails with GL_INVALID_ENUM
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.2.1..mesa-9.2.2
+
+Brian Paul (3):
+
+-  docs: add missing <pre> tag
+-  svga: fix incorrect memcpy src in svga_buffer_upload_piecewise()
+-  mesa: consolidate cube width=height error checking
+
+Carl Worth (3):
+
+-  docs: Add md5sums for 9.2.1 release
+-  Bump version to 9.2.2
+
+Constantin Baranov (1):
+
+-  mesa: Add missing switch break in invalidate_framebuffer_storage()
+
+Eric Anholt (3):
+
+-  i965: Don't forget the cube map padding on gen5+.
+-  mesa: Fix compiler warnings when ALIGN's alignment is "1 << value".
+-  i965: Fix 3D texture layout by more literally copying from the spec.
+
+Francisco Jerez (1):
+
+-  glsl: Fix usage of the wrong union member in
+   program_resource_visitor::recursion.
+
+Tom Stellard (1):
+
+-  radeonsi: Use 'SI' as the LLVM processor for CIK on LLVM <= 3.3

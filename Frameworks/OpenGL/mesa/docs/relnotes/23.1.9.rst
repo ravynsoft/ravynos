@@ -1,0 +1,154 @@
+Mesa 23.1.9 Release Notes / 2023-10-04
+======================================
+
+Mesa 23.1.9 is a bug fix release which fixes bugs found since the 23.1.8 release.
+
+Mesa 23.1.9 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.9 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    295ba27c28146ed09214e8ce79afa1659edf9d142decc3c91f804552d64f7510  mesa-23.1.9.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [ICL] piglit.spec.arb_gl_spirv.execution.ssbo.unsized-array regression
+- clc: compiler_test gets built even if unit tests are disabled via  -Dbuild-tests=false
+- radv: Star Wars The Old Republic hang when DCC is enabled
+- radv: Resident Evil 6 hangs 7900XTX GPU when DCC is enabled if in Options go to Display settings
+- radv: Resident Evil 6 Benchmark Tool hangs 7900 XTX GPU when DCC is enabled immediately after splash screen
+- RADV: Randomly dissapearing objects in Starfield with RX 5xx and Vega graphics
+- ANV: fp64 shader leaked
+- RadeonSI: glClear() causes clear texture for some frames on RX580
+
+
+Changes
+-------
+
+Christian Gmeiner (1):
+
+- isaspec: encode: Correct used regex
+
+Danylo Piliaiev (2):
+
+- tu/kgsl: Fix memory leak of tmp allocations during submissions
+- radv: fix unused non-xfb shader outputs not being removed
+
+Dave Airlie (1):
+
+- llvmpipe: reset viewport_index_slot in fb bind
+
+David Rosca (2):
+
+- frontends/va: Process VAEncSequenceParameterBufferType first in vaRenderPicture
+- frontends/va: Set default rate control values once when creating encoder
+
+Eric Engestrom (8):
+
+- docs: add sha256sum for 23.1.8
+- .pick_status.json: Update to 632792eca0f3befb2edec9e429e696b88001be0f
+- .pick_status.json: Mark 6d00c2f78cf651ef156c287368783ac6d0c40d50 as denominated
+- .pick_status.json: Update to e7d393b1d7b8fd9b39942d4c2e5b32c46ffffff7
+- .pick_status.json: Update to 6ea2ea0bb0e04ee658ed8ebb4e51515b2f4d20fb
+- .pick_status.json: Update to a2641ddf0dfba68f957e4d7d839d7b5bbd02aa62
+- .pick_status.json: Mark a0fba1731193c2475843ab704a2b053abdcaab43 as denominated
+- .pick_status.json: Mark 2be9b66cddbe56136adb95013f084b3d881b8b71 as denominated
+
+Georg Lehmann (2):
+
+- aco: fix p_extract with v1 dst and s1 operand
+- aco: implement 64bit div find_lsb
+
+Gert Wollny (1):
+
+- copyimage: check requested slice early when cube maps are involved
+
+Karmjit Mahil (1):
+
+- pvr: Fix dynamic desc offset storage
+
+Karol Herbst (1):
+
+- meson/rusticl: add sha1_h
+
+Kenneth Graunke (1):
+
+- mesa: Fix zeroing of new ParameterValues array entries when growing
+
+Konrad Dybcio (1):
+
+- freedreno: Include speedbin fallback in 690 chipid to fix probing
+
+Konstantin Seurer (1):
+
+- aco/spill: Make sure that offset stays in bounds
+
+Lionel Landwerlin (2):
+
+- intel: don't assume Linux minor dev node
+- iris: add missing workaround for 3DSTATE_LINE_STIPPLE
+
+Liviu Prodea (1):
+
+- microsoft/clc: Don't build compiler test if build-tests is false
+
+Marek Olšák (1):
+
+- ac/llvm: fix flat PS input corruption
+
+Mike Blumenkrantz (6):
+
+- zink: move swapchain fence to swapchain object
+- zink: avoid UAF on wayland async present with to-be-retired swapchain
+- zink: always trace_screen_unwrap in acquire
+- glx: XFree visual info
+- radv: fix external handle type queries for dmabuf/fd
+- zink: fix crashing in image rebinds
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- radeonsi: emit framebuffer state after allocating cmask
+
+Rhys Perry (1):
+
+- aco/optimizer_postRA: don't combine DPP across exec on GFX8/9
+
+Samuel Pitoiset (3):
+
+- radv: stop skip emitting CB states when there is no color attachment
+- radv: simplify the NGG vs legacy pipelinestat query path
+- radv: fix COMPUTE_SHADER_INVOCATIONS query on compute queue
+
+Tapani Pälli (2):
+
+- anv: fix a leak of fp64_nir shader
+- iris: flush data cache when flushing HDC on GFX < 12
+
+antonino (3):
+
+- vulkan: Extend vkGet/SetPrivateDataEXT handling to all platforms
+- vulkan: Extend vkGet/SetPrivateDataEXT handling to VkSurface
+- vulkan: Handle vkSetDebugUtilsObjectNameEXT on WSI objects
+
+wangra (1):
+
+- tu/kgsl: Fix bitfield of DITHER_MODE_MRT6

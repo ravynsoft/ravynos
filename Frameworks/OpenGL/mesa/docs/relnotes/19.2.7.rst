@@ -1,0 +1,81 @@
+Mesa 19.2.7 Release Notes / 2019-12-04
+======================================
+
+Mesa 19.2.7 is a bug fix release which fixes bugs found since the 19.2.6
+release.
+
+Mesa 19.2.7 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.2.7 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       e3799fb7896fd9ed2f90f651fb907b95cdebfbd494968ff116e6bf1be143579e  mesa-19.2.7.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  ld.lld: error: duplicate symbol (mesa-19.3.0-rc1)
+-  triangle strip clipping with GL_FIRST_VERTEX_CONVENTION causes wrong
+   vertex's attribute to be broadcasted for flat interpolation
+-  [bisected][regression][g45,g965,ilk] piglit arb_fragment_program kil
+   failures
+
+Changes
+-------
+
+Bas Nieuwenhuizen (2):
+
+-  radv: Allocate cmdbuffer space for buffer marker write.
+-  radv: Unify max_descriptor_set_size.
+
+Boris Brezillon (1):
+
+-  gallium: Fix the ->set_damage_region() implementation
+
+Ian Romanick (1):
+
+-  intel/fs: Disable conditional discard optimization on Gen4 and Gen5
+
+Faith Ekstrand (1):
+
+-  anv: Set up SBE_SWIZ properly for gl_Viewport
+
+Jonathan Gray (2):
+
+-  winsys/amdgpu: avoid double simple_mtx_unlock()
+-  i965: update Makefile.sources for perf changes
+
+Rhys Perry (1):
+
+-  radv: set writes_memory for global memory stores/atomics
+
+Samuel Pitoiset (3):
+
+-  radv: fix enabling sample shading with SampleID/SamplePosition
+-  radv/gfx10: fix implementation of exclusive scans
+-  radv: fix compute pipeline keys when optimizations are disabled
+
+Yevhenii Kolesnikov (1):
+
+-  meson: Fix linkage of libgallium_nine with libgalliumvl
+
+Zebediah Figura (1):
+
+-  Revert "draw: revert using correct order for prim decomposition."

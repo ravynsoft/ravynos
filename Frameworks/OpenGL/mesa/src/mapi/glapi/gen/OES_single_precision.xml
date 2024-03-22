@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- This is included by gl_and_es_API.xml.  Could be moved to gl_API.xml. -->
+
+<OpenGLAPI>
+
+<category name="GL_OES_single_precision" number="293">
+    <function name="ClearDepthfOES" alias="ClearDepthf" es1="1.0">
+        <param name="depth" type="GLclampf"/>
+    </function>
+
+    <function name="ClipPlanefOES" es1="1.0" alias="ClipPlanef">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="const GLfloat *"/>
+    </function>
+
+    <function name="DepthRangefOES" alias="DepthRangef" es1="1.0">
+        <param name="zNear" type="GLclampf"/>
+        <param name="zFar" type="GLclampf"/>
+    </function>
+
+    <function name="GetClipPlanefOES"
+              es1="1.0" desktop="false" alias="GetClipPlanef">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="GLfloat *"/>
+    </function>
+
+    <function name="FrustumfOES" es1="1.0" alias="Frustumf">
+        <param name="left" type="GLfloat"/>
+        <param name="right" type="GLfloat"/>
+        <param name="bottom" type="GLfloat"/>
+        <param name="top" type="GLfloat"/>
+        <param name="zNear" type="GLfloat"/>
+        <param name="zFar" type="GLfloat"/>
+    </function>
+
+    <function name="OrthofOES" es1="1.0" alias="Orthof">
+        <param name="left" type="GLfloat"/>
+        <param name="right" type="GLfloat"/>
+        <param name="bottom" type="GLfloat"/>
+        <param name="top" type="GLfloat"/>
+        <param name="zNear" type="GLfloat"/>
+        <param name="zFar" type="GLfloat"/>
+    </function>
+</category>
+
+</OpenGLAPI>

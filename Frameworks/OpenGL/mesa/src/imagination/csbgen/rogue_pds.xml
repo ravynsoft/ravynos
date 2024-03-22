@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+
+<!--
+Copyright © 2022 Imagination Technologies Ltd.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<csbgen name="ROGUE" prefix="PDSINST">
+
+  <enum name="CMODE_LD">
+    <value name="CACHED"          value="0"/>
+    <value name="BYPASS"          value="1"/>
+    <value name="FORCE_LINE_FILL" value="2"/>
+  </enum>
+
+  <enum name="DOUTD_DEST">
+    <value name="UNIFIED_STORE" value="0"/>
+    <value name="COMMON_STORE"  value="1"/>
+  </enum>
+
+  <enum name="DOUTI_SHADEMODEL">
+    <value name="FLAT_VERTEX0" value="0"/>
+    <value name="FLAT_VERTEX1" value="1"/>
+    <value name="FLAT_VERTEX2" value="2"/>
+    <value name="GOURUAD"      value="3"/>
+  </enum>
+
+  <enum name="DOUTI_SIZE">
+    <value name="1D" value="0"/>
+    <value name="2D" value="1"/>
+    <value name="3D" value="2"/>
+    <value name="4D" value="3"/>
+  </enum>
+
+  <enum name="DOUTU_SAMPLE_RATE">
+    <value name="INSTANCE"  value="0"/>
+    <value name="SELECTIVE" value="1"/>
+    <value name="FULL"      value="2"/>
+  </enum>
+
+  <enum name="SLC_MODE_LD">
+    <value name="BYPASS"       value="0"/>
+    <value name="CACHED"       value="1"/>
+    <value name="CACHED_RD_NA" value="3"/>
+  </enum>
+
+  <enum name="WORDSIZE">
+    <value name="ONE"   value="0"/>
+    <value name="TWO"   value="1"/>
+    <value name="THREE" value="2"/>
+    <value name="FOUR"  value="3"/>
+  </enum>
+
+  <struct name="DOUTU_SRC0" length="2">
+    <field name="dual_phase" start="41" end ="41" type="bool"/>
+    <field name="temps" start="35" end="40" type="uint">
+      <define name="UNIT_SIZE" value="2"/>
+    </field>
+    <field name="sample_rate" start="33" end="34" type="DOUTU_SAMPLE_RATE"/>
+    <field name="exe_off" start="2" end="31" shift="2" type="address"/>
+  </struct>
+
+  <struct name="DOUT_FIELDS_DOUTD_SRC0" length="2">
+    <condition type="if" check="SLC_MCU_CACHE_CONTROLS"/>
+      <field name="slcmode" start="60" end="61" type="SLC_MODE_LD"/>
+    <condition type="endif" check="SLC_MCU_CACHE_CONTROLS"/>
+    <field name="doffset" start="40" end="52" type="uint"/>
+    <field name="sbase" start="0" end="39" shift="0" type="address"/>
+  </struct>
+
+  <struct name="DOUT_FIELDS_DOUTD_SRC1" length="1">
+    <field name="last" start="31" end="31" type="bool"/>
+    <field name="wordsize" start="29" end="30" type="WORDSIZE"/>
+    <field name="dest" start="28" end="28" type="DOUTD_DEST"/>
+    <field name="cmode" start="26" end="27" type="CMODE_LD"/>
+    <field name="a0" start="13" end="25" type="uint">
+      <define name="UNIT_SIZE" value="4"/>
+    </field>
+    <field name="repeat" start="12" end="12" type="bool"/>
+    <field name="bsize" start="0" end="11" type="uint"/>
+  </struct>
+
+  <struct name="DOUT_FIELDS_DOUTI_SRC" length="1">
+    <field name="depthbias" start="27" end="27" type="bool"/>
+    <field name="primitiveid" start="26" end="26" type="bool"/>
+    <field name="shademodel" start="24" end="25" type="DOUTI_SHADEMODEL"/>
+    <field name="pointsprite" start="23" end="23" type="bool"/>
+    <field name="wraps" start="22" end="22" type="bool"/>
+    <field name="wrapv" start="21" end="21" type="bool"/>
+    <field name="wrapu" start="20" end="20" type="bool"/>
+    <field name="size" start="18" end="19" type="DOUTI_SIZE"/>
+    <field name="f16" start="17" end="17" type="bool"/>
+    <field name="perspective" start="16" end="16" type="bool"/>
+    <field name="f32_offset" start="8" end="15" type="uint"/>
+    <field name="f16_offset" start="0" end="7" type="uint"/>
+  </struct>
+
+</csbgen>

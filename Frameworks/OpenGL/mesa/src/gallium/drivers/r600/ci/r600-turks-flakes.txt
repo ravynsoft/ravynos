@@ -1,0 +1,27 @@
+# Sometimes passes.
+KHR-GLES31.core.compute_shader.pipeline-compute-chain
+KHR-GLES31.core.shader_atomic_counters.advanced-usage-many-dispatches
+KHR-GLES31.core.shader_atomic_counters.advanced-usage-many-draw-calls2
+
+# Occasional "args_equal: Assertion `l.size() == r.size()' failed."
+dEQP-GLES31.functional.shaders.opaque_type_indexing.ubo.uniform_geometry
+spec@arb_gpu_shader5@execution@ubo_array_indexing@fs-nonuniform-control-flow
+
+spec@arb_shader_atomic_counter_ops@execution@all_touch_test
+
+spec@arb_shader_image_load_store@host-mem-barrier@Atomic counter/RaW/full barrier test/16x16
+spec@arb_shader_image_load_store@host-mem-barrier@Element array/RaW/full barrier test/16x16
+spec@arb_shader_image_load_store@host-mem-barrier@Element array/RaW/full barrier test/4x4
+spec@arb_shader_image_load_store@host-mem-barrier@Uniform buffer/RaW/one bit barrier test/64x64
+spec@arb_shader_image_load_store@invalid@
+
+# Unclear if just parallel issues, but GPU timestamps seem to run a bit fast.
+spec@arb_timer_query@timestamp-get
+spec@ext_timer_query@time-elapsed
+
+spec@arb_texture_cube_map_array@texturesize@tes-texturesize-samplercubearrayshadow
+spec@glsl-1.50@execution@texturesize@tes-texturesize-sampler1darrayshadow
+spec@glsl-1.50@execution@texturesize@tes-texturesize-sampler1dshadow
+spec@glsl-1.50@execution@texturesize@tes-texturesize-sampler2darrayshadow
+spec@glsl-1.50@execution@texturesize@tes-texturesize-sampler2dshadow
+spec@glsl-1.50@execution@texturesize@tes-texturesize-samplercubeshadow

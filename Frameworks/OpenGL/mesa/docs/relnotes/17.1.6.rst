@@ -1,0 +1,187 @@
+Mesa 17.1.6 Release Notes / August 7, 2017
+==========================================
+
+Mesa 17.1.6 is a bug fix release which fixes bugs found since the 17.1.5
+release.
+
+Mesa 17.1.6 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   971831bc1e748b3e8367eee6b9eb509bad2970e3c2f8520ad25f5caa12ca5491  mesa-17.1.6.tar.gz
+   0686deadde1f126b20aa67e47e8c50502043eee4ecdf60d5009ffda3cebfee50  mesa-17.1.6.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 97957 <https://bugs.freedesktop.org/show_bug.cgi?id=97957>`__ -
+   Awful screen tearing in a separate X server with DRI3
+-  `Bug 101683 <https://bugs.freedesktop.org/show_bug.cgi?id=101683>`__
+   - Some games hang while loading when compositing is shut off or
+   absent
+-  `Bug 101867 <https://bugs.freedesktop.org/show_bug.cgi?id=101867>`__
+   - Launch options window renders black in Feral Games in current Mesa
+   trunk
+
+Changes
+-------
+
+Andres Gomez (1):
+
+-  docs: add sha256 checksums for 17.1.5
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Don't underflow non-visible VRAM size.
+
+Brian Paul (1):
+
+-  svga: fix texture swizzle writemasking
+
+Chad Versace (1):
+
+-  anv/image: Fix VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT
+
+Chris Wilson (1):
+
+-  i965: Resolve framebuffers before signaling the fence
+
+Connor Abbott (1):
+
+-  nir: fix algebraic optimizations
+
+Daniel Stone (1):
+
+-  st/dri: Check get-handle return value in queryImage
+
+Dave Airlie (5):
+
+-  radv: fix non-0 based layer clears.
+-  radv: fix buffer views on SI/CIK.
+-  radv/ac: realign SI workaround with radeonsi.
+-  radv/ac: port SI TC L1 write corruption fix.
+-  radv: for stencil only set Z tile mode index to same value
+
+Emil Velikov (23):
+
+-  cherry-ignore: add "anv: Round u_vector element sizes to a power of
+   two"
+-  anv: advertise v6 of the wayland surface extension
+-  radv: advertise v6 of the wayland surface extension
+-  swrast: add dri2ConfigQueryExtension to the correct extension list
+-  cherry-ignore: add "anv: Transition MCS buffers from the undefined
+   layout"
+-  swr: don't forget to link AVX/AVX2 against pthreads
+-  cherry-ignore: add "i965: Fix offset addition in get_isl_surf"
+-  cherry-ignore: add "i965: Fix = vs == in MCS aux usage assert."
+-  cherry-ignore: add a couple of radeon commits
+-  cherry-ignore: add "swr/rast: non-regex knob fallback code for gcc <
+   4.9"
+-  cherry-ignore: add "swr: fix transform feedback logic"
+-  cherry-ignore: add a couple of radeonsi/gfx9 commits
+-  cherry-ignore: ignore reverted st/mesa commit
+-  cherry-ignore: add bindless textures fix
+-  cherry-ignore: add "st/glsl_to_tgsi: fix getting the image type for
+   array of structs"
+-  cherry-ignore: add yet another bindless textures fix
+-  bin/cherry-ignore: add radeonsi "fix of a fix"
+-  travis: lower SWR requirement to GCC 4.8, aka std=c++11
+-  i965: use strtol to convert the integer deviceID override
+-  swr: remove unneeded fallback strcasecmp define
+-  cherry-ignore: add a bunch more commits to the list
+-  fixup! cherry-ignore: add a bunch more commits to the list
+-  Update version to 17.1.6
+
+Eric Anholt (1):
+
+-  broadcom/vc4: Prefer blit via rendering to the software fallback.
+
+Eric Engestrom (1):
+
+-  configure: only install khrplatform.h if needed
+
+Iago Toral Quiroga (2):
+
+-  anv/cmd_buffer: fix off by one error in assertion
+-  anv: only expose up to 28 vertex attributes
+
+Ilia Mirkin (1):
+
+-  nv50/ir: fix threads calculation for non-compute shaders
+
+Faith Ekstrand (5):
+
+-  anv/cmd_buffer: Properly handle render passes with 0 attachments
+-  anv: Stop leaking the no_aux sampler surface state
+-  anv/image: Add INPUT_ATTACHMENT to the list of required usages
+-  nir/vars_to_ssa: Handle missing struct members in foreach_deref_node
+-  spirv: Fix SpvImageFormatR16ui
+
+Juan A. Suarez Romero (2):
+
+-  anv/pipeline: use unsigned long long constant to check enable vertex
+   inputs
+-  anv/pipeline: do not use BITFIELD64_BIT()
+
+Kenneth Graunke (1):
+
+-  nir: Use nir_src_copy instead of direct assignments.
+
+Lionel Landwerlin (1):
+
+-  i965: perf: flush batchbuffers at the beginning of queries
+
+Lucas Stach (1):
+
+-  etnaviv: fix memory leak when BO allocation fails
+
+Marek Olšák (2):
+
+-  st/mesa: always unconditionally revalidate main framebuffer after
+   SwapBuffers
+-  gallium/radeon: make S_FIXED function signed and move it to shared
+   code
+
+Mark Thompson (1):
+
+-  st/va: Fix scaling list ordering for H.265
+
+Nicolai Hähnle (4):
+
+-  radeonsi/gfx9: fix crash building monolithic merged ES-GS shader
+-  radeonsi: fix detection of DRAW_INDIRECT_MULTI on SI
+-  radeonsi/gfx9: reduce max threads per block to 1024 on gfx9+
+-  gallium/radeon: fix ARB_query_buffer_object conversion to boolean
+
+Thomas Hellstrom (2):
+
+-  loader/dri3: Use dri3_find_back in loader_dri3_swap_buffers_msc
+-  dri3: Wait for all pending swapbuffers to be scheduled before
+   touching the front
+
+Tim Rowley (3):
+
+-  gallium/util: fix nondeterministic avx512 detection
+-  swr/rast: quit using linux-specific gettid()
+-  swr/rast: fix scons gen_knobs.h dependency
+
+Timothy Arceri (1):
+
+-  nir: fix nir_opt_copy_prop_vars() for arrays of arrays
+
+Wladimir J. van der Laan (1):
+
+-  etnaviv: Clear lbl_usage array correctly

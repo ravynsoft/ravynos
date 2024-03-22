@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_EXT_shader_image_load_store" number="386">
+
+<enum name="VERTEX_ATTRIB_ARRAY_BARRIER_BIT_EXT" value="0x00000001"/>
+<enum name="ELEMENT_ARRAY_BARRIER_BIT_EXT" value="0x00000002"/>
+<enum name="UNIFORM_BARRIER_BIT_EXT" value="0x00000004"/>
+<enum name="TEXTURE_FETCH_BARRIER_BIT_EXT" value="0x00000008"/>
+<enum name="SHADER_IMAGE_ACCESS_BARRIER_BIT_EXT" value="0x00000020"/>
+<enum name="COMMAND_BARRIER_BIT_EXT" value="0x00000040"/>
+<enum name="PIXEL_BUFFER_BARRIER_BIT_EXT" value="0x00000080"/>
+<enum name="TEXTURE_UPDATE_BARRIER_BIT_EXT" value="0x00000100"/>
+<enum name="BUFFER_UPDATE_BARRIER_BIT_EXT" value="0x00000200"/>
+<enum name="FRAMEBUFFER_BARRIER_BIT_EXT" value="0x00000400"/>
+<enum name="TRANSFORM_FEEDBACK_BARRIER_BIT_EXT" value="0x00000800"/>
+<enum name="ATOMIC_COUNTER_BARRIER_BIT_EXT" value="0x00001000"/>
+<enum name="ALL_BARRIER_BITS_EXT" value="0xFFFFFFFF"/>
+<enum name="MAX_IMAGE_UNITS_EXT_EXT" value="0x8F38"/>
+<enum name="MAX_COMBINED_IMAGE_UNITS_AND_FRAGMENT_OUTPUTS_EXT" value="0x8F39"/>
+<enum name="IMAGE_BINDING_NAME_EXT" value="0x8F3A"/>
+<enum name="IMAGE_BINDING_LEVEL_EXT" value="0x8F3B"/>
+<enum name="IMAGE_BINDING_LAYERED_EXT" value="0x8F3C"/>
+<enum name="IMAGE_BINDING_LAYER_EXT" value="0x8F3D"/>
+<enum name="IMAGE_BINDING_ACCESS_EXT" value="0x8F3E"/>
+<enum name="IMAGE_1D_EXT" value="0x904C"/>
+<enum name="IMAGE_2D_EXT" value="0x904D"/>
+<enum name="IMAGE_3D_EXT" value="0x904E"/>
+<enum name="IMAGE_2D_RECT_EXT" value="0x904F"/>
+<enum name="IMAGE_CUBE_EXT" value="0x9050"/>
+<enum name="IMAGE_BUFFER_EXT" value="0x9051"/>
+<enum name="IMAGE_1D_ARRAY_EXT" value="0x9052"/>
+<enum name="IMAGE_2D_ARRAY_EXT" value="0x9053"/>
+<enum name="IMAGE_CUBE_MAP_ARRAY_EXT" value="0x9054"/>
+<enum name="IMAGE_2D_MULTISAMPLE_EXT" value="0x9055"/>
+<enum name="IMAGE_2D_MULTISAMPLE_ARRAY_EXT" value="0x9056"/>
+<enum name="INT_IMAGE_1D_EXT" value="0x9057"/>
+<enum name="INT_IMAGE_2D_EXT" value="0x9058"/>
+<enum name="INT_IMAGE_3D_EXT" value="0x9059"/>
+<enum name="INT_IMAGE_2D_RECT_EXT" value="0x905A"/>
+<enum name="INT_IMAGE_CUBE_EXT" value="0x905B"/>
+<enum name="INT_IMAGE_BUFFER_EXT" value="0x905C"/>
+<enum name="INT_IMAGE_1D_ARRAY_EXT" value="0x905D"/>
+<enum name="INT_IMAGE_2D_ARRAY_EXT" value="0x905E"/>
+<enum name="INT_IMAGE_CUBE_MAP_ARRAY_EXT" value="0x905F"/>
+<enum name="INT_IMAGE_2D_MULTISAMPLE_EXT" value="0x9060"/>
+<enum name="INT_IMAGE_2D_MULTISAMPLE_ARRAY_EXT" value="0x9061"/>
+<enum name="UNSIGNED_INT_IMAGE_1D_EXT" value="0x9062"/>
+<enum name="UNSIGNED_INT_IMAGE_2D_EXT" value="0x9063"/>
+<enum name="UNSIGNED_INT_IMAGE_3D_EXT" value="0x9064"/>
+<enum name="UNSIGNED_INT_IMAGE_2D_RECT_EXT" value="0x9065"/>
+<enum name="UNSIGNED_INT_IMAGE_CUBE_EXT" value="0x9066"/>
+<enum name="UNSIGNED_INT_IMAGE_BUFFER_EXT" value="0x9067"/>
+<enum name="UNSIGNED_INT_IMAGE_1D_ARRAY_EXT" value="0x9068"/>
+<enum name="UNSIGNED_INT_IMAGE_2D_ARRAY_EXT" value="0x9069"/>
+<enum name="UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY_EXT" value="0x906A"/>
+<enum name="UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_EXT" value="0x906B"/>
+<enum name="UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY_EXT" value="0x906C"/>
+<enum name="MAX_IMAGE_SAMPLES_EXT" value="0x906D"/>
+<enum name="IMAGE_BINDING_FORMAT_EXT" value="0x906E"/>
+
+<function name="BindImageTextureEXT">
+  <param name="index" type="GLuint"/>
+  <param name="texture" type="GLuint"/>
+  <param name="level" type="GLint"/>
+  <param name="layered" type="GLboolean"/>
+  <param name="layer" type="GLint"/>
+  <param name="access" type="GLenum"/>
+  <param name="format" type="GLint"/>
+</function>
+
+<function name="MemoryBarrierEXT" alias="MemoryBarrier" >
+  <param name="barriers" type="GLbitfield"/>
+</function>
+
+</category>
+
+</OpenGLAPI>

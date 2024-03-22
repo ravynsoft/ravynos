@@ -1,0 +1,105 @@
+Mesa 6.5.3 Release Notes / April 27, 2007
+=========================================
+
+Mesa 6.5.3 is a development release with many changes and new features.
+Mesa 7.0 is expected to follow shortly.
+
+MD5 checksums
+-------------
+
+::
+
+   39f33ea64e34e2d5b20640b008b57649  MesaLib-6.5.3.tar.gz
+   46359457147c469745f24b5074a186f0  MesaLib-6.5.3.tar.bz2
+   a8946fa861634ce15971396f47992c41  MesaLib-6.5.3.zip
+   08e26948d57eaca74d02a530b2d8106e  MesaDemos-6.5.3.tar.gz
+   8af91773ab2653fe537499676b05f2e8  MesaDemos-6.5.3.tar.bz2
+   783f81b171bf89b0929abc894efd25a6  MesaDemos-6.5.3.zip
+   9467d415388fe1ad82991fb20704b812  MesaGLUT-6.5.3.tar.gz
+   360843e46b7ebb6909290b023f9b26fa  MesaGLUT-6.5.3.tar.bz2
+   7686065e5c15a30de08a1610860b6840  MesaGLUT-6.5.3.zip
+
+Shared library numbering
+------------------------
+
+Mesa 6.5.3 supports the OpenGL 2.0/2.1 API. However, the (unix) shared
+library version is still 1.5 (i.e. libGL.so.1.5.xxxxxx). Bumping the
+shared library version to 2.x would cause linking problems with existing
+OpenGL applications. Since OpenGL 2.x is backward compatible with OpenGL
+1.x the shared library version number doesn't have to be incremented
+(which would indicate an incompatible ABI).
+
+Other OpenGL vendors name their OpenGL 2.x libraries libGL.so.1.0.xxxxx
+for the same reason.
+
+New features
+------------
+
+-  OpenGL 2.0 and 2.1 API support.
+-  Entirely new Shading Language code generator. See the :doc:`Shading
+   Language <../shading>` page for more information.
+-  Much faster software execution of vertex, fragment shaders.
+-  New vertex buffer object (vbo) infrastructure
+-  Updated glext.h file (version 39)
+-  Updated glxext.h file (version 19)
+-  GL_MAX_DRAWBUFFERS is now 4 (software rendering) so "multiple render
+   targets" are really supported.
+
+Bug fixes
+---------
+
+-  Fog was errantly applied when a fragment shader was enabled (bug
+   9346)
+-  glPush/PopClientAttrib didn't handle VBO bindings correctly (bug
+   9445)
+-  With 32-bit Z buffer, the fragment Z of lines and points was
+   sometimes wrong.
+-  GL_POST_CONVOLUTION_ALPHA_BIAS/SCALE was broken.
+-  1D convolution state could effect 2D image transfers
+-  Overlapping glCopyPixels with negative Y zoom didn't work (bug 10521)
+-  Fixed a number of framebuffer/renderbuffer reference counting bugs
+-  Fixed a few bugs in software-emulated alpha planes
+-  Assorted minor bug fixes in glCopy/DrawPixels, glPixelZoom, etc.
+-  Assorted DRI driver bug fixes.
+-  Fixed a number of bugs that prevented "depth-peeling" rendering from
+   working.
+
+Internal code changes
+---------------------
+
+-  Old array_cache module replaced by new vbo module. All geometry
+   rendering is now cast in the form of vertex buffer objects.
+-  Massive changes to the Shading Language compiler and related state.
+-  Vertex/fragment shaders are compiled into GPU instructions and
+   programs very similar to GL_ARB_vertex/fragment_program.
+-  Vertex and fragment programs are executed with the same code now.
+-  The SSE-optimized vertex program path has been removed since it
+   didn't support more than 12 temp registers, didn't support
+   branching/looping, etc.
+
+To Do (someday) items
+---------------------
+
+-  Switch to freeglut
+-  Fix linux-glide target/driver.
+-  Improved lambda and derivative calculation for frag progs.
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

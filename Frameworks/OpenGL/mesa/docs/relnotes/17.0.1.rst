@@ -1,0 +1,180 @@
+Mesa 17.0.1 Release Notes / March 4, 2017
+=========================================
+
+Mesa 17.0.1 is a bug fix release which fixes bugs found since the 17.0.0
+release.
+
+Mesa 17.0.1 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   e819bd3e515dac26faf9836d8f27a4ddf05323b9b23afb6c06536d4ac82e2743  mesa-17.0.1.tar.gz
+   96fd70ef5f31d276a17e424e7e1bb79447ccbbe822b56844213ef932e7ad1b0c  mesa-17.0.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 98869 <https://bugs.freedesktop.org/show_bug.cgi?id=98869>`__ -
+   Electronic Super Joy graphic artefacts (regression,bisected)
+-  `Bug 99532 <https://bugs.freedesktop.org/show_bug.cgi?id=99532>`__ -
+   Compute shader doesn't give right result under some circumstances
+-  `Bug 99677 <https://bugs.freedesktop.org/show_bug.cgi?id=99677>`__ -
+   heap-use-after-free in glsl
+-  `Bug 99692 <https://bugs.freedesktop.org/show_bug.cgi?id=99692>`__ -
+   [radv] Mostly broken on Hawaii PRO/CIK ASICs
+-  `Bug 99850 <https://bugs.freedesktop.org/show_bug.cgi?id=99850>`__ -
+   Tessellation bug on Carrizo
+
+Changes
+-------
+
+Bas Nieuwenhuizen (4):
+
+-  radv: Never try to create more than max_sets descriptor sets.
+-  radv: Reset emitted compute pipeline when calling secondary cmd
+   buffer.
+-  radv: Only use PKT3_OCCLUSION_QUERY when it doesn't hang.
+-  radv: Use correct size for availability flag.
+
+Ben Crocker (3):
+
+-  gallivm: Reenable PPC VSX (v3)
+-  gallivm: Improve debug output (V2)
+-  gallivm: Override getHostCPUName() "generic" w/ "pwr8" (v4)
+
+Brendan King (1):
+
+-  egl/dri3: implement query surface hook
+
+Christian Gmeiner (2):
+
+-  etnaviv: move pctx initialisation to avoid a null dereference
+-  etnaviv: remove number of pixel pipes validation
+
+Connor Abbott (1):
+
+-  anv: fix Get*MemoryRequirements for !LLC
+
+Daniel Stone (1):
+
+-  egl/wayland: Don't use DRM format codes for SHM
+
+Dave Airlie (6):
+
+-  tgsi: fix memory leak in tgsi sanity check
+-  radv: change base aligmment for allocated memory.
+-  radv: fix cik macroModeIndex.
+-  radv: adopt some init config workarounds from radeonsi.
+-  radv: fix depth format in blit2d.
+-  radv: fix txs for sampler buffers
+
+Emil Velikov (8):
+
+-  docs: add sha256 checksums for 17.0.0
+-  bin/get-extra-pick-list: use git merge-base to get the branchpoint
+-  bin/get-extra-pick-list: rework to use already_picked list
+-  bin/get-typod-pick-list.sh: limit \`git grep ...' to only as needed
+-  bin/get-pick-list.sh: limit \`git grep ...' only as needed
+-  bin/get-pick-list.sh: remove ancient way of nominating patches
+-  bin/get-fixes-pick-list.sh: add new script
+-  Update version to 17.0.1
+
+Eric Anholt (1):
+
+-  vc4: Avoid emitting small immediates for UBO indirect load address
+   guards.
+
+Grazvydas Ignotas (3):
+
+-  r300g: only allow byteswapped formats on big endian
+-  gallium/u_queue: fix a crash with atexit handlers
+-  gallium/u_queue: set num_threads correctly if not all threads start
+
+Hans de Goede (1):
+
+-  glx/glvnd: Fix GLXdispatchIndex sorting
+
+Ilia Mirkin (4):
+
+-  gm107/ir: fix address offset bitfield for ATOMS
+-  nvc0: set the render condition in the compute object
+-  st/mesa: don't pass compare mode for stencil-sampled textures
+-  nvc0: disable linked tsc mode in compute launch descriptor
+
+Faith Ekstrand (10):
+
+-  i965/sampler_state: Clamp min/max LOD to 14 on gen7+
+-  i965/sampler_state: Pass texObj into update_sampler_state
+-  i965/sampler_state: Set the "Base Mip Level" field on Sandy Bridge
+-  intel/blorp: Swizzle clear colors on the CPU
+-  i965/fs: Fix the inline nir_op_pack_double optimization
+-  anv: Add an invalidate_range helper
+-  anv/query: clflush the bo map on non-LLC platforms
+-  genxml: Make MI_STORE_DATA_IMM more consistent
+-  anv/query: Perform CmdResetQueryPool on the GPU
+-  intel/blorp: Explicitly flush all allocated state
+
+Jose Maria Casanova Crespo (1):
+
+-  glsl: non-last member unsized array on SSBO must fail compilation on
+   GLSL ES 3.1
+
+Kenneth Graunke (1):
+
+-  mesa: Do (TCS && !TES) draw time validation in ES as well.
+
+Leo Liu (1):
+
+-  configure.ac: check require_basic_egl only if egl enabled
+
+Lionel Landwerlin (2):
+
+-  anv: wsi: report presentation error per image request
+-  i965/fs: fix uninitialized memory access
+
+Marek Olšák (6):
+
+-  radeonsi: fix UNSIGNED_BYTE index buffer fallback with non-zero start
+   (v2)
+-  gallium/util: remove unused u_index_modify helpers
+-  gallium/u_index_modify: don't add PIPE_TRANSFER_UNSYNCHRONIZED
+   unconditionally
+-  gallium/u_queue: fix random crashes when the app calls exit()
+-  radeonsi: fix broken tessellation on Carrizo and Stoney
+-  amd/common: fix ASICREV_IS_POLARIS11_M for Polaris12
+
+Mauro Rossi (2):
+
+-  android: radeonsi: fix sid_table.h generated header include path
+-  android: glsl: build shader cache sources
+
+Michel Dänzer (1):
+
+-  configure.ac: Drop LLVM compiler flags more radically
+
+Nicolai Hähnle (3):
+
+-  winsys/amdgpu: reduce max_alloc_size based on GTT limits
+-  radeonsi: handle MultiDrawIndirect in si_get_draw_start_count
+-  radeonsi: fix UINT/SINT clamping for 10-bit formats on <= CIK
+
+Samuel Iglesias Gonsálvez (1):
+
+-  glsl: fix heap-use-after-free in ast_declarator_list::hir()
+
+Tapani Pälli (1):
+
+-  android: fix droid_create_image_from_prime_fd_yuv for YV12

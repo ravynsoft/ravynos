@@ -1,0 +1,170 @@
+Mesa 18.3.3 Release Notes / January 31, 2019
+============================================
+
+Mesa 18.3.3 is a bug fix release which fixes bugs found since the 18.3.2
+release.
+
+Mesa 18.3.3 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   6b9893942fe8011c7736d51448deb6ef80ece2257e0fac27b02e997a6605d5e4  mesa-18.3.3.tar.gz
+   2ab6886a6966c532ccbcc3b240925e681464b658244f0cbed752615af3936299  mesa-18.3.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 108877 <https://bugs.freedesktop.org/show_bug.cgi?id=108877>`__
+   - OpenGL CTS gl43 test cases were interrupted due to segment fault
+-  `Bug 109023 <https://bugs.freedesktop.org/show_bug.cgi?id=109023>`__
+   - error: inlining failed in call to always_inline ‘__m512
+   \_mm512_and_ps(__m512, \__m512)’: target specific option mismatch
+-  `Bug 109129 <https://bugs.freedesktop.org/show_bug.cgi?id=109129>`__
+   - format_types.h:1220: undefined reference to \`_mm256_cvtps_ph'
+-  `Bug 109229 <https://bugs.freedesktop.org/show_bug.cgi?id=109229>`__
+   - glLinkProgram locks up for ~30 seconds
+-  `Bug 109242 <https://bugs.freedesktop.org/show_bug.cgi?id=109242>`__
+   - [RADV] The Witcher 3 system freeze
+-  `Bug 109488 <https://bugs.freedesktop.org/show_bug.cgi?id=109488>`__
+   - Mesa 18.3.2 crash on a specific fragment shader (assert triggered)
+   / already fixed on the master branch.
+
+Changes
+-------
+
+Andres Gomez (2):
+
+-  bin/get-pick-list.sh: fix the oneline printing
+-  bin/get-pick-list.sh: fix redirection in sh
+
+Axel Davy (1):
+
+-  st/nine: Immediately upload user provided textures
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Only use 32 KiB per threadgroup on Stoney.
+-  radv: Set partial_vs_wave for pipelines with just GS, not tess.
+-  nir: Account for atomics in copy propagation.
+
+Bruce Cherniak (1):
+
+-  gallium/swr: Fix multi-context sync fence deadlock.
+
+Carsten Haitzler (Rasterman) (2):
+
+-  vc4: Use named parameters for the NEON inline asm.
+-  vc4: Declare the cpu pointers as being modified in NEON asm.
+
+Danylo Piliaiev (1):
+
+-  glsl: Fix copying function's out to temp if dereferenced by array
+
+Dave Airlie (3):
+
+-  dri_interface: add put shm image2 (v2)
+-  glx: add support for putimageshm2 path (v2)
+-  gallium: use put image shm2 path (v2)
+
+Dylan Baker (4):
+
+-  meson: allow building dri driver without window system if osmesa is
+   classic
+-  meson: fix swr KNL build
+-  meson: Fix compiler checks for SWR with ICC
+-  meson: Add warnings and errors when using ICC
+
+Emil Velikov (4):
+
+-  docs: add sha256 checksums for 18.3.2
+-  cherry-ignore: radv: Fix multiview depth clears
+-  cherry-ignore: spirv: Handle arbitrary bit sizes for deref array
+   indices
+-  cherry-ignore: WARNING: Commit XXX lists invalid sha
+
+Eric Anholt (2):
+
+-  vc4: Don't leak the GPU fd for renderonly usage.
+-  vc4: Enable NEON asm on meson cross-builds.
+
+Eric Engestrom (2):
+
+-  configure: EGL requirements only apply if EGL is built
+-  meson/vdpau: add missing soversion
+
+Iago Toral Quiroga (1):
+
+-  anv/device: fix maximum number of images supported
+
+Faith Ekstrand (3):
+
+-  anv/nir: Rework arguments to apply_pipeline_layout
+-  anv: Only parse pImmutableSamplers if the descriptor has samplers
+-  nir/xfb: Fix offset accounting for dvec3/4
+
+Karol Herbst (2):
+
+-  nv50/ir: disable tryCollapseChainedMULs in ConstantFolding for
+   precise instructions
+-  glsl/lower_output_reads: set invariant and precise flags on
+   temporaries
+
+Lionel Landwerlin (1):
+
+-  anv: fix invalid binding table index computation
+
+Marek Olšák (4):
+
+-  radeonsi: also apply the GS hang workaround to draws without
+   tessellation
+-  radeonsi: fix a u_blitter crash after a shader with FBFETCH
+-  radeonsi: fix rendering to tiny viewports where the viewport center
+   is > 8K
+-  st/mesa: purge framebuffers when unbinding a context
+
+Niklas Haas (1):
+
+-  radv: correctly use vulkan 1.0 by default
+
+Pierre Moreau (1):
+
+-  meson: Fix with_gallium_icd to with_opencl_icd
+
+Rob Clark (1):
+
+-  loader: fix the no-modifiers case
+
+Samuel Pitoiset (1):
+
+-  radv: clean up setting partial_es_wave for distributed tess on VI
+
+Timothy Arceri (5):
+
+-  ac/nir_to_llvm: fix interpolateAt\* for arrays
+-  ac/nir_to_llvm: fix clamp shadow reference for more hardware
+-  radv/ac: fix some fp16 handling
+-  glsl: use remap location when serialising uniform program resource
+   data
+-  glsl: Copy function out to temp if we don't directly ref a variable
+
+Tomeu Vizoso (1):
+
+-  etnaviv: Consolidate buffer references from framebuffers
+
+Vinson Lee (1):
+
+-  meson: Fix typo.

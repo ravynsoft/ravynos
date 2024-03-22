@@ -1,0 +1,142 @@
+job_name: 'test-project: my_pipeline_info'
+device_type: my_fastboot_device_type
+visibility:
+  group:
+  - my_visibility_group
+priority: 75
+context:
+  extra_nfsroot_args: ' init=/init rootwait usbcore.quirks=0bda:8153:k'
+timeouts:
+  job:
+    minutes: 10
+  actions:
+    depthcharge-retry:
+      minutes: 4
+    depthcharge-start:
+      minutes: 1
+    depthcharge-action:
+      minutes: 15
+actions:
+- deploy:
+    timeout:
+      minutes: 10
+    to: nfs
+    nfsrootfs:
+      url: None/lava-rootfs.tar.zst
+      compression: zstd
+    namespace: dut
+- deploy:
+    timeout:
+      minutes: 5
+    to: downloads
+    os: oe
+    images:
+      kernel:
+        url: None/None
+      dtb:
+        url: None/my_dtb_filename.dtb
+    postprocess:
+      docker:
+        image: registry.gitlab.collabora.com/lava/health-check-docker
+        steps:
+        - cat Image.gz my_dtb_filename.dtb > Image.gz+dtb
+        - mkbootimg --kernel Image.gz+dtb --cmdline "root=/dev/nfs rw nfsroot=$NFS_SERVER_IP:$NFS_ROOTFS,tcp,hard
+          rootwait ip=dhcp init=/init" --pagesize 4096 --base 0x80000000 -o boot.img
+    namespace: dut
+- deploy:
+    timeout:
+      minutes: 10
+    to: fastboot
+    docker:
+      image: registry.gitlab.collabora.com/lava/health-check-docker
+    images:
+      boot:
+        url: downloads://boot.img
+    namespace: dut
+    failure_retry: 3
+- boot:
+    timeout:
+      minutes: 2
+    docker:
+      image: registry.gitlab.collabora.com/lava/health-check-docker
+    failure_retry: 3
+    method: fastboot
+    prompts:
+    - 'lava-shell:'
+    commands:
+    - set_active a
+    namespace: dut
+    auto_login:
+      login_commands:
+      - dropbear -R -B
+      - touch /dut_ready
+      login_prompt: 'ogin:'
+      username: ''
+- test:
+    namespace: dut
+    definitions:
+    - from: inline
+      name: setup-ssh-server
+      path: inline-setup-ssh-server
+      repository:
+        metadata:
+          format: Lava-Test Test Definition 1.0
+          name: dut-env-export
+        run:
+          steps:
+          - |-
+            echo test FASTBOOT
+          - export -p > /dut-env-vars.sh
+- test:
+    namespace: container
+    timeout:
+      minutes: 10
+    failure_retry: 3
+    definitions:
+    - name: docker_ssh_client
+      from: inline
+      path: inline/docker_ssh_client.yaml
+      repository:
+        metadata:
+          name: mesa
+          description: Mesa test plan
+          format: Lava-Test Test Definition 1.0
+        run:
+          steps:
+          - |-
+            set -ex
+            timeout 1m bash << EOF
+            while [ -z "$(lava-target-ip)" ]; do
+                echo Waiting for DUT to join LAN;
+                sleep 1;
+            done
+            EOF
+
+            ping -c 5 -w 60 $(lava-target-ip)
+
+            lava_ssh_test_case() {
+                set -x
+                local test_case="${1}"
+                shift
+                lava-test-case "${test_case}" --shell \
+                    ssh ${SSH_PTY_ARGS:--T} \
+                    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                    root@$(lava-target-ip) "${@}"
+            }
+          - lava_ssh_test_case 'wait_for_dut_login' << EOF
+          - while [ ! -e /dut_ready ]; do sleep 1; done;
+          - EOF
+          - |-
+            lava_ssh_test_case 'artifact_download' 'bash --' << EOF
+            source /dut-env-vars.sh
+            set -ex
+            curl -L --retry 4 -f --retry-all-errors --retry-delay 60 None | tar -xz -C /
+            mkdir -p /ci/project/dir
+            curl -L --retry 4 -f --retry-all-errors --retry-delay 60 None | tar --zstd -x -C /ci/project/dir
+            echo Could not find jwt file, disabling S3 requests...
+            sed -i '/S3_RESULTS_UPLOAD/d' /set-job-env-vars.sh
+            EOF
+          - export SSH_PTY_ARGS=-tt
+          - lava_ssh_test_case 'test-project_dut' '"cd / && /init-stage2.sh"'
+    docker:
+      image:

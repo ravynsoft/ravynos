@@ -1,0 +1,135 @@
+Mesa 8.0.2 Release Notes / March 21, 2012
+=========================================
+
+Mesa 8.0.2 is a bug fix release which fixes bugs found since the 8.0.1
+release.
+
+Mesa 8.0.2 implements the OpenGL 3.0 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 3.0.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   70eb3dc74fbfcd72f6776268ee1db52e  MesaLib-8.0.2.tar.gz
+   a368104e5700707048dc3e8691a9a7a1  MesaLib-8.0.2.tar.bz2
+   d5e5cdb85d2afdbcd1c0623d3ed1c54d  MesaLib-8.0.2.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 38720 <https://bugs.freedesktop.org/show_bug.cgi?id=38720>`__ -
+   [SNB] Trine triggers a GPU hang
+-  `Bug 40059 <https://bugs.freedesktop.org/show_bug.cgi?id=40059>`__ -
+   [SNB] hang in "Amnesia: The Dark Descent" demo
+-  `Bug 45216 <https://bugs.freedesktop.org/show_bug.cgi?id=45216>`__ -
+   [SNB] GPU hang in OilRush
+-  `Bug 46631 <https://bugs.freedesktop.org/show_bug.cgi?id=46631>`__ -
+   It's really hard to hit the fast path for the fallback glReadPixels
+   code
+-  `Bug 46679 <https://bugs.freedesktop.org/show_bug.cgi?id=46679>`__ -
+   glReadPixels on a luminance texture returns the wrong values
+-  `Bug 46311 <https://bugs.freedesktop.org/show_bug.cgi?id=46311>`__ -
+   Missing support of point size in Mesa core
+-  `Bug 46665 <https://bugs.freedesktop.org/show_bug.cgi?id=46665>`__ -
+   [PNV] webgl conformance case max texture fails
+-  `Bug 45975 <https://bugs.freedesktop.org/show_bug.cgi?id=45975>`__ -
+   [Gen4 + ILK] render with pointcoord will fail to render
+-  `Bug 46666 <https://bugs.freedesktop.org/show_bug.cgi?id=46666>`__ -
+   [PNV] webgl conformance case NPOT case fails with TEXTURE_MIN_FILTER
+   set to LINEAR
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-8.0.1..mesa-8.0.2
+
+Brian Paul (7):
+
+-  svga: add null vs pointer check in update_need_pipeline()
+-  util: add mutex lock in u_debug_memory.c code
+-  mesa: add \_mesa_rebase_rgba_float/uint() functions
+-  mesa: use \_mesa_rebase_rgba_float/uint() in glReadPixels code
+-  mesa: use \_mesa_rebase_rgba_float/uint() in glGetTexImage code
+-  mesa: fix GL_LUMINANCE handling in glGetTexImage
+-  docs: add links to 8.0.1 release notes
+
+Daniel Vetter (1):
+
+-  i965: fixup W-tile offset computation to take swizzling into account
+
+Dylan Noblesmith (1):
+
+-  mesa: add back glGetnUniform*v() overflow error reporting
+
+Ian Romanick (1):
+
+-  docs: Add 8.0.1 release md5sums
+
+Jakob Bornecrantz (3):
+
+-  mesa: Include mesa ES mapi generated files
+-  mesa: Bump version number to 8.0.2
+-  docs: Add 8.0.2 release notes
+
+Jeremy Huddleston (3):
+
+-  darwin: config file cleanups
+-  darwin: Build create_context.c
+-  darwin: Link against libxcb
+
+José Fonseca (1):
+
+-  svga: Clamp advertised PIPE_SHADER_CAP_MAX_TEMPS to
+   SVGA3D_TEMPREG_MAX.
+
+Kenneth Graunke (2):
+
+-  i965: Only set Last Render Target Select on the last FB write.
+-  i965: Fix Gen6+ dynamic state upper bound on older kernels.
+
+Marek Olšák (1):
+
+-  gallium/rtasm: properly detect SSE and SSE2
+
+Neil Roberts (1):
+
+-  mesa: Don't disable fast path for normalized types
+
+Tom Stellard (1):
+
+-  r300/compiler: Fix bug when lowering KILP on r300 cards
+
+Yuanhan Liu (6):
+
+-  mesa: let GL3 buf obj queries not depend on opengl major version
+-  tnl: let \_TNL_ATTRIB_POINTSIZE do not depend on
+   ctx->VertexProgram._Enabled
+-  i915: fix wrong rendering of gl_PointSize on Pineview
+-  i915: move the FALLBACK_DRAW_OFFSET check outside the drawing rect
+   check
+-  i965: handle gl_PointCoord for Gen4 and Gen5 platforms
+-  i915: fallback for NPOT cubemap texture
+
+Zack Rusin (3):
+
+-  svga: fix a crash happening before setting fragment shaders.
+-  svga: Fix stencil op mapping
+-  svga: fix the rasterizer state resets

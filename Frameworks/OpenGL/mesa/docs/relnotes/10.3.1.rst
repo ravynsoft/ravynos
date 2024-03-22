@@ -1,0 +1,131 @@
+Mesa 10.3.1 Release Notes / October 12, 2014
+============================================
+
+Mesa 10.3.1 is a bug fix release which fixes bugs found since the 10.3
+release.
+
+Mesa 10.3.1 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   155afcbad17be8bb80282c761b957d5cc716c14a1fa16c4f5ee04e76df729c6d  MesaLib-10.3.1.tar.gz
+   b081d077d717e5d56f2d59677490856052c41573e50378ff86d6c72456714add  MesaLib-10.3.1.tar.bz2
+   07a14febfed06412d519e091a62d24513fee6745f1a6f8a8f1956bfe04b77d15  MesaLib-10.3.1.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 79462 <https://bugs.freedesktop.org/show_bug.cgi?id=79462>`__ -
+   [NVC0/Codegen] Shader compilation falis in spill logic
+-  `Bug 82932 <https://bugs.freedesktop.org/show_bug.cgi?id=82932>`__ -
+   [SNB+ Bisected]Ogles3conform
+   ES3-CTS.shaders.indexing.vector_subscript.vec3_static_loop_subscript_write_direct_read_vertex
+   fails
+-  `Bug 83506 <https://bugs.freedesktop.org/show_bug.cgi?id=83506>`__ -
+   [UBO] row_major layout ignored inside structures
+-  `Bug 83533 <https://bugs.freedesktop.org/show_bug.cgi?id=83533>`__ -
+   [UBO] nested structures don't get appropriate padding
+-  `Bug 83570 <https://bugs.freedesktop.org/show_bug.cgi?id=83570>`__ -
+   Glyphy demo throws unhandled Integer division by zero exception
+-  `Bug 83741 <https://bugs.freedesktop.org/show_bug.cgi?id=83741>`__ -
+   [UBO] row_major layout partially ignored for arrays of structures
+-  `Bug 84178 <https://bugs.freedesktop.org/show_bug.cgi?id=84178>`__ -
+   Big glamor regression in Xorg server 1.6.99.1 GIT: x11perf 1.5 Test:
+   PutImage XY 500x500 Square
+
+Changes
+-------
+
+Andreas Pokorny (2):
+
+-  egl/drm: expose KHR_image_pixmap extension
+-  i915: Fix black buffers when importing prime fds
+
+Brian Paul (1):
+
+-  mesa: fix prog_optimize.c assertions triggered by SWZ opcode
+
+Emil Velikov (2):
+
+-  docs: Add 10.3 sha256 sums, news item and link release notes
+-  Update VERSION to 10.3.1
+
+Ian Romanick (4):
+
+-  glsl: Make sure fields after small structs have correct padding
+-  glsl: Make sure row-major array-of-structure get correct layout
+-  glsl: Round struct size up to at least 16 bytes
+-  glsl: Strip arrayness from ir_type_dereference_variable too
+
+Ilia Mirkin (5):
+
+-  nv50/ir: avoid deleting pseudo instructions too early
+-  gm107/ir: fix manual TXD for array targets
+-  gm107/ir: fix texture argument order
+-  gm107/ir: add support for indirect const buffer selection
+-  gm107/ir: take relative pfetch offset into account
+
+Keith Packard (1):
+
+-  glx/dri3: Provide error diagnostics when DRI3 allocation fails
+
+Kenneth Graunke (2):
+
+-  mesa: Use proper structure for glGet*(GL_TEXTURE_COORD_ARRAY*).
+-  mesa: Set correct array element in vbo_exec_vtx_init.
+
+Marek Olšák (3):
+
+-  radeonsi: release GS rings at context destruction
+-  radeonsi: properly destroy the GS copy shader and scratch_bo for
+   compute
+-  st/dri: remove GALLIUM_MSAA and \__GL_FSAA_MODE environment variables
+
+Michel Dänzer (1):
+
+-  st/mesa: Use PIPE_USAGE_STAGING for GL_STATIC/DYNAMIC/STREAM_READ
+   buffers
+
+Richard Sandiford (2):
+
+-  mesa: Fix alpha component in unpack_R8G8B8X8_SRGB.
+-  swrast: Fix handling of MESA_FORMAT_L8A8_SRGB for big-endian
+
+Roland Scheidegger (1):
+
+-  gallivm: fix idiv
+
+Thomas Hellstrom (1):
+
+-  st/xa: Fix regression in xa_yuv_planar_blit()
+
+Tom Stellard (2):
+
+-  clover: Add support to mem objects for multiple destructor callbacks
+   v2
+-  configure.ac: Compute LLVM_VERSION_PATCH using llvm-config
+
+Tomasz Figa (3):
+
+-  util: Include in Android builds
+-  st/mesa: Generate format_info.c in Android builds
+-  st/mesa: Fix paths used in Android builds
+
+rconde (1):
+
+-  gallivm,tgsi: fix idiv by zero crash

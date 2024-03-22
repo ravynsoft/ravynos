@@ -1,0 +1,3336 @@
+Mesa 21.0.0 Release Notes / 2021-03-11
+======================================
+
+Mesa 21.0.0 is a new development release. People who are concerned
+with stability and reliability should stick with a previous release or
+wait for Mesa 21.0.1.
+
+Mesa 21.0.0 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.0.0 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    e6204e98e6a8d77cf9dc5d34f99dd8e3ef7144f3601c808ca0dd26ba522e0d84  mesa-21.0.0.tar.xz
+
+
+New features
+------------
+
+- GL_EXT_demote_to_helper_invocation on radeonsi
+
+- GL_NV_compute_shader_derivatives on radeonsi
+
+- EGL_MESA_platform_xcb
+
+- Removed GL_NV_point_sprite for classic swrast.
+
+- driconf: remove glx_disable_oml_sync_control, glx_disable_sgi_video_sync, and glx_disable_ext_buffer_age
+
+- Removed support for loading DRI drivers older than Mesa 8.0, including all DRI1 support
+
+- Add support for VK_VALVE_mutable_descriptor_type on RADV
+
+- Removed classic OSMesa in favor of the newly improved gallium OSMesa
+
+- VK_KHR_fragment_shading_rate on RADV (RDNA2 only)
+
+- Freedreno a6xx exposes GL 3.3
+
+- Classic swrast dri driver removed in favor of gallium swrast (llvmpipe or softpipe)
+
+- Panfrost g31/g52/g72 exposes ES 3.0
+
+- Panfrost t760+ exposes GL 3.1 (including on Bifrost)
+
+- Sparse memory support on RADV
+
+- Rapid packed math (16bit-vectorization) on RADV
+
+- None
+
+
+Bug fixes
+---------
+
+- R8 texture upload / corruption bug on Radeon RX 5700 XT
+- Ambient Occlusion in Two Point Hospital shows black spot artifacts
+- DXVK is broken in latest master
+- mesa/st: Uniforms are not updated after lowering alpha test
+- Regression: Segfault in cso_destroy_context() regression in 20.2
+- \[RADV\] Nioh 2 - The Complete Edition: "Bloom" on lights
+- \[RADV][BISECTED\] The Surge 2 (644830) - In-game assets do not render correctly since 20.3.4.
+- \[iris][icl,tgl][bisected][regression\] failure on piglit.spec.arb_separate_shader_objects.programuniform coverage
+- "radeonsi: Check pitch and offset for validity." is a bad commit
+- RADV: robustBufferAccessUpdateAfterBind is not exposed
+- \[RADV/DXVK\] Shadow artifacts with different games
+- glxgears segfaults with classic i915
+- ANV: Weird jitter in Witcher 1
+- ANV: Weird jitter in Witcher 1
+- ANV: Weird jitter in Witcher 1
+- meson: meson-built libraries have inconsistent compatability / current versions compared to older autotools-built libraries
+- RADV: Extreme overhead in vkQueueSubmit
+- timespec_get used unconditionally / build fails when targeting macOS 10.14 or earlier
+- Graphical glitch of popupping missing texture on Mesa version \>18.0.5 (Padoka Stable + Unstable/Oibaf/ubuntu-x-swat PPAs)
+- occasional corruption issue with RADV in multiple games, disappears after using amdvlk
+- device select layer breaks other layers
+- OpenGL on GMA4500MHD
+- Rage 2: Visual corruption on in-game menu with ACO.
+- GLonD3D12: Crashes and suboptimal fallback
+- GLonD3D12: Crashes and suboptimal fallback
+- GLonD3D12: Crashes and suboptimal fallback
+- \[RADV][REGRESSION][BISECTED\] radv_GetMemoryFdPropertiesKHR returns no valid memory types for vaapi drmbuf
+- anv: vkQueueSubmit with waitSemaphore value of 0 hangs CPU
+- ttn: invalid base/range triggering nir_validate assertion
+- \[RADV][ACO\] Overwatch game crash: amd/compiler/aco_insert_exec_mask.cpp: Failed Assertion
+- Use out encoding for float immediates
+- \[RADV\] Severe performance drop when exceeding VRAM compared to AMDVLK
+- LIBGL_ALWAYS_SOFTWARE=1 picks zink over actual software rasterizers
+- RADV: Occlusion query hangs Big Navi GPU
+- "mesa: don't allocate matrices with malloc" cause eglCreateContext problem on android 7.
+- Metal Gear Solid V: The Phantom Pain: texture issues and vertex stretches
+- miscompiled compute shader loop on llvmpipe (and Iris)
+- Graphics glitches after upgrade to mesa 20.3 on Khadas VIM3 Pro (Mali G52 GPU)
+- glthread crash in \_mesa_glthread_upload
+- Iris driver causing graphics glitch in QEMU spice egl DMA-BUF
+- \[RADV/ACO\] Death Stranding cause a GPU hung (\*ERROR\* Waiting for fences timed out!)
+- \[TGL\] Elder Scrolls Online misrenders
+- \[ANV\] System hang with GRVK demos
+- Rendering artifacts in Barn Finders specifically on Radeon Vega
+- regression in !8152
+- \[bdw][icl][iris\] fails new test \`clearbuffer-depth-cs-probe\`
+- ci: new traces runner needs dashboard links in the job log and junit
+- zink: car model corruption with game TORCS
+- Windows: 32-bit build is broken hard
+- ANV: Not handling separate stencil layouts properly
+- \[Regression][Intel][OpenGL][Bisected\] Copying whole 2D array texture failed on latest driver
+- i915 regressions bisected to "vbo/dlist: use a shared index buffer"
+- radv: dEQP-VK.sparse_resources.\* failures on GFX9
+- radv: dEQP-VK.sparse_resources.\* failures on GFX9
+- Mesa 20.3.x crashes pidgin on AMD RX480
+- libunwind not located / used on macOS
+- Some games using FNA framework show blank screen
+- Intel Vulkan regression of angle_end2end_tests
+- Defer lavapipe warning to queue / command / swapchain buffer creation
+- aco_tests failure with clang build
+- BUG: After issues playing World of Warcraft with RADV
+- Texture views on blits ignore formats
+- mesa-git hangs weston
+- radv: Some MSAA tests fail when DCC is forced.
+- \[RADV/ACO/SIENNA_CICHLID\] Into the game Shadow of the Tomb Raider the flickering artifacts are present on brushes.
+- Memory leak - alloc_prim_store in vbo_save_NewList
+- radv/aco: "Failed to allocate registers" in AC:Valhalla
+- Enable "radeonsi_clamp_div_by_zero" to fix graphical bug in CSGO, "mesa_glthread" for performance
+- master fails to build with "ac_sqtt.h:139:15: error: expected parameter declarator"
+- Conditional rendering implementation conflicts with aux-state tracking
+- regression since !7720
+- regression after !8196
+- Use up to 4 images for IMMEDIATE flip
+- piglit gl-1.0-rendermode-feedback TGSI_FILE_NULL assert on Iris
+- Use LDC and constant buffer state for UBO loads.
+- DOOM crashes on startup with OpenGL on RX 6800
+- Regression with Minecraft/Optifine performance with all VRAM mapped
+- Space Engineers rendering regression after 5f79e4e6 which triggers incorrect optimizations from 053be9f0
+- star conflict crashes on iris, but loads fine on i965, on HD 5500
+- radv: blit/copy tests with A2B10G10R10 SNORM fail when DCC is forced on GFX9
+- freedreno: regression of gl-3.2-layered-rendering-gl-layer-render after e49748521ec9182e8d2eec823182cc463709123f
+- \`gl_FragColor' undeclared (AMDGPU) - tested stable Mesa 20.1 and latest git for 20.3 (Game/Wine/Proton)
+- Mafia III Demo: Artifacts around barrels
+- android: webview crashes after a2fb87eea6d4
+- anv: dEQP-VK.subgroups.ballot_broadcast.compute.subgroupbroadcast_i8vec3_requiredsubgroupsize32 fail
+- Mesa considers the framebuffer with mixed 3D and 2D array attachments to be incomplete.
+- Multiple buffer definitions bound to single OpDecorate::Binding break SPIR-V module.
+- Intel driver segfaults on SPIR-V with OpArrayLength
+- \[g33][bisected][regression\] multiple piglit failures
+- \[v3d][bisected][regression\] Piglit failures on gl-1.0-rendermode-feedback and select
+- Update Mesa CI CTS to latest version
+- Rendering artifacts in Enter The Gungeon on Both RX 590 and Radeon 7
+- No way to turn off "Device" and "Swapchain format" in Vulkan overlay
+- Frames count doesn't turn off in vulkan overlay with frame=0
+- \[bdw][iris][bisected][regression\] failing test on multiple test suites
+- osmesa classic: build failure with Meson and MinGW-W64
+- Crash and slowness in FreeCAD
+- ci: Missing needs: in radeonsi-stoney-\*?
+- Triangles appear from the center of the field on PES2021 with Mesa 20.2.x
+- \[gen9][iris][regression][bisected\] flaky piglit tests
+- \[Intel][OpenGL\] Fail to get correct value when sampling from a texture in depth formats.
+- MESA_VK_DEVICE_SELECT only parses 16-bit vendorID, but in Vulkan is uint32_t
+- lp_test_format test fail on 32-bit mingw builds
+- RADV: Strange clear behavior with multisample arrays
+- Mesa 20.3.0 and older ATi/Radeon cards fails
+- Android building error after commit f08d8c849e
+- OSMesa SEGV in OSMesaGetDepthBuffer
+- osmesa gallium state tracker: Leak of screens and buffers on exit/shared library unload
+- Gallium OSMesa driver is far from being thread-safe
+- OSMesa UAF in OSMesaDestroyContext
+- OSMesaGetDepthBuffer flipped vertically
+- radv,aco: CTS image robustness tests fail to compile
+- 32-bit mesa failing to build inside a chroot due to f88347cd
+- Storing pointer to temporary value inside the Iris driver.
+- \[radeonsi\] DESPERADOS III poor performance when there's lots of animations going on
+- ci: arm64_test build broken (likely by ci-templates bump)
+- New build option to specify default value for shader disk cache size
+- commit f86668f487b32c185388a39e2200c17c298b877a fatal error: util/macros.h: No such file or directory
+- zink: ubo loading problems
+- !7138 broke the D3D12 driver
+- \[icl,tgl][iris][i965][regression][bisected\] piglit failures
+- 15% perf drop in GfxBench Manhattan 3.1 performance
+- \[Intel][OpenGL\] Fail to get correct stencil data from the stencil attachment with glReadPixels()
+- shader-db valgrind error
+- \[AMDGPU NAVI 5700xt\] Large parts of the Blender viewport does not render correctly if an object with hair is moved.
+- \[aco\] problem compiling compute pipeline
+- build failures after simple_mtx helgrind annotations
+- teach helgrind about simple_mtx
+- zink: regression after !7606
+- Chromium browser with VA-API video acceleration got corruption
+- glcpp test 084-unbalanced-parentheses fails with bison 3.6.y
+- \[Intel][OpenGL\] glDepthFunc(GL_EQUAL) doesn't work correctly on Intel Linux Mesa OpenGL drivers
+- d3d12: GPU based validation issue on fbo-clear-formats piglit
+- \[tgl,icl,gen9][bisected\] crucible/vulkancts failures on multiple platforms
+- zink+radv: corruption on pre-game menu in quake3
+- Memory leak in minecraft (many dri/renderD128 regions in /proc/[id]/maps)
+- freedreno: Use nir_opt_large_constants
+- android: amd/common: building error after 0833dd7d1
+- panfrost massive glitches apitrace opengl 2.1
+- freedreno/nir: nir_validate failure after nir_lower_tex
+- \[i965,iris][bisected\] piglit and glcts failures on multiple platforms
+- \[i965,iris][bisected\] piglit and glcts failures on multiple platforms
+- db410c ethernet no longer working
+- Add KHR_display extension to v3dv
+- \[radeonsi\] After 549ae5f84375dfadb86cfd465f0103acfae3249f commit Firefox Nightly Asan begins crashes
+
+
+Changes
+-------
+
+Adam Jackson (36):
+
+- docs: Update Mesa GL enum allocations for EGL_MESA_platform_xcb
+- glx, egl: Add LIBGL_DRI2_DISABLE environment variable
+- glx: Eliminate some stub functions for !GLX_DIRECT_RENDERING
+- glx: Remove unused \__GLXDRIscreen::createContext
+- glx: Check share ctx compatibility in ::create_context_attribs
+- glx: Handle create_context in terms of create_context_attribs
+- glx: Remove DRI1
+- glx: Simplify error handling in glXImportContextEXT
+- glx: Fix the generated error when indirect contexts are not supported
+- glx/indirect: Validate the context version in CreateContextAttribs
+- glx: Claim to support more GL versions in \__glX_send_client_info
+- meson: Make the glvnd vendor name configurable
+- zink: factor out GET_PROC_ADDR and friends to zink_screen.h
+- mesa: Remove silly "dummy_false" extension support
+- zink: Fix indentation in zink_create_instance
+- zink: Factor out winsys awareness from zink_internal_create_screen
+- zink: Factor out zink_get_loader_version()
+- zink: Factor out zink_create_logical_device
+- zink: Simplify MoltenVK support a bit
+- glx/xlib: Build fix
+- swrast: Remove the classic swrast DRI driver
+- treewide: Disambiguate various variables named "debug_options"
+- mesa: Cosmetic cleanups to GL_EXT_texture_sRGB_R8
+- mesa: Implement GL_EXT_texture_sRGB_RG8 for softpipe and llvmpipe
+- zink: Enable GL_EXT_texture_sRGB_R8
+- zink: Enable GL_EXT_texture_sRGB_RG8
+- virgl: Enable GL_EXT_texture_sRGB_RG8
+- drisw: Use debug_screen_wrap like everybody else
+- tests: Fix memory leaks in DispatchSanity
+- mesa: Fix array-format-to-format table on big-endian
+- mesa: Don't make building tests conditional on building DRI drivers
+- nouveau: pacify gcc on ILP32
+- zink: Fix VK_FORMAT_A8B8G8R8_SRGB_PACK32 mapping on big-endian
+- ci: Add a few more drivers to the cross builds
+- osmesa: Pacify MSVC in the test code
+- zink: Fix a thinko in instance setup
+
+Alejandro Piñeiro (12):
+
+- nir/lower_tex: clarify nir_lower_tex_options indexing
+- v3dv: cleanup/remove support for pre-generated variants
+- broadcom/compiler: separate texture/sampler info from v3d_key
+- v3dv: remove combined_idx support
+- v3dv/pipeline: take into account precision for the output_type
+- v3dv: use the common base object type and struct
+- v3dv: implement VK_EXT_private_data
+- turnip: minor tu_queue fixes related to vk_base_object
+- v3dv/cmd_buffer: missing (uint8_t \*) casting when calling memcmp
+- docs/features: update list of v3dv supported features
+- v3dv: remove non-conformant warning
+- v3dv/pipeline: avoid unused warning on release build
+
+Alexander Kanavin (1):
+
+- anv: fix a build race between generating a header and using it
+
+Alexander von Gluck IV (2):
+
+- meson: Add \_GNU_SOURCE for Haiku to activate non-posix functions
+- glsl/builtin_functions: Rename int64 function to int64_avail
+
+Alistair Popple (2):
+
+- gv100/ir: Make emitATOM consistent with emitRED
+- gv100/ir: Use system wide atomics
+
+Alyssa Rosenzweig (170):
+
+- pan/bi: Model writemasks correctly
+- panfrost: Implement linear Z/S for SFBD
+- panfrost: Remove panfrost_can_linear
+- panfrost: Fix out-of-bounds read on SFBD
+- panfrost: Add PAN_GPU_ID debug option
+- panfrost: Enable indirect uniform indexing
+- pan/mdg: Fix shader-db counter
+- pan/bi: Implement sampler1D
+- pan/bi: Fix varying writemask handling
+- pan/bi: Fix off-by-one in RA
+- pan/bi: Ensure TEXC src0 is not marked SSA
+- pan/bi: Implement shader-db stats
+- panfrost: Account for sample count in tib offsets
+- panfrost: Fix RAW8/16/32 component replication
+- docs: Add a stub page for Panfrost
+- docs/panfrost: Fix comment about Lima
+- docs: Update Panfrost in the source tree
+- docs/systems: Update Panfrost link
+- docs/panfrost: Document building Panfrost
+- docs/panfrost: Mention the IRC channel
+- pan/bi: Allow toggling disassembly verbosity
+- pan/bi: Space out disassembly
+- pan/bi: Remove all-0's termination condition
+- pan/bi: Minor styling cleanup in disasm
+- panfrost: Fix LOD mode field on Bifrost
+- pan/bi: Drop on-board packing tests
+- pan/bi: Label shader-db shaders
+- pan/bi: Remove bi_is_live_after
+- pan/bi: Add unused instruction mechanism
+- pan/bi: Add pseudo-instruction mechanism
+- pan/bi: Mark some instructions as unused
+- pan/bi: Defer newline printing in disassembler
+- pan/bi: Use consistent negX/absX naming
+- pan/bi: Use consistent wls naming
+- pan/bi: Use consistent naming of lane/lane0
+- pan/bi: Don't treat extend as per-source
+- pan/bi: Use canonical names for clamps
+- pan/bi: Use canonical names for rounding modes
+- pan/bi: Use canonical varying names
+- pan/bi: Use canonical sample names
+- pan/bi: Use canonical update modes
+- pan/bi: Use canonical min/max semantics
+- pan/bi: Use canonical name for segments
+- pan/bi: Use canonical lane ops
+- pan/bi: Use canonical subgroup size
+- pan/bi: Use canonical inactive result
+- pan/bi: Use consistent neg naming
+- pan/bi: Mark message types in ISA.xml
+- pan/bi: Fix rounding name for HADD in XML
+- pan/bi: Add staging register counts to ISA.xml
+- pan/bi: Add pseudo register formats to XML
+- pan/bi: Rename isa_parse to bifrost_isa
+- pan/bi: Add explicit meson dependency on the ISA helpers
+- pan/bi: Move copyright notice to common code
+- pan/bi: Add helpers for manipulating the ISA
+- pan/bi: Remove reference to 64-bit RA
+- pan/bi: Move modifier prints out of common code
+- pan/bi: Generate bi_opcodes.h
+- pan/bi: Use autogenerated modifiers
+- pan/bi: Generate bi_opcodes.c
+- pan/bi: Merge BIR_INDEX_FAU and BIR_INDEX_BLEND
+- pan/bi: Remove BIR_INDEX_UNIFORM
+- pan/bi: Make BIR_INDEX_ZERO less special
+- pan/bi: Add bi_swizzle enum
+- pan/bi: Add bi_index data structure
+- pan/bi: Add bi_index constructors
+- pan/bi: Add nullity/equality helpers for bi_index
+- pan/bi: Add helper to extract a word from an index
+- pan/bi: Add bi_temp{_reg} for new-style bi_index
+- pan/bi: Add helpers to generate bi_index from NIR
+- pan/bi: Add a helper to convert to old-style nodes
+- pan/bi: Add node_to_index helper
+- pan/bi: Add bi_half and bi_byte selectors
+- pan/bi: Add imm_f32 helper
+- pan/bi: Add bi_imm_u{8, 16} helpers
+- pan/bi: Add bi_{abs, neg} helpers
+- pan/bi: Add new bi_instr data structure
+- pan/bi: Add cursor data structures
+- pan/bi: Add builder data structure
+- ci/panfrost: Skip test with 4096 byte shader
+- pan/bi: Ensure fneg of a constant isn't reached
+- pan/bi: Rename bi_pack_{fma, add} to free up symbols
+- pan/bi: Rename bi_load
+- pan/bi: Add bi_not alias of bi_neg
+- pan/bi: Generate instruction printer
+- pan/bi: Generate builder routines
+- pan/bi: Generate instruction packer for new IR
+- pan/bi: Add bi_count_staging_registers helper
+- pan/bi: Add new style read/writemask helpers
+- pan/bi: Add builder initialization helper
+- pan/bi: Add bi_is_intr_immediate helper
+- pan/bi: Add bi_make_vec_to helper
+- pan/bi: Implement bi_emit_ld_tile via the builder
+- pan/bi: Implement bi_load_sysval via the builder
+- pan/bi: Implement bi_emit_load_const via the builder
+- pan/bi: Implement load_blend_input via the builder
+- pan/bi: Implement bi_reg_fmt_for_nir helper
+- pan/bi: Implement load_vary via the builder
+- pan/bi: Implement BLEND by builder
+- pan/bi: Implement fragment_out by builder
+- pan/bi: Implement store_vary with the builder
+- pan/bi: Implement load_ubo with the builder
+- pan/bi: Implement frag coord with the builder
+- pan/bi: Implement load attribute with the builder
+- pan/bi: Add intrinsic emits for builder
+- pan/bi: Add bi_alu_src_index helper
+- pan/bi: Add bi_nir_round helper
+- pan/bi: Add bi_cmpf_nir helper
+- pan/bi: Implement ALU with the builder
+- pan/bi: Implement jumps with the builder
+- pan/bi: Add TEXS emit with builder
+- pan/bi: Add builder-using helpers for TEXC structs
+- pan/bi: Emit TEXC with builder
+- pan/bi: Fix TEXS/TEXC check prototype
+- pan/bi: Add emit tex for builder
+- pan/bi: Add instruction emit for builder
+- pan/bi: Add bi_message_type_for_instr helper
+- pan/bi: Schedule new instructions singletons
+- pan/bi: Add bi_branch, bi_jump helpers
+- pan/bi: Stub FAU lowering pass
+- pan/bi: Switch to new IR
+- pan/bi: Remove combine lowering
+- pan/bi: Remove old IR packs
+- pan/bi: Remove packing helpers
+- pan/bi: Remove old IR prints
+- pan/bi: Remove old IR spill code
+- pan/bi: Remove old IR scheduling
+- pan/bi: Remove NIR->old IR
+- pan/bi: Remove old IR helpers
+- pan/bi: Remove old IR opcode table
+- pan/bi: Remove old IR instruction emit
+- pan/bi: Use new instruction types
+- pan/bi: Remove old IR
+- pan/mdg: Fix bound setting in RA for sources
+- panfrost: Import render condition check from fd
+- panfrost: Respect the render condition
+- docs: Document extensions exposing GL3.0
+- pan/bi: Fix TEXS register counts
+- pan/bi: Workaround BLEND precolour with explicit moves
+- pan/bi: Pull out bi_dontcare helper
+- pan/bi: Fix ATEST with pure integers
+- pan/bi: Don't suppress Inf/NaN
+- pan/bi: Allow passing thorugh 8-bit scalars
+- pan/bi: Implement scalar i2i8/u2u8
+- pan/bi: Use TEXC for indices \>= 8
+- pan/bi: Parametrize intrinsic immediate limits
+- pan/bi: Assert immediate indices fit
+- panfrost: Disable AFBC of 3D, 2D arrays
+- panfrost: Advertise ES3.0 on Bifrost
+- docs: Add release note for Bifrost GL3.1
+- docs/panfrost: Update GL/ES versions for v5+
+- docs/features: Mark GL3.1 as done on Panfrost
+- docs/features: Fix missing close paranthesis
+- pan/bi: Implement TEXS for cube maps
+- panfrost: Handle explicit primitive restart
+- panfrost: Add alpha reference to XML
+- panfrost: Implement alpha testing natively
+- pan/bi: Fix assertion
+- pan/bi: Fix 64-bit SSBO addresses
+- pan/bi: Fix RA of node 0
+- pan/bi: Fix printing of node 0
+- pan/bi: Fix M1/M2 decoding in disassembler
+- pan/bi: Fix FLOG_TABLE modifier handling
+- pan/bi: Fix empty shader handling
+- panfrost: Add panfrost_sample_pattern helper
+- panfrost: Set tiler descriptor sampler pattern
+- pan/bi: Use explicit move even for RT#0 of MRT
+- panfrost: Raise TEXTURE_BUFFER_OFFSET_ALIGNMENT
+- panfrost: Don't advertise OES_copy_image
+- panfrost/lcra: Fix constraint counting
+
+Andres Gomez (23):
+
+- ci: update some radv trace checksums
+- ci: update some radv trace checksums
+- .mailmap: add and update aliases for Danylo Piliaiev
+- ci: Bump deqp to current vulkan-cts-1.2.5.0 also in the Lava jobs
+- ci: specify source and build directories with CMake
+- ci: use ephemeral packages when building the build-base image
+- ci: install ci-fairy in the testing images
+- ci: spread the usage of the FDO_UPSTREAM_REPO variable
+- ci: update piglit's version so it features replayer
+- ci: build piglit in the Vulkan testing image
+- ci: specify MinIO's host URL in a global variable
+- ci: add piglit replay jobs and remove tracie ones
+- ci: only modify LD_LIBRARY_PATH when running the piglit cmd
+- ci: add Vulkan piglit traces jobs and remove tracie ones
+- ci: move general build commands to their own section
+- ci: move API specification to driver instead of test suite
+- ci: build piglit inside baremetal and LAVA's rootfs
+- ci: add piglit jobs to LAVA and remove tracie ones
+- ci: refactor arm64 jobs in preparation for piglit addition
+- ci: add piglit job to baremetal and remove tracie ones
+- ci: remove all tracie remains
+- ci: recover tracie dashboard URLs for failing traces
+- ci: correct the trace image URLs in the piglit summary
+
+Andrii Simiklit (6):
+
+- glsl: avoid an out-of-bound access while setting up a location for variable
+- iris: update depth value for stages after fast clear depth
+- glx: lets compare drawing command sizes using MIN3
+- glx: fix spelling issues
+- st/mesa: don't affect original st_CompressedTexSubImage parameters
+- st/mesa: fix pbo upload/download for arrays of textures with only 1 layer
+
+Anuj Phogat (2):
+
+- intel/anv: Fix condition to set MipModeFilter for YUV surface
+- intel/anv: Fix condition for planar yuv surface
+
+Bas Nieuwenhuizen (57):
+
+- radv: Do the sample check for tiling earlier.
+- amd/addrlib: Use signed char for INT_8.
+- radeonsi: Add displayable DCC flushing without explicit flushes.
+- drm-uapi: Add AMD modifiers.
+- amd/common: Add support for modifiers.
+- amd/common: Add modifier tests.
+- radeonsi: Check pitch and offset for validity.
+- radeonsi: Add modifier support.
+- radeonsi: Do not disable DCC when we have it as a modifier.
+- radeonsi: Do not try to disable displayable DCC with modifiers.
+- radeonsi: Add auxiliary plane support.
+- drm/uapi: Fix modifier field mask for AMD modifiers.
+- radv: Use internal drm_fourcc.h
+- gallium/vl: Set modifier field for winsys handle.
+- radv: Dump BO VA ranges on hang.
+- radv: Fix RB+ blending for VK_FORMAT_E5B9G9R9_UFLOAT_PACK32.
+- radv: Fix a hang on CB change by adding flushes.
+- radv: Deal with unused attachments in mip flush
+- radv: Don't invalidate the SCACHE for image barriers.
+- radv: Don't skip layout transitions that only differ in render loop.
+- radv: Never allow fast clears on DCC images that are not compressed.
+- radv: Add option to disable DCC in renderpasses without layout.
+- radv: Disable DCC explicitly for incompatible copies.
+- radv: Enable DCC in the GENERAL layout on GFX10+.
+- radv: Use VRAM for upload buffers if entire VRAM is CPU-visible.
+- radv: Put commandbuffers in VRAM if all VRAM is CPU visible.
+- radv: Use VRAM for the initial gfx cmdbuffer.
+- ac/surf: Prepare for 64-bit flags.
+- ac/surf: Implement PRT layout.
+- ac/surf: Add sparse texture info to radeon_surf.
+- ac/surf: Use correct tilemodes on GFX8 for PRT.
+- radv/winsys: Fix inequality for sparse buffer remapping.
+- radv/winsys: Fix offset in range merging.
+- radv: Create sparse images.
+- radv: Add image sparse memory update implementation.
+- radv: Add sparse image queries.
+- radv: Enable sparse buffer and image support.
+- radv: Add Android module info to linker script.
+- radeonsi: Only set modifier creation function for GFX9+ & with kernel support.
+- radv: Remove redundant WB_L2 flush.
+- radv: Invalidate CB on SHADER_WRITE for meta operations.
+- radv: Do dst invalidations for write accesses.
+- radv: Use access helpers for flushing with meta operations.
+- radv: Use L2 for CP DMA on GFX9+.
+- radv: Use L2 coherency on GFX9+.
+- ac/surface: Fix GFX9 sparse mip info.
+- radv: Do not use a pipe offset for aliased sparse images.
+- radv: Use stricter HW resolve swizzle compat check.
+- radv: Do not hash vk_object_base in descriptor set layout.
+- radv: Improve spilling on discrete GPUs.
+- radv: Fix vram override with fully visible VRAM.
+- radv: Ignore WC flags for VRAM.
+- radv: Do pipe misalignment check per plane.
+- vulkan/device_select: Stop using device properties 2.
+- radv: Don't use dedicated memory info to indicate sharing.
+- radv: Expose robustBufferAccessUpdateAfterBind correctly.
+- frontends/va: Use correct size for secondary planes.
+
+BillKristiansen (1):
+
+- microsoft: add resource state manager utility code
+
+Boris Brezillon (119):
+
+- panfrost: Fix Bifrost blend descriptor emission
+- panfrost: Fix ->reads_frag_coord assignment
+- pan/bi: Extract shadowmap comparator
+- pan/bi: Force BLEND src0 to r0
+- panfrost: Fix panfrost_format_to_bifrost_blend()
+- panfrost: Get rid of the Pixel Format descriptor
+- pan/bi: Store the architecture in the compiler context
+- pan/bi: Expose FAU slots
+- pan/bi: Rename CLPER into CLPER_V7 and add CLPER_V6
+- pan/bi: Add support for the CLPER instructions
+- pan/bi: Add support for derivative instructions
+- pan/bi: Allow vec16 in bi_print_swizzle()
+- pan/bi: Allow lane selections on component 4 and above
+- pan/bi: Add support for tex offsets
+- pan/bi: Don't use TEXS for tex operations with a src that's not lod or coord
+- pan/bi: Support txs operations
+- pan/bi: Support automatic register format
+- pan/bi: Let the GPU pick the right format based on the varying descriptor
+- pan/bi: Set roundmode to RTZ for f2u operations
+- pan/bi: Move LD_VAR packing out of bi_pack_add()
+- pan/bi: Pass LD_VAR update mode explicitly
+- pan/bi: Stop passing special varying names through src0
+- pan/bi: Fix LD_VAR with non-constant index
+- pan/bi: Add a varying_index field to bi_texture
+- pan/bi: Stop extracting the immediate attribute index from src0
+- panfrost: Don't expose fp16 support on Bifrost unless explicitly requested
+- nir: Fix nextafter() for hardware that don't support denorms
+- compiler/spirv: Handle the LocalSizeHint execution modes
+- nir: Make nir_build_deref_offset() support ptr_as_array
+- pan/bi: Emit a combine even if we only pass one staging reg to TEXC
+- nir: Fix LOD source type for txf_ms instructions
+- panfrost: Stop forcing depth to nr_samples
+- panfrost: Get rid of the Sample Count enum
+- panfrost: Fix decoding of texture payloads
+- panfrost: Set depth for 3D textures on Bifrost
+- panfrost: Set sample_count when packing bifrost texture descriptors
+- pan/bi: Only update LOD mode on TEX operations
+- pan/bi: Always emit a LOD/CUBE word for FETCH instructions
+- pan/bi: LOD is a 8.8 fixed point
+- panfrost: Increase blit shader BO size on Bifrost
+- panfrost: Add a minus(1) modifier to the Levels field
+- panfrost: Clarify bit 2:28 meaning in the Midgard texture descriptor
+- panfrost: Add two helpers to calculate the surface pointer and strides
+- panfrost: Set the layer stride
+- panfrost: Unconditionally align strides on 64 bytes for linear resources
+- panfrost: Enable MSAA on bifrost when deqp debug option is set
+- panfrost: Expose panfrost_block_dim()
+- panfrost: Fix panfrost_needs_explicit_stride() for block-based formats
+- panfrost: Calculate the row stride at resource creation time
+- panfrost: Fix stride calculation for Z32_S8X24/X32_S8X24 formats
+- panfrost: Update the resource layout when doing a tile -\> linear conversion
+- panfrost: Update the resource layout before calling util_copy_rect()
+- panfrost: Fix texture payload decoding
+- panfrost: Fix draw descriptor definition
+- panfrost: Only set varyings and varying_buffers when varying_count \\> 0
+- panfrost: Make sure we always add a reader -\> write dependency when needed
+- panfrost: Fix fencing
+- pan/mdg: Add support for multi sample iteration writeout
+- panfrost: Take the number of samples into account in blend shaders
+- panfrost: Preload SampleID when reloading multisample FBs
+- panfrost: Fix provoking vertex selection for lines
+- pan/mdg: Fix texture handling for 2DMS arrays
+- panfrost: Allow 2DMS arrays
+- panfost: Fix depth/stencil writeback on Bifrost v7
+- panfrost: Force ->s_writeback_base to ->zs_writeback_base for Z24S8 buffers
+- panfrost: Reload depth/stencil when they are read
+- gallium/util: Fix depth/stencil blit shaders
+- panfrost: Fix several depth/stencil format mappings
+- pan/bi: Fix ATEST emission
+- panfrost: Move checksum_bo to panfrost_resource
+- panfrost: Group CRC fields in a struct
+- panfrost: Pass a device object to panfrost_new_texture()
+- panfrost: Merge emit_texture_payload() and emit_texture_payload_v7()
+- panfrost: Pass a dev object to panfrost_needs_explicit_stride()
+- panfrost: Define AFBC surface flags
+- panfrost: Adjust the compression tag creation for Bifrost
+- panfrost: Merge panfrost_new_texture() and panfrost_new_texture_bifrost()
+- panfrost: s/panfrost_slice.size0/panfrost_slice.surface_stride/
+- panfrost: Use PAN_V6_SWIZZLE() in pan_blit.c
+- panfrost: Stop mixing depth and number of samples
+- panfrost: Add a pan_image_layout object
+- panfrost: Move AFBC header_size to a sub-struct
+- panfrost: Fix AFBC header_size and slice size calculation
+- panfrost: Add AFBC slice.body_size and slice.{row,surface}_stride fields
+- panfrost: Adjust surface stride calculation to take AFBC into account
+- panfrost: Add R5G6B5_UNORM entries to the format tables
+- panfrost: Pass a pipe-like swizzle to panfrost_new_texture()
+- panfrost: Adjust the format for AFBC textures on Bifrost v7
+- panfrost: Fix ZS block format v7 definition
+- panfrost: Use proper format for Z16_UNORM
+- panfrost: Fix AFBC support on Bifrost
+- panfrost: Enable AFBC support on Bifrost
+- panfrost: Use panfrost_get_layer_stride() instead of open-coding it
+- panfrost: Initialize AFBC headers to zero
+- panfrost: Fix panfrost_should_linear_convert()
+- panfrost: Allow AFBC on 2D arrays
+- panfrost: Fix calculation of body/header pointers for 3D AFBC
+- panfrost: Allow 3D AFBC on Bifrost v7
+- panfrost: Fix AFBC on Bifrost v6
+- panfrost: Fix UBO count calculation on Bifrost
+- pan/bi: Fix constant slot selection
+- panfrost: Set the RT index when emitting a Bifrost blend descriptor
+- pan/bi: Pass bundle pointers to bi_pack_tuple()
+- pan/bi: Port bi_collect_blend_ret_addr() to the new compiler infra
+- pan/bi: Restrict registers to r0-r15 when compiling blend shaders
+- pan/bi: Use the interference mechanism to describe blend shader reg use
+- pan/bi: Allow non-terminal BLEND operations
+- pan/bi: Lower 8bit fragment outputs to 16bit
+- panfrost: Promote 8b to 16b for blend descriptors
+- panfrost: Test GLES3 on Bifrost
+- panfrost: Get layer stride of level 0 on staging resources
+- panfrost: Pass the resource dimension to panfrost_compression_tag()
+- panfrost: Fix estimate_texture_payload_size() on Bifrost
+- panfrost: Re-enable AFBC on 3D, 2D arrays
+- panfrost: Skip an XFB test that's passing/failing randomly
+- panfrost: Fix panfrost_afbc_format_needs_fixup()
+- pan/bi: Fix the !immediate case in bi_emit_store_vary()
+- panfrost: Fix tiler job injection (again)
+- panfrost: Fix a polygon list corruption in the multi-context case
+
+Boyuan Zhang (2):
+
+- radeon: fix license in header
+- radeon/vcn: use cdw to calculate slice header index
+
+Brendan Dougherty (1):
+
+- mesa: Fix vertex_format_to_pipe_format index.
+
+Caio Marcelo de Oliveira Filho (13):
+
+- intel/fs: Add assert on the brw_STAGE_prog_data downcasts
+- intel/disasm: Don't rely on FALLTHROUGHTs to print unsupported SFID
+- anv: Avoid a couple of warnings related to vk_error macros
+- spirv: Implement OpArrayLength for OpenGL
+- nir: Fix outdated name in comment
+- nir: Remove unused parameter in remove_dead_var_writes
+- nir: Consider pointer initializers in nir_remove_dead_variables
+- spirv: Remove more dead variables
+- spirv2nir: Add --opengl (-g) argument for OpenGL SPIR-V
+- spirv: Don't remove variables used by resource indexing intrinsics
+- nir: Add a data pointer to the callback in nir_remove_dead_variables
+- compiler: Use util/bitset.h for system_values_read
+- spirv: Allow variable pointers pointing to an array of blocks
+
+Chad Versace (24):
+
+- anv/image: Check DISJOINT in vkGetPhysicalDeviceImageFormatProperties2 (v2)
+- anv/image: Fix isl_surf_usage_flags for stencil images
+- isl: Define isl_drm_modifier_get_score() \[v3\]
+- anv/image: Use isl_drm_modifier_get_score()
+- isl: Add isl_format_layout::uniform_channel_type
+- anv/image: Teach anv_get_image_format_features() about modifiers (v3)
+- anv/image: Fill drmFormatModifierTilingFeatures (v2)
+- isl: Make public the list of modifiers
+- anv/image: Refactor iteration over modifiers
+- anv/image: Delete the list of modifier-compatible formats
+- anv/image: Fix VkExternalMemoryProperties for images (v5)
+- anv/image: Rename get_wsi_format_modifier_properties_list()
+- anv/image: Minor refactor of VkImageFormatProperties::sampleCounts
+- anv/image: Fail earlier in anv_get_image_format_properties
+- anv/image: Respect VkImageFormatListCreateInfo for VkImageFormatProperties (v2)
+- anv/image: Drop redundant rejection of YCbCr formats with modifiers
+- anv/image: Emit error message for non-2D DRM images
+- anv/image: Move some DRM code in anv_get_image_format_properties()
+- anv/image: Add more asserts to choose_isl_tiling_flags
+- anv/image: Define add_all_surfaces()
+- anv/image: Further split add_*_surface funcs (v2)
+- anv/image: Rewrite check_surfaces() \[v2\]
+- anv/image: Check surface offsets after adding each surface
+- anv/image: Define anv_image_get_aux_addr (v3)
+
+Chia-I Wu (1):
+
+- virgl: fix modifier truncation
+
+Christian Gmeiner (37):
+
+- ci: sort packages installed via apt-get
+- etnaviv: nir: do not run opt loop after nir_lower_bool_xxx(..)
+- etnaviv: drop nir_print_shader(..) call
+- etnaviv/drm: fix evil-twin etna_drm_table_lock
+- etnaviv/drm: convert to simple_mtx
+- etnaviv/drm: add some locking asserts
+- etnaviv: update fallthrough comments
+- nir: change return type to void
+- etnaviv: rename from immedaite to uniform in some places
+- etnaviv: remove imm\_ prefix from etna_shader_uniform_info members
+- ci: build ARM mesa with X11 OpenGL support
+- ci: build mesa with gbm
+- ci/bare-metal: build full piglit for baremetal ARM targets.
+- ci/fastboot: exclude either deqp or piglit
+- ci/bare-metal: pass thorugh PIGLIT env vars
+- mesa/prog_to_nir: use intrinsic builders
+- tgsi_to_nir: use intrinsic builders
+- nir: use intrinsic builders
+- v3d: use intrinsic builders
+- v3dv: use intrinsic builders
+- ir3: use intrinsic builders
+- st: use intrinsic builders
+- zink: use intrinsic builders
+- tu: use intrinsic builders
+- d3d12: use intrinsic builders
+- iris: use intrinsic builders
+- vc4: use intrinsic builders
+- intel/blorp: use intrinsic builders
+- intel/compiler: use intrinsic builders
+- anv: use intrinsic builders
+- microsoft/compiler: use intrinsic builders
+- pan: use intrinsic builders
+- etnaviv: add set_stream_output_targets(..) stub
+- v3d: drop not use function parameter
+- v3d: update fallthrough comments
+- v3d: mark some variables static const
+- etnaviv: handle NULL views in set_sampler_views
+
+Connor Abbott (17):
+
+- freedreno/ci: Strip location from asserts
+- freedreno/a6xx: Document private memory registers
+- ir3: Expand cat6 a6xx opcode field
+- ir3: Add more a6xx-specific cat6 opcodes
+- ir3: Support assembling & disassembling getspid/getwid
+- ir3: Fix STP/LDP assembly
+- ir3/parser: Fix st{l,lw,g,p} and ld{l,lw,g,p} assembly
+- ir3: Initial support for private memory
+- ir3: Properly validate cat6 half-ness
+- freedreno: Add per-device parameters for private memory
+- tu: Support private memory
+- freedreno/a6xx: Implement private memory
+- ir3: Enable nir_lower_vars_to_scratch on a6xx
+- ir3/ra: Fix array reg liveness in scalar pass
+- ir3: Rename high registers to shared registers
+- ir3: Better rules for shared src copy propagation
+- ir3: Support MOVMSK
+
+Daniel Schürmann (53):
+
+- nir: add strength reduction pattern for imod/irem with pow2 divisor.
+- nir: allow for cheap intrinsics in nir_opt_peephole_select()
+- nir: add nir_phi_get_src_from_block() helper
+- nir/opt_peephole_select: collapse nested IFs if applicable
+- nir/opt_peephole_select: respect selection_control when collapsing ifs
+- nir: don't sink instructions into loops
+- nir/opt_sink: return early when trying to sink unused instructions
+- aco/ra: use get_reg_specified() for p_extract_vector
+- aco: don't create dead exec mask phis on merge blocks
+- aco: fix DCE of rematerializable phi operands
+- aco/spill: only prevent rematerializable vars from being DCE'd if they haven't been renamed
+- aco/ra: fix phi operand renaming
+- nir/opt_if: split ALU from Phi more aggressively
+- aco: don't emit parallelcopy when switching to WQM.
+- aco: make pred_by_exec_mask() accessible in other files
+- aco: allow to schedule SALU/SMEM through exec changes
+- aco: fix def-use distance calculation when scheduling.
+- aco: schedule position exports in the same pass as memory operations
+- aco: create VMEM clauses slightly more aggressive
+- nir/opt_vectorize: use a single instruction per hash entry instead of a vector
+- nir/opt_vectorize: don't hash instructions which are already vectorized
+- nir/opt_vectorize: don't hash filtered instructions
+- nir/opt_vectorize: rehash users of vectorized instructions
+- nir/opt_vectorize: hash whether a swizzle accesses elements beyond the maximum vectorization factor
+- nir/opt_vectorize: fix call to filter function
+- nir,vc4: Lower fneg to fmul(x, -1.0)
+- nir: replace .lower_sub with .has_fsub and .has_isub
+- nir/divergence_analysis: mark load_push_constant as uniform
+- radv: optimize idiv_const for small bitsizes
+- radv: call nir_opt_algebraic_late() after lowering idiv for small bitsizes
+- radv: don't lower_pack() after load-store-vectorization
+- radv: enable .lower_ineg
+- aco: simplify and fix operand/definition sizes
+- aco/ra: fix infinite recursion in get_reg_simple() with subdword registers
+- aco: fix VOP3P assembly, VN and validation
+- aco/RA: fix subdword operands on VOP3P instructions
+- aco: allow constants/literals on every src position for VOP3P
+- aco: allow SGPRs on every src position for VOP3P
+- aco: change usesModifiers() considering opsel_hi on packed instructions
+- aco: create helpers to emit vop3p instructions
+- aco: emit packed 16bit instructions
+- radv: vectorize 16bit instructions
+- aco: simplify multiply-add combining
+- aco: optimize packed mul+add to v_pk_fma_f16
+- aco: optimize packed clamp
+- aco: optimize packed fneg
+- aco: optimize v_pk_fma_f16 -\> v_pk_fmac_f16 on GFX10
+- aco: propagate swizzles when optimizing packed clamp & fma
+- aco: remove divergent branches which only jump over very few instructions
+- aco/optimizer: don't propagate subdword temps of different size
+- aco/optimizer: don't copy-prop logical phis
+- aco: fix nir_intrinsic_ballot with wave32
+- aco: fix shared VGPR allocation on RDNA2
+
+Daniel Stone (17):
+
+- microsoft/clc: Allow building with Clang git
+- microsoft/clc: Disable broken f32 -\> i64/u64 test
+- CI: Add Windows libclc and SPIRV-LLVM-Translator builds
+- CI: Windows: Use 32 vCPUs for Mesa build
+- CI: Remove ludicrous Windows container build timeout
+- CI: Update Windows build for current Meson options
+- CI: Build d3d12 Gallium driver and CLC framework on MSVC
+- CI: Re-enable MSVC build
+- freedreno: Add missing dependency to build
+- CI: Collapse SCons & meson-misc stages into one
+- CI: Collapse llvmpipe & softpipe stages into one
+- CI: Collapse radv & radeonsi stages into one
+- CI: Collapse virgl & d3d12 stages into one
+- CI: Collapse lima & panfrost stages into one
+- CI: Reorder non-hardware stages last
+- CI: Add llvmpipe- prefix to Piglit jobs
+- CI: Add Windows source dependency map
+
+Danylo Piliaiev (22):
+
+- freedreno/a6xx: add support for dual-source blending
+- freedreno/a6xx: Fix typo in height alignment calculation in a6xx layout
+- freedreno/a6xx: add support for ARB_shader_stencil_export
+- tu: Ignore pTessellationState if there is no tesselation shaders
+- tu: pCounterBuffers can be NULL in vkCmd*TransformFeedbackEXT()
+- freedreno/a6xx: Fix assert which checks the count of shader outputs
+- ir3: Allow tesselation to use all 32 varying slots
+- freedreno/a6xx: Fix SP_HS_UNKNOWN_A831 value and document it
+- freedreno/a6xx: bump varyings limit
+- freedreno: Fix FD_MESA_DEBUG=flush debug option
+- freedreno/ir3: remap FRAG_RESULT_COLOR to \_DATA\* for dual-src blending
+- nir/lower_fragcolor: handle dual source blending
+- freedreno/a6xx: fix array pitch for layer-first layouts
+- freedreno/a6xx: add support for gl_Layer in vertex shader
+- freedreno/a6xx: support layered framebuffers in blitter_clear
+- nir: account for point-coord origin when lowering it
+- nir: fix missing nir_lower_pntc_ytransform.c in the makefile
+- freedreno/a6xx: fix transform feedback resuming
+- freedreno/a5xx: implement transform feedback resuming
+- freedreno: Enable GLSL 3.30, updating us to GL 3.3 contexts
+- turnip: remove unused IR3_DP_LOCAL_GROUP_SIZE_* from cs params
+- turnip: implement indirect dispatch
+
+Dave Airlie (69):
+
+- util: add a env getter for versions
+- clover/device: store version in device at constructor.
+- clover: add CL 3.0 CL_DEVICE_NUMERIC_VERSION support
+- clover/platform: move versioning to core object.
+- clover: add CL_PLATFORM_NUMERIC_VERSION support
+- clover: report device CLC versions for 3.0
+- clover: add support for versioned device extensions
+- clover: add platform supported extensions with version
+- clover: add support for opencl C features
+- gallium: handle empty cbuf slots in framebuffer samples helper
+- u_blitter: port radv 3D blit coords logic.
+- lavapipe: enable alpha to one.
+- lavapipe: disable SNORM blending for now
+- llvmpipe: just use draw_regions in draw/line setup.
+- draw: fix tess eval pipeline statistics.
+- gallivm: add float to 8/16 int
+- gallivm/nir: add fsum support
+- gallivm/nir: lower dot products.
+- gallivm: lower vector compares
+- gallivm: fix float atomic exchange.
+- clover: handle memory object properties properly.
+- clover: add support command queue properties
+- clover: add all CL 3.0 API with invalid functions
+- clover: add cl 3.0 SVM invalid support
+- clover: add device/platform info for CL 3.0
+- clover: add 3.0 program properties
+- clover: add CL 3.0 event/queue queries
+- clover/image: handle MEM_KERNEL_READ_AND_WRITE flag.
+- spirv/cl: add enqueued workgroup size.
+- lavapipe: fixup device allocate + enable private data
+- lavapipe: fix wsi acquire fences
+- llvmpipe/setup: move point stats collection earlier.
+- llvmpipe: fix multisample point rendering.
+- llvmpipe: fix multisample lines.
+- lavapipe: fixup mipmap precsion bits
+- lavapipe: enable pipeline stats queries
+- gallium: fix missing bit field in p_state.h
+- zink: allow the backend to optimise shaders.
+- lavapipe: enable VK_EXT_shader_stencil_export
+- lavapipe: enable post depth coverage
+- lavapipe: add support for VK_KHR_indirect_draw_count
+- radeonsi: fix regression on gpus using the radeon winsys.
+- lavapipe: use ralloc for pipeline copies.
+- lavapipe: split out pipeline struct duplication to a macro.
+- lavapipe: don't copy pNext
+- CI: add lavapipe vulkan testing
+- lavapipe: refactor descriptor set binding to support push later.
+- lavapipe: add support for VK_KHR_push_descriptor
+- lavapipe: add support for VK_KHR_descriptor_update_template
+- zink: add some 64-bit conversion ALUs
+- gallium: add an api to retrieve pipe offsets
+- llvmpipe: add support for vulkan streamout offset hook
+- llvmpipe: handle SO statistics multi value query copy. (v2)
+- lavapipe: add transform feedback support
+- gallium: add grid base to dispatch info
+- llvmpipe: add support for grid base
+- llvmpipe: enable lower device id to zero
+- lavapipe: add basic vulkan device group support.
+- util: add printf specifier shared helper code.
+- clover/module: add a printf support to module (v5)
+- clover/nir: hookup printf (v3)
+- intel/isl: move get_tile dims/masks to common isl header
+- device-select-layer: update for vulkan 1.2
+- lavapipe: fix missing piece of VK_KHR_get_physical_device_properties2
+- radv: move queue object to a common base object
+- zink: don't pick a cpu device ever.
+- glsl: fix leak in gl_nir_link_uniform_blocks
+- glx: proposed fix for setSwapInterval
+- lavapipe: fix pipeline vp/scissor mixup.
+
+David McFarland (1):
+
+- radv: fix divide by zero with no tesselation params
+
+David Stevens (6):
+
+- egl/android: don't pass loaderPriv in get_front_bo
+- dri: add image cleanup callback to loader extensions
+- frontend/dri: plumb loader image cleanup callback
+- i965: plumb loader image cleanup callback
+- egl/android: implement image cleanup callback
+- egl/dri2: fix image loaderPrivate type mixup
+
+Duncan Hopkins (4):
+
+- zink: setup version dependent VkPhysicalDeviceVulkan*Features and VkPhysicalDeviceVulkan*Properties.
+- mesa: Undefine ALIGN macro before it is used as a function name. Issues on MacOS.
+- zink: moved vkEnumerateInstanceVersion to create_instance
+- zink. Fixing vkGetPhysicalDeviceProperties2 and vkGetPhysicalDeviceFeatures2 for Vk 1.1 and VK_KHR_get_physical_device_properties2.
+
+Dylan Baker (70):
+
+- Bump version for 21.0 devel
+- Reset new features for 21.0 development cycle
+- meson: Don't add extra values to shader-cache
+- meson: use a feature option for microsoft-clc
+- docs: add release notes for 20.2.3
+- docs: Add relnotes for 20.2.3
+- docs: update calendar and link releases notes for 20.2.3
+- release-calender: Update 20.3
+- docs: add release notes for 20.3.0
+- docs: Add sha256 sums for 20.3.0
+- docs: update calendar and link releases notes for 20.3.0
+- docs: add release schedule for 20.3
+- docs: add release notes for 20.2.4
+- relnotes: Add sha256sums for 20.2.4
+- docs: update calendar and link releases notes for 20.2.4
+- docs: add release notes for 20.2.5
+- docs: add sha256 sums for 20.2.5
+- docs: update calendar and link releases notes for 20.2.5
+- docs: add release notes for 20.3.1
+- docs: Add sha256 sums for 20.3.1
+- docs: update calendar and link releases notes for 20.3.1
+- docs: add release notes for 20.2.6
+- docs: Add sha256 sums for 20.2.6
+- docs: update calendar and link releases notes for 20.2.6
+- docs: add release notes for 20.3.2
+- docs: Add sha256 sum for 20.3.2
+- docs: update calendar and link releases notes for 20.3.2
+- pick-ui: don't handle the mouse
+- bin/remove get-pick-list.sh files
+- docs: store the release-calendar information in csv (and fix tests)
+- bin: Add script for manipulating the release calendar
+- bin/gen_calendar_entries: Add support for extending a release
+- bin/gen_calendar_entries: Add support for making a release
+- docs: Add calendar entries for 21.0 release candidates.
+- docs/release-calendar.rsv: Remove spaces
+- VERSION: bump for 21.0.0-rc1
+- .pick_status.json: Update to dfe429eb414511170f3dfc960d247c4aa295f924
+- .pick_status.json: Update to 184bbef33d1fff3520958c130f2b8e4fce17379c
+- .pick_status.json: Update to c27347b2e1883a30e023347a36bdcf86cdec4a7c
+- .pick_status.json: Update to 3e13c1f8dfef4a4c0fd5e79bbc364f9e5f998856
+- VERSION: bump for 21.0.0-rc2
+- .pick_status.json: Update to af9977a3d5f3378c297965e21389e36491f47e1b
+- .pick_status.json: Update to c3dbc4df194a15aa1cf09493a3100b59e37e48fe
+- .pick_status.json: Update to 64f55b82c7f1652e4fae478c0af325fc38b9b53b
+- .pick_status.json: Update to 3ef89b245e3e1ac4e67fea9c1b13ebeda75769d0
+- .pick_status.json: Update to d37124b065c2b6c99c042fb402c6a23ce16b034e
+- .pick_status.json: Mark 8c7d9716669a74159d2eec86490c756c274f663c as backported
+- .pick_status.json: Mark 45bebc7a9c73f3add08c2290fa1eac237edf5a34 as backported
+- .pick_status.json: Update to 9052819ebbff07d82c3eb9adf414144df4868644
+- .pick_status.json: Update to f01ea0aef8a50d2732eb0c64153903e52ed2a757
+- VERSION: bump for 21.0.0-rc3
+- .pick_status.json: Update to 86ff78e8fe55b424c6b853ead6979bcd46820d81
+- .pick_status.json: Update to 9003735b9141fb156d3b2e1133b94cdf14f63424
+- .pick_status.json: Update to e8707961134daa9b91599840ad5698366a6229b7
+- .pick_status.json: Update to b609d4677d3f910c546c1d94d8ddfe4511e2f065
+- bump version for 21.0-rc4
+- .pick_status.json: Update to 8ed874d73fafcfbcb54730dc5c20e58f24d55f5e
+- .pick_status.json: Update to 03d3294e35befc2be6ed0ed66ed92fab991c166d
+- Revert "vulkan: Make vk_debug_report_callback derive from vk_object_base"
+- VERSION: bump for 21.0.0-rc5
+- .pick_status.json: Update to 4ded99f99ddbd1103ffddfd9935638fc12e0ecfd
+- .pick_status.json: Mark 38ce8d4d00c2b0e567b6dd36876cf171acb1dbc7 as backported
+- .pick_status.json: Update to 9f8a0b797ed9b8ad9bf49af8269a337b1152a744
+- .pick_status.json: Update to 6ceb6b509e64c54812a5f6a208e7d93cc61119f4
+- .pick_status.json: Update to ea27f2bf092f462171fe14a44619565d14f43fb8
+- .pick_status.json: Update to c22267262ee1b6817df368a51168fa82bd17293c
+- .pick_status.json: Mark 04df0cb4ae7055b0a4a6dc9875aa5926131fe5f4 as backported
+- .pick_status.json: Mark 942ba4e34124d1058492f544dc8fd42f4012fd12 as backported
+- .pick_status.json: Mark ea27f2bf092f462171fe14a44619565d14f43fb8 as backported
+- .pick_status.json: Mark 5f1b3544729178715a1ed0714bd1029737089824 as backported
+
+Ella-0 (1):
+
+- v3dv: Wayland WSI support
+
+Eric Anholt (156):
+
+- util/hash_table: Handle NULL ht in \_mesa_hash_table_clear().
+- util/hash_table: Clean up the \_mesa_hash_table_clear() implementation.
+- util/set: Fix the \_mesa_set_clear function to not leave tombstones.
+- nir/validate: Size the set of blocks to avoid rehashing.
+- nir_builder: Return a new builder from nir_builder_init_simple_shader().
+- nir/builder_tests: Drop unused lin_ctx.
+- nir/tests: Simplify the mem_ctx setup in our unit tests.
+- intel: Drop the last uses of a mem_ctx in nir_builder_init_simple_shader().
+- nir/builder: Drop the mem_ctx arg from nir_builder_init_simple_shader().
+- nir/builder: Add a name format arg to nir_builder_init_simple_shader().
+- ci: Move the rust cleanup in lava_build out of the middle of kernel build.
+- ci: Only install kernel modules for LAVA devices.
+- ci/freedreno: Group the short a630 dEQP runs into one test job.
+- ci/deqp: Allow specifying the caselist fraction separate from CI_NODE_INDEX.
+- ci: Bump deqp to current vulkan-cts-1.2.4
+- ci: Re-enable the clip_three test on non-freedreno ARMs.
+- ci/db410c: Fix networking so we get artifacts from our jobs.
+- gallium/draw: Fix rasterizer_discard for wide points/lines.
+- freedreno: Fix leak of shader binary on disk cache hits.
+- nir: Add a size_align helper function for aligning elements to 16 bytes.
+- freedreno/ir3: Include at least 4 NOPs so that cffdump doesn't disasm junk.
+- freedreno/ir3: Switch emit_const_ptrs() to take BOs instead of prscs.
+- freedreno/ir3: Fix incorrect optimization of usage of 16-bit constbuf vals.
+- freedreno+turnip: Upload large shader constants as a UBO.
+- freedreno: Disable PIPE_CAP_PREFER_IMM_ARRAYS_AS_CONSTBUF.
+- turnip: Assert about the storage buffer offset alignment.
+- ci: Enable -Werror in more clover builds.
+- freedreno: Fix release build warnings for asserted temp vars.
+- freedreno/a6xx: Fix use of uninitialized img->level in the SSBO/image path.
+- freedreno: Fix warning about uninit size for the size==0 special case.
+- freedreno: Fix uninitialized var warning in afuc using unreachable().
+- freedreno: Suppress uninit var warnings from shader stage switch.
+- ci: Bring freedreno into the "warnings clean release build" fold.
+- freedreno/afuc: Fix up some sprintf format security warnings.
+- gallium: Fix leak of the merged driconf options.
+- freedreno: Fix leak of u_transfer_helper.
+- egl: Skip closing drivers when building with AddressSanitizer.
+- meson: Remove old todo comment about pthread stubs.
+- gallium: Fix leak of bound SSBOs at CSO context destruction.
+- gallivm: Fix max const buffer count.
+- gallium: Fix leak of currently bound UBOs at CSO context destruction.
+- freedreno: Break out of "should we free the entry" loop once we've freed.
+- xmlconfig: Add unit tests for recent bugs in the driconf rewrite.
+- xmlconfig: Warn if parsing the engine/app versions fails.
+- gallium/osmesa: Fix flushing and Y-flipping of the depth buffer.
+- gallium/osmesa: Remove the broken buffer-reuse scheme.
+- gallium/osmesa: Fix data race on setting up the ST API.
+- gallium/osmesa: Fix leak of the ST manager/api on library unload.
+- gallium/osmesa: Return cleanly for OSMesaGetDepthBuffer() with no depth.
+- ci/freedreno: Detect the cheza power management bus error and restart.
+- ci/vc4: Skip VS dynamic loops tests that cause GPU hangs.
+- softpipe: Fix swizzled texture gather of int textures.
+- osmesa/test: Clear the stencil bits in the depth test.
+- docs: Fix the documentation of the OSMesa path.
+- mesa: Retire classic OSMesa.
+- ci: Make sure that osmesa stays warnings-clean in release builds.
+- st/mesa: Replace mesa_to_tgsi() with prog_to_nir() and nir_to_tgsi().
+- gallium/ntt: Don't manually reindex instrs.
+- gallium/ntt: Drop reindexing of SSA defs and regs.
+- nir: Redefine start/end_ip of blocks to fix NIR-to-TGSI liveness bugs.
+- etnaviv, v3d: Fix valgrind include paths.
+- util: Fix memory leak in a hash table unit test.
+- util/vma: Fix leak of the heap in the unit test.
+- glx/tests: Remove unused teardown function.
+- glx/tests: Fix leaks in the unit tests.
+- freedreno/ir3: Free the compiler at the end of the unit tests.
+- disk_cache: Fix memory leaks in the unit test.
+- glsl/general_ir_test: Fix leaks.
+- glsl/uniform_initializer_tests: Fix memory leak
+- mapi: Fix symbols check with ASan enabled.
+- glsl/standalone: Fix memory leaks
+- driconf: Fix memory leak in the unit test.
+- amd: Fix leak in ac_surface_modifier_test.
+- ci: Add an ASan build on x86.
+- ci/freedreno: Treat all freedreno deqp runs as saving results.
+- ci/freedreno: Stop specifying the number of deqp threads
+- mesa/st: Finalize the texture before BlitFramebuffer from it.
+- freedreno/a6xx: Flush depth at the end of bypass rendering, too.
+- ci/deqp: Make sure that we pull in all board-specific xfail/skip/flake files.
+- lvp: Fix vtn warnings about unsupported image read/write without format.
+- softpipe: count CS invocations for pipeline stats queries.
+- mesa/st: Fix use-after-free of the draw VS.
+- ci: Disable the now flaky Portals.trace on a630.
+- ci/deqp: Move .shader_cache artifacts exclusion to the yml.
+- ci/deqp: Upgrade the runner, enable junit output.
+- ci/deqp: Move the load reporting to a quiet block.
+- mesa/st: Update FP state when textures change with an ATI_fs bound.
+- mesa/prog_to_nir: Factor out the texture-target-to-sampler-dim helper.
+- mesa/ati_fs: Clean up writemask handling.
+- st/mesa: Generate NIR for ATI_fragment_shader instead of TGSI.
+- gallivm: Use the proper enum for the texture target bitfield.
+- softpipe: Enable GLSL 400 for compat contexts too.
+- ci/piglit: Include the updated piglit results list in the job results.
+- ci/softpipe: Include a piglit run.
+- gallium/ntt: Fix check for "is there anything in the else block?"
+- ci/deqp: Fix inverted meaning of DEQP_NO_SAVE_RESULTS.
+- freedreno: Enable GLSL 1.50, updating us to GL 3.2 contexts.
+- ci/panfrost: Disable the flaky gimark trace.
+- gallium/draw: Fix intermittent failure to bind new geometry shaders.
+- ci/softpipe: Re-enable GS tests that had been banned for being flaky.
+- gallium/tgsi_exec: Fix shared memory atomic ops.
+- gallium/tgsi_exec: Reuse the atomic helper for SSBO atomics.
+- gallium/tgsi_exec: Use the new SSBO lookup interface for SSBO loads.
+- gallium/tgsi_exec: Move the SSBO store path to tgsi_exec, too.
+- gallium/tgsi_exec: Replace the SSBO RESQ-specific interface with lookup.
+- softpipe: Sanity check that the SSBO view offset is within the BO.
+- ci/softpipe: Skip flaky triangle-rasterization-overdraw.
+- ci/softpipe: Ban glx-multithread-texture, too.
+- ci/softpipe: Update the comment about the rasterpos flake.
+- ci/bare-metal: Drop extra DEQP_PARALLEL settings.
+- ci/bare-metal: Pass through FDO_CI_CONCURRENT on bare-metal runners.
+- ci: Add a530 and a630 piglit runs.
+- gallium/tgsi_exec: Simplify GS output vertex count tracking.
+- gallium/tgsi_exec: Stop doing the weird allocation of the Addrs array.
+- gallium/tgsi_exec: Drop the unused scratch temp regs.
+- gallium/tgsi_exec: Clean up storage of the pixel kill mask.
+- gallium/tgsi_exec: Remove unused MaxGeometryShaderOutputs.
+- freedreno/ir3: Deduplicate link_stream_out.
+- freedreno/a5xx: Drop redundant stream output linking check.
+- freedreno/a5xx: Move link_stream_out after VPC_VAR_DISABLE like on a6xx.
+- gallium/tgsi_exec: Fix assertion failure about missing constbufs.
+- gallium/tgsi_exec: Refactor to fix CS local memory overflow checks.
+- gallium/tgsi_exec: Add support for PIPE_CAP_LOAD_CONSTBUF.
+- gallium/ntt: Fix emitting UBO declarations.
+- gallium/ntt: Fix dynamic indirect indexing of per_vertex_input.
+- gallium/ntt: Fix load_ubo_vec4 buffer index setup.
+- gallium/ntt: Add support for PIPE_CAP_LOAD_CONSTBUF.
+- turnip: Move the limited_z24s8 flag to the shared device info.
+- freedreno/a6xx: Move the IBO pipe2tex down to where it's used.
+- freedreno/a6xx: Fix z24s8 non-ubwc blits on a630.
+- freedreno: Disable UBWC on z24s8 on a630.
+- freedreno: Mark a615/a618 as also lacking Z24_UINT_S8_UINT support.
+- freedreno: Add missing dep on u_tracepoints.
+- ci: Disable the freedreno farm, which went down last night.
+- gallium/ntt: Drop XXX comment about supporting carry opcodes.
+- gallium/ntt: Emit SSBO buffer declarations.
+- gallium/ntt: Emit sample index when necessary for image load/store.
+- gallium/ntt: Add support for emitting TXF_LZ.
+- gallium/ntt: Drop comment about needing loop label setup.
+- gallium/ntt: Drop comment about needing array_id for svga tess.
+- gallium/ntt: Work around virglrenderer UIF handling bug.
+- nir/lower_locals_to_regs: Use the imul_imm helper instead of forcing it.
+- gallium/ntt: Fix leak of the per-instr liveness information.
+- mesa/st: Free the NIR builtins TGSI tokens after passing to the driver.
+- mesa/st: Free the ARB_vp/fp nir-to-tgsi temporary tokens.
+- gallium/ntt: Take ownership of the NIR shader we're passed.
+- Revert "ci: Disable the freedreno farm, which went down last night."
+- util/format: Fix pack/unpack of A1R5G5B5_UINT.
+- swr: Don't report support for shader images.
+- panfrost: Stub out set_shader_images().
+- gallium: Fix leak of shader images on context destruction.
+- mesa/st: Allocate the gl_context with 16-byte alignment.
+- vc4: Remove vestiges of alpha test lowering.
+- v3d: Clean up vestiges of alpha test lowering.
+- freedreno: Add missing dep on freedreno tracepoints.
+- r300,i915g: Report no shader buffers or images on non-TCL HW.
+
+Eric Engestrom (3):
+
+- gitlab-ci: drop deprecated platforms that snuck in when nobody was watching
+- meson: drop deprecated EGL platform build options
+- docs: use a single cell for the branch number
+
+Erico Nunes (6):
+
+- lima: define set_clip_state implementation
+- mesa: allow half float textures based on ARB_half_float_pixel
+- lima: add support for half float textures
+- lima: adjust pp and gp max const buffer size
+- nir/lower_vec_to_movs: don't vectorize unsupports ops
+- lima: fix max sampler views
+
+Erik Faye-Lund (133):
+
+- softpipe: correct signature of get_compiler_options
+- util/slab: allow usage from c++ code
+- compiler: add SYSTEM_BIT_FRONT_FACE
+- microsoft/compiler: add dxil-util code
+- microsoft/compiler: translate nir to dxil
+- d3d12: introduce d3d12 gallium driver
+- d3d12: ensure all compoents of clip-distances are written
+- d3d12: avoid searching twice for bos
+- util/u_process: implement util_get_process_name for Windows
+- d3d12: fix code after simple-shader helper changes
+- microsoft/compiler: remove unused struct
+- microsoft/compiler: move c++ higher up
+- microsoft/compiler: inline some struct-declarations
+- microsoft/compiler: correct typo
+- meson: verify that d3d12.h exists when building the d3d12 driver
+- util: fix unknown pragma warning on msvc
+- mesa/main: add missing include in glformats.h
+- docs/features: document d3d12 features
+- zink: mark general layout as transfer-read/write
+- zink: always insert barriers for general-layout
+- zink: more accurately track supported blits
+- mesa/st: Introduce WINSYS_HANDLE_TYPE_D3D12_RES
+- d3d12: Support WINSYS_HANDLE_TYPE_D3D12_RES
+- d3d12: also reject GDI-supporting pixel-formats
+- llvmpipe: fix arith-test build on msvc
+- d3d12: transition the right planes
+- docs: add basic docs for d3d12 driver
+- zink: fix layered resolves
+- zink: fall back to util_blitter for scaled resolves
+- Revert "zink: update shader modules in gfx program when flagged dirty"
+- Revert "zink: put those shader keys to work fixing up fragment shaders"
+- Revert "zink: fill in params for fs shader keys and flag shader for rebuild"
+- Revert "zink: move shader key structs into their own header"
+- Revert "zink: refcount the shader cache"
+- Revert "zink: initial implementation of shader keys"
+- Revert "tgsi: Fix helgrind complaint about one-time init"
+- Revert "gallium/trace: Fix helgrind complaint about one-time init"
+- Revert "mesa: Fix helgrind complaint about one-time init"
+- Revert "util: Fix helgrind complaint about one-time init"
+- Revert "mesa/st: Use do_once for one-time init"
+- Revert "gallium/hud: Use do_once for one-time init"
+- Revert "freedreno/ir3: Use get_once() for one-time init"
+- Revert "nir: Use get_once() helper for one-time init's"
+- Revert "util: Add helpers for various one-time-init patters"
+- docs: document new zink-flag
+- d3d12: lower bitfield_extract to shifts
+- d3d12: do not inspect NULL samplers
+- util/slab: do not dereference NULL-pointer
+- zink: revert to old load_ubo implementation
+- docs: break project history out of front-page
+- docs: move major versions history out of front-page
+- docs: use external link-references
+- docs: do not explicitly call out es-versions
+- docs: mention egl in api-list
+- docs: inline contents.rst into index.rst
+- gitlab-ci: store build-artifacts from building mesa
+- gitlab-ci: build zlib statically on windows
+- gitlab-ci: build piglit in mesa_deps.ps1
+- gitlab-ci: run piglit on windows
+- gitlab-ci: ignore nv_copy_depth_to_color
+- gitlab-ci: do not clone git-repo for test-job
+- microsoft/clc: use files-function for source-list
+- microsoft/clc: add missing dependency
+- microsoft/clc: increase test-timeout
+- zink: do not require VK_KHR_external_memory
+- lavapipe: set some basic usage-flags
+- gallium/targets/libgl-gdi: prefer d3d12 driver
+- lavapipe: fix logic-op support
+- gallium: do not reset buffers for unsupported stages
+- zink: fix channel ordering in format-mapping
+- lavapipe: interpret inputRate as an enum-value
+- lavapipe: implement VK_EXT_vertex_attribute_divisor (v2)
+- zink: fail if set failed to create
+- zink: use \_mesa_pointer_set_create for simplicity
+- gitlab-ci: copy piglit expected results to artifacts
+- .gitlab-ci: verify that Get-Content worked
+- mesa: do not allow es2-extension enums for es1
+- mesa: check for extension instead of desktop GL
+- gallium/util: make bitcast-helpers explicitly sized
+- gallium/util: add bitcast helpers for double and uint
+- zink: force display-targets to be linear
+- Revert "st/dri: make sure software color-buffers are linear"
+- zink: use shader-read-only-optimal for samplers
+- zink: use emit_bitcast helper
+- zink: ralloc spirv_shader
+- zink: fix 8 bit index handling code
+- zink: convert x8-formats in zink_get_format
+- zink: make zink_format all about raw format-translation
+- zink: fix format-mapping
+- zink: add format test
+- zink: map some more formats
+- lavapipe: implement VK_EXT_index_type_uint8
+- zink: nir_op_b2f64 implementation
+- zink: more conversion ALUs
+- docs/features: update list of zink features
+- zink: document some more features for higher GL versions
+- zink: only emit each cap once
+- zink: do not open-code CALLOC_STRUCT
+- zink: factor out zink_batch_release-helper
+- zink: destroy blitter before destroying batches
+- zink: release batch memory
+- zink: do not leak vertex element state
+- zink: dot leak dummy_buffer
+- zink: free sets and hash-tables in context
+- zink: destroy transfer-helper
+- zink: destroy device and instance
+- zink: do not use reservations for stream-out
+- zink: do not reserve or pack fragment outputs
+- zink: use ConstOffset for nir_tex_src_offset
+- zink: use lower_scmp instead of open-coding
+- zink: also lower scmp for soft-fp
+- zink: remove support for fcsel
+- gallium/util: do not perform n^2 stencil blits
+- gallium/ntt: lower uniforms to ubo
+- zink: disable render_condition_enable during blit
+- microsoft/compiler: correct dxil fma opcode
+- microsoft/compiler: do not lower away 64-bit ffma
+- zink: rename zink vs pipe variables
+- zink: setup compiler options during init
+- zink: add missing opcodes
+- zink: add missing 64-bit integer ops
+- zink: use hardware int64 when supported
+- mesa/st: fix regression for basic drivers
+- zink: handle NULL views in zink_set_sampler_views
+- zink: fix vertex-stride wrangling
+- zink: respect feature-cap for independent blending
+- zink: respect feature-cap for sample-shading
+- zink: respect feature-cap for multi-draw indirect
+- zink: make all xfb caps depend on extension
+- zink: require vulkan memory model for tesselation
+- zink: respect fragment-shader depth-layout
+- zink: clone shader before lowering clip_halfz
+- mesa/main: remove leftover bumpmap code
+
+Francisco Jerez (1):
+
+- intel/gen12: Fix memory corruption issues in fused Gen12 parts.
+
+Georg Lehmann (3):
+
+- vulkan/device-select: fix vkGetInstanceProcAddr self-resolving
+- vulkan/overlay: fix vkGetInstanceProcAddr self-resolving
+- vulkan/device_select: Only call vkGetPhysicalDeviceProperties2 if the device supports it.
+
+Gert Wollny (36):
+
+- util/format_zs: Add C++ include handling
+- nir/print: print GS extra info
+- r600/sfn: lower bool to int32 only after common optimizations
+- r600/sfn: use a per stream index register in GS
+- r600/sfn: Correctly lower all int64
+- r600/sfn: fix component loading from fixed buffer ID
+- r600/sfn: Add lowering pass to convert load_interpolated to load for POS
+- r600/sfn: Add simplified constructors for FS shader inputs.
+- r600/sfn: lower IO for FS inputs and handle interpolation accordingly
+- r600/sfn: remove unused FS input deref code
+- r600/sfn: Fix vertex stage export to accomodate IO lowering
+- r600/sfn: lower VS output IO
+- r600/sfn: Lower tess-eval IO
+- r600/sfn: drop store_deref handling for VS and TES
+- r600/sfn: lower GS IO
+- r600/sfn: simplify IO lowering and fix TESS IO lowering
+- r600/sfn: lower all IO in one pass
+- r600/sfn: correct error signalling in switch default case
+- r600/sfn: fix definition of priority queue
+- r600/sfn: Fix a few warnings in release builds
+- r600/sfn: remove unused file
+- r600/sfn: remove leftover debug message
+- r600/sfn: Fix dest-swizzle for GS vertex loads
+- r600/sfn: Add support for shader_clock
+- mesa/st: lower 64 bit ops to scalar before lowering to soft-float
+- r600/sfn: merge SpecialValue and InlineConstValue
+- doc: virgl supports ARB_texture_filter_anisotropic already
+- r600: Support TGSI_OPCODE_I64NEG
+- r600/sfn: C++ lower-instruct implementation
+- r600/sfn: Add number for source components for split_y
+- r600/sfn: add lowering passes to get 64 bit ops lowered to 32 bit vec2
+- r600/sfn: tie in 64 lowering code
+- r600: enable support for 64 bit DIVMOD when NIR is used
+- r600: enable fp64 lowering to softemu with NIR
+- r600/nir: use "unreachable" instead of "assert"
+- r600/sfn: fix use of b32all/and
+
+Giovanni Mascellani (2):
+
+- disk_cache: Fail creation when cannot inizialize queue.
+- anv: Allow null handle in DestroyDescriptorUpdateTemplate.
+
+Hans-Kristian Arntzen (2):
+
+- vulkan: Update to 1.2.164.
+- radv: Implement VK_VALVE_mutable_descriptor_type.
+
+Hoe Hao Cheng (11):
+
+- zink: define and use \<%guard\> helper in zink_device_info
+- zink: decouple features and enabling conditions in zink_device_info.py
+- zink: move blend_operation_advanced conditions to zink_device_info.py
+- zink: remove useless import in zink_device_info.py
+- zink: allow Extension/Version to be shared across files
+- zink: generate instance creation code with a python script
+- zink: hook zink_instance to build
+- zink: replace old code with generated zink_instance
+- zink: fix property detection
+- zink: add support for VK_EXT_4444_formats
+- zink: VK_KHR_draw_indirect_count is a device extension
+
+Hyunjun Ko (6):
+
+- vulkan: Enable VK_KHR_performance_query on android
+- turnip: Implement VK_KHR_performance_query
+- turnip: support multipass for performance query.
+- turnip: enable VK_KHR_performance_query with new debug flag
+- turnip/kgsl: support VK_KHR_performance_query
+- turnip: use ir3_compiler_destroy instead of ralloc_free
+
+Iago Toral Quiroga (33):
+
+- zink: only add MESA WSI structs for specific devices
+- v3dv: fix typo
+- v3dv: move authenticated display fd acquisition to swapchain creation time
+- v3dv: fix width for buffer view texture state
+- v3dv: add a buffer to image copy path using a texel buffer
+- v3dv: initialize pipeline layouts for meta operations at driver initialization
+- v3dv: blit shader clean-ups
+- v3dv: rename playout and dslayout fields to use underscores.
+- v3dv: use VkSurface to retrieve an authenticated display fd
+- v3dv: remove box check from texel buffer copy fragment shader
+- v3dv: remove redundant free of default pipeline attributes BO
+- v3dv: only write new uniforms when needed
+- v3dv: remove obsolete comment
+- v3dv: fix allocation size for BO handles
+- v3dv: fix leak in the buffer to image copy via texel buffer
+- v3dv: batch buffer to image copies with the texel buffer path if possible
+- v3dv: extend the list of formats supported by the TFU unit
+- v3dv: remove obsolete disabled code
+- v3dv: support compressed formats with TFU unit
+- v3dv: add a format parameter to emit_tfu_job
+- v3dv: add a TFU path for image copies
+- v3dv: fix base layer for 3D blits in the TFU path
+- v3dv: expand format coverage in TFU path for buffer to image copies
+- v3dv: check return value of drmGetMagic
+- v3dv: expand the formats that can be handled in the TFU blit path
+- v3dv: handle Z mirroring in the TFU blit path
+- v3dv: add a helper to choose a compatible TFU format
+- v3dv: ignore filter in TFU blit path
+- v3dv: move error string definition to debug path
+- v3dv: don't log out of pool memory errors for internal driver pools
+- v3dv: fix early return from failed drmGetMagic
+- v3dv: fix incorrect slice selection for TFU jobs
+- v3dv: fix BO list for TFU jobs
+
+Ian Romanick (23):
+
+- intel/compiler: Rotate instructions ROR and ROL cannot have source modifiers
+- intel/compiler: Delete redundant MAC declaration
+- intel/fs: Silence unused parameter warning in filter_simd
+- intel/fs: Add support for printing half-float immediate values
+- util: Add cnd_monotonic to Makefile.sources
+- nir: Make some notes about fsign versus NaN
+- nir/algebraic: Make some notes about comparison rearrangements versus infinity
+- Revert "nir: Replace an odd comparison involving fmin of -b2f"
+- nir/algebraic: Don't add reordered version of patterns for commutative instructions
+- nir: Correctly constant fold fsign(NaN) and fsign(-0)
+- nir/algebraic: Mark some logic-joined comparison reductions as exact
+- nir/algebraic: Add some compare-with-zero optimizations that are exact
+- spir-v: Mark floating point comparisons exact
+- nir/algebraic: Fix broken NaN and -0.0 behavior
+- nir/algebraic: Mark comparisons generated from lowered fsign precise
+- nir/algebraic: Move the flrp -\> bcsel rule earlier
+- i965: Don't parse driconf again
+- nir/algebraic: Fix a \>\> \#b \<\< \#b for sizes other than 32-bit
+- intel/compiler: Properly handle shift count for 8-bit sources
+- intel/compiler: Enable the ability to emit CMPN instructions
+- intel/compiler: Make the CMPN builder work like the CMP builder
+- intel/compiler: Use CMPN for min / max on Gen4 and Gen5
+- nir/algebraic: Fix some min/max of b2f replacements
+
+Icecream95 (54):
+
+- rbug: Forward get_compiler_options to pipe driver
+- rbug: Handle non-TGSI shaders
+- panfrost: Fix AFBC blits of resources with faked RGTC
+- panfrost: Fix stack shift calculation
+- pan/mdg: Try demoting uniforms instead of spilling to TLS
+- panfrost: Split up batches with many jobs
+- pan/gen_pack: Fix signed integer packing
+- panfrost: Fix negative LOD bias support on Bifrost
+- pan/decode: Fix "Access to unknown memory" message formatting
+- panfrost: Fix precise occlusion queries on Bifrost
+- panfrost: Fix CLAMP wrap mode
+- panfrost: Fix the Maximum anisotropy field in the XML
+- panfrost: Set the anisotropy level when cso->max_anisotropy is set
+- panfrost: Add a gpu_revision argument to panfrost_get_quirks
+- panfrost: Expose ARB_texture_filter_anisotropic on supported GPUs
+- panfrost: Fix panfrost_small_padded_vertex_count for 17 vertices
+- panfrost: Fix discard behaviour on Bifrost
+- nir: Handle load_kernel_input in nir_get_io_offset_src
+- pan/mdg: Fix promoted uniform moves with 64-bit types
+- pan/mdg: Add load_kernel_input support
+- pan/mdg: Implement load_global_invocation_id
+- pan/mdg: Set compute lowering options
+- panfrost: Stop lowering cs derived sysvals in glsl
+- panfrost: Add a NIR pass to lower 64-bit vec3 intrinsic loads
+- pan/mdg: Use the pan_nir_lower_64bit_intrin NIR pass
+- pan/mdg: Support nir_intrinsic_load_global_constant
+- pan/mdg: Support nir_intrinsic_group_memory_barrier
+- panfrost: Allow NULL for some binding functions
+- pan/mdg: Replace zext with a type enum
+- pan/mdg: Return false instead of asserting in mir_args_ssa
+- pan/mdg: Add i2i64 to mir_match_offset
+- pan/mdg: Pass the memory type to mir_set_offset directly
+- pan/mdg: Invert the type conditional for load intrinsics
+- pan/mdg: Support loads and stores to scratch memory
+- panfrost: Stub out panfrost_render_condition
+- panfrost: Set conditional render cap
+- gallium: Add new cap PIPE_CAP_TEXTURE_BUFFER_SAMPLER
+- docs: Mention PIPE_CAP_TEXTURE_BUFFER_SAMPLER
+- st/mesa: Use samplers for buffer textures if requested
+- panfrost: Make the width argument to panfrost_new_texture 32 bits
+- panfrost: Support buffer sampler views
+- panfrost: Fix textureSize for buffer textures
+- panfrost: Enable ARB_texture_buffer_object
+- panfrost: Dual-source blending on Bifrost
+- pan/bi: Add a define for the Bifrost shader prefetch size
+- pan/bi: Add some zero bytes after shaders on Bifrost
+- panfrost: Fix size assertion in bi_alu_src_index
+- pan/mdg: Fix spilling when scratch memory is used
+- pan/bi: Iterate from zero when setting RA interference
+- pan/decode: Free mapped memory objects on BO unreference
+- panfrost: Use normal malloc/free instead of ralloc for surfaces
+- panfrost: Add the tiler heap to fragment jobs
+- pan/bi: Use the correct size for UBO loads
+- st/mesa: Update constants on alpha test change if it's lowered
+
+Ilia Mirkin (18):
+
+- nv50: only support 4 components in separate xfb mode
+- nv50: fake enough resume support pre-nva0 to pass gles3 requirements
+- mesa/teximage: show internal format when printing verbose api log
+- nv50/ir: allow a mov to emit directly to a shader output
+- nv50: fix instancing of client-side vertex buffers
+- nv50,nvc0: serialize between before/after using a zeta surface as color
+- nv50: use 2d blit when m2mf doesn't support the copy
+- nouveau: change fence destruction logic on screen destroy
+- nouveau: add drm-shim support
+- ci: include nouveau in shader-db runs
+- nouveau: trigger the current fence's work on destroy explicitly
+- glsl: only expose int64 atomics when extension is enabled
+- cso: set index_bounds_valid = true for arrays draws
+- nvc0: index_bias is now only set for indexed draws
+- st/mesa: fix broken moves for u2i64 and related ops
+- nv50/ir: clear dnz flag when converting mul/mad to simpler ops
+- nvc0/ir: add fixup to deal with interpolateAtSample with non-MSAA
+- nouveau: reinstate fencing on screen destroy
+
+Indrajit Kumar Das (3):
+
+- radeonsi/gfx10: fix overflow and primitive queries
+- radeonsi/gfx10: added support for gfx10 conditional rendering
+- radeonsi/gfx10: fix issue with multiple overflow queries on the same context
+
+James Jones (4):
+
+- gallium: Add pipe_screen::is_dmabuf_modifier_supported
+- gallium: Add format modifier plane count query
+- gallium/dri: Factor out DRI extension setup code
+- gallium/dri: Use per-screen DRI extension list
+
+James Park (54):
+
+- radv: Fix radv_queue_init failure handling
+- c11/threads: Fix Win32 timed functions
+- c11/threads: Remove Win32 null checks
+- c11/threads: Remove Windows XP support
+- util/os_time: Safe os_time_get_nano for Windows
+- util,radv: Cross-platform monotonic condition variable
+- radv: Const aco_compiler_statistic_info usage
+- amd: Simplify ac_addrlib_create
+- amd: Cast to int for %d snprintf argument
+- amd: Remove bitfield sizes from enum values
+- amd: Stub sections that don't have \_WIN32 support
+- amd: Replace vasprintf with vfprintf
+- amd: Work around MSVC limit for string literals
+- amd: Fix signature mismatch
+- amd: Fix declaration mismatch
+- amd/common: Check with_tests before adding test
+- vulkan: Remove GCC pragmas by fixing warnings
+- vulkan: Replace pthread mutex with mtx_t
+- vulkan: Portable wsi_common_get_current_time()
+- util: Add os_localtime
+- vulkan/util: Consolidate typed_memcpy
+- aco: Define NOMINMAX in Meson build file
+- aco: Fix warnings about unsafe integer/bool mix
+- aco: Add missing C++ includes
+- aco: Remove nonstandard parentheses
+- aco: Declare num_reduce_ops for array size
+- aco: Const correct aco_compiler_statistics
+- aco: Replace indexed array initialization
+- aco: Use u_memstream instead of POSIX memstream
+- aco: Initialize union within Operand for MSVC
+- aco: Fix warnings for bools in bitwise logic
+- aco: Stub sections that don't have \_WIN32 support
+- aco: Avoid extra bitfield padding
+- radv: Exclude amdgpu driver files for Windows
+- radv: Update build defines for Windows
+- radv: Replace VLAs with alloca
+- radv: Wrap pragmas with \__GNUC_\_ to fix MSVC
+- radv: Use os_localtime instead of localtime_r
+- radv: Don't return value in void function
+- radv: Ignore radv_printflike on Windows
+- radv: Update radv_assert for MSVC
+- radv: Fix callback signatures
+- radv: Fix leak in radv_amdgpu_winsys_destroy()
+- radv: Fix function parameter types
+- radv: Use standard \__VA_ARGS_\_ macro
+- radv: Create shader cache if ENABLE_SHADER_CACHE
+- radv: Use unsigned with u_bit_scan for MSVC
+- radv: Replace pthread mutex with mtx_t
+- radv: Replace pthread thread with thrd_t
+- radv: Use portable ffs and util_bitcount macros
+- util: Disable \[[fallthrough]\] for C17
+- xmlconfig: Disable WITH_XMLCONFIG on Windows
+- util: Disable memstream for Apple builds
+- gallium/tessellator: Fix warning suppression
+
+Jan Beich (1):
+
+- util: unbreak on BSDs after MSVC changes
+
+Faith Ekstrand (63):
+
+- intel/fs: Fix use of undefined value in fixup_nomask_control_flow
+- nir/lower_io: Add data OOB asserts to write_constant
+- nir: Add a more generic helper for gathering constant initializers
+- nir,clover: Drop nir_lower_mem_constant_vars
+- nir: Rewrite lower_undef_to_zero
+- Revert "anv/image: Define anv_image_get_aux_addr (v3)"
+- vulkan: Update XML and headers to 1.2.162
+- spirv: Rename some ray-tracing intrinsics to NV
+- spirv: Update JSON and headers from Khronos main
+- spirv: Implement OpTraceRayKHR and OpExecuteCallableKHR
+- spirv: Call repair SSA for OpTerminateInvocation
+- spirv: Implement OpTerminateRayKHR and OpIgnoreIntersectionKHR
+- spirv: Implement SpvOpConvertUToAccelerationStructureKHR
+- nir: Add a halt instruction type
+- spirv: Emit nir_jump_halt after TerminateRay or IgnoreIntersection
+- intel/dev: Add a gen_device_info::has_ray_tracing bit
+- intel/genxml: Add the BINDLESS_SHADER_RECORD data structure
+- intel/genxml/pack: Stash the cloned address field
+- intel/genxml: Support truncated addresses
+- intel/genxml: Add RT_DISPATCH_GLOBALS and RT_*_SBT_HANDLE structs
+- intel/genxml: Add BVH data structures
+- nir: Add a helper to get the live set at a cursor
+- nir/lower_io: Allow ray_hit_attrib in lower_vars_to_explicit_types
+- nir/lower_io: Support shader_call_data in vars_to_explicit_types
+- intel/debug: Add a debug flag for ray-tracing shaders
+- intel/compiler: Add support for bindless shaders
+- intel/rt: Add a brw_rt.h header with \#defines for basic RT data structures
+- intel/fs: Add and implement a load_global_const_block intrinsic
+- intel/rt: Add builder helpers for accessing RT data structures
+- intel/rt: Add a pass to lower the new ray-tracing intrinsics
+- intel/rt: Add lowering functions for each ray-tracing stage
+- intel/rt: Add support for scratch in ray-tracing shaders
+- intel/rt: Add return instructions at the end of ray-tracing shaders
+- intel/rt: Add a pass to lower shader call instructions
+- intel/rt: Add a helper to create a trivial return shader
+- intel/rt: Implement support for shader call payloads
+- intel/fs: Add and implement intel-specific ray-tracing intrinsics
+- intel/rt: Implement traceRay()
+- intel/rt: Implement the new ray-tracing system values
+- intel/rt: Add support for shader buffer record memory
+- intel/rt: Add lowering for ray-walk intrinsics in any-hit shaders
+- intel/rt: Add lowering for combined intersection/any-hit shaders
+- intel/rt: Add a helper to create the raygen trampoline shader
+- intel/rt: Add support for hit attributes
+- intel/rt: Implement push constants as global memory reads
+- nir: Use the right argument order for load_scratch_base_ptr
+- intel/fs: DISCARD_JUMP does not have side-effects
+- intel/fs: Rename PLACEHOLDER_HALT to HALT_TARGET
+- intel/fs: Use BRW_OPCODE_HALT for discards
+- intel/fs: Remove unnecessary HALT_TARGET in opt_redundant_halt()
+- intel/fs: Emit HALT_TARGET in emit_nir_code()
+- intel/fs: Implement nir_jump_halt
+- nir/lower_non_uniform: Refactor for better code organization
+- nir/lower_non_uniform: Better handle non-derefs
+- anv: Bump maxGeometryInputComponents to 128 on Gen8+
+- intel/compiler: Return 1 for immediates in regs_read
+- intel/fs: QUAD_SWIZZLE requires packed data
+- nir: Drop the lower_mem_constant_vars declaration
+- vulkan: Make vk_debug_report_callback derive from vk_object_base
+- nir: Don't optimize bcsel-of-shuffle across blocks
+- nir: Fix parameter order in the bcsel-of-shuffle optimization
+- intel/fs: Shuffle can't handle source modifiers
+- anv/formats: Advertise linear sampling on depth formats
+
+Jeremy Huddleston (3):
+
+- util: Fix pointer to integer conversion error when using libunwind
+- Fall back on clock_gettime when timespec_get() is unavailable
+- Adjust dylib compatibility versions to match what was set by mesa-18.3's autotools-based builds
+
+Jesse Natalie (105):
+
+- microsoft/compiler: Fix reference to renamed intrinsic getter
+- panfrost/util: Move nir_undef_to_zero into core nir and add 'lower'
+- nir: Add nir_alu_type -\> glsl_base_type conversion helper
+- vtn/opencl: Fix alignment for half vload/vstore
+- nir_load_libclc: Mark libclc shader as internal
+- spirv: Allow spirv_to_nir callers to provide a float execution mode
+- microsoft: Add CLC frontend and kernel/compute support to DXIL converter
+- d3d12: Add glon12 target which only includes d3d12 driver
+- d3d12: Pipe adapter LUID from callbacks to D3D12 screen init
+- wgl: Marshal HDC into screen creation and LUID querying
+- wgl: Implement get_adapter_luid callback
+- wgl: Add stw_winsys callback to check which PFD flags should be added
+- wgl: Add PFD flags based on stw_winsys callback response
+- wgl: Add winsys framebuffer object
+- wgl: Use winsys framebuffer interface if present
+- d3d12: Implement winsys framebuffer
+- winsys/d3d12: Use MakeWindowAssociation to remove DXGI's alt+enter handling
+- d3d12: Delete unused local variables
+- microsoft/compiler: Remove dead code/variables
+- d3d12: Fix brace-initialization issues
+- d3d12: Fix signed-unsigned comparison warnings
+- d3d12: Remove Windows-specific macros
+- d3d12: Clean up d3d12_compiler.h
+- d3d12: Fix unhandled switch case warnings
+- microsoft/compiler: Fix unhandled switch case warnings
+- d3d12: Misc fixes caught by GCC warnings / code inspection
+- microsoft/compiler: Misc fixes caught by GCC
+- d3d12: Fix use of incorrect clear color variable
+- microsoft/compiler: Add missing 'return' to switch case
+- d3d12: Fix GCC warnings for missing function prototypes
+- windows: Always set NOMINMAX to remove min/max macros
+- util: Add os_get_page_size query
+- driconf: Avoid empty macro resulting in empty initializer braces
+- gallium: Include winsock lib as a dependency for Windows
+- gallium: Remove unnecessary forward declaration of swrast_driver_descriptor
+- clover: Add opencl-native build flag
+- clover: Support LLVM coming from CMake instead of config-tool
+- clover: Add version.lib dependency for Clang on Windows
+- meson: Adjust Clover's required LLVM modules
+- clover: Fix property_element::as for MSVC
+- clover/llvm: Work around MSVC quirks
+- clover/core: Support MSVC
+- clover/api: Support MSVC
+- clover: Use .def files for exports on Windows
+- clover/core: Fix x86 build
+- gallium: Add optional pipe_context to flush_frontbuffer
+- d3d12: Fix incorrect fence timeout calculation
+- CI: Add repeat-wait to Windows Piglit skip
+- d3d12: Use DirectX-Headers wrap for d3d12.h
+- d3d12: Refactor screen to abstract DXGI details
+- d3d12: Add DXCore screen variation
+- microsoft/compiler: Pick up new dxcapi.h
+- winsys_handle: Change D3D12 resource handle type to void\*
+- d3d12: Include wsl/winadapter.h when not compiling for Windows
+- d3d12: Include dxguids/dxguids.h in files that need \__uuidof
+- d3d12: Use IID_PPV_ARGS instead of \__uuidof
+- d3d12: Scope down wrl includes to just client.h
+- d3d12: Add forward declaration for LUID
+- d3d12: Use u_dl instead of Windows DLL APIs
+- d3d12: Only play DLL path tricks on Windows
+- d3d12: Only support DXGI and GDI APIs on Windows
+- d3d12: Support Linux eventfds for fences
+- d3d12: Don't require DXIL for WSL
+- gallium/dri: Add D3D12 software driver option
+- d3d12: Flush and wait in flush_frontbuffer
+- drisw: Add fallback logic for choosing a driver to use
+- drisw: Prefer hardware-layered sw-winsys drivers over pure sw
+- nir: Add intrinsic and string ptrs
+- nir/vtn: Implement printf opcode in terms of intrinsic (v9)
+- nir: Add a printf lowering pass (v5)
+- nir: Add an algebraic optimization for float->double->float
+- microsoft/clc: Hook up printf
+- microsoft/compiler: Fix warnings produced by GCC in release mode
+- microsoft/compiler: Fix incorrect size passed to strncpy
+- d3d12: Unused variable warning indicated bug in bo_unmap
+- d3d12: Signed/unsigned comparison warning fixes
+- d3d12: Fix unused local variable warning in release build
+- d3d12: Fix implicit fallthrough warnings
+- microsoft/resoure_state_manager: Silence GCC invalid offsetof warning
+- d3d12: Fix clang warnings from {0} in C++ code
+- d3d12: Fix uninitialized variable referenced in error case
+- d3d12: Remove copy/pasted line of array initialization
+- microsoft/compile: Fix incorrect enum type in function signature
+- microsoft/compiler: Fix tautological comparison
+- microsoft/resource_state_manager: Remove unused private variable
+- microsoft/compiler: Fix clang fallthrough warnings
+- microsoft/clc: Fix const violations from ralloc_steal
+- CI: Install DirectX-Headers package for x86 container
+- CI: Enable d3d12 driver for Linux CI builds
+- nir: Update saturated float->int/uint conversion algorithm
+- d3d12: Add a path for mapping of not-directly-mappable buffers
+- d3d12: Add a slab bufmgr for readback buffers
+- d3d12: Use buffer pipe usage to inform allocation
+- d3d12: Use an appropriate pipe resource usage for map intermediates
+- d3d12: Don't allocate mappable textures
+- nir: Work around MSVC x86 internal compiler error
+- drisw: Disable automatic use of layered drivers with LIBGL_ALWAYS_SOFTWARE
+- wgl: Refactor screen creation to a function
+- wgl: Add a loop for screen creation with an ordered list of fallbacks
+- d3d12: Fail screen creation if a shader validator is needed and can't be created
+- wgl: Disable automatic use of layered drivers with LIBGL_ALWAYS_SOFTWARE
+- microsoft/clc: Let lower_vars_to_explicit_types fill kernel input driver_location
+- microsoft/clc: Fix wrap modes for inline samplers for integer textures
+- microsoft/clc: Move inline samplers to the end of the variable list
+- microsoft/clc: Use driver_location for metadata instead of re-computing offsets
+
+Jonathan Gray (1):
+
+- aco: use UINT64_C on 64 bit constant arguments
+
+Jonathan Marek (9):
+
+- turnip: implement z-scaling and z-mirroring BlitImage
+- turnip: no linear_to_srgb for alpha channel for gmem clear value packing
+- turnip: do not include compute stage in pipeline_builder
+- turnip: always emit LRZ draw state in DIRTY_DRAW_STATE path
+- turnip: correctly disable draw states outside of renderpasses
+- turnip: do not emit draw states in draw_cs outside of renderpass
+- turnip: move up LRZ invalidate in CmdClearAttachments
+- turnip: always set LRZ registers to zero for 3d clear/blit
+- turnip: don't always use 3d ops for blit_image
+
+Jordan Justen (10):
+
+- intel/dev: Use GEN_GEN if defined for gen_device_info_is_9lp
+- intel/dev: Add gen_device_info_is_12hp
+- intel/genxml: Copy gen12.xml to gen125.xml
+- intel/genxml: Build gen 12.5
+- intel/isl: Build gen 12.5
+- intel/anv: Build gen 12.5
+- intel/iris: Build gen 12.5
+- intel/compiler: Add GEN125 to enum gen
+- intel/common: Build mi_builder_test for gen 12.5
+- iris: Fix android build due to missing link to libmesa_iris_gen125
+
+Juan A. Suarez Romero (19):
+
+- ci: add testing for VC4 drivers (Raspberry Pi 3)
+- util: function to check for rgbX format
+- v3d: force alpha to 1 when rendering RGBX formats
+- v3d: make set tile buffer size function public
+- v3d: store number of color buffers in job
+- v3d: split binning start from draw
+- v3d: add helper to check if format supports TLB resolve
+- v3d: implement tile buffer blits
+- v3d: refactor set tile buffer size function
+- v3d: implement tile-based blit operation
+- v3d: remove old tile blit code
+- v3d: use job's nr_cbufs field
+- v3d: extend the list of formats supported by the TFU unit
+- ci: Bump deqp to current vulkan-cts-1.2.5.0
+- doc/features: add VC4 driver
+- v3d: reinterpret stencil data as uint texture in stencil blit path
+- v3d: check blit mask inside blit subpaths
+- v3d: add fast-path tile-based blit for depth/stencil buffers
+- v3d: fix dest offset in TFU setup
+
+Karol Herbst (3):
+
+- clover/queue: Flush automatically if applications do not flush themselves
+- tegra/context: fix regression in tegra_draw_vbo
+- tegra/context: unwrap indirect_draw_count as well
+
+Keith Packard (1):
+
+- glx: Provide glvnd wrapper for glXSwapIntervalEXT
+
+Kenneth Graunke (16):
+
+- intel/compiler: Fix passthrough TCS regressions from program rename
+- prog_to_nir: Revert name initialization change
+- intel/compiler: Do interpolateAtOffset coordinate scaling in NIR
+- intel/fs: Fix sampler message headers on Gen11+ when using scratch
+- nir/algebraic: Avoid creating new fp64 ops when using softfp64
+- asm: Fix x86 assembly for inverse matrix operations
+- asm: Try to fix sparc assembly for inverse matrix operations
+- nir/lower_non_uniform: Use nir_read_first_invocation helper.
+- vbo: Don't set node->min_index = max_index = indices_offset when merging
+- vbo: Only mark merged line strips as lines when actually converting them
+- tnl: Try not to botch index buffer munging when start \\> 0.
+- tnl: Respect \`start\` when converting indices to GLuint
+- tnl: Reset nr_bos to 0 between map/unmap cycles.
+- Revert "mesa: allow half float textures based on ARB_half_float_pixel"
+- iris: Consider resolves after changing a resource's aux state
+- glsl/float64: Bump \#version to 400
+
+Krunal Patel (1):
+
+- radeon/vce: Bitrate not updated when changing framerate
+
+Leo Liu (17):
+
+- vl: add AV1 codec picture support
+- radeon/vcn: add AV1 codec driver firmware interfaces
+- radeon/vcn: add AV1 support to the decoder
+- radeon/vcn: add AV1 dpb buffer size
+- radeon/vcn: add AV1 default tables for the context
+- radeon/vcn: add AV1 context buffer
+- radeon/vcn: fill up the context buffer
+- radeon/vcn: get AV1 message buffer
+- radeon/vcn: fill up the probs buffer
+- radeonsi: cap AV1 codec configuration
+- radeonsi: cap AV1 support to SIENNA CICHLID
+- frontends/omx/bellagio: add AV1 initial support to omx dec
+- frontends/omx/av1: add AV1 OBU header parsers
+- frontends/omx/av1: add AV1 tasks management
+- frontends/omx/av1: enable AV1 OMX Bellagio support
+- mesa/st_vdpau: set surface winsys handle modifier
+- frontends/omx: fix build warning
+
+Lionel Landwerlin (21):
+
+- intel/dump_gpu: add support for MMAP_OFFSET ioctl
+- nir: don't consider txf_ms_mcs a query instruction
+- st: trigger noop if the default value is not true
+- mesa: add an environment variable to default enable INTEL_blackhole
+- anv: fix descriptor pool leak in VMA object
+- nir: wire shading rate variables
+- compiler/nir: introduce a new helper to get varying name
+- spirv: add support for KHR_fragment_shading_rate
+- isl: Fix android build
+- vulkan/overlay: don't display frame numbers unless required
+- vulkan/overlay: add new options to display device/swapchain-format
+- gallium/dri2: Don't forget protected content flag
+- anv: add transfer usage for color/depth/stencil attachments
+- intel/mi_builder: fix self modifying batches
+- anv: Fix stencil layout in render passes
+- anv: fix invalid programming of BLEND_STATE
+- anv: only signal wsi fence BO on last command buffer
+- anv: discard all timeline wait/signal value=0
+- anv: reset binary syncobj to be signaled before submission
+- anv: don't wait for completion of work on vkQueuePresent()
+- anv: Fix wait_count missing increment
+
+Louis-Francis Ratté-Boulianne (11):
+
+- gallium/nir: Wrap tgsi_to_nir header in extern C
+- gallium/util: Wrap suballoc.h into extern C
+- gallium: Wrap some header files into "extern C"
+- d3d12: Add D3D12 WGL winsys
+- wgl: Flush in-between resolving buffer and presenting
+- wgl: Call flush_resource() before presenting
+- wgl: Wait for fence when not using winsys framebuffer
+- wgl: Create third buffer when drawing to front buffer
+- wgl: Wrap stw_pixelformat.h into extern C
+- d3d12: Release swapchain buffers before resizing them
+- wgl: Don't crash in stw_make_current if current framebuffer is NULL
+
+Lucas Stach (2):
+
+- etnaviv: fix disabling of INT filter for real
+- etnaviv: tex_state: fix miplevel selection
+
+Marcin Ślusarz (16):
+
+- nir: handle float atomics in copy propagation pass
+- intel/tools/aubinator_error_decode: exit with an error on unknown option
+- intel/tools/aubinator_error_decode: allow "-" as an input file
+- intel/tools/aubinator_error_decode: allow 0 arguments
+- iris: store copy of the border color in the border color hash table
+- intel/tools/aubinator_error_decode: cleanup path/file handling
+- intel/tools/aubinator_error_decode: fix small memory leaks
+- svga: remove duplicated code
+- iris: remove redundant check
+- util/list: add list_is_linked
+- nine: use list_is_linked
+- gallium: use list_is_linked
+- iris: use list_is_linked
+- r600: use list_is_linked
+- omx: use list_is_linked
+- util/list: use helper function in list_is_singular
+
+Marek Olšák (278):
+
+- st/mesa: fix use-after-free when updating shader info in st_link_nir
+- nir: optionally shuffle local invocation IDs for compute quad derivatives
+- nir: rename needs_helper_invocations to needs_quad_helper_invocations
+- nir: gather shader_info::needs_all_helper_invocations
+- nir: optimize nir_lower_discard_to_demote to lower discard/demote both ways
+- ac/llvm: fix demote inside conditional branches
+- radeonsi: enable GL_EXT_demote_to_helper_invocation
+- amd: add register enums for VRS
+- radeonsi: add an option to enable 2x2 coarse shading for non-GUI elements
+- mesa: add Driver.DrawTransformFeedback
+- gallium: move count_from_stream_output into pipe_draw_indirect_info
+- gallium: make pipe_draw_indirect_info \\* a draw_vbo parameter
+- gallium/u_threaded: lift DIV_ROUND_UP to eliminate it for constant expressions
+- gallium/u_threaded: clean up direct vs indirect draws
+- gallium: add pipe_draw_info::index_bounds_valid
+- gallium/u_threaded: improve draw merging by clearing pipe_draw_info fields
+- gallium: add missing bits of the direct multi draw interface
+- gallium: extend draw_vbo to support multi draws
+- gallium/u_threaded: store start/count in min/max_index for better packing
+- gallium/u_threaded: add support for multi draws
+- mesa: clean up Driver.Draw parameter types
+- mesa: clean up GLboolean types in draw.c
+- mesa: remove constant drawID parameter from \_mesa_draw_arrays
+- mesa: move primitive restart enablement determination from st/mesa to main
+- mesa: index \_RestartIndex with index_size_shift
+- mesa: add primitive restart state to Driver.Draw parameters
+- mesa: don't FLUSH_VERTICES from primitive restart changes
+- radeonsi: don't load DrawID for indirect draws if it's unused
+- radeonsi: swap DrawId and StartInstance SGPR locations
+- radeonsi: handle pipe_draw_info::increment_draw_id
+- radeonsi: fix min_direct_count value
+- radeonsi: do VGT_FLUSH when switching NGG -\> legacy on Sienna Cichlid
+- radeonsi: only do VGT_FLUSH for fast launch if previous draw was normal launch
+- radeonsi: determine correctly if switching from normal launch to fast launch
+- radeonsi: don't subtract max_verts_per_prim from hw_max_esverts on gfx10.3
+- radeonsi: read vs_state_bits in vs_prolog correctly
+- radeonsi: tweak triangle list culling performance for GS fast launch
+- radeonsi: remove VS input loads when culling with rasterizer discard
+- radeonsi: add options.inline_uniforms to the shader cache key
+- ac: add build_alloca with an initializer
+- ac: fix detection of Pro graphics
+- ac: fix min/max_good_num_cu_per_sa on gfx10.3 with disabled SEs
+- ac: rename num_render_backends -\> max_render_backends
+- ac: rename num_sh_per_se -\> num_sa_per_se
+- radeonsi: don't do VGT_FLUSH before fast launch on gfx10.3
+- radeonsi: don't add num_vbos_in_user_sgprs to the shader cache key for non-VS
+- radeonsi: fix NGG streamout regression
+- radeonsi: fix scan_instruction for bindless inc_wrap/dec_wrap atomics
+- winsys/amdgpu: remove amdgpu_winsys_bo::u::sparse::flags
+- winsys/amdgpu: remove amdgpu_winsys_bo::sparse
+- winsys/amdgpu: replace amdgpu_winsys_bo::flags with pb_buffer::usage
+- winsys/amdgpu: replace amdgpu_winsys_bo::initial_domain with pb_buffer::placement
+- winsys/amdgpu: move amdgpu_winsys_bo::lock for better packing
+- mesa: add glInternalSetError for glthread
+- mesa: make error handling for glGetActiveUniform glthread-safe
+- glthread: make glGetActiveUniform return without syncing
+- mesa: lock Shared->BufferObjects only once for a glthread batch
+- mesa: lock Shared->TexMutex only once for a glthread batch
+- nir: fix gathering TCS cross invocation access with lowered IO
+- nir: fix gathering patch IO usage with lowered IO
+- ac/nir: fix a typo in ac_are_tessfactors_def_in_all_invocs
+- radeonsi: adjust tess SGPRs to allow fully occupied 3 HS waves of triangles
+- radeonsi: don't leave more than 8 unoccupied lanes in HS
+- radeonsi: don't allocate LDS for TCS outputs if they are not read
+- radeonsi: limit HS LDS usage per workgroup to 16K to allow at least 2 WGs/CU
+- radeonsi: don't generate a dead conditional in si_write_tess_factors on gfx9+
+- radeonsi: merge TCS and TCS epilog conditional blocks
+- radeonsi: always return void from si_build_wrapper_function
+- radeonsi: if VS and TCS have the same number of threads, merge the conditonals
+- radeonsi: remove unnecessary NULL checking in NIR tess functions
+- ac/llvm: prepare for passing VS->TCS IO via VGPRs
+- radeonsi: pass VS->TCS IO via VGPRs if VS and TCS have the same thread count
+- radeonsi: don't insert barrier between VS/TCS if all TCS inputs come from VGPRs
+- radeonsi: don't allocate LDS for TCS inputs if it's not used
+- radeonsi: implement GS fast launch for indexed triangle strips
+- mesa: don't duplicate allocation code in \_mesa_new_parameter_list_sized
+- mesa: track ParameterValues size separately
+- mesa: properly disallow param list reallocation
+- mesa: don't print GL errors in release builds if MESA_DEBUG=silent
+- mesa: call FLUSH_VERTICES before changing sampler uniforms
+- mesa: move sampler condition for flushing into mesa_flush_vertices_for_uniforms
+- mesa: skip redundant uniform updates for glUniform
+- mesa: skip redundant uniform updates for glUniformMatrix
+- mesa: skip redundant uniform updates for glUniformHandle
+- mesa: don't read from destination memory when computing state parameter values
+- mesa: replace \_mesa_problem with unreachable in fetch_state
+- util: add a common ALIGN16 macro for m_matrix and u_threaded_context
+- mesa: don't allocate matrices with malloc
+- mesa: rework matrix statevar enums to remove excessive branching in fetch_state
+- mesa: remove redundant \_math_matrix_analyse calls in fetch_state
+- mesa: fix printing state parameters
+- mesa: allow multi-slot program parameters
+- mesa: demystify material_attrib()
+- mesa: optimize setting gl_Light state parameters
+- mesa: restructure gl_light vars to match the layout of gl_LightSource uniforms
+- mesa: put constants before state vars for ffvp
+- mesa: put constants before state vars for ARB programs
+- mesa: take advantage of sorted parameters in \_mesa_load_state_parameters
+- mesa: merge matrix state parameters for faster uploads (disabled)
+- mesa: merge light state parameters for faster uploads (disabled)
+- mesa: add helpers for drivers to load state parameters into buffers
+- gallium: add PIPE_CAP_PREFER_REAL_BUFFER_IN_CONSTBUF0
+- st/mesa: add a faster path for uploading state parameters into constant buffers
+- st/mesa: replace st_context::state::constants with a mask
+- mesa: fix crashes in the no_error case of invalid glUniform calls
+- mesa: skip glMultMatrix if the matrix is identity
+- mesa: consider glPushMatrix a no-op change from the driver perspective
+- mesa: canonicalize matrix in glPushMatrix to make glPopMatrix possibly a no-op
+- mesa: memset matrices at initialization to enable memcpy on it
+- mesa: treat glPopMatrix as a no-op state change if it doesn't change the matrix
+- mesa: rewrite glPushAttrib/glPopAttrib to get rid of malloc
+- mesa: add a fast path for restoring fixed-func tex state in glPopAttrib
+- mesa: add a fast path for restoring light attributes in glPopAttrib
+- mesa: reorganize gl_texture and sampler structures for glPush/PopAttrib
+- mesa: optimize saving/restoring bound textures for glPush/PopAttrib
+- mesa: reduce the size of gl_texture_attrib_node::Texture by about 90%
+- mesa: skip \_mesa_set_enable in glPopAttrib if there are no changes
+- mesa: optimize out no-op calls in glPopAttrib
+- mesa: more optimizations in glPopAttrib (colormask, drawbuffers, coord replace)
+- mesa: remove gl_texture_object references from glPush/PopAttrib stack
+- mesa: allocate the attribute stack on demand
+- st/mesa: fix uninitialized/random clip plane state vars in lower_ucp
+- compiler: decrease STATE_LENGTH from 5 to 4
+- mesa: replace ParameterValueOffset[i\] with Parameters[i].ValueOffset
+- radeonsi: print more fields in si_dump_shader_key
+- radeonsi: always use a staging texture for linear 1D textures in VRAM
+- radeonsi: correct the MAD/FMA support table
+- radeonsi: use util_logbase2 instead of division by index_size
+- radeonsi: fix a memory leak in si_create_dcc_retile_cs
+- radeonsi: fix line stippling with LINES_ADJACENCY without GS
+- radeonsi: fix max_lds_size warning in release builds
+- winsys/radeon: don't use debug_get_option_noop in a hot path
+- winsys/amdgpu: don't use debug_get_option_noop in a hot path
+- radeonsi: unduplicate code setting MIN_COMPRESSED_BLOCK_SIZE
+- radeonsi: enable NGG and NGG culling on gfx10.3 APUs by default
+- radeonsi: add AMD_DEBUG=nofastlaunch for debugging
+- radeonsi: eliminate shader code for disabled or masked color outputs
+- radeonsi: fix a nasty bug in si_pm4.c
+- radeonsi: only mask 1 CU for GS/VS waves on gfx10.3
+- ac,radeonsi: fix load_first_vertex
+- radeonsi: don't update indexed flag in SGPR if it's unused
+- radeonsi: don't update provoking vertex and outprim states in SGPR if unused
+- ac: enable late allocation on VanGogh to increase perf
+- radeonsi: disable WGP mode on gfx10.3 to prevent hangs
+- radeonsi: don't invalidate emitted NUM_INSTANCES for u_blitter
+- radeonsi: don't set DrawID and StartInstance if they are unused
+- radeonsi: don't check for GS fast launch for NOT_EOP in the indexed case
+- Revert "radeonsi: always return void from si_build_wrapper_function"
+- vbo: remove gl_context dereferences when we can just subtract the pointer
+- cso: remove unused code
+- gallium: inline struct u_suballocator to remove dereferences
+- cso: inline struct cso_cache to remove dereferences
+- st/mesa: put pipe_screen \\* into st_context and use it
+- st/mesa: move cso_context next to the other pointers
+- r300,r600,radeonsi: inline struct radeon_cmdbuf to remove dereferences
+- draw: add NIR support to draw_create_vertex_shader
+- st/mesa: don't generate TGSI for the draw VS because it now supports NIR too
+- st/mesa: remove less useful debug options in hot paths
+- gallium: fix the PIPE_SHADER_CAP_SUPPORTED_IRS value for all drivers
+- glthread: use glthread->used instead of glthread->next_batch->used
+- glthread: use uint64_t to declare the batch buffer instead of align(8)
+- glthread: change sizes to unsigned or size_t where needed
+- glthread: count batch space in units of uint64_t elements
+- gallium/u_threaded: don't pass index bounds to the driver to decrease overhead
+- gallium/u_threaded: set has_user_indices = false in the driver thread
+- gallium/u_threaded: don't copy the indexbuf pointer if we overwrite it
+- gallium/u_threaded: don't make a local copy of pipe_draw_start_count
+- gallium/u_threaded: optimize set_constant_buffer
+- mesa: fix glPopAttrib for GL_COORD_REPLACE for r200
+- mesa: remove code for old (mostly unsupported) GL_NV_point_sprite
+- mesa: remove MAX_3D_TEXTURE_LEVELS, MAX_CUBE_TEXTURE_LEVELS
+- radeonsi: move si_screen_clear_buffer into si_compute_blit.c w/o SDMA option
+- radeonsi: rename buffer functions so as not to reference rings
+- radeonsi: remove SDMA support
+- radeonsi: rename SI_TEST_DMA to SI_TEST_BLIT
+- radeonsi: fix the blit test for SW_64KB_R_X
+- radeonsi: initialize ctx and gfx_cs first, then allocators
+- ac: add radeon_info::all_vram_visible for Smart Access Memory
+- radeons: only force staging uploads for VRAM when all VRAM is not visible
+- radeonsi: only use staging for linear textures when all VRAM is not visible
+- radeonsi: unify uploaders and upload to VRAM if all VRAM is visible
+- radeonsi: map PIPE_USAGE_STREAM to VRAM if all VRAM is visible
+- winsys/amdgpu: use VRAM for command buffers if all VRAM is visible
+- ac,radeonsi: implement GL_NV_compute_shader_derivatives
+- st/mesa: enable compute shader derivatives in SPIR-V
+- radeonsi: fix a crash in si_fence_server_sync
+- ac: correct ac_shader_args types, remove sgpr_count
+- ac: add shader return values into ac_shader_args
+- radeonsi: split ac_shader_args initialization from LLVM code
+- radeonsi: move si_create_function into si_shader_llvm.c
+- radeonsi: move si_build_main_function into si_shader_llvm.c
+- radeonsi: move si_llvm_compiler_shader and deps into si_shader_llvm.c
+- ac: unify shader arguments that are duplicated
+- ac/llvm: handle no_(un)signed_wrap NIR flags
+- compiler: fix glsl_types.h compile failures when including as C++ in drivers
+- gallium/util: allow including a few files in C++
+- amd/llvm: fix C++ compile failures
+- radeonsi: allow including a few files from C++
+- radeonsi: fix future C++ compile failures and warnings
+- radeonsi: resolve a tricky C++ failure with goto jumping over initializations
+- radeonsi: rename si_state_draw.c to .cpp
+- radeonsi: use a C++ template to decrease draw_vbo overhead by 13 %
+- radeonsi: fix small primitive culling with MSAA force-disabled and smoothing
+- radeonsi: disable NGG fast launch with indexed triangle strips to fix a hang
+- radeonsi: improve a comment about an MSAA bug workaround
+- nir_to_tgsi: fix NIR options instead of asserting
+- draw: fix incorrect NIR support code
+- mesa: fix assertion paramList->LastUniformIndex \\< paramList->FirstStateVarIndex
+- mesa: remove unused LastUniformIndex
+- mesa: overallocate program parameter values
+- mesa: don't restore texture state into unbound textures in glPopAttrib
+- mesa: call Driver.TexParameter in glPopAttrib to fix r100, r200, old nouveau
+- gallium: pass pipe_stencil_ref by value (it has only 2 bytes)
+- gallium: inline pipe_alpha_state to enable better DSA bitfield packing
+- gallium: inline pipe_depth_state to decrease DSA state size by 4 bytes
+- cso: don't pass blend_color through cso_context
+- st/mesa: don't make a local copy of blend color
+- cso: remove context and delete_state pointers from all CSOs
+- cso: inline cso_construct_key
+- gallium/util: fix util_can_blit_via_copy_region for conditional rendering
+- st/mesa: don't do glCopyPixels via blit if depth bounds test is enabled
+- st/mesa: relax requirements for doing glCopyPixels via blit
+- st/mesa: skip glDrawPixels if it's totally clipped for all codepaths
+- mesa: fix an overflow check for MultiDrawElements
+- vbo: only set count and end when closing \_mesa_prim
+- vbo: change the parameters of vbo_get_minmax_index to get rid of \_mesa_prim
+- mesa: add Driver.DrawGallium\* functions to be used by main/draw.c
+- gallium: add pipe_draw_info::index::gl_bo
+- mesa: add a fallback for drivers not implementing Driver.DrawGallium\*
+- vbo: add vbo_get_minmax_indices_gallium
+- mesa: switch (Multi)DrawArrays to DrawGallium
+- mesa: switch Draw(Range)Elements(BaseVertex) calls to DrawGallium
+- mesa: switch MultiDrawElements(BaseVertex) to DrawGallium\*
+- vbo: remove \_mesa_prim parameter from vbo_try_prim_conversion
+- vbo: remove \_mesa_prim parameter from vbo_merge_draws
+- vbo: remove \_mesa_prim parameter from vbo_copy_vertices
+- vbo: switch immediate Begin/End to DrawGallium
+- gallium/u_threaded: clear vertices_per_patch if prim type != PATCHES
+- gallium: remove and emulate PIPE_CAP_MULTI_DRAW
+- gallium: fix draw info setup in draw and utilities
+- freedreno: fixes handling draw info
+- iris: don't use index_bias if not indexed
+- nouveau: fix handling draw info
+- panfrost: don't use index_bias if not indexed
+- r600: fix handling draw info
+- swr: fix handling draw info
+- svga: fix handling draw info
+- vc4: don't use index_bias if indexed
+- v3d: don't use index_bias if not indexed
+- virgl: fix handling draw info
+- st/mesa: implement Driver.DrawGallium callbacks
+- gallium: remove PIPE_CAP_INFO_START_WITH_USER_INDICES and fix all drivers
+- util: add AMD CPU family enums and enable L3 cache pinning on Zen3
+- ac,radeonsi: limit Smart Access Memory to Zen 3 and GFX10.3 due to perf issues
+- radeonsi: add driconf options to enable/disable Smart Access Memory
+- radeonsi: take color interpolation into account for shader variants
+- util: replace UTIL_MAX_CPUS by util_cpu_caps.num_cpu_mask_bits
+- st/mesa: simplify checking whether to pin threads to L3
+- st/mesa: fix a defect when st_validate_state was invoked for unused states
+- mesa: add STATIC_ASSERTs to the STATE_LIGHT_ATTRIBS case
+- mesa: fix a bug in merging light state parameters with unpacked uniforms
+- mesa: fix a second bug in merging light state parameters with unpacked uniforms
+- radeonsi: fix hang caused by for loop with exec=0 in LS and ES
+- radeonsi: remove si_gs_prolog_bits::gfx9_prev_is_vs
+- gallium: skip draws with count == 0 or instance_count == 0 in drivers
+- mesa: skip draws w/ count == 0 and instance_count == 0 in draw_gallium_fallback
+- vbo: fix a index buffer map failure with size = 0 in get_minmax_indices_gallium
+- gallium/u_threaded: skip draws if user index buffer size has size == 0
+- mesa: always set valid index bounds for non-indexed draws for classic drivers
+- mesa: fix alpha channel of ETC2_SRGB8 decompression for !bgra
+- radeonsi: fix centroid with VRS coarse shading
+- glthread: fix interpreting vertex size == GL_BGRA for vertex attribs
+- mesa: flush glBegin/End before changing GL_DEPTH_STENCIL_TEXTURE_MODE
+- i915: use align_calloc for the context to fix m32 crashes
+- radeon,r200: use align_calloc for the context to fix m32 crashes
+- nouveau_vieux: use align_calloc for the context to fix m32 crashes
+- Revert "gallium/u_upload_mgr: allow use of FLUSH_EXPLICIT with persistent mappings"
+- radeonsi: don't crash on NULL images in si_check_needs_implicit_sync
+
+Marek Vasut (1):
+
+- etnaviv: Fix rework ZSA into a derived state
+
+Marijn Suijten (3):
+
+- util: Do not insert uninitialized data if Android property is not set
+- android: util: Add libcutils to Android.mk shared libs
+- mesa/math: Fix address of array always returning true
+
+Mark Janes (1):
+
+- meson: add idep_mesautil to components using simple_mtx.h
+
+Martin Peres (1):
+
+- driconf: remove the redundant glx-extension-disabling options
+
+Matt Turner (2):
+
+- glcpp: Handle bison-3.6 error message changes
+- turnip: Remove unused TU_DEBUG_IR3 flag
+
+Mauro Rossi (19):
+
+- android: gallium/aux: update old generated sources rules
+- android: gallium/aux: Add GPU tracepoint mechanism
+- android: freedreno: Add GPU tracepoints
+- android: freedreno: Remove fd_log()
+- android: freedreno/ir3: use python3 in gen rules
+- android: radv: add libcutils shared dependency
+- android: spirv: fix '::' typo in gen rules
+- android: pan/bi: Add explicit dependency on the ISA helpers
+- android: pan/bi: Generate bi_opcodes.{c,h}
+- android: pan/bi: Generate instruction printer
+- android: pan/bi: Generate builder routines
+- android: pan/bi: Generate instruction packer for new IR
+- android: pan/bi: Remove combine lowering
+- android: pan/bi: Remove old IR packs
+- android: pan/bi: Remove NIR->old IR
+- android: pan/bi: Remove old IR opcode table
+- android: ac/radv: fix typo in ac_rgp.h listed in Makefile.sources
+- android: r600/sfn: add sfn_nir_lower_64bit.cpp to Makefile.sources
+- android: pan/bi: reorder static dependencies in gallium/dri
+
+Michael Forney (1):
+
+- meson: add missing dependency on generated git_sha1.h
+
+Michael Tang (3):
+
+- microsoft/compiler: Add dedicated spirv_to_dxil libraries
+- util: Implement os_read_file for Windows
+- microsoft/compiler: Add spirv2dxil executable
+
+Michel Dänzer (33):
+
+- ac: Don't negate strstr return values in ac_query_gpu_info
+- ci: Drop ci-templates-sha anchor
+- ci: Update to current ci-templates
+- ci: Use ci-fairy docker image instead of local git_archive one
+- ci: Move sanity stage to the beginning of the pipeline
+- ci: Squash "check mr/commits" jobs into a single sanity job
+- ci: Make test-docs job depend on sanity job
+- ci: Go back to previous ci-templates commit for debian.yml
+- ci: Run git gc before creating Git cache tarball
+- ci: Define global variable MESA_TEMPLATES_COMMIT for ci-templates commit
+- ci: Append $MESA_TEMPLATES_COMMIT to image tags
+- ci: Drop x86_build_old image
+- ci: sanity job doesn't need the Git tree
+- ci: Manual test jobs don't need the Git tree
+- ci: Run sanity job automatically for forked branches as well
+- ci: Move BASE_TAG expansion to FDO_BASE_IMAGE assignment
+- ci: Add .use-base-image template
+- ci: Adapt armhf_test job to MESA_TEMPLATES_COMMIT related changes
+- docs: Adapt to FDO_DISTRIBUTION_TAG → MESA_IMAGE_TAG rename
+- ci: .lava-test:amd64 template needs arm_build
+- ci: Run sanity job only in pre-merge pipelines
+- ci: Move deploy stage to the end of the pipeline
+- wsi/x11: Set recognizable name for WSI swapchain queue thread
+- wsi/x11: Always link against xcb-xrandr
+- wsi/x11: Detect Xwayland
+- wsi/x11: Use PresentOptionAsync for MAILBOX present mode with Xwayland
+- wsi/x11: Treat IMMEDIATE present mode the same as MAILBOX for Xwayland
+- ci: Rule out scheduled pipelines in .windows-build-rules
+- ci: Add \*ignore_scheduled_pipelines to mesa/gallium rules templates
+- wsi/x11: Use wsi_x11_get_connection in x11_present_to_x11_dri3
+- wsi/x11: Always free randr_reply in wsi_x11_connection_create
+- wsi/x11: Make sure wsi_x11_connection::is_xwayland is always initialized
+- wsi/x11: Use get_screen_resources_current in wsi_x11_detect_xwayland
+
+Michel Zou (16):
+
+- zink: fix build on windows
+- util: fix -Wshift-count-overflow warning
+- zink: fix unused variable warning
+- libgl-gdi: add zink support
+- spirv: workaround setjmp/longjmp crash on MinGW
+- glsl: Drop mingw -O1 workaround for GCC>=7.3
+- util: fix mingw format-extra-args warning
+- glapi: fix unused-function warning
+- glsl: fix redefinition warning on win32
+- wgl: fix maybe-uninitialized warning
+- softpipe: fix maybe-uninitialized warning
+- gallium/tests: fix unused-but-set-variable warning
+- llvmpipe: work around mingw compiler optimization bug
+- meson: fix multiline string warning
+- llvmpipe: fix unused variables warnings
+- drisw: fix unused variables warnings
+
+Mike Blumenkrantz (113):
+
+- util/threaded_context: use driver's ubo alignment for constant buffer uploads
+- zink: initial implementation of shader keys
+- zink: refcount the shader cache
+- zink: move shader key structs into their own header
+- zink: fill in params for fs shader keys and flag shader for rebuild
+- zink: put those shader keys to work fixing up fragment shaders
+- zink: update shader modules in gfx program when flagged dirty
+- zink: handle arbitrary border colors using VK_EXT_custom_border_color
+- zink: track custom border color samplers and verify against device limits
+- zink: add alternate ubo loader in ntv
+- zink: assert all index values in ntv OpAccessChain constructor
+- zink: initial shader key implementation
+- zink: change a memcmp==0 to !memcmp
+- zink: use shader keys for samplemask
+- mesa/st: set reserved storage for params+values to 16
+- zink: fix direct image mapping offset
+- zink: really fix direct image mapping offset (I mean it this time)
+- st/pbo: fix pbo uploads without PIPE_CAP_TGSI_VS_LAYER_VIEWPORT
+- st/mesa: set drawpixels swizzle before creating sampler view
+- glsl/float64: make this compatible with glsl 330
+- zink: support frem shader op
+- zink: add nir pass for splitting 64bit vertex attribs which cross slot boundaries
+- zink: be more paranoid about array strides in ntv
+- zink: add get_storage_class() ntv util
+- zink: handle struct derefs in ntv
+- zink: ntv formatting
+- zink: add struct type support for ntv
+- zink: add handling for 64bit values in spirv_builder
+- zink: support nir_op_f2f32
+- zink: add handlers for some bitfield ops in ntv
+- zink: set 64bit shader caps in ntv
+- zink: change function params and asserts to permit 64bit types in ntv
+- zink: add 64bit glsl basetype handling in ntv
+- zink: handle 64bit constant loading in ntv
+- zink: split ubo loading for 64bit types into 2x32bit loads
+- zink: set nir options for 64bit handling based on feature presence
+- zink: enable 64bit pipe caps
+- mesa/st: run nir_lower_point_size_mov on geometry shaders based on cap
+- mesa/st: do not run lower_psiz_mov on vertex shader if geometry shader is present
+- mesa/st: tabs -\> spaces in st_program
+- mesa/st: handle running nir lower passes for ucp and psiz in tess stage
+- mesa/st: flag ST_NEW_CONSTANTS upon running nir_lower_point_size_mov
+- mesa/st: set lower_point_size for tes/gs during program update
+- zink: force stencil format for stencil-only samplers and swizzle the right component
+- zink: add nir_op_bit_count to ntv
+- zink: handle nir_op_ibitfield_extract: in ntv
+- zink: handle nir_op_find_lsb and nir_op_ifind_msb in ntv
+- zink: move rp hash functions further up in file
+- zink: fix rp hash table
+- zink: fix gl_SampleMaskIn handling
+- zink: don't always run nir_lower_io_arrays_to_elements_no_indirects
+- zink: add ntv handling for tess shader i/o variables
+- zink: add handling for tess shader intrinsics
+- zink: set up ntv init for tess shaders
+- zink: set scoped barrier flag in nir options
+- zink: pull xfb info from tess shader when applicable
+- zink: set tess info in pipeline creation
+- zink: support PIPE_PRIM_PATCHES
+- zink: add handling for tcs and tes shader states
+- zink: only run nir_lower_clip_halfz for last vertex processing stage
+- zink: add push constant handling to get_storage_class()
+- zink: add stubs for tess outer/inner level handling
+- zink: implement passthrough tcs shader injection
+- zink: handle partial writes to shader outputs
+- zink: export tess shader pipe caps
+- doc/features: mark off tessellation for zink
+- zink: zero VkMemoryRequirements on init
+- zink: fix debug utils init
+- zink: handle null ubos
+- zink: handle 0 as valid pipeline hash value
+- zink: fix more instance detection stuff
+- st/pbo: fix pbo uploads without PIPE_CAP_TGSI_VS_LAYER_VIEWPORT and skip gs
+- zink: avoid replacing valid tcs with injected one
+- zink: require KHR_maintenance2 for tessellation and set bottom-left origin
+- zink: fix tess shader i/o variables
+- zink: add KHR_draw_indirect_count detection
+- zink: hook up IndirectCount draw commands
+- zink: enable PIPE_CAP_MULTI_DRAW_INDIRECT(_PARAMS) caps
+- features: mark off multidraw for zink
+- radv: avoid oob read during clear
+- zink: handle dynamic sampler array indexing for arb_gpu_shader5
+- zink: run nir_lower_tex for offsets if shaderImageGatherExtended is missing
+- zink: use Offset param for txf ops
+- zink: implement ARB_texture_gather
+- zink: handle textureGather with Shadow-type samplers
+- zink: enable PIPE_CAP_MAX_TEXTURE_GATHER_COMPONENTS
+- features: mark off textureGather for zink
+- zink: handle fs interpolation functions in ntv
+- zink: set PIPE_CAP_MAX_VIEWPORTS
+- zink: handle gl_SampleMaskIn loading in ntv
+- zink: always load (gl_InstanceID - gl_BaseInstance) when loading gl_InstanceID
+- zink: enable PIPE_CAP_START_INSTANCE
+- zink: handle vertex streams
+- zink: run nir_lower_dynamic_bo_access
+- zink: handle arrays of ubos
+- zink: GLSL 4.00
+- features: mark off GL 4.0 for zink
+- zink: GLSL 410
+- features: mark off GL 4.1 for zink
+- zink: handle non-const offsets for txf/tg4 ops
+- nir: preserve explicit_binding in lower_atomics_to_ssbo
+- zink: clamp shader input/output max values
+- glcpp: disable 'windows' tests
+- zink: flag gfx pipeline dirty using newer mechanism
+- radv: null bo list pointer for null descriptors on update
+- radv: zero the bo descriptor array when allocating a new set
+- zink: fix streamout for tess stage
+- zink: fix slot mapping for legacy gl io with tess stages
+- zink: handle 1bit undef values in ntv
+- gallium/trace: add a pipe_screen::get_compiler_options method
+- mesa/st: clamp scissored clear regions to fb size
+- zink: unset generated TCS if its parent TESS is unset
+- zink: fix streamout emission for super-enhanced layouts
+
+Nanley Chery (32):
+
+- mesa: Add and use \_mesa_has_depth_float_channel
+- mesa: Clamp some depth values in glClearBufferfv
+- mesa: Clamp some depth values in glClearBufferfi
+- iris: Add and use convert_depth_value
+- iris: Use converted depth in clear_depth_stencil
+- iris: Disable color fast-clears in iris_copy_region
+- i965: Disable color fast-clears for miptree copy
+- intel/blorp: Delete clear color conversions during copies
+- iris: Stop quantizing the depth clear value
+- iris: Fix resource ptr in resolve_sampler_views
+- iris: Drop res variable in resolve_sampler_views
+- iris: Stop using blorp_hiz_stencil_op
+- intel/blorp: Drop support for STC_CCS resolves
+- iris: Move STC case in get_copy_region_aux_settings
+- iris: Support clears in more GPU-based copies
+- iris: Don't prepare depth for stencil-aspect blits
+- iris: Move depth-format assertion out of iris_blit
+- iris: Use texture preparation helper in iris_blit
+- iris: Increase use of pipe_resources in iris_blit
+- iris: Loop through an aspect mask in iris_blit
+- iris: Blit non-stencil according to aspect_mask
+- iris: Use single-aspect formats more in iris_blit
+- iris: Blit stencil according to aspect_mask
+- iris: Explain how conditional aux accesses work
+- iris: Make can_fast_clear_depth return constants
+- iris: Disable conditional fast clears
+- iris: Delete iris_resolve_conditional_render
+- iris: Drop fast_clear_color's blorp_flags param
+- dri: Restrict glthread for CS:GO to radeonsi
+- gallium: Map \_DRI_IMAGE_FORMAT_NONE to NULL
+- gallium: Flush GL API resources in eglCreateImage
+- iris: Disable aux as needed in iris_flush_resource
+
+Neha Bhende (3):
+
+- meson: Don't build svgadrm on windows
+- meson.build: Use SSE math for MinGW X86 build as per sse2 option
+- meson.build: Disable zlib as per -Dzlib option
+
+Neil Armstrong (1):
+
+- kmsro: sync Android.mk GALLIUM_TARGET_DRIVERS
+
+Pavel Asyutchenko (1):
+
+- vulkan/overay: fix violation of VUID-VkDeviceCreateInfo-pNext-00373
+
+Pierre Moreau (17):
+
+- clover: rename platform/device apis using strings
+- clover/llvm: don't use strings for version handling.
+- clover/spirv: avoid strings for version handling
+- clover/api: Add extended versioning query for built-in kernels
+- clover/api: Add extended versioning query for OpenCL C
+- clover/spirv: Add version conversion utilities
+- clover/spirv: Add function checking whether a binary contains SPIR-V
+- clover/spirv: Change API to use std::string binaries
+- clover/spirv: Add function checking the SPIR-V version
+- clover/spirv: Use cl_version for SPIR-V versions (v2)
+- clover: List supported ILs versions
+- clover: Implement clCreateProgramWithILKHR
+- clover: Handle CL_PROGRAM_IL in clGetProgramInfo
+- clover/api: Implement CL_DEVICE_IL_VERSION
+- clover: Advertise cl_khr_il_program
+- clover: Implement clCreateProgramWithIL from OpenCL 2.1
+- clover: Expose cl_khr_extended_versioning
+
+Pierre-Eric Pelloux-Prayer (74):
+
+- radeonsi: remove unused NO_RB_PLUS flag
+- radeonsi: remove AMD_DEBUG=zerovram flag
+- mesa/gallium: add MESA_MAP_ONCE / PIPE_MAP_ONCE
+- winsys/amdgpu: make RADEON_ALL_BOS a debug only feature
+- amdgpu_bo: make cache_entry a extensible array
+- radeonsi/gfx10: flush gfx cs on ngg -\> legacy transition
+- ac: use bigger storage for ac_arg::arg_index / ac_shader_args::arg_count
+- util: add a FALLTROUGH macro
+- nir: update fallthrough comments
+- gallium: update fallthrough comments
+- xxhash: update fallthrough comments
+- src/mesa: update fallthrough comments
+- compiler/spirv: update fallthrough comments
+- radeonsi: update fallthrough comments
+- gallium/winsys: update fallthrough comments
+- vbo: update fallthrough comments
+- gallium/util: update fallthrough comments
+- softpipe: update fallthrough comments
+- gallium: update fallthrough comments
+- radeon: update fallthrough comments
+- llvmpipe: update fallthrough comments
+- gallivm: update fallthrough comments
+- nir/ntt: update fallthrough comments
+- amd/ac: update fallthrough comments
+- egl: update fallthrough comments
+- tgsi: update fallthrough comments
+- glx: update fallthrough comments
+- Revert "Revert "radeonsi: use staging buffer uploads for most VRAM buffers""
+- gallium/u_threaded: fix staging and non-staging conflicts
+- gallium/u_threaded: disable forced staging upload at runtime
+- dlist: do not call \_mesa_lookup_list twice
+- vbo/dlist: create an index buffer in compile_vertex_list
+- vbo/dlist: convert LINE_STRIPS to LINES
+- vbo/dlist: implement primitive merging
+- util/hash_table: add \_mesa_hash_data_with_seed function
+- mesa: optimize \_mesa_program_resource_location
+- vbo/dlist: refactor prim_store/vertex_store allocations
+- vbo/dlist: avoid splitting draw commands in multiple draws
+- vbo/dlist: only use merged primitives when it's ok to do so
+- driconf: add allow_incorrect_primitive_id option
+- radeonsi: fix si_get_draw_start_count count value
+- gallium/u_threaded: set has_user_indices = false for merged draws
+- gallium/u_threaded: fix pipe_resource leak for staging transfer
+- st/mesa: disable line stippling if pattern is all 1's
+- driconf: add workaround for Enter The Gungeon
+- egl: fix EGL_EXT_protected_content/surface mixup
+- vbo/dlist: use a shared index buffer
+- vdpau: fix -Wabsolute-value warning
+- vdpau: fix invalid enum usage
+- amd/addrlib: use cpp.has_argument() to filter compiler arguments
+- tesselator: remove unused variable
+- gallium/vl: merge identical h264/h265 enums
+- radeonsi: fix redundant initializations
+- mesa/st: fix redundant initialization
+- radeonsi: pass radeon_cmdbuf to emit_cache_flush
+- radeonsi: pass radeon_cmdbuf to si_cp_dma_wait_for_idle
+- ac/sqtt: add ac_thread_trace_data
+- ac/radv: move sqtt structs and helpers to amd/common
+- ac/radv: move radv_rgp.c to ac
+- ac/sqtt: move rgp/sqtt def to ac
+- ac/sqtt: move ac_is_thread_trace_complete to ac
+- ac/sqtt: move radv_get_expected_buffer_size to ac
+- radeonsi: add radeon_set_uconfig_reg_seq_perfctr
+- radeonsi: implement SQTT support
+- ac/rgp: add missing include
+- dri: enable glthread + radeonsi workaround for CS:GO
+- st/mesa: consider texture view format for fbo blits
+- mesa/fbo: don't check_end_texture_render on fb read change
+- st/mesa: use the correct src format in ReadPixels
+- radeonsi: invalidate compute sgprs in si_rebind_buffer
+- radeonsi: inhibit clockgating when using SQTT
+- radeonsi: properly set SPI_SHADER_PGM_HI_ES
+- radeonsi: fix read from compute / write from draw sync
+- radeonsi: fix si_check_render_feedback
+
+Rhys Perry (148):
+
+- radv/winsys: set has_dedicated_vram in the null winsys
+- aco: don't combine precise max(min()) to med3
+- aco: fix combine_constant_comparison_ordering() NaN check with 16/64-bit
+- aco: disallow various v_add_u32 opts if modifiers are used
+- aco/tests: initialize debug function
+- aco/tests: expand optimize.const_comparison_ordering tests
+- aco/tests: add some more clamp combining tests
+- nir: add nir_var_mem_ubo to nir_var_read_only_modes
+- nir: allow reordering of loads from read-only modes
+- aco: disable omod if the sign of zeros should be preserved
+- aco: fix fp16 \*0.5 omod
+- aco/tests: add output modifier tests
+- aco: don't use SMEM for SSBO stores
+- aco: create v_mad_u32_u24
+- nir: add nir_var_vec_indexable_modes
+- nir/copy_prop_vars,nir/dead_write_vars: ignore read-only loads
+- nir/loop_analyze: initialize loop variables on demand
+- nir/search: check instr type before adding to worklist
+- nir/search: check for changes before adding uses to worklist
+- nir/deref: add helpers to lazily create paths
+- nir/copy_prop_vars: use nir_deref_and_path
+- nir/copy_prop_vars: avoid a duplicate lookup if src == vec_src
+- aco: don't create v_mov_b32 in v_mul_imm()
+- aco: count v_mul_lo_u32 as 16 cycles
+- aco: create vgpr constant copies using v_bfrev_b32
+- aco: copy constant to sgpr in Builder::v_mul_imm()
+- aco: try harder to not create v_mul_lo_u32
+- aco: use v_mul_imm() for some nir_op_imul
+- aco/tests: add Builder::v_mul_imm() tests
+- aco: fix v_mul_hi_u32_u24 format
+- nir/unsigned_upper_bound: fix buffer overflow in search_phi_bcsel
+- nir/unsigned_upper_bound: decrement num_sources_left before recursing
+- radv/llvm,aco/ngg: fix large shift exponent in ngg_gs_vertex_lds_addr
+- aco: fix GS with no outputs
+- aco/ngg: fix division-by-zero in assertion
+- nir/lower_non_uniform: improve code with the same texture, sampler indices
+- nir: fix sampler_lod_parameters_pan indices
+- nir: use a single canonical list of intrinsic indices
+- nir: add bit_size_src for when the destination bit size matches a source
+- nir: add destination bit-size information to more intrinsics
+- nir: remove useless nir_builder_opcodes.h include
+- nir: move nir_load_system_value() to nir_builder.h
+- nir: add generated intrinsic builders
+- spirv: use intrinsic builders
+- glsl_to_nir: use intrinsic builders
+- nir: use intrinsic builders
+- radv: use intrinsic builders
+- nir: make intrinsic order in nir_print consistent
+- nir: fix intrinsic builders on MSVC C++
+- nir: fix nir_builder.h on MSVC C++ and GCC7.
+- d3d12: remove hand-written intrinsic builders
+- nir: add helpers for chasing resource bindings
+- nir/opt_load_store_vectorize: use resource binding chasing helpers
+- ac/nir: use binding chasing helpers
+- aco: use binding chasing helpers
+- radv: use FALLTHROUGH macro
+- aco: use FALLTHROUGH macro
+- nir/opt_sink: use common instruction removal/insertion helpers
+- aco: don't assume src=lower when splitting self-intersecting copies
+- aco: test self-intersecting copies when src=higher
+- aco: remove sign-extension in constantValue64()
+- aco: allow 64-bit literals if they can be sign/zero-extended from 32-bit
+- aco: add get_const/is_constant_representable helpers
+- aco: use v_lshrrev_b64 for 64-bit VGPR copies on GFX10+
+- aco: coalesce constant copies
+- aco: clear operands in update_renames()
+- aco: don't fill killed operands in update_renames()
+- aco: remove rollback code in get_reg_create_vector()
+- aco: repeat get_reg_create_vector() with increased register demand if fail
+- aco: use clear() helper instead of writing reg file directly
+- aco: simplify get_reg_impl()
+- aco: remove rollback code around parallelcopy creation
+- aco: remove rollback code for blocked fixed definitions
+- aco: move update_renames() out of get_reg()
+- aco: remove rollback code when making an instruction vop3
+- nir/lower_non_uniform: remove non_uniform flags after lowering
+- nir: improve divergence analysis for loads with non-uniform resources
+- nir/opt_access: don't ignore image arrays in process_variable()
+- nir/opt_access: ignore barriers and coherent qualifier
+- nir/opt_access: check restrict before marking a variable as readonly
+- nir/opt_access: don't check restrict in can_reorder()
+- nir/opt_access: rename can_reorder() and set ACCESS_NON_WRITEABLE in it
+- nir/opt_access: add basic Vulkan support
+- nir/opt_access: handle variable pointers
+- nir/opt_access: consider global stores
+- nir/opt_access: infer writeonly
+- compiler: update gl_access_qualifier comments
+- aco: fix various s_subb_u32 operands to SCC
+- aco: rename s_subb_u32 operands to borrow
+- nir/opt_access: don't ignore infer_non_readable
+- aco: fix mbcnt_amd with wave32
+- aco: allow divergent mbcnt_amd masks
+- aco: add block to worklist in mark_block_wqm()
+- ac/llvm: insert phis before demote kill
+- aco: fix incorrect address calculation for load_barycentric_at_sample
+- ac/nir: use llvm.readcyclecounter for LLVM9+
+- nir/tests: fix callback for load/store vectorizer tests
+- nir: allow 5 component vectors
+- nir,spirv: add sparse texture fetches
+- nir,spirv: add sparse image loads
+- nir,spirv: implement SpvOpImageSparseTexelsResident
+- nir: add sparse_residency_code_and
+- nir/lower_tex: fix lower_tg4_offsets with sparse fetches
+- vtn: support SpvCapabilitySparseResidency
+- radv: implement CREATE_REQUIRE_FULL_SUBGROUPS_BIT with cswave32
+- nir: gather whether a compute shader uses non-quad subgroup intrinsics
+- radv: workaround games which assume full subgroups if cswave32 is enabled
+- nir/load_store_vectorize: don't ignore subgroup memory barriers
+- nir: add nir_load_store_vectorize_options
+- nir/load_store_vectorize: add data as callback args
+- radv: vectorize shader I/O
+- nir,radv: add and use nir_vectorize_tess_levels()
+- aco: fix unreachable() for uniform 8/16-bit nir_op_mov from VGPR
+- aco: fix MIMG_instruction::lwe comment
+- aco: move MIMG VDATA to its own operand
+- aco: implement nir_op_vec5
+- aco: implement sparse texture fetches
+- aco: implement sparse image loads
+- aco: form sparse load clauses
+- ac/nir: implement nir_op_vec5
+- ac/nir: implement sparse image/texture loads
+- radv: implement is_sparse_texels_resident and sparse_residency_code_and
+- radv: support SpvCapabilitySparseResidency
+- radv/winsys: set has_packed_math_16bit in null winsys
+- nir/opt_vectorize: fix typo in instr_can_rewrite()
+- nir/opt_vectorize: fix srcs_equal() with two different non-const
+- aco: try to better align 8+ dword SGPR vectors
+- aco: remove can_reorder semantic in get_sync_info_with_hack
+- radv: add RADV_DEBUG=invariantgeom
+- radv: set invariantgeom for Shadow of the Tomb Raider
+- aco: improve nir_op_vec with constant operands
+- aco/tests: don't rely on argument evaluation order
+- nir/loop_unroll: unroll more aggressively if it can improve load scheduling
+- aco: fix convert_to_SDWA() check in add_subdword_definition()
+- radv,aco: don't use MUBUF for multi-channel loads on GFX8 with robustness2
+- aco: don't consider a phi trivial if same's register doesn't match the def
+- radv: round-up num_records division in radv_flush_vertex_descriptors
+- radv: correctly enable WGP_MODE for NGG and GS
+- radv: correctly enable WGP_MODE for tessellation control
+- aco: always set exec_live=false
+- aco: do not flag all blocks WQM to ensure we enter all nested loops in WQM
+- aco: add fallback algorithm in get_reg()
+- aco/lower_phis: fix all_preds_uniform with continue_or_break
+- aco: add missing usable_read2 check
+- nir/opt_shrink_vectors: add option to skip shrinking image stores
+- radv: don't shrink image stores for The Surge 2
+- radv: don't set sx_blend_opt_epsilon for V_028C70_COLOR_10_11_11
+- aco: calculate all p_as_uniform and v_readfirstlane_b32 sources in WQM
+
+Rob Clark (93):
+
+- freedreno: Drop fd_context_lock() and friends
+- freedreno/drm: Convert to simple_mtx
+- freedreno: debug cleanup
+- freedreno: Convert to mesa_log*()
+- freedreno: Fix spurious flush
+- freedreno: batch-cache locking
+- freedreno/a6xx: Texture cache locking
+- freedreno: Use ctx seqno in batch cache key
+- freedreno/drm: Make ring refcnt atomic again
+- freedreno/batch: Move fd_batch_get_prologue()
+- freedreno: Make fd_context_batch() return a reference
+- freedreno: Add submit lock
+- freedreno/drm: Drop growable submit_bos table
+- freedreno/batch: Cleanup submit immediately after flush
+- freedreno/drm: Rework APPEND() macro
+- freedreno: Protect gmem_cache ralloc allocations
+- mesa/fbo: Fix valgrind complaints
+- mesa/bufferobj: Fix valgrind complaints
+- nir: Fix nir_validate fail after nir_lower_tex
+- freedreno/drm: Add some locking asserts
+- freedreno/ir3: Add pass to deal with load_uniform base offsets
+- freedreno/ir3: Fix crash in shader compile fail path
+- freedreno: emit_marker() cleanup
+- freedreno: Convert one last mtx_t -\> simple_mtx_t
+- freedreno/a6xx: Clear control mem at context create
+- freedreno/drm: Quiet timedout error msg
+- freedreno/ir3: Fix valgrind complaint about streamout state
+- util: Add helgrind support for simple_mtx
+- util: Add helpers for various one-time-init patters
+- nir: Use get_once() helper for one-time init's
+- freedreno/ir3: Use get_once() for one-time init
+- gallium/hud: Use do_once for one-time init
+- mesa/st: Use do_once for one-time init
+- util: Fix helgrind complaint about one-time init
+- mesa: Fix helgrind complaint about one-time init
+- gallium/trace: Fix helgrind complaint about one-time init
+- tgsi: Fix helgrind complaint about one-time init
+- mesa: Synchronize get_gl_override()
+- util: Add property_get() fallback for android
+- mesa: Use os_get_option() for MESA_*_OVERRIDE
+- egl/surfaceless: glthread support
+- egl/dri2: Drop some pointless ifdeffery
+- util: Add helper to get FILE\* options
+- gallium/aux: Add GPU tracepoint mechanism
+- freedreno: Small log-parser.py cleanup
+- freedreno: Remove unused fxn
+- freedreno: Don't emit log/trace points in gmem for nondraw
+- freedreno: Add GPU tracepoints
+- freedreno: Add trace-parser.py
+- freedreno: Remove fd_log()
+- gallium/aux: Avoid creating queue when traces not enabled
+- gallium/aux: Split u_tracepoints.[ch\] generation
+- gallium/aux: Update scons build for u_tracepoints.[ch\]
+- util: Promote \__builtin_types_compatible_p compat
+- util: Allow STATIC_ASSERT() everywhere
+- util+treewide: container_of() cleanup
+- freedreno/ir3: Fix half-immed decoding issues
+- freedreno/ir3: Fix mova1 disasm
+- freedreno/ir3: Add some more disasm test vectors
+- freedreno/ir3: Move assembler error handling
+- freedreno/ir3/parser: Reset lexer when input changes
+- freedreno/ir3: Various cat0 updates
+- freedreno/ir3/parser: Add new cat0 instructions
+- freedreno/ir3/parser: cat1 instructions can write relative GPR
+- freedreno/ir3/parser: cat1 updates (mova1, movmsk)
+- freedreno/ir3/parser: Handle half-immed
+- freedreno/ir3: Clean up instruction creation
+- freedreno/ir3: Cleanup cat6 load instructions
+- freedreno/ir3/parser: Fix cat6 store encoding
+- freedreno/ir3/parser: Fix dsxpp/dsypp encoding
+- freedreno/ir3/parser: Fixup cat5 s2en instructions
+- freedreno/ir3: Don't set bit for dest conversion for p0.c
+- freedreno/ir3/parser: Add missing (sat) modifier
+- freedreno/ir3/parser: Relative gpr/const can have modifiers too
+- freedreno/ir3/parser: Add initial cat6 IBO instructions
+- freedreno/ir3: Tweak ldib/resinfo encoding
+- freedreno/ir3: Add parsing and assembler testing
+- freedreno/ir3: Don't leak disk_cache
+- freedreno/ir3: Disambiguate a6xx+ "bindless" instructions
+- freedreno/ir3: Add cat5/cat6 nonuniform flag
+- freedreno/ir3/parser: Add ldc support
+- freedreno/ir3/parser: Fix atomic support
+- freedreno/ir3/parser: Fix pre-a6xx resinfo
+- freedreno/ir3/parser: Add ldgb support
+- freedreno/ir3/parser: Add stgb support
+- freedreno/ir3/parser: Fixup stg parsing and add more tests
+- freedreno/ir3: Fix ldg decoding/parsing
+- freedreno/ir3: Explicitly flag disasm test vectors that don't parse
+- freedreno/ir3: Fix pre-a6xx ldgb/stib parsing
+- freedreno/ir3/parser: a6xx ldib/stib parsing
+- freedreno/ir3/parser: Fix pre-a6xx stib parsing
+- mesa: Remove \_mesa_destroy_context()
+- util/u_queue: Ensure num_cpu_mask_bits is valid
+
+Robin Ole Heinemann (1):
+
+- anv: Add DRM_RDWR flag in anv_gem_handle_to_fd
+
+Ruijing Dong (4):
+
+- radeon/vcn: hevc main10 profile decoding pitch fix
+- radeon/vcn: add 0x02 to enc emulation prevention
+- radeon/vcn: support hevc SAO enc for VCN2+
+- radeon/vcn: fix hevc 10bit profile error
+
+Ryan Neph (2):
+
+- virgl: fix BGRA emulation artifacts during window resize
+- Revert "virgl: fix BGRA emulation artifacts during window resize"
+
+Sagar Ghuge (2):
+
+- anv: Invalidate the correct AUX-TT entry
+- anv: Skip CCS ambiguate which preceed fast-clears
+
+Samuel Iglesias Gonsálvez (3):
+
+- turnip: implement VK_KHR_depth_stencil_resolve support
+- turnip: pCounterBufferOffsets can be NULL on vkCmd*TransformFeedbackEXT()
+- turnip: fix cube map array image size calculation
+
+Samuel Pitoiset (155):
+
+- aco: fix combining add/sub to b2i if a new dest needs to be allocated
+- nir/algebraic: optimize bitfield_select(a, iand(a, b), c)
+- aco/tests: add some tests for combining s_add+s_lshl to s_lshl<n>_add
+- aco: combine more s_add+s_lshl to s_lshl<n>_add by ignoring uses
+- aco: introduce a generic label for labelling instructions
+- aco: add a new Operand flag to indicate that is 16-bit
+- aco: optimize v_mad_u32_u16 with acc=0 to v_mul_u32_u24
+- aco: select v_mad_u32_u16 for 16-bit multiplications on GFX9+
+- aco: select v_mul_lo_u16 for 16-bit multiplications that can't overflow
+- aco: optimize v_add_u32(v_mul_lo_u16) -\> v_mad_u32_u16
+- aco: optimize v_add(v_bcnt(a, 0), b) to v_bcnt(a, b)
+- ci: update the list of skipped tests for RAVEN
+- ci: update the list of expected failures for RADV
+- aco: remove v_{add,sub,subrev}_u32 on GFX8
+- radv: do VGT_FLUSH when switching NGG -\> legacy on Sienna Cichlid
+- radv: fix applying the NGG minimum vertex count requirement
+- radv: don't count unusable vertices to the NGG LDS size
+- radv: don't subtract max_verts_per_prim from hw_max_esverts on gfx10.3
+- aco: fix combining max(-min(a, b), c) if a or b uses the neg modifier
+- radv/winsys: fill real PCIID for Sienna Cichlid and Navy Flounder
+- radv/winsys: add missing Van Gogh and Dimgrey Cavefish in the null winsys
+- ci: add list of expected failures for Sienna Cichlid
+- radv: ignore other blend targets if dual-source blending is enabled
+- radv: print more debug messages when generating a hang report
+- radv: append a time string to the hang report dump directory
+- radv: dump application info in the GPU hang report
+- radv: add RADV_DEBUG=noumr to disable UMR logs during GPU hang detection
+- radv: dump BO ranges into bo_ranges.log instead of stderr
+- ci: fix name of the Sienna Cichlid expected failures file
+- nir: fix gathering cross invocation info
+- radv: add new vk_format_is_*() helpers
+- ac,radv: use better export formats for 8-bit when RB+ isn't allowed
+- aco/tests: extend the optimize.add_lshl tests to GFX8
+- aco: add a new Operand flag to indicate that is 24-bit
+- aco: allow to use the range analysis UB in emit_{sop2,vop2}_instruction()
+- aco: optimize v_add+s_lshl to v_mad_u32_u24 on GFX6-8
+- aco: optimize v_add+v_lshlrev to v_mad_u32_u24 on GFX6-8
+- ac: add gpu_info::has_32bit_predication
+- radv: use 32-bit predication for conditional rendering on GFX10.3+
+- radv: always use 32-bit predication on compute queues
+- radv: fix missing initialization of the predication value
+- radv/winsys: fix the sysmem submission path for GFX6
+- radv: disable SQTT support for unsupported GPUs
+- radv: fix using bitfields for debug/perftest options
+- radv: save and dump vertex descriptors during GPU hang detection
+- radv: enable NGG on GFX10.3 APUs by default
+- radv: only disable CU2 & CU3 when NGG is enabled
+- radv: only mask 1 CU for GS/VS waves on GFX10.3
+- radv: disable WGP_MODE for NGG on GFX10.3
+- radv/llvm,aco: always split typed vertex buffer loads on GFX6 and GFX10+
+- ci: disable check-commits
+- Revert "radv/llvm,aco: always split typed vertex buffer loads on GFX6 and GFX10+"
+- vulkan: add missing src_inc to the device select layer
+- ci: build the Vulkan device select layer
+- nir: gather if a fragment shader uses sample shading
+- radv: reduce maxTransformFeedbackBufferDataSize to 512
+- radv: mark GFX10.3 as a non-conformant Vulkan implementation
+- radv: fix exporting multiviews with NGG
+- radv: set the predication boolean as 32-bit if necessary
+- radv: use 32-bit predication for skipping FCE on GFX10.3+
+- radv: fix using FS sample shading if the linker optimized inputs away
+- ci: update the list of expected failures for RADV/FIJI
+- radv: enable using MSAA2x and MSAA4x sample locations on GFX10+
+- radv: advertise VK_EXT_sample_locations on GFX10+
+- ac/surface: initialize the FMASK slice size for GFX9+
+- radv: fix clearing FMASK for layered MSAA images on GFX9+
+- radv: disable alphaToOne feature
+- amd/registers: add missing VRS registers
+- radv: add VK_KHR_fragment_shading_rate but leave it disabled
+- radv: implement VK_KHR_fragment_shading_rate
+- radv/llvm: implement fragment shading rate
+- aco: implement fragment shading rate
+- radv: track if VRS is enabled to apply a workaround on GFX10.3
+- radv/llvm: implement a workaround for gl_FragCoord.z with VRS on GFX10.3
+- aco: implement a workaround for gl_FragCoord.z with VRS on GFX10.3
+- radv: advertise VK_KHR_fragment_shading_rate on GFX10.3+
+- radv: add support for resolving layered depth/stencil images
+- radv: add missing DB flush after depth/stencil resolve operations
+- radv: enable TC-compat HTILE for D32_SFLOAT+MSAA on GFX10+
+- radv: adjust the maximum number of coverage samples for VRS
+- radv: fix maxFragmentShadingRateRasterizationSamples
+- radv: remove useless push constants data when resolving ds attachments
+- radv: ignore the mutable bit for TC-compatible HTILE
+- radv: enable VK_EXT_line_rasterization on GFX9
+- radv: sort the extension table like Khronos
+- radv: add code that checks if the extension table is sorted correctly
+- radv: make sure FMASK compression is enabled for MSAA copies
+- Revert "radv: use 32-bit predication for skipping FCE on GFX10.3+"
+- radv: dump VA ranges history when a GPU hang is detected
+- radv: add a Python script to check if a VA was ever valid
+- radv: disable stippledBresenhamLines on GFX9
+- nir: fix determining if an addition might overflow for phi sources
+- radv: disable A2 SNORM/SSCALED/SINT for texel buffers & images on all gens
+- radv: fix clearing images with vkCmdClear{Color,DepthStencil}Image()
+- radv: remove unused radv_image::aspects
+- radv: always clear the SR0/SR1 bits of the HTILE buffer
+- radv: fix potential HTILE issues for TC-compat images on GFX8
+- radv: add radv_htile_get_initial_value() and document the HTILE dword
+- radv: fix TC-compat HTILE images with DST_OPTIMAL on the compute queue
+- radv: clean up radv_layout_is_htile_compressed()
+- radv: only load the DS fast clear values for compressed rendering
+- radv: enable TC-compat HTILE in GENERAL on GFX10+
+- aco: fix creating the dest vector when 16-bit vertex fetches are splitted
+- radv/llvm,aco: always split typed vertex buffer loads on GFX6 and GFX10+
+- radv: configure the texture descriptor for TC-compat CMASK on GFX10+
+- radv: fix enabling TC-compat HTILE in GENERAL for writes on GFX10+
+- radv: fix performance regression by restoring TC-compat HTILE in GENERAL
+- radv: determine at creation if an image view can be fast cleared
+- radv: do not predicate FMASK decompression when DCC+MSAA is used
+- ci: re-mark some depth/stencil resolve CTS as expected failures
+- radv: fix crashes when fast-clearing in a secondary command buffer
+- radv: disable TC-compat HTILE in GENERAL for Detroit: Become Human
+- radv: re-initialize HTILE properly after depth/stencil compute resolves
+- radv: only re-initialize HTILE after ds compute resolves if compressed
+- ac/surface: initialize dcc_slice_size on GFX9+
+- radv: add support for fast-clearing DCC layers on GFX9+
+- radv: clean up radv_decompress_dcc_compute()
+- radv: do not use predication when the range doesn't cover the whole image
+- radv: enable DCC for layered color images on GFX10+
+- radv: mark VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT as unsupported on GFX6-7
+- aco: fix inserting expcnt for MIMG on GFX6
+- ci: mark some sparse tests as expected failures on Pitcairn (GFX6)
+- radv: mark some sparse texture CTS as expected failures on GFX9
+- radv: set depth to 1 for subpass resolves using the compute path
+- radv: decompress DCC for partial resolves using the compute path
+- radv: fixup DCC after color resolves using the compute path
+- radv: fix color resolves if the dest image has DCC
+- radv: fix clearing DCC on GFX9
+- radv: only use predication if the FCE value is allocated
+- radv: allocate and initialize the FCE predicate value for CMASK too
+- radv: update the FCE predicate for fast clears using CMASK
+- radv: skip fast-clear eliminate for CMASK based on a predicate
+- ac/surface: store DCC mip info into the surface
+- radv: prevent fast-clearing uncompressed DCC levels
+- radv: add support for fast-clearing DCC levels on GFX10+
+- radv: do not enable DCC for 3D images with mipmaps on GFX10+
+- radv: enable DCC for mipmaps on GFX10+
+- radv: disable VK_EXT_sample_locations again on GFX10+
+- radv: enable DCC for MSAA on GFX10+
+- radv: do not invalidate the L2 metadata cache on compute queues
+- radv: flush L2 metadata as part of CB/DB flush instead of CS_DONE on GFX9
+- radv: restore invalidating the vector cache for internal meta operations
+- radv: flush L2 for images affected by the pipe misaligned issue on GFX10+
+- ci: exclude one CTS test that timeout most of the time for RADV CI
+- radv: fix a sync issue with geometry shader primitives query on GFX10+
+- radv: fix overflow when computing the SQTT buffer size
+- radv: inhibit clock gating when tracing with SQTT
+- radv: fix separate depth/stencil layout in render pass
+- radv,aco: fix shifting input VGPRs for the LS VGPR init bug on GFX9
+- nir/algebraic: mark more optimization with fsat(NaN) as inexact
+- radv: fix centroid with VRS coarse shading
+- radv: fix waiting on the last enabled RB for occlusion queries
+- radv: only apply the MRT output NaN fixup to non-meta shaders
+- radv: set correct value for OFFCHIP_BUFFERING on GFX10+
+- radv: do not scale the depth bias for D16_UNORM depth surfaces
+
+Serge Martin (1):
+
+- clover: add core clover printf support (v12)
+
+Simon Ser (11):
+
+- amd/common: introduce ac_surface_print_info
+- radeonsi: use ac_surface_print_info in si_print_texture_info
+- radv: add img debug flag
+- egl: fix typo in wl_drm error message
+- egl/wayland: remove libwayland \\< 1.18 workaround
+- ci: skip failing test on lavapipe
+- radv: fix access to uninitialized radeon_bo_metadata
+- egl/wayland: add a NULL guard for the authenticate callback
+- radv: only set BO metadata for the first plane
+- nouveau/nvc0: fix linear buffer alignment for scan-out/cursors
+- nouveau/nv50: fix linear buffer alignment for scan-out/cursors
+
+Steven Houston (1):
+
+- v3dv: VK_KHR_display extension support
+
+Tapani Pälli (7):
+
+- egl/dri2: fix race between image create and egl_image_target_texture
+- iris: initialize shared screen->vtbl only once
+- mesa/st: choose S/D format depending on gl_format passed for readpixels
+- anv: fix calculation of buffer size in case dynamic size is used
+- mesa: fix layered framebuffer attachment target check
+- vbo/dlist: free prim_store->prims when vbo_save is destroyed
+- i965: use aligned malloc for context instead of ralloc
+
+Theogen Ratkin (1):
+
+- docs: grammar fixes
+
+Thong Thai (4):
+
+- frontends/va/postproc: Use the actual image height when blitting
+- frontends/va/postproc: Convert destination when deinterlacing
+- gallium: Fix VAAPI postproc blit
+- frontends/va: Return an error if non-interlaced buffer is not supported
+
+Timothy Arceri (1):
+
+- glsl: default to compat shaders in compat profile
+
+Timur Kristóf (16):
+
+- nir: Use src_is_invocation_id in get_deref_info.
+- aco/optimizer: Only set scc_needed when it is actually needed.
+- aco/optimizer: Propagate scc_needed label through p_wqm.
+- aco: Fix NGG GS assert failure from the WG scan.
+- aco: Skip TCS s_barrier when VS outputs are not stored in the LDS.
+- aco: Use program->num_waves as maximum in scheduler.
+- aco: Keep live-though variables and constants spilled.
+- aco: Spill more optimally before loops.
+- aco: Note if rasterization can start early.
+- aco: Wait for stores when NGG or legacy VS can finish early.
+- ci: Add an expected failures list for Oland (GFX6)
+- radv: Only enable sparse features on Polaris and newer.
+- tgsi_to_nir: Fix uniform ranges.
+- radv/llvm: Fix reporting LDS stats of tess control shaders.
+- aco: Disallow LSHS temp-only I/O when VS output is written indirectly.
+- aco: Fix LDS statistics of tess control shaders.
+
+Tomeu Vizoso (3):
+
+- ci: Temporarily disable jobs on the Collabora lab
+- Revert "ci: Temporarily disable jobs on the Collabora lab"
+- ci: Only run the sanity job if there's a MR
+
+Tony Wasserka (22):
+
+- glsl: Fix -Wshadow warning
+- util: Fix/silence variable shadowing warnings
+- meson: Treat LLVM headers as a system dependency
+- aco: Fix -Wshadow warnings
+- aco/tests: Fix -Wshadow warnings
+- aco/tests: Fix -Wunused warnings in release mode
+- radv: Fix -Wshadow warnings
+- radv,aco: Compile with -Wshadow when available
+- radv/query: Avoid hardcoding array size constants
+- radv/winsys: Fix use of nonexisting struct type in sizeof
+- aco: Annotate switch fallthroughs
+- radv,aco: Compile with -Wimplicit-fallthrough when available
+- gitlab: add RADV bug report template
+- aco/ra: Add policy parameter to select implementation details for testing
+- aco/tests: Fix GFX10_3 being printed as gfx11
+- aco/tests: Allow specifiying the test subvariant in setup_cs
+- aco/tests: Fix deadlock for too large test lists
+- aco: Add tests for subdword register allocation
+- aco/ra: Add some documentation
+- aco/ra: Fix register allocation for subdword operands
+- aco/ra: Avoid redundant RegisterFile copies in get_reg_impl
+- aco: Fix vector::reserve() being called with the wrong size
+
+Trevor Woerner (1):
+
+- docs/egl.rst: switch true→enabled
+
+Vinson Lee (55):
+
+- swr: Initialize FetchJit member mpFetchInfo in constructor.
+- turnip: Remove pipeline NULL check.
+- draw: Clean up single-use goto statements.
+- glsl: Initialize ir_variable member field data.is_xfb.
+- glsl: Fix typos in comments.
+- microsoft/compiler: Add dxil_nir_lower_16bit_conv prototype.
+- turnip: Fix file descriptor return.
+- nvir/gm107: Initialize SchedDataCalculatorGM107 member score.
+- vdpau: Add missing printf format specifier.
+- v3dv: Remove unsigned comparison to zero.
+- frontends/va: Fix \*num_entrypoints check.
+- clover/spirv: Add missing break for SpvOpExecutionMode case.
+- turnip: Close sync_fd only if it is a valid file descriptor.
+- nv50/ir: Initialize GCRA members in constructor.
+- microsoft/compiler: Add struct dxil_features forward declaration.
+- microsoft/compiler: Add struct glsl_type forward declaration.
+- microsoft/compiler: Add scope for declaration in case statement.
+- r600/sfn: Fix typos.
+- r600/sfn: Initialize ShaderFromNir members in constructor.
+- r600/sb: Initialize sb_context members in constructor.
+- clover: Initialize command_queue member \_props.
+- nv50/ir: Initialize Program members in constructor.
+- clover: Fix typo in comment.
+- scons: Fix build with llvm-12.
+- amd/addrlib: Initialize Lib members in constructors.
+- util: Add os_get_page_size support for macOS.
+- meson: Fix Clang microsoft-enum-value detection.
+- meson: Fix build with llvm-12.
+- r600/sfn: Initialize ShaderInputVarying members in constructors.
+- mesa: Remove extra texObj.
+- intel/genxml: Avoid generating identical 12.5 and 12 branches.
+- mesa: Remove cmd_size \\< 0 check.
+- zink: Fix typos.
+- glsl: Fix typos in comments.
+- glsl: Initialize glsl_type member name.
+- vc4: Fix typos.
+- d3d12: Fix memory leak if create_gfx_pipeline_state failed.
+- d3d12: Fix memory leak if create_root_signature failed.
+- v3d: Fix typos.
+- nir/tests: Initialize nir_serialize_test member dup.
+- d3d12: Fix memory leak if state is NULL.
+- d3d12: Initialize TransitionableResourceState m_SupportsSimultaneousAccess.
+- turnip: Remove unsigned nonnegative check.
+- svga: Fix typos in comments.
+- d3d12: Initialize local_resource member mapped in constructor.
+- swr: Fix typos.
+- virgl: Fix typos.
+- softpipe: Fix typos.
+- radeonsi: Fix typos.
+- freedreno/afuc: Replace readfile with os_read_file.
+- r300: Fix typos.
+- clover: Add constructor for clover::module.
+- nv50/ir: Initialize CodeEmitterGM107 members in constructor.
+- etnaviv: Fix memory leak in etna_vertex_elements_state_create.
+- aco: Initialize ds_state.front.writeMask.
+
+Víctor Manuel Jáquez Leal (1):
+
+- frontends/va/context: don't set max_references with num_render_targets
+
+Witold Baryluk (3):
+
+- zink: Cap PIPE_SHADER_CAP_MAX_CONST_BUFFERS to 32
+- vulkan/device_select: Store Vulkan vendorID and deviceID as uint32_t
+- lavapipe: Defer lavapipe warning to CreateDevice
+
+X512 (13):
+
+- util: implement GET_PROGRAM_NAME for Haiku
+- util/meson: Add libnetwork dependency for Haiku
+- targets/haiku-softpipe/meson: add libswpipe.so to install directory
+- hgl/meson: add version to libGL.so
+- meson: fix Haiku EGL build; no dri requirement
+- include: fix export in Haiku OpenGL kit headers
+- hgl: use local headers instead of system header
+- frontends/hgl: set state_manager
+- frontends/hgl: set framebuffer id
+- aux/driver_ddebug: Normalize pid type from Haiku
+- targets/haiku-softpipe: Restore GalliumContext
+- hgl: Major refactor and cleanup
+- util/u_thread: Disable pthread_barrier_t on Haiku
+
+Yevhenii Kharchenko (2):
+
+- meson: Add build option to specify default shader disk cache max-size
+- st/mesa: fix PBO download for TEXTURE_1D_ARRAY textures
+
+Yevhenii Kolesnikov (3):
+
+- intel/fs: don't spill a register, set by undef
+- iris: only set point sprite overrides if actually using points
+- nir/from_ssa: consider defs in sibling blocks
+
+Yogesh mohan marimuthu (1):
+
+- radeonsi: enable vrs2x2 coarse shading if flat shading (v9)
+
+Yuxuan Shui (1):
+
+- Add EGL xcb platform
+
+Zack Rusin (1):
+
+- meson.build: Order the flex/bison by odds of them working
+
+cheyang (5):
+
+- android: fix build failure with libbacktrace
+- symbol_table:fix mesa symbol table return scope error
+- glsl: remove unused state variable
+- virgl: next_handle variable modify to atomic inc in virgl_object_assign_handle
+- mesa: glProgramBinary add resource_hash
+
+jzielins (5):
+
+- swr: Pass draw start information to state update mechanism
+- swr: fix crashes caused by incorrectly reporting SSBO support
+- gallium/swr: Fix Windows build
+- swr: Fix building with LLVM12
+- swr: Fix crashes on Windows
+
+nia (1):
+
+- util: Avoid pthread_setaffinity_np on NetBSD
+
+yshi18 (1):
+
+- iris: fix memleak for query_buffer_uploader

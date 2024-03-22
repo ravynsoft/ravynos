@@ -1,0 +1,145 @@
+Mesa 18.2.6 Release Notes / November 28, 2018
+=============================================
+
+Mesa 18.2.6 is a bug fix release which fixes bugs found since the 18.2.5
+release.
+
+Mesa 18.2.6 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   e0ea1236dbc6c412b02e1b5d7f838072525971a6630246fa82ae4466a6d8a587  mesa-18.2.6.tar.gz
+   9ebafa4f8249df0c718e93b9ca155e3593a1239af303aa2a8b0f2056a7efdc12  mesa-18.2.6.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 107626 <https://bugs.freedesktop.org/show_bug.cgi?id=107626>`__
+   - [SNB] The graphical corruption and GPU hang occur sometimes on the
+   piglit test "arb_texture_multisample-large-float-texture" with
+   parameter --fp16
+-  `Bug 107856 <https://bugs.freedesktop.org/show_bug.cgi?id=107856>`__
+   - i965 incorrectly calculates the number of layers for texture views
+   (assert)
+-  `Bug 108630 <https://bugs.freedesktop.org/show_bug.cgi?id=108630>`__
+   - [G965] piglit.spec.!opengl 1_2.tex3d-maxsize spins forever
+-  `Bug 108713 <https://bugs.freedesktop.org/show_bug.cgi?id=108713>`__
+   - Gallium: use after free with transform feedback
+-  `Bug 108829 <https://bugs.freedesktop.org/show_bug.cgi?id=108829>`__
+   - [meson] libglapi exports internal API
+
+Changes
+-------
+
+Andrii Simiklit (1):
+
+-  i965/batch: avoid reverting batch buffer if saved state is an empty
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Fix opaque metadata descriptor last layer.
+
+Brian Paul (1):
+
+-  scons/svga: remove opt from the list of valid build types
+
+Danylo Piliaiev (1):
+
+-  i965: Fix calculation of layers array length for isl_view
+
+Dylan Baker (2):
+
+-  meson: Don't set -Wall
+-  meson: Don't force libva to required from auto
+
+Emil Velikov (13):
+
+-  bin/get-pick-list.sh: simplify git oneline printing
+-  bin/get-pick-list.sh: prefix output with "[stable] "
+-  bin/get-pick-list.sh: handle "typod" usecase.
+-  bin/get-pick-list.sh: handle the fixes tag
+-  bin/get-pick-list.sh: tweak the commit sha matching pattern
+-  bin/get-pick-list.sh: flesh out is_sha_nomination
+-  bin/get-pick-list.sh: handle fixes tag with missing colon
+-  bin/get-pick-list.sh: handle unofficial "broken by" tag
+-  bin/get-pick-list.sh: use test instead of [ ]
+-  bin/get-pick-list.sh: handle reverts prior to the branchpoint
+-  travis: drop unneeded x11proto-xf86vidmode-dev
+-  glx: make xf86vidmode mandatory for direct rendering
+-  travis: adding missing x11-xcb for meson+vulkan
+
+Eric Anholt (1):
+
+-  vc4: Make sure we make ro scanout resources for
+   create_with_modifiers.
+
+Eric Engestrom (5):
+
+-  meson: only run vulkan's meson.build when building vulkan
+-  gbm: remove unnecessary meson include
+-  meson: fix wayland-less builds
+-  egl: add missing glvnd entrypoint for EGL_ANDROID_blob_cache
+-  glapi: add missing visibility args
+
+Erik Faye-Lund (1):
+
+-  mesa/main: remove bogus error for zero-sized images
+
+Gert Wollny (3):
+
+-  mesa: Reference count shaders that are used by transform feedback
+   objects
+-  r600: clean up the GS ring buffers when the context is destroyed
+-  glsl: free or reuse memory allocated for TF varying
+
+Faith Ekstrand (2):
+
+-  nir/lower_alu_to_scalar: Don't try to lower unpack_32_2x16
+-  anv: Put robust buffer access in the pipeline hash
+
+Juan A. Suarez Romero (6):
+
+-  cherry-ignore: add explicit 18.3 only nominations
+-  cherry-ignore: intel/aub_viewer: fix dynamic state printing
+-  cherry-ignore: intel/aub_viewer: Print blend states properly
+-  cherry-ignore: mesa/main: fix incorrect depth-error
+-  docs: add sha256 checksums for 18.2.5
+-  Update version to 18.2.6
+
+Karol Herbst (1):
+
+-  nir/spirv: cast shift operand to u32
+
+Kenneth Graunke (1):
+
+-  i965: Add PCI IDs for new Amberlake parts that are Coffeelake based
+
+Lionel Landwerlin (1):
+
+-  egl/dri: fix error value with unknown drm format
+
+Marek Olšák (2):
+
+-  winsys/amdgpu: fix a buffer leak in amdgpu_bo_from_handle
+-  winsys/amdgpu: fix a device handle leak in amdgpu_winsys_create
+
+Rodrigo Vivi (4):
+
+-  i965: Add a new CFL PCI ID.
+-  intel: aubinator: Adding missed platforms to the error message.
+-  intel: Introducing Amber Lake platform
+-  intel: Introducing Whiskey Lake platform

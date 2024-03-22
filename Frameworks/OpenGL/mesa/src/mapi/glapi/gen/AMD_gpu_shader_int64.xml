@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_AMD_gpu_shader_int64" number="451">
+
+    <function name="Uniform1i64NV" alias="Uniform1i64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+    </function>
+
+    <function name="Uniform2i64NV" alias="Uniform2i64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+        <param name="y" type="GLint64"/>
+    </function>
+
+    <function name="Uniform3i64NV" alias="Uniform3i64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+        <param name="y" type="GLint64"/>
+        <param name="z" type="GLint64"/>
+    </function>
+
+    <function name="Uniform4i64NV" alias="Uniform4i64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+        <param name="y" type="GLint64"/>
+        <param name="z" type="GLint64"/>
+        <param name="w" type="GLint64"/>
+    </function>
+
+    <function name="Uniform1i64vNV" alias="Uniform1i64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count"/>
+    </function>
+
+    <function name="Uniform2i64vNV" alias="Uniform2i64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count" count_scale="2"/>
+    </function>
+
+    <function name="Uniform3i64vNV" alias="Uniform3i64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count" count_scale="3"/>
+    </function>
+
+    <function name="Uniform4i64vNV" alias="Uniform4i64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count" count_scale="4"/>
+    </function>
+
+    <function name="Uniform1ui64NV" alias="Uniform1ui64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+    </function>
+
+    <function name="Uniform2ui64NV" alias="Uniform2ui64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+        <param name="y" type="GLuint64"/>
+    </function>
+
+    <function name="Uniform3ui64NV" alias="Uniform3ui64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+        <param name="y" type="GLuint64"/>
+        <param name="z" type="GLuint64"/>
+    </function>
+
+    <function name="Uniform4ui64NV" alias="Uniform4ui64ARB">
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+        <param name="y" type="GLuint64"/>
+        <param name="z" type="GLuint64"/>
+        <param name="w" type="GLuint64"/>
+    </function>
+
+    <function name="Uniform1ui64vNV" alias="Uniform1ui64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *"  count="count"/>
+    </function>
+
+    <function name="Uniform2ui64vNV" alias="Uniform2ui64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *" count="count" count_scale="2"/>
+    </function>
+
+    <function name="Uniform3ui64vNV" alias="Uniform3ui64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *" count="count" count_scale="3"/>
+    </function>
+
+    <function name="Uniform4ui64vNV" alias="Uniform4ui64vARB">
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *" count="count" count_scale="4"/>
+    </function>
+
+    <function name="GetUniformi64vNV" alias="GetUniformi64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="params" type="GLint64 *"/>
+    </function>
+
+    <function name="GetUniformui64vNV" alias="GetUniformui64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="params" type="GLuint64 *"/>
+    </function>
+
+    <function name="ProgramUniform1i64NV" alias="ProgramUniform1i64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+    </function>
+
+    <function name="ProgramUniform2i64NV" alias="ProgramUniform2i64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+        <param name="y" type="GLint64"/>
+    </function>
+
+    <function name="ProgramUniform3i64NV" alias="ProgramUniform3i64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+        <param name="y" type="GLint64"/>
+        <param name="z" type="GLint64"/>
+    </function>
+
+    <function name="ProgramUniform4i64NV" alias="ProgramUniform4i64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint64"/>
+        <param name="y" type="GLint64"/>
+        <param name="z" type="GLint64"/>
+        <param name="w" type="GLint64"/>
+    </function>
+
+    <function name="ProgramUniform1i64vNV" alias="ProgramUniform1i64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count"/>
+    </function>
+
+    <function name="ProgramUniform2i64vNV" alias="ProgramUniform2i64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count" count_scale="2"/>
+    </function>
+
+    <function name="ProgramUniform3i64vNV" alias="ProgramUniform3i64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count" count_scale="3"/>
+    </function>
+
+    <function name="ProgramUniform4i64vNV" alias="ProgramUniform4i64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint64 *" count="count" count_scale="4"/>
+    </function>
+
+    <function name="ProgramUniform1ui64NV" alias="ProgramUniform1ui64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+    </function>
+
+    <function name="ProgramUniform2ui64NV" alias="ProgramUniform2ui64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+        <param name="y" type="GLuint64"/>
+    </function>
+
+    <function name="ProgramUniform3ui64NV" alias="ProgramUniform3ui64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+        <param name="y" type="GLuint64"/>
+        <param name="z" type="GLuint64"/>
+    </function>
+
+    <function name="ProgramUniform4ui64NV" alias="ProgramUniform4ui64ARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint64"/>
+        <param name="y" type="GLuint64"/>
+        <param name="z" type="GLuint64"/>
+        <param name="w" type="GLuint64"/>
+    </function>
+
+    <function name="ProgramUniform1ui64vNV" alias="ProgramUniform1ui64vARB">
+        <param name="program" type="GLuint"/>
+	<param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *" count="count"/>
+    </function>
+
+    <function name="ProgramUniform2ui64vNV" alias="ProgramUniform2ui64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *" count="count" count_scale="2"/>
+    </function>
+
+    <function name="ProgramUniform3ui64vNV" alias="ProgramUniform3ui64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *" count="count" count_scale="3"/>
+    </function>
+
+    <function name="ProgramUniform4ui64vNV" alias="ProgramUniform4ui64vARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint64 *" count="count" count_scale="4"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>
+

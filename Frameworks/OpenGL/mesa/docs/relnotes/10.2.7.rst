@@ -1,0 +1,183 @@
+Mesa 10.2.7 Release Notes / September 06, 2014
+==============================================
+
+Mesa 10.2.7 is a bug fix release which fixes bugs found since the 10.2.6
+release.
+
+Mesa 10.2.7 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   cb67dfaabf88acba29aa2cf0dd58ee17b21ebf9594f8d1226c41794da8de3e9d  MesaLib-10.2.7.tar.gz
+   27b958063a4c002071f14ed45c7d2a1ee52cd85e4ac8876e8a1c273495a7d43f  MesaLib-10.2.7.tar.bz2
+   a2796a2d5bbbc2edd22857ecc267cba68dfe5d0296f5d84ba7510877b216cc40  MesaLib-10.2.7.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 36193 <https://bugs.freedesktop.org/show_bug.cgi?id=36193>`__ -
+   [i965] brw_eu_emit.c:182: validate_reg: Assertion \`execsize >=
+   width' failed.
+-  `Bug 66184 <https://bugs.freedesktop.org/show_bug.cgi?id=66184>`__ -
+   src/mesa/state_tracker/st_glsl_to_tgsi.cpp:3216:simplify_cmp:
+   Assertion \`inst->dst.index < 4096' failed.
+-  `Bug 70441 <https://bugs.freedesktop.org/show_bug.cgi?id=70441>`__ -
+   [Gen4-5 clip] Piglit spec_OpenGL_1.1_polygon-offset hits (execsize >=
+   width) assertion
+-  `Bug 76188 <https://bugs.freedesktop.org/show_bug.cgi?id=76188>`__ -
+   EGL_EXT_image_dma_buf_import fd ownership is incorrect
+-  `Bug 76789 <https://bugs.freedesktop.org/show_bug.cgi?id=76789>`__ -
+   [radeonsi] si_descriptors.c requires -std=gnu99 or -fms-extensions
+-  `Bug 82139 <https://bugs.freedesktop.org/show_bug.cgi?id=82139>`__ -
+   [r600g, bisected] multiple ubo piglit regressions
+-  `Bug 82255 <https://bugs.freedesktop.org/show_bug.cgi?id=82255>`__ -
+   [VP2] Chroma planes are vertically stretched during VDPAU playback
+-  `Bug 82671 <https://bugs.freedesktop.org/show_bug.cgi?id=82671>`__ -
+   [r600g-evergreen][compute]Empty kernel execution causes crash
+-  `Bug 82709 <https://bugs.freedesktop.org/show_bug.cgi?id=82709>`__ -
+   OpenCL not working on radeon hainan
+-  `Bug 82814 <https://bugs.freedesktop.org/show_bug.cgi?id=82814>`__ -
+   glDrawBuffers(0, NULL) segfaults in \_mesa_drawbuffers
+-  `Bug 83079 <https://bugs.freedesktop.org/show_bug.cgi?id=83079>`__ -
+   [NVC0] Dota 2 (Linux native and Wine) crash with Nouveau Drivers
+-  `Bug 83355 <https://bugs.freedesktop.org/show_bug.cgi?id=83355>`__ -
+   FTBFS: src/mesa/program/program_lexer.l:122:64: error: unknown type
+   name 'YYSTYPE'
+
+Changes
+-------
+
+Adam Jackson (1):
+
+-  radeonsi: Don't use anonymous struct trick in atom tracking
+
+Alex Deucher (2):
+
+-  radeonsi: add new CIK pci ids
+-  radeonsi: add new SI pci ids
+
+Andreas Boll (1):
+
+-  winsys/radeon: fix nop packet padding for hawaii
+
+Anuj Phogat (1):
+
+-  i965: Bail on vec4 copy propagation for scratch writes with source
+   modifiers
+
+Brian Paul (1):
+
+-  mesa: fix NULL pointer deref bug in \_mesa_drawbuffers()
+
+Carl Worth (2):
+
+-  docs: Add sha256 sums for the 10.2.6 release
+-  Makefile: Switch from md5sums to sha256sums
+
+Dave Airlie (1):
+
+-  i965: add missing parens in vec4 visitor
+
+Emil Velikov (17):
+
+-  configure.ac: bail out if building gallium_gbm without gallium_egl
+-  android: gallium/nouveau: fix include folders, link against
+   libstlport
+-  android: egl/main: fixup the nouveau build
+-  automake: gallium/freedreno: drop spurious include dirs
+-  android: gallium/freedreno: add preliminary build
+-  android: egl/main: add/enable freedreno
+-  android: gallium/auxiliary: drop log2/log2f redefitions
+-  android: drop HAL_PIXEL_FORMAT_RGBA_{5551,4444}
+-  android: glsl: the stlport over the limited Android STL
+-  android: dri/i915: do not build an 'empty' driver
+-  cherry-ignore: remove patch that lacking previous dependencies
+-  cherry-ignore: PIPE_SHADER_CAP_MAX_CONST_BUFFER_SIZE is not it 10.2
+-  cherry-ignore: drop whitespace fix
+-  cherry-ignore: reject a15088338eb
+-  get-pick-list.sh: Require explicit "10.2" for nominating stable
+   patches
+-  mesa: fix make tarballs
+-  Update VERSION to 10.2.7
+
+Ian Romanick (1):
+
+-  mesa: Handle uninitialized textures like other textures in
+   get_tex_level_parameter_image
+
+Ilia Mirkin (9):
+
+-  nouveau: make sure to invalidate any vbo state as well
+-  nouveau: don't keep stale pointer to free'd data
+-  nvc0/ir: avoid infinite recursion when finding first uses of tex
+-  nv50: zero out unbound samplers
+-  nvc0: don't make 1d staging textures linear
+-  nv50/ir: avoid creating instructions that can't be emitted
+-  nv50: set the miptree address when clearing bo's in vp2 init
+-  nv50: mt address may not be the underlying bo's start address
+-  nv50: attach the buffer bo to the miptree structures
+
+Jan Vesely (1):
+
+-  gallivm: Fix build with latest LLVM
+
+José Fonseca (1):
+
+-  mesa: Move declaration to top of block.
+
+Kenneth Graunke (3):
+
+-  i965/vec4: Set NoMask for GS_OPCODE_SET_VERTEX_COUNT on Gen8+.
+-  i965/vec4: Respect ir->force_writemask_all in Gen8 code generation.
+-  i965/clip: Fix brw_clip_unfilled.c/compute_offset's assembly.
+
+Marek Olšák (3):
+
+-  r600g: fix constant buffer fetches
+-  radeonsi: save scissor state and sample mask for u_blitter
+-  glsl_to_tgsi: allocate and enlarge arrays for temporaries on demand
+
+Paulo Sergio Travaglia (2):
+
+-  android: gallium/radeon: attempt to fix the android build
+-  android: egl/main: resolve radeon linking issues
+
+Pekka Paalanen (1):
+
+-  egl_dri2: fix EXT_image_dma_buf_import fds
+
+Robert Bragg (1):
+
+-  meta: save and restore swizzle for \_GenerateMipmap
+
+Tom Stellard (7):
+
+-  radeon/compute: Fix reported values for MAX_GLOBAL_SIZE and
+   MAX_MEM_ALLOC_SIZE
+-  radeonsi/compute: Update reference counts for buffers in
+   si_set_global_binding()
+-  radeonsi/compute: Call si_pm4_free_state() after emitting compute
+   state
+-  clover: Flush the command queue in clReleaseCommandQueue()
+-  radeon: Add work-around for missing Hainan support in clang < 3.6 v2
+-  pipe-loader: Fix memory leak v2
+-  r600g/compute: Don't initialize vertex_buffer_state masks to 0x2
+
+Vinson Lee (1):
+
+-  gallivm: Fix build with LLVM >= 3.6 r215967.

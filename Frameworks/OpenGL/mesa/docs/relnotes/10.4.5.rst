@@ -1,0 +1,89 @@
+Mesa 10.4.5 Release Notes / February 21, 2015
+=============================================
+
+Mesa 10.4.5 is a bug fix release which fixes bugs found since the 10.4.4
+release.
+
+Mesa 10.4.5 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   e12bbdaee9a758617e8ebd0bb0e987f72addd11db2e4da25ba695e386cd63843  MesaLib-10.4.5.tar.gz
+   bf60000700a9d58e3aca2bfeee7e781053b0d839e61a95b1883e05a2dee247a0  MesaLib-10.4.5.tar.bz2
+   3b926de8eee500bb67cf85332c51292f826cc539b8636382aadbb8e70c76527a  MesaLib-10.4.5.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 82477 <https://bugs.freedesktop.org/show_bug.cgi?id=82477>`__ -
+   [softpipe] piglit fp-long-alu regression
+-  `Bug 88658 <https://bugs.freedesktop.org/show_bug.cgi?id=88658>`__ -
+   (bisected) Slow video playback on Kabini
+-  `Bug 89069 <https://bugs.freedesktop.org/show_bug.cgi?id=89069>`__ -
+   Lack of grass in The Talos Principle on radeonsi (native\wine\nine)
+
+Changes
+-------
+
+Carl Worth (1):
+
+-  Revert use of Mesa IR optimizer for ARB_fragment_programs
+
+Emil Velikov (3):
+
+-  docs: Add sha256 sums for the 10.4.4 release
+-  get-pick-list.sh: Require explicit "10.4" for nominating stable
+   patches
+-  Update version to 10.4.5
+
+Ilia Mirkin (3):
+
+-  nvc0: bail out of 2d blits with non-A8_UNORM alpha formats
+-  st/mesa: treat resource-less xfb buffers as if they weren't there
+-  nvc0: allow holes in xfb target lists
+
+Jeremy Huddleston Sequoia (2):
+
+-  darwin: build fix
+-  darwin: build fix
+
+Kenneth Graunke (4):
+
+-  i965: Override swizzles for integer luminance formats.
+-  i965: Use a gl_color_union for sampler border color.
+-  i965: Fix integer border color on Haswell.
+-  glsl: Reduce memory consumption of copy propagation passes.
+
+Laura Ekstrand (1):
+
+-  main: Fixed \_mesa_GetCompressedTexImage_sw to copy slices correctly.
+
+Marek Olšák (5):
+
+-  r600g,radeonsi: don't append to streamout buffers that haven't been
+   used yet
+-  radeonsi: fix instanced arrays with non-zero start instance
+-  radeonsi: small fix in SPI state
+-  mesa: fix AtomicBuffer typo in \_mesa_DeleteBuffers
+-  radeonsi: fix a crash if a stencil ref state is set before a DSA
+   state
+
+Michel Dänzer (2):
+
+-  st/mesa: Don't use PIPE_USAGE_STREAM for GL_PIXEL_UNPACK_BUFFER_ARB
+-  Revert "radeon/llvm: enable unsafe math for graphics shaders"

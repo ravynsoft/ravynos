@@ -1,0 +1,76 @@
+Mesa 18.0.3 Release Notes / May 7, 2018
+=======================================
+
+Mesa 18.0.3 is a bug fix release which fixes bugs found since the 18.0.2
+release.
+
+Mesa 18.0.3 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   58cc5c5b1ab2a44e6e47f18ef6c29836ad06f95450adce635ce3c317507a171b  mesa-18.0.3.tar.gz
+   099d9667327a76a61741a533f95067d76ea71a656e66b91507b3c0caf1d49e30  mesa-18.0.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 105374 <https://bugs.freedesktop.org/show_bug.cgi?id=105374>`__
+   - texture3d, a SaschaWillems demo, assert fails
+-  `Bug 106147 <https://bugs.freedesktop.org/show_bug.cgi?id=106147>`__
+   - SIGBUS in write_reloc() when Sacha Willems' "texture3d" Vulkan demo
+   starts
+
+Changes
+-------
+
+Andres Rodriguez (1):
+
+-  radv/winsys: fix leaking resources from bo's imported by fd
+
+Boyuan Zhang (1):
+
+-  radeon/vcn: fix mpeg4 msg buffer settings
+
+Eric Anholt (1):
+
+-  gallium/util: Fix incorrect refcounting of separate stencil.
+
+Faith Ekstrand (1):
+
+-  anv/allocator: Don't shrink either end of the block pool
+
+Juan A. Suarez Romero (3):
+
+-  docs: add sha256 checksums for 18.0.2
+-  cherry-ignore: add explicit 18.1 only nominations
+-  Update version to 18.0.3
+
+Leo Liu (1):
+
+-  st/omx/enc: fix blit setup for YUV LoadImage
+
+Marek Olšák (2):
+
+-  util/u_queue: fix a deadlock in util_queue_finish
+-  radeonsi/gfx9: workaround for INTERP with indirect indexing
+
+Nanley Chery (1):
+
+-  i965/tex_image: Avoid the ASTC LDR workaround on gen9lp
+
+Samuel Pitoiset (1):
+
+-  radv: compute the number of subpass attachments correctly

@@ -1,0 +1,116 @@
+Mesa 17.0.5 Release Notes / April 28, 2017
+==========================================
+
+Mesa 17.0.5 is a bug fix release which fixes bugs found since the 17.0.4
+release.
+
+Mesa 17.0.5 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   7510eee0d0077860b250d30d73305048c2df4ba09ea8fc04e4f3eec7beece301  mesa-17.0.5.tar.gz
+   668efa445d2f57a26e5c096b1965a685733a3b57d9c736f9d6460263847f9bfe  mesa-17.0.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 97524 <https://bugs.freedesktop.org/show_bug.cgi?id=97524>`__ -
+   Samplers referring to the same texture unit with different types
+   should raise GL_INVALID_OPERATION
+
+Changes
+-------
+
+Andres Gomez (16):
+
+-  cherry-ignore: Add the pci_id into the shader cache UUID
+-  cherry-ignore: fix crash if ctx torn down with no rendering
+-  cherry-ignore: Fix typos.
+-  cherry-ignore: Revert "etnaviv: Cannot render to rb-swapped formats"
+-  cherry-ignore: Revert "i965/fs: Don't emit SEL instructions for
+   type-converting MOVs."
+-  cherry-ignore: fix typo in a2b10g10r10 fast clear calculation
+-  cherry-ignore: remove unused anv_dispatch_table dtable
+-  cherry-ignore: remove unused radv_dispatch_table dtable
+-  cherry-ignore: make radv_resolve_entrypoint static
+-  cherry-ignore: vulkan: add support for libmesa_vulkan_util
+-  cherry-ignore: r600: fix libmesa_amd_common dependency
+-  cherry-ignore: remove dead brw_new_shader() declaration
+-  cherry-ignore: remove i965_symbols_test reference from .gitignore
+-  cherry-ignore: automake: ensure that the destination directory is
+   created
+-  cherry-ignore: provide required gem stubs for the tests
+-  Update version to 17.0.5
+
+Boyan Ding (2):
+
+-  nvc0/ir: Properly handle a "split form" of predicate destination
+-  nir: Destination component count of shader_clock intrinsic is 2
+
+Emil Velikov (5):
+
+-  docs: add sha256 checksums for 17.0.4
+-  winsys/sw/dri: don't use GNU void pointer arithmetic
+-  st/clover: add space between < and :\:
+-  configure.ac: check require_basic_egl only if egl enabled
+-  st/mesa: automake: honour the vdpau header install location
+
+Francisco Jerez (2):
+
+-  intel/fs: Use regs_written() in spilling cost heuristic for improved
+   accuracy.
+-  intel/fs: Take into account amount of data read in spilling cost
+   heuristic.
+
+Grazvydas Ignotas (1):
+
+-  radv: report timestampPeriod correctly
+
+Faith Ekstrand (5):
+
+-  anv/blorp: Flush the texture cache in UpdateBuffer
+-  anv/cmd_buffer: Flush the VF cache at the top of all primaries
+-  anv/cmd_buffer: Always set up a null surface state
+-  anv/cmd_buffer: Use the null surface state for ATTACHMENT_UNUSED
+-  anv/blorp: Properly handle VK_ATTACHMENT_UNUSED
+
+Kenneth Graunke (1):
+
+-  i965/vec4: Avoid reswizzling MACH instructions in
+   opt_register_coalesce().
+
+Marek Olšák (1):
+
+-  st/mesa: invalidate the readpix cache in st_indirect_draw_vbo
+
+Nanley Chery (1):
+
+-  anv/cmd_buffer: Disable CCS on BDW input attachments
+
+Nicolai Hähnle (4):
+
+-  mesa: fix remaining xfb prims check for GLES with multiple instances
+-  mesa: extract need_xfb_remaining_prims_check
+-  mesa: move glMultiDrawArrays to vbo and fix error handling
+-  vbo: fix gl_DrawID handling in glMultiDrawArrays
+
+Rob Clark (1):
+
+-  util/queue: don't hang at exit
+
+Timothy Arceri (1):
+
+-  mesa: validate sampler type across the whole program

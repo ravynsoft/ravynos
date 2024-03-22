@@ -1,0 +1,297 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+<category name="GL_EXT_separate_shader_objects" number="377">
+    <!-- Alias of CURRENT_PROGRAM -->
+<!--    <enum name="ACTIVE_PROGRAM_EXT"               value="0x8B8D"/> -->
+
+    <function name="UseShaderProgramEXT" deprecated="3.1" exec="skip">
+        <param name="type" type="GLenum"/>
+	<param name="program" type="GLuint"/>
+    </function>
+
+    <function name="ActiveProgramEXT" deprecated="3.1" exec="skip">
+	<param name="program" type="GLuint"/>
+    </function>
+
+    <function name="CreateShaderProgramEXT" deprecated="3.1" exec="skip">
+        <param name="type" type="GLenum"/>
+        <param name="string" type="const GLchar *"/>
+        <return type="GLuint"/>
+    </function>
+
+
+    <enum name="ACTIVE_PROGRAM_EXT"                           value="0x8259"/>
+    <enum name="PROGRAM_PIPELINE_BINDING_EXT"                 value="0x825A"/>
+    <enum name="VERTEX_SHADER_BIT_EXT"                        value="0x00000001"/>
+    <enum name="FRAGMENT_SHADER_BIT_EXT"                      value="0x00000002"/>
+    <enum name="ALL_SHADER_BITS_EXT"                          value="0xFFFFFFFF"/>
+    <enum name="PROGRAM_SEPARABLE_EXT"                        value="0x8258"/>
+
+    <function name="UseProgramStagesEXT" alias="UseProgramStages" es2="2.0">
+        <param name="pipeline" type="GLuint"/>
+        <param name="stages" type="GLbitfield"/>
+        <param name="program" type="GLuint"/>
+    </function>
+    <function name="ActiveShaderProgramEXT" alias="ActiveShaderProgram" es2="2.0">
+        <param name="pipeline" type="GLuint"/>
+        <param name="program" type="GLuint"/>
+    </function>
+    <function name="CreateShaderProgramvEXT" alias="CreateShaderProgramv" es2="2.0">
+        <param name="type" type="GLenum"/>
+        <param name="count" type="GLsizei"/>
+        <param name="strings" type="const GLchar * const *"/>
+        <return type="GLuint"/>
+    </function>
+    <function name="BindProgramPipelineEXT" alias="BindProgramPipeline" es2="2.0">
+        <param name="pipeline" type="GLuint"/>
+    </function>
+    <function name="DeleteProgramPipelinesEXT" alias="DeleteProgramPipelines" es2="2.0">
+        <param name="n" type="GLsizei"/>
+        <param name="pipelines" type="const GLuint *"/>
+    </function>
+    <function name="GenProgramPipelinesEXT" alias="GenProgramPipelines" es2="2.0">
+        <param name="n" type="GLsizei"/>
+        <param name="pipelines" type="GLuint *"/>
+    </function>
+    <function name="IsProgramPipelineEXT" alias="IsProgramPipeline" es2="2.0">
+        <param name="pipeline" type="GLuint"/>
+        <return type="GLboolean"/>
+    </function>
+    <function name="ProgramParameteriEXT" alias="ProgramParameteri" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="value" type="GLint"/>
+    </function>
+    <function name="GetProgramPipelineivEXT" alias="GetProgramPipelineiv" es2="2.0">
+        <param name="pipeline" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLint *"/>
+    </function>
+    <function name="ProgramUniform1iEXT" alias="ProgramUniform1i" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint"/>
+    </function>
+    <function name="ProgramUniform2iEXT" alias="ProgramUniform2i" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint"/>
+        <param name="y" type="GLint"/>
+    </function>
+    <function name="ProgramUniform3iEXT" alias="ProgramUniform3i" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint"/>
+        <param name="y" type="GLint"/>
+        <param name="z" type="GLint"/>
+    </function>
+    <function name="ProgramUniform4iEXT" alias="ProgramUniform4i" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLint"/>
+        <param name="y" type="GLint"/>
+        <param name="z" type="GLint"/>
+        <param name="w" type="GLint"/>
+    </function>
+    <function name="ProgramUniform1uiEXT" alias="ProgramUniform1ui" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint"/>
+    </function>
+    <function name="ProgramUniform2uiEXT" alias="ProgramUniform2ui" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint"/>
+        <param name="y" type="GLuint"/>
+    </function>
+    <function name="ProgramUniform3uiEXT" alias="ProgramUniform3ui" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint"/>
+        <param name="y" type="GLuint"/>
+        <param name="z" type="GLuint"/>
+    </function>
+    <function name="ProgramUniform4uiEXT" alias="ProgramUniform4ui" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLuint"/>
+        <param name="y" type="GLuint"/>
+        <param name="z" type="GLuint"/>
+        <param name="w" type="GLuint"/>
+    </function>
+    <function name="ProgramUniform1fEXT" alias="ProgramUniform1f" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLfloat"/>
+    </function>
+    <function name="ProgramUniform2fEXT" alias="ProgramUniform2f" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLfloat"/>
+        <param name="y" type="GLfloat"/>
+    </function>
+    <function name="ProgramUniform3fEXT" alias="ProgramUniform3f" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLfloat"/>
+        <param name="y" type="GLfloat"/>
+        <param name="z" type="GLfloat"/>
+    </function>
+    <function name="ProgramUniform4fEXT" alias="ProgramUniform4f" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="x" type="GLfloat"/>
+        <param name="y" type="GLfloat"/>
+        <param name="z" type="GLfloat"/>
+        <param name="w" type="GLfloat"/>
+    </function>
+    <function name="ProgramUniform1ivEXT" alias="ProgramUniform1iv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint *"/>
+    </function>
+    <function name="ProgramUniform2ivEXT" alias="ProgramUniform2iv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint *"/>
+    </function>
+    <function name="ProgramUniform3ivEXT" alias="ProgramUniform3iv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint *"/>
+    </function>
+    <function name="ProgramUniform4ivEXT" alias="ProgramUniform4iv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLint *"/>
+    </function>
+    <function name="ProgramUniform1uivEXT" alias="ProgramUniform1uiv" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint *"/>
+    </function>
+    <function name="ProgramUniform2uivEXT" alias="ProgramUniform2uiv" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint *"/>
+    </function>
+    <function name="ProgramUniform3uivEXT" alias="ProgramUniform3uiv" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint *"/>
+    </function>
+    <function name="ProgramUniform4uivEXT" alias="ProgramUniform4uiv" es2="3.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLuint *"/>
+    </function>
+    <function name="ProgramUniform1fvEXT" alias="ProgramUniform1fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniform2fvEXT" alias="ProgramUniform2fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniform3fvEXT" alias="ProgramUniform3fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniform4fvEXT" alias="ProgramUniform4fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix2fvEXT" alias="ProgramUniformMatrix2fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix3fvEXT" alias="ProgramUniformMatrix3fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix4fvEXT" alias="ProgramUniformMatrix4fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix2x3fvEXT" alias="ProgramUniformMatrix2x3fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix3x2fvEXT" alias="ProgramUniformMatrix3x2fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix2x4fvEXT" alias="ProgramUniformMatrix2x4fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix4x2fvEXT" alias="ProgramUniformMatrix4x2fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix3x4fvEXT" alias="ProgramUniformMatrix3x4fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ProgramUniformMatrix4x3fvEXT" alias="ProgramUniformMatrix4x3fv" es2="2.0">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="count" type="GLsizei"/>
+        <param name="transpose" type="GLboolean"/>
+        <param name="value" type="const GLfloat *"/>
+    </function>
+    <function name="ValidateProgramPipelineEXT" alias="ValidateProgramPipeline" es2="2.0">
+        <param name="pipeline" type="GLuint"/>
+    </function>
+    <function name="GetProgramPipelineInfoLogEXT" alias="GetProgramPipelineInfoLog" es2="2.0">
+        <param name="pipeline" type="GLuint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="length" type="GLsizei *"/>
+        <param name="infoLog" type="GLchar *"/>
+    </function>
+</category>
+</OpenGLAPI>

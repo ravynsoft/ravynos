@@ -1,0 +1,99 @@
+Mesa 11.0.9 Release Notes / January 22, 2016
+============================================
+
+Mesa 11.0.9 is a bug fix release which fixes bugs found since the 11.0.8
+release.
+
+Mesa 11.0.9 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   1597c2e983f476f98efdd6cd58b5298896d18479ff542bdeff28b98b129ede05  mesa-11.0.9.tar.gz
+   a1262ff1c66a16ccf341186cf0e57b306b8589eb2cc5ce92ffb6788ab01d2b01  mesa-11.0.9.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 91596 <https://bugs.freedesktop.org/show_bug.cgi?id=91596>`__ -
+   EGL_KHR_gl_colorspace (v2) causes problem with Android-x86 GUI
+-  `Bug 92229 <https://bugs.freedesktop.org/show_bug.cgi?id=92229>`__ -
+   [APITRACE] SOMA have serious graphical errors
+-  `Bug 93257 <https://bugs.freedesktop.org/show_bug.cgi?id=93257>`__ -
+   [SKL, bisected] ASTC dEQP tests segfault
+
+Changes
+-------
+
+Emil Velikov (6):
+
+-  docs: add sha256 checksums for 11.0.8
+-  cherry-ignore: add patch already in branch
+-  cherry-ignore: add the dri3 glx null check patch
+-  i915: correctly parse/set the context flags
+-  egl/dri2: expose srgb configs when KHR_gl_colorspace is available
+-  Update version to 11.0.9
+
+Grazvydas Ignotas (1):
+
+-  r600: fix constant buffer size programming
+
+Ilia Mirkin (5):
+
+-  nvc0: don't forget to reset VTX_TMP bufctx slot after blit completion
+-  nv50/ir: float(s32 & 0xff) = float(u8), not s8
+-  nv50,nvc0: make sure there's pushbuf space and that we ref the bo
+   early
+-  nv50,nvc0: fix crash when increasing bsp bo size for h264
+-  nvc0: scale up inter_bo size so that it's 16M for a 4K video
+
+Kenneth Graunke (2):
+
+-  ralloc: Fix ralloc_adopt() to the old context's last child's parent.
+-  nvc0: Set winding order regardless of domain.
+
+Marek Olšák (1):
+
+-  radeonsi: don't miss changes to SPI_TMPRING_SIZE
+
+Miklós Máté (1):
+
+-  mesa: Don't leak ATIfs instructions in DeleteFragmentShader
+
+Neil Roberts (1):
+
+-  i965: Fix crash when calling glViewport with no surface bound
+
+Nicolai Hähnle (6):
+
+-  gallium/radeon: only dispose locally created target machine in
+   radeon_llvm_compile
+-  mesa/bufferobj: make \_mesa_delete_buffer_object externally
+   accessible
+-  st/mesa: use \_mesa_delete_buffer_object
+-  radeon: use \_mesa_delete_buffer_object
+-  i915: use \_mesa_delete_buffer_object
+-  i965: use \_mesa_delete_buffer_object
+
+Oded Gabbay (1):
+
+-  llvmpipe: use vpkswss when dst is signed
+
+Rob Herring (1):
+
+-  freedreno/ir3: fix 32-bit builds with pointer-to-int-cast error
+   enabled

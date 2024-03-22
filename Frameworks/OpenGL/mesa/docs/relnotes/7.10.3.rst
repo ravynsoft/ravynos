@@ -1,0 +1,298 @@
+Mesa 7.10.3 Release Notes / June 13, 2011
+=========================================
+
+Mesa 7.10.3 is a bug fix release which fixes bugs found since the 7.10.2
+release.
+
+Mesa 7.10.3 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   d77b02034c11d6c2a55c07f82367d780  MesaLib-7.10.3.tar.gz
+   8c38fe8266be8e1ed1d84076ba5a703b  MesaLib-7.10.3.tar.bz2
+   614d063ecd170940d9ae7b355d365d59  MesaLib-7.10.3.zip
+   8768fd562ede7ed763d92b2d22232d7a  MesaGLUT-7.10.3.tar.gz
+   1496415b89da9549f0f3b34d9622e2e2  MesaGLUT-7.10.3.tar.bz2
+   1f29d0e7398fd3bf9f36f5db02941198  MesaGLUT-7.10.3.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 29162 <https://bugs.freedesktop.org/show_bug.cgi?id=29162>`__ -
+   mesa/darwin is severly broken
+-  `Bug 31590 <https://bugs.freedesktop.org/show_bug.cgi?id=31590>`__ -
+   Black space between colors on mole hill example
+-  `Bug 32395 <https://bugs.freedesktop.org/show_bug.cgi?id=32395>`__ -
+   [glsl] Incorrect code generation for shadow2DProj() with bias
+-  `Bug 32564 <https://bugs.freedesktop.org/show_bug.cgi?id=32564>`__ -
+   [llvmpipe] prog: Unknown command line argument '-disable-mmx'. Try:
+   'prog -help' with llvm-2.9svn
+-  `Bug 32835 <https://bugs.freedesktop.org/show_bug.cgi?id=32835>`__ -
+   [glsl] recursive #define results in infinite stack recursion
+-  `Bug 33303 <https://bugs.freedesktop.org/show_bug.cgi?id=33303>`__ -
+   [glsl] ir_constant_expression.cpp:72: virtual ir_constant\*
+   ir_expression::constant_expression_value(): Assertion
+   \`op[0]->type->base_type == op[1]->type->base_type' failed.
+-  `Bug 33314 <https://bugs.freedesktop.org/show_bug.cgi?id=33314>`__ -
+   [glsl] ir_constant_expression.cpp:122: virtual ir_constant\*
+   ir_expression::constant_expression_value(): Assertion
+   \`op[0]->type->base_type == GLSL_TYPE_BOOL' failed.
+-  `Bug 33512 <https://bugs.freedesktop.org/show_bug.cgi?id=33512>`__ -
+   [SNB] case ogles2conform/GL/gl_FragCoord/gl_FragCoord_xy_frag.test
+   and gl_FragCoord_w_frag.test fail
+-  `Bug 34280 <https://bugs.freedesktop.org/show_bug.cgi?id=34280>`__ -
+   r200 mesa-7.10 font distortion
+-  `Bug 34321 <https://bugs.freedesktop.org/show_bug.cgi?id=34321>`__ -
+   The ARB_fragment_program subset of ARB_draw_buffers not implemented
+-  `Bug 35603 <https://bugs.freedesktop.org/show_bug.cgi?id=35603>`__ -
+   GLSL compiler freezes compiling shaders
+-  `Bug 36173 <https://bugs.freedesktop.org/show_bug.cgi?id=36173>`__ -
+   struct renderbuffer's 'format' field never set when using FBO
+-  `Bug 36238 <https://bugs.freedesktop.org/show_bug.cgi?id=36238>`__ -
+   Mesa release files don't contain scons control files
+-  `Bug 36410 <https://bugs.freedesktop.org/show_bug.cgi?id=36410>`__ -
+   [SNB] Rendering errors in 3DMMES subtest taiji
+-  `Bug 36527 <https://bugs.freedesktop.org/show_bug.cgi?id=36527>`__ -
+   [wine] Wolfenstein: Failed to translate rgb instruction.
+-  `Bug 36651 <https://bugs.freedesktop.org/show_bug.cgi?id=36651>`__ -
+   mesa requires bison and flex to build but configure does not check
+   for them
+-  `Bug 36738 <https://bugs.freedesktop.org/show_bug.cgi?id=36738>`__ -
+   Openarena crash with r300g, swrastg + llvm > 2.8
+-  `Bug 37648 <https://bugs.freedesktop.org/show_bug.cgi?id=37648>`__ -
+   Logic error in mesa/main/teximage.c:texsubimage
+-  `Bug 37739 <https://bugs.freedesktop.org/show_bug.cgi?id=37739>`__ -
+   Color clear of FBO without color buffer crashes
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-7.10.2..mesa-7.10.3
+
+Alan Hourihane (1):
+
+-  Check for out of memory when creating fence
+
+Alex Buell (1):
+
+-  configure: bump LIBDRM_REQUIRED to 2.4.24
+
+Alex Deucher (2):
+
+-  r600c: add new pci ids
+-  r600g: add new pci ids
+
+Brian Paul (19):
+
+-  docs: add link to 7.10.2 release notes
+-  scons: remove dangling reference to state_trackers/python/SConscript
+-  Makefile: add missing Scons files
+-  llvmpipe: document issue with LLVM 2.8 and earlier with AVX
+-  docs: replace llvmpipe/README with docs/llvmpipe.html
+-  glsl: add static qualifier to silence warning
+-  glsl: add cast to silence signed/unsigned comparison warning
+-  mesa: s/height/depth/ in texsubimage()
+-  mesa: fix void pointer arithmetic warnings
+-  mesa: add some missing GLAPIENTRY keywords
+-  mesa: check that flex/bison are installed
+-  st/mesa: fix incorrect texture level/face/slice accesses
+-  draw: fix edge flag handling in clipper (for unfilled
+   tris/quads/polygons)
+-  vbo: check array indexes to prevent negative indexing
+-  vbo: remove node->count > 0 test in vbo_save_playback_vertex_list()
+-  st/mesa: fix software accum buffer format bug
+-  mesa: add include/c99/inttypes.h include/c99/stdbool.h
+   include/c99/stdint.h files to tarballs
+-  docs: 7.10.3 release notes skeleton file, links
+-  mesa: bump version to 7.10.3
+
+Carl Worth (2):
+
+-  glcpp: Simplify calling convention of parser's active_list functions
+-  glcpp: Fix attempts to expand recursive macros infinitely (bug
+   #32835).
+
+Dave Airlie (1):
+
+-  st/mesa: fix compressed mipmap generation.
+
+Eric Anholt (19):
+
+-  i965: Fix the VS thread limits for GT1, and clarify the WM limits on
+   both.
+-  glsl: Avoid cascading errors when looking for a scalar boolean and
+   failing.
+-  glsl: Semantically check the RHS of \`&&' even when short-circuiting.
+-  glsl: Semantically check the RHS of \`||' even when short-circuiting.
+-  glsl: When we've emitted a semantic error for ==, return a bool
+   constant.
+-  glsl: Perform type checking on "^^" operands.
+-  intel: Use \_mesa_base_tex_format for FBO texture attachments.
+-  swrast: Don't assert against glReadPixels of GL_RED and GL_RG.
+-  mesa: Add a gl_renderbuffer.RowStride field like textures have.
+-  mesa: Add a function to set up the default renderbuffer accessors.
+-  intel: Use Mesa core's renderbuffer accessors for depth.
+-  mesa: Use \_mesa_get_format_bytes to refactor out the RB
+   get_pointer\_\*
+-  mesa: Use \_mesa_get_format_bytes to refactor out the RB get_row\_\*
+-  mesa: Add renderbuffer accessors for R8/RG88/R16/RG1616.
+-  swrast: Don't try to adjust_colors for <8bpc when handling R16,
+   RG1616.
+-  intel: Use mesa core's R8, RG88, R16, RG1616 RB accessors.
+-  Revert "intel: Add spans code for the ARB_texture_rg support."
+-  mesa: Add support for the ARB_fragment_program part of
+   ARB_draw_buffers.
+-  mesa: Add support for OPTION ATI_draw_buffers to ARB_fp.
+
+Hans de Goede (1):
+
+-  texstore: fix regression stricter check for memcpy path for unorm88
+   and unorm1616
+
+Henri Verbeet (3):
+
+-  mesa: Also update the color draw buffer if it's explicitly set to
+   GL_NONE.
+-  glx: Destroy dri2Hash on DRI2 display destruction.
+-  glx: Only remove the glx_display from the list after it's destroyed.
+
+Ian Romanick (9):
+
+-  docs: Add 7.10.2 md5sums
+-  glsl: Fix off-by-one error setting max_array_access for non-constant
+   indexing
+-  ir_to_mesa: Handle shadow compare w/projection and LOD bias correctly
+-  intel: Fix ROUND_DOWN_TO macro
+-  glsl: Regenerate compiler and glcpp files from cherry picks
+-  i965: Remove hint_gs_always and resulting dead code
+-  mesa: Don't try to clear a NULL renderbuffer
+-  mesa: Ignore blits to/from missing buffers
+-  docs: Add list of bugs fixed in 7.10.3 release
+
+Jeremy Huddleston (18):
+
+-  apple: Update GL specs
+-  apple: Rename glcontextmodes.[ch] to glxconfig.[ch]
+-  apple: Rename \__GLcontextModes to struct glx_config
+-  apple: Rename GLXcontext
+-  apple: Re-add driContext and do_destroy
+-  apple: Rename \_gl_context_modes_find_visual to
+   glx_config_find_visual
+-  apple: Rename GLXcontext
+-  apple: Change from XExtDisplayInfo to struct glx_display
+-  apple: ifdef out come glapi-foo on darwin
+-  glx: Dead code removal
+-  apple: Build darwin using applegl rather than indirect
+-  apple: Fix build failures in applegl_glx.c
+-  darwin: Define GALLIUM_DRIVERS_DIRS in darwin config
+-  apple: Package applegl source into MesaLib tarball
+-  darwin: Set VG_LIB_{NAME,GLOB} to fix make install
+-  darwin: Don't link against libGL when building libOSMesa
+-  darwin: Fix VG_LIB_GLOB to also match the unversioned symlink
+-  osmesa: Fix missing symbols when GLX_INDIRECT_RENDERING is defined.
+
+José Fonseca (13):
+
+-  llvmpipe: Update readme.
+-  mesa: GL_PROVOKING_VERTEX_EXT is a GLenum, not GLboolean.
+-  mesa: Fix GetVertexAttrib\* inside display lists.
+-  draw: Fix draw_variant_output::format's type.
+-  gallivm: Tell LLVM to not assume a 16-byte aligned stack on x86.
+-  gallivm: Fix for dynamically linked LLVM 2.8 library.
+-  st/wgl: Adjust the pbuffer invisible window size.
+-  st/wgl: Fix debug output format specifiers of
+   stw_framebuffer_get_size().
+-  st/wgl: Prevent spurious framebuffer sizes when the window is
+   minimized.
+-  st/wgl: Cope with zero width/height windows.
+-  st/wgl: Allow to create pbuffers bigger than the desktop.
+-  st/wgl: Remove buggy assertion.
+-  wgl: Don't hold on to user supplied HDC.
+
+Kenneth Graunke (10):
+
+-  i965/fs: Switch W and 1/W in Sandybridge interpolation setup.
+-  i965: Refactor Sandybridge implied move handling.
+-  i965: Resolve implied moves in brw_dp_READ_4_vs_relative.
+-  intel: Add IS_GT2 macro for recognizing Sandybridge GT2 systems.
+-  i965: Allocate the whole URB to the VS and fix calculations for Gen6.
+-  intel: Support glCopyTexImage() from ARGB8888 to XRGB8888.
+-  glsl: Fix memory error when creating the supported version string.
+-  glsl: Regenerate autogenerated file builtin_function.cpp.
+-  i965: Rename various gen6 #defines to match the documentation.
+-  i965: Never enable the GS on Gen6.
+
+Kostas Georgiou (1):
+
+-  r600c/g: Add pci id for FirePro 2270
+
+Marek Olšák (18):
+
+-  tgsi/ureg: bump the limit of immediates
+-  st/mesa: fix changing internal format via RenderbufferStorage
+-  st/mesa: GenerateMipmap should not be killed by conditional rendering
+-  swrast: BlitFramebuffer should not be killed by conditional rendering
+-  st/mesa: BlitFramebuffer should not be killed by conditional
+   rendering
+-  st/mesa: CopyTex(Sub)Image should not be killed by conditional
+   rendering
+-  st/mesa: conditional rendering should not kill texture decompression
+   via blit
+-  mesa: forbid UseProgram to be called inside Begin/End
+-  mesa: UseShaderProgramEXT and Uniform\* shouldn't be allowed inside
+   Begin/End
+-  mesa: queries of non-existent FBO attachments should return
+   INVALID_OPERATION
+-  r300g: fix draw_vbo splitting on r3xx-r4xx
+-  r300g: fix texturing with non-3D textures and wrap R mode set to
+   sample border
+-  r300g: fix occlusion queries when depth test is disabled or zbuffer
+   is missing
+-  r300g: clear can be killed by render condition
+-  st/mesa: remove asserts in st_texture_image_copy
+-  mesa: fix up assertion in \_mesa_source_buffer_exists
+-  mesa: invalidate framebuffer if internal format of renderbuffer is
+   changed
+-  mesa: return after invalidating renderbuffer
+
+Matt Turner (1):
+
+-  r300/compiler: align memory allocations to 8-bytes
+
+Tom Stellard (3):
+
+-  r300/compiler: Fix incorrect presubtract conversion
+-  r300/compiler: Fix dataflow analysis bug with ELSE blocks
+-  r300/compiler: Limit instructions to 3 source selects
+
+Vinson Lee (1):
+
+-  gallivm: Disable MMX-disabling code on llvm-2.9.
+
+Zou Nan hai (1):
+
+-  i965: Align interleaved URB write length to 2
+
+pepp (1):
+
+-  st/mesa: assign renderbuffer's format field when allocating storage

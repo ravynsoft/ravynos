@@ -1,0 +1,28 @@
+.softpipe-rules:
+  stage: software-renderer
+  rules:
+    - !reference [.test, rules]
+    - if: $FORCE_KERNEL_TAG != null
+      when: never
+    - !reference [.gl-rules, rules]
+    - changes: &softpipe_file_list
+      - src/gallium/drivers/softpipe/**/*
+      - src/gallium/winsys/sw/**/*
+      when: on_success
+
+.softpipe-test:
+  variables:
+    GPU_VERSION: softpipe
+    LIBGL_ALWAYS_SOFTWARE: "true"
+    FLAKES_CHANNEL: "#mesa-swrast-ci"
+    GALLIUM_DRIVER: "softpipe"
+
+.softpipe-deqp-test:
+  extends:
+    - .test-gl
+    - .deqp-test
+    - .softpipe-test
+    # this must be last to avoid breaking dependency rules
+    - .softpipe-rules
+  variables:
+    DEQP_EXPECTED_RENDERER: softpipe

@@ -1,0 +1,151 @@
+Mesa 23.0.3 Release Notes / 2023-04-20
+======================================
+
+Mesa 23.0.3 is a bug fix release which fixes bugs found since the 23.0.2 release.
+
+Mesa 23.0.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.0.3 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    386362a5d80df3b096636b67f340e1ce67b705b44767d5bdd11d2ed1037192d5  mesa-23.0.3.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- overlay layer: unable to launch titles on steam
+- radv: possibly not setting state dirty bits correctly
+- RADV: VRS attachment not working in specific scenario
+- anv: zink ADL failures
+- Vulkan loader \`vk_common_GetPhysicalDeviceFormatProperties` fails to sanitize properties bits.
+- Loading a model in PrusaSlicer 2.6.0-alpha5 crashes GNOME on radeonsi
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (4):
+
+- vulkan: Add common features2_to_features
+- tu: Use vk_features2_to_features
+- util/prim_convert: Don't set index_bounds_valid
+- mesa/st: Only set seamless for GLES3
+
+Andres Calderon Jaramillo (1):
+
+- r600: Report multi-plane formats as unsupported
+
+Bas Nieuwenhuizen (1):
+
+- radv: Reserve space in framebuffer emission.
+
+David (Ming Qiang) Wu (1):
+
+- radeonsi/vcn: add an exception of field case for h264 decoding
+
+Dylan Baker (3):
+
+- docs: Add sha256 sum for 23.0.2
+- .pick_status.json: Update to d6b30d42b05a93aa80c93c7fcc1782f9c59a6f1a
+- .pick_status.json: Update to d99211b22c0b419e2ad414f2e09bfe43f656db4b
+
+Jesse Natalie (3):
+
+- dzn: Fix SRV barrier state on compute command lists
+- dzn: Ensure pipeline variants are used for dynamic stencil masks
+- dzn: Don't use write-combine memory for cache-coherent UMA
+
+Juan A. Suarez Romero (1):
+
+- v3d: set depth compare function correctly
+
+Karol Herbst (1):
+
+- rusticl/event: drop work item before updating status
+
+Kenneth Graunke (1):
+
+- intel/compiler: Use nir_dest_bit_size() for ballot bit size check
+
+Lionel Landwerlin (3):
+
+- anv: fixup streamout write barriers
+- intel/fs: use nomask for setting cr0 for float controls
+- vulkan/overlay: deal with unknown pNext structures
+
+Luc Ma (1):
+
+- meson: keep Mako version checking in accord with build msg
+
+Mike Blumenkrantz (9):
+
+- llvmpipe: fix LP_PERF=no_depth to ignore depth format
+- aux/tc: flag late zs clears as partial clears
+- zink: try to prune resources from barrier jit on fb unbind
+- zink: free GPL input/output libs on context destroy to avoid leaking
+- lavapipe: fix dynamic depth clamping
+- lavapipe: set render_condition_enabled=false for vkCmdClearDepthStencilImage
+- mesa/st/program: don't init xfb info if there are no outputs
+- glthread: use id 0 for internal buffer objects
+- lavapipe: don't double-inline ubo0
+
+Patrick Lerda (3):
+
+- egl: fix memory leak related to _eglRefreshDeviceList()
+- r600: fix refcnt imbalance related to r600_set_vertex_buffers()
+- r600: fix refcnt imbalance related to evergreen_set_shader_images()
+
+Qiang Yu (3):
+
+- ac/nir/ngg: fix gs culling vertex liveness check for odd vertices
+- ac/nir/ngg: fix store shared alignment
+- radeonsi: fix max scrach lds size calculation when ngg
+
+Ruijing Dong (1):
+
+- frontends/va: disable skip_frame_enable in vaapi interface.
+
+Samuel Pitoiset (4):
+
+- vulkan: ignore rasterizationSamples when the state is dynamic
+- radv: try to keep HTILE compressed for READ_ONLY_OPTIMAL layout
+- radv: fix VS prologs with GPL and static binding stride
+- radv: re-emit the guardband state when related PSO are bound
+
+SoroushIMG (1):
+
+- zink: fix stale point sprite mode state
+
+Timur Kristóf (4):
+
+- ac/llvm: Cover runtime 0 in GFX10 gs_alloc_req workaround.
+- radv/amdgpu: Fix mismatching return type of radv_amdgpu_cs_submit.
+- radv/amdgpu: Only allow IB BOs on graphics and compute queues.
+- radv/amdgpu: Use correct alignment when creating CS BOs.
+
+Tomeu Vizoso (1):
+
+- etnaviv: don't read too much from uniform arrays
+
+xurui (1):
+
+- zink: bs->dd.push_pool[1].pool should be freed

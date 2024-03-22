@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_vertex_type_2_10_10_10_rev" number="86">
+
+    <enum name="INT_2_10_10_10_REV"                value = "0x8D9F"/>
+
+    <function name="VertexP2ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="value" type="GLuint"/>
+    </function>
+
+    <function name="VertexP3ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="value" type="GLuint"/>
+    </function>
+
+    <function name="VertexP4ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="value" type="GLuint"/>
+    </function>
+
+    <function name="VertexP2uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="value" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="VertexP3uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="value" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="VertexP4uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="value" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="TexCoordP1ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="TexCoordP2ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="TexCoordP3ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="TexCoordP4ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="TexCoordP1uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="TexCoordP2uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="TexCoordP3uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="TexCoordP4uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="MultiTexCoordP1ui" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="MultiTexCoordP2ui" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="MultiTexCoordP3ui" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="MultiTexCoordP4ui" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="MultiTexCoordP1uiv" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="MultiTexCoordP2uiv" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="MultiTexCoordP3uiv" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="MultiTexCoordP4uiv" deprecated="3.1" exec="beginend">
+        <param name="texture" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="NormalP3ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="GLuint"/>
+    </function>
+
+    <function name="NormalP3uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="coords" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="ColorP3ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="color" type="GLuint"/>
+    </function>
+
+    <function name="ColorP4ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="color" type="GLuint"/>
+    </function>
+
+    <function name="ColorP3uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="color" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="ColorP4uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="color" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="SecondaryColorP3ui" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="color" type="GLuint"/>
+    </function>
+
+    <function name="SecondaryColorP3uiv" deprecated="3.1" exec="beginend">
+        <param name="type" type="GLenum"/>
+        <param name="color" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="VertexAttribP1ui" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="GLuint"/>
+    </function>
+
+    <function name="VertexAttribP2ui" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="GLuint"/>
+    </function>
+
+    <function name="VertexAttribP3ui" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="GLuint"/>
+    </function>
+
+    <function name="VertexAttribP4ui" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="GLuint"/>
+    </function>
+
+    <function name="VertexAttribP1uiv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="VertexAttribP2uiv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="VertexAttribP3uiv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="const GLuint *" count="1"/>
+    </function>
+
+    <function name="VertexAttribP4uiv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="type" type="GLenum"/>
+        <param name="normalized" type="GLboolean"/>
+        <param name="value" type="const GLuint *" count="1"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

@@ -1,0 +1,77 @@
+Mesa 7.1 Release Notes / August 26, 2008
+========================================
+
+Mesa 7.1 is a new development release. There have been many internal
+code changes since Mesa 7.0.x. It should be relatively stable, but those
+who are especially concerned about stability should wait for Mesa 7.2 or
+use Mesa 7.0.4 (the previous stable release).
+
+Note that this version of Mesa does not use the GEM memory manager. The
+master branch of git uses GEM.
+
+DRM version 2.3.1 should be used with Mesa 7.1
+
+MD5 checksums
+-------------
+
+::
+
+   971c2fe6e6949dc5ba200a6f97a6dc81  MesaLib-7.1.tar.gz
+   6bff7f532d16f90f944a400c8bd7074d  MesaLib-7.1.tar.bz2
+   d48224bf9d54c3da6776adb4869ba024  MesaLib-7.1.zip
+   3de268420efca43e9a19ab506cdfc993  MesaDemos-7.1.tar.gz
+   abfc9775e1462363af8ec160d1feb01f  MesaDemos-7.1.tar.bz2
+   f7b3623387c4036e9895cd9ac0dfad99  MesaDemos-7.1.zip
+   fdf348f78cd09304b6ff801ef8acc8eb  MesaGLUT-7.1.tar.gz
+   f6d88a4eeb02e98c7e92f1c895d3c76b  MesaGLUT-7.1.tar.bz2
+   4dc102a5ca51e1c41dde87d3f8c7b22a  MesaGLUT-7.1.zip
+
+New features
+------------
+
+-  autoconf-based configuration (and clean-up of Makefiles)
+-  Assorted DRI driver enhancements
+-  Reduced dependencies between X server and Mesa
+-  GL_EXT_texture_from_pixmap extension for Xlib driver
+-  Support for the GL shading language with i965 driver (implemented by
+   Intel)
+-  ATI R500 series support (Radeon X1300–X1950) in r300 DRI driver
+
+Bug fixes
+---------
+
+-  Numerous GLSL fixes
+-  Fixed some error code/detection bugs in the GLSL-related API
+   functions
+-  Lots of DRI driver fixes.
+
+To Do (someday) items
+---------------------
+
+-  Remove the MEMCPY() and \_mesa_memcpy() wrappers and just use
+   memcpy(). Probably do the same for malloc, calloc, etc. The wrappers
+   were useful in the past for memory debugging but now we have
+   valgrind. Not worried about SunOS 4 support anymore either...
+-  Switch to freeglut
+-  Fix linux-glide target/driver.
+-  Improved lambda and derivative calculation for frag progs.
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

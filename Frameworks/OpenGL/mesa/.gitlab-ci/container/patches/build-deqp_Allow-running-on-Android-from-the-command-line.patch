@@ -1,0 +1,173 @@
+From dc97ee83a813f6b170079ddf2a04bbb06221a5a7 Mon Sep 17 00:00:00 2001
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Date: Fri, 26 Aug 2022 18:24:27 +0200
+Subject: [PATCH 1/2] Allow running on Android from the command line
+
+For testing the Android EGL platform without having to go via the
+Android activity manager, build deqp-egl.
+
+Tests that render to native windows are unsupported, as command line
+programs cannot create windows on Android.
+
+$ cmake -S . -B build/ -DDEQP_TARGET=android -DDEQP_TARGET_TOOLCHAIN=ndk-modern -DCMAKE_C_FLAGS=-Werror -DCMAKE_CXX_FLAGS=-Werror -DANDROID_NDK_PATH=./android-ndk-r21d -DANDROID_ABI=x86_64 -DDE_ANDROID_API=28 -DGLCTS_GTF_TARGET=gles32 -G Ninja
+$ ninja -C build modules/egl/deqp-egl
+
+Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+---
+ CMakeLists.txt                                | 36 ++-----------------
+ .../android/tcuAndroidNativeActivity.cpp      | 36 ++++++++++---------
+ .../platform/android/tcuAndroidPlatform.cpp   | 12 ++++++-
+ 3 files changed, 33 insertions(+), 51 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f9c61d0db..d6ad2990b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -272,7 +272,7 @@ include_directories(
+ 	external/vulkancts/framework/vulkan
+ 	)
+ 
+-if (DE_OS_IS_ANDROID OR DE_OS_IS_IOS)
++if (DE_OS_IS_IOS)
+ 	# On Android deqp modules are compiled as libraries and linked into final .so
+ 	set(DEQP_MODULE_LIBRARIES )
+ 	set(DEQP_MODULE_ENTRY_POINTS )
+@@ -316,7 +316,7 @@ macro (add_deqp_module MODULE_NAME SRCS LIBS EXECLIBS ENTRY)
+ 	set(DEQP_MODULE_LIBRARIES		${DEQP_MODULE_LIBRARIES} PARENT_SCOPE)
+ 	set(DEQP_MODULE_ENTRY_POINTS	${DEQP_MODULE_ENTRY_POINTS} PARENT_SCOPE)
+ 
+-	if (NOT DE_OS_IS_ANDROID AND NOT DE_OS_IS_IOS)
++	if (NOT DE_OS_IS_IOS)
+ 		# Executable target
+ 		add_executable(${MODULE_NAME} ${PROJECT_SOURCE_DIR}/framework/platform/tcuMain.cpp ${ENTRY})
+ 		target_link_libraries(${MODULE_NAME} PUBLIC "${EXECLIBS}" "${MODULE_NAME}${MODULE_LIB_TARGET_POSTFIX}")
+@@ -390,37 +390,7 @@ add_subdirectory(external/vulkancts/vkscpc ${MAYBE_EXCLUDE_FROM_ALL})
+ add_subdirectory(external/openglcts ${MAYBE_EXCLUDE_FROM_ALL})
+ 
+ # Single-binary targets
+-if (DE_OS_IS_ANDROID)
+-	include_directories(executor)
+-	include_directories(${PROJECT_BINARY_DIR}/external/vulkancts/framework/vulkan)
+-
+-	set(DEQP_SRCS
+-		framework/platform/android/tcuAndroidMain.cpp
+-		framework/platform/android/tcuAndroidJNI.cpp
+-		framework/platform/android/tcuAndroidPlatformCapabilityQueryJNI.cpp
+-		framework/platform/android/tcuTestLogParserJNI.cpp
+-		${DEQP_MODULE_ENTRY_POINTS}
+-		)
+-
+-	set(DEQP_LIBS
+-		tcutil-platform
+-		xecore
+-		${DEQP_MODULE_LIBRARIES}
+-		)
+-
+-	add_library(deqp SHARED ${DEQP_SRCS})
+-	target_link_libraries(deqp ${DEQP_LIBS})
+-
+-	# Separate out the debug information because it's enormous
+-	add_custom_command(TARGET deqp POST_BUILD
+-		COMMAND ${CMAKE_STRIP} --only-keep-debug -o $<TARGET_FILE:deqp>.debug $<TARGET_FILE:deqp>
+-		COMMAND ${CMAKE_STRIP} -g $<TARGET_FILE:deqp>)
+-
+-	# Needed by OpenGL CTS that defines its own activity but depends on
+-	# common Android support code.
+-	target_include_directories(deqp PRIVATE framework/platform/android)
+-
+-elseif (DE_OS_IS_IOS)
++if (DE_OS_IS_IOS)
+ 	# Code sign identity
+ 	set(DEQP_IOS_CODE_SIGN_IDENTITY "drawElements" CACHE STRING "Code sign identity for iOS build")
+ 
+diff --git a/framework/platform/android/tcuAndroidNativeActivity.cpp b/framework/platform/android/tcuAndroidNativeActivity.cpp
+index 6f8cd8fc5..b83e30f41 100644
+--- a/framework/platform/android/tcuAndroidNativeActivity.cpp
++++ b/framework/platform/android/tcuAndroidNativeActivity.cpp
+@@ -116,23 +116,25 @@ namespace Android
+ NativeActivity::NativeActivity (ANativeActivity* activity)
+ 	: m_activity(activity)
+ {
+-	activity->instance								= (void*)this;
+-	activity->callbacks->onStart					= onStartCallback;
+-	activity->callbacks->onResume					= onResumeCallback;
+-	activity->callbacks->onSaveInstanceState		= onSaveInstanceStateCallback;
+-	activity->callbacks->onPause					= onPauseCallback;
+-	activity->callbacks->onStop						= onStopCallback;
+-	activity->callbacks->onDestroy					= onDestroyCallback;
+-	activity->callbacks->onWindowFocusChanged		= onWindowFocusChangedCallback;
+-	activity->callbacks->onNativeWindowCreated		= onNativeWindowCreatedCallback;
+-	activity->callbacks->onNativeWindowResized		= onNativeWindowResizedCallback;
+-	activity->callbacks->onNativeWindowRedrawNeeded	= onNativeWindowRedrawNeededCallback;
+-	activity->callbacks->onNativeWindowDestroyed	= onNativeWindowDestroyedCallback;
+-	activity->callbacks->onInputQueueCreated		= onInputQueueCreatedCallback;
+-	activity->callbacks->onInputQueueDestroyed		= onInputQueueDestroyedCallback;
+-	activity->callbacks->onContentRectChanged		= onContentRectChangedCallback;
+-	activity->callbacks->onConfigurationChanged		= onConfigurationChangedCallback;
+-	activity->callbacks->onLowMemory				= onLowMemoryCallback;
++	if (activity) {
++		activity->instance								= (void*)this;
++		activity->callbacks->onStart					= onStartCallback;
++		activity->callbacks->onResume					= onResumeCallback;
++		activity->callbacks->onSaveInstanceState		= onSaveInstanceStateCallback;
++		activity->callbacks->onPause					= onPauseCallback;
++		activity->callbacks->onStop						= onStopCallback;
++		activity->callbacks->onDestroy					= onDestroyCallback;
++		activity->callbacks->onWindowFocusChanged		= onWindowFocusChangedCallback;
++		activity->callbacks->onNativeWindowCreated		= onNativeWindowCreatedCallback;
++		activity->callbacks->onNativeWindowResized		= onNativeWindowResizedCallback;
++		activity->callbacks->onNativeWindowRedrawNeeded	= onNativeWindowRedrawNeededCallback;
++		activity->callbacks->onNativeWindowDestroyed	= onNativeWindowDestroyedCallback;
++		activity->callbacks->onInputQueueCreated		= onInputQueueCreatedCallback;
++		activity->callbacks->onInputQueueDestroyed		= onInputQueueDestroyedCallback;
++		activity->callbacks->onContentRectChanged		= onContentRectChangedCallback;
++		activity->callbacks->onConfigurationChanged		= onConfigurationChangedCallback;
++		activity->callbacks->onLowMemory				= onLowMemoryCallback;
++	}
+ }
+ 
+ NativeActivity::~NativeActivity (void)
+diff --git a/framework/platform/android/tcuAndroidPlatform.cpp b/framework/platform/android/tcuAndroidPlatform.cpp
+index b8a35898c..cf02e6b70 100644
+--- a/framework/platform/android/tcuAndroidPlatform.cpp
++++ b/framework/platform/android/tcuAndroidPlatform.cpp
+@@ -22,6 +22,7 @@
+  *//*--------------------------------------------------------------------*/
+ 
+ #include "tcuAndroidPlatform.hpp"
++#include "tcuAndroidNativeActivity.hpp"
+ #include "tcuAndroidUtil.hpp"
+ #include "gluRenderContext.hpp"
+ #include "egluNativeDisplay.hpp"
+@@ -170,7 +171,7 @@ eglu::NativeWindow* NativeWindowFactory::createWindow (const eglu::WindowParams&
+ 	Window* window = m_windowRegistry.tryAcquireWindow();
+ 
+ 	if (!window)
+-		throw ResourceError("Native window is not available", DE_NULL, __FILE__, __LINE__);
++		throw NotSupportedError("Native window is not available", DE_NULL, __FILE__, __LINE__);
+ 
+ 	return new NativeWindow(window, params.width, params.height, format);
+ }
+@@ -292,6 +293,9 @@ static size_t getTotalSystemMemory (ANativeActivity* activity)
+ 
+ 	try
+ 	{
++		if (!activity)
++			throw tcu::InternalError("No activity (running from command line?");
++
+ 		const size_t totalMemory = getTotalAndroidSystemMemory(activity);
+ 		print("Device has %.2f MiB of system memory\n", static_cast<double>(totalMemory) / static_cast<double>(MiB));
+ 		return totalMemory;
+@@ -388,3 +392,9 @@ bool Platform::hasDisplay (vk::wsi::Type wsiType) const
+ 
+ } // Android
+ } // tcu
++
++tcu::Platform* createPlatform (void)
++{
++	tcu::Android::NativeActivity activity(NULL);
++	return new tcu::Android::Platform(activity);
++}
+-- 
+2.42.0
+

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_EXT_EGL_image_storage" number="301">
+
+    <function name="EGLImageTargetTexStorageEXT" es2="3.0" desktop="true">
+        <param name="target" type="GLenum"/>
+        <param name="image" type="GLvoid *"/>
+        <param name="attrib_list" type="const GLint *"/>
+    </function>
+
+    <function name="EGLImageTargetTextureStorageEXT" desktop="true">
+        <param name="texture" type="GLuint"/>
+        <param name="image" type="GLvoid *"/>
+        <param name="attrib_list" type="const GLint *"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

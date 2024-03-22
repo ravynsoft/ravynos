@@ -1,0 +1,93 @@
+%YAML 1.2
+---
+traces-db:
+  download-url: "http://10.42.0.1:8888/cache/?uri=https://s3.freedesktop.org/mesa-tracie-private/"
+
+traces:
+  stellaris/Stellaris-trim--f722-v20201203-v2.trace:
+    freedreno-a630:
+      label: [skip, slow, crash]
+      text: triggers Hangcheck on testing runner (not on OnePlus 6T thou)
+      checksum: 9d3e44e66842611728c7db0cfb29862c
+  SirYouAreBeingHunted/sir-f750-v2.trace:
+    freedreno-a630:
+      label: [slow]
+      checksum: 8369e3a59f2a61d0212dafc86c7d0dcf
+  SpecOps/specops-s0-1088-f1300-v2.trace:
+    freedreno-a630:
+      label: [slow, skip, flakes]
+      checksum: 8ab8fa893171d6b21cf8af2d6d4e1f17
+  AmnesiaTDD/Amnesia-f700-v2.trace:
+    freedreno-a630:
+      checksum: d65b15a48cc7488020a1d4ae3d5dd583
+  Antichamber/antichamber-f240-v2.trace:
+    freedreno-a630:
+      checksum: 2df47f6dffc78e01ba94ff6600e54bfa
+  ICEDarkness/ICEDarkness-f230-v2.trace:
+    freedreno-a630:
+      checksum: 64ac14b2a04d510e470fb2e06b039b42
+  LifelessPlanet/LifelessPlanet-f420-v2.trace:
+    freedreno-a630:
+      checksum: 67694d4c5ddd2e353786b7400f26eae9
+  civilization-v/CivilizationV-trim--s705-761-f762-v20201203-v2.trace:
+    freedreno-a630:
+      label: [skip, flakes]
+      checksum: 282b0fdb96624977fa656d93745c1037
+      text: https://gitlab.freedesktop.org/mesa/mesa/-/issues/7491
+  golf-with-your-friends/GolfWithYourFriends-trim--f1070-v20201203-v2.trace:
+    freedreno-a630:
+      checksum: cd01820de77063f0397f26d6cd747d1c
+  TheRavenRemastered/Raven-f10900-v2.trace:
+    freedreno-a630:
+      checksum: 1dbb16cb6a61f166c0a8d0db6e88a63d
+  PenumbraOverture/penumbra-ov-s0-2-864-f1500-v2.trace:
+    freedreno-a630:
+      checksum: a3cc3e461c15d0469d258c5c6dcd6cbb
+  hollow-knight/HollowKnight-trim--f2020-v20201203-v2.trace:
+    freedreno-a630:
+      checksum: e72925568412a8ebdbac68c929972a55
+  Superhot/superhot-f8100-v2.trace:
+    freedreno-a630:
+      checksum: 21a4901a1e4fc1664ddd314c956625ea
+  overcooked2/Overcooked2-trim--f3301-v20201203-v2.trace:
+    freedreno-a630:
+      checksum: 358c723a5f1807fafea2d68bcd32040e
+  Osmos/Osmos-f2660-v2.trace:
+    freedreno-a630:
+      checksum: cea8067f4538fd73e3505f58f0b7044e
+  ksp/KSP-trim--f4800-v20201203-v2.trace:
+    freedreno-a630:
+      checksum: 2f60f3514e1717e26b03ed3b685a0ad8
+  Witcher2/witcher2-s0-1970-f2038-v2.trace:
+    freedreno-a630:
+      label: [skip, broken]
+  ShadowWarrior/ShadowWarrior-f3952-v2.trace:
+    freedreno-a630:
+      label: [skip, flakes]
+  Anna/Anna-f692-v2.trace:
+    freedreno-a630:
+      label: [skip, broken]
+      text: 15s and 0 frames rendered
+  Cradle/cradle-f3000-v2.trace:
+    freedreno-a630:
+      label: [unsupported]
+  OilRush/OilRush-f14000-v2.trace:
+    freedreno-a630:
+      label: [skip, slow]
+  TombRaider2013/TombRaider-f1430-v2.trace:
+    freedreno-a630:
+      label: [unsupported]
+  MetroLLRedux/metro-ll-redux-kf480-v2.trace:
+    freedreno-a630:
+      label: [skip, slow]
+  alien-isolation/AlienIsolation.bin.1-trim--k-f2000-v20201203-v2.trace:
+    freedreno-a630:
+      label: [fail]
+  plague-inc-evolved/PlagueIncEvolved-trim--f1200-v20201203-v2.trace:
+    freedreno-a630:
+      checksum: 2f60f3514e1717e26b03ed3b685a0ad8
+      label: [fail]
+  slime-rancher/SlimeRancher-trim--f970-v20201203-v2.trace:
+    freedreno-a630:
+      label: [skip]
+      text: Cannot download for some reason.

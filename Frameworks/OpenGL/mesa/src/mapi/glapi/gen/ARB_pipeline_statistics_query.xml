@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="GL_ARB_pipeline_statistics_query" number="171">
+
+  <enum name="VERTICES_SUBMITTED_ARB"                      value="0x82EE"/>
+  <enum name="PRIMITIVES_SUBMITTED_ARB"                    value="0x82EF"/>
+  <enum name="VERTEX_SHADER_INVOCATIONS_ARB"               value="0x82F0"/>
+  <enum name="TESS_CONTROL_SHADER_PATCHES_ARB"             value="0x82F1"/>
+  <enum name="TESS_EVALUATION_SHADER_INVOCATIONS_ARB"      value="0x82F2"/>
+  <!-- <enum name="GEOMETRY_SHADER_INVOCATIONS"             value="0x887F"/> -->
+  <enum name="GEOMETRY_SHADER_PRIMITIVES_EMITTED_ARB"      value="0x82F3"/>
+  <enum name="FRAGMENT_SHADER_INVOCATIONS_ARB"             value="0x82F4"/>
+  <enum name="COMPUTE_SHADER_INVOCATIONS_ARB"              value="0x82F5"/>
+  <enum name="CLIPPING_INPUT_PRIMITIVES_ARB"               value="0x82F6"/>
+  <enum name="CLIPPING_OUTPUT_PRIMITIVES_ARB"              value="0x82F7"/>
+
+</category>
+
+</OpenGLAPI>

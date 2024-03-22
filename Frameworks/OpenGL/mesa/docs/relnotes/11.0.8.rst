@@ -1,0 +1,173 @@
+Mesa 11.0.8 Release Notes / December 9, 2015
+============================================
+
+Mesa 11.0.8 is a bug fix release which fixes bugs found since the 11.0.7
+release.
+
+Mesa 11.0.8 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   ab9db87b54d7525e4b611b82577ea9a9eae55927558df57b190059d5ecd9406f  mesa-11.0.8.tar.gz
+   5696e4730518b6805d2ed5def393c4293f425a2c2c01bd5ed4bdd7ad62f7ad75  mesa-11.0.8.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 91806 <https://bugs.freedesktop.org/show_bug.cgi?id=91806>`__ -
+   configure does not test whether assembler supports sse4.1
+-  `Bug 92849 <https://bugs.freedesktop.org/show_bug.cgi?id=92849>`__ -
+   [IVB HSW BDW] piglit image load/store
+   load-from-cleared-image.shader_test fails
+-  `Bug 92909 <https://bugs.freedesktop.org/show_bug.cgi?id=92909>`__ -
+   Offset/alignment issue with layout std140 and vec3
+-  `Bug 93004 <https://bugs.freedesktop.org/show_bug.cgi?id=93004>`__ -
+   Guild Wars 2 crash on nouveau DX11 cards
+-  `Bug 93215 <https://bugs.freedesktop.org/show_bug.cgi?id=93215>`__ -
+   [Regression bisected] Ogles1conform Automatic mipmap generation test
+   is fail
+-  `Bug 93266 <https://bugs.freedesktop.org/show_bug.cgi?id=93266>`__ -
+   gl_arb_shading_language_420pack does not allow binding of image
+   variables
+
+Changes
+-------
+
+Boyuan Zhang (1):
+
+-  radeon/uvd: uv pitch separation for stoney
+
+Dave Airlie (9):
+
+-  r600: do SQ flush ES ring rolling workaround
+-  r600: SMX returns CONTEXT_DONE early workaround
+-  r600/shader: split address get out to a function.
+-  r600/shader: add utility functions to do single slot arithmatic
+-  r600g: fix geom shader input indirect indexing.
+-  r600: handle geometry dynamic input array index
+-  radeonsi: handle doubles in lds load path.
+-  mesa/varray: set double arrays to non-normalised.
+-  mesa/shader: return correct attribute location for double matrix
+   arrays
+
+Emil Velikov (8):
+
+-  docs: add sha256 checksums for 11.0.7
+-  cherry-ignore: don't pick a specific i965 formats patch
+-  Revert "i965/nir: Remove unused indirect handling"
+-  Revert "i965/state: Get rid of dword_pitch arguments to buffer
+   functions"
+-  Revert "i965/vec4: Use a stride of 1 and byte offsets for UBOs"
+-  Revert "i965/fs: Use a stride of 1 and byte offsets for UBOs"
+-  Revert "i965/vec4: Use byte offsets for UBO pulls on Sandy Bridge"
+-  Update version to 11.0.8
+
+Francisco Jerez (1):
+
+-  i965: Resolve color and flush for all active shader images in
+   intel_update_state().
+
+Ian Romanick (1):
+
+-  meta/generate_mipmap: Work-around GLES 1.x problem with
+   GL_DRAW_FRAMEBUFFER
+
+Ilia Mirkin (17):
+
+-  freedreno/a4xx: support lod_bias
+-  freedreno/a4xx: fix 5_5_5_1 texture sampler format
+-  freedreno/a4xx: point regid to "red" even for alpha-only rb formats
+-  nvc0/ir: fold postfactor into immediate
+-  nv50/ir: deal with loops with no breaks
+-  nv50/ir: the mad source might not have a defining instruction
+-  nv50/ir: fix instruction permutation logic
+-  nv50/ir: don't forget to mark flagsDef on cvt in txb lowering
+-  nv50/ir: fix DCE to not generate 96-bit loads
+-  nv50/ir: avoid looking at uninitialized srcMods entries
+-  gk110/ir: fix imul hi emission with limm arg
+-  gk104/ir: sampler doesn't matter for txf
+-  gk110/ir: fix imad sat/hi flag emission for immediate args
+-  nv50/ir: fix cutoff for using r63 vs r127 when replacing zero
+-  nv50/ir: can't have predication and immediates
+-  glsl: assign varying locations to tess shaders when doing SSO
+-  ttn: add TEX2 support
+
+Faith Ekstrand (5):
+
+-  i965/vec4: Use byte offsets for UBO pulls on Sandy Bridge
+-  i965/fs: Use a stride of 1 and byte offsets for UBOs
+-  i965/vec4: Use a stride of 1 and byte offsets for UBOs
+-  i965/state: Get rid of dword_pitch arguments to buffer functions
+-  i965/nir: Remove unused indirect handling
+
+Jonathan Gray (2):
+
+-  configure.ac: use pkg-config for libelf
+-  configure: check for python2.7 for PYTHON2
+
+Kenneth Graunke (2):
+
+-  i965: Fix fragment shader struct inputs.
+-  i965: Fix scalar vertex shader struct outputs.
+
+Marek Olšák (8):
+
+-  radeonsi: fix occlusion queries on Fiji
+-  radeonsi: fix a hang due to uninitialized border color registers
+-  radeonsi: fix Fiji for LLVM <= 3.7
+-  radeonsi: don't call of u_prims_for_vertices for patches and
+   rectangles
+-  radeonsi: apply the streamout workaround to Fiji as well
+-  gallium/radeon: fix Hyper-Z hangs by programming PA_SC_MODE_CNTL_1
+   correctly
+-  tgsi/scan: add flag colors_written
+-  r600g: write all MRTs only if there is exactly one output (fixes a
+   hang)
+
+Matt Turner (1):
+
+-  glsl: Allow binding of image variables with 420pack.
+
+Neil Roberts (2):
+
+-  i965: Add MESA_FORMAT_B8G8R8X8_SRGB to brw_format_for_mesa_format
+-  i965: Add B8G8R8X8_SRGB to the alpha format override
+
+Oded Gabbay (1):
+
+-  configura.ac: fix test for SSE4.1 assembler support
+
+Patrick Rudolph (2):
+
+-  nv50,nvc0: fix use-after-free when vertex buffers are unbound
+-  gallium/util: return correct number of bound vertex buffers
+
+Samuel Pitoiset (1):
+
+-  nvc0: free memory allocated by the prog which reads MP perf counters
+
+Tapani Pälli (1):
+
+-  i965: use \_Shader to get fragment program when updating surface
+   state
+
+Tom Stellard (2):
+
+-  radeonsi: Rename si_shader::ls_rsrc{1,2} to si_shader::rsrc{1,2}
+-  radeonsi/compute: Use the compiler's COMPUTE_PGM_RSRC\* register
+   values

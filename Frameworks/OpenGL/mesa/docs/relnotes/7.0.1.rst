@@ -1,0 +1,88 @@
+Mesa 7.0.1 Release Notes / August 3, 2007
+=========================================
+
+Mesa 7.0.1 is a stable release with bug fixes since version 7.0.
+
+MD5 checksums
+-------------
+
+::
+
+   db55141a44b902fcc61d9265b7862c06  MesaLib-7.0.1.tar.gz
+   c056abd763e899114bf745c9eedbf9ad  MesaLib-7.0.1.tar.bz2
+   ecc2637547fae2b38271ae362d013afa  MesaLib-7.0.1.zip
+   b85a4a5be4e829f4a1165e4514b13183  MesaDemos-7.0.1.tar.gz
+   3b66b3268df12ca8a6c4e0c4c457912c  MesaDemos-7.0.1.tar.bz2
+   b1c18006f16e44e80fea66774c59b391  MesaDemos-7.0.1.zip
+   b87a69986839ae43ce12fc8e3dc1ebb4  MesaGLUT-7.0.1.tar.gz
+   25f30d0c1651997b4412366ba0572f7f  MesaGLUT-7.0.1.tar.bz2
+   676ee6682a6ce78a5540554fd975c03e  MesaGLUT-7.0.1.zip
+
+New features
+------------
+
+-  Added a bluegene-osmesa build config
+
+Bug fixes
+---------
+
+-  Fixed some MingW build issues
+-  Added a few missing OpenGL 2.0 API entrypoints:
+
+   -  glVertexAttrib4bv
+   -  glVertexAttrib4iv
+   -  glVertexAttrib4ubv
+   -  glVertexAttrib4uiv
+   -  glVertexAttrib4usv
+
+-  Fixed glDrawPixels(GL_STENCIL_INDEX) pixel transfer bug 11457
+-  GLSL bug fix: added vec2(vec4) constructor
+-  GLSL bug fix: .strq and .rgba writemasks didn't always work
+-  Stencil pixel map didn't always work for glDrawPixels (bug 11475)
+-  Fixed polygon stipple bug in i915 driver
+-  Binding a zero-sized texture didn't disable texturing (bug 11309)
+-  Queries of GL_INFO_LOG_LENGTH, GL_SHADER_SOURCE_LENGTH didn't include
+   the terminating zero (bug 11588)
+-  glXChooseFBConfig() in Xlib driver didn't handle GLX_STEREO flag
+   properly
+-  Fixed a GLSL function call bug (#11731)
+-  glPointParameteriv(GL_DISTANCE_ATTENUATION_EXT) didn't work (bug
+   11754)
+-  glGetAttribLocation() always returned 1 (bug 11774)
+-  Fixed a few memory-related bugs in GLU library
+
+Changes
+-------
+
+-  The libOSMesa library version has been reverted to 6.5.3 (soname=6)
+   in order to avoid application linking issues. Otherwise, applications
+   previously linked with libOSMesa.so.6 would no longer link with
+   libOSMesa.so.7
+-  Dropped obsolete, unmaintained Windows project files for VC6 and VC7.
+
+To Do (someday) items
+---------------------
+
+-  Switch to freeglut
+-  Fix linux-glide target/driver.
+-  Improved lambda and derivative calculation for frag progs.
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

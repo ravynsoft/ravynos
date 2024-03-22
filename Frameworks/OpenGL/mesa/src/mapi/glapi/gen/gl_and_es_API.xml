@@ -1,0 +1,292 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- OpenGL + OpenGL ES -->
+
+<OpenGLAPI>
+
+<xi:include href="gl_API.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+<!-- these can be moved to gl_API.xml -->
+<xi:include href="OES_fixed_point.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+<xi:include href="OES_single_precision.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+<category name="es1.0">
+    <!-- from GL_OES_fixed_point -->
+    <enum name="FIXED"                                    value="0x140C"/>
+
+    <type name="fixed"   size="4"                                    />
+    <type name="clampx"  size="4"                                    />
+
+    <function name="AlphaFuncx" es1="1.0" deprecated="3.1">
+        <param name="func" type="GLenum"/>
+        <param name="ref" type="GLclampx"/>
+    </function>
+
+    <function name="ClearColorx" es1="1.0" deprecated="3.1">
+        <param name="red" type="GLclampx"/>
+        <param name="green" type="GLclampx"/>
+        <param name="blue" type="GLclampx"/>
+        <param name="alpha" type="GLclampx"/>
+    </function>
+
+    <function name="ClearDepthx" es1="1.0" deprecated="3.1">
+        <param name="depth" type="GLclampx"/>
+    </function>
+
+    <function name="Color4x" es1="1.0" deprecated="3.1">
+        <param name="red" type="GLfixed"/>
+        <param name="green" type="GLfixed"/>
+        <param name="blue" type="GLfixed"/>
+        <param name="alpha" type="GLfixed"/>
+    </function>
+
+    <function name="DepthRangex" es1="1.0" deprecated="3.1">
+        <param name="zNear" type="GLclampx"/>
+        <param name="zFar" type="GLclampx"/>
+    </function>
+
+    <function name="Fogx" es1="1.0" deprecated="3.1">
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="Fogxv" es1="1.0" deprecated="3.1">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" variable_param="pname"
+               marshal_count="_mesa_fog_enum_to_count(pname)"/>
+    </function>
+
+    <function name="Frustumx" es1="1.0" deprecated="3.1">
+        <param name="left" type="GLfixed"/>
+        <param name="right" type="GLfixed"/>
+        <param name="bottom" type="GLfixed"/>
+        <param name="top" type="GLfixed"/>
+        <param name="zNear" type="GLfixed"/>
+        <param name="zFar" type="GLfixed"/>
+    </function>
+
+    <function name="LightModelx" es1="1.0" deprecated="3.1">
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="LightModelxv" es1="1.0" deprecated="3.1">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" variable_param="pname"
+               marshal_count="_mesa_light_model_enum_to_count(pname)"/>
+    </function>
+
+    <function name="Lightx" es1="1.0" deprecated="3.1">
+        <param name="light" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="Lightxv" es1="1.0" deprecated="3.1">
+        <param name="light" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" variable_param="pname"
+               marshal_count="_mesa_light_enum_to_count(pname)"/>
+    </function>
+
+    <function name="LineWidthx" es1="1.0" deprecated="3.1">
+        <param name="width" type="GLfixed"/>
+    </function>
+
+    <function name="LoadMatrixx" es1="1.0" deprecated="3.1">
+        <param name="m" type="const GLfixed *" count="16"/>
+    </function>
+
+    <function name="Materialx" es1="1.0" deprecated="3.1">
+        <param name="face" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="Materialxv" es1="1.0" deprecated="3.1">
+        <param name="face" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" variable_param="pname"
+               marshal_count="_mesa_material_enum_to_count(pname)"/>
+    </function>
+
+    <function name="MultMatrixx" es1="1.0" deprecated="3.1">
+        <param name="m" type="const GLfixed *" count="16"/>
+    </function>
+
+    <function name="MultiTexCoord4x" es1="1.0" deprecated="3.1">
+        <param name="target" type="GLenum"/>
+        <param name="s" type="GLfixed"/>
+        <param name="t" type="GLfixed"/>
+        <param name="r" type="GLfixed"/>
+        <param name="q" type="GLfixed"/>
+    </function>
+
+    <function name="Normal3x" es1="1.0" deprecated="3.1">
+        <param name="nx" type="GLfixed"/>
+        <param name="ny" type="GLfixed"/>
+        <param name="nz" type="GLfixed"/>
+    </function>
+
+    <function name="Orthox" es1="1.0" deprecated="3.1">
+        <param name="left" type="GLfixed"/>
+        <param name="right" type="GLfixed"/>
+        <param name="bottom" type="GLfixed"/>
+        <param name="top" type="GLfixed"/>
+        <param name="zNear" type="GLfixed"/>
+        <param name="zFar" type="GLfixed"/>
+    </function>
+
+    <function name="PointSizex" es1="1.0" deprecated="3.1">
+        <param name="size" type="GLfixed"/>
+    </function>
+
+    <function name="PolygonOffsetx" es1="1.0" deprecated="3.1">
+        <param name="factor" type="GLfixed"/>
+        <param name="units" type="GLfixed"/>
+    </function>
+
+    <function name="Rotatex" es1="1.0" deprecated="3.1">
+        <param name="angle" type="GLfixed"/>
+        <param name="x" type="GLfixed"/>
+        <param name="y" type="GLfixed"/>
+        <param name="z" type="GLfixed"/>
+    </function>
+
+    <function name="SampleCoveragex" es1="1.0" deprecated="3.1">
+        <param name="value" type="GLclampx"/>
+        <param name="invert" type="GLboolean"/>
+    </function>
+
+    <function name="Scalex" es1="1.0" deprecated="3.1">
+        <param name="x" type="GLfixed"/>
+        <param name="y" type="GLfixed"/>
+        <param name="z" type="GLfixed"/>
+    </function>
+
+    <function name="TexEnvx" es1="1.0" deprecated="3.1">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="TexEnvxv" es1="1.0" deprecated="3.1">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" variable_param="pname"
+               marshal_count="_mesa_texenv_enum_to_count(pname)"/>
+    </function>
+
+    <function name="TexParameterx" es1="1.0" deprecated="3.1">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="Translatex" es1="1.0" deprecated="3.1">
+        <param name="x" type="GLfixed"/>
+        <param name="y" type="GLfixed"/>
+        <param name="z" type="GLfixed"/>
+    </function>
+
+    <!-- from GL_OES_single_precision -->
+    <function name="Frustumf" es1="1.0" deprecated="3.1">
+        <param name="left" type="GLfloat"/>
+        <param name="right" type="GLfloat"/>
+        <param name="bottom" type="GLfloat"/>
+        <param name="top" type="GLfloat"/>
+        <param name="zNear" type="GLfloat"/>
+        <param name="zFar" type="GLfloat"/>
+    </function>
+
+    <function name="Orthof" es1="1.0" deprecated="3.1">
+        <param name="left" type="GLfloat"/>
+        <param name="right" type="GLfloat"/>
+        <param name="bottom" type="GLfloat"/>
+        <param name="top" type="GLfloat"/>
+        <param name="zNear" type="GLfloat"/>
+        <param name="zFar" type="GLfloat"/>
+    </function>
+</category>
+
+<category name="es1.1">
+    <!-- from GL_OES_fixed_point -->
+    <function name="ClipPlanex" es1="1.1" deprecated="3.1">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="const GLfixed *" count="4"/>
+    </function>
+
+    <function name="GetClipPlanex" es1="1.1" deprecated="3.1">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="GLfixed *" output="true" count="4"/>
+    </function>
+
+    <function name="GetFixedv" es1="1.1" deprecated="3.1">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *" output="true" variable_param="pname"/>
+    </function>
+
+    <function name="GetLightxv" es1="1.1" deprecated="3.1">
+        <param name="light" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *" output="true" variable_param="pname"/>
+    </function>
+
+    <function name="GetMaterialxv" es1="1.1" deprecated="3.1">
+        <param name="face" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *" output="true" variable_param="pname"/>
+    </function>
+
+    <function name="GetTexEnvxv" es1="1.1" deprecated="3.1">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *" output="true" variable_param="pname"/>
+    </function>
+
+    <function name="GetTexParameterxv" es1="1.1" deprecated="3.1">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *" output="true" variable_param="pname"/>
+    </function>
+
+    <function name="PointParameterx" es1="1.1" deprecated="3.1">
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="PointParameterxv" es1="1.1" deprecated="3.1">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *"
+               count="_mesa_point_param_enum_to_count(pname)"/>
+    </function>
+
+    <function name="TexParameterxv" es1="1.1" deprecated="3.1">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" variable_param="pname"
+               marshal_count="_mesa_tex_param_enum_to_count(pname)"/>
+    </function>
+
+    <!-- from GL_OES_single_precision -->
+    <function name="ClipPlanef" es1="1.1" deprecated="3.1">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="const GLfloat *" count="4"/>
+    </function>
+
+    <function name="GetClipPlanef" es1="1.1" deprecated="3.1">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="GLfloat *" output="true" count="4"/>
+    </function>
+</category>
+
+<category name="es2.0">
+    <!-- enums missing from GL_ARB_framebuffer_object and GL_EXT_framebuffer_object -->
+    <enum name="FRAMEBUFFER_INCOMPLETE_DIMENSIONS"            value="0x8CD9"/>
+    <enum name="RGB565"                                       value="0x8D62"/>
+</category>
+
+<xi:include href="es_EXT.xml" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+</OpenGLAPI>

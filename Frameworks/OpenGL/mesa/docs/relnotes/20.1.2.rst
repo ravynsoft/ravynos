@@ -1,0 +1,133 @@
+Mesa 20.1.2 Release Notes / 2020-06-24
+======================================
+
+Mesa 20.1.2 is a bug fix release which fixes bugs found since the 20.1.1
+release.
+
+Mesa 20.1.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.6. OpenGL 4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 20.1.2 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    283dff72814c8a80ce1ff8271e3f055895d26f4da3f4362acc49193e635780cb  mesa-20.1.2.tar.xz
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [RADV/GFX8] Performance drop in DOOM Eternal when "Present from
+  compute" is enabled
+- freedreno: multiple applications crash on a5xx
+- [RADV] - Path of Exile (238960) - Map outline, landscape and markers are
+  missing with the Vulkan renderer.
+- ASTC texture decompression fails when using software fallback
+- [BISECTED] compiling shader causes crash
+- Zink + GALLIUM_HUD SIGSEGV
+- If-statement body is executed for false condition
+
+Changes
+-------
+
+Bas Nieuwenhuizen (3):
+
+- vulkan/wsi/x11: Ensure we create at least minImageCount images.
+- radv/winsys: Deal with realloc failures in BO lists.
+- radv: Handle mmap failures.
+
+Daniel Schürmann (1):
+
+- aco: fix WQM handling in nested loops
+
+Danylo Piliaiev (1):
+
+- st/mesa: account for "loose", per-mipmap level textures in CopyImageSubData
+
+Eric Anholt (2):
+
+- freedreno/ir3: Fix register allocation assertion failures.
+- freedreno/ir3: Fix register allocation assertion failures.
+
+Eric Engestrom (3):
+
+- docs/relnotes: add sha256 sums to 20.1.0
+- .pick_status.json: Update to 4fc0499049fcdb7f892f99ce7abf9d739730138e
+- v3d: add missing unlock() in error path
+
+Erik Faye-Lund (3):
+
+- Revert "gallium/hud: don't use user vertex buffers"
+- gallium/hud: don't use user vertex buffers
+- mesa/main: fix inverted condition
+
+Gert Wollny (1):
+
+- r600/sfn: Don't set num_components on TESS sysvalue intrinsics
+
+Jan Beich (2):
+
+- util: enable futex usage on BSDs after 7dc2f4788288
+- meson: unbreak sysctl.h detection on BSDs
+
+Jose Maria Casanova Crespo (1):
+
+- nir: only uniforms with dynamically_uniform offset are dynamically_uniform
+
+Kristian Høgsberg (1):
+
+- freedreno: Handle DRM_FORMAT_MOD_INVALID in shared code
+
+Krzysztof Raszkowski (1):
+
+- gallium/swr: Fix building swr with MSVC
+
+Marek Olšák (7):
+
+- ac/surface: don't recompute the DCC retile map for imported textures
+- amd/addrlib: don't recompute DCC info for every ComputeDccAddrFromCoord call
+- amd/addrlib: remove unused members of ADDR2_COMPUTE_DCC_ADDRFROMCOORD_INPUT
+- ac/surface: add a wrapper structure to hold ADDR_HANDLE
+- ac/surface: cache DCC retile maps (v2)
+- ac/surface: don't free dcc_retile_map on failure
+- ac/nir: fix 64-bit division for GL CTS
+
+Mario Kleiner (1):
+
+- vulkan/wsi: Really terminate DRM lease in wsi_release_display().
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- st/mesa: make texture views inherit compressed_data storage
+
+Rhys Perry (3):
+
+- radv: add new drirc option radv_no_dynamic_bounds
+- radv: enable radv_no_dynamic_bounds for Path of Exile
+- radv: enable radv_no_dynamic_bounds for more Path of Exile executables
+
+Samuel Pitoiset (3):
+
+- radv: set DB_SHADER_CONTROL.CONSERVATIVE_Z_EXPORT correctly
+- spirv: fix using OpSampledImage with OpUndef instead of OpType{Image,Sampler}
+- radv: lower discards to demote to workaround a RDR2 game bug
+
+Timothy Arceri (2):
+
+- glsl: fix incorrect optimisation in opt_constant_variable()
+- st_glsl_to_nir: fix potential use after free

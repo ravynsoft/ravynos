@@ -1,0 +1,157 @@
+Mesa 11.0.3 Release Notes / October 10, 2015
+============================================
+
+Mesa 11.0.3 is a bug fix release which fixes bugs found since the 11.0.2
+release.
+
+Mesa 11.0.3 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c2210e3daecc10ed9fdcea500327652ed6effc2f47c4b9cee63fb08f560d7117  mesa-11.0.3.tar.gz
+   ab2992eece21adc23c398720ef8c6933cb69ea42e1b2611dc09d031e17e033d6  mesa-11.0.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 55552 <https://bugs.freedesktop.org/show_bug.cgi?id=55552>`__ -
+   Compile errors with --enable-mangling
+-  `Bug 71789 <https://bugs.freedesktop.org/show_bug.cgi?id=71789>`__ -
+   [r300g] Visuals not found in (default) depth = 24
+-  `Bug 91044 <https://bugs.freedesktop.org/show_bug.cgi?id=91044>`__ -
+   piglit spec/egl_khr_create_context/valid debug flag gles\* fail
+-  `Bug 91342 <https://bugs.freedesktop.org/show_bug.cgi?id=91342>`__ -
+   Very dark textures on some objects in indoors environments in Postal
+   2
+-  `Bug 91596 <https://bugs.freedesktop.org/show_bug.cgi?id=91596>`__ -
+   EGL_KHR_gl_colorspace (v2) causes problem with Android-x86 GUI
+-  `Bug 91718 <https://bugs.freedesktop.org/show_bug.cgi?id=91718>`__ -
+   piglit.spec.arb_shader_image_load_store.invalid causes intermittent
+   GPU HANG
+-  `Bug 92072 <https://bugs.freedesktop.org/show_bug.cgi?id=92072>`__ -
+   Wine breakage since d082c5324 (st/mesa: don't call st_validate_state
+   in BlitFramebuffer)
+-  `Bug 92265 <https://bugs.freedesktop.org/show_bug.cgi?id=92265>`__ -
+   Black windows in weston after update mesa to 11.0.2-1
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  st/mesa: try PIPE_BIND_RENDER_TARGET when choosing float texture
+   formats
+
+Daniel Scharrer (1):
+
+-  mesa: Add abs input modifier to base for POW in ffvertex_prog
+
+Emil Velikov (3):
+
+-  docs: add sha256 checksums for 11.0.2
+-  Revert "nouveau: make sure there's always room to emit a fence"
+-  Update version to 11.0.3
+
+Francisco Jerez (1):
+
+-  i965/fs: Fix hang on IVB and VLV with image format mismatch.
+
+Ian Romanick (1):
+
+-  meta: Handle array textures in scaled MSAA blits
+
+Ilia Mirkin (6):
+
+-  nouveau: be more careful about freeing temporary transfer buffers
+-  nouveau: delay deleting buffer with unflushed fence
+-  nouveau: wait to unref the transfer's bo until it's no longer used
+-  nv30: pretend to have packed texture/surface formats
+-  nv30: always go through translate module on big-endian
+-  nouveau: make sure there's always room to emit a fence
+
+Faith Ekstrand (1):
+
+-  mesa: Correctly handle GL_BGRA_EXT in ES3 format_and_type checks
+
+Kyle Brenneman (3):
+
+-  glx: Fix build errors with --enable-mangling (v2)
+-  mapi: Make \_glapi_get_stub work with "gl" or "mgl" prefix.
+-  glx: Don't hard-code the name "libGL.so.1" in driOpenDriver (v3)
+
+Leo Liu (1):
+
+-  radeon/vce: fix vui time_scale zero error
+
+Marek Olšák (21):
+
+-  st/mesa: fix front buffer regression after dropping st_validate_state
+   in Blit
+-  radeonsi: handle index buffer alloc failures
+-  radeonsi: handle constant buffer alloc failures
+-  gallium/radeon: handle buffer_map staging buffer failures better
+-  gallium/radeon: handle buffer alloc failures in r600_draw_rectangle
+-  gallium/radeon: add a fail path for depth MSAA texture readback
+-  radeonsi: report alloc failure from si_shader_binary_read
+-  radeonsi: add malloc fail paths to si_create_shader_state
+-  radeonsi: skip drawing if the tess factor ring allocation fails
+-  radeonsi: skip drawing if GS ring allocations fail
+-  radeonsi: handle shader precompile failures
+-  radeonsi: handle fixed-func TCS shader create failure
+-  radeonsi: skip drawing if VS, TCS, TES, GS fail to compile or upload
+-  radeonsi: skip drawing if PS fails to compile or upload
+-  radeonsi: skip drawing if updating the scratch buffer fails
+-  radeonsi: don't forget to update scratch relocations for LS, HS, ES
+   shaders
+-  radeonsi: handle dummy constant buffer allocation failure
+-  gallium/u_blitter: handle allocation failures
+-  radeonsi: add scratch buffer to the buffer list when it's
+   re-allocated
+-  st/dri: don't use \_ctx in client_wait_sync
+-  egl/dri2: don't require a context for ClientWaitSync (v2)
+
+Matthew Waters (1):
+
+-  egl: rework handling EGL_CONTEXT_FLAGS
+
+Michel Dänzer (1):
+
+-  st/dri: Use packed RGB formats
+
+Roland Scheidegger (1):
+
+-  mesa: fix mipmap generation for immutable, compressed textures
+
+Tom Stellard (3):
+
+-  gallium/radeon: Use call_once() when initailizing LLVM targets
+-  gallivm: Allow drivers and state trackers to initialize gallivm LLVM
+   targets v2
+-  radeon/llvm: Initialize gallivm targets when initializing the AMDGPU
+   target v2
+
+Varad Gautam (1):
+
+-  egl: restore surface type before linking config to its display
+
+Ville Syrjälä (3):
+
+-  i830: Fix collision between I830_UPLOAD_RASTER_RULES and
+   I830_UPLOAD_TEX(0)
+-  i915: Fix texcoord vs. varying collision in fragment programs
+-  i915: Remember to call intel_prepare_render() before blitting

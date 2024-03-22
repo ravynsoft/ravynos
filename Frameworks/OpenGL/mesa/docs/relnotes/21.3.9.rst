@@ -1,0 +1,119 @@
+Mesa 21.3.9 Release Notes / 2022-06-08
+======================================
+
+Mesa 21.3.9 is a bug fix release which fixes bugs found since the 21.3.8 release.
+
+Mesa 21.3.9 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.3.9 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    91fe6f20339884e37a7c47bfba42fb1cd397512c9ed5ad423de369f047cd8b5c  mesa-21.3.9.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [regression][bisected] MSVC: Build failure in libmesa_util when targeting x86 32-bit
+- A crash in radeonsi driver
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (2):
+
+- panfrost: Emulate GL_CLAMP on Bifrost
+- pan/bi: Handle non-2D arrays
+
+Dave Airlie (2):
+
+- crocus: don't map scanout buffers as write-back
+- intel/perf: use a function to do common allocations
+
+Emma Anholt (2):
+
+- vulkan: Make sure we've loaded our connectors when querying plane props.
+- intel/perf: Move some static blocks of C code out of the python script.
+
+Eric Engestrom (3):
+
+- .pick_status.json: Update to 05d687723530ed3c5c9f7d0addb3b047138613a3
+- .pick_status.json: Update to fc381fa1e341bc9cf71f53a915dc47926a3f621f
+- Revert "glx: Fix build errors with --enable-mangling (v2)"
+
+Erik Faye-Lund (1):
+
+- Revert "ci: downgrade sphinx to v3.x"
+
+Georg Lehmann (1):
+
+- radv: Don't hash ycbcr sampler base object.
+
+Ian Romanick (1):
+
+- intel/fs: Force destination types on DP4A instructions
+
+Icecream95 (2):
+
+- panfrost: Don't initialise the trampolines array
+- panfrost: Optimise recalculation of max sampler view
+
+Faith Ekstrand (1):
+
+- anv: Allow MSAA resolve with different numbers of planes
+
+Jonathan Gray (1):
+
+- util: fix msvc build
+
+Lionel Landwerlin (4):
+
+- anv: fix variable shadowing
+- anv: zero-out anv_batch_bo
+- anv: emit timestamp & availability using the same part of CS
+- anv: flush tile cache with query copy command
+
+Matt Turner (8):
+
+- intel/perf: Don't print leading space from desc_units()
+- intel/perf: Deduplicate perf counters
+- intel/perf: Use a function to initialize perf counters
+- intel/perf: Use slimmer intel_perf_query_counter_data struct
+- intel/perf: Store indices to strings rather than pointers
+- intel/perf: Mark intel_perf_counter_* enums as PACKED
+- intel/perf: Fix mistake in description string
+- intel/perf: Destination array calculation into function
+
+Mike Blumenkrantz (9):
+
+- llvmpipe: fix occlusion queries with early depth test
+- anv: fix xfb usage with rasterizer discard
+- anv: fix CmdSetColorWriteEnableEXT for maximum rts
+- anv: fix some dynamic rasterization discard cases in pipeline construction
+- lavapipe: always clone shader nir for shader states
+- gallivm: fix oob image detection for cube/1dArray/2dArray/cubeArray
+- zink: flag sample locations for re-set on batch flush
+- zink: force-add usage when adding last-ref tracking
+- zink: only update usage on buffer rebind if rebinds occurred
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- radeonsi: don't clear framebuffer.state before dcc decomp

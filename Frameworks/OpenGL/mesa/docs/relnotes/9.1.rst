@@ -1,0 +1,56 @@
+Mesa 9.1 Release Notes / February 22, 2013
+==========================================
+
+Mesa 9.1 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 9.1.1.
+
+Mesa 9.1 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   86d40f3056f89949368764bf84aff55e  MesaLib-9.1.tar.gz
+   d3891e02215422e120271d976ff1947e  MesaLib-9.1.tar.bz2
+   01645f28f53351c23b0beb6c688911d8  MesaLib-9.1.zip
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ANGLE_texture_compression_dxt3
+-  GL_ANGLE_texture_compression_dxt5
+-  GL_ARB_ES3_compatibility
+-  GL_ARB_internalformat_query
+-  GL_ARB_map_buffer_alignment
+-  GL_ARB_shading_language_packing
+-  GL_ARB_texture_buffer_object_rgb32
+-  GL_ARB_texture_cube_map_array
+-  GL_EXT_color_buffer_float
+-  GL_OES_depth_texture_cube_map
+-  OpenGL 3.1 core profile support on Radeon HD2000 up to HD6000 series
+-  Multisample anti-aliasing support on Radeon X1000 series
+-  OpenGL ES 3.0 support on Intel HD Graphics 2000, 2500, 3000, and 4000
+
+Bug fixes
+---------
+
+TBD -- This list is likely incomplete.
+
+Changes
+-------
+
+-  Removed VAAPI state tracker (unmaintained and broken)
+-  Removed i965's broken hardware implementation of GL_NV_vertex_program
+-  Removed swrast support for GL_NV_vertex_program
+-  Removed swrast support for GL_NV_fragment_program
+-  Removed OpenVMS support (unmaintained and broken)
+-  Removed makedepend build dependency

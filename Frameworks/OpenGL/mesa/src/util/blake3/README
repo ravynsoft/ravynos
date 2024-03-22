@@ -1,0 +1,16 @@
+This folder contains a local copy of BLAKE3 cryptographic hash library, version 1.3.3.
+
+Except for changes listed in the "Changes" section, this is a verbatim copy from
+https://github.com/BLAKE3-team/BLAKE3, tag 1.3.3.
+
+Files will be periodically synchronized with the upstream, and any local changes should
+be clearly documented below.
+
+Changes:
+- Rename .asm files to .masm due to a Meson limitation (https://mesonbuild.com/Release-notes-for-0-64-0.html#new-languages-nasm-and-masm)
+
+- Add non-typedef struct name to blake3_hasher.
+
+- Add "static" to blake3_hash4_neon, to comply with -Werror=missing-prototypes.
+
+- Add mesa_blake3_visibility.h and set symbol visibility to hidden for assembly sources.

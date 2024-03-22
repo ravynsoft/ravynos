@@ -1,0 +1,306 @@
+Mesa 18.2.0 Release Notes / September 7, 2018
+=============================================
+
+Mesa 18.2.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 18.2.1.
+
+Mesa 18.2.0 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+libwayland-egl is now distributed by Wayland (since 1.15, `see
+announcement <https://lists.freedesktop.org/archives/wayland-devel/2018-April/037767.html>`__),
+and has been removed from Mesa in this release. Make sure you're using
+an up-to-date version of Wayland to keep the functionality.
+
+SHA256 checksums
+----------------
+
+::
+
+   b9e6bb3eb7660b0726ba28405ffa0cb77de619e925b910b72f4d7a85c0098596  mesa-18.2.0.tar.gz
+   22452bdffff8e11bf4284278155a9f77cb28d6d73a12c507f1490732d0d9ddce  mesa-18.2.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  OpenGL 4.3 on virgl
+-  OpenGL 4.4 Compatibility profile on radeonsi
+-  OpenGL ES 3.2 on radeonsi and virgl
+-  GL_ARB_ES3_2_compatibility on radeonsi
+-  GL_ARB_fragment_shader_interlock on i965
+-  GL_ARB_sample_locations and GL_NV_sample_locations on nvc0 (GM200+)
+-  GL_ANDROID_extension_pack_es31a on radeonsi.
+-  GL_KHR_texture_compression_astc_ldr on radeonsi
+-  GL_NV_conservative_raster and GL_NV_conservative_raster_dilate on
+   nvc0 (GM200+)
+-  GL_NV_conservative_raster_pre_snap_triangles on nvc0 (GP102+)
+-  multisampled images on nvc0 (GM107+) (now supported on GF100+)
+
+Bug fixes
+---------
+
+-  `Bug 13728 <https://bugs.freedesktop.org/show_bug.cgi?id=13728>`__ -
+   [G965] Some objects in Neverwinter Nights Linux version not displayed
+   correctly
+-  `Bug 61761 <https://bugs.freedesktop.org/show_bug.cgi?id=61761>`__ -
+   glPolygonOffsetEXT, OFFSET_BIAS incorrectly set to a huge number
+-  `Bug 65422 <https://bugs.freedesktop.org/show_bug.cgi?id=65422>`__ -
+   Rename api_validate.[ch] to draw_validate.[ch]
+-  `Bug 78097 <https://bugs.freedesktop.org/show_bug.cgi?id=78097>`__ -
+   glUniform1ui and friends not supported by display lists
+-  `Bug 91808 <https://bugs.freedesktop.org/show_bug.cgi?id=91808>`__ -
+   trine1 misrender r600g
+-  `Bug 93355 <https://bugs.freedesktop.org/show_bug.cgi?id=93355>`__ -
+   [BXT,SKLGT4e] intermittent ext_framebuffer_multisample.accuracy fails
+-  `Bug 95009 <https://bugs.freedesktop.org/show_bug.cgi?id=95009>`__ -
+   [SNB]
+   amd_shader_trinary_minmax.execution.built-in-functions.gs-mid3-ivec2-ivec2-ivec2
+   intermittent
+-  `Bug 95012 <https://bugs.freedesktop.org/show_bug.cgi?id=95012>`__ -
+   [SNB] glsl-1_50.execution.built-in-functions.gs-op tests intermittent
+-  `Bug 98699 <https://bugs.freedesktop.org/show_bug.cgi?id=98699>`__ -
+   "float[a+++4 ? 1:1] f;" crashes glsl_compiler
+-  `Bug 99116 <https://bugs.freedesktop.org/show_bug.cgi?id=99116>`__ -
+   Wine DirectDraw programs showing only a blackscreen when using Mesa
+   Gallium drivers
+-  `Bug 99730 <https://bugs.freedesktop.org/show_bug.cgi?id=99730>`__ -
+   Metro Redux game(s) needs override for midshader extension
+   declaration
+-  `Bug 100177 <https://bugs.freedesktop.org/show_bug.cgi?id=100177>`__
+   - [GM206] Misrendering in XCOM Ennemy Within
+-  `Bug 100430 <https://bugs.freedesktop.org/show_bug.cgi?id=100430>`__
+   - [radv] graphical glitches on dolphin emulator
+-  `Bug 101247 <https://bugs.freedesktop.org/show_bug.cgi?id=101247>`__
+   - Mesa fails to link GLSL programs with unused output blocks
+-  `Bug 102390 <https://bugs.freedesktop.org/show_bug.cgi?id=102390>`__
+   - centroid interpolation causes broken attribute values
+-  `Bug 102678 <https://bugs.freedesktop.org/show_bug.cgi?id=102678>`__
+   - gl_BaseVertex should always be zero when the draw command has no
+   <basevertex> parameter
+-  `Bug 103274 <https://bugs.freedesktop.org/show_bug.cgi?id=103274>`__
+   - BRW allocates too much heap memory
+-  `Bug 104388 <https://bugs.freedesktop.org/show_bug.cgi?id=104388>`__
+   - [snb] GPU HANG: ecode 6:0:0x85fffff8 in fgfs
+-  `Bug 104626 <https://bugs.freedesktop.org/show_bug.cgi?id=104626>`__
+   - broadcom/vc5: double compare
+-  `Bug 104809 <https://bugs.freedesktop.org/show_bug.cgi?id=104809>`__
+   - anv: DOOM 2016 and Wolfenstein II:The New Colossus crash due to not
+   having depthBoundsTest
+-  `Bug 105351 <https://bugs.freedesktop.org/show_bug.cgi?id=105351>`__
+   - [Gen6+] piglit's arb_shader_image_load_store-host-mem-barrier fails
+   with a glGetTexSubImage fallback path
+-  `Bug 105374 <https://bugs.freedesktop.org/show_bug.cgi?id=105374>`__
+   - texture3d, a SaschaWillems demo, assert fails
+-  `Bug 105396 <https://bugs.freedesktop.org/show_bug.cgi?id=105396>`__
+   - tc compatible htile sets depth of htiles of discarded fragments to
+   1.0
+-  `Bug 105399 <https://bugs.freedesktop.org/show_bug.cgi?id=105399>`__
+   - [snb] GPU hang: after geometry shader emits no geometry, the
+   program hangs
+-  `Bug 105497 <https://bugs.freedesktop.org/show_bug.cgi?id=105497>`__
+   - shader-db crashes on 72 core system after ast_type_qualifier bitset
+   change
+-  `Bug 105613 <https://bugs.freedesktop.org/show_bug.cgi?id=105613>`__
+   - Compute shader locks up within nested "for" loop
+-  `Bug 105731 <https://bugs.freedesktop.org/show_bug.cgi?id=105731>`__
+   - linker error "fragment shader input ... has no matching output in
+   the previous stage" when previous stage's output declaration in a
+   separate shader object
+-  `Bug 105904 <https://bugs.freedesktop.org/show_bug.cgi?id=105904>`__
+   - Needed to delete mesa shader cache after driver upgrade for 32 bit
+   wine vulkan programs to work.
+-  `Bug 105975 <https://bugs.freedesktop.org/show_bug.cgi?id=105975>`__
+   - i965 always reports 0 viewport subpixel bits
+-  `Bug 106090 <https://bugs.freedesktop.org/show_bug.cgi?id=106090>`__
+   - Compiling compute shader crashes RADV
+-  `Bug 106133 <https://bugs.freedesktop.org/show_bug.cgi?id=106133>`__
+   - make check "OSError: [Errno 24] Too many open files"
+-  `Bug 106163 <https://bugs.freedesktop.org/show_bug.cgi?id=106163>`__
+   - r600/sb: optimizer tries to schedule access to different array
+   elements in one instruction group
+-  `Bug 106174 <https://bugs.freedesktop.org/show_bug.cgi?id=106174>`__
+   - vulkan dota2 broken (segfaulting), found bug commit
+-  `Bug 106180 <https://bugs.freedesktop.org/show_bug.cgi?id=106180>`__
+   - [bisected] radv vulkan smoke test black screen (Add support for
+   DRI3 v1.2)
+-  `Bug 106232 <https://bugs.freedesktop.org/show_bug.cgi?id=106232>`__
+   - LLVM unit tests have error in random number handling
+-  `Bug 106243 <https://bugs.freedesktop.org/show_bug.cgi?id=106243>`__
+   - [kbl] GPU HANG: 9:0:0x85dffffb, in Cinnamon
+-  `Bug 106315 <https://bugs.freedesktop.org/show_bug.cgi?id=106315>`__
+   - The witness + dxvk suffers flickering garbage
+-  `Bug 106331 <https://bugs.freedesktop.org/show_bug.cgi?id=106331>`__
+   - radv doesnt support VK_FORMAT_R32G32B32_SFLOAT
+-  `Bug 106382 <https://bugs.freedesktop.org/show_bug.cgi?id=106382>`__
+   - Shader cache breaks INTEL_DEBUG=shader_time
+-  `Bug 106393 <https://bugs.freedesktop.org/show_bug.cgi?id=106393>`__
+   - glsl-fs-shader-stencil-export hangs forever
+-  `Bug 106450 <https://bugs.freedesktop.org/show_bug.cgi?id=106450>`__
+   - glGetIntegerv return wrong value in some cases
+-  `Bug 106462 <https://bugs.freedesktop.org/show_bug.cgi?id=106462>`__
+   - piglit.spec.arb_vertex_array_bgra.get regression
+-  `Bug 106479 <https://bugs.freedesktop.org/show_bug.cgi?id=106479>`__
+   - NDEBUG not defined for libamdgpu_addrlib
+-  `Bug 106480 <https://bugs.freedesktop.org/show_bug.cgi?id=106480>`__
+   - A2B10G10R10_SNORM vertex attribute doesn't work.
+-  `Bug 106499 <https://bugs.freedesktop.org/show_bug.cgi?id=106499>`__
+   - [regression, bisected] Several games crash on start
+-  `Bug 106504 <https://bugs.freedesktop.org/show_bug.cgi?id=106504>`__
+   - vulkan SPIR-V parsing failed at ../src/compiler/spirv/vtn_cfg.c:381
+-  `Bug 106511 <https://bugs.freedesktop.org/show_bug.cgi?id=106511>`__
+   - radv: MSAA broken on SI (assertion failure in vkCreateImage)
+-  `Bug 106587 <https://bugs.freedesktop.org/show_bug.cgi?id=106587>`__
+   - Dota2 is very dark when using vulkan render on a Intel << AMD prime
+   setup
+-  `Bug 106594 <https://bugs.freedesktop.org/show_bug.cgi?id=106594>`__
+   - [regression,apitrace,bisected] Prison Architect rendered unplayable
+   by multicoloured flickering triangles and overlayed triangles when
+   performing certain actions
+-  `Bug 106619 <https://bugs.freedesktop.org/show_bug.cgi?id=106619>`__
+   - [OpenCL][llvm-svn]build failure addPassesToEmitFile candidate
+   expects 6 arguments, 3 provided
+-  `Bug 106629 <https://bugs.freedesktop.org/show_bug.cgi?id=106629>`__
+   - [SNB,IVB,HSW,BDW]
+   dEQP-EGL.functional.image.create.gles2_cubemap_negative_z_rgb_read_pixels
+-  `Bug 106642 <https://bugs.freedesktop.org/show_bug.cgi?id=106642>`__
+   - X server crashes in i965 on desktop startup when DRI3 v1.2 /
+   modifier support is enabled
+-  `Bug 106643 <https://bugs.freedesktop.org/show_bug.cgi?id=106643>`__
+   - double free when exporting a temporarily imported semaphore
+-  `Bug 106673 <https://bugs.freedesktop.org/show_bug.cgi?id=106673>`__
+   - [bisected] Steam is unusable since commit 5c33e8c7
+-  `Bug 106687 <https://bugs.freedesktop.org/show_bug.cgi?id=106687>`__
+   - radv: Fast color clears use incorrect format
+-  `Bug 106708 <https://bugs.freedesktop.org/show_bug.cgi?id=106708>`__
+   - [SKL/KBL/GLK] 2-3% performance drop in SynMark DrvState and 5-9%
+   drop on SynMark Multithread
+-  `Bug 106748 <https://bugs.freedesktop.org/show_bug.cgi?id=106748>`__
+   - st/mesa: use PIPE_CAP_GLSL_FEATURE_LEVEL_COMPATIBILITY broke qemu
+   -display sdl,gl=on
+-  `Bug 106756 <https://bugs.freedesktop.org/show_bug.cgi?id=106756>`__
+   - Wine 3.9 crashes with DXVK on Just Cause 3 and Quantum Break on
+   VEGA but works ON POLARIS
+-  `Bug 106774 <https://bugs.freedesktop.org/show_bug.cgi?id=106774>`__
+   - GLSL IR copy propagates loads of SSBOs
+-  `Bug 106776 <https://bugs.freedesktop.org/show_bug.cgi?id=106776>`__
+   - vma_random unrecognized command line option "-std=c++11"
+-  `Bug 106778 <https://bugs.freedesktop.org/show_bug.cgi?id=106778>`__
+   - Files missing from tarball - intel_sanitize_gpu.\*
+-  `Bug 106779 <https://bugs.freedesktop.org/show_bug.cgi?id=106779>`__
+   - Files missing from tarball - u_debug_stack_android.cpp
+-  `Bug 106784 <https://bugs.freedesktop.org/show_bug.cgi?id=106784>`__
+   - 18.1.1 autotools build fail without mako
+-  `Bug 106801 <https://bugs.freedesktop.org/show_bug.cgi?id=106801>`__
+   - vma_random_test.cpp:239:18: error: non-constant-expression cannot
+   be narrowed from type 'unsigned long' to 'uint_fast32_t' (aka
+   'unsigned int') in initializer list [-Wc++11-narrowing]
+-  `Bug 106810 <https://bugs.freedesktop.org/show_bug.cgi?id=106810>`__
+   - ProgramBinary does not switch program correctly when using
+   transform feedback
+-  `Bug 106823 <https://bugs.freedesktop.org/show_bug.cgi?id=106823>`__
+   - Failed to recongnize keyword of shader code
+-  `Bug 106830 <https://bugs.freedesktop.org/show_bug.cgi?id=106830>`__
+   - [bisected] 32 bit tests (deqp, piglit, glcts, vulkancts) crashing
+   on all platforms
+-  `Bug 106861 <https://bugs.freedesktop.org/show_bug.cgi?id=106861>`__
+   - fatal error: wayland-egl-backend.h: No such file or directory
+   compilation terminated.
+-  `Bug 106865 <https://bugs.freedesktop.org/show_bug.cgi?id=106865>`__
+   - [GLK] piglit.spec.ext_framebuffer_multisample.accuracy stencil
+   tests fail
+-  `Bug 106903 <https://bugs.freedesktop.org/show_bug.cgi?id=106903>`__
+   - radv: Fragment shader output goes to wrong attachments when render
+   targets are sparse
+-  `Bug 106906 <https://bugs.freedesktop.org/show_bug.cgi?id=106906>`__
+   - Failed to recongnize keyword “sampler2DRect” and
+   "sampler2DRectShadow"
+-  `Bug 106907 <https://bugs.freedesktop.org/show_bug.cgi?id=106907>`__
+   - Correct Transform Feedback Varyings information is expected after
+   using ProgramBinary
+-  `Bug 106912 <https://bugs.freedesktop.org/show_bug.cgi?id=106912>`__
+   - radv: 16-bit depth buffer causes artifacts in Shadow Warrior 2
+-  `Bug 106928 <https://bugs.freedesktop.org/show_bug.cgi?id=106928>`__
+   - When starting a match Rocket League crashes on "Go"
+-  `Bug 106941 <https://bugs.freedesktop.org/show_bug.cgi?id=106941>`__
+   - Intel ANV vulkan driver exposing version 1.1.0 which is incorrect
+-  `Bug 106986 <https://bugs.freedesktop.org/show_bug.cgi?id=106986>`__
+   - glGetQueryiv error when querying number of result bits for
+   GL_ANY_SAMPLES_PASSED_CONSERVATIVE
+-  `Bug 106997 <https://bugs.freedesktop.org/show_bug.cgi?id=106997>`__
+   - [Regression]. Dying light game is crashing on latest mesa
+-  `Bug 107098 <https://bugs.freedesktop.org/show_bug.cgi?id=107098>`__
+   - Segfault after munmap(kms_sw_dt->ro_mapped)
+-  `Bug 107117 <https://bugs.freedesktop.org/show_bug.cgi?id=107117>`__
+   - mesa-18.1: regression with TFP on intel with modesettings and
+   glamor acceleration
+-  `Bug 107190 <https://bugs.freedesktop.org/show_bug.cgi?id=107190>`__
+   - Got seg fault on snb when use INTEL_DEBUG=bat
+-  `Bug 107193 <https://bugs.freedesktop.org/show_bug.cgi?id=107193>`__
+   - piglit.spec.arb_compute_shader.linker.bug-93840 fails
+-  `Bug 107212 <https://bugs.freedesktop.org/show_bug.cgi?id=107212>`__
+   - Dual-Core CPU E5500 / G45: RetroArch with reicast core results in
+   corrupted graphics
+-  `Bug 107223 <https://bugs.freedesktop.org/show_bug.cgi?id=107223>`__
+   - [GEN9+] 50% perf drop in SynMark Fill\* tests (E2E RBC gets
+   disabled?)
+-  `Bug 107248 <https://bugs.freedesktop.org/show_bug.cgi?id=107248>`__
+   - [G45 ILK G965] Texture handling broken
+-  `Bug 107275 <https://bugs.freedesktop.org/show_bug.cgi?id=107275>`__
+   - NIR segfaults after spirv-opt
+-  `Bug 107276 <https://bugs.freedesktop.org/show_bug.cgi?id=107276>`__
+   - radv: OpBitfieldUExtract returns incorrect result when count is
+   zero
+-  `Bug 107295 <https://bugs.freedesktop.org/show_bug.cgi?id=107295>`__
+   - Access violation on glDrawArrays with count >= 2048
+-  `Bug 107305 <https://bugs.freedesktop.org/show_bug.cgi?id=107305>`__
+   - glsl/opt_copy_propagation_elements.cpp:72:9: error: delegating
+   constructors are permitted only in C++11
+-  `Bug 107312 <https://bugs.freedesktop.org/show_bug.cgi?id=107312>`__
+   - Mesa-git RPM build fails after commit
+   8cacf38f527d42e41441ef8c25d95d4b2f4e8602
+-  `Bug 107359 <https://bugs.freedesktop.org/show_bug.cgi?id=107359>`__
+   - [Regression] [bisected] [OpenGL CTS] [SKL,BDW]
+   KHR-GL46.texture_barrier*-texels,
+   GTF-GL46.gtf21.GL2FixedTests.buffer_corners.buffer_corners, and
+   GTF-GL46.gtf21.GL2FixedTests.stencil_plane_corners.stencil_plane_corners
+   fail with some configuration
+-  `Bug 107366 <https://bugs.freedesktop.org/show_bug.cgi?id=107366>`__
+   - NIR verification crashes on piglit tests
+-  `Bug 107423 <https://bugs.freedesktop.org/show_bug.cgi?id=107423>`__
+   - vc4 build failure: "v3d_decoder.c:893: undefined reference to
+   \`clif_lookup_bo'"
+-  `Bug 107443 <https://bugs.freedesktop.org/show_bug.cgi?id=107443>`__
+   - Build error on arm64: v3d_decoder.c:837:17: error: format not a
+   string literal and no format arguments [-Werror=format-security]
+-  `Bug 107460 <https://bugs.freedesktop.org/show_bug.cgi?id=107460>`__
+   - radv: OpControlBarrier does not always work correctly (bisected)
+-  `Bug 107477 <https://bugs.freedesktop.org/show_bug.cgi?id=107477>`__
+   - [DXVK] Setting high shader quality in GTA V results in LLVM error
+-  `Bug 107510 <https://bugs.freedesktop.org/show_bug.cgi?id=107510>`__
+   - [GEN8+] up to 10% perf drop on several 3D benchmarks
+-  `Bug 107544 <https://bugs.freedesktop.org/show_bug.cgi?id=107544>`__
+   - intel/decoder: out of bounds group_iter
+-  `Bug 107550 <https://bugs.freedesktop.org/show_bug.cgi?id=107550>`__
+   - "0[2]" as function parameter hits assert
+-  `Bug 107579 <https://bugs.freedesktop.org/show_bug.cgi?id=107579>`__
+   - [SNB] The graphic corruption when we reuse the GS compiled and used
+   for TFB when statebuffer contain magic trash in the unused space
+-  `Bug 107601 <https://bugs.freedesktop.org/show_bug.cgi?id=107601>`__
+   - Rise of the Tomb Raider Segmentation Fault when the game starts
+-  `Bug 107610 <https://bugs.freedesktop.org/show_bug.cgi?id=107610>`__
+   - Dolphin emulator mis-renders shadow overlay in Super Mario Sunshine
+
+Changes
+-------
+
+-  Removed GL_EXT_polygon_offset applications should use glPolygonOffset
+   instead.
+-  Removed libwayland-egl, now part of Wayland

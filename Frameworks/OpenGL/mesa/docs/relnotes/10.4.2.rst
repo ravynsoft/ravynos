@@ -1,0 +1,102 @@
+Mesa 10.4.2 Release Notes / January 12, 2015
+============================================
+
+Mesa 10.4.2 is a bug fix release which fixes bugs found since the 10.4.1
+release.
+
+Mesa 10.4.2 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   e303e77dd774df0d051b2870b165f98c97084a55980f884731df89c1b56a6146  MesaLib-10.4.2.tar.gz
+   08a119937d9f2aa2f66dd5de97baffc2a6e675f549e40e699a31f5485d15327f  MesaLib-10.4.2.tar.bz2
+   c2c2921a80a3395824f02bee4572a6a17d6a12a928a3e497618eeea04fb06490  MesaLib-10.4.2.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 85529 <https://bugs.freedesktop.org/show_bug.cgi?id=85529>`__ -
+   Surfaces not drawn in Unvanquished
+-  `Bug 87619 <https://bugs.freedesktop.org/show_bug.cgi?id=87619>`__ -
+   Changes to state such as render targets change fragment shader
+   without marking it dirty.
+-  `Bug 87658 <https://bugs.freedesktop.org/show_bug.cgi?id=87658>`__ -
+   [llvmpipe] SEGV in sse2_has_daz on ancient Pentium4-M
+-  `Bug 87913 <https://bugs.freedesktop.org/show_bug.cgi?id=87913>`__ -
+   CPU cacheline size of 0 can be returned by CPUID leaf 0x80000006 in
+   some virtual machines
+
+Changes
+-------
+
+Chad Versace (2):
+
+-  i965: Use safer pointer arithmetic in
+   intel_texsubimage_tiled_memcpy()
+-  i965: Use safer pointer arithmetic in gather_oa_results()
+
+Dave Airlie (3):
+
+-  Revert "r600g/sb: fix issues cause by GLSL switching to loops for
+   switch"
+-  r600g: fix regression since UCMP change
+-  r600g/sb: implement r600 gpr index workaround. (v3.1)
+
+Emil Velikov (2):
+
+-  docs: Add sha256 sums for the 10.4.1 release
+-  Update version to 10.4.2
+
+Ilia Mirkin (2):
+
+-  nv50,nvc0: set vertex id base to index_bias
+-  nv50/ir: fix texture offsets in release builds
+
+Kenneth Graunke (2):
+
+-  i965: Add missing BRW_NEW_*_PROG_DATA to texture/renderbuffer atoms.
+-  i965: Fix start/base_vertex_location for >1 prims but
+   !BRW_NEW_VERTICES.
+
+Leonid Shatz (1):
+
+-  gallium/util: make sure cache line size is not zero
+
+Marek Olšák (4):
+
+-  glsl_to_tgsi: fix a bug in copy propagation
+-  vbo: ignore primitive restart if FixedIndex is enabled in DrawArrays
+-  st/mesa: fix GL_PRIMITIVE_RESTART_FIXED_INDEX
+-  radeonsi: fix VertexID for OpenGL
+
+Michel Dänzer (1):
+
+-  radeonsi: Don't modify PA_SC_RASTER_CONFIG register value if rb_mask
+   == 0
+
+Roland Scheidegger (1):
+
+-  gallium/util: fix crash with daz detection on x86
+
+Tiziano Bacocco (1):
+
+-  nv50,nvc0: implement half_pixel_center
+
+Vadim Girlin (1):
+
+-  r600g/sb: fix issues with loops created for switch

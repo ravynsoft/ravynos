@@ -1,0 +1,41 @@
+Mesa 12.0.1 Release Notes / July 8, 2016
+========================================
+
+Mesa 12.0.1 is a bug fix release which fixes bugs found since the 12.0.1
+release.
+
+Mesa 12.0.1 implements the OpenGL 4.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.3. OpenGL 4.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   28dff9c045f4305c96a875a487b9f06c7e88d910511cd6016dbddcd1f53ade0d  mesa-12.0.1.tar.gz
+   bab24fb79f78c876073527f515ed871fc9c81d816f66c8a0b051d8d653896389  mesa-12.0.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 96864 <https://bugs.freedesktop.org/show_bug.cgi?id=96864>`__ -
+   Mesa 12.0 radeon build broken
+
+Changes
+-------
+
+Emil Velikov (4):
+
+-  docs: add sha256 checksums for 12.0.0
+-  radeon: reference the correct cdw/max_dw
+-  Update version to 12.0.1
+-  docs: add release notes for 12.0.1

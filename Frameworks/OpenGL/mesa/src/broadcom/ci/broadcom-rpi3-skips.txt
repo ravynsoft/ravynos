@@ -1,0 +1,52 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# This is causing a binning memory overflow problem
+dEQP-GLES2.functional.fragment_ops.scissor.outside_render_line
+
+# These are very slow
+dEQP-GLES2.functional.uniform_api.random.3
+dEQP-GLES2.functional.uniform_api.random.79
+
+# Conformance issue: VC4 needs dynamic loops in the VS to cause a
+# shader link failure.
+#
+# The issue is that the HW doesn't have an exec mask at dispatch
+# for the VS, so the shouldn't-be-exec channels have undefined
+# contents and may cause infinite loops, leading to GPU hangs.  The
+# process of GPU hang reset causes flakes in whatever other jobs are
+# running simultaneously, so we can't even leave these in the flakes
+# list for tracking.
+dEQP-GLES2.functional.shaders.loops.*dynamic.*vertex
+
+# Timeout tests (> 1 minute to run)
+KHR-GLES2.texture_3d.filtering.sizes.3x7x5_linear_mipmap_linear
+KHR-GLES2.texture_3d.filtering.sizes.4x8x8_linear_mipmap_linear
+
+# Slow tests (> 1 minute to run)
+spec@ext_framebuffer_multisample@accuracy
+glx@glx-multithread-texture
+spec@arb_internalformat_query2@all internalformat_<x>_type pname checks
+spec@!opengl 1.1@streaming-texture-leak
+spec@!opengl 1.0@gl-1.0-blend-func
+shaders@glsl-predication-on-large-array
+spec@arb_texture_rectangle@copyteximage rect samples=2
+spec@arb_texture_rectangle@copyteximage rect samples=4
+spec@ext_texture_env_combine@texture-env-combine
+
+# Versions / Extensions not supported
+spec@!opengl 3.*
+spec@!opengl 4.*
+spec@!opengl es 3.*
+spec@arb_gpu_shader5.*
+spec@arb_gpu_shader_fp64.*
+spec@arb_gpu_shader_int64.*
+spec@arb_tessellation_shader.*
+spec@arb_texture_cube_map.*
+spec@glsl-1.30.*
+spec@glsl-1.40.*
+spec@glsl-1.50.*
+spec@glsl-3.*
+spec@glsl-4.*
+spec@glsl-es-3.*

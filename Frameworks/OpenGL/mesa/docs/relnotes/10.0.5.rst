@@ -1,0 +1,147 @@
+Mesa 10.0.5 Release Notes / April 18, 2014
+==========================================
+
+Mesa 10.0.5 is a bug fix release which fixes bugs found since the 10.0.4
+release.
+
+Mesa 10.0.5 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   db606aadd0fe321f3664099677d159bc  MesaLib-10.0.5.tar.gz
+   e6009ccd8898d7104bb325b6af9ec354  MesaLib-10.0.5.tar.bz2
+   c8ab9e502542bf32299a4df85b0b704d  MesaLib-10.0.5.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 58660 <https://bugs.freedesktop.org/show_bug.cgi?id=58660>`__ -
+   CAYMAN broken with HyperZ on
+-  `Bug 64471 <https://bugs.freedesktop.org/show_bug.cgi?id=64471>`__ -
+   Radeon HD6570 lockup in Brütal Legend with HyperZ
+-  `Bug 66352 <https://bugs.freedesktop.org/show_bug.cgi?id=66352>`__ -
+   GPU lockup in L4D2 on TURKS with HyperZ
+-  `Bug 68799 <https://bugs.freedesktop.org/show_bug.cgi?id=68799>`__ -
+   [APITRACE] Hyper-Z lockup with Falcon BMS 4.32u6 on CAYMAN
+-  `Bug 71547 <https://bugs.freedesktop.org/show_bug.cgi?id=71547>`__ -
+   compilation failure :#error "SSE4.1 instruction set not enabled"
+-  `Bug 72685 <https://bugs.freedesktop.org/show_bug.cgi?id=72685>`__ -
+   [radeonsi hyperz] Artifacts in Unigine Sanctuary
+-  `Bug 73088 <https://bugs.freedesktop.org/show_bug.cgi?id=73088>`__ -
+   [HyperZ] Juniper (6770): Gone Home / Unigine Heaven 4.0 lock up
+   system after several minutes of use
+-  `Bug 74428 <https://bugs.freedesktop.org/show_bug.cgi?id=74428>`__ -
+   hyperz causes gpu hang in Counter-strike: Source
+-  `Bug 74803 <https://bugs.freedesktop.org/show_bug.cgi?id=74803>`__ -
+   [r600g] HyperZ broken on RV630 (Cogs shadows are broken)
+-  `Bug 74863 <https://bugs.freedesktop.org/show_bug.cgi?id=74863>`__ -
+   [r600g] HyperZ broken on RV770 and CYPRESS (Left 4 Dead 2 trees
+   corruption) bisected!
+-  `Bug 74892 <https://bugs.freedesktop.org/show_bug.cgi?id=74892>`__ -
+   HyperZ GPU lockup with radeonsi 7970M PITCAIRN and Distance Alpha
+   game
+-  `Bug 74988 <https://bugs.freedesktop.org/show_bug.cgi?id=74988>`__ -
+   Buffer overrun (segfault) decompressing ETC2 texture in GLBenchmark
+   3.0 Manhattan
+-  `Bug 75279 <https://bugs.freedesktop.org/show_bug.cgi?id=75279>`__ -
+   XCloseDisplay() takes one minute around nouveau_dri.so, freezing
+   Firefox startup
+-  `Bug 77102 <https://bugs.freedesktop.org/show_bug.cgi?id=77102>`__ -
+   gallium nouveau has no profile in vdpau and libva
+-  `Bug 77207 <https://bugs.freedesktop.org/show_bug.cgi?id=77207>`__ -
+   [ivb/hsw] batch overwritten with garbage
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following git
+command:
+
+::
+
+     git log mesa-10.0.4..mesa-10.0.5
+
+Alex Deucher (1):
+
+-  radeon: reverse DBG_NO_HYPERZ logic
+
+Brian Paul (9):
+
+-  mesa: add unpacking code for MESA_FORMAT_Z32_FLOAT_S8X24_UINT
+-  mesa: fix copy & paste bugs in pack_ubyte_SARGB8()
+-  mesa: fix copy & paste bugs in pack_ubyte_SRGB8()
+-  mesa: fix unpack_Z32_FLOAT_X24S8() / unpack_Z32_FLOAT() mix-up
+-  st/mesa: add null pointer checking in query object functions
+-  mesa: fix glMultiDrawArrays inside a display list
+-  cso: fix sampler view count in cso_set_sampler_views()
+-  svga: replace sampler assertion with conditional
+-  svga: move LIST_INITHEAD(dirty_buffers) earlier in
+   svga_context_create()
+
+Carl Worth (3):
+
+-  docs: Add md5sums for the 10.0.4 release.
+-  Ignore patches which don't apply.
+-  Update version to 10.0.5
+
+Christian König (2):
+
+-  st/mesa: recreate sampler view on context change v3
+-  st/mesa: fix sampler view handling with shared textures v4
+
+Courtney Goeltzenleuchter (1):
+
+-  mesa: add bounds checking to eliminate buffer overrun
+
+Emil Velikov (2):
+
+-  mesa: return v.value_int64 when the requested type is TYPE_INT64
+-  glx: drop obsolete \_XUnlock_Mutex in \__glXInitialize error path
+
+Eric Anholt (1):
+
+-  i965: Fix buffer overruns in MSAA MCS buffer clearing.
+
+Ilia Mirkin (6):
+
+-  nouveau: fix fence waiting logic in screen destroy
+-  nv50: adjust blit_3d handling of ms output textures
+-  mesa/main: condition GL_DEPTH_STENCIL on ARB_depth_texture
+-  nouveau: add forgotten GL_COMPRESSED_INTENSITY to texture format list
+-  nouveau: there may not have been a texture if the fbo was incomplete
+-  nouveau: fix firmware check on nvd7/nvd9
+
+Johannes Nixdorf (1):
+
+-  configure.ac: fix the detection of expat with pkg-config
+
+Jonathan Gray (1):
+
+-  gallium: add endian detection for OpenBSD
+
+José Fonseca (1):
+
+-  draw: Duplicate TGSI tokens in draw_pipe_pstipple module.
+
+Matt Turner (1):
+
+-  mesa: Wrap SSE4.1 code in #ifdef \__SSE4_1__.
+
+Paul Berry (1):
+
+-  i965/gen7: Prefer vertical alignment of 4 when possible.

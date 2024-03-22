@@ -1,0 +1,118 @@
+Mesa 17.3.3 Release Notes / January 18, 2018
+============================================
+
+Mesa 17.3.3 is a bug fix release which fixes bugs found since the 17.3.2
+release.
+
+Mesa 17.3.3 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c733d37a161501cd81dc9b309ccb613753b98eafc6d35e0847548a6642749772  mesa-17.3.3.tar.gz
+   41bac5de0ef6adc1f41a1ec0f80c19e361298ce02fa81b5f9ba4fdca33a9379b  mesa-17.3.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 104214 <https://bugs.freedesktop.org/show_bug.cgi?id=104214>`__
+   - Dota crashes when switching from game to desktop
+-  `Bug 104492 <https://bugs.freedesktop.org/show_bug.cgi?id=104492>`__
+   - Compute Shader: Wrong alignment when assigning struct value to
+   structured SSBO
+-  `Bug 104551 <https://bugs.freedesktop.org/show_bug.cgi?id=104551>`__
+   - Check if Mako templates for Python are installed
+
+Changes
+-------
+
+Alex Smith (3):
+
+-  anv: Add missing unlock in anv_scratch_pool_alloc
+-  anv: Take write mask into account in has_color_buffer_write_enabled
+-  anv: Make sure state on primary is correct after CmdExecuteCommands
+
+Andres Gomez (1):
+
+-  anv: Import mako templates only during execution of anv_extensions
+
+Bas Nieuwenhuizen (11):
+
+-  radv: Invert condition for all samples identical during resolve.
+-  radv: Flush caches before subpass resolve.
+-  radv: Fix fragment resolve destination offset.
+-  radv: Use correct framebuffer size for partial FS resolves.
+-  radv: Always use fragment resolve if dest uses DCC.
+-  Revert "radv/gfx9: fix block compression texture views."
+-  radv: Use correct HTILE expanded words.
+-  radv: Allow writing 0 scissors.
+-  ac/nir: Handle loading data from compact arrays.
+-  radv: Invalidate L1 for VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT.
+-  ac/nir: Sanitize location_frac for local variables.
+
+Dave Airlie (8):
+
+-  radv: fix events on compute queues.
+-  radv: fix pipeline statistics end query on compute queue
+-  radv/gfx9: fix 3d image to image transfers on compute queues.
+-  radv/gfx9: fix 3d image clears on compute queues
+-  radv/gfx9: fix buffer to image for 3d images on compute queues
+-  radv/gfx9: fix block compression texture views.
+-  radv/gfx9: use a bigger hammer to flush cb/db caches.
+-  radv/gfx9: use correct swizzle parameter to work out border swizzle.
+
+Emil Velikov (1):
+
+-  docs: add sha256 checksums for 17.3.2
+
+Florian Will (1):
+
+-  glsl: Respect std430 layout in lower_buffer_access
+
+Juan A. Suarez Romero (6):
+
+-  cherry-ignore: intel/fs: Use the original destination region for int
+   MUL lowering
+-  cherry-ignore: i965/fs: Use UW types when using V immediates
+-  cherry-ignore: main: Clear shader program data whenever ProgramBinary
+   is called
+-  cherry-ignore: egl: pass the dri2_dpy to the $plat_teardown functions
+-  cherry-ignore: vulkan/wsi: free cmd pools
+-  Update version to 17.3.3
+
+Józef Kucia (1):
+
+-  radeonsi: fix alpha-to-coverage if color writes are disabled
+
+Kenneth Graunke (2):
+
+-  i965: Require space for MI_BATCHBUFFER_END.
+-  i965: Torch public intel_batchbuffer_emit_dword/float helpers.
+
+Lucas Stach (1):
+
+-  etnaviv: disable in-place resolve for non-supertiled surfaces
+
+Samuel Iglesias Gonsálvez (1):
+
+-  anv: VkDescriptorSetLayoutBinding can have descriptorCount == 0
+
+Thomas Hellstrom (1):
+
+-  loader/dri3: Avoid freeing renderbuffers in use
+
+Tim Rowley (1):
+
+-  swr/rast: fix invalid sign masks in avx512 simdlib code

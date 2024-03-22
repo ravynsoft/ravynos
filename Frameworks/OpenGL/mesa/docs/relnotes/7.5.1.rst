@@ -1,0 +1,55 @@
+Mesa 7.5.1 Release Notes, 3 September 2009
+==========================================
+
+Mesa 7.5.1 is a bug-fix release fixing issues found since the 7.5
+release.
+
+The main new feature of Mesa 7.5.x is the
+`Gallium3D <https://www.freedesktop.org/wiki/Software/gallium>`__
+infrastructure.
+
+Mesa 7.5.1 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   d7269e93bc7484430637d54ced250876  MesaLib-7.5.1.tar.gz
+   877d6a4b24efc2b1d02aa553f262cba8  MesaLib-7.5.1.tar.bz2
+   23f4fb757a05c8396425681234ae20e5  MesaLib-7.5.1.zip
+   5af4bd113652108f5cec5113dad813f2  MesaDemos-7.5.1.tar.gz
+   785402e3b9f0e335538fcc6bf19f6987  MesaDemos-7.5.1.tar.bz2
+   950058cc6d6106e9c7d5876a03789fe9  MesaDemos-7.5.1.zip
+   cb52ce2c93389c2711cbe8d857ec5303  MesaGLUT-7.5.1.tar.gz
+   e3a9892e056d625c5353617a7c5b7e9c  MesaGLUT-7.5.1.tar.bz2
+   da1de364df148c94b4994006191a1e69  MesaGLUT-7.5.1.zip
+
+New features
+------------
+
+-  Added configure --with-max-width=W, --with-max-height=H options to
+   specify max framebuffer, viewport size.
+
+Bug fixes
+---------
+
+-  Added missing GLEW library to MesaDemos tarballs.
+-  Fixed swapbuffers jerkiness in Doom3/etc in Intel drivers.
+-  Fixed front buffer rendering bug in Intel drivers.
+-  Fixed minor GLX memory leaks.
+-  Fixed some texture env / fragment program state bugs.
+-  Fixed some Gallium glBlitFramebuffer() bugs
+-  Empty glBegin/glEnd() pair could cause divide by zero (bug 23489)
+-  Fixed Gallium glBitmap() Z position bug
+-  Setting arrays of sampler uniforms did not work
+-  Selection/Feedback mode didn't handle polygon culling correctly (bug
+   16866)
+-  Fixed 32/64-bit cross compilation issue in gen_matypes.c
+-  Fixed glXCreateGLXPixmap() for direct rendering.
+-  Fixed Gallium glCopyPixels(GL_STENCIL_INDEX) mispositioned image bug.

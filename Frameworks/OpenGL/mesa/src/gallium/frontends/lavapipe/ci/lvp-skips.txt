@@ -1,0 +1,21 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# still timing out in llvm jit
+dEQP-VK.pipeline.monolithic.blend.dual_source.format.r16_unorm.states.color_1ms1a_cc_max_alpha_1msa_1mca_sub-color_o_1mdc_max_alpha_1mda_1ms1c_rsub-color_sas_da_max_alpha_1msa_1msc_add-color_sc_1msc_add_alpha_sas_1ms1a_rsub
+dEQP-VK.pipeline.monolithic.blend.format.r16_unorm.states.color_sas_sa_min_alpha_ca_1mda_max-color_1mdc_dc_add_alpha_1mda_sas_rsub-color_sas_1mca_max_alpha_1mca_1mcc_min-color_o_1msa_rsub_alpha_dc_da_min
+dEQP-VK.pipeline.pipeline_library.blend.dual_source.format.r16_unorm.states.color_1ms1a_cc_max_alpha_1msa_1mca_sub-color_o_1mdc_max_alpha_1mda_1ms1c_rsub-color_sas_da_max_alpha_1msa_1msc_add-color_sc_1msc_add_alpha_sas_1ms1a_rsub
+dEQP-VK.pipeline.pipeline_library.blend.dual_source.format.r16_unorm.states.color_z_s1c_min_alpha_1mcc_s1c_rsub-color_ca_1mca_add_alpha_cc_1ms1a_min-color_ca_1ms1c_rsub_alpha_sa_sas_min-color_1ms1c_s1a_add_alpha_1mda_1ms1a_min
+dEQP-VK.pipeline.pipeline_library.blend.format.r16_unorm.states.color_sas_sa_min_alpha_ca_1mda_max-color_1mdc_dc_add_alpha_1mda_sas_rsub-color_sas_1mca_max_alpha_1mca_1mcc_min-color_o_1msa_rsub_alpha_dc_da_min
+
+dEQP-VK.graphicsfuzz.spv-stable-pillars-O-op-select-to-op-phi
+dEQP-VK.graphicsfuzz.spv-composites
+
+# These tests started hitting timeouts when we upgraded LLVM from v11 to 13
+dEQP-VK.pipeline.fast_linked_library.blend.dual_source.format.r16_unorm.states.color_1ms1a_cc_max_alpha_1msa_1mca_sub-color_o_1mdc_max_alpha_1mda_1ms1c_rsub-color_sas_da_max_alpha_1msa_1msc_add-color_sc_1msc_add_alpha_sas_1ms1a_rsub
+dEQP-VK.pipeline.fast_linked_library.blend.format.r16_unorm.states.color_sas_sa_min_alpha_ca_1mda_max-color_1mdc_dc_add_alpha_1mda_sas_rsub-color_sas_1mca_max_alpha_1mca_1mcc_min-color_o_1msa_rsub_alpha_dc_da_min
+dEQP-VK.graphicsfuzz.spv-stable-maze-flatten-copy-composite
+
+# Those tests time out reliably
+dEQP-VK.graphicsfuzz.spv-stable-pillars-volatile-nontemporal-store

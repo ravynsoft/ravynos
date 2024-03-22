@@ -1,0 +1,43 @@
+Mesa 7.7.1 Release Notes / March 28, 2010
+=========================================
+
+Mesa 7.7.1 is a bug-fix release.
+
+Mesa 7.7.1 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   3ab0638cfa7ce8157337a229cf0db2c4  MesaLib-7.7.1.tar.gz
+   46664d99e03f1e3ac078a7fea02af115  MesaLib-7.7.1.tar.bz2
+   4e73ba8abb59aff79485eb95d7cefff7  MesaLib-7.7.1.zip
+   bf1b108983995f7a712cf3343df1c918  MesaDemos-7.7.1.tar.gz
+   aeb39645d80d656e0adebaa09e5bcd03  MesaDemos-7.7.1.tar.bz2
+   01c49b7454fd292244eaf8bdc6ed8cf0  MesaDemos-7.7.1.zip
+   37ec6386693dcb6dc770d1efd63a7a93  MesaGLUT-7.7.1.tar.gz
+   1e16c85282f843791a21f7bc7b6a1ca8  MesaGLUT-7.7.1.tar.bz2
+   d352c9e36a8e4d1059f4abc017b131e0  MesaGLUT-7.7.1.zip
+
+Bug fixes
+---------
+
+-  Assorted fixes to VMware SVGA gallium driver.
+-  Fixed broken blending to multiple color buffers in swrast driver.
+-  Allocate constants more tightly in GL_ARB_vertex/fragment parser.
+-  Fixed mipmap generation bug caused by invalid viewport state.
+-  Gallium SSE codegen for XPD didn't always work.
+-  Fixed Windows build.
+-  Fixed broken glMultiDrawElements().
+-  Silence bogus GL errors generated in glxinfo.
+-  Fixed several render to texture bugs.
+-  Assorted bug fixes in Mesa/Gallium state tracker including
+   glCopy/DrawPixels() to FBOs.
+-  Assorted fixes to Gallium drivers.
+-  Fixed broken glPush/PopClientAttrib() for vertex arrays in GLX code.

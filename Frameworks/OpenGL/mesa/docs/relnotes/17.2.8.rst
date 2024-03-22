@@ -1,0 +1,85 @@
+Mesa 17.2.8 Release Notes / December 22, 2017
+=============================================
+
+Mesa 17.2.8 is a bug fix release which fixes bugs found since the 17.2.7
+release.
+
+Mesa 17.2.8 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c715c3a3d6fe26a69c096f573ec416e038a548f0405e3befedd5136517527a84  mesa-17.2.8.tar.gz
+   6e940345cceaadfd805d701ed2b956589fa77fe8c39991da30ed51ea6b9d095f  mesa-17.2.8.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 102710 <https://bugs.freedesktop.org/show_bug.cgi?id=102710>`__
+   - vkCmdBlitImage with arrayLayers > 1 fails
+-  `Bug 103007 <https://bugs.freedesktop.org/show_bug.cgi?id=103007>`__
+   - [OpenGL CTS] [HSW]
+   KHR-GL45.gpu_shader_fp64.fp64.max_uniform_components fails
+-  `Bug 103544 <https://bugs.freedesktop.org/show_bug.cgi?id=103544>`__
+   - Graphical glitches r600 in game this war of mine linux native
+-  `Bug 103579 <https://bugs.freedesktop.org/show_bug.cgi?id=103579>`__
+   - Vertex shader causes compiler to crash in SPIRV-to-NIR
+
+Changes
+-------
+
+Andres Gomez (6):
+
+-  cherry-ignore: swr: Fix KNOB_MAX_WORKER_THREADS thread creation
+   override.
+-  cherry-ignore: added 17.3 nominations.
+-  cherry-ignore: radv: port merge tess info from anv
+-  cherry-ignore: main: Clear shader program data whenever ProgramBinary
+   is called
+-  cherry-ignore: r600: set DX10_CLAMP for compute shader too
+-  Update version to 17.2.8
+
+Bas Nieuwenhuizen (2):
+
+-  spirv: Fix loading an entire block at once.
+-  radv: Fix multi-layer blits.
+
+Brian Paul (2):
+
+-  xlib: call \_mesa_warning() instead of fprintf()
+-  gallium/aux: include nr_samples in util_resource_size() computation
+
+Emil Velikov (1):
+
+-  docs: add sha256 checksums for 17.2.7
+
+Iago Toral Quiroga (1):
+
+-  i965/vec4: use a temp register to compute offsets for pull loads
+
+Leo Liu (1):
+
+-  radeon/vce: move destroy command before feedback command
+
+Matt Turner (2):
+
+-  util: Assume little endian in the absence of platform-specific
+   handling
+-  util: Add a SHA1 unit test program
+
+Roland Scheidegger (2):
+
+-  r600: use min_dx10/max_dx10 instead of min/max
+-  r600: use DX10_CLAMP bit in shader setup

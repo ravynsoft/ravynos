@@ -1,0 +1,281 @@
+Mesa 23.0.0 Release Notes / 2023-02-22
+======================================
+
+Mesa 23.0.0 is a bug fix release which fixes bugs found since the 23.0.0-rc5 release.
+
+Mesa 23.0.0 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.0.0 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    01f3cff3763f09e0adabcb8011e4aebc6ad48f6a4dd4bae904fe918707d253e4  mesa-23.0.0.tar.xz
+
+
+
+New features
+------------
+
+- VK_EXT_descriptor_buffer on RADV, Turnip
+
+- VK_AMD_shader_early_and_late_fragment_tests on RADV
+
+- VK_AMD_shader_explicit_vertex_parameter on RADV/RDNA3
+
+- VK_EXT_swapchain_colorspace on RADV, ANV, Turnip
+
+- Enabled VK_EXT_mesh_shader by default on RADV/RDNA2
+
+- Implemented more VK_EXT_dynamic_state3 features on RADV, Turnip
+
+- Various raytracing, graphics pipeline library and RDNA3 improvements on RADV
+
+- Radeon Memory Visualizer support with RADV.
+
+- VK_KHR_shader_integer_dot_product on V3DV
+
+- VK_KHR_present_wait on ANV, RADV, Turnip
+
+- VK_KHR_push_descriptor on Venus
+
+- VK_KHR_pci_bus_info on Venus
+
+- GL_ARB_clip_control on panfrost
+
+- GL_ARB_texture_filter_anisotropic on panfrost, asahi
+
+- GL_ARB_occulsion_query2 on asahi
+
+- GL_ARB_shader_stencil_export on asahi
+
+- GL_ARB_draw_instanced on asahi
+
+- GL_ARB_instanced_ararys on asahi
+
+- GL_ARB_seamless_cube_map on asahi
+
+- GL_NV_conditional_render on asahi
+
+- GL_ARB_texture_mirror_clamp_to_edge on asahi
+
+- None
+
+
+Bug fixes
+---------
+
+- mesa: _mesa_glthread_upload crash
+- Rise of the Tomb Raider's Ambient Occlusion pass misrenders (swimming shadows)
+- Minecraft: spec related compile errors
+- radv: (Using mesh shader) NIR validation failed after nir_lower_io_to_scalar_early
+- wine + dxvk + Rise of the Tomb Raider crashes in Soviet Installation 20% with VK_ERROR_DEVICE_LOST
+- Sometimes VLC player process gets stuck in memory after closure if video output used is Auto or OpenGL
+- kwin_wayland crashes involving dri2_create_drawable when Plasma starts and the llvmpipe driver from Mesa 23.0-rc3 and 23.0-rc4 is used
+- anv: VK_ACCESS_2_SHADER_READ_BIT doesn't seem to be handled correctly
+- Iris corruptions in zoom calls
+- Sampling with aux enabled with ISL_AUX_STATE_PASS_THROUGH seems broken on Tigerlake+
+- anv: incorrect task shader payload
+- radv: Hi-Fi Rush incorrectly rendering face shadows with DCC on 7900 XTX
+- DG2: incorrect rendering in Sascha Willems raytracing callable demo
+- Some blackouts / rendering issues with RADV_PERFTEST=gpl in Battlefield 1 (DX11)
+- radv: Segfault during createAccelerationStructure when the backing buffer is not bound to memory
+
+
+Changes
+-------
+
+Alan Coopersmith (1):
+
+- util/disk_cache: Handle OS'es without d_type in struct dirent
+
+Bas Nieuwenhuizen (1):
+
+- nir: Apply a maximum stack depth to avoid stack overflows.
+
+Charmaine Lee (3):
+
+- svga: fix resource_get_handle from resource created without SHARED bind flag
+- svga: fix compatible formats for shareable surfaces
+- svga: use upload buffer if texture has pending changes
+
+Chia-I Wu (3):
+
+- radv: fix a hang with binning on CHIP_RENOIR
+- turnip: fix a major leak with GPL LTO
+- turnip: fix a null descriptor set dereference
+
+Constantine Shablya (1):
+
+- anv,hasvk: flush what UNIFORM_READ flushes on SHADER_READ
+
+Danylo Piliaiev (3):
+
+- tu: Prevent using stale value of RB_UNKNOWN_88D0 on BLIT
+- tu: Prevent using stale value of GRAS_SC_CNTL in sysmem clear
+- turnip: Disable draw states after dyn renderpass in all cases
+
+Dave Airlie (2):
+
+- crocus: disable Y tiling for render targets properly.
+- crocus: switch gen4/5 tiling flags to follow suggestions.
+
+Dylan Baker (7):
+
+- .pick_status.json: Update to bd848ac92d9d77d72a1edb5645488639df91937e
+- .pick_status.json: Mark 6af3a12e700065ca4b8b3a5d12b97a75142dd185 as denominated
+- .pick_status.json: Update to e050a00b9f4d057e93f61f79019b5cf8bcd04e49
+- .pick_status.json: Update to 4e09d37f3bd4b2f5837040cb1695d151672944e1
+- .pick_status.json: Update to 4459668b6e74094b93f13da377077c4f26c9b7b9
+- .pick_status.json: Update to dd3b67b9746f1d0f2766d6c39bb23e59d6548aba
+- VERSION: bump for 23.0.0
+
+Emma Anholt (2):
+
+- Revert "freedreno/a5xx: Fix clip_mask"
+- hasvk: Fix SPIR-V warning about TF unsupported on gen7.
+
+Eric Engestrom (1):
+
+- panfrost: drop no-longer-needed libglsl
+
+Erik Faye-Lund (1):
+
+- zink: remove incorrect trailing comma
+
+Faith Ekstrand (3):
+
+- nir/from_ssa: Only re-locate values that are destinations
+- nir/from_ssa: Move the loop bounds check in resolve_parallel_copy
+- nir/deref: Preserve alignments in opt_remove_cast_cast()
+
+Georg Lehmann (2):
+
+- aco: don't allow output modifiers for v_cvt_pkrtz_f16_f32
+- aco: Don't use vcmpx with DPP.
+
+Hans-Kristian Arntzen (3):
+
+- radv: Fix invalid 64-bit shift.
+- radv: Fix missing VK_ACCESS_2_SHADER_SAMPLED_READ_BIT.
+- radv: Implement VK_ACCESS_2_DESCRIPTOR_BUFFER_READ_BIT_EXT.
+
+Italo Nicola (1):
+
+- panfrost: fix tiny sample_positions BO memory leak
+
+Jesse Natalie (2):
+
+- clc: Include opencl-c-base.h with LLVM 15 (using builtins)
+- microsoft/clc: Set features that are used by CL tests
+
+Konstantin Seurer (3):
+
+- radv: Fix creating accel structs with unbound buffers
+- radv: Hash VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_* flags
+- radv: Make accel struct meta state initialization thread safe
+
+Lionel Landwerlin (4):
+
+- intel/fs: fix mesh indirect movs
+- anv/hasvk: handle a SAMPLED_READ/STORAGE_READ access flags
+- intel/fs: bound subgroup invocation read to dispatch size
+- intel/perf: also add the oa timestamp shift on MTL
+
+Marcin Ślusarz (2):
+
+- anv: enable task redistribution
+- intel/compiler/mesh: use slice id of task urb handles in mesh shaders
+
+Marek Olšák (2):
+
+- mesa: ignore indices[i] if count[i] == 0 for MultiDrawElements
+- glthread: ignore non-VBO vertex arrays with NULL data pointers
+
+Michel Dänzer (4):
+
+- glsl/standalone: Fix up _mesa_reference_shader_program_data signature
+- glsl/standalone: Do not pass memory allocated with ralloc_size to free
+- anv/grl: Use union for reinterpreting integer as float
+- frontend/dri: Initialize callbacks in dri_swrast_kms_init_screen
+
+Mike Blumenkrantz (11):
+
+- zink: add newlines to some debug printfs
+- zink: unset gfx shader read when unbinding shader images
+- zink: unref image buffer descriptors on unbind
+- zink: sync LTO compiles for GPL pipelines on shader free
+- zink: fix descriptor pool free iterating
+- zink: always use NEAREST for zs blits
+- zink: block LINEAR filtered blits for zs formats
+- dri3: avoid deadlocking when polling deleted windows for events
+- vulkan/wsi: avoid deadlocking dri3 when polling deleted windows for events
+- kopper: fix loop iterating for msaa texture creation
+- driconf: add zink glthread disable for a game
+
+Nanley Chery (3):
+
+- iris: Update comment in iris_cache_flush_for_render
+- iris: Flush caches for aux-mode changes more often
+- iris: Drop iris_cache_flush_for_render
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- amd/surface: fix base_mip_width of subsampled formats
+
+Samuel Pitoiset (3):
+
+- radv: disable DCC for mipmaps on GFX11
+- Revert "radv: acquire pstate on-demand when capturing with RGP"
+- radv/amdgpu: only set a new pstate if the current one is different
+
+Sebastian Wick (1):
+
+- loader: do not check the mesa DRI_Mesa version if it was not found
+
+Sil Vilerino (1):
+
+- d3d12: Video Encode - Fix ID3D12CommandAllocator leak
+
+SoroushIMG (3):
+
+- zink: relax bresenhamLines requirement for non-strictLine drivers
+- zink: allocate program shader caches from the program's mem ctx
+- zink: free resource objects' views array during destruction
+
+Sviatoslav Peleshko (2):
+
+- anv: Handle VkAccelerationStructureBuildRangeInfoKHR::transformOffset
+- driconf/anv: Apply limit_trig_input_range WA to Rise of the Tomb Raider
+
+Tapani Pälli (2):
+
+- intel/blorp: disable REP16 for gfx12+ with R10G10B10_FLOAT_A2
+- iris: disable preemption for 3DPRIMITIVE during streamout
+
+Tatsuyuki Ishi (1):
+
+- radv: Fix missing rbplus_allowed check for dynamic PS epilogs.
+
+Timothy Arceri (2):
+
+- glsl: add _token_list_prepend() helper to the parser
+- glsl: isolate object macro replacments
+
+Timur Kristóf (2):
+
+- ac/nir/ngg: Include culled primitives in query.
+- radv: Call nir_lower_array_deref_of_vec in radv_lower_io_to_scalar_early.
+
+Vincent Davis Jr (1):
+
+- gbm/backend: fix gbm compile without dri

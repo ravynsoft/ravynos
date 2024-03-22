@@ -1,0 +1,69 @@
+Mesa 7.6 Release Notes, 28 September 2009
+=========================================
+
+Mesa 7.6 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 7.6.1.
+
+Mesa 7.6 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   5ffa7d7abf8973f57a1bc4f813e6dade  MesaLib-7.6.tar.gz
+   8c75f90cd0303cfac9e4b6d54f6759ca  MesaLib-7.6.tar.bz2
+   27fcfd69708599c978cb34ba5cd363e1  MesaLib-7.6.zip
+   e7befb3ae604f591806194a4da445628  MesaDemos-7.6.tar.gz
+   0ede7adf217951acd90dbe4551210c07  MesaDemos-7.6.tar.bz2
+   ed9298409cf6613bc0964525ca4afc8a  MesaDemos-7.6.zip
+   666955668e44ff14acf7d15dc78407d3  MesaGLUT-7.6.tar.gz
+   b8b59706f827d18d1b784a0ff98b4dc2  MesaGLUT-7.6.tar.bz2
+   c49c19c2bbef4f3b7f1389974dff25f4  MesaGLUT-7.6.zip
+
+New features
+------------
+
+-  OpenVG front-end (state tracker for Gallium). This was written by
+   Zack Rusin at Tungsten Graphics.
+-  GL_ARB_vertex_array_object and GL_APPLE_vertex_array_object
+   extensions (supported in Gallium drivers, Intel DRI drivers, and
+   software drivers)
+-  GL_ARB_copy_buffer extension (supported in Gallium drivers, Intel DRI
+   drivers, and software drivers)
+-  GL_ARB_map_buffer_range extension (supported in Gallium drivers,
+   Intel DRI drivers, and software drivers)
+-  GL_ARB_seamless_cube_map extension (supported in software drivers and
+   i965 drivers)
+-  GL_ARB_vertex_array_bgra (ARB synonym for GL_EXT_vertex_array_bgra)
+-  GL_ARB_sync (supported in software drivers and Intel DRI drivers)
+-  GL_EXT_provoking_vertex extension (supported in Gallium, i915, i965,
+   and software drivers)
+-  Rewritten radeon/r200/r300 driver using a buffer manager
+-  radeon/r200/r300 GL_EXT_framebuffer_object support when used with
+   kernel memory manager
+-  radeon/r200/r300 support for GL_ARB_occlusion_query
+-  r300 driver supports OpenGL 1.5
+-  r300 driver support for GL_EXT_vertex_array_bgra, GL_EXT_texture_sRGB
+-  i915/945 driver support for GL_ARB_point_sprite,
+   GL_EXT_stencil_two_side and GL_ATI_separate_stencil extensions
+-  Rewritten assembler for GL_ARB_vertex_program /
+   GL_ARB_fragment_program.
+-  Added configure --with-max-width=W, --with-max-height=H options to
+   specify max framebuffer, viewport size.
+-  Initial version of Gallium llvmpipe driver. This is a new driver
+   based on LLVM which makes exensive use of run-time code generation.
+   This is an "alpha" stage driver. See the
+   src/gallium/drivers/llvmpipe/README file for more information.
+
+Bug fixes
+---------
+
+-  i965 DRI driver fixes, including support for "unlimited" size
+   constant buffers (GLSL uniforms)

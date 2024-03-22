@@ -1,0 +1,159 @@
+Mesa 10.1.2 Release Notes / (May 5, 2014)
+=========================================
+
+Mesa 10.1.2 is a bug fix release which fixes bugs found since the 10.1.1
+release.
+
+Mesa 10.1.2 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   37d79f94b1f41852a89d1fc3900bea76  MesaLib-10.1.2.tar.gz
+   28b60d15ac9f364da1e0155911eaf44e  MesaLib-10.1.2.tar.bz2
+   05300039085a65fc53c5472c4bb5747a  MesaLib-10.1.2.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 27499 <https://bugs.freedesktop.org/show_bug.cgi?id=27499>`__ -
+   [855GM i915] GL_LINE_STIPPLE displays incorrect colors
+-  `Bug 75723 <https://bugs.freedesktop.org/show_bug.cgi?id=75723>`__ -
+   (regression since Linux 3.14?) brw_get_graphics_reset_status:
+   Assertion \`brw->hw_ctx != ((void \*)0)' failed
+-  `Bug 76894 <https://bugs.freedesktop.org/show_bug.cgi?id=76894>`__ -
+   Piglit/spec/EXT_framebuffer_object/fbo-bind-renderbuffer failed
+-  `Bug 77702 <https://bugs.freedesktop.org/show_bug.cgi?id=77702>`__ -
+   [i965 Bisected]Piglit spec/NV_conditional_render_blitframebuffer
+   fails
+
+Changes
+-------
+
+Ander Conselvan de Oliveira (2):
+
+-  gbm/dri: Fix out-of-memory error path in dri_device_create()
+-  egl: Protect use of gbm_dri with ifdef HAVE_DRM_PLATFORM
+
+Anuj Phogat (27):
+
+-  mesa: Fix glGetVertexAttribi(GL_VERTEX_ATTRIB_ARRAY_SIZE)
+-  swrast: Add glBlitFramebuffer to commands affected by conditional
+   rendering
+-  mesa: Fix error condition for multisample proxy texture targets
+-  i965: Put an assertion to check valid varying_to_slot[varying]
+-  i965: Fix component mask and varying_to_slot mapping for gl_Layer
+-  i965: Fix component mask and varying_to_slot mapping for
+   gl_ViewportIndex
+-  mesa: Add helper function \_mesa_is_format_integer()
+-  mesa: Add error condition for integer formats in glGetTexImage()
+-  mesa: Add an error condition in
+   glGetFramebufferAttachmentParameteriv()
+-  mesa: Fix error code generation in glReadPixels()
+-  glsl: Allow overlapping locations for vertex input attributes
+-  mesa: Fix querying location of nth element of an array variable
+-  mesa: Use location VERT_ATTRIB_GENERIC0 for vertex attribute 0
+-  glsl: Compile error if fs defines conflicting qualifiers for
+   gl_FragCoord
+-  glsl: Compile error if fs uses gl_FragCoord before first
+   redeclaration
+-  mesa: Add entry for extension ARB_texture_stencil8
+-  mesa: Add error condition for format=STENCIL_INDEX in glGetTexImage()
+-  i965: Fix crash in do_blit_readpixels()
+-  mesa: Add missing types in \_mesa_texstore_xx_xx() functions
+-  mesa: Allow srcFormat=GL_DEPTH_STENCIL in \_mesa_texstore_xx_xx()
+   functions
+-  mesa: Add new helper function \_mesa_unpack_depth_stencil_row()
+-  mesa: Add support to unpack depth-stencil texture in to
+   FLOAT_32_UNSIGNED_INT_24_8_REV
+-  mesa: Allow FLOAT_32_UNSIGNED_INT_24_8_REV in get_tex_depth_stencil()
+-  i965: Add glBlitFramebuffer to commands affected by conditional
+   rendering
+-  glsl: Use switch to allow adding more shader types
+-  glsl: Link error if fs defines conflicting qualifiers for
+   gl_FragCoord
+-  glsl: Apply the link error conditions to
+   GL_ARB_fragment_coord_conventions
+
+Benjamin Bellec (1):
+
+-  mesa: fix GetStringi error message with correct function name
+
+Brian Paul (1):
+
+-  swrast: allocate swrast_texture_image::ImageSlices array if needed
+
+Carl Worth (4):
+
+-  docs: Add the MD5 sums for the 10.1.1 release tar files.
+-  cherry-ignore: Ignore a patch causing a regression
+-  cherry-ignore: Drop an ignored patch now that piglit has been
+   updated.
+-  Update VERSION to 10.1.2
+
+Chris Forbes (1):
+
+-  glsl: Only allow \`invariant\` on shader in/out between stages.
+
+Eric Anholt (1):
+
+-  i965: Fix render-to-texture in non-FinishRenderTexture cases.
+
+Ian Romanick (1):
+
+-  dri3: Enable GLX_MESA_query_renderer on DRI3 too
+
+Kenneth Graunke (2):
+
+-  i965: Don't enable reset notification support on Gen4-5.
+-  i965: Actually emit PIPELINE_SELECT and 3DSTATE_VF_STATISTICS.
+
+Marek Olšák (10):
+
+-  r300g: don't crash when getting NULL colorbuffers
+-  st/mesa: remove trailing NULL colorbuffers
+-  r600g: fix edge flags and layered rendering on R600-R700
+-  r600g: disable async DMA on R700
+-  r600g: fix MSAA resolve on R6xx when the destination is 1D-tiled
+-  r600g: fix flushing on RV670, RS780, RS880 again
+-  r600g: fix buffer copying on R600-R700
+-  r600g: fix for broken CULL_FRONT behavior on R6xx
+-  r600g: fix for an MSAA hang on RV770
+-  r600g: fix hang on RV740 by using DX_RASTERIZATION_KILL instead of
+   SX_MISC
+
+Michel Dänzer (2):
+
+-  r600g: Disable LLVM by default at runtime for graphics
+-  st/mesa: Fix NULL pointer dereference for incomplete framebuffers
+
+Neil Roberts (1):
+
+-  wayland: Fix the logic in disabling the prime capability
+
+Samuel Iglesias Gonsalvez (1):
+
+-  mesa: fix check for dummy renderbuffer in
+   \_mesa_FramebufferRenderbufferEXT()
+
+Thomas Hellstrom (1):
+
+-  st/xa: Cache render target surface
+
+nick (1):
+
+-  swrast: Fix vertex color in \_swsetup_Translate()

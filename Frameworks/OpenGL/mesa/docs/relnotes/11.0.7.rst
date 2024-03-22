@@ -1,0 +1,135 @@
+Mesa 11.0.7 Release Notes / December 9, 2015
+============================================
+
+Mesa 11.0.7 is a bug fix release which fixes bugs found since the 11.0.6
+release.
+
+Mesa 11.0.7 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   07c27004ff68b288097d17b2faa7bdf15ec73c96b7e6c9835266e544adf0a62f  mesa-11.0.7.tar.gz
+   e7e90a332ede6c8fd08eff90786a3fd1605a4e62ebf3a9b514047838194538cb  mesa-11.0.7.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 90348 <https://bugs.freedesktop.org/show_bug.cgi?id=90348>`__ -
+   Spilling failure of b96 merged value
+-  `Bug 92363 <https://bugs.freedesktop.org/show_bug.cgi?id=92363>`__ -
+   [BSW/BDW] ogles1conform Gets test fails
+-  `Bug 92438 <https://bugs.freedesktop.org/show_bug.cgi?id=92438>`__ -
+   Segfault in pushbuf_kref when running the android emulator (qemu) on
+   nv50
+-  `Bug 93110 <https://bugs.freedesktop.org/show_bug.cgi?id=93110>`__ -
+   [NVE4] textureSize() and textureQueryLevels() uses a texture bound
+   during the previous draw call
+-  `Bug 93126 <https://bugs.freedesktop.org/show_bug.cgi?id=93126>`__ -
+   wrongly claim supporting GL_EXT_texture_rg
+
+Changes
+-------
+
+Chris Wilson (1):
+
+-  meta: Compute correct buffer size with SkipRows/SkipPixels
+
+Daniel Stone (1):
+
+-  egl/wayland: Ignore rects from SwapBuffersWithDamage
+
+Dave Airlie (4):
+
+-  texgetimage: consolidate 1D array handling code.
+-  r600: geometry shader gsvs itemsize workaround
+-  r600: rv670 use at least 16es/gs threads
+-  r600: workaround empty geom shader.
+
+Emil Velikov (4):
+
+-  docs: add sha256 checksums for 11.0.6
+-  get-pick-list.sh: Require explicit "11.0" for nominating stable
+   patches
+-  mesa; add get-extra-pick-list.sh script into bin/
+-  Update version to 11.0.7
+
+François Tigeot (1):
+
+-  xmlconfig: Add support for DragonFly
+
+Ian Romanick (22):
+
+-  mesa: Make bind_vertex_buffer avilable outside varray.c
+-  mesa: Refactor update_array_format to make
+   \_mesa_update_array_format_public
+-  mesa: Refactor enable_vertex_array_attrib to make
+   \_mesa_enable_vertex_array_attrib
+-  i965: Pass brw_context instead of gl_context to brw_draw_rectlist
+-  i965: Use DSA functions for VBOs in brw_meta_fast_clear
+-  i965: Use internal functions for buffer object access
+-  i965: Don't pollute the buffer object namespace in
+   brw_meta_fast_clear
+-  meta: Use DSA functions for PBO in create_texture_for_pbo
+-  meta: Use \_mesa_NamedBufferData and \_mesa_NamedBufferSubData for
+   users of \_mesa_meta_setup_vertex_objects
+-  i965: Use \_mesa_NamedBufferSubData for users of
+   \_mesa_meta_setup_vertex_objects
+-  meta: Don't leave the VBO bound after
+   \_mesa_meta_setup_vertex_objects
+-  meta: Track VBO using gl_buffer_object instead of GL API object
+   handle
+-  meta: Use DSA functions for VBOs in \_mesa_meta_setup_vertex_objects
+-  meta: Use internal functions for buffer object and VAO access
+-  meta: Don't pollute the buffer object namespace in
+   \_mesa_meta_setup_vertex_objects
+-  meta: Partially convert \_mesa_meta_DrawTex to DSA
+-  meta: Track VBO using gl_buffer_object instead of GL API object
+   handle in \_mesa_meta_DrawTex
+-  meta: Use internal functions for buffer object and VAO access in
+   \_mesa_meta_DrawTex
+-  meta: Don't pollute the buffer object namespace in
+   \_mesa_meta_DrawTex
+-  meta/TexSubImage: Don't pollute the buffer object namespace
+-  meta/generate_mipmap: Don't leak the framebuffer object
+-  glsl: Fix off-by-one error in array size check assertion
+
+Ilia Mirkin (7):
+
+-  nvc0/ir: actually emit AFETCH on kepler
+-  nir: fix typo in idiv lowering, causing large-udiv-udiv failures
+-  nouveau: use the buffer usage to determine placement when no binding
+-  nv50,nvc0: properly handle buffer storage invalidation on dsa buffer
+-  nv50/ir: fix (un)spilling of 3-wide results
+-  mesa: support GL_RED/GL_RG in ES2 contexts when driver support exists
+-  nvc0/ir: start offset at texBindBase for txq, like regular texturing
+
+Jonathan Gray (1):
+
+-  automake: fix some occurrences of hardcoded -ldl and -lpthread
+
+Leo Liu (1):
+
+-  radeon/vce: disable Stoney VCE for 11.0
+
+Marta Lofstedt (1):
+
+-  gles2: Update gl2ext.h to revision: 32120
+
+Oded Gabbay (1):
+
+-  llvmpipe: disable VSX in ppc due to LLVM PPC bug

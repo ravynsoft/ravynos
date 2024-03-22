@@ -1,0 +1,73 @@
+Mesa 10.3.7 Release Notes / January 12, 2015
+============================================
+
+Mesa 10.3.7 is a bug fix release which fixes bugs found since the 10.3.6
+release.
+
+Mesa 10.3.7 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   bc13f33c19bc9f44a0565fdd51a8f9d1c0153a3365c429ceaf4ef43b7022b052  MesaLib-10.3.7.tar.gz
+   43c6ced15e237cbb21b3082d7c0b42777c50c1f731d0d4b5efb5231063fb6a5b  MesaLib-10.3.7.tar.bz2
+   d821fd46baf804fecfcf403e901800a4b996c7dd1c83f20a354b46566a49026f  MesaLib-10.3.7.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 85529 <https://bugs.freedesktop.org/show_bug.cgi?id=85529>`__ -
+   Surfaces not drawn in Unvanquished
+-  `Bug 87619 <https://bugs.freedesktop.org/show_bug.cgi?id=87619>`__ -
+   Changes to state such as render targets change fragment shader
+   without marking it dirty.
+
+Changes
+-------
+
+Chad Versace (2):
+
+-  i965: Use safer pointer arithmetic in
+   intel_texsubimage_tiled_memcpy()
+-  i965: Use safer pointer arithmetic in gather_oa_results()
+
+Emil Velikov (2):
+
+-  docs: Add sha256 sums for the 10.3.6 release
+-  Update version to 10.3.7
+
+Ilia Mirkin (2):
+
+-  nv50,nvc0: set vertex id base to index_bias
+-  nv50/ir: fix texture offsets in release builds
+
+Kenneth Graunke (2):
+
+-  i965: Add missing BRW_NEW_*_PROG_DATA to texture/renderbuffer atoms.
+-  i965: Fix start/base_vertex_location for >1 prims but
+   !BRW_NEW_VERTICES.
+
+Marek Olšák (3):
+
+-  glsl_to_tgsi: fix a bug in copy propagation
+-  vbo: ignore primitive restart if FixedIndex is enabled in DrawArrays
+-  st/mesa: fix GL_PRIMITIVE_RESTART_FIXED_INDEX
+
+Michel Dänzer (1):
+
+-  radeonsi: Don't modify PA_SC_RASTER_CONFIG register value if rb_mask
+   == 0

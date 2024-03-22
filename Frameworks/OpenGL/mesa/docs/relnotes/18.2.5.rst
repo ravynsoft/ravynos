@@ -1,0 +1,138 @@
+Mesa 18.2.5 Release Notes / November 15, 2018
+=============================================
+
+Mesa 18.2.5 is a bug fix release which fixes bugs found since the 18.2.4
+release.
+
+Mesa 18.2.5 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   dddc28928b6f4083a0d5120b58c1c8e2dc189ab5c14299c08a386607fdbbdce7  mesa-18.2.5.tar.gz
+   b12c32872832e5353155e1e8026e1f1ab75bba9dc5b178d712045684d26c2b73  mesa-18.2.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 105731 <https://bugs.freedesktop.org/show_bug.cgi?id=105731>`__
+   - linker error "fragment shader input ... has no matching output in
+   the previous stage" when previous stage's output declaration in a
+   separate shader object
+-  `Bug 107511 <https://bugs.freedesktop.org/show_bug.cgi?id=107511>`__
+   - KHR/khrplatform.h not always installed when needed
+-  `Bug 107626 <https://bugs.freedesktop.org/show_bug.cgi?id=107626>`__
+   - [SNB] The graphical corruption and GPU hang occur sometimes on the
+   piglit test "arb_texture_multisample-large-float-texture" with
+   parameter --fp16
+-  `Bug 108082 <https://bugs.freedesktop.org/show_bug.cgi?id=108082>`__
+   - warning: unknown warning option '-Wno-format-truncation'
+   [-Wunknown-warning-option]
+-  `Bug 108560 <https://bugs.freedesktop.org/show_bug.cgi?id=108560>`__
+   - Mesa 32 is built without sse
+
+Changes
+-------
+
+Andre Heider (1):
+
+-  st/nine: fix stack corruption due to ABI mismatch
+
+Andrii Simiklit (1):
+
+-  i965/batch: don't ignore the 'brw_new_batch' call for a 'new batch'
+
+Dylan Baker (2):
+
+-  meson: link gallium nine with pthreads
+-  meson: fix libatomic tests
+
+Emil Velikov (2):
+
+-  egl/glvnd: correctly report errors when vendor cannot be found
+-  m4: add Werror when checking for compiler flags
+
+Eric Engestrom (6):
+
+-  svga: add missing meson build dependency
+-  clover: add missing meson build dependency
+-  wsi/wayland: use proper VkResult type
+-  wsi/wayland: only finish() a successfully init()ed display
+-  configure: install KHR/khrplatform.h when needed
+-  meson: install KHR/khrplatform.h when needed
+
+Gert Wollny (1):
+
+-  virgl/vtest-winsys: Use virgl version of bind flags
+
+Jonathan Gray (1):
+
+-  intel/tools: include stdarg.h in error2aub
+
+Juan A. Suarez Romero (4):
+
+-  docs: add sha256 checksums for 18.2.4
+-  cherry-ignore: add explicit 18.3 only nominations
+-  cherry-ignore: i965/batch: avoid reverting batch buffer if saved
+   state is an empty
+-  Update version to 18.2.5
+
+Lionel Landwerlin (1):
+
+-  anv/android: mark gralloc allocated BOs as external
+
+Marek Olšák (3):
+
+-  ac: fix ac_build_fdiv for f64
+-  st/va: fix incorrect use of resource_destroy
+-  include: update GL & GLES headers (v2)
+
+Matt Turner (2):
+
+-  util/ralloc: Switch from DEBUG to NDEBUG
+-  util/ralloc: Make sizeof(linear_header) a multiple of 8
+
+Olivier Fourdan (1):
+
+-  wayland/egl: Resize EGL surface on update buffer for swrast
+
+Rhys Perry (1):
+
+-  glsl_to_tgsi: don't create 64-bit integer MAD/FMA
+
+Samuel Pitoiset (2):
+
+-  radv: disable conditional rendering for vkCmdCopyQueryPoolResults()
+-  radv: only expose VK_SUBGROUP_FEATURE_ARITHMETIC_BIT for VI+
+
+Sergii Romantsov (1):
+
+-  autotools: library-dependency when no sse and 32-bit
+
+Timothy Arceri (4):
+
+-  st/mesa: calculate buffer size correctly for packed uniforms
+-  st/glsl_to_nir: fix next_stage gathering
+-  nir: add glsl_type_is_integer() helper
+-  nir: don't pack varyings ints with floats unless flat
+
+Vadym Shovkoplias (1):
+
+-  glsl/linker: Fix out variables linking during single stage
+
+Vinson Lee (1):
+
+-  r600/sb: Fix constant logical operand in assert.

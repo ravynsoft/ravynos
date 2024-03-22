@@ -1,0 +1,192 @@
+Mesa 22.3.6 Release Notes / 2023-02-22
+======================================
+
+Mesa 22.3.6 is a bug fix release which fixes bugs found since the 22.3.5 release.
+
+Mesa 22.3.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.3.6 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    4ec8ec65dbdb1ee9444dba72970890128a19543a58cf05931bd6f54f124e117f  builddir/meson-dist/mesa-22.3.6.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Rise of the Tomb Raider's Ambient Occlusion pass misrenders (swimming shadows)
+- Minecraft: spec related compile errors
+- radv: (Using mesh shader) NIR validation failed after nir_lower_io_to_scalar_early
+- allwinner a64: DRM_IOCTL_MODE_CREATE_DUMB failed: Cannot allocate memory after some time of apps usage
+- wine + dxvk + Rise of the Tomb Raider crashes in Soviet Installation 20% with VK_ERROR_DEVICE_LOST
+- Sometimes VLC player process gets stuck in memory after closure if video output used is Auto or OpenGL
+- anv: VK_ACCESS_2_SHADER_READ_BIT doesn't seem to be handled correctly
+- radv: Hi-Fi Rush incorrectly rendering face shadows with DCC on 7900 XTX
+- DG2: incorrect rendering in Sascha Willems raytracing callable demo
+- dozen: Clang 15 complains about "unused" root_dwords
+- dzn: Build failure with MSYS2 MinGW-W64 clang
+
+
+Changes
+-------
+
+Alan Coopersmith (1):
+
+- util/disk_cache: Handle OS'es without d_type in struct dirent
+
+Bas Nieuwenhuizen (1):
+
+- nir: Apply a maximum stack depth to avoid stack overflows.
+
+Charmaine Lee (3):
+
+- svga: fix resource_get_handle from resource created without SHARED bind flag
+- svga: fix compatible formats for shareable surfaces
+- svga: use upload buffer if texture has pending changes
+
+Chia-I Wu (1):
+
+- turnip: fix a major leak with GPL LTO
+
+Constantine Shablya (1):
+
+- anv,hasvk: flush what UNIFORM_READ flushes on SHADER_READ
+
+Danylo Piliaiev (2):
+
+- tu: Prevent using stale value of GRAS_SC_CNTL in sysmem clear
+- turnip: Disable draw states after dyn renderpass in all cases
+
+Dave Airlie (2):
+
+- crocus: disable Y tiling for render targets properly.
+- crocus: switch gen4/5 tiling flags to follow suggestions.
+
+Emma Anholt (1):
+
+- hasvk: Fix SPIR-V warning about TF unsupported on gen7.
+
+Eric Engestrom (10):
+
+- docs/relnotes: add sha256sum for 22.3.5
+- .pick_status.json: Update to 94eff7ccd86658603155261c2fd59491786e7047
+- .pick_status.json: Mark f7b2dbb2bdc366dd294407c5653654ad6059e2ac as denominated
+- .pick_status.json: Mark db6c374919ea16be6f9a6f96d5c9e866c62c556c as denominated
+- .pick_status.json: Update to c0bc0ecf9eaf964ceb4a1573595da8b8b4585cc4
+- .pick_status.json: Update to 75e5d458a006838f5222eb1fac5852c31c71d97f
+- .pick_status.json: Mark 5c246e21b71a1676705440bce767535dc502d748 as denominated
+- .pick_status.json: Mark 75e5d458a006838f5222eb1fac5852c31c71d97f as denominated
+- .pick_status.json: Update to dd3b67b9746f1d0f2766d6c39bb23e59d6548aba
+- .pick_status.json: Mark b68f13bc9078e8d86edc06e081bb146f8b9b3ad6 as denominated
+
+Erico Nunes (1):
+
+- lima: don't use resource_from_handle while creating scanout
+
+Faith Ekstrand (2):
+
+- nir/from_ssa: Only re-locate values that are destinations
+- nir/from_ssa: Move the loop bounds check in resolve_parallel_copy
+
+GH Cao (1):
+
+- dzn: Declare debug only root_dwords as ASSERTED
+
+Georg Lehmann (2):
+
+- aco: don't allow output modifiers for v_cvt_pkrtz_f16_f32
+- aco: Don't use vcmpx with DPP.
+
+Hans-Kristian Arntzen (2):
+
+- radv: Fix invalid 64-bit shift.
+- radv: Fix missing VK_ACCESS_2_SHADER_SAMPLED_READ_BIT.
+
+Italo Nicola (1):
+
+- panfrost: fix tiny sample_positions BO memory leak
+
+Lionel Landwerlin (3):
+
+- intel/fs: fix mesh indirect movs
+- anv/hasvk: handle a SAMPLED_READ/STORAGE_READ access flags
+- intel/fs: bound subgroup invocation read to dispatch size
+
+Marek Olšák (1):
+
+- mesa: ignore indices[i] if count[i] == 0 for MultiDrawElements
+
+Michel Dänzer (3):
+
+- glsl/standalone: Fix up _mesa_reference_shader_program_data signature
+- glsl/standalone: Do not pass memory allocated with ralloc_size to free
+- anv/grl: Use union for reinterpreting integer as float
+
+Mike Blumenkrantz (11):
+
+- zink: add newlines to some debug printfs
+- zink: unset gfx shader read when unbinding shader images
+- zink: sync LTO compiles for GPL pipelines on shader free
+- zink: fix descriptor pool free iterating
+- zink: ralloc zink_shader structs
+- zink: always use NEAREST for zs blits
+- zink: block LINEAR filtered blits for zs formats
+- dri3: avoid deadlocking when polling deleted windows for events
+- vulkan/wsi: avoid deadlocking dri3 when polling deleted windows for events
+- kopper: fix loop iterating for msaa texture creation
+- driconf: add zink glthread disable for a game
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- amd/surface: fix base_mip_width of subsampled formats
+
+Samuel Pitoiset (3):
+
+- radv: disable DCC for mipmaps on GFX11
+- Revert "radv: acquire pstate on-demand when capturing with RGP"
+- radv/amdgpu: only set a new pstate if the current one is different
+
+Sidney Just (1):
+
+- zink: Add missing features to the profile file
+
+SoroushIMG (3):
+
+- zink: fix compute shader leaks
+- zink: allocate program shader caches from the program's mem ctx
+- zink: free resource objects' views array during destruction
+
+Sviatoslav Peleshko (2):
+
+- anv: Handle VkAccelerationStructureBuildRangeInfoKHR::transformOffset
+- driconf/anv: Apply limit_trig_input_range WA to Rise of the Tomb Raider
+
+Tapani Pälli (1):
+
+- intel/blorp: disable REP16 for gfx12+ with R10G10B10_FLOAT_A2
+
+Timothy Arceri (2):
+
+- glsl: add _token_list_prepend() helper to the parser
+- glsl: isolate object macro replacments
+
+Timur Kristóf (1):
+
+- radv: Call nir_lower_array_deref_of_vec in radv_lower_io_to_scalar_early.

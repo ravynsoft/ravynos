@@ -1,0 +1,43 @@
+Mesa 18.3.1 Release Notes / December 11, 2018
+=============================================
+
+Mesa 18.3.1 is a bug fix release which fixes bugs found since the 18.3.0
+release.
+
+Mesa 18.3.0 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   256d0c3d88e380c1b8e3fc5c6ac34001e3b7c30458b8b852407ec68b8ccd9fda  mesa-18.3.1.tar.gz
+   5b1f827d28684a25f6657289f8b7d47ac56395988c7ac23e0ec9a62b644bdc63  mesa-18.3.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+None
+
+Changes
+-------
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 18.3.0
+-  Update version to 18.3.1
+
+Faith Ekstrand (1):
+
+-  anv,radv: Disable VK_EXT_pci_bus_info

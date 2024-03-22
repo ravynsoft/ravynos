@@ -1,0 +1,55 @@
+# No GPU hang, looked like cache flushing fail. Happens on basically all format
+# families.
+dEQP-GLES3.functional.fbo.blit.conversion..*
+
+# No GPU hang, looks like one 2x2 quad was colored slightly off?
+dEQP-GLES3.functional.fbo.msaa.4_samples.depth_component16
+
+dEQP-GLES3.functional.transform_feedback.random_full_array_capture.separate.lines.4
+
+# Lines were the wrong colors on iteration 4/10.
+dEQP-GLES3.functional.transform_feedback.random.separate.lines.4
+
+# Looks like maybe the end of level 0 face 5 got overwritten, others were all
+# OK.  source is 7 levels 65x65x9, dst is 7 levels 65x65x1 cubemap
+dEQP-GLES31.functional.copy_image.non_compressed.viewclass_16_bits.r16i_r16i.texture3d_to_cubemap
+
+# level 0 face 5 again, corruption in the middle this time though.  destination is 64x63, 1 level.
+dEQP-GLES31.functional.copy_image.non_compressed.viewclass_16_bits.r16f_rg8.cubemap_to_texture2d_array
+dEQP-GLES31.functional.copy_image.non_compressed.viewclass_16_bits.r16f_rg8i.cubemap_to_renderbuffer
+dEQP-GLES31.functional.copy_image.non_compressed.viewclass_16_bits.r16f_r16ui.cubemap_to_renderbuffer
+dEQP-GLES31.functional.copy_image.non_compressed.viewclass_16_bits.r16ui_r16ui.cubemap_to_renderbuffer
+
+# "MESA: error: ZINK: vkQueueSubmit failed (VK_ERROR_DEVICE_LOST)"
+# Not preceded by a GPU hang report?  One case had these faults, though:
+# *** gpu fault: ttbr0=000000017505d000 iova=0000000114c89800 dir=WRITE type=TRANSLATION source=CCU (0,0,0,1)
+# *** gpu fault: ttbr0=000000017505d000 iova=0000000114c5c8f0 dir=WRITE type=TRANSLATION source=UNKNOWN (0,0,0,1)
+dEQP-GLES31.functional.copy_image.mixed.viewclass_128_bits_mixed.rgba_astc_12x12_khr_rgba32f.cubemap_to_cubemap
+dEQP-GLES31.functional.copy_image.mixed.viewclass_128_bits_mixed.rgba_astc_6x5_khr_rgba32f.cubemap_to_cubemap
+dEQP-GLES31.functional.copy_image.mixed.viewclass_128_bits_mixed.rgba32f_srgb8_alpha8_astc_12x12_khr.texture3d_to_texture2d
+dEQP-GLES31.functional.copy_image.mixed.viewclass_128_bits_mixed.srgb8_alpha8_astc_10x5_khr_rgba32i.texture2d_array_to_cubemap
+dEQP-GLES31.functional.copy_image.mixed.viewclass_128_bits_mixed.srgb8_alpha8_astc_8x6_khr_rgba32ui.cubemap_to_cubemap
+
+# Found when expanding coverage on 2022/11/17, or randomly flaking
+dEQP-GLES31.functional.separate_shader.random.79
+dEQP-GLES3.functional.transform_feedback.random_full_array_capture.separate.lines.4
+dEQP-GLES3.functional.texture.specification.texsubimage3d_pbo.rgba4_2d_array
+dEQP-GLES3.functional.texture.format.sized.cube.rgba4_npot
+dEQP-GLES31.functional.copy_image.non_compressed.viewclass_16_bits.*cubemap.*
+dEQP-GLES31.functional.copy_image.non_compressed.viewclass_16_bits.*texture2d_array.*
+dEQP-GLES31.functional.copy_image.mixed.viewclass_128_bits_mixed.*astc.*cubemap.*
+dEQP-GLES3.functional.fbo.msaa.2_samples.depth_component16
+
+# ?
+dEQP-GLES31.functional.tessellation.invariance.primitive_set.isolines_fractional_odd_spacing_ccw
+KHR-GLES31.core.texture_cube_map_array.color_depth_attachments
+dEQP-GLES31.functional.texture.specification.texstorage3d.format.rgb5_a1_cube_array
+dEQP-GLES31.functional.copy_image.compressed.viewclass_astc_4x4_rgba.rgba_astc_4x4_khr_srgb8_alpha8_astc_4x4_khr.texture2d_array_to_texture3d
+dEQP-GLES31.functional.image_load_store.2d.format_reinterpret.r32ui_r32f
+
+dEQP-GLES3.functional.fbo.color.tex2d.rgb565
+
+# https://gitlab.freedesktop.org/mesa/mesa/-/issues/9707
+dEQP-GLES3.functional.texture.specification.teximage2d_align.cube_rgba4_51_2
+# ci-collate: Issue found in https://gitlab.freedesktop.org/mesa/mesa/-/jobs/49638414
+dEQP-GLES31.functional.fbo.color.texcubearray.rgb565

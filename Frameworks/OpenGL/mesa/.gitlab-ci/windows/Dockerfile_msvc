@@ -1,0 +1,27 @@
+# escape=`
+
+ARG base_image
+FROM ${base_image}
+
+# https://www.thomasmaurer.ch/2019/07/how-to-install-and-update-powershell-7/
+# Wrapping the following command in cmd.exe
+# iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
+RUN powershell -ExecutionPolicy RemoteSigned -Command "$ErrorActionPreference = 'Stop'; iex ""& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"""
+
+# Make sure any failure in PowerShell scripts is fatal
+SHELL ["pwsh", "-ExecutionPolicy", "RemoteSigned", "-Command", "$ErrorActionPreference = 'Stop';"]
+RUN Write-Output $PSVersionTable $ErrorActionPreference
+
+COPY mesa_deps_msvc.ps1 C:\
+RUN C:\mesa_deps_msvc.ps1
+
+COPY mesa_deps_choco.ps1 C:\
+RUN C:\mesa_deps_choco.ps1
+
+# Example usage:
+# `base_image` should use windows image that can be run with `--isolation=process` option,
+# since the resulting container will want to be used that way be later containers in the build process.
+# Only --isolation=hyperv can succeed building this container locally,
+#   --isolation=process have network issue when installing Visual Studio and choco will crash
+# docker build --isolation=hyperv -f .\Dockerfile_msvc -t mesa_vs --build-arg base_image="mcr.microsoft.com/windows:10.0.19041.1415" .
+

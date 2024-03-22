@@ -1,0 +1,177 @@
+<!--
+Copyright © 2017-2020 ARM Limited.
+Copyright © 2021-2022 Collabora, Ltd.
+Author: Antonio Caggiano <antonio.caggiano@collabora.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<metrics id="TDVx">
+    <category name="Job Manager" per_cpu="no">
+        <event offset="6" counter="GPU_ACTIVE" title="GPU Cycles" name="GPU active" description="The number of cycles where the GPU has a workload of any type queued for processing." units="cycles"/>
+        <event offset="7" advanced="yes" counter="IRQ_ACTIVE" title="GPU Cycles" name="Interrupt active" description="The number of cycles where the GPU has a pending interrupt." units="cycles"/>
+        <event offset="8" advanced="yes" counter="JS0_JOBS" title="GPU Jobs" name="Fragment jobs" description="The number of jobs processed by the GPU fragment queue." units="jobs"/>
+        <event offset="9" counter="JS0_TASKS" title="GPU Tasks" name="Fragment tasks" description="The number of 32x32 pixel tasks processed by the GPU fragment queue." units="tasks"/>
+        <event offset="10" counter="JS0_ACTIVE" title="GPU Cycles" name="Fragment queue active" description="The number of cycles where work is queued for processing in the GPU fragment queue." units="cycles"/>
+        <event offset="12" advanced="yes" counter="JS0_WAIT_READ" title="GPU Wait Cycles" name="Fragment descriptor reads cycles" description="The number of cycles where queued fragment work is waiting for a descriptor load." units="cycles"/>
+        <event offset="13" advanced="yes" counter="JS0_WAIT_ISSUE" title="GPU Wait Cycles" name="Fragment job issue cycles" description="The number of cycles where queued fragment work is waiting for an available processor." units="cycles"/>
+        <event offset="14" advanced="yes" counter="JS0_WAIT_DEPEND" title="GPU Wait Cycles" name="Fragment job dependency cycles" description="The number of cycles where queued fragment work is waiting for dependent work to complete." units="cycles"/>
+        <event offset="15" advanced="yes" counter="JS0_WAIT_FINISH" title="GPU Wait Cycles" name="Fragment job finish cycles" description="The number of cycles where the GPU is waiting for issued fragment work to complete." units="cycles"/>
+        <event offset="16" advanced="yes" counter="JS1_JOBS" title="GPU Jobs" name="Non-fragment jobs" description="The number of jobs processed by the GPU non-fragment queue." units="jobs"/>
+        <event offset="17" advanced="yes" counter="JS1_TASKS" title="GPU Tasks" name="Non-fragment tasks" description="The number of tasks processed by the GPU non-fragment queue." units="tasks"/>
+        <event offset="18" counter="JS1_ACTIVE" title="GPU Cycles" name="Non-fragment queue active" description="The number of cycles where work is queued in the GPU non-fragment queue." units="cycles"/>
+        <event offset="20" advanced="yes" counter="JS1_WAIT_READ" title="GPU Wait Cycles" name="Non-fragment descriptor read cycles" description="The number number of cycles where queued non-fragment work is waiting for a descriptor load." units="cycles"/>
+        <event offset="21" advanced="yes" counter="JS1_WAIT_ISSUE" title="GPU Wait Cycles" name="Non-fragment job issue cycles" description="The number of cycles where queued non-fragment work is waiting for an available processor." units="cycles"/>
+        <event offset="22" advanced="yes" counter="JS1_WAIT_DEPEND" title="GPU Wait Cycles" name="Non-fragment job dependency cycles" description="The number of cycles where queued non-fragment work is waiting for dependent work to complete." units="cycles"/>
+        <event offset="23" advanced="yes" counter="JS1_WAIT_FINISH" title="GPU Wait Cycles" name="Non-fragment job finish cycles" description="The number of cycles where the GPU is waiting for issued non-fragment work to complete." units="cycles"/>
+        <event offset="24" advanced="yes" counter="JS2_JOBS" title="GPU Jobs" name="Reserved jobs" description="The number of jobs processed by the GPU reserved queue." units="jobs"/>
+        <event offset="25" advanced="yes" counter="JS2_TASKS" title="GPU Tasks" name="Reserved tasks" description="The number of tasks processed by the GPU reserved queue." units="tasks"/>
+        <event offset="26" advanced="yes" counter="JS2_ACTIVE" title="GPU Cycles" name="Reserved queue active" description="The number of cycles where work is queued in the GPU reserved queue." units="cycles"/>
+        <event offset="28" advanced="yes" counter="JS2_WAIT_READ" title="GPU Wait Cycles" name="Reserved descriptor read cycles" description="The number of cycles where queued reserved work is waiting for a descriptor load." units="cycles"/>
+        <event offset="29" advanced="yes" counter="JS2_WAIT_ISSUE" title="GPU Wait Cycles" name="Reserved job issue cycles" description="The number of cycles where queued reserved work is waiting for an available processor." units="cycles"/>
+        <event offset="30" advanced="yes" counter="JS2_WAIT_DEPEND" title="GPU Wait Cycles" name="Reserved job dependency cycles" description="The number of cycles where queued reserved work is waiting for dependent work to complete." units="cycles"/>
+        <event offset="31" advanced="yes" counter="JS2_WAIT_FINISH" title="GPU Wait Cycles" name="Reserved job finish cycles" description="The number of cycles where the GPU is waiting for issued reserved work to complete." units="cycles"/>
+    </category>
+    <category name="Tiler" per_cpu="no">
+        <event offset="4" counter="TILER_ACTIVE" title="GPU Cycles" name="Tiler active" description="The number of cycles where the tiler has a workload queued for processing." units="cycles"/>
+        <event offset="6" counter="TRIANGLES" title="Input Primitives" name="Triangle primitives" description="The number of input triangle primitives." units="primitives"/>
+        <event offset="7" counter="LINES" title="Input Primitives" name="Line primitives" description="The number of input line primitives." units="primitives"/>
+        <event offset="8" counter="POINTS" title="Input Primitives" name="Point primitives" description="The number of input point primitives." units="primitives"/>
+        <event offset="9" counter="FRONT_FACING" title="Visible Primitives" name="Front-facing primitives" description="The number of front-facing triangles that are visible after culling." units="primitives"/>
+        <event offset="10" counter="BACK_FACING" title="Visible Primitives" name="Back-facing primitives" description="The number of back-facing triangles that are visible after culling." units="primitives"/>
+        <event offset="11" counter="PRIM_VISIBLE" title="Primitive Culling" name="Visible primitives" description="The number of primitives that are visible after culling." units="primitives"/>
+        <event offset="12" counter="PRIM_CULLED" title="Primitive Culling" name="Facing and XY plane test culled primitives" description="The number of primitives that are culled by facing or frustum XY plane tests." units="primitives"/>
+        <event offset="13" counter="PRIM_CLIPPED" title="Primitive Culling" name="Z plane test culled primitives" description="The number of primitives that are culled by frustum Z plane tests." units="primitives"/>
+        <event offset="14" counter="PRIM_SAT_CULLED" title="Primitive Culling" name="Sample test culled primitives" description="The number of primitives culled by the sample coverage test." units="primitives"/>
+        <event offset="17" advanced="yes" counter="BUS_READ" title="Tiler L2 Accesses" name="Read beats" description="The number of internal bus data read cycles made by the tiler." units="beats"/>
+        <event offset="19" advanced="yes" counter="BUS_WRITE" title="Tiler L2 Accesses" name="Write beats" description="The number of internal bus data write cycles made by the tiler." units="beats"/>
+        <event offset="21" counter="IDVS_POS_SHAD_REQ" title="Tiler Shading Requests" name="Position shading requests" description="The number of position shading requests in the IDVS flow." units="requests"/>
+        <event offset="23" advanced="yes" counter="IDVS_POS_SHAD_STALL" title="Tiler Cycles" name="Position shading stall cycles" description="The number of cycles where the tiler has a stalled position shading request." units="cycles"/>
+        <event offset="24" advanced="yes" counter="IDVS_POS_FIFO_FULL" title="Tiler Cycles" name="Position FIFO full cycles" description="The number of cycles where the tiler has a stalled position shading buffer." units="cycles"/>
+        <event offset="26" advanced="yes" counter="VCACHE_HIT" title="Tiler Vertex Cache" name="Position cache hits" description="The number of position lookups that result in a hit in the vertex cache." units="requests"/>
+        <event offset="27" advanced="yes" counter="VCACHE_MISS" title="Tiler Vertex Cache" name="Position cache misses" description="The number of position lookups that miss in the vertex cache." units="requests"/>
+        <event offset="31" advanced="yes" counter="VFETCH_STALL" title="Tiler Cycles" name="Primitive assembly busy stall cycles" description="The number of cycles where the tiler is stalled waiting for primitive assembly." units="cycles"/>
+        <event offset="34" advanced="yes" counter="IDVS_VBU_HIT" title="Tiler Vertex Cache" name="Varying cache hits" description="The number of varying lookups that result in a hit in the vertex cache." units="requests"/>
+        <event offset="35" advanced="yes" counter="IDVS_VBU_MISS" title="Tiler Vertex Cache" name="Varying cache misses" description="The number of varying lookups that miss in the vertex cache." units="requests"/>
+        <event offset="37" counter="IDVS_VAR_SHAD_REQ" title="Tiler Shading Requests" name="Varying shading requests" description="The number of varying shading requests in the IDVS flow." units="requests"/>
+        <event offset="38" advanced="yes" counter="IDVS_VAR_SHAD_STALL" title="Tiler Cycles" name="Varying shading stall cycles" description="The number of cycles where the tiler has a stalled varying shading request." units="cycles"/>
+        <event offset="54" advanced="yes" counter="WRBUF_NO_AXI_ID_STALL" title="Tiler Cycles" name="Write buffer transaction stall cycles" description="The number of cycles where the tiler write buffer can not send data because it has no available write IDs." units="cycles"/>
+        <event offset="55" advanced="yes" counter="WRBUF_AXI_STALL" title="Tiler Cycles" name="Write buffer write stall cycles" description="The number of cycles where the tiler write buffer can not send data because the bus is not ready." units="cycles"/>
+    </category>
+    <category name="Memory System" per_cpu="no">
+        <event offset="4" advanced="yes" counter="MMU_REQUESTS" title="MMU Stage 1 Translations" name="MMU lookups" description="The number of main MMU address translations performed." units="requests"/>
+        <event offset="16" advanced="yes" counter="L2_RD_MSG_IN" title="L2 Cache Requests" name="Read requests" description="The number of L2 cache read requests from internal masters." units="requests"/>
+        <event offset="17" advanced="yes" counter="L2_RD_MSG_IN_STALL" title="L2 Cache Stall Cycles" name="Read stall cycles" description="The number of cycles L2 cache read requests from internal masters are stalled." units="cycles"/>
+        <event offset="18" advanced="yes" counter="L2_WR_MSG_IN" title="L2 Cache Requests" name="Write requests" description="The number of L2 cache write requests from internal masters." units="requests"/>
+        <event offset="19" advanced="yes" counter="L2_WR_MSG_IN_STALL" title="L2 Cache Stall Cycles" name="Write stall cycles" description="The number of cycles where L2 cache write requests from internal masters are stalled." units="cycles"/>
+        <event offset="20" advanced="yes" counter="L2_SNP_MSG_IN" title="L2 Cache Requests" name="Snoop requests" description="The number of L2 snoop requests from internal masters." units="requests"/>
+        <event offset="21" advanced="yes" counter="L2_SNP_MSG_IN_STALL" title="L2 Cache Stall Cycles" name="Snoop stall cycles" description="The number of cycles where L2 cache snoop requests from internal masters are stalled." units="cycles"/>
+        <event offset="22" advanced="yes" counter="L2_RD_MSG_OUT" title="L2 Cache Requests" name="L1 read requests" description="The number of L1 cache read requests sent by the L2 cache to an internal master." units="requests"/>
+        <event offset="23" advanced="yes" counter="L2_RD_MSG_OUT_STALL" title="L2 Cache Stall Cycles" name="L1 read stall cycles" description="The number of cycles where L1 cache read requests sent by the L2 cache to an internal master are stalled." units="cycles"/>
+        <event offset="24" advanced="yes" counter="L2_WR_MSG_OUT" title="L2 Cache Requests" name="L1 write requests" description="The number of L1 cache write responses sent by the L2 cache to an internal master." units="requests"/>
+        <event offset="25" counter="L2_ANY_LOOKUP" title="L2 Cache Lookups" name="Any lookup" description="The number of L2 cache lookups performed." units="requests"/>
+        <event offset="26" counter="L2_READ_LOOKUP" title="L2 Cache Lookups" name="Read lookup" description="The number of L2 cache read lookups performed." units="requests"/>
+        <event offset="27" counter="L2_WRITE_LOOKUP" title="L2 Cache Lookups" name="Write lookup" description="The number of L2 cache write lookups performed." units="requests"/>
+        <event offset="28" advanced="yes" counter="L2_EXT_SNOOP_LOOKUP" title="L2 Cache Lookups" name="External snoop lookups" description="The number of coherency snoop lookups performed that were triggered by an external master." units="requests"/>
+        <event offset="29" counter="L2_EXT_READ" title="External Bus Accesses" name="Read transaction" description="The number of external read transactions." units="transactions"/>
+        <event offset="30" advanced="yes" counter="L2_EXT_READ_NOSNP" title="External Bus Accesses" name="ReadNoSnoop transactions" description="The number of external non-coherent read transactions." units="transactions"/>
+        <event offset="31" advanced="yes" counter="L2_EXT_READ_UNIQUE" title="External Bus Accesses" name="ReadUnique transactions" description="The number of external coherent read unique transactions." units="transactions"/>
+        <event offset="32" counter="L2_EXT_READ_BEATS" title="External Bus Beats" name="Read beat" description="The number of external bus data read cycles." units="beats"/>
+        <event offset="33" counter="L2_EXT_AR_STALL" title="External Bus Stalls" name="Read stall cycles" description="The number of cycles where a read is stalled waiting for the external bus." units="cycles"/>
+        <event offset="34" counter="L2_EXT_AR_CNT_Q1" title="External Bus Outstanding Reads" name="0-25% outstanding" description="The number of read transactions initiated when 0-25% of the maximum are in use." units="transactions"/>
+        <event offset="35" counter="L2_EXT_AR_CNT_Q2" title="External Bus Outstanding Reads" name="25-50% outstanding" description="The number of read transactions initiated when 25-50% of the maximum are in use." units="transactions"/>
+        <event offset="36" counter="L2_EXT_AR_CNT_Q3" title="External Bus Outstanding Reads" name="50-75% outstanding" description="The number of read transactions initiated when 50-75% of the maximum are in use." units="transactions"/>
+        <event offset="37" counter="L2_EXT_RRESP_0_127" title="External Bus Read Latency" name="0-127 cycles" description="The number of data beats returned 0-127 cycles after the read request." units="beats"/>
+        <event offset="38" counter="L2_EXT_RRESP_128_191" title="External Bus Read Latency" name="128-191 cycles" description="The number of data beats returned 128-191 cycles after the read request." units="beats"/>
+        <event offset="39" counter="L2_EXT_RRESP_192_255" title="External Bus Read Latency" name="192-255 cycles" description="The number of data beats returned 192-255 cycles after the read request." units="beats"/>
+        <event offset="40" counter="L2_EXT_RRESP_256_319" title="External Bus Read Latency" name="256-319 cycles" description="The number of data beats returned 256-319 cycles after the read request." units="beats"/>
+        <event offset="41" counter="L2_EXT_RRESP_320_383" title="External Bus Read Latency" name="320-383 cycles" description="The number of data beats returned 320-383 cycles after the read request." units="beats"/>
+        <event offset="42" counter="L2_EXT_WRITE" title="External Bus Accesses" name="Write transaction" description="The number of external write transactions." units="transactions"/>
+        <event offset="43" advanced="yes" counter="L2_EXT_WRITE_NOSNP_FULL" title="External Bus Accesses" name="WriteNoSnoopFull transactions" description="The number of external non-coherent full write transactions." units="transactions"/>
+        <event offset="44" advanced="yes" counter="L2_EXT_WRITE_NOSNP_PTL" title="External Bus Accesses" name="WriteNoSnoopPartial transactions" description="The number of external non-coherent partial write transactions." units="transactions"/>
+        <event offset="45" advanced="yes" counter="L2_EXT_WRITE_SNP_FULL" title="External Bus Accesses" name="WriteSnoopFull transactions" description="The number of external coherent full write transactions." units="transactions"/>
+        <event offset="46" advanced="yes" counter="L2_EXT_WRITE_SNP_PTL" title="External Bus Accesses" name="WriteSnoopPartial transactions" description="The number of external coherent partial write transactions." units="transactions"/>
+        <event offset="47" counter="L2_EXT_WRITE_BEATS" title="External Bus Beats" name="Write beat" description="The number of external bus data write cycles." units="beats"/>
+        <event offset="48" counter="L2_EXT_W_STALL" title="External Bus Stalls" name="Write stall cycles" description="The number of cycles where a write is stalled waiting for the external bus." units="cycles"/>
+        <event offset="49" counter="L2_EXT_AW_CNT_Q1" title="External Bus Outstanding Writes" name="0-25% outstanding" description="The number of write transactions initiated when 0-25% of the maximum are in use." units="transactions"/>
+        <event offset="50" counter="L2_EXT_AW_CNT_Q2" title="External Bus Outstanding Writes" name="25-50% outstanding" description="The number of write transactions initiated when 25-50% of the maximum are in use." units="transactions"/>
+        <event offset="51" counter="L2_EXT_AW_CNT_Q3" title="External Bus Outstanding Writes" name="50-75% outstanding" description="The number of write transactions initiated when 50-75% of the maximum are in use." units="transactions"/>
+        <event offset="52" advanced="yes" counter="L2_EXT_SNOOP" title="External Bus Accesses" name="Snoop transactions" description="The number of coherency snoops triggered by external masters." units="transactions"/>
+        <event offset="53" advanced="yes" counter="L2_EXT_SNOOP_STALL" title="External Bus Stalls" name="Snoop stall cycles" description="The number of cycles where a coherency snoop triggered by external master is stalled." units="cycles"/>
+    </category>
+    <category name="Shader Core" per_cpu="no">
+        <event offset="4" counter="FRAG_ACTIVE" title="Core Cycles" name="Fragment active" description="The number of cycles where the shader core is processing a fragment workload." units="cycles"/>
+        <event offset="5" advanced="yes" counter="FRAG_PRIMITIVES" title="Core Primitives" name="Read primitives" description="The number of primitives read from the tile list by the fragment front-end." units="primitives"/>
+        <event offset="6" counter="FRAG_PRIM_RAST" title="Core Primitives" name="Rasterized primitives" description="The number of primitives being rasterized." units="primitives"/>
+        <event offset="7" counter="FRAG_FPK_ACTIVE" title="Core Cycles" name="Fragment FPKB active" description="The number of cycles where at least one quad is present in the pre-pipe quad queue." units="cycles"/>
+        <event offset="9" counter="FRAG_WARPS" title="Core Warps" name="Fragment warps" description="The number of fragment warps created." units="warps"/>
+        <event offset="10" counter="FRAG_PARTIAL_WARPS" title="Core Warps" name="Partial fragment warps" description="The number of fragment warps containing helper threads that do not correspond to a hit sample point." units="warps"/>
+        <event offset="11" counter="FRAG_QUADS_RAST" title="Core Quads" name="Rasterized quads" description="The number of quads generated by the rasterization phase." units="quads"/>
+        <event offset="12" counter="FRAG_QUADS_EZS_TEST" title="Core Quads" name="Early ZS tested quads" description="The number of quads that are undergoing early depth and stencil testing." units="quads"/>
+        <event offset="13" counter="FRAG_QUADS_EZS_UPDATE" title="Core Quads" name="Early ZS updated quads" description="The number of quads undergoing early depth and stencil testing, that are capable of updating the framebuffer." units="quads"/>
+        <event offset="14" counter="FRAG_QUADS_EZS_KILL" title="Core Quads" name="Early ZS killed quads" description="The number of quads killed by early depth and stencil testing." units="quads"/>
+        <event offset="15" counter="FRAG_LZS_TEST" title="Core Quads" name="Late ZS tested quads" description="The number of quads undergoing late depth and stencil testing." units="quads"/>
+        <event offset="16" counter="FRAG_LZS_KILL" title="Core Quads" name="Late ZS killed quads" description="The number of quads killed by late depth and stencil testing." units="quads"/>
+        <event offset="18" counter="FRAG_PTILES" title="Core Tiles" name="Tiles" description="The number of tiles processed by the shader core." units="tiles"/>
+        <event offset="19" counter="FRAG_TRANS_ELIM" title="Core Tiles" name="Constant tiles killed" description="The number of tiles killed by transaction elimination." units="tiles"/>
+        <event offset="20" counter="QUAD_FPK_KILLER" title="Core Quads" name="FPK occluder quads" description="The number of quads that are valid occluders for hidden surface removal." units="quads"/>
+        <event offset="22" counter="COMPUTE_ACTIVE" title="Core Cycles" name="Non-fragment active" description="The number of cycles where the shader core is processing some non-fragment workload." units="cycles"/>
+        <event offset="23" advanced="yes" counter="COMPUTE_TASKS" title="Core Tasks" name="Non-fragment tasks" description="The number of non-fragment tasks issued to the shader core." units="tasks"/>
+        <event offset="24" counter="COMPUTE_WARPS" title="Core Warps" name="Non-fragment warps" description="The number of non-fragment warps created." units="warps"/>
+        <event offset="25" advanced="yes" counter="COMPUTE_STARVING" title="Core Starvation Cycles" name="Non-fragment starvation cycles" description="The number of cycles where the shader core is processing a non-fragment workload and there are no new threads available for execution." units="cycles"/>
+        <event offset="26" counter="EXEC_CORE_ACTIVE" title="Core Cycles" name="Execution core active" description="The number of cycles where the shader core is processing at least one warp." units="cycles"/>
+        <event offset="27" advanced="yes" counter="EXEC_ACTIVE" title="Core Cycles" name="Execution engine active" description="The number of cycles where the execution engine unit is processing at least one thread." units="cycles"/>
+        <event offset="28" counter="EXEC_INSTR_COUNT" title="Core EE Instructions" name="Executed instructions" description="The number of instructions executed per warp." units="instructions"/>
+        <event offset="29" counter="EXEC_INSTR_DIVERGED" title="Core EE Instructions" name="Diverged instructions" description="The number of instructions executed per warp, that have control flow divergence." units="instructions"/>
+        <event offset="30" advanced="yes" counter="EXEC_INSTR_STARVING" title="Core Starvation Cycles" name="Execution engine starvation cycles" description="The number of cycles where no new threads are available for execution." units="cycles"/>
+        <event offset="31" advanced="yes" counter="ARITH_INSTR_SINGLE_FMA" title="Core EE Instructions" name="Arithmetic instructions" description="The number of instructions where the workload is a single FMA pipe arithmetic operation." units="instructions"/>
+        <event offset="32" advanced="yes" counter="ARITH_INSTR_DOUBLE" title="Core EE Instructions" name="Dual Arithmetic instructions" description="The number of instructions where the workload is one FMA pipe arithmetic operation and one ADD pipe arithmetic operation." units="instructions"/>
+        <event offset="33" advanced="yes" counter="ARITH_INSTR_MSG" title="Core EE Instructions" name="Arithmetic + Message instructions" description="The number of instructions where the workload is one FMA pipe arithmetic operation and one ADD pipe message operation" units="instructions"/>
+        <event offset="34" advanced="yes" counter="ARITH_INSTR_MSG_ONLY" title="Core EE Instructions" name="Message instructions" description="The number of instructions where the workload is a single ADD pipe message operation, with no FMA pipe operation" units="instructions"/>
+        <event offset="35" counter="TEX_MSGI_NUM_QUADS" title="Core Texture Quads" name="Texture requests" description="The number of quad-width texture operations processed by the texture unit." units="quads"/>
+        <event offset="36" counter="TEX_DFCH_NUM_PASSES" title="Core Texture Quads" name="Texture issues" description="The number of quad-width filtering passes." units="issues"/>
+        <event offset="37" counter="TEX_DFCH_NUM_PASSES_MISS" title="Core Texture Quads" name="Descriptor misses" description="The number of quad-width filtering passes that miss in the resource or sampler descriptor cache." units="requests"/>
+        <event offset="38" counter="TEX_DFCH_NUM_PASSES_MIP_MAP" title="Core Texture Quads" name="Mipmapped texture issues" description="The number of quad-width filtering passes that use a mipmapped texture." units="issues"/>
+        <event offset="39" counter="TEX_TIDX_NUM_SPLIT_MIP_MAP" title="Core Texture Quads" name="Trilinear filtered issues" description="The number of quad-width filtering passes that use a trilinear filter." units="issues"/>
+        <event offset="40" counter="TEX_TFCH_NUM_LINES_FETCHED" title="Core Texture Line Fetches" name="Line fetches" description="The number of texture line fetches from the L2 cache." units="issues"/>
+        <event offset="41" counter="TEX_TFCH_NUM_LINES_FETCHED_BLOCK_COMPRESSED" title="Core Texture Line Fetches" name="Compressed line fetches" description="The number of texture line fetches from the L2 cache that are block compressed textures." units="issues"/>
+        <event offset="42" counter="TEX_TFCH_NUM_OPERATIONS" title="Core Texture Cycles" name="Cache lookups" description="The number of texture cache lookup cycles." units="requests"/>
+        <event offset="43" counter="TEX_FILT_NUM_OPERATIONS" title="Core Texture Cycles" name="Texturing active" description="The number of texture filtering issue cycles." units="cycles"/>
+        <event offset="44" counter="LS_MEM_READ_FULL" title="Core Load/Store Cycles" name="Full read cycles" description="The number of full-width load/store cache reads." units="cycles"/>
+        <event offset="45" counter="LS_MEM_READ_SHORT" title="Core Load/Store Cycles" name="Partial read cycles" description="The number of partial-width load/store cache reads." units="cycles"/>
+        <event offset="46" counter="LS_MEM_WRITE_FULL" title="Core Load/Store Cycles" name="Full write cycles" description="The number of full-width load/store cache writes." units="cycles"/>
+        <event offset="47" counter="LS_MEM_WRITE_SHORT" title="Core Load/Store Cycles" name="Partial write cycles" description="The number of partial-width load/store cache writes." units="cycles"/>
+        <event offset="48" counter="LS_MEM_ATOMIC" title="Core Load/Store Cycles" name="Atomic access cycles" description="The number of load/store atomic accesses." units="cycles"/>
+        <event offset="49" counter="VARY_INSTR" title="Core Varying Requests" name="Interpolation requests" description="The number of warp-width interpolation operations processed by the varying unit." units="instructions"/>
+        <event offset="50" counter="VARY_SLOT_32" title="Core Varying Cycles" name="32-bit interpolation active" description="The number of 32-bit interpolation cycles processed by the varying unit." units="cycles"/>
+        <event offset="51" counter="VARY_SLOT_16" title="Core Varying Cycles" name="16-bit interpolation active" description="The number of 16-bit interpolation cycles processed by the varying unit." units="cycles"/>
+        <event offset="52" advanced="yes" counter="ATTR_INSTR" title="Core Attribute Requests" name="Attribute requests" description="The number of instructions executed by the attribute unit." units="instructions"/>
+        <event offset="53" advanced="yes" counter="ARITH_INSTR_FP_MUL" title="Core EE Instructions" name="Multiplier instructions" description="The number of instructions where the workload uses floating-point multiplier hardware." units="instructions"/>
+        <event offset="54" counter="BEATS_RD_FTC" title="Core L2 Reads" name="Fragment L2 read beats" description="The number of read beats received by the fixed-function fragment front-end." units="beats"/>
+        <event offset="55" counter="BEATS_RD_FTC_EXT" title="Core L2 Reads" name="Fragment external read beats" description="The number of read beats received by the fixed-function fragment front-end that required an external memory access due to an L2 cache miss." units="beats"/>
+        <event offset="56" counter="BEATS_RD_LSC" title="Core L2 Reads" name="Load/store L2 read beats" description="The number of read beats received by the load/store unit." units="beats"/>
+        <event offset="57" counter="BEATS_RD_LSC_EXT" title="Core L2 Reads" name="Load/store external read beats" description="The number of read beats received by the load/store unit that required an external memory access due to an L2 cache miss." units="beats"/>
+        <event offset="58" counter="BEATS_RD_TEX" title="Core L2 Reads" name="Texture L2 read beats" description="The number of read beats received by the texture unit." units="beats"/>
+        <event offset="59" counter="BEATS_RD_TEX_EXT" title="Core L2 Reads" name="Texture external read beats" description="The number of read beats received by the texture unit that required an external memory access due to an L2 cache miss." units="beats"/>
+        <event offset="60" advanced="yes" counter="BEATS_RD_OTHER" title="Core L2 Reads" name="Other L2 read beats" description="The number of read beats received by a unit that is not specifically identified." units="beats"/>
+        <event offset="63" counter="BEATS_WR_LSC_WB" title="Core Writes" name="Load/store writeback write beats" description="The number of write beats by the load/store unit that are due to writeback." units="beats"/>
+        <event offset="62" counter="BEATS_WR_TIB" title="Core Writes" name="Tile buffer write beats" description="The number of write beats sent by the tile buffer writeback unit." units="beats"/>
+        <event offset="61" counter="BEATS_WR_LSC_OTHER" title="Core Writes" name="Load/store other write beats" description="The number of write beats by the load/store unit that are due to any reason other than writeback." units="beats"/>
+    </category>
+</metrics>

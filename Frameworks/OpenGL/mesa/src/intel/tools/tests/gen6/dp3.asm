@@ -1,0 +1,10 @@
+dp3(8)          m4<1>.xF        g3<0>.xyzzF     g6<4>.xyzzF     { align16 NoDDClr 1Q };
+dp3(8)          m4<1>.yF        g3.4<0>.xyzzF   g6<4>.xyzzF     { align16 NoDDClr,NoDDChk 1Q };
+dp3(8)          g70<1>F         g67<4>.xyzzF    g67<4>.xyzzF    { align16 1Q };
+dp3(8)          m4<1>.xF        g4<4>.xyzzF     g5<4>.xyzzF     { align16 1Q };
+dp3.le.f0.0(8)  g42<1>.xF       g33<4>.xyzzF    g3.4<0>.xyzzF   { align16 1Q };
+dp3(8)          g21<1>.xF       g20<4>.xyzzF    g1<0>.xyzzF     { align16 NoDDClr 1Q };
+dp3(8)          g21<1>.yF       g20<4>.xyzzF    g1.4<0>.xyzzF   { align16 NoDDClr,NoDDChk 1Q };
+dp3(8)          g21<1>.zF       g20<4>.xyzzF    g2<0>.xyzzF     { align16 NoDDChk 1Q };
+dp3.sat(8)      g49<1>F         g38<4>.xyzzF    g43<4>.xyzzF    { align16 1Q };
+dp3.sat(8)      m4<1>F          g2<4>.xyzzF     g2<4>.xyzzF     { align16 1Q };

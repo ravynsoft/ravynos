@@ -1,0 +1,54 @@
+
+BasedOnStyle: InheritParentConfig
+DisableFormat: false
+
+ColumnLimit: 100
+
+# ACO clang-format rules:
+Language: Cpp
+Standard: c++14
+
+# Force pointers to the type for C++
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# Same effect as IndentAccessModifiers: False
+AccessModifierOffset: -3
+
+# Compact some cumbersome C++ code
+SpaceBeforeCtorInitializerColon: True
+AllowShortCaseLabelsOnASingleLine: True
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: All
+
+# Wrap before LambdaBody and disable SplitEmptyFunction
+BraceWrapping:
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: true
+  AfterStruct: false
+  BeforeElse: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  BeforeLambdaBody: true
+
+# Regroup #include blocks
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '"aco.*'
+    Priority:        1
+  - Regex:           '"(common|llvm|vulkan)\/.*'
+    Priority:        2
+  - Regex:           '"(nir|util\/).*'
+    Priority:        3
+  - Regex:           '.*\/.*'
+    Priority:        4
+  - Regex:           '.*'
+    Priority:        5
+
+MacroBlockBegin: 'BEGIN_TEST'
+MacroBlockEnd: 'END_TEST'
+CommentPragmas: '^(!|;|>>|~)'
+
+WhitespaceSensitiveMacros: ['qoShaderModuleCreateInfoGLSL']

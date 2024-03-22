@@ -1,0 +1,47 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+KHR-GL32.texture_size_promotion.functional
+
+# this is just broken.
+KHR-GL46.shader_ballot_tests.ShaderBallotBitmasks
+KHR-GL46.shader_ballot_tests.ShaderBallotFunctionRead
+
+# ignores copied from the old runner script
+spec@arb_map_buffer_alignment@arb_map_buffer_alignment-map-invalidate-range
+spec@arb_timer_query.*
+spec@arb_sample_shading@builtin-gl-sample-mask
+spec@glsl-1.30@execution@tex-miplevel-selection.*
+
+# This test doesn't even seem to exist, but piglit adds it to a group...?
+spec@arb_vertex_type_2_10_10_10_rev@attrib-p-type-size-match
+
+# This one seems to have a typo in the name, and doesn't really ever run?
+spec@egl_ext_protected_content@conformance
+
+# has a race where probes periodically return black
+# cf. https://gitlab.freedesktop.org/mesa/mesa/-/jobs/10624521
+glx@glx-multi-context-single-window
+
+# This one takes too long, but passes. There's other tests that don't
+# try all the combinations, so that's probably enough.
+spec@arb_compute_shader@local-id-explosion
+
+# I can't reproduce these crashes locally
+# even after running them in loops for 4+ hours, so disable for now
+.*tex-miplevel-selection.*
+
+# these are insanely long
+KHR-GL46.copy_image.functional
+KHR-GL46.texture_swizzle.smoke
+KHR-GL46.texture_swizzle.functional
+
+# Kopper regression
+glx@glx-tfp
+
+# These tests started hitting timeouts when we upgraded LLVM from v11 to 13
+spec@arb_texture_rg@fbo-blending-formats
+
+#these need format conversions that gallium doesn't implement yet
+spec@arb_texture_buffer_object@formats.*arb.*

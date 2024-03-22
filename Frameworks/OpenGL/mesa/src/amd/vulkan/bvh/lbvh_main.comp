@@ -1,0 +1,157 @@
+/*
+ * Copyright © 2022 Bas Nieuwenhuizen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference2 : require
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+#include "build_interface.h"
+
+TYPE(lbvh_node_info, 4);
+
+layout(push_constant) uniform CONSTS
+{
+   lbvh_main_args args;
+};
+
+int32_t
+longest_common_prefix(int32_t i, uint32_t key_i, int32_t j)
+{
+   if (j < 0 || j >= args.id_count)
+      return -1;
+
+   uint32_t key_j = DEREF(INDEX(key_id_pair, args.src_ids, j)).key;
+
+   uint32_t diff = key_i ^ key_j;
+   int32_t ret = 0;
+   if (key_i == key_j) {
+      ret += 32;
+      diff = i ^ j;
+   }
+
+   return ret + 31 - findMSB(diff);
+}
+
+/*
+ * The LBVH algorithm constructs a radix tree of the sorted nodes according to their key.
+ *
+ * We do this by making the following decision:
+ *
+ *    Node N always either starts or ends at leaf N.
+ *
+ * From there it follows that we always have to extend it into the direction which has
+ * a longer common prefix with the direct neighbour. Then we try to make the node cover
+ * as many leaves as possible without including the other neighbour.
+ *
+ * For finding the split point we compute the longest common prefix of all the leaves within the
+ * node, and look for the first leaf the same length common prefix with leaf N as that.
+ *
+ * To give an example: leaves=[000,001,010,011,100,101,110,111], node=5 (with value 101)
+ *
+ * lcp(101, 100) = 2 and lcp(101, 110) = 1, so we extend down.
+ * lcp(101, 011) = 0, so the range of the node is [4,5] with values [100, 101]
+ *
+ * the lcp of all the leaves in the range is the same as the lcp of the first and last leaf, in this
+ * case that is lcp(101, 100) = 2. Then we have lcp(101, 101) = 3 and lcp(101, 100) = 2, so the first
+ * leaf that has a longer lcp is 4. Hence the two children of this node have range [4,4] and [5,5]
+ */
+void
+main()
+{
+   if (args.id_count <= 1) {
+      REF(lbvh_node_info) dst = REF(lbvh_node_info)(args.node_info);
+      DEREF(dst).parent = RADV_BVH_INVALID_NODE;
+      DEREF(dst).path_count = 2;
+      DEREF(dst).children[0] =
+         args.id_count == 1 ? DEREF(INDEX(key_id_pair, args.src_ids, 0)).id : RADV_BVH_INVALID_NODE;
+      DEREF(dst).children[1] = RADV_BVH_INVALID_NODE;
+      return;
+   }
+
+   int32_t id = int32_t(gl_GlobalInvocationID.x);
+   uint32_t id_key = DEREF(INDEX(key_id_pair, args.src_ids, id)).key;
+
+   int32_t left_lcp = longest_common_prefix(id, id_key, id - 1);
+   int32_t right_lcp = longest_common_prefix(id, id_key, id + 1);
+   int32_t dir = right_lcp > left_lcp ? 1 : -1;
+   int32_t lcp_min = min(left_lcp, right_lcp);
+
+   /* Determine the bounds for the binary search for the length of the range that
+    * this subtree is going to own.
+    */
+   int32_t lmax = 128;
+   while (longest_common_prefix(id, id_key, id + dir * lmax) > lcp_min) {
+      lmax *= 2;
+   }
+
+   int32_t length = 0;
+   for (int32_t t = lmax / 2; t >= 1; t /= 2) {
+      if (longest_common_prefix(id, id_key, id + (length + t) * dir) > lcp_min)
+         length += t;
+   }
+   int32_t other_end = id + length * dir;
+
+   /* The number of bits in the prefix that is the same for all elements in the
+    * range.
+    */
+   int32_t lcp_node = longest_common_prefix(id, id_key, other_end);
+   int32_t child_range = 0;
+   for (int32_t diff = 2; diff < 2 * length; diff *= 2) {
+      int32_t t = DIV_ROUND_UP(length, diff);
+      if (longest_common_prefix(id, id_key, id + (child_range + t) * dir) > lcp_node)
+         child_range += t;
+   }
+
+   int32_t child_split = id + child_range * dir;
+
+   /* If dir = -1, right = child_split */
+   int32_t left = child_split + min(dir, 0);
+   int32_t right = left + 1;
+
+   /* if the number of leaves covered by a child is 1, we can use the leaf directly */
+   bool left_leaf = min(id, other_end) == left;
+   bool right_leaf = max(id, other_end) == right;
+
+   if (!left_leaf)
+      DEREF(INDEX(lbvh_node_info, args.node_info, left)).parent = id;
+   if (!right_leaf)
+      DEREF(INDEX(lbvh_node_info, args.node_info, right)).parent = LBVH_RIGHT_CHILD_BIT | id;
+
+   REF(lbvh_node_info) dst = INDEX(lbvh_node_info, args.node_info, id);
+   DEREF(dst).path_count = (left_leaf ? 1 : 0) + (right_leaf ? 1 : 0);
+   DEREF(dst).children[0] = DEREF(INDEX(key_id_pair, args.src_ids, left)).id;
+   DEREF(dst).children[1] = DEREF(INDEX(key_id_pair, args.src_ids, right)).id;
+   if (id == 0)
+      DEREF(dst).parent = RADV_BVH_INVALID_NODE;
+}

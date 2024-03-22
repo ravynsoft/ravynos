@@ -1,0 +1,49 @@
+
+		       Mesa 6.0.1 release notes
+
+			    April 2, 2003
+
+
+
+Introduction
+------------
+
+Mesa uses an even/odd version number scheme like the Linux kernel.
+Even-numbered versions (such as 6.0.x) designate stable releases.
+Odd-numbered versions (such as 6.1.x) designate new developmental releases.
+
+Mesa 6.0.1 just fixes bugs found since the 6.0 release.  See the VERSIONS
+file for details.
+
+
+
+Device Drivers
+--------------
+
+Mesa advertises itself as supporting OpenGL 1.2, 1.3, 1.4 or 1.5
+depending on the device driver's capabilities.  For example, if the
+driver enables all the ARB extensions which are part of OpenGL 1.5
+then glGetString(GL_VERSION) will return "1.5".  Otherwise, it'll
+return "1.4" or the next lower version that implements all required
+functionality.
+
+A number of Mesa's software drivers haven't been actively maintained for
+some time.  We rely on volunteers to maintain many of the drivers.
+Here's the current status of all included drivers:
+
+Driver			Status
+----------------------	---------------------
+XMesa (Xlib)		implements OpenGL 1.5
+OSMesa (off-screen)	implements OpenGL 1.5
+FX (3dfx Voodoo1/2)	implements OpenGL 1.3
+SVGA			implements OpenGL 1.3
+Wind River UGL		implements OpenGL 1.3
+Windows/Win32		implements OpenGL 1.5
+DJGPP			implements OpenGL 1.5
+GGI			implements OpenGL 1.3
+BeOS			implements OpenGL 1.5
+Allegro			needs updating
+D3D			needs updating
+
+
+----------------------------------------------------------------------

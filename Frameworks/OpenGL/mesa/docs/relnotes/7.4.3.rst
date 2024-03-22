@@ -1,0 +1,63 @@
+Mesa 7.4.3 Release Notes / 19 June 2009
+=======================================
+
+Mesa 7.4.3 is a stable development release fixing bugs since the 7.4.2
+release.
+
+Mesa 7.4.3 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   34c5a6c47ed51f31c4fa36e269831352  MesaLib-7.4.3.tar.gz
+   70a983ba3deaa8bd63b18bbab283f698  MesaLib-7.4.3.tar.bz2
+   34f21b3205b271d575030aa98a2dda51  MesaLib-7.4.3.zip
+   56752b7adede212e6097afb10d0c0d59  MesaDemos-7.4.3.tar.gz
+   8ffa51c4833b1e298300a005e2d7ca2a  MesaDemos-7.4.3.tar.bz2
+   0037d24d41400d6fb9800ae55b8c863f  MesaDemos-7.4.3.zip
+   20e24f6692c0c90e7e3b220f79c4108d  MesaGLUT-7.4.3.tar.gz
+   03a4beeef74fc5ef0b1d6d04710e5a8a  MesaGLUT-7.4.3.tar.bz2
+   273788230adbdb9d57371309adedcf5f  MesaGLUT-7.4.3.zip
+
+Bug fixes
+---------
+
+-  Fixed texture object reference counting bug (bug 21756)
+-  Allow depth/stencil textures to be attached to GL_STENCIL_ATTACHMENT
+   point (SF bug 2793846)
+-  Added missing glGet case for GL_VERTEX_ARRAY_BINDING_APPLE
+-  Fixed some OSMesa build issues
+-  Fixed a vertex buffer object crash
+-  Fixed broken glTexImage3D() when image type = GL_BITMAP
+-  Fixed some GLSL preprocessor bugs
+-  Fixed framebuffer mem leak in i945/i965 DRI drivers
+-  Fixed texture coordinate repeat bug in swrast (bug 21872)
+-  Fixed incorrect viewport clamping (lower bound is zero, not one)
+-  GLX fix for glean's makeCurrent test case
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

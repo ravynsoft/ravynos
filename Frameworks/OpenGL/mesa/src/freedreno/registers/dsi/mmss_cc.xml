@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database xmlns="http://nouveau.freedesktop.org/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://nouveau.freedesktop.org/ rules-ng.xsd">
+<import file="freedreno_copyright.xml"/>
+
+<domain name="MMSS_CC" width="32">
+	<brief>
+		Multimedia sub-system clock control.. appears to be used by DSI
+		for clocks..
+	</brief>
+
+	<reg32 offset="0x0008" name="AHB"/>
+
+	<enum name="mmss_cc_clk">
+		<value name="CLK" value="0"/>
+		<value name="PCLK" value="1"/>
+	</enum>
+
+	<!--
+		possibly these sequences of registers are same, except pre_div_func
+		is shifted by 12 in pclk and 14 in clk..  I'm going to guess that
+		the register is same and they just multiply value by 4..
+	 -->
+	<array offsets="0x004c,0x0130" name="CLK" length="2" stride="0x10" index="mmss_cc_clk">
+		<reg32 offset="0x00" name="CC">
+			<bitfield name="CLK_EN" pos="0" type="boolean"/>
+			<bitfield name="ROOT_EN" pos="2" type="boolean"/>
+			<bitfield name="MND_EN" pos="5" type="boolean"/>
+			<bitfield name="MND_MODE" low="6" high="7"/>
+			<bitfield name="PMXO_SEL" low="8" high="9"/> <!-- not sure high -->
+		</reg32>
+		<reg32 offset="0x04" name="MD">
+			<bitfield name="D" low="0" high="7"/>
+			<bitfield name="M" low="8" high="15"/>
+		</reg32>
+		<reg32 offset="0x08" name="NS">
+			<bitfield name="SRC" low="0" high="3"/> <!-- not sure high, but it is >= 1 -->
+			<bitfield name="PRE_DIV_FUNC" low="12" high="23"/>
+			<bitfield name="VAL" low="24" high="31"></bitfield>
+		</reg32>
+	</array>
+	<reg32 offset="0x0094" name="DSI2_PIXEL_CC"/>
+	<reg32 offset="0x00e4" name="DSI2_PIXEL_NS"/>
+	<reg32 offset="0x0264" name="DSI2_PIXEL_CC2"/>
+</domain>
+
+</database>

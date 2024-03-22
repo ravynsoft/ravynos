@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="EXT_external_objects_fd" number="504">
+
+    <enum name="HANDLE_TYPE_OPAQUE_FD_EXT"              value="0x9586"/>
+
+    <function name="ImportMemoryFdEXT" es2="3.2">
+        <param name="memory" type="GLuint"/>
+        <param name="size" type="GLuint64"/>
+        <param name="handleType" type="GLenum"/>
+        <param name="fd" type="GLint"/>
+    </function>
+
+    <function name="ImportSemaphoreFdEXT" es2="3.2">
+        <param name="semaphore" type="GLuint"/>
+        <param name="handleType" type="GLenum"/>
+        <param name="fd" type="GLint"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

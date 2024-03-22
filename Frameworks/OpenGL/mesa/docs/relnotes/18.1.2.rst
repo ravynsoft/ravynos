@@ -1,0 +1,138 @@
+Mesa 18.1.2 Release Notes / June 15 2018
+========================================
+
+Mesa 18.1.2 is a bug fix release which fixes bugs found since the 18.1.1
+release.
+
+Mesa 18.1.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   a644df23937f4078a2bd9a54349f6315c1955f5e3a4ac272832da51dea4d3c11  mesa-18.1.1.tar.gz
+   070bf0648ba5b242d7303ceed32aed80842f4c0ba16e5acc1a650a46eadfb1f9  mesa-18.1.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+None
+
+Changes
+-------
+
+Alex Smith (4):
+
+-  radv: Consolidate GFX9 merged shader lookup logic
+-  radv: Handle GFX9 merged shaders in radv_flush_constants()
+-  radeonsi: Fix crash on shaders using MSAA image load/store
+-  radv: Set active_stages the same whether or not shaders were cached
+
+Andrew Galante (2):
+
+-  meson: Test for \__atomic_add_fetch in atomic checks
+-  configure.ac: Test for \__atomic_add_fetch in atomic checks
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Don't pass a TESS_EVAL shader when tesselation is not enabled.
+
+Cameron Kumar (1):
+
+-  vulkan/wsi: Destroy swapchain images after terminating FIFO queues
+
+Dylan Baker (6):
+
+-  docs/relnotes: Add sha256 sums for mesa 18.1.1
+-  cherry-ignore: add commits not to pull
+-  cherry-ignore: Add patches from Faith that he rebased on 18.1
+-  meson: work around gentoo applying -m32 to host compiler in cross
+   builds
+-  cherry-ignore: Add another patch
+-  version: bump version for 18.1.2 release
+
+Eric Engestrom (3):
+
+-  autotools: add missing android file to package
+-  configure: radv depends on mako
+-  i965: fix resource leak
+
+Faith Ekstrand (10):
+
+-  intel/eu: Add some brw_get_default\_ helpers
+-  intel/eu: Copy fields manually in brw_next_insn
+-  intel/eu: Set flag [sub]register number differently for 3src
+-  intel/blorp: Don't vertex fetch directly from clear values
+-  intel/isl: Add bounds-checking assertions in isl_format_get_layout
+-  intel/isl: Add bounds-checking assertions for the format_info table
+-  i965/screen: Refactor query_dma_buf_formats
+-  i965/screen: Use RGBA non-sRGB formats for images
+-  anv: Set fence/semaphore types to NONE in impl_cleanup
+-  i965/screen: Return false for unsupported formats in query_modifiers
+
+Jordan Justen (1):
+
+-  mesa/program_binary: add implicit UseProgram after successful
+   ProgramBinary
+
+Juan A. Suarez Romero (1):
+
+-  glsl: Add ir_binop_vector_extract in NIR
+
+Kenneth Graunke (2):
+
+-  i965: Fix batch-last mode to properly swap BOs.
+-  anv: Disable \__gen_validate_value if NDEBUG is set.
+
+Marek Olšák (1):
+
+-  r300g/swtcl: make pipe_context uploaders use malloc'd memory as
+   before
+
+Matt Turner (1):
+
+-  meson: Fix -latomic check
+
+Michel Dänzer (1):
+
+-  glx: Fix number of property values to read in glXImportContextEXT
+
+Nicolas Boichat (1):
+
+-  configure.ac/meson.build: Fix -latomic test
+
+Philip Rebohle (1):
+
+-  radv: Use correct color format for fast clears
+
+Samuel Pitoiset (3):
+
+-  radv: fix a GPU hang when MRTs are sparse
+-  radv: fix missing ZRANGE_PRECISION(1) for GFX9+
+-  radv: add a workaround for DXVK hangs by setting
+   amdgpu-skip-threshold
+
+Scott D Phillips (1):
+
+-  intel/tools: add intel_sanitize_gpu to EXTRA_DIST
+
+Thomas Petazzoni (1):
+
+-  configure.ac: rework -latomic check
+
+Timothy Arceri (2):
+
+-  ac: fix possible truncation of intrinsic name
+-  radeonsi: fix possible truncation on renderer string

@@ -1,0 +1,294 @@
+<?xml version="1.0" ?>
+
+<!--
+Copyright © 2022 Imagination Technologies Ltd.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<csbgen name="ROGUE" prefix="PBESTATE">
+
+  <enum name="COMP_IADDR_TYPE">
+    <value name="INDIRECT_1TILE" value="0"/>
+    <value name="INDIRECT_4TILE" value="1"/>
+  </enum>
+
+  <enum name="COMPRESS_SIZE">
+    <value name="BLOCK_8X8"  value="0"/>
+    <value name="BLOCK_16X4" value="1"/>
+  </enum>
+
+  <enum name="COMPRESS_SIZE_EXT">
+    <value name="BLOCK_8X8_16X4"   value="0"/>
+    <value name="BLOCK_32X2_RSRVD" value="1"/>
+  </enum>
+
+  <enum name="COMPRESSION">
+    <value name="DISABLED" value="0"/>
+    <value name="ENABLED"  value="1"/>
+  </enum>
+
+  <enum name="LOSSY">
+    <value name="DISABLED" value="0"/>
+    <value name="ENABLED"  value="1"/>
+  </enum>
+
+  <enum name="MEMLAYOUT">
+    <value name="LINEAR"     value="0"/>
+    <value name="TWIDDLE_2D" value="1"/>
+    <value name="TWIDDLE_3D" value="2"/>
+    <value name="TILED"      value="3"/>
+  </enum>
+
+  <enum name="PACKMODE">
+    <value name="U8U8U8U8"            value="0x0"/>
+    <value name="S8S8S8S8"            value="0x1"/>
+    <value name="X8U8S8S8"            value="0x2"/>
+    <value name="X8S8S8U8"            value="0x3"/>
+    <value name="A1R5G5B5"            value="0x4"/>
+    <value name="R5G5B5A1"            value="0x5"/>
+    <value name="A4R4G4B4"            value="0x6"/>
+    <value name="A8R3G3B2"            value="0x7"/>
+    <value name="U16U16U16U16"        value="0x8"/>
+    <value name="S16S16S16S16"        value="0x9"/>
+    <value name="F16F16F16F16"        value="0xa"/>
+    <value name="U32U32U32U32"        value="0xb"/>
+    <value name="S32S32S32S32"        value="0xc"/>
+    <value name="F32F32F32F32"        value="0xd"/>
+    <value name="A2R10B10G10"         value="0xe"/>
+    <value name="R10B10G10A2"         value="0xf"/>
+    <value name="A2F10F10F10"         value="0x10"/>
+    <value name="F10F10F10A2"         value="0x11"/>
+    <value name="U8U8U8"              value="0x12"/>
+    <value name="S8S8S8"              value="0x13"/>
+    <value name="R5G6B5"              value="0x14"/>
+    <value name="R5SG5SB6"            value="0x15"/>
+    <value name="B6G5SR5S"            value="0x16"/>
+    <value name="U16U16U16"           value="0x17"/>
+    <value name="S16S16S16"           value="0x18"/>
+    <value name="F16F16F16"           value="0x19"/>
+    <value name="U32U32U32"           value="0x1a"/>
+    <value name="S32S32S32"           value="0x1b"/>
+    <value name="F11F11F10"           value="0x1c"/>
+    <value name="F10F11F11"           value="0x1d"/>
+    <value name="SE9995"              value="0x1e"/>
+    <value name="F32F32F32"           value="0x1f"/>
+    <value name="X24U8F32"            value="0x20"/>
+    <value name="X24X8F32"            value="0x21"/>
+    <value name="X24G8X32"            value="0x22"/>
+    <value name="U8U8"                value="0x23"/>
+    <value name="S8S8"                value="0x24"/>
+    <value name="U16U16"              value="0x25"/>
+    <value name="S16S16"              value="0x26"/>
+    <value name="F16F16"              value="0x27"/>
+    <value name="U32U32"              value="0x28"/>
+    <value name="S32S32"              value="0x29"/>
+    <value name="F32F32"              value="0x2a"/>
+    <value name="U24ST8"              value="0x2b"/>
+    <value name="ST8U24"              value="0x2c"/>
+    <value name="X8U24"               value="0x2d"/>
+    <value name="U8X24"               value="0x2e"/>
+    <value name="U8"                  value="0x2f"/>
+    <value name="S8"                  value="0x30"/>
+    <value name="U16"                 value="0x31"/>
+    <value name="S16"                 value="0x32"/>
+    <value name="F16"                 value="0x33"/>
+    <value name="U32"                 value="0x34"/>
+    <value name="S32"                 value="0x35"/>
+    <value name="F32"                 value="0x36"/>
+    <value name="PBYTE"               value="0x37"/>
+    <value name="PWORD"               value="0x38"/>
+    <value name="ARGBV16_XR10"        value="0x39"/>
+    <value name="A2_XRBIAS_U10U10U10" value="0x3a"/>
+    <value name="YUV"                 value="0x3b"/>
+    <value name="U10U10U10_XRBIAS_A2" value="0x3c"/>
+    <value name="INVALID"             value="0xFFFFFFFF"/>
+  </enum>
+
+  <enum name="PAIR_TILES">
+    <value name="DISABLED" value="0"/>
+    <value name="ENABLED"  value="1"/>
+  </enum>
+
+  <enum name="ROTATION_TYPE">
+    <value name="0_DEG"   value="0"/>
+    <value name="90_DEG"  value="1"/>
+    <value name="180_DEG" value="2"/>
+    <value name="270_DEG" value="3"/>
+  </enum>
+
+  <enum name="SIZE">
+    <value name="1_PIXEL"   value="0"/>
+    <value name="2_PIXEL"   value="1"/>
+    <value name="4_PIXEL"   value="2"/>
+    <value name="8_PIXEL"   value="3"/>
+    <value name="16_PIXEL"  value="4"/>
+    <value name="32_PIXEL"  value="5"/>
+    <value name="64_PIXEL"  value="6"/>
+    <value name="128_PIXEL" value="7"/>
+    <value name="256_PIXEL" value="8"/>
+    <value name="512_PIXEL" value="9"/>
+    <value name="1K_PIXEL"  value="10"/>
+    <value name="2K_PIXEL"  value="11"/>
+    <value name="4K_PIXEL"  value="12"/>
+    <value name="8K_PIXEL"  value="13"/>
+    <value name="16K_PIXEL" value="14"/>
+  </enum>
+
+  <enum name="SOURCE_FORMAT">
+    <value name="F16_PER_CHANNEL" value="0"/>
+    <value name="8_PER_CHANNEL"   value="1"/>
+  </enum>
+
+  <enum name="SOURCE_POS">
+    <value name="START_BIT0"  value="0"/>
+    <value name="START_BIT32" value="1"/>
+    <value name="START_BIT64" value="2"/>
+    <value name="START_BIT96" value="3"/>
+  </enum>
+
+  <enum name="SWIZ">
+    <value name="SOURCE_CHAN0" value="0"/>
+    <value name="SOURCE_CHAN1" value="1"/>
+    <value name="SOURCE_CHAN2" value="2"/>
+    <value name="SOURCE_CHAN3" value="3"/>
+    <value name="ONE"          value="4"/>
+    <value name="ZERO"         value="5"/>
+  </enum>
+
+  <enum name="TFBC_LOSSY">
+    <value name="LOSSLESS" value="0"/>
+    <value name="LOSSY75"  value="1"/>
+    <value name="LOSSY50"  value="2"/>
+    <value name="LOSSY25"  value="3"/>
+  </enum>
+
+  <enum name="TWOCOMP_GAMMA">
+    <value name="GAMMA_BOTTOM_CHANNEL" value="0"/>
+    <value name="GAMMA_BOTH_CHANNELS"  value="1"/>
+  </enum>
+
+  <enum name="Y_FLIP">
+    <value name="DISABLED" value="0"/>
+    <value name="ENABLED"  value="1"/>
+  </enum>
+
+  <enum name="YUV_DOWNSCALE">
+    <value name="NO_DOWNSCALING"   value="0"/>
+    <value name="ONE_SAMPLE_LEFT"  value="1"/>
+    <value name="EMPTY"            value="2"/>
+    <value name="TWO_SAMPLES"      value="3"/>
+    <value name="FOUR_SAMPLES"     value="4"/>
+    <value name="ONE_SAMPLE_RIGHT" value="5"/>
+  </enum>
+
+  <enum name="YUV_PMODE">
+    <value name="UV8_420_2PLANE"   value="0"/>
+    <value name="U8_420_3PLANE"    value="1"/>
+    <value name="V8_420_3PLANE"    value="2"/>
+    <value name="YUV8_422_1PLANE"  value="3"/>
+    <value name="UV8_422_2PLANE"   value="4"/>
+    <value name="UV8_444_2PLANE"   value="5"/>
+    <value name="Y8_23PLANE"       value="6"/>
+    <value name="U8_444_3PLANE"    value="7"/>
+    <value name="V8_444_3PLANE"    value="8"/>
+    <value name="YUV10_444_1PLANE" value="9"/>
+    <value name="RESERVED_YUV1"    value="10"/>
+    <value name="RESERVED_YUV2"    value="11"/>
+    <value name="YUV10_422_1PLANE" value="12"/>
+    <value name="UV10_420_2PLANE"  value="13"/>
+    <value name="Y10_23PLANE"      value="14"/>
+    <value name="UV16_420_2PLANE"  value="15"/>
+    <value name="UV16_422_2PLANE"  value="16"/>
+    <value name="UV16_444_2PLANE"  value="17"/>
+    <value name="Y16_23PLANE"      value="18"/>
+    <value name="U16_444_3PLANE"   value="19"/>
+    <value name="V16_444_3PLANE"   value="20"/>
+  </enum>
+
+  <struct name="STATE_WORD0" length="1">
+    <field name="address_low" start="0" end="31" shift="2" type="address"/>
+  </struct>
+
+  <struct name="STATE_WORD1" length="1">
+    <condition type="if" check="8_OUTPUT_REGISTERS"/>
+      <field name="source_pos_offset_128" start="28" end="28" type="bool"/>
+    <condition type="endif" check="8_OUTPUT_REGISTERS"/>
+    <field name="yuv_pmode" start="23" end="27" type="YUV_PMODE"/>
+    <field name="yuv_downscale" start="20" end="22" type="YUV_DOWNSCALE"/>
+    <field name="source_format" start="19" end="19" type="SOURCE_FORMAT"/>
+    <field name="mrt_index" start="16" end="18" type="uint"/>
+    <field name="source_pos" start="14" end="15" type="SOURCE_POS"/>
+    <field name="norm" start="13" end="13" type="bool"/>
+    <field name="packmode" start="7" end="12" type="PACKMODE"/>
+    <field name="emptytile" start="6" end="6" type="bool"/>
+    <field name="address_high" start="0" end="5" shift="34" type="address"/>
+  </struct>
+
+  <struct name="REG_WORD0" length="2">
+    <field name="tfbc_lossy" start="62" end="63" type="TFBC_LOSSY">
+      <define name="LOSSY37_75_TFBC_LOSSY_37_PERCENT_ENABLED" value="1"/>
+    </field>
+    <field name="lossy" start="62" end="62" type="LOSSY"/>
+    <field name="compress_size_ext" start="61" end="61" type="COMPRESS_SIZE_EXT"/>
+    <field name="comp_iaddr_mode" start="60" end="60" type="COMP_IADDR_TYPE"/>
+    <field name="comp_cor_enable" start="59" end="59" type="bool"/>
+    <field name="dither" start="58" end="58" type="bool"/>
+    <field name="tilerelative" start="57" end="57" type="bool"/>
+    <field name="downscale" start="56" end="56" type="bool"/>
+    <field name="size_z" start="52" end="55" type="SIZE"/>
+    <field name="rotation" start="50" end="51" type="ROTATION_TYPE"/>
+    <field name="linestride" start="34" end="49" type="uint">
+      <!-- FIXME: When pbe_stride_align_1pixel is present, this should be 1. -->
+      <define name="UNIT_SIZE" value="2"/>
+    </field>
+    <field name="memlayout" start="32" end="33" type="MEMLAYOUT"/>
+    <field name="swiz_chan3" start="29" end="31" type="SWIZ"/>
+    <field name="swiz_chan2" start="26" end="28" type="SWIZ"/>
+    <field name="swiz_chan1" start="23" end="25" type="SWIZ"/>
+    <field name="swiz_chan0" start="20" end="22" type="SWIZ"/>
+    <field name="minclip_x" start="6" end="19" type="uint"/>
+    <field name="twocomp_gamma" start="5" end="5" type="TWOCOMP_GAMMA"/>
+    <field name="gamma" start="4" end="4" type="bool"/>
+    <field name="compression" start="3" end="3" type="COMPRESSION"/>
+    <field name="compress_size" start="2" end="2" type="COMPRESS_SIZE"/>
+    <field name="comp_indirect_table" start="1" end="1" type="bool"/>
+    <field name="y_flip" start="0" end="0" type="Y_FLIP"/>
+  </struct>
+
+  <struct name="REG_WORD1" length="2">
+    <field name="size_x" start="60" end="63" type="SIZE"/>
+    <field name="minclip_y" start="46" end="59" type="uint"/>
+    <field name="maxclip_x" start="32" end="45" type="uint"/>
+    <field name="size_y" start="28" end="31" type="SIZE"/>
+    <field name="zslice" start="14" end="27" type="uint"/>
+    <field name="maxclip_y" start="0" end="13" type="uint"/>
+  </struct>
+
+  <struct name="REG_WORD2" length="2">
+    <field name="pair_tiles" start="46" end="46" type="PAIR_TILES">
+      <!-- TODO: Do we need this? -->
+      <define name="SHIFT" value="46"/>
+    </field>
+    <field name="surface_y_size" start="32" end="45" type="uint"/>
+    <field name="sw_bytemask" start="0" end="31" type="uint"/>
+  </struct>
+
+</csbgen>

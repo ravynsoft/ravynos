@@ -1,0 +1,103 @@
+Mesa 10.2.4 Release Notes / July 18, 2014
+=========================================
+
+Mesa 10.2.4 is a bug fix release which fixes bugs found since the 10.2.3
+release.
+
+Mesa 10.2.4 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   06a2341244eb85c283f59f70161e06ded106f835ed9b6be1ef0243bd9344811a  MesaLib-10.2.4.tar.bz2
+   33e3c8b4343503e7d7d17416c670438860a2fd99ec93ea3327f73c3abe33b5e4  MesaLib-10.2.4.tar.gz
+   e26791a4a62a61b82e506e6ba031812d09697d1a831e8239af67e5722a8ee538  MesaLib-10.2.4.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 81157 <https://bugs.freedesktop.org/show_bug.cgi?id=81157>`__ -
+   [BDW]Piglit some spec_glsl-1.50_execution_built-in-functions\* cases
+   fail
+
+Changes
+-------
+
+Abdiel Janulgue (3):
+
+-  i965/fs: Refactor check for potential copy propagated instructions.
+-  i965/fs: skip copy-propate for logical instructions with negated src
+   entries
+-  i965/vec4: skip copy-propate for logical instructions with negated
+   src entries
+
+Brian Paul (3):
+
+-  mesa: fix geometry shader memory leaks
+-  st/mesa: fix geometry shader memory leak
+-  gallium/u_blitter: fix some shader memory leaks
+
+Carl Worth (2):
+
+-  docs: Add sha256 checksums for the 10.2.3 release
+-  Update VERSION to 10.2.4
+
+Eric Anholt (1):
+
+-  i965: Generalize the pixel_x/y workaround for all UW types.
+
+Ilia Mirkin (4):
+
+-  nv50/ir: retrieve shadow compare from first arg
+-  nv50/ir: ignore bias for samplerCubeShadow on nv50
+-  nvc0/ir: do quadops on the right texture coordinates for TXD
+-  nvc0/ir: use manual TXD when offsets are involved
+
+Jordan Justen (1):
+
+-  i965: Add auxiliary surface field #defines for Broadwell.
+
+Kenneth Graunke (9):
+
+-  i965: Don't copy propagate abs into Broadwell logic instructions.
+-  i965: Set execution size to 8 for instructions with force_sechalf
+   set.
+-  i965/fs: Set force_uncompressed and force_sechalf on samplepos setup.
+-  i965/fs: Use WE_all for gl_SampleID header register munging.
+-  i965: Add plumbing for Broadwell's auxiliary surface support.
+-  i965: Drop SINT workaround for CMS layout on Broadwell.
+-  i965: Hook up the MCS buffers in SURFACE_STATE on Broadwell.
+-  i965: Add 2x MSAA support to the MCS allocation function.
+-  i965: Enable compressed multisample support (CMS) on Broadwell.
+
+Marek Olšák (4):
+
+-  gallium: fix u_default_transfer_inline_write for textures
+-  st/mesa: fix samplerCubeShadow with bias
+-  radeonsi: fix samplerCubeShadow with bias
+-  radeonsi: add support for TXB2
+
+Matt Turner (8):
+
+-  i965/vec4: Don't return void from a void function.
+-  i965/vec4: Don't fix_math_operand() on Gen >= 8.
+-  i965/fs: Don't fix_math_operand() on Gen >= 8.
+-  i965/fs: Make try_constant_propagate() static.
+-  i965/fs: Constant propagate into 2-src math instructions on Gen8.
+-  i965/vec4: Constant propagate into 2-src math instructions on Gen8.
+-  i965/fs: Don't use brw_imm\_\* unnecessarily.
+-  i965/fs: Set correct number of regs_written for MCS fetches.

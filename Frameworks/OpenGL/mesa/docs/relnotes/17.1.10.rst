@@ -1,0 +1,129 @@
+Mesa 17.1.10 Release Notes / September 25, 2017
+===============================================
+
+Mesa 17.1.10 is a bug fix release which fixes bugs found since the
+17.1.9 release.
+
+Mesa 17.1.10 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   a48ce6b643a728b2b0f926151930525b3670fbff1fb688527fd9051eab9f30a4  mesa-17.1.10.tar.gz
+   cbc0d681cc4df47d8deb5a36f45b420978128522fd665b2cd4c7096316f11bdb  mesa-17.1.10.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 102844 <https://bugs.freedesktop.org/show_bug.cgi?id=102844>`__
+   - memory leak with glDeleteProgram for shader program type
+   GL_COMPUTE_SHADER
+
+Changes
+-------
+
+Alexandre Demers (1):
+
+-  osmesa: link with libunwind if enabled (v2)
+
+Andres Gomez (12):
+
+-  docs: add sha256 checksums for 17.1.9
+-  cherry-ignore: add "st/mesa: skip draw calls with
+   pipe_draw_info::count == 0"
+-  cherry-ignore: add "radv: use amdgpu_bo_va_op_raw."
+-  cherry-ignore: add "radv: use simpler indirect packet 3 if possible."
+-  cherry-ignore: add "radeonsi: don't always apply the PrimID
+   instancing bug workaround on SI"
+-  cherry-ignore: add "intel/eu/validate: Look up types on demand in
+   execution_type()"
+-  cherry-ignore: add "radv: gfx9 fixes"
+-  cherry-ignore: add "radv/gfx9: set mip0-depth correctly for 2d
+   arrays/3d images"
+-  cherry-ignore: add "radv/gfx9: fix image resource handling."
+-  cherry-ignore: add "docs/egl: remove reference to EGL_DRIVERS_PATH"
+-  cherry-ignore: add "radv: Disable multilayer & multilevel DCC."
+-  cherry-ignore: add "radv: Don't allocate CMASK for linear images."
+
+Dave Airlie (2):
+
+-  radv/ac: bump params array for image atomic comp swap
+-  st/glsl->tgsi: fix u64 to bool comparisons.
+
+Emil Velikov (2):
+
+-  egl/x11/dri3: adding missing \__DRI_BACKGROUND_CALLABLE extension
+-  automake: enable libunwind in \`make distcheck'
+
+Eric Anholt (3):
+
+-  broadcom/vc4: Fix use-after-free for flushing when writing to a
+   texture.
+-  broadcom/vc4: Fix use-after-free trying to mix a quad and tile clear.
+-  broadcom/vc4: Fix use-after-free when deleting a program.
+
+George Kyriazis (1):
+
+-  swr: invalidate attachment on transition change
+
+Gert Wollny (2):
+
+-  travis: force llvm-3.3 for "make Gallium ST Other"
+-  travis: Add libunwind-dev to gallium/make builds
+
+Faith Ekstrand (1):
+
+-  i965/blorp: Set r8stencil_needs_update when writing stencil
+
+Juan A. Suarez Romero (9):
+
+-  cherry-ignore: add "ac/surface: match Z and stencil tile config"
+-  cherry-ignore: add "radv/nir: call opt_remove_phis after trivial
+   continues."
+-  cherry-ignore: add "amd/common: add workaround for cube map array
+   layer clamping"
+-  cherry-ignore: add "radeonsi: workaround for gather4 on integer cube
+   maps"
+-  cherry-ignore: add "Scons: Add LLVM 5.0 support"
+-  cherry-ignore: add "ac/surface: handle S8 on gfx9"
+-  cherry-ignore: add "radv: Check for GFX9 for 1D arrays in image_size
+   intrinsic."
+-  cherry-ignore: add "glsl/linker: fix output variable overlap check"
+-  Update version to 17.1.10
+
+Józef Kucia (1):
+
+-  anv: Fix descriptors copying
+
+Matt Turner (2):
+
+-  util: Link libmesautil into u_atomic_test
+-  util/u_atomic: Add implementation of \__sync_val_compare_and_swap_8
+
+Nicolai HÃƒÂ¤hnle (1):
+
+-  radeonsi: apply a mask to gl_SampleMaskIn in the PS prolog
+
+Nicolai Hähnle (4):
+
+-  st/glsl_to_tgsi: only the first (inner-most) array reference can be a
+   2D index
+-  amd/common: round cube array slice in ac_prepare_cube_coords
+-  radeonsi: set MIP_POINT_PRECLAMP to 0
+-  radeonsi: fix array textures layer coordinate
+
+Tapani Pälli (1):
+
+-  mesa: free current ComputeProgram state in \_mesa_free_context_data

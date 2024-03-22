@@ -1,0 +1,147 @@
+Mesa 18.3.4 Release Notes / February 18, 2019
+=============================================
+
+Mesa 18.3.4 is a bug fix release which fixes bugs found since the 18.3.3
+release.
+
+Mesa 18.3.4 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   e22e6fe4c3aca80fe872a0a7285b6c5523e0cfc0bfb57ffcc3b3d66d292593e4  mesa-18.3.4.tar.gz
+   32314da4365d37f80d84f599bd9625b00161c273c39600ba63b45002d500bb07  mesa-18.3.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 109107 <https://bugs.freedesktop.org/show_bug.cgi?id=109107>`__
+   - gallium/st/va: change va max_profiles when using Radeon VCN
+   Hardware
+-  `Bug 109401 <https://bugs.freedesktop.org/show_bug.cgi?id=109401>`__
+   - [DXVK] Project Cars rendering problems
+-  `Bug 109543 <https://bugs.freedesktop.org/show_bug.cgi?id=109543>`__
+   - After upgrade mesa to 19.0.0~rc1 all vulkan based application stop
+   working ["vulkan-cube" received SIGSEGV in
+   radv_pipeline_init_blend_state at
+   ../src/amd/vulkan/radv_pipeline.c:699]
+-  `Bug 109603 <https://bugs.freedesktop.org/show_bug.cgi?id=109603>`__
+   - nir_instr_as_deref: Assertion \`parent && parent->type ==
+   nir_instr_type_deref' failed.
+
+Changes
+-------
+
+Bart Oldeman (1):
+
+-  gallium-xlib: query MIT-SHM before using it.
+
+Bas Nieuwenhuizen (2):
+
+-  radv: Only look at pImmutableSamples if the descriptor has a sampler.
+-  amd/common: Use correct writemask for shared memory stores.
+
+Dylan Baker (2):
+
+-  get-pick-list: Add --pretty=medium to the arguments for Cc patches
+-  meson: Add dependency on genxml to anvil
+
+Emil Velikov (5):
+
+-  docs: add sha256 checksums for 18.3.3
+-  cherry-ignore: nv50,nvc0: add explicit settings for recent caps
+-  cherry-ignore: add more 19.0 only nominations from Ilia
+-  cherry-ignore: radv: fix using LOAD_CONTEXT_REG with old GFX ME
+   firmwares on GFX8
+-  Update version to 18.3.4
+
+Eric Anholt (1):
+
+-  vc4: Fix copy-and-paste fail in backport of NEON asm fixes.
+
+Eric Engestrom (2):
+
+-  xvmc: fix string comparison
+-  xvmc: fix string comparison
+
+Ernestas Kulik (2):
+
+-  vc4: Fix leak in HW queries error path
+-  v3d: Fix leak in resource setup error path
+
+Iago Toral Quiroga (1):
+
+-  intel/compiler: do not copy-propagate strided regions to ddx/ddy
+   arguments
+
+Ilia Mirkin (1):
+
+-  nvc0: we have 16k-sized framebuffers, fix default scissors
+
+Faith Ekstrand (3):
+
+-  intel/fs: Handle IMAGE_SIZE in size_read() and is_send_from_grf()
+-  intel/fs: Do the grf127 hack on SIMD8 instructions in SIMD16 mode
+-  nir/deref: Rematerialize parents in
+   rematerialize_derefs_in_use_blocks
+
+Juan A. Suarez Romero (1):
+
+-  anv/cmd_buffer: check for NULL framebuffer
+
+Kenneth Graunke (1):
+
+-  st/mesa: Limit GL_MAX_[NATIVE\_]PROGRAM_PARAMETERS_ARB to 2048
+
+Kristian H. Kristensen (1):
+
+-  freedreno/a6xx: Emit blitter dst with OUT_RELOCW
+
+Leo Liu (2):
+
+-  st/va: fix the incorrect max profiles report
+-  st/va/vp9: set max reference as default of VP9 reference number
+
+Marek Olšák (4):
+
+-  meson: drop the xcb-xrandr version requirement
+-  gallium/u_threaded: fix EXPLICIT_FLUSH for flush offsets > 0
+-  radeonsi: fix EXPLICIT_FLUSH for flush offsets > 0
+-  winsys/amdgpu: don't drop manually added fence dependencies
+
+Mario Kleiner (2):
+
+-  egl/wayland: Allow client->server format conversion for PRIME
+   offload. (v2)
+-  egl/wayland-drm: Only announce formats via wl_drm which the driver
+   supports.
+
+Oscar Blumberg (1):
+
+-  radeonsi: Fix guardband computation for large render targets
+
+Rob Clark (1):
+
+-  freedreno: stop frob'ing pipe_resource::nr_samples
+
+Rodrigo Vivi (1):
+
+-  intel: Add more PCI Device IDs for Coffee Lake and Ice Lake.
+
+Samuel Pitoiset (2):
+
+-  radv: fix compiler issues with GCC 9
+-  radv: always export gl_SampleMask when the fragment shader uses it

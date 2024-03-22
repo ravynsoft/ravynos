@@ -1,0 +1,124 @@
+Mesa 10.0.1 Release Notes / (December 12, 2013)
+===============================================
+
+Mesa 10.0.1 is a bug fix release which fixes bugs found since the 10.0
+release.
+
+Mesa 10.0.1 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   0a72ca5b36046a658bf6038326ff32ed  MesaLib-10.0.1.tar.bz2
+   01bde35c912e504ba62caf1ef9f7022c  MesaLib-10.0.1.tar.gz
+   59a174a11a89e6b1b8ee9c3f7e3c388c  MesaLib-10.0.1.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 64323 <https://bugs.freedesktop.org/show_bug.cgi?id=64323>`__ -
+   Severe misrendering in Left 4 Dead 2
+-  `Bug 68838 <https://bugs.freedesktop.org/show_bug.cgi?id=68838>`__ -
+   GLSL: struct declarations produce a "empty declaration warning" in
+   9.2
+-  `Bug 69155 <https://bugs.freedesktop.org/show_bug.cgi?id=69155>`__ -
+   [NV50 gallium] [piglit] bin/varying-packing-simple triggers memory
+   corruption/failures
+-  `Bug 70250 <https://bugs.freedesktop.org/show_bug.cgi?id=70250>`__ -
+   weston-terminal rendering corrupted with output transform 90 and 270
+-  `Bug 70601 <https://bugs.freedesktop.org/show_bug.cgi?id=70601>`__ -
+   [SNB Bisected]Piglit spec/ARB_texture_float/multisample-formats 2
+   GL_ARB_texture_float fails
+-  `Bug 72230 <https://bugs.freedesktop.org/show_bug.cgi?id=72230>`__ -
+   Unable to extract MesaLib-10.0.0.tar.{gz,bz2} with bsdtar
+-  `Bug 72325 <https://bugs.freedesktop.org/show_bug.cgi?id=72325>`__ -
+   [swrast] piglit glean fbo regression
+-  `Bug 72327 <https://bugs.freedesktop.org/show_bug.cgi?id=72327>`__ -
+   [swrast] piglit glean pointSprite regression
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following git
+command:
+
+::
+
+     git log mesa-10.0..mesa-10.0.1
+
+Axel Davy (2):
+
+-  egl/wayland: Flush the wl_display at the end of SwapBuffers
+-  Enable throttling in SwapBuffers
+
+Chad Versace (2):
+
+-  i965/hsw: Apply non-msrt fast color clear w/a to all HSW GTs
+-  i965: Add extra-alignment for non-msrt fast color clear for all hw
+   (v2)
+
+Dave Airlie (1):
+
+-  swrast: fix readback regression since inversion fix
+
+Emil Velikov (1):
+
+-  automake: include only one copy VERSION in tarball
+
+Ian Romanick (3):
+
+-  docs: Add 10.0 release md5sums
+-  Remove a057b83 from the pick list
+-  glsl: Don't emit empty declaration warning for a struct specifier
+
+Ilia Mirkin (8):
+
+-  mesa: don't leak performance monitors on context destroy
+-  nv50: Fix GPU_READING/WRITING bit removal
+-  nouveau: avoid leaking fences while waiting
+-  nv50: wait on the buf's fence before sticking it into pushbuf
+-  nv50: enable h264 and mpeg4 for nv98+ (vp3, vp4.0)
+-  nouveau/video: update h264 picparm field names based on usage
+-  nouveau/video: update a few more h264 picparm field names
+-  nv50: report 15 max inputs for fragment programs
+
+Jordan Justen (1):
+
+-  dri megadriver_stub: add compatibility for older DRI loaders
+
+Kristian Høgsberg (2):
+
+-  egl/wayland: Damage INT32_MAX x INT32_MAX region for eglSwapBuffers
+-  egl/wayland: Send commit after flushing the driver context
+
+Maarten Lankhorst (1):
+
+-  nouveau: Fix compiler warning regression
+
+Paul Berry (1):
+
+-  i965/gen6: Fix multisample resolve blits for luminance/intensity 32F
+   formats.
+
+Thomas Hellstrom (1):
+
+-  st/xa: Bump major version number to 2
+
+Tom Stellard (2):
+
+-  r300/compiler/tests: Fix segfault
+-  r300/compiler/tests: Fix line length check in test parser

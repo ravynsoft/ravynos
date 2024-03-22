@@ -1,0 +1,18 @@
+# May be bogus, happened around a bunch of interpolate_at_sample hangs
+dEQP-GLES3.functional.rasterization.fbo.rbo_multisample_max.interpolation.lines_wide
+
+# The last quad that was supposed to be overwritten by red has a green triangle showing.
+dEQP-GLES3.functional.multisample.fbo_8_samples.constancy_alpha_to_coverage
+dEQP-GLES3.functional.multisample.fbo_max_samples.constancy_alpha_to_coverage
+
+dEQP-GLES3.functional.multisample.fbo_8_samples.constancy_both_inverted
+
+# "Failure: Non-zero green color component detected - should have been completely overwritten by red quad"
+# the "rendered image" looks suspiciously black, though, which is the clear color?
+dEQP-GLES3.functional.multisample.fbo_max_samples.constancy_sample_coverage
+dEQP-GLES3.functional.multisample.fbo_max_samples.constancy_sample_coverage_inverted
+
+# non-gpu-hang, frequent flakes that can happen deep in a series of copy_image tests.
+# multiple fails per caselist, with those fails separated by passes!
+dEQP-GLES31.functional.copy_image.mixed.viewclass_.*_mixed.*
+dEQP-GLES31.functional.copy_image.*viewclass_.*

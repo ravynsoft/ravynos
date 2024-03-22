@@ -1,0 +1,51 @@
+
+                          Mesa 4.0.3 release notes
+
+                               June 25, 2002
+
+                              PLEASE READ!!!!
+
+
+
+Introduction
+------------
+
+Mesa uses an even/odd version number scheme like the Linux kernel.
+Odd numbered versions (such as 3.3) designate new developmental releases.
+Even numbered versions (such as 3.4) designate stable releases.
+
+Mesa 4.0.3 basically just contains bug fixes version 4.0.2.
+
+See the docs/VERSIONS file for the list of bug fixes.
+
+The GGI driver has been updated, thanks to Filip Spacek.
+
+
+Device Drivers
+--------------
+
+Mesa advertises itself as either OpenGL 1.2 or OpenGL 1.3 depending on the
+device driver.  If the driver enables all the ARB extensions which are part
+of OpenGL 1.3 then glGetString(GL_VERSION) will return "1.3".  Otherwise,
+it'll return "1.2".
+
+A number of Mesa's software drivers haven't been actively maintained for
+some time.  We rely on volunteers to maintain many of the drivers.
+Here's the current status of all included drivers:
+
+Driver			Status
+----------------------	---------------------
+XMesa (Xlib)		implements OpenGL 1.3
+OSMesa (off-screen)	implements OpenGL 1.3
+FX (3dfx Voodoo1/2)	implements OpenGL 1.3
+SVGA			implements OpenGL 1.3
+Wind River UGL		implements OpenGL 1.3
+Windows/Win32		implements OpenGL 1.3
+DOS/DJGPP		implements OpenGL 1.3 (new in Mesa 4.0.2)
+GGI			implements OpenGL 1.3
+BeOS			needs updating
+Allegro			needs updating
+D3D			needs updating
+
+
+----------------------------------------------------------------------

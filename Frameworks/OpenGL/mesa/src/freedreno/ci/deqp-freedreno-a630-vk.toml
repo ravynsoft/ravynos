@@ -1,0 +1,74 @@
+# Basic test set
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt"]
+fraction = 60
+renderer_check = "Turnip Adreno .* 630"
+
+# force-gmem testing (~1 min)
+# Autotuner forces sysmem on most CTS tests
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt"]
+prefix = "gmem-"
+fraction = 150
+[deqp.env]
+TU_DEBUG = "gmem,forcebin"
+
+# force-gmem with unaligned gmem store testing (~15s)
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt"]
+include = ["dEQP-VK.renderpass.*"]
+prefix = "gmem-unaligned-"
+fraction = 10
+[deqp.env]
+TU_DEBUG = "gmem,unaligned_store"
+
+# force-sysmem testing (~15s)
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt"]
+include = ["dEQP-VK.renderpass.*"]
+prefix = "bypass-"
+fraction = 30
+[deqp.env]
+TU_DEBUG = "sysmem"
+
+# force-spilling testing (~10s)
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt"]
+include = ["dEQP-VK.graphicsfuzz.*"]
+prefix = "spill-"
+fraction = 10
+[deqp.env]
+IR3_SHADER_DEBUG = "spillall"
+
+# dynamic rendering testing using emulated renderpass
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt"]
+include = ["dEQP-VK.renderpass2.*"]
+prefix = "dynamic-"
+fraction = 10
+[deqp.env]
+TU_DEBUG = "dynamic"
+
+# testing for stale regs usage
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk"
+caselists = ["/deqp/mustpass/vk-master.txt"]
+skips = ["install/freedreno-a630-premerge-skips.txt"]
+prefix = "stale-regs-"
+fraction = 200
+[deqp.env]
+TU_DEBUG = "gmem,forcebin"
+TU_DEBUG_STALE_REGS_RANGE = "0x0c00,0xbe01"
+TU_DEBUG_STALE_REGS_FLAGS = "cmdbuf,renderpass"

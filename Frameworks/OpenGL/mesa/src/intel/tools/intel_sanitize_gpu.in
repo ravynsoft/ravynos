@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# -*- mode: sh -*-
+
+function show_help() {
+    cat <<EOF
+Usage: intel_sanitize_gpu [OPTION]... [--] COMMAND ARGUMENTS
+
+Run COMMAND with ARGUMENTS and verify the GPU doesn't write outside its memory
+mapped buffers.
+
+  -g, --gdb          Launch GDB
+
+      --help         Display this help message and exit
+
+EOF
+
+    exit 0
+}
+
+gdb=""
+
+while true; do
+    case "$1" in
+        --gdb)
+            gdb=1
+            shift
+            ;;
+        -g)
+            gdb=1
+            shift
+            ;;
+        --help)
+            show_help
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "intel_sanitize_gpu: invalid option: $1"
+            echo
+            show_help
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+[ -z $1 ] && show_help
+
+ld_preload="@install_libexecdir@/libintel_sanitize_gpu.so${LD_PRELOAD:+:$LD_PRELOAD}"
+if [ -z $gdb ]; then
+    LD_PRELOAD=$ld_preload exec "$@"
+else
+    gdb -iex "set exec-wrapper env LD_PRELOAD=$ld_preload" --args "$@"
+fi

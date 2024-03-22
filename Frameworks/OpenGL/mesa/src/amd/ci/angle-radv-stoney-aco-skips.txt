@@ -1,0 +1,16 @@
+# Unlike zink which does support it, ANGLE relies on a waiver to not implement
+# capturing individual array elements (see waivers.xml and gles3-waivers.txt in the CTS)
+dEQP-GLES3.functional.transform_feedback.array_element.*
+dEQP-GLES3.functional.transform_feedback.random.*
+dEQP-GLES31.functional.program_interface_query.transform_feedback_varying.*_array_element
+dEQP-GLES31.functional.program_interface_query.transform_feedback_varying.type.*.array.*
+KHR-GLES31.core.program_interface_query.transform-feedback-types
+
+# ANGLE throws this warning
+# "Unimplemented: CopyImageSubData(../../src/libANGLE/renderer/vulkan/vk_helpers.cpp:6562"
+# which is "// No support for emulated compressed formats."
+#
+# ANGLE doesn't plan on implementing it, given that Android insists on VK having ASTC support
+# anyway, so ANGLE-on-RADV is going to need either support inside radv (unlikely) or a compat
+# layer.
+dEQP-GLES31.functional.copy_image.*astc.*

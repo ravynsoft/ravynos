@@ -1,0 +1,13 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# Needs investigation
+dEQP-GLES2.functional.fbo.render.shared_colorbuffer.rbo_rgb565_depth_component16
+dEQP-GLES2.functional.fbo.render.shared_colorbuffer.tex2d_rgba_depth_component16
+
+# Blending seems unstable on T720, skip to avoid flakes
+dEQP-GLES2.functional.fragment_ops.interaction.basic_shader.*
+dEQP-GLES2.functional.fragment_ops.random.*
+dEQP-GLES2.functional.fragment_ops.blend.equation_src_func_dst_func.*
+dEQP-GLES2.functional.fragment_ops.blend.rgb_func_alpha_func.*

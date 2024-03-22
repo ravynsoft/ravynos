@@ -1,0 +1,144 @@
+# Please include a comment with the log message and a testcase triggering each
+# VUID at the bottom of the file.
+khronos_validation.message_id_filter = VUID-VkPhysicalDeviceProperties2-pNext-pNext,VUID-VkDeviceCreateInfo-pNext-pNext,UNASSIGNED-CoreValidation-Shader-InconsistentSpirv,VUID-vkDestroyDevice-device-00378,VUID-VkShaderModuleCreateInfo-pCode-01377,VUID-RuntimeSpirv-Location-06272,VUID-VkGraphicsPipelineCreateInfo-renderPass-06590,VUID-VkGraphicsPipelineCreateInfo-Geometry-07725,VUID-vkCmdDrawMultiIndexedEXT-format-07753,UNASSIGNED-CoreValidation-Shader-InterfaceTypeMismatch,VUID-RuntimeSpirv-OpEntryPoint-07754,VUID-VkShaderModuleCreateInfo-pCode-01379,VUID-RuntimeSpirv-OpEntryPoint-08743,VUID-VkGraphicsPipelineCreateInfo-topology-00737,VUID-VkGraphicsPipelineCreateInfo-pStages-00736,VUID-vkCmdCopyImage-srcImage-07743,VUID-vkCmdDrawMultiIndexedEXT-format-07753,VUID-vkCmdDrawMultiEXT-pDepthAttachment-06181,VUID-vkCmdDrawMultiEXT-pStencilAttachment-06182,VUID-vkCmdDrawMultiIndexedEXT-pDepthAttachment-06181,VUID-vkCmdDrawMultiIndexedEXT-pStencilAttachment-06182,VUID-vkDestroyDevice-device-05137
+khronos_validation.report_flags = error
+khronos_validation.debug_action = VK_DBG_LAYER_ACTION_LOG_MSG,VK_DBG_LAYER_ACTION_BREAK
+VK_LAYER_ENABLES=VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT
+khronos_validation.printf_buffer_size = 40960
+khronos_validation.printf_to_stdout = true
+khronos_validation.log_filename = stdout
+
+# VUID-VkPhysicalDeviceProperties2-pNext-pNext
+# VUID-VkDeviceCreateInfo-pNext-pNext
+# never error due to unrecognized extensions
+
+# KHR-Single-GL46.enhanced_layouts.xfb_struct_explicit_location:
+# [ UNASSIGNED-CoreValidation-Shader-InconsistentSpirv ] Object 0: handle =
+# 0x556fd2b6e190, type = VK_OBJECT_TYPE_DEVICE; | MessageID = 0x6bbb14 | SPIR-V
+# module not valid: The Component Type of Vector 1 must be the same as ResultType.
+
+# Intermittent, probably the end of a caselist so not tied to a specific known test:
+# [ VUID-vkDestroyDevice-device-00378 ] Object 0: handle = 0x55c458362820, type =
+# VK_OBJECT_TYPE_DEVICE; Object 1: handle = 0x2a7f70000000053, type =
+# VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT; | MessageID = 0x71500fba | OBJ ERROR : For
+# VkDevice 0x55c458362820[], VkDescriptorSetLayout 0x2a7f70000000053[] has not
+# been destroyed. The Vulkan spec states: All child objects created on device must
+# have been destroyed prior to destroying device
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkDestroyDevice-device-00378)
+
+# KHR-Single-GL46.enhanced_layouts.xfb_struct_explicit_location:
+# [ VUID-VkShaderModuleCreateInfo-pCode-01377 ] Object 0: handle =
+# 0x563a677573b0, type = VK_OBJECT_TYPE_DEVICE; | MessageID = 0x5821254b | SPIR-V
+# module not valid: The Component Type of Vector 1 must be the same as ResultType.
+#   %142 = OpVectorShuffle %v2uint %141 %141 0 1
+#  The Vulkan spec states: pCode must point to either valid SPIR-V code, formatted and packed as described by the Khronos SPIR-V Specification or valid GLSL code which must be written to the GL_KHR_vulkan_glsl extension specification (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-VkShaderModuleCreateInfo-pCode-01377)
+
+# KHR-GL46.geometry_shader.limits.max_output_components
+# [ VUID-RuntimeSpirv-Location-06272 ] Object 0: handle = 0x3a6cbb0000000025,
+# type = VK_OBJECT_TYPE_SHADER_MODULE; | MessageID = 0xa3614f8b | Invalid Pipeline
+# CreateInfo State: Fragment shader exceeds
+# VkPhysicalDeviceLimits::maxFragmentInputComponents of 116 components by 4
+# components The Vulkan spec states: The sum of Location and the number of
+# locations the variable it decorates consumes must be less than or equal to the
+# value for the matching {ExecutionModel} defined in Shader Input and Output
+# Locations
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-RuntimeSpirv-Location-06272)
+
+# KHR-GL46.gpu_shader_fp64.builtin.roundeven_dvec4:
+# [ VUID-VkGraphicsPipelineCreateInfo-renderPass-06590 ] Object 0: handle =
+# 0x5647ce5e6ac0, type = VK_OBJECT_TYPE_DEVICE; | MessageID = 0xd835f001 |
+# vkCreateGraphicsPipelines(): pCreateInfos[0] does contains fragment shader state
+# and no fragment output state, pDepthStencilState does not point to a valid
+# VkPipelineDepthStencilStateCreateInfo struct. The Vulkan spec states: If
+# renderPass is VK_NULL_HANDLE and the pipeline is being created with fragment
+# shader state but not fragment output interface state, pDepthStencilState must be
+# a valid pointer to a valid VkPipelineDepthStencilStateCreateInfo structure
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-VkGraphicsPipelineCreateInfo-renderPass-06590)
+
+# KHR-GL46.shader_image_size.basic-nonMS-gs-float:
+# [ VUID-VkGraphicsPipelineCreateInfo-Geometry-07725 ] Object 0: handle =
+# 0xa4ad110000039145, type = VK_OBJECT_TYPE_SHADER_MODULE; | MessageID =
+# 0x64e29d24 | vkCreateGraphicsPipelines(): shaderTessellationAndGeometryPointSize
+# is enabled, but PointSize is not written in the Geometry shader. The Vulkan spec
+# states: If the pipeline is being created with a Geometry {ExecutionModel}, uses
+# the OutputPoints {ExecutionMode}, and shaderTessellationAndGeometryPointSize is
+# enabled, a PointSize decorated variable must be written to
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-VkGraphicsPipelineCreateInfo-Geometry-07725)
+
+# KHR-GL46.sample_variables.mask.rgba8i.samples_8.mask_3:
+# [ VUID-vkCmdDrawMultiIndexedEXT-format-07753 ] Object 0: handle =
+# 0x535b660000000043, type = VK_OBJECT_TYPE_DESCRIPTOR_SET; | MessageID =
+# 0xd35852d3 | vkCmdDrawMultiIndexedEXT: Descriptor set VkDescriptorSet
+# 0x535b660000000043[] in binding #128 index 0 requires SINT component type, but
+# bound descriptor format is VK_FORMAT_R8G8B8A8_UNORM (VkImageView
+# 0x9638f80000000036[]). The Vulkan spec states: If a VkImageView is accessed as a
+# result of this command, then the image view's format must match the numeric
+# format from the Sampled Type operand of the OpTypeImage as described in the
+# SPIR-V Sampled Type column of the Interpretation of Numeric Format table
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-vkCmdDrawMultiIndexedEXT-format-07753)
+
+# KHR-Single-GL46.enhanced_layouts.varying_locations:
+# [ UNASSIGNED-CoreValidation-Shader-InterfaceTypeMismatch ] Object 0: handle =
+# 0x5eb05e000000003b, type = VK_OBJECT_TYPE_SHADER_MODULE; | MessageID =
+# 0xb6cf33fe | Type mismatch on location 0.0, between geometry shader and fragment
+# shader: 'ptr to Output vec2 of uint64' vs 'ptr to Input struct of (vec4 of
+# float32, vec4 of float32)'
+
+# KHR-Single-GL46.enhanced_layouts.varying_locations
+# [ VUID-RuntimeSpirv-OpEntryPoint-07754 ]
+# vkCreateGraphicsPipelines(): pCreateInfos[0] Type mismatch on Location 0 Component 0, between
+# VK_SHADER_STAGE_GEOMETRY_BIT stage:
+# pointer to Output ->
+#	vec2 of 	uint64
+# VK_SHADER_STAGE_FRAGMENT_BIT stage:
+# pointer to Input ->
+#	struct of {
+#		vec4 of 		float32
+#		vec4 of 		float32
+#	}
+# The Vulkan spec states: Any user-defined variables between the OpEntryPoint
+# of two shader stages must have the same type and width for each Component
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-RuntimeSpirv-OpEntryPoint-07754)
+
+# KHR-Single-GL46.enhanced_layouts.xfb_struct_explicit_location
+# [ VUID-VkShaderModuleCreateInfo-pCode-01379 ]
+# SPIR-V module not valid: The Component Type of Vector 1 must be the same as ResultType.
+#   %142 = OpVectorShuffle %v2uint %141 %141 0 1
+
+# KHR-Single-GL46.enhanced_layouts.varying_locations
+# 
+# VUID-RuntimeSpirv-OpEntryPoint-08743(ERROR / SPEC): msgNum: -1986897773 -
+# Validation Error: [ VUID-RuntimeSpirv-OpEntryPoint-08743 ]
+# vkCreateGraphicsPipelines(): pCreateInfos[0] VK_SHADER_STAGE_FRAGMENT_BIT declared input at
+# Location 1 Comonent 2 but it is not an Output declared in VK_SHADER_STAGE_VERTEX_BIT
+# The Vulkan spec states: Any user-defined variables shared between the OpEntryPoint of two shader stages,
+# and declared with Input as its {StorageClass} for the subsequent shader stage,
+# must have all Location slots and Component words declared in the preceding shader stage's
+# OpEntryPoint with Output as the {StorageClass}
+# (https://www.khronos.org/registry/vulkan/specs/1.3-extensions/html/vkspec.html#VUID-RuntimeSpirv-OpEntryPoint-08743)
+#
+# VVL bug https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/5735
+
+
+# VUID-VkGraphicsPipelineCreateInfo-pStages-00736
+# VUID-VkGraphicsPipelineCreateInfo-topology-00737
+# spec bug https://gitlab.khronos.org/vulkan/vulkan/-/merge_requests/5916
+
+
+# VUID-vkCmdCopyImage-srcImage-07743
+# spec bug
+
+# VUID-vkCmdDrawMultiIndexedEXT-format-07753
+# KHR-GL46.shader_ballot_tests.ShaderBallotFunctionBallot
+# https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/4488
+
+
+# VUID-vkCmdDrawMultiEXT-pDepthAttachment-06181
+# VUID-vkCmdDrawMultiEXT-pStencilAttachment-06182
+# VUID-vkCmdDrawMultiIndexedEXT-pDepthAttachment-06181
+# VUID-vkCmdDrawMultiIndexedEXT-pStencilAttachment-06182
+# spec issue
+
+
+# VUID-vkDestroyDevice-device-05137
+# some kind of bug

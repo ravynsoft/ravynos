@@ -1,0 +1,2930 @@
+Mesa 7.10 Release Notes / January 7, 2011
+=========================================
+
+Mesa 7.10 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 7.10.1.
+
+Mesa 7.10 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   0a70c15c135561824bdcae92bf232e43  MesaLib-7.10.tar.gz
+   33fb94eccc02cbb4d8d1365615e38e46  MesaLib-7.10.tar.bz2
+   5cafdc0eda0f9bf370b95c98df3338fa  MesaLib-7.10.zip
+   bc644be551ed585fc4f66c16b64a91c9  MesaGLUT-7.10.tar.gz
+   5c2677a155672352d62b177e4f0f92e8  MesaGLUT-7.10.tar.bz2
+   2ce5001f74496d1ba719ef74d910a5cf  MesaGLUT-7.10.zip
+
+New features
+------------
+
+-  GL_ARB_explicit_attrib_location extension (Intel and software
+   drivers).
+-  GL_ARB_texture_rg (Intel, software drivers, gallium drivers).
+-  GL_EXT_separate_shader_objects extension (Intel and software
+   drivers).
+-  GL_NV_primitive_restart extension (Gallium softpipe, llvmpipe).
+-  New fragment shader back-end for i965-class hardware.
+-  Support for Sandybridge chipset in i965 DRI driver.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 28800 <https://bugs.freedesktop.org/show_bug.cgi?id=28800>`__ -
+   [r300c, r300g] Texture corruption with World of Warcraft
+-  `Bug 29420 <https://bugs.freedesktop.org/show_bug.cgi?id=29420>`__ -
+   Amnesia / HPL2 RendererFeatTest - not rendering correctly
+-  `Bug 29946 <https://bugs.freedesktop.org/show_bug.cgi?id=29946>`__ -
+   [swrast] piglit valgrind glsl-array-bounds-04 fails
+-  `Bug 30261 <https://bugs.freedesktop.org/show_bug.cgi?id=30261>`__ -
+   [GLSL 1.20] allowing inconsistent invariant declaration between two
+   vertex shaders
+-  `Bug 30632 <https://bugs.freedesktop.org/show_bug.cgi?id=30632>`__ -
+   [softpipe] state_tracker/st_manager.c:489:
+   st_context_notify_invalid_framebuffer: Assertion \`stfb &&
+   stfb->iface == stfbi' failed.
+-  `Bug 30694 <https://bugs.freedesktop.org/show_bug.cgi?id=30694>`__ -
+   wincopy will crash on Gallium drivers when going to front buffer
+-  `Bug 30771 <https://bugs.freedesktop.org/show_bug.cgi?id=30771>`__ -
+   [r600g] vert-tex glsl demo
+-  `Bug 30787 <https://bugs.freedesktop.org/show_bug.cgi?id=30787>`__ -
+   Invalid asm shader does not generate draw-time error when used with
+   GLSL shader
+-  `Bug 30974 <https://bugs.freedesktop.org/show_bug.cgi?id=30974>`__ -
+   [llvmpipe] SIGABRT src/gallium/drivers/llvmpipe/lp_state_fs.c:779
+-  `Bug 30993 <https://bugs.freedesktop.org/show_bug.cgi?id=30993>`__ -
+   getFramebufferAttachmentParameteriv wrongly generates error
+-  `Bug 31101 <https://bugs.freedesktop.org/show_bug.cgi?id=31101>`__ -
+   [glsl2] abort() in ir_validate::visit_enter(ir_assignment \*ir)
+-  `Bug 31193 <https://bugs.freedesktop.org/show_bug.cgi?id=31193>`__ -
+   [regression] aa43176e break water reflections
+-  `Bug 31194 <https://bugs.freedesktop.org/show_bug.cgi?id=31194>`__ -
+   The mesa meta save/restore code doesn't ref the current GLSL program
+-  `Bug 31371 <https://bugs.freedesktop.org/show_bug.cgi?id=31371>`__ -
+   glslparsertest: ir.cpp:358: ir_constant::ir_constant(const
+   glsl_type*, const ir_constant_data*): Assertion \`(type->base_type >=
+   0) && (type->base_type <= 3)' failed.
+-  `Bug 31439 <https://bugs.freedesktop.org/show_bug.cgi?id=31439>`__ -
+   Crash in glBufferSubData() with size == 0
+-  `Bug 31495 <https://bugs.freedesktop.org/show_bug.cgi?id=31495>`__ -
+   [i965 gles2c bisected] OpenGL ES 2.0 conformance
+   GL2Tests_GetBIFD_input.run regressed
+-  `Bug 31514 <https://bugs.freedesktop.org/show_bug.cgi?id=31514>`__ -
+   isBuffer returns true for unbound buffers
+-  `Bug 31560 <https://bugs.freedesktop.org/show_bug.cgi?id=31560>`__ -
+   [tdfx] tdfx_tex.c:702: error: ‘const struct gl_color_table’ has no
+   member named ‘Format’
+-  `Bug 31617 <https://bugs.freedesktop.org/show_bug.cgi?id=31617>`__ -
+   Radeon/Compiz: 'failed to attach dri2 front buffer', error case not
+   handled
+-  `Bug 31648 <https://bugs.freedesktop.org/show_bug.cgi?id=31648>`__ -
+   [GLSL] array-struct-array gets assertion: \`(size >= 1) && (size <=
+   4)' failed.
+-  `Bug 31650 <https://bugs.freedesktop.org/show_bug.cgi?id=31650>`__ -
+   [GLSL] varying gl_TexCoord fails to be re-declared to different size
+   in the second shader
+-  `Bug 31673 <https://bugs.freedesktop.org/show_bug.cgi?id=31673>`__ -
+   GL_FRAGMENT_PRECISION_HIGH preprocessor macro undefined in GLSL ES
+-  `Bug 31690 <https://bugs.freedesktop.org/show_bug.cgi?id=31690>`__ -
+   i915 shader compiler fails to flatten if in Aquarium webgl demo.
+-  `Bug 31832 <https://bugs.freedesktop.org/show_bug.cgi?id=31832>`__ -
+   [i915] Bad renderbuffer format: 21
+-  `Bug 31841 <https://bugs.freedesktop.org/show_bug.cgi?id=31841>`__ -
+   [drm:radeon_cs_ioctl] \*ERROR\* Invalid command stream !
+-  `Bug 31894 <https://bugs.freedesktop.org/show_bug.cgi?id=31894>`__ -
+   Writing to gl_PointSize with GLES2 corrupts other varyings
+-  `Bug 31909 <https://bugs.freedesktop.org/show_bug.cgi?id=31909>`__ -
+   [i965] brw_fs.cpp:1461: void
+   fs_visitor::emit_bool_to_cond_code(ir_rvalue*): Assertion
+   \`expr->operands[i]->type->is_scalar()' failed.
+-  `Bug 31934 <https://bugs.freedesktop.org/show_bug.cgi?id=31934>`__ -
+   [gallium] Mapping empty buffer object causes SIGSEGV
+-  `Bug 31983 <https://bugs.freedesktop.org/show_bug.cgi?id=31983>`__ -
+   [i915 gles2] "if (expression with builtin/varying variables) discard"
+   breaks linkage
+-  `Bug 31985 <https://bugs.freedesktop.org/show_bug.cgi?id=31985>`__ -
+   [GLSL 1.20] initialized uniform array considered as "unsized"
+-  `Bug 31987 <https://bugs.freedesktop.org/show_bug.cgi?id=31987>`__ -
+   [gles2] if input a wrong pname(GL_NONE) to glGetBoolean, it will not
+   case GL_INVALID_ENUM
+-  `Bug 32035 <https://bugs.freedesktop.org/show_bug.cgi?id=32035>`__ -
+   [GLSL bisected] comparing unsized array gets segfault
+-  `Bug 32070 <https://bugs.freedesktop.org/show_bug.cgi?id=32070>`__ -
+   llvmpipe renders stencil demo incorrectly
+-  `Bug 32273 <https://bugs.freedesktop.org/show_bug.cgi?id=32273>`__ -
+   assertion fails when starting vdrift 2010 release with shaders
+   enabled
+-  `Bug 32287 <https://bugs.freedesktop.org/show_bug.cgi?id=32287>`__ -
+   [bisected GLSL] float-int failure
+-  `Bug 32311 <https://bugs.freedesktop.org/show_bug.cgi?id=32311>`__ -
+   [965 bisected] Array look-ups broken on GM45
+-  `Bug 32520 <https://bugs.freedesktop.org/show_bug.cgi?id=32520>`__ -
+   [gles2] glBlendFunc(GL_ZERO, GL_DST_COLOR) will result in
+   GL_INVALID_ENUM
+-  `Bug 32825 <https://bugs.freedesktop.org/show_bug.cgi?id=32825>`__ -
+   egl_glx driver completely broken in 7.9 branch [fix in master]
+
+Changes
+-------
+
+Adam Jackson (2):
+
+-  i965: Update renderer strings for sandybridge
+-  drivers/x11: unifdef XFree86Server
+
+Alex Deucher (30):
+
+-  r600c: fix mipmap stride on evergreen
+-  r600c: add reloc for CB_COLOR0_ATTRIB
+-  r600c: pull over 6xx/7xx vertex fixes for evergreen
+-  r600c: fix segfault in evergreen stencil code
+-  r100: revalidate after radeon_update_renderbuffers
+-  r600c: add missing radeon_prepare_render() call on evergreen
+-  r600c: properly align mipmaps to group size
+-  egl_dri2: Add radeon chip ids
+-  r600c/evergreen: texture align is group_bytes just like 6xx/7xx
+-  r600g: fix buffer alignment
+-  r600g: All EVENT_WRITE packets need the EVENT_INDEX field
+-  r600g: translate ARR instruction for evergreen
+-  r600g: use meaningful defines for chiprev
+-  r600g: use full range of VS resources for vertex samplers
+-  r600g: fix additional EVENT_WRITE packet
+-  r600g: fix some winsys functions to deal properly with evergreen
+-  r600c: add Ontario Fusion APU support
+-  r600g: add support for ontario APUs
+-  r600c: fix VC flush on cedar and palm
+-  gallium/egl: fix r300 vs r600 loading
+-  r600c: fix some opcodes on evergreen
+-  r600c: bump texture limits to hw limits
+-  r600g: bump texture/cb limits appropriately for evergreen
+-  radeon: bump mip tree levels to 15
+-  r600g: fix rendering with a vertex attrib having a zero stride
+-  r600g: remove useless switch statements
+-  r600g: add support for NI (northern islands) asics
+-  r600c: add support for NI asics
+-  r600g: support up to 64 shader constants
+-  r600c: fix up SQ setup in blit code for Ontario/NI
+
+Andre Maasikas (3):
+
+-  r600c: fix buffer height setting in dri2 case
+-  r600g: break alu clause earlier
+-  r600g: fix evergreen interpolation setup
+
+Andrew Randrianasulu (2):
+
+-  dri/nv04: Don't expose ARB_texture_env_combine/dot3.
+-  dri/nv04: Enable eng3dm for A8/L8 textures.
+
+Aras Pranckevicius (2):
+
+-  glsl: fix crash in loop analysis when some controls can't be
+   determined
+-  glsl: fix matrix type check in ir_algebraic
+
+Bas Nieuwenhuizen (3):
+
+-  r600g: set ENABLE_KILL in the shader state in the new design
+-  r600g: set ENABLE_KILL on evergreen too
+-  r600g: use dirty list to track dirty blocks
+
+Ben Skeggs (3):
+
+-  nv50: DST
+-  nv50: DPH
+-  nv50: silence some unknown get_param warnings
+
+Benjamin Franzke (2):
+
+-  st/egl image: multiply drm buf-stride with blocksize
+-  r600g: implement texture_get_handle (needed for
+   eglExportDRMImageMESA)
+
+Brian Paul (296):
+
+-  glx: add const qualifiers to \__indirect_glMultiDrawArraysEXT()
+-  glsl2: fix signed/unsigned comparison warning
+-  llvmpipe: cast to silence warning
+-  llvmpipe: s/boolean/unsigned/ in bitfield to silence warning
+-  nv50: use unsigned int for bitfields to silence warnings
+-  tgsi: fix incorrect usage_mask for shadow tex instructions
+-  gallivm: expand AoS sampling to cover all filtering modes
+-  gallivm: fix incorrect vector shuffle datatype
+-  gallivm: move i32_vec_type inside the #ifdef
+-  mesa: include mfeatures.h in formats.c
+-  gallivm: fix wrong return value in bitwise functions
+-  tgsi/sse: fix aos_to_soa() loop to handle num_inputs==0
+-  gallivm: added missing case for PIPE_TEXTURE_RECT
+-  gallium: better docs for pipe_rasterizer_state::sprite_coord_enable
+-  gallium: rework handling of sprite_coord_enable state
+-  gallium/docs: added new pipeline.txt diagram
+-  mesa: don't call valid_texture_object() in non-debug builds
+-  glsl2: silence compiler warnings in printf() calls
+-  docs: remove old broken link
+-  docs: mark as obsolete, remove dead links
+-  llvmpipe: fix query bug when no there's no scene
+-  gallivm: remove debug code
+-  llvmpipe: maintain fragment shader state for draw module
+-  llvmpipe: indentation fix
+-  llvmpipe: reformatting, remove trailing whitespace, etc
+-  llvmpipe: clean-up, comments in setup_point_coefficient()
+-  llvmpipe: rename sprite field, add sprite_coord_origin
+-  llvmpipe: implement sprite coord origin modes
+-  draw: fix test for using the wide-point stage
+-  llvmpipe: check bitshift against PIPE_MAX_SHADER_OUTPUTS
+-  draw: check bitshift against PIPE_MAX_SHADER_OUTPUS
+-  Merge branch 'sprite-coord'
+-  draw: new draw_fs.[ch] files
+-  glsl2: fix typo in error msg
+-  gallivm: fix lp_build_sample_compare()
+-  softpipe: add missing calls to set draw vertex samplers/views
+-  mesa: don't advertise bogus GL_ARB_shading_language_120 extension
+-  configs: remove egl-swrast target from linux-dri config
+-  llvmpipe: fix sprite texcoord setup for non-projective texturing
+-  mesa: fix assertions to handle srgb formats
+-  st/mesa: add missing MESA_FORMAT_S8 case in
+   st_mesa_format_to_pipe_format()
+-  st/mesa: use the wrapped renderbuffer in CopyPixels()
+-  llvmpipe: make min/max lod and lod bias dynamic state
+-  llvmpipe: make texture border_color dynamic state
+-  softpipe: fix repeat() function for NPOT textures
+-  gallivm: fix repeat() function for NPOT textures
+-  swrast: update comments for REMAINDER() macro
+-  softpipe: rename sp_state_fs.c -> sp_state_shader.c
+-  softpipe: make shader-related functions static
+-  softpipe: make blend/stencil/depth functions static
+-  softpipe: make sampler state functions static
+-  softpipe: make vertex state functions static
+-  softpipe: make rasterizer state functions static
+-  softpipe: make stream out state functions static
+-  softpipe: make clip state functions static
+-  softpipe: minor asst. clean-ups
+-  softpipe: allocate tile data on demand
+-  llvmpipe: fix swizzling of texture border color
+-  softpipe: fix swizzling of texture border color
+-  draw: pass sampler state down to llvm jit state
+-  gallivm: check for level=0 case in lp_build_minify()
+-  gallivm: added some comments
+-  draw: check for null sampler pointers
+-  swrast: fix choose_depth_texture_level() to respect mipmap filtering
+   state
+-  st/mesa: replace assertion w/ conditional in framebuffer invalidation
+-  glsl2: fix signed/unsigned comparison warning
+-  st/xlib: add some comments
+-  ir_to_mesa: assorted clean-ups, const qualifiers, new comments
+-  mesa: remove assertion w/ undeclared variable texelBytes
+-  gallivm: remove newlines
+-  draw/llvmpipe: replace DRAW_MAX_TEXTURE_LEVELS with
+   PIPE_MAX_TEXTURE_LEVELS
+-  mesa: reformatting, comments, code movement
+-  x11: fix breakage from gl_config::visualType removal
+-  gallivm: work-around trilinear mipmap filtering regression with LLVM
+   2.8
+-  mesa: remove post-convolution width/height vars
+-  gallivm: add compile-time option to emit inst addrs and/or line
+   numbers
+-  llvmpipe: code to dump bytecode to file (disabled)
+-  gallivm: added lp_build_print_vec4()
+-  gallivm: added lp_build_load_volatile()
+-  glsl: add ir_unop_round_even case to silence unhandled enum warning
+-  st/mesa: fix regressions in glDrawPixels(GL_STENCIL_INDEX)
+-  st/mesa: reformatting in st_cb_drawpixels.c
+-  st/mesa: use GLuint to avoid problem w/ uint not defined on mingw32
+-  st/mesa: update function name, comments
+-  gallivm: use util_snprintf()
+-  llvmpipe: remove lp_setup_coef*.c files from Makefile
+-  mesa: fix mesa version string construction
+-  gallivm: fix incorrect type for zero vector in emit_kilp()
+-  llvmpipe/draw: always enable LLVMAddInstructionCombiningPass()
+-  draw: use float version of LLVM Mul/Add instructions
+-  draw: fix typo in comment
+-  mesa: add GL_RG case to \_mesa_source_buffer_exists()
+-  mesa: add missing cases for packing red/green images
+-  st/mesa: added cases for GL_COMPRESSED_RED/RG in st_choose_format()
+-  docs: update texture red/green support in GL3.txt
+-  docs: add GL_ARB_texture_rg to release notes
+-  mesa: driver hook for primitive restart
+-  mesa: set/get primitive restart state
+-  mesa: API spec for primitive restart
+-  mesa: regenerated files with primitive restart
+-  mesa: plug in primitive restart function
+-  vbo: support for primitive restart
+-  gallium: new CAP, state for primitive restart
+-  st/mesa: support for primitive restart
+-  draw: implement primitive splitting for primitive restart
+-  softpipe: enable primitive restart
+-  llvmpipe: enable primitive restart
+-  docs: added GL_NV_primitive_restart extension
+-  Merge branch 'primitive-restart-cleanup'
+-  winsys/xlib: formatting fixes
+-  winsys/xlib: use Bool type for shm field
+-  winsys/xlib: fix up allocation/dealloction of XImage
+-  winsys/xlib: rename xm->xlib
+-  galahad: silence warnings
+-  mesa: move declaration before code
+-  docs: updated GL3 status for primitive restart
+-  mesa: 80-column wrapping
+-  mesa: simplify fbo format checking code
+-  mesa: split up the image.c file
+-  mesa: add pixel packing for unscaled integer types
+-  mesa: \_mesa_ClearColorIuiEXT() and \_mesa_ClearColorIiEXT()
+-  mesa: \_mesa_is_format_integer() function
+-  mesa: minor reformatting, clean-ups
+-  mesa: added \_mesa_is_fragment_shader_active() helper
+-  mesa: new glDrawPixels error check for integer formats
+-  softpipe: added some texture sample debug code (disabled)
+-  mesa: added new gl_extensions::EXT_gpu_shader4 field
+-  mesa: added new gl_framebuffer::_IntegerColor field
+-  mesa: added glGet query for GL_RGBA_INTEGER_MODE_EXT
+-  mesa: compute \_IntegerColor field in
+   \_mesa_test_framebuffer_completeness()
+-  mesa: added cases for GL_EXT_texture_integer formats
+-  mesa: added cases for GL_EXT_texture_integer
+-  st/mesa: add format selection for signed/unsigned integer formats
+-  mesa: simplify target_can_be_compressed() function
+-  glapi: GL_EXT_texture_integer API
+-  glapi: include/build EXT_texture_integer.xml
+-  mesa: regenerated API files for GL_EXT_texture_integer
+-  mesa: plug in GL_EXT_texture_integer functions
+-  mesa: display list support for GL_EXT_texture_integer
+-  st/mesa: be smarter choosing texture format for glDrawPixels()
+-  softpipe: remove >32bpp color restriction
+-  mesa: silence enum comparison warning
+-  mesa: fix uninitialized var warning
+-  xlib: silence unused var warning
+-  util: use pointer_to_func() to silence warning
+-  rtasm: use pointer_to_func() to silence warning
+-  translate: use function typedefs, casts to silence warnings
+-  translate: remove unused prototypes
+-  mesa: additional glReadPixels error checks for GL_EXT_texture_integer
+-  mesa: additional switch cases for GL_EXT_texture_integer
+-  mesa: additional teximage error checks for GL_EXT_texture_integer
+-  mesa: do integer FB / shader validation check in
+   \_mesa_valid_to_render()
+-  mesa: call \_mesa_valid_to_render() in glDrawPixels, glCopyPixels,
+   glBitmap
+-  mesa: remove the unused \_mesa_is_fragment_shader_active() function
+-  mesa: fix bug in \_mesa_is_format_integer()
+-  mesa: rename function to \_mesa_is_format_integer_color()
+-  mesa: remove 'normalized' parameter from
+   \_mesa_VertexAttribIPointer()
+-  vbo: re-indent file
+-  glapi: xml spec file for GL_EXT_gpu_shader4
+-  glapi: include EXT_gpu_shader4.xml
+-  glapi: regenerated API files
+-  mesa: plug in stubs for glBindFragDataLocation(),
+   glGetFragDataLocation()
+-  mesa: add glGetUniformuiv(), plug in uint glUniform funcs
+-  mesa: plug in more GL_EXT_gpu_shader4 functions
+-  mesa: add new GLvertexformat entries for integer-valued attributes
+-  mesa: implement integer-valued vertex attribute functions
+-  mesa: add gl_client_array::Integer field and related vertex array
+   state code
+-  mesa: consolidate glVertex/Color/etcPointer() code
+-  mesa: state/queries for GL_MIN/MAX_PROGRAM_TEXEL_OFFSET_EXT
+-  mesa: glArrayElement support for integer-valued arrays
+-  mesa: clean-up array element code
+-  mesa: add extension table entry for GL_EXT_gpu_shader4
+-  mesa: remove obsolete comment
+-  mesa: fix incorrect type in \_mesa_texstore_rgba_int16()
+-  mesa: fix integer cases in \_mesa_is_legal_format_and_type()
+-  mesa: add const qualifier to \_mesa_is_legal_format_and_type()
+-  mesa: additional integer formats in \_mesa_bytes_per_pixel()
+-  mesa: pixel transfer ops do not apply to integer-valued textures
+-  mesa: remove dead code
+-  osmesa: fix renderbuffer memleak in OSMesaMakeCurrent()
+-  mesa: use GLubyte for edge flag arrays
+-  mesa: move the gl_config struct declaration
+-  dri/util: add a bunch of comments
+-  mesa: remove always-false conditional in check_compatible()
+-  mesa: fix aux/accum comment and error message mixups
+-  llvmpipe: assign context's frag shader pointer before using it
+-  llvmpipe: add a cast
+-  mesa: silence new warnings in texobj.c
+-  egl/gdi: fix typo: xsurf->gsurf
+-  mesa: code to unpack RGBA as uints
+-  gallivm: implement scatter stores into temp register file
+-  gallivm: add some LLVM var labels
+-  gallivm: added debug code to dump temp registers
+-  gallivm: add pixel offsets in scatter stores
+-  gallivm: added lp_elem_type()
+-  gallivm: implement execution mask for scatter stores
+-  tgsi: remove unused function
+-  llvmpipe: added some debug assertions, but disabled
+-  gallivm: alloca() was called too often for temporary arrays
+-  gallivm: add const qualifiers, fix comment string
+-  softpipe: disable vertex texturing with draw/llvm
+-  mesa: consolidate pixel packing/unpacking code
+-  mesa: rename vars in pixel pack/unpack code
+-  mesa: implement uint texstore code
+-  mesa: remove stray GL_FLOAT case in \_mesa_is_legal_format_and_type()
+-  mesa: make fixed-pt and byte-valued arrays a runtime feature
+-  softpipe: can't no-op depth test stage when occlusion query is
+   enabled
+-  mesa: no-op glBufferSubData() on size==0
+-  mesa: #include mfeatures.h in enums.h
+-  mesa: improve error message
+-  mesa: add missing formats in \_mesa_format_to_type_and_comps()
+-  mesa: handle more pixel types in mipmap generation code
+-  mesa: make glIsBuffer() return false for never bound buffers
+-  mesa: fix glDeleteBuffers() regression
+-  tdfx: s/Format/_BaseFormat/
+-  mesa: consolidate assertions in teximage code
+-  radeon: set gl_texture_image::TexFormat field in
+   radeonSetTexBuffer2()
+-  r600: set gl_texture_image::TexFormat field in r600SetTexBuffer2()
+-  r200: set gl_texture_image::TexFormat field in r200SetTexBuffer2()
+-  r300: set gl_texture_image::TexFormat field in r300SetTexBuffer2()
+-  evergreen: set gl_texture_image::TexFormat field in
+   evergreenSetTexBuffer()
+-  st/mesa: fix glDrawPixels(depth/stencil) bugs
+-  glsl: fix assorted MSVC warnings
+-  mesa: add more work-arounds for acoshf(), asinhf(), atahf()
+-  glsl: remove opt_constant_expression.cpp from SConscript
+-  mesa: fix error messages and minor reindenting
+-  mesa: whitespace cleanups
+-  mesa: 80-column wrapping
+-  mesa: reorder texture_error_check() params
+-  mesa: minor clean-ups in context code
+-  mesa: upgrade to glext.h version 66
+-  mesa: pass gl_format to \_mesa_init_teximage_fields()
+-  mesa: fix error msg typo
+-  glapi: rename GL3.xml to GL3x.xml as it covers all GL 3.x versions
+-  mesa: hook up GL 3.x entrypoints
+-  docs: update some GL 3.0 status
+-  mesa: fix get_texture_dimensions() for texture array targets
+-  swrast: init alpha value to 1.0 in opt_sample_rgb_2d()
+-  glsl: fix off by one in register index assertion
+-  glsl: use gl_register_file in a few places
+-  mesa: rename, make \_mesa_register_file_name() non-static
+-  mesa: \_mesa_valid_register_index() to validate register indexes
+-  mesa: replace #defines with new gl_shader_type enum
+-  mesa: use gl_shader_type enum
+-  glsl: better handling of linker failures
+-  glsl: start restoring some geometry shader code
+-  mesa: add assertion and update comment in \_mesa_format_image_size()
+-  mesa: added \_mesa_format_image_size64()
+-  x11: remove test_proxy_teximage() function
+-  st/mesa: fix mapping of zero-sized buffer objects
+-  gallivm/llvmpipe: squash merge of the llvm-context branch
+-  mesa: raise max texture sizes to 16K
+-  softpipe: increase max texture size to 16K
+-  mesa: replace large/MAX_WIDTH stack allocations with heap allocations
+-  mesa: replace large/MAX_WIDTH stack allocations with heap allocations
+-  swrast: avoid large stack allocations in blend code
+-  swrast: avoid large stack allocations in tex combine code
+-  st/mesa: avoid large stack allocations in readpixels code
+-  mesa: replace more MAX_WIDTH stack allocations with heap allocations
+-  gallivm/llvmpipe: remove lp_build_context::builder
+-  gallivm: fix null builder pointers
+-  mesa: fix GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME query
+-  mesa: return GL_FRAMEBUFFER_DEFAULT as FBO attachment type
+-  llvmpipe: fix broken stencil writemask
+-  mesa: consolidate some compiler -D flags
+-  swrast: allow GL_RG format in glDrawPixels()
+-  swrast: fix indentation
+-  swrast: accept GL_RG in glReadPixels()
+-  swrast: restructure some glReadPixels() code
+-  mesa: make glGet*(GL_NONE) generate GL_INVALID_ENUM
+-  mesa: remove unneeded cast
+-  mesa: update comments, remove dead code
+-  st/mesa: new comment about updating state vars
+-  mesa: add error margin to clip mask debug/check code
+-  gallium/util: minor formatting fixes
+-  mesa/llvm: use llvm-config --cppflags
+-  st/mesa: fix mipmap generation bug
+-  mesa: test for cube map completeness in glGenerateMipmap()
+-  mesa: set gl_texture_object::_Complete=FALSE in incomplete()
+-  mesa: consolidate glTexImage1/2/3D() code
+-  mesa: simplify proxy texture code in texture_error_check()
+-  mesa: consolidate the glTexSubImage1/2/3D() functions
+-  mesa: consolidate glCopyTexImage1/2D() code
+-  mesa: consolidate glCopyTexSubImage1/2/3D() functions
+-  mesa: consolidate glCompressedTexImage1/2/3D() functions
+-  mesa: make \_mesa_test_proxy_teximage() easier to read
+-  configure: use llvm-config --cppflags instead of --cflags
+-  mesa: revamp error checking for compressed texture images
+-  mesa: simplify target checking for TexImage functions
+-  draw/llvm: don't flush in vs_llvm_delete()
+-  tnl: Initialize gl_program_machine memory in run_vp.
+-  tnl: a better way to initialize the gl_program_machine memory
+-  mesa, st/mesa: disable GL_ARB_geometry_shader4
+-  mesa/meta: fix broken assertion, rename stack depth var
+-  glsl: new glsl_strtod() wrapper to fix decimal point interpretation
+-  st/mesa: fix renderbuffer pointer check in st_Clear()
+
+Brian Rogers (1):
+
+-  mesa: Add missing else in do_row_3D
+
+Chad Versace (25):
+
+-  intel_extensions: Add ability to set GLSL version via environment
+-  glsl: Add glsl_type::uvecN_type for N=2,3
+-  glsl: Add lexer rules for uint and uvecN (N=2..4)
+-  glsl: Changes in generated file glsl_lexer.cpp
+-  glsl: Add lexer rules for << and >> in GLSL 1.30
+-  glsl: Change generated file glsl_lexer.cpp
+-  glsl: Implement ast-to-hir for binary shifts in GLSL 1.30
+-  glsl: Implement constant expr evaluation for bitwise-not
+-  glsl: Implement constant expr evaluation for bit-shift ops
+-  glsl: Implement constant expr evaluation for bitwise logic ops
+-  glsl: Fix ir validation for bit logic ops
+-  glsl: Define shift_result_type() in ast_to_hir.cpp
+-  glsl: Implement ast-to-hir for bit-shift-assignment
+-  glsl: Define bit_logic_result_type() in ast_to_hir.cpp
+-  glsl: Implement ast-to-hir for bit-logic ops
+-  glsl: Fix lexer rule for ^=
+-  glsl: Commit generated file glsl_lexer.cpp
+-  glsl: Fix ast-to-hir for ARB_fragment_coord_conventions
+-  mesa: Fix C++ includes in sampler.cpp
+-  glsl: Fix ir_expression::constant_expression_value()
+-  glsl: Fix erroneous cast in ast_jump_statement::hir()
+-  glsl: Fix Doxygen tag file in recently renamed files
+-  glsl: Improve usage message for glsl_compiler
+-  glsl: Fix linker bug in cross_validate_globals()
+-  glsl: In ast_to_hir, check sampler array indexing
+
+Chia-I Wu (149):
+
+-  glapi: Fix build errors for ES.
+-  glapi: Fix ES build errors again.
+-  mesa: Update ES APIspec.xml.
+-  st/xlib: Notify the context when the front/back buffers are swapped.
+-  targets/egl: Use C++ compiler to link GL/ES state trackers.
+-  libgl-xlib: Remove unused st_api_create_OpenGL.
+-  st/egl: Split modeset code support to modeset.c.
+-  st/egl: Rename kms backend to drm.
+-  st/egl: s/kms/drm/ on the drm backend.
+-  egl: Enable drm platform by default.
+-  egl: Check extensions.
+-  st/egl: Skip single-buffered configs in EGL.
+-  mapi: Fix compiler warnings.
+-  st/egl: Drop context argument from egl_g3d_get_egl_image.
+-  targets/egl: Fix linking with libdrm.
+-  st/vega: Fix version check in context creation.
+-  egl: Use attribute names as the \_EGLConfig member names.
+-  egl: Access config attributes directly.
+-  st/egl: Access \_EGLConfig directly.
+-  st/egl: Do not finish a fence that is NULL.
+-  mesa: Remove unused vtxfmt_tmp.h.
+-  egl_dri2: Drop the use of \_egl[SG]etConfigKey.
+-  egl_glx: Drop the use of [SG]ET_CONFIG_ATTRIB.
+-  egl_glx: Fix borken driver.
+-  egl: Move attributes in \_EGLImage to \_EGLImageAttribs.
+-  egl: Parse image attributes with \_eglParseImageAttribList.
+-  egl: Move fallback routines to eglfallbacks.c.
+-  egl: Drop dpy argument from the link functions.
+-  egl: Minor changes to the \_EGLConfig interface.
+-  egl: Minor changes to the \_EGLScreen interface.
+-  egl: Fix \_eglModeLookup.
+-  st/egl: Fix native_mode refresh mode.
+-  egl: Add reference count for resources.
+-  egl: Use reference counting to replace IsLinked or IsBound.
+-  egl: Fix a false negative check in \_eglCheckMakeCurrent.
+-  st/egl: Use resource reference count for egl_g3d_sync.
+-  egl_dri2: Fix a typo that make glFlush be called at wrong time.
+-  glapi: Do not use glapidispatch.h.
+-  glapi: Move glapidispatch.h to core mesa.
+-  glapi: Do not use glapioffsets.h.
+-  glapi: Merge glapioffsets.h into glapidispath.h.
+-  vbo: Use CALL\_\* macros.
+-  mesa: Remove unnecessary glapitable.h includes.
+-  autoconf: Better client API selection.
+-  docs: Update egl and openvg docs.
+-  autoconf: Update configuration info.
+-  Merge branch 'glapi-reorg'
+-  targets: Add missing quotes to Makefile.xorg.
+-  autoconf: st/vega requires --enable-openvg.
+-  st/mesa: Unreference the sampler view in st_bind_surface.
+-  autoconf: Tidy configure output for EGL.
+-  targets/egl: Fix a warning with --disable-opengl build.
+-  egl: Rework \_eglGetSearchPath.
+-  mesa: Select FEATURE_remap_table when multiple APIs are enabled.
+-  mesa: Allow contexts of different APIs to coexist.
+-  egl: Set up the pthread key even TLS is used.
+-  st/egl: Add native_surface::present callback.
+-  st/egl: Use native_surface::present callback.
+-  d3d1x: Use native_surface::present.
+-  st/egl: Remove flush_frontbuffer and swap_buffers.
+-  st/egl: Add support for swap interval and swap behavior.
+-  st/egl: Add support for EGL_MATCH_NATIVE_PIXMAP.
+-  st/egl: Add extern "C" wrapper to native.h.
+-  st/egl: Add native_display_buffer interface.
+-  st/egl: Use native_display_buffer for EGL_MESA_drm_image.
+-  autoconf: Add --enable-gallium-egl.
+-  docs: Update egl docs.
+-  st/dri: Add support for surfaceless current contexts.
+-  egl_dri2: Fix \__DRI_DRI2 version 1 support.
+-  st/vega: Do not wait NULL fences.
+-  gallium: Add st_api::name.
+-  gallium: Add st_context_iface::share to st_api.
+-  st/wgl: Use st_context_iface::share for DrvShareLists.
+-  st/glx: Replace MESA_VERSION_STRING by xmesa_get_name.
+-  mesa: Clean up core.h.
+-  scons: Define IN_DRI_DRIVER.
+-  tgsi: Add STENCIL to text parser.
+-  st/vega: vegaLookupSingle should validate the state.
+-  st/vega: Set wrap_r for mask and blend samplers.
+-  st/vega: Fix vgReadPixels with a subrectangle.
+-  egl_dri2: Fix one context, multiple surfaces.
+-  auxiliary: util_blit_pixels_tex should restore the viewport.
+-  st/vega: Fix a crash with empty paths.
+-  st/vega: Masks and surfaces should share orientation.
+-  st/vega: No flipping in vg_prepare_blend_surface.
+-  st/vega: Fix a typo in EXTENDED_BLENDER_OVER_FUNC.
+-  llvmpipe: Fix build errors on x86.
+-  st/vega: Overhaul renderer with renderer states.
+-  st/vega: Add DRAWTEX renderer state.
+-  st/vega: Add SCISSOR renderer state.
+-  st/vega: Add CLEAR renderer state for vgClear.
+-  st/vega: Add FILTER renderer state for image filtering.
+-  st/vega: Use the renderer for vgMask.
+-  st/vega: Add POLYGON_STENCIL and POLYGON_FILL renderer state.
+-  st/vega: Delay fb state update to vg_validate_state.
+-  st/vega: Use st_framebuffer for fb width/height.
+-  st/vega: Move g3d states to renderer.
+-  st/vega: Make shader_bind call into the renderer.
+-  st/vega: vg_manager should care about only the color buffer.
+-  st/vega: Clean up vg_context fields and functions.
+-  st/vega: Clean up renderer fields and functions.
+-  st/vega: vg_copy_texture and vg_copy_surface should share code.
+-  st/vega: Get rid of renderer_copy_texture.
+-  st/vega: Update to latest headers.
+-  st/vega: Fix image sampler views for alpha-only formats.
+-  st/vega: Make path_render and path_stroke take a matrix.
+-  st/vega: Make image_draw take a matrix.
+-  st/vega: Add primitive text support.
+-  st/vega: Revive mask layer support.
+-  st/vega: More flexible shader selection.
+-  st/vega: Add color transformation support.
+-  st/vega: Bump version to 1.1.
+-  st/vega: Fix paint coordinates transformations.
+-  st/vega: Fix negated logic in image_draw.
+-  st/vega: Fix degenerate paints.
+-  st/vega: Simplify radial gradient.
+-  st/vega: Remove st_inlines.h.
+-  st/vega: Delay blend texture creation until needed.
+-  st/vega: Create drawing surface mask as needed.
+-  st/vega: Initialize pipe states with renderer.
+-  st/vega: Avoid unnecessary constant bufer upload.
+-  st/vega: Destroy the pipe context with vg_context.
+-  st/vega: polygon_array requires a deep free.
+-  st/egl: Set pipe_resource::array_size to 1.
+-  st/vega: Set pipe_resource::array_size to 1.
+-  st/vega: Move vertex transformation to shader.
+-  st/vega: Add a missing break.
+-  st/vega: Add some comments to pipeline shaders.
+-  st/vega: Refactor blend shaders.
+-  st/vega: Move masking after blending.
+-  st/vega: Add support for per-channel alpha.
+-  st/vega: Blending should use premultiplied alpha.
+-  st/vega: Fix VG_BLEND_MULTIPLY.
+-  st/vega: Add blend shaders for all blend modes.
+-  st/vega: Fix pipe blend state for various blend modes.
+-  egl: \_eglFilterArray should not allocate.
+-  mapi: Rewrite mapi_abi.py to get rid of preprocessor magic.
+-  vbo: Drop second ATTR macro.
+-  vbo: Fix GLES2 glVertexAttrib.
+-  mesa: Do not advertise GL_OES_texture_3D.
+-  mesa: Fix GL_FIXED arrays.
+-  mesa: Fix glTexCoordPointer with type GL_FIXED.
+-  st/egl: Plug pbuffer leaks.
+-  st/egl: Fix eglCopyBuffers.
+-  st/egl: Assorted fixes for dri2_display_get_configs.
+-  docs/egl: Update ../egl.html.
+-  st/egl: Fix eglChooseConfig when configs is NULL.
+-  docs: Add an example for EGL_DRIVERS_PATH.
+-  autoconf: Fix --with-driver=xlib --enable-openvg.
+
+Chris Wilson (2):
+
+-  i915g: Fix closure of full batch buffers
+-  intel: Check for unsupported texture when finishing using as a render
+   target
+
+Christoph Bumiller (80):
+
+-  nv50: import new compiler
+-  nouveau: update nouveau_class.h
+-  nv50: introduce the big formats table
+-  nv50: don't produce MOV immediate to output reg in store opt
+-  nv50: change back accidentally swapped UNORM,SNORM vertex type
+-  nv50: add/fix some license headers
+-  nv50: simple reload elimination and local CSE
+-  nv50: fix constant_operand opt mul by 2 case
+-  nv50: permit usage of undefined TGSI TEMPs
+-  nv50: add missing 2nd source for POW multiplication
+-  nv50: add signed RGTC1 to format table, allow 2_10_10_10 for vbufs
+-  nv50: fix for empty BBs
+-  nv50: insert MOVs also for PHI sources from dominating block
+-  nv50: explicitly set src type for SET ops
+-  nv50: fixes for nested IFs
+-  nv50: don't eliminate loads to dedicated values
+-  nv50: fix constbuf validation
+-  nv50: build proper phi functions in the first place
+-  nv50: fix reg count
+-  nv50: begin implementing loops
+-  nv50: more constant folding
+-  nv50: loops part 2
+-  nv50: flatten simple IF/ELSE/ENDIF constructs
+-  nv50: fix thinko in store to output reg possible check
+-  nv50: generate JOINs for outermost IF clauses
+-  nv50: more TGSI opcodes (SIN, SCS, ARL, RET, KILP)
+-  nv50: fix PSIZ and PRIMID mapping
+-  nv50: check dst compatibility in CSE
+-  nv50: initialize edgeflag input index
+-  nv50: emit predicate for interp
+-  Merge remote branch 'origin/master' into nv50-compiler
+-  nv50: DP2, fix ARL
+-  nv50: yet another case we need a nop.exit
+-  nv50: fix check for sprite/point coord enable
+-  nv50: handle TEXTURE_SWIZZLE and GEOMETRY_SHADER4 caps
+-  nv50: set the FragDepth output index
+-  nv50: turn off verbose debug output by default
+-  nv50: attempt at making more complicated loops work
+-  nv50: SSG
+-  nv50: make FrontFacing -1 or +1
+-  nv50: re-add proper TEXBIAS sequence
+-  nv50: make use of TGSI immediate type
+-  nv50: must join SELECT inputs before MOV inputs
+-  nv50: fix XPD, was negated
+-  nv50: fix find_dom_frontier
+-  nv50: fix build-predicate function
+-  Merge remote branch 'origin/master' into nv50-compiler
+-  nv50: load address register before using it, not after
+-  nv50: save tgsi instructions
+-  nv50: prepare for having multiple functions
+-  nv50: don't parse again in tgsi_2_nc
+-  nv50: use actual loads/stores if TEMPs are accessed indirectly
+-  nv50: create value references with the right type
+-  nv50: duplicate interps in load_proj_tex_coords
+-  nv50: address regs are 16 bit
+-  nv50: fix can_load check for 3rd source
+-  nv50: reduce bb_reachable_by runtime from pot to linear
+-  nv50: minor compiler fixes and cleanups
+-  nv50: cannot move from local mem to output reg directly
+-  nv50: newlines in shader bincode printing
+-  nv50: match TEMP limit with nv50 ir builder
+-  nv50: handle TGSI EXP and LOG again
+-  nv50: check for immediates when turning MUL ADD into MAD
+-  nv50: interp cannot write flags reg
+-  nv50: MOV TEMP[0], -CONST[0] must be float32 negation
+-  nv50: fix indirect CONST access with large or negative offsets
+-  nv50: fix TXP depth comparison value
+-  nv50: consider address register in reload elimination
+-  nv50: improve and fix modifier folding optimization
+-  nv50: put low limit on REG_ALLOC_TEMP and FP_RESULT_COUNT
+-  Merge remote branch 'origin/nv50-compiler'
+-  nv50: don't segfault on shaders with 0 instructions
+-  nv50: get shader fixups/relocations into working state
+-  nv50: add relocs for stack and local mem buffers
+-  nv50: emit constbuf relocs before uploading constants
+-  nv50: fix typo in fifo packet length limit
+-  nv50: use formats table in nv50_surface.c
+-  nv50: use CLEAR_BUFFERS for surface fills
+-  nv50: fix/handle a few more PIPE_CAPs
+-  nv50: fix GP state bind and validate
+
+Corbin Simpson (8):
+
+-  r600g: Use align() instead of handrolled code.
+-  r600g: Trivially deobfuscate r600_hw_states.
+-  r600g: Deobfuscate and comment a few more functions in
+   r600_hw_states.
+-  r600g: Clean up some indentation and \|= vs. \| usage.
+-  r600g: Fix false and true.
+-  r600g: "tmp" is such a bad name for a texture.
+-  r600g: Clean up PS setup.
+-  r600g: Cleanup viewport floats.
+
+Daniel Lichtenberger (1):
+
+-  radeon: fix potential segfault in renderbuffer update
+
+Daniel Vetter (21):
+
+-  r200: revalidate after radeon_update_renderbuffers
+-  i915g: rip out ->sw_tiled
+-  i915g: s/hw_tiled/tiling
+-  i915g: add pineview pci ids
+-  i915g: kill RGBA/X formats
+-  i915g: kill buf->map_gtt
+-  i915g: kill idws->pool
+-  i915g: drop alignment parameter from iws->buffer_create
+-  i915g: add winsys function to create tiled buffers
+-  i915g: switch to tiled allocations, kill set_fence
+-  i915g: prepare winsys/batchbuffer for execbuf2
+-  i915g: return tiling in iws->buffer_from_handle
+-  i915g: implement unfenced color&depth buffer using tiling bits
+-  i915g: implement unfenced relocs for textures using tiling bits
+-  i915g: postpone mipmap/face offset calculation
+-  i915g: don't pot-align stride for tiled buffers
+-  i915g: enable X-tiling for textures
+-  i915g: switch rendering to mipmapped textures to (x,y) offsets
+-  i915g: enable x-tiling for render targets
+-  i915g: assert(depth_surface->offset == 0)
+-  i915g: track TODO items
+
+Dave Airlie (182):
+
+-  r300g: fix buffer reuse issue caused by previous commit
+-  r600g: pull r600_draw struct out into header
+-  r600g: use index min/max + index buffer offset.
+-  r600g: add vgt dma src defines
+-  r600g: fixup texture state on evergreen.
+-  r600g: fix texture bos and avoid doing depth blit on evergreen
+-  r600g: hide radeon_ctx inside winsys.
+-  r600g: attempt to abstract kernel bos from pipe driver.
+-  r600g: move constant buffer creation behind winsys abstraction.
+-  r600g: use malloc bufmgr for constant buffers
+-  r600g: add support for kernel bo
+-  r600g: add winsys bo caching.
+-  r600g: add upload manager support.
+-  r600g: fixup map flushing.
+-  r600g: use calloc for ctx bo allocations
+-  r600g: oops got the use_mem_constant the wrong way around.
+-  r600g; add uses waterfall to asm cf for r6xx.
+-  r600g: only emit uses waterfall on r6xx hw.
+-  util/r300g: split the r300 index buffer modifier functions out to
+   util
+-  r600g: modify index buffers for sizes the hw can't deal with.
+-  r600g: send correct surface base update for multi-cbufs
+-  r600g: fix fbo-drawbuffers-maxtargets
+-  r600g: clean up valgrind issues on maxtargets test.
+-  r600g: drop debugging that snuck in
+-  r600g: fix tiling support for ddx supplied buffers
+-  r600g: add z16 to color setup
+-  r600g: add color/texture support for more depth formats.
+-  r600g: fix r700 cube map sizing.
+-  r600g: fixup r700 CB_SHADER_CONTROL register.
+-  r600g: add missing BC_INST wrapper for evergreen
+-  r600g: only flush for the correct colorbuffer, not all of them.
+-  r600g: deal with overflow of VTX/TEX CF clauses.
+-  r600g: set back to correct codepaths.
+-  r600g: fixup evergreen miptree setup.
+-  r600g: fix eg texture borders.
+-  r600g: fix typo in struct member name
+-  r600g: cleanup some of the DB blit code
+-  r600g: make stencil readback work
+-  r600g: disable dirty handling on texture from depth code.
+-  r600g: use floats instead of hex for blit vbo
+-  r600g: fix depth readback on rv610 and other quirky variants.
+-  r600g: fix typo in evergreen register list
+-  u_blitter: add a custom blitter call passing a dsa cso
+-  r600g: use blitter to do db->cb flushing.
+-  r600g: fix warnings since last commit.
+-  egl: fix build since 17eace581d25a626a7d75d9d1205d012cbb14a6e
+-  r300g: fix point sprite coord.
+-  r600g: add vert support for 16/16 and 16/16/16 floats.
+-  r600g: add some more vertex format support.
+-  r600g: some more vertex formats
+-  r600g: fix draw-elements and draw-elements-base-vertex
+-  r600g: drop index_offset parameter to index buffer translate.
+-  r600g: fixup tex wrapping.
+-  r600g: fixup VP->FP output->input routing.
+-  r600g: fix typo in r700 alu emit
+-  r600g: fixup sprite coord enable.
+-  r600g: fix polygon mode
+-  mesa/mipmap: fix warning since
+   1acadebd6270d3604b026842b8a21360968618a0
+-  r600g: add eg poly mode code.
+-  r600g: make index bias fix for evergreen
+-  r600g: add eg db count control register.
+-  r300g: fix glsl-fs-pointcoord
+-  r600g: add evergreen texture resource properly.
+-  r600g: fix db flush breaking config state
+-  r600g: on evergreen the centroid isn't set in this register.
+-  r600g: add back evergreen name.
+-  r600g: add evergreen texture border support to new path
+-  r600g: move radeon.h members around to add back map flushing.
+-  r600g: add initial vertex translate support.
+-  r600g: remove old assert from new codepath
+-  Revert "r600g: add initial vertex translate support."
+-  r600g: port r300g fix for X\* formats in texformat code
+-  r600g: add L8A8 unorm.
+-  r600g: clean up some code from move to new paths.
+-  r600g: return string for chip family
+-  r600g: use Elements macro instead of manual sizeofs
+-  r600g: fix evergreen depth flushing.
+-  r600g: add winsys support for CTL constants.
+-  r600g: drop depth quirk on evergreen
+-  r600g: add reloc for evergreen color attrib
+-  r600g: realign evergreen code with r600 code.
+-  r600g: add assembler support for other vtx fetch fields.
+-  r600g: fixup vertex format picking.
+-  r600g: sync vertex/texture cache on resources on evergreen
+-  r600g: add cb flushing for extra buffers + depth buffer on
+   r600/evergreen
+-  r600g: fix evergreen draw-buffers
+-  r600g: flush SH cache on constant change on evergreen
+-  r600g: only set the Z export if shader exports it.
+-  r600g: setup basic loop consts on r600 + evergreen.
+-  mesa/st: initial attempt at RG support for gallium drivers
+-  r600g: break out of search for reloc bo after finding it.
+-  r600g: the code to check whether a new vertex shader is needed was
+   wrong
+-  r600g: fix wwarning in bo_map function
+-  r600g: TODO domain management
+-  r600g: add bo fenced list.
+-  pb: don't keep checking buffers after first busy
+-  r600g: add bo busy backoff.
+-  r600g: drop mman allocator
+-  r600g: drop use_mem_constant.
+-  r600g: avoid unneeded bo wait
+-  pb: fix numDelayed accounting
+-  r600g: add evergreen stencil support.
+-  r600g: use format from the sampler view not from the texture.
+-  r600g: fix Z export enable bits.
+-  r600g: add some RG texture format support.
+-  r600g: drop width/height per level storage.
+-  r600g: fix input/output Z export mixup for evergreen.
+-  r600g: evergreen has no request size bit in texture word4
+-  r600g: enable vertex samplers.
+-  r600g: add TXL opcode support.
+-  r600g: don't run with scissors.
+-  r600g: fix typo in vertex sampling on r600
+-  gallium/tgsi: add support for stencil writes.
+-  gallium/format: add support for X24S8 and S8X24 formats.
+-  gallium/format: add X32_S8X24_USCALED format.
+-  gallium/util: add S8 tile sampling support.
+-  mesa: add support for FRAG_RESULT_STENCIL.
+-  mesa: improve texstore for 8/24 formats and add texstore for S8.
+-  softpipe: add support for shader stencil export capability
+-  st/mesa: add option to choose a texture format that we won't render
+   to.
+-  st/mesa: use shader stencil export to accelerate shader drawpixels.
+-  r600g: add support for S8, X24S8 and S8X24 sampler formats.
+-  r600g: add shader stencil export support.
+-  glsl: add support for shader stencil export
+-  st/mesa: enable stencil shader export extension if supported
+-  r600g: fix depth0 setting
+-  r600g: fix scissor/cliprect confusion
+-  r600g: store samplers/views across blit when we need to modify them
+-  r600g: reduce size of context structure.
+-  r600g: the vs/ps const arrays weren't actually being used.
+-  r600g: add copy into tiled texture
+-  r600g: split out miptree setup like r300g
+-  r600g: use common texture object create function
+-  r600g: rename pitch in texture to pitch_in_bytes
+-  r600g: remove bpt and start using pitch_in_bytes/pixels.
+-  r600g: fix transfer stride.
+-  r600g: drop all use of unsigned long
+-  r600g: use blitter for hw copy region
+-  r600g: evergreen add stencil export bit
+-  r600g: add missing eg reg definition
+-  r600g: fix stencil export for evergreen harder
+-  r600g: drop unused context members
+-  r600g: only pick centroid coordinate when asked.
+-  r600g: fixup pos/face ena/address properly
+-  r600g: fixup typo in macro name
+-  r600g: select linear interpolate if tgsi input requests it
+-  r300g: clean up warning due to unknown cap.
+-  tgsi: add scanner support for centroid inputs
+-  r600g: evergreen interpolation support.
+-  r600g: add evergreen ARL support.
+-  r600g: switch to a common formats.h file since they are in different
+   regs
+-  r600g: add defines for tiling
+-  r600g: get tiling info from kernel
+-  r600g: set tiling bits in hw state
+-  r600g: do proper tracking of views/samplers.
+-  r600g: fix typo in tiling setup cb code.
+-  r600g: depth needs to bound to ds
+-  r600g: attempt to cleanup depth blit
+-  r600g: fix transfer function for tiling.
+-  r600g: retrieve tiling info from kernel for shared buffers.
+-  r600g: all non-0 mipmap levels need to be w/h aligned to POT.
+-  r600g: move to per-miplevel array mode.
+-  r600g: start adding hooks for aligning width/height for tiles.
+-  r600g: add r600 surface to store the aligned height.
+-  r600g: introduce a per-driver resource flag for transfers.
+-  r600g: add texture tiling alignment support.
+-  r600g: add texture tiling enable under a debug option.
+-  r600g: initial translate state support
+-  r600g: start splitting out common code from eg/r600.
+-  r600g: not fatal if we can't get tiling info from kernel
+-  r600g: merge more of the common r600/evergreen state handling
+-  r600g: drop more common state handling code
+-  r600g: fix magic 0x1 ->flat shade ena
+-  r600g: add assembler support for all the kcache fields.
+-  gallium/noop: report GL 2.1
+-  r600g: pick correct color swap for A8 fbos.
+-  r300g/r600g: bump cache manager timeouts to 1s
+-  r600g: it looks like r600 can handle dword offsets in the indices.
+-  r300g: try and use all of vertex constant space
+-  r300g: fixup rs690 tiling stride alignment calculations.
+-  r600g: fix evergreen segfaults.
+-  r600g: hack around property unknown issues.
+
+Eric Anholt (300):
+
+-  glsl: Add definition of gl_TextureMatrix inverse/transpose builtins.
+-  i965: Share the KIL_NV implementation between glsl and non-glsl.
+-  i965: Also enable CC statistics when doing OQs.
+-  i965: Track the windowizer's dispatch for kill pixel, promoted, and
+   OQ
+-  glsl: Rework assignments with write_masks to have LHS chan count
+   match RHS.
+-  glsl: Fix copy'n'wasted ir_noop_swizzle conditions.
+-  ir_to_mesa: Only compare vector_elements present for
+   any_nequal/all_equal
+-  i965: Fix the vector/expression splitting for the write_mask change.
+-  i965: When splitting vector variable assignment, ignore unset
+   channels.
+-  i965: Update expression splitting for the vector-result change to
+   compares.
+-  i965: Warning fix for vector result any_nequal/all_equal change.
+-  mesa: Remove the non-required ARB_imaging extension.
+-  mesa: Remove EXT_histogram.
+-  mesa: Remove SGI_color_table.
+-  mesa: Remove SGI_color_matrix.
+-  mesa: Remove EXT_convolution.
+-  intel: Remove disabled stencil drawpixels acceleration.
+-  intel: Remove unnecessary minimum pitch alignment to 32 bytes.
+-  intel: Replace my intel_texture_bitmap code with \_mesa_meta_Bitmap.
+-  radeon: Remove copied minimum pitch alignment code.
+-  unichrome: Mostly revert my convolution removal changes.
+-  intel: Remove dead intelIsTextureResident().
+-  i915: Remove a dead if (0) block.
+-  intel: Dead comment removal.
+-  intel: Corresponding FinishRenderTexture debug to BeginRenderTexture.
+-  i965: Add support for rendering to SARGB8 FBOs.
+-  intel: Fix segfault on INTEL_DEBUG=fbo with unsupported framebuffers.
+-  intel: Add fallback debug to glGenerateMipmap.
+-  intel: More reverting of the sw fallback for depth texture border
+   color.
+-  intel: Improve some of the miptree debugging.
+-  mesa: Fix type typo in glGenerateMipmap handling of GL_UNSIGNED_INT
+   data.
+-  glsl: Fix broadcast_index of lower_variable_index_to_cond_assign.
+-  glsl: Add validation that a swizzle only references valid channels.
+-  i965: Fix up writemasked assignments in the new FS.
+-  i965: Remove swizzling of assignment to vector-splitting
+   single-channel LHS.
+-  i965: Handle all_equal/any_nequal in the new FS.
+-  i965: Fix vector splitting RHS channel selection with sparse
+   writemasks.
+-  i965: Add support for dFdx()/dFdy() to the FS backend.
+-  i965: Add support for attribute interpolation on Sandybridge.
+-  i965: Set up inputs to the fragment shader according to FP
+   InputsRead.
+-  i965: Add support for POW in gen6 FS.
+-  i965: Fix negation in the new FS backend.
+-  i965: Actually track the "if" depth in loop in the new FS backend.
+-  i965: Apply the same set of lowering passes to new FS as to Mesa IR.
+-  i965: Fix valgrind complaint about base_ir for new FS debugging.
+-  i965: Fix up the FS backend for the variable array indexing pass.
+-  i965: Set the variable type when dereferencing an array.
+-  i965: Add support for dereferencing structs to the new FS backend.
+-  i965: Add support for struct, array, and matrix uniforms to FS
+   backend.
+-  i965: Fix all non-snb regression in the snb attribute interpolation
+   commit.
+-  i965: Fix up part of my Sandybridge attributes support patch.
+-  i965: Add support for gl_FrontFacing to the new FS backend.
+-  i965: Subtract instead of adding when computing y delta in new FS
+   backend.
+-  mesa: Pull ir_to_mesa's sampler number fetcher out to shared code.
+-  i965: Set up sampler numbers in the FS backend.
+-  i965: Add support for non-color render target write data to new FS
+   backend.
+-  i965: Add support for MRT to the new FS backend.
+-  i965: Add support for ir_loop counters to the new FS backend.
+-  i965: Add support for ARB_fragment_coord_conventions to the new FS
+   backend.
+-  glsl: Also update implicit sizes of varyings at link time.
+-  i965: Do interpolation for varying matrices and arrays in the FS
+   backend.
+-  i965: Don't try to emit interpolation for unused varying slots.
+-  i965: Fix array indexing of arrays of matrices.
+-  i965: Clean up obsolete FINISHME comment.
+-  mesa: Move the list of builtin uniform info from ir_to_mesa to shared
+   code.
+-  i965: Add support for builtin uniforms to the new FS backend.
+-  i965: Fix use of undefined mem_ctx in vector splitting.
+-  i956: Make new FS discard do its work in a temp, not the null reg!
+-  i965: Clean up the virtual GRF handling.
+-  ra: First cut at a graph-coloring register allocator for mesa.
+-  i965: First cut at register allocation using graph coloring.
+-  i965: Add live interval analysis and hook it up to the register
+   allocator.
+-  i965: Remove my "safety counter" code from loops.
+-  i965: Fix whole-structure/array assignment in new FS.
+-  mesa: Don't reference a W component in setting up a vec3 uniform
+   component.
+-  i965: Fix new FS handling of builtin uniforms with packed scalars in
+   structs.
+-  glsl: Add a lowering pass for texture projection.
+-  i965: Use the lowering pass for texture projection.
+-  i965: Split the gen4 and gen5 sampler handling apart.
+-  i965: Add gen6 attribute interpolation to new FS backend.
+-  i965: Fix the gen6 jump size for BREAK/CONT in new FS.
+-  i965: Also increment attribute location when skipping unused slots.
+-  i965: Pre-gen6, map VS outputs (not FS inputs) to URB setup in the
+   new FS.
+-  i965: Add real support for pre-gen5 texture sampling to the new FS.
+-  i965: Fix up copy'n'pasteo from moving coordinate setup around for
+   gen4.
+-  i965: Restore the forcing of aligned pairs for delta_xy on chips with
+   PLN.
+-  i965: When producing a single channel swizzle, don't make a
+   temporary.
+-  i965: Add a sanity check for register allocation sizes.
+-  i965: Fix off-by-ones in handling the last members of register
+   classes.
+-  i965: Don't try to emit code if we failed register allocation.
+-  i965: Add support for EXT_texture_swizzle to the new FS backend.
+-  i965: Set up swizzling of shadow compare results for
+   GL_DEPTH_TEXTURE_MODE.
+-  i965: Fix glean/texSwizzle regression in previous commit.
+-  i965: Be more conservative on live interval calculation.
+-  i965: Add trivial dead code elimination in the new FS backend.
+-  i965: Add initial folding of constants into operand immediate slots.
+-  i965: In disasm, gen6 fb writes don't put msg reg # in
+   destreg_conditionalmod.
+-  i965: Add support for gen6 FB writes to the new FS.
+-  i965: Enable the constant propagation code.
+-  i965: Also do constant propagation for the second operand of CMP.
+-  i965: Add back gen6 headerless FB writes to the new FS backend.
+-  i965: Gen6 no longer has the IFF instruction; always use IF.
+-  i965: Fix up IF/ELSE/ENDIF for gen6.
+-  i965: Fix botch in the header_present case in the new FS.
+-  i965: Add some clarification of the WECtrl field.
+-  i965: Don't do 1/w multiplication in new FS for gen6
+-  i965: Gen6's sampler messages are the same as Ironlake.
+-  i965: Refactor gl_FrontFacing setup out of general variable setup.
+-  i965: Add support for gl_FrontFacing on gen6.
+-  i965: Don't assume that WPOS is always provided on gen6 in the new
+   FS.
+-  i965: Fix gen6 pointsize handling to match pre-gen6.
+-  i965: Disable emitting if () statements on gen6 until we really fix
+   them.
+-  i965: Normalize cubemap coordinates like is done in the Mesa IR path.
+-  mesa: Simplify a bit of \_mesa_add_state_reference using memcmp.
+-  i965: Drop the check for duplicate \_mesa_add_state_reference.
+-  i965: Drop the check for YUV constants in the param list.
+-  i965: Handle swizzles in the addition of YUV texture constants.
+-  i965: Fix gen6 WM push constants updates.
+-  i965: Fix new FS gen6 interpolation for sparsely-populated arrays.
+-  i965: Enable attribute swizzling (repositioning) in the gen6 SF.
+-  i965: Add register coalescing to the new FS backend.
+-  i965: Split FS_OPCODE_DISCARD into two steps.
+-  i965: Reduce register interference checks for changed
+   FS_OPCODE_DISCARD.
+-  i965: Move FS backend structures to a header.
+-  i965: Give the math opcodes information on base mrf/mrf len.
+-  i965: Give the FB write and texture opcodes the info on base MRF,
+   like math.
+-  i965: Compute to MRF in the new FS backend.
+-  i965: Don't consider gen6 math instructions to write to MRFs.
+-  i965: Add a couple of checks for gen6 math instruction limits.
+-  i965: Don't compute-to-MRF in gen6 math instructions.
+-  i965: Expand uniform args to gen6 math to full registers to get
+   hstride == 1.
+-  i965: Don't compute-to-MRF in gen6 VS math.
+-  i965: Fix gen6 pixel_[xy] setup to avoid mixing int and float src
+   operands.
+-  i965: Always use the new FS backend on gen6.
+-  i965: Fix missing "break;" in i2b/f2b, and missing AND of CMP result.
+-  intel: Allow CopyTexSubImage to InternalFormat 3/4 textures, like
+   RGB/RGBA.
+-  i965: Don't rebase the index buffer to min 0 if any arrays are in
+   VBOs.
+-  i965: Add support for rescaling GL_TEXTURE_RECTANGLE coords to new
+   FS.
+-  i965: Set class_sizes[] for the aligned reg pair class.
+-  i965: Update the live interval when coalescing regs.
+-  i965: Add a pass to the FS to split virtual GRFs to float channels.
+-  i965: Add a function for handling the move of boolean values to flag
+   regs.
+-  i965: Add peepholing of conditional mod generation from expressions.
+-  i965: Enable the new FS backend on pre-gen6 as well.
+-  i965: Fix texturing on pre-gen5.
+-  i965: Set the type of the null register to fix gen6 FS comparisons.
+-  i965: Disable the debug printf I added for FS disasm.
+-  i965: Fix a weirdness in NOT handling.
+-  i965: Fix assertion failure on gen6 BufferSubData to busy BO.
+-  i965: Assert out on gen6 VS constant buffer reads that hang the GPU
+   for now.
+-  i965: Fix scissor-offscreen on gen6 like we did pre-gen6.
+-  i965: Avoid blits in BufferCopySubdata on gen6.
+-  i965: Tell the shader compiler when we expect depth writes for gen6.
+-  i965: Remove the gen6 emit_mi_flushes I sprinkled around the driver.
+-  i965: Disable thread dispatch when the FS doesn't do any work.
+-  i965: Add EU emit support for gen6's new IF instruction with
+   comparison.
+-  i965: Set the source operand types for gen6 if/else/endif to integer.
+-  i965: Use the new style of IF statement with embedded comparison on
+   gen6.
+-  i965: Split register allocation out of the ever-growing brw_fs.cpp.
+-  i965: Fix gl_FrontFacing emit on pre-gen6.
+-  i965: Add support for register spilling.
+-  i965: Don't emit register spill offsets directly into g0.
+-  i965: Correct scratch space allocation.
+-  i965: Be more aggressive in tracking live/dead intervals within
+   loops.
+-  i965: Move the FS disasm/annotation printout to codegen time.
+-  i965: Add support for pull constants to the new FS backend.
+-  i965: Add EU code for dword scattered reads (constant buffer array
+   indexing).
+-  i965: Clarify an XXX comment in FB writes with real info.
+-  i965: Use SENDC on the first render target write on gen6.
+-  i965: Clear some undefined fields of g0 when using them for gen6 FB
+   writes.
+-  i965: Add disasm for the flag register.
+-  i965: Add support for discard instructions on gen6.
+-  i965: Handle new ir_unop_round_even in channel expression splitting.
+-  i965: Fix typo in comment about state flags.
+-  i965: Set up the constant buffer on gen6 when it's needed.
+-  i965: Add support for constant buffer loads on gen6.
+-  i965: Drop the eot argument to read messages, which can never be set.
+-  i965: Fix VS URB entry sizing.
+-  i965: Disable register spilling on gen6 until it's fixed.
+-  i965: Make FS uniforms be the actual type of the uniform at upload
+   time.
+-  i965: Add user clip planes support to gen6.
+-  i965: Update gen6 SF state when point state (sprite or attenuation)
+   changes.
+-  i965: Upload required gen6 VS push constants even when using pull
+   constants.
+-  i965: Update the gen6 stencil ref state when stencil state changes.
+-  mesa: Make metaops use program refcounts instead of names.
+-  mesa: Don't compute an unused texture completeness debug string.
+-  intel: For batch, use GTT mapping instead of writing to a malloc and
+   copying.
+-  intel: Annotate debug printout checks with unlikely().
+-  intel: Remove the magic unaligned memcpy code.
+-  i965: Remove dead intel_structs.h file.
+-  intel: Avoid taking logbase2 of several things that we max.
+-  intel: Remove duplicated teximage miptree to object miptree
+   promotion.
+-  intel: Remove leftover dri1 locking fields in the context.
+-  mesa: Fix delayed state flagging for EXT_sso-related program changes.
+-  intel: Fix the client-side swapbuffers throttling.
+-  Revert "intel: Fix the client-side swapbuffers throttling."
+-  i965: Allow OPCODE_SWZ to put immediates in the first arg.
+-  i965: Add support for math on constants in gen6 brw_wm_glsl.c path.
+-  i965: Work around strangeness in swizzling/masking of gen6 math.
+-  i965: re-enable gen6 IF statements in the fragment shader.
+-  glsl: Free the loop state context when we free the loop state.
+-  i965: Fix gl_FragCoord inversion when drawing to an FBO.
+-  i965: Shut up spurious gcc warning about GLSL_TYPE enums.
+-  mesa: Don't spam the console in a debug build unless some spam is
+   requested.
+-  i965: Add state dumping for sampler state.
+-  i965: Add dumping of the sampler default color.
+-  i965: Fail on loops on gen6 for now until we write the EU emit code
+   for it.
+-  i965: Eliminate dead code more aggressively.
+-  mesa: Include C++ files in the makedepend of DRI drivers.
+-  i965: Fix compute_to_mrf to not move a MRF write up into another live
+   range.
+-  i965: Just use memset() to clear most members in FS constructors.
+-  i965: Remove extra n at the end of every instruction in
+   INTEL_DEBUG=wm.
+-  i965: Fold constants into the second arg of BRW_SEL as well.
+-  glsl: Add a helper function for determining if an rvalue could be a
+   saturate.
+-  i965: Recognize saturates and turn them into a saturated mov.
+-  ir_to_mesa: Detect and emit MOV_SATs for saturate constructs.
+-  i965: Improve compute-to-mrf.
+-  i965: Remove duplicate MRF writes in the FS backend.
+-  i965: Move gen4 blend constant color to the gen4 blending file.
+-  i965: Don't upload polygon stipple unless required.
+-  i965: Don't upload line stipple pattern unless we're stippling.
+-  i965: Don't upload line smooth params unless we're line smoothing.
+-  i965: Use the new embedded compare in SEL on gen6 for VS MIN and MAX
+   opcodes.
+-  i965: Fix type of gl_FragData[] dereference for FB write.
+-  glsl: Make the symbol table's add_function just use the function's
+   name.
+-  glsl: Make the symbol table's add_variable just use the variable's
+   name.
+-  glsl: Add a helper constructor for expressions that works out result
+   type.
+-  glsl: Fix structure and array comparisions.
+-  glsl: Quiet unreachable no-return-from-function warning.
+-  i965: Dump the WHILE jump distance on gen6.
+-  i965: Add support for gen6 DO/WHILE ISA emit.
+-  i965: Add support for gen6 BREAK ISA emit.
+-  i965: Add support for gen6 CONTINUE instruction emit.
+-  i965: Enable IF statements in the VS.
+-  i965: Add support for loops in the VS.
+-  glsl: Mark the array access for whole-array comparisons.
+-  glsl: Fix flipped return of has_value() for array constants.
+-  mesa: Add getters for the rest of the supported draw buffers.
+-  mesa: Add getters for ARB_copy_buffer's attachment points.
+-  intel: Add an env var override to execute for a different GPU
+   revision.
+-  i965: Update gen6 WM state on compiled program change, not just FP
+   change.
+-  i965: Update gen6 SF state on fragment program change too.
+-  i965: Fix compile warning about missing opcodes.
+-  i965: Move payload reg setup to compile, not lookup time.
+-  i965: Provide delta_xy reg to gen6 non-GLSL path PINTERP.
+-  i965: Fix up 16-wide gen6 FB writes after various refactoring.
+-  i965: Don't smash a group of coordinates doing gen6 16-wide sampler
+   headers.
+-  i965: Fix gen6 interpolation setup for 16-wide.
+-  i965: Fix up gen6 samplers for their usage by brw_wm_emit.c
+-  i965: Make the sampler's implied move on gen6 be a raw move.
+-  i965: Align gen6 push constant size to dispatch width.
+-  i965: Add support for the instruction compression bits on gen6.
+-  i965: Nuke brw_wm_glsl.c.
+-  i965: Remove INTEL_DEBUG=glsl_force now that there's no brw_wm_glsl.c
+-  i965: Fix comment about gen6_wm_constants.
+-  i965: Handle saturates on gen6 math instructions.
+-  i965: Always hand the absolute value to RSQ.
+-  i965: Add disabled debug code for dumping out the WM constant
+   payload.
+-  i965: Work around gen6 ignoring source modifiers on math
+   instructions.
+-  i965: Fix flipped value of the not-embedded-in-if on gen6.
+-  i965: Don't try to store gen6 (float) blend constant color in bytes.
+-  i965: Set up the color masking for the first drawbuffer on gen6.
+-  i965: Set up the per-render-target blend state on gen6.
+-  i965: Set the render target index in gen6 fixed-function/ARB_fp path.
+-  i965: Use the new pixel mask location for gen6 ARB_fp KIL
+   instructions.
+-  i965: Drop KIL_NV from the ff/ARB_fp path since it was only used for
+   GLSL.
+-  i965: Drop push-mode reladdr constant loading and always use
+   constant_map.
+-  i965: Fix VS constants regression pre-gen6.
+-  i965: Clean up VS constant buffer location setup.
+-  i965: Set up the correct texture border color state struct for
+   Ironlake.
+-  i965: Set render_cache_read_write surface state bit on gen6 constant
+   surfs.
+-  i965: remove unused variable since brw_wm_glsl.c removal.
+-  intel: Use plain R8 and RG8 for COMPRESSED_RED and COMPRESSED_RG.
+-  intel: Set the swizzling for depth textures using the GL_RED depth
+   mode.
+-  glsl: Correct the marking of InputsRead/OutputsWritten on in/out
+   matrices.
+-  i965: Correct the dp_read message descriptor setup on g4x.
+-  intel: Include stdbool so we can stop using GLboolean when we want
+   to.
+-  i965: Fix ARL to work on gen6.
+-  i956: Fix the old FP path fragment position setup on gen6.
+-  i965: Fix gl_FragCoord.z setup on gen6.
+-  i965: Add support for using the BLT ring on gen6.
+-  intel: Update renderbuffers before looking up CopyTexImage's read
+   buffer.
+-  intel: Drop commented intel_flush from copy_teximage.
+-  intel: Try to sanely check that formats match for CopyTexImage.
+-  intel: Support glCopyTexImage() from XRGB8888 to ARGB8888.
+-  i965: Avoid using float type for raw moves, to work around SNB issue.
+-  i965: Set the alternative floating point mode on gen6 VS and WM.
+-  i965: Add support for gen6 constant-index constant loading.
+-  i965: Add support for gen6 reladdr VS constant loading.
+-  i965: Improve the hacks for ARB_fp scalar^scalar POW on gen6.
+-  i965: Factor out the ir comparision to BRW_CONDITIONAL\_\* code.
+-  i965: Fix regression in FS comparisons on original gen4 due to gen6
+   changes.
+-  i965: Do lowering of array indexing of a vector in the FS.
+-  intel: Only do frame throttling at glFlush time when using
+   frontbuffer.
+-  intel: Handle forced swrast clears before other clear bits.
+-  intel: Use tri clears when we don't know how to blit clear the
+   format.
+-  intel: Add spans code for the ARB_texture_rg support.
+-  intel: Add a couple of helper functions to reduce rb code
+   duplication.
+-  intel: Fix segfaults from trying to use \_ColorDrawBuffers in FBO
+   validation.
+-  intel: When validating an FBO's combined depth/stencil, use the given
+   FBO.
+
+Fabian Bieler (2):
+
+-  r600g: set address of pop instructions to next instruction
+-  glsl: fix lowering conditional returns in subroutines
+
+Francisco Jerez (51):
+
+-  dri/nv04: Fix PGRAPH_ERRORs when running OA.
+-  dri/nv04: Mipmapping fixes.
+-  dri/nv04: Align SIFM transfer dimensions.
+-  dri/nv04: Fix up color mask.
+-  dri/nv04: Fix maximum texture size.
+-  dri/nv04: Fix provoking vertex.
+-  dri/nouveau: Update nouveau_class.h.
+-  dri/nouveau: Add some more extensions.
+-  dri/nouveau: Fix glRenderbufferStorage with DEPTH_COMPONENT as
+   internal format.
+-  dri/nouveau: Don't request a fake front unnecessarily.
+-  dri/nouveau: Don't reemit the BO state in nouveau_state_emit().
+-  dri/nouveau: Cleanup references to the old FBOs on glMakeCurrent().
+-  meta: Don't bind the created texture object in init_temp_texture().
+-  dri/nv10: Fix the CLAMP texture wrap mode.
+-  dri/nv04: Use nvgl_wrap_mode().
+-  dri/nouveau: Remove unnecessary assertion.
+-  dri/nouveau: Cleanup more references to old FBOs and VBOs.
+-  dri/nv10-nv20: Fix texturing in some cases after a base level change.
+-  dri/nouveau: Fix software mipmap generation on 1x1 textures.
+-  dri/nouveau: Have a smaller amount of larger scratch buffers.
+-  dri/nouveau: Remove unnecessary flush.
+-  dri/nv10: Use fast Z clears.
+-  dri/nouveau: Minor cleanup.
+-  dri/nv10: Fake fast Z clears for pre-nv17 cards.
+-  dri/nouveau: Initialize tile_flags when allocating a render target.
+-  nouveau: Get larger push buffers.
+-  dri/nouveau: Force a "slow" Z clear if we're getting a new depth
+   buffer.
+-  dri/nv20: Clear with the 3D engine.
+-  dri/nouveau: Don't assert(0) on compressed internal formats.
+-  dri/nv25: Bind a hierarchical depth buffer.
+-  dri/nouveau: Call \_mesa_update_state() after framebuffer
+   invalidation.
+-  dri/nouveau: Honor the access flags in nouveau_bufferobj_map_range.
+-  dri/nouveau: Tell the vbo module we want real hardware BOs.
+-  dri/nouveau: Split out the scratch helpers to a separate file.
+-  dri/nouveau: Avoid recursion in nouveau_bo_context_reset().
+-  dri/nouveau: Use a macro to iterate over the bound vertex attributes.
+-  dri/nouveau: Split out array handling to its own file.
+-  dri/nouveau: Optimize VBO binding re-emission.
+-  dri/nouveau: Keep small DYNAMIC_DRAW vertex buffers in system ram.
+-  dri/nouveau: Pipeline glTexSubImage texture transfers.
+-  dri/nouveau: Fix type promotion issue on 32bit platforms.
+-  dri/nouveau: Validate the framebuffer state on read buffer changes.
+-  dri/nouveau: Re-emit the BO state when coming back from a software
+   fallback.
+-  meta: Don't leak alpha function/reference value changes.
+-  meta: Fix incorrect rendering of the bitmap alpha component.
+-  vbo: Avoid unnecessary copy to/from current in vertex format upgrade.
+-  meta: Don't try to disable cube maps if the driver doesn't expose the
+   extension.
+-  meta: Handle bitmaps with alpha test enabled.
+-  dri/nouveau: Split hardware/software TNL instantiation more cleanly.
+-  dri/nouveau: Fix typo.
+-  dri/nouveau: Kill a bunch of ternary operators.
+
+Fredrik Höglund (2):
+
+-  r600g: Fix texture sampling with swizzled coords
+-  r600g: fix pow(0, 0) evaluating to NaN
+
+Guillermo S. Romero (1):
+
+-  r300g: Do not use buf param before checking for NULL.
+
+Henri Verbeet (19):
+
+-  r600g: Flush upload buffers before draws instead of before flushes.
+-  r600g: Check for other references before checking for existing
+   mappings in radeon_bo_pb_map_internal().
+-  r600g: Remove a redundant flush in r600_texture_transfer_map().
+-  r600g: Buffer object maps imply a wait.
+-  r600g: Respect PB_USAGE_UNSYNCHRONIZED in
+   radeon_bo_pb_map_internal().
+-  Revert "r600g: Flush upload buffers before draws instead of before
+   flushes."
+-  r600g: fix exports_ps to export a number not a mask.
+-  r600g: Mention AMD in the renderer string.
+-  r600g: Cleanup the fenced_bo list in r600_context_fini().
+-  r600g: Evergreen has two extra frac_bits for the sampler LOD state.
+-  r600: Evergreen has two extra frac_bits for the sampler LOD state.
+-  r600g: Add PIPE_FORMAT_L8A8_UNORM for Evergreen as well.
+-  r600g: Swizzle vertex data only once.
+-  r600g: Synchronize supported color formats between Evergreen and
+   r600/r700.
+-  r600g: Fix the PIPE_FORMAT_L8A8_UNORM color swaps.
+-  r600g: Fix the PIPE_FORMAT_A8_UNORM color swap for Evergreen as well.
+-  r600g: Cleanup block bo references in r600_context_fini().
+-  r600g: Cleanup fetch shader resources in r600_pipe_shader_destroy().
+-  st/mesa: Handle wrapped depth buffers in st_copy_texsubimage().
+
+Hui Qi Tay (10):
+
+-  llvmpipe: minor changes in llvm coefficient calcs
+-  draw: cliptest and viewport done in a single loop in vertex shader
+-  draw: added viewport and cliptest flags
+-  draw: sanitize llvm variant key
+-  draw: corrections for w coordinate
+-  draw: corrections to allow for different cliptest cases
+-  llvmpipe: Moved draw pipeline twoside function to llvm setup code
+-  llvmpipe: added llvm offset setup code
+-  llvmpipe: clean up polygon offset function in lp setup code
+-  llvmpipe: fix such that offset/twoside function only does in-place
+   modification
+
+Ian Romanick (102):
+
+-  glsl2: Refactor testing for whether a deref is of a matrix or array
+-  glsl2: Add flags to enable variable index lowering
+-  glsl: Add doxygen comments
+-  EGL DRI2: Silence piles of 'unused variable' warnings
+-  EGL DRI2: Silence 'missing initializer' warnings
+-  egl_glx: Silence piles of 'unused variable' warnings
+-  egl: Fix several 'comparison between signed and unsigned integer'
+   warnings
+-  dri: Ensure that DRI driver cpp files are in tarballs
+-  mesa: Force GL_ARB_copy_buffer to always be enabled
+-  mesa: Force GL_SGIS_generate_mipmap to always be enabled
+-  Remove GL_MESA_packed_depth_stencil
+-  Remove GL_EXT_cull_vertex
+-  Regenerate files changed by previous commit
+-  Remove unnescessary initializations of UpdateTexturePalette
+-  ARB_texture_rg: Add GLX protocol support
+-  ARB_texture_rg: Correct some errors in RED / RG internal format
+   handling
+-  ARB_texture_rg: Add GL_TEXTURE_{RED,GREEN}_SIZE query support
+-  ARB_texture_rg: Add GL_RED as a valid GL_DEPTH_TEXTURE_MODE
+-  ARB_texture_rg: Handle RED and RG the same as RGB for tex env
+-  ARB_texture_rg: Add R8, R16, RG88, and RG1616 internal formats
+-  ARB_texture_rg: Allow RED and RG textures as FBO color buffer
+   attachments
+-  mesa: Enable GL_ARB_texture_rg in software paths
+-  i965: Enable GL_ARB_texture_rg
+-  mesa: Add ARB_texture_compression_rgtc as an alias for
+   EXT_texture_compression_rgtc
+-  ARB_texture_rg: Add GL_COMPRESSED_{RED,RG} cases in
+   \_mesa_is_color_format
+-  mesa: Fix misplaced #endif
+-  mesa: Trivial correction to comment
+-  rgtc: Detect RGTC formats as color formats and as compressed formats
+-  docs: Add list of bugs fixed in 7.9
+-  docs: Import 7.9 release notes from 7.9 branch.
+-  docs: Import 7.8.x release notes from 7.8 branch.
+-  docs: download.html does not need to be updated for each release
+-  docs: Update mailing lines from sf.net to freedesktop.org
+-  docs: Import news updates from 7.9 branch
+-  docs: added news item for 7.9 release
+-  glsl: Fail linking if assign_attribute_locations fails
+-  glsl: Refactor 'layout' grammar to match GLSL 1.60 spec grammar
+-  glsl: Slight refactor of error / warning checking for ARB_fcc layout
+-  glsl: Clear type_qualifier using memset
+-  glsl: Wrap ast_type_qualifier contents in a struct in a union
+-  glsl: Regenerate files modified by previous commits
+-  glcpp: Add the define for ARB_explicit_attrib_location when present
+-  glcpp: Regenerate files changes by previous commit
+-  glsl: Add parser support for GL_ARB_explicit_attrib_location layouts
+-  glsl: Regenerate files changes by previous commit
+-  glsl: Track explicit location in AST to IR translation
+-  glsl: Add linker support for explicit attribute locations
+-  main: Enable GL_ARB_explicit_attrib_location for swrast
+-  intel: Enable GL_ARB_explicit_attrib_location
+-  glsl: Remove const decoration from inlined function parameters
+-  docs: skeleton for 7.10 release notes
+-  docs: Update status of GL 3.x related extensions
+-  mesa: Validate assembly shaders when GLSL shaders are used
+-  glsl: Fix incorrect assertion
+-  linker: Reject shaders that have unresolved function calls
+-  mesa: Silence unused variable warning
+-  mesa: Refactor validation of shader targets
+-  mesa: Clean up two 'comparison between signed and unsigned' warnings
+-  mesa: Clean up various 'unused parameter' warnings in shaderapi
+-  glsl: Slightly change the semantic of \_LinkedShaders
+-  linker: Trivial indention fix
+-  i965: Fix indentation after commit 3322fbaf
+-  linker: Improve handling of unread/unwritten shader inputs/outputs
+-  glapi: Add GL_EXT_separate_shader_objects
+-  glapi: Commit files changed by previous commit
+-  mesa: Add infrastructure to track GL_EXT_separate_shader_objects
+-  mesa: Skeletal support for GL_EXT_separate_shader_objects
+-  mesa: Add display list support for GL_EXT_separate_shader_objects
+   functions
+-  mesa: Track an ActiveProgram distinct from CurrentProgram
+-  Track separate programs for each stage
+-  swrast: Enable GL_EXT_separate_shader_objects in software paths
+-  intel: Enable GL_EXT_separate_shader_objects in Intel drivers
+-  docs: add GL_EXT_separate_shader_objects to release notes
+-  glsl: Fix incorrect gl_type of sampler2DArray and
+   sampler1DArrayShadow
+-  ir_to_mesa: Refactor code for emitting DP instructions
+-  mesa: Allow query of MAX_SAMPLES with EXT_framebuffer_multisample
+-  glsl: Refactor is_vec_{zero,one} to be methods of ir_constant
+-  glsl: Simplify generation of swizzle for vector constructors
+-  glsl: Make is_zero and is_one virtual methods of ir_rvalue
+-  ir_to_mesa: Generate smarter code for some conditional moves
+-  glsl: Add ir_unop_sin_reduced and ir_unop_cos_reduced
+-  glsl: Eliminate assumptions about size of ir_expression::operands
+-  glsl: Add ir_rvalue::is_negative_one predicate
+-  glsl: Add unary ir_expression constructor
+-  glsl: Add ir_quadop_vector expression
+-  glsl: Fix matrix constructors with vector parameters
+-  i915: Disallow alpha, red, RG, and sRGB as render targets
+-  glsl: Use M_LOG2E constant instead of calling log2
+-  glsl: Lower ir_binop_pow to a sequence of EXP2 and LOG2
+-  i915: Request that POW instructions be lowered
+-  i915: Correctly generate unconditional KIL instructions
+-  glsl: Ensure that equality comparisons don't return a NULL IR tree
+-  i965: Correctly emit constants for aggregate types (array, matrix,
+   struct)
+-  glsl: Inherrit type of declared variable from initializer
+-  linker: Ensure that unsized arrays have a size after linking
+-  linker: Fix regressions caused by previous commit
+-  glsl: Inherrit type of declared variable from initializer after
+   processing assignment
+-  linker: Allow built-in arrays to have different sizes between shader
+   stages
+-  ir_to_mesa: Don't generate swizzles for record derefs of
+   non-scalar/vectors
+-  Refresh autogenerated file builtin_function.cpp.
+-  glsl: Allow less restrictive uses of sampler array indexing in GLSL
+   <= 1.20
+-  docs: Import 7.9.1 release notes from 7.9 branch
+
+Jakob Bornecrantz (27):
+
+-  rbug: Cast opcode to corrent int size
+-  rbug: Add function to get opcode name string
+-  scons: Link against talloc in the Gallium DRI drivers
+-  i915g: Link with wrapper sw winsys with scons
+-  tgsi: Actually care what check_soa_dependencies says
+-  tgsi: Fix missing test before check
+-  llvmpipe: Move makefile include to before targets
+-  wrapper: Fix spelling
+-  wrapper: Add a way to dewrap a pipe screen without destroying it
+-  egl: Remove unnecessary headers
+-  target-helpers: Remove per target software wrapper check
+-  graw: Tidy graw xlib scons file a bit
+-  scons: Remove old pipebuffer SConscript
+-  scons: Detabify
+-  scons: Check for pkg-config before trying to use it
+-  scons: Check for libdrm_[intel|radeon] as well
+-  scons: Move dependancy checks to the main gallium scons file
+-  scons: Unify state tracker SConscripts
+-  galahad: Correct the name of the scons library
+-  graw: Use inline sw helper instead of roll your own loader
+-  libgl-xlib: Use sw helper instead of roll your own
+-  libgl-xlib: Use inline debug helper instead of non-inline version
+-  graw: Use inline debug helper instead of non-inline version
+-  gallium: Remove redundant sw and debug target helpers
+-  i915g: Improve debug printing for textures
+-  i915g: Make sure that new vbo gets updated
+-  st/mesa: Unbind all constant buffers
+
+Jerome Glisse (75):
+
+-  r600g: alternative command stream building from context
+-  r600g: move chip class to radeon common structure
+-  r600g: use pipe context for flushing inside map
+-  r600g: add back reference check when mapping buffer
+-  r600g: directly allocate bo for user buffer
+-  r600g: fix multi buffer rendering
+-  r600g: occlusion query for new design
+-  r600g: flush color buffer after draw command
+-  r600g: disable shader rebuild optimization & account cb flush packet
+-  r600g: fix multiple occlusion query on same id
+-  r600g: initial evergreen support in new path
+-  r600g: fix typo in evergreen define (resource are in x range)
+-  r600g: move use_mem_constants flags for new designs structure
+   alignment
+-  r600g: evergreen fix for new design
+-  r600g: fix compilation after change to evergreend.h
+-  r600g: fixup some evergreen register definitions
+-  r600g: fix evergreen new path
+-  r600g: fix reg definition
+-  r600g: fix evergreen new path
+-  r600g: bring over fix from old path to new path
+-  r600g: fix vertex resource & polygon offset
+-  r600g: disable early cull optimization when occlusion query running
+-  r600g: move around variables to share depth uncompression code
+-  r600g: use depth decompression in new path
+-  r600g: fix index buffer drawing
+-  r600g: build packet header once
+-  r600g: fix pointsprite & resource unbinding
+-  r600g: fix routing btw vertex & pixel shader
+-  r600g: fix occlusion query after change to block structure
+-  r600g: use ptr for blit depth uncompress function
+-  r600g: fix remaining piglit issue in new design
+-  r600g: switch to new design
+-  r600g: suspend/resume occlusion query around clear/copy
+-  r600g: avoid rebuilding the vertex shader if no change to input
+   format
+-  r600g: use a hash table instead of group
+-  r600g: delete old path
+-  r600g: cleanup
+-  r600g: more cleanup
+-  r600g: use constant buffer instead of register for constant
+-  r600g: fix constant & literal src splitting, also fix mplayer gl2
+   shader
+-  evergreeng: avoid overlapping border color btw VS & PS
+-  r600g: indentation fixes
+-  r600g: rename radeon_ws_bo to r600_bo
+-  r600g: allow r600_bo to be a sub allocation of a big bo
+-  r600g: use r600_bo for relocation argument, simplify code
+-  r600g: rename radeon_ws_bo to r600_bo
+-  r600g: remove dead label & fix indentation
+-  r600g: store reloc information in bo structure
+-  r600g: improve bo flushing
+-  r600g: simplify block relocation
+-  r600g: userspace fence to avoid kernel call for testing bo busy
+   status
+-  r600g: avoid segfault due to unintialized list pointer
+-  r600g: fix dirty state handling
+-  r600g: allow driver to work without submitting cmd to GPU
+-  gallium/noop: no operation gallium driver
+-  r600g: code cleanup (indent, trailing space, empty line ...)
+-  r600g: fix occlusion query on evergreen (avoid lockup)
+-  r600g: add fetch shader capabilities
+-  r600g: dump raw shader output for debugging
+-  r600g: update polygon offset only when rasterizer or zbuffer change
+-  r600g: indentation fix
+-  r600g: more indentation fix + warning silencing + dead code removal
+-  r600g: build fetch shader from vertex elements
+-  r600g: avoid useless shader rebuild at draw call
+-  r600g: remove useless flush map
+-  r600g: remove dead code
+-  r600g: fix userspace fence against lastest kernel
+-  r600g: avoid using pb\* helper we are loosing previous cpu cycle with
+   it
+-  r600g: specialized upload manager
+-  r600g: indentation cleanup
+-  r600g: fix bo size when creating bo from handle
+-  r600g: fix segfault when translating vertex buffer
+-  r600g: need to reference upload buffer as the might still live
+   accross flush
+-  r600g: properly unset vertex buffer
+-  r600g: avoid segfault
+
+Joakim Sindholt (3):
+
+-  util/u_blitter: fix leak
+-  radeong: fix leaks
+-  r300g: silence guard band cap errors
+
+Johann Rudloff (3):
+
+-  radeon: Implement EGL_MESA_no_surface_extension
+-  radeon: Implement \__DRI_IMAGE and EGL_MESA_image_drm
+-  radeon: Implement GL_OES_EGL_image
+
+John Doe (3):
+
+-  r600g: misc cleanup
+-  r600g: don't double count dirty block
+-  r600g: keep a mapping around for each bo
+
+Jon TURNEY (1):
+
+-  Ensure -L$(TOP)/$(LIB_DIR) appears in link line before any -L in
+   $LDFLAGS
+
+José Fonseca (128):
+
+-  gallivm: Fix address register swizzle.
+-  gallivm: Start collecting bitwise arithmetic helpers in a new module.
+-  gallivm: Clamp indirect register indices to file_max.
+-  util: linearized sRGB values don't fit into 8bits
+-  llvmpipe: Default to no threading on single processor systems.
+-  tgsi: Don't ignore indirect registers in tgsi_check_soa_dependencies
+-  llvmpipe: Describe how to profile llvmpipe.
+-  llvmpipe: When failing free fs shader too.
+-  util: Flush stdout on util_format.
+-  gallivm: Add unorm support to lp_build_lerp()
+-  llvmpipe: Special case complementary and identify blend factors in
+   SoA.
+-  llvmpipe: Make rgb/alpha bland func/factors match, when there is no
+   alpha.
+-  draw: Prevent clipped vertices overflow.
+-  draw: Fulfil the new min_lod/max_lod/lod_bias/border_color dynamic
+   state
+-  gallivm: Fetch the lod from the dynamic state when min_lod ==
+   max_lod.
+-  gallivm: Remove dead experimental code.
+-  llvmpipe: Decouple sampler view and sampler state updates.
+-  scons: New build= option, with support for checked builds.
+-  scons: New build= option, with support for checked builds.
+-  trace: Fix set_index_buffer and draw_vbo tracing.
+-  python/retrace: Handle set_index_buffer and draw_vbo.
+-  gallivm: Use SSE4.1's ROUNDSS/ROUNDSD for scalar rounding.
+-  gallivm: More comprehensive border usage logic.
+-  retrace: Handle clear_render_target and clear_depth_stencil.
+-  llvmpipe: Dump a few missing shader key flags.
+-  llvmpipe: Fix perspective interpolation for point sprites.
+-  llvmpipe: Fix sprite coord perspective interpolation of Q.
+-  gallivm: Take the type signedness in consideration in
+   round/ceil/floor.
+-  gallivm: Use a faster (and less accurate) log2 in lod computation.
+-  gallivm: Fast implementation of iround(log2(x))
+-  gallivm: Combined ifloor & fract helper.
+-  gallivm: Only apply min/max_lod when necessary.
+-  gallivm: Compute lod as integer whenever possible.
+-  util: Cleanup util_pack_z_stencil and friends.
+-  llvmpipe: Cleanup depth-stencil clears.
+-  gallivm: Vectorize the rho computation.
+-  gallivm: Do not do mipfiltering when magnifying.
+-  gallivm: Simplify lp_build_mipmap_level_sizes' interface.
+-  gallivm: Don't compute the second mipmap level when frac(lod) == 0
+-  gallivm: Use lp_build_ifloor_fract for lod computation.
+-  gallivm: Clamp mipmap level and zero mip weight simultaneously.
+-  gallivm: Fix copy'n'paste typo in previous commit.
+-  gallivm: Implement brilinear filtering.
+-  gallivm: Use the wrappers for SSE pack intrinsics.
+-  gallivm: Avoid control flow for two-sided stencil test.
+-  gallivm: Warn when doing inefficient integer comparisons.
+-  gallivm: Move into the as much of the second level code as possible.
+-  llvmpipe: First minify the texture size, then broadcast.
+-  gallivm: Help for combined extraction and broadcasting.
+-  gallivm: Do size computations simultanously for all dimensions (AoS).
+-  llvmpipe: Prevent z > 1.0
+-  llvmpipe: Fix MSVC build. Enable the new SSE2 code on non SSE3
+   systems.
+-  gallivm: Handle code have ret correctly.
+-  util: Defined M_SQRT2 when not available.
+-  gallivm: Less code duplication in log computation.
+-  gallivm: Special bri-linear computation path for unmodified rho.
+-  gallivm: Don't generate Phis for execution mask.
+-  gallivm: Use varilables instead of Phis for cubemap selection.
+-  gallivm: Remove support for Phi generation.
+-  gallivm: Factor out the SI->FP texture size conversion for SoA path
+   too
+-  gallivm: Simplify if/then/else implementation.
+-  gallivm: Cleanup the rest of the flow module.
+-  gallivm: Fix a long standing bug with nested if-then-else emission.
+-  gallivm: Allow to disable bri-linear filtering with
+   GALLIVM_DEBUG=no_brilinear runtime option
+-  gallivm: Use variables instead of Phis in loops.
+-  gallivm: Pass texture coords derivates as scalars.
+-  llvmpipe: Remove outdated comment about stencil testing.
+-  gallivm: Eliminate unsigned integer arithmetic from texture
+   coordinates.
+-  gallium: Define C99 restrict keyword where absent.
+-  tgsi: Export some names for some tgsi enums.
+-  gallivm: More detailed analysis of tgsi shaders.
+-  llvmpipe: Use lp_tgsi_info.
+-  llvmpipe: Do not dispose the execution engine.
+-  llvmpipe: Fix MSVC build.
+-  llmvpipe: improve mm_mullo_epi32
+-  gallivm: Name anonymous union.
+-  llvmpipe: Unbreak Z32_FLOAT.
+-  gallivm: More accurate float -> 24bit & 32bit unorm conversion.
+-  llvmpipe: Generalize the x8z24 fast path to all depth formats.
+-  llvmpipe: Fix depth-stencil regression.
+-  llvmpipe: Ensure z_shift and z_width is initialized.
+-  gallivm: Fix SoA cubemap derivative computation.
+-  llvmpipe: Fix bad refactoring.
+-  llvmpipe: Initialize bld ctx via lp_build_context_init instead of
+   ad-hoc and broken code.
+-  gallivm: Comment lp_build_insert_new_block().
+-  gallivm: Add a note about SSE4.1's nearest mode rounding.
+-  llvmpipe: Don't test rounding of x.5 numbers.
+-  gallium: Avoid using \__doc_\_ in python scripts.
+-  gallivm: always enable LLVMAddInstructionCombiningPass()
+-  gallivm: Remove the EMMS opcodes.
+-  mesa: Fix windows build (uint -> GLuint).
+-  scons: Revamp how to specify targets to build.
+-  scons: Fix MinGW cross-compilation.
+-  scons: Some pipe drivers are not portable for MSVC
+-  scons: Restore x11 tool behavior for backwards compatability.
+-  scons: Disable python state tracker when swig is not present.
+-  r600g: List recently added files in SConscript.
+-  scons: Add aliases for several pipe drivers.
+-  scons: i915 can't build on MSVC either.
+-  scons: Propagate installation targets.
+-  xorg/vmwgfx: Add missing source file to SConscript.
+-  st/xorg: Add missing n to error message.
+-  st/xorg: Detect libkms with scons too.
+-  xorg/vmwgfx: Link libkms when available.
+-  r600g: Swap the util_blitter_destroy call order.
+-  gallivm: Allocate TEMP/OUT arrays only once.
+-  libgl-gdi: Allow to pick softpipe/llvmpipe on runtime.
+-  scons: Use inline wrap helpers more consistently.
+-  svga: Use consistent hexadecimal representation on debug output.
+-  scons: Alias for svga
+-  wgl: Stub WGL_ARB_pbuffer support.
+-  wgl: More complete WGL_ARB_pbuffer support.
+-  svga: Silence debug printf.
+-  scons: Move MSVS_VERSION option to common module.
+-  vega: Remove extraneous ;
+-  retrace: Some fixes.
+-  util: C++ safe.
+-  wgl: Fix double free. Remove dead code.
+-  util: Plug leaks in util_destroy_gen_mipmap.
+-  util: \__builtin_frame_address() doesn't work on mingw.
+-  util: Don't try to use imagehlp on mingw.
+-  wgl: Unreference the current framebuffer after the make_current call.
+-  WIN32_THREADS -> WIN32
+-  mapi: Hack to avoid vgCreateFont being generated as vgCreateFontA.
+-  wgl: Fix visual's buffer_mask configuration.
+-  mesa: Temporary hack to prevent stack overflow on windows
+-  mesa: Bump the number of bits in the register index.
+-  llvmpipe: Plug fence leaks.
+
+Julien Cristau (1):
+
+-  Makefile: don't include the same files twice in the tarball
+
+Keith Whitwell (89):
+
+-  llvmpipe: brackets around macro arg
+-  llvmpipe: remove duplicate code
+-  llvmpipe: return zero from floor_pot(zero)
+-  gallivm: make lp_build_sample_nop public
+-  llvmpipe: add LP_PERF flag to disable various aspects of
+   rasterization
+-  llvmpipe: add DEBUG_FS to dump variant information
+-  llvmpipe: use llvm for attribute interpolant calculation
+-  graw: add frag-face shader
+-  llvmpipe: fix flatshading in new line code
+-  draw: don't apply flatshading to clipped tris with <3 verts
+-  llvmpipe: handle FACING interpolants in line and point setup
+-  llvmpipe: handle up to 8 planes in triangle binner
+-  llvmpipe: make debug_fs_variant respect variant->nr_samplers
+-  gallivm: don't apply zero lod_bias
+-  llvmpipe: fail gracefully on oom in scene creation
+-  llvmpipe: avoid overflow in triangle culling
+-  gallivm: special case conversion 4x4f to 1x16ub
+-  gallivm: round rather than truncate in new 4x4f->1x16ub conversion
+   path
+-  llvmpipe: clean up setup_tri a little
+-  llvmpipe: add rast_tri_4_16 for small lines and points
+-  llvmpipe: fix off-by-one in tri_16
+-  llvmpipe: defer attribute interpolation until after mask and ztest
+-  llvmpipe: use alloca for fs color outputs
+-  llvmpipe: store zero into all alloca'd values
+-  llvmpipe: dump fragment shader ir and asm when LP_DEBUG=fs
+-  gallivm: specialized x8z24 depthtest path
+-  gallivm: prefer blendvb for integer arguments
+-  gallivm: simpler uint8->float conversions
+-  llvmpipe: try to be sensible about whether to branch after mask
+   updates
+-  llvmpipe: clean up shader pre/postamble, try to catch more early-z
+-  llvmpipe: simplified SSE2 swz/unswz routines
+-  llvmpipe: try to do more of rast_tri_3_16 with intrinsics
+-  llvmpipe: add debug helpers for epi32 etc
+-  llvmpipe: try to keep plane c values small
+-  llvmpipe: fix typo in last commit
+-  gallium: move sse intrinsics debug helpers to u_sse.h
+-  r600g: add missing file to sconscript
+-  gallivm: don't branch on KILLs near end of shader
+-  Revert "llvmpipe: try to keep plane c values small"
+-  llvmpipe: make sure intrinsics code is guarded with PIPE_ARCH_SSE
+-  llvmpipe: don't try to emit non-existent color outputs
+-  r600/drm: fix segfaults in winsys create failure path
+-  r600g: emit hardware linewidth
+-  r600g: handle absolute modifier in shader translator
+-  llvmpipe: reintroduce SET_STATE binner command
+-  llvmpipe: don't pass frontfacing as a float
+-  llvmpipe: slightly shrink the size of a binned triangle
+-  llvmpipe: don't store plane.ei value in binned data
+-  gallium: move some intrinsics helpers to u_sse.h
+-  llvmpipe: do plane calculations with intrinsics
+-  llvmpipe: use aligned loads/stores for plane values
+-  llvmpipe: fix non-sse build after recent changes
+-  llvmpipe: check shader outputs are non-null before using
+-  llvmpipe: validate color outputs against key->nr_cbufs
+-  llvmpipe: clean up fields in draw_llvm_variant_key
+-  llvmpipe: remove setup fallback path
+-  llvmpipe: fail cleanly on malloc failure in lp_setup_alloc_triangle
+-  Merge remote branch 'origin/master' into lp-setup-llvm
+-  llvmpipe: remove unused file
+-  llvmpipe: remove unused arg from jit_setup_tri function
+-  Merge branch 'llvm-cliptest-viewport'
+-  draw: make sure viewport gets updated in draw llvm shader
+-  llvmpipe: turn off draw offset/twoside when we can handle it
+-  llvmpipe: avoid generating tri_16 for tris which extend past tile
+   bounds
+-  llvmpipe: guard against NULL task->query pointer
+-  st/mesa: unbind constant buffer when not in use
+-  r600g: propagate usage flags in texture transfers
+-  r600g: propogate resource usage flags to winsys, use to choose bo
+   domains
+-  r600g: use a buffer in GTT as intermediate on texture up and
+   downloads
+-  r600g: remove unused flink, domain fields from r600_resource
+-  r600g: set hardware pixel centers according to gl_rasterization_rules
+-  evergreeng: protect against null constant buffers
+-  r600g: don't call debug_get_bool_option for tiling more than once
+-  evergreeng: respect linewidth state, use integer widths only
+-  evergreeng: set hardware pixelcenters according to
+   gl_rasterization_rules
+-  r600g: avoid recursion with staged uploads
+-  r600g: attempt to turn on DXTn formats
+-  r600g: translate ARR instruction
+-  r600: fix my pessimism about PIPE_TRANSFER_x flags
+-  ws/r600: match bo_busy shared/fence logic in bo_wait
+-  r600g: guard experimental s3tc code with R600_ENABLE_S3TC
+-  r600g: do not try to use staging resource for depth textures
+-  r600g: enforce minimum stride on render target texture images
+-  llvmpipe: fix up twoside after recent changes
+-  llvmpipe: twoside for specular color also
+-  Merge branch 'lp-offset-twoside'
+-  llvmpipe: raise dirty flag on transfers to bound constbuf
+-  llvmpipe: remove misleading debug string
+-  llvmpipe: shortcircuit some calls to set_scene_state
+
+Kenneth Graunke (94):
+
+-  glsl: Change from has_builtin_signature to has_user_signature.
+-  glsl: Don't print blank (function ...) headers for built-ins.
+-  glsl: Properly handle nested structure types.
+-  glsl/builtins: Fix equal and notEqual builtins.
+-  glsl/builtins: Switch comparison functions to just return an
+   expression.
+-  glsl: Add comments to clarify the types of comparison binops.
+-  glsl: Fix broken handling of ir_binop_equal and ir_binop_nequal.
+-  glsl: "Copyright", not "Constantright"
+-  i965: Fix incorrect batchbuffer size in gen6 clip state command.
+-  i965: Use logical-not when emitting ir_unop_ceil.
+-  glsl: Add front-end support for the "trunc" built-in.
+-  glsl: Refresh autogenerated file builtin_function.cpp.
+-  i965: Use RNDZ for ir_unop_trunc in the new FS.
+-  i965: Correctly emit the RNDZ instruction.
+-  i965: Clean up a warning in the old fragment backend.
+-  glsl: Add a new ir_unop_round_even opcode for GLSL 1.30's roundEven.
+-  glsl: Add front-end support for GLSL 1.30's roundEven built-in.
+-  i965: Add support for ir_unop_round_even via the RNDE instruction.
+-  glsl: Add support for the 1.30 round() built-in.
+-  glsl: Refresh autogenerated file builtin_function.cpp.
+-  glsl: Don't return NULL IR for erroneous bit-shift operators.
+-  i965: Add missing "break" statement.
+-  glsl: Fix copy and paste error in ast_bit_and node creation.
+-  glsl: Regenerate parser files.
+-  i965: Remove unused variable.
+-  glsl: Remove useless ir_shader enumeration value.
+-  mesa: Remove FEATURE_ARB_shading_language_120 macro.
+-  glcpp: Return NEWLINE token for newlines inside multi-line comments.
+-  glcpp: Refresh autogenerated lexer file.
+-  glsl: Add support for GLSL 1.30's modf built-in.
+-  glsl: Refresh autogenerated file builtin_function.cpp.
+-  generate_builtins.py: Output large strings as arrays of characters.
+-  Refresh autogenerated file builtin_function.cpp.
+-  glsl: Fix constant component count in vector constructor emitting.
+-  Fix build on systems where "python" is python 3.
+-  i965: Add bit operation support to the fragment shader backend.
+-  glsl: Remove unused ARRAY_SIZE macro.
+-  glsl/builtins: Rename 'x' to 'y_over_x' in atan(float)
+   implementation.
+-  glsl/builtins: Clean up some ugly autogenerated code in atan.
+-  Refresh autogenerated file builtin_function.cpp.
+-  glsl: Don't print a useless space at the end of an S-Expression list.
+-  ir_reader: Return a specific ir_dereference variant.
+-  ir_reader: Remove useless error check.
+-  ir_reader: Fix some potential NULL pointer dereferences.
+-  ir_dead_functions: Actually free dead functions and signatures.
+-  glsl: Remove unnecessary "unused variable" warning suppression.
+-  glsl: Remove GLSL_TYPE_FUNCTION define.
+-  glsl: Convert glsl_type::base_type from #define'd constants to an
+   enum.
+-  glsl: Rework reserved word/keyword handling in the lexer.
+-  glsl: Add new keywords and reserved words for GLSL 1.30.
+-  glsl: Add support for the 'u' and 'U' unsigned integer suffixes.
+-  glsl: Refresh autogenerated lexer and parser files.
+-  generate_builtins.py: Fix inconsistent use of tabs and spaces
+   warning.
+-  glsl: Implement the asinh, acosh, and atanh built-in functions.
+-  glsl: Refresh autogenerated file builtin_function.cpp.
+-  glsl: Add constant expression handling for asinh, acosh, and atanh.
+-  glsl: Remove unused and out of date Makefile.am.
+-  glsl: Rename various ir\_\* files to lower\_\* and opt_*.
+-  glcpp: Define GL_FRAGMENT_PRECISION_HIGH if GLSL version >= 1.30.
+-  Refresh autogenerated glcpp parser.
+-  glsl: Fix constant expression handling for <, >, <=, >= on vectors.
+-  glsl: Unconditionally define GL_FRAGMENT_PRECISION_HIGH in ES2
+   shaders.
+-  Regenerate glcpp parser.
+-  glsl: Reimplement the "cross" built-in without ir_binop_cross.
+-  Refresh autogenerated file builtin_function.cpp.
+-  glsl: Remove the ir_binop_cross opcode.
+-  glsl: Refactor get_num_operands.
+-  glsl: Simplify a type check by using type->is_integer().
+-  glsl: Combine many instruction lowering passes into one.
+-  mesa: Fix glGet of ES2's GL_MAX_*_VECTORS properties.
+-  glsl: Don't inline function prototypes.
+-  glsl: Use do_common_optimization in the standalone compiler.
+-  glsl: Add a virtual as_discard() method.
+-  glsl: Refactor out cloning of function prototypes.
+-  glsl: Lazily import built-in function prototypes.
+-  glsl: Remove anti-built-in hacks from the print visitor.
+-  glsl/linker: Free any IR discarded by optimization passes.
+-  glsl: Add an optimization pass to simplify discards.
+-  glsl: Add a lowering pass to move discards out of if-statements.
+-  glsl: Remove "discard" support from lower_jumps.
+-  glsl: Add comments to lower_jumps (from the commit message).
+-  ir_print_visitor: Print out constant structure values.
+-  glsl: Factor out code which emits a new function into the IR stream.
+-  symbol_table: Add support for adding a symbol at top-level/global
+   scope.
+-  glsl: Properly add functions during lazy built-in prototype
+   importing.
+-  glcpp: Don't emit SPACE tokens in conditional_tokens production.
+-  Refresh autogenerated glcpp parser.
+-  glsl: Clean up code by adding a new is_break() function.
+-  glsl: Consider the "else" branch when looking for loop breaks.
+-  Remove OES_compressed_paletted_texture from the ES2 extension list.
+-  glsl/builtins: Compute the correct value for smoothstep(vec, vec,
+   vec).
+-  glsl: Support if-flattening beyond a given maximum nesting depth.
+-  i965: Flatten if-statements beyond depth 16 on pre-gen6.
+-  i965: Internally enable GL_NV_blend_square on ES2.
+
+Kristian Høgsberg (16):
+
+-  glx: Hold on to drawables if we're just switching to another context
+-  intel: Fix GL_ARB_shading_language_120 commit
+-  dri2: Make createImageFromName() take a \__DRIscreen instead of
+   \__DRIcontext
+-  glx: Invalidate buffers after binding a drawable
+-  dri: Pass the \__DRIscreen and the \__DRIscreen private back to image
+   lookup
+-  glx: Only remove drawables from the hash when we actually delete them
+-  gles2: Add GL_EXT_texture_format_BGRA8888 support
+-  Get rid of GL/internal/glcore.h
+-  gl: Remove unused GLcontextModes fields
+-  Rename GLvisual and \__GLcontextModes to struct gl_config
+-  Drop GLframebuffer typedef and just use struct gl_framebuffer
+-  Drop GLcontext typedef and use struct gl_context instead
+-  Drop the "neutral" tnl module
+-  Only install vtxfmt tables for OpenGL
+-  i965: Don't write mrf assignment for pointsize output
+-  docs: Fix MESA_drm_image typo
+
+Krzysztof Smiechowicz (1):
+
+-  nvfx: Pair os_malloc_aligned() with os_free_aligned().
+
+Luca Barbieri (84):
+
+-  auxiliary: fix unintended fallthrough
+-  glsl: add pass to lower variable array indexing to conditional
+   assignments
+-  auxiliary: fix depth-only and stencil-only clears
+-  gallium: avoid the C++ keyword "template" in sw_winsys.h
+-  softpipe: make z/s test always pass if no zsbuf, instead of crashing
+-  tgsi: add switch/case opcodes to tgsi_opcode_tmp.h
+-  softpipe: fix whitespace
+-  d3d1x: add new Direct3D 10/11 COM state tracker for Gallium
+-  d3d1x: add blob and signature extraction APIs
+-  d3d1x: fix compilation with recent Wine versions installed
+-  d3d1x: add missing file
+-  d3d1x: actually enable and fix blob apis
+-  d3d1x: fix build with compilers other than GCC 4.5
+-  d3d1x: add template parameters to base class ctor calls for GCC 4.4
+-  d3d1x: fix GCC 4.1/4.2 build
+-  d3d1x: ignore errors while building docs
+-  d3d1x: attempt to fix/workaround bug #30322
+-  nvfx: remove gl_PointCoord hack
+-  glx: decouple dri2.c and GLX, fixing Gallium EGL and d3d1x build
+-  winsys: automatically build sw winsys needed by EGL and d3d1x
+-  d3d1x: don't build progs automatically
+-  d3d1x: add missing memory barrier
+-  d3d1x: link with CXXFLAGS
+-  d3d1x: fix cf analysis
+-  d3d1x: fix warning
+-  d3d1x: fix segfault when hashing
+-  d3d1x: destroy native_display on adapter destruction
+-  d3d1x: fix GUID declarations
+-  d3d1x: redesign the HWND resolver interface
+-  d3d1x: fix API name
+-  d3d1x: define GUIDs in the normal way
+-  d3d1x: add Wine dlls (tri, tex working, but no other testing)
+-  d3d1x: properly reference count the backend
+-  d3d1x: fix deadlocks on non-recursive mutex
+-  d3d1x: bind NULL CSOs before destroying default CSOs on context dtor
+-  d3d1x: initialize the mutex
+-  d3d1x: autogenerate shader enums and text from def files
+-  d3d1x: s/tpf/sm4/g
+-  d3d1x: normalize whitespace
+-  d3d1x: remove specstrings
+-  d3d1x: minifix
+-  d3d1x: rename context params
+-  d3d11: rename screen params
+-  d3d1x: rename params in misc and objects
+-  d3d1x: rename parameters in dxgi
+-  d3d11: obliterate IDL parameter names
+-  d3d1x: remove specstrings.h include
+-  d3d1x: flush the pipe context when presenting
+-  d3d1x: remove another include specstrings.h
+-  d3d1x: flush properly
+-  d3d1x: add missing guid.cpp
+-  d3d1x: fix build without system EGL/egl.h
+-  d3d1x: add autogenerated files as prerequisites, so make builds them
+-  d3d1x: obliterate IDL parameter names from d3d10.idl from Wine too
+-  d3d1x: add shader dumping
+-  d3d1x: add untested support for geometry shader translation
+-  d3d1x: don't assert on unsupported resource types
+-  d3d1x: fix CheckMultisampleQualityLevels
+-  d3d1x: draw to the correct buffer
+-  d3d1x: fix linking of dxbc2tgsi
+-  nvfx: allow setting NULL constant buffers
+-  nvfx: add RGB framebuffer format support in addition to BGR
+-  d3d1x: don't crash on drivers not supporting vertex or geometry
+   sampling
+-  d3d1x: assert if X visual is not among enumerated visuals
+-  d3d1x: stop using GLX in demos, just use the default visual
+-  d3d1x: CRLF -> LF in progs
+-  mesa: make makedepend an hard requirement
+-  gallium: add $(PROGS_DEPS) as dependencies for $(PROGS)
+-  d3d1x: fix parallel build
+-  d3d1x: add private gitignore file
+-  d3d1x: fix progs linking if not all EGL platforms are enabled
+-  d3d1x: link progs with CXXFLAGS
+-  d3d11: advertise IDXGIDevice1, not just IDXGIDevice
+-  d3d11: ignore StructureByteStride
+-  d3d1x: link to libdrm for X11 platform too
+-  ureg: support centroid interpolation
+-  d3d1x: support centroid interpolation
+-  d3d1x: properly support specifying MipLevels as 0
+-  d3d1x: put proper calling convention in headers, fixes 64-bit builds
+-  d3d1x: rework DXGI for occlusion testing and default width/height
+-  d3d1x: fix Map
+-  d3d11: fix reference counting so devices get freed
+-  d3d1x: work around crash in widl
+-  glsl: Unroll loops with conditional breaks anywhere (not just the
+   end)
+
+Lucas Stach (1):
+
+-  nvfx: fill PIPE_CAP_PRIMITIVE_RESTART and
+   PIPE_CAP_SHADER_STENCIL_EXPORT
+
+Marek Olšák (100):
+
+-  r300g: prevent creating multiple winsys BOs for the same handle
+-  r300g/swtcl: fix CS overrun
+-  st/mesa: fix assertion failure in GetTexImage for cubemaps
+-  util: make calling remove_from_list multiple times in a row safe
+-  r300g: fixup long-lived BO maps being incorrectly unmapped when
+   flushing
+-  r300g: make accessing map_list and buffer_handles thread-safe
+-  r300g: fix a copy-paste typo for logging
+-  r300g: fix the border color for every format other than
+   PIPE_FORMAT_B8G8R8A8
+-  Build r300g by default
+-  util: fix util_pack_color for B4G4R4A4
+-  r300g: fix macrotiling on R350
+-  r300g: code cleanups
+-  r300/compiler: fix projective mapping of 2D NPOT textures
+-  r300/compiler: do not use copy propagation if SaturateMode is used
+-  r300/compiler: fix shadow sampling with swizzled coords
+-  r300g: add support for 3D NPOT textures without mipmapping
+-  r300g: fix swizzling of texture border color
+-  configure.ac: look for libdrm_radeon before building
+   gallium/r300,r600
+-  configure.ac: do not build xorg-r300g by default
+-  Makefile: ensure Gallium's Makefile.xorg and SConscript.dri are in
+   the tarball
+-  r300g: add support for formats beginning with X, like X8R8G8B8
+-  r300g: fix conditional rendering in non-wait path
+-  r300g: add support for R8G8 colorbuffers
+-  r300g: add support for L8A8 colorbuffers
+-  update release notes for Gallium
+-  r300g: fix microtiling for 16-bits-per-channel formats
+-  r300g: do not print get_param errors in non-debug build
+-  r300g: say no to PIPE_CAP_STREAM_OUTPUT and
+   PIPE_CAP_PRIMITIVE_RESTART
+-  mesa: allow FBO attachments of formats LUMINANCE, LUMINANCE_ALPHA,
+   and INTENSITY
+-  r300g: fix texture border for 16-bits-per-channel formats
+-  st/mesa: support RGBA16 and use it for RGBA12 as well
+-  r300g: add a default channel ordering of texture border for unhandled
+   formats
+-  r300g: mention ATI in the renderer string
+-  r300g: rename has_hyperz -> can_hyperz
+-  r300g: turn magic numbers into names in the hyperz code
+-  gallium: add CAPs for indirect addressing and lower it in st/mesa
+   when needed
+-  tgsi: fill out CAPs for indirect addressing
+-  i915g: fill out CAPs for indirect addressing
+-  i965g: fill out CAPs for indirect addressing
+-  nv50: fill out CAPs for indirect addressing
+-  nvfx: fill out CAPs for indirect addressing
+-  r300g: fill out CAPs for indirect addressing
+-  r600g: fill out CAPs for indirect addressing
+-  svga: fill out CAPs for indirect addressing
+-  r300g: fix texture border color for all texture formats
+-  r300g: clean up redundancy in draw functions
+-  r300g: return shader caps from Draw for SWTCL vertex shaders
+-  r300g: remove the hack with OPCODE_RET
+-  r300g: print FS inputs uninitialized due to hardware limits to stderr
+-  r300g: fix rendering with no vertex elements
+-  st/mesa: enable ARB_explicit_attrib_location and
+   EXT_separate_shader_objects
+-  docs: add GL 4.1 status
+-  gallium: add PIPE_SHADER_CAP_SUBROUTINES
+-  st/mesa: set MaxUniformComponents
+-  u_blitter: use PIPE_TRANSFER_DISCARD to prevent cpu/gpu stall
+-  r300/compiler: fix rc_rewrite_depth_out for it to work with any
+   instruction
+-  r300/compiler: remove duplicate function rc_mask_to_swz
+-  r300/compiler: add a function for swizzling a mask
+-  r300/compiler: move util functions to radeon_compiler_util
+-  u_blitter: interpolate clear color using a GENERIC varying instead of
+   COLOR
+-  st/mesa: fix texture border color for RED and RG base formats
+-  util: rename u_mempool -> u_slab
+-  r300g: fix texture border color once again
+-  r300/compiler: implement and lower OPCODE_CLAMP
+-  ir_to_mesa: Add support for conditional discards.
+-  r300g: fix texture swizzling with compressed textures on r400-r500
+-  r300g: disable ARB_texture_swizzle if S3TC is enabled on r3xx-only
+-  r300g: fix up cubemap texture offset computation
+-  r300/compiler: disable the swizzle lowering pass in vertex shaders
+-  r300g: fix build
+-  r300g: use internal BO handle for add_buffer and write_reloc
+-  r300g: implement simple transfer_inline_write for buffers
+-  mesa, st/mesa: fix gl_FragCoord with FBOs in Gallium
+-  r300g: fix pointer arithmetic with void\* in transfer_inline_write
+-  r300g: do not remove unused constants if we are not near the limit
+-  r300g: add capability bit index_bias_supported
+-  r300g: one more r500_index_bias_supported leftover
+-  r300g: do not use the index parameter in set_constant_buffer
+-  r300g: cleanup winsys
+-  r300g: optimize looping over atoms
+-  st/mesa: initialize key in st_vp_varient
+-  u_blitter: use util_is_format_compatible in the assert
+-  r300g: cache packet dwords of 3D_LOAD_VBPNTR in a command buffer if
+   possible
+-  r300g: validate buffers only if any of bound buffers is changed
+-  r300g: also revalidate the SWTCL vertex buffer after its reallocation
+-  r300/compiler: don't terminate regalloc if we surpass max temps limit
+-  r300/compiler: add a function to query program stats (alu, tex,
+   temps..)
+-  r300/compiler: cleanup rc_run_compiler
+-  r300/compiler: do not print pair/tex/presub program stats for vertex
+   shaders
+-  r300/compiler: handle DPH and XPD in rc_compute_sources_for_writemask
+-  r300/compiler: make lowering passes possibly use up to two less temps
+-  r300/compiler: remove at least unused immediates if externals cannot
+   be removed
+-  r300/compiler: fix LIT in VS
+-  r300/compiler: fix swizzle lowering with a presubtract source operand
+-  r300g: fix rendering with a vertex attrib having a zero stride
+-  r300g: finally fix the texture corruption on r3xx-r4xx
+-  r300g/swtcl: re-enable LLVM
+-  r300g: mark vertex arrays as dirty after a buffer_offset change
+-  mesa: fix texel store functions for some float formats
+-  r300/compiler: disable the rename_regs pass for loops
+
+Mario Kleiner (1):
+
+-  mesa/r300classic: Fix dri2Invalidate/radeon_prepare_render for page
+   flipping.
+
+Mathias Fröhlich (3):
+
+-  r300g: Avoid returning values in a static array, fixing a potential
+   race
+-  r600g: Only compare active vertex elements
+-  st/mesa: Set PIPE_TRANSFER_DISCARD for
+   GL_MAP_INVALIDATE_RANGE/BUFFFER_BIT
+
+Michal Krol (10):
+
+-  svga: Fix relative addressing translation for pixel shaders.
+-  svga: Integer constant register file has a separate namespace.
+-  tgsi/exec: Cleanup the remaining arithmetic instructions.
+-  tgsi/exec: Get rid of obsolete condition codes.
+-  tgsi/build: Reduce interface clutter.
+-  graw/gdi: Initial commit.
+-  scons: Hook-up graw-gdi target.
+-  graw/gdi: Fix window dimensions.
+-  os: Open file streams in binary mode.
+-  graw: Export graw_save_surface_to_file().
+
+Nicolas Kaiser (26):
+
+-  swrast: remove duplicated include
+-  egl: remove duplicated include
+-  gallium/rtasm: remove duplicated include
+-  gallium/util: remove duplicated include
+-  gallium/i915: remove duplicated include
+-  gallium/llvmpipe: remove duplicated include
+-  gallium/softpipe: remove duplicated include
+-  gallium/st: remove duplicated includes
+-  gallium/winsys: remove duplicated include
+-  glx: remove duplicated include
+-  dri/common: remove duplicated include
+-  dri/i810: remove duplicated include
+-  dri/i915: remove duplicated include
+-  dri/i965: remove duplicated include
+-  dri/intel: remove duplicated include
+-  dri/mga: remove duplicated include
+-  dri/r128: remove duplicated include
+-  dri/r300: remove duplicated include
+-  dri/r600: remove duplicated include
+-  dri/radeon: remove duplicated includes
+-  dri/savage: remove duplicated include
+-  main: remove duplicated includes
+-  math: remove duplicated includes
+-  st: remove duplicated include
+-  i965g: use Elements macro instead of manual sizeofs
+-  nv50: fix always true conditional in shader optimization
+
+Orion Poplawski (1):
+
+-  osmesa: link against libtalloc
+
+Owen W. Taylor (1):
+
+-  r600g: Fix location for clip plane registers
+
+Peter Clifton (3):
+
+-  intel: Fix emit_linear_blit to use DWORD aligned width blits
+-  intel: Add assert check for blitting alignment.
+-  meta: Mask Stencil.Clear against stencilMax in \_mesa_meta_Clear
+
+Robert Hooker (2):
+
+-  intel: Add a new B43 pci id.
+-  egl_dri2: Add missing intel chip ids.
+
+Roland Scheidegger (16):
+
+-  gallivm: fix copy&paste bug
+-  gallivm: don't use URem/UDiv when calculating offsets for blocks
+-  gallivm: optimize yuv decoding
+-  gallivm: fix trunc/itrunc comment
+-  gallivm: faster iround implementation for sse2
+-  gallivm: replace sub/floor/ifloor combo with ifloor_fract
+-  gallivm: optimize some tex wrap mode calculations a bit
+-  gallivm: more linear tex wrap mode calculation simplification
+-  gallivm: avoid unnecessary URem in linear wrap repeat case
+-  gallivm: optimize soa linear clamp to edge wrap mode a bit
+-  gallivm: make use of new iround code in lp_bld_conv.
+-  gallivm: fix different handling of [non]normalized coords in linear
+   soa path
+-  gallivm: only use lp_build_conv 4x4f -> 1x16 ub fastpath with sse2
+-  r200: fix r200 large points
+-  mesa: remove unneeded DD_POINT_SIZE and DD_LINE_WIDTH tricaps
+-  gallium: support for array textures and related changes
+
+Shuang He (1):
+
+-  mesa: allow GLfixed arrays for OpenGL ES 2.0
+
+Stephan Schmid (1):
+
+-  r600g: fix relative addressing when splitting constant accesses
+
+Thomas Hellstrom (21):
+
+-  st/xorg: Don't try to use option values before processing options
+-  xorg/vmwgfx: Make vmwarectrl work also on 64-bit servers
+-  st/xorg: Add a customizer option to get rid of annoying cursor update
+   flicker
+-  xorg/vmwgfx: Don't hide HW cursors when updating them
+-  st/xorg: Don't try to remove invalid fbs
+-  st/xorg: Fix typo
+-  st/xorg, xorg/vmwgfx: Be a bit more frendly towards cross-compiling
+   environments
+-  st/xorg: Fix compilation errors for Xservers compiled without
+   Composite
+-  st/xorg: Don't use deprecated x*alloc / xfree functions
+-  xorg/vmwgfx: Don't use deprecated x*alloc / xfree functions
+-  st/xorg: Fix compilation for Xservers >= 1.10
+-  mesa: Make sure we have the talloc cflags when using the talloc
+   headers
+-  egl: Add an include for size_t
+-  mesa: Add talloc includes for gles
+-  st/egl: Fix build for include files in nonstandard places
+-  svga/drm: Optionally resolve calls to powf during link-time
+-  gallium/targets: Trivial crosscompiling fix
+-  st/xorg: Add a function to flush pending rendering and damage
+-  gallium/targets/xorg-vmwgfx: Xv fixes
+-  xorg/vmwgfx: Flush even if we don't autopaint the color key
+-  xorg/vmwgfx: Don't clip video to viewport
+
+Tilman Sauerbeck (35):
+
+-  r600g: Fixed a bo leak in r600_blit_state_ps_shader().
+-  r600g: Use clamped math for RCP and RSQ.
+-  r600g: Formatting fixes.
+-  r600g: Added DB_SHADER_CONTROL defines.
+-  r600g: Only set PA_SC_EDGERULE on rv770 and greater.
+-  r600g: Enable PIPE_SHADER_CAP_TGSI_CONT_SUPPORTED.
+-  r600g: Fixed the shift in S_02880C_KILL_ENABLE.
+-  glsl2: Empty functions can be inlined.
+-  glsl2: Fixed cloning of ir_call error instructions.
+-  r600g: Added support for TGSI_SEMANTIC_FACE.
+-  gallium/docs: Fixed a typo in the SCS opcode description.
+-  r600g: Honour destination operand's writemask in the SCS
+   implementation.
+-  r600g: Implemented the Z and W component write for the SCS opcode.
+-  python/tests: Fixed tri.py for API and TGSI syntax changes.
+-  r600g: Removed debug code.
+-  gallium/docs: The RET opcode may appear anywhere in a subroutine.
+-  r600g: Destroy the blitter.
+-  r600g: Fixed two texture surface leaks in
+   r600_blit_uncompress_depth().
+-  r600g: Cleaned up index buffer reference handling in the draw module.
+-  r600g: Fixed r600_vertex_element leak.
+-  r600g: Added r600_pipe_shader_destroy().
+-  r600g: Also clear bc data when we're destroying a shader.
+-  r600g: In radeon_bo(), call LIST_INITHEAD early.
+-  r600g: Destroy the blitter.
+-  r600g: Removed unused 'ptr' argument from radeon_bo().
+-  r600g: Made radeon_bo_pb_map_internal() actually call
+   radeon_bo_map().
+-  r600g: Fixed unmap condition in radeon_bo_pb_destroy().
+-  r600g: Made radeon_bo::map_count signed.
+-  r600g: We don't support PIPE_CAP_PRIMITIVE_RESTART.
+-  r600g: Delete custom_dsa_flush on shutdown.
+-  r600g: Fixed two memory leaks in winsys.
+-  r600g: Destroy the winsys in r600_destroy_screen().
+-  st/mesa: Reset the index buffer before destroying the pipe context.
+-  st/mesa: Reset the constant buffers before destroying the pipe
+   context.
+-  r600g: Removed duplicated call to tgsi_split_literal_constant().
+
+Timo Wiren (1):
+
+-  Fix typos in comments and debug output strings.
+
+Tom Fogal (3):
+
+-  Implement x86_64 atomics for compilers w/o intrinsics.
+-  Prefer intrinsics to handrolled atomic ops.
+-  Revert "Prefer intrinsics to handrolled atomic ops."
+
+Tom Stellard (32):
+
+-  r300/compiler: Refactor the pair instruction data structures
+-  r300g: Always try to build libr300compiler.a
+-  r300/compiler: Fix two mistakes in the presubtract optimization pass.
+-  r300/compiler: Add more helper functions for iterating through
+   sources
+-  r300/compiler: Print immediate values after "dead constants" pass
+-  r300/compiler: radeon_remove_constants.c: fix indentation
+-  r300/compiler: Use rc_for_all_reads_src() in "dead constants" pass
+-  r300/compiler: Fix segfault in error path
+-  r300/compiler: Don't use rc_error() unless the error is unrecoverable
+-  r300/compiler: Don't merge instructions that write output regs and
+   ALU result
+-  r300/compiler: Create a helper function for merging presubtract
+   sources
+-  r300/compiler: Fix incorrect assumption
+-  r300/compiler: Clear empty registers after constant folding
+-  r300/compiler: Add a new function for more efficient dataflow
+   analysis
+-  r300g: Add new debug option for logging vertex/fragment program stats
+-  r300/compiler: Use rc_get_readers_normal() for presubtract
+   optimizations
+-  r300/compiler: Don't clobber presubtract sources during optimizations
+-  r300/compiler: Don't track readers into an IF block.
+-  r300/compiler: Make sure presubtract sources use supported swizzles
+-  r300/compiler: Fix register allocator's handling of loops
+-  r300/compiler: Fix instruction scheduling within IF blocks
+-  r300/compiler: Use zero as the register index for unused sources
+-  r300/compiler: Ignore alpha dest register when replicating the result
+-  r300/compiler: Add rc_get_readers()
+-  r300/compiler: Handle BREAK and CONTINUE in rc_get_readers()
+-  r300/compiler: Track readers through branches in rc_get_readers()
+-  r300/compiler: Convert RGB to alpha in the scheduler
+-  r300/compiler: Use presubtract operations as much as possible
+-  r300/compiler: Enable rename_reg pass for r500 cards
+-  r300/compiler: Add a more efficient version of
+   rc_find_free_temporary()
+-  r300/compiler: Don't allow presubtract sources to be remapped twice
+-  r300/compiler: Fix black terrain in Civ4
+
+Victor Tseng (1):
+
+-  egl/i965: include inline_wrapper_sw_helper.h
+
+Viktor Novotný (6):
+
+-  dri/nouveau: Import headers from rules-ng-ng
+-  dri/nouveau: nv04: Use rules-ng-ng headers
+-  dri/nouveau: nv10: Use rules-ng-ng headers
+-  dri/nouveau nv20: Use rules-ng-ng headers
+-  dri/nouveau: Remove nouveau_class.h, finishing switch to rules-ng-ng
+   headers
+-  dri/nouveau: Clean up magic numbers in get_rt_format
+
+Vinson Lee (214):
+
+-  llvmpipe: Remove unnecessary header.
+-  r600g: Remove unnecessary headers.
+-  mesa: Include missing header in program.h.
+-  glsl: Fix 'format not a string literal and no format arguments'
+   warning.
+-  r600g: Silence uninitialized variable warning.
+-  r600g: Silence uninitialized variable warning.
+-  nvfx: Silence uninitialized variable warnings.
+-  r600g: Silence uninitialized variable warning.
+-  r600g: Silence uninitialized variable warning.
+-  r600g: Silence uninitialized variable warning.
+-  r600g: Silence unused variable warning.
+-  nv50: Update files in SConscript to match Makefile.
+-  nv50: Remove unnecessary headers.
+-  nv50: Silence uninitialized variable warning.
+-  nv50: Silence uninitialized variable warning.
+-  nv50: Silence uninitialized variable warning.
+-  gallivm: Remove unnecessary headers.
+-  draw: Remove unnecessary header.
+-  nv50: Silence uninitialized variable warnings.
+-  nv50: Fix 'control reaches end of non-void function' warning.
+-  mesa/st: Silence uninitialized variable warning.
+-  gallivm: Remove unnecessary header.
+-  r600g: Remove unnecessary header.
+-  r600g: Remove unnecessary headers.
+-  r600g: Fix implicit declaration warning.
+-  r600g: Fix memory leak on error path.
+-  r600g: Silence uninitialized variable warning.
+-  r600g: Silence unused variable warnings.
+-  mesa: bump version to 7.10
+-  ir_to_mesa: Remove unused member array_indexed from struct
+   statevar_element.
+-  mesa: Silence "'valid_texture_object' defined but not used" warning.
+-  x86: Silence unused variable warning on Mac OS X.
+-  glsl: Fix 'control reaches end of non-void function' warning.
+-  nvfx: Remove const qualifer from nvfx_vertprog_translate.
+-  nvfx: Silence uninitialized variable warnings.
+-  r600g: Remove unused variable.
+-  nv50: Silence missing initializer warning.
+-  nv50: Remove dead initialization.
+-  nv50: Remove dead initialization.
+-  tgsi: Remove duplicate case value.
+-  glut: Define markWindowHidden for non-Windows only.
+-  glut: Define eventParser for non-Windows only.
+-  r300g: Silence uninitialized variable warning.
+-  intel: Fix implicit declaration of function '_mesa_meta_Bitmap'
+   warning.
+-  mesa: Remove unnecessary headers.
+-  r600g: Remove unnecessary header.
+-  unichrome: Remove unnecessary header.
+-  intel: Remove unnecessary headers.
+-  r600g: Remove unused variable.
+-  r600g: Disable unused variables.
+-  r600g: Remove unused variable.
+-  r600g: Silence 'control reaches end of non-void function' warning.
+-  r600g: Remove unused variable.
+-  r600g: Remove unused variable.
+-  r600g: Disable unused variables.
+-  intel: Remove unnecessary header.
+-  st/dri: Remove unnecessary header.
+-  r600g: Remove unused variable.
+-  r300g: Remove unused variable.
+-  r600g: Don't return a value in function returning void.
+-  r600g: Remove unused variables.
+-  r600g: Include p_compiler.h instead of malloc.h.
+-  r600g: Silence uninitialized variable warnings.
+-  scons: Add MinGW-w64 prefixes for MinGW build.
+-  dri: Add GET_PROGRAM_NAME definition for Mac OS X.
+-  scons: Add program/sampler.cpp to SCons build.
+-  mesa: Fix printf format warning.
+-  mesa: Fix printf format warning.
+-  mesa: Fix printf format warning.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r600g: Update SConscript.
+-  r300/compiler: Move declaration before code.
+-  r600g: Update SConscript.
+-  r300/compiler: Move declaration before code.
+-  r600g: Update SConscript.
+-  r300/compiler: Move declaration before code.
+-  r600g: Fix SCons build.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Remove declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  glsl: Remove unnecessary header.
+-  savage: Remove unnecessary header.
+-  r600g: Remove unused variable.
+-  r600g: Remove unnecessary headers.
+-  r600g: Fix SCons build.
+-  r600g: Remove unnecessary header.
+-  gallivm: Remove unnecessary header.
+-  r600g: Silence uninitialized variable warning.
+-  r600g: Silence uninitialized variable warning.
+-  r600g: Silence uninitialized variable warning.
+-  i915: Silence unused variable warning in non-debug builds.
+-  i915: Silence unused variable warning in non-debug builds.
+-  i965: Silence unused variable warning on non-debug builds.
+-  i965: Silence unused variable warning on non-debug builds.
+-  i965: Initialize member variables.
+-  r300: Silence uninitialized variable warning.
+-  tdfx: Silence unused variable warning on non-debug builds.
+-  gallivm: Remove unnecessary header.
+-  glsl: Initialize variable in
+   ir_derefence_array::constant_expression_value
+-  mesa: Add missing header to shaderobj.h.
+-  llvmpipe: Return non-zero exit code for lp_test_round failures.
+-  r300/compiler: Remove unused variable.
+-  st/xorg: Fix memory leak on error path.
+-  llvmpipe: Initialize state variable in debug_bin function.
+-  llvmpipe: Initialize variable.
+-  draw: Move loop variable declaration outside for loop.
+-  r600g: Ensure r600_src is initialized in tgsi_exp function.
+-  glsl: Add assert for unhandled ir_shader case.
+-  swrast: Print out format on unexpected failure in
+   \_swrast_DrawPixels.
+-  llvmpipe: Remove unnecessary header.
+-  draw: Remove unnecessary header.
+-  gallivm: Silence uninitialized variable warnings.
+-  gallivm: Silence uninitialized variable warnings.
+-  gallivm: Silence uninitialized variable warning.
+-  r300g: Silence uninitialized variable warning.
+-  mesa: Remove unnecessary headers.
+-  r600g: Silence uninitialized variable warnings.
+-  st/mesa: Remove unnecessary header.
+-  mesa: Remove unnecessary header.
+-  egl: Remove unnecessary headers.
+-  swrast: Print out format on unexpected failure in
+   \_swrast_ReadPixels.
+-  st/mesa: Silence uninitialized variable warning.
+-  savage: Remove unnecessary header.
+-  st/vega: Remove unnecessary headers.
+-  dri/nouveau: Silence uninitialized variable warning.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  i965: Silence uninitialized variable warning.
+-  i965: Silence uninitialized variable warning.
+-  mesa: Clean up header file inclusion in accum.h.
+-  mesa: Clean up header file inclusion in version.h.
+-  mesa: Clean up header file inclusion in api_loopback.h.
+-  mesa: Clean up header file inclusion in api_validate.h.
+-  mesa: Include mfeatures.h in api_loopback for FEATURE_beginend.
+-  mesa: Include mfeatures.h in api_validate.c for FEATURE\_\* symbols.
+-  mesa: Clean up header file inclusion in arrayobj.h.
+-  mesa: Clean up header file inclusion in atifragshader.h.
+-  mesa: Clean up header file inclusion in attrib.h.
+-  mesa: Clean up header file inclusion in blend.h.
+-  mesa: Clean up header file inclusion in buffers.h.
+-  mesa: Clean up header file inclusion in colortab.h.
+-  mesa: Clean up header file inclusion in convolve.h.
+-  mesa: Clean up header file inclusion in debug.h.
+-  mesa: Clean up header file inclusion in depth.h.
+-  mesa: Clean up header file inclusion in depthstencil.h.
+-  mesa: Clean up header file inclusion in drawpix.h.
+-  mesa: Clean up header file inclusion in drawtex.h.
+-  mesa: Clean up header file inclusion in enable.h.
+-  mesa: Clean up header file inclusion in extensions.h.
+-  graw: Add struct pipe_surface forward declaration.
+-  mesa: Clean up header file inclusion in fbobject.h.
+-  mesa: Clean up header file inclusion in ffvertex_prog.h.
+-  mesa: Clean up header file inclusion in fog.h.
+-  mesa: Clean up header file inclusion in framebuffer.h.
+-  mesa: Clean up header file inclusion in hint.h.
+-  mesa: Clean up header file inclusion in histogram.h.
+-  mesa: Clean up header file inclusion in image.h.
+-  mesa: Add missing header and forward declarations in dd.h.
+-  mesa: Clean up header file inclusion in light.h.
+-  mesa: Clean up header file inclusion in lines.h.
+-  mesa: Clean up header file inclusion in matrix.h.
+-  mesa: Clean up header file inclusion in multisample.h.
+-  mesa: Clean up header file inclusion in nvprogram.h.
+-  winsys/xlib: Add cygwin to SConscript.
+-  mesa: Clean up header file inclusion in pixel.h.
+-  mesa: Clean up header file inclusion in pixelstore.h.
+-  mesa: Fix printf format warnings.
+-  mesa: Clean up header file inclusion in points.h.
+-  i965: Silence uninitialized variable warning.
+-  glsl: Add ir_constant_expression.cpp to SConscript.
+-  mesa: Add definitions for inverse hyperbolic function on MSVC.
+-  glsl: Fix 'control reaches end of non-void function' warning.
+-  glsl: Add lower_vector.cpp to SConscript.
+-  glsl: Fix type of label 'default' in switch statement.
+-  st/mesa: Remove unnecessary headers.
+-  swrast: Remove unnecessary header.
+-  r600: Remove unnecesary header.
+-  intel: Remove unnecessary header.
+-  mesa: Clean up header file inclusion in polygon.h.
+-  mesa: Clean up header file inclusion in rastpos.h.
+-  mesa: Clean up header file inclusion in readpix.h.
+-  mesa: Clean up header file inclusion in renderbuffer.h.
+-  mesa: Clean up header file inclusion in scissor.h.
+-  mesa: Clean up header file inclusion in shaderapi.h.
+-  mesa: Clean up header file inclusion in shared.h.
+-  mesa: Clean up header file inclusion in stencil.h.
+-  r600: Remove unnecessary header.
+-  llvmpipe: Remove unnecessary headers.
+-  mesa: Clean up header file inclusion in syncobj.h.
+-  r300/compiler: Move declaration before code.
+-  r300/compiler: Move declaration before code.
+-  mesa: Clean up header file inclusion in texcompress.h.
+-  st/vega: Silence uninitialized variable warning.
+-  mesa: Clean up header file inclusion in texcompress_s3tc.h.
+-  mesa: Clean up header file inclusion in texenvprogram.h.
+-  mesa: Clean up header file inclusion in texformat.h.
+-  mesa: Clean up header file inclusion in texgetimage.h.
+-  mesa: Clean up header file inclusion in texobj.h.
+-  gallium/noop: Add prototype for noop_init_state_functions.
+-  mesa: Clean up header file inclusion in texrender.h.
+-  mesa: Clean up header file inclusion in transformfeedback.h.
+-  mesa: Clean up header file inclusion in varray.h.
+-  mesa: Clean up header file inclusion in viewport.h.
+-  r200: Silence uninitialized variable warning.
+-  r600g: Fix SCons build.
+-  i965: Silence uninitialized variable warning.
+
+Xavier Chantry (8):
+
+-  nv50: fix size of outputs_written array
+-  nv50: apply layout_mask to tile_flags
+-  nvfx: only expose one rt on nv30
+-  nvfx: fb->nr_cbufs <= 1 on nv30
+-  nvfx: reset nvfx->hw_zeta
+-  nvfx: fixes after array textures merge
+-  init ps->context with util_surfaces_get and do_get
+-  gallium/trace: check bind_vertex_sampler_states and
+   set_vertex_sampler_views
+
+Xiang, Haihao (10):
+
+-  mesa: fix regression from b4bb6680200b5a898583392f4c831c02f41e63f7
+-  i965: add support for polygon mode on Sandybridge.
+-  i965: fix for flat shading on Sandybridge
+-  i965: set minimum/maximum Point Width on Sandybridge
+-  meta: allow nested meta operations
+-  i965: support for two-sided lighting on Sandybridge
+-  i965: fix register region description
+-  i965: use align1 access mode for instructions with execSize=1 in VS
+-  i965: don't spawn GS thread for LINELOOP on Sandybridge
+-  i965: use BLT to clear buffer if possible on Sandybridge
+
+Zack Rusin (8):
+
+-  rbug: fix rbug when contexts are being destroyed
+-  llvmpipe: fix rasterization of vertical lines on pixel boundaries
+-  scons: build the xorg state trackers only when env includes drm
+-  gallivm: implement indirect addressing of the output registers
+-  gallivm: implement indirect addressing over inputs
+-  gallivm: fix storing of the addr register
+-  scons: add alias for identity
+-  gallium/util: add states relevant to geometry shaders
+
+Zhenyu Wang (40):
+
+-  i965: disasm quarter and write enable instruction control on
+   sandybridge
+-  i965: new state dump for sandybridge
+-  i965: enable accumulator update in PS kernel too on sandybridge
+-  i965: Fix color interpolation on sandybridge
+-  i965: force zero in clipper to ignore RTAIndex on sandybridge
+-  i965: fix point size setting in header on sandybridge
+-  i965: ff sync message change for sandybridge
+-  i965: ignore quads for GS kernel on sandybridge
+-  i965: add sandybridge viewport state bo into validation list
+-  i965: VS use SPF mode on sandybridge for now
+-  i965: fix jump count on sandybridge
+-  i965: Fix sampler on sandybridge
+-  i965: fix const register count for sandybridge
+-  i965: Add all device ids for sandybridge
+-  i965: sandybridge pipe control workaround before write cache flush
+-  i965: only allow SIMD8 kernel on sandybridge now
+-  i965: don't do calculation for delta_xy on sandybridge
+-  i965: fix pixel w interpolation on sandybridge
+-  i965: enable polygon offset on sandybridge
+-  i965: fix scissor state on sandybridge
+-  i965: fix point sprite on sandybridge
+-  i965: fix occlusion query on sandybridge
+-  i965: fallback bitmap operation on sandybridge
+-  i965: Always set tiling for depth buffer on sandybridge
+-  i965: fallback lineloop on sandybridge for now
+-  Revert "i965: Always set tiling for depth buffer on sandybridge"
+-  i965: always set tiling for fbo depth buffer on sandybridge
+-  i965: Fix GS hang on Sandybridge
+-  Revert "i965: fallback lineloop on sandybridge for now"
+-  i965: refresh wm push constant also for BRW_NEW_FRAMENT_PROGRAM on
+   gen6
+-  i965: fix dest type of 'endif' on sandybridge
+-  Revert "i965: VS use SPF mode on sandybridge for now"
+-  i965: also using align1 mode for math2 on sandybridge
+-  i965: Fix GS state uploading on Sandybridge
+-  i965: upload WM state for \_NEW_POLYGON on sandybridge
+-  i965: Use MI_FLUSH_DW for blt ring flush on sandybridge
+-  i965: explicit tell header present for fb write on sandybridge
+-  i965: Fix occlusion query on sandybridge
+-  i965: Use last vertex convention for quad provoking vertex on
+   sandybridge
+-  i965: Fix provoking vertex select in clip state for sandybridge
+
+Zou Nan hai (1):
+
+-  i965: skip too small size mipmap
+
+delphi (2):
+
+-  draw: added userclip planes and updated variant_key
+-  draw: some changes to allow for runtime changes to userclip planes
+
+nobled (3):
+
+-  r300g: Abort if atom allocations fail
+-  r300g: Abort if draw_create() fails
+-  r300g: Drop unnecessary cast
+
+pontus lidman (1):
+
+-  mesa: check for posix_memalign() errors
+
+richard (2):
+
+-  evergreen : fix z format setting, enable stencil.
+-  r600c : inline vertex format is not updated in an app, switch to use
+   vfetch constants. For the 7.9 and 7.10 branches as well.

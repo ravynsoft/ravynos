@@ -1,0 +1,104 @@
+Mesa 19.1.6 Release Notes / September 3, 2019
+=============================================
+
+Mesa 19.1.6 is a bug fix release which fixes bugs found since the 19.1.5
+release.
+
+Mesa 19.1.6 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   2a369b7b48545c6486e7e44913ad022daca097c8bd937bf30dcf3f17a94d3496  mesa-19.1.6.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 104395 <https://bugs.freedesktop.org/show_bug.cgi?id=104395>`__
+   - [CTS] GTF-GL46.gtf32.GL3Tests.packed_pixels.packed_pixels tests
+   fail on 32bit Mesa
+-  `Bug 111213 <https://bugs.freedesktop.org/show_bug.cgi?id=111213>`__
+   - VA-API nouveau SIGSEGV and asserts
+-  `Bug 111241 <https://bugs.freedesktop.org/show_bug.cgi?id=111241>`__
+   - Shadertoy shader causing hang
+-  `Bug 111411 <https://bugs.freedesktop.org/show_bug.cgi?id=111411>`__
+   - SPIR-V shader leads to GPU hang, sometimes making machine unstable
+
+Changes
+-------
+
+Andres Rodriguez (1):
+
+-  radv: additional query fixes
+
+Daniel Schürmann (1):
+
+-  nir/lcssa: handle deref instructions properly
+
+Danylo Piliaiev (1):
+
+-  nir/loop_unroll: Prepare loop for unrolling in wrapper_unroll
+
+Ian Romanick (2):
+
+-  nir/algrbraic: Don't optimize open-coded bitfield reverse when
+   lowering is enabled
+-  intel/compiler: Request bitfield_reverse lowering on pre-Gen7
+   hardware
+
+Ilia Mirkin (1):
+
+-  gallium/vl: use compute preference for all multimedia, not just blit
+
+Jonas Ådahl (1):
+
+-  wayland/egl: Ensure correct buffer size when allocating
+
+Juan A. Suarez Romero (6):
+
+-  docs: add sha256 checksums for 19.1.5
+-  cherry-ignore: add explicit 19.2 only nominations
+-  cherry-ignore: iris: Replace devinfo->gen with GEN_GEN
+-  cherry-ignore: iris: Update fast clear colors on Gen9 with direct
+   immediate writes.
+-  cherry-ignore: iris: Avoid unnecessary resolves on transfer maps
+-  Update version to 19.1.6
+
+Kenneth Graunke (6):
+
+-  iris: Fix broken aux.possible/sampler_usages bitmask handling
+-  iris: Drop copy format hacks from copy region based transfer path.
+-  iris: Fix large timeout handling in rel2abs()
+-  util: Add a \_mesa_i64roundevenf() helper.
+-  mesa: Fix \_mesa_float_to_unorm() on 32-bit systems.
+-  intel/compiler: Fix src0/desc setter ordering
+
+Marek Olšák (1):
+
+-  radeonsi: fix scratch buffer WAVESIZE setting leading to corruption
+
+Paulo Zanoni (1):
+
+-  intel/fs: grab fail_msg from v32 instead of v16 when v32->run_cs
+   fails
+
+Pierre-Eric Pelloux-Prayer (1):
+
+-  glsl: replace 'x + (-x)' with constant 0
+
+Tapani Pälli (1):
+
+-  egl: reset blob cache set/get functions on terminate

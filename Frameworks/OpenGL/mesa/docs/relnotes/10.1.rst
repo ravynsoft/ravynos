@@ -1,0 +1,50 @@
+Mesa 10.1 Release Notes / March 4, 2014
+=======================================
+
+Mesa 10.1 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 10.1.1.
+
+Mesa 10.1 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   3ec43f79dbcd9aa2a4a27bf1f51655b6  MesaLib-10.1.0.tar.bz2
+   08e796ec7122aa299d32d4f67a254315  MesaLib-10.1.0.tar.gz
+   bd365356543f4b38e57c1ddf7a317c40  MesaLib-10.1.0.zip
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ARB_draw_indirect on i965.
+-  GL_ARB_clear_buffer_object
+-  GL_ARB_viewport_array on i965.
+-  GL_ARB_map_buffer_alignment on all drivers that did not previously
+   support it.
+-  GL_AMD_shader_trinary_minmax.
+-  GL_EXT_framebuffer_blit on r200 and radeon.
+-  Reduced memory usage for display lists.
+-  OpenGL 3.3 support on nv50, nvc0, r600 and radeonsi
+
+Bug fixes
+---------
+
+TBD.
+
+Changes
+-------
+
+-  Removed support for the GL_MESA_texture_array extension. This
+   extension enabled the use of texture array with fixed-function and
+   assembly fragment shaders. No applications are known to use this
+   extension.

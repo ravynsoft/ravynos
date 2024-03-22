@@ -1,0 +1,160 @@
+Mesa 19.1.3 Release Notes / July 23, 2019
+=========================================
+
+Mesa 19.1.3 is a bug fix release which fixes bugs found since the 19.1.2
+release.
+
+Mesa 19.1.3 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   845460b2225d15c15d4a9743dec798ff0b7396b533011d43e774e67f7825b7e0  mesa-19.1.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 109203 <https://bugs.freedesktop.org/show_bug.cgi?id=109203>`__
+   - [cfl dxvk] GPU Crash Launching Monopoly Plus (Iris Plus 655 / Wine
+   + DXVK)
+-  `Bug 109524 <https://bugs.freedesktop.org/show_bug.cgi?id=109524>`__
+   - "Invalid glsl version in shading_language_version()" when trying to
+   run directX games using wine
+-  `Bug 110309 <https://bugs.freedesktop.org/show_bug.cgi?id=110309>`__
+   - [icl][bisected] regression on piglit arb_gpu_shader_int
+   64.execution.fs-ishl-then-\* tests
+-  `Bug 110663 <https://bugs.freedesktop.org/show_bug.cgi?id=110663>`__
+   - threads_posix.h:96: undefined reference to \`pthread_once'
+-  `Bug 110955 <https://bugs.freedesktop.org/show_bug.cgi?id=110955>`__
+   - Mesa 18.2.8 implementation error: Invalid GLSL version in
+   shading_language_version()
+-  `Bug 111010 <https://bugs.freedesktop.org/show_bug.cgi?id=111010>`__
+   - Cemu Shader Cache Corruption Displaying Solid Color After commit
+   11e16ca7ce0
+-  `Bug 111071 <https://bugs.freedesktop.org/show_bug.cgi?id=111071>`__
+   - SPIR-V shader processing fails with message about "extra dangling
+   SSA sources"
+-  `Bug 111075 <https://bugs.freedesktop.org/show_bug.cgi?id=111075>`__
+   - Processing of SPIR-V shader causes device hang, sometimes leading
+   to system reboot
+-  `Bug 111097 <https://bugs.freedesktop.org/show_bug.cgi?id=111097>`__
+   - Can not detect VK_ERROR_OUT_OF_DATE_KHR or VK_SUBOPTIMAL_KHR when
+   window resizing
+
+Changes
+-------
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Handle cmask being disallowed by addrlib.
+-  anv: Add android dependencies on android.
+-  radv: Only save the descriptor set if we have one.
+
+Caio Marcelo de Oliveira Filho (2):
+
+-  anv: Fix pool allocator when first alloc needs to grow
+-  spirv: Fix stride calculation when lowering Workgroup to offsets
+
+Chia-I Wu (2):
+
+-  anv: fix VkExternalBufferProperties for unsupported handles
+-  anv: fix VkExternalBufferProperties for host allocation
+
+Connor Abbott (1):
+
+-  nir: Add a helper to determine if an intrinsic can be reordered
+
+Dave Airlie (1):
+
+-  radv: fix crash in shader tracing.
+
+Eric Anholt (1):
+
+-  freedreno: Fix assertion failures in context setup in shader-db mode.
+
+Gert Wollny (1):
+
+-  softpipe: Remove unused static function
+
+Ian Romanick (4):
+
+-  intel/vec4: Reswizzle VF immediates too
+-  nir: Add unit tests for nir_opt_comparison_pre
+-  nir: Use nir_src_bit_size instead of alu1->dest.dest.ssa.bit_size
+-  mesa: Set minimum possible GLSL version
+
+Faith Ekstrand (13):
+
+-  nir/instr_set: Expose nir_instrs_equal()
+-  nir/loop_analyze: Fix phi-of-identical-alu detection
+-  nir: Add more helpers for working with const values
+-  nir/loop_analyze: Handle bit sizes correctly in calculate_iterations
+-  nir/loop_analyze: Bail if we encounter swizzles
+-  anv: Set Stateless Data Port Access MOCS
+-  nir/opt_if: Clean up single-src phis in opt_if_loop_terminator
+-  nir,intel: Add support for lowering 64-bit nir_opt_extract\_\*
+-  anv: Account for dynamic stencil write disables in the PMA fix
+-  nir/regs_to_ssa: Handle regs in phi sources properly
+-  nir/loop_analyze: Refactor detection of limit vars
+-  nir: Add some helpers for chasing SSA values properly
+-  nir/loop_analyze: Properly handle swizzles in loop conditions
+
+Juan A. Suarez Romero (2):
+
+-  docs: add sha256 checksums for 19.1.2
+-  Update version to 19.1.3
+
+Lepton Wu (1):
+
+-  virgl: Set meta data for textures from handle.
+
+Lionel Landwerlin (6):
+
+-  vulkan/overlay: fix command buffer stats
+-  vulkan/overlay: fix crash on freeing NULL command buffer
+-  anv: fix crash in vkCmdClearAttachments with unused attachment
+-  vulkan/wsi: update swapchain status on vkQueuePresent
+-  anv: report timestampComputeAndGraphics true
+-  anv: fix format mapping for depth/stencil formats
+
+Marek Olšák (1):
+
+-  radeonsi: don't set READ_ONLY for const_uploader to fix bindless
+   texture hangs
+
+Samuel Iglesias Gonsálvez (1):
+
+-  anv: fix alphaToCoverage when there is no color attachment
+
+Samuel Pitoiset (1):
+
+-  radv: fix VGT_GS_MODE if VS uses the primitive ID
+
+Sergii Romantsov (1):
+
+-  meta: memory leak of CopyPixels usage
+
+Timothy Arceri (1):
+
+-  mesa: save/restore SSO flag when using ARB_get_program_binary
+
+Vinson Lee (1):
+
+-  meson: Add dep_thread dependency.
+
+Yevhenii Kolesnikov (1):
+
+-  meta: leaking of BO with DrawPixels

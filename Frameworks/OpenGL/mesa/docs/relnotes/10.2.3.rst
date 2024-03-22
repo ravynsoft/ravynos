@@ -1,0 +1,96 @@
+Mesa 10.2.3 Release Notes / July 7, 2014
+========================================
+
+Mesa 10.2.3 is a bug fix release which fixes bugs found since the 10.2.2
+release.
+
+Mesa 10.2.3 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   e482a96170c98b17d6aba0d6e4dda4b9a2e61c39587bb64ac38cadfa4aba4aeb  MesaLib-10.2.3.tar.bz2
+   96cffacaa1c52ae659b3b0f91be2eebf5528b748934256751261fb79ea3d6636  MesaLib-10.2.3.tar.gz
+   82cab6ff14c8038ee39842dbdea0d447a78d119efd8d702d1497bc7c246434e9  MesaLib-10.2.3.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 76223 <https://bugs.freedesktop.org/show_bug.cgi?id=76223>`__ -
+-  `Bug 79823 <https://bugs.freedesktop.org/show_bug.cgi?id=79823>`__ -
+-  `Bug 80015 <https://bugs.freedesktop.org/show_bug.cgi?id=80015>`__ -
+
+Changes
+-------
+
+Aaron Watry (1):
+
+-  radeon/llvm: Allocate space for kernel metadata operands
+
+Carl Worth (2):
+
+-  docs: Add sha256 sums for the 10.2.2 release
+-  cherry-ignore: Add a patch that's been rejected
+
+Ilia Mirkin (4):
+
+-  nouveau: dup fd before passing it to device
+-  nv50: disable dedicated ubo upload method
+-  nv50: do an explicit flush on draw when there are persistent buffers
+-  nvc0: add a memory barrier when there are persistent UBOs
+
+Jasper St. Pierre (1):
+
+-  glxext: Send the Drawable's ID in the GLX_BufferSwapComplete event
+
+Kenneth Graunke (3):
+
+-  i965: Don't emit SURFACE_STATEs for gather workarounds on Broadwell.
+-  i965: Include marketing names for Broadwell GPUs.
+-  i965/disasm: Fix INTEL_DEBUG=fs on Broadwell for ARB_fp applications.
+
+Michel Dänzer (1):
+
+-  radeon/llvm: Use the llvm.rsq.clamped intrinsic for RSQ
+
+Rob Clark (9):
+
+-  xa: fix segfault
+-  freedreno: use OUT_RELOCW when buffer is written
+-  freedreno/a3xx: fix depth/stencil GMEM positioning
+-  freedreno/a3xx: fix depth/stencil gmem restore
+-  freedreno/a3xx: fix blend opcode
+-  freedreno: few caps fixes
+-  freedreno/a3xx: texture fixes
+-  freedreno: fix for null textures
+-  freedreno/a3xx: vtx formats
+
+Roland Scheidegger (1):
+
+-  draw: (trivial) fix clamping of viewport index
+
+Takashi Iwai (1):
+
+-  llvmpipe: Fix zero-division in llvmpipe_texture_layout()
+
+Thomas Hellstrom (1):
+
+-  st/xa: Don't close the drm fd on failure v2
+
+Tobias Klausmann (1):
+
+-  nv50/ir: allow gl_ViewportIndex to work on non-provoking vertices

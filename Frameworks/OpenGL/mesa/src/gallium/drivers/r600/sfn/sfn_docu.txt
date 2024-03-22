@@ -1,0 +1,31 @@
+#R600 shader from NIR
+
+This code is an attempt to implement a NIR backend for r600.
+
+Supported hardware: Cayman, Evergreen and NI (tested on CAYMAN, CEDAR and BARTS)
+
+Thanks to soft fp64 the OpenGL version is now 4.5 also for EG.
+
+sb can bee enabled for nir, it still gives some improvements, e.g. with Xonotic
+The aim is still to get rid of it.
+
+
+## State
+
+TODO:
+
+piglits gpu passes mostly like with TGSI, there are some fixes but also a few regressions.
+
+piglit:
+  * spilling arrays is broken on Barts and CAYMAN (but it works on Cedar)
+
+## Needed optimizations:
+
+  - peepholes:
+    - compare + set predicate / kill
+  - use clause local registers
+  - reduce register usage
+  - don't rely on the backend to schedule addr load and Index load as well
+  - don't rely on the backend to merge some alu groups
+
+## There are still some hangs

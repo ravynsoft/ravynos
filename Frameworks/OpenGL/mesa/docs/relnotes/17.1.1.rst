@@ -1,0 +1,150 @@
+Mesa 17.1.1 Release Notes / March 25, 2017
+==========================================
+
+Mesa 17.1.1 is a bug fix release which fixes bugs found since the 17.1.0
+release.
+
+Mesa 17.1.1 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   652315af87f2bb015ce99ee3b90d9d115d53cbf9e052493bd13d521a753b1930  mesa-17.1.1.tar.gz
+   aed503f94c0c1630a162a3e276f4ee12a86764cee4cb92338ea2dea99a04e7ef  mesa-17.1.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 100854 <https://bugs.freedesktop.org/show_bug.cgi?id=100854>`__
+   - YUV to RGB Color Space Conversion result is not precise
+-  `Bug 100925 <https://bugs.freedesktop.org/show_bug.cgi?id=100925>`__
+   - [HSW/BSW/BDW/SKL] Google Earth is not resolving all the details in
+   the map correctly
+
+Changes
+-------
+
+Alex Deucher (1):
+
+-  radeonsi: add new vega10 pci ids
+
+Andres Gomez (2):
+
+-  bin/get-fixes-pick-list.sh: don't warn if more than one, go over them
+-  bin/get-fixes-pick-list.sh: bring back the warning
+
+Bruce Cherniak (1):
+
+-  swr: move msaa resolve to generalized StoreTile
+
+Chad Versace (1):
+
+-  egl: Partially revert 23c86c74, fix eglMakeCurrent
+
+Chih-Wei Huang (1):
+
+-  Android: correct libz dependency
+
+Daniel Stone (1):
+
+-  gbm/dri: Fix sign-extension in modifier query
+
+Emil Velikov (6):
+
+-  docs: add sha256 checksums for 17.1.0
+-  radeon: automake: remove unneeded elf Cflags/Libs
+-  configure: remove unneeded bits around libunwind handling
+-  egl: add g_egldispatchstubs.h to the release tarball
+-  automake: add SWR LLVM gen_builder.hpp workaround
+-  Update version to 17.1.1
+
+Eric Anholt (2):
+
+-  renderonly: Initialize fields of struct winsys_handle.
+-  vc4: Don't allocate new BOs to avoid synchronization when they're
+   shared.
+
+Grazvydas Ignotas (2):
+
+-  anv: fix possible stack corruption
+-  anv: don't leak DRM devices
+
+Hans de Goede (1):
+
+-  glxglvnddispatch: Add missing dispatch for GetDriverConfig
+
+Ilia Mirkin (1):
+
+-  nvc0/ir: SHLADD's middle source must be an immediate
+
+Johnson Lin (1):
+
+-  nir/lower_tex: Fix minor error in YUV color conversion matrix
+
+Juan A. Suarez Romero (2):
+
+-  bin/get-{extra,fixes}-pick-list.sh: add support for ignore list
+-  bin/get-{extra,fixes}-pick-list.sh: improve output
+
+Lucas Stach (2):
+
+-  etnaviv: stop oversizing buffer resources
+-  etnaviv: allow R/B swapped surfaces to be cleared
+
+Marek Olšák (2):
+
+-  amd/addrlib: import Raven support
+-  radeonsi/gfx9: add support for Raven
+
+Nanley Chery (2):
+
+-  anv/formats: Update the three-channel BC1 mappings
+-  i965/formats: Update the three-channel DXT1 mappings
+
+Nicolai Hähnle (5):
+
+-  radeonsi: mark fast-cleared textures as compressed when dirtying
+-  radeonsi: fix primitive ID in fragment shader when using tessellation
+-  radeonsi: fix gl_PrimitiveID in tessellation with instanced draws on
+   SI
+-  radeonsi: fix gl_PrimitiveIDIn in geometry shader when using
+   tessellation
+-  st/mesa: remove an incorrect assertion
+
+Pohjolainen, Topi (1):
+
+-  intel/isl/gen7: Use stencil vertical alignment of 8 instead of 4
+
+Rob Clark (2):
+
+-  mesa/st: fix yuv EGLImage's
+-  freedreno: fix crash when flush() but no rendering
+
+Rob Herring (1):
+
+-  virgl: fix virgl_bo_transfer_{put, get} box struct copy
+
+Samuel Iglesias Gonsálvez (3):
+
+-  i965/vec4/gs: restore the uniform values which was overwritten by
+   failed vec4_gs_visitor execution
+-  i965/vec4: fix swizzle and writemask when loading an uniform with
+   constant offset
+-  i965/vec4: load dvec3/4 uniforms first in the push constant buffer
+
+Tom Stellard (1):
+
+-  gallivm: Make sure module has the correct data layout when pass
+   manager runs

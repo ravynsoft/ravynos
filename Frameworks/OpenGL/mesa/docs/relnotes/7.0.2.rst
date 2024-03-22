@@ -1,0 +1,76 @@
+Mesa 7.0.2 Release Notes / November 10, 2007
+============================================
+
+Mesa 7.0.2 is a stable release with bug fixes since version 7.0.
+
+MD5 checksums
+-------------
+
+::
+
+   c9cf607f36e7e50172f5f9c7d552c34e  MesaLib-7.0.2.tar.gz
+   93e6ed7924ff069a4f883b4fce5349dc  MesaLib-7.0.2.tar.bz2
+   10c324c3613f90f059cb8429f700f300  MesaLib-7.0.2.zip
+   aa8b1244a5de1d23e5814bf9b67f1435  MesaDemos-7.0.2.tar.gz
+   11a10410bae7be85cf25bc7119966468  MesaDemos-7.0.2.tar.bz2
+   1dd0b5fd6d69430a2fd76a6adbfd8fff  MesaDemos-7.0.2.zip
+   a7dbf25c025955858bd2d89a6eb6db4c  MesaGLUT-7.0.2.tar.gz
+   3a33f8efc8c58a592a854cfc7a643286  MesaGLUT-7.0.2.tar.bz2
+   eba4ef2aa8c362ead81b54357f1903a3  MesaGLUT-7.0.2.zip
+
+New features
+------------
+
+-  Updated Windows VC7 project files
+-  Added DESTDIR variable for 'make install'
+-  Added pkg-config files for gl, glu, glut and glw libraries
+-  Added bluegene-xlc-osmesa and catamount-osmesa-pgi configs
+-  Support for Intel G33/Q33/Q35 graphics chipsets
+
+Bug fixes
+---------
+
+-  Fixed a vertex buffer wrapping issue (bug 9962)
+-  Added mutex protection around texture object reference counters
+-  Added checking/support for additional chips in the i915/i945 family
+   (see 11978)
+-  Fixed a blending/banding issue (bug 11931)
+-  Fixed a GLU matrix inversion bug (#6748)
+-  Fixed problem with large glDrawArrays calls and indirect rendering
+   (bug 12141)
+-  Fixed an assortment of i965 driver bugs
+-  Fixed x86-64 vertex transformation bug (12216)
+-  Fixed X server crash caused by multiple indirect rendering clients
+-  Parsing of state.texgen in ARB vertex/fragment programs didn't work
+   (bug 12313)
+-  Fixed a glCopyPixels/glPixelZoom bug (12417)
+-  Fixed a bug when using glMaterial in display lists (bug 10604)
+-  Fixed a few GLUT/Fortran issues (Bill Mitchell)
+-  Fixed Blender crash bug (12164)
+-  Fixed some issues preventing cross-compiling
+-  Fixed up broken GL_ATI_separate_stencil extension
+-  glDrawArrays(count=0) led to a crash
+-  Fix SSE code gen memory leak, possible crash
+-  Fixed MMX 565 rgb conversion problem (bug 12614)
+-  Added -fno-strict-aliasing and -fPIC flags for gcc
+-  Fixed Blender crash in Unichrome driver (bug 13142)
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

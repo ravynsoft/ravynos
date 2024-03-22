@@ -1,0 +1,155 @@
+Mesa 23.3.3 Release Notes / 2024-01-10
+======================================
+
+Mesa 23.3.3 is a bug fix release which fixes bugs found since the 23.3.2 release.
+
+Mesa 23.3.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.3.3 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    518307c0057fa3cee8b58df78be431d4df5aafa7edc60d09278b2d7a0a80f3b4  mesa-23.3.3.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Error during SPIR-V parsing of OpCopyLogical
+- radv: Atlas Fallen corrupted rendering
+- intel: Require 64KB alignment when using CCS and multiple engines
+- 23.3.2 regression: kms_swrast_dri.so segfaults
+- Mesa is not compatible with Python 3.12 due to use of distutils
+- anv: importing memory for a compressed image using modifier is hitting an assert
+
+
+Changes
+-------
+
+Connor Abbott (1):
+
+- ir3/legalize: Fix helper propagation with b.any/b.all/getone
+
+Daniel Schürmann (1):
+
+- nir/opt_move_discards_to_top: don't schedule discard/demote across subgroup operations
+
+Dave Airlie (5):
+
+- gallivm: handle llvm 16 atexit ordering problems.
+- intel/compiler: fix release build unused variable.
+- llvmpipe: fix caching for texture shaders.
+- intel/compiler: reemit boolean resolve for inverted if on gen5
+- radv: don't emit cp dma packets on video rings.
+
+Eric Engestrom (13):
+
+- docs: add sha256sum for 23.3.2
+- .pick_status.json: Mark eb5bb5c784e97c533e30b348e82e446ac0da59c8 as denominated
+- .pick_status.json: Update to ebee672ef87794f3f4201270623a92f34e62b8ff
+- .pick_status.json: Mark 060439bdf0e74f0f2e255d0a81b5356f9a2f5457 as denominated
+- .pick_status.json: Mark 8d0e70f628b745ad81124e0c3fe5e46ea84f6b46 as denominated
+- .pick_status.json: Update to 39c8cca34fb72db055df18abf1d473e099f4b05b
+- .pick_status.json: Update to 2c078bfd18cae0ed1a0a3916020e49fb74668504
+- .pick_status.json: Update to e2a7c877ad1fd6bda4032f707eea7646e5229969
+- .pick_status.json: Update to 031978933151e95690e93919e7bfd9f1753f2794
+- .pick_status.json: Mark fbe4e16db2d369c3e54067d17f81bdce8661a461 as denominated
+- .pick_status.json: Mark b38c776690c9c39b04c57d74f9b036de56995aff as denominated
+- .pick_status.json: Update to f6d2df5a7542025022e69b81dbe3af3e51ea5cd3
+- .pick_status.json: Update to 67ad1142cf6afe61de834cefeddb4be06382899f
+
+Erik Faye-Lund (2):
+
+- zink: update profile schema
+- zink: use KHR version of maint5 features
+
+Friedrich Vock (1):
+
+- radv/rt: Free traversal NIR after compilation
+
+Georg Lehmann (1):
+
+- aco: fix applying input modifiers to DPP8
+
+Jonathan Gray (1):
+
+- zink: put sysmacros.h include under #ifdef MAJOR_IN_SYSMACROS
+
+José Roberto de Souza (2):
+
+- anv: Assume that imported bos already have flat CCS requirements satisfied
+- anv: Increase ANV_MAX_QUEUE_FAMILIES
+
+Karol Herbst (2):
+
+- zink: lock screen queue on context_destroy and CreateSwapchain
+- zink: fix heap-use-after-free on batch_state with sub-allocated pipe_resources
+
+Konstantin Seurer (2):
+
+- vtn: Remove transpose(m0)*m1 fast path
+- vtn: Allow for OpCopyLogical with different but compatible types
+
+Leo Liu (1):
+
+- gallium/vl: match YUYV/UYVY swizzle with change of color channels
+
+Lionel Landwerlin (2):
+
+- isl: implement Wa_22015614752
+- intel/fs: fix depth compute state for unchanged depth layout
+
+Marek Olšák (1):
+
+- glthread: don't unroll draws using user VBOs with GLES
+
+Mary Guillemard (2):
+
+- zink: Initialize pQueueFamilyIndices for image query / create
+- zink: Always fill external_only in zink_query_dmabuf_modifiers
+
+Mike Blumenkrantz (1):
+
+- zink: enforce maxTexelBufferElements for texel buffer sizing
+
+Rhys Perry (1):
+
+- aco/tests: use more raw strings
+
+Samuel Pitoiset (2):
+
+- radv: fix binding partial depth/stencil views with dynamic rendering
+- radv: disable stencil test without a stencil attachment
+
+Sil Vilerino (2):
+
+- Revert "d3d12: Only destroy the winsys during screen destruction, not reset"
+- Revert "d3d12: Fix screen->winsys leak in d3d12_screen"
+
+Vinson Lee (1):
+
+- ac/rgp: Fix single-bit-bitfield-constant-conversion warning
+
+Yonggang Luo (1):
+
+- meson: Support for both packaging and distutils
+
+antonino (1):
+
+- egl: only check dri3 on X11

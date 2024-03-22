@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_NV_vdpau_interop" number="396">
+
+    <function name="VDPAUInitNV">
+	<param name="vdpDevice" type="const GLvoid *"/>
+	<param name="getProcAddress" type="const GLvoid *"/>
+    </function>
+
+    <function name="VDPAUFiniNV"/>
+
+    <function name="VDPAURegisterVideoSurfaceNV">
+        <return type="GLintptr"/>
+	<param name="vdpSurface" type="const GLvoid *"/>
+	<param name="target" type="GLenum"/>
+	<param name="numTextureNames" type="GLsizei"/>
+	<param name="textureNames" type="const GLuint *"/>
+    </function>
+
+    <function name="VDPAURegisterOutputSurfaceNV">
+        <return type="GLintptr"/>
+	<param name="vdpSurface" type="const GLvoid *"/>
+	<param name="target" type="GLenum"/>
+	<param name="numTextureNames" type="GLsizei"/>
+	<param name="textureNames" type="const GLuint *"/>
+    </function>
+
+    <function name="VDPAUIsSurfaceNV">
+        <return type="GLboolean"/>
+	<param name="surface" type="GLintptr"/>
+    </function>
+
+    <function name="VDPAUUnregisterSurfaceNV">
+	<param name="surface" type="GLintptr"/>
+    </function>
+
+    <function name="VDPAUGetSurfaceivNV">
+	<param name="surface" type="GLintptr"/>
+	<param name="pname" type="GLenum"/>
+	<param name="bufSize" type="GLsizei"/>
+	<param name="length" type="GLsizei *"/>
+	<param name="values" type="GLint *"/>
+    </function>
+
+    <function name="VDPAUSurfaceAccessNV">
+	<param name="surface" type="GLintptr"/>
+	<param name="access" type="GLenum"/>
+    </function>
+
+    <function name="VDPAUMapSurfacesNV" marshal="sync">
+	<param name="numSurfaces" type="GLsizei"/>
+	<param name="surfaces" type="const GLintptr *" count="numSurfaces"/>
+    </function>
+
+    <function name="VDPAUUnmapSurfacesNV" marshal="sync">
+	<param name="numSurfaces" type="GLsizei"/>
+	<param name="surfaces" type="const GLintptr *" count="numSurfaces"/>
+    </function>
+
+    <enum name="SURFACE_STATE_NV"      value="0x86EB"/>
+    <enum name="SURFACE_REGISTERED_NV" value="0x86FD"/>
+    <enum name="SURFACE_MAPPED_NV"     value="0x8700"/>
+    <enum name="WRITE_DISCARD_NV"      value="0x88BE"/>
+
+</category>
+
+</OpenGLAPI>

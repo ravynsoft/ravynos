@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+
+<category name="GL_ARB_tessellation_shader" number="91">
+
+    <!--<enum value="0" name="FALSE"/>
+    <enum value="1" name="TRUE"/>
+    <enum value="0x0004" name="TRIANGLES"/>
+    <enum value="0x0007" name="QUADS"/>
+    <enum value="0x0202" name="EQUAL"/>
+    <enum value="0x0900" name="CW"/>
+    <enum value="0x0901" name="CCW"/>-->
+
+    <enum value="0x000E" name="PATCHES"/>
+    <enum value="0x84F0" name="UNIFORM_BLOCK_REFERENCED_BY_TESS_CONTROL_SHADER"/>
+    <enum value="0x84F1" name="UNIFORM_BLOCK_REFERENCED_BY_TESS_EVALUATION_SHADER"/>
+    <enum value="0x886C" name="MAX_TESS_CONTROL_INPUT_COMPONENTS"/>
+    <enum value="0x886D" name="MAX_TESS_EVALUATION_INPUT_COMPONENTS"/>
+    <enum value="0x8E1E" name="MAX_COMBINED_TESS_CONTROL_UNIFORM_COMPONENTS"/>
+    <enum value="0x8E1F" name="MAX_COMBINED_TESS_EVALUATION_UNIFORM_COMPONENTS"/>
+    <enum value="0x8E72" name="PATCH_VERTICES"/>
+    <enum value="0x8E73" name="PATCH_DEFAULT_INNER_LEVEL"/>
+    <enum value="0x8E74" name="PATCH_DEFAULT_OUTER_LEVEL"/>
+    <enum value="0x8E75" name="TESS_CONTROL_OUTPUT_VERTICES"/>
+    <enum value="0x8E76" name="TESS_GEN_MODE"/>
+    <enum value="0x8E77" name="TESS_GEN_SPACING"/>
+    <enum value="0x8E78" name="TESS_GEN_VERTEX_ORDER"/>
+    <enum value="0x8E79" name="TESS_GEN_POINT_MODE"/>
+    <enum value="0x8E7A" name="ISOLINES"/>
+    <enum value="0x8E7B" name="FRACTIONAL_ODD"/>
+    <enum value="0x8E7C" name="FRACTIONAL_EVEN"/>
+    <enum value="0x8E7D" name="MAX_PATCH_VERTICES"/>
+    <enum value="0x8E7E" name="MAX_TESS_GEN_LEVEL"/>
+    <enum value="0x8E7F" name="MAX_TESS_CONTROL_UNIFORM_COMPONENTS"/>
+    <enum value="0x8E80" name="MAX_TESS_EVALUATION_UNIFORM_COMPONENTS"/>
+    <enum value="0x8E81" name="MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS"/>
+    <enum value="0x8E82" name="MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS"/>
+    <enum value="0x8E83" name="MAX_TESS_CONTROL_OUTPUT_COMPONENTS"/>
+    <enum value="0x8E84" name="MAX_TESS_PATCH_COMPONENTS"/>
+    <enum value="0x8E85" name="MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS"/>
+    <enum value="0x8E86" name="MAX_TESS_EVALUATION_OUTPUT_COMPONENTS"/>
+    <enum value="0x8E87" name="TESS_EVALUATION_SHADER"/>
+    <enum value="0x8E88" name="TESS_CONTROL_SHADER"/>
+    <enum value="0x8E89" name="MAX_TESS_CONTROL_UNIFORM_BLOCKS"/>
+    <enum value="0x8E8A" name="MAX_TESS_EVALUATION_UNIFORM_BLOCKS"/>
+    <enum value="0x8221" name="PRIMITIVE_RESTART_FOR_PATCHES_SUPPORTED"/>
+
+    <function name="PatchParameteri" es2="3.2" no_error="true" exec="dlist">
+        <param name="pname" type="GLenum"/>
+        <param name="value" type="GLint"/>
+    </function>
+    <function name="PatchParameterfv" exec="dlist">
+        <param name="pname" type="GLenum"/>
+        <param name="values" type="const GLfloat *" count="_mesa_patch_param_enum_to_count(pname)"/>
+    </function>
+
+    <function name="PatchParameteriEXT" es2="3.1" alias="PatchParameteri">
+        <param name="pname" type="GLenum"/>
+        <param name="value" type="GLint"/>
+    </function>
+
+    <function name="PatchParameteriOES" es2="3.1" alias="PatchParameteri">
+        <param name="pname" type="GLenum"/>
+        <param name="value" type="GLint"/>
+    </function>
+</category>
+
+</OpenGLAPI>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_EXT_multisampled_render_to_texture" number="106">
+
+    <enum name="RENDERBUFFER_SAMPLES_EXT"                   value="0x8CAB"/>
+    <enum name="FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT"     value="0x8D56"/>
+    <enum name="MAX_SAMPLES_EXT"                            value="0x8D57"/>
+    <enum name="FRAMEBUFFER_ATTACHMENT_TEXTURE_SAMPLES_EXT" value="0x8D6C"/>
+
+<!-- Already defined in EXT_framebuffer_object.xml
+    <function name="RenderbufferStorageMultisampleEXT" es2="2.0">
+        <param name="target" type="GLenum"/>
+	<param name="samples" type="GLsizei"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="width" type="GLsizei"/>
+	<param name="height" type="GLsizei"/>
+    </function>
+-->
+
+    <function name="FramebufferTexture2DMultisampleEXT" es2="2.0" desktop="false">
+        <param name="target" type="GLenum"/>
+        <param name="attachment" type="GLenum"/>
+        <param name="textarget" type="GLenum"/>
+        <param name="texture" type="GLuint"/>
+        <param name="level" type="GLint"/>
+        <param name="samples" type="GLsizei"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

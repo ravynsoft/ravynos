@@ -1,0 +1,49 @@
+
+		        Mesa 6.4 Release Notes
+
+			   October 24, 2005
+
+
+
+Introduction
+------------
+
+Mesa uses an even/odd version number scheme like the Linux kernel.
+Odd numbered versions (such as 6.3) designate new developmental releases.
+Even numbered versions (such as 6.4) designate stable releases.
+
+
+6.4 is a bug-fix release.  See the VERSIONS file for details.
+
+
+
+GLUT tarball
+------------
+
+Starting with 6.4, the GLUT library sources are distributed in a separate
+tarball.  This was done at the request of Linux distro vendors who prefer
+to use freeglut.
+
+
+
+
+Driver			Status
+----------------------	----------------------
+DRI drivers		varies with the driver
+XMesa (Xlib)		implements OpenGL 1.5
+OSMesa (off-screen)	implements OpenGL 1.5
+Windows/Win32		implements OpenGL 1.5
+Glide (3dfx Voodoo1/2)  requires updates	
+SVGA			requires updates
+DJGPP			requires updates
+GGI			requires updates
+BeOS			requires updates
+Allegro			requires updates
+D3D			requires updates
+
+The drivers which require updates mostly need to be updated to work
+with the new gl_renderbuffer / gl_framebuffer infrastructure introduced
+in Mesa 6.3.
+
+
+----------------------------------------------------------------------

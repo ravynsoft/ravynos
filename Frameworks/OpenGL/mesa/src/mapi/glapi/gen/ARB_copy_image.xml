@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_copy_image" number="123">
+
+    <function name="CopyImageSubData" es2="3.2" no_error="true">
+        <param name="srcName" type="GLuint"/>
+        <param name="srcTarget" type="GLenum"/>
+        <param name="srcLevel" type="GLint"/>
+        <param name="srcX" type="GLint"/>
+        <param name="srcY" type="GLint"/>
+        <param name="srcZ" type="GLint"/>
+        <param name="dstName" type="GLuint"/>
+        <param name="dstTarget" type="GLenum"/>
+        <param name="dstLevel" type="GLint"/>
+        <param name="dstX" type="GLint"/>
+        <param name="dstY" type="GLint"/>
+        <param name="dstZ" type="GLint"/>
+        <param name="srcWidth" type="GLsizei"/>
+        <param name="srcHeight" type="GLsizei"/>
+        <param name="srcDepth" type="GLsizei"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

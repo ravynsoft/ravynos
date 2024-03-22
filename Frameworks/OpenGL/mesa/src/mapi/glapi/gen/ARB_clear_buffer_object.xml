@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="GL_ARB_clear_buffer_object" number="121">
+
+    <function name ="ClearBufferData" no_error="true">
+        <param name="target" type="GLenum"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="data" type="const GLvoid *"/>
+    </function>
+
+    <function name ="ClearBufferSubData" no_error="true">
+        <param name="target" type="GLenum"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="offset" type="GLintptr"/>
+        <param name="size" type="GLsizeiptr"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="data" type="const GLvoid *"/>
+    </function>
+
+    <function name="ClearNamedBufferDataEXT">
+        <param name="buffer" type="GLuint"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="data" type="const GLvoid *"/>
+    </function>
+
+    <function name="ClearNamedBufferSubDataEXT">
+        <param name="buffer" type="GLuint"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="offset" type="GLintptr"/>
+        <param name="size" type="GLsizeiptr"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="data" type="const GLvoid *"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

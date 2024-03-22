@@ -1,0 +1,181 @@
+Mesa 22.3.3 Release Notes / 2023-01-11
+======================================
+
+Mesa 22.3.3 is a bug fix release which fixes bugs found since the 22.3.2 release.
+
+Mesa 22.3.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.3.3 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    bed799788bf2bd9ef079d97cd8e09348bf53cb086818578e40773b2b17812922  mesa-22.3.3.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radeonsi: Broken graphics in game ibb & obb with mesa_glthread=true
+- Hotline Miami 2 crashes on startup. (\`mesa_glthread` defaults true)
+- [RadeonSI] Dune: Spice Wars blue/purple screen
+- iris: assertion failure in iris_resource_from_memobj
+- Limbo (48000) goes white when starting a new game (Raven Ridge 2400G)
+- plasmashell sometimes hangs with mesa_glthread
+- virgl: enum pipe_shader_type reorder completely breaks virglrenderer
+- radv: Crash when creating graphics pipeline libraries with module identifier
+- Segmentation fault in KiCAD with version mesa-22.3+
+- radeonsi glthread crash regression
+- Uninitialized barrier.dst_stage_mask in radv_cmd_buffer_resolve_subpass_fs
+
+
+Changes
+-------
+
+Adam Stylinski (1):
+
+- nv30: Fix an offset for vbos being applied to a buffer twice
+
+Asahi Lina (1):
+
+- kmsro: Fix renderonly_scanout BO aliasing
+
+Daniel Schürmann (1):
+
+- aco: fix reset_block_regs() in postRA-optimizer
+
+Danylo Piliaiev (1):
+
+- tu: Fix varyings interpolation reading stale values
+
+Emma Anholt (2):
+
+- zink: Only expose PIPE_CAP_IMAGE_ATOMIC_FLOAT_ADD if we can actually add.
+- zink: Only expose PIPE_CAP_SHADER_ATOMIC_INT64 if we can do shared and ssbos.
+
+Eric Engestrom (4):
+
+- docs/relnotes: add sha256sum for 22.3.2
+- .pick_status.json: Update to 38d6185432d1f19a5653b3892069cd350187f5b8
+- gen_release_notes: strip second newline in new features
+- meson: add missing dependency
+
+Felix DeGrood (2):
+
+- anv: Emit CS stall on INTEL_MEASURE timestamp
+- hasvk: Emit CS stall on INTEL_MEASURE timestamp
+
+Gert Wollny (1):
+
+- virgl: Use virgl host side shader stage IDs when reading caps
+
+Iago Toral Quiroga (1):
+
+- v3dv: fix alpha-to-one for single sample setup
+
+Konstantin Kharlamov (5):
+
+- bin/gen_release_notes.py: do not end "features" with "None"
+- bin/gen_release_notes.py: do not fail on confidential features
+- bin/gen_release_notes.py: don't fail if "Closes" refers to an MR
+- bin/gen_release_notes.py: parse "Fixes" tags as well as "Closes"
+- bin/gen_release_notes.py: read Closes/Fixes tags case-insensitively
+
+Lionel Landwerlin (4):
+
+- anv: don't nullify entries
+- anv: check that push range actually match binding considered
+- anv: return properly typed value for no ubo promoted
+- anv: use the null surface with unused push descriptor binding table entries
+
+Lucas Stach (1):
+
+- etnaviv: blt: properly use upper half of clear value
+
+Marek Olšák (1):
+
+- radeonsi: rewrite si_update_ps_colorbuf0_slot to fix crashes and recursions
+
+Maíra Canal (1):
+
+- v3dv: initialize fd variable for proper error handling
+
+Mike Blumenkrantz (5):
+
+- zink: only update framebuffer object during swapchain update if framebuffer exists
+- zink: protect against invalid scissored renderpass clears
+- lavapipe: add some safety asserts when beginning rendering
+- zink: stop using VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT
+- zink: set surface->dt when updating swapchain
+
+Pierre-Eric Pelloux-Prayer (4):
+
+- egl: handle NULL loaderPrivate in dri_is_thread_safe
+- util/00-mesa-defaults: add Limbo workaround
+- mesa: add missing count_scale attribute
+- mesa: add missing count_scale attributes
+
+Qiu Wenbo (2):
+
+- vc4: Fix RADDR_A field extraction of branch instruction
+- vc4: Fix running process_mux_deps on irrelevant type of instructions
+
+Rhys Perry (1):
+
+- aco/gfx11: update s_code_end padding
+
+Ruijing Dong (5):
+
+- gallium: add film_grain_target into av1 dec desc
+- frontends/omx: initialize film_grain_target
+- frontneds/va: use current_display_picture from VA for film grain
+- frontends/va: pass in film_grain_target as new output
+- radeonsi/vcn: av1 film_grain output fix
+
+Samuel Pitoiset (4):
+
+- radv: fix missing initialization of radv_resolve_barrier::dst_stage_mask
+- radv: fix multiple resolves in the same subpass
+- radv: fix returning VK_PIPELINE_COMPILE_REQUIRED from library
+- radv: fix re-emitting tessellation domain origin when it's dynamic
+
+Sil Vilerino (1):
+
+- frontends/va: Update state var frame_num disregarding cap check
+
+Tapani Pälli (1):
+
+- iris: let isl set tiling mode for external resources
+
+Timothy Arceri (2):
+
+- util/00-mesa-defaults: add Metal Slug XX workaround
+- util/driconf: add Dune: Spice Wars workaround
+
+Väinö Mäkelä (1):
+
+- intel: Fix a hang caused by invalid dispatch enables on gfx6/7
+
+Xaver Hugl (1):
+
+- driconf: add a workaround for plasmashell freezing
+
+Yiwei Zhang (2):
+
+- lvp: properly ignore sampler write for immutable sampler
+- venus: properly ignore the sampler for immutable sampler

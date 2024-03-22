@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2020 Google, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ -->
+
+<isa>
+
+<!--
+	Cat0 Instructions:
+ -->
+
+<bitset name="#instruction-cat0" extends="#instruction">
+	<!--
+		TODO immed size is 16b for a3xx, 20b for a4xx, 32b for a5xx+.. should we
+		try to express this?  Also, not all cat0 take an immed, so maybe push
+		this further down the hierarchy?
+	 -->
+	<field name="IMMED" low="0" high="31" type="branch"/>
+
+	<field name="REPEAT" low="40" high="42" type="#rptN"/>
+	<pattern pos="43">x</pattern>
+	<field name="SS" pos="44" type="bool" display="(ss)"/>
+	<field name="EQ" pos="48" type="bool" display="(eq)"/>
+	<field name="JP" pos="59" type="bool" display="(jp)"/>
+	<field name="SY" pos="60" type="bool" display="(sy)"/>
+	<pattern low="61" high="63">000</pattern>  <!-- cat0 -->
+	<encode>
+		<map name="IMMED">src->cat0.immed</map>
+		<map name="COMP1">src->cat0.comp1</map>
+		<map name="COMP2">src->cat0.comp2</map>
+		<map name="INV1">src->cat0.inv1</map>
+		<map name="INV2">src->cat0.inv2</map>
+		<map name="EQ">!!(src->flags &amp; IR3_INSTR_EQ)</map>
+	</encode>
+</bitset>
+
+
+<bitset name="#instruction-cat0-0src" extends="#instruction-cat0">
+	<display>
+		{SY}{SS}{EQ}{JP}{REPEAT}{NAME}
+	</display>
+	<pattern low="32" high="36">xxxxx</pattern>
+	<pattern low="37" high="39">000</pattern>  <!-- BRTYPE -->
+	<pattern low="45" high="47">000</pattern>  <!-- src1 -->
+	<pattern low="52" high="54">000</pattern>  <!-- src0 -->
+</bitset>
+
+<bitset name="nop" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0000</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="end" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0110</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="ret" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0100</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="emit" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0111</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="cut" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1000</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="chmask" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1001</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="chsh" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1010</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="flow_rev" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1011</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="shpe" extends="#instruction-cat0-0src">
+	<doc>SHader Prologue End</doc>
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1000</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="prede" extends="#instruction-cat0-0src">
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1111</pattern> <!-- OPC -->
+</bitset>
+
+
+<bitset name="#instruction-cat0-1src" extends="#instruction-cat0">
+	<display>
+		{SY}{SS}{EQ}{JP}{NAME} {INV1}p0.{COMP1}
+	</display>
+	<pattern low="32" high="36">00000</pattern>
+	<pattern low="37" high="39">000</pattern>  <!-- BRTYPE -->
+	<pattern low="45" high="47">000</pattern>  <!-- src1 -->
+	<field name="INV1" pos="52" type="bool" display="!">
+		<doc>Invert source condition</doc>
+	</field>
+	<field name="COMP1" low="53" high="54" type="#swiz">
+		<doc>Predicate register (p0.c) component for source</doc>
+	</field>
+</bitset>
+
+<bitset name="kill" extends="#instruction-cat0-1src">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0101</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="predt" extends="#instruction-cat0-1src">
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1101</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="predf" extends="#instruction-cat0-1src">
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">1110</pattern> <!-- OPC -->
+</bitset>
+
+
+<bitset name="#instruction-cat0-immed" extends="#instruction-cat0">
+	<display>
+		{SY}{SS}{JP}{NAME} #{IMMED}
+	</display>
+	<pattern low="32" high="36">xxxxx</pattern> <!-- INDEX -->
+	<pattern low="37" high="39">xxx</pattern>  <!-- BRTYPE -->
+	<pattern low="45" high="47">xxx</pattern>  <!-- src1 -->
+	<pattern low="52" high="54">xxx</pattern>  <!-- src0 -->
+</bitset>
+
+<bitset name="jump" extends="#instruction-cat0-immed">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0010</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="call" extends="#instruction-cat0-immed">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0011</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="bkt" extends="#instruction-cat0-immed">
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0000</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="getlast" extends="#instruction-cat0">
+	<doc>
+		Perform a jump for all fibers in the first cluster with any active
+		fibers, except for the last fiber in the cluster.
+		While there is a separate field for CLUSTER_SIZE its value does
+		not change the behaviour in any observable way, it behaves as if
+		CLUSTER_SIZE is always 8.
+	</doc>
+
+	<gen min="600"/>
+
+	<display>
+		{SY}{SS}{JP}{NAME}.w{CLUSTER_SIZE} #{IMMED}
+	</display>
+	<derived name="CLUSTER_SIZE" type="uint">
+		<expr>
+			2ULL &lt;&lt; {W}
+		</expr>
+	</derived>
+	<pattern low="32" high="36">xxxxx</pattern> <!-- INDEX -->
+	<pattern low="37" high="39">xxx</pattern>  <!-- BRTYPE -->
+	<pattern low="45" high="47">xxx</pattern>  <!-- src1 -->
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0100</pattern> <!-- OPC -->
+
+	<field name="W" low="52" high="54" type="uint"/>
+
+	<encode>
+		<map name="W">util_logbase2(8) - 1</map>
+	</encode>
+</bitset>
+
+<bitset name="getone" extends="#instruction-cat0-immed">
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0101</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="shps" extends="#instruction-cat0-immed">
+	<doc>SHader Prologue Start</doc>
+	<pattern low="49" high="51">xx1</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0111</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="#instruction-cat0-branch" extends="#instruction-cat0">
+	<pattern low="49" high="51">xx0</pattern>  <!-- OPC_HI -->
+	<pattern low="55" high="58">0001</pattern> <!-- OPC -->
+</bitset>
+
+<bitset name="brac" extends="#instruction-cat0-branch">
+	<display>
+		{SY}{SS}{EQ}{JP}{NAME}.{INDEX} #{IMMED}
+	</display>
+	<field name="INDEX" low="32" high="36" type="uint"/>
+	<pattern low="37" high="39">011</pattern>  <!-- BRTYPE -->
+	<pattern low="45" high="47">xxx</pattern>  <!-- src1 -->
+	<pattern low="52" high="54">xxx</pattern>  <!-- src0 -->
+	<encode>
+		<map name="INDEX">src->cat0.idx</map>
+	</encode>
+</bitset>
+
+<bitset name="brax" extends="#instruction-cat0-branch">
+	<pattern low="32" high="36">xxxxx</pattern>
+	<pattern low="37" high="39">110</pattern>  <!-- BRTYPE -->
+	<pattern low="45" high="47">xxx</pattern>  <!-- src1 -->
+	<pattern low="52" high="54">xxx</pattern>  <!-- src0 -->
+</bitset>
+
+<bitset name="#instruction-cat0-branch-1src" extends="#instruction-cat0-branch">
+	<display>
+		{SY}{SS}{EQ}{JP}{NAME} {INV1}p0.{COMP1}, #{IMMED}
+	</display>
+	<pattern low="32" high="36">xxxxx</pattern>
+	<pattern low="45" high="47">xxx</pattern>  <!-- src1 -->
+	<field name="INV1" pos="52" type="bool" display="!">
+		<doc>Invert source condition</doc>
+	</field>
+	<field name="COMP1" low="53" high="54" type="#swiz">
+		<doc>Predicate register (p0.c) component for source</doc>
+	</field>
+</bitset>
+
+<bitset name="br" extends="#instruction-cat0-branch-1src">
+	<pattern low="37" high="39">000</pattern>  <!-- BRTYPE -->
+</bitset>
+
+<bitset name="bany" extends="#instruction-cat0-branch-1src">
+	<pattern low="37" high="39">100</pattern>  <!-- BRTYPE -->
+</bitset>
+
+<bitset name="ball" extends="#instruction-cat0-branch-1src">
+	<pattern low="37" high="39">101</pattern>  <!-- BRTYPE -->
+</bitset>
+
+<bitset name="#instruction-cat0-branch-2src" extends="#instruction-cat0-branch">
+	<display>
+		{SY}{SS}{EQ}{JP}{NAME} {INV1}p0.{COMP1}, {INV2}p0.{COMP2}, #{IMMED}
+	</display>
+	<pattern low="32" high="36">xxxxx</pattern>
+	<!-- src1: -->
+	<field name="INV2" pos="45" type="bool" display="!">
+		<doc>Invert source 2 condition</doc>
+	</field>
+	<field name="COMP2" low="46" high="47" type="#swiz">
+		<doc>Predicate register (p0.c) component for source 2</doc>
+	</field>
+	<!-- src0: -->
+	<field name="INV1" pos="52" type="bool" display="!">
+		<doc>Invert source 1 condition</doc>
+	</field>
+	<field name="COMP1" low="53" high="54" type="#swiz">
+		<doc>Predicate register (p0.c) component for source 1</doc>
+	</field>
+</bitset>
+
+<bitset name="brao" extends="#instruction-cat0-branch-2src">
+	<pattern low="37" high="39">001</pattern>  <!-- BRTYPE -->
+</bitset>
+
+<bitset name="braa" extends="#instruction-cat0-branch-2src">
+	<pattern low="37" high="39">010</pattern>  <!-- BRTYPE -->
+</bitset>
+
+<!-- TODO rest of cat0 -->
+
+</isa>

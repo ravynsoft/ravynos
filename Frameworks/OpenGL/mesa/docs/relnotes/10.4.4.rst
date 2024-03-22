@@ -1,0 +1,72 @@
+Mesa 10.4.4 Release Notes / February 06, 2015
+=============================================
+
+Mesa 10.4.4 is a bug fix release which fixes bugs found since the 10.4.3
+release.
+
+Mesa 10.4.4 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   5cb427eaf980cb8555953e9928f5797979ed783e277745d5f8cbae8bc5364086  MesaLib-10.4.4.tar.gz
+   f18a967e9c4d80e054b2fdff8c130ce6e6d1f8eecfc42c9f354f8628d8b4df1c  MesaLib-10.4.4.tar.bz2
+   86baad73b77920c80fe58402a905e7dd17e3ea10ead6ea7d3afdc0a56c860bd7  MesaLib-10.4.4.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 88662 <https://bugs.freedesktop.org/show_bug.cgi?id=88662>`__ -
+   unaligned access to gl_dlist_node
+-  `Bug 88930 <https://bugs.freedesktop.org/show_bug.cgi?id=88930>`__ -
+   [osmesa] osbuffer->textures should be indexed by attachment type
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  mesa: fix display list 8-byte alignment issue
+
+Emil Velikov (2):
+
+-  docs: Add sha256 sums for the 10.4.3 release
+-  Update version to 10.4.4
+
+José Fonseca (1):
+
+-  egl: Pass the correct X visual depth to xcb_put_image().
+
+Mario Kleiner (1):
+
+-  glx/dri3: Request non-vsynced Present for swapinterval zero. (v3)
+
+Matt Turner (1):
+
+-  gallium/util: Don't use \__builtin_clrsb in util_last_bit().
+
+Niels Ole Salscheider (1):
+
+-  configure: Link against all LLVM targets when building clover
+
+Park, Jeongmin (1):
+
+-  st/osmesa: Fix osbuffer->textures indexing
+
+Ville Syrjälä (1):
+
+-  i965: Fix max_wm_threads for CHV

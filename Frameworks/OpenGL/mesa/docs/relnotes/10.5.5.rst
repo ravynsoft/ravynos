@@ -1,0 +1,70 @@
+Mesa 10.5.5 Release Notes / May 11, 2015
+========================================
+
+Mesa 10.5.5 is a bug fix release which fixes bugs found since the 10.5.4
+release.
+
+Mesa 10.5.5 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c10f00fd792b8290dd51ebcc48a9016c4cafab19ec205423c6fcadfd7f3a59f2  mesa-10.5.5.tar.gz
+   4ac4e4ea3414f1cadb1467f2f173f9e56170d31e8674f7953a46f0549d319f28  mesa-10.5.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 88521 <https://bugs.freedesktop.org/show_bug.cgi?id=88521>`__ -
+   GLBenchmark 2.7 TRex renders with artifacts on Gen8 with !UXA
+-  `Bug 89455 <https://bugs.freedesktop.org/show_bug.cgi?id=89455>`__ -
+   [NVC0/Gallium] Unigine Heaven black and white boxes
+-  `Bug 89689 <https://bugs.freedesktop.org/show_bug.cgi?id=89689>`__ -
+   [Regression] Weston on DRM backend won't start with new version of
+   mesa
+-  `Bug 90130 <https://bugs.freedesktop.org/show_bug.cgi?id=90130>`__ -
+   gl_PrimitiveId seems to reset at 340
+
+Changes
+-------
+
+Boyan Ding (1):
+
+-  i965: Add XRGB8888 format to intel_screen_make_configs
+
+Emil Velikov (3):
+
+-  docs: Add sha256 sums for the 10.5.4 release
+-  r300: do not link against libdrm_intel
+-  Update version to 10.5.5
+
+Ilia Mirkin (4):
+
+-  nvc0/ir: flush denorms to zero in non-compute shaders
+-  gk110/ir: fix set with a register dest to not auto-set the abs flag
+-  nvc0/ir: fix predicated PFETCH emission
+-  nv50/ir: fix asFlow() const helper for OP_JOIN
+
+Kenneth Graunke (2):
+
+-  i965: Make intel_emit_linear_blit handle Gen8+ alignment
+   restrictions.
+-  i965: Disallow linear blits that are not cacheline aligned.
+
+Roland Scheidegger (1):
+
+-  draw: fix prim ids when there's no gs

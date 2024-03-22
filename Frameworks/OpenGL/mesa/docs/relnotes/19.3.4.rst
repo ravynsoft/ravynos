@@ -1,0 +1,203 @@
+Mesa 19.3.4 Release Notes / 2020-02-13
+======================================
+
+Mesa 19.3.4 is a bug fix release which fixes bugs found since the 19.3.3
+release.
+
+Mesa 19.3.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.6. OpenGL 4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.3.4 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       1da467e6ae2799a517e242462331eafd29ae77d9872f3a845df81f7c308e8fe4  mesa-19.3.4.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  [RADV] GPU hangs while the cutscene plays in the game Assassin's
+   Creed Origins
+-  Broken rendering of glxgears on S/390 architecture (64bit, BigEndian)
+-  GL_EXT_disjoint_timer_query failing with GL_INVALID_ENUM
+-  GL_EXT_disjoint_timer_query failing with GL_INVALID_ENUM
+-  OSMesa osmesa_choose_format returns a format not supported by
+   st_new_renderbuffer_fb
+-  Using EGL_KHR_surfaceless_context causes spurious "libEGL warning:
+   FIXME: egl/x11 doesn't support front buffer rendering."
+-  [Regression] JavaFX unbounded VRAM+RAM usage
+-  !3460 broke texsubimage test with piglit on zink+anv
+
+Changes
+-------
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Do not set SX DISABLE bits for RB+ with unused surfaces.
+
+Boris Brezillon (1):
+
+-  panfrost: Fix the damage box clamping logic
+
+Brian Ho (2):
+
+-  anv: Properly fetch partial results in vkGetQueryPoolResults
+-  anv: Handle unavailable queries in vkCmdCopyQueryPoolResults
+
+Danylo Piliaiev (2):
+
+-  i965: Do not set front_buffer_dirty if there is no front buffer
+-  st/mesa: Handle the rest renderbuffer formats from OSMesa
+
+Drew Davenport (1):
+
+-  radeonsi: Clear uninitialized variable
+
+Dylan Baker (15):
+
+-  docs: Add SHA 256 sums for 19.3.3
+-  .pick_status.json: Mark 58c929be0ddbbd9291d0dadbf11538170178e791 as
+   backported
+-  .pick_status.json: Mark df34fa14bb872447fed9076e06ffc504d85e2d1c as
+   backported
+-  .pick_status.json: Update to 997040e4b8353fe9b71a5e9fde2f933eae09c7a3
+-  .pick_status.json: Update to ca6a22305b275b49fbc88b8f4cba2fefb24c2a5d
+-  .pick_status.json: Mark 552028c013cc1d49a2b61ebe0fc3a3781a9ba826 as
+   denominated
+-  .pick_status.json: Update to f09c466732e4a5b648d7503787777c926dd93c29
+-  bin/pick-ui: Add a new maintainer script for picking patches
+-  .pick_status.json: Update to b550b7ef3b8d12f533b67b1a03159a127a3ff34a
+-  .pick_status.json: Update to 9afdcd64f2c96f3fcc1a28912987f2e8066aa995
+-  .pick_status.json: Update to 7eaf21cb6f67adbe0e79b80b4feb8c816a98a720
+-  .pick_status.json: Mark ca6a22305b275b49fbc88b8f4cba2fefb24c2a5d as
+   backported
+-  .pick_status.json: Update to d8bae10bfe0f487dcaec721743cd51441bcc12f5
+-  .pick_status.json: Update to 689817c9dfde9a0852f2b2489cb0fa93ffbcb215
+-  .pick_status.json: Update to 23037627359e739c42b194dec54875aefbb9d00b
+
+Eric Anholt (1):
+
+-  Revert "gallium: Fix big-endian addressing of non-bitmask array
+   formats."
+
+Florian Will (1):
+
+-  radv/winsys: set IB flags prior to submit in the sysmem path
+
+Georg Lehmann (3):
+
+-  Correctly wait in the fragment stage until all semaphores are
+   signaled
+-  Vulkan Overlay: Don't try to change the image layout to present twice
+-  Vulkan overlay: use the corresponding image index for each swapchain
+
+Hyunjun Ko (1):
+
+-  freedreno/ir3: put the conversion back for half const to the right
+   place.
+
+Ian Romanick (1):
+
+-  intel/fs: Don't count integer instructions as being possibly coissue
+
+Jan Vesely (1):
+
+-  clover: Use explicit conversion from llvm::StringRef to std::string
+
+Faith Ekstrand (6):
+
+-  anv: Insert holes for non-existant XFB varyings
+-  anv: Improve BTI change cache flushing
+-  anv,iris: Set 3DSTATE_SF::DerefBlockSize to per-poly on Gen12+
+-  genxml: Add a new 3DSTATE_SF field on gen12
+-  intel/fs: Write the address register with NoMask for MOV_INDIRECT
+-  anv/blorp: Use the correct size for vkCmdCopyBufferToImage
+
+Kenneth Graunke (1):
+
+-  i965: Use brw_batch_references in tex_busy check
+
+Lionel Landwerlin (1):
+
+-  isl: drop CCS row pitch requirement for linear surfaces
+
+Marek Olšák (1):
+
+-  radeonsi: fix the DCC MSAA bug workaround
+
+Marek Vasut (1):
+
+-  etnaviv: Destroy rsc->pending_ctx set in etna_resource_destroy()
+
+Michel Dänzer (6):
+
+-  winsys/amdgpu: Keep a list of amdgpu_screen_winsyses in amdgpu_winsys
+-  winsys/amdgpu: Keep track of retrieved KMS handles using hash tables
+-  winsys/amdgpu: Only re-export KMS handles for different DRM FDs
+-  util: Add os_same_file_description helper
+-  winsys/amdgpu: Re-use amdgpu_screen_winsys when possible
+-  winsys/amdgpu: Close KMS handles for other DRM file descriptions
+
+Neha Bhende (1):
+
+-  svga: fix size of format_conversion_table[]
+
+Pierre-Eric Pelloux-Prayer (2):
+
+-  radeonsi: disable display DCC
+-  radeonsi: stop using the VM_ALWAYS_VALID flag
+
+Rafael Antognolli (1):
+
+-  intel: Load the driver even if I915_PARAM_REVISION is not found.
+
+Rhys Perry (6):
+
+-  aco: fix operand to scc when selecting SGPR ufind_msb/ifind_msb
+-  aco: ensure predecessors' p_logical_end is in WQM when a p_phi is in
+   WQM
+-  aco: run p_wqm instructions in WQM
+-  aco: don't consider loop header blocks branch blocks in
+   add_coupling_code
+-  aco: don't always add logical edges from continue_break blocks to
+   headers
+-  aco: fix target calculation when vgpr spilling introduces sgpr
+   spilling
+
+Samuel Pitoiset (2):
+
+-  radv: do not allow sparse resources with multi-planar formats
+-  nir: do not use De Morgan's Law rules for flt and fge
+
+Tapani Pälli (2):
+
+-  mapi: add GetInteger64vEXT with EXT_disjoint_timer_query
+-  mesa: allow bit queries for EXT_disjoint_timer_query
+
+Thomas Hellstrom (1):
+
+-  svga: Fix banded DMA upload
+
+Vasily Khoruzhick (1):
+
+-  lima: ppir: don't delete root ld_tex nodes without successors in
+   current block
+
+Vinson Lee (1):
+
+-  swr: Fix GCC 4.9 checks.

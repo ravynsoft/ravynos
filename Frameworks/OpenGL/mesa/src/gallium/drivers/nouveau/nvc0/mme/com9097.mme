@@ -1,0 +1,713 @@
+/* extrinsrt r1, r2, src, size, dst: replace bits [dst:dst+size) in r1
+ *  with bits [src:src+size) in r2
+ *
+ * bra(n)z annul: no delay slot
+ */
+
+/* Bitfield version of NVC0_3D_VERTEX_ARRAY_PER_INSTANCE[].
+ * Args: size, bitfield
+ */
+.section #mme9097_per_instance_bf
+   parm $r3
+   mov $r2 0x0
+   maddr 0x1620
+loop:
+   mov $r1 (add $r1 -1)
+   send (extrshl $r3 $r2 0x1 0x0)
+   exit branz $r1 #loop
+   mov $r2 (add $r2 0x1)
+
+/* The comments above the macros describe what they *should* be doing,
+ * but we use less functionality for now.
+ */
+
+/*
+ * for (i = 0; i < 8; ++i)
+ *    [NVC0_3D_BLEND_ENABLE(i)] = BIT(i of arg);
+ *
+ * [3428] = arg;
+ *
+ * if (arg == 0 || [NVC0_3D_MULTISAMPLE_ENABLE] == 0)
+ *    [0d9c] = 0;
+ * else
+ *    [0d9c] = [342c];
+ */
+.section #mme9097_blend_enables
+   maddr 0x14d8
+   send (extrinsrt 0x0 $r1 0x0 0x1 0x0)
+   send (extrinsrt 0x0 $r1 0x1 0x1 0x0)
+   send (extrinsrt 0x0 $r1 0x2 0x1 0x0)
+   send (extrinsrt 0x0 $r1 0x3 0x1 0x0)
+   send (extrinsrt 0x0 $r1 0x4 0x1 0x0)
+   send (extrinsrt 0x0 $r1 0x5 0x1 0x0)
+   exit send (extrinsrt 0x0 $r1 0x6 0x1 0x0)
+   send (extrinsrt 0x0 $r1 0x7 0x1 0x0)
+
+/*
+ * uint64 limit = (parm(0) << 32) | parm(1);
+ * uint64 start = (parm(2) << 32);
+ *
+ * if (limit) {
+ *    start |= parm(3);
+ *    --limit;
+ * } else {
+ *    start |= 1;
+ * }
+ *
+ * [0x1c04 + (arg & 0xf) * 16 + 0] = (start >> 32) & 0xff;
+ * [0x1c04 + (arg & 0xf) * 16 + 4] = start & 0xffffffff;
+ * [0x1f00 + (arg & 0xf) * 8 + 0] = (limit >> 32) & 0xff;
+ * [0x1f00 + (arg & 0xf) * 8 + 4] = limit & 0xffffffff;
+ */
+.section #mme9097_vertex_array_select
+   parm $r2
+   parm $r3
+   parm $r4
+   parm $r5
+   mov $r6 (extrinsrt 0x0 $r1 0x0 0x4 0x2)
+   mov $r7 (extrinsrt 0x0 $r1 0x0 0x4 0x1)
+   maddr $r6 (add $r6 0x1701)
+   send $r4
+   send $r5
+   maddr $r7 (add $r7 0x17c0)
+   exit send $r2
+   send $r3
+
+/*
+ * [GL_POLYGON_MODE_FRONT] = arg;
+ *
+ * if (BIT(31 of [0x3410]))
+ *    [1a24] = 0x7353;
+ *
+ * if ([NVC0_3D_SP_SELECT(3)] == 0x31 || [NVC0_3D_SP_SELECT(4)] == 0x41)
+ *    [02ec] = 0;
+ * else
+ * if ([GL_POLYGON_MODE_BACK] == GL_LINE || arg == GL_LINE)
+ *    [02ec] = BYTE(1 of [0x3410]) << 4;
+ * else
+ *    [02ec] = BYTE(0 of [0x3410]) << 4;
+ */
+.section #mme9097_poly_mode_front
+   read $r2 0x36c
+   read $r3 0x830
+   mov $r7 (or $r1 $r2)
+   read $r4 0x840
+   mov $r2 0x1
+   mov $r6 0x60
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0a_pmf
+   maddr 0x36b
+   mov $r6 0x200
+locn_0a_pmf:
+   mov $r7 (or $r3 $r4)
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0f_pmf
+   send $r1
+   mov $r6 0x0
+locn_0f_pmf:
+   exit maddr 0xbb
+   send $r6
+
+/*
+ * [GL_POLYGON_MODE_BACK] = arg;
+ *
+ * if (BIT(31 of [0x3410]))
+ *    [1a24] = 0x7353;
+ *
+ * if ([NVC0_3D_SP_SELECT(3)] == 0x31 || [NVC0_3D_SP_SELECT(4)] == 0x41)
+ *    [02ec] = 0;
+ * else
+ * if ([GL_POLYGON_MODE_FRONT] == GL_LINE || arg == GL_LINE)
+ *    [02ec] = BYTE(1 of [0x3410]) << 4;
+ * else
+ *    [02ec] = BYTE(0 of [0x3410]) << 4;
+ */
+/* NOTE: 0x3410 = 0x80002006 by default,
+ *  POLYGON_MODE == GL_LINE check replaced by (MODE & 1)
+ *  SP_SELECT(i) == (i << 4) | 1 check replaced by SP_SELECT(i) & 1
+ */
+.section #mme9097_poly_mode_back
+   read $r2 0x36b
+   read $r3 0x830
+   mov $r7 (or $r1 $r2)
+   read $r4 0x840
+   mov $r2 0x1
+   mov $r6 0x60
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0a_pmb
+   maddr 0x36c
+   mov $r6 0x200
+locn_0a_pmb:
+   mov $r7 (or $r3 $r4)
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0f_pmb
+   send $r1
+   mov $r6 0x0
+locn_0f_pmb:
+   exit maddr 0xbb
+   send $r6
+
+/*
+ * [NVC0_3D_SP_SELECT(4)] = arg
+ *
+ * if BIT(31 of [0x3410]) == 0
+ *    [1a24] = 0x7353;
+ *
+ * if ([NVC0_3D_SP_SELECT(3)] == 0x31 || arg == 0x41)
+ *    [02ec] = 0
+ * else
+ * if (any POLYGON MODE == LINE)
+ *    [02ec] = BYTE(1 of [3410]) << 4;
+ * else
+ *    [02ec] = BYTE(0 of [3410]) << 4; // 02ec valid bits are 0xff1
+ */
+.section #mme9097_gp_select
+   read $r2 0x36b
+   read $r3 0x36c
+   mov $r7 (or $r2 $r3)
+   read $r4 0x830
+   mov $r2 0x1
+   mov $r6 0x60
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0a_gs
+   maddr 0x840
+   mov $r6 0x200
+locn_0a_gs:
+   mov $r7 (or $r1 $r4)
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0f_gs
+   send $r1
+   mov $r6 0x0
+locn_0f_gs:
+   exit maddr 0xbb
+   send $r6
+
+/*
+ * [NVC0_3D_SP_SELECT(3)] = arg
+ *
+ * if BIT(31 of [0x3410]) == 0
+ *    [1a24] = 0x7353;
+ *
+ * if (arg == 0x31) {
+ *    if (BIT(2 of [0x3430])) {
+ *       int i = 15; do { --i; } while(i);
+ *       [0x1a2c] = 0;
+ *    }
+ * }
+ *
+ * if ([NVC0_3D_SP_SELECT(4)] == 0x41 || arg == 0x31)
+ *    [02ec] = 0
+ * else
+ * if ([any POLYGON_MODE] == GL_LINE)
+ *    [02ec] = BYTE(1 of [3410]) << 4;
+ * else
+ *    [02ec] = BYTE(0 of [3410]) << 4;
+ */
+.section #mme9097_tep_select
+   read $r2 0x36b
+   read $r3 0x36c
+   mov $r7 (or $r2 $r3)
+   read $r4 0x840
+   mov $r2 0x1
+   mov $r6 0x60
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0a_ts
+   maddr 0x830
+   mov $r6 0x200
+locn_0a_ts:
+   mov $r7 (or $r1 $r4)
+   mov $r7 (and $r7 $r2)
+   braz $r7 #locn_0f_ts
+   send $r1
+   mov $r6 0x0
+locn_0f_ts:
+   exit maddr 0xbb
+   send $r6
+
+/* NVC0_3D_MACRO_DRAW_ELEMENTS_INDIRECT
+ *
+ * NOTE: Saves and restores VB_ELEMENT,INSTANCE_BASE.
+ * Forcefully sets VERTEX_ID_BASE to the value of VB_ELEMENT_BASE.
+ *
+ * arg     = mode
+ * parm[0] = start_drawid
+ * parm[1] = numparams
+ * parm[2 + 5n + 0] = count
+ * parm[2 + 5n + 1] = instance_count
+ * parm[2 + 5n + 2] = start
+ * parm[2 + 5n + 3] = index_bias
+ * parm[2 + 5n + 4] = start_instance
+ *
+ * SCRATCH[0] = saved VB_ELEMENT_BASE
+ * SCRATCH[1] = saved VB_INSTANCE_BASE
+ */
+.section #mme9097_draw_elts_indirect
+   read $r6 0x50d /* VB_ELEMENT_BASE */
+   read $r7 0x50e /* VB_INSTANCE_BASE */
+   maddr 0x1d00
+   send $r6 /* SCRATCH[0] = VB_ELEMENT_BASE */
+   send $r7 /* SCRATCH[1] = VB_INSTANCE_BASE */
+   parm $r6 /* start_drawid */
+   parm $r7 /* numparams */
+dei_draw_again:
+   parm $r3 /* count */
+   parm $r2 /* instance_count */
+   parm $r4 maddr 0x5f7 /* INDEX_BATCH_FIRST, start */
+   parm $r4 send $r4 /* index_bias, send start */
+   maddr 0x18e3 /* CB_POS */
+   send 0x1a0 /* 256 + 160 */
+   braz $r2 #dei_end
+   parm $r5 send $r4 /* start_instance, send index_bias */
+   send $r5 /* send start_instance */
+   send $r6 /* draw id */
+   maddr 0x150d /* VB_ELEMENT,INSTANCE_BASE */
+   send $r4
+   send $r5
+   maddr 0x446
+   send $r4
+   mov $r4 0x1
+   mov $r1 (extrinsrt $r1 0x0 0 1 26) /* clear INSTANCE_NEXT */
+dei_again:
+   maddr 0x586 /* VERTEX_BEGIN_GL */
+   send $r1 /* mode */
+   maddr 0x5f8 /* INDEX_BATCH_COUNT */
+   send $r3 /* count */
+   mov $r2 (sub $r2 $r4)
+   maddrsend 0x585 /* VERTEX_END_GL */
+   branz $r2 #dei_again
+   mov $r1 (extrinsrt $r1 $r4 0 1 26) /* set INSTANCE_NEXT */
+dei_end:
+   mov $r7 (add $r7 -1)
+   branz $r7 #dei_draw_again
+   mov $r6 (add $r6 1)
+   read $r6 0xd00
+   read $r7 0xd01
+   maddr 0x150d /* VB_ELEMENT,INSTANCE_BASE */
+   send $r6
+   send $r7
+   exit maddr 0x446
+   send $r6
+
+/* NVC0_3D_MACRO_DRAW_ARRAYS_INDIRECT:
+ *
+ * NOTE: Saves and restores VB_INSTANCE_BASE.
+ *
+ * arg     = mode
+ * parm[0] = start_drawid
+ * parm[1] = numparams
+ * parm[2 + 4n + 0] = count
+ * parm[2 + 4n + 1] = instance_count
+ * parm[2 + 4n + 2] = start
+ * parm[2 + 4n + 3] = start_instance
+ */
+.section #mme9097_draw_arrays_indirect
+   read $r5 0x50e /* VB_INSTANCE_BASE */
+   parm $r6 /* start_drawid */
+   parm $r7 /* numparams */
+dai_draw_again:
+   parm $r2 /* count */
+   parm $r3 /* instance_count */
+   parm $r4 maddr 0x35d /* VERTEX_BUFFER_FIRST, start */
+   braz $r3 #dai_end
+   parm $r4 send $r4 /* start_instance */
+   maddr 0x18e3 /* CB_POS */
+   send 0x1a0 /* 256 + 160 */
+   send 0x0 /* send 0 as base_vertex */
+   send $r4 /* send start_instance */
+   send $r6 /* draw id */
+   maddr 0x50e /* VB_INSTANCE_BASE */
+   send $r4
+   mov $r4 0x1
+   mov $r1 (extrinsrt $r1 0x0 0 1 26) /* clear INSTANCE_NEXT */
+dai_again:
+   maddr 0x586 /* VERTEX_BEGIN_GL */
+   send $r1 /* mode */
+   maddr 0x35e /* VERTEX_BUFFER_COUNT */
+   send $r2
+   mov $r3 (sub $r3 $r4)
+   maddrsend 0x585 /* VERTEX_END_GL */
+   branz $r3 #dai_again
+   mov $r1 (extrinsrt $r1 $r4 0 1 26) /* set INSTANCE_NEXT */
+dai_end:
+   mov $r7 (add $r7 -1)
+   branz $r7 #dai_draw_again
+   mov $r6 (add $r6 1)
+   exit maddr 0x50e /* VB_INSTANCE_BASE to restore */
+   send $r5
+
+/* NVC0_3D_MACRO_DRAW_ELEMENTS_INDIRECT_COUNT
+ *
+ * NOTE: Saves and restores VB_ELEMENT,INSTANCE_BASE.
+ * Forcefully sets VERTEX_ID_BASE to the value of VB_ELEMENT_BASE.
+ *
+ * arg     = mode
+ * parm[0] = start_drawid
+ * parm[1] = numparams
+ * parm[2] = totaldraws
+ * parm[3 + 5n + 0] = count
+ * parm[3 + 5n + 1] = instance_count
+ * parm[3 + 5n + 2] = start
+ * parm[3 + 5n + 3] = index_bias
+ * parm[3 + 5n + 4] = start_instance
+ *
+ * SCRATCH[0] = saved VB_ELEMENT_BASE
+ * SCRATCH[1] = saved VB_INSTANCE_BASE
+ * SCRATCH[2] = draws left
+ */
+.section #mme9097_draw_elts_indirect_count
+   read $r6 0x50d /* VB_ELEMENT_BASE */
+   read $r7 0x50e /* VB_INSTANCE_BASE */
+   maddr 0x1d00
+   send $r6 /* SCRATCH[0] = VB_ELEMENT_BASE */
+   send $r7 /* SCRATCH[1] = VB_INSTANCE_BASE */
+   parm $r6 /* start_drawid */
+   parm $r7 /* numparams */
+   parm $r5 /* totaldraws */
+   mov $r5 (sub $r5 $r6) /* draws left */
+   braz $r5 #deic_runout
+   mov $r3 (extrinsrt 0x0 $r5 31 1 0) /* extract high bit */
+   branz $r3 #deic_runout
+   send $r5
+deic_draw_again:
+   parm $r3 /* count */
+   parm $r2 /* instance_count */
+   parm $r4 maddr 0x5f7 /* INDEX_BATCH_FIRST, start */
+   parm $r4 send $r4 /* index_bias, send start */
+   maddr 0x18e3 /* CB_POS */
+   send 0x1a0 /* 256 + 160 */
+   braz $r2 #deic_end
+   parm $r5 send $r4 /* start_instance, send index_bias */
+   send $r5 /* send start_instance */
+   send $r6 /* draw id */
+   maddr 0x150d /* VB_ELEMENT,INSTANCE_BASE */
+   send $r4
+   send $r5
+   maddr 0x446
+   send $r4
+   mov $r4 0x1
+   mov $r1 (extrinsrt $r1 0x0 0 1 26) /* clear INSTANCE_NEXT */
+deic_again:
+   maddr 0x586 /* VERTEX_BEGIN_GL */
+   send $r1 /* mode */
+   maddr 0x5f8 /* INDEX_BATCH_COUNT */
+   send $r3 /* count */
+   mov $r2 (sub $r2 $r4)
+   maddrsend 0x585 /* VERTEX_END_GL */
+   branz $r2 #deic_again
+   mov $r1 (extrinsrt $r1 $r4 0 1 26) /* set INSTANCE_NEXT */
+deic_end:
+   read $r5 0xd02
+   mov $r5 (add $r5 -1)
+   braz $r5 #deic_runout_check
+   mov $r7 (add $r7 -1)
+   maddr 0xd02
+   send $r5
+   branz $r7 #deic_draw_again
+   mov $r6 (add $r6 1)
+deic_restore:
+   read $r6 0xd00
+   read $r7 0xd01
+   maddr 0x150d /* VB_ELEMENT,INSTANCE_BASE */
+   send $r6
+   send $r7
+   exit maddr 0x446
+   send $r6
+deic_runout:
+   parm $r2
+   parm $r2
+   parm $r2
+   parm $r2
+   parm $r2
+   mov $r7 (add $r7 -1)
+deic_runout_check:
+   branz annul $r7 #deic_runout
+   bra annul #deic_restore
+
+/* NVC0_3D_MACRO_DRAW_ARRAYS_INDIRECT_COUNT:
+ *
+ * NOTE: Saves and restores VB_INSTANCE_BASE.
+ *
+ * arg     = mode
+ * parm[0] = start_drawid
+ * parm[1] = numparams
+ * parm[2] = totaldraws
+ * parm[3 + 4n + 0] = count
+ * parm[3 + 4n + 1] = instance_count
+ * parm[3 + 4n + 2] = start
+ * parm[3 + 4n + 3] = start_instance
+ *
+ * SCRATCH[0] = VB_INSTANCE_BASE
+ */
+.section #mme9097_draw_arrays_indirect_count
+   read $r5 0x50e /* VB_INSTANCE_BASE */
+   maddr 0xd00
+   parm $r6 send $r5 /* start_drawid, save VB_INSTANCE_BASE */
+   parm $r7 /* numparams */
+   parm $r5 /* totaldraws */
+   mov $r5 (sub $r5 $r6) /* draws left */
+   braz $r5 #daic_runout
+   mov $r3 (extrinsrt 0x0 $r5 31 1 0) /* extract high bit */
+   branz annul $r3 #daic_runout
+daic_draw_again:
+   parm $r2 /* count */
+   parm $r3 /* instance_count */
+   parm $r4 maddr 0x35d /* VERTEX_BUFFER_FIRST, start */
+   braz $r3 #daic_end
+   parm $r4 send $r4 /* start_instance */
+   maddr 0x18e3 /* CB_POS */
+   send 0x1a0 /* 256 + 160 */
+   send 0x0 /* send 0 as base_vertex */
+   send $r4 /* send start_instance */
+   send $r6 /* draw id */
+   maddr 0x50e /* VB_INSTANCE_BASE */
+   send $r4
+   mov $r4 0x1
+   mov $r1 (extrinsrt $r1 0x0 0 1 26) /* clear INSTANCE_NEXT */
+daic_again:
+   maddr 0x586 /* VERTEX_BEGIN_GL */
+   send $r1 /* mode */
+   maddr 0x35e /* VERTEX_BUFFER_COUNT */
+   send $r2
+   mov $r3 (sub $r3 $r4)
+   maddrsend 0x585 /* VERTEX_END_GL */
+   branz $r3 #daic_again
+   mov $r1 (extrinsrt $r1 $r4 0 1 26) /* set INSTANCE_NEXT */
+daic_end:
+   mov $r5 (add $r5 -1)
+   braz $r5 #daic_runout_check
+   mov $r7 (add $r7 -1)
+   branz $r7 #daic_draw_again
+   mov $r6 (add $r6 1)
+daic_restore:
+   read $r5 0xd00
+   exit maddr 0x50e /* VB_INSTANCE_BASE to restore */
+   send $r5
+daic_runout:
+   parm $r2
+   parm $r2
+   parm $r2
+   parm $r2
+   mov $r7 (add $r7 -1)
+daic_runout_check:
+   branz annul $r7 #daic_runout
+   bra annul #daic_restore
+
+/* NVC0_3D_MACRO_QUERY_BUFFER_WRITE:
+ *
+ * This is a combination macro for all of our query buffer object needs.
+ * It has the option to clamp results to a configurable amount, as well as
+ * to write out one or two words.
+ *
+ * We use the query engine to write out the values, and expect the query
+ * address to point to the right place.
+ *
+ * arg = clamp value (0 means unclamped). clamped means just 1 written value.
+ * parm[0] = LSB of end value
+ * parm[1] = MSB of end value
+ * parm[2] = LSB of start value
+ * parm[3] = MSB of start value
+ * parm[4] = desired sequence
+ * parm[5] = actual sequence
+ * parm[6] = query high address
+ * parm[7] = query low address
+ */
+.section #mme9097_query_buffer_write
+   parm $r2
+   parm $r3
+   parm $r4
+   parm $r5 maddr 0x16c0 /* QUERY_ADDRESS_HIGH */
+   parm $r6
+   parm $r7
+   mov $r6 (sub $r7 $r6) /* actual - desired */
+   mov $r6 (sbb 0x0 0x0) /* if there was underflow, not reached yet */
+   parm $r7
+   exit braz $r6 #qbw_ready
+   parm $r6
+qbw_ready:
+   mov $r2 (sub $r2 $r4)
+   braz $r1 #qbw_postclamp
+   mov $r3 (sbb $r3 $r5)
+   branz annul $r3 #qbw_clamp
+   mov $r4 (sub $r1 $r2)
+   mov $r4 (sbb 0x0 0x0)
+   braz annul $r4 #qbw_postclamp
+qbw_clamp:
+   mov $r2 $r1
+qbw_postclamp:
+   send $r7
+   send $r6
+   send $r2
+   branz $r1 #qbw_done
+   mov $r4 0x1000
+   send (extrinsrt 0x0 $r4 0x0 0x10 0x10)
+   maddr 0x16c0 /* QUERY_ADDRESS_HIGH */
+   mov $r5 0x4
+   mov $r6 (add $r6 $r5)
+   mov $r7 (adc $r7 0x0)
+   send $r7
+   send $r6
+   send $r3
+qbw_done:
+   exit send (extrinsrt 0x0 $r4 0x0 0x10 0x10)
+   maddrsend 0x44
+
+/* NVC0_3D_MACRO_CONSERVATIVE_RASTER_STATE:
+ *
+ * This sets basically all the conservative rasterization state. It sets
+ * CONSERVATIVE_RASTER to one while doing so.
+ *
+ * arg = biasx | biasy<<4 | (dilation*4)<<8 | mode<<10
+ */
+.section #mme9097_conservative_raster_state
+   /* Mode and dilation */
+   maddr 0x1d00 /* SCRATCH[0] */
+   send 0x0 /* unknown */
+   send (extrinsrt 0x0 $r1 8 3 23) /* value */
+   mov $r2 0x7
+   send (extrinsrt 0x0 $r2 0 3 23) /* write mask */
+   maddr 0x18c4 /* FIRMWARE[4] */
+   mov $r2 0x831
+   send (extrinsrt 0x0 $r2 0 12 11) /* sends 0x418800 */
+   /* Subpixel precision */
+   mov $r2 (extrinsrt 0x0 $r1 0 4 0)
+   mov $r2 (extrinsrt $r2 $r1 4 4 8)
+   maddr 0x8287 /* SUBPIXEL_PRECISION[0] (incrementing by 8 methods) */
+   mov $r3 16 /* loop counter */
+crs_loop:
+   mov $r3 (add $r3 -1)
+   branz $r3 #crs_loop
+   send $r2
+   /* Enable */
+   exit maddr 0x1452 /* CONSERVATIVE_RASTER */
+   send 0x1
+
+/* NVC0_3D_MACRO_SET_PRIV_REG
+ *
+ * Requests the GR Falcon to set a MMIO register.
+ *
+ * arg      = register
+ * param[0] = value
+ * param[1] = mask
+ */
+.section #mme9097_set_priv_reg
+   maddr 0x1044 /* WAIT_FOR_IDLE */
+   send 0x0
+   parm $r2 /* value */
+   parm $r3 /* mask */
+   maddr 0x1d00 /* SCRATCH[0] */
+   send 0x0
+   send $r2
+   send $r3
+   read $r2 0xd1a /* SCRATCH[26] */
+   maddr 0x18c4 /* FIRMWARE[4] */
+   send $r1
+   mov $r1 (extrinsrt 0x0 $r2 0 8 0)
+   mov $r1 (add $r1 -2)
+   /* Set it to 0 increment for later sends */
+   maddr 0x0040 /* NO_OPERATION */
+   branz annul $r1 #spr_unk_else
+spr_wait_loop:
+   read $r1 0xd00 /* SCRATCH(0) */
+   send 0x0
+   mov $r1 (add $r1 -1)
+   branz annul $r1 #spr_wait_loop
+   bra annul #spr_exit
+spr_unk_else:
+   mov $r1 10
+spr_unk_else_loop:
+   send 0x0
+   mov $r1 (add $r1 -1)
+   branz annul $r1 #spr_unk_else_loop
+spr_exit:
+   exit mov $r1 $r1
+   mov $r1 $r1
+
+/* NVC0_3D_MACRO_COMPUTE_COUNTER
+ *
+ * This macro takes 6 values, num_groups_* and group_size_*, and adds their
+ * product to the current value
+ *
+ * It's used for keeping track of the number of executed indirect
+ * compute invocations for statistics.
+ *
+ * SCRATCH[4] = current counter [low]
+ * SCRATCH[5] = current counter [high]
+ *
+ * arg     = number of parameters to multiply together, ideally 6
+ * parm[0] = num_groups_x
+ * parm[1] = num_groups_y
+ * parm[2] = num_groups_z
+ * parm[3] = group_size_x
+ * parm[4] = group_size_y
+ * parm[5] = group_size_z
+ */
+.section #mme9097_compute_counter
+   mov $r7 $r1
+   mov $r1 1 /* low result */
+   mov $r2 0 /* high result */
+iic_loop_start:
+   parm $r3 /* val, next integer to multiply in */
+   /* multiplication start - look at low bit, add if set, shift right/left */
+   mov $r4 0 /* low temp */
+   mov $r5 0 /* high temp */
+iic_mul_start: /* temp = result * val */
+   braz annul $r3 #iic_mul_done
+iic_mul_body:
+   mov $r6 (extrinsrt 0x0 $r3 0 1 0) /* val & 1 - check low bit */
+   braz $r6 #iic_mul_cont /* bit not set */
+   mov $r3 (extrinsrt 0x0 $r3 1 31 0) /* val >>= 1 - shift right */
+
+   mov $r4 (add $r4 $r1) /* temp += result */
+   mov $r5 (adc $r5 $r2)
+iic_mul_cont:
+   mov $r1 (add $r1 $r1) /* shift left, part 1 (result *= 2) */
+   bra #iic_mul_start
+   mov $r2 (adc $r2 $r2) /* shift left, part 2 */
+iic_mul_done:
+   /* decrease loop counter, keep going if necessary */
+   mov $r7 (add $r7 -1)
+   /* result = temp ( = result * val ) */
+   mov $r1 $r4
+   branz $r7 #iic_loop_start
+   mov $r2 $r5
+
+   /* increment current value by newly-calculated invocation count */
+   read $r3 0xd04 /* SCRATCH[4] */
+   read $r4 0xd05 /* SCRATCH[5] */
+   maddr 0x1d04 /* SCRATCH[4] */
+   exit send (add $r3 $r1)
+   send (adc $r4 $r2)
+
+/* NVC0_3D_MACRO_COMPUTE_COUNTER_TO_QUERY
+ *
+ * This macro writes out the indirect counter plus a direct value to
+ * the given address using QUERY_GET (64-bit value).
+ *
+ * arg     = direct counter low
+ * parm[0] = direct counter high
+ * parm[1] = query address high
+ * parm[2] = query address low
+ */
+.section #mme9097_compute_counter_to_query
+   parm $r2 /* counter high */
+   read $r3 0xd04 /* SCRATCH[4] */
+   read $r4 0xd05 /* SCRATCH[5] */
+   mov $r1 (add $r1 $r3)
+   mov $r2 (adc $r2 $r4)
+
+   parm $r3 maddr 0x16c0 /* QUERY_ADDRESS_HIGH */
+   parm $r4 send $r3
+   send $r4 /* r3 = addr high, r4 = addr low */
+   send $r1 /* sum low */
+   mov $r5 0x1000
+   send (extrinsrt 0x0 $r5 0x0 0x10 0x10) /* GET_SHORT */
+
+   /* add 4 to the address */
+   mov $r1 0x4
+   mov $r4 (add $r4 $r1) /* addr low */
+   mov $r3 (adc $r3 0x0) /* addr high */
+   maddr 0x16c0 /* QUERY_ADDRESS_HIGH */
+   send $r3 /* addr high */
+   send $r4 /* addr low */
+   exit send $r2 /* sum high */
+   send (extrinsrt 0x0 $r5 0x0 0x10 0x10) /* GET_SHORT */

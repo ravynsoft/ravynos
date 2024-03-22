@@ -1,0 +1,60 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# Consistent timeouts.
+dEQP-GLES31.functional.fbo.no_attachments.maximums.all
+dEQP-GLES31.functional.fbo.no_attachments.maximums.size
+
+# This one is really slow and can time out (~56 seconds locally)
+KHR-GL33.texture_swizzle.smoke
+# Another slow one post NIR transition
+KHR-GL33.texture_swizzle.functional
+
+# piglit tests that would take too much memory on shared runners
+max-texture-size
+maxsize
+
+# Unreliable on shared runners due to timing
+ext_timer_query@time-elapsed
+
+# piglit tests that are too long for CI
+shader-mem-barrier
+fs-execution-ordering
+glsl-uniform-interstage-limits@subdivide 5
+arb_pipeline_statistics_query-comp
+gs-max-output
+spec@glsl-1.30@execution@texelfetch fs sampler2d 1x281-501x281
+fbo-depth-array
+
+# Slow, not obviously fixable test
+spec@arb_compute_shader@local-id-explosion
+
+# Manually skip some piglit tests since we don't have fast skipping in piglit-runner.
+glsl-4.00
+glsl-4.10
+glsl-4.20
+glsl-4.30
+glsl-4.40
+glsl-4.50
+gpu_shader4
+gpu_shader5
+arb_gpu_shader_fp64
+arb_gpu_shader_int64
+arb_tessellation_shader
+
+# Flakes due to using a time-based random seed, keep it from spamming IRC.
+spec@!opengl 1.4@triangle-rasterization
+
+# After piglit uprev, got this crash:
+# X Error of failed request:  BadMatch (invalid parameter attributes)
+#   Major opcode of failed request:  73 (X_GetImage)
+#   Serial number of failed request:  27
+#   Current serial number in output stream:  27
+# free(): invalid pointer
+# exit status: signal: 6 (core dumped) -->> The next 2
+# https://gitlab.freedesktop.org/mesa/mesa/-/issues/7610
+spec@arb_separate_shader_objects@xfb-explicit-location-array_gs
+spec@arb_separate_shader_objects@xfb-explicit-location-array_gs_max
+# exit status: signal: 11 (core dumped) -->> The last one
+spec@arb_separate_shader_objects@xfb-explicit-location-array_vs

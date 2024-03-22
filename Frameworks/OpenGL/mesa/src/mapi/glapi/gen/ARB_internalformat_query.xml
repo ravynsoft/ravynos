@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_internalformat_query" number="112">
+    <!-- Other existing enums are reused for this extension. -->
+
+    <enum name="NUM_SAMPLE_COUNTS"                        value="0x9380"/>
+
+    <function name="GetInternalformativ" es2="3.0">
+        <param name="target" type="GLenum"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLint *"/>
+    </function>
+</category>
+
+</OpenGLAPI>

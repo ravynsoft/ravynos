@@ -1,0 +1,141 @@
+Mesa 10.6.2 Release Notes / July 11, 2015
+=========================================
+
+Mesa 10.6.2 is a bug fix release which fixes bugs found since the 10.6.1
+release.
+
+Mesa 10.6.2 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   9c7ab9300dda6c912faaaff97995ec1820ba21d114d9cf555f145cbad90995f4  mesa-10.6.2.tar.gz
+   05753d3db4212900927b9894221a1669a10f56786e86a7e818b6e18a0817dca9  mesa-10.6.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 73528 <https://bugs.freedesktop.org/show_bug.cgi?id=73528>`__ -
+   Deferred lighting in Second Life causes system hiccups and screen
+   flickering
+-  `Bug 80500 <https://bugs.freedesktop.org/show_bug.cgi?id=80500>`__ -
+   Flickering shadows in unreleased title trace
+-  `Bug 82186 <https://bugs.freedesktop.org/show_bug.cgi?id=82186>`__ -
+   [r600g] BARTS GPU lockup with minecraft shaders
+-  `Bug 84225 <https://bugs.freedesktop.org/show_bug.cgi?id=84225>`__ -
+   Allow constant-index-expression sampler array indexing with GLSL-ES <
+   300
+-  `Bug 90537 <https://bugs.freedesktop.org/show_bug.cgi?id=90537>`__ -
+   radeonsi bo/va conflict on RADEON_GEM_VA
+   (rscreen->ws->buffer_from_handle returns NULL)
+-  `Bug 90873 <https://bugs.freedesktop.org/show_bug.cgi?id=90873>`__ -
+   Kernel hang, TearFree On, Mate desktop environment
+-  `Bug 91022 <https://bugs.freedesktop.org/show_bug.cgi?id=91022>`__ -
+   [g45 g965 bisected] assertions generated from textureGrad cube
+   samplers fix
+-  `Bug 91047 <https://bugs.freedesktop.org/show_bug.cgi?id=91047>`__ -
+   [SNB Bisected] Messed up Fog in Super Smash Bros. Melee in Dolphin
+-  `Bug 91056 <https://bugs.freedesktop.org/show_bug.cgi?id=91056>`__ -
+   The Bard's Tale (2005, native) has rendering issues
+-  `Bug 91117 <https://bugs.freedesktop.org/show_bug.cgi?id=91117>`__ -
+   Nimbus (running in wine) has rendering issues, objects are
+   semi-transparent
+-  `Bug 91124 <https://bugs.freedesktop.org/show_bug.cgi?id=91124>`__ -
+   Civilization V (in Wine) has rendering issues: text missing, menu bar
+   corrupted
+-  `Bug 91173 <https://bugs.freedesktop.org/show_bug.cgi?id=91173>`__ -
+   Oddworld: Stranger's Wrath HD: disfigured models in wrong colors
+-  `Bug 91226 <https://bugs.freedesktop.org/show_bug.cgi?id=91226>`__ -
+   Crash in glLinkProgram (NEW)
+-  `Bug 91231 <https://bugs.freedesktop.org/show_bug.cgi?id=91231>`__ -
+   [NV92] Psychonauts (native) segfaults on start when DRI3 enabled
+
+Changes
+-------
+
+Chris Wilson (1):
+
+-  loader: Look for any version of currently linked libudev.so
+
+Emil Velikov (2):
+
+-  docs: Add sha256 checksums for the 10.6.1 release
+-  Update version to 10.6.2
+
+Ilia Mirkin (8):
+
+-  nv50/ir: propagate modifier to right arg when const-folding mad
+-  nv50/ir: fix emission of address reg in 3rd source
+-  nv50/ir: copy joinAt when splitting both before and after
+-  mesa: reset the source packing when creating temp transfer image
+-  nv50/ir: don't emit src2 in immediate form
+-  mesa/prog: relative offsets into constbufs are not constant
+-  nv50/ir: UCMP arguments are float, so make sure modifiers are applied
+-  nvc0: turn sample counts off during blit
+
+Kenneth Graunke (5):
+
+-  i965/fs: Fix ir_txs in emit_texture_gen4_simd16().
+-  i965: Reserve more batch space to accomodate Gen6 perfmonitors.
+-  i965/vs: Fix matNxM vertex attributes where M != 4.
+-  Revert "glsl: clone inputs and outputs during linking"
+-  Revert "i965: Delete linked GLSL IR when using NIR."
+
+Marek Olšák (3):
+
+-  r600g: disable single-sample fast color clear due to hangs
+-  radeonsi: fix a hang with DrawTransformFeedback on 4 SE chips
+-  st/dri: don't set PIPE_BIND_SCANOUT for MSAA surfaces
+
+Mario Kleiner (2):
+
+-  nouveau: Use dup fd as key in drm-winsys hash table to fix
+   ZaphodHeads.
+-  winsys/radeon: Use dup fd as key in drm-winsys hash table to fix
+   ZaphodHeads.
+
+Matt Turner (2):
+
+-  i965/fs: Don't mess up stride for uniform integer multiplication.
+-  Revert SHA1 additions.
+
+Michel Dänzer (1):
+
+-  winsys/radeon: Unmap GPU VM address range when destroying BO
+
+Mike Stroyan (2):
+
+-  meta: Only change and restore viewport 0 in mesa meta mode
+-  i965: allocate at least 1 BLEND_STATE element
+
+Neil Roberts (4):
+
+-  i965/skl: Set the pulls bary bit in 3DSTATE_PS_EXTRA
+-  glsl: Add missing check for whether an expression is an add operation
+-  glsl: Make sure not to dereference NULL
+-  i965: Don't try to print the GLSL IR if it has been freed
+
+Tapani Pälli (8):
+
+-  glsl: clone inputs and outputs during linking
+-  i965: Delete linked GLSL IR when using NIR.
+-  glsl: Allow dynamic sampler array indexing with GLSL ES < 3.00
+-  mesa/glsl: new compiler option EmitNoIndirectSampler
+-  i965: use EmitNoIndirectSampler for gen < 7
+-  i915: use EmitNoIndirectSampler
+-  mesa/st: use EmitNoIndirectSampler if !ARB_gpu_shader5
+-  glsl: validate sampler array indexing for 'constant-index-expression'

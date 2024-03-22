@@ -1,0 +1,63 @@
+Mesa 11.0.2 Release Notes / September 28, 2015
+==============================================
+
+Mesa 11.0.2 is a bug fix release which fixes bugs found since the 11.0.1
+release.
+
+Mesa 11.0.2 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   45170773500d6ae2f9eb93fc85efee69f7c97084411ada4eddf92f78bca56d20  mesa-11.0.2.tar.gz
+   fce11fb27eb87adf1e620a76455d635c6136dfa49ae58c53b34ef8d0c7b7eae4  mesa-11.0.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 91582 <https://bugs.freedesktop.org/show_bug.cgi?id=91582>`__ -
+   [bisected] Regression in DEQP
+   gles2.functional.negative_api.texture.texsubimage2d_neg_offset
+-  `Bug 91970 <https://bugs.freedesktop.org/show_bug.cgi?id=91970>`__ -
+   [BSW regression]
+   dEQP-GLES3.functional.shaders.precision.int.highp_mul_vertex
+-  `Bug 92095 <https://bugs.freedesktop.org/show_bug.cgi?id=92095>`__ -
+   [Regression, bisected]
+   arb_shader_atomic_counters.compiler.builtins.frag
+
+Changes
+-------
+
+Eduardo Lima Mitev (3):
+
+-  mesa: Fix order of format+type and internal format checks for
+   glTexImageXD ops
+-  mesa: Move \_mesa_base_tex_format() from teximage to glformats files
+-  mesa: Use the effective internal format instead for validation
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 11.0.1
+-  Update version to 11.0.2
+
+Kristian Høgsberg Kristensen (1):
+
+-  i965: Respect stride and subreg_offset for ATTR registers
+
+Matt Turner (1):
+
+-  glsl: Expose gl_MaxTess{Control,Evaluation}AtomicCounters.

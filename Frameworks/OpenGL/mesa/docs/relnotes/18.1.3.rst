@@ -1,0 +1,138 @@
+Mesa 18.1.3 Release Notes / June 29 2018
+========================================
+
+Mesa 18.1.3 is a bug fix release which fixes bugs found since the 18.1.2
+release.
+
+Mesa 18.1.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   2a1e36280d01ad18ba6d5b3fbd653ceaa109eaa031b78eb5dfaa4df452742b66  mesa-18.1.3.tar.gz
+   54f08deeda0cd2f818e8d40140040ed013de7852573002453b7f50da9ea738ce  mesa-18.1.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 105396 <https://bugs.freedesktop.org/show_bug.cgi?id=105396>`__
+   - tc compatible htile sets depth of htiles of discarded fragments to
+   1.0
+-  `Bug 105399 <https://bugs.freedesktop.org/show_bug.cgi?id=105399>`__
+   - [snb] GPU hang: after geometry shader emits no geometry, the
+   program hangs
+-  `Bug 106756 <https://bugs.freedesktop.org/show_bug.cgi?id=106756>`__
+   - Wine 3.9 crashes with DXVK on Just Cause 3 and Quantum Break on
+   VEGA but works ON POLARIS
+-  `Bug 106774 <https://bugs.freedesktop.org/show_bug.cgi?id=106774>`__
+   - GLSL IR copy propagates loads of SSBOs
+-  `Bug 106903 <https://bugs.freedesktop.org/show_bug.cgi?id=106903>`__
+   - radv: Fragment shader output goes to wrong attachments when render
+   targets are sparse
+-  `Bug 106907 <https://bugs.freedesktop.org/show_bug.cgi?id=106907>`__
+   - Correct Transform Feedback Varyings information is expected after
+   using ProgramBinary
+-  `Bug 106912 <https://bugs.freedesktop.org/show_bug.cgi?id=106912>`__
+   - radv: 16-bit depth buffer causes artifacts in Shadow Warrior 2
+-  `Bug 106980 <https://bugs.freedesktop.org/show_bug.cgi?id=106980>`__
+   - Basemark GPU vulkan benchmark fails.
+
+Changes
+-------
+
+Andrii Simiklit (1):
+
+-  i965/gen6/gs: Handle case where a GS doesn't allocate VUE
+
+Bas Nieuwenhuizen (2):
+
+-  radv: Fix output for sparse MRTs.
+-  ac/surface: Set compressZ for stencil-only surfaces.
+
+Christian Gmeiner (1):
+
+-  util/bitset: include util/macro.h
+
+Dave Airlie (1):
+
+-  glsl: allow standalone semicolons outside main()
+
+Dylan Baker (8):
+
+-  docs: Add release notes for 18.1.2
+-  cherry-ignore: Add 587e712eda95c31d88ea9d20e59ad0ae59afef4f
+-  meson: Fix auto option for va
+-  meson: Fix auto option for xvmc
+-  meson: Correct behavior of vdpau=auto
+-  cherry-ignore: Ignore cac7ab1192eefdd8d8b3f25053fb006b5c330eb8
+-  cherry-ignore: add a2f5292c82ad07731d633b36a663e46adc181db9
+-  VERSION: bump version to 18.1.3
+
+Emil Velikov (2):
+
+-  configure: use compliant grep regex checks
+-  glsl/tests/glcpp: reinstate "error out if no tests found"
+
+Eric Engestrom (3):
+
+-  radv: fix reported number of available VGPRs
+-  radv: fix bitwise check
+-  meson: fix i965/anv/isl genX static lib names
+
+Ian Romanick (2):
+
+-  glsl: Don't copy propagate from SSBO or shared variables either
+-  glsl: Don't copy propagate elements from SSBO or shared variables
+   either
+
+Faith Ekstrand (2):
+
+-  nir: Handle call instructions in foreach_src
+-  nir/validate: Use the type from the tail of call parameter derefs
+
+Lukas Rusak (2):
+
+-  meson: only build vl_winsys_dri.c when x11 platform is used
+-  meson: fix private libs when building without glx
+
+Marek Olšák (5):
+
+-  radeonsi/gfx9: fix si_get_buffer_from_descriptors for 48-bit pointers
+-  ac/gpu_info: report real total memory sizes
+-  ac/gpu_info: add kernel_flushes_hdp_before_ib
+-  radeonsi: always put persistent buffers into GTT on radeon
+-  mesa: fix glGetInteger64v for arrays of integers
+
+Rob Clark (1):
+
+-  freedreno/ir3: fix base_vertex
+
+Samuel Pitoiset (6):
+
+-  radv: don't fast clear HTILE for 16-bit depth surfaces on GFX8
+-  radv: update the ZRANGE_PRECISION value for the TC-compat bug
+-  radv: fix emitting the TCS regs on GFX9
+-  radv: fix HTILE metadata initialization in presence of subpass clears
+-  radv: ignore pInheritanceInfo for primary command buffers
+-  radv: use separate bind points for the dynamic buffers
+
+Tapani Pälli (1):
+
+-  glsl: serialize data from glTransformFeedbackVaryings
+
+Tomeu Vizoso (1):
+
+-  virgl: Remove debugging left-overs

@@ -1,0 +1,8 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# Slow tests that may hit 60s timeout pre-merge.
+dEQP-VK.memory.mapping.*.full.variable.implicit_unmap
+dEQP-VK.spirv_assembly.instruction.graphics.16bit_storage.struct_mixed_types.uniform_buffer_block_vert
+dEQP-VK.spirv_assembly.instruction.graphics.spirv_ids_abuse.lots_ids_.*

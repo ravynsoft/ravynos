@@ -1,0 +1,156 @@
+Mesa 11.1.2 Release Notes / February 10, 2016
+=============================================
+
+Mesa 11.1.2 is a bug fix release which fixes bugs found since the 11.1.1
+release.
+
+Mesa 11.1.2 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   ba0e7462b2936b86e6684c26fbb55519f8d9ad31d13a1c1e1afbe41e73466eea  mesa-11.1.2.tar.gz
+   8f72aead896b340ba0f7a4a474bfaf71681f5d675592aec1cb7ba698e319148b  mesa-11.1.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 91596 <https://bugs.freedesktop.org/show_bug.cgi?id=91596>`__ -
+   EGL_KHR_gl_colorspace (v2) causes problem with Android-x86 GUI
+-  `Bug 93628 <https://bugs.freedesktop.org/show_bug.cgi?id=93628>`__ -
+   Exception: attempt to use unavailable module DRM when building MesaGL
+   11.1.0 on windows
+-  `Bug 93648 <https://bugs.freedesktop.org/show_bug.cgi?id=93648>`__ -
+   Random lines being rendered when playing Dolphin (geometry shaders
+   related, w/ apitrace)
+-  `Bug 93650 <https://bugs.freedesktop.org/show_bug.cgi?id=93650>`__ -
+   GL_ARB_separate_shader_objects is buggy (PCSX2)
+-  `Bug 93717 <https://bugs.freedesktop.org/show_bug.cgi?id=93717>`__ -
+   Meta mipmap generation can corrupt texture state
+-  `Bug 93722 <https://bugs.freedesktop.org/show_bug.cgi?id=93722>`__ -
+   Segfault when compiling shader with a subroutine that takes a
+   parameter
+-  `Bug 93731 <https://bugs.freedesktop.org/show_bug.cgi?id=93731>`__ -
+   glUniformSubroutinesuiv segfaults when subroutine uniform is bound to
+   a specific location
+-  `Bug 93761 <https://bugs.freedesktop.org/show_bug.cgi?id=93761>`__ -
+   A conditional discard in a fragment shader causes no depth writing at
+   all
+
+Changes
+-------
+
+Ben Widawsky (1):
+
+-  i965/bxt: Fix conservative wm thread counts.
+
+Dave Airlie (1):
+
+-  glsl: fix subroutine lowering reusing actual parmaters
+
+Emil Velikov (6):
+
+-  docs: add sha256 checksums for 11.1.1
+-  cherry-ignore: drop the i965/kbl .num_slices patch
+-  i915: correctly parse/set the context flags
+-  targets/dri: android: use WHOLE static libraries
+-  egl/dri2: expose srgb configs when KHR_gl_colorspace is available
+-  Update version to 11.1.2
+
+Eric Anholt (2):
+
+-  vc4: Don't record the seqno of a failed job submit.
+-  vc4: Throttle outstanding rendering after submission.
+
+François Tigeot (1):
+
+-  gallium: Add DragonFly support
+
+Grazvydas Ignotas (1):
+
+-  r600g: don't leak driver const buffers
+
+Ian Romanick (2):
+
+-  meta/blit: Restore GL_DEPTH_STENCIL_TEXTURE_MODE state for
+   GL_TEXTURE_RECTANGLE
+-  meta: Use internal functions to set texture parameters
+
+Ilia Mirkin (6):
+
+-  st/mesa: use surface format to generate mipmaps when available
+-  glsl: always compute proper varying type, irrespective of varying
+   packing
+-  nvc0: avoid crashing when there are holes in vertex array bindings
+-  nv50,nvc0: fix buffer clearing to respect engine alignment
+   requirements
+-  nv50/ir: fix false global CSE on instructions with multiple defs
+-  st/mesa: treat a write as a read for range purposes
+
+Faith Ekstrand (3):
+
+-  i965/vec4: Use UW type for multiply into accumulator on GEN8+
+-  i965/fs/generator: Take an actual shader stage rather than a string
+-  i965/fs: Always set channel 2 of texture headers in some stages
+
+Jose Fonseca (2):
+
+-  scons: Conditionally use DRM module on pipe-loader.
+-  pipe-loader: Fix PATH_MAX define on MSVC.
+
+Karol Herbst (1):
+
+-  nv50/ir: fix memory corruption when spilling and redoing RA
+
+Kenneth Graunke (2):
+
+-  glsl: Make bitfield_insert/extract and bfi/bfm non-vectorizable.
+-  glsl: Allow implicit int -> uint conversions for bitwise operators
+   (&, ^, \|).
+
+Leo Liu (2):
+
+-  vl: add zig zag scan for list 4x4
+-  st/omx/dec/h264: fix corruption when scaling matrix present flag set
+
+Marek Olšák (1):
+
+-  radeonsi: don't miss changes to SPI_TMPRING_SIZE
+
+Nicolai Hähnle (11):
+
+-  mesa/bufferobj: make \_mesa_delete_buffer_object externally
+   accessible
+-  st/mesa: use \_mesa_delete_buffer_object
+-  radeon: use \_mesa_delete_buffer_object
+-  i915: use \_mesa_delete_buffer_object
+-  i965: use \_mesa_delete_buffer_object
+-  util/u_pstipple.c: copy immediates during transformation
+-  radeonsi: extract the VGT_GS_MODE calculation into its own function
+-  radeonsi: ensure that VGT_GS_MODE is sent when necessary
+-  radeonsi: add DCC buffer for sampler views on new CS
+-  st/mesa: use the correct address generation functions in
+   st_TexSubImage blit
+-  radeonsi: fix discard-only fragment shaders (11.1 version)
+
+Timothy Arceri (4):
+
+-  glsl: fix segfault linking subroutine uniform with explicit location
+-  mesa: fix segfault in glUniformSubroutinesuiv()
+-  glsl: fix interface block error message
+-  glsl: create helper to remove outer vertex index array used by some
+   stages

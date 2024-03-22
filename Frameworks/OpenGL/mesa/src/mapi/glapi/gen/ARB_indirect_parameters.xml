@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_draw_indirect" number="154">
+
+    <enum name="PARAMETER_BUFFER_ARB"                   value="0x80EE"/>
+    <enum name="PARAMETER_BUFFER_BINDING_ARB"           value="0x80EF"/>
+
+    <function name="MultiDrawArraysIndirectCountARB" marshal="custom"
+              marshal_struct="public">
+        <param name="mode" type="GLenum"/>
+        <param name="indirect" type="GLintptr"/>
+        <param name="drawcount" type="GLintptr"/>
+        <param name="maxdrawcount" type="GLsizei"/>
+        <param name="stride" type="GLsizei"/>
+    </function>
+
+    <!-- Use "...has_non_vbo_vertices", because indices always come from a buffer object. -->
+    <function name="MultiDrawElementsIndirectCountARB" marshal="custom"
+              marshal_struct="public">
+        <param name="mode" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="indirect" type="GLintptr"/>
+        <param name="drawcount" type="GLintptr"/>
+        <param name="maxdrawcount" type="GLsizei"/>
+        <param name="stride" type="GLsizei"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

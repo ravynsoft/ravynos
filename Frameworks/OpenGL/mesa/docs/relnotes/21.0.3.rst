@@ -1,0 +1,224 @@
+Mesa 21.0.3 Release Notes / 2021-04-21
+======================================
+
+Mesa 21.0.3 is a bug fix release which fixes bugs found since the 21.0.2 release.
+This is the last release of the 21.0 series, please migrate to 21.1 as soon as
+possible.
+
+Mesa 21.0.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.0.3 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    565c6f4bd2d5747b919454fc1d439963024fc78ca56fd05158c3b2cde2f6912b  mesa-21.0.3.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- texture glitches on CS:GO on Tiger Lake
+- anv: anv_descriptor_set_binding_layout::array_size overflows u16
+- RADV - Vertex explosion in DIRT 5 on RDNA2
+- SIGSEV in v3d_emit_gl_shader_state
+- panfrost: Page fault in glamor when running GIMP with X11 on Mali T860
+- radeonsi: prusa-slicer crashes on mesa 21
+- Up to 30% performance drop (GLBenchmark, GfxBench)
+- EGL context creation fails when EGL_KHR_create_context_no_error is mentioned for OpenGL ES 1.1.
+
+
+Changes
+-------
+
+Alexander Shi (1):
+
+- mesa: texparam: Add a clamping macro to handle out-of-range floats returned as integers.
+
+Alexander von Gluck IV (1):
+
+- egl/haiku: Fix ConfigID naming inline with mesa
+
+Alyssa Rosenzweig (2):
+
+- panfrost: Fix AFBC body_size for shared resources
+- panfrost: Enable AFBC buffer sharing
+
+Bas Nieuwenhuizen (3):
+
+- nir: Fix shader calls with nir_opt_dead_write_vars.
+- lavapipe: Free sorted descriptor array.
+- radv: Dedupe winsyses per device.
+
+Boris Brezillon (1):
+
+- panfrost: Don't advertise AFBC mods when the format is not supported
+
+Chad Versace (1):
+
+- anv/image: Fix cleanup of failed image creation
+
+Connor Abbott (4):
+
+- ir3/cp_postsched: Set address of uses for relative mov's
+- ir3: Don't copy propagate arrays in ir3_cp
+- ir3: Fix list corruption in legalize_block()
+- tu: Correctly preserve old push descriptor contents
+
+Danylo Piliaiev (1):
+
+- turnip: consider HW limit on number of views when apply multipos opt
+
+Dave Airlie (4):
+
+- lavapipe: implement physical device group enumeration
+- lavapipe: reorder descriptor set stages to get correct binding
+- lavapipe: sort bindings before creating descriptor set
+- lavapipe: fix only clearing depth or stencil paths.
+
+Drew Davenport (1):
+
+- radeonsi: Report multi-plane formats as unsupported
+
+Dylan Baker (12):
+
+- relnotes: Add sha256sum for 21.0.2
+- .pick_status.json: Update to 1286e73c2c0c5aac1bbc5a979230e9fd2c4a0600
+- .pick_status.json: Update to b927de8b7fc843e5c0f131a2170910b062f6930a
+- .pick_status.json: Update to e11df07e5413a7df40ec7427a20212e53f41cf63
+- .pick_status.json: Update to dc265008c70b76b39b86a4d5b0f9da69d12eb31d
+- .pick_status.json: Mark a number of patches as backported
+- .pick_status.json: Mark a number of patches as backported
+- .pick_status.json: Update to 5362adf68dc30dcf132e89e686c21bdd6a7f6dbb
+- .pick_status.json: Update to db538bde71bf3c7b76df3b65679124b24afb930f
+- .pick_status.json: Mark 78b643fb7f7ad6f48062714a23b0d6d9f213c8cb as denominated
+- .pick_status.json: Update to 95d9d811c91076d50385b2fbd330335b68688c69
+- .pick_status.json: Mark a number of patches as denominated
+
+Eric Anholt (1):
+
+- nir_to_tgsi: Use ARL instead of UARL in the !native_integers case.
+
+Erik Faye-Lund (12):
+
+- lavapipe: fix primitive-restart for uint8 indices
+- glsl: fix is_integer_16_32
+- glsl: fix int16 type
+- gallium/st: correct range for float16
+- gallium/st: correct range for int16
+- compiler/glsl: drop rogue argument to \_mesa_glsl_error
+- compiler/glsl: do not cast struct to string
+- lavapipe: do not subtract 8 from enum
+- lavapipe: check all vertex-stages
+- lavapipe: check all graphics stages
+- lavapipe: ask pipe-driver for int16 support
+- gallivm: handle 16-bit input in i2b32
+
+Francisco Jerez (1):
+
+- iris/gen12: Work around push constant corruption on context switch.
+
+Icecream95 (2):
+
+- panfrost: Only add resource checksum BOs to the batch once
+- panfrost: Unset shared/scanout binding flags for staging resources
+
+Ilia Mirkin (2):
+
+- ci: remove nouveau from shader-db runs
+- nv50/ir: fix texture size for msaa textures
+
+Faith Ekstrand (3):
+
+- anv: Clean up anv_device_memory::base on failure
+- anv: Clean up anv_descriptor_pool::base on the error path
+- anv: Clean up anv_semaphore::base on the error path
+
+Jesse Natalie (9):
+
+- nir_opt_deref: ptr_as_array(deref_cast<T*>(x))[0\] isn't the same as x[0\] if the cast has alignment
+- nir: Fix MSVC warning C4334 (32bit shift cast to 64bit)
+- d3d12: Fix MSVC warning C4334 (32bit shift cast to 64bit)
+- microsoft/clc: Fix MSVC unreferenced variable warnings
+- microsoft/clc: Fix undeclared function warning
+- microsoft/compiler: Fix MSVC warning C4334 (32bit shift cast to 64bit)
+- shader_enums: Fix MSVC warning C4334 (32bit shift cast to 64bit)
+- llvmpipe: Fix MSVC warning C4334 (32bit shift cast to 64bit)
+- xmlconfig: Fix MSVC warning C4334 (32bit shift cast to 64bit)
+
+Juan A. Suarez Romero (1):
+
+- v3d: do not emit attribute if has no resource
+
+Lionel Landwerlin (2):
+
+- anv: bump internal descriptor index fields to 32bits
+- spirv: fix uToAccelerationStructure handling
+
+Lucas Stach (1):
+
+- etnaviv: don't try to copy PIPE_BUFFER with the 3D engine
+
+Marcin Ślusarz (2):
+
+- gallium: add PIPE_CAP_ALLOW_DYNAMIC_VAO_FASTPATH
+- iris: disable dynamic VAO fastpath on GFX version 9
+
+Marek Olšák (3):
+
+- ac/gpu_info: rename num_tcc_blocks -\> max_tcc_blocks
+- ac/gpu_info: add radeon_info::num_tcc_blocks
+- ac/gpu_info: fix more non-coherent RB and GL2 combinations
+
+Michel Dänzer (1):
+
+- wsi/x11: Wait for fences with IMMEDIATE on Xwayland
+
+Mike Blumenkrantz (1):
+
+- lavapipe: don't pass tracked draw info to indirect draw functions
+
+Nanley Chery (1):
+
+- iris: Set BO maps to NULL in bo_free
+
+Philipp Zabel (1):
+
+- meson: Fix missing xcb-xrandr dependency for Vulkan X11 WSI
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- mesa/st: ignore texture_index if tex_instr has deref src
+- gallium/u_threaded: split draws that don't fit in a batch
+
+Rhys Perry (2):
+
+- nir/lower_tex: handle deref casts
+- draw: fix pstipple, aaline and aapoint without LLVM
+
+Samuel Pitoiset (1):
+
+- ac: add missing BUF_DATA_FORMAT_10_11_11 vertex format on GFX10+
+
+Tapani Pälli (1):
+
+- egl: support no error attribute set to false with ES 1.1
+
+Vasily Khoruzhick (1):
+
+- lima: use passed surface to get mipmap level for reload, not cbuf

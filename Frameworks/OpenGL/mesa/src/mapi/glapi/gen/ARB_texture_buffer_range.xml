@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_texture_buffer_range" number="139">
+
+    <enum name="TEXTURE_BUFFER_OFFSET"                  value="0x919D"/>
+    <enum name="TEXTURE_BUFFER_SIZE"                    value="0x919E"/>
+    <enum name="TEXTURE_BUFFER_OFFSET_ALIGNMENT"        value="0x919F"/>
+
+    <function name="TexBufferRange" es2="3.2">
+        <param name="target" type="GLenum"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="buffer" type="GLuint"/>
+        <param name="offset" type="GLintptr"/>
+        <param name="size" type="GLsizeiptr"/>
+    </function>
+
+    <function name="TextureBufferRangeEXT">
+        <param name="texture" type="GLuint"/>
+        <param name="target" type="GLenum"/>
+        <param name="internalformat" type="GLenum"/>
+        <param name="buffer" type="GLuint"/>
+        <param name="offset" type="GLintptr"/>
+        <param name="size" type="GLsizeiptr"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

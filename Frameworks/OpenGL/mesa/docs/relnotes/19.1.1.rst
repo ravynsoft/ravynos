@@ -1,0 +1,122 @@
+Mesa 19.1.1 Release Notes / June 25, 2019
+=========================================
+
+Mesa 19.1.1 is a bug fix release which fixes bugs found since the 19.1.0
+release.
+
+Mesa 19.1.1 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   72114b16b4a84373b2acda060fe2bb1d45ea2598efab3ef2d44bdeda74f15581  mesa-19.1.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 110709 <https://bugs.freedesktop.org/show_bug.cgi?id=110709>`__
+   - g_glxglvnddispatchfuncs.c and glxglvnd.c fail to build with clang
+   8.0
+-  `Bug 110901 <https://bugs.freedesktop.org/show_bug.cgi?id=110901>`__
+   - mesa-19.1.0/src/util/futex.h:82: use of out of scope variable ?
+-  `Bug 110902 <https://bugs.freedesktop.org/show_bug.cgi?id=110902>`__
+   - mesa-19.1.0/src/broadcom/compiler/vir_opt_redundant_flags.c:104]:
+   (style) Same expression
+-  `Bug 110921 <https://bugs.freedesktop.org/show_bug.cgi?id=110921>`__
+   - virgl on OpenGL 3.3 host regressed to OpenGL 2.1
+
+Changes
+-------
+
+Alejandro Piñeiro (1):
+
+-  v3d: fix checking twice auf flag
+
+Bas Nieuwenhuizen (5):
+
+-  radv: Skip transitions coming from external queue.
+-  radv: Decompress DCC when the image format is not allowed for
+   buffers.
+-  radv: Fix vulkan build in meson.
+-  anv: Fix vulkan build in meson.
+-  meson: Allow building radeonsi with just the android platform.
+
+Dave Airlie (1):
+
+-  nouveau: fix frees in unsupported IR error paths.
+
+Eduardo Lima Mitev (1):
+
+-  freedreno/a5xx: Fix indirect draw max_indices calculation
+
+Eric Engestrom (3):
+
+-  util/futex: fix dangling pointer use
+-  glx: fix glvnd pointer types
+-  util/os_file: resize buffer to what was actually needed
+
+Gert Wollny (1):
+
+-  virgl: Assume sRGB write control for older guest kernels or
+   virglrenderer hosts
+
+Haihao Xiang (1):
+
+-  i965: support UYVY for external import only
+
+Faith Ekstrand (1):
+
+-  anv: Set STATE_BASE_ADDRESS upper bounds on gen7
+
+Juan A. Suarez Romero (2):
+
+-  docs: Add SHA256 sums for 19.1.0
+-  Update version to 19.1.1
+
+Kenneth Graunke (2):
+
+-  glsl: Fix out of bounds read in shader_cache_read_program_metadata
+-  iris: Fix iris_flush_and_dirty_history to actually dirty history.
+
+Kevin Strasser (2):
+
+-  gallium/winsys/kms: Fix dumb buffer bpp
+-  st/mesa: Add rgbx handling for fp formats
+
+Lionel Landwerlin (2):
+
+-  anv: do not parse genxml data without INTEL_DEBUG=bat
+-  intel/dump: fix segfault when the app hasn't accessed the device
+
+Mathias Fröhlich (1):
+
+-  egl: Don't add hardware device if there is no render node v2.
+
+Richard Thier (1):
+
+-  r300g: restore performance after RADEON_FLAG_NO_INTERPROCESS_SHARING
+   was added
+
+Rob Clark (1):
+
+-  freedreno/a6xx: un-swap X24S8_UINT
+
+Samuel Pitoiset (4):
+
+-  radv: fix occlusion queries on VegaM
+-  radv: fix VK_EXT_memory_budget if one heap isn't available
+-  radv: fix FMASK expand with SRGB formats
+-  radv: disable viewport clamping even if FS doesn't write Z

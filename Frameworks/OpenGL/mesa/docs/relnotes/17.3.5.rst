@@ -1,0 +1,42 @@
+Mesa 17.3.5 Release Notes / February 19, 2018
+=============================================
+
+Mesa 17.3.5 is a bug fix release which fixes bugs found since the 17.3.4
+release.
+
+Mesa 17.3.5 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   bc1ee20366aae2affc37c89228f871f438136f70252005e9f842169bde976788  mesa-17.3.5.tar.gz
+   eb9228fc8aaa71e0205c1481c5b157752ebaec9b646b030d27478e25a6d7936a  mesa-17.3.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+None
+
+Changes
+-------
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 17.3.4
+-  Update version to 17.3.5
+
+James Legg (1):
+
+-  ac/nir: Fix conflict resolution typo in handle_vs_input_decl

@@ -1,0 +1,222 @@
+Mesa 23.1.1 Release Notes / 2023-05-25
+======================================
+
+Mesa 23.1.1 is a bug fix release which fixes bugs found since the 23.1.0 release.
+
+Mesa 23.1.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.1 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    a2679031ed5b73b29c4f042ac64d96f83b0cfe4858617de32e2efc196c653a40  mesa-23.1.1.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radeonsi: texturing is broken on R9.270x since eaf98b14220d8cbc186d67a929254acc3e7de41a
+- Firefox / VA-API / H.264 decoding artifacts on AMD RX 6600 / Fedora 37
+- AMD/RX 6600 - VA-API video output is corrupted if decoded surfaces are exported by vaExportSurfaceHandle and then quickly returned to ffmpeg/va-api decoder and reused
+- Pixel Game Maker MV - Elfin Force
+- [REGRESSION] Crash in \`loader_dri3_wait_gl()` due to \`dri3_front_buffer(draw) == NULL`
+- some piglit tests seg-fault if -Dgles1=disabled is set
+- anv: Tom Clancy's Rainbow Six Siege [DX11: Image Corruption(FIXED)/Vulkan: crash on lauch]
+- radv: Sample rate shading broken in AC:Valhalla
+- radv/rt: crash compiling Unity Enemies Demo RT pipelines
+- gfxbench4/5 crashing on android
+- mesa 23.0.3 build failure
+- radv: Battlefield {1,5} hangs on RX 7900 XTX
+- radv: graphical artifacts in MSFS running via DXVK on RX7900XT
+- Compile failure v23.0.0 - error: implicit declaration of function
+
+
+Changes
+-------
+
+Daniel Schürmann (2):
+
+- vulkan/pipeline_cache: don't log warnings for internal caches
+- vulkan/pipeline_cache: don't log warnings for client-invisible caches
+
+Dave Airlie (1):
+
+- radv/video: use correct h264 levels
+
+Eric Engestrom (4):
+
+- docs: add release notes for 23.1.0
+- .pick_status.json: Update to 5be8acc1b53382a8692b7115b37469fa6c435103
+- .pick_status.json: Update to 1f586f94097f6c8fca3987e03c4ed671fd280a67
+- .pick_status.json: Update to 4af6b601e05cf1a9f2002698b5fb1d0b971124db
+
+Erik Faye-Lund (1):
+
+- aco: use c++17
+
+Filip Gawin (2):
+
+- glx: fix build with APPLEGL
+- ac/nir: fix slots in clamping legacy colors
+
+Georg Lehmann (1):
+
+- aco/vn: compare all valu modifers
+
+Gert Wollny (1):
+
+- virgl: Make query result resource as dirty before requesting result
+
+Jesse Natalie (2):
+
+- dzn: Partial revert of 8887852d
+- dzn: Fix src/dest confusion for some non-bindless descriptor copies
+
+Jiadong Zhu (1):
+
+- ac: enable SHADOW_GLOBAL_CONFIG for preemptible ib
+
+Jonathan Gray (1):
+
+- intel/dev: remove dg2 0x5698 pci id
+
+Jordan Justen (1):
+
+- mesa/main: Exit early when trying to create an unsupported context API
+
+José Roberto de Souza (1):
+
+- anv: Fix ANV_BO_ALLOC_NO_LOCAL_MEM flag
+
+Kenneth Graunke (2):
+
+- nir: Add find_lsb lowering to nir_lower_int64.
+- intel/compiler: Fix 64-bit ufind_msb, find_lsb, and bit_count
+
+Konstantin Kharlamov (1):
+
+- loader/dri3: temporarily work around a crash when front is NULL
+
+Konstantin Seurer (1):
+
+- nir/lower_shader_calls: Remat derefs earlier
+
+Lionel Landwerlin (6):
+
+- anv: fixup workaround 16011411144
+- anv: put private binding BOs into execlists
+- anv: mark images compressed for untracked layout/access
+- anv: fix push descriptor deferred surface state packing
+- intel/fs: fix size_read() for LOAD_PAYLOAD
+- iris: rework Wa_14017076903 to only apply with occlusion queries
+
+Marek Olšák (3):
+
+- mesa: fix a VBO buffer reference leak in _mesa_bind_vertex_buffer
+- winsys/radeon: set has_image_opcodes to unbreak gfx6-7
+- winsys/radeon: fix the scratch buffer on gfx6-7
+
+Matt Turner (1):
+
+- intel: Disable shader cache when executing intel_clc during the build
+
+Mike Blumenkrantz (17):
+
+- zink: disable always zs feedback loop on radv
+- zink: disable have_EXT_vertex_input_dynamic_state without EDS2
+- zink: disable dynamic state exts if the previous ones aren't present
+- zink: don't leak swapchain readback semaphores
+- zink: destroy current batch state after all other batch states
+- zink: only add feedback loop usage bit if extension is supported
+- zink: flag batch usage on swapchain images
+- vulkan/wsi: add feedback loop usage to swapchain caps if supported
+- zink: add feedback loop usage for swapchains
+- zink: try update fb resource refs when starting new renderpass
+- zink: add special-casing for (not) reordering certain image barriers
+- zink: disable unordered blits when swapchain images need aqcuire
+- zink: explicitly disable reordering after restricted swapchain readback blits
+- zink: flag 'has_work' on batch when promoting a cmd
+- zink: also declare int size caps inline with signed int type usage
+- zink: don't wait on queue thread if disabled
+- zink: use the per-context track_renderpasses flag in more places
+
+MrRobbin (1):
+
+- zink: Move the workaround before the EDS setting.
+
+Patrick Lerda (3):
+
+- crocus: fix scratch_bos memory leak
+- mesa: fix refcnt imbalance related to egl_image_target_texture()
+- glthread: fix typo related to upload_vertices()
+
+Rhys Perry (1):
+
+- aco/gfx11: fix VMEM/DS->VALU WaW/RaW hazard
+
+Ruijing Dong (3):
+
+- gallium/pipe: add interface update_decoder_target
+- radeonsi/vcn: apply update_decoder_target logic
+- frontends/va: remove private member and update target buffer
+
+Samuel Pitoiset (8):
+
+- radv: re-emit fragment shading rate state when PA_CL_VRS_CNTL changes
+- radv: fix resetting VRS if the graphics pipeline doesn't enable it
+- radv: fix a sync issue with primitives generated query and NGG/legacy
+- radv: reserve cmdbuf space in radv_flush_gfx2ace_semaphore()
+- radv: bump the global VRS image size to maximum supported FB dimensions
+- radv: disable IMAGE_USAGE_STORAGE with depth-only and stencil-only formats
+- radv: do not enable VRS flat shading if the VRS builtin is read
+- vulkan/pipeline_cache: remove a bogus assert when inserting objects
+
+Tapani Pälli (3):
+
+- egl/loader: move crtc resource infrastructure as common helper
+- anv: handle missing astc for gfx125 in CreateImageView
+- mesa: set a type for depth fallback texture
+
+Tatsuyuki Ishi (1):
+
+- nir: Fix serializing pointer initializers.
+
+Timothy Arceri (1):
+
+- util: add Pixel Game Maker MV workaround
+
+Timur Kristóf (1):
+
+- aco: Initialize vcmpx field in get_cmp_info.
+
+Yiwei Zhang (3):
+
+- pipe-loader: avoid undefined memcpy behavior
+- lvp: avoid accessing member of NULL ptr for global entries
+- radv: fix radv_emit_userdata_vertex for vertex offset -1
+
+antonino (7):
+
+- nir: use \`nir_variable_clone` in \`nir_create_passthrough_gs`
+- nir: don't create invalid inputs in \`nir_create_passthrough_gs`
+- zink: don't replace non generated gs
+- nir: handle interface blocks in \`copy_vars`
+- zink: handle interface blocks in \`copy_vars`
+- nir: make var arrays large enough in \`nir_create_passthrough_gs`
+- zink: don't create invalid inputs in \`zink_create_quads_emulation_gs`

@@ -1,0 +1,101 @@
+1. Introduction to rules-ng-ng text format
+
+This-specification defines a text format that can be converted to and from rules-ng-ng XML.
+It is intended to allow to create rules-ng-ng files with much less typing and with a more readable text.
+xml2text can convert rules-ng-ng XML to this text format
+text2xml can convert this text format to rules-ng-ng XML
+
+This specification is an addendum to the rules-ng-ng specification and assumes familiarity with it.
+
+2. Format
+
+2.1. Line format
+
+The initial indentation of a line is divided by 8 and the result determines the position in the document structure (similar to the Python language).
+A "//" anywhere in the line causes the rest to be converted to an XML comment (like C++)
+A line starting with ":" creates a <doc> tag with the rest of the line (excluding anything starting with //).
+The content of multiple lines starting with ":" is merged in a single <doc> tag.
+
+2.2. Tokenization
+
+The line is then tokenized.
+Token are generally continuous strings on non-whitespace characters, with some exceptions
+Some characters (such as ":", "=" and "-") form a single-character token.
+Text within double quotes generates a <brief> tag.
+Any token formatted as ATTR(VALUE) generates an ATTR="VALUE" attribute. No whitespace allowed between ATTR and the '(' character.
+Any token formatted as (VALUE) generates a variants="VALUE" attribute.
+Any token formatted as (VARSET=VALUE) generates a varset="VARSET" variants="VALUE" attribute.
+
+2.3. Special token sequences
+
+These sequences are recognized and extracted before matching the line format:
+
+: NUM
+	set REGLIKE to regNUM
+	you must specify a type if the reg is anonymous
+	the : is recognized only if it is the third or successive token (and not the last) to avoid ambiguity with bitfields and generic tags
+
+{ STRIDE }
+	stride="STRIDE" attribute
+
+[ LENGTH ]
+	length="LENGTH" attribute
+
+!FLAGS
+	access="FLAGS"
+	no whitespace allowed after '!'
+
+:=
+	at the end of the line
+	set REGLIKE to "stripe"
+
+=
+	at the end of the line
+	set REGLIKE to "array"
+
+inline
+	at the beginning of the line
+	inline="yes" attribute
+
+2.4. Line patterns
+
+The following line patterns are understood.
+Only word tokens are used to match lines.
+All tokens with special meaning are treated separately as described above.
+[FOO] means that FOO is optional
+
+#import "FILE"
+	<import file="FILE"/>
+
+#pragma regNUM
+	REGLIKE is now set by default to regNUM instead of reg32
+
+@TAG [NAME]
+	<TAG name="NAME"/>
+	use this if there are no children
+
+TAG [NAME] :
+	<TAG name="NAME">
+	use this if there are children
+
+TOKEN
+	<value value="TOKEN" /> if inside a reg or enum and TOKEN starts with a digit
+	<value name="TOKEN" /> if inside a reg or enum and TOKEN does not start with a digit
+	<REGLIKE offset="TOKEN" /> otherwise
+
+POS NAME
+	<bitfield low="POS" high="POS" name="NAME"/> if inside a reg or bitset
+	<REGLIKE offset="POS" name="NAME"> otherwise
+
+LOW - HIGH NAME [TYPE]
+	<bitfield low="LOW" high="HIGH" name="NAME" type="TYPE"/>
+
+VALUE = NAME
+	<value value="VALUE" name="NAME"/>
+
+use WHAT NAME
+	<use-WHAT name="NAME" />
+
+OFFSET NAME [TYPE]
+	<REGLIKE offset="OFFSET" name="NAME" type="TYPE">
+

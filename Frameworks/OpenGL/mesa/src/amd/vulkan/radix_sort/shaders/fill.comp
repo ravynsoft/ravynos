@@ -1,0 +1,143 @@
+// Copyright 2021 The Fuchsia Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#version 460
+
+//
+// Each workgroup fills up to RS_BLOCK_KEYVALS
+//
+
+// clang-format off
+#extension GL_GOOGLE_include_directive    : require
+#extension GL_EXT_control_flow_attributes : require
+// clang-format on
+
+//
+// Load arch/keyval configuration
+//
+#include "config.h"
+
+//
+// Buffer reference macros and push constants
+//
+#include "bufref.h"
+#include "push.h"
+
+//
+// Subgroup uniform support
+//
+#if defined(RS_SCATTER_SUBGROUP_UNIFORM_DISABLE) && defined(GL_EXT_subgroupuniform_qualifier)
+#extension GL_EXT_subgroupuniform_qualifier : required
+#define RS_SUBGROUP_UNIFORM subgroupuniformEXT
+#else
+#define RS_SUBGROUP_UNIFORM
+#endif
+
+//
+// Declare the push constants
+//
+RS_STRUCT_PUSH_FILL();
+
+layout(push_constant) uniform block_push
+{
+  rs_push_fill push;
+};
+
+//
+// The "init" shader configures the fill info structure.
+//
+RS_STRUCT_INDIRECT_INFO_FILL();
+
+//
+// Check all switches are defined
+//
+#ifndef RS_FILL_WORKGROUP_SIZE_LOG2
+#error "Undefined: RS_FILL_WORKGROUP_SIZE_LOG2"
+#endif
+
+//
+#ifndef RS_FILL_BLOCK_ROWS
+#error "Undefined: RS_FILL_BLOCK_ROWS"
+#endif
+
+//
+// Local macros
+//
+// clang-format off
+#define RS_WORKGROUP_SIZE   (1 << RS_FILL_WORKGROUP_SIZE_LOG2)
+#define RS_BLOCK_DWORDS     (RS_FILL_BLOCK_ROWS * RS_WORKGROUP_SIZE)
+#define RS_RADIX_MASK       ((1 << RS_RADIX_LOG2) - 1)
+// clang-format on
+
+//
+//
+//
+layout(local_size_x = RS_WORKGROUP_SIZE) in;
+
+//
+//
+//
+layout(buffer_reference, std430) buffer buffer_rs_indirect_info_fill
+{
+  rs_indirect_info_fill info;
+};
+
+layout(buffer_reference, std430) buffer buffer_rs_dwords
+{
+  uint32_t extent[];
+};
+
+//
+//
+//
+void
+main()
+{
+  //
+  // Define indirect info bufref for the fill
+  //
+  readonly RS_BUFREF_DEFINE(buffer_rs_indirect_info_fill, rs_info, push.devaddr_info);
+
+  RS_SUBGROUP_UNIFORM const rs_indirect_info_fill info = rs_info.info;
+
+  //
+  // Define dwords bufref
+  //
+  // Assumes less than 2^32-1 keys and then extended multiplies it by
+  // the keyval size.
+  //
+  // Assumes push.devaddr_dwords_base is suitably aligned to
+  // RS_BLOCK_DWORDS -- at a subgroup or transaction size is fine.
+  //
+  const uint32_t dwords_idx =
+    (info.block_offset + gl_WorkGroupID.x) * RS_BLOCK_DWORDS + gl_LocalInvocationID.x;
+
+  u32vec2 dwords_offset;
+
+  umulExtended(dwords_idx, 4, dwords_offset.y, dwords_offset.x);
+
+  writeonly RS_BUFREF_DEFINE_AT_OFFSET_U32VEC2(buffer_rs_dwords,
+                                               rs_dwords,
+                                               push.devaddr_dwords,
+                                               dwords_offset);
+
+  //
+  // Fills are always aligned to RS_BLOCK_KEYVALS
+  //
+  // ((v >= min) && (v < max)) == ((v - min) < (max - min))
+  //
+  const uint32_t row_idx = dwords_idx - info.dword_offset_min;
+
+  [[unroll]] for (uint32_t ii = 0; ii < RS_FILL_BLOCK_ROWS; ii++)
+  {
+    if (row_idx + (ii * RS_WORKGROUP_SIZE) < info.dword_offset_max_minus_min)
+      {
+        rs_dwords.extent[ii * RS_WORKGROUP_SIZE] = push.dword;
+      }
+  }
+}
+
+//
+//
+//

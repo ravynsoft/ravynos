@@ -1,0 +1,7 @@
+query getCiConfigData($projectPath: ID!, $sha: String, $content: String!) {
+  ciConfig(projectPath: $projectPath, sha: $sha, content: $content) {
+    errors
+    mergedYaml
+    __typename
+  }
+}

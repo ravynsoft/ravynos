@@ -1,0 +1,50 @@
+Mesa 7.5.2 Release Notes, 28 September 2009
+===========================================
+
+Mesa 7.5.2 is a bug-fix release fixing issues found since the 7.5.1
+release.
+
+The main new feature of Mesa 7.5.x is the
+`Gallium3D <https://www.freedesktop.org/wiki/Software/gallium>`__
+infrastructure.
+
+Mesa 7.5.2 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   43a90191dd9f76cd65dcc1ac91f3be70  MesaLib-7.5.2.tar.gz
+   94e47a499f1226803869c2e37a6a8e3a  MesaLib-7.5.2.tar.bz2
+   1ecb822b567ad67a0617361d45206b67  MesaLib-7.5.2.zip
+   2718fdce7e075911d6147beb8f27104b  MesaDemos-7.5.2.tar.gz
+   4e0f5ccd58afe21eddcd94327d926e86  MesaDemos-7.5.2.tar.bz2
+   f621f8c223b278d7c8e49a012d56ca25  MesaDemos-7.5.2.zip
+   83c16c1d6bcfcc3f97aab5d2fe430b4c  MesaGLUT-7.5.2.tar.gz
+   e5d03bedae369ea3705783573bb33813  MesaGLUT-7.5.2.tar.bz2
+   e82ba28e00d653e6f437d32be8ca8481  MesaGLUT-7.5.2.zip
+
+New features
+------------
+
+-  Detect B43 chipset in Intel driver
+
+Bug fixes
+---------
+
+-  Assorted bug fixes for i965/i945 drivers
+-  Fixed Gallium glDrawPixels(GL_STENCIL_INDEX) failure.
+-  Fixed GLSL linker/preprocessor version directive issue seen in Wine
+   (such as bug 23946)
+-  glUseProgram() is now compiled into display lists (bug 23746).
+-  glUniform functions are now compiled into display lists
+-  Auto mipmap generation didn't work reliably with Gallium.
+-  Fixed random number usage in GLX code.
+-  Fixed invalid GL_OUT_OF_MEMORY error sometimes raised by
+   glTexSubImage2D when using Gallium.

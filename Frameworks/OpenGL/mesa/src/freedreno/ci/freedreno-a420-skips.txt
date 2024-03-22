@@ -1,0 +1,39 @@
+# These are tremendously slow (pushing toward a minute), and aren't
+# reliable to be run in parallel with other tests due to CPU-side timing.
+dEQP-GLES[0-9]*.functional.flush_finish.*
+
+# Times out
+dEQP-GLES31.functional.ssbo.layout.random.all_shared_buffer.36
+
+# Takes more than a few minutes, time is spent in batch_draw_tracking().
+KHR-GLES31.core.shader_image_load_store.basic-allFormats-store-fs
+
+# no msaa support
+.*msaa.*
+.*multisample.*
+
+# Skip over a bunch of extensions since we don't have extension fast skipping yet.
+spec@glsl-1.50
+spec@glsl-4.*
+spec@arb_gpu_shader5
+spec@arb_gpu_shader_fp64
+spec@arb_gpu_shader_int64
+spec@arb_tessellation_shader
+
+# 1.5 minutes
+spec@!opengl 1.2@tex3d-maxsize
+
+# ~1 minute
+glx@glx-multithread-texture
+spec@!opengl 1.1@draw-sync
+spec@glsl-1.30@execution@texelfetch fs sampler2d 1x281-501x281
+spec@glsl-1.30@execution@texelfetch fs sampler2darray 98x1x9-98x129x9
+spec@glsl-1.30@execution@texelfetch fs sampler2darray 1x129x9-98x129x9
+
+# If we let these tests run in parallel with other piglit tests, we end up
+# intermittent GL_OUT_OF_MEMORY errors in innocent tests.
+arb_texture_buffer_object@max-size
+fbo-maxsize
+max-texture-size
+tex3d-maxsize
+copypixels-draw-sync

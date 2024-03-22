@@ -1,0 +1,8 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# Timeouts, passes otherwise
+KHR-GL46.texture_swizzle.smoke
+KHR-GL46.gpu_shader_fp64.builtin.inverse_dmat4
+KHR-GL46.gpu_shader_fp64.fp64.varyings

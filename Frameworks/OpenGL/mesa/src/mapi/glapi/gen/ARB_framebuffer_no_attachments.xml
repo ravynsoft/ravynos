@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_framebuffer_no_attachments" number="130">
+
+   <enum name="FRAMEBUFFER_DEFAULT_WIDTH"                  value="0x9310" />
+   <enum name="FRAMEBUFFER_DEFAULT_HEIGHT"                 value="0x9311" />
+   <enum name="FRAMEBUFFER_DEFAULT_LAYERS"                 value="0x9312" />
+   <enum name="FRAMEBUFFER_DEFAULT_SAMPLES"                value="0x9313" />
+   <enum name="FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS" value="0x9314" />
+   <enum name="MAX_FRAMEBUFFER_WIDTH"                      value="0x9315" />
+   <enum name="MAX_FRAMEBUFFER_HEIGHT"                     value="0x9316" />
+   <enum name="MAX_FRAMEBUFFER_LAYERS"                     value="0x9317" />
+   <enum name="MAX_FRAMEBUFFER_SAMPLES"                    value="0x9318" />
+
+    <function name="FramebufferParameteri" es2="3.1">
+       <param name="target" type="GLenum"/>
+       <param name="pname"  type="GLenum"/>
+       <param name="param"  type="GLint" />
+    </function>
+
+    <function name="GetFramebufferParameteriv" es2="3.1">
+       <param name="target" type="GLenum" />
+       <param name="pname"  type="GLenum" />
+       <param name="params" type="GLint *" output="true" />
+    </function>
+
+    <function name="NamedFramebufferParameteriEXT">
+      <param name="framebuffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint" />
+    </function>
+
+    <function name="GetNamedFramebufferParameterivEXT">
+      <param name="framebuffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint*" />
+    </function>
+
+</category>
+
+</OpenGLAPI>

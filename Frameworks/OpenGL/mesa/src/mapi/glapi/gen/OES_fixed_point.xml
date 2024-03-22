@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- This is included by gl_and_es_API.xml.  Could be moved to gl_API.xml. -->
+<!-- this extension is incomplete -->
+
+<OpenGLAPI>
+
+<category name="GL_OES_fixed_point" number="292">
+    <enum name="FIXED_OES"                                value="0x140C"/>
+
+    <type name="fixed"   size="4"                                    />
+    <type name="clampx"  size="4"                                    />
+
+    <!-- OpenGL ES 1.0 -->
+    <function name="AlphaFuncxOES" es1="1.0" alias="AlphaFuncx">
+        <param name="func" type="GLenum"/>
+        <param name="ref" type="GLclampx"/>
+    </function>
+
+    <function name="ClearColorxOES" es1="1.0" alias="ClearColorx">
+        <param name="red" type="GLclampx"/>
+        <param name="green" type="GLclampx"/>
+        <param name="blue" type="GLclampx"/>
+        <param name="alpha" type="GLclampx"/>
+    </function>
+
+    <function name="ClearDepthxOES" es1="1.0" alias="ClearDepthx">
+        <param name="depth" type="GLclampx"/>
+    </function>
+
+    <function name="Color4xOES" es1="1.0" alias="Color4x">
+        <param name="red" type="GLfixed"/>
+        <param name="green" type="GLfixed"/>
+        <param name="blue" type="GLfixed"/>
+        <param name="alpha" type="GLfixed"/>
+    </function>
+
+    <function name="DepthRangexOES" es1="1.0" alias="DepthRangex">
+        <param name="zNear" type="GLclampx"/>
+        <param name="zFar" type="GLclampx"/>
+    </function>
+
+    <function name="FogxOES" es1="1.0" alias="Fogx">
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="FogxvOES" es1="1.0" alias="Fogxv">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *"/>
+    </function>
+
+    <function name="FrustumxOES" es1="1.0" alias="Frustumx">
+        <param name="left" type="GLfixed"/>
+        <param name="right" type="GLfixed"/>
+        <param name="bottom" type="GLfixed"/>
+        <param name="top" type="GLfixed"/>
+        <param name="zNear" type="GLfixed"/>
+        <param name="zFar" type="GLfixed"/>
+    </function>
+
+    <function name="LightModelxOES" es1="1.0" alias="LightModelx">
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="LightModelxvOES" es1="1.0" alias="LightModelxv">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *"/>
+    </function>
+
+    <function name="LightxOES" es1="1.0" alias="Lightx">
+        <param name="light" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="LightxvOES" es1="1.0" alias="Lightxv">
+        <param name="light" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *"/>
+    </function>
+
+    <function name="LineWidthxOES" es1="1.0" alias="LineWidthx">
+        <param name="width" type="GLfixed"/>
+    </function>
+
+    <function name="LoadMatrixxOES" es1="1.0" alias="LoadMatrixx">
+        <param name="m" type="const GLfixed *"/>
+    </function>
+
+    <function name="MaterialxOES" es1="1.0" alias="Materialx">
+        <param name="face" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="MaterialxvOES" es1="1.0" alias="Materialxv">
+        <param name="face" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *"/>
+    </function>
+
+    <function name="MultMatrixxOES" es1="1.0" alias="MultMatrixx">
+        <param name="m" type="const GLfixed *"/>
+    </function>
+
+    <function name="MultiTexCoord4xOES" es1="1.0" alias="MultiTexCoord4x">
+        <param name="target" type="GLenum"/>
+        <param name="s" type="GLfixed"/>
+        <param name="t" type="GLfixed"/>
+        <param name="r" type="GLfixed"/>
+        <param name="q" type="GLfixed"/>
+    </function>
+
+    <function name="Normal3xOES" es1="1.0" alias="Normal3x">
+        <param name="nx" type="GLfixed"/>
+        <param name="ny" type="GLfixed"/>
+        <param name="nz" type="GLfixed"/>
+    </function>
+
+    <function name="OrthoxOES" es1="1.0" alias="Orthox">
+        <param name="left" type="GLfixed"/>
+        <param name="right" type="GLfixed"/>
+        <param name="bottom" type="GLfixed"/>
+        <param name="top" type="GLfixed"/>
+        <param name="zNear" type="GLfixed"/>
+        <param name="zFar" type="GLfixed"/>
+    </function>
+
+    <function name="PointSizexOES" es1="1.0" alias="PointSizex">
+        <param name="size" type="GLfixed"/>
+    </function>
+
+    <function name="PolygonOffsetxOES" es1="1.0" alias="PolygonOffsetx">
+        <param name="factor" type="GLfixed"/>
+        <param name="units" type="GLfixed"/>
+    </function>
+
+    <function name="RotatexOES" es1="1.0" alias="Rotatex">
+        <param name="angle" type="GLfixed"/>
+        <param name="x" type="GLfixed"/>
+        <param name="y" type="GLfixed"/>
+        <param name="z" type="GLfixed"/>
+    </function>
+
+    <function name="SampleCoveragexOES" es1="1.0" alias="SampleCoveragex">
+        <param name="value" type="GLclampx"/>
+        <param name="invert" type="GLboolean"/>
+    </function>
+
+    <function name="ScalexOES" es1="1.0" alias="Scalex">
+        <param name="x" type="GLfixed"/>
+        <param name="y" type="GLfixed"/>
+        <param name="z" type="GLfixed"/>
+    </function>
+
+    <function name="TexEnvxOES" es1="1.0" alias="TexEnvx">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="TexEnvxvOES" es1="1.0" alias="TexEnvxv">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *"/>
+    </function>
+
+    <function name="TexParameterxOES" es1="1.0" alias="TexParameterx">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="TranslatexOES" es1="1.0" alias="Translatex">
+        <param name="x" type="GLfixed"/>
+        <param name="y" type="GLfixed"/>
+        <param name="z" type="GLfixed"/>
+    </function>
+
+    <!-- OpenGL ES 1.1 -->
+    <function name="ClipPlanexOES" es1="1.0" alias="ClipPlanex">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="const GLfixed *"/>
+    </function>
+
+    <function name="GetClipPlanexOES"
+              es1="1.0" desktop="false" alias="GetClipPlanex">
+        <param name="plane" type="GLenum"/>
+        <param name="equation" type="GLfixed *"/>
+    </function>
+
+    <function name="GetFixedvOES" es1="1.0" alias="GetFixedv">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *"/>
+    </function>
+
+    <function name="GetLightxvOES" es1="1.0" alias="GetLightxv">
+        <param name="light" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *"/>
+    </function>
+
+    <function name="GetMaterialxvOES" es1="1.0" alias="GetMaterialxv">
+        <param name="face" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *"/>
+    </function>
+
+    <function name="GetTexEnvxvOES" es1="1.0" alias="GetTexEnvxv">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *"/>
+    </function>
+
+    <function name="GetTexParameterxvOES" es1="1.0" alias="GetTexParameterxv">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *"/>
+    </function>
+
+    <function name="PointParameterxOES" es1="1.0" alias="PointParameterx">
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLfixed"/>
+    </function>
+
+    <function name="PointParameterxvOES" es1="1.0" alias="PointParameterxv">
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *"/>
+    </function>
+
+    <function name="TexParameterxvOES" es1="1.0" alias="TexParameterxv">
+        <param name="target" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" count="_mesa_tex_param_enum_to_count(pname)"/>
+    </function>
+
+    <!-- texgen -->
+    <function name="GetTexGenxvOES"
+              es1="1.0" desktop="false">
+        <param name="coord" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLfixed *" output="true" variable_param="pname"/>
+    </function>
+
+    <function name="TexGenxOES" es1="1.0" desktop="false">
+        <param name="coord" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="param" type="GLint"/>
+    </function>
+
+    <function name="TexGenxvOES" es1="1.0" desktop="false">
+        <param name="coord" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="const GLfixed *" variable_param="pname"
+               marshal_count="_mesa_texgen_enum_to_count(pname)"/>
+    </function>
+</category>
+
+</OpenGLAPI>

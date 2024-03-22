@@ -1,0 +1,41 @@
+Mesa 19.2.4 Release Notes / 2019-11-13
+======================================
+
+Mesa 19.2.4 is an emergency bug fix release to fix on ciritcal bug in
+19.2.3.
+
+Mesa 19.2.4 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.2.4 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       09000a0f7dbbd82e193b81a8f1bf0c118eab7ca975c0329181968596e548e30f  mesa-19.2.4.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  Dirt Rally: Menu system doesn't show up with Mesa 19.2.3
+
+Changes
+-------
+
+Lionel Landwerlin (1):
+
+-  mesa: check framebuffer completeness only after state update

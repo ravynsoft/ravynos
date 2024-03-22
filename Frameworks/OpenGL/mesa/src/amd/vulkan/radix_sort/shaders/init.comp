@@ -1,0 +1,168 @@
+// Copyright 2021 The Fuchsia Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#version 460
+
+//
+// Initialize the `rs_indirect_info` struct
+//
+
+// clang-format off
+#extension GL_GOOGLE_include_directive    : require
+#extension GL_EXT_control_flow_attributes : require
+// clang-format on
+
+//
+// Load arch/keyval configuration
+//
+#include "config.h"
+
+//
+// Buffer reference macros and push constants
+//
+#include "bufref.h"
+#include "push.h"
+
+//
+// Subgroup uniform support
+//
+#if defined(RS_SCATTER_SUBGROUP_UNIFORM_DISABLE) && defined(GL_EXT_subgroupuniform_qualifier)
+#extension GL_EXT_subgroupuniform_qualifier : required
+#define RS_SUBGROUP_UNIFORM subgroupuniformEXT
+#else
+#define RS_SUBGROUP_UNIFORM
+#endif
+
+//
+// Declare the push constants
+//
+RS_STRUCT_PUSH_INIT();
+
+layout(push_constant) uniform block_push
+{
+  rs_push_init push;
+};
+
+//
+// The "init" shader configures the fill info structure.
+//
+RS_STRUCT_INDIRECT_INFO();
+
+//
+// Local macros
+//
+// clang-format off
+#define RS_FILL_WORKGROUP_SIZE        (1 << RS_FILL_WORKGROUP_SIZE_LOG2)
+#define RS_SCATTER_WORKGROUP_SIZE     (1 << RS_SCATTER_WORKGROUP_SIZE_LOG2)
+#define RS_HISTOGRAM_WORKGROUP_SIZE   (1 << RS_HISTOGRAM_WORKGROUP_SIZE_LOG2)
+
+#define RS_FILL_BLOCK_DWORDS          (RS_FILL_BLOCK_ROWS * RS_FILL_WORKGROUP_SIZE)
+#define RS_SCATTER_BLOCK_KEYVALS      (RS_SCATTER_BLOCK_ROWS * RS_SCATTER_WORKGROUP_SIZE)
+#define RS_HISTOGRAM_BLOCK_KEYVALS    (RS_HISTOGRAM_BLOCK_ROWS * RS_HISTOGRAM_WORKGROUP_SIZE)
+// clang-format on
+
+//
+//
+//
+layout(local_size_x = 1) in;
+
+//
+//
+//
+layout(buffer_reference, std430) buffer buffer_rs_count
+{
+  uint32_t count;
+};
+
+layout(buffer_reference, std430) buffer buffer_rs_indirect_info
+{
+  rs_indirect_info info;
+};
+
+//
+// Helper macros
+//
+// RU = Round Up
+// RD = Round Down
+//
+#define RS_COUNT_RU_BLOCKS(count_, block_size_) ((count_ + block_size_ - 1) / (block_size_))
+#define RS_COUNT_RD_BLOCKS(count_, block_size_) ((count_) / (block_size_))
+
+//
+//
+//
+void
+main()
+{
+  //
+  // Load the keyval count
+  //
+  readonly RS_BUFREF_DEFINE(buffer_rs_count, rs_count, push.devaddr_count);
+
+  RS_SUBGROUP_UNIFORM const uint32_t count = rs_count.count;
+
+  //
+  // Define the init struct bufref
+  //
+  writeonly RS_BUFREF_DEFINE(buffer_rs_indirect_info, rs_indirect_info, push.devaddr_info);
+
+  //
+  // Size and set scatter dispatch
+  //
+  const uint32_t scatter_ru_blocks = RS_COUNT_RU_BLOCKS(count, RS_SCATTER_BLOCK_KEYVALS);
+  const uint32_t count_ru_scatter  = scatter_ru_blocks * RS_SCATTER_BLOCK_KEYVALS;
+
+  rs_indirect_info.info.dispatch.scatter = u32vec4(scatter_ru_blocks, 1, 1, 0);
+
+  //
+  // Size and set histogram dispatch
+  //
+  const uint32_t histo_ru_blocks = RS_COUNT_RU_BLOCKS(count_ru_scatter, RS_HISTOGRAM_BLOCK_KEYVALS);
+  const uint32_t count_ru_histo  = histo_ru_blocks * RS_HISTOGRAM_BLOCK_KEYVALS;
+
+  rs_indirect_info.info.dispatch.histogram = u32vec4(histo_ru_blocks, 1, 1, 0);
+
+  //
+  // Size and set pad fill and dispatch
+  //
+  const uint32_t count_dwords          = count * RS_KEYVAL_DWORDS;
+  const uint32_t pad_rd_blocks         = RS_COUNT_RD_BLOCKS(count_dwords, RS_FILL_BLOCK_DWORDS);
+  const uint32_t count_rd_pad          = pad_rd_blocks * RS_FILL_BLOCK_DWORDS;
+  const uint32_t count_ru_histo_dwords = count_ru_histo * RS_KEYVAL_DWORDS;
+  const uint32_t pad_dwords            = count_ru_histo_dwords - count_rd_pad;
+  const uint32_t pad_ru_blocks         = RS_COUNT_RU_BLOCKS(pad_dwords, RS_FILL_BLOCK_DWORDS);
+
+  rs_indirect_info_fill pad;
+
+  pad.block_offset               = pad_rd_blocks;
+  pad.dword_offset_min           = count_dwords;
+  pad.dword_offset_max_minus_min = count_ru_histo_dwords - count_dwords;
+
+  rs_indirect_info.info.pad          = pad;
+  rs_indirect_info.info.dispatch.pad = u32vec4(pad_ru_blocks, 1, 1, 0);
+
+  //
+  // Size and set zero fill and dispatch
+  //
+  // NOTE(allanmac): We could zero the histogram passes on the host
+  // since the number of passes is known ahead of time but since the
+  // 256-dword partitions directly follow the 256-dword histograms, we
+  // can dispatch just one FILL.
+  //
+  rs_indirect_info_fill zero;
+
+  zero.block_offset               = 0;
+  zero.dword_offset_min           = 0;
+  zero.dword_offset_max_minus_min = (push.passes + scatter_ru_blocks - 1) * RS_RADIX_SIZE;
+
+  const uint32_t zero_ru_blocks =
+    RS_COUNT_RU_BLOCKS(zero.dword_offset_max_minus_min, RS_FILL_BLOCK_DWORDS);
+
+  rs_indirect_info.info.zero          = zero;
+  rs_indirect_info.info.dispatch.zero = u32vec4(zero_ru_blocks, 1, 1, 0);
+}
+
+//
+//
+//

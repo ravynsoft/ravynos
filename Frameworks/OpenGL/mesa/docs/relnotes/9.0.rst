@@ -1,0 +1,70 @@
+Mesa 9.0 Release Notes / October 8, 2012
+========================================
+
+Mesa 9.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 9.0.1.
+
+Mesa 9.0 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   be4cd34c6599a7cb9d254b05c48bdb1f  MesaLib-9.0.tar.gz
+   60e557ce407be3732711da484ab3db6c  MesaLib-9.0.tar.bz2
+   16b128544cd3f7e237927bb9f8aab7ce  MesaLib-9.0.zip
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  Added new Gallium3D - nv30 driver
+-  Added new Gallium3D - radeonsi driver
+-  Added OpenCL state tracker Clover
+-  Completed VDPAU state tracker (video decoding support is currently
+   limited to MPEG1 and MPEG2)
+-  GL_ARB_base_instance
+-  GL_ARB_blend_func_extended
+-  GL_ARB_debug_output
+-  GL_ARB_invalidate_subdata - Currently a "no-op" implementation. This
+   extension is always enabled in all drivers.
+-  GL_ARB_shader_bit_encoding
+-  GL_ARB_texture_buffer_object
+-  GL_ARB_timer_query
+-  GL_ARB_transform_feedback3
+-  GL_ARB_transform_feedback_instanced
+-  GL_ARB_uniform_buffer_object
+-  GL_EXT_unpack_subimage for ES 2.0
+-  GL_EXT_read_format_bgra for ES 1.1 and 2.0
+-  GL_EXT_texture_rg for ES 2.x
+-  GL_NV_read_buffer for ES 2.0
+-  GLX_ARB_create_context_robustness
+-  EGL_KHR_create_context
+-  EGL_KHR_surfaceless_context - This replaces the
+   EGL_KHR_surfaceless_{gles1,gles2,opengl} extensions that were never
+   approved by Khronos.
+-  EGL_EXT_create_context_robustness
+
+Bug fixes
+---------
+
+TBD -- This list is likely incomplete.
+
+Changes
+-------
+
+-  The legacy/static Makefile system (ex: 'make linux-dri') has been
+   removed. The two supported build methods are now autoconf/automake
+   and SCons.
+-  Removed support for GL_ARB_shadow_ambient extension
+-  Removed Gallium3D - nvfx driver (use nv30 instead)
+-  libGLU has been moved into its own repository, found at
+   https://cgit.freedesktop.org/mesa/glu/

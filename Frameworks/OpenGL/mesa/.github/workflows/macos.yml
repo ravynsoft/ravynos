@@ -1,0 +1,60 @@
+name: macOS-CI
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  macOS-CI:
+    strategy:
+      matrix:
+        glx_option: ['dri', 'xlib']
+    runs-on: macos-11
+    env:
+      GALLIUM_DUMP_CPU: true
+      MESON_EXEC: /Users/runner/Library/Python/3.11/bin/meson
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install Dependencies
+      run: |
+        cat > Brewfile <<EOL
+        brew "bison"
+        brew "expat"
+        brew "gettext"
+        brew "libx11"
+        brew "libxcb"
+        brew "libxdamage"
+        brew "libxext"
+        brew "molten-vk"
+        brew "ninja"
+        brew "pkg-config"
+        brew "python@3.10"
+        EOL
+
+        brew update
+        brew bundle --verbose
+    - name: Install Mako and meson
+      run: pip3 install --user mako meson
+    - name: Configure
+      run: |
+        cat > native_config <<EOL
+        [binaries]
+        llvm-config = '/usr/local/opt/llvm/bin/llvm-config'
+        EOL
+        $MESON_EXEC . build --native-file=native_config -Dmoltenvk-dir=$(brew --prefix molten-vk) -Dbuild-tests=true -Dosmesa=true -Dgallium-drivers=swrast,zink -Dglx=${{ matrix.glx_option }}
+    - name: Build
+      run: $MESON_EXEC compile -C build
+    - name: Test
+      run: $MESON_EXEC test -C build --print-errorlogs
+    - name: Install
+      run: $MESON_EXEC install -C build --destdir $PWD/install
+    - name: 'Upload Artifact'
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-${{ matrix.glx_option }}-result
+        path: |
+          build/meson-logs/
+          install/
+        retention-days: 5

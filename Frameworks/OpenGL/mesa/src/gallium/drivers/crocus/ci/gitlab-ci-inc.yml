@@ -1,0 +1,36 @@
+# Manual test rules for using anholt's shared g41.
+.anholt-g41-test:
+  extends:
+    - .crocus-manual-rules
+  tags:
+    - anholt-g41
+  variables:
+    GPU_VERSION: crocus-g41
+    FLAKES_CHANNEL: "#intel-ci"
+
+# Manual test rules for using anholt's shared hsw.
+.anholt-hsw-test:
+  tags:
+    - anholt-hsw
+  variables:
+    FDO_CI_CONCURRENT: 12
+
+# System is dead at the moment. needs maintenance.
+.crocus-g41:
+  extends:
+    - .anholt-g41-test
+    - .test-gl
+    - .deqp-test
+  variables:
+    DEQP_SUITE: crocus-g41
+    PIGLIT_PLATFORM: gbm
+
+.crocus-g41-traces:
+  extends:
+    - .anholt-g41-test
+    - .test-gl
+    - .piglit-traces-test
+  variables:
+    EGL_PLATFORM: "surfaceless"
+    PIGLIT_TRACES_FILE: traces-crocus.yml
+    PIGLIT_REPLAY_DEVICE_NAME: "crocus-g41"

@@ -1,0 +1,98 @@
+/*
+ * Copyright © 2022 Konstantin Seurer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference2 : require
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+#include "build_interface.h"
+
+layout(push_constant) uniform CONSTS {
+   morton_args args;
+};
+
+uint32_t
+morton_component(uint32_t x)
+{
+   x = (x * 0x00000101u) & 0x0F00F00Fu;
+   x = (x * 0x00000011u) & 0xC30C30C3u;
+   x = (x * 0x00000005u) & 0x49249249u;
+   return x;
+}
+
+uint32_t
+morton_code(uint32_t x, uint32_t y, uint32_t z)
+{
+   return (morton_component(x) << 2) | (morton_component(y) << 1) | morton_component(z);
+}
+
+uint32_t
+lbvh_key(float x01, float y01, float z01)
+{
+   return morton_code(uint32_t(x01 * 255.0), uint32_t(y01 * 255.0), uint32_t(z01 * 255.0)) << 8;
+}
+
+void
+main(void)
+{
+   uint32_t global_id = gl_GlobalInvocationID.x;
+
+   REF(key_id_pair) key_id = INDEX(key_id_pair, args.ids, global_id);
+
+   uint32_t id = DEREF(key_id).id;
+
+   uint32_t key;
+   if (id != RADV_BVH_INVALID_NODE) {
+      radv_aabb bounds = DEREF(REF(radv_ir_node)OFFSET(args.bvh, ir_id_to_offset(id))).aabb;
+      vec3 center = (bounds.min + bounds.max) * 0.5;
+
+      radv_aabb bvh_bounds;
+      bvh_bounds.min.x = from_emulated_float(DEREF(args.header).min_bounds[0]);
+      bvh_bounds.min.y = from_emulated_float(DEREF(args.header).min_bounds[1]);
+      bvh_bounds.min.z = from_emulated_float(DEREF(args.header).min_bounds[2]);
+      bvh_bounds.max.x = from_emulated_float(DEREF(args.header).max_bounds[0]);
+      bvh_bounds.max.y = from_emulated_float(DEREF(args.header).max_bounds[1]);
+      bvh_bounds.max.z = from_emulated_float(DEREF(args.header).max_bounds[2]);
+
+      vec3 normalized_center = (center - bvh_bounds.min) / (bvh_bounds.max - bvh_bounds.min);
+
+      key = lbvh_key(normalized_center.x, normalized_center.y, normalized_center.z);
+   } else {
+      /* Move null instances to the end to avoid mixing null instances with active instances. This
+       * way, we can skip early during traversal.
+       */
+      key = 0xFFFFFFFF;
+   }
+   DEREF(key_id).key = key;
+}

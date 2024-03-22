@@ -1,0 +1,63 @@
+Mesa 7.6.1 Release Notes, 21 December 2009
+==========================================
+
+Mesa 7.6.1 is a bug-fix release fixing issues since version 7.6.
+
+Mesa 7.6.1 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   e80fabad2e3eb7990adae773d6aeacba  MesaLib-7.6.1.tar.gz
+   7db4617e9e10ad3aca1b64339fd71b7d  MesaLib-7.6.1.tar.bz2
+   dd3275dbf9833480d2e92d0c69b22abd  MesaLib-7.6.1.zip
+   f7fdcfe3c0f363e571c60f02f74368fb  MesaDemos-7.6.1.tar.gz
+   a4226f06732a02556fcf6be290b86dff  MesaDemos-7.6.1.tar.bz2
+   849425f356bd940726cebedfa79de176  MesaDemos-7.6.1.zip
+   d40cc7c5e337a85b674e27a8e494f52f  MesaGLUT-7.6.1.tar.gz
+   ca9aecb91f05b1da9fd7d5eeb19d47d7  MesaGLUT-7.6.1.tar.bz2
+   23fad8398004c977a1d8953079b72ca6  MesaGLUT-7.6.1.zip
+
+New features
+------------
+
+-  Upgraded GL/glext.h to version 56, GL/glxext.h to version 25,
+   GL/wglext.h to version 17
+-  New 3D driver, r600, for Radeon R6xx, R7xx hardware
+
+Bug fixes
+---------
+
+-  Fixed crash caused by glXCopyContext() and glXDestroyContext(), bug
+   24217
+-  glXQueryContext(GLX_RENDER_TYPE) returned wrong values (bug 24211)
+-  GLSL sqrt(0) returned unpredictable results
+-  Fixed default texture binding bug when a bound texture was deleted.
+-  r300: Work around an issue with very large fragment programs on R500.
+-  Fake glXQueryDrawable() didn't return good values (bug 24320)
+-  Fixed AUX buffer breakage (bug 24426).
+-  Fixed locale-dependent float parsing bug in GLSL compiler (bug 24531)
+-  Fixed Gallium Cell driver compilation failure.
+-  Fixed glGetTexLevelParameter(GL_TEXTURE_INTERNAL_FORMAT) query so
+   that it returns the actual compressed format chosen.
+-  Fixed glBitmap bugs in Intel drivers.
+-  Fixed a number of Microsoft Visual Studio compilation problems.
+-  Fixed clipping / provoking vertex bugs in i965 driver.
+-  Assorted build fixes for AIX.
+-  Endianness fixes for the DRI swrast driver (bug 22767).
+-  Point sprite fixes for i915/945 driver.
+-  Fixed assorted memory leaks (usually on error paths)
+-  Fixed some GLSL compiler bugs (ex: 25579)
+-  Assorted build fixes for BlueGene
+
+Changes
+-------
+
+-  Removed old VC6, VC7 project files for Windows

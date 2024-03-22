@@ -1,0 +1,186 @@
+Mesa 20.3.4 Release Notes / 2021-01-29
+======================================
+
+Mesa 20.3.4 is a bug fix release which fixes bugs found since the 20.3.3 release.
+
+Mesa 20.3.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.3.4 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    dc21a987ec1ff45b278fe4b1419b1719f1968debbb80221480e44180849b4084  mesa-20.3.4.tar.xz
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- \[TGL\] Elder Scrolls Online misrenders
+- \[ANV\] System hang with GRVK demos
+- \[bdw][icl][iris\] fails new test \`clearbuffer-depth-cs-probe\`
+- ANV: Not handling separate stencil layouts properly
+- \[Regression][Intel][OpenGL][Bisected\] Copying whole 2D array texture failed on latest driver
+- Mesa 20.3.x crashes pidgin on AMD RX480
+- timespec_get used unconditionally / build fails when targeting macOS 10.14 or earlier
+- libunwind not located / used on macOS
+- Some games using FNA framework show blank screen
+- Intel Vulkan regression of angle_end2end_tests
+- Defer lavapipe warning to queue / command / swapchain buffer creation
+
+
+Changes
+-------
+
+Andrii Simiklit (1):
+
+- st/mesa: fix pbo upload/download for arrays of textures with only 1 layer
+
+Caio Marcelo de Oliveira Filho (3):
+
+- spirv: Don't remove variables used by resource indexing intrinsics
+- nir: Add a data pointer to the callback in nir_remove_dead_variables
+- compiler: Use util/bitset.h for system_values_read
+
+Christian Gmeiner (1):
+
+- etnaviv: handle NULL views in set_sampler_views
+
+Daniel Schürmann (2):
+
+- aco/optimizer: don't propagate subdword temps of different size
+- aco/optimizer: don't copy-prop logical phis
+
+Dave Airlie (2):
+
+- device-select-layer: update for vulkan 1.2
+- lavapipe: fix missing piece of VK_KHR_get_physical_device_properties2
+
+David McFarland (1):
+
+- radv: fix divide by zero with no tesselation params
+
+Dylan Baker (8):
+
+- docs: Add sha256sum for 20.3.3
+- .pick_status.json: Update to 184bbef33d1fff3520958c130f2b8e4fce17379c
+- .pick_status.json: Update to c27347b2e1883a30e023347a36bdcf86cdec4a7c
+- .pick_status.json: Update to 3e13c1f8dfef4a4c0fd5e79bbc364f9e5f998856
+- .pick_status.json: Update to af9977a3d5f3378c297965e21389e36491f47e1b
+- .pick_status.json: Update to 3ef89b245e3e1ac4e67fea9c1b13ebeda75769d0
+- .pick_status.json: Update to 9052819ebbff07d82c3eb9adf414144df4868644
+- .pick_status.json: Update to f01ea0aef8a50d2732eb0c64153903e52ed2a757
+
+Eric Anholt (4):
+
+- util/format: Fix pack/unpack of A1R5G5B5_UINT.
+- swr: Don't report support for shader images.
+- panfrost: Stub out set_shader_images().
+- gallium: Fix leak of shader images on context destruction.
+
+Erik Faye-Lund (5):
+
+- zink: handle NULL views in zink_set_sampler_views
+- zink: respect feature-cap for independent blending
+- zink: respect feature-cap for sample-shading
+- zink: make all xfb caps depend on extension
+- mesa/main: remove leftover bumpmap code
+
+Francisco Jerez (1):
+
+- intel/gen12: Fix memory corruption issues in fused Gen12 parts.
+
+Icecream95 (2):
+
+- pan/decode: Free mapped memory objects on BO unreference
+- panfrost: Use normal malloc/free instead of ralloc for surfaces
+
+Ilia Mirkin (1):
+
+- glsl: only expose int64 atomics when extension is enabled
+
+Faith Ekstrand (2):
+
+- intel/compiler: Return 1 for immediates in regs_read
+- intel/fs: QUAD_SWIZZLE requires packed data
+
+Jeremy Huddleston (2):
+
+- util: Fix pointer to integer conversion error when using libunwind
+- Fall back on clock_gettime when timespec_get() is unavailable
+
+Juan A. Suarez Romero (1):
+
+- v3d: fix dest offset in TFU setup
+
+Keith Packard (1):
+
+- glx: Provide glvnd wrapper for glXSwapIntervalEXT
+
+Kenneth Graunke (1):
+
+- iris: Consider resolves after changing a resource's aux state
+
+Lionel Landwerlin (4):
+
+- anv: add transfer usage for color/depth/stencil attachments
+- intel/mi_builder: fix self modifying batches
+- anv: Fix stencil layout in render passes
+- anv: fix invalid programming of BLEND_STATE
+
+Marek Olšák (1):
+
+- mesa: fix alpha channel of ETC2_SRGB8 decompression for !bgra
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- radeonsi: invalidate compute sgprs in si_rebind_buffer
+
+Rhys Perry (2):
+
+- aco: fix convert_to_SDWA() check in add_subdword_definition()
+- aco: don't consider a phi trivial if same's register doesn't match the def
+
+Sagar Ghuge (2):
+
+- anv: Invalidate the correct AUX-TT entry
+- anv: Skip CCS ambiguate which preceed fast-clears
+
+Samuel Pitoiset (2):
+
+- ci: exclude one CTS test that timeout most of the time for RADV CI
+- radv: fix a sync issue with geometry shader primitives query on GFX10+
+
+Thong Thai (1):
+
+- frontends/va: Return an error if non-interlaced buffer is not supported
+
+Víctor Manuel Jáquez Leal (1):
+
+- frontends/va/context: don't set max_references with num_render_targets
+
+Witold Baryluk (1):
+
+- lavapipe: Defer lavapipe warning to CreateDevice
+
+Yevhenii Kolesnikov (1):
+
+- iris: only set point sprite overrides if actually using points
+
+jzielins (1):
+
+- swr: fix crashes caused by incorrectly reporting SSBO support

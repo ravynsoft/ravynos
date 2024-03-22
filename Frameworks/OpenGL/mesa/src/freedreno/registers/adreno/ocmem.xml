@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database xmlns="http://nouveau.freedesktop.org/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://nouveau.freedesktop.org/ rules-ng.xsd">
+<import file="freedreno_copyright.xml"/>
+
+<domain name="OCMEM" width="32">
+	<enum name="ocmem_macro_state">
+		<value name="PASSTHROUGH" value="0"/>
+		<value name="PERI_ON" value="1"/>
+		<value name="CORE_ON" value="2"/>
+		<value name="CLK_OFF" value="4"/>
+	</enum>
+	<reg32 offset="0x00" name="HW_VERSION"/>
+	<reg32 offset="0x04" name="HW_PROFILE">
+		<bitfield name="NUM_PORTS" low="0" high="3" type="uint"/>
+		<bitfield name="NUM_MACROS" low="8" high="13" type="uint"/>
+		<bitfield name="LAST_REGN_HALFSIZE" pos="16" type="boolean"/>
+		<bitfield name="INTERLEAVING" pos="17" type="boolean"/>
+	</reg32>
+	<reg32 offset="0x0c" name="GEN_STATUS"/>
+	<reg32 offset="0x38" name="PSGSC_STATUS"/>
+	<!-- length is 4 for 8084, 3 for 8974/8092, 1 for 8226: -->
+	<array offset="0x3c" name="PSGSC" stride="1" length="4">
+		<reg32 offset="0x0" name="CTL">
+			<bitfield name="MACRO0_MODE" low="0"  high="2"  type="ocmem_macro_state"/>
+			<bitfield name="MACRO1_MODE" low="4"  high="6"  type="ocmem_macro_state"/>
+			<bitfield name="MACRO2_MODE" low="8"  high="10" type="ocmem_macro_state"/>
+			<bitfield name="MACRO3_MODE" low="12" high="14" type="ocmem_macro_state"/>
+		</reg32>
+	</array>
+	<reg32 offset="0x1000" name="REGION_MODE_CTL">
+		<bitfield name="REG0_THIN" pos="0" type="boolean"/>
+		<bitfield name="REG1_THIN" pos="1" type="boolean"/>
+		<bitfield name="REG2_THIN" pos="2" type="boolean"/>
+		<bitfield name="REG3_THIN" pos="3" type="boolean"/>
+	</reg32>
+	<reg32 offset="0x1004" name="GFX_MPU_START"/>
+	<reg32 offset="0x1008" name="GFX_MPU_END"/>
+</domain>
+
+</database>

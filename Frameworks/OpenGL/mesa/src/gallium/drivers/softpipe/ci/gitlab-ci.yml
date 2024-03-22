@@ -1,0 +1,23 @@
+include:
+  - local: 'src/gallium/drivers/softpipe/ci/gitlab-ci-inc.yml'
+
+softpipe:
+  variables:
+    DEQP_SUITE: softpipe
+    XVFB_SCRIPT: "install/deqp-runner.sh"
+    DEQP_FRACTION: 4
+  extends: .softpipe-deqp-test
+  script: |
+    . "$SCRIPTS_DIR"/setup-test-env.sh
+    LD_LIBRARY_PATH=`pwd`/install/lib xvfb-run --server-args='-noreset' bash -c ". $SCRIPTS_DIR/setup-test-env.sh && ${XVFB_SCRIPT}"
+
+softpipe-asan-gles31:
+  variables:
+    GPU_VERSION: softpipe-asan
+    DEQP_FRACTION: 10
+    DEQP_VER: gles31
+    DEQP_RUNNER_OPTIONS: "--env LD_PRELOAD=libasan.so.8"
+  extends: .softpipe-deqp-test
+  needs:
+    - debian/x86_64_test-gl
+    - debian-testing-asan

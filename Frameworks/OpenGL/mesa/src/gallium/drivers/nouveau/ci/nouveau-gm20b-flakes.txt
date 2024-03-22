@@ -1,0 +1,27 @@
+dEQP-GLES3.functional.occlusion_query.*conservative.*
+dEQP-GLES3.functional.transform_feedback.*
+dEQP-GLES31.functional.atomic_counter.*
+dEQP-GLES31.functional.compute.shared_var.*
+dEQP-GLES31.functional.image_load_store.buffer.*
+
+# I expect that these are due to instability in SSBO stores.
+dEQP-GLES31.functional.shaders.builtin_functions.*compute
+dEQP-GLES31.functional.shaders.builtin_functions.*tess_control
+dEQP-GLES31.functional.shaders.builtin_functions.*tess_eval
+dEQP-GLES31.functional.shaders.opaque_type_indexing.*.compute.*
+dEQP-GLES31.functional.shaders.opaque_type_indexing.*.tessellation_control.*
+dEQP-GLES31.functional.shaders.opaque_type_indexing.*.tessellation_evaluation.*
+
+dEQP-GLES31.functional.tessellation.invariance.*
+dEQP-GLES31.functional.tessellation.tesscoord.*
+dEQP-GLES31.functional.tessellation_geometry_interaction.feedback.*
+dEQP-GLES31.functional.tessellation.user_defined_io.per_vertex.vertex_io_array_size_shader_builtin.triangles_explicit_tcs_out_size
+dEQP-GLES31.functional.ssbo.*
+dEQP-GLES31.functional.synchronization.*
+KHR-GLES31.core.compute_shader.*
+KHR-GLES31.core.shader_atomic_counters.*
+KHR-GLES31.core.shader_bitfield_operation.*
+KHR-GLES31.core.shader_image.*
+KHR-GLES31.core.shader_storage_buffer_object.*
+KHR-GLES31.core.tessellation_shader.*
+KHR-GLES31.core.vertex_attrib_binding.*

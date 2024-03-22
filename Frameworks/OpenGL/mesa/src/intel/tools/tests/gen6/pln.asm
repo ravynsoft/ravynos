@@ -1,0 +1,12 @@
+pln(8)          m1<1>F          g4<0,1,0>F      g2<8,8,1>F      { align1 1Q };
+pln(16)         m1<1>F          g6<0,1,0>F      g2<8,8,1>F      { align1 1H };
+pln(8)          g41<1>F         g5<0,1,0>F      g2<8,8,1>F      { align1 1Q };
+pln(16)         g22<1>F         g7<0,1,0>F      g2<8,8,1>F      { align1 1H };
+pln.sat(8)      g8<1>F          g4<0,1,0>F      g2<8,8,1>F      { align1 1Q };
+pln.sat(16)     g7<1>F          g6<0,1,0>F      g2<8,8,1>F      { align1 1H };
+pln.g.f0.0(8)   g7<1>F          g4<0,1,0>F      g2<8,8,1>F      { align1 1Q };
+pln.g.f0.0(16)  g11<1>F         g6<0,1,0>F      g2<8,8,1>F      { align1 1H };
+pln.l.f0.0(8)   g8<1>F          g4<0,1,0>F      g2<8,8,1>F      { align1 1Q };
+pln.l.f0.0(16)  g11<1>F         g6<0,1,0>F      g2<8,8,1>F      { align1 1H };
+pln.nz.f0.0(8)  g18<1>F         g5<0,1,0>F      g2<8,8,1>F      { align1 1Q };
+pln.nz.f0.0(16) g14<1>F         g7<0,1,0>F      g2<8,8,1>F      { align1 1H };

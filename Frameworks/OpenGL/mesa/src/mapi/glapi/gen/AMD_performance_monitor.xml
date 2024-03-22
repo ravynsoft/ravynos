@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_AMD_performance_monitor" number="360">
+
+    <function name="GetPerfMonitorGroupsAMD" es2="2.0">
+        <param name="numGroups" type="GLint *"/>
+        <param name="groupsSize" type="GLsizei"/>
+        <param name="groups" type="GLuint *"/>
+    </function>
+
+    <function name="GetPerfMonitorCountersAMD" es2="2.0">
+        <param name="group" type="GLuint"/>
+        <param name="numCounters" type="GLint *"/>
+        <param name="maxActiveCounters" type="GLint *"/>
+        <param name="countersSize" type="GLsizei"/>
+        <param name="counters" type="GLuint *"/>
+    </function>
+
+    <function name="GetPerfMonitorGroupStringAMD" es2="2.0">
+        <param name="group" type="GLuint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="length" type="GLsizei *"/>
+        <param name="groupString" type="GLchar *"/>
+    </function>
+
+    <function name="GetPerfMonitorCounterStringAMD" es2="2.0">
+        <param name="group" type="GLuint"/>
+        <param name="counter" type="GLuint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="length" type="GLsizei *"/>
+        <param name="counterString" type="GLchar *"/>
+    </function>
+
+    <function name="GetPerfMonitorCounterInfoAMD" es2="2.0">
+        <param name="group" type="GLuint"/>
+        <param name="counter" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="data" type="GLvoid *"/>
+    </function>
+
+    <function name="GenPerfMonitorsAMD" es2="2.0">
+        <param name="n" type="GLsizei"/>
+        <param name="monitors" type="GLuint *"/>
+    </function>
+
+    <function name="DeletePerfMonitorsAMD" es2="2.0">
+        <param name="n" type="GLsizei"/>
+        <param name="monitors" type="GLuint *" count="n"/>
+    </function>
+
+    <function name="SelectPerfMonitorCountersAMD" es2="2.0">
+        <param name="monitor" type="GLuint"/>
+        <param name="enable" type="GLboolean"/>
+        <param name="group" type="GLuint"/>
+        <param name="numCounters" type="GLint"/>
+        <param name="counterList" type="GLuint *" count="numCounters"/>
+    </function>
+
+    <function name="BeginPerfMonitorAMD" es2="2.0">
+        <param name="monitor" type="GLuint"/>
+    </function>
+
+    <function name="EndPerfMonitorAMD" es2="2.0">
+        <param name="monitor" type="GLuint"/>
+    </function>
+
+    <function name="GetPerfMonitorCounterDataAMD" es2="2.0">
+        <param name="monitor" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="dataSize" type="GLsizei"/>
+        <param name="data" type="GLuint *"/>
+        <param name="bytesWritten" type="GLint *"/>
+    </function>
+
+    <enum name="COUNTER_TYPE_AMD" value="0x8BC0"/>
+    <enum name="COUNTER_RANGE_AMD" value="0x8BC1"/>
+    <enum name="UNSIGNED_INT64_AMD" value="0x8BC2"/>
+    <enum name="PERCENTAGE_AMD" value="0x8BC3"/>
+    <enum name="PERFMON_RESULT_AVAILABLE_AMD" value="0x8BC4"/>
+    <enum name="PERFMON_RESULT_SIZE_AMD" value="0x8BC5"/>
+    <enum name="PERFMON_RESULT_AMD" value="0x8BC6"/>
+</category>
+
+</OpenGLAPI>

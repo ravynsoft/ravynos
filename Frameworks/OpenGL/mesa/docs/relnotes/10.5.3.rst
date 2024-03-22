@@ -1,0 +1,101 @@
+Mesa 10.5.3 Release Notes / April 12, 2015
+==========================================
+
+Mesa 10.5.3 is a bug fix release which fixes bugs found since the 10.5.2
+release.
+
+Mesa 10.5.3 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   2371b8e210ccd19f61dd94b6664d612e5a479ba7d431a074512d87633bd6aeb4  mesa-10.5.3.tar.gz
+   8701ee1be4f5c03238f5e63c1a9bd4cc03a2f6c0155ed42a1ae7d58f18912ba2  mesa-10.5.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 83962 <https://bugs.freedesktop.org/show_bug.cgi?id=83962>`__ -
+   [HSW/BYT]Piglit
+   spec_ARB_gpu_shader5_arb_gpu_shader5-emitstreamvertex_nodraw fails
+-  `Bug 89679 <https://bugs.freedesktop.org/show_bug.cgi?id=89679>`__ -
+   [NV50] Portal/Half-Life 2 will not start (native Steam)
+-  `Bug 89746 <https://bugs.freedesktop.org/show_bug.cgi?id=89746>`__ -
+   Mesa and LLVM 3.6+ break opengl for genymotion
+-  `Bug 89754 <https://bugs.freedesktop.org/show_bug.cgi?id=89754>`__ -
+   vertexAttrib fails WebGL Conformance test with mesa drivers
+-  `Bug 89758 <https://bugs.freedesktop.org/show_bug.cgi?id=89758>`__ -
+   pow WebGL Conformance test with mesa drivers
+-  `Bug 89759 <https://bugs.freedesktop.org/show_bug.cgi?id=89759>`__ -
+   WebGL OGL ES GLSL conformance test with mesa drivers fails
+-  `Bug 89905 <https://bugs.freedesktop.org/show_bug.cgi?id=89905>`__ -
+   scons build broken on 10.5.2 due to activated vega st
+
+Changes
+-------
+
+Dave Airlie (1):
+
+-  st_glsl_to_tgsi: only do mov copy propagation on temps (v2)
+
+Emil Velikov (5):
+
+-  docs: Add sha256 sums for the 10.5.2 release
+-  xmlpool: don't forget to ship the MOS
+-  configure.ac: error out if python/mako is not found when required
+-  dist: add the VG depedencies into the tarball
+-  Update version to 10.5.3
+
+Iago Toral Quiroga (1):
+
+-  i965: Do not render primitives in non-zero streams then TF is
+   disabled
+
+Ilia Mirkin (7):
+
+-  st/mesa: update arrays when the current attrib has been updated
+-  nv50/ir: take postFactor into account when doing peephole
+   optimizations
+-  nv50/ir/gk110: fix offset flag position for TXD opcode
+-  freedreno/a3xx: fix 3d texture layout
+-  freedreno/a3xx: point size should not be divided by 2
+-  nv50: allocate more offset space for occlusion queries
+-  nv50,nvc0: limit the y-tiling of 3d textures to the first level's
+   tiling
+
+Kenneth Graunke (2):
+
+-  i965: Fix instanced geometry shaders on Gen8+.
+-  i965: Add forgotten multi-stream code to Gen8 SOL state.
+
+Marcin Ślusarz (1):
+
+-  nouveau: synchronize "scratch runout" destruction with the command
+   stream
+
+Michel Dänzer (1):
+
+-  radeonsi: Cache LLVMTargetMachineRef in context instead of in screen
+
+Tom Stellard (1):
+
+-  clover: Return CL_BUILD_ERROR for CL_PROGRAM_BUILD_STATUS when
+   compilation fails v2
+
+Ville Syrjälä (1):
+
+-  i965: Fix URB size for CHV

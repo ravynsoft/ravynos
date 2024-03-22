@@ -1,0 +1,6 @@
+This is a mirror of the kernel validation code into the userspace GL library.
+It is only built when USE_VC4_SIMULATOR is defined, for compiling the driver
+on an x86 system with the simpenrose simulator.  It allows testing of changes
+across the kernel and userspace with exposure to most of the software stack,
+on a higher-performance and more-debuggable environment than the native
+hardware.

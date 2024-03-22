@@ -1,0 +1,42 @@
+Mesa 10.2.1 Release Notes / June 6, 2014
+========================================
+
+Mesa 10.2.1 is a bug fix release which fixes bugs found since the 10.2
+release.
+
+Mesa 10.2.1 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   96f892dae2d0bb14ac9c2113f586c909  MesaLib-10.2.1.tar.gz
+   093f9b5d077e5f6061dcd7b01b7aa51a  MesaLib-10.2.1.tar.bz2
+   6ab76c1608e5deed1eb8b54c62d7a48a  MesaLib-10.2.1.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+Mesa 10.2 had a build problem in the radeonsi driver due to an error
+resolving conflicts in a patch cherry-pick from master. The build error
+is fixed.
+
+Changes
+-------
+
+Ian Romanick (3):
+
+-  docs: Add MD5 checksum, etc. for 10.1 release
+-  radeonsi: Fix build error introduced in 5ab9a9c
+-  Bump version to 10.2.1

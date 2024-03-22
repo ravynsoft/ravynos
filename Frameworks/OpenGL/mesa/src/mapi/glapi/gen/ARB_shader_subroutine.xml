@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="GL_ARB_shader_subroutine" number="90">
+
+    <function name="GetSubroutineUniformLocation">
+        <param name="program" type="GLuint"/>
+        <param name="shadertype" type="GLenum"/>
+        <param name="name" type="const GLchar *"/>
+        <return type="GLint"/>
+    </function>
+
+    <function name="GetSubroutineIndex">
+        <param name="program" type="GLuint"/>
+        <param name="shadertype" type="GLenum"/>
+        <param name="name" type="const GLchar *"/>
+        <return type="GLuint"/>
+    </function>
+
+    <function name="GetActiveSubroutineUniformiv">
+        <param name="program" type="GLuint"/>
+        <param name="shadertype" type="GLenum"/>
+        <param name="index" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="values" type="GLint *" output="true"/>
+    </function>
+
+    <function name="GetActiveSubroutineUniformName">
+        <param name="program" type="GLuint"/>
+        <param name="shadertype" type="GLenum"/>
+        <param name="index" type="GLuint"/>
+        <param name="bufsize" type="GLsizei"/>
+        <param name="length" type="GLsizei *" output="true"/>
+        <param name="name" type="GLchar *" output="true"/>
+    </function>
+
+    <function name="GetActiveSubroutineName">
+        <param name="program" type="GLuint"/>
+        <param name="shadertype" type="GLenum"/>
+        <param name="index" type="GLuint"/>
+        <param name="bufsize" type="GLsizei"/>
+        <param name="length" type="GLsizei *" output="true"/>
+        <param name="name" type="GLchar *" output="true"/>
+    </function>
+
+    <function name="UniformSubroutinesuiv" exec="dlist">
+        <param name="shadertype" type="GLenum"/>
+        <param name="count" type="GLsizei"/>
+        <param name="indices" type="const GLuint *" count="count"/>
+    </function>
+
+    <function name="GetUniformSubroutineuiv">
+        <param name="shadertype" type="GLenum"/>
+        <param name="location" type="GLint"/>
+        <param name="params" type="GLuint *" output="true"/>
+    </function>
+
+    <function name="GetProgramStageiv">
+        <param name="program" type="GLuint"/>
+        <param name="shadertype" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="values" type="GLint *" output="true"/>
+    </function>
+
+    <enum name="ACTIVE_SUBROUTINES" value="0x8DE5"/>
+    <enum name="ACTIVE_SUBROUTINE_UNIFORMS" value="0x8DE6"/>
+    <enum name="ACTIVE_SUBROUTINE_UNIFORM_LOCATIONS" value="0x8E47"/>
+    <enum name="ACTIVE_SUBROUTINE_MAX_LENGTH" value="0x8E48"/>
+    <enum name="ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH" value="0x8E49"/>
+
+    <enum name="MAX_SUBROUTINES" value="0x8DE7"/>
+    <enum name="MAX_SUBROUTINE_UNIFORM_LOCATIONS" value="0x8DE8"/>
+
+    <enum name="NUM_COMPATIBLE_SUBROUTINES" value="0x8E4A"/>
+    <enum name="COMPATIBLE_SUBROUTINES" value="0x8E4B"/>
+
+    <!-- UNIFORM_SIZE, UNIFORM_NAME_LENGTH already in GL3.1 -->
+
+</category>
+</OpenGLAPI>

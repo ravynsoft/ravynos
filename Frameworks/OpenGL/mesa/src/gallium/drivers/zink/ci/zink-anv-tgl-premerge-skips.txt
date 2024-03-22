@@ -1,0 +1,21 @@
+# Skip some >1min tests in pre merge.  These will be covered in the nightly jobs.
+KHR-GL46.packed_pixels.varied_rectangle.*
+KHR-GL46.tessellation_shader.tessellation_control_to_tessellation_evaluation.gl_MaxPatchVertices_Position_PointSize
+KHR-Single-GL46.arrays_of_arrays_gl.SizedDeclarationsPrimitive
+KHR-Single-GL46.arrays_of_arrays_gl.SubroutineArgumentAliasing2
+KHR-Single-GL46.arrays_of_arrays_gl.SubroutineArgumentAliasing3
+KHR-Single-GL46.arrays_of_arrays_gl.SubroutineArgumentAliasing4
+KHR-Single-GL46.enhanced_layouts.ssb_member_invalid_offset_alignment
+KHR-Single-GL46.enhanced_layouts.uniform_block_member_invalid_offset_alignment
+KHR-Single-GL46.enhanced_layouts.varying_array_components
+KHR-Single-GL46.enhanced_layouts.varying_structure_locations
+KHR-Single-GL46.enhanced_layouts.xfb_override_qualifiers_with_api
+KHR-Single-GL46.enhanced_layouts.xfb_stride
+spec@!opengl 1.1@copypixels-sync
+spec@!opengl 1.1@draw-sync
+spec@arb_compute_shader@local-id-explosion
+spec@arb_gpu_shader_fp64@execution@arb_gpu_shader_fp64-fs-getuniformdv
+spec@arb_gpu_shader_fp64@execution@arb_gpu_shader_fp64-gs-getuniformdv
+spec@arb_gpu_shader_fp64@execution@arb_gpu_shader_fp64-vs-getuniformdv
+spec@ext_texture_array@fbo-depth-array
+spec@ext_texture_lod_bias@lodbias

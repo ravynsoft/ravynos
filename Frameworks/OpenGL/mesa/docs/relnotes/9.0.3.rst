@@ -1,0 +1,226 @@
+Mesa 9.0.3 Release Notes / February 21th, 2013
+==============================================
+
+Mesa 9.0.3 is a bug fix release which fixes bugs found since the 9.0.2
+release.
+
+Mesa 9.0 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   168384ac0101f4600a15edd3561acdc7  MesaLib-9.0.3.tar.gz
+   d7515cc5116c72ac63d735655bd63689  MesaLib-9.0.3.tar.bz2
+   a2e1c794572440fd0d839a7d7dfea00c  MesaLib-9.0.3.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 25201 <https://bugs.freedesktop.org/show_bug.cgi?id=25201>`__ -
+   Pink artifacts on objects in the distance in ETQW/Quake 4
+-  `Bug 31598 <https://bugs.freedesktop.org/show_bug.cgi?id=31598>`__ -
+   configure: Doesn't check for python libxml2
+-  `Bug 40404 <https://bugs.freedesktop.org/show_bug.cgi?id=40404>`__ -
+   [softpipe] piglit glsl-max-varyings regression
+-  `Bug 47220 <https://bugs.freedesktop.org/show_bug.cgi?id=47220>`__ -
+   [bisected] Oglc pxconv-gettex(basic.allCases) regressed
+-  `Bug 48629 <https://bugs.freedesktop.org/show_bug.cgi?id=48629>`__ -
+   [bisected i965]Oglc shad-compiler(advanced.TestLessThani) regressed
+-  `Bug 54240 <https://bugs.freedesktop.org/show_bug.cgi?id=54240>`__ -
+   [swrast] piglit fbo-generatemipmap-filtering regression
+-  `Bug 56920 <https://bugs.freedesktop.org/show_bug.cgi?id=56920>`__ -
+   [sandybridge][uxa] graphics very glitchy and always flickering
+-  `Bug 57166 <https://bugs.freedesktop.org/show_bug.cgi?id=57166>`__ -
+   [GM45] Chrome experiment "Stars" crash: brw_fs_emit.cpp:708: brw_reg
+   brw_reg_from_fs_reg(fs_reg*): Assertion „!"not reached"“ failed.
+-  `Bug 57746 <https://bugs.freedesktop.org/show_bug.cgi?id=57746>`__ -
+   build test failure: nouveau_fbo.c:198:3: error: too few arguments to
+   function 'nouveau_renderbuffer_del'
+-  `Bug 57754 <https://bugs.freedesktop.org/show_bug.cgi?id=57754>`__ -
+   [swrast] Mesa 9.1-devel implementation error: Unable to delete
+   renderbuffer, no context
+-  `Bug 58680 <https://bugs.freedesktop.org/show_bug.cgi?id=58680>`__ -
+   [IVB] Graphical glitches in 0 A.D
+-  `Bug 58972 <https://bugs.freedesktop.org/show_bug.cgi?id=58972>`__ -
+   [softpipe] util/u_tile.c:795:pipe_put_tile_z: Assertion \`0' failed.
+-  `Bug 59364 <https://bugs.freedesktop.org/show_bug.cgi?id=59364>`__ -
+   [bisected] Mesa build fails: clientattrib.c:33:22: fatal error:
+   indirect.h: No such file or directory
+-  `Bug 59700 <https://bugs.freedesktop.org/show_bug.cgi?id=59700>`__ -
+   [ILK/SNB/IVB Bisected]Oglc vertexshader(advanced.TestLightsTwoSided)
+   causes GPU hung
+-  `Bug 59873 <https://bugs.freedesktop.org/show_bug.cgi?id=59873>`__ -
+   [swrast] piglit ext_framebuffer_multisample-interpolation 0
+   centroid-edges regression
+-  `Bug 60052 <https://bugs.freedesktop.org/show_bug.cgi?id=60052>`__ -
+   [Bisected]Piglit glx_extension_string_sanity fail
+-  `Bug 60172 <https://bugs.freedesktop.org/show_bug.cgi?id=60172>`__ -
+   Planeshift: triangles where grass would be
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.0.2..mesa-9.0.3
+
+Adam Jackson (1):
+
+-  r200: Fix probable thinko in r200EmitArrays
+
+Andreas Boll (7):
+
+-  docs: Add 9.0.2 release md5sums
+-  docs: add news item for 9.0.2 release
+-  configure.ac: Allow OpenGL ES1 and ES2 only with enabled OpenGL
+-  build: require python module libxml2
+-  cherry-ignore: Ignore candidates for the 9.1 branch.
+-  mesa: Bump version to 9.0.3
+-  docs: Add 9.0.3 release notes
+
+Anuj Phogat (1):
+
+-  mesa: Fix GL_LUMINANCE handling for textures in glGetTexImage
+
+Brian Paul (29):
+
+-  st/glx: accept GLX_SAMPLE_BUFFERS/SAMPLES_ARB == 0
+-  draw: set precalc_flat flag for AA lines too
+-  softpipe: fix up FS variant unbinding / deletion
+-  softpipe: fix unreliable FS variant binding bug
+-  xlib: handle \_mesa_initialize_visual()'s return value
+-  xlib: allow GLX_DONT_CARE for glXChooseFBConfig() attribute values
+-  st/glx: allow GLX_DONT_CARE for glXChooseFBConfig() attribute values
+-  util: fix addressing bug in pipe_put_tile_z() for
+   PIPE_FORMAT_Z32_FLOAT
+-  util: add get/put_tile_z() support for
+   PIPE_FORMAT_Z32_FLOAT_S8X24_UINT
+-  mesa: use GLbitfield64 when copying program inputs
+-  svga: add NULL pointer check in svga_create_sampler_state()
+-  vbo: add a null pointer check to handle OOM instead of crashing
+-  osmesa: use \_mesa_generate_mipmap() for mipmap generation, not meta
+-  xlib: use \_mesa_generate_mipmap() for mipmap generation, not meta
+-  st/mesa: set ctx->Const.MaxSamples = 0, not 1
+-  mesa: fix-up and use \_mesa_delete_renderbuffer()
+-  mesa: pass context parameter to gl_renderbuffer::Delete()
+-  st/mesa: fix context use-after-free problem in
+   st_renderbuffer_delete()
+-  dri_glx: fix use after free report
+-  mesa: remove warning message in \_mesa_reference_renderbuffer_()
+-  st/mesa: add null pointer check in st_renderbuffer_delete()
+-  util: add some defensive coding in u_upload_alloc()
+-  st/mesa: do proper error checking for u_upload_alloc() calls
+-  util: add new error checking code in vbuf helper
+-  mesa: don't enable GL_EXT_framebuffer_multisample for software
+   drivers
+-  st/mesa: only enable GL_EXT_framebuffer_multisample if GL_MAX_SAMPLES
+   >= 2
+-  mesa: don't expose IBM_rasterpos_clip in a core context
+-  svga: fix sRGB rendering
+-  nouveau: Fix build.
+
+Chad Versace (1):
+
+-  i965/disasm: Fix horizontal stride of dest registers
+
+Eric Anholt (5):
+
+-  i965/fs: Fix the gen6-specific if handling for 80ecb8f15b9ad7d6edc
+-  i965/fs: Don't generate saturates over existing variable values.
+-  i965: Actually add support for GL_ANY_SAMPLES_PASSED from GL_ARB_oq2.
+-  i965/vs: Try again when we've successfully spilled a reg.
+-  i965/gen7: Set up all samplers even if samplers are sparsely used.
+
+Frank Henigman (1):
+
+-  mesa: add bounds checking for uniform array access
+
+Jerome Glisse (1):
+
+-  r600g: add cs memory usage accounting and limit it v3 (backport for
+   mesa 9.0)
+
+Jordan Justen (1):
+
+-  unpack: support unpacking MESA_FORMAT_ARGB2101010
+
+José Fonseca (2):
+
+-  mesa/st: Don't use 4bits for GL_UNSIGNED_BYTE_3_3_2(_REV)
+-  draw: Properly limit vertex buffer fetches on draw arrays.
+
+Kenneth Graunke (19):
+
+-  i965: Fix primitive restart on Haswell.
+-  i965: Refactor texture swizzle generation into a helper.
+-  i965: Do texture swizzling in hardware on Haswell.
+-  i965: Lower textureGrad() with samplerCubeShadow.
+-  i965: Use Haswell's sample_d_c for textureGrad with shadow samplers.
+-  i965: Add chipset limits for Haswell GT1/GT2.
+-  cherry-ignore: Ignore i965 guardband bug fixes.
+-  i965: Add missing \_NEW_BUFFERS dirty bit in Gen7 SBE state.
+-  i965/vs: Create a 'lod_type' temporary for ir->lod_info.lod->type.
+-  i965/vs: Set LOD to 0 for ordinary texture() calls.
+-  i965/vs: Store texturing results into a vec4 temporary.
+-  cherry-ignore: Ignore candidates for the 9.1 branch.
+-  mesa: Disable GL_NV_primitive_restart extension in core contexts.
+-  glsl: Track UBO block names in the symbol table.
+-  build: Fix build on systems where /usr/bin/python isn't python 2.
+-  i965: Refactor Gen6+ SF attribute override code.
+-  i965: Compute the maximum SF source attribute.
+-  i965: Fix the SF Vertex URB Read Length calculation for Sandybridge.
+-  i965: Fix the SF Vertex URB Read Length calculation for Gen7
+   platforms.
+
+Marek Olšák (3):
+
+-  r600g: fix int->bool conversion in fence_signalled
+-  gallium/u_upload_mgr: fix a serious memory leak
+-  r300g: fix blending with blend color and RGBA formats
+
+Matt Turner (3):
+
+-  mesa: Return 0 for XFB_VARYING_MAX_LENGTH if no varyings
+-  mesa: Set transform feedback's default buffer mode to
+   INTERLEAVED_ATTRIBS
+-  mesa/uniform_query: Don't write to \*params if there is an error
+
+Michel Dänzer (1):
+
+-  configure.ac: GLX cannot work without OpenGL
+
+Paul Berry (1):
+
+-  mesa: Allow glReadBuffer(GL_NONE) for winsys framebuffers.
+
+Roland Scheidegger (1):
+
+-  softpipe: fix using optimized filter function
+
+Stefan Dösinger (3):
+
+-  meta: Disable GL_FRAGMENT_SHADER_ATI in MESA_META_SHADER
+-  radeon: Initialize swrast before setting limits
+-  r200: Initialize swrast before setting limits
+
+Zack Rusin (2):
+
+-  glx: only advertise GLX_INTEL_swap_event if it's supported
+-  DRI2: Don't disable GLX_INTEL_swap_event unconditionally

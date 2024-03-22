@@ -1,0 +1,103 @@
+Mesa 10.5.4 Release Notes / April 24, 2015
+==========================================
+
+Mesa 10.5.4 is a bug fix release which fixes bugs found since the 10.5.3
+release.
+
+Mesa 10.5.4 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   e1089567fc7bf8d9b2d8badcc9f2fc3b758701c8c0ccfe7af1805549fea53f11  mesa-10.5.4.tar.gz
+   b51e723f3a20d842c88a92d809435b229fc4744ca0dbec0317d9d4a3ac4c6803  mesa-10.5.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 69226 <https://bugs.freedesktop.org/show_bug.cgi?id=69226>`__ -
+   Cannot enable basic shaders with Second Life aborts attempt
+-  `Bug 71591 <https://bugs.freedesktop.org/show_bug.cgi?id=71591>`__ -
+   Second Life shaders fail to compile (extension declared in middle of
+   shader)
+-  `Bug 81025 <https://bugs.freedesktop.org/show_bug.cgi?id=81025>`__ -
+   [IVB/BYT Bisected]Piglit
+   spec_ARB_draw_indirect_arb_draw_indirect-draw-elements-prim-restart-ugly
+   fails
+-  `Bug 89457 <https://bugs.freedesktop.org/show_bug.cgi?id=89457>`__ -
+   [BSW Bisected]ogles3conform
+   ES3-CTS.gtf.GL3Tests.shadow.shadow_execution_vert fails
+-  `Bug 89957 <https://bugs.freedesktop.org/show_bug.cgi?id=89957>`__ -
+   vm protection faults in piglit lest: texsubimage cube_map_array pbo
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  glsl: rewrite glsl_type::record_key_hash() to avoid buffer overflow
+
+Dave Airlie (2):
+
+-  st/mesa: convert sub image for cube map arrays to 2d arrays for
+   upload
+-  st/mesa: align cube map arrays layers
+
+Emil Velikov (11):
+
+-  docs: Add 256 sums for the 10.5.3 release
+-  radeonsi: remove unused si_dump_key()
+-  android: use LOCAL_SHARED_LIBRARIES over TARGET_OUT_HEADERS
+-  android: add $(mesa_top)/src include to the whole of mesa
+-  android: egl: add libsync_cflags to the build
+-  android: dri/common: conditionally include drm_cflags/set
+   \__NOT_HAVE_DRM_H
+-  android: add HAVE__BUILTIN\_\* and HAVE_FUNC_ATTRIBUTE\_\* defines
+-  android: add $(mesa_top)/src/mesa/main to the includes list
+-  android: dri: link against libmesa_util
+-  android: mesa: fix the path of the SSE4_1 optimisations
+-  Update version to 10.5.4
+
+Ian Romanick (1):
+
+-  nir: Fix typo in "ushr by 0" algebraic replacement
+
+Kenneth Graunke (2):
+
+-  i965: Fix software primitive restart with indirect draws.
+-  drirc: Add "Second Life" quirk
+   (allow_glsl_extension_directive_midshader).
+
+Kristian Høgsberg (1):
+
+-  i965: Rewrite ir_tex to ir_txl with lod 0 for vertex shaders
+
+Marek Olšák (2):
+
+-  glsl_to_tgsi: fix out-of-bounds constant access and crash for
+   uniforms
+-  glsl_to_tgsi: don't use a potentially-undefined immediate for
+   ir_query_levels
+
+Mathias Froehlich (1):
+
+-  i965: Flush batchbuffer containing the query on glQueryCounter.
+
+Mauro Rossi (2):
+
+-  android: mesa: generate the format_{un,}pack.[ch] sources
+-  android: add inital NIR build

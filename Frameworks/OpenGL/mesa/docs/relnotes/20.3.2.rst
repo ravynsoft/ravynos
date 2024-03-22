@@ -1,0 +1,138 @@
+Mesa 20.3.2 Release Notes / 2020-12-30
+======================================
+
+Mesa 20.3.2 is a bug fix release which fixes bugs found since the 20.3.1 release.
+
+Mesa 20.3.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.3.2 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    cce001b685d23afb976b04138714906abcf7e7f996da6355e6a43e5ca486533d  mesa-20.3.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- \`gl_FragColor' undeclared (AMDGPU) - tested stable Mesa 20.1 and latest git for 20.3 (Game/Wine/Proton)
+- Mesa considers the framebuffer with mixed 3D and 2D array attachments to be incomplete.
+- Multiple buffer definitions bound to single OpDecorate::Binding break SPIR-V module.
+- Intel driver segfaults on SPIR-V with OpArrayLength
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (1):
+
+- radv: Don't skip layout transitions that only differ in render loop.
+
+Caio Marcelo de Oliveira Filho (3):
+
+- spirv: Implement OpArrayLength for OpenGL
+- nir: Consider pointer initializers in nir_remove_dead_variables
+- spirv: Remove more dead variables
+
+Daniel Schürmann (4):
+
+- aco: fix DCE of rematerializable phi operands
+- aco/spill: only prevent rematerializable vars from being DCE'd if they haven't been renamed
+- aco/ra: fix phi operand renaming
+- nir/opt_if: split ALU from Phi more aggressively
+
+Danylo Piliaiev (4):
+
+- tu: Ignore pTessellationState if there is no tesselation shaders
+- tu: pCounterBuffers can be NULL in vkCmd*TransformFeedbackEXT()
+- freedreno/a6xx: Fix assert which checks the count of shader outputs
+- ir3: Allow tesselation to use all 32 varying slots
+
+Dylan Baker (11):
+
+- docs: Add sha256 sums for 20.3.1
+- .pick_status.json: Update to 2d78e28ba702d366becabb8e241b861e6711c76e
+- .pick_status.json: Update to 661922f6ac9576fc2077c5d50b53ef7edf9e8a18
+- .pick_status.json: Update to f65750d2215242b17309b5aa8845b717bb913e77
+- .pick_status.json: Update to b9fccafed616aa2906dad3c77dca0c67af5017b8
+- .pick_status.json: Mark f65750d2215242b17309b5aa8845b717bb913e77 as backported
+- .pick_status.json: Update to 8db0775f4520e08b3c539f9bd2d1f567639c088c
+- .pick_status.json: Update to a22b85ce5e825275533ca1be9fbd47667e991356
+- .pick_status.json: Update to 9ef23e428bd18c412499471b4e3550a489b72c3f
+- .pick_status.json: Mark 967ae12931e0dc12855de903851222b2f0607878 as denominated
+- .pick_status.json: Update to 6c8cc9be12dc5d6c0d2386d6addb69d8f2fb5399
+
+Eric Anholt (5):
+
+- mesa/st: Finalize the texture before BlitFramebuffer from it.
+- freedreno/a6xx: Flush depth at the end of bypass rendering, too.
+- softpipe: count CS invocations for pipeline stats queries.
+- mesa/st: Update FP state when textures change with an ATI_fs bound.
+- ci/deqp: Fix inverted meaning of DEQP_NO_SAVE_RESULTS.
+
+Erik Faye-Lund (2):
+
+- zink: fix 8 bit index handling code
+- zink: fix format-mapping
+
+Hyunjun Ko (1):
+
+- turnip: use ir3_compiler_destroy instead of ralloc_free
+
+Icecream95 (1):
+
+- panfrost: Fix panfrost_small_padded_vertex_count for 17 vertices
+
+Marek Olšák (1):
+
+- radeonsi: fix small primitive culling with MSAA force-disabled and smoothing
+
+Mike Blumenkrantz (3):
+
+- st/mesa: set drawpixels swizzle before creating sampler view
+- zink: handle null ubos
+- st/pbo: fix pbo uploads without PIPE_CAP_TGSI_VS_LAYER_VIEWPORT and skip gs
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- egl: fix EGL_EXT_protected_content/surface mixup
+
+Rhys Perry (1):
+
+- aco: add block to worklist in mark_block_wqm()
+
+Ruijing Dong (1):
+
+- radeon/vcn: fix hevc 10bit profile error
+
+Ryan Neph (1):
+
+- virgl: fix BGRA emulation artifacts during window resize
+
+Samuel Pitoiset (1):
+
+- radv: add missing DB flush after depth/stencil resolve operations
+
+Tapani Pälli (1):
+
+- mesa: fix layered framebuffer attachment target check
+
+Timothy Arceri (1):
+
+- glsl: default to compat shaders in compat profile

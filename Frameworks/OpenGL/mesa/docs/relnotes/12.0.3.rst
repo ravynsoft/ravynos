@@ -1,0 +1,48 @@
+Mesa 12.0.3 Release Notes / September 15, 2016
+==============================================
+
+Mesa 12.0.3 is a bug fix release which fixes bugs found since the 12.0.3
+release.
+
+Mesa 12.0.3 implements the OpenGL 4.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.3. OpenGL 4.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   79abcfab3de30dbd416d1582a3cf6b1be308466231488775f1b7bb43be353602 mesa-12.0.3.tar.gz
+   1dc86dd9b51272eee1fad3df65e18cda2e556ef1bc0b6e07cd750b9757f493b1 mesa-12.0.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 97781 <https://bugs.freedesktop.org/show_bug.cgi?id=97781>`__ -
+   [HSW, BYT, IVB]
+   es2-cts.gtf.gl2extensiontests.depth_texture_cube_map.depth_texture_cube_map
+
+Changes
+-------
+
+Emil Velikov (3):
+
+-  docs: add sha256 checksums for 12.0.2
+-  Revert "i965/miptree: Stop multiplying cube depth by 6 in HiZ
+   calculations"
+-  Update version to 12.0.3
+
+José Fonseca (1):
+
+-  appveyor: Update winflexbison download URL.

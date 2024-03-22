@@ -1,0 +1,63 @@
+Mesa 8.0 Release Notes / February 9, 2012
+=========================================
+
+Mesa 8.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 8.0.1.
+
+Mesa 8.0 implements the OpenGL 3.0 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 3.0.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   3516fea6c28ce4a0fa9759e4894729a1  MesaLib-8.0.tar.gz
+   1a5668fe72651a670611164cefc703b2  MesaLib-8.0.tar.bz2
+   66f5a01a85530a91472a3acceb556db8  MesaLib-8.0.zip
+
+New features
+------------
+
+-  GL_ARB_ES2_compatibility (r300g, r600g)
+-  GL_ARB_depth_buffer_float (r600g)
+-  GL_ARB_vertex_type_2_10_10_10_rev (r600g)
+-  GL_ARB_texture_storage (gallium drivers and swrast)
+-  GL_EXT_packed_float (i965)
+-  GL_EXT_texture_array (r600g, i965)
+-  GL_EXT_texture_shared_exponent (i965)
+-  GL_NV_fog_distance (all gallium drivers, nouveau classic)
+-  GL_NV_primitive_restart (r600g)
+-  GL_OES_EGL_image_external (gallium drivers)
+-  GL_OES_compressed_ETC1_RGB8_texture (softpipe, llvmpipe)
+-  ARB_texture_rgb10_a2ui (softpipe, r600g)
+-  Many updates to the VMware svga Gallium driver
+
+Bug fixes
+---------
+
+Changes
+-------
+
+-  Removed all DRI drivers that did not support DRI2. Specifically,
+   i810, mach64, mga, r128, savage, sis, tdfx, and unichrome were
+   removed.
+-  Removed support for BeOS.
+-  Removed the obsolete (and unmaintained) Windows "gldirect" and "ICD"
+   drivers.
+-  Removed the linux-fbdev software driver.
+-  Removed all remnants of paletted texture support. As required by
+   desktop OpenGL, ``GL_COLOR_INDEX`` data can still be uploaded to a
+   color (e.g., RGBA) texture. However, the data cannot be stored
+   internally as color-index.
+-  Removed support for GL_APPLE_client_storage extension.
+-  Removed the classic Mesa r300 and r600 drivers, which are superseded
+   by the gallium drivers for this hardware.
+-  Removed the dead Gallium i965, cell and failover drivers, which were
+   either broken and with nobody in sight to fix the situation or
+   deprecated.

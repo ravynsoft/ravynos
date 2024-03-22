@@ -1,0 +1,98 @@
+Name
+
+    MESA_drm_image_formats
+
+Name Strings
+
+    EGL_MESA_drm_image_formats
+
+Contributors
+
+    Nicolai Hähnle <Nicolai.Haehnle@amd.com>
+    Qiang Yu <Qiang.Yu@amd.com>
+
+Contact
+
+    Nicolai Hähnle <Nicolai.Haehnle@amd.com>
+
+Status
+
+    Proposal
+
+Version
+
+    Version 1, January 26, 2017
+
+Number
+
+    EGL Extension #??
+
+Dependencies
+
+    This extension requires the EGL_MESA_drm_image extension.
+
+    This extension is written against the wording of EGL_MESA_drm_image
+    specification.
+
+Overview
+
+    This extension extends the functionality of EGL_MESA_drm_image by adding
+    additional formats required by Glamor for use with DRM buffers.
+
+IP Status
+
+    Open-source; freely implementable.
+
+New Procedures and Functions
+
+    None
+
+New Tokens
+
+    Accepted as values for the EGL_IMAGE_FORMAT_MESA attribute:
+
+        EGL_DRM_BUFFER_FORMAT_ARGB2101010_MESA  0x3290
+        EGL_DRM_BUFFER_FORMAT_ARGB1555_MESA     0x3291
+        EGL_DRM_BUFFER_FORMAT_RGB565_MESA       0x3292
+
+Additions to the EGL_MESA_drm_image Specification:
+
+    Remove the sentence "The only format specified ..." from the paragraph
+    describing eglCreateDRMImageMESA and add the following paragraph:
+
+        The formats specified for use with EGL_DRM_BUFFER_FORMAT_MESA are:
+
+      * EGL_DRM_BUFFER_FORMAT_ARGB32_MESA, where each pixel is a CPU-endian
+        32-bit quantity, with alpha in the upper 8 bits, then red, then green,
+        then blue,
+
+      * EGL_DRM_BUFFER_FORMAT_ARGB2101010_MESA, where each pixel is a CPU-
+        endian, 32-bit quantity, with alpha in the most significant 2 bits,
+        followed by 10 bits each for red, green, and blue,
+
+      * EGL_DRM_BUFFER_FORMAT_ARGB1555_MESA, where each pixel is a CPU-endian
+        16-bit quantity, with alpha in the most significant bit, followed by
+        5 bits each for red, green, and blue, and
+
+      * EGL_DRM_BUFFER_FORMAT_RGB565_MESA, where each pixel is a CPU-endian
+        16-bit quantity, with red in the 5 most significant bits, followed by
+        6 bits of green and 5 bits of blue.
+
+Issues
+
+    1. Should we expose the full set of channel permutations for the formats,
+       e.g. ABGR2101010, RGBA1010102, and BGRA1010102 in addition to
+       ARGB2101010?
+
+       RESOLVED: No.
+
+       DISCUSSION: The original extension sets a precedent of only exposing one
+       of the possible permutations of 8-bit channel formats. It is also not
+       clear where the additional permutations would be used. For example,
+       Glamor has a fixed mapping from pixmap/screen depth to format that
+       doesn't allow for the other permutations.
+
+Revision History
+
+    Version 1, January, 2017
+        Initial draft (Nicolai Hähnle)

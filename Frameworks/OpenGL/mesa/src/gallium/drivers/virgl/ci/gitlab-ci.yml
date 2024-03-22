@@ -1,0 +1,78 @@
+include:
+  - local: 'src/gallium/drivers/virgl/ci/gitlab-ci-inc.yml'
+
+virpipe-on-gl:
+  extends:
+    - .deqp-test
+    - .virpipe-test
+  variables:
+    DEQP_SUITE: virpipe-gl
+    GPU_VERSION: virpipe-gl
+    PIGLIT_PLATFORM: x11_egl
+    DEQP_FRACTION: 4
+
+virgl-on-gl:
+  variables:
+    DEQP_SUITE: virgl-gl
+    GPU_VERSION: virgl-gl
+    LP_NUM_THREADS: 1 # There will be FDO_CI_CONCURRENT Crosvm processes, so each should use a single thread
+  parallel: 3
+  tags:
+    - kvm
+  extends:
+    - .deqp-test
+    - .virgl-test
+
+virgl-on-gles:
+  variables:
+    VIRGL_HOST_API: GLES
+    DEQP_SUITE: virgl-gles
+    GPU_VERSION: virgl-gles
+    CROSVM_GPU_ARGS: "gles=true,backend=virglrenderer,egl=true,surfaceless=true,width=1024,height=768"
+  extends:
+    - virgl-on-gl
+
+virgl-traces:
+  extends:
+    - .virgl-test
+    - .piglit-traces-test
+  variables:
+    EGL_PLATFORM: "surfaceless"
+    PIGLIT_TRACES_FILE: traces-virgl.yml
+    PIGLIT_REPLAY_DEVICE_NAME: "gl-virgl"
+    PIGLIT_RESULTS: "virgl-replay"
+    LD_LIBRARY_PATH: "${CI_PROJECT_DIR}/install/lib/"     # For Crosvm
+  tags:
+    - kvm
+  script:
+    - . "$SCRIPTS_DIR"/setup-test-env.sh
+    # Use all threads for rendering and only run one job at a time
+    # Couldn't get GitLab CI to correctly substitute the variable in the yaml
+    - LP_NUM_THREADS=${FDO_CI_CONCURRENT} FDO_CI_CONCURRENT=1 install/crosvm-runner.sh install/piglit/piglit-traces.sh
+
+.virgl-iris-traces:
+  extends:
+    - .virgl-iris-test
+    - .virgl-iris-manual-rules
+  variables:
+    PIGLIT_REPLAY_EXTRA_ARGS: "--download-caching-proxy-url=${FDO_HTTP_CACHE_URI}"
+
+virgl-iris-traces-performance:
+  extends:
+    - .virgl-iris-test
+    - .virgl-iris-rules-performance
+  variables:
+    HWCI_FREQ_MAX: "true"
+    PIGLIT_REPLAY_SUBCOMMAND: profile
+    PIGLIT_REPLAY_LOOP_TIMES: 150
+    PIGLIT_REPLAY_EXTRA_ARGS: "--download-caching-proxy-url=${FDO_HTTP_CACHE_URI}"
+
+android-virgl-llvmpipe:
+  extends:
+    - .test-android
+    - .virgl-rules
+  variables:
+    ANDROID_GPU_MODE: drm_virgl
+    ANDROID_DRIVER: virtio_gpu
+    GPU_VERSION: virgl-gl
+    DEQP_SUITE: android-virgl

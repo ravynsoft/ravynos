@@ -1,0 +1,23 @@
+This directory contains a copy of the installed kernel headers
+required by several drivers to communicate with the kernel.
+Whenever one of those driver needs new definitions for new kernel
+APIs, these files should be updated.
+
+These files in master should only be updated once the changes have landed
+in the drm-next tree.
+
+You can copy files installed after running this from the kernel
+repository, at version the drivers require :
+
+$ make headers_install INSTALL_HDR_PATH=/path/to/install
+
+The last update was done at the following kernel commit :
+
+commit ea97a66a221893fb9b4d96688e759d1db2d6e683
+Author:     Lucas De Marchi <lucas.demarchi@intel.com>
+AuthorDate: Thu Dec 21 14:28:04 2023 -0800
+Commit:     Dave Airlie <airlied@redhat.com>
+CommitDate: Fri Dec 22 11:17:15 2023 +1000
+
+    drm/xe: Disable 32bits build
+

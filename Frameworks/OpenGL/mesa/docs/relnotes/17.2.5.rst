@@ -1,0 +1,125 @@
+Mesa 17.2.5 Release Notes / November 10, 2017
+=============================================
+
+Mesa 17.2.5 is a bug fix release which fixes bugs found since the 17.2.4
+release.
+
+Mesa 17.2.5 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   25b40e72fad64b096c2d8d6fe9579369954debe7970d4ad53e5033c7eec2918b  mesa-17.2.5.tar.gz
+   7f7f914b7b9ea0b15f2d9d01a4375e311b0e90e55683b8e8a67ce8691eb1070f  mesa-17.2.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 97532 <https://bugs.freedesktop.org/show_bug.cgi?id=97532>`__ -
+   Regression: GLB 2.7 & Glmark-2 GLES versions segfault due to linker
+   precision error (259fc505) on dead variable
+-  `Bug 102680 <https://bugs.freedesktop.org/show_bug.cgi?id=102680>`__
+   - [OpenGL CTS] KHR-GL45.shader_ballot_tests.ShaderBallotBitmasks
+   fails
+-  `Bug 102809 <https://bugs.freedesktop.org/show_bug.cgi?id=102809>`__
+   - Rust shadows(?) flash random colours
+-  `Bug 103142 <https://bugs.freedesktop.org/show_bug.cgi?id=103142>`__
+   - R600g+sb: optimizer apparently stuck in an endless loop
+
+Changes
+-------
+
+Andres Gomez (8):
+
+-  docs: add sha256 checksums for 17.2.4
+-  cherry-ignore: radv: copy indirect lowering settings from radeonsi
+-  cherry-ignore: i965: fix blorp stage_prog_data->param leak
+-  cherry-ignore: etnaviv: don't do resolve-in-place without valid TS
+-  cherry-ignore: intel/fs: Alloc pull constants off mem_ctx
+-  cherry-ignore: added 17.3 nominations.
+-  cherry-ignore: automake: include git_sha1.h.in in release tarball
+-  Update version to 17.2.5
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Don't expose heaps with 0 memory.
+-  radv: Don't use vgpr indexing for outputs on GFX9.
+-  radv: Disallow indirect outputs for GS on GFX9 as well.
+
+Dave Airlie (3):
+
+-  i915g: make gears run again.
+-  radv: free attachments on end command buffer.
+-  radv: add initial copy descriptor support. (v2)
+
+Eric Engestrom (1):
+
+-  vc4: fix release build
+
+Gert Wollny (1):
+
+-  r600/sb: bail out if prepare_alu_group() doesn't find a proper
+   scheduling
+
+Faith Ekstrand (4):
+
+-  spirv: Claim support for the simple memory model
+-  i965/blorp: Use blorp_to_isl_format for src_isl_format in
+   blit_miptrees
+-  i965/blorp: Use more temporary isl_format variables
+-  i965/miptree: Take an isl_format in render_aux_usage
+
+Kenneth Graunke (1):
+
+-  mesa: Accept GL_BACK in get_fb0_attachment with
+   ARB_ES3_1_compatibility.
+
+Leo Liu (1):
+
+-  radeon/video: add gfx9 offsets when rejoin the video surface
+
+Marek Olšák (2):
+
+-  st/dri: don't expose modifiers in EGL if the driver doesn't implement
+   them
+-  ac/surface/gfx9: don't allow DCC for the smallest mipmap levels
+
+Nanley Chery (1):
+
+-  i965: Check CCS_E compatibility for texture view rendering
+
+Neil Roberts (1):
+
+-  nir/opt_intrinsics: Fix values for gl_SubGroupG{e,t}MaskARB
+
+Nicolai Hähnle (1):
+
+-  amd/common/gfx9: workaround DCC corruption more conservatively
+
+Tapani Pälli (1):
+
+-  i965: unref push_const_bo in intelDestroyContext
+
+Timothy Arceri (1):
+
+-  radv: copy indirect lowering settings from radeonsi
+
+Tomasz Figa (1):
+
+-  glsl: Allow precision mismatch on dead data with GLSL ES 1.00
+
+Topi Pohjolainen (1):
+
+-  intel/compiler/gen9: Pixel shader header only workaround

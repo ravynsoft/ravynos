@@ -1,0 +1,36 @@
+// Copyright 2021 The Fuchsia Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#version 460
+
+//
+//
+//
+
+// clang-format off
+#define RS_SCATTER_KEYVAL_DWORD_BASE   0
+
+#define RS_PARTITION_STATUS_INVALID    RS_PARTITION_STATUS_EVEN_INVALID
+#define RS_PARTITION_STATUS_REDUCTION  RS_PARTITION_STATUS_EVEN_REDUCTION
+#define RS_PARTITION_STATUS_PREFIX     RS_PARTITION_STATUS_EVEN_PREFIX
+
+#define RS_DEVADDR_KEYVALS_IN(push_)   push_.devaddr_keyvals_even
+#define RS_DEVADDR_KEYVALS_OUT(push_)  push_.devaddr_keyvals_odd
+// clang-format on
+
+//
+//
+//
+
+#extension GL_GOOGLE_include_directive : require
+
+//
+//
+//
+
+#include "scatter.glsl"
+
+//
+//
+//

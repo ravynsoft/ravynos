@@ -1,0 +1,64 @@
+Mesa 10.1.3 Release Notes / (May 9, 2014)
+=========================================
+
+Mesa 10.1.3 is a bug fix release which fixes bugs found since the 10.1.2
+release.
+
+Note: Mesa 10.1.3 is being released sooner than originally scheduled to
+make available a fix for a performance rgression that was inadvertently
+introduced to Mesa 10.1.2. The performance regression is reported to
+make vmware swapbuffers fall back to software.
+
+Mesa 10.1.3 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   665fe1656aaa2c37b32042068aff92cb  MesaLib-10.1.3.tar.gz
+   ba6dbe2b9cab0b4de840c996b9b6a3ad  MesaLib-10.1.3.tar.bz2
+   4e6f26330a63d3c47e62ac4bdead39e8  MesaLib-10.1.3.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 77245 <https://bugs.freedesktop.org/show_bug.cgi?id=77245>`__ -
+   Bogus GL_ARB_explicit_attrib_location layout identifier warnings
+
+Changes
+-------
+
+Carl Worth (3):
+
+-  docs: Add MD5 sums for Mesa 10.1.2
+-  get-pick-list.sh: Require explicit "10.1" for nominating stable
+   patches
+-  VERSION: Update to 10.1.3
+
+Kenneth Graunke (2):
+
+-  mesa: Fix MaxNumLayers for 1D array textures.
+-  i965: Fix depth (array slices) computation for 1D_ARRAY render
+   targets.
+
+Tapani Pälli (1):
+
+-  glsl: fix bogus layout qualifier warnings
+
+Thomas Hellstrom (1):
+
+-  st/xa: Fix performance regression introduced by commit "Cache render
+   target surface"

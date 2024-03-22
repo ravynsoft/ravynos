@@ -1,0 +1,129 @@
+Mesa 23.1.5 Release Notes / 2023-08-02
+======================================
+
+Mesa 23.1.5 is a bug fix release which fixes bugs found since the 23.1.4 release.
+
+Mesa 23.1.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.5 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    3cf88576fdebf24fc4047067936131c90cb6541c27365996b79b661dec1fb153  mesa-23.1.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Baldurs Gate 3 (DX11) - Graphical corruption on RDNA3 (ACO regression)
+- intel: Deathloop and other DX12 games fail assert(validated) with invalid SEL instruction
+
+
+Changes
+-------
+
+Alex Denes (1):
+
+- virgl: link VA driver with build-id
+
+Alyssa Rosenzweig (3):
+
+- panfrost: Lower vertex_id for XFB
+- panfrost: Fix transform feedback on v9 harder
+- nir/lower_blend: Fix 32-bit logicops
+
+Bas Nieuwenhuizen (2):
+
+- aco: fix nir_op_vec8/16 with 16-bit elements.
+- aco: Fix some constant patterns in 16-bit vec4 construction with s_pack.
+
+Connor Abbott (1):
+
+- tu: Fix vk2tu_*_stage flag type
+
+Daniel Stone (1):
+
+- egl/wayland: Always initialise fd_display_gpu
+
+Danylo Piliaiev (3):
+
+- freedreno/regs: Rename SP_FS_CTRL_REG0.DIFF_FINE into LODPIXMASK
+- ir3: Fix FS quad ops returning wrong values from helper invocations
+- tu,freedreno: Forbid blit event for R8G8_SRGB due to gpu faults
+
+Dave Airlie (1):
+
+- gallivm: fix atomic global temporary storage.
+
+Eric Engestrom (4):
+
+- docs: add sha256sum for 23.1.4
+- .pick_status.json: Update to c75bf084d0b0ee4d4ba1d74ba5a7486a07ba8334
+- .pick_status.json: Update to 2b7599dc495669a9f935dcb80e5b62a100a9b788
+- .pick_status.json: Update to 8d7f682bdbaee2cd7185203770bfc3f0e07ee427
+
+Georg Lehmann (1):
+
+- aco/gfx11: fix get_gfx11_true16_mask with v_cmp_class_f16
+
+Karol Herbst (2):
+
+- nv50/ir/nir: fix txq emission on MS textures
+- nv50/ir/nir: Fix zero source handling of tex instructions.
+
+Konstantin Seurer (2):
+
+- gallivm: Fix atomic_global types
+- draw: Do not restart the primitive_id at 0
+
+Lionel Landwerlin (1):
+
+- intel/fs: fix missing predicate on SEL instruction
+
+Mike Blumenkrantz (7):
+
+- zink: be even dumber about buffer refs when replacing storage
+- zink: emit SpvCapabilitySampleMaskPostDepthCoverage with SpvExecutionModePostDepthCoverage
+- kopper: handle pixmap creation failure more gracefully
+- glxsw: check geometry of drawables on creation
+- zink: don't clobber descriptor mode on multiple screen creation
+- nir: fix slot calculations for compact variables with location_frac
+- lavapipe: use the component offset directly for xfb
+
+Nanley Chery (2):
+
+- anv: Don't support ASTC images with modifiers
+- intel/blorp: Ambiguate after CCS resolves on gfx7-8
+
+Rhys Perry (4):
+
+- radv: fix radv_get_ballot_bit_size with CS
+- nir/opt_dead_cf: remove nodes after a jump earlier
+- aco: insert s_nop before VGPR deallocation
+- ac/llvm: fix AC_TM_CHECK_IR
+
+Robert Mader (1):
+
+- egl/wayland: wait for compositor to release shm buffers
+
+Yiwei Zhang (3):
+
+- turnip: flush cache for dstBuffer in vkCmdCopyQueryPoolResults
+- venus: fix a cmd builder render_pass state leak across reset
+- venus: fix cmd state leak across implicit reset

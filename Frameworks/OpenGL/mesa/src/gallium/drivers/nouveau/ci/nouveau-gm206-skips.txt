@@ -1,0 +1,23 @@
+# It's too flaky, don't bother
+dEQP-GLES3.functional.transform_feedback.*
+
+KHR-GL43.copy_image.functional
+
+# 48s
+KHR-GL43.texture_swizzle.smoke
+
+# 34s
+KHR-GL43.texture_swizzle.functional
+
+# 62 seconds, tbhen:
+# "nouveau 0000:01:00.0: tex3d-maxsize[11413]: fail ttm_validate"
+tex3d-maxsize
+
+# 55s
+streaming-texture-leak
+
+# 32s
+spec@arb_compute_shader@local-id-explosion
+
+# Running under gbm
+glx@

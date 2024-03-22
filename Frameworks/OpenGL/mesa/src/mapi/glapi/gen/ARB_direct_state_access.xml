@@ -1,0 +1,745 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+<category name="GL_ARB_direct_state_access" number="164">
+   <enum name="TEXTURE_TARGET"  value="0x1006"/>
+   <enum name="QUERY_TARGET"    value="0x82EA"/>
+
+   <!-- Transform Feedback object functions -->
+
+  <function name="CreateTransformFeedbacks">
+      <param name="n" type="GLsizei" />
+      <param name="ids" type="GLuint *" />
+   </function>
+
+   <function name="TransformFeedbackBufferBase">
+      <param name="xfb" type="GLuint" />
+      <param name="index" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+   </function>
+
+   <function name="TransformFeedbackBufferRange">
+      <param name="xfb" type="GLuint" />
+      <param name="index" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+      <param name="offset" type="GLintptr" />
+      <param name="size" type="GLsizeiptr" />
+   </function>
+
+   <function name="GetTransformFeedbackiv">
+      <param name="xfb" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint *" />
+   </function>
+
+   <function name="GetTransformFeedbacki_v">
+      <param name="xfb" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="index" type="GLuint" />
+      <param name="param" type="GLint *" />
+   </function>
+
+   <function name="GetTransformFeedbacki64_v">
+      <param name="xfb" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="index" type="GLuint" />
+      <param name="param" type="GLint64 *" />
+   </function>
+
+   <!-- Buffer object functions -->
+
+   <function name="CreateBuffers" no_error="true">
+      <param name="n" type="GLsizei" />
+      <param name="buffers" type="GLuint *" />
+   </function>
+
+   <function name="NamedBufferStorage" no_error="true">
+      <param name="buffer" type="GLuint" />
+      <param name="size" type="GLsizeiptr" />
+      <param name="data" type="const GLvoid *" />
+      <param name="flags" type="GLbitfield" />
+   </function>
+
+   <function name="NamedBufferData" marshal="custom" no_error="true">
+      <param name="buffer" type="GLuint" />
+      <param name="size" type="GLsizeiptr" />
+      <param name="data" type="const GLvoid *" />
+      <param name="usage" type="GLenum" />
+   </function>
+
+   <function name="NamedBufferSubData" no_error="true" marshal="custom">
+      <param name="buffer" type="GLuint" />
+      <param name="offset" type="GLintptr" />
+      <param name="size" type="GLsizeiptr" />
+      <param name="data" type="const GLvoid *" />
+   </function>
+
+   <function name="CopyNamedBufferSubData" no_error="true">
+      <param name="readBuffer" type="GLuint" />
+      <param name="writeBuffer" type="GLuint" />
+      <param name="readOffset" type="GLintptr" />
+      <param name="writeOffset" type="GLintptr" />
+      <param name="size" type="GLsizeiptr" />
+   </function>
+
+   <function name="ClearNamedBufferData" no_error="true">
+      <param name="buffer" type="GLuint" />
+      <param name="internalformat" type="GLenum" />
+      <param name="format" type="GLenum" />
+      <param name="type" type="GLenum" />
+      <param name="data" type="const GLvoid *" />
+   </function>
+
+   <function name="ClearNamedBufferSubData" no_error="true">
+      <param name="buffer" type="GLuint" />
+      <param name="internalformat" type="GLenum" />
+      <param name="offset" type="GLintptr" />
+      <param name="size" type="GLsizeiptr" />
+      <param name="format" type="GLenum" />
+      <param name="type" type="GLenum" />
+      <param name="data" type="const GLvoid *" />
+   </function>
+
+   <function name="MapNamedBuffer" no_error="true">
+      <return type="GLvoid *" />
+      <param name="buffer" type="GLuint" />
+      <param name="access" type="GLenum" />
+   </function>
+
+   <function name="MapNamedBufferRange" no_error="true">
+      <return type="GLvoid *" />
+      <param name="buffer" type="GLuint" />
+      <param name="offset" type="GLintptr" />
+      <param name="length" type="GLsizeiptr" />
+      <param name="access" type="GLbitfield" />
+   </function>
+
+   <function name="UnmapNamedBuffer" alias="UnmapNamedBufferEXT" no_error="true">
+      <return type="GLboolean" />
+      <param name="buffer" type="GLuint" />
+   </function>
+
+   <function name="FlushMappedNamedBufferRange" no_error="true">
+      <param name="buffer" type="GLuint" />
+      <param name="offset" type="GLintptr" />
+      <param name="length" type="GLsizeiptr" />
+   </function>
+
+   <function name="GetNamedBufferParameteriv">
+      <param name="buffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint *" />
+   </function>
+
+   <function name="GetNamedBufferParameteri64v">
+      <param name="buffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint64 *" />
+   </function>
+
+   <function name="GetNamedBufferPointerv">
+      <param name="buffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLvoid **" />
+   </function>
+
+   <function name="GetNamedBufferSubData">
+      <param name="buffer" type="GLuint" />
+      <param name="offset" type="GLintptr" />
+      <param name="size" type="GLsizeiptr" />
+      <param name="data" type="GLvoid *" />
+   </function>
+
+   <!-- Framebuffer object functions -->
+
+   <function name="CreateFramebuffers">
+      <param name="n" type="GLsizei" />
+      <param name="framebuffers" type="GLuint *" />
+   </function>
+
+   <function name="NamedFramebufferRenderbuffer" no_error="true">
+      <param name="framebuffer" type="GLuint" />
+      <param name="attachment" type="GLenum" />
+      <param name="renderbuffertarget" type="GLenum" />
+      <param name="renderbuffer" type="GLuint" />
+   </function>
+
+   <function name="NamedFramebufferParameteri">
+      <param name="framebuffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint" />
+   </function>
+
+   <function name="NamedFramebufferTexture" no_error="true">
+      <param name="framebuffer" type="GLuint" />
+      <param name="attachment" type="GLenum" />
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+   </function>
+
+   <function name="NamedFramebufferTextureLayer" no_error="true">
+      <param name="framebuffer" type="GLuint" />
+      <param name="attachment" type="GLenum" />
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="layer" type="GLint" />
+   </function>
+
+   <function name="NamedFramebufferDrawBuffer" no_error="true">
+      <param name="framebuffer" type="GLuint" />
+      <param name="buf" type="GLenum" />
+   </function>
+
+   <function name="NamedFramebufferDrawBuffers" no_error="true">
+      <param name="framebuffer" type="GLuint" />
+      <param name="n" type="GLsizei" />
+      <param name="bufs" type="const GLenum *" count="n"/>
+   </function>
+
+   <function name="NamedFramebufferReadBuffer" no_error="true">
+      <param name="framebuffer" type="GLuint" />
+      <param name="buf" type="GLenum" />
+   </function>
+
+   <function name="InvalidateNamedFramebufferData">
+      <param name="framebuffer" type="GLuint" />
+      <param name="numAttachments" type="GLsizei" />
+      <param name="attachments" type="const GLenum *" count="numAttachments"/>
+   </function>
+
+   <function name="InvalidateNamedFramebufferSubData">
+      <param name="framebuffer" type="GLuint" />
+      <param name="numAttachments" type="GLsizei" />
+      <param name="attachments" type="const GLenum *" count="numAttachments"/>
+      <param name="x" type="GLint" />
+      <param name="y" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+   </function>
+
+   <function name="ClearNamedFramebufferiv">
+      <param name="framebuffer" type="GLuint" />
+      <param name="buffer" type="GLenum" />
+      <param name="drawbuffer" type="GLint" />
+      <param name="value" type="const GLint *" count="_mesa_buffer_enum_to_count(buffer)"/>
+   </function>
+
+   <function name="ClearNamedFramebufferuiv">
+      <param name="framebuffer" type="GLuint" />
+      <param name="buffer" type="GLenum" />
+      <param name="drawbuffer" type="GLint" />
+      <param name="value" type="const GLuint *" count="_mesa_buffer_enum_to_count(buffer)"/>
+   </function>
+
+   <function name="ClearNamedFramebufferfv">
+      <param name="framebuffer" type="GLuint" />
+      <param name="buffer" type="GLenum" />
+      <param name="drawbuffer" type="GLint" />
+      <param name="value" type="const GLfloat *" count="_mesa_buffer_enum_to_count(buffer)"/>
+   </function>
+
+   <function name="ClearNamedFramebufferfi">
+      <param name="framebuffer" type="GLuint" />
+      <param name="buffer" type="GLenum" />
+      <param name="drawbuffer" type="GLint" />
+      <param name="depth" type="GLfloat" />
+      <param name="stencil" type="GLint" />
+   </function>
+
+   <function name="BlitNamedFramebuffer" no_error="true">
+      <param name="readFramebuffer" type="GLuint" />
+      <param name="drawFramebuffer" type="GLuint" />
+      <param name="srcX0" type="GLint" />
+      <param name="srcY0" type="GLint" />
+      <param name="srcX1" type="GLint" />
+      <param name="srcY1" type="GLint" />
+      <param name="dstX0" type="GLint" />
+      <param name="dstY0" type="GLint" />
+      <param name="dstX1" type="GLint" />
+      <param name="dstY1" type="GLint" />
+      <param name="mask" type="GLbitfield" />
+      <param name="filter" type="GLenum" />
+   </function>
+
+   <function name="CheckNamedFramebufferStatus">
+      <return type="GLenum" />
+      <param name="framebuffer" type="GLuint" />
+      <param name="target" type="GLenum" />
+   </function>
+
+   <function name="GetNamedFramebufferParameteriv">
+      <param name="framebuffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint *" />
+   </function>
+
+   <function name="GetNamedFramebufferAttachmentParameteriv">
+      <param name="framebuffer" type="GLuint" />
+      <param name="attachment" type="GLenum" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint *" />
+   </function>
+
+   <!-- Renderbuffer object functions -->
+
+   <function name="CreateRenderbuffers" no_error="true">
+      <param name="n" type="GLsizei" />
+      <param name="renderbuffers" type="GLuint *" />
+   </function>
+
+   <function name="NamedRenderbufferStorage">
+      <param name="renderbuffer" type="GLuint" />
+      <param name="internalformat" type="GLenum" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+   </function>
+
+   <function name="NamedRenderbufferStorageMultisample">
+      <param name="renderbuffer" type="GLuint" />
+      <param name="samples" type="GLsizei" />
+      <param name="internalformat" type="GLenum" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+   </function>
+
+   <function name="GetNamedRenderbufferParameteriv">
+      <param name="renderbuffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint *" />
+   </function>
+
+   <!-- Texture object functions -->
+
+   <function name="CreateTextures" no_error="true">
+      <param name="target" type="GLenum" />
+      <param name="n" type="GLsizei" />
+      <param name="textures" type="GLuint *" />
+   </function>
+
+   <function name="TextureBuffer">
+      <param name="texture" type="GLuint" />
+      <param name="internalformat" type="GLenum" />
+      <param name="buffer" type="GLuint" />
+   </function>
+
+   <function name="TextureBufferRange">
+      <param name="texture" type="GLuint" />
+      <param name="internalformat" type="GLenum" />
+      <param name="buffer" type="GLuint" />
+      <param name="offset" type="GLintptr" />
+      <param name="size" type="GLsizeiptr" />
+   </function>
+
+   <function name="TextureStorage1D" no_error="true">
+      <param name="texture" type="GLuint" />
+      <param name="levels" type="GLsizei" />
+      <param name="internalformat" type="GLenum" />
+      <param name="width" type="GLsizei" />
+   </function>
+
+   <function name="TextureStorage2D" no_error="true">
+      <param name="texture" type="GLuint" />
+      <param name="levels" type="GLsizei" />
+      <param name="internalformat" type="GLenum" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+   </function>
+
+   <function name="TextureStorage3D" no_error="true">
+      <param name="texture" type="GLuint" />
+      <param name="levels" type="GLsizei" />
+      <param name="internalformat" type="GLenum" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+      <param name="depth" type="GLsizei" />
+   </function>
+
+   <function name="TextureStorage2DMultisample">
+      <param name="texture" type="GLuint" />
+      <param name="samples" type="GLsizei" />
+      <param name="internalformat" type="GLenum" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+      <param name="fixedsamplelocations" type="GLboolean" />
+   </function>
+
+   <function name="TextureStorage3DMultisample">
+      <param name="texture" type="GLuint" />
+      <param name="samples" type="GLsizei" />
+      <param name="internalformat" type="GLenum" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+      <param name="depth" type="GLsizei" />
+      <param name="fixedsamplelocations" type="GLboolean" />
+   </function>
+
+   <function name="TextureSubImage1D" no_error="true"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_unpack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="format" type="GLenum" />
+      <param name="type" type="GLenum" />
+      <param name="pixels" type="const GLvoid *" />
+   </function>
+
+   <function name="TextureSubImage2D" no_error="true"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_unpack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="yoffset" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+      <param name="format" type="GLenum" />
+      <param name="type" type="GLenum" />
+      <param name="pixels" type="const GLvoid *" />
+   </function>
+
+   <function name="TextureSubImage3D" no_error="true"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_unpack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="yoffset" type="GLint" />
+      <param name="zoffset" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+      <param name="depth" type="GLsizei" />
+      <param name="format" type="GLenum" />
+      <param name="type" type="GLenum" />
+      <param name="pixels" type="const GLvoid *" />
+   </function>
+
+   <function name="CompressedTextureSubImage1D" no_error="true"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_unpack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="format" type="GLenum" />
+      <param name="imageSize" type="GLsizei" />
+      <param name="data" type="const GLvoid *" />
+   </function>
+
+   <function name="CompressedTextureSubImage2D" no_error="true"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_unpack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="yoffset" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+      <param name="format" type="GLenum" />
+      <param name="imageSize" type="GLsizei" />
+      <param name="data" type="const GLvoid *" />
+   </function>
+
+   <function name="CompressedTextureSubImage3D" no_error="true"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_unpack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="yoffset" type="GLint" />
+      <param name="zoffset" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+      <param name="depth" type="GLsizei" />
+      <param name="format" type="GLenum" />
+      <param name="imageSize" type="GLsizei" />
+      <param name="data" type="const GLvoid *" />
+   </function>
+
+   <function name="CopyTextureSubImage1D" no_error="true">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="x" type="GLint" />
+      <param name="y" type="GLint" />
+      <param name="width" type="GLsizei" />
+   </function>
+
+   <function name="CopyTextureSubImage2D" no_error="true">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="yoffset" type="GLint" />
+      <param name="x" type="GLint" />
+      <param name="y" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+   </function>
+
+   <function name="CopyTextureSubImage3D" no_error="true">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="xoffset" type="GLint" />
+      <param name="yoffset" type="GLint" />
+      <param name="zoffset" type="GLint" />
+      <param name="x" type="GLint" />
+      <param name="y" type="GLint" />
+      <param name="width" type="GLsizei" />
+      <param name="height" type="GLsizei" />
+   </function>
+
+   <function name="TextureParameterf">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLfloat" />
+   </function>
+
+   <function name="TextureParameterfv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="const GLfloat *" count="_mesa_tex_param_enum_to_count(pname)"/>
+   </function>
+
+   <function name="TextureParameteri">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint" />
+   </function>
+
+   <function name="TextureParameterIiv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="const GLint *" count="_mesa_tex_param_enum_to_count(pname)"/>
+   </function>
+
+   <function name="TextureParameterIuiv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="const GLuint *" count="_mesa_tex_param_enum_to_count(pname)"/>
+   </function>
+
+   <function name="TextureParameteriv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="const GLint *" count="_mesa_tex_param_enum_to_count(pname)"/>
+   </function>
+
+   <function name="GenerateTextureMipmap" no_error="true">
+      <param name="texture" type="GLuint" />
+   </function>
+
+   <function name="BindTextureUnit" no_error="true">
+      <param name="unit" type="GLuint" />
+      <param name="texture" type="GLuint" />
+   </function>
+
+   <function name="GetTextureImage"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_pack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="format" type="GLenum" />
+      <param name="type" type="GLenum" />
+      <param name="bufSize" type="GLsizei" />
+      <param name="pixels" type="GLvoid *" />
+   </function>
+
+   <function name="GetCompressedTextureImage"
+             marshal="async" marshal_sync="_mesa_glthread_has_no_pack_buffer(ctx)">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="bufSize" type="GLsizei" />
+      <param name="pixels" type="GLvoid *" />
+   </function>
+
+   <function name="GetTextureLevelParameterfv">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLfloat *" />
+   </function>
+
+   <function name="GetTextureLevelParameteriv">
+      <param name="texture" type="GLuint" />
+      <param name="level" type="GLint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint *" />
+   </function>
+
+   <function name="GetTextureParameterfv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLfloat *" />
+   </function>
+
+   <function name="GetTextureParameterIiv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint *" />
+   </function>
+
+   <function name="GetTextureParameterIuiv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLuint *" />
+   </function>
+
+   <function name="GetTextureParameteriv">
+      <param name="texture" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint *" />
+   </function>
+
+   <!-- Vertex Array object functions -->
+
+   <function name="CreateVertexArrays" no_error="true"
+             marshal_call_after="_mesa_glthread_GenVertexArrays(ctx, n, arrays);">
+      <param name="n" type="GLsizei" />
+      <param name="arrays" type="GLuint *" />
+   </function>
+
+   <function name="DisableVertexArrayAttrib" no_error="true"
+             marshal_call_after="if (COMPAT) _mesa_glthread_ClientState(ctx, &amp;vaobj, VERT_ATTRIB_GENERIC(index), false);">
+      <param name="vaobj" type="GLuint" />
+      <param name="index" type="GLuint" />
+   </function>
+
+   <function name="EnableVertexArrayAttrib" no_error="true"
+             marshal_call_after="if (COMPAT) _mesa_glthread_ClientState(ctx, &amp;vaobj, VERT_ATTRIB_GENERIC(index), true);">
+      <param name="vaobj" type="GLuint" />
+      <param name="index" type="GLuint" />
+   </function>
+
+   <function name="VertexArrayElementBuffer" no_error="true"
+             marshal_call_after="_mesa_glthread_DSAElementBuffer(ctx, vaobj, buffer);">
+      <param name="vaobj" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+   </function>
+
+   <function name="VertexArrayVertexBuffer" no_error="true"
+             marshal_call_after="if (COMPAT) _mesa_glthread_DSAVertexBuffer(ctx, vaobj, bindingindex, buffer, offset, stride);">
+      <param name="vaobj" type="GLuint" />
+      <param name="bindingindex" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+      <param name="offset" type="GLintptr" />
+      <param name="stride" type="GLsizei" />
+   </function>
+
+   <function name="VertexArrayVertexBuffers" no_error="true"
+             marshal_call_after="if (COMPAT) _mesa_glthread_DSAVertexBuffers(ctx, vaobj, first, count, buffers, offsets, strides);">
+      <param name="vaobj" type="GLuint" />
+      <param name="first" type="GLuint" />
+      <param name="count" type="GLsizei" />
+      <param name="buffers" type="const GLuint *" count="count"/>
+      <param name="offsets" type="const GLintptr *" count="count"/>
+      <param name="strides" type="const GLsizei *" count="count"/>
+   </function>
+
+   <function name="VertexArrayAttribFormat"
+             marshal_call_after="if (COMPAT) _mesa_glthread_DSAAttribFormat(ctx, vaobj, attribindex, MESA_PACK_VFORMAT(type, size, normalized, 0, 0), relativeoffset);">
+      <param name="vaobj" type="GLuint" />
+      <param name="attribindex" type="GLuint" />
+      <param name="size" type="GLint" />
+      <param name="type" type="GLenum" />
+      <param name="normalized" type="GLboolean" />
+      <param name="relativeoffset" type="GLuint" />
+   </function>
+
+   <function name="VertexArrayAttribIFormat"
+             marshal_call_after="if (COMPAT) _mesa_glthread_DSAAttribFormat(ctx, vaobj, attribindex, MESA_PACK_VFORMAT(type, size, 0, 1, 0), relativeoffset);">
+      <param name="vaobj" type="GLuint" />
+      <param name="attribindex" type="GLuint" />
+      <param name="size" type="GLint" />
+      <param name="type" type="GLenum" />
+      <param name="relativeoffset" type="GLuint" />
+   </function>
+
+   <function name="VertexArrayAttribLFormat"
+             marshal_call_after="if (COMPAT) _mesa_glthread_DSAAttribFormat(ctx, vaobj, attribindex, MESA_PACK_VFORMAT(type, size, 0, 0, 1), relativeoffset);">
+      <param name="vaobj" type="GLuint" />
+      <param name="attribindex" type="GLuint" />
+      <param name="size" type="GLint" />
+      <param name="type" type="GLenum" />
+      <param name="relativeoffset" type="GLuint" />
+   </function>
+
+   <function name="VertexArrayAttribBinding" no_error="true"
+             marshal_call_after="if (COMPAT) _mesa_glthread_DSAAttribBinding(ctx, vaobj, attribindex, bindingindex);">
+      <param name="vaobj" type="GLuint" />
+      <param name="attribindex" type="GLuint" />
+      <param name="bindingindex" type="GLuint" />
+   </function>
+
+   <function name="VertexArrayBindingDivisor" no_error="true"
+             marshal_call_after="if (COMPAT) _mesa_glthread_DSABindingDivisor(ctx, vaobj, bindingindex, divisor);">
+      <param name="vaobj" type="GLuint" />
+      <param name="bindingindex" type="GLuint" />
+      <param name="divisor" type="GLuint" />
+   </function>
+
+   <function name="GetVertexArrayiv">
+      <param name="vaobj" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint *" />
+   </function>
+
+   <function name="GetVertexArrayIndexediv">
+      <param name="vaobj" type="GLuint" />
+      <param name="index" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint *" />
+   </function>
+
+   <function name="GetVertexArrayIndexed64iv">
+      <param name="vaobj" type="GLuint" />
+      <param name="index" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="param" type="GLint64 *" />
+   </function>
+
+   <!-- Sampler object functions -->
+
+   <function name="CreateSamplers" no_error="true">
+      <param name="n" type="GLsizei" />
+      <param name="samplers" type="GLuint *" />
+   </function>
+
+   <!-- Program Pipeline object functions -->
+
+   <function name="CreateProgramPipelines" no_error="true">
+      <param name="n" type="GLsizei" />
+      <param name="pipelines" type="GLuint *" />
+   </function>
+
+   <!-- Query object functions -->
+
+   <function name="CreateQueries">
+      <param name="target" type="GLenum" />
+      <param name="n" type="GLsizei" />
+      <param name="ids" type="GLuint *" />
+   </function>
+
+   <function name="GetQueryBufferObjectiv">
+      <param name="id" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="offset" type="GLintptr" />
+   </function>
+
+   <function name="GetQueryBufferObjectuiv">
+      <param name="id" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="offset" type="GLintptr" />
+   </function>
+
+   <function name="GetQueryBufferObjecti64v">
+      <param name="id" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="offset" type="GLintptr" />
+   </function>
+
+   <function name="GetQueryBufferObjectui64v">
+      <param name="id" type="GLuint" />
+      <param name="buffer" type="GLuint" />
+      <param name="pname" type="GLenum" />
+      <param name="offset" type="GLintptr" />
+   </function>
+</category>
+</OpenGLAPI>

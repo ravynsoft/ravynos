@@ -1,0 +1,308 @@
+Mesa 18.3.0 Release Notes / December 7, 2018
+============================================
+
+Mesa 18.3.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 18.3.1.
+
+Mesa 18.3.0 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+libwayland-egl is now distributed by Wayland (since 1.15, `see
+announcement <https://lists.freedesktop.org/archives/wayland-devel/2018-April/037767.html>`__),
+and has been removed from Mesa in this release. Make sure you're using
+an up-to-date version of Wayland to keep the functionality.
+
+SHA256 checksums
+----------------
+
+::
+
+   17a124d4dbc712505d22a7815c9b0cee22214c96c8abb91539a2b1351e38a000  mesa-18.3.0.tar.gz
+   b63f947e735d6ef3dfaa30c789a9adfbae18aea671191eaacde95a18c17fc38a  mesa-18.3.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_AMD_depth_clamp_separate on r600, radeonsi.
+-  GL_AMD_framebuffer_multisample_advanced on radeonsi.
+-  GL_AMD_gpu_shader_int64 on i965, nvc0, radeonsi.
+-  GL_AMD_multi_draw_indirect on all GL 4.x drivers.
+-  GL_AMD_query_buffer_object on i965, nvc0, r600, radeonsi.
+-  GL_EXT_disjoint_timer_query on radeonsi and most other Gallium
+   drivers (ES extension)
+-  GL_EXT_texture_compression_s3tc on all drivers (ES extension)
+-  GL_EXT_vertex_attrib_64bit on i965, nvc0, radeonsi.
+-  GL_EXT_window_rectangles on radeonsi.
+-  GL_KHR_texture_compression_astc_sliced_3d on radeonsi.
+-  GL_NV_fragment_shader_interlock on i965.
+-  EGL_EXT_device_base for all drivers.
+-  EGL_EXT_device_drm for all drivers.
+-  EGL_MESA_device_software for all drivers.
+
+Bug fixes
+---------
+
+-  `Bug 13728 <https://bugs.freedesktop.org/show_bug.cgi?id=13728>`__ -
+   [G965] Some objects in Neverwinter Nights Linux version not displayed
+   correctly
+-  `Bug 91433 <https://bugs.freedesktop.org/show_bug.cgi?id=91433>`__ -
+   piglit.spec.arb_depth_buffer_float.fbo-depth-gl_depth_component32f-copypixels
+   fails
+-  `Bug 93355 <https://bugs.freedesktop.org/show_bug.cgi?id=93355>`__ -
+   [BXT,SKLGT4e] intermittent ext_framebuffer_multisample.accuracy fails
+-  `Bug 94957 <https://bugs.freedesktop.org/show_bug.cgi?id=94957>`__ -
+   dEQP failures on llvmpipe
+-  `Bug 98699 <https://bugs.freedesktop.org/show_bug.cgi?id=98699>`__ -
+   "float[a+++4 ? 1:1] f;" crashes glsl_compiler
+-  `Bug 99507 <https://bugs.freedesktop.org/show_bug.cgi?id=99507>`__ -
+   Corrupted frame contents with Vulkan version of DOTA2, Talos
+   Principle and Sascha Willems' demos when they're run Vsynched in
+   fullscreen
+-  `Bug 99730 <https://bugs.freedesktop.org/show_bug.cgi?id=99730>`__ -
+   Metro Redux game(s) needs override for midshader extension
+   declaration
+-  `Bug 100200 <https://bugs.freedesktop.org/show_bug.cgi?id=100200>`__
+   - Default Unreal Engine 4 frag shader fails to compile
+-  `Bug 101247 <https://bugs.freedesktop.org/show_bug.cgi?id=101247>`__
+   - Mesa fails to link GLSL programs with unused output blocks
+-  `Bug 102597 <https://bugs.freedesktop.org/show_bug.cgi?id=102597>`__
+   - [Regression] mpv, high rendering times (two to three times higher)
+-  `Bug 103241 <https://bugs.freedesktop.org/show_bug.cgi?id=103241>`__
+   - Anv crashes when using 64-bit vertex inputs
+-  `Bug 104602 <https://bugs.freedesktop.org/show_bug.cgi?id=104602>`__
+   - [apitrace] Graphical artifacts in Civilization VI on RX Vega
+-  `Bug 104809 <https://bugs.freedesktop.org/show_bug.cgi?id=104809>`__
+   - anv: DOOM 2016 and Wolfenstein II:The New Colossus crash due to not
+   having depthBoundsTest
+-  `Bug 104926 <https://bugs.freedesktop.org/show_bug.cgi?id=104926>`__
+   - swrast: Mesa 17.3.3 produces: HW cursor for format 875713089 not
+   supported
+-  `Bug 105333 <https://bugs.freedesktop.org/show_bug.cgi?id=105333>`__
+   - [gallium-nine] missing geometry after commit ac: replace
+   ac_build_kill with ac_build_kill_if_false
+-  `Bug 105371 <https://bugs.freedesktop.org/show_bug.cgi?id=105371>`__
+   - r600_shader_from_tgsi - GPR limit exceeded - shader requires 360
+   registers
+-  `Bug 105731 <https://bugs.freedesktop.org/show_bug.cgi?id=105731>`__
+   - linker error "fragment shader input ... has no matching output in
+   the previous stage" when previous stage's output declaration in a
+   separate shader object
+-  `Bug 105904 <https://bugs.freedesktop.org/show_bug.cgi?id=105904>`__
+   - Needed to delete mesa shader cache after driver upgrade for 32 bit
+   wine vulkan programs to work.
+-  `Bug 105975 <https://bugs.freedesktop.org/show_bug.cgi?id=105975>`__
+   - i965 always reports 0 viewport subpixel bits
+-  `Bug 106231 <https://bugs.freedesktop.org/show_bug.cgi?id=106231>`__
+   - llvmpipe blends produce bad code after llvm patch
+   https://reviews.llvm.org/D44785
+-  `Bug 106283 <https://bugs.freedesktop.org/show_bug.cgi?id=106283>`__
+   - Shader replacements works only for limited use cases
+-  `Bug 106577 <https://bugs.freedesktop.org/show_bug.cgi?id=106577>`__
+   - broken rendering with nine and nouveau (GM107)
+-  `Bug 106833 <https://bugs.freedesktop.org/show_bug.cgi?id=106833>`__
+   - glLinkProgram is expected to fail when vertex attribute aliasing
+   happens on ES3.0 context or later
+-  `Bug 106865 <https://bugs.freedesktop.org/show_bug.cgi?id=106865>`__
+   - [GLK] piglit.spec.ext_framebuffer_multisample.accuracy stencil
+   tests fail
+-  `Bug 106980 <https://bugs.freedesktop.org/show_bug.cgi?id=106980>`__
+   - Basemark GPU vulkan benchmark hangs on GFX9
+-  `Bug 106997 <https://bugs.freedesktop.org/show_bug.cgi?id=106997>`__
+   - [Regression]. Dying light game is crashing on latest mesa
+-  `Bug 107088 <https://bugs.freedesktop.org/show_bug.cgi?id=107088>`__
+   - [GEN8+] Hang when discarding a fragment if dual source blending is
+   enabled but shader doesn't support it
+-  `Bug 107098 <https://bugs.freedesktop.org/show_bug.cgi?id=107098>`__
+   - Segfault after munmap(kms_sw_dt->ro_mapped)
+-  `Bug 107212 <https://bugs.freedesktop.org/show_bug.cgi?id=107212>`__
+   - Dual-Core CPU E5500 / G45: RetroArch with reicast core results in
+   corrupted graphics
+-  `Bug 107223 <https://bugs.freedesktop.org/show_bug.cgi?id=107223>`__
+   - [GEN9+] 50% perf drop in SynMark Fill\* tests (E2E RBC gets
+   disabled?)
+-  `Bug 107276 <https://bugs.freedesktop.org/show_bug.cgi?id=107276>`__
+   - radv: OpBitfieldUExtract returns incorrect result when count is
+   zero
+-  `Bug 107280 <https://bugs.freedesktop.org/show_bug.cgi?id=107280>`__
+   - [DXVK] Batman: Arkham City with tessellation enabled hangs on SKL
+   GT4
+-  `Bug 107313 <https://bugs.freedesktop.org/show_bug.cgi?id=107313>`__
+   - Meson instructions on web site are non-optimal
+-  `Bug 107359 <https://bugs.freedesktop.org/show_bug.cgi?id=107359>`__
+   - [Regression] [bisected] [OpenGL CTS] [SKL,BDW]
+   KHR-GL46.texture_barrier*-texels,
+   GTF-GL46.gtf21.GL2FixedTests.buffer_corners.buffer_corners, and
+   GTF-GL46.gtf21.GL2FixedTests.stencil_plane_corners.stencil_plane_corners
+   fail with some configuration
+-  `Bug 107460 <https://bugs.freedesktop.org/show_bug.cgi?id=107460>`__
+   - radv: OpControlBarrier does not always work correctly (bisected)
+-  `Bug 107477 <https://bugs.freedesktop.org/show_bug.cgi?id=107477>`__
+   - [DXVK] Setting high shader quality in GTA V results in LLVM error
+-  `Bug 107483 <https://bugs.freedesktop.org/show_bug.cgi?id=107483>`__
+   - DispatchSanity_test.GL31_CORE regression
+-  `Bug 107487 <https://bugs.freedesktop.org/show_bug.cgi?id=107487>`__
+   - [intel] [tools] intel gpu tools don't honor -D tools=[]
+-  `Bug 107488 <https://bugs.freedesktop.org/show_bug.cgi?id=107488>`__
+   - gl.h:2090: error: redefinition of typedef ‘GLeglImageOES’
+-  `Bug 107510 <https://bugs.freedesktop.org/show_bug.cgi?id=107510>`__
+   - [GEN8+] up to 10% perf drop on several 3D benchmarks
+-  `Bug 107511 <https://bugs.freedesktop.org/show_bug.cgi?id=107511>`__
+   - KHR/khrplatform.h not always installed when needed
+-  `Bug 107524 <https://bugs.freedesktop.org/show_bug.cgi?id=107524>`__
+   - Broken packDouble2x32 at llvmpipe
+-  `Bug 107544 <https://bugs.freedesktop.org/show_bug.cgi?id=107544>`__
+   - intel/decoder: out of bounds group_iter
+-  `Bug 107547 <https://bugs.freedesktop.org/show_bug.cgi?id=107547>`__
+   - shader crashing glsl_compiler (uniform block assigned to vec2, then
+   component substraced by 1)
+-  `Bug 107550 <https://bugs.freedesktop.org/show_bug.cgi?id=107550>`__
+   - "0[2]" as function parameter hits assert
+-  `Bug 107563 <https://bugs.freedesktop.org/show_bug.cgi?id=107563>`__
+   - [RADV] Broken rendering in Unity demos
+-  `Bug 107565 <https://bugs.freedesktop.org/show_bug.cgi?id=107565>`__
+   - TypeError: \__init__() got an unexpected keyword argument
+   'future_imports'
+-  `Bug 107579 <https://bugs.freedesktop.org/show_bug.cgi?id=107579>`__
+   - [SNB] The graphic corruption when we reuse the GS compiled and used
+   for TFB when statebuffer contain magic trash in the unused space
+-  `Bug 107601 <https://bugs.freedesktop.org/show_bug.cgi?id=107601>`__
+   - Rise of the Tomb Raider Segmentation Fault when the game starts
+-  `Bug 107610 <https://bugs.freedesktop.org/show_bug.cgi?id=107610>`__
+   - Dolphin emulator mis-renders shadow overlay in Super Mario Sunshine
+-  `Bug 107626 <https://bugs.freedesktop.org/show_bug.cgi?id=107626>`__
+   - [SNB] The graphical corruption and GPU hang occur sometimes on the
+   piglit test "arb_texture_multisample-large-float-texture" with
+   parameter --fp16
+-  `Bug 107658 <https://bugs.freedesktop.org/show_bug.cgi?id=107658>`__
+   - [Regression] [bisected] [OpenGLES CTS]
+   KHR-GLES3.packed_pixels.*rectangle.r*8_snorm
+-  `Bug 107734 <https://bugs.freedesktop.org/show_bug.cgi?id=107734>`__
+   - [GLSL] glsl-fface-invariant, glsl-fcoord-invariant and
+   glsl-pcoord-invariant should fail
+-  `Bug 107745 <https://bugs.freedesktop.org/show_bug.cgi?id=107745>`__
+   - [bisected] [bdw bsw]
+   piglit.­spec.­arb_fragment_shader_interlock.­arb_fragment_shader_interlock-image-load-store
+   failure
+-  `Bug 107760 <https://bugs.freedesktop.org/show_bug.cgi?id=107760>`__
+   - GPU Hang when Playing DiRT 3 Complete Edition using Steam Play with
+   DXVK
+-  `Bug 107765 <https://bugs.freedesktop.org/show_bug.cgi?id=107765>`__
+   - [regression] Batman Arkham City crashes with DXVK under wine
+-  `Bug 107772 <https://bugs.freedesktop.org/show_bug.cgi?id=107772>`__
+   - Mesa preprocessor matches if(def)s & endifs incorrectly
+-  `Bug 107779 <https://bugs.freedesktop.org/show_bug.cgi?id=107779>`__
+   - Access violation with some games
+-  `Bug 107786 <https://bugs.freedesktop.org/show_bug.cgi?id=107786>`__
+   - [DXVK] MSAA reflections are broken in GTA V
+-  `Bug 107806 <https://bugs.freedesktop.org/show_bug.cgi?id=107806>`__
+   - glsl_get_natural_size_align_bytes() ABORT with GfxBench Vulkan
+   AztecRuins
+-  `Bug 107810 <https://bugs.freedesktop.org/show_bug.cgi?id=107810>`__
+   - The 'va_end' call is missed after 'va_copy' in 'util_vsnprintf'
+   function under windows
+-  `Bug 107832 <https://bugs.freedesktop.org/show_bug.cgi?id=107832>`__
+   - Gallium picking A16L16 formats when emulating INTENSITY16 conflicts
+   with mesa
+-  `Bug 107843 <https://bugs.freedesktop.org/show_bug.cgi?id=107843>`__
+   - 32bit Mesa build failes with meson.
+-  `Bug 107856 <https://bugs.freedesktop.org/show_bug.cgi?id=107856>`__
+   - i965 incorrectly calculates the number of layers for texture views
+   (assert)
+-  `Bug 107857 <https://bugs.freedesktop.org/show_bug.cgi?id=107857>`__
+   - GPU hang - GS_EMIT without shader outputs
+-  `Bug 107865 <https://bugs.freedesktop.org/show_bug.cgi?id=107865>`__
+   - swr fail to build with llvm-libs 6.0.1
+-  `Bug 107869 <https://bugs.freedesktop.org/show_bug.cgi?id=107869>`__
+   - u_thread.h:87:4: error: use of undeclared identifier 'cpu_set_t'
+-  `Bug 107870 <https://bugs.freedesktop.org/show_bug.cgi?id=107870>`__
+   - Undefined symbols for architecture x86_64: "_util_cpu_caps"
+-  `Bug 107879 <https://bugs.freedesktop.org/show_bug.cgi?id=107879>`__
+   - crash happens when link program
+-  `Bug 107891 <https://bugs.freedesktop.org/show_bug.cgi?id=107891>`__
+   - [wine, regression, bisected] RAGE, Wolfenstein The New Order hangs
+   in menu
+-  `Bug 107923 <https://bugs.freedesktop.org/show_bug.cgi?id=107923>`__
+   - build_id.c:126: multiple definition of \`build_id_length'
+-  `Bug 107926 <https://bugs.freedesktop.org/show_bug.cgi?id=107926>`__
+   - [anv] Rise of the Tomb Raider always misrendering, segfault and gpu
+   hang.
+-  `Bug 107941 <https://bugs.freedesktop.org/show_bug.cgi?id=107941>`__
+   - GPU hang and system crash with Dota 2 using Vulkan
+-  `Bug 107971 <https://bugs.freedesktop.org/show_bug.cgi?id=107971>`__
+   - SPV_GOOGLE_hlsl_functionality1 / SPV_GOOGLE_decorate_string
+-  `Bug 108012 <https://bugs.freedesktop.org/show_bug.cgi?id=108012>`__
+   - Compiler crashes on access of non-existent member incremental
+   operations
+-  `Bug 108024 <https://bugs.freedesktop.org/show_bug.cgi?id=108024>`__
+   - [Debian Stretch]Fail to build because "xcb_randr_lease_t"
+-  `Bug 108082 <https://bugs.freedesktop.org/show_bug.cgi?id=108082>`__
+   - warning: unknown warning option '-Wno-format-truncation'
+   [-Wunknown-warning-option]
+-  `Bug 108109 <https://bugs.freedesktop.org/show_bug.cgi?id=108109>`__
+   - [GLSL] no-overloads.vert fails
+-  `Bug 108112 <https://bugs.freedesktop.org/show_bug.cgi?id=108112>`__
+   - [vulkancts] some of the coherent memory tests fail.
+-  `Bug 108113 <https://bugs.freedesktop.org/show_bug.cgi?id=108113>`__
+   - [vulkancts] r32g32b32 transfer operations not implemented
+-  `Bug 108115 <https://bugs.freedesktop.org/show_bug.cgi?id=108115>`__
+   - [vulkancts] dEQP-VK.subgroups.vote.graphics.subgroupallequal.\*
+   fails
+-  `Bug 108164 <https://bugs.freedesktop.org/show_bug.cgi?id=108164>`__
+   - [radv] VM faults since 5d6a560a2986c9ab421b3c7904d29bb7bc35e36f
+-  `Bug 108245 <https://bugs.freedesktop.org/show_bug.cgi?id=108245>`__
+   - RADV/Vega: Low mip levels of large BCn textures get corrupted by
+   vkCmdCopyBufferToImage
+-  `Bug 108272 <https://bugs.freedesktop.org/show_bug.cgi?id=108272>`__
+   - [polaris10] opencl-mesa: Anything using OpenCL segfaults, XFX
+   Radeon RX 580
+-  `Bug 108311 <https://bugs.freedesktop.org/show_bug.cgi?id=108311>`__
+   - Query buffer object support is broken on r600.
+-  `Bug 108319 <https://bugs.freedesktop.org/show_bug.cgi?id=108319>`__
+   - [GLK BXT BSW] Assertion in
+   piglit.spec.arb_gpu_shader_fp64.execution.built-in-functions.vs-sign-sat-neg-abs
+-  `Bug 108491 <https://bugs.freedesktop.org/show_bug.cgi?id=108491>`__
+   - Commit baa38c14 causes output issues on my VEGA with RADV
+-  `Bug 108524 <https://bugs.freedesktop.org/show_bug.cgi?id=108524>`__
+   - [RADV] GPU lockup on event synchronization
+-  `Bug 108530 <https://bugs.freedesktop.org/show_bug.cgi?id=108530>`__
+   - (mesa-18.3) [Tracker] Mesa 18.3 Release Tracker
+-  `Bug 108532 <https://bugs.freedesktop.org/show_bug.cgi?id=108532>`__
+   - make check
+   nir_copy_prop_vars_test.store_store_load_different_components
+   regression
+-  `Bug 108560 <https://bugs.freedesktop.org/show_bug.cgi?id=108560>`__
+   - Mesa 32 is built without sse
+-  `Bug 108595 <https://bugs.freedesktop.org/show_bug.cgi?id=108595>`__
+   - ir3_compiler valgrind build error
+-  `Bug 108617 <https://bugs.freedesktop.org/show_bug.cgi?id=108617>`__
+   - [deqp] Mesa fails conformance for egl_ext_device
+-  `Bug 108630 <https://bugs.freedesktop.org/show_bug.cgi?id=108630>`__
+   - [G965] piglit.spec.!opengl 1_2.tex3d-maxsize spins forever
+-  `Bug 108635 <https://bugs.freedesktop.org/show_bug.cgi?id=108635>`__
+   - Mesa master commit 68dc591af16ebb36814e4c187e4998948103c99c causes
+   XWayland to segfault
+-  `Bug 108713 <https://bugs.freedesktop.org/show_bug.cgi?id=108713>`__
+   - Gallium: use after free with transform feedback
+-  `Bug 108829 <https://bugs.freedesktop.org/show_bug.cgi?id=108829>`__
+   - [meson] libglapi exports internal API
+-  `Bug 108894 <https://bugs.freedesktop.org/show_bug.cgi?id=108894>`__
+   - [anv] vkCmdCopyBuffer() and vkCmdCopyQueryPoolResults()
+   write-after-write hazard
+-  `Bug 108909 <https://bugs.freedesktop.org/show_bug.cgi?id=108909>`__
+   - Vkd3d test failure test_resolve_non_issued_query_data()
+-  `Bug 108914 <https://bugs.freedesktop.org/show_bug.cgi?id=108914>`__
+   - blocky shadow artifacts in The Forest with DXVK, RADV_DEBUG=nohiz
+   fixes this
+
+Changes
+-------
+
+-  TBD

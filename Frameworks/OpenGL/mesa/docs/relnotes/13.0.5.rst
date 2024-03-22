@@ -1,0 +1,184 @@
+Mesa 13.0.5 Release Notes / February 20, 2017
+=============================================
+
+Mesa 13.0.5 is a bug fix release which fixes bugs found since the 13.0.4
+release.
+
+Mesa 13.0.5 implements the OpenGL 4.4 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.4. OpenGL 4.4 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   7e45e3812078726eabca6d9384364bf035a3c4279024ec9090dd1b19a8989926  mesa-13.0.5.tar.gz
+   bfcea7e2c801525a60895c8aff11aa68457ee9aa35d01a4638e1f310a3f5ef87  mesa-13.0.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 98329 <https://bugs.freedesktop.org/show_bug.cgi?id=98329>`__ -
+   [dEQP, EGL, SKL, BDW, BSW]
+   dEQP-EGL.functional.image.render_multiple_contexts.gles2_renderbuffer_depth16_depth_buffer
+-  `Bug 98421 <https://bugs.freedesktop.org/show_bug.cgi?id=98421>`__ -
+   src/loader/loader.c:111:40: error: unknown type name ‘drmDevicePtr’
+-  `Bug 98526 <https://bugs.freedesktop.org/show_bug.cgi?id=98526>`__ -
+   glsl/tests/general-ir-test regression
+-  `Bug 99532 <https://bugs.freedesktop.org/show_bug.cgi?id=99532>`__ -
+   Compute shader doesn't give right result under some circumstances
+-  `Bug 99631 <https://bugs.freedesktop.org/show_bug.cgi?id=99631>`__ -
+   segfault with OSVRTrackerView and openscenegraph git master
+-  `Bug 99633 <https://bugs.freedesktop.org/show_bug.cgi?id=99633>`__ -
+   rasterizer/core/clip.h:279:49: error: ‘const struct API_STATE’ has no
+   member named ‘linkageCount’
+-  `Bug 99692 <https://bugs.freedesktop.org/show_bug.cgi?id=99692>`__ -
+   [radv] Mostly broken on Hawaii PRO/CIK ASICs
+
+Changes
+-------
+
+Bartosz Tomczyk (2):
+
+-  r600: Fix stack overflow
+-  r600/sb: Fix memory leak
+
+Bruce Cherniak (1):
+
+-  swr: [rasterizer core] Remove dead code Clipper::ClipScalar()
+
+Chad Versace (1):
+
+-  i965/mt: Disable HiZ when sharing depth buffer externally (v2)
+
+Dave Airlie (3):
+
+-  radv: change base aligmment for allocated memory.
+-  radv: fix cik macroModeIndex.
+-  radv: adopt some init config workarounds from radeonsi.
+
+Derek Foreman (1):
+
+-  egl/dri2: add image_loader_extension back into loader extensions for
+   wayland
+
+Emil Velikov (26):
+
+-  docs: add sha256 checksums for 13.0.4
+-  configure.ac: list radeon in --with-vulkan-drivers help string
+-  i965: automake: correctly set MKDIR_GEN
+-  freedreno: automake: correctly set MKDIR_GEN
+-  i965: automake: include builddir prior to srcdir
+-  i915: automake: include builddir prior to srcdir
+-  egl: automake: include builddir prior to srcdir
+-  clover: automake: include builddir prior to srcdir
+-  st/dri: automake: include builddir prior to srcdir
+-  d3dadapter9: automake: include builddir prior to srcdir
+-  glx: automake: include builddir prior to srcdir
+-  glx/apple: automake: include builddir prior to srcdir
+-  glx/windows: automake: include builddir prior to srcdir
+-  loader: automake: include builddir prior to srcdir
+-  mapi: automake: include builddir prior to srcdir
+-  radeon, r200: automake: include builddir prior to srcdir
+-  dri/swrast: automake: include builddir prior to srcdir
+-  dri/osmesa: automake: include builddir prior to srcdir
+-  mesa/tests: automake: include builddir prior to srcdir
+-  bin/get-extra-pick-list: use git merge-base to get the branchpoint
+-  bin/get-extra-pick-list: rework to use already_picked list
+-  bin/get-typod-pick-list.sh: limit \`git grep ...' to only as needed
+-  bin/get-pick-list.sh: limit \`git grep ...' only as needed
+-  bin/get-pick-list.sh: remove ancient way of nominating patches
+-  bin/get-fixes-pick-list.sh: add new script
+-  Update version to 13.0.5
+
+Eric Anholt (1):
+
+-  vc4: Avoid emitting small immediates for UBO indirect load address
+   guards.
+
+Hans de Goede (1):
+
+-  glx/glvnd: Fix GLXdispatchIndex sorting
+
+Ian Romanick (11):
+
+-  linker: Slight code rearrange to prevent duplication in the next
+   commit
+-  linker: Accurately track gl_uniform_block::stageref
+-  glsl: Split process_block_array into two functions
+-  glsl: Fix wonkey indentation left from previous commit
+-  glsl: Track the linearized array index for each UBO instance array
+   element
+-  glsl: Use simpler visitor to determine which UBO and SSBO blocks are
+   used
+-  glsl: Add tracking for elements of an array-of-arrays that have been
+   accessed
+-  glsl: Add structures to track accessed elements of a single array
+-  glsl: Mark a set of array elements as accessed using a list of
+   array_deref_range
+-  glsl: Walk a list of ir_dereference_array to mark array elements as
+   accessed
+-  linker: Accurately mark a uniform block instance array element as
+   used in a stage
+
+Ilia Mirkin (3):
+
+-  vbo: process buffer binding state changes on draw when recording
+-  st/mesa: MAX_VARYING is the max supported number of patch varyings,
+   not min
+-  nvc0: disable linked tsc mode in compute launch descriptor
+
+Faith Ekstrand (11):
+
+-  nir/search: Use the correct bit size for integer comparisons
+-  i965/blorp: Use the correct ISL format for combined depth/stencil
+-  intel/blorp: Handle clearing of A4B4G4R4 on all platforms
+-  isl/formats: Only advertise sampling for A4B4G4R4 on Broadwell
+-  anv: Flush render cache before STATE_BASE_ADDRESS on gen7
+-  anv: Improve flushing around STATE_BASE_ADDRESS
+-  vulkan/wsi/wayland: Handle VK_INCOMPLETE for GetFormats
+-  vulkan/wsi/wayland: Handle VK_INCOMPLETE for GetPresentModes
+-  vulkan/wsi: Lower the maximum image sizes
+-  i965/sampler_state: Pass texObj into update_sampler_state
+-  i965/sampler_state: Set the "Base Mip Level" field on Sandy Bridge
+
+Kenneth Graunke (1):
+
+-  i965: Unbind deleted shaders from brw_context, fixing malloc
+   heisenbug.
+
+Lionel Landwerlin (5):
+
+-  anv: don't require render target isl bit for depth/stencil surfaces
+-  anv: set command buffer to NULL when allocations fail
+-  anv: fix descriptor pool internal size allocation
+-  spirv: handle OpUndef as part of the variable parsing pass
+-  spirv: handle undefined components for OpVectorShuffle
+
+Marc-André Lureau (1):
+
+-  tgsi-dump: dump label if instruction has one
+
+Marek Olšák (2):
+
+-  radeonsi: always set the TCL1_ACTION_ENA when invalidating L2
+-  gallium/radeon: fix performance of buffer readbacks
+
+Topi Pohjolainen (2):
+
+-  i965: Make depth clear flushing more explicit
+-  i965/gen6: Issue direct depth stall and flush after depth clear
+
+Vinson Lee (2):
+
+-  scons: Require libdrm >= 2.4.66 for DRM.
+-  util: Fix Clang trivial destructor check.

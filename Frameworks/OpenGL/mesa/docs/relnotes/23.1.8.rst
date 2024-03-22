@@ -1,0 +1,158 @@
+Mesa 23.1.8 Release Notes / 2023-09-20
+======================================
+
+Mesa 23.1.8 is a bug fix release which fixes bugs found since the 23.1.7 release.
+
+Mesa 23.1.8 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.8 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    45434ff91a709844130a3174d9c0ef39c6b50725b2bb0c13e736f36134db14ad  mesa-23.1.8.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- shader_test causing a crash in compiler
+- Crash in st_ReadPixels
+- h264 encoding picture showed randomly repeated frames.
+
+
+Changes
+-------
+
+Corentin Noël (1):
+
+- llvmpipe: make sure to initialize the lp_setup_context slots with the default values
+
+Daniel Schürmann (1):
+
+- aco/insert_exec_mask: set Exact mode after p_discard_if when necessary
+
+Danylo Piliaiev (1):
+
+- ir3/lower_tex_prefetch: Fix crash with lowered load_barycentric_at_offset
+
+Dave Airlie (2):
+
+- radv: don't emit event code on video queues.
+- spirv: use a pointer sized int type for opencl event_t
+
+David Rosca (1):
+
+- frontends/va: Flush after unmapping VAImageBufferType
+
+Eric Engestrom (5):
+
+- docs: add sha256sum for 23.1.7
+- .pick_status.json: Update to df710fe6956d2a6093473f8809b56267c3e31e5b
+- .pick_status.json: Update to af27ecb08990938a7fad2c0a91519bf6779f894e
+- .pick_status.json: Mark 0a1ccd4a9a6c85bce2013d8ff843e96d151288c9 as denominated
+- .pick_status.json: Update to 8d2dcd55d78cff504304e2c7aa8b76526c8be36b
+
+Erico Nunes (1):
+
+- lima: fix plbu block stride calculation
+
+Erik Faye-Lund (1):
+
+- panfrost: delete stale editorconfig file
+
+Georg Lehmann (1):
+
+- nir/opt_algebraic: remove broken fddx/fddy patterns
+
+Jordan Justen (1):
+
+- intel/dev: Update device string for MTL PCI ID 0x7d55
+
+Jose Maria Casanova Crespo (1):
+
+- vc4: mark buffers as initialized at vc4_texture_subdata
+
+Karmjit Mahil (1):
+
+- pvr: Fix writing query availability write out
+
+Lionel Landwerlin (1):
+
+- hasvk: add state cache invalidation back before fast clears
+
+Mike Blumenkrantz (13):
+
+- zink: set is_xfb=false for all i/o variables
+- aux/tc: handle stride mismatch during rp-optimized subdata
+- nir/inline_uniforms: fix oob access with nir_find_inlinable_uniforms
+- aux/tc: fix staging buffer sizing for texture_subdata
+- aux/tc: fix address calc for segmented texture subdata
+- glsl: check for xfb setting xfb info
+- aux/tc: fix renderpass tracking fb state clobber scenario
+- aux/tc: fix rp info handling around tc_sync calls
+- aux/tc: don't use pipe_buffer_create_with_data() for rp-optimized subdata
+- zink: flag db maps as unsynchronized
+- lavapipe: clamp cache uuid size
+- zink: propagate rp_tc_info_updated across unordered blits
+- zink: ci updates
+
+Paulo Zanoni (1):
+
+- iris: avoid stack overflow in iris_bo_wait_syncobj()
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- st/mesa: check renderbuffer before using it
+
+Rhys Perry (3):
+
+- aco/optimizer_postRA: check overwritten_subdword in is_overwritten_since()
+- aco: check logical_phi_info at p_logical_end when eliminating exec writes
+- aco: remove unused p_logical_end check when optimizing branching sequence
+
+Ruijing Dong (1):
+
+- radeonsi/vcn: change max_poc to fixed value for hevc encoder.
+
+Samuel Holland (3):
+
+- Android.mk: Allow building only Vulkan drivers
+- Android.mk: Explicitly enable/disable LLVM support
+- Android.mk: Only link LLVM for radeonsi, not amd_vk
+
+Sil Vilerino (1):
+
+- aux/tc: Add ASSERTED to unreferenced release build variable
+
+Tapani Pälli (2):
+
+- iris: avoid issues with undefined clip distance
+- crocus: avoid issues with undefined clip distance
+
+Vlad Schiller (1):
+
+- pvr: Use correct index when writing query availability data
+
+Yiwei Zhang (1):
+
+- vulkan/android: add missing AHARDWAREBUFFER_USAGE_GPU_DATA_BUFFER usage
+
+lorn10 (1):
+
+- docs: Update Clover's env variable documentation

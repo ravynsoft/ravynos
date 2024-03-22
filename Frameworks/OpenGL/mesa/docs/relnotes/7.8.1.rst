@@ -1,0 +1,50 @@
+Mesa 7.8.1 Release Notes / April 5, 2010
+========================================
+
+Mesa 7.8.1 fixes a couple critical bugs in the recent Mesa 7.8 release.
+Even though this is a bug fix release, given its proximity to the 7.8
+release, a new development release, it should also be considered new
+development release. People who are concerned with stability and
+reliability should stick with a previous release, such as 7.7.1, or wait
+for Mesa 7.8.2.
+
+Mesa 7.8.1 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   62e8e47cbd63741b4bbe634dcdc8a56a  MesaLib-7.8.1.tar.gz
+   25ec15f8e41fde6d206118cc786dbac4  MesaLib-7.8.1.tar.bz2
+   22b1153010ffdf513836ea9931159e80  MesaLib-7.8.1.zip
+   c9c0a830923d3820807a08c09d521b3e  MesaDemos-7.8.1.tar.gz
+   9ef47f911869657c6bf2f43ebce86b61  MesaDemos-7.8.1.tar.bz2
+   93720605eb3f784f9bcc289a4dd2ff52  MesaDemos-7.8.1.zip
+   ed1d0b1e960afe6a3768eab747cbdbd3  MesaGLUT-7.8.1.tar.gz
+   6bae516a44c6d26ff3152c960ab648e7  MesaGLUT-7.8.1.tar.bz2
+   ba306f603ea73c30ee0e7efa14dc5581  MesaGLUT-7.8.1.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+-  Fix incorrect enums for GLX_INTEL_swap_event by updating glxext.h to
+   version 27 from OpenGL.org.
+-  Fix compilation errors on non-GLX_DIRECT_RENDERING builds.
+-  Various fixes for building Mesa on OS X.
+-  Pass GLX drawable ID to dri2InvalidateBuffers. Fixes bug #27190.
+
+Changes
+-------
+
+None.

@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_KHR_debug" number="119">
+  <enum name="DEBUG_OUTPUT"                               value="0x92E0"/>
+  <enum name="DEBUG_OUTPUT_SYNCHRONOUS"                   value="0x8242"/>
+
+  <enum name="CONTEXT_FLAG_DEBUG_BIT"                     value="0x00000002"/>
+
+  <enum name="MAX_DEBUG_MESSAGE_LENGTH" count="1"         value="0x9143">
+    <size name="Get" mode="get"/>
+  </enum>
+  <enum name="MAX_DEBUG_LOGGED_MESSAGES" count="1"        value="0x9144">
+    <size name="Get" mode="get"/>
+  </enum>
+  <enum name="DEBUG_LOGGED_MESSAGES" count="1"            value="0x9145">
+    <size name="Get" mode="get"/>
+  </enum>
+  <enum name="DEBUG_NEXT_LOGGED_MESSAGE_LENGTH" count="1" value="0x8243">
+    <size name="Get" mode="get"/>
+  </enum>
+  <enum name="MAX_DEBUG_GROUP_STACK_DEPTH" count="1"      value="0x826C">
+    <size name="Get" mode="get"/>
+  </enum>
+  <enum name="DEBUG_GROUP_STACK_DEPTH" count="1"          value="0x826D">
+    <size name="Get" mode="get"/>
+  </enum>
+  <enum name="MAX_LABEL_LENGTH" count="1"                 value="0x82E8">
+    <size name="Get" mode="get"/>
+  </enum>
+
+  <enum name="DEBUG_CALLBACK_FUNCTION" count="1"          value="0x8244">
+     <size name="GetPointerv" mode="get"/>
+  </enum>
+  <enum name="DEBUG_CALLBACK_USER_PARAM" count="1"        value="0x8245">
+    <size name="GetPointerv" mode="get"/>
+  </enum>
+
+  <enum name="DEBUG_SOURCE_API"                           value="0x8246"/>
+  <enum name="DEBUG_SOURCE_WINDOW_SYSTEM"                 value="0x8247"/>
+  <enum name="DEBUG_SOURCE_SHADER_COMPILER"               value="0x8248"/>
+  <enum name="DEBUG_SOURCE_THIRD_PARTY"                   value="0x8249"/>
+  <enum name="DEBUG_SOURCE_APPLICATION"                   value="0x824A"/>
+  <enum name="DEBUG_SOURCE_OTHER"                         value="0x824B"/>
+
+  <enum name="DEBUG_TYPE_ERROR"                           value="0x824C"/>
+  <enum name="DEBUG_TYPE_DEPRECATED_BEHAVIOR"             value="0x824D"/>
+  <enum name="DEBUG_TYPE_UNDEFINED_BEHAVIOR"              value="0x824E"/>
+  <enum name="DEBUG_TYPE_PORTABILITY"                     value="0x824F"/>
+  <enum name="DEBUG_TYPE_PERFORMANCE"                     value="0x8250"/>
+  <enum name="DEBUG_TYPE_OTHER"                           value="0x8251"/>
+  <enum name="DEBUG_TYPE_MARKER"                          value="0x8268"/>
+
+  <enum name="DEBUG_TYPE_PUSH_GROUP"                      value="0x8269"/>
+  <enum name="DEBUG_TYPE_POP_GROUP"                       value="0x826A"/>
+
+  <enum name="DEBUG_SEVERITY_HIGH"                        value="0x9146"/>
+  <enum name="DEBUG_SEVERITY_MEDIUM"                      value="0x9147"/>
+  <enum name="DEBUG_SEVERITY_LOW"                         value="0x9148"/>
+  <enum name="DEBUG_SEVERITY_NOTIFICATION"                value="0x826B"/>
+
+  <enum name="STACK_UNDERFLOW"                            value="0x0504"/>
+  <enum name="STACK_OVERFLOW"                             value="0x0503"/>
+
+  <enum name="BUFFER"                                     value="0x82E0"/>
+  <enum name="SHADER"                                     value="0x82E1"/>
+  <enum name="PROGRAM"                                    value="0x82E2"/>
+  <enum name="QUERY"                                      value="0x82E3"/>
+  <enum name="PROGRAM_PIPELINE"                           value="0x82E4"/>
+  <enum name="SAMPLER"                                    value="0x82E6"/>
+  <!-- Compatibility Profile -->
+  <enum name="DISPLAY_LIST"                               value="0x82E7"/>
+
+  <function name="DebugMessageControl" es2="3.2">
+    <param name="source" type="GLenum"/>
+    <param name="type" type="GLenum"/>
+    <param name="severity" type="GLenum"/>
+    <param name="count" type="GLsizei" counter="true"/>
+    <param name="ids" type="const GLuint *" count="count"/>
+    <param name="enabled" type="GLboolean"/>
+  </function>
+
+  <function name="DebugMessageInsert" es2="3.2">
+    <param name="source" type="GLenum"/>
+    <param name="type" type="GLenum"/>
+    <param name="id" type="GLuint"/>
+    <param name="severity" type="GLenum"/>
+    <param name="length" type="GLsizei"/>
+    <param name="buf" type="const GLchar *" count="length"/>
+  </function>
+
+  <function name="DebugMessageCallback" es2="3.2">
+    <param name="callback" type="GLDEBUGPROC"/>
+    <param name="userParam" type="const GLvoid *"/>
+  </function>
+
+  <function name="GetDebugMessageLog" es2="3.2">
+    <return type="GLuint"/>
+    <param name="count" type="GLuint"/>
+    <param name="bufsize" type="GLsizei"/>
+    <param name="sources" type="GLenum *" output="true"/>
+    <param name="types" type="GLenum *" output="true"/>
+    <param name="ids" type="GLuint *" output="true"/>
+    <param name="severities" type="GLenum *" output="true"/>
+    <param name="lengths" type="GLsizei *" output="true"/>
+    <param name="messageLog" type="GLchar *" output="true"/>
+  </function>
+
+  <function name="PushDebugGroup" es2="3.2">
+    <param name="source" type="GLenum"/>
+    <param name="id" type="GLuint"/>
+    <param name="length" type="GLsizei"/>
+    <param name="message" type="const GLchar *" count="length"/>
+  </function>
+
+  <function name="PopDebugGroup" es2="3.2" />
+
+  <function name="ObjectLabel" es2="3.2">
+    <param name="identifier" type="GLenum"/>
+    <param name="name" type="GLuint"/>
+    <param name="length" type="GLsizei"/>
+    <param name="label" type="const GLchar *" count="length"/>
+  </function>
+
+  <function name="GetObjectLabel" es2="3.2">
+    <param name="identifier" type="GLenum"/>
+    <param name="name" type="GLuint"/>
+    <param name="bufSize" type="GLsizei"/>
+    <param name="length" type="GLsizei *"/>
+    <param name="label" type="GLchar *"/>
+  </function>
+
+  <function name="ObjectPtrLabel" es2="3.2">
+    <param name="ptr" type="const GLvoid *"/>
+    <param name="length" type="GLsizei"/>
+    <param name="label" type="const GLchar *" count="length"/>
+  </function>
+
+  <function name="GetObjectPtrLabel" es2="3.2">
+    <param name="ptr" type="const GLvoid *"/>
+    <param name="bufSize" type="GLsizei"/>
+    <param name="length" type="GLsizei *"/>
+    <param name="label" type="GLchar *"/>
+  </function>
+
+  <!-- ES extension has different suffixes -->
+  <function name="DebugMessageControlKHR" alias="DebugMessageControl" es1="1.1" es2="2.0">
+    <param name="source" type="GLenum"/>
+    <param name="type" type="GLenum"/>
+    <param name="severity" type="GLenum"/>
+    <param name="count" type="GLsizei" counter="true"/>
+    <param name="ids" type="const GLuint *" count="count"/>
+    <param name="enabled" type="GLboolean"/>
+  </function>
+
+  <function name="DebugMessageInsertKHR" alias="DebugMessageInsert" es1="1.1" es2="2.0">
+    <param name="source" type="GLenum"/>
+    <param name="type" type="GLenum"/>
+    <param name="id" type="GLuint"/>
+    <param name="severity" type="GLenum"/>
+    <param name="length" type="GLsizei"/>
+    <param name="buf" type="const GLchar *"/>
+  </function>
+
+  <function name="DebugMessageCallbackKHR" alias="DebugMessageCallback" es1="1.1" es2="2.0">
+    <param name="callback" type="GLDEBUGPROC"/>
+    <param name="userParam" type="const GLvoid *"/>
+  </function>
+
+  <function name="GetDebugMessageLogKHR" alias="GetDebugMessageLog" es1="1.1" es2="2.0">
+    <return type="GLuint"/>
+    <param name="count" type="GLuint"/>
+    <param name="bufsize" type="GLsizei"/>
+    <param name="sources" type="GLenum *" output="true"/>
+    <param name="types" type="GLenum *" output="true"/>
+    <param name="ids" type="GLuint *" output="true"/>
+    <param name="severities" type="GLenum *" output="true"/>
+    <param name="lengths" type="GLsizei *" output="true"/>
+    <param name="messageLog" type="GLchar *" output="true"/>
+  </function>
+
+  <function name="GetPointervKHR" alias="GetPointerv" es1="1.1" es2="2.0">
+    <param name="pname" type="GLenum"/>
+    <param name="params" type="GLvoid **" output="true"/>
+  </function>
+
+  <function name="PushDebugGroupKHR" alias="PushDebugGroup" es1="1.1" es2="2.0">
+    <param name="source" type="GLenum"/>
+    <param name="id" type="GLuint"/>
+    <param name="length" type="GLsizei"/>
+    <param name="message" type="const GLchar *"/>
+  </function>
+
+  <function name="PopDebugGroupKHR" alias="PopDebugGroup" es1="1.1" es2="2.0"/>
+
+  <function name="ObjectLabelKHR" alias="ObjectLabel" es1="1.1" es2="2.0">
+    <param name="identifier" type="GLenum"/>
+    <param name="name" type="GLuint"/>
+    <param name="length" type="GLsizei"/>
+    <param name="label" type="const GLchar *"/>
+  </function>
+
+  <function name="GetObjectLabelKHR" alias="GetObjectLabel" es1="1.1" es2="2.0">
+    <param name="identifier" type="GLenum"/>
+    <param name="name" type="GLuint"/>
+    <param name="bufSize" type="GLsizei"/>
+    <param name="length" type="GLsizei *"/>
+    <param name="label" type="GLchar *"/>
+  </function>
+
+  <function name="ObjectPtrLabelKHR" alias="ObjectPtrLabel" es1="1.1" es2="2.0">
+    <param name="ptr" type="const GLvoid *"/>
+    <param name="length" type="GLsizei"/>
+    <param name="label" type="const GLchar *"/>
+  </function>
+
+  <function name="GetObjectPtrLabelKHR" alias="GetObjectPtrLabel" es1="1.1" es2="2.0">
+    <param name="ptr" type="const GLvoid *"/>
+    <param name="bufSize" type="GLsizei"/>
+    <param name="length" type="GLsizei *"/>
+    <param name="label" type="GLchar *"/>
+  </function>
+
+</category>
+
+</OpenGLAPI>

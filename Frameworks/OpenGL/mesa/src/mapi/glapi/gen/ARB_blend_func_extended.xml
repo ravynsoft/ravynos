@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="GL_ARB_blend_func_extended" number="78">
+
+    <function name="BindFragDataLocationIndexed" no_error="true">
+        <param name="program" type="GLuint"/>
+        <param name="colorNumber" type="GLuint"/>
+        <param name="index" type="GLuint"/>
+        <param name="name" type="const GLchar *" count="(strlen(name) + 1)"/>
+    </function>
+
+    <function name="GetFragDataIndex">
+        <param name="program" type="GLuint"/>
+        <param name="name" type="const GLchar *"/>
+	  <return type="GLint"/>
+    </function>
+
+    <enum name="SRC1_COLOR" value="0x88F9"/>
+    <!-- SRC1_ALPHA is defined in core GL -->
+    <enum name="ONE_MINUS_SRC1_COLOR" value="0x88FA"/>
+    <enum name="ONE_MINUS_SRC1_ALPHA" value="0x88FB"/>
+
+    <enum name="MAX_DUAL_SOURCE_DRAW_BUFFERS" value="0x88FC"/>
+</category>
+
+</OpenGLAPI>

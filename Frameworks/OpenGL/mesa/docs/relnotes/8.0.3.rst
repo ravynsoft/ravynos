@@ -1,0 +1,292 @@
+Mesa 8.0.3 Release Notes / May 18, 2012
+=======================================
+
+Mesa 8.0.3 is a bug fix release which fixes bugs found since the 8.0.2
+release.
+
+Mesa 8.0.3 implements the OpenGL 3.0 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 3.0.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   b7210a6d6e4584bd852ab29294ce717e  MesaLib-8.0.3.tar.gz
+   cc5ee15e306b8c15da6a478923797171  MesaLib-8.0.3.tar.bz2
+   32773634a0f7e70a680505a81426eccf  MesaLib-8.0.3.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 28138 <https://bugs.freedesktop.org/show_bug.cgi?id=28138>`__ -
+   [G45] Regnum Online, sparkling in in-game rendering
+-  `Bug 30102 <https://bugs.freedesktop.org/show_bug.cgi?id=30102>`__ -
+   glean depthStencil test fails BadLength with indirect non-swrast
+   rendering
+-  `Bug 40361 <https://bugs.freedesktop.org/show_bug.cgi?id=40361>`__ -
+   Glitches on X3100 after upgrade to 7.11
+-  `Bug 41152 <https://bugs.freedesktop.org/show_bug.cgi?id=41152>`__ -
+   [glsl] Shader backend in Regnum Online does not work
+-  `Bug 41216 <https://bugs.freedesktop.org/show_bug.cgi?id=41216>`__ -
+   [bisected pineview]oglc filtercubemin(basic.sizedRGBA) fails
+-  `Bug 41372 <https://bugs.freedesktop.org/show_bug.cgi?id=41372>`__ -
+   i830_state.c PBO crash
+-  `Bug 41495 <https://bugs.freedesktop.org/show_bug.cgi?id=41495>`__ -
+   i830: intel_get_vb_max / intel_batchbuffer_space mismatch.
+-  `Bug 44701 <https://bugs.freedesktop.org/show_bug.cgi?id=44701>`__ -
+   Regnum online textures flickering
+-  `Bug 44961 <https://bugs.freedesktop.org/show_bug.cgi?id=44961>`__ -
+   [bisected i965] oglc sRGB(Mipmap.1D_textures) regressed
+-  `Bug 44970 <https://bugs.freedesktop.org/show_bug.cgi?id=44970>`__ -
+   [i965]oglc max_values(negative.textureSize.textureCube) segfaults
+-  `Bug 45214 <https://bugs.freedesktop.org/show_bug.cgi?id=45214>`__ -
+   Textures disappearing or missing in RegnumOnline OpenGL game
+-  `Bug 45558 <https://bugs.freedesktop.org/show_bug.cgi?id=45558>`__ -
+   cannot render on a drawable of size equal the max framebuffer size
+-  `Bug 45921 <https://bugs.freedesktop.org/show_bug.cgi?id=45921>`__ -
+   [r300g, bisected] Multiple piglit regressions after glsl_to_tgsi
+   changes
+-  `Bug 46303 <https://bugs.freedesktop.org/show_bug.cgi?id=46303>`__ -
+   [SNB] segfault in intel_miptree_release()
+-  `Bug 46739 <https://bugs.freedesktop.org/show_bug.cgi?id=46739>`__ -
+   [snb-m-gt2+] compiz crashed with SIGSEGV in intel_miptree_release()
+-  `Bug 46834 <https://bugs.freedesktop.org/show_bug.cgi?id=46834>`__ -
+   small performance when playing flightgear (swrast fallback through
+   GTT mapping)
+-  `Bug 47126 <https://bugs.freedesktop.org/show_bug.cgi?id=47126>`__ -
+   tests/fbo/fbo-array.c:109: create_array_fbo: Assertion \`glGetError()
+   == 0' failed.
+-  `Bug 48218 <https://bugs.freedesktop.org/show_bug.cgi?id=48218>`__ -
+   brw_fs_schedule_instructions.cpp segfault due to accessing not
+   allocated last_mrf_write[16]
+-  `Bug 48545 <https://bugs.freedesktop.org/show_bug.cgi?id=48545>`__ -
+   LLVMpipe glReadPixels Firefox hits the slow path (WebGL rendering)
+-  `Bug 49124 <https://bugs.freedesktop.org/show_bug.cgi?id=49124>`__ -
+   swrast/s_texfetch.c:1156: set_fetch_functions: Assertion
+   \`texImage->FetchTexel' failed.
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-8.0.2..mesa-8.0.3
+
+Alban Browaeys (1):
+
+-  dri/i915: Fix off-by-one in i830 clip region size.
+
+Alex Deucher (2):
+
+-  r200: fix fog coordinate emit
+-  radeon: fix fog coordinate emit
+
+Alexander von Gluck (4):
+
+-  llvmpipe: fix symbol conflict on Haiku
+-  svga: fix typedef conflicts on Haiku
+-  mesa: Don't use newlocale on Haiku
+-  glsl: Don't use newlocale on Haiku
+
+Anuj Phogat (4):
+
+-  mesa: fix issues with texture border and array textures
+-  mesa: Fix valid texture target test in
+   \_mesa_GetTexLevelParameteriv()
+-  mesa: Fix the cause of piglit test fbo-array failure
+-  intel: Fix a case when mapping large texture fails
+
+Brian Paul (17):
+
+-  mesa: add a couple fast-paths to fast_read_rgba_pixels_memcpy()
+-  mesa/gdi: remove wmesa_set_renderbuffer_funcs() function
+-  mesa/gdi: remove clear_color() function
+-  mesa: bump version to 8.0.2 in configs/default
+-  swrast: include s_fragprog.h to silence warnings
+-  mesa: remove LSB-first pixel packing check in glReadPixels
+-  mesa: fix error in \_mesa_format_matches_format_and_type() for RGB888
+-  mesa: add BGR888 code in \_mesa_format_matches_format_and_type()
+-  vbo: fix node_attrsz[] usage in vbo_bind_vertex_list()
+-  mesa: add missing texture integer test in glTexSubImage()
+-  mesa: add missing return after \_mesa_error() in update_array()
+-  glsl: propagate MaxUnrollIterations to the optimizer's loop unroller
+-  st/mesa: set MaxUnrollIterations = 255
+-  st/mesa: no-op glCopyPixels if source region is out of bounds
+-  mesa: do more teximage error checking for generic compressed formats
+-  mesa: fix/add error check in \_mesa_ColorMaterial()
+-  mesa: fix glMaterial / dlist bug
+
+Chad Versace (3):
+
+-  glsl: Fix Android build
+-  main: Fix memory leak in \_mesa_make_extension_string()
+-  intel: Disable ARB_framebuffer_object in ES contexts
+
+Chris Wilson (1):
+
+-  i830: Compute initial number of vertices from remaining batch space
+
+Dave Airlie (4):
+
+-  mesa/format_unpack: add LUMINANCE 8/16 UINT/INT
+-  glx/drisw: avoid segfaults when we fail to get visual
+-  drisw: fix image stride calculation for 16-bit.
+-  intel: fix TFP at 16-bpp
+
+Dylan Noblesmith (7):
+
+-  intel: fix null dereference processing HiZ buffer
+-  util: fix undefined behavior
+-  util: fix uninitialized table
+-  egl: fix uninitialized values
+-  st/vega: fix uninitialized values
+-  egl-static: fix printf warning
+-  i965: fix typo
+
+Eric Anholt (19):
+
+-  i965/fs: Jump from discard statements to the end of the program when
+   done.
+-  intel: Fix rendering from textures after RenderTexture().
+-  mesa: Fix handling of glCopyBufferSubData() for src == dst.
+-  i965/fs: Move GL_CLAMP handling to coordinate setup.
+-  i965/fs: Implement GL_CLAMP behavior on texture rectangles on gen6+.
+-  mesa: Fix push/pop of multisample coverage invert.
+-  mesa: Include the multisample enables under GL_MULTISAMPLE_BIT attrib
+   as well.
+-  mesa: Fix display list handling for GL_ARB_draw_instanced.
+-  mesa: Fix display lists for draw_elements_base_vertex with
+   draw_instanced.
+-  mesa: Add missing error check for first < 0 in
+   glDrawArraysInstanced().
+-  i915: Fix piglit fbo-nodepth-test on i830.
+-  intel: Return success when asked to allocate a 0-width/height
+   renderbuffer.
+-  mesa: Throw error on glGetActiveUniform inside Begin/End.
+-  i965/vs: Fix up swizzle for dereference_array of matrices.
+-  glsl: Fix indentation of switch code.
+-  glsl: Let the constructor figure out the types of switch-related
+   expressions.
+-  glsl: Reject non-scalar switch expressions.
+-  glsl: Fix assertion failure on handling switch on uint expressions.
+-  mesa: Check for framebuffer completeness before looking at the rb.
+
+Eugeni Dodonov (1):
+
+-  intel: add PCI IDs for Ivy Bridge GT2 server variant
+
+Han Shen(沈涵) (1):
+
+-  bin/mklib: remove '-m32' for arm linux
+
+Ian Romanick (1):
+
+-  mesa: Bump version number to 8.0.3
+
+Jakob Bornecrantz (1):
+
+-  docs: Add 8.0.2 md5sums
+
+Jeremy Huddleston (7):
+
+-  darwin: Eliminate a pthread mutex leak
+-  darwin: Fix an error message
+-  darwin: Make reported errors more user-friendly
+-  darwin: Use ASL for logging
+-  darwin: Unlock our mutex before destroying it
+-  darwin: Eliminate a possible race condition while destroying a
+   surface
+-  darwin: Address a build failure on Leopard and earlier OS versions
+
+Jon TURNEY (1):
+
+-  Have \__glImageSize handle format GL_DEPTH_STENCIL_NV the same way as
+   the server does
+
+Jonas Maebe (2):
+
+-  glapi: Correct size of allocated \_glapi_table struct
+-  apple: Fix a use after free
+
+Jordan Justen (1):
+
+-  mesa: Add primitive restart support to glArrayElement
+
+Kenneth Graunke (12):
+
+-  i965: Actually upload sampler state pointers for the VS unit on Gen6.
+-  i965/fs: Fix FB writes that tried to use the non-existent m16
+   register.
+-  vbo: Remove pedantic warning about 'end' beind out of bounds.
+-  vbo: Ignore invalid element ranges which are outside VBO bounds.
+-  vbo: Rework checking of 'end' against \_MaxElement.
+-  vbo: Eliminate short-circuiting in invalid-start case.
+-  i965: Fix GPU hangs in the dummy fragment shader.
+-  i965: Make the dummy fragment shader work in SIMD16 mode.
+-  drirc: Add force_glsl_extensions_warn workaround for Unigine Heaven.
+-  i965: Avoid explicit accumulator operands in SIMD16 mode on Gen7.
+-  intel: Remove pointless software fallback for glBitmap on Gen6.
+-  glsl: Fix broken constant expression handling for <, <=, >, and >=.
+
+Kurt Roeckx (2):
+
+-  i915: Compute maximum number of verts using the actual batchbuffer
+   size.
+-  i915: Fix i830 polygon stipple from PBOs.
+
+Marek Olšák (5):
+
+-  r300g/swtcl: don't print an error when getting ClipVertex
+-  r300g/swtcl: don't enter u_vbuf_mgr
+-  r300g/swtcl: don't expose shader subroutine support
+-  r300g/swtcl: fix polygon offset
+-  r300g/swtcl: fix crash when back color is present in vertex shader
+
+Mathias Fröhlich (1):
+
+-  glsl: Avoid excessive loop unrolling.
+
+Matt Turner (1):
+
+-  Remove -ffast-math from default CFLAGS
+
+Paul Berry (1):
+
+-  i915: Initialize swrast_texture_image structure fields.
+
+Roland Scheidegger (1):
+
+-  mesa: check_index_bounds off-by-one fix
+
+Tom Stellard (2):
+
+-  r300/compiler: Clear loop registers in vertex shaders w/o loops
+-  r300/compiler: Copy all instruction attributes during local transfoms
+
+Vinson Lee (5):
+
+-  mesa: Fix memory leak in \_mesa_get_uniform_location.
+-  linker: Fix memory leak in count_uniform_size::visit_field.
+-  swrast: Fix memory leaks in blit_linear.
+-  ir_to_mesa: Fix uninitialized member in add_uniform_to_shader.
+-  mesa: Fix memory leak in generate_mipmap_compressed.
+
+Yuanhan Liu (2):
+
+-  i915: set SPRITE_POINT_ENABLE bit correctly
+-  i965: fix wrong cube/3D texture layout

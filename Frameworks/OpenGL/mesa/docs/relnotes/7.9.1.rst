@@ -1,0 +1,407 @@
+Mesa 7.9.1 Release Notes / January 7, 2011
+==========================================
+
+Mesa 7.9.1 is a bug fix release which fixes bugs found since the 7.9
+release.
+
+Mesa 7.9.1 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   78422843ea875ad4eac35b9b8584032b  MesaLib-7.9.1.tar.gz
+   07dc6cfb5928840b8b9df5bd1b3ae434  MesaLib-7.9.1.tar.bz2
+   c8eaea5b3c3d6dee784bd8c2db91c80f  MesaLib-7.9.1.zip
+   ee9ecae4ca56fbb2d14dc15e3a0a7640  MesaGLUT-7.9.1.tar.gz
+   41fc477d524e7dc5c84da8ef22422bea  MesaGLUT-7.9.1.tar.bz2
+   90b287229afdf19317aa989d19462e7a  MesaGLUT-7.9.1.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 28800 <https://bugs.freedesktop.org/show_bug.cgi?id=28800>`__ -
+   [r300c, r300g] Texture corruption with World of Warcraft
+-  `Bug 29420 <https://bugs.freedesktop.org/show_bug.cgi?id=29420>`__ -
+   Amnesia / HPL2 RendererFeatTest - not rendering correctly
+-  `Bug 29946 <https://bugs.freedesktop.org/show_bug.cgi?id=29946>`__ -
+   [swrast] piglit valgrind glsl-array-bounds-04 fails
+-  `Bug 30261 <https://bugs.freedesktop.org/show_bug.cgi?id=30261>`__ -
+   [GLSL 1.20] allowing inconsistent invariant declaration between two
+   vertex shaders
+-  `Bug 30632 <https://bugs.freedesktop.org/show_bug.cgi?id=30632>`__ -
+   [softpipe] state_tracker/st_manager.c:489:
+   st_context_notify_invalid_framebuffer: Assertion \`stfb &&
+   stfb->iface == stfbi' failed.
+-  `Bug 30694 <https://bugs.freedesktop.org/show_bug.cgi?id=30694>`__ -
+   wincopy will crash on Gallium drivers when going to front buffer
+-  `Bug 30787 <https://bugs.freedesktop.org/show_bug.cgi?id=30787>`__ -
+   Invalid asm shader does not generate draw-time error when used with
+   GLSL shader
+-  `Bug 30993 <https://bugs.freedesktop.org/show_bug.cgi?id=30993>`__ -
+   getFramebufferAttachmentParameteriv wrongly generates error
+-  `Bug 31101 <https://bugs.freedesktop.org/show_bug.cgi?id=31101>`__ -
+   [glsl2] abort() in ir_validate::visit_enter(ir_assignment \*ir)
+-  `Bug 31193 <https://bugs.freedesktop.org/show_bug.cgi?id=31193>`__ -
+   [regression] aa43176e break water reflections
+-  `Bug 31194 <https://bugs.freedesktop.org/show_bug.cgi?id=31194>`__ -
+   The mesa meta save/restore code doesn't ref the current GLSL program
+-  `Bug 31371 <https://bugs.freedesktop.org/show_bug.cgi?id=31371>`__ -
+   glslparsertest: ir.cpp:358: ir_constant::ir_constant(const
+   glsl_type*, const ir_constant_data*): Assertion \`(type->base_type >=
+   0) && (type->base_type <= 3)' failed.
+-  `Bug 31439 <https://bugs.freedesktop.org/show_bug.cgi?id=31439>`__ -
+   Crash in glBufferSubData() with size == 0
+-  `Bug 31495 <https://bugs.freedesktop.org/show_bug.cgi?id=31495>`__ -
+   [i965 gles2c bisected] OpenGL ES 2.0 conformance
+   GL2Tests_GetBIFD_input.run regressed
+-  `Bug 31514 <https://bugs.freedesktop.org/show_bug.cgi?id=31514>`__ -
+   isBuffer returns true for unbound buffers
+-  `Bug 31560 <https://bugs.freedesktop.org/show_bug.cgi?id=31560>`__ -
+   [tdfx] tdfx_tex.c:702: error: 'const struct gl_color_table' has no
+   member named 'Format'
+-  `Bug 31617 <https://bugs.freedesktop.org/show_bug.cgi?id=31617>`__ -
+   Radeon/Compiz: 'failed to attach dri2 front buffer', error case not
+   handled
+-  `Bug 31648 <https://bugs.freedesktop.org/show_bug.cgi?id=31648>`__ -
+   [GLSL] array-struct-array gets assertion: \`(size >= 1) && (size <=
+   4)' failed.
+-  `Bug 31650 <https://bugs.freedesktop.org/show_bug.cgi?id=31650>`__ -
+   [GLSL] varying gl_TexCoord fails to be re-declared to different size
+   in the second shader
+-  `Bug 31673 <https://bugs.freedesktop.org/show_bug.cgi?id=31673>`__ -
+   GL_FRAGMENT_PRECISION_HIGH preprocessor macro undefined in GLSL ES
+-  `Bug 31690 <https://bugs.freedesktop.org/show_bug.cgi?id=31690>`__ -
+   i915 shader compiler fails to flatten if in Aquarium webgl demo.
+-  `Bug 31832 <https://bugs.freedesktop.org/show_bug.cgi?id=31832>`__ -
+   [i915] Bad renderbuffer format: 21
+-  `Bug 31841 <https://bugs.freedesktop.org/show_bug.cgi?id=31841>`__ -
+   [drm:radeon_cs_ioctl] \*ERROR\* Invalid command stream !
+-  `Bug 31894 <https://bugs.freedesktop.org/show_bug.cgi?id=31894>`__ -
+   Writing to gl_PointSize with GLES2 corrupts other varyings
+-  `Bug 31909 <https://bugs.freedesktop.org/show_bug.cgi?id=31909>`__ -
+   [i965] brw_fs.cpp:1461: void
+   fs_visitor::emit_bool_to_cond_code(ir_rvalue*): Assertion
+   \`expr->operands[i]->type->is_scalar()' failed.
+-  `Bug 31934 <https://bugs.freedesktop.org/show_bug.cgi?id=31934>`__ -
+   [gallium] Mapping empty buffer object causes SIGSEGV
+-  `Bug 31983 <https://bugs.freedesktop.org/show_bug.cgi?id=31983>`__ -
+   [i915 gles2] "if (expression with builtin/varying variables) discard"
+   breaks linkage
+-  `Bug 31985 <https://bugs.freedesktop.org/show_bug.cgi?id=31985>`__ -
+   [GLSL 1.20] initialized uniform array considered as "unsized"
+-  `Bug 31987 <https://bugs.freedesktop.org/show_bug.cgi?id=31987>`__ -
+   [gles2] if input a wrong pname(GL_NONE) to glGetBoolean, it will not
+   case GL_INVALID_ENUM
+-  `Bug 32035 <https://bugs.freedesktop.org/show_bug.cgi?id=32035>`__ -
+   [GLSL bisected] comparing unsized array gets segfault
+-  `Bug 32070 <https://bugs.freedesktop.org/show_bug.cgi?id=32070>`__ -
+   llvmpipe renders stencil demo incorrectly
+-  `Bug 32273 <https://bugs.freedesktop.org/show_bug.cgi?id=32273>`__ -
+   assertion fails when starting vdrift 2010 release with shaders
+   enabled
+-  `Bug 32287 <https://bugs.freedesktop.org/show_bug.cgi?id=32287>`__ -
+   [bisected GLSL] float-int failure
+-  `Bug 32311 <https://bugs.freedesktop.org/show_bug.cgi?id=32311>`__ -
+   [965 bisected] Array look-ups broken on GM45
+-  `Bug 32520 <https://bugs.freedesktop.org/show_bug.cgi?id=32520>`__ -
+   [gles2] glBlendFunc(GL_ZERO, GL_DST_COLOR) will result in
+   GL_INVALID_ENUM
+-  `Bug 32825 <https://bugs.freedesktop.org/show_bug.cgi?id=32825>`__ -
+   egl_glx driver completely broken in 7.9 branch [fix in master]
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-7.9..mesa-7.9.1
+
+Alex Deucher (5):
+
+-  r100: revalidate after radeon_update_renderbuffers
+-  r600c: add missing radeon_prepare_render() call on evergreen
+-  r600c: properly align mipmaps to group size
+-  gallium/egl: fix r300 vs r600 loading
+-  r600c: fix some opcodes on evergreen
+
+Aras Pranckevicius (2):
+
+-  glsl: fix crash in loop analysis when some controls can't be
+   determined
+-  glsl: fix matrix type check in ir_algebraic
+
+Brian Paul (27):
+
+-  swrast: fix choose_depth_texture_level() to respect mipmap filtering
+   state
+-  st/mesa: replace assertion w/ conditional in framebuffer invalidation
+-  egl/i965: include inline_wrapper_sw_helper.h
+-  mesa: Add missing else in do_row_3D
+-  mesa: add missing formats in \_mesa_format_to_type_and_comps()
+-  mesa: handle more pixel types in mipmap generation code
+-  mesa: make glIsBuffer() return false for never bound buffers
+-  mesa: fix glDeleteBuffers() regression
+-  swrast: init alpha value to 1.0 in opt_sample_rgb_2d()
+-  meta: Mask Stencil.Clear against stencilMax in \_mesa_meta_Clear
+-  st/mesa: fix mapping of zero-sized buffer objects
+-  mesa: check for posix_memalign() errors
+-  llvmpipe: fix broken stencil writemask
+-  mesa: fix GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME query
+-  mesa: return GL_FRAMEBUFFER_DEFAULT as FBO attachment type
+-  mesa: make glGet*(GL_NONE) generate GL_INVALID_ENUM
+-  mesa: test for cube map completeness in glGenerateMipmap()
+-  tnl: Initialize gl_program_machine memory in run_vp.
+-  tnl: a better way to initialize the gl_program_machine memory
+-  mesa, st/mesa: disable GL_ARB_geometry_shader4
+-  glsl: fix off by one in register index assertion
+-  st/mesa: fix mipmap generation bug
+-  glsl: new glsl_strtod() wrapper to fix decimal point interpretation
+-  mesa: no-op glBufferSubData() on size==0
+-  tdfx: s/Format/_BaseFormat/
+-  st/mesa: fix renderbuffer pointer check in st_Clear()
+-  mesa: Bump the number of bits in the register index.
+
+Chad Versace (5):
+
+-  glsl: Fix lexer rule for ^=
+-  glsl: Fix ast-to-hir for ARB_fragment_coord_conventions
+-  glsl: Fix ir_expression::constant_expression_value()
+-  glsl: Fix erroneous cast in ast_jump_statement::hir()
+-  glsl: Fix linker bug in cross_validate_globals()
+
+Chia-I Wu (10):
+
+-  targets/egl: Fix linking with libdrm.
+-  st/vega: Fix version check in context creation.
+-  st/egl: Do not finish a fence that is NULL.
+-  egl: Fix a false negative check in \_eglCheckMakeCurrent.
+-  st/mesa: Unreference the sampler view in st_bind_surface.
+-  egl_dri2: Fix \__DRI_DRI2 version 1 support.
+-  st/vega: Do not wait NULL fences.
+-  mesa: Do not advertise GL_OES_texture_3D.
+-  egl_glx: Fix borken driver.
+-  egl: Check extensions.
+
+Daniel Lichtenberger (1):
+
+-  radeon: fix potential segfault in renderbuffer update
+
+Daniel Vetter (1):
+
+-  r200: revalidate after radeon_update_renderbuffers
+
+Dave Airlie (1):
+
+-  r300g: fixup rs690 tiling stride alignment calculations.
+
+Eric Anholt (13):
+
+-  intel: Allow CopyTexSubImage to InternalFormat 3/4 textures, like
+   RGB/RGBA.
+-  glsl: Free the loop state context when we free the loop state.
+-  i965: Allow OPCODE_SWZ to put immediates in the first arg.
+-  i965: Add support for rendering to SARGB8 FBOs.
+-  glsl: Add a helper constructor for expressions that works out result
+   type.
+-  glsl: Fix structure and array comparisions.
+-  glsl: Quiet unreachable no-return-from-function warning.
+-  glsl: Mark the array access for whole-array comparisons.
+-  glsl: Fix flipped return of has_value() for array constants.
+-  mesa: Add getters for the rest of the supported draw buffers.
+-  mesa: Add getters for ARB_copy_buffer's attachment points.
+-  i965: Correct the dp_read message descriptor setup on g4x.
+-  glsl: Correct the marking of InputsRead/OutputsWritten on in/out
+   matrices.
+
+Fabian Bieler (1):
+
+-  glsl: fix lowering conditional returns in subroutines
+
+Francisco Jerez (3):
+
+-  meta: Don't leak alpha function/reference value changes.
+-  meta: Fix incorrect rendering of the bitmap alpha component.
+-  meta: Don't try to disable cube maps if the driver doesn't expose the
+   extension.
+
+Henri Verbeet (2):
+
+-  r600: Evergreen has two extra frac_bits for the sampler LOD state.
+-  st/mesa: Handle wrapped depth buffers in st_copy_texsubimage().
+
+Ian Romanick (33):
+
+-  Add 7.9 md5sums
+-  docs: Import 7.8.x release notes from 7.8 branch.
+-  docs: download.html does not need to be updated for each release
+-  docs: Update mailing lines from sf.net to freedesktop.org
+-  docs: added news item for 7.9 release
+-  mesa: Validate assembly shaders when GLSL shaders are used
+-  linker: Reject shaders that have unresolved function calls
+-  mesa: Refactor validation of shader targets
+-  glsl: Slightly change the semantic of \_LinkedShaders
+-  linker: Improve handling of unread/unwritten shader inputs/outputs
+-  glsl: Commit lexer files changed by previous cherry picking
+-  mesa: Make metaops use program refcounts instead of names.
+-  glsl: Fix incorrect gl_type of sampler2DArray and
+   sampler1DArrayShadow
+-  mesa: Allow query of MAX_SAMPLES with EXT_framebuffer_multisample
+-  glsl: better handling of linker failures
+-  mesa: Fix glGet of ES2's GL_MAX_*_VECTORS properties.
+-  i915: Disallow alpha, red, RG, and sRGB as render targets
+-  glsl/linker: Free any IR discarded by optimization passes.
+-  glsl: Add an optimization pass to simplify discards.
+-  glsl: Add a lowering pass to move discards out of if-statements.
+-  i915: Correctly generate unconditional KIL instructions
+-  glsl: Add unary ir_expression constructor
+-  glsl: Ensure that equality comparisons don't return a NULL IR tree
+-  glcpp: Commit changes in generated files cause by previous commit
+-  glsl: Inherrit type of declared variable from initializer
+-  glsl: Inherrit type of declared variable from initializer after
+   processing assignment
+-  linker: Ensure that unsized arrays have a size after linking
+-  linker: Fix regressions caused by previous commit
+-  linker: Allow built-in arrays to have different sizes between shader
+   stages
+-  ir_to_mesa: Don't generate swizzles for record derefs of
+   non-scalar/vectors
+-  Refresh autogenerated file builtin_function.cpp.
+-  docs: Initial set of release notes for 7.9.1
+-  mesa: set version string to 7.9.1
+
+Julien Cristau (1):
+
+-  Makefile: don't include the same files twice in the tarball
+
+Kenneth Graunke (19):
+
+-  glcpp: Return NEWLINE token for newlines inside multi-line comments.
+-  generate_builtins.py: Output large strings as arrays of characters.
+-  glsl: Fix constant component count in vector constructor emitting.
+-  ir_dead_functions: Actually free dead functions and signatures.
+-  glcpp: Define GL_FRAGMENT_PRECISION_HIGH if GLSL version >= 1.30.
+-  glsl: Unconditionally define GL_FRAGMENT_PRECISION_HIGH in ES2
+   shaders.
+-  glsl: Fix constant expression handling for <, >, <=, >= on vectors.
+-  glsl: Use do_common_optimization in the standalone compiler.
+-  glsl: Don't inline function prototypes.
+-  glsl: Add a virtual as_discard() method.
+-  glsl: Remove "discard" support from lower_jumps.
+-  glsl: Refactor get_num_operands.
+-  glcpp: Don't emit SPACE tokens in conditional_tokens production.
+-  glsl: Clean up code by adding a new is_break() function.
+-  glsl: Consider the "else" branch when looking for loop breaks.
+-  Remove OES_compressed_paletted_texture from the ES2 extension list.
+-  glsl/builtins: Compute the correct value for smoothstep(vec, vec,
+   vec).
+-  Fix build on systems where "python" is python 3.
+-  i965: Internally enable GL_NV_blend_square on ES2.
+
+Kristian Høgsberg (1):
+
+-  i965: Don't write mrf assignment for pointsize output
+
+Luca Barbieri (1):
+
+-  glsl: Unroll loops with conditional breaks anywhere (not just the
+   end)
+
+Marek Olšák (17):
+
+-  r300g: fix microtiling for 16-bits-per-channel formats
+-  r300g: fix texture border for 16-bits-per-channel formats
+-  r300g: add a default channel ordering of texture border for unhandled
+   formats
+-  r300g: fix texture border color for all texture formats
+-  r300g: fix rendering with no vertex elements
+-  r300/compiler: fix rc_rewrite_depth_out for it to work with any
+   instruction
+-  r300g: fix texture border color once again
+-  r300g: fix texture swizzling with compressed textures on r400-r500
+-  r300g: disable ARB_texture_swizzle if S3TC is enabled on r3xx-only
+-  mesa, st/mesa: fix gl_FragCoord with FBOs in Gallium
+-  st/mesa: initialize key in st_vp_varient
+-  r300/compiler: fix swizzle lowering with a presubtract source operand
+-  r300g: fix rendering with a vertex attrib having a zero stride
+-  ir_to_mesa: Add support for conditional discards.
+-  r300g: finally fix the texture corruption on r3xx-r4xx
+-  mesa: fix texel store functions for some float formats
+-  r300/compiler: disable the rename_regs pass for loops
+
+Mario Kleiner (1):
+
+-  mesa/r300classic: Fix dri2Invalidate/radeon_prepare_render for page
+   flipping.
+
+Peter Clifton (1):
+
+-  intel: Fix emit_linear_blit to use DWORD aligned width blits
+
+Robert Hooker (2):
+
+-  intel: Add a new B43 pci id.
+-  egl_dri2: Add missing intel chip ids.
+
+Roland Scheidegger (1):
+
+-  r200: fix r200 large points
+
+Thomas Hellstrom (17):
+
+-  st/xorg: Don't try to use option values before processing options
+-  xorg/vmwgfx: Make vmwarectrl work also on 64-bit servers
+-  st/xorg: Add a customizer option to get rid of annoying cursor update
+   flicker
+-  xorg/vmwgfx: Don't hide HW cursors when updating them
+-  st/xorg: Don't try to remove invalid fbs
+-  st/xorg: Fix typo
+-  st/xorg, xorg/vmwgfx: Be a bit more frendly towards cross-compiling
+   environments
+-  st/xorg: Fix compilation errors for Xservers compiled without
+   Composite
+-  st/xorg: Don't use deprecated x*alloc / xfree functions
+-  xorg/vmwgfx: Don't use deprecated x*alloc / xfree functions
+-  st/xorg: Fix compilation for Xservers >= 1.10
+-  mesa: Make sure we have the talloc cflags when using the talloc
+   headers
+-  egl: Add an include for size_t
+-  mesa: Add talloc includes for gles
+-  st/egl: Fix build for include files in nonstandard places
+-  svga/drm: Optionally resolve calls to powf during link-time
+-  gallium/targets: Trivial crosscompiling fix
+
+Tom Stellard (7):
+
+-  r300/compiler: Make sure presubtract sources use supported swizzles
+-  r300/compiler: Fix register allocator's handling of loops
+-  r300/compiler: Fix instruction scheduling within IF blocks
+-  r300/compiler: Use zero as the register index for unused sources
+-  r300/compiler: Ignore alpha dest register when replicating the result
+-  r300/compiler: Use correct swizzles for all presubtract sources
+-  r300/compiler: Don't allow presubtract sources to be remapped twice
+
+Vinson Lee (1):
+
+-  glsl: Fix 'control reaches end of non-void function' warning.
+
+richard (1):
+
+-  r600c : inline vertex format is not updated in an app, switch to use
+   vfetch constants. For the 7.9 and 7.10 branches as well.

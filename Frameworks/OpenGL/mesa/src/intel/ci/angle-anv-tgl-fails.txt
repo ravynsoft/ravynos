@@ -1,0 +1,8 @@
+# ANGLE marks non-shadow linear-filtered textures incomplete (see GLES 3.2 spec
+# 8.17 Texture Completeness), so you get a fallback texture sample, while Mesa
+# incorrectly marks it complete.  The CTS incorrectly expects texture
+# completeness.
+# https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/4292
+# https://bugs.chromium.org/p/angleproject/issues/detail?id=7877
+KHR-GLES31.core.texture_border_clamp.Texture2DDC16Linear,Fail
+KHR-GLES31.core.texture_border_clamp.Texture2DDC32FLinear,Fail

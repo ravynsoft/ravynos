@@ -1,0 +1,115 @@
+Mesa 17.0.7 Release Notes / June 1, 2017
+========================================
+
+Mesa 17.0.7 is a bug fix release which fixes bugs found since the 17.0.6
+release.
+
+Mesa 17.0.7 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   bc68d13c6b1a053b855ac453ebf7e62bd89511adf44bad6c613e09f7fa13390a  mesa-17.0.7.tar.gz
+   f6d75304a229c8d10443e219d6b6c0c342567dbab5a879ebe7cfa3c9139c4492  mesa-17.0.7.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 98833 <https://bugs.freedesktop.org/show_bug.cgi?id=98833>`__ -
+   [REGRESSION, bisected] Wayland revert commit breaks non-Vsync
+   fullscreen frame updates
+-  `Bug 100741 <https://bugs.freedesktop.org/show_bug.cgi?id=100741>`__
+   - Chromium - Memory leak
+-  `Bug 100925 <https://bugs.freedesktop.org/show_bug.cgi?id=100925>`__
+   - [HSW/BSW/BDW/SKL] Google Earth is not resolving all the details in
+   the map correctly
+
+Changes
+-------
+
+Andres Gomez (1):
+
+-  docs: add sha256 checksums for 17.0.6
+
+Bartosz Tomczyk (1):
+
+-  mesa: Avoid leaking surface in st_renderbuffer_delete
+
+Chad Versace (1):
+
+-  egl: Partially revert 23c86c74, fix eglMakeCurrent
+
+Daniel Stone (7):
+
+-  vulkan: Fix Wayland uninitialised registry
+-  vulkan/wsi/wayland: Remove roundtrip when creating image
+-  vulkan/wsi/wayland: Use per-display event queue
+-  vulkan/wsi/wayland: Use proxy wrappers for swapchain
+-  egl/wayland: Don't open-code roundtrip
+-  egl/wayland: Use per-surface event queues
+-  egl/wayland: Ensure we get a back buffer
+
+Emil Velikov (5):
+
+-  st/va: fix misplaced closing bracket
+-  anv: automake: list shared libraries after the static ones
+-  radv: automake: list shared libraries after the static ones
+-  egl/wayland: select the format based on the interface used
+-  Update version to 17.0.7
+
+Eric Anholt (2):
+
+-  renderonly: Initialize fields of struct winsys_handle.
+-  vc4: Don't allocate new BOs to avoid synchronization when they're
+   shared.
+
+Hans de Goede (1):
+
+-  glxglvnddispatch: Add missing dispatch for GetDriverConfig
+
+Ilia Mirkin (1):
+
+-  nvc0/ir: SHLADD's middle source must be an immediate
+
+Faith Ekstrand (2):
+
+-  i965/blorp: Do and end-of-pipe sync on both sides of fast-clear ops
+-  i965: Round copy size to the nearest block in intel_miptree_copy
+
+Lucas Stach (1):
+
+-  etnaviv: stop oversizing buffer resources
+
+Nanley Chery (2):
+
+-  anv/formats: Update the three-channel BC1 mappings
+-  i965/formats: Update the three-channel DXT1 mappings
+
+Pohjolainen, Topi (1):
+
+-  intel/isl/gen7: Use stencil vertical alignment of 8 instead of 4
+
+Samuel Iglesias Gonsálvez (3):
+
+-  i965/vec4/gs: restore the uniform values which was overwritten by
+   failed vec4_gs_visitor execution
+-  i965/vec4: fix swizzle and writemask when loading an uniform with
+   constant offset
+-  i965/vec4: load dvec3/4 uniforms first in the push constant buffer
+
+Tom Stellard (1):
+
+-  gallivm: Make sure module has the correct data layout when pass
+   manager runs

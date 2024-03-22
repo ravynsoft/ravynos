@@ -1,0 +1,20 @@
+
+BasedOnStyle: InheritParentConfig
+DisableFormat: false
+
+BinPackParameters: false
+
+ColumnLimit: 78
+
+Cpp11BracedListStyle: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^"(c11/|compiler/|main/|nir/|spirv/|util/|vk_|wsi_)'
+    Priority:        3
+  - Regex:           '^"(perfetto)'
+    Priority:        2
+  - Regex:           '.*'
+    Priority:        1
+
+SpaceAfterCStyleCast: true
+SpaceBeforeCpp11BracedList: true

@@ -1,0 +1,34 @@
+.lavapipe-rules:
+  stage: software-renderer
+  rules:
+    - !reference [.test, rules]
+    - if: $FORCE_KERNEL_TAG != null
+      when: never
+    - !reference [.vulkan-rules, rules]
+    - !reference [.gallium-core-rules, rules]
+    - changes: &lavapipe_file_list
+      - src/gallium/drivers/llvmpipe/**/*
+      - src/gallium/frontends/lavapipe/**/*
+      - src/gallium/winsys/sw/**/*
+      when: on_success
+
+.lavapipe-manual-rules:
+  stage: software-renderer
+  retry: !reference [.scheduled_pipeline-rules, retry]
+  rules:
+    - !reference [.test, rules]
+    - !reference [.vulkan-manual-rules, rules]
+    - !reference [.gl-manual-rules, rules]
+    - changes: *lavapipe_file_list
+      when: manual
+
+.lavapipe-test:
+  stage: software-renderer
+  extends:
+    - .test-vk
+    - .lavapipe-rules
+  variables:
+    GPU_VERSION: lvp
+    VK_DRIVER: lvp
+    DEQP_EXPECTED_RENDERER: llvmpipe
+    LVP_POISON_MEMORY: "1"

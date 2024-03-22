@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_shader_atomic_counters" number="114">
+
+<enum name="ATOMIC_COUNTER_BUFFER" value="0x92C0"/>
+<enum name="ATOMIC_COUNTER_BUFFER_BINDING" value="0x92C1"/>
+<enum name="ATOMIC_COUNTER_BUFFER_START" value="0x92C2"/>
+<enum name="ATOMIC_COUNTER_BUFFER_SIZE" value="0x92C3"/>
+<enum name="ATOMIC_COUNTER_BUFFER_DATA_SIZE" value="0x92C4"/>
+<enum name="ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTERS" value="0x92C5"/>
+<enum name="ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTER_INDICES" value="0x92C6"/>
+<enum name="ATOMIC_COUNTER_BUFFER_REFERENCED_BY_VERTEX_SHADER" value="0x92C7"/>
+<enum name="ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_CONTROL_SHADER" value="0x92C8"/>
+<enum name="ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_EVALUATION_SHADER" value="0x92C9"/>
+<enum name="ATOMIC_COUNTER_BUFFER_REFERENCED_BY_GEOMETRY_SHADER" value="0x92CA"/>
+<enum name="ATOMIC_COUNTER_BUFFER_REFERENCED_BY_FRAGMENT_SHADER" value="0x92CB"/>
+<enum name="MAX_VERTEX_ATOMIC_COUNTER_BUFFERS" value="0x92CC"/>
+<enum name="MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS" value="0x92CD"/>
+<enum name="MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS" value="0x92CE"/>
+<enum name="MAX_GEOMETRY_ATOMIC_COUNTER_BUFFERS" value="0x92CF"/>
+<enum name="MAX_FRAGMENT_ATOMIC_COUNTER_BUFFERS" value="0x92D0"/>
+<enum name="MAX_COMBINED_ATOMIC_COUNTER_BUFFERS" value="0x92D1"/>
+<enum name="MAX_VERTEX_ATOMIC_COUNTERS" value="0x92D2"/>
+<enum name="MAX_TESS_CONTROL_ATOMIC_COUNTERS" value="0x92D3"/>
+<enum name="MAX_TESS_EVALUATION_ATOMIC_COUNTERS" value="0x92D4"/>
+<enum name="MAX_GEOMETRY_ATOMIC_COUNTERS" value="0x92D5"/>
+<enum name="MAX_FRAGMENT_ATOMIC_COUNTERS" value="0x92D6"/>
+<enum name="MAX_COMBINED_ATOMIC_COUNTERS" value="0x92D7"/>
+<enum name="MAX_ATOMIC_COUNTER_BUFFER_SIZE" value="0x92D8"/>
+<enum name="ACTIVE_ATOMIC_COUNTER_BUFFERS" value="0x92D9"/>
+<enum name="UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX" value="0x92DA"/>
+<enum name="UNSIGNED_INT_ATOMIC_COUNTER" value="0x92DB"/>
+<enum name="MAX_ATOMIC_COUNTER_BUFFER_BINDINGS" value="0x92DC"/>
+
+<function name="GetActiveAtomicCounterBufferiv">
+    <param name="program" type="GLuint" />
+    <param name="bufferIndex" type="GLuint" />
+    <param name="pname" type="GLenum" />
+    <param name="params" type="GLint *" />
+</function>
+
+</category>
+
+</OpenGLAPI>

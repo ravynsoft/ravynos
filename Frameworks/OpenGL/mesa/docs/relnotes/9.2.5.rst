@@ -1,0 +1,98 @@
+Mesa 9.2.5 Release Notes / (December 12, 2013)
+==============================================
+
+Mesa 9.2.5 is a bug fix release which fixes bugs found since the 9.2.4
+release.
+
+Mesa 9.2 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   9fb4de29ca1d9cfd03cbdefa123ba336  MesaLib-9.2.5.tar.bz2
+   1146c7c332767174f3de782b88d8e8ca  MesaLib-9.2.5.tar.gz
+   a9a6c46dac7ea26fd272bf14894d95f3  MesaLib-9.2.5.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 62142 <https://bugs.freedesktop.org/show_bug.cgi?id=62142>`__ -
+   Mesa/demo mipmap_limits upside down with running by SOFTWARE
+-  `Bug 64323 <https://bugs.freedesktop.org/show_bug.cgi?id=64323>`__ -
+   Severe misrendering in Left 4 Dead 2
+-  `Bug 66213 <https://bugs.freedesktop.org/show_bug.cgi?id=66213>`__ -
+   Certain Mesa Demos Rendering Inverted (vertically)
+-  `Bug 68838 <https://bugs.freedesktop.org/show_bug.cgi?id=68838>`__ -
+   GLSL: struct declarations produce a "empty declaration warning" in
+   9.2
+-  `Bug 69155 <https://bugs.freedesktop.org/show_bug.cgi?id=69155>`__ -
+   [NV50 gallium] [piglit] bin/varying-packing-simple triggers memory
+   corruption/failures
+-  `Bug 72325 <https://bugs.freedesktop.org/show_bug.cgi?id=72325>`__ -
+   [swrast] piglit glean fbo regression
+-  `Bug 72327 <https://bugs.freedesktop.org/show_bug.cgi?id=72327>`__ -
+   [swrast] piglit glean pointSprite regression
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.2.4..mesa-9.2.5
+
+Chad Versace (2):
+
+-  i965/hsw: Apply non-msrt fast color clear w/a to all HSW GTs
+-  i965: Add extra-alignment for non-msrt fast color clear for all hw
+   (v2)
+
+Chris Forbes (4):
+
+-  i965: Gen4-5: Don't enable hardware alpha test with MRT
+-  i965: Gen4-5: Include alpha func/ref in program key
+-  i965/fs: Gen4-5: Setup discard masks for MRT alpha test
+-  i965/fs: Gen4-5: Implement alpha test in shader for MRT
+
+Chí-Thanh Christopher Nguyễn (1):
+
+-  st/xorg: Handle new DamageUnregister API which has only one argument
+
+Dave Airlie (3):
+
+-  mesa/swrast: fix inverted front buffer rendering with old-school
+   swrast
+-  glx: don't fail out when no configs if we have visuals
+-  swrast: fix readback regression since inversion fix
+
+Ian Romanick (1):
+
+-  glsl: Don't emit empty declaration warning for a struct specifier
+
+Ilia Mirkin (4):
+
+-  nv50: Fix GPU_READING/WRITING bit removal
+-  nouveau: avoid leaking fences while waiting
+-  nv50: wait on the buf's fence before sticking it into pushbuf
+-  nv50: report 15 max inputs for fragment programs
+
+Tom Stellard (2):
+
+-  r300/compiler/tests: Fix segfault
+-  r300/compiler/tests: Fix line length check in test parser

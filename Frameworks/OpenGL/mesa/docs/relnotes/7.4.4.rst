@@ -1,0 +1,52 @@
+Mesa 7.4.4 Release Notes / 23 June 2009
+=======================================
+
+Mesa 7.4.4 is a stable development release fixing bugs since the 7.4.3
+release.
+
+Mesa 7.4.4 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   0b56fe5a88ab0c3c5b2da5068f63f416  MesaLib-7.4.4.tar.gz
+   b66528d314c574dccbe0ed963cac5e93  MesaLib-7.4.4.tar.bz2
+   2818076f3ba23fa87fdfe4602a637a18  MesaLib-7.4.4.zip
+   3e77b208386c47b18165bce5ae317e2c  MesaDemos-7.4.4.tar.gz
+   628142ec9a54cd28cc027e6ce26cff47  MesaDemos-7.4.4.tar.bz2
+   d08a30d30ab7174859aa709cba6c726d  MesaDemos-7.4.4.zip
+   e6e91ba16e274d40cf3a97ad3218af01  MesaGLUT-7.4.4.tar.gz
+   e14bbb52517e8121b31f1387515365ab  MesaGLUT-7.4.4.tar.bz2
+   f10ed20469753c2b3d68c99854f80fd4  MesaGLUT-7.4.4.zip
+
+Bug fixes
+---------
+
+-  Fixed i965/i915 segfault in screen destruction (bug 22408)
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

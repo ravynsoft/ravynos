@@ -1,0 +1,168 @@
+Mesa 22.1.1 Release Notes / 2022-06-01
+======================================
+
+Mesa 22.1.1 is a bug fix release which fixes bugs found since the 22.1.0 release.
+
+Mesa 22.1.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.1.1 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+   46940865ffe794db73ac2bc7ab7ff2570042a0b61a8ac43ca1688863e2bc0ef1  mesa-22.1.1.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- nir_lower_phis_to_regs_block: Assertion \`src->src.is_ssa' failed.
+- Build failure on sparc
+- Signal 6 (Aborted) when opening GTK3 applications
+- radv: Conditional rendering on compute queue
+- anv: line failure
+- panfrost midgard - major issues with MelonDS emulator - not able to trace properly too
+- Nheko misrendering on RK3399 (Mali T860)
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- pan/bi: Fix mov and pack_32_2x16
+
+Boris Brezillon (1):
+
+- dzn: Use the vk_sync_binary abstraction
+
+Charmaine Lee (1):
+
+- gallium/util: Increase the debug_flush map depth to 64
+
+Daniel Schürmann (1):
+
+- aco: fix spilling of phis without temp operands
+
+Dave Airlie (2):
+
+- lavapipe: fix depth bias offset flag enables.
+- llvmpipe: flush resources for kms swrast path.
+
+Dylan Baker (8):
+
+- docs: add release notes for 22.1.0
+- VERSION: bump for 22.1.0 final
+- relnotes: Add sha256sum and fix minor formatting issues
+- .pick_status.json: Update to 8b13ee75ba9f27ceac6b6180ca05d321caa13612
+- .pick_status.json: Update to 95d4e5435bf63239105a50370ebbbbdeb7fed2f8
+- .pick_status.json: Update to ee2278de654853f1d6107e6ef6fc8537a668866e
+- .pick_status.json: Update to 9773ed1dc74b98019640d909cdc2b5d6cffae85a
+- .pick_status.json: Update to 5067a26f4432ae5e9690e70ef2498ea24798593e
+
+Erik Faye-Lund (4):
+
+- editorconfig: remove scons-ism
+- editorconfig: remove html-rule
+- editorconfig: remove m4-rule
+- editorconfig: remove pl-rule
+
+Filip Gawin (1):
+
+- r300: keep negation if w is an inline constant
+
+Hans-Kristian Arntzen (1):
+
+- radv: Fix RTPSO hashing of pGroups.
+
+Icecream95 (5):
+
+- panfrost: Copy blend constant into variant even when reusing it
+- nir: Add store_combined_output_pan BASE back
+- pan/bi: Read base for combined stores
+- pan/mdg: Read base for combined stores
+- panfrost: Only write depth / stencil once if MRT is used
+
+Faith Ekstrand (8):
+
+- radv: Add a sqtt entrypoint for CmdBindVertexBuffers2
+- intel/fs: Copy color_outputs_valid into wm_prog_data
+- anv: Drop alpha_to_coverage from the NULL FS optimization
+- anv: Handle the null FS optimization after compiling shaders
+- anv: Don't disable the fragment shader if XFB is enabled
+- nir: Handle register sources in lower_phis_to_regs_block
+- glsl/nir: Stop leaking varyings_info
+- nir: Mark negative re-distribution on fadd as imprecise
+
+Konstantin Seurer (1):
+
+- radv: Fix handling of primitiveOffset
+
+Matt Turner (1):
+
+- mesa: Drop dead #include "sparc/sparc.h"
+
+Michael Skorokhodov (1):
+
+- anv: Update line range
+
+Mike Blumenkrantz (10):
+
+- turnip: fix assert for max xfb outputs
+- zink: use a zink_render_pass_pipeline_state bit for fbfetch
+- zink: add renderpass bits for color/depth r/w
+- zink: only warn once for SRGB fb without KHR_swapchain_mutable_format
+- zink: require draw params ext/cap in ntv if drawid is used
+- zink: emit spirv cap for subgroup vote ops
+- st/pbo_compute: use different calc for non-3d compute buffer sizing
+- zink: make swapchain kill message more descriptive
+- zink: drop wideLines requirement
+- zink: drop largePoints requirement
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- radeonsi: don't use sel->nir in si_check_blend_dst_sampler_noop
+
+Qiang Yu (1):
+
+- radeonsi: lower nir_intrinsic_sparse_residency_code_and
+
+Rhys Perry (2):
+
+- aco: fix p_constaddr with a non-zero offset
+- aco/ra: fix usage of invalidated iterator
+
+Samuel Pitoiset (1):
+
+- radv: fix writing buffer markers with non-zero memory offset
+
+Timur Kristóf (2):
+
+- radv: Implement conditional rendering for async compute queue.
+- radv: Disable predication for supass clear and image clears.
+
+Yogesh Mohan Marimuthu (1):
+
+- vulkan/wsi: fix extra free if buffer_blit_queue
+
+Zack Rusin (4):
+
+- svga: Don't try to build x86/x64 assembly on different arch's
+- svga: finish readbacks before mapping resources
+- svga: Use direct maps when GB objects are present
+- svga: Add support for SVGAv3

@@ -1,0 +1,61 @@
+Mesa 22.1.6 Release Notes / 2022-09-22
+======================================
+
+Mesa 22.1.6 is a bug fix release which fixes bugs found since the 22.1.5 release.
+
+Mesa 22.1.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.1.6 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    TBD.
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- anv: sampleLocationsEnable ignored in VkPipelineSampleLocationsStateCreateInfoEXT
+
+
+Changes
+-------
+
+Dave Airlie (2):
+
+- llvmpipe: make last_fence a screen/rast object not a context one.
+- llvmpipe: keep context list and use to track resource usage.
+
+Dylan Baker (3):
+
+- docs: Add sha256 sum for 22.1.5
+- docs: Add sha256 sum for 22.1.4
+- docs: add release notes for 22.1.6
+
+Eric Engestrom (1):
+
+- Revert "pan/bi: Require ATEST coverage mask input in R60"
+
+Mark Janes (1):
+
+- intel/dev: drop warning for unhandled hwconfig keys
+
+Mykhailo Skorokhodov (1):
+
+- anv: Use sampleLocationsEnable for sample locations

@@ -1,0 +1,369 @@
+Mesa 10.3 Release Notes / September 19, 2014
+============================================
+
+Mesa 10.3 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 10.3.1.
+
+Mesa 10.3 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   9a1bf52040fc3dda81e83a35f944f1c3f532847dbe9fdf57161265cf71ea1bae  MesaLib-10.3.0.tar.gz
+   0283bfe710fa449ed82e465cfa09612a269e19abb7e0382082608062ce7960b5  MesaLib-10.3.0.tar.bz2
+   221420763c2c3a244836a736e735612c4a6a0377b4e5223fca1e612f49906789  MesaLib-10.3.0.zip
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ARB_ES3_compatibility on nv50, nvc0, r600, radeonsi, softpipe,
+   llvmpipe
+-  GL_ARB_clear_texture on i965
+-  GL_ARB_compressed_texture_pixel_storage on all drivers
+-  GL_ARB_conditional_render_inverted on i965, nvc0, softpipe, llvmpipe
+-  GL_ARB_derivative_control on i965, nv50, nvc0, r600
+-  GL_ARB_draw_indirect on nvc0, radeonsi
+-  GL_ARB_explicit_uniform_location (all drivers that support GLSL)
+-  GL_ARB_fragment_layer_viewport on nv50, nvc0, llvmpipe, r600
+-  GL_ARB_gpu_shader5 on i965/gen7, nvc0
+-  GL_ARB_multi_draw_indirect on nvc0, radeonsi
+-  GL_ARB_sample_shading on radeonsi
+-  GL_ARB_seamless_cubemap_per_texture on i965, llvmpipe, nvc0, r600,
+   radeonsi, softpipe
+-  GL_ARB_stencil_texturing on nv50, nvc0, r600, and radeonsi
+-  GL_ARB_texture_barrier on nv50, nvc0, r300, r600, radeonsi
+-  GL_ARB_texture_compression_bptc on i965/gen7+, nvc0, r600/evergreen+,
+   radeonsi
+-  GL_ARB_texture_cube_map_array on radeonsi
+-  GL_ARB_texture_gather on r600, radeonsi
+-  GL_ARB_texture_query_levels on nv50, nvc0, llvmpipe, r600, radeonsi,
+   softpipe
+-  GL_ARB_texture_query_lod on r600, radeonsi
+-  GL_ARB_viewport_array on nvc0
+-  GL_AMD_vertex_shader_viewport_index on i965/gen7+, r600
+-  GL_OES_compressed_ETC1_RGB8_texture on nv30, nv50, nvc0, r300, r600,
+   radeonsi, softpipe, llvmpipe
+-  GLX_MESA_query_renderer on nv30, nv50, nvc0, r300, r600, radeonsi,
+   softpipe, llvmpipe
+-  A new software rasterizer driver (kms_swrast_dri.so) that works with
+   DRM drivers that don't have a full-fledged GEM (such as qxl or
+   simpledrm)
+-  Distribute the Khronos GL/glcorearb.h header file.
+
+Bug fixes
+---------
+
+-  `Bug 50754 <https://bugs.freedesktop.org/show_bug.cgi?id=50754>`__ -
+   Building 32 bit mesa on 64 bit OS fails since change for automake
+-  `Bug 53617 <https://bugs.freedesktop.org/show_bug.cgi?id=53617>`__ -
+   [llvmpipe] piglit fbo-depthtex regression
+-  `Bug 54372 <https://bugs.freedesktop.org/show_bug.cgi?id=54372>`__ -
+   GLX_INTEL_swap_event crashes driver when swapping window buffers
+-  `Bug 56127 <https://bugs.freedesktop.org/show_bug.cgi?id=56127>`__ -
+   [ILK bisected]unigine-sanctruary performance reduced by 98%
+-  `Bug 66184 <https://bugs.freedesktop.org/show_bug.cgi?id=66184>`__ -
+   src/mesa/state_tracker/st_glsl_to_tgsi.cpp:3216:simplify_cmp:
+   Assertion \`inst->dst.index < 4096' failed.
+-  `Bug 66452 <https://bugs.freedesktop.org/show_bug.cgi?id=66452>`__ -
+   JUNIPER UVD accelerated playback of WMV3 streams does not work
+-  `Bug 68365 <https://bugs.freedesktop.org/show_bug.cgi?id=68365>`__ -
+   [SNB Bisected]Piglit spec_ARB_framebuffer_object_fbo-blit-stretch
+   fail
+-  `Bug 70441 <https://bugs.freedesktop.org/show_bug.cgi?id=70441>`__ -
+   [Gen4-5 clip] Piglit spec_OpenGL_1.1_polygon-offset hits (execsize >=
+   width) assertion
+-  `Bug 73846 <https://bugs.freedesktop.org/show_bug.cgi?id=73846>`__ -
+   [llvmpipe] lp_test_format fails with llvm-3.5svn >= r199602
+-  `Bug 74005 <https://bugs.freedesktop.org/show_bug.cgi?id=74005>`__ -
+   [i965 Bisected]Piglit/glx_glx-make-glxdrawable-current fails
+-  `Bug 74863 <https://bugs.freedesktop.org/show_bug.cgi?id=74863>`__ -
+   [r600g] HyperZ broken on RV770 and CYPRESS (Left 4 Dead 2 trees
+   corruption) bisected!
+-  `Bug 75010 <https://bugs.freedesktop.org/show_bug.cgi?id=75010>`__ -
+   clang: error: unknown argument: '-fstack-protector-strong'
+-  `Bug 75478 <https://bugs.freedesktop.org/show_bug.cgi?id=75478>`__ -
+   [BDW]Some Piglit and Ogles2conform cases cause GPU hang
+-  `Bug 75664 <https://bugs.freedesktop.org/show_bug.cgi?id=75664>`__ -
+   Unigine Valley & Heaven "error: syntax error, unexpected EXTENSION,
+   expecting $end" IVB HD4000
+-  `Bug 75878 <https://bugs.freedesktop.org/show_bug.cgi?id=75878>`__ -
+   [BDW] GPU hang running Raytracer WebGL demo
+-  `Bug 76188 <https://bugs.freedesktop.org/show_bug.cgi?id=76188>`__ -
+   EGL_EXT_image_dma_buf_import fd ownership is incorrect
+-  `Bug 76223 <https://bugs.freedesktop.org/show_bug.cgi?id=76223>`__ -
+   [radeonsi] luxmark segfault
+-  `Bug 76939 <https://bugs.freedesktop.org/show_bug.cgi?id=76939>`__ -
+   [BDW] GPU hang when running “Metro:Last Light “ /“Crusader Kings II”
+-  `Bug 77245 <https://bugs.freedesktop.org/show_bug.cgi?id=77245>`__ -
+   Bogus GL_ARB_explicit_attrib_location layout identifier warnings
+-  `Bug 77493 <https://bugs.freedesktop.org/show_bug.cgi?id=77493>`__ -
+   lp_test_arit fails with llvm >= llvm-3.5svn r206094
+-  `Bug 77703 <https://bugs.freedesktop.org/show_bug.cgi?id=77703>`__ -
+   [ILK Bisected]Piglit glean_texCombine4 fails
+-  `Bug 77704 <https://bugs.freedesktop.org/show_bug.cgi?id=77704>`__ -
+   [IVB/HSW Bisected]Ogles3conform
+   GL3Tests_shadow_shadow_execution_frag.test fails
+-  `Bug 77705 <https://bugs.freedesktop.org/show_bug.cgi?id=77705>`__ -
+   [SNB/IVB/HSW/BYT/BDW Bisected]Ogles3conform
+   GL3Tests/packed_pixels/packed_pixels_pixelstore.test segfault
+-  `Bug 77707 <https://bugs.freedesktop.org/show_bug.cgi?id=77707>`__ -
+   [ILK Bisected]Ogles2conform GL_sin_sin_float_frag_xvary.test fails
+-  `Bug 77740 <https://bugs.freedesktop.org/show_bug.cgi?id=77740>`__ -
+   i965: Relax accumulator dependency scheduling on Gen < 6
+-  `Bug 77852 <https://bugs.freedesktop.org/show_bug.cgi?id=77852>`__ -
+   [BDW]Piglit
+   spec_ARB_framebuffer_object_fbo-drawbuffers-none_glBlitFramebuffer
+   fails
+-  `Bug 77856 <https://bugs.freedesktop.org/show_bug.cgi?id=77856>`__ -
+   [BDW]Piglit spec_OpenGL_3.0_clearbuffer-mixed-format fails
+-  `Bug 77865 <https://bugs.freedesktop.org/show_bug.cgi?id=77865>`__ -
+   [BDW] Many Ogles3conform framebuffer_blit cases fail
+-  `Bug 78225 <https://bugs.freedesktop.org/show_bug.cgi?id=78225>`__ -
+   Compile error due to undefined reference to \`gbm_dri_backend', fix
+   attached
+-  `Bug 78258 <https://bugs.freedesktop.org/show_bug.cgi?id=78258>`__ -
+   make check link_varyings.gl_ClipDistance failure
+-  `Bug 78403 <https://bugs.freedesktop.org/show_bug.cgi?id=78403>`__ -
+   query_renderer_implementation_unittest.cpp:144:4: error: expected
+   primary-expression before ‘.’ token
+-  `Bug 78468 <https://bugs.freedesktop.org/show_bug.cgi?id=78468>`__ -
+   Compiling of shader gets stuck in infinite loop
+-  `Bug 78537 <https://bugs.freedesktop.org/show_bug.cgi?id=78537>`__ -
+   no anisotropic filtering in a native Half-Life 2
+-  `Bug 78546 <https://bugs.freedesktop.org/show_bug.cgi?id=78546>`__ -
+   [swrast] piglit copyteximage-border regression
+-  `Bug 78581 <https://bugs.freedesktop.org/show_bug.cgi?id=78581>`__ -
+   OpenCL: clBuildProgram prints error messages directly rather than
+   storing them
+-  `Bug 78648 <https://bugs.freedesktop.org/show_bug.cgi?id=78648>`__ -
+   Texture artifacts in Kerbal Space Program
+-  `Bug 78665 <https://bugs.freedesktop.org/show_bug.cgi?id=78665>`__ -
+   macros in builtin_functions.cpp make invalid assumptions about M_PI
+   definitions
+-  `Bug 78679 <https://bugs.freedesktop.org/show_bug.cgi?id=78679>`__ -
+   Gen4-5 code lost: runtime_check_aads_emit
+-  `Bug 78691 <https://bugs.freedesktop.org/show_bug.cgi?id=78691>`__ -
+   [G45 - Tesseract] Mesa 10.1.2 implementation error: Unsupported
+   opcode 169872468 in FS
+-  `Bug 78692 <https://bugs.freedesktop.org/show_bug.cgi?id=78692>`__ -
+   Football Manager 2014, gameplay rendered black & white
+-  `Bug 78716 <https://bugs.freedesktop.org/show_bug.cgi?id=78716>`__ -
+   Fix Mesa bugs for running Unreal Engine 4.1 Cave effects demo
+   compiled for Linux
+-  `Bug 78803 <https://bugs.freedesktop.org/show_bug.cgi?id=78803>`__ -
+   gallivm/lp_bld_debug.cpp:42:28: fatal error: llvm/IR/Module.h: No
+   such file or directory
+-  `Bug 78842 <https://bugs.freedesktop.org/show_bug.cgi?id=78842>`__ -
+   [swrast] piglit fcc-read-after-clear copy rb regression
+-  `Bug 78843 <https://bugs.freedesktop.org/show_bug.cgi?id=78843>`__ -
+   [swrast] piglit copyteximage 1D regression
+-  `Bug 78872 <https://bugs.freedesktop.org/show_bug.cgi?id=78872>`__ -
+   [ILK Bisected]Piglit
+   spec_ARB_depth_buffer_float_fbo-depthstencil-GL_DEPTH32F_STENCIL8-blit
+   Aborted
+-  `Bug 78875 <https://bugs.freedesktop.org/show_bug.cgi?id=78875>`__ -
+   [ILK Bisected]Webglc conformance/uniforms/uniform-default-values.html
+   fails
+-  `Bug 78888 <https://bugs.freedesktop.org/show_bug.cgi?id=78888>`__ -
+   test_eu_compact.c:54:3: error: implicit declaration of function
+   ‘brw_disasm’ [-Werror=implicit-function-declaration]
+-  `Bug 79029 <https://bugs.freedesktop.org/show_bug.cgi?id=79029>`__ -
+   INTEL_DEBUG=shader_time is full of lies
+-  `Bug 79095 <https://bugs.freedesktop.org/show_bug.cgi?id=79095>`__ -
+   x86/common_x86.c:348:14: error: use of undeclared identifier
+   'bit_SSE4_1'
+-  `Bug 79115 <https://bugs.freedesktop.org/show_bug.cgi?id=79115>`__ -
+   glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER,
+   GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0) doesn't unbind
+   stencil buffer
+-  `Bug 79263 <https://bugs.freedesktop.org/show_bug.cgi?id=79263>`__ -
+   Linking error in egl_gallium.la when compiling 32 bit on multiarch
+-  `Bug 79294 <https://bugs.freedesktop.org/show_bug.cgi?id=79294>`__ -
+   Xlib-based build broken on non x86/x86-64 architectures
+-  `Bug 79373 <https://bugs.freedesktop.org/show_bug.cgi?id=79373>`__ -
+   Non-const initializers for matrix and vector constructors
+-  `Bug 79382 <https://bugs.freedesktop.org/show_bug.cgi?id=79382>`__ -
+   build error: multiple definition of \`loader_get_pci_id_for_fd'
+-  `Bug 79421 <https://bugs.freedesktop.org/show_bug.cgi?id=79421>`__ -
+   [llvmpipe] SIGSEGV src/gallium/drivers/llvmpipe/lp_rast_priv.h:218
+-  `Bug 79440 <https://bugs.freedesktop.org/show_bug.cgi?id=79440>`__ -
+   prog_hash_table.c:146: undefined reference to
+   \`_mesa_error_no_memory'
+-  `Bug 79469 <https://bugs.freedesktop.org/show_bug.cgi?id=79469>`__ -
+   Commit e3cc0d90e14e62a0a787b6c07a6df0f5c84039be breaks unigine heaven
+-  `Bug 79534 <https://bugs.freedesktop.org/show_bug.cgi?id=79534>`__ -
+   gen<7 renders garbage
+-  `Bug 79616 <https://bugs.freedesktop.org/show_bug.cgi?id=79616>`__ -
+   L4D2 crash on startup
+-  `Bug 79724 <https://bugs.freedesktop.org/show_bug.cgi?id=79724>`__ -
+   switch statement type check
+-  `Bug 79729 <https://bugs.freedesktop.org/show_bug.cgi?id=79729>`__ -
+   [i965] glClear on a multisample texture doesn't work
+-  `Bug 79809 <https://bugs.freedesktop.org/show_bug.cgi?id=79809>`__ -
+   radeonsi: mouse cursor corruption using weston on AMD Kaveri
+-  `Bug 79823 <https://bugs.freedesktop.org/show_bug.cgi?id=79823>`__ -
+   [NV30/gallium] Mozilla apps freeze on startup with nouveau-dri-10.2.1
+   libs on dual-screen
+-  `Bug 79885 <https://bugs.freedesktop.org/show_bug.cgi?id=79885>`__ -
+   commit b52a530 (gallium/egl: st_profiles are build time decision,
+   treat them as such) broke egl
+-  `Bug 79903 <https://bugs.freedesktop.org/show_bug.cgi?id=79903>`__ -
+   [HSW Bisected]Some Piglit and Ogles2conform cases fail
+-  `Bug 79907 <https://bugs.freedesktop.org/show_bug.cgi?id=79907>`__ -
+   Mesa 10.2.1 --enable-vdpau default=auto broken
+-  `Bug 79948 <https://bugs.freedesktop.org/show_bug.cgi?id=79948>`__ -
+   [i965] Incorrect pixels when using discard and uniform loads
+-  `Bug 80015 <https://bugs.freedesktop.org/show_bug.cgi?id=80015>`__ -
+   Transparency glitches in native Civilization 5 (Civ5) port
+-  `Bug 80115 <https://bugs.freedesktop.org/show_bug.cgi?id=80115>`__ -
+   MESA_META_DRAW_BUFFERS induced GL_INVALID_VALUE errors
+-  `Bug 80211 <https://bugs.freedesktop.org/show_bug.cgi?id=80211>`__ -
+   [ILK/SNB Bisected]Piglit shaders_glsl-fs-copy-propagation-texcoords-1
+   fails
+-  `Bug 80247 <https://bugs.freedesktop.org/show_bug.cgi?id=80247>`__ -
+   Khronos conformance test
+   ES3-CTS.gtf.GL3Tests.transform_feedback.transform_feedback_vertex_id
+   fails
+-  `Bug 80254 <https://bugs.freedesktop.org/show_bug.cgi?id=80254>`__ -
+   pipe_loader_sw.c:90: undefined reference to \`dri_create_sw_winsys'
+-  `Bug 80541 <https://bugs.freedesktop.org/show_bug.cgi?id=80541>`__ -
+   [softpipe] piglit levelclamp regression
+-  `Bug 80561 <https://bugs.freedesktop.org/show_bug.cgi?id=80561>`__ -
+   Incorrect implementation of some VDPAU APIs.
+-  `Bug 80614 <https://bugs.freedesktop.org/show_bug.cgi?id=80614>`__ -
+   [regression] Error in \`omxregister-bellagio': munmap_chunk():
+   invalid pointer: 0x00007f5f76626dab
+-  `Bug 80778 <https://bugs.freedesktop.org/show_bug.cgi?id=80778>`__ -
+   [bisected regression] piglit
+   spec/glsl-1.50/compiler/incorrect-in-layout-qualifier-repeated-prim.geom
+-  `Bug 80827 <https://bugs.freedesktop.org/show_bug.cgi?id=80827>`__ -
+   [radeonsi,R9 270X] Corruptions in window menus in KDE
+-  `Bug 80880 <https://bugs.freedesktop.org/show_bug.cgi?id=80880>`__ -
+   Unreal Engine 4 demos fail GLSL compiler assertion
+-  `Bug 80991 <https://bugs.freedesktop.org/show_bug.cgi?id=80991>`__ -
+   [BDW]Piglit spec_ARB_sample_shading_builtin-gl-sample-mask_2 fails
+-  `Bug 81020 <https://bugs.freedesktop.org/show_bug.cgi?id=81020>`__ -
+   [radeonsi][regresssion] Wireframe of background rendered through
+   objects in Half-Life 2: Episode 2 with MSAA enabled
+-  `Bug 81150 <https://bugs.freedesktop.org/show_bug.cgi?id=81150>`__ -
+   [SNB]Piglit
+   spec_arb_shading_language_packing_execution_built-in-functions_fs-packSnorm4x8
+   fails
+-  `Bug 81157 <https://bugs.freedesktop.org/show_bug.cgi?id=81157>`__ -
+   [BDW]Piglit some spec_glsl-1.50_execution_built-in-functions\* cases
+   fail
+-  `Bug 81450 <https://bugs.freedesktop.org/show_bug.cgi?id=81450>`__ -
+   [BDW]Piglit
+   spec_glsl-1.30_execution_tex-miplevel-selection_textureGrad_1DArray
+   cases intel_do_flush_locked failed
+-  `Bug 81828 <https://bugs.freedesktop.org/show_bug.cgi?id=81828>`__ -
+   [BDW Bisected]Ogles3conform
+   GL3Tests_packed_pixels_packed_pixels_pbo.test fails
+-  `Bug 81834 <https://bugs.freedesktop.org/show_bug.cgi?id=81834>`__ -
+   TGSI constant buffer overrun causes assertion failure
+-  `Bug 81857 <https://bugs.freedesktop.org/show_bug.cgi?id=81857>`__ -
+   [SNB+]Piglit spec_glsl-1.30_execution_switch_fs-default_last
+   sporadically fail
+-  `Bug 81967 <https://bugs.freedesktop.org/show_bug.cgi?id=81967>`__ -
+   [regression] Selections in Blender renders wrong
+-  `Bug 82139 <https://bugs.freedesktop.org/show_bug.cgi?id=82139>`__ -
+   [r600g, bisected] multiple ubo piglit regressions
+-  `Bug 82159 <https://bugs.freedesktop.org/show_bug.cgi?id=82159>`__ -
+   No rule to make target \`../../../../src/mesa/libmesa.la', needed by
+   \`collision'.
+-  `Bug 82255 <https://bugs.freedesktop.org/show_bug.cgi?id=82255>`__ -
+   [VP2] Chroma planes are vertically stretched during VDPAU playback
+-  `Bug 82268 <https://bugs.freedesktop.org/show_bug.cgi?id=82268>`__ -
+   Add support for the OpenRISC architecture (or1k)
+-  `Bug 82428 <https://bugs.freedesktop.org/show_bug.cgi?id=82428>`__ -
+   [radeonsi,R9 270X] System lockup when using mplayer/mpv with VDPAU
+-  `Bug 82472 <https://bugs.freedesktop.org/show_bug.cgi?id=82472>`__ -
+   piglit 16385-consecutive-chars regression
+-  `Bug 82483 <https://bugs.freedesktop.org/show_bug.cgi?id=82483>`__ -
+   format_srgb.h:145: undefined reference to
+   \`util_format_srgb_to_linear_8unorm_table'
+-  `Bug 82517 <https://bugs.freedesktop.org/show_bug.cgi?id=82517>`__ -
+   [RADEONSI,VDPAU] SIGSEGV in map_msg_fb_buf called from ruvd_destroy,
+   when closing a Tab with accelerated video player
+-  `Bug 82534 <https://bugs.freedesktop.org/show_bug.cgi?id=82534>`__ -
+   src\egl\main\eglapi.h : fatal error LNK1107: invalid or corrupt file:
+   cannot read at 0x2E02
+-  `Bug 82536 <https://bugs.freedesktop.org/show_bug.cgi?id=82536>`__ -
+   u_current.h:72: undefined reference to \`__imp__glapi_Dispatch'
+-  `Bug 82538 <https://bugs.freedesktop.org/show_bug.cgi?id=82538>`__ -
+   Super Maryo Chronicles fails with st/mesa assertion failure
+-  `Bug 82539 <https://bugs.freedesktop.org/show_bug.cgi?id=82539>`__ -
+   vmw_screen_dri.lo In file included from vmw_screen_dri.c:41:
+   vmwgfx_drm.h:32:17: error: drm.h: No such file or directory
+-  `Bug 82546 <https://bugs.freedesktop.org/show_bug.cgi?id=82546>`__ -
+   [regression] libOSMesa build failure
+-  `Bug 82574 <https://bugs.freedesktop.org/show_bug.cgi?id=82574>`__ -
+   GLSL: opt_vectorize goes wrong on texture lookups
+-  `Bug 82628 <https://bugs.freedesktop.org/show_bug.cgi?id=82628>`__ -
+   bisected: GALLIUM_HUD hangs radeon 7970M (PRIME)
+-  `Bug 82671 <https://bugs.freedesktop.org/show_bug.cgi?id=82671>`__ -
+   [r600g-evergreen][compute]Empty kernel execution causes crash
+-  `Bug 82709 <https://bugs.freedesktop.org/show_bug.cgi?id=82709>`__ -
+   OpenCL not working on radeon hainan
+-  `Bug 82796 <https://bugs.freedesktop.org/show_bug.cgi?id=82796>`__ -
+   [IVB/BYT-M/HSW/BDW
+   Bisected]Synmark2_v6.0_OglTerrainFlyInst/OglTerrainPanInst cannot run
+   as image validation failed
+-  `Bug 82804 <https://bugs.freedesktop.org/show_bug.cgi?id=82804>`__ -
+   unreal engine 4 rendering errors
+-  `Bug 82814 <https://bugs.freedesktop.org/show_bug.cgi?id=82814>`__ -
+   glDrawBuffers(0, NULL) segfaults in \_mesa_drawbuffers
+-  `Bug 82828 <https://bugs.freedesktop.org/show_bug.cgi?id=82828>`__ -
+   Regression: Crash in 3Dmark2001
+-  `Bug 82846 <https://bugs.freedesktop.org/show_bug.cgi?id=82846>`__ -
+   [BDW Bisected] Gpu hang when running Lightsmark v2008/Warsow
+   v1.0/Xonotic v0.7/unigine-demos
+-  `Bug 82881 <https://bugs.freedesktop.org/show_bug.cgi?id=82881>`__ -
+   test_vec4_register_coalesce regression
+-  `Bug 82882 <https://bugs.freedesktop.org/show_bug.cgi?id=82882>`__ -
+   [swrast] piglit glsl-fs-uniform-bool-1 regression
+-  `Bug 82929 <https://bugs.freedesktop.org/show_bug.cgi?id=82929>`__ -
+   [BDW Bisected]glxgears causes X hang
+-  `Bug 82932 <https://bugs.freedesktop.org/show_bug.cgi?id=82932>`__ -
+   [SNB+ Bisected]Ogles3conform
+   ES3-CTS.shaders.indexing.vector_subscript.vec3_static_loop_subscript_write_direct_read_vertex
+   fails
+-  `Bug 83046 <https://bugs.freedesktop.org/show_bug.cgi?id=83046>`__ -
+   [BDW bisected]] Warsow v1.0/Xonotic v0.7/Gputest
+   v0.5_triangle_fullscreen/synmark2_v6/GLBenchmark v2.5.0/GLBenchmark
+   v2.7.0/Ungine-demos performance reduced 30%~60%
+-  `Bug 83079 <https://bugs.freedesktop.org/show_bug.cgi?id=83079>`__ -
+   [NVC0] Dota 2 (Linux native and Wine) crash with Nouveau Drivers
+-  `Bug 83081 <https://bugs.freedesktop.org/show_bug.cgi?id=83081>`__ -
+   [BDW Bisected]Piglit spec_ARB_sample_shading_builtin-gl-sample-mask_2
+   is core dumped
+-  `Bug 83127 <https://bugs.freedesktop.org/show_bug.cgi?id=83127>`__ -
+   [ILK Bisected]Piglit glean_texCombine fails
+-  `Bug 83355 <https://bugs.freedesktop.org/show_bug.cgi?id=83355>`__ -
+   FTBFS: src/mesa/program/program_lexer.l:122:64: error: unknown type
+   name 'YYSTYPE'
+-  `Bug 83432 <https://bugs.freedesktop.org/show_bug.cgi?id=83432>`__ -
+   r600_query.c:269:r600_emit_query_end: Assertion
+   \`ctx->num_pipelinestat_queries > 0' failed [Gallium HUD]
+-  `Bug 83468 <https://bugs.freedesktop.org/show_bug.cgi?id=83468>`__ -
+   [UBO] Using bool from UBO as if-statement condition asserts
+
+Changes
+-------
+
+-  Removed support for the GL_ATI_envmap_bumpmap extension
+-  The hacky --enable-32/64-bit is no longer available in configure. To
+   build 32/64 bit mesa refer to the default method recommended by your
+   distribution
+-  The environment variable GALLIUM_MSAA that forced a multisample GLX
+   visual was removed.

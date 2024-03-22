@@ -1,0 +1,144 @@
+Mesa 19.2.2 Release Notes / 2019-10-23
+======================================
+
+Mesa 19.2.2 is a bug fix release which fixes bugs found since the 19.2.1
+release.
+
+Mesa 19.2.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.2.2 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+       7e4f0e2678bfcf3b94f533078b514f37943378a4a8604e477c888ec8a2904394  mesa-19.2.2.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  Vulkan version of "Middle-earth: Shadow of Mordor" has graphics
+   glitches on RADV driver (part 2)
+-  Vulkan version of "Middle-earth: Shadow of Mordor" has graphics
+   glitches on RADV driver
+-  [amdgpu][Navi][llvm] Minimap problem in Nier Automata
+-  Black ground in Dirt 4
+-  Superbibles examples crashing Mesa drivers (radeonsi) and causing gpu
+   reset
+-  [CTS] dEQP-VK.graphicsfuzz.write-red-in-loop-nest crashes
+-  mesa and libglvnd install the same headers
+-  Regression: Doom (2016) crashes on Mesa 19.2 and above and Radeon 380
+   with Vulkan (worked on Mesa 19.1)
+-  Rocket League displays corruption when the game starts
+
+Changes
+-------
+
+Alan Coopersmith (6):
+
+-  c99_compat.h: Don't try to use 'restrict' in C++ code
+-  util: Make Solaris implemention of p_atomic_add work with gcc
+-  util: Workaround lack of flock on Solaris
+-  util: Solaris has linux-style pthread_setname_np
+-  meson: recognize "sunos" as the system name for Solaris
+-  intel/common: include unistd.h for ioctl() prototype on Solaris
+
+Alejandro Piñeiro (1):
+
+-  v3d: take into account prim_counts_offset
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Disallow sparse shared images.
+-  nir/dead_cf: Remove dead control flow after infinite loops.
+-  radv: Fix single stage constant flush with merged shaders.
+
+Clément Guérin (1):
+
+-  radeonsi: enable zerovram for Rocket League
+
+Connor Abbott (2):
+
+-  nir/sink: Rewrite loop handling logic
+-  nir/sink: Don't sink load_ubo to outside of its defining loop
+
+Dylan Baker (1):
+
+-  docs: Add SHA256 sum for 19.2.1
+
+Eric Engestrom (7):
+
+-  GL: drop symbols mangling support
+-  meson: rename \`glvnd_missing_pc_files\` to \`not
+   glvnd_has_headers_and_pc_files\`
+-  meson: move a couple of include installs around
+-  meson: split headers one per line
+-  meson: split Mesa headers as a separate installation
+-  meson: skip installation of GLVND-provided headers
+-  util/u_atomic: fix return type of p_atomic_{inc,dec}_return() and
+   p_atomic_{cmp,}xchg()
+
+Ian Romanick (2):
+
+-  nir/search: Fix possible NULL dereference in is_fsign
+-  intel/vec4: Don't try both sources as immediates for DPH
+
+James Xiong (1):
+
+-  iris: finish aux import on get_param
+
+Kenneth Graunke (2):
+
+-  iris: Properly unreference extra VBOs for draw parameters
+-  iris: Implement the Gen < 9 tessellation quads workaround
+
+Lepton Wu (1):
+
+-  egl/android: Remove our own reference to buffers.
+
+Lionel Landwerlin (3):
+
+-  etnaviv: remove variable from global namespace
+-  anv: fix vkUpdateDescriptorSets with inline uniform blocks
+-  anv: fix memory leak on device destroy
+
+Lucas Stach (3):
+
+-  etnaviv: fix vertex buffer state emission for single stream GPUs
+-  rbug: fix transmitted texture sizes
+-  rbug: unwrap index buffer resource
+
+Pierre-Eric Pelloux-Prayer (1):
+
+-  mesa: fix invalid target error handling for teximage
+
+Roland Scheidegger (1):
+
+-  gallivm: Fix saturated signed psub/padd intrinsics on llvm 8
+
+Samuel Pitoiset (6):
+
+-  drirc: enable vk_x11_override_min_image_count for DOOM
+-  radv: bump minTexelBufferOffsetAlignment to 4
+-  radv: fix DCC fast clear code for intensity formats
+-  Revert "radv: do not emit PKT3_CONTEXT_CONTROL with AMDGPU 3.6.0+"
+-  radv: fix DCC fast clear code for intensity formats (correctly)
+-  radv: fix updating bound fast ds clear values with different aspects
+
+Timothy Arceri (1):
+
+-  glsl: fix crash compiling bindless samplers inside unnamed UBOs

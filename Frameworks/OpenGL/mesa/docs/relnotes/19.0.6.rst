@@ -1,0 +1,120 @@
+Mesa 19.0.6 Release Notes / May 21, 2019
+========================================
+
+Mesa 19.0.6 is a bug fix release which fixes bugs found since the 19.0.5
+release.
+
+Mesa 19.0.6 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   SHA256: ac8e9ea388ec5c69f5a690190edf8ede602afdbaeea62d49e108057737430ac7  mesa-19.0.6.tar.gz
+   SHA256: 2db2f2fcaa4048b16e066fad76b8a93944f7d06d329972b0f5fd5ce692ce3d24  mesa-19.0.6.tar.xz
+
+New features
+------------
+
+N/A
+
+Bug fixes
+---------
+
+-  `Bug 110721 <https://bugs.freedesktop.org/show_bug.cgi?id=110721>`__
+   - graphics corruption on steam client with mesa 19.1.0 rc3 on polaris
+-  `Bug 110761 <https://bugs.freedesktop.org/show_bug.cgi?id=110761>`__
+   - Huge problems between Mesa and Electron engine apps
+-  `Bug 110784 <https://bugs.freedesktop.org/show_bug.cgi?id=110784>`__
+   - [regression][bisected] Reverting 'expose 0 shader binary formats
+   for compat profiles for Qt' causes get_program_binary failures on
+   Iris
+
+Changes
+-------
+
+Alok Hota (2):
+
+-  gallium/swr: Param defaults for unhandled PIPE_CAPs
+-  gallium/aux: add PIPE_CAP_MAX_VARYINGS to u_screen
+
+Bas Nieuwenhuizen (1):
+
+-  nir: Actually propagate progress in nir_opt_move_load_ubo.
+
+Chenglei Ren (1):
+
+-  anv/android: fix missing dependencies issue during parallel build
+
+Christian Gmeiner (1):
+
+-  etnaviv: use the correct uniform dirty bits
+
+Dave Airlie (1):
+
+-  Revert "mesa: unreference current winsys buffers when unbinding
+   winsys buffers"
+
+Deepak Rawat (1):
+
+-  winsys/drm: Fix out of scope variable usage
+
+Dylan Baker (6):
+
+-  docs: Add Sha256 sums for 19.0.5
+-  cherry-ignore: Add a commit that was manually backported
+-  cherry-ignore: add another 19.1 only patch
+-  cherry-ignore: add another 19.1 only patch
+-  gallium: wrap u_screen in extern "C" for c++
+-  VERSION: bump to 19.0.6
+
+Emil Velikov (1):
+
+-  egl/dri: flesh out and use dri2_create_drawable()
+
+Jan Zielinski (1):
+
+-  swr/rast: fix 32-bit compilation on Linux
+
+Lionel Landwerlin (1):
+
+-  vulkan: fix build dependency issue with generated files
+
+Marek Olšák (2):
+
+-  u_blitter: don't fail mipmap generation for depth formats containing
+   stencil
+-  ac: fix a typo in ac_build_wg_scan_bottom
+
+Philipp Zabel (1):
+
+-  etnaviv: fill missing offset in etna_resource_get_handle
+
+Rob Clark (3):
+
+-  freedreno/ir3: dynamic UBO indexing vs 64b pointers
+-  freedreno/ir3: set more barrier bits
+-  freedreno/a6xx: fix GPU crash on small render targets
+
+Sagar Ghuge (1):
+
+-  intel/compiler: Fix assertions in brw_alu3
+
+Samuel Pitoiset (2):
+
+-  radv: allocate more space in the CS when emitting events
+-  radv: do not use gfx fast depth clears for layered depth/stencil
+   images
+
+Timothy Arceri (2):
+
+-  Revert "st/mesa: expose 0 shader binary formats for compat profiles
+   for Qt"
+-  st/glsl: make sure to propagate initialisers to driver storage

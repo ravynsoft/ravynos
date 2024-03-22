@@ -1,0 +1,161 @@
+Mesa 21.2.6 Release Notes / 2021-11-24
+======================================
+
+Mesa 21.2.6 is a bug fix release which fixes bugs found since the 21.2.5 release.
+
+Mesa 21.2.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.2.6 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+   1e7e22d93c6e8859fa044b1121119d26b2e67e4184b92ebb81c66497dc80c954  mesa-21.2.6.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- NIR validation failed after nir_copy_prop
+- lima: Corrupted Android-12 UI on Allwinner A64
+- RADV/ACO: Rendering glitches in Forza Horizon 5 windshields
+- dEQP-GLES31.*imulextended* compiling fp64 glsl 4.00 shader
+- Regression/Bisected: Crash in Godot games when steam overlay enabled
+- RADV: IsHelperInvocationEXT query is not considered volatile in ACO
+- Final Fantasy V (Old version): Random text characters are not displayed
+- Diagonal rendering artifacts in Tomb Raider
+- [hsw][bisected][regression] dEQP-VK.reconvergence.*nesting* failures
+
+
+Changes
+-------
+
+Connor Abbott (2):
+
+- ir3/lower_pcopy: Fix shr.b illegal copy lowering
+- ir3/lower_pcopy: Fix bug with "illegal" copies and swaps
+
+Danylo Piliaiev (1):
+
+- ir3/ra: Check register file upper bound when updating preferred_reg
+
+Dave Airlie (2):
+
+- llvmpipe: disable 64-bit integer textures.
+- llvmpipe: fix compressed image sizes.
+
+Dylan Baker (9):
+
+- docs: add sha256 sums for 21.2.5
+- .pick_status.json: Update to 8bfa146b8056d5dded6fdd2c4d8524aa0c438058
+- .pick_status.json: Update to 79f57f68930ce4fcf59bdca82357e19b4f3d62e6
+- .pick_status.json: Update to c356f3cfce9459dc1341b6a2a0fd5336a9bdcc3c
+- .pick_status.json: Mark a large number of zink patches as denominated
+- .pick_status.json: Update to 78b613db23c10dc257247d99d8b2b1ef6c96bebb
+- .pick_status.json: Update to 09bb4dbe60b1bb233c5c0102446ffbc142a29246
+- .pick_status.json: Update to e0de7aa4d7717bbd79bbc5bfc660f941f680402b
+- .pick_status.json: Update to f8009d3db25512b5dc62d0272c979fb79f8c7075
+
+Eric Engestrom (1):
+
+- meson: drop duplicate addition of surfaceless & drm to the list of platforms
+
+Greg V (1):
+
+- util: make util_get_process_exec_path work on FreeBSD w/o procfs
+
+Ian Romanick (1):
+
+- glsl/nir: Don't build soft float64 when it cannot be used
+
+Faith Ekstrand (1):
+
+- anv: Fix FlushMappedMemoryRanges for odd mmap offsets
+
+Jesse Natalie (2):
+
+- util/hash_table: Clear special 0/1 entries for u64 hash table too
+- d3d12: Fix Linux fence wait return value
+
+Kenneth Graunke (1):
+
+- iris: Fix MOCS for buffer copies
+
+Lionel Landwerlin (6):
+
+- intel/dev: fix HSW GT3 number of subslices in slice1
+- intel/dev: don't forget to set max_eu_per_subslice in generated topology
+- intel/perf: fix perf equation subslice mask generation for gfx12+
+- intel/devinfo: fix wrong offset computation
+- intel: remove 2 preproduction pci-id for ADLS
+- intel/fs: fix shader call lowering pass
+
+Liviu Prodea (1):
+
+- aco: Work around MSVC restrict in c99_compat.h
+
+Marek Olšák (4):
+
+- radeonsi: print the border color error message only once
+- radeonsi: fix 2 issues with depth_cleared_level_mask
+- radeonsi: fix a typo preventing a fast depth-stencil clear
+- driconf: disallow 10-bit pbuffers for viewperf2020/maya due to X errors
+
+Mike Blumenkrantz (10):
+
+- zink: add better handling for CUBE_COMPATIBLE bit
+- zink: always use explicit lod for texture() when legal in non-fragment stages
+- zink: be more permissive for injecting LOD into texture() instructions
+- zink: inject LOD for sampler version of OpImageQuerySize
+- zink: don't clamp cube array surfacess to cubes
+- zink: don't clamp 2D_ARRAY surfaces to 2D
+- zink: add more int/float types to cast switching in ntv
+- zink: force float dest types on some alu results
+- aux/primconvert: handle singular incomplete restarts
+- zink: clamp PIPE_SHADER_CAP_MAX_INPUTS for xfb
+
+Pierre-Eric Pelloux-Prayer (3):
+
+- radeonsi: treat nir_intrinsic_load_constant as a VMEM operation
+- ac/surface: don't validate DCC settings if DCC isn't possible
+- mesa: always call _mesa_update_pixel
+
+Rhys Perry (2):
+
+- aco/spill: use spills_entry instead of spills_exit to kill linear VGPRs
+- spirv: run nir_copy_prop before nir_rematerialize_derefs_in_use_blocks_impl
+
+Roman Stratiienko (1):
+
+- android.mk: Add missing variables to the make target
+
+Thomas H.P. Andersen (1):
+
+- svga: fix bitwise/logical and mixup
+
+Timothy Arceri (1):
+
+- mesa: fix buffer overrun in SavedObj texture obj array
+
+Timur Kristóf (1):
+
+- aco: Fix how p_is_helper interacts with optimizations.
+
+Vadym Shovkoplias (1):
+
+- intel/fs: Fix a cmod prop bug when cmod is set to inst that doesn't support it

@@ -1,0 +1,73 @@
+.headerlink {
+  color: transparent;
+  display: inline-block;
+  vertical-align: middle;
+  background-image: url('link.svg');
+  background-size: 1ex 1ex;
+  margin-left: 0.25rem;
+  opacity: 0.25;
+  width: 1ex;
+  height: 1ex;
+  user-select: none;
+}
+
+.headerlink:hover {
+  opacity: 0.5;
+}
+
+.highlight {
+  border-radius: var(--bs-border-radius-sm);
+  padding: .5rem;
+  color: var(--bs-dark);
+  margin-bottom: 1rem;
+}
+
+.highlight > pre {
+  margin-bottom: 0;
+}
+
+dd {
+  margin-left: 2rem;
+}
+
+.sig {
+  font-family: var(--bs-font-monospace);
+  color: var(--bs-code-color);
+}
+
+dt.sig {
+  color: var(--bs-heading-color, inherit);
+}
+
+dl > .sig.c {
+  background-color: var(--bs-secondary-bg);
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--bs-border-radius-sm);
+}
+
+dl > .sig.c .sig-name {
+  color: var(--bs-secondary-text);
+}
+
+main .container {
+  padding: 0;
+}
+
+li > p:last-of-type,
+th > p:last-of-type,
+td > p:last-of-type,
+.alert > p:last-of-type {
+  margin-bottom: 0;
+}
+
+div.code-block-caption {
+  font-size: .875em;
+  color: var(--bs-secondary-color);
+  margin-bottom: 0.5rem;
+}
+
+.alert a {
+  font-weight: 700;
+  color: var(--bs-alert-link-color);
+}

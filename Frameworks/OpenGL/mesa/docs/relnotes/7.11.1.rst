@@ -1,0 +1,395 @@
+Mesa 7.11.1 Release Notes / November 17, 2011
+=============================================
+
+Mesa 7.11.1 is a bug fix release which fixes bugs found since the 7.11
+release.
+
+Mesa 7.11 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   ac0181a4076770fb657c1169af43aa09  MesaLib-7.11.1.tar.gz
+   a77307102cee844ff6544ffa8fafeac1  MesaLib-7.11.1.tar.bz2
+   dfcb11516c1730f3981b55a65a835623  MesaLib-7.11.1.zip
+   2cb2b9ecb4fb7d1a6be69346ee886952  MesaGLUT-7.11.1.tar.gz
+   3f54e314290d4dacbab089839197080b  MesaGLUT-7.11.1.tar.bz2
+   5d66c7ee8c5cc2f27e1ffb037ad4172c  MesaGLUT-7.11.1.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 3165 <https://bugs.freedesktop.org/show_bug.cgi?id=3165>`__ -
+   texImage.IsCompressed and texImage.CompressedSize issues
+-  `Bug 23525 <https://bugs.freedesktop.org/show_bug.cgi?id=23525>`__ -
+   Software rendering on QEMU guests badly broken
+-  `Bug 28125 <https://bugs.freedesktop.org/show_bug.cgi?id=28125>`__ -
+   DRI2 prevents indirect glx
+-  `Bug 34628 <https://bugs.freedesktop.org/show_bug.cgi?id=34628>`__ -
+   [ilk] skybox errors in quake4
+-  `Bug 36371 <https://bugs.freedesktop.org/show_bug.cgi?id=36371>`__ -
+   r200: piglit readPixSanity failure
+-  `Bug 36669 <https://bugs.freedesktop.org/show_bug.cgi?id=36669>`__ -
+   EmitNoMainReturn set to 1 doesn't make the GLSL compiler lower all
+   the RET opcodes
+-  `Bug 36939 <https://bugs.freedesktop.org/show_bug.cgi?id=36939>`__ -
+   multitexturing is messed up in quake wars (regression)
+-  `Bug 37907 <https://bugs.freedesktop.org/show_bug.cgi?id=37907>`__ -
+   [swrast] SIGSEGV swrast/s_depth.c:569
+-  `Bug 38163 <https://bugs.freedesktop.org/show_bug.cgi?id=38163>`__ -
+   Gnome Shell Display Bug
+-  `Bug 38625 <https://bugs.freedesktop.org/show_bug.cgi?id=38625>`__ -
+   ast_to_hir.cpp:1761: const glsl_type\* process_array_type(YYLTYPE*,
+   const glsl_type*, ast_node*, \_mesa_glsl_parse_state*): Assertion
+   \`dummy_instructions.is_empty()' failed.
+-  `Bug 38729 <https://bugs.freedesktop.org/show_bug.cgi?id=38729>`__ -
+   [softpipe] sp_quad_depth_test.c:215:convert_quad_stencil: Assertion
+   \`0' failed.
+-  `Bug 38863 <https://bugs.freedesktop.org/show_bug.cgi?id=38863>`__ -
+   [IVB]GPU hang when running 3D games like openarena
+-  `Bug 39193 <https://bugs.freedesktop.org/show_bug.cgi?id=39193>`__ -
+   [llvmpipe and r600g] glCheckFramebufferStatusEXT segfaults in Gallium
+   when checking status on a framebuffer bound to a texture that's bound
+   to a pixmap
+-  `Bug 39651 <https://bugs.freedesktop.org/show_bug.cgi?id=39651>`__ -
+   [glsl] Assertion failure when implicitly converting out parameters
+-  `Bug 39991 <https://bugs.freedesktop.org/show_bug.cgi?id=39991>`__ -
+   [regression]GL_PALETTE8_RGBA8_OES format of glCompressedTexImage2D
+   will cause err GL_INVALID_ENUM with GLES1.x
+-  `Bug 40022 <https://bugs.freedesktop.org/show_bug.cgi?id=40022>`__ -
+   [i915] out-of-bounds write
+   src/mesa/drivers/dri/i915/i915_fragprog.c:321
+-  `Bug 40062 <https://bugs.freedesktop.org/show_bug.cgi?id=40062>`__ -
+   in etqw the strogg radar is black (regression)
+-  `Bug 40324 <https://bugs.freedesktop.org/show_bug.cgi?id=40324>`__ -
+   [SNB] gpu hang in mesa 7.11
+-  `Bug 40533 <https://bugs.freedesktop.org/show_bug.cgi?id=40533>`__ -
+   i915: piglit glean/readPixSanity: DRI2SwapBuffers: BadDrawable
+   (invalid Pixmap or Window parameter)
+-  `Bug 41096 <https://bugs.freedesktop.org/show_bug.cgi?id=41096>`__ -
+   [sandybridge-m-gt2+] GPU lockup render.IPEHR: 0x7a000002
+-  `Bug 41969 <https://bugs.freedesktop.org/show_bug.cgi?id=41969>`__ -
+   The Mesa meta save/restore code doesn't always save the active
+   program
+-  `Bug 42175 <https://bugs.freedesktop.org/show_bug.cgi?id=42175>`__ -
+   RV730: Display errors in glxgears & WebGL
+-  `Bug 42268 <https://bugs.freedesktop.org/show_bug.cgi?id=42268>`__ -
+   [bisected] oglc pbo(negative.invalidOffsetValue) aborts on 7.11
+   branch
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-7.11..mesa-7.11.1
+
+Adam Jackson (2):
+
+-  drisw: Remove cargo culting that breaks GLX 1.3 ctors
+-  glx: Don't enable INTEL_swap_event unconditionally
+
+Alex Deucher (1):
+
+-  r600g: fix up vs export handling
+
+Ben Widawsky (1):
+
+-  intel: GetBuffer fix
+
+Brian Paul (15):
+
+-  docs: add 7.11 md5 sums
+-  docs: news item for 7.11 release
+-  st/mesa: Convert size assertions to conditionals in
+   st_texture_image_copy.
+-  softpipe: add missing stencil format case in convert_quad_stencil()
+-  mesa: fix texstore addressing bugs for depth/stencil formats
+-  mesa: add missing breaks for GL_TEXTURE_CUBE_MAP_SEAMLESS queries
+-  swrast: don't try to do depth testing if there's no depth buffer
+-  meta: fix/add checks for GL_EXT_framebuffer_sRGB
+-  mesa: fix PACK_COLOR_5551(), PACK_COLOR_1555() macros
+-  meta: fix broken sRGB mipmap generation
+-  mesa: add \_NEW_CURRENT_ATTRIB in \_mesa_program_state_flags()
+-  mesa: fix error handling for dlist image unpacking
+-  mesa: generate GL_INVALID_OPERATION in glIsEnabledIndex() between
+   Begin/End
+-  mesa: fix incorrect error code in \_mesa_FramebufferTexture1D/3DEXT()
+-  mesa: fix format/type check in unpack_image() for bitmaps
+
+Carl Simonson (1):
+
+-  i830: Add missing vtable entry for i830 from the hiz work.
+
+Carl Worth (5):
+
+-  glcpp: Fix two (or more) successive applications of token pasting
+-  glcpp: Test a non-function-like macro using the token paste operator
+-  glcpp: Implement token pasting for non-function-like macros
+-  glcpp: Raise error if defining any macro containing two consecutive
+   underscores
+-  glcpp: Add a test for #elif with an undefined macro.
+
+Chad Versace (5):
+
+-  glsl: Add method glsl_type::can_implicitly_convert_to()
+-  glsl: Fix implicit conversions in non-constructor function calls
+-  glsl: Remove ir_function.cpp:type_compare()
+-  glsl: Fix conversions in array constructors
+-  x86-64: Fix compile error with clang
+
+Chia-I Wu (3):
+
+-  glsl: empty declarations should be valid
+-  intel: rename intel_extensions_es2.c to intel_extensions_es.c
+-  intel: fix GLESv1 support
+
+Chris Wilson (1):
+
+-  i915: out-of-bounds write in calc_live_regs()
+
+Christopher James Halse Rogers (1):
+
+-  glx/dri2: Paper over errors in DRI2Connect when indirect
+
+David Reveman (1):
+
+-  i915g: Fix off-by-one in scissors.
+
+Eric Anholt (16):
+
+-  mesa: Don't skip glGetProgramEnvParam4dvARB if there was already an
+   error.
+-  mesa: Fix glGetUniform() type conversions.
+-  mesa: Add support for Begin/EndConditionalRender in display lists.
+-  mesa: Throw an error instead of asserting for condrender with query
+   == 0.
+-  mesa: Throw an error when starting conditional render on an active
+   query.
+-  mesa: Don't skip glGetProgramLocalParam4dvARB if there was already an
+   error.
+-  glsl: Allow ir_assignment() constructor to not specify condition.
+-  glsl: Clarify error message about whole-array assignment in GLSL
+   1.10.
+-  glsl: When assigning to a whole array, mark the array as accessed.
+-  glsl: When assiging from a whole array, mark it as used.
+-  i965/fs: Respect ARB_color_buffer_float clamping.
+-  i965: Add missing \_NEW_POLYGON flag to polygon stipple upload.
+-  i965: Fix polygon stipple offset state flagging.
+-  intel: Mark MESA_FORMAT_X8_Z24 as always supported.
+-  mesa: Don't error on glFeedbackBuffer(size = 0, buffer = NULL)
+-  glsl: Fix gl_NormalMatrix swizzle setup to match i965's invariants.
+
+Henri Verbeet (6):
+
+-  mesa: Also set the remaining draw buffers to GL_NONE when updating
+   just the first buffer in \_mesa_drawbuffers().
+-  r600g: Support the PIPE_FORMAT_R16_FLOAT colorformat.
+-  mesa: Check the texture against all units in
+   unbind_texobj_from_texunits().
+-  mesa: Allow sampling from units >= MAX_TEXTURE_UNITS in shaders.
+-  mesa: Use the Elements macro for the sampler index assert in
+   validate_samplers().
+-  mesa: Fix a couple of TexEnv unit limits.
+
+Ian Romanick (17):
+
+-  mesa: Add utility function to get base format from a GL compressed
+   format
+-  mesa: Return the correct internal fmt when a generic compressed fmt
+   was used
+-  mesa: Make \_mesa_get_compressed_formats match the texture
+   compression specs
+-  linker: Make linker_error set LinkStatus to false
+-  linker: Make linker_{error,warning} generally available
+-  mesa: Ensure that gl_shader_program::InfoLog is never NULL
+-  ir_to_mesa: Use Add linker_error instead of fail_link
+-  ir_to_mesa: Emit warnings instead of errors for IR that can't be
+   lowered
+-  i915: Fail without crashing if a Mesa IR program uses too many
+   registers
+-  i915: Only emit program errors when INTEL_DEBUG=wm or
+   INTEL_DEBUG=fallbacks
+-  mesa: Add GL_OES_compressed_paletted_texture formats to
+   \_mesa_is_compressed_format
+-  mesa: Add GL_OES_compressed_paletted_texture formats to
+   \_mesa_base_tex_format
+-  mesa: Refactor expected texture size check in cpal_get_info
+-  mesa: Add \_mesa_cpal_compressed_format_type
+-  mesa: Refactor compressed texture error checks to work with paletted
+   textures
+-  mesa: Remove redundant compressed paletted texture error checks
+-  mesa: Advertise GL_OES_compressed_paletted_texture in OpenGL ES1.x
+
+Jeremy Huddleston (3):
+
+-  apple: Silence some debug spew
+-  apple: Use the correct (OpenGL.framework) glViewport and glScissor
+   during init
+-  apple: Implement applegl_unbind_context
+
+José Fonseca (1):
+
+-  docs: Update llvmpipe docs.
+
+Kenneth Graunke (12):
+
+-  glsl: Avoid massive ralloc_strndup overhead in S-Expression parsing.
+-  mesa: In validate_program(), initialize errMsg for safety.
+-  i965/gen5+: Fix incorrect miptree layout for non-power-of-two
+   cubemaps.
+-  i965: Use proper texture alignment units for cubemaps on Gen5+.
+-  i965: Fix incorrect maximum PS thread count shift on Ivybridge.
+-  i965: Emit depth stalls and flushes before changing depth state on
+   Gen6+.
+-  i965/fs: Allow SIMD16 with control flow on Ivybridge.
+-  i965: Allow SIMD16 color writes on Ivybridge.
+-  i965: Fix inconsistent indentation in brw_eu_emit.c.
+-  intel: Depth format fixes
+-  i965: Apply post-sync non-zero workaround to homebrew workaround.
+-  mesa/get: Move MAX_LIGHTS from GL/ES2 to GL/ES1.
+
+Kristian Høgsberg (1):
+
+-  glx: Don't flush twice if we fallback to dri2CopySubBuffer
+
+Marc Pignat (1):
+
+-  drisw: Fix 24bpp software rendering, take 2
+
+Marcin Baczyński (2):
+
+-  configure: fix gcc version check
+-  configure: allow C{,XX}FLAGS override
+
+Marcin Slusarz (3):
+
+-  nouveau: fix nouveau_fence leak
+-  nouveau: fix crash during fence emission
+-  nouveau: fix fence hang
+
+Marek Olšák (19):
+
+-  vbo: do not call \_mesa_max_buffer_index in debug builds
+-  winsys/radeon: fix space checking
+-  r300/compiler: fix a warning that a variable may be uninitialized
+-  r300/compiler: remove an unused-but-set variable and simplify the
+   code
+-  u_vbuf_mgr: cleanup original vs real vertex buffer arrays
+-  u_vbuf_mgr: don't take per-instance attribs into acc. when computing
+   max index
+-  u_vbuf_mgr: fix max_index computation for large src_offset
+-  u_vbuf_mgr: s/u_vbuf_mgr\_/u_vbuf\_
+-  u_vbuf_mgr: remove unused flag U_VBUF_UPLOAD_FLUSHED
+-  u_vbuf_mgr: rework user buffer uploads
+-  u_vbuf_mgr: fix uploading with a non-zero index bias
+-  configure.ac: fix xlib-based softpipe build
+-  r600g: add index_bias to index buffer bounds
+-  r300g: fix rendering with a non-zero index bias in
+   draw_elements_immediate
+-  Revert "r300g: fix rendering with a non-zero index bias in
+   draw_elements_immediate"
+-  pb_bufmgr_cache: flush cache when create_buffer fails and try again
+-  r300g: don't return NULL in resource_from_handle if the resource is
+   too small
+-  r600g: set correct tiling flags in depth info
+-  r300g: don't call u_trim_pipe_prim in r300_swtcl_draw_vbo
+
+Michel Dänzer (4):
+
+-  st/mesa: Finalize texture on render-to-texture.
+-  glx/dri2: Don't call X server for SwapBuffers when there's no back
+   buffer.
+-  gallium/util: Add macros for converting from little endian to CPU
+   byte order.
+-  r300g: Fix queries on big endian hosts.
+
+Neil Roberts (1):
+
+-  meta: Fix saving the active program
+
+Paul Berry (18):
+
+-  glsl: Lower unconditional return statements.
+-  glsl: Refactor logic for determining whether to lower return
+   statements.
+-  glsl: lower unconditional returns and continues in loops.
+-  glsl: Use foreach_list in lower_jumps.cpp
+-  glsl: In lower_jumps.cpp, lower both branches of a conditional.
+-  glsl: Lower break instructions when necessary at the end of a loop.
+-  glsl: improve the accuracy of the radians() builtin function
+-  glsl: improve the accuracy of the atan(x,y) builtin function.
+-  Revert "glsl: Skip processing the first function's body in
+   do_dead_functions()."
+-  glsl: Emit function signatures at toplevel, even for built-ins.
+-  glsl: Constant-fold built-in functions before outputting IR
+-  glsl: Check array size is const before asserting that no IR was
+   generated.
+-  glsl: Perform implicit type conversions on function call out
+   parameters.
+-  glsl: Fix type error when lowering integer divisions
+-  glsl: Rework oversize array check for gl_TexCoord.
+-  glsl: Remove field array_lvalue from ir_variable.
+-  glsl hierarchical visitor: Do not overwrite base_ir for parameter
+   lists.
+-  glsl: improve the accuracy of the asin() builtin function.
+
+Tobias Droste (1):
+
+-  r300/compiler: simplify code in peephole_add_presub_add
+
+Tom Fogal (1):
+
+-  Only use gcc visibility support with gcc4+.
+
+Tom Stellard (1):
+
+-  r300/compiler: Fix regalloc for values with multiple writers
+
+Vadim Girlin (5):
+
+-  st/mesa: flush bitmap cache on query and conditional render
+   boundaries
+-  r600g: use backend mask for occlusion queries
+-  r600g: take into account force_add_cf in pops
+-  r600g: fix check_and_set_bank_swizzle
+-  r600g: fix replace_gpr_with_pv_ps
+
+Yuanhan Liu (17):
+
+-  i965: fix the constant interp bitmask for flat mode
+-  mesa: fix error handling for glEvalMesh1/2D
+-  mesa: fix error handling for some glGet\* functions
+-  mesa: fix error handling for glTexEnv
+-  mesa: fix error handling for glIsEnabled
+-  mesa: fix error handling for glPixelZoom
+-  mesa: fix error handling for glSelectBuffer
+-  mesa: fix error handling for glMapBufferRange
+-  mesa: fix error handling for glMaterial\*
+-  intel: fix the wrong code to detect null texture.
+-  mesa: add a function to do the image data copy stuff for
+   save_CompressedTex(Sub)Image
+-  i965: setup address rounding enable bits
+-  mesa: generate error if pbo offset is not aligned with the size of
+   specified type
+-  mesa: fix inverted pbo test error at \_mesa_GetnCompressedTexImageARB
+-  mesa: handle the pbo case for save_Bitmap
+-  mesa: handle PBO access error in display list mode
+-  intel: don't call unmap pbo if pbo is not mapped

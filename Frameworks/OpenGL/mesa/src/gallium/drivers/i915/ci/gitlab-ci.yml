@@ -1,0 +1,28 @@
+# Manual test rules for using anholt's shared g33.
+.anholt-g33-test:
+  extends:
+    - .i915g-manual-rules
+    - .test-gl
+  tags:
+    - anholt-g33
+  variables:
+    GPU_VERSION: i915-g33
+    FLAKES_CHANNEL: "#intel-ci"
+
+# System is dead at the moment. needs maintenance.
+.i915-g33:
+  extends:
+    - .anholt-g33-test
+    - .deqp-test
+  variables:
+    DEQP_SUITE: i915g
+    PIGLIT_PLATFORM: gbm
+
+.i915-g33-traces:
+  extends:
+    - .anholt-g33-test
+    - .piglit-traces-test
+  variables:
+    EGL_PLATFORM: "surfaceless"
+    PIGLIT_TRACES_FILE: traces-i915.yml
+    PIGLIT_REPLAY_DEVICE_NAME: "i915-g33"

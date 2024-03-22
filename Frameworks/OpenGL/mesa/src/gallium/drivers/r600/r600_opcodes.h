@@ -1,0 +1,510 @@
+
+#ifndef R600_OPCODES_H
+#define R600_OPCODES_H
+
+#define R600_S_SQ_CF_WORD1_CF_INST(x)                              (((unsigned)(x) & 0x7F) << 23)
+#define R600_G_SQ_CF_WORD1_CF_INST(x)                              (((x) >> 23) & 0x7F)
+#define R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(x)                 (((unsigned)(x) & 0x7F) << 23)
+#define R600_G_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(x)                 (((x) >> 23) & 0x7F)
+#define R600_S_SQ_CF_ALU_WORD1_CF_INST(x)                          (((unsigned)(x) & 0xF) << 26)
+#define R600_G_SQ_CF_ALU_WORD1_CF_INST(x)                          (((x) >> 26) & 0xF)
+
+#define EG_S_SQ_CF_WORD1_CF_INST(x)                                (((unsigned)(x) & 0xFF) << 22)
+#define EG_G_SQ_CF_WORD1_CF_INST(x)                                (((x) >> 22) & 0xFF)
+#define EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(x)                   (((unsigned)(x) & 0xFF) << 22)
+#define EG_G_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(x)                   (((x) >> 22) & 0xFF)
+#define EG_S_SQ_CF_ALU_WORD1_CF_INST(x)                            (((unsigned)(x) & 0xF) << 26)
+#define EG_G_SQ_CF_ALU_WORD1_CF_INST(x)                            (((x) >> 26) & 0xF)
+
+#define     V_SQ_CF_WORD1_SQ_CF_INST_NOP                             R600_S_SQ_CF_WORD1_CF_INST(0x00000000)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_TEX                             R600_S_SQ_CF_WORD1_CF_INST(0x00000001)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_VTX                             R600_S_SQ_CF_WORD1_CF_INST(0x00000002)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_VTX_TC                          R600_S_SQ_CF_WORD1_CF_INST(0x00000003)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_LOOP_START                      R600_S_SQ_CF_WORD1_CF_INST(0x00000004)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_LOOP_END                        R600_S_SQ_CF_WORD1_CF_INST(0x00000005)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_LOOP_START_DX10                 R600_S_SQ_CF_WORD1_CF_INST(0x00000006)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_LOOP_START_NO_AL                R600_S_SQ_CF_WORD1_CF_INST(0x00000007)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_LOOP_CONTINUE                   R600_S_SQ_CF_WORD1_CF_INST(0x00000008)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_LOOP_BREAK                      R600_S_SQ_CF_WORD1_CF_INST(0x00000009)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_JUMP                            R600_S_SQ_CF_WORD1_CF_INST(0x0000000A)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_PUSH                            R600_S_SQ_CF_WORD1_CF_INST(0x0000000B)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_PUSH_ELSE                       R600_S_SQ_CF_WORD1_CF_INST(0x0000000C)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_ELSE                            R600_S_SQ_CF_WORD1_CF_INST(0x0000000D)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_POP                             R600_S_SQ_CF_WORD1_CF_INST(0x0000000E)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_POP_JUMP                        R600_S_SQ_CF_WORD1_CF_INST(0x0000000F)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_POP_PUSH                        R600_S_SQ_CF_WORD1_CF_INST(0x00000010)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_POP_PUSH_ELSE                   R600_S_SQ_CF_WORD1_CF_INST(0x00000011)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_CALL                            R600_S_SQ_CF_WORD1_CF_INST(0x00000012)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_CALL_FS                         R600_S_SQ_CF_WORD1_CF_INST(0x00000013)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_RETURN                          R600_S_SQ_CF_WORD1_CF_INST(0x00000014)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_EMIT_VERTEX                     R600_S_SQ_CF_WORD1_CF_INST(0x00000015)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_EMIT_CUT_VERTEX                 R600_S_SQ_CF_WORD1_CF_INST(0x00000016)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_CUT_VERTEX                      R600_S_SQ_CF_WORD1_CF_INST(0x00000017)
+#define     V_SQ_CF_WORD1_SQ_CF_INST_KILL                            R600_S_SQ_CF_WORD1_CF_INST(0x00000018)
+
+#define     V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU                         R600_S_SQ_CF_ALU_WORD1_CF_INST(0x00000008)
+#define     V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_PUSH_BEFORE             R600_S_SQ_CF_ALU_WORD1_CF_INST(0x00000009)
+#define     V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_POP_AFTER               R600_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000A)
+#define     V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_POP2_AFTER              R600_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000B)
+#define     V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_CONTINUE                R600_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000D)
+#define     V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_BREAK                   R600_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000E)
+#define     V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_ELSE_AFTER              R600_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000F)
+
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADD                       0x00000000
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL                       0x00000001
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_IEEE                  0x00000002
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX                       0x00000003
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN                       0x00000004
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX_DX10                  0x00000005
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN_DX10                  0x00000006
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FREXP_64                  0x00000007
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETE                      0x00000008
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT                     0x00000009
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE                     0x0000000A
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETNE                     0x0000000B
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETE_DX10                 0x0000000C
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT_DX10                0x0000000D
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE_DX10                0x0000000E
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETNE_DX10                0x0000000F
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FRACT                     0x00000010
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_TRUNC                     0x00000011
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_CEIL                      0x00000012
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RNDNE                     0x00000013
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLOOR                     0x00000014
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MOVA                      0x00000015
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MOVA_FLOOR                0x00000016
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADD_64                    0x00000017
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MOVA_INT                  0x00000018
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MOV                       0x00000019
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_NOP                       0x0000001A
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_64                    0x0000001B
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT64_TO_FLT32            0x0000001C
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT32_TO_FLT64            0x0000001D
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_UINT           0x0000001E
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_UINT           0x0000001F
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE                 0x00000020
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT                0x00000021
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE                0x00000022
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE                0x00000023
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_INV              0x00000024
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_POP              0x00000025
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_CLR              0x00000026
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_RESTORE          0x00000027
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_PUSH            0x00000028
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_PUSH           0x00000029
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_PUSH           0x0000002A
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE_PUSH           0x0000002B
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLE                     0x0000002C
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGT                    0x0000002D
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGE                    0x0000002E
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLNE                    0x0000002F
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_AND_INT                   0x00000030
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_OR_INT                    0x00000031
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_XOR_INT                   0x00000032
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_NOT_INT                   0x00000033
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADD_INT                   0x00000034
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SUB_INT                   0x00000035
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX_INT                   0x00000036
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN_INT                   0x00000037
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX_UINT                  0x00000038
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN_UINT                  0x00000039
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETE_INT                  0x0000003A
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT_INT                 0x0000003B
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE_INT                 0x0000003C
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETNE_INT                 0x0000003D
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT_UINT                0x0000003E
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE_UINT                0x0000003F
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGT_UINT               0x00000040
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGE_UINT               0x00000041
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_INT             0x00000042
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_INT            0x00000043
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_INT            0x00000044
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE_INT            0x00000045
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLE_INT                 0x00000046
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGT_INT                0x00000047
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGE_INT                0x00000048
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLNE_INT                0x00000049
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_PUSH_INT        0x0000004A
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_PUSH_INT       0x0000004B
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_PUSH_INT       0x0000004C
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE_PUSH_INT       0x0000004D
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETLT_PUSH_INT       0x0000004E
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETLE_PUSH_INT       0x0000004F
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_DOT4                      0x00000050
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_DOT4_IEEE                 0x00000051
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_CUBE                      0x00000052
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX4                      0x00000053
+
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MOVA_GPR_INT              0x00000060
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_EXP_IEEE                  0x00000061
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LOG_CLAMPED               0x00000062
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LOG_IEEE                  0x00000063
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_CLAMPED             0x00000064
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_FF                  0x00000065
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_IEEE                0x00000066
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_CLAMPED         0x00000067
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_FF              0x00000068
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_IEEE            0x00000069
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SQRT_IEEE                 0x0000006A
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_INT                0x0000006B
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INT_TO_FLT                0x0000006C
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_UINT_TO_FLT               0x0000006D
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SIN                       0x0000006E
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_COS                       0x0000006F
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ASHR_INT                  0x00000070
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LSHR_INT                  0x00000071
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LSHL_INT                  0x00000072
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULLO_INT                 0x00000073
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULHI_INT                 0x00000074
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULLO_UINT                0x00000075
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULHI_UINT                0x00000076
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_INT                 0x00000077
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_UINT                0x00000078
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_UINT               0x00000079
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LDEXP_64                  0x0000007A
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FRACT_64                  0x0000007B
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_64             0x0000007C
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_64              0x0000007D
+#define     V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_64             0x0000007E
+
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_64                 0x00000008
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_64_M2              0x00000009
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_64_M4              0x0000000A
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_64_D2              0x0000000B
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MUL_LIT                   0x0000000C
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MUL_LIT_M2                0x0000000D
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MUL_LIT_M4                0x0000000E
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MUL_LIT_D2                0x0000000F
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD                    0x00000010
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_M2                 0x00000011
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_M4                 0x00000012
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_D2                 0x00000013
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_IEEE               0x00000014
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_IEEE_M2            0x00000015
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_IEEE_M4            0x00000016
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_IEEE_D2            0x00000017
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDE                      0x00000018
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGT                     0x00000019
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGE                     0x0000001A
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDE_INT                  0x0000001C
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGT_INT                 0x0000001D
+#define     V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGE_INT                 0x0000001E
+
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM0        R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000020)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM1        R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000021)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM2        R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000022)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM3        R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000023)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_SCRATCH        R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000024)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_REDUCTION      R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000025)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RING           R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000026)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_EXPORT             R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000027)
+#define     V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_EXPORT_DONE        R600_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000028)
+
+/* cayman doesn't have VTX */
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_NOP                             EG_S_SQ_CF_WORD1_CF_INST(0x00000000)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_TEX                             EG_S_SQ_CF_WORD1_CF_INST(0x00000001)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_TC                              EG_S_SQ_CF_WORD1_CF_INST(0x00000001)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_VTX                             EG_S_SQ_CF_WORD1_CF_INST(0x00000002)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_RSVD_2                          EG_S_SQ_CF_WORD1_CF_INST(0x00000002)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_GDS                             EG_S_SQ_CF_WORD1_CF_INST(0x00000003)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_LOOP_START                      EG_S_SQ_CF_WORD1_CF_INST(0x00000004)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_LOOP_END                        EG_S_SQ_CF_WORD1_CF_INST(0x00000005)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_LOOP_START_DX10                 EG_S_SQ_CF_WORD1_CF_INST(0x00000006)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_LOOP_START_NO_AL                EG_S_SQ_CF_WORD1_CF_INST(0x00000007)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_LOOP_CONTINUE                   EG_S_SQ_CF_WORD1_CF_INST(0x00000008)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_LOOP_BREAK                      EG_S_SQ_CF_WORD1_CF_INST(0x00000009)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_JUMP                            EG_S_SQ_CF_WORD1_CF_INST(0x0000000A)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_PUSH                            EG_S_SQ_CF_WORD1_CF_INST(0x0000000B)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_RSVD_12                         EG_S_SQ_CF_WORD1_CF_INST(0x0000000C) /* resvd */
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_ELSE                            EG_S_SQ_CF_WORD1_CF_INST(0x0000000D)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_POP                             EG_S_SQ_CF_WORD1_CF_INST(0x0000000E)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_RSVD_15                         EG_S_SQ_CF_WORD1_CF_INST(0x0000000F)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_RSVD_16                         EG_S_SQ_CF_WORD1_CF_INST(0x00000010)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_RSVD_17                         EG_S_SQ_CF_WORD1_CF_INST(0x00000011)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_CALL                            EG_S_SQ_CF_WORD1_CF_INST(0x00000012)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_CALL_FS                         EG_S_SQ_CF_WORD1_CF_INST(0x00000013)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_RETURN                          EG_S_SQ_CF_WORD1_CF_INST(0x00000014)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_EMIT_VERTEX                     EG_S_SQ_CF_WORD1_CF_INST(0x00000015)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_EMIT_CUT_VERTEX                 EG_S_SQ_CF_WORD1_CF_INST(0x00000016)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_CUT_VERTEX                      EG_S_SQ_CF_WORD1_CF_INST(0x00000017)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_KILL                            EG_S_SQ_CF_WORD1_CF_INST(0x00000018)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_RSVD_25                         EG_S_SQ_CF_WORD1_CF_INST(0x00000019)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_WAIT_ACK                        EG_S_SQ_CF_WORD1_CF_INST(0x0000001a)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_TC_ACK                          EG_S_SQ_CF_WORD1_CF_INST(0x0000001b)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_VC_ACK                          EG_S_SQ_CF_WORD1_CF_INST(0x0000001c)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_RSVD_28                         EG_S_SQ_CF_WORD1_CF_INST(0x0000001c)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_JUMPTABLE                       EG_S_SQ_CF_WORD1_CF_INST(0x0000001d)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_GLOBAL_WAVE_SYNC                EG_S_SQ_CF_WORD1_CF_INST(0x0000001e)
+#define     EG_V_SQ_CF_WORD1_SQ_CF_INST_HALT                            EG_S_SQ_CF_WORD1_CF_INST(0x0000001f)
+
+/* cayman extras */
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_END                             EG_S_SQ_CF_WORD1_CF_INST(0x00000020)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_LDS_DEALLOC                     EG_S_SQ_CF_WORD1_CF_INST(0x00000021)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_PUSH_WQM                        EG_S_SQ_CF_WORD1_CF_INST(0x00000022)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_POP_WQM                         EG_S_SQ_CF_WORD1_CF_INST(0x00000023)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_ELSE_WQM                        EG_S_SQ_CF_WORD1_CF_INST(0x00000024)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_JUMP_ANY                        EG_S_SQ_CF_WORD1_CF_INST(0x00000025)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_REACTIVATE                      EG_S_SQ_CF_WORD1_CF_INST(0x00000026)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_REACTIVATE_WQM                  EG_S_SQ_CF_WORD1_CF_INST(0x00000027)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_INTERRUPT                       EG_S_SQ_CF_WORD1_CF_INST(0x00000028)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_INTERRUPT_AND_SLEEP             EG_S_SQ_CF_WORD1_CF_INST(0x00000029)
+#define     CM_V_SQ_CF_WORD1_SQ_CF_INST_SET_PRIORITY                    EG_S_SQ_CF_WORD1_CF_INST(0x00000030)
+
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU                         EG_S_SQ_CF_ALU_WORD1_CF_INST(0x00000008)
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_PUSH_BEFORE             EG_S_SQ_CF_ALU_WORD1_CF_INST(0x00000009)
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_POP_AFTER               EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000A)
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_POP2_AFTER              EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000B)
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_EXTENDED                    EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000C)
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_CONTINUE                EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000D) /* different on CAYMAN */
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_BREAK                   EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000E) /* different on CAYMAN */
+#define     EG_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_ELSE_AFTER              EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000F)
+
+#define     CM_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_REACTIVATE_BEFORE       EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000D)
+#define     CM_V_SQ_CF_ALU_WORD1_SQ_CF_INST_ALU_VALID_PIXEL_MODE        EG_S_SQ_CF_ALU_WORD1_CF_INST(0x0000000E)
+
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADD                       0x00000000
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL                       0x00000001
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_IEEE                  0x00000002
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX                       0x00000003
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN                       0x00000004
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX_DX10                  0x00000005
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN_DX10                  0x00000006
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETE                      0x00000008
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT                     0x00000009
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE                     0x0000000A
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETNE                     0x0000000B
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETE_DX10                 0x0000000C
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT_DX10                0x0000000D
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE_DX10                0x0000000E
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETNE_DX10                0x0000000F
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FRACT                     0x00000010
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_TRUNC                     0x00000011
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_CEIL                      0x00000012
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RNDNE                     0x00000013
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLOOR                     0x00000014
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ASHR_INT                  0x00000015
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LSHR_INT                  0x00000016
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LSHL_INT                  0x00000017
+/* same again from here */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MOV                       0x00000019
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_NOP                       0x0000001A
+/* same */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_UINT           0x0000001E
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_UINT           0x0000001F
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE                 0x00000020
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT                0x00000021
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE                0x00000022
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE                0x00000023
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_INV              0x00000024
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_POP              0x00000025
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_CLR              0x00000026
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SET_RESTORE          0x00000027
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_PUSH            0x00000028
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_PUSH           0x00000029
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_PUSH           0x0000002A
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE_PUSH           0x0000002B
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLE                     0x0000002C
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGT                    0x0000002D
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGE                    0x0000002E
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLNE                    0x0000002F
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_AND_INT                   0x00000030
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_OR_INT                    0x00000031
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_XOR_INT                   0x00000032
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_NOT_INT                   0x00000033
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADD_INT                   0x00000034
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SUB_INT                   0x00000035
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX_INT                   0x00000036
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN_INT                   0x00000037
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX_UINT                  0x00000038
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN_UINT                  0x00000039
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETE_INT                  0x0000003A
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT_INT                 0x0000003B
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE_INT                 0x0000003C
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETNE_INT                 0x0000003D
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT_UINT                0x0000003E
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE_UINT                0x0000003F
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGT_UINT               0x00000040
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGE_UINT               0x00000041
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_INT             0x00000042
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_INT            0x00000043
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_INT            0x00000044
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE_INT            0x00000045
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLE_INT                 0x00000046
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGT_INT                0x00000047
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLGE_INT                0x00000048
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_KILLNE_INT                0x00000049
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_PUSH_INT        0x0000004A
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_PUSH_INT       0x0000004B
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_PUSH_INT       0x0000004C
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETNE_PUSH_INT       0x0000004D
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETLT_PUSH_INT       0x0000004E
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETLE_PUSH_INT       0x0000004F
+/* same up to here */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_INT                0x00000050
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_BFREV_INT                 0x00000051
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADDC_UINT                 0x00000052
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SUBB_UINT                 0x00000053
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_GROUP_BARRIER             0x00000054
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_GROUP_SEQ_BEGIN           0x00000055 /* not on CAYMAN */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_GROUP_SEQ_END             0x00000056 /* not on CAYMAN */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SET_MODE                  0x00000057
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SET_CF_IDX0               0x00000058 /* not on CAYMAN */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SET_CF_IDX1               0x00000059 /* not on CAYMAN */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SET_LDS_SIZE              0x0000005A
+
+#define     CM_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_INT24                 0x0000005B /* not on evergreen*/
+#define     CM_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULHI_INT24               0x0000005C /* not on evergreen*/
+#define     CM_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_INT_TRUNC          0x0000005D /* not on evergreen*/
+
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_EXP_IEEE                  0x00000081
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LOG_CLAMPED               0x00000082
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LOG_IEEE                  0x00000083
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_CLAMPED             0x00000084
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_FF                  0x00000085
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_IEEE                0x00000086
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_CLAMPED         0x00000087
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_FF              0x00000088
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_IEEE            0x00000089
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SQRT_IEEE                 0x0000008A
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SIN                       0x0000008D
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_COS                       0x0000008E
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULLO_INT                 0x0000008F
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULHI_INT                 0x00000090
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULLO_UINT                0x00000091
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULHI_UINT                0x00000092
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_INT                 0x00000093 /* not on CAYMAN */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_UINT                0x00000094 /* not on CAYMAN */
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_64                  0x00000095
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIP_CLAMPED_64          0x00000096
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_64              0x00000097
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_RECIPSQRT_CLAMPED_64      0x00000098
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SQRT_64                   0x00000099
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_UINT               0x0000009A
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INT_TO_FLT                0x0000009B
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_UINT_TO_FLT               0x0000009C
+
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_BFM_INT                   0x000000A0
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT32_TO_FLT16            0x000000A2
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT16_TO_FLT32            0x000000A3
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_UBYTE0_FLT                0x000000A4
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_UBYTE1_FLT                0x000000A5
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_UBYTE2_FLT                0x000000A6
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_UBYTE3_FLT                0x000000A7
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_BCNT_INT                  0x000000AA
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FFBH_UINT                 0x000000AB
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FFBL_INT                  0x000000AC
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FFBH_INT                  0x000000AD
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_UINT4              0x000000AE
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_DOT_IEEE                  0x000000AF
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_INT_RPI            0x000000B0
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT_TO_INT_FLOOR          0x000000B1
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULHI_UINT24              0x000000B2
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MBCNT_32HI_INT            0x000000B3
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_OFFSET_TO_FLT             0x000000B4
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_UINT24                0x000000B5
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_BCNT_ACCUM_PREV_INT       0x000000B6
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MBCNT_32LO_ACCUM_PREV_INT 0x000000B7
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETE_64                   0x000000B8
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETNE_64                  0x000000B9
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGT_64                  0x000000BA
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SETGE_64                  0x000000BB
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MIN_64                    0x000000BC
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX_64                    0x000000BD
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_DOT4                      0x000000BE
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_DOT4_IEEE                 0x000000BF
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_CUBE                      0x000000C0
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MAX4                      0x000000C1
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FREXP_64                  0x000000C4
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LDEXP_64                  0x000000C5
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FRACT_64                  0x000000C6
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGT_64             0x000000C7
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETE_64              0x000000C8
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_PRED_SETGE_64             0x000000C9
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_64                    0x000000CA
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADD_64                    0x000000CB
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MOVA_INT                  0x000000CC
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT64_TO_FLT32            0x000000CD
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_FLT32_TO_FLT64            0x000000CE
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_SAD_ACCUM_PREV_UINT       0x000000CF
+
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_DOT                       0x000000D0
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_PREV                  0x000000D1
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MUL_IEEE_PREV             0x000000D2
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_ADD_PREV                  0x000000D3
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULADD_PREV               0x000000D4
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_MULADD_IEEE_PREV          0x000000D5
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INTERP_XY                 0x000000D6
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INTERP_ZW                 0x000000D7
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INTERP_X                  0x000000D8
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INTERP_Z                  0x000000D9
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_STORE_FLAGS               0x000000DA
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LOAD_STORE_FLAGS          0x000000DB
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LDS_1A                    0x000000DC
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LDS_1A1D                  0x000000DD
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_LDS_2A                    0x000000DF
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INTERP_LOAD_P0            0x000000E0
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INTERP_LOAD_P10           0x000000E1
+#define     EG_V_SQ_ALU_WORD1_OP2_SQ_OP2_INST_INTERP_LOAD_P20           0x000000E2
+
+/* OP3 */
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_BFE_UINT                  0x00000004
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_BFE_INT                   0x00000005
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_BFI_INT                   0x00000006
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_FMA                       0x00000007
+#define     CM_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_INT24              0x00000008 /* not on evergreen*/
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDNE_64                  0x00000009
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_FMA_64                    0x0000000A
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_LERP_UINT                 0x0000000B
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_BIT_ALIGN_INT             0x0000000C
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_BYTE_ALIGN_INT            0x0000000D
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_SAD_ACCUM_UINT            0x0000000E
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_SAD_ACCUM_HI_UINT         0x0000000F
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_UINT24             0x00000010
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_LDS_IDX_OP                0x00000011
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD                    0x00000014
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_M2                 0x00000015
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_M4                 0x00000016
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_D2                 0x00000017
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MULADD_IEEE               0x00000018
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDE                      0x00000019
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGT                     0x0000001A
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGE                     0x0000001B
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDE_INT                  0x0000001C
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGT_INT                 0x0000001D
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_CNDGE_INT                 0x0000001E
+#define     EG_V_SQ_ALU_WORD1_OP3_SQ_OP3_INST_MUL_LIT                   0x0000001F
+
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM0_BUF0   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000040)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM0_BUF1   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000041)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM0_BUF2   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000042)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM0_BUF3   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000043)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM1_BUF0   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000044)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM1_BUF1   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000045)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM1_BUF2   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000046)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM1_BUF3   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000047)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM2_BUF0   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000048)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM2_BUF1   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000049)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM2_BUF2   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000004A)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM2_BUF3   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000004B)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM3_BUF0   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000004C)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM3_BUF1   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000004D)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM3_BUF2   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000004E)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_STREAM3_BUF3   EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000004F)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_SCRATCH        EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000050)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RING           EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000052)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_EXPORT             EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000053)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_EXPORT_DONE        EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000054)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_EXPORT         EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000055)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RAT            EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000056)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RAT_CACHELESS  EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000057)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RING1          EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000058)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RING2          EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x00000059)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RING3          EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000005A)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_EXPORT_COMBINED EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000005B)
+#define     EG_V_SQ_CF_ALLOC_EXPORT_WORD1_SQ_CF_INST_MEM_RAT_COMBINED_CACHELESS  EG_S_SQ_CF_ALLOC_EXPORT_WORD1_CF_INST(0x0000005C)
+
+#define BC_INST(bc, x) ((bc)->gfx_level >= EVERGREEN ? EG_##x : x)
+
+#define CTX_INST(x) (ctx->bc->gfx_level >= EVERGREEN ? EG_##x : x)
+
+#endif

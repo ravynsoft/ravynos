@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<genxml name="SKL" gen="9">
+
+  <struct name="TEST_STRUCT" length="2">
+    <field name="number1" start="0" end="15" type="uint"/>
+    <field name="number2" start="16" end="31" type="uint"/>
+    <group count="4" start="32" size="8">
+       <field name="byte" start="0" end="7" type="uint"/>
+    </group>
+  </struct>
+
+  <struct name="STRUCT_TWO_LEVELS" length="8">
+    <group count="4" start="0" size="64">
+       <group count="8" start="0" size="8">
+          <field name="byte" start="0" end="7" type="uint"/>
+       </group>
+    </group>
+  </struct>
+
+</genxml>

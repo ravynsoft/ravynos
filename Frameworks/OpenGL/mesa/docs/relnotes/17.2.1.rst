@@ -1,0 +1,160 @@
+Mesa 17.2.1 Release Notes / September 17, 2017
+==============================================
+
+Mesa 17.2.1 is a bug fix release which fixes bugs found since the 17.2.0
+release.
+
+Mesa 17.2.1 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c902d8dc2540195bc570d88af1a8fd8a1774373660a27bb1d539551f46824bc1  mesa-17.2.1.tar.gz
+   77385d17827cff24a3bae134342234f2efe7f7f990e778109682571dbbc9ba1e  mesa-17.2.1.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 100613 <https://bugs.freedesktop.org/show_bug.cgi?id=100613>`__
+   - Regression in Mesa 17 on s390x (zSystems)
+-  `Bug 101709 <https://bugs.freedesktop.org/show_bug.cgi?id=101709>`__
+   - [llvmpipe] piglit gl-1.0-scissor-offscreen regression
+-  `Bug 102454 <https://bugs.freedesktop.org/show_bug.cgi?id=102454>`__
+   - glibc 2.26 doesn't provide anymore xlocale.h
+-  `Bug 102467 <https://bugs.freedesktop.org/show_bug.cgi?id=102467>`__
+   - src/mesa/state_tracker/st_cb_readpixels.c:178]: (warning) Redundant
+   assignment
+-  `Bug 102502 <https://bugs.freedesktop.org/show_bug.cgi?id=102502>`__
+   - [bisected] Kodi crashes since commit 707d2e8b - gallium: fold
+   u_trim_pipe_prim call from st/mesa to drivers
+
+Changes
+-------
+
+Bas Nieuwenhuizen (4):
+
+-  radv: Actually set the cmd_buffer usage_flags.
+-  radv: Fix vkCopyImage with both depth and stencil aspects.
+-  radv: Disable multilayer & multilevel DCC.
+-  radv: Don't allocate CMASK for linear images.
+
+Ben Crocker (1):
+
+-  llvmpipe: lp_build_gather_elem_vec BE fix for 3x16 load
+
+Brian Paul (1):
+
+-  llvmpipe: initialize llvmpipe->dirty with LP_NEW_SCISSOR
+
+Charmaine Lee (1):
+
+-  vbo: fix offset in minmax cache key
+
+Dave Airlie (12):
+
+-  radv: disable 1d/2d linear optimisation on gfx9.
+-  radv/gfx9: set descriptor up for base_mip to level range.
+-  Revert "radv: disable support for VEGA for now."
+-  radv/winsys: use amdgpu_bo_va_op_raw.
+-  radv/gfx9: allocate events from uncached VA space
+-  radv: use simpler indirect packet 3 if possible.
+-  radv: don't use iview for meta image width/height.
+-  radv: handle GFX9 1D textures
+-  radv/gfx9: set mip0-depth correctly for 2d arrays/3d images
+-  radv/ac: bump params array for image atomic comp swap
+-  radv/gfx9: fix image resource handling.
+-  radv/winsys: fix flags vs va_flags thinko.
+
+Emil Velikov (7):
+
+-  docs: add sha256 checksums for 17.2.0
+-  cherry-ignore: add getCapability patches
+-  cherry-ignore: ignore gfx9 tile swizzle fix
+-  cherry-ignore: add execution_type() fix to the list
+-  cherry-ignore: add EGL+gbm swast patches
+-  egl/x11/dri3: adding missing \__DRI_BACKGROUND_CALLABLE extension
+-  Update version to 17.2.1
+
+Eric Engestrom (3):
+
+-  util: improve compiler guard
+-  mesa/st: remove unwanted backup file
+-  docs/egl: remove reference to EGL_DRIVERS_PATH
+
+Grazvydas Ignotas (1):
+
+-  radv: don't assert on empty hash table
+
+Faith Ekstrand (2):
+
+-  anv/formats: Nicely handle unknown VkFormat enums
+-  spirv: Add support for the HelperInvocation builtin
+
+Karol Herbst (1):
+
+-  nvc0: write 0 to pipeline_statistics.cs_invocations
+
+Kenneth Graunke (2):
+
+-  i965: Fix crash in fallback GTT mapping.
+-  i965: Set "Subslice Hashing Mode" to 16x16 on Apollolake.
+
+Marek Olšák (1):
+
+-  st/mesa: skip draw calls with pipe_draw_info::count == 0
+
+Michael Olbrich (1):
+
+-  egl/dri2: only destroy created objects
+
+Nicolai HÃƒÂ¤hnle (1):
+
+-  radeonsi: apply a mask to gl_SampleMaskIn in the PS prolog
+
+Nicolai Hähnle (4):
+
+-  radeonsi/gfx9: always flush DB metadata on framebuffer changes
+-  st/glsl_to_tgsi: only the first (inner-most) array reference can be a
+   2D index
+-  ac/surface: match Z and stencil tile config
+-  glsl: fix glsl_struct_field size calculations for shader cache
+
+Ray Strode (1):
+
+-  gallivm: correct channel shift logic on big endian
+
+Rob Clark (1):
+
+-  freedreno: skip batch-cache for compute shaders
+
+Roland Scheidegger (1):
+
+-  st/mesa: fix view template initialization in try_pbo_readpixels
+
+Samuel Pitoiset (1):
+
+-  radeonsi: update dirty_level_mask before dispatching
+
+Timothy Arceri (9):
+
+-  glsl: allow NULL to be passed to encode_type_to_blob()
+-  glsl: stop adding pointers from gl_shader_variable to the cache
+-  glsl: stop adding pointers from glsl_struct_field to the cache
+-  glsl: add has_uniform_storage() helper to shader cache
+-  glsl: don't write uniform storage offset if there isn't one
+-  glsl: always write a name/label string to the cache
+-  compiler: move pointers to the start of shader_info
+-  glsl: stop adding pointers from shader_info to the cache
+-  glsl: stop adding pointers from bindless structs to the cache

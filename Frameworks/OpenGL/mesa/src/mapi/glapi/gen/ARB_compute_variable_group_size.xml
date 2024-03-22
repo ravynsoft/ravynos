@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="GL_ARB_compute_variable_group_size" number="153">
+  <enum name="MAX_COMPUTE_VARIABLE_GROUP_INVOCATIONS_ARB" value="0x9344"/>
+  <enum name="MAX_COMPUTE_FIXED_GROUP_INVOCATIONS_ARB"    value="0x90EB"/>
+  <enum name="MAX_COMPUTE_VARIABLE_GROUP_SIZE_ARB"        value="0x9345"/>
+  <enum name="MAX_COMPUTE_FIXED_GROUP_SIZE_ARB"           value="0x91BF"/>
+
+  <function name="DispatchComputeGroupSizeARB" no_error="true">
+    <param name="num_groups_x" type="GLuint"/>
+    <param name="num_groups_y" type="GLuint"/>
+    <param name="num_groups_z" type="GLuint"/>
+    <param name="group_size_x" type="GLuint"/>
+    <param name="group_size_y" type="GLuint"/>
+    <param name="group_size_z" type="GLuint"/>
+  </function>
+</category>
+
+</OpenGLAPI>

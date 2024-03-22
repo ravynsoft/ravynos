@@ -1,0 +1,67 @@
+Mesa 7.0.4 Release Notes / August 16, 2008
+==========================================
+
+Mesa 7.0.4 is a stable release with bug fixes since version 7.0.3.
+
+MD5 checksums
+-------------
+
+::
+
+   909afa3a01ae31478d363837681415ac  MesaLib-7.0.4.tar.gz
+   8d7bacbe0234742a5d08c8088c4619e9  MesaLib-7.0.4.tar.bz2
+   5e44261ef85b049a868e1785d9adc276  MesaLib-7.0.4.zip
+   53dcd77d37a819feaf50b5fcdd0a6e0f  MesaDemos-7.0.4.tar.gz
+   c1215b31c5f7b85f81eed3bfba07d556  MesaDemos-7.0.4.tar.bz2
+   b1825a7361f116b28d82d328077630b4  MesaDemos-7.0.4.zip
+   d7677d015f52602d1bf8b837fb717848  MesaGLUT-7.0.4.tar.gz
+   f5f8b46f7e763d9f7b7d1d115c1c44ee  MesaGLUT-7.0.4.tar.bz2
+   a786775271a02c62a3370b13b26bf48d  MesaGLUT-7.0.4.zip
+
+Bug fixes
+---------
+
+-  define #extension GL_ARB_texture_rectangle in shading language
+-  fixed WIN32 compile problem in libGLU
+-  Fixed a per-vertex glMaterial bug which could cause bad lighting
+-  Fixed potential crash in AA/smoothed triangle rendering when using a
+   fragment shader
+-  Fixed glDrawElement + VBO segfault (bug 16156)
+-  Fixed GLSL linker bug causing generic vertex attributes to get
+   aliased
+-  Fixed stack overflow when using glPixelZoom on Windows
+-  Fixed broken all(bvec2) GLSL function, added misc missing bvec
+   constructors
+-  ARB program "state.clip[n].plane" didn't parse correctly
+-  Fixed broken glGetUniformiv() (bug 13774)
+
+Changes
+-------
+
+-  Including the latest glext.h and glxext.h header files from Khronos
+-  Added support for DragonFly OS
+-  Added a build config for FreeBSD static libs (Anatolij Shkodin)
+-  Enabled GL_EXT_multi_draw_arrays extension in R200/R300 drivers
+-  Enabled GL_ARB_point_sprite extension in I965 driver
+-  Enabled GL_EXT_texture_sRGB extension in I965 driver
+-  Added support for GL shading language in I965 driver
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

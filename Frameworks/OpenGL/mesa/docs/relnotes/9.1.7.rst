@@ -1,0 +1,140 @@
+Mesa 9.1.7 Release Notes / October 4, 2013
+==========================================
+
+Mesa 9.1.7 is a bug fix release which fixes bugs found since the 9.1.6
+release.
+
+Mesa 9.1 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   9e4abf7b7a6db762012c3c9917a8e8c7  MesaLib-9.1.7.tar.bz2
+   f1d4d479d6ce12b9566fdb379960a912  MesaLib-9.1.7.tar.gz
+   abd612bfc5dd478d04fcc630dd7672f2  MesaLib-9.1.7.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 55503 <https://bugs.freedesktop.org/show_bug.cgi?id=55503>`__ -
+   Constant vertex attributes broken
+-  `Bug 61635 <https://bugs.freedesktop.org/show_bug.cgi?id=61635>`__ -
+   glVertexAttribPointer(id, GL_UNSIGNED_BYTE, GL_FALSE,...) does not
+   work
+-  `Bug 65958 <https://bugs.freedesktop.org/show_bug.cgi?id=65958>`__ -
+   GPU Lockup on Trinity 7500G
+-  `Bug 66292 <https://bugs.freedesktop.org/show_bug.cgi?id=66292>`__ -
+   [SNB/IVB/HSW Bisected]Ogles3conform
+   GL3Tests_depth24_depth24_basic.test fail
+-  `Bug 67548 <https://bugs.freedesktop.org/show_bug.cgi?id=67548>`__ -
+   glGetAttribLocation seems to be broken
+-  `Bug 68195 <https://bugs.freedesktop.org/show_bug.cgi?id=68195>`__ -
+   piglit tests vs-struct-pad and fs-struct-pad both fail
+-  `Bug 68250 <https://bugs.freedesktop.org/show_bug.cgi?id=68250>`__ -
+   Automatic mipmap generation with texture compression produces borders
+   that fade to black
+-  `Bug 69525 <https://bugs.freedesktop.org/show_bug.cgi?id=69525>`__ -
+   [GM45, bisected] Piglit tex-shadow2drect fails
+
+Changes
+-------
+
+Alex Deucher (2):
+
+-  r600g: disable GPUVM by default
+-  radeon/winsys: pad IBs to a multiple of 8 DWs
+
+Andreas Boll (2):
+
+-  docs: Fix a typo in the 9.1.6 release notes
+-  mesa: Fix MESA_PATCH version
+
+Anuj Phogat (1):
+
+-  meta: Fix blitting a framebuffer with renderbuffer attachment
+
+Carl Worth (5):
+
+-  docs: Add 9.1.6 release md5sums
+-  Use -Bsymbolic when linking libEGL.so
+-  Update get-pick-list to look specifically for "9.1" in NOTE
+-  cherry-ignore: Ignore last two patches in current get-pick-list
+   output
+-  Bump version to 9.1.7
+
+Chris Forbes (1):
+
+-  i965/fs: Gen4: Zero out extra coordinates when using shadow compare
+
+Emil Velikov (2):
+
+-  nv50: handle pure integer vertex attributes
+-  nouveau: initialise the nouveau_transfer maps
+
+Eric Anholt (1):
+
+-  i965/gen4: Fix fragment program rectangle texture shadow compares.
+
+Ian Romanick (11):
+
+-  mesa: Remove stray debug printfs in attachment completeness code
+-  mesa: Validate the layer selection of an array texture too
+-  mesa/vbo: Fix handling of attribute 0 in non-compatibilty contexts
+-  glsl: Add new overload of program_resource_visitor::visit_field
+   method
+-  glsl: Use alignment of container record for its first field
+-  mesa: Remove all traces of GL_OES_matrix_get
+-  mesa: Don't call driver RenderTexture for really broken textures
+-  mesa: Don't call driver RenderTexture for invalid zoffset
+-  mesa: Generate a renderbuffer wrapper even if the texture has no
+   image
+-  glsl: Move and refine test for unsized arrays in GLSL ES
+-  mesa: Don't return any data for GL_SHADER_BINARY_FORMATS
+
+Ilia Mirkin (2):
+
+-  nv30: U8_USCALED only works for size 4
+-  nv30: remove no-longer-used formats from table
+
+Joakim Sindholt (1):
+
+-  nvc0: fix blitctx memory leak
+
+Johannes Obermayr (1):
+
+-  st/gbm: Add $(WAYLAND_CFLAGS) for HAVE_EGL_PLATFORM_WAYLAND.
+
+Kenneth Graunke (1):
+
+-  meta: Set correct viewport and projection in
+   decompress_texture_image.
+
+Maarten Lankhorst (1):
+
+-  nvc0: restore viewport after blit
+
+Rico Schüller (1):
+
+-  glx: Initialize OpenGL version to 1.0
+
+Tiziano Bacocco (1):
+
+-  nvc0/ir: fix use after free in texture barrier insertion pass
+
+Torsten Duwe (1):
+
+-  wayland-egl.pc requires wayland-client.pc.

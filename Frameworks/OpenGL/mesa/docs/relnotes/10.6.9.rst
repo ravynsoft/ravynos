@@ -1,0 +1,104 @@
+Mesa 10.6.9 Release Notes / Octover 03, 2015
+============================================
+
+Mesa 10.6.9 is a bug fix release which fixes bugs found since the 10.6.8
+release.
+
+Mesa 10.6.9 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   3406876aac67546d0c3e2cb97da330b62644c313e7992b95618662e13c54296a  mesa-10.6.9.tar.gz
+   b04c4de6280b863babc2929573da17218d92e9e4ba6272d548d135415723e8c3  mesa-10.6.9.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 38109 <https://bugs.freedesktop.org/show_bug.cgi?id=38109>`__ -
+   i915 driver crashes if too few vertices are submitted (Mesa 7.10.2)
+-  `Bug 55552 <https://bugs.freedesktop.org/show_bug.cgi?id=55552>`__ -
+   Compile errors with --enable-mangling
+-  `Bug 86281 <https://bugs.freedesktop.org/show_bug.cgi?id=86281>`__ -
+   brw_meta_fast_clear (brw=brw\@entry=0x7fffd4097a08,
+   fb=fb\@entry=0x7fffd40fa900, buffers=buffers\@entry=2,
+   partial_clear=partial_clear\@entry=false)
+-  `Bug 91970 <https://bugs.freedesktop.org/show_bug.cgi?id=91970>`__ -
+   [BSW regression]
+   dEQP-GLES3.functional.shaders.precision.int.highp_mul_vertex
+-  `Bug 92072 <https://bugs.freedesktop.org/show_bug.cgi?id=92072>`__ -
+   Wine breakage since d082c5324 (st/mesa: don't call st_validate_state
+   in BlitFramebuffer)
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  st/mesa: try PIPE_BIND_RENDER_TARGET when choosing float texture
+   formats
+
+Chris Wilson (1):
+
+-  i965: Remove early release of DRI2 miptree
+
+Emil Velikov (4):
+
+-  docs: add sha256 checksums for 10.6.8
+-  cherry-ignore: add commit non applicable for 10.6
+-  cherry-ignore: add commit non applicable for 10.6
+-  Update version to 10.6.9
+
+Iago Toral Quiroga (1):
+
+-  mesa: Fix GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE for default
+   framebuffer.
+
+Ian Romanick (5):
+
+-  t_dd_dmatmp: Make "count" actually be the count
+-  t_dd_dmatmp: Clean up improper code formatting from previous patch
+-  t_dd_dmatmp: Use '& 3' instead of '% 4' everywhere
+-  t_dd_dmatmp: Pull out common 'count -= count & 3' code
+-  t_dd_dmatmp: Use addition instead of subtraction in loop bounds
+
+Jeremy Huddleston (1):
+
+-  configure.ac: Add support to enable read-only text segment on x86.
+
+Kristian Høgsberg Kristensen (1):
+
+-  i965: Respect stride and subreg_offset for ATTR registers
+
+Kyle Brenneman (3):
+
+-  glx: Fix build errors with --enable-mangling (v2)
+-  mapi: Make \_glapi_get_stub work with "gl" or "mgl" prefix.
+-  glx: Don't hard-code the name "libGL.so.1" in driOpenDriver (v3)
+
+Leo Liu (1):
+
+-  radeon/vce: fix vui time_scale zero error
+
+Marek Olšák (1):
+
+-  st/mesa: fix front buffer regression after dropping st_validate_state
+   in Blit
+
+Roland Scheidegger (1):
+
+-  mesa: fix mipmap generation for immutable, compressed textures

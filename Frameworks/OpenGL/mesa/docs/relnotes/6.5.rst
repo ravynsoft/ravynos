@@ -1,0 +1,114 @@
+Mesa 6.5 Release Notes / March 31, 2006
+=======================================
+
+Mesa 6.5 is a new development release.
+
+MD5 checksums
+-------------
+
+::
+
+   657be3b92f6dabc78a67ed9cb8d67813  MesaLib-6.5.tar.gz
+   61beda590bfc5b4a12e979d5f2d70d7a  MesaLib-6.5.tar.bz2
+   19d48b872d579d4f91466060804a59ac  MesaLib-6.5.zip
+   694ad3a7007010c7418a9c72d1cba5b7  MesaDemos-6.5.tar.gz
+   ab95b590dcd640726a2d89e62068c66e  MesaDemos-6.5.tar.bz2
+   b792c303fefd87294488e2b7eab976e5  MesaDemos-6.5.zip
+   ac1d585483617db0c91e5c15cb5ec3a3  MesaGLUT-6.5.tar.gz
+   59f0bf2b2ffb67fe23ee479f9b044f31  MesaGLUT-6.5.tar.bz2
+   005decb2136718e22222ac1c4805cd15  MesaGLUT-6.5.zip
+
+New Features
+------------
+
+-  OpenGL Shading language support
+
+   This includes the GL_ARB_shader_objects, GL_ARB_shading_language_100,
+   GL_ARB_vertex_shader and GL_ARB_fragment_shader extensions. Most of
+   the work was done by Michal Krol. There's probably a fair number of
+   bugs since this is a pretty large, complicated body of code.
+
+   The OpenGL 2.0 interface to these features will be implemented in a
+   future version of Mesa,
+
+-  GL_EXT_timer_query
+
+   Used to measure the time of OpenGL operations at high precision. Only
+   supported in the software/Xlib driver at this time.
+
+-  GL_EXT_packed_depth_stencil
+
+   Defines a new GL_DEPTH_STENCIL_EXT pixel format.
+
+-  GL_EXT_framebuffer_blit
+
+   A simplified glCopyPixels-like feature for copying pixel rectangles.
+
+-  GL_ARB_half_float_pixel
+
+   Adds a new half-precision floating point format for image transfers,
+   such as for glDrawPixels, glReadPixels, glTexImage, etc.
+
+Changes
+-------
+
+-  removed GL_HP_occlusion_test (use GL_ARB_occlusion_query instead)
+-  removed GL_SGIX/SGIS_pixel_texture extensions
+
+Bug fixes
+---------
+
+-  fixed glxcontextmodes.c datatype problem (bug 5835)
+-  fixed aix-gcc build/install bugs (bug 5874)
+-  fixed some bugs in texture env program generation
+-  glXCopyContext() didn't handle texture object bindings properly
+-  glXCopyContext() didn't copy all lighting state
+-  fixed FreeBSD config (Pedro Giffuni)
+-  fixed some minor framebuffer object bugs
+-  replaced dprintf() with \_glu_printf() in GLU (bug 6244)
+-  fixed a number of thread safety bugs/regressions
+-  fixed a number of GLU tesselator bugs (John Shell, bug 6339)
+-  paletted texturing was broken w/ floating point palettes (K. Schultz)
+-  lots of assorted framebuffer object bug fixes
+
+Known Issues
+------------
+
+-  Rendering to depth textures will not work. Rendering to
+   GL_DEPTH_STENCIL textures should work.
+
+Driver Interface Changes
+------------------------
+
+-  Stencil: The Driver.StencilOp/Func/Mask() functions have been
+   replaced by the two-sided versions: Driver.Stencil*Separate().
+-  Render-to-texture: The functions for rendering to textures have
+   changed.
+
+To Do (someday) items
+---------------------
+
+-  Switch to freeglut
+-  Increase MAX_DRAWBUFFERS
+-  Fix linux-glide target/driver.
+-  Fix lambda calculation for frag progs.
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 1.5
+   OSMesa (off-screen) implements OpenGL 1.5
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            implements OpenGL 1.3
+   Wind River UGL      implements OpenGL 1.3
+   Windows/Win32       implements OpenGL 1.5
+   DJGPP           implements OpenGL 1.5
+   GGI         implements OpenGL 1.3
+   BeOS            implements OpenGL 1.5
+   Allegro         needs updating
+   D3D         needs updating

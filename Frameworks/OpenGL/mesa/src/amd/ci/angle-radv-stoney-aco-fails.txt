@@ -1,0 +1,50 @@
+# Failing since ANGLE exposed geometry shaders in their commit a4c7abcbc1eb
+# ("Advertise GL_OES_geometry_shader and GL_EXT_tessellation_shader"):
+#
+# "Rendered data at (28, 21) equal (0.0980392, 0.2, 0.298039, 0.4) exceeds allowed epsilon when compared to reference data equal (0.5, 0.6, 0.7, 0.8).
+#  Data comparison failed at esextcGeometryShaderRendering.cpp:5751"
+#
+# Also fails, reports no validation failures on my RX Vega.
+KHR-GLES31.core.geometry_shader.rendering.rendering.triangles_with_adjacency_input_line_strip_output_triangle_strip_adjacency_drawcall,Fail
+KHR-GLES31.core.geometry_shader.rendering.rendering.triangles_with_adjacency_input_triangle_strip_output_triangle_strip_adjacency_drawcall,Fail
+
+# ANGLE passes depthBiasConstantFactor directly to GlobalDepthOffsetConstant, while zink multiplies by 2.0.
+# radeonsi has an extra 2.0 factor in the 16-bit depth case vs 24-bit, which radv doesn't have.
+# I expect this is a radv bug due to missing VK CTS coverage:
+# https://gitlab.khronos.org/Tracker/vk-gl-cts/-/issues/4169
+dEQP-GLES3.functional.polygon_offset.fixed16_render_with_units,Fail
+
+# Failure in later miplevels, occasionally flaky
+dEQP-GLES3.functional.texture.specification.teximage2d_depth.depth_component24,Fail
+dEQP-GLES3.functional.texture.specification.teximage2d_depth.depth24_stencil8,Fail
+dEQP-GLES3.functional.texture.specification.teximage2d_depth.depth32f_stencil8,Fail
+dEQP-GLES3.functional.texture.specification.teximage3d_depth.depth_component24_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.teximage3d_depth.depth24_stencil8_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.teximage3d_depth.depth32f_stencil8_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.texstorage2d.format.depth_component24_2d,Fail
+dEQP-GLES3.functional.texture.specification.texstorage2d.format.depth_component24_cube,Fail
+dEQP-GLES3.functional.texture.specification.texstorage2d.format.depth24_stencil8_2d,Fail
+dEQP-GLES3.functional.texture.specification.texstorage2d.format.depth24_stencil8_cube,Fail
+dEQP-GLES3.functional.texture.specification.texstorage2d.format.depth32f_stencil8_2d,Fail
+dEQP-GLES3.functional.texture.specification.texstorage2d.format.depth32f_stencil8_cube,Fail
+dEQP-GLES3.functional.texture.specification.texstorage3d.format.depth_component24_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.texstorage3d.format.depth24_stencil8_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.texstorage3d.format.depth32f_stencil8_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.texsubimage2d_depth.depth_component24,Fail
+dEQP-GLES3.functional.texture.specification.texsubimage2d_depth.depth24_stencil8,Fail
+dEQP-GLES3.functional.texture.specification.texsubimage2d_depth.depth32f_stencil8,Fail
+dEQP-GLES3.functional.texture.specification.texsubimage3d_depth.depth_component24_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.texsubimage3d_depth.depth24_stencil8_2d_array,Fail
+dEQP-GLES3.functional.texture.specification.texsubimage3d_depth.depth32f_stencil8_2d_array,Fail
+dEQP-GLES31.functional.texture.specification.texstorage3d.format.depth_component24_cube_array,Fail
+dEQP-GLES31.functional.texture.specification.texsubimage3d_depth.depth24_stencil8_cube_array,Fail
+dEQP-GLES31.functional.texture.specification.texsubimage3d_depth.depth32f_stencil8_cube_array,Fail
+dEQP-GLES31.functional.texture.specification.texstorage3d.format.depth24_stencil8_cube_array,Fail
+dEQP-GLES31.functional.texture.specification.texstorage3d.format.depth32f_stencil8_cube_array,Fail
+
+# Note that the set of test failures in this group changes based on the tests
+# run before them in the caselist!  We set them to what CI currently produces
+# for the default fractional test run, and mark the rest as flakes.
+multisample-dEQP-GLES31.functional.blend_equation_advanced.basic.multiply,Fail
+multisample-dEQP-GLES31.functional.blend_equation_advanced.basic.overlay,Fail
+multisample-dEQP-GLES31.functional.blend_equation_advanced.basic.screen,Fail

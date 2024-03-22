@@ -1,0 +1,178 @@
+Mesa 7.9 Release Notes / October 4, 2010
+========================================
+
+Mesa 7.9 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 7.9.1.
+
+Mesa 7.9 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   ed65ab425b25895c7f473d0a5e6e64f8  MesaLib-7.9.tar.gz
+   82c740c49d572baa6da2b1a1eee90bca  MesaLib-7.9.tar.bz2
+   cd2b6ecec759b0457475e94bbb38fedb  MesaLib-7.9.zip
+   7b54af9fb9b1f6a1a65db2520f50848f  MesaGLUT-7.9.tar.gz
+   20d07419d1929f833fdb36bced290ad5  MesaGLUT-7.9.tar.bz2
+   62a7edecd7c92675cd6029b05217eb0a  MesaGLUT-7.9.zip
+
+New features
+------------
+
+-  New, improved GLSL compiler written by Intel. See the :doc:`Shading
+   Language <../shading>` page for more information.
+-  New, very experimental Gallium driver for R600-R700 Radeons.
+-  Support for AMD Evergreen-based Radeons (HD 5xxx)
+-  GL_EXT_timer_query extension (i965 driver and softpipe only)
+-  GL_EXT_framebuffer_multisample extension (intel drivers, MAX_SAMPLES
+   = 1)
+-  GL_ARB_texture_swizzle extension (alias of GL_EXT_texture_swizzle)
+-  GL_ARB_draw_elements_base_vertex, GL_ARB_fragment_program_shadow,
+   GL_ARB_window_pos, GL_EXT_gpu_program_parameters,
+   GL_ATI_texture_env_combine3, GL_MESA_pack_invert, and
+   GL_OES_EGL_image extensions in Gallium drivers
+-  GL_ARB_depth_clamp and GL_NV_depth_clamp extensions (in nv50 and r600
+   Gallium drivers)
+-  GL_ARB_half_float_vertex extension (in nvfx, r300, r600, softpipe,
+   and llvmpipe Gallium drivers)
+-  GL_EXT_draw_buffers2 (in nv50, r600, softpipe, and llvmpipe Gallium
+   drivers)
+-  GL_EXT_texture_swizzle (in nvfx, r300, r600, softpipe, and llvmpipe
+   Gallium drivers)
+-  GL_ATI_texture_mirror_once (in nvfx, nv50, r300, r600, softpipe, and
+   llvmpipe Gallium drivers)
+-  GL_NV_conditional_render (in r300 Gallium driver)
+-  Initial "signs of life" support for Sandybridge hardware in i965 DRI
+   driver.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  Massive improvements to the Gallium driver for R300-R500 Radeons;
+   this driver is now considered stable for use as a DRI (OpenGL)
+   driver.
+-  `Bug 10908 <https://bugs.freedesktop.org/show_bug.cgi?id=10908>`__ -
+   GLSL: gl_FogParamaters gl_Fog built-in uniform not functioning
+-  `Bug 13753 <https://bugs.freedesktop.org/show_bug.cgi?id=13753>`__ -
+   Numerous bugs in GLSL uniform handling
+-  `Bug 16854 <https://bugs.freedesktop.org/show_bug.cgi?id=16854>`__ -
+   GLSL function call at global scope causes SEGV
+-  `Bug 16856 <https://bugs.freedesktop.org/show_bug.cgi?id=16856>`__ -
+   GLSL indexing of unsized array results in assertion failure
+-  `Bug 18659 <https://bugs.freedesktop.org/show_bug.cgi?id=18659>`__ -
+   Crash in shader/slang/slang_codegen.c
+   \_slang_gen_function_call_name()
+-  `Bug 19089 <https://bugs.freedesktop.org/show_bug.cgi?id=19089>`__ -
+   [GLSL] glsl1/shadow2D() cases fail
+-  `Bug 22622 <https://bugs.freedesktop.org/show_bug.cgi?id=22622>`__ -
+   [GM965 GLSL] noise*() cause GPU lockup
+-  `Bug 23743 <https://bugs.freedesktop.org/show_bug.cgi?id=23743>`__ -
+   For loop from 0 to 0 not optimized out
+-  `Bug 24553 <https://bugs.freedesktop.org/show_bug.cgi?id=24553>`__ -
+   shader compilation times explode when using more () pairs
+-  `Bug 25664 <https://bugs.freedesktop.org/show_bug.cgi?id=25664>`__ -
+   [GLSL] re-declaring an empty array fails to compile
+-  `Bug 25769 <https://bugs.freedesktop.org/show_bug.cgi?id=25769>`__ -
+   [GLSL] "float" can be implicitly converted to "int"
+-  `Bug 25808 <https://bugs.freedesktop.org/show_bug.cgi?id=25808>`__ -
+   [GLSL] const variable is modified successfully
+-  `Bug 25826 <https://bugs.freedesktop.org/show_bug.cgi?id=25826>`__ -
+   [GLSL] declaring an unsized array then re-declaring with a size fails
+-  `Bug 25827 <https://bugs.freedesktop.org/show_bug.cgi?id=25827>`__ -
+   [GLSL] vector constructor accepts too many arguments successfully
+-  `Bug 25829 <https://bugs.freedesktop.org/show_bug.cgi?id=25829>`__ -
+   [GLSL] allowing non-void function without returning value
+-  `Bug 25830 <https://bugs.freedesktop.org/show_bug.cgi?id=25830>`__ -
+   [GLSL] allowing non-constant-expression as const declaration
+   initializer
+-  `Bug 25877 <https://bugs.freedesktop.org/show_bug.cgi?id=25877>`__ -
+   [GLSL 1.10] implicit conversion from "int" to "float" should not be
+   allowed
+-  `Bug 25878 <https://bugs.freedesktop.org/show_bug.cgi?id=25878>`__ -
+   [GLSL] sampler is converted to int successfully
+-  `Bug 25994 <https://bugs.freedesktop.org/show_bug.cgi?id=25994>`__ -
+   [GM45][GLSL] 'return' statement in vertex shader unsupported
+-  `Bug 25999 <https://bugs.freedesktop.org/show_bug.cgi?id=25999>`__ -
+   [GLSL] embedded structure constructor fails to compile
+-  `Bug 26000 <https://bugs.freedesktop.org/show_bug.cgi?id=26000>`__ -
+   [GLSL] allowing different parameter qualifier between the function
+   definition and declaration
+-  `Bug 26001 <https://bugs.freedesktop.org/show_bug.cgi?id=26001>`__ -
+   [GLSL 1.10] constructing matrix from matrix succeeds
+-  `Bug 26224 <https://bugs.freedesktop.org/show_bug.cgi?id=26224>`__ -
+   [GLSL] Cannot get location of a uniform struct member
+-  `Bug 26990 <https://bugs.freedesktop.org/show_bug.cgi?id=26990>`__ -
+   [GLSL] variable declaration in "while" fails to compile
+-  `Bug 27004 <https://bugs.freedesktop.org/show_bug.cgi?id=27004>`__ -
+   [GLSL] allowing macro redefinition
+-  `Bug 27060 <https://bugs.freedesktop.org/show_bug.cgi?id=27060>`__ -
+   [965] piglit glsl-fs-raytrace failure due to lack of function calls.
+-  `Bug 27216 <https://bugs.freedesktop.org/show_bug.cgi?id=27216>`__ -
+   Assignment with a function call in an if statement causes an
+   assertion failure
+-  `Bug 27261 <https://bugs.freedesktop.org/show_bug.cgi?id=27261>`__ -
+   GLSL Compiler fails on the following vertex shader
+-  `Bug 27265 <https://bugs.freedesktop.org/show_bug.cgi?id=27265>`__ -
+   GLSL Compiler doesnt link the attached vertex shader
+-  `Bug 27388 <https://bugs.freedesktop.org/show_bug.cgi?id=27388>`__ -
+   [i965] piglit glsl-vs-arrays failure
+-  `Bug 27403 <https://bugs.freedesktop.org/show_bug.cgi?id=27403>`__ -
+   GLSL struct causing "Invalid src register file ..." error
+-  `Bug 27914 <https://bugs.freedesktop.org/show_bug.cgi?id=27914>`__ -
+   GLSL compiler uses MUL+ADD where it could use MAD
+-  `Bug 28055 <https://bugs.freedesktop.org/show_bug.cgi?id=28055>`__ -
+   glsl-texcoord-array fails GLSL compilation
+-  `Bug 28374 <https://bugs.freedesktop.org/show_bug.cgi?id=28374>`__ -
+   SIGSEGV shader/slang/slang_typeinfo.c:534
+-  `Bug 28748 <https://bugs.freedesktop.org/show_bug.cgi?id=28748>`__ -
+   [i965] uninlined function calls support
+-  `Bug 28833 <https://bugs.freedesktop.org/show_bug.cgi?id=28833>`__ -
+   piglit/shaders/glsl-texcoord-array fail
+-  `Bug 28834 <https://bugs.freedesktop.org/show_bug.cgi?id=28834>`__ -
+   Add support for system fpclassify to GL_OES_query_matrix function for
+   OpenBSD / NetBSD
+-  `Bug 28837 <https://bugs.freedesktop.org/show_bug.cgi?id=28837>`__ -
+   varying vec4 index support
+-  `Bug 28845 <https://bugs.freedesktop.org/show_bug.cgi?id=28845>`__ -
+   The GLU tesselator code has some warnings
+-  `Bug 28889 <https://bugs.freedesktop.org/show_bug.cgi?id=28889>`__ -
+   [regression] wine game crash
+-  `Bug 28894 <https://bugs.freedesktop.org/show_bug.cgi?id=28894>`__ -
+   slang build fails if absolute path contains spaces
+-  `Bug 28913 <https://bugs.freedesktop.org/show_bug.cgi?id=28913>`__ -
+   [GLSL] allowing two version statements
+-  `Bug 28931 <https://bugs.freedesktop.org/show_bug.cgi?id=28931>`__ -
+   Floating Point Exception in Warzone2100 Trunk version
+-  `Bug 28966 <https://bugs.freedesktop.org/show_bug.cgi?id=28966>`__ -
+   [r300g] Dynamic branching 3 demo does not run
+-  `Bug 28967 <https://bugs.freedesktop.org/show_bug.cgi?id=28967>`__ -
+   slang/slang_emit.c:350: storage_to_src_reg: Assertion \`index >= 0'
+   failed.
+-  `Bug 29013 <https://bugs.freedesktop.org/show_bug.cgi?id=29013>`__ -
+   [r300g] translate_rgb_op: unknown opcode ILLEGAL OPCODE
+-  `Bug 29020 <https://bugs.freedesktop.org/show_bug.cgi?id=29020>`__ -
+   [r300g] Wine d3d9 tests hardlock
+-  `Bug 29910 <https://bugs.freedesktop.org/show_bug.cgi?id=29910>`__ -
+   Mesa advertises bogus GL_ARB_shading_language_120
+-  `Bug 30196 <https://bugs.freedesktop.org/show_bug.cgi?id=30196>`__ -
+   [GLSL] gl_TextureMatrix{Inverse,Transpose,InverseTranspose}
+   unsupported
+
+Changes
+-------
+
+-  The Mesa demo/test programs have been moved into a separate git
+   repository.
+-  GL/glext.h file upgraded to version 64
+-  GL/glxext.h file upgraded to version 32
+-  GL/wglext.h file upgraded to version 22

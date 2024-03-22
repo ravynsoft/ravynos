@@ -1,0 +1,190 @@
+Mesa 23.1.6 Release Notes / 2023-08-16
+======================================
+
+Mesa 23.1.6 is a bug fix release which fixes bugs found since the 23.1.5 release.
+
+Mesa 23.1.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.6 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    f4c7fd8e7b472a88da7d83e9a48f6f3bd17d4ea2cc4386f7231b796f3964157a  mesa-23.1.6.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- nouveau prevents hardware acceleration with Chromium (Wayland)
+- Corrupt text rendering in Blender
+- DRI2 gallium frontend is using bad format type
+- Incorrect vlVaCreateBuffer/vlVaMapBuffer behavior for buffer type VAEncCodedBufferType in Gallium
+- ci: do not download perfetto on-fly in build jobs
+- Shared Memory Leak With Qt OpenGL Applications
+- OpenGL, SIGSEGV when program pipeline objects has separated vertex shader progam and separated fragment shader progam with in/out
+- Rusticl,radeonsi: ac_rtld error(2): too much LDS
+
+
+Changes
+-------
+
+Dave Airlie (2):
+
+- llvmpipe: fix fragdata/lastfragdata heuristic a bit more.
+- zink: turn off threaded cpu access if not visible.
+
+David Heidelberg (2):
+
+- ci: add perfetto into mesa git-cache
+- ci/deqp: really remove the uncompressed results.csv file
+
+David Rosca (1):
+
+- frontends/va: Ignore requested size when creating VAEncCodedBufferType
+
+Derek Foreman (1):
+
+- vulkan/wsi: Allow binding presentation_timing when software rendering
+
+Dor Askayo (1):
+
+- nouveau: add exported GEM handles to the global list
+
+Emma Anholt (1):
+
+- freedreno/a5xx: Skip emitting unused texture descriptors for images.
+
+Eric Engestrom (15):
+
+- docs: add sha256sum for 23.1.5
+- .pick_status.json: Update to 4c3fc03d7f74e30e4896121cd1aed90151f3d305
+- .pick_status.json: Update to d7fa2561a5e31b22b84b5735e2cdcbe27b8a7dfb
+- bin: add wrapper to run scripts in a python venv
+- bin/pick-ui: use venv wrapper
+- .pick_status.json: Update to c5a6e88c4e816ded6105b74f101528eb004e0581
+- .pick_status.json: Update to 06c8ebaa66b6f12b577ad1aa5e2a11628fd3735d
+- .pick_status.json: Mark e1ff7893ba7f8773eb462cf19d524d2c3cdb624b as denominated
+- .pick_status.json: Mark 58625686637a7a140d0ac1795f5cb2fbe426ca2b as denominated
+- .pick_status.json: Update to ee6eadb65ab7e09aa4ffaf4e6c7676fb7c51e86e
+- .pick_status.json: Mark 58ba2bcc8c185f8ebb74b863b76c1b65eb78206f as denominated
+- .pick_status.json: Mark ac00f5a361ccf8ec9188d0d3256bf2e1ebc767ba as denominated
+- .pick_status.json: Update to daa1f789b57aae7a23eecd4c337b79cfe1f081cf
+- panfrost: upcast uint8/uint16 before shifting them beyond their range
+- .pick_status.json: Mark b2f6de8f0d86b8143084212f970af072780fc201 as denominated
+
+Friedrich Vock (1):
+
+- radv: Handle VK_SUBOPTIMAL_KHR in trace layers
+
+Gert Wollny (2):
+
+- r600/sfn: Don't try to propagate to vec4 with more than one use
+- r600/sfn: Take source uses into account when switching channels
+
+Italo Nicola (2):
+
+- mesa/main: account for RTT samples when updating framebuffer
+- mesa/main: allow readpix/teximage to read from implicitly multisampled fbos
+
+Janne Grunau (2):
+
+- asahi,agx: Fix stack buffer overflow in agx_link_varyings_vs_fs
+- asahi,agx: Upload constant buffers immediately
+
+Julia Tatz (2):
+
+- gallium/dri: fix dri2_from_names
+- aux/trace: fix set_hw_atomic_buffers method name
+
+Julian Hagemeister (1):
+
+- Gallium: Fix shared memory segment leak
+
+Karol Herbst (3):
+
+- rusticl/kernel: only handle function_temp memory before lowering printf
+- n50/compute: submit initial compute state in nv50_screen_create
+- nv50: fix code uploads bigger than 0x10000 bytes
+
+Lionel Landwerlin (3):
+
+- anv: fix 3DSTATE_RASTER::APIMode field setting
+- anv: fake non intel vendorID for Death Stranding
+- hasvk: fix null descriptor handling with A64 messages
+
+Luigi Santivetti (1):
+
+- pvr: do not claim support for ASTC texture compression
+
+Martin Stransky (1):
+
+- llvmpipe: fix UAF in lp_scene_is_resource_referenced.
+
+Mike Blumenkrantz (21):
+
+- lavapipe: don't check geometry for fb attachments
+- zink: better handle separate shader dsl creation when no bindings exist
+- zink: force image barriers after dmabuf import
+- zink: use VK_WHOLE_SIZE when binding null db buffer descriptors
+- zink: add batch refs for transient images
+- zink: fix zs resolve attachment indexing
+- zink: don't add VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT for transient images
+- zink: don't append msrtss to dynamic render if not supported
+- zink: set msrtss depth resolve mode when enabled
+- zink: add more locking for pipeline cache
+- aux/trace: fix winsys handle dumping
+- llvmpipe: block weird uses of subsampled formats in buffers
+- llvmpipe: fix early depth + alpha2coverage + occlusion query interaction
+- lavapipe: fix resolves where src image has a layer offset
+- lavapipe: block yuv formats from getting blit feature flags
+- zink: explicitly set non-optimal last_vertex_stage shader key on ctx create
+- zink: fix big tcs output io
+- zink: fix crash in lower_pv_mode_gs_store
+- u/draw: skip zero-sized indirect draws
+- zink: unset primgen suspended flag when ending a primgen query
+- nir/zink: fix gs emulation xfb_info sizing
+
+Paul Gofman (1):
+
+- driconf: add a workaround for Captain Lycop: Invasion of the Heters
+
+Rhys Perry (2):
+
+- aco: summarize register demand after handling branches
+- aco: don't create sendmsg(dealloc_vgprs) if scratch is used
+
+Rob Clark (1):
+
+- tu/drm: Add missing error path cleanup
+
+Samuel Pitoiset (1):
+
+- vulkan: ignore VkPipelineColorWriteCreateInfoEXT if the state is dynamic
+
+Sylvain Munaut (1):
+
+- egl/dri2: Add a couple of missing mutex release in error path
+
+Timothy Arceri (1):
+
+- glsl: fix spirv sso validation
+
+timmac-qmc (1):
+
+- glsl: fix potential crash with DisableUniformArrayResize

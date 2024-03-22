@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='utf-8'?>
+<genxml name="RT" gen="12.5">
+  <struct name="BINDLESS_SHADER_RECORD" length="2">
+    <field name="Offset To Local Arguments" start="0" end="2" type="uint" />
+    <field name="Bindless Shader Dispatch Mode" start="4" end="4" type="uint">
+      <value name="RT_SIMD16" value="0" />
+      <value name="RT_SIMD8" value="1" />
+    </field>
+    <field name="Kernel Start Pointer" start="6" end="31" type="offset" />
+  </struct>
+  <struct name="RT_BVH_VEC3" length="3">
+    <field name="X" start="0" end="31" type="float" />
+    <field name="Y" start="32" end="63" type="float" />
+    <field name="Z" start="64" end="95" type="float" />
+  </struct>
+  <struct name="RT_BVH_METADATA" length="16">
+    <field name="Bounds Min" start="0" end="95" type="RT_BVH_VEC3" />
+    <field name="Bounds Max" start="96" end="191" type="RT_BVH_VEC3" />
+  </struct>
+  <struct name="RT_BVH" length="32">
+    <field name="Root Node Offset" start="0" end="63" type="offset" />
+    <field name="Meta" start="512" end="1023" type="RT_BVH_METADATA" />
+  </struct>
+  <struct name="RT_BVH_INSTANCE_LEAF" length="32">
+    <field name="Shader Index" start="0" end="23" type="uint" />
+    <field name="Geometry Ray Mask" start="24" end="31" type="uint" />
+    <field name="Instance Contribution To Hit Group Index" start="32" end="55" type="uint" />
+    <field name="Leaf Type" start="61" end="61" type="uint">
+      <value name="TYPE_OPAQUE_CULLING_ENABLED" value="0" />
+      <value name="TYPE_OPAQUE_CULLING_DISABLED" value="1" />
+    </field>
+    <field name="Geometry Flags" start="62" end="63" type="uint">
+      <value name="GEOMETRY_OPAQUE" value="1" />
+    </field>
+    <field name="Start Node Address" start="64" end="111" type="address" />
+    <field name="Instance Flags" start="112" end="119" type="uint">
+      <value name="TRIANGLE_CULL_DISABLE" value="1" />
+      <value name="TRIANGLE_FRONT_COUNTERCLOCKWISE" value="2" />
+      <value name="FORCE_OPAQUE" value="4" />
+      <value name="FORCE_NON_OPAQUE" value="8" />
+    </field>
+    <field name="World To Object m00" start="128" end="159" type="float" />
+    <field name="World To Object m01" start="160" end="191" type="float" />
+    <field name="World To Object m02" start="192" end="223" type="float" />
+    <field name="World To Object m10" start="224" end="255" type="float" />
+    <field name="World To Object m11" start="256" end="287" type="float" />
+    <field name="World To Object m12" start="288" end="319" type="float" />
+    <field name="World To Object m20" start="320" end="351" type="float" />
+    <field name="World To Object m21" start="352" end="383" type="float" />
+    <field name="World To Object m22" start="384" end="415" type="float" />
+    <field name="Object To World m30" start="416" end="447" type="float" />
+    <field name="Object To World m31" start="448" end="479" type="float" />
+    <field name="Object To World m32" start="480" end="511" type="float" />
+    <field name="BVH Address" start="512" end="559" type="address" />
+    <field name="Instance ID" start="576" end="607" type="uint" />
+    <field name="Instance Index" start="608" end="639" type="uint" />
+    <field name="Object To World m00" start="640" end="671" type="float" />
+    <field name="Object To World m01" start="672" end="703" type="float" />
+    <field name="Object To World m02" start="704" end="735" type="float" />
+    <field name="Object To World m10" start="736" end="767" type="float" />
+    <field name="Object To World m11" start="768" end="799" type="float" />
+    <field name="Object To World m12" start="800" end="831" type="float" />
+    <field name="Object To World m20" start="832" end="863" type="float" />
+    <field name="Object To World m21" start="864" end="895" type="float" />
+    <field name="Object To World m22" start="896" end="927" type="float" />
+    <field name="World To Object m30" start="928" end="959" type="float" />
+    <field name="World To Object m31" start="960" end="991" type="float" />
+    <field name="World To Object m32" start="992" end="1023" type="float" />
+  </struct>
+  <struct name="RT_BVH_INTERNAL_NODE" length="16">
+    <field name="Origin" start="0" end="95" type="RT_BVH_VEC3" />
+    <field name="Child Offset" start="96" end="127" type="int" />
+    <field name="Node Type" start="128" end="135" type="uint" prefix="NODE_TYPE">
+      <value name="INTERNAL" value="0" />
+      <value name="INSTANCE" value="1" />
+      <value name="PROCEDURAL" value="3" />
+      <value name="QUAD" value="4" />
+      <value name="INVALID" value="7" />
+    </field>
+    <field name="Child Bounds Exponent X" start="144" end="151" type="int" />
+    <field name="Child Bounds Exponent Y" start="152" end="159" type="int" />
+    <field name="Child Bounds Exponent Z" start="160" end="168" type="int" />
+    <field name="Node Ray Mask" start="168" end="175" type="uint" />
+    <group count="6" start="176" size="8">
+      <field name="Child Size" start="0" end="1" type="uint" />
+      <field name="Child Type" start="2" end="5" type="uint" />
+      <field name="Start Primitive" start="2" end="5" type="uint" />
+    </group>
+    <group count="6" start="224" size="8">
+      <field name="Child Lower X Bound" start="0" end="7" type="uint" />
+    </group>
+    <group count="6" start="272" size="8">
+      <field name="Child Upper X Bound" start="0" end="7" type="uint" />
+    </group>
+    <group count="6" start="320" size="8">
+      <field name="Child Lower Y Bound" start="0" end="7" type="uint" />
+    </group>
+    <group count="6" start="368" size="8">
+      <field name="Child Upper Y Bound" start="0" end="7" type="uint" />
+    </group>
+    <group count="6" start="416" size="8">
+      <field name="Child Lower Z Bound" start="0" end="7" type="uint" />
+    </group>
+    <group count="6" start="464" size="8">
+      <field name="Child Upper Z Bound" start="0" end="7" type="uint" />
+    </group>
+  </struct>
+  <struct name="RT_BVH_PRIMITIVE_LEAF_DESCRIPTOR" length="2">
+    <field name="Shader Index" start="0" end="23" type="uint" />
+    <field name="Geometry Ray Mask" start="24" end="31" type="uint" />
+    <field name="Geometry Index" start="32" end="60" type="uint" />
+    <field name="Leaf Type" start="61" end="61" type="uint">
+      <value name="TYPE_QUAD" value="0" />
+      <value name="TYPE_OPAQUE_CULLING_ENABLED" value="0" />
+      <value name="TYPE_OPAQUE_CULLING_DISABLED" value="1" />
+    </field>
+    <field name="Geometry Flags" start="62" end="63" type="uint">
+      <value name="GEOMETRY_OPAQUE" value="1" />
+    </field>
+  </struct>
+  <struct name="RT_BVH_PROCEDURAL_LEAF" length="16">
+    <field name="Leaf Descriptor" start="0" end="63" type="RT_BVH_PRIMITIVE_LEAF_DESCRIPTOR" />
+    <field name="Num Primitives" start="64" end="67" type="uint" />
+    <field name="Last Primitive" start="83" end="95" type="uint" />
+    <group count="13" start="96" size="32">
+      <field name="Primitive Index" start="0" end="31" type="uint" />
+    </group>
+  </struct>
+  <struct name="RT_BVH_QUAD_LEAF" length="16">
+    <field name="Leaf Descriptor" start="0" end="63" type="RT_BVH_PRIMITIVE_LEAF_DESCRIPTOR" />
+    <field name="Primitive Index 0" start="64" end="95" type="uint" />
+    <field name="Primitive Index 1 Delta" start="96" end="112" type="uint" />
+    <field name="j0" start="112" end="113" type="uint" />
+    <field name="j1" start="114" end="115" type="uint" />
+    <field name="j2" start="116" end="117" type="uint" />
+    <field name="Last Quad" start="118" end="118" type="bool" />
+    <group count="4" start="128" size="96">
+      <field name="Quad Vertex" start="0" end="95" type="RT_BVH_VEC3" />
+    </group>
+  </struct>
+  <struct name="RT_SHADER_TABLE" length="2">
+    <field name="Base Address" start="0" end="47" type="address" />
+    <field name="Stride" start="48" end="63" type="uint" />
+  </struct>
+  <struct name="RT_DISPATCH_GLOBALS" length="20">
+    <field name="Mem Base Address" start="0" end="63" type="address" />
+    <field name="Call Stack Handler" start="64" end="127" type="BINDLESS_SHADER_RECORD" />
+    <field name="Async RT Stack Size" start="128" end="159" type="uint" />
+    <field name="Num DSS RT Stacks" start="160" end="175" type="uint" />
+    <field name="Max BVH Levels" start="192" end="194" type="uint" />
+    <field name="Flags" start="224" end="224" type="uint">
+      <value name="RT_DEPTH_TEST_LESS_EQUAL" value="1" />
+    </field>
+    <field name="Hit Group Table" start="256" end="319" type="RT_SHADER_TABLE" />
+    <field name="Miss Group Table" start="320" end="383" type="RT_SHADER_TABLE" />
+    <field name="SW Stack Size" start="384" end="415" type="uint" />
+    <field name="Launch Width" start="416" end="447" type="uint" />
+    <field name="Launch Height" start="448" end="479" type="uint" />
+    <field name="Launch Depth" start="480" end="511" type="uint" />
+    <field name="Callable Group Table" start="512" end="575" type="RT_SHADER_TABLE" />
+    <field name="Resume Shader Table" start="576" end="639" type="address" />
+  </struct>
+  <struct name="RT_GENERAL_SBT_HANDLE" length="8">
+    <field name="General" start="0" end="63" type="BINDLESS_SHADER_RECORD" />
+  </struct>
+  <struct name="RT_PROCEDURAL_SBT_HANDLE" length="8">
+    <field name="Closest Hit" start="0" end="63" type="BINDLESS_SHADER_RECORD" />
+    <field name="Intersection" start="64" end="127" type="BINDLESS_SHADER_RECORD" />
+  </struct>
+  <struct name="RT_TRIANGLES_SBT_HANDLE" length="8">
+    <field name="Closest Hit" start="0" end="63" type="BINDLESS_SHADER_RECORD" />
+    <field name="Any Hit" start="64" end="127" type="BINDLESS_SHADER_RECORD" />
+  </struct>
+</genxml>

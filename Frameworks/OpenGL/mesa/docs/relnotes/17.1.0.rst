@@ -1,0 +1,229 @@
+Mesa 17.1.0 Release Notes / May 10, 2017
+========================================
+
+Mesa 17.1.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for :ref:`Mesa 17.1.1 <calendar>`.
+
+Mesa 17.1.0 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c388069581a72853161657ac365f2c083afabd7cffd53f80513dacfa1cfa58a8  mesa-17.1.0.tar.gz
+   cf234a6ed4764673886b6661553b54675776ef0898f774716173cec890ac3b17  mesa-17.1.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  OpenGL 4.2 on i965/ivb
+-  GL_ARB_gpu_shader_fp64 on i965/ivybridge
+-  GL_ARB_gpu_shader_int64 on i965/gen8+, nvc0, radeonsi, softpipe,
+   llvmpipe
+-  GL_ARB_shader_ballot on nvc0, radeonsi
+-  GL_ARB_shader_clock on nv50, nvc0, radeonsi
+-  GL_ARB_shader_group_vote on radeonsi
+-  GL_ARB_shader_precision on i965/ivb
+-  GL_ARB_shader_viewport_layer_array on radeonsi
+-  GL_ARB_sparse_buffer on radeonsi/CIK+
+-  GL_ARB_transform_feedback2 on i965/gen6
+-  GL_ARB_transform_feedback_overflow_query on i965/gen6+
+-  GL_ARB_vertex_attrib_64bit on i965/ivb
+-  GL_NV_fill_rectangle on nvc0
+-  Geometry shaders enabled on swr
+
+Bug fixes
+---------
+
+-  `Bug 68504 <https://bugs.freedesktop.org/show_bug.cgi?id=68504>`__ -
+   9.2-rc1 workaround for clover build failure on ppc/altivec: cannot
+   convert 'bool' to '__vector(4) \__bool int' in return
+-  `Bug 84325 <https://bugs.freedesktop.org/show_bug.cgi?id=84325>`__ -
+   X.Org segfaults when starting DE on an Intel+Radeon laptop, caused by
+   libpciaccess cleanup, patch attached
+-  `Bug 93089 <https://bugs.freedesktop.org/show_bug.cgi?id=93089>`__ -
+   mesa fails to check for gcc atomic primitives before using them
+-  `Bug 95460 <https://bugs.freedesktop.org/show_bug.cgi?id=95460>`__ -
+   Please add more drivers (freedreno, virgl) to features.txt status
+   document
+-  `Bug 96743 <https://bugs.freedesktop.org/show_bug.cgi?id=96743>`__ -
+   [BYT, HSW, SKL, BXT, KBL] GPU hangs with GfxBench 4.0 CarChase
+-  `Bug 97102 <https://bugs.freedesktop.org/show_bug.cgi?id=97102>`__ -
+   [dri][swr] stack overflow / infinite loop with GALLIUM_DRIVER=swr
+-  `Bug 97338 <https://bugs.freedesktop.org/show_bug.cgi?id=97338>`__ -
+   Black squares in the Spec Ops: The Line chapter select screen
+-  `Bug 97524 <https://bugs.freedesktop.org/show_bug.cgi?id=97524>`__ -
+   Samplers referring to the same texture unit with different types
+   should raise GL_INVALID_OPERATION
+-  `Bug 97967 <https://bugs.freedesktop.org/show_bug.cgi?id=97967>`__ -
+   glsl/tests/cache-test regression
+-  `Bug 97988 <https://bugs.freedesktop.org/show_bug.cgi?id=97988>`__ -
+   [radeonsi] playing back videos with VDPAU exhibits
+   deinterlacing/anti-aliasing issues not visible with VA-API
+-  `Bug 98263 <https://bugs.freedesktop.org/show_bug.cgi?id=98263>`__ -
+   [radv] The Talos Principle fails to launch with "Fatal error: Cannot
+   set display mode."
+-  `Bug 98428 <https://bugs.freedesktop.org/show_bug.cgi?id=98428>`__ -
+   Undefined non-weak-symbol in dri-drivers
+-  `Bug 98502 <https://bugs.freedesktop.org/show_bug.cgi?id=98502>`__ -
+   Delay when starting firefox, thunderbird or chromium and dmesg spam
+-  `Bug 98869 <https://bugs.freedesktop.org/show_bug.cgi?id=98869>`__ -
+   Electronic Super Joy graphic artefacts (regression,bisected)
+-  `Bug 98975 <https://bugs.freedesktop.org/show_bug.cgi?id=98975>`__ -
+   Wasteland 2 Directors Cut: Hangs. GPU fault
+-  `Bug 99010 <https://bugs.freedesktop.org/show_bug.cgi?id=99010>`__ -
+   --disable-gallium-llvm no longer recognized
+-  `Bug 99246 <https://bugs.freedesktop.org/show_bug.cgi?id=99246>`__ -
+   [d3dadapter+radeonsi & bisect] EVE-Online : hang on wormhole sight
+-  `Bug 99265 <https://bugs.freedesktop.org/show_bug.cgi?id=99265>`__ -
+   i965: Piglit egl_khr_gl_renderbuffer_image-clear-shared-image fails
+-  `Bug 99339 <https://bugs.freedesktop.org/show_bug.cgi?id=99339>`__ -
+   Blender line rendering broken after removing XY clipping of lines
+-  `Bug 99401 <https://bugs.freedesktop.org/show_bug.cgi?id=99401>`__ -
+   [g33] regression: piglit.spec.!opengl 1_0.gl-1_0-beginend-coverage
+-  `Bug 99450 <https://bugs.freedesktop.org/show_bug.cgi?id=99450>`__ -
+   [amdgpu] Payday 2 visual glitches on some models
+-  `Bug 99451 <https://bugs.freedesktop.org/show_bug.cgi?id=99451>`__ -
+   polygon offset use after free
+-  `Bug 99456 <https://bugs.freedesktop.org/show_bug.cgi?id=99456>`__ -
+   Firefox crashing when opening \about:support with WebGL2 enabled
+-  `Bug 99465 <https://bugs.freedesktop.org/show_bug.cgi?id=99465>`__ -
+   vtn_vector_construct writing out of bounds when given multiple
+   non-zero length sources
+-  `Bug 99484 <https://bugs.freedesktop.org/show_bug.cgi?id=99484>`__ -
+   Crusader Kings 2 - Loading bars, siege bars, morale bars, etc. do not
+   render correctly
+-  `Bug 99532 <https://bugs.freedesktop.org/show_bug.cgi?id=99532>`__ -
+   Compute shader doesn't give right result under some circumstances
+-  `Bug 99542 <https://bugs.freedesktop.org/show_bug.cgi?id=99542>`__ -
+   vdpau logging errors since gallium/radeon: adjust the rule for using
+   the LINEAR_ALIGNED layout
+-  `Bug 99631 <https://bugs.freedesktop.org/show_bug.cgi?id=99631>`__ -
+   segfault with OSVRTrackerView and openscenegraph git master
+-  `Bug 99633 <https://bugs.freedesktop.org/show_bug.cgi?id=99633>`__ -
+   rasterizer/core/clip.h:279:49: error: ‘const struct API_STATE’ has no
+   member named ‘linkageCount’
+-  `Bug 99660 <https://bugs.freedesktop.org/show_bug.cgi?id=99660>`__ -
+   Not all of the int64 conversion opcodes got implemented
+-  `Bug 99677 <https://bugs.freedesktop.org/show_bug.cgi?id=99677>`__ -
+   heap-use-after-free in glsl
+-  `Bug 99692 <https://bugs.freedesktop.org/show_bug.cgi?id=99692>`__ -
+   [radv] Mostly broken on Hawaii PRO/CIK ASICs
+-  `Bug 99701 <https://bugs.freedesktop.org/show_bug.cgi?id=99701>`__ -
+   loader.c:353:8: error: implicit declaration of function 'geteuid' is
+   invalid in C99 [-Werror,-Wimplicit-function-declaration]
+-  `Bug 99715 <https://bugs.freedesktop.org/show_bug.cgi?id=99715>`__ -
+   Don't print: "Note: Buggy applications may crash, if they do please
+   report to vendor"
+-  `Bug 99789 <https://bugs.freedesktop.org/show_bug.cgi?id=99789>`__ -
+   Memory leak on failure to create an ir_constant in
+   calculate_iterations in loop_controls.cpp
+-  `Bug 99817 <https://bugs.freedesktop.org/show_bug.cgi?id=99817>`__ -
+   [softpipe] piglit glsl-fs-tan-1 regression
+-  `Bug 99842 <https://bugs.freedesktop.org/show_bug.cgi?id=99842>`__ -
+   GL_ARB_transform_feedback2 on i965 gen6
+-  `Bug 99850 <https://bugs.freedesktop.org/show_bug.cgi?id=99850>`__ -
+   Tessellation bug on Carrizo
+-  `Bug 99918 <https://bugs.freedesktop.org/show_bug.cgi?id=99918>`__ -
+   disk_cache.h:57:20: error: no member named 'st_mtim' in 'struct stat'
+-  `Bug 99953 <https://bugs.freedesktop.org/show_bug.cgi?id=99953>`__ -
+   device9.c:122:49: error: ‘PIPE_CAP_USER_INDEX_BUFFERS’ undeclared
+   (first use in this function)
+-  `Bug 99955 <https://bugs.freedesktop.org/show_bug.cgi?id=99955>`__ -
+   [r600g] GPU load always displayed at 100% with GALLIUM_HUD=GPU-load
+-  `Bug 100026 <https://bugs.freedesktop.org/show_bug.cgi?id=100026>`__
+   - piglit.spec.arb_shader_subroutine.compiler.direct-call_vert
+   regression
+-  `Bug 100049 <https://bugs.freedesktop.org/show_bug.cgi?id=100049>`__
+   - "ralloc: Make sure ralloc() allocations match malloc()'s
+   alignment." causes seg fault in 32bit build
+-  `Bug 100060 <https://bugs.freedesktop.org/show_bug.cgi?id=100060>`__
+   - wsi/wsi_common_wayland.c:25:41: fatal error:
+   wayland-drm-client-protocol.h: No such file or directory
+-  `Bug 100061 <https://bugs.freedesktop.org/show_bug.cgi?id=100061>`__
+   - LODQ instruction generated with invalid dst mask
+-  `Bug 100068 <https://bugs.freedesktop.org/show_bug.cgi?id=100068>`__
+   - LLVM ERROR: Cannot select: intrinsic
+   %llvm.amdgcn.buffer.load.format
+-  `Bug 100088 <https://bugs.freedesktop.org/show_bug.cgi?id=100088>`__
+   - piglit.spec.arb_get_texture_sub_image.arb_get_texture_sub_image
+   regressions
+-  `Bug 100091 <https://bugs.freedesktop.org/show_bug.cgi?id=100091>`__
+   - Failure to create folder for on-disk shader cache
+-  `Bug 100133 <https://bugs.freedesktop.org/show_bug.cgi?id=100133>`__
+   - swr_context.cpp:336:44: error: invalid conversion from ‘uint {aka
+   unsigned int}’ to ‘pipe_render_cond_flag’ [-fpermissive]
+-  `Bug 100154 <https://bugs.freedesktop.org/show_bug.cgi?id=100154>`__
+   - test_eu_compact regression
+-  `Bug 100180 <https://bugs.freedesktop.org/show_bug.cgi?id=100180>`__
+   - Build failure in GNOME Continuous
+-  `Bug 100182 <https://bugs.freedesktop.org/show_bug.cgi?id=100182>`__
+   - Flickering in The Talos Principle on Sky Lake GT4.
+-  `Bug 100201 <https://bugs.freedesktop.org/show_bug.cgi?id=100201>`__
+   - Windows scons build with MSVC toolchain and LLVM 4.0 fails
+-  `Bug 100223 <https://bugs.freedesktop.org/show_bug.cgi?id=100223>`__
+   - marshal_generated.c:38:10: fatal error: 'X11/Xlib-xcb.h' file not
+   found
+-  `Bug 100236 <https://bugs.freedesktop.org/show_bug.cgi?id=100236>`__
+   - Undefined symbols for architecture x86_64: "typeinfo for
+   llvm::RTDyldMemoryManager"
+-  `Bug 100259 <https://bugs.freedesktop.org/show_bug.cgi?id=100259>`__
+   - [EGL] [GBM] undefined reference to \`gbm_bo_create_with_modifiers'
+-  `Bug 100288 <https://bugs.freedesktop.org/show_bug.cgi?id=100288>`__
+   - clover unable to run OpenCL kernels since 03127bb radeonsi: compile
+   all TGSI compute shaders asynchronously
+-  `Bug 100303 <https://bugs.freedesktop.org/show_bug.cgi?id=100303>`__
+   - Adding a single, meaningless if-else to a shader source leads to
+   different image
+-  `Bug 100391 <https://bugs.freedesktop.org/show_bug.cgi?id=100391>`__
+   - SachaWillems deferredmultisampling asserts
+-  `Bug 100452 <https://bugs.freedesktop.org/show_bug.cgi?id=100452>`__
+   - push_constants host memory leak when resetting command buffer
+-  `Bug 100531 <https://bugs.freedesktop.org/show_bug.cgi?id=100531>`__
+   - [regression] Broken graphics in several games
+-  `Bug 100562 <https://bugs.freedesktop.org/show_bug.cgi?id=100562>`__
+   - u_debug_stack.c:59: undefined reference to \`_Ux86_64_getcontext'
+-  `Bug 100569 <https://bugs.freedesktop.org/show_bug.cgi?id=100569>`__
+   - core/resource.cpp:36:33: error: non-constant-expression cannot be
+   narrowed from type 'int' to 'int16_t' (aka 'short') in initializer
+   list [-Wc++11-narrowing]
+-  `Bug 100574 <https://bugs.freedesktop.org/show_bug.cgi?id=100574>`__
+   - anv_device.c:189: undefined reference to
+   \`anv_gem_supports_48b_addresses'
+-  `Bug 100582 <https://bugs.freedesktop.org/show_bug.cgi?id=100582>`__
+   - [GEN8+] piglit.spec.arb_stencil_texturing.glblitframebuffer
+   corrupts state.gl_texture\* assertions
+-  `Bug 100600 <https://bugs.freedesktop.org/show_bug.cgi?id=100600>`__
+   - anv_device.c:1337: undefined reference to \`anv_gem_busy'
+-  `Bug 100620 <https://bugs.freedesktop.org/show_bug.cgi?id=100620>`__
+   - [SKL] 48-bit addresses break DOOM
+-  `Bug 100663 <https://bugs.freedesktop.org/show_bug.cgi?id=100663>`__
+   - commit 61e47d92c5196 breaks RS780
+-  `Bug 100690 <https://bugs.freedesktop.org/show_bug.cgi?id=100690>`__
+   - [Regression, bisected] TotalWar: Warhammer corrupted graphics
+-  `Bug 100892 <https://bugs.freedesktop.org/show_bug.cgi?id=100892>`__
+   - Polaris 12: winsys init bad switch (missing break) initializing
+   addrlib
+
+Changes
+-------
+
+-  Removed the ilo gallium driver.
+-  The configure option --enable-gallium-llvm is superseded by
+   --enable-llvm.
+-  The swr driver now requires LLVM >= 3.9.0 and a C++14 capable
+   compiler.
+-  The radeonsi driver now requires LLVM 3.8.0.
+-  The MESA_GLSL=opt and MESA_GLSL=no_opt environment vars have been
+   removed.
+-  The --with-egl-platforms configure option is deprecated. Use
+   --with-platforms instead.

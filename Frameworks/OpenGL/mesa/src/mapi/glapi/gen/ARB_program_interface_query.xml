@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_program_interface_query" number="134">
+
+    <enum name="UNIFORM"                                         value="0x92E1"/>
+    <enum name="UNIFORM_BLOCK"                                   value="0x92E2"/>
+    <enum name="PROGRAM_INPUT"                                   value="0x92E3"/>
+    <enum name="PROGRAM_OUTPUT"                                  value="0x92E4"/>
+    <enum name="BUFFER_VARIABLE"                                 value="0x92E5"/>
+    <enum name="SHADER_STORAGE_BLOCK"                            value="0x92E6"/>
+    <enum name="ATOMIC_COUNTER_BUFFER"                           value="0x92C0"/>
+    <enum name="VERTEX_SUBROUTINE"                               value="0x92E8"/>
+    <enum name="TESS_CONTROL_SUBROUTINE"                         value="0x92E9"/>
+    <enum name="TESS_EVALUATION_SUBROUTINE"                      value="0x92EA"/>
+    <enum name="GEOMETRY_SUBROUTINE"                             value="0x92EB"/>
+    <enum name="FRAGMENT_SUBROUTINE"                             value="0x92EC"/>
+    <enum name="COMPUTE_SUBROUTINE"                              value="0x92ED"/>
+    <enum name="VERTEX_SUBROUTINE_UNIFORM"                       value="0x92EE"/>
+    <enum name="TESS_CONTROL_SUBROUTINE_UNIFORM"                 value="0x92EF"/>
+    <enum name="TESS_EVALUATION_SUBROUTINE_UNIFORM"              value="0x92F0"/>
+    <enum name="GEOMETRY_SUBROUTINE_UNIFORM"                     value="0x92F1"/>
+    <enum name="FRAGMENT_SUBROUTINE_UNIFORM"                     value="0x92F2"/>
+    <enum name="COMPUTE_SUBROUTINE_UNIFORM"                      value="0x92F3"/>
+    <enum name="TRANSFORM_FEEDBACK_VARYING"                      value="0x92F4"/>
+    <enum name="ACTIVE_RESOURCES"                                value="0x92F5"/>
+    <enum name="MAX_NAME_LENGTH"                                 value="0x92F6"/>
+    <enum name="MAX_NUM_ACTIVE_VARIABLES"                        value="0x92F7"/>
+    <enum name="MAX_NUM_COMPATIBLE_SUBROUTINES"                  value="0x92F8"/>
+    <enum name="NAME_LENGTH"                                     value="0x92F9"/>
+    <enum name="TYPE"                                            value="0x92FA"/>
+    <enum name="ARRAY_SIZE"                                      value="0x92FB"/>
+    <enum name="OFFSET"                                          value="0x92FC"/>
+    <enum name="BLOCK_INDEX"                                     value="0x92FD"/>
+    <enum name="ARRAY_STRIDE"                                    value="0x92FE"/>
+    <enum name="MATRIX_STRIDE"                                   value="0x92FF"/>
+    <enum name="IS_ROW_MAJOR"                                    value="0x9300"/>
+    <enum name="ATOMIC_COUNTER_BUFFER_INDEX"                     value="0x9301"/>
+    <enum name="BUFFER_BINDING"                                  value="0x9302"/>
+    <enum name="BUFFER_DATA_SIZE"                                value="0x9303"/>
+    <enum name="NUM_ACTIVE_VARIABLES"                            value="0x9304"/>
+    <enum name="ACTIVE_VARIABLES"                                value="0x9305"/>
+    <enum name="REFERENCED_BY_VERTEX_SHADER"                     value="0x9306"/>
+    <enum name="REFERENCED_BY_TESS_CONTROL_SHADER"               value="0x9307"/>
+    <enum name="REFERENCED_BY_TESS_EVALUATION_SHADER"            value="0x9308"/>
+    <enum name="REFERENCED_BY_GEOMETRY_SHADER"                   value="0x9309"/>
+    <enum name="REFERENCED_BY_FRAGMENT_SHADER"                   value="0x930A"/>
+    <enum name="REFERENCED_BY_COMPUTE_SHADER"                    value="0x930B"/>
+    <enum name="TOP_LEVEL_ARRAY_SIZE"                            value="0x930C"/>
+    <enum name="TOP_LEVEL_ARRAY_STRIDE"                          value="0x930D"/>
+    <enum name="LOCATION"                                        value="0x930E"/>
+    <enum name="LOCATION_INDEX"                                  value="0x930F"/>
+    <enum name="IS_PER_PATCH"                                    value="0x92E7"/>
+    <enum name="NUM_COMPATIBLE_SUBROUTINES"                      value="0x8E4A"/>
+    <enum name="COMPATIBLE_SUBROUTINES"                          value="0x8E4B"/>
+
+    <function name="GetProgramInterfaceiv" es2="3.1">
+        <param name="program" type="GLuint"/>
+        <param name="programInterface" type="GLenum"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLint *" output="true"/>
+    </function>
+
+    <function name="GetProgramResourceIndex" es2="3.1">
+        <param name="program" type="GLuint"/>
+        <param name="programInterface" type="GLenum"/>
+        <param name="name" type="const GLchar *"/>
+        <return type="GLuint"/>
+    </function>
+
+    <function name="GetProgramResourceName" es2="3.1">
+        <param name="program" type="GLuint"/>
+        <param name="programInterface" type="GLenum"/>
+        <param name="index" type="GLuint"/>
+        <param name="bufSize" type="GLsizei "/>
+        <param name="length" type="GLsizei *" output="true"/>
+        <param name="name" type="GLchar *" output="true"/>
+    </function>
+
+    <function name="GetProgramResourceiv" es2="3.1">
+        <param name="program" type="GLuint"/>
+        <param name="programInterface" type="GLenum"/>
+        <param name="index" type="GLuint"/>
+        <param name="propCount" type="GLsizei "/>
+        <param name="props" type="const GLenum *" output="true"/>
+        <param name="bufSize" type="GLsizei "/>
+        <param name="length" type="GLsizei *" output="true"/>
+        <param name="params" type="GLint *" output="true"/>
+    </function>
+
+    <function name="GetProgramResourceLocation" es2="3.1">
+        <param name="program" type="GLuint"/>
+        <param name="programInterface" type="GLenum"/>
+        <param name="name" type="const GLchar *"/>
+        <return type="GLint"/>
+    </function>
+
+    <function name="GetProgramResourceLocationIndex">
+        <param name="program" type="GLuint"/>
+        <param name="programInterface" type="GLenum"/>
+        <param name="name" type="const GLchar *"/>
+        <return type="GLint"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

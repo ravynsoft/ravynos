@@ -1,0 +1,54 @@
+Mesa 7.8 Release Notes / March 28, 2010
+=======================================
+
+Mesa 7.8 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 7.8.1.
+
+Mesa 7.8 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   5fcfde5383eccb3e9fd665f08a0ea59b  MesaLib-7.8.tar.gz
+   85cb891eecb89aae4fdd3499cccd934b  MesaLib-7.8.tar.bz2
+   754f39593006effc1c8ec3c27c2f1296  MesaLib-7.8.zip
+   c3869c29fa6c3dbdd763f7428d271e12  MesaDemos-7.8.tar.gz
+   9fe8ec184c7f78691e43c4c0a7f97d56  MesaDemos-7.8.tar.bz2
+   063a96947f7b83d4ad789c6cf291b184  MesaDemos-7.8.zip
+   5f4246756b7daaddb4fb3f970cad1e28  MesaGLUT-7.8.tar.gz
+   ca7048a4aa7a437dcc84cc2c7d731336  MesaGLUT-7.8.tar.bz2
+   b54581aeb79b585b158d6a32f94feff2  MesaGLUT-7.8.zip
+
+New features
+------------
+
+-  GL_NV_conditional_render extension (swrast driver only)
+-  GL_EXT_draw_buffers2 extension (swrast and i965 driver only)
+-  GL_ARB_fragment_coord_conventions extension (for swrast, i965, and
+   Gallium drivers)
+-  GL_EXT_texture_array extension (swrast driver only)
+-  GL_APPLE_object_purgeable extension (swrast and i945/i965 DRI
+   drivers)
+-  Much improved support for :doc:`EGL in Mesa <../egl>`
+-  New state trackers for :doc:`OpenGL ES 1.1 and 2.0 <../opengles>`
+-  Dedicated documentation for Gallium
+
+Bug fixes
+---------
+
+-  Massive improvements to the Gallium driver for R300-R500 Radeons;
+   this driver is now moderately stable but not terribly performant.
+
+Changes
+-------
+
+-  Removed support for color-index rendering
+-  Removed support for GCC versions earlier than 3.3.0.

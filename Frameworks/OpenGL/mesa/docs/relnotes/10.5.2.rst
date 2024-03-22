@@ -1,0 +1,102 @@
+Mesa 10.5.2 Release Notes / March 28, 2015
+==========================================
+
+Mesa 10.5.2 is a bug fix release which fixes bugs found since the 10.5.1
+release.
+
+Mesa 10.5.2 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   755220e160a9f22fda0dffd47746f997b6e196d03f8edc390df7793aecaaa541  mesa-10.5.2.tar.gz
+   2f4b6fb77c3e7d6f861558d0884a3073f575e1e673dad8d1b0624e78e9c4dd44  mesa-10.5.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 88534 <https://bugs.freedesktop.org/show_bug.cgi?id=88534>`__ -
+   include/c11/threads_posix.h PTHREAD_MUTEX_RECURSIVE_NP not defined
+-  `Bug 89328 <https://bugs.freedesktop.org/show_bug.cgi?id=89328>`__ -
+   python required to build Mesa release tarballs
+-  `Bug 89530 <https://bugs.freedesktop.org/show_bug.cgi?id=89530>`__ -
+   FTBFS in loader: missing fstat
+-  `Bug 89590 <https://bugs.freedesktop.org/show_bug.cgi?id=89590>`__ -
+   Crash in glLinkProgram with shaders with multiple constant arrays
+-  `Bug 89680 <https://bugs.freedesktop.org/show_bug.cgi?id=89680>`__ -
+   Hard link exist in Mesa 10.5.1 sources
+
+Changes
+-------
+
+Anuj Phogat (1):
+
+-  glsl: Generate link error for non-matching gl_FragCoord
+   redeclarations
+
+Emil Velikov (7):
+
+-  docs: Add sha256 sums for the 10.5.1 release
+-  automake: add missing egl files to the tarball
+-  st/egl: don't ship the dri2.c link at the tarball
+-  loader: include <sys/stat.h> for non-sysfs builds
+-  auxiliary/os: fix the android build - s/drm_munmap/os_munmap/
+-  cherry-ignore: add commit non applicable for 10.5
+-  Update version to 10.5.2
+
+Felix Janda (1):
+
+-  c11/threads: Use PTHREAD_MUTEX_RECURSIVE by default
+
+Francisco Jerez (1):
+
+-  i965: Set nr_params to the number of uniform components in the VS/GS
+   path.
+
+Ilia Mirkin (2):
+
+-  freedreno/a3xx: use the same layer size for all slices
+-  freedreno: fix slice pitch calculations
+
+Marek Olšák (1):
+
+-  radeonsi: increase coords array size for
+   radeon_llvm_emit_prepare_cube_coords
+
+Mario Kleiner (2):
+
+-  glx: Handle out-of-sequence swap completion events correctly. (v2)
+-  mapi: Make private copies of name strings provided by client.
+
+Rob Clark (1):
+
+-  freedreno: update generated headers
+
+Samuel Iglesias Gonsalvez (2):
+
+-  glsl: optimize (0 cmp x + y) into (-x cmp y).
+-  configure: Introduce new output variable to
+   ax_check_python_mako_module.m4
+
+Tapani Pälli (1):
+
+-  glsl: fix names in lower_constant_arrays_to_uniforms
+
+Tom Stellard (1):
+
+-  clover: Return 0 as storage size for local kernel args that are not
+   set v2

@@ -1,0 +1,162 @@
+Mesa 10.0.4 Release Notes / (March 12, 2014)
+============================================
+
+Mesa 10.0.4 is a bug fix release which fixes bugs found since the 10.0.3
+release.
+
+Mesa 10.0.4 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   5a3c5b90776ec8a9fcd777c99e0607e2  MesaLib-10.0.4.tar.gz
+   8b148869d2620b0720c8a8d2b7eb3e38  MesaLib-10.0.4.tar.bz2
+   da2418d25bfbc273660af7e755fb367e  MesaLib-10.0.4.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 71870 <https://bugs.freedesktop.org/show_bug.cgi?id=71870>`__ -
+   Metro: Last Light rendering issues
+-  `Bug 72895 <https://bugs.freedesktop.org/show_bug.cgi?id=72895>`__ -
+   Missing trees in flightgear 2.12.1 with mesa 10.0.1
+-  `Bug 74251 <https://bugs.freedesktop.org/show_bug.cgi?id=74251>`__ -
+   Segfault in st_finalize_texture with Texture Buffer
+-  `Bug 74723 <https://bugs.freedesktop.org/show_bug.cgi?id=74723>`__ -
+   main/shaderapi.c:407: detach_shader: Assertion
+   \`shProg->Shaders[j]->Type == 0x8B31 \|\| shProg->Shaders[j]->Type ==
+   0x8B30' failed.
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following git
+command:
+
+::
+
+     git log mesa-10.0.3..mesa-10.0.4
+
+Anuj Phogat (4):
+
+-  mesa: Generate correct error code in glDrawBuffers()
+-  mesa: Add GL_TEXTURE_CUBE_MAP_ARRAY to
+   legal_get_tex_level_parameter_target()
+-  glsl: Fix condition to generate shader link error
+-  i965: Fix the region's pitch condition to use blitter
+
+Brian Paul (8):
+
+-  r200: move driContextSetFlags(ctx) call after ctx var is initialized
+-  radeon: move driContextSetFlags(ctx) call after ctx var is
+   initialized
+-  gallium/auxiliary/indices: replace free() with FREE()
+-  draw: fix incorrect color of flat-shaded clipped lines
+-  st/mesa: avoid sw fallback for getting/decompressing textures
+-  mesa: update assertion in detach_shader() for geom shaders
+-  mesa: do depth/stencil format conversion in glGetTexImage
+-  softpipe: use 64-bit arithmetic in softpipe_resource_layout()
+
+Carl Worth (4):
+
+-  docs: Add md5sums for 10.0.3 release
+-  main: Avoid double-free of shader Label
+-  get-pick-list: Update to only find patches nominated for the 10.0
+   branch
+-  Update version to 10.0.4
+
+Chris Forbes (1):
+
+-  i965: Validate (and resolve) all the bound textures.
+
+Christian König (1):
+
+-  radeon/uvd: fix feedback buffer handling v2
+
+Daniel Kurtz (1):
+
+-  glsl: Add locking to builtin_builder singleton
+
+Emil Velikov (3):
+
+-  dri/nouveau: Pass the API into \_mesa_initialize_context
+-  nv50: correctly calculate the number of vertical blocks during
+   transfer map
+-  dri/i9*5: correctly calculate the amount of system memory
+
+Fredrik Höglund (3):
+
+-  mesa: Preserve the NewArrays state when copying a VAO
+-  glx: Fix the default values for GLXFBConfig attributes
+-  glx: Fix the GLXFBConfig attrib sort priorities
+
+Hans (2):
+
+-  util: don't define isfinite(), isnan() for MSVC >= 1800
+-  mesa: don't define c99 math functions for MSVC >= 1800
+
+Ian Romanick (6):
+
+-  meta: Release resources used by decompress_texture_image
+-  meta: Release resources used by \_mesa_meta_DrawPixels
+-  meta: Fallback to software for GetTexImage of compressed
+   GL_TEXTURE_CUBE_MAP_ARRAY
+-  meta: Consistenly use non-Apple VAO functions
+-  glcpp: Only warn for macro names containing \_\_
+-  glsl: Only warn for macro names containing \_\_
+
+Ilia Mirkin (3):
+
+-  nv30: report 8 maximum inputs
+-  nouveau/video: make sure that firmware is present when checking caps
+-  nouveau: fix chipset checks for nv1a by using the oclass instead
+
+Julien Cristau (1):
+
+-  glx/dri2: fix build failure on HURD
+
+Kenneth Graunke (2):
+
+-  glsl: Don't lose precision qualifiers when encountering "centroid".
+-  i965: Create a hardware context before initializing state module.
+
+Kusanagi Kouichi (1):
+
+-  targets/vdpau: Always use c++ to link
+
+Marek Olšák (1):
+
+-  st/mesa: fix crash when a shader uses a TBO and it's not bound
+
+Matt Turner (1):
+
+-  glsl: Initialize ubo_binding_mask flags to zero.
+
+Paul Berry (2):
+
+-  glsl: Make condition_to_hir() callable from outside
+   ast_iteration_statement.
+-  glsl: Fix continue statements in do-while loops.
+
+Tom Stellard (1):
+
+-  r600g/compute: PIPE_CAP_COMPUTE should be false for pre-evergreen
+   GPUs
+
+Topi Pohjolainen (1):
+
+-  i965/blorp: do not use unnecessary hw-blending support

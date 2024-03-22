@@ -1,0 +1,449 @@
+// Copyright 2021 The Fuchsia Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#version 460
+
+//
+// Produce multiple radix size histograms from the keyvals.
+//
+
+// clang-format off
+#extension GL_GOOGLE_include_directive             : require
+#extension GL_EXT_control_flow_attributes          : require
+#extension GL_KHR_shader_subgroup_basic            : require
+// clang-format on
+
+//
+//
+//
+#include "config.h"
+
+//
+// Optional switches:
+//
+//   #define RS_HISTOGRAM_ENABLE_BITFIELD_EXTRACT
+//   #define RS_HISTOGRAM_DISABLE_SMEM_HISTOGRAM
+//
+
+//
+// Buffer reference macros and push constants
+//
+#include "bufref.h"
+#include "push.h"
+
+//
+// Push constants for histogram shader
+//
+RS_STRUCT_PUSH_HISTOGRAM();
+
+layout(push_constant) uniform block_push
+{
+  rs_push_histogram push;
+};
+
+//
+// Subgroup uniform support
+//
+#if defined(RS_HISTOGRAM_SUBGROUP_UNIFORM_DISABLE) && defined(GL_EXT_subgroupuniform_qualifier)
+#extension GL_EXT_subgroupuniform_qualifier : required
+#define RS_SUBGROUP_UNIFORM subgroupuniformEXT
+#else
+#define RS_SUBGROUP_UNIFORM
+#endif
+
+//
+// Check all switches are defined
+//
+
+// What's the size of the keyval?
+#ifndef RS_KEYVAL_DWORDS
+#error "Undefined: RS_KEYVAL_DWORDS"
+#endif
+
+//
+#ifndef RS_HISTOGRAM_BLOCK_ROWS
+#error "Undefined: RS_HISTOGRAM_BLOCK_ROWS"
+#endif
+
+//
+#ifndef RS_HISTOGRAM_WORKGROUP_SIZE_LOG2
+#error "Undefined: RS_HISTOGRAM_WORKGROUP_SIZE_LOG2"
+#endif
+
+//
+#ifndef RS_HISTOGRAM_SUBGROUP_SIZE_LOG2
+#error "Undefined: RS_HISTOGRAM_SUBGROUP_SIZE_LOG2"
+#endif
+
+//
+// Local macros
+//
+// clang-format off
+#define RS_WORKGROUP_SIZE       (1 << RS_HISTOGRAM_WORKGROUP_SIZE_LOG2)
+#define RS_SUBGROUP_SIZE        (1 << RS_HISTOGRAM_SUBGROUP_SIZE_LOG2)
+#define RS_WORKGROUP_SUBGROUPS  (RS_WORKGROUP_SIZE / RS_SUBGROUP_SIZE)
+#define RS_BLOCK_KEYVALS        (RS_HISTOGRAM_BLOCK_ROWS * RS_WORKGROUP_SIZE)
+#define RS_KEYVAL_SIZE          (RS_KEYVAL_DWORDS * 4)
+#define RS_RADIX_MASK           ((1 << RS_RADIX_LOG2) - 1)
+// clang-format on
+
+//
+// Keyval type
+//
+#if (RS_KEYVAL_DWORDS == 1)
+#define RS_KEYVAL_TYPE uint32_t
+#elif (RS_KEYVAL_DWORDS == 2)
+#define RS_KEYVAL_TYPE u32vec2
+#else
+#error "Unsupported RS_KEYVAL_DWORDS"
+#endif
+
+//
+// Histogram offset depends on number of workgroups.
+//
+#define RS_HISTOGRAM_BASE(pass_) ((RS_RADIX_SIZE * 4) * pass_)
+
+#if (RS_WORKGROUP_SUBGROUPS == 1)
+#define RS_HISTOGRAM_OFFSET(pass_) (RS_HISTOGRAM_BASE(pass_) + gl_SubgroupInvocationID * 4)
+#else
+#define RS_HISTOGRAM_OFFSET(pass_) (RS_HISTOGRAM_BASE(pass_) + gl_LocalInvocationID.x * 4)
+#endif
+
+//
+// Assumes (RS_RADIX_LOG2 == 8)
+//
+// Error if this ever changes
+//
+#if (RS_RADIX_LOG2 != 8)
+#error "(RS_RADIX_LOG2 != 8)"
+#endif
+
+//
+// Is bitfield extract faster?
+//
+#ifdef RS_HISTOGRAM_ENABLE_BITFIELD_EXTRACT
+//----------------------------------------------------------------------
+
+//
+// Extract a keyval digit
+//
+#if (RS_KEYVAL_DWORDS == 1)
+#define RS_KV_EXTRACT_DIGIT(kv_, pass_) bitfieldExtract(kv_, pass_ * RS_RADIX_LOG2, RS_RADIX_LOG2)
+#else
+#define RS_KV_EXTRACT_DIGIT(kv_, pass_)                                                            \
+  bitfieldExtract(kv_[pass_ / 4], (pass_ & 3) * RS_RADIX_LOG2, RS_RADIX_LOG2)
+#endif
+//----------------------------------------------------------------------
+#else
+//----------------------------------------------------------------------
+
+//
+// Extract a keyval digit
+//
+#if (RS_KEYVAL_DWORDS == 1)
+#define RS_KV_EXTRACT_DIGIT(kv_, pass_) ((kv_ >> (pass_ * RS_RADIX_LOG2)) & RS_RADIX_MASK)
+#else
+#define RS_KV_EXTRACT_DIGIT(kv_, pass_)                                                            \
+  ((kv_[pass_ / 4] >> ((pass_ & 3) * RS_RADIX_LOG2)) & RS_RADIX_MASK)
+#endif
+//----------------------------------------------------------------------
+#endif
+
+//
+//
+//
+#ifndef RS_HISTOGRAM_DISABLE_SMEM_HISTOGRAM
+
+struct rs_histogram_smem
+{
+  uint32_t histogram[RS_RADIX_SIZE];
+};
+
+shared rs_histogram_smem smem;
+
+#endif
+
+//
+//
+//
+layout(local_size_x = RS_WORKGROUP_SIZE) in;
+
+//
+//
+//
+layout(buffer_reference, std430) buffer buffer_rs_kv
+{
+  RS_KEYVAL_TYPE extent[];
+};
+
+layout(buffer_reference, std430) buffer buffer_rs_histograms
+{
+  uint32_t extent[];
+};
+
+//
+// Shared memory functions
+//
+#ifndef RS_HISTOGRAM_DISABLE_SMEM_HISTOGRAM
+
+//
+// NOTE: Must use same access pattern as rs_histogram_zero()
+//
+void
+rs_histogram_zero()
+{
+  //
+  // Zero SMEM histogram
+  //
+#if (RS_WORKGROUP_SUBGROUPS == 1)
+
+  const uint32_t smem_offset = gl_SubgroupInvocationID;
+
+  [[unroll]] for (RS_SUBGROUP_UNIFORM uint32_t ii = 0; ii < RS_RADIX_SIZE; ii += RS_SUBGROUP_SIZE)
+  {
+    smem.histogram[smem_offset + ii] = 0;
+  }
+
+#elif (RS_WORKGROUP_SIZE < RS_RADIX_SIZE)
+
+  const uint32_t smem_offset = gl_LocalInvocationID.x;
+
+  [[unroll]] for (uint32_t ii = 0; ii < RS_RADIX_SIZE; ii += RS_WORKGROUP_SIZE)
+  {
+    smem.histogram[smem_offset + ii] = 0;
+  }
+
+  const uint32_t smem_idx = smem_offset + ((RS_RADIX_SIZE / RS_WORKGROUP_SIZE) * RS_WORKGROUP_SIZE);
+
+  if (smem_idx < RS_RADIX_SIZE)
+    {
+      smem.histogram[smem_idx] = 0;
+    }
+
+#elif (RS_WORKGROUP_SIZE >= RS_RADIX_SIZE)
+
+#if (RS_WORKGROUP_SIZE > RS_RADIX_SIZE)
+  if (gl_LocalInvocationID.x < RS_RADIX_SIZE)
+#endif
+    {
+      smem.histogram[gl_LocalInvocationID.x] = 0;
+    }
+
+#endif
+}
+
+//
+// NOTE: Must use same access pattern as rs_histogram_zero()
+//
+void
+rs_histogram_global_store(restrict buffer_rs_histograms rs_histograms)
+{
+  //
+  // Store to GMEM
+  //
+#if (RS_WORKGROUP_SUBGROUPS == 1)
+
+  const uint32_t smem_offset = gl_SubgroupInvocationID;
+
+  [[unroll]] for (RS_SUBGROUP_UNIFORM uint32_t ii = 0; ii < RS_RADIX_SIZE; ii += RS_SUBGROUP_SIZE)
+  {
+    const uint32_t count = smem.histogram[smem_offset + ii];
+
+    atomicAdd(rs_histograms.extent[ii], count);
+  }
+
+#elif (RS_WORKGROUP_SIZE < RS_RADIX_SIZE)
+
+  const uint32_t smem_offset = gl_LocalInvocationID.x;
+
+  [[unroll]] for (uint32_t ii = 0; ii < RS_RADIX_SIZE; ii += RS_WORKGROUP_SIZE)
+  {
+    const uint32_t count = smem.histogram[smem_offset + ii];
+
+    atomicAdd(rs_histograms.extent[ii], count);
+  }
+
+  const uint32_t smem_idx = smem_offset + ((RS_RADIX_SIZE / RS_WORKGROUP_SIZE) * RS_WORKGROUP_SIZE);
+
+  if (smem_idx < RS_RADIX_SIZE)
+    {
+      const uint32_t count = smem.histogram[smem_idx];
+
+      atomicAdd(rs_histograms.extent[((RS_RADIX_SIZE / RS_WORKGROUP_SIZE) * RS_WORKGROUP_SIZE)],
+                count);
+    }
+
+#elif (RS_WORKGROUP_SIZE >= RS_RADIX_SIZE)
+
+#if (RS_WORKGROUP_SIZE > RS_RADIX_SIZE)
+  if (gl_LocalInvocationID.x < RS_RADIX_SIZE)
+#endif
+    {
+      const uint32_t count = smem.histogram[gl_LocalInvocationID.x];
+
+      atomicAdd(rs_histograms.extent[0], count);
+    }
+
+#endif
+}
+
+#endif
+
+//
+//
+//
+#ifndef RS_HISTOGRAM_DISABLE_SMEM_HISTOGRAM
+
+void
+rs_histogram_atomic_after_write()
+{
+#if (RS_WORKGROUP_SUBGROUPS == 1)
+  subgroupMemoryBarrierShared();
+#else
+  barrier();
+#endif
+}
+
+void
+rs_histogram_read_after_atomic()
+{
+#if (RS_WORKGROUP_SUBGROUPS == 1)
+  subgroupMemoryBarrierShared();
+#else
+  barrier();
+#endif
+}
+
+#endif
+
+//
+//
+//
+void
+main()
+{
+  //
+  // Which subgroups have work?
+  //
+  RS_KEYVAL_TYPE kv[RS_HISTOGRAM_BLOCK_ROWS];
+
+  //
+  // Define kv_in bufref
+  //
+  // Assumes less than 2^30-1 keys and then extended multiplies it
+  // by the keyval size.
+  //
+  u32vec2 kv_in_offset;
+
+  umulExtended(gl_WorkGroupID.x * RS_BLOCK_KEYVALS + gl_LocalInvocationID.x,
+               RS_KEYVAL_SIZE,
+               kv_in_offset.y,   // msb
+               kv_in_offset.x);  // lsb
+
+  readonly RS_BUFREF_DEFINE_AT_OFFSET_U32VEC2(buffer_rs_kv,
+                                              rs_kv_in,
+                                              push.devaddr_keyvals,
+                                              kv_in_offset);
+
+  //
+  // Load keyvals
+  //
+  [[unroll]] for (RS_SUBGROUP_UNIFORM uint32_t ii = 0; ii < RS_HISTOGRAM_BLOCK_ROWS; ii++)
+  {
+    kv[ii] = rs_kv_in.extent[ii * RS_WORKGROUP_SIZE];
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Accumulate and store histograms for passes
+  //
+  ////////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // MACRO EXPANSION VARIANT
+  //
+  // NOTE: THIS ALSO SERVES AS A MALI R24+ WORKAROUND: EXPLICITLY
+  // EXPAND THE FOR/LOOP PASSES
+  //
+#ifndef RS_HISTOGRAM_DISABLE_SMEM_HISTOGRAM
+
+#define RS_HISTOGRAM_PASS(pass_)                                                                   \
+  rs_histogram_zero();                                                                             \
+                                                                                                   \
+  rs_histogram_atomic_after_write();                                                               \
+                                                                                                   \
+  [[unroll]] for (RS_SUBGROUP_UNIFORM uint32_t jj = 0; jj < RS_HISTOGRAM_BLOCK_ROWS; jj++)         \
+  {                                                                                                \
+    const uint32_t digit = RS_KV_EXTRACT_DIGIT(kv[jj], pass_);                                     \
+                                                                                                   \
+    atomicAdd(smem.histogram[digit], 1);                                                           \
+  }                                                                                                \
+                                                                                                   \
+  rs_histogram_read_after_atomic();                                                                \
+                                                                                                   \
+  {                                                                                                \
+    const uint32_t rs_histogram_offset = RS_HISTOGRAM_OFFSET(pass_);                               \
+                                                                                                   \
+    RS_BUFREF_DEFINE_AT_OFFSET_UINT32(buffer_rs_histograms,                                        \
+                                      rs_histograms,                                               \
+                                      push.devaddr_histograms,                                     \
+                                      rs_histogram_offset);                                        \
+                                                                                                   \
+    rs_histogram_global_store(rs_histograms);                                                      \
+  }                                                                                                \
+                                                                                                   \
+  if (push.passes == (RS_KEYVAL_SIZE - pass_))                                                     \
+    return;
+
+#else  // NO SHARED MEMORY
+
+#define RS_HISTOGRAM_PASS(pass_)                                                                   \
+  {                                                                                                \
+    const uint32_t rs_histogram_base = RS_HISTOGRAM_BASE(pass_);                                   \
+                                                                                                   \
+    RS_BUFREF_DEFINE_AT_OFFSET_UINT32(buffer_rs_histograms,                                        \
+                                      rs_histograms,                                               \
+                                      push.devaddr_histograms,                                     \
+                                      rs_histogram_base);                                          \
+                                                                                                   \
+    [[unroll]] for (RS_SUBGROUP_UNIFORM uint32_t jj = 0; jj < RS_HISTOGRAM_BLOCK_ROWS; jj++)       \
+    {                                                                                              \
+      const uint32_t digit = RS_KV_EXTRACT_DIGIT(kv[jj], pass_);                                   \
+                                                                                                   \
+      atomicAdd(rs_histograms.extent[digit], 1);                                                   \
+    }                                                                                              \
+  }                                                                                                \
+                                                                                                   \
+  if (push.passes == (RS_KEYVAL_SIZE - pass_))                                                     \
+    return;
+
+#endif
+
+#if (RS_KEYVAL_DWORDS == 1)
+
+  RS_HISTOGRAM_PASS(3)
+  RS_HISTOGRAM_PASS(2)
+  RS_HISTOGRAM_PASS(1)
+  RS_HISTOGRAM_PASS(0)
+
+#elif (RS_KEYVAL_DWORDS == 2)
+
+  RS_HISTOGRAM_PASS(7)
+  RS_HISTOGRAM_PASS(6)
+  RS_HISTOGRAM_PASS(5)
+  RS_HISTOGRAM_PASS(4)
+  RS_HISTOGRAM_PASS(3)
+  RS_HISTOGRAM_PASS(2)
+  RS_HISTOGRAM_PASS(1)
+  RS_HISTOGRAM_PASS(0)
+
+#else
+#error "Error: (RS_KEYVAL_DWORDS >= 3) not implemented."
+#endif
+}
+
+//
+//
+//

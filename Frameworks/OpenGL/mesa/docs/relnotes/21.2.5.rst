@@ -1,0 +1,138 @@
+Mesa 21.2.5 Release Notes / 2021-10-28
+======================================
+
+Mesa 21.2.5 is a bug fix release which fixes bugs found since the 21.2.4 release.
+
+Mesa 21.2.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.2.5 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+   8e49585fb760d973723dab6435d0c86f7849b8305b1e6d99f475138d896bacbb  mesa-21.2.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- RADV: Resident Evil Village needs invariantgeom when NGG culling is enabled
+- [radeonsi] Euro Truck Simulator 2: broken mimimap
+- [regression][bisected] Launching Valheim OpenGL game leads to GPU Hang
+- Android Meson build regression: hardware/system information apps crash on Raspberry Pi 4
+- anv: dEQP-VK.graphicsfuzz.cov-multiple-one-iteration-loops-global-counter-write-matrices fails
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (4):
+
+- panfrost: Detect implementations support AFBC
+- panfrost,panvk: Use dev->has_afbc instead of quirks
+- panfrost: Fix gl_FragColor lowering
+- panfrost: Add internal afbc_formats
+
+Boris Brezillon (3):
+
+- vulkan: Fix weak symbol emulation when compiling with MSVC
+- vulkan: Set unused entrypoints to vk_entrypoint_stub when compiling with MSVC
+- vulkan: Fix entrypoint generation when compiling for x86 with MSVC
+
+Daniel Schürmann (1):
+
+- driconf: set vk_x11_strict_image_count for Wolfenstein: Youngblood
+
+Dylan Baker (7):
+
+- docs: add sha256 sum for 21.2.4 release
+- .pick_status.json: Update to 1c0eb7aa78bac4494dbff0c502a8c09e23a4c123
+- .pick_status.json: Update to d43f89f17a8259c842016fa559fa33c1c6279105
+- .pick_status.json: Update to be6d584de43966ee58bf1fcac156ebf8040081d1
+- .pick_status.json: Update to 39f25945311e1385a54ddd17f71f9f6023d97256
+- .pick_status.json: Update to dc74285d32df9c09eb896bc4571066402d32d10b
+- .pick_status.json: Update to 16f838576cf29e26f1af198ac93a0fb3a3cfad8f
+
+Emma Anholt (1):
+
+- radeonsi: Fix leak of screen->perfcounters.
+
+Ian Romanick (1):
+
+- nir/loop_unroll: Always unroll loops that iterate at most once
+
+Jan Beich (1):
+
+- meson: disable -Werror=thread-safety on FreeBSD
+
+Faith Ekstrand (2):
+
+- i965: Emit a NULL surface for buffer textures with no buffer
+- nir/algebraic: Lower fisfinite
+
+Karol Herbst (1):
+
+- spirv: Don't add 0.5 to array indicies for OpImageSampleExplicitLod
+
+Lionel Landwerlin (2):
+
+- isl: only bump the min row pitch for display when not specified
+- anv: fix push constant lowering with bindless shaders
+
+Maniraj D (1):
+
+- egl: set TSD as NULL after deinit
+
+Marcin Ślusarz (2):
+
+- iris: fix scratch address patching for TESS_EVAL stage
+- intel: fix INTEL_DEBUG environment variable on 32-bit systems
+
+Marek Olšák (2):
+
+- mesa: fix crashes in the no_error path of glUniform
+- st/mesa: don't crash when draw indirect buffer has no storage
+
+Mike Blumenkrantz (6):
+
+- aux/pb: add a tolerance for reclaim failure
+- aux/pb: more correctly check number of reclaims
+- zink: fully zero surface creation struct
+- zink: don't break early when applying fb clears
+- zink: fix gl_SampleMaskIn spirv generation
+- nir/lower_samplers_as_deref: rewrite more image intrinsics
+
+Mykhailo Skorokhodov (1):
+
+- iris: Add missed tile flush flag
+
+Nanley Chery (1):
+
+- iris: Tile cache flush for depth before fast clear
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- radeonsi: use viewport offset in quant_mode determination
+
+Tapani Pälli (1):
+
+- anv: use vk_object_zalloc for wsi fences created
+
+Timur Kristóf (1):
+
+- drirc: Apply radv_invariant_geom workaround to Resident Evil Village.

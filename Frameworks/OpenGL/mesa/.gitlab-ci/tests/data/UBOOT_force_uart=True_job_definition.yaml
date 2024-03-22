@@ -1,0 +1,70 @@
+job_name: 'test-project: my_pipeline_info'
+device_type: my_uboot_device_type
+visibility:
+  group:
+  - my_visibility_group
+priority: 75
+context:
+  extra_nfsroot_args: ' init=/init rootwait usbcore.quirks=0bda:8153:k'
+timeouts:
+  job:
+    minutes: 10
+  actions:
+    depthcharge-retry:
+      minutes: 4
+    depthcharge-start:
+      minutes: 1
+    depthcharge-action:
+      minutes: 15
+actions:
+- deploy:
+    timeout:
+      minutes: 5
+    to: tftp
+    os: oe
+    kernel:
+      url: None/None
+    nfsrootfs:
+      url: None/lava-rootfs.tar.zst
+      compression: zstd
+    dtb:
+      url: None/my_dtb_filename.dtb
+- boot:
+    failure_retry: 3
+    method: u-boot
+    prompts:
+    - 'lava-shell:'
+    commands: nfs
+- test:
+    timeout:
+      minutes: 10
+    failure_retry: 1
+    definitions:
+    - name: mesa
+      from: inline
+      lava-signal: kmsg
+      path: inline/mesa.yaml
+      repository:
+        metadata:
+          name: mesa
+          description: Mesa test plan
+          os:
+          - oe
+          scope:
+          - functional
+          format: Lava-Test Test Definition 1.0
+        run:
+          steps:
+          - echo test UBOOT
+          - set -ex
+          - curl -L --retry 4 -f --retry-all-errors --retry-delay 60 None | tar -xz
+            -C /
+          - mkdir -p /ci/project/dir
+          - curl -L --retry 4 -f --retry-all-errors --retry-delay 60 None | tar --zstd
+            -x -C /ci/project/dir
+          - echo Could not find jwt file, disabling S3 requests...
+          - sed -i '/S3_RESULTS_UPLOAD/d' /set-job-env-vars.sh
+          - mkdir -p /ci/project/dir
+          - curl None | tar --zstd -x -C /ci/project/dir
+          - sleep 1
+          - lava-test-case 'test-project_dut' --shell /init-stage2.sh

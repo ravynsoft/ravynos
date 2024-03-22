@@ -1,0 +1,269 @@
+Mesa 10.4 Release Notes / December 14, 2014
+===========================================
+
+Mesa 10.4 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 10.4.1.
+
+Mesa 10.4 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   abfbfd2d91ce81491c5bb6923ae649212ad5f82d0bee277de8704cc948dc221e  MesaLib-10.4.0.tar.gz
+   98a7dff3a1a6708c79789de8b9a05d8042e867067f70e8f30387c15026233219  MesaLib-10.4.0.tar.bz2
+   443a6d46d0691b5ac811d8d30091b1716c365689b16d49c57cf273c2b76086fe  MesaLib-10.4.0.zip
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ARB_conditional_render_inverted on nv50
+-  GL_ARB_sample_shading on r600
+-  GL_ARB_texture_view on nv50, nvc0
+-  GL_ARB_clip_control on nv50, nvc0, r300, r600, radeonsi, llvmpipe,
+   softpipe
+-  GL_KHR_context_flush_control on all drivers
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 79963 <https://bugs.freedesktop.org/show_bug.cgi?id=79963>`__ -
+   [ILK Bisected]some piglit and ogles2conform cases fail
+-  `Bug 29661 <https://bugs.freedesktop.org/show_bug.cgi?id=29661>`__ -
+   MSVC built u_format_test fails on Windows
+-  `Bug 38873 <https://bugs.freedesktop.org/show_bug.cgi?id=38873>`__ -
+   [855gm] gnome-shell misrendered
+-  `Bug 54372 <https://bugs.freedesktop.org/show_bug.cgi?id=54372>`__ -
+   GLX_INTEL_swap_event crashes driver when swapping window buffers
+-  `Bug 60879 <https://bugs.freedesktop.org/show_bug.cgi?id=60879>`__ -
+   [radeonsi] X11 can't start with acceleration enabled
+-  `Bug 61415 <https://bugs.freedesktop.org/show_bug.cgi?id=61415>`__ -
+   Clover ignores --with-opencl-libdir path
+-  `Bug 64471 <https://bugs.freedesktop.org/show_bug.cgi?id=64471>`__ -
+   Radeon HD6570 lockup in Brütal Legend with HyperZ
+-  `Bug 66184 <https://bugs.freedesktop.org/show_bug.cgi?id=66184>`__ -
+   src/mesa/state_tracker/st_glsl_to_tgsi.cpp:3216:simplify_cmp:
+   Assertion \`inst->dst.index < 4096' failed.
+-  `Bug 67672 <https://bugs.freedesktop.org/show_bug.cgi?id=67672>`__ -
+   [llvmpipe] lp_test_arit fails on old CPUs
+-  `Bug 69200 <https://bugs.freedesktop.org/show_bug.cgi?id=69200>`__ -
+   [Bisected]Piglit glx/glx-multithread-shader-compile aborted
+-  `Bug 70410 <https://bugs.freedesktop.org/show_bug.cgi?id=70410>`__ -
+   egl-static/Makefile: linking fails with llvm >= 3.4
+-  `Bug 72685 <https://bugs.freedesktop.org/show_bug.cgi?id=72685>`__ -
+   [radeonsi hyperz] Artifacts in Unigine Sanctuary
+-  `Bug 72819 <https://bugs.freedesktop.org/show_bug.cgi?id=72819>`__ -
+   [855GM] Incorrect drop shadow color on windows and strange white
+   rectangle when showing/hiding GLX-dock...
+-  `Bug 74563 <https://bugs.freedesktop.org/show_bug.cgi?id=74563>`__ -
+   Surfaceless contexts are not properly released by DRI drivers
+-  `Bug 74863 <https://bugs.freedesktop.org/show_bug.cgi?id=74863>`__ -
+   [r600g] HyperZ broken on RV770 and CYPRESS (Left 4 Dead 2 trees
+   corruption) bisected!
+-  `Bug 75011 <https://bugs.freedesktop.org/show_bug.cgi?id=75011>`__ -
+   [hyperz] Performance drop since git-01e6371 (disable hyperz by
+   default) with radeonsi
+-  `Bug 75112 <https://bugs.freedesktop.org/show_bug.cgi?id=75112>`__ -
+   Meta Bug for HyperZ issues on r600g and radeonsi
+-  `Bug 76252 <https://bugs.freedesktop.org/show_bug.cgi?id=76252>`__ -
+   Dynamic loading/unloading of opengl32.dll results in a deadlock
+-  `Bug 76861 <https://bugs.freedesktop.org/show_bug.cgi?id=76861>`__ -
+   mid3 generates slow code for constant arguments
+-  `Bug 77957 <https://bugs.freedesktop.org/show_bug.cgi?id=77957>`__ -
+   Variably-indexed constant arrays result in terrible shader code
+-  `Bug 78468 <https://bugs.freedesktop.org/show_bug.cgi?id=78468>`__ -
+   Compiling of shader gets stuck in infinite loop
+-  `Bug 78770 <https://bugs.freedesktop.org/show_bug.cgi?id=78770>`__ -
+   [SNB bisected]Webglc conformance/textures/texture-size-limit.html
+   fails
+-  `Bug 79155 <https://bugs.freedesktop.org/show_bug.cgi?id=79155>`__ -
+   [Tesseract Game] Global Illumination: Medium Causes Color Distortion
+-  `Bug 79462 <https://bugs.freedesktop.org/show_bug.cgi?id=79462>`__ -
+   [NVC0/Codegen] Shader compilation falis in spill logic
+-  `Bug 80011 <https://bugs.freedesktop.org/show_bug.cgi?id=80011>`__ -
+   [softpipe] tgsi/tgsi_exec.c:2023:exec_txf: Assertion \`0' failed.
+-  `Bug 80012 <https://bugs.freedesktop.org/show_bug.cgi?id=80012>`__ -
+   [softpipe] draw/draw_gs.c:113:tgsi_fetch_gs_outputs: Assertion
+   \`!util_is_inf_or_nan(output[slot][0])' failed.
+-  `Bug 80050 <https://bugs.freedesktop.org/show_bug.cgi?id=80050>`__ -
+   [855GM] Incorrect drop shadow color under windows in Cinnamon
+   persists with MESA 10.1.
+-  `Bug 80247 <https://bugs.freedesktop.org/show_bug.cgi?id=80247>`__ -
+   Khronos conformance test
+   ES3-CTS.gtf.GL3Tests.transform_feedback.transform_feedback_vertex_id
+   fails
+-  `Bug 80561 <https://bugs.freedesktop.org/show_bug.cgi?id=80561>`__ -
+   Incorrect implementation of some VDPAU APIs.
+-  `Bug 80615 <https://bugs.freedesktop.org/show_bug.cgi?id=80615>`__ -
+   Files in bellagio directory [omx tracker] don't respect installation
+   folder
+-  `Bug 80848 <https://bugs.freedesktop.org/show_bug.cgi?id=80848>`__ -
+   [dri3] Building mesa fails with dri3 enabled
+-  `Bug 81680 <https://bugs.freedesktop.org/show_bug.cgi?id=81680>`__ -
+   [r600g] Firefox crashes with hardware acceleration turned on
+-  `Bug 82255 <https://bugs.freedesktop.org/show_bug.cgi?id=82255>`__ -
+   [VP2] Chroma planes are vertically stretched during VDPAU playback
+-  `Bug 82472 <https://bugs.freedesktop.org/show_bug.cgi?id=82472>`__ -
+   piglit 16385-consecutive-chars regression
+-  `Bug 82537 <https://bugs.freedesktop.org/show_bug.cgi?id=82537>`__ -
+   Stunt Rally GLSL compiler assertion failure
+-  `Bug 82538 <https://bugs.freedesktop.org/show_bug.cgi?id=82538>`__ -
+   Super Maryo Chronicles fails with st/mesa assertion failure
+-  `Bug 82539 <https://bugs.freedesktop.org/show_bug.cgi?id=82539>`__ -
+   vmw_screen_dri.lo In file included from vmw_screen_dri.c:41:
+   vmwgfx_drm.h:32:17: error: drm.h: No such file or directory
+-  `Bug 82796 <https://bugs.freedesktop.org/show_bug.cgi?id=82796>`__ -
+   [IVB/BYT-M/HSW/BDW
+   Bisected]Synmark2_v6.0_OglTerrainFlyInst/OglTerrainPanInst cannot run
+   as image validation failed
+-  `Bug 82804 <https://bugs.freedesktop.org/show_bug.cgi?id=82804>`__ -
+   unreal engine 4 rendering errors
+-  `Bug 82828 <https://bugs.freedesktop.org/show_bug.cgi?id=82828>`__ -
+   Regression: Crash in 3Dmark2001
+-  `Bug 82846 <https://bugs.freedesktop.org/show_bug.cgi?id=82846>`__ -
+   [BDW Bisected] Gpu hang when running Lightsmark v2008/Warsow
+   v1.0/Xonotic v0.7/unigine-demos
+-  `Bug 82881 <https://bugs.freedesktop.org/show_bug.cgi?id=82881>`__ -
+   test_vec4_register_coalesce regression
+-  `Bug 82882 <https://bugs.freedesktop.org/show_bug.cgi?id=82882>`__ -
+   [swrast] piglit glsl-fs-uniform-bool-1 regression
+-  `Bug 82921 <https://bugs.freedesktop.org/show_bug.cgi?id=82921>`__ -
+   layout(location=0) emits error >= MAX_UNIFORM_LOCATIONS due to
+   integer underflow
+-  `Bug 82929 <https://bugs.freedesktop.org/show_bug.cgi?id=82929>`__ -
+   [BDW Bisected]glxgears causes X hang
+-  `Bug 82932 <https://bugs.freedesktop.org/show_bug.cgi?id=82932>`__ -
+   [SNB+ Bisected]Ogles3conform
+   ES3-CTS.shaders.indexing.vector_subscript.vec3_static_loop_subscript_write_direct_read_vertex
+   fails
+-  `Bug 83079 <https://bugs.freedesktop.org/show_bug.cgi?id=83079>`__ -
+   [NVC0] Dota 2 (Linux native and Wine) crash with Nouveau Drivers
+-  `Bug 83080 <https://bugs.freedesktop.org/show_bug.cgi?id=83080>`__ -
+   [SNB+
+   Bisected]ES3-CTS.shaders.loops.do_while_constant_iterations.mixed_break_continue_fragment
+   fails
+-  `Bug 83081 <https://bugs.freedesktop.org/show_bug.cgi?id=83081>`__ -
+   [BDW Bisected]Piglit spec_ARB_sample_shading_builtin-gl-sample-mask_2
+   is core dumped
+-  `Bug 83127 <https://bugs.freedesktop.org/show_bug.cgi?id=83127>`__ -
+   [ILK Bisected]Piglit glean_texCombine fails
+-  `Bug 83148 <https://bugs.freedesktop.org/show_bug.cgi?id=83148>`__ -
+   Unity invisible under Ubuntu 14.04 and 14.10
+-  `Bug 83355 <https://bugs.freedesktop.org/show_bug.cgi?id=83355>`__ -
+   FTBFS: src/mesa/program/program_lexer.l:122:64: error: unknown type
+   name 'YYSTYPE'
+-  `Bug 83380 <https://bugs.freedesktop.org/show_bug.cgi?id=83380>`__ -
+   Linking fails when not writing gl_Position.
+-  `Bug 83418 <https://bugs.freedesktop.org/show_bug.cgi?id=83418>`__ -
+   EU IV is incorrectly rendered after git1409011930.d571f2
+-  `Bug 83432 <https://bugs.freedesktop.org/show_bug.cgi?id=83432>`__ -
+   r600_query.c:269:r600_emit_query_end: Assertion
+   \`ctx->num_pipelinestat_queries > 0' failed [Gallium HUD]
+-  `Bug 83463 <https://bugs.freedesktop.org/show_bug.cgi?id=83463>`__ -
+   [swrast] piglit glsl-vs-clamp-1 regression
+-  `Bug 83468 <https://bugs.freedesktop.org/show_bug.cgi?id=83468>`__ -
+   [UBO] Using bool from UBO as if-statement condition asserts
+-  `Bug 83500 <https://bugs.freedesktop.org/show_bug.cgi?id=83500>`__ -
+   si_dma_copy_tile causes GPU hangs
+-  `Bug 83506 <https://bugs.freedesktop.org/show_bug.cgi?id=83506>`__ -
+   [UBO] row_major layout ignored inside structures
+-  `Bug 83533 <https://bugs.freedesktop.org/show_bug.cgi?id=83533>`__ -
+   [UBO] nested structures don't get appropriate padding
+-  `Bug 83573 <https://bugs.freedesktop.org/show_bug.cgi?id=83573>`__ -
+   [swrast] piglit fs-op-not-bool-using-if regression
+-  `Bug 83574 <https://bugs.freedesktop.org/show_bug.cgi?id=83574>`__ -
+   [llvmpipe] [softpipe] piglit
+   arb_explicit_uniform_location-use-of-unused-loc regression
+-  `Bug 83741 <https://bugs.freedesktop.org/show_bug.cgi?id=83741>`__ -
+   [UBO] row_major layout partially ignored for arrays of structures
+-  `Bug 83777 <https://bugs.freedesktop.org/show_bug.cgi?id=83777>`__ -
+   [regression] ilo fails to build
+-  `Bug 83934 <https://bugs.freedesktop.org/show_bug.cgi?id=83934>`__ -
+   Structures must have same name to be considered same type.
+-  `Bug 84140 <https://bugs.freedesktop.org/show_bug.cgi?id=84140>`__ -
+   mplayer crashes playing some files using vdpau output
+-  `Bug 84145 <https://bugs.freedesktop.org/show_bug.cgi?id=84145>`__ -
+   UE4: Realistic Rendering Demo render blue
+-  `Bug 84178 <https://bugs.freedesktop.org/show_bug.cgi?id=84178>`__ -
+   Big glamor regression in Xorg server 1.6.99.1 GIT: x11perf 1.5 Test:
+   PutImage XY 500x500 Square
+-  `Bug 84355 <https://bugs.freedesktop.org/show_bug.cgi?id=84355>`__ -
+   texture2DProjLod and textureCubeLod are not supported when using
+   GLES.
+-  `Bug 84529 <https://bugs.freedesktop.org/show_bug.cgi?id=84529>`__ -
+   [IVB bisected] glean fragProg1 CMP test failed
+-  `Bug 84538 <https://bugs.freedesktop.org/show_bug.cgi?id=84538>`__ -
+   lp_test_format.c:226:4: error: too few arguments to function
+   ‘gallivm_create’
+-  `Bug 84539 <https://bugs.freedesktop.org/show_bug.cgi?id=84539>`__ -
+   brw_fs_register_coalesce.cpp:183: bool
+   fs_visitor::register_coalesce(): Assertion \`src_size <= 11' failed.
+-  `Bug 84557 <https://bugs.freedesktop.org/show_bug.cgi?id=84557>`__ -
+   [HSW] "Emit ELSE/ENDIF JIP with type D on Gen 7" causes Atomic
+   Afterlife and GPU hangs
+-  `Bug 84651 <https://bugs.freedesktop.org/show_bug.cgi?id=84651>`__ -
+   Distorted graphics or black window when running Battle.net app on
+   Intel hardware via wine
+-  `Bug 84662 <https://bugs.freedesktop.org/show_bug.cgi?id=84662>`__ -
+   Long pauses with Unreal demo Elemental on R9270X since : Always flush
+   the HDP cache before submitting a CS to the GPU
+-  `Bug 84777 <https://bugs.freedesktop.org/show_bug.cgi?id=84777>`__ -
+   [BSW]Piglit spec_glsl-1.50_execution_geometry-basic fails
+-  `Bug 84807 <https://bugs.freedesktop.org/show_bug.cgi?id=84807>`__ -
+   Build issue starting between bf4aecfb2acc8d0dc815105d2f36eccbc97c284b
+   and a3e9582f09249ad27716ba82c7dfcee685b65d51
+-  `Bug 85189 <https://bugs.freedesktop.org/show_bug.cgi?id=85189>`__ -
+   llvm/invocation.cpp: In function 'void
+   {anonymous}::optimize(llvm::Module*, unsigned int, const
+   std::vector<llvm::Function*>&)': llvm/invocation.cpp:324:18: error:
+   expected type-specifier
+-  `Bug 85267 <https://bugs.freedesktop.org/show_bug.cgi?id=85267>`__ -
+   vlc crashes with vdpau (Radeon 3850HD) [r600]
+-  `Bug 85377 <https://bugs.freedesktop.org/show_bug.cgi?id=85377>`__ -
+   lp_test_format failure with llvm-3.6
+-  `Bug 85425 <https://bugs.freedesktop.org/show_bug.cgi?id=85425>`__ -
+   [bisected] Compiler error in clip control operations in meta
+-  `Bug 85429 <https://bugs.freedesktop.org/show_bug.cgi?id=85429>`__ -
+   indirect.c:296: multiple definition of \`__indirect_glNewList'
+-  `Bug 85454 <https://bugs.freedesktop.org/show_bug.cgi?id=85454>`__ -
+   Unigine Sanctuary with Wine crashes on Mesa Git
+-  `Bug 85647 <https://bugs.freedesktop.org/show_bug.cgi?id=85647>`__ -
+   Random radeonsi crashes with mesa 10.3.x
+-  `Bug 85683 <https://bugs.freedesktop.org/show_bug.cgi?id=85683>`__ -
+   [i965 Bisected]Piglit shaders_glsl-vs-raytrace-bug26691 segfault
+-  `Bug 85691 <https://bugs.freedesktop.org/show_bug.cgi?id=85691>`__ -
+   'glsl: Drop constant 0.0 components from dot products.' broke piglit
+   shaders/glsl-gnome-shell-dim-window and a few others with Gallium
+-  `Bug 86025 <https://bugs.freedesktop.org/show_bug.cgi?id=86025>`__ -
+   src\glsl\list.h(535) : error C2143: syntax error : missing ';' before
+   'type'
+-  `Bug 86089 <https://bugs.freedesktop.org/show_bug.cgi?id=86089>`__ -
+   [r600g][mesa 10.4.0-dev] shader failure -
+   r600_sb::bc_finalizer::cf_peephole() when starting Second Life
+-  `Bug 86145 <https://bugs.freedesktop.org/show_bug.cgi?id=86145>`__ -
+   Pipeline statistic counter values for VF always 0
+-  `Bug 86618 <https://bugs.freedesktop.org/show_bug.cgi?id=86618>`__ -
+   [NV96] neg modifiers not working in MIN and MAX operations
+-  `Bug 86760 <https://bugs.freedesktop.org/show_bug.cgi?id=86760>`__ -
+   mesa doesn't build: recipe for target 'r600_llvm.lo' failed
+-  `Bug 86764 <https://bugs.freedesktop.org/show_bug.cgi?id=86764>`__ -
+   [SNB+ Bisected]Piglit glean/pointSprite fails
+-  `Bug 86788 <https://bugs.freedesktop.org/show_bug.cgi?id=86788>`__ -
+   (bisected) 32bit UrbanTerror 4.1 timedemo sse4.1 segfault...
+
+Changes
+-------
+
+-  The environment variable GALLIUM_MSAA that forced a multisample GLX
+   visual was removed.

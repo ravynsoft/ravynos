@@ -1,0 +1,72 @@
+/**********************************************************
+ * Copyright 2009-2011 VMware, Inc. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ *********************************************************
+ * Authors:
+ * Zack Rusin <zackr-at-vmware-dot-com>
+ * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+ */
+
+The XA gallium frontend is intended as a versioned interface to gallium for
+xorg driver writers. Initially it's mostly based on Zack Rusin's
+composite / video work for the Xorg gallium frontend.
+
+The motivation behind this gallium frontend is that the Xorg gallium frontend has
+a number of interfaces to work with:
+
+1) The Xorg sdk (versioned)
+2) Gallium3D (not versioned)
+3) KMS modesetting (versioned)
+4) Driver-private (hopefully versioned)
+
+Since Gallium3D is not versioned, the Xorg gallium frontend needs to be compiled
+with Gallium, but it's really beneficial to be able to compile xorg drivers
+standalone.
+
+Therefore the xa gallium frontend is intended to supply the following
+functionality:
+
+1) Versioning.
+2) Surface functionality (creation and copying for a basic dri2 implementation)
+3) YUV blits for textured Xv.
+4) Solid fills without ROP functionality.
+5) Copies with format conversion and - reinterpretation but without ROP
+6) Xrender- type compositing for general acceleration.
+
+
+The first user will be the vmwgfx xorg driver. When there are more users,
+we need to be able to load the appropriate gallium pipe driver, and we
+should investigate sharing the loadig mechanism with the EGL gallium frontend.
+
+IMPORTANT:
+Version compatibilities:
+While this library remains OUTSIDE any mesa release branch,
+and the major version number is still 0. Any minor bump should be viewed as
+an incompatibility event, and any user of this library should test for that
+and refuse to use the library if minor versions differ.
+As soon as the library enters a mesa release branch, if not earlier, major
+will be bumped to 1, and normal incompatibility rules (major bump)
+will be followed.
+It is allowed to add function interfaces while only bumping minor. Any
+user that uses these function interfaces must therefore use lazy symbol
+lookups and test minor for compatibility before using such a function.

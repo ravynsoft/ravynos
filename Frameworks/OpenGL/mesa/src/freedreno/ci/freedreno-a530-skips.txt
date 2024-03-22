@@ -1,0 +1,108 @@
+# Note: skips lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# Intermittent timeouts in CI (~1/month)
+dEQP-GLES3.functional.shaders.builtin_functions.precision.cosh.mediump_fragment.vec3
+dEQP-GLES3.functional.shaders.builtin_functions.precision.faceforward.lowp_fragment.vec4
+dEQP-GLES3.functional.shaders.builtin_functions.precision.sinh.mediump_vertex.vec3
+dEQP-GLES3.functional.shaders.builtin_functions.precision.tanh.highp_fragment.vec3
+dEQP-GLES31.functional.shaders.builtin_functions.precision.distance.lowp_compute.vec4
+dEQP-GLES31.functional.shaders.builtin_functions.precision.pow.highp_compute.vec3
+dEQP-GLES31.functional.shaders.builtin_functions.precision.sqrt.highp_compute.vec3
+dEQP-GLES31.functional.shaders.builtin_functions.precision.tanh.lowp_compute.vec3
+
+# Takes more than a few minutes, time is spent in batch_draw_tracking().
+KHR-GLES31.core.shader_image_load_store.basic-allFormats-store-fs
+
+# Intermittent timeouts
+spec@ext_texture_lod_bias@lodbias
+spec@!opengl 1.0@gl-1.0-blend-func
+
+# Skip over a bunch of extensions since we don't have extension fast skipping yet.
+spec@glsl-1.50
+spec@glsl-4.*
+spec@arb_gpu_shader5
+spec@arb_gpu_shader_fp64
+spec@arb_gpu_shader_int64
+spec@arb_tessellation_shader
+
+# Skip flaky piglit MSAA, which is well covered by our xfails in dEQP
+arb_texture_multisample
+ext_framebuffer_multisample
+
+# 1.5 minutes
+spec@!opengl 1.2@tex3d-maxsize
+
+# ~1 minute
+glx@glx-multithread-texture
+spec@!opengl 1.1@draw-sync
+spec@arb_uniform_buffer_object@execution@shared-struct-array-array-array-struct
+spec@arb_uniform_buffer_object@execution@std140-struct-array-array-array-struct
+spec@arb_uniform_buffer_object@execution@std140-array-struct-array-struct
+
+# This one seems to be triggering faults and causing random other fails
+# depending on what else was running at the time:
+spec@arb_texture_cube_map_array@texsubimage cube_map_array
+spec@arb_pixel_buffer_object@texsubimage cube_map_array pbo
+
+# Causes faults that need the HUPCF fix to actually work to avoid killing the
+# run.
+spec@glsl-1.30@execution@texelfetch fs sampler3d 98x1x9-98x129x9
+
+# If we let these tests run in parallel with other piglit tests, we end up
+# intermittent GL_OUT_OF_MEMORY errors in innocent tests.
+arb_texture_buffer_object@max-size
+fbo-maxsize
+max-texture-size
+copypixels-draw-sync
+
+# multiple succ/fail
+KHR-GLES31.core.pixelstoragemodes.teximage2d.*
+KHR-GLES31.core.pixelstoragemodes.teximage3d.*
+
+# Hangchecks (copied from a307-skips, first hang matches)
+tex-miplevel-selection
+spec@arb_direct_state_access@transformfeedback-bufferrange
+spec@arb_direct_state_access@transformfeedback-bufferbase
+spec@arb_uniform_buffer_object@rendering-array
+spec@arb_uniform_buffer_object@rendering-array-offset
+spec@arb_point_sprite@arb_point_sprite-interactions
+gles-3.0-transform-feedback-uniform-buffer-object
+
+# additional hangs
+shaders@glsl-uniform-interstage-limits
+spec@arb_color_buffer_float.*
+spec@arb_texture_gather@texturegather.*
+# offending task: copypixels-sync (/piglit/bin/copypixels-sync -auto -fbo)
+spec@!opengl 1.1@copypixels-sync
+# offending task: teximage-colors (/piglit/bin/teximage-colors GL_SRGB8_ALPHA8 -auto -fbo)
+spec@!opengl 1.1@teximage-colors.*
+# offending task: texsubimage (/piglit/bin/texsubimage array pbo -auto -fbo)
+.*texsubimage.*
+# offending task: texelFetch (/piglit/bin/texelFetch fs sampler1DArray 1x71-501x71 -auto -fbo
+spec@ext_gpu_shader4@execution@texelfetch.*
+
+# offending task: texwrap (/piglit/bin/texwrap GL_EXT_texture_integer bordercolor swizzled -auto -fbo)
+#                 texwrap (/piglit/bin/texwrap GL_ARB_texture_float -auto -fbo)
+.*texwrap.*
+
+# offending task: shader_runner (/piglit/bin/shader_runner generated_tests/spec/arb_uniform_buffer_object/execution/shared-array-struct-array-struct.shader_test -auto -fbo)
+shared-array-struct-array-struct
+
+# msm_mdp 901000.display-controller: [drm:a5xx_irq] *ERROR* gpu fault ring 2 fence 8a28 status C5C801C3 rb 004a/004a ib1 0000000002081000/0000 ib2 0000000002091000/0000
+arb_uniform_buffer_object/execution/std140-array-struct-array-struct
+
+# offending task: fbo-clear-forma (/piglit/bin/fbo-clear-formats GL_ARB_depth_buffer_float -auto -fbo
+spec@arb_depth_buffer_float@fbo-clear-formats.*
+# offending task: attribs (/piglit/bin/attribs GL_ARB_vertex_type_2_10_10_10_rev -auto -fbo)
+spec@arb_vertex_type_2_10_10_10_rev@attribs.*
+# offending task: texelFetch (/piglit/bin/texelFetch fs sampler1D 1-513 -auto -fbo)
+spec@glsl-1.30@execution@texelfetch.*
+
+# offending task: glx-visuals-ste (/piglit/bin/glx-visuals-stencil -auto)
+glx@glx-visuals-stencil.*
+
+# Faults in a way that makes other tests flaky
+# msm_mdp 901000.display-controller: [drm:a5xx_irq] *ERROR* gpu fault ring 2 fence bc846 status 800001C1 rb 004a/004a ib1 000000000634F000/0000 ib2 000000000AA27000/0000
+KHR-GLES31.core.texture_buffer.texture_buffer_atomic_functions

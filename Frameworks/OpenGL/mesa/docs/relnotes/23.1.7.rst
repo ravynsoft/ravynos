@@ -1,0 +1,223 @@
+Mesa 23.1.7 Release Notes / 2023-09-06
+======================================
+
+Mesa 23.1.7 is a bug fix release which fixes bugs found since the 23.1.6 release.
+
+Mesa 23.1.7 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.7 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    409641eadf0ed1c7794797a6f5a0b0195b5580b282166e5ec5629c6bcda6acd3  mesa-23.1.7.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [Google][Rex][anv] GLES dEQP test fails in anv when run via ANGLE-on-Venus on ChromeOS ARCVM.
+- VAAPI on VCN: bad stream may crash whole gfx system
+- VAAPI: AMDGPU crash on RX 6900 XT on corrupted video
+- aco: Assertion when compiling CP2077 shader
+- anv: flakiness on tgl+ with samplemask handling
+- [RADV] Dead by Daylight memory leak (shader-related?) on 23.1.6
+- gpu hang on DG2 when running KHR-GLES31.core.texture_cube_map_array.image_op_tess*
+- KHR-GLES31.core.texture_cube_map_array.image_op_tessellation_evaluation_sh fail on GFX12+
+- radv: commit 81641b01555faa4dd1dfc7de2513ad8d63e77ab7 leaded to artifacts in Quake II RTX
+- [radv] Colors are distorted in Cyberpunk 2077 with ray tracing enabled
+- Forza Horizon 5 stuttering since mesa 23.1.4 / 9b008673 revert as a FIX
+- glCopyTexSubImage2D is very slow on Intel
+- [RADV] red and pink tinted shadows in Overwatch 2 on 7900 XTX
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- nir/passthrough_gs: Fix array size
+
+Chia-I Wu (1):
+
+- ac/surface: limit RADEON_SURF_NO_TEXTURE to color surfaces
+
+Corentin Noël (1):
+
+- virgl: Do not expose EXT_texture_mirror_clamp when using a GLES host
+
+Daniel Schürmann (1):
+
+- nir/opt_move: fix handling of if-condition
+
+David Heidelberg (1):
+
+- ci: disable Material Testers.x86_64_2020.04.08_13.38_frame799.rdc trace
+
+David Rosca (1):
+
+- Revert "radeonsi/vcn: add an exception of field case for h264 decoding"
+
+Dmitry Baryshkov (1):
+
+- tu: Pass real size of prime buffers to allocator
+
+Emma Anholt (2):
+
+- freedreno/a3-5xx: Don't try to emit ISAM for SSBO loads.
+- disk_cache: Disable the "List" test for RO disk cache.
+
+Eric Engestrom (22):
+
+- docs: add sha256sum for 23.1.6
+- .pick_status.json: Update to 9d442b459a43264c28994e65dcaacfe303feedd1
+- .pick_status.json: Mark aebe58458611e0bb585a5bce8e16c1175783f3cc as denominated
+- .pick_status.json: Update to 61dd0ff97d8d670e1b7dfea8a37e73b67a7f5ff3
+- .pick_status.json: Update to 5fa9f842b09694a91310640ae949327a74d1bcd2
+- vc4: drop duplicate .lower_ldexp
+- zink: fix format in zink_make_{image,texture}_handle_resident()
+- .pick_status.json: Mark 04ba4059b7243fb9258df12154ce1e7a01e019c8 as denominated
+- .pick_status.json: Mark fe4208ed4c9a08c7963caa287ae34e9357de68af as denominated
+- v3dv: fix VK_PIPELINE_ROBUSTNESS_{BUFFER,IMAGE}_BEHAVIOR_DEVICE_DEFAULT_EXT copy/paste typo
+- v3dv: fix copy/pasted type of \`sample`
+- v3dv: fix shader stage name in error message
+- v3d/qpu: fix type of function argument
+- .pick_status.json: Update to 939845e424da7b2433902a9954cb6b615cd06d41
+- .pick_status.json: Mark 5d19a0a19ba2ffe50a7d05fcf0ff17e0078c2d8e as denominated
+- .pick_status.json: Mark 9865e5dff49395543da4331a943ba5a03ce6a413 as denominated
+- .pick_status.json: Update to 3a949de28c42d8714320e56bd99168148503da7d
+- .pick_status.json: Mark f97e38f9cdabf6e1cfab11ebaabf193492bd403c as denominated
+- .pick_status.json: Mark fa6562b239f00f9f72c988459e252bdee072fd73 as denominated
+- .pick_status.json: Update to 318b83899056d02ee83817cf16201a128fb81443
+- .pick_status.json: Mark 83716b08cf103622829d84e673584781ee8850f6 as denominated
+- .pick_status.json: Mark 8b93fa149bfbe1ca1a59d89ec53d576aa4ede2ec as denominated
+
+Faith Ekstrand (4):
+
+- nir: Fix nir_op_mov handling in nir_collect_src_uniforms
+- nir: Handle nir_op_mov properly in opt_shrink_vectors
+- nir: Don't handle nir_op_mov in get_undef_mask in opt_undef
+- nir: Fix metadata in nir_lower_is_helper_invocation
+
+Friedrich Vock (2):
+
+- nir/load_store_vectorize: Handle intrinsics with constant base
+- radv/rt: Pre-initialize instance address
+
+Georg Lehmann (1):
+
+- aco: fix u2f16 with 32bit input
+
+Helen Koike (1):
+
+- ci/android: remove strace output from cuttlefish-runner.sh
+
+Jordan Justen (2):
+
+- intel/dev: Use RPL-U name on RPL-U devices
+- intel/dev: Add more RPL PCI IDs
+
+Karol Herbst (3):
+
+- rusticl/kernel: optimize nir between lowering io and explicit types
+- nv50: limit max code uploads to 0x8000
+- rusticl/memory: do not verify pitch for IMAGE1D_BUFFER
+
+Kenneth Graunke (1):
+
+- iris: Check prog[] instead of uncompiled[] for BLORP state skipping
+
+Leo Liu (1):
+
+- radeonsi/vcn: fix the incorrect dt_size
+
+Lionel Landwerlin (5):
+
+- intel/compiler: disable per-sample interpolation modes with non-per-sample dispatch
+- intel/compiler: fix dynamic alpha-to-coverage handling
+- intel/fs: implement dynamic interpolation mode for dynamic persample shaders
+- anv: add missing ISL storage usage
+- intel/nir: rerun lower_tex if it lowers something
+
+Marek Vasut (1):
+
+- etnaviv: Fully replicate back stencil config
+
+Matt Turner (1):
+
+- Revert "intel/fs: only avoid SIMD32 if strictly inferior in throughput"
+
+Mike Blumenkrantz (3):
+
+- vk/graphics: fix CWE handling with DS3
+- zink: wait on async fence during ctx program removal
+- zink: don't start multiple cache jobs for the same program
+
+Paul Gofman (1):
+
+- driconf: add a workaround for Rainbow Six Extraction
+
+Rhys Perry (5):
+
+- radv: disable 64-bit color attachments
+- radv: fix 128bpp comp-to-single clears
+- aco: fix p_bpermute_gfx6 with input at non-zero byte
+- aco/spill: skip p_branch in process_block
+- aco/spill: add all live-in to merge block spill candidates
+
+Rohan Garg (3):
+
+- crocus: fix GFX_VERx10 macro
+- blorp: drop undefined macro
+- iris: migrate preemption streamwout wa to WA infra
+
+Samuel Pitoiset (2):
+
+- Revert "radv/amdgpu: workaround a kernel bug when replacing sparse mappings"
+- Revert "radv/amdgpu: skip adding per VM BOs for sparse during CS BO list build"
+
+Sviatoslav Peleshko (2):
+
+- dri: Use RGB internal formats for RGBX formats
+- intel/isl: Don't over-allocate CLEAR_COLOR size to use whole cache line
+
+Tapani Pälli (1):
+
+- mesa: fix some TexParameter and SamplerParameter cases
+
+Tatsuyuki Ishi (1):
+
+- radv/amdgpu: Do not pass in a BO handle when clearing PRT VA region.
+
+Timothy Arceri (1):
+
+- util: add radeonsi workaround for Nowhere Patrol
+
+Timur Kristóf (5):
+
+- ac/nir: Add done arg to ac_nir_export_position.
+- ac/nir: Slightly refactor how pos0 exports are added when missing.
+- ac/nir/ngg: Wait for attribute stores before VS/TES/GS pos0 export.
+- ac/nir/ngg: Refactor mesh shader primitive export.
+- ac/nir/ngg: Wait for attribute ring stores in mesh shaders.
+
+antonino (3):
+
+- vulkan/wsi: add \`vk_wsi_force_swapchain_to_current_extent` driconf
+- drirc: enable \`vk_wsi_force_swapchain_to_current_extent` for "The Talos Principle"
+- drirc: enable \`vk_wsi_force_swapchain_to_current_extent` for "Serious Sam Fusion"

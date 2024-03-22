@@ -1,0 +1,182 @@
+Mesa 8.0.4 Release Notes / July 10, 2012
+========================================
+
+Mesa 8.0.4 is a bug fix release which fixes bugs found since the 8.0.2
+release.
+
+Mesa 8.0.4 implements the OpenGL 3.0 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 3.0.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   02b96082d2f1ad72e7385f4022afafb9  MesaLib-8.0.4.tar.gz
+   d546f988adfdf986cff45b1efa2d8a46  MesaLib-8.0.4.tar.bz2
+   1f0fdabe6e8019d4de6c16e20e74d163  MesaLib-8.0.4.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 45967 <https://bugs.freedesktop.org/show_bug.cgi?id=45967>`__ -
+   piglit getteximage-invalid-format-for-packed-type regression
+-  `Bug 47742 <https://bugs.freedesktop.org/show_bug.cgi?id=47742>`__ -
+   [softpipe] piglit fbo-generatemipmap-array regression
+-  `Bug 48141 <https://bugs.freedesktop.org/show_bug.cgi?id=48141>`__ -
+   [vmwgfx]
+   src/gallium/auxiliary/util/u_inlines.h:256:pipe_buffer_map_range:
+   Assertion \`offset + length <= buffer->width0' failed.
+-  `Bug 48472 <https://bugs.freedesktop.org/show_bug.cgi?id=48472>`__ -
+   GPU Lockup while running demo (rzr - the scene is dead) in wine
+-  `Bug 50033 <https://bugs.freedesktop.org/show_bug.cgi?id=50033>`__ -
+   src/mesa/state_tracker/st_cb_fbo.c:379:st_render_texture: Assertion
+   \`strb->rtt_level <= strb->texture->last_level' failed.
+-  `Bug 50621 <https://bugs.freedesktop.org/show_bug.cgi?id=50621>`__ -
+   Mesa fails its test suite with a buffer overflow.
+-  `Bug 50298 <https://bugs.freedesktop.org/show_bug.cgi?id=50298>`__ -
+   [ILK IVB bisected]Ogles2conform GL/sin/sin_float_vert_xvary.test
+   regressed
+-  `Bug 51574 <https://bugs.freedesktop.org/show_bug.cgi?id=51574>`__ -
+   ir_loop_jump constructor assigns member variable to itself
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-8.0.3..mesa-8.0.4
+
+Andreas Betz (1):
+
+-  vega: fix 565 color unpacking bug
+
+Antoine Labour (2):
+
+-  meta: Cleanup the resources we allocate.
+-  mesa: Free uniforms correclty.
+
+Brian Paul (22):
+
+-  docs: add link to 8.0.3 release notes
+-  mesa: fix Z32_FLOAT -> uint conversion functions
+-  draw: fix primitive restart bug by using the index buffer offset
+-  st/mesa: fix glDrawPixels(GL_DEPTH_COMPONENT) color output
+-  svga: fix synchronization bug between sampler views and surfaces
+-  mesa: new \_mesa_error_check_format_and_type() function
+-  mesa: add missing GL_UNSIGNED_INT_10F_11F_11F_REV case
+-  mesa: fix missing return value in getteximage_error_check()
+-  st/mesa: pass GL_MAP_INVALIDATE_RANGE_BIT to gallium drivers
+-  svga: add 0.5 in float->int conversion of sample min/max lod
+-  svga: fix min/max lod clamping
+-  svga: change PIPE_CAPF_MAX_TEXTURE_LOD_BIAS from 16.0 to 15.0
+-  st/mesa: add fallback pipe formats for (compressed) R, RG formats
+-  st/mesa: copy num_immediates field when copying the immediates array
+-  svga: move svga_texture() casts/calls in svga_surface_copy()
+-  svga: reset vertex buffer offset in svga_release_user_upl_buffers()
+-  st/mesa: don't set PIPE_BIND_DISPLAY_TARGET for user-created
+   renderbuffers
+-  st/mesa: use private pipe_sampler_view in decompress_with_blit()
+-  st/mesa: add null pointer check in st_texture_image_map()
+-  st/mesa: fix mipmap image size computation w.r.t. texture arrays
+-  draw: fix missing immediates bug in polygon stipple code
+-  st/mesa: fix max_offset computation for base vertex
+
+Christoph Bumiller (1):
+
+-  nv50: handle NEG,ABS modifiers for short RCP encoding
+
+Dylan Noblesmith (1):
+
+-  mesa: require GL_MAX_SAMPLES >= 4 for GL 3.0
+
+Eric Anholt (1):
+
+-  i965/vs: Fix texelFetchOffset()
+
+Ian Romanick (5):
+
+-  docs: Add 8.0.3 release md5sums
+-  glx/tests: Fix off-by-one error in allocating extension string buffer
+-  glsl: Remove spurious printf messages
+-  glsl: Fix pi/2 constant in acos built-in function
+-  mesa: Bump version number to 8.0.4
+
+José Fonseca (2):
+
+-  mesa: Avoid void acinclude.m4 Android.common.mk Android.mk autogen.sh
+   bin common.py configs configure.ac docs doxygen include Makefile
+   scons SConstruct src tests arithmetic.
+-  draw: Ensure that prepare is always run after LLVM garbagge
+   collection.
+
+Kenneth Graunke (15):
+
+-  mesa: Check for a negative "size" parameter in glCopyBufferSubData().
+-  i965: Fix brw_swap_cmod() for LE/GE comparisons.
+-  glsl: Remove unused ir_loop_jump::loop pointer.
+-  ralloc: Fix ralloc_parent() of memory allocated out of the NULL
+   context.
+-  mesa: Restore depth texture state on glPopAttrib(GL_TEXTURE_BIT).
+-  glsl/builtins: Fix textureGrad() for Array samplers.
+-  mesa: Unbind ARB_copy_buffer and transform feedback buffers on
+   delete.
+-  mesa: Support BindBuffer{Base,Offset,Range} with a buffer of 0.
+-  mesa: Unbind ARB_transform_feedback2 binding points on Delete too.
+-  meta: Fix GL_RENDERBUFFER binding in decompress_texture_image().
+-  i965/fs: Fix texelFetchOffset() on pre-Gen7.
+-  i965/vs: Fix texelFetchOffset() on pre-Gen7.
+-  i965/fs: Fix user-defined FS outputs with less than four components.
+-  glsl: Hook up loop_variable_state destructor to plug a memory leak.
+-  glsl: Don't trust loop analysis in the presence of function calls.
+
+Kurt Roeckx (1):
+
+-  i830: Fix crash for GL_STENCIL_TEST in i830Enable()
+
+Lukas Rössler (1):
+
+-  glu: fix two Clang warnings
+
+Marek Olšák (2):
+
+-  mesa: allow exposing GL3 without EXT_texture_integer
+-  st/mesa: don't do srgb->linear conversion in decompress_with_blit
+
+Paul Seidler (1):
+
+-  tests: include mesa headers
+
+Stéphane Marchesin (3):
+
+-  glx: Handle a null reply in QueryVersion.
+-  i915g: Don't invert signalled/unsignalled fences
+-  i915g: Don't avoid flushing when we have a pending fence.
+
+Thomas Gstädtner (1):
+
+-  gallium/targets: pass ldflags parameter to MKLIB
+
+Vadim Girlin (2):
+
+-  st/mesa: set stObj->lastLevel in guess_and_alloc_texture
+-  r600g: check gpr count limit
+
+Vinson Lee (1):
+
+-  st/mesa: Fix uninitialized members in glsl_to_tgsi_visitor
+   constructor.

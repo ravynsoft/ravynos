@@ -1,0 +1,76 @@
+Mesa 10.1.5 Release Notes / (June 6, 2014)
+==========================================
+
+Mesa 10.1.5 is a bug fix release which fixes bugs found since the 10.1.4
+release.
+
+Mesa 10.1.5 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   b0aceaa75bc9a9b2d9215a113e2ad488b5cf85c99005a7624f8cf7c37c5d0eaa  MesaLib-10.1.5.tar.gz
+   bc6c5ec7836f254a49d055a29d9aa34c97c54c038f47ad3a00fa57a5fef15bbc  MesaLib-10.1.5.tar.bz2
+   78b7255cab0af7918945452a84de7989096ebcdd27e99b31c56c0589274cbc77  MesaLib-10.1.5.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 79115 <https://bugs.freedesktop.org/show_bug.cgi?id=79115>`__ -
+-  `Bug 79421 <https://bugs.freedesktop.org/show_bug.cgi?id=79421>`__ -
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  glsl: fix use-after free bug/crash in ast_declarator_list::hir()
+
+Carl Worth (5):
+
+-  docs: Add md5sums for 10.1.4 release
+-  Merge remote-tracking branch 'origin/10.1' into 10.1
+-  cherry-ignore: Ignore two commits.
+-  Ignore a patch that is not needed for the 10.1 branch.
+-  Update version to 10.1.5
+
+Emil Velikov (1):
+
+-  glx: do not leak dri3Display
+
+Ilia Mirkin (2):
+
+-  nv50/ir: fix s32 x s32 -> high s32 multiply logic
+-  nv50/ir: fix constant folding for OP_MUL subop HIGH
+
+James Legg (1):
+
+-  mesa: Fix unbinding GL_DEPTH_STENCIL_ATTACHMENT
+
+Jeremy Huddleston Sequoia (2):
+
+-  glapi: Avoid heap corruption in \_glapi_table
+-  darwin: Fix test for kCGLPFAOpenGLProfile support at runtime
+
+Pavel Popov (2):
+
+-  i965: Properly return \*RESET\* status in glGetGraphicsResetStatusARB
+-  i965: Fix Line Stipple enable bit in 3DSTATE_SF for Haswell.
+
+Roland Scheidegger (1):
+
+-  llvmpipe: fix crash when not all attachments are populated in a fb

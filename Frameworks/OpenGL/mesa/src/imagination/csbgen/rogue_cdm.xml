@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+
+<!--
+Copyright © 2022 Imagination Technologies Ltd.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<csbgen name="ROGUE" prefix="CDMCTRL">
+
+  <define name="GUARD_SIZE_DEFAULT" value="64"/>
+
+  <enum name="BLOCK_TYPE">
+    <value name="COMPUTE_KERNEL"   value="0"/>
+    <value name="STREAM_LINK"      value="1"/>
+    <value name="STREAM_TERMINATE" value="2"/>
+  </enum>
+
+  <enum name="USC_TARGET">
+    <value name="ALL" value="0"/>
+    <value name="ANY" value="1"/>
+  </enum>
+
+  <enum name="SD_TYPE">
+    <value name="NONE" value="0"/>
+    <value name="PDS"  value="1"/>
+    <value name="USC"  value="2"/>
+  </enum>
+
+  <struct name="KERNEL0" length="1">
+    <field name="block_type" start="30" end="31" type="BLOCK_TYPE" default="COMPUTE_KERNEL"/>
+    <field name="indirect_present" start="29" end="29" type="bool"/>
+    <field name="global_offsets_present" start="28" end="28" type="bool"/>
+    <field name="event_object_present" start="27" end="27" type="bool"/>
+    <field name="usc_common_size" start="18" end="26" type="uint">
+      <define name="UNIT_SIZE" value="64"/>
+      <define name="MAX_SIZE" value="256"/>
+    </field>
+    <field name="usc_unified_size" start="12" end="17" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+    <field name="pds_temp_size" start="8" end="11" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+    <field name="pds_data_size" start="2" end="7" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+    <field name="usc_target" start="1" end="1" type="USC_TARGET"/>
+    <field name="fence" start="0" end="0" type="bool"/>
+  </struct>
+
+  <struct name="KERNEL1" length="1">
+    <field name="data_addr" start="4" end="31" shift="4" type="address"/>
+    <field name="sd_type" start="2" end="3" type="SD_TYPE"/>
+    <field name="usc_common_shared" start="1" end="1" type="bool"/>
+  </struct>
+
+  <struct name="KERNEL2" length="1">
+    <field name="code_addr" start="4" end="31" shift="4" type="address"/>
+    <field name="one_wg_per_task" start="0" end="0" type="bool"/>
+  </struct>
+
+  <struct name="KERNEL3" length="1">
+    <field name="workgroup_x" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="KERNEL4" length="1">
+    <field name="workgroup_y" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="KERNEL5" length="1">
+    <field name="workgroup_z" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="KERNEL6" length="1">
+    <field name="indirect_addrmsb" start="0" end="7" shift="32" type="address"/>
+  </struct>
+
+  <struct name="KERNEL7" length="1">
+    <field name="indirect_addrlsb" start="2" end="31" shift="2" type="address"/>
+  </struct>
+
+  <struct name="KERNEL8" length="1">
+    <field name="max_instances" start="27" end="31" type="uint">
+      <define name="MAX_SIZE" value="31"/>
+    </field>
+    <field name="workgroup_size_x" start="18" end="26" type="uint"/>
+    <field name="workgroup_size_y" start="9" end="17" type="uint"/>
+    <field name="workgroup_size_z" start="0" end="8" type="uint"/>
+  </struct>
+
+  <struct name="KERNEL9" length="1">
+    <field name="global_offset_x" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="KERNEL10" length="1">
+    <field name="global_offset_y" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="KERNEL11" length="1">
+    <field name="global_offset_z" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="STREAM_LINK0" length="1">
+    <field name="block_type" start="30" end="31" type="BLOCK_TYPE" default="STREAM_LINK"/>
+    <field name="link_addrmsb" start="0" end="7" shift="32" type="address"/>
+  </struct>
+
+  <struct name="STREAM_LINK1" length="1">
+    <field name="link_addrlsb" start="2" end="31" shift="2" type="address"/>
+  </struct>
+
+  <struct name="STREAM_TERMINATE" length="1">
+    <field name="block_type" start="30" end="31" type="BLOCK_TYPE" default="STREAM_TERMINATE"/>
+  </struct>
+
+</csbgen>

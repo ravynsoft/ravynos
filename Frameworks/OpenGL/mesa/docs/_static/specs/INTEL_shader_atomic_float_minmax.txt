@@ -1,0 +1,200 @@
+Name
+
+    INTEL_shader_atomic_float_minmax
+
+Name Strings
+
+    GL_INTEL_shader_atomic_float_minmax
+
+Contact
+
+    Ian Romanick (ian . d . romanick 'at' intel . com)
+
+Contributors
+
+
+Status
+
+    In progress
+
+Version
+
+    Last Modified Date: 06/22/2018
+    Revision: 4
+
+Number
+
+    TBD
+
+Dependencies
+
+    OpenGL 4.2, OpenGL ES 3.1, ARB_shader_storage_buffer_object, or
+    ARB_compute_shader is required.
+
+    This extension is written against version 4.60 of the OpenGL Shading
+    Language Specification.
+
+Overview
+
+    This extension provides GLSL built-in functions allowing shaders to
+    perform atomic read-modify-write operations to floating-point buffer
+    variables and shared variables.  Minimum, maximum, exchange, and
+    compare-and-swap are enabled.
+
+
+New Procedures and Functions
+
+    None.
+
+New Tokens
+
+    None.
+
+IP Status
+
+    None.
+
+Modifications to the OpenGL Shading Language Specification, Version 4.60
+
+    Including the following line in a shader can be used to control the
+    language features described in this extension:
+
+      #extension GL_INTEL_shader_atomic_float_minmax : <behavior>
+
+    where <behavior> is as specified in section 3.3.
+
+    New preprocessor #defines are added to the OpenGL Shading Language:
+
+      #define GL_INTEL_shader_atomic_float_minmax   1
+
+Additions to Chapter 8 of the OpenGL Shading Language Specification
+(Built-in Functions)
+
+    Modify Section 8.11, "Atomic Memory Functions"
+
+    (add a new row after the existing "atomicMin" table row, p. 179)
+
+        float atomicMin(inout float mem, float data)
+
+
+        Computes a new value by taking the minimum of the value of data and
+        the contents of mem.  If one of these is an IEEE signaling NaN (i.e.,
+        a NaN with the most-significant bit of the mantissa cleared), it is
+        always considered smaller.  If one of these is an IEEE quiet NaN
+        (i.e., a NaN with the most-significant bit of the mantissa set), it is
+        always considered larger.  If both are IEEE quiet NaNs or both are
+        IEEE signaling NaNs, the result of the comparison is undefined.
+
+    (add a new row after the exiting "atomicMax" table row, p. 179)
+
+        float atomicMax(inout float mem, float data)
+
+        Computes a new value by taking the maximum of the value of data and
+        the contents of mem.  If one of these is an IEEE signaling NaN (i.e.,
+        a NaN with the most-significant bit of the mantissa cleared), it is
+        always considered larger.  If one of these is an IEEE quiet NaN (i.e.,
+        a NaN with the most-significant bit of the mantissa set), it is always
+        considered smaller.  If both are IEEE quiet NaNs or both are IEEE
+        signaling NaNs, the result of the comparison is undefined.
+
+    (add to "atomicExchange" table cell, p. 180)
+
+        float atomicExchange(inout float mem, float data)
+
+    (add to "atomicCompSwap" table cell, p. 180)
+
+        float atomicCompSwap(inout float mem, float compare, float data)
+
+Interactions with OpenGL 4.6 and ARB_gl_spirv
+
+    If OpenGL 4.6 or ARB_gl_spirv is supported, then
+    SPV_INTEL_shader_atomic_float_minmax must also be supported.
+
+    The AtomicFloatMinmaxINTEL capability is available whenever the OpenGL or
+    OpenGL ES implementation supports INTEL_shader_atomic_float_minmax.
+
+Issues
+
+    1) Why call this extension INTEL_shader_atomic_float_minmax?
+
+    RESOLVED: Several other extensions already set the precedent of
+    VENDOR_shader_atomic_float and VENDOR_shader_atomic_float64 for extensions
+    that enable floating-point atomic operations.  Using that as a base for
+    the name seems logical.
+
+    There already exists NV_shader_atomic_float, but the two extensions have
+    nearly zero overlap in functionality.  NV_shader_atomic_float adds
+    atomicAdd and image atomic operations that currently shipping Intel GPUs
+    do not support.  Calling this extension INTEL_shader_atomic_float would
+    likely have been confusing.
+
+    Adding something to describe the actual functions added by this extension
+    seemed reasonable.  INTEL_shader_atomic_float_compare was considered, but
+    that name was deemed to be not properly descriptive.  Calling this
+    extension INTEL_shader_atomic_float_min_max_exchange_compswap is right
+    out.
+
+    2) What atomic operations should we support for floating-point targets?
+
+    RESOLVED.  Exchange, min, max, and compare-swap make sense, and these are
+    all supported by the hardware.  Future extensions may add other functions.
+
+    For buffer variables and shared variables it is not possible to bit-cast
+    the memory location in GLSL, so existing integer operations, such as
+    atomicOr, cannot be used.  However, the underlying hardware implementation
+    can do this by treating the memory as an integer.  It would be possible to
+    implement atomicNegate using this technique with atomicXor.  It is unclear
+    whether this provides any actual utility.
+
+    3) What should be said about the NaN behavior?
+
+    RESOLVED.  There are several aspects of NaN behavior that should be
+    documented in this extension.  However, some of this behavior varies based
+    on NaN concepts that do not exist in the GLSL specification.
+
+    * atomicCompSwap performs the comparison as the floating-point equality
+      operator (==).  That is, if either 'mem' or 'compare' is NaN, the
+      comparison result is always false.
+
+    * atomicMin and atomicMax implement the IEEE specification with respect to
+      NaN.  IEEE considers two different kinds of NaN: signaling NaN and quiet
+      NaN.  A quiet NaN has the most significant bit of the mantissa set, and
+      a signaling NaN does not.  This concept does not exist in SPIR-V,
+      Vulkan, or OpenGL.  Let qNaN denote a quiet NaN and sNaN denote a
+      signaling NaN.  atomicMin and atomicMax specifically implement
+
+      - fmin(qNaN, x) = fmin(x, qNaN) = fmax(qNaN, x) = fmax(x, qNaN) = x
+      - fmin(sNaN, x) = fmin(x, sNaN) = fmax(sNaN, x) = fmax(x, sNaN) = sNaN
+      - fmin(sNaN, qNaN) = fmin(qNaN, sNaN) = fmax(sNaN, qNaN) =
+        fmax(qNaN, sNaN) = sNaN
+      - fmin(sNaN, sNaN) = sNaN.  This specification does not define which of
+        the two arguments is stored.
+      - fmax(sNaN, sNaN) = sNaN.  This specification does not define which of
+        the two arguments is stored.
+      - fmin(qNaN, qNaN) = qNaN.  This specification does not define which of
+        the two arguments is stored.
+      - fmax(qNaN, qNaN) = qNaN.  This specification does not define which of
+        the two arguments is stored.
+
+    Further details are available in the Skylake Programmer's Reference
+    Manuals available at
+    https://01.org/linuxgraphics/documentation/hardware-specification-prms.
+
+    4) What about atomicMin and atomicMax with (+0.0, -0.0) or (-0.0, +0.0)
+    arguments?
+
+    RESOLVED.  atomicMin should store -0.0, and atomicMax should store +0.0.
+    Due to a known issue in shipping Skylake GPUs, the incorrectly signed 0 is
+    stored.  This behavior may change in later GPUs.
+
+Revision History
+
+    Rev  Date        Author    Changes
+    ---  ----------  --------  ---------------------------------------------
+      1  04/19/2018  idr       Initial version
+      2  05/05/2018  idr       Describe interactions with the capabilities
+                               added by SPV_INTEL_shader_atomic_float_minmax.
+      3  05/29/2018  idr       Remove mention of 64-bit float support.
+      4  06/22/2018  idr       Resolve issue #2.
+                               Add issue #3 (regarding NaN behavior).
+                               Add issue #4 (regarding atomicMin(-0, +0).

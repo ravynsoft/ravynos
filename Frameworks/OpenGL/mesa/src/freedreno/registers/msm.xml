@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database xmlns="http://nouveau.freedesktop.org/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://nouveau.freedesktop.org/ rules-ng.xsd">
+<import file="freedreno_copyright.xml"/>
+
+<doc>
+	Register definitions for the display related hw blocks on
+	msm/snapdragon
+</doc>
+
+<enum name="chipset">
+	<value name="MDP40"/>
+	<value name="MDP50"/>
+</enum>
+
+<import file="mdp/mdp4.xml"/>
+<import file="mdp/mdp5.xml"/>
+<import file="dsi/dsi.xml"/>
+<import file="dsi/dsi_phy_v2.xml"/>
+<import file="dsi/dsi_phy_28nm_8960.xml"/>
+<import file="dsi/dsi_phy_28nm.xml"/>
+<import file="dsi/dsi_phy_20nm.xml"/>
+<import file="dsi/dsi_phy_14nm.xml"/>
+<import file="dsi/dsi_phy_10nm.xml"/>
+<import file="dsi/dsi_phy_7nm.xml"/>
+<import file="dsi/sfpb.xml"/>
+<import file="dsi/mmss_cc.xml"/>
+<import file="hdmi/qfprom.xml"/>
+<import file="hdmi/hdmi.xml"/>
+<import file="edp/edp.xml"/>
+
+</database>

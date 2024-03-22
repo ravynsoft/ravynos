@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+<category name="GL_ARB_shading_language_include" number="76">
+   <function name="NamedStringARB">
+      <param name="type" type="GLenum" />
+      <param name="namelen" type="GLint" />
+      <param name="name" type="const GLchar *" count="namelen"/>
+      <param name="stringlen" type="GLint" />
+      <param name="string" type="const GLchar *" count="stringlen"/>
+   </function>
+   <function name="DeleteNamedStringARB">
+      <param name="namelen" type="GLint" />
+      <param name="name" type="const GLchar *" count="namelen"/>
+   </function>
+   <function name="CompileShaderIncludeARB">
+      <param name="shader" type="GLuint" />
+      <param name="count" type="GLsizei" />
+      <param name="path" type="const GLchar * const *" />
+      <param name="length" type="const GLint *" />
+   </function>
+   <function name="IsNamedStringARB">
+      <param name="namelen" type="GLint" />
+      <param name="name" type="const GLchar *" count="namelen"/>
+      <return type="GLboolean"/>
+   </function>
+   <function name="GetNamedStringARB">
+      <param name="namelen" type="GLint" />
+      <param name="name" type="const GLchar *" count="namelen"/>
+      <param name="bufSize" type="GLsizei" />
+      <param name="stringlen" type="GLint *" />
+      <param name="string" type="GLchar *" count="stringlen"/>
+   </function>
+   <function name="GetNamedStringivARB">
+      <param name="namelen" type="GLint" />
+      <param name="name" type="const GLchar *" count="namelen"/>
+      <param name="pname" type="GLenum" />
+      <param name="params" type="GLint *" />
+   </function>
+</category>
+</OpenGLAPI>

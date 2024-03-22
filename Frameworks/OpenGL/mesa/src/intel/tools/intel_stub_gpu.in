@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# -*- mode: sh -*-
+
+function show_help() {
+    cat <<EOF
+Usage: intel_stub_gpu [OPTION]... [--] COMMAND ARGUMENTS
+
+Run COMMAND with ARGUMENTS faking a particular device.
+
+  -g, --gdb           Launch GDB
+
+  -p, --platform=NAME Override PCI ID using a platform name
+
+      --help          Display this help message and exit
+
+EOF
+
+    exit 0
+}
+
+gdb=
+valgrind=
+platform="skl"
+
+while true; do
+    case "$1" in
+        --gdb)
+            gdb=1
+            shift
+            ;;
+        -g)
+            gdb=1
+            shift
+            ;;
+        --valgrind)
+            valgrind=1
+            shift
+            ;;
+        -p)
+            platform=$2
+            shift 2
+            ;;
+        -p*)
+            platform=${1##-p}
+            shift
+            ;;
+        --platform=*)
+            platform=${1##--platform=}
+            shift
+            ;;
+        --help)
+            show_help
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "intel_stub_gpu: invalid option: $1"
+            echo
+            show_help
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+[ -z $1 ] && show_help
+
+INTEL_STUB_GPU_PLATFORM=$platform
+
+ld_preload="@install_libdir@/libintel_noop_drm_shim.so${LD_PRELOAD:+:$LD_PRELOAD}"
+if [ -n "$gdb" ]; then
+    gdb -iex "set exec-wrapper env LD_PRELOAD=$ld_preload INTEL_STUB_GPU_PLATFORM=$platform" --args "$@"
+elif [ -n "$valgrind" ]; then
+    LD_PRELOAD=$ld_preload INTEL_STUB_GPU_PLATFORM=$platform exec valgrind "$@"
+else
+    LD_PRELOAD=$ld_preload INTEL_STUB_GPU_PLATFORM=$platform exec "$@"
+fi

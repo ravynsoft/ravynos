@@ -1,0 +1,184 @@
+Mesa 20.2.3 Release Notes / 2020-11-23
+======================================
+
+Mesa 20.2.3 is a bug fix release which fixes bugs found since the 20.2.2 release.
+
+Mesa 20.2.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.2.3 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    ae1b240e11531df528d14dc214d2dc4d2b4f2e835c6230ba0b492b171eceb82b  mesa-20.2.3.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- glcpp test 084-unbalanced-parentheses fails with bison 3.6.y
+- iris: glClear with FBO imported from DMA-BUF doesn't work
+- [spirv-fuzz] Shader causes an assertion failure in nir_opt_large_constants
+- Regnum Online UBO break after game update
+- Random corruption in KDE with Mesa 20.2 in VMware
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (1):
+
+- radv: Add ETC2 support on RAVEN2.
+
+Brendan Dougherty (1):
+
+- mesa: Fix vertex_format_to_pipe_format index.
+
+Chad Versace (2):
+
+- anv/image: Check DISJOINT in vkGetPhysicalDeviceImageFormatProperties2 (v2)
+- anv/image: Fix isl_surf_usage_flags for stencil images
+
+Christian Gmeiner (1):
+
+- etnaviv: nir: do not run opt loop after nir_lower_bool_xxx(..)
+
+Dave Airlie (1):
+
+- draw: fix tess eval pipeline statistics.
+
+Dylan Baker (6):
+
+- dcs: Add sha256 sums for 20.2.2
+- .pick_status.json: Update to bf5cea7232f9ee2934c212211ebefb6fe766526d
+- .pick_status.json: Update to 87dc3106b077199b829a082e32ec33d0c6d400ab
+- .pick_status.json: Mark 87934f02f9da94f1a493096049c229b973e4785c as backported
+- .pick_status.json: Mark ea326912575fad09af59486ad62d126c4ea0ede7 as backported
+- .pick_status.json: Update to bac6cc586fe4c1b24351e0574d3a961eb631f6ae
+
+Eric Anholt (3):
+
+- freedreno/cffdec: When .mergedregs is set, don't count half regs.
+- util/set: Fix the _mesa_set_clear function to not leave tombstones.
+- freedreno: Fix leak of shader binary on disk cache hits.
+
+Erik Faye-Lund (2):
+
+- gallium/util: do not pass undefined sample-count
+- mesa/main: add missing include in glformats.h
+
+Gert Wollny (1):
+
+- r600: revert disabling llvm draw
+
+Igor V. Kovalenko (1):
+
+- r600: amend space check for chips older than EVERGREEN
+
+Faith Ekstrand (4):
+
+- mesa/spirv: Lower variable initializers for global variables
+- nir: Handle incomplete derefs in split_struct_vars
+- nir/opt_intrinsics: Report progress for the gl_SampleMask optimization
+- intel/fs: Fix use of undefined value in fixup_nomask_control_flow
+
+Kenneth Graunke (2):
+
+- iris: fix source/destination layers for 3D blits
+- intel/fs: Fix sampler message headers on Gen11+ when using scratch
+
+Krunal Patel (2):
+
+- gallium/auxiliary/vl: Odd Dimensions are failing
+- radeon/vcn: Bitrate not updated when changing framerate
+
+Louis Li (1):
+
+- radeon/radeon_vce: fix out of target bitrate in CBR mode (H.264)
+
+Marcin Ślusarz (2):
+
+- anv: always annotate memory returned from anv_gem_mmap
+- nir: handle float atomics in copy propagation pass
+
+Marek Olšák (3):
+
+- radeonsi: do VGT_FLUSH when switching NGG -> legacy on Sienna Cichlid
+- radeonsi: only do VGT_FLUSH for fast launch if previous draw was normal launch
+- radeonsi: fix scan_instruction for bindless inc_wrap/dec_wrap atomics
+
+Matt Turner (1):
+
+- glcpp: Handle bison-3.6 error message changes
+
+Michel Dänzer (2):
+
+- i965/bufmgr: Handle NULL bufmgr in brw_bufmgr_get_for_fd
+- iris/bufmgr: Handle NULL bufmgr in iris_bufmgr_get_for_fd
+
+Nanley Chery (4):
+
+- iris: Flush dmabufs during context flushes
+- mesa: Add and use _mesa_has_depth_float_channel
+- mesa: Clamp some depth values in glClearBufferfv
+- mesa: Clamp some depth values in glClearBufferfi
+
+Raven (1):
+
+- winsys/svga: fix display corruption after surface_init
+
+Rhys Perry (4):
+
+- radv: fix shader caching with discard->demote workaround
+- radv: fix shader caching with NaN fixup workaround
+- nir: add nir_alu_src_is_trivial_ssa()
+- nir: skip bcsel with non-trivial swizzle in opt_simplify_bcsel_of_phi()
+
+Rob Clark (2):
+
+- freedreno: Protect gmem_cache ralloc allocations
+- freedreno/ir3: Fix crash in shader compile fail path
+
+Tapani Pälli (3):
+
+- mesa/st: call memobj_destroy only if there is memory imported
+- mesa: do not throw _mesa_problem when invalid enum is used
+- egl/dri2: fix race between image create and egl_image_target_texture
+
+Timothy Arceri (1):
+
+- glsl: add extra pp tokens workaround and enable for CoR
+
+Tony Wasserka (1):
+
+- aco/ra: Fix counting of subdword variables in get_reg_create_vector
+
+Vinson Lee (4):
+
+- os: Fix open result check.
+- amd/addrlib: Add missing va_end.
+- frontends/va: Fix \*num_entrypoints check.
+- vdpau: Add missing printf format specifier.
+
+Woody Chow (1):
+
+- st/mesa: Fix EGLImageTargetTexture2D for GL_TEXTURE_2D
+
+Yevhenii Kolesnikov (1):
+
+- nir/large_constants: only search for constant duplicates

@@ -1,0 +1,83 @@
+Mesa 10.3.4 Release Notes / November 21, 2014
+=============================================
+
+Mesa 10.3.4 is a bug fix release which fixes bugs found since the 10.3.3
+release.
+
+Mesa 10.3.4 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   26482495ef6177f889dbd87c7edcccfedd995598785bbbd7e3e066352574c8e0  MesaLib-10.3.4.tar.gz
+   e6373913142338d10515daf619d659433bfd2989988198930c13b0945a15e98a  MesaLib-10.3.4.tar.bz2
+   8c3ebbb6535daf3414305860ebca6ac67dbb6e3d35058c7a6ce18b84b5945b7f  MesaLib-10.3.4.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 76252 <https://bugs.freedesktop.org/show_bug.cgi?id=76252>`__ -
+   Dynamic loading/unloading of opengl32.dll results in a deadlock
+-  `Bug 78770 <https://bugs.freedesktop.org/show_bug.cgi?id=78770>`__ -
+   [SNB bisected]Webglc conformance/textures/texture-size-limit.html
+   fails
+-  `Bug 83500 <https://bugs.freedesktop.org/show_bug.cgi?id=83500>`__ -
+   si_dma_copy_tile causes GPU hangs
+-  `Bug 85647 <https://bugs.freedesktop.org/show_bug.cgi?id=85647>`__ -
+   Random radeonsi crashes with mesa 10.3.x
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  st/mesa: copy sampler_array_size field when copying instructions
+
+Chad Versace (1):
+
+-  i965: Fix segfault in WebGL Conformance on Ivybridge
+
+Dave Airlie (5):
+
+-  r600g/cayman: fix integer multiplication output overwrite (v2)
+-  r600g/cayman: fix texture gather tests
+-  r600g/cayman: handle empty vertex shaders
+-  r600g: geom shaders: always load texture src regs from inputs
+-  r600g: limit texture offset application to specific types (v2)
+
+Emil Velikov (3):
+
+-  docs: Add sha256 sums for the 10.3.3 release
+-  configure.ac: roll up a program for the sse4.1 check
+-  get-pick-list.sh: Require explicit "10.3" for nominating stable
+   patches
+
+Ilia Mirkin (1):
+
+-  st/mesa: add a fallback for clear_with_quad when no vs_layer
+
+José Fonseca (1):
+
+-  llvmpipe: Avoid deadlock when unloading opengl32.dll
+
+Kenneth Graunke (1):
+
+-  i915g: we also have more than 0 viewports!
+
+Michel Dänzer (1):
+
+-  radeonsi: Disable asynchronous DMA except for PIPE_BUFFER

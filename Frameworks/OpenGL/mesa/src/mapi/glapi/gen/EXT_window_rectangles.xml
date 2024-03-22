@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_EXT_window_rectangles" number="490">
+    <enum name="INCLUSIVE_EXT"             value="0x8F10"/>
+    <enum name="EXCLUSIVE_EXT"             value="0x8F11"/>
+    <enum name="WINDOW_RECTANGLE_EXT"      value="0x8F12" count="4">
+        <size name="Get" mode="get"/>
+    </enum>
+    <enum name="WINDOW_RECTANGLE_MODE_EXT" value="0x8F13">
+        <size name="Get" mode="get"/>
+    </enum>
+    <enum name="MAX_WINDOW_RECTANGLES_EXT" value="0x8F14">
+        <size name="Get" mode="get"/>
+    </enum>
+    <enum name="NUM_WINDOW_RECTANGLES_EXT" value="0x8F15">
+        <size name="Get" mode="get"/>
+    </enum>
+
+    <function name="WindowRectanglesEXT" es2="3.0" exec="dlist">
+        <param name="mode" type="GLenum"/>
+        <param name="count" type="GLsizei"/>
+        <param name="box" type="const GLint *" count="(4 * count)"/>
+    </function>
+</category>
+
+</OpenGLAPI>

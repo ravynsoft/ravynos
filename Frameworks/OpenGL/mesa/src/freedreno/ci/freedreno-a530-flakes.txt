@@ -1,0 +1,163 @@
+# Note: flakes lists for CI are just a list of lines that, when
+# non-zero-length and not starting with '#', will regex match to
+# delete lines from the test list.  Be careful.
+
+# unstable results (probably related to the iommu faults).
+dEQP-GLES3.functional.fbo.invalidate.whole.unbind_blit_msaa_stencil
+dEQP-GLES3.functional.texture.filtering.3d.*
+dEQP-GLES3.functional.texture.vertex.3d.filtering.*
+dEQP-GLES31.functional.ubo.2_level_struct_array.single_buffer.packed_instance_array_fragment
+
+# unstable results once we enabled SMP -- some state not being reset reliably?
+dEQP-GLES3.functional.transform_feedback.*
+
+dEQP-GLES3.functional.fragment_ops.interaction.basic_shader.70
+
+# First appeared 2021-06-11 on an unrelated MR.
+dEQP-GLES31.functional.image_load_store.3d.load_store.*_single_layer
+
+# Separate shader and atomics flakiness increased since bfeb0983d3b3 ("ci/freedreno: Disable flaky a530 for now.")
+dEQP-GLES31.functional.separate_shader.*
+
+KHR-GLES31.core.compute_shader.resource-image
+
+# Occasionally passes
+KHR-GLES31.core.arrays_of_arrays.InteractionFunctionCalls1
+KHR-GLES31.core.arrays_of_arrays.InteractionFunctionCalls2
+
+# Occasionally passes
+KHR-GLES31.core.layout_binding.buffer_layout_binding_atomicAdd_ComputeShader
+KHR-GLES31.core.layout_binding.buffer_layout_binding_atomicAdd_FragmentShader
+
+KHR-GLES31.core.framebuffer_no_attachments.render
+
+# " Counter value is 1024 should be 896."
+# 1. Create atomic counter buffers and init them with start values.
+# 2. Increment (decrement) buffer values in the shader.
+# 3. Map buffers with MapBufferRange command. Increment (decrement) buffer values manually.
+# 4. Unmap buffers with UnmapBuffer command.
+# 5. Again increment (decrement) buffer values in the shader.
+# Verify that this scenario works as expected and final values in the buffer objects are correct.
+KHR-GLES31.core.shader_atomic_counters.advanced-usage-draw-update-draw
+
+KHR-GLES31.core.shader_image_load_store.basic-allTargets-atomicCS
+KHR-GLES31.core.shader_image_load_store.basic-glsl-misc-cs
+KHR-GLES31.core.shader_storage_buffer_object.advanced-switchBuffers-cs
+KHR-GLES31.core.shader_storage_buffer_object.advanced-switchPrograms-cs
+KHR-GLES31.core.shader_storage_buffer_object.basic-syntax-cs
+
+# Flaky since around Feb 26, first appearing on a seemingly-unrelated CI change
+# (ci-fd-fastboot-nfs)
+dEQP-GLES31.functional.synchronization.inter_call.without_memory_barrier.*
+
+glx@glx-swap-event_interval
+glx@glx_arb_sync_control@swapbuffersmsc-divisor-zero
+glx@glx_arb_sync_control@waitformsc
+glx@glx-multithread-texture
+glx@glx-swap-event_async
+shaders@glsl-uniform-interstage-limits@subdivide 5
+spec@!opengl 1.0@gl-1.0-blend-func
+spec@!opengl_1.1@texsubimage
+spec@!opengl 1.1@user-clip
+spec@arb_depth_texture@fbo-depth-gl_depth_component24-copypixels
+spec@arb_framebuffer_object@fbo-drawbuffers-none glblendfunci
+spec@arb_pixel_buffer_object@texsubimage pbo
+spec@arb_vertex_type_2_10_10_10_rev@attribs
+spec@ext_packed_depth_stencil@fbo-depthstencil-gl_depth24_stencil8-drawpixels-24_8
+spec@arb_texture_cube_map_array@texsubimage cube_map_array
+
+# Flakes since around when the go-fast branch landed
+spec@arb_copy_buffer@copy_buffer_coherency
+.*tex-miplevel-selection.*
+.*glsl-1.30@execution@texelfetch.*
+
+# Flakes since introduction of piglit testing, possibly increased in frequency
+# around Apr 16 or more likely Apr 23
+spec@arb_texture_gather@texturegather.*
+
+# Flakes since around Apr 30th on a clearly innocent MR.
+.*texwrap.formats.*bordercolor
+
+# First flake on Apr 29th on a clearly innocent MR
+spec@arb_direct_state_access@dsa-textures
+spec@arb_depth_buffer_float@depthstencil-render-miplevels_292_ds=z32f_s8
+
+# First flaked on May 3 on a clearly innocent MR.
+spec@arb_draw_instanced@arb_draw_instanced-drawarrays
+
+# Intermittent crashes.  First flaked on May 11th in the piglit 3351e8952
+# uprev, so presumably it regressed some time earlier and then showed up in the
+# piglit reshuffle.
+spec@arb_copy_buffer@intra-buffer-copy
+spec@arb_copy_buffer@dlist
+
+# Intermittent failure, mostly passes but sometimes fails. Was noticed on May 26th.
+spec@ext_image_dma_buf_import@ext_image_dma_buf_import-sample_yvu420
+
+# Crashes, possibly after the final piglit report caught by new piglit runner.
+spec@ext_transform_feedback@api-errors.*
+
+spec@!opengl 2.0@gl-2.0-two-sided-stencil
+
+# appeared with a piglit uprev, probably from reshuffling.
+spec@!opengl 1.1@depthstencil-default_fb-copypixels
+spec@arb_direct_state_access@gettextureimage-formats
+spec@ext_polygon_offset_clamp@ext_polygon_offset_clamp-draw_gles2
+spec@ext_polygon_offset_clamp@ext_polygon_offset_clamp-draw_gles2@negative clamp
+
+dEQP-GLES31.functional.texture.multisample.samples_1.use_texture_depth_2d
+
+# 1/10 run flake
+dEQP-GLES31.functional.atomic_counter.layout.default_offset_set.inc_dec.8_counters_5_calls_1_thread
+dEQP-GLES31.functional.compute.indirect_dispatch.gen_in_compute.multi_dispatch_reuse_command
+
+KHR-GLES31.core.explicit_uniform_location.uniform-loc-types-samplers
+KHR-GLES31.core.internalformat.copy_tex_image.alpha
+KHR-GLES31.core.internalformat.texture2d.red_integer_int_r32i
+KHR-GLES31.core.internalformat.texture2d.rgb_integer_byte_rgb8i
+KHR-GLES31.core.internalformat.texture2d.rgb_integer_int_rgb32i
+
+spec@glsl-1.10@execution@built-in-functions@fs-all-bvec4
+spec@glsl-1.10@execution@built-in-functions@fs-op-assign-add-ivec4-int
+spec@glsl-1.10@execution@built-in-functions@fs-max-vec2-vec2
+spec@glsl-1.10@execution@built-in-functions@vs-acos-vec3
+spec@glsl-1.10@execution@built-in-functions@vs-dot-vec2-vec2
+spec@glsl-1.10@execution@built-in-functions@vs-dot-vec3-vec3
+spec@glsl-1.10@execution@built-in-functions@vs-op-add-mat4-mat4
+spec@glsl-1.10@execution@built-in-functions@vs-mod-float-float
+spec@glsl-1.10@execution@copy-propagation@glsl-copy-propagation-self-1
+spec@glsl-1.10@execution@copy-propagation@glsl-vs-double-negative-copy-propagation
+spec@glsl-1.10@execution@variable-indexing@fs-varying-mat2-rd
+spec@glsl-1.10@execution@vs-mat2-array-assignment
+spec@glsl-1.10@execution@vs-nested-return-sibling-loop2
+spec@glsl-1.20@execution@built-in-functions@fs-matrixcompmult-mat4x2-mat4x2
+spec@glsl-1.20@execution@built-in-functions@vs-op-ne-mat2x4-mat2x4-using-if
+spec@glsl-1.20@execution@built-in-functions@vs-op-neg-mat3x4
+spec@glsl-1.20@execution@clipping@vs-clip-vertex-different-from-position
+spec@glsl-1.20@execution@const-builtin@glsl-const-builtin-distance
+spec@glsl-1.20@execution@const-builtin@glsl-const-builtin-derivatives
+spec@glsl-1.20@execution@fs-vec4-const-array-indirect-access-128-elements
+spec@glsl-1.20@execution@vs-outerproduct-const-mat3x4
+spec@glsl-1.20@execution@uniform-initializer@fs-int-set-by-other-stage
+spec@glsl-1.30@execution@built-in-functions@fs-abs-ivec2
+spec@glsl-1.30@execution@built-in-functions@fs-cosh-vec4
+spec@glsl-1.30@execution@built-in-functions@fs-op-bitand-not-abs-int-ivec3
+spec@glsl-1.30@execution@built-in-functions@fs-op-bitor-not-abs-int-ivec2
+spec@glsl-1.30@execution@built-in-functions@fs-op-bitxor-neg-ivec3-int
+spec@glsl-1.30@execution@built-in-functions@fs-op-bitxor-ivec3-ivec3
+spec@glsl-1.30@execution@built-in-functions@fs-op-bitxor-uint-uvec3
+spec@glsl-1.30@execution@built-in-functions@vs-lessthanequal-uvec4-uvec4
+spec@glsl-1.30@execution@built-in-functions@vs-op-assign-lshift-uvec2-ivec2
+spec@glsl-1.30@execution@built-in-functions@vs-op-bitand-abs-neg-ivec3-ivec3
+spec@glsl-1.30@execution@built-in-functions@vs-op-bitor-abs-neg-ivec2-int
+spec@glsl-1.30@execution@built-in-functions@vs-op-bitxor-neg-abs-ivec4-ivec4
+spec@glsl-1.30@execution@built-in-functions@vs-op-ne-uvec2-uvec2-using-if
+spec@glsl-1.30@execution@interpolation@interpolation-smooth-other-flat-distance
+spec@glsl-es-3.00@execution@built-in-functions@const-packhalf2x16
+spec@glsl-es-3.00@execution@varying-struct-copy-return-vs
+spec@arb_texture_query_levels@execution@fs-miptree
+spec@amd_shader_trinary_minmax@execution@built-in-functions@fs-max3-vec2-vec2-vec2
+spec@arb_uniform_buffer_object@execution@shared-row_major-array-mat2x2-and-column_major-array-mat2x2
+spec@mesa_shader_integer_functions@execution@built-in-functions@fs-umulextended-only-msb-nonuniform
+# ci-collate: Issue found in https://gitlab.freedesktop.org/mesa/mesa/-/jobs/49445812
+KHR-GLES31.core.compute_shader.simple-compute-shared_context

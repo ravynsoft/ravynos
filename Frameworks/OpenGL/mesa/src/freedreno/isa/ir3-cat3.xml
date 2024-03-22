@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2020 Google, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ -->
+
+<isa>
+
+<!--
+	Cat3 Instructions: three-source ALU instructions
+ -->
+
+<bitset name="#cat3-src" size="13">
+	<doc>
+		cat3 src1 and src2, some parts are similar to cat2/cat4 src
+		encoding, but a few extra bits trimmed out to squeeze in the
+		3rd src register (dropping (abs), immed encoding, and moving
+		a few other bits elsewhere)
+	</doc>
+	<encode type="struct ir3_register *" case-prefix="REG_"/>
+</bitset>
+
+<bitset name="#cat3-src-gpr" extends="#cat3-src">
+	<display>
+		{LAST}{HALF}{SRC}
+	</display>
+	<field name="SRC" low="0" high="7" type="#reg-gpr"/>
+	<pattern low="8" high="9">00</pattern>
+	<field name="LAST" pos="10" type="bool" display="(last)"/>
+	<pattern low="11" high="12">00</pattern>
+	<encode>
+		<map name="SRC">src</map>
+		<map name="LAST">!!(src->flags &amp; IR3_REG_LAST_USE)</map>
+	</encode>
+</bitset>
+
+
+<bitset name="#cat3-src-const-or-immed" extends="#cat3-src">
+	<override>
+		<expr>{IMMED_ENCODING}</expr>
+		<display>
+			{IMMED}
+		</display>
+		<field name="IMMED" low="0" high="11" type="uint"/>
+		<pattern pos="12">1</pattern>
+	</override>
+
+	<display>
+		{HALF}c{CONST}.{SWIZ}
+	</display>
+	<field name="SWIZ" low="0" high="1" type="#swiz"/>
+	<field name="CONST" low="2" high="10" type="uint"/>
+	<pattern low="11" high="12">10</pattern>
+	<encode>
+		<map name="CONST">src->num >> 2</map>
+		<map name="SWIZ">src->num &amp; 0x3</map>
+		<map name="IMMED">extract_reg_uim(src)</map>
+	</encode>
+</bitset>
+
+<bitset name="#cat3-src-relative" extends="#cat3-src">
+	<pattern low="11" high="12">01</pattern>
+	<encode>
+		<map name="OFFSET">src->array.offset</map>
+	</encode>
+</bitset>
+
+<bitset name="#cat3-src-relative-gpr" extends="#cat3-src-relative">
+	<display>
+		{HALF}r&lt;a0.x + {OFFSET}&gt;
+	</display>
+	<field name="OFFSET" low="0" high="9" type="int"/>
+	<pattern pos="10">0</pattern>
+</bitset>
+
+<bitset name="#cat3-src-relative-const" extends="#cat3-src-relative">
+	<display>
+		{HALF}c&lt;a0.x + {OFFSET}&gt;
+	</display>
+	<field name="OFFSET" low="0" high="9" type="int"/>
+	<pattern pos="10">1</pattern>
+</bitset>
+
+<bitset name="#instruction-cat3-base" extends="#instruction">
+	<override expr="#cat2-cat3-nop-encoding">
+		<display>
+			{SY}{SS}{JP}{SAT}(nop{NOP}) {UL}{NAME} {DST_HALF}{DST}, {SRC1_NEG}{SRC1}, {SRC2_NEG}{HALF}{SRC2}, {SRC3_NEG}{SRC3}
+		</display>
+		<derived name="NOP" expr="#cat2-cat3-nop-value" type="uint"/>
+	</override>
+	<display>
+		{SY}{SS}{JP}{SAT}{REPEAT}{UL}{NAME} {DST_HALF}{DST}, {SRC1_NEG}{SRC1_R}{SRC1}, {SRC2_NEG}{SRC2_R}{HALF}{SRC2}, {SRC3_NEG}{SRC3_R}{SRC3}
+	</display>
+	<field name="SRC2_R" pos="15" type="bool" display="(r)"/>
+	<field name="SRC3_R" pos="29" type="bool" display="(r)"/>
+	<field name="DST" low="32" high="39" type="#reg-gpr"/>
+	<field name="REPEAT" low="40" high="41" type="#rptN"/>
+	<field name="SRC1_R" pos="43" type="bool" display="(r)"/>
+	<field name="SS" pos="44" type="bool" display="(ss)"/>
+	<field name="UL" pos="45" type="bool" display="(ul)"/>
+	<field name="SRC2" low="47" high="54" type="#reg-gpr"/>
+	<!-- opcode, 4 bits -->
+	<field name="JP" pos="59" type="bool" display="(jp)"/>
+	<field name="SY" pos="60" type="bool" display="(sy)"/>
+	<pattern low="61" high="63">011</pattern>  <!-- cat3 -->
+	<derived name="HALF" expr="#multisrc-half" type="bool" display="h"/>
+	<derived name="DST_HALF" expr="#dest-half" type="bool" display="h"/>
+	<encode>
+		<map name="SRC1_NEG">!!(src->srcs[0]->flags &amp; (IR3_REG_FNEG | IR3_REG_SNEG | IR3_REG_BNOT))</map>
+		<map name="SRC1_R">extract_SRC1_R(src)</map>
+		<map name="SRC2_R">extract_SRC2_R(src)</map>
+		<map name="SRC3_R">!!(src->srcs[2]->flags &amp; IR3_REG_R)</map>
+		<map name="SRC2_NEG">!!(src->srcs[1]->flags &amp; (IR3_REG_FNEG | IR3_REG_SNEG | IR3_REG_BNOT))</map>
+		<map name="SRC3_NEG">!!(src->srcs[2]->flags &amp; (IR3_REG_FNEG | IR3_REG_SNEG | IR3_REG_BNOT))</map>
+		<map name="SRC1">src->srcs[0]</map>
+	</encode>
+</bitset>
+
+<bitset name="#instruction-cat3" extends="#instruction-cat3-base">
+	<derived name="IMMED_ENCODING" expr="#false" type="bool" display="h"/>
+
+	<field name="SRC1" low="0" high="12" type="#cat3-src">
+		<param name="HALF"/>
+		<param name="IMMED_ENCODING"/>
+	</field>
+	<field name="SRC1_NEG" pos="14" type="bool" display="(neg)"/>
+
+	<pattern pos="13">0</pattern>
+
+	<field name="SRC3" low="16" high="28" type="#cat3-src">
+		<param name="HALF"/>
+		<param name="IMMED_ENCODING"/>
+	</field>
+
+	<field name="SRC2_NEG" pos="30" type="bool" display="(neg)"/>
+	<field name="SRC3_NEG" pos="31" type="bool" display="(neg)"/>
+	<field name="SAT" pos="42" type="bool" display="(sat)"/>
+
+	<field name="DST_CONV" pos="46" type="bool">
+		<doc>
+			The source precision is determined by the instruction
+			opcode.  If {DST_CONV} the result is widened/narrowed
+			to the opposite precision.
+		</doc>
+	</field>
+
+	<encode>
+		<map name="DST_CONV">
+			((src->dsts[0]->num >> 2) == 62) ? 0 :
+			!!((src->srcs[0]->flags ^ src->dsts[0]->flags) &amp; IR3_REG_HALF)
+		</map>
+	</encode>
+</bitset>
+
+<!-- TODO check on pre a6xx gens -->
+<bitset name="#instruction-cat3-alt" extends="#instruction-cat3-base">
+	<doc>
+		The difference is that this cat3 version does not support plain
+		const registers as src1/src3 but does support inmidiate values.
+		On the other hand it still supports relative gpr and consts.
+	</doc>
+
+	<gen min="600"/>
+
+	<derived name="IMMED_ENCODING" expr="#true" type="bool" display="h"/>
+	<derived name="SAT" expr="#false" type="bool" display=""/>
+
+	<field name="SRC1" low="0" high="12" type="#cat3-src">
+		<param name="HALF"/>
+		<param name="IMMED_ENCODING"/>
+	</field>
+	<field name="SRC1_NEG" pos="14" type="bool" display="(neg)"/>
+
+	<pattern pos="13">1</pattern>
+
+	<field name="SRC3" low="16" high="28" type="#cat3-src">
+		<param name="HALF"/>
+		<param name="IMMED_ENCODING"/>
+	</field>
+
+	<field name="SRC2_NEG" pos="30" type="bool" display="(neg)"/>
+	<field name="SRC3_NEG" pos="31" type="bool" display="(neg)"/>
+	<field name="FULL" pos="42" type="bool"/>
+	<field name="DST_CONV" pos="46" type="bool"/>
+
+	<encode>
+		<map name="SRC3">src->srcs[2]</map>
+		<map name="FULL">!(src->srcs[1]->flags &amp; IR3_REG_HALF)</map>
+		<map name="DST_CONV">
+			((src->dsts[0]->num >> 2) == 62) ? 0 :
+			!!((src->srcs[1]->flags ^ src->dsts[0]->flags) &amp; IR3_REG_HALF)
+		</map>
+	</encode>
+</bitset>
+
+<bitset name="mad.u16" extends="#instruction-cat3">
+	<pattern low="55" high="58">0000</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>
+</bitset>
+
+<bitset name="madsh.u16" extends="#instruction-cat3">
+	<pattern low="55" high="58">0001</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="mad.s16" extends="#instruction-cat3">
+	<pattern low="55" high="58">0010</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>
+</bitset>
+
+<bitset name="madsh.m16" extends="#instruction-cat3">
+	<pattern low="55" high="58">0011</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="mad.u24" extends="#instruction-cat3">
+	<pattern low="55" high="58">0100</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="mad.s24" extends="#instruction-cat3">
+	<pattern low="55" high="58">0101</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="mad.f16" extends="#instruction-cat3">
+	<pattern low="55" high="58">0110</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>
+</bitset>
+
+<bitset name="mad.f32" extends="#instruction-cat3">
+	<pattern low="55" high="58">0111</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="sel.b16" extends="#instruction-cat3">
+	<pattern low="55" high="58">1000</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>
+</bitset>
+
+<bitset name="sel.b32" extends="#instruction-cat3">
+	<pattern low="55" high="58">1001</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="sel.s16" extends="#instruction-cat3">
+	<pattern low="55" high="58">1010</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>
+</bitset>
+
+<bitset name="sel.s32" extends="#instruction-cat3">
+	<pattern low="55" high="58">1011</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="sel.f16" extends="#instruction-cat3">
+	<pattern low="55" high="58">1100</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>
+</bitset>
+
+<bitset name="sel.f32" extends="#instruction-cat3">
+	<pattern low="55" high="58">1101</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#true" type="bool"/>
+</bitset>
+
+<bitset name="sad.s16" extends="#instruction-cat3">
+	<pattern low="55" high="58">1110</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>
+</bitset>
+
+<bitset name="sad.s32" extends="#instruction-cat3">
+	<pattern low="55" high="58">1111</pattern>   <!-- OPC -->
+	<derived name="FULL" expr="#false" type="bool"/>  <!-- We think? -->
+</bitset>
+
+<bitset name="shrm" extends="#instruction-cat3-alt">
+	<doc>
+		(src2 &gt;&gt; src1) &amp; src3
+	</doc>
+
+	<pattern low="55" high="58">1000</pattern>   <!-- OPC -->
+</bitset>
+
+<bitset name="shlm" extends="#instruction-cat3-alt">
+	<doc>
+		(src2 &lt;&lt; src1) &amp; src3
+	</doc>
+
+	<pattern low="55" high="58">1001</pattern>   <!-- OPC -->
+</bitset>
+
+<bitset name="shrg" extends="#instruction-cat3-alt">
+	<doc>
+		(src2 &gt;&gt; src1) | src3
+	</doc>
+
+	<pattern low="55" high="58">1010</pattern>   <!-- OPC -->
+</bitset>
+
+<bitset name="shlg" extends="#instruction-cat3-alt">
+	<doc>
+		(src2 &lt;&lt; src1) | src3
+	</doc>
+
+	<pattern low="55" high="58">1011</pattern>   <!-- OPC -->
+</bitset>
+
+<bitset name="andg" extends="#instruction-cat3-alt">
+	<doc>
+		(src2 &amp; src1) | src3
+	</doc>
+
+	<pattern low="55" high="58">1100</pattern>   <!-- OPC -->
+</bitset>
+
+<enum name="#signedness">
+	<value val="0" display=".unsigned"/>
+	<value val="1" display=".mixed"/>
+</enum>
+
+<enum name="#8bitvec2pack">
+	<value val="0" display=".low"/>
+	<value val="1" display=".high"/>
+</enum>
+
+<bitset name="#instruction-cat3-dp" extends="#instruction-cat3-base">
+	<gen min="600"/>
+
+	<display>
+		{SY}{SS}{JP}{SAT}(nop{NOP}) {UL}{NAME}{SRC_SIGN}{SRC_PACK} {DST}, {SRC1}, {SRC2}, {SRC3_NEG}{SRC3}
+	</display>
+
+	<derived name="FULL" expr="#true" type="bool"/>
+
+	<field name="SRC1" low="0" high="12" type="#cat3-src">
+		<param name="HALF"/>
+	</field>
+	<field name="SRC_SIGN" pos="14" type="#signedness"/>
+
+	<pattern pos="13">1</pattern>
+
+	<field name="SRC3" low="16" high="28" type="#cat3-src">
+		<param name="HALF"/>
+	</field>
+	<field name="SRC_PACK" pos="30" type="#8bitvec2pack"/>
+	<field name="SRC3_NEG" pos="31" type="bool" display="(neg)"/>
+	<field name="SAT" pos="42" type="bool" display="(sat)"/>
+
+	<encode>
+		<map name="SRC3">src->srcs[2]</map>
+		<map name="SRC_SIGN">src->cat3.signedness</map>
+		<map name="SRC_PACK">src->cat3.packed</map>
+	</encode>
+</bitset>
+
+<bitset name="dp2acc" extends="#instruction-cat3-dp">
+	<doc>
+		Given:
+			SRC1 is a i8vec2 or u8vec2
+			SRC2 is a u8vec2
+			SRC1 and SRC2 are packed into low or high halves of the registers.
+			SRC3 is a int32_t or uint32_t
+		Do:
+			DST = dot(SRC1, SRC2) + SRC3
+	</doc>
+
+	<pattern pos="46">0</pattern>
+	<pattern low="55" high="58">1101</pattern>   <!-- OPC -->
+</bitset>
+
+<bitset name="dp4acc" extends="#instruction-cat3-dp">
+	<doc>
+		Same a dp2acc but for vec4 instead of vec2.
+		Corresponds to packed variantes of OpUDotKHR and OpSUDotKHR.
+	</doc>
+
+	<pattern pos="46">1</pattern>
+	<pattern low="55" high="58">1101</pattern>   <!-- OPC -->
+</bitset>
+
+<expr name="#wmm-dest-half">
+	(!{DST_FULL})
+</expr>
+
+<bitset name="#instruction-cat3-wmm" extends="#instruction-cat3-base">
+	<gen min="600"/>
+
+	<derived name="IMMED_ENCODING" expr="#true" type="bool" display="h"/>
+	<derived name="SAT" expr="#false" type="bool" display=""/>
+	<derived name="SRC3_NEG" expr="#false" type="bool" display=""/>
+	<derived name="DST_HALF" expr="#wmm-dest-half" type="bool" display="h"/>
+
+	<field name="SRC1" low="0" high="12" type="#cat3-src">
+		<param name="HALF"/>
+	</field>
+
+	<pattern pos="13">1</pattern>
+	<field name="SRC1_NEG" pos="14" type="bool" display="(neg)"/>
+
+	<field name="SRC3" low="16" high="28" type="#cat3-src">
+		<param name="HALF"/>
+		<param name="IMMED_ENCODING"/>
+	</field>
+
+	<field name="SRC2_NEG" pos="30" type="bool" display="(neg)"/>
+	<field name="FULL" pos="31" type="bool" display=""/>
+	<field name="DST_FULL" pos="46" type="bool"/>
+
+	<encode>
+		<map name="SRC3">src->srcs[2]</map>
+		<map name="FULL">!(src->srcs[0]->flags &amp; IR3_REG_HALF)</map>
+		<map name="DST_FULL">
+			((src->dsts[0]->num >> 2) == 62) ? 1 :
+			!(src->dsts[0]->flags &amp; IR3_REG_HALF)
+		</map>
+	</encode>
+</bitset>
+
+<bitset name="wmm" extends="#instruction-cat3-wmm">
+	<doc>
+		Given:
+			SRC1 = (x_1, x_2, x_3, x_4) - 4 consecutive registers
+			SRC2 = (y_1, y_2, y_3, y_4) - 4 consecutive registers
+			SRC3 is an immediate in range of [0, 160]
+
+		Do:
+			float y_sum = y_1 + y_2 + y_3 + y_4
+			vec4 result = (x_1 * y_sum, x_2 * y_sum, x_3 * y_sum, x_4 * y_sum)
+
+			Starting from DST reg duplicate *result* into consecutive registers
+			(1 &lt;&lt; (SRC3 / 32)) times.
+	</doc>
+
+	<pattern pos="42">0</pattern>
+	<pattern low="55" high="58">1110</pattern>   <!-- OPC -->
+</bitset>
+
+<bitset name="wmm.accu" extends="#instruction-cat3-wmm">
+	<doc>
+		Same as wmm but instead of overwriting DST - the result is
+		added to DST registers, however the first reg of the result
+		is always overwritten.
+	</doc>
+
+	<pattern pos="42">1</pattern>
+	<pattern low="55" high="58">1110</pattern>   <!-- OPC -->
+</bitset>
+
+</isa>

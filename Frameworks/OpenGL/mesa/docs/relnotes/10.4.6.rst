@@ -1,0 +1,115 @@
+Mesa 10.4.6 Release Notes / March 06, 2015
+==========================================
+
+Mesa 10.4.6 is a bug fix release which fixes bugs found since the 10.4.5
+release.
+
+Mesa 10.4.6 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   46c9082142e811c01e49a2c332a9ac0a1eb98f2908985fb9df216539d7eaeaf4  MesaLib-10.4.6.tar.gz
+   d8baedd20e79ccd98a5a7b05e23d59a30892e68de1fcc057ca6873dafca02735  MesaLib-10.4.6.tar.bz2
+   6aded6eac7f0d4d55117b8b581d8424710bbb4c768fc90f7b881f29311a751aa  MesaLib-10.4.6.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 45348 <https://bugs.freedesktop.org/show_bug.cgi?id=45348>`__ -
+   [swrast] piglit fbo-drawbuffers-arbfp regression
+-  `Bug 84613 <https://bugs.freedesktop.org/show_bug.cgi?id=84613>`__ -
+   [G965, bisected] piglit regressions : glslparsertest.glsl2
+-  `Bug 87516 <https://bugs.freedesktop.org/show_bug.cgi?id=87516>`__ -
+   glProgramBinary violates spec
+-  `Bug 88885 <https://bugs.freedesktop.org/show_bug.cgi?id=88885>`__ -
+   Transform feedback uses incorrect interleaving if a previous draw did
+   not write gl_Position
+-  `Bug 89180 <https://bugs.freedesktop.org/show_bug.cgi?id=89180>`__ -
+   [IVB regression] Rendering issues in Mass Effect through VMware
+   Workstation
+
+Changes
+-------
+
+Abdiel Janulgue (2):
+
+-  glsl: Don't optimize min/max into saturate when EmitNoSat is set
+-  st/mesa: For vertex shaders, don't emit saturate when SM 3.0 is
+   unsupported
+
+Andreas Boll (1):
+
+-  glx: Fix returned values of GLX_RENDERER_PREFERRED_PROFILE_MESA
+
+Brian Paul (2):
+
+-  swrast: fix multiple color buffer writing
+-  st/mesa: fix sampler view reference counting bug in glDraw/CopyPixels
+
+Chris Forbes (1):
+
+-  i965/gs: Check newly-generated GS-out VUE map against correct stage
+
+Eduardo Lima Mitev (1):
+
+-  mesa: Fix error validating args for TexSubImage3D
+
+Emil Velikov (6):
+
+-  docs: Add sha256 sums for the 10.4.5 release
+-  install-lib-links: remove the .install-lib-links file
+-  Revert "mesa: Correct backwards NULL check."
+-  mesa: cherry-pick the second half of commit 2aa71e9485a
+-  Revert "gallivm: Update for RTDyldMemoryManager becoming an
+   unique_ptr."
+-  Update version to 10.4.6
+
+Ian Romanick (3):
+
+-  mesa: Add missing error checks in \_mesa_ProgramBinary
+-  mesa: Ensure that length is set to zero in \_mesa_GetProgramBinary
+-  mesa: Always generate GL_INVALID_OPERATION in \_mesa_GetProgramBinary
+
+Jonathan Gray (1):
+
+-  auxilary/os: correct sysctl use in os_get_total_physical_memory()
+
+José Fonseca (1):
+
+-  gallivm: Update for RTDyldMemoryManager becoming an unique_ptr.
+
+Leo Liu (1):
+
+-  st/omx/dec/h264: fix picture out-of-order with poc type 0 v2
+
+Lucas Stach (1):
+
+-  install-lib-links: don't depend on .libs directory
+
+Marek Olšák (2):
+
+-  vbo: fix an unitialized-variable warning
+-  radeonsi: fix point sprites
+
+Matt Turner (4):
+
+-  glsl: Rewrite and fix min/max to saturate optimization.
+-  mesa: Correct backwards NULL check.
+-  i965/fs: Don't use backend_visitor::instructions after creating the
+   CFG.
+-  mesa: Correct backwards NULL check.

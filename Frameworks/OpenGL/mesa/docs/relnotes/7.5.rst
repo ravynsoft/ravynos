@@ -1,0 +1,89 @@
+Mesa 7.5 Release Notes / 17 July 2009
+=====================================
+
+Mesa 7.5 is a new development release. People who are concerned with
+stability and reliability should stick with the 7.4.x branch or wait for
+Mesa 7.5.1.
+
+The main new feature of Mesa 7.5 is the
+`Gallium3D <https://www.freedesktop.org/wiki/Software/gallium>`__
+infrastructure.
+
+Mesa 7.5 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+Note that the Mesa project is no longer using odd/even version numbers
+to indicate development/stable releases. The so-called development
+releases have been fairly stable. If you're especially concerned with
+stability you should probably look for "point" releases such as 7.5.1
+which will be a bug-fix release.
+
+MD5 checksums
+-------------
+
+::
+
+   553fd956e544727f30fbe249619b6286  MesaLib-7.5.tar.gz
+   459f332551f6ebb86f384d21dd15e1f0  MesaLib-7.5.tar.bz2
+   8c02c0e17a9025250d20424ae32f5163  MesaLib-7.5.zip
+   a188da2886fa5496ea0c2cda602b2eeb  MesaDemos-7.5.tar.gz
+   398ee8801814a00e47f6c2314e3dfddc  MesaDemos-7.5.tar.bz2
+   15a0c8ae013c54335a26335e1a98d609  MesaDemos-7.5.zip
+   81010147def5a644ba14f9bbb7a49a2a  MesaGLUT-7.5.tar.gz
+   baa7a1e850b6e39bae58868fd0684004  MesaGLUT-7.5.tar.bz2
+   265228418e4423fa328f2f5b7970cf08  MesaGLUT-7.5.zip
+
+New features
+------------
+
+-  Gallium3D - this is the new architecture for OS-independent and
+   API-independent 3D drivers. Gallium3D is intended for GPUs that fully
+   support vertex/fragment shaders. The Gallium3D drivers currently
+   included are:
+
+   -  softpipe - a software/reference driver
+   -  i915 - Intel 915/945 driver
+   -  Cell - IBM/Sony/Toshiba Cell processor driver
+   -  nouveau (for NVIDIA GPUs) and R300 for (AMD/ATI R300).
+
+      .. note::
+
+         these drivers are incomplete and still under development.
+         It's probably NOT worthwhile to report any bugs unless you have
+         patches.
+
+-  GL_ARB_framebuffer_object extension (software drivers, i965 driver)
+-  Reworked two-sided stencil support. This allows a driver to support
+   all three variations of two-sided stencil including
+   GL_ATI_separate_stencil, GL_EXT_stencil_two_side and OpenGL 2.0
+-  GL_EXT_vertex_array_bgra extension (software drivers, i965 driver)
+-  GL_NV_texture_env_combine4 extension (software drivers, i965/i915
+   drivers)
+-  GL_EXT_texture_swizzle extension (software drivers, i965 driver)
+-  Updated SPARC assembly optimizations (David S. Miller)
+-  Initial support for separate compilation units in GLSL compiler.
+-  Increased max number of generic GLSL varying variables to 16
+   (formerly 8).
+-  GLSL linker now detects when too many varying variables are used.
+-  Optimize-out redundant glMaterial and glShadeModel calls in display
+   lists
+-  Fixed gl_TextureMatrix[i][j] array indexing bug in GLSL compiler.
+
+Bug fixes
+---------
+
+-  Lots of i965 driver bug fixes
+-  Fixed some GLSL preprocessor bugs
+-  GLSL: continue inside of a for-loop didn't work
+
+Changes
+-------
+
+-  Remove support for GL_SGIX_shadow, GL_SGIX_shadow_ambient and
+   GL_SGIX_depth_texture extensions. Superseded by the ARB versions.
+-  Omitted some old Mesa demos from the release tarballs, added some
+   others.

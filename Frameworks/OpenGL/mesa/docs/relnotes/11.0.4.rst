@@ -1,0 +1,144 @@
+Mesa 11.0.4 Release Notes / October 24, 2015
+============================================
+
+Mesa 11.0.4 is a bug fix release which fixes bugs found since the 11.0.3
+release.
+
+Mesa 11.0.4 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   ed412ca6a46d1bd055120e5c12806c15419ae8c4dd6d3f6ea20a83091d5c78bf  mesa-11.0.4.tar.gz
+   40201bf7fc6fa12a6d9edfe870b41eb4dd6669154e3c42c48a96f70805f5483d  mesa-11.0.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 86281 <https://bugs.freedesktop.org/show_bug.cgi?id=86281>`__ -
+   brw_meta_fast_clear (brw=brw\@entry=0x7fffd4097a08,
+   fb=fb\@entry=0x7fffd40fa900, buffers=buffers\@entry=2,
+   partial_clear=partial_clear\@entry=false)
+-  `Bug 86720 <https://bugs.freedesktop.org/show_bug.cgi?id=86720>`__ -
+   [radeon] Europa Universalis 4 freezing during game start (10.3.3+,
+   still broken on 11.0.2)
+-  `Bug 91788 <https://bugs.freedesktop.org/show_bug.cgi?id=91788>`__ -
+   [HSW Regression] Synmark2_v6 Multithread performance case FPS reduced
+   by 36%
+-  `Bug 92304 <https://bugs.freedesktop.org/show_bug.cgi?id=92304>`__ -
+   [cts] cts.shaders.negative conformance tests fail
+
+Changes
+-------
+
+Alejandro Piñeiro (2):
+
+-  i965/vec4: check writemask when bailing out at register coalesce
+-  i965/vec4: fill src_reg type using the constructor type parameter
+
+Brian Paul (2):
+
+-  vbo: fix incorrect switch statement in init_mat_currval()
+-  mesa: fix incorrect opcode in save_BlendFunci()
+
+Chih-Wei Huang (3):
+
+-  mesa: android: Fix the incorrect path of sse_minmax.c
+-  nv50/ir: use C++11 standard std::unordered_map if possible
+-  nv30: include the header of ffs prototype
+
+Chris Wilson (1):
+
+-  i965: Remove early release of DRI2 miptree
+
+Dave Airlie (1):
+
+-  mesa/uniforms: fix get_uniform for doubles (v2)
+
+Emil Velikov (1):
+
+-  docs: add sha256 checksums for 11.0.3
+
+Francisco Jerez (5):
+
+-  i965: Don't tell the hardware about our UAV access.
+-  mesa: Expose function to calculate whether a shader image unit is
+   valid.
+-  mesa: Skip redundant texture completeness checking during image
+   validation.
+-  i965: Use \_mesa_is_image_unit_valid() instead of
+   gl_image_unit::_Valid.
+-  mesa: Get rid of texture-dependent image unit derived state.
+
+Ian Romanick (8):
+
+-  glsl: Allow built-in functions as constant expressions in OpenGL ES
+   1.00
+-  ff_fragment_shader: Use binding to set the sampler unit
+-  glsl/linker: Use constant_initializer instead of constant_value to
+   initialize uniforms
+-  glsl: Use constant_initializer instead of constant_value to determine
+   whether to keep an unused uniform
+-  glsl: Only set ir_variable::constant_value for const-decorated
+   variables
+-  glsl: Restrict initializers for global variables to constant
+   expression in ES
+-  glsl: Add method to determine whether an expression contains the
+   sequence operator
+-  glsl: In later GLSL versions, sequence operator is cannot be a
+   constant expression
+
+Ilia Mirkin (1):
+
+-  nouveau: make sure there's always room to emit a fence
+
+Indrajit Das (1):
+
+-  st/va: Used correct parameter to derive the value of the "h" variable
+   in vlVaCreateImage
+
+Jonathan Gray (1):
+
+-  configure.ac: ensure RM is set
+
+Krzysztof Sobiecki (1):
+
+-  st/fbo: use pipe_surface_release instead of pipe_surface_reference
+
+Leo Liu (1):
+
+-  st/omx/dec/h264: fix field picture type 0 poc disorder
+
+Marek Olšák (3):
+
+-  st/mesa: fix clip state dependencies
+-  radeonsi: fix a GS copy shader leak
+-  gallium: add PIPE_SHADER_CAP_MAX_UNROLL_ITERATIONS_HINT
+
+Nicolai Hähnle (1):
+
+-  u_vbuf: fix vb slot assignment for translated buffers
+
+Rob Clark (1):
+
+-  freedreno/a3xx: cache-flush is needed after MEM_WRITE
+
+Tapani Pälli (3):
+
+-  mesa: add GL_UNSIGNED_INT_24_8 to \_mesa_pack_depth_span
+-  mesa: Set api prefix to version string when overriding version
+-  mesa: fix ARRAY_SIZE query for GetProgramResourceiv

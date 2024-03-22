@@ -1,0 +1,293 @@
+Mesa 22.0.2 Release Notes / 2022-04-21
+======================================
+
+Mesa 22.0.2 is a bug fix release which fixes bugs found since the 22.0.1 release.
+
+Mesa 22.0.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.0.2 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+   df4fa560dcce6680133067cd15b0505fc424ca703244ce9ab247c74d2fab6885  mesa-22.0.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Vulkan::Calling vkWaitForFences Timeout
+- Intel (CHT) - Uplink text rendering bugged out in Mesa 22.0
+- gen9atom gpu hang on dEQP-VK.spirv_assembly.instruction.graphics.float16.arithmetic_1
+- bad memory managment on panfrost RK3399 -  cannot alocate more ram - fury unleashed
+- [Intel, Iris] Broken rendering in Ryujinx on Tigerlake
+- intel: integer_mad_hi / integer_mad_sat / integer_mul_hi produce invalid results
+- Textures colors distortion in "Black Geyser: Couriers of Darkness" with radeonsi
+- ShaderStorageBlocksWriteAccess not set for spir-v shaders?
+- radeonsi dEQP-GLES3.functional.buffer.map.write.explicit_flush.* flake crashes
+- radv: nir validation error with invalid array access
+- Intel Iris Xe Geometry Flickering/Assets Disappearing
+- Rendering artifacts when playing Outer Wilds [Reproducible with latest ANV driver built from main]
+- Vulkan wsi leaks vk_sync object on every wsi_AcquireNextImageKHR call
+- [bisected] panfrost(RK3399/T860): Emulationstation: broken, black or missing menus with v22.0.0
+- Plasma/KDE settings menus disappear on daily build
+- Square Artifacts Dragons Dogma
+- r300: Anmesia the dark descent corruption
+- Error compiling with LLVM-git/15
+
+
+Changes
+-------
+
+Alexey Bozhenko (1):
+
+- spirv: fix OpBranchConditional when both branches are the same
+
+Alyssa Rosenzweig (1):
+
+- panfrost: Process scissor state earlier
+
+Benjamin Cheng (1):
+
+- vulkan/queue: Destroy wait temps if they are skipped
+
+Boris Brezillon (1):
+
+- lavapipe: Don't use VK_OUTARRAY_MAKE()/vk_outarray_append()
+
+Caio Oliveira (2):
+
+- intel/fs: Initialize the sample mask in flags register when using demote
+- intel/fs: Fix IsHelperInvocation for the case no discard/demote are used
+
+Cristian Ciocaltea (1):
+
+- ci: Avoid altering EXTRA_CARGO_ARGS environment variable
+
+Daniel Schürmann (1):
+
+- aco/optimizer: fix call to can_use_opsel() in apply_insert()
+
+Danylo Piliaiev (3):
+
+- turnip: Fix the lack of WFM before indirect draws
+- turnip: enable has_ccu_flush_bug workaround for a660
+- turnip: Correctly store separate stencil in gmem store
+
+Dave Airlie (6):
+
+- radv: use flush vgt streamout like PAL does.
+- gallivm/sample: detect if rho is inf or nan and flush to zero.
+- llvmpipe: fix nr_sampler_view in key creation.
+- draw: handle tess eval shader when getting num outputs
+- u_blitter/stencil: take dstbox x/y into accounts for dst fb width
+- util/stencil: fix stencil fallback blit shader texture types.
+
+Dylan Baker (20):
+
+- docs: add sah256 sum for mesa 22.0.1
+- .pick_status.json: Update to 5a459b8f6b0b59814865bc5869a868269f8f7ebf
+- pick/core: have update_commits return the commit list
+- bin/auto-pick: Add a script that automates applying commits
+- .pick_status.json: Mark 3ef093f697ad9027ba514c7a4a6a10b7bd95bd47 as denominated
+- core: don't pass the ui back into commit.apply
+- .pick_status.json: Update to 33c800bf913771ddadb5bd632df46582f4d1c9f3
+- .pick_status.json: Update to 837f781c9a4f909ac1ee0b3b8331af87301b5fc3
+- .pick_status.json: Update to 7478b00c7cc7f7ec8cbe224ce600362f7fdb9411
+- .pick_status.json: Update to c7eaf0306876df53d3608ae3bf67afc272dcdf20
+- .pick_status.json: Mark 94706601fa2f52605d6e488f30fad9a0e2440612 as denominated
+- .pick_status.json: Mark 174d086e8c818db4522731e845bd259e2baa8830 as denominated
+- .pick_status.json: Mark 8b71118aa066ab125b7440912ed1e14da79c9451 as backported
+- .pick_status.json: Mark 4e30da7874e6586c7ac94cd34560c782d0f9678d as backported
+- .pick_status.json: Mark 7da211e24fe14d8b107461bdfcb3b8d67212f88a as backported
+- .pick_status.json: Mark 8294d454245d4318befac7c8915e55db3d47cefd as backported
+- .pick_status.json: Update to e509598470c000498c3e1328e012142d9047e292
+- .pick_status.json: Mark 2b688942c1b1f5ca4f3e4d33231579149aeb8fdb as denominated
+- .pick_status.json: Mark dd783d7144932d79ef761810d46e45c3df7148cf as denominated
+- .pick_status.json: Update to 9f44a264623461c98368185b023d99446676e039
+
+Emma Anholt (13):
+
+- r600: Update the PS state before checking for cb_misc update.
+- r600: Fix ordering of SSBO loads versus texturing.
+- r600: Add a workaround and explanation for shadowcubearray TG4.
+- vulkan: Make sure we've loaded our connectors when querying plane props.
+- st/glsl-to-tgsi: Fix handling of csel(bool, vec, vec).
+- r600: Disable SB in the presence of indirection on temp arrays.
+- r600: Disable SB when INTERP_SAMPLE is used.
+- r600: Implement memoryBarrier() in the non-SFN path.
+- nir_to_tgsi: Fix emitting the sample number for non-array MSAA image access.
+- nir_to_tgsi: Fix the address reg mapping for images and SSBOs to match G-T-T.
+- turnip: Stop allocating unused pvtmem space in the pipeline CS.
+- nir: Add lowering for fround_even on r300.
+- nouveau/nir: Fix the inverted sense of usesSampleMaskIn.
+
+Erik Faye-Lund (3):
+
+- vbo/dlist: do not try to pad an empty draw
+- d3d12: fix return-code without dxcompiler.dll
+- vulkan: explicitly cast object-type enum
+
+Francisco Jerez (1):
+
+- intel/perf: Fix OA report accumulation on Gfx12+.
+
+Georg Lehmann (7):
+
+- nir/fold_16bit_sampler_conversions: Don't fold dest upcasts.
+- radv: Add a vkCmdBuildAccelerationStructuresIndirectKHR stub.
+- radv: Add more RT pipeline stubs.
+- radv: Don't hash ycbcr sampler base object.
+- nir/fold_16bit_sampler_conversions: Fix dest type mismatches.
+- nir/fold_16bit_sampler_conversions: Fix src type mismatches.
+- radv: Enable global bo list if 1.2 features are used.
+
+Ian Romanick (3):
+
+- intel/compiler: Fix sample_d messages on DG2
+- intel/fs: Force destination types on DP4A instructions
+- nir: intel/compiler: Lower TXD on array surfaces on DG2+
+
+Icecream95 (1):
+
+- panfrost: Stop overallocating compressed textures
+
+Faith Ekstrand (7):
+
+- v3dv/queue: Rework multisync_free
+- nir: Dont set coord_components on txs
+- lavapipe: Use VK_OUTARRAY for GetPhysicalDeviceQueueFamilyProperties[2]
+- anv: Disallow blending on swizzled formats
+- nir/lower_int64: Fix [iu]mul_high handling
+- iris: Don't leak scratch BOs
+- nir/opcodes: fisfinite32 should return bool32
+
+Jordan Justen (1):
+
+- intel/dev: Add device info for RPL-P
+
+Kai Wasserbäch (2):
+
+- fix(FTBFS): clover: work around removal of PointerType::getElementType()
+- fix(clover): FTBFS: Added missing include for ConstantInt for LLVM 15
+
+Kenneth Graunke (2):
+
+- intel/compiler: Call inst->resize_sources before setting the sources
+- iris: Add pre-draw flushing for stream output targets
+
+Lionel Landwerlin (9):
+
+- anv: fix variable shadowing
+- anv: zero-out anv_batch_bo
+- anv: implement EXT_tooling_info
+- iris: don't synchronize BO for batch decoding
+- anv: disable preemption on 3DPRIMITIVE on gfx12
+- anv: fix dynamic sample locations on Gen7/7.5
+- blorp: disable depth bounds
+- intel: fix URB programming for GT1s
+- anv: allow getting the address of the beginning of the batch
+
+Marcin Ślusarz (3):
+
+- anv: fix push constant lowering for task/mesh
+- anv: invalidate all metadata in anv_nir_lower_ubo_loads
+- intel/compiler: invalidate all metadata in brw_nir_lower_intersection_shader
+
+Michael Olbrich (1):
+
+- crocus: export GEM handle with RDWR access rights
+
+Mike Blumenkrantz (29):
+
+- draw: fix gs vertex stream counting
+- radv: fix CmdSetColorWriteEnableEXT(attachmentCount==MAX_RTS)
+- draw: fix nonzero stream primitives generated queries
+- lavapipe: enforce monotonic timeline incrementing
+- zink: force push descriptors cache update if hashing detects changes
+- llvmpipe: handle sampling from 2d views of 3d images
+- zink: unset resource layout+access when doing storage setup
+- zink: adds refs to user index buffers when tc is not active
+- zink: handle 0 ubos and 0 ssbos in pipeline layout
+- zink: create pipeline layout if only bindless descriptor set is used
+- zink: fix xfb analysis variable finding for arrays
+- zink: track internal conditional render state
+- zink: flag sample locations for re-set on batch flush
+- lavapipe: fix typo in set_event execution
+- mesa/st: add special casing for pointsize constant updating during validate
+- intel/isl: fix 2d view of 3d textures
+- zink: fix max geometry input component advertising
+- nir/lower_tex: avoid adding invalid LOD to RECT textures
+- zink: use the calculated last struct member idx for ssbo size in ntv
+- zink: avoid creating ssbo variable types with multiple runtime arrays
+- nir/lower_tex: fix rect queries with lower_rect set
+- mesa/st: set normalized coords for RECT samplers if rects are unsupported
+- zink: reject resource creation if format features don't match attachment
+- zink: unconditionally set line width on rasterizer state change
+- zink: support restart with PIPE_PRIM_LINES_ADJACENCY if ext is available
+- zink: handle device-local unsynchronized maps
+- util/draw: fix map size of indirect buffer in util_draw_indirect_read
+- util/draw: handle draw_count=0 when reading indirect parameters
+- util/draw: fix indirect draw count readback
+
+Pavel Ondračka (1):
+
+- r300: respect output_semantic_index when writing colors
+
+Pierre-Eric Pelloux-Prayer (6):
+
+- glsl/nir/linker: update shader_storage_blocks_write_access for SPIR-V
+- gallium/u_threaded: late alloc cpu_storage
+- gallium/tc: warn if an app is incompatible with cpu_storage
+- gallium/tc: zero alloc transfers
+- glsl/nir/linker: fix shader_storage_blocks_write_access
+- drirc: enable radeonsi_zerovram for Black Geyser
+
+Qiang Yu (1):
+
+- nir/linker: disable varying from uniform lowering by default
+
+Rohan Garg (1):
+
+- iris: set a default EDSC flag
+
+Samuel Pitoiset (8):
+
+- radv,drirc: move RADV workarounds to 00-radv-defaults.conf
+- radv: disable DCC for Fable Anniversary, Dragons Dogma, GTA IV and more
+- radv: enable radv_disable_aniso_single_level for DXVK/vkd3d
+- radv: fix cleaning the image view for CmdCopyImageToBuffer()
+- radv: save/restore the stencil write mask during internal driver operations
+- radv: suspend/resume queries during internal driver operations
+- radv: save/restore the stencil reference during internal driver operations
+- radv: fix initializing pipeline_key::topology for GFX9 and older
+
+Sviatoslav Peleshko (1):
+
+- mesa: flush bitmap caches when changing scissors or window rects state
+
+Timothy Arceri (1):
+
+- glsl: fix needs_lowering() call in varying packing pass
+
+Timur Kristóf (4):
+
+- aco: Fix VOP2 instruction format in visit_tex.
+- nir: Handle out of bounds access in nir_vectorize_tess_levels.
+- radv: Fix gs_vgpr_comp_cnt for NGG VS without passthrough mode.
+- radv: Use correct buffer offset for conditional rendering.

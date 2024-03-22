@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="GL_ARB_texture_storage_multisample" number="141">
+
+   <function name="TexStorage2DMultisample" es2="3.1">
+      <param name="target" type="GLenum"/>
+      <param name="samples" type="GLsizei"/>
+      <param name="internalformat" type="GLenum"/>
+      <param name="width" type="GLsizei"/>
+      <param name="height" type="GLsizei"/>
+      <param name="fixedsamplelocations" type="GLboolean"/>
+   </function>
+
+   <function name="TexStorage3DMultisample" es2="3.2">
+      <param name="target" type="GLenum"/>
+      <param name="samples" type="GLsizei"/>
+      <param name="internalformat" type="GLenum"/>
+      <param name="width" type="GLsizei"/>
+      <param name="height" type="GLsizei"/>
+      <param name="depth" type="GLsizei"/>
+      <param name="fixedsamplelocations" type="GLboolean"/>
+   </function>
+
+   <function name="TextureStorage2DMultisampleEXT">
+      <param name="texture" type="GLuint"/>
+      <param name="target" type="GLenum"/>
+      <param name="samples" type="GLsizei"/>
+      <param name="internalformat" type="GLenum"/>
+      <param name="width" type="GLsizei"/>
+      <param name="height" type="GLsizei"/>
+      <param name="fixedsamplelocations" type="GLboolean"/>
+   </function>
+
+   <function name="TextureStorage3DMultisampleEXT">
+      <param name="texture" type="GLuint"/>
+      <param name="target" type="GLenum"/>
+      <param name="samples" type="GLsizei"/>
+      <param name="internalformat" type="GLenum"/>
+      <param name="width" type="GLsizei"/>
+      <param name="height" type="GLsizei"/>
+      <param name="depth" type="GLsizei"/>
+      <param name="fixedsamplelocations" type="GLboolean"/>
+   </function>
+
+</category>
+
+</OpenGLAPI>

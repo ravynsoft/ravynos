@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2020 Google, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ -->
+
+<isa>
+
+<!--
+	Cat2 Instructions: one and two src ALU instructions
+ -->
+
+<bitset name="#instruction-cat2" extends="#instruction">
+	<field name="DST" low="32" high="39" type="#reg-gpr"/>
+	<field name="REPEAT" low="40" high="41" type="#rptN"/>
+	<field name="SAT" pos="42" type="bool" display="(sat)"/>
+	<field name="SS" pos="44" type="bool" display="(ss)"/>
+	<field name="UL" pos="45" type="bool" display="(ul)"/>
+	<field name="DST_CONV" pos="46" type="bool">
+		<doc>
+			Destination register is opposite precision as source, ie.
+			if {FULL} is true then destination is half precision, and
+			visa versa.
+		</doc>
+	</field>
+	<derived name="DST_HALF" expr="#dest-half" type="bool" display="h"/>
+	<field name="EI" pos="47" type="bool" display="(ei)"/>
+	<field name="FULL" pos="52" type="bool">
+		<doc>Full precision source registers</doc>
+	</field>
+	<field name="JP" pos="59" type="bool" display="(jp)"/>
+	<field name="SY" pos="60" type="bool" display="(sy)"/>
+	<pattern low="61" high="63">010</pattern>  <!-- cat2 -->
+	<!--
+		NOTE, both SRC1_R and SRC2_R are defined at this level because
+		SRC2_R is still a valid bit for (nopN) (REPEAT==0) for cat2
+		instructions with only a single src
+	 -->
+	<field name="SRC1_R" pos="43" type="bool" display="(r)"/>
+	<field name="SRC2_R" pos="51" type="bool" display="(r)"/>
+	<derived name="ZERO" expr="#zero" type="bool" display=""/>
+	<encode>
+		<map name="SAT">!!(src->flags &amp; IR3_INSTR_SAT)</map>
+		<map name="DST_CONV">
+			((src->dsts[0]->num >> 2) == 62) ? 0 :
+			!!((src->srcs[0]->flags ^ src->dsts[0]->flags) &amp; IR3_REG_HALF)
+		</map>
+		<map name="EI">!!(src->dsts[0]->flags &amp; IR3_REG_EI)</map>
+		<map name="FULL">!(src->srcs[0]->flags &amp; IR3_REG_HALF)</map>
+		<map name="SRC1_R">extract_SRC1_R(src)</map>
+		<map name="SRC2_R">extract_SRC2_R(src)</map>
+	</encode>
+</bitset>
+
+<bitset name="#instruction-cat2-1src" extends="#instruction-cat2">
+	<override expr="#cat2-cat3-nop-encoding">
+		<display>
+			{SY}{SS}{JP}{SAT}(nop{NOP}) {UL}{NAME} {EI}{DST_HALF}{DST}, {SRC1}
+		</display>
+		<derived name="NOP" expr="#cat2-cat3-nop-value" type="uint"/>
+		<field name="SRC1" low="0" high="15" type="#multisrc">
+			<param name="ZERO" as="SRC_R"/>
+			<param name="FULL"/>
+		</field>
+	</override>
+	<display>
+		{SY}{SS}{JP}{SAT}{REPEAT}{UL}{NAME} {EI}{DST_HALF}{DST}, {SRC1}
+	</display>
+	<pattern low="16" high="31">xxxxxxxxxxxxxxxx</pattern>
+	<pattern low="48" high="50">xxx</pattern>  <!-- COND -->
+	<field name="SRC1" low="0" high="15" type="#multisrc">
+		<param name="SRC1_R" as="SRC_R"/>
+		<param name="FULL"/>
+	</field>
+</bitset>
+
+<!-- TODO rest of cat2-1src -->
+
+<bitset name="#instruction-cat2-2src" extends="#instruction-cat2">
+	<override expr="#cat2-cat3-nop-encoding">
+		<display>
+			{SY}{SS}{JP}{SAT}(nop{NOP}) {UL}{NAME} {EI}{DST_HALF}{DST}, {SRC1}, {SRC2}
+		</display>
+		<derived name="NOP" expr="#cat2-cat3-nop-value" type="uint"/>
+		<field name="SRC1" low="0" high="15" type="#multisrc">
+			<param name="ZERO" as="SRC_R"/>
+			<param name="FULL"/>
+		</field>
+		<field name="SRC2" low="16" high="31" type="#multisrc">
+			<param name="ZERO" as="SRC_R"/>
+			<param name="FULL"/>
+		</field>
+	</override>
+	<display>
+		{SY}{SS}{JP}{SAT}{REPEAT}{UL}{NAME} {EI}{DST_HALF}{DST}, {SRC1}, {SRC2}
+	</display>
+	<field name="SRC1" low="0" high="15" type="#multisrc">
+		<param name="SRC1_R" as="SRC_R"/>
+		<param name="FULL"/>
+	</field>
+	<field name="SRC2" low="16" high="31" type="#multisrc">
+		<param name="SRC2_R" as="SRC_R"/>
+		<param name="FULL"/>
+	</field>
+	<pattern low="48" high="50">xxx</pattern>  <!-- COND -->
+</bitset>
+
+<!-- The cmp*.* instructions additionally have a condition code: -->
+<bitset name="#instruction-cat2-2src-cond" extends="#instruction-cat2">
+	<override expr="#cat2-cat3-nop-encoding">
+		<display>
+			{SY}{SS}{JP}{SAT}(nop{NOP}) {UL}{NAME}.{COND} {EI}{DST_HALF}{DST}, {SRC1}, {SRC2}
+		</display>
+		<derived name="NOP" expr="#cat2-cat3-nop-value" type="uint"/>
+		<field name="SRC1" low="0" high="15" type="#multisrc">
+			<param name="ZERO" as="SRC_R"/>
+			<param name="FULL"/>
+		</field>
+		<field name="SRC2" low="16" high="31" type="#multisrc">
+			<param name="ZERO" as="SRC_R"/>
+			<param name="FULL"/>
+		</field>
+	</override>
+	<display>
+		{SY}{SS}{JP}{SAT}{REPEAT}{UL}{NAME}.{COND} {EI}{DST_HALF}{DST}, {SRC1}, {SRC2}
+	</display>
+	<field name="SRC1" low="0" high="15" type="#multisrc">
+		<param name="SRC1_R" as="SRC_R"/>
+		<param name="FULL"/>
+	</field>
+	<field name="SRC2" low="16" high="31" type="#multisrc">
+		<param name="SRC2_R" as="SRC_R"/>
+		<param name="FULL"/>
+	</field>
+	<field name="COND" low="48" high="50" type="#cond"/>
+	<encode>
+		<map name="COND">src->cat2.condition</map>
+	</encode>
+</bitset>
+
+
+<bitset name="#instruction-cat2-2src-input" extends="#instruction-cat2">
+	<display>
+		{SY}{SS}{JP}{SAT}{REPEAT}{UL}{NAME} {EI}{DST_HALF}{DST}, {SRC1}, {SRC2}
+	</display>
+
+	<field name="SRC1" low="0" high="15" type="#multisrc">
+		<param name="SRC1_R" as="SRC_R"/>
+		<param name="FULL"/>
+	</field>
+	<field name="SRC2" low="16" high="31" type="#multisrc">
+		<param name="SRC2_R" as="SRC_R"/>
+		<param name="FULL"/>
+	</field>
+	<pattern low="48" high="49">xx</pattern>  <!-- COND -->
+	<pattern low="53" high="58">111001</pattern>
+</bitset>
+
+<bitset name="bary.f" extends="#instruction-cat2-2src-input">
+	<pattern pos="50">0</pattern>
+</bitset>
+
+<bitset name="flat.b" extends="#instruction-cat2-2src-input">
+	<pattern pos="50">1</pattern>
+	<gen min="600"/>
+</bitset>
+
+<bitset name="add.f" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">000000</pattern>
+</bitset>
+
+<bitset name="min.f" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">000001</pattern>
+</bitset>
+
+<bitset name="max.f" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">000010</pattern>
+</bitset>
+
+<bitset name="mul.f" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">000011</pattern>
+</bitset>
+
+<bitset name="sign.f" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">000100</pattern>
+</bitset>
+
+<bitset name="cmps.f" extends="#instruction-cat2-2src-cond">
+	<pattern low="53" high="58">000101</pattern>
+</bitset>
+
+<bitset name="absneg.f" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">000110</pattern>
+</bitset>
+
+<bitset name="cmpv.f" extends="#instruction-cat2-2src-cond">
+	<pattern low="53" high="58">000111</pattern>
+</bitset>
+
+<bitset name="floor.f" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">001001</pattern>
+</bitset>
+
+<bitset name="ceil.f" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">001010</pattern>
+</bitset>
+
+<bitset name="rndne.f" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">001011</pattern>
+</bitset>
+
+<bitset name="rndaz.f" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">001100</pattern>
+</bitset>
+
+<bitset name="trunc.f" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">001101</pattern>
+</bitset>
+
+<bitset name="add.u" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">010000</pattern>
+</bitset>
+
+<bitset name="add.s" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">010001</pattern>
+</bitset>
+
+<bitset name="sub.u" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">010010</pattern>
+</bitset>
+
+<bitset name="sub.s" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">010011</pattern>
+</bitset>
+
+<bitset name="cmps.u" extends="#instruction-cat2-2src-cond">
+	<pattern low="53" high="58">010100</pattern>
+</bitset>
+
+<bitset name="cmps.s" extends="#instruction-cat2-2src-cond">
+	<pattern low="53" high="58">010101</pattern>
+</bitset>
+
+<bitset name="min.u" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">010110</pattern>
+</bitset>
+
+<bitset name="min.s" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">010111</pattern>
+</bitset>
+
+<bitset name="max.u" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">011000</pattern>
+</bitset>
+
+<bitset name="max.s" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">011001</pattern>
+</bitset>
+
+<bitset name="absneg.s" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">011010</pattern>
+</bitset>
+
+<bitset name="and.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">011100</pattern>
+</bitset>
+
+<bitset name="or.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">011101</pattern>
+</bitset>
+
+<bitset name="not.b" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">011110</pattern>
+</bitset>
+
+<bitset name="xor.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">011111</pattern>
+</bitset>
+
+<bitset name="cmpv.u" extends="#instruction-cat2-2src-cond">
+	<pattern low="53" high="58">100001</pattern>
+</bitset>
+
+<bitset name="cmpv.s" extends="#instruction-cat2-2src-cond">
+	<pattern low="53" high="58">100010</pattern>
+</bitset>
+
+<bitset name="mul.u24" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">110000</pattern>
+</bitset>
+
+<bitset name="mul.s24" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">110001</pattern>
+</bitset>
+
+<bitset name="mull.u" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">110010</pattern>
+</bitset>
+
+<bitset name="bfrev.b" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">110011</pattern>
+</bitset>
+
+<bitset name="clz.s" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">110100</pattern>
+</bitset>
+
+<bitset name="clz.b" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">110101</pattern>
+</bitset>
+
+<bitset name="shl.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">110110</pattern>
+</bitset>
+
+<bitset name="shr.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">110111</pattern>
+</bitset>
+
+<bitset name="ashr.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">111000</pattern>
+</bitset>
+
+<bitset name="mgen.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">111010</pattern>
+</bitset>
+
+<bitset name="getbit.b" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">111011</pattern>
+</bitset>
+
+<bitset name="setrm" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">111100</pattern>
+</bitset>
+
+<bitset name="cbits.b" extends="#instruction-cat2-1src">
+	<pattern low="53" high="58">111101</pattern>
+</bitset>
+
+<bitset name="shb" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">111110</pattern>
+</bitset>
+
+<bitset name="msad" extends="#instruction-cat2-2src">
+	<pattern low="53" high="58">111111</pattern>
+</bitset>
+
+</isa>

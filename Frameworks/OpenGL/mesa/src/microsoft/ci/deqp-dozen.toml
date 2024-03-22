@@ -1,0 +1,13 @@
+[[deqp]]
+deqp = "/deqp/external/vulkancts/modules/vulkan/deqp-vk.exe"
+deqp_args = [
+    "--deqp-surface-width=256",
+    "--deqp-surface-height=256",
+    "--deqp-surface-type=pbuffer",
+    "--deqp-gl-config-name=rgba8888d24s8ms0",
+    "--deqp-visibility=hidden",
+]
+caselists = ["/deqp/mustpass/vk-main.txt"]
+skips = ["./_install/warp-skips.txt"]
+flakes = ["./_install/warp-flakes.txt"]
+renderer_check = 'Microsoft Direct3D12 \(Microsoft Basic Render Driver\)'

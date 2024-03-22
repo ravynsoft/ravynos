@@ -1,0 +1,281 @@
+Mesa 12.0.4 Release Notes / November 10, 2016
+=============================================
+
+Mesa 12.0.4 is a bug fix release which fixes bugs found since the 12.0.4
+release.
+
+Mesa 12.0.4 implements the OpenGL 4.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.3. OpenGL 4.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   22026ce4f1c6a7908b0d10ff057decec0a5633afe7f38a0cef5c08d0689f02a6 mesa-12.0.4.tar.gz
+   5d6003da867d3f54e5000b4acdfc37e6cce5b6a4459274fdad73e24bd2f0065e mesa-12.0.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 71759 <https://bugs.freedesktop.org/show_bug.cgi?id=71759>`__ -
+   Intel driver fails with "intel_do_flush_locked failed: No such file
+   or directory" if buffer imported with EGL_NATIVE_PIXMAP_KHR
+-  `Bug 94354 <https://bugs.freedesktop.org/show_bug.cgi?id=94354>`__ -
+   R9285 Unigine Valley perf regression since radeonsi: use re-Z
+-  `Bug 96770 <https://bugs.freedesktop.org/show_bug.cgi?id=96770>`__ -
+   include/GL/mesa_glinterop.h:62: error: redefinition of typedef
+   ‘GLXContext’
+-  `Bug 97231 <https://bugs.freedesktop.org/show_bug.cgi?id=97231>`__ -
+   GL_DEPTH_CLAMP doesn't clamp to the far plane
+-  `Bug 97233 <https://bugs.freedesktop.org/show_bug.cgi?id=97233>`__ -
+   vkQuake VkSpecializationMapEntry related bug
+-  `Bug 97260 <https://bugs.freedesktop.org/show_bug.cgi?id=97260>`__ -
+   R9 290 low performance in Linux 4.7
+-  `Bug 97549 <https://bugs.freedesktop.org/show_bug.cgi?id=97549>`__ -
+   [SNB, BXT] up to 40% perf drop from "loader/dri3: Overhaul
+   dri3_update_num_back" commit
+-  `Bug 97887 <https://bugs.freedesktop.org/show_bug.cgi?id=97887>`__ -
+   llvm segfault in janusvr -render vive
+-  `Bug 98025 <https://bugs.freedesktop.org/show_bug.cgi?id=98025>`__ -
+   [radeonsi] incorrect primitive restart index used
+-  `Bug 98134 <https://bugs.freedesktop.org/show_bug.cgi?id=98134>`__ -
+   dEQP-GLES31.functional.debug.negative_coverage.get_error.buffer.draw_buffers
+   wants a different GL error code
+-  `Bug 98326 <https://bugs.freedesktop.org/show_bug.cgi?id=98326>`__ -
+   [dEQP, EGL] pbuffer depth/stencil tests fail
+
+Changes
+-------
+
+Axel Davy (4):
+
+-  gallium/util: Really allow aliasing of dst for u_box_union\_\*
+-  st/nine: Fix the calculation of the number of vs inputs
+-  st/nine: Fix mistake in Volume9 UnlockBox
+-  st/nine: Fix locking CubeTexture surfaces.
+
+Brendan King (1):
+
+-  configure.ac: fix the name of the Wayland Scanner pc file
+
+Brian Paul (1):
+
+-  st/mesa: fix swizzle issue in st_create_sampler_view_from_stobj()
+
+Chad Versace (3):
+
+-  egl: Fix truncation error in \_eglParseSyncAttribList64
+-  i965/sync: Fix uninitalized usage and leak of mutex
+-  egl: Don't advertise unsupported platform extensions
+
+Chuanbo Weng (1):
+
+-  gbm: fix potential NULL deref of mapImage/unmapImage.
+
+Chuck Atkins (1):
+
+-  autoconf: Make header install distinct for various APIs (v2)
+
+Dave Airlie (3):
+
+-  anv: initialise and increment send_sbc
+-  anv/wsi: fix apps that acquire multiple images up front
+-  Revert "st/vdpau: use linear layout for output surfaces"
+
+Emil Velikov (12):
+
+-  docs: add sha256 checksums for 12.0.3
+-  cherry-ignore: add non-applicable i965 commit
+-  cherry-ignore: add vaapi encode fix
+-  cherry-ignore: add EGL_KHR_debug fix
+-  cherry-ignore: add update_renderbuffer_read_surfaces()
+-  isl/gen6: correctly check msaa layout samples count
+-  egl/x11: don't crash if dri2_dpy->conn is NULL
+-  get-pick-list.sh: Require explicit "12.0" for nominating stable
+   patches
+-  automake: don't forget to pick wglext.h in the tarball
+-  cherry-ignore: add N/A EGL revert
+-  cherry-ignore: add ClientWaitSync fixes
+-  Update version to 12.0.4
+
+Eric Anholt (5):
+
+-  travis: Parse configure.ac to pick an updated LIBDRM_VERSION.
+-  travis: Update to the Ubuntu Trusty image.
+-  travis: Enable vc4 in libdrm to satisfy vc4 test build dependency.
+-  travis: Upgrade LLVM dependency to 3.5 and enable LLVM drivers.
+-  gallium: Fix install-gallium-links.mk on non-bash /bin/sh
+
+Hans de Goede (1):
+
+-  pipe_loader_sw: Fix fd leak when instantiated via
+   pipe_loader_sw_probe_kms
+
+Ian Romanick (1):
+
+-  glsl: Fix cut-and-paste bug in hierarchical visitor
+   ir_expression::accept
+
+Ilia Mirkin (16):
+
+-  nv30: set usage to staging so that the buffer is allocated in GART
+-  a3xx: make sure to actually clamp depth as requested
+-  a3xx: make use of software clipping when hw can't handle it
+-  a3xx: use window scissor to simulate viewport xy clip
+-  main: GL_RGB10_A2UI does not come with GL 3.0/EXT_texture_integer
+-  mesa/formatquery: limit ES target support, fix core context support
+-  nir: fix definition of pack_uvec2_to_uint
+-  gm107/ir: AL2P writes to a predicate register
+-  st/mesa: fix is_scissor_enabled when X/Y are negative
+-  nvc0/ir: fix overwriting of value backing non-constant gather offset
+-  nv50/ir: copy over value's register id when resolving merge of a phi
+-  nvc0/ir: fix textureGather with a single offset
+-  gm107/ir: fix texturing with indirect samplers
+-  gm107/ir: fix bit offset of tex lod setting for indirect texturing
+-  nv50,nvc0: avoid reading out of bounds when getting bogus so info
+-  nv50/ir: process texture offset sources as regular sources
+
+James Legg (1):
+
+-  radeonsi: Fix primitive restart when index changes
+
+Faith Ekstrand (9):
+
+-  nir/spirv: Swap the argument order for AtomicCompareExchange
+-  nir/spirv: Use the correct sources for CompareExchange on images
+-  nir/spirv: Break variable decoration handling into a helper
+-  nir/spirv: Refactor variable deocration handling
+-  nir/spirv/cfg: Handle switches whose break block is a loop continue
+-  nir/spirv/cfg: Detect switch_break after loop_break/continue
+-  nir: Add a nop intrinsic
+-  nir/spirv/cfg: Use a nop intrinsic for tagging the ends of blocks
+-  intel/blorp: Rework our usage of ralloc when compiling shaders
+
+Jonathan Gray (3):
+
+-  genxml: add generated headers to EXTRA_DIST
+-  mapi: automake: set VISIBILITY_CFLAGS for shared glapi
+-  mesa: automake: include mesa_glinterop.h in distfile
+
+Julien Isorce (1):
+
+-  st/va: also honors interlaced preference when providing a video
+   format
+
+Kenneth Graunke (8):
+
+-  nir: Call nir_metadata_preserve from nir_lower_alu_to_scalar().
+-  mesa: Expose RESET_NOTIFICATION_STRATEGY with KHR_robustness.
+-  i965: Fix missing \_NEW_TRANSFORM in Gen8+ 3DSTATE_DS atom.
+-  i965: Add missing BRW_NEW_VS_PROG_DATA to 3DSTATE_CLIP.
+-  i965: Move BRW_NEW_FRAGMENT_PROGRAM from 3DSTATE_PS to PS_EXTRA.
+-  i965: Add missing BRW_NEW_CS_PROG_DATA to compute constant atom.
+-  i965: Add missing BRW_CS_PROG_DATA to CS work group surface atom.
+-  i965: Fix gl_InvocationID in dual object GS where invocations == 1.
+
+Marek Olšák (12):
+
+-  radeonsi: fix cubemaps viewed as 2D
+-  radeonsi: take compute shader and dispatch indirect memory usage into
+   account
+-  radeonsi: fix FP64 UBO loads with indirect uniform block indexing
+-  mesa: fix glGetFramebufferAttachmentParameteriv w/ on-demand
+   FRONT_BACK alloc
+-  radeonsi: fix interpolateAt opcodes for .zw components
+-  radeonsi: fix texture border colors for compute shaders
+-  radeonsi: disable ReZ
+-  gallium/radeon: make sure the address of separate CMASK is aligned
+   properly
+-  winsys/amdgpu: fix radeon_surf::macro_tile_index for imported
+   textures
+-  egl: use util/macros.h
+-  egl: make interop ABI visible again
+-  glx: make interop ABI visible again
+
+Mario Kleiner (1):
+
+-  glx: Perform check for valid fbconfig against proper X-Screen.
+
+Martin Peres (2):
+
+-  loader/dri3: add get_dri_screen() to the vtable
+-  loader/dri3: import prime buffers in the currently-bound screen
+
+Matt Whitlock (5):
+
+-  egl/android: replace call to dup(2) with fcntl(F_DUPFD_CLOEXEC)
+-  gallium/auxiliary: replace call to dup(2) with fcntl(F_DUPFD_CLOEXEC)
+-  st/dri: replace calls to dup(2) with fcntl(F_DUPFD_CLOEXEC)
+-  st/xa: replace call to dup(2) with fcntl(F_DUPFD_CLOEXEC)
+-  gallium/winsys: replace calls to dup(2) with fcntl(F_DUPFD_CLOEXEC)
+
+Max Staudt (1):
+
+-  r300g: Set R300_VAP_CNTL on RSxxx to avoid triangle flickering
+
+Michel Dänzer (1):
+
+-  loader/dri3: Overhaul dri3_update_num_back
+
+Nicholas Bishop (2):
+
+-  gbm: return appropriate error when queryImage() fails
+-  st/dri: check pipe_screen->resource_get_handle() return value
+
+Nicolai Hähnle (10):
+
+-  gallium/radeon: cleanup and fix branch emits
+-  st/glsl_to_tgsi: disable on-the-fly peephole for 64-bit operations
+-  st/glsl_to_tgsi: simplify translate_tex_offset
+-  st/glsl_to_tgsi: fix textureGatherOffset with indirectly loaded
+   offsets
+-  st/mesa: fix vertex elements setup for doubles
+-  radeonsi: fix indirect loads of 64 bit constants
+-  st/glsl_to_tgsi: fix atomic counter addressing
+-  st/glsl_to_tgsi: fix block copies of arrays of doubles
+-  st/mesa: only set primitive_restart when the restart index is in
+   range
+-  radeonsi: fix 64-bit loads from LDS
+
+Samuel Pitoiset (4):
+
+-  nvc0/ir: fix subops for IMAD
+-  gk110/ir: fix wrong emission of OP_NOT
+-  nvc0: use correct bufctx when invalidating CP textures
+-  nvc0/ir: fix emission of IMAD with NEG modifiers
+
+Stencel, Joanna (1):
+
+-  egl/wayland: add missing destroy_window callback
+
+Tapani Pälli (5):
+
+-  egl: stop claiming support for pbuffer + msaa
+-  egl/dri2: set max values for pbuffer width and height
+-  egl: add check that eglCreateContext gets a valid config
+-  mesa: fix error handling in DrawBuffers
+-  egl: set preserved behavior for surface only if config supports it
+
+Tim Rowley (1):
+
+-  configure.ac: add llvm inteljitevents component if enabled
+
+Vedran Miletić (1):
+
+-  clover: Fix build against clang SVN >= r273191
+
+Vinson Lee (1):
+
+-  Revert "mesa_glinterop: remove inclusion of GLX header"

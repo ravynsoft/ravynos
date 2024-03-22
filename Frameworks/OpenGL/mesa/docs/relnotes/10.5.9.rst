@@ -1,0 +1,118 @@
+Mesa 10.5.9 Release Notes / July 04, 2015
+=========================================
+
+Mesa 10.5.9 is a bug fix release which fixes bugs found since the 10.5.8
+release.
+
+Mesa 10.5.9 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   0c081b59572ee9732e7438d34adc3817fe8cc8d4b58abc0e71fd4b4c904945cb  mesa-10.5.9.tar.gz
+   71c69f31d3dbc35cfa79950e58a01d27030378d8c7ef1259a0b31d4d0487f4ec  mesa-10.5.9.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 84225 <https://bugs.freedesktop.org/show_bug.cgi?id=84225>`__ -
+   Allow constant-index-expression sampler array indexing with GLSL-ES <
+   300
+-  `Bug 88999 <https://bugs.freedesktop.org/show_bug.cgi?id=88999>`__ -
+   [SKL] Compiz crashes after opening unity dash
+-  `Bug 89118 <https://bugs.freedesktop.org/show_bug.cgi?id=89118>`__ -
+   [SKL Bisected]many Ogles3conform cases core dumped
+-  `Bug 90537 <https://bugs.freedesktop.org/show_bug.cgi?id=90537>`__ -
+   radeonsi bo/va conflict on RADEON_GEM_VA
+   (rscreen->ws->buffer_from_handle returns NULL)
+-  `Bug 90839 <https://bugs.freedesktop.org/show_bug.cgi?id=90839>`__ -
+   [10.5.5/10.6 regression, bisected] PBO glDrawPixels no longer using
+   blit fastpath
+-  `Bug 90873 <https://bugs.freedesktop.org/show_bug.cgi?id=90873>`__ -
+   Kernel hang, TearFree On, Mate desktop environment
+-  `Bug 91056 <https://bugs.freedesktop.org/show_bug.cgi?id=91056>`__ -
+   The Bard's Tale (2005, native) has rendering issues
+-  `Bug 91117 <https://bugs.freedesktop.org/show_bug.cgi?id=91117>`__ -
+   Nimbus (running in wine) has rendering issues, objects are
+   semi-transparent
+-  `Bug 91124 <https://bugs.freedesktop.org/show_bug.cgi?id=91124>`__ -
+   Civilization V (in Wine) has rendering issues: text missing, menu bar
+   corrupted
+
+Changes
+-------
+
+Ben Widawsky (2):
+
+-  i965/gen9: Implement Push Constant Buffer workaround
+-  i965/skl: Use 1 register for uniform pull constant payload
+
+Boyan Ding (1):
+
+-  egl/x11: Remove duplicate call to dri2_x11_add_configs_for_visuals
+
+Chris Wilson (3):
+
+-  i965: Fix HW blitter pitch limits
+-  i915: Blit RGBX<->RGBA drawpixels
+-  i965: Export format comparison for blitting between miptrees
+
+Emil Velikov (6):
+
+-  docs: Add sha256sums for the 10.5.8 release
+-  configure: warn about shared_glapi & xlib-glx only when both are set
+-  configure: error out when building backend-less libEGL
+-  configure: error out when building libEGL without shared-glapi
+-  gbm: do not (over)link against libglapi.so
+-  Update version to 10.5.9
+
+Frank Henigman (1):
+
+-  gbm: dlopen libglapi so gbm_create_device works
+
+Ilia Mirkin (8):
+
+-  glsl: add version checks to conditionals for builtin variable
+   enablement
+-  mesa: add GL_PROGRAM_PIPELINE support in KHR_debug calls
+-  glsl: binding point is a texture unit, which is a combined space
+-  nvc0: always put all tfb bufs into bufctx
+-  nv50,nvc0: make sure to pushbuf_refn before putting bo into
+   pushbuf_data
+-  nv50/ir: propagate modifier to right arg when const-folding mad
+-  nv50/ir: fix emission of address reg in 3rd source
+-  nv50/ir: copy joinAt when splitting both before and after
+
+Mario Kleiner (2):
+
+-  nouveau: Use dup fd as key in drm-winsys hash table to fix
+   ZaphodHeads.
+-  winsys/radeon: Use dup fd as key in drm-winsys hash table to fix
+   ZaphodHeads.
+
+Michel Dänzer (1):
+
+-  winsys/radeon: Unmap GPU VM address range when destroying BO
+
+Tapani Pälli (6):
+
+-  glsl: Allow dynamic sampler array indexing with GLSL ES < 3.00
+-  mesa/glsl: new compiler option EmitNoIndirectSampler
+-  i915: use EmitNoIndirectSampler
+-  mesa/st: use EmitNoIndirectSampler if !ARB_gpu_shader5
+-  i965: use EmitNoIndirectSampler for gen < 7
+-  glsl: validate sampler array indexing for 'constant-index-expression'

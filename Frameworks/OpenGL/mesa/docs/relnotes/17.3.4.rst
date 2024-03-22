@@ -1,0 +1,237 @@
+Mesa 17.3.4 Release Notes / January 15, 2018
+============================================
+
+Mesa 17.3.4 is a bug fix release which fixes bugs found since the 17.3.3
+release.
+
+Mesa 17.3.4 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   2d3a4c3cbc995b3e192361dce710d8c749e046e7575aa1b7d8fc9e6b4df28f84  mesa-17.3.4.tar.gz
+   71f995e233bc5df1a0dd46c980d1720106e7f82f02d61c1ca50854b5e02590d0  mesa-17.3.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 90311 <https://bugs.freedesktop.org/show_bug.cgi?id=90311>`__ -
+   Fail to build libglx with clang at linking stage
+-  `Bug 101442 <https://bugs.freedesktop.org/show_bug.cgi?id=101442>`__
+   - Piglit shaders@ssa@fs-if-def-else-break fails with sb but passes
+   with R600_DEBUG=nosb
+-  `Bug 102435 <https://bugs.freedesktop.org/show_bug.cgi?id=102435>`__
+   - [skl,kbl] [drm] GPU HANG: ecode 9:0:0x86df7cf9, in csgo_linux64
+   [4947], reason: Hang on rcs, action: reset
+-  `Bug 103006 <https://bugs.freedesktop.org/show_bug.cgi?id=103006>`__
+   - [OpenGL CTS] [HSW]
+   KHR-GL45.vertex_attrib_binding.basic-inputL-case1
+-  `Bug 103626 <https://bugs.freedesktop.org/show_bug.cgi?id=103626>`__
+   - [SNB] ES3-CTS.functional.shaders.precision
+-  `Bug 104163 <https://bugs.freedesktop.org/show_bug.cgi?id=104163>`__
+   - [GEN9+] 2-3% perf drop in GfxBench Manhattan 3.1 from "i965:
+   Disable regular fast-clears (CCS_D) on gen9+"
+-  `Bug 104383 <https://bugs.freedesktop.org/show_bug.cgi?id=104383>`__
+   - [KBL] Intel GPU hang with firefox
+-  `Bug 104411 <https://bugs.freedesktop.org/show_bug.cgi?id=104411>`__
+   - [CCS] lemonbar-xft GPU hang
+-  `Bug 104487 <https://bugs.freedesktop.org/show_bug.cgi?id=104487>`__
+   - [KBL] portal2_linux GPU hang
+-  `Bug 104711 <https://bugs.freedesktop.org/show_bug.cgi?id=104711>`__
+   - [skl CCS] Oxenfree (unity engine game) hangs GPU
+-  `Bug 104741 <https://bugs.freedesktop.org/show_bug.cgi?id=104741>`__
+   - Graphic corruption for Android apps Telegram and KineMaster
+-  `Bug 104745 <https://bugs.freedesktop.org/show_bug.cgi?id=104745>`__
+   - HEVC VDPAU decoding broken on RX 460 with UVD Firmware v1.130
+-  `Bug 104818 <https://bugs.freedesktop.org/show_bug.cgi?id=104818>`__
+   - mesa fails to build on ia64
+
+Changes
+-------
+
+Andres Gomez (1):
+
+-  i965: perform 2 uploads with dual slot \*64*PASSTHRU formats on gen<8
+
+Bas Nieuwenhuizen (10):
+
+-  radv: Fix ordering issue in meta memory allocation failure path.
+-  radv: Fix memory allocation failure path in compute resolve init.
+-  radv: Fix freeing meta state if the device pipeline cache fails to
+   allocate.
+-  radv: Fix fragment resolve init memory allocation failure paths.
+-  radv: Fix bufimage failure deallocation.
+-  radv: Init variant entry with memset.
+-  radv: Don't allow 3d or 1d depth/stencil textures.
+-  ac/nir: Use instance_rate_inputs per attribute, not per variable.
+-  ac/nir: Use correct 32-bit component writemask for 64-bit SSBO
+   stores.
+-  ac/nir: Fix vector extraction if source vector has >4 elements.
+
+Boyuan Zhang (2):
+
+-  radeon/vcn: add and manage render picture list
+-  radeon/uvd: add and manage render picture list
+
+Chuck Atkins (1):
+
+-  configure.ac: add missing llvm dependencies to .pc files
+
+Dave Airlie (10):
+
+-  r600/sb: fix a bug emitting ar load from a constant.
+-  ac/nir: account for view index in the user sgpr allocation.
+-  radv: add fs_key meta format support to resolve passes.
+-  radv: don't use hw resolve for integer image formats
+-  radv: don't use hw resolves for r16g16 norm formats.
+-  radv: move spi_baryc_cntl to pipeline
+-  r600/sb: insert the else clause when we might depart from a loop
+-  radv: don't enable tc compat for d32s8 + 4/8 samples (v1.1)
+-  radv/gfx9: fix block compression texture views. (v2)
+-  virgl: also remove dimension on indirect.
+
+Eleni Maria Stea (1):
+
+-  mesa: Fix function pointers initialization in status tracker
+
+Emil Velikov (18):
+
+-  cherry-ignore: i965: Accept CONTEXT_ATTRIB_PRIORITY for
+   brwCreateContext
+-  cherry-ignore: swr: refactor swr_create_screen to allow for proper
+   cleanup on error
+-  cherry-ignore: anv: add explicit 18.0 only nominations
+-  cherry-ignore: radv: fix sample_mask_in loading. (v3.1)
+-  cherry-ignore: meson: multiple fixes
+-  cherry-ignore: swr/rast: support llvm 3.9 type declarations
+-  Revert "cherry-ignore: intel/fs: Use the original destination region
+   for int MUL lowering"
+-  cherry-ignore: ac/nir: set amdgpu.uniform and invariant.load for UBOs
+-  cherry-ignore: add gen10 fixes
+-  cherry-ignore: add r600/amdgpu 18.0 nominations
+-  cherry-ignore: add i965 shader cache fixes
+-  cherry-ignore: nir: mark unused space in packed_tex_data
+-  radv: Stop advertising VK_KHX_multiview
+-  cherry-ignore: radv: Don't expose VK_KHX_multiview on android.
+-  configure.ac: correct driglx-direct help text
+-  cherry-ignore: add meson fix
+-  cherry-ignore: add a few more meson fixes
+-  Update version to 17.3.4
+
+Eric Engestrom (1):
+
+-  radeon: remove left over dead code
+
+Gert Wollny (1):
+
+-  r600/shader: Initialize max_driver_temp_used correctly for the first
+   time
+
+Grazvydas Ignotas (2):
+
+-  st/va: release held locks in error paths
+-  st/vdpau: release held lock in error path
+
+Igor Gnatenko (1):
+
+-  link mesautil with pthreads
+
+Indrajit Das (4):
+
+-  st/omx_bellagio: Update default intra matrix per MPEG2 spec
+-  radeon/uvd: update quantiser matrices only when requested
+-  radeon/vcn: update quantiser matrices only when requested
+-  st/va: clear pointers for mpeg2 quantiser matrices
+
+Faith Ekstrand (19):
+
+-  i965: Call brw_cache_flush_for_render in predraw_resolve_framebuffer
+-  i965: Add more precise cache tracking helpers
+-  i965/blorp: Add more destination flushing
+-  i965: Track the depth and render caches separately
+-  i965: Track format and aux usage in the render cache
+-  Re-enable regular fast-clears (CCS_D) on gen9+
+-  i965/miptree: Refactor CCS_E and CCS_D cases in render_aux_usage
+-  i965/miptree: Add an explicit tiling parameter to create_for_bo
+-  i965/miptree: Use the tiling from the modifier instead of the BO
+-  i965/bufmgr: Add a create_from_prime_tiled function
+-  i965: Set tiling on BOs imported with modifiers
+-  i965/miptree: Take an aux_usage in prepare/finish_render
+-  i965/miptree: Add an aux_disabled parameter to render_aux_usage
+-  i965/surface_state: Drop brw_aux_surface_disabled
+-  intel/fs: Use the original destination region for int MUL lowering
+-  anv/pipeline: Don't look at blend state unless we have an attachment
+-  anv/cmd_buffer: Re-emit the pipeline at every subpass
+-  anv: Stop advertising VK_KHX_multiview
+-  i965: Call prepare_external after implicit window-system MSAA
+   resolves
+
+Jon Turney (3):
+
+-  configure: Default to gbm=no on osx
+-  glx/apple: include util/debug.h for env_var_as_boolean prototype
+-  glx/apple: locate dispatch table functions to wrap by name
+
+José Fonseca (1):
+
+-  svga: Prevent use after free.
+
+Juan A. Suarez Romero (1):
+
+-  docs: add sha256 checksums for 17.3.3
+
+Kenneth Graunke (2):
+
+-  i965: Bind null render targets for shadow sampling + color.
+-  i965: Bump official kernel requirement to Linux v3.9.
+
+Lucas Stach (2):
+
+-  etnaviv: dirty TS state when framebuffer has changed
+-  renderonly: fix dumb BO allocation for non 32bpp formats
+
+Marek Olšák (1):
+
+-  radeonsi: don't ignore pitch for imported textures
+
+Matthew Nicholls (2):
+
+-  radv: restore previous stencil reference after depth-stencil clear
+-  radv: remove predication on cache flushes
+
+Maxin B. John (1):
+
+-  anv_icd.py: improve reproducible builds
+
+Michel Dänzer (1):
+
+-  winsys/radeon: Compute is_displayable in surf_drm_to_winsys
+
+Roland Scheidegger (1):
+
+-  r600: don't do stack workarounds for hemlock
+
+Samuel Pitoiset (1):
+
+-  radv: create pipeline layout objects for all meta operations
+
+Samuel Thibault (1):
+
+-  glx: fix non-dri build
+
+Timothy Arceri (2):
+
+-  ac: fix buffer overflow bug in 64bit SSBO loads
+-  ac: fix visit_ssa_undef() for doubles

@@ -1,0 +1,134 @@
+%YAML 1.2
+---
+traces-db:
+  download-url: "http://caching-proxy/cache/?uri=https://s3.freedesktop.org/mesa-tracie-public/"
+
+traces:
+  behdad-glyphy/glyphy-v2.trace:
+    gl-panfrost-t860:
+      checksum: 22bf5262745fd47c5c5eadb93d7cc420
+  glxgears/glxgears-2-v2.trace:
+    gl-panfrost-t860:
+      checksum: bcc73608b6e2b5d92bf926d1c21889c7
+    gl-panfrost-t760:
+      checksum: bcc73608b6e2b5d92bf926d1c21889c7
+  pathfinder/demo-v2.trace:
+    gl-panfrost-t860:
+      label: [crash]
+      checksum: c4f5e6bfe0cba230b1aef631c2fa4584
+    gl-panfrost-t760:
+      label: [crash]
+      checksum: c4f5e6bfe0cba230b1aef631c2fa4584
+  pathfinder/canvas_moire-v2.trace:
+    gl-panfrost-t860:
+      label: [crash]
+      checksum: 2fb2c8e83719526cb6c02b6c2e069d61
+    gl-panfrost-t760:
+      label: [crash]
+      checksum: 2fb2c8e83719526cb6c02b6c2e069d61
+  pathfinder/canvas_text_v2-v2.trace:
+    gl-panfrost-t860:
+      checksum: 35fbb0c520595e948d3a0f3aaa499d77
+    gl-panfrost-t760:
+      checksum: 35fbb0c520595e948d3a0f3aaa499d77
+  gputest/furmark-v2.trace:
+    gl-panfrost-t860:
+      checksum: 6540f71b1c051ba82af2a25b93065f34
+  gputest/triangle-v2.trace:
+    gl-panfrost-t860:
+      checksum: 75c5a2e261d576d115a659f6cd52a90d
+    gl-panfrost-t760:
+      checksum: 75c5a2e261d576d115a659f6cd52a90d
+  humus/Portals-v2.trace:
+    gl-panfrost-t860:
+      checksum: ad04db74ea70b7772719080f8a4c499b
+    gl-panfrost-t760:
+      checksum: 4a1937c257107833cd43816daae1d814
+  0ad/0ad-v2.trace:
+    gl-panfrost-t860:
+      label: [skip, timeout]
+  # Flaky since the introduction of parallel trace replay
+  gputest/gimark-v2.trace:
+    gl-panfrost-t860:
+      label: [skip, flakes, broken]
+      checksum: 0020a77e25003e4e8db1ce929eed8914
+      text: Some blue rings are missing on the top-left corner, also the penguin watermark.
+  gputest/pixmark-julia-fp32-v2.trace:
+    gl-panfrost-t860:
+      checksum: d85b6967b7c768f28395c5c5dfbcfe3e
+  gputest/plot3d-v2.trace:
+    gl-panfrost-t860:
+      checksum: a34223830866a42747db199b04c5e1be
+  humus/AmbientAperture-v2.trace:
+    gl-panfrost-t860:
+      checksum: e4c0b930ef99f14305e1ade7f1779c09
+  humus/CelShading-v2.trace:
+    gl-panfrost-t860:
+      checksum: 521ca6a236b8400cf692e6817b91c739
+  humus/DynamicBranching3-v2.trace:
+    gl-panfrost-t860:
+      checksum: 32e349d14319b4ae921c146224d26a0e
+  humus/RaytracedShadows-v2.trace:
+    gl-panfrost-t860:
+      checksum: b2f909cbf5ea5de03b88f8a685eb2e28
+  humus/VolumetricFogging2-v2.trace:
+    gl-panfrost-t860:
+      checksum: f53b5b1430aa21804c6fed01bce560aa
+  neverball/neverball-v2.trace:
+    gl-panfrost-t860:
+      label: [broken]
+      checksum: 53365059f3b84436c199f1cb6f6d3b35
+      text: Missing the coins and the texture on the "Nev" of the level.
+  paraview/pv-manyspheres-v2.trace:
+    gl-panfrost-t860:
+      checksum: 1747f5c7609548f1cf325a7e89ea02a9
+  paraview/pv-waveletcontour-v2.trace:
+    gl-panfrost-t860:
+      label: [crash]
+      checksum: db43c733f3f3d5253e263838e58d9111
+  paraview/pv-waveletvolume-v2.trace:
+    gl-panfrost-t860:
+      checksum: e0b4fba1e77005892c06a4899933d71a
+  valve/counterstrike-v2.trace:
+    gl-panfrost-t860:
+      label: [hang]
+      checksum: b4af9243e34f3de0153b6855dc9c66b6
+  valve/counterstrike-source-v2.trace:
+    gl-panfrost-t860:
+      label: [hang]
+      checksum: bbe74b2171d62fc6738086740e1aa0d8
+  ror/ror-default.trace:
+    gl-panfrost-t860:
+      label: [crash]
+  nheko/nheko-colors.trace:
+    gl-panfrost-t760:
+      label: [skip, flakes]
+      checksum: bfc0f5e19e858c36f6f66dbdb2040944
+    gl-panfrost-t860:
+      label: [skip, flakes]
+      checksum: 03251159007917a90247d2aa2cf5f68b
+  warzone2100/warzone2100-default.trace:
+    gl-panfrost-t760:
+      checksum: 4bc5eb01ffe1bf5ba4953ce17f09375f
+    gl-panfrost-t860:
+      checksum: e4e92aa7bda9d68a12770d94b3e98f5a
+  blender/blender-demo-cube_diorama.trace:
+    gl-panfrost-t760:
+      label: [unsupported]
+    gl-panfrost-t860:
+      label: [unsupported]
+  blender/blender-demo-ellie_pose.trace:
+    gl-panfrost-t760:
+      label: [unsupported]
+    gl-panfrost-t860:
+      label: [unsupported]
+  unvanquished/unvanquished-lowest.trace:
+    gl-panfrost-t760:
+      label: [unsupported]
+    gl-panfrost-t860:
+      label: [unsupported]
+  unvanquished/unvanquished-ultra.trace:
+    gl-panfrost-t760:
+      label: [unsupported]
+    gl-panfrost-t860:
+      label: [unsupported]

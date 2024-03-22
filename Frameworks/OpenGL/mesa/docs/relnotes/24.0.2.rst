@@ -1,0 +1,230 @@
+Mesa 24.0.2 Release Notes / 2024-02-28
+======================================
+
+Mesa 24.0.2 is a bug fix release which fixes bugs found since the 24.0.1 release.
+
+Mesa 24.0.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 24.0.2 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    94e28a8edad06d8ed2b83eb53f253b9eb5aa62c3080f939702e1b3039b56c9e8  mesa-24.0.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- KHR-Single-GL46.arrays_of_arrays_gl.AtomicUsage fails on MTL
+- GTF-GL46.gtf42.GL3Tests.texture_storage.texture_storage_texture_as_framebuffer_attachment fails on MTL
+- [intel][anv][build][regression] - genX_grl.h:27:10: fatal error: grl/grl_cl_kernel.h: No such file or directory
+- RX 6600 VDPAU not recognizing HEVC_MAIN_10 correctly
+- Running an app on another AMD GPU (offload, DRI_PRIME) produces corrupted frames on Wayland.
+- VDPAU declares a texture as "immutable" without also setting its ImmutableLevels attribute.
+- RX6600 hardware HEVC video decode fails for VDPAU but works for VA-API. (Can lock up GPU!)
+- Rusticl panics when getting program build logs using opencl.hpp
+- ue5 game issues lighting Rog Ally 7080u (z1e)
+- Missing textures in RoboCop: Rogue City with mesh shaders enabled
+- radv: Multiview PSO forgets to export layer in some cases.
+- zink: flickering artifacts in Selaco
+
+
+Changes
+-------
+
+Boyuan Zhang (1):
+
+- radeonsi/vcn: only use multi slices reflist when available
+
+Chia-I Wu (1):
+
+- radv: fix pipeline stats mask
+
+Chris Rankin (2):
+
+- vdpau: Declare texture object as immutable using helper function.
+- vdpau: Refactor query for video surface formats.
+
+Connor Abbott (1):
+
+- tu: Follow pipeline compatibility rules for dynamic descriptors
+
+Daniel Schürmann (1):
+
+- spirv: Fix SpvOpExpectKHR
+
+Daniel Stone (2):
+
+- egl/wayland: Add opaque-equivalent FourCCs
+- egl/wayland: Fix EGL_EXT_present_opaque
+
+Dave Airlie (2):
+
+- nouveau/winsys: fix bda heap leak.
+- nvk: fix dri options leak.
+
+David Rosca (1):
+
+- frontends/va: Only set VP9 segmentation fields when segmentation is enabled
+
+Eric Engestrom (10):
+
+- docs: add sha256sum for 24.0.1
+- [24.0-only change] ci: increase the kernel+rootfs builds timeout to 2h
+- .pick_status.json: Update to c6e855b64b9015235462959b2b7f3e9fc34b2f1f
+- .pick_status.json: Update to dce20690542c84ac00509a6db7902dcfc90b25bb
+- .pick_status.json: Update to c12300844d3f084ca011a3f54f0cbaa9807418f0
+- .pick_status.json: Mark 3b927567ac927316eb11901f50ee1573ead44fd2 as denominated
+- .pick_status.json: Update to 423add61e2d5b6ab6b5505d1feec01b93609f8fc
+- .pick_status.json: Update to 4071c399a27932ea9253eb8a65d5725504bac6f3
+- .pick_status.json: Update to 82ff9204abab5267f82a9ce73f9dca1541ef5ee6
+- [24.0 only] disable clang-format
+
+Erik Faye-Lund (1):
+
+- mesa/main: allow GL_BGRA for FBOs
+
+Faith Ekstrand (1):
+
+- nvk: Invalidate the texture cache before MSAA resolves
+
+Hans-Kristian Arntzen (1):
+
+- radv: export multiview in VS/TES/GS for depth-only rendering
+
+Iago Toral Quiroga (1):
+
+- v3d,v3dv: fix BO allocation for shared vars
+
+Ian Romanick (1):
+
+- nir: Mark nir_intrinsic_load_global_block_intel as divergent
+
+Jesse Natalie (1):
+
+- dzn: Don't set view instancing mask until after the PSO
+
+Jordan Justen (1):
+
+- intel/dev: Add 2 additional ADL-N PCI ids
+
+Juston Li (1):
+
+- venus: fix image reqs cache store locking
+
+Karol Herbst (3):
+
+- zink: lower unaligned memory accesses
+- rusticl/program: fix CL_PROGRAM_BINARIES for devs with no builds
+- meson: do not pull in clc for clover
+
+Konstantin Seurer (5):
+
+- zink: Always set mfence->submit_count to the fence submit_count
+- Revert "zink: always force flushes when originating from api frontend"
+- llvmpipe: Use full subgroups when possible
+- gallivm: Consider the initial mask when terminating loops
+- ci: Update llvmpipe trace checksums
+
+Lionel Landwerlin (8):
+
+- vulkan/runtime: add helper to query attachment layout
+- anv: fixup push descriptor shader analysis
+- anv: reenable ANV_ALWAYS_BINDLESS
+- anv: fix Wa_16013994831 macros
+- anv: disable Wa_16013994831
+- intel/nir: only consider ray query variables in lowering
+- anv: limit depth flush on dynamic render pass suspend
+- anv: add missing generated file dep
+
+Martin Roukala (né Peres) (1):
+
+- radv/ci: switch vkcts-polaris10 from mupuf to KWS' farm
+
+Michel Dänzer (1):
+
+- egl/wayland: Flush after blitting to linear copy
+
+Mike Blumenkrantz (25):
+
+- zink: prune dmabuf export tracking when adding resource binds
+- zink: fix sparse bo placement
+- zink: zero allocate resident_defs array in ntv
+- zink: move sparse lowering up in file
+- zink: run sparse lowering after all optimization passes
+- zink: adjust swizzled deref loads by the variable component offset
+- zink: clamp zink_gfx_lib_cache::stages_present for generated tcs
+- zink: promote gpl libs freeing during shader destroy out of prog loop
+- zink: don't add VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT for sparse textures
+- zink: delete maxDescriptorBufferBindings checks
+- zink: avoid infinite recursion on (very) small BAR systems in bo alloc
+- zink: add checks/compat for low-spec descriptor buffer implementations
+- zink: add a second fence disambiguation case
+- zink: force host-visible allocations for MAP_COHERENT resources
+- zink: handle stencil_fallback in zink_clear_depth_stencil
+- zink: don't destroy the current batch state on context destroy
+- mesa: check driver format support for certain GetInternalformativ queries
+- vk/wsi/x11/sw: use swapchain depth for putimage
+- zink: only scan active batch states for free states if > 1 exist
+- zink: fix longstanding issue with active batch state recycling
+- zink: assert that batch_id is valid in zink_screen_check_last_finished()
+- zink: clamp in_rp clears to fb size
+- zink: fix (dynamic rendering) execution of scissored clears during flush
+- zink: lock buffer age when chundering swapchain for readback
+- zink: flag acquired swapchain image as readback target on acquire, not present
+
+Patrick Lerda (3):
+
+- r300: fix vertex_buffer related refcnt imbalance
+- r300: fix r300_destroy_context() related memory leaks
+- r300: fix memory leaks when register allocation fails
+
+Pavel Ondračka (1):
+
+- r300: add explicit flrp lowering
+
+Rhys Perry (2):
+
+- aco/ra: don't initialize assigned in initializer list
+- aco/ra: fix GFX9- writelane
+
+Sagar Ghuge (1):
+
+- nir: Allow nir_texop_tg4 in implicit derivative
+
+Samuel Pitoiset (4):
+
+- radv: fix RGP barrier reason for RP barriers inserted by the runtime
+- radv: enable GS_FAST_LAUNCH=2 by default for RDNA3 APUs (Phoenix)
+- spirv: only consider IO variables when adjusting patch locations for TES
+- radv: fix indirect dispatches on compute queue with conditional rendering on GFX7
+
+Tapani Pälli (2):
+
+- intel/blorp: disable use of REP16 independent of format
+- iris: make sure DS and TE are sent in pairs on >= gfx125
+
+Yiwei Zhang (2):
+
+- venus: force async pipeline create on threads creating descriptor pools
+- venus: fix the cmd stride used for qfb recording
+
+thfrwn (1):
+
+- mesa: fix off-by-one for newblock allocation in dlist_alloc

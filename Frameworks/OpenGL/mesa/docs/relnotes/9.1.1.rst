@@ -1,0 +1,206 @@
+Mesa 9.1.1 Release Notes / March 19th, 2013
+===========================================
+
+Mesa 9.1.1 is a bug fix release which fixes bugs found since the 9.1
+release.
+
+Mesa 9.1 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   6508d9882d8dce7106717f365632700c  MesaLib-9.1.1.tar.gz
+   6ea2bdc3b7ecfb4257b39814b4182580  MesaLib-9.1.1.tar.bz2
+   3434c0eb47849a08c53cd32833d10d13  MesaLib-9.1.1.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 30232 <https://bugs.freedesktop.org/show_bug.cgi?id=30232>`__ -
+   [GM45] mesa demos spriteblast render incorrectly
+-  `Bug 32429 <https://bugs.freedesktop.org/show_bug.cgi?id=32429>`__ -
+   [gles2] Ironlake: gl_PointCoord takes no effect for point sprites
+-  `Bug 38086 <https://bugs.freedesktop.org/show_bug.cgi?id=38086>`__ -
+   Mesa 7.11-devel implementation error: Unexpected program target in
+   destroy_program_variants_cb()
+-  `Bug 57121 <https://bugs.freedesktop.org/show_bug.cgi?id=57121>`__ -
+   [snb] corrupted GLSL built-in function results when using Uniform
+   Buffer contents as arguments
+-  `Bug 58042 <https://bugs.freedesktop.org/show_bug.cgi?id=58042>`__ -
+   [bisected] Garbled UI in Team Fortress 2 and Counter-Strike: Source
+-  `Bug 58960 <https://bugs.freedesktop.org/show_bug.cgi?id=58960>`__ -
+   Texture flicker with fragment shader
+-  `Bug 59495 <https://bugs.freedesktop.org/show_bug.cgi?id=59495>`__ -
+   [i965 Bisected]Oglc fbblit(advanced.blitFb-3d-cube.mirror.both) fails
+-  `Bug 59783 <https://bugs.freedesktop.org/show_bug.cgi?id=59783>`__ -
+   [IVB bisected] 3DMMES2.0 Taiji performance reduced by ~13% with
+   gnome-session enable compositing
+-  `Bug 60121 <https://bugs.freedesktop.org/show_bug.cgi?id=60121>`__ -
+   build - libvdpau_softpipe fails at runtime.
+-  `Bug 60143 <https://bugs.freedesktop.org/show_bug.cgi?id=60143>`__ -
+   gbm_dri_bo_create fails to initialize bo->base.base.format
+-  `Bug 60802 <https://bugs.freedesktop.org/show_bug.cgi?id=60802>`__ -
+   Corruption with DMA ring on cayman
+-  `Bug 60848 <https://bugs.freedesktop.org/show_bug.cgi?id=60848>`__ -
+   [bisected] r600g: add htile support cause gpu lockup in Dishonored
+   wine.
+-  `Bug 60938 <https://bugs.freedesktop.org/show_bug.cgi?id=60938>`__ -
+   [softpipe] piglit interpolation-noperspective-gl_BackColor-flat-fixed
+   regression
+-  `Bug 61012 <https://bugs.freedesktop.org/show_bug.cgi?id=61012>`__ -
+   alloc_layout_array tx \* ty assertion failure when making pbuffer
+   current
+-  `Bug 61026 <https://bugs.freedesktop.org/show_bug.cgi?id=61026>`__ -
+   Segfault in glBitmap when called with PBO source
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.1..mesa-9.1.1
+
+Adam Sampson (1):
+
+-  autotools: oprofilejit should be included in the list of LLVM
+   components required
+
+Alex Deucher (2):
+
+-  r600g: add Richland APU pci ids
+-  r600g: Use blitter rather than DMA for 128bpp on cayman (v3)
+
+Andreas Boll (2):
+
+-  docs: Add 9.1 release md5sums
+-  docs: add news item for 9.1 release
+
+Anuj Phogat (1):
+
+-  meta: Allocate texture before initializing texture coordinates
+
+Brian Paul (11):
+
+-  docs: remove stray 'date' text
+-  docs: insert links to the 9.0.3 release
+-  draw: fix non-perspective interpolation in interp()
+-  st/mesa: implement glBitmap unpacking from a PBO, for the cache path
+-  st/xlib: initialize the drawable size in create_xmesa_buffer()
+-  st/mesa: fix trimming of GL_QUAD_STRIP
+-  st/mesa: check for dummy programs in destroy_program_variants()
+-  st/mesa: fix polygon offset state translation logic
+-  draw: fix broken polygon offset stage
+-  llvmpipe: add missing checks for polygon offset point/line modes
+-  svga: always link with C++
+
+Daniel van Vugt (1):
+
+-  gbm: Remember to init format on gbm_dri_bo_create.
+
+Eric Anholt (7):
+
+-  i965/fs: Do a general SEND dependency workaround for the original
+   965.
+-  i965/fs: Fix copy propagation with smearing.
+-  i965/fs: Delay setup of uniform loads until after pre-regalloc
+   scheduling.
+-  i965/fs: Only do CSE when the dst types match.
+-  i965/fs: Fix broken math on values loaded from uniform buffers on
+   gen6.
+-  mesa: Fix setup of ctx->Point.PointSprite for GLES2.
+-  i965: Fix the W value of deprecated pointcoords on pre-gen6.
+
+Frank Henigman (1):
+
+-  i965: Link i965_dri.so with C++ linker.
+
+Ian Romanick (3):
+
+-  mesa: Add previously picked commit to .cherry-ignore
+-  mesa: Modify candidate search string
+-  egl: Allow 24-bit visuals for 32-bit RGBA8888 configs
+
+Jakub Bogusz (1):
+
+-  vdpau-softpipe: Build correct source file - vl_winsys_xsp.c
+
+Jerome Glisse (1):
+
+-  r600g: workaround hyperz lockup on evergreen
+
+John Kåre Alsaker (1):
+
+-  llvmpipe: Fix creation of shared and scanout textures.
+
+Jordan Justen (1):
+
+-  attrib: push/pop FRAGMENT_PROGRAM_ARB state
+
+José Fonseca (3):
+
+-  scons: Allows choosing VS 10 or 11.
+-  scons: Define \_ALLOW_KEYWORD_MACROS on MSVC builds.
+-  scons: Warn when using MSVS versions prior to 2012.
+
+Keith Kriewall (1):
+
+-  scons: Fix Windows build with LLVM 3.2
+
+Kenneth Graunke (1):
+
+-  i965: Fix Crystal Well PCI IDs.
+
+Marek Olšák (5):
+
+-  r600g: use async DMA with a non-zero src offset
+-  r600g: flush and invalidate htile cache when appropriate
+-  gallium/util: add helper code for 1D integer range
+-  r600g: always map uninitialized buffer range as unsynchronized
+-  r600g: pad the DMA CS to a multiple of 8 dwords
+
+Martin Andersson (1):
+
+-  winsys/radeon: Only add bo to hash table when creating flink
+
+Matt Turner (1):
+
+-  mesa: Allow ETC2/EAC formats with ARB_ES3_compatibility.
+
+Michel Dänzer (3):
+
+-  radeonsi: Fix up and enable flat shading.
+-  r600g/Cayman: Fix blending using destination alpha factor but
+   non-alpha dest
+-  radeonsi: Fix off-by-one for maximum vertex element index in some
+   cases
+
+Tapani Pälli (2):
+
+-  mesa: add missing case in \_mesa_GetTexParameterfv()
+-  mesa/es: NULL check in EGLImageTargetTexture2DOES
+
+Vadim Girlin (1):
+
+-  r600g: fix check_and_set_bank_swizzle for cayman
+
+Vincent Lejeune (2):
+
+-  r600g/llvm: Add support for UBO
+-  r600g: Check comp_mask before merging export instructions

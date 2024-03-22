@@ -1,0 +1,33 @@
+# Times out after a minute.
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.query_status.fragment
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.recover_from_reset.fragment
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.reset_status.fragment
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.shared_context_status.fragment
+dEQP-EGL.functional.robustness.reset_context.shaders.infinite_loop.sync_status.fragment
+
+# Some of these consistently time out after a minute, some are >30s and would
+# flake as timeouts in CI.
+KHR-GL45.copy_image.functional
+KHR-GL45.texture_size_promotion.functional
+KHR-GL45.texture_swizzle.functional
+KHR-GL45.texture_swizzle.smoke
+arb_pipeline_statistics_query-comp
+gl-1.0-blend-func
+
+# this is just broken.
+KHR-GL45.shader_ballot_tests.ShaderBallotFunctionRead
+
+# piglit tests that would take too much memory on shared runners
+max-texture-size
+maxsize
+
+# Slow, not obviously fixable test
+spec@arb_compute_shader@local-id-explosion
+
+# Unreliable on shared runners due to timing
+ext_timer_query@time-elapsed
+spec@arb_timer_query@query gl_timestamp
+
+# These tests started hitting timeouts when we upgraded LLVM from v11 to 13
+spec@arb_texture_rg@fbo-blending-formats
+spec@ext_framebuffer_object@fbo-blending-formats

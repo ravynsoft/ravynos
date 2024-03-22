@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_EXT_vertex_attrib_64bit" number="387">
+
+    <function name="VertexAttribL1dEXT" alias="VertexAttribL1d">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL2dEXT" alias="VertexAttribL2d">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+        <param name="y" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL3dEXT" alias="VertexAttribL3d">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+        <param name="y" type="GLdouble"/>
+        <param name="z" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL4dEXT" alias="VertexAttribL4d">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+        <param name="y" type="GLdouble"/>
+        <param name="z" type="GLdouble"/>
+        <param name="w" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL1dvEXT" alias="VertexAttribL1dv">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *"/>
+    </function>
+
+    <function name="VertexAttribL2dvEXT" alias="VertexAttribL2dv">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *"/>
+    </function>
+
+    <function name="VertexAttribL3dvEXT" alias="VertexAttribL3dv">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *"/>
+    </function>
+
+    <function name="VertexAttribL4dvEXT" alias="VertexAttribL4dv">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *"/>
+    </function>
+
+    <function name="VertexAttribLPointerEXT" alias="VertexAttribLPointer">
+        <param name="index" type="GLuint"/>
+        <param name="size" type="GLint"/>
+        <param name="type" type="GLenum"/>
+        <param name="stride" type="GLsizei"/>
+        <param name="pointer" type="const GLvoid *"/>
+    </function>
+
+    <function name="GetVertexAttribLdvEXT" alias="GetVertexAttribLdv">
+        <param name="index" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLdouble *"/>
+    </function>
+</category>
+
+</OpenGLAPI>
+

@@ -1,0 +1,91 @@
+Mesa 19.1.5 Release Notes / August 23, 2019
+===========================================
+
+Mesa 19.1.5 is a bug fix release which fixes bugs found since the 19.1.4
+release.
+
+Mesa 19.1.5 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   7b54e14e35c7251b171b4cf9d84cbc1d760eafe00132117db193454999cd6eb4  mesa-19.1.5.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 109630 <https://bugs.freedesktop.org/show_bug.cgi?id=109630>`__
+   - vkQuake flickering geometry under Intel
+-  `Bug 110395 <https://bugs.freedesktop.org/show_bug.cgi?id=110395>`__
+   - Shadows are flickering in SuperTuxKart
+-  `Bug 111113 <https://bugs.freedesktop.org/show_bug.cgi?id=111113>`__
+   - ANGLE BlitFramebufferTest.MultisampleDepthClear/ES3_OpenGL fails on
+   Intel Ubuntu19.04
+-  `Bug 111267 <https://bugs.freedesktop.org/show_bug.cgi?id=111267>`__
+   - [CM246] Flickering with multiple draw calls within the same
+   graphics pipeline if a compute pipeline is present
+
+Changes
+-------
+
+Bas Nieuwenhuizen (4):
+
+-  radv: Do non-uniform lowering before bool lowering.
+-  ac/nir: Use correct cast for readfirstlane and ptrs.
+-  radv: Avoid binning RAVEN hangs.
+-  radv: Avoid VEGA/RAVEN scissor bug in binning.
+
+Danylo Piliaiev (1):
+
+-  i965: Emit a dummy MEDIA_VFE_STATE before switching from GPGPU to 3D
+
+Eric Engestrom (1):
+
+-  util: fix mem leak of program path
+
+Erik Faye-Lund (2):
+
+-  gallium/dump: add missing query-type to short-list
+-  gallium/dump: add missing query-type to short-list
+
+Greg V (2):
+
+-  anv: remove unused Linux-specific include
+-  intel/perf: use MAJOR_IN_SYSMACROS/MAJOR_IN_MKDEV
+
+Faith Ekstrand (1):
+
+-  anv: Emit a dummy MEDIA_VFE_STATE before switching from GPGPU to 3D
+
+Juan A. Suarez Romero (3):
+
+-  docs: add sha256 checksums for 19.1.4
+-  cherry-ignore: panfrost: Make ctx->job useful
+-  Update version to 19.1.5
+
+Marek Olšák (2):
+
+-  radeonsi: disable SDMA image copies on dGPUs to fix corruption in
+   games
+-  radeonsi: fix an assertion failure: assert(!res->b.is_shared)
+
+Matt Turner (1):
+
+-  meson: Test for program_invocation_name
+
+Sergii Romantsov (1):
+
+-  i965/clear: clear_value better precision

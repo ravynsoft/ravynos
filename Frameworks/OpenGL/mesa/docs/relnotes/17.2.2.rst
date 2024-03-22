@@ -1,0 +1,164 @@
+Mesa 17.2.2 Release Notes / October 2, 2017
+===========================================
+
+Mesa 17.2.2 is a bug fix release which fixes bugs found since the 17.2.1
+release.
+
+Mesa 17.2.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   8242256f3243ed3f35184ed7bf0a9070439ccdf477a3bd9cfd2437c0b2f9bc7f  mesa-17.2.2.tar.gz
+   cf522244d6a5a1ecde3fc00e7c96935253fe22f808f064cab98be6f3faa65782  mesa-17.2.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 102573 <https://bugs.freedesktop.org/show_bug.cgi?id=102573>`__
+   - fails to build on armel
+-  `Bug 102844 <https://bugs.freedesktop.org/show_bug.cgi?id=102844>`__
+   - memory leak with glDeleteProgram for shader program type
+   GL_COMPUTE_SHADER
+-  `Bug 102847 <https://bugs.freedesktop.org/show_bug.cgi?id=102847>`__
+   - swr fail to build with llvm-5.0.0
+-  `Bug 102904 <https://bugs.freedesktop.org/show_bug.cgi?id=102904>`__
+   - piglit and gl45 cts linker tests regressed
+
+Changes
+-------
+
+Alexandru-Liviu Prodea (1):
+
+-  Scons: Add LLVM 5.0 support
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Check for GFX9 for 1D arrays in image_size intrinsic.
+
+Boris Brezillon (1):
+
+-  broadcom/vc4: Fix infinite retry in vc4_bo_alloc()
+
+Dave Airlie (3):
+
+-  radv/nir: call opt_remove_phis after trivial continues.
+-  ac/surface: handle S8 on gfx9
+-  st/glsl->tgsi: fix u64 to bool comparisons.
+
+David Airlie (1):
+
+-  radv: add gfx9 scissor workaround
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 17.2.1
+-  automake: enable libunwind in \`make distcheck'
+
+Eric Anholt (4):
+
+-  broadcom/vc4: Fix use-after-free for flushing when writing to a
+   texture.
+-  broadcom/vc4: Fix use-after-free trying to mix a quad and tile clear.
+-  broadcom/vc4: Fix use-after-free when deleting a program.
+-  broadcom/vc4: Keep pipe_sampler_view->texture matching the original
+   texture.
+
+Gert Wollny (2):
+
+-  travis: force llvm-3.3 for "make Gallium ST Other"
+-  travis: Add libunwind-dev to gallium/make builds
+
+Grazvydas Ignotas (1):
+
+-  configure: check if -latomic is needed for \__atomic_\*
+
+Ian Romanick (1):
+
+-  nv20: Fix GL_CLAMP
+
+Faith Ekstrand (6):
+
+-  i965/blorp: Set r8stencil_needs_update when writing stencil
+-  vulkan/wsi/wayland: Stop printing out the DRM device
+-  vulkan/wsi/wayland: Refactor wsi_wl_display code
+-  vulkan/wsi/wayland: Stop caching Wayland displays
+-  vulkan/wsi/wayland: Copy wl_proxy objects from oldSwapchain if
+   available
+-  vulkan/wsi/wayland: Return better error messages
+
+Juan A. Suarez Romero (4):
+
+-  cherry-ignore: add "radeonsi/gfx9: proper workaround for LS/HS VGPR
+   initialization bug"
+-  cherry-ignore: add "radv: Check for GFX9 for 1D arrays in image_size
+   intrinsic."
+-  cherry-ignore: add "radv: copy the number of viewports/scissors at
+   pipeline bind time"
+-  Update version to 17.2.2
+
+Józef Kucia (1):
+
+-  anv: Fix descriptors copying
+
+Kenneth Graunke (2):
+
+-  i965/vec4: Actually handle atomic op intrinsics.
+-  i965/vec4: Fix swizzles on atomic sources.
+
+Leo Liu (1):
+
+-  st/va/postproc: use video original size for postprocessing
+
+Lucas Stach (1):
+
+-  etnaviv: fix 16bpp clears
+
+Matt Turner (2):
+
+-  util: Link libmesautil into u_atomic_test
+-  util/u_atomic: Add implementation of \__sync_val_compare_and_swap_8
+
+Nicolai Hähnle (9):
+
+-  radeonsi: workaround for gather4 on integer cube maps
+-  amd/common: round cube array slice in ac_prepare_cube_coords
+-  amd/common: add workaround for cube map array layer clamping
+-  glsl/linker: fix output variable overlap check
+-  radeonsi: fix array textures layer coordinate
+-  radeonsi: set MIP_POINT_PRECLAMP to 0
+-  amd/addrlib: fix missing va_end() after va_copy()
+-  amd/common: move ac_build_phi from radeonsi
+-  radeonsi: fix a regression in integer cube map handling
+
+Samuel Iglesias Gonsálvez (1):
+
+-  anv: fix viewport transformation for z component
+
+Samuel Pitoiset (1):
+
+-  radv: fix saved compute state when doing statistics/occlusion queries
+
+Tapani Pälli (1):
+
+-  mesa: free current ComputeProgram state in \_mesa_free_context_data
+
+Tim Rowley (1):
+
+-  swr/rast: remove llvm fence/atomics from generated files
+
+Tomasz Figa (1):
+
+-  egl/dri2: Implement swapInterval fallback in a conformant way

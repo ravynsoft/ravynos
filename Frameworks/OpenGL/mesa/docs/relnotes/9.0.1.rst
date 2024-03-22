@@ -1,0 +1,139 @@
+Mesa 9.0.1 Release Notes / November 16th, 2012
+==============================================
+
+Mesa 9.0.1 is a bug fix release which fixes bugs found since the 9.0
+release.
+
+Mesa 9.0 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   97d6554c05ea7449398afe3a0ede7018  MesaLib-9.0.1.tar.bz2
+   fd0fd5a6e56bc3dd210c80e42baef975  MesaLib-9.0.1.tar.gz
+   c2683d957acd530a00f747f50317186f  MesaLib-9.0.1.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 44912 <https://bugs.freedesktop.org/show_bug.cgi?id=44912>`__ -
+   [bisected] WebGL conformance/textures/texture-mips tests fails
+-  `Bug 55856 <https://bugs.freedesktop.org/show_bug.cgi?id=55856>`__ -
+   kwin with gles window content is not updating (gen4)
+-  `Bug 56057 <https://bugs.freedesktop.org/show_bug.cgi?id=56057>`__ -
+   INTEL_swap_event not correctly listed
+-  `Bug 56211 <https://bugs.freedesktop.org/show_bug.cgi?id=56211>`__ -
+   src/mesa/state_tracker/st_cb_texture.c:1123:copy_image_data_to_texture:
+   Assertion \`u_minify(stImage->pt->height0, src_level) ==
+   stImage->base.Height' failed.
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.0..mesa-9.0.1
+
+Adam Jackson (1):
+
+-  glx: Add GLXBadProfileARB to the error string list
+
+Andreas Boll (7):
+
+-  docs: add news item for 9.0 release
+-  mesa: add get-pick-list.sh script into bin/
+-  mesa: add initial .cherry-ignore file for the 9.0 branch
+-  mesa: use .cherry-ignore in the get-pick-list.sh script
+-  build: add config.sub and config.guess to tarballs target
+-  build: add missing Makefile.in files to tarballs target
+-  build: add missing files to tarballs target
+
+Brian Paul (2):
+
+-  mesa: don't call TexImage driver hooks for zero-sized images
+-  mesa: fix error check for zero-sized compressed subtexture
+
+Fredrik Höglund (1):
+
+-  egl_dri2/x11: Fix eglPostSubBufferNV()
+
+Ian Romanick (5):
+
+-  docs: Add 9.0 release md5sums
+-  i965: Fix regression in depth texture rendering on pre-SNB
+-  glx: Set sRGBCapable to a default value
+-  docs: Add 9.0.1 release notes
+-  mesa: Bump version to 9.0.1
+
+Imre Deak (7):
+
+-  mesa: glGet: fix indentation of \_mesa_init_get_hash
+-  mesa: glGet: fix indentation of find_value
+-  mesa: glGet: fix indentation of print_table_stats
+-  mesa: glGet: fix API check for EGL_image_external enums
+-  glapi: rename/move GL_POLYGON_OFFSET_BIAS to its extension section
+-  mesa: glGet: fix parameter lookup for apps using multiple APIs
+-  glget: fix make check for glGet GL_POLYGON_OFFSET_BIAS
+
+Jonas Ådahl (1):
+
+-  wayland: Destroy frame callback when destroying surface
+
+Kenneth Graunke (1):
+
+-  glsl: Allow ir_if in the linker's move_non_declarations function.
+
+Kristian Høgsberg (5):
+
+-  gbm: Reject buffers that are not wl_drm buffers in gbm_bo_import()
+-  gbm: Use the kms dumb ioctls for cursor instead of libkms
+-  egl/wayland: Update to Wayland 0.99 API
+-  wayland: Remove 0.85 compatibility #ifdefs
+-  wayland: Drop support for ill-defined, unused wl_egl_pixmap
+
+Marcin Slusarz (1):
+
+-  nouveau: use pre-calculated stride for resource_get_handle
+
+Matt Turner (4):
+
+-  egl: Return EGL_BAD_MATCH for invalid profile attributes
+-  Re-add HAVE_PTHREADS preprocessor macro
+-  build: Ship install-sh in the tarball
+-  ralloc: Annotate printf functions with PRINTFLIKE(...)
+
+Michel Dänzer (2):
+
+-  st/mesa: Fix source miptree level for copying data to finalized
+   miptree.
+-  st/mesa: Fix assertions for copying texture image to finalized
+   miptree.
+
+Owen W. Taylor (1):
+
+-  glx: Fix listing of INTEL_swap_event in glXQueryExtensionsString()
+
+Quentin Glidic (1):
+
+-  intel: Add missing #include <time.h>
+
+Tomeu Vizoso (1):
+
+-  mesa/es: Define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT enum for all GLs

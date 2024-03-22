@@ -1,0 +1,143 @@
+Mesa 21.1.5 Release Notes / 2021-07-14
+======================================
+
+Mesa 21.1.5 is a bug fix release which fixes bugs found since the 21.1.4 release.
+
+Mesa 21.1.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.1.5 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    022c7293074aeeced2278c872db4fa693147c70f8595b076cf3f1ef81520766d  mesa-21.1.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [build error] macros.h:88:26: error: size of unnamed array is negative
+- Game Issue: Nuclear Throne crashes in RadeonSI
+- Crash in glLinkProgram while trying to craft the link error
+- Shader compilation memory leaks
+- Wolfenstein II: The New Colossus - Screen goes black in some cases
+- SpaceEngine in Steam Proton cannot start with Mesa >=20.3
+- [bisected] KDE plasma menu text renders like stretched strangely [amdgpu]
+- Luna Sky Crashes on Launch
+- Mesa crashes on undefined texture behaviour
+- Mesa crashes on undefined texture behaviour
+- cache_test uses uninitialized stack memory
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- nir: Fix constant folding for irhadd/urhadd
+
+Bas Nieuwenhuizen (1):
+
+- ac/surface: Handle non-retiled displayable DCC correctly for modifiers.
+
+Connor Abbott (1):
+
+- ir3: Fix infinite loop in scheduler when splitting
+
+Danylo Piliaiev (1):
+
+- glsl: Prohibit implicit conversion of mem parameter in atomicOP functions
+
+Dave Airlie (1):
+
+- draw: fix tessellation output vertex size calculation
+
+Eric Engestrom (4):
+
+- .pick_status.json: Update to e4f762ac346f31fc1fd201aecdc375348be5075f
+- zink: mark a bunch of zink-piglit-quick_gl tests as flakes
+- .pick_status.json: Update to c704bb630d21e0a30500e9d8f42493ede3cc55ae
+- .pick_status.json: Mark e5d158881b3e12270521d7081b4bba0ac2108d2e as denominated
+
+Heinrich Fink (1):
+
+- softpipe: add missing sentinel to debug option array
+
+Faith Ekstrand (1):
+
+- iris: Don't leak the surface if uncompressed re-interp fails
+
+Lionel Landwerlin (1):
+
+- intel/perf: use the right popcount for 64bits
+
+Marek Olšák (2):
+
+- ac/surface/tests: fix the ARM build
+- radeonsi,radv: fix a late alloc deadlock with <= 6 CUs per SA
+
+Michel Dänzer (3):
+
+- Convert most remaining free-form fall-through comments to FALLTHROUGH
+- osmesa: Replace default case FALLTHROUGH annotation by following return
+- Fix up leftover "state_trackers" references to "frontends"
+
+Pierre-Eric Pelloux-Prayer (4):
+
+- radeonsi: fix fb_too_small condition
+- radeonsi/gfx7: always sync pfp/me
+- ac/surface: don't print stencil info if tex has no stencil
+- radeonsi/driconf: add workaround for SpaceEngine
+
+Qiang Yu (1):
+
+- st/mesa: fix size miss match for some check
+
+Rob Clark (2):
+
+- freedreno: Consolidate needs_flush and clearing last_fence
+- freedreno/a6xx: Fix framebuffer_barrier crash
+
+Samuel Pitoiset (2):
+
+- radv: disable DCC for DOOM 2016 and Wolfenstein II
+- aco: fix shared_atomic_comp_swap if the second source isn't a VGPR
+
+Thomas H.P. Andersen (3):
+
+- nir: return progress from nir_lower_packing
+- nir/ifind_msb_rev: fix input check
+- broadcom/compiler: fix add vs. mul
+
+Timothy Arceri (7):
+
+- util/tests: initialise key in cache_test
+- mesa: don't crash on incorrect texture use
+- i965: don't crash on incorrect texture use
+- util/driconf: add new ignore_write_to_readonly_var workaround
+- util: add some workarounds for the game Luna Sky
+- glsl: force_glsl_version to shaders with no defined version
+- util/radeonsi: add radeonsi workaround for Nuclear Throne
+
+Vinson Lee (1):
+
+- st/xa: Mark default xa_get_pipe_format case unreachable.
+
+Yevhenii Kolesnikov (1):
+
+- intel: fix leaking memory on shader creation

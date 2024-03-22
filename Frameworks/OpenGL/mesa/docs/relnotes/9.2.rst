@@ -1,0 +1,221 @@
+Mesa 9.2 Release Notes / (August 27, 2013)
+==========================================
+
+Mesa 9.2 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 9.2.1.
+
+Mesa 9.2 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   4f93c6475ec656fc1f7b93aeffc9b6c4  MesaLib-9.2.0.tar.gz
+   4185b6aae890bc62a964f4b24cc1aca8  MesaLib-9.2.0.tar.bz2
+   3bc5339bc98b9c37777ffd14e3a8eca4  MesaLib-9.2.0.zip
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ARB_shading_language_420pack in all drivers that support GLSL
+   1.30.
+-  GL_ARB_texture_buffer_range
+-  GL_ARB_texture_multisample
+-  GL_ARB_texture_storage_multisample
+-  GL_ARB_texture_query_lod
+-  GL_ARB_texture_storage on radeon, r200, and nouveau
+-  GL_EXT_discard_framebuffer in all OpenGL ES (all versions) drivers
+-  GL_EXT_framebuffer_multisample_blit_scaled on i965
+-  Added new freedreno gallium driver
+-  OSMesa interface for gallium llvmpipe/softpipe drivers
+-  Gallium Heads-Up Display (HUD) feature for performance monitoring
+-  Added support for UVD (2.2 and 3.0) video decoding on r600g and
+   radeonsi through VDPAU (requires Kernel 3.10 or later)
+
+Bug fixes
+---------
+
+Attempts have been made to **not** include bugs fixed in previous 9.1
+releases or bugs that were regressions during 9.2 development. This list
+is likely incomplete.
+
+-  `Bug 41787 <https://bugs.freedesktop.org/show_bug.cgi?id=41787>`__ -
+   [llvmpipe] stencil broken
+-  `Bug 44618 <https://bugs.freedesktop.org/show_bug.cgi?id=44618>`__ -
+   Cross-compilation broken by glsl builtin_compiler
+-  `Bug 46632 <https://bugs.freedesktop.org/show_bug.cgi?id=46632>`__ -
+   Make the alignment checks for the readpixel blit fastpath a bit more
+   lenient
+-  `Bug 47116 <https://bugs.freedesktop.org/show_bug.cgi?id=47116>`__ -
+   Enemy territory freezes with rs880 and commit
+   fbebd431ec4e2e461a0cbcd5f3a04a000b8f6bbf
+-  `Bug 47248 <https://bugs.freedesktop.org/show_bug.cgi?id=47248>`__ -
+   autogen missing dependency on flex and bison, causes infinite loop in
+   glsl build
+-  `Bug 48694 <https://bugs.freedesktop.org/show_bug.cgi?id=48694>`__ -
+   radeonsi_pipe.c:322:7: error: ‘PIPE_CAP_DUAL_SOURCE_BLEND’ undeclared
+-  `Bug 50655 <https://bugs.freedesktop.org/show_bug.cgi?id=50655>`__ -
+   [r600g][RV670 HD3870] Ioquake games causes GPU lockup (waiting for
+   0x00003039 last fence id 0x00003030)
+-  `Bug 51471 <https://bugs.freedesktop.org/show_bug.cgi?id=51471>`__ -
+   [965gm] Corrupted graphics in corners of screen with pixel shaders
+   enabled
+-  `Bug 51782 <https://bugs.freedesktop.org/show_bug.cgi?id=51782>`__ -
+   mesa-8.0.3: fails to compile against uclibc
+-  `Bug 54240 <https://bugs.freedesktop.org/show_bug.cgi?id=54240>`__ -
+   [swrast] piglit fbo-generatemipmap-filtering regression
+-  `Bug 55503 <https://bugs.freedesktop.org/show_bug.cgi?id=55503>`__ -
+   Constant vertex attributes broken
+-  `Bug 55783 <https://bugs.freedesktop.org/show_bug.cgi?id=55783>`__ -
+   glEnable(GL_FRAMEBUFFER_SRGB) has no effect on the backbuffer
+-  `Bug 55825 <https://bugs.freedesktop.org/show_bug.cgi?id=55825>`__ -
+   [Bisected i965]Oglc
+   max_values(advanced.fragmentProgram.GL_MAX_PROGRAM_ALU_INSTRUCTIONS_ARB)
+   causes OOM-killer
+-  `Bug 56920 <https://bugs.freedesktop.org/show_bug.cgi?id=56920>`__ -
+   [sandybridge][uxa] graphics very glitchy and always flickering
+-  `Bug 57753 <https://bugs.freedesktop.org/show_bug.cgi?id=57753>`__ -
+   leak in loop_analysis
+-  `Bug 57875 <https://bugs.freedesktop.org/show_bug.cgi?id=57875>`__ -
+   Second Life viewer bad rendering with git-ec83535
+-  `Bug 58666 <https://bugs.freedesktop.org/show_bug.cgi?id=58666>`__ -
+   rv670 + llvm = errors.
+-  `Bug 58680 <https://bugs.freedesktop.org/show_bug.cgi?id=58680>`__ -
+   [IVB] Graphical glitches in 0 A.D
+-  `Bug 58872 <https://bugs.freedesktop.org/show_bug.cgi?id=58872>`__ -
+   Mac OS X configure: error: Couldn't find clock_gettime
+-  `Bug 59322 <https://bugs.freedesktop.org/show_bug.cgi?id=59322>`__ -
+   r300g MSAA breaks Half-Life 2 in Wine
+-  `Bug 59364 <https://bugs.freedesktop.org/show_bug.cgi?id=59364>`__ -
+   [bisected] Mesa build fails: clientattrib.c:33:22: fatal error:
+   indirect.h: No such file or directory
+-  `Bug 59439 <https://bugs.freedesktop.org/show_bug.cgi?id=59439>`__ -
+   glCopyPixels generates no fragments (occlusion_query_meta_fragments
+   test fails)
+-  `Bug 59440 <https://bugs.freedesktop.org/show_bug.cgi?id=59440>`__ -
+   glBitmap generates no fragments (occlusion_query_meta_fragments test
+   fails)
+-  `Bug 59494 <https://bugs.freedesktop.org/show_bug.cgi?id=59494>`__ -
+   [Bisected]Piglit glean_depthStencil fails
+-  `Bug 59592 <https://bugs.freedesktop.org/show_bug.cgi?id=59592>`__ -
+   Radeon HD 5670: reproducable GPU lockups with htile enabled
+-  `Bug 59648 <https://bugs.freedesktop.org/show_bug.cgi?id=59648>`__ -
+   [SNB/IVB/HSW Bisected]Piglit
+   spec/ARB_uniform_buffer/object_layout-std140-base-size-and-alignment
+   fails
+-  `Bug 59701 <https://bugs.freedesktop.org/show_bug.cgi?id=59701>`__ -
+   lp_test_arit fails on non-sse41 capable machines, breaking make check
+-  `Bug 59737 <https://bugs.freedesktop.org/show_bug.cgi?id=59737>`__ -
+   [bisected] 0d108116bd80b757fb01a84a9f1946ef870b57b8 breaks osmesa
+   when cross compiling
+-  `Bug 59740 <https://bugs.freedesktop.org/show_bug.cgi?id=59740>`__ -
+   [i965 Bisected]Oglc api-error(negative.glEvalMesh) fails
+-  `Bug 59851 <https://bugs.freedesktop.org/show_bug.cgi?id=59851>`__ -
+   AC_ARG_WITH misusage leading to mesa configure failure
+-  `Bug 59873 <https://bugs.freedesktop.org/show_bug.cgi?id=59873>`__ -
+   [swrast] piglit ext_framebuffer_multisample-interpolation 0
+   centroid-edges regression
+-  `Bug 59876 <https://bugs.freedesktop.org/show_bug.cgi?id=59876>`__ -
+   glGetTexLevelParameteriv broken for indirect rendering
+-  `Bug 60038 <https://bugs.freedesktop.org/show_bug.cgi?id=60038>`__ -
+   [osmesa] [git] building 32-bit mesa on 64 bit fails
+-  `Bug 60047 <https://bugs.freedesktop.org/show_bug.cgi?id=60047>`__ -
+   [softpipe] piglit masked-clear regression
+-  `Bug 60052 <https://bugs.freedesktop.org/show_bug.cgi?id=60052>`__ -
+   [Bisected]Piglit glx_extension_string_sanity fail
+-  `Bug 60082 <https://bugs.freedesktop.org/show_bug.cgi?id=60082>`__ -
+   [ FAILED ] DispatchSanity_test.GL31_CORE
+-  `Bug 60086 <https://bugs.freedesktop.org/show_bug.cgi?id=60086>`__ -
+   Wayland platform backend crashes if there's no back buffer during
+   dri2_swap_buffers
+-  `Bug 60098 <https://bugs.freedesktop.org/show_bug.cgi?id=60098>`__ -
+   [softpipe] Unexpected PIPE_CAP 78 query
+-  `Bug 60172 <https://bugs.freedesktop.org/show_bug.cgi?id=60172>`__ -
+   Planeshift: triangles where grass would be
+-  `Bug 60200 <https://bugs.freedesktop.org/show_bug.cgi?id=60200>`__ -
+   radeon_bo with virtual address referencing mismatch
+-  `Bug 60212 <https://bugs.freedesktop.org/show_bug.cgi?id=60212>`__ -
+   [Bisected] Weston black output
+-  `Bug 60524 <https://bugs.freedesktop.org/show_bug.cgi?id=60524>`__ -
+   [softpipe] piglit depthstencil-render-miplevels 146 s=z24_s8
+   regression
+-  `Bug 60527 <https://bugs.freedesktop.org/show_bug.cgi?id=60527>`__ -
+   [softpipe] fbo-stencil GL_DEPTH24_STENCIL8 clear regression
+-  `Bug 60633 <https://bugs.freedesktop.org/show_bug.cgi?id=60633>`__ -
+   EXT_texture_sRGB does not work in game The Cave on IvyBridge
+-  `Bug 60737 <https://bugs.freedesktop.org/show_bug.cgi?id=60737>`__ -
+   In GLSL ES, a missing FS precision qualifier does not generate an
+   error
+-  `Bug 60866 <https://bugs.freedesktop.org/show_bug.cgi?id=60866>`__ -
+   GLSL performance issues for uniform buffer objects
+-  `Bug 61036 <https://bugs.freedesktop.org/show_bug.cgi?id=61036>`__ -
+   Shader fails to build in LLVMpipe, aborts program
+-  `Bug 61200 <https://bugs.freedesktop.org/show_bug.cgi?id=61200>`__ -
+   insufficient linking of libxatracker.so
+-  `Bug 61635 <https://bugs.freedesktop.org/show_bug.cgi?id=61635>`__ -
+   glVertexAttribPointer(id, GL_UNSIGNED_BYTE, GL_FALSE,...) does not
+   work
+-  `Bug 62466 <https://bugs.freedesktop.org/show_bug.cgi?id=62466>`__ -
+   r600g hyperz lockups with KSP 0.19
+-  `Bug 62669 <https://bugs.freedesktop.org/show_bug.cgi?id=62669>`__ -
+   HyperZ freeze when playing PrBoom-Plus demo with lots of monsters
+-  `Bug 62721 <https://bugs.freedesktop.org/show_bug.cgi?id=62721>`__ -
+   GPU lockup in Minecraft 1.5.1 with HyperZ
+-  `Bug 62830 <https://bugs.freedesktop.org/show_bug.cgi?id=62830>`__ -
+   [i965 bisected] Wrong Lightning on Freespace 2 SCP (patch attached)
+-  `Bug 63124 <https://bugs.freedesktop.org/show_bug.cgi?id=63124>`__ -
+   [r600g] HyperZ lockup on REDWOOD in Half Life 2 Deathmatch
+-  `Bug 63702 <https://bugs.freedesktop.org/show_bug.cgi?id=63702>`__ -
+   tiling2d in radeon trash vdpau UVD textures
+-  `Bug 64935 <https://bugs.freedesktop.org/show_bug.cgi?id=64935>`__ -
+   [swrast] s_texfetch.c:1335: set_fetch_functions: Assertion
+   \`texImage->FetchTexel' failed.
+-  `Bug 64959 <https://bugs.freedesktop.org/show_bug.cgi?id=64959>`__ -
+   Cannot build against EGL without X11
+-  `Bug 65112 <https://bugs.freedesktop.org/show_bug.cgi?id=65112>`__ -
+   glcpp hangs parsing line continuations
+-  `Bug 65958 <https://bugs.freedesktop.org/show_bug.cgi?id=65958>`__ -
+   GPU Lockup on Trinity 7500G
+-  `Bug 66450 <https://bugs.freedesktop.org/show_bug.cgi?id=66450>`__ -
+   JUNIPER UVD accelerated playback of MPEG 1/2 streams does not work
+-  `Bug 66606 <https://bugs.freedesktop.org/show_bug.cgi?id=66606>`__ -
+   [i965 bisected]GLBenchmark 2.5.1/2.7.0 sometimes render error with
+   gnome-session enabling SNA
+-  `Bug 66713 <https://bugs.freedesktop.org/show_bug.cgi?id=66713>`__ -
+   Team Fortress 2 crashes with r600-sb on HD4850
+-  `Bug 67354 <https://bugs.freedesktop.org/show_bug.cgi?id=67354>`__ -
+   glsl_parser.cpp is broken with bison 3.0
+-  `Bug 67548 <https://bugs.freedesktop.org/show_bug.cgi?id=67548>`__ -
+   glGetAttribLocation seems to be broken
+-  `Bug 67927 <https://bugs.freedesktop.org/show_bug.cgi?id=67927>`__ -
+   R600_DEBUG=sb: Celestia show 2 earths, one wrongly rendered
+-  `Bug 67934 <https://bugs.freedesktop.org/show_bug.cgi?id=67934>`__ -
+   [SNB/IVB/HSW 9.2
+   Bisected]Ogles2conform/GL2Tests/glUniform/glUniform.test fails with
+   gnome-session enable compositing
+-  `Bug 68162 <https://bugs.freedesktop.org/show_bug.cgi?id=68162>`__ -
+   [radeonsi] texture rendering is broken in Source-Engine games
+-  `Bug 68195 <https://bugs.freedesktop.org/show_bug.cgi?id=68195>`__ -
+   piglit tests vs-struct-pad and fs-struct-pad both fail
+
+Changes
+-------
+
+-  Removed d3d1x state tracker (unused, unmaintained and broken)
+-  Removed GL_EXT_clip_volume_hint because no driver had enabled it
+   since 2007.
+-  Removed GL_MESA_resize_buffers because it was only really implemented
+   by the (unsupported) GDI driver.
+-  GL_EXT_separate_shader_objects has been removed from all Gallium
+   drivers, because it disallows a critical GLSL shader optimization.
+   GL_ARB_separate_shader_objects doesn't have this issue.
+-  i965 Gen6+ requires Kernel 3.6 or later. (92d2f5a)

@@ -1,0 +1,16 @@
+# Xorg is not running for my tests.
+glx@
+
+# unstable results on all of them
+built-in-functions@gs
+texelfetch@gs
+
+# GPU hangs now
+variable-indexing@gs-in
+fs-multiple-large-local-arrays
+
+# intermittent GL_OOMs, let's make sure that doesn't impact other tests.
+spec@!opengl 1.2@tex3d-maxsize
+
+# 1-minute timeouts
+KHR-GL33.texture_swizzle.smoke

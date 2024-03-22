@@ -1,0 +1,36 @@
+diff --git a/generated_tests/CMakeLists.txt b/generated_tests/CMakeLists.txt
+index 738526546..6f89048cd 100644
+--- a/generated_tests/CMakeLists.txt
++++ b/generated_tests/CMakeLists.txt
+@@ -206,11 +206,6 @@ piglit_make_generated_tests(
+	templates/gen_variable_index_write_tests/vs.shader_test.mako
+	templates/gen_variable_index_write_tests/fs.shader_test.mako
+	templates/gen_variable_index_write_tests/helpers.mako)
+-piglit_make_generated_tests(
+-	vs_in_fp64.list
+-	gen_vs_in_fp64.py
+-	templates/gen_vs_in_fp64/columns.shader_test.mako
+-	templates/gen_vs_in_fp64/regular.shader_test.mako)
+ piglit_make_generated_tests(
+	shader_framebuffer_fetch_tests.list
+	gen_shader_framebuffer_fetch_tests.py)
+@@ -279,7 +274,6 @@ add_custom_target(gen-gl-tests
+			gen_extensions_defined.list
+			vp-tex.list
+			variable_index_write_tests.list
+-			vs_in_fp64.list
+			gpu_shader4_tests.list
+ )
+
+diff --git a/tests/sanity.py b/tests/sanity.py
+index 12f1614c9..9019087e2 100644
+--- a/tests/sanity.py
++++ b/tests/sanity.py
+@@ -100,7 +100,6 @@ shader_tests = (
+     'spec/arb_tessellation_shader/execution/barrier-patch.shader_test',
+     'spec/arb_tessellation_shader/execution/built-in-functions/tcs-any-bvec4-using-if.shader_test',
+     'spec/arb_tessellation_shader/execution/sanity.shader_test',
+-    'spec/arb_vertex_attrib_64bit/execution/vs_in/vs-input-uint_uvec4-double_dmat3x4_array2-position.shader_test',
+     'spec/glsl-1.50/execution/geometry-basic.shader_test',
+     'spec/oes_viewport_array/viewport-gs-write-simple.shader_test',
+ )

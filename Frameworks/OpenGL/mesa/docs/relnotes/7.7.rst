@@ -1,0 +1,55 @@
+Mesa 7.7 Release Notes / 21 December 2009
+=========================================
+
+Mesa 7.7 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 7.7.1.
+
+Mesa 7.7 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   395c9516edf1ad54b0934d8db15557bf  MesaLib-7.7.tar.gz
+   e3fa64a1508bc23dd9de9dd2cea7cfb1  MesaLib-7.7.tar.bz2
+   e54903eb5e49c3969821fa16b32da245  MesaLib-7.7.zip
+   53b5b6f78e55de170d43c98cb6aaab7e  MesaDemos-7.7.tar.gz
+   6fd616b27b9826d0faa23e08e05d9435  MesaDemos-7.7.tar.bz2
+   240fe06159ad73d5e22c27033b66c80a  MesaDemos-7.7.zip
+   9fe11a904b2a9d8cd06cc52bc330b716  MesaGLUT-7.7.tar.gz
+   e8dceed05a59a2d3c2619d7d734587e3  MesaGLUT-7.7.tar.bz2
+   96af041d435349ee23ead4667ec36363  MesaGLUT-7.7.zip
+
+New features
+------------
+
+-  VMware "SVGA" Gallium driver. This is a Gallium3D driver which
+   targets the VMware virtual graphics device. It allows Linux OpenGL
+   guest applications to utilize the 3D graphics hardware of the host
+   operating system.
+-  GL_ARB_draw_elements_base_vertex (supported in Intel i965 and
+   software drivers)
+-  GL_ARB_depth_clamp (supported in Intel i965 DRI and software drivers)
+-  GL_NV_depth_clamp (supported in Intel i965 DRI and software drivers)
+-  GL_ARB_provoking_vertex (same as GL_EXT_provoking_vertex)
+-  Wavefront .obj file loader/viewer demo (progs/demos/objviewer)
+
+Bug fixes
+---------
+
+-  Many assorted i965 driver fixes.
+-  Many r300-gallium driver fixes; this driver is now considered
+   unstable-quality instead of experimental-quality.
+
+Changes
+-------
+
+-  New Mesa texture/surface format infrastructure
+-  Removed some unused Mesa device driver hooks

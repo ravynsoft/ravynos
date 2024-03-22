@@ -1,0 +1,168 @@
+Mesa 22.0.1 Release Notes / 2022-03-29
+======================================
+
+Mesa 22.0.1 is a bug fix release which fixes bugs found since the 22.0.0 release.
+
+Mesa 22.0.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.0.1 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+   c05f9682c54560b36e0afa70896233fc73f1ed715e10d1a028b0eb84fd04426f  mesa-22.0.1.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- freedreno: crash in PUBG
+- [regression][bisected] MSVC: Build failure in libmesa_util when targeting x86 32-bit
+- A crash in radeonsi driver
+- freedreno: deqp cts fails
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (4):
+
+- panfrost: Emulate GL_CLAMP on Bifrost
+- pan/bi: Handle non-2D arrays
+- panfrost: Fix primitive restart with 32-bit indices
+- pan/bi: Don't analyze helper reqs in !frag shaders
+
+Anuj Phogat (1):
+
+- anv, iris: Add Wa_16011411144 for DG2
+
+Connor Abbott (3):
+
+- ir3/ra: Sanitize parallel copy flags better
+- util/bitset: Fix off-by-one in __bitset_set_range
+- ir3/lower_spill: Fix corner case with oob offsets
+
+Dave Airlie (3):
+
+- zink: workaround depth texture mode alpha.
+- lavapipe: remove broken workaround for zink depth texturing.
+- crocus: don't map scanout buffers as write-back
+
+Dylan Baker (17):
+
+- docs: add release notes for 22.0.0
+- .pick_status.json: Update to cc4f0e804e6feee17a657d052f4f2ee32ebe53d0
+- ci: Fixup some lvp expected passes
+- .pick_status.json: Update to d5870c45ae82c091e72f1258920aa54974e19a36
+- .pick_status.json: Update to dc247e5d4319b644e373534495cc75f41bc7bcd2
+- .pick_status.json: Mark dd9b8881e0ad84ab1e74d972a8233f5c03e7b37a as denominated
+- .pick_status.json: Mark 5dbbc0f0a824e4addffeb115631a9c5bcb426c29 as denominated
+- .pick_status.json: Update to acbb0d86f71c950e29df70e357ae08e5ca903a49
+- .pick_status.json: Update
+- pick/ui: Fix mypy issue
+- pick/core: drop the main_sha field
+- pick/core: Add proper type annotation for update_commits callback
+- pick/core: Add a method for updating commits
+- pick/core: Add a MANUAL_RESOLUTION resolution
+- pick/ui: correctly handle MANUAL_RESOLUTION
+- core: don't pass the ui back into commit.apply
+- .pick_status.json: Update to 8991e646411b73c1e03278267c80758e921f2352
+
+Erik Faye-Lund (1):
+
+- docs: fixup zink gl 4.3 requirements
+
+Gert Wollny (1):
+
+- virgl: Fix texture transfers by using a staging resource
+
+Icecream95 (1):
+
+- panfrost: Don't initialise the trampolines array
+
+Faith Ekstrand (3):
+
+- lavapipe: Reset the free_cmd_buffers list in TrimCommandPool
+- anv: Allow MSAA resolve with different numbers of planes
+- spirv: Properly mangle generic pointers
+
+Jonathan Gray (1):
+
+- util: fix msvc build
+
+Kenneth Graunke (1):
+
+- iris: Fix MOCS for copy regions
+
+Lionel Landwerlin (2):
+
+- anv: emit timestamp & availability using the same part of CS
+- anv: flush tile cache with query copy command
+
+Marek Olšák (1):
+
+- amd: add support for gfx1036 and gfx1037 chips
+
+Mike Blumenkrantz (23):
+
+- llvmpipe: fix debug print iterating in set_framebuffer_state
+- lavapipe: clamp clear attachments rects
+- llvmpipe: clamp surface clear geometry
+- zink: map R8G8B8X8_SRGB -> R8G8B8A8_SRGB
+- lavapipe: update multisample state after blend state
+- lavapipe: fix pipeline creation for blend and zs states
+- aux/trace: rzalloc the context struct
+- zink: lower dmod on AMD hardware
+- zink: use 64bit mask for xfb analysis
+- zink: store the correct number of components for xfb packing outputs
+- zink: correctly set xfb packed output offsets
+- lavapipe: use the correct value for dynamic render resolve attachment indexing
+- lavapipe: skip format checks for EXTENDED_USAGE
+- lavapipe: run nir_opt_copy_prop_vars during optimization loop
+- anv: fix xfb usage with rasterizer discard
+- anv: fix CmdSetColorWriteEnableEXT for maximum rts
+- anv: fix some dynamic rasterization discard cases in pipeline construction
+- lavapipe: always clone shader nir for shader states
+- gallivm: fix oob image detection for cube/1dArray/2dArray/cubeArray
+- llvmpipe: fix occlusion queries with early depth test
+- zink: force-add usage when adding last-ref tracking
+- zink: only update usage on buffer rebind if rebinds occurred
+- nir/lower_is_helper_invocation: create load_helper_invocation instr with bitsize=1
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- util/slab: add slab_zalloc
+- radeonsi: don't clear framebuffer.state before dcc decomp
+
+Rob Clark (2):
+
+- mesa: Fix discard_framebuffer for fbo vs winsys
+- freedreno/ir3: Don't try re-swapping cat3 srcs
+
+Sagar Ghuge (2):
+
+- intel/fs: Add Wa_22013689345
+- intel/fs: Add Wa_14014435656
+
+Samuel Pitoiset (1):
+
+- radv: add reference counting for descriptor set layouts
+
+Stefan Dirsch (1):
+
+- meson: restore private requires to libdrm in dri.pc file

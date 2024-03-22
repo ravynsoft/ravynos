@@ -1,0 +1,53 @@
+Mesa 10.6.7 Release Notes / September 10, 2015
+==============================================
+
+Mesa 10.6.7 is a bug fix release which fixes bugs found since the 10.6.6
+release.
+
+Mesa 10.6.7 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   4ba10c59abee30d72476543a57afd2f33803dabf4620dc333b335d47966ff842  mesa-10.6.7.tar.gz
+   feb1f640b915dada88a7c793dfaff0ae23580f8903f87a6b76469253de0d28d8  mesa-10.6.7.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 90751 <https://bugs.freedesktop.org/show_bug.cgi?id=90751>`__ -
+   [BDW
+   Bisected]dEQP-GLES3.functional.fbo.completeness.renderable.texture.stencil.stencil_index8
+   fails
+
+Changes
+-------
+
+Dave Airlie (1):
+
+-  mesa/teximage: use correct extension for accept stencil texture.
+
+Emil Velikov (3):
+
+-  docs: add sha256 checksums for 10.6.6
+-  Revert "i965: Momentarily pretend to support ARB_texture_stencil8 for
+   blits."
+-  Update version to 10.6.7
+
+Kenneth Graunke (1):
+
+-  glsl: Handle attribute aliasing in attribute storage limit check.

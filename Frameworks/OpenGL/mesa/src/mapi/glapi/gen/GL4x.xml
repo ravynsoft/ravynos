@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+<OpenGLAPI>
+
+<category name="4.0">
+  <enum name="SAMPLE_SHADING"                          value="0x8C36"/>
+  <enum name="MIN_SAMPLE_SHADING_VALUE"                value="0x8C37"/>
+
+  <function name="MinSampleShading" es2="3.2" no_error="true">
+    <param name="value" type="GLfloat"/>
+  </function>
+
+  <function name="BlendFunci" alias="BlendFunciARB" es2="3.2">
+    <param name="buf" type="GLuint"/>
+    <param name="sfactor" type="GLenum"/>
+    <param name="dfactor" type="GLenum"/>
+  </function>
+
+  <function name="BlendFuncSeparatei" alias="BlendFuncSeparateiARB" es2="3.2">
+    <param name="buf" type="GLuint"/>
+    <param name="sfactorRGB" type="GLenum"/>
+    <param name="dfactorRGB" type="GLenum"/>
+    <param name="sfactorAlpha" type="GLenum"/>
+    <param name="dfactorAlpha" type="GLenum"/>
+  </function>
+
+  <function name="BlendEquationi" alias="BlendEquationiARB" es2="3.2">
+    <param name="buf" type="GLuint"/>
+    <param name="mode" type="GLenum"/>
+  </function>
+
+  <function name="BlendEquationSeparatei" alias="BlendEquationSeparateiARB" es2="3.2">
+    <param name="buf" type="GLuint"/>
+    <param name="modeRGB" type="GLenum"/>
+    <param name="modeA" type="GLenum"/>
+  </function>
+
+</category>
+
+<category name="4.3">
+  <enum name="SHADER_STORAGE_BARRIER_BIT"                value="0x2000" />
+  <enum name="NUM_SHADING_LANGUAGE_VERSIONS"             value="0x82E9" />
+  <enum name="MAX_COMBINED_SHADER_OUTPUT_RESOURCES"      value="0x8F39" />
+  <enum name="SHADER_STORAGE_BUFFER"                     value="0x90D2"/>
+  <enum name="SHADER_STORAGE_BUFFER_BINDING"             value="0x90D3"/>
+  <enum name="SHADER_STORAGE_BUFFER_START"               value="0x90D4"/>
+  <enum name="SHADER_STORAGE_BUFFER_SIZE"                value="0x90D5"/>
+  <enum name="MAX_VERTEX_SHADER_STORAGE_BLOCKS"          value="0x90D6" />
+  <enum name="MAX_GEOMETRY_SHADER_STORAGE_BLOCKS"        value="0x90D7" />
+  <enum name="MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS"    value="0x90D8" />
+  <enum name="MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS" value="0x90D9" />
+  <enum name="MAX_FRAGMENT_SHADER_STORAGE_BLOCKS"        value="0x90DA" />
+  <enum name="MAX_COMPUTE_SHADER_STORAGE_BLOCKS"         value="0x90DB" />
+  <enum name="MAX_COMBINED_SHADER_STORAGE_BLOCKS"        value="0x90DC" />
+  <enum name="MAX_SHADER_STORAGE_BUFFER_BINDINGS"        value="0x90DD" />
+  <enum name="MAX_SHADER_STORAGE_BLOCK_SIZE"             value="0x90DE" />
+  <enum name="SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT"    value="0x90DF" />
+  <enum name="DEPTH_STENCIL_TEXTURE_MODE"                value="0x90EA"/>
+</category>
+
+<category name="4.5">
+  <function name="MemoryBarrierByRegion" es2="3.1" no_error="true">
+    <param name="barriers" type="GLbitfield"/>
+  </function>
+</category>
+
+<category name="4.6">
+  <enum name="PARAMETER_BUFFER"                          value="0x80EE"/>
+  <enum name="PARAMETER_BUFFER_BINDING"                  value="0x80EF"/>
+  <enum name="POLYGON_OFFSET_CLAMP"                      value="0x8E1B"/>
+  <enum name="SHADER_BINARY_FORMAT_SPIR_V"               value="0x9551"/>
+  <enum name="SPIR_V_BINARY"                             value="0x9552"/>
+
+  <!-- This function aliases one from GL_EXT_polygon_offset_clamp -->
+
+  <function name="PolygonOffsetClamp" alias="PolygonOffsetClampEXT">
+    <param name="factor" type="GLfloat"/>
+    <param name="units" type="GLfloat"/>
+    <param name="clamp" type="GLfloat"/>
+  </function>
+
+  <!-- This function aliases one from GL_ARB_gl_spirv -->
+
+  <function name="SpecializeShader" alias="SpecializeShaderARB">
+    <param name="shader" type="GLuint"/>
+    <param name="pEntryPoint" type="const GLchar *"/>
+    <param name="numSpecializationConstants" type="GLuint"/>
+    <param name="pConstantIndex" type="const GLuint *"/>
+    <param name="pConstantValue" type="const GLuint *"/>
+  </function>
+
+  <!-- These functions alias ones from GL_ARB_indirect_parameters -->
+
+  <function name="MultiDrawArraysIndirectCount"
+            alias="MultiDrawArraysIndirectCountARB">
+    <param name="mode" type="GLenum"/>
+    <param name="indirect" type="GLintptr"/>
+    <param name="drawcount" type="GLintptr"/>
+    <param name="maxdrawcount" type="GLsizei"/>
+    <param name="stride" type="GLsizei"/>
+  </function>
+
+  <function name="MultiDrawElementsIndirectCount"
+            alias="MultiDrawElementsIndirectCountARB">
+    <param name="mode" type="GLenum"/>
+    <param name="type" type="GLenum"/>
+    <param name="indirect" type="GLintptr"/>
+    <param name="drawcount" type="GLintptr"/>
+    <param name="maxdrawcount" type="GLsizei"/>
+    <param name="stride" type="GLsizei"/>
+  </function>
+</category>
+
+</OpenGLAPI>

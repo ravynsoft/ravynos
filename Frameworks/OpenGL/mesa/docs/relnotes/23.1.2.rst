@@ -1,0 +1,236 @@
+Mesa 23.1.2 Release Notes / 2023-06-08
+======================================
+
+Mesa 23.1.2 is a bug fix release which fixes bugs found since the 23.1.1 release.
+
+Mesa 23.1.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.2 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    60b1f3adb1561830c158bf3c68508943674fb9d69f384c3c7289694385ab5c7e  mesa-23.1.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Rusticl OpenCL: Simple SYCL / DPC++ program hangs indefinitely at rusticl::api::event::wait_for_events()
+- radeonsi: Metro Last Light Redux graphical glitches
+- ANV: Vulkan driver regression in clearing Depth/Stencil
+- freedreno/a6xx: assert(state->view_rsc_seqno[i] == seqno) failed with sway
+- radv crashes when using vertex format VK_FORMAT_B10G11R11_UFLOAT_PACK32
+- changes in commit e4b6a0a82457b3ef40c5857412e20bc344ff302c leads to GPU hang
+- iris now requires Linux v5.3
+- Wolfenstein II: The New Colossus vsync off crash
+- Surfaceless mode ES2.0 number of vertices limitation
+- radv: unaligned vertex input regression
+- glSpecializeShaderARB works on SPIR-V compiled with shader compilers ca. 2021, but fails for SPIR-V generated with current compilers
+- [regression/bisected] Bone wireframes are no longer rendered correctly in Blender with RadeonSi/Vega
+
+
+Changes
+-------
+
+Blisto (1):
+
+- driconf: set vk_x11_strict_image_count for Wolfenstein II
+
+Caio Oliveira (2):
+
+- spirv: Extract vtn_handle_debug_text() helper
+- spirv: Fix gl_spirv_validation when OpLine with strings is present
+
+Chia-I Wu (4):
+
+- radv: do not use a pipe offset for aliased images
+- aco: fix alignment check in emit_load
+- radv: fix msaa feedback loop without tc-compat cmask
+- radv: fix non-square compressed image copy on gfx9
+
+Christian Gmeiner (1):
+
+- etnaviv: nir: do not call nir_lower_idiv(..) unconditionally
+
+Dave Airlie (10):
+
+- radv/video: fix h264/265 dpb usage.
+- radv/video: add missing offset to the dpb binding.
+- radv/video: fix physical device format property count.
+- radv/meta: fix uninitialised stack memory usage.
+- lavapipe: when in doubt, swizzle the swizzle
+- lavapipe: fix pipeline sanitizing.
+- llvmpipe: emit fences for barrier.
+- lavapipe: don't remove queue family barriers.
+- gallivm/nir: fix shuffleup tests.
+- lavapipe: ignore another yuv format.
+
+Emma Anholt (1):
+
+- tu: Ignore unused shader stages in pipeline library creation.
+
+Eric Engestrom (7):
+
+- docs/relnotes: add sha256sum for 23.1.1
+- .pick_status.json: Update to f85c286f51bab7d476111b781798ddb445c3f2d5
+- .pick_status.json: Mark c9288808db08fd804c68750d7400c01e550c70d0 as denominated
+- .pick_status.json: Update to b222b34e789812301f4f7b79911f9edc599937e2
+- .pick_status.json: Update to 476022cbe1d1a06e43aacd81448a7a22c6331b1f
+- .pick_status.json: Update to 75b63a5d3e4c0816b55deaf8d105d28bfebea98b
+- docs: clear new_features.txt
+
+Erik Faye-Lund (2):
+
+- zink: compute correct location for line-smooth gs
+- zink: do not lower line-smooth for non-lines
+
+Francisco Jerez (1):
+
+- anv: Fix calculation of guardband clipping region.
+
+Friedrich Vock (2):
+
+- nir: Rematerialize derefs in use blocks before repairing SSA
+- nir: Remove unnecessary assert in nir_before_src
+
+Gert Wollny (1):
+
+- virgl: Fix IB upload when a start >0 is given
+
+Hans-Kristian Arntzen (1):
+
+- Fix DGC bug where indirect count > maxSequencesCount.
+
+Jesse Natalie (1):
+
+- nir_opt_algebraic: Don't shrink 64-bit bitwise ops if pack_split is going to be lowered
+
+José Roberto de Souza (1):
+
+- intel: Fix support of kernel versions without DRM_I915_QUERY_ENGINE_INFO
+
+Julia Tatz (1):
+
+- zink: fix layout(local_size_variable) for vk1.3+
+
+Karol Herbst (2):
+
+- rusticl: bump rust req to 1.60
+- rusticl/event: flush queues from dependencies
+
+Kenneth Graunke (1):
+
+- intel/compiler: Fix a fallthrough in components_read() for atomics
+
+Konstantin Seurer (2):
+
+- gallivm: Fix gather/scatter types for newer llvm
+- gallivm: Cast read_first_invocation source to an int
+
+Lionel Landwerlin (2):
+
+- anv: fix push range for descriptor offsets
+- anv: fix null descriptor handling with A64 messages
+
+Lucas Stach (1):
+
+- etnaviv: update derived state after forced commandstream flush
+
+Marek Olšák (2):
+
+- radeonsi: re-enable fp16_rtz for compute blits to fix PBO tests on gfx11
+- radeonsi: don't use SET_SH_REG_INDEX on gfx7-9
+
+Matt Turner (1):
+
+- u_format: Use memcpy to avoid unaligned accesses
+
+Mike Blumenkrantz (5):
+
+- zink: don't remove psiz from linked shaders if the consumer reads it
+- zink: don't propagate psiz in quads emulation gs
+- lavapipe: fix DS3 min sample setting
+- lavapipe: don't pass indirect info in streamout draws
+- lavapipe: handle index buffers with offsets for indirect draws
+
+Patrick Lerda (4):
+
+- mesa: fix refcnt imbalance related to _mesa_delete_semaphore_object()
+- mesa/st: fix refcnt imbalance related to st_feedback_draw_vbo()
+- mesa/st: fix buffer overflow related to set_program_string()
+- r600: fix r600_draw_vbo() buffer overflow
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- Revert "gallium/u_threaded: buffer sharedness tracking"
+
+Qiang Yu (1):
+
+- radeonsi: fix uses_instanceid for merged mono shader stage
+
+Rhys Perry (1):
+
+- radv: correctly skip vertex loads with packed formats
+
+Rob Clark (4):
+
+- freedreno: Add extra assert
+- freedreno/batch: Add driver-thread assert
+- freedreno/a6xx: Directly invalidate on samp view update
+- freedreno/a6xx: Use idalloc for samp/view seqno's
+
+Rohan Garg (4):
+
+- iris: correctly set alignment to next power of two for struct size
+- anv: enable single texel alignment
+- anv: fix incorrect asserts when combining CPS and per sample interpolation
+- hasvk: enable single texel alignment
+
+Sagar Ghuge (1):
+
+- anv: Set CS stall bit during HIZ_CCS_WT surface fast clear
+
+Samuel Pitoiset (3):
+
+- radv: fix copying 2D to 3D images
+- amd: fix 64-bit integer color image clears
+- radv: initialize the device cache UUID even if on-disk cache is disabled
+
+Tatsuyuki Ishi (1):
+
+- radv: Make shader related destruction happen before hw_ctx.
+
+Timothy Arceri (1):
+
+- util: add Jamestown+ workaround
+
+Vinson Lee (4):
+
+- freedreno/a6xx: Fix memory leak on error path.
+- nv50: Fix memory leak in error path
+- dzn: Fix qpool->queries_lock double lock
+- vulkan/wsi: Remove duplicate NULL check
+
+Víctor Manuel Jáquez Leal (1):
+
+- vulkan: complete the usage flags for video layouts
+
+Yonggang Luo (1):
+
+- virgl: Array cmdline on stack should initialized to 0

@@ -1,0 +1,174 @@
+Mesa 10.0.3 Release Notes / (February 3, 2014)
+==============================================
+
+Mesa 10.0.3 is a bug fix release which fixes bugs found since the 10.0.2
+release.
+
+Mesa 10.0.3 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   5f9f463ef08129f6762106b434910adb  MesaLib-10.0.3.tar.bz2
+   fb3997b6500e153bc32370cb3fc4ca9e  MesaLib-10.0.3.tar.gz
+   a07b4b6b9eb449b88a6cb5061e51c331  MesaLib-10.0.3.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 72708 <https://bugs.freedesktop.org/show_bug.cgi?id=72708>`__ -
+   Master fails to build with older gcc due to -msse4.1
+-  `Bug 72926 <https://bugs.freedesktop.org/show_bug.cgi?id=72926>`__ -
+   [REGRESSION,swrast] Memory-related crash with anti-aliasing enabled
+-  `Bug 73096 <https://bugs.freedesktop.org/show_bug.cgi?id=73096>`__ -
+   Query GL_RGBA_SIGNED_COMPONENTS_EXT missing
+-  `Bug 73100 <https://bugs.freedesktop.org/show_bug.cgi?id=73100>`__ -
+   Please use AC_PATH_TOOL instead of AC_PATH_PROG for llvm-config
+-  `Bug 73418 <https://bugs.freedesktop.org/show_bug.cgi?id=73418>`__ -
+   OpenCL hangs graphics on CAYMAN
+-  `Bug 73473 <https://bugs.freedesktop.org/show_bug.cgi?id=73473>`__ -
+   Potential crash bug in src/gallium/auxiliary/rtasm/rtasm_execmem.c
+-  `Bug 73915 <https://bugs.freedesktop.org/show_bug.cgi?id=73915>`__ -
+   sample shading + centroid broken since f5cfb4a
+-  `Bug 73956 <https://bugs.freedesktop.org/show_bug.cgi?id=73956>`__ -
+   SIGSEGV when passing GL_NONE to glReadBuffer
+-  `Bug 74026 <https://bugs.freedesktop.org/show_bug.cgi?id=74026>`__ -
+   Compiler rejects chained assignments involving array dereferences
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following git
+command:
+
+::
+
+     git log mesa-10.0.2..mesa-10.0.3
+
+Aaron Watry (2):
+
+-  radeon: Move gfx/dma cs cleanup to r600_common_context_cleanup
+-  st/dri: prevent leak of dri option default values
+
+Andreas Fänger (1):
+
+-  swrast: fix delayed texel buffer allocation regression for OpenMP
+
+Anuj Phogat (3):
+
+-  glsl: Disable ARB_texture_rectangle in shader version 100.
+-  i965: Use sample barycentric coordinates with per sample shading
+-  i965: Ignore 'centroid' interpolation qualifier in case of persample
+   shading
+
+Brian Paul (3):
+
+-  mesa: implement missing glGet(GL_RGBA_SIGNED_COMPONENTS_EXT) query
+-  st/mesa: fix glReadBuffer(GL_NONE) segfault
+-  draw: fix incorrect vertex size computation in LLVM drawing code
+
+Carl Worth (5):
+
+-  Add md5sums for 10.0.2. release.
+-  cherry-ignore: Ignore several patches not yet ready for the stable
+   branch
+-  Drop another couple of patches.
+-  cherry-ignore: Ignore 4 patches at the request of the author, (Anuj).
+-  Update version to 10.0.3
+
+Chad Versace (1):
+
+-  i965/gen6/blorp: Emit more flushes to workaround hangs
+
+Chris Forbes (1):
+
+-  i965: fold offset into coord for textureOffset(gsampler2DRect)
+
+Emil Velikov (5):
+
+-  mesa: use signed temporary variable to store \_ColorDrawBufferIndexes
+-  st/mesa: use signed temporary variable to store
+   \_ColorDrawBufferIndexes
+-  nv50: access only the available amount of textures
+-  nv50: access only the available amount of constbuf
+-  gallium/rtasm: handle mmap failures appropriately
+
+Eric Anholt (2):
+
+-  i965: Fix handling of MESA_pack_invert in blit (PBO) readpixels.
+-  i965: Don't do the temporary-and-blit-copy for INVALIDATE_RANGE maps.
+
+Ian Romanick (2):
+
+-  mesa: Add COMPRESSED_RGBA_S3TC_DXT1_EXT to COMPRESSED_TEXTURE_FORMATS
+   for GLES
+-  radeon / r200: Pass the API into \_mesa_initialize_context
+
+Ilia Mirkin (2):
+
+-  mesa: fix GL_COLOR_SUM enum for drivers without ARB_vertex_program
+-  st/vdpau: don't return a device if the screen doesn't support NPOT
+
+José Fonseca (1):
+
+-  mesa: Use IROUND instead of roundf.
+
+Kenneth Graunke (2):
+
+-  glsl: Rename "expr" to "lhs_expr" in vector_extract munging code.
+-  glsl: Fix chained assignments of vector channels.
+
+Lauri Kasanen (1):
+
+-  mesa: Fix build to properly check for supported compiler flags
+
+Marek Olšák (2):
+
+-  st/mesa: use sRGB formats for MSAA resolving if destination is sRGB
+-  gallium/util: util_format_srgb should not return FORMAT_NONE for sRGB
+   formats
+
+Matt Turner (2):
+
+-  glcpp: Define GL_EXT_shader_integer_mix in both GL and ES.
+-  glx: Update glxext.h to revision 24777.
+
+Michał Górny (1):
+
+-  Use AC_PATH_TOOL instead of AC_PATH_PROG for llvm-config.
+
+Paul Berry (1):
+
+-  i965: Ensure that all necessary state is re-emitted if we run out of
+   aperture.
+
+Paul Seidler (1):
+
+-  build: move ARCH_LIBS definition outside of ASM definition
+
+Thomas Sondergaard (4):
+
+-  mesa: Preliminary support for MSVC_VERSION=12.0
+-  mesa: Fix compile error with MSVC 2013
+-  mesa: Work around internal compiler error
+-  mesa: Namespace qualify fma to override ambiguity with fma from
+   math.h
+
+Tom Stellard (1):
+
+-  r600g/compute: Emit DEALLOC_STATE on cayman after dispatching a
+   compute shader.

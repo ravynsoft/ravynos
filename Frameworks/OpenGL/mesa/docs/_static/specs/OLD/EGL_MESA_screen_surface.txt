@@ -1,0 +1,564 @@
+Name
+
+    MESA_screen_surface
+
+Name Strings
+
+    EGL_MESA_screen_surface
+
+Contact
+
+    Brian Paul
+
+    To discuss, join the dri-egl@lists.freedesktop.org list.
+
+Status
+
+    Obsolete.
+
+Version
+
+    11 (27 January 2006)
+
+Number
+
+    TBD
+
+Dependencies
+
+    EGL 1.0 or later.
+
+Overview
+
+    EGL 1.1 supports three types of drawing surfaces:
+      * Window surfaces
+      * Pixmap surfaces
+      * Pbuffer surfaces
+    This extension defines a fourth type of drawing surface:
+      * Screen surface
+
+    A screen surface is a surface for which the (front) color buffer can
+    be directly displayed (i.e. scanned out) on a monitor (such as a flat
+    panel or CRT).  In particular the color buffer memory will be allocated
+    at a location in VRAM (and in a suitable format) which can be displayed
+    by the graphics hardware.
+
+    Note that the width and height of the screen surface need not exactly
+    match the monitor's current resolution.  For example, while the monitor
+    may be configured to to show 1024x768 pixels, the associated screen
+    surface may be larger, such as 1200x1000.  The "screen origin" attribute
+    will specify which region of the screen surface which is visible on the
+    monitor.  The screen surface can be scrolled by changing this origin.
+
+    This extension also defines functions for controlling the monitor's
+    display mode (width, height, refresh rate, etc), and specifying which
+    screen surface is to be displayed on a monitor.
+
+    The new EGLModeMESA type and related functions are very similar to the
+    EGLConfig type and related functions.  The user may get a list of
+    supported modes for a screen and specify the mode to be used when
+    displaying a screen surface.
+
+
+Issues
+
+    1. Should EGL_INTERLACE be a supported mode attribute?
+
+       Arguments against:
+
+           No, this should be provided by another extension which would
+           also provide the mechanisms needed to play back interlaced video
+           material correctly on hardware that supports it.
+           This extension should prefer non-interlaced modes. [M. Danzer]
+
+       Arguments for:
+
+           An interlaced display can be of use without considering video
+           material.  Being able to query whether a screen is operating in
+           interlaced mode can be used by applications to control their
+           drawing.  For example: avoid drawing 1-pixel-wide horizontal lines
+           if screen is interlaced. [B. Paul]
+
+       Resolution: Defer for future extension?
+
+
+    2. Should EGL_REFRESH_RATE be a supported mode attribute?
+
+       Arguments for:
+
+           Yes, it's been shown that applications and/or users need to select
+           modes by this.  [M. Danzer]
+
+           Many examples have been given in which it's desirable to let the
+           user choose from a variety of refresh rates without having to
+           restart/reconfigure.  [B. Paul]
+
+       Arguments against:
+
+           TBD.
+
+       Resolution: Yes.
+
+
+    3. Exactly how should the list of modes returned by eglChooseConfigMESA
+       be sorted?
+
+       Current method is described in the text below.  Subject to change.
+
+       Alternately, leave the sorting order undefined so that each
+       implementation can return the modes in order of "most desirable"
+       to "least desirable" which may depend on the display technology
+       (CRT vs LCD, etc) or other factors.
+
+
+    4. How should screen blanking be supported?  Note that a screen can be
+       disabled or turned off by calling eglShowSurface(dpy, scrn,
+       EGL_NO_SURFACE, EGL_NO_MODE_MESA).  But what about power-save mode?
+
+       I would defer this to other extensions that depend on this one.
+       I can imagine people wanting different semantics not just in
+       relation to the power management API being exposed (DPMS or whatever)
+       but also relating to what events can trigger EGL_CONTEXT_LOST.  Also
+       I'm not sure whether power management commands are properly operations
+       on the Display or on a screen surface. [A. Jackson]
+
+
+    5. Should the EGL_PHYSICAL_SIZE_EGL query be kept?  The size information
+       isn't always reliable (consider video projectors) but can still be
+       used to determine the pixel aspect ratio.
+
+       Resolution: Omit.  The EGL 1.2 specification includes queries for
+       the display resolution and pixel aspect ratio.
+
+
+    6. Should detailed mode timing information be exposed by this API?
+
+       Probably not.  Instead, offer that information in a layered extension.
+
+
+    7. How should the notion of a screen's "native" mode be expressed?
+       For example, LCD panels have a native resolution and refresh rate
+       that looks best but other sub-optimal resolutions may be supported.
+
+       The mode attribute EGL_OPTIMAL_MESA will be set for modes which
+       best match the screen.  [M. Danzer]
+
+
+    8. Should eglQueryModeStringMESA() be included?  This function returns
+       a human-readable string which corresponds to an EGLMode.
+
+       Arguments for:
+
+           A mode name such as "HDTV-720P" might mean more to users than
+           "1280x720@60Hz" if the later were generated via code.
+
+       Arguments against:
+
+           There's no standard syntax for the strings.  May cause more
+           trouble than it's worth.
+
+       Postpone for future extension. [A. Jackson]
+
+       Latest discussion leaning toward omitting this function.
+
+
+    9. Should we use "Get" or "Query" for functions which return state?
+       The EGL 1.x specification doesn't seem to be totally consistent
+       in this regard, but "Query" is used more often.
+
+       Use "Get" for mode-related queries (as for EGLConfigs) but "Query"
+       for everything else.
+
+
+    10. What should be the default size for screen surfaces?
+
+        For Pbuffer surfaces the default width and height are zero.
+        We'll do the same for screen surfaces.  Since there's no function
+        to resize surfaces it's useless to have a 0x0 screen, but this isn't
+        a situation that'll normally be encountered.
+
+
+    11. Should there be a function for resizing a screen surface?
+
+        Suppose one wants to change the screen's size in the EGL application.
+        Also suppose there's a hardware restriction such that only one screen
+        surface can exist at a time (either for lack of memory or because of
+        memory layout restrictions).
+
+        The basic idea is that the currently displayed screen surface must
+        be deallocated before a new one can be created.  Perhaps a resize
+        function would work better?
+
+
+    12. How should sub-pixel LCD color information be made available?
+        What about the display's gamma value?
+
+        Perhaps expose as additional read-only mode attributes.
+
+        Perhaps postpone for a layered extension.
+
+
+    13. What happens if the user attempts to delete a screen surface that
+        is currently being shown?
+
+        Spec currently says that's illegal and that an error (TBD) will be
+        generated.
+
+
+    14. What if the physical screen size can't be determined?  Should
+        a query of EGL_PHYSICAL_SIZE_MESA return [0,0]?
+
+        Obsolete: EGL_PHYSICAL_SIZE_MESA not used.
+
+
+    15. Suppose the device's number of RAMDACs is different from the
+        number of output ports.  For example, a graphics card with
+        two RAMDACs but three ports (VGA, DVI, TV).
+
+        Address this in a follow-on extension. [Matthias Hopf]
+
+
+    16. How should we deal with on-the-fly device changes?  For example,
+        the monitor being unplugged and replaced by another with different
+        characteristics?
+
+        A HAL event could be received via DBUS in the application [J. Smirl,
+        A. Jackson].
+
+        Should there be an EGL mechanism for detecting this?  Maybe an
+        EGL_SCREEN_LOST error (similar to EGL_CONTEXT_LOST) can be recorded
+        when there's a screen change.  At least then the application can
+        poll to detect this situation.
+
+        Maybe leave that to a future extension.
+
+        See also the EGL_SCREEN_COUNT_MESA query.
+
+
+    17. What if pixel-accurate panning is not supported (see
+        eglScreenPositionMESA)? [M. Danzer]
+
+        Is this a common problem?  Can we ignore it for now?
+
+
+    18. Should eglShowSurfaceMESA be renamed to eglShowScreenSurfaceMESA?
+
+        Probably.
+
+
+
+New Procedures and Functions
+
+    EGLBoolean eglChooseModeMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                 const EGLint *attrib_list,
+                                 EGLModeMESA *modes, EGLint modes_size,
+                                 EGLint *num_modes)
+
+    EGLBoolean eglGetModesMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                               EGLModeMESA *modes, EGLint modes_size,
+                               EGLint *num_modes)
+
+    EGLBoolean eglGetModeAttribMESA(EGLDisplay dpy, EGLModeMESA mode,
+                                    EGLint attrib, EGLint *value)
+
+
+    EGLBoolean eglGetScreensMESA(EGLDisplay dpy, EGLScreenMESA *screens,
+                                 EGLint screens_size, EGLint *num_screens)
+
+    EGLSurface eglCreateScreenSurfaceMESA(EGLDisplay dpy, EGLConfig config,
+                                          const EGLint *attrib_list)
+
+    EGLBoolean eglShowSurfaceMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                  EGLSurface surface, EGLModeMESA mode)
+
+    EGLBoolean eglScreenPositionMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                     EGLint x, EGLint y)
+
+
+    EGLBoolean eglQueryScreenMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                  EGLint attrib, EGLint *value);
+
+    EGLBoolean eglQueryScreenSurfaceMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                         EGLSurface *surface)
+
+    EGLBoolean eglQueryScreenModeMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                      EGLModeMESA *mode)
+
+    const char *eglQueryModeStringMESA(EGLDisplay dpy, EGLMode mode);
+
+
+New Types
+
+    EGLModeMESA
+    EGLScreenMESA
+
+New Tokens
+
+    New error codes:
+
+    EGL_BAD_SCREEN_MESA        
+    EGL_BAD_MODE_MESA          
+
+    Screen-related tokens:
+
+    EGL_SCREEN_COUNT_MESA      
+    EGL_SCREEN_POSITION_MESA   
+    EGL_SCREEN_BIT_MESA        
+    EGL_SCREEN_POSITION_GRANULARITY_MESA
+
+    Mode-related tokens:
+
+    EGL_MODE_ID_MESA           
+    EGL_REFRESH_RATE_MESA      
+    EGL_INTERLACED_MESA
+    EGL_OPTIMAL_MESA
+    EGL_NO_MODE_MESA
+
+
+Additions to Chapter X of the EGL 1.1 Specification
+
+    [XXX this all has to be rewritten to fit into the EGL specification
+    and match the conventions of an EGL extension.  For now, just list
+    all the functions with brief descriptions.]
+
+
+    EGLBoolean eglChooseModeMESA(EGLDisplay dpy, const EGLScreenMESA screen,
+                                 EGLint *attrib_list, EGLModeMESA *modes,
+                                 EGLint modes_size, EGLint *num_modes)
+
+    Like eglChooseConfig, returns a list of EGLModes which match the given
+    attribute list.  This does not set the screen's current display mode.
+    The attribute list is a list of token/value pairs terminated with
+    EGL_NONE.  Supported attributes include:
+
+        Name                   Description
+        ---------------------  ---------------------------------------------
+        EGL_WIDTH              Mode width (resolution)
+        EGL_HEIGHT             Mode height (resolution)
+        EGL_REFRESH_RATE_MESA  The mode's refresh rate, multiplied by 1000
+        EGL_INTERLACED_MESA    1 indicates an interlaced mode, 0 otherwise
+        EGL_OPTIMAL_MESA       Set if the most is especially optimal for the
+                               screen (ex. for particular LCD resolutions)
+
+    Any other token will generate the error EGL_BAD_ATTRIBUTE.
+
+    The list of modes returned by eglChooseModeMESA will be sorted
+    according to the following criteria.  See the discussion of table 3.3
+    in the EGL specification for more information.
+
+                                            Selection   Sort   Sort
+        Attribute            Default        Criteria    Order  Priority
+        -------------------- -------------- ----------- ------ --------
+        EGL_OPTIMAL_MESA     EGL_DONT_CARE  Exact       1,0      1
+        EGL_INTERLACED_MESA  EGL_DONT_CARE  Exact       0,1      2
+        EGL_REFRESH_RATE     EGL_DONT_CARE  AtLeast     Larger   3
+        EGL_WIDTH            EGL_DONT_CARE  AtLeast     Larger   4
+        EGL_HEIGHT           EGL_DONT_CARE  AtLeast     Larger   5
+        EGL_MODE_ID_MESA     EGL_DONT_CARE  Exact       Smaller  6
+
+
+    EGLBoolean eglGetModesMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                               EGLModeMESA *modes, EGLint modes_size,
+                               EGLint *num_modes)
+
+    Like eglGetConfigs, returns a list of all modes supported by the
+    given screen.  The returned modes will be sorted in the same manner
+    as for eglChooseModeMESA().
+
+
+
+    EGLBoolean eglGetModeAttribMESA(EGLDisplay dpy, EGLModeMESA mode,
+                                    EGLint attrib, EGLint *value)
+
+    Used to query mode attributes.  The following attributes are supported:
+
+        Name                   Return value description
+        ---------------------  ----------------------------------------------
+        EGL_OPTIMAL_MESA       1 indicates an optimal mode, 0 otherwise
+        EGL_INTERLACED_MESA    1 indicates an interlaced mode, 0 otherwise
+        EGL_REFRESH_RATE_MESA  The mode's refresh rate, multiplied by 1000
+        EGL_WIDTH              Mode width (resolution)
+        EGL_HEIGHT             Mode height (resolution)
+        EGL_MODE_ID_MESA       A unique small integer identifier for the mode
+
+    Any other token will generate the error EGL_BAD_ATTRIBUTE.
+
+
+
+    EGLBoolean eglGetScreensMESA(EGLDisplay dpy, EGLScreenMESA *screens,
+                                 EGLint screens_size, EGLint *num_screens)
+
+    This function returns an array of all available screen handles.
+    <screens_size> is the maximum number of screens to return in the
+    <screens> array.  <num_screens> will return the number of screen handles
+    placed in the array, even if <screens> is NULL.
+
+    The number of screens and the availability of each may change over
+    time (hot-plugging).  Screen handles will not be reused.  When a
+    screen handle becomes invalid, function calls which reference an
+    invalid handle will generate EGL_BAD_SCREEN_MESA.
+
+    The first screen handle returned will be considered to be the primary
+    one.
+
+
+
+    EGLSurface eglCreateScreenSurfaceMESA(EGLDisplay dpy, EGLConfig config,
+                                          const EGLint *attrib_list)
+
+    Create a surface that can be displayed on a screen.  <attrib_list> is
+    an array of token/value pairs terminated with EGL_NONE.  Valid tokens
+    include:
+
+        Name              Description
+        ----------------  --------------------------------
+        EGL_WIDTH         desired surface width in pixels
+        EGL_HEIGHT        desired surface height in pixels
+
+    Any other token will generate the error EGL_BAD_ATTRIBUTE.
+    The default width and height are zero.
+
+    
+
+    EGLBoolean eglShowSurfaceMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                  EGLSurface surface, EGLModeMESA mode)
+
+    This function causes a screen to show the given surface (or more
+    precisely, the surface's front color buffer) with the given mode.
+
+    If the surface is in any way incompatible with the mode, the error
+    EGL_BAD_MATCH will be generated, EGL_FALSE will be returned, and the
+    previous screen state will remain in effect.  This might occur when
+    the bandwidth of the video-out subsystem is exceeded, or if the mode
+    specifies a width or height that's greater than the width or height
+    of the surface.
+
+    To disable a screen, the values EGL_NO_SURFACE and EGL_NO_MODE_MESA
+    be passed as the <surface> and <mode> parameters.
+
+    The values of EGL_SCREEN_POSITION_MESA are clamped to the new valid
+    range computed from the screen size and surface size.  If the new
+    surface is EGL_NO_SURFACE, EGL_SCREEN_POSITION_MESA is set to [0, 0].
+
+
+    Attempting to delete a screen surface which is currently being
+    displayed will result in the error EGL_BAD_ACCESS being generated.
+
+
+
+    EGLBoolean eglScreenPositionMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                     EGLint x, EGLint y)
+
+    Specifies the origin of the screen's view into the surface, if the
+    surface is larger than the screen.  Valid values for x and y are
+    [0, surfaceWidth - screenWidth] and [0, surfaceHeight - screenHeight],
+    respectively.
+
+    The x and y values are also constrained to be integer multiples of the
+    EGL_SCREEN_POSITION_GRANULARITY_MESA values.
+
+
+
+
+    EGLBoolean eglQueryScreenMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                  EGLint attrib, EGLint *value);
+
+    Used to query screen attributes.  <attrib> may be one of the following:
+
+        Name                      Return value description
+        ------------------------  ---------------------------------------------
+        EGL_SCREEN_POSITION_MESA  x, y position of the screen's origin with
+                                  respect to the surface.  If no surface is
+                                  attached to the screen, [0, 0] is returned.
+        EGL_SCREEN_POSITION_GRANULARITY_MESA
+                                  Returns the granularity, in pixels, for
+                                  which the screen position is constrained.
+
+    Any other token will generate the error EGL_BAD_ATTRIBUTE.
+
+
+
+
+    EGLBoolean eglQueryScreenSurfaceMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                         EGLSurface *surface)
+
+    Returns the surface currently displayed on the given screen.  <surface>
+    may be EGL_NO_SURFACE if the screen isn't currently showing any surface.
+
+
+
+
+    EGLBoolean eglQueryScreenModeMESA(EGLDisplay dpy, EGLScreenMESA screen,
+                                      EGLModeMESA *mode)
+
+    Returns the given screen's current display mode.  The mode may be
+    EGL_NO_MODE_MESA if the screen is currently disabled.
+
+
+
+    const char *eglQueryModeStringMESA(EGLDisplay dpy, EGLModeMESA mode);
+
+    Returns a human-readable string for the given mode.  The string is a
+    zero-terminated C string which the user should not attempt to free.
+    There is no standard syntax for mode strings.  Applications should
+    not directly rely on mode strings.
+
+
+
+Version History
+
+    1. 15 March 2005 - BrianP
+        Initial version
+
+    2. 16 March 2005 - BrianP
+        Removed EGL_DEPTH_MESA
+        Added EGL_PHYSICAL_WIDTH_MESA, EGL_PHYSICAL_HEIGHT_MESA queries
+        Added EGL_OPTIMAL_MESA for width/height/refresh rate selection
+        Added possible eglQueryModeStringMESA() function
+        More details of the new functions explained.
+
+    3. 18 March 2005 - BrianP
+        Added screen_number to eglChooseModeMESA().
+        Fix off by one mistake in value range for ORIGIN attributes
+        Added Issues section
+
+    4. 21 March 2005 - BrianP
+        Removed eglScreenAttribsMESA().
+        Added eglScreenPositionMESA() to set screen origin.
+        Replaced EGL_SCREEN_X/Y_OFFSET_MESA with EGL_SCREEN_POSITION_MESA.
+        Replaced EGL_PHYSICAL_WIDTH/HEIGHT_MESA with EGL_PHYSICAL_SIZE_MESA.
+        Use EGL_OPTIMAL_MESA as a new mode attribute. (Michel Danzer)
+        Added a few more issues.
+
+    5. 6 April 2005 - BrianP
+        More language for eglGetModeStringMESA().
+        Added issues 10, 11, 12, 13, 14.
+        Updated issue 3 discussion about mode sorting.
+
+    6. 22 April 2005 - BrianP
+        Fixed "LDC" typo.
+        Added issues 15, 16.
+        Changed dependency on EGL 1.1 to EGL 1.0
+        s/EGL_NUM_SCREENS_MESA/EGL_SCREEN_COUNT_MESA/
+        Added eglQueryDisplayMESA() to New Functions section.
+        Clarified language for the EGL_SCREEN_COUNT_MESA query.
+
+    7. 29 April 2005 - BrianP
+        Added EGLScreenMESA type and eglGetScreensMESA() function. [J. Smirl].
+        Replaced EGLint screen_number parameters with EGLScreenMESA screen.
+        Added issue 17 (pixel-accurate panning)
+
+    8. 2 May 2005 - BrianP
+        Removed eglQueryDisplayMESA.
+        Fixed a few more EGLint -> EGLScreenMESA changes.
+
+    9. 20 May 2005 - BrianP
+        Fixed a few typos.
+        Updated some open issues text.
+
+    10. 10 August 2005 - BrianP
+        Added EGL_SCREEN_POSITION_GRANULARITY_MESA.
+
+    11. 27 January 2006 - BrianP
+        EGL_PHYSICAL_SIZE_MESA removed since EGL 1.2 has a similar feature.
+

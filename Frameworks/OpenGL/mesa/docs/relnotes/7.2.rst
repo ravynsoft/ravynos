@@ -1,0 +1,85 @@
+Mesa 7.2 Release Notes / 20 September 2008
+==========================================
+
+Mesa 7.2 is a stable release fixing bugs found in 7.1, which was a new
+development release.
+
+Mesa 7.2 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+Note that this version of Mesa does not use the GEM memory manager. The
+master branch of git uses GEM. The prototype DRI2 code that was in 7.1
+has also been removed.
+
+DRM version 2.3.1 should be used with Mesa 7.2
+
+MD5 checksums
+-------------
+
+::
+
+   81a2a4b7cbfce7553f7ad8d924edbe2f  MesaLib-7.2.tar.gz
+   04d379292e023df0b0266825cb0dbde5  MesaLib-7.2.tar.bz2
+   8bc497a37977a55e987a4d1fabc3d882  MesaLib-7.2.zip
+   10c762e39486df395838af1d7b57e69c  MesaDemos-7.2.tar.gz
+   22e03dc4038cd63f32c21eb60994892b  MesaDemos-7.2.tar.bz2
+   1197bc4eb3bf44e291c14d4eb2e19381  MesaDemos-7.2.zip
+   42e3c6c6d156cd9dc545dbef72407354  MesaGLUT-7.2.tar.gz
+   f67daf93e12c4a459703bbf3e4004e31  MesaGLUT-7.2.tar.bz2
+   0390567eb2c2d12fbf82e8523fd77e2b  MesaGLUT-7.2.zip
+
+New features
+------------
+
+-  i965 driver: added support for G41 chipset (Intel)
+
+Bug fixes
+---------
+
+-  Fixed display list bug involving primitives split across lists (bug
+   17564)
+-  Fixed some issues with glBindAttribLocation()
+-  Fixed crash in \_tnl_InvalidateState() found with Amira (bug 15834)
+-  Assorted bug fixes for Ming build
+-  Fixed some vertex/pixel buffer object reference counting bugs
+-  Fixed depth/stencil bug in i915/945 driver
+-  Fixed some shader flow control bugs in i965 driver
+-  Fixed a few tdfx driver bugs which prevented driver from working
+-  Fixed multisample enable/disable bug
+
+Changes
+-------
+
+-  Updated SGI header files with new license terms.
+
+To Do (someday) items
+---------------------
+
+-  Remove the MEMCPY() and \_mesa_memcpy() wrappers and just use
+   memcpy(). Probably do the same for malloc, calloc, etc. The wrappers
+   were useful in the past for memory debugging but now we have
+   valgrind. Not worried about SunOS 4 support anymore either...
+-  Switch to freeglut
+-  Fix linux-glide target/driver.
+-  Improved lambda and derivative calculation for frag progs.
+
+Driver Status
+-------------
+
+::
+
+   Driver         Status
+   ----------------------  ----------------------
+   DRI drivers     varies with the driver
+   XMesa/GLX (on Xlib) implements OpenGL 2.1
+   OSMesa (off-screen) implements OpenGL 2.1
+   Windows/Win32       implements OpenGL 2.1
+   Glide (3dfx Voodoo1/2)  implements OpenGL 1.3
+   SVGA            unsupported
+   Wind River UGL      unsupported
+   DJGPP           unsupported
+   GGI         unsupported
+   BeOS            unsupported
+   Allegro         unsupported
+   D3D         unsupported

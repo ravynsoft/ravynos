@@ -1,0 +1,143 @@
+Mesa 21.3.5 Release Notes / 2022-01-26
+======================================
+
+Mesa 21.3.5 is a bug fix release which fixes bugs found since the 21.3.4 release.
+
+Mesa 21.3.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.3.5 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    d93b2a9d2464ee856d7637a07dff6b7cd950f295ad58518bb959f76882cf4a4c  mesa-21.3.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- glGetActiveUniform failing with GL_INVALID_VALUE for no reason
+- CopelliaSim crashes on adding vision sensor to a scene on Ubuntu 20+, runs fine on Ubuntu 18.04
+- Dirt Rally: Flickering glitches on certain foliage going from Mesa 21.2.5 to 21.3.0
+- FrontFacing input is broken on Intel/Vulkan
+- llvmpipe: Unimplemented get_driver_uuid/get_device_uuid causes segfaults in e.g. Wine
+
+
+Changes
+-------
+
+Alejandro Piñeiro (1):
+
+- vulkan: return default string for undefined enum
+
+Alyssa Rosenzweig (3):
+
+- pan/bi: Schedule around blend shader register clobbering
+- panfrost: Use u_reduced_prim for primitive checks
+- panfrost: Only cull polygons
+
+Bas Nieuwenhuizen (1):
+
+- util/fossilize_db: Fix double free in error handling.
+
+Carsten Haitzler (1):
+
+- panfrost: Don't double-free when handling error for unsupported GPU
+
+Charles Baker (1):
+
+- zink: Output PackHalf2x16 to uint not float
+
+Emma Anholt (1):
+
+- softpipe: respect !independent_blend_enable for color masks.
+
+Eric Engestrom (4):
+
+- .pick_status.json: Update to 06504fb9e2382e43b889fd6ca642bb785b544d4d
+- .pick_status.json: Mark 1b88777e97f635612c560a2f00d349ea271581b1 as denominated
+- .pick_status.json: Mark d1530a3f3b1625baa42e84cba9844b6eb4ac76ce as denominated
+- .pick_status.json: Mark 58a843ab14e0eecf044a35154da72cdf7ab6f15a as denominated
+
+Ian Romanick (1):
+
+- intel/fs: Fix gl_FrontFacing optimization on Gfx12+
+
+Kenneth Graunke (1):
+
+- iris: Fix and refactor check for clear color being fully zero
+
+Lepton Wu (1):
+
+- driconf: Fix unhandled tags in static conf
+
+Lionel Landwerlin (2):
+
+- intel/fs: disable VRS when omask is written
+- anv: fix missing descriptor copy of bufferview/surfacestate content
+
+Mike Blumenkrantz (10):
+
+- zink: always set number of timestamp results to 1 for internal qbo
+- zink: fix availability buffer sizing/copying for xfb queries
+- zink: skip readback of qbos with no results
+- Revert "zink: when performing an implicit reset, sync qbos"
+- zink: use even more accurate stride values for query result copies
+- aux/trace: copy over stream_output_target_offset method from context
+- util/vbuf: fix buffer translation sizing
+- zink: remove SpvMemorySemanticsMakeVisibleMask from nir_intrinsic_memory_barrier
+- zink: check EXT_image_drm_format_modifier for dmabuf support
+- zink: stop allocating such massive staging regions for buffer maps
+
+Pavel Ondračka (1):
+
+- r300: properly initialize new_vs in r300_draw_init_vertex_shader
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- driconf: enable vs_position_always_invariant for Dirt Rally
+- mesa: use less temporaries in build_lighting
+
+Qiang Yu (1):
+
+- nir: fix nir_tex_instr hash not count is_sparse field
+
+Rhys Perry (1):
+
+- nir/unsigned_upper_bound: don't follow 64-bit f2u32()
+
+Rob Clark (5):
+
+- mesa/st: Lowered ucp should still mark rast state dirty
+- freedreno: Pass shader cache key instead of shader key
+- freedreno: Add FD_DIRTY_RASTERIZER_CLIP_PLANE_ENABLE
+- freedreno/a6xx: Fix clip_mask
+- freedreno/a5xx: Fix clip_mask
+
+Stefan Brüns (1):
+
+- llvmpipe: Add get_{driver,device}_uuid implementations
+
+Tapani Pälli (2):
+
+- mesa: refactor GetProgramiv to use program resource list
+- mesa: move GetProgramInterfaceiv as a shader_query function
+
+Yiwei Zhang (1):
+
+- venus: VkExternalImageFormatProperties is optional

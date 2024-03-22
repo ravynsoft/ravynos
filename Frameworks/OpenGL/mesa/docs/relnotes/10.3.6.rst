@@ -1,0 +1,100 @@
+Mesa 10.3.6 Release Notes / December 29, 2014
+=============================================
+
+Mesa 10.3.6 is a bug fix release which fixes bugs found since the 10.3.5
+release.
+
+Mesa 10.3.6 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   c4d053d6bc6604cb5c93c99e0ef2e815c539f26dc5a03737eb3809bc1767d12f  MesaLib-10.3.6.tar.gz
+   8d43673c6788fbf85f9c36c3a95c61ccf46f8835fc9c0d85d34474490d80572b  MesaLib-10.3.6.tar.bz2
+   6b5b1e9a13949cfdb76fe51e8dcc3ea71e464a5ca73d11fdc29c20c4ba3f411a  MesaLib-10.3.6.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 60879 <https://bugs.freedesktop.org/show_bug.cgi?id=60879>`__ -
+   [radeonsi] X11 can't start with acceleration enabled
+-  `Bug 82585 <https://bugs.freedesktop.org/show_bug.cgi?id=82585>`__ -
+   geometry shader with optional out variable segfaults
+-  `Bug 82991 <https://bugs.freedesktop.org/show_bug.cgi?id=82991>`__ -
+   Inverted bumpmap in webgl applications
+-  `Bug 84777 <https://bugs.freedesktop.org/show_bug.cgi?id=84777>`__ -
+   [BSW]Piglit spec_glsl-1.50_execution_geometry-basic fails
+
+Changes
+-------
+
+Andres Gomez (1):
+
+-  i965/brw_reg: struct constructor now needs explicit negate and abs
+   values.
+
+Ben Widawsky (1):
+
+-  i965/gs: Avoid DW \* DW mul
+
+Dave Airlie (1):
+
+-  r600g: only init GS_VERT_ITEMSIZE on r600
+
+Emil Velikov (3):
+
+-  docs: Add sha256 sums for the 10.3.5 release
+-  Revert "glx/dri3: Request non-vsynced Present for swapinterval zero.
+   (v3)"
+-  Update version to 10.3.6
+
+Ian Romanick (2):
+
+-  linker: Wrap access of producer_var with a NULL check
+-  linker: Assign varying locations geometry shader inputs for SSO
+
+Ilia Mirkin (3):
+
+-  util/primconvert: pass index bias through
+-  util/primconvert: support instanced rendering
+-  util/primconvert: take ib offset into account
+
+José Fonseca (1):
+
+-  util/primconvert: Avoid point arithmetic; apply offset on all cases.
+
+Marek Olšák (1):
+
+-  docs/relnotes: document the removal of GALLIUM_MSAA
+
+Mario Kleiner (4):
+
+-  glx/dri3: Fix glXWaitForSbcOML() to handle targetSBC==0 correctly.
+   (v2)
+-  glx/dri3: Track separate (ust, msc) for PresentPixmap vs.
+   PresentNotifyMsc (v2)
+-  glx/dri3: Request non-vsynced Present for swapinterval zero. (v3)
+-  glx/dri3: Don't fail on glXSwapBuffersMscOML(dpy, window, 0, 0, 0)
+   (v2)
+
+Maxence Le Doré (1):
+
+-  glsl: Add gl_MaxViewports to available builtin constants
+
+Tom Stellard (1):
+
+-  radeonsi: Program RASTER_CONFIG for harvested GPUs v5

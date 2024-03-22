@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_sparse_buffer" number="172">
+
+    <function name="BufferPageCommitmentARB">
+        <param name="target" type="GLenum"/>
+        <param name="offset" type="GLintptr"/>
+        <param name="size" type="GLsizeiptr"/>
+        <param name="commit" type="GLboolean"/>
+    </function>
+
+    <!-- Only with GL_EXT_direct_state_access -->
+    <function name="NamedBufferPageCommitmentEXT">
+        <param name="buffer" type="GLuint"/>
+        <param name="offset" type="GLintptr"/>
+        <param name="size" type="GLsizeiptr"/>
+        <param name="commit" type="GLboolean"/>
+    </function>
+
+    <!-- Only with GL_ARB_direct_state_access -->
+    <function name="NamedBufferPageCommitmentARB">
+        <param name="buffer" type="GLuint"/>
+        <param name="offset" type="GLintptr"/>
+        <param name="size" type="GLsizeiptr"/>
+        <param name="commit" type="GLboolean"/>
+    </function>
+
+    <enum name="SPARSE_STORAGE_BIT_ARB" value="0x0400"/>
+    <enum name="SPARSE_BUFFER_PAGE_SIZE_ARB" value="0x82F8"/>
+
+</category>
+
+</OpenGLAPI>

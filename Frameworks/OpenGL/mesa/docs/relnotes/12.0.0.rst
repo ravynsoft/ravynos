@@ -1,0 +1,364 @@
+Mesa 12.0.0 Release Notes / July 8, 2016
+========================================
+
+Mesa 12.0.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 12.0.1.
+
+Mesa 12.0.0 implements the OpenGL 4.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.3. OpenGL 4.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   3b8fa4d86d78f8f6ec86055b92ad1afe869001483593b3dd4531184b8bc4fcfb  mesa-12.0.0.tar.gz
+   0090c025219318935124292b482e3439bc43e8c074ad01086449fcad88547dc6  mesa-12.0.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  OpenGL 4.3 on nvc0, radeonsi, i965 (Gen8+)
+-  OpenGL ES 3.1 on nvc0, radeonsi
+-  GL_ARB_ES3_1_compatibility on nvc0, radeonsi
+-  GL_ARB_compute_shader on nvc0, radeonsi, softpipe
+-  GL_ARB_cull_distance on i965/gen6+, nv50, nvc0, llvmpipe, softpipe
+-  GL_ARB_framebuffer_no_attachments on nvc0, r600, radeonsi, softpipe
+-  GL_ARB_internalformat_query2 on all drivers
+-  GL_ARB_query_buffer_object on i965/hsw+
+-  GL_ARB_robust_buffer_access_behavior on i965, nvc0, radeonsi
+-  GL_ARB_shader_atomic_counters on radeonsi, softpipe
+-  GL_ARB_shader_atomic_counter_ops on nvc0, radeonsi, softpipe
+-  GL_ARB_shader_image_load_store on nvc0, radeonsi, softpipe
+-  GL_ARB_shader_image_size on nvc0, radeonsi, softpipe
+-  GL_ARB_shader_storage_buffer_objects on radeonsi, softpipe
+-  GL_ATI_fragment_shader on all Gallium drivers
+-  GL_EXT_base_instance on all drivers that support GL_ARB_base_instance
+-  GL_EXT_clip_cull_distance on all drivers that support
+   GL_ARB_cull_distance
+-  GL_KHR_robustness on i965
+-  GL_OES_copy_image on i965 (Baytrail and Gen8+)
+-  GL_OES_draw_buffers_indexed and GL_EXT_draw_buffers_indexed on all
+   drivers that support GL_ARB_draw_buffers_blend
+-  GL_OES_gpu_shader5 and GL_EXT_gpu_shader5 on all drivers that support
+   GL_ARB_gpu_shader5
+-  GL_OES_sample_shading on i965, nvc0, r600, radeonsi
+-  GL_OES_sample_variables on i965, nvc0, r600, radeonsi
+-  GL_OES_shader_image_atomic on all drivers that support
+   GL_ARB_shader_image_load_store
+-  GL_OES_shader_io_blocks on i965, nvc0, radeonsi
+-  GL_OES_shader_multisample_interpolation on i965, nvc0, r600, radeonsi
+-  GL_OES_texture_border_clamp and GL_EXT_texture_border_clamp on all
+   drivers that support GL_ARB_texture_border_clamp
+-  GL_OES_texture_buffer and GL_EXT_texture_buffer on i965, nvc0,
+   radeonsi
+-  EGL_KHR_reusable_sync on all drivers
+-  GL_ARB_stencil_texture8 and GL_OES_stencil_texture8 on i965/gen8+
+
+Bug fixes
+---------
+
+-  `Bug 42187 <https://bugs.freedesktop.org/show_bug.cgi?id=42187>`__ -
+   ES 1.1 conformance pntszary.c fail
+-  `Bug 71789 <https://bugs.freedesktop.org/show_bug.cgi?id=71789>`__ -
+   [r300g] Visuals not found in (default) depth = 24
+-  `Bug 81585 <https://bugs.freedesktop.org/show_bug.cgi?id=81585>`__ -
+   piglit
+   spec_glsl-1.10_compiler_literals_invalid-float-suffix-capital-f.vert
+   fails
+-  `Bug 83036 <https://bugs.freedesktop.org/show_bug.cgi?id=83036>`__ -
+   [ILK]Piglit spec_ARB_copy_image_arb_copy_image-formats fails
+-  `Bug 89607 <https://bugs.freedesktop.org/show_bug.cgi?id=89607>`__ -
+   Assertion hit in opt_array_splitting with recursive array indexing
+-  `Bug 90513 <https://bugs.freedesktop.org/show_bug.cgi?id=90513>`__ -
+   Odd gray and red flicker in The Talos Principle on GK104
+-  `Bug 91526 <https://bugs.freedesktop.org/show_bug.cgi?id=91526>`__ -
+   World of Warcraft (on Wine) has UI corruption with nouveau
+-  `Bug 92363 <https://bugs.freedesktop.org/show_bug.cgi?id=92363>`__ -
+   [BSW/BDW] ogles1conform Gets test fails
+-  `Bug 92628 <https://bugs.freedesktop.org/show_bug.cgi?id=92628>`__ -
+   HTTP site for Mesa downloads
+-  `Bug 92743 <https://bugs.freedesktop.org/show_bug.cgi?id=92743>`__ -
+   Centroid shouldn't have to match between the FS and the VS
+-  `Bug 92850 <https://bugs.freedesktop.org/show_bug.cgi?id=92850>`__ -
+   Segfault loading War Thunder
+-  `Bug 93054 <https://bugs.freedesktop.org/show_bug.cgi?id=93054>`__ -
+   [BDW] DiRT Showdown and Bioshock Infinite only render half the screen
+   (bottom left triangle)
+-  `Bug 93524 <https://bugs.freedesktop.org/show_bug.cgi?id=93524>`__ -
+   Clover doesn't build
+-  `Bug 93551 <https://bugs.freedesktop.org/show_bug.cgi?id=93551>`__ -
+   Divinity: Original Sin Enhanced Edition(Native) crash on start
+-  `Bug 93667 <https://bugs.freedesktop.org/show_bug.cgi?id=93667>`__ -
+   Crash in eglCreateImageKHR with huge texture size
+-  `Bug 93767 <https://bugs.freedesktop.org/show_bug.cgi?id=93767>`__ -
+   Glitches with soft shadows and MSAA in Knights of the Old Republic 2
+-  `Bug 93840 <https://bugs.freedesktop.org/show_bug.cgi?id=93840>`__ -
+   [i965] Alien: Isolation fails with GL_ARB_compute_shader enabled
+-  `Bug 93962 <https://bugs.freedesktop.org/show_bug.cgi?id=93962>`__ -
+   [HSW, regression, bisected, CTS]
+   ES2-CTS.gtf.GL2FixedTests.scissor.scissor - segfault/asserts
+-  `Bug 94081 <https://bugs.freedesktop.org/show_bug.cgi?id=94081>`__ -
+   [HSW] compute shader shared var + atomic op = fail
+-  `Bug 94086 <https://bugs.freedesktop.org/show_bug.cgi?id=94086>`__ -
+   Multiple conflicting libGL libraries installed
+-  `Bug 94116 <https://bugs.freedesktop.org/show_bug.cgi?id=94116>`__ -
+   program interface queries not returning right data for UBO /
+   GL_BLOCK_INDEX
+-  `Bug 94129 <https://bugs.freedesktop.org/show_bug.cgi?id=94129>`__ -
+   Mesa's compiler should warn about undefined values
+-  `Bug 94181 <https://bugs.freedesktop.org/show_bug.cgi?id=94181>`__ -
+   [regression] piglit.spec.ext_framebuffer_object.getteximage-formats
+   init-by-clear-and-render
+-  `Bug 94193 <https://bugs.freedesktop.org/show_bug.cgi?id=94193>`__ -
+   [llvmpipe] Line antialiasing looks different when GL_LINE_STIPPLE is
+   enabled with pattern 0xffff
+-  `Bug 94198 <https://bugs.freedesktop.org/show_bug.cgi?id=94198>`__ -
+   [HSW] segfault in copy image when copying from cubemap to 2d
+-  `Bug 94199 <https://bugs.freedesktop.org/show_bug.cgi?id=94199>`__ -
+   Shader abort/crash
+-  `Bug 94253 <https://bugs.freedesktop.org/show_bug.cgi?id=94253>`__ -
+   [llvmpipe] piglit gl-1.0-swapbuffers-behavior regression
+-  `Bug 94254 <https://bugs.freedesktop.org/show_bug.cgi?id=94254>`__ -
+   [llvmpipe] [softpipe] piglit read-front regression
+-  `Bug 94257 <https://bugs.freedesktop.org/show_bug.cgi?id=94257>`__ -
+   [softpipe] piglit glx-copy-sub-buffer regression
+-  `Bug 94274 <https://bugs.freedesktop.org/show_bug.cgi?id=94274>`__ -
+   [swrast] piglit arb_occlusion_query2-render regression
+-  `Bug 94284 <https://bugs.freedesktop.org/show_bug.cgi?id=94284>`__ -
+   [radeonsi] outlast segfault on start
+-  `Bug 94291 <https://bugs.freedesktop.org/show_bug.cgi?id=94291>`__ -
+   llvmpipe tests fail if built on skylake i7-6700k
+-  `Bug 94348 <https://bugs.freedesktop.org/show_bug.cgi?id=94348>`__ -
+   vkBindImageMemory doesn't take into account the offset when the image
+   is used as a depth buffer
+-  `Bug 94383 <https://bugs.freedesktop.org/show_bug.cgi?id=94383>`__ -
+   build error on i386 when enabling swr
+-  `Bug 94388 <https://bugs.freedesktop.org/show_bug.cgi?id=94388>`__ -
+   r600_blit.c:281: r600_decompress_depth_textures: Assertion
+   \`tex->is_depth && !tex->is_flushing_texture' failed.
+-  `Bug 94412 <https://bugs.freedesktop.org/show_bug.cgi?id=94412>`__ -
+   Trine 3 misrender
+-  `Bug 94447 <https://bugs.freedesktop.org/show_bug.cgi?id=94447>`__ -
+   glsl/glcpp/tests/glcpp-test-cr-lf regression
+-  `Bug 94453 <https://bugs.freedesktop.org/show_bug.cgi?id=94453>`__ -
+   dEQP-GLES3.functional.clipping.line.wide_line_clip_viewport_{center,corner}
+   fail
+-  `Bug 94454 <https://bugs.freedesktop.org/show_bug.cgi?id=94454>`__ -
+   dEQP-GLES3.functional.clipping.point.wide_point_clip\* fails
+-  `Bug 94456 <https://bugs.freedesktop.org/show_bug.cgi?id=94456>`__ -
+   dEQP-GLES3.functional.state_query.floats.{blend_color,color_clear_value,depth_clear_value}_getinteger64
+   fail
+-  `Bug 94458 <https://bugs.freedesktop.org/show_bug.cgi?id=94458>`__ -
+   dEQP-GLES3.functional.state_query.fbo.framebuffer_attachment_x_size_initial
+   fails
+-  `Bug 94468 <https://bugs.freedesktop.org/show_bug.cgi?id=94468>`__ -
+   [HSW, regression, bisected] numerous Sascha demos render incorrectly
+-  `Bug 94481 <https://bugs.freedesktop.org/show_bug.cgi?id=94481>`__ -
+   softpipe - access violation in img_filter_2d_nearest
+-  `Bug 94485 <https://bugs.freedesktop.org/show_bug.cgi?id=94485>`__ -
+   dEQP-GLES3.functional.negative_api.shader.compile_shader and
+   delete_shader broken by Meta
+-  `Bug 94524 <https://bugs.freedesktop.org/show_bug.cgi?id=94524>`__ -
+   Wrong gl_TessLevelOuter interpretation for isolines
+-  `Bug 94595 <https://bugs.freedesktop.org/show_bug.cgi?id=94595>`__ -
+   [Mesa AMD&swrast] Texture views attached as framebuffers return their
+   viewed tecture's color encoding and render incorrectly
+-  `Bug 94657 <https://bugs.freedesktop.org/show_bug.cgi?id=94657>`__ -
+   [llvmpipe] [softpipe] piglit arb_texture_view-getteximage-srgb
+   regression
+-  `Bug 94661 <https://bugs.freedesktop.org/show_bug.cgi?id=94661>`__ -
+   [bdw, skl] vk-cts: new test failing
+-  `Bug 94671 <https://bugs.freedesktop.org/show_bug.cgi?id=94671>`__ -
+   [radeonsi] Blue-ish textures in Shadow of Mordor
+-  `Bug 94713 <https://bugs.freedesktop.org/show_bug.cgi?id=94713>`__ -
+   [Gen8+] ES 3.1 Stencil texturing broken for 2DArray/Cubes
+-  `Bug 94747 <https://bugs.freedesktop.org/show_bug.cgi?id=94747>`__ -
+   Convert phi nodes to logical operations
+-  `Bug 94835 <https://bugs.freedesktop.org/show_bug.cgi?id=94835>`__ -
+   Increase fragment shader sample limits from 16 to 32 (AMD Linux -
+   Mesa/RadeonSi)
+-  `Bug 94847 <https://bugs.freedesktop.org/show_bug.cgi?id=94847>`__ -
+   [ES3.1CTS] es31-cts.draw_buffers_indexed.color_masks fails
+-  `Bug 94896 <https://bugs.freedesktop.org/show_bug.cgi?id=94896>`__ -
+   [vulkan] new CTS tests fail on i965
+-  `Bug 94904 <https://bugs.freedesktop.org/show_bug.cgi?id=94904>`__ -
+   [vulkan, BSW]
+   dEQP-VK.api.object_management.multithreaded_per_thread_device
+   intermittent crash
+-  `Bug 94907 <https://bugs.freedesktop.org/show_bug.cgi?id=94907>`__ -
+   codegen/nv50_ir_ra.cpp:1330:29: error: ‘isinf’ was not declared in
+   this scope
+-  `Bug 94909 <https://bugs.freedesktop.org/show_bug.cgi?id=94909>`__ -
+   [llvmpipe] piglit fs-roundEven-float regression
+-  `Bug 94917 <https://bugs.freedesktop.org/show_bug.cgi?id=94917>`__ -
+   radeonsi supports GL_ARB_shader_storage_buffer_object with 0
+   GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS
+-  `Bug 94924 <https://bugs.freedesktop.org/show_bug.cgi?id=94924>`__ -
+   [GEN8] Ungine Valley fails to run due to "intel_do_flush_locked
+   failed: Input/output error"
+-  `Bug 94925 <https://bugs.freedesktop.org/show_bug.cgi?id=94925>`__ -
+   Crash in egl_dri3_get_dri_context with Dolphin EGL/X11 in single-core
+   mode
+-  `Bug 94944 <https://bugs.freedesktop.org/show_bug.cgi?id=94944>`__ -
+   [regression, hswgt1] gpu hang on arb_shader_image_load_store
+-  `Bug 94955 <https://bugs.freedesktop.org/show_bug.cgi?id=94955>`__ -
+   Uninitialized variables leads to random segfaults (valgrind log,
+   apitrace attached)
+-  `Bug 94969 <https://bugs.freedesktop.org/show_bug.cgi?id=94969>`__ -
+   build fails because install-data-local doesn't follow $DESTDIR
+-  `Bug 94972 <https://bugs.freedesktop.org/show_bug.cgi?id=94972>`__ -
+   blend failures on llvmpipe with llvm 3.7 due to vector selects
+-  `Bug 94979 <https://bugs.freedesktop.org/show_bug.cgi?id=94979>`__ -
+   dolphin-emu rendering broken on gallium/SWR + crashing often
+-  `Bug 94984 <https://bugs.freedesktop.org/show_bug.cgi?id=94984>`__ -
+   XCom2 crashes with SIGSEGV on radeonsi
+-  `Bug 94994 <https://bugs.freedesktop.org/show_bug.cgi?id=94994>`__ -
+   OSMesaGetProcAdress always fails on mangled OSMesa
+-  `Bug 94997 <https://bugs.freedesktop.org/show_bug.cgi?id=94997>`__ -
+   [vulkan, SKL,BDW,HSW]
+   deqp-vk.spirv_assembly.instruction.compute.opcopymemory.array
+   regression
+-  `Bug 94998 <https://bugs.freedesktop.org/show_bug.cgi?id=94998>`__ -
+   [vulkan]
+   deqp-vk.pipeline.push_constant.graphics_pipeline.count_3shader_vgf
+   regression
+-  `Bug 95001 <https://bugs.freedesktop.org/show_bug.cgi?id=95001>`__ -
+   [vulkan] deqp-vk.binding_model.shader_access regression
+-  `Bug 95005 <https://bugs.freedesktop.org/show_bug.cgi?id=95005>`__ -
+   Unreal engine demos segfault after shader compilation error with
+   OpenGL 4.3
+-  `Bug 95026 <https://bugs.freedesktop.org/show_bug.cgi?id=95026>`__ -
+   Alien Isolation segfault after initial loading screen/video
+-  `Bug 95034 <https://bugs.freedesktop.org/show_bug.cgi?id=95034>`__ -
+   vkResetCommandPool should not destroy the command buffers.
+-  `Bug 95071 <https://bugs.freedesktop.org/show_bug.cgi?id=95071>`__ -
+   [bisected] Wrong colors in KDE/Qt applications
+-  `Bug 95133 <https://bugs.freedesktop.org/show_bug.cgi?id=95133>`__ -
+   X-COM Enemy Within crashes when entering tactical mission with
+   Bonaire
+-  `Bug 95138 <https://bugs.freedesktop.org/show_bug.cgi?id=95138>`__ -
+   [deqp, 32bit, gen8+] deqp-gles31.functional.draw_indirect.negative
+-  `Bug 95142 <https://bugs.freedesktop.org/show_bug.cgi?id=95142>`__ -
+   [ES3.1CTS,GEN8]
+   ESEXT-CTS.draw_elements_base_vertex_tests.invalid_mapped_bos
+   assertion
+-  `Bug 95158 <https://bugs.freedesktop.org/show_bug.cgi?id=95158>`__ -
+   glx-test compilation fails in \`make check\`
+-  `Bug 95164 <https://bugs.freedesktop.org/show_bug.cgi?id=95164>`__ -
+   GLSL compiler (linker I think) emits assertion upon call to
+   glAttachShader
+-  `Bug 95180 <https://bugs.freedesktop.org/show_bug.cgi?id=95180>`__ -
+   rasterizer/memory/Convert.h:170:9: error: ‘__builtin_isnan’ is not a
+   member of ‘std’
+-  `Bug 95198 <https://bugs.freedesktop.org/show_bug.cgi?id=95198>`__ -
+   Shadow of Mordor beta has missing geometry with gl 4.3
+-  `Bug 95203 <https://bugs.freedesktop.org/show_bug.cgi?id=95203>`__ -
+   Tonga GST/OMX/VCE encode broken since mesa: st/omx: Fix resource leak
+   on OMX_ErrorNone
+-  `Bug 95211 <https://bugs.freedesktop.org/show_bug.cgi?id=95211>`__ -
+   scons TypeError: 'tuple' object is not callable
+-  `Bug 95246 <https://bugs.freedesktop.org/show_bug.cgi?id=95246>`__ -
+   Segfault in glBindFramebuffer()
+-  `Bug 95251 <https://bugs.freedesktop.org/show_bug.cgi?id=95251>`__ -
+   vdpau decoder capabilities: not supported
+-  `Bug 95252 <https://bugs.freedesktop.org/show_bug.cgi?id=95252>`__ -
+   [deqp] deqp-gles31.functional.debug.object_labels.query_length_only
+   crashes
+-  `Bug 95292 <https://bugs.freedesktop.org/show_bug.cgi?id=95292>`__ -
+   [IVB,SKL] vulkan: stride/tiling issue with vkCmdCopyBufferToImage
+   from larger source buffer into destination image
+-  `Bug 95296 <https://bugs.freedesktop.org/show_bug.cgi?id=95296>`__ -
+   nir_lower_double_packing.c:79:4: error: void function
+   'lower_double_pack_impl' should not return a value [-Wreturn-type]
+-  `Bug 95324 <https://bugs.freedesktop.org/show_bug.cgi?id=95324>`__ -
+   GL33-CTS.gtf32.GL3Tests.packed_pixels.packed_pixels_pbo fails in one
+   case on Haswell
+-  `Bug 95370 <https://bugs.freedesktop.org/show_bug.cgi?id=95370>`__ -
+   [965GM] piglit fails many tests after a5d7e144
+-  `Bug 95373 <https://bugs.freedesktop.org/show_bug.cgi?id=95373>`__ -
+   Suspicious warning in brw_blorp_clear.cpp
+-  `Bug 95403 <https://bugs.freedesktop.org/show_bug.cgi?id=95403>`__ -
+   [GK110] misaligned_gpr spamming dmesg when playing victor vran
+-  `Bug 95419 <https://bugs.freedesktop.org/show_bug.cgi?id=95419>`__ -
+   [HSW][regression][bisect] RPG Maker game gives "invalid floating
+   point operation" at startup
+-  `Bug 95456 <https://bugs.freedesktop.org/show_bug.cgi?id=95456>`__ -
+   glXGetFBConfigs has invalid screen bounds
+-  `Bug 95462 <https://bugs.freedesktop.org/show_bug.cgi?id=95462>`__ -
+   [BXT,BSW] arb_gpu_shader_fp64 causes gpu hang
+-  `Bug 95529 <https://bugs.freedesktop.org/show_bug.cgi?id=95529>`__ -
+   [regression, bisected] Image corruption in Chrome
+-  `Bug 95537 <https://bugs.freedesktop.org/show_bug.cgi?id=95537>`__ -
+   Invalid argument in anv_ioctl called from anv_physical_device_init
+-  `Bug 96221 <https://bugs.freedesktop.org/show_bug.cgi?id=96221>`__ -
+   nir/nir_lower_tex.c:202: error: unknown field ‘f32’ specified in
+   initializer
+-  `Bug 96228 <https://bugs.freedesktop.org/show_bug.cgi?id=96228>`__ -
+   SSBO test regressions from mesa 5b267509
+-  `Bug 96236 <https://bugs.freedesktop.org/show_bug.cgi?id=96236>`__ -
+   dri_interface.h:404: error: redefinition of typedef
+   ‘mesa_glinterop_device_info’
+-  `Bug 96238 <https://bugs.freedesktop.org/show_bug.cgi?id=96238>`__ -
+   swr fails to build outside of the main directory
+-  `Bug 96239 <https://bugs.freedesktop.org/show_bug.cgi?id=96239>`__ -
+   [radeonsi tessellation] [R9 290/390] Random "texture flickering"
+   (Shadow of Mordor, Tomb Raider, Unigine Heaven 4.0)
+-  `Bug 96258 <https://bugs.freedesktop.org/show_bug.cgi?id=96258>`__ -
+   [NVC0] Hang when running compute program
+-  `Bug 96285 <https://bugs.freedesktop.org/show_bug.cgi?id=96285>`__ -
+   Mesa build broken
+-  `Bug 96299 <https://bugs.freedesktop.org/show_bug.cgi?id=96299>`__ -
+   [vulkan] 64 regressions due to mesa d5f2f32
+-  `Bug 96346 <https://bugs.freedesktop.org/show_bug.cgi?id=96346>`__ -
+   [SNB,CTS] es2-cts.gtf.gl.atan regression
+-  `Bug 96349 <https://bugs.freedesktop.org/show_bug.cgi?id=96349>`__ -
+   [CTS,SKL,BSW,BDW,KBL,BXT]
+   es31-cts.arrays_of_arrays.interactionuniformbuffers3
+-  `Bug 96351 <https://bugs.freedesktop.org/show_bug.cgi?id=96351>`__ -
+   [CTS,SKL,KBL,BXT] es2-cts.gtf.gl2extensiontests.egl_image.egl_image
+-  `Bug 96358 <https://bugs.freedesktop.org/show_bug.cgi?id=96358>`__ -
+   SSO: wrong interface validation between GS and VS (regresion due to
+   latest gles 3.1)
+-  `Bug 96425 <https://bugs.freedesktop.org/show_bug.cgi?id=96425>`__ -
+   [bisected] occasional dark render in The Talos Principle
+-  `Bug 96504 <https://bugs.freedesktop.org/show_bug.cgi?id=96504>`__ -
+   [vulkancts] compute tests crash
+-  `Bug 96516 <https://bugs.freedesktop.org/show_bug.cgi?id=96516>`__ -
+   [bisected: 482526] "clover: Update OpenCL version string to match
+   OpenGL": clover's build fails because of missing git_sha1.h
+-  `Bug 96565 <https://bugs.freedesktop.org/show_bug.cgi?id=96565>`__ -
+   Clive Barker's Jericho displays strange,vivid colors when motion blur
+   enabled
+-  `Bug 96607 <https://bugs.freedesktop.org/show_bug.cgi?id=96607>`__ -
+   [bisected] texture misrender / flicker in The Talos Principle on SKL
+-  `Bug 96617 <https://bugs.freedesktop.org/show_bug.cgi?id=96617>`__ -
+   gl_SecondaryFragDataEXT doesn't work for extended blend func
+-  `Bug 96629 <https://bugs.freedesktop.org/show_bug.cgi?id=96629>`__ -
+   dEQP-GLES2.functional.texture.completeness.cube.not_positive_level_0:
+   Assertion \`width >= 1' failed.
+-  `Bug 96639 <https://bugs.freedesktop.org/show_bug.cgi?id=96639>`__ -
+   st/mesa: transfer_map with too-high level with
+   dEQP-GLES2.functional.texture.completeness.cube.extra_level
+-  `Bug 96674 <https://bugs.freedesktop.org/show_bug.cgi?id=96674>`__ -
+   [SNB, ILK]
+   spec.ext_image_dma_buf_import.ext_image_dma_buf_import-sample_nv1
+-  `Bug 96765 <https://bugs.freedesktop.org/show_bug.cgi?id=96765>`__ -
+   BindFragDataLocationIndexed on array fragment shader output.
+-  `Bug 96791 <https://bugs.freedesktop.org/show_bug.cgi?id=96791>`__ -
+   Cannot use image from swapchains for sampling
+-  `Bug 96825 <https://bugs.freedesktop.org/show_bug.cgi?id=96825>`__ -
+   anv_device.c:31:27: fatal error: anv_timestamp.h: No such file or
+   directory
+
+Changes
+-------
+
+Radeon drivers (r600 and radeonsi) now require LLVm 3.6 as a minimum.

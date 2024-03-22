@@ -1,0 +1,258 @@
+<?xml version="1.0" ?>
+
+<!--
+Copyright © 2022 Imagination Technologies Ltd.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice (including the next
+paragraph) shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<csbgen name="ROGUE" prefix="VDMCTRL">
+
+  <define name="GUARD_SIZE_DEFAULT" value="64"/>
+
+  <enum name="BLOCK_TYPE">
+    <value name="PPP_STATE_UPDATE" value="0"/>
+    <value name="PDS_STATE_UPDATE" value="1"/>
+    <value name="VDM_STATE_UPDATE" value="2"/>
+    <value name="INDEX_LIST"       value="3"/>
+    <value name="STREAM_LINK"      value="4"/>
+    <value name="STREAM_RETURN"    value="5"/>
+    <value name="STREAM_TERMINATE" value="6"/>
+    <value name="CONTROL"          value="7"/>
+  </enum>
+
+  <enum name="DM_TARGET">
+    <value name="VDM" value="0"/>
+    <value name="DDM" value="1"/>
+  </enum>
+
+  <enum name="FLATSHADE_CONTROL">
+    <value name="VERTEX_0" value="0"/>
+    <value name="VERTEX_1" value="1"/>
+    <value name="VERTEX_2" value="2"/>
+  </enum>
+
+  <enum name="INDEX_SIZE">
+    <value name="B8"  value="0"/>
+    <value name="B16" value="1"/>
+    <value name="B32" value="2"/>
+  </enum>
+
+  <enum name="PRIMITIVE_TOPOLOGY">
+    <value name="POINT_LIST"     value="0"/>
+    <value name="LINE_LIST"      value="1"/>
+    <value name="LINE_LIST_ADJ"  value="2"/>
+    <value name="LINE_STRIP"     value="3"/>
+    <value name="LINE_STRIP_ADJ" value="4"/>
+    <value name="LINE_LOOP"      value="5"/>
+    <value name="TRI_LIST"       value="6"/>
+    <value name="TRI_LIST_ADJ"   value="7"/>
+    <value name="TRI_LIST_EDGE"  value="8"/>
+    <value name="TRI_STRIP"      value="9"/>
+    <value name="TRI_STRIP_ADJ"  value="10"/>
+    <value name="TRI_FAN"        value="11"/>
+    <value name="PATCH_LIST"     value="12"/>
+  </enum>
+
+  <enum name="SD_TYPE">
+    <value name="NONE" value="0"/>
+    <value name="PDS"  value="1"/>
+    <value name="USC"  value="2"/>
+  </enum>
+
+  <enum name="USC_TARGET">
+    <value name="ALL" value="0"/>
+    <value name="ANY" value="1"/>
+  </enum>
+
+  <enum name="UVS_SCRATCH_SIZE_SELECT">
+    <value name="FIVE" value="0"/>
+    <value name="ONE"  value="1"/>
+  </enum>
+
+  <struct name="PPP_STATE0" length="1">
+    <field name="block_type" start="29" end="31" type="BLOCK_TYPE" default="PPP_STATE_UPDATE"/>
+    <field name="word_count" start="8" end="15" type="uint"/>
+    <field name="addrmsb" start="0" end="7" shift="32" type="address"/>
+  </struct>
+
+  <struct name="PPP_STATE1" length="1">
+    <field name="addrlsb" start="2" end="31" shift="2" type="address"/>
+  </struct>
+
+  <struct name="PDS_STATE0" length="1">
+    <field name="block_type" start="29" end="31" type="BLOCK_TYPE" default="PDS_STATE_UPDATE"/>
+    <field name="dm_target" start="28" end="28" type="DM_TARGET"/>
+    <field name="usc_target" start="25" end="25" type="USC_TARGET"/>
+    <field name="usc_common_size" start="16" end="24" type="uint">
+      <define name="UNIT_SIZE" value="64"/>
+    </field>
+    <field name="usc_unified_size" start="10" end="15" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+    <field name="pds_temp_size" start="6" end="9" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+    <field name="pds_data_size" start="0" end="5" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+  </struct>
+
+  <struct name="PDS_STATE1" length="1">
+    <!-- This is an offset actually. Note for when we auto-generate the xmls. -->
+    <field name="pds_data_addr" start="4" end="31" shift="4" type="address"/>
+    <field name="sd_type" start="2" end="3" type="SD_TYPE"/>
+    <field name="sd_next_type" start="0" end="1" type="SD_TYPE"/>
+  </struct>
+
+  <struct name="PDS_STATE2" length="1">
+    <!-- This is an offset actually. Note for when we auto-generate the xmls. -->
+    <field name="pds_code_addr" start="4" end="31" shift="4" type="address"/>
+  </struct>
+
+  <struct name="STREAM_LINK0" length="1">
+    <field name="block_type" start="29" end="31" type="BLOCK_TYPE" default="STREAM_LINK"/>
+    <field name="with_return" start="28" end="28" type="bool"/>
+    <field name="compare_present" start="27" end="27" type="bool"/>
+    <field name="compare_mode" start="24" end="26" type="uint"/>
+    <field name="compare_data" start="8" end="23" type="uint"/>
+    <field name="link_addrmsb" start="0" end="7" shift="32" type="address"/>
+  </struct>
+
+  <struct name="STREAM_LINK1" length="1">
+    <field name="link_addrlsb" start="2" end="31" shift="2" type="address"/>
+  </struct>
+
+  <struct name="STREAM_RETURN" length="1">
+    <field name="block_type" start="29" end="31" type="BLOCK_TYPE" default="STREAM_RETURN"/>
+  </struct>
+
+  <struct name="STREAM_TERMINATE" length="1">
+    <field name="block_type" start="29" end="31" type="BLOCK_TYPE" default="STREAM_TERMINATE"/>
+    <field name="context" start="0" end="0" type="bool"/>
+  </struct>
+
+  <struct name="VDM_STATE0" length="1">
+    <field name="block_type" start="29" end="31" type="BLOCK_TYPE" default="VDM_STATE_UPDATE"/>
+    <field name="cut_index_present" start="28" end="28" type="bool"/>
+    <field name="vs_data_addr_present" start="27" end="27" type="bool"/>
+    <field name="vs_other_present" start="26" end="26" type="bool"/>
+    <field name="ds_present" start="24" end="24" type="bool"/>
+    <field name="gs_present" start="23" end="23" type="bool"/>
+    <field name="hs_present" start="22" end="22" type="bool"/>
+    <field name="cam_size" start="7" end="14" type="uint"/>
+    <field name="uvs_scratch_size_select" start="6" end="6" type="UVS_SCRATCH_SIZE_SELECT"/>
+    <field name="cut_index_enable" start="5" end="5" type="bool"/>
+    <field name="tess_enable" start="4" end="4" type="bool"/>
+    <field name="gs_enable" start="3" end="3" type="bool"/>
+    <field name="flatshade_control" start="1" end="2" type="FLATSHADE_CONTROL"/>
+    <field name="generate_primitive_id" start="0" end="0" type="bool"/>
+  </struct>
+
+  <struct name="VDM_STATE1" length="1">
+    <field name="cut_index" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="VDM_STATE2" length="1">
+    <field name="vs_pds_data_base_addr" start="4" end="31" shift="4" type="address"/>
+  </struct>
+
+  <struct name="VDM_STATE3" length="1">
+    <field name="vs_pds_code_base_addr" start="4" end="31" shift="4" type="address"/>
+  </struct>
+
+  <struct name="VDM_STATE4" length="1">
+    <field name="vs_output_size" start="0" end="7" type="uint">
+      <define name="UNIT_SIZE" value="4"/>
+    </field>
+  </struct>
+
+  <struct name="VDM_STATE5" length="1">
+    <field name="vs_max_instances_ext" start="31" end="31" type="bool"/>
+    <field name="vs_max_instances" start="25" end="29" type="uint"/>
+    <field name="vs_usc_common_size" start="16" end="24" type="uint">
+      <define name="UNIT_SIZE" value="64"/>
+    </field>
+    <field name="vs_usc_unified_size" start="10" end="15" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+    <field name="vs_pds_temp_size" start="6" end="9" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+    <field name="vs_pds_data_size" start="0" end="5" type="uint">
+      <define name="UNIT_SIZE" value="16"/>
+    </field>
+  </struct>
+
+  <struct name="INDEX_LIST0" length="1">
+    <field name="block_type" start="29" end="31" type="BLOCK_TYPE" default="INDEX_LIST"/>
+    <field name="index_addr_present" start="28" end="28" type="bool"/>
+    <field name="index_count_present" start="27" end="27" type="bool"/>
+    <field name="index_instance_count_present" start="26" end="26" type="bool"/>
+    <field name="index_offset_present" start="25" end="25" type="bool"/>
+    <field name="start_present" start="24" end="24" type="bool"/>
+    <field name="indirect_addr_present" start="23" end="23" type="bool"/>
+    <field name="split_count_present" start="22" end="22" type="bool"/>
+    <condition type="if" check="VDM_DEGENERATE_CULLING"/>
+      <field name="degen_cull_enable" start="19" end="19" type="bool"/>
+    <condition type="endif" check="VDM_DEGENERATE_CULLING"/>
+    <field name="index_size" start="17" end="18" type="INDEX_SIZE"/>
+    <field name="patch_count" start="12" end="16" type="uint"/>
+    <field name="primitive_topology" start="8" end="11" type="PRIMITIVE_TOPOLOGY"/>
+    <field name="index_base_addrmsb" start="0" end="7" shift="32" type="address"/>
+  </struct>
+
+  <struct name="INDEX_LIST1" length="1">
+    <field name="index_base_addrlsb" start="0" end="31" shift="0" type="address"/>
+  </struct>
+
+  <struct name="INDEX_LIST2" length="1">
+    <field name="index_count" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="INDEX_LIST3" length="1">
+    <field name="instance_count" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="INDEX_LIST4" length="1">
+    <field name="index_offset" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="INDEX_LIST5" length="1">
+    <field name="start_index" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="INDEX_LIST6" length="1">
+    <field name="start_instance" start="0" end="31" type="uint"/>
+  </struct>
+
+  <struct name="INDEX_LIST7" length="1">
+    <field name="indirect_base_addrmsb" start="0" end="7" shift="32" type="address"/>
+  </struct>
+
+  <struct name="INDEX_LIST8" length="1">
+    <field name="indirect_base_addrlsb" start="2" end="31" shift="2" type="address"/>
+  </struct>
+
+  <struct name="INDEX_LIST9" length="1">
+    <field name="split_count" start="0" end="15" type="uint"/>
+  </struct>
+
+</csbgen>

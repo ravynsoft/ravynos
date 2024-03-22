@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_vertex_attrib_64bit" number="99">
+
+    <function name="VertexAttribL1d" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL2d" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+        <param name="y" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL3d" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+        <param name="y" type="GLdouble"/>
+        <param name="z" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL4d" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="x" type="GLdouble"/>
+        <param name="y" type="GLdouble"/>
+        <param name="z" type="GLdouble"/>
+        <param name="w" type="GLdouble"/>
+    </function>
+
+    <function name="VertexAttribL1dv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *" count="1"/>
+    </function>
+
+    <function name="VertexAttribL2dv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *" count="2"/>
+    </function>
+
+    <function name="VertexAttribL3dv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *" count="3"/>
+    </function>
+
+    <function name="VertexAttribL4dv" exec="beginend">
+        <param name="index" type="GLuint"/>
+        <param name="v" type="const GLdouble *" count="4"/>
+    </function>
+
+    <function name="VertexAttribLPointer" no_error="true" marshal="async"
+              marshal_call_after="if (COMPAT) _mesa_glthread_AttribPointer(ctx, VERT_ATTRIB_GENERIC(index), MESA_PACK_VFORMAT(type, size, 0, 0, 1), stride, pointer);">
+        <param name="index" type="GLuint"/>
+        <param name="size" type="GLint"/>
+        <param name="type" type="GLenum"/>
+        <param name="stride" type="GLsizei"/>
+        <param name="pointer" type="const GLvoid *"/>
+    </function>
+
+    <function name="GetVertexAttribLdv">
+        <param name="index" type="GLuint"/>
+        <param name="pname" type="GLenum"/>
+        <param name="params" type="GLdouble *"/>
+    </function>
+
+    <function name="VertexArrayVertexAttribLOffsetEXT" deprecated="3.1"
+              marshal_call_after="_mesa_glthread_DSAAttribPointer(ctx, vaobj, buffer, VERT_ATTRIB_GENERIC(index), MESA_PACK_VFORMAT(type, size, 0, 0, 1), stride, offset);">
+        <param name="vaobj" type="GLuint" />
+        <param name="buffer" type="GLuint" />
+        <param name="index" type="GLuint" />
+        <param name="size" type="GLint" />
+        <param name="type" type="GLenum" />
+        <param name="stride" type="GLsizei" />
+        <param name="offset" type="GLintptr" />
+    </function>
+</category>
+
+</OpenGLAPI>
+

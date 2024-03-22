@@ -1,0 +1,333 @@
+Mesa 13.0.0 Release Notes / November 1, 2016
+============================================
+
+Mesa 13.0.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 13.0.1.
+
+Mesa 13.0.0 implements the OpenGL 4.4 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.4. OpenGL 4.4 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   4a54d7cdc1a94a8dae05a75ccff48356406d51b0d6a64cbdc641c266e3e008eb  mesa-13.0.0.tar.gz
+   94edb4ebff82066a68be79d9c2627f15995e1fe10f67ab3fc63deb842027d727  mesa-13.0.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  OpenGL ES 3.1 on i965/hsw
+-  OpenGL ES 3.2 on i965/gen9+ (Skylake and later)
+-  GL_ARB_ES3_1_compatibility on i965
+-  GL_ARB_ES3_2_compatibility on i965/gen8+
+-  GL_ARB_clear_texture on r600, radeonsi
+-  GL_ARB_compute_variable_group_size on nvc0, radeonsi
+-  GL_ARB_cull_distance on radeonsi
+-  GL_ARB_enhanced_layouts on i965, nv50, nvc0, radeonsi, llvmpipe,
+   softpipe
+-  GL_ARB_indirect_parameters on radeonsi
+-  GL_ARB_query_buffer_object on radeonsi
+-  GL_ARB_shader_draw_parameters on radeonsi
+-  GL_ARB_shader_group_vote on nvc0
+-  GL_ARB_shader_viewport_layer_array on i965/gen6+
+-  GL_ARB_stencil_texturing on i965/hsw
+-  GL_ARB_texture_stencil8 on i965/hsw
+-  GL_EXT_window_rectangles on nv50, nvc0
+-  GL_KHR_blend_equation_advanced on i965
+-  GL_KHR_robustness on nvc0, radeonsi
+-  GL_KHR_texture_compression_astc_sliced_3d on i965
+-  GL_OES_copy_image on nv50, nvc0, r600, radeonsi, softpipe, llvmpipe
+-  GL_OES_geometry_shader on i965/gen8+, nvc0, radeonsi
+-  GL_OES_primitive_bounding_box on i965/gen7+, nvc0, radeonsi
+-  GL_OES_texture_cube_map_array on i965/gen8+, nvc0, radeonsi
+-  GL_OES_tessellation_shader on i965/gen7+, nvc0, radeonsi
+-  GL_OES_viewport_array on nvc0, radeonsi
+-  GL_ANDROID_extension_pack_es31a on i965/gen9+
+
+Bug fixes
+---------
+
+-  `Bug 61907 <https://bugs.freedesktop.org/show_bug.cgi?id=61907>`__ -
+   Indirect rendering of multi-texture vertex arrays broken
+-  `Bug 69622 <https://bugs.freedesktop.org/show_bug.cgi?id=69622>`__ -
+   eglTerminate then eglMakeCurrent crahes
+-  `Bug 71759 <https://bugs.freedesktop.org/show_bug.cgi?id=71759>`__ -
+   Intel driver fails with "intel_do_flush_locked failed: No such file
+   or directory" if buffer imported with EGL_NATIVE_PIXMAP_KHR
+-  `Bug 83036 <https://bugs.freedesktop.org/show_bug.cgi?id=83036>`__ -
+   [ILK]Piglit spec_ARB_copy_image_arb_copy_image-formats fails
+-  `Bug 89599 <https://bugs.freedesktop.org/show_bug.cgi?id=89599>`__ -
+   symbol 'x86_64_entry_start' is already defined when building with
+   LLVM/clang
+-  `Bug 90513 <https://bugs.freedesktop.org/show_bug.cgi?id=90513>`__ -
+   Odd gray and red flicker in The Talos Principle on GK104
+-  `Bug 91342 <https://bugs.freedesktop.org/show_bug.cgi?id=91342>`__ -
+   Very dark textures on some objects in indoors environments in Postal
+   2
+-  `Bug 92306 <https://bugs.freedesktop.org/show_bug.cgi?id=92306>`__ -
+   GL Excess demo renders incorrectly on nv43
+-  `Bug 94148 <https://bugs.freedesktop.org/show_bug.cgi?id=94148>`__ -
+   Framebuffer considered invalid when a draw call is done before
+   glCheckFramebufferStatus
+-  `Bug 94354 <https://bugs.freedesktop.org/show_bug.cgi?id=94354>`__ -
+   R9285 Unigine Valley perf regression since radeonsi: use re-Z
+-  `Bug 94561 <https://bugs.freedesktop.org/show_bug.cgi?id=94561>`__ -
+   [llvmpipe] PIPE_CAP_VIDEO_MEMORY reports negative value on 32 bits
+   (with 16GB ram)
+-  `Bug 94627 <https://bugs.freedesktop.org/show_bug.cgi?id=94627>`__ -
+   Game Risen on wine black grass
+-  `Bug 94681 <https://bugs.freedesktop.org/show_bug.cgi?id=94681>`__ -
+   dEQP-GLES31.functional.ssbo.layout.random.all_shared_buffer.23 takes
+   25 minutes to compile
+-  `Bug 95000 <https://bugs.freedesktop.org/show_bug.cgi?id=95000>`__ -
+   deqp: assert in
+   dEQP-GLES3.functional.vertex_arrays.single_attribute.strides.fixed.user_ptr_stride17_components2_quads1
+-  `Bug 95130 <https://bugs.freedesktop.org/show_bug.cgi?id=95130>`__ -
+   Derivatives of gl_Color wrong when helper pixels used
+-  `Bug 95246 <https://bugs.freedesktop.org/show_bug.cgi?id=95246>`__ -
+   Segfault in glBindFramebuffer()
+-  `Bug 95419 <https://bugs.freedesktop.org/show_bug.cgi?id=95419>`__ -
+   [HSW][regression][bisect] RPG Maker game gives "invalid floating
+   point operation" at startup
+-  `Bug 95462 <https://bugs.freedesktop.org/show_bug.cgi?id=95462>`__ -
+   [BXT,BSW] arb_gpu_shader_fp64 causes gpu hang
+-  `Bug 95529 <https://bugs.freedesktop.org/show_bug.cgi?id=95529>`__ -
+   [regression, bisected] Image corruption in Chrome
+-  `Bug 96235 <https://bugs.freedesktop.org/show_bug.cgi?id=96235>`__ -
+   st_nir.h:34: error: redefinition of typedef ‘nir_shader’
+-  `Bug 96274 <https://bugs.freedesktop.org/show_bug.cgi?id=96274>`__ -
+   [NVC0] Failure when compiling compute shader: Assertion
+   \`bb->getFirst()->serial <= bb->getExit()->serial' failed
+-  `Bug 96285 <https://bugs.freedesktop.org/show_bug.cgi?id=96285>`__ -
+   Mesa build broken
+-  `Bug 96299 <https://bugs.freedesktop.org/show_bug.cgi?id=96299>`__ -
+   [vulkan] 64 regressions due to mesa d5f2f32
+-  `Bug 96343 <https://bugs.freedesktop.org/show_bug.cgi?id=96343>`__ -
+   oom since st/mesa: implement PBO downloads for ReadPixels
+-  `Bug 96346 <https://bugs.freedesktop.org/show_bug.cgi?id=96346>`__ -
+   [SNB,CTS] es2-cts.gtf.gl.atan regression
+-  `Bug 96349 <https://bugs.freedesktop.org/show_bug.cgi?id=96349>`__ -
+   [CTS,SKL,BSW,BDW,KBL,BXT]
+   es31-cts.arrays_of_arrays.interactionuniformbuffers3
+-  `Bug 96351 <https://bugs.freedesktop.org/show_bug.cgi?id=96351>`__ -
+   [CTS,SKL,KBL,BXT] es2-cts.gtf.gl2extensiontests.egl_image.egl_image
+-  `Bug 96358 <https://bugs.freedesktop.org/show_bug.cgi?id=96358>`__ -
+   SSO: wrong interface validation between GS and VS (regresion due to
+   latest gles 3.1)
+-  `Bug 96425 <https://bugs.freedesktop.org/show_bug.cgi?id=96425>`__ -
+   [bisected] occasional dark render in The Talos Principle
+-  `Bug 96484 <https://bugs.freedesktop.org/show_bug.cgi?id=96484>`__ -
+   [vulkan] deqp-vk.glsl.builtin.precision.sin / cos regression
+-  `Bug 96504 <https://bugs.freedesktop.org/show_bug.cgi?id=96504>`__ -
+   [vulkancts] compute tests crash
+-  `Bug 96516 <https://bugs.freedesktop.org/show_bug.cgi?id=96516>`__ -
+   [bisected: 482526] "clover: Update OpenCL version string to match
+   OpenGL": clover's build fails because of missing git_sha1.h
+-  `Bug 96528 <https://bugs.freedesktop.org/show_bug.cgi?id=96528>`__ -
+   Location qualifier segfaults during shader compilation
+-  `Bug 96541 <https://bugs.freedesktop.org/show_bug.cgi?id=96541>`__ -
+   Tonga Unreal elemental bad rendering since radeonsi: Decompress DCC
+   textures in a render feedback loop
+-  `Bug 96565 <https://bugs.freedesktop.org/show_bug.cgi?id=96565>`__ -
+   Clive Barker's Jericho displays strange,vivid colors when motion blur
+   enabled
+-  `Bug 96607 <https://bugs.freedesktop.org/show_bug.cgi?id=96607>`__ -
+   [bisected] texture misrender / flicker in The Talos Principle on SKL
+-  `Bug 96617 <https://bugs.freedesktop.org/show_bug.cgi?id=96617>`__ -
+   gl_SecondaryFragDataEXT doesn't work for extended blend func
+-  `Bug 96629 <https://bugs.freedesktop.org/show_bug.cgi?id=96629>`__ -
+   dEQP-GLES2.functional.texture.completeness.cube.not_positive_level_0:
+   Assertion \`width >= 1' failed.
+-  `Bug 96639 <https://bugs.freedesktop.org/show_bug.cgi?id=96639>`__ -
+   st/mesa: transfer_map with too-high level with
+   dEQP-GLES2.functional.texture.completeness.cube.extra_level
+-  `Bug 96674 <https://bugs.freedesktop.org/show_bug.cgi?id=96674>`__ -
+   [SNB, ILK]
+   spec.ext_image_dma_buf_import.ext_image_dma_buf_import-sample_nv1
+-  `Bug 96729 <https://bugs.freedesktop.org/show_bug.cgi?id=96729>`__ -
+   Wrong shader compilation error message
+-  `Bug 96762 <https://bugs.freedesktop.org/show_bug.cgi?id=96762>`__ -
+   [radeonsi,apitrace] Firewatch: nothing rendered in scrollable (text)
+   areas
+-  `Bug 96765 <https://bugs.freedesktop.org/show_bug.cgi?id=96765>`__ -
+   BindFragDataLocationIndexed on array fragment shader output.
+-  `Bug 96770 <https://bugs.freedesktop.org/show_bug.cgi?id=96770>`__ -
+   include/GL/mesa_glinterop.h:62: error: redefinition of typedef
+   ‘GLXContext’
+-  `Bug 96782 <https://bugs.freedesktop.org/show_bug.cgi?id=96782>`__ -
+   [regression bisected] R600 fp64 and glsl-4.00 piglit failures
+-  `Bug 96791 <https://bugs.freedesktop.org/show_bug.cgi?id=96791>`__ -
+   Cannot use image from swapchains for sampling
+-  `Bug 96825 <https://bugs.freedesktop.org/show_bug.cgi?id=96825>`__ -
+   anv_device.c:31:27: fatal error: anv_timestamp.h: No such file or
+   directory
+-  `Bug 96835 <https://bugs.freedesktop.org/show_bug.cgi?id=96835>`__ -
+   "gallium: Force blend color to 16-byte alignment" crash with
+   "-march=native -O3" causes some 32bit games to crash
+-  `Bug 96850 <https://bugs.freedesktop.org/show_bug.cgi?id=96850>`__ -
+   Crucible tests fail for 32bit mesa
+-  `Bug 96878 <https://bugs.freedesktop.org/show_bug.cgi?id=96878>`__ -
+   [Bisected: cc2d0e6][HSW] "GPU HANG" msg after autologin to
+   gnome-session
+-  `Bug 96908 <https://bugs.freedesktop.org/show_bug.cgi?id=96908>`__ -
+   [radeonsi] MSAA causes graphical artifacts
+-  `Bug 96911 <https://bugs.freedesktop.org/show_bug.cgi?id=96911>`__ -
+   webgl2 conformance2/textures/misc/tex-mipmap-levels.html crashes 12.1
+   Intel driver
+-  `Bug 96949 <https://bugs.freedesktop.org/show_bug.cgi?id=96949>`__ -
+   [regression] Piglit numSamples assertion failures with 9a23a177b90
+-  `Bug 96950 <https://bugs.freedesktop.org/show_bug.cgi?id=96950>`__ -
+   Another regression from bc4e0c486: vbo: Use a bitmask to track the
+   active arrays in vbo_exec*.
+-  `Bug 96971 <https://bugs.freedesktop.org/show_bug.cgi?id=96971>`__ -
+   invariant qualifier is not valid for shader inputs
+-  `Bug 97019 <https://bugs.freedesktop.org/show_bug.cgi?id=97019>`__ -
+   [clover] build failure in llvm/codegen/native.cpp:129:52
+-  `Bug 97032 <https://bugs.freedesktop.org/show_bug.cgi?id=97032>`__ -
+   [BDW,SKL]
+   piglit.spec.arb_gpu_shader5.arb_gpu_shader5-interpolateatcentroid-flat
+-  `Bug 97033 <https://bugs.freedesktop.org/show_bug.cgi?id=97033>`__ -
+   [BDW,SKL] piglit.spec.arb_gpu_shader_fp64.varying-packing.simple
+   regressions
+-  `Bug 97039 <https://bugs.freedesktop.org/show_bug.cgi?id=97039>`__ -
+   The Talos Principle and Serious Sam 3 GPU faults
+-  `Bug 97083 <https://bugs.freedesktop.org/show_bug.cgi?id=97083>`__ -
+   [IVB,BYT] GPU hang on deqp-gles31.functional.separate.shader.random
+-  `Bug 97140 <https://bugs.freedesktop.org/show_bug.cgi?id=97140>`__ -
+   dd_draw.c:949:11: error: implicit declaration of function 'fmemopen'
+   is invalid in C99 [-Werror,-Wimplicit-function-declaration]
+-  `Bug 97207 <https://bugs.freedesktop.org/show_bug.cgi?id=97207>`__ -
+   [IVY BRIDGE] Fragment shader discard writing to depth
+-  `Bug 97214 <https://bugs.freedesktop.org/show_bug.cgi?id=97214>`__ -
+   X not running with error "Failed to make EGL context current"
+-  `Bug 97225 <https://bugs.freedesktop.org/show_bug.cgi?id=97225>`__ -
+   [i965 on HD4600 Haswell] xcom switch to ingame cinematics cause
+   segmentation fault
+-  `Bug 97231 <https://bugs.freedesktop.org/show_bug.cgi?id=97231>`__ -
+   GL_DEPTH_CLAMP doesn't clamp to the far plane
+-  `Bug 97233 <https://bugs.freedesktop.org/show_bug.cgi?id=97233>`__ -
+   vkQuake VkSpecializationMapEntry related bug
+-  `Bug 97260 <https://bugs.freedesktop.org/show_bug.cgi?id=97260>`__ -
+   R9 290 low performance in Linux 4.7
+-  `Bug 97267 <https://bugs.freedesktop.org/show_bug.cgi?id=97267>`__ -
+   [BDW] GL45-CTS.texture_cube_map_array.sampling asserts inside
+   brw_fs.cpp
+-  `Bug 97278 <https://bugs.freedesktop.org/show_bug.cgi?id=97278>`__ -
+   [vulkancts,HSW] all vulkancts tests assert on HSW
+-  `Bug 97285 <https://bugs.freedesktop.org/show_bug.cgi?id=97285>`__ -
+   Darkness in Dota 2 after Patch "Make Gallium's BlitFramebuffer follow
+   the GL 4.4 sRGB rules"
+-  `Bug 97286 <https://bugs.freedesktop.org/show_bug.cgi?id=97286>`__ -
+   \`make check\` fails uniform-initializer-test
+-  `Bug 97305 <https://bugs.freedesktop.org/show_bug.cgi?id=97305>`__ -
+   Gallium: TBOs and images set the offset in elements, not bytes
+-  `Bug 97307 <https://bugs.freedesktop.org/show_bug.cgi?id=97307>`__ -
+   glsl/glcpp/tests/glcpp-test regression
+-  `Bug 97309 <https://bugs.freedesktop.org/show_bug.cgi?id=97309>`__ -
+   piglit.spec.glsl-1_30.compiler.switch-statement.switch-case-duplicated.vert
+   regression
+-  `Bug 97322 <https://bugs.freedesktop.org/show_bug.cgi?id=97322>`__ -
+   GenerateMipmap creates wrong mipmap for sRGB texture
+-  `Bug 97331 <https://bugs.freedesktop.org/show_bug.cgi?id=97331>`__ -
+   glDrawElementsBaseVertex doesn't work in display list on i915
+-  `Bug 97351 <https://bugs.freedesktop.org/show_bug.cgi?id=97351>`__ -
+   DrawElementsBaseVertex with VBO ignores base vertex on Intel GMA 9xx
+   in some cases
+-  `Bug 97413 <https://bugs.freedesktop.org/show_bug.cgi?id=97413>`__ -
+   BioShock Infinite crashes on startup with Mesa Git version, R7 370
+-  `Bug 97426 <https://bugs.freedesktop.org/show_bug.cgi?id=97426>`__ -
+   glScissor gives vertically inverted result
+-  `Bug 97448 <https://bugs.freedesktop.org/show_bug.cgi?id=97448>`__ -
+   [HSW] deqp-vk.api\_.copy_and_blit.image_to_image_stencil regression
+-  `Bug 97476 <https://bugs.freedesktop.org/show_bug.cgi?id=97476>`__ -
+   Shader binaries should not be stored in the PipelineCache
+-  `Bug 97477 <https://bugs.freedesktop.org/show_bug.cgi?id=97477>`__ -
+   i915g: gl_FragCoord is always (0.0, max_y)
+-  `Bug 97513 <https://bugs.freedesktop.org/show_bug.cgi?id=97513>`__ -
+   clover reports wrong device pointer size
+-  `Bug 97549 <https://bugs.freedesktop.org/show_bug.cgi?id=97549>`__ -
+   [SNB, BXT] up to 40% perf drop from "loader/dri3: Overhaul
+   dri3_update_num_back" commit
+-  `Bug 97587 <https://bugs.freedesktop.org/show_bug.cgi?id=97587>`__ -
+   make check nir/tests/control_flow_tests regression
+-  `Bug 97761 <https://bugs.freedesktop.org/show_bug.cgi?id=97761>`__ -
+   es2-cts.gtf.gl2extensiontests.egl_image_external.testsimpleunassociated
+   crashes
+-  `Bug 97773 <https://bugs.freedesktop.org/show_bug.cgi?id=97773>`__ -
+   New Mesa master now results in warnings in glrender (and subsurfaces
+   and simple-egl), black screen
+-  `Bug 97779 <https://bugs.freedesktop.org/show_bug.cgi?id=97779>`__ -
+   [regression, bisected][BDW, GPU hang] stuck on render ring, always
+   reproducible
+-  `Bug 97790 <https://bugs.freedesktop.org/show_bug.cgi?id=97790>`__ -
+   Vulkan cts regressions due to 24be63066
+-  `Bug 97804 <https://bugs.freedesktop.org/show_bug.cgi?id=97804>`__ -
+   Later precision statement isn't overriding earlier one
+-  `Bug 97808 <https://bugs.freedesktop.org/show_bug.cgi?id=97808>`__ -
+   "tgsi/scan: don't set interp flags for inputs only used by INTERP
+   instructions" causes glitches in wine with gallium nine
+-  `Bug 97887 <https://bugs.freedesktop.org/show_bug.cgi?id=97887>`__ -
+   llvm segfault in janusvr -render vive
+-  `Bug 97894 <https://bugs.freedesktop.org/show_bug.cgi?id=97894>`__ -
+   Crash in u_transfer_unmap_vtbl when unmapping a buffer mapped in
+   different context
+-  `Bug 97952 <https://bugs.freedesktop.org/show_bug.cgi?id=97952>`__ -
+   /usr/include/string.h:518:12: error: exception specification in
+   declaration does not match previous declaration
+-  `Bug 97969 <https://bugs.freedesktop.org/show_bug.cgi?id=97969>`__ -
+   [radeonsi, bisected: fb827c0] Video decoding shows green artifacts
+-  `Bug 97976 <https://bugs.freedesktop.org/show_bug.cgi?id=97976>`__ -
+   VCE regression BO to small for addr since winsys/amdgpu: enable
+   buffer allocation from slabs
+-  `Bug 98005 <https://bugs.freedesktop.org/show_bug.cgi?id=98005>`__ -
+   VCE dual instance encoding inconsistent since st/va: enable dual
+   instances encode by sync surface
+-  `Bug 98025 <https://bugs.freedesktop.org/show_bug.cgi?id=98025>`__ -
+   [radeonsi] incorrect primitive restart index used
+-  `Bug 98128 <https://bugs.freedesktop.org/show_bug.cgi?id=98128>`__ -
+   nir/tests/control_flow_tests.cpp:79:73: error:
+   ‘nir_loop_first_cf_node’ was not declared in this scope
+-  `Bug 98131 <https://bugs.freedesktop.org/show_bug.cgi?id=98131>`__ -
+   Compiler should reject lowp/mediump qualifiers on atomic_uints
+-  `Bug 98133 <https://bugs.freedesktop.org/show_bug.cgi?id=98133>`__ -
+   GetSynciv should raise an error if bufSize < 0
+-  `Bug 98134 <https://bugs.freedesktop.org/show_bug.cgi?id=98134>`__ -
+   dEQP-GLES31.functional.debug.negative_coverage.get_error.buffer.draw_buffers
+   wants a different GL error code
+-  `Bug 98135 <https://bugs.freedesktop.org/show_bug.cgi?id=98135>`__ -
+   dEQP-GLES31.functional.debug.negative_coverage.get_error.shader.transform_feedback_varyings
+   wants a different GL error code
+-  `Bug 98167 <https://bugs.freedesktop.org/show_bug.cgi?id=98167>`__ -
+   [vulkan, radv] missing libgcrypt and openssl devel results in linker
+   error in libvulkan_common
+-  `Bug 98172 <https://bugs.freedesktop.org/show_bug.cgi?id=98172>`__ -
+   Concurrent call to glClientWaitSync results in segfault in one of the
+   waiters.
+-  `Bug 98244 <https://bugs.freedesktop.org/show_bug.cgi?id=98244>`__ -
+   dEQP: textureOffset(sampler2DArrayShadow, ...) should not exist.
+-  `Bug 98264 <https://bugs.freedesktop.org/show_bug.cgi?id=98264>`__ -
+   Build broken for i965 due to multiple deifnitions of
+   intelFenceExtension
+-  `Bug 98307 <https://bugs.freedesktop.org/show_bug.cgi?id=98307>`__ -
+   "st/glsl_to_tgsi: explicitly track all input and output declaration"
+   broke flightgear colors on rs780
+-  `Bug 98326 <https://bugs.freedesktop.org/show_bug.cgi?id=98326>`__ -
+   [dEQP, EGL] pbuffer depth/stencil tests fail
+-  `Bug 98415 <https://bugs.freedesktop.org/show_bug.cgi?id=98415>`__ -
+   Vulkan Driver JSON file contains incorrect field
+-  `Bug 98431 <https://bugs.freedesktop.org/show_bug.cgi?id=98431>`__ -
+   UnrealEngine v4 demos startup fails to blorp blit assert
+
+Changes
+-------
+
+Mesa no longer depends on libudev.

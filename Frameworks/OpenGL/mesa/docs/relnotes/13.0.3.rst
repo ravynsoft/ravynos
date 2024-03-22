@@ -1,0 +1,147 @@
+Mesa 13.0.3 Release Notes / January 5, 2017
+===========================================
+
+Mesa 13.0.3 is a bug fix release which fixes bugs found since the 13.0.2
+release.
+
+Mesa 13.0.3 implements the OpenGL 4.4 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.4. OpenGL 4.4 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   55b07d056f9b855ba9d7c8b2ddc7d3b220a61c6ab1bdc73cbfc2f607721094c2  mesa-13.0.3.tar.gz
+   d9aa8be5c176d00d0cd503cb2f64a5a403ea471ec819c022581414860d7ba40e  mesa-13.0.3.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 77662 <https://bugs.freedesktop.org/show_bug.cgi?id=77662>`__ -
+   Fail to render to different faces of depth-stencil cube map
+-  `Bug 92234 <https://bugs.freedesktop.org/show_bug.cgi?id=92234>`__ -
+   [BDW] GPU hang in Shogun2
+-  `Bug 98329 <https://bugs.freedesktop.org/show_bug.cgi?id=98329>`__ -
+   [dEQP, EGL, SKL, BDW, BSW]
+   dEQP-EGL.functional.image.render_multiple_contexts.gles2_renderbuffer_depth16_depth_buffer
+-  `Bug 99038 <https://bugs.freedesktop.org/show_bug.cgi?id=99038>`__ -
+   [dEQP, EGL, SKL, BDW, BSW]
+   dEQP-EGL.functional.negative_api.create_pixmap_surface crashes
+
+Changes
+-------
+
+Chad Versace (2):
+
+-  i965/mt: Disable aux surfaces after making miptree shareable
+-  egl: Fix crashes in eglCreate*Surface()
+
+Dave Airlie (4):
+
+-  anv: set maxFragmentDualSrcAttachments to 1
+-  radv: set maxFragmentDualSrcAttachments to 1
+-  radv: fix another regression since shadow fixes.
+-  radv: add missing license file to radv_meta_bufimage.
+
+Emil Velikov (5):
+
+-  docs: add sha256 checksums for 13.0.2
+-  anv: don't double-close the same fd
+-  anv: don't leak memory if anv_init_wsi() fails
+-  radv: don't leak the fd if radv_physical_device_init() succeeds
+-  Update version to 13.0.3
+
+Eric Anholt (1):
+
+-  vc4: In a loop break/continue, jump if everyone has taken the path.
+
+Gwan-gyeong Mun (3):
+
+-  anv: Add missing error-checking to anv_block_pool_init (v2)
+-  anv: Update the teardown in reverse order of the anv_CreateDevice
+-  vulkan/wsi: Fix resource leak in success path of wsi_queue_init()
+
+Haixia Shi (1):
+
+-  compiler/glsl: fix precision problem of tanh
+
+Ilia Mirkin (1):
+
+-  mesa: only verify that enabled arrays have backing buffers
+
+Faith Ekstrand (8):
+
+-  anv/cmd_buffer: Re-emit MEDIA_CURBE_LOAD when CS push constants are
+   dirty
+-  anv/image: Rename hiz_surface to aux_surface
+-  anv/cmd_buffer: Remove the 1-D case from the HiZ QPitch calculation
+-  genxml/gen9: Change the default of
+   MI_SEMAPHORE_WAIT::RegisterPoleMode
+-  anv/device: Return the right error for failed maps
+-  anv/device: Implicitly unmap memory objects in FreeMemory
+-  anv/descriptor_set: Write the state offset in the surface state free
+   list.
+-  spirv: Use a simpler and more correct implementaiton of tanh()
+
+Kenneth Graunke (1):
+
+-  i965: Allocate at least some URB space even when max_vertices = 0.
+
+Marek Olšák (17):
+
+-  radeonsi: always set all blend registers
+-  radeonsi: set CB_BLEND1_CONTROL.ENABLE for dual source blending
+-  radeonsi: disable RB+ blend optimizations for dual source blending
+-  radeonsi: consolidate max-work-group-size computation
+-  radeonsi: apply a multi-wave workgroup SPI bug workaround to affected
+   CIK chips
+-  radeonsi: apply a TC L1 write corruption workaround for SI
+-  radeonsi: apply a tessellation bug workaround for SI
+-  radeonsi: add a tess+GS hang workaround for VI dGPUs
+-  radeonsi: apply the double EVENT_WRITE_EOP workaround to VI as well
+-  cso: don't release sampler states that are bound
+-  radeonsi: always restore sampler states when unbinding sampler views
+-  radeonsi: fix incorrect FMASK checking in bind_sampler_states
+-  radeonsi: allow specifying simm16 of emit_waitcnt at call sites
+-  radeonsi: wait for outstanding memory instructions in TCS barriers
+-  tgsi: fix the src type of TGSI_OPCODE_MEMBAR
+-  radeonsi: wait for outstanding LDS instructions in memory barriers if
+   needed
+-  radeonsi: disable the constant engine (CE) on Carrizo and Stoney
+
+Matt Turner (3):
+
+-  i965/fs: Rename opt_copy_propagate -> opt_copy_propagation.
+-  i965/fs: Add unit tests for copy propagation pass.
+-  i965/fs: Reject copy propagation into SEL if not min/max.
+
+Nanley Chery (1):
+
+-  mesa/fbobject: Update CubeMapFace when reusing textures
+
+Nicolai Hähnle (4):
+
+-  radeonsi: fix isolines tess factor writes to control ring
+-  radeonsi: update all GSVS ring descriptors for new buffer allocations
+-  radeonsi: do not kill GS with memory writes
+-  radeonsi: fix an off-by-one error in the bounds check for
+   max_vertices
+
+Rhys Kidd (1):
+
+-  glsl: Add pthread libs to cache_test
+
+Timothy Arceri (2):
+
+-  mesa: fix active subroutine uniforms properly
+-  Revert "nir: Turn imov/fmov of undef into undef."

@@ -1,0 +1,189 @@
+Mesa 22.2.4 Release Notes / 2022-11-16
+======================================
+
+Mesa 22.2.4 is a bug fix release which fixes bugs found since the 22.2.3 release.
+
+Mesa 22.2.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.2.4 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    65d76b53ca5c7b46019e0e8e5b414de45d2fecd3fcd71707f6c3bc7691c9f7ab  mesa-22.2.4.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- clover: windows:  library filename has \`-1` suffix and a \`lib` prefix when built with mingw
+- radv, dxvk: Rendering errors in World of Tanks after "Switch to dynamic rendering only"
+- gen9 gt3e/gt4e skus fail dEQP-VK.pipeline.multisample.sample_locations_ext.*
+- v3d: Wrong colors (pink) in videos in Firefox (likely YUV->RGB shader issue)
+- panfrost t860 glmark-es2 regression
+- radv: Flickering in Spider-Man Remastered (Regression) (Bisected)
+- radv: Hitman 2 using Direct3D 12 has discolored squares on RDNA2 with DCC enabled
+- panfrost/midgard -  on Duckstation PSX emulator: segfault on GLES 3.0 and bad shader compilations on 3.3
+
+
+Changes
+-------
+
+Alex Brachet (1):
+
+- nir: Fix qsort comparator function
+
+Alyssa Rosenzweig (4):
+
+- panfrost: Don't copy resources if replaced
+- panfrost: Replace resource shadowing flush
+- panfrost: Copy resources when necessary
+- panfrost: Require 64-byte alignment on imports
+
+Bas Nieuwenhuizen (3):
+
+- radv: Fix compute scratch buffer emission.
+- radv: Make the compute scratch waves per SE as well.
+- radv: Do not try to run on GFX11 with mesa 22.2.
+
+Benjamin Tissoires (1):
+
+- CI: convert to use the new S3 server instead of the legacy minio
+
+Caio Oliveira (3):
+
+- nir: Don't reorder volatile intrinsics
+- intel/compiler: Fix dynarray usage in intel_clc
+- intel/compiler: Fix missing tie-breaker in brw_nir_analyze_ubo_ranges() ordering code
+
+Dave Airlie (1):
+
+- gallivm: add coro malloc hooks earlier and always.
+
+Dylan Baker (8):
+
+- docs: Add sha256 sum for 22.2.3
+- .pick_status.json: Update to fd8ec189e575d5220d8b4c30647fa6de57928e07
+- .pick_status.json: Update to def56b531c86f529bc32d1834ccb479457717db7
+- .pick_status.json: Update to 4ca61b5420ed26683891664aa35dc5f1a3bad063
+- .pick_status.json: Update to ecc2dfc503dcf62573fa539b49caa874f908c1cf
+- .pick_status.json: Update to 9fd1d47aa0f19fac30d29e6ae40ed0383c1930ee
+- .pick_status.json: Mark 25c180b50974b55e007dbbff18be1d831cd06551 as backported
+- .pick_status.json: Update to 51457b19cea9608f6bb2be81430d37da5333d2fe
+
+Emma Anholt (1):
+
+- ir3/ra: Make sure we don't pick a preferred reg overflowing the file.
+
+Eric Engestrom (1):
+
+- vk/runtime: drop incorrect UNUSED annotation
+
+Erik Faye-Lund (2):
+
+- docs: do not mention EGL_MESA_drm_display
+- docs: remove stale envvar-reference
+
+Francisco Jerez (1):
+
+- nir/lower_int64: Fix float16 to int64 conversions.
+
+Guilherme Gallo (5):
+
+- ci: Fix kernel+rootfs.* jobs
+- ci: Update piglit with s3 support
+- ci: Update piglit-traces tests expectations
+- ci: Update ci-fairy in CI, rootfs and containers
+- docs: Update link releases notes for 22.2.x
+
+Iago Toral Quiroga (5):
+
+- v3dv: do a better job at cleaning up the device on init failure
+- v3dv: handle allocation failure during pipeline initialization
+- v3dv: do better cleanup on failure during pipeline cache operation
+- broadcom/compiler: avoid using ldvary sequence to hide latency of branching
+- v3dv: fix debug dump on BO free
+
+Ian Romanick (1):
+
+- intel/fs: Fix constant propagation into 32x16 integer multiplication
+
+Faith Ekstrand (2):
+
+- vulkan: Handle VK_SUBPASS_EXTERNAL at the end of a subpass
+- vulkan: Unconditionally add barriers for missing external subpass deps
+
+Karol Herbst (2):
+
+- iris: invalidate sysvals if grid dimension changes
+- glsl: fix buffer texture type
+
+Lionel Landwerlin (2):
+
+- anv: Reduce RHWO optimization (Wa_1508744258)
+- anv: bump pool bucket max allocation size
+
+Lucas Stach (1):
+
+- etnaviv: switch to late Z when linear PE is used
+
+Marek Olšák (1):
+
+- radeonsi/gfx11: fix compute scratch buffer - WAVES is always per SE
+
+Marek Vasut (1):
+
+- etnaviv: Use old set of state registers for PE configuration on GC880
+
+Mario Kleiner (1):
+
+- vulkan/wsi/display: Reset connector state in vkReleaseDisplay().
+
+Mauro Rossi (1):
+
+- Android.mk: Fix gnu++14 related build failures
+
+Nanley Chery (1):
+
+- iris: Reduce use of RHWO optimization (Wa_1508744258)
+
+Qiang Yu (3):
+
+- ac/nir/ngg: fix nogs culling with nuw add
+- ac/nir/ngg: remove nuw for negative value add
+- ac/llvm: fix gfx11 fs input load for 16bit varying
+
+Samuel Pitoiset (1):
+
+- radv: invalidate L2 instead of only writeback L2 when using DCC stores
+
+Tapani Pälli (2):
+
+- iris: setup stage bitmask for Wa_22011440098
+- anv: setup stage bitmask for Wa_22011440098
+
+Timothy Arceri (1):
+
+- nir: fix typo in lower_double options handling
+
+Yonggang Luo (3):
+
+- ci: Fixes macos.yml
+- clover: empty soversion when on win32
+- util: Test __PPC64__ for getting PIPE_ARCH_PPC_64 respond to __PPC64__ take effect

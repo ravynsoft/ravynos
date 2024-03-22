@@ -1,0 +1,76 @@
+Mesa 10.2.9 Release Notes / October 12, 2014
+============================================
+
+Mesa 10.2.9 is a bug fix release which fixes bugs found since the 10.2.8
+release. This is the final planned release for the 10.2 branch.
+
+Mesa 10.2.9 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   f8d62857eed8f604a57710c58a8ffcfb8dab2dc4977ec27c956c7c4fd14032f6  MesaLib-10.2.9.tar.gz
+   f6031f8b7113a92325b60635c504c510490eebb2e707119bbff7bd86aa34657d  MesaLib-10.2.9.tar.bz2
+   11c0ef4f3308fc29d9f15a77fd8f4842a946fce9e830250a1c95b171a446171a  MesaLib-10.2.9.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 79462 <https://bugs.freedesktop.org/show_bug.cgi?id=79462>`__ -
+   [NVC0/Codegen] Shader compilation falis in spill logic
+-  `Bug 83570 <https://bugs.freedesktop.org/show_bug.cgi?id=83570>`__ -
+   Glyphy demo throws unhandled Integer division by zero exception
+
+Changes
+-------
+
+Andreas Pokorny (2):
+
+-  egl/drm: expose KHR_image_pixmap extension
+-  i915: Fix black buffers when importing prime fds
+
+Emil Velikov (2):
+
+-  docs: Add sha256 sums for the 10.2.8 release
+-  Update VERSION to 10.2.9
+
+Ilia Mirkin (1):
+
+-  nv50/ir: avoid deleting pseudo instructions too early
+
+Marek Olšák (3):
+
+-  radeonsi: release GS rings at context destruction
+-  radeonsi: properly destroy the GS copy shader and scratch_bo for
+   compute
+-  st/dri: remove GALLIUM_MSAA and \__GL_FSAA_MODE environment variables
+
+Roland Scheidegger (1):
+
+-  gallivm: fix idiv
+
+Thomas Hellstrom (1):
+
+-  st/xa: Fix regression in xa_yuv_planar_blit()
+
+Tom Stellard (1):
+
+-  configure.ac: Compute LLVM_VERSION_PATCH using llvm-config
+
+rconde (1):
+
+-  gallivm,tgsi: fix idiv by zero crash

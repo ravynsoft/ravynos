@@ -1,0 +1,259 @@
+Mesa 9.0.2 Release Notes / January 22th, 2013
+=============================================
+
+Mesa 9.0.2 is a bug fix release which fixes bugs found since the 9.0.1
+release.
+
+Mesa 9.0 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   5ae216ca9fecfa349f14ecb83aa3f124  MesaLib-9.0.2.tar.gz
+   dc45d1192203e418163e0017640e1cfc  MesaLib-9.0.2.tar.bz2
+   93d40ec77d656dd04b561ba203ffbb91  MesaLib-9.0.2.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 22576 <https://bugs.freedesktop.org/show_bug.cgi?id=22576>`__ -
+   [KMS] mesa demo spectex broken on rv280
+-  `Bug 26809 <https://bugs.freedesktop.org/show_bug.cgi?id=26809>`__ -
+   KMS/R200: Bad shading in NWN since Mesa rewrite
+-  `Bug 45877 <https://bugs.freedesktop.org/show_bug.cgi?id=45877>`__ -
+   [bisected regression] Oglc fbo(negative.invalidParams3) Segmentation
+   fault
+-  `Bug 54402 <https://bugs.freedesktop.org/show_bug.cgi?id=54402>`__ -
+   st_glsl_to_tgsi.cpp:4006:dst_register: Assertion \`index <
+   VERT_RESULT_MAX' failed
+-  `Bug 55175 <https://bugs.freedesktop.org/show_bug.cgi?id=55175>`__ -
+   Memoryleak with glPopAttrib only on Intel GM45
+-  `Bug 56442 <https://bugs.freedesktop.org/show_bug.cgi?id=56442>`__ -
+   glcpp accepts junk after #else/#elif/#endif tokens
+-  `Bug 56706 <https://bugs.freedesktop.org/show_bug.cgi?id=56706>`__ -
+   EGL sets error to EGL_SUCCESS when DRI driver fails to create context
+-  `Bug 57622 <https://bugs.freedesktop.org/show_bug.cgi?id=57622>`__ -
+   Webgl conformance shader-with-non-reserved-words crash.
+-  `Bug 57842 <https://bugs.freedesktop.org/show_bug.cgi?id=57842>`__ -
+   r200: Culling is broken when rendering to an FBO
+-  `Bug 57984 <https://bugs.freedesktop.org/show_bug.cgi?id=57984>`__ -
+   r300g: blend sfactor=GL_DST_COLOR fails with FBOs
+-  `Bug 58545 <https://bugs.freedesktop.org/show_bug.cgi?id=58545>`__ -
+   [llvmpipe]
+   src/gallium/auxiliary/gallivm/lp_bld_tgsi_info.c:75:analyse_src:
+   Assertion \`src->Index < (sizeof(ctx->imm)/sizeof((ctx->imm)[0]))'
+   failed.
+-  `Bug 59383 <https://bugs.freedesktop.org/show_bug.cgi?id=59383>`__ -
+   src/glsl/tests/Makefile.am missing $(top_srcdir)/include
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.0.1..mesa-9.0.2
+
+Abdiel Janulgue (1):
+
+-  mesa: Fix a crash in update_texture_state() for external texture type
+
+Adam Jackson (4):
+
+-  glcpp: Fix visibility CFLAGS in automake
+-  glcpp: Typo fix.
+-  galahad, noop: Fix visibility CFLAGS in automake
+-  r300g: Fix visibility CFLAGS in automake
+
+Alex Deucher (2):
+
+-  radeonsi: add some new SI pci ids
+-  radeonsi: add a new SI pci id
+
+Ander Conselvan de Oliveira (2):
+
+-  egl/wayland: Don't invalidate drawable on swap buffers
+-  egl/wayland: Dispatch the event queue before get_buffers
+-  egl/wayland: Destroy the pending buffer callback with the egl surface
+
+Andreas Boll (9):
+
+-  docs: fix release date of 9.0.1
+-  docs: add news item for 9.0.1 release
+-  Add .dirstamp to toplevel .gitignore
+-  build: use git ls-files for adding all Makefile.in into the release
+   tarball
+-  build: Fix GLES linkage without libglapi
+-  Revert "r600g: try to fix streamout for the cases where BURST_COUNT >
+   0"
+-  mesa: update .cherry-ignore list
+-  mesa: Bump version to 9.0.2
+-  docs: Add 9.0.2 release notes
+
+Anuj Phogat (2):
+
+-  mesa: Generate invalid operation in glGenerateMipMap for integer
+   textures
+-  meta: Remove redundant code in \_mesa_meta_GenerateMipmap
+
+Ben Skeggs (3):
+
+-  nvc0: fix missing permanent bo reference on poly cache
+-  nvc0: point vertex runout at a valid address
+-  nv50: point vertex runout at a valid address
+
+Brian Paul (5):
+
+-  svga: don't use uninitialized framebuffer state
+-  st/mesa: replace REALLOC() with realloc()
+-  st/mesa: free TGSI tokens with ureg_free_tokens()
+-  util: added pipe_surface_release() function
+-  gallivm: support more immediates in lp_build_tgsi_info()
+
+Bryan Cain (1):
+
+-  glsl_to_tgsi: set correct register type for array and structure
+   elements
+
+Chad Versace (2):
+
+-  i965: Validate requested GLES context version in brwCreateContext
+-  egl/dri2: Set error code when dri2CreateContextAttribs fails
+
+Chris Fester (1):
+
+-  util: null-out the node's prev/next pointers in list_del()
+
+Christoph Bumiller (5):
+
+-  nv50/ir/tgsi: fix srcMask for TXP with SHADOW1D
+-  nvc0: add missing call to map edge flag in push_vbo
+-  nv50/ir: wrap assertion using typeid in #ifndef NDEBUG
+-  nouveau: fix undefined behaviour when testing sample_count
+-  nv50/ir: restore use of long immediate encodings
+
+Dave Airlie (5):
+
+-  r600g: fix lod bias/explicit lod with cube maps.
+-  glsl_to_tgsi: fix dst register for texturing fetches.
+-  glsl: fix cut-n-paste error in error handling. (v2)
+-  glsl: initialise killed_all field.
+-  glsl: fix uninitialised variable from constructor
+
+Eric Anholt (4):
+
+-  mesa: Fix the core GL genned-name handling for
+   glBindBufferBase()/Range().
+-  mesa: Fix core GL genned-name handling for glBeginQuery().
+-  mesa: Fix segfault on reading from a missing color read buffer.
+-  i965/gen4: Fix memory leak each time compile_gs_prog() is called.
+
+Ian Romanick (2):
+
+-  docs: Add 9.0.1 release md5sums
+-  glsl: Don't add structure fields to the symbol table
+
+Johannes Obermayr (4):
+
+-  clover: Install CL headers.
+-  gallium/auxiliary: Add -fno-rtti to CXXFLAGS on LLVM >= 3.2.
+-  clover: Adapt libclc's INCLUDEDIR and LIBEXECDIR to make use of the
+   new introduced libclc.pc.
+-  tests: AM_CPPFLAGS must include $(top_srcdir) instead of
+   $(top_builddir).
+
+Jonas Ådahl (1):
+
+-  wayland: Don't cancel a roundtrip when any event is received
+
+José Fonseca (1):
+
+-  llvmpipe: Obey back writemask.
+
+Kenneth Graunke (8):
+
+-  i965/vs: Fix unit mismatch in scratch base_offset parameter.
+-  i965/vs: Implement register spilling.
+-  mesa: Don't flatten IF statements by default.
+-  glcpp: Don't use infinite lookhead for #define differentiation.
+-  i965/vs: Don't lose the MRF writemask when doing compute-to-MRF.
+-  i965/vs: Preserve the type when copy propagating into an instruction.
+-  mesa: Fix glGetVertexAttribI[u]iv now that we have real integer
+   attribs.
+-  i965: Fix AA Line Distance Mode in 3DSTATE_SF on Ivybridge.
+
+Kristian Høgsberg (1):
+
+-  egl/wayland: Add invalidate back in eglSwapBuffers()
+
+Maarten Lankhorst (2):
+
+-  makefiles: use configured name for -ldrm\* where possible
+-  automake: strip LLVM_CXXFLAGS and LLVM_CPPFLAGS too
+
+Marek Olšák (17):
+
+-  st/mesa: fix integer texture border color for some formats (v2)
+-  r300g: fix texture border color for sRGB formats
+-  mesa: bump MAX_VARYING to 32
+-  draw: fix assertion failure in draw_emit_vertex_attr
+-  vbo: fix glVertexAttribI\* functions
+-  mesa: add MaxNumLevels to gl_texture_image, remove MaxLog2
+-  mesa: fix error checking of TexStorage(levels) for array and rect
+   textures
+-  st/mesa: fix guessing the base level size
+-  st/mesa: fix computation of last_level during texture creation
+-  st/mesa: fix computation of last_level in GenerateMipmap
+-  r600g: fix streamout on RS780 and RS880
+-  r600g: advertise 32 streamout vec4 outputs
+-  r600g: fix broken streamout if streamout_begin caused a context flush
+-  mesa: fix BlitFramebuffer between linear and sRGB formats
+-  r600g: try to fix streamout for the cases where BURST_COUNT > 0
+-  r600g: always use a tiled resource as the destination of MSAA resolve
+-  mesa: add MaxNumLevels to gl_texture_image, remove MaxLog2
+
+Mario Kleiner (1):
+
+-  mesa: Don't glPopAttrib() GL_POINT_SPRITE_COORD_ORIGIN on <
+   OpenGL-2.0
+
+Matt Turner (1):
+
+-  glcpp: Reject garbage after #else and #endif tokens
+
+Stefan Dösinger (1):
+
+-  r300: Don't disable destination read if the src blend factor needs it
+
+Tapani Pälli (1):
+
+-  android: generate matching remap_helper to dispatch table
+
+Tom Stellard (1):
+
+-  r600g: Use LOOP_START_DX10 for loops
+
+Vinson Lee (1):
+
+-  i915: Fix wrong sizeof argument in i915_update_tex_unit.
+
+smoki (2):
+
+-  r200: fix broken tcl lighting
+-  radeon/r200: Fix tcl culling

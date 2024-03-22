@@ -1,0 +1,312 @@
+Mesa 11.2.0 Release Notes / 4 April 2016
+========================================
+
+Mesa 11.2.0 is a new development release. People who are concerned with
+stability and reliability should stick with a previous release or wait
+for Mesa 11.2.1.
+
+Mesa 11.2.0 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   dea3d8143929aad5c24ef0993ddb05807b30c284b488fc62903adfcc1c127887  mesa-11.2.0.tar.gz
+   1c1fed2674abf3f16ed2623e9a5694d6752c293194e18462ebc644a19cfaafb2  mesa-11.2.0.tar.xz
+
+New features
+------------
+
+Note: some of the new features are only available with certain drivers.
+
+-  GL_ARB_arrays_of_arrays on all gallium drivers that provide GLSL 1.30
+-  GL_ARB_base_instance on freedreno/a4xx
+-  GL_ARB_compute_shader on i965
+-  GL_ARB_copy_image on r600
+-  GL_ARB_indirect_parameters on nvc0
+-  GL_ARB_query_buffer_object on nvc0
+-  GL_ARB_shader_atomic_counters on nvc0
+-  GL_ARB_shader_draw_parameters on i965, nvc0
+-  GL_ARB_shader_storage_buffer_object on nvc0
+-  GL_ARB_tessellation_shader on i965 and r600 (evergreen/cayman only)
+-  GL_ARB_texture_buffer_object_rgb32 on freedreno/a4xx
+-  GL_ARB_texture_buffer_range on freedreno/a4xx
+-  GL_ARB_texture_query_lod on freedreno/a4xx
+-  GL_ARB_texture_rgb10_a2ui on freedreno/a4xx
+-  GL_ARB_texture_view on freedreno/a4xx
+-  GL_ARB_vertex_type_10f_11f_11f_rev on freedreno/a4xx
+-  GL_KHR_texture_compression_astc_ldr on freedreno/a4xx
+-  GL_AMD_performance_monitor on radeonsi (CIK+ only)
+-  GL_ATI_meminfo on r600, radeonsi
+-  GL_NVX_gpu_memory_info on r600, radeonsi
+-  New OSMesaCreateContextAttribs() function (for creating core profile
+   contexts)
+
+Bug fixes
+---------
+
+-  `Bug 27512 <https://bugs.freedesktop.org/show_bug.cgi?id=27512>`__ -
+   Illegal instruction \_mesa_x86_64_transform_points4_general
+-  `Bug 75165 <https://bugs.freedesktop.org/show_bug.cgi?id=75165>`__ -
+   compute.c:464:49: error: function definition is not allowed here
+-  `Bug 79783 <https://bugs.freedesktop.org/show_bug.cgi?id=79783>`__ -
+   Distorted output in obs-studio where other vendors "work"
+-  `Bug 89330 <https://bugs.freedesktop.org/show_bug.cgi?id=89330>`__ -
+   piglit glsl-1.50 invariant-qualifier-in-out-block-01 regression
+-  `Bug 89969 <https://bugs.freedesktop.org/show_bug.cgi?id=89969>`__ -
+   nouveau: add support for chunk decoding in order to support vaapi
+   (st/va)
+-  `Bug 90348 <https://bugs.freedesktop.org/show_bug.cgi?id=90348>`__ -
+   Spilling failure of b96 merged value
+-  `Bug 91526 <https://bugs.freedesktop.org/show_bug.cgi?id=91526>`__ -
+   World of Warcraft (on Wine) has UI corruption with nouveau
+-  `Bug 91596 <https://bugs.freedesktop.org/show_bug.cgi?id=91596>`__ -
+   EGL_KHR_gl_colorspace (v2) causes problem with Android-x86 GUI
+-  `Bug 91806 <https://bugs.freedesktop.org/show_bug.cgi?id=91806>`__ -
+   configure does not test whether assembler supports sse4.1
+-  `Bug 91927 <https://bugs.freedesktop.org/show_bug.cgi?id=91927>`__ -
+   [SKL] [regression] piglit compressed textures tests fail with kernel
+   upgrade
+-  `Bug 92193 <https://bugs.freedesktop.org/show_bug.cgi?id=92193>`__ -
+   [SKL]
+   ES2-CTS.gtf.GL2ExtensionTests.compressed_astc_texture.compressed_astc_texture
+   fails
+-  `Bug 92229 <https://bugs.freedesktop.org/show_bug.cgi?id=92229>`__ -
+   [APITRACE] SOMA have serious graphical errors
+-  `Bug 92233 <https://bugs.freedesktop.org/show_bug.cgi?id=92233>`__ -
+   Unigine Heaven 4.0 silhuette run
+-  `Bug 92363 <https://bugs.freedesktop.org/show_bug.cgi?id=92363>`__ -
+   [BSW/BDW] ogles1conform Gets test fails
+-  `Bug 92438 <https://bugs.freedesktop.org/show_bug.cgi?id=92438>`__ -
+   Segfault in pushbuf_kref when running the android emulator (qemu) on
+   nv50
+-  `Bug 92589 <https://bugs.freedesktop.org/show_bug.cgi?id=92589>`__ -
+   [BDW BSW SKL CTS] ES31-CTS.texture_gather.\* GPU_HANG
+-  `Bug 92595 <https://bugs.freedesktop.org/show_bug.cgi?id=92595>`__ -
+   [HSW,BDW,SKL][GLES 3.1 CTS] Big difference in the results for the
+   ES31-CTS.shader_bitfield_operation.\* tests
+-  `Bug 92609 <https://bugs.freedesktop.org/show_bug.cgi?id=92609>`__ -
+   [BDW, BSW] piglit sampling-2d-array-as-2d-layer fails
+-  `Bug 92687 <https://bugs.freedesktop.org/show_bug.cgi?id=92687>`__ -
+   Add support for ARB_internalformat_query2
+-  `Bug 92706 <https://bugs.freedesktop.org/show_bug.cgi?id=92706>`__ -
+   glBlitFramebuffer refuses to blit RGBA to RGB with MSAA
+-  `Bug 92709 <https://bugs.freedesktop.org/show_bug.cgi?id=92709>`__ -
+   "LLVM triggered Diagnostic Handler: unsupported call to function
+   ldexpf in main" when starting race in stuntrally
+-  `Bug 92743 <https://bugs.freedesktop.org/show_bug.cgi?id=92743>`__ -
+   Centroid shouldn't have to match between the FS and the VS
+-  `Bug 92759 <https://bugs.freedesktop.org/show_bug.cgi?id=92759>`__ -
+   [Regression, bisected] Visuals without alpha bits are not
+   sRGB-capable
+-  `Bug 92849 <https://bugs.freedesktop.org/show_bug.cgi?id=92849>`__ -
+   [IVB HSW BDW] piglit image load/store
+   load-from-cleared-image.shader_test fails
+-  `Bug 92909 <https://bugs.freedesktop.org/show_bug.cgi?id=92909>`__ -
+   Offset/alignment issue with layout std140 and vec3
+-  `Bug 93004 <https://bugs.freedesktop.org/show_bug.cgi?id=93004>`__ -
+   Guild Wars 2 crash on nouveau DX11 cards
+-  `Bug 93048 <https://bugs.freedesktop.org/show_bug.cgi?id=93048>`__ -
+   [CTS regression] mesa af2723 breaks GL Conformance for debug
+   extension
+-  `Bug 93063 <https://bugs.freedesktop.org/show_bug.cgi?id=93063>`__ -
+   drm_helper.h:227:1: error: static declaration of
+   ‘pipe_virgl_create_screen’ follows non-static declaration
+-  `Bug 93091 <https://bugs.freedesktop.org/show_bug.cgi?id=93091>`__ -
+   [opencl] segfault when running any opencl programs (like clinfo)
+-  `Bug 93092 <https://bugs.freedesktop.org/show_bug.cgi?id=93092>`__ -
+   lp_test_format regression
+-  `Bug 93126 <https://bugs.freedesktop.org/show_bug.cgi?id=93126>`__ -
+   wrongly claim supporting GL_EXT_texture_rg
+-  `Bug 93180 <https://bugs.freedesktop.org/show_bug.cgi?id=93180>`__ -
+   [regression] arb_separate_shader_objects.active sampler conflict
+   fails
+-  `Bug 93189 <https://bugs.freedesktop.org/show_bug.cgi?id=93189>`__ -
+   "./util/u_inlines.h", line 83: operands have incompatible types: void
+   ":" int
+-  `Bug 93215 <https://bugs.freedesktop.org/show_bug.cgi?id=93215>`__ -
+   [Regression bisected] Ogles1conform Automatic mipmap generation test
+   is fail
+-  `Bug 93235 <https://bugs.freedesktop.org/show_bug.cgi?id=93235>`__ -
+   [regression] dispatch sanity broken by GetPointerv
+-  `Bug 93257 <https://bugs.freedesktop.org/show_bug.cgi?id=93257>`__ -
+   [SKL, bisected] ASTC dEQP tests segfault
+-  `Bug 93264 <https://bugs.freedesktop.org/show_bug.cgi?id=93264>`__ -
+   Tonga VM Faults since llvm ScheduleDAGInstrs: Rework schedule graph
+   builder.
+-  `Bug 93266 <https://bugs.freedesktop.org/show_bug.cgi?id=93266>`__ -
+   gl_arb_shading_language_420pack does not allow binding of image
+   variables
+-  `Bug 93300 <https://bugs.freedesktop.org/show_bug.cgi?id=93300>`__ -
+   Two Worlds 2 renders water incorrectly
+-  `Bug 93312 <https://bugs.freedesktop.org/show_bug.cgi?id=93312>`__ -
+   [SKL][GLES 3.1 CTS] ES31-CTS.layout_binding\* GPU_HANG
+-  `Bug 93320 <https://bugs.freedesktop.org/show_bug.cgi?id=93320>`__ -
+   [HSW,BDW,SKL][GLES 3.1 CTS]
+   ES31-CTS.vertex_attrib_binding.advanced-bindingUpdate fail
+-  `Bug 93322 <https://bugs.freedesktop.org/show_bug.cgi?id=93322>`__ -
+   [HSW,BDW,SKL][GLES 3.1 CTS] ES31-CTS.compute_shader.resource-ubo fail
+-  `Bug 93323 <https://bugs.freedesktop.org/show_bug.cgi?id=93323>`__ -
+   [HSW,BDW,SKL][GLES 3.1
+   CTS]ES31-CTS.shader_image_load_store.basic-allTargets-store-fs fail
+-  `Bug 93325 <https://bugs.freedesktop.org/show_bug.cgi?id=93325>`__ -
+   [HSW,BDW,SKL]ES31-CTS.explicit_uniform_location.uniform-loc-\* 2
+   tests fail
+-  `Bug 93339 <https://bugs.freedesktop.org/show_bug.cgi?id=93339>`__ -
+   glLinkProgram() should fail when a varying is never written to in a
+   previous stage
+-  `Bug 93348 <https://bugs.freedesktop.org/show_bug.cgi?id=93348>`__ -
+   [HSW,BDW,SKL][GLES 3.1 CTS] ES31-CTS.compute_shader.\* segfault
+-  `Bug 93358 <https://bugs.freedesktop.org/show_bug.cgi?id=93358>`__ -
+   [HSW] Unreal Elemental demo - assertion error in
+   copy_image_with_blitter
+-  `Bug 93387 <https://bugs.freedesktop.org/show_bug.cgi?id=93387>`__ -
+   inverse() shouldn’t be exposed in GLSL 1.20 and 1.30
+-  `Bug 93388 <https://bugs.freedesktop.org/show_bug.cgi?id=93388>`__ -
+   [i965, regression, bisection] MESA_FORMAT_B8G8R8X8_SRGB changes break
+   kwin
+-  `Bug 93407 <https://bugs.freedesktop.org/show_bug.cgi?id=93407>`__ -
+   [SKL][GLES 3.1 CTS]ES31-CTS.compute_shader.resources-texture fail
+-  `Bug 93410 <https://bugs.freedesktop.org/show_bug.cgi?id=93410>`__ -
+   [BDW,SKL][GLES 3.1
+   CTS]ES31-CTS.shader_image_load_store.negative-linkErrors fail
+-  `Bug 93418 <https://bugs.freedesktop.org/show_bug.cgi?id=93418>`__ -
+   Geometry Shaders output wrong vertices on Sandy Bridge
+-  `Bug 93426 <https://bugs.freedesktop.org/show_bug.cgi?id=93426>`__ -
+   [SKL,BDW,BSW,BXT] CTS regression:
+   es2-cts.gtf.gl2fixedtests.buffer_objects.buffer_object,s
+-  `Bug 93524 <https://bugs.freedesktop.org/show_bug.cgi?id=93524>`__ -
+   Clover doesn't build
+-  `Bug 93526 <https://bugs.freedesktop.org/show_bug.cgi?id=93526>`__ -
+   GfxBench 4 tessellation demos misrender
+-  `Bug 93532 <https://bugs.freedesktop.org/show_bug.cgi?id=93532>`__ -
+   [HSW,BDW,SKL][GLES 3.1 CTS] ES31-CTS.compute_shader.*. Regression,
+   bisected.
+-  `Bug 93540 <https://bugs.freedesktop.org/show_bug.cgi?id=93540>`__ -
+   [BISECTED, HSW] Rendering issue in Heaven (and other benchmarks)
+-  `Bug 93560 <https://bugs.freedesktop.org/show_bug.cgi?id=93560>`__ -
+   opt_combine_constants failing fabsf(reg->f) == table.imm[i].val
+   assertion
+-  `Bug 93599 <https://bugs.freedesktop.org/show_bug.cgi?id=93599>`__ -
+   Strange green flashes with "Metro: Last Light Redux" + "Metro 2033
+   Redux" with Intel Mesa driver
+-  `Bug 93648 <https://bugs.freedesktop.org/show_bug.cgi?id=93648>`__ -
+   Random lines being rendered when playing Dolphin (geometry shaders
+   related, w/ apitrace)
+-  `Bug 93650 <https://bugs.freedesktop.org/show_bug.cgi?id=93650>`__ -
+   GL_ARB_separate_shader_objects is buggy (PCSX2)
+-  `Bug 93667 <https://bugs.freedesktop.org/show_bug.cgi?id=93667>`__ -
+   Crash in eglCreateImageKHR with huge texture size
+-  `Bug 93696 <https://bugs.freedesktop.org/show_bug.cgi?id=93696>`__ -
+   [HSW,BDW;SKL][GLES 3.1
+   CTS]ES31-CTS.explicit_uniform_location.uniform-loc-mix-with-implicit-max-\*
+   fail
+-  `Bug 93700 <https://bugs.freedesktop.org/show_bug.cgi?id=93700>`__ -
+   [SKL, regression] deqp-gles2.functional.texture.completeness
+-  `Bug 93717 <https://bugs.freedesktop.org/show_bug.cgi?id=93717>`__ -
+   Meta mipmap generation can corrupt texture state
+-  `Bug 93722 <https://bugs.freedesktop.org/show_bug.cgi?id=93722>`__ -
+   Segfault when compiling shader with a subroutine that takes a
+   parameter
+-  `Bug 93725 <https://bugs.freedesktop.org/show_bug.cgi?id=93725>`__ -
+   [HSW, regression, bisected] ES31-CTS.texture_gather.*depth\*
+-  `Bug 93731 <https://bugs.freedesktop.org/show_bug.cgi?id=93731>`__ -
+   glUniformSubroutinesuiv segfaults when subroutine uniform is bound to
+   a specific location
+-  `Bug 93761 <https://bugs.freedesktop.org/show_bug.cgi?id=93761>`__ -
+   A conditional discard in a fragment shader causes no depth writing at
+   all
+-  `Bug 93790 <https://bugs.freedesktop.org/show_bug.cgi?id=93790>`__ -
+   [HSW] Use after free with compute programs
+-  `Bug 93792 <https://bugs.freedesktop.org/show_bug.cgi?id=93792>`__ -
+   [HSW] intel_mipmap_tree.c:1325: intel_miptree_copy_slice: Assertion
+   \`src_mt->format == dst_mt->format
+-  `Bug 93813 <https://bugs.freedesktop.org/show_bug.cgi?id=93813>`__ -
+   Incorrect viewport range when GL_CLIP_ORIGIN is GL_UPPER_LEFT
+-  `Bug 93840 <https://bugs.freedesktop.org/show_bug.cgi?id=93840>`__ -
+   [i965] Alien: Isolation fails with GL_ARB_compute_shader enabled
+-  `Bug 93862 <https://bugs.freedesktop.org/show_bug.cgi?id=93862>`__ -
+   [Bisected] "drm/amdgpu: fix amdgpu_bo_pin_restricted VRAM placing v2"
+   is bad
+-  `Bug 93878 <https://bugs.freedesktop.org/show_bug.cgi?id=93878>`__ -
+   [llvmpipe][softpipe] piglit
+   arb_gpu_shader_fp64-double-gettransformfeedbackvarying regression
+-  `Bug 93957 <https://bugs.freedesktop.org/show_bug.cgi?id=93957>`__ -
+   [HSW] Mishandling of sample count when using an attachment-less
+   framebuffer (assertion error)
+-  `Bug 93961 <https://bugs.freedesktop.org/show_bug.cgi?id=93961>`__ -
+   virgl build failure after 2016-02-01 changes - no previous prototype
+   for 'virgl_drm_winsys_create'
+-  `Bug 93962 <https://bugs.freedesktop.org/show_bug.cgi?id=93962>`__ -
+   [HSW, regression, bisected, CTS]
+   ES2-CTS.gtf.GL2FixedTests.scissor.scissor - segfault/asserts
+-  `Bug 93989 <https://bugs.freedesktop.org/show_bug.cgi?id=93989>`__ -
+   build: flex-2.5.39 seems to be failing for glsl_lexer.ll
+-  `Bug 94016 <https://bugs.freedesktop.org/show_bug.cgi?id=94016>`__ -
+   make check MesaExtensionsTest.AlphabeticallySorted regression
+-  `Bug 94019 <https://bugs.freedesktop.org/show_bug.cgi?id=94019>`__ -
+   [bisected] 3D acceleration broken with gallium/radeon: just get
+   num_tile_pipes from the winsys
+-  `Bug 94050 <https://bugs.freedesktop.org/show_bug.cgi?id=94050>`__ -
+   test_vec4_register_coalesce regression
+-  `Bug 94073 <https://bugs.freedesktop.org/show_bug.cgi?id=94073>`__ -
+   Miscompilation of abs_vec3_vert_xvary_ref.vert in WebGL conformance
+-  `Bug 94081 <https://bugs.freedesktop.org/show_bug.cgi?id=94081>`__ -
+   [HSW] compute shader shared var + atomic op = fail
+-  `Bug 94088 <https://bugs.freedesktop.org/show_bug.cgi?id=94088>`__ -
+   [llvmpipe] SIGFPE pthread_barrier_destroy.c:40
+-  `Bug 94091 <https://bugs.freedesktop.org/show_bug.cgi?id=94091>`__ -
+   Tonga unreal elemental segfault since radeonsi: put image, fmask, and
+   sampler descriptors into one array
+-  `Bug 94100 <https://bugs.freedesktop.org/show_bug.cgi?id=94100>`__ -
+   [HSW] compute indirect dispatch with 0 work groups causes gpu hang
+-  `Bug 94134 <https://bugs.freedesktop.org/show_bug.cgi?id=94134>`__ -
+   [regression]
+   piglit.spec.arb_texture_view.sampling-2d-array-as-2d-layer assertion
+-  `Bug 94139 <https://bugs.freedesktop.org/show_bug.cgi?id=94139>`__ -
+   [regression, HSW, IVB] piglit.spec.arb_compute_shader.minmax
+-  `Bug 94150 <https://bugs.freedesktop.org/show_bug.cgi?id=94150>`__ -
+   UE4 Suntemple rendering errors
+-  `Bug 94186 <https://bugs.freedesktop.org/show_bug.cgi?id=94186>`__ -
+   Crash when launching glxinfo and World of Warcraft with RV790
+-  `Bug 94188 <https://bugs.freedesktop.org/show_bug.cgi?id=94188>`__ -
+   define (or undef) defined behaves stupidly
+-  `Bug 94193 <https://bugs.freedesktop.org/show_bug.cgi?id=94193>`__ -
+   [llvmpipe] Line antialiasing looks different when GL_LINE_STIPPLE is
+   enabled with pattern 0xffff
+-  `Bug 94199 <https://bugs.freedesktop.org/show_bug.cgi?id=94199>`__ -
+   Shader abort/crash
+-  `Bug 94253 <https://bugs.freedesktop.org/show_bug.cgi?id=94253>`__ -
+   [llvmpipe] piglit gl-1.0-swapbuffers-behavior regression
+-  `Bug 94254 <https://bugs.freedesktop.org/show_bug.cgi?id=94254>`__ -
+   [llvmpipe] [softpipe] piglit read-front regression
+-  `Bug 94257 <https://bugs.freedesktop.org/show_bug.cgi?id=94257>`__ -
+   [softpipe] piglit glx-copy-sub-buffer regression
+-  `Bug 94274 <https://bugs.freedesktop.org/show_bug.cgi?id=94274>`__ -
+   [swrast] piglit arb_occlusion_query2-render regression
+-  `Bug 94284 <https://bugs.freedesktop.org/show_bug.cgi?id=94284>`__ -
+   [radeonsi] outlast segfault on start
+-  `Bug 94388 <https://bugs.freedesktop.org/show_bug.cgi?id=94388>`__ -
+   r600_blit.c:281: r600_decompress_depth_textures: Assertion
+   \`tex->is_depth && !tex->is_flushing_texture' failed.
+-  `Bug 94412 <https://bugs.freedesktop.org/show_bug.cgi?id=94412>`__ -
+   Trine 3 misrender
+-  `Bug 94481 <https://bugs.freedesktop.org/show_bug.cgi?id=94481>`__ -
+   softpipe - access violation in img_filter_2d_nearest
+-  `Bug 94524 <https://bugs.freedesktop.org/show_bug.cgi?id=94524>`__ -
+   Wrong gl_TessLevelOuter interpretation for isolines
+-  `Bug 94595 <https://bugs.freedesktop.org/show_bug.cgi?id=94595>`__ -
+   [Mesa AMD&swrast] Texture views attached as framebuffers return their
+   viewed tecture's color encoding and render incorrectly
+
+Changes
+-------
+
+Microsoft Visual Studio 2013 or later is now required for building on
+Windows. Previously, Visual Studio 2008 and later were supported.

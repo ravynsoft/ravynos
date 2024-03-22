@@ -1,0 +1,98 @@
+@import url("menu.css");
+@import url("rst.css");
+
+html {
+  height: 100%;
+}
+
+.navbar {
+  flex: none;
+}
+
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-weight: 600 !important;
+}
+
+footer {
+  flex: 1;
+}
+
+footer a:any-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+{%- if docutils_version_info[:2] < (0, 18) %}
+
+a.brackets::before,
+span.brackets::before {
+  content: "[";
+}
+
+a.brackets::after,
+span.brackets::after {
+  content: "]";
+}
+
+span.brackets {
+  font-weight: normal;
+}
+
+dl.footnote,
+dl.citation {
+  margin-bottom: 0;
+}
+
+dl.footnote > dt,
+dl.citation > dt {
+  float: left;
+}
+dl.footnote > dd,
+dl.citation > dd {
+  margin-bottom: 0;
+}
+dl.footnote > dd:after,
+dl.citation > dd:after {
+  content: "";
+  clear: both;
+}
+dl.footnote > dd > p {
+  margin-left: 2rem;
+}
+dl.citation > dd > p {
+  margin-left: 4rem;
+}
+dl.footnote > dd > p:last-of-type,
+dl.citation > dd > p:last-of-type {
+  margin-bottom: 0;
+}
+
+{%- else %}
+
+aside.footnote > span,
+div.citation > span {
+  float: left;
+}
+aside.footnote > span:last-of-type,
+div.citation > span:last-of-type {
+  padding-right: 0.5rem;
+}
+aside.footnote > p {
+  margin-left: 2rem;
+}
+div.citation > p {
+  margin-left: 4rem;
+}
+aside.footnote > p:last-of-type,
+div.citation > p:last-of-type {
+    margin-bottom: 0;
+}
+aside.footnote > p:last-of-type:after,
+div.citation > p:last-of-type:after {
+    content: "";
+    clear: both;
+}
+
+{%- endif %}

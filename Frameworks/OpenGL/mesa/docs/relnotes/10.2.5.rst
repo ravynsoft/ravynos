@@ -1,0 +1,163 @@
+Mesa 10.2.5 Release Notes / August 2, 2014
+==========================================
+
+Mesa 10.2.5 is a bug fix release which fixes bugs found since the 10.2.4
+release.
+
+Mesa 10.2.5 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   b4459f0bf7f4a3c8fb78ece3c9d2eac3d0e5bf38cb470f2a72705e744bd0310d  MesaLib-10.2.5.tar.bz2
+   7b4dd0cb683f8c7dc48a3e7a315742bed58ddcd7b756c462aca4177bd1acdc79  MesaLib-10.2.5.tar.gz
+   6180565914fb238dd77ccdaff96b6155d9a6e1b3e981ebbf6a6851301b384fed  MesaLib-10.2.5.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 80991 <https://bugs.freedesktop.org/show_bug.cgi?id=80991>`__ -
+   [BDW]Piglit spec_ARB_sample_shading_builtin-gl-sample-mask_2 fails
+
+Changes
+-------
+
+Abdiel Janulgue (3):
+
+-  i965/fs: Refactor check for potential copy propagated instructions.
+-  i965/fs: skip copy-propate for logical instructions with negated src
+   entries
+-  i965/vec4: skip copy-propate for logical instructions with negated
+   src entries
+
+Adel Gadllah (1):
+
+-  i915: Fix up intelInitScreen2 for DRI3
+
+Anuj Phogat (2):
+
+-  i965: Fix z_offset computation in intel_miptree_unmap_depthstencil()
+-  mesa: Don't use memcpy() in \_mesa_texstore() for float depth texture
+   data
+
+Brian Paul (3):
+
+-  mesa: fix geometry shader memory leaks
+-  st/mesa: fix geometry shader memory leak
+-  gallium/u_blitter: fix some shader memory leaks
+
+Carl Worth (6):
+
+-  docs: Add sha256 checksums for the 10.2.3 release
+-  Update VERSION to 10.2.4
+-  Add release notes for 10.2.4
+-  docs: Add SHA256 checksums for the 10.2.4 release
+-  cherry-ignore: Ignore a few patches picked in the previous stable
+   release
+-  Update version to 10.2.5
+
+Christian König (1):
+
+-  radeonsi: fix order of r600_need_dma_space and r600_context_bo_reloc
+
+Eric Anholt (1):
+
+-  i965: Generalize the pixel_x/y workaround for all UW types.
+
+Ian Romanick (2):
+
+-  mesa: Don't allow GL_TEXTURE_BORDER queries outside compat profile
+-  mesa: Don't allow GL_TEXTURE_{LUMINANCE,INTENSITY}_\* queries outside
+   compat profile
+
+Ilia Mirkin (5):
+
+-  nv50/ir: retrieve shadow compare from first arg
+-  nv50/ir: ignore bias for samplerCubeShadow on nv50
+-  nvc0/ir: do quadops on the right texture coordinates for TXD
+-  nvc0/ir: use manual TXD when offsets are involved
+-  nvc0: make sure that the local memory allocation is aligned to 0x10
+
+Faith Ekstrand (2):
+
+-  main/format_pack: Fix a wrong datatype in pack_ubyte_R8G8_UNORM
+-  main/get_hash_params: Add GL_SAMPLE_SHADING_ARB
+
+Jordan Justen (1):
+
+-  i965: Add auxiliary surface field #defines for Broadwell.
+
+José Fonseca (1):
+
+-  st/wgl: Clamp wglChoosePixelFormatARB's output nNumFormats to
+   nMaxFormats.
+
+Kenneth Graunke (13):
+
+-  i965: Don't copy propagate abs into Broadwell logic instructions.
+-  i965: Set execution size to 8 for instructions with force_sechalf
+   set.
+-  i965/fs: Set force_uncompressed and force_sechalf on samplepos setup.
+-  i965/fs: Use WE_all for gl_SampleID header register munging.
+-  i965: Add plumbing for Broadwell's auxiliary surface support.
+-  i965: Drop SINT workaround for CMS layout on Broadwell.
+-  i965: Hook up the MCS buffers in SURFACE_STATE on Broadwell.
+-  i965: Add 2x MSAA support to the MCS allocation function.
+-  i965: Enable compressed multisample support (CMS) on Broadwell.
+-  i965: Add missing persample_shading field to brw_wm_debug_recompile.
+-  i965/fs: Fix gl_SampleID for 2x MSAA and SIMD16 mode.
+-  i965/fs: Fix gl_SampleMask handling for SIMD16 on Gen8+.
+-  i965/fs: Set LastRT on the final FB write on Broadwell.
+
+Marek Olšák (14):
+
+-  gallium: fix u_default_transfer_inline_write for textures
+-  st/mesa: fix samplerCubeShadow with bias
+-  radeonsi: fix samplerCubeShadow with bias
+-  radeonsi: add support for TXB2
+-  r600g: switch SNORM conversion to DX and GLES behavior
+-  radeonsi: fix CMASK and HTILE calculations for Hawaii
+-  gallium/util: add a helper for calculating primitive count from
+   vertex count
+-  radeonsi: fix a hang with instancing on Hawaii
+-  radeonsi: fix a hang with streamout on Hawaii
+-  winsys/radeon: fix vram_size overflow with Hawaii
+-  radeonsi: fix occlusion queries on Hawaii
+-  r600g,radeonsi: switch all occurences of array_size to util_max_layer
+-  radeonsi: fix build because of lack of draw_indirect infrastructure
+   in 10.2
+-  radeonsi: use DRAW_PREAMBLE on CIK
+
+Matt Turner (8):
+
+-  i965/vec4: Don't return void from a void function.
+-  i965/vec4: Don't fix_math_operand() on Gen >= 8.
+-  i965/fs: Don't fix_math_operand() on Gen >= 8.
+-  i965/fs: Make try_constant_propagate() static.
+-  i965/fs: Constant propagate into 2-src math instructions on Gen8.
+-  i965/vec4: Constant propagate into 2-src math instructions on Gen8.
+-  i965/fs: Don't use brw_imm\_\* unnecessarily.
+-  i965/fs: Set correct number of regs_written for MCS fetches.
+
+Thorsten Glaser (1):
+
+-  nv50: fix build failure on m68k due to invalid struct alignment
+   assumptions
+
+Tom Stellard (1):
+
+-  clover: Call end_query before getting timestamp result v2

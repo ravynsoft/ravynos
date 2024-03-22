@@ -1,0 +1,28 @@
+.r300-rules:
+  stage: amd
+  rules:
+    - !reference [.test, rules]
+    - !reference [.ondracka-farm-rules, rules]
+    - !reference [.gl-rules, rules]
+    - changes: &r300_file_list
+        - src/gallium/drivers/r300/*
+        - src/gallium/drivers/r300/compiler/**/*
+        - src/gallium/drivers/r300/ci/gitlab-ci.yml
+        - src/gallium/drivers/r300/ci/gitlab-ci-inc.yml
+        - src/gallium/drivers/r300/ci/deqp-$DEQP_SUITE.toml
+        - src/gallium/drivers/r300/ci/$GPU_VERSION-fails.txt
+        - src/gallium/drivers/r300/ci/$GPU_VERSION-flakes.txt
+        - src/gallium/drivers/r300/ci/$GPU_VERSION-skips.txt
+        - src/gallium/winsys/radeon/**/*
+      when: on_success
+
+.r300-manual-rules:
+  stage: amd
+  retry: !reference [.scheduled_pipeline-rules, retry]
+  rules:
+    - !reference [.test, rules]
+    - !reference [.ondracka-farm-manual-rules, rules]
+    - !reference [.gl-manual-rules, rules]
+    - changes:
+        *r300_file_list
+      when: manual

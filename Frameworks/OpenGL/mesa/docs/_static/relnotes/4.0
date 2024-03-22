@@ -1,0 +1,162 @@
+
+                           Mesa 4.0 release notes
+
+                             October 18, 2001
+
+                              PLEASE READ!!!!
+
+
+
+Introduction
+------------
+
+Mesa uses an even/odd version number scheme like the Linux kernel.
+Odd numbered versions (such as 3.3) designate new developmental releases.
+Even numbered versions (such as 3.4) designate stable releases.
+
+Mesa version 4.0 signifies two things:
+
+  1. A stabilization of the 3.5 development release
+  2. Implementation of the OpenGL 1.3 specification
+
+
+Note that the Mesa major version number is incremented with the OpenGL
+minor version number:
+
+   Mesa 1.x  ==  OpenGL 1.0
+   Mesa 2.x  ==  OpenGL 1.1
+   Mesa 3.x  ==  OpenGL 1.2
+   Mesa 4.x  ==  OpenGL 1.3
+
+
+
+New Features
+------------
+
+Mesa 3.5 already had all the new features of OpenGL 1.3, implemented as
+extensions.  These extensions were simply promoted to standard features:
+
+   GL_ARB_multisample
+   GL_ARB_multitexture
+   GL_ARB_texture_border_clamp
+   GL_ARB_texture_compression
+   GL_ARB_texture_cube_map
+   GL_ARB_texture_env_add
+   GL_ARB_texture_env_combine
+   GL_ARB_texture_env_dot3
+   GL_ARB_transpose_matrix
+
+In Mesa 4.0 the functions defined by these extensions are now available
+without the "ARB" suffix.  For example, glLoadTransposeMatrixf() is now
+a standard API function.  The new functions in OpenGL 1.3 and Mesa 4.0 are:
+
+   glActiveTexture
+   glClientActiveTexture
+   glCompressedTexImage1D
+   glCompressedTexImage2D
+   glCompressedTexImage3D
+   glCompressedTexSubImage1D
+   glCompressedTexSubImage2D
+   glCompressedTexSubImage3D
+   glGetCompressedTexImage
+   glLoadTransposeMatrixd
+   glLoadTransposeMatrixf
+   glMultiTexCoord1d
+   glMultiTexCoord1dv
+   glMultiTexCoord1f
+   glMultiTexCoord1fv
+   glMultiTexCoord1i
+   glMultiTexCoord1iv
+   glMultiTexCoord1s
+   glMultiTexCoord1sv
+   glMultiTexCoord2d
+   glMultiTexCoord2dv
+   glMultiTexCoord2f
+   glMultiTexCoord2fv
+   glMultiTexCoord2i
+   glMultiTexCoord2iv
+   glMultiTexCoord2s
+   glMultiTexCoord2sv
+   glMultiTexCoord3d
+   glMultiTexCoord3dv
+   glMultiTexCoord3f
+   glMultiTexCoord3fv
+   glMultiTexCoord3i
+   glMultiTexCoord3iv
+   glMultiTexCoord3s
+   glMultiTexCoord3sv
+   glMultiTexCoord4d
+   glMultiTexCoord4dv
+   glMultiTexCoord4f
+   glMultiTexCoord4fv
+   glMultiTexCoord4i
+   glMultiTexCoord4iv
+   glMultiTexCoord4s
+   glMultiTexCoord4sv
+   glMultTransposeMatrixd
+   glMultTransposeMatrixf
+   glSampleCoverage
+   glSamplePass
+
+
+GLX 1.4 is the companion to OpenGL 1.3.  The only new features in GLX 1.4
+are support for multisampling and the GLX_ARB_get_proc_address extension.
+glXGetProcAddress() is the only new function in GLX 1.4.
+
+
+
+Multisample and Texture Compression
+-----------------------------------
+
+The OpenGL 1.3 specification allows the multisample and texture compression
+features to essentially be no-ops.  For example, if you query for multisample
+support you'll find none, but the API functions work.
+
+Similarly, texture compression is not implemented by any of the software
+drivers but you can specify a generic compressed texture format (like
+GL_COMPRESSED_RGBA) to glTexImage2D and it'll be accepted.
+
+
+
+Device Drivers
+--------------
+
+Mesa advertises itself as either OpenGL 1.2 or OpenGL 1.3 depending on the
+device driver.  If the driver enables all the ARB extensions which are part
+of OpenGL 1.3 then glGetString(GL_VERSION) will return "1.3".  Otherwise,
+it'll return "1.2".
+
+A number of Mesa's software drivers haven't been actively maintained for
+some time.  We rely on volunteers to maintain many of the drivers.
+Here's the current status of all included drivers:
+
+
+Driver			Status
+----------------------	---------------------
+XMesa (Xlib)		implements OpenGL 1.3
+OSMesa (off-screen)	implements OpenGL 1.3
+FX (3dfx Voodoo1/2)	implements OpenGL 1.3
+SVGA			implements OpenGL 1.3
+Wind River UGL		implements OpenGL 1.3
+Windows/Win32		implements OpenGL 1.3
+GGI			needs updating
+DOS/DJGPP		needs updating
+BeOS			needs updating
+Allegro			needs updating
+D3D			needs updating
+DOS			needs updating
+
+Special thanks go to Karl Schultz for updating the Windows driver.
+
+The XFree86/DRI drivers	have not yet been updated to use Mesa 4.0 as of
+September 2001, but that should happen eventually.
+
+
+
+Other Changes
+-------------
+
+See the VERSIONS file for more details about bug fixes, etc. in Mesa 4.0.
+
+
+----------------------------------------------------------------------

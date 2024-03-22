@@ -1,0 +1,59 @@
+Mesa 17.3.6 Release Notes / February 27, 2018
+=============================================
+
+Mesa 17.3.6 is a bug fix release which fixes bugs found since the 17.3.5
+release.
+
+Mesa 17.3.6 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   d5e10ea3f0d11b06d2b0b235bba372a04278c39bc0e712090bda1f61842db188  mesa-17.3.6.tar.gz
+   e5915680d44ac9d05defdec529db7459ac9edd441c9845266eff2e2d3e57fbf8  mesa-17.3.6.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 104383 <https://bugs.freedesktop.org/show_bug.cgi?id=104383>`__
+   - [KBL] Intel GPU hang with firefox
+-  `Bug 104411 <https://bugs.freedesktop.org/show_bug.cgi?id=104411>`__
+   - [CCS] lemonbar-xft GPU hang
+-  `Bug 104546 <https://bugs.freedesktop.org/show_bug.cgi?id=104546>`__
+   - Crash happens when running compute pipeline after calling
+   glxMakeCurrent two times
+
+Changes
+-------
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 17.3.5
+-  Update version to 17.3.6
+
+Faith Ekstrand (4):
+
+-  i965/draw: Do resolves properly for textures used by TXF
+-  i965: Replace draw_aux_buffer_disabled with draw_aux_usage
+-  i965/draw: Set NEW_AUX_STATE when draw aux changes
+-  i965: Stop disabling aux during texture preparation
+
+Kenneth Graunke (1):
+
+-  i965: Don't disable CCS for RT dependencies when dispatching compute.
+
+Topi Pohjolainen (1):
+
+-  i965: Don't try to disable render aux buffers for compute

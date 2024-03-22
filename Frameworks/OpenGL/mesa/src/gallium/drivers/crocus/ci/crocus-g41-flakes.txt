@@ -1,0 +1,35 @@
+# These seem stable on their own (or when running their whole test group),
+# but intermittently fail when mixed in with other tests.
+dEQP-GLES2.functional.shaders.functions.control_flow.return_after_loop_sequence_fragment
+dEQP-GLES2.functional.shaders.loops.do_while_uniform_iterations.nested_sequence_fragment
+dEQP-GLES2.functional.shaders.loops.while_uniform_iterations.nested_tricky_dataflow_2_fragment
+dEQP-GLES2.functional.shaders.loops.for_dynamic_iterations.nested_tricky_dataflow_2_fragment
+dEQP-GLES2.functional.shaders.loops.for_dynamic_iterations.nested_sequence_fragment
+dEQP-GLES2.functional.shaders.loops.for_uniform_iterations.basic_mediump_int_fragment
+dEQP-GLES2.functional.shaders.loops.for_uniform_iterations.nested_sequence_fragment
+
+KHR-GLES2.texture_3d.filtering.formats.rgba8_linear
+KHR-GLES2.texture_3d.filtering.formats.rgba8_linear_mipmap_linear
+KHR-GLES2.texture_3d.filtering.formats.rgba8_linear_mipmap_nearest
+KHR-GLES2.texture_3d.filtering.formats.rgba8_nearest
+
+spec@!opengl 2.0@attribs
+
+spec@arb_map_buffer_range@copybuffersubdata decrement-offset
+spec@arb_map_buffer_range@copybuffersubdata increment-offset
+spec@arb_map_buffer_range@copybuffersubdata offset=0
+spec@arb_texture_cube_map@copyteximage cube
+spec@arb_vertex_buffer_object@vbo-subdata-many drawarrays
+spec@arb_vertex_buffer_object@vbo-subdata-many drawelements
+spec@arb_vertex_buffer_object@vbo-subdata-many drawrangeelements
+spec@arb_vertex_type_2_10_10_10_rev@attribs
+
+spec@ext_framebuffer_multisample@accuracy all_samples depth_resolve small depthstencil
+spec@ext_gpu_shader4@tex-miplevel-selection gpu4texture() 2darray
+
+# GL_MAX_VARYING_FLOATS = 64
+# Probe color at (2,2)
+#   Expected: 0 255 0
+#   Observed: 255 255 255
+#   Failure with 1 vec4 varyings used in varying index 0
+shaders@glsl-max-varyings

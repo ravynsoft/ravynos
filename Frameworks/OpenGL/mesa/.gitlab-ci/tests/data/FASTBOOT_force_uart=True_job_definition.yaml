@@ -1,0 +1,96 @@
+job_name: 'test-project: my_pipeline_info'
+device_type: my_fastboot_device_type
+visibility:
+  group:
+  - my_visibility_group
+priority: 75
+context:
+  extra_nfsroot_args: ' init=/init rootwait usbcore.quirks=0bda:8153:k'
+timeouts:
+  job:
+    minutes: 10
+  actions:
+    depthcharge-retry:
+      minutes: 4
+    depthcharge-start:
+      minutes: 1
+    depthcharge-action:
+      minutes: 15
+actions:
+- deploy:
+    timeout:
+      minutes: 10
+    to: nfs
+    nfsrootfs:
+      url: None/lava-rootfs.tar.zst
+      compression: zstd
+- deploy:
+    timeout:
+      minutes: 5
+    to: downloads
+    os: oe
+    images:
+      kernel:
+        url: None/None
+      dtb:
+        url: None/my_dtb_filename.dtb
+    postprocess:
+      docker:
+        image: registry.gitlab.collabora.com/lava/health-check-docker
+        steps:
+        - cat Image.gz my_dtb_filename.dtb > Image.gz+dtb
+        - mkbootimg --kernel Image.gz+dtb --cmdline "root=/dev/nfs rw nfsroot=$NFS_SERVER_IP:$NFS_ROOTFS,tcp,hard
+          rootwait ip=dhcp init=/init" --pagesize 4096 --base 0x80000000 -o boot.img
+- deploy:
+    timeout:
+      minutes: 2
+    to: fastboot
+    docker:
+      image: registry.gitlab.collabora.com/lava/health-check-docker
+    images:
+      boot:
+        url: downloads://boot.img
+- boot:
+    timeout:
+      minutes: 2
+    docker:
+      image: registry.gitlab.collabora.com/lava/health-check-docker
+    failure_retry: 3
+    method: fastboot
+    prompts:
+    - 'lava-shell:'
+    commands:
+    - set_active a
+- test:
+    timeout:
+      minutes: 10
+    failure_retry: 1
+    definitions:
+    - name: mesa
+      from: inline
+      lava-signal: kmsg
+      path: inline/mesa.yaml
+      repository:
+        metadata:
+          name: mesa
+          description: Mesa test plan
+          os:
+          - oe
+          scope:
+          - functional
+          format: Lava-Test Test Definition 1.0
+        run:
+          steps:
+          - echo test FASTBOOT
+          - set -ex
+          - curl -L --retry 4 -f --retry-all-errors --retry-delay 60 None | tar -xz
+            -C /
+          - mkdir -p /ci/project/dir
+          - curl -L --retry 4 -f --retry-all-errors --retry-delay 60 None | tar --zstd
+            -x -C /ci/project/dir
+          - echo Could not find jwt file, disabling S3 requests...
+          - sed -i '/S3_RESULTS_UPLOAD/d' /set-job-env-vars.sh
+          - mkdir -p /ci/project/dir
+          - curl None | tar --zstd -x -C /ci/project/dir
+          - sleep 1
+          - lava-test-case 'test-project_dut' --shell /init-stage2.sh

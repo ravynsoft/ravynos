@@ -1,0 +1,105 @@
+Mesa 21.1.8 Release Notes / 2021-09-08
+======================================
+
+Mesa 21.1.8 is a bug fix release which fixes bugs found since the 21.1.7 release.
+
+Mesa 21.1.8 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 21.1.8 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    5cd32f5d089dca75300578a3d771a656eaed652090573a2655fe4e7022d56bfc  mesa-21.1.8.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- llvmpipe doesn't compile a valid shader with an useless switch
+- GetFragDataLocation(prog, "gl_FragColor") generates INVALID_OPERATION, but specs don't say it should
+- Possible miscompilation of a comparison with unsigned zero
+- dEQP-VK.wsi.android.swapchain.create#image_swapchain_create_info crash on Android R
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (1):
+
+- drm-shim: Support kernels with >4k pages
+
+Boris Brezillon (1):
+
+- panfrost: Fix pan_blitter_emit_bifrost_blend()
+
+Eric Engestrom (3):
+
+- .pick_status.json: Update to 8bb9e9e76fa1f062c8da9536e9ee209b2dc268f7
+- Revert "python: Explicitly add the 'L' suffix on Python 3"
+- isl: drop left-over comment
+
+Erik Faye-Lund (2):
+
+- gallium/nir/tgsi: fixup indentation
+- gallium/nir/tgsi: initialize file_max for inputs
+
+Ilia Mirkin (1):
+
+- mesa: don't return errors for gl_* GetFragData* queries
+
+Faith Ekstrand (1):
+
+- anv: Set CONTEXT_PARAM_RECOVERABLE to false
+
+Lionel Landwerlin (1):
+
+- anv/android: handle image bindings from gralloc buffers
+
+Mao, Marc (1):
+
+- iris: declare padding for iris_vue_prog_key
+
+Marcin Ślusarz (2):
+
+- nir/builder: invalidate metadata per function
+- glsl/opt_algebraic: disable invalid optimization
+
+Mike Blumenkrantz (1):
+
+- nir/lower_vectorize_tess_levels: set num_components for vectorized loads
+
+Roman Stratiienko (1):
+
+- lima: Implement lima_resource_get_param() callback
+
+Simon Ser (4):
+
+- etnaviv: add stride, offset and modifier to resource_get_param
+- panfrost: implement resource_get_param
+- vc4: implement resource_get_param
+- v3d: implement resource_get_param
+
+Timothy Arceri (1):
+
+- glsl: fix variable scope for instructions inside case statements
+
+Vinson Lee (2):
+
+- meson: Remove duplicate xvmc in build summary.
+- nir: Initialize evaluate_cube_face_index_amd dst.x.

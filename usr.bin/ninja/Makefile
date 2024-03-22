@@ -5,7 +5,7 @@
 
 all: build
 build:
-	cmake -S ${.CURDIR} -B ${MAKEOBJDIR}
+	cmake -S ${.CURDIR} -B ${MAKEOBJDIR} -DCMAKE_INSTALL_PREFIX=${PREFIX}
 	${MAKE} -C ${MAKEOBJDIR}
 	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install
 

@@ -1,0 +1,158 @@
+Mesa 18.1.8 Release Notes / September 7 2018
+============================================
+
+Mesa 18.1.8 is a bug fix release which fixes bugs found since the 18.1.7
+release.
+
+Mesa 18.1.8 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+SHA256 checksums
+----------------
+
+::
+
+   8ec62f215dd1bb3910987f9941c6fc31632a0874e618815cf1e8e29445c86e0a  mesa-18.1.8.tar.gz
+   bd1be67fe9c73b517765264ac28911c84144682d28dbff140e1c2deb2f44c21b  mesa-18.1.8.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 93355 <https://bugs.freedesktop.org/show_bug.cgi?id=93355>`__ -
+   [BXT,SKLGT4e] intermittent ext_framebuffer_multisample.accuracy fails
+-  `Bug 101247 <https://bugs.freedesktop.org/show_bug.cgi?id=101247>`__
+   - Mesa fails to link GLSL programs with unused output blocks
+-  `Bug 104809 <https://bugs.freedesktop.org/show_bug.cgi?id=104809>`__
+   - anv: DOOM 2016 and Wolfenstein II:The New Colossus crash due to not
+   having depthBoundsTest
+-  `Bug 105904 <https://bugs.freedesktop.org/show_bug.cgi?id=105904>`__
+   - Needed to delete mesa shader cache after driver upgrade for 32 bit
+   wine vulkan programs to work.
+-  `Bug 106738 <https://bugs.freedesktop.org/show_bug.cgi?id=106738>`__
+   - No test for miptrees with DRI modifiers
+-  `Bug 106865 <https://bugs.freedesktop.org/show_bug.cgi?id=106865>`__
+   - [GLK] piglit.spec.ext_framebuffer_multisample.accuracy stencil
+   tests fail
+-  `Bug 107359 <https://bugs.freedesktop.org/show_bug.cgi?id=107359>`__
+   - [Regression] [bisected] [OpenGL CTS] [SKL,BDW]
+   KHR-GL46.texture_barrier*-texels,
+   GTF-GL46.gtf21.GL2FixedTests.buffer_corners.buffer_corners, and
+   GTF-GL46.gtf21.GL2FixedTests.stencil_plane_corners.stencil_plane_corners
+   fail with some configuration
+-  `Bug 107477 <https://bugs.freedesktop.org/show_bug.cgi?id=107477>`__
+   - [DXVK] Setting high shader quality in GTA V results in LLVM error
+-  `Bug 107579 <https://bugs.freedesktop.org/show_bug.cgi?id=107579>`__
+   - [SNB] The graphic corruption when we reuse the GS compiled and used
+   for TFB when statebuffer contain magic trash in the unused space
+-  `Bug 107601 <https://bugs.freedesktop.org/show_bug.cgi?id=107601>`__
+   - Rise of the Tomb Raider Segmentation Fault when the game starts
+-  `Bug 107760 <https://bugs.freedesktop.org/show_bug.cgi?id=107760>`__
+   - GPU Hang when Playing DiRT 3 Complete Edition using Steam Play with
+   DXVK
+
+Changes
+-------
+
+Andrii Simiklit (1):
+
+-  i965/gen6/xfb: handle case where transform feedback is not active
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Add missing checks in radv_get_image_format_properties.
+-  radv: Fix CMASK dimensions.
+-  radv: Use a lower max offchip buffer count.
+
+Christian Gmeiner (1):
+
+-  tegra: fix memory leak
+
+Daniel Stone (1):
+
+-  st/dri: Don't expose sRGB formats to clients
+
+Dave Airlie (1):
+
+-  ac/radeonsi: fix CIK copy max size
+
+Dylan Baker (10):
+
+-  docs: Add mesa 18.1.7 notes
+-  cherry-ignore: add a patch
+-  cherry-ignore: Add more 18.2 only patches
+-  meson: Actually load translation files
+-  cherry-ignore: Add more 18.2 patches
+-  cherry-ignore: Add additional patch
+-  cherry-ignore: Add patch that doesn't apply to 18.1
+-  cherry-ignore: Add a couple of two fixes warning patches
+-  cherry-ignore: Add patch that needs more significant patches to
+   function
+-  Bump version to 18.1.8
+
+Emil Velikov (1):
+
+-  docs: update required mako version
+
+Grazvydas Ignotas (1):
+
+-  radv: place pointer length into cache uuid
+
+Gurchetan Singh (2):
+
+-  meson: fix egl build for surfaceless
+-  meson: fix egl build for android
+
+Ian Romanick (2):
+
+-  i965/vec4: Clamp indirect tes input array reads with 0x0fffffff
+-  i965/vec4: Correctly handle uniform sources in
+   generate_tes_add_indirect_urb_offset
+
+Faith Ekstrand (5):
+
+-  anv: Fill holes in the VF VUE to zero
+-  nir/algebraic: Be more careful converting ushr to extract_u8/16
+-  egl/dri2: Add a helper for the number of planes for a FOURCC format
+-  egl/dri2: Guard against invalid fourcc formats
+-  anv/blorp: Do more flushing around HiZ clears
+
+Juan A. Suarez Romero (1):
+
+-  egl/wayland: do not leak wl_buffer when it is locked
+
+Lionel Landwerlin (1):
+
+-  anv: blorp: support multiple aspect blits
+
+Marek Olšák (1):
+
+-  glapi: actually implement GL_EXT_robustness for GLES
+
+Nanley Chery (7):
+
+-  intel/isl: Avoid tiling some 16K-wide render targets
+-  i965: Make blt_pitch public
+-  i965/miptree: Drop an if case from retile_as_linear
+-  i965/miptree: Use the correct BLT pitch
+-  i965/miptree: Use miptree_map in map_blit functions
+-  i965/miptree: Fix can_blit_slice()
+-  i965/gen7_urb: Re-emit PUSH_CONSTANT_ALLOC on some gen9
+
+Samuel Pitoiset (1):
+
+-  radv: fix passing clip/cull distances from VS to PS
+
+vadym.shovkoplias (1):
+
+-  glsl/linker: Allow unused in blocks which are not declated on
+   previous stage

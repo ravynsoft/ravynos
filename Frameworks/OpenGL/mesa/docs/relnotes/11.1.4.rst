@@ -1,0 +1,147 @@
+Mesa 11.1.4 Release Notes / May 9, 2016
+=======================================
+
+Mesa 11.1.4 is a bug fix release which fixes bugs found since the 11.1.3
+release.
+
+Mesa 11.1.4 implements the OpenGL 4.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.1. OpenGL 4.1 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   034231fffb22621dadb8e4a968cb44752b8b68db7a2417568d63c275b3490cea  mesa-11.1.4.tar.gz
+   0f781e9072655305f576efd4204d183bf99ac8cb8d9e0dd9fc2b4093230a0eba  mesa-11.1.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 92850 <https://bugs.freedesktop.org/show_bug.cgi?id=92850>`__ -
+   Segfault loading War Thunder
+-  `Bug 93962 <https://bugs.freedesktop.org/show_bug.cgi?id=93962>`__ -
+   [HSW, regression, bisected, CTS]
+   ES2-CTS.gtf.GL2FixedTests.scissor.scissor - segfault/asserts
+-  `Bug 94955 <https://bugs.freedesktop.org/show_bug.cgi?id=94955>`__ -
+   Uninitialized variables leads to random segfaults (valgrind log,
+   apitrace attached)
+-  `Bug 94994 <https://bugs.freedesktop.org/show_bug.cgi?id=94994>`__ -
+   OSMesaGetProcAdress always fails on mangled OSMesa
+-  `Bug 95026 <https://bugs.freedesktop.org/show_bug.cgi?id=95026>`__ -
+   Alien Isolation segfault after initial loading screen/video
+-  `Bug 95133 <https://bugs.freedesktop.org/show_bug.cgi?id=95133>`__ -
+   X-COM Enemy Within crashes when entering tactical mission with
+   Bonaire
+
+Changes
+-------
+
+Brian Paul (1):
+
+-  gallium/util: initialize pipe_framebuffer_state to zeros
+
+Chad Versace (1):
+
+-  dri: Fix robust context creation via EGL attribute
+
+Egbert Eich (1):
+
+-  dri2: Check for dummyContext to see if the glx_context is valid
+
+Emil Velikov (5):
+
+-  docs: add sha256 checksums for 11.1.3
+-  cherry-ignore: add non-applicable "fix of a fix"
+-  cherry-ignore: ignore st_DrawAtlasBitmaps mem leak fix
+-  cherry-ignore: add CodeEmitterGK110::emitATOM() fix
+-  Update version to 11.1.4
+
+Eric Anholt (4):
+
+-  vc4: Fix subimage accesses to LT textures.
+-  vc4: Add support for rendering to cube map surfaces.
+-  vc4: Fix tests for format supported with nr_samples == 1.
+-  vc4: Make sure we recompile when sample_mask changes.
+
+Frederic Devernay (1):
+
+-  glapi: fix \_glapi_get_proc_address() for mangled function names
+
+Faith Ekstrand (2):
+
+-  i965/tiled_memcopy: Add aligned mem_copy parameters to the [de]tiling
+   functions
+-  i965/tiled_memcpy: Rework the RGBA -> BGRA mem_copy functions
+
+Jonathan Gray (1):
+
+-  egl/x11: authenticate before doing chipset id ioctls
+
+Jose Fonseca (1):
+
+-  winsys/sw/xlib: use correct free function for xlib_dt->data
+
+Leo Liu (1):
+
+-  radeon/uvd: fix tonga feedback buffer size
+
+Marek Olšák (2):
+
+-  drirc: add a workaround for blackness in Warsow
+-  st/mesa: fix blit-based GetTexImage for non-finalized textures
+
+Nicolai Hähnle (5):
+
+-  radeonsi: fix bounds check in si_create_vertex_elements
+-  gallium/radeon: handle failure when mapping staging buffer
+-  st/glsl_to_tgsi: reduce stack explosion in recursive expression
+   visitor
+-  gallium/radeon: fix crash in r600_set_streamout_targets
+-  radeonsi: correct NULL-pointer check in si_upload_const_buffer
+
+Oded Gabbay (4):
+
+-  r600g/radeonsi: send endian info to format translation functions
+-  r600g: set endianess of 16/32-bit buffers according to do_endian_swap
+-  r600g: use do_endian_swap in color swapping functions
+-  r600g: use do_endian_swap in texture swapping function
+
+Roland Scheidegger (3):
+
+-  llvmpipe: (trivial) initialize src1_alpha var to NULL
+-  gallivm: fix bogus argument order to lp_build_sample_mipmap function
+-  gallivm: make sampling more robust against bogus coordinates
+
+Samuel Pitoiset (5):
+
+-  gk110/ir: make use of IMUL32I for all immediates
+-  nvc0/ir: fix wrong emission of (a OP b) OP c
+-  gk110/ir: add emission for (a OP b) OP c
+-  nvc0: reduce GL_MAX_3D_TEXTURE_SIZE to 2048 on Kepler+
+-  st/glsl_to_tgsi: fix potential crash when allocating temporaries
+
+Stefan Dirsch (1):
+
+-  dri3: Check for dummyContext to see if the glx_context is valid
+
+Thomas Hindoe Paaboel Andersen (1):
+
+-  st/va: avoid dereference after free in vlVaDestroyImage
+
+WuZhen (3):
+
+-  tgsi: initialize stack allocated struct
+-  winsys/sw/dri: use correct free function for dri_sw_dt->data
+-  android: enable dlopen() on all architectures

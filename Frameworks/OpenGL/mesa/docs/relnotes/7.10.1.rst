@@ -1,0 +1,362 @@
+Mesa 7.10.1 Release Notes / March 2, 2011
+=========================================
+
+Mesa 7.10.1 is a bug fix release which fixes bugs found since the 7.10
+release.
+
+Mesa 7.10.1 implements the OpenGL 2.1 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 2.1.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   4b4cee19f3bf16eb78bd4cc278ccf812  MesaLib-7.10.1.tar.gz
+   efe8da4d80c2a5d32a800770b8ce5dfa  MesaLib-7.10.1.tar.bz2
+   0fd2b1a025934de3f8cecf9fb9b57f4c  MesaLib-7.10.1.zip
+   42beb0f5188d544476c19496f725fa67  MesaGLUT-7.10.1.tar.gz
+   637bb8a20fdad89f7382b4ea83f896e3  MesaGLUT-7.10.1.tar.bz2
+   bdbf3ffb2606d6aa8afabb6c6243b91b  MesaGLUT-7.10.1.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  Fix an off-by-one bug in a vsplit assertion.
+-  Fix incorrect handling of ``layout`` qualifier with ``in``, ``out``,
+   ``attribute``, and ``varying``.
+-  Fix an i965 shader bug where the negative absolute value was
+   generated instead of the absolute value of a negation.
+-  Fix numerous issues handling precision qualifiers in GLSL ES.
+-  Fixed a few GLX protocol encoder bugs (Julien Cristau)
+-  Assorted Gallium llvmpipe driver bug fixes
+-  Assorted Mesa/Gallium state tracker bug fixes
+-  `Bug 26795 <https://bugs.freedesktop.org/show_bug.cgi?id=26795>`__ -
+   gl_FragCoord off by one in Gallium drivers.
+-  `Bug 29164 <https://bugs.freedesktop.org/show_bug.cgi?id=29164>`__ -
+   [GLSL 1.20] invariant variable shouldn't be used before declaration
+-  `Bug 29823 <https://bugs.freedesktop.org/show_bug.cgi?id=29823>`__ -
+   GetUniform[if]v busted
+-  `Bug 29927 <https://bugs.freedesktop.org/show_bug.cgi?id=29927>`__ -
+   [glsl2] fail to compile shader with constructor for array of struct
+   type
+-  `Bug 30156 <https://bugs.freedesktop.org/show_bug.cgi?id=30156>`__ -
+   [i965] After updating to Mesa 7.9, Civilization IV starts to show
+   garbage
+-  `Bug 31923 <https://bugs.freedesktop.org/show_bug.cgi?id=31923>`__ -
+   [GLSL 1.20] allowing inconsistent centroid declaration between two
+   vertex shaders
+-  `Bug 31925 <https://bugs.freedesktop.org/show_bug.cgi?id=31925>`__ -
+   [GLSL 1.20] "#pragma STDGL invariant(all)" fail
+-  `Bug 32214 <https://bugs.freedesktop.org/show_bug.cgi?id=32214>`__ -
+   [gles2]no link error happens when missing vertex shader or frag
+   shader
+-  `Bug 32375 <https://bugs.freedesktop.org/show_bug.cgi?id=32375>`__ -
+   [gl gles2] Not able to get the attribute by function
+   glGetVertexAttribfv
+-  `Bug 32541 <https://bugs.freedesktop.org/show_bug.cgi?id=32541>`__ -
+   Segmentation Fault while running an HDR (high dynamic range)
+   rendering demo
+-  `Bug 32569 <https://bugs.freedesktop.org/show_bug.cgi?id=32569>`__ -
+   [gles2] glGetShaderPrecisionFormat not implemented yet
+-  `Bug 32695 <https://bugs.freedesktop.org/show_bug.cgi?id=32695>`__ -
+   [glsl] SIGSEGV glcpp/glcpp-parse.y:833
+-  `Bug 32831 <https://bugs.freedesktop.org/show_bug.cgi?id=32831>`__ -
+   [glsl] division by zero crashes GLSL compiler
+-  `Bug 32910 <https://bugs.freedesktop.org/show_bug.cgi?id=32910>`__ -
+   Keywords 'in' and 'out' not handled properly for GLSL 1.20 shaders
+-  `Bug 33219 <https://bugs.freedesktop.org/show_bug.cgi?id=33219>`__
+   -[GLSL bisected] implicit sized array triggers segfault in
+   ir_to_mesa_visitor::copy_propagate
+-  `Bug 33306 <https://bugs.freedesktop.org/show_bug.cgi?id=33306>`__ -
+   GLSL integer division by zero crashes GLSL compiler
+-  `Bug 33308 <https://bugs.freedesktop.org/show_bug.cgi?id=33308>`__
+   -[glsl] ast_to_hir.cpp:3016: virtual ir_rvalue\*
+   ast_jump_statement::hir(exec_list*, \_mesa_glsl_parse_state*):
+   Assertion \`ret != \__null' failed.
+-  `Bug 33316 <https://bugs.freedesktop.org/show_bug.cgi?id=33316>`__ -
+   uniform array will be allocate one line more and initialize it when
+   it was freed will abort
+-  `Bug 33386 <https://bugs.freedesktop.org/show_bug.cgi?id=33386>`__ -
+   Dubious assembler in read_rgba_span_x86.S
+-  `Bug 33388 <https://bugs.freedesktop.org/show_bug.cgi?id=33388>`__ -
+   Dubious assembler in xform4.S
+-  `Bug 33433 <https://bugs.freedesktop.org/show_bug.cgi?id=33433>`__ -
+   Error in x86-64 API dispatch code.
+-  `Bug 33507 <https://bugs.freedesktop.org/show_bug.cgi?id=33507>`__ -
+   [glsl] GLSL preprocessor modulus by zero crash
+-  `Bug 33508 <https://bugs.freedesktop.org/show_bug.cgi?id=33508>`__ -
+   [glsl] GLSL compiler modulus by zero crash
+-  `Bug 33916 <https://bugs.freedesktop.org/show_bug.cgi?id=33916>`__ -
+   Compiler accepts reserved operators % and %=
+-  `Bug 34030 <https://bugs.freedesktop.org/show_bug.cgi?id=34030>`__ -
+   [bisected] Starcraft 2: some effects are corrupted or too big
+-  `Bug 34047 <https://bugs.freedesktop.org/show_bug.cgi?id=34047>`__ -
+   Assert in \_tnl_import_array() when using GLfixed vertex datatypes
+   with GLESv2
+-  `Bug 34114 <https://bugs.freedesktop.org/show_bug.cgi?id=34114>`__ -
+   Sun Studio build fails due to standard library functions not being in
+   global namespace
+-  `Bug 34179 <https://bugs.freedesktop.org/show_bug.cgi?id=34179>`__ -
+   Nouveau 3D driver: nv50_pc_emit.c:863 assertion error kills Compiz
+-  `Bug 34198 <https://bugs.freedesktop.org/show_bug.cgi?id=34198>`__ -
+   [GLSL] implicit sized array with index 0 used gets assertion
+-  `Ubuntu bug
+   691653 <https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/691653>`__
+   - compiz crashes when using alt-tab (the radeon driver kills it)
+-  Meego bug 13005 -
+   Graphics GLSL issue lead to camera preview fail on Pinetrail
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-7.10..mesa-7.10.1
+
+Alberto Milone (1):
+
+-  r600c: add evergreen ARL support.
+
+Brian Paul (21):
+
+-  draw: Fix an off-by-one bug in a vsplit assertion.
+-  docs: add links to 7.9.1 and 7.10 release notes
+-  docs: added news item for 7.9.1 and 7.10 release
+-  gallivm: work around LLVM 2.6 bug when calling C functions
+-  gallivm: fix copy&paste error from previous commit
+-  mesa: fix a few format table mistakes, assertions
+-  mesa: fix num_draw_buffers==0 in fixed-function fragment program
+   generation
+-  mesa: don't assert in GetIntegerIndexed, etc
+-  mesa: check for dummy renderbuffer in
+   \_mesa_FramebufferRenderbufferEXT()
+-  llvmpipe: make sure binning is active when we begin/end a query
+-  st/mesa: fix incorrect fragcoord.x translation
+-  softpipe: fix off-by-one error in setup_fragcoord_coeff()
+-  cso: fix loop bound in cso_set_vertex_samplers()
+-  st/mesa: fix incorrect glCopyPixels position on fallback path
+-  st/mesa: set renderbuffer \_BaseFormat in a few places
+-  st/mesa: fix the default case in st_format_datatype()
+-  st/mesa: need to translate clear color according to surface's base
+   format
+-  docs: update 7.9.2 release notes with Brian's cherry-picks
+-  docs: add link to 7.10.1 release notes
+-  mesa: implement glGetShaderPrecisionFormat()
+-  docs: updated environment variable list
+
+Bryce Harrington (1):
+
+-  r300g: Null pointer check for buffer deref in gallium winsys
+
+Chad Versace (20):
+
+-  glsl: At link-time, check that globals have matching centroid
+   qualifiers
+-  glcpp: Fix segfault when validating macro redefinitions
+-  glsl: Fix parser rule for type_specifier
+-  glsl: Change default value of ast_type_specifier::precision
+-  glsl: Add semantic checks for precision qualifiers
+-  glsl: Add support for default precision statements
+-  glsl: Remove redundant semantic check in parser
+-  glsl: Fix semantic checks on precision qualifiers
+-  glsl: Fix segfault due to missing printf argument
+-  glsl: Mark 'in' variables at global scope as read-only
+-  mesa: Refactor handling of extension strings
+-  mesa: Add/remove extensions in extension string
+-  mesa: Change dependencies of some OES extension strings
+-  mesa: Change OES_point_sprite to depend on ARB_point_sprite
+-  mesa: Change OES_standard_derivatives to be stand-alone extension
+-  i915: Disable extension OES_standard_derivatives
+-  glcpp: Raise error when modulus is zero
+-  glsl: Set operators '%' and '%=' to be reserved when GLSL < 1.30
+-  glsl: Reinstate constant-folding for division by zero
+-  tnl: Add support for datatype GL_FIXED in vertex arrays
+
+Chia-I Wu (1):
+
+-  mesa: Add glDepthRangef and glClearDepthf to APIspec.xml.
+
+Christoph Bumiller (1):
+
+-  nv50,nvc0: do not forget to apply sign mode to saved TGSI inputs
+
+Cyril Brulebois (1):
+
+-  Point to bugs.freedesktop.org rather than bugzilla.freedesktop.org
+
+Dave Airlie (3):
+
+-  radeon/r200: fix fbo-clearmipmap + gen-teximage
+-  radeon: calculate complete texture state inside TFP function
+-  radeon: avoid segfault on 3D textures.
+
+Dimitry Andric (4):
+
+-  mesa: s/movzx/movzbl/
+-  mesa: s/movzxw/movzwl/ in read_rgba_span_x86.S
+-  glapi: adding @ char before type specifier in glapi_x86.S
+-  glapi: add @GOTPCREL relocation type
+
+Eric Anholt (16):
+
+-  glsl: Fix the lowering of variable array indexing to not lose
+   write_masks.
+-  i965/fs: When producing ir_unop_abs of an operand, strip negate.
+-  i965/vs: When MOVing to produce ABS, strip negate of the operand.
+-  i965/fs: Do flat shading when appropriate.
+-  i965: Avoid double-negation of immediate values in the VS.
+-  intel: Make renderbuffer tiling choice match texture tiling choice.
+-  i965: Fix dead pointers to fp->Parameters->ParameterValues[] after
+   realloc.
+-  docs: Add a relnote for the Civ IV on i965.
+-  glapi: Add entrypoints and enums for GL_ARB_ES2_compatibility.
+-  mesa: Add extension enable bit for GL_ARB_ES2_compatibility.
+-  mesa: Add actual support for glReleaseShaderCompiler from ES2.
+-  mesa: Add support for glDepthRangef and glClearDepthf.
+-  mesa: Add getters for ARB_ES2_compatibility MAX_*_VECTORS.
+-  mesa: Add getter for GL_SHADER_COMPILER with ARB_ES2_compatibility.
+-  i965: Fix a bug in i965 compute-to-MRF.
+-  i965/fs: Add a helper function for detecting math opcodes.
+
+Fredrik Höglund (1):
+
+-  st/mesa: fix a regression from cae2bb76
+
+Ian Romanick (42):
+
+-  docs: Add 7.10 md5sums
+-  glsl: Support the 'invariant(all)' pragma
+-  glcpp: Generate an error for division by zero
+-  glsl: Add version_string containing properly formatted GLSL version
+-  glsl & glcpp: Refresh autogenerated lexer and parser files.
+-  glsl: Disallow 'in' and 'out' on globals in GLSL 1.20
+-  glsl: Track variable usage, use that to enforce semantics
+-  glsl: Allow 'in' and 'out' when 'layout' is also available
+-  docs: Initial bits of 7.10.1 release notes
+-  mesa: bump version to 7.10.1-devel
+-  doc: Update 7.10.1 release notes
+-  glsl: Emit errors or warnings when 'layout' is used with 'attribute'
+   or 'varying'
+-  docs: Update 7.10.1 release notes
+-  glsl: Refresh autogenerated lexer and parser files.
+-  glsl: Don't assert when the value returned by a function has no
+   rvalue
+-  linker: Set sizes for non-global arrays as well
+-  linker: Propagate max_array_access while linking functions
+-  docs: Update 7.10.1 release notes
+-  mesa: glGetUniform only returns a single element of an array
+-  linker: Generate link errors when ES shaders are missing stages
+-  mesa: Fix error checks in GetVertexAttrib functions
+-  Use C-style system headers in C++ code to avoid issues with std::
+   namespace
+-  docs: Update 7.10.1 release notes
+-  glapi: Regenerate for GL_ARB_ES2_compatibility.
+-  mesa: Connect glGetShaderPrecisionFormat into the dispatch table
+-  i965: Set correct values for range/precision of fragment shader types
+-  i915: Set correct values for range/precision of fragment shader types
+-  intel: Fix typeos from 3d028024 and 790ff232
+-  glsl: Ensure that all GLSL versions are supported in the stand-alone
+   compiler
+-  glsl: Reject shader versions not supported by the implementation
+-  mesa: Initial size for secondary color array is 3
+-  glsl: Finish out the reduce/reduce error fixes
+-  glsl: Regenerate compiler and glcpp files from cherry picks
+-  linker: Fix off-by-one error implicit array sizing
+-  docs: update 7.10.1 release notes with Ian's recent cherry picks
+-  i915: Only mark a register as available if all components are written
+-  i915: Calculate partial result to temp register first
+-  i915: Force lowering of all types of indirect array accesses in the
+   FS
+-  docs: Update 7.10.1 with (hopefully) the last of the cherry picks
+-  docs: Clean up bug fixes list
+-  intel: Remove driver date and related bits from renderer string
+-  mesa: set version string to 7.10.1 (final)
+
+Jian Zhao (1):
+
+-  mesa: fix an error in uniform arrays in row calculating.
+
+Julien Cristau (3):
+
+-  glx: fix request lengths
+-  glx: fix GLXChangeDrawableAttributesSGIX request
+-  glx: fix length of GLXGetFBConfigsSGIX
+
+Keith Packard (1):
+
+-  glsl: Eliminate reduce/reduce conflicts in glsl grammar
+
+Kenneth Graunke (20):
+
+-  glsl: Expose a public glsl_type::void_type const pointer.
+-  glsl: Don't bother unsetting a destructor that was never set.
+-  glsl, i965: Remove unnecessary talloc includes.
+-  glcpp: Remove use of talloc reference counting.
+-  ralloc: Add a fake implementation of ralloc based on talloc.
+-  Convert everything from the talloc API to the ralloc API.
+-  ralloc: a new MIT-licensed recursive memory allocator.
+-  Remove talloc from the make and automake build systems.
+-  Remove talloc from the SCons build system.
+-  Remove the talloc sources from the Mesa repository.
+-  glsl: Fix use of uninitialized values in \_mesa_glsl_parse_state
+   ctor.
+-  i965/fs: Apply source modifier workarounds to POW as well.
+-  i965: Fix shaders that write to gl_PointSize on Sandybridge.
+-  i965/fs: Avoid register coalescing away gen6 MATH workarounds.
+-  i965/fs: Correctly set up gl_FragCoord.w on Sandybridge.
+-  i965: Increase Sandybridge point size clamp.
+-  i965/fs: Refactor control flow stack handling.
+-  i965: Increase Sandybridge point size clamp in the clip state.
+-  glsl: Use reralloc instead of plain realloc.
+-  Revert "i965/fs: Correctly set up gl_FragCoord.w on Sandybridge."
+
+Marek Olšák (4):
+
+-  docs: fix messed up names with special characters in relnotes-7.10
+-  docs: fix messed up names with special characters in relnotes-7.9.1
+-  mesa: fix texture3D mipmap generation for UNSIGNED_BYTE_3_3_2
+-  st/dri: Track drawable context bindings
+
+Paulo Zanoni (1):
+
+-  dri_util: fail driCreateNewScreen if InitScreen is NULL
+
+Sam Hocevar (2):
+
+-  docs: add glsl info
+-  docs: fix glsl_compiler name
+
+Tom Fogal (1):
+
+-  Regenerate gl_mangle.h.
+
+Tom Stellard (2):
+
+-  r300/compiler: Disable register rename pass on r500
+-  r300/compiler: Don't erase sources when converting RGB->Alpha
+
+Vinson Lee (3):
+
+-  ralloc: Add missing va_end following va_copy.
+-  mesa: Move declaration before code in extensions.c.
+-  mesa: Move loop variable declarations outside for loop in
+   extensions.c.
+
+nobled (1):
+
+-  glx: Put null check before use

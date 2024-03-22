@@ -1,0 +1,24 @@
+/* NVC0_CP_MACRO_LAUNCH_GRID_INDIRECT
+ *
+ * arg     = num_groups_x
+ * parm[0] = num_groups_y
+ * parm[1] = num_groups_z
+ */
+.section #mme90c0_launch_grid_indirect
+   parm $r2 maddr 0x108e /* GRIDDIM_YX */
+   braz $r1 #fail
+   parm $r3
+   braz annul $r2 #fail
+   braz annul $r3 #fail
+   send (extrinsrt $r1 $r2 0x0 0x10 0x10) /* num_groups_y << 16 | num_groups_x */
+   send $r3
+   maddrsend 0xa7 /* COMPUTE_BEGIN */
+   maddrsend 0x282 /* UNKA08 */
+   maddr 0xda /* LAUNCH */
+   send 0x1000
+   maddrsend 0x281 /* COMPUTE_END */
+   exit maddr 0xd8 /* UNK360 */
+   send 0x1
+fail:
+   exit
+   nop

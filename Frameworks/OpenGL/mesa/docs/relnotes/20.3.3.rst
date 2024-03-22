@@ -1,0 +1,133 @@
+Mesa 20.3.3 Release Notes / 2021-01-13
+======================================
+
+Mesa 20.3.3 is a bug fix release which fixes bugs found since the 20.3.2 release.
+
+Mesa 20.3.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.3.3 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    f74e212d4838e982a10c203ffa998817d1855c5cf448ae87b58f96edea61d156  mesa-20.3.3.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- \[RADV/ACO/SIENNA_CICHLID\] Into the game Shadow of the Tomb Raider the flickering artifacts are present on brushes.
+- DOOM crashes on startup with OpenGL on RX 6800
+- Space Engineers rendering regression after 5f79e4e6 which triggers incorrect optimizations from 053be9f0
+- star conflict crashes on iris, but loads fine on i965, on HD 5500
+
+
+Changes
+-------
+
+Andrii Simiklit (1):
+
+- st/mesa: don't affect original st_CompressedTexSubImage parameters
+
+Bas Nieuwenhuizen (3):
+
+- radv/winsys: Fix inequality for sparse buffer remapping.
+- radv/winsys: Fix offset in range merging.
+- radv: Add Android module info to linker script.
+
+Danylo Piliaiev (2):
+
+- nir: account for point-coord origin when lowering it
+- nir: fix missing nir_lower_pntc_ytransform.c in the makefile
+
+Dylan Baker (6):
+
+- docs: Add sha256 sum for 20.3.2
+- .pick_status.json: Update to 9ef2c44ce682b7981bd7a68c65f338f1e33bb001
+- .pick_status.json: Update to b2d000513e4a9b06d3b073913741dae47a00526e
+- .pick_status.json: Update to 96ceca33c1dd69a1feed13b0e19bfc38e6f7d979
+- .pick_status.json: Update to d9c8422c4168c7433f68b97065283ebf26631d56
+- .pick_status.json: Mark 52b6adfbfb51a3b1a54964cbcb2adb0299d1252b as backported
+
+Eric Anholt (4):
+
+- gallium/draw: Fix intermittent failure to bind new geometry shaders.
+- gallium/ntt: Fix emitting UBO declarations.
+- gallium/ntt: Fix leak of the per-instr liveness information.
+- mesa/st: Free the NIR builtins TGSI tokens after passing to the driver.
+
+Erik Faye-Lund (2):
+
+- gallium/util: do not perform n^2 stencil blits
+- zink: dot leak dummy_buffer
+
+Georg Lehmann (2):
+
+- vulkan/device-select: fix vkGetInstanceProcAddr self-resolving
+- vulkan/overlay: fix vkGetInstanceProcAddr self-resolving
+
+Ian Romanick (3):
+
+- spir-v: Mark floating point comparisons exact
+- Revert "nir: Replace an odd comparison involving fmin of -b2f"
+- nir/algebraic: Fix broken NaN and -0.0 behavior
+
+Icecream95 (1):
+
+- pan/mdg: Fix promoted uniform moves with 64-bit types
+
+James Park (1):
+
+- util: Disable memstream for Apple builds
+
+Marek Olšák (2):
+
+- st/mesa: don't do glCopyPixels via blit if depth bounds test is enabled
+- util: add AMD CPU family enums and enable L3 cache pinning on Zen3
+
+Marek Vasut (1):
+
+- etnaviv: Fix rework ZSA into a derived state
+
+Pavel Asyutchenko (1):
+
+- vulkan/overay: fix violation of VUID-VkDeviceCreateInfo-pNext-00373
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- drirc: radeonsi workaround for CS:GO
+
+Rhys Perry (6):
+
+- aco: fix incorrect address calculation for load_barycentric_at_sample
+- ac/nir: use llvm.readcyclecounter for LLVM9+
+- nir/load_store_vectorize: don't ignore subgroup memory barriers
+- aco: fix unreachable() for uniform 8/16-bit nir_op_mov from VGPR
+- radv: add RADV_DEBUG=invariantgeom
+- radv: set invariantgeom for Shadow of the Tomb Raider
+
+Samuel Pitoiset (4):
+
+- nir: fix determining if an addition might overflow for phi sources
+- radv: disable TC-compat HTILE in GENERAL for Detroit: Become Human
+- aco: fix creating the dest vector when 16-bit vertex fetches are splitted
+- radv/llvm,aco: always split typed vertex buffer loads on GFX6 and GFX10+
+
+nia (1):
+
+- util: Avoid pthread_setaffinity_np on NetBSD

@@ -1,0 +1,113 @@
+The definitive source for enum values and reserved ranges are the XML files in
+the Khronos registry:
+
+    https://github.com/KhronosGroup/EGL-Registry/blob/master/api/egl.xml
+    https://github.com/KhronosGroup/OpenGL-Registry/blob/master/xml/gl.xml
+    https://github.com/KhronosGroup/OpenGL-Registry/blob/master/xml/glx.xml
+    https://github.com/KhronosGroup/OpenGL-Registry/blob/master/xml/wgl.xml
+
+GL blocks allocated to Mesa:
+       0x8750-0x875F
+       0x8BB0-0x8BBF
+
+Unused EGL blocks allocated to Mesa:
+       0x3290-0x329F
+
+GL_MESA_packed_depth_stencil
+	GL_DEPTH_STENCIL_MESA            0x8750
+	GL_UNSIGNED_INT_24_8_MESA        0x8751
+	GL_UNSIGNED_INT_8_24_REV_MESA    0x8752
+	GL_UNSIGNED_SHORT_15_1_MESA      0x8753
+	GL_UNSIGNED_SHORT_1_15_REV_MESA  0x8754
+
+GL_MESA_trace:
+	GL_TRACE_ALL_BITS_MESA           0xFFFF
+	GL_TRACE_OPERATIONS_BIT_MESA     0x0001
+	GL_TRACE_PRIMITIVES_BIT_MESA     0x0002
+	GL_TRACE_ARRAYS_BIT_MESA         0x0004
+	GL_TRACE_TEXTURES_BIT_MESA       0x0008
+	GL_TRACE_PIXELS_BIT_MESA         0x0010
+	GL_TRACE_ERRORS_BIT_MESA         0x0020
+	GL_TRACE_MASK_MESA               0x8755
+	GL_TRACE_NAME_MESA               0x8756
+
+GL_MESA_ycbcr_texture:
+	GL_YCBCR_MESA                    0x8757
+	GL_UNSIGNED_SHORT_8_8_MESA       0x85BA /* same as Apple's */
+	GL_UNSIGNED_SHORT_8_8_REV_MESA   0x85BB /* same as Apple's */
+
+GL_MESA_pack_invert:
+	GL_PACK_INVERT_MESA              0x8758
+
+GL_MESA_shader_debug.spec: (obsolete)
+        GL_DEBUG_OBJECT_MESA             0x8759
+        GL_DEBUG_PRINT_MESA              0x875A
+        GL_DEBUG_ASSERT_MESA             0x875B
+
+GL_MESA_program_debug: (obsolete)
+        GL_FRAGMENT_PROGRAM_POSITION_MESA       0x8BB0
+        GL_FRAGMENT_PROGRAM_CALLBACK_MESA       0x8BB1
+        GL_FRAGMENT_PROGRAM_CALLBACK_FUNC_MESA  0x8BB2
+        GL_FRAGMENT_PROGRAM_CALLBACK_DATA_MESA  0x8BB3
+        GL_VERTEX_PROGRAM_POSITION_MESA         0x8BB4
+        GL_VERTEX_PROGRAM_CALLBACK_MESA         0x8BB5
+        GL_VERTEX_PROGRAM_CALLBACK_FUNC_MESA    0x8BB6
+        GL_VERTEX_PROGRAM_CALLBACK_DATA_MESA    0x8BB7
+
+GL_MESAX_texture_stack:
+	GL_TEXTURE_1D_STACK_MESAX            0x8759
+	GL_TEXTURE_2D_STACK_MESAX            0x875A
+	GL_PROXY_TEXTURE_1D_STACK_MESAX      0x875B
+	GL_PROXY_TEXTURE_2D_STACK_MESAX      0x875C
+	GL_TEXTURE_1D_STACK_BINDING_MESAX    0x875D
+	GL_TEXTURE_2D_STACK_BINDING_MESAX    0x875E
+
+GL_MESA_program_binary_formats:
+        GL_PROGRAM_BINARY_FORMAT_MESA           0x875F
+
+GL_MESA_tile_raster_order
+	GL_TILE_RASTER_ORDER_FIXED_MESA		0x8BB8
+	GL_TILE_RASTER_ORDER_INCREASING_X_MESA	0x8BB9
+	GL_TILE_RASTER_ORDER_INCREASING_Y_MESA	0x8BBA
+
+GL_MESA_framebuffer_flip_y
+	GL_FRAMEBUFFER_FLIP_Y_MESA           0x8BBB
+
+GL_MESA_texture_const_bandwidth
+	GL_CONST_BW_TILING_MESA                 0x8BBE
+
+EGL_MESA_drm_image
+        EGL_DRM_BUFFER_FORMAT_MESA		0x31D0
+        EGL_DRM_BUFFER_USE_MESA			0x31D1
+        EGL_DRM_BUFFER_FORMAT_ARGB32_MESA	0x31D2
+        EGL_DRM_BUFFER_MESA			0x31D3
+        EGL_DRM_BUFFER_STRIDE_MESA		0x31D4
+
+EGL_MESA_platform_gbm
+        EGL_PLATFORM_GBM_MESA                   0x31D7
+
+EGL_MESA_platform_surfaceless
+        EGL_PLATFORM_SURFACELESS_MESA           0x31DD
+
+EGL_MESA_drm_image
+        EGL_DRM_BUFFER_FORMAT_ARGB2101010_MESA  0x3290
+        EGL_DRM_BUFFER_FORMAT_ARGB1555_MESA     0x3291
+        EGL_DRM_BUFFER_FORMAT_RGB565_MESA       0x3292
+
+EGL_WL_bind_wayland_display
+        EGL_TEXTURE_FORMAT                      0x3080
+        EGL_WAYLAND_BUFFER_WL                   0x31D5
+        EGL_WAYLAND_PLANE_WL                    0x31D6
+        EGL_TEXTURE_Y_U_V_WL                    0x31D7
+        EGL_TEXTURE_Y_UV_WL                     0x31D8
+        EGL_TEXTURE_Y_XUXV_WL                   0x31D9
+        EGL_WAYLAND_Y_INVERTED_WL               0x31DB
+
+EGL_EXT_platform_xcb
+
+        EGL_PLATFORM_XCB_EXT                    0x31DC
+        EGL_PLATFORM_XCB_SCREEN_EXT             0x31DE
+
+EGL_EXT_present_opaque
+
+        EGL_PRESENT_OPAQUE_EXT                  0x31DF

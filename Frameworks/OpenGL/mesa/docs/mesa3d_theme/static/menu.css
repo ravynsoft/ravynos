@@ -1,0 +1,76 @@
+#menu {
+  height: max-content;
+}
+
+#menu .caption {
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+#menu a {
+  color: inherit;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block;
+  text-decoration: none;
+}
+
+#menu a[href^="#"] {
+  color: var(--bs-secondary-color);
+}
+
+#menu .caption,
+#menu li {
+  margin-top: 0.25rem;
+}
+
+#menu .caption-text,
+#menu li.current {
+  font-weight: bold;
+}
+
+#menu li.current > a {
+  color: var(--bs-body-color)
+}
+
+#menu li.current li {
+  font-weight: initial;
+}
+
+#menu ul {
+  list-style-type: none;
+  padding-left: 0;
+  padding-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#menu ul:last-of-type {
+  margin-bottom: 0;
+}
+
+#menu p.caption::after {
+  display: block;
+  content: '';
+  clear: both;
+}
+
+#menu .collapse-icon .caption-text:after {
+  content: ' ';
+  float: right;
+  display: block;
+  background-image: url('chevron-up.svg');
+  background-size: 1.5em 1.5em;
+  opacity: 0.25;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  #menu .collapse-icon .caption-text:after {
+    transition: transform 0.2s;
+  }
+}
+
+#menu .collapse-icon.collapsed .caption-text:after {
+  transform: rotate(180deg);
+}

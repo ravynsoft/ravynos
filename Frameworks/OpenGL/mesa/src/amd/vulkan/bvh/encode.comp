@@ -1,0 +1,209 @@
+/*
+ * Copyright © 2022 Friedrich Vock
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+
+#extension GL_EXT_shader_explicit_arithmetic_types_int8 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int16 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int32 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference2 : require
+#extension GL_KHR_memory_scope_semantics : require
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+#include "build_helpers.h"
+#include "build_interface.h"
+
+layout(push_constant) uniform CONSTS {
+   encode_args args;
+};
+
+void set_parent(uint32_t child, uint32_t parent)
+{
+   uint64_t addr = args.output_bvh - child / 8 * 4 - 4;
+   DEREF(REF(uint32_t)(addr)) = parent;
+}
+
+void
+main()
+{
+   /* Revert the order so we start at the root */
+   uint32_t global_id = DEREF(args.header).ir_internal_node_count - 1 - gl_GlobalInvocationID.x;
+
+   uint32_t output_leaf_node_size;
+   switch (args.geometry_type) {
+   case VK_GEOMETRY_TYPE_TRIANGLES_KHR:
+      output_leaf_node_size = SIZEOF(radv_bvh_triangle_node);
+      break;
+   case VK_GEOMETRY_TYPE_AABBS_KHR:
+      output_leaf_node_size = SIZEOF(radv_bvh_aabb_node);
+      break;
+   default: /* instances */
+      output_leaf_node_size = SIZEOF(radv_bvh_instance_node);
+      break;
+   }
+
+   uint32_t intermediate_leaf_nodes_size = args.leaf_node_count * SIZEOF(radv_ir_node);
+   uint32_t dst_leaf_offset =
+      id_to_offset(RADV_BVH_ROOT_NODE) + SIZEOF(radv_bvh_box32_node);
+   uint32_t dst_internal_offset = dst_leaf_offset + args.leaf_node_count * output_leaf_node_size;
+
+   REF(radv_ir_box_node) intermediate_internal_nodes =
+      REF(radv_ir_box_node)OFFSET(args.intermediate_bvh, intermediate_leaf_nodes_size);
+   REF(radv_ir_box_node) src_node = INDEX(radv_ir_box_node, intermediate_internal_nodes, global_id);
+   radv_ir_box_node src = DEREF(src_node);
+
+   bool is_root_node = global_id == DEREF(args.header).ir_internal_node_count - 1;
+
+   for (;;) {
+      /* Make changes to the current node's BVH offset value visible. */
+      memoryBarrier(gl_ScopeDevice, gl_StorageSemanticsBuffer,
+                    gl_SemanticsAcquireRelease | gl_SemanticsMakeAvailable | gl_SemanticsMakeVisible);
+
+      uint32_t bvh_offset = is_root_node ? id_to_offset(RADV_BVH_ROOT_NODE) : DEREF(src_node).bvh_offset;
+      if (bvh_offset == RADV_UNKNOWN_BVH_OFFSET)
+         continue;
+
+      if (bvh_offset == RADV_NULL_BVH_OFFSET)
+         break;
+
+      REF(radv_bvh_box32_node) dst_node = REF(radv_bvh_box32_node)(OFFSET(args.output_bvh, bvh_offset));
+      uint32_t node_id = pack_node_id(bvh_offset, radv_bvh_node_box32);
+
+      uint32_t found_child_count = 0;
+      uint32_t children[4] = {RADV_BVH_INVALID_NODE, RADV_BVH_INVALID_NODE,
+                              RADV_BVH_INVALID_NODE, RADV_BVH_INVALID_NODE};
+
+      for (uint32_t i = 0; i < 2; ++i)
+         if (src.children[i] != RADV_BVH_INVALID_NODE)
+            children[found_child_count++] = src.children[i];
+
+      while (found_child_count < 4) {
+         int32_t collapsed_child_index = -1;
+         float largest_surface_area = -INFINITY;
+
+         for (int32_t i = 0; i < found_child_count; ++i) {
+            if (ir_id_to_type(children[i]) != radv_ir_node_internal)
+               continue;
+
+            radv_aabb bounds =
+               DEREF(REF(radv_ir_node)OFFSET(args.intermediate_bvh,
+                                             ir_id_to_offset(children[i]))).aabb;
+
+            float surface_area = aabb_surface_area(bounds);
+            if (surface_area > largest_surface_area) {
+               largest_surface_area = surface_area;
+               collapsed_child_index = i;
+            }
+         }
+
+         if (collapsed_child_index != -1) {
+            REF(radv_ir_box_node) child_node =
+               REF(radv_ir_box_node)OFFSET(args.intermediate_bvh,
+                                        ir_id_to_offset(children[collapsed_child_index]));
+            uint32_t grandchildren[2] = DEREF(child_node).children;
+            uint32_t valid_grandchild_count = 0;
+
+            if (grandchildren[1] != RADV_BVH_INVALID_NODE)
+               ++valid_grandchild_count;
+
+            if (grandchildren[0] != RADV_BVH_INVALID_NODE)
+               ++valid_grandchild_count;
+            else
+               grandchildren[0] = grandchildren[1];
+
+            if (valid_grandchild_count > 1)
+               children[found_child_count++] = grandchildren[1];
+
+            if (valid_grandchild_count > 0)
+               children[collapsed_child_index] = grandchildren[0];
+            else {
+               found_child_count--;
+               children[collapsed_child_index] = children[found_child_count];
+            }
+
+            DEREF(child_node).bvh_offset = RADV_NULL_BVH_OFFSET;
+         } else
+            break;
+      }
+
+      for (uint32_t i = 0; i < found_child_count; ++i) {
+         uint32_t type = ir_id_to_type(children[i]);
+         uint32_t offset = ir_id_to_offset(children[i]);
+         uint32_t dst_offset;
+
+         if (type == radv_ir_node_internal) {
+#if COMPACT
+            dst_offset = atomicAdd(DEREF(args.header).dst_node_offset, SIZEOF(radv_bvh_box32_node));
+#else
+            uint32_t offset_in_internal_nodes = offset - intermediate_leaf_nodes_size;
+            uint32_t child_index = offset_in_internal_nodes / SIZEOF(radv_ir_box_node);
+            dst_offset = dst_internal_offset + child_index * SIZEOF(radv_bvh_box32_node);
+#endif
+
+            REF(radv_ir_box_node) child_node = REF(radv_ir_box_node)OFFSET(args.intermediate_bvh, offset);
+            DEREF(child_node).bvh_offset = dst_offset;
+         } else {
+            uint32_t child_index = offset / SIZEOF(radv_ir_node);
+            dst_offset = dst_leaf_offset + child_index * output_leaf_node_size;
+         }
+
+         radv_aabb child_aabb =
+            DEREF(REF(radv_ir_node)OFFSET(args.intermediate_bvh, offset)).aabb;
+
+         DEREF(dst_node).coords[i] = child_aabb;
+
+         uint32_t child_id = pack_node_id(dst_offset, ir_type_to_bvh_type(type));
+         children[i] = child_id;
+         set_parent(child_id, node_id);
+      }
+
+      for (uint i = found_child_count; i < 4; ++i) {
+            for (uint comp = 0; comp < 3; ++comp) {
+               DEREF(dst_node).coords[i].min[comp] = NAN;
+               DEREF(dst_node).coords[i].max[comp] = NAN;
+            }
+      }
+
+      /* Make changes to the children's BVH offset value available to the other invocations. */
+      memoryBarrier(gl_ScopeDevice, gl_StorageSemanticsBuffer,
+                    gl_SemanticsAcquireRelease | gl_SemanticsMakeAvailable | gl_SemanticsMakeVisible);
+
+      DEREF(dst_node).children = children;
+      break;
+   }
+
+   if (is_root_node) {
+      REF(radv_accel_struct_header) header = REF(radv_accel_struct_header)(args.output_bvh - args.output_bvh_offset);
+      DEREF(header).aabb = src.base.aabb;
+      DEREF(header).bvh_offset = args.output_bvh_offset;
+
+      set_parent(RADV_BVH_ROOT_NODE, RADV_BVH_INVALID_NODE);
+   }
+}

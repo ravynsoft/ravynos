@@ -1,0 +1,180 @@
+Mesa 19.3.5 Release Notes / 2020-03-09
+======================================
+
+Mesa 19.3.5 is a bug fix release which fixes bugs found since the 19.3.4
+release.
+
+Mesa 19.3.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.6. OpenGL 4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 19.3.5 implements the Vulkan 1.1 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+   009895b055b971c82d7a0cd57227d414d323282605946e94e9b308a9cb49c6b6  mesa-19.3.5.tar.xz
+
+New features
+------------
+
+-  None
+
+Bug fixes
+---------
+
+-  V3D/Broadcom (Raspberry Pi 4) - GLES 3.1 - GL_EXT_texture_norm16
+   advertised, but not usable
+-  i965 assertion failure in fallback_rgbx_to_rgba
+-  drisw crashes on calling NULL putImage on EGL surfaceless platform
+   (pbuffer EGLSurface)
+
+Changes
+-------
+
+Andrii Simiklit (1):
+
+-  Revert "glx: convert glx_config_create_list to one big calloc"
+
+Arcady Goldmints-Orlov (1):
+
+-  spirv: Remove outdated SPIR-V decoration warnings
+
+Caio Marcelo de Oliveira Filho (1):
+
+-  intel/gen12: Take into account opcode when decoding SWSB
+
+Danylo Piliaiev (1):
+
+-  i965: Do not generate D16 B5G6R5_UNORM configs on gen < 8
+
+Dave Airlie (1):
+
+-  gallivm/tgsi: fix stream id regression
+
+Dylan Baker (7):
+
+-  docs: Add SHA256 sum for 19.3.4
+-  .pick_status.json: Update to 2a98cf3b2ecea43cea148df7f77d2abadfd1c9db
+-  .pick_status.json: Update to 946eacbafb47c8b94d47e7c9d2a8b02fff5a22fa
+-  .pick_status.json: Update to bee5c9b0dc13dbae0ccf124124eaccebf7f2a435
+-  .pick_status.json: Update to 8291d728dc997e87b4d2e4e451692643a1dba881
+-  .pick_status.json: Update to e4baff90812d799d586296fcad992ddcc553c359
+-  .pick_status.json: Update to 01496e3d1ea0370af03e6645dbd2b864c2ace94c
+
+Eric Engestrom (10):
+
+-  .pick_status.json: Update to 74e4cda64b9d114321216eefe536f80644b0f0fd
+-  .pick_status.json: Mark dba71de5c63617677fe44558f995d35fad643413 as
+   denominated
+-  .pick_status.json: Mark 5ea23ba659adc05ff75ca7a4c9d1bd01db889ddd as
+   denominated
+-  .pick_status.json: Mark 34fd894e42ae1ec9d35bf9c4f05364b03dd4a223 as
+   denominated
+-  .pick_status.json: Mark ddd767387f336ed1578f171a2af4ca33c564d7f3 as
+   denominated
+-  .pick_status.json: Mark b9773631d3e79e2310ed0eb274b4dd9426205066 as
+   denominated
+-  .pick_status.json: Mark 9fea90ad5170dd64376d22a14ac88c392813c96c as
+   denominated
+-  bin/gen_release_notes.py: fix commit list command
+-  .pick_status.json: Update to 0103f02acb10dcdea23461ba214307a6827a7772
+-  gitlab-ci: update template to fix container build issues
+
+Erik Faye-Lund (2):
+
+-  util: promote u_debug_memory.c to src/util
+-  .pick_status.json: Update to 74e4cda64b9d114321216eefe536f80644b0f0fd
+
+Francisco Jerez (1):
+
+-  intel/fs/gen12: Fixup/simplify SWSB annotations of SIMD32 scratch
+   writes.
+
+Ian Romanick (1):
+
+-  intel/fs: Correctly handle multiply of fsign with a source modifier
+
+Faith Ekstrand (3):
+
+-  isl: Set 3DSTATE_DEPTH_BUFFER::Depth correctly for 3D surfaces
+-  iris: Don't skip fast depth clears if the color changed
+-  anv: Parse VkPhysicalDeviceFeatures2 in CreateDevice
+
+Jordan Justen (1):
+
+-  intel/compiler: Restrict cs_threads to 64
+
+Jose Maria Casanova Crespo (1):
+
+-  v3d: Sync on last CS when non-compute stage uses resource written by
+   CS
+
+Kristian Høgsberg (2):
+
+-  Revert "glsl: Use a simpler formula for tanh"
+-  Revert "spirv: Use a simpler and more correct implementaiton of
+   tanh()"
+
+Krzysztof Raszkowski (1):
+
+-  gallium/swr: simplify environmental variabled expansion code
+
+Marek Olšák (3):
+
+-  radeonsi: don't wait for shader compilation to finish when destroying
+   a context
+-  mesa: fix immediate mode with tessellation and varying patch vertices
+-  Revert "mesa: check for z=0 in \_mesa_Vertex3dv()"
+
+Mathias Fröhlich (3):
+
+-  egl: Implement getImage/putImage on pbuffer swrast.
+-  egl: Fix A2RGB10 platform_{device,surfaceless} PBuffer configs.
+-  mesa: Flush vertices before changing the OpenGL state.
+
+Michel Dänzer (1):
+
+-  st/vdpau: Only call is_video_format_supported hook if needed
+
+Paulo Zanoni (1):
+
+-  intel/device: bdw_gt1 actually has 6 eus per subslice
+
+Peng Huang (1):
+
+-  radeonsi: make si_fence_server_signal flush pipe without work
+
+Rafael Antognolli (1):
+
+-  intel/gen12+: Disable mid thread preemption.
+
+Samuel Pitoiset (3):
+
+-  ac/llvm: fix 64-bit fmed3
+-  ac/llvm: fix 16-bit fmed3 on GFX8 and older gens
+-  ac/llvm: flush denorms for nir_op_fmed3 on GFX8 and older gens
+
+Tapani Pälli (5):
+
+-  iris: fix aux buf map failure in 32bits app on Android
+-  mesa: introduce boolean toggle for EXT_texture_norm16
+-  i965: toggle on EXT_texture_norm16
+-  mesa/st: toggle EXT_texture_norm16 based on format support
+-  mesa/st: fix formats required for EXT_texture_norm16
+
+Timothy Arceri (1):
+
+-  glsl: fix gl_nir_set_uniform_initializers() for image arrays
+
+luc (1):
+
+-  zink: confused compilation macro usage for zink in target helpers.

@@ -1,0 +1,127 @@
+Mesa 20.1.6 Release Notes / 2020-08-19
+======================================
+
+Mesa 20.1.6 is a bug fix release which fixes bugs found since the 20.1.5 release.
+
+Mesa 20.1.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.1.6 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    23bed40114b03ad640c95bfe72cc879ed2f941d0d481b77b5204a1fc567fa93c  mesa-20.1.6.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [spirv-fuzz] SPIR-V parsing failed "src->type->type == dest->type->type"
+- [RADV] commit d19bc94e4eb94 broke gamescope with Navi
+- 4e3a7dcf6ee4946c46ae8b35e7883a49859ef6fb breaks Gamescope showing windows properly.
+- anv: crashes in CTS test dEQP-VK.subgroups.*.framebuffer.*_tess_eval
+- Mafia 3: Trees get rendered incorrectly
+- radv: dEQP-VK.synchronization.op.multi_queue.timeline_semaphore.write_clear_attachments_*_concurrent fail when forcing DCC.
+- Assertion failure compiling shader from Zigguart
+- Panfrost locks for waiting fence when running Source engine games
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (6):
+
+- radv: Do not consider layouts fast-clearable on compute queue.
+- radv: When importing an image, redo the layout based on the metadata.
+- radv: Use getter instead of setter to extract value.
+- driconf: Support selection by Vulkan applicationName.
+- radv: Override the uniform buffer offset alignment for World War Z.
+- radv: Fix handling of attribs 16-31.
+
+Christian Gmeiner (1):
+
+- etnaviv: completely turn off MSAA
+
+Daniel Schürmann (1):
+
+- aco: execute branch instructions in WQM if necessary
+
+Danylo Piliaiev (3):
+
+- st/mesa: Treat vertex outputs absent in outputMapping as zero in mesa_to_tgsi
+- anv/nir: Unify inputs_read/outputs_written between geometry stages
+- spirv: Only require bare types to match when copying variables
+
+Dave Airlie (2):
+
+- llvmpipe: only read 0 for channels being read
+- llvmpipe/cs: update compute counters not fragment shader.
+
+Eric Engestrom (8):
+
+- docs/relnotes: add sha256 sums to 20.1.5
+- .pick_status.json: Update to a880f97d593a461bdcce27e526423a9b1d6834b4
+- .pick_status.json: Mark e03622e50fcebbcc32b2fd403b1a729c73cb49d5 as denominated
+- pick-ui: specify git commands in "resolve cherry pick" message
+- egl/entrypoint-check: split sort-check into a function
+- egl/entrypoint-check: add check that GLVND and plain EGL have the same entrypoints
+- driconf: fix force_gl_vendor description
+- docs: add release notes for 20.1.6
+
+Icenowy Zheng (1):
+
+- panfrost: signal syncobj if nothing is going to be flushed
+
+Faith Ekstrand (2):
+
+- anv: Advertise shaderIntegerFunctions2
+- spirv: Don't emit RMW for vector indexing in shared or global
+
+Karol Herbst (1):
+
+- nv50/ir/nir: fix global_atomic_comp_swap
+
+Lionel Landwerlin (1):
+
+- anv: fix incorrect realloc failure handling
+
+Marcin Ślusarz (1):
+
+- intel/perf: fix performance counters availability after glFinish
+
+Marek Olšák (2):
+
+- radeonsi: use correct wave size in gfx10_ngg_calculate_subgroup_info
+- radeonsi: fix applying the NGG minimum vertex count requirement
+
+Nanley Chery (1):
+
+- dri_util: Update internal_format to GL_RGB8 for MESA_FORMAT_B8G8R8X8_UNORM
+
+Rhys Perry (1):
+
+- aco: set constant_data_offset correctly in the case of merged shaders
+
+Samuel Pitoiset (2):
+
+- radv/gfx10: add missing initialization of registers
+- radv: limit LATE_ALLOC_GS to prevent a GPU hang on GFX10
+
+Tony Wasserka (1):
+
+- nir/lower_idiv: Port recent LLVM fixes to emit_udiv

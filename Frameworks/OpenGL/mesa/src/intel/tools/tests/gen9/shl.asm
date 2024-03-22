@@ -1,0 +1,13 @@
+shl(16)         g18<1>D         g20<8,8,1>D     0x00000002UD    { align1 1H };
+shl(8)          g18<1>D         g17<8,8,1>D     0x00000002UD    { align1 1Q };
+shl(1)          g8<1>UD         g5<0,1,0>UD     0x00000008UD    { align1 WE_all 1N };
+shl(8)          g4<1>UD         g6<8,8,1>UD     g3<8,8,1>UD     { align1 1Q };
+shl(1)          a0<1>UD         g43<0,1,0>UD    0x00000002UD    { align1 WE_all 1N };
+shl(16)         g116<1>D        g1<0,1,0>D      0x00000005UD    { align1 2H };
+shl(8)          g26<1>UD        g34<8,8,1>UW    0x00000002UD    { align1 1Q };
+shl(8)          g3<1>UD         g23<8,8,1>UD    g21<8,8,1>UD    { align1 WE_all 1Q };
+shl(16)         g10<1>UD        g10<8,8,1>UD    0x00000010UD    { align1 1H };
+shl(1)          g14<1>UD        g21<0,1,0>UD    0x00000008UD    { align1 WE_all 3N };
+shl(8)          g11<1>Q         g5<4,4,1>Q      g3<4,4,1>UD     { align1 1Q };
+shl(1)          a0<1>UD         g13<0,1,0>D     0x00000002UD    { align1 WE_all 1N };
+shl(8)          g22<1>Q         g8<4,4,1>Q      g4<4,4,1>UD     { align1 2Q };

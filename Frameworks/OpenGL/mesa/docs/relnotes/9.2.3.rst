@@ -1,0 +1,91 @@
+Mesa 9.2.3 Release Notes / (November 13, 2013)
+==============================================
+
+Mesa 9.2.3 is a bug fix release which fixes bugs found since the 9.2.2
+release.
+
+Mesa 9.2 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   66e9a33a414f801e1c33398bf627d56b  MesaLib-9.2.3.tar.gz
+   f56b6beb556e4b9072814419f7c554e3  MesaLib-9.2.3.tar.bz2
+   ed852dab576faac237ac4298bf55d0a1  MesaLib-9.2.3.zip
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 69437 <https://bugs.freedesktop.org/show_bug.cgi?id=69437>`__ -
+   Composite Bypass no longer works
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.2.2..mesa-9.2.3
+
+Brian Paul (2):
+
+-  st/mesa: move out of memory check in st_draw_vbo()
+-  osmesa: fix broken triangle/line drawing when using float color
+   buffer
+
+Carl Worth (7):
+
+-  Remove error when calling glGenQueries/glDeleteQueries while a query
+   is active
+-  Bump version to 9.2.3
+
+Daniel Vetter (1):
+
+-  i965: CS writes/reads should use I915_GEM_INSTRUCTION
+
+Eric Anholt (1):
+
+-  i965: Fix texture buffer rendering after a whole buffer replacement.
+
+Kenneth Graunke (6):
+
+-  i965: Emit post-sync non-zero flush before 3DSTATE_GS_SVB_INDEX.
+-  i965: Emit post-sync non-zero flush before 3DSTATE_DRAWING_RECTANGLE.
+-  i965: Also guard 3DSTATE_DRAWING_RECTANGLE with a flush in blorp.
+-  i965: Move post-sync non-zero flush for 3DSTATE_MULTISAMPLE.
+-  i965: Also emit HIER_DEPTH and STENCIL packets when disabling depth.
+-  i965: Also emit HiZ and Stencil packets when disabling depth on Gen6.
+
+Kristian Høgsberg (1):
+
+-  wayland: Don't rely on static variable for identifying wl_drm buffers
+
+Marek Olšák (1):
+
+-  radeonsi: fix blitting the last 2 mipmap levels of compressed
+   textures
+
+Petr Sebor (1):
+
+-  meta: enable vertex attributes in the context of the newly created
+   array object
+
+Scott Graham (1):
+
+-  mesa: fixes for MSVC 2013

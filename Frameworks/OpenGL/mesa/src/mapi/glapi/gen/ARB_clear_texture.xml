@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_clear_texture" number="145">
+
+    <enum name="CLEAR_TEXTURE" value="0x9365"/>
+
+    <function name ="ClearTexImage">
+        <param name="texture" type="GLuint"/>
+        <param name="level" type="GLint"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="data" type="const GLvoid *"/>
+    </function>
+
+    <function name ="ClearTexSubImage">
+        <param name="texture" type="GLuint"/>
+        <param name="level" type="GLint"/>
+        <param name="xoffset" type="GLint"/>
+        <param name="yoffset" type="GLint"/>
+        <param name="zoffset" type="GLint"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="depth" type="GLsizei"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="data" type="const GLvoid *"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>

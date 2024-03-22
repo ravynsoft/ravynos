@@ -1,0 +1,118 @@
+Mesa 20.0.6 Release Notes / 2020-04-29
+======================================
+
+Mesa 20.0.6 is a bug fix release which fixes bugs found since the 20.0.5
+release.
+
+Mesa 20.0.6 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.6. OpenGL 4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each
+driver.
+
+Mesa 20.0.6 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct depends
+on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+     30b5d8e9201a01a0e88e18bb79850e67b1d28443b34c4c5cacad4bd10f668b96  mesa-20.0.6.tar.xz
+
+New features
+------------
+
+Bug fixes
+---------
+
+-  dEQP-VK.subgroups.size_control.compute.\* crashes on HSW and TGL
+-  piglit spec.!opengl 1.0.gl-1.0-fpexceptions crash on Iris
+-  SPIR-V: OpConvertUToPtr from spec constant fails to compile
+-  radv: Reading ViewportIndex in fragment shader returns garbage
+-  radeonsi: GL_LINES rendering is affected by GL_POINT_SPRITE
+-  [ANV] gfxbench Aztec Ruins misrenders on gen11+
+-  glxinfo cmd crashed
+
+Changes
+-------
+
+Abhishek Kumar (1):
+
+-  anv/android: fix assert in anv_import_ahw_memory
+
+Bas Nieuwenhuizen (1):
+
+-  radv: Use actual memory type count for setting app-visible bitset.
+
+Danylo Piliaiev (3):
+
+-  st/mesa: Re-assign vs in locations after updating nir info for
+   ffvp/ARB_vp
+-  spirv: Expand workaround for OpControlBarrier on old GLSLang
+-  st/mesa: Treat vertex inputs absent in inputMapping as zero in
+   mesa_to_tgsi
+
+Dylan Baker (9):
+
+-  docs: Add sha256 sums for 20.0.5
+-  .pick_status.json: Update to c552b5fd1d106adc04f62fcbe71d650a9a17f7e0
+-  meson: update llvm dependency logic for meson 0.54.0
+-  .pick_status.json: Mark 0123b8f63415d3d320929e6112da2be2d837b262 as
+   denominated
+-  .pick_status.json: Update to 51c1c4d95a05b6eb6fce74e8d624615e4a1b38ab
+-  .pick_status.json: Update to 51c1c4d95a05b6eb6fce74e8d624615e4a1b38ab
+-  .pick_status.json: Update to efdb7fa9a83b0a216b1837a5912b71669bf3f984
+-  .pick_status.json: Update to 42b1696ef627a5bfee29911a780fa0a4dbf04610
+-  .pick_status.json: Update to 6b551d9f360e45ba4e74867dbe79ae212e4766c5
+
+Eric Anholt (1):
+
+-  freedreno: Fix calculation of the const buffer cmdstream size.
+
+Erik Faye-Lund (2):
+
+-  mesa/gallium: do not use enum for bit-allocated member
+-  meson: correct windows-version define
+
+Faith Ekstrand (12):
+
+-  anv: Move vb_emit setup closer to where it's used in flush_state
+-  anv: Apply any needed PIPE_CONTROLs before emitting state
+-  spirv: Allow constants and NULLs in SpvOpConvertUToPtr
+-  anv: Properly handle all sizes of specialization constants
+-  radv: Properly handle all sizes of specialization constants
+-  turnip: Properly handle all sizes of specialization constants
+-  nir/opt_deref: Remove certain sampler type casts
+-  spirv: Fix passing combined image/samplers through function calls
+-  anv: Drop an assert
+-  nir/lower_subgroups: Mask off unused bits in ballot ops
+-  intel/devinfo: Compute the correct L3$ size for Gen12
+-  anv: Expose CS workgroup sizes based on a maximum of 64 threads
+
+Joshua Ashton (1):
+
+-  radv: Use TRUNC_COORD on samplers
+
+Lionel Landwerlin (5):
+
+-  iris: fail screen creation when kernel support is not there
+-  intel/perf: move register definition to special file
+-  intel/perf: break GL query stuff away
+-  intel/perf: move mdapi query definitions to their own file
+-  intel/perf: Enable MDAPI queries for Gen12
+
+Pierre-Eric Pelloux-Prayer (1):
+
+-  radeonsi: skip vs output optimizations for some outputs
+
+Quentin Glidic (1):
+
+-  meson: Use dependency.partial_dependency()
+
+Samuel Pitoiset (1):
+
+-  radv: make sure to export the viewport index if FS needs it

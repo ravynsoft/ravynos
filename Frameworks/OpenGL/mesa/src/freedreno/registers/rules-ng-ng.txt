@@ -1,0 +1,703 @@
+1. Introduction
+
+rules-ng is a package consisting of a database of nvidia GPU registers in XML
+format, and tools made to parse this database and do useful work with it. It
+is in mostly usable state, but there are some annoyances that prevent its
+adoption as the home of all nouveau documentation.
+
+Note that this document and rules-ng understands "register" quite liberally as
+"anything that has an address and can have a value in it, written to it, or
+read to it". This includes conventional MMIO registers, as well as fields of
+memory structures and grobj methods.
+
+Its parsable XML format is supposed to solve three problems:
+
+ - serve as actual documentation for the known registers: supports attaching
+   arbitrary text in <doc> tags and generating HTML for easy reading.
+ - name -> hex translation: supports generating C headers that #define all
+   known registers, bitfields and enum values as C constants.
+ - hex -> name translation: you tell it the address or address+value of a
+   register, and it decodes the address to its symbolic name, and the value to
+   its constituting bitfields, if any. Useful for decoding mmio-traces /
+   renouveau dumps, as well as standalone use.
+
+What's non-trivial about all this [ie. why rules-ng is not a long series of
+plain address - name - documentation tuples]:
+
+ - The registers may be split into bitfields, each with a different purpose
+   and name [and separate documentation].
+ - The registers/bitfields may accept values from a predefined set [enum],
+   each with a different meaning. Each value also has a name and
+   documentation.
+ - The registers may come in multiple copies, forming arrays. They can also
+   form logical groups. And these groups can also come in multiple copies,
+   forming larger arrays... and you get a hierarchical structure.
+ - There are multiple different GPU chipsets. The available register set
+   changed between these chipsets - sometimes only a few registers, sometimes
+   half the card was remade from scratch. More annoyingly, sometimes some
+   registers move from one place to another, but are otherwise unchanged.
+   Also [nvidia-specific], new grobj classes are sometimes really just new
+   revisions of a base class with a few methods changed. In both of these
+   cases, we want to avoid duplication as much as possible.
+
+2. Proposed new XML format
+
+2.1. General tags
+
+Root tag is <database>. There is one per the whole file and it should contain
+everything else.
+
+<brief> and <doc> are tags that can appear inside any other tag, and document
+whatever it defines. <brief> is supposed to be a short one-line description
+giving a rough idea what a given item is for if no sufficiently descriptive
+name was used. <doc> can be of any length, can contain some html and html-like
+tags, and is supposed to describe a given item in as much detail as needed.
+There should be at most one <doc> and at most one <brief> tag for any parent.
+
+Tags that define top-level entities include:
+
+ <domain>: Declares an addressing space containing registers
+ <group>: Declares a block of registers, expected to be included by one or
+          more <domain>s
+ <bitset>: Declares a list of applicable bitfields for some register
+ <enum>: Declares a list of related symbolic values. Can describe params to
+         a register/bitfield, or discriminate between card variants.
+
+Each of these has an associated global name used to refer to them from other
+parts of database. As a convenience, and to allow related stuff to be kept
+together, the top-level entities are allowed to occur pretty much anywhere
+inside the XML file except inside <doc> tags. This implies no scoping,
+however: the effect is the same as putting the entity right below <database>.
+If two top-level elements of the same type and name are defined, they'll be
+merged into a single one, as if contents of one were written right after
+contents of the other. All attributes of the merged tags need to match.
+
+Another top-level tag that can be used anywhere is the <import> tag. It's used
+like <import file="foo.xml"/> and makes all of foo.xml's definitions available
+to the containing file. If a single file is <import>ed more than one time, all
+<import>s other than the first are ignored.
+
+2.2. Domains
+
+All register definitions ultimately belong to a <domain>. <domain> is
+basically just a single address space. So we'll have a domain for the MMIO
+BAR, one for each type of memory structure we need to describe, a domain for
+the grobj/FIFO methods, and a domain for each indirect index-data pair used to
+access something useful. <domain> can have the following attributes:
+
+ - name [required]: The name of the domain.
+ - width [optional]: the size, in bits, of a single addressable unit. This is
+   8 by default for usual byte-addressable memory, but 32 can be useful
+   occasionally for indexed spaces of 32-bit cells. Values sane enough to
+   support for now include 8, 16, 32, 64.
+ - size [optional]: total number of addressable units it spans. Can be
+   undefined if you don't know it or it doesn't make sense. As a special
+   exception to the merging rules, size attribute need not be specified on all
+   tags that will result in a merged domain: tags with size can be merged with
+   tags without size, resulting in merged domain that has size. Error only
+   happens when the merged domains both have sizes, and the sizes differ.
+ - bare [optional]: if set to "no", all children items will have the domain
+   name prepended to their names. If set to "yes", such prefixing doesn't
+   happen. Default is "no".
+ - prefix [optional]: selects the string that should be prepended to name
+   of every child item. The special value "none" means no prefix, and is the
+   default. All other values are looked up as <enum> names and, for each child
+   item, its name is prefixed with name of the earliest variant in the given
+   enum that supports given item.
+
+<domain name="NV_MMIO" size="0x1000000" prefix="chipset" bare="yes">
+	<reg32 offset="0" name="PMC_BOOT_0" />
+	<reg32 offset="4" name="PMC_BOOT_1" varset="chipset" variants="NV10-" />
+	<reg32 offset="0x100" name="PMC_INTR" />
+</domain>
+
+Describes a space with 0x1000000 of 8-bit addressable cells. Cells 0-3 belong
+to NV04_PMC_BOOT_0 register, 4-7 belong to NV10_PMC_BOOT_1 register,
+0x100-0x103 belong to NV04_PMC_INTR register, and remaining cells are either
+unused or unknown. The generated .h definitions are:
+
+#define NV_MMIO__SIZE		0x1000000
+#define NV04_PMC_BOOT_0		0
+#define NV10_PMC_BOOT_1		4
+#define NV04_PMC_INTR		0x100
+
+<domain name="NV50_PFB_VM_TRAP" width="32" size="6">
+	<reg32 offset="0" name="STATUS" />
+	<reg32 offset="1" name="CHANNEL" />
+	<reg32 offset="2" name="UNK2" />
+	<reg32 offset="3" name="ADDRLOW" />
+	<reg32 offset="4" name="ADDRMID" />
+	<reg32 offset="5" name="ADDRHIGH" />
+</domain>
+
+Defines a 6-cell address space with each cell 32 bits in size and
+corresponding to a single register. Definitions are:
+
+#define NV50_PFB_VM_TRAP__SIZE		6
+#define NV50_PFB_VM_TRAP_STATUS		0
+#define NV50_PFB_VM_TRAP_CHANNEL	1
+#define NV50_PFB_VM_TRAP_UNK2		2
+#define NV50_PFB_VM_TRAP_ADDRLOW	3
+#define NV50_PFB_VM_TRAP_ADDRMID	4
+#define NV50_PFB_VM_TRAP_ADDRHIGH	5
+
+2.3. Registers
+
+What we really want all the time is defining registers. This is done with
+<reg8>, <reg16>, <reg32> or <reg64> tags. The register of course takes
+reg_width / domain_width cells in the domain. It's an error to define a
+register with smaller width than the domain it's in. The <reg*> attributes
+are:
+
+ - name [required]: the name of the register
+ - offset [required]: the offset of the register
+ - access [optional]: "rw" [default], "r", or "w" to mark the register as
+   read-write, read-only, or write-only. Only makes sense for real MMIO
+   domains.
+ - varset [optional]: the <enum> to choose from by the variant attribute.
+   Defaults to first <enum> used in currently active prefix.
+ - variants [optional]: space-separated list of and variant ranges that this
+   register is present on. The items of this list can be:
+    - var1: a single variant
+    - var1-var2: all variants starting with var1 up to and including var2
+    - var1:var2: all variants starting with var1 up to, but not including var2
+    - :var1: all variants before var1
+    - -var1: all variants up to and including var1
+    - var1-: all variants starting from var1
+ - type [optional]: How to interpret the contents of this register.
+    - "uint": unsigned decimal integer
+    - "int": signed decimal integer
+    - "hex": unsigned hexadecimal integer
+    - "float" IEEE 16-bit, 32-bit or 64-bit floating point format, depending
+      on register/bitfield size
+    - "boolean": a boolean value: 0 is false, 1 is true
+    - any defined enum name: value from that anum
+    - "enum": value from the inline <value> tags in this <reg*>
+    - any defined bitset name: value decoded further according to that bitset
+    - "bitset": value decoded further according to the inline <bitfield>
+      tags
+    - any defined domain name: value decoded as an offset in that domain
+   The default is "bitset" if there are inline <bitfield> tags present,
+   otherwise "enum" if there are inline <value> tags present, otherwise
+   "boolean" if this is a bitfield with width 1, otherwise "hex".
+ - shr [optional]: the value in this register is the real value shifted right
+   by this many bits. Ie. for register with shr="12", register value 0x1234
+   should be interpreted as 0x1234000. May sound too specific, but happens
+   quite often in nvidia hardware.
+ - length [optional]: if specified to be other than 1, the register is treated
+   as if it was enclosed in an anonymous <stripe> with corresponding length
+   and stride attributes, except the __ESIZE and __LEN stripe defines are
+   emitted with the register's name. If not specified, defaults to 1.
+ - stride [optional]: the stride value to use if length is non-1. Defaults to
+   the register's size in cells.
+
+The definitions emitted for a non-stripe register include only its offset and
+shr value. Other informations are generally expected to be a part of code
+logic anyway:
+
+<reg32 offset="0x400784" name="PGRAPH_CTXCTL_SWAP" shr="12" />
+
+results in
+
+#define PGRAPH_CTXCTL_SWAP	0x400784
+#define PGRAPH_CTXCTL_SWAP__SHR	12
+
+For striped registers, __LEN and __ESIZE definitions like <stripe> are emitted
+too:
+
+<!-- in a 8-bit domain -->
+<reg32 offset="0x0600" name="NV50_COMPUTE_USER_PARAM" length="64" />
+
+results in
+
+#define NV50_COMPUTE_USER_PARAM(i)	(0x600 + (i)*4)
+#define NV50_COMPUTE_USER_PARAM__LEN	64
+#define NV50_COMPUTE_USER_PARAM__ESIZE	4
+
+The <reg*> tags can also contain either bitfield definitions, or enum value
+definitions.
+
+2.4. Enums and variants
+
+Enum is, basically, a set of values. They're defined by <enum> tag with the
+following attributes:
+
+ - name [required]: an identifying name.
+ - inline [optional]: "yes" or "no", with "no" being the default. Selects if
+   this enum should emit its own definitions in .h file, or be inlined into
+   any <reg*> / <bitfield> definitions that reference it.
+ - bare [optional]: only for no-inline enums, behaves like bare attribute
+   to <domain>
+ - prefix [optional]: only for no-inline enums, behaves like prefix attribute
+   to <domain>.
+
+The <enum> tag contains <value> tags with the following attributes:
+
+ - name [required]: the name of the value
+ - value [optional]: the value
+ - varset [optional]: like in <reg*>
+ - variants [optional]: like in <reg*>
+
+The <enum>s are referenced from inside <reg*> and <bitfield> tags by setting
+the type attribute to the name of the enum. For single-use enums, the <value>
+tags can also be written directly inside <reg*> tag.
+
+<enum name="SURFACE_FORMAT" prefix="chipset">
+	<value value="6" name="A8R8G8B8" />
+	<value value="0x12" name="A8R8G8B8_RECT" variants="NV10-" />
+</enum>
+
+<enum name="gl_shade_model" inline="yes">
+	<value value="0x1d00" name="FLAT" />
+	<value value="0x1d01" name="SMOOTH" />
+</enum>
+
+<reg32 offset="0x1234" name="TEXTURE_FORMAT" type="SURFACE_FORMAT" />
+<reg32 offset="0x1238" name="SHADE_MODEL" type="gl_shade_model" />
+<reg32 offset="0x123c" name="PATTERN_SELECT">
+	<value value="1" name="MONO" />
+	<value value="2" name="COLOR" />
+</reg32>
+
+Result:
+
+#define NV04_SURFACE_FORMAT_A8R8G8B8		6
+#define NV04_SURFACE_FORMAT_A8R8G8B8_RECT	0x12
+#define TEXTURE_FORMAT				0x1234
+#define SHADE_MODEL				0x1238
+#define     SHADE_MODEL_FLAT			0x1d00
+#define     SHADE_MODEL_SMOOTH			0x1d01
+#define PATTERN_SELECT				0x123c
+#define     PATTERN_SELECT_MONO			1
+#define     PATTERN_SELECT_COLOR		2
+
+Another use for enums is describing variants: slightly different versions of
+cards, objects, etc. The varset and variant attributes of most tags allow
+defining items that are only present when you're dealing with something of the
+matching variant. The variant space is "multidimensional" - so you can have
+a variant "dimension" representing what GPU chipset you're using at the
+moment, and another dimension representing what grobj class you're dealing
+with [taken from another enum]. Both of these can be independent.
+
+<enum name="chipset">
+	<brief>The chipset of the card</brief>
+	<value name="NV04">
+		<brief>RIVA TNT</brief>
+	</value>
+	<value name="NV05">
+		<brief>RIVA TNT2</brief>
+	</value>
+	<value name="NV10">
+		<brief>GeForce 256</brief>
+	</value>
+	<value name="NV50">
+		<brief>G80: GeForce 8800 GTX, Tesla *870, ...</brief>
+	</value>
+	<value name="NV84">
+		<brief>G84: GeForce 8600 GT, ...</brief>
+	</value>
+	<value name="NVA0">
+		<brief>G200: GeForce 260 GTX, Tesla C1060, ...</brief>
+	</value>
+	<value name="NVA5">
+		<brief>GT216: GeForce GT 220</brief>
+	</value>
+</enum>
+
+If enabled for a given domain, the name of the earliest variant to support
+a given register / bitfield / value / whatever will be automatically prepended
+to its name. For this purpose, "earliest" is defined as "comes first in the
+XML file".
+
+<enum>s used for this purpose can still be used as normal enums. And can even
+have variant-specific values referencing another <enum>. Example:
+
+<enum name="grobj-class" bare="yes" prefix="chipset">
+	<value name="MEMORY_TO_MEMORY_FORMAT" value="0x0039" variants=":NV50" />
+	<value name="MEMORY_TO_MEMORY_FORMAT" value="0x5039" variants="NV50-" />
+	<value name="2D" value="0x502d" variants="NV50-" />
+	<value name="TCL" value="0x5097" variants="NV50:NVA0" />
+	<value name="TCL" value="0x8297" variants="NV84" />
+	<value name="COMPUTE" value="0x50c0" variants="NV50-" />
+</enum>
+
+In generated .h file, this will result in:
+
+#define NV04_MEMORY_TO_MEMORY_FORMAT	0x0039
+#define NV50_MEMORY_TO_MEMORY_FORMAT	0x5039
+#define NV50_2D				0x502d
+#define NV50_TCL			0x5097
+#define NV84_TCL			0x8297
+#define NV50_COMPUTE			0x50c0
+
+2.5. Bitfields
+
+Often, registers store not a single full-width value, but are split into
+bitfields. Like values can be grouped in enums, bitfields can be called in
+bitsets. The <bitset> tag has the same set of attributes as <enum> tag, and
+contains <bitfield> tags with the following attributes:
+
+ - name [required]: name of the bitfield
+ - low [required]: index of the lowest bit belonging to this bitfield. bits
+   are counted from 0, LSB-first.
+ - high [required]: index of the highest bit belonging to this bitfield.
+ - varset [optional]: like in <reg*>
+ - variants [optional]: like in <reg*>
+ - type [optional]: like in <reg*>
+ - shr [optional]: like in <reg*>
+
+Like <value>s, <bitfield>s are also allowed to be written directly inside
+<reg*> tags.
+
+<bitfield>s themselves can contain <value>s. The defines generated for
+<bitfield>s include "name__MASK" equal to the bitmask corresponding to given
+bitfield, "name__SHIFT" equal to the low attribute, "name__SHR" equal to
+the shr attribute [if defined]. Single-bit bitfields with type "boolean" are
+treated specially, and get "name" defined to the bitmask instead. If the
+bitfield contains any <value>s, <bitfield>s, or references an inlined
+enum/bitset, defines for them are also generated, pre-shifted to the correct
+position. Example:
+
+<enum name="nv03_operation" inline="yes">
+	<value value="0" name="SRCCOPY_AND" />	
+	<value value="1" name="ROP_AND" />	
+	<value value="2" name="BLEND_AND" />	
+	<value value="3" name="SRCCOPY" />	
+	<value value="4" name="SRCCOPY_PRE" />
+	<value value="5" name="BLEND_PRE" />
+</enum>
+
+<bitset name="NV04_GROBJ_1">
+	<bitfield high="7" low="0" name="GRCLASS" />
+	<bitfield high="12" low="12" name="CHROMA_KEY" />
+	<bitfield high="13" low="13" name="USER_CLIP" />
+	<bitfield high="14" low="14" name="SWIZZLE" />
+	<bitfield high="17" low="15" name="PATCH_CONFIG" type="nv03_operation" />
+	<!-- ... -->
+</bitset>
+
+<bitset name="xy16" inline="yes">
+	<bitfield high="15" low="0" name="X" />
+	<bitfield high="31" low="16" name="Y" />
+</bitset>
+
+<bitset name="nv50_vic" inline="yes">
+	<bitfield high="0" low="0" name="X"/>
+	<bitfield high="1" low="1" name="Y"/>
+	<bitfield high="2" low="2" name="Z"/>
+	<bitfield high="3" low="3" name="W"/>
+</bitset>
+
+<reg32 offset="0x40014c" name="PGRAPH_CTX_SWITCH_1" type="NV04_GROBJ_1" />
+
+<reg32 offset="0x0404" name="FORMAT">
+	<bitfield high="15" low="0" name="PITCH" />
+	<bitfield high="23" low="16" name="ORIGIN" />
+	<bitfield high="31" low="24" name="FILTER" />
+</reg32>
+
+<reg32 offset="0x040c" name="POINT" type="xy16" />
+
+<reg32 offset="0x1988" name="FP_INTERPOLANT_CTRL">
+	<bitfield name="UMASK" high="31" low="24" type="nv50_vic"/>
+	<bitfield name="COUNT_NONFLAT" high="23" low="16" type="int"/>
+	<bitfield name="OFFSET" high="15" low="8" type="int"/>
+	<bitfield name="COUNT" high="7" low="0" type="int"/>
+</reg32>
+
+Result:
+
+#define NV04_GROBJ_1_GRCLASS__MASK		0x000000ff
+#define NV04_GROBJ_1_GRCLASS__SHIFT		0
+#define NV04_GROBJ_1_CHROMA_KEY			0x00001000
+#define NV04_GROBJ_1_USER_CLIP			0x00002000
+#define NV04_GROBJ_1_SWIZZLE			0x00004000
+#define NV04_GROBJ_1_PATCH_CONFIG__MASK		0x00038000
+#define NV04_GROBJ_1_PATCH_CONFIG__SHIFT	15
+#define NV04_GROBJ_1_PATCH_CONFIG_SRCCOPY_AND	0x00000000
+#define NV04_GROBJ_1_PATCH_CONFIG_ROP_AND	0x00008000
+#define NV04_GROBJ_1_PATCH_CONFIG_BLEND_AND	0x00010000
+#define NV04_GROBJ_1_PATCH_CONFIG_SRCCOPY	0x00018000
+#define NV04_GROBJ_1_PATCH_CONFIG_SRCCOPY_PRE	0x00020000
+#define NV04_GROBJ_1_PATCH_CONFIG_BLEND_PRE	0x00028000
+
+#define PGRAPH_CTX_SWITCH_1			0x40014c
+
+#define FORMAT			0x0404
+#define FORMAT_PITCH__MASK	0x0000ffff
+#define FORMAT_PITCH__SHIFT	0
+#define FORMAT_ORIGIN__MASM	0x00ff0000
+#define FORMAT_ORIGIN__SHIFT	16
+#define FORMAT_FILTER__MASK	0xff000000
+#define FORMAT_FILTER__SHIFT	24
+
+#define POINT		0x040c
+#define POINT_X		0x0000ffff
+#define POINT_X__SHIFT		0
+#define POINT_Y		0xffff0000
+#define POINT_Y__SHIFT		16
+
+#define FP_INTERPOLANT_CTRL				0x00001988
+#define FP_INTERPOLANT_CTRL_UMASK__MASK			0xff000000
+#define FP_INTERPOLANT_CTRL_UMASK__SHIFT		24
+#define FP_INTERPOLANT_CTRL_UMASK_X			0x01000000
+#define FP_INTERPOLANT_CTRL_UMASK_Y			0x02000000
+#define FP_INTERPOLANT_CTRL_UMASK_Z			0x04000000
+#define FP_INTERPOLANT_CTRL_UMASK_W			0x08000000
+#define FP_INTERPOLANT_CTRL_COUNT_NONFLAT__MASK		0x00ff0000
+#define FP_INTERPOLANT_CTRL_COUNT_NONFLAT__SHIFT	16
+#define FP_INTERPOLANT_CTRL_OFFSET__MASK		0x0000ff00
+#define FP_INTERPOLANT_CTRL_OFFSET__SHIFT		8
+#define FP_INTERPOLANT_CTRL_COUNT__MASK			0x000000ff
+#define FP_INTERPOLANT_CTRL_COUNT__SHIFT		0
+
+2.6. Arrays and stripes.
+
+Sometimes you have multiple copies of a register. Sometimes you actually have
+multiple copies of a whole set of registers. And sometimes this set itself
+contains multiple copies of something. This is what <array>s are for. The
+<array> represents "length" units, each of size "stride" packed next to each
+other starting at "offset". Offsets of everything inside the array are
+relative to start of an element of the array. The <array> attributes include:
+
+ - name [required]: name of the array, also used as prefix for all items
+   inside it
+ - offset [required]: starting offset of the array.
+ - stride [required]: size of a single element of the array, as well as the
+   difference between offsets of two neighboring elements
+ - length [required]: Number of elements in the array
+ - varset [optional]: As in <reg*>
+ - variants [optional]: As in <reg*>
+
+The definitions emitted for an array include:
+ - name(i) defined to be the starting offset of element i, if length > 1
+ - name defined to be the starting offset of arrayi, if length == 1
+ - name__LEN defined to be the length of array
+ - name__ESIZE defined to be the stride of array
+
+Also, if length is not 1, definitions for all items inside the array that
+involve offsets become parameter-taking C macros that calculate the offset
+based on array index. For nested arrays, this macro takes as many arguments
+as there are indices involved.
+
+It's an error if an item inside an array doesn't fit inside the array element.
+
+<array offset="0x408000" name="PGRAPH_TP" stride="0x1000" length="8">
+	<array offset="0x200" name="MP" stride="0x80" length="2">
+		<!-- ... -->
+		<reg64 offset="0x70" name="TRAPPED_OPCODE" />
+		<!-- ... -->
+	</array>
+	<reg32 offset="0x314" name="MP_TRAP />
+	<!-- ... -->
+</array>
+
+#define PGRAPH_TP(i)				(0x408000+(i)*0x1000)
+#define PGRAPH_TP__LEN				8
+#define PGRAPH_TP__ESIZE			0x1000
+#define PGRAPH_TP_MP(i,j)			(0x408200+(i)*0x1000+(j)*0x80)
+#define PGRAPH_TP__LEN				2
+#define PGRAPH_TP__ESIZE			0x80
+#define PGRAPH_TP_MP_TRAPPED_OPCODE(i,j)	(0x408270+(i)*0x1000+(j)*0x80)
+
+<stripe>s are somewhat similar to arrays, but don't reserve space, merely say
+that all items inside come in "length" copies "stride" cells apart. As opposed
+to <array>s, items can have offsets larger than stride, and offsets aren't
+automatically assumed to be a part of <stripe> unless a <reg*> explicitely
+hits that particular offset for some index. Also, <stripe>s of length 1 and
+stride 0 can be used as generic container, for example to apply a variant set
+or a prefix to a bigger set of elements. Attributes:
+
+ - name [optional]: like in <array>. If not given, no prefixing happens, and
+   the defines for <stripe> itself aren't emitted.
+ - offset [optional]: like <array>. Defaults to 0 if unspecified.
+ - stride [optional]: the difference between offsets of items with indices i
+   and i+1. Or size of the <stripe> if it makes sense in that particular
+   context. Defaults to 0.
+ - length [optional]: like in array. Defaults to 1.
+ - varset [optional]: as in <reg*>
+ - variants [optional]: as in <reg*>
+ - prefix [optional]: as in <domain>, overrides parent's prefix option.
+
+Definitions are emitted like for arrays, but:
+ - if no name is given, the definitions for stripe itself won't be emitted
+ - if length is 0, the length is assumed to be unknown or undefined. No __LEN
+   is emitted in this case.
+ - if stride is 0, __ESIZE is not emitted
+ - it's an error to have stride 0 with length different than 1
+
+
+Examples:
+
+<stripe name="PGRAPH" offset="0x400000" variants="NV04-NV05">
+	<reg32 offset="0x100" name="INTR" />
+	<reg32 offset="0x140" name="INTR_EN" />
+</stripe>
+
+<stripe name="PGRAPH" offset="0x400000" variants="NV50-">
+	<reg32 offset="0x100" name="INTR" />
+	<reg32 offset="0x108" name="TRAP" />
+	<reg32 offset="0x138" name="TRAP_EN" />
+	<reg32 offset="0x13c" name="INTR_EN" />
+</stripe>
+
+Results in:
+
+#define NV04_PGRAPH		0x400000
+#define NV04_PGRAPH_INTR	0x400100
+#define NV04_PGRAPH_INTR_EN	0x400140
+#define NV50_PGRAPH		0x400000
+#define NV50_PGRAPH_INTR	0x400100
+#define NV50_PGRAPH_TRAP	0x400108
+#define NV50_PGRAPH_TRAP_EN	0x400138
+#define NV50_PGRAPH_INTR_EN	0x40013c
+
+<stripe name="PVIDEO" offset="0x8000">
+	<stripe offset="0x900" stride="4" length="2">
+		<reg32 offset="0" name="BASE" />
+		<reg32 offset="8" name="LIMIT" />
+		<reg32 offset="0x10" name="LUMINANCE" />
+		<reg32 offset="0x18" name="CHROMINANCE" />
+		<!-- ... -->
+	</stripe>
+</stripe>
+
+Results in:
+
+#define PVIDEO_BASE		(0x8900+(i)*4)
+#define PVIDEO_LIMIT		(0x8908+(i)*4)
+#define PVIDEO_LUMINANCE	(0x8910+(i)*4)
+#define PVIDEO_CHROMINANCE	(0x8918+(i)*4)
+
+<domain name="NV_OBJECT" bare="yes">
+	<stripe name="OBJECT" prefix="chipset">
+		<reg32 offset="0x00" name="NAME" />
+		<reg32 offset="0x10" name="FENCE_ADDRESS_HIGH" variants="NV50-" />
+		<!-- more PFIFO methods -->
+	</stripe>
+	<stripe prefix="grobj-class">
+		<stripe variants="NV04_MEMORY_TO_MEMORY_FORMAT-NV05_MEMORY_TO_MEMORY_FORMAT">
+			<reg32 offset="0x200" name="LINEAR_IN" variants="NV50_MEMORY_TO_MEMORY_FORMAT" />
+			<reg32 offset="0x328" name="BUFFER_NOTIFY" />
+			<!-- more m2mf methods -->
+		</stripe>
+		<stripe variants="NV50_COMPUTE">
+			<reg32 offset="0x368" name="LAUNCH" />
+			<stripe name="GLOBAL" offset="0x400" stride="0x20" length="16">
+				<reg32 offset="0" name="ADDRESS_HIGH" />
+				<reg32 offset="4" name="ADDRESS_LOW" />
+				<reg32 offset="8" name="PITCH" />
+				<reg32 offset="0xc" name="LIMIT" />
+				<reg32 offset="0x10" name="MODE" />
+			</stripe>
+			<!-- more NV50_COMPUTE methods -->
+			<reg32 offset="0x0600" name="USER_PARAM" length="64" />
+		</stripe>
+	</stripe>
+</domain>
+
+Results in:
+
+#define NV01_OBJECT_NAME				0x00
+#define	NV50_OBJECT_FENCE_ADDRESS_HIGH			0x10
+#define NV50_MEMORY_TO_MEMORY_FORMAT_LINEAR_IN		0x200
+#define NV04_MEMORY_TO_MEMORY_FORMAT_BUFFER_NOTIFY	0x328
+#define NV50_COMPUTE_LAUNCH				0x368
+#define NV50_COMPUTE_GLOBAL				0x400
+#define NV50_COMPUTE_GLOBAL__LEN			16
+#define NV50_COMPUTE_GLOBAL__ESIZE			0x20
+#define NV50_COMPUTE_GLOBAL_ADDRESS_HIGH		(0x400 + (i)*0x20)
+#define NV50_COMPUTE_GLOBAL_ADDRESS_LOW			(0x404 + (i)*0x20)
+#define NV50_COMPUTE_GLOBAL_PITCH			(0x408 + (i)*0x20)
+#define NV50_COMPUTE_GLOBAL_LIMIT			(0x40c + (i)*0x20)
+#define NV50_COMPUTE_GLOBAL_MODE			(0x410 + (i)*0x20)
+#define NV50_COMPUTE_USER_PARAM(i)			(0x600 + (i)*4)
+#define NV50_COMPUTE_USER_PARAM__LEN			64
+#define NV50_COMPUTE_USER_PARAM__ESIZE			4
+
+2.7. Groups
+
+Groups are just sets of registers and/or arrays that can be copied-and-pasted
+together, when they're duplicated in several places in the same <domain>,
+two different <domain>s, or have different offsets for different variants.
+<group> and <use-group> only have the name attribute. <use-group> can appear
+wherever <reg*> can, including inside a <group>.
+
+<group name="nv50_mp">
+	<!-- ... -->
+	<reg64 offset="0x70" name="TRAPPED_OPCODE" />
+	<!-- ... -->
+</group>
+
+<array offset="0x408000" name="PGRAPH_TP" stride="0x1000" length="8" variants="NV50:NVA0">
+	<array offset="0x200" name="MP" stride="0x80" length="2">
+		<use-group name="nv50_mp" />
+	</array>
+	<!-- ... -->
+</array>
+<array offset="0x408000" name="PGRAPH_TP" stride="0x800" length="10" variants="NVA0-">
+	<array offset="0x100" name="MP" stride="0x80" length="4">
+		<use-group name="nv50_mp" />
+	</array>
+	<!-- ... -->
+</array>
+
+Will get you:
+
+#define NV50_PGRAPH_TP_MP_TRAPPED_OPCODE(i, j) 	(0x408270 + (i)*0x1000 + (j)*0x80)
+#define NVA0_PGRAPH_TP_MP_TRAPPED_OPCODE(i, j) 	(0x408170 + (i)*0x800 + (j)*0x80)
+
+3. The utilities.
+
+The header generation utility will take a set of XML files and generate .h
+file with all of their definitions, as defined above.
+
+The HTML generation utilty will take an XML file and generate HTML
+documentation out of it. The documentation will include the <brief> and <doc>
+tags in some way, as well as information from all the attributes, in some easy
+to read format. Some naming scheme for the HTML files should be decided, so
+that cross-refs to HTML documentation generated for <import>ed files will work
+correctly if the generator is run in both.
+
+The lookup utility will perform database lookups of the following types:
+
+ - domain name, offset, access type, variant type[s] -> register name + array
+   indices if applicable
+ - the above + register value -> same as above + decoded value. For registers
+   with bitfields, print all bitfields, and indicate if any bits not covered
+   by the bitfields are set to 1. For registers/bitfields with enum values,
+   print the matching one if any. For remaining registers/bitfields, print
+   according to type attribute.
+ - bitset name + value -> decoded value, as above
+ - enum name + value -> decoded value, as above
+
+The mmio-parse utility will parse a mmio-trace file and apply the second kind
+of database lookups to all memory accesses matching a given range. Some
+nv-specific hacks will be in order to automate the parsing: extract the
+chipset from PMC_BOOT_0, figure out the mmio base from PCI config, etc.
+
+The renouveau-parse utility will take contents of a PFIFO pushbuffer and
+decode them. The splitting to method,data pair will be done by nv-specific
+code, then the pair will be handed over to generic rules-ng lookup.
+
+4. Issues
+
+ - Random typing-saving feature for bitfields: make high default to same value
+   as low, to have one less attribute for single-bit bitfields?
+
+ - What about allowing nameless registers and/or bitfields? These are
+   supported by renouveau.xml and are used commonly to signify an unknown
+   register.
+
+ - How about cross-ref links in <doc> tags?
+
+ - <translation>: do we need them? Sounds awesome and useful, but as defined
+   by the old spec, they're quite limited. The only examples of straight
+   translations that I know of are the legacy VGA registers and
+   NV50_PFB_VM_TRAP. And NV01_PDAC, but I doubt anybody gives a damn about it.
+   This list is small enough to be just handled by nv-specific hacks in
+   mmio-trace parser if really needed.
+
+ - Another thing that renouveau.xml does is disassembling NV20-NV40 shaders.
+   Do we want that in rules-ng? IMO we'd be better off hacking nv50dis to
+   support it...

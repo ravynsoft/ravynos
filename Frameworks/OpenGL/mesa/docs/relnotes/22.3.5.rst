@@ -1,0 +1,193 @@
+Mesa 22.3.5 Release Notes / 2023-02-08
+======================================
+
+Mesa 22.3.5 is a bug fix release which fixes bugs found since the 22.3.4 release.
+
+Mesa 22.3.5 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.3.5 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    3eed2ecae2bc674494566faab9fcc9beb21cd804c7ba2b59a1694f3d7236e6a9  mesa-22.3.5.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radv/zink: ACO assert with DOOM2016
+- Registered special XGE not unregistered
+- ANV Gen 9.5 swapchain corruption when using newer \`VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL` layout
+- [ICL] Trine 4 trace causing GPU HANG
+- 7900 XTX stuck at 'compiling shaders' in Monster Hunter Rise
+- [ANV] Commit 4ceaed78 causes misrendering on Cyberpunk 2077
+- adding eglGetMscRateANGLE support for multiple monitors with different refresh rates
+- Performance regression in Chromium WebGL when implement  ANGLE_sync_control_rate with egl/x11
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (2):
+
+- radv: Set FDCC_CONTROL SAMPLE_MASK_TRACKER_WATERMARK
+- radv: Shift left the tile swizzle more on GFX11.
+
+Constantine Shablya (1):
+
+- anv: handle ATTACHMENT_OPTIMAL layout
+
+Corentin Noël (1):
+
+- kopper: Do not free the given screen in initScreen implementation
+
+Dylan Baker (1):
+
+- meson: combine checks for linker --gc-sections support
+
+Eric Engestrom (10):
+
+- docs/relnotes: add sha256sum for 22.3.4
+- .pick_status.json: Update to 6390953fa5c0e0a001ce6c07f704366c18f85ccf
+- .pick_status.json: Mark cc9fa060ee1b232e5e72077232d7b90c92dfc1bd as denominated
+- .pick_status.json: Mark 6f7b752fdd2f5f33139dbc105da433ef6f11f112 as denominated
+- .pick_status.json: Mark ac339d97978e96c80d43688566717d4c4f6fa7f3 as denominated
+- .pick_status.json: Mark 4b841cfec8b502a8290cd67356d811933d318c2b as denominated
+- .pick_status.json: Mark 47852b9ff45e73f8f6773a1598cf872c6ee6207f as denominated
+- .pick_status.json: Mark 13de23ea07dd7e1340fd9b72367996fa3c2433ee as denominated
+- .pick_status.json: Mark a568a5492f1dd7eb8c08247b74df2aae498b0863 as denominated
+- .pick_status.json: Mark d23b3a13943576bbb8dd0fea12ac717c40b376e1 as denominated
+
+Georg Lehmann (1):
+
+- aco: fix imod/omod for gfx11 VOP3 opcodes
+
+Hyunjun Ko (1):
+
+- vulkan/runtime: match the spec when taking pipeline subsets.
+
+Iago Toral Quiroga (2):
+
+- v3dv: ensure at least V3D_CL_MAX_INSTR_SIZE bytes in last CL instruction
+- v3dv: ensure we apply binning syncs to secondary command buffers
+
+Ian Romanick (1):
+
+- lavapipe: Fix bad array index scale factor in lvp_inline_uniforms pass
+
+Iván Briano (1):
+
+- anv: uncompressed views of compressed 3d images are now valid
+
+José Roberto de Souza (2):
+
+- intel/ds: Nuke intel_ds_queue::queue_id
+- intel/ds: Fix crash when allocating more intel_ds_queues than u_vector was initialized
+
+Kenneth Graunke (2):
+
+- loader: Add infrastructure for tracking active CRTC resources
+- egl: Rewrite eglGetMscRateANGLE to avoid probes and handle multi-monitor
+
+Konstantin Seurer (1):
+
+- ac/llvm: Fix validation error with global io
+
+Lionel Landwerlin (1):
+
+- anv: fix null descriptors
+
+Liviu Prodea (1):
+
+- meson: Ignore unused variables when assertions are disabled
+
+Lucas Stach (4):
+
+- etnaviv: drm: fix BO array leaks
+- etnaviv: free pm queries dynarray on screen destroy
+- etnaviv: drm: fix check if BO is on a deferred destroy list
+- etnaviv: fix double scanout import of multiplanar resources
+
+Marek Olšák (6):
+
+- Revert "radeonsi: enable glthread by default"
+- radeonsi: fix RB+ blending with sRGB formats
+- radeonsi/gfx11: unset SAMPLE_MASK_TRACKER_WATERMARK to fix hangs
+- amd: split GFX1103 into GFX1103_R1 and GFX1103_R2
+- amd: fix tile_swizzle on gfx11 - should be shifted by 10 bits, not 8
+- amd: fix typo in shadowed uconfig registers on gfx11
+
+Mike Blumenkrantz (16):
+
+- Revert "zink: allow direct memory mapping for any COHERENT+CACHED buffer"
+- zink: add VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT for buffers if ext is enabled
+- zink: set vkusage/vkflags for buffer resource objects
+- zink: don't add dmabuf export type if dmabuf isn't supported
+- zink: stop leaking push descriptor templates
+- zink: always unref old images when adding new binds
+- zink: fix max acquired image count
+- lavapipe: disable VK_FORMAT_FEATURE_2_COLOR_ATTACHMENT_BLEND_BIT for int formats
+- zink: add a define for the "default" optimal key
+- zink: add a define for testing that an optimal key is the default
+- zink: set gfx feedback loop bit in pipeline state for driver workaround
+- zink: set zs feedback loop bit from driver workaround on ctx create
+- zink: fix gpl lib hashing
+- zink: make last_vertex_stage the first bit in zink_vs_key_base
+- zink: use screen indexing for bindless descriptor set in template bind
+- util/vbuf: fix multidraw unrolling
+
+Qiang Yu (1):
+
+- ac/nir/ngg: fix clip dist culling mask uninitialized
+
+Rhys Perry (6):
+
+- aco: set has_color_exports with GPL
+- aco: end reduce tmp after control flow, when used within control flow
+- aco/spill: always end spill vgpr after control flow
+- aco: limit VALUPartialForwardingHazard search
+- radv: set state.vbo_misaligned_mask_invalid in radv_bind_vs_input_state
+- aco: fix out-of-bounds access when moving s_mem(real)time across SMEM
+
+Sagar Ghuge (1):
+
+- intel/fs: Always stall between the fences on Gen11+
+
+Samuel Pitoiset (2):
+
+- radv: add a layer for fixing rendering issues with RAGE2
+- radv: fix RB+ for SRGB formats
+
+SoroushIMG (6):
+
+- zink: fix sparse residency query and minLOD feature checks
+- zink: fix cap check for arb sparse texture2
+- zink: only save frag const buffers when used by blit
+- zink: fix leak when rebinding same image surface
+- zink: clear null image surfaces to 0
+- zink: fix pointcoord y inversion
+
+Timur Kristóf (2):
+
+- radv: Disable NGG culling when conservative overestimation is used.
+- ac/nir/ngg: Include culled primitives in query.
+
+Yuxuan Shui (1):
+
+- loader: unregister special event in loader_dri3_drawable_fini

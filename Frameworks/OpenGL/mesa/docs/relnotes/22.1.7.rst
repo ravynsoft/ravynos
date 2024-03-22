@@ -1,0 +1,196 @@
+Mesa 22.1.7 Release Notes / 2022-09-22
+======================================
+
+Mesa 22.1.7 is a bug fix release which fixes bugs found since the 22.1.6 release.
+
+Mesa 22.1.7 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.1.7 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    TBD.
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- [r300] - osu! - Shader optimizations cause black and glitchy rendering
+- [Bisected] Microsoft CLC: build failure with MSVC and Dshared-llvm=disabled with AMDGPU target available
+- anv: invalid returns from vkCreateDescriptorPool
+- turnip: depth/stencil regressions
+- freedreno / mesa 22.1.3 crashes Firefox Nightly
+- Trine 4 causing GPU HANG: ecode 12:1:849f7804, in vkr-ring-7
+- [RadeonSI] Teamfortress 2 crashing frequently with mesa 22.1.1
+- Unity game segfaults often
+- Alien Isolation segfaulting in radeonsi_dri.so starting with Mesa 22.1.0
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (2):
+
+- pan/decode: Fix overrun decoding planes
+- agx: Fix packing of samplers in texture instrs
+
+Axel Davy (6):
+
+- frontend/nine: Skip invalid swvp calls
+- frontend/nine: Fix buffer tracking out of bounds
+- frontend/nine: Fix ATOC handling
+- frontend/nine: Fix cso restore bug
+- frontend/nine: Fix shader multi-use crash
+- frontend/nine: Fix ff position_t fallback when w = 0
+
+Charmaine Lee (1):
+
+- mesa/st: fix reference to nir->info after nir_to_tgsi
+
+Connor Abbott (2):
+
+- tu: Treat CP_WAIT_FOR_ME as a cache invalidate
+- tu: Fix sysmem depth attachment clear flushing
+
+Dave Airlie (1):
+
+- draw: don't touch info values that aren't valid.
+
+Dmitry Osipenko (1):
+
+- virgl: Fix unmapping of blob resources
+
+Dylan Baker (6):
+
+- .pick_status.json: Update to 56f331951984e698e4b947d2ad6e34a8444bd62c
+- .pick_status.json: Update to a3bf0da1cbd4b10043c80bf44609a3024b5fcc36
+- .pick_status.json: Update to 24b9ad7cd5ebc7cfa5d03cf0f243ea4841c971b9
+- .pick_status.json: Update to 74fc367127ccf945f4c649dd6ddff955c802e36e
+- .pick_status.json: Mark 11ab6087797f805cf158048915c67945613c9a72 as denominated
+- docs: add release notes for 22.1.7
+
+Emma Anholt (1):
+
+- zink: Make sure that we keep the existing ici pNext chain on inserts.
+
+Eric Engestrom (4):
+
+- docs/features.txt: mark VK_ANDROID_native_buffer as supported on turnip
+- docs/features.txt: mark VK_ANDROID_native_buffer as supported on v3dv
+- bin/gen_release_notes.py: bump advertised vulkan version to 1.3
+- vk/device-select-layer: fix .sType of VkPhysicalDeviceGroupProperties
+
+Erik Faye-Lund (4):
+
+- gallium/hud: do not use texture-rect for font
+- docs: fixup link to virgl docs
+- zink: add have_D32_SFLOAT_S8_UINT boolean
+- zink: do not use VK_FORMAT_D32_SFLOAT_S8_UINT without checking
+
+Filip Gawin (1):
+
+- r300: don't read from output transform_r300_vertex_SEQ/SNE
+
+Georg Lehmann (1):
+
+- aco/ir: Fix swapped nle.
+
+Gert Wollny (1):
+
+- virgl: honor host caps in shader cash sha evaluation
+
+Jesse Natalie (2):
+
+- egl/wgl: Delete unused variables/code
+- egl/wgl: Fix some awkward sizeof formatting
+
+Lionel Landwerlin (2):
+
+- anv: fixup PIPE_CONTROL restriction on gfx8
+- anv: don't return incorrect error code for vkCreateDescriptorPool
+
+Liviu Prodea (1):
+
+- meson: Microsoft / maybe Intel CLC need the all-targets workaround just like clover
+
+Marcin Ślusarz (3):
+
+- intel/compiler: emit URB fences for TASK/MESH
+- intel/compiler: there are 4 types of fences on gfx >= 12.5
+- intel/compiler: insert URB fence before task/mesh termination
+
+Marek Olšák (5):
+
+- util/u_threaded: fix a CPU storage crash due to an invalid codepath taken
+- glthread: don't ignore glPushAttrib/glPopAttrib when tracking GL_CULL_FACE
+- radeonsi: don't assume that TC_ACTION_ENA invalidates L1 cache on gfx9
+- glthread: unbind framebuffers in glDeleteFramebuffers
+- glthread: call _mesa_glthread_DeleteBuffers unconditionally
+
+Mike Blumenkrantz (15):
+
+- lavapipe: fix stencil clears
+- util/blitter: respect PIPE_TEXTURE_RECT
+- d3dadapter: fix sw pipe loading
+- nine: set view_mask=0
+- zink: fix gfx program cache pruning with generated tcs
+- zink: don't flag lazy push constant set dirty on batch change
+- zink: handle mutable swapchain images with dmabuf
+- zink: init cache_put program fence on program creation
+- zink: drop mode_changed check from linewidth/depthbias draw updates
+- nine: check return on resource_get_handle
+- zink: demote dmabuf tiling to linear if modifiers aren't supported
+- zink: use modifier_aspect to check for modifier plane in zink_resource_get_param
+- zink: don't add modifiers if EXT_image_drm_format_modifier isn't present
+- zink: add all format modifiers when adding for dmabuf export
+- nir/validate: clamp unsized tex dests to 32bit
+
+Mykhailo Skorokhodov (2):
+
+- iris: Move Wa_1806527549 and enable by default
+- anv: Move Wa_1806527549 and enable by default
+
+Nanley Chery (2):
+
+- anv: Make the D16 reg mode single-sampled
+- iris: Make the D16 reg mode single-sampled
+
+Pavel Ondračka (1):
+
+- r300: fix variables detection for paired ALU and TEX instructions in different branches
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- amdgpu/bo: update uses_secure_bos when importing buffers
+
+Qiang Yu (1):
+
+- nir/lower_gs_intrinsics: fix primitive count for points
+
+Rhys Perry (1):
+
+- aco: fix LdsBranchVmemWARHazard with 2+ branch chains
+
+Rob Clark (1):
+
+- freedreno/drm: Fix potential bo cache vs export crash
+
+sjfricke (1):
+
+- isl: fix bug where sb.MOCS is not being set

@@ -1,0 +1,183 @@
+{
+ "enums": {
+ },
+ "register_mappings": [
+  {
+   "chips": ["gfx6"],
+   "map": {"at": 47148, "to": "mm"},
+   "name": "COMPUTE_MAX_WAVE_ID",
+   "type_ref": "SPI_PS_MAX_WAVE_ID"
+  },
+  {
+   "chips": ["gfx6", "gfx7", "gfx8", "gfx81"],
+   "map": {"at": 53300, "to": "mm"},
+   "name": "SDMA0_STATUS_REG",
+   "type_ref": "SDMA0_STATUS_REG"
+  },
+  {
+   "chips": ["gfx6", "gfx7", "gfx8", "gfx81"],
+   "map": {"at": 55348, "to": "mm"},
+   "name": "SDMA1_STATUS_REG",
+   "type_ref": "SDMA0_STATUS_REG"
+  },
+  {
+   "chips": ["gfx6", "gfx7", "gfx8", "gfx81"],
+   "map": {"at": 3664, "to": "mm"},
+   "name": "SRBM_STATUS",
+   "type_ref": "SRBM_STATUS"
+  },
+  {
+   "chips": ["gfx6", "gfx7", "gfx8", "gfx81"],
+   "map": {"at": 3660, "to": "mm"},
+   "name": "SRBM_STATUS2",
+   "type_ref": "SRBM_STATUS2"
+  },
+  {
+   "chips": ["gfx6", "gfx7", "gfx8", "gfx81"],
+   "map": {"at": 3668, "to": "mm"},
+   "name": "SRBM_STATUS3",
+   "type_ref": "SRBM_STATUS3"
+  },
+  {
+   "chips": ["gfx9"],
+   "map": {"at": 47252, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE4"
+  },
+  {
+   "chips": ["gfx9"],
+   "map": {"at": 47256, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE5"
+  },
+  {
+   "chips": ["gfx9"],
+   "map": {"at": 47260, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE6"
+  },
+  {
+   "chips": ["gfx9"],
+   "map": {"at": 47264, "to": "mm"},
+   "name": "COMPUTE_STATIC_THREAD_MGMT_SE7"
+  },
+  {
+   "chips": ["gfx103", "gfx11"],
+   "map": {"at": 199052, "to": "mm"},
+   "name": "GE_VRS_RATE",
+   "type_ref": "GE_VRS_RATE"
+  }
+ ],
+ "register_types": {
+  "SPI_PS_MAX_WAVE_ID": {
+   "fields": [
+    {"bits": [0, 11], "name": "MAX_WAVE_ID"}
+   ]
+  },
+  "SRBM_STATUS": {
+   "fields": [
+    {"bits": [1, 1], "name": "UVD_RQ_PENDING"},
+    {"bits": [2, 2], "name": "SAMMSP_RQ_PENDING"},
+    {"bits": [3, 3], "name": "ACP_RQ_PENDING"},
+    {"bits": [4, 4], "name": "SMU_RQ_PENDING"},
+    {"bits": [5, 5], "name": "GRBM_RQ_PENDING"},
+    {"bits": [6, 6], "name": "HI_RQ_PENDING"},
+    {"bits": [8, 8], "name": "VMC_BUSY"},
+    {"bits": [9, 9], "name": "MCB_BUSY"},
+    {"bits": [10, 10], "name": "MCB_NON_DISPLAY_BUSY"},
+    {"bits": [11, 11], "name": "MCC_BUSY"},
+    {"bits": [12, 12], "name": "MCD_BUSY"},
+    {"bits": [13, 13], "name": "VMC1_BUSY"},
+    {"bits": [14, 14], "name": "SEM_BUSY"},
+    {"bits": [16, 16], "name": "ACP_BUSY"},
+    {"bits": [17, 17], "name": "IH_BUSY"},
+    {"bits": [19, 19], "name": "UVD_BUSY"},
+    {"bits": [20, 20], "name": "SAMMSP_BUSY"},
+    {"bits": [21, 21], "name": "GCATCL2_BUSY"},
+    {"bits": [22, 22], "name": "OSATCL2_BUSY"},
+    {"bits": [29, 29], "name": "BIF_BUSY"}
+   ]
+  },
+  "SDMA0_STATUS_REG": {
+   "fields": [
+    {"bits": [0, 0], "name": "IDLE"},
+    {"bits": [1, 1], "name": "REG_IDLE"},
+    {"bits": [2, 2], "name": "RB_EMPTY"},
+    {"bits": [3, 3], "name": "RB_FULL"},
+    {"bits": [4, 4], "name": "RB_CMD_IDLE"},
+    {"bits": [5, 5], "name": "RB_CMD_FULL"},
+    {"bits": [6, 6], "name": "IB_CMD_IDLE"},
+    {"bits": [7, 7], "name": "IB_CMD_FULL"},
+    {"bits": [8, 8], "name": "BLOCK_IDLE"},
+    {"bits": [9, 9], "name": "INSIDE_IB"},
+    {"bits": [10, 10], "name": "EX_IDLE"},
+    {"bits": [11, 11], "name": "EX_IDLE_POLL_TIMER_EXPIRE"},
+    {"bits": [12, 12], "name": "PACKET_READY"},
+    {"bits": [13, 13], "name": "MC_WR_IDLE"},
+    {"bits": [14, 14], "name": "SRBM_IDLE"},
+    {"bits": [15, 15], "name": "CONTEXT_EMPTY"},
+    {"bits": [16, 16], "name": "DELTA_RPTR_FULL"},
+    {"bits": [17, 17], "name": "RB_MC_RREQ_IDLE"},
+    {"bits": [18, 18], "name": "IB_MC_RREQ_IDLE"},
+    {"bits": [19, 19], "name": "MC_RD_IDLE"},
+    {"bits": [20, 20], "name": "DELTA_RPTR_EMPTY"},
+    {"bits": [21, 21], "name": "MC_RD_RET_STALL"},
+    {"bits": [22, 22], "name": "MC_RD_NO_POLL_IDLE"},
+    {"bits": [25, 25], "name": "PREV_CMD_IDLE"},
+    {"bits": [26, 26], "name": "SEM_IDLE"},
+    {"bits": [27, 27], "name": "SEM_REQ_STALL"},
+    {"bits": [28, 29], "name": "SEM_RESP_STATE"},
+    {"bits": [30, 30], "name": "INT_IDLE"},
+    {"bits": [31, 31], "name": "INT_REQ_STALL"}
+   ]
+  },
+  "SRBM_STATUS2": {
+   "fields": [
+    {"bits": [0, 0], "name": "SDMA_RQ_PENDING"},
+    {"bits": [1, 1], "name": "TST_RQ_PENDING"},
+    {"bits": [2, 2], "name": "SDMA1_RQ_PENDING"},
+    {"bits": [3, 3], "name": "VCE0_RQ_PENDING"},
+    {"bits": [4, 4], "name": "VP8_BUSY"},
+    {"bits": [5, 5], "name": "SDMA_BUSY"},
+    {"bits": [6, 6], "name": "SDMA1_BUSY"},
+    {"bits": [7, 7], "name": "VCE0_BUSY"},
+    {"bits": [8, 8], "name": "XDMA_BUSY"},
+    {"bits": [9, 9], "name": "CHUB_BUSY"},
+    {"bits": [10, 10], "name": "SDMA2_BUSY"},
+    {"bits": [11, 11], "name": "SDMA3_BUSY"},
+    {"bits": [12, 12], "name": "SAMSCP_BUSY"},
+    {"bits": [13, 13], "name": "ISP_BUSY"},
+    {"bits": [14, 14], "name": "VCE1_BUSY"},
+    {"bits": [15, 15], "name": "ODE_BUSY"},
+    {"bits": [16, 16], "name": "SDMA2_RQ_PENDING"},
+    {"bits": [17, 17], "name": "SDMA3_RQ_PENDING"},
+    {"bits": [18, 18], "name": "SAMSCP_RQ_PENDING"},
+    {"bits": [19, 19], "name": "ISP_RQ_PENDING"},
+    {"bits": [20, 20], "name": "VCE1_RQ_PENDING"}
+   ]
+  },
+  "SRBM_STATUS3": {
+   "fields": [
+    {"bits": [0, 0], "name": "MCC0_BUSY"},
+    {"bits": [1, 1], "name": "MCC1_BUSY"},
+    {"bits": [2, 2], "name": "MCC2_BUSY"},
+    {"bits": [3, 3], "name": "MCC3_BUSY"},
+    {"bits": [4, 4], "name": "MCC4_BUSY"},
+    {"bits": [5, 5], "name": "MCC5_BUSY"},
+    {"bits": [6, 6], "name": "MCC6_BUSY"},
+    {"bits": [7, 7], "name": "MCC7_BUSY"},
+    {"bits": [8, 8], "name": "MCD0_BUSY"},
+    {"bits": [9, 9], "name": "MCD1_BUSY"},
+    {"bits": [10, 10], "name": "MCD2_BUSY"},
+    {"bits": [11, 11], "name": "MCD3_BUSY"},
+    {"bits": [12, 12], "name": "MCD4_BUSY"},
+    {"bits": [13, 13], "name": "MCD5_BUSY"},
+    {"bits": [14, 14], "name": "MCD6_BUSY"},
+    {"bits": [15, 15], "name": "MCD7_BUSY"}
+   ]
+  },
+  "GE_VRS_RATE": {
+   "fields": [
+    {"bits": [0, 1], "name": "RATE_X"},
+    {"bits": [4, 5], "name": "RATE_Y"}
+   ]
+  }
+ }
+}

@@ -1,0 +1,116 @@
+Mesa 18.0.2 Release Notes / April 28, 2018
+==========================================
+
+Mesa 18.0.2 is a bug fix release which fixes bugs found since the 18.0.1
+release.
+
+Mesa 18.0.2 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   SHA256: ffd8dfe3337b474a3baa085f0e7ef1a32c7cdc3bed1ad810b2633919a9324840  mesa-18.0.2.tar.gz
+   SHA256: 98fa159768482dc568b9f8bf0f36c7acb823fa47428ffd650b40784f16b9e7b3  mesa-18.0.2.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 95009 <https://bugs.freedesktop.org/show_bug.cgi?id=95009>`__ -
+   [SNB]
+   amd_shader_trinary_minmax.execution.built-in-functions.gs-mid3-ivec2-ivec2-ivec2
+   intermittent
+-  `Bug 95012 <https://bugs.freedesktop.org/show_bug.cgi?id=95012>`__ -
+   [SNB] glsl-1_50.execution.built-in-functions.gs-op tests intermittent
+-  `Bug 98281 <https://bugs.freedesktop.org/show_bug.cgi?id=98281>`__ -
+   'message's in ctx->Debug.LogMessages[] seem to leak.
+-  `Bug 105320 <https://bugs.freedesktop.org/show_bug.cgi?id=105320>`__
+   - Storage texel buffer access produces wrong results (RX Vega)
+-  `Bug 105775 <https://bugs.freedesktop.org/show_bug.cgi?id=105775>`__
+   - SI reaches the maximum IB size in dwords and fail to submit
+-  `Bug 105994 <https://bugs.freedesktop.org/show_bug.cgi?id=105994>`__
+   - surface state leak when creating and destroying image views with
+   aspectMask depth and stencil
+-  `Bug 106074 <https://bugs.freedesktop.org/show_bug.cgi?id=106074>`__
+   - radv: si_scissor_from_viewport returns incorrect result when using
+   half-pixel viewport offset
+-  `Bug 106126 <https://bugs.freedesktop.org/show_bug.cgi?id=106126>`__
+   - eglMakeCurrent does not always ensure
+   dri_drawable->update_drawable_info has been called for a new
+   EGLSurface if another has been created and destroyed first
+
+Changes
+-------
+
+Bas Nieuwenhuizen (2):
+
+-  ac/nir: Make the GFX9 buffer size fix apply to image loads/atomics
+   too.
+-  radv: Mark GTT memory as device local for APUs.
+
+Dylan Baker (2):
+
+-  bin/install_megadrivers: fix DESTDIR and -D*-path
+-  meson: don't build classic mesa tests without dri_drivers
+
+Ian Romanick (1):
+
+-  intel/compiler: Add scheduler deps for instructions that implicitly
+   read g0
+
+Faith Ekstrand (1):
+
+-  i965/fs: Return mlen \* 8 for size_read() for INTERPOLATE_AT\_\*
+
+Johan Klokkhammer Helsing (1):
+
+-  st/dri: Fix dangling pointer to a destroyed dri_drawable
+
+Juan A. Suarez Romero (4):
+
+-  docs: add sha256 checksums for 18.0.1
+-  travis: radv needs LLVM 4.0
+-  cherry-ignore: add explicit 18.1 only nominations
+-  Update version to 18.0.2
+
+Kenneth Graunke (1):
+
+-  i965: Fix shadow batches to be the same size as the real BO.
+
+Lionel Landwerlin (1):
+
+-  anv: fix number of planes for depth & stencil
+
+Lucas Stach (1):
+
+-  etnaviv: fix texture_format_needs_swiz
+
+Marek Olšák (3):
+
+-  radeonsi/gfx9: fix a hang with an empty first IB
+-  glsl_to_tgsi: try harder to lower unsupported ir_binop_vector_extract
+-  Revert "st/dri: Fix dangling pointer to a destroyed dri_drawable"
+
+Samuel Pitoiset (2):
+
+-  radv: fix scissor computation when using half-pixel viewport offset
+-  radv/winsys: allow to submit up to 4 IBs for chips without chaining
+
+Thomas Hellstrom (1):
+
+-  svga: Fix incorrect advertizing of EGL_KHR_gl_colorspace
+
+Timothy Arceri (1):
+
+-  mesa: free debug messages when destroying the debug state

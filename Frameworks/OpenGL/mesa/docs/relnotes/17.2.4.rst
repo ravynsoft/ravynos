@@ -1,0 +1,102 @@
+Mesa 17.2.4 Release Notes / October 30, 2017
+============================================
+
+Mesa 17.2.4 is a bug fix release which fixes bugs found since the 17.2.3
+release.
+
+Mesa 17.2.4 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   cb266edc5cf7226219ebaf556ca2e03dff282e0324d20afd80423a5754d1272c  mesa-17.2.4.tar.gz
+   5ba408fecd6e1132e5490eec1a2f04466214e4c65c8b89b331be844768c2e550  mesa-17.2.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 102774 <https://bugs.freedesktop.org/show_bug.cgi?id=102774>`__
+   - [BDW] [Bisected] Absolute constant buffers break VAAPI in mpv
+-  `Bug 103388 <https://bugs.freedesktop.org/show_bug.cgi?id=103388>`__
+   - Linking libcltgsi.la (llvm/codegen/libclllvm_la-common.lo) fails
+   with "error: no match for 'operator-'" with GCC-7, Mesa from Git and
+   current LLVM revisions
+
+Changes
+-------
+
+Andres Gomez (8):
+
+-  cherry-ignore: configure.ac: rework llvm detection and handling
+-  cherry-ignore: glsl: fix derived cs variables
+-  cherry-ignore: added 17.3 nominations.
+-  cherry-ignore: radv: Don't use vgpr indexing for outputs on GFX9.
+-  cherry-ignore: radv: Disallow indirect outputs for GS on GFX9 as
+   well.
+-  cherry-ignore: mesa/bufferobj: don't double negate the range
+-  cherry-ignore: broadcom/vc5: Propagate vc4 aliasing fix to vc5.
+-  Update version to 17.2.4
+
+Bas Nieuwenhuizen (1):
+
+-  ac/nir: Fix nir_texop_lod on GFX for 1D arrays.
+
+Dave Airlie (1):
+
+-  radv/image: bump all the offset to uint64_t.
+
+Emil Velikov (1):
+
+-  docs: add sha256 checksums for 17.2.3
+
+Henri Verbeet (1):
+
+-  vulkan/wsi: Free the event in x11_manage_fifo_queues().
+
+Jan Vesely (1):
+
+-  clover: Fix compilation after clang r315871
+
+Faith Ekstrand (4):
+
+-  nir/intrinsics: Set the correct num_indices for load_output
+-  intel/fs: Handle flag read/write aliasing in needs_src_copy
+-  anv/pipeline: Call nir_lower_system_valaues after brw_preprocess_nir
+-  intel/eu: Use EXECUTE_1 for JMPI
+
+Kenneth Graunke (1):
+
+-  i965: Revert absolute mode for constant buffer pointers.
+
+Marek Olšák (1):
+
+-  Revert "mesa: fix texture updates for ATI_fragment_shader"
+
+Matthew Nicholls (1):
+
+-  ac/nir: generate correct instruction for atomic min/max on unsigned
+   images
+
+Michel Dänzer (1):
+
+-  st/mesa: Initialize textures array in st_framebuffer_validate
+
+Samuel Pitoiset (1):
+
+-  radv: add the draw count buffer to the list of buffers
+
+Stefan Schake (1):
+
+-  broadcom/vc4: Fix aliasing issue

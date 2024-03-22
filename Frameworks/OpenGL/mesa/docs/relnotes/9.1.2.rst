@@ -1,0 +1,212 @@
+Mesa 9.1.2 Release Notes / April 30th, 2013
+===========================================
+
+Mesa 9.1.2 is a bug fix release which fixes bugs found since the 9.1.1
+release.
+
+Mesa 9.1 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   df2aab86ff4a510ce5b0d074caa0a59f  MesaLib-9.1.2.tar.bz2
+   415c2bc3a9eb571aafbfa474ebf5a2e0  MesaLib-9.1.2.tar.gz
+   b1ae5a4d9255953980bc9254f5323420  MesaLib-9.1.2.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 44567 <https://bugs.freedesktop.org/show_bug.cgi?id=44567>`__ -
+   [965gm] green artifacts when using GLSL in XBMC
+-  `Bug 59238 <https://bugs.freedesktop.org/show_bug.cgi?id=59238>`__ -
+   many new symbols in libxatracker after recent automake work
+-  `Bug 59445 <https://bugs.freedesktop.org/show_bug.cgi?id=59445>`__ -
+   [SNB/IVB/HSW Bisected]Oglc draw-buffers2(advanced.blending.none)
+   segfault
+-  `Bug 59495 <https://bugs.freedesktop.org/show_bug.cgi?id=59495>`__ -
+   [i965 Bisected]Oglc fbblit(advanced.blitFb-3d-cube.mirror.both) fails
+-  `Bug 60503 <https://bugs.freedesktop.org/show_bug.cgi?id=60503>`__ -
+   [r300g] Unigine Heaven 3.0: all objects are black
+-  `Bug 60510 <https://bugs.freedesktop.org/show_bug.cgi?id=60510>`__ -
+   Firefox 18.0.2 Crash On Nvidia GeForce2
+-  `Bug 61197 <https://bugs.freedesktop.org/show_bug.cgi?id=61197>`__ -
+   [SNB Bisected] kwin_gles screen corruption
+-  `Bug 61317 <https://bugs.freedesktop.org/show_bug.cgi?id=61317>`__ -
+   [IVB] corrupt rendering with UBOs
+-  `Bug 61395 <https://bugs.freedesktop.org/show_bug.cgi?id=61395>`__ -
+   glEdgeFlag can't be set to false
+-  `Bug 61947 <https://bugs.freedesktop.org/show_bug.cgi?id=61947>`__ -
+   nullpointer dereference causes xorg-server segfault when nouveau DRI
+   driver is loaded
+-  `Bug 62357 <https://bugs.freedesktop.org/show_bug.cgi?id=62357>`__ -
+   llvmpipe: Fragment Shader with "return" in main causes back output
+-  `Bug 62434 <https://bugs.freedesktop.org/show_bug.cgi?id=62434>`__ -
+   [bisected] 3284.073] (EE) AIGLX error: dlopen of
+   /usr/lib/xorg/modules/dri/r600_dri.so failed
+   (/usr/lib/libllvmradeon9.2.0.so: undefined symbol:
+   lp_build_tgsi_intrinsic)
+-  `Debian bug
+   #349437 <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=349437>`__
+   - mesa - FTBFS: error: 'IEEE_ONE' undeclared
+-  `Redhat bug
+   #918661 <https://bugzilla.redhat.com/show_bug.cgi?id=918661>`__ -
+   crash in routine Avogadro UI manipulation
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.1.1..mesa-9.1.2
+
+Adam Jackson (2):
+
+-  glx: Build with VISIBILITY_CFLAGS in automake
+-  linux: Don't emit a .note.ABI-tag section anymore (#26663)
+
+Alan Hourihane (3):
+
+-  Add missing GL_TEXTURE_CUBE_MAP entry in
+   \_mesa_legal_texture_dimensions
+-  Unreference sampler object when it's currently bound to texture unit.
+-  mesa: fix glGetInteger*(GL_SAMPLER_BINDING).
+
+Alex Deucher (1):
+
+-  r600g: disable hyperz by default on 9.1
+
+Andreas Boll (5):
+
+-  radeon/llvm: Link against libgallium.la to fix an undefined symbol
+-  mesa: use ieee fp on s390 and m68k
+-  build: Enable x86 assembler on Hurd.
+-  osmesa: fix out-of-tree build
+-  gallium/egl: fix out-of-tree build
+
+Anuj Phogat (1):
+
+-  mesa: Fix FB blitting in case of zero size src or dst rect
+
+Brian Paul (4):
+
+-  mesa: flush current state when querying GL_EDGE_FLAG
+-  vbo: fix crash found with shared display lists
+-  llvmpipe: tweak CMD_BLOCK_MAX and LP_SCENE_MAX_SIZE
+-  llvmpipe: add some scene limit sanity check assertions
+
+Carl Worth (1):
+
+-  i965: Avoid segfault in gen6_upload_state
+
+Chris Forbes (1):
+
+-  i965/vs: Fix Gen4/5 VUE map inconsistency with gl_ClipVertex
+
+Christoph Bumiller (4):
+
+-  nv50: fix 3D render target setup
+-  nv50,nvc0: disable DEPTH_RANGE_NEAR/FAR clipping during blit
+-  nv50,nvc0: fix 3d blits, restore viewport after blit
+-  nvc0: fix for 2d engine R source formats writing RRR1 and not R001
+
+Eric Anholt (5):
+
+-  i965/fs: Fix register allocation for uniform pull constants in
+   16-wide.
+-  i965/fs: Fix broken rendering in large shaders with UBO loads.
+-  i965/fs: Also do the gen4 SEND dependency workaround against other
+   SENDs.
+-  i965: Add definitions for gen7+ data cache messages.
+-  mesa: Disable validate_ir_tree() on release builds.
+
+Ian Romanick (5):
+
+-  docs: Add 9.1.1 release md5sums
+-  mesa: Add previously picked commit to .cherry-ignore
+-  glsl: Add missing bool case in glsl_type::get_scalar_type
+-  mesa: Note that patch dbf94d1 should't actually get picked to the 9.1
+   branch
+-  mesa: Bump version to 9.1.2
+
+Jan de Groot (1):
+
+-  dri/nouveau: fix crash in nouveau_flush
+
+José Fonseca (3):
+
+-  autotools: Add missing top-level include dir.
+-  mesa,gallium,egl,mapi: One definition of C99 inline/__func_\_ to rule
+   them all.
+-  include: Fix build with VS 11 (i.e, 2012).
+
+Kenneth Graunke (4):
+
+-  i965: Fix INTEL_DEBUG=shader_time for Haswell.
+-  i965: Specialize SURFACE_STATE creation for shader time.
+-  i965: Make INTEL_DEBUG=shader_time use the RAW surface format.
+-  i965: Don't use texture swizzling to force alpha to 1.0 if
+   unnecessary.
+
+Maarten Lankhorst (2):
+
+-  gallium/build: Fix visibility CFLAGS in automake
+-  radeon/llvm: Do not link against libgallium when building statically.
+
+Marcin Slusarz (1):
+
+-  dri/nouveau: NV17_3D class is not available for NV1a chipset
+
+Marek Olšák (3):
+
+-  mesa: don't allocate a texture if width or height is 0 in
+   CopyTexImage
+-  gallium/tgsi: fix valgrind warning
+-  mesa: handle HALF_FLOAT like FLOAT in get_tex_rgba
+
+Martin Andersson (1):
+
+-  r600g: Use virtual address for PIPE_QUERY_SO\* in r600_emit_query_end
+
+Matt Turner (3):
+
+-  configure.ac: Don't check for X11 unconditionally.
+-  configure.ac: Remove stale comment about --x-\* arguments.
+-  mesa: Implement TEXTURE_IMMUTABLE_LEVELS for ES 3.0.
+
+Michel Dänzer (1):
+
+-  radeonsi: Emit pixel shader state even when only the vertex shader
+   changed
+
+Paul Berry (1):
+
+-  i965: Apply depthstencil alignment workaround when doing fast clears.
+
+Roland Scheidegger (1):
+
+-  gallivm: fix return opcode handling in main function of a shader
+
+Tapani Pälli (1):
+
+-  intel: Fix regression in intel_create_image_from_name stride handling
+
+Tom Stellard (1):
+
+-  r300g: Fix bug in OMOD optimization

@@ -1,0 +1,67 @@
+# List of commits to ignore when using `git blame`.
+# Enable with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Per git-blame(1):
+#   Ignore revisions listed in the file, one unabbreviated object name
+#   per line, in git-blame. Whitespace and comments beginning with # are
+#   ignored.
+#
+# Please keep these in chronological order :)
+#
+# You can add a new commit with the following command:
+#   git log -1 --pretty=format:'%n# %s%n%H%n' >> .git-blame-ignore-revs $COMMIT
+
+# pvr: Fix clang-format error.
+0ad5b0a74ef73f5fcbe1406ad9d57fe5dc00a5b1
+
+# panfrost: Fix up some formatting for clang-format
+a4705afe63412498d13ded73cba969c66be67907
+
+# asahi: clang-format the world again
+26c51bb8d8a33098b1990425a391f56ffba5728c
+
+# perfetto: Add a .clang-format for the directory.
+da78d5d729b1800136dd713b68492cb339993f4a
+
+# panfrost/winsys: Clang-format
+c90f036516a5376002be6550a917e8bad6a8a3b8
+
+# panfrost: Re-run clang-format
+4ccf174009af6732cbffa5d8ebb4687da7517505
+
+# panvk: Clang-format
+c7bf3b69ebc8f2252dbf724a4de638e6bb2ac402
+
+# pan/mdg: Fix icky formatting
+133af0d6c945d3aaca8989edd15283a2b7dcc6c7
+
+# mapi: clang-format _glapi_add_dispatch()
+30332529663268a6406e910848e906e725e6fda7
+
+# radv: reformat according to its .clang-format
+8b319c6db8bd93603b18bd783eb75225fcfd51b7
+
+# aco: reformat according to its .clang-format
+6b21653ab4d3a67e711fe10e3d403128b6d26eb2
+
+# egl: re-format using clang-format
+2f670d89db038d5a29f6b72732fd7ad63dfaf4c6
+
+# panfrost: clang-format the tree
+0afd691f29683f6e9dde60f79eca094373521806
+
+# aco: Format.
+1e2639026fec7069806449f9ba2a124ce4eb5569
+
+# radv: Format.
+59c501ca353f8ec9d2717c98af2bfa1a1dbf4d75
+
+# pvr: clang-format fixes
+953c04ebd39c52d457301bdd8ac803949001da2d
+
+# freedreno: Re-indent
+2d439343ea1aee146d4ce32800992cd389bd505d
+
+# ir3: Reformat source with clang-format
+177138d8cb0b4f6a42ef0a1f8593e14d79f17c54

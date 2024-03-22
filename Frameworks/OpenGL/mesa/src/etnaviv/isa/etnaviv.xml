@@ -1,0 +1,1246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright © 2023 Igalia S.L.
+SPDX-License-Identifier: MIT
+ -->
+
+<isa>
+
+<template name="INSTR_ALU">
+	{NAME}{SAT}{COND}{TYPE}{PMODE}{THREAD}{RMODE}
+</template>
+
+<template name="INSTR_TEX">
+	{NAME}{TEX_SWIZ}
+</template>
+
+<template name="INSTR_CF">
+	{NAME}{COND}{TYPE}
+</template>
+
+<template name="INSTR_LOAD_STORE">
+	{NAME}{COND}{SKPHP}{DENORM}{LOCAL}{TYPE}{PMODE}
+</template>
+
+<template name="INSTR_LOAD_STORE_WITH_LEFT_SHIFT">
+	{NAME}{COND}{SKPHP}{DENORM}{LOCAL}.ls{LEFT_SHIFT}{TYPE}{PMODE}
+</template>
+
+<enum name="#cond">
+	<value val="0" name=".true" display=""/>
+	<value val="1" display=".gt"/>
+	<value val="2" display=".lt"/>
+	<value val="3" display=".ge"/>
+	<value val="4" display=".le"/>
+	<value val="5" display=".eq"/>
+	<value val="6" display=".ne"/>
+	<value val="7" display=".and"/>
+	<value val="8" display=".or"/>
+	<value val="9" display=".xor"/>
+	<value val="10" display=".not"/>
+	<value val="11" display=".nz"/>
+	<value val="12" display=".gez"/>
+	<value val="13" display=".gz"/>
+	<value val="14" display=".lez"/>
+	<value val="15" display=".lz"/>
+	<value val="22" display=".0x16"/>
+</enum>
+
+<enum name="#swiz">
+	<value val="0" display="x"/>
+	<value val="1" display="y"/>
+	<value val="2" display="z"/>
+	<value val="3" display="w"/>
+</enum>
+
+<enum name="#type">
+	<value val="0" name=".f32" display=""/>
+	<value val="1" display=".s32"/>
+	<value val="2" display=".s8"/>
+	<value val="3" display=".u16"/>
+	<value val="4" display=".f16"/>
+	<value val="5" display=".s16"/>
+	<value val="6" display=".u32"/>
+	<value val="7" display=".u8"/>
+</enum>
+
+<enum name="#reg_group">
+	<value val="0" display="t"/>
+	<value val="2" display="u"/>
+	<value val="3" display="u2"/>
+	<value val="4" display="th"/>
+	<value val="7" name="immed" display=""/>
+</enum>
+
+<enum name="#reg_addressing_mode">
+	<value val="0" display=""/>
+	<value val="1" display="[a.x]"/>
+	<value val="2" display="[a.y]"/>
+	<value val="3" display="[a.z]"/>
+	<value val="4" display="[a.w]"/>
+</enum>
+
+<enum name="#rounding">
+	<value val="0" display=""/>
+	<value val="1" display=".rtz"/>
+	<value val="2" display=".rtne"/>
+	<value val="3" display=".unkown"/>
+	<value val="4" display=".unkown2"/>
+</enum>
+
+<enum name="#wrmask">
+	<value val="0"  display=".____"/>
+	<value val="1"  display=".x___"/>
+	<value val="2"  display="._y__"/>
+	<value val="3"  display=".xy__"/>
+	<value val="4"  display=".__z_"/>
+	<value val="5"  display=".zx"/>
+	<value val="6"  display=".zy"/>
+	<value val="7"  display=".xyz_"/>
+	<value val="8"  display=".___w"/>
+	<value val="9"  display=".x__w"/>
+	<value val="10" display="._y_w"/>
+	<value val="11" display=".xy_w"/>
+	<value val="12" display=".__zw"/>
+	<value val="13" display=".x_zw"/>
+	<value val="14" display="._yzw"/>
+	<value val="15" display=""/> <!-- xyzw -->
+</enum>
+
+<bitset name="#instruction-dst" size="14">
+	<override>
+		<expr>
+			{DST_USE} == 0
+		</expr>
+		<display>
+			void
+		</display>
+	</override>
+
+	<display>
+		t{REG}{AMODE}{COMPS}
+	</display>
+
+	<field name="AMODE" low="0" high="2" type="#reg_addressing_mode"/>
+	<field name="REG" low="3" high="9" type="uint"/>
+	<field name="COMPS" low="10" high="13" type="#wrmask"/>
+</bitset>
+
+<bitset name="#instruction" size="128">
+	<field name="COND" low="6" high="10" type="#cond"/>
+	<field name="SAT" pos="11" type="bool" display=".sat"/>
+
+	<field name="TYPE_BIT2" pos="53" type="uint"/>
+	<pattern low="65" high="66">00</pattern>
+	<field name="TYPE_BIT01" low="94" high="95" type="int"/>
+
+	<derived name="TYPE" type="#type">
+		<expr>{TYPE_BIT2} &lt;&lt; 2 | {TYPE_BIT01}</expr>
+	</derived>
+</bitset>
+
+<bitset name="#src-swizzle" size="8">
+	<display>
+		.{SWIZ_X}{SWIZ_Y}{SWIZ_Z}{SWIZ_W}
+	</display>
+
+	<field name="SWIZ_X" low="0" high="1" type="#swiz"/>
+	<field name="SWIZ_Y" low="2" high="3" type="#swiz"/>
+	<field name="SWIZ_Z" low="4" high="5" type="#swiz"/>
+	<field name="SWIZ_W" low="6" high="7" type="#swiz"/>
+</bitset>
+
+<enum name="#thread">
+	<value val="0" display=""/>
+	<value val="1" display=".t0"/>
+	<value val="2" display=".t1"/>
+</enum>
+
+<bitset name="#instruction-alu-base" extends="#instruction">
+	<field name="DST_USE" pos="12" type="bool"/>
+	<field name="DST" low="13" high="26" type="#instruction-dst">
+		<param name="DST_USE"/>
+		<param name="COMPS"/>
+	</field>
+	<pattern low="27" high="31">00000</pattern> <!-- TEX_ID -->
+	<field name="RMODE" low="32" high="33" type="#rounding"/>
+	<field name="PMODE" pos="34" type="bool_inv" display=".pack"/>
+
+	<field name="LOW_HALF" pos="109" type="bool"/>
+	<field name="HIGH_HALF" pos="120" type="bool"/>
+
+	<derived name="THREAD" type="#thread">
+		<expr>{HIGH_HALF} &lt;&lt; 1 | {LOW_HALF}</expr>
+	</derived>
+
+	<field name="DST_FULL" pos="127" type="bool" display=".hp"/>
+</bitset>
+
+<bitset name="#instruction-alu" extends="#instruction-alu-base">
+	<pattern low="35" high="42">00000000</pattern><!-- TEX_SWIZ -->
+</bitset>
+
+<bitset name="#instruction-src" size="10">
+	<display>
+		{SRC_NEG}{SRC_ABS}{SRC_RGROUP}{SRC_REG}{SRC_AMODE}{SRC_SWIZ}{SRC_ABS}
+	</display>
+
+	<field name="SRC_SWIZ" low="0" high="7" type="#src-swizzle"/>
+	<field name="SRC_NEG" pos="8" type="bool" display="-"/>
+	<field name="SRC_ABS" pos="9" type="bool" display="|"/>
+
+	<derived name="IMMED_TYPE" type="uint">
+		<expr>({SRC_AMODE} &gt;&gt; 1)</expr> <!-- lowest bit is the sign bit -->
+	</derived>
+
+	<override>
+		<expr>
+			(({SRC_RGROUP} == 7) &amp; ({IMMED_TYPE} == 0))
+		</expr>
+
+		<display>
+			{IMMED}
+		</display>
+
+		<derived name="IMMED" type="float" width="32">
+			<expr>
+				(((({SRC_AMODE} &amp; 0x1) &lt;&lt; 19) |
+				   ({SRC_ABS} &lt;&lt; 18) |
+				   ({SRC_NEG} &lt;&lt; 17) |
+				   ({SRC_SWIZ} &lt;&lt; 9) |
+				   {SRC_REG}) &lt;&lt; 12)
+			</expr>
+		</derived>
+	</override>
+
+	<override>
+		<expr>
+			(({SRC_RGROUP} == 7) &amp; ({IMMED_TYPE} == 1))
+		</expr>
+
+		<display>
+			{IMMED}
+		</display>
+
+		<derived name="IMMED" type="int" width="20">
+			<expr>
+				((({SRC_AMODE} &amp; 0x1) &lt;&lt; 19) |
+				  ({SRC_ABS} &lt;&lt; 18) |
+				  ({SRC_NEG} &lt;&lt; 17) |
+				  ({SRC_SWIZ} &lt;&lt; 9) |
+				   {SRC_REG})
+			</expr>
+		</derived>
+	</override>
+
+	<override>
+		<expr>
+			(({SRC_RGROUP} == 7) &amp; ({IMMED_TYPE} == 2))
+		</expr>
+
+		<display>
+			{IMMED}
+		</display>
+
+		<derived name="IMMED" type="uint" width="20">
+			<expr>
+				((({SRC_AMODE} &amp; 0x1) &lt;&lt; 19) |
+				  ({SRC_ABS} &lt;&lt; 18) |
+				  ({SRC_NEG} &lt;&lt; 17) |
+				  ({SRC_SWIZ} &lt;&lt; 9) |
+				   {SRC_REG})
+			</expr>
+		</derived>
+	</override>
+
+	<override>
+		<expr>
+			(({SRC_RGROUP} == 7) &amp; ({IMMED_TYPE} == 3))
+		</expr>
+
+		<display>
+			{IMMED}
+		</display>
+
+		<derived name="IMMED" type="float" width="16">
+			<expr>
+				((({SRC_AMODE} &amp; 0x1) &lt;&lt; 19) |
+				  ({SRC_ABS} &lt;&lt; 18) |
+				  ({SRC_NEG} &lt;&lt; 17) |
+				  ({SRC_SWIZ} &lt;&lt; 9) |
+				   {SRC_REG})
+			</expr>
+		</derived>
+	</override>
+</bitset>
+
+<bitset name="#instruction-alu-atomic" extends="#instruction-alu-base">
+	<display>
+		{INSTR_ALU} {DST:align=18}, {SRC0}, {SRC1}, {SRC2}
+	</display>
+
+	<pattern low="35" high="42">xxxxxxxx</pattern><!-- TEX_SWIZ -->
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">1</pattern> <!-- SRC1_USE -->
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC1_REG" as="SRC_REG"/>
+		<param name="SRC1_AMODE" as="SRC_AMODE"/>
+		<param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">1</pattern> <!-- SRC2_USE -->
+	<field name="SRC2_REG" low="100" high="108" type="uint"/>
+	<field name="SRC2" low="110" high="119" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC2_AMODE" low="121" high="123" type="#reg_addressing_mode"/>
+	<field name="SRC2_RGROUP" low="124" high="126" type="#reg_group"/>
+</bitset>
+
+<bitset name="#instruction-alu-atomic" extends="#instruction-alu-base">
+	<display>
+		{INSTR_ALU} {DST:align=18}, {SRC0}, {SRC1}, {SRC2}
+	</display>
+
+	<pattern low="35" high="42">xxxxxxxx</pattern>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">1</pattern> <!-- SRC1_USE -->
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC1_REG" as="SRC_REG"/>
+		<param name="SRC1_AMODE" as="SRC_AMODE"/>
+		<param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">1</pattern> <!-- SRC2_USE -->
+	<field name="SRC2_REG" low="100" high="108" type="uint"/>
+	<field name="SRC2" low="110" high="119" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC2_AMODE" low="121" high="123" type="#reg_addressing_mode"/>
+	<field name="SRC2_RGROUP" low="124" high="126" type="#reg_group"/>
+</bitset>
+
+<bitset name="#instruction-alu-no-src" extends="#instruction-alu">
+	<display>
+		{NAME} {DST:align=18}{DST_FULL}, void, void, void
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">0</pattern> <!-- SRC0_USE -->
+	<pattern low="44" high="52">000000000</pattern> <!-- SRC0_REG -->
+	<pattern low="54" high="61">00000000</pattern> <!-- SRC0_SWIZ -->
+	<pattern pos="62">0</pattern> <!-- SRC0_NEG -->
+	<pattern pos="63">0</pattern> <!-- SRC0_ABS -->
+	<pattern pos="64">0</pattern> <!-- SRC0_AMODE -->
+	<pattern low="67" high="69">000</pattern> <!-- SRC0_RGROUP -->
+
+	<!-- SRC1 -->
+	<pattern pos="70">0</pattern> <!-- SRC1_USE -->
+	<pattern low="71" high="79">000000000</pattern> <!-- SRC1_REG -->
+	<pattern low="81" high="88">00000000</pattern> <!-- SRC1_SWIZ -->
+	<pattern pos="89">0</pattern> <!-- SRC1_NEG -->
+	<pattern pos="90">0</pattern> <!-- SRC1_ABS -->
+	<pattern low="91" high="93">000</pattern> <!-- SRC1_AMODE -->
+	<pattern low="96" high="98">000</pattern> <!-- SRC1_RGROUP -->
+
+	<!-- SRC2 -->
+	<pattern pos="99">0</pattern> <!-- SRC2_USE -->
+	<pattern low="100" high="108">000000000</pattern> <!-- SRC2_REG -->
+	<pattern low="110" high="117">00000000</pattern> <!-- SRC2_SWIZ -->
+	<pattern pos="118">0</pattern> <!-- SRC2_NEG -->
+	<pattern pos="119">0</pattern> <!-- SRC2_ABS -->
+	<pattern low="121" high="123">000</pattern> <!-- SRC2_AMODE -->
+	<pattern low="124" high="126">000</pattern> <!-- SRC2_RGROUP -->
+</bitset>
+
+<expr name="#instruction-alu-no-dst-has-src0-src1">
+     ({SRC0_USE} != 0) &amp;&amp; ({SRC1_USE} != 0)
+</expr>
+
+<bitset name="#instruction-alu-no-dst-maybe-src1-src2" extends="#instruction-alu">
+	<doc>Needed for texkill</doc>
+	<display>
+		{NAME}{COND}{TYPE}{PMODE}{THREAD}{RMODE} {DST:align=18}{DST_FULL}, void, void, void
+	</display>
+
+	<override expr="#instruction-alu-no-dst-has-src0-src1">
+		<display>
+			{NAME}{COND}{TYPE}{PMODE}{THREAD}{RMODE} {DST:align=18}, {SRC0}, {SRC1}, void
+		</display>
+	</override>
+
+	<!-- SRC0 -->
+	<field name="SRC0_USE" pos="43" type="bool"/>
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<field name="SRC1_USE" pos="70" type="bool"/>
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC1_REG" as="SRC_REG"/>
+		<param name="SRC1_AMODE" as="SRC_AMODE"/>
+		<param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">0</pattern> <!-- SRC2_USE -->
+	<pattern low="100" high="108">000000000</pattern> <!-- SRC2_REG -->
+	<pattern low="110" high="117">00000000</pattern> <!-- SRC2_SWIZ -->
+	<pattern pos="118">0</pattern> <!-- SRC2_NEG -->
+	<pattern pos="119">0</pattern> <!-- SRC2_ABS -->
+	<pattern low="121" high="123">000</pattern> <!-- SRC2_AMODE -->
+	<pattern low="124" high="126">000</pattern> <!-- SRC2_RGROUP -->
+</bitset>
+
+<bitset name="#instruction-alu-src0" extends="#instruction-alu">
+	<display>
+		{INSTR_ALU} {DST:align=18}, {SRC0}, void, void
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">0</pattern> <!-- SRC1_USE -->
+	<pattern low="71" high="79">000000000</pattern> <!-- SRC1_REG -->
+	<pattern low="81" high="88">00000000</pattern> <!-- SRC1_SWIZ -->
+	<pattern pos="89">0</pattern> <!-- SRC1_NEG -->
+	<pattern pos="90">0</pattern> <!-- SRC1_ABS -->
+	<pattern low="91" high="93">000</pattern> <!-- SRC1_AMODE -->
+	<pattern low="96" high="98">000</pattern> <!-- SRC1_RGROUP -->
+
+	<!-- SRC2 -->
+	<pattern pos="99">0</pattern> <!-- SRC2_USE -->
+	<pattern low="100" high="108">000000000</pattern> <!-- SRC2_REG -->
+	<pattern low="110" high="117">00000000</pattern> <!-- SRC2_SWIZ -->
+	<pattern pos="118">0</pattern> <!-- SRC2_NEG -->
+	<pattern pos="119">0</pattern> <!-- SRC2_ABS -->
+	<pattern low="121" high="123">000</pattern> <!-- SRC2_AMODE -->
+	<pattern low="124" high="126">000</pattern> <!-- SRC2_RGROUP -->
+</bitset>
+
+<bitset name="#instruction-alu-src2" extends="#instruction-alu">
+	<display>
+		{INSTR_ALU} {DST:align=18}, void, void, {SRC2}
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">0</pattern> <!-- SRC0_USE -->
+	<pattern low="44" high="52">000000000</pattern> <!-- SRC0_REG -->
+	<pattern low="54" high="61">00000000</pattern> <!-- SRC0_SWIZ -->
+	<pattern pos="62">0</pattern> <!-- SRC0_NEG -->
+	<pattern pos="63">0</pattern> <!-- SRC0_ABS -->
+	<pattern pos="64">0</pattern> <!-- SRC0_AMODE -->
+	<pattern low="67" high="69">000</pattern> <!-- SRC0_RGROUP -->
+
+	<!-- SRC1 -->
+	<pattern pos="70">0</pattern> <!-- SRC1_USE -->
+	<pattern low="71" high="79">000000000</pattern> <!-- SRC1_REG -->
+	<pattern low="81" high="88">00000000</pattern> <!-- SRC1_SWIZ -->
+	<pattern pos="89">0</pattern> <!-- SRC1_NEG -->
+	<pattern pos="90">0</pattern> <!-- SRC1_ABS -->
+	<pattern low="91" high="93">000</pattern> <!-- SRC1_AMODE -->
+	<pattern low="96" high="98">000</pattern> <!-- SRC1_RGROUP -->
+
+	<!-- SRC2 -->
+	<pattern pos="99">1</pattern> <!-- SRC2_USE -->
+	<field name="SRC2_REG" low="100" high="108" type="uint"/>
+	<field name="SRC2" low="110" high="119" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC2_AMODE" low="121" high="123" type="#reg_addressing_mode"/>
+	<field name="SRC2_RGROUP" low="124" high="126" type="#reg_group"/>
+</bitset>
+
+<bitset name="#instruction-alu-src0-src1" extends="#instruction-alu">
+	<display>
+		{INSTR_ALU} {DST:align=18}, {SRC0}, {SRC1}, void
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">1</pattern> <!-- SRC1_USE -->
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC1_REG" as="SRC_REG"/>
+		<param name="SRC1_AMODE" as="SRC_AMODE"/>
+		<param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">0</pattern> <!-- SRC2_USE -->
+	<pattern low="100" high="108">000000000</pattern> <!-- SRC2_REG -->
+	<pattern low="110" high="117">00000000</pattern> <!-- SRC2_SWIZ -->
+	<pattern pos="118">0</pattern> <!-- SRC2_NEG -->
+	<pattern pos="119">0</pattern> <!-- SRC2_ABS -->
+	<pattern low="121" high="123">000</pattern> <!-- SRC2_AMODE -->
+	<pattern low="124" high="126">000</pattern> <!-- SRC2_RGROUP -->
+</bitset>
+
+<bitset name="#instruction-alu-src0-src2" extends="#instruction-alu">
+	<display>
+		{INSTR_ALU} {DST:align=18}, {SRC0}, void, {SRC2}
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">0</pattern> <!-- SRC1_USE -->
+	<pattern low="71" high="79">000000000</pattern> <!-- SRC1_REG -->
+	<pattern low="81" high="88">00000000</pattern> <!-- SRC1_SWIZ -->
+	<pattern pos="89">0</pattern> <!-- SRC1_NEG -->
+	<pattern pos="90">0</pattern> <!-- SRC1_ABS -->
+	<pattern low="91" high="93">000</pattern> <!-- SRC1_AMODE -->
+	<pattern low="96" high="98">000</pattern> <!-- SRC1_RGROUP -->
+
+	<!-- SRC2 -->
+	<pattern pos="99">1</pattern> <!-- SRC2_USE -->
+	<field name="SRC2_REG" low="100" high="108" type="uint"/>
+	<field name="SRC2" low="110" high="119" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC2_AMODE" low="121" high="123" type="#reg_addressing_mode"/>
+	<field name="SRC2_RGROUP" low="124" high="126" type="#reg_group"/>
+</bitset>
+
+<bitset name="#instruction-alu-src0-src1-src2" extends="#instruction-alu">
+	<display>
+		{INSTR_ALU} {DST:align=18}, {SRC0}, {SRC1}, {SRC2}
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">1</pattern> <!-- SRC1_USE -->
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC1_REG" as="SRC_REG"/>
+		<param name="SRC1_AMODE" as="SRC_AMODE"/>
+		<param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">1</pattern> <!-- SRC2_USE -->
+	<field name="SRC2_REG" low="100" high="108" type="uint"/>
+	<field name="SRC2" low="110" high="119" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC2_AMODE" low="121" high="123" type="#reg_addressing_mode"/>
+	<field name="SRC2_RGROUP" low="124" high="126" type="#reg_group"/>
+</bitset>
+
+<bitset name="#instruction-tex" extends="#instruction">
+	<field name="DST_USE" pos="12" type="bool"/>
+	<field name="DST" low="13" high="26" type="#instruction-dst">
+		<param name="DST_USE"/>
+		<param name="COMPS"/>
+	</field>
+	<field name="TEX_ID" low="27" high="31" type="uint"/>
+	<field name="RMODE" low="32" high="34" type="#reg_addressing_mode"/>
+	<field name="TEX_SWIZ" low="35" high="42" type="#src-swizzle"/>
+
+	<pattern pos="109">0</pattern>
+	<pattern pos="120">0</pattern>
+	<pattern pos="127">0</pattern>
+</bitset>
+
+<bitset name="#instruction-tex-src0" extends="#instruction-tex">
+	<display>
+		{INSTR_TEX} {DST:align=18}, tex{TEX_ID}, {SRC0}, void, void
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">0</pattern> <!-- SRC1_USE -->
+	<pattern low="71" high="79">000000000</pattern> <!-- SRC1_REG -->
+	<pattern low="81" high="88">00000000</pattern> <!-- SRC1_SWIZ -->
+	<pattern pos="89">0</pattern> <!-- SRC1_NEG -->
+	<pattern pos="90">0</pattern> <!-- SRC1_ABS -->
+	<pattern low="91" high="93">000</pattern> <!-- SRC1_AMODE -->
+	<pattern low="96" high="98">000</pattern> <!-- SRC1_RGROUP -->
+
+	<!-- SRC2 -->
+	<pattern pos="99">0</pattern> <!-- SRC2_USE -->
+	<pattern low="100" high="108">000000000</pattern> <!-- SRC2_REG -->
+	<pattern low="110" high="117">00000000</pattern> <!-- SRC2_SWIZ -->
+	<pattern pos="118">0</pattern> <!-- SRC2_NEG -->
+	<pattern pos="119">0</pattern> <!-- SRC2_ABS -->
+	<pattern low="121" high="123">000</pattern> <!-- SRC2_AMODE -->
+	<pattern low="124" high="126">000</pattern> <!-- SRC2_RGROUP -->
+</bitset>
+
+<bitset name="#instruction-tex-src0-src1-src2" extends="#instruction-tex">
+	<display>
+		{INSTR_TEX} {DST:align=18}, tex{TEX_ID}, {SRC0}, {SRC1}, {SRC2}
+	</display>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">1</pattern> <!-- SRC1_USE -->
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">1</pattern> <!-- SRC2_USE -->
+	<field name="SRC2_REG" low="100" high="108" type="uint"/>
+	<field name="SRC2" low="110" high="119" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC2_AMODE" low="121" high="123" type="#reg_addressing_mode"/>
+	<field name="SRC2_RGROUP" low="124" high="126" type="#reg_group"/>
+</bitset>
+
+<bitset name="#instruction-cf" extends="#instruction">
+	<pattern low="12" high="31">00000000000000000000</pattern>
+
+	<pattern low="32" high="33">00</pattern> <!-- RMODE -->
+	<pattern pos="34">x</pattern><!-- PMODE -->
+	<pattern low="35" high="42">00000000</pattern><!-- TEX_SWIZ -->
+
+	<pattern low="99" high="102">0000</pattern>
+	<field name="TARGET" low="103" high="117" type="absbranch"/>
+	<pattern low="118" high="127">0000000000</pattern>
+</bitset>
+
+<bitset name="#instruction-cf-no-src" extends="#instruction-cf">
+	<display>
+		{INSTR_CF} {:align=18}void, void, void, {TARGET}
+	</display>
+
+	<pattern low="43" high="52">0000000000</pattern>
+	<pattern low="54" high="63">0000000000</pattern>
+
+	<pattern pos="64">0</pattern>
+	<pattern low="67" high="79">0000000000000</pattern>
+	<pattern low="81" high="93">0000000000000</pattern>
+	<pattern low="96" high="98">000</pattern>
+</bitset>
+
+<bitset name="#instruction-cf-src1-src2" extends="#instruction-cf">
+       <display>
+               {INSTR_CF} {:align=18}void, {SRC0}, {SRC1}, {TARGET}
+       </display>
+
+       <!-- SRC0 -->
+       <pattern pos="43">1</pattern> <!-- SRC0_USE -->
+       <field name="SRC0_REG" low="44" high="52" type="uint"/>
+       <field name="SRC0" low="54" high="63" type="#instruction-src">
+               <param name="SRC0_REG" as="SRC_REG"/>
+               <param name="SRC0_AMODE" as="SRC_AMODE"/>
+               <param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+       </field>
+       <field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+       <field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+       <!-- SRC1 -->
+       <pattern pos="70">1</pattern> <!-- SRC1_USE -->
+       <field name="SRC1_REG" low="71" high="79" type="uint"/>
+       <field name="SRC1" low="81" high="90" type="#instruction-src">
+               <param name="SRC1_REG" as="SRC_REG"/>
+               <param name="SRC1_AMODE" as="SRC_AMODE"/>
+               <param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+       </field>
+       <field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+       <field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+</bitset>
+
+<expr name="#instruction-has-left-shift">
+	({LEFT_SHIFT} != 0)
+</expr>
+
+<bitset name="#instruction-load" extends="#instruction">
+	<field name="DST_USE" pos="12" type="bool"/>
+	<field name="DST" low="13" high="26" type="#instruction-dst">
+		<param name="DST_USE"/>
+		<param name="COMPS"/>
+	</field>
+
+	<pattern low="27" high="31">00000</pattern> <!-- TEX_ID -->
+	<pattern low="32" high="33">00</pattern> <!-- RMODE -->
+	<field name="PMODE" pos="34" type="bool_inv" display=".pack"/>
+	<field name="LEFT_SHIFT" low="35" high="36" type="uint"/>
+	<pattern low="37" high="38">00</pattern>
+	<field name="SKPHP" pos="39" type="bool" display=".skpHp"/>
+	<field name="LOCAL" pos="40" type="bool" display=".local"/>
+	<pattern pos="41">0</pattern>
+	<field name="DENORM" pos="42" type="bool" display=".denorm"/>
+
+	<field name="LOW_HALF" pos="109" type="bool"/>
+	<field name="HIGH_HALF" pos="120" type="bool"/>
+
+	<derived name="THREAD" type="#thread">
+		<expr>{HIGH_HALF} &lt;&lt; 1 | {LOW_HALF}</expr>
+	</derived>
+
+	<field name="DST_FULL" pos="127" type="bool" display=".hp"/>
+
+	<display>
+		{INSTR_LOAD_STORE} {DST:align=18}, {SRC0}, {SRC1}, void
+	</display>
+
+	<override expr="#instruction-has-left-shift">
+		<display>
+			{INSTR_LOAD_STORE_WITH_LEFT_SHIFT} {DST:align=18}, {SRC0}, {SRC1}, void
+		</display>
+	</override>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">1</pattern> <!-- SRC1_USE -->
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC1_REG" as="SRC_REG"/>
+		<param name="SRC1_AMODE" as="SRC_AMODE"/>
+		<param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">0</pattern> <!-- SRC2_USE -->
+	<pattern low="100" high="108">000000000</pattern> <!-- SRC2_REG -->
+	<pattern low="110" high="117">00000000</pattern> <!-- SRC2_SWIZ -->
+	<pattern pos="118">0</pattern> <!-- SRC2_NEG -->
+	<pattern pos="119">0</pattern> <!-- SRC2_ABS -->
+	<pattern low="121" high="123">000</pattern> <!-- SRC2_AMODE -->
+	<pattern low="124" high="126">000</pattern> <!-- SRC2_RGROUP -->
+</bitset>
+
+<bitset name="#instruction-store" extends="#instruction">
+	<pattern low="12" high="16">xxxxx</pattern>
+	<pattern pos="17">x</pattern>
+	<pattern low="18" high="22">xxxxx</pattern>
+	<field name="COMPS" low="23" high="26" type="#wrmask"/>
+	<pattern low="27" high="31">xxxxx</pattern>
+	<pattern low="32" high="33">xx</pattern>
+	<field name="PMODE" pos="34" type="bool_inv" display=".pack"/>
+	<field name="LEFT_SHIFT" low="35" high="36" type="uint"/>
+	<pattern low="37" high="38">00</pattern>
+	<field name="SKPHP" pos="39" type="bool" display=".skpHp"/>
+	<field name="LOCAL" pos="40" type="bool" display=".local"/>
+	<pattern low="41" high="41">x</pattern>
+	<field name="DENORM" pos="42" type="bool" display=".denorm"/>
+
+	<field name="LOW_HALF" pos="109" type="bool"/>
+	<field name="HIGH_HALF" pos="120" type="bool"/>
+
+	<derived name="THREAD" type="#thread">
+		<expr>{HIGH_HALF} &lt;&lt; 1 | {LOW_HALF}</expr>
+	</derived>
+
+	<field name="DST_FULL" pos="127" type="bool" display=".hp"/>
+
+	<display>
+		{INSTR_LOAD_STORE} {:align=18}mem{COMPS}, {SRC0}, {SRC1}, {SRC2}
+	</display>
+
+	<override expr="#instruction-has-left-shift">
+		<display>
+			{INSTR_LOAD_STORE_WITH_LEFT_SHIFT} {:align=18}mem{COMPS}, {SRC0}, {SRC1}, {SRC2}
+		</display>
+	</override>
+
+	<!-- SRC0 -->
+	<pattern pos="43">1</pattern> <!-- SRC0_USE -->
+	<field name="SRC0_REG" low="44" high="52" type="uint"/>
+	<field name="SRC0" low="54" high="63" type="#instruction-src">
+		<param name="SRC0_REG" as="SRC_REG"/>
+		<param name="SRC0_AMODE" as="SRC_AMODE"/>
+		<param name="SRC0_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC0_AMODE" pos="64" type="#reg_addressing_mode"/>
+	<field name="SRC0_RGROUP" low="67" high="69" type="#reg_group"/>
+
+	<!-- SRC1 -->
+	<pattern pos="70">1</pattern> <!-- SRC1_USE -->
+	<field name="SRC1_REG" low="71" high="79" type="uint"/>
+	<field name="SRC1" low="81" high="90" type="#instruction-src">
+		<param name="SRC1_REG" as="SRC_REG"/>
+		<param name="SRC1_AMODE" as="SRC_AMODE"/>
+		<param name="SRC1_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC1_AMODE" low="91" high="93" type="#reg_addressing_mode"/>
+	<field name="SRC1_RGROUP" low="96" high="98" type="#reg_group"/>
+
+	<!-- SRC2 -->
+	<pattern pos="99">1</pattern> <!-- SRC2_USE -->
+	<field name="SRC2_REG" low="100" high="108" type="uint"/>
+	<field name="SRC2" low="110" high="119" type="#instruction-src">
+		<param name="SRC2_REG" as="SRC_REG"/>
+		<param name="SRC2_AMODE" as="SRC_AMODE"/>
+		<param name="SRC2_RGROUP" as="SRC_RGROUP"/>
+	</field>
+	<field name="SRC2_AMODE" low="121" high="123" type="#reg_addressing_mode"/>
+	<field name="SRC2_RGROUP" low="124" high="126" type="#reg_group"/>
+</bitset>
+
+<!-- opcocdes sorted by opc number -->
+
+<bitset name="nop" extends="#instruction-alu-no-src">
+	<pattern low="0" high="5">000000</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="add" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">000001</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="mad" extends="#instruction-alu-src0-src1-src2">
+	<pattern low="0" high="5">000010</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="mul" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">000011</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- dst -->
+
+<bitset name="dp2" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">000100</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="dp3" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">000101</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="dp4" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">000110</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- dsx -->
+<!-- dsy -->
+
+<bitset name="mov" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">001001</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- movar -->
+<!-- movaf -->
+
+<bitset name="rcp" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">001100</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="rsq" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">001101</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- litp -->
+
+<bitset name="select" extends="#instruction-alu-src0-src1-src2">
+	<pattern low="0" high="5">001111</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="set" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">010000</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="exp" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">010001</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="log" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">010010</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- frc -->
+
+<bitset name="call" extends="#instruction-cf-no-src">
+	<pattern low="0" high="5">010100</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="ret" extends="#instruction-alu-no-src">
+	<pattern low="0" high="5">010101</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="branch" extends="#instruction-cf-no-src">
+	<pattern low="0" high="5">010110</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="branch_if" extends="#instruction-cf-src1-src2" displayname="branch">
+	<pattern low="0" high="5">010110</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="texkill" extends="#instruction-alu-no-dst-maybe-src1-src2">
+	<pattern low="0" high="5">010111</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="texld" extends="#instruction-tex-src0">
+	<pattern low="0" high="5">011000</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+
+<!-- 0x7800000f 0x9011007c 0x00200804 0x0100100c -->
+
+<!-- texldd -->
+<!-- texldl -->
+<!-- texldpcf -->
+<!-- rep -->
+<!-- endrep -->
+<!-- loop -->
+<!-- endloop -->
+
+<bitset name="sqrt" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">100001</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="sin" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">100010</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="cos" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">100011</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- branch2 -->
+
+<bitset name="floor" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">100101</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="ceil" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">100110</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="sign" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">100111</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- addlo -->
+<!-- mullo -->
+
+<bitset name="barrier" extends="#instruction-alu-no-src">
+	<pattern low="0" high="5">101010</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- swizzle -->
+
+<bitset name="i2i" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">101100</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="i2f" extends="#instruction-alu-src0">
+	<pattern low="0" high="5">101101</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="f2i" extends="#instruction-alu-src0">
+	<pattern low="0" high="5">101110</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="f2irnd" extends="#instruction-alu-src0">
+	<pattern low="0" high="5">101111</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- f2i7 -->
+
+<bitset name="cmp" extends="#instruction-alu-src0-src1-src2">
+	<pattern low="0" high="5">110001</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="load" extends="#instruction-load">
+	<pattern low="0" high="5">110010</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="store" extends="#instruction-store">
+	<pattern low="0" high="5">110011</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="iaddsat" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">111011</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="imullo0" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">111100</pattern> <!-- OPC -->
+	<pattern pos="80">0</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- imullo1 -->
+<!-- imullosat0 -->
+<!-- imullosat1 -->
+
+<bitset name="imulhi0" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">000000</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<!-- imulhi1 -->
+
+<bitset name="idiv0" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">000100</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="imod" extends="#instruction-alu-src0-src1">
+	<pattern low="0" high="5">001000</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="imadlo0" extends="#instruction-alu-src0-src1-src2">
+	<pattern low="0" high="5">001100</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="imadlosat0" extends="#instruction-alu-src0-src1-src2">
+	<pattern low="0" high="5">001110</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="or" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">011100</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="and" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">011101</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="xor" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">011110</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="not" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">011111</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="popcount" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">100001</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="iabs" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">010111</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="leadzero" extends="#instruction-alu-src2">
+	<pattern low="0" high="5">011000</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="lshift" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">011001</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="rshift" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">011010</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="rotate" extends="#instruction-alu-src0-src2">
+	<pattern low="0" high="5">011011</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_add" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">100101</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_xchg" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">100110</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_cmp_xchg" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">100111</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_min" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">101000</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_max" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">101001</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_or" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">101010</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_and" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">101011</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="atomic_xor" extends="#instruction-alu-atomic">
+	<pattern low="0" high="5">101100</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+<bitset name="texldlpcf" extends="#instruction-tex-src0-src1-src2">
+	<pattern low="0" high="5">101111</pattern> <!-- OPC -->
+	<pattern pos="80">1</pattern> <!-- OPCODE_BIT6 -->
+</bitset>
+
+</isa>

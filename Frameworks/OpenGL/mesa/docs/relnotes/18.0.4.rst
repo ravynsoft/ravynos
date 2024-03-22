@@ -1,0 +1,125 @@
+Mesa 18.0.4 Release Notes / May 17, 2018
+========================================
+
+Mesa 18.0.4 is a bug fix release which fixes bugs found since the 18.0.3
+release.
+
+Mesa 18.0.4 implements the OpenGL 4.5 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+4.5. OpenGL 4.5 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   d1dc3469faccdd73439479426952d71a9e8f684e8d03b6687063c12b13430801  mesa-18.0.4.tar.gz
+   1f3bcfe7cef0a5c20dae2b41df5d7e0a985e06be0183fa4d43b6068fcba2920f  mesa-18.0.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+-  `Bug 91808 <https://bugs.freedesktop.org/show_bug.cgi?id=91808>`__ -
+   trine1 misrender r600g
+-  `Bug 100430 <https://bugs.freedesktop.org/show_bug.cgi?id=100430>`__
+   - [radv] graphical glitches on dolphin emulator
+-  `Bug 106243 <https://bugs.freedesktop.org/show_bug.cgi?id=106243>`__
+   - [kbl] GPU HANG: 9:0:0x85dffffb, in Cinnamon
+-  `Bug 106480 <https://bugs.freedesktop.org/show_bug.cgi?id=106480>`__
+   - A2B10G10R10_SNORM vertex attribute doesn't work.
+
+Changes
+-------
+
+Bas Nieuwenhuizen (3):
+
+-  radv: Translate logic ops.
+-  radv: Fix up 2_10_10_10 alpha sign.
+-  radv: Disable texel buffers with A2 SNORM/SSCALED/SINT for pre-vega.
+
+Dave Airlie (3):
+
+-  r600: fix constant buffer bounds.
+-  radv: resolve all layers in compute resolve path.
+-  radv: use compute path for multi-layer images.
+
+Deepak Rawat (1):
+
+-  egl/x11: Send invalidate to driver on copy_region path in swap_buffer
+
+Ian Romanick (1):
+
+-  mesa: Add missing support for glFogiv(GL_FOG_DISTANCE_MODE_NV)
+
+Jan Vesely (8):
+
+-  clover: Add explicit virtual destructor to argument class
+-  eg/compute: Drop reference on code_bo in destructor.
+-  r600: Cleanup constant buffers on context destruction
+-  eg/compute: Drop reference to kernel_param bo in destructor
+-  pipe-loader: Free driver_name in error path
+-  gallium/auxiliary: Add helper function to count the number of entries
+   in hash table
+-  winsys/radeon: Destroy fd_hash table when the last winsys is removed.
+-  winsys/amdgpu: Destroy dev_hash table when the last winsys is
+   removed.
+
+Faith Ekstrand (1):
+
+-  i965,anv: Set the CS stall bit on the ISP disable PIPE_CONTROL
+
+Jose Maria Casanova Crespo (2):
+
+-  intel/compiler: fix 16-bit int brw_negate_immediate and
+   brw_abs_immediate
+-  intel/compiler: fix brw_imm_w for negative 16-bit integers
+
+Juan A. Suarez Romero (7):
+
+-  docs: add sha256 checksums for 18.0.3
+-  cherry-ignore: add explicit 18.1 only nominations
+-  cherry-ignore: glsl: change ast_type_qualifier bitset size to work
+   around GCC 5.4 bug
+-  cherry-ignore: mesa: fix glGetInteger/Float/etc queries for vertex
+   arrays attribs
+-  cherry-ignore: mesa: revert GL_[SECONDARY\_]COLOR_ARRAY_SIZE glGet
+   type to TYPE_INT
+-  cherry-ignore: radv/resolve: do fmask decompress on all layers.
+-  Update version to 18.0.4
+
+Kai Wasserbäch (1):
+
+-  opencl: autotools: Fix linking order for OpenCL target
+
+Kenneth Graunke (1):
+
+-  i965: Don't leak blorp on Gen4-5.
+
+Lionel Landwerlin (2):
+
+-  i965: require pixel scoreboard stall prior to ISP disable
+-  anv: emit pixel scoreboard stall before ISP disable
+
+Matthew Nicholls (1):
+
+-  radv: fix multisample image copies
+
+Neil Roberts (1):
+
+-  spirv: Apply OriginUpperLeft to FragCoord
+
+Rhys Perry (1):
+
+-  mesa: fix error handling in get_framebuffer_parameteriv
+
+Ross Burton (1):
+
+-  src/intel/Makefile.vulkan.am: add missing MKDIR_GEN

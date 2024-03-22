@@ -1,0 +1,185 @@
+Mesa 23.1.3 Release Notes / 2023-06-22
+======================================
+
+Mesa 23.1.3 is a bug fix release which fixes bugs found since the 23.1.2 release.
+
+Mesa 23.1.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.1.3 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    2f6d7381bc10fbd2d6263ad1022785b8b511046c1a904162f8f7da18eea8aed9  mesa-23.1.3.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- R9 280 - Broken font rendering in Godot Engine (GLES2) - Radeonsi
+- radeonsi gcn1 regression
+- virgl: Stack overflow in virgl_bind_sampler_states on hosts with more than 32 samplers
+- [TGL] regression with r11_g11_b10 formats when running through virgl
+- Intel drivers fail to link with -Dxmlconfig=disabled
+- radv: regression UE5.2 nanite d3d12 vertex explosion
+- [ANV/DG2] nvpro-samples/vk_raytracing_tutorial_KHR/ray_tracing_reflections crash
+- radv: crash/freeze/assert with raytracing and Elden Ring 1.09
+- Elden Ring freeze when summoning cooperator with Raytracing
+- gc_alloc_size returns unaligned allocations
+- Rusticl OpenCL: panicked at 'called \`Option::unwrap()` on a \`None` value' && void SPIRVKernelParser::applyDecoration(uint32_t, const spv_parsed_instruction_t*): Assertion \`c.first == id' failed.
+- Using a \`NULL` pointer as \`bitmap` in \`glBitmap` leads to \`GL_OUT_OF_MEMORY` while creating display-list ("glNewList -> glBitmap")
+- Bitwise and with constant 31 removed on width argument to BitFieldSExtract, causing incorrect result on RADV ACO
+
+
+Changes
+-------
+
+Dave Airlie (1):
+
+- radv/video: drop incorrect defines for uapi ones.
+
+Dylan Baker (1):
+
+- meson: Key whether to build batch decoder on expat
+
+Emma Anholt (1):
+
+- mesa: Drop dead TGSI serialization prototypes.
+
+Eric Engestrom (6):
+
+- docs/relnotes: add sha256sum for 23.1.2
+- .pick_status.json: Update to 3f48d842960c6d7e3814b75c611c69209098a0b6
+- .pick_status.json: Update to a2d40c09b72374db5d2dd4115c1ea51b2543f515
+- .pick_status.json: Mark 5db031bf3ea3e37983f3ab17f2b550e1949d95a9 as denominated
+- .pick_status.json: Update to 48b32124c61f35ef39cee7e32ff7795dd49e0690
+- .pick_status.json: Update to b687cbe36c12081921e03c8633fedea334642105
+
+Friedrich Vock (5):
+
+- aco: Lower divergent bool phis iteratively
+- radv: Always flush before writing acceleration structure properties
+- aco: Reset scratch_rsrc on blocks without predecessors
+- aco: Fix live_var_analysis assert
+- aco: Fix assert in insert_exec_mask
+
+Gert Wollny (3):
+
+- r600/sfn: add read instruction for unused but required LDS op results
+- r600/sfn: Don't rewrite TESS_EVAL inner tess level outputs
+- r600: Split tex CF only if written component is read
+
+Jesse Natalie (2):
+
+- nir_opt_constant_folding: Fix nir_deref_path leak
+- nir: Fix constant expression for unpack_64_4x16
+
+Karol Herbst (3):
+
+- clc: relax spec constant validation
+- rusticl/event: ensure even status is updated in order
+- compiler/types: fix size of padded OpenCL Structs
+
+Lionel Landwerlin (3):
+
+- anv: disable mesh/task for generated draws
+- anv: fix incorrect batch for 3DSTATE_CONSTANT_ALL emission
+- anv: avoid private buffer allocations in vkGetDeviceImageMemoryRequirementsKHR
+
+Lucas Stach (3):
+
+- etnaviv: rs: flush TS cache before making configuration changes
+- etnaviv: rs: unconditionally flush color and depth cache before using RS
+- etnaviv: query: reset sample count on begin_query
+
+Marek Olšák (3):
+
+- mesa: fix glBitmap in display lists when width <= 0 || height <= 0
+- radeonsi: don't convert L8A8 to R8A8 when blitting via compute to fix gfx7
+- radeonsi: fix RB+ and gfx11 issues with framebuffer state
+
+Matt Turner (1):
+
+- meson: Remove reference to removed SWR driver
+
+Mike Blumenkrantz (14):
+
+- zink: check for cached mem correctly when mapping buffer
+- zink: remove assert for dt in zink_kopper_update
+- zink: stop swizzling conditional render during batch flush
+- zink: only try to create srgb mutable images if the vk format is supported
+- lavapipe: use PACKAGE_VERSION for cache uuid in release builds
+- zink: massively shrink qbo size for timestamp queries
+- lavapipe: add version uuid to shader binary validation
+- zink: strip format list when disabling mutable during image creation
+- lavapipe: more fixes for sample shading
+- lavapipe: correctly update shader object per-stage push constant sizes
+- zink: add COHERENT requirement for CACHED memory
+- zink: fix ubo array sizing in ntv
+- zink: acquire persistently bound swapchain descriptors before setting usage
+- zink: always clamp NUM_QUERIES to 500
+
+Nanley Chery (2):
+
+- intel/blorp: Avoid 32bpc fast clear sampling issue
+- Revert "iris: Add missed tile flush flag"
+
+Patrick Lerda (3):
+
+- nouveau: fix nouveau_heap_destroy() memory leak
+- r600: fix cayman_convert_border_color() swizzle behavior
+- util/blitter: fix util_blitter_clear_buffer() refcnt imbalance
+
+Qiang Yu (1):
+
+- ac/nir/ngg: fix ngg_gs_clear_primflags crash
+
+Rhys Perry (3):
+
+- aco: mask bits source of s_bfe
+- util: fix gc_alloc_size alignment
+- ac: fix PIPE_FORMAT_R11G11B10_FLOAT DST_SEL_W
+
+Rohan Garg (1):
+
+- anv: split ANV_PIPE_RENDER_TARGET_BUFFER_WRITES for finer grained flushing
+
+Samuel Pitoiset (2):
+
+- radv: fix re-emitting some dynamic states when the previous FS is NULL
+- radv: reset some dynamic states when the fragment shader stage is unbound
+
+Sviatoslav Peleshko (1):
+
+- nir/lower_shader_calls: Fix cursor if broken after nir_cf_extract() call
+
+Tim Pambor (1):
+
+- virgl: Fix stack overflow in virgl_bind_sampler_states
+
+Timur Kristóf (1):
+
+- aco: Mark exec write used when it writes other registers.
+
+Vinson Lee (1):
+
+- frontends/va: Fix missing unlock
+
+Xi Ruoyao (1):
+
+- Revert "glx: Remove pointless GLX_INTEL_swap_event paranoia"

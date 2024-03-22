@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<OpenGLAPI>
+
+<category name="GL_ARB_texture_float" number="41">
+
+    <enum name="TEXTURE_RED_TYPE_ARB"      value="0x8C10"/>
+    <enum name="TEXTURE_GREEN_TYPE_ARB"    value="0x8C11"/>
+    <enum name="TEXTURE_BLUE_TYPE_ARB"     value="0x8C12"/>
+    <enum name="TEXTURE_ALPHA_TYPE_ARB"    value="0x8C13"/>
+    <enum name="TEXTURE_LUMINANCE_TYPE_ARB" value="0x8C14"/>
+    <enum name="TEXTURE_INTENSITY_TYPE_ARB" value="0x8C15"/>
+    <enum name="TEXTURE_DEPTH_TYPE_ARB"    value="0x8C16"/>
+
+    <!-- The unsuffixed version of this is in ARB_framebuffer_object.xml -->
+    <enum name="UNSIGNED_NORMALIZED_ARB"   value="0x8C17"/>
+
+    <!-- Note only the RGBA/RGB formats have unsuffixed core GL equivalents,
+         since LUMINANCE/INTENSITY/ALPHA formats were deprecated. -->
+    <enum name="RGBA32F_ARB"               value="0x8814"/>
+    <enum name="RGB32F_ARB"                value="0x8815"/>
+    <enum name="ALPHA32F_ARB"              value="0x8816"/>
+    <enum name="INTENSITY32F_ARB"          value="0x8817"/>
+    <enum name="LUMINANCE32F_ARB"          value="0x8818"/>
+    <enum name="LUMINANCE_ALPHA32F_ARB"    value="0x8819"/>
+    <enum name="RGBA16F_ARB"               value="0x881A"/>
+    <enum name="RGB16F_ARB"                value="0x881B"/>
+    <enum name="ALPHA16F_ARB"              value="0x881C"/>
+    <enum name="INTENSITY16F_ARB"          value="0x881D"/>
+    <enum name="LUMINANCE16F_ARB"          value="0x881E"/>
+    <enum name="LUMINANCE_ALPHA16F_ARB"    value="0x881F"/>
+
+</category>
+
+</OpenGLAPI>

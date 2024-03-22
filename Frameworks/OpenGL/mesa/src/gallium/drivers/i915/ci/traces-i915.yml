@@ -1,0 +1,54 @@
+%YAML 1.2
+---
+traces-db:
+  download-url: "https://s3.freedesktop.org/mesa-tracie-public/"
+
+traces:
+  glxgears/glxgears-2-v2.trace:
+    i915-g33:
+      checksum: ee8dcdb3b9eaef2b32a2914b89373419
+  gputest/plot3d-v2.trace:
+    i915-g33:
+      checksum: 456d98a570563af3bc61d91fd1742868
+  gputest/triangle-v2.trace:
+    i915-g33:
+      label: [broken]
+      checksum: ef9b19e9a6dcd928d3bd44e7eee95029
+      text: Weird white bar behind Tux's head.
+  humus/CelShading-v2.trace:
+    i915-g33:
+      checksum: 7518414e4f1a4f1e07c04ec1500f53e7
+      text: The cel shading is pretty chunky, but maybe that's just precision stuff.
+  humus/Portals-v2.trace:
+    i915-g33:
+      checksum: f782469019417923831d5d53dbe6a507
+  humus/RaytracedShadows-v2.trace:
+    i915-g33:
+      label: [fail]
+      text: The shadow raytracing shader fails to compile
+  neverball/neverball-v2.trace:
+    i915-g33:
+      checksum: f925aa92da47ebc757285f826113f4db
+  valve/counterstrike-v2.trace:
+    i915-g33:
+      checksum: d17298ad3bb44b43b6c17e017f7c1e6a
+      text: Tree foliage rendering is extra aliased.
+  nheko/nheko-colors.trace:
+    i915-g33:
+      label: [broken, skip]
+      text: User-errors, missing text in application
+  humus/AmbientAperture-v2.trace:
+    i915-g33:
+      label: [unsupported]
+  humus/DynamicBranching3-v2.trace:
+    i915-g33:
+      label: [unsupported]
+  humus/HDR-v2.trace:
+    i915-g33:
+      label: [unsupported]
+  humus/VolumetricFogging2-v2.trace:
+    i915-g33:
+      label: [unsupported]
+  ror/ror-default.trace:
+    i915-g33:
+      label: [unsupported]

@@ -1,0 +1,132 @@
+Mesa 8.0.1 Release Notes / February 16, 2012
+============================================
+
+Mesa 8.0.1 is a bug fix release which fixes bugs found since the 8.0
+release.
+
+Mesa 8.0 implements the OpenGL 3.0 API, but the version reported by
+glGetString(GL_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 3.0.
+
+See the :doc:`Compiling/Installing page <../install>` for
+prerequisites for DRI hardware acceleration.
+
+MD5 checksums
+-------------
+
+::
+
+   4855c2d93bd2ebd43f384bdcc92c9a27  MesaLib-8.0.1.tar.gz
+   24eeebf66971809d8f40775a379b36c9  MesaLib-8.0.1.tar.bz2
+   54e745d14dac5717f7f65b4e2d5c1df2  MesaLib-8.0.1.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 28924 <https://bugs.freedesktop.org/show_bug.cgi?id=28924>`__ -
+   [ILK] piglit tex-border-1 fail
+-  `Bug 40864 <https://bugs.freedesktop.org/show_bug.cgi?id=40864>`__ -
+   [bisected pineview] oglc pxconv-gettex(basic.allCases) fails on
+   pineview
+-  `Bug 43327 <https://bugs.freedesktop.org/show_bug.cgi?id=43327>`__ -
+   [bisected SNB] HiZ make many oglc cases regressed
+-  `Bug 44333 <https://bugs.freedesktop.org/show_bug.cgi?id=44333>`__ -
+   [bisected] Color distortion with xbmc mediaplayer
+-  `Bug 44927 <https://bugs.freedesktop.org/show_bug.cgi?id=44927>`__ -
+   [SNB IVB regression] gl-117 abort when click
+-  `Bug 45221 <https://bugs.freedesktop.org/show_bug.cgi?id=45221>`__ -
+   [bisected IVB] glean/fbo regression in stencil-only case
+-  `Bug 45877 <https://bugs.freedesktop.org/show_bug.cgi?id=45877>`__ -
+   main/image.c:1597: \_mesa_convert_colors: Assertion \`dstType ==
+   0x1406' failed.
+-  `Bug 45578 <https://bugs.freedesktop.org/show_bug.cgi?id=45578>`__ -
+   main/image.c:1659: \_mesa_convert_colors: Assertion \`dstType ==
+   0x1403' failed.
+-  `Bug 45872 <https://bugs.freedesktop.org/show_bug.cgi?id=45872>`__ -
+   [bisected PNV] oglc mustpass(basic.stipple) regressed on pineview
+-  `Bug 45876 <https://bugs.freedesktop.org/show_bug.cgi?id=45876>`__ -
+   [PNV]oglc texenv(basic.allCases) regressed on pineview
+-  `Bug 45917 <https://bugs.freedesktop.org/show_bug.cgi?id=45917>`__ -
+   [PNV] Regression in Piglit test
+   general/two-sided-lighting-separate-specular
+-  `Bug 45943 <https://bugs.freedesktop.org/show_bug.cgi?id=45943>`__ -
+   [r300g] r300_emit.c:365:r300_emit_aa_state: Assertion
+   \`(aa-d>dest)->cs_buf' failed.
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-8.0..mesa-8.0.1
+
+Alex Deucher (2):
+
+-  r600g: fix tex tile_type offset for cayman
+-  r600g: 128 bit formats require tile_type = 1 on cayman
+
+Anuj Phogat (2):
+
+-  meta: Add pixel store/pack operations in decompress_texture_image
+-  meta: Avoid FBO resizing/reallocating in decompress_texture_image
+
+Brian Paul (6):
+
+-  docs: add news item for 8.0 release
+-  docs: update info about supported systems, GPUs, APIs
+-  docs: add VMware link
+-  docs: remove link to the GLSL compiler page
+-  mesa: fix proxy texture target initialization
+-  swrast: fix span color type selection
+
+Chad Versace (2):
+
+-  i965: Rewrite the HiZ op
+-  i965: Remove file i965/junk, accidentally added in 7b36c68
+
+Dave Airlie (1):
+
+-  st/mesa: only resolve if number of samples is > 1
+
+Eric Anholt (3):
+
+-  i965: Fix HiZ change compiler warning.
+-  i965: Report the failure message when failing to compile the fragment
+   shader.
+-  i965/fs: Enable register spilling on gen7 too.
+
+Ian Romanick (4):
+
+-  docs: Add 8.0 MD5 checksums
+-  glapi: Include GLES2 headers for ES2 extension functions
+-  swrast: Only avoid empty \_TexEnvPrograms
+-  mesa: Bump version number to 8.0.1
+
+Kenneth Graunke (4):
+
+-  i965: Fix border color on Ironlake.
+-  i965/fs: Add a new fs_inst::regs_written function.
+-  i965/fs: Take # of components into account in try_rewrite_rhs_to_dst.
+-  i965: Emit Ivybridge VS workaround flushes.
+
+Mathias Fröhlich (1):
+
+-  state_stracker: Fix access to uninitialized memory.
+
+Paul Berry (1):
+
+-  i915: Fix type of "specoffset" variable.
+
+Simon Farnsworth (1):
+
+-  r600g: Use a fake reloc to sleep for fences

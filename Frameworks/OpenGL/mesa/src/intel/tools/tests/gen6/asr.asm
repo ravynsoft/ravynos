@@ -1,0 +1,13 @@
+asr(8)          g11<1>D         g11<4>D         16D             { align16 1Q };
+asr(8)          g2<1>D          g2<8,8,1>D      16D             { align1 1Q };
+asr(16)         g2<1>D          g2<8,8,1>D      16D             { align1 1H };
+asr(8)          g6<1>D          g5<8,8,1>D      0x00000001UD    { align1 1Q };
+asr(16)         g8<1>D          g6<8,8,1>D      0x00000001UD    { align1 1H };
+asr.nz.f0.0(8)  null<1>D        -g0<0,1,0>W     15D             { align1 1Q };
+asr.nz.f0.0(16) null<1>D        -g0<0,1,0>W     15D             { align1 1H };
+asr(8)          g2<1>D          -g0<0,1,0>W     15D             { align1 1Q };
+asr(16)         g2<1>D          -g0<0,1,0>W     15D             { align1 1H };
+asr(8)          g26<1>D         g25<4>D         g20<4>UD        { align16 1Q };
+asr(8)          g16<1>D         g15<4>D         0x00000017UD    { align16 1Q };
+asr(8)          g14<1>D         g10<8,8,1>D     g8<8,8,1>UD     { align1 1Q };
+asr(16)         g21<1>D         g13<8,8,1>D     g9<8,8,1>UD     { align1 1H };

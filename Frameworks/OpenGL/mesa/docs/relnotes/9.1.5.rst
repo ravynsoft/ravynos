@@ -1,0 +1,116 @@
+Mesa 9.1.5 Release Notes / July 17, 2013
+========================================
+
+Mesa 9.1.5 is a bug fix release which fixes bugs found since the 9.1.4
+release.
+
+Mesa 9.1 implements the OpenGL 3.1 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.1. OpenGL 3.1 is **only** available if requested at context creation
+because GL_ARB_compatibility is not supported.
+
+MD5 checksums
+-------------
+
+::
+
+   4ed2af5943141a85a21869053a2fc2eb  MesaLib-9.1.5.tar.bz2
+   47181066acf3231d74e027b2033f9455  MesaLib-9.1.5.tar.gz
+   4c9c6615bd99215325250f87ed34058f  MesaLib-9.1.5.zip
+
+New features
+------------
+
+None.
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 58384 <https://bugs.freedesktop.org/show_bug.cgi?id=58384>`__ -
+   [i965 Bisected]Oglc
+   max_values(advanced.fragmentProgram.GL_MAX_PROGRAM_ENV_PARAMETERS_ARB)
+   segfault
+-  `Bug 62647 <https://bugs.freedesktop.org/show_bug.cgi?id=62647>`__ -
+   Wrong rendering of Dota 2 on Wine (apitrace attached) - Intel IVB
+   HD4000
+-  `Bug 63674 <https://bugs.freedesktop.org/show_bug.cgi?id=63674>`__ -
+   [IVB]frozen at the first frame when run Unigine-heaven 4.0
+-  `Bug 65910 <https://bugs.freedesktop.org/show_bug.cgi?id=65910>`__ -
+   Killing weston-launch causes segv in desktop-shell
+
+Changes
+-------
+
+The full set of changes can be viewed by using the following GIT
+command:
+
+::
+
+     git log mesa-9.1.4..mesa-9.1.5
+
+Anuj Phogat (1):
+
+-  mesa: Return ZeroVec/dummyReg instead of NULL pointer
+
+Brian Paul (1):
+
+-  svga: check for NaN shader immediates
+
+Carl Worth (3):
+
+-  cherry-ignore: Ignore previously backported patch
+-  cherry-ignore: Drop two patches which we've decided not to include
+-  mesa: Bump version to 9.1.5
+
+Chris Forbes (1):
+
+-  i965: fix alpha test for MRT
+
+Christoph Bumiller (1):
+
+-  r600g: x/y coordinates must be divided by block dim in dma blit
+
+Eric Anholt (1):
+
+-  ra: Fix register spilling.
+
+Ian Romanick (6):
+
+-  docs: Add 9.1.4 release md5sums
+-  glsl: Add a gl_shader_program parameter to
+   \_mesa_uniform_{merge,split}_location_offset
+-  glsl: Add gl_shader_program::UniformLocationBaseScale
+-  glsl: Generate smaller values for uniform locations
+-  i965: Be more careful with the interleaved user array upload
+   optimization
+-  glsl: Move all var decls to the front of the IR list in reverse order
+
+Kenneth Graunke (1):
+
+-  glsl/builtins: Fix ARB_texture_cube_map_array built-in availability.
+
+Kristian Høgsberg (1):
+
+-  wayland: Handle global_remove event as well
+
+Matt Turner (1):
+
+-  register_allocate: Fix the type of best_benefit.
+
+Paul Berry (1):
+
+-  glsl ES: Fix magnitude of gl_MaxVertexUniformVectors.
+
+Richard Sandiford (3):
+
+-  st/xlib Fix XIMage bytes-per-pixel calculation
+-  st/xlib: Fix XImage stride calculation
+-  st/dri/sw: Fix pitch calculation in drisw_update_tex_buffer
+
+Vinson Lee (1):
+
+-  swrast: Fix memory leak.

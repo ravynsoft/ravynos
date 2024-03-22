@@ -1,0 +1,74 @@
+# Too slow.
+dEQP-GLES31.functional.draw_indirect.compute_interop.large.drawelements_combined_grid_500x500_drawcount_2500
+dEQP-GLES31.functional.draw_indirect.compute_interop.large.drawelements_separate_grid_500x500_drawcount_2500
+
+# Flakes with:
+# [  131.187741] nouveau 57000000.gpu: fifo: fault 01 [WRITE] at 00000000015a4000 engine 1b [CE2] client 18 [HUB/GR_CE] reason 02 [PTE] on channel 4 [04001eb000 deqp-gles3[250]]
+# and then nouveau crashes with "deqp-gles3: ../nouveau/pushbuf.c:730: nouveau_pushbuf_data: Assertion `kref' failed."
+dEQP-GLES3.functional.multisample.fbo_8_samples.common_edge_big_quad
+
+# Flakes with:
+# [  201.528453] nouveau 57000000.gpu: fifo: fault 01 [WRITE] at 0000000000dd8000 engine 1b [CE2] client 18 [HUB/GR_CE] reason 02 [PTE] on channel 2 [0400155000 glcts[373]]
+KHR-GLES31.core.texture_cube_map_array.sampling
+
+# Flakes with:
+# [   85.681990] nouveau 57000000.gpu: fifo: fault 01 [WRITE] at 0000000001716000 engine 1b [CE2] client 18 [HUB/GR_CE] reason 02 [PTE] on channel 5 [04001f5000 deqp-gles3[225]]
+dEQP-GLES3.functional.read_pixels.rowlength.rgba_int_19
+dEQP-GLES3.functional.read_pixels.skip.rgba_int_3_3
+
+# SSBOs are unstable, and these tests all use them.
+# It's so flaky on both gk20a and gm20b tegra that the noise drowns everything else out.
+dEQP-GLES31.functional.*atomic_counter.*
+dEQP-GLES31.functional.*compute.*
+dEQP-GLES31.functional.shaders.builtin_constants.*
+dEQP-GLES31.functional.ssbo.*
+KHR-GLES31.core.compute_shader.*
+KHR-GLES31.core.constant_expressions.*compute
+KHR-GLES31.core.layout_binding.image2D_layout_binding_imageLoad_ComputeShader
+KHR-GLES31.core.shader_atomic_counters.*
+KHR-GLES31.core.shader_bitfield_operation.*
+KHR-GLES31.core.shader_image_load_store.*
+KHR-GLES31.core.shader_image_size.*
+KHR-GLES31.core.shader_storage_buffer_object.*
+KHR-GLES31.core.texture_buffer.texture_buffer_atomic_functions
+KHR-GLES31.core.texture_buffer.texture_buffer_operations_buffer_load
+KHR-GLES31.core.texture_buffer.texture_buffer_operations_cpu_writes
+KHR-GLES31.core.texture_buffer.texture_buffer_operations_framebuffer_readback
+KHR-GLES31.core.texture_buffer.texture_buffer_operations_image_store
+KHR-GLES31.core.texture_buffer.texture_buffer_operations_ssbo_writes
+KHR-GLES31.core.texture_buffer.texture_buffer_operations_transform_feedback
+
+# More very flaky stuff.  Probably a bunch of these are also SSBOs but I haven't categorized them.
+dEQP-GLES3.functional.multisample.fbo_8_samples.proportionality_sample_coverage_inverted
+dEQP-GLES3.functional.multisample.fbo_max_samples.common_edge_big_quad
+dEQP-GLES3.functional.multisample.fbo_max_samples.proportionality_sample_coverage
+dEQP-GLES3.functional.occlusion_query.*
+dEQP-GLES3.functional.transform_feedback.*
+dEQP-GLES31.functional.*tess.*
+dEQP-GLES31.functional.copy_image.*
+dEQP-GLES31.functional.geometry_shading.vertex_transform_feedback.capture_vertex_draw_arrays_overflow_single_buffer
+dEQP-GLES31.functional.geometry_shading.vertex_transform_feedback.capture_vertex_draw_elements_overflow_single_buffer
+dEQP-GLES31.functional.image_load_store.*
+dEQP-GLES31.functional.shaders.sample_variables.sample_id.multisample_texture_8
+dEQP-GLES31.functional.synchronization.*
+KHR-GLES31.*tess.*
+KHR-GLES31.core.draw_indirect.basic-buffer-copySubData
+KHR-GLES31.core.geometry_shader.*
+KHR-GLES31.core.gpu_shader5.*
+KHR-GLES31.core.texture_cube_map_array.sampling
+KHR-GLES31.core.texture_cube_map_array.texture_size_geometry_sh
+KHR-GLES31.core.texture_cube_map_array.texture_size_vertex_sh
+KHR-GLES31.core.texture_storage_multisample.FunctionalTests.texture_size_in_vertex_shaders
+KHR-GLES31.core.texture_storage_multisample.FunctionalTests.verify_sample_masking_for_non_integer_color_renderable_internalformats
+KHR-GLES31.core.vertex_attrib_binding.advanced-iterations
+KHR-GLES31.core.vertex_attrib_binding.advanced-largeStrideAndOffsetsNewAndLegacyAPI
+KHR-GLES31.core.vertex_attrib_binding.basic-input-case1
+KHR-GLES31.core.vertex_attrib_binding.basic-input-case11
+KHR-GLES31.core.vertex_attrib_binding.basic-input-case2
+KHR-GLES31.core.vertex_attrib_binding.basic-input-case3
+KHR-GLES31.core.vertex_attrib_binding.basic-input-case4
+KHR-GLES31.core.vertex_attrib_binding.basic-input-case6
+KHR-GLES31.core.vertex_attrib_binding.basic-input-case8
+KHR-GLES31.core.vertex_attrib_binding.basic-inputI-case1
+KHR-GLES31.core.vertex_attrib_binding.basic-inputI-case2
+KHR-GLES31.core.vertex_attrib_binding.basic-inputI-case3

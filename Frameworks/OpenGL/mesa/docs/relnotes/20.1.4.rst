@@ -1,0 +1,109 @@
+Mesa 20.1.4 Release Notes / 2020-07-22
+======================================
+
+Mesa 20.1.4 is a bug fix release which fixes bugs found since the 20.1.3 release.
+
+Mesa 20.1.4 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.1.4 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    6800271c2be2a0447510eb4e9b67edd9521859a4d565310617c4b359eb6799fe  mesa-20.1.4.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- Amber test leads to NIR validation failed after nir_opt_if (on spirv-fuzz shader)
+- Multiple issues with Detroit Become Human
+- panfrost: regression: Major stuttering and low compositor FPS with glmark2
+- SPIR-V parsing fails in src/compiler/spirv/spirv_to_nir.c
+- SPIR-V parsing fails in src/compiler/spirv/vtn_cfg.c
+- iris driver is broken in Freedesktop 19.08
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (3):
+
+- panfrost: Fix fence leak
+- panfrost: Fix write to free'd memory
+- panfrost: Revert "Disable frame throttling"
+
+Bas Nieuwenhuizen (1):
+
+- meson: Add mising git_sha1.h dependency.
+
+Danylo Piliaiev (1):
+
+- nir/opt_if: Fix opt_if_simplification when else branch has jump
+
+Eric Engestrom (3):
+
+- docs/relnotes: add sha256 sums to 20.1.3
+- .pick_status.json: Update to fd20e986249f88129d81353d79dd248d7664953b
+- docs: add release notes for 20.1.4
+
+Erik Faye-Lund (1):
+
+- mesa/program: fix shadow property for samplers
+
+Faith Ekstrand (3):
+
+- spirv: Skip phis in unreachable blocks in the second phi pass
+- spirv: Allow block-decorated struct types for constants
+- intel/fs: Use the correct logical op for global float atomics
+
+Jonathan Marek (1):
+
+- freedreno/a2xx: fix compressed textures
+
+Lionel Landwerlin (2):
+
+- iris: fix fallback to swrast driver
+- anv: properly handle fence import of sync_fd = -1
+
+Luigi Santivetti (3):
+
+- dri2: dri2_make_current() fold multiple if blocks
+- dri2: do not conflate unbind and bindContext() failure
+- egl/dri2: try to bind old context if bindContext failed
+
+Pierre-Eric Pelloux-Prayer (5):
+
+- glsl: reject size1x8 for image variable with floating-point data types
+- glsl: don't expose imageAtomicIncWrap for signed image
+- glsl: only allow 32 bits atomic operations on images
+- st/mesa: set compressed_data to NULL when freed
+- ac/surface: adapt surf_size when modifying surf_pitch
+
+Rhys Kidd (1):
+
+- nvc0: fix macro define for NVE4_COPY()
+
+Rhys Perry (2):
+
+- nir/lower_int64: lower 64-bit amul
+- radv: replace discard with demote for Quantic Dream games
+
+Samuel Pitoiset (1):
+
+- radv: fix destroying the syncobj when exporting a fence FD

@@ -1,0 +1,147 @@
+Mesa 20.2.2 Release Notes / 2020-11-06
+======================================
+
+Mesa 20.2.2 is a bug fix release which fixes bugs found since the 20.2.1 release.
+
+Mesa 20.2.2 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 20.2.2 implements the Vulkan 1.2 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    1f93eb1090cf71490cd0e204e04f8427a82b6ed534b7f49ca50cea7dcc89b861  mesa-20.2.2.tar.xz
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- anv: dEQP-VK.api.copy_and_blit.core.blit_image.all_formats.color.3d* failures
+- anv: dEQP-VK.api.copy_and_blit.core.blit_image.all_formats.color.3d* failures
+- radv/aco: Vertex explosion on RPCS3
+- Gnome 3.38 with Xwayland has screen corruption for X11 apps.
+- RADV: Death Stranding glitchy sky rendering
+- Crash in glDrawArrays on Intel iris
+- deinterlace_vaapi=rate=field does not double output's actual frame rate on AMD
+- Steam game Haydee leans on implementation-dependent behavior
+- vc4 in 20.2-rc has regression causing app to crash
+- [RADV/ACO] Star Citizen Lighting/Shadow Issue
+
+
+Changes
+-------
+
+Bas Nieuwenhuizen (3):
+
+- radv: Fix 1D compressed mipmaps on GFX9.
+- radv: Do not access set layout during vkCmdBindDescriptorSets.
+- radv: Fix variable name collision.
+
+Dave Airlie (1):
+
+- gallivm: zero init the temporary register storage.
+
+Dylan Baker (9):
+
+- docs: add SHA256 sums for 20.2.1
+- .pick_status.json: Update to f29c81f863c9879a6a87724cbdae1e1818f3f6b4
+- .pick_status.json: Update to aea74eac3d7706ed8d870504b163356e3f104a4c
+- .pick_status.json: Update to 7c5129985bcac75053823a31674e8a1e2629230c
+- .pick_status.json: Update to 3c87ac1f60875b5bbd4facca22fc426ee747997a
+- .pick_status.json: Update to d0f8fe5909107aa342f62813ced9ce535ed6da32
+- .pick_status.json: Update to 025050bae73d0598d788e3c307328670a3bf51c1
+- .pick_status.json: Update to b92eadb29cc8ef09096d9196434d49e35a3eccaf
+- .pick_status.json: Update to 8077f3f4c4a3d8007caa30eed93fed1c6bbf3c5a
+
+Jose Maria Casanova Crespo (2):
+
+- vc4: Add missing load_ubo set_align in yuv_blit fs.
+- vc4: Enable nir_lower_io for uniforms
+
+Lionel Landwerlin (3):
+
+- intel/dev: Bump Max EU per subslice/dualsubslice
+- anv: fix source/destination layers for 3D blits
+- blorp: allow blits with floating point source layers
+
+Lucas Stach (2):
+
+- etnaviv: drm: fix BO refcount race
+- etnaviv: blt: properly program surface TS offset for clears
+
+Marcin Ślusarz (2):
+
+- vulkan/wsi: fix possible random stalls in wsi_display_wait_for_event
+- intel/tools: fix invalid type in argument to printf
+
+Marek Olšák (2):
+
+- Revert "radeonsi/gfx10: disable vertex grouping"
+- winsys/amdgpu: remove incorrect assertion check against max_check_space_size
+
+Michael Tretter (1):
+
+- etnaviv: free tgsi tokens when shader state is deleted
+
+Michel Dänzer (3):
+
+- loader/dri3: Only allocate additional buffers if needed
+- loader/dri3: Keep current number of back buffers if frame was skipped
+- loader/dri3: Allocate up to 4 back buffers for page flips
+
+Nanley Chery (3):
+
+- st/mesa: Add missing sentinels in format_map[]
+- intel/isl: Drop redundant unpack of unorm channels
+- isl: Fix the aux-map encoding for D24_UNORM_X8
+
+Rhys Perry (4):
+
+- nir/opt_load_store_vectorize: don't vectorize stores across demote
+- aco: add missing SCC clobber in get_buffer_size
+- aco: update phi_map in add_subdword_operand()
+- aco: ignore the ACO-inserted continue in create_continue_phis()
+
+Rob Clark (1):
+
+- freedreno: Disallow tiled if SHARED and not QCOM_COMPRESSED
+
+Ryan Neph (1):
+
+- virgl: Fixes portal2 binary name in tweak config
+
+Samuel Pitoiset (1):
+
+- aco: fix determining if LOD is zero for nir_texop_txf/nir_texop_txs
+
+Tapani Pälli (2):
+
+- gallivm/nir: handle nir_op_flt in lp_build_nir_llvm
+- iris: fix the order of src and dst for fence memcpy
+
+Thong Thai (1):
+
+- frontends/va/postproc: Un-break field flag
+
+Timothy Arceri (1):
+
+- glsl: relax rule on varying matching for shaders older than 4.00
+
+Tony Wasserka (1):
+
+- aco/isel: Always export position data from VS/NGG

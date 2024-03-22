@@ -1,0 +1,262 @@
+Mesa 23.0.1 Release Notes / 2023-03-24
+======================================
+
+Mesa 23.0.1 is a bug fix release which fixes bugs found since the 23.0.0 release.
+
+Mesa 23.0.1 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 23.0.1 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    e8e586856b55893abae9bdcdb98b41c081d909bb1faf372e6e7262307bf34adf  mesa-23.0.1.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- radv: A Plague Tale: Requiem black "flash" on 7900XTX
+- 7900 XTX: Graphical corruption / artifacts in Cyberpunk
+- radv: CmdCopyQueryPoolResults broken for VK_QUERY_TYPE_PRIMITIVES_GENERATED_EXT with queryCount > 1
+- radeonsi draws spurious values to depth buffer
+- rusticl over llvmpipe + ffmpeg's Opencl filter = error -51
+- rusticl over llvmpipe + ffmpeg's Opencl filter = error -51
+- OpenGL crashes in X-Plane 11
+- [Bisected] Regression: Project Zomboid renders black
+- hasvk: Black pixels with 8xMSAA and fast clears on Intel(R) HD Graphics 4400 (HSW GT2)
+- radv: GTA IV graphical artifacts on 7900XTX
+- radv: Resident Evil Revelations 2 artifacts on 7900XTX with DCC
+- radv: Prototype 2 black textures on RDNA 3 when DCC is enabled
+- Mesa 23.0.0 crashes immediately with indirect rendering
+- [RADV] Returnal - pistol muzzle flash fills whole screen (graphical artifact)
+- ACO: dEQP-VK.binding_model.descriptor_buffer.multiple.graphics_geom_buffers1_sets3_imm_samplers hangs on NAVI10
+- Build failures with recent lld
+- r600,regression:  Glitches on terrain with the NIR backend on Transport Fever 2
+- r600/TURKS: Crash of the game "A Hat in Time" with Gallium Nine and NIR path (third report)
+- [gen9atom] Vulkan tests cause gpu hang: dEQP-VK.memory_model.*
+- GL_SHADER_BINARY_FORMAT_SPIR_V is not added to the list of GL_SHADER_BINARY_FORMATS even if GL_ARB_gl_spirv is supported.
+- [ANV/DG2] Vertex explosion in nvpro-samples/vk_raytracing_tutorial_KHR/ray_tracing_gltf
+- CUEtools FLACCL hit assert in rusticl
+- Assertion Failed on Intel HD 5500 with Linux / Mesa 22.3.1 / OpenGL
+
+
+Changes
+-------
+
+Błażej Szczygieł (1):
+
+- glx: Fix glXGetFBConfigFromVisualSGIX
+
+Caio Oliveira (2):
+
+- iris, crocus: Align workaround address to 32B
+- gallivm: Fix handling of nir_intrinsic_scoped_barrier
+
+Daniel Schürmann (1):
+
+- aco: fix NIR infinite loops
+
+Daniel Stone (1):
+
+- intel/isl: Don't scream FINISHME into logs for 3D vs. CCS
+
+Dave Airlie (1):
+
+- llvmpipe: fix compute address bits to return native pointer size.
+
+Dylan Baker (11):
+
+- docs: Add sha256 sum for 23.0.0
+- .pick_status.json: Update to 56a9aad4010ff9f2c0afcadec0ac61a6274de0a3
+- .pick_status.json: Update to aa791961a82e1f5a9dd841c3e0398c3e80d09652
+- .pick_status.json: Update to e45bbcf6492a178e52e4b87bad31bb01bc22e507
+- .pick_status.json: Update to baea3b328b7a39abcee48c733236f242e1f4cf0e
+- util: rzalloc and free hash_table_u64
+- .pick_status.json: Update to 6cb0c8b6d746fe055bbe905025550140c0980720
+- .pick_status.json: Update to 8c51c8697ab122472b9136f9a17813a7a6513c59
+- .pick_status.json: Update to 8c51c8697ab122472b9136f9a17813a7a6513c59
+- .pick_status.json: Update to 69cbc2e7eea599fb63f93373408a589f4345c6de
+- .pick_status.json: Update to 0cd89a27ed0da0bf79c3eae9aac314ee33c3a852
+
+Emma Anholt (1):
+
+- ci: Re-enable some swrast testing using fd.o's shared runners for now.
+
+Eric Engestrom (2):
+
+- radv: split linker script for android since it requires different symbols
+- glapi/meson: drop duplicate line in deps
+
+Erik Faye-Lund (1):
+
+- docs/zink: fixup wording of the GL 4.6 requirements
+
+Friedrich Vock (2):
+
+- mesa: Report GL_SHADER_BINARY_FORMAT_SPIR_V as supported
+- docs: Fix formatting for RMV tracing docs
+
+Georg Lehmann (1):
+
+- aco/optimizer_postRA: assume all registers are untrackable in loop headers
+
+Gert Wollny (3):
+
+- r600/sfn: be more conservative with channel use in multi-slot ops
+- r600/sfn: Fix minimum required registers
+- r600/sfn: Fix atomic lowering
+
+Illia Polishchuk (1):
+
+- glx: fix indirect initialization crash
+
+Iván Briano (3):
+
+- vulkan: track the right value on CmdSetColorWriteMasks
+- anv: fix testing for dynamic color blend bits
+- anv: stop tracking color blend state in the pipeline
+
+José Roberto de Souza (1):
+
+- iris: Don't mark protected bo as reusable
+
+Karol Herbst (3):
+
+- nir/deref: don't replace casts with deref_struct if we'd lose the stride
+- rusticl/kernel: Images arg sizes also have to match the host pointer size
+- gallivm: fix lp_vec_add_offset_ptr for 32 bit builds
+
+Kenneth Graunke (1):
+
+- intel/fs: Fix inferred_sync_pipe for F16TO32 opcodes
+
+Lionel Landwerlin (19):
+
+- anv: fix invalid masking of 48bit address
+- anv: fix vma heap memory leak
+- genxml: Fix STATE_BASE_ADDRESS::BindlessSurfaceStateSize field size
+- genxml: fix border color offset field on Gfx12+
+- anv: fixup condition for Wa_14016118574
+- anv: pull Wa_14016118574 out of some loop not changing state
+- anv: fix incorrect parameter
+- anv: fix generated forward jump with more than 67M draws
+- anv: remove copied code from generation shader
+- anv: remove BTI related flush in generation shaders
+- anv: correctly program 3DSTATE_SF in generation shaders
+- anv: limit push constant dirtyness with generation shaders
+- anv: remove pre hasvk split assert
+- anv: remove commented code
+- anv: fix indirect draws VF cache tracking of index buffer
+- anv: make sure mi_memcpy lands before push constant loads
+- anv: remove MI_NOOPs at the end of the generation batch
+- nir: fix nir_ishl_imm
+- anv: force MEDIA_INTERFACE_DESCRIPTOR_LOAD reemit after 3D->GPGPU switch
+
+Marek Olšák (8):
+
+- amd: add missing gfx11 register definitions
+- radeonsi/gfx11: fix the CU_EN clear mask for RSRC4_GS
+- radeonsi/gfx11: don't set non-existent VGT_STRMOUT_BUFFER_CONFIG
+- radeonsi/gfx11: set CB_COLORi_INFO.MAX_COMP_FRAG on GFX1103_R2
+- radeonsi: disable Smart Access Memory because CPU access has large overhead
+- nir: lower to fragment_mask_fetch/load_amd with EQAA correctly
+- mesa: fix glPopClientAttrib with fixed-func VP and zero-stride varyings
+- radeonsi: don't merge SET_* packets that have a different index in si_pm4_state
+
+Mike Blumenkrantz (10):
+
+- zink: fix shader read access removal for barrier generation
+- zink: avoid adding ubo/ssbo bindings multiple times for different bitsizes
+- zink: remove suspended queries from list before resuming
+- zink: disable queries for clear_texture()
+- zink: fix zink_resource_access_is_write()
+- zink: only add deferred barrier on fb unbind when layout needs to change
+- zink: fix descriptor update flagging on null ssbo set
+- zink: propagate valid_buffer_range when replacing buffer storage
+- aux/tc: fix rp info resizing clobbering current info
+- vulkan/wsi: fix crash in failed swapchain creation for wayland
+
+Patrick Lerda (1):
+
+- r600: fix shader blob memory leak
+
+Pierre-Eric Pelloux-Prayer (1):
+
+- radeonsi: fix fast depth_clear_value/stencil_clear_value
+
+Rhys Perry (2):
+
+- aco: fix pathological case in LdsDirectVALUHazard
+- aco: always update orig_names in get_reg_phi()
+
+Ruijing Dong (1):
+
+- raseonsi/vcn: fix a h264 decoding issue
+
+Sam Edwards (1):
+
+- nouveau: Fix null dereference in nouveau_pushbuf_destroy
+
+Samuel Pitoiset (8):
+
+- radv: fix flushing non-coherent images inside secondaries on GFX9+
+- radv: fix flushing non-coherent images in EndCommandBuffer()
+- radv: fix draw calls with 0-sized index buffers and robustness on NAVI10
+- amd,ac/rgp: fix SQTT memory types
+- radv: fix DCC decompress on GFX11
+- radv: fix incorrect stride for primitives generated query with GDS
+- radv: fix border color swizzle for stencil-only format on GFX9+
+- radv: disable DCC with signedness reinterpretation on GFX11
+
+Sil Vilerino (4):
+
+- d3d12: Fix VP9 Decode - Checking 0xFF instead of 0x7F for invalid frame_ref[i].Index7Bits
+- frontend/va: Keep track of some VP9 previous frame data for current frame use_prev_in_find_mvs_refs
+- d3d12: VP9 Decode - Fix use_prev_in_find_mvs_refs calculation
+- d3d12: Fix video decode for interlaced streams with reference only textures required
+
+Sviatoslav Peleshko (3):
+
+- iris: Avoid creating uncompressed view with unaligned tile offsets on BDW
+- anv: Handle all fields in VkAccelerationStructureBuildRangeInfoKHR
+- anv: Move WA MEDIA_VFE_STATE after stalling PIPE_CONTROL
+
+Tatsuyuki Ishi (2):
+
+- radeonsi: SDMA v4 size field is size - 1
+- radv: SDMA v4 size field is size - 1
+
+Väinö Mäkelä (2):
+
+- hasvk: Mark VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL as stencil write optimal
+- hasvk: Disable non-zero fast clears for 8xMSAA images
+
+Yiwei Zhang (1):
+
+- venus: fix VK_EXT_image_view_min_lod feature query
+
+Yogesh Mohan Marimuthu (2):
+
+- wsi/display: check alloc failure in wsi_display_alloc_connector()
+- ac/surface: only adjust pitch if surf_pitch was modified
+
+antonino (1):
+
+- zink: fix line smooth lowering

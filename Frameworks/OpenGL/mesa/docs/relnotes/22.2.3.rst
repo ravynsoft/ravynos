@@ -1,0 +1,145 @@
+Mesa 22.2.3 Release Notes / 2022-11-07
+======================================
+
+Mesa 22.2.3 is a bug fix release which fixes bugs found since the 22.2.2 release.
+
+Mesa 22.2.3 implements the OpenGL 4.6 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being used.
+Some drivers don't support all the features required in OpenGL 4.6. OpenGL
+4.6 is **only** available if requested at context creation.
+Compatibility contexts may report a lower version depending on each driver.
+
+Mesa 22.2.3 implements the Vulkan 1.3 API, but the version reported by
+the apiVersion property of the VkPhysicalDeviceProperties struct
+depends on the particular driver being used.
+
+SHA256 checksum
+---------------
+
+::
+
+    ee7d026f7b1991dbae0861d359b671145c3a86f2a731353b885d2ea2d5c098d6  mesa-22.2.3.tar.xz
+
+
+
+New features
+------------
+
+- None
+
+
+Bug fixes
+---------
+
+- r300: register allocation sometimes generate invalid swizzles
+- nouveau: Updating to Mesa*22.2.0 makes videos have corrupted colors in Firefox
+- [radeonsi] OpenGL rendering issue with Unreal Tournament 99 & OldUnreal 4.69 rc4
+- GravityMark segfault when using ray tracing ANV
+- r300: wrong primitive positions in CXBX-R emulator with nine and RADEON_DEBUG=notcl
+
+
+Changes
+-------
+
+Alyssa Rosenzweig (3):
+
+- pan/mdg: Fix 64-bit address arithmetic
+- panfrost: Use compute-based XFB on Midgard
+- panfrost: Lower MAX_BLOCK_SIZE on Midgard
+
+Danylo Piliaiev (1):
+
+- freedreno/fdl: Increase alignment for UBWC images
+
+Dylan Baker (6):
+
+- docs: Add sha256 sum for 22.2.2
+- .pick_status.json: Update to 93febe1198a03c16c18fc413501ba710edc8b1ec
+- .pick_status.json: Update to 938e13c57d095dafb752a2edf22c6a02afcd0b28
+- .pick_status.json: Update to 16e0702ec7103c06f2f33654b6e41498e2eabf8e
+- .pick_status.json: Update to 4087374deb53b79d6ac23c6ae87aadf9595d8d00
+- .pick_status.json: Mark 1a06dbcaed9ed4095ec8878d947935f0f7558cfd as denominated
+
+Emma Anholt (1):
+
+- nir/opt_phi_precision: Fix missing swizzles when narrowing phi srcs.
+
+Erik Faye-Lund (1):
+
+- zink: do not read is_generated unless in tcs shader
+
+Fabian Vogt (1):
+
+- gallivm: Fix LLVM optimization with the new pass manager
+
+Georg Lehmann (2):
+
+- nir: Fix ifind_msb_rev constant folding.
+- aco: Don't use opsel for p_insert.
+
+Gert Wollny (2):
+
+- r600: Account for color and clipvertex when evaluating LDS space
+- r600/sfn: evaluate LDS location for color and clip-vertex too
+
+Iago Toral Quiroga (1):
+
+- v3dv: drop layout refs for all allocated sets from a pool on destroy / reset
+
+Joan Bruguera (1):
+
+- nv50/ir/nir: ignore sampler for TXF/TXQ ops.
+
+Lionel Landwerlin (2):
+
+- nir/divergence_analysis: add missing desc_set_address_intel
+- intel/compiler: don't allocate compaction arrays on the stack
+
+Lucas Stach (1):
+
+- etnaviv: properly reference flush_resources
+
+Marcin Ślusarz (2):
+
+- anv: set 3DSTATE_[MESH|TASK]_CONTROL.MaximumNumberofThreadGroups
+- anv: program 3DSTATE_MESH_DISTRIB with the recommended values
+
+Matt Turner (1):
+
+- intel/dev: Set display_ver = 13 on all ADL/RPL/DG2
+
+Mike Blumenkrantz (1):
+
+- zink: don't flag ubo0 as used in shaders with indirect ubo access
+
+Nanley Chery (1):
+
+- iris: Enable INTEL_MEASURE for compute dispatches on XeHP
+
+Pavel Ondračka (2):
+
+- r300: respect buffer offset in r300_set_constant_buffer
+- r300: fix generation of invalid swizzles in regalloc
+
+Pierre-Eric Pelloux-Prayer (2):
+
+- radeonsi: zero init using the correct components count
+- radeonsi: update db_eqaa even if msaa is disabled
+
+Rhys Perry (2):
+
+- aco: swap v_perm_b32 operands
+- radv/llvm: fix GS shaders on GFX8/9
+
+Rob Clark (1):
+
+- freedreno/a6xx: Fix occlusion queries
+
+Ruijing Dong (1):
+
+- frontends/va: fix av1 decoding image distortion issue
+
+Yonggang Luo (1):
+
+- meson: with_glx never assigned to 'gallium-xlib', so need add with_glx == 'xlib' for dep_glproto

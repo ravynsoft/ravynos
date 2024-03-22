@@ -1,0 +1,83 @@
+Mesa 10.5.8 Release Notes / June 20, 2015
+=========================================
+
+Mesa 10.5.8 is a bug fix release which fixes bugs found since the 10.5.7
+release.
+
+Mesa 10.5.8 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   611ddcfa3c1bf13f7e6ccac785c8749c3b74c9a78452bac70f8372cf6b209aa0  mesa-10.5.8.tar.gz
+   2866b855c5299a4aed066338c77ff6467c389b2c30ada7647be8758663da2b54  mesa-10.5.8.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 90310 <https://bugs.freedesktop.org/show_bug.cgi?id=90310>`__ -
+   Fails to build gallium_dri.so at linking stage with clang because of
+   multiple redefinitions
+-  `Bug 90347 <https://bugs.freedesktop.org/show_bug.cgi?id=90347>`__ -
+   [NVE0+] Failure to insert texbar under some circumstances (causing
+   bad colors in Terasology)
+-  `Bug 90520 <https://bugs.freedesktop.org/show_bug.cgi?id=90520>`__ -
+   Register spilling clobbers registers used elsewhere in the shader
+-  `Bug 90905 <https://bugs.freedesktop.org/show_bug.cgi?id=90905>`__ -
+   mesa: Finish subdir-objects transition
+
+Changes
+-------
+
+Ben Widawsky (1):
+
+-  i965: Disable compaction for EOT send messages
+
+Boyan Ding (1):
+
+-  egl/x11: Set version of swrastLoader to 2
+
+Emil Velikov (2):
+
+-  docs: Add sha256sums for the 10.5.7 release
+-  Update version to 10.5.8
+
+Erik Faye-Lund (1):
+
+-  mesa: build xmlconfig to a separate static library
+
+Francisco Jerez (1):
+
+-  i965: Don't compact instructions with unmapped bits.
+
+Ilia Mirkin (3):
+
+-  nvc0/ir: fix collection of first uses for texture barrier insertion
+-  nv50,nvc0: clamp uniform size to 64k
+-  nvc0/ir: can't have a join on a load with an indirect source
+
+Faith Ekstrand (1):
+
+-  i965/fs: Don't let the EOT send message interfere with the MRF hack
+
+Marek Olšák (1):
+
+-  egl: fix setting context flags
+
+Roland Scheidegger (1):
+
+-  draw: (trivial) fix NULL pointer dereference

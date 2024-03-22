@@ -1,0 +1,11 @@
+shr(1)          g11<1>UD        g11<0,1,0>UD    0x00000010UD    { align1 1N };
+shr(8)          g20<1>UD        g19<8,8,1>UD    0x00000001UD    { align1 1Q };
+shr(16)         g88<1>UD        g86<8,8,1>UD    0x00000001UD    { align1 1H };
+shr(8)          g10<1>.xyzUD    g1<0>.xyzzUD    g1.4<0>.xyzzUD  { align16 1Q };
+shr(8)          g3<1>UD         g2<0,1,0>UD     g2.2<0,1,0>UD   { align1 1Q };
+shr(16)         g3<1>UD         g2<0,1,0>UD     g2.2<0,1,0>UD   { align1 1H };
+shr(8)          g4<1>.yUD       g1<0>.xUD       0x00000010UD    { align16 NoDDChk 1Q };
+shr(1)          g29<1>UD        g29<0,1,0>UD    5D              { align1 WE_all 1N };
+shr(8)          g8<1>.xUD       g7<4>.xUD       0x00000001UD    { align16 1Q };
+shr(8)          g19<2>UW        g5<8,8,1>UD     g4<8,8,1>UW     { align1 1Q };
+shr(8)          g23<2>UW        g16<8,8,1>UD    g13.8<8,8,1>UW  { align1 2Q };

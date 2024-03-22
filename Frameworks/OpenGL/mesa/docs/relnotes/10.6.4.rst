@@ -1,0 +1,112 @@
+Mesa 10.6.4 Release Notes / August 11, 2015
+===========================================
+
+Mesa 10.6.4 is a bug fix release which fixes bugs found since the 10.6.3
+release.
+
+Mesa 10.6.4 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   4960bf17d8b5d6a6503c6954ec6cf480b5cd930797bac901c60bea192675f85e  mesa-10.6.4.tar.gz
+   8f5ac103f0f503de2f7a985b0df349bd4ecdfe7f51c714be146fa5a9a3c07b77  mesa-10.6.4.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 73512 <https://bugs.freedesktop.org/show_bug.cgi?id=73512>`__ -
+   [clover] mesa.icd. should contain full path
+-  `Bug 91290 <https://bugs.freedesktop.org/show_bug.cgi?id=91290>`__ -
+   SIGSEGV glcpp/glcpp-parse.y:1077
+
+Changes
+-------
+
+Anuj Phogat (6):
+
+-  mesa: Turn get_readpixels_transfer_ops() in to a global function
+-  meta: Fix transfer operations check in meta pbo path for readpixels
+-  meta: Abort meta pbo path if readpixels need signed-unsigned
+   conversion
+-  meta: Don't do fragment color clamping in
+   \_mesa_meta_pbo_GetTexSubImage
+-  mesa: Add a helper function \_mesa_need_luminance_to_rgb_conversion()
+-  meta: Fix reading luminance texture as rgba in
+   \_mesa_meta_pbo_GetTexSubImage()
+
+Ben Widawsky (1):
+
+-  i965/skl: Add production thread counts and URB size
+
+Eduardo Lima Mitev (3):
+
+-  mesa: Fix errors values returned by glShaderBinary()
+-  mesa: Validate target before resolving tex obj in
+   glTex(ture)SubImageXD
+-  mesa: Fix error returned by glCopyTexImage2D() upon an invalid
+   internal format
+
+Emil Velikov (6):
+
+-  docs: Add checksums for mesa 10.6.3 tarballs
+-  configure.ac: do not set HAVE_DRI(23) when libdrm is missing
+-  egl/wayland: libdrm is a hard requirement, treat it as such
+-  winsys/radeon: don't leak the fd when it is 0
+-  bugzilla_mesa.sh: sort the bugs list by number
+-  Update version to 10.6.4
+
+Francisco Jerez (1):
+
+-  i965/fs: Fix fs_inst::regs_read() for sources in the ATTR file.
+
+Frank Binns (2):
+
+-  egl/dri: Add error info needed for EGL_EXT_image_dma_buf_import
+   extension
+-  egl: Add eglQuerySurface surface type check for EGL_LARGEST_PBUFFER
+   attrib
+
+Igor Gnatenko (1):
+
+-  opencl: use versioned .so in mesa.icd
+
+Ilia Mirkin (1):
+
+-  nvc0: fix geometry program revalidation of clipping params
+
+Kenneth Graunke (1):
+
+-  glsl: Fix a bug where LHS swizzles of swizzles were too small.
+
+Marek Olšák (6):
+
+-  st/mesa: don't call st_validate_state in BlitFramebuffer
+-  radeonsi: upload shader rodata after updating scratch relocations
+-  st/mesa: don't ignore texture buffer state changes
+-  radeonsi: rework how shader pointers to descriptors are set
+-  radeonsi: completely rework updating descriptors without CP DMA
+-  r600g: fix the CB_SHADER_MASK setup
+
+Samuel Iglesias Gonsalvez (1):
+
+-  glsl/glcpp: fix SIGSEGV when checking error condition for macro
+   redefinition
+
+Samuel Pitoiset (1):
+
+-  nv50: avoid segfault with enabled but unbound vertex attrib

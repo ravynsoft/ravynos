@@ -1,0 +1,35 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE driconf [
+   <!ELEMENT driconf      (device+)>
+   <!ELEMENT device       (application | engine)+>
+   <!ATTLIST device       driver CDATA #IMPLIED>
+   <!ELEMENT application  (option+)>
+   <!ATTLIST application  name CDATA #REQUIRED
+                          executable CDATA #IMPLIED
+                          executable_regexp CDATA #IMPLIED
+                          sha1 CDATA #IMPLIED
+                          application_name_match CDATA #IMPLIED
+                          application_versions CDATA #IMPLIED>
+   <!ELEMENT engine       (option+)>
+
+   <!-- engine_name_match: A regexp matching the engine name -->
+   <!-- engine_versions: A version in range format
+             (version 1 to 4 : "1:4") -->
+
+   <!ATTLIST engine       engine_name_match CDATA #REQUIRED
+                          engine_versions CDATA #REQUIRED>
+
+   <!ELEMENT option       EMPTY>
+   <!ATTLIST option       name CDATA #REQUIRED
+                          value CDATA #REQUIRED>
+]>
+
+<!-- since this file lacks its extension, it shouldn't be parsed. -->
+
+<driconf>
+    <device>
+        <application name="Application 1" executable="app1">
+            <option name="mesa_drirc_option" value="100" />
+        </application>
+    </device>
+</driconf>

@@ -1,0 +1,102 @@
+Mesa 10.6.8 Release Notes / September 20, 2015
+==============================================
+
+Mesa 10.6.8 is a bug fix release which fixes bugs found since the 10.6.7
+release.
+
+Mesa 10.6.8 implements the OpenGL 3.3 API, but the version reported by
+glGetString(GL_VERSION) or glGetIntegerv(GL_MAJOR_VERSION) /
+glGetIntegerv(GL_MINOR_VERSION) depends on the particular driver being
+used. Some drivers don't support all the features required in OpenGL
+3.3. OpenGL 3.3 is **only** available if requested at context creation
+because compatibility contexts are not supported.
+
+SHA256 checksums
+----------------
+
+::
+
+   1f34dba2a8059782e3e4e0f18b9628004e253b2c69085f735b846d2e63c9e250  mesa-10.6.8.tar.gz
+   e36ee5ceeadb3966fb5ce5b4cf18322dbb76a4f075558ae49c3bba94f57d58fd  mesa-10.6.8.tar.xz
+
+New features
+------------
+
+None
+
+Bug fixes
+---------
+
+This list is likely incomplete.
+
+-  `Bug 90621 <https://bugs.freedesktop.org/show_bug.cgi?id=90621>`__ -
+   Mesa fail to build from git
+-  `Bug 91526 <https://bugs.freedesktop.org/show_bug.cgi?id=91526>`__ -
+   World of Warcraft (on Wine) has UI corruption with nouveau
+-  `Bug 91719 <https://bugs.freedesktop.org/show_bug.cgi?id=91719>`__ -
+   [SNB,HSW,BYT] dEQP regressions associated with using NIR for vertex
+   shaders
+
+Changes
+-------
+
+Alejandro Piñeiro (1):
+
+-  i965/vec4: fill src_reg type using the constructor type parameter
+
+Antia Puentes (1):
+
+-  i965/vec4: Fix saturation errors when coalescing registers
+
+Emil Velikov (2):
+
+-  docs: add sha256 checksums for 10.6.7
+-  cherry-ignore: add commit non applicable for 10.6
+
+Hans de Goede (4):
+
+-  nv30: Fix creation of scanout buffers
+-  nv30: Implement color resolve for msaa
+-  nv30: Fix max width / height checks in nv30 sifm code
+-  nv30: Disable msaa unless requested from the env by NV30_MAX_MSAA
+
+Ian Romanick (2):
+
+-  mesa: Pass the type to \_mesa_uniform_matrix as a glsl_base_type
+-  mesa: Don't allow wrong type setters for matrix uniforms
+
+Ilia Mirkin (5):
+
+-  st/mesa: don't fall back to 16F when 32F is requested
+-  nvc0: always emit a full shader colormask
+-  nvc0: remove BGRA4 format support
+-  st/mesa: avoid integer overflows with buffers >= 512MB
+-  nv50, nvc0: fix max texture buffer size to 128M elements
+
+Faith Ekstrand (1):
+
+-  i965/vec4: Don't reswizzle hardware registers
+
+Jose Fonseca (1):
+
+-  gallivm: Workaround LLVM PR23628.
+
+Kenneth Graunke (1):
+
+-  i965: Momentarily pretend to support ARB_texture_stencil8 for blits.
+
+Oded Gabbay (1):
+
+-  llvmpipe: convert double to long long instead of unsigned long long
+
+Ray Strode (1):
+
+-  gbm: convert gbm bo format to fourcc format on dma-buf import
+
+Ulrich Weigand (1):
+
+-  mesa: Fix texture compression on big-endian systems
+
+Vinson Lee (1):
+
+-  gallivm: Do not use NoFramePointerElim with LLVM 3.7.

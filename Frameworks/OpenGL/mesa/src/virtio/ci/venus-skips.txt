@@ -1,0 +1,8 @@
+# These are taking too much memory (7.6GB and 6.2GB respectively) and can cause EOM issues
+dEQP-VK.api.object_management.max_concurrent.graphics_pipeline
+dEQP-VK.api.object_management.max_concurrent.compute_pipeline
+
+# Can timeout
+dEQP-VK.texture.explicit_lod.2d.sizes.128x128_linear_linear_mipmap_nearest_repeat
+dEQP-VK.texture.explicit_lod.2d.sizes.128x128_linear_nearest_mipmap_linear_repeat
+dEQP-VK.texture.explicit_lod.2d.sizes.128x128_nearest_linear_mipmap_linear_repeat

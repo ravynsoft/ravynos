@@ -1,0 +1,13 @@
+Notes for the etnaviv gallium driver
+------------------------------------
+
+There are two ways how this driver might get used:
+
+- application opens kms device (kmscube, weston, ..)
+- X via xf86-video-armada
+
+For the kms device case we provide a renderonly based driver like
+imx where all the magic for buffer import and export between kms
+and renderonly GPU is handled automaticly.
+
+For X/xf86-video-armada we need to provide etnaviv_dri.so.

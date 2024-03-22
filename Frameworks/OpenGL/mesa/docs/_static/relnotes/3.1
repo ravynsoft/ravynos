@@ -1,0 +1,145 @@
+
+                         Mesa 3.1 release notes
+
+                             PLEASE READ!!!!
+
+
+New copyright
+-------------
+
+Mesa 3.1 will be distributed under an XFree86-style copyright instead
+of the GNU LGPL.
+
+
+New directories
+---------------
+
+All documentation files are now in the docs/ directory.
+All shell scripts are now in the bin/ directory.
+
+
+New library names
+-----------------
+
+Formerly, the main Mesa library was named libMesaGL.so (or libMesaGL.a)
+and the GLU library was named libMesaGLU.so (or libMesaGLU.a).
+
+Now, the main library is named libGL.so (or libGL.a) and the GLU library
+is named libGLU.so (or libGLU.a).
+
+The change allows Mesa to be more easily substituted for OpenGL.
+Specifically, the linker/loader on some Unix-like systems won't
+allow libMesaGL.so to be used instead of libGL.so if the application
+was linked with the former.
+
+Warning: if you have another OpenGL implementation installed on your
+system (i.e. you have another OpenGL libGL.so) you'll have to be
+carefull about which library (OpenGL or Mesa) you link against.  Be
+aware of -L linker flags and the value of the LD_LIBRARY_PATH environment
+variable.
+
+
+New library versioning
+----------------------
+
+Previously, the Mesa GL library was named libMesaGL.so.3.0
+To better support Linux/OpenGL standards, the Mesa GL library is now
+named libGL.so.1.2.030100  This indicates version 1.2 of the OpenGL spec
+and Mesa implementation 3.1.0
+
+In the long term this will allow better interoperability with other
+OpenGL implementations, especially on Linux.  In the short term,
+OpenGL apps may have to be relinked to use the new library naming.
+
+
+
+New makefiles
+-------------
+
+The old Makefiles found in the various directories have been renamed
+to Makefile.X11 in order to prevent filename collisions with autoconfig-
+generated Makefiles.
+
+The top-level Makefile simply includes Makefile.X11
+If your top-level Makefile get's overwritten/destroyed you can restore
+it by copying Makefile.X11 to Makefile
+
+
+New extensions
+--------------
+
+GL_EXT_stencil_wrap
+	Implements two new stencil operations: GL_INCR_WRAP_EXT and
+	GL_DECR_WRAP_EXT which allow stencil increment and decrement
+	without clamping.
+
+GL_INGR_blend_func_separate
+	Allows specification of blend factors for RGB and Alpha independently.
+	(INGR = Intergraph)
+
+GL_ARB_multitexture
+	Multiple simultaneous textures.  (ARB = Architecture Review Board)
+
+GL_NV_texgen_reflection
+	nVidia texgen extension for better reflection mapping.
+
+GL_PGI_misc_hints
+	Assorted transformation hints.
+
+GL_EXT_compiled_vertex_array
+	Compiled vertex arrays.
+
+GL_EXT_clip_volume_hint
+	Allows one to disable clip volume (frustum) testing.
+
+
+
+Extensions removed
+------------------
+
+GL_EXT_multitexture - obsolete in favor of GL_ARB_multitexture
+
+
+
+Config file
+-----------
+
+By default, /etc/mesa.conf will be read when Mesa starts.  This
+file controls default hints, enable/disable of extensions, and
+more.  See the CONFIG file for documentation.
+
+
+
+Optimizations
+-------------
+
+Keith Whitwell has contributed significant optimizations to Mesa's
+vertex transformation code.  Basically, the whole transformation
+stage of Mesa has been rewritten.
+
+It's impossible to give a speedup factor.  You'll just have to
+try your app and see how it performs.
+
+
+
+Device Driver changes
+---------------------
+
+A bunch of new device driver functions have been added.  See src/dd.h
+Keith Harrison contributed many of them.  I've been planning on adding
+a bunch of functions like these to make writing hardware drivers easier.
+More such function will probably be added in the near future.
+
+
+
+Miscellaneous
+-------------
+
+util/glstate.c has some handy functions for debugging.  Basically, it
+offers a simple function for printing GL state variables.  It's not
+finished yet.  There's a LOT more GLenum records to be added (see the
+code).  Anyone want to help?
+
+
+
+----------------------------------------------------------------------

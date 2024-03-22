@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE OpenGLAPI SYSTEM "gl_API.dtd">
+
+<!-- Note: no GLX protocol info yet. -->
+
+
+<OpenGLAPI>
+
+<category name="GL_KHR_robustness" number="170">
+
+    <enum name="GUILTY_CONTEXT_RESET"                 value="0x8253"/>
+    <enum name="INNOCENT_CONTEXT_RESET"               value="0x8254"/>
+    <enum name="UNKNOWN_CONTEXT_RESET"                value="0x8255"/>
+
+    <enum name="CONTEXT_ROBUST_ACCESS" count="1" value="0x90F3">
+        <size name="Get" mode="get"/>
+    </enum>
+    <enum name="RESET_NOTIFICATION_STRATEGY" count="1" value="0x8256">
+        <size name="Get" mode="get"/>
+    </enum>
+    <enum name="LOSE_CONTEXT_ON_RESET"                value="0x8252"/>
+    <enum name="NO_RESET_NOTIFICATION"                value="0x8261"/>
+
+    <enum name="CONTEXT_FLAG_ROBUST_ACCESS_BIT"       value="0x00000004"/>
+
+    <!-- This extension applies to both GL and ES. GL entrypoints have
+         no suffix, ES entrypoints have the KHR suffix. This file
+         defines entry points for GL. -->
+
+    <!-- GL definitions -->
+    <function name="GetGraphicsResetStatus" es2="3.2" alias="GetGraphicsResetStatusARB">
+        <return type="GLenum"/>
+    </function>
+
+    <function name="ReadnPixels" es2="3.2" alias="ReadnPixelsARB">
+        <param name="x" type="GLint"/>
+        <param name="y" type="GLint"/>
+        <param name="width" type="GLsizei"/>
+        <param name="height" type="GLsizei"/>
+        <param name="format" type="GLenum"/>
+        <param name="type" type="GLenum"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="data" type="GLvoid *" output="true"/>
+    </function>
+
+    <function name="GetnUniformfv" es2="3.2" alias="GetnUniformfvARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLfloat *" output="true"/>
+    </function>
+
+    <function name="GetnUniformiv" es2="3.2" alias="GetnUniformivARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLint *" output="true"/>
+    </function>
+
+    <function name="GetnUniformuiv" es2="3.2" alias="GetnUniformuivARB">
+        <param name="program" type="GLuint"/>
+        <param name="location" type="GLint"/>
+        <param name="bufSize" type="GLsizei"/>
+        <param name="params" type="GLuint *" output="true"/>
+    </function>
+
+</category>
+
+</OpenGLAPI>
