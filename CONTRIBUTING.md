@@ -12,7 +12,8 @@ We expect everyone interacting with this project to adhere to the [Contributor C
 
 As an open-source project, we love receiving contributions from our community - you! There are so many ways to help out, from writing documentation or tutorials, testing and submitting bug reports, creating art assets, answering user questions, editing wiki pages, and writing code in the project itself.
 
-As of July 2022, these are the top priorities:
+As of March 2024, these are still the top priorities:
+* System build wrangling - bringing in third-party sources to the system tree, packaging stuff into Frameworks, etc
 * Ongoing work on the desktop shell: WindowServer, LoginWindow, SystemUIServer (implementing MenuExtras, StatusItems), Dock, Filer
 * Continue updating the Cocoa frameworks to add missing features and update existing ones
 * Help convert everything to Mach-O: remove ELF assumptions, port Apple's dyld, write a better kernel image activator
@@ -25,7 +26,7 @@ The skills we need immediately are: *C/C++, Objective-C, x86-64 assembly, linker
 
 ### Join the community
 
-Join us on Discord, Matrix or IRC (see [README.md](README.md)) to meet other users and developers. We're also [ravynsoft](https://twitter.com/ravynsoft) on Twitter.
+Join us on Discord or Matrix (see [README.md](README.md)) to meet other users and developers.
 
 ### Reporting Issues
 
@@ -35,7 +36,7 @@ For everything else, please first check the [open issues](https://github.com/rav
 
 ### Ground rules
 
-Please don't submit general questions or support requests to the issue tracker. There are [discussion boards](https://github.com/ravynsoft/ravynos/discussions) for that, or ask on the Discord, Matrix or IRC channels.
+Please don't submit general questions or support requests to the issue tracker. There are [discussion boards](https://github.com/ravynsoft/ravynos/discussions) for that, or ask on the Discord or Matrix channels.
 
 Follow the code of conduct.
 

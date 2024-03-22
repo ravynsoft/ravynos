@@ -19,7 +19,6 @@ ravynOS 可說是 macOS＋BSD 的精神。自由又好用，而且開源。
 * 想幫我們實現夢想嗎？請閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)!
 * 我們的 [Discord](https://discord.com/invite/8caJbAGNwY) 伺服器。
 * `#ravynOS-general:matrix.org` - 用[Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org) 加入我們的 Matrix 
-* `#airyx` 在 [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
 [![套件主持者：Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 

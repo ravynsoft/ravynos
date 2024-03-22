@@ -20,7 +20,6 @@ Kunjungi [ravynos.com](https://ravynos.com/) untuk info selengkapnya: [Catatan R
 * Dapatkah anda membantu membangun mimpi? Lihat proyek/kebutuhan saat ini di [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Server [Discord](https://discord.com/invite/8caJbAGNwY) kami.
 * `#ravynOS-general:matrix.org` - bergabung melalui [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
-* `#airyx` di [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
 [![Paket dihosting oleh: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
