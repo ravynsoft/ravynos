@@ -72,6 +72,7 @@ SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
 SUBDIR+=        libevdev .WAIT
 SUBDIR+=        libinput .WAIT
 SUBDIR+=        wayland-protocols
+SUBDIR+=        seatd
 SUBDIR+=        wlroots
 
 

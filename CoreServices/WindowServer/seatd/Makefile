@@ -10,6 +10,11 @@ CFLAGS+= -D_XOPEN_SOURCE=700 -D__BSD_VISIBLE -D_NETBSD_SOURCE \
          -Wl,-R\$$ORIGIN/Resources -Wl,--exclude-libs=ALL
 .export CFLAGS MAJOR MINOR MICRO
 
-SUBDIR=	libseat .WAIT seatd
+SUBDIR=	libseat .WAIT seatd seatd-launch
+
+make-obj-dirs:
+.for subdir in ${SUBDIR}
+	${MAKE} -C ${subdir} make-obj-dirs
+.endfor
 
 .include <bsd.subdir.mk>

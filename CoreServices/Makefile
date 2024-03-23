@@ -8,9 +8,7 @@ SHA!= cd ${.CURDIR} && git log -1|head -1|cut -c8-14|tr '[a-z]' '[A-Z]'
 all: clean build
 clean:
 	rm -rf ${BUILDROOT}/System/Library/CoreServices
-	rm -rf Filer/build Filer/Filer.app
 	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/CoreServices/Dock
-	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/CoreServices/Filer
 	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/CoreServices/WindowServer
 
 DMIHelper: ${.CURDIR}/DMIHelper.c
@@ -38,24 +36,9 @@ buildDock:
 	${MAKE} -C ${.CURDIR}/Dock
 
 buildWindowServer:
-	${MAKE} -C ${.CURDIR}/WindowServer
+	${MAKE} -C ${.CURDIR}/WindowServer make-obj-dirs obj all
 	${MAKE} -C ${.CURDIR}/WindowServer/SystemUIServer
 	${MAKE} -C ${.CURDIR}/WindowServer/LoginWindow
 	cp -afv ${.CURDIR}/WindowServer/SystemUIServer/SystemUIServer.app \
 	        ${.CURDIR}/WindowServer/LoginWindow/LoginWindow.app \
                 ${.CURDIR}/WindowServer/WindowServer.app/Contents/Resources/
-
-${.CURDIR}/Filer:
-	git clone https://github.com/mszoek/Filer.git ${.CURDIR}/Filer
-	cd ${.CURDIR}/Filer && git checkout airyx
-
-buildFiler: ${.CURDIR}/Filer
-	mkdir -p ${.CURDIR}/Filer/build/src
-	${MAKE} -C ${.CURDIR}/Filer build
-	cmake -S ${.CURDIR}/Filer -B ${.CURDIR}/Filer/build \
-		-DCMAKE_BUILD_TYPE="Debug" \
-		-DRAVYNOS=1 -DCMAKE_CXX_FLAGS="${EXTRA_CXXFLAGS}" \
-		-DSYSTEM_FRAMEWORKS="-framework LaunchServices -framework Foundation -framework CoreFoundation -framework CFNetwork -lthr -lobjc"
-	${MAKE} -C ${.CURDIR}/Filer/build -j${CORES}
-	${MAKE} -C ${.CURDIR}/Filer/build DESTDIR=${.CURDIR}/Filer/Filer.app install
-	cd ${.CURDIR}/Filer/Filer.app/Contents/Resources && mv -fv filer-qt.1 Filer.1

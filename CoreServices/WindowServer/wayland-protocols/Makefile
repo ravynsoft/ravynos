@@ -45,8 +45,8 @@ DATADIR=        ${OBJTOP}/tmp${PREFIX}/share/wayland-protocols
 
 all: install
 build: install
-
-includes:
+obj:
+includes: 
 
 install:
 .for group in stable staging unstable
