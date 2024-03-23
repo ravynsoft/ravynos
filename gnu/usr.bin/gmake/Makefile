@@ -14,7 +14,7 @@ FAKEACLOCAL= ${OBJTOP}/../usr/bin/aclocal-1.16
 
 all: gnu_configure .WAIT build
 build:
-	ln true ${FAKEACLOCAL}
+	ln ${OBJTOP}/tmp/legacy/bin/true ${FAKEACLOCAL}
 	make
 	rm -f ${FAKEACLOCAL}
 

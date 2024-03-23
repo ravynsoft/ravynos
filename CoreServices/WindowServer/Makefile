@@ -61,6 +61,7 @@ CFLAGS+=	${SYSROOT} -g -fobjc-arc -I${.CURDIR} \
 		-I${.CURDIR}/wlroots/include -I${.CURDIR}/libdrm/include/drm \
                 -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
                 -I${MAKEOBJDIR}/wlroots/protocol/ \
+                -I${OBJTOP}/Frameworks/ \
                 -I${OBJTOP}/Frameworks/Foundation/Headers \
                 -I${OBJTOP}/Frameworks/Foundation -lFoundation \
                 -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A
