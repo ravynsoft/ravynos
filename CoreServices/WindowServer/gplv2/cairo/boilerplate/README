@@ -1,0 +1,14 @@
+This directory provides code that is common to both of cairo's tests
+suites:
+
+ * The test suite for correctness in test/
+ * The test suite for performance in perf/
+
+We call it boilerplate as it consists primarily of the boilerplate
+code necessary for initializing a backend in order to create a surface
+for that backend.
+
+The code here just might be useful for someone looking to get started
+writing cairo code to use a particular backend, (but there are no
+promises that the boilerplate code found here for any particular
+backend is exemplary).

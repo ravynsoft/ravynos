@@ -1,0 +1,37 @@
+Cairo Reference Documentation
+=============================
+
+The API documentation is generated using gtk-doc.
+
+
+Building
+--------
+
+The documentation is not built by default.  To build it you need to
+configure with gtk-doc enabled (--enable-gtk-doc), and run:
+
+	make doc
+
+
+Adding New API
+--------------
+
+When adding new symbols and macros to the public API, modify
+cairo-section.txt and add new symbols to the right place.
+
+When adding whole new features, you also need to modify cairo-docs.xml
+and add a new file under tmpl/.  Beware that the files are tmpl/ are
+both manually edited AND modified by gtk-doc, gathering documentation
+stub from source files.
+
+
+Tests
+-----
+
+There are some tests in this directory, ensuring proper documentation
+syntax as well as checking that all public symbols are fully documented.
+
+After adding any new API, just run:
+
+	make check
+

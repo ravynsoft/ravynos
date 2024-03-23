@@ -1,0 +1,255 @@
+#!/bin/sh
+set -e
+
+usage() {
+    argv0=`basename $0`
+
+    cat >&2 << END
+Usage:
+For comparing files created my cairo-perf:
+
+	$argv0 old.perf new.perf
+
+For comparing (cached) performance of revisions:
+
+	$argv0 [OPTIONS] <revision> [-- cairo-perf options]
+	$argv0 [OPTIONS] <rev1> <rev2> [-- cairo-perf-options]
+
+If given a single revision, compares its results to that of its
+(first-parent) predecessor. Otherwise compares the two given revisions.
+The revisions can be any revision accepted by git. For example:
+
+	$argv0 HEAD		# Show impact of latest commit
+	$argv0 1.2.0 1.2.4	# Compare performance of 1.2.0 to 1.2.4
+
+Options:
+
+-f, --force
+	Forces cairo-perf-diff to re-run performance tests
+	even if cached performance data is available.
+
+-h, --html
+	With this option performance changes are summarized
+	as HTML table.
+
+-t, --trace
+	Compare performance using trace replays instead of
+	microbenchmarks.
+
+Additional options can be passed the child cairo-perf process
+by separating them with a double hyphen (--). For example, to
+examine what the impact of the latest change is on the stroke
+test you might use:
+
+	$argv0 HEAD -- stroke
+
+The performance results are cached in .perf next to the .git directory.
+
+Set CAIRO_AUTOGEN_OPTIONS to pass options to autogen for both
+builds.
+END
+
+    exit 1
+}
+
+benchmark="cairo-perf-micro"
+
+# First, pull off any known options
+while true; do
+    case $1 in
+        -f|--force) force_cairo_perf="true";;
+        -h|--html) html_output="$2"; shift ;;
+        -t|--trace) benchmark="cairo-perf-trace";;
+        *) break;;
+    esac
+
+    shift
+done
+
+# Then if anything is left that still looks like an option, (begins
+# with a dash), give usage to catch --help or any other -garbage
+if [ $# -eq 0 ] || [ "`echo "$1" | sed 's/^-//'`" != "$1" ]; then
+    usage
+fi
+
+# Finally, pick up the actual revision arguments
+if [ $# -eq 1 ] || [ "$2" = "--" ]; then
+    old="$1^"
+    new="$1"
+    shift 1
+else
+    old="$1"
+    new="$2"
+    shift 2
+fi
+
+# And post-finally, pass anything after -- on to cairo-perf
+CAIRO_PERF_OPTIONS="-r -i 10"
+if [ $# -gt 0 ]; then
+    if [ "$1" = "--" ]; then
+	shift 1
+	CAIRO_PERF_OPTIONS="$CAIRO_PERF_OPTIONS $@"
+    else
+	usage
+    fi
+fi
+
+git_setup() {
+    SUBDIRECTORY_OK='Yes'
+    . "$(git --exec-path)/git-sh-setup"
+    CAIRO_DIR=`dirname $GIT_DIR`
+    if [ "$CAIRO_DIR" = "." ]; then
+	CAIRO_DIR=`pwd`
+    fi
+    CAIRO_PERF_DIR=$CAIRO_DIR/.perf
+}
+
+rev2sha() {
+    rev=$1
+    git rev-parse --verify $rev || ( echo "Cannot resolve $rev as a git object" && exit 1 )
+}
+
+cpu_count() {
+    test -f /proc/cpuinfo &&
+    grep -c '^processor[[:blank:]]\+:' /proc/cpuinfo ||
+    echo 1
+}
+
+# We cache performance output based on a two-part name capturing the
+# current performance test suite and the library being tested. We
+# capture these as the tree object of the perf directory in HEAD and
+# the tree object of the src directory of the revision being tested.
+#
+# This way, whenever the performance suite is updated, cached output
+# from old versions of the suite are automatically invalidated. Also,
+# if a commit just changes things outside of the src tree, (say it
+# changes the "test" test suite, or README or configure.in, or
+# whatever), cairo-perf-diff will be smart enough to still use cached
+# results from a run with an equivalent src tree.
+rev2perf() {
+    rev=$1
+    sha=`rev2sha $rev`
+    src_tree_sha=`rev2sha $rev:src`
+    perf_tree_sha=`rev2sha HEAD:perf`
+    script_tree_sha=`rev2sha HEAD:util/cairo-script`
+    echo "$CAIRO_PERF_DIR/${sha}-${perf_tree_sha}-${script_tree_sha}-${src_tree_sha}.perf"
+}
+rev2perf_glob() {
+    rev=$1
+    src_tree_sha=`rev2sha $rev:src`
+    perf_tree_sha=`rev2sha HEAD:perf`
+    script_tree_sha=`rev2sha HEAD:util/cairo-script`
+    echo "$CAIRO_PERF_DIR/*-${perf_tree_sha}-${script_tree_sha}-${src_tree_sha}.perf"
+}
+
+build() {
+    build_dir=$1
+    sha=$2
+
+    if [ ! -d $build_dir ]; then
+	git clone -s $CAIRO_DIR $build_dir
+	(cd $build_dir; git checkout -b tmp-cairo-perf-diff $sha)
+    fi
+    cd $build_dir
+
+    git checkout tmp-cairo-perf-diff
+    git reset --hard $sha
+
+    if [ -z "$MAKEFLAGS" ]; then
+	CPU_COUNT=`cpu_count`
+        export MAKEFLAGS="-j`expr $CPU_COUNT + 1`"
+    fi
+
+    if [ ! -e Makefile ]; then
+	./autogen.sh $CAIRO_AUTOGEN_OPTIONS
+    fi
+
+    for file in $boilerplate_files; do
+	rsync $CAIRO_DIR/$file boilerplate
+    done
+    for file in $perf_files; do
+	rsync $CAIRO_DIR/$file perf
+    done
+    for file in $script_files; do
+	rsync $CAIRO_DIR/$file util/cairo-script
+    done
+
+    make || (rm config.cache && make)
+    (cd boilerplate && make libcairoboilerplate.la)
+
+    cd perf
+    make ${benchmark}
+}
+
+# Usage: run_cairo_perf_if_not_cached <rev> <suffix>
+# The <rev> argument must be a valid git ref-spec that can
+# be resolved to a commit. The suffix is just something
+# unique so that build directories can be separated for
+# multiple calls to this function.
+run_cairo_perf_if_not_cached() {
+    rev=$1
+    build_dir="build-$2"
+
+    owd=`pwd`
+    sha=`rev2sha $rev`
+    perf=`rev2perf $rev`
+    glob=`rev2perf_glob $rev`
+    if [ -e $glob ] && [ "$force_cairo_perf" != "true" ]; then
+	return 0
+    fi
+    if [ ! -d $CAIRO_PERF_DIR ]; then
+	echo "Creating new perf cache in $CAIRO_PERF_DIR"
+	mkdir $CAIRO_PERF_DIR
+    fi
+
+    cd $CAIRO_DIR
+    boilerplate_files=`git ls-tree --name-only HEAD boilerplate/*`
+    perf_files=`git ls-tree --name-only HEAD perf/*`
+    script_files=`git ls-tree --name-only HEAD util/cairo-script/*`
+    cd $CAIRO_PERF_DIR
+
+    build $build_dir $sha || {
+	rm -rf $build_dir
+	build $build_dir $sha || exit 1
+    }
+
+    echo "Running \"cairo-perf $CAIRO_PERF_OPTIONS\" against $rev. Results will be cached in:"
+    { ./$benchmark $CAIRO_PERF_OPTIONS || echo "*** Performance test crashed"; } >> $perf
+
+    cd $owd
+}
+
+git_setup
+
+if [ -e ./cairo-perf-diff-files ]; then
+	bindir="."
+else
+	bindir=$CAIRO_DIR/perf
+
+	# Build cairo-perf-diff-files if not available
+	if [ ! -e $bindir/cairo-perf-diff-files ]; then
+	    echo "Building cairo-perf-diff-files"
+	    if [ "x$OS" = "xWindows_NT" ]; then
+		make -f Makefile.win32 -C $bindir cairo-perf-diff-files CFG=debug
+	    else
+		make -C $bindir cairo-perf-diff-files
+	    fi
+	fi
+fi
+
+if [ ! -e $old ]; then
+    run_cairo_perf_if_not_cached $old old
+    old=`rev2perf $old`
+fi
+
+if [ ! -e $new ]; then
+    run_cairo_perf_if_not_cached $new new
+    new=`rev2perf $new`
+fi
+
+if [ -z "$html_output" ]; then
+    $bindir/cairo-perf-diff-files $old $new
+else
+    $bindir/cairo-perf-diff-files $old $new |
+    $CAIRO_DIR/perf/make-html.py > $html_output
+fi

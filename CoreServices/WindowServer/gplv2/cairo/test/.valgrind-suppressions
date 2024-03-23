@@ -1,0 +1,577 @@
+{
+   in dl.so
+   Memcheck:Cond
+   fun:_dl_relocate_object
+ }
+{
+   bugs in libpng/libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.2.2
+   obj:/usr/lib/libz.so.1.2.2.2
+   fun:deflate
+ }
+{
+   bugs in libpng/libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.3
+   obj:/usr/lib/libz.so.1.2.3
+   fun:deflate
+ }
+{
+   bugs in libpng/libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.3.3
+ }
+{
+   bugs in libpng/libz
+   Memcheck:Value8
+   obj:/usr/lib/libz.so.1.2.3.3
+ }
+{
+   cairo's write_png triggers apparent bugs in libpng/libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.2.2
+   obj:/usr/lib/libz.so.1.2.2.2
+   fun:deflate
+   fun:png_write_finish_row
+   fun:png_write_filtered_row
+   fun:png_write_find_filter
+   fun:png_write_row
+   fun:png_write_image
+   fun:write_png
+ }
+{
+   cairo's write_png_argb32 triggers apparent bugs in libpng/libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.3
+   obj:/usr/lib/libz.so.1.2.3
+   fun:deflate
+   obj:/usr/lib/libpng12.so.0.1.2.8
+   obj:/usr/lib/libpng12.so.0.1.2.8
+   obj:/usr/lib/libpng12.so.0.1.2.8
+   fun:png_write_row
+   fun:png_write_image
+   fun:write_png
+}
+{
+   cairo's write_png_argb32 triggers apparent bugs in libpng/libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.2.2
+   obj:/usr/lib/libz.so.1.2.2.2
+   fun:deflate
+   fun:png_write_finish_row
+   fun:png_write_filtered_row
+   fun:png_write_find_filter
+   fun:png_write_row
+   fun:png_write_image
+   fun:write_png_argb32
+ }
+{
+   cairo's _cairo_pdf_surface_paint triggers apparent bugs in libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.3
+   obj:/usr/lib/libz.so.1.2.3
+   fun:deflate
+   fun:compress2
+   fun:compress
+   fun:compress_dup
+   fun:emit_image
+   fun:emit_surface_pattern
+   fun:emit_pattern
+   fun:_cairo_pdf_surface_paint
+}
+{
+   cairo's _cairo_pdf_surface_paint triggers apparent bugs in libz
+   Memcheck:Cond
+   obj:/usr/lib/libz.so.1.2.3
+   obj:/usr/lib/libz.so.1.2.3
+   fun:deflate
+   fun:compress2
+   fun:compress
+   fun:compress_dup
+   fun:emit_pattern
+   fun:_cairo_pdf_surface_paint
+}
+{
+   cairo's _cairo_pdf_surface_paint triggers apparent bugs in libz
+   Memcheck:Cond
+   fun:deflate_slow
+   fun:deflate
+}
+{
+   cairo's _cairo_pdf_surface_paint triggers apparent bugs in libz
+   Memcheck:Value4
+   fun:deflate_slow
+   fun:deflate
+}
+{
+   cairo's _cairo_pdf_surface_paint triggers apparent bugs in libz
+   Memcheck:Value4
+   fun:compress_block
+   fun:_tr_flush_block
+   fun:deflate_slow
+   fun:deflate
+}
+{
+   cairo's _cairo_pdf_surface_paint triggers apparent bugs in libz
+   Memcheck:Value4
+   fun:crc32
+   obj:/usr/lib/libpng12.so.0.15.0
+   fun:png_write_chunk_data
+   fun:png_write_chunk
+}
+{
+   cairo's _cairo_pdf_surface_paint triggers apparent bugs in libz
+   Memcheck:Value4
+   fun:base64_write_func
+   fun:stream_write_func
+   obj:/usr/lib/libpng12.so.0.15.0
+   fun:png_write_chunk_data
+   fun:png_write_chunk
+}
+{
+   pthread initialization strstr bug
+   Memcheck:Cond
+   fun:strstr
+   fun:__pthread_initialize_minimal
+   obj:/lib/libpthread-2.3.5.so
+   obj:/lib/libpthread-2.3.5.so
+   fun:call_init
+   fun:_dl_init
+   obj:/lib/ld-2.3.5.so
+}
+{
+   Pixman reads padding bytes that are never initialized
+   Memcheck:Cond
+   fun:fbBltOne
+   fun:fbCompositeSolidMask_nx1xn
+   fun:_cairo_pixman_composite
+   fun:_cairo_image_surface_composite
+   fun:_cairo_surface_composite
+   fun:_cairo_ft_scaled_font_show_glyphs
+   fun:_cairo_scaled_font_show_glyphs
+   fun:_cairo_gstate_show_glyphs_draw_func
+   fun:_cairo_gstate_clip_and_composite
+   fun:_cairo_gstate_show_glyphs
+   fun:cairo_show_text
+   fun:draw
+}
+{
+   XXX: I have no idea what might be causing this
+   Memcheck:Free
+   fun:free
+   fun:free_mem
+   fun:__libc_freeres
+   fun:_vgw_freeres
+   fun:exit
+   fun:__libc_start_main
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:PutEntry
+   fun:GetDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:add_codeset
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmInitialize is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XrmInternalStringToQuark
+}
+{
+   XrmInitialize is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   obj:/usr/lib/libX11.so.6.2.0
+   fun:_XrmInternalStringToQuark
+   fun:XrmInitialize
+}
+{
+   XrmInitialize is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:permalloc
+   fun:_XrmInternalStringToQuark
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcCreateDefaultCharSet
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:realloc
+   fun:add_codeset
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:realloc
+   fun:add_codeset
+   fun:load_generic
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:add_codeset
+   fun:load_generic
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:load_generic
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcAddCharSet
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcCreateLocaleDataBase
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   XrmGetStringDatabase is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+   fun:XrmGetStringDatabase
+}
+{
+   pthread initialization seems to leave some memory possibly lost
+   Memcheck:Leak
+   fun:calloc
+   obj:/lib/ld-2.3.6.so
+   obj:/lib/ld-2.3.6.so
+   fun:_dl_allocate_tls
+   fun:__pthread_initialize_minimal
+   obj:/usr/lib/debug/libpthread-0.10.so
+   obj:/usr/lib/debug/libpthread-0.10.so
+   obj:/lib/ld-2.3.6.so
+   obj:/lib/ld-2.3.6.so
+   obj:/lib/ld-2.3.6.so
+}
+{
+   pthread initialization seems to leave some memory still reachable
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_tls_setup
+   fun:__pthread_initialize_minimal
+   obj:/usr/lib/debug/libpthread-0.10.so
+   obj:/usr/lib/debug/libpthread-0.10.so
+   obj:/lib/ld-2.3.6.so
+   obj:/lib/ld-2.3.6.so
+   obj:/lib/ld-2.3.6.so
+}
+{
+   pthread initialization seems to leave some memory possibly lost
+   Memcheck:Leak
+   fun:memalign
+   obj:/lib/ld-2.3.6.so
+   fun:_dl_allocate_tls
+   fun:__pthread_initialize_minimal
+   obj:/usr/lib/debug/libpthread-0.10.so
+   obj:/usr/lib/debug/libpthread-0.10.so
+   obj:/lib/ld-2.3.6.so
+   obj:/lib/ld-2.3.6.so
+   obj:/lib/ld-2.3.6.so
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:PutEntry
+   fun:GetDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:add_codeset
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcAddCharSet
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:realloc
+   fun:add_codeset
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcCreateDefaultCharSet
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcCreateDefaultCharSet
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcCreateLocaleDataBase
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcCreateDefaultCharSet
+   fun:_XlcAddCT
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcInitCTInfo
+   fun:initialize
+   fun:initialize
+   fun:_XlcCreateLC
+   fun:_XlcUtf8Loader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   XrmGet*Database is fairly obnoxious about leaving reachable memory around
+   Memcheck:Leak
+   fun:malloc
+   fun:_XlcSetConverter
+   fun:_XlcAddUtf8Converters
+   fun:_XlcDefaultLoader
+   fun:_XOpenLC
+   fun:_XrmInitParseInfo
+   fun:NewDatabase
+}
+{
+   Xau chooses not to free its static data...
+   Memcheck:Leak
+   fun:malloc
+   fun:XauFileName
+}

@@ -51,7 +51,8 @@ SRCS=           WindowServer.m \
                 wlr-layer-shell-unstable-v1-protocol.c \
                 wlr-input-inhibitor-unstable-v1-protocol.c \
                 xdg-shell-protocol.c
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf \
+                ${MAKEOBJDIR}/libcairo.so.2
 
 MK_WERROR=	no
 WARNS=	        1
@@ -59,9 +60,13 @@ SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
 CFLAGS+=	${SYSROOT} -g -fobjc-arc -I${.CURDIR} \
                 -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
 		-I${.CURDIR}/wlroots/include -I${.CURDIR}/libdrm/include/drm \
+                -I${.CURDIR}/libxkbcommon/include \
                 -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
-                -I${MAKEOBJDIR}/wlroots/protocol/ \
-                -I${OBJTOP}/Frameworks/ \
+                -I${MAKEOBJDIR}/wlroots -I${MAKEOBJDIR}/wlroots/protocol \
+                -I${SRCTOP}/Frameworks -I${.CURDIR}/libinput/include \
+                -I${.CURDIR}/libinput/src -I${OBJTOP}/tmp/usr/include/libxml2 \
+                -I${SRCTOP}/Frameworks/OpenGL/wayland/src \
+                -I${OBJTOP}/Frameworks/OpenGL/wayland/src \
                 -I${OBJTOP}/Frameworks/Foundation/Headers \
                 -I${OBJTOP}/Frameworks/Foundation -lFoundation \
                 -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A
@@ -85,8 +90,13 @@ make-obj-dirs:
 	mkdir -p ${MAKEOBJDIR}/${subdir}
 .endfor
 
+${MAKEOBJDIR}/libcairo.so.2:
+	${MAKE} -C ${.CURDIR}/gplv2/cairo build
+	cp -fv gplv2/cairo/libcairo.so.2 ${MAKEOBJDIR}
+
 .include <sys.mk>
 .include <bsd.subdir.mk>
 .include <rvn.app.mk>
 
 beforebuild: make-obj-dirs obj
+${OBJS}: ${MAKEOBJDIR}/libcairo.so.2

@@ -1,0 +1,42 @@
+<html><head>
+<title>Cairo Test Results</title>
+<style type="text/css">
+#HcolHeader { text-align: center; }
+
+img { max-width: 15em; min-width: 3em; min-height: 3em; margin: 3px; }
+a img { border: solid 1px #FFF; }
+
+td { vertical-align: top; }
+span { cursor: pointer; }
+
+td.PASS { background-color: #0B0; min-width: 1em; }
+span.PASS { color: #0B0; }
+
+td.NEW { background-color: #B70; }
+span.NEW { color: #B70; }
+
+td.FAIL { background-color: #B00; }
+span.FAIL { color: #D00; }
+
+td.XFAIL { background-color: #BB0; }
+span.XFAIL { color: #BB0; }
+
+td.UNTESTED { background-color: #555; }
+span.UNTESTED { color: #555; }
+
+td.CRASHED { background-color: #F00; color: #FF0; }
+span.CRASHED { color: #F00; }
+
+.test { }
+.target { }
+.format { }
+.offset { }
+.similar { }
+
+</style>
+<script language="JavaScript" src="testtable.js"></script>
+</head>
+<body oncontextmenu='ignoreEvent (event)' onmouseup='noDrag (event)'>
+<table id="testTable" border="1"></table>
+</body>
+</html>
