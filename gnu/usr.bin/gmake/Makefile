@@ -20,7 +20,8 @@ build:
 	echo 'exit 0' >>${FAKEACLOCAL}
 	chmod +x ${FAKEACLOCAL}
 	make
-	rm -f ${FAKEACLOCAL}
 
 install:
 	${MAKEOBJDIR}/make INSTALL=${INSTALL} DESTDIR=${DESTDIR} install
+	rm -f ${FAKEACLOCAL}
+
