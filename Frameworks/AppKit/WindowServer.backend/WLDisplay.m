@@ -45,7 +45,7 @@
 #import <fontconfig.h>
 #import <dev/evdev/input-event-codes.h>
 #import <xkbcommon/xkbcommon.h>
-#import <X11/keysym.h>
+#import <xkbcommon/xkbcommon-keysyms.h>
 
 const NSString *WLOutputNameKey = @"WLOutputName";
 const NSString *WLOutputDescriptionKey = @"WLOutputDescription";
@@ -263,63 +263,63 @@ static void handleKeyboardMap(void *data, struct wl_keyboard *kbd,
 static unichar translateKeySym(xkb_keysym_t keysym)
 {
      switch(keysym) {
-        case XK_Home:
-        case XK_KP_Home: return NSHomeFunctionKey;
-        case XK_Left:
-        case XK_KP_Left: return NSLeftArrowFunctionKey;
-        case XK_Up:
-        case XK_KP_Up: return NSUpArrowFunctionKey;
-        case XK_Right:
-        case XK_KP_Right: return NSRightArrowFunctionKey;
-        case XK_Down:
-        case XK_KP_Down: return NSDownArrowFunctionKey;
-        case XK_Page_Up:
-        case XK_KP_Page_Up: return NSPageUpFunctionKey;
-        case XK_Page_Down:
-        case XK_KP_Page_Down: return NSPageDownFunctionKey;
-        case XK_End:
-        case XK_KP_End: return NSEndFunctionKey;
-        case XK_Begin:
-        case XK_KP_Begin: return NSHomeFunctionKey;
-        case XK_Delete:
-        case XK_KP_Delete: return NSDeleteFunctionKey;
-        case XK_Insert:
-        case XK_KP_Insert: return NSInsertFunctionKey;
-        case XK_F1: return NSF1FunctionKey;
-        case XK_F2: return NSF2FunctionKey;
-        case XK_F3: return NSF3FunctionKey;
-        case XK_F4: return NSF4FunctionKey;
-        case XK_F5: return NSF5FunctionKey;
-        case XK_F6: return NSF6FunctionKey;
-        case XK_F7: return NSF7FunctionKey;
-        case XK_F8: return NSF8FunctionKey;
-        case XK_F9: return NSF9FunctionKey;
-        case XK_F10: return NSF10FunctionKey;
-        case XK_F11: return NSF11FunctionKey;
-        case XK_F12: return NSF12FunctionKey;
-        case XK_F13: return NSF13FunctionKey;
-        case XK_F14: return NSF14FunctionKey;
-        case XK_F15: return NSF15FunctionKey;
-        case XK_F16: return NSF16FunctionKey;
-        case XK_F17: return NSF17FunctionKey;
-        case XK_F18: return NSF18FunctionKey;
-        case XK_F19: return NSF19FunctionKey;
-        case XK_F20: return NSF20FunctionKey;
-        case XK_F21: return NSF21FunctionKey;
-        case XK_F22: return NSF22FunctionKey;
-        case XK_F23: return NSF23FunctionKey;
-        case XK_F24: return NSF24FunctionKey;
-        case XK_F25: return NSF25FunctionKey;
-        case XK_F26: return NSF26FunctionKey;
-        case XK_F27: return NSF27FunctionKey;
-        case XK_F28: return NSF28FunctionKey;
-        case XK_F29: return NSF29FunctionKey;
-        case XK_F30: return NSF30FunctionKey;
-        case XK_F31: return NSF31FunctionKey;
-        case XK_F32: return NSF32FunctionKey;
-        case XK_F33: return NSF33FunctionKey;
-        case XK_F34: return NSF34FunctionKey;
-        case XK_F35: return NSF35FunctionKey;
+        case XKB_KEY_Home:
+        case XKB_KEY_KP_Home: return NSHomeFunctionKey;
+        case XKB_KEY_Left:
+        case XKB_KEY_KP_Left: return NSLeftArrowFunctionKey;
+        case XKB_KEY_Up:
+        case XKB_KEY_KP_Up: return NSUpArrowFunctionKey;
+        case XKB_KEY_Right:
+        case XKB_KEY_KP_Right: return NSRightArrowFunctionKey;
+        case XKB_KEY_Down:
+        case XKB_KEY_KP_Down: return NSDownArrowFunctionKey;
+        case XKB_KEY_Page_Up:
+        case XKB_KEY_KP_Page_Up: return NSPageUpFunctionKey;
+        case XKB_KEY_Page_Down:
+        case XKB_KEY_KP_Page_Down: return NSPageDownFunctionKey;
+        case XKB_KEY_End:
+        case XKB_KEY_KP_End: return NSEndFunctionKey;
+        case XKB_KEY_Begin:
+        case XKB_KEY_KP_Begin: return NSHomeFunctionKey;
+        case XKB_KEY_Delete:
+        case XKB_KEY_KP_Delete: return NSDeleteFunctionKey;
+        case XKB_KEY_Insert:
+        case XKB_KEY_KP_Insert: return NSInsertFunctionKey;
+        case XKB_KEY_F1: return NSF1FunctionKey;
+        case XKB_KEY_F2: return NSF2FunctionKey;
+        case XKB_KEY_F3: return NSF3FunctionKey;
+        case XKB_KEY_F4: return NSF4FunctionKey;
+        case XKB_KEY_F5: return NSF5FunctionKey;
+        case XKB_KEY_F6: return NSF6FunctionKey;
+        case XKB_KEY_F7: return NSF7FunctionKey;
+        case XKB_KEY_F8: return NSF8FunctionKey;
+        case XKB_KEY_F9: return NSF9FunctionKey;
+        case XKB_KEY_F10: return NSF10FunctionKey;
+        case XKB_KEY_F11: return NSF11FunctionKey;
+        case XKB_KEY_F12: return NSF12FunctionKey;
+        case XKB_KEY_F13: return NSF13FunctionKey;
+        case XKB_KEY_F14: return NSF14FunctionKey;
+        case XKB_KEY_F15: return NSF15FunctionKey;
+        case XKB_KEY_F16: return NSF16FunctionKey;
+        case XKB_KEY_F17: return NSF17FunctionKey;
+        case XKB_KEY_F18: return NSF18FunctionKey;
+        case XKB_KEY_F19: return NSF19FunctionKey;
+        case XKB_KEY_F20: return NSF20FunctionKey;
+        case XKB_KEY_F21: return NSF21FunctionKey;
+        case XKB_KEY_F22: return NSF22FunctionKey;
+        case XKB_KEY_F23: return NSF23FunctionKey;
+        case XKB_KEY_F24: return NSF24FunctionKey;
+        case XKB_KEY_F25: return NSF25FunctionKey;
+        case XKB_KEY_F26: return NSF26FunctionKey;
+        case XKB_KEY_F27: return NSF27FunctionKey;
+        case XKB_KEY_F28: return NSF28FunctionKey;
+        case XKB_KEY_F29: return NSF29FunctionKey;
+        case XKB_KEY_F30: return NSF30FunctionKey;
+        case XKB_KEY_F31: return NSF31FunctionKey;
+        case XKB_KEY_F32: return NSF32FunctionKey;
+        case XKB_KEY_F33: return NSF33FunctionKey;
+        case XKB_KEY_F34: return NSF34FunctionKey;
+        case XKB_KEY_F35: return NSF35FunctionKey;
         default: return keysym;
     }
 }

@@ -598,8 +598,10 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	WindowServer.backend/fragShader.glsl
 
 CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/sys \
+         -I${.CURDIR}/../OpenGL/wayland/egl -I${.CURDIR}/../OpenGL/wayland/src \
+         -I../OpenGL/wayland/src \
+         -I${SRCTOP}/CoreServices/WindowServer/libxkbcommon/include \
 	 -F../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
-	 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include \
          -I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/../../CoreServices \
 	 -D_BuildingFramework -DFREETYPE_PRESENT
 LDFLAGS+= ${FMWK_LDFLAGS} \

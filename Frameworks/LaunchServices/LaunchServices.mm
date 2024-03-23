@@ -49,7 +49,7 @@
 #define _XOPEN_SOURCE 500
 #endif
 
-#include <X11/Xlib.h>
+//#include <X11/Xlib.h>
 
 #define _NET_WM_STATE_REMOVE 0
 #define _NET_WM_STATE_ADD 1
@@ -405,6 +405,7 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
     return true;
 }
 
+#ifdef _X11_
 static void PostXEvent(Display *display, Window window, Atom messageType, long d0, long d1,
     long d2, long d3, long d4)
 {
@@ -425,6 +426,7 @@ static void PostXEvent(Display *display, Window window, Atom messageType, long d
     XGetWindowAttributes(display, window, &attr);
     XSendEvent(display, attr.screen->root, False, SubstructureNotifyMask | SubstructureRedirectMask, &e);
 }
+#endif // _X11_
 
 void LSRevealInFiler(CFArrayRef inItemURLs)
 {

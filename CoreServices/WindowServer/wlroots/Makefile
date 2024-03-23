@@ -179,11 +179,16 @@ INCS=
 MK_WERROR=	no
 WARNS=	        1
 CFLAGS+=	--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
-                -I${.CURDIR}/include  -I${MAKEOBJDIR} \
-                -I${.CURDIR}/../wayland/src -I${MAKEOBJDIR}/../wayland/src \
-                -I${.CURDIR}/../libdrm/include/drm \
-                -I${.CURDIR}/../libdrm -I${.CURDIR}/../libxkbcommon/include \
+                -I${.CURDIR}/include  -I${MAKEOBJDIR} -I${.CURDIR} \
+                -I${OBJTOP}/Frameworks/OpenGL/wayland/src  \
+                -I${SRCTOP}/Frameworks/OpenGL/wayland/src  \
+                -I${SRCTOP}/Frameworks/OpenGL/libdrm  \
+                -I${SRCTOP}/Frameworks/OpenGL/libdrm/include  \
+                -I${SRCTOP}/Frameworks/OpenGL/libdrm/include/drm  \
+                -I${.CURDIR}/../libxkbcommon/include \
                 -I${MAKEOBJDIR}/include \
+                -I${SRCTOP}/Frameworks/OpenGL/mesa/include \
+                -I${SRCTOP}/Frameworks/OpenGL/mesa/src/gbm/main \
                 -DWLR_HAS_DRM_BACKEND -DWLR_HAS_LIBINPUT_BACKEND \
                 -DWLR_HAS_GLES2_RENDERER -DWLR_HAS_X11_BACKEND=0 \
                 -DWLR_HAS_VULKAN_RENDERER=0 -DWLR_HAS_XWAYLAND=0 \

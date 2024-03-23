@@ -4,7 +4,7 @@ FRAMEWORK=CoreText
 SRCS= CTFont.m KTFont.m
 INCS= CoreText.h CoreTextExport.h CTFont.h KTFont.h
 RESOURCES=Info.plist 
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers -I${.CURDIR}/..
 
 _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
