@@ -26,6 +26,9 @@ UNSTABLE=       xdg-foreign-unstable-v1 \
                 relative-pointer-unstable-v1 \
                 idle-inhibit-unstable-v1
 
+make-obj-dirs:
+	mkdir -p types
+
 .for f in ${STABLE} ${STAGING} ${UNSTABLE}
 SRCS+=  ${f:T}.c
 .endfor
@@ -186,6 +189,7 @@ CFLAGS+=	--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
                 -I${SRCTOP}/Frameworks/OpenGL/libdrm/include  \
                 -I${SRCTOP}/Frameworks/OpenGL/libdrm/include/drm  \
                 -I${.CURDIR}/../libxkbcommon/include \
+                -I${.CURDIR}/../libinput/src \
                 -I${MAKEOBJDIR}/include \
                 -I${SRCTOP}/Frameworks/OpenGL/mesa/include \
                 -I${SRCTOP}/Frameworks/OpenGL/mesa/src/gbm/main \
@@ -207,6 +211,7 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources'
 .xml.c:
 	wayland-scanner private-code ${.IMPSRC} ${.TARGET}
 	wayland-scanner server-header ${.IMPSRC} ${.TARGET:R}-protocol.h
+	wayland-scanner client-header ${.IMPSRC} ${.TARGET:R}-client-protocol.h
 
 config.h::
 	mkdir -p include/wlr
@@ -219,3 +224,4 @@ version.h::
 .include <bsd.lib.mk>
 
 ${OBJS}: config.h version.h
+beforebuild: make-obj-dirs obj

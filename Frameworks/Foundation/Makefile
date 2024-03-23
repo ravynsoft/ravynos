@@ -737,8 +737,7 @@ DIRS= \
 
 
 
-CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
-	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include 
+CFLAGS+= ${FMWK_CFLAGS} -IHeaders -I${.CURDIR}/.. -I${BUILDROOT}/usr/include 
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/CFNetwork.framework/Versions/A \
 	  -L${BUILDROOT}/System/Library/Frameworks/CFNetwork.framework/Versions/Current \

@@ -1,3 +1,4 @@
+MK_AUTO_OBJ=    yes
 APP=	        WindowServer
 .PATH:          ${.CURDIR}
 .PATH:          ${.CURDIR}/gplv2/src
@@ -90,8 +91,15 @@ clean-wlroots:
 clean-deps:
 	rm -f .depend.*
 
+make-obj-dirs:
+	mkdir -p ${MAKEOBJDIR}
+.for subdir in ${SUBDIR}
+	mkdir -p ${MAKEOBJDIR}/${subdir}
+.endfor
+
+.include <sys.mk>
 .include <bsd.subdir.mk>
 .include <rvn.app.mk>
 
 clean: clean-wlroots clean-deps
-
+beforebuild: make-obj-dirs obj

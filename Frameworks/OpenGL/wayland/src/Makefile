@@ -2,6 +2,8 @@ MK_AUTO_OBJ=    yes
 .include <sys.mk>
 .include <src.opts.mk>
 
+.PATH:          ${.CURDIR}
+.PATH:          ${MAKEOBJDIR}
 LIB=		wayland
 SHLIB_MAJOR=    0
 SRCS=		connection.c \
