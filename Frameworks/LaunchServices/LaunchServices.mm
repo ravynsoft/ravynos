@@ -34,10 +34,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <cstddef>
+#ifdef _REWRITE_ME_
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QMimeDatabase>
 #include <QMimeType>
+#endif // _REWRITE_ME_
 
 #import <launch.h>
 #import <stdlib.h>
@@ -426,6 +428,7 @@ static void PostXEvent(Display *display, Window window, Atom messageType, long d
 
 void LSRevealInFiler(CFArrayRef inItemURLs)
 {
+#ifdef _REWRITE_ME_
     QDBusConnection dbus = QDBusConnection::sessionBus();
     QDBusInterface filerIface(QStringLiteral("org.freedesktop.FileManager1"),
         QStringLiteral("/org/freedesktop/FileManager1"), "", dbus);
@@ -445,6 +448,7 @@ void LSRevealInFiler(CFArrayRef inItemURLs)
     } else {
         fprintf(stderr, "Unable to connect to Filer!\n");
     }
+#endif // _REWRITE_ME_
 }
 
 /* from xpc_type.c */
@@ -799,6 +803,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
                 uti = (__bridge_transfer NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
                     (__bridge CFStringRef)[item pathExtension], NULL);
 
+#ifdef _REWRITE_ME_
             if(uti == nil) {
                 // We don't have a recognized extension. Try to identify by mime type.
                 QMimeDatabase mimedb;
@@ -814,6 +819,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
                         break;
                 }
             }
+#endif // _REWRITE_ME_
 
             if(uti == nil) {
                 if(!(inLaunchSpec->launchFlags & kLSALaunchTaskEnvIsValid))

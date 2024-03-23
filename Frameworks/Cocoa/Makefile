@@ -5,11 +5,9 @@ SRCS=Cocoa.m
 INCS=Cocoa.h
 
 RESOURCES=Info.plist
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../Foundation/Headers -I../AppKit/Headers -F${.CURDIR}/../OpenGL \
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../Foundation/Headers -I../AppKit/Headers -F../OpenGL \
         -framework OpenGL -I../libobjc2
-LDFLAGS+= -L${BUILDROOT}/System/Library/Frameworks/AppKit.framework/Versions/Current \
-        -L${BUILDROOT}/System/Library/Frameworks/Foundation.framework/Versions/Current \
-        -L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current \
+LDFLAGS+= -L../AppKit -L../Foundation -L../CoreFoundation \
         -lAppKit -lFoundation -lCoreFoundation -lobjc -lmach \
         -Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
         -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \

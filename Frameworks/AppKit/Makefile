@@ -1,558 +1,559 @@
+FRAMEWORK=AppKit
+MK_AUTO_OBJ=yes
+NO_FMWK_COMMON=yes
 .include "../framework.common.mk"
 
-MK_WERROR= no
-FRAMEWORK=AppKit
 WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wayland-protocols
 WLRPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wlroots/protocol
 SRCS= \
-CoreData_/NSPersistentDocument.m \
-CoreData_/_NSManagedProxy.m \
-NSAccessibility.m \
-NSActionCell.m \
-NSAffineTransform.m \
-NSAlert.m \
-NSAlertPanel.m \
-NSAnimation/NSAnimation.m \
-NSAnimation/NSAnimationContext.m \
-NSAnimation/NSViewAnimation.m \
-NSApplication.m \
-NSAttributedString.m \
-NSBezierPath.m \
-NSBitmapImageRep.m \
-NSBox.m \
-NSBrowser.m \
-NSBrowserCell.m \
-NSButton.m \
-NSButtonCell.m \
-NSCIImageRep.m \
-NSCachedImageRep.m \
-NSCell.m \
-NSCellUndoManager.m \
-NSClipView.m \
-NSCollectionView/NSCollectionView.m \
-NSCollectionView/NSCollectionViewItem.m \
-NSColor.subproj/NSColor.m \
-NSColor.subproj/NSColor_CGColor.m \
-NSColor.subproj/NSColor_catalog.m \
-NSColorList.m \
-NSColorPanel.m \
-NSColorPicker.subproj/NSBrowserCellColorList.m \
-NSColorPicker.subproj/NSColorPicker.m \
-NSColorPicker.subproj/NSColorPickerColorList.m \
-NSColorPicker.subproj/NSColorPickerSliders.m \
-NSColorPicker.subproj/NSColorPickerWheel.m \
-NSColorPicker.subproj/NSColorPickerWheelView.m \
-NSColorSpace.m \
-NSColorWell.m \
-NSComboBox.m \
-NSComboBoxCell.m \
-NSComboBoxView.m \
-NSComboBoxWindow.m \
-NSControl.m \
-NSController/NSArrayController.m \
-NSController/NSController.m \
-NSController/NSControllerMarker.m \
-NSController/NSControllerSelectionProxy.m \
-NSController/NSDictionaryController.m \
-NSController/NSObjectController.m \
-NSController/NSObservationProxy.m \
-NSController/NSTreeController.m \
-NSController/NSUserDefaultsController.m \
-NSController/NSUserDefaultsControllerProxy.m \
-NSController/_NSControllerArray.m \
-NSCursor.m \
-NSCursorRect.m \
-NSCustomImageRep.m \
-NSDatePicker.m \
-NSDatePickerCell.m \
-NSDisplay.m \
-NSDockTile.m \
-NSDocument.m \
-NSDocumentController.m \
-NSDraggingManager.m \
-NSDrawer.subproj/NSDrawer.m \
-NSDrawer.subproj/NSDrawerWindow.m \
-NSEPSImageRep.m \
-NSEvent.subproj/NSEvent.m \
-NSEvent.subproj/NSEvent_CoreGraphics.m \
-NSEvent.subproj/NSEvent_keyboard.m \
-NSEvent.subproj/NSEvent_mouse.m \
-NSEvent.subproj/NSEvent_other.m \
-NSEvent.subproj/NSEvent_periodic.m \
-NSFileWrapper.m \
-NSFont.m \
-NSFontDescriptor.m \
-NSFontFamily.m \
-NSFontManager.m \
-NSFontMetric.m \
-NSFontPanel.m \
-NSFontPanelCell.m \
-NSFontTypeface.m \
-NSForm.m \
-NSFormCell.m \
-NSGlyphGenerator.m \
-NSGlyphInfo.m \
-NSGradient.m \
-NSGraphics.m \
-NSGraphicsContext.m \
-NSHelpManager.m \
-NSImage.m \
-NSImageCell.m \
-NSImageRep.m \
-NSImageView.m \
-NSInterfacePart/NSGraphicsStyle.m \
-NSInterfacePart/NSInterfaceGraphics.m \
-NSInterfacePart/NSInterfacePart.m \
-NSInterfacePart/NSInterfacePartAttributedString.m \
-NSInterfacePart/NSInterfacePartDisabledAttributedString.m \
-NSInterfaceStyle.m \
-NSKeyValueBinding/NSBinder.m \
-NSKeyValueBinding/NSCachingBinder.m \
-NSKeyValueBinding/NSKVOBinder.m \
-NSKeyValueBinding/NSMultipleValueBinder.m \
-NSKeyValueBinding/NSObject+BindingSupport.m \
-NSKeyValueBinding/NSTextBinder.m \
-NSKeyValueBinding/NSTextFieldBinder.m \
-NSKeyboardBinding/NSKeyboardBinding.m \
-NSKeyboardBinding/NSKeyboardBindingManager.m \
-NSLevelIndicator.m \
-NSLevelIndicatorCell.m \
-NSMatrix.m \
-NSMeasurementUnit.m \
-NSMenu.subproj/NSMainMenuView.m \
-NSMenu.subproj/NSMenu.m \
-NSMenu.subproj/NSMenuItem.m \
-NSMenu.subproj/NSMenuView.m \
-NSMenu.subproj/NSMenuWindow.m \
-NSMenu.subproj/NSOverflowMenuView.m \
-NSMenu.subproj/NSSubmenuView.m \
-NSModalSessionX.m \
-NSMutableAttributedString.m \
-NSMutableParagraphStyle.m \
-NSOpenGL/NSOpenGLContext.m \
-NSOpenGL/NSOpenGLDrawable.m \
-NSOpenGL/NSOpenGLPixelBuffer.m \
-NSOpenGL/NSOpenGLPixelFormat.m \
-NSOpenGL/NSOpenGLView.m \
-NSOpenPanel.m \
-NSOutlineView.m \
-NSPDFImageRep.m \
-NSPageLayout.m \
-NSPanel.m \
-NSParagraphStyle.m \
-NSPasteboard.m \
-NSPathCell.m \
-NSPathComponentCell.m \
-NSPathControl.m \
-NSPoofAnimation.m \
-NSPopUpButton.m \
-NSPopUpButtonCell.m \
-NSPopUpView.m \
-NSPopUpWindow.m \
-NSPredicateEditor.m \
-NSPredicateEditorRowTemplate.m \
-NSPrintInfo.m \
-NSPrintOperation.m \
-NSPrintPanel.m \
-NSPrintProgressPanelController.m \
-NSPrinter.m \
-NSProgressIndicator.m \
-NSResponder.m \
-NSRuleEditor.m \
-NSRuleEditorButtonCell.m \
-NSRuleEditorViewSliceRow.m \
-NSRulerMarker.m \
-NSRulerView.m \
-NSSavePanel.m \
-NSScreen.m \
-NSScrollView.m \
-NSScroller.m \
-NSSearchField.m \
-NSSearchFieldCell.m \
-NSSecureTextField.m \
-NSSecureTextFieldCell.m \
-NSSegmentedControl/NSSegmentItem.m \
-NSSegmentedControl/NSSegmentedCell.m \
-NSSegmentedControl/NSSegmentedControl.m \
-NSShadow.m \
-NSSheetContext.m \
-NSSlider.m \
-NSSliderCell.m \
-NSSound.m \
-NSSpellChecker.m \
-NSSpellCheckerTagData.m \
-NSSpellingViewController.m \
-NSSplitView.m \
-NSStatusBar.m \
-NSStatusItem.m \
-NSStepper.m \
-NSStepperCell.m \
-NSStringDrawer.m \
-NSStringDrawing.m \
-NSSystemInfoPanel/NSSystemInfoPanel.m \
-NSTabView.m \
-NSTabViewItem.m \
-NSTableColumn.m \
-NSTableCornerView.m \
-NSTableHeaderCell.m \
-NSTableHeaderView.m \
-NSTableView.m \
-NSText.m \
-NSTextAttachment.m \
-NSTextAttachmentCell.m \
-NSTextField.m \
-NSTextFieldCell.m \
-NSTextList.m \
-NSTextTable/NSTextBlock.m \
-NSTextTable/NSTextTable.m \
-NSTextTable/NSTextTableBlock.m \
-NSTextView.subproj/NSBidiHelper.m \
-NSTextView.subproj/NSLayoutManager.m \
-NSTextView.subproj/NSRangeArray.m \
-NSTextView.subproj/NSRulerMarker+NSTextExtensions.m \
-NSTextView.subproj/NSSecureLayoutManager.m \
-NSTextView.subproj/NSSecureTextView.m \
-NSTextView.subproj/NSTextContainer.m \
-NSTextView.subproj/NSTextStorage.m \
-NSTextView.subproj/NSTextStorage_concrete.m \
-NSTextView.subproj/NSTextTab.m \
-NSTextView.subproj/NSTextView.m \
-NSTextView.subproj/NSTextViewSharedData.m \
-NSTextView.subproj/NSTypesetter.m \
-NSTextView.subproj/NSTypesetter_concrete.m \
-NSTextView.subproj/NSUndoTextOperation.m \
-NSThemeFrame.m \
-NSTokenAttachmentCell.m \
-NSTokenField.m \
-NSTokenFieldCell.m \
-NSToolTipWindow.m \
-NSToolbar.subproj/NSToolbar.m \
-NSToolbar.subproj/NSToolbarCustomizationPalette.m \
-NSToolbar.subproj/NSToolbarCustomizationView.m \
-NSToolbar.subproj/NSToolbarItem.m \
-NSToolbar.subproj/NSToolbarItemGroup.m \
-NSToolbar.subproj/NSToolbarItemView.m \
-NSToolbar.subproj/NSToolbarView.m \
-NSTrackingArea.m \
-NSTreeNode.m \
-NSView.m \
-NSViewBackingLayer.m \
-NSViewController.m \
-NSWindow-Drag.m \
-NSWindow.m \
-RTF.subproj/NSRichTextReader.m \
-RTF.subproj/NSRichTextWriter.m \
-NSWindowAnimationContext.m \
-NSWindowController.m \
-NSWindowScripting.m \
-NSWorkspace.m \
-_NSRuleEditorViewSliceHolder.m \
-nib.subproj/NSButtonImageSource.m \
-nib.subproj/NSClassSwapper.m \
-nib.subproj/NSCustomObject.m \
-nib.subproj/NSCustomResource.m \
-nib.subproj/NSCustomView.m \
-nib.subproj/NSIBObjectData.m \
-nib.subproj/NSNib.m \
-nib.subproj/NSNibAXRelationshipConnector.m \
-nib.subproj/NSNibBindingConnector.m \
-nib.subproj/NSNibConnector.m \
-nib.subproj/NSNibControlConnector.m \
-nib.subproj/NSNibHelpConnector.m \
-nib.subproj/NSNibLoading.m \
-nib.subproj/NSNibOutletConnector.m \
-nib.subproj/NSWindowTemplate.m \
-WindowServer.backend/CGLContext.m \
-WindowServer.backend/KTFont_FT.m \
-WindowServer.backend/O2Context_builtin_FT.m \
-WindowServer.backend/O2Font_FT.m \
-WindowServer.backend/WLWindow.m \
-WindowServer.backend/WLDisplay.m \
-xdg-shell.c \
-layer-shell-v1.c \
-output-management-v1.c \
-xdg-decoration-v1.c
+    CoreData_/NSPersistentDocument.m \
+    CoreData_/_NSManagedProxy.m \
+    NSAccessibility.m \
+    NSActionCell.m \
+    NSAffineTransform.m \
+    NSAlert.m \
+    NSAlertPanel.m \
+    NSAnimation/NSAnimation.m \
+    NSAnimation/NSAnimationContext.m \
+    NSAnimation/NSViewAnimation.m \
+    NSApplication.m \
+    NSAttributedString.m \
+    NSBezierPath.m \
+    NSBitmapImageRep.m \
+    NSBox.m \
+    NSBrowser.m \
+    NSBrowserCell.m \
+    NSButton.m \
+    NSButtonCell.m \
+    NSCIImageRep.m \
+    NSCachedImageRep.m \
+    NSCell.m \
+    NSCellUndoManager.m \
+    NSClipView.m \
+    NSCollectionView/NSCollectionView.m \
+    NSCollectionView/NSCollectionViewItem.m \
+    NSColor.subproj/NSColor.m \
+    NSColor.subproj/NSColor_CGColor.m \
+    NSColor.subproj/NSColor_catalog.m \
+    NSColorList.m \
+    NSColorPanel.m \
+    NSColorPicker.subproj/NSBrowserCellColorList.m \
+    NSColorPicker.subproj/NSColorPicker.m \
+    NSColorPicker.subproj/NSColorPickerColorList.m \
+    NSColorPicker.subproj/NSColorPickerSliders.m \
+    NSColorPicker.subproj/NSColorPickerWheel.m \
+    NSColorPicker.subproj/NSColorPickerWheelView.m \
+    NSColorSpace.m \
+    NSColorWell.m \
+    NSComboBox.m \
+    NSComboBoxCell.m \
+    NSComboBoxView.m \
+    NSComboBoxWindow.m \
+    NSControl.m \
+    NSController/NSArrayController.m \
+    NSController/NSController.m \
+    NSController/NSControllerMarker.m \
+    NSController/NSControllerSelectionProxy.m \
+    NSController/NSDictionaryController.m \
+    NSController/NSObjectController.m \
+    NSController/NSObservationProxy.m \
+    NSController/NSTreeController.m \
+    NSController/NSUserDefaultsController.m \
+    NSController/NSUserDefaultsControllerProxy.m \
+    NSController/_NSControllerArray.m \
+    NSCursor.m \
+    NSCursorRect.m \
+    NSCustomImageRep.m \
+    NSDatePicker.m \
+    NSDatePickerCell.m \
+    NSDisplay.m \
+    NSDockTile.m \
+    NSDocument.m \
+    NSDocumentController.m \
+    NSDraggingManager.m \
+    NSDrawer.subproj/NSDrawer.m \
+    NSDrawer.subproj/NSDrawerWindow.m \
+    NSEPSImageRep.m \
+    NSEvent.subproj/NSEvent.m \
+    NSEvent.subproj/NSEvent_CoreGraphics.m \
+    NSEvent.subproj/NSEvent_keyboard.m \
+    NSEvent.subproj/NSEvent_mouse.m \
+    NSEvent.subproj/NSEvent_other.m \
+    NSEvent.subproj/NSEvent_periodic.m \
+    NSFileWrapper.m \
+    NSFont.m \
+    NSFontDescriptor.m \
+    NSFontFamily.m \
+    NSFontManager.m \
+    NSFontMetric.m \
+    NSFontPanel.m \
+    NSFontPanelCell.m \
+    NSFontTypeface.m \
+    NSForm.m \
+    NSFormCell.m \
+    NSGlyphGenerator.m \
+    NSGlyphInfo.m \
+    NSGradient.m \
+    NSGraphics.m \
+    NSGraphicsContext.m \
+    NSHelpManager.m \
+    NSImage.m \
+    NSImageCell.m \
+    NSImageRep.m \
+    NSImageView.m \
+    NSInterfacePart/NSGraphicsStyle.m \
+    NSInterfacePart/NSInterfaceGraphics.m \
+    NSInterfacePart/NSInterfacePart.m \
+    NSInterfacePart/NSInterfacePartAttributedString.m \
+    NSInterfacePart/NSInterfacePartDisabledAttributedString.m \
+    NSInterfaceStyle.m \
+    NSKeyValueBinding/NSBinder.m \
+    NSKeyValueBinding/NSCachingBinder.m \
+    NSKeyValueBinding/NSKVOBinder.m \
+    NSKeyValueBinding/NSMultipleValueBinder.m \
+    NSKeyValueBinding/NSObject+BindingSupport.m \
+    NSKeyValueBinding/NSTextBinder.m \
+    NSKeyValueBinding/NSTextFieldBinder.m \
+    NSKeyboardBinding/NSKeyboardBinding.m \
+    NSKeyboardBinding/NSKeyboardBindingManager.m \
+    NSLevelIndicator.m \
+    NSLevelIndicatorCell.m \
+    NSMatrix.m \
+    NSMeasurementUnit.m \
+    NSMenu.subproj/NSMainMenuView.m \
+    NSMenu.subproj/NSMenu.m \
+    NSMenu.subproj/NSMenuItem.m \
+    NSMenu.subproj/NSMenuView.m \
+    NSMenu.subproj/NSMenuWindow.m \
+    NSMenu.subproj/NSOverflowMenuView.m \
+    NSMenu.subproj/NSSubmenuView.m \
+    NSModalSessionX.m \
+    NSMutableAttributedString.m \
+    NSMutableParagraphStyle.m \
+    NSOpenGL/NSOpenGLContext.m \
+    NSOpenGL/NSOpenGLDrawable.m \
+    NSOpenGL/NSOpenGLPixelBuffer.m \
+    NSOpenGL/NSOpenGLPixelFormat.m \
+    NSOpenGL/NSOpenGLView.m \
+    NSOpenPanel.m \
+    NSOutlineView.m \
+    NSPDFImageRep.m \
+    NSPageLayout.m \
+    NSPanel.m \
+    NSParagraphStyle.m \
+    NSPasteboard.m \
+    NSPathCell.m \
+    NSPathComponentCell.m \
+    NSPathControl.m \
+    NSPoofAnimation.m \
+    NSPopUpButton.m \
+    NSPopUpButtonCell.m \
+    NSPopUpView.m \
+    NSPopUpWindow.m \
+    NSPredicateEditor.m \
+    NSPredicateEditorRowTemplate.m \
+    NSPrintInfo.m \
+    NSPrintOperation.m \
+    NSPrintPanel.m \
+    NSPrintProgressPanelController.m \
+    NSPrinter.m \
+    NSProgressIndicator.m \
+    NSResponder.m \
+    NSRuleEditor.m \
+    NSRuleEditorButtonCell.m \
+    NSRuleEditorViewSliceRow.m \
+    NSRulerMarker.m \
+    NSRulerView.m \
+    NSSavePanel.m \
+    NSScreen.m \
+    NSScrollView.m \
+    NSScroller.m \
+    NSSearchField.m \
+    NSSearchFieldCell.m \
+    NSSecureTextField.m \
+    NSSecureTextFieldCell.m \
+    NSSegmentedControl/NSSegmentItem.m \
+    NSSegmentedControl/NSSegmentedCell.m \
+    NSSegmentedControl/NSSegmentedControl.m \
+    NSShadow.m \
+    NSSheetContext.m \
+    NSSlider.m \
+    NSSliderCell.m \
+    NSSound.m \
+    NSSpellChecker.m \
+    NSSpellCheckerTagData.m \
+    NSSpellingViewController.m \
+    NSSplitView.m \
+    NSStatusBar.m \
+    NSStatusItem.m \
+    NSStepper.m \
+    NSStepperCell.m \
+    NSStringDrawer.m \
+    NSStringDrawing.m \
+    NSSystemInfoPanel/NSSystemInfoPanel.m \
+    NSTabView.m \
+    NSTabViewItem.m \
+    NSTableColumn.m \
+    NSTableCornerView.m \
+    NSTableHeaderCell.m \
+    NSTableHeaderView.m \
+    NSTableView.m \
+    NSText.m \
+    NSTextAttachment.m \
+    NSTextAttachmentCell.m \
+    NSTextField.m \
+    NSTextFieldCell.m \
+    NSTextList.m \
+    NSTextTable/NSTextBlock.m \
+    NSTextTable/NSTextTable.m \
+    NSTextTable/NSTextTableBlock.m \
+    NSTextView.subproj/NSBidiHelper.m \
+    NSTextView.subproj/NSLayoutManager.m \
+    NSTextView.subproj/NSRangeArray.m \
+    NSTextView.subproj/NSRulerMarker+NSTextExtensions.m \
+    NSTextView.subproj/NSSecureLayoutManager.m \
+    NSTextView.subproj/NSSecureTextView.m \
+    NSTextView.subproj/NSTextContainer.m \
+    NSTextView.subproj/NSTextStorage.m \
+    NSTextView.subproj/NSTextStorage_concrete.m \
+    NSTextView.subproj/NSTextTab.m \
+    NSTextView.subproj/NSTextView.m \
+    NSTextView.subproj/NSTextViewSharedData.m \
+    NSTextView.subproj/NSTypesetter.m \
+    NSTextView.subproj/NSTypesetter_concrete.m \
+    NSTextView.subproj/NSUndoTextOperation.m \
+    NSThemeFrame.m \
+    NSTokenAttachmentCell.m \
+    NSTokenField.m \
+    NSTokenFieldCell.m \
+    NSToolTipWindow.m \
+    NSToolbar.subproj/NSToolbar.m \
+    NSToolbar.subproj/NSToolbarCustomizationPalette.m \
+    NSToolbar.subproj/NSToolbarCustomizationView.m \
+    NSToolbar.subproj/NSToolbarItem.m \
+    NSToolbar.subproj/NSToolbarItemGroup.m \
+    NSToolbar.subproj/NSToolbarItemView.m \
+    NSToolbar.subproj/NSToolbarView.m \
+    NSTrackingArea.m \
+    NSTreeNode.m \
+    NSView.m \
+    NSViewBackingLayer.m \
+    NSViewController.m \
+    NSWindow-Drag.m \
+    NSWindow.m \
+    RTF.subproj/NSRichTextReader.m \
+    RTF.subproj/NSRichTextWriter.m \
+    NSWindowAnimationContext.m \
+    NSWindowController.m \
+    NSWindowScripting.m \
+    NSWorkspace.m \
+    _NSRuleEditorViewSliceHolder.m \
+    nib.subproj/NSButtonImageSource.m \
+    nib.subproj/NSClassSwapper.m \
+    nib.subproj/NSCustomObject.m \
+    nib.subproj/NSCustomResource.m \
+    nib.subproj/NSCustomView.m \
+    nib.subproj/NSIBObjectData.m \
+    nib.subproj/NSNib.m \
+    nib.subproj/NSNibAXRelationshipConnector.m \
+    nib.subproj/NSNibBindingConnector.m \
+    nib.subproj/NSNibConnector.m \
+    nib.subproj/NSNibControlConnector.m \
+    nib.subproj/NSNibHelpConnector.m \
+    nib.subproj/NSNibLoading.m \
+    nib.subproj/NSNibOutletConnector.m \
+    nib.subproj/NSWindowTemplate.m \
+    WindowServer.backend/CGLContext.m \
+    WindowServer.backend/KTFont_FT.m \
+    WindowServer.backend/O2Context_builtin_FT.m \
+    WindowServer.backend/O2Font_FT.m \
+    WindowServer.backend/WLWindow.m \
+    WindowServer.backend/WLDisplay.m \
+    xdg-shell.c \
+    layer-shell-v1.c \
+    output-management-v1.c \
+    xdg-decoration-v1.c
 
 
 INCS= \
-AppKit.h \
-AppKitExport.h \
-CoreData_/NSPersistentDocument.h \
-CoreData_/_NSManagedProxy.h \
-CGEvent.h \
-KTFont.h \
-NSAccessibility.h \
-NSActionCell.h \
-NSAffineTransform.h \
-NSAlert.h \
-NSAlertPanel.h \
-NSAnimation/NSAnimation.h \
-NSAnimation/NSAnimationContext.h \
-NSAnimation/NSViewAnimation.h \
-NSApplication.h \
-NSAttributedString.h \
-NSBezierPath.h \
-NSBitmapImageRep-Private.h \
-NSBitmapImageRep.h \
-NSBox.h \
-NSBrowser.h \
-NSBrowserCell.h \
-NSButton.h \
-NSButtonCell.h \
-NSCIImageRep.h \
-NSCachedImageRep.h \
-NSCell.h \
-NSCellUndoManager.h \
-NSClipView.h \
-NSCollectionView/NSCollectionView.h \
-NSCollectionView/NSCollectionViewItem.h \
-NSColor.subproj/NSColor.h \
-NSColor.subproj/NSColor_CGColor.h \
-NSColor.subproj/NSColor_catalog.h \
-NSColor.subproj/conversions.h \
-NSColorList.h \
-NSColorPanel.h \
-NSColorPicker.subproj/NSBrowserCellColorList.h \
-NSColorPicker.subproj/NSColorPicker.h \
-NSColorPicker.subproj/NSColorPickerColorList.h \
-NSColorPicker.subproj/NSColorPickerSliders.h \
-NSColorPicker.subproj/NSColorPickerWheel.h \
-NSColorPicker.subproj/NSColorPickerWheelView.h \
-NSColorSpace.h \
-NSColorWell.h \
-NSComboBox.h \
-NSComboBoxCell.h \
-NSComboBoxView.h \
-NSComboBoxWindow.h \
-NSControl.h \
-NSController/NSArrayController.h \
-NSController/NSController.h \
-NSController/NSControllerMarker.h \
-NSController/NSControllerSelectionProxy.h \
-NSController/NSDictionaryController.h \
-NSController/NSObjectController.h \
-NSController/NSObservationProxy.h \
-NSController/NSTreeController.h \
-NSController/NSUserDefaultsController.h \
-NSController/NSUserDefaultsControllerProxy.h \
-NSController/_NSControllerArray.h \
-NSCursor.h \
-NSCursorRect.h \
-NSCustomImageRep.h \
-NSDatePicker.h \
-NSDatePickerCell.h \
-NSDisplay.h \
-NSDockTile.h \
-NSDocument.h \
-NSDocumentController.h \
-NSDragging.h \
-NSDraggingManager.h \
-NSDrawer.subproj/NSDrawer.h \
-NSDrawer.subproj/NSDrawerWindow.h \
-NSEPSImageRep.h \
-NSErrors.h \
-NSEvent.subproj/NSEvent.h \
-NSEvent.subproj/NSEvent_CoreGraphics.h \
-NSEvent.subproj/NSEvent_keyboard.h \
-NSEvent.subproj/NSEvent_mouse.h \
-NSEvent.subproj/NSEvent_other.h \
-NSEvent.subproj/NSEvent_periodic.h \
-NSFileWrapper.h \
-NSFont.h \
-NSFontDescriptor.h \
-NSFontFamily.h \
-NSFontManager.h \
-NSFontMetric.h \
-NSFontPanel.h \
-NSFontPanelCell.h \
-NSFontTypeface.h \
-NSForm.h \
-NSFormCell.h \
-NSGlyphGenerator.h \
-NSGlyphInfo.h \
-NSGradient.h \
-NSGraphics.h \
-NSGraphicsContext.h \
-NSGraphicsContextFunctions.h \
-NSHelpManager.h \
-NSImage.h \
-NSImageCell.h \
-NSImageRep.h \
-NSImageView.h \
-NSInterfacePart/NSGraphicsStyle.h \
-NSInterfacePart/NSInterfaceGraphics.h \
-NSInterfacePart/NSInterfacePart.h \
-NSInterfacePart/NSInterfacePartAttributedString.h \
-NSInterfacePart/NSInterfacePartDisabledAttributedString.h \
-NSInterfaceStyle.h \
-NSKeyValueBinding/NSBinder.h \
-NSKeyValueBinding/NSCachingBinder.h \
-NSKeyValueBinding/NSKVOBinder.h \
-NSKeyValueBinding/NSMultipleValueBinder.h \
-NSKeyValueBinding/NSObject+BindingSupport.h \
-NSKeyValueBinding/NSTextBinder.h \
-NSKeyValueBinding/NSTextFieldBinder.h \
-NSKeyboardBinding/NSKeyboardBinding.h \
-NSKeyboardBinding/NSKeyboardBindingManager.h \
-NSLevelIndicator.h \
-NSMatrix.h \
-NSLevelIndicatorCell.h \
-NSMeasurementUnit.h \
-NSMenu.subproj/NSMainMenuView.h \
-NSMenu.subproj/NSMenu.h \
-NSMenu.subproj/NSMenuItem.h \
-NSMenu.subproj/NSMenuView.h \
-NSMenu.subproj/NSMenuWindow.h \
-NSMenu.subproj/NSOverflowMenuView.h \
-NSMenu.subproj/NSSubmenuView.h \
-NSModalSessionX.h \
-NSMutableAttributedString.h \
-NSMutableParagraphStyle.h \
-NSOpenGL/NSOpenGL.h \
-NSOpenGL/NSOpenGLContext.h \
-NSOpenGL/NSOpenGLDrawable.h \
-NSOpenGL/NSOpenGLPixelBuffer.h \
-NSOpenGL/NSOpenGLPixelFormat.h \
-NSOpenGL/NSOpenGLView.h \
-NSOpenPanel.h \
-NSOutlineView.h \
-NSPDFImageRep.h \
-NSPageLayout.h \
-NSPanel.h \
-NSParagraphStyle.h \
-NSPasteboard.h \
-NSPathCell.h \
-NSPathComponentCell.h \
-NSPathControl.h \
-NSPoofAnimation.h \
-NSPopUpButton.h \
-NSPopUpButtonCell.h \
-NSPopUpView.h \
-NSPopUpWindow.h \
-NSPredicateEditor.h \
-NSPredicateEditorRowTemplate.h \
-NSPrinter.h \
-NSPrintInfo.h \
-NSPrintOperation.h \
-NSPrintPanel.h \
-NSPrintProgressPanelController.h \
-NSProgressIndicator.h \
-NSRaise.h \
-NSResponder.h \
-NSRuleEditor.h \
-NSRuleEditorButtonCell.h \
-NSRuleEditorViewSliceRow.h \
-NSRulerMarker.h \
-NSRulerView.h \
-NSSavePanel.h \
-NSScreen.h \
-NSScrollView.h \
-NSScroller.h \
-NSSearchField.h \
-NSSearchFieldCell.h \
-NSSecureTextField.h \
-NSSecureTextFieldCell.h \
-NSSegmentedControl/NSSegmentItem.h \
-NSSegmentedControl/NSSegmentedCell.h \
-NSSegmentedControl/NSSegmentedControl.h \
-NSShadow.h \
-NSSheetContext.h \
-NSSlider.h \
-NSSliderCell.h \
-NSSound.h \
-NSSpellChecker.h \
-NSSpellCheckerTagData.h \
-NSSpellProtocol.h \
-NSSpellingViewController.h \
-NSSplitView.h \
-NSStatusBar.h \
-NSStatusItem.h \
-NSStatusItem+Private.h \
-NSStepper.h \
-NSStepperCell.h \
-NSStringDrawer.h \
-NSStringDrawing.h \
-NSSystemInfoPanel/NSSystemInfoPanel.h \
-NSTabView.h \
-NSTabViewItem.h \
-NSTableColumn.h \
-NSTableCornerView.h \
-NSTableHeaderCell.h \
-NSTableHeaderView.h \
-NSTableView.h \
-NSText.h \
-NSTextAttachment.h \
-NSTextAttachmentCell.h \
-NSTextField.h \
-NSTextFieldCell.h \
-NSTextList.h \
-NSTextTable/NSTextBlock.h \
-NSTextTable/NSTextTable.h \
-NSTextTable/NSTextTableBlock.h \
-NSTextView.subproj/NSBidiHelper.h \
-NSTextView.subproj/NSLayoutManager.h \
-NSTextView.subproj/NSRangeArray.h \
-NSTextView.subproj/NSRulerMarker+NSTextExtensions.h \
-NSTextView.subproj/NSSecureLayoutManager.h \
-NSTextView.subproj/NSSecureTextView.h \
-NSTextView.subproj/NSTextContainer.h \
-NSTextView.subproj/NSTextInput.h \
-NSTextView.subproj/NSTextStorage.h \
-NSTextView.subproj/NSTextStorage_concrete.h \
-NSTextView.subproj/NSTextTab.h \
-NSTextView.subproj/NSTextView.h \
-NSTextView.subproj/NSTextViewSharedData.h \
-NSTextView.subproj/NSTypesetter.h \
-NSTextView.subproj/NSTypesetter_concrete.h \
-NSTextView.subproj/NSUndoTextOperation.h \
-NSThemeFrame.h \
-NSTokenAttachmentCell.h \
-NSTokenField.h \
-NSTokenFieldCell.h \
-NSToolTipWindow.h \
-NSToolbar.subproj/NSToolbar.h \
-NSToolbar.subproj/NSToolbarCustomizationPalette.h \
-NSToolbar.subproj/NSToolbarCustomizationView.h \
-NSToolbar.subproj/NSToolbarItem.h \
-NSToolbar.subproj/NSToolbarItemGroup.h \
-NSToolbar.subproj/NSToolbarItemView.h \
-NSToolbar.subproj/NSToolbarView.h \
-NSTrackingArea.h \
-NSTreeNode.h \
-NSUserInterfaceValidation.h \
-NSView.h \
-NSViewBackingLayer.h \
-NSViewController.h \
-NSWindow-Drag.h \
-NSWindow-Private.h \
-NSWindow.h \
-NSWindowAnimationContext.h \
-RTF.subproj/NSRichTextReader.h \
-RTF.subproj/NSRichTextWriter.h \
-NSWindowController.h \
-NSWindowScripting.h \
-NSWorkspace.h \
-_NSRuleEditorViewSliceHolder.h \
-nib.subproj/NSButtonImageSource.h \
-nib.subproj/NSClassSwapper.h \
-nib.subproj/NSCustomObject.h \
-nib.subproj/NSCustomResource.h \
-nib.subproj/NSCustomView.h \
-nib.subproj/NSIBObjectData.h \
-nib.subproj/NSNib.h \
-nib.subproj/NSNibAXRelationshipConnector.h \
-nib.subproj/NSNibBindingConnector.h \
-nib.subproj/NSNibConnector.h \
-nib.subproj/NSNibControlConnector.h \
-nib.subproj/NSNibHelpConnector.h \
-nib.subproj/NSNibLoading.h \
-nib.subproj/NSNibOutletConnector.h \
-nib.subproj/NSWindowTemplate.h \
-WindowServer.backend/KTFont_FT.h \
-WindowServer.backend/O2Context_builtin_FT.h \
-WindowServer.backend/O2Font_FT.h \
-WindowServer.backend/WLWindow.h \
-WindowServer.backend/WLDisplay.h
+    AppKit.h \
+    AppKitExport.h \
+    CoreData_/NSPersistentDocument.h \
+    CoreData_/_NSManagedProxy.h \
+    CGEvent.h \
+    KTFont.h \
+    NSAccessibility.h \
+    NSActionCell.h \
+    NSAffineTransform.h \
+    NSAlert.h \
+    NSAlertPanel.h \
+    NSAnimation/NSAnimation.h \
+    NSAnimation/NSAnimationContext.h \
+    NSAnimation/NSViewAnimation.h \
+    NSApplication.h \
+    NSAttributedString.h \
+    NSBezierPath.h \
+    NSBitmapImageRep-Private.h \
+    NSBitmapImageRep.h \
+    NSBox.h \
+    NSBrowser.h \
+    NSBrowserCell.h \
+    NSButton.h \
+    NSButtonCell.h \
+    NSCIImageRep.h \
+    NSCachedImageRep.h \
+    NSCell.h \
+    NSCellUndoManager.h \
+    NSClipView.h \
+    NSCollectionView/NSCollectionView.h \
+    NSCollectionView/NSCollectionViewItem.h \
+    NSColor.subproj/NSColor.h \
+    NSColor.subproj/NSColor_CGColor.h \
+    NSColor.subproj/NSColor_catalog.h \
+    NSColor.subproj/conversions.h \
+    NSColorList.h \
+    NSColorPanel.h \
+    NSColorPicker.subproj/NSBrowserCellColorList.h \
+    NSColorPicker.subproj/NSColorPicker.h \
+    NSColorPicker.subproj/NSColorPickerColorList.h \
+    NSColorPicker.subproj/NSColorPickerSliders.h \
+    NSColorPicker.subproj/NSColorPickerWheel.h \
+    NSColorPicker.subproj/NSColorPickerWheelView.h \
+    NSColorSpace.h \
+    NSColorWell.h \
+    NSComboBox.h \
+    NSComboBoxCell.h \
+    NSComboBoxView.h \
+    NSComboBoxWindow.h \
+    NSControl.h \
+    NSController/NSArrayController.h \
+    NSController/NSController.h \
+    NSController/NSControllerMarker.h \
+    NSController/NSControllerSelectionProxy.h \
+    NSController/NSDictionaryController.h \
+    NSController/NSObjectController.h \
+    NSController/NSObservationProxy.h \
+    NSController/NSTreeController.h \
+    NSController/NSUserDefaultsController.h \
+    NSController/NSUserDefaultsControllerProxy.h \
+    NSController/_NSControllerArray.h \
+    NSCursor.h \
+    NSCursorRect.h \
+    NSCustomImageRep.h \
+    NSDatePicker.h \
+    NSDatePickerCell.h \
+    NSDisplay.h \
+    NSDockTile.h \
+    NSDocument.h \
+    NSDocumentController.h \
+    NSDragging.h \
+    NSDraggingManager.h \
+    NSDrawer.subproj/NSDrawer.h \
+    NSDrawer.subproj/NSDrawerWindow.h \
+    NSEPSImageRep.h \
+    NSErrors.h \
+    NSEvent.subproj/NSEvent.h \
+    NSEvent.subproj/NSEvent_CoreGraphics.h \
+    NSEvent.subproj/NSEvent_keyboard.h \
+    NSEvent.subproj/NSEvent_mouse.h \
+    NSEvent.subproj/NSEvent_other.h \
+    NSEvent.subproj/NSEvent_periodic.h \
+    NSFileWrapper.h \
+    NSFont.h \
+    NSFontDescriptor.h \
+    NSFontFamily.h \
+    NSFontManager.h \
+    NSFontMetric.h \
+    NSFontPanel.h \
+    NSFontPanelCell.h \
+    NSFontTypeface.h \
+    NSForm.h \
+    NSFormCell.h \
+    NSGlyphGenerator.h \
+    NSGlyphInfo.h \
+    NSGradient.h \
+    NSGraphics.h \
+    NSGraphicsContext.h \
+    NSGraphicsContextFunctions.h \
+    NSHelpManager.h \
+    NSImage.h \
+    NSImageCell.h \
+    NSImageRep.h \
+    NSImageView.h \
+    NSInterfacePart/NSGraphicsStyle.h \
+    NSInterfacePart/NSInterfaceGraphics.h \
+    NSInterfacePart/NSInterfacePart.h \
+    NSInterfacePart/NSInterfacePartAttributedString.h \
+    NSInterfacePart/NSInterfacePartDisabledAttributedString.h \
+    NSInterfaceStyle.h \
+    NSKeyValueBinding/NSBinder.h \
+    NSKeyValueBinding/NSCachingBinder.h \
+    NSKeyValueBinding/NSKVOBinder.h \
+    NSKeyValueBinding/NSMultipleValueBinder.h \
+    NSKeyValueBinding/NSObject+BindingSupport.h \
+    NSKeyValueBinding/NSTextBinder.h \
+    NSKeyValueBinding/NSTextFieldBinder.h \
+    NSKeyboardBinding/NSKeyboardBinding.h \
+    NSKeyboardBinding/NSKeyboardBindingManager.h \
+    NSLevelIndicator.h \
+    NSMatrix.h \
+    NSLevelIndicatorCell.h \
+    NSMeasurementUnit.h \
+    NSMenu.subproj/NSMainMenuView.h \
+    NSMenu.subproj/NSMenu.h \
+    NSMenu.subproj/NSMenuItem.h \
+    NSMenu.subproj/NSMenuView.h \
+    NSMenu.subproj/NSMenuWindow.h \
+    NSMenu.subproj/NSOverflowMenuView.h \
+    NSMenu.subproj/NSSubmenuView.h \
+    NSModalSessionX.h \
+    NSMutableAttributedString.h \
+    NSMutableParagraphStyle.h \
+    NSOpenGL/NSOpenGL.h \
+    NSOpenGL/NSOpenGLContext.h \
+    NSOpenGL/NSOpenGLDrawable.h \
+    NSOpenGL/NSOpenGLPixelBuffer.h \
+    NSOpenGL/NSOpenGLPixelFormat.h \
+    NSOpenGL/NSOpenGLView.h \
+    NSOpenPanel.h \
+    NSOutlineView.h \
+    NSPDFImageRep.h \
+    NSPageLayout.h \
+    NSPanel.h \
+    NSParagraphStyle.h \
+    NSPasteboard.h \
+    NSPathCell.h \
+    NSPathComponentCell.h \
+    NSPathControl.h \
+    NSPoofAnimation.h \
+    NSPopUpButton.h \
+    NSPopUpButtonCell.h \
+    NSPopUpView.h \
+    NSPopUpWindow.h \
+    NSPredicateEditor.h \
+    NSPredicateEditorRowTemplate.h \
+    NSPrinter.h \
+    NSPrintInfo.h \
+    NSPrintOperation.h \
+    NSPrintPanel.h \
+    NSPrintProgressPanelController.h \
+    NSProgressIndicator.h \
+    NSRaise.h \
+    NSResponder.h \
+    NSRuleEditor.h \
+    NSRuleEditorButtonCell.h \
+    NSRuleEditorViewSliceRow.h \
+    NSRulerMarker.h \
+    NSRulerView.h \
+    NSSavePanel.h \
+    NSScreen.h \
+    NSScrollView.h \
+    NSScroller.h \
+    NSSearchField.h \
+    NSSearchFieldCell.h \
+    NSSecureTextField.h \
+    NSSecureTextFieldCell.h \
+    NSSegmentedControl/NSSegmentItem.h \
+    NSSegmentedControl/NSSegmentedCell.h \
+    NSSegmentedControl/NSSegmentedControl.h \
+    NSShadow.h \
+    NSSheetContext.h \
+    NSSlider.h \
+    NSSliderCell.h \
+    NSSound.h \
+    NSSpellChecker.h \
+    NSSpellCheckerTagData.h \
+    NSSpellProtocol.h \
+    NSSpellingViewController.h \
+    NSSplitView.h \
+    NSStatusBar.h \
+    NSStatusItem.h \
+    NSStatusItem+Private.h \
+    NSStepper.h \
+    NSStepperCell.h \
+    NSStringDrawer.h \
+    NSStringDrawing.h \
+    NSSystemInfoPanel/NSSystemInfoPanel.h \
+    NSTabView.h \
+    NSTabViewItem.h \
+    NSTableColumn.h \
+    NSTableCornerView.h \
+    NSTableHeaderCell.h \
+    NSTableHeaderView.h \
+    NSTableView.h \
+    NSText.h \
+    NSTextAttachment.h \
+    NSTextAttachmentCell.h \
+    NSTextField.h \
+    NSTextFieldCell.h \
+    NSTextList.h \
+    NSTextTable/NSTextBlock.h \
+    NSTextTable/NSTextTable.h \
+    NSTextTable/NSTextTableBlock.h \
+    NSTextView.subproj/NSBidiHelper.h \
+    NSTextView.subproj/NSLayoutManager.h \
+    NSTextView.subproj/NSRangeArray.h \
+    NSTextView.subproj/NSRulerMarker+NSTextExtensions.h \
+    NSTextView.subproj/NSSecureLayoutManager.h \
+    NSTextView.subproj/NSSecureTextView.h \
+    NSTextView.subproj/NSTextContainer.h \
+    NSTextView.subproj/NSTextInput.h \
+    NSTextView.subproj/NSTextStorage.h \
+    NSTextView.subproj/NSTextStorage_concrete.h \
+    NSTextView.subproj/NSTextTab.h \
+    NSTextView.subproj/NSTextView.h \
+    NSTextView.subproj/NSTextViewSharedData.h \
+    NSTextView.subproj/NSTypesetter.h \
+    NSTextView.subproj/NSTypesetter_concrete.h \
+    NSTextView.subproj/NSUndoTextOperation.h \
+    NSThemeFrame.h \
+    NSTokenAttachmentCell.h \
+    NSTokenField.h \
+    NSTokenFieldCell.h \
+    NSToolTipWindow.h \
+    NSToolbar.subproj/NSToolbar.h \
+    NSToolbar.subproj/NSToolbarCustomizationPalette.h \
+    NSToolbar.subproj/NSToolbarCustomizationView.h \
+    NSToolbar.subproj/NSToolbarItem.h \
+    NSToolbar.subproj/NSToolbarItemGroup.h \
+    NSToolbar.subproj/NSToolbarItemView.h \
+    NSToolbar.subproj/NSToolbarView.h \
+    NSTrackingArea.h \
+    NSTreeNode.h \
+    NSUserInterfaceValidation.h \
+    NSView.h \
+    NSViewBackingLayer.h \
+    NSViewController.h \
+    NSWindow-Drag.h \
+    NSWindow-Private.h \
+    NSWindow.h \
+    NSWindowAnimationContext.h \
+    RTF.subproj/NSRichTextReader.h \
+    RTF.subproj/NSRichTextWriter.h \
+    NSWindowController.h \
+    NSWindowScripting.h \
+    NSWorkspace.h \
+    _NSRuleEditorViewSliceHolder.h \
+    nib.subproj/NSButtonImageSource.h \
+    nib.subproj/NSClassSwapper.h \
+    nib.subproj/NSCustomObject.h \
+    nib.subproj/NSCustomResource.h \
+    nib.subproj/NSCustomView.h \
+    nib.subproj/NSIBObjectData.h \
+    nib.subproj/NSNib.h \
+    nib.subproj/NSNibAXRelationshipConnector.h \
+    nib.subproj/NSNibBindingConnector.h \
+    nib.subproj/NSNibConnector.h \
+    nib.subproj/NSNibControlConnector.h \
+    nib.subproj/NSNibHelpConnector.h \
+    nib.subproj/NSNibLoading.h \
+    nib.subproj/NSNibOutletConnector.h \
+    nib.subproj/NSWindowTemplate.h \
+    WindowServer.backend/KTFont_FT.h \
+    WindowServer.backend/O2Context_builtin_FT.h \
+    WindowServer.backend/O2Font_FT.h \
+    WindowServer.backend/WLWindow.h \
+    WindowServer.backend/WLDisplay.h
 
 
 RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
@@ -596,12 +597,12 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	WindowServer.backend/vertShader.glsl \
 	WindowServer.backend/fragShader.glsl
 
-CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include -I/sys \
-	 -F${.CURDIR}/../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
+CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/sys \
+	 -F../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
 	 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include \
          -I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/../../CoreServices \
 	 -D_BuildingFramework -DFREETYPE_PRESENT
-LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
+LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
@@ -610,23 +611,51 @@ LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -Wl,-R/System/Library/Frameworks/QuartzCore.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-	  -L${BUILDROOT}/System/Library/Frameworks/Foundation.framework/Versions/Current \
-	  -L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current \
-	  -L${BUILDROOT}/System/Library/Frameworks/CoreGraphics.framework/Versions/Current \
-	  -L${BUILDROOT}/System/Library/Frameworks/CoreData.framework/Versions/Current \
-	  -L${BUILDROOT}/System/Library/Frameworks/CoreText.framework/Versions/Current \
-	  -L${BUILDROOT}/System/Library/Frameworks/QuartzCore.framework/Versions/Current \
-	  -L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework/Versions/Current \
-	  -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework/Versions/Current \
-	  -lFoundation -lCoreFoundation -lCoreGraphics -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lwayland-client -lobjc -lfreetype -lfontconfig -lxkbcommon -lEGL -lGLESv2 -lEGL_mesa -lwayland-egl \
+	  -L../Foundation -L../CoreFoundation -L../CoreGraphics \
+	  -L../CoreData -L../CoreText -L../QuartzCore/ -L../OpenGL \
+	  -L../Onyx2D -lFoundation -lCoreFoundation -lCoreGraphics \
+          -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
+	  -lwayland-client -lobjc -lfreetype -lfontconfig -lxkbcommon -lwayland-egl \
           -lmach -lm
 
+DIRS= \
+	NSMenu.subproj \
+	NSColorPicker.subproj \
+	WindowServer.backend \
+	NSKeyboardBinding \
+	CoreData_ \
+	NSSystemInfoPanel \
+	NSOpenGL \
+	NSTextView.subproj \
+	NSAnimation \
+	en.lproj \
+	de.lproj \
+	fr.lproj \
+	NSTextTable \
+	NSToolbar.subproj \
+	NSKeyValueBinding \
+	NSInterfacePart \
+	NSSegmentedControl \
+	NSCollectionView \
+	nib.subproj \
+	RTF.subproj \
+	NSController \
+	NSColor.subproj \
+	NSDrawer.subproj \
+	UNIDATA \
+	NSEvent.subproj
+
+make-obj-dirs: .PHONY
+	echo ${FRAMEWORK} ${TARGET} in ${MAKEOBJDIR}
+.for subdir in ${DIRS}
+	mkdir -pv ${MAKEOBJDIR}/${subdir}
+.endfor
 
 fmwkclean:
 	rm -rf ${.CURDIR}/Headers
 
 _install-hook:
+	cp -fv lib${FRAMEWORK}.so ${FRAMEWORK}.framework/Versions/Current/
 	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
 		AppKit.framework/Resources/
 	rmdir AppKit.framework/Resources/NSKeyboardBinding

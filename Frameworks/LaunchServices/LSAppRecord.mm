@@ -1,7 +1,7 @@
 /*
  * ravynOS LaunchServices
  *
- * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,9 @@
 #import <Foundation/NSPlatform.h>
 #import <CoreFoundation/CFString.h>
 #import "UTTypes.h"
+#ifdef _REWRITE_ME_
 #include <xdgdesktopfile.h>
+#endif
 
 @implementation LSAppRecord
 
@@ -70,6 +72,7 @@
 }
 
 -initWithDesktopFile:(NSString *)path {
+#ifdef _REWRITE_ME_
     XdgDesktopFile df;
     if(!df.load([path UTF8String]) || !df.isValid() || df.type() != XdgDesktopFile::ApplicationType)
         return self;
@@ -125,6 +128,7 @@
 
     if([documentTypes count])
     	_documentTypes = documentTypes;
+#endif // _REWRITE_ME_
     return self;
 }
 

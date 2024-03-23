@@ -23,7 +23,7 @@ SUBDIR+=	CoreText
 SUBDIR+=	CoreVideo
 SUBDIR+=	QuartzCore
 SUBDIR+=	AppKit
-SUBDIR+=	DBusKit
+#SUBDIR+=	DBusKit
 SUBDIR+=	Cocoa
 SUBDIR+=	LaunchServices
 
