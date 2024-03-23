@@ -22,7 +22,7 @@ GMAKE=          gmake
 .endif
 
 gnu_configure:
-	${.CURDIR}/configure ${CONFIGURE_ARGS}
+	${CONFIGURE_ENV} ${.CURDIR}/configure ${CONFIGURE_ARGS}
 
 gnu_build:
 	${GMAKE} ${GMAKE_ARGS}

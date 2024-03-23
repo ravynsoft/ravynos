@@ -10,6 +10,11 @@ INSTALL=        ${OBJTOP}/tmp/legacy/bin/install
 # Ensure we call it gmake to avoid clash with BSD make!
 CONFIGURE_ARGS+=        --program-prefix=g
 
+# Fake out missing autoconf tools
+CONFIGURE_ENV+=         ACLOCAL=/bin/true
+CONFIGURE_ENV+=         AUTOCONF=/bin/true
+CONFIGURE_ENV+=         AUTOMAKE=/bin/true
+CONFIGURE_ENV+=         AUTOHEADER=/bin/true
 
 all: gnu_configure .WAIT build
 build:
