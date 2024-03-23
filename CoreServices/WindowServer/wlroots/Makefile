@@ -189,7 +189,7 @@ CFLAGS+=	--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
                 -I${SRCTOP}/Frameworks/OpenGL/libdrm/include  \
                 -I${SRCTOP}/Frameworks/OpenGL/libdrm/include/drm  \
                 -I${.CURDIR}/../libxkbcommon/include \
-                -I${.CURDIR}/../libinput/src \
+                -I${.CURDIR}/../libinput/src -I${.CURDIR}/../seatd/include \
                 -I${MAKEOBJDIR}/include \
                 -I${SRCTOP}/Frameworks/OpenGL/mesa/include \
                 -I${SRCTOP}/Frameworks/OpenGL/mesa/src/gbm/main \

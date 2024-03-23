@@ -10,9 +10,13 @@ INSTALL=        ${OBJTOP}/tmp/legacy/bin/install
 # Ensure we call it gmake to avoid clash with BSD make!
 CONFIGURE_ARGS+=        --program-prefix=g
 
+FAKEACLOCAL= ${OBJTOP}/../usr/bin/aclocal-1.16
+
 all: gnu_configure .WAIT build
 build:
+	ln true ${FAKEACLOCAL}
 	make
+	rm -f ${FAKEACLOCAL}
 
 install:
 	${MAKEOBJDIR}/make INSTALL=${INSTALL} DESTDIR=${DESTDIR} install
