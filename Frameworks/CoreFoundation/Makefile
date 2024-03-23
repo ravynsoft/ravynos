@@ -1,6 +1,6 @@
+FRAMEWORK=CoreFoundation
 .include "../framework.common.mk"
 
-FRAMEWORK=CoreFoundation
 SRCS= \
 	CFArray.m \
 	CFAttributedString.m \

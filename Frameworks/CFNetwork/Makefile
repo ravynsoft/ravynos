@@ -1,6 +1,6 @@
+FRAMEWORK=CFNetwork
 .include "../framework.common.mk"
 
-FRAMEWORK=CFNetwork
 SRCS= \
 	CFHost.m \
 	CFNetServices.m \

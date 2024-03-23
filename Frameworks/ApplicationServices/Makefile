@@ -1,4 +1,6 @@
 FRAMEWORK=ApplicationServices
+.include "../framework.common.mk"
+
 SRCS=
 INCS=ApplicationServices.h 
 

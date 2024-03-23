@@ -1,6 +1,6 @@
+FRAMEWORK=DBusKit
 .include "../framework.common.mk"
 
-FRAMEWORK=DBusKit
 SRCS= \
       DKConnection.m DKMessage.m DKMenu.m
 

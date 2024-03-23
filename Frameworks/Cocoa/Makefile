@@ -1,4 +1,6 @@
 FRAMEWORK=Cocoa
+.include "../framework.common.mk"
+
 SRCS=Cocoa.m
 INCS=Cocoa.h
 

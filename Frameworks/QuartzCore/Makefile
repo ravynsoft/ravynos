@@ -1,6 +1,6 @@
+FRAMEWORK=QuartzCore
 .include "../framework.common.mk"
 
-FRAMEWORK=QuartzCore
 SRCS= \
 	CAAnimation.m \
 	CAAnimationGroup.m \
@@ -61,8 +61,9 @@ INCS= \
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${TOPDIR}/Frameworks -I${.CURDIR}/../Foundation/Headers \
-        -I${.CURDIR}/../AppKit/Headers -F${.CURDIR}/../OpenGL -framework OpenGL
-LDFLAGS+= ${FMWK_LDFLAGS} -lEGL -lGLESv2 
+        -I${.CURDIR}/../AppKit/Headers -F../OpenGL -framework OpenGL
+LDFLAGS+= ${FMWK_LDFLAGS} -L../OpenGL/OpenGL.framework -lOpenGL \
+        -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/Current
 
 _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework

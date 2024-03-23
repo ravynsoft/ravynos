@@ -1,4 +1,6 @@
-FRAMEWORK_DIR=${FRAMEWORK}.framework
+.include <bsd.subdir.mk>
+
+FRAMEWORK_DIR=${MAKEOBJDIR}/${FRAMEWORK}.framework
 FMWK_VERSION?=A
 NO_ROOT=yes
 

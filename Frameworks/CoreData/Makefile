@@ -1,6 +1,6 @@
+FRAMEWORK=CoreData
 .include "../framework.common.mk"
 
-FRAMEWORK=CoreData
 SRCS= \
 CoreDataErrors.m \
 NSAtomicStore.m \

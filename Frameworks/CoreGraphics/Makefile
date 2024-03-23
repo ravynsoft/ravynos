@@ -1,6 +1,6 @@
+FRAMEWORK=CoreGraphics
 .include "../framework.common.mk"
 
-FRAMEWORK=CoreGraphics
 SRCS= \
 	CGAffineTransform.m \
 	CGBitmapContext.m \
@@ -64,9 +64,9 @@ INCS= \
 	CoreText.h 
 
 RESOURCES=Info.plist 
-CFLAGS+= ${FMWK_CFLAGS} -F${.CURDIR}/../OpenGL -framework OpenGL -I.. -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -F../OpenGL -framework OpenGL -I.. -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework \
-	-L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework -lOnyx2D -lOpenGL -lGL -lm \
+	-L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework -lOnyx2D -lOpenGL -lm \
 	-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
 	-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A
 

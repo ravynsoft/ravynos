@@ -1,6 +1,6 @@
+FRAMEWORK=Onyx2D
 .include "../framework.common.mk"
 
-FRAMEWORK=Onyx2D
 SRCS= \
 	O2AffineTransform.m \
 	O2BitmapContext.m \
@@ -192,7 +192,7 @@ INCS= \
 	gif_lib.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR} -I.. -I../libobjc2 -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
 
 _install-hook:

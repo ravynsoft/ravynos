@@ -1,10 +1,12 @@
-MK_AUTO_OBJ=    yes
-beforebuild: make-obj-dirs obj
+FRAMEWORK=OpenGL
+SUBDIR+=        libpciaccess
+SUBDIR+=        libdrm 
+SUBDIR+=        wayland .WAIT
+SUBDIR+=        mesa
 
-.include <sys.mk>
 .include "../framework.common.mk"
 
-FRAMEWORK=OpenGL
+MK_INSTALLLIB= no
 SRCS= OpenGL.m
 INCS= \
 	include/CGLCurrent.h \
@@ -29,18 +31,12 @@ LDFLAGS+= -Lmesa/src/egl -Lmesa/src/mapi/es2api -Lmesa/src/mapi/es1api \
           -Llibdrm -lEGL -lGLESv2 -lGLESv1_CM -lglapi -lwayland -lgbm -ldrm \
           -Wl,--no-as-needed -Wl,-R\$$ORIGIN/Resources
 
-SUBDIR+=        libpciaccess
-SUBDIR+=        libdrm 
-SUBDIR+=        wayland .WAIT
-SUBDIR+=        mesa
-
-
 _install-hook:
 	echo ${FRAMEWORK} ${.TARGET}
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 
-_libinstall:
+_libinstall_hook:
 	echo ${FRAMEWORK} ${.TARGET}
 .for i in subprojects/expat-2.5.0/libexpat.so.1 \
           src/gallium/targets/dri/libgallium_dri.so \
@@ -53,16 +49,14 @@ _libinstall:
 	rm -rf mesa/${i}*.p
 	cp -Rfv mesa/${i}* ${FRAMEWORK}.framework/Resources/
 .endfor
-	cp -fv libpciaccess/libpciaccess.so.1 ${FRAMEWORK}.framework/Resources/
+	cp -fv libpciaccess/libpciaccess.so.0 ${FRAMEWORK}.framework/Resources/
 	cp -fv libOpenGL.so ${FRAMEWORK}.framework/Versions/Current/
-
-make-obj-dirs: ${FRAMEWORK}.framework
-	mkdir -p ${OBJTOP}/Frameworks/${FRAMEWORK}
-.for subdir in ${SUBDIR}
-	mkdir -p ${OBJTOP}/Frameworks/${FRAMEWORK}/${subdir}
+.for inc in ${INCS}
+	cp -fv ${.CURDIR}/${inc} ${FRAMEWORK}.framework/Headers/
 .endfor
 
-.include <bsd.subdir.mk>
+
 .include <rvn.framework.mk>
 
 installresources: _install-hook
+_libinstall: _libinstall_hook

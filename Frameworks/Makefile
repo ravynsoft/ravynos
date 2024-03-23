@@ -29,6 +29,12 @@ SUBDIR+=	LaunchServices
 
 .include <bsd.subdir.mk>
 
+make-obj-dirs: .PHONY
+.for subdir in ${SUBDIR:N.WAIT:Nsetup}
+	mkdir -pv ${MAKEOBJDIR}/${subdir}
+	${MAKE} -C ${.CURDIR}/${subdir} make-obj-dirs
+.endfor
+
 package:
 	rm -rf /tmp/meta
 	mkdir -p /tmp/meta
@@ -40,3 +46,5 @@ package:
 	pkg create -o ${TOPDIR}/dist/ -r ${BUILDROOT} -m /tmp/meta \
 	  --plist /tmp/meta/pkg-plist
 	ls -l ${TOPDIR}/dist
+
+beforebuild: make-obj-dirs

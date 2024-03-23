@@ -1,6 +1,6 @@
+FRAMEWORK=CoreText
 .include "../framework.common.mk"
 
-FRAMEWORK=CoreText
 SRCS= CTFont.m KTFont.m
 INCS= CoreText.h CoreTextExport.h CTFont.h KTFont.h
 RESOURCES=Info.plist 

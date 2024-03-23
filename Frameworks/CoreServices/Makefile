@@ -1,4 +1,6 @@
 FRAMEWORK=CoreServices
+.include "../framework.common.mk"
+
 SRCS=
 INCS=CoreServices.h 
 
