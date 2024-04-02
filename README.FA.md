@@ -1,4 +1,4 @@
-# ravynOS چیست؟ [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+# ‏ravynOS چیست؟ [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 ### Don't speak Persian? Read this in: [English](README.md)
 
 ‏ravynOS یک پروژه‌ٔ سیستم عامل منبع باز جدید است که تلاش می‌کند تا تجربه و برخی سازگاری‌ها را با macOS در دستگاه‌های x86-64 (و سرانجام ARM) داشته باشد. این سیستم عامل، بر مبنای پایه‌های استوار FreeBSD ساخته و در همان فضا، برنامه‌های فعلی آزاد را داشته و کدهای جدیدی را وارد می‌کند تا فضای خالی موجود را پر کند.
