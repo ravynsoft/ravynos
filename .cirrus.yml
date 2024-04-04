@@ -1,6 +1,8 @@
 compute_engine_instance:
-  image_project: ravyn-images
-  image: ravynbuild-0-4-b10
+#  image_project: ravyn-images
+#  image: ravynbuild-0-4-b10
+  image_project: freebsd-org-cloud-dev
+  image: family/freebsd-15-0-snap
   platform: freebsd
   cpu: 8
   memory: 16G
