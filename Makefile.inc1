@@ -2706,6 +2706,7 @@ bootstrap-tools: ${_bt}-links .PHONY
     ${_migcom} \
     ${_zic} \
     gnu/usr.bin/gmake \
+    usr.bin/perl5 \
     usr.bin/nasm \
     ${LOCAL_BSTOOL_DIRS}
 ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
@@ -2727,8 +2728,8 @@ ${_bt}-usr.bin/sort: ${_bt}-lib/libmd
 ${_bt}-usr.bin/xinstall: ${_bt}-lib/libmd
 ${_bt}-sbin/md5: ${_bt}-lib/libmd
 .endif
-# Ensure we build gmake before nasm
-.ORDER: _bootstrap-tools-gnu/usr.bin/gmake _bootstrap-tools-usr.bin/nasm
+# Ensure we build gmake & perl before nasm
+.ORDER: _bootstrap-tools-gnu/usr.bin/gmake _bootstrap-tools-usr.bin/perl5 _bootstrap-tools-usr.bin/nasm
 
 #
 # build-tools: Build special purpose build tools

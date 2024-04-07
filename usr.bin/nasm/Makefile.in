@@ -308,14 +308,14 @@ doc/warnings.src : doc/warnings.src.time
 asm/tokhash.c: x86/insns.dat x86/insnsn.c asm/tokens.dat asm/tokhash.pl \
 	perllib/phash.ph
 	$(RUNPERL) $(srcdir)/asm/tokhash.pl c \
-		x86/insnsn.c $(srcdir)/x86/regs.dat \
+		$(srcdir)/x86/insnsn.c $(srcdir)/x86/regs.dat \
 		$(srcdir)/asm/tokens.dat > asm/tokhash.c
 
 # Assembler token metadata
 asm/tokens.h: x86/insns.dat x86/insnsn.c asm/tokens.dat asm/tokhash.pl \
 	perllib/phash.ph
 	$(RUNPERL) $(srcdir)/asm/tokhash.pl h \
-		x86/insnsn.c $(srcdir)/x86/regs.dat \
+		$(srcdir)/x86/insnsn.c $(srcdir)/x86/regs.dat \
 		$(srcdir)/asm/tokens.dat > asm/tokens.h
 
 # Preprocessor token hash
