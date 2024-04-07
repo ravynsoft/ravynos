@@ -1,0 +1,138 @@
+  pp.c	TODO
+
+  substr outside of string
+    $a = "ab" ; $b = substr($a, 4,5) ;
+
+  Attempt to use reference as lvalue in substr 
+    $a = "ab" ; $b = \$a ;  substr($b, 1,1) = $b
+
+  Use of uninitialized value in scalar dereference	[pp_rv2sv()]
+	my $a = undef ; my $b = $$a
+
+  Odd number of elements in hash list
+	my $a = { 1,2,3 } ;
+
+  Explicit blessing to '' (assuming package main)
+	bless \[], "";
+
+  Constant subroutine %s undefined
+	sub foo () { 1 }; undef &foo;
+
+  Constant subroutine (anonymous) undefined
+	$foo = sub () { 3 }; undef &$foo;
+
+  Invalid negative number (%s) in chr
+
+__END__
+# pp.c
+use warnings 'substr' ;
+$a = "ab" ; 
+$b = substr($a, 4,5) ;
+no warnings 'substr' ;
+$a = "ab" ; 
+$b = substr($a, 4,5)  ;
+EXPECT
+substr outside of string at - line 4.
+########
+# pp.c
+use warnings 'substr' ;
+$a = "ab" ; 
+$b = \$a ;  
+substr($b, 1,1) = "ab" ;
+$b = \$a;
+substr($b, 1,1) = "\x{100}" ;
+no warnings 'substr' ;
+$b = \$a;
+substr($b, 1,1) = "ab" ;
+$b = \$a;
+substr($b, 1,1) = "\x{100}" ;
+EXPECT
+Attempt to use reference as lvalue in substr at - line 5.
+Attempt to use reference as lvalue in substr at - line 7.
+########
+# pp.c
+use warnings 'misc' ;
+@a = qw( a b c );
+splice(@a, 4, 0, 'e') ;
+@a = qw( a b c );
+splice(@a, 4, 1) ;
+@a = qw( a b c );
+splice(@a, 4) ;
+no warnings 'misc' ;
+@a = qw( a b c );
+splice(@a, 4, 0, 'e') ;
+@a = qw( a b c );
+splice(@a, 4, 1) ;
+@a = qw( a b c );
+splice(@a, 4) ;
+EXPECT
+splice() offset past end of array at - line 4.
+splice() offset past end of array at - line 6.
+########
+# pp.c
+use warnings 'uninitialized';
+$x = undef; $y = $$x;
+no warnings 'uninitialized' ;
+$u = undef; $v = $$u;
+EXPECT
+Use of uninitialized value $x in scalar dereference at - line 3.
+########
+# pp.c
+use warnings 'misc' ;
+my $a = { 1,2,3};
+no warnings 'misc' ;
+my $b = { 1,2,3};
+EXPECT
+Odd number of elements in anonymous hash at - line 3.
+########
+# pp.c
+use warnings 'misc' ;
+bless \[], "" ;
+no warnings 'misc' ;
+bless \[], "" ;
+EXPECT
+Explicit blessing to '' (assuming package main) at - line 3.
+########
+# pp.c
+use warnings 'misc';
+sub foo () { 1 }
+undef &foo;
+no warnings 'misc';
+sub bar () { 2 }
+undef &bar;
+EXPECT
+Constant subroutine foo undefined at - line 4.
+########
+# pp.c
+use utf8;
+use open qw( :utf8 :std );
+use warnings 'misc';
+sub ฝᶱ () { 1 }
+undef &ฝᶱ;
+no warnings 'misc';
+sub ƚ () { 2 }
+undef &ƚ;
+EXPECT
+Constant subroutine ฝᶱ undefined at - line 6.
+########
+# pp.c
+use warnings 'misc';
+$foo = sub () { 3 };
+undef &$foo;
+no warnings 'misc';
+$bar = sub () { 4 };
+undef &$bar;
+EXPECT
+Constant subroutine (anonymous) undefined at - line 4.
+########
+# pp.c
+use utf8 ;
+$_ = "\x80  \xff" ;
+reverse ;
+EXPECT
+########
+# NAME chr -1
+use warnings 'utf8';
+my $chr = chr(-1);
+EXPECT
+Invalid negative number (-1) in chr at - line 2.

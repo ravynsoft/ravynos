@@ -1,0 +1,421 @@
+=head1 NAME
+
+perlfaq9 - Web, Email and Networking
+
+=head1 VERSION
+
+version 5.20210520
+
+=head1 DESCRIPTION
+
+This section deals with questions related to running web sites,
+sending and receiving email as well as general networking.
+
+=head2 Should I use a web framework?
+
+Yes. If you are building a web site with any level of interactivity
+(forms / users / databases), you
+will want to use a framework to make handling requests
+and responses easier.
+
+If there is no interactivity then you may still want
+to look at using something like L<Template Toolkit|https://metacpan.org/module/Template>
+or L<Plack::Middleware::TemplateToolkit>
+so maintenance of your HTML files (and other assets) is easier.
+
+=head2 Which web framework should I use?
+X<framework> X<CGI.pm> X<CGI> X<Catalyst> X<Dancer>
+
+There is no simple answer to this question. Perl frameworks can run everything
+from basic file servers and small scale intranets to massive multinational
+multilingual websites that are the core to international businesses.
+
+Below is a list of a few frameworks with comments which might help you in
+making a decision, depending on your specific requirements. Start by reading
+the docs, then ask questions on the relevant mailing list or IRC channel.
+
+=over 4
+
+=item L<Catalyst>
+
+Strongly object-oriented and fully-featured with a long development history and
+a large community and addon ecosystem. It is excellent for large and complex
+applications, where you have full control over the server.
+
+=item L<Dancer2>
+
+Free of legacy weight, providing a lightweight and easy to learn API.
+Has a growing addon ecosystem. It is best used for smaller projects and
+very easy to learn for beginners.
+
+=item L<Mojolicious>
+
+Self-contained and powerful for both small and larger projects,
+with a focus on HTML5 and real-time web technologies such as WebSockets.
+
+=item L<Web::Simple>
+
+Strongly object-oriented and minimal, built for speed and intended
+as a toolkit for building micro web apps, custom frameworks or for tieing
+together existing Plack-compatible web applications with one central dispatcher.
+
+=back
+
+All of these interact with or use L<Plack> which is worth understanding
+the basics of when building a website in Perl (there is a lot of useful
+L<Plack::Middleware|https://metacpan.org/search?q=plack%3A%3Amiddleware>).
+
+=head2 What is Plack and PSGI?
+
+L<PSGI> is the Perl Web Server Gateway Interface Specification, it is
+a standard that many Perl web frameworks use, you should not need to
+understand it to build a web site, the part you might want to use is L<Plack>.
+
+L<Plack> is a set of tools for using the PSGI stack. It contains
+L<middleware|https://metacpan.org/search?q=plack%3A%3Amiddleware>
+components, a reference server and utilities for Web application frameworks.
+Plack is like Ruby's Rack or Python's Paste for WSGI.
+
+You could build a web site using L<Plack> and your own code,
+but for anything other than a very basic web site, using a web framework
+(that uses L<https://plackperl.org>) is a better option.
+
+=head2 How do I remove HTML from a string?
+
+Use L<HTML::Strip>, or L<HTML::FormatText> which not only removes HTML
+but also attempts to do a little simple formatting of the resulting
+plain text.
+
+=head2 How do I extract URLs?
+
+L<HTML::SimpleLinkExtor> will extract URLs from HTML, it handles anchors,
+images, objects, frames, and many other tags that can contain a URL.
+If you need anything more complex, you can create your own subclass of
+L<HTML::LinkExtor> or L<HTML::Parser>. You might even use
+L<HTML::SimpleLinkExtor> as an example for something specifically
+suited to your needs.
+
+You can use L<URI::Find> or L<URL::Search> to extract URLs from an
+arbitrary text document.
+
+=head2 How do I fetch an HTML file?
+
+(contributed by brian d foy)
+
+The core L<HTTP::Tiny> module can fetch web resources and give their
+content back to you as a string:
+
+    use HTTP::Tiny;
+
+    my $ua = HTTP::Tiny->new;
+    my $html = $ua->get( "http://www.example.com/index.html" )->{content};
+
+It can also store the resource directly in a file:
+
+    $ua->mirror( "http://www.example.com/index.html", "foo.html" );
+
+If you need to do something more complicated, the L<HTTP::Tiny> object can
+be customized by setting attributes, or you can use L<LWP::UserAgent> from
+the libwww-perl distribution or L<Mojo::UserAgent> from the Mojolicious
+distribution to make common tasks easier. If you want to simulate an
+interactive web browser, you can use the L<WWW::Mechanize> module.
+
+=head2 How do I automate an HTML form submission?
+
+If you are doing something complex, such as moving through many pages
+and forms or a web site, you can use L<WWW::Mechanize>. See its
+documentation for all the details.
+
+If you're submitting values using the GET method, create a URL and encode
+the form using the C<www_form_urlencode> method from L<HTTP::Tiny>:
+
+    use HTTP::Tiny;
+
+    my $ua = HTTP::Tiny->new;
+
+    my $query = $ua->www_form_urlencode([ q => 'DB_File', lucky => 1 ]);
+    my $url = "https://metacpan.org/search?$query";
+    my $content = $ua->get($url)->{content};
+
+If you're using the POST method, the C<post_form> method will encode the
+content appropriately.
+
+    use HTTP::Tiny;
+
+    my $ua = HTTP::Tiny->new;
+
+    my $url = 'https://metacpan.org/search';
+    my $form = [ q => 'DB_File', lucky => 1 ];
+    my $content = $ua->post_form($url, $form)->{content};
+
+=head2 How do I decode or create those %-encodings on the web?
+X<URI> X<URI::Escape> X<RFC 2396>
+
+Most of the time you should not need to do this as
+your web framework, or if you are making a request,
+the L<LWP> or other module would handle it for you.
+
+To encode a string yourself, use the L<URI::Escape> module. The C<uri_escape>
+function returns the escaped string:
+
+    my $original = "Colon : Hash # Percent %";
+
+    my $escaped = uri_escape( $original );
+
+    print "$escaped\n"; # 'Colon%20%3A%20Hash%20%23%20Percent%20%25'
+
+To decode the string, use the C<uri_unescape> function:
+
+    my $unescaped = uri_unescape( $escaped );
+
+    print $unescaped; # back to original
+
+Remember not to encode a full URI, you need to escape each
+component separately and then join them together.
+
+=head2 How do I redirect to another page?
+
+Most Perl Web Frameworks will have a mechanism for doing this,
+using the L<Catalyst> framework it would be:
+
+    $c->res->redirect($url);
+    $c->detach();
+
+If you are using Plack (which most frameworks do), then
+L<Plack::Middleware::Rewrite> is worth looking at if you
+are migrating from Apache or have URL's you want to always
+redirect.
+
+=head2 How do I put a password on my web pages?
+
+See if the web framework you are using has an
+authentication system and if that fits your needs.
+
+Alternativly look at L<Plack::Middleware::Auth::Basic>,
+or one of the other L<Plack authentication|https://metacpan.org/search?q=plack+auth>
+options.
+
+=head2 How do I make sure users can't enter values into a form that causes my CGI script to do bad things?
+
+(contributed by brian d foy)
+
+You can't prevent people from sending your script bad data. Even if
+you add some client-side checks, people may disable them or bypass
+them completely. For instance, someone might use a module such as
+L<LWP> to submit to your web site. If you want to prevent data that
+try to use SQL injection or other sorts of attacks (and you should
+want to), you have to not trust any data that enter your program.
+
+The L<perlsec> documentation has general advice about data security.
+If you are using the L<DBI> module, use placeholder to fill in data.
+If you are running external programs with C<system> or C<exec>, use
+the list forms. There are many other precautions that you should take,
+too many to list here, and most of them fall under the category of not
+using any data that you don't intend to use. Trust no one.
+
+=head2 How do I parse a mail header?
+
+Use the L<Email::MIME> module. It's well-tested and supports all the
+craziness that you'll see in the real world (comment-folding whitespace,
+encodings, comments, etc.).
+
+  use Email::MIME;
+
+  my $message = Email::MIME->new($rfc2822);
+  my $subject = $message->header('Subject');
+  my $from    = $message->header('From');
+
+If you've already got some other kind of email object, consider passing
+it to L<Email::Abstract> and then using its cast method to get an
+L<Email::MIME> object:
+
+  my $abstract = Email::Abstract->new($mail_message_object);
+  my $email_mime_object = $abstract->cast('Email::MIME');
+
+=head2 How do I check a valid mail address?
+
+(partly contributed by Aaron Sherman)
+
+This isn't as simple a question as it sounds. There are two parts:
+
+a) How do I verify that an email address is correctly formatted?
+
+b) How do I verify that an email address targets a valid recipient?
+
+Without sending mail to the address and seeing whether there's a human
+on the other end to answer you, you cannot fully answer part I<b>, but
+the L<Email::Valid> module will do both part I<a> and part I<b> as far
+as you can in real-time.
+
+Our best advice for verifying a person's mail address is to have them
+enter their address twice, just as you normally do to change a
+password. This usually weeds out typos. If both versions match, send
+mail to that address with a personal message. If you get the message
+back and they've followed your directions, you can be reasonably
+assured that it's real.
+
+A related strategy that's less open to forgery is to give them a PIN
+(personal ID number). Record the address and PIN (best that it be a
+random one) for later processing. In the mail you send, include a link to
+your site with the PIN included. If the mail bounces, you know it's not
+valid. If they don't click on the link, either they forged the address or
+(assuming they got the message) following through wasn't important so you
+don't need to worry about it.
+
+=head2 How do I decode a MIME/BASE64 string?
+
+The L<MIME::Base64> package handles this as well as the MIME/QP encoding.
+Decoding base 64 becomes as simple as:
+
+    use MIME::Base64;
+    my $decoded = decode_base64($encoded);
+
+The L<Email::MIME> module can decode base 64-encoded email message parts
+transparently so the developer doesn't need to worry about it.
+
+=head2 How do I find the user's mail address?
+
+Ask them for it. There are so many email providers available that it's
+unlikely the local system has any idea how to determine a user's email address.
+
+The exception is for organization-specific email (e.g. foo@yourcompany.com)
+where policy can be codified in your program. In that case, you could look at
+$ENV{USER}, $ENV{LOGNAME}, and getpwuid($<) in scalar context, like so:
+
+  my $user_name = getpwuid($<)
+
+But you still cannot make assumptions about whether this is correct, unless
+your policy says it is. You really are best off asking the user.
+
+=head2 How do I send email?
+
+Use the L<Email::Stuffer> module, like so:
+
+  # first, create your message
+  my $message = Email::Stuffer->from('you@example.com')
+                              ->to('friend@example.com')
+                              ->subject('Happy birthday!')
+                              ->text_body("Happy birthday to you!\n");
+
+  $message->send_or_die;
+
+By default, L<Email::Sender::Simple> (the C<send> and C<send_or_die> methods
+use this under the hood) will try C<sendmail> first, if it exists
+in your $PATH. This generally isn't the case. If there's a remote mail
+server you use to send mail, consider investigating one of the Transport
+classes. At time of writing, the available transports include:
+
+=over 4
+
+=item L<Email::Sender::Transport::Sendmail>
+
+This is the default. If you can use the L<mail(1)> or L<mailx(1)>
+program to send mail from the machine where your code runs, you should
+be able to use this.
+
+=item L<Email::Sender::Transport::SMTP>
+
+This transport contacts a remote SMTP server over TCP. It optionally
+uses TLS or SSL and can authenticate to the server via SASL.
+
+=back
+
+Telling L<Email::Stuffer> to use your transport is straightforward.
+
+  $message->transport($email_sender_transport_object)->send_or_die;
+
+=head2 How do I use MIME to make an attachment to a mail message?
+
+L<Email::MIME> directly supports multipart messages. L<Email::MIME>
+objects themselves are parts and can be attached to other L<Email::MIME>
+objects. Consult the L<Email::MIME> documentation for more information,
+including all of the supported methods and examples of their use.
+
+L<Email::Stuffer> uses L<Email::MIME> under the hood to construct
+messages, and wraps the most common attachment tasks with the simple
+C<attach> and C<attach_file> methods.
+
+  Email::Stuffer->to('friend@example.com')
+                ->subject('The file')
+                ->attach_file('stuff.csv')
+                ->send_or_die;
+
+=head2 How do I read email?
+
+Use the L<Email::Folder> module, like so:
+
+  use Email::Folder;
+
+  my $folder = Email::Folder->new('/path/to/email/folder');
+  while(my $message = $folder->next_message) {
+    # next_message returns Email::Simple objects, but we want
+    # Email::MIME objects as they're more robust
+    my $mime = Email::MIME->new($message->as_string);
+  }
+
+There are different classes in the L<Email::Folder> namespace for
+supporting various mailbox types. Note that these modules are generally
+rather limited and only support B<reading> rather than writing.
+
+=head2 How do I find out my hostname, domainname, or IP address?
+X<hostname, domainname, IP address, host, domain, hostfqdn, inet_ntoa,
+gethostbyname, Socket, Net::Domain, Sys::Hostname>
+
+(contributed by brian d foy)
+
+The L<Net::Domain> module, which is part of the Standard Library starting
+in Perl 5.7.3, can get you the fully qualified domain name (FQDN), the host
+name, or the domain name.
+
+    use Net::Domain qw(hostname hostfqdn hostdomain);
+
+    my $host = hostfqdn();
+
+The L<Sys::Hostname> module, part of the Standard Library, can also get the
+hostname:
+
+    use Sys::Hostname;
+
+    $host = hostname();
+
+
+The L<Sys::Hostname::Long> module takes a different approach and tries
+harder to return the fully qualified hostname:
+
+  use Sys::Hostname::Long 'hostname_long';
+
+  my $hostname = hostname_long();
+
+To get the IP address, you can use the C<gethostbyname> built-in function
+to turn the name into a number. To turn that number into the dotted octet
+form (a.b.c.d) that most people expect, use the C<inet_ntoa> function
+from the L<Socket> module, which also comes with perl.
+
+    use Socket;
+
+    my $address = inet_ntoa(
+        scalar gethostbyname( $host || 'localhost' )
+    );
+
+=head2 How do I fetch/put an (S)FTP file?
+
+L<Net::FTP>, and L<Net::SFTP> allow you to interact with FTP and SFTP (Secure
+FTP) servers.
+
+=head2 How can I do RPC in Perl?
+
+Use one of the RPC modules( L<https://metacpan.org/search?q=RPC> ).
+
+=head1 AUTHOR AND COPYRIGHT
+
+Copyright (c) 1997-2010 Tom Christiansen, Nathan Torkington, and
+other authors as noted. All rights reserved.
+
+This documentation is free; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+Irrespective of its distribution, all code examples in this file
+are hereby placed into the public domain. You are permitted and
+encouraged to use this code in your own programs for fun
+or for profit as you see fit. A simple comment in the code giving
+credit would be courteous but is not required.

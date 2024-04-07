@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+print "One\n";
+
+sub my_pass_args_to
+{
+    print "Two\n";
+}
+
+my_pass_args_to ("Arg1", "Capsula", "GreekHumor", "Socrates");
+
+print "Three\n";

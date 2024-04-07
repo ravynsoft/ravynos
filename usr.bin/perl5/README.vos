@@ -1,0 +1,123 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you
+see. It is written in the POD format (see pod/perlpod.pod) which is
+specially designed to be readable as is.
+
+=head1 NAME
+
+perlvos - Perl for Stratus OpenVOS
+
+=head1 SYNOPSIS
+
+This file contains notes for building perl on the Stratus OpenVOS
+operating system.  Perl is a scripting or macro language that is
+popular on many systems.  See L<perlbook> for a number of good books
+on Perl.
+
+These are instructions for building Perl from source.  This version of
+Perl requires the dynamic linking support that is found in OpenVOS
+Release 17.1 and thus is not supported on OpenVOS Release 17.0 or
+earlier releases.
+
+If you are running VOS Release 14.4.1 or later, you can obtain a
+pre-compiled, supported copy of perl by purchasing the GNU Tools
+product from Stratus Technologies.
+
+=head1 BUILDING PERL FOR OPENVOS
+
+To build perl from its source code on the Stratus V Series platform
+you must have OpenVOS Release 17.1.0 or later, GNU Tools Release
+3.5 or later, and the C/POSIX Runtime Libraries.
+
+Follow the normal instructions for building perl; e.g, enter bash, run
+the Configure script, then use "gmake" to build perl.
+
+=head1 INSTALLING PERL IN OPENVOS
+
+=over 4
+
+=item 1
+
+After you have built perl using the Configure script, ensure that you
+have modify and default write permission to C<< >system>ported >> and
+all subdirectories.  Then type
+
+     gmake install
+
+=item 2
+
+While there are currently no architecture-specific extensions or
+modules distributed with perl, the following directories can be
+used to hold such files (replace the string VERSION by the
+appropriate version number):
+
+     >system>ported>lib>perl5>VERSION>i786
+
+=item 3
+
+Site-specific perl extensions and modules can be installed in one of
+two places.  Put architecture-independent files into:
+
+     >system>ported>lib>perl5>site_perl>VERSION
+
+Put site-specific architecture-dependent files into one of the
+following directories:
+
+     >system>ported>lib>perl5>site_perl>VERSION>i786
+
+=item 4
+
+You can examine the @INC variable from within a perl program
+to see the order in which Perl searches these directories.
+
+=back
+
+=head1 USING PERL IN OPENVOS
+
+=head2 Restrictions of Perl on OpenVOS
+
+This port of Perl version 5 prefers Unix-style, slash-separated
+pathnames over OpenVOS-style greater-than-separated pathnames.
+OpenVOS-style pathnames should work in most contexts, but if you have
+trouble, replace all greater-than characters by slash characters.
+Because the slash character is used as a pathname delimiter, Perl
+cannot process OpenVOS pathnames containing a slash character in a
+directory or file name; these must be renamed.
+
+This port of Perl also uses Unix-epoch date values internally.
+As long as you are dealing with ASCII character string
+representations of dates, this should not be an issue.  The
+supported epoch is January 1, 1980 to January 17, 2038.
+
+See the file pod/perlport.pod for more information about the OpenVOS
+port of Perl.
+
+=head1 TEST STATUS
+
+A number of the perl self-tests fails for various reasons; generally
+these are minor and due to subtle differences between common
+POSIX-based environments and the OpenVOS POSIX environment.  Ensure
+that you conduct sufficient testing of your code to guarantee that it
+works properly in the OpenVOS environment.
+
+=head1 SUPPORT STATUS
+
+I'm offering this port "as is".  You can ask me questions, but I
+can't guarantee I'll be able to answer them.  There are some
+excellent books available on the Perl language; consult a book
+seller.
+
+If you want a supported version of perl for OpenVOS, purchase the
+OpenVOS GNU Tools product from Stratus Technologies, along with a
+support contract (or from anyone else who will sell you support).
+
+=head1 AUTHOR
+
+Paul Green (Paul.Green@stratus.com)
+
+=head1 LAST UPDATE
+
+February 28, 2013
+
+=cut

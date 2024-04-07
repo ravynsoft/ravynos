@@ -1,0 +1,86 @@
+Building for arm-linux
+----------------------
+
+The files in this directory add another cross-compilation
+target to the Perl buildsystem.  It was built as a part of
+the Open Zaurus (http://www.openzaurus.org/) distribution.
+Most / All of the arm compiler optimisations are "borrowed"
+from this excellent project.
+
+(Further discussion about cross-compiling Perl in the top level
+INSTALL file, see the section "Cross-compilation".)
+
+The main target is arm-linux but I have also managed to
+successfully cross-compile Perl for Solaris x86 using the same
+buildsystem.
+
+We are currently dependent on an existing working local copy of
+Perl ** of the same version and revision ** which is available
+as /usr/bin/perl. 
+
+You need a working and tested cross-compiler for your build
+and target combination.  The binary directory must be in
+your path.
+
+1)	You should be reading me (README) in perl-5.x.y/Cross
+
+2)	Make sure you are in the Cross directory.
+
+3)	Edit the file 'config' to contain your target platform information.
+
+4)	make patch	## This will patch the existing source-tree.
+5)	make perl	## Will make perl
+
+Your built Perl environment is in install_me_here/ in your build
+directory.  From here you can package and deploy as you wish.
+
+Omissions
+----------
+
+This does NOT perform any installation.
+
+Make test will NOT work.
+
+We do not provide documentation in the core,  man pages are not generated.
+
+Other Targets (For Developers)
+------------------------------
+
+It is possible to extend the cross-compilation to other targets.
+We have successfully compiled for the target solaris2.8/x86
+on linux/x86 build system.
+
+To attempt a cross-compile for another target using the methods
+in this directory:
+
+1)	Copy the Perl source code onto your TARGET machine.
+2)	Execute sh Configure as normal and configure as required,
+	do not "make".
+3)	Copy the config.sh file that is generated to your BUILD
+	machine and place it in the Cross directory with the
+	filename config.sh-ARCH-OS.  For example,
+	config.sh-i386-pc-solaris2.8.  For the appropriate ARCH
+	and OS please refer to your cross-compiler documentation.
+4)	Edit Cross/config to reflect your new target and continue
+	with build as above.
+
+Should you wish to produce optimised binaries for different
+architectures you can add the appropriate compiler flags to
+the Makefile in a new ifeq ($(ARCH),...) ... endif block.
+
+
+Please refer to your cross-compiler documentation for details.
+
+
+	Note that the Cross/ directory is also used by a different
+	cross-compilation setup described in the INSTALL file, and
+	executed by Configure.  There should be no conflicts since
+	it is unlikely both that cross-compilation setups are used
+	simultaneously.
+
+Enjoy!
+
+References
+----------
+Redvers Davies <red@criticalintegration.com>
+Open Zaurus http://www.openzaurus.org/

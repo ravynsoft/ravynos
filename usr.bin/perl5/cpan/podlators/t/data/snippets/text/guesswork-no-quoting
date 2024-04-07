@@ -1,0 +1,39 @@
+[name]
+Disable quoting guesswork
+
+[options]
+guesswork none
+
+[input]
+=head1 QUOTING
+
+Suppress quotes:
+C<"foo">,
+C<'foo'>,
+C<`foo`>,
+C<`foo'>
+
+All these should now be quoted:
+C<$#f>,
+C<$foo[4]>,
+C<$foo{bar}>,
+C<%foo>,
+C<@foo>,
+C<&foo>,
+C<*foo>,
+C<< $foo->("bar") >>,
+C<&foo::baz("bar")>,
+C<&foo()>,
+C<foo( "bar" )>,
+C<-1000>,
+C<132.123>,
+C<5e-7>,
+C<0xdeadbeef>
+
+[output]
+QUOTING
+    Suppress quotes: "foo", 'foo', `foo`, `foo'
+
+    All these should now be quoted: "$#f", "$foo[4]", "$foo{bar}", "%foo",
+    "@foo", "&foo", "*foo", "$foo->("bar")", "&foo::baz("bar")", "&foo()",
+    "foo( "bar" )", "-1000", "132.123", "5e-7", "0xdeadbeef"

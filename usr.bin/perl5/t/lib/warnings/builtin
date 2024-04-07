@@ -1,0 +1,123 @@
+  builtin.c     experimental warnings from builtin functions
+
+__END__
+# builtin.c - booleans
+use strict;
+use warnings qw(all -void);
+use builtin qw(is_bool true false);
+my ($is_bool, $true, $false) = (\&is_bool, \&true, \&false);
+is_bool(0);
+true;
+false;
+&is_bool(0);
+&true;
+&false;
+$is_bool->(0);
+$true->();
+$false->();
+no warnings 'experimental::builtin';
+is_bool(0);
+true;
+false;
+&is_bool(0);
+&true;
+&false;
+$is_bool->(0);
+$true->();
+$false->();
+EXPECT
+Built-in function 'builtin::is_bool' is experimental at - line 6.
+Built-in function 'builtin::true' is experimental at - line 7.
+Built-in function 'builtin::false' is experimental at - line 8.
+Built-in function 'builtin::is_bool' is experimental at - line 9.
+Built-in function 'builtin::true' is experimental at - line 10.
+Built-in function 'builtin::false' is experimental at - line 11.
+Built-in function 'builtin::is_bool' is experimental at - line 12.
+Built-in function 'builtin::true' is experimental at - line 13.
+Built-in function 'builtin::false' is experimental at - line 14.
+########
+# builtin.c - weakrefs
+use strict;
+use warnings qw(all -void);
+use builtin qw(weaken unweaken is_weak);
+my ($weaken, $unweaken, $is_weak) = (\&weaken, \&unweaken, \&is_weak);
+my $ref = [];
+is_weak($ref);
+weaken($ref);
+unweaken($ref);
+&is_weak($ref);
+&weaken($ref);
+&unweaken($ref);
+$is_weak->($ref);
+$weaken->($ref);
+$unweaken->($ref);
+no warnings 'experimental::builtin';
+is_weak($ref);
+weaken($ref);
+unweaken($ref);
+&is_weak($ref);
+&weaken($ref);
+&unweaken($ref);
+$is_weak->($ref);
+$weaken->($ref);
+$unweaken->($ref);
+EXPECT
+Built-in function 'builtin::is_weak' is experimental at - line 7.
+Built-in function 'builtin::weaken' is experimental at - line 8.
+Built-in function 'builtin::unweaken' is experimental at - line 9.
+Built-in function 'builtin::is_weak' is experimental at - line 10.
+Built-in function 'builtin::weaken' is experimental at - line 11.
+Built-in function 'builtin::unweaken' is experimental at - line 12.
+Built-in function 'builtin::is_weak' is experimental at - line 13.
+Built-in function 'builtin::weaken' is experimental at - line 14.
+Built-in function 'builtin::unweaken' is experimental at - line 15.
+########
+# builtin.c - blessed refs
+use strict;
+use warnings qw(all -void);
+use builtin qw(blessed refaddr reftype);
+my ($blessed, $refaddr, $reftype) = (\&blessed, \&refaddr, \&reftype);
+my $ref = [];
+blessed($ref);
+refaddr($ref);
+reftype($ref);
+&blessed($ref);
+&refaddr($ref);
+&reftype($ref);
+$blessed->($ref);
+$refaddr->($ref);
+$reftype->($ref);
+no warnings 'experimental::builtin';
+blessed($ref);
+refaddr($ref);
+reftype($ref);
+&blessed($ref);
+&refaddr($ref);
+&reftype($ref);
+$blessed->($ref);
+$refaddr->($ref);
+$reftype->($ref);
+EXPECT
+Built-in function 'builtin::blessed' is experimental at - line 7.
+Built-in function 'builtin::refaddr' is experimental at - line 8.
+Built-in function 'builtin::reftype' is experimental at - line 9.
+Built-in function 'builtin::blessed' is experimental at - line 10.
+Built-in function 'builtin::refaddr' is experimental at - line 11.
+Built-in function 'builtin::reftype' is experimental at - line 12.
+Built-in function 'builtin::blessed' is experimental at - line 13.
+Built-in function 'builtin::refaddr' is experimental at - line 14.
+Built-in function 'builtin::reftype' is experimental at - line 15.
+########
+# builtin.c - indexed
+use strict;
+use warnings qw(all);
+use builtin qw(indexed);
+my @array = indexed 1..3;
+my $scalar = indexed 1..3;
+indexed 1..3;
+EXPECT
+Built-in function 'builtin::indexed' is experimental at - line 5.
+Built-in function 'builtin::indexed' is experimental at - line 6.
+Built-in function 'builtin::indexed' is experimental at - line 7.
+Useless use of builtin::indexed in scalar context at - line 6.
+Useless use of builtin::indexed in void context at - line 7.

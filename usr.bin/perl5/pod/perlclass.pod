@@ -1,0 +1,310 @@
+=head1 NAME
+
+perlclass - Perl class syntax reference
+
+=head1 SYNOPSIS
+
+    use v5.38;
+    use feature 'class';
+
+    class My::Example 1.234 {
+        field $x;
+
+        ADJUST {
+            $x = "Hello, world";
+        }
+
+        method print_message {
+            say $x;
+        }
+    }
+
+    My::Example->new->print_message;
+
+=head1 DESCRIPTION
+
+This document describes the syntax of the Perl's C<class> feature, which
+provides native keywords supporting object-oriented programming paradigm.
+
+=head2 History
+
+Since Perl 5, support for objects revolved around the concept of I<blessing>
+references with a package name. Such reference could then be used to call
+subroutines from the package it was blessed with (or any of its parents). This
+system, while bare-bones, was flexible enough to allow creation of multiple
+more advanced, community-driven systems for object orientation.
+
+Class feature is a core implementation of class syntax which is familiar to
+what one would find in other programming languages. It isn't a C<bless>
+wrapper, but a completely new system built right into the perl interpreter.
+
+=head1 KEYWORDS
+
+Enabling the C<class> feature allows the usage of the following new keywords in
+the scope of current package:
+
+=head2 class
+
+    class NAME BLOCK
+
+    class NAME VERSION BLOCK
+
+    class NAME;
+
+    class NAME VERSION;
+
+The C<class> keyword declares a new package which is intended to be a class.
+All other keywords from the C<class> feature should be used in scope of this
+declaration.
+
+    class WithVersion 1.000 {
+        # class definition goes here
+    }
+
+Classes can be declared in either block or statement syntax. If a block is
+used, the body of the block contains the implementation of the class. If the
+statement form is used, the remainder of the file is used up until the next
+C<class> or C<package> statement.
+
+C<class> and C<package> declarations are similar, but classes automatically get
+a constructor named C<new> - You don't have to (and should not) write one.
+Additionally, in the class BLOCK you are allowed to declare fields and methods.
+
+=head2 field
+
+    field VARIABLE_NAME;
+
+    field VARIABLE_NAME = EXPR;
+
+    field VARIABLE_NAME : ATTRIBUTES;
+
+    field VARIABLE_NAME : ATTRIBUTES = EXPR;
+
+Fields are variables which are visible in the scope of the class - more
+specifically within L</method> and C<ADJUST> blocks. Each class instance get
+their own storage of fields, independent of each other.
+
+A field behaves like a normal lexically scoped variable. It has a sigil and is
+private to the class (though creation of an accessor method will make it
+accessible from the outside). The main difference is that different instances
+access different values in the same scope.
+
+    class WithFields {
+        field $scalar = 42;
+        field @array  = qw(this is just an array);
+        field %hash   = (species => 'Martian', planet => 'Mars');
+    }
+
+Fields may optionally have initializing expressions. If present, the expression
+will be evaluated within the constructor of each object instance. During each
+evaluation, the expression can use the value of any previously-set field, as
+well as see any other variables in scope.
+
+    class WithACounter {
+        my $next_count = 1;
+        field $count = $next_count++;
+    }
+
+When combined with the C<:param> field attribute, the defaulting expression can
+use any of the C<=>, C<//=> or C<||=> operators. Expressions using C<=> will
+apply whenever the caller did not pass the corresponding parameter to the
+constructor at all. Expressions using C<//=> will also apply if the caller did
+pass the parameter but the value was undefined, and expressions using C<||=>
+will apply if the value was false.
+
+=head2 method
+
+    method METHOD_NAME SIGNATURE BLOCK
+
+    method METHOD_NAME BLOCK
+
+    method SIGNATURE BLOCK
+
+    method BLOCK
+
+Methods are subroutines intended to be called in the context of class objects.
+
+A variable named C<$self> populated with the current object instance will
+automatically be created in the lexical scope of C<method>.
+
+Methods always act as if C<use feature 'signatures'> is in effect, but C<$self>
+will not appear in the arguments list as far as the signature is concerned.
+
+    class WithMethods {
+        field $greetings;
+
+        ADJUST {
+            $greetings = "Hello";
+        }
+
+        method greet($name = "someone") {
+            say "$greetings, $name";
+        }
+    }
+
+Just like regular subroutines, methods I<can> be anonymous:
+
+    class AnonMethodFactory {
+
+        method get_anon_method {
+            return method {
+                return 'this is an anonymous method';
+            };
+        }
+    }
+
+=head1 ATTRIBUTES
+
+Specific aspects of the keywords mentioned above are managed using
+I<attributes>. Attributes all start with a colon, and one or more of them can
+be appended after the item's name, separated by a space.
+
+=head2 Class attributes
+
+=head3 :isa
+
+Classes may inherit from B<one> superclass, by using the C<:isa> class
+attribute.
+
+    class Example::Base { ... }
+
+    class Example::Subclass :isa(Example::Base) { ... }
+
+Inherited methods are visible and may be invoked. Fields are always lexical
+and therefore not visible by inheritance.
+
+The C<:isa> attribute may request a minimum version of the base class; it is
+applied similar to C<use> - if the provided version is too low it will fail at
+compile time.
+
+    class Example::Subclass :isa(Example::Base 2.345) { ... }
+
+The C<:isa> attribute will attempt to C<require> the named module if it is not
+already loaded.
+
+=head2 Field attributes
+
+=head3 :param
+
+A scalar field with a C<:param> attribute will take its value from a named
+parameter passed to the constructor. By default the parameter will have the
+same name as the field (minus its leading C<$> sigil), but a different name
+can be specified in the attribute.
+
+    field $x :param;
+    field $y :param(the_y_value);
+
+If there is no defaulting expression then the parameter is required by the
+constructor; the caller must pass it or an exception is thrown. With a
+defaulting expression this becomes optional.
+
+=head2 Method attributes
+
+None yet.
+
+=head1 OBJECT LIFECYCLE
+
+=head2 Construction
+
+Each object begins its life with a constructor call. The constructor is always
+named C<new> and is invoked like a method call on the class name:
+
+    my $object = My::Class->new(%arguments);
+
+During the construction, class fields are compared to C<%arguments> hash and
+populated where possible.
+
+=head2 Adjustment
+
+Object adjustment can be performed during the construction to run user-defined
+code. It is done with the help of C<ADJUST> blocks, which are called in order
+of declaration.
+
+They are similar to C<BEGIN> blocks, which run during the compilation of a
+package. However, they also have access to C<$self> lexical (object instance)
+and all object fields created up to that point.
+
+=head2 Lifetime
+
+After the construction phase, object is ready to be used.
+
+Using C<blessed> (C<Scalar::Util::blessed> or C<builtin::blessed>) on the
+object will return the name of the class, while C<reftype>
+(C<Scalar::Util::reftype> or C<builtin::reftype>) will return the string
+C<'OBJECT'>.
+
+=head2 Destruction
+
+Just like with other references, when object reference count reaches zero it
+will automatically be destroyed.
+
+=head1 TODO
+
+This feature is still experimental and very incomplete. The following list
+gives some overview of the kinds of work still to be added or changed:
+
+=over 4
+
+=item * Roles
+
+Some syntax for declaring a role (likely a C<role> keyword), and for consuming
+a role into a class (likely a C<:does()> attribute).
+
+=item * Parameters to ADJUST blocks
+
+Some syntax for declaring that an C<ADJUST> block can consume named
+parameters, which become part of the class constructor's API. This might be
+inspired by a similar plan to add named arguments to subroutine signatures.
+
+    class X {
+        ADJUST (:$alpha, :$beta = 123) {
+           ...
+        }
+    }
+
+    my $obj = X->new(alpha => 456);
+
+=item * ADJUST blocks as true blocks
+
+Currently, every ADJUST block is wrapped in its own CV that gets invoked with
+the full ENTERSUB overhead. It should be possible to use the same mechanism
+that makes all field initializer expressions appear within the same CV on
+ADJUST blocks as well, merging them all into a single CV per class. This will
+make it faster to invoke if a class has more than one of them.
+
+=item * Accessor generator attributes
+
+Attributes to request that accessor methods be generated for fields. Likely
+C<:reader> and C<:writer>.
+
+    class X {
+        field $name :reader;
+    }
+
+Equivalent to
+
+    class X {
+        field $name;
+        method name { return $name; }
+    }
+
+=item * Metaprogramming
+
+An extension of the metaprogramming API (currently proposed by
+L<RFC0022|https://github.com/Perl/RFCs/pull/25>) which adds knowledge of
+classes, methods, fields, ADJUST blocks, and other such class-related details.
+
+=item * Extension Customisation
+
+Ways in which out-of-core modules can interact with the class system,
+including an ability for them to provide new class or field attributes.
+
+=back
+
+=head1 AUTHORS
+
+Paul Evans
+
+Bartosz Jarzyna
+
+=cut

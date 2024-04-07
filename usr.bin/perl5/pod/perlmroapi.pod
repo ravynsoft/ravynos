@@ -1,0 +1,107 @@
+=head1 NAME
+
+perlmroapi - Perl method resolution plugin interface
+
+=head1 DESCRIPTION
+
+As of Perl 5.10.1 there is a new interface for plugging and using method
+resolution orders other than the default (linear depth first search).
+The C3 method resolution order added in 5.10.0 has been re-implemented as
+a plugin, without changing its Perl-space interface.
+
+Each plugin should register itself by providing
+the following structure
+
+    struct mro_alg {
+        AV *(*resolve)(pTHX_ HV *stash, U32 level);
+        const char *name;
+        U16 length;
+        U16 kflags;
+        U32 hash;
+    };
+
+and calling C<Perl_mro_register>:
+
+    Perl_mro_register(aTHX_ &my_mro_alg);
+
+=over 4
+
+=item resolve
+
+Pointer to the linearisation function, described below.
+
+=item name
+
+Name of the MRO, either in ISO-8859-1 or UTF-8.
+
+=item length
+
+Length of the name.
+
+=item kflags
+
+If the name is given in UTF-8, set this to C<HVhek_UTF8>. The value is passed
+direct as the parameter I<kflags> to C<hv_common()>.
+
+=item hash
+
+A precomputed hash value for the MRO's name, or 0.
+
+=back
+
+=head1 Callbacks
+
+The C<resolve> function is called to generate a linearised ISA for the
+given stash, using this MRO. It is called with a pointer to the stash, and
+a I<level> of 0. The core always sets I<level> to 0 when it calls your
+function - the parameter is provided to allow your implementation to track
+depth if it needs to recurse.
+
+The function should return a reference to an array containing string SVs
+giving the names of parent classes in order. The names of the classes should
+be the result of calling C<HvENAME()> on the stash. In those cases where
+C<HvENAME()> returns null, C<HvNAME()> should be used instead.
+
+The caller is responsible for incrementing the reference count of the array
+returned if it wants to keep the structure. Hence, if you have created a
+temporary value that you keep no pointer to, C<sv_2mortal()> to ensure that
+it is disposed of correctly. If you have cached your return value, then
+return a pointer to it without changing the reference count.
+
+=head1 Caching
+
+Computing MROs can be expensive. The implementation provides a cache, in
+which you can store a single C<SV *>, or anything that can be cast to
+C<SV *>, such as C<AV *>. To read your private value, use the macro
+C<MRO_GET_PRIVATE_DATA()>, passing it the C<mro_meta> structure from the
+stash, and a pointer to your C<mro_alg> structure:
+
+    meta = HvMROMETA(stash);
+    private_sv = MRO_GET_PRIVATE_DATA(meta, &my_mro_alg);
+
+=for apidoc Amh|struct mro_meta *|HvMROMETA|HV *hv
+=for apidoc Amh|SV*|MRO_GET_PRIVATE_DATA|struct mro_meta *const smeta|const struct mro_alg *const which
+
+To set your private value, call C<Perl_mro_set_private_data()>:
+
+    Perl_mro_set_private_data(aTHX_ meta, &c3_alg, private_sv);
+
+=for apidoc mro_set_private_data
+
+The private data cache will take ownership of a reference to private_sv,
+much the same way that C<hv_store()> takes ownership of a reference to the
+value that you pass it.
+
+=head1 Examples
+
+For examples of MRO implementations, see C<S_mro_get_linear_isa_c3()>
+and the C<BOOT:> section of F<ext/mro/mro.xs>, and
+C<S_mro_get_linear_isa_dfs()> in F<mro_core.c>
+
+=head1 AUTHORS
+
+The implementation of the C3 MRO and switchable MROs within the perl core was
+written by Brandon L Black. Nicholas Clark created the pluggable interface, 
+refactored Brandon's implementation to work with it, and wrote this document.
+
+=cut

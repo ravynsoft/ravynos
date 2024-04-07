@@ -1,0 +1,24 @@
+[name]
+Magic for dollar strings
+
+[input]
+=head1 MAGIC MONEY
+
+These should be identical.
+
+Bippity boppity boo "The
+price is $Z<>100."
+
+Bippity boppity boo "The
+price is $100."
+
+[output]
+.SH "MAGIC MONEY"
+.IX Header "MAGIC MONEY"
+These should be identical.
+.PP
+Bippity boppity boo "The
+price is \f(CW$100\fR."
+.PP
+Bippity boppity boo "The
+price is \f(CW$100\fR."

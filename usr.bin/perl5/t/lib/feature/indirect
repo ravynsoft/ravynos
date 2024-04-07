@@ -1,0 +1,138 @@
+Test no feature indirect.
+
+__END__
+# NAME feature indirect
+use feature 'say';
+package Foo {
+  sub new { bless {}, shift }
+}
+# various indirect object look-alikes
+my $foox = "foox";
+print STDERR "Hello\n";
+printf STDERR "Test%s\n", "x";
+say STDERR "Hello";
+exec $foox "foo", "bar";
+system $foox "foo", "bar";
+my $x = new Foo;
+no feature "indirect";
+print STDERR "Hello\n";
+printf STDERR "Test%s\n", "x";
+say STDERR "Hello";
+exec $foox "foo", "bar";
+system $foox "foo", "bar";
+my $y = new Foo;
+EXPECT
+OPTIONS fatal
+Bareword found where operator expected (Do you need to predeclare "new"?) at - line 19, near "new Foo"
+syntax error at - line 19, near "new Foo"
+Execution of - aborted due to compilation errors.
+########
+# NAME METHOD BLOCK
+use feature 'say';
+package Foo {
+  sub new { bless {}, shift }
+}
+# make sure this works (either way)
+my $st = STDOUT;
+print { $st } "Foo\n";
+say { $st } "Foo";
+
+# make sure this continues to work by default
+my $class = "Foo";
+my $x = new { $class };
+
+use feature "indirect";
+
+# and with it explicitly enabled
+
+print { $st } "Foo\n";
+say { $st } "Foo";
+
+my $y = new { $class };
+
+
+no feature "indirect";
+
+# and only the indirect now fails
+print { $st } "Foo\n";
+say { $st } "Foo";
+my $z = new { $class };
+
+EXPECT
+OPTIONS fatal
+syntax error at - line 29, near "new { "
+Execution of - aborted due to compilation errors.
+########
+# NAME METHOD SCALAR
+use feature 'say';
+package Foo {
+  sub new { bless {}, shift }
+}
+# make sure this works (either way)
+my $st = STDOUT;
+print $st "Foo\n";
+say $st "Foo";
+
+# make sure this continues to work by default
+my $class = "Foo";
+my $x = new $class;
+
+use feature "indirect";
+
+# and with it explicitly enabled
+
+print $st "Foo\n";
+say $st "Foo";
+
+my $y = new $class;
+
+
+no feature "indirect";
+
+# and only the indirect now fails
+print $st "Foo\n";
+say $st "Foo";
+my $z = new $class;
+
+EXPECT
+OPTIONS fatal
+Scalar found where operator expected (Do you need to predeclare "new"?) at - line 29, near "new $class"
+syntax error at - line 29, near "new $class"
+Execution of - aborted due to compilation errors.
+########
+# NAME FUNCMETH SCALAR
+use feature 'say';
+package Foo {
+  sub new { bless {}, shift }
+}
+# make sure this works (either way)
+my $st = STDOUT;
+print $st ("Foo\n");
+say $st ("Foo");
+
+# make sure this continues to work by default
+my $class = "Foo";
+my $x = new $class ();
+
+use feature "indirect";
+
+# and with it explicitly enabled
+
+print $st ("Foo\n");
+say $st ("Foo");
+
+my $y = new $class ();
+
+
+no feature "indirect";
+
+# and only the indirect now fails
+print $st ("Foo\n");
+say $st ("Foo");
+my $z = new $class ();
+
+EXPECT
+OPTIONS fatal
+Scalar found where operator expected (Do you need to predeclare "new"?) at - line 29, near "new $class"
+syntax error at - line 29, near "new $class "
+Execution of - aborted due to compilation errors.

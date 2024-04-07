@@ -1,0 +1,971 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+=implementation
+
+use strict;
+
+BEGIN { require warnings if "$]" > '5.006' }
+
+# Disable broken TRIE-optimization
+BEGIN { eval '${^RE_TRIE_MAXBUF} = -1' if "$]" >= "5.009004" && "$]" <= "5.009005"}
+
+my $VERSION = __VERSION__;
+
+my %opt = (
+  quiet     => 0,
+  diag      => 1,
+  hints     => 1,
+  changes   => 1,
+  cplusplus => 0,
+  filter    => 1,
+  strip     => 0,
+  version   => 0,
+);
+
+my($ppport) = $0 =~ /([\w.]+)$/;
+my $LF = '(?:\r\n|[\r\n])';   # line feed
+my $HS = "[ \t]";             # horizontal whitespace
+
+# Never use C comments in this file!
+my $ccs  = '/'.'*';
+my $cce  = '*'.'/';
+my $rccs = quotemeta $ccs;
+my $rcce = quotemeta $cce;
+
+eval {
+  require Getopt::Long;
+  Getopt::Long::GetOptions(\%opt, qw(
+    help quiet diag! filter! hints! changes! cplusplus strip version
+    patch=s copy=s diff=s compat-version=s
+    list-provided list-unsupported api-info=s
+  )) or usage();
+};
+
+if ($@ and grep /^-/, @ARGV) {
+  usage() if "@ARGV" =~ /^--?h(?:elp)?$/;
+  die "Getopt::Long not found. Please don't use any options.\n";
+}
+
+if ($opt{version}) {
+  print "This is $0 $VERSION.\n";
+  exit 0;
+}
+
+usage() if $opt{help};
+strip() if $opt{strip};
+
+$opt{'compat-version'} = __MIN_PERL__ unless exists $opt{'compat-version'};
+$opt{'compat-version'} = int_parse_version($opt{'compat-version'});
+
+my $int_min_perl = int_parse_version(__MIN_PERL__);
+
+# Each element of this hash looks something like:
+# 'Poison' => {
+#                         'base' => '5.008000',
+#                         'provided' => 1,
+#                         'todo' => '5.003007'
+#             },
+my %API = map { /^(\w+)\|([^|]*)\|([^|]*)\|(\w*)$/
+                ? ( $1 => {
+                      ($2                  ? ( base     => $2 ) : ()),
+                      ($3                  ? ( todo     => $3 ) : ()),
+                      (index($4, 'v') >= 0 ? ( varargs  => 1  ) : ()),
+                      (index($4, 'p') >= 0 ? ( provided => 1  ) : ()),
+                      (index($4, 'n') >= 0 ? ( noTHXarg => 1  ) : ()),
+                      (index($4, 'c') >= 0 ? ( core_only    => 1  ) : ()),
+                      (index($4, 'd') >= 0 ? ( deprecated   => 1  ) : ()),
+                      (index($4, 'i') >= 0 ? ( inaccessible => 1  ) : ()),
+                      (index($4, 'x') >= 0 ? ( experimental => 1  ) : ()),
+                      (index($4, 'u') >= 0 ? ( undocumented => 1  ) : ()),
+                      (index($4, 'o') >= 0 ? ( ppport_fnc => 1  ) : ()),
+                      (index($4, 'V') >= 0 ? ( unverified => 1  ) : ()),
+                    } )
+                : die "invalid spec: $_" } qw(
+__ALL_ELEMENTS__
+);
+
+if (exists $opt{'list-unsupported'}) {
+  my $f;
+  for $f (sort dictionary_order keys %API) {
+    next if $API{$f}{core_only};
+    next if $API{$f}{beyond_depr};
+    next if $API{$f}{inaccessible};
+    next if $API{$f}{experimental};
+    next unless $API{$f}{todo};
+    next if int_parse_version($API{$f}{todo}) <= $int_min_perl;
+    my $repeat = 40 - length($f);
+    $repeat = 0 if $repeat < 0;
+    print "$f ", '.'x $repeat, " ", format_version($API{$f}{todo}), "\n";
+  }
+  exit 0;
+}
+
+# Scan for hints, possible replacement candidates, etc.
+
+my(%replace, %need, %hints, %warnings, %depends);
+my $replace = 0;
+my($hint, $define, $function);
+
+sub find_api
+{
+  BEGIN { 'warnings'->unimport('uninitialized') if "$]" > '5.006' }
+  my $code = shift;
+  $code =~ s{
+    / (?: \*[^*]*\*+(?:[^$ccs][^*]*\*+)* / | /[^\r\n]*)
+  | "[^"\\]*(?:\\.[^"\\]*)*"
+  | '[^'\\]*(?:\\.[^'\\]*)*' }{}egsx;
+  grep { exists $API{$_} } $code =~ /(\w+)/mg;
+}
+
+while (<DATA>) {
+  if ($hint) {
+
+    # Here, we are in the middle of accumulating a hint or warning.
+    my $end_of_hint = 0;
+
+    # A line containing a comment end marker closes the hint.  Remove that
+    # marker for processing below.
+    if (s/\s*$rcce(.*?)\s*$//) {
+        die "Nothing can follow the end of comment in '$_'\n" if length $1 > 0;
+        $end_of_hint = 1;
+    }
+
+    # Set $h to the hash of which type.
+    my $h = $hint->[0] eq 'Hint' ? \%hints : \%warnings;
+
+    # Ignore any leading and trailing white space, and an optional star comment
+    # continuation marker, then place the meat of the line into $1
+    m/^\s*(?:\*\s*)?(.*?)\s*$/;
+
+    # Add the meat of this line to the hash value of each API element it
+    # applies to
+    for (@{$hint->[1]}) {
+      $h->{$_} ||= '';  # avoid the warning older perls generate
+      $h->{$_} .= "$1\n";
+    }
+
+    # If the line had a comment close, we are through with this hint
+    undef $hint if $end_of_hint;
+
+    next;
+  }
+
+  # Set up $hint if this is the beginning of a Hint: or Warning:
+  # These are from a multi-line C comment in the file, with the first line
+  # looking like (a space has been inserted because this file can't have C
+  # comment markers in it):
+  #   / * Warning: PL_expect, PL_copline, PL_rsfp
+  #
+  # $hint becomes
+  #     [
+  #      'Warning',
+  #                [
+  #                  'PL_expect',
+  #                  'PL_copline',
+  #                  'PL_rsfp',
+  #                ],
+  #     ]
+  if (m{^\s*$rccs\s+(Hint|Warning):\s+(\w+(?:,?\s+\w+)*)\s*$}) {
+      $hint = [$1, [split /,?\s+/, $2]];
+      next;
+  }
+
+  if ($define) { # If in the middle of a definition...
+
+    # append a continuation line ending with backslash.
+    if ($define->[1] =~ /\\$/) {
+      $define->[1] .= $_;
+    }
+    else {  # Otherwise this line ends the definition, make foo depend on bar
+            # (and what bar depends on) if its not one of ppp's own constructs
+      if (exists $API{$define->[0]} && $define->[1] !~ /^DPPP_\(/) {
+        my @n = find_api($define->[1]);
+        push @{$depends{$define->[0]}}, @n if @n
+      }
+      undef $define;
+    }
+  }
+
+  # For '#define foo bar' or '#define foo(a,b,c) bar', $define becomes a
+  # reference to [ foo, bar ]
+  $define = [$1, $2] if m{^\s*#\s*define\s+(\w+)(?:\([^)]*\))?\s+(.*)};
+
+  if ($function) {
+    if (/^}/) {
+      if (exists $API{$function->[0]}) {
+        my @n = find_api($function->[1]);
+        push @{$depends{$function->[0]}}, @n if @n
+      }
+      undef $function;
+    }
+    else {
+      $function->[1] .= $_;
+    }
+  }
+
+  $function = [$1, ''] if m{^DPPP_\(my_(\w+)\)};
+
+  # Set $replace to the number given for lines that look like
+  # / * Replace: \d+ * /
+  # Thus setting it to 1 starts a region where replacements are automatically
+  # done, and setting it to 0 ends that region.
+  $replace     = $1 if m{^\s*$rccs\s+Replace:\s+(\d+)\s+$rcce\s*$};
+
+  # Add bar => foo to %replace  for lines like '#define foo bar in a region
+  # where $replace is non-zero
+  $replace{$2} = $1 if $replace and m{^\s*#\s*define\s+(\w+)(?:\([^)]*\))?\s+(\w+)};
+
+  # Add bar => foo to %replace for lines like '#define foo bar  / * Replace * /
+  $replace{$2} = $1 if m{^\s*#\s*define\s+(\w+)(?:\([^)]*\))?\s+(\w+).*$rccs\s+Replace\s+$rcce};
+
+  # Add foo => bar to %replace for lines like / * Replace foo with bar * /
+  $replace{$1} = $2 if m{^\s*$rccs\s+Replace (\w+) with (\w+.*?)\s+$rcce\s*$};
+
+  # For lines like / * foo, bar depends on baz, bat * /
+  # create a list of the elements on the rhs, and make that list apply to each
+  # element in the lhs, which becomes a key in \%depends.
+  if (m{^\s*$rccs\s+(\w+(\s*,\s*\w+)*)\s+depends\s+on\s+(\w+(\s*,\s*\w+)*)\s+$rcce\s*$}) {
+    my @deps = map { s/\s+//g; $_ } split /,/, $3;
+    my $d;
+    for $d (map { s/\s+//g; $_ } split /,/, $1) {
+      push @{$depends{$d}}, @deps;
+    }
+  }
+
+  $need{$1} = 1 if m{^#if\s+defined\(NEED_(\w+)(?:_GLOBAL)?\)};
+}
+
+for (values %depends) {
+  my %seen;
+  $_ = [sort dictionary_order grep !$seen{$_}++, @$_];
+}
+
+if (exists $opt{'api-info'}) {
+  my $f;
+  my $count = 0;
+  my $match = $opt{'api-info'} =~ m!^/(.*)/$! ? $1 : "^\Q$opt{'api-info'}\E\$";
+
+  # Sort the names, and split into two classes; one for things that are part of
+  # the API; a second for things that aren't.
+  my @ok_to_use;
+  my @shouldnt_use;
+  for $f (sort dictionary_order keys %API) {
+    next unless $f =~ /$match/;
+    my $base = int_parse_version($API{$f}{base}) if $API{$f}{base};
+    if ($base && ! $API{$f}{inaccessible} && ! $API{$f}{core_only}) {
+        push @ok_to_use, $f;
+    }
+    else {
+        push @shouldnt_use, $f;
+    }
+  }
+
+  # We normally suppress non-API items.  But if the search matched no API
+  # items, output the non-ones.  This allows someone to get the info for an
+  # item if they ask for it specifically enough, but doesn't normally clutter
+  # the output with irrelevant results.
+  @ok_to_use = @shouldnt_use unless @ok_to_use;
+
+  for $f (@ok_to_use) {
+    print "\n=== $f ===\n";
+    my $info = 0;
+    my $base;
+    $base = int_parse_version($API{$f}{base}) if $API{$f}{base};
+    my $todo;
+    $todo = int_parse_version($API{$f}{todo}) if $API{$f}{todo};
+
+    # Output information
+    if ($base) {
+        my $with_or= "";
+        if (    $base <= $int_min_perl
+            || (   (! $API{$f}{provided} && ! $todo)
+                || ($todo && $todo >= $base)))
+        {
+            $with_or= " with or";
+        }
+
+        my $Supported = ($API{$f}{undocumented}) ? 'Available' : 'Supported';
+        print "\n$Supported at least since perl-",
+              format_version($base), ",$with_or without $ppport.";
+        if ($API{$f}{unverified}) {
+            print "\nThis information is based on inspection of the source code",
+                  " and has not been\n",
+                  "verified by successful compilation.";
+        }
+        print "\n";
+        $info++;
+     }
+     if ($API{$f}{provided} || $todo) {
+        print "\nThis is only supported by $ppport, and NOT by perl versions going forward.\n" unless $base;
+        if ($todo) {
+            if (! $base || $todo < $base) {
+                my $additionally = "";
+                $additionally .= " additionally" if $base;
+                print "$ppport$additionally provides support at least back to perl-",
+                    format_version($todo),
+                    ".\n";
+            }
+        }
+        elsif (! $base || $base > $int_min_perl) {
+            if (exists $depends{$f}) {
+                my $max = 0;
+                for (@{$depends{$f}}) {
+                    $max = int_parse_version($API{$_}{todo}) if $API{$_}{todo} && $API{$_}{todo} > $max;
+                    # XXX What to assume unspecified values are?  This effectively makes them MIN_PERL
+                }
+                $todo = $max if $max;
+            }
+            print "\n$ppport provides support for this, but ironically, does not",
+                  " currently know,\n",
+                  "for this report, the minimum version it supports for this";
+            if ($API{$f}{undocumented}) {
+                print " and many things\n",
+                      "it provides that are implemented as macros and aren't",
+                      " documented.  You can\n",
+                      "help by submitting a documentation patch";
+            }
+            print ".\n";
+            if ($todo) {
+                if ($todo <= $int_min_perl) {
+                    print "It may very well be supported all the way back to ",
+                          format_version(__MIN_PERL__), ".\n";
+                }
+                else {
+                    print "But given the things $f depends on, it's a good",
+                          " guess that it isn't\n",
+                          "supported prior to ", format_version($todo), ".\n";
+                }
+            }
+        }
+    }
+    if ($API{$f}{provided}) {
+      print "Support needs to be explicitly requested by #define NEED_$f\n",
+            "(or #define NEED_${f}_GLOBAL).\n"              if exists $need{$f};
+      $info++;
+    }
+
+    if ($base || ! $API{$f}{ppport_fnc}) {
+      my $email = "Send email to perl5-porters\@perl.org if you need to have this functionality.\n";
+      if ($API{$f}{inaccessible}) {
+        print "\nThis is not part of the public API, and may not even be accessible to XS code.\n";
+        $info++;
+      }
+      elsif ($API{$f}{core_only}) {
+        print "\nThis is not part of the public API, and should not be used by XS code.\n";
+        $info++;
+      }
+      elsif ($API{$f}{deprecated}) {
+        print "\nThis is deprecated and should not be used.  Convert existing uses.\n";
+        $info++;
+      }
+      elsif ($API{$f}{experimental}) {
+        print "\nThe API for this is unstable and should not be used by XS code.\n", $email;
+        $info++;
+      }
+      elsif ($API{$f}{undocumented}) {
+        print "\nSince this is undocumented, the API should be considered unstable.\n";
+        if ($API{$f}{provided}) {
+            print "Consider bringing this up on the list: perl5-porters\@perl.org.\n";
+        }
+        else {
+            print "It may be that this is not intended for XS use, or it may just be\n",
+                  "that no one has gotten around to documenting it.\n", $email;
+        }
+        $info++;
+      }
+      unless ($info) {
+        print "No portability information available.  Check your spelling; or",
+              " this could be\na bug in Devel::PPPort.  To report an issue:\n",
+              "https://github.com/Dual-Life/Devel-PPPort/issues/new\n";
+      }
+    }
+
+    print "\nDepends on: ", join(', ', @{$depends{$f}}), ".\n"
+                                                         if exists $depends{$f};
+    if (exists $hints{$f} || exists $warnings{$f}) {
+      print "\n$hints{$f}" if exists $hints{$f};
+      print "\nWARNING:\n$warnings{$f}" if exists $warnings{$f};
+      $info++;
+    }
+    $count++;
+  }
+
+  $count or print "\nFound no API matching '$opt{'api-info'}'.";
+  print "\n";
+  exit 0;
+}
+
+if (exists $opt{'list-provided'}) {
+  my $f;
+  for $f (sort dictionary_order keys %API) {
+    next unless $API{$f}{provided};
+    my @flags;
+    push @flags, 'explicit' if exists $need{$f};
+    push @flags, 'depend'   if exists $depends{$f};
+    push @flags, 'hint'     if exists $hints{$f};
+    push @flags, 'warning'  if exists $warnings{$f};
+    my $flags = @flags ? '  ['.join(', ', @flags).']' : '';
+    print "$f$flags\n";
+  }
+  exit 0;
+}
+
+my @files;
+my @srcext = qw( .xs .c .h .cc .cpp -c.inc -xs.inc );
+my $srcext = join '|', map { quotemeta $_ } @srcext;
+
+if (@ARGV) {
+  my %seen;
+  for (@ARGV) {
+    if (-e) {
+      if (-f) {
+        push @files, $_ unless $seen{$_}++;
+      }
+      else { warn "'$_' is not a file.\n" }
+    }
+    else {
+      my @new = grep { -f } glob $_
+          or warn "'$_' does not exist.\n";
+      push @files, grep { !$seen{$_}++ } @new;
+    }
+  }
+}
+else {
+  eval {
+    require File::Find;
+    File::Find::find(sub {
+      $File::Find::name =~ /($srcext)$/i
+          and push @files, $File::Find::name;
+    }, '.');
+  };
+  if ($@) {
+    @files = map { glob "*$_" } @srcext;
+  }
+}
+
+if (!@ARGV || $opt{filter}) {
+  my(@in, @out);
+  my %xsc = map { /(.*)\.xs$/ ? ("$1.c" => 1, "$1.cc" => 1) : () } @files;
+  for (@files) {
+    my $out = exists $xsc{$_} || /\b\Q$ppport\E$/i || !/($srcext)$/i;
+    push @{ $out ? \@out : \@in }, $_;
+  }
+  if (@ARGV && @out) {
+    warning("Skipping the following files (use --nofilter to avoid this):\n| ", join "\n| ", @out);
+  }
+  @files = @in;
+}
+
+die "No input files given!\n" unless @files;
+
+my(%files, %global, %revreplace);
+%revreplace = reverse %replace;
+my $filename;
+my $patch_opened = 0;
+
+for $filename (@files) {
+  unless (open IN, "<$filename") {
+    warn "Unable to read from $filename: $!\n";
+    next;
+  }
+
+  info("Scanning $filename ...");
+
+  my $c = do { local $/; <IN> };
+  close IN;
+
+  my %file = (orig => $c, changes => 0);
+
+  # Temporarily remove C/XS comments and strings from the code
+  my @ccom;
+
+  $c =~ s{
+    ( ^$HS*\#$HS*include\b[^\r\n]+\b(?:\Q$ppport\E|XSUB\.h)\b[^\r\n]*
+    | ^$HS*\#$HS*(?:define|elif|if(?:def)?)\b[^\r\n]* )
+  | ( ^$HS*\#[^\r\n]*
+    | "[^"\\]*(?:\\.[^"\\]*)*"
+    | '[^'\\]*(?:\\.[^'\\]*)*'
+    | / (?: \*[^*]*\*+(?:[^$ccs][^*]*\*+)* / | /[^\r\n]* ) )
+  }{ defined $2 and push @ccom, $2;
+     defined $1 ? $1 : "$ccs$#ccom$cce" }mgsex;
+
+  $file{ccom} = \@ccom;
+  $file{code} = $c;
+  $file{has_inc_ppport} = $c =~ /^$HS*#$HS*include[^\r\n]+\b\Q$ppport\E\b/m;
+
+  my $func;
+
+  for $func (keys %API) {
+    my $match = $func;
+    $match .= "|$revreplace{$func}" if exists $revreplace{$func};
+    if ($c =~ /\b(?:Perl_)?($match)\b/) {
+      $file{uses_replace}{$1}++ if exists $revreplace{$func} && $1 eq $revreplace{$func};
+      $file{uses_Perl}{$func}++ if $c =~ /\bPerl_$func\b/;
+      if (exists $API{$func}{provided}) {
+        $file{uses_provided}{$func}++;
+        if ( ! exists $API{$func}{base}
+            || int_parse_version($API{$func}{base}) > $opt{'compat-version'})
+        {
+          $file{uses}{$func}++;
+          my @deps = rec_depend($func);
+          if (@deps) {
+            $file{uses_deps}{$func} = \@deps;
+            for (@deps) {
+              $file{uses}{$_} = 0 unless exists $file{uses}{$_};
+            }
+          }
+          for ($func, @deps) {
+            $file{needs}{$_} = 'static' if exists $need{$_};
+          }
+        }
+      }
+      if (   exists $API{$func}{todo}
+          && int_parse_version($API{$func}{todo}) > $opt{'compat-version'})
+      {
+        if ($c =~ /\b$func\b/) {
+          $file{uses_todo}{$func}++;
+        }
+      }
+    }
+  }
+
+  while ($c =~ /^$HS*#$HS*define$HS+(NEED_(\w+?)(_GLOBAL)?)\b/mg) {
+    if (exists $need{$2}) {
+      $file{defined $3 ? 'needed_global' : 'needed_static'}{$2}++;
+    }
+    else { warning("Possibly wrong #define $1 in $filename") }
+  }
+
+  for (qw(uses needs uses_todo needed_global needed_static)) {
+    for $func (keys %{$file{$_}}) {
+      push @{$global{$_}{$func}}, $filename;
+    }
+  }
+
+  $files{$filename} = \%file;
+}
+
+# Globally resolve NEED_'s
+my $need;
+for $need (keys %{$global{needs}}) {
+  if (@{$global{needs}{$need}} > 1) {
+    my @targets = @{$global{needs}{$need}};
+    my @t = grep $files{$_}{needed_global}{$need}, @targets;
+    @targets = @t if @t;
+    @t = grep /\.xs$/i, @targets;
+    @targets = @t if @t;
+    my $target = shift @targets;
+    $files{$target}{needs}{$need} = 'global';
+    for (@{$global{needs}{$need}}) {
+      $files{$_}{needs}{$need} = 'extern' if $_ ne $target;
+    }
+  }
+}
+
+for $filename (@files) {
+  exists $files{$filename} or next;
+
+  info("=== Analyzing $filename ===");
+
+  my %file = %{$files{$filename}};
+  my $func;
+  my $c = $file{code};
+  my $warnings = 0;
+
+  for $func (sort dictionary_order keys %{$file{uses_Perl}}) {
+    if ($API{$func}{varargs}) {
+      unless ($API{$func}{noTHXarg}) {
+        my $changes = ($c =~ s{\b(Perl_$func\s*\(\s*)(?!aTHX_?)(\)|[^\s)]*\))}
+                              { $1 . ($2 eq ')' ? 'aTHX' : 'aTHX_ ') . $2 }ge);
+        if ($changes) {
+          warning("Doesn't pass interpreter argument aTHX to Perl_$func");
+          $file{changes} += $changes;
+        }
+      }
+    }
+    else {
+      warning("Uses Perl_$func instead of $func");
+      $file{changes} += ($c =~ s{\bPerl_$func(\s*)\((\s*aTHX_?)?\s*}
+                                {$func$1(}g);
+    }
+  }
+
+  for $func (sort dictionary_order keys %{$file{uses_replace}}) {
+    warning("Uses $func instead of $replace{$func}");
+    $file{changes} += ($c =~ s/\b$func\b/$replace{$func}/g);
+  }
+
+  for $func (sort dictionary_order keys %{$file{uses_provided}}) {
+    if ($file{uses}{$func}) {
+      if (exists $file{uses_deps}{$func}) {
+        diag("Uses $func, which depends on ", join(', ', @{$file{uses_deps}{$func}}));
+      }
+      else {
+        diag("Uses $func");
+      }
+    }
+    $warnings += (hint($func) || 0);
+  }
+
+  unless ($opt{quiet}) {
+    for $func (sort dictionary_order keys %{$file{uses_todo}}) {
+      next if int_parse_version($API{$func}{todo}) <= $int_min_perl;
+      print "*** WARNING: Uses $func, which may not be portable below perl ",
+            format_version($API{$func}{todo}), ", even with '$ppport'\n";
+      $warnings++;
+    }
+  }
+
+  for $func (sort dictionary_order keys %{$file{needed_static}}) {
+    my $message = '';
+    if (not exists $file{uses}{$func}) {
+      $message = "No need to define NEED_$func if $func is never used";
+    }
+    elsif (exists $file{needs}{$func} && $file{needs}{$func} ne 'static') {
+      $message = "No need to define NEED_$func when already needed globally";
+    }
+    if ($message) {
+      diag($message);
+      $file{changes} += ($c =~ s/^$HS*#$HS*define$HS+NEED_$func\b.*$LF//mg);
+    }
+  }
+
+  for $func (sort dictionary_order keys %{$file{needed_global}}) {
+    my $message = '';
+    if (not exists $global{uses}{$func}) {
+      $message = "No need to define NEED_${func}_GLOBAL if $func is never used";
+    }
+    elsif (exists $file{needs}{$func}) {
+      if ($file{needs}{$func} eq 'extern') {
+        $message = "No need to define NEED_${func}_GLOBAL when already needed globally";
+      }
+      elsif ($file{needs}{$func} eq 'static') {
+        $message = "No need to define NEED_${func}_GLOBAL when only used in this file";
+      }
+    }
+    if ($message) {
+      diag($message);
+      $file{changes} += ($c =~ s/^$HS*#$HS*define$HS+NEED_${func}_GLOBAL\b.*$LF//mg);
+    }
+  }
+
+  $file{needs_inc_ppport} = keys %{$file{uses}};
+
+  if ($file{needs_inc_ppport}) {
+    my $pp = '';
+
+    for $func (sort dictionary_order keys %{$file{needs}}) {
+      my $type = $file{needs}{$func};
+      next if $type eq 'extern';
+      my $suffix = $type eq 'global' ? '_GLOBAL' : '';
+      unless (exists $file{"needed_$type"}{$func}) {
+        if ($type eq 'global') {
+          diag("Files [@{$global{needs}{$func}}] need $func, adding global request");
+        }
+        else {
+          diag("File needs $func, adding static request");
+        }
+        $pp .= "#define NEED_$func$suffix\n";
+      }
+    }
+
+    if ($pp && ($c =~ s/^(?=$HS*#$HS*define$HS+NEED_\w+)/$pp/m)) {
+      $pp = '';
+      $file{changes}++;
+    }
+
+    unless ($file{has_inc_ppport}) {
+      diag("Needs to include '$ppport'");
+      $pp .= qq(#include "$ppport"\n)
+    }
+
+    if ($pp) {
+      $file{changes} += ($c =~ s/^($HS*#$HS*define$HS+NEED_\w+.*?)^/$1$pp/ms)
+                     || ($c =~ s/^(?=$HS*#$HS*include.*\Q$ppport\E)/$pp/m)
+                     || ($c =~ s/^($HS*#$HS*include.*XSUB.*\s*?)^/$1$pp/m)
+                     || ($c =~ s/^/$pp/);
+    }
+  }
+  else {
+    if ($file{has_inc_ppport}) {
+      diag("No need to include '$ppport'");
+      $file{changes} += ($c =~ s/^$HS*?#$HS*include.*\Q$ppport\E.*?$LF//m);
+    }
+  }
+
+  # put back in our C comments
+  my $ix;
+  my $cppc = 0;
+  my @ccom = @{$file{ccom}};
+  for $ix (0 .. $#ccom) {
+    if (!$opt{cplusplus} && $ccom[$ix] =~ s!^//!!) {
+      $cppc++;
+      $file{changes} += $c =~ s/$rccs$ix$rcce/$ccs$ccom[$ix] $cce/;
+    }
+    else {
+      $c =~ s/$rccs$ix$rcce/$ccom[$ix]/;
+    }
+  }
+
+  if ($cppc) {
+    my $s = $cppc != 1 ? 's' : '';
+    warning("Uses $cppc C++ style comment$s, which is not portable");
+  }
+
+  my $s = $warnings != 1 ? 's' : '';
+  my $warn = $warnings ? " ($warnings warning$s)" : '';
+  info("Analysis completed$warn");
+
+  if ($file{changes}) {
+    if (exists $opt{copy}) {
+      my $newfile = "$filename$opt{copy}";
+      if (-e $newfile) {
+        error("'$newfile' already exists, refusing to write copy of '$filename'");
+      }
+      else {
+        local *F;
+        if (open F, ">$newfile") {
+          info("Writing copy of '$filename' with changes to '$newfile'");
+          print F $c;
+          close F;
+        }
+        else {
+          error("Cannot open '$newfile' for writing: $!");
+        }
+      }
+    }
+    elsif (exists $opt{patch} || $opt{changes}) {
+      if (exists $opt{patch}) {
+        unless ($patch_opened) {
+          if (open PATCH, ">$opt{patch}") {
+            $patch_opened = 1;
+          }
+          else {
+            error("Cannot open '$opt{patch}' for writing: $!");
+            delete $opt{patch};
+            $opt{changes} = 1;
+            goto fallback;
+          }
+        }
+        mydiff(\*PATCH, $filename, $c);
+      }
+      else {
+fallback:
+        info("Suggested changes:");
+        mydiff(\*STDOUT, $filename, $c);
+      }
+    }
+    else {
+      my $s = $file{changes} == 1 ? '' : 's';
+      info("$file{changes} potentially required change$s detected");
+    }
+  }
+  else {
+    info("Looks good");
+  }
+}
+
+close PATCH if $patch_opened;
+
+exit 0;
+
+#######################################################################
+
+sub try_use { eval "use @_;"; return $@ eq '' }
+
+sub mydiff
+{
+  local *F = shift;
+  my($file, $str) = @_;
+  my $diff;
+
+  if (exists $opt{diff}) {
+    $diff = run_diff($opt{diff}, $file, $str);
+  }
+
+  if (!defined $diff and try_use('Text::Diff')) {
+    $diff = Text::Diff::diff($file, \$str, { STYLE => 'Unified' });
+    $diff = <<HEADER . $diff;
+--- $file
++++ $file.patched
+HEADER
+  }
+
+  if (!defined $diff) {
+    $diff = run_diff('diff -u', $file, $str);
+  }
+
+  if (!defined $diff) {
+    $diff = run_diff('diff', $file, $str);
+  }
+
+  if (!defined $diff) {
+    error("Cannot generate a diff. Please install Text::Diff or use --copy.");
+    return;
+  }
+
+  print F $diff;
+}
+
+sub run_diff
+{
+  my($prog, $file, $str) = @_;
+  my $tmp = 'dppptemp';
+  my $suf = 'aaa';
+  my $diff = '';
+  local *F;
+
+  while (-e "$tmp.$suf") { $suf++ }
+  $tmp = "$tmp.$suf";
+
+  if (open F, ">$tmp") {
+    print F $str;
+    close F;
+
+    if (open F, "$prog $file $tmp |") {
+      while (<F>) {
+        s/\Q$tmp\E/$file.patched/;
+        $diff .= $_;
+      }
+      close F;
+      unlink $tmp;
+      return $diff;
+    }
+
+    unlink $tmp;
+  }
+  else {
+    error("Cannot open '$tmp' for writing: $!");
+  }
+
+  return undef;
+}
+
+sub rec_depend
+{
+  my($func, $seen) = @_;
+  return () unless exists $depends{$func};
+  $seen = {%{$seen||{}}};
+  return () if $seen->{$func}++;
+  my %s;
+  grep !$s{$_}++, map { ($_, rec_depend($_, $seen)) } @{$depends{$func}};
+}
+
+sub info
+{
+  $opt{quiet} and return;
+  print @_, "\n";
+}
+
+sub diag
+{
+  $opt{quiet} and return;
+  $opt{diag} and print @_, "\n";
+}
+
+sub warning
+{
+  $opt{quiet} and return;
+  print "*** ", @_, "\n";
+}
+
+sub error
+{
+  print "*** ERROR: ", @_, "\n";
+}
+
+my %given_hints;
+my %given_warnings;
+sub hint
+{
+  $opt{quiet} and return;
+  my $func = shift;
+  my $rv = 0;
+  if (exists $warnings{$func} && !$given_warnings{$func}++) {
+    my $warn = $warnings{$func};
+    $warn =~ s!^!*** !mg;
+    print "*** WARNING: $func\n", $warn;
+    $rv++;
+  }
+  if ($opt{hints} && exists $hints{$func} && !$given_hints{$func}++) {
+    my $hint = $hints{$func};
+    $hint =~ s/^/   /mg;
+    print "   --- hint for $func ---\n", $hint;
+  }
+  $rv || 0;
+}
+
+sub usage
+{
+  my($usage) = do { local(@ARGV,$/)=($0); <> } =~ /^=head\d$HS+SYNOPSIS\s*^(.*?)\s*^=/ms;
+  my %M = ( 'I' => '*' );
+  $usage =~ s/^\s*perl\s+\S+/$^X $0/;
+  $usage =~ s/([A-Z])<([^>]+)>/$M{$1}$2$M{$1}/g;
+
+  print <<ENDUSAGE;
+
+Usage: $usage
+
+See perldoc $0 for details.
+
+ENDUSAGE
+
+  exit 2;
+}
+
+sub strip
+{
+  my $self = do { local(@ARGV,$/)=($0); <> };
+  my($copy) = $self =~ /^=head\d\s+COPYRIGHT\s*^(.*?)^=\w+/ms;
+  $copy =~ s/^(?=\S+)/    /gms;
+  $self =~ s/^$HS+Do NOT edit.*?(?=^-)/$copy/ms;
+  $self =~ s/^SKIP.*(?=^__DATA__)/SKIP
+if (\@ARGV && \$ARGV[0] eq '--unstrip') {
+  eval { require Devel::PPPort };
+  \$@ and die "Cannot require Devel::PPPort, please install.\\n";
+  if (eval \$Devel::PPPort::VERSION < $VERSION) {
+    die "$0 was originally generated with Devel::PPPort $VERSION.\\n"
+      . "Your Devel::PPPort is only version \$Devel::PPPort::VERSION.\\n"
+      . "Please install a newer version, or --unstrip will not work.\\n";
+  }
+  Devel::PPPort::WriteFile(\$0);
+  exit 0;
+}
+print <<END;
+
+Sorry, but this is a stripped version of \$0.
+
+To be able to use its original script and doc functionality,
+please try to regenerate this file using:
+
+  \$^X \$0 --unstrip
+
+END
+/ms;
+  my($pl, $c) = $self =~ /(.*^__DATA__)(.*)/ms;
+  $c =~ s{
+    / (?: \*[^*]*\*+(?:[^$ccs][^*]*\*+)* / | /[^\r\n]*)
+  | ( "[^"\\]*(?:\\.[^"\\]*)*"
+    | '[^'\\]*(?:\\.[^'\\]*)*' )
+  | ($HS+) }{ defined $2 ? ' ' : ($1 || '') }gsex;
+  $c =~ s!\s+$!!mg;
+  $c =~ s!^$LF!!mg;
+  $c =~ s!^\s*#\s*!#!mg;
+  $c =~ s!^\s+!!mg;
+
+  open OUT, ">$0" or die "cannot strip $0: $!\n";
+  print OUT "$pl$c\n";
+
+  exit 0;
+}

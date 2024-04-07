@@ -1,0 +1,14 @@
+use v5.10.0;
+
+{ package C1; sub c1 { } our @ISA = qw(C2) }
+{ package C2; sub c2 { } our @ISA = qw(C3) }
+{ package C3; sub c3 { } our @ISA = qw(  ) }
+{ package C4; sub c4 { } our @ISA = qw(  ) }
+{ package C5; sub c5 { } our @ISA = qw(C1 C4) }
+
+my $obj = bless {}, 'C5';
+$main::global = bless {}, 'C5';
+
+$DB::single = 1;
+
+say "Done.";

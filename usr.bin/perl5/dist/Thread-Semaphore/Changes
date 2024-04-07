@@ -1,0 +1,45 @@
+Revision history for Perl extension Thread::Semaphore.
+
+2.13 Sat Aug 27 13:00:00 2016
+	- Added ->down_timed()
+
+2.12 Fri Dec 24 17:48:48 2010
+	- POD update
+
+2.11 Thu Jun 11 02:14:41 2010
+	- Added ->down_nb() and ->down_force()
+	- Skip argument validation when no argument
+	- Install in 'site' for Perl >= 5.011
+	- Test file changes for core
+
+2.09 Thu Jun 12 13:40:19 2008
+	- End all tests with exit(0) and fix SKIPs
+
+2.08 Mon May 19 17:03:33 2008
+	- Check for undef args
+
+2.07 Fri Feb 22 21:36:54 2008
+	- Allow installation on non-threaded Perls
+
+2.06 Wed Feb 20 17:19:31 2008
+	- Build/test updates
+
+2.05 Mon Feb 18 12:23:15 2008
+	- Install under 'perl' dir
+
+2.04 Fri Feb 15 15:14:30 2008
+	- Fix tests to work under Perl 5.8.0
+
+2.03 Thu Feb 14 20:05:30 2008
+	- Fix test failure
+
+2.02 Thu Feb 14 15:27:00 2008
+	- Argument validation
+	- Test suite
+
+2.01 Sep 02 06:40:00 2003
+	- Minor doc update
+
+2.00 Jul 12 16:32:00 2002
+	- Released as part of Perl 5.8.0
+

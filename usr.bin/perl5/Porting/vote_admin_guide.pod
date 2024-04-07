@@ -1,0 +1,191 @@
+=encoding utf8
+
+=head1 NAME
+
+vote_admin_guide - Perl Governance Vote Administrator Guide
+
+=head1 Running a Steering Council nomination process
+
+Announce the nomination period to the Perl Core mailing list.  Be explicit
+about the end time.  Set a calendar reminder for yourself for when it's
+time to close the nominations and begin the voting.
+
+Remember that inactive Core Team members may not participate in the nomination
+or voting process.  The governance document is clear that inactive members may
+not declare themselves active when a vote is proposed, which includes the
+nomination process.
+
+If someone outside the Core Team is nominated, contact them to confirm that
+they accept the nomination.  If they do, ask the Steering Council to add
+them as a moderated member of the Perl Core list for the duration of the
+election and invite them to offer a statement on their candidacy to the
+list.
+
+Before the end of the nomination period, remind everyone of the schedule
+and share the current list of nominees to confirm you aren't missing
+anyone.
+
+At the end of the nomination period, notify the Perl Core list of the list
+of nominees and set their expectations for when you'll be opening the
+voting period.
+
+=head1 Using CIVS
+
+We are using L<Condorcet Internet Voting Service|https://civs.cs.cornell.edu/>
+(CIVS), which is pretty easy to use, although it has a lot of options.
+
+First, bookmark that link, but realize that there are no user accounts.
+Whenever you create or participate in a poll, you'll get a unique URL, and you
+need to save it to come back to what you were doing before.
+
+=head2 Preliminary work
+
+You'll need to complete these steps.
+
+=head3 Get list of active Core Team member emails
+
+This can be found in the F<Porting/core-team.json> file.
+
+=head3 Remind Core Team members to opt-in their email address
+
+CIVS has a required opt-in to send polls out to an email address. The active
+Core Team members that would like to vote and haven't opted-in yet must use the
+following link with the email address they have in F<core-team.json>:
+L<https://civs1.civs.us/cgi-bin/opt_in.pl>
+
+=head2 Running an election on CIVS
+
+The following instructions describe steps to run an election.
+
+=head3 Creating a poll
+
+On the right sidebar of the CIVS landing page is a list of links, and the
+first one is Create a poll.  Some of the things it asks for are simple:
+what's it called?  Who is running it?  It asks for an email address, and it
+has to work: that's where you're going to get all the links!
+
+Note that "day and time you plan to stop" is just a text box.  It gets sent
+to the recipient in their invitation to vote.  It does not schedule one
+dang thing, so you better set yourself a reminder to close the poll on
+time!  Also, remember to think about time zones!  (You are free to
+selfishly pick your local time.)
+
+The description box is limited HTML: you can put in C<< <p> >> and
+C<< <b> >> and C<< <ul> >> and C<< <a> >> and some other basics.  Hit
+"preview" whenever you want.  Also, you'll be able to see the email
+before you send it to everybody.
+
+The "names of choices" is line by line.  Blanks are ignored.  Again, use
+preview.  Also, note that these will be presented to the voters in random
+order, so the order you put the candidates doesn't matter.  (CIVS lets you
+force the ordering, but we don't use that.)
+
+The options you want are:
+
+    * How many choices will win: 3
+    * Private
+    * Enable detailed ballot reporting: true
+    * Enforce proportional representation: true
+        Assume maximizing rank of their favorite choice: true
+
+Leave all other options off.
+
+Then you can create the poll.
+
+=head3 Start the poll
+
+You'll get an email linking back to the poll's control page.
+
+B<BOOKMARK THE CONTROL PAGE!>
+
+Don't lose that link or you won't be able to administer the poll and you'll
+have to re-create it.
+
+From here, you can double check your settings.  Some things, but not all,
+can be edited.
+
+If it looks good, click "start poll."  You'll get a success page and can
+click "go back to poll control".
+
+=head3 Check how the email looks
+
+At the bottom, under "Add voters", enter your email address.  Click "add
+voters."  You'll get another success screen and can again "go back to poll
+control."
+
+Meanwhile, you'll get another email, this one linking you to the voting
+page itself.  Proofread the email.  Click the link. Proofread the page.  If
+you want, cast your vote!
+
+At this point, you probably either need to start over - because you can't
+edit a poll once it's going - or you're good to proceed.   If you need to
+start over, just close the poll (or not, but it seems polite to do so) and
+start over.  Otherwise...
+
+=head3 Send the poll!
+
+This is the point of no return!  Once you send the poll to the whole team,
+you'll look silly if you made a big mistake.  That's okay, you can survive
+looking silly, but it's better to avoid it if you can.
+
+Put all the email addresses for the team into the "add voters" on the poll
+control page.  There should be as many of these as there are team members.
+Double check!  It's okay if you enter your email address, again.  You won't
+be allowed to vote twice.
+
+Click "add voters."  It will take a little while.  (I think it does all the
+email sending synchronously.)  When that's done, you can email the list to
+say the ballot has been sent.
+
+If you're told that some email addresses aren't authorized to vote, chase
+down these Core Team members that haven't opted-in their email address.
+
+=head3 Wait
+
+Now you just need to wait for the end date.  Set a calendar alarm to remind
+yourself.  Look at the poll control page once in a while to see how many votes
+were cast.  Because votes can't be edited once cast, you could end the voting
+immediately once 100% of ballots have been cast, but don't expect this will
+actually happen.
+
+=head3 End the poll
+
+When it's time, go to the poll control page and click "end poll".  You'll get
+dumped on a results page that will provide the three winners (and a bunch of
+other data).  Use the "minimax" rule (the default).  Everyone else will be able
+to access these results, so don't worry about copying anything but the winners.
+Inform the group!
+
+=head2 After an election
+
+In addition to notifying the Perl Core mailing list of the results, open a
+pull request to update perlgov.pod with the new Steering Council members.
+If a non-Core-Team candidate won, also add them to the Core Team list.
+
+Ask the outgoing Steering Council to:
+
+=over
+
+=item *
+
+edit the Perl Core mailing list admins to match the incoming Steering Council
+
+=item *
+
+update the L<GitHub "steering" team|https://github.com/orgs/Perl/teams/perl-steering-council/members> to match incoming Steering Council
+
+=item *
+
+request that the L<Perl NOC|https://noc.perl.org> update the perl-security list to include all incoming
+Steering Council members (without removing outgoing members; the incoming Steering
+Council will decide whether this is needed)
+
+=back
+
+Update this guide with any clarifications or new information that will help
+the next Vote Administrator.
+
+Relax and congratulate yourself!
+
+=cut
+

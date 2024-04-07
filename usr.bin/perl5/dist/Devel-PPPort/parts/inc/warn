@@ -1,0 +1,295 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+__UNDEFINED__
+ckWARN
+ckWARN_d
+warner
+ck_warner
+ck_warner_d
+Perl_warner
+Perl_ck_warner
+Perl_ck_warner_d
+Perl_warner_nocontext
+
+=implementation
+
+__UNDEFINED__  WARN_ALL                 0
+__UNDEFINED__  WARN_CLOSURE             1
+__UNDEFINED__  WARN_DEPRECATED          2
+__UNDEFINED__  WARN_EXITING             3
+__UNDEFINED__  WARN_GLOB                4
+__UNDEFINED__  WARN_IO                  5
+__UNDEFINED__  WARN_CLOSED              6
+__UNDEFINED__  WARN_EXEC                7
+__UNDEFINED__  WARN_LAYER               8
+__UNDEFINED__  WARN_NEWLINE             9
+__UNDEFINED__  WARN_PIPE                10
+__UNDEFINED__  WARN_UNOPENED            11
+__UNDEFINED__  WARN_MISC                12
+__UNDEFINED__  WARN_NUMERIC             13
+__UNDEFINED__  WARN_ONCE                14
+__UNDEFINED__  WARN_OVERFLOW            15
+__UNDEFINED__  WARN_PACK                16
+__UNDEFINED__  WARN_PORTABLE            17
+__UNDEFINED__  WARN_RECURSION           18
+__UNDEFINED__  WARN_REDEFINE            19
+__UNDEFINED__  WARN_REGEXP              20
+__UNDEFINED__  WARN_SEVERE              21
+__UNDEFINED__  WARN_DEBUGGING           22
+__UNDEFINED__  WARN_INPLACE             23
+__UNDEFINED__  WARN_INTERNAL            24
+__UNDEFINED__  WARN_MALLOC              25
+__UNDEFINED__  WARN_SIGNAL              26
+__UNDEFINED__  WARN_SUBSTR              27
+__UNDEFINED__  WARN_SYNTAX              28
+__UNDEFINED__  WARN_AMBIGUOUS           29
+__UNDEFINED__  WARN_BAREWORD            30
+__UNDEFINED__  WARN_DIGIT               31
+__UNDEFINED__  WARN_PARENTHESIS         32
+__UNDEFINED__  WARN_PRECEDENCE          33
+__UNDEFINED__  WARN_PRINTF              34
+__UNDEFINED__  WARN_PROTOTYPE           35
+__UNDEFINED__  WARN_QW                  36
+__UNDEFINED__  WARN_RESERVED            37
+__UNDEFINED__  WARN_SEMICOLON           38
+__UNDEFINED__  WARN_TAINT               39
+__UNDEFINED__  WARN_THREADS             40
+__UNDEFINED__  WARN_UNINITIALIZED       41
+__UNDEFINED__  WARN_UNPACK              42
+__UNDEFINED__  WARN_UNTIE               43
+__UNDEFINED__  WARN_UTF8                44
+__UNDEFINED__  WARN_VOID                45
+__UNDEFINED__  WARN_ASSERTIONS          46
+
+__UNDEFINED__  packWARN(a)         (a)
+__UNDEFINED__  packWARN2(a,b)      (packWARN(a)      << 8 | (b))
+__UNDEFINED__  packWARN3(a,b,c)    (packWARN2(a,b)   << 8 | (c))
+__UNDEFINED__  packWARN4(a,b,c,d)  (packWARN3(a,b,c) << 8 | (d))
+
+#ifndef ckWARN
+#  ifdef G_WARN_ON
+#    define  ckWARN(a)                  (PL_dowarn & G_WARN_ON)
+#  else
+#    define  ckWARN(a)                  PL_dowarn
+#  endif
+#endif
+
+__UNDEFINED__ ckWARN2(a,b)      (ckWARN(a) || ckWARN(b))
+__UNDEFINED__ ckWARN3(a,b,c)    (ckWARN(c) || ckWARN2(a,b))
+__UNDEFINED__ ckWARN4(a,b,c,d)  (ckWARN(d) || ckWARN3(a,b,c))
+
+#ifndef ckWARN_d
+#  ifdef isLEXWARN_off
+#    define ckWARN_d(a)  (isLEXWARN_off || ckWARN(a))
+#  else
+#    define ckWARN_d(a)  1
+#  endif
+#endif
+
+__UNDEFINED__ ckWARN2_d(a,b)     (ckWARN_d(a) || ckWARN_d(b))
+__UNDEFINED__ ckWARN3_d(a,b,c)   (ckWARN_d(c) || ckWARN2_d(a,b))
+__UNDEFINED__ ckWARN4_d(a,b,c,d) (ckWARN_d(d) || ckWARN3_d(a,b,c))
+
+__UNDEFINED__ vwarner(err, pat, argsp)                      \
+        STMT_START {    SV *sv;                             \
+                        PERL_UNUSED_ARG(err);               \
+                        sv = vnewSVpvf(pat, argsp);         \
+                        sv_2mortal(sv);                     \
+                        warn("%s", SvPV_nolen(sv));         \
+        } STMT_END
+
+
+#if { VERSION >= 5.004 } && !defined(warner)
+#  if { NEED warner }
+
+void
+warner(U32 err, const char *pat, ...)
+{
+  va_list args;
+  va_start(args, pat);
+  vwarner(err, pat, &args);
+  va_end(args);
+}
+
+#    define warner  Perl_warner
+
+#    define Perl_warner_nocontext  Perl_warner
+
+#  endif
+#endif
+
+#if { VERSION >= 5.004 } && !defined(ck_warner)
+#  if { NEED ck_warner }
+
+void
+ck_warner(pTHX_ U32 err, const char *pat, ...)
+{
+    va_list args;
+
+    if (   ! ckWARN((err      ) & 0xFF)
+        && ! ckWARN((err >>  8) & 0xFF)
+        && ! ckWARN((err >> 16) & 0xFF)
+        && ! ckWARN((err >> 24) & 0xFF))
+    {
+        return;
+    }
+
+    va_start(args, pat);
+    vwarner(err, pat, &args);
+    va_end(args);
+}
+
+#    define ck_warner  Perl_ck_warner
+#  endif
+#endif
+
+#if { VERSION >= 5.004 } && !defined(ck_warner_d)
+#  if { NEED ck_warner_d }
+
+void
+ck_warner_d(pTHX_ U32 err, const char *pat, ...)
+{
+    va_list args;
+
+    if (   ! ckWARN_d((err      ) & 0xFF)
+        && ! ckWARN_d((err >>  8) & 0xFF)
+        && ! ckWARN_d((err >> 16) & 0xFF)
+        && ! ckWARN_d((err >> 24) & 0xFF))
+    {
+        return;
+    }
+
+    va_start(args, pat);
+    vwarner(err, pat, &args);
+    va_end(args);
+}
+
+#    define ck_warner_d  Perl_ck_warner_d
+
+
+#  endif
+#endif
+
+=xsinit
+
+#define NEED_warner
+#define NEED_ck_warner
+#define NEED_ck_warner_d
+
+=xsubs
+
+void
+warner()
+        CODE:
+#if { VERSION >= 5.004 }
+                warner(packWARN(WARN_MISC), "warner %s:%d", "bar", 42);
+#endif
+
+void
+Perl_warner()
+        CODE:
+#if { VERSION >= 5.004 }
+                Perl_warner(aTHX_ packWARN(WARN_MISC), "Perl_warner %s:%d", "bar", 42);
+#endif
+
+void
+Perl_ck_warner()
+        CODE:
+#if { VERSION >= 5.004 }
+                Perl_ck_warner(aTHX_ packWARN(WARN_MISC), "Perl_ck_warner %s:%d", "bar", 42);
+#endif
+
+void
+Perl_ck_warner_d()
+        CODE:
+#if { VERSION >= 5.004 }
+                Perl_ck_warner_d(aTHX_ packWARN(WARN_MISC), "Perl_ck_warner_d %s:%d", "bar", 42);
+#endif
+
+void
+Perl_warner_nocontext()
+        CODE:
+#if { VERSION >= 5.004 }
+                Perl_warner_nocontext(packWARN(WARN_MISC), "Perl_warner_nocontext %s:%d", "bar", 42);
+#endif
+
+void
+ckWARN()
+        CODE:
+#if { VERSION >= 5.004 }
+                if (ckWARN(WARN_MISC))
+                  Perl_warner_nocontext(packWARN(WARN_MISC), "ckWARN %s:%d", "bar", 42);
+#endif
+
+void
+ckWARN_d()
+        CODE:
+#if { VERSION >= 5.004 }
+                if (ckWARN_d(WARN_MISC))
+                  Perl_warner_nocontext(packWARN(WARN_MISC), "ckWARN_d %s:%d", "bar", 42);
+#endif
+
+=tests plan => 11
+
+$^W = 0;
+
+my $warning;
+
+$SIG{'__WARN__'} = sub { $warning = $_[0] };
+
+$warning = '';
+Devel::PPPort::warner();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^warner bar:42/ : $warning eq '');
+
+$warning = '';
+Devel::PPPort::Perl_warner();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^Perl_warner bar:42/ : $warning eq '');
+
+$warning = '';
+Devel::PPPort::Perl_warner_nocontext();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^Perl_warner_nocontext bar:42/ : $warning eq '');
+
+$warning = '';
+Devel::PPPort::ckWARN();
+is($warning, '');
+
+$warning = '';
+Devel::PPPort::ckWARN_d();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^ckWARN_d bar:42/ : $warning eq '');
+
+$warning = '';
+Devel::PPPort::Perl_ck_warner();
+ok($warning eq '');
+
+$warning = '';
+Devel::PPPort::Perl_ck_warner_d();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^Perl_ck_warner_d bar:42/ : $warning eq '');
+
+$^W = 1;
+
+$warning = '';
+Devel::PPPort::ckWARN();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^ckWARN bar:42/ : $warning eq '');
+
+$warning = '';
+Devel::PPPort::ckWARN_d();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^ckWARN_d bar:42/ : $warning eq '');
+
+$warning = '';
+Devel::PPPort::Perl_ck_warner();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^Perl_ck_warner bar:42/ : $warning eq '');
+
+$warning = '';
+Devel::PPPort::Perl_ck_warner_d();
+ok(ivers($]) >= ivers("5.004") ? $warning =~ /^Perl_ck_warner_d bar:42/ : $warning eq '');

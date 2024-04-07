@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# This script can be used to keep Porting/config_H (which is an example
+# config.h) up-to-date with the latest Configure.
+
+# Original author: Andy Dougherty   	July 14, 1998
+
+rm -f config.sh Policy.sh
+cat >Policy.sh <<'EOP'
+libswanted="cl pthread $libswanted"
+EOP
+
+sh ./Configure -Dprefix=/opt/perl \
+	-Dcf_by='yourname' \
+	-Dcf_email='yourname@yourhost.yourplace.com' \
+	-Dperladmin='yourname@yourhost.yourplace.com' \
+	-Dmydomain='.yourplace.com' \
+	-Dmyhostname='yourhost' \
+	-Duse64bitint \
+	-Dusedevel \
+	-dE
+test $? = 0 || exit 1
+chmod u+w Porting Porting/config*
+cp config.sh Porting/config.sh
+sh config_h.SH
+cat <<'EOCP' > Porting/config_H
+/* This file (config_H) is a sample config.h file.  If you are unable
+   to successfully run Configure, copy this file to config.h and
+   edit it to suit your system.
+*/
+EOCP
+cat config.h >> Porting/config_H
+rm config.sh config.h

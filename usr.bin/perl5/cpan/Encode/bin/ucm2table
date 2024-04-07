@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+# $Id: ucm2table,v 2.1 2006/05/03 18:24:10 dankogai Exp $
+#
+
+use 5.006;
+use strict;
+use Getopt::Std;
+my %Opt;
+getopts("aeu", \%Opt);
+my %Chartab;
+
+my $Hex = '[0-9A-Fa-f]';
+while(<>){
+    chomp;
+    my ($uni, $enc, $fb) = 
+        /^<U($Hex+)>\s+(\S+)\s+\|(\d)/o or next;
+    $fb eq '0' or next;
+    my @byte = ();
+    my $ord = 0;
+    while($enc =~ /\G\\x($Hex+)/iog){
+        my $byte = hex($1);
+        push @byte, $byte;
+        $ord <<= 8; $ord += $byte;
+    };
+    # print join('', @byte), " => $ord \n";
+    if ($Opt{u}){
+        $Chartab{$ord} = pack("U", hex($uni));
+    }else{
+        $Chartab{$ord} = pack("C*", @byte);
+    }
+}
+
+my $start = $Opt{a} ? 0x20 : 0xa0;
+
+for (my $x = $start; $x <= 0xffff; $x += 32) {
+    my $line =  '';
+    for my $i (0..31){
+    my $num = $x+$i; $num eq 0x7f and next; # skip delete
+    my $char = $Chartab{$num};
+    $line .= !$char ? " " : 
+        ($num < 0x7f ) ? " $char" : $char ;
+    }
+    $line =~ /^\s+$/o and next;
+    printf "0x%04x: $line\n", $x;
+}

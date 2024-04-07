@@ -1,0 +1,13 @@
+[name]
+Handling of E<> Unicode escape
+
+[input]
+=head1 perlfaq4 SNIPPET
+
+The trick to this problem is avoiding accidental autovivification. If
+you want to check three keys deep, you might naE<0xEF>vely try this:
+
+[output]
+perlfaq4 SNIPPET
+    The trick to this problem is avoiding accidental autovivification. If
+    you want to check three keys deep, you might naïvely try this:

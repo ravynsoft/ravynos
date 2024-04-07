@@ -1,0 +1,181 @@
+__END__
+# NAME \N{U+too large} on 64-bit machine
+# SKIP ? use Config; $Config{uvsize} < 8 && "Not 64 bit"
+qr/\N{U+7FFFFFFFFFFFFFFF}/;
+qr/\N{U+1_0000_0000_0000_0000}/;
+EXPECT
+Use of code point 0x1_0000_0000_0000_0000 is not allowed; the permissible max is 0x7FFFFFFFFFFFFFFF in regex; marked by <-- HERE in m/\N{U+1_0000_0000_0000_0000 <-- HERE }/ at - line 2.
+########
+# NAME \N{U+too large} on 32-bit machine
+# SKIP ? use Config; $Config{uvsize} > 4 && "Not 32 bit"
+qr/\N{U+7FFFFFFF}/;
+qr/\N{U+1_0000_0000}/;
+EXPECT
+Use of code point 0x1_0000_0000 is not allowed; the permissible max is 0x7FFFFFFF in regex; marked by <-- HERE in m/\N{U+1_0000_0000 <-- HERE }/ at - line 2.
+########
+# NAME \N{U+100.too large} on 64-bit machine
+# SKIP ? use Config; $Config{uvsize} < 8 && "Not 64 bit"
+qr/\N{U+100.7FFFFFFFFFFFFFFF}/;
+qr/\N{U+100.1_0000_0000_0000_0000}/;
+EXPECT
+Use of code point 0x1_0000_0000_0000_0000 is not allowed; the permissible max is 0x7FFFFFFFFFFFFFFF in regex; marked by <-- HERE in m/\N{U+100.1_0000_0000_0000_0000 <-- HERE }/ at - line 2.
+########
+# NAME \N{U+100.too large} on 32-bit machine
+# SKIP ? use Config; $Config{uvsize} > 4 && "Not 32 bit"
+qr/\N{U+100.7FFFFFFF}/;
+qr/\N{U+100.1_0000_0000}/;
+EXPECT
+Use of code point 0x1_0000_0000 is not allowed; the permissible max is 0x7FFFFFFF in regex; marked by <-- HERE in m/\N{U+100.1_0000_0000 <-- HERE }/ at - line 2.
+########
+# NAME \N{U+.}
+my $p00="\\N{U+.}"; qr/$p00/;
+EXPECT
+Invalid hexadecimal number in \N{U+...} in regex; marked by <-- HERE in m/\N{U+. <-- HERE }/ at - line 1.
+########
+# NAME \N{U+100.}
+my $p00="\\N{U+100.}"; qr/$p00/;
+EXPECT
+Invalid hexadecimal number in \N{U+...} in regex; marked by <-- HERE in m/\N{U+100. <-- HERE }/ at - line 1.
+########
+# NAME \N{U+_100}
+my $p00="\\N{U+_100}"; qr/$p00/;
+EXPECT
+Invalid hexadecimal number in \N{U+...} in regex; marked by <-- HERE in m/\N{U+_ <-- HERE 100}/ at - line 1.
+########
+# NAME \N{U+100_}
+my $p00="\\N{U+100_}"; qr/$p00/;
+EXPECT
+Invalid hexadecimal number in \N{U+...} in regex; marked by <-- HERE in m/\N{U+100_ <-- HERE }/ at - line 1.
+########
+# NAME [\xDF\N{U+.}]
+# SKIP ? ord("A") != 65 && "Test valid only on ASCII machines"
+my $p00="[\\xDF\\N{U+.}]"; qr/$p00/ui;
+# The sharp s under /i recodes the parse, and this was causing a segfault when
+# the error message referred to the original pattern
+EXPECT
+Invalid hexadecimal number in \N{U+...} in regex; marked by <-- HERE in m/[\xDF\N{U+. <-- HERE }]/ at - line 1.
+########
+# NAME [\x59\N{U+.}]
+# SKIP ? ord("A") == 65 && "Test valid only on EBCDIC machines"
+my $p00="[\\x59\\N{U+.}]"; qr/$p00/ui;
+# The sharp s under /i recodes the parse, and this was causing a segfault when
+# the error message referred to the original pattern
+EXPECT
+Invalid hexadecimal number in \N{U+...} in regex; marked by <-- HERE in m/[\x59\N{U+. <-- HERE }]/ at - line 1.
+########
+# NAME \N{U+...} leading underscore not allowed, medial is allowed
+my $p00='\N{U+FF_FF}'; qr/$p00/;
+$p00='\N{U+_FF}'; qr/$p00/;
+EXPECT
+Invalid hexadecimal number in \N{U+...} in regex; marked by <-- HERE in m/\N{U+_ <-- HERE FF}/ at - line 2.
+########
+# NAME ${^RE_COMPILE_RECURSION_LIMIT} [perl #131551]
+BEGIN { ${^RE_COMPILE_RECURSION_LIMIT} = ${^RE_COMPILE_RECURSION_LIMIT} = 2; }
+qr/(a)/;
+qr/((a))/;
+EXPECT
+Too many nested open parens in regex; marked by <-- HERE in m/(( <-- HERE a))/ at - line 3.
+########
+# NAME \K not permitted in lookahead
+qr/(?=a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?=a\K <-- HERE a)a/ at - line 1.
+########
+# NAME \K not permitted in lookahead (alpha)
+no warnings 'experimental::alpha_assertions';
+qr/(*positive_lookahead:a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(*positive_lookahead:a\K <-- HERE a)a/ at - line 2.
+########
+# NAME \K not permitted in negative lookahead
+qr/(?!a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?!a\K <-- HERE a)a/ at - line 1.
+########
+# NAME \K not permitted in negative lookahead (alpha)
+no warnings 'experimental::alpha_assertions';
+qr/(*negative_lookahead:a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(*negative_lookahead:a\K <-- HERE a)a/ at - line 2.
+########
+# NAME \K not permitted in lookbehind
+qr/(?<=a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?<=a\K <-- HERE a)a/ at - line 1.
+########
+# NAME \K not permitted in lookbehind (alpha)
+no warnings 'experimental::alpha_assertions';
+qr/(*positive_lookbehind:a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(*positive_lookbehind:a\K <-- HERE a)a/ at - line 2.
+########
+# NAME \K not permitted in negative lookbehind
+qr/(?<!a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?<!a\K <-- HERE a)a/ at - line 1.
+########
+# NAME \K not permitted in negative lookbehind (alpha)
+no warnings 'experimental::alpha_assertions';
+qr/(*negative_lookbehind:a\Ka)a/;
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(*negative_lookbehind:a\K <-- HERE a)a/ at - line 2.
+########
+# NAME \K nesting in lookahead after lookahead
+qr{(?=(?=x)x\K)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?=(?=x)x\K <-- HERE )x/ at - line 1.
+########
+# NAME \K nesting in lookahead after negative lookahead
+qr{(?=(?!y)x\K)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?=(?!y)x\K <-- HERE )x/ at - line 1.
+########
+# NAME \K nesting in lookahead in negative lookahead
+qr{(?=(?!y\K)x)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?=(?!y\K <-- HERE )x)x/ at - line 1.
+########
+# NAME \K nesting in lookahead in lookahead
+qr{(?=(?=x\K)x)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?=(?=x\K <-- HERE )x)x/ at - line 1.
+########
+# NAME \K nesting in lookbehind after lookbehind
+qr{(?<=(?<=x)x\K)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?<=(?<=x)x\K <-- HERE )x/ at - line 1.
+########
+# NAME \K nesting in lookahead after lookbehind
+qr{(?=(?<=x)x\K)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?=(?<=x)x\K <-- HERE )x/ at - line 1.
+########
+# NAME \K nesting in lookbehind after lookahead
+qr{(?<=(?=x)x\K)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?<=(?=x)x\K <-- HERE )x/ at - line 1.
+########
+# NAME \K nesting in negative lookbehind after lookahead
+qr{(?<!(?=x)x\K)x};
+EXPECT
+\K not permitted in lookahead/lookbehind in regex; marked by <-- HERE in m/(?<!(?=x)x\K <-- HERE )x/ at - line 1.
+########
+# NAME \K is permitted after the lookahead GH#18123
+qr/(?=(?=x)x)\K/;
+qr/(?!(?=x)x)\K/;
+qr/(?=(?!x)x)\K/;
+qr/(?!(?!x)x)\K/;
+qr/(?<=(?=x)x)\K/;
+qr/(?<!(?=x)x)\K/;
+qr/(?<=(?!x)x)\K/;
+qr/(?<!(?!x)x)\K/;
+qr/(?=(?<=x)x)\K/;
+qr/(?!(?<=x)x)\K/;
+qr/(?=(?<!x)x)\K/;
+qr/(?!(?<!x)x)\K/;
+qr/(?<=(?<=x)x)\K/;
+qr/(?<!(?<=x)x)\K/;
+qr/(?<=(?<!x)x)\K/;
+qr/(?<!(?<!x)x)\K/;
+EXPECT
+OPTIONS nonfatal

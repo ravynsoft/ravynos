@@ -1,0 +1,41 @@
+=== toolbar
+# Testing of a known-bad file from an editor
+--- yaml
+main_toolbar:
+  - item file-new
+  - item file-open
+  - item file-print#
+  - item file-close#
+  - item file-save-all
+  - item file-save
+  -
+  - item edit-changes-undo
+  - item edit-changes-redo
+  -
+  - item edit-cut
+  - item edit-copy
+  - item edit-paste
+  - item edit-replace
+  - item edit-delete
+
+--- perl
+[ {
+    main_toolbar => [
+        'item file-new',
+        'item file-open',
+        'item file-print#',
+        'item file-close#',
+        'item file-save-all',
+        'item file-save',
+        undef,
+        'item edit-changes-undo',
+        'item edit-changes-redo',
+        undef,
+        'item edit-cut',
+        'item edit-copy',
+        'item edit-paste',
+        'item edit-replace',
+        'item edit-delete',
+    ]
+} ]
+

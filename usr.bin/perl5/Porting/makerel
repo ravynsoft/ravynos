@@ -1,0 +1,360 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+# A tool to build a perl release tarball
+# Very basic but functional - if you're on a unix system.
+#
+# If you're on Win32 then it should still work, but various Unix command-line
+# tools will need to be available somewhere. An obvious choice is to install
+# Cygwin and ensure its 'bin' folder is on the PATH in the shell where you run
+# this script. The Cygwin 'bin' folder needs to precede the Windows 'system32'
+# folder so that Cygwin's 'find' command is found in preference to the Windows
+# 'find' command. In addition to the commands installed by default, your Cygwin
+# installation will need to contain at least the 'cpio' and '7z' commands.
+# Finally, ensure that the 'awk' and '7z' commands
+# are copies of 'gawk.exe' and 'lib\p7zip\7z.exe' respectively,
+# rather than the links to them that only work in a Cygwin bash shell which
+# they are by default.
+#
+# No matter how automated this gets, you'll always need to read
+# and re-read pumpkin.pod and release_managers_guide.pod to
+# check for things to be done at various stages of the process.
+#
+# Tim Bunce, June 1997
+
+use ExtUtils::Manifest qw(manicheck);
+$ExtUtils::Manifest::Quiet = 1;
+use Getopt::Std;
+use Digest::SHA;
+
+$|=1;
+
+sub usage { die <<EOF; }
+usage: $0 [ -r rootdir ] [-s suffix ] [ -x ] [ -n ]
+    -r rootdir   directory under which to create the build dir and tarball
+                 defaults to '..'
+    -s suffix    suffix to append to the perl-x.y.z dir and tarball name
+		 defaults to the concatenation of the local_patches entry
+		 in patchlevel.h (or blank, if none)
+    -x           make a .xz file in addition to a .gz file
+    -n           do not make any tarballs, just the directory
+    -c cleanup   perform a cleanup before building: clean git repo and target
+                 directory/tarballs
+    -e           Make the outputs be translated into EBCDIC.  (They can then
+                 be downloaded directly to an EBCDIC platform without needing
+                 any further translation.)
+EOF
+
+my %opts;
+getopts('exncr:s:', \%opts) or usage;
+
+@ARGV && usage;
+
+my $relroot = defined $opts{r} ? $opts{r} : "..";
+
+die "Must be in root of the perl source tree.\n"
+	unless -f "./MANIFEST" and -f "patchlevel.h";
+
+open PATCHLEVEL, '<', 'patchlevel.h' or die;
+my @patchlevel_h = <PATCHLEVEL>;
+close PATCHLEVEL;
+my $patchlevel_h = join "", grep { /^#\s*define/ } @patchlevel_h;
+print $patchlevel_h;
+my $revision = $1 if $patchlevel_h =~ /PERL_REVISION\s+(\d+)/;
+my $patchlevel = $1 if $patchlevel_h =~ /PERL_VERSION\s+(\d+)/;
+my $subversion = $1 if $patchlevel_h =~ /PERL_SUBVERSION\s+(\d+)/;
+die "Unable to parse patchlevel.h" unless $subversion >= 0;
+my $vers = sprintf("%d.%d.%d", $revision, $patchlevel, $subversion);
+
+# fetch list of local patches
+my (@local_patches, @lpatch_tags, $lpatch_tags);
+@local_patches = grep { !/^\s*,?NULL/ && ! /,"uncommitted-changes"/ }
+                 grep { /^static.*local_patches/../^};/ }
+                 @patchlevel_h;
+@lpatch_tags   = map  {  /^\s*,"(\w+)/ } @local_patches;
+$lpatch_tags   = join "-", @lpatch_tags;
+
+my $perl = "perl-$vers";
+my $reldir = "$perl";
+
+$lpatch_tags = $opts{s} if defined $opts{s};
+$reldir .= "-$lpatch_tags" if $lpatch_tags;
+
+print "\nMaking a release for $perl in $relroot/$reldir\n\n";
+
+cleanup($relroot, $reldir) if $opts{c};
+
+print "Cross-checking the MANIFEST...\n";
+my @missfile = manicheck();
+if (@missfile) {
+    warn "Can't make a release with MANIFEST files missing:\n";
+    warn "\t".$_."\n" for (@missfile);
+}
+die "Aborted.\n" if @missfile;
+print "\n";
+
+# VMS no longer has hardcoded version numbers descrip.mms
+
+print "Creating $relroot/$reldir release directory...\n";
+die "$relroot/$reldir release directory already exists [consider using -c]\n"   if -e "$relroot/$reldir";
+die "$relroot/$reldir.tar.gz release file already exists [consider using -c]\n" if -e "$relroot/$reldir.tar.gz";
+die "$relroot/$reldir.tar.xz release file already exists [consider using -c]\n" if $opts{x} && -e "$relroot/$reldir.tar.xz";
+mkdir("$relroot/$reldir", 0755) or die "mkdir $relroot/$reldir: $!\n";
+print "\n";
+
+
+print "Copying files to release directory...\n";
+# ExtUtils::Manifest maniread does not preserve the order
+my $cmd = "awk '{print \$1}' MANIFEST | cpio -pdm $relroot/$reldir";
+system($cmd) == 0
+    or die "$cmd failed";
+print "\n";
+
+chdir "$relroot/$reldir" or die $!;
+
+my @exe = map   { my ($f) = split; glob($f) }
+          grep  { $_ !~ /\A#/ && $_ !~ /\A\s*\z/ }
+          map   { split "\n" }
+          do    { local (@ARGV, $/) = 'Porting/exec-bit.txt'; <> };
+
+if ($opts{e}) {
+    require './regen/charset_translations.pl';
+
+    # Translation tables, so far only to 1047
+    my @charset = grep { /1047/ } get_supported_code_pages();
+
+    my $charset = $charset[0];
+    my $a2e = get_a2n($charset);
+
+    die "$0 must be run on an ASCII platform" if ord("A") != 65;
+
+    print "Translating to EBCDIC...\n";
+
+    open my $mani_fh, "<", "MANIFEST" or die "Can't read copied MANIFEST: $!";
+    my @manifest = <$mani_fh>;  # Slurp in whole thing before the file gets trashed
+    close $mani_fh or die "Couldn't close MANIFEST: $!";
+    while (defined ($_ = shift @manifest)) {
+        chomp;
+        my $file = $_ =~ s/\s.*//r; # Rmv description to get just the file
+                                    # name
+
+        local $/; # slurp mode
+        open my $fh, "+<:raw", $file or die "Can't read copied $file: $!";
+        my $text = <$fh>;
+        my $xlated = "";
+        my $utf16_high = 0;
+        my $utf16_low = 0;
+
+        my $potential_BOM = substr($text, 0, 2);
+        if ($potential_BOM eq "\xFE\xFF") {
+            $utf16_high = 0;
+            $utf16_low = 1;
+            print STDERR "$file is UTF-16BE\n";
+        }
+        elsif ($potential_BOM eq "\xFF\xFE") {
+            $utf16_high = 1;
+            $utf16_low = 0;
+            print STDERR "$file is UTF-16LE\n";
+        }
+
+        if ($utf16_high || $utf16_low) {
+            my $len = length $text;
+            die "Odd length in UTF-16 files: $file" if $len % 2;
+
+            # Look 2 bytes at a time
+            for (my $i = 0; $i < $len; $i+=2) {
+                my $cur = substr($text, $i, 2);
+
+                # If the code point's high byte is 0, it means the code point
+                # itself is 00-FF, so want native value of it.
+                if (substr($cur, $utf16_high, 1) eq "\0") {
+
+                    # Just substitute the translated native value
+                    my $low_byte = substr($cur, $utf16_low, 1);
+                    $low_byte = chr $a2e->[ord $low_byte];
+                    substr($cur, $utf16_low, 1) = $low_byte;
+                }
+
+                $xlated .= $cur;
+            }
+        }
+        elsif (-B $file) {   # Binary files aren't translated
+            print STDERR "$file is binary\n";
+            close $fh or die "Couldn't close $file: $!";
+            next;
+        }
+        else {
+            if (   ! utf8::decode($text)
+                || $text =~ / ^ [[:ascii:][:cntrl:]]* $ /x)
+            {
+                # Here, either $text isn't legal UTF-8; or it is, but it
+                # consists entirely of one of the 160 ASCII and control
+                # characters whose EBCDIC representation is the same whether
+                # UTF-EBCDIC or not.  This means we just translate
+                # byte-by-byte from Latin1 to EBCDIC.
+                $xlated = ($text =~ s/(.)/chr $a2e->[ord $1]/rsge);
+            }
+            else {
+
+                # Here, $text is legal UTF-8, and the representation of some
+                # character(s) in it it matters if is encoded in UTF-EBCDIC or
+                # not.  Also, the decode caused $text to now be viewed as
+                # UTF-8 characters instead of the input bytes.  We convert to
+                # UTF-EBCDIC.
+                $xlated = ($text =~ s/(.)/cp_2_utfbytes(ord $1, $charset)/rsge);
+            }
+        }
+
+        # Overwrite the file with the translation
+        truncate $fh, 0;
+        seek $fh, 0, 0;
+        print $fh $xlated;
+
+        close $fh or die "Couldn't close $file: $!";
+    }
+}
+
+print "Setting file permissions...\n";
+system("find . -type f -print     | xargs chmod 0444");
+system("find . -type d -print     | xargs chmod 0755");
+
+system("chmod +x @exe") == 0
+    or die "system: $!";
+
+# MANIFEST may be resorted, so needs to be writable
+my @writables = qw(
+    feature.h
+    lib/feature.pm
+    keywords.h
+    keywords.c
+    MANIFEST
+    opcode.h
+    opnames.h
+    pp_proto.h
+    proto.h
+    embed.h
+    embedvar.h
+    overload.inc
+    overload.h
+    mg_vtable.h
+    dist/Devel-PPPort/module2.c
+    dist/Devel-PPPort/module3.c
+    cpan/autodie/t/touch_me
+    reentr.c
+    reentr.h
+    regcharclass.h
+    regnodes.h
+    warnings.h
+    lib/warnings.pm
+    win32/GNUmakefile
+    win32/Makefile
+    win32/config_H.gc
+    win32/config_H.vc
+    uconfig.h
+);
+
+my $out = `chmod u+w @writables 2>&1`;
+if ($? != 0) {
+    warn $out;
+    if ($out =~ /no such file/i) {
+        warn "Check that the files above still exist in the Perl core.\n";
+        warn "If not, remove them from \@writables in Porting/makerel\n";
+    }
+    exit 1;
+}
+
+warn $out if $out;
+
+chdir ".." or die $!;
+
+exit if $opts{n};
+
+my $src = (-e $perl) ? $perl : 'perl'; # 'perl' in maint branch
+
+my $output_7z;
+my $have_7z;
+if (! $opts{e}) {
+    print "Checking if you have 7z...\n";
+    $output_7z = `7z 2>&1`;
+    $have_7z = defined $output_7z && $output_7z =~ /7-Zip/;
+}
+
+print "Checking if you have advdef...\n";
+my $output_advdef = `advdef --version 2>&1`;
+my $have_advdef = defined $output_advdef && $output_advdef =~ /advancecomp/;
+
+if (! $opts{e} && $have_7z) {
+    print "Creating and compressing the tar.gz file with 7z...\n";
+    $cmd = "tar cf - $reldir | 7z a -tgzip -mx9 -bd -si $reldir.tar.gz";
+    system($cmd) == 0 or die "$cmd failed";
+} else {
+    print "Creating and compressing the tar.gz file...\n";
+    my $extra_opts = "";
+    if ($opts{e}) {
+        print "(Using ustar format since is for an EBCDIC box)\n";
+        $extra_opts = ' --format=ustar';
+    }
+    $cmd = "tar cf - $extra_opts $reldir | gzip --best > $reldir.tar.gz";
+    system($cmd) == 0 or die "$cmd failed";
+    if ($have_advdef) {
+        print "Recompressing the tar.gz file with advdef...\n";
+        $cmd = "advdef -z -4 $reldir.tar.gz";
+        system($cmd) == 0 or die "$cmd failed";
+    }
+}
+
+if ($opts{x}) {
+    print "Creating and compressing the tar.xz file with xz...\n";
+    $cmd = "tar cf - $reldir | xz -z -c > $reldir.tar.xz";
+    system($cmd) == 0 or die "$cmd failed";
+}
+
+print "\n";
+
+system("ls -ld $perl*");
+print "\n";
+
+my @files = glob "'$perl*.tar.*'";
+for my $file (@files) {
+    my $sha = Digest::SHA->new('sha256');
+    $sha->addfile($file, 'b');
+    print $sha->hexdigest . "  $file\n";
+}
+
+sub cleanup {
+    my ( $relroot, $reldir ) = @_;
+
+    require File::Path;
+
+    my @cmds = (
+        [ qw{make distclean} ],
+        [ qw{git clean -dxf} ],
+    );
+
+    foreach my $cmd (@cmds) {
+        print join( ' ', "Running:", @$cmd, "\n" );
+        system @$cmd;
+        die "fail to run ".(join(' ', @$cmd) ) unless $? == 0;
+    }
+
+    if ( -d "$relroot/$reldir" ) {
+        print "Removing directory $relroot/$reldir\n";
+        File::Path::rmtree("$relroot/$reldir");
+    }
+
+    # always clean both
+    my @files = ( "$relroot/$reldir.tar.gz", "$relroot/$reldir.tar.xz" );
+
+    foreach my $f ( @files ) {
+        next unless -f $f;
+        print "Removing file '$f'\n";
+        unlink($f);
+    }
+
+    return;
+
+}
+
+1;

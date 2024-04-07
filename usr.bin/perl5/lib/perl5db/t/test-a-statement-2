@@ -1,0 +1,10 @@
+use strict; use warnings;
+
+greet('Hello');
+
+sub greet
+{
+    my $arg = shift;
+    print "$arg\n";
+    return;
+}

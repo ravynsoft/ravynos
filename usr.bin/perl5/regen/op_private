@@ -1,0 +1,892 @@
+#!perl
+
+=head1 F<regen/op_private>
+
+This file contains all the definitions of the meanings of the flags in the
+op_private field of an OP.
+
+After editing this file, run C<make regen>. This will generate/update data
+in:
+
+    opcode.h
+    lib/B/Op_private.pm
+
+C<B::Op_private> holds three global hashes, C<%bits>, C<%defines>,
+C<%labels>, which hold roughly the same information as found in this file
+(after processing).
+
+F<opcode.h> gains a series of C<OPp*> defines, and a few static data
+structures:
+
+C<PL_op_private_valid> defines, per-op, which op_private bits are legally
+allowed to be set. This is a good first place to look to see if an op has
+any spare private bits.
+
+C<PL_op_private_bitdef_ix>, C<PL_op_private_bitdefs>,
+C<PL_op_private_labels>, C<PL_op_private_bitfields>,
+C<PL_op_private_valid> contain (in a compact form) the data needed by
+Perl_do_op_dump() to dump the op_private field of an op.
+
+This file actually contains perl code which is run by F<regen/opcode.pl>.
+The basic idea is that you keep calling addbits() to add definitions of
+what a particular bit or range of bits in op_private means for a
+particular op. This can be specified either as a 1-bit flag or a 1-or-more
+bit bit field. Here's a general example:
+
+    addbits('aelem',
+            7 => qw(OPpLVAL_INTRO LVINTRO),
+            6 => qw(OPpLVAL_DEFER LVDEFER),
+       '4..5' =>  {
+                       mask_def  => 'OPpDEREF',
+                       enum => [ qw(
+                                   1   OPpDEREF_AV   DREFAV
+                                   2   OPpDEREF_HV   DREFHV
+                                   3   OPpDEREF_SV   DREFSV
+                               )],
+                   },
+    );
+
+Here for the op C<aelem>, bits 6 and 7 (bits are numbered 0..7) are
+defined as single-bit flags. The first string following the bit number is
+the define name that gets emitted in F<opcode.h>, and the second string is
+the label, which will be displayed by F<Concise.pm> and Perl_do_op_dump()
+(as used by C<perl -Dx>).
+
+If the bit number is actually two numbers connected with '..', then this
+defines a bit field, which is 1 or more bits taken to hold a small
+unsigned integer. Instead of two string arguments, it just has a single
+hash ref argument. A bit field allows you to generate extra defines, such
+as a mask, and optionally allows you to define an enumeration, where a
+subset of the possible values of the bit field are given their own defines
+and labels. The full syntax of this hash is explained further below.
+
+Note that not all bits for a particular op need to be added in a single
+addbits() call; they accumulate. In particular, this file is arranged in
+two halves; first, generic flags shared by multiple ops are added, then
+in the second half, specific per-op flags are added, e.g.
+
+   addbits($_, 7 => qw(OPpLVAL_INTRO LVINTRO)) for qw(pos substr vec  ...);
+
+   ....
+   
+   addbits('substr',
+               4 => qw(OPpSUBSTR_REPL_FIRST REPL1ST),
+               3 => ...
+           );
+
+(although the dividing line between these two halves is somewhat
+subjective, and is based on whether "OPp" is followed by the op name or
+something generic).
+
+There are some utility functions for generating a list of ops from
+F<regen/opcodes> based on various criteria. These are:
+
+    ops_with_check('ck_foo')
+    ops_with_flag('X')
+    ops_with_arg(N, 'XYZ')
+
+which respectively return a list of op names where:
+
+    field 3 of regen/opcodes specifies 'ck_foo' as the check function;
+    field 4 of regen/opcodes has flag or type 'X' set;
+    argument field N of regen/opcodes matches 'XYZ';
+
+For example
+
+    addbits($_, 4 => qw(OPpTARGET_MY TARGMY)) for ops_with_flag('T');
+
+If a label is specified as '-', then the flag or bit field is not
+displayed symbolically by Concise/-Dx; instead the bits are treated as
+unrecognised and are included in the final residual integer value after
+all recognised bits have been processed (this doesn't apply to individual
+enum labels).
+
+Here is a full example of a bit field hash:
+
+    '5..6' =>  {
+        mask_def      => 'OPpFOO_MASK',
+        baseshift_def => 'OPpFOO_SHIFT',
+        bitcount_def  => 'OPpFOO_BITS',
+        label         => 'FOO',
+        enum          => [ qw(
+                             1   OPpFOO_A  A
+                             2   OPpFOO_B  B
+                             3   OPpFOO_C  C
+                         )],
+    };
+
+The optional C<*_def> keys cause defines to be emitted that specify
+useful values based on the bit range (5 to 6 in this case):
+
+    mask_def:      a mask that will extract the bit field
+    baseshift_def: how much to shift to make the bit field reach bit 0
+    bitcount_def:  how many bits make up the bit field
+
+The example above will generate
+
+    #define OPpFOO_MASK 0x60
+    #define OPpFOO_SHIFT   5
+    #define OPpFOO_BITS    2
+
+The optional enum list specifies a set of defines and labels for (possibly
+a subset of) the possible values of the bit field (which in this example
+are 0,1,2,3). If a particular value matches an enum, then it will be
+displayed symbolically (e.g. 'C'), otherwise as a small integer. The
+defines are suitably shifted. The example above will generate
+
+    #define OPpFOO_A 0x20
+    #define OPpFOO_B 0x40
+    #define OPpFOO_C 0x60
+
+So you can write code like
+
+    if ((o->op_private & OPpFOO_MASK) == OPpFOO_C) ...
+
+The optional 'label' key causes Concise/-Dx output to prefix the value
+with C<LABEL=>; so in this case it might display C<FOO=C>.  If the field
+value is zero, and if no label is present, and if no enum matches, then
+the field isn't displayed.
+
+=cut
+
+
+use warnings;
+use strict;
+
+
+
+
+# ====================================================================
+#
+# GENERIC OPpFOO flags
+#
+# Flags where FOO is a generic term (like LVAL), and the flag is
+# shared between multiple (possibly unrelated) ops.
+
+
+
+
+{
+    # The lower few bits of op_private often indicate the number of
+    # arguments. This is usually set by newUNOP() and newLOGOP (to 1),
+    # by newBINOP() (to 1 or 2), and by ck_fun() (to 1..15).
+    #
+    # These values are sometimes used at runtime: in particular,
+    # the MAXARG macro extracts out the lower 4 bits.
+    #
+    # Some ops encroach upon these bits; for example, entersub is a unop,
+    # but uses bit 0 for something else. Bit 0 is initially set to 1 in
+    # newUNOP(), but is later cleared (in ck_rvconst()), when the code
+    # notices that this op is an entersub.
+    #
+    # The important thing below is that any ops which use MAXARG at
+    # runtime must have all 4 bits allocated; if bit 3 were used for a new
+    # flag say, then things could break.  The information on the other
+    # types of op is for completeness (so we can account for every bit
+    # used in every op)
+
+    my (%maxarg, %args0, %args1, %args2, %args3, %args4);
+
+    # these are the functions which currently use MAXARG at runtime
+    # (i.e. in the pp() functions). Thus they must always have 4 bits
+    # allocated
+    $maxarg{$_} = 1 for qw(
+        binmode bless caller chdir close enterwrite eof exit fileno getc
+        getpgrp gmtime index mkdir rand reset setpgrp sleep srand sysopen
+        tell umask
+    );
+
+    # find which ops use 0,1,2,3 or 4 bits of op_private for arg count info
+
+    $args0{$_} = 1 for qw(entersub avhvswitch
+                       rv2hv aelemfastlex_store);                  # UNOPs that usurp bit 0
+
+    # Historically, bit ops used bit 0 to indicate 'use integer' in scope;
+    # For now, ban use of bits 0..1 as an arg count, in order to detect
+    # any residual code which conflates use of the HINT_INTEGER and
+    # OPpUSEINT flags
+
+    $args0{$_} = 1 for ops_with_check('ck_bitop');
+
+    $args1{$_} = 1 for (
+                        qw(reverse), # ck_fun(), but most bits stolen
+                        qw(mapstart grepstart), # set in ck_fun, but
+                                                # cleared in ck_grep,
+                                                # unless there is an error
+                        grep !$maxarg{$_} && !$args0{$_},
+                            ops_with_flag('1'), # UNOP
+                            ops_with_flag('+'), # UNOP_AUX
+                            ops_with_flag('%'), # BASEOP/UNOP
+                            ops_with_flag('|'), # LOGOP
+                            ops_with_flag('-'), # FILESTATOP
+                            ops_with_flag('}'), # LOOPEXOP
+                            ops_with_flag('.'), # METHOP
+                    );
+
+    $args2{$_} = 1 for (
+                        qw(vec),
+                        grep !$maxarg{$_} && !$args0{$_} && !$args1{$_},
+                            ops_with_flag('2'), # BINOP
+                    );
+
+    $args3{$_} = 1 for grep !$maxarg{$_} && !$args0{$_}
+                                            && !$args1{$_} && !$args2{$_},
+                            # substr starts off with 4 bits set in
+                            # ck_fun(), but since it never has more than 7
+                            # args, bit 3 is later stolen
+                            qw(substr);
+
+    $args4{$_} = 1 for  keys %maxarg,
+                        grep !$args0{$_} && !$args1{$_}
+                                                && !$args2{$_} && !$args3{$_},
+                            ops_with_check('ck_fun'),
+                            # these other ck_*() functions call ck_fun()
+                            ops_with_check('ck_exec'),
+                            ops_with_check('ck_glob'),
+                            ops_with_check('ck_index'),
+                            ops_with_check('ck_join'),
+                            ops_with_check('ck_lfun'),
+                            ops_with_check('ck_open'),
+                            ops_with_check('ck_select'),
+                            ops_with_check('ck_stringify'),
+                            ops_with_check('ck_tell'),
+                            ops_with_check('ck_trunc'),
+                            ;
+
+
+    for (sort keys %args1) {
+        addbits($_, '0..0' => {
+                mask_def  => 'OPpARG1_MASK',
+                label     => '-',
+            }
+        );
+    }
+
+    for (sort keys %args2) {
+        addbits($_, '0..1' => {
+                mask_def  => 'OPpARG2_MASK',
+                label     => '-',
+            }
+        );
+    }
+
+    for (sort keys %args3) {
+        addbits($_, '0..2' => {
+                mask_def  => 'OPpARG3_MASK',
+                label     => '-',
+            }
+        );
+    }
+
+    for (sort keys %args4) {
+        addbits($_, '0..3' => {
+                mask_def  => 'OPpARG4_MASK',
+                label     => '-',
+            }
+        );
+    }
+}
+
+
+# Are these bit ops in the scope of 'use integer'?
+#
+# Note that historically they used to use bit 0, which corresponded to
+# HINT_INTEGER (a bit flags within PL_hints). We deliberately choose
+# a value (2) different than that flag, and different to the two bits used
+# to store the argument count, to flush out any residual code which
+# conflates the two.
+
+addbits($_, 2 => qw(OPpUSEINT USEINT))
+    for ops_with_check('ck_bitop');
+
+# if NATIVE_HINTS is defined, op_private on cops holds the top 8 bits
+# of PL_hints, although only bits 6 & 7 are officially used for that
+# purpose (the rest ought to be masked off). Bit 5 is set separately
+
+for (qw(nextstate dbstate)) {
+    addbits($_,
+        5 => qw(OPpHUSH_VMSISH          HUSH),
+    );
+}
+
+
+# op is in local context, or pad variable is being introduced, e.g.
+#   local $h{foo}
+#   my $x
+
+addbits($_, 7 => qw(OPpLVAL_INTRO LVINTRO))
+    for qw(gvsv rv2sv rv2hv rv2gv rv2av aelem helem aslice split
+           hslice delete padsv padav padhv enteriter entersub padrange
+           pushmark cond_expr refassign lvref lvrefslice lvavref multideref
+           multiconcat padsv_store undef emptyavhv),
+           'list', # this gets set in my_attrs() for some reason
+           ;
+
+
+
+# TARGLEX
+#
+# in constructs like my $x; ...; $x = $a + $b,
+# the sassign is optimised away and OPpTARGET_MY is set on the add op
+#
+# Note that OPpTARGET_MY is mainly used at compile-time. At run time,
+# the pp function just updates the SV pointed to by op_targ, and doesn't
+# care whether that's a PADTMP or a lexical var.
+
+# Some comments about when its safe to use T/OPpTARGET_MY.
+#
+# Safe to set if the ppcode uses:
+#	tryAMAGICbin, tryAMAGICun, SETn, SETi, SETu, PUSHn, PUSHTARG, SETTARG,
+#	SETs(TARG), XPUSHn, XPUSHu,
+# but make sure set-magic is invoked separately for SETs(TARG) (or change
+# it to SETTARG).
+#
+# Unsafe to set if the ppcode uses dTARG or [X]RETPUSH[YES|NO|UNDEF]
+#
+# Only the code paths that handle scalar rvalue context matter.  If dTARG
+# or RETPUSHNO occurs only in list or lvalue paths, T is safe.
+#
+# lt and friends do SETs (including ncmp, but not scmp or i_ncmp)
+#
+# Additional mode of failure: the opcode can modify TARG before it "used"
+# all the arguments (or may call an external function which does the same).
+# If the target coincides with one of the arguments ==> kaboom.
+#
+# pp.c	pos substr each not OK (RETPUSHUNDEF)
+#	ref not OK (RETPUSHNO)
+#	trans not OK (target is used for lhs, not retval)
+#	ucfirst etc not OK: TMP arg processed inplace
+#	quotemeta not OK (unsafe when TARG == arg)
+#	pack - unknown whether it is safe
+#	sprintf: is calling do_sprintf(TARG,...) which can act on TARG
+#	  before other args are processed.
+#
+#	Suspicious wrt "additional mode of failure" (and only it):
+#	schop, chop, postinc/dec, bit_and etc, negate, complement.
+#
+#	Also suspicious: 4-arg substr, sprintf, uc/lc (POK_only), reverse, pack.
+#
+#	substr/vec: doing TAINT_off()???
+#
+# pp_hot.c
+#	readline - unknown whether it is safe
+#	match subst not OK (dTARG)
+#	grepwhile not OK (not always setting)
+#	join not OK (unsafe when TARG == arg)
+#
+#	concat - pp_concat special-cases TARG==arg to avoid
+#		"additional mode of failure"
+#
+# pp_ctl.c
+#	mapwhile flip caller not OK (not always setting)
+#
+# pp_sys.c
+#	backtick glob warn die not OK (not always setting)
+#	warn not OK (RETPUSHYES)
+#	open fileno getc sysread syswrite ioctl accept shutdown
+#	 ftsize(etc) readlink telldir fork alarm getlogin not OK (RETPUSHUNDEF)
+#	umask select not OK (XPUSHs(&PL_sv_undef);)
+#	fileno getc sysread syswrite tell not OK (meth("FILENO" "GETC"))
+#	sselect shm* sem* msg* syscall - unknown whether they are safe
+#	gmtime not OK (list context)
+#
+#	Suspicious wrt "additional mode of failure": warn, die, select.
+
+
+addbits($_, 4 => qw(OPpTARGET_MY TARGMY))
+    for ops_with_flag('T'),
+;
+
+
+
+
+
+# op_targ carries a refcount
+addbits($_, 6 => qw(OPpREFCOUNTED REFC))
+    for qw(leave leavesub leavesublv leavewrite leaveeval);
+
+
+
+# Do not copy return value
+addbits($_, 7 => qw(OPpLVALUE LV)) for qw(leave leaveloop);
+
+
+
+# autovivify: Want ref to something
+for (qw(rv2gv rv2sv padsv aelem helem entersub)) {
+    addbits($_, '4..5' => {
+                mask_def  => 'OPpDEREF',
+                enum => [ qw(
+                            1   OPpDEREF_AV   DREFAV
+                            2   OPpDEREF_HV   DREFHV
+                            3   OPpDEREF_SV   DREFSV
+                        )],
+            }
+    );
+}
+
+
+
+# Defer creation of array/hash elem
+addbits($_, 6 => qw(OPpLVAL_DEFER LVDEFER)) for qw(aelem helem multideref);
+
+
+
+addbits($_, 2 => qw(OPpSLICEWARNING SLICEWARN)) # warn about @hash{$scalar}
+    for qw(rv2hv rv2av padav padhv hslice aslice);
+
+
+
+# XXX Concise seemed to think that OPpOUR_INTRO is used in rv2gv too,
+# but I can't see it - DAPM
+addbits($_, 6 => qw(OPpOUR_INTRO OURINTR)) # Variable was in an our()
+    for qw(gvsv rv2sv rv2av rv2hv enteriter split);
+
+
+
+# We might be an lvalue to return
+# 'values' doesn't actually use this bit, but we reserve it here as
+# pp_values may call Perl_do_kv() which is shared among several ops which
+# do.
+
+addbits($_, 3 => qw(OPpMAYBE_LVSUB LVSUB))
+    for qw(aassign rv2av rv2gv rv2hv padav padhv aelem helem aslice hslice
+           av2arylen keys akeys avhvswitch kvaslice kvhslice substr pos vec
+           multideref values);
+
+
+
+for (qw(rv2hv padhv ref blessed)) {
+    addbits($_,                           # e.g. %hash in (%hash || $foo) ...
+        4 => qw(OPpMAYBE_TRUEBOOL BOOL?), # but cx not known till run time
+        5 => qw(OPpTRUEBOOL       BOOL),
+    );
+}
+for (qw(grepwhile index length padav pos rindex rv2av subst)) {
+    addbits($_,
+        5 => qw(OPpTRUEBOOL       BOOL),  # if (@a) {...}
+    );
+}
+
+
+addbits($_, 1 => qw(OPpHINT_STRICT_REFS STRICT))
+    for qw(rv2sv rv2av rv2hv rv2gv multideref);
+
+
+
+# Treat caller(1) as caller(2)
+addbits($_, 7 => qw(OPpOFFBYONE  +1)) for qw(caller wantarray runcv);
+
+
+
+# label is in UTF8 */
+addbits($_, 7 => qw(OPpPV_IS_UTF8 UTF)) for qw(last redo next goto dump);
+
+
+
+# ====================================================================
+#
+# OP-SPECIFIC OPpFOO_* flags:
+#
+# where FOO is typically the name of an op, and the flag is used by a
+# single op (or maybe by a few closely related ops).
+
+
+
+# note that for refassign, this bit can mean either OPpPAD_STATE or
+# OPpOUR_INTRO depending on the type of the LH child, .e.g.
+#   \our   $foo = ...
+#   \state $foo = ...
+
+addbits($_, 6 => qw(OPpPAD_STATE STATE))  for qw(padav padhv padsv lvavref
+                                                 lvref refassign pushmark
+                                                 padsv_store undef emptyavhv);
+
+# NB: both sassign and aassign use the 'OPpASSIGN' naming convention
+# for their private flags
+
+# there *may* be common scalar items on both sides of a list assign:
+# run-time checking will be needed.
+addbits('aassign', 6 => qw(OPpASSIGN_COMMON_SCALAR COM_SCALAR));
+#
+# as above, but it's possible to check for non-commonality with just
+# a SvREFCNT(lhs) == 1 test for each lhs element
+addbits('aassign', 5 => qw(OPpASSIGN_COMMON_RC1 COM_RC1));
+
+# run-time checking is required for an aggregate on the LHS
+addbits('aassign', 4 => qw(OPpASSIGN_COMMON_AGG COM_AGG));
+
+addbits('aassign', 2 => qw(OPpASSIGN_TRUEBOOL BOOL));  # if (@a = (...)) {...}
+
+
+# NB: both sassign and aassign use the 'OPpASSIGN' naming convention
+# for their private flags
+
+addbits('sassign',
+    6 => qw(OPpASSIGN_BACKWARDS BKWARD), # Left & right switched
+    7 => qw(OPpASSIGN_CV_TO_GV  CV2GV),  # Possible optimisation for constants
+);
+
+
+
+for (qw(trans transr)) {
+    addbits($_,
+        # There is a character in the lhs representable not using UTF-8 whose
+        # replacement requires UTF-8.
+        0 => qw(OPpTRANS_CAN_FORCE_UTF8 CAN_FORCE_UTF8),    # 0-255 range
+                                              # character maps to 256-INF
+        1 => qw(OPpTRANS_USE_SVOP   USE_SVOP),# This is implemented an an svop
+                                              # vs pvop
+        2 => qw(OPpTRANS_IDENTICAL  IDENT),   # right side is same as left
+        3 => qw(OPpTRANS_SQUASH     SQUASH),  # /s
+        # 4 is used for OPpTARGET_MY
+        5 => qw(OPpTRANS_COMPLEMENT COMPL),   # /c
+        6 => qw(OPpTRANS_GROWS      GROWS),   # replacement chars longer than
+                                              #    src chars
+        7 => qw(OPpTRANS_DELETE     DEL),     # /d
+    );
+}
+
+
+
+addbits('repeat', 6 => qw(OPpREPEAT_DOLIST DOLIST)); # List replication
+
+
+
+# OP_ENTERSUB and OP_RV2CV flags
+#
+# Flags are set on entersub and rv2cv in three phases:
+#   parser  - the parser passes the flag to the op constructor
+#   check   - the check routine called by the op constructor sets the flag
+#   context - application of scalar/ref/lvalue context applies the flag
+#
+# In the third stage, an entersub op might turn into an rv2cv op (undef &foo,
+# \&foo, lock &foo, exists &foo, defined &foo).  The two places where that
+# happens (op_lvalue_flags and doref in op.c) need to make sure the flags do
+# not conflict, since some flags with different meanings overlap between
+# the two ops.  Flags applied in the context phase are only set when there
+# is no conversion of op type.
+#
+#   bit  entersub flag       phase   rv2cv flag             phase
+#   ---  -------------       -----   ----------             -----
+#     0  OPpENTERSUB_INARGS  context
+#     1  HINT_STRICT_REFS    check   HINT_STRICT_REFS       check
+#     2  OPpENTERSUB_HASTARG checki  OPpENTERSUB_HASTARG
+#     3  OPpENTERSUB_AMPER   check   OPpENTERSUB_AMPER      parser
+#     4  OPpDEREF_AV         context
+#     5  OPpDEREF_HV         context OPpMAY_RETURN_CONSTANT parser/context
+#     6  OPpENTERSUB_DB      check   OPpENTERSUB_DB
+#     7  OPpLVAL_INTRO       context OPpENTERSUB_NOPAREN    parser
+
+# NB: OPpHINT_STRICT_REFS must equal HINT_STRICT_REFS
+
+addbits('entersub',
+    0      => qw(OPpENTERSUB_INARGS   INARGS), # Lval used as arg to a sub
+    1      => qw(OPpHINT_STRICT_REFS  STRICT), # 'use strict' in scope
+    2      => qw(OPpENTERSUB_HASTARG  TARG  ), # Called from OP tree
+    3      => qw(OPpENTERSUB_AMPER    AMPER),  # Used & form to call
+    # 4..5 => OPpDEREF,      already defined above
+    6      => qw(OPpENTERSUB_DB       DBG   ), # Debug subroutine
+    # 7    => OPpLVAL_INTRO, already defined above
+);
+
+# note that some of these flags are just left-over from when an entersub
+# is converted into an rv2cv, and could probably be cleared/re-assigned
+
+addbits('rv2cv',
+    1 => qw(OPpHINT_STRICT_REFS    STRICT), # 'use strict' in scope
+    2 => qw(OPpENTERSUB_HASTARG    TARG  ), # If const sub, return the const
+    3 => qw(OPpENTERSUB_AMPER      AMPER ), # Used & form to call
+
+    5 => qw(OPpMAY_RETURN_CONSTANT CONST ),
+    6 => qw(OPpENTERSUB_DB         DBG   ), # Debug subroutine
+    7 => qw(OPpENTERSUB_NOPAREN    NO()  ), # bare sub call (without parens)
+);
+
+
+
+#foo() called before sub foo was parsed */
+addbits('gv', 5 => qw(OPpEARLY_CV EARLYCV));
+
+
+
+# 1st arg is replacement string */
+addbits('substr', 4 => qw(OPpSUBSTR_REPL_FIRST REPL1ST));
+
+
+
+addbits('padrange',
+    # bits 0..6 hold target range
+    '0..6' =>  {
+            label         => 'range',
+            mask_def      => 'OPpPADRANGE_COUNTMASK',
+            bitcount_def  => 'OPpPADRANGE_COUNTSHIFT',
+          }
+     # 7    => OPpLVAL_INTRO, already defined above
+);
+
+
+
+for (qw(aelemfast aelemfast_lex aelemfastlex_store)) {
+    addbits($_,
+        '0..7' =>  {
+                label     => 'key',
+              }
+    );
+}
+
+
+
+addbits('rv2gv',
+    2 => qw(OPpDONT_INIT_GV NOINIT), # Call gv_fetchpv with GV_NOINIT
+                            # (Therefore will return whatever is currently in
+                            # the symbol table, not guaranteed to be a PVGV)
+    6 => qw(OPpALLOW_FAKE   FAKE),   # OK to return fake glob
+);
+
+
+# NB OPpITER_REVERSED must always be bit 1: see pp_iter()
+
+addbits('enteriter',
+                    1 => qw(OPpITER_REVERSED REVERSED),# for (reverse ...)
+                    3 => qw(OPpITER_DEF      DEF),     # 'for $_'
+);
+addbits('iter',     1 => qw(OPpITER_REVERSED REVERSED));
+
+
+
+addbits('const',
+    1 => qw(OPpCONST_NOVER        NOVER),   # no 6;
+    2 => qw(OPpCONST_SHORTCIRCUIT SHORT),   # e.g. the constant 5 in (5 || foo)
+    3 => qw(OPpCONST_STRICT       STRICT),  # bareword subject to strict 'subs'
+    4 => qw(OPpCONST_ENTERED      ENTERED), # Has been entered as symbol
+    6 => qw(OPpCONST_BARE         BARE),    # Was a bare word (filehandle?)
+);
+
+
+
+# Range arg potentially a line num. */
+addbits($_, 6 => qw(OPpFLIP_LINENUM LINENUM)) for qw(flip flop);
+
+
+
+# Guessed that pushmark was needed. */
+addbits('list', 6 => qw(OPpLIST_GUESSED GUESSED));
+
+
+
+addbits('delete',
+    5 => qw(OPpKVSLICE KVSLICE), # Operating on a list of key/value pairs
+    6 => qw(OPpSLICE   SLICE  ), # Operating on a list of keys
+   #7 => OPpLVAL_INTRO, already defined above
+);
+
+
+
+# Checking for &sub, not {} or [].
+addbits('exists', 6 => qw(OPpEXISTS_SUB SUB));
+
+
+
+addbits('sort',
+    0 => qw(OPpSORT_NUMERIC  NUM    ), # Optimized away { $a <=> $b }
+    1 => qw(OPpSORT_INTEGER  INT    ), # Ditto while under "use integer"
+    2 => qw(OPpSORT_REVERSE  REV    ), # Reversed sort
+    3 => qw(OPpSORT_INPLACE  INPLACE), # sort in-place; eg @a = sort @a
+    4 => qw(OPpSORT_DESCEND  DESC   ), # Descending sort
+);
+
+
+
+# reverse in-place (@a = reverse @a) */
+addbits('reverse', 3 => qw(OPpREVERSE_INPLACE  INPLACE));
+
+
+
+for (qw(open backtick)) {
+    addbits($_,
+        4 => qw(OPpOPEN_IN_RAW    INBIN ), # binmode(F,":raw")  on input  fh
+        5 => qw(OPpOPEN_IN_CRLF   INCR  ), # binmode(F,":crlf") on input  fh
+        6 => qw(OPpOPEN_OUT_RAW   OUTBIN), # binmode(F,":raw")  on output fh
+        7 => qw(OPpOPEN_OUT_CRLF  OUTCR ), # binmode(F,":crlf") on output fh
+    );
+}
+
+
+
+# The various OPpFT* filetest ops
+
+# "use filetest 'access'" is in scope:
+# this flag is set only on a subset of the FT* ops
+addbits($_, 1 => qw(OPpFT_ACCESS FTACCESS)) for ops_with_arg(0, 'F-+');
+
+# all OPpFT* ops except stat and lstat
+for (grep { $_ !~ /^l?stat$/ } ops_with_flag('-')) {
+    addbits($_,
+        2 => qw(OPpFT_STACKED  FTSTACKED ),  # stacked filetest,
+                                             #    e.g. "-f" in "-f -x $foo"
+        3 => qw(OPpFT_STACKING FTSTACKING),  # stacking filetest.
+                                             #    e.g. "-x" in "-f -x $foo"
+        4 => qw(OPpFT_AFTER_t  FTAFTERt  ),  # previous op was -t
+    );
+}
+
+
+
+addbits('entereval',
+    1 => qw(OPpEVAL_HAS_HH       HAS_HH ), # Does it have a copy of %^H ?
+    2 => qw(OPpEVAL_UNICODE      UNI    ),
+    3 => qw(OPpEVAL_BYTES        BYTES  ),
+    4 => qw(OPpEVAL_COPHH        COPHH  ), # Construct %^H from COP hints
+    5 => qw(OPpEVAL_RE_REPARSING REPARSE), # eval_sv(..., G_RE_REPARSING)
+    6 => qw(OPpEVAL_EVALSV       EVALSV ), # called from eval_sv()
+
+);
+
+
+
+# These must not conflict with OPpDONT_INIT_GV or OPpALLOW_FAKE.
+# See pp.c:S_rv2gv. */
+addbits('coreargs',
+    0 => qw(OPpCOREARGS_DEREF1    DEREF1), # Arg 1 is a handle constructor
+    1 => qw(OPpCOREARGS_DEREF2    DEREF2), # Arg 2 is a handle constructor
+   #2 reserved for OPpDONT_INIT_GV in rv2gv
+   #4 reserved for OPpALLOW_FAKE   in rv2gv
+    6 => qw(OPpCOREARGS_SCALARMOD $MOD  ), # \$ rather than \[$@%*]
+    7 => qw(OPpCOREARGS_PUSHMARK  MARK  ), # Call pp_pushmark
+);
+
+
+
+addbits('split',
+    # @a = split() has been replaced with  split() where split itself
+    # does the array assign
+    4 => qw(OPpSPLIT_ASSIGN ASSIGN), 
+    3 => qw(OPpSPLIT_LEX LEX),  # the OPpSPLIT_ASSIGN is a lexical array
+    2 => qw(OPpSPLIT_IMPLIM IMPLIM), # implicit limit
+);
+
+
+addbits($_,
+    2 => qw(OPpLVREF_ELEM ELEM   ),
+    3 => qw(OPpLVREF_ITER ITER   ),
+'4..5'=> {
+           mask_def => 'OPpLVREF_TYPE',
+           enum     => [ qw(
+                             0   OPpLVREF_SV   SV
+                             1   OPpLVREF_AV   AV
+                             2   OPpLVREF_HV   HV
+                             3   OPpLVREF_CV   CV
+                         )],
+         },
+   #6 => qw(OPpPAD_STATE STATE),
+   #7 => qw(OPpLVAL_INTRO LVINTRO),
+) for 'refassign', 'lvref';
+
+
+
+addbits('multideref',
+    4 => qw(OPpMULTIDEREF_EXISTS EXISTS), # deref is actually exists
+    5 => qw(OPpMULTIDEREF_DELETE DELETE), # deref is actually delete
+);
+
+
+
+addbits('avhvswitch',
+    '0..1' => {
+                   mask_def  => 'OPpAVHVSWITCH_MASK',
+                   label     => 'offset',
+    }
+);
+
+
+addbits('argelem',
+   '1..2' =>  {
+                   mask_def  => 'OPpARGELEM_MASK',
+                   enum => [ qw(
+                               0   OPpARGELEM_SV   SV
+                               1   OPpARGELEM_AV   AV
+                               2   OPpARGELEM_HV   HV
+                           )],
+               },
+);
+
+
+# rv2hv and padhv in void/scalar context implementing 'keys %h'
+# directly, without a following OP_KEYS
+
+addbits('padhv',
+    0 => qw(OPpPADHV_ISKEYS KEYS),
+);
+addbits('rv2hv',
+    0 => qw(OPpRV2HV_ISKEYS KEYS),
+);
+
+# In conjunction with OPpTRUEBOOL, indicates that the test should be
+# inverted. This allows both (index() == -1) and (index() != -1)
+# to optimise away the const and eq/ne
+
+for (qw(index rindex)) {
+    addbits($_, 6 => qw(OPpINDEX_BOOLNEG NEG));
+}
+
+
+addbits('concat',
+    # OPf_STACKED normally indicates .=; but it also gets set to optimise
+    # $a . $b . $c into ($a . $b) .= $c
+    # so that the first concat's PADTMP (which holds the result of $a.$b)
+    # can be reused. Set a flag in this case to help deparse and warn
+    # distinguish the cases.
+    6 => qw(OPpCONCAT_NESTED NESTED),
+);
+
+
+addbits('multiconcat',
+  # 7       OPpLVAL_INTRO
+    6 => qw(OPpMULTICONCAT_APPEND APPEND), # $x .= ....
+    5 => qw(OPpMULTICONCAT_FAKE   FAKE),   # sprintf() optimised to MC.
+  # 4       OPpTARGET_MY
+    3 => qw(OPpMULTICONCAT_STRINGIFY STRINGIFY), # "$a$b..."
+);
+
+
+addbits('pushdefer',
+    7 => qw(OPpDEFER_FINALLY FINALLY),
+);
+
+# undef does not have the T flag set in regen/opcodes (and therefore
+# automatically get the TARGMY flag added), as this causes S_maybe_targlex
+# to do an unwanted optimization prior to Perl_rpeep.
+addbits('undef',
+    4 => qw(OPpTARGET_MY TARGMY),
+    5 => qw(OPpUNDEF_KEEP_PV KEEP_PV),
+);
+
+addbits('emptyavhv',
+  # 7       OPpLVAL_INTRO
+  # 6       OPpPAD_STATE
+    5 => qw(OPpEMPTYAVHV_IS_HV ANONHASH),
+  # 4       OPpTARGET_MY
+);
+
+addbits('argdefelem',
+    7 => qw(OPpARG_IF_UNDEF  IF_UNDEF),
+    6 => qw(OPpARG_IF_FALSE  IF_FALSE),
+);
+
+addbits('helemexistsor',
+    7 => qw(OPpHELEMEXISTSOR_DELETE DELETE),
+);
+
+addbits('methstart',
+    7 => qw(OPpINITFIELDS INITFIELDS),
+);
+
+addbits('initfield',
+    1 => qw(OPpINITFIELD_AV INITFIELD_AV),
+    2 => qw(OPpINITFIELD_HV INITFIELD_HV),
+);
+
+1;
+
+# ex: set ts=8 sts=4 sw=4 et:

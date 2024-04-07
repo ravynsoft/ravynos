@@ -1,0 +1,132 @@
+#!/usr/bin/perl
+
+##############################################################################
+#
+#	generate_config_sh
+#		Process that takes an automatically generated config.sh
+#		file and allows the environment to overload the values
+#		automatically discovered by Configure on our target platform.
+#
+#	Author	Redvers Davies <red@criticalintegration.com>
+#
+##############################################################################
+
+my $config = shift;
+
+my $sys = $ENV{SYS};
+
+my $callbacks = {};
+$callbacks->{'ar'} = [\&simple_process, ["AR", "arm-linux-ar"]];
+$callbacks->{'archname'} = [\&simple_process, ["SYS", "armv4l-linux"]];
+$callbacks->{'cc'} = [\&simple_process, ["CC", "arm-linux-gcc"]];
+$callbacks->{'cccdlflags'} = [\&simple_process, ["CFLAGS", ""]];
+$callbacks->{'ccdlflags'} = [\&simple_process, ["CFLAGS", ""]];
+$callbacks->{'ccflags'} = [\&simple_process, ["CFLAGS", "-fno-strict-aliasing -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"]];
+$callbacks->{'ccflags_uselargefiles'} = [\&simple_process, ["CFLAGS", "-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"]];
+$callbacks->{'ccname'} = [\&simple_process, ["CC", "arm-linux-gcc"]];
+$callbacks->{'cpp'} = [\&simple_process, ["CCP", "arm-linux-cpp"]];
+$callbacks->{'cppflags'} = [\&simple_process, ["CCPFLAGS", "-fno-strict-aliasing"]];
+$callbacks->{'cpprun'} = [\&simple_process_append, ["CC", "arm-linux-gcc -E", "-E"]];
+$callbacks->{'cppstdin'} = [\&simple_process_append, ["CC", "arm-linux-gcc -E", "-E"]];
+$callbacks->{'full_ar'} = [\&backtick, ["AR", "which $ENV{AR}", "/usr/local/arm/2.95.3/bin/arm-linux-ar"]];
+$callbacks->{'ld'} = [\&simple_process, ["LD", "arm-linux-ld"]];
+$callbacks->{'ldflags'} = [\&simple_process, ["LDFLAGS", ""]];
+$callbacks->{'ldflags_uselargefiles'} = [\&simple_process, ["LDFLAGS", ""]];
+$callbacks->{'myarchname'} = [\&simple_process, ["SYS", "armv4l-linux"]];
+$callbacks->{'archlib'} = [\&library_munge, ["SYS", "armv4l-linux"]];
+$callbacks->{'archlibexp'} = [\&library_munge, ["SYS", "armv4l-linux"]];
+$callbacks->{'installarchlib'} = [\&library_munge, ["SYS", "armv4l-linux"]];
+$callbacks->{'installsitearch'} = [\&library_munge, ["SYS", "armv4l-linux"]];
+$callbacks->{'sitearch'} = [\&library_munge, ["SYS", "armv4l-linux"]];
+$callbacks->{'sitearchexp'} = [\&library_munge, ["SYS", "armv4l-linux"]];
+
+if ($config eq "") {
+	die("Please run me as generate_config_sh path/to/original/config.sh");
+}
+
+open(FILE, '<', $config) || die("Unable to open $config");
+
+my $line_in;
+while ($line_in = <FILE>) {
+	if ($line_in =~ /^#/) {
+		next;
+	}
+
+	if ($line_in !~ /./) {
+		next;
+	}
+
+	$line_in =~ /^([^=]+)=(.*)/;
+	my $key = $1;
+	my $value = $2;
+	if (ref($callbacks->{$key}) eq "ARRAY") {
+		($callbacks->{$key}[0])->($key,$value);
+	} else {
+		print($line_in);
+	}
+}
+
+sub backtick {
+	my $key = shift;
+	my $value = shift;
+	my $envvar = $callbacks->{$key}->[1][0];
+
+	if ($ENV{$envvar}) {
+		my $rawtext = `$callbacks->{$key}->[1][1]`;
+		chomp($rawtext);
+		print("$key=\'$rawtext\'\n");
+	} else {
+		print("$key=\'$callbacks->{$key}->[1][2]\'\n");
+	}
+}
+	
+
+sub simple_process {
+	my $key = shift;
+	my $envvar = $callbacks->{$key}->[1][0];
+
+	if ($ENV{$envvar}) {
+		print("$key=\"$ENV{$envvar}\"\n");
+	} else {
+		print("$key=\'$callbacks->{$key}->[1][1]\'\n");
+	}
+
+}
+
+sub simple_process_append {
+	my $key = shift;
+	my $envvar = $callbacks->{$key}->[1][0];
+
+	if ($ENV{$envvar}) {
+		print("$key=\"$ENV{$envvar} $callbacks->{$key}->[1][2]\"\n");
+	} else {
+		print("$key=\'$callbacks->{$key}->[1][1]\'\n");
+	}
+
+}
+
+sub library_munge {
+	my $key = shift;
+	my $value = shift;
+	my $envvar = $callbacks->{$key}->[1][0];
+
+	if ($ENV{$envvar}) {
+		$value =~ s/$callbacks->{$key}->[1][1]/$ENV{$envvar}/g;
+		print("$key=$value\n");
+	} else {
+		print("$key=$value\n");
+	}
+		
+}
+
+
+
+
+
+
+
+
+
+
+
+

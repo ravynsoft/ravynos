@@ -1,0 +1,1027 @@
+Revision history for Perl distribution PathTools.
+
+3.87-3.88
+
+- Fix handling of empty path, VMS fixes.
+
+3.86
+
+- Fix compilation warning on illumos based platforms
+
+3.85
+
+- Fix issue related to tainting empty PATH
+
+3.84
+
+- Add PerlIO_readlink backcompat defines to Cws.xs
+
+3.83
+
+- More bugtracker changes, document maintainer is the Perl-5 Porters
+
+3.82
+
+- Change to build so bugreports go to GitHub
+
+3.81
+
+- compare inode numbers as strings (github #18788)
+
+3.80
+
+- use the PerlLIO_*() functions for lstat() and readlink() to support
+  Win32 symlink support added to perl.
+
+- skip a test that assumes getcwd() doesn't return symlinks on Win32, where
+  it can.
+
+3.79
+
+- fix an off-by-one in bsd_realpath()
+
+3.78
+
+- fallback to Internals::getcwd() for getcwd() if available (requires
+  $Config{d_getcwd})
+
+3.77
+
+- don't translate "..." to "..\.." on Win32
+
+3.76
+
+- test t/cwd_enoent.t - also accept ESTALE for a directory that no
+  longer exists (github #16699)
+
+3.75
+- Fix t/abs2rel.t on 5.8.8 by changing mkpath call to be
+  compatible with older File::Path
+
+3.74
+- No changes.
+
+3.73
+- Define NEED_croak_xs_usage, fixing usage of croak_xs_usage()
+- [perl #132853] Add metadata (ABSTRACT, LICENSE, AUTHOR)
+- [perl #132733] Skip cwd_enoent test on Cygwin
+- [perl #132651] Avoid infinite recursion in _perl_abs_path()
+- [rt.cpan.org #114236] Compatibility with File::Path 2.06_04
+
+3.72
+- [perl #132648] Correct error returns from fast_abs_path()
+
+3.71
+- [perl #130818] Remove support for running PathTools on MacOS
+  and EPOC
+
+3.70
+- Change strcmp into the easier to read strEQ
+
+3.69
+- avoid loading modules repeatedly at runtime
+- replace 'use vars' by 'our'
+- Switch to XSLoader from Dynaloader
+
+3.68
+- avoid warning from pre-5.8 code for detecting tainted values
+- make taint.t detect that a pre-5.8 Perl supports tainting
+- avoid a dynamic linking problem on Perl 5.6
+
+3.67 - Mon Feb 27 09:33:04 EST 2017
+- Add security usage note to File::Spec::no_upwards
+
+3.66 - Sat Nov 19 10:30:19 MST 2016
+- white space change so can compile under C++11
+
+3.65 - Mon, 25 Jul 2016 23:15:33 -0700
+- (perl #127384)(CVE-2016-1238)
+
+3.64 - Tue May 24 10:00:19 MST 2016
+- just minor pod changes to silence Pod::Checker
+
+3.62 - Mon Jan 11 08:39:19 EST 2016
+- ensure File::Spec::canonpath() preserves taint (CVE-2015-8607)
+
+3.61 - Sun Dec 20 12:00:00 EST 2015 (bleadperl only release)
+- improve performance of cwd on Win32 miniperl
+
+3.60 - Wed Nov 18 21:28:01 EST 2015
+- add File::Spec::AmigaOS -- and actually ship it, this time
+
+3.59 - Fri Nov 13 18:38:01 EST 2015
+- no changes since 5.58_01
+
+3.58_01 - Mon Nov  9 17:35:28 EST 2015 - TRIAL RELEASE
+- add File::Spec::AmigaOS
+- fix INSTALLDIRS on post-5.10 perls
+
+3.56_02 - Thu Jul 16 11:28:57 EDT 2015 - TRIAL RELEASE
+- fix $VERSION in loaded modules
+
+3.56_01 - Sat Jul 11 18:07:28 EDT 2015 - TRIAL RELEASE
+- CPAN release of the PathTools included in perl v5.22.0
+- support for z/OS sysplexed systems
+- long-deprecated "fixpath" and "eliminate_macros" VMS functions removed
+- avoid turning leading // into / on cygwin
+- Force barename base to be a directory in File::Spec::VMS:abs2rel
+- Revise Unix syntax detection File::Spec::VMS::abs2rel
+- compiles on Android now
+- fewer compiler warnings
+- eliminate some runtime perl warnings, too
+
+3.47 - Fri May 23 18:52:00 2014
+- Improved Android support.
+- File::Spec::Unix->tmpdir: Always return an absolute path
+- File::Spec now has an XS version for performance.
+- QNX and VMS portability
+- tmpdir is updated when the environment changes.
+
+3.40 - Wed Jan 16 07:30:00 2013
+- Stop inadvertently skipping Spec.t on VMS. (Craig Berry)
+- Rethink EFS in File::Spec::VMS. (Craig Berry)
+- File::Spec::UNIX->abs2rel() gets it wrong with ".." components
+  [perl #111510] (Volker Schatz)
+- Add C define to remove taint support from perl (Steffen Mueller)
+- Remove "register" declarations as they are no longer
+  useful (Karl Williamson)
+- Add test for fast_abs_path in LF dir
+  [perl #115962] (Father Chrysostomos)
+- Cwd::fast_abs_path's untaint should allow for multiline
+  directories (Joel Berger)
+
+3.39_01 - Tue Dec 20 08:30:00 2011
+- [perl #51562] Problem & "solution" for building 5.10.0 with
+  win32+mingw+dmake (kmx)
+- Fix various compiler warnings from XS code (Zefram)
+- Fix typos (spelling errors) (Peter J. Acklam)
+- Remove Mac OS classic only tests from Cwd's Spec.t
+  and special case code from Cwd's cwd.t (Nicholas Clark)
+- Convert File::Spec's remaining tests to Test::More from Test
+  (Nicholas Clark)
+- dist/Cwd/lib/File/Spec/Win32.pm: Fix broken link (Karl Williamson)
+- In Cwd::_win32_cwd() avoid a string eval when checking if we're
+  miniperl (Nicholas Clark)
+- Add PERL_NO_GET_CONTEXT to Cwd (Nicholas Clark)
+- In Cwd.xs on VMS, don't compile bsd_realpath() at all (Nicholas Clark)
+- Merge the implementation of Cwd::{fastcwd,getcwd} using
+  ALIAS (Nicholas Clark)
+- In Cwd.xs, swap to defaulting to disabled prototypes (Nicholas Clark)
+- Remove duplicate $VERSION handling code, made redundant
+  in 3.28_01 (Nicholas Clark)
+- In Cwd.xs, tidy the conditional code related to symlinks
+  (Nicholas Clark)
+- Keep verbatim pod within 80 cols (Father Chrysostomos)
+- [RT #36079] Convert ` to ' in docs (Jim Keenan)
+- [rt.cpan.org #45885] File::Spec: Don’t use tainted tmpdir
+  in 5.6 (Father Chrysostomos)
+
+3.33 - Mon Sep 20 18:00:00 2010
+- No functional changes since the previous release.
+- Fixes POD links
+  (part of core change2a6dc37471bea77f0c24fd1fe90c598a270c9968,
+   Florian Ragwitz)
+
+3.32 - Sun Sep 19 18:00:00 2010
+
+- Promote to stable release.
+
+3.31_03 - Fri Sep 17 20:00:00 2010
+
+- Colon delimiter and escaped delimiters for File::Spec::VMS
+  This is core change 61196b433b2b (Craig A. Berry)
+
+3.31_02 - Fri Jul 23 20:00:00 2010
+
+- Add TODO test for File::Spec->rel2abs() when under a symlink.
+- Make catpath return an empty directory rather than the current
+  directory if the directory name is empty.  This allows catpath
+  to play nice with non-rooted logical names, as in
+        catpath('sys$login:', '', 'login.com');
+  (Craig A. Berry)
+- Fix abs2rel bug in handling a Unix-style input.
+  (Craig A. Berry)
+- Assorted clarification and simplification of the documentation.
+  (Craig A. Berry)
+
+3.31 - Sun Nov  1 15:15:00 2009
+
+- Do not pack a Build.PL to avoid a circular dependency involving
+  ExtUtils::CBuilder (PathTools RT #50749)
+
+3.30_02 - Tue Sep 29 08:17:00 2009
+
+- Remove more special logic required for core perl.
+
+3.30_01 - Mon Sep 21 14:39:00 2009
+
+- Merge changes from core perl.
+  (Mostly changes regarding the lib->ext migration)
+
+3.30 - Sun May 10 10:55:00 2009
+
+- Promote to stable release.
+
+3.29_01 - Thu May  7 20:22:00 2009
+
+- Minor fixes for QNX6. [Sean Boudreau]
+
+- Update to support VMS in Unix compatible mode and/or file names using
+  extended character sets. (RT #42154) [John Malmberg]
+
+- VMS support for Unix and extended file specifications in File::Spec
+  (RT #42153) [John Malmberg]
+
+3.29 - Wed Oct 29 20:48:11 2008
+
+- Promote to stable release.
+
+3.28_03 - Mon Oct 27 22:12:11 2008
+
+- In Cwd.pm, pass the un-munged $VERSION to XSLoader/DynaLoader,
+  otherwise development releases fail tests on Win32.
+
+3.28_02 - Mon Oct 27 20:13:11 2008
+
+ - Fixed some issues on QNX/NTO related to paths with double
+   slashes. [Matt Kraai & Nicholas Clark]
+
+3.28_01 - Fri Jul 25 21:18:11 2008
+
+ - Fixed and clarified the behavior of splitpath() with a $no_file
+   argument on VMS.  [Craig A. Berry, Peter Edwards]
+
+ - Removed some function prototypes and other Perl::Critic violations.
+
+ - canonpath() and catdir() and catfile() on Win32 now make an
+   explicit (and unnecessary) copy of their arguments right away,
+   because apparently if we don't, we sabotage all of Win32dom. [RT
+   #33675]
+
+ - The Makefile.PL now has 'use 5.005;' to explicitly show what
+   minimum version of perl we support. [Spotted by Alexandr Ciornii]
+
+3.2701 - Mon Feb 11 21:43:51 2008
+
+ - Fixed an edge case for Win32 catdir('C:', 'foo') and catfile('C:',
+   'foo.txt') (which the caller's not really supposed to do, that's
+   what catpath() is for) that changed between versions.  Now we're
+   back to the old behavior, which was to return C:\foo and C:\foo.txt .
+   [Audrey Tang]
+
+3.27 - Wed Jan 16 20:20:49 2008
+
+ - If strlcpy() and strlcat() aren't available on the user's system,
+   we now use ppport.h to provide them, so our C code works. [Steve
+   Peters]
+
+ - Upgraded to a newer version of ppport.h [Steve Peters]
+
+3.26 - Sun Jan 13 21:59:20 2008
+
+ - case_tolerant() on Cygwin will now avoid a painful death when
+   Cygwin::mount_flags() isn't defined, as is the case for perl <
+   5.10.  It will now just return 1, which is what it always did
+   before it got so smart. [Spotted by Emanuele Zeppieri]
+
+ - abs_path() on Unix(ish) platforms has been upgraded to a much later
+   version of the underlying C code from BSD. [Michael Schwern]
+
+3.2501 - Mon Dec 24 20:33:02 2007
+
+ - Reimplemented abs_path() on VMS to use
+   VMS::Filespec::vms_realpath() when it's available. [John E. Malmberg]
+
+ - tmpdir() on Cygwin now also looks in $ENV{TMP} and $ENV{TEMP}.
+
+ - case_tolerant() on Cygwin and Win32 now take an optional path
+   argument, defaulting to the C drive, to check for case tolerance,
+   because this fact can vary on different volumes.
+
+ - File::Spec on Unix now uses Cwd::getcwd() rather than Cwd::cwd() to
+   get the current directory because I guess someone on p5p thought it
+   was more appropriate.
+
+ - Added a large set of File::Spec tests for the Cygwin platform.
+
+ - abs_path() now behaves correctly with symbolic links on VMS.
+
+ - Someone fixed a couple of mysterious edge cases in VMS' canonpath()
+   and splitdir().
+
+3.25_01 - Sat Oct 13 21:13:57 2007
+
+ - Major fixes on Win32, including a rewrite of catdir(), catfile(),
+   and canonpath() in terms of a single body of code. [Heinrich Tegethoff]
+
+ - For Win32 and Cygwin, case-tolerance can vary depending on the
+   volume under scrutiny.  When Win32API::File is available, it will
+   be employed to determine case-sensitivity of the given filesystem
+   (C: by default), otherwise we still return the default of 1. [Reini
+   Urban]
+
+ - On Cygwin, we added $ENV{'TMP'} and $ENV{'TEMP'} to the list of
+   possible places to look for tmpdir() return values. [Reini Urban]
+
+ - Added lots more tests for Cygwin. [Reini Urban]
+
+ - canonpath() with no arguments and canonpath(undef) now consistently
+   return undef on all platforms. [Spotted by Peter John Edwards]
+
+ - Fixed splitdir('') and splitdir(undef) and splitdir() to return an
+   empty list on VMS and MacOS, like it does on other platforms.
+   [Craig A. Berry]
+
+ - All .pm files now have the same $VERSION number, rather than a
+   hodgepodge of various numbers.
+
+3.25 - Mon May 21 21:07:26 2007
+
+ - Added a workaround for auto-vivication-of-function-args Perl bug
+   (triggered by OS/2-specific code). [Ilya Zakharevich]
+
+ - Sync with a bleadperl change: miniperl can no longer use Win32::*
+   functions because it cannot load Win32.dll. [Jan Dubois]
+
+ - We only need to load ppport.h when building outside the core, so we
+   avoid using it when in the core.
+ 
+3.24 - Sun Nov 19 22:52:49 2006
+
+ - Fixed a bug in the $ENV{PWD}-updating of Cwd::chdir() when a
+   dirhandle is passed in. [Steve Peters]
+
+ - Add perl 5.005 to the list of requirements in the
+   Build.PL/Makefile.PL/META.yml.
+
+ - Add ExtUtils::CBuilder to the list of build_requires in Build.PL.
+
+ - Improved performance of canonpath() on Unix-ish platforms - on my
+   OS X laptop it looks like it's about twice as fast. [Ruslan Zakirov]
+
+3.23 - Wed Oct 11 12:11:25 2006
+
+ - Yet more Win32 fixes (sigh... seems like I'm fighting a neverending
+   waterbed...).  This time, fixed file_name_is_absolute() to know
+   what it's doing when the path includes a volume but a relative
+   path, like C:foo.txt .  This bug had impact in rel2abs() on Win32
+   too.
+
+3.22 - Mon Oct  9 21:50:52 2006
+
+ - Fixed the t/crossplatform.t test on Win32 (and possibly other
+   volume-aware platforms) now that rel2abs() always adds a drive
+   letter. [Reported by several parties]
+
+3.21 - Wed Oct  4 21:16:43 2006
+
+ - Added a bunch of X<> tags to the File::Spec docs to help
+   podindex. [Gabor Szabo]
+
+ - On Win32, abs2rel('C:\one\two\t\foo', 't\bar') should return
+   '..\foo' when the cwd is 'C:\one\two', but it wasn't noticing that
+   the two relevant volumes were the same so it would return the full
+   path 'C:\one\two\t\foo'.  This is fixed. [Spotted by Alexandr
+   Ciornii]
+
+ - On Win32, rel2abs() now always adds a volume (drive letter) if the
+   given path doesn't have a volume (drive letter or UNC volume).
+   Previously it could return a value that didn't have a volume if the
+   input was a semi-absolute path like /foo/bar instead of a
+   fully-absolute path like C:/foo/bar .
+
+3.19  Tue Jul 11 22:40:26 CDT 2006
+
+ - When abs2rel() is called with two relative paths
+   (e.g. abs2rel('foo/bar/baz', 'foo/bar')) the resolution algorithm
+   needlessly called cwd() (twice!) to turn both arguments into
+   absolute paths.  Now it avoids the cwd() calls with a workaround,
+   making a big efficiency win when abs2rel() is called
+   repeatedly. [Brendan O'Dea]
+
+ - Added a build-time dependency on ExtUtils::Install version 1.39
+   when on Windows.  This is necessary because version 1.39 knows how
+   to replace an in-use Cwd shared library, but previous versions
+   don't. [Suggested by Adam Kennedy]
+
+ - Fixed File::Spec::Win32->canonpath('foo/../bar'), which was
+   returning \bar, and now properly returns just bar. [Spotted by
+   Heinrich Tegethoff]
+
+3.18  Thu Apr 27 22:01:38 CDT 2006
+
+ - Fixed some problems on VMS in which a directory called "0" would be
+   treated as a second-class citizen. [Peter (Stig) Edwards]
+
+ - Added a couple of regression tests to make sure abs2rel('/foo/bar',
+   '/') works as expected.  [Chia-liang Kao]
+
+ - Added a couple of regression tests to make sure catdir('/',
+   'foo/bar') works as expected.  [Mark Grimes]
+
+3.17  Fri Mar  3 16:52:30 CST 2006
+
+ - The Cygwin version of Cwd::cwd() will croak if given any arguments
+   (which can happen if, for example, it's called as Cwd->cwd).  Since
+   that croaking is bad, we now wrap the original cwd() in a
+   subroutine that ignores its arguments.  We could skip this wrapping
+   if a future version of perl changes cygwin.c's cwd() to not barf
+   when fed an argument. [Jerry D. Hedden]
+
+3.16  Mon Jan 30 20:48:41 CST 2006
+
+ - Updated to version 3.06 of ppport.h, which provides backward
+   compatibility XS layers for older perl versions.
+
+ - Clarify in the docs for File::Spec's abs2rel() and rel2abs()
+   methods that the cwd() function it discusses is
+   Cwd::cwd(). [Spotted by Steven Lembark]
+
+ - Apparently the version of File::Path that ships with perl 5.8.5
+   (and perhaps others) calls Cwd::getcwd() with an argument (perhaps
+   as a method?), which causes it to die with a prototyping error.
+   We've eliminated the prototype by using the "(...)" arglist, since
+   "PROTOTYPE: DISABLE" for the function didn't seem to work. [Spotted
+   by Eamon Daly and others]
+
+3.15  Tue Dec 27 14:17:39 CST 2005
+
+ - The Cwd::getcwd() function on *nix is now a direct pass-through to
+   the underlying getcwd() C library function when possible.  This is
+   safer and faster than the previous implementation, which just did
+   abs_path('.').  The pure-perl version has been kept for cases in
+   which the XS version can't load, such as when running under
+   miniperl. [Suggested by Nick Ing-Simmons]
+
+ - When Cwd searches for a 'pwd' executable in the $PATH, we now stop
+   after we find the first one rather than continuing the search.  We
+   also avoid the $PATH search altogether when a 'pwd' was already
+   found in a well-known and well-trusted location like /bin or
+   /usr/bin. [Suggested by Nick Ing-Simmons]
+
+ - On Win32 abs2rel($path, $base) was failing whenever $base is the
+   root of a volume (such as C:\ or \\share\dir).  This has been
+   fixed. [Reported by Bryan Daimler]
+
+ - In abs2rel() on VMS, we've fixed handling of directory trees so
+   that the test $file = File::Spec::VMS->abs2rel('[t1.t2.t3]file',
+   '[t1.t2.t3]') returns 'file' instead of an empty string. [John
+   E. Malmberg]
+
+ - In canonpath() on VMS, '[]' was totally optimized away instead of
+   just returning '[]'.  Now it's fixed. [John E. Malmberg]
+
+3.14  Thu Nov 17 18:08:44 CST 2005
+
+ - canonpath() has some logic in it that avoids collapsing a
+   //double/slash at the beginning of a pathname on platforms where
+   that means something special.  It used to check the value of $^O
+   rather than the classname it was called as, which meant that
+   calling File::Spec::Cygwin->canonpath() didn't act like cygwin
+   unless you were actually *on* cygwin.  Now it does.
+
+ - Fixed a major bug on Cygwin in which catdir() could sometimes
+   create things that look like //network/paths in cases when it
+   shouldn't (e.g. catdir("/", "foo", "bar")).
+
+3.13  Tue Nov 15 23:50:37 CST 2005
+
+ - Calling tmpdir() on Win32 had the unintended side-effect of storing
+   some undef values in %INC for the TMPDIR, TEMP, and TMP entries if
+   they didn't exist already.  This is probably a bug in perl itself
+   (submitted as #37441 on rt.perl.org), which we're now working
+   around. [Thomas L. Shinnick]
+
+ - Integrated a change from bleadperl - a certain #ifdef in Cwd.xs
+   needs to apply to WIN32 but not WinCE. [Vadim Konovalov]
+
+ - abs2rel() used to return the empty string when its two arguments
+   were identical, which made no sense.  Now it returns
+   curdir(). [Spotted by David Golden]
+
+ - The Unix and Win32 implementations of abs2rel() have been unified.
+
+3.12  Mon Oct  3 22:09:12 CDT 2005
+
+ - Fixed a testing error on OS/2 in which a drive letter for the root
+   directory was confusing things. [Ilya Zakharevich]
+
+ - Integrated a patch from bleadperl for fixing path() on
+   Win32. [Gisle Aas]
+
+3.11  Sat Aug 27 20:12:55 CDT 2005
+
+ - Fixed a couple of typos in the documentation for
+   File::Spec::Mac. [Piotr Fusik]
+
+3.10  Thu Aug 25 22:24:57 CDT 2005
+
+ - eliminate_macros() and fixpath() in File::Spec::VMS are now
+   deprecated, since they are MakeMaker-specific and now live inside
+   MakeMaker. [Michael Schwern]
+
+ - canonpath() on Win32 now collapses foo/.. (or foo\..) sections
+   correctly, rather than doing the "misguided" work it was previously
+   doing.  Note that canonpath() on Unix still does NOT collapse these
+   sections, as doing so would be incorrect.  [Michael Schwern]
+
+3.09  Tue Jun 14 20:36:50 CDT 2005
+
+ - Added some block delimiters (brackets) in the Perl_getcwd_sv() XS
+   function, which were necessary to separate the variable
+   declarations from the statements when HAS_GETCWD is not
+   defined. [Yves]
+
+ - Apparently the _NT_cwd() routine is never defined externally like I
+   thought it was, so I simplified the code around it.
+
+ - When cwd() is implemented using the _backtick_pwd() function, it
+   sometimes could create accidental undef entries in %ENV under perl
+   5.6, because local($hash{key}) is somewhat broken.  This is now
+   fixed with an appropriate workaround. [Neil Watkiss]
+
+3.08  Sat May 28 10:10:29 CDT 2005
+
+ - Fixed a test failure with fast_abs_path() on Windows - it was
+   sensitive to the rootdir() change from version 3.07. [Steve Hay]
+
+3.07  Fri May  6 07:46:45 CDT 2005
+
+ - Fixed a bug in which the special perl variable $^O would become
+   tainted under certain versions of perl. [Michael Schwern]
+
+ - File::Spec->rootdir() was returning / on Win32.  Now it returns \ .
+   [Michael Schwern]
+
+ - We now avoid modifying @_ in tmpdir() when it's not strictly
+   necessary, which reportedly provides a modest performance
+   boost. [Richard Soderberg]
+
+ - Made a couple of slight changes to the Win32 code so that it works
+   (or works better) on Symbian OS phones.  [Jarkko Hietaniemi]
+
+3.06  Wed Apr 13 20:47:26 CDT 2005
+ 
+ (No changes in functionality)
+
+ - Added a note to the canonpath() docs about why it doesn't collapse
+   foo/../bar sections.
+
+ - The internal-only function bsd_realpath() in the XS file now uses
+   normal arg syntax instead of K&R syntax. [Nicholas Clark]
+
+3.05  Mon Feb 28 07:22:58 CST 2005
+
+ - Fixed a bug in fast_abs_path() on Win32 in which forward- and
+   backward-slashes were confusing things. [demerphq]
+
+ - Failure to load the XS code in Cwd is no longer a fatal error
+   (though failure to compile it is still a fatal error in the build
+   process).  This lets Cwd work under miniperl in the core. [Rafael
+   Garcia-Suarez]
+
+ - In the t/cwd.t test, don't enforce loading from blib/ if we're
+   testing in the perl core. [Rafael Garcia-Suarez]
+
+3.04  Sun Feb  6 17:27:38 CST 2005
+
+ - For perls older than 5.006, the HAS_GETCWD symbol is not available,
+   because it wasn't checked for in older Configure scripts when perl
+   was built.  We therefore just ask the user whether the getcwd() C
+   function is defined on their platform when their perl is old.
+   Maybe in the future we'll try to automate this. [Reported by
+   several parties]
+
+ - Remove lib/ppport.h from the distribution, so that MakeMaker
+   doesn't accidentally pick it up and install it as a lib
+   file. [Jerry Hedden]
+
+ - Fixed a testing error on VMS that occurred when a user had
+   read-access to the root of the current volume. [Craig A. Berry]
+
+3.03  Fri Jan 21 21:44:05 CST 2005
+
+ - Fixed a testing error if the first file we find in the root
+   directory is a symlink. [Blair Zajac]
+
+ - Added a test to make sure Cwd.pm is loaded from blib/ during
+   testing, which seems to be an issue in some people's environments
+   and makes it awfully hard to debug things on my end.
+
+ - Skip the _perl_abs_path() tests on Cygwin - they don't usually
+   pass, and this function isn't used there anyway, so I decided not
+   to push it.  Let 'em use `cwd`.
+
+3.02  Sun Jan  9 19:29:52 CST 2005
+
+ - Fixed a bug in which Cwd::abs_path() called on a file in the root
+   directory returned strange results. [Bob Luckin]
+
+ - Straightened out the licensing details for the portion of the Cwd
+   module that comes from BSD sources. [Hugo van der Sanden]
+
+ - Removed the prototype from _perl_abs_path() and the XS version of
+   abs_path(), since all they seemed to be doing was causing people
+   grief, and since some platforms didn't have them anyway.
+
+ - Fixed a testing bug in which sometimes the wrong version of Cwd
+   (the version already installed on the user's machine) would get
+   loaded instead of the one we're building & installing.
+
+ - Sometimes getdcwd() returns a lower-case drive letter, so don't
+   require an upper-case letter in t/win32.t. [Jan Dubois]
+
+ - Fixed a memory leak in getdcwd() on win32. [Steve Hay]
+
+ - Added a copy of ppport.h to the distribution to aid compilation on
+   older versions of perl. [Suggested by Charlie Root]
+
+ - Don't bother looking for a 'pwd' executable on MSWin32 - there
+   won't be one, and looking for it can be extremely slow when lots of
+   disks are mounted. [Several people, including Andrew Burke]
+
+ - Eliminated a multi-argument form of open() that was causing a
+   syntax error on older versions of perl. [Fixed by Michael Schwern]
+
+ - The bug-fix changes for revision 0.90 of File::Spec somehow were
+   lost when I merged it into the PathTools distribution.  They're
+   restored now. [Craig A. Berry]
+
+ - File::Spec->canonpath() will now reduce paths like '[d1.-]foo.dat'
+   down to '[000000]foo.dat' instead of '[]foo.dat' or 'foo.dat'.
+   This is in better accordance with the native filename syntax
+   parser. [Craig A. Berry]
+
+ - In order to remove a recursive dependency (PathTools -> Test-Simple
+   -> Test-Harness -> PathTools), we now include a copy of Test::More in
+   the distribution.  It is only used for testing, it won't be installed
+   with the rest of the stuff.
+
+ - Removed some 5.6-isms from Cwd in order to get it to build with
+   older perls like 5.005.
+
+ - abs_path() on Windows was trampling on $ENV{PWD} - fixed. [Spotted
+   by Neil MacMullen]
+
+ - Added licensing/copyright statements to the POD in each .pm
+   file. [Spotted by Radoslaw Zielinski]
+
+3.01  Mon Sep  6 22:28:06 CDT 2004
+
+ - Removed an unnecessary and confusing dependency on File::Spec from
+   the Makefile.PL and the Build.PL.
+
+ - Added a 'NAME' entry to the Makefile.PL, because otherwise it won't
+   even begin to work. [Reported by many]
+
+3.00  Thu Sep  2 22:15:07 CDT 2004
+
+ - Merged Cwd and File::Spec into a single PathTools distribution.
+   This was done because the two modules use each other fairly
+   extensively, and extracting the common stuff into another
+   distribution was deemed nigh-impossible.  The code in revision 3.00
+   of PathTools should be equivalent to the code in Cwd 2.21 and
+   File::Spec 0.90.
+
+==================================================================
+Prior to revision 3.00, Cwd and File::Spec were maintained as two
+separate distributions.  The revision history for Cwd is shown here.
+The revision history for File::Spec is further below.
+==================================================================
+
+Cwd 2.21  Tue Aug 31 22:50:14 CDT 2004
+
+ - Removed "NO_META" from the Makefile.PL, since I'm not building the
+   distribution with MakeMaker anyway.  [Rohan Carly]
+
+ - Only test _perl_abs_path() on platforms where it's expected to work
+   (platforms with '/' as the directory separator). [Craig A. Berry]
+
+Cwd 2.20  Thu Jul 22 08:23:53 CDT 2004
+
+ - On some implementations of perl on Win32, a memory leak (or worse?)
+   occurred when calling getdcwd().  This has been fixed. [PodMaster]
+
+ - Added tests for getdcwd() on Win32.
+
+ - Fixed a problem in the pure-perl implementation _perl_abs_path()
+   that caused a fatal error when run on plain files. [Nicholas Clark]
+   To exercise the appropriate test code on platforms that wouldn't
+   otherwise use _perl_abs_path(), run the tests with $ENV{PERL_CORE}
+   or $ENV{TEST_PERL_CWD_CODE} set.
+
+Cwd 2.19  Thu Jul 15 08:32:18 CDT 2004
+
+ - The abs_path($arg) fix from 2.18 didn't work for VMS, now it's
+   fixed there. [Craig Berry]
+
+Cwd 2.18  Thu Jun 24 08:22:57 CDT 2004
+
+ - Fixed a problem in which abs_path($arg) on some platforms could
+   only be called on directories, and died when called on files.  This
+   was a problem in the pure-perl implementation _perl_abs_path().
+
+ - Fixed fast_abs_path($arg) in the same way as abs_path($arg) above.
+
+ - On Win32, a function getdcwd($vol) has been added, which gets the
+   current working directory of the specified drive/volume.
+   [Steve Hay]
+
+ - Fixed a problem on perl 5.6.2 when built with the MULTIPLICITY
+   compile-time flags. [Yitzchak Scott-Thoennes]
+
+ - When looking for a `pwd` system command, we no longer assume the
+   path separator is ':'.
+
+ - On platforms where cwd() is implemented internally (like Win32),
+   don't look for a `pwd` command externally.  This can greatly speed
+   up load time.  [Stefan Scherer]
+
+ - The pure-perl version of abs_path() now has the same prototype as
+   the XS version (;$).
+
+Cwd 2.17  Wed Mar 10 07:55:36 CST 2004
+
+ - The change in 2.16 created a testing failure when tested from
+   within a path that contains symlinks (for instance, /tmp ->
+   /private/tmp).
+
+Cwd 2.16  Sat Mar  6 17:56:31 CST 2004
+
+ - For VMS compatibility (and to conform to Cwd's documented
+   interface), in the regression tests we now compare output results
+   to an absolute path. [Craig A. Berry]
+
+Cwd 2.15  Fri Jan 16 08:09:44 CST 2004
+
+ - Fixed a problem on static perl builds - while creating
+   Makefile.aperl, it was loading a mismatched version of Cwd from
+   blib/ . [Reported by Blair Zajac]
+
+Cwd 2.14  Thu Jan  8 18:51:08 CST 2004
+
+ - We now use File::Spec->canonpath() and properly-escaped regular
+   expressions when comparing paths in the regression tests.  This
+   fixes some testing failures in 2.13 on non-Unix platforms.  No
+   changes were made in the actual Cwd module code. [Steve Hay]
+
+Cwd 2.13  Fri Jan  2 22:29:42 CST 2004
+
+ - Changed a '//' comment to a '/* */' comment in the XS code, so that
+   it'll compile properly under ANSI C rules. [Jarkko Hietaniemi]
+
+ - Fixed a 1-character buffer overrun problem in the C code. [The BSD
+   people]
+
+Cwd 2.12  Fri Dec 19 17:04:52 CST 2003
+
+ - Fixed a bug on Cygwin - the output of realpath() should have been
+   tainted, but wasn't.  [Reported by Tom Wyant]
+
+Cwd 2.10  Mon Dec 15 07:50:12 CST 2003
+
+ (Note that this release was mistakenly packaged as version 2.11, even
+ though it had an internal $VERSION variable of 2.10.  Not sure how
+ THAT happened...)
+
+ - There was a dependency in the Makefile.PL on Module::Build, which
+   isn't necessary.  I've removed it.
+
+Cwd 2.09  Thu Dec 11 20:30:58 CST 2003
+
+ - The module should now build & install using version 5.6 of perl.
+
+ - We now note a build-time dependency on version 0.19 of
+   Module::Build, which is necessary because we don't use the standard
+   lib/-based file layout.  No version of Module::Build is required if
+   you use the Makefile.PL, just if you use the Build.PL .
+
+ - Removed some gratuitous uses of 5.6-isms like our(), with the aim
+   of backporting this module to perl 5.005.
+
+ - Simplified all code that autoloads Carp.pm and calls
+   carp()/croak().
+
+ - Removed some redundant OS/2 code at the suggestion of Michael
+   Schwern and Ilya Zakharevich.
+
+ - Make sure the correct version of Cwd.pm is loaded in the regression
+   tests. [Sam Vilain]
+
+Cwd 2.08  Wed Oct 15 20:56 CDT 2003
+
+  - Code extracted from perl 5.8.1 and packaged as a separate CPAN
+    release by Ken Williams.
+
+==================================================================
+Prior to revision 3.00, Cwd and File::Spec were maintained as two
+separate distributions.  The revision history for File::Spec is shown
+here.  The revision history for Cwd is above.
+==================================================================
+
+File::Spec 0.90  Tue Aug 31 22:34:50 CDT 2004
+
+ - On VMS, directories use vmspath() and files use vmsify(), so
+   rel2abs() has to use some 'educated guessing' when dealing with
+   paths containing slashes.  [Craig A. Berry]
+
+File::Spec 0.89  Sun Aug 29 19:02:32 CDT 2004
+
+ - Fixed some pathological cases on VMS which broke canonpath() and
+   splitdir().  [Richard Levitte and Craig A. Berry]
+
+ - Fixed rel2abs() on VMS when passed a unix-style relative
+   path. [Craig A. Berry]
+
+File::Spec 0.88  Thu Jul 22 23:14:32 CDT 2004
+
+ - rel2abs() on Win32 will now use the new Cwd::getdcwd() function, so
+   that things like rel2abs('D:foo.txt') work properly when the
+   current drive isn't 'D'. This requires Cwd version 2.18.  
+   [Steve Hay]
+
+ - Got rid of a redundant double-backslash in a character
+   class. [Alexander Farber]
+
+ - Added much markup to pod for enhanced readability. [Andy Lester]
+
+File::Spec 0.87  Fri Dec 19 08:03:28 CST 2003
+
+ - With a one-line change in the tests, backported to perl 5.004.
+   [Issue reported by Barry Kemble]
+
+File::Spec 0.86  Fri Sep 26 10:07:39 CDT 2003
+
+ - This is the version released with perl 5.8.1.  It is identical to
+   the code in the File::Spec beta 0.85_03.
+
+File::Spec 0.85_03  Mon Sep 15 09:35:53 CDT 2003
+
+ - On VMS, if catpath() receives volume specifiers in both its first
+   two arguments, it will now use the volume in the first argument
+   only.  Previously it returned a non-syntactical result which
+   included both volumes.  This change is the same in spirit to the
+   catpath() MacOS change from version 0.85_02.
+
+ - Fixed an abs2rel() bug on VMS - previously
+   abs2rel('[t1.t2.t3]file','[t1.t2]') returned '[t3]file', now it
+   properly returns '[.t3]file'.
+
+File::Spec 0.85_02  Fri Sep 12 17:11:13 CDT 2003
+
+ - abs2rel() now behaves more consistently across platforms with the
+   notion of a volume.  If the volumes of the first and second
+   argument (the second argument may be implicit) do not agree, we do
+   not attempt to reconcile the paths, and simply return the first
+   argument.  Previously the volume of the second argument was
+   (usually) ignored, resulting in sometimes-garbage output.
+
+ - catpath() on MacOS now looks for a volume element (i.e. "Macintosh HD:")
+   in its first argument, and then its second argument.  The first
+   volume found will be used, and if none is found, none will be used.
+
+ - Fixed a problem in abs2rel() on Win32 in which the volume of the
+   current working directory would get added to the second argument if
+   none was specified.  This might have been somewhat helpful, but it
+   was contrary to the documented behavior.  For example,
+   abs2rel('C:/foo/bar', '/foo') used to return 'bar', now it returns
+   'C:/foo/bar' because there's no guarantee /foo is actually C:/foo .
+
+ - catdir('/', '../') on OS2 previously erroneously returned '//..',
+   and now it returns '/'.
+
+File::Spec 0.85_01  Thu Sep 11 16:18:54 CDT 2003
+
+ Working toward 0.86, the version that will be released with perl 5.8.1.
+
+ - The t/rel2abs2rel.t test now is a little friendlier about emitting
+   its diagnostic debugging output. [Jarkko Hietaniemi]
+
+ - We now only require() Cwd when it's needed, on demand. [Michael
+   Schwern, Tels]
+
+ - Fixed some POD errors and redundancies in OS2.pm and Cygwin.pm.
+   [Michael Schwern]
+
+ - The internal method cwd() has been renamed to _cwd(), since it was
+   never meant for public use. [Michael Schwern]
+
+ - Several methods in File::Spec::Unix that just return constant
+   strings have been sped up.  catdir() has also been sped up there.
+   [Tels]
+
+ - Several canonpath() and catdir() bugs on Win32 have been fixed, and
+   tests added for them:
+      catdir('/', '../')   -> '\\'     (was '\..')
+      catdir('/', '..\\')  -> '\\      (was '')
+      canonpath('\\../')   -> '\\'     (was '')
+      canonpath('\\..\\')  -> '\\'     (was '')
+      canonpath('/../')    -> '\\'     (was '\..')
+      canonpath('/..\\')   -> '\\'     (was '')
+      catdir('\\', 'foo')  -> '\foo'   (was '\\foo')
+
+ - catpath($volume, $dirs, $file) on Mac OS now ignores any volume
+   that might be part of $dirs, enabling catpath($volume,
+   catdir(rootdir(), 'foo'), '') to work portably across platforms.
+
+File::Spec 0.85  Tue Jul 22 11:31 CDT 2003
+
+ A bug-fix release relative to 0.84.  I've forked development into a
+ "stable" branch (this one) and a more aggressive branch (as yet
+ unreleased), with an eye toward getting the stable features in perl
+ 5.8.1.
+
+ - File::Spec::Mac->case_tolerant() returned 0 when it should have
+   returned 1.
+
+ - Many cases in File::Spec::Win32->abs2rel() were broken, because of
+   the way in which volumes were/weren't ignored.  Unfortunately, part
+   of the regression tests were broken too.  Now, if the $path
+   argument to abs2rel() is on a different volume than the $base
+   argument, the result will be an absolute path rather than the
+   broken relative path previous versions returned.
+
+ - Fixed a problem in File::Spec::Win32->canonpath, which was turning
+   \../foo into "foo" rather than \foo
+
+ - Greatly simplified the code in File::Spec::Unix->splitdir().
+
+File::Spec 0.84_01  Fri Jul 11 16:14:29 CDT 2003
+
+ No actual code changes, just changes in other distribution files
+
+ - Dependencies are now listed explicitly in the Makefile.PL and
+   Build.PL scripts, as well as in the META.yml file.
+
+ - The t/abs2rel2abs.t test should now be more friendly about skipping
+   on platforms where it can't run properly.
+
+File::Spec 0.84  Wed Jul  9 22:21:23 CDT 2003
+
+ I (Ken)'ve taken the changes from bleadperl and created a new CPAN release
+ from them, since they're pretty important changes.  The highlights,
+ from what I can tell, are listed here.
+
+ - A huge number of changes to File::Spec::Mac in order to bring it in
+   line with the other platforms.  This work was mostly/completely
+   done by Thomas Wegner.
+
+ - The Epoc and Cygwin platforms are now supported.
+
+ - Lots of generically-applicable documentation has been taken from
+   File::Spec::Unix and put in File::Spec.
+
+ - A Build.PL has been provided for people who wish to install via
+   Module::Build.
+
+ - Some spurious warnings and errors in the tests have been
+   eliminated. [Michael Schwern]
+
+ - canonpath() on File::Spec::Unix now honors a //node-name at the
+   beginning of a path.
+
+ - Cwd.pm wasn't being loaded properly on MacOS. [Chris Nandor]
+
+ - Various POD fixups
+
+ - Several testing patches for the Epoc and Cygwin platforms [Tels]
+
+ - When running under taint mode and perl >= 5.8, all the tmpdir()
+   implementations now avoid returning a tainted path.
+
+ - File::Spec::OS2 now implements canonpath(), splitpath(),
+   splitdir(), catpath(), abs2rel(), and rel2abs() directly rather
+   than inheriting them from File::Spec::Unix.
+
+ - Added 'SYS:/temp' and 'C:/temp' to the list of possible tmpdir()s
+   on Win32.
+
+ - catfile() on Win32 and VMS will now automatically call canonpath()
+   on its final argument.
+
+ - canonpath() on Win32 now does a much more extensive cleanup of the
+   path.
+
+ - abs2rel() on Win32 now defaults to using cwd() as the base of
+   relativity when no base is given.
+
+ - abs2rel() on Win32 now explicitly ignores any volume component in
+   the $path argument.
+
+ - canonpath() on VMS now does []foo ==> foo, and foo.000000] ==> foo].
+   It also fixes a bug in multiple [000000.foo ==> [foo translations.
+
+ - tmpdir() on VMS now uses 'sys$scratch:' instead of 'sys$scratch'.
+
+ - abs2rel() on VMS now uses '000000' in both the path and the base.
+
+File::Spec 0.82 Wed Jun 28 11:24:05 EDT 2000
+   - Mac.pm: file_name_is_absolute( '' ) now returns TRUE on all platforms
+   - Spec.pm: unbreak C<$VERSION = '0.xx'> to be C<$VERSION = 0.xx>, so
+     underscores can be used when I want to update CPAN without anyone
+     needing to update the perl repository.
+   - abs2rel, rel2abs doc tweaks
+   - VMS.pm: get $path =~ /\s/ checks from perl repository.
+   - Makefile.PL: added INSTALLDIRS => 'perl', since these are std. modules.
+   - Remove vestigial context prototypes from &rel2abs until some future
+     arrives where method prototypes are honored.

@@ -1,0 +1,712 @@
+=for :stopwords MailingList RWS subcontext
+
+=head1 NAME
+
+CPAN::Meta::History::Meta_1_2 - Version 1.2 metadata specification for META.yml
+
+=head1 PREFACE
+
+This is a historical copy of the version 1.2 specification for F<META.yml>
+files, copyright by Ken Williams and licensed under the same terms as Perl
+itself.
+
+Modifications from the original:
+
+=over
+
+=item *
+
+Various spelling corrections
+
+=item *
+
+Include list of valid licenses from L<Module::Build> 0.2611 rather than
+linking to the module, with minor updates to text and links to reflect
+versions at the time of publication.
+
+=item *
+
+Fixed some dead links to point to active resources.
+
+=back
+
+=head1 SYNOPSIS
+
+ --- #YAML:1.0
+ name: Module-Build
+ abstract: Build and install Perl modules
+ version: 0.20
+ author:
+   - Ken Williams <kwilliams@cpan.org>
+ license: perl
+ distribution_type: module
+ requires:
+   Config: 0
+   Cwd: 0
+   Data::Dumper: 0
+   ExtUtils::Install: 0
+   File::Basename: 0
+   File::Compare: 0
+   File::Copy: 0
+   File::Find: 0
+   File::Path: 0
+   File::Spec: 0
+   IO::File: 0
+   perl: 5.005_03
+ recommends:
+   Archive::Tar: 1.00
+   ExtUtils::Install: 0.3
+   ExtUtils::ParseXS: 2.02
+   Pod::Text: 0
+   YAML: 0.35
+ build_requires:
+   Test: 0
+ urls:
+   license: http://dev.perl.org/licenses/
+ meta-spec:
+   version: 1.2
+   url: http://module-build.sourceforge.net/META-spec-v1.2.html
+ generated_by: Module::Build version 0.20
+
+=head1 DESCRIPTION
+
+This document describes version 1.2 of the F<META.yml> specification.
+
+The F<META.yml> file describes important properties of contributed
+Perl distributions such as the ones found on CPAN.  It is typically
+created by tools like Module::Build, Module::Install, and
+ExtUtils::MakeMaker.
+
+The fields in the F<META.yml> file are meant to be helpful for people
+maintaining module collections (like CPAN), for people writing
+installation tools (like CPAN.pm or CPANPLUS), or just for people who
+want to know some stuff about a distribution before downloading it and
+starting to install it.
+
+I<Note: The latest stable version of this specification can always be
+found at L<http://module-build.sourceforge.net/META-spec-current.html>,
+and the latest development version (which may include things that
+won't make it into the stable version can always be found at
+L<http://module-build.sourceforge.net/META-spec-blead.html>.>
+
+=head1 FORMAT
+
+F<META.yml> files are written in the YAML format (see
+L<http://www.yaml.org/>).
+
+See the following links to learn why we chose YAML instead of, say,
+XML or Data::Dumper:
+
+=over 4
+
+=item *
+
+L<Module::Build design plans|http://www.nntp.perl.org/group/perl.makemaker/2002/04/msg407.html>
+
+=item *
+
+L<Not keen on YAML|http://www.nntp.perl.org/group/perl.module-authors/2003/11/msg1353.html>
+
+=item *
+
+L<META Concerns|http://www.nntp.perl.org/group/perl.module-authors/2003/11/msg1385.html>
+
+=back
+
+=head1 TERMINOLOGY
+
+=over 4
+
+=item distribution
+
+This is the primary object described by the F<META.yml>
+specification. In the context of this document it usually refers to a
+collection of modules, scripts, and/or documents that are distributed
+for other developers to use.
+
+=item module
+
+This refers to a reusable library of code typically contained in a
+single file. Currently, we primarily talk of perl modules, but this
+specification should be open enough to apply to other languages as
+well (ex. python, ruby).
+
+=back
+
+=head1 VERSION SPECIFICATIONS
+
+Some fields require a version specification (ex. L</requires>,
+L</recommends>, L</build_requires>, etc.).  This section details the
+version specifications that are currently supported.
+
+If a single version is listed, then that version is considered to be
+the minimum version supported.
+
+If 0 is given as the version number, then any version is supported.
+
+Additionally, for more complicated requirements, the specification
+supports a list of versions, each of which may be optionally preceded
+by a relational operator.
+
+Supported operators include E<lt> (less than), E<lt>= (less than or
+equal), E<gt> (greater than), E<gt>= (greater than or equal), == (equal), and !=
+(not equal).
+
+If a list is given then it is evaluated from left to right so that any
+specifications in the list that conflict with a previous specification
+are overridden by the later.
+
+Examples:
+
+ >= 1.2, != 1.5, < 2.0
+
+Any version from version 1.2 onward, except version 1.5, that also
+precedes version 2.0.
+
+=head1 HEADER
+
+The first line of a F<META.yml> file should be a valid YAML document
+header like C<"--- #YAML:1.0">.
+
+=head1 FIELDS
+
+The rest of the F<META.yml> file is one big YAML mapping whose keys
+are described here.
+
+=head2 meta-spec
+
+Example:
+
+ meta-spec:
+   version: 1.2
+   url: http://module-build.sourceforge.net/META-spec-v1.2.html
+
+(Spec 1.1) [required] {URL} This field indicates the location of the
+version of the META.yml specification used.
+
+=head2 name
+
+Example:
+
+  name: Module-Build
+
+(Spec 1.0) [required] {string} The name of the distribution which is often
+created by taking the "main module" in the distribution and changing
+"::" to "-".  Sometimes it's completely different, however, as in the
+case of the libwww-perl distribution (see
+L<http://search.cpan.org/author/GAAS/libwww-perl/>).
+
+=head2 version
+
+Example:
+
+  version: 0.20
+
+(Spec 1.0) [required] {version} The version of the distribution to which the
+F<META.yml> file refers.
+
+=head2 abstract
+
+Example:
+
+  abstract: Build and install Perl modules.
+
+(Spec 1.1) [required] {string} A short description of the purpose of the
+distribution.
+
+=head2 author
+
+Example:
+
+  author:
+    - Ken Williams <kwilliams@cpan.org>
+
+(Spec 1.1) [required] {list of strings} A YAML sequence indicating the author(s) of the
+distribution. The preferred form is author-name <email-address>.
+
+=head2 license
+
+Example:
+
+  license: perl
+
+(Spec 1.0) [required] {string} The license under which this distribution may be
+used and redistributed.
+
+Must be one of the following licenses:
+
+=over 4
+
+=item perl
+
+The distribution may be copied and redistributed under the same terms as perl
+itself (this is by far the most common licensing option for modules on CPAN).
+This is a dual license, in which the user may choose between either the GPL
+version 1 or the Artistic version 1 license.
+
+=item gpl
+
+The distribution is distributed under the terms of the GNU General Public
+License version 2 (L<http://opensource.org/licenses/GPL-2.0>).
+
+=item lgpl
+
+The distribution is distributed under the terms of the GNU Lesser General
+Public License version 2 (L<http://opensource.org/licenses/LGPL-2.1>).
+
+=item artistic
+
+The distribution is licensed under the Artistic License version 1, as specified
+by the Artistic file in the standard perl distribution
+(L<http://opensource.org/licenses/Artistic-Perl-1.0>).
+
+=item bsd
+
+The distribution is licensed under the BSD 3-Clause License
+(L<http://opensource.org/licenses/BSD-3-Clause>).
+
+=item open_source
+
+The distribution is licensed under some other Open Source Initiative-approved
+license listed at L<http://www.opensource.org/licenses/>.
+
+=item unrestricted
+
+The distribution is licensed under a license that is B<not> approved by
+L<www.opensource.org|http://www.opensource.org/> but that allows distribution
+without restrictions.
+
+=item restrictive
+
+The distribution may not be redistributed without special permission from the
+author and/or copyright holder.
+
+=back
+
+=head2 distribution_type
+
+Example:
+
+  distribution_type: module
+
+(Spec 1.0) [optional] {string} What kind of stuff is contained in this
+distribution.  Most things on CPAN are C<module>s (which can also mean
+a collection of modules), but some things are C<script>s.
+
+Unfortunately this field is basically meaningless, since many
+distributions are hybrids of several kinds of things, or some new
+thing, or subjectively different in focus depending on who's using
+them.  Tools like Module::Build and MakeMaker will likely stop
+generating this field.
+
+=head2 requires
+
+Example:
+
+  requires:
+    Data::Dumper: 0
+    File::Find: 1.03
+
+(Spec 1.0) [optional] {map} A YAML mapping indicating the Perl modules this
+distribution requires for proper operation.  The keys are the module
+names, and the values are version specifications as described in
+L<Module::Build> for the "requires" parameter.
+
+=head2 recommends
+
+Example:
+
+  recommends:
+    Data::Dumper: 0
+    File::Find: 1.03
+
+(Spec 1.0) [optional] {map} A YAML mapping indicating the Perl modules this
+distribution recommends for enhanced operation.
+
+I<ALTERNATIVE: It may be desirable to present to the user which
+features depend on which modules so they can make an informed
+decision about which recommended modules to install.>
+
+Example:
+
+  optional_features:
+  - foo:
+      description: Provides the ability to blah.
+      requires:
+        Data::Dumper: 0
+        File::Find: 1.03
+  - bar:
+      description: This feature is not available on this platform.
+      excludes_os: MSWin32
+
+I<(Spec 1.1) [optional] {map} A YAML sequence of names for optional features
+which are made available when its requirements are met. For each
+feature a description is provided along with any of L</requires>,
+L</build_requires>, L</conflicts>, C<requires_packages>,
+C<requires_os>, and C<excludes_os> which have the same meaning in
+this subcontext as described elsewhere in this document.>
+
+=head2 build_requires
+
+Example:
+
+  build_requires:
+    Data::Dumper: 0
+    File::Find: 1.03
+
+(Spec 1.0) [optional] {map} A YAML mapping indicating the Perl modules
+required for building and/or testing of this distribution.  These
+dependencies are not required after the module is installed.
+
+=head2 conflicts
+
+Example:
+
+  conflicts:
+    Data::Dumper: 0
+    File::Find: 1.03
+
+(Spec 1.0) [optional] {map} A YAML mapping indicating the Perl modules that
+cannot be installed while this distribution is installed.  This is a
+pretty uncommon situation.
+
+=head2 dynamic_config
+
+Example:
+
+  dynamic_config: 0
+
+(Spec 1.0) [optional] {boolean} A boolean flag indicating whether a F<Build.PL>
+or F<Makefile.PL> (or similar) must be executed when building this
+distribution, or whether it can be built, tested and installed solely
+from consulting its
+metadata file.  The main reason to set this to a true value if that
+your module performs some dynamic configuration (asking questions,
+sensing the environment, etc.) as part of its build/install process.
+
+Currently Module::Build doesn't actually do anything with this flag
+- it's probably going to be up to higher-level tools like CPAN
+to do something useful with it.  It can potentially bring lots of
+security, packaging, and convenience improvements.
+
+If this field is omitted, it defaults to 1 (true).
+
+=head2 private
+
+I<(Deprecated)> (Spec 1.0) [optional] {map} This field has been renamed to
+L</no_index>.  See below.
+
+=head2 provides
+
+Example:
+
+  provides:
+    Foo::Bar:
+      file: lib/Foo/Bar.pm
+      version: 0.27_02
+    Foo::Bar::Blah:
+      file: lib/Foo/Bar/Blah.pm
+    Foo::Bar::Baz:
+      file: lib/Foo/Bar/Baz.pm
+      version: 0.3
+
+(Spec 1.1) [optional] {map} A YAML mapping that describes all packages
+provided by this distribution.  This information can be (and, in some
+cases, is) used by distribution and automation mechanisms like PAUSE,
+CPAN, and search.cpan.org to build indexes saying in which
+distribution various packages can be found.
+
+When using tools like L<Module::Build> that can generate the
+C<provides> mapping for your distribution automatically, make sure you
+examine what it generates to make sure it makes sense - indexers will
+usually trust the C<provides> field if it's present, rather than
+scanning through the distribution files themselves to figure out
+packages and versions.  This is a good thing, because it means you can
+use the C<provides> field to tell the indexers precisely what you want
+indexed about your distribution, rather than relying on them to
+essentially guess what you want indexed.
+
+=head2 no_index
+
+Example:
+
+  no_index:
+    file:
+    - My/Module.pm
+    dir:
+    - My/Private
+    package:
+    - My::Module::Stuff
+    namespace:
+    - My::Module::Stuff
+
+(Spec 1.1) [optional] {map} A YAML mapping that describes any files,
+directories, packages, and namespaces that are private
+(i.e. implementation artifacts) that are not of interest to searching
+and indexing tools.  This is useful when no C<provides> field is
+present.
+
+I<(Note: I'm not actually sure who looks at this field, or exactly
+what they do with it.  This spec could be off in some way from actual
+usage.)>
+
+=head3 file
+
+(Spec 1.1) [optional] Exclude any listed file(s).
+
+=head3 dir
+
+(Spec 1.1) [optional] Exclude anything below the listed
+directory(ies).
+
+=head3 package
+
+(Spec 1.1) [optional] Exclude the listed package(s).
+
+=head3 namespace
+
+(Spec 1.1) [optional] Excludes anything below the listed namespace(s),
+but I<not> the listed namespace(s) its self.
+
+=head2 keywords
+
+Example:
+
+  keywords:
+    - make
+    - build
+    - install
+
+(Spec 1.1) [optional] {list} A sequence of keywords/phrases that describe
+this distribution.
+
+=head2 resources
+
+Example:
+
+  resources:
+    license: http://dev.perl.org/licenses/
+    homepage: http://sourceforge.net/projects/module-build
+    bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Module-Build
+    MailingList: http://lists.sourceforge.net/lists/listinfo/module-build-general
+
+(Spec 1.1) [optional] {map} A mapping of any URL resources related to
+this distribution.  All-lower-case keys, such as C<homepage>,
+C<license>, and C<bugtracker>, are reserved by this specification, as
+they have "official" meanings defined here in this specification.  If
+you'd like to add your own "special" entries (like the "MailingList"
+entry above), use at least one upper-case letter.
+
+The current set of official keys is:
+
+=over 2
+
+=item homepage
+
+The official home of this project on the web.
+
+=item license
+
+An URL for an official statement of this distribution's license.
+
+=item bugtracker
+
+An URL for a bug tracker (e.g. Bugzilla or RT queue) for this project.
+
+=back
+
+
+=head2 generated_by
+
+Example:
+
+  generated_by: Module::Build version 0.20
+
+(Spec 1.0) [required] {string} Indicates the tool that was used to create this
+F<META.yml> file.  It's good form to include both the name of the tool
+and its version, but this field is essentially opaque, at least for
+the moment. If F<META.yml> was generated by hand, it is suggested that
+the author be specified here.
+
+[Note: My F<meta_stats.pl> script which I use to gather statistics
+regarding F<META.yml> usage prefers the form listed above, i.e. it
+splits on /\s+version\s+/ taking the first field as the name of the
+tool that generated the file and the second field as version of that
+tool. RWS]
+
+=head1 SEE ALSO
+
+L<CPAN|http://www.cpan.org/>
+
+L<CPAN.pm|CPAN>
+
+L<CPANPLUS>
+
+L<Data::Dumper>
+
+L<ExtUtils::MakeMaker>
+
+L<Module::Build>
+
+L<Module::Install>
+
+L<XML|http://www.w3.org/XML/>
+
+L<YAML|http://www.yaml.org/>
+
+=head1 HISTORY
+
+=over 4
+
+=item March 14, 2003 (Pi day)
+
+=over 2
+
+=item *
+
+Created version 1.0 of this document.
+
+=back
+
+=item May 8, 2003
+
+=over 2
+
+=item *
+
+Added the L</dynamic_config> field, which was missing from the initial
+version.
+
+=back
+
+=item November 13, 2003
+
+=over 2
+
+=item *
+
+Added more YAML rationale articles.
+
+=item *
+
+Fixed existing link to YAML discussion thread to point to new
+L<http://nntp.x.perl.org/group/> site.
+
+=item *
+
+Added and deprecated the L</private> field.
+
+=item *
+
+Added L</abstract>, C<configure>, C<requires_packages>,
+C<requires_os>, C<excludes_os>, and L</no_index> fields.
+
+=item *
+
+Bumped version.
+
+=back
+
+=item November 16, 2003
+
+=over 2
+
+=item *
+
+Added C<generation>, C<authored_by> fields.
+
+=item *
+
+Add alternative proposal to the L</recommends> field.
+
+=item *
+
+Add proposal for a C<requires_build_tools> field.
+
+=back
+
+=item December 9, 2003
+
+=over 2
+
+=item *
+
+Added link to latest version of this specification on CPAN.
+
+=item *
+
+Added section L</"VERSION SPECIFICATIONS">.
+
+=item *
+
+Chang name from Module::Build::META-spec to CPAN::META::Specification.
+
+=item *
+
+Add proposal for C<auto_regenerate> field.
+
+=back
+
+=item December 15, 2003
+
+=over 2
+
+=item *
+
+Add C<index> field as a compliment to L</no_index>
+
+=item *
+
+Add L</keywords> field as a means to aid searching distributions.
+
+=item *
+
+Add L</TERMINOLOGY> section to explain certain terms that may be
+ambiguous.
+
+=back
+
+=item July 26, 2005
+
+=over 2
+
+=item *
+
+Removed a bunch of items (generation, requires_build_tools,
+requires_packages, configure, requires_os, excludes_os,
+auto_regenerate) that have never actually been supported, but were
+more like records of brainstorming.
+
+=item *
+
+Changed C<authored_by> to L</author>, since that's always been what
+it's actually called in actual F<META.yml> files.
+
+=item *
+
+Added the "==" operator to the list of supported version-checking
+operators.
+
+=item *
+
+Noted that the L</distribution_type> field is basically meaningless,
+and shouldn't really be used.
+
+=item *
+
+Clarified L</dynamic_config> a bit.
+
+=back
+
+=item August 23, 2005
+
+=over 2
+
+=item *
+
+Removed the name C<CPAN::META::Specification>, since that implies a
+module that doesn't actually exist.
+
+=back
+
+=back

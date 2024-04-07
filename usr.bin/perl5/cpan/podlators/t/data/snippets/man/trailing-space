@@ -1,0 +1,20 @@
+[name]
+Trailing protected space
+
+[input]
+=head1 TRAILING SPACE
+
+HelloS< >
+
+worldS<   >
+
+.
+
+[output]
+.SH "TRAILING SPACE"
+.IX Header "TRAILING SPACE"
+Hello\ 
+.PP
+world\ \ \ 
+.PP
+\&.

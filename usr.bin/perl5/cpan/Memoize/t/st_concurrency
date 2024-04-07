@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# running this script intermittently yields
+#
+#     Magic number checking on storable file failed at ...
+#
+# but it is difficult to trigger this error 100% reliably
+# as would be needed to turn this script into an actual test
+
+perl -I. -x t/st_concurrency st_shared &
+perl -I. -x t/st_concurrency st_shared &
+perl -I. -x t/st_concurrency st_shared &
+perl -I. -x t/st_concurrency st_shared &
+wait && exec rm st_shared
+
+#!perl
+use strict; use warnings;
+
+use Memoize::Storable;
+use Fcntl 'LOCK_EX';
+
+sub rand32 () { int rand 1<<32 }
+
+# the script locks itself to increase the likelihood of the error:
+# after releasing the lock, the first process writes to the file
+# just as another process acquires the lock and starts to read it
+# (but this still does not trigger the error reliably)
+
+open my $fh, $0 or die $!;
+flock $fh, LOCK_EX or die $!;
+
+tie my %cache => 'Memoize::Storable', $ARGV[0];
+$cache{(rand32)} = rand32;
+
+close $fh;
+# vim: ft=perl

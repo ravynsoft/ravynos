@@ -1,0 +1,88 @@
+.\" -*- mode: troff; coding: utf-8 -*-
+.\"
+.\" Standard preamble:
+.\" ========================================================================
+.de Sp \" Vertical space (when we can't use .PP)
+.if t .sp .5v
+.if n .sp
+..
+.de Vb \" Begin verbatim text
+.ft CW
+.nf
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+.fi
+..
+.\" \*(C` and \*(C' are quotes in nroff, nothing in troff, for use with C<>.
+.ie n \{\
+.    ds C` ""
+.    ds C' ""
+'br\}
+.el\{\
+.    ds C`
+.    ds C'
+'br\}
+.\"
+.\" Escape single quotes in literal strings from groff's Unicode transform.
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\"
+.\" If the F register is >0, we'll generate index entries on stderr for
+.\" titles (.TH), headers (.SH), subsections (.SS), items (.Ip), and index
+.\" entries marked with X<> in POD.  Of course, you'll have to process the
+.\" output yourself in some meaningful fashion.
+.\"
+.\" Avoid warning from groff about undefined register 'F'.
+.de IX
+..
+.nr rF 0
+.if \n(.g .if rF .nr rF 1
+.if (\n(rF:(\n(.g==0)) \{\
+.    if \nF \{\
+.        de IX
+.        tm Index:\\$1\t\\n%\t"\\$2"
+..
+.        if !\nF==2 \{\
+.            nr % 0
+.            nr F 2
+.        \}
+.    \}
+.\}
+.rr rF
+.\" ========================================================================
+.\"
+.IX Title "ENCODING 1"
+.TH ENCODING 1 2022-09-25 testing podlators
+.\" For nroff, turn off justification.  Always turn off hyphenation; it makes
+.\" way too many mistakes in technical documents.
+.if n .ad l
+.nh
+.SH "ENCODING TESTS"
+.IX Header "ENCODING TESTS"
+This POD source is intended to test encoding behavior with different
+pod2man encoding options.  The resulting *roff output files can be copied
+to various systems to test with the local nroff or man implementations.
+.PP
+ISO 8859\-1 character: naïve
+.PP
+ISO 8859\-1 escape: naïve, naïve
+.PP
+Combining accent: naïve
+.PP
+SMP plane character: 😀
+.PP
+Non-breaking space: foo\ bar, foo\ bar
+.PP
+Soft hyphen: fac\%tory
+.SH LICENSE
+.IX Header "LICENSE"
+Copyright 2022 Russ Allbery <rra@cpan.org>
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+.PP
+SPDX-License-Identifier: FSFAP

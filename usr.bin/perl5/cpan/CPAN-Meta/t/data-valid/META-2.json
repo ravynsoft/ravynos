@@ -1,0 +1,82 @@
+{
+   "X_deep" : {
+      "deep" : "structure"
+   },
+   "abstract" : "Build and install Perl modules",
+   "author" : [
+      "Ken Williams <kwilliams@cpan.org>",
+      "Module-Build List <module-build@perl.org>"
+   ],
+   "description" : "Module::Build is a system for building, testing, and installing Perl modules.  It is meant to be an alternative to ExtUtils::MakeMaker... blah blah blah",
+   "dynamic_config" : 1,
+   "generated_by" : "Module::Build version 0.36",
+   "keywords" : [
+      "toolchain",
+      "cpan",
+      "dual-life"
+   ],
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Module-Build",
+   "optional_features" : {
+      "domination" : {
+         "description" : "Take over the world",
+         "prereqs" : {
+            "develop" : {
+               "requires" : {
+                  "Genius::Evil" : "1.234"
+               }
+            },
+            "runtime" : {
+               "requires" : {
+                  "Machine::Weather" : "2.0"
+               }
+            }
+         }
+      }
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Test::More" : "0"
+         }
+      },
+      "runtime" : {
+         "recommends" : {
+            "Archive::Tar" : "1.00",
+            "ExtUtils::Install" : "0.3",
+            "ExtUtils::ParseXS" : "2.02",
+            "Pod::Text" : "0",
+            "YAML" : "0.35"
+         },
+         "requires" : {
+            "Config" : "0",
+            "Cwd" : "0",
+            "Data::Dumper" : "0",
+            "ExtUtils::Install" : "0",
+            "File::Basename" : "0",
+            "File::Compare" : "0",
+            "File::Copy" : "0",
+            "File::Find" : "0",
+            "File::Path" : "0",
+            "File::Spec" : "0",
+            "IO::File" : "0",
+            "perl" : "5.006"
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ]
+   },
+   "version" : "0.36",
+   "x_authority" : "cpan:FLORA",
+   "x_serialization_backend" : "JSON::PP version 2.27300"
+}

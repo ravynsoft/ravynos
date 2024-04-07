@@ -1,0 +1,149 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5361delta - what is new for perl v5.36.1
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.36.0 release and the 5.36.1
+release.
+
+If you are upgrading from an earlier release such as 5.35.0, first read
+L<perl5360delta>, which describes differences between 5.35.0 and 5.36.0.
+
+=head1 Incompatible Changes
+
+There are no changes intentionally incompatible with 5.36.0.  If any exist,
+they are bugs, and we request that you submit a report.  See
+L</Reporting Bugs> below.
+
+=head1 Modules and Pragmata
+
+=head2 Updated Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<Module::CoreList> has been upgraded from version 5.20220520 to 5.20230423.
+
+=back
+
+=head1 Configuration and Compilation
+
+=over 4
+
+=item *
+
+C<Configure> probed for the return type of malloc() and free() by testing
+whether declarations for those functions produced a function type mismatch with
+the implementation.  On Solaris, with a C++ compiler, this check always failed,
+since Solaris instead imports malloc() and free() from C<std::> with C<using>
+for C++ builds.  Since the return types of malloc() and free() are well defined
+by the C standard, skip probing for them.  C<Configure> command-line arguments
+and hints can still override these type in the unlikely case that is needed.
+[L<GH #20806|https://github.com/Perl/perl5/issues/20806>]
+
+=back
+
+=head1 Testing
+
+Tests were added and changed to reflect the other additions and changes in this
+release.
+
+=head1 Selected Bug Fixes
+
+=over 4
+
+=item *
+
+An eval() as the last statement in a regex code block could trigger an
+interpreter panic; e.g.
+
+    /(?{ ...; eval {....}; })/
+
+[L<GH #19680|https://github.com/Perl/perl5/issues/19680>]
+
+=item *
+
+An C<eval EXPR> referring to a lexical sub defined in grandparent scope no
+longer produces an assertion failures.
+[L<GH #19857|https://github.com/Perl/perl5/issues/19857>]
+
+=item *
+
+Writing to a magic variables associated with the selected output handle, C<$^>,
+C<$~>, C<$=>, C<$-> and C<$%>, no longer crashes perl if the IO object has been
+cleared from the selected output handle.
+[L<GH #20733|https://github.com/Perl/perl5/issues/20733>]
+
+=back
+
+=head1 Acknowledgements
+
+Perl 5.36.1 represents approximately 11 months of development since Perl 5.36.0
+and contains approximately 5,500 lines of changes across 62 files from 24
+authors.
+
+Excluding auto-generated files, documentation and release tools, there were
+approximately 1,600 lines of changes to 23 .pm, .t, .c and .h files.
+
+Perl continues to flourish into its fourth decade thanks to a vibrant community
+of users and developers.  The following people are known to have contributed
+the improvements that became Perl 5.36.1:
+
+Andreas König, Bram, Chris 'BinGOs' Williams, Craig A. Berry, Dagfinn Ilmari
+Mannsåker, David Mitchell, Elvin Aslanov, Florian Weimer, Graham Knop, Hugo
+van der Sanden, Karen Etheridge, Karl Williamson, Leon Timmermans, Matthew
+Horsfall, Max Maischein, Neil Bowers, Nicolas R, Renee Baecker, Ricardo Signes,
+Richard Leach, Steve Hay, Todd Rinaldo, Tony Cook, Yves Orton.
+
+The list above is almost certainly incomplete as it is automatically generated
+from version control history.  In particular, it does not include the names of
+the (very much appreciated) contributors who reported issues to the Perl bug
+tracker.
+
+Many of the changes included in this version originated in the CPAN modules
+included in Perl's core.  We're grateful to the entire CPAN community for
+helping Perl to flourish.
+
+For a more complete list of all of Perl's historical contributors, please see
+the F<AUTHORS> file in the Perl source distribution.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the perl bug database at
+L<https://github.com/Perl/perl5/issues>.  There may also be information at
+L<http://www.perl.org/>, the Perl Home Page.
+
+If you believe you have an unreported bug, please open an issue at
+L<https://github.com/Perl/perl5/issues>.  Be sure to trim your bug down to a
+tiny but sufficient test case.
+
+If the bug you are reporting has security implications which make it
+inappropriate to send to a public issue tracker, then see
+L<perlsec/SECURITY VULNERABILITY CONTACT INFORMATION> for details of how to
+report the issue.
+
+=head1 Give Thanks
+
+If you wish to thank the Perl 5 Porters for the work we had done in Perl 5, you
+can do so by running the C<perlthanks> program:
+
+    perlthanks
+
+This will send an email to the Perl 5 Porters list with your show of thanks.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details on
+what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

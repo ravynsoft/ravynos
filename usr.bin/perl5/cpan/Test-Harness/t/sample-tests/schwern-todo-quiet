@@ -1,0 +1,13 @@
+print <<DUMMY_TEST;
+1..3
+ok 1
+not ok 2
+#   Failed test at ../../andy/schwern.pl line 17.
+#          got: '23'
+#     expected: '42'
+not ok 3 # TODO Roman numerials still not a built in type
+#   Failed (TODO) test at ../../andy/schwern.pl line 20.
+#          got: 'XXIII'
+#     expected: '23'
+# Looks like you failed 1 test of 3.
+DUMMY_TEST

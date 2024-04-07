@@ -1,0 +1,36 @@
+url
+  http://example.com/chunked.html
+expected
+  abcdefghijklmnopqrstuvwxyz1234567890abcdef
+expected_headers
+  transfer-encoding: chunked
+  x-a: Foo
+  x-a: Bar
+  x-a: Baz
+  x-b: Foo
+  x-b: Bar
+  x-b: Baz
+  x-c: Foo
+
+----------
+GET /chunked.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+
+----------
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+X-A: Foo
+X-B: Foo
+X-B: Bar
+
+2C
+abcdefghijklmnopqrstuvwxyz1234567890abcdef
+
+0
+X-A: Bar
+X-A: Baz
+X-B: Baz
+X-C: Foo
+

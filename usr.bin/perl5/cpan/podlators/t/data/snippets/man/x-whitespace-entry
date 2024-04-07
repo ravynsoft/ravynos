@@ -1,0 +1,13 @@
+[name]
+X<> matching whitespace
+
+[input]
+=head1 INDEX
+
+Index entry matching a whitespace escape.X<\n>
+
+[output]
+.SH INDEX
+.IX Header "INDEX"
+Index entry matching a whitespace escape.
+.IX Xref "\\n"

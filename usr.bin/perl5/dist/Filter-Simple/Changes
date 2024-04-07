@@ -1,0 +1,158 @@
+Revision history for Perl extension Filter::Simple
+
+0.01  Tue Sep 19 20:18:44 2000
+	- original version; created by h2xs 1.18
+
+0.01	Tue Sep 26 09:30:14 2000
+
+	- Changed module name to Filter::Simple
+
+
+0.60	Wed May  2 07:38:18 2001
+
+	- Fixed POD nit (thanks Dean)
+
+	- Added optional second argument to import to allow
+	  terminator to be changed (thanks Brad)
+
+	- Fixed bug when empty filtered text was appended to (thanks Brad)
+
+	- Added FILTER as the normal mechanism for specifying filters
+
+
+0.61	Mon Sep  3 08:25:21 2001
+
+	- Added a real test suite (thanks Jarkko)
+
+	- Changed licence to facilitate inclusion in
+	  core distribution
+
+	- Added documentation for using F::S and Exporter together
+
+
+0.70	Wed Nov 14 23:36:18 2001
+
+	- Added FILTER_ONLY for fine-grained filtering of code,
+	  strings, or regexes
+
+	- Fixed document snafu regarding optional terminators
+
+	- Fixed bug so that FILTER now receives *all* import args
+	  (i.e. including the class name in $_[0])
+
+	- Allowed default terminator to allow comments embedded in it
+	  (thanks, Christian) and to handle __DATA__ and __END__
+
+	- Fixed handling of __DATA__ and *DATA
+
+
+0.75	Fri Nov 16 14:36:07 2001
+
+	- Corified tests (thanks Jarkko)
+
+	- Added automatic preservation of existing &import subroutines
+
+	- Added automatic preservation of Exporter semantics 
+
+
+0.76	Fri Nov 16 15:08:42 2001
+
+	- Modified call to explicit &import so as to be invoked in original 
+	  call context
+
+
+0.77	Sat Nov 24 06:48:47 2001
+
+	- Re-allowed user-defined terminators to be regexes
+
+
+0.78	Fri May 17 09:38:56 2002
+
+	- Re-corified test modules in line with Jarkko's new scheme
+
+	- Various POD nits unknitted (thanks Autrijus)
+
+	- Added the missing DotsForArrows.pm demo file (thanks Autrijus)
+
+	- Added support for Perl 5.005
+
+	- added prereq for Text::Balanced in Makefile.PL
+
+	- Added note about use of /m flag when using ^ or $ in filter regexes
+
+0.79    Sat Sep 20 21:56:24 2003
+
+        - Fixed tests to use t/lib modules so F::S is testable without
+          a previous version of F::S installed. (schwern)
+
+0.80    Sun May 29 23:19:54 2005
+
+    - Added Sarathy's patch for \r\n newlinery (thanks Jarkko)
+
+    - Added recognition of comments as whitespace (thanks Jeff)
+    
+    - Added @components variable (thanks Dean)
+
+    - Fixed handling of vars in FILTER_ONLY code=>... (thanks Lasse)
+
+    - Fixed spurious extra filter at end of file (thanks Dean)
+
+    - Added INSTALLDIRS=>core to Makefile.PL
+
+    
+0.82    Mon Jun 27 02:31:06 GMT 2005
+    
+    - Fixed INSTALLDIRS=>perl in Makefile.PL (thanks all)
+
+    - Fixed other problems caused by de-schwernification
+
+
+0.83    Sat Oct 18 18:51:51 CET 2008
+    
+    - Updated contact details: Maintained by the Perl5-Porters.
+    - Some tiny distribution fixes.
+
+
+0.84    Tue Jan  6 12:58:12 CET 2009
+
+    - Explicit dependency on Text::Balanced 1.97 because that fixed
+      a problem with HERE-docs. (RT #27326)
+
+0.85    Sun Sep  5 16:03:00 CET 2010
+
+    - Port changes from core: Remove unnecessary PERL_CORE check
+      from tests.
+
+0.86
+    - Never released to CPAN (only part of the perl core 5.14.0)
+
+0.87    Fri May 20 20:00:00 CET 2011
+
+    - Port changes from core: Whitespace fix that is significant for
+      POD correctness.
+
+0.88    Mon Dec 19 18:26:00 CET 2011
+
+    - [perl #92436] Make Filter::Simple match variables better
+      (Father Chrysostomos)
+
+    - [perl #92436] Filter::Simple can’t find end of POD
+      (Father Chrysostomos)
+
+0.91    Fri Mar  7 08:30:00 CET 2014
+
+    - Various small documentation fixes.
+
+    - Swap out base.pm use for parent.pm.
+
+0.94    Thu Aug  3 18:00:00 CET 2017
+
+    - Remove use of deprecated \C regex feature.
+
+    - Filter::Simple was erroneously signalling eof if it encountered a
+      ‘no MyFilter’ right after ‘use’:
+        use MyFilter;
+        no MyFilter;
+      In this case it should simply not filter anything.
+
+

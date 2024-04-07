@@ -1,0 +1,10 @@
+use XS::APItest qw(labelconst);
+my $z = "";
+$z .= labelconst FOO:;
+$z .= labelconst BAR:
+	;
+$z .= labelconst BAZ
+	:;
+$z .= labelconst
+	QUUX:;
+$z;

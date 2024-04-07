@@ -1,0 +1,419 @@
+# vim: syntax=pod
+
+This document is written in pod format hence there are punctuation
+characters in odd places. You can read more
+about pod in pod/perlpod.pod or the short summary in the INSTALL file.
+
+=head1 NAME
+
+perlos390 - building and installing Perl for z/OS (previously called OS/390)
+
+=head1 SYNOPSIS
+
+This document will help you Configure, build, test and install Perl
+on z/OS Unix System Services.
+
+=head1 DESCRIPTION
+
+This is a ported Perl for z/OS. It has been tested on z/OS 2.4 and
+should work fine with z/OS 2.5.
+It may work on other versions or releases, but those are
+the ones it has been tested on.
+
+The native character set for z/OS is EBCDIC, but it can also run in ASCII mode.
+Perl can support either, but you have to compile it explicitly for one or the
+other.  You could have both an ASCII perl, and an EBCDIC perl on the same
+machine.  If you use ASCII mode and an ASCII perl, the Encode module shipped
+with perl can be used to translate files from various EBCDIC code pages for
+handling by perl, and then back on output
+
+This document describes how to build a 64-bit Dynamic Perl, either ASCII or
+EBCDIC.  You can interactively choose other configurations, as well as many
+other options in the Configure script that is run as part of the build
+process.  You may need to carry out some system configuration tasks before
+running Configure, as detailed below.
+
+=head2 Tools
+
+You will want to get GNU make 4.1 or later. GNU make can be downloaded from a
+port that Rocket Software provides.  You will need the z/OS c99 compiler from
+IBM (though xlc in c99 mode without optimization turned on works in EBCDIC).
+
+If you want the latest development version of Perl, you will need git.
+You can use git on another platform and transfer the result via sftp or ftp to
+z/OS.  But there is a z/OS native git client port available through Rocket
+Software.
+
+You may also need the gunzip client port that Rocket Software provides to unzip
+any zipped tarball you upload to z/OS.
+
+=head2 Building a 64-bit Dynamic ASCII Perl
+
+For building from an official stable release of Perl, go to
+L<https://www.perl.org/get.html> and choose any one of the
+"Download latest stable source" buttons.  This will get you a tarball.  The
+name of that tarball will be something like 'perl-V.R.M,tar,gz', where V.R.M is
+the version/release/modification of the perl you are downloading. Do
+
+  gunzip perl-V.R.M.tar.gz
+
+Then one of:
+
+  tar -xvf perl-V.R.M.tar
+
+  pax -r -f perl-V.R.M.tar
+
+Either of these will create the source directory.  You can rename it to
+whatever you like; for these instructions, 'perl' is assumed to be the name.
+
+If instead you want the latest unstable development release, using the native
+git on z/OS, clone Perl:
+
+  git clone https://github.com/Perl/perl5.git perl
+
+Either way, once you have a 'perl' directory containing the source, cd into it,
+and tag all the code as ASCII:
+
+  cd perl
+  chtag -R -h -t -cISO8859-1 *
+
+Configure the build environment as 64-bit, Dynamic, ASCII, development,
+deploying it to F</usr/local/perl/ascii>:
+
+  export PATH=$PWD:$PATH
+  export LIBPATH=$PWD:$PATH
+  ./Configure -Dprefix=/usr/local/perl/ascii -des -Dusedevel \
+        -Duse64bitall -Dusedl
+
+If you are building from a stable source, you don't need "-Dusedevel".
+(If you run Configure without options, it will interactively ask you about
+every possible option based on its probing of what's available on your
+particular machine, so you can choose as you go along.)
+
+Run GNU make to build Perl
+
+  make
+
+Run tests to ensure Perl is working correctly. Currently, there are about a
+dozen failing tests out of nearly 2500
+
+  make test_harness
+
+Install Perl into F</usr/local/perl/ascii>:
+
+  make install
+
+=head2 Building a 64-bit Dynamic EBCDIC Perl
+
+You will need a working perl on some box with connectivity to the destination
+machine.  On z/OS, it could be an ASCII perl, or a previous EBCDIC one.
+Many machines will already have a pre-built perl already running, or one can
+easily be downloaded from L<https://www.perl.org/get.html>.
+
+Follow the directions above in "Building a 64-bit Dynamic ASCII Perl" as far as
+getting a populated 'perl' directory.  Then come back here to proceed.
+
+The downloaded perl will need to be converted to 1047 EBCDIC.  To do this:
+
+  cd perl
+  Porting/makerel -e
+
+If the Porting/makerel step fails with an error that it can not issue the tar
+command, proceed to issue the command interactively, where V.R.M is the
+version/release/modification of Perl you are uploading:
+
+  cd ../
+  tar cf -  --format=ustar perl-V.R.M | gzip --best > perl-V.R.M.tar.gz
+
+Use sftp to upload the zipped tar file to z/OS:
+
+  sftp <your system>
+  cd /tmp
+  put perl-V.R.M.tar.gz
+
+Unzip and untar the zipped tar file on z/OS:
+
+  cd /tmp
+  gunzip perl-V.R.M.tar.gz
+
+Then one of:
+
+  tar -xvf perl-V.R.M.tar
+
+  pax -r -f perl-V.R.M.tar
+
+You now have the source code for the EBCDIC Perl on z/OS and can proceed to
+build it. This is analagous to how you would build the code for ASCII, but
+note: you B<should not> tag the code but instead leave it untagged.
+
+Configure the build environment as 64-bit, Dynamic, native, development,
+deploying it to F</usr/local/perl/ebcdic>:
+
+  export PATH=$PWD:$PATH
+  export LIBPATH=$PWD:$PATH
+  ./Configure -Dprefix=/usr/local/perl/ebcdic -des -Dusedevel \
+        -Duse64bitall -Dusedl
+
+If you are building from a stable source, you don't need "-Dusedevel".
+(If you run Configure without options, it will interactively ask you about
+every possible option based on its probing of what's available on your
+particular machine, so you can choose as you go along.)
+
+Run GNU make to build Perl
+
+  make
+
+Run tests to ensure Perl is working correctly.
+
+  make test_harness
+
+You might also want to have GNU groff for OS/390 installed before
+running the "make install" step for Perl.
+
+Install Perl into F</usr/local/perl/ebcdic>:
+
+  make install
+
+EBCDIC Perl is still a work in progress.  All the core code works as far as we
+know, but various modules you might want to download from CPAN do not.  The
+failures range from very minor to catastrophic.  Many of them are simply bugs
+in the tests, with the module actually working properly.  This happens because,
+for example, the test is coded to expect a certain character ASCII code point;
+when it gets the EBCDIC value back instead, it complains.  But the code
+actually worked.  Other potential failures that aren't really failures stem
+from checksums coming out differently, since C<A>, for example, has a different
+bit representation between the character sets.  A test that is expecting the
+ASCII value will show failure, even if the module is working perfectly.  Also
+in sorting, uppercase letters come before lowercase letters on ASCII systems;
+the reverse on EBCDIC.
+
+Some CPAN modules come bundled with the downloaded perl.  And a few of those
+have yet to be fixed to pass on EBCDIC platforms.  As a result they are skipped
+when you run 'make test'.  The current list is:
+
+ Archive::Tar
+ Config::Perl::V
+ CPAN::Meta
+ CPAN::Meta::YAML
+ Digest::MD5
+ Digest::SHA
+ Encode
+ ExtUtils::MakeMaker
+ ExtUtils::Manifest
+ HTTP::Tiny
+ IO::Compress
+ IPC::Cmd
+ JSON::PP
+ libnet
+ MIME::Base64
+ Module::Metadata
+ PerlIO::via-QuotedPrint
+ Pod::Checker
+ podlators
+ Pod::Simple
+ Socket
+ Test::Harness
+
+See also F<hints/os390.sh> for other potential gotchas.
+
+=head2 Setup and utilities for Perl on OS/390
+
+This may also be a good time to ensure that your F</etc/protocol> file
+and either your F</etc/resolv.conf> or F</etc/hosts> files are in place.
+The IBM document that describes such USS system setup issues is
+"z/OS UNIX System Services Planning"
+
+For successful testing you may need to turn on the sticky bit for your
+world readable /tmp directory if you have not already done so (see man chmod).
+
+=head2 Useful files for trouble-shooting
+
+If your configuration is failing, read hints/os390.sh
+This file provides z/OS specific options to direct the build process.
+
+=head3 Shell
+
+A message of the form:
+
+ (I see you are using the Korn shell.  Some ksh's blow up on Configure,
+ mainly on older exotic systems.  If yours does, try the Bourne shell
+ instead.)
+
+is nothing to worry about at all.
+
+=head3 Dynamic loading
+
+Dynamic loading is required if you want to use XS modules from CPAN (like
+DBI (and DBD's), JSON::XS, and Text::CSV_XS) or update CORE modules from
+CPAN with newer versions (like Encode) without rebuilding all of the perl
+binary.
+
+The instructions above will create a dynamic Perl. If you do not want to
+use dynamic loading, remove the -Dusedl option.
+See the comments in hints/os390.sh for more information on dynamic loading.
+
+=head3 Optimizing
+
+Optimization has not been turned on yet. There may be issues if Perl
+is optimized.
+
+=head2 Build Anomalies with Perl on OS/390
+
+"Out of memory!" messages during the build of Perl are most often fixed
+by re building the GNU make utility for OS/390 from a source code kit.
+
+Within USS your F</etc/profile> or F<$HOME/.profile> may limit your ulimit
+settings.  Check that the following command returns reasonable values:
+
+    ulimit -a
+
+To conserve memory you should have your compiler modules loaded into the
+Link Pack Area (LPA/ELPA) rather than in a link list or step lib.
+
+If the compiler complains of syntax errors during the build of the
+Socket extension then be sure to fix the syntax error in the system
+header /usr/include/sys/socket.h.
+
+=head2 Testing Anomalies with Perl on OS/390
+
+The "make test" step runs a Perl Verification Procedure, usually before
+installation.  You might encounter STDERR messages even during a successful
+run of "make test".  Here is a guide to some of the more commonly seen
+anomalies:
+
+=head3 Out of Memory (31-bit only)
+
+Out of memory problems should not be an issue, unless you are attempting to build
+a 31-bit Perl.
+
+If you _are_ building a 31-bit Perl, the constrained environment may mean you
+need to change memory options for Perl.
+In addition to the comments
+above on memory limitations it is also worth checking for _CEE_RUNOPTS
+in your environment. Perl now has (in miniperlmain.c) a C #pragma for 31-bit only
+to set CEE run options, but the environment variable wins.
+
+The 31-bit C code asks for:
+
+ #pragma runopts(HEAP(2M,500K,ANYWHERE,KEEP,8K,4K) STACK(,,ANY,) ALL31(ON))
+
+The important parts of that are the second argument (the increment) to HEAP,
+and allowing the stack to be "Above the (16M) line". If the heap
+increment is too small then when perl (for example loading unicode/Name.pl) tries
+to create a "big" (400K+) string it cannot fit in a single segment
+and you get "Out of Memory!" - even if there is still plenty of memory
+available.
+
+A related issue is use with perl's malloc. Perl's malloc uses C<sbrk()>
+to get memory, and C<sbrk()> is limited to the first allocation so in this
+case something like:
+
+  HEAP(8M,500K,ANYWHERE,KEEP,8K,4K)
+
+is needed to get through the test suite.
+
+=head2 Usage Hints for Perl on z/OS
+
+When using Perl on z/OS please keep in mind that the EBCDIC and ASCII
+character sets are different.  See L<perlebcdic> for more on such character
+set issues.  Perl builtin functions that may behave differently under
+EBCDIC are also mentioned in the perlport.pod document.
+
+If you are having trouble with square brackets then consider switching your
+rlogin or telnet client.  Try to avoid older 3270 emulators and ISHELL for
+working with Perl on USS.
+
+=head2 Modules and Extensions for Perl on z/OS (Static Only)
+
+Pure Perl (that is non XS) modules may be installed via the usual:
+
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+If you built perl with dynamic loading capability then that would also
+be the way to build XS based extensions.  However, if you built perl with
+static linking you can still build XS based extensions for z/OS
+but you will need to follow the instructions in ExtUtils::MakeMaker for
+building statically linked perl binaries.  In the simplest configurations
+building a static perl + XS extension boils down to:
+
+    perl Makefile.PL
+    make
+    make perl
+    make test
+    make install
+    make -f Makefile.aperl inst_perl MAP_TARGET=perl
+
+=head2 Running Perl on z/OS
+
+To run the 64-bit Dynamic Perl environment, update your PATH and LIBPATH
+to include the location you installed Perl into, and then run the perl you
+installed as perlV.R.M where V/R/M is the Version/Release/Modification level
+of the current development level.
+If you are running the ASCII/EBCDIC Bi-Modal Perl environment, you also need to
+set up your ASCII/EBCDIC Bi-Modal environment variables, and ensure any Perl
+source code you run is tagged appropriately as ASCII or EBCDIC using
+"chtag -t -c<CCSID>":
+
+=over 
+
+=item For ASCII Only:
+
+ export _BPXK_AUTOCVT=ON
+ export _CEE_RUNOPTS="FILETAG(AUTOCVT,AUTOTAG),POSIX(ON)"
+ export _TAG_REDIR_ERR="txt"
+ export _TAG_REDIR_IN="txt"
+ export _TAG_REDIR_OUT="txt"
+
+=item For ASCII or EBCDIC:
+
+ export PATH=/usr/local/perl/ascii:$PATH
+ export LIBPATH=/usr/local/perl/ascii/lib:$LIBPATH
+ perlV.R.M args
+
+=back
+
+If tcsh is your login shell then use the setenv command.
+
+=head1 AUTHORS
+
+David Fiander and Peter Prymmer with thanks to Dennis Longnecker
+and William Raffloer for valuable reports, LPAR and PTF feedback.
+Thanks to Mike MacIsaac and Egon Terwedow for SG24-5944-00.
+Thanks to Ignasi Roca for pointing out the floating point problems.
+Thanks to John Goodyear for dynamic loading help.
+
+Mike Fulton and Karl Williamson have provided updates for UTF8, DLL, 64-bit and
+ASCII/EBCDIC Bi-Modal support
+
+=head1 OTHER SITES
+
+L<https://github.com/ZOSOpenTools/perlport/> provides documentation and tools
+for building various z/OS Perl configurations and has some useful tools in the
+'bin' directory you may want to use for building z/OS Perl yourself.
+
+=head1 HISTORY
+
+Updated 24 December 2021 to enable initial ASCII support
+
+Updated 03 October  2019 for perl-5.33.3+
+
+Updated 28 November 2001 for broken URLs.
+
+Updated 12 March    2001 to mention //'SYS1.TCPPARMS(TCPDATA)'.
+
+Updated 24 January  2001 to mention dynamic loading.
+
+Updated 15 January  2001 for the 5.7.1 release of Perl.
+
+Updated 12 November 2000 for the 5.7.1 release of Perl.
+
+This document was podified for the 5.005_03 release of Perl 11 March 1999.
+
+This document was originally written by David Fiander for the 5.005
+release of Perl.
+
+=cut
+

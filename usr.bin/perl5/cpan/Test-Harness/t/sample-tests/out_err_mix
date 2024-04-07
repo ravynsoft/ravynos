@@ -1,0 +1,13 @@
+sub _autoflush {
+    my $flushed = shift;
+    my $old_fh  = select $flushed;
+    $| = 1;
+    select $old_fh;
+}
+
+_autoflush( \*STDOUT );
+_autoflush( \*STDERR );
+
+print STDOUT "one\n";
+print STDERR "two\n\n";
+print STDOUT "three\n";

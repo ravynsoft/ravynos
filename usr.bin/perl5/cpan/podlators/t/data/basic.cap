@@ -1,0 +1,276 @@
+[1mNAME[m
+    basic.pod - Test of various basic POD features in translators.
+
+[1mHEADINGS[m
+    Try a few different levels of headings, with embedded formatting codes and
+    other interesting bits.
+
+[1mThis "is" a "level 1" heading[m
+  [1m``Level'' "2 [4mheading[m[m
+   Level 3 [1mheading [4mwith "weird stuff "" (double quote)"[m[m
+   Level "4 "heading"
+    Now try again with [1mintermixed[m text.
+
+[1mThis "is" a "level 1" heading[m
+    Text.
+
+  [1m``Level'' 2 [4mheading[m[m
+    Text.
+
+   Level 3 [1mheading [4mwith "weird stuff"[m[m
+    Text.
+
+   Level "4 "heading"
+    Text.
+
+[1mLINKS[m
+    These are all taken from the Pod::Parser tests.
+
+    Try out [4mLOTS[m of different ways of specifying references:
+
+    Reference the "section" in manpage
+
+    Reference the "section" in "manpage"
+
+    Reference the "section" in manpage
+
+    Now try it using the new "|" stuff ...
+
+    Reference the thistext|
+
+    Reference the thistext |
+
+    Reference the thistext|
+
+    Reference the thistext |
+
+    Reference the thistext|
+
+    Reference the thistext|
+
+    And then throw in a few new ones of my own.
+
+    foo
+
+    foo
+
+    "bar" in foo
+
+    "baz boo" in foo
+
+    "bar"
+
+    "baz boo"
+
+    "baz boo"
+
+    "baz boo" in foo bar
+
+    "boo var baz"
+
+    "bar baz"
+
+    "boo", "bar", and "baz"
+
+    foobar
+
+    Testing [4mitalics[m
+
+    "[4mItalic[m text" in foo
+
+    "Section "with" [4m[1mother[m markup[m" in foo|bar
+
+[1mOVER AND ITEMS[m
+    Taken from Pod::Parser tests, this is a test to ensure that multiline
+    =item paragraphs get indented appropriately.
+
+    This is a test.
+
+    There should be whitespace now before this line.
+
+    Taken from Pod::Parser tests, this is a test to ensure the nested =item
+    paragraphs get indented appropriately.
+
+    1 First section.
+
+      a this is item a
+
+      b this is item b
+
+    2 Second section.
+
+      a this is item a
+
+      b this is item b
+
+      c
+      d This is item c & d.
+
+    Now some additional weirdness of our own. Make sure that multiple tags for
+    one paragraph are properly compacted.
+
+    "foo"
+    [1mbar[m
+    "baz"
+        There shouldn't be any spaces between any of these item tags; this
+        idiom is used in perlfunc.
+
+    Some longer item text
+        Just to make sure that we test paragraphs where the item text doesn't
+        fit in the margin of the paragraph (and make sure that this paragraph
+        fills a few lines).
+
+        Let's also make it multiple paragraphs to be sure that works.
+
+    Test use of =over without =item as a block "quote" or block paragraph.
+
+        This should be indented four spaces but otherwise formatted the same
+        as any other regular text paragraph. Make sure it's long enough to see
+        the results of the formatting.....
+
+    Now try the same thing nested, and make sure that the indentation is reset
+    back properly.
+
+            This paragraph should be doubly indented.
+
+        This paragraph should only be singly indented.
+
+        *   This is an item in the middle of a block-quote, which should be
+            allowed.
+
+        *   We're also testing tagless item commands.
+
+        Should be back to the single level of indentation.
+
+    Should be back to regular indentation.
+
+    Now also check the transformation of * into real bullets for man pages.
+
+    *   An item. We're also testing using =over without a number, and making
+        sure that item text wraps properly.
+
+    *   Another item.
+
+    and now test the numbering of item blocks.
+
+    1.  First item.
+
+    2.  Second item.
+
+[1mFORMATTING CODES[m
+    Another test taken from Pod::Parser.
+
+    This is a test to see if I can do not only $self and method(), but also
+    "$self->method()" and "$self->{FIELDNAME}" and "$Foo <=> $Bar" without
+    resorting to escape sequences. If I want to refer to the right-shift
+    operator I can do something like "$x >> 3" or even "$y >> 5".
+
+    Now for the grand finale of "$self->method()->{FIELDNAME} = {FOO=>BAR}".
+    And I also want to make sure that newlines work like this "$self->{FOOBAR}
+    >> 3 and [$b => $a]->[$a <=> $b]"
+
+    Of course I should still be able to do all this [4mwith[m escape sequences too:
+    "$self->method()" and "$self->{FIELDNAME}" and "{FOO=>BAR}".
+
+    Don't forget "$self->method()->{FIELDNAME} = {FOO=>BAR}".
+
+    And make sure that 0 works too!
+
+    Now, if I use << or >> as my delimiters, then I have to use whitespace. So
+    things like "<$self-"method()>> and "<$self-"{FIELDNAME}>> won't end up
+    doing what you might expect since the first > will still terminate the
+    first < seen.
+
+    Lets make sure these work for empty ones too, like "" and ">>" (just to be
+    obnoxious)
+
+    The statement: "This is dog kind's [4mfinest[m hour!" is a parody of a
+    quotation from Winston Churchill.
+
+    The following tests are added to those:
+
+    Make sure that a few other odd [4mthings[m still work. This should be a
+    vertical bar: |. Here's a test of a few more special escapes that have to
+    be supported:
+
+    &  An ampersand.
+
+    '  An apostrophe.
+
+    <  A less-than sign.
+
+    >  A greater-than sign.
+
+    "  A double quotation mark.
+
+    /  A forward slash.
+
+    Try to get this bit of text over towards the edge so
+    |that all of this text inside S<> won't| be wrapped. Also test the
+    |same thing with non-breaking spaces.|
+
+    There is a soft hyphen in hyphen at hy-phen.
+
+    This is a test of an index entry.
+
+[1mVERBATIM[m
+    Throw in a few verbatim paragraphs.
+
+        use Term::ANSIColor;
+        print color 'bold blue';
+        print "This text is bold blue.\n";
+        print color 'reset';
+        print "This text is normal.\n";
+        print colored ("Yellow on magenta.\n", 'yellow on_magenta');
+        print "This text is normal.\n";
+        print colored ['yellow on_magenta'], "Yellow on magenta.\n";
+
+        use Term::ANSIColor qw(uncolor);
+        print uncolor '01;31', "\n";
+
+    But this isn't verbatim (make sure it wraps properly), and the next
+    paragraph is again:
+
+        use Term::ANSIColor qw(:constants);
+        print BOLD, BLUE, "This text is in bold blue.\n", RESET;
+
+        use Term::ANSIColor qw(:constants); $Term::ANSIColor::AUTORESET = 1; print BOLD BLUE "This text is in bold blue.\n"; print "This text is normal.\n";
+
+    (Ugh, that's obnoxiously long.) Try different spacing:
+
+            Starting with a tab.
+    Not
+    starting
+    with
+    a
+    tab.  But this should still be verbatim.
+     As should this.
+
+    This isn't.
+
+     This is.  And this:    is an internal tab.  It should be:
+                        |--| <= lined up with that.
+
+    (Tricky, but tabs should be expanded before the translator starts in on
+    the text since otherwise text with mixed tabs and spaces will get messed
+    up.)
+
+        And now we test verbatim paragraphs right before a heading.  Older
+        versions of Pod::Man generated two spaces between paragraphs like this
+        and the heading.  (In order to properly test this, one may have to
+        visually inspect the nroff output when run on the generated *roff
+        text, unfortunately.)
+
+[1mCONCLUSION[m
+    That's all, folks!
+
+[1mCOPYRIGHT AND LICENSE[m
+    Copyright 2001, 2004, 2016, 2018 Russ Allbery <rra@cpan.org>
+
+    Copying and distribution of this file, with or without modification, are
+    permitted in any medium without royalty provided the copyright notice and
+    this notice are preserved. This file is offered as-is, without any
+    warranty.
+
+    SPDX-License-Identifier: FSFAP
+

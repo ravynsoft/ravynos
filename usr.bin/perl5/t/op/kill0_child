@@ -1,0 +1,14 @@
+# kill0_child: an auxiliary script called from t/op/kill0.t
+#
+# $ARGV[0] is the filename that is used to notify the parent .t perl
+# process that all PIDs are started in the process tree.
+# The numbers 9999s and 9998 are intended to be eye catching; they will
+# only appear if we're not killed in time.
+
+system(1, $^X, '-e', 'sleep 5; print qq|not ok 9999 - inner child process wasn\'t killed\n|;');
+system('echo outer child started > "'.$ARGV[0].'"');
+sleep 5;
+
+# execution won't reach here if the test is successful
+print "not ok 9998 - outer child process wasn\'t killed\n";
+unlink($ARGV[0]);

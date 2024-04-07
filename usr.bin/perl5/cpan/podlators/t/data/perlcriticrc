@@ -1,0 +1,125 @@
+# -*- conf -*-
+#
+# Default configuration for perlcritic.  Be sure to copy this into the source
+# for packages that run perlcritic tests automatically during the build for
+# reproducible test results.
+#
+# This file has been updated to match perlcritic 1.134.
+#
+# The canonical version of this file is maintained in the rra-c-util package,
+# which can be found at <https://www.eyrie.org/~eagle/software/rra-c-util/>.
+#
+# Written by Russ Allbery <eagle@eyrie.org>
+# Copyright 2018-2022 Russ Allbery <eagle@eyrie.org>
+# Copyright 2011-2013
+#     The Board of Trustees of the Leland Stanford Junior University
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+# SPDX-License-Identifier: MIT
+
+severity = 1
+verbose  = %f:%l:%c: [%p] %m (%e, Severity: %s)\n
+
+# I prefer this policy (a lot, actually), but other people in my group at
+# Stanford really didn't like it, so this is my compromise to agree with a
+# group coding style.
+[-CodeLayout::ProhibitParensWithBuiltins]
+
+# This conflicts with Subroutines::ProhibitExplicitReturnUndef and
+# Subroutines::RequireFinalReturn, and I prefer the brevity of the simple
+# return statement.  I don't think the empty list versus undef behavior is
+# that confusing.
+#
+# This should be Community::EmptyReturn, which is the new name of the module,
+# but currently ignores have to use the Freenode::EmptyReturn name instead.
+[-Community::EmptyReturn]
+[-Freenode::EmptyReturn]
+
+# This recommends using given/when, but Perl has marked those as experimental
+# and cautions against using when.
+[-ControlStructures::ProhibitCascadingIfElse]
+
+# Stanford's coding style allows postfix unless for flow control.  There
+# doesn't appear to be any way to allow it only for flow control (the logic
+# for "if" and "when" appears to be special-cased), so we have to allow unless
+# globally.
+[ControlStructures::ProhibitPostfixControls]
+allow = unless
+
+# This is handled with a separate test case that uses Test::Spelling.
+[-Documentation::PodSpelling]
+
+# The POD sections Perl::Critic wants are incompatible with the POD template
+# from perlpodstyle, which is what I use for my POD documentation.
+[-Documentation::RequirePodSections]
+
+# This problem was fixed in Perl 5.14, which now properly preserves the value
+# of $@ even if destructors run at exit from the eval block.
+[-ErrorHandling::RequireCheckingReturnValueOfEval]
+
+# The default of 9 is too small and forces weird code contortions.  After some
+# experimentation, I've never found this helpful in driving useful refactors.
+[-InputOutput::RequireBriefOpen]
+
+# This is correct 80% of the time, but it isn't correct for a lot of scripts
+# inside packages, where maintaining $VERSION isn't worth the effort.
+# Unfortunately, there's no way to override it, so it gets turned off
+# globally.
+[-Modules::RequireVersionVar]
+
+# This sounds interesting but is actually useless.  Any large blocks of
+# literal text, which does not add to the complexity of the regex, will set it
+# off.
+[-RegularExpressions::ProhibitComplexRegexes]
+
+# Produces false positives currently with postfix dereferencing (introduced in
+# Perl 5.20).  See https://github.com/Perl-Critic/Perl-Critic/issues/578.
+[-References::ProhibitDoubleSigils]
+
+# Five arguments to a method has seemed reasonable at least once: a pair of
+# input file data and path, a pair of output file descriptor and path, and
+# a dict of additional arguments.
+[Subroutines::ProhibitManyArgs]
+skip_object = 1
+
+# I generally don't want to require Readonly as a prerequisite for all my Perl
+# modules.
+[-ValuesAndExpressions::ProhibitConstantPragma]
+
+# A good idea, but there are too many places where this would be more
+# confusing than helpful.  Pull out numbers if one might change them
+# independent of the algorithm, but don't do so for mathematical formulae.
+[-ValuesAndExpressions::ProhibitMagicNumbers]
+
+# This has never triggered on anything useful and keeps telling me to add
+# underscores to UNIX timestamps and port numbers, which is just silly.
+[-ValuesAndExpressions::RequireNumberSeparators]
+
+# IO::Uncompress::Gunzip puts the error message in a package variable.
+# Text::Wrap has a broken interface that requires use of package variables.
+# YAML::XS also cannot be configured without package variables.
+[Variables::ProhibitPackageVars]
+add_packages = IO::Uncompress::Gunzip Text::Wrap YAML::XS
+
+# use English was one of the worst ideas in the history of Perl.  It makes the
+# code slightly more readable for amateurs at the cost of confusing
+# experienced Perl programmers and sending people in futile quests for where
+# these magical global variables are defined.
+[-Variables::ProhibitPunctuationVars]

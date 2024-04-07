@@ -1,0 +1,18 @@
+[name]
+Spacing with sentence option
+
+[options]
+sentence 1
+
+[input]
+=head1 EXAMPLE
+
+Whitespace around C<<  this.  >> must be ignored per perlpodspec.  >>
+needs to eat all of the space in front of it.
+
+=cut
+
+[output]
+EXAMPLE
+    Whitespace around "this." must be ignored per perlpodspec.  >> needs to
+    eat all of the space in front of it.

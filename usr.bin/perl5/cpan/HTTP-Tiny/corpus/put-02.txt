@@ -1,0 +1,24 @@
+url
+  http://example.com/callback.txt
+headers
+  Content-Type: text/plain
+  Content-Length: 42
+content_cb
+  my @content = qq{abcdefghijklmnopqrstuvwxyz1234567890abcdef};
+  sub { shift @content }
+----------
+PUT /callback.txt HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+Content-Type: text/plain
+Content-Length: 42
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef
+
+----------
+HTTP/1.1 201 Created
+Date: Thu, 03 Feb 1994 00:00:00 GMT
+Location: http://example.com/callback.txt
+Content-Length: 0
+

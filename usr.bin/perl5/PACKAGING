@@ -1,0 +1,52 @@
+# vim: syntax=pod
+
+If you read this file _as_is_, just ignore the funny characters you
+see.  It is written in the POD format (see pod/perlpod.pod) which is
+specifically designed to be readable as is.
+
+=head1 NAME
+
+PACKAGING - notes and best practice for packaging perl 5
+
+=head1 SYNOPSIS
+
+This document is aimed at anyone who is producing their own version of
+perl for distribution to other users. It is intended as a collection
+of useful tips, advice and best practice, rather than being a complete
+packaging manual. The starting point for installing perl remains
+F<INSTALL>.
+
+=head1 Customizing test running
+
+A small number of porting tests (those in t/porting) are not well suited
+to typical distribution packaging scenarios. For example, they assume
+they are working in a git clone of the upstream Perl repository, or
+enforce rules which are not relevant to downstream packagers. These can
+be skipped by setting the environment variable PERL_BUILD_PACKAGING.
+A complete list of tests which this applied to can be found by searching
+the codebase for this string.
+
+An alternative strategy would be to skip all porting tests, but many of
+them are useful if additional patches might be applied.
+
+=head1 Customizing patchlevel to advertise your local patches
+
+You can advertise your custom local patches by using patchlevel.h as a
+standalone Perl script.
+
+=head2 Sample usage:
+
+		perl -x patchlevel.h "This is a custom patch"
+
+=head1 Disabling known flapping tests
+
+Some tests could fail under heavy load, whereas in most cases
+they would simply succeed. Usually, continuous integration systems
+will at one point or the other reach that problem.
+
+To disable these known tests, please set the environment
+variable CI to true.
+
+        CI=true
+
+=cut

@@ -1,0 +1,27 @@
+# This file is used when building the Configure script from the metaconfig
+# units. Ordinarily, if any *.c or *.h or *.sh file mentions a symbol that can
+# be provided by a metaconfig unit, the generated Configure will include the
+# relevant probe. But in some cases, that's inappropriate: we have symbols that
+# we no longer need to probe for, but must define in perl.h for backwards
+# compatibilty with XS modules. Also, our C files contain tokens like "index"
+# that are used as the names of Perl builtins, but would be treated by
+# metaconfig as implicit requests for a particular unit that we don't need.
+#
+# Previously, we've used customised "stub" versions of metaconfig units to
+# handle this situation, but that doesn't scale (and, in particular, requires
+# us to maintain those customised units for as long as the relevant symbols are
+# defined by the units in the upstream dist package).
+#
+# A better approach is to list those symbols here (and invoke metaconfig with
+# the "-X .metaconf-exclusions.txt" option when generating Configure); that
+# will prevent the relevant units from being used.
+#
+# See also metaconfig.h, which works in the other direction — it forces units
+# to be included, even before specific code using the relevant symbols has been
+# written.
+
+I_LIMITS
+I_STDARG
+index
+rindex
+const

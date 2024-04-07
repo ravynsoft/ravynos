@@ -1,0 +1,16 @@
+[name]
+TRUE (1) and FALSE (0)
+
+[input]
+=head1 TRUE (1)
+
+podlators prior to 4.08 misrendered TRUE (1) and FALSE (0) with escaped nroff
+in the output because it tried to apply both small caps and man page reference
+code and got it wrong.
+
+[output]
+.SH "TRUE (1)"
+.IX Header "TRUE (1)"
+podlators prior to 4.08 misrendered TRUE (1) and FALSE (0) with escaped nroff
+in the output because it tried to apply both small caps and man page reference
+code and got it wrong.

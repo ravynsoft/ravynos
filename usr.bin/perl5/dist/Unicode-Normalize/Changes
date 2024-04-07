@@ -1,0 +1,258 @@
+Revision history for Perl extension Unicode::Normalize.
+
+1.26  *** RELEASE DATE HERE ***
+    - Switch to XSLoader from Dynaloader
+
+1.25  Wed Dec 16 03:05:57 UTC 2015
+    - Fix Normalize.xs to work on releases earlier than 5.8.  The problem was
+      introduced in this module's version 1.24
+    - Go back to shipping pure perl version as well as XS, as was done up
+      through release 1.17
+
+1.24  Sun Nov 29 05:48:44 UTC 2015
+    - Updated to use most recent GNU license file.
+      ( https://rt.cpan.org/Public/Bug/Display.html?id=108003 )
+    - Silence compiler warning message
+      ( https://rt.cpan.org/Public/Bug/Display.html?id=109577 )
+    - Add kwalitee suggested changes.
+
+1.23  Sun Oct 25 14:50:28 UTC 2015
+    - Fix mkhdr to work on releases earlier than 5.8
+
+1.22  Thu Oct 08 16:50:17 2015
+    - Reinstate XSUB, now works on modern EBCDIC perls as well.
+    - Kwalitee changes
+    - Makefile fixes
+    - small bug fix in header generation script.
+
+1.21  Fri Oct 02 15:33:17 2015
+    - Get pure perl version to work on modern EBCDIC perls.
+    - Some comment and pod improvements
+
+1.20  Fri Oct 02 15:30:40 2015
+    - Not officially released, was incomplete import of 1.19 
+
+1.19  Sat Jul 11 12:39:38 2015
+    - [rt.cpan.org #105620] Useless dependency on bytes and File::Copy
+
+1.18  Tue May 27 22:04:23 2014
+    - XSUB is now deprecated and removed. see perl 5.20.0,
+      perldelta, Internal Changes, deprecation of uvuni_to_utf8 etc.
+    - Thank you for everything !!
+
+1.17  Sat Oct  5 11:36:43 2013
+    - assertion using unpack
+
+1.16  Sun Nov  4 17:23:03 2012
+    - XSUB: use PERL_NO_GET_CONTEXT (see perlguts)
+      (see [rt.cpan.org #80312])
+
+1.15  Sun Sep 23 10:43:14 2012
+    - perl 5.11.0 or later: Install to 'site' instead of 'perl'
+      (see [rt.cpan.org #79801])
+
+1.14  Sat Mar 10 13:34:53 2012
+    - avoid "use Test".
+
+1.13  Mon Jul 25 21:07:49 2011
+    - tried fixing the tarball with world writable files.
+      ( http://www.perlmonks.org/?node_id=731935 )
+
+1.12  Mon May 16 23:36:07 2011
+    - removed Normalize/CompExcl.pl and coded Composition Exclusions;
+      how to load CompExcl.pl seems not good, but I'm not sure...
+
+1.11  Sun May 15 20:31:09 2011
+    - As perl 5.14.0 has removed unicore/CompositionExclusions.txt
+      from the installation, Normalize/CompExcl.pl in this distribution
+      is used instead. (see [rt.cpan.org #68106])
+
+1.10  Sun Jan 16 21:00:34 2011
+    - XSUB: reorder() and compose() treat with growing the string.
+    - XSUB: provision against UTF8_ALLOW_* flags to be undefined in future.
+    - doc: about perl 5.13.x and Unicode 6.0.0
+    - doc and comments: [perl #81876] Fix typos by Peter J. Acklam.
+
+1.07  Mon Sep 20 20:20:02 2010
+    - doc: about perl 5.12.x and Unicode 5.2.0
+    - test: prototype of normalize_partial() and cousins in proto.t.
+
+1.06  Thu Feb 11 16:19:54 2010
+    - mkheader/Pure Perl: fixed the internal _getHexArray() for perl 5.11.3
+      changes (Bug #53197).
+
+1.05  Mon Sep 28 21:43:17 2009
+    - normalize_partial() and NFX_partial(). { NFX =~ /^NFK?[CD]\z/ }
+    - added partial1.t for NFX_partial().
+    - added partial2.t for normalize_partial().
+
+1.04  Wed Sep 23 22:32:57 2009
+    - doc: splitOnLastStarter() since 0.24 is now documented.
+    - test: some new tests are added to split.t.
+
+1.03  Sun Mar 29 12:56:23 2009
+    - mkheader: check if no composition needs growing the string.
+    - Makefile.PL: a tweak
+
+1.02  Tue Jun  5 22:46:45 2007
+    - XSUB: mkheader, _U_stringify() - avoid unpack('C*') on unicode.
+    - test: short.t removed - pure perl is not appropriate for test of
+            unicode edge cases.
+
+1.01  Tue Jun 13 22:01:53 2006
+    - XSUB: sv_setpvn() needs cast to (char*).
+    - XSUB: avoid double FETCH for tied scalar variables.
+    - added tie.t.
+
+1.00  Thu May 25 20:35:06 2006
+    - Pure Perl: compose($not_canonically_reordered) works like that in XSUB,
+      where an intervening character with higher combining class blocks
+      the composition. (This change doesn't affect any normalization forms.)
+    - XSUB: NFD(), NFC(), NFKD(), NFC(), and FCC() are now in XSUB, then
+      internal subroutine calls are avoided.
+    - The functions isComp_Ex(), isNFD_NO(), isNFC_NO(), isNFC_MAYBE(),
+      isNFKD_NO(), isNFKC_NO(), and isNFKC_MAYBE() are documented.
+    - Tests are more amplified and documentations are more clarified.
+    - Makefile.PL: Change 26295 is incorporated.
+
+0.32  Tue Apr  5 22:47:09 2005
+    - Some literal and grammatical errors in POD are fixed.
+
+0.31  Tue Apr  5 21:43:20 2005
+    - CAVEATS in POD is added.
+    - Some test cases from Unicode Public Review Issue #29
+      (Normalization Issue) are added to norm.t and test.t.
+    - do 'mkheader' returns true so that Makefile.PL will catch error.
+    - META.yml is added.
+
+0.30  Sun May  2 14:35:00 2004
+    - XSUB: (perl 5.8.1 or later) improved utf8 upgrade of non-POK
+      (private POK) values like tied scalars, overloaded objects, etc.
+
+0.28  Sat Nov 22 23:46:24 2003
+    - XSUB: even if string contains a malformed, "short" Unicode character,
+      decompose() and reorder() will be safe. Garbage will be no longer added.
+    - added null.t and short.t.
+    - now truly added illegal.t (in 0.27, forgot to change MANIFEST).
+
+0.27  Sun Nov 16 13:16:21 2003
+    - Illegal code points (surrogate and noncharacter) will be allowed
+      (keep your code with <no warnings 'utf8';>);
+      but porting is not successful in the case of ((Pure Perl) and
+      (Perl 5.7.3 or before)).
+    - added illegal.t.
+
+0.26  Sat Nov 15 21:52:30 2003
+    - doc fix: s/FCD(?= is unique)/FCC/;
+
+0.25  Mon Oct  6 22:26:03 2003
+    - added form.t and proto.t.
+
+0.24  Sat Oct  4 17:57:10 2003
+    - supports FCD and FCC (UTN #5):
+      FCD(), normalize('FCD'), checkFCD(), check('FCD');
+      FCC(), normalize('FCC'), checkFCC(), check('FCC').
+    - changed INSTALLATION (cf. README).
+      * Initial state of the distribution is changed to XSUB.  To build
+        pure Perl, type <perl disableXS> before <perl Makefile.PL>.
+      * The purePerl-XSUB converter is now provided as two perl
+        script files, named "enableXS" and "disableXS".
+        (no longer <perl Makefile.PL xs> and <perl Makefile.PL noxs>.)
+      * simplified Makefile.PL.
+    - added fcdc.t for FCD() and FCC().
+    - added split.t for splitOnLastStarter(): an undocumented function.
+
+0.23  Sat Jun 28 20:38:10 2003
+    - bug fix: \0-terminate in compose() in XS.
+    - tweak in pure perl: forced $codepoint to numeric (i.e. "+0065" to 65)
+    - tweak of POD and README.
+
+0.22  Mon Jun 09 22:23:10 2003
+    - internal tweak (again): pack_U() and unpack_U().
+
+0.21  Thu Apr 02 23:12:54 2003
+    - internal tweak: for (?un)pack 'U'.
+
+0.20  Sun Mar 02 13:29:25 2003
+    - decompose Hangul syllables in a decomposition mapping.
+
+0.18  ... unreleased
+    - synchronization with bleadperl.
+    - Change 16262: by sadahiro
+
+0.17  Sun Apr 28 23:13:32 2002
+    - now normalize('NFC',$1) should work.
+    - Some croak()'s are added in mkheader.
+    - synchronization with bleadperl.
+    - Change 15596: by sadahiro
+    - Change 16136: by pudge
+
+0.16  Thu Mar 21 13:36:14 2002
+    - synchronization with bleadperl.
+    - Change 15318: by jhi
+    - Change 15319: by jhi
+
+0.15  Tue Mar 19 22:04:07 2002
+    - Quick check is implemented.
+    - decompose(), reorder(), and compose() are documented.
+    - The Non-XS version is also independent of Lingua::KO::Hangul::Util.
+
+0.14  Sat Feb 02 20:40:14 2002
+    - synchronization with bleadperl.
+    - Change 14128: by Arthur
+    - Change 14129: by jhi
+    - Change 14156: by sadahiro
+    - Change 14199: by Nikola Knezevic
+    - Change 14308: by Benjamin Goldberg
+    - Change 14370: by jhi
+
+0.13  Sat Dec 01 11:42:43 2001
+    - modify Makefile.PL to enable rebuild.
+      (This problem is pointed out by David Dyck.)
+    - Change 13388: by Jarkko Hietaniemi.
+
+0.12  Wed Nov 29 22:49:02 2001
+    - documentation in .pod is appended to .pm and the .pod is removed.
+     (only POD in NON-XS refers to Lingua::KO::Hangul::Util.)
+
+0.11  Sat Nov 24 10:18:38 2001
+    - documentation of some functions for character data.
+    - Change 12909: by Jarkko Hietaniemi.
+    - Change 13228: by Peter Prymmer.
+
+0.10  Sat Nov 03 16:30:20 2001
+    - The XS version is now independent of Lingua::KO::Hangul::Util.
+      (though the Non-XS version still requires that.)
+
+0.09  Fri Nov 02 22:39:30 2001
+    - remove pTHX_.
+
+0.08  Thu Nov 01 23:20:42 2001
+    - use Lingua::KO::Hangul::Util 0.06 and remove "hangul.h".
+
+0.07  Wed Oct 31 22:06:42 2001
+    - modify internal. decompose() - reorder() - compose().
+
+0.06  Sun Oct 28 14:28:46 2001
+    - an XS version.
+    (but the Non-XS version is also supported.)
+
+0.05  Wed Oct 10 22:02:15 2001 (not released)
+    - %Compos contains unnecessary singletons
+      (though it did not cause any bug, only useless).
+      They will not be stored.
+
+0.04  Wed Aug 15 19:02:41 2001
+    - fix: NFD("") and NFKD("") must return "", not but undef.
+
+0.03  Fri Aug 10 22:44:18 2001
+    - rename the module name to Unicode::Normalize.
+    - normalize takes two arguments.
+
+0.02  Thu Aug  9 22:56:36 2001
+    - add function normalize
+
+0.01  Mon Aug  6 21:45:11 2001
+    - original version; created by h2xs 1.21 with options
+          -A -X -n Text::Unicode::Normalize
+

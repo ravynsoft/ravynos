@@ -1,0 +1,1124 @@
+2023-05-26 21:36:00 demerphq
+    version 3.32
+        * Update security advisory to be more clear
+
+2023-02-26 00:31:32 demerphq
+    version 3.31
+        * Fixup for ppport fix in 3.30
+
+2023-02-22 09:56:27 leont
+    version 3.30
+        * Use ppport for all modules in dist.
+
+2023-01-04 17:33:24 iabyn
+    version 3.29
+        * Store code fixes identified from refcounted stack patch
+
+2022-11-08 10:12:46 tony
+    version 3.28
+        * Store hook error reporting improvements
+	* Store hook handles regex objects properly.
+
+2022-06-20 20:32:29 toddr
+    version 3.27
+        * Use cBOOL instead of !! in xs code
+
+2022-04-18 17:36:00 toddr
+    version 3.26
+        * Conform to ppport.h 3.68 recommendations
+
+2021-08-30 07:46:52 nwclark
+    version 3.25
+        * No changes from previous version
+
+2021-08-25 08:05:16 nwclark
+    version 3.24_50
+        * Remove code and tests only present to support perls before 5.6.1
+          Storable implicitly needs >= v5.6.1.
+        * Use SvPVCLEAR from ppport.h
+        * Remove XS code "commented" out with #if 0
+        * Refactor store_lhash() to remove some code duplication
+        * Avoid calling hv_iterval() twice for each hash entry
+        * Fix a bug in the recursion depth check in store_lhash()
+
+unreleased
+    version 3.24
+        * Fix a (possible) typo in Sntohl
+
+unreleased
+    version 3.23
+        * Fix typos
+        * avoid stderr noise in t/canonical.t
+
+2020-07-31 19:36:37 atoomic
+    version 3.22
+        * use PERL_COMPARE macros
+
+2020-04-23 13:33:05 ilmari
+    version 3.21
+        * fix repeated-word typos
+        * fix t/huge.t PERL_TEST_MEMORY diagnostic messages
+
+2020-01-27 10:27:00 TonyC
+    version 3.20
+        * fix a format string and arguments for some debugging text
+        * linkify references to alternatives to Storable
+
+2020-01-27 11:01:00 TonyC
+    version 3.19
+        * add casts to match some I32 parameters to "%d" formats (#17339)
+        * fix dependencies in Makefile.PL -> META (#17422)
+        * make use of note() optional, this requires a newer version of
+          Test::More and there's a circular dependency between later
+          versions of Test::More and Storable  (#17422)
+
+2019-11-19 07:59:39 TonyC
+    version 3.18
+        * update bug tracker to point at github (#17298)
+        * disallow vstring magic strings over 2GB-1 (#17306)
+        * mark some ASCII dependent tests as ASCII platform only
+
+2019-08-08 11:48:00 TonyC
+    version 3.17
+        * correct a data type to ensure the check for too large results from
+	  STORABLE_freeze() are detected correctly (detected by Coverity)
+	* removed remains of stack size detection from the build process.
+	* moved CAN_FLOCK detection into XS to simplify the build process.
+
+2019-06-11 10:43:00 TonyC
+    version 3.16
+        * (perl #134179) fix self-referencing structures that include regexps
+        * bless regexps to preserve bless qr//, "Foo"
+
+2019-04-23 16:00:00 xsawyerx
+    version 3.15
+    * Fix leaking.
+
+unreleased
+    version 3.14
+	* (perl #133708) don't build-time probe for stack limits at all
+
+unreleased
+    version 3.12
+        * (perl #133411) don't probe for stack limits with -Dusecrosscompile
+
+2018-04-27 20:40:00 xsawyerx
+    version 3.11
+        * Fix Strawberry Perl build failures.
+
+2018-04-21 22:00:00 xsawyerx
+    Version 3.10
+        * Fix binary artifacts from distribution.
+
+2018-04-21 16:49:00 xsawyerx
+    Version 3.09
+        * Fix "provides" in metadata (META.yml/META.json) to use the Storable
+          template instead of a small other file (which also didn't exist).
+
+2018-04-21 11:23:00 xsawyerx
+    Version 3.08
+        * (perl #132849) try to disable core files when deliberatly segfaulting.
+        * (perl #127743) don't probe Storable limits so much.
+        * (perl #132893) don't probe for Storable recursion limits on old Win32.
+        * (perl #132870) workaround VC2017 compiler bug.
+        * (perl #127743) re-work for debugging builds with MSVC.
+        * (perl #133039) dont build a Storable.so/.dll with a static perl build.
+
+2018-02-07 15:08:00 tonyc
+    Version 3.06
+
+        * support large object ids.  The code in theory supported arrays
+        with more than 2**32 elements, but references to the elements
+        emitted at the end of the array with be retrieved as references to
+        the wrong elements.
+        * 32-bit object ids over 2**31-1 weren't correctly handled.
+        * hook object id generation now supports 64-bit ids where needed
+        * writing 64-bit lengths in network order now works
+        * reading 64-bit lengths in network order now reads the components
+        in the correct order.
+        * retrieving large object tags are now only handled on 64-bit
+        platforms, large object tags should only be emitted for objects
+        that are too large for the 32-bit address space, so it was only
+        wasted code.
+        * reading 32-bit lengths for LSCALAR and LUTF8STR as unsigned
+        (perl #131990)
+        * reading flagged large object hashes didn't read the flags
+        * treat the 32-bit size of hook data as unsigned, values over 2GB
+        were treated as large (close to 2**64) parameters to NEWSV().
+        (perl #131999)
+        * added support for hook data over 4GB in size
+        * zero length data receievd from STORABLE_freeze() no longer
+        results in an invalid SV being passed to STORABLE_thaw/_attach()
+        (perl #118551)
+        * where practical, padding is now cleared when emitting a long
+        double (perl #131136)
+        * cache the value of $Storable::DEBUGME (since cperl enabled
+        Storable TRACEME builds for all -DDEBUGGING builds)
+        * no longer discard exceptions thrown by
+        STORABLE_freeze/_thaw/attach() (perl #25933)
+        * fix dependencies used to build Storable.pm from __Storable__.pm
+        * add experimental support for freezing/thawing regular
+        expressions (perl #50608)
+        * re-work recursion limiting to store the limit in a perl variable
+        instead of baked into Storable.$so.  This allows static Storable
+        builds to work, and avoids the kind of circular reference on
+        Storable.$so.
+
+2017-07-24 13:57:13 rurban
+    Version 3.05_13
+
+        * mingw fix: use safe defaults, not segfaulting defaults.
+        mingw fails on the stacksize binary search, leaving it empty.
+
+Wed Apr 19 09:11:07 2017 +0200 Reini Urban <rurban@cpan.org>
+    Version 3.05_12
+
+        * enhance stack reserve from 8 to 16
+        * fix LD_LIBRARY_PATH usage for CORE
+        * fixed some coverity warnings and leaks
+        * added a release make target
+
+Wed Mar 29 21:04:28 2017 +0200 Reini Urban <rurban@cpan.org>
+    Version 3.05_11
+
+        * croak on sizes read > I32_MAX
+        * simplify last_op_in_netorder
+        * protect from empty retrieve_vstring
+        * protect store_other error buf, potential static
+        buffer overflow.
+
+Tue Mar 14 09:52:20 2017 +0100 Reini Urban <rurban@cpan.org>
+    Version 3.05_10
+
+        * CORE-only improvements to stacksize
+
+Thu Mar 9 19:20:19 2017 +0100 Reini Urban <rurban@cpan.org>
+    Version 3.05_09
+
+        * compute the stacksizes, improve cleanup within croak
+        from stack exhaustion.
+        * added stack_depth and stack_depth_hash getters.
+
+Wed Mar  8 21:03:43 CET 2017 Reini Urban <rurban@cpan.org>
+    Version 3.05_08
+
+        * finetune the max stack limit, for C++, DEBUGGING and 32bit.
+        * fix t/blessed.t for cperl5.22
+
+Sun Mar 5 13:36:47 2017 +0100 Reini Urban <rurban@cpan.org>
+    Version 3.05_07
+
+        * Fixed a podchecker issue
+
+Sun Mar 5 11:42:04 2017 +0100 Reini Urban <rurban@cpan.org>
+    Version 3.05_06
+
+        * Fixed wrong recursion depth error with large arrays containing
+        another array.
+	L<[cperl #257]|https://github.com/perl11/cperl/issues/257>
+
+Thu Feb 2 12:40:44 2017 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.05_05
+
+        * Add leak tests for [cpan #97316], [perl #121928]
+        * Limit the max recursion depth to 1200 on 32bit systems.
+        We have no max_depth option yet, as in JSON::XS.
+
+Thu Feb 2 11:59:21 2017 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.05_04
+
+        * Fix retrieve_tied_array which fails since 5.16
+        [cpan #84705]
+        * Improve t/blessed.t in the creation of sv_yes/sv_no
+        with threaded perls.
+
+Tue Jan 31 02:55:30 2017 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.05_03
+
+        * Tune t/recurse.t stack-overflow limit more.
+
+Mon Jan 30 19:50:29 2017 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.05_02
+
+        * Tune t/recurse.t stack-overflow limit. Small 64bit systems overflow
+        even with depth 3000, where 32bit are ok.
+
+Mon Jan 30 15:13:38 2017 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.05_01
+
+        * Protect against stack overflows with nested arrays and hashes
+        [cpan #97526]. This imposes a new limit to your nested structures,
+        but JSON::XS has a limit of 512. We use a max_depth of 3000 for the
+        typical stack limit of 8k.
+
+
+Sun Jan 29 11:36:43 2017 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.05
+
+        * Protect against classname len overflow on the stack
+        and 2x on the heap with retrieve_bless and retrieve_hook.
+        A serious security issue with malcrafted storable files or buffers,
+        but p5p accepts no CVE on Storable attacks. See RT #130635
+        (reported by JD).
+        * Fix NULL ptr SEGVs with retrieve_code and retrieve_other.
+        See RT #130098 (reported and fixed by JD)
+        * Fix wrong huge LOBJECT support, broken since 3.00c.
+        Repro with `export PERL_TEST_MEMORY=8`
+        * Fix the few remaining 2-arg open calls.
+        * Portability and backport fixes back to 5.6.2
+
+Sat Jan 7 09:01:29 2017 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.04c
+
+        * fix printf types and warnings, esp. for 32bit use64bitint
+        * Change sv_setpvn(…, "…", …) to sv_setpvs(…, "…")
+
+Tue Jul 26 11:49:33 2016 +1000 Tony Cook <tony@develop-help.com>
+    Version 3.03c
+
+        * remove . from @INC when loading optional modules
+
+Sun Nov 20 18:06:45 2016 +0100 Reini Urban <rurban@cpanel.net>
+    Version 3.02c
+
+        * Fix -Wc++11-compat warnings, fix -Wchar-subscripts
+
+Fri Sep 16 01:32:59 2016 +0200 Reini Urban <rurban@cpanel.net>
+    Version 3.01c
+
+        * Added warn_security("Movable-Type CVE-2015-1592 Storable metasploit attack")
+          when detecting the third destructive metasploit vector,
+          thawing bless \"mt-config.cgi", "CGITempFile".
+
+Thu Mar 31 17:10:27 2016 +0200 Reini Urban <rurban@cpanel.net>
+    Version 3.00c
+
+        * Added support for u64 strings, arrays and hashes >2G
+          via a new LOBJECT tag. This is for 32bit systems and lengths
+          between 2GB and 4GB (I32-U32), and 64bit (>I32).
+        * Bumped STORABLE_BIN_MINOR and STORABLE_BIN_WRITE_MINOR from 10 to 11
+        * fix parallel tests, use unique filenames.
+        * fixed 2 instances of 2arg open,
+        * added optional flag arguments to skip tie and bless on retrieve/thaw,
+        * added SECURITY WARNING and Large data support to docs
+        * compute CAN_FLOCK at compile-time
+        * reformat everything consistently
+        * enable DEBUGME tracing and asserts with -DDEBUGGING
+        * fix all 64 bit compiler warnings
+        * added some abstraction methods to avoid code duplication
+
+?????? p5p <perl5-porters@perl.org>
+    Version 2.65
+
+	* Replace multiple 'use vars' by 'our'
+	* remove Config dependency
+
+Wed Jul  2 16:25:25 IST 2014   Abhijit Menon-Sen <ams@toroid.org>
+    Version 2.51
+
+	* [perl #121928] Fix memory leak for dclone inside freeze hook
+	  (Alex Solovey)
+	* Do not call DESTROY for empty objects
+	  (Vladimir Timofeev)
+	* Other bugfixes
+
+Sat Jul 13 18:34:27 IST 2013   Abhijit Menon-Sen <ams@toroid.org>
+    Version 2.45
+
+       * [perl #118829] Memory leaks in STORABLE_attach
+         (Vladimir Timofeev)
+       * [perl #118139] Don't SEGV during global destruction
+         (Nicholas Clark, report/test from Reini Urban)
+       * Added security warnings section (Steffen Mueller)
+       * Update INSTALLDIRS to favour installation in 'site'
+         (James E Keenan)
+
+Tue 11 Sep 06:51:11 IST 2012   Abhijit Menon-Sen <ams@toroid.org>
+    Version 2.39
+
+	Various bugfixes, including compatibility fixes for older
+	versions of Perl and vstring handling.
+
+Sun  3 Jul 09:10:11 IST 2011   Abhijit Menon-Sen <ams@toroid.org>
+    Version 2.29
+
+	Various bugfixes, notably including preventing nfreeze from
+	incorrectly stringifying integers.
+
+Fri  3 Dec 14:12:32 GMT 2010   David Leadbeater <dgl@dgl.cx>
+    Version 2.25
+
+	Support for serializing coderefs containing UTF-8.
+
+Fri Nov 12 10:52:19 IST 2010   Abhijit Menon-Sen <ams@toroid.org>
+
+    Version 2.24
+
+	Performance improvement for overloaded classes from Benjamin
+	Holzman.
+
+Fri Nov 12 10:36:22 IST 2010   Abhijit Menon-Sen <ams@toroid.org>
+
+    Version 2.23
+
+	Release the latest version from the Perl repository.
+
+Thu Aug  6 10:55:50 IST 2009   Abhijit Menon-Sen <ams@toroid.org>
+
+    Version 2.21
+
+	Includes hints/hpux.pl that was inadvertently left out of 2.20.
+
+Mon May 18 09:38:20 IST 2009   Abhijit Menon-Sen <ams@toroid.org>
+
+    Version 2.20
+
+	Fix bug handling blessed references to overloaded objects, plus
+	other miscellaneous fixes.
+
+	(Version 2.19 was released with 5.8.9.)
+
+Thu Nov 22 13:24:18 IST 2007   Abhijit Menon-Sen <ams@toroid.org>
+
+    Version 2.18
+
+	Compile fixes for older Perls. (No functional changes.)
+
+Sat Nov 17 02:12:12 IST 2007   Abhijit Menon-Sen <ams@toroid.org>
+
+    Version 2.17
+
+	Various broken tests fixed. (No functional changes.)
+
+Sat Mar 31 06:11:06 IST 2007   Abhijit Menon-Sen <ams@toroid.org>
+
+    Version 2.16
+
+        1. Fixes to Storable::dclone, read_magic, retrieve_lscalar
+        2. Storable 0.1 compatibility
+        3. Miscellaneous compile/leak/test/portability fixes
+
+Mon May 23 22:48:49 IST 2005   Abhijit Menon-Sen <ams@wiw.org>
+
+    Version 2.15
+
+        Minor changes to address a couple of compile problems.
+
+Mon Apr 25 07:29:14 IST 2005   Abhijit Menon-Sen <ams@wiw.org>
+
+    Version 2.14
+
+	1. Store weak references
+	2. Add STORABLE_attach hook.
+
+Thu Jun 17 12:26:43 BST 2004   Nicholas Clark <nick@ccl4.org>
+
+    Version 2.13
+
+        1. Don't change the type of top level overloaded references to RV -
+	   they are perfectly correct as PVMG
+	2. Storable needs to cope with incoming frozen data that happens to be
+	   utf8 encoded.
+
+Wed Mar 17 15:40:29 GMT 2004   Nicholas Clark <nick@ccl4.org>
+
+    Version 2.12
+
+        1. Add regression tests for the auto-require of STORABLE_thaw
+        2. Add auto-require of modules to restore overloading (and tests)
+        3. Change to no context (should give speedup with ithreads)
+
+Sat Mar 13 20:11:03 GMT 2004   Nicholas Clark <nick@ccl4.org>
+	
+    Version 2.11
+
+        1. Storing restricted hashes in canonical order would SEGV. Fixed.
+        2. It was impossible to retrieve references to PL_sv_no and
+           PL_sv_undef from STORABLE_thaw hooks.
+        3. restrict.t was failing on 5.8.0, due to 5.8.0's unique
+           implementation of restricted hashes using PL_sv_undef
+        4. These changes allow a space optimisation for restricted hashes.
+
+Sat Jan 24 16:22:32 IST 2004   Abhijit Menon-Sen <ams@wiw.org>
+
+    Version 2.10
+
+        1. Thread safety: Storable::CLONE/init_perlinterp() now create
+           a new Perl context for each new ithread.
+           (From Stas Bekman and Jan Dubois.)
+        2. Fix a tag count mismatch with $Storable::Deparse that caused
+           all back-references after a stored sub to be off-by-N (where
+           N was the number of code references in between).
+           (From Sam Vilain.)
+        3. Prevent CODE references from turning into SCALAR references.
+           (From Slaven Rezic.)
+
+Sat Jan  3 18:49:18 GMT 2004   Nicholas Clark <nick@ccl4.org>
+
+    Version 2.09
+
+	Fix minor problems with the CPAN release
+	1: Make Storable.xs work on 5.8.2 and later (already in the core)
+	2: Ship the linux hints file
+	3: Ship Test::More for the benefit of Perls pre 5.6.2
+	4: Correct Makefile.PL to only install in core for 5.8.0 and later
+
+Sat Sep  6 01:08:20 IST 2003   Abhijit Menon-Sen <ams@wiw.org>
+
+    Version 2.08
+
+        This release works around a 5.8.0 bug which caused hashes to not
+        be marked as having key flags even though an HEK had HEK_WASUTF8
+        set. (Note that the only reasonable solution is to silently drop
+        the flag from the affected key.)
+
+        Users of RT 3 who were seeing assertion failures should upgrade.
+        (Perl 5.8.1 will have the bug fixed.)
+
+Mon May  5 10:24:16 IST 2003   Abhijit Menon-Sen <ams@wiw.org>
+
+    Version 2.07
+
+        Minor bugfixes (self-tied objects are now correctly stored, as
+        are the results of additions larger than INT_MAX).
+
+Mon Oct  7 21:56:38 BST 2002   Nicholas Clark  <nick@ccl4.org>
+
+    Version 2.06
+
+	Remove qr// from t/downgrade.t so that it will run on 5.004
+	Mention $File::Spec::VERSION a second time in t/forgive.t so that it
+	runs without warnings in 5.004 (this may be a 5.00405 bug I'm working
+	round)
+	Fix t/integer.t initialisation to actually generate 64 bits of 9c
+	Fix comparison tests to use eval to get around 64 bit IV conversion
+	issues on 5.6.x, following my t/integer.t ^ precedence bug found by
+	Rafael Garcia-Suarez
+	Alter t/malice.t to work with Test/More.pm in t/, and skip individual
+	subtests that use $Config{ptrsize}, so that the rest of the test can
+	now be run with 5.004
+	Change t/malice.t and the error message in check_magic in Storable.xs
+	from "Pointer integer size" to "Pointer size"
+	Remove prerequisite of Test::More from Makefile.PL
+	Ship Test::Builder, Test::Simple and Test::More in t
+
+Thu Oct  3 08:57:22 IST 2002   Abhijit Menon-Sen <ams@wiw.org>
+
+    Version 2.05
+
+        Adds support for CODE references from Slaven Rezic
+        <slaven.rezic@berlin.de>.
+
+Fri Jun  7 23:55:41 BST 2002   Nicholas Clark
+
+    Version 2.04
+
+	Bug fix from Radu Greab <radu@netsoft.ro> (plus regression test)
+	to fix a recently introduced bug detected by Dave Rolsky.
+	Bug was that for a non threaded build, the class information was
+	being lost at freeze time on the first object with a STORABLE_freeze
+	hook. Consequentially the object was not blessed at all when thawed.
+	(The presence (or lack) of STORABLE_thaw was irrelevant; this was
+	a store-time data lost bug, caused by failure to initialize internal
+	context)
+	The bug was introduced as development perl change 16442 (on
+	2002/05/07), so has been present since 2.00.
+	Patches to introduce more regression tests to reduce the chance of
+	a reoccurrence of this sort of goof are always welcome.
+	
+Thu May 30 20:31:08 BST 2002   Nicholas Clark <nick@ccl4.org>
+
+    Version 2.03        Header changes on 5.6.x on Unix where IV is long long
+
+        5.6.x introduced the ability to have IVs as long long.  However,
+        Configure still defined BYTEORDER based on the size of a long.
+        Storable uses the BYTEORDER value as part of the header, but
+        doesn't explicitly store sizeof(IV) anywhere in the header.
+        Hence on 5.6.x built with IV as long long on a platform that
+        uses Configure (ie most things except VMS and Windows) headers
+        are identical for the different IV sizes, despite the files
+        containing some fields based on sizeof(IV)
+
+        5.8.0 is consistent; all platforms have BYTEORDER in config.h
+        based on sizeof(IV) rather than sizeof(long).  This means that
+        the value of BYTEORDER will change from (say) 4321 to 87654321
+        between 5.6.1 and 5.8.0 built with the same options to Configure
+        on the same machine.  This means that the Storable header will
+        differ, and the two versions will wrongly thing that they are
+        incompatible.
+
+        For the benefit of long term consistency, Storable now
+        implements the 5.8.0 BYTEORDER policy on 5.6.x.  This means that
+        2.03 onwards default to be incompatible with 2.02 and earlier
+        (ie the large 1.0.x installed base) on the same 5.6.x perl.
+
+        To allow interworking, a new variable
+        $Storable::interwork_56_64bit is introduced. It defaults to
+        false. Set it to true to read and write old format files. Don't
+        use it unless you have existing stored data written with 5.6.x
+        that you couldn't otherwise read, or you need to interwork with
+        a machine running older Storable on a 5.6.x with long long IVs
+        (i.e., you probably don't need to use it).
+
+Sat May 25 22:38:39 BST 2002   Nicholas Clark <nick@ccl4.org>
+
+    Version 2.02
+                
+        Rewrite Storable.xs so that the file header structure for write_magic
+        is built at compile time, and check_magic attempts to the header in
+        blocks rather than byte per byte. These changes make the compiled
+        extension 2.25% smaller, but are not significant enough to give a
+        noticeable speed up.
+
+Thu May 23 22:50:41 BST 2002   Nicholas Clark <nick@ccl4.org>
+
+    Version 2.01
+
+        - New regression tests integer.t
+        - Add code to safely store large unsigned integers.
+        - Change code not to attempt to store large integers (ie > 32 bits)
+          in network order as 32 bits.
+        
+        *Never* underestimate the value of a pathological test suite carefully
+        crafted with maximum malice before writing a line of real code. It
+        prevents crafty bugs from stowing away in your released code.
+        It's much less embarrassing to find them before you ship.
+        (Well, never underestimate it if you ever want to work for me)
+        
+Fri May 17 22:48:59 BST 2002   Nicholas Clark <nick@ccl4.org>
+
+    Version 2.0, binary format 2.5 (but writes format 2.4 on pre 5.7.3)
+
+        The perl5 porters have decided to make sure that Storable still
+        builds on pre-5.8 perls, and make the 5.8 version available on CPAN.
+        The VERSION is now 2.0, and it passes all tests on 5.005_03, 5.6.1
+        and 5.6.1 with threads. On 5.6.0 t/downgrade.t fails tests 34 and 37,
+        due to a bug in 5.6.0 - upgrade to 5.6.1.
+
+        Jarkko and I have collated the list of changes the perl5 porters have
+        from the perl5 Changes file:
+
+        - data features of upcoming perl 5.8.0 are supported: Unicode hash
+          keys (Unicode hash values have been supported since Storable 1.0.1)
+          and "restricted hashes" (readonly hashes and hash entries)
+        - a newer version of perl can now be used to serialize data which is
+          not supported in earlier perls: Storable will attempt to do the
+          right thing for as long as possible, croaking only when safe data
+          conversion simply isn't possible. Alternatively earlier perls can
+          opt to have a lossy downgrade data instead of croaking
+        - when built with perls pre 5.7.3 this Storable writes out files
+          with binary format 2.4, the same format as Storable 1.0.8 onwards.
+          This should mean that this Storable will inter-operate seamlessly
+          with any Storable 1.0.8 or newer on perls pre 5.7.3
+        - dclone() now works with empty string scalar objects
+        - retrieving of large hashes is now more efficient
+        - more routines autosplit out of the main module, so Storable should
+          load slightly more quickly
+        - better documentation
+        - the internal context objects are now freed explicitly, rather than
+          relying on thread or process exit
+        - bugs fixed in debugging trace code affecting builds made with 64 bit
+          IVs
+        - code tidy-ups to allow clean compiles with more warning options
+          turned on avoid problems with $@ getting corrupted on 5.005_03 if
+          Carp wasn't already loaded
+        - added &show_file_magic, so you can add to /etc/magic and teach
+          Unix's file command about Storable files
+
+        We plan to keep Storable on CPAN in sync with the Perl core, so
+        if you encounter bugs or other problems building or using Storable,
+        please let us know at perl5-porters@perl.org
+        Patches welcome!
+        
+Sat Dec  1 14:37:54 MET 2001   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        This is the LAST maintenance release of the Storable module.
+        Indeed, Storable is now part of perl 5.8, and will be maintained
+        as part of Perl.  The CPAN module will remain available there
+        for people running pre-5.8 perls.
+
+        Avoid requiring Fcntl upfront, useful to embedded runtimes.
+        Use an eval {} for testing, instead of making Storable.pm
+        simply fail its compilation in the BEGIN block.
+
+        store_fd() will now correctly autoflush file if needed.
+
+Tue Aug 28 23:53:20 MEST 2001   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Fixed truncation race with lock_retrieve() in lock_store().
+        The file has to be truncated only once the exclusive lock is held.
+
+        Removed spurious debugging messages in .xs file.
+
+Sun Jul  1 13:27:32 MEST 2001   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Systematically use "=over 4" for POD linters.
+        Apparently, POD linters are much stricter than would
+        otherwise be needed, but that's OK.
+
+        Fixed memory corruption on croaks during thaw().  Thanks
+        to Claudio Garcia for reproducing this bug and providing the
+        code to exercise it.  Added test cases for this bug, adapted
+        from Claudio's code.
+
+        Made code compile cleanly with -Wall (from Jarkko Hietaniemi).
+
+        Changed tagnum and classnum from I32 to IV in context.  Also
+        from Jarkko.
+
+Thu Mar 15 01:22:32 MET 2001   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Last version was wrongly compiling with assertions on, due
+        to an edit glitch.  That did not cause any problem (apart from
+        a slight performance loss) excepted on Win* platforms, where the
+        assertion code does not compile.
+
+Sat Feb 17 13:37:37 MET 2001   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.10.
+
+        Forgot to increase version number at previous patch (there were
+        two of them, which is why we jump from 1.0.8 to 1.0.10).
+
+Sat Feb 17 13:35:00 MET 2001   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.8, binary format 2.4.
+
+        Fixed incorrect error message.
+
+        Now bless objects ASAP at retrieve time, which is meant to fix
+        two bugs:
+
+        * Indirect references to overloaded object were not able to
+          restore overloading if the object was not blessed yet,
+          which was possible since blessing occurred only after the
+          recursive retrieval.
+
+        * Storable hooks asking for serialization of blessed ref could
+          get un-blessed refs at retrieval time, for the very same
+          reason.
+
+        The fix implemented here was suggested by Nick Ing-Simmons.
+
+        Added support for blessed ref to tied structures.  This is the
+        cause for the binary format change.
+
+        Added EBCDIC version of the compatibility test with 0.6.11,
+        from Peter Prymmer
+
+        Added tests for the new features, and to make sure the bugs they
+        are meant to fix are indeed fixed.
+
+Wed Jan  3 10:43:18 MET 2001   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Removed spurious 'clean' entry in Makefile.PL.
+
+        Added CAN_FLOCK to determine whether we can flock() or not,
+        by inspecting Perl's configuration parameters, as determined
+        by Configure.
+
+        Trace offending package when overloading cannot be restored
+        on a scalar.
+
+        Made context cleanup safer to avoid dup freeing, mostly in the
+        presence of repeated exceptions during store/retrieve (which can
+        cause memory leaks anyway, so it's just additional safety, not a
+        definite fix).
+
+Sun Nov  5 18:23:48 MET 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.6.
+
+        Fixed severe "object lost" bug for STORABLE_freeze returns,
+        when refs to lexicals, taken within the hook, were to be
+        serialized by Storable.  Enhanced the t/recurse.t test to
+        stress hook a little more with refs to lexicals.
+
+Thu Oct 26 19:14:38 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.5.
+
+        Documented that store() and retrieve() can return undef.
+        That is, the error reporting is not always made via exceptions,
+        as the paragraph on error reporting was implying.
+
+        Auto requires module of blessed ref when STORABLE_thaw misses.
+        When the Storable engine looks for the STORABLE_thaw hook and
+        does not find it, it now tries to require the package into which
+        the blessed reference is.
+
+        Just check $^O, in t/lock.t: there's no need to pull the whole
+        Config module for that.
+
+Mon Oct 23 20:03:49 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.4.
+
+        Protected calls to flock() for DOS platform: apparently, the
+        flock/fcnlt emulation is reported to be broken on that
+        platform.
+
+        Added logcarp emulation if they don't have Log::Agent, since
+        we now use it to carp when lock_store/lock_retrieve is used
+        on DOS.
+
+Fri Sep 29 21:52:29 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.3.
+
+        Avoid using "tainted" and "dirty" since Perl remaps them via
+        cpp (i.e. #define).  This is deeply harmful when threading
+        is enabled.  This concerned both the context structure and
+        local variable and argument names.  Brrr..., scary!
+
+Thu Sep 28 23:46:39 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.2.
+
+        Fixed spelling in README.
+
+        Added lock_store, lock_nstore, and lock_retrieve (advisory locking)
+        after a proposal from Erik Haugan <erik@solbors.no>.
+
+        Perls before 5.004_04 lack newSVpvn, added remapping in XS.
+
+        Fixed stupid typo in the t/utf8.t test.
+
+Sun Sep 17 18:51:10 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    Version 1.0.1, binary format 2.3.
+
+        Documented that doubles are stored stringified by nstore().
+
+        Added Salvador Ortiz Garcia in CREDITS section,  He identified
+        a bug in the store hooks and proposed the right fix: the class
+        id was allocated too soon.  His bug case was also added to
+        the regression test suite.
+
+        Now only taint retrieved data when source was tainted.  A bug
+        discovered by Marc Lehmann.
+
+        Added support for UTF-8 strings, a contribution of Marc Lehmann.
+        This is normally only activated in post-5.6 perls.
+
+Thu Aug 31 23:06:06 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        First official release Storable 1.0, for inclusion in perl 5.7.0.
+        The license scheme is now compatible with Perl's.
+
+Thu Aug 24 01:02:02 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        ANSI-fied most of the code, preparing for Perl core integration.
+        The next version of Storable will be 0.8, and will be integrated
+        into the Perl core (development branch).
+
+        Dispatch tables were moved upfront to relieve some compilers,
+        especially on AIX and Windows platforms.
+
+        Merged 64-bit fixes from perl5-porters.
+
+Mon Aug 14 09:22:04 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Added a refcnt dec in retrieve_tied_key(): sv_magic() increases
+        the refcnt on the mg_ptr as well.
+
+        Removed spurious dependency to Devel::Peek, which was used for
+        testing only in t/tied_items.t.  Thanks to Conrad Heiney
+        <conrad@fringehead.org> for spotting it first.
+
+Sun Aug 13 22:12:59 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Marc Lehmann kindly contributed code to add overloading support
+        and to handle references to tied variables.
+
+        Rewrote leading blurb about compatibility to make it clearer what
+        "backward compatibility" is about: when I say 0.7 is backward
+        compatible with 0.6, it means the revision 0.7 can read files
+        produced by 0.6.
+
+        Mention new Clone(3) extension in SEE ALSO.
+
+        Was wrongly optimizing for "undef" values in hashes by not
+        fully recursing: as a result, tied "undef" values were incorrectly
+        serialized.
+
+Sun Jul 30 12:59:17 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+    First revision of Storable 0.7.
+
+        The serializing format is new, known as version 2.0.  It is fully
+        backward compatible with 0.6.  Earlier formats are deprecated and
+        have not even been tested: next version will drop pre-0.6 format.
+
+        Changes since 0.6@11:
+
+        - Moved interface to the "beta" status.  Some tiny parts are still
+          subject to change, but nothing important enough to warrant an "alpha"
+          status any longer.
+
+        - Slightly reduced the size of the Storable image by factorizing
+          object class names and removing final object storage notification due
+          to a redesign of the blessed object storing.
+
+        - Classes can now redefine how they wish their instances to be serialized
+          and/or deep cloned.  Serializing hooks are written in Perl code.
+
+        - The engine is now fully re-entrant.
+
+Sun Apr  2 23:47:50 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Added provision to detect more recent binary formats, since
+        the new upcoming Storable-0.7 will use a different format.
+        In order to prevent attempting the de-serialization of newer
+        formats by older versions, I'm adding this now to the 0.6 series.
+
+        I'm expecting this revision to be the last of the 0.6 series.
+        Unless it does not work with perl 5.6, which I don't use yet,
+        and therefore against which I cannot test.
+
+Wed Mar 29 19:55:21 MEST 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Added note about format incompatibilities with old versions
+        (i.e. pre 0.5@9 formats, which cannot be understood as there
+        was no versionning information in the file by then).
+
+        Protect all $@ variables when eval {} used, to avoid corrupting
+        it when store/retrieve is called within an exception handler.
+
+        Mistakenly included "patchlevel.h" instead of <patchlevel.h>,
+        preventing Perl's patchlevel from being included, which is
+        needed starting from 5.6.
+
+Tue May 12 09:15:15 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Fixed shared "undef" bug in hashes, which did not remain shared
+        through store/retrieve.
+
+Thu Feb 10 19:48:16 MET 2000   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        added last_op_in_netorder() predicate
+        documented last_op_in_netorder()
+        added tests for the new last_op_in_netorder() predicate
+
+Wed Oct 20 19:07:36 MEST 1999   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Forgot to update VERSION
+
+Tue Oct 19 21:25:02 MEST 1999   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Added mention of japanese translation for the manual page.
+
+        Fixed typo in macro that made threaded code not compilable,
+        especially on Win32 platforms.
+
+        Changed detection of older perls (pre-5.005) by testing PATCHLEVEL
+        directly instead of relying on internal symbols.
+
+Tue Sep 14 22:13:28 MEST 1999   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        Integrated "thread-safe" patch from Murray Nesbitt.
+        Note that this may not be very efficient for threaded code,
+        see comment in the code.
+
+        Try to avoid compilation warning on 64-bit CPUs. Can't test it,
+        since I don't have access to such machines.
+
+Mon Jul 12 14:37:19 METDST 1999   Raphael Manfredi <Raphael_Manfredi@pobox.com>
+
+        changed my e-mail to pobox.
+
+        mentioned it is not thread-safe.
+
+        updated version number.
+
+        uses new internal PL_* naming convention.
+
+Fri Jul  3 13:38:16 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Updated benchmark figures due to recent optimizations done in
+        store(): tagnums are now stored as-is in the hash table, so
+        no surrounding SV is created. And the "shared keys" mode for
+        hash table was turned off.
+
+        Fixed backward compatibility (wrt 0.5@9) for retrieval of
+        blessed refs. That old version did something wrong, but the
+        bugfix prevented correct retrieval of the old format.
+
+Mon Jun 22 11:00:48 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Changed benchmark figures.
+
+        Adjust refcnt of tied objects after calling sv_magic() to avoid
+        memory leaks.  Contributed by Jeff Gresham.
+
+Fri Jun 12 11:50:04 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Added workaround for persistent LVALUE-ness in perl5.004. All
+        scalars tagged as being an lvalue are handled as if they were
+        not an lvalue at all.  Added test for that LVALUE bug workaround.
+
+        Now handles Perl immortal scalars explicitly, by storing &sv_yes
+        as such, explicitly.
+
+        Retrieval of non-immortal undef cannot be shared. Previous
+        version was over-optimizing by not creating a separate SV for
+        all undefined scalars seen.
+
+Thu Jun  4 17:21:51 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+    Baseline for Storable-0.6@0.
+
+        This version introduces a binary incompatibility in the generated
+        binary image, which is more compact than older ones by approximatively
+        15%, depending on the exact degree of sharing in your structures.
+
+        The good news is that your older images can still be retrieved with
+        this version, i.e. backward compatibility is preserved. This version
+        of Storable can only generate new binaries however.
+
+        Another good news is that the retrieval of data structure is
+        significantly quicker than before, because a Perl array is used
+        instead of a hash table to keep track of retrieved objects, and
+        also because the image being smaller, less I/O function calls are
+        made.
+
+Tue May 12 09:15:15 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Version number now got from Storable.pm directly.
+
+        Fixed overzealous sv_type() optimization, which would make
+        Storable fail when faced with an "upgraded" SV to the PVIV
+        or PVNV kind containing a reference.
+
+Thu Apr 30 15:11:30 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Extended the SYNOPSIS section to give quick overview of the
+        routines and their signature.
+
+        Optimized sv_type() to avoid flags checking when not needed, i.e.
+        when their type makes it impossible for them to be refs or tied.
+        This slightly increases throughput by a few percents when refs
+        and tied variables are marginal occurrences in your data.
+
+        Stubs for XS now use OutputStream and InputStream file types to
+        make it work when the given file is actually a socket. Perl
+        makes a distinction for sockets in its internal I/O structures
+        by having both a read and a write structure, whereas plain files
+        share the same one.
+
+Tue Jun  3 09:41:33 METDST 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Thanks to a contribution from Benjamin A. Holzman, Storable is now
+        able to correctly serialize tied SVs, i.e. tied arrays, hashes
+        and scalars.
+
+Thu Apr  9 18:07:51 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        I said SvPOK() had changed to SvPOKp(), but that was a lie...
+
+Wed Apr  8 13:14:29 METDST 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Wrote sizeof(SV *) instead of sizeof(I32) when portable, which
+        in effect mangled the object tags and prevented portability
+        across 32/64 bit architectures!
+
+Wed Mar 25 14:57:02 MET 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Added code example for store_fd() and retrieve_fd() in the
+        man page, to emphasize that file descriptors must be passed as
+        globs, not as plain strings.
+
+        Cannot use SV addresses as tag when using nstore() on LP64. This
+        was the cause of problems when creating a storable image on an
+        LP64 machine and retrieving it on an ILP32 system, which is
+        exactly what nstore() is meant for...
+
+        However, we continue to use SV addresses as tags for plain store(),
+        because benchmarking shows that it saves up to 8% of the store
+        time, and store() is meant to be fast at the expense of lack
+        of portability.
+
+        This means there will be approximately an 8% degradation of
+        performance for nstore(), but it's now working as expected.
+        That cost may vary on your machine of course, since it is
+        solely caused by the memory allocation overhead used to create
+        unique SV tags for each distinct stored SV.
+
+Tue Jan 20 09:21:53 MET 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Don't use any '_' in version number.
+
+Tue Jan 13 17:51:50 MET 1998   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Updated version number.
+
+        added binmode() calls for systems where it matters.
+
+        Be sure to pass globs, not plain file strings, to C routines,
+        so that Storable can be used under the Perl debugger.
+
+Wed Nov  5 10:53:22 MET 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Fix memory leaks on seen hash table and returned SV refs.
+
+        Storable did not work properly when tainting enabled.
+
+        Fixed "Allocation too large" messages in freeze/thaw and added.
+        proper regression test in t/freeze.t.
+
+Tue Jun  3 09:41:33 METDST 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Updated version number
+
+        Added freeze/thaw interface and dclone.
+
+Fri May 16 10:45:47 METDST 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Forgot that AutoLoader does not export its own AUTOLOAD.
+        I could use
+
+                use AutoLoader 'AUTOLOAD';
+        
+        but that would not be backward compatible. So the export is
+        done by hand...
+
+Tue Mar 25 11:21:32 MET 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Empty scalar strings are now "defined" at retrieval time.
+
+        New test to ensure an empty string is defined when retrieved.
+
+Thu Feb 27 16:32:44 MET 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Updated version number
+
+        Declare VERSION as being used
+
+        Fixed a typo in the PerlIO_putc remapping.
+        PerlIO_read and perlIO_write inverted size/nb_items.
+        (only relevant for pre-perl5.004 versions)
+
+Thu Feb 27 15:58:31 MET 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Updated version number
+
+        Added VERSION identification
+
+        Allow build with perl5.003, which is ante perlIO time
+
+Mon Jan 13 17:53:18 MET 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Random code fixes.
+
+Wed Jan 22 15:19:56 MET 1997   Raphael Manfredi <Raphael_Manfredi@grenoble.hp.com>
+
+        Updated version number in Makefile.PL.
+
+        Added "thanks to" section to README.
+
+        Documented new forgive_me variable.
+
+        Made 64-bit clean.
+
+        Added forgive_me support to allow store() of data structures
+        containing non-storable items like CODE refs.

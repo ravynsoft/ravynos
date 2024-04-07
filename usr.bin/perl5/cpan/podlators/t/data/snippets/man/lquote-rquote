@@ -1,0 +1,17 @@
+[name]
+Set separate left and right quotes
+
+[options]
+lquote ``
+rquote "
+
+[input]
+=head1 FOO C<BAR> BAZ
+
+Foo C<bar> baz.
+
+[output]
+.ie n .SH "FOO ``BAR"" BAZ"
+.el .SH "FOO \f(CWBAR\fP BAZ"
+.IX Header "FOO BAR BAZ"
+Foo \f(CW\*(C`bar\*(C'\fR baz.

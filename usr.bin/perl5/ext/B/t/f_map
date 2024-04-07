@@ -1,0 +1,29 @@
+#!perl
+# examples shamelessly snatched from perldoc -f map
+
+# translates a list of numbers to the corresponding characters.
+@chars = map(chr, @nums);
+
+%hash = map { getkey($_) => $_ } @array;
+
+{
+    %hash = ();
+    foreach $_ (@array) {
+	$hash{getkey($_)} = $_;
+    }
+}
+
+#%hash = map {  "\L$_", 1  } @array;  # perl guesses EXPR.  wrong
+%hash = map { +"\L$_", 1  } @array;  # perl guesses BLOCK. right
+
+%hash = map { ("\L$_", 1) } @array;  # this also works
+
+%hash = map {  lc($_), 1  } @array;  # as does this.
+
+%hash = map +( lc($_), 1 ), @array;  # this is EXPR and works!
+
+%hash = map  ( lc($_), 1 ), @array;  # evaluates to (1, @array)
+
+@hashes = map +{ lc($_), 1 }, @array # EXPR, so needs , at end
+
+

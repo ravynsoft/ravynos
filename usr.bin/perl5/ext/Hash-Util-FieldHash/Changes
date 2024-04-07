@@ -1,0 +1,29 @@
+Revision history for Perl extension Hash::Util::FieldHash.
+
+0.01  Sat Jun  3 16:24:12 2006
+	- original version; created by h2xs 1.23 with options
+		-A -g --skip-ppport -nHash::Util::FieldHash
+      Fri Jun 23 22:31:59 CEST 2006
+        - accepted as v5.9.4 DEVEL28420
+
+
+0.02  Fri Apr 20 22:22:57 CEST 2007
+        - Bugfix: string keys are now checked whether they represent
+        an object, so %fieldhash_clone = %fieldhash_orig works.
+
+1.01  Thu May 31 11:12:20 CEST 2007
+        - Introduced magic id chaching after a suggestion by Jerry Hedden
+        - Added functions id, id_2obj, register, idhash, idhashes
+
+      Sun Jun 17 15:10:45 CEST 2007
+        - added tests for new functions
+        - pod partially re-written to describe the multi-level
+          interface
+        - updated pod part of lib/Hash/Util.pm
+        - release accepted by p5p
+
+1.02 Sat Jul 14 22:38:33 CEST 2007
+        - prototype set to ($) for id()
+        - tests added for prototypes
+        - some cleanup in xs code
+        - small pod fixes

@@ -1,0 +1,134 @@
+__END__
+# Method calls on no args
+no warnings 'experimental::class';
+use feature 'class';
+class XXX { method m { } }
+XXX::m()
+EXPECT
+Cannot invoke method "m" on a non-instance at - line 5.
+########
+# Method calls on non-ref
+no warnings 'experimental::class';
+use feature 'class';
+class XXX { method m { } }
+XXX::m(123)
+EXPECT
+Cannot invoke method "m" on a non-instance at - line 5.
+########
+# Method calls on non-object
+no warnings 'experimental::class';
+use feature 'class';
+class XXX { method m { } }
+XXX::m([])
+EXPECT
+Cannot invoke method "m" on a non-instance at - line 5.
+########
+# Method calls from a different class
+no warnings 'experimental::class';
+use feature 'class';
+class XXX { method m { } }
+class YYY {}
+YYY->new->XXX::m();
+EXPECT
+Cannot invoke a method of "XXX" on an instance of "YYY" at - line 6.
+########
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {}
+bless [], "XXX";
+EXPECT
+Attempt to bless into a class at - line 4.
+########
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {}
+bless(XXX->new, "main");
+EXPECT
+Can't bless an object reference at - line 4.
+########
+no warnings 'experimental::class';
+use feature 'class';
+class XXX { field $zz; $zz = 123; }
+EXPECT
+Field $zz is not accessible outside a method at - line 3.
+########
+no warnings 'experimental::class';
+use feature 'class';
+class XXX { field $x; sub f { print $x } }
+EXPECT
+Field $x is not accessible outside a method at - line 3.
+########
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {
+  field $x;
+  class YYY { method m { print $x } }
+}
+EXPECT
+Field $x of "XXX" is not accessible in a method of "YYY" at - line 5.
+########
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {}
+class XXX {}
+EXPECT
+Cannot reopen existing class "XXX" at - line 4.
+########
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {}
+push @XXX::ISA, q(Another);
+EXPECT
+Modification of a read-only value attempted at - line 4.
+########
+no warnings 'experimental::class';
+use feature 'class';
+BEGIN { push @XXX::ISA, q(Another); }
+class XXX {}
+EXPECT
+Cannot create class XXX as it already has a non-empty @ISA at - line 4.
+########
+use strict;
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {
+  field $x = $self + 1;
+}
+EXPECT
+Global symbol "$self" requires explicit package name (did you forget to declare "my $self"?) at - line 5.
+Execution of - aborted due to compilation errors.
+########
+# This test is known to leak: see GH #20812. Skip it for now so that ASAN
+# smokes don't fail. Start failing again on the next development branch so
+# that the issue isn't forgotten
+# SKIP ? $] < 5.039
+use strict;
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {
+  field $x = last;
+}
+EXPECT
+Can't "last" out of field initialiser expression at - line 5.
+########
+use strict;
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {
+  field $x :param(p);
+  field $y :param(p);
+}
+EXPECT
+Cannot assign :param(p) to field $y because that name is already in use at - line 6.
+########
+use strict;
+no warnings 'experimental::class';
+use feature 'class';
+class XXX {
+  field $x :param(p);
+}
+class YYY :isa(XXX) {
+  field $y :param(p);
+}
+EXPECT
+Cannot assign :param(p) to field $y because that name is already in use at - line 8.

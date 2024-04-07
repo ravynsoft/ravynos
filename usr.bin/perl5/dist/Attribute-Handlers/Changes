@@ -1,0 +1,177 @@
+t Revision history for Perl extension Attribute-Handlers
+
+0.50  Sat Apr 21 16:09:31 2001
+	- original version; 
+
+0.51	Tue May  1 06:33:15 2001
+
+	- Fixed fatal file path error in MANIFEST (thanks Marcel and Jost)
+
+
+0.60	Thu May 10 15:46:02 2001
+
+	- Added RAWDATA specifier
+
+	- Cleaned up documentation (thanks Garrett)
+
+	- Added warning for all-lowercase handlers (thanks Garrett)
+
+	- Added autotie functionality
+
+	- Tweaked handling of anon arrays as attribute args
+
+
+0.61	Thu May 10 16:28:06 2001
+
+	- Critical doc patch
+
+
+0.70	Sun Jun  3 07:40:03 2001
+
+	- Added __CALLER__ pseudo class for 'autotie'
+
+	- Added multi-phasic attribute handlers (thanks Garrett)
+
+	- Fixed nasty $SIG{__WARN__}-induced bug
+
+	- Cached ref/symbol mapping for better performance and more
+	  reliable symbol identification under evil typeglob manipulations
+
+	- Added option to pass arguments when autotied classes are imported
+	  (thanks Marcel)
+
+	- Fixed bug in handling of lexical SCALAR refs
+
+	- Cleaned up interactions with other class hierarchies
+	  (due to being base class of UNIVERSAL)
+
+
+0.75	Mon Sep  3 09:07:08 2001
+
+	- Cleaned up AUTOLOAD
+
+	- Numerous bug fixes (thanks Pete)
+
+	- Fixed handling of attribute data that includes a newline (thanks Pete)
+
+	- Added "autotieref" option (thanks Pete)
+
+	- Switched off $DB::single
+
+	- Changed licence for inclusion in core distribution
+
+	- Fixed 'autotie' for tied classes with multi-level names (thanks Jeff)
+
+
+0.76	Thu Nov 15 06:31:51 2001
+
+	- Fixed documentation nit (thanks Rick)
+
+	- Improving intuitiveness of autotie mechanism (thanks Marcel)
+
+	- Added $VERSION numbrs to demo modules (seems bizarre to me, but
+	  they're core too now).
+
+
+0.77	Sat Jun  8 22:58:56 CEST 2002
+
+	- Since Attribute::Handlers now is core, I will refer to changes
+	with their patch number, please read  Porting/repository.pod from
+	your a perl tarball for more information.
+
+	- Brought up to date with perl 5.8RC1 version 
+	will be 5.8 if no more changes come in
+
+	- [#13686] This changes the behaviour of lexical attributes.
+	Prior to this lexical attributes were done at a compile time, 
+	and they would loose their attribute on the next run over them.
+	Now perl 5.8 calls the attribute handler runtime whenever it hits my.
+
+	- [#14448] Fixes cases with too high refcounts on lexical attributes
+
+	- [#15945] Do not warn about too late CHECK and INIT block if
+	A::H is pulled in using a require.
+
+0.78	Sat Oct  5 07:18:09 CEST 2002
+	
+	- [#17940] Includes :unique and :shared in the builtin types
+
+	- From perl 5.8 { __CALLER__::foo => __PACKAGE } is missparsed,
+	the proper approach is to use  { '__CALLER__::foo' => __PACKAGE }.
+	The documentation is updated to reflect this. 
+	Reported by Dave Cross
+
+0.79
+
+	- The version released with Perl 5.10.0
+	- All interpreted attributes are now passed as array references,
+	  eventually nested.
+	- Don't AUTOLOAD DESTROY (Jerry D Hedden, cpan bug #1911)
+	- A::H is now able to report caller's file and line number
+	  (David Feldman)
+
+0.80	Fri Oct 24 12:06:00 CEST 2008
+        - CPAN release of the Attribute::Handlers version in bleadperl.
+	
+0.81	Sun Nov  9 22:47:00 CET 2008
+        - Fix to make tests work on 5.6.X (Eric Rybski, RT #40781)
+
+0.82	Wed Mar 11 17:17:00 CET 2009
+        - Bring test code in line with core perl.
+	
+0.83	Fri Mar 13 15:14:00 CET 2009
+        - Re-add a TODO marker in the tests that would fail on 5.6.2.
+
+0.84	Wed Jun 10 15:14:00 CET 2009
+        - Core-CPAN synchronization
+
+0.85	Thu Jun 11 09:31:00 CET 2009
+        - Document findsym for the sake of mod_perl. (David Wheeler)
+        - Remove unused variable. (David Wheeler)
+
+0.86	Sat Aug  8 12:41:00 CET 2009
+        - Add resources (bugtracker, ...) section to META.yml
+
+0.86_01	Thu Sep 17 10:01:00 CET 2009
+	- From perl change 09330df80caf214f375fcf0c04857347e3b17c69 (Zefram):
+
+          Fix [perl #66970] Incorrect coderef in MODIFY_CODE_ATTRIBUTES
+
+          Attribute handlers being applied to a temporary CV has actually been
+          reported as a bug, #66970.  The attached patch fixes the bug, by
+          changing the order in which things happen: attributes are now applied
+          after the temporary CV has been merged into the existing CV or has
+          otherwise been added to the appropriate GV.
+
+          The change breaks part of Attribute::Handlers.  Part of A:H searches the
+          package to find the name of the sub to which a :ATTR attribute is being
+          applied, and the correct time at which to launch that search depends
+          crucially on the order in which the CV construction events occur. So
+          this patch also includes a change to A:H, to make it detect which way
+          things happen.  The resulting A:H works either way, which is essential
+          for its dual-life nature.
+
+0.87	Mon Sep 21 15:55:00 CET 2009
+        - Promote to stable release
+
+0.88   Mon Apr  5 16:33:00 CET 2010
+	- Avoid clobbering $_ (perl #74052, LanX)
+
+0.91	Fri May 20 20:00:00 CET 2011
+	- Typo fixes in documentation
+	- POD link fix.
+
+0.93	Mon Dec 19 09:19:00 CET 2011
+	- documentation: "my" should be "till" (Frederic Briere)
+	- Spelling fixes (Father Chrysostomos)
+	- Indentation fixes (Father Chrysostomos)
+
+0.96	Fri Mar  7 08:30:00 CET 2014
+	- Documentation fixes
+        - Replace use of base.pm with parent.pm
+
+0.97	Sun Jun  1 12:00:00 GMT 2015
+	- fixes to deal with CVs without GVs
+
+0.99 Fri Jul 24 18:44:48 EDT 2015
+  - CPAN release of v0.97 code

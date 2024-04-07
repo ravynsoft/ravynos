@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+exit(0);
+
+sub uncalled_subroutine
+{
+    print '<', join(',', 1 .. 5), ">\n";
+}

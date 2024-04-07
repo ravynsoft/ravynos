@@ -1,0 +1,359 @@
+  pp_hot.c	
+
+  print() on unopened filehandle abc		[pp_print]
+    $f = $a = "abc" ; print $f $a
+
+  Filehandle %s opened only for input		[pp_print]
+    print STDIN "abc" ;
+
+  Filehandle %s opened only for output		[pp_print]
+    $a = <STDOUT> ;
+
+  print() on closed filehandle %s		[pp_print]
+    close STDIN ; print STDIN "abc" ;
+
+  uninitialized					[pp_rv2av]
+	my $a = undef ; my @b = @$a
+
+  uninitialized					[pp_rv2hv]
+	my $a = undef ; my %b = %$a
+
+  Odd number of elements in hash list		[pp_aassign]
+	%X = (1,2,3) ;
+
+  Reference found where even-sized list expected [pp_aassign]
+	$X = [ 1 ..3 ];
+
+  Filehandle %s opened only for output		[Perl_do_readline] 
+  	open (FH, ">./xcv") ;
+	my $a = <FH> ;
+
+  glob failed (can't start child: %s)		[Perl_do_readline] <<TODO
+
+  readline() on closed filehandle %s		[Perl_do_readline]
+    close STDIN ; $a = <STDIN>;
+
+  readline() on closed filehandle %s		[Perl_do_readline]
+    readline(NONESUCH);
+
+  glob failed (child exited with status %d%s)	[Perl_do_readline] <<TODO
+
+  Deep recursion on subroutine \"%s\"		[Perl_sub_crush_depth]
+    sub fred { fred() if $a++ < 200} fred()
+
+  Deep recursion on anonymous subroutine 	[Perl_sub_crush_depth]
+    $a = sub { &$a if $a++ < 200} &$a
+
+  Use of reference "%s" as array index [pp_aelem]
+    $x[\1]
+
+__END__
+# pp_hot.c [pp_print]
+use warnings 'unopened' ;
+$f = $a = "abc" ; 
+print $f $a;
+no warnings 'unopened' ;
+print $f $a;
+use warnings;
+no warnings 'unopened' ;
+print $f $a;
+EXPECT
+print() on unopened filehandle abc at - line 4.
+########
+# pp_hot.c [pp_print]
+use warnings 'unopened' ;
+$SIG{__WARN__} = sub { warn $_[0] =~ s/\0/\\0/rug; };
+print {"a\0b"} "anc";
+print {"\0b"} "anc";
+EXPECT
+print() on unopened filehandle a\0b at - line 4.
+print() on unopened filehandle \0b at - line 5.
+########
+# pp_hot.c [pp_print]
+use warnings 'io' ;
+# There is no guarantee that STDOUT is output only, or STDIN input only.
+# Certainly on some BSDs (at least FreeBSD, Darwin, BSDi) file descriptors
+# 1 and 2 are opened read/write on the tty, and the IO layers may reflect this.
+# So we must make our own file handle that is read only.
+my $file = "./xcv" ; unlink $file ;
+open (FH, ">$file") or die $! ;
+close FH or die $! ;
+die "There is no file $file" unless -f $file ;
+open (FH, "<$file") or die $! ;
+print FH "anc" ;
+open(FOO, "<&FH") or die $! ;
+print FOO "anc" ;
+no warnings 'io' ;
+print FH "anc" ;
+print FOO "anc" ;
+use warnings 'io' ;
+print FH "anc" ;
+print FOO "anc" ;
+close (FH) or die $! ;
+close (FOO) or die $! ;
+unlink $file ;
+EXPECT
+Filehandle FH opened only for input at - line 12.
+Filehandle FOO opened only for input at - line 14.
+Filehandle FH opened only for input at - line 19.
+Filehandle FOO opened only for input at - line 20.
+########
+# pp_hot.c [pp_print]
+$SIG{__WARN__} = sub { warn $_[0] =~ s/\0/\\0/rug; };
+use warnings 'io' ;
+my $file = "./xcv" ; unlink $file ;
+open (FH, ">$file") or die $! ;
+close FH or die $! ;
+die "There is no file $file" unless -f $file ;
+open ("a\0b", "<$file") or die $! ;
+print {"a\0b"} "anc" ;
+open ("\0b", "<$file") or die $! ;
+print {"\0b"} "anc" ;
+close "a\0b" or die $! ;
+close "\0b" or die $! ;
+unlink $file ;
+EXPECT
+Filehandle a\0b opened only for input at - line 9.
+Filehandle \0b opened only for input at - line 11.
+########
+# pp_hot.c [pp_print]
+use warnings 'closed' ;
+close STDIN ;
+print STDIN "anc";
+opendir STDIN, ".";
+print STDIN "anc";
+closedir STDIN;
+no warnings 'closed' ;
+print STDIN "anc";
+opendir STDIN, ".";
+print STDIN "anc";
+use warnings;
+no warnings 'closed' ;
+print STDIN "anc";
+EXPECT
+print() on closed filehandle STDIN at - line 4.
+print() on closed filehandle STDIN at - line 6.
+	(Are you trying to call print() on dirhandle STDIN?)
+########
+# pp_hot.c [pp_print]
+# [ID 20020425.012 (#9030)] from Dave Steiner <steiner@bakerst.rutgers.edu>
+# This goes segv on 5.7.3
+use warnings 'closed' ;
+my $fh = *STDOUT{IO};
+close STDOUT or die "Can't close STDOUT";
+print $fh "Shouldn't print anything, but shouldn't SEGV either\n";
+EXPECT
+print() on closed filehandle __ANONIO__ at - line 7.
+########
+# pp_hot.c [pp_print]
+package foo;
+use warnings 'closed';
+open my $fh1, "nonexistent";
+print $fh1 42;
+open $fh2, "nonexistent";
+print $fh2 42;
+open $bar::fh3, "nonexistent";
+print $bar::fh3 42;
+open bar::FH4, "nonexistent";
+print bar::FH4 42;
+EXPECT
+print() on closed filehandle $fh1 at - line 5.
+print() on closed filehandle $fh2 at - line 7.
+print() on closed filehandle $fh3 at - line 9.
+print() on closed filehandle FH4 at - line 11.
+########
+# pp_hot.c [pp_rv2av]
+use warnings 'uninitialized' ;
+my $a = undef ;
+my @b = @$a;
+no warnings 'uninitialized' ;
+my @c = @$a;
+EXPECT
+Use of uninitialized value $a in array dereference at - line 4.
+########
+# pp_hot.c [pp_rv2hv]
+use warnings 'uninitialized' ;
+my $a = undef ;
+my %b = %$a;
+no warnings 'uninitialized' ;
+my %c = %$a;
+EXPECT
+Use of uninitialized value $a in hash dereference at - line 4.
+########
+# pp_hot.c [pp_aassign]
+use warnings 'misc' ;
+my %X ; %X = (1,2,3) ;
+no warnings 'misc' ;
+my %Y ; %Y = (1,2,3) ;
+EXPECT
+Odd number of elements in hash assignment at - line 3.
+########
+# pp_hot.c [pp_aassign]
+use warnings 'misc' ;
+my %X ; %X = [1 .. 3] ;
+no warnings 'misc' ;
+my %Y ; %Y = [1 .. 3] ;
+EXPECT
+Reference found where even-sized list expected at - line 3.
+########
+# pp_hot.c [Perl_do_readline]
+use warnings 'closed' ;
+close STDIN        ; $a = <STDIN> ;
+opendir STDIN, "." ; $a = <STDIN> ;
+closedir STDIN;
+no warnings 'closed' ;
+opendir STDIN, "." ; $a = <STDIN> ;
+$a = <STDIN> ;
+EXPECT
+readline() on closed filehandle STDIN at - line 3.
+readline() on closed filehandle STDIN at - line 4.
+	(Are you trying to call readline() on dirhandle STDIN?)
+########
+# pp_hot.c [Perl_do_readline]
+use warnings 'closed' ;
+close STDIN        ; $a .= <STDIN> ;
+opendir STDIN, "." ; $a .= <STDIN> ;
+closedir STDIN;
+no warnings 'closed' ;
+opendir STDIN, "." ; $a .= <STDIN> ;
+$a = <STDIN> ;
+EXPECT
+readline() on closed filehandle STDIN at - line 3.
+readline() on closed filehandle STDIN at - line 4.
+	(Are you trying to call readline() on dirhandle STDIN?)
+########
+# pp_hot.c [Perl_do_readline]
+use warnings 'io' ;
+my $file = "./xcv" ; unlink $file ;
+open (FH, ">$file") or die $! ;
+my $a = <FH> ;
+no warnings 'io' ;
+$a = <FH> ;
+use warnings 'io' ;
+open(FOO, ">&FH") or die $! ;
+$a = <FOO> ;
+no warnings 'io' ;
+$a = <FOO> ;
+use warnings 'io' ;
+$a = <FOO> ;
+$a = <FH> ;
+close (FH);
+close (FOO);
+unlink $file ;
+EXPECT
+Filehandle FH opened only for output at - line 5.
+Filehandle FOO opened only for output at - line 10.
+Filehandle FOO opened only for output at - line 14.
+Filehandle FH opened only for output at - line 15.
+########
+# pp_hot.c [Perl_sub_crush_depth]
+use warnings 'recursion' ;
+sub fred 
+{ 
+    fred() if $a++ < 200
+} 
+{
+  local $SIG{__WARN__} = sub {
+    die "ok\n" if $_[0] =~ /^Deep recursion on subroutine "main::fred"/
+  };
+  fred();
+}
+EXPECT
+ok
+########
+# pp_hot.c [Perl_sub_crush_depth]
+no warnings 'recursion' ;
+sub fred 
+{ 
+    fred() if $a++ < 200
+} 
+{
+  local $SIG{__WARN__} = sub {
+    die "ok\n" if $_[0] =~ /^Deep recursion on subroutine "main::fred"/
+  };
+  fred();
+}
+EXPECT
+
+########
+# pp_hot.c [Perl_sub_crush_depth]
+use warnings 'recursion' ;
+$b = sub 
+{ 
+    &$b if $a++ < 200
+}  ;
+
+&$b ;
+EXPECT
+Deep recursion on anonymous subroutine at - line 5.
+########
+# pp_hot.c [Perl_sub_crush_depth]
+no warnings 'recursion' ;
+$b = sub 
+{ 
+    &$b if $a++ < 200
+}  ;
+
+&$b ;
+EXPECT
+########
+# pp_hot.c [pp_concat]
+use warnings 'uninitialized';
+my($x, $y);
+sub a { shift }
+a($x . "x");	# should warn once
+a($x . $y);	# should warn twice
+$x .= $y;	# should warn once
+$y .= $y;	# should warn once
+EXPECT
+Use of uninitialized value $x in concatenation (.) or string at - line 5.
+Use of uninitialized value $x in concatenation (.) or string at - line 6.
+Use of uninitialized value $y in concatenation (.) or string at - line 6.
+Use of uninitialized value $y in concatenation (.) or string at - line 7.
+Use of uninitialized value $y in concatenation (.) or string at - line 8.
+########
+# pp_hot.c [pp_aelem]
+{
+use warnings 'misc';
+print $x[\1];
+}
+{
+no warnings 'misc';
+print $x[\1];
+}
+
+EXPECT
+OPTION regex
+Use of reference ".*" as array index at - line 4.
+########
+# pp_hot.c [pp_aelem]
+package Foo;use overload q("") => sub {};package main;$a = bless {}, "Foo";
+$b = {};
+{
+use warnings 'misc';
+print $x[$a];
+print $x[$b];
+}
+{
+no warnings 'misc';
+print $x[$a];
+print $x[$b];
+}
+
+EXPECT
+OPTION regex
+Use of reference ".*" as array index at - line 7.
+########
+use warnings 'misc';
+use constant FOO => { a => 1 };
+() = $_[FOO->{a}];
+
+EXPECT
+########
+use warnings 'misc';
+use constant FOO => {};
+() = $_[FOO];
+
+EXPECT
+OPTION regex
+Use of reference "HASH\(0x\w+\)" as array index at - line 3.

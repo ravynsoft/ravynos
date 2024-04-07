@@ -1,0 +1,31 @@
+[name]
+UTF-8 handling in verbatim text
+
+[options]
+utf8 1
+
+[input]
+=encoding utf-8
+
+=head1 BEYONCÉ
+
+Beyoncé!  Beyoncé!  Beyoncé!!
+
+    Beyoncé!  Beyoncé!
+      Beyoncé!  Beyoncé!
+        Beyoncé!  Beyoncé!
+
+Older versions did not convert Beyoncé in verbatim.
+
+[output]
+.SH BEYONCÉ
+.IX Header "BEYONCÉ"
+Beyoncé!  Beyoncé!  Beyoncé!!
+.PP
+.Vb 3
+\&    Beyoncé!  Beyoncé!
+\&      Beyoncé!  Beyoncé!
+\&        Beyoncé!  Beyoncé!
+.Ve
+.PP
+Older versions did not convert Beyoncé in verbatim.

@@ -1,0 +1,135 @@
+%PointMarker +++
+
+# Just a scalar
+=== one_scalar
++++ yaml
+--- foo
+
++++ perl
+[ 'foo' ]
+
+
+=== one_scalar2
++++ yaml
+---  foo
+
++++ perl
+[ 'foo' ]
+
+
+=== two_scalar
++++ yaml
+--- foo
+--- bar
+
++++ perl
+[ 'foo', 'bar' ]
+
+
+#####################################################################
+# Support for literal multi-line scalars
+
+# Declarative multi-line scalar
+=== simple_multiline
++++ yaml
+---
+  foo: >
+     bar
+     baz
++++ perl
+[ { foo => "bar baz\n" } ]
+
+
+# Piped multi-line scalar
+=== indented
++++ yaml
+---
+- |
+  foo
+  bar
+- 1
++++ perl
+[ [ "foo\nbar\n", 1 ] ]
+
+
+# ... with a pointless hyphen
+=== indented
++++ yaml
+---
+- |-
+  foo
+  bar
+- 1
++++ perl
+[ [ "foo\nbar", 1 ] ]
+
+
+#####################################################################
+# Hitchhiker Scalar
+
+=== hitchhiker scalar
++++ yaml
+--- 42
++++ perl
+[ 42 ]
++++ serializes
+
+#####################################################################
+# Newlines and tabs
+
+=== special characters
++++ yaml
+foo: "foo\\\n\tbar"
++++ perl
+[ { foo => "foo\\\n\tbar" } ]
+
+#####################################################################
+# Unprintable Characters
+
+=== unprintable
++++ yaml
+--- "foo\n\x00"
++++ perl
+[ "foo\n\0" ]
+
+#####################################################################
+# Ticker #32402
+
+# Tests a particular pathological case
+
+=== Pathological >< case
++++ yaml
+---
+- value
+- '><'
++++ perl
+[ [ 'value', '><' ] ]
+
+#####################################################################
+# Special Characters
+
+=== Special Characters
++++ SKIP
+# Encoding failure
++++ yaml
+---
+- "Ingy d\xC3\xB6t Net"
++++ perl
+[ [ "Ingy d\xC3\xB6t Net" ] ]
+
+######################################################################
+# Check illegal characters that are in legal places
+
+=== Bang in a quote
++++ yaml
+--- 'Wow!'
++++ perl
+[ "Wow!" ]
+
+
+=== Ampersand in a quote
++++ yaml
+--- 'This&that'
++++ perl
+[ "This&that" ]
+

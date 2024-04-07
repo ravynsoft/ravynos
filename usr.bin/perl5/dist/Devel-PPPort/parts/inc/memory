@@ -1,0 +1,87 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+__UNDEFINED__
+
+=implementation
+
+#ifdef HAS_MEMCMP
+__UNDEFINED__  memNE(s1,s2,l)  (memcmp(s1,s2,l))
+__UNDEFINED__  memEQ(s1,s2,l)  (!memcmp(s1,s2,l))
+#else
+__UNDEFINED__  memNE(s1,s2,l)  (bcmp(s1,s2,l))
+__UNDEFINED__  memEQ(s1,s2,l)  (!bcmp(s1,s2,l))
+#endif
+
+__UNDEFINED__  memEQs(s1, l, s2) \
+                   (sizeof(s2)-1 == l && memEQ(s1, (s2 ""), (sizeof(s2)-1)))
+__UNDEFINED__  memNEs(s1, l, s2) !memEQs(s1, l, s2)
+
+__UNDEFINED__  memCHRs(s, c) ((const char *) memchr("" s "" , c, sizeof(s)-1))
+
+__UNDEFINED__  MoveD(s,d,n,t)  memmove((char*)(d),(char*)(s), (n) * sizeof(t))
+__UNDEFINED__  CopyD(s,d,n,t)  memcpy((char*)(d),(char*)(s), (n) * sizeof(t))
+#ifdef HAS_MEMSET
+__UNDEFINED__  ZeroD(d,n,t)    memzero((char*)(d), (n) * sizeof(t))
+#else
+__UNDEFINED__  ZeroD(d,n,t)    ((void)memzero((char*)(d), (n) * sizeof(t)), d)
+#endif
+
+__UNDEFINED__  PoisonWith(d,n,t,b)  (void)memset((char*)(d), (U8)(b), (n) * sizeof(t))
+__UNDEFINED__  PoisonNew(d,n,t)     PoisonWith(d,n,t,0xAB)
+__UNDEFINED__  PoisonFree(d,n,t)    PoisonWith(d,n,t,0xEF)
+__UNDEFINED__  Poison(d,n,t)        PoisonFree(d,n,t)
+
+__UNDEFINED__  Newx(v,n,t)     New(0,v,n,t)
+__UNDEFINED__  Newxc(v,n,t,c)  Newc(0,v,n,t,c)
+__UNDEFINED__  Newxz(v,n,t)    Newz(0,v,n,t)
+
+=xsubs
+
+int
+checkmem()
+  PREINIT:
+    char *p;
+
+  CODE:
+    RETVAL = 0;
+    Newx(p, 6, char);
+    CopyD("Hello", p, 6, char);
+    if (memEQ(p, "Hello", 6))
+      RETVAL++;
+    ZeroD(p, 6, char);
+    if (memEQ(p, "\0\0\0\0\0\0", 6))
+      RETVAL++;
+    if (memEQs(p, 6, "\0\0\0\0\0\0"))
+      RETVAL++;
+    Poison(p, 6, char);
+    if (memNE(p, "\0\0\0\0\0\0", 6))
+      RETVAL++;
+    if (memNEs(p, 6, "\0\0\0\0\0\0"))
+      RETVAL++;
+    Safefree(p);
+
+    Newxz(p, 6, char);
+    if (memEQ(p, "\0\0\0\0\0\0", 6))
+      RETVAL++;
+    Safefree(p);
+
+    Newxc(p, 3, short, char);
+    Safefree(p);
+
+  OUTPUT:
+    RETVAL
+
+=tests plan => 1
+
+is(Devel::PPPort::checkmem(), 6);

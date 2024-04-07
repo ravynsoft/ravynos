@@ -1,0 +1,131 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+__UNDEFINED__
+
+=implementation
+
+#if { VERSION >= 5.9.2 } && { VERSION <= 5.9.3 } /* 5.9.2 and 5.9.3 ignore the length param */
+#undef gv_fetchpvn_flags
+#endif
+
+#ifdef GV_NOADD_MASK
+#  define D_PPP_GV_NOADD_MASK  GV_NOADD_MASK
+#else
+#  define D_PPP_GV_NOADD_MASK  0xE0
+#endif
+
+__UNDEFINED__ gv_fetchpvn_flags(name, len, flags, sv_type) gv_fetchpv(SvPVX(sv_2mortal(newSVpvn((name), (len)))), ((flags) & D_PPP_GV_NOADD_MASK) ? FALSE : TRUE, (I32)(sv_type))
+
+__UNDEFINED__ GvSVn(gv)        GvSV(gv)
+__UNDEFINED__ isGV_with_GP(gv) isGV(gv)
+__UNDEFINED__ gv_fetchsv(name, flags, svt) gv_fetchpv(SvPV_nolen_const(name), flags, svt)
+
+__UNDEFINED__ get_cvn_flags(name, namelen, flags) get_cv(name, flags)
+__UNDEFINED__ gv_init_pvn(gv, stash, ptr, len, flags) gv_init(gv, stash, ptr, len, flags & GV_ADDMULTI ? TRUE : FALSE)
+
+=xsubs
+
+int
+GvSVn()
+        PREINIT:
+                GV* gv;
+        CODE:
+                RETVAL = 0;
+                gv = gv_fetchpvs("Devel::PPPort::GvTest", GV_ADDMULTI, SVt_PVGV);
+                if (GvSVn(gv) != NULL)
+                {
+                  RETVAL++;
+                }
+        OUTPUT:
+                RETVAL
+
+int
+isGV_with_GP()
+        PREINIT:
+                GV* gv;
+        CODE:
+                RETVAL = 0;
+                gv = gv_fetchpvs("Devel::PPPort::GvTest", GV_ADDMULTI, SVt_PVGV);
+                if (isGV_with_GP(gv))
+                {
+                  RETVAL++;
+                }
+                if (!isGV(&PL_sv_undef))
+                {
+                  RETVAL++;
+                }
+        OUTPUT:
+                RETVAL
+
+int
+get_cvn_flags()
+        PREINIT:
+                CV* xv;
+        CODE:
+                RETVAL = 0;
+                xv = get_cvn_flags("Devel::PPPort::foobar", sizeof("Devel::PPPort::foobar")-1, 0);
+                if(xv == NULL) RETVAL++;
+                xv = get_cvn_flags("Devel::PPPort::foobar", sizeof("Devel::PPPort::foobar")-1, GV_ADDMULTI);
+                if(xv && SvTYPE(xv) == SVt_PVCV) RETVAL++;
+                xv = get_cvn_flags("Devel::PPPort::get_cvn_flags", sizeof("Devel::PPPort::get_cvn_flags")-1, 0);
+                if(xv && SvTYPE(xv) == SVt_PVCV) RETVAL++;
+        OUTPUT:
+                RETVAL
+
+SV*
+gv_fetchpvn_flags()
+        CODE:
+                RETVAL = newRV_inc((SV*)gv_fetchpvn_flags("Devel::PPPort::VERSIONFAKE", sizeof("Devel::PPPort::VERSIONFAKE")-5, 0, SVt_PV));
+        OUTPUT:
+                RETVAL
+
+SV*
+gv_fetchsv(name)
+        SV *name
+        CODE:
+                RETVAL = newRV_inc((SV*)gv_fetchsv(name, 0, SVt_PV));
+        OUTPUT:
+                RETVAL
+
+void
+gv_init_type(namesv, multi, flags)
+    SV* namesv
+    int multi
+    I32 flags
+    PREINIT:
+        HV *defstash = gv_stashpv("main", 0);
+        STRLEN len;
+        const char * const name = SvPV_const(namesv, len);
+        GV *gv = *(GV**)hv_fetch(defstash, name, len, TRUE);
+    PPCODE:
+        if (SvTYPE(gv) == SVt_PVGV)
+            Perl_croak(aTHX_ "GV is already a PVGV");
+        if (multi) flags |= GV_ADDMULTI;
+        gv_init_pvn(gv, defstash, name, len, flags);
+	XPUSHs( gv ? (SV*)gv : &PL_sv_undef);
+
+=tests plan => 7
+
+is(Devel::PPPort::GvSVn(), 1);
+
+is(Devel::PPPort::isGV_with_GP(), 2);
+
+is(Devel::PPPort::get_cvn_flags(), 3);
+
+is(Devel::PPPort::gv_fetchpvn_flags(), \*Devel::PPPort::VERSION);
+
+is(Devel::PPPort::gv_fetchsv("Devel::PPPort::VERSION"), \*Devel::PPPort::VERSION);
+
+is(Devel::PPPort::gv_init_type("sanity_check", 0, 0), "*main::sanity_check");
+ok($::{sanity_check});

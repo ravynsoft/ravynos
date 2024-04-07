@@ -1,0 +1,75 @@
+{
+   "abstract" : "Lexical Analyzer for Perl5",
+   "author" : [
+      "Masaaki Goshima (goccy) <goccy(at)cpan.org>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Module::Build version 0.4205",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Compiler-Lexer",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "examples",
+         "builder"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::CBuilder" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.38",
+            "Module::Build::XSUtil" : "0.06"
+         }
+      }
+   },
+   "provides" : {
+      "Compiler::Lexer" : {
+         "file" : "lib/Compiler/Lexer.pm",
+         "version" : "0.18"
+      },
+      "Compiler::Lexer::Kind" : {
+         "file" : "lib/Compiler/Lexer/Constants.pm"
+      },
+      "Compiler::Lexer::SyntaxType" : {
+         "file" : "lib/Compiler/Lexer/Constants.pm"
+      },
+      "Compiler::Lexer::Token" : {
+         "file" : "lib/Compiler/Lexer/Token.pm"
+      },
+      "Compiler::Lexer::TokenType" : {
+         "file" : "lib/Compiler/Lexer/Constants.pm"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/goccy/p5-Compiler-Lexer/issues"
+      },
+      "homepage" : "https://github.com/goccy/p5-Compiler-Lexer",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/goccy/p5-Compiler-Lexer.git"
+      }
+   },
+   "version" : "0.18",
+   "x_contributors" : [
+      "tokuhirom <tokuhirom@gmail.com>",
+      "Reini Urban <rurban@cpanel.net>",
+      "Fumihiro Itoh <fmhrit@gmail.com>",
+      "Masaaki Goshima <masaaki.goshima@mixi.co.jp>",
+      "moznion <moznion@gmail.com>",
+      "Olivier MenguÃ© <dolmen@cpan.org>",
+      "Masaaki Goshima <goccy54@gmail.com>"
+   ]
+}

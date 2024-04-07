@@ -1,0 +1,574 @@
+CHANGES
+-------
+2.75  2022-09-01 12:44:03 rurban
+      Minor
+      - Modernized the synopsis (PR #31)
+      - Fixed a link in a comment (PR #25)
+      META Changes
+      - Remove some TEST_REQUIRES (PR #23)
+      Test fixes
+      - Support NO_NETWORK_TESTING=1 (PR #24)
+      - Fix non-routable addresses for negative tests (PR #24)
+2.74  2020-09-09 09:21:39 rurban
+      Features
+      - Add ICMPv6_NI_REPLY support.
+      Bugfixes
+      - Fix icmp payload offset to match icmpv6 (JimC Leones GH #21)
+        Skip the 20 byte header to reliably find the various return types.
+        This unifies icmpv6 with icmp better.
+      - Fix $SOCKET::VERSION eval (Petr Pavlu, PR #22)
+      META Changes
+      - Fix and improve the META repository as hashref, license as arrayref
+        (Tom Hukins, PR #19)
+      - add TEST_REQUIRES
+      - sort MANIFEST
+      - add windows smokers: appveyor
+      Test fixes
+      - Improve the tcp test to localhost, when there is no route to localhost
+        (freebsd mostly)
+      - TODO a flaky 450_service.t on 127.0.0.1 on port 2 on Windows (analog to freebsd, ...)
+        (Christian Walde, PR #20)
+      - Skip 501_ping_icmpv6.t when icmpv6 cannot be initialized. Mostly due to missing
+        icmpv6 support. (GH #15)
+      - add more xt tests: t/602_kwalitee.t, t/603_meta.t, t/604_manifest.t
+
+2.73  Thu Feb 27 14:32:25 CET 2020 (rurban)
+      Bugfixes
+       - Fix shadowing of hash options in constructor (Patrick Heesom, RT #131919)
+       - Fix icmp v4 length with given bytes/data_size option (Patrick Heesom, RT #131919)
+       - Call _resolv as class method (Marc Reissner, GH #16)
+
+2.72  Thu 28 Mar 2019 09:01:39 AM CET (rurban)
+      Features
+      - add .cirrus.yml smoker https://cirrus-ci.com/github/rurban/Net-Ping
+      Test fixes
+      - Skip failing freebsd localhost resolver tests
+
+2.71  Tue Oct 16 18:41:51 CEST 2018 (rurban)
+       Features
+       - Allow data_size > 1024, up to 65535, i.e. fragmented packets.
+         It is recommended to stay below 1472 though for the typical 1500 MTU.
+         Many simple devices do not allow fragmented ICMP packets (> 1472).
+         RT #17409
+       Bugfixes
+       - Fix the max_datasize documentation
+       Test fixes
+       - The 2 sudo tests on PERL_CORE with a shared perl lib
+
+2.70  Tue Aug  7 10:33:24 CEST 2018 (rurban)
+       Test fixes
+       - Fix broken skip count on 510_ping_udp.t (windows only)
+
+2.69  Mon Aug  6 15:13:25 CEST 2018 (rurban)
+       Test fixes
+       - Allow NET_PING_FAIL_IP override for testing an IP which should not exist,
+         RT #126006 hmbrand
+       META Changes
+       - Updated README
+
+2.68  Wed Jun 27 11:55:06 CEST 2018 (rurban)
+       Bugfixes
+       - Fixed _resolv return value on failing DNS name lookup. (GH #12 nlv02636)
+       - Fixed installation dir from CPAN. Install into site, not perl there.
+         (GH #12 nlv02636)
+
+2.67  Mon Jun 25 18:10:42 CEST 2018 (rurban)
+       Bugfixes
+       - Fixed non-core icmp ping test. PR #10 Guillaume Bougard
+       - Change croak on failing name lookup to return undef,
+         matching the documentation.
+         Fixes the regression from 2.43, RT #124830
+       - Stabilize Socket::VERSION comparisons, errored with Net::Socket
+         2.020_03, RT #125677 Smoot Carl-Mitchell
+       Features
+       - Added icmp message_type method with timestamp support.
+         PR #11 Guillaume Bougard
+
+2.66  Thu Mar  8 16:44:03 CET 2018 (rurban)
+       Bugfixes
+       - Fixed icmpv6 ICMP_ECHOREPLY: nikolas@garofil.be RT 80479
+       - Fixed icmpv6 default family
+       - Simplify t/020_external.t
+       - Seperate timeout=0 and undef RT #97884
+       Features
+       - Added icmpv6 test.
+       - Added optional local tests hosts for the icmp tests:
+         TEST_PING_HOST and TEST_PING6_HOST
+       - allow sudo tests with local .git
+       - skip sudo test with asan leak detector on linux
+
+2.65  Wed Mar  7 09:38:51 CET 2018 (rurban)
+       META Changes
+       - strip wrong Text::Template dependency and generation for the README
+         https://rt.cpan.org/Public/Bug/Display.html?id=124693
+         This is in core.
+       - Changed repo name from net-ping to Net-Ping.
+       - Changed bugtracker to https://github.com/rurban/Net-Ping/issues
+       - Made Makefile.PL more stable for the CPAN release, support older
+         perl + EUMM versions.
+       - Fixed up TODO for IPv6
+
+2.64  Sat Mar  3 15:56:14 CET 2018 (rurban)
+       Bugfixes
+        - use NIx_NOSERV flag for windows (PR #6 by chorny)
+
+2.63  Sun Nov 26 18:56:04 CET 2017 (rurban)
+       Bugfixes
+        - Keep v5.002 - v5.6 support
+        - Removed outdated demo/fping from the documentation
+          (RT #123750 by Steve Morris)
+        - Added t/420_ping_syn_port.t (#4 by Julio Fraire)
+          with fixes.
+       Features
+        - added indices and crosslinks to the documentation
+
+2.62  Tue Sep 12 13:20:25 2017 -0600 (Nicholas R)
+       Limitations (not on CPAN)
+       - Removed support for v5.002 < v5.6 by introducing our
+
+2.61  Sat Jun 17 13:12:58 CEST 2017 (rurban)
+       Bugfixes
+        - Fix ping_udp for a started udp echo server (PR#5 by Stephan Loyd)
+
+2.60  Mon Jun 12 20:14:13 CEST 2017 (rurban)
+       Bugfixes
+        - Fix t/400_ping_syn.t phases
+        - Try to handle Windows Socket::getnameinfo errors
+        - Improve some tests on missing network connections
+
+2.59  Tue Apr 18 08:46:48 2017 +0200 (rurban)
+       Bugfixes
+        - skip udp ping tests on more platforms: hpux, irix, aix.
+          also pingecho on os390.
+          (from perl5 core)
+       Features
+        - added a make release target
+
+2.58  Wed Feb  1 19:34:03 CET 2017 (rurban)
+       Features
+        - return the port num as 5th return value with ack (jfraire)
+
+2.57  Wed Feb  1 19:34:03 CET 2017 (rurban)
+       Bugfixes
+        - Resigned with new gpg key
+
+2.56  Wed Jan 18 16:00:00  2017 -0700 (bbb)
+       Bugfixes
+        - Stabilize tests
+
+2.55  Thu Oct 20 09:16:06  2016 +0200 (rurban)
+
+       Bugfixes
+       - Skip sudo for t/500_ping_icmp.t if a prompt is required
+         [RT #118451]
+
+2.54  Thu Oct 20 09:16:06  2016 +0200 (rurban)
+
+       Bugfixes
+       - Fixed ping_external argument type, either packed ip or hostname.
+         [RT #113825]
+       - Fixed wrong skip message in t/020_external.t
+
+2.53  Thu Oct 20 09:16:06  2016 +0200 (rurban)
+
+       Bugfixes
+       - Relax icmp tests on local firewalls, eg. as here on windows reported
+         by kmx. [RT #118441]
+
+       Internals
+       - Enhanced .travis.yml
+
+2.52  Tue Oct 18 16:29:29 2016 +0200 (rurban)
+       version in cperl since 5.25.2c
+
+       Bugfixes
+       - Fixed _pack_sockaddr_in for a proper 2nd argument type, hash or packed address.
+       - Improved 500_ping_icmp.t to try sudo.
+       
+       Internals
+       - Converted all hash string keys to bare.
+
+2.51  Mon Oct 17 16:11:03 2016 +0200 (rurban)
+       version in cperl since 5.25.2c
+ 
+       Bugfixes
+       - Fixed missing _unpack_sockaddr_in family, which took AF_INET6 for
+         a AF_INET addr in t/500_ping_icmp.t and t/500_ping_icmp_ttl.t.
+         Use now a proper default.
+
+2.50  Sat Apr 16 11:50:20 2016 +0200 (rurban)
+       version in cperl since 5.22.2c
+
+       Features
+       - Handle IPv6 addresses and the AF_INET6 family.
+       - Added the optional family argument to most methods.
+         valid values: 6, "v6", "ip6", "ipv6", AF_INET6
+       - new can take now named arguments, a hashref.
+       - Added the following named arguments to new:
+         gateway host port bind retrans pingstring source_verify econnrefused
+         IPV6_USE_MIN_MTU IPV6_RECVPATHMTU IPV6_HOPLIMIT
+       - Added a dontfrag option, setting IP_DONTFRAG and on linux
+         also IP_MTU_DISCOVER to IP_PMTUDISC_DO. Note that is ignored if
+         Socket does not export IP_DONTFRAG.
+       - Added the wakeonlan method
+       - Improve argument default handling
+       - Added missing documentation
+
+       Bugfixes
+       - Reapply tos with ping_udp, when the address is changed.
+         RT #6706 (Torgny.Hofstedt@sevenlevels.se)
+         ditto re-bind to a device.
+
+       Internals
+       - $ip is now a hash with {addr, addr_in, family} not the addr_in packed IP.
+       - added _resolv replacing inet_aton,
+         _pack_sockaddr_in and _unpack_sockaddr_in replacing sockaddr_in,
+         _inet_ntoa replacing inet_ntoa
+       - Use _isroot helper, with Win32 _IsAdminUser helper.
+       - added several new tests (Steve Peters)
+
+2.43  Mon Apr 29 00:23:56 2013 -0300
+        version in perl core since 5.19.9
+        Bugfixes
+        - Handle getprotobyn{ame,umber} not being available
+2.42  Sun May 26 19:08:46 2013 -0700
+        version in perl core since 5.19.1
+        Bugfixes
+        - Stabilize tests
+       Internals
+        - wrap long pod lines
+2.41  Mar 17 09:35 2013
+        Bugfixes
+        - Windows Vista does not appear to support inet_ntop().  It seems to
+          have InetNtop() instead.  So, working around by using getnameinfo()
+          and passing in the NI_NUMERICHOST to get an IP address.
+        Features
+        - Change Net::Ping to use Time::HiRes::time() instead of CORE::time()
+          by default.  For most successful cases, CORE::time() returned zero. 
+2.40  Mar 15 11:20 2013
+        Bugfixes
+        - several fixes to tests to stop the black smoke on Win32's 
+          and Cygwin since the core updated the module to Test::More.
+          I had planned a later release, but all the black smoke is
+          forcing a release.
+        - fixes to some skips in tests that were still using the 
+          Test style skip's.
+        - Documentation fix for https://rt.cpan.org/Ticket/Display.html?id=48014.
+          Thanks to Keith Taylor <keith@supanet.net.uk>
+        - Instead of using a hard-coded TOS value, import IP_TOS from 
+          Socket.  This fixes an outstanding bug on Solaris which uses a 
+          different value for IP_TOS in it headers than Linux.  I'm assuming
+          other OS's were fixed with this change as well.
+
+        Features
+        - added TTL handling for icmp pings to allow traceroute like 
+          applications to be built with Net::Ping.  Thanks to 
+          <rolek@bokxing.nl> for the patch and tests!
+
+       Internals
+        - replaced SOL_IP with IPPROTO_IP.  SOL_IP is not portable and was 
+          hard-coded anyway.
+        - added IPPROTO_IP, IP_TOS, IP_TTL, and AF_INET to the list of Socket 
+          constants imported.
+        - removed some hard-coded constants.
+        - converted all calls to inet_ntoa() to inet_ntop() in preparation
+          for further ipv6 updates.
+
+        Infrastructure
+        - Makefile.PL updated to require Test::More, Time::HiRes, and a
+          recent Socket
+        - several changes for github hosting
+          - add a .gitignore file
+          - added a .travis.yml file to allow CI testing with changes pushed
+            to github
+          - replaced the README with a README.md which displays the
+            Travis CI build status on github.
+
+
+2.39  Mar 13 09:25 2013
+        - patch from Matthew Musgrove to resolve RT #45812.  Thanks!
+        - pulled in several changes from the Perl core
+
+2.36  Jun 08 12:00 2009
+        - release to include a few fixes from the Perl core
+
+2.35  Feb 08 14:42 2008
+	- Patch in Perl change #33242 by Nicholas Clark 
+		<http://perl5.git.perl.org/perl.git/commit/5d6b07c5a4c042580b85248d570ee299fd102a79>
+
+2.34  Dec 19 08:51 2007
+        - Release primarily to prevent problems with the Perl core in
+	  preparation for the Perl 5.10 release.  No real bug fixes, but
+          text fixes are included.
+	- skip test t/510_ping_udp.t on Windows Vista.  Thanks to Jan
+	  Dubois for the code to test for Vista.
+        - t/510_ping_udp.t should check for a udp echo port, not a tcp
+	  echo port.
+
+2.33  Jul 31 20:15 2007
+	- add new method port_number() rather than asking users to
+          twiddle with the internals of Net::Ping to probe a specific
+          port.  This should resolve a few bugs where the documentation
+	  was lacking.
+	- apply patch from bergonz at labs.it.  This patch resolves
+	  several problems logged regarding using Net::Ping in a multi-
+	  threaded program.  Thanks so much!
+		<http://rt.cpan.org/Ticket/Display.html?id=17408>
+
+2.32  Jul 30 21:30 2007
+	- new co-maintainer Steve Peters
+	- integrate assorted bleadperl fixes from the past four years
+		<http://rt.cpan.org/Public/Bug/Display.html?id=28348>
+
+2.31  Jun 28 14:00 2003
+	- Win32 Compatibility fixes.
+	  Patch by mhx-perl@gmx.net (Marcus Holland-Moritz)
+	- Apply bleadperl patch #22204
+	- Add ToS support.
+	  Patch by martin@lorensen.dk (Martin Lorensen)
+
+2.30  Apr 18 14:00 2003
+	- Fix select() bug for UDP and ICMP protocols
+	  in case packet comes from wrong source or seq.
+	- Allow UDP ping to different IP addresses
+	  without instantiating a new object.
+	- Add retrans() method to customize or disable
+	  backoff factor for udp pings.
+	  Thanks Torgny.Hofstedt@sevenlevels.se
+	- Let ECONNRESET be considered reachable for
+	  UDP pings.  Now it works for cygwin.
+	  Spot by jhi@iki.fi (Jarkko Hietaniemi).
+
+2.29  Apr 12 15:00 2003
+	- Implement "double send()" concept for udp pings.
+	  See: <http://perlmonks.thepen.com/42898.html>
+	  Thanks to rdw @ perlmonks.
+	- Send multiple udp packets in case of loss.
+	- Exponential backoff code swiped from Net::DNS
+	  Thanks to mike@fuhr.org (Michael Fuhr).
+	- Also allows to capture udp ECONNREFUSED condition.
+	- Rename tcp_service_check method to service_check.
+	- Allow demo/fping -s to force service check.
+	  Idea by ralijani@yahoo.com (REZA Alijani)
+	- Fix return from ping to be compatible with wantarray
+	  when the host doesn't even resolve.
+	- Add udp proto test to test suite.
+	- VMS patch from Craig Berry to pre-check echo.
+	- Apply bleadperl patch (change #18904)
+	- Apply bleadperl patch as explained:
+	http://www.xray.mpe.mpg.de/mailing-lists/perl5-
+	porters/2003-03/msg00992.html
+
+2.28  Jan 23 18:00 2003
+	- No new features.  Bug fixes only.
+	- Fixed ICMP_STRUCT to work on Big Endian platforms.
+	  Thanks to danb@thelittlemacshop.com (Dan Buettner)
+	  for testing on Mac OS X 10.2.3 and many others
+	  for testing on Big Endian boxes.
+	- Not do binmode(). Causes more problems than helps.
+	- Perl 5.004 compatibility fixes (Spot by Honza).
+
+2.27  Jan 15 23:00 2003
+	- Patch by slebedev@iwl.net (Sergey Lebedev):
+	- 1) Fixed response packet parsing offsets in ping_icmp.
+	- 2) Added icmp_result method.
+	- Patch by radu@netsoft.ro (Radu Greab):
+	- 1) Changed ping_tcp() to use non-blocking connect
+	  instead of alarm() interface in order to avoid
+	  conflicts with user applications.
+	- 2) Also get rid of all eval {} code in ping_tcp
+	  in order to avoid catching SIGALRM trigger and
+	  to avoid conflicts with other evals.
+	- 3) Avoid ioctl() syscall for more accurate error
+	  detection on non-blocking tcp connects.
+	- 4) Fix fcntl() syntax usage.
+	- Patch by adelton@fi.muni.cz (Honza Pazdziora):
+	- 1) Fix icmp request pack code to be more platform
+	  independent regardless of Big/Little Endian.
+	- 2) Use binmode for filehandle in case perl 5.8.0
+	  tries to dink with the data stream.
+	- Other changes by Rob Brown:
+	- Fixed ack() failures under certain rare conditions.
+	- Use more appropriate \z instead of $ in regex.
+	- Resolved Cygwin "make test" problems reported by
+	  h.m.brand@hccnet.nl (H.Merijn Brand).
+	- Add sending a real ICMP packet in the test suite.
+	- Add Socket to PREREQ_PM (missing on some boxes?)
+	- Adjust syn_forking IPC pipe for fatter Win32 pids.
+	- Better handling of alarm() in test suite for Win32.
+	- Add a DESTROY method to reduce chances of
+	  lingering connect-choking children.
+
+2.26  Dec 02 12:00 2002
+	- More compatibility fixes.
+	- Thanks for Solaris bug reports:
+	  Paul.Gaborit@enstimac.fr (Paul Gaborit)
+	  Jost.Krieger@ruhr-uni-bochum.de (Jost Krieger)
+	- Thanks for Solaris testing box:
+	  Gunther.Heintzen@rrze.uni-erlangen.de (Gunther Heintzen)
+	- Solaris ENOTCONN select() for write choke bug.
+	- Thanks for Cygwin bug reports:
+	  h.m.brand@hccnet.nl (H.Merijn Brand)
+	- Cygwin "EAGAIN instead of ECONNREFUSED" buttwag.
+
+2.25  Nov 19 12:00 2002
+	- Handle condition where O_NONBLOCK tcp connects
+	  immediately fail without EINPROGRESS
+	  (certain platforms or SMP optimizations).
+
+2.24  Oct 21 22:00 2002
+	- Compatibility fixes.
+	- Avoid using 127.1.1.1 and 127.2.2.2 because
+	  it breaks on some platforms (Irix).
+	- Handle condition where nonblocking tcp connects
+	  immediately connect on some platforms
+	  (solaris and freebsd) and to be SMP safer.
+	- Win32 $p->ack( $host ) method should now work.
+	- Add ack( $host ) test cases to test suite.
+
+2.23  Oct 18 22:00 2002
+	- Fix ack() fd "each" detection bug.
+	- Add nack() method for OO interface to the
+	  reason why the ack() failed.
+	- Fix premature "Timed out" side effect when a
+	  different specified ack( $host ) fails.
+	- IO::Socket::INET ephemeral port buttwag
+	  hack for the t/450_service.t test.
+	- Documental changes.
+
+2.22  Oct 17 16:00 2002
+	- Add $p->tcp_service_check() method to enforce
+	  remote tcp service availability checking.
+	  Patch by jef@linuxbe.org (Jean-Francois Dive).
+	- Changed default behavior of "syn" protocol to
+	  disabled tcp_service_check instead of enabled.
+	- Win32 compatibility changes ("syn" protocol).
+	- Increase timeouts for tests in case client or
+	  server network(s) are busy.
+
+2.21  Oct 14 12:00 2002
+	- Preserve/restore ALRM settings for tcp mode pings.
+	  Spot by d@niel-berlin.de (Daniel Berlin)
+	- Can now select device for udp and icmp protocols.
+	  Patch by sarfata@altern.org (Thomas Sarlandie).
+	- Add new "syn" protocol to allow for mass parallel
+	  (synchronous) TCP service reachability checking.
+	- Add ack() method to utilize non-blocking connect
+	  (SYN/ACK) feature of the "syn" protocol.
+	- Add demo/fping script as a "syn" demonstration.
+	- Compatibility patches for cygwin.
+	  Spot by frazee.23@osu.edu (Joseph Frazee)
+
+2.20  Jun 20 10:00 2002
+	- Perl 5.8.0 compatibility stuff.
+	  Spot by dcd@tc.fluke.com (David Dyck).
+	  And patch by jhi@iki.fi (Jarkko Hietaniemi).
+	- Move INSTALL doc into perldoc.
+	- Allow source_verify method to work
+	  for icmp protocol as well as udp.
+	  Spot by taner@taner.net (Taner Halicioglu)
+
+2.19  Jun 03 19:00 2002
+	- Add $p->source_verify method to skip source
+	  endpoint verification of udp protocol pings for
+	  those remote destinations with multiple interfaces
+	  that may have the "reverse telnet" bug.
+	  Spot by dcd@tc.fluke.com (David Dyck)
+	- Moved files to more standard locations.
+	- Less common martian used for ping test
+	  to reduce conflicts
+
+2.18  May 06 12:00 2002
+	- More RPM spec generalizations.
+
+2.17  May 03 18:00 2002
+	- RPM spec generalizations.
+	  michael.mclagan@linux.org (Michael McLagan)
+	- Win32 compatibility changes.
+	  (Didn't compile on Win32 since v2.11.)
+
+2.16  Apr 11 14:00 2002
+	- Documentation changes.
+	- Added INSTALL doc.
+	- Added README to rpm %doc.
+	- Added neat MakeMaker constants routine.
+	- Buttwag around Makefile.PL warnings:
+	  o "the following files are missing in your kit"
+	  o "is not a known MakeMaker parameter name"
+
+2.15  Apr 06 23:00 2002
+	- Added ABSTRACT info.
+	- Allow for smoother upgrade from
+	  from older Net::Ping versions.
+	- Change default protocol from udp to tcp
+	  so it will work on most default systems
+	  without any arguments to new().
+
+2.14  Apr 01 14:00 2002
+	- Added text ip lookup feature.
+	  e@arix.com (Erick Calder)
+
+2.13  Apr 01 14:00 2002
+	- Added ping time measuring feature.
+	  e@arix.com (Erick Calder)
+	- Optionally allow for high resolution
+	  precision for timeouts and measuring
+	  using the Time::HiRes module (Erick).
+
+2.12  Feb 17 19:00 2002
+	- More general error determination for
+	  better cross platform consistency and
+	  foreign language support.
+	  Spotted by arnaud@romeconcept.com
+	- Test changes for VMS (Craig Berry)
+
+2.11  Feb 02 12:00 2002
+	- Test changes in case echo port is not available.
+	- Fix 110_icmp_inst.t to use icmp protocol
+	  Spotted by craigberry@mac.com (Craig Berry)
+
+2.10  Dec 26 12:00 2001
+	- Added bind() function useful for clients with multiple
+	  network interfaces performing the ping check thanks to
+	  sethb@clarkhill.com (Seth Blumberg).
+	- Execution optimizations for several constants (Seth).
+	- More test changes in case Socket module is not available
+	  (Jarkko Hietaniemi).
+
+2.09  Dec 06 19:00 2001
+	- Documental and test changes only.
+	- No functional changes.
+
+2.08  Dec 04 13:00 2001
+	- Faster response for Win32 tcp_connect.
+	- Better explanations in test comments.
+
+2.07  Nov 28 13:00 2001
+	- Compatibility changes
+	- Works with UNIX and Win32 OS
+	- Works with Perl 5.005 5.6.x 5.7.x 5.8.x
+	- Applied several patches from distro
+	- External protocol added thanks to
+	  colinm@cpan.org (Colin McMillen)
+	- Stream protocol added thanks to
+	  bronson@trestle.com (Scott Bronson)
+
+2.06  Nov 19 12:00 2001
+	- Added Net-Ping.spec for RPM to easily
+	  utilize using "rpm -ta Net-Ping*tar.gz"
+	- Moved Copyright section to perldoc
+
+2.05  Nov 18 20:00 2001
+	- Added test suite
+
+2.04  Nov 16 16:00 2001
+	- Added CHANGES and README to tarball.
+	- No functional changes.
+
+2.03  Nov 15 12:00 2001
+	- Portability adjustments to ping_tcp()
+	  made by Rob Brown to work with most
+	  default systems.
+
+2.02  Sep 27 12:00 1996
+	- Magic version by Russell Mosemann from CPAN

@@ -1,0 +1,27 @@
+Patching instructions for Search-Dict
+
+1. Check for any changes to .pm files since dev or stable Perl release.  E.g.
+to check for changes since v5.15.8:
+
+    $ cd dist/g
+    $ git log v5.15.8..blead -- .
+
+2. If you are making the first change since the last Perl release, you need to
+bump the $VERSION in all .pm files and update the Changes file with the new
+version.  In the Changes file, put the expected *NEXT* release of Perl (dev or
+stable) as the release date and version.  E.g. after v5.15.8, I would add this line
+to Changes to indicate what will be next release:
+
+    0.280206 - 2012-03-20 (Perl v5.15.9)
+
+3. Add an entry to Changes for your work
+
+4. Update Makefile.PL, MANIFEST.SKIP or other support files as necessary. E.g.
+update Makefile.PL with any changes to prerequisites.
+
+5. Commit all changes (preferably to a branch)
+
+6. Run Configure/make/make test and check for errors.  If there are any, fix them.
+
+7. If all is well, push your commits to blead or send a patch to p5p if you do
+not have commit access to the Perl 5 repository

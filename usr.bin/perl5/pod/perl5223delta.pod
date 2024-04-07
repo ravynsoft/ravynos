@@ -1,0 +1,314 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5223delta - what is new for perl v5.22.3
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.22.2 release and the 5.22.3
+release.
+
+If you are upgrading from an earlier release such as 5.22.1, first read
+L<perl5222delta>, which describes differences between 5.22.1 and 5.22.2.
+
+=head1 Security
+
+=head2 B<-Di> switch is now required for PerlIO debugging output
+
+Previously PerlIO debugging output would be sent to the file specified by the
+C<PERLIO_DEBUG> environment variable if perl wasn't running setuid and the
+B<-T> or B<-t> switches hadn't been parsed yet.
+
+If perl performed output at a point where it hadn't yet parsed its switches
+this could result in perl creating or overwriting the file named by
+C<PERLIO_DEBUG> even when the B<-T> switch had been supplied.
+
+Perl now requires the B<-Di> switch to produce PerlIO debugging output.  By
+default this is written to C<stderr>, but can optionally be redirected to a
+file by setting the C<PERLIO_DEBUG> environment variable.
+
+If perl is running setuid or the B<-T> switch was supplied C<PERLIO_DEBUG> is
+ignored and the debugging output is sent to C<stderr> as for any other B<-D>
+switch.
+
+=head2 Core modules and tools no longer search F<"."> for optional modules
+
+The tools and many modules supplied in core no longer search the default
+current directory entry in L<C<@INC>|perlvar/@INC> for optional modules.  For
+example, L<Storable> will remove the final F<"."> from C<@INC> before trying to
+load L<Log::Agent>.
+
+This prevents an attacker injecting an optional module into a process run by
+another user where the current directory is writable by the attacker, e.g. the
+F</tmp> directory.
+
+In most cases this removal should not cause problems, but difficulties were
+encountered with L<base>, which treats every module name supplied as optional.
+These difficulties have not yet been resolved, so for this release there are no
+changes to L<base>.  We hope to have a fix for L<base> in Perl 5.22.4.
+
+To protect your own code from this attack, either remove the default F<".">
+entry from C<@INC> at the start of your script, so:
+
+  #!/usr/bin/perl
+  use strict;
+  ...
+
+becomes:
+
+  #!/usr/bin/perl
+  BEGIN { pop @INC if $INC[-1] eq '.' }
+  use strict;
+  ...
+
+or for modules, remove F<"."> from a localized C<@INC>, so:
+
+  my $can_foo = eval { require Foo; }
+
+becomes:
+
+  my $can_foo = eval {
+      local @INC = @INC;
+      pop @INC if $INC[-1] eq '.';
+      require Foo;
+  };
+
+=head1 Incompatible Changes
+
+Other than the security changes above there are no changes intentionally
+incompatible with Perl 5.22.2.  If any exist, they are bugs, and we request
+that you submit a report.  See L</Reporting Bugs> below.
+
+=head1 Modules and Pragmata
+
+=head2 Updated Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<Archive::Tar> has been upgraded from version 2.04 to 2.04_01.
+
+=item *
+
+L<bignum> has been upgraded from version 0.39 to 0.39_01.
+
+=item *
+
+L<CPAN> has been upgraded from version 2.11 to 2.11_01.
+
+=item *
+
+L<Digest> has been upgraded from version 1.17 to 1.17_01.
+
+=item *
+
+L<Digest::SHA> has been upgraded from version 5.95 to 5.95_01.
+
+=item *
+
+L<Encode> has been upgraded from version 2.72 to 2.72_01.
+
+=item *
+
+L<ExtUtils::Command> has been upgraded from version 1.20 to 1.20_01.
+
+=item *
+
+L<ExtUtils::MakeMaker> has been upgraded from version 7.04_01 to 7.04_02.
+
+=item *
+
+L<File::Fetch> has been upgraded from version 0.48 to 0.48_01.
+
+=item *
+
+L<File::Spec> has been upgraded from version 3.56_01 to 3.56_02.
+
+=item *
+
+L<HTTP::Tiny> has been upgraded from version 0.054 to 0.054_01.
+
+=item *
+
+L<IO> has been upgraded from version 1.35 to 1.35_01.
+
+=item *
+
+The IO-Compress modules have been upgraded from version 2.068 to 2.068_001.
+
+=item *
+
+L<IPC::Cmd> has been upgraded from version 0.92 to 0.92_01.
+
+=item *
+
+L<JSON::PP> has been upgraded from version 2.27300 to 2.27300_01.
+
+=item *
+
+L<Locale::Maketext> has been upgraded from version 1.26 to 1.26_01.
+
+=item *
+
+L<Locale::Maketext::Simple> has been upgraded from version 0.21 to 0.21_01.
+
+=item *
+
+L<Memoize> has been upgraded from version 1.03 to 1.03_01.
+
+=item *
+
+L<Module::CoreList> has been upgraded from version 5.20160429 to 5.20170114_22.
+
+=item *
+
+L<Net::Ping> has been upgraded from version 2.43 to 2.43_01.
+
+=item *
+
+L<Parse::CPAN::Meta> has been upgraded from version 1.4414 to 1.4414_001.
+
+=item *
+
+L<Pod::Html> has been upgraded from version 1.22 to 1.2201.
+
+=item *
+
+L<Pod::Perldoc> has been upgraded from version 3.25 to 3.25_01.
+
+=item *
+
+L<Storable> has been upgraded from version 2.53_01 to 2.53_02.
+
+=item *
+
+L<Sys::Syslog> has been upgraded from version 0.33 to 0.33_01.
+
+=item *
+
+L<Test> has been upgraded from version 1.26 to 1.26_01.
+
+=item *
+
+L<Test::Harness> has been upgraded from version 3.35 to 3.35_01.
+
+=item *
+
+L<XSLoader> has been upgraded from version 0.20 to 0.20_01, fixing a security
+hole in which binary files could be loaded from a path outside of C<@INC>.
+L<[GH #15418]|https://github.com/Perl/perl5/issues/15418>
+
+=back
+
+=head1 Documentation
+
+=head2 Changes to Existing Documentation
+
+=head3 L<perlapio>
+
+=over 4
+
+=item *
+
+The documentation of C<PERLIO_DEBUG> has been updated.
+
+=back
+
+=head3 L<perlrun>
+
+=over 4
+
+=item *
+
+The new B<-Di> switch has been documented, and the documentation of
+C<PERLIO_DEBUG> has been updated.
+
+=back
+
+=head1 Testing
+
+=over 4
+
+=item *
+
+A new test script, F<t/run/switchDx.t>, has been added to test that the new
+B<-Di> switch is working correctly.
+
+=back
+
+=head1 Selected Bug Fixes
+
+=over 4
+
+=item *
+
+The C<PadlistNAMES> macro is an lvalue again.
+
+=back
+
+=head1 Acknowledgements
+
+Perl 5.22.3 represents approximately 9 months of development since Perl 5.22.2
+and contains approximately 4,400 lines of changes across 240 files from 20
+authors.
+
+Excluding auto-generated files, documentation and release tools, there were
+approximately 2,200 lines of changes to 170 .pm, .t, .c and .h files.
+
+Perl continues to flourish into its third decade thanks to a vibrant community
+of users and developers.  The following people are known to have contributed
+the improvements that became Perl 5.22.3:
+
+Aaron Crane, Abigail, Alex Vandiver, Aristotle Pagaltzis, Chad Granum, Chris
+'BinGOs' Williams, Craig A. Berry, David Mitchell, Father Chrysostomos, James E
+Keenan, Jarkko Hietaniemi, Karen Etheridge, Karl Williamson, Matthew Horsfall,
+Niko Tyni, Ricardo Signes, Sawyer X, Stevan Little, Steve Hay, Tony Cook.
+
+The list above is almost certainly incomplete as it is automatically generated
+from version control history.  In particular, it does not include the names of
+the (very much appreciated) contributors who reported issues to the Perl bug
+tracker.
+
+Many of the changes included in this version originated in the CPAN modules
+included in Perl's core.  We're grateful to the entire CPAN community for
+helping Perl to flourish.
+
+For a more complete list of all of Perl's historical contributors, please see
+the F<AUTHORS> file in the Perl source distribution.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the articles recently
+posted to the comp.lang.perl.misc newsgroup and the Perl bug database at
+https://rt.perl.org/ .  There may also be information at http://www.perl.org/ ,
+the Perl Home Page.
+
+If you believe you have an unreported bug, please run the L<perlbug> program
+included with your release.  Be sure to trim your bug down to a tiny but
+sufficient test case.  Your bug report, along with the output of C<perl -V>,
+will be sent off to perlbug@perl.org to be analysed by the Perl porting team.
+
+If the bug you are reporting has security implications, which make it
+inappropriate to send to a publicly archived mailing list, then please send it
+to perl5-security-report@perl.org.  This points to a closed subscription
+unarchived mailing list, which includes all the core committers, who will be
+able to help assess the impact of issues, figure out a resolution, and help
+co-ordinate the release of patches to mitigate or fix the problem across all
+platforms on which Perl is supported.  Please only use this address for
+security issues in the Perl core, not for modules independently distributed on
+CPAN.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details on
+what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

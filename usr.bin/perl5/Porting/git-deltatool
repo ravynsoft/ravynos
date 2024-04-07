@@ -1,0 +1,902 @@
+#!/usr/bin/perl
+#
+# This is a rough draft of a tool to aid in generating a perldelta file
+# from a series of git commits.
+
+use 5.010;
+use strict;
+use warnings;
+package Git::DeltaTool;
+
+use Class::Struct;
+use File::Basename;
+use File::Temp;
+use Getopt::Long;
+use Git::Wrapper;
+use Term::ReadKey;
+use Term::ANSIColor;
+use Pod::Usage;
+
+BEGIN { struct( git => '$', last_tag => '$', opt => '%', original_stdout => '$' ) }
+
+__PACKAGE__->run;
+
+#--------------------------------------------------------------------------#
+# main program
+#--------------------------------------------------------------------------#
+
+sub run {
+  my $class = shift;
+
+  my %opt = (
+    mode => 'assign',
+  );
+
+  GetOptions( \%opt,
+    # inputs
+    'mode|m:s', # 'assign', 'review', 'render', 'update'
+    'type|t:s', # select by status
+    'status|s:s', # status to set for 'update'
+    'since:s', # origin commit
+    'help|h',  # help
+  );
+
+  pod2usage() if $opt{help};
+
+  my $git = Git::Wrapper->new(".");
+  my $git_id = $opt{since};
+  if ( defined $git_id ) {
+    die "Invalid git identifier '$git_id'\n"
+      unless eval { $git->show($git_id); 1 };
+  } else {
+    ($git_id) = $git->describe;
+    $git_id =~ s/-.*$//;
+  }
+  my $gdt = $class->new( git => $git, last_tag => $git_id, opt => \%opt );
+
+  if ( $opt{mode} eq 'assign' ) {
+    $opt{type} //= 'new';
+    $gdt->assign;
+  }
+  elsif ( $opt{mode} eq 'review' ) {
+    $opt{type} //= 'pending';
+    $gdt->review;
+  }
+  elsif ( $opt{mode} eq 'render' ) {
+    $opt{type} //= 'pending';
+    $gdt->render;
+  }
+  elsif ( $opt{mode} eq 'summary' ) {
+    $opt{type} //= 'pending';
+    $gdt->summary;
+  }
+  elsif ( $opt{mode} eq 'update' ) {
+    die "Explicit --type argument required for update mode\n"
+      unless defined $opt{type};
+    die "Explicit --status argument required for update mode\n"
+      unless defined $opt{status};
+    $gdt->update;
+  }
+  else {
+    die "Unrecognized mode '$opt{mode}'\n";
+  }
+  exit 0;
+}
+
+#--------------------------------------------------------------------------#
+# program modes (and iterator)
+#--------------------------------------------------------------------------#
+
+sub assign {
+  my ($self) = @_;
+  my @choices = ( $self->section_choices, $self->action_choices );
+  $self->_iterate_commits(
+    sub {
+      my ($log, $i, $count) = @_;
+      say "\n### Commit @{[$i+1]} of $count ###";
+      say "-" x 75;
+      $self->show_header($log);
+      $self->show_body($log, 1);
+      $self->show_files($log);
+      say "-" x 75;
+      return $self->dispatch( $self->prompt( @choices ), $log);
+    }
+  );
+  return;
+}
+
+sub review {
+  my ($self) = @_;
+  my @choices = ( $self->review_choices, $self->action_choices );
+  $self->_iterate_commits(
+    sub {
+      my ($log, $i, $count) = @_;
+      say "\n### Commit @{[$i+1]} of $count ###";
+      say "-" x 75;
+      $self->show_header($log);
+      $self->show_notes($log, 1);
+      say "-" x 75;
+      return $self->dispatch( $self->prompt( @choices ), $log);
+    }
+  );
+  return;
+}
+
+sub render {
+  my ($self) = @_;
+  my %sections;
+  $self->_iterate_commits(
+    sub {
+      my $log = shift;
+      my $section = $self->note_section($log) or return;
+      push @{ $sections{$section} }, $self->note_delta($log);
+      return 1;
+    }
+  );
+  my @order = $self->section_order;
+  my %known = map { $_ => 1 } @order;
+  my @rest = grep { ! $known{$_} } keys %sections;
+  for my $s ( @order, @rest ) {
+    next unless ref $sections{$s};
+    say "-"x75;
+    say uc($s) . "\n";
+    say join ( "\n", @{ $sections{$s} }, "" );
+  }
+  return;
+}
+
+sub summary {
+  my ($self) = @_;
+  $self->_iterate_commits(
+    sub {
+      my $log = shift;
+      $self->show_header($log);
+      return 1;
+    }
+  );
+  return;
+}
+
+sub update {
+  my ($self) = @_;
+
+  my $status = $self->opt('status')
+    or die "The 'status' option must be supplied for update mode\n";
+
+  $self->_iterate_commits(
+    sub {
+      my $log = shift;
+      my $note = $log->notes;
+      $note =~ s{^(perldelta.*\[)\w+(\].*)}{$1$status$2}ms;
+      $self->add_note( $log->id, $note );
+      return 1;
+    }
+  );
+  return;
+}
+
+sub _iterate_commits {
+  my ($self, $fcn) = @_;
+  my $type = $self->opt('type');
+  say STDERR "Scanning for $type commits since " . $self->last_tag . "...";
+  my $list = [ $self->find_commits($type) ];
+  my $count = @$list;
+  while ( my ($i,$log) = each @$list ) {
+    redo unless $fcn->($log, $i, $count);
+  }
+  return 1;
+}
+
+#--------------------------------------------------------------------------#
+# methods
+#--------------------------------------------------------------------------#
+
+sub add_note {
+  my ($self, $id, $note) = @_;
+  my @lines = split "\n", _strip_comments($note);
+  pop @lines while @lines && $lines[-1] =~ m{^\s*$};
+  my $tempfh = File::Temp->new;
+  if (@lines) {
+    $tempfh->printflush( join( "\n", @lines), "\n" );
+    $self->git->notes('edit', '-F', "$tempfh", $id);
+  }
+  else {
+    $tempfh->printflush( "\n" );
+    # git notes won't take an empty file as input
+    system("git notes edit -F $tempfh $id");
+  }
+
+  return;
+}
+
+sub dispatch {
+  my ($self, $choice, $log) = @_;
+  return unless $choice;
+  my $method = "do_$choice->{handler}";
+  return 1 unless $self->can($method); # missing methods "succeed"
+  return $self->$method($choice, $log);
+}
+
+sub edit_text {
+  my ($self, $text, $args) = @_;
+  $args //= {};
+  my $tempfh = File::Temp->new;
+  $tempfh->printflush( $text );
+  if ( my @editor = split /\s+/, ($ENV{VISUAL} || $ENV{EDITOR}) ) {
+    push @editor, "-f" if $editor[0] =~ /^gvim/;
+    system(@editor, "$tempfh");
+  }
+  else {
+    warn("No VISUAL or EDITOR defined");
+  }
+  return do { local (@ARGV,$/) = "$tempfh"; <> };
+}
+
+sub find_commits {
+  my ($self, $type) = @_;
+  $type //= 'new';
+  my @commits = $self->git->log($self->last_tag . "..HEAD");
+  $_ = Git::Wrapper::XLog->from_log($_, $self->git) for @commits;
+  my @list;
+  if ( $type eq 'new' ) {
+    @list = grep { ! $_->notes } @commits;
+  }
+  else {
+    @list = grep { $self->note_status( $_ ) eq $type } @commits;
+  }
+  return @list;
+}
+
+sub get_diff {
+  my ($self, $log) = @_;
+  my @diff = $self->git->show({ stat => 1, p => 1 }, $log->id);
+  return join("\n", @diff);
+}
+
+sub note_delta {
+  my ($self, $log) = @_;
+  my @delta = split "\n", ($log->notes || '');
+  return '' unless @delta;
+  splice @delta, 0, 2;
+  return join( "\n", @delta, "" );
+}
+
+sub note_section {
+  my ($self, $log) = @_;
+  my $note = $log->notes or return '';
+  my ($section) = $note =~ m{^perldelta:\s*([^\[]*)\s+}ms;
+  return $section || '';
+}
+
+sub note_status {
+  my ($self, $log) = @_;
+  my $note = $log->notes or return '';
+  my ($status) = $note =~ m{^perldelta:\s*[^\[]*\[(\w+)\]}ms;
+  return $status || '';
+}
+
+sub note_template {
+  my ($self, $log, $text) = @_;
+  my $diff = _prepend_comment( $self->get_diff($log) );
+  return << "HERE";
+# Edit commit note below. Do not change the first line. Comments are stripped
+$text
+
+$diff
+HERE
+}
+
+sub prompt {
+  my ($self, @choices) = @_;
+  my ($valid, @menu, %keymap) = '';
+  for my $c ( map { @$_ } @choices ) {
+    my ($item) = grep { /\(/ } split q{ }, $c->{name};
+    my ($button) = $item =~ m{\((.)\)};
+    die "No key shortcut found for '$item'" unless $button;
+    die "Duplicate key shortcut found for '$item'" if $keymap{lc $button};
+    push @menu, $item;
+    $valid .= lc $button;
+    $keymap{lc $button} = $c;
+  }
+  my $keypress = $self->prompt_key( $self->wrap_list(@menu), $valid );
+  return $keymap{lc $keypress};
+}
+
+sub prompt_key {
+  my ($self, $prompt, $valid_keys) = @_;
+  my $key;
+  KEY: {
+    say $prompt;
+    ReadMode 3;
+    $key = lc ReadKey(0);
+    ReadMode 0;
+    if ( $key !~ qr/\A[$valid_keys]\z/i ) {
+      say "";
+      redo KEY;
+    }
+  }
+  return $key;
+}
+
+sub show_body {
+  my ($self, $log, $lf) = @_;
+  return unless my $body = $log->body;
+  say $lf ? "\n$body" : $body;
+  return;
+}
+
+sub show_files {
+  my ($self, $log) = @_;
+  my @files = $self->git->diff_tree({r => 1, abbrev => 1}, $log->id);
+  shift @files; # throw away commit line
+  return unless @files;
+  say "\nChanged:";
+  say join("\n", map { "  * $_" } sort map { /.*\s+(\S+)/; $1 } @files);
+  return;
+}
+
+sub show_header {
+  my ($self, $log) = @_;
+  my $header = $log->short_id;
+  $header .= " " . $log->subject if length $log->subject;
+  $header .= sprintf(' (%s)', $log->author) if $log->author;
+  say colored( $header, "yellow");
+  return;
+}
+
+sub show_notes {
+  my ($self, $log, $lf) = @_;
+  return unless my $notes = $log->notes;
+  say $lf ? "\n$notes" : $notes;
+  return;
+}
+
+sub wrap_list {
+  my ($self, @list) = @_;
+  my $line = shift @list;
+  my @wrap;
+  for my $item ( @list ) {
+    if ( length( $line . $item ) > 70 ) {
+      push @wrap, $line;
+      $line = $item ne $list[-1] ? $item : "or $item";
+    }
+    else {
+      $line .= $item ne $list[-1] ? ", $item" : " or $item";
+    }
+  }
+  return join("\n", @wrap, $line);
+}
+
+sub y_n {
+  my ($self, $msg) = @_;
+  my $key = $self->prompt_key($msg . " (y/n?)", 'yn');
+  return $key eq 'y';
+}
+
+#--------------------------------------------------------------------------#
+# handlers
+#--------------------------------------------------------------------------#
+
+sub do_blocking {
+  my ($self, $choice, $log) = @_;
+  my $note = "perldelta: Unknown [blocking]\n";
+  $self->add_note( $log->id, $note );
+  return 1;
+}
+
+sub do_examine {
+  my ($self, $choice, $log) = @_;
+  $self->start_pager;
+  say $self->get_diff($log);
+  $self->end_pager;
+  return;
+}
+
+sub do_cherry {
+  my ($self, $choice, $log) = @_;
+  my $id = $log->short_id;
+  $self->y_n("Recommend a cherry pick of '$id' to maint?") or return;
+  my $cherrymaint = dirname($0) . "/cherrymaint";
+  system("$^X $cherrymaint --vote $id");
+  return; # false will re-prompt the same commit
+}
+
+sub do_done {
+  my ($self, $choice, $log) = @_;
+  my $note = $log->notes;
+  $note =~ s{^(perldelta.*\[)\w+(\].*)}{$1done$2}ms;
+  $self->add_note( $log->id, $note );
+  return 1;
+}
+
+sub do_edit {
+  my ($self, $choice, $log) = @_;
+  my $old_note = $log->notes;
+  my $new_note = $self->edit_text( $self->note_template( $log, $old_note) );
+  $self->add_note( $log->id, $new_note );
+  return 1;
+}
+
+sub do_head2 {
+  my ($self, $choice, $log) = @_;
+  my $section = _strip_parens($choice->{name});
+  my $subject = $log->subject;
+  my $body = $log->body;
+
+  my $template = $self->note_template( $log,
+    "perldelta: $section [pending]\n\n=head2 $subject\n\n$body\n"
+  );
+
+  my $note = $self->edit_text( $template );
+  if ( ($note ne $template) or $self->y_n("Note unchanged. Commit it?") ) {
+    $self->add_note( $log->id, $note );
+    return 1;
+  }
+  return;
+}
+
+sub do_linked_item {
+  my ($self, $choice, $log) = @_;
+  my $section = _strip_parens($choice->{name});
+  my $subject = $log->subject;
+  my $body = $log->body;
+
+  my $template = $self->note_template( $log,
+    "perldelta: $section [pending]\n\n=head3 L<LINK>\n\n=over\n\n=item *\n\n$subject\n\n$body\n\n=back\n"
+  );
+
+  my $note = $self->edit_text($template);
+  if ( ($note ne $template) or $self->y_n("Note unchanged. Commit it?") ) {
+    $self->add_note( $log->id, $note );
+    return 1;
+  }
+  return;
+}
+
+sub do_item {
+  my ($self, $choice, $log) = @_;
+  my $section = _strip_parens($choice->{name});
+  my $subject = $log->subject;
+  my $body = $log->body;
+
+  my $template = $self->note_template( $log,
+    "perldelta: $section [pending]\n\n=item *\n\n$subject\n\n$body\n"
+  );
+
+  my $note = $self->edit_text($template);
+  if ( ($note ne $template) or $self->y_n("Note unchanged. Commit it?") ) {
+    $self->add_note( $log->id, $note );
+    return 1;
+  }
+  return;
+}
+
+sub do_none {
+  my ($self, $choice, $log) = @_;
+  my $note = "perldelta: None [ignored]\n";
+  $self->add_note( $log->id, $note );
+  return 1;
+}
+
+sub do_platform {
+  my ($self, $choice, $log) = @_;
+  my $section = _strip_parens($choice->{name});
+  my $subject = $log->subject;
+  my $body = $log->body;
+
+  my $template = $self->note_template( $log,
+    "perldelta: $section [pending]\n\n=item PLATFORM-NAME\n\n$subject\n\n$body\n"
+  );
+
+  my $note = $self->edit_text($template);
+  if ( ($note ne $template) or $self->y_n("Note unchanged. Commit it?") ) {
+    $self->add_note( $log->id, $note );
+    return 1;
+  }
+  return;
+}
+
+sub do_quit { exit 0 }
+
+sub do_repeat { return 0 }
+
+sub do_skip { return 1 }
+
+sub do_special {
+  my ($self, $choice, $log) = @_;
+  my $section = _strip_parens($choice->{name});
+  my $subject = $log->subject;
+  my $body = $log->body;
+
+  my $template = $self->note_template( $log, << "HERE" );
+perldelta: $section [pending]
+
+$subject
+
+$body
+HERE
+
+  my $note = $self->edit_text( $template );
+  if ( ($note ne $template) or $self->y_n("Note unchanged. Commit it?") ) {
+    $self->add_note( $log->id, $note );
+    return 1;
+  }
+  return;
+}
+
+sub do_subsection {
+  my ($self, $choice, $log) = @_;
+  my @choices = ( $choice->{subsection}, $self->submenu_choices );
+  say "For " . _strip_parens($choice->{name}) . ":";
+  return $self->dispatch( $self->prompt( @choices ), $log);
+}
+
+#--------------------------------------------------------------------------#
+# define prompts
+#--------------------------------------------------------------------------#
+
+sub action_choices {
+  my ($self) = @_;
+  state $action_choices = [
+      { name => 'E(x)amine', handler => 'examine' },
+      { name => '(+)Cherrymaint', handler => 'cherry' },
+      { name => '(?)NeedHelp', handler => 'blocking' },
+      { name => 'S(k)ip', handler => 'skip' },
+      { name => '(Q)uit', handler => 'quit' },
+  ];
+  return $action_choices;
+}
+
+sub submenu_choices {
+  my ($self) = @_;
+  state $submenu_choices = [
+      { name => '(B)ack', handler => 'repeat' },
+  ];
+  return $submenu_choices;
+}
+
+
+sub review_choices {
+  my ($self) = @_;
+  state $action_choices = [
+      { name => '(E)dit', handler => 'edit' },
+      { name => '(I)gnore', handler => 'none' },
+      { name => '(D)one', handler => 'done' },
+  ];
+  return $action_choices;
+}
+
+sub section_choices {
+  my ($self, $key) = @_;
+  state $section_choices = [
+    # Headline stuff that should go first
+    {
+      name => 'Core (E)nhancements',
+      handler => 'head2',
+    },
+    {
+      name => 'Securit(y)',
+      handler => 'head2',
+    },
+    {
+      name => '(I)ncompatible Changes',
+      handler => 'head2',
+    },
+    {
+      name => 'Dep(r)ecations',
+      handler => 'head2',
+    },
+    {
+      name => '(P)erformance Enhancements',
+      handler => 'item',
+    },
+
+    # Details on things installed with Perl (for Perl developers)
+    {
+      name => '(M)odules and Pragmata',
+      handler => 'subsection',
+      subsection => [
+        {
+          name => '(N)ew Modules and Pragmata',
+          handler => 'item',
+        },
+        {
+          name => '(U)pdated Modules and Pragmata',
+          handler => 'item',
+        },
+        {
+          name => '(R)emoved Modules and Pragmata',
+          handler => 'item',
+        },
+      ],
+    },
+    {
+      name => '(D)ocumentation',
+      handler => 'subsection',
+      subsection => [
+        {
+          name => '(N)ew Documentation',
+          handler => 'linked_item',
+        },
+        {
+          name => '(C)hanges to Existing Documentation',
+          handler => 'linked_item',
+        },
+      ],
+    },
+    {
+      name => 'Dia(g)nostics',
+      handler => 'subsection',
+      subsection => [
+        {
+          name => '(N)ew Diagnostics',
+          handler => 'item',
+        },
+        {
+          name => '(C)hanges to Existing Diagnostics',
+          handler => 'item',
+        },
+      ],
+    },
+    {
+      name => '(U)tilities',
+      handler => 'linked_item',
+    },
+
+    # Details on building/testing Perl (for porters and packagers)
+    {
+      name => '(C)onfiguration and Compilation',
+      handler => 'item',
+    },
+    {
+      name => '(T)esting', # new tests or significant notes about it
+      handler => 'item',
+    },
+    {
+      name => 'Pl(a)tform Support',
+      handler => 'subsection',
+      subsection => [
+        {
+          name => '(N)ew Platforms',
+          handler => 'platform',
+        },
+        {
+          name => '(D)iscontinued Platforms',
+          handler => 'platform',
+        },
+        {
+          name => '(P)latform-Specific Notes',
+          handler => 'platform',
+        },
+      ],
+    },
+
+    # Details on perl internals (for porters and XS developers)
+    {
+      name => 'Inter(n)al Changes',
+      handler => 'item',
+    },
+
+    # Bugs fixed and related stuff
+    {
+      name => 'Selected Bug (F)ixes',
+      handler => 'item',
+    },
+    {
+      name => 'Known Prob(l)ems',
+      handler => 'item',
+    },
+
+    # dummy options for special handling
+    {
+      name => '(S)pecial',
+      handler => 'special',
+    },
+    {
+      name => '(*)None',
+      handler => 'none',
+    },
+  ];
+  return $section_choices;
+}
+
+sub section_order {
+  my ($self) = @_;
+  state @order;
+  if ( ! @order ) {
+    for my $c ( @{ $self->section_choices } ) {
+      if ( $c->{subsection} ) {
+        push @order, map { $_->{name} } @{$c->{subsection}};
+      }
+      else {
+        push @order, $c->{name};
+      }
+    }
+  }
+  return @order;
+}
+
+#--------------------------------------------------------------------------#
+# Pager handling
+#--------------------------------------------------------------------------#
+
+sub get_pager { $ENV{'PAGER'} || `which less` || `which more` }
+
+sub in_pager { shift->original_stdout ? 1 : 0 }
+
+sub start_pager {
+  my $self = shift;
+  my $content = shift;
+  if (!$self->in_pager) {
+    local $ENV{'LESS'} ||= '-FXe';
+    local $ENV{'MORE'};
+    $ENV{'MORE'} ||= '-FXe' unless $^O =~ /^MSWin/;
+
+    my $pager = $self->get_pager;
+    return unless $pager;
+    open (my $cmd, "|-", $pager) || return;
+    $|++;
+    $self->original_stdout(*STDOUT);
+
+    # $pager will be closed once we restore STDOUT to $original_stdout
+    *STDOUT = $cmd;
+  }
+}
+
+sub end_pager {
+  my $self = shift;
+  return unless ($self->in_pager);
+  *STDOUT = $self->original_stdout;
+
+  # closes the pager
+  $self->original_stdout(undef);
+}
+
+#--------------------------------------------------------------------------#
+# Utility functions
+#--------------------------------------------------------------------------#
+
+sub _strip_parens {
+  my ($name) = @_;
+  $name =~ s/[()]//g;
+  return $name;
+}
+
+sub _prepend_comment {
+  my ($text) = @_;
+  return join ("\n", map { s/^/# /g; $_ } split "\n", $text);
+}
+
+sub _strip_comments {
+  my ($text) = @_;
+  return join ("\n", grep { ! /^#/ } split "\n", $text);
+}
+
+#--------------------------------------------------------------------------#
+# Extend Git::Wrapper::Log
+#--------------------------------------------------------------------------#
+
+package Git::Wrapper::XLog;
+BEGIN { our @ISA = qw/Git::Wrapper::Log/; }
+
+sub subject { shift->attr->{subject} }
+sub body { shift->attr->{body} }
+sub short_id { shift->attr->{short_id} }
+sub author { shift->attr->{author} }
+
+sub from_log {
+  my ($class, $log, $git) = @_;
+
+  my $msg = $log->message;
+  my ($subject, $body) = $msg =~ m{^([^\n]+)\n*(.*)}ms;
+  $subject //= '';
+  $body //= '';
+  $body =~ s/[\r\n]*\z//ms;
+
+  my ($short) = $git->rev_parse({short => 1}, $log->id);
+
+  $log->attr->{subject} = $subject;
+  $log->attr->{body} = $body;
+  $log->attr->{short_id} = $short;
+  return bless $log, $class;
+}
+
+sub notes {
+  my ($self) = @_;
+  my @notes = eval { Git::Wrapper->new(".")->notes('show', $self->id) };
+  pop @notes while @notes && $notes[-1] =~ m{^\s*$};
+  return unless @notes;
+  return join ("\n", @notes);
+}
+
+__END__
+
+=head1 NAME
+
+git-deltatool - Annotate commits for perldelta
+
+=head1 SYNOPSIS
+
+ # annotate commits back to last 'git describe' tag
+
+ $ git-deltatool
+
+ # review annotations
+
+ $ git-deltatool --mode review
+
+ # review commits needing help
+
+ $ git-deltatool --mode review --type blocking
+
+ # summarize commits needing help
+
+ $ git-deltatool --mode summary --type blocking
+
+ # assemble annotations by section to STDOUT
+
+ $ git-deltatool --mode render
+
+ # Get a list of commits needing further review, e.g. for peer review
+
+ $ git-deltatool --mode summary --type blocking
+
+ # mark 'pending' annotations as 'done' (i.e. added to perldelta)
+
+ $ git-deltatool --mode update --type pending --status done
+
+=head1 OPTIONS
+
+=over
+
+=item B<--mode>|B<-m> MODE
+
+Indicates the run mode for the program.  The default is 'assign' which
+assigns categories and marks the notes as 'pending' (or 'ignored').  Other
+modes are 'review', 'render', 'summary' and 'update'.
+
+=item B<--type>|B<-t> TYPE
+
+Indicates what types of commits to process.  The default for 'assign' mode is
+'new', which processes commits without any perldelta notes.  The default for
+'review', 'summary' and 'render' modes is 'pending'.  The options must be set
+explicitly for 'update' mode.
+
+The type 'blocking' is reserved for commits needing further review.
+
+=item B<--status>|B<-s> STATUS
+
+For 'update' mode only, sets a new status.  While there is no restriction,
+it should be one of 'new', 'pending', 'blocking', 'ignored' or 'done'.
+
+=item B<--since> REVISION
+
+Defines the boundary for searching git commits.  Defaults to the last
+major tag (as would be given by 'git describe').
+
+=item B<--help>
+
+Shows the manual.
+
+=back
+
+=head1 TODO
+
+It would be nice to make some of the structured sections smarter -- e.g.
+look at changed files in pod/* for Documentation section entries.  Likewise
+it would be nice to collate them during the render phase -- e.g. cluster
+all platform-specific things properly.
+
+=head1 AUTHOR
+
+David Golden <dagolden@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2010 by David Golden.
+
+This is free software; you can redistribute it and/or modify it under the same
+terms as the Perl 5 programming language system itself.
+
+=cut
+

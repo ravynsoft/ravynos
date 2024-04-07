@@ -1,0 +1,132 @@
+#!perl
+
+use Config;
+use Cwd;
+use strict;
+BEGIN {
+    require './test.pl';
+}
+
+$| = 1;
+
+my $cwdb = my $cwd = cwd();
+$cwd =~ s,\\,/,g;
+$cwdb =~ s,/,\\,g;
+
+my $testdir = "t e s t";
+my $exename = "showav";
+my $plxname = "showargv";
+
+my $exe = "$testdir/$exename";
+my $exex = $exe . ".exe";
+(my $exeb = $exe) =~ s,/,\\,g;
+my $exebx = $exeb . ".exe";
+
+my $bat = "$testdir/$plxname";
+my $batx = $bat . ".bat";
+(my $batb = $bat) =~ s,/,\\,g;
+my $batbx = $batb . ".bat";
+
+my $cmdx = $bat . ".cmd";
+my $cmdb = $batb;
+my $cmdbx = $cmdb . ".cmd";
+
+my @commands = (
+  $exe,
+  $exex,
+  $exeb,
+  $exebx,
+  "./$exe",
+  "./$exex",
+  ".\\$exeb",
+  ".\\$exebx",
+  "$cwd/$exe",
+  "$cwd/$exex",
+  "$cwdb\\$exeb",
+  "$cwdb\\$exebx",
+  $bat,
+  $batx,
+  $batb,
+  $batbx,
+  "./$bat",
+  "./$batx",
+  ".\\$batb",
+  ".\\$batbx",
+  "$cwd/$bat",
+  "$cwd/$batx",
+  "$cwdb\\$batb",
+  "$cwdb\\$batbx",
+  $cmdx,
+  $cmdbx,
+  "./$cmdx",
+  ".\\$cmdbx",
+  "$cwd/$cmdx",
+  "$cwdb\\$cmdbx",
+  [$^X, $batx],
+  [$^X, $batbx],
+  [$^X, "./$batx"],
+  [$^X, ".\\$batbx"],
+  [$^X, "$cwd/$batx"],
+  [$^X, "$cwdb\\$batbx"],
+);
+
+my @av = (
+  undef,
+  "",
+  " ",
+  "abc",
+  "a b\tc",
+  "\tabc",
+  "abc\t",
+  " abc\t",
+  "\ta b c ",
+  ["\ta b c ", ""],
+  ["\ta b c ", " "],
+  ["", "\ta b c ", "abc"],
+  [" ", "\ta b c ", "abc"],
+  ['" "', 'a" "b" "c', "abc"],
+);
+
+print "1.." . (@commands * @av * 3) . "\n";
+for my $cmds (@commands) {
+    for my $args (@av) {
+	my @all_args;
+	my @cmds = defined($cmds) ? (ref($cmds) ? @$cmds : $cmds) : ();
+	my @args = defined($args) ? (ref($args) ? @$args : $args) : ();
+	note "####### [@cmds]";
+	print "<", join('><',
+			$cmds[$#cmds],
+			map { my $x = $_; $x =~ s/"//g; $x } @args),
+	      ">\n";
+	if (system(@cmds,@args) != 0) {
+	    print "Failed, status($?)\n";
+	    if ($Config{ccflags} =~ /\bDDEBUGGING\b/) {
+		print "Running again in debug mode\n";
+		$^D = 1; # -Dp
+		system(@cmds,@args);
+	    }
+	}
+	$^D = 0;
+	my $cmdstr = join " ", map { /\s|^$/ && !/\"/
+				    ? qq["$_"] : $_ } @cmds, @args;
+	note "####### '$cmdstr'";
+	if (system($cmdstr) != 0) {
+	    print "Failed, status($?)\n";
+	    if ($Config{ccflags} =~ /\bDDEBUGGING\b/) {
+		print "Running again in debug mode\n";
+		$^D = 1; # -Dp
+		system($cmdstr);
+	    }
+	}
+	$^D = 0;
+
+	note "# pipe [".join(";", @cmds, @args). "]";
+	if (open my $io, "-|", @cmds, @args) {
+	    print <$io>;
+	    close $io;
+	}
+	else {
+	    print STDERR "Failed pipe open [",join(";", @cmds, @args),"]: $!\n";
+	}
+    }
+}

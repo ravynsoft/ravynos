@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+#
+# This code is used by lib/perl5db.t !!!
+#
+
+use strict;
+no strict 'refs';
+my %main = %{*{"main\::"}} ;
+my @undef_symbols = grep { !defined $main{$_} } (keys %main);
+print 'Undefined symbols ', scalar(@undef_symbols) . "\n";
+

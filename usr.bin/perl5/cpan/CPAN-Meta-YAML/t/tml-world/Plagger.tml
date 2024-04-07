@@ -1,0 +1,101 @@
+#####################################################################
+# Example Plagger Configuration 1
+
+=== Plagger
+--- yaml
+plugins:
+  - module: Subscription::Bloglines
+    config:
+      username: you@example.pl
+      password: foobar
+      mark_read: 1
+
+  - module: Publish::Gmail
+    config:
+      mailto: example@gmail.com
+      mailfrom: miyagawa@example.com
+      mailroute:
+        via: smtp
+        host: smtp.example.com
+--- perl
+[ { plugins => [
+    {
+        module => 'Subscription::Bloglines',
+        config => {
+            username  => 'you@example.pl',
+            password  => 'foobar',
+            mark_read => 1,
+        },
+    },
+    {
+        module => 'Publish::Gmail',
+        config => {
+            mailto    => 'example@gmail.com',
+            mailfrom  => 'miyagawa@example.com',
+            mailroute => {
+                via  => 'smtp',
+                host => 'smtp.example.com',
+            },
+        },
+    },
+] } ]
+
+
+#####################################################################
+# Example Plagger Configuration 2
+
+=== plagger2
+--- yaml
+plugins:
+ - module: Subscription::Config
+   config:
+     feed:
+        # Trac's feed for changesets
+        - http://plagger.org/.../rss
+
+ # I don't like to be notified of the same items
+ # more than once
+ - module: Filter::Rule
+   rule:
+     module: Fresh
+     mtime:
+       path: /tmp/rssbot.time
+       autoupdate: 1
+
+ - module: Notify::IRC
+   config:
+     daemon_port: 9999
+     nickname: plaggerbot
+     server_host: chat.freenode.net
+     server_channels:
+       - '#plagger-ja'
+       - '#plagger'
+
+
+--- perl
+[ { plugins => [ {
+    module => 'Subscription::Config',
+    config => {
+        feed => [ 'http://plagger.org/.../rss' ],
+    },
+}, {
+    module => 'Filter::Rule',
+    rule   => {
+        module => 'Fresh',
+        mtime  => {
+            path => '/tmp/rssbot.time',
+            autoupdate => 1,
+        },
+    },
+}, {
+    module => 'Notify::IRC',
+    config => {
+        daemon_port     => 9999,
+        nickname        => 'plaggerbot',
+        server_host     => 'chat.freenode.net',
+        server_channels => [
+            '#plagger-ja',
+            '#plagger',
+        ],
+    },
+} ] } ]

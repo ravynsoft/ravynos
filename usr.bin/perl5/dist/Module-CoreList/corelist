@@ -1,0 +1,574 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+corelist - a commandline frontend to Module::CoreList
+
+=head1 DESCRIPTION
+
+See L<Module::CoreList> for one.
+
+=head1 SYNOPSIS
+
+   corelist -v
+   corelist [-a|-d] <ModuleName> | /<ModuleRegex>/ [<ModuleVersion>] ...
+   corelist [-v <PerlVersion>] [ <ModuleName> | /<ModuleRegex>/ ] ...
+   corelist [-r <PerlVersion>] ...
+   corelist --utils [-d] <UtilityName> [<UtilityName>] ...
+   corelist --utils -v <PerlVersion>
+   corelist --feature <FeatureName> [<FeatureName>] ...
+   corelist --diff PerlVersion PerlVersion
+   corelist --upstream <ModuleName>
+
+=head1 OPTIONS
+
+=over
+
+=item -a
+
+lists all versions of the given module (or the matching modules, in case you
+used a module regexp) in the perls Module::CoreList knows about.
+
+    corelist -a Unicode
+
+    Unicode was first released with perl v5.6.2
+      v5.6.2     3.0.1
+      v5.8.0     3.2.0
+      v5.8.1     4.0.0
+      v5.8.2     4.0.0
+      v5.8.3     4.0.0
+      v5.8.4     4.0.1
+      v5.8.5     4.0.1
+      v5.8.6     4.0.1
+      v5.8.7     4.1.0
+      v5.8.8     4.1.0
+      v5.8.9     5.1.0
+      v5.9.0     4.0.0
+      v5.9.1     4.0.0
+      v5.9.2     4.0.1
+      v5.9.3     4.1.0
+      v5.9.4     4.1.0
+      v5.9.5     5.0.0
+      v5.10.0    5.0.0
+      v5.10.1    5.1.0
+      v5.11.0    5.1.0
+      v5.11.1    5.1.0
+      v5.11.2    5.1.0
+      v5.11.3    5.2.0
+      v5.11.4    5.2.0
+      v5.11.5    5.2.0
+      v5.12.0    5.2.0
+      v5.12.1    5.2.0
+      v5.12.2    5.2.0
+      v5.12.3    5.2.0
+      v5.12.4    5.2.0
+      v5.13.0    5.2.0
+      v5.13.1    5.2.0
+      v5.13.2    5.2.0
+      v5.13.3    5.2.0
+      v5.13.4    5.2.0
+      v5.13.5    5.2.0
+      v5.13.6    5.2.0
+      v5.13.7    6.0.0
+      v5.13.8    6.0.0
+      v5.13.9    6.0.0
+      v5.13.10   6.0.0
+      v5.13.11   6.0.0
+      v5.14.0    6.0.0
+      v5.14.1    6.0.0
+      v5.15.0    6.0.0
+
+=item -d
+
+finds the first perl version where a module has been released by
+date, and not by version number (as is the default).
+
+=item --diff
+
+Given two versions of perl, this prints a human-readable table of all module
+changes between the two.  The output format may change in the future, and is
+meant for I<humans>, not programs.  For programs, use the L<Module::CoreList>
+API.
+
+=item -? or -help
+
+help! help! help! to see more help, try --man.
+
+=item -man
+
+all of the help
+
+=item -v
+
+lists all of the perl release versions we got the CoreList for.
+
+If you pass a version argument (value of C<$]>, like C<5.00503> or C<5.008008>),
+you get a list of all the modules and their respective versions.
+(If you have the C<version> module, you can also use new-style version numbers,
+like C<5.8.8>.)
+
+In module filtering context, it can be used as Perl version filter.
+
+=item -r
+
+lists all of the perl releases and when they were released
+
+If you pass a perl version you get the release date for that version only.
+
+=item --utils
+
+lists the first version of perl each named utility program was released with
+
+May be used with -d to modify the first release criteria.
+
+If used with -v <version> then all utilities released with that version of perl
+are listed, and any utility programs named on the command line are ignored.
+
+=item --feature, -f
+
+lists the first version bundle of each named feature given
+
+=item --upstream, -u
+
+Shows if the given module is primarily maintained in perl core or on CPAN
+and bug tracker URL.
+
+=back
+
+As a special case, if you specify the module name C<Unicode>, you'll get
+the version number of the Unicode Character Database bundled with the
+requested perl versions.
+
+=cut
+
+BEGIN { pop @INC if $INC[-1] eq '.' }
+use Module::CoreList;
+use Getopt::Long qw(:config no_ignore_case);
+use Pod::Usage;
+use strict;
+use warnings;
+use List::Util qw/maxstr/;
+
+my %Opts;
+
+GetOptions(
+    \%Opts,
+    qw[ help|?! man! r|release:s v|version:s a! d diff|D utils feature|f u|upstream ]
+);
+
+pod2usage(1) if $Opts{help};
+pod2usage(-verbose=>2) if $Opts{man};
+
+if(exists $Opts{r} ){
+    if ( !$Opts{r} ) {
+        print "\nModule::CoreList has release info for the following perl versions:\n";
+        my $versions = { };
+        my $max_ver_len = max_mod_len(\%Module::CoreList::released);
+        for my $ver ( grep !/0[01]0$/, sort keys %Module::CoreList::released ) {
+          printf "%-${max_ver_len}s    %s\n", format_perl_version($ver), $Module::CoreList::released{$ver};
+        }
+        print "\n";
+        exit 0;
+    }
+
+    my $num_r = numify_version( $Opts{r} );
+    my $version_hash = Module::CoreList->find_version($num_r);
+
+    if( !$version_hash ) {
+        print "\nModule::CoreList has no info on perl $Opts{r}\n\n";
+        exit 1;
+    }
+
+    printf "Perl %s was released on %s\n\n", format_perl_version($num_r), $Module::CoreList::released{$num_r};
+    exit 0;
+}
+
+if(exists $Opts{v} ){
+    if( !$Opts{v} ) {
+        print "\nModule::CoreList has info on the following perl versions:\n";
+        print format_perl_version($_)."\n" for grep !/0[01]0$/, sort keys %Module::CoreList::version;
+        print "\n";
+        exit 0;
+    }
+
+    my $num_v = numify_version( $Opts{v} );
+
+    if ($Opts{utils}) {
+        utilities_in_version($num_v);
+        exit 0;
+    }
+
+    my $version_hash = Module::CoreList->find_version($num_v);
+
+    if( !$version_hash ) {
+        print "\nModule::CoreList has no info on perl $Opts{v}\n\n";
+        exit 1;
+    }
+
+    if ( !@ARGV ) {
+	print "\nThe following modules were in perl $Opts{v} CORE\n";
+	my $max_mod_len = max_mod_len($version_hash);
+	for my $mod ( sort keys %$version_hash ) {
+	    printf "%-${max_mod_len}s  %s\n", $mod, $version_hash->{$mod} || "";
+	}
+	print "\n";
+	exit 0;
+    }
+}
+
+if ($Opts{diff}) {
+    if(@ARGV != 2) {
+        die "\nprovide exactly two perl core versions to diff with --diff\n";
+    }
+
+    my ($old_ver, $new_ver) = @ARGV;
+
+    my $old = numify_version($old_ver);
+    if ( !Module::CoreList->find_version($old) ) {
+        print "\nModule::CoreList has no info on perl $old_ver\n\n";
+        exit 1;
+    }
+    my $new = numify_version($new_ver);
+    if ( !Module::CoreList->find_version($new) ) {
+        print "\nModule::CoreList has no info on perl $new_ver\n\n";
+        exit 1;
+    }
+
+    my %diff = Module::CoreList::changes_between($old, $new);
+
+    for my $lib (sort keys %diff) {
+      my $diff = $diff{$lib};
+
+      my $was = ! exists  $diff->{left} ? '(absent)'
+              : ! defined $diff->{left} ? '(undef)'
+              :                          $diff->{left};
+
+      my $now = ! exists  $diff->{right} ? '(absent)'
+              : ! defined $diff->{right} ? '(undef)'
+              :                          $diff->{right};
+
+        printf "%-35s %10s %10s\n", $lib, $was, $now;
+    }
+    exit(0);
+}
+
+if ($Opts{utils}) {
+    die "\n--utils only available with perl v5.19.1 or greater\n"
+        if $] < 5.019001;
+
+    die "\nprovide at least one utility name to --utils\n"
+        unless @ARGV;
+
+    warn "\n-a has no effect when --utils is used\n"                 if $Opts{a};
+    warn "\n--diff has no effect when --utils is used\n"             if $Opts{diff};
+    warn "\n--upstream, or -u, has no effect when --utils is used\n" if $Opts{u};
+
+    my $when = maxstr(values %Module::CoreList::released);
+    print "\n","Data for $when\n";
+
+    utility_version($_) for @ARGV;
+
+    exit(0);
+}
+
+if ($Opts{feature}) {
+    die "\n--feature is only available with perl v5.16.0 or greater\n"
+      if $] < 5.016;
+
+    die "\nprovide at least one feature name to --feature\n"
+        unless @ARGV;
+
+    no warnings 'once';
+    require feature;
+
+    my %feature2version;
+    my @bundles =  map { $_->[0] }
+                  sort { $b->[1] <=> $a->[1] }
+                   map { [$_, numify_version($_)] }
+                  grep { not /[^0-9.]/ }
+                  keys %feature::feature_bundle;
+
+    for my $version (@bundles) {
+        $feature2version{$_} = $version =~ /^\d\.\d+$/ ? "$version.0" : $version
+            for @{ $feature::feature_bundle{$version} };
+    }
+
+    # allow internal feature names, just in case someone gives us __SUB__
+    # instead of current_sub.
+    while (my ($name, $internal) = each %feature::feature) {
+        $internal =~ s/^feature_//;
+        $feature2version{$internal} = $feature2version{$name}
+            if $feature2version{$name};
+    }
+
+    my $when = maxstr(values %Module::CoreList::released);
+    print "\n","Data for $when\n";
+
+    for my $feature (@ARGV) {
+        print "feature \"$feature\" ",
+            exists $feature2version{$feature}
+                ? "was first released with the perl "
+                  . format_perl_version(numify_version($feature2version{$feature}))
+                  . " feature bundle\n"
+                : "doesn't exist (or so I think)\n";
+    }
+    exit(0);
+}
+
+if ( !@ARGV ) {
+    pod2usage(0);
+}
+
+while (@ARGV) {
+	my ($mod, $ver);
+	if ($ARGV[0] =~ /=/) {
+	    ($mod, $ver) = split /=/, shift @ARGV;
+	} else {
+	    $mod = shift @ARGV;
+	    $ver = (@ARGV && $ARGV[0] =~ /^\d/) ? shift @ARGV : "";
+	}
+
+	if ($mod !~ m|^/(.*)/([imosx]*)$|) { # not a regex
+	    module_version($mod,$ver);
+	} else {
+	    my $re;
+	    eval { $re = $2 ? qr/(?$2)($1)/ : qr/$1/; }; # trap exceptions while building regex
+	    if ($@) {
+		# regex errors are usually like 'Quantifier follow nothing in regex; marked by ...'
+		# then we drop text after ';' to shorten message
+		my $errmsg = $@ =~ /(.*);/ ? $1 : $@;
+		warn "\n$mod  is a bad regex: $errmsg\n";
+		next;
+	    }
+	    my @mod = Module::CoreList->find_modules($re);
+	    if (@mod) {
+		module_version($_, $ver) for @mod;
+	    } else {
+		$ver |= '';
+		print "\n$mod $ver has no match in CORE (or so I think)\n";
+	    }
+
+	}
+}
+
+exit();
+
+sub module_version {
+    my($mod,$ver) = @_;
+
+    if ( $Opts{v} ) {
+	my $numeric_v = numify_version($Opts{v});
+	my $version_hash = Module::CoreList->find_version($numeric_v);
+	if ($version_hash) {
+	    print $mod, " ", $version_hash->{$mod} || 'undef', "\n";
+	    return;
+	}
+	else { die "Shouldn't happen" }
+    }
+
+    my $ret = $Opts{d}
+	? Module::CoreList->first_release_by_date(@_)
+	: Module::CoreList->first_release(@_);
+    my $msg = $mod;
+    $msg .= " $ver" if $ver;
+
+    my $rem = $Opts{d}
+	? Module::CoreList->removed_from_by_date($mod)
+	: Module::CoreList->removed_from($mod);
+
+	my $when = maxstr(values %Module::CoreList::released);
+    print "\n","Data for $when\n";
+
+    if( defined $ret ) {
+        my $deprecated = Module::CoreList->deprecated_in($mod);
+        $msg .= " was ";
+        $msg .= "first " unless $ver;
+        $msg .= "released with perl " . format_perl_version($ret);
+        $msg .= ( $rem ? ',' : ' and' ) . " deprecated (will be CPAN-only) in " . format_perl_version($deprecated) if $deprecated;
+        $msg .= " and removed from " . format_perl_version($rem) if $rem;
+    } else {
+        $msg .= " was not in CORE (or so I think)";
+    }
+
+    print $msg,"\n";
+
+    if( defined $ret and exists $Opts{u} ) {
+        my $upstream = $Module::CoreList::upstream{$mod};
+        $upstream = 'undef' unless $upstream;
+        print "upstream: $upstream\n";
+        if ( $upstream ne 'blead' ) {
+            my $bugtracker = $Module::CoreList::bug_tracker{$mod};
+            $bugtracker = 'unknown' unless $bugtracker;
+            print "bug tracker: $bugtracker\n";
+        }
+    }
+
+    if(defined $ret and exists $Opts{a} and $Opts{a}){
+        display_a($mod);
+    }
+}
+
+sub utility_version {
+    my ($utility) = @_;
+
+    require Module::CoreList::Utils;
+
+    my $released = $Opts{d}
+        ? Module::CoreList::Utils->first_release_by_date($utility)
+        : Module::CoreList::Utils->first_release($utility);
+
+    my $removed = $Opts{d}
+        ? Module::CoreList::Utils->removed_from_by_date($utility)
+        : Module::CoreList::Utils->removed_from($utility);
+
+    if ($released) {
+        print "$utility was first released with perl ", format_perl_version($released);
+        print " and later removed in ", format_perl_version($removed)
+            if $removed;
+        print "\n";
+    } else {
+        print "$utility was not in CORE (or so I think)\n";
+    }
+}
+
+sub utilities_in_version {
+    my ($version) = @_;
+
+    require Module::CoreList::Utils;
+
+    my @utilities = Module::CoreList::Utils->utilities($version);
+
+    if (not @utilities) {
+        print "\nModule::CoreList::Utils has no info on perl $version\n\n";
+        exit 1;
+    }
+
+    print "\nThe following utilities were in perl ",
+        format_perl_version($version), " CORE\n";
+    print "$_\n" for sort { lc($a) cmp lc($b) } @utilities;
+    print "\n";
+}
+
+
+sub max_mod_len {
+    my $versions = shift;
+    my $max = 0;
+    for my $mod (keys %$versions) {
+        $max = max($max, length $mod);
+    }
+
+    return $max;
+}
+
+sub max {
+    my($this, $that) = @_;
+    return $this if $this > $that;
+    return $that;
+}
+
+sub display_a {
+    my $mod = shift;
+
+    for my $v (grep !/0[01]0$/, sort keys %Module::CoreList::version ) {
+        next unless exists $Module::CoreList::version{$v}{$mod};
+
+        my $mod_v = $Module::CoreList::version{$v}{$mod} || 'undef';
+        printf "  %-10s %-10s\n", format_perl_version($v), $mod_v;
+    }
+    print "\n";
+}
+
+
+{
+    my $have_version_pm;
+    sub have_version_pm {
+        return $have_version_pm if defined $have_version_pm;
+        return $have_version_pm = eval { require version; 1 };
+    }
+}
+
+
+sub format_perl_version {
+    my $v = shift;
+    return $v if $v < 5.006 or !have_version_pm;
+    return version->new($v)->normal;
+}
+
+
+sub numify_version {
+    my $ver = shift;
+    if ($ver =~ /\..+\./) {
+	have_version_pm()
+	    or die "You need to install version.pm to use dotted version numbers\n";
+        $ver = version->new($ver)->numify;
+    }
+    $ver += 0;
+    return $ver;
+}
+
+=head1 EXAMPLES
+
+    $ corelist File::Spec
+
+    File::Spec was first released with perl 5.005
+
+    $ corelist File::Spec 0.83
+
+    File::Spec 0.83 was released with perl 5.007003
+
+    $ corelist File::Spec 0.89
+
+    File::Spec 0.89 was not in CORE (or so I think)
+
+    $ corelist File::Spec::Aliens
+
+    File::Spec::Aliens  was not in CORE (or so I think)
+
+    $ corelist /IPC::Open/
+
+    IPC::Open2 was first released with perl 5
+
+    IPC::Open3 was first released with perl 5
+
+    $ corelist /MANIFEST/i
+
+    ExtUtils::Manifest was first released with perl 5.001
+
+    $ corelist /Template/
+
+    /Template/  has no match in CORE (or so I think)
+
+    $ corelist -v 5.8.8 B
+
+    B                        1.09_01
+
+    $ corelist -v 5.8.8 /^B::/
+
+    B::Asmdata               1.01
+    B::Assembler             0.07
+    B::Bblock                1.02_01
+    B::Bytecode              1.01_01
+    B::C                     1.04_01
+    B::CC                    1.00_01
+    B::Concise               0.66
+    B::Debug                 1.02_01
+    B::Deparse               0.71
+    B::Disassembler          1.05
+    B::Lint                  1.03
+    B::O                     1.00
+    B::Showlex               1.02
+    B::Stackobj              1.00
+    B::Stash                 1.00
+    B::Terse                 1.03_01
+    B::Xref                  1.01
+
+=head1 COPYRIGHT
+
+Copyright (c) 2002-2007 by D.H. aka PodMaster
+
+Currently maintained by the perl 5 porters E<lt>perl5-porters@perl.orgE<gt>.
+
+This program is distributed under the same terms as perl itself.
+See http://perl.org/ or http://cpan.org/ for more info on that.
+
+=cut

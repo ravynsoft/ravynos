@@ -1,0 +1,108 @@
+This file documents the changes made to port Perl to the Stratus
+VOS operating system.
+
+For 5.8.9:
+     Updated vos hints file (vos.sh) to use the POSIX-2001
+     standard and to recognize the V Series architecture of
+     i786.  Cleaned-up a few issues so that more tests pass.
+     This version builds on VOS Release 15.3.0.
+
+For 5.10.0:
+     Added support for the syslog family of functions to vos.c.
+     This allows the source code to be built on versions of VOS
+     that do not support the syslog functions.
+
+For 5.9.0:
+     Removed support for building (mini) perl on VOS using
+     custom VOS command macros.  Henceforth, perl must be built
+     using the native Configure script.
+
+For 5.8.4:
+     Updated "config.alpha.def", "config.ga.def", "build.cm" and
+     "perl.bind" to build this version of perl.
+
+For 5.8.0:
+     Updated "config.alpha.def", "config.ga.def", "build.cm", and
+     "install_perl.cm" to use directory naming conventions that
+     are closer to the perl standard directory names.
+
+     Added "compile_full_perl.cm", "configure_full_perl.sh" and
+     "make_full_perl.sh" for building full perl.
+
+     For the first time, full perl can now be built on VOS using
+     its native Configure script and makefiles.  See README.vos
+     for details.
+
+For 5.7.1:
+     Updated "build.cm" and "compile_perl.cm" to build perl using
+          either cc or gcc.
+     Brought "config.alpha.def" and "config.ga.def" up-to-date.
+     Updated "configure_perl.cm" to rebuild the header file even if
+          the date of the definitions file is equal to the date of
+          the header, because the perl distribution resets all dates
+          to the same value.
+     Update "Changes".
+     Update "perl.bind".
+
+For 5.7:
+     Updated "build.cm" to build perl using either the alpha or GA
+          version of POSIX.
+     Updated "Changes".
+     Updated "compile_perl.cm" to use either the alpha or GA
+          version of POSIX.
+     Split "config.def" into config.alpha.def and config.ga.def;
+          one for each version. Use the configure_perl.cm macro
+          to select the appropriate version.
+     Split "config.h" into config.alpha.h and config.ga.h. Use the
+          configure_perl.cm macro to select the appropriate version.
+     Updated "config.pl". It now diagnoses undefined (missing) and
+          unused substitution variables. When a new version of
+          Perl comes out, run "configure_perl.cm", add any missing
+          definitions to config.*.def, and remove any unused
+          definitions.
+     Removed "config_h.SH_orig". It is no longer needed.
+     Added "configure_perl.cm". It is used to configure perl so that
+          it can be built with either version of VOS POSIX.1 support.
+     Added "install_perl.cm" to install Perl into the appropriate
+          system directories.
+     Updated "perl.bind" to work with either the alpha or GA
+          version of POSIX.
+     Updated "vosish.h" to just use the standard "unixish.h" since
+          there are no changes needed at this time.
+
+After 5.005_63:
+     Supplied "config.pl" perl script that takes "config_h.SH_orig"
+          and "config.def" as input and produces "config.h.new".
+          With some luck, you will just need to edit "config.def"
+          to create a new port.
+     Updated "build.cm".
+     Updated "compile_perl.cm".
+     Added   "config.def".
+     Updated "config.h".
+     Added   "config.pl".
+     Updated "config_h.SH_orig".
+     Updated "perl.bind".
+     Updated "README.vos".
+     Updated "vos_dummies.c".
+     Updated "vosish.h".
+
+after 5.005_02:
+     Initial release.
+     Supplied "build.cm" command macro to build perl.
+     Supplied "Changes" to document the change history.
+     Supplied "compile_perl.cm" to launch processes to compile all
+          four versions of the Perl 5 binaries.
+     Supplied "config.h" to configure Perl 5 to VOS. Unfortunately,
+          since VOS does not have the configure tool, this file was
+          built by hand by editing "config_h.SH".
+     Supplied "config_h.SH_orig", which is the version of this file
+          that was current for version 5.005_02. Use this to discover
+          any subsequent changes to config_h.SH that must be
+          hand-copied into the real config.h.
+     Supplied "perl.bind" to control the VOS binder.
+     Supplied "README.vos" to describe the VOS port.
+     Supplied "test_vos_dummies.c" to test the VOS dummy functions.
+     Supplied "vos_dummies.c" to trap unimplemented POSIX functions.
+     Supplied "vosish.h" to configure Perl 5 to VOS.
+     
+(end)

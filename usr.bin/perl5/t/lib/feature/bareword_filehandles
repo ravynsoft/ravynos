@@ -1,0 +1,530 @@
+Test no feature bareword_filehandles
+
+todo:
+
+print HANDLE
+print HANDLE LIST
+printf HANDLE
+printf HANDLE LIST
+say HANDLE
+say HANDLE LIST
+readline
+<> / <HANDLE>
+<<>> - has an implicit argument
+truncate
+stat
+-X
+lstat
+open
+close
+eof
+fileno
+flock
+getc
+read
+write ?
+seek
+tell
+select
+sysopen
+sysread
+syswrite
+sysseek
+pipe
+
+socket
+connect
+bind
+listen
+recv
+send
+setsockopt
+getsockopt
+shutdown
+socketpair
+accept
+getpeername
+getsockname
+
+binmode
+ioctl
+fcntl
+chmod - doesn't accept bareword handles
+chown - doesn't accept bareword handles
+
+opendir
+closedir
+readdir
+seekdir
+telldir
+rewinddir
+chdir
+
+also check
+
+sort
+map
+grep
+
+aren't modified
+
+
+__END__
+# NAME defaults and explicitly on
+#!perl -c
+use File::Temp qw(tempfile);
+use Fcntl qw(SEEK_SET);
+use Socket;
+my ($fh, $name) = tempfile;
+open FOO, ">", File::Spec->devnull;
+print FOO;
+print FOO "Hello";
+printf FOO "Hello";
+seek FOO, 0, SEEK_SET;
+truncate FOO, 0;
+print FOO "Something read\n";
+close FOO;
+<FOO>;
+{
+    local *ARGV;
+    local *ARGVOUT;
+    @ARGV = $name;
+    <<>>;
+    <>;
+}
+pipe FH1, FH2;
+socketpair S1, S2, AF_UNIX, SOCK_STREAM, PF_UNSPEC;
+shutdown S1, 0;
+
+use feature "bareword_filehandles";
+open FOO, ">", File::Spec->devnull;
+print FOO;
+print FOO "Hello";
+printf FOO "Hello";
+seek FOO, 0, SEEK_SET;
+truncate FOO, 0;
+print FOO "Something read\n";
+close FOO;
+<FOO>;
+{
+    local *ARGV;
+    local *ARGVOUT;
+    @ARGV = $name;
+    <<>>;
+    <>;
+}
+pipe FH3, FH4;
+socketpair S3, S4, AF_UNIX, SOCK_STREAM, PF_UNSPEC;
+shutdown S3, 0;
+
+EXPECT
+- syntax OK
+########
+# NAME check atan2() with a handle doesn't trigger bareword filehandle errors
+no feature "bareword_filehandles", "indirect";
+my $x = atan2(FOO 1, 2);
+# my original approach to this hooked newGVREF(), which the parsing for most LOPs (as with
+# atan2() above) could end up calling newGVREF(), producing an unexpected error message.
+EXPECT
+OPTIONS fatal
+Number found where operator expected (Do you need to predeclare "FOO"?) at - line 2, near "FOO 1"
+Missing comma after first argument to atan2 function at - line 2, near "2)"
+Execution of - aborted due to compilation errors.
+########
+# NAME print HANDLE LIST, printf HANDLE LIST, print HANDLE, printf HANDLE
+use File::Spec;
+open FOO, ">", File::Spec->devnull or die $!;
+$_ = "abc";
+print FOO "test\n";
+printf FOO "test\n";
+print FOO;
+printf FOO;
+no feature "bareword_filehandles";
+print FOO "test2\n";
+printf FOO "test2\n";
+print FOO;
+printf FOO;
+print STDERR;
+print STDOUT;
+print ARGV;
+print ARGVOUT;
+print DATA;
+print STDIN;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 11.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 12.
+Execution of - aborted due to compilation errors.
+########
+# NAME say HANDLE LIST, say HANDLE
+use File::Spec;
+use feature "say";
+open FOO, ">", File::Spec->devnull or die $!;
+$_ = "abc";
+say FOO "test\n";
+say FOO;
+no feature "bareword_filehandles";
+say FOO "test2\n";
+say FOO;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Execution of - aborted due to compilation errors.
+########
+# NAME readline FOO, readline, <>, <FOO>
+use File::Spec;
+open FOO, "<", File::Spec->devnull or die $!;
+my $x = readline FOO;
+$x .= readline FOO; # rcatline
+$x = readline(FOO); # parsed a little differently with ()
+$x .= readline(FOO);
+$x = <FOO>;
+$x .= <FOO>;
+no feature "bareword_filehandles";
+$x = readline FOO;
+$x .= readline FOO; # rcatline
+$x = readline(FOO); # parsed a little differently with ()
+$x .= readline(FOO);
+$x = <FOO>;
+$x .= <FOO>;
+$x = readline STDIN;
+$x = <STDIN>;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 11.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 12.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 13.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 14.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 15.
+Execution of - aborted due to compilation errors.
+########
+# NAME truncate
+use strict;
+use warnings;
+# if all goes well this doesn't run anyway
+my $name = "bare$$.tmp";
+END { unlink $name if $name; }
+open FOO, ">", $name or die;
+print FOO "Non-zero length data\n";
+truncate FOO, 2;
+no feature "bareword_filehandles";
+truncate FOO, 1;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
+Execution of - aborted due to compilation errors.
+########
+# NAME stat, lstat, -X
+use File::Spec;
+open FOO, "<", File::Spec->devnull;
+my @x = stat FOO;
+@x = lstat FOO;
+my $x = -s FOO;
+no feature "bareword_filehandles";
+@x = stat FOO;
+@x = lstat FOO;
+$x = -s FOO;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Execution of - aborted due to compilation errors.
+########
+# NAME open, close, eof, fileno
+use File::Spec;
+open FOO, "<", File::Spec->devnull;
+my $x = eof FOO;
+$x = fileno FOO;
+close FOO;
+no feature "bareword_filehandles";
+open FOO, "<", File::Spec->devnull;
+$x = eof FOO;
+$x = fileno FOO;
+close FOO;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
+Execution of - aborted due to compilation errors.
+########
+# NAME flock
+use Fcntl ":flock";
+open FOO, "<", $0 or die;
+flock FOO, LOCK_SH;
+no feature "bareword_filehandles";
+flock FOO, LOCK_UN;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 5.
+Execution of - aborted due to compilation errors.
+########
+# NAME getc, read, seek, tell
+open FOO, "<", $0 or die;
+my $x = getc FOO;
+read(FOO, $x, 1);
+$x = tell FOO;
+seek FOO, 0, 0;
+no feature "bareword_filehandles";
+$x = getc FOO;
+read(FOO, $x, 1);
+$x = tell FOO;
+seek FOO, 0, 0;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
+Execution of - aborted due to compilation errors.
+########
+# NAME select
+open FOO, "<", $0 or die;
+my $old = select FOO;
+no feature "bareword_filehandles";
+select FOO;
+select $old;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 4.
+Execution of - aborted due to compilation errors.
+########
+# NAME sysopen, sysread, syswrite, sysseek
+use Fcntl;
+use File::Spec;
+sysopen FOO, File::Spec->devnull, O_RDWR or die;
+sysread FOO, my $x, 10;
+syswrite FOO, "Test";
+my $y = sysseek FOO, 0, SEEK_CUR;
+close FOO;
+no feature "bareword_filehandles";
+sysopen FOO, File::Spec->devnull, O_RDWR or die;
+sysread FOO, my $x, 10;
+syswrite FOO, "Test";
+my $y = sysseek FOO, 0, SEEK_CUR;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 11.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 12.
+Execution of - aborted due to compilation errors.
+########
+# NAME pipe
+my $fh;
+pipe IN, $fh;
+pipe $fh, OUT;
+pipe IN, OUT;
+no feature "bareword_filehandles";
+pipe IN, $fh;
+pipe $fh, OUT;
+pipe IN, OUT;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "IN" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "OUT" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "IN" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "OUT" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Execution of - aborted due to compilation errors.
+########
+# NAME socket, connect, bind, listen
+my $fh;
+# this won't run, just use dummy values for domain, type, protocol
+socket(FOO, 0, 0,0);
+connect(FOO, "abc");
+bind(FOO, "abc");
+listen(FOO, 5);
+no feature "bareword_filehandles";
+socket(FOO, 0, 0,0);
+connect(FOO, "abc");
+bind(FOO, "abc");
+listen(FOO, 5);
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 10.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 11.
+Execution of - aborted due to compilation errors.
+########
+# NAME accept
+accept(FOO, CHILD);
+accept($fh, CHILD);
+accept(FOO, $fh);
+no feature "bareword_filehandles";
+accept(FOO, CHILD);
+accept($fh, CHILD);
+accept(FOO, $fh);
+accept(*FOO, *CHILD);
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 5.
+Bareword filehandle "CHILD" not allowed under 'no feature "bareword_filehandles"' at - line 5.
+Bareword filehandle "CHILD" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Execution of - aborted due to compilation errors.
+########
+# NAME accept some more
+accept FOO, CHILD ;
+accept $fh, CHILD ;
+accept FOO, $fh ;
+no feature "bareword_filehandles";
+accept FOO, CHILD ;
+accept $fh, CHILD ;
+accept FOO, $fh;
+package BAR {}
+accept QUUX BAR, $fh;
+sub BAR::QUUX { $fh }
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 5.
+Bareword filehandle "CHILD" not allowed under 'no feature "bareword_filehandles"' at - line 5.
+Bareword filehandle "CHILD" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Execution of - aborted due to compilation errors.
+########
+# NAME send, recv, setsockopt, getsockopt
+send FOO, "abc", 0;
+recv FOO, my $x, 10, 0;
+setsockopt FOO, 0, 0, 0;
+my $y = getsockopt FOO, 0, 0;
+no feature "bareword_filehandles";
+send FOO, "abc", 0;
+recv FOO, my $x, 10, 0;
+setsockopt FOO, 0, 0, 0;
+my $y = getsockopt FOO, 0, 0;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Execution of - aborted due to compilation errors.
+########
+# NAME shutdown, getsockname, getpeername
+shutdown FOO, 0;
+my $sockname = getsockname FOO;
+my $peername = getpeername FOO;
+no feature "bareword_filehandles";
+shutdown FOO, 0;
+$sockname = getsockname FOO;
+$peername = getpeername FOO;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 5.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Execution of - aborted due to compilation errors.
+########
+# NAME socketpair
+my $fh;
+socketpair IN, $fh, 0, 0, 0;
+socketpair $fh, OUT, 0, 0, 0;
+socketpair IN, OUT, 0, 0, 0;
+no feature "bareword_filehandles";
+socketpair IN, $fh, 0, 0, 0;
+socketpair $fh, OUT, 0, 0, 0;
+socketpair IN, OUT, 0, 0, 0;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "IN" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "OUT" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "IN" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "OUT" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Execution of - aborted due to compilation errors.
+########
+# NAME binmode, ioctl, fcntl
+binmode FOO;
+binmode FOO, ":raw";
+ioctl FOO, 0, 0;
+fcntl FOO, 0, 0;
+no feature "bareword_filehandles";
+binmode FOO;
+binmode FOO, ":raw";
+ioctl FOO, 0, 0;
+fcntl FOO, 0, 0;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Execution of - aborted due to compilation errors.
+########
+# NAME opendir, closedir, readdir
+opendir FOO, ".";
+my @x = readdir FOO;
+chdir FOO;
+closedir FOO;
+no feature "bareword_filehandles";
+opendir FOO, ".";
+my @x = readdir FOO;
+chdir FOO;
+closedir FOO;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 9.
+Execution of - aborted due to compilation errors.
+########
+# NAME seekdir, telldir, rewinddir
+use strict;
+my $x = telldir FOO;
+seekdir FOO, $x;
+rewinddir FOO;
+no feature "bareword_filehandles";
+my $x = telldir FOO;
+seekdir FOO, $x;
+rewinddir FOO;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 6.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 7.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 8.
+Execution of - aborted due to compilation errors.
+########
+# NAME file tests
+-T FOO;
+-s FOO;
+no feature "bareword_filehandles";
+-T FOO;
+-s FOO;
+-s _;
+EXPECT
+OPTIONS fatal
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 4.
+Bareword filehandle "FOO" not allowed under 'no feature "bareword_filehandles"' at - line 5.
+Execution of - aborted due to compilation errors.
+########
+# NAME subroutine calls
+use feature "say";
+no feature "bareword_filehandles";
+sub foo {}
+print foo();
+print foo;
+say foo();
+say foo;
+-x foo();
+-x foo;
+EXPECT
+########
+# NAME method calls
+# https://github.com/Perl/perl5/issues/19704
+use feature "say";
+no feature "bareword_filehandles";
+sub foo {}
+print main->foo();
+print main->foo;
+say main->foo();
+say main->foo;
+-x main->foo();
+-x main->foo;
+EXPECT

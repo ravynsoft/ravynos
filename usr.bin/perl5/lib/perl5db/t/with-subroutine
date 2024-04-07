@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my $x = 'hello world';
+
+print "$x\n";
+
+back();
+
+exit;
+
+sub back {
+    print "hello back\n";
+}
+

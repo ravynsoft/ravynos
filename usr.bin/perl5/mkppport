@@ -1,0 +1,187 @@
+#!perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use File::Spec;
+use File::Compare qw( compare );
+use File::Copy qw( copy );
+use File::Basename qw( dirname );
+
+use feature 'signatures';
+
+my $rootdir = dirname($0);
+
+unshift @INC, File::Spec->catdir($rootdir, qw(cpan ExtUtils-MakeMaker t lib));
+
+eval q{ use MakeMaker::Test::Utils qw( which_perl ) };
+$@ and die $@;
+
+my %opt = (
+  list   => File::Spec->catfile($rootdir, 'mkppport.lst'),
+  clean  => 0,
+);
+
+unless ( GetOptions(\%opt, qw( clean list=s )) ) {
+  require Pod::Usage;
+  Pod::Usage::pod2usage(2);
+}
+
+my $absroot = File::Spec->rel2abs($rootdir);
+my @destdirs = readlist($opt{list});
+
+# Nothing to do...
+unless (@destdirs) {
+  print "no destination directories found in $opt{list}\n";
+  exit 0;
+}
+
+# Remove all installed ppport.h files
+if ($opt{clean}) {
+  iterdirs( sub ($dir, $fulldir) {
+    my $dest = File::Spec->catfile($fulldir, 'ppport.h');
+    if (-f $dest) {
+      print "removing ppport.h for $dir\n";
+      unlink $dest or warn "WARNING: could not remove $dest: $!\n";
+      1 while unlink $dest;  # remove any remaining versions
+    }
+  } );
+  exit 0;
+}
+
+# Determine full perl location
+my $perl = which_perl();
+
+# We're now changing the directory, which confuses the deferred
+# loading in Config.pm, so we better use an absolute @INC path
+unshift @INC, File::Spec->catdir($absroot, 'lib');
+
+# Change to Devel::PPPort directory, as it needs the stuff
+# from the parts/ directory
+chdir File::Spec->catdir($rootdir, 'dist', 'Devel-PPPort');
+
+# Capture and remove temporary files
+my @unlink;
+
+END {
+  for my $file (@unlink) {
+    print "removing temporary file $file\n";
+    unlink $file or warn "WARNING: could not remove $file: $!\n";
+    1 while unlink $file;  # remove any remaining versions
+  }
+}
+
+# Try to create a ppport.h if it doesn't exist yet, and
+# remember all files that need to be removed later.
+unless (-e 'ppport.h') {
+  unless (-e 'PPPort.pm') {
+    run('PPPort_pm.PL');
+    push @unlink, 'PPPort.pm';
+  }
+  run('ppport_h.PL');
+  push @unlink, 'ppport.h';
+}
+
+# Now install the created ppport.h into extension directories
+iterdirs( sub ($dir, $fulldir) {
+  my $dest = File::Spec->catfile($fulldir, 'ppport.h');
+  if (compare('ppport.h', $dest)) {
+    print "installing ppport.h for $dir\n";
+    copy('ppport.h', $dest) or die "copying ppport.h to $dest failed: $!\n";
+  }
+  else {
+    print "ppport.h in $dir is up-to-date\n";
+  }
+} );
+
+exit 0;
+
+#---------------------------------------
+# Iterate through extension directories
+#---------------------------------------
+sub iterdirs($code)
+{
+  for my $dir (@destdirs) {
+    my $fulldir = File::Spec->catdir($absroot, $dir);
+    if (-d $fulldir) {
+      $code->($dir, $fulldir);
+    }
+    else {
+      warn "WARNING: no such directory: $fulldir\n";
+    }
+  }
+}
+
+#----------------------------------------
+# Read the list of extension directories
+#----------------------------------------
+sub readlist($list)
+{
+  my @dirs;
+  open LIST, $list or die "$list: $!\n";
+  while (<LIST>) {
+    chomp;
+    /^\s*(?:$|#)/ or push @dirs, $_;
+  }
+  close LIST;
+  return @dirs;
+}
+
+#----------------------------------------------
+# Runs a script in the Devel::PPPort directory
+#----------------------------------------------
+sub run
+{
+  my @args = ("-I" . File::Spec->catdir((File::Spec->updir) x 2, 'lib'), @_);
+  my $run = $perl =~ m/\s/ ? qq("$perl") : $perl;
+  for (@args) {
+    $_ = qq("$_") if $^O eq 'VMS' && /^[^"]/;
+    $run .= " $_";
+  }
+  print "running $run\n";
+  system $run and die "$run failed: $?\n";
+}
+
+__END__
+
+=head1 NAME
+
+mkppport - distribute ppport.h among extensions
+
+=head1 SYNOPSIS
+
+mkppport [B<--list>=I<file>] [B<--clean>]
+
+=head1 DESCRIPTION
+
+B<mkppport> generates a I<ppport.h> file using Devel::PPPort
+and distributes it to the various extension directories that
+need it to build.  On certain Win32 builds, this script is not
+used and an alternative mechanism is used to create I<ppport.h>.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--list>=I<file>
+
+Name of the file that holds the list of extension directories
+that I<ppport.h> should be distributed to.
+This defaults to I<mkppport.lst> in the same directory as this
+script.
+
+=item B<--clean>
+
+Run with this option to clean out all distributed I<ppport.h> files.
+
+=back
+
+=head1 COPYRIGHT
+
+Copyright 2006 by Marcus Holland-Moritz <mhx@cpan.org>.
+
+This program is free software; you may redistribute it
+and/or modify it under the same terms as Perl itself.
+
+=cut

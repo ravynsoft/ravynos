@@ -1,0 +1,609 @@
+Revision history for Perl extension ExtUtils::CBuilder.
+
+0.280238
+
+  Fix:
+
+  - use -isyswithroot option for the CORE directory for the system perl on darwin.
+    The compiler would fail to find EXTERN.h with -I.
+    Came up while working on a fix for the similar issue in
+    https://github.com/Perl/perl5/issues/20362
+
+0.280237 - 2022-05-09
+
+  - when not set to quiet, print commands being run in a usable form.
+    https://github.com/Perl/perl5/pull/19701
+
+0.280236 - 2021-02-12
+
+  Fix:
+
+  - Remove image-base generation on Win32/gcc and instead use GCC's built-in
+    `--enable-auto-image-base` linker option.
+
+0.280235 - 2020-11-01
+
+  Fix:
+
+  - Fix compilation on darwin with XCode 12 (-Werror=implicit-function-declaration) 
+    Thanks to DrHyde for the patch.
+
+0.280234 - 2020-01-21
+
+  Update:
+
+  - Updated standalone module from blead.
+
+0.280231 - 2019-03-31
+
+  Fixed:
+
+  - Protected RE interpolation in Base.pm
+
+
+0.280230 - 2017-11-22
+
+  Fixed:
+
+  - Updated Changes
+  - Used OurPkgVersion instead of PkgVersion
+
+0.280229 - 2017-10-13
+
+  Fixed:
+
+  - Remove dependency to 'vars' package.
+
+0.280228 - 2017-07-20
+
+  Fixed:
+
+  - Fix link() on Windows, broken in version 0.280226.
+
+0.280227 - 2017-07-19
+
+  Fixed:
+
+  - Restore compatibility of test suite to Perl 5.6.
+
+0.280226 - 2017-07-14
+
+  Fixed:
+
+  - Fix C++ compiler detection (RT #131749)
+    (thanks to stphnlyd)
+
+0.280225 - 2016-01-04
+
+  Fixed:
+
+  - New location of libperl on Win32 when building core (RT #126632)
+
+0.280224 - 2015-10-09
+
+  Enhancements:
+
+  - Use warnings/strict on all modules.
+
+0.280223 - 2015-06-02
+
+  Fixed:
+
+  - Impose deterministic order on cpp-definition options.
+    Heretofore, ExtUtils::CBuilder put cpp-definition options
+    into the cc command line in non-deterministic order. This
+    produced noise when diffing build logs.
+    Make this order deterministic.  (RT #124106)
+    
+  Added:
+
+  - Add tests for ascii-betical order in t/04-base.t.
+
+0.280220 - 2014-09-27
+
+  Fixed:
+
+  - Added missing 'use Config' from 'android.pm' (thanks Debian community)
+
+0.280219 - 2014-09-01
+
+  Fixed:
+
+  - Fixed regression on Android (thanks to Brian Fraser)
+
+0.280218 - 2014-09-01
+
+  Fixed:
+
+  - Mispelled 'starup' key in BCC support was fixed. #79574
+  - Fixed the version in the PM file (thanks to Jim Keenan)
+
+0.280217 - 2014-08-22
+
+  Fixed:
+
+  - Quoted perl path for Windows support #98245 [Alberto Simões] 
+
+0.280216 - 2014-03-07
+
+  Added:
+
+  - Android support [Brian Fraser and Piotr Roszatycki]
+
+  Fixed:
+
+  - Teach ExtUtils::CBuilder to handle mod2fname properly [Brian Fraser]
+
+0.280212 - 2013-09-08
+
+  Fixed:
+
+  - Reversion all modules.  
+
+0.280211 - 2013-09-08
+
+  Fixed:
+
+  - Missing dependency Perl::OSType [Leon Timmermans]
+  - Fixed repository location [Alberto Simões]
+
+0.280210 - 2013-09-06
+
+  Fixed:
+
+  - Update INSTALLDIRS to favor installation under 'site' (perl 116479)
+    [James E Keenan]
+
+0.280209 - 2012-10-20 (Perl v5.17.5)
+
+  Fixed:
+
+  - Allow options to be passed to prelink in Windows (perl #115100)
+    [Eric Brine]
+
+0.280208 - 2012-06-20 (Perl v5.17.1)
+
+  Fixed:
+
+  - Corrected location in which manifest file is looked for on
+    Windows (RT#35943, perl #111798) [snaury@gmail.com]
+
+0.280207 (Not released)
+
+  Fixed:
+
+  - Corrected test for existence of manifest file on Windows
+    (perl #111782) [Steve Hay]
+
+0.280206 - 2012-03-20 (Perl v5.15.9)
+
+  Documented:
+
+  - Added a SUPPORT section to indicate that upstream is Perl 5 core
+
+0.280205 - 2011-12-20 (Perl v5.15.6)
+
+  Fixed:
+
+  - Fixed bug picking up ccflags from Config
+
+0.280204 - 2011-06-20 (Perl v5.15.0)
+
+  Minor:
+
+  - Quotation style cleanup
+
+0.280203 - 2011-05-14 (Perl v5.14.0)
+
+  Fixed:
+
+  - Appends CFLAGS and LDFLAGS environments instead of overriding
+
+  - Reset ccflags on compilation for VMS.
+
+  Changed:
+
+  - Refactored OS name mapping to use Perl::OSType
+
+0.280202 - Sun Jan 23 10:47:51 EST 2011
+
+  - Different file names used for test files; allows EU::CB tests
+    to be run in parallel. [Florian Ragwitz]
+
+0.280201 - Fri Jan 21 15:16:36 EST 2011
+
+  Fixed:
+
+  - t/04-base.t no longer attempt to compile or link as this provokes
+    failures on main platforms
+
+  - Various typo fixes in Pod or comments
+
+0.2802 - Sun Dec 12 07:22:43 EST 2010
+
+  Fixed:
+
+  - Incorporated another t/04-base.t fix from bleadperl
+    [Chris Williams]
+
+0.2801 - Wed Dec  8 21:36:56 EST 2010
+
+  Fixed:
+
+  - Fixed spurious t/04-base.t failure when run from Perl core
+    [David Golden]
+
+0.2800 - Mon Dec  6 16:05:46 EST 2010
+
+  - No changes from 0.27_07
+
+0.27_07 - Wed Sep 29 21:48:55 EDT 2010
+
+  Fixed:
+
+  - Fixed t/02-link.t on perl < 5.8
+
+0.27_06 - Mon Sep 27 15:29:54 EDT 2010
+
+  Fixed:
+
+  - Preserves exit status on VMS [Craig Berry]
+
+  - Fix Win32 split_like_shell escaping [Christian Walde]
+
+0.27_05 - Wed Jul 28 15:29:59 EDT 2010
+
+  Fixed:
+
+  - Tests no longer fail if user has set the CC environment variable
+
+0.27_04 - Mon Jul 26 22:41:43 EDT 2010
+
+  Added:
+  - handle c compiler and c++ compiler separately
+    (adds requirement for IPC::Cmd) [Jens Rehsack]
+
+  Others:
+  - rely on File::Temp::tempfile and File::Spec::tmpdir to
+    get unique file name for checking for compiler
+    [Jens Rehsack]
+
+  - Code base modernization and substantial code coverage improvments
+    [Jim Keenan]
+
+0.2703 - Tue Mar 16 17:10:55 EDT 2010
+
+ Bugs fixed:
+ - fixed tests for Windows and MSVC [Jan Dubois]
+
+0.2702 - Mon Feb 22 15:10:52 EST 2010
+
+ Bugs fixed:
+ - compile() changes in 0.2701 did not work on Windows.  Now fixed.
+
+0.2701 - Tue Feb 16 09:12:45 EST 2010
+
+ Bugs fixed:
+ - compile() now accepts both string & array for 'include_dirs'
+   argument, as documented.(RT#54606) [Alberto Simões]
+
+0.27 - Thu Oct 29 21:29:56 EDT 2009
+
+ Other:
+ - Removed Build.PL to avoid creating a circular dependency
+ - Added version numbers to Windows compiler driver modules
+
+0.26_05 - Sun Oct 25 17:29:02 EDT 2009
+
+ Bugs fixed:
+ - Fixed t/02link.t failures on cygwin with Perl 5.8 [David Golden]
+
+ Other:
+ - Made have_compiler (and have_cplusplus) quiet without echoing
+   the test command to STDOUT [David Golden]
+
+0.26_04 - Mon Oct 19 21:57:46 EDT 2009
+
+ Enhancements:
+ - Added 'have_cplusplus()' method to check for C++ support
+ - Added patches for building Perl with mingw64 [Sisyphus]
+ - Allow CC environment variable to override $Config{cc}
+
+ Bugs fixed:
+ - Fixed link executable command for Win32 MSVC (RT#40819) [Cosimo
+   Streppone]
+ - Removed MSVC version check when embedding a manifest file
+   (RT #43002) [Steve Hay]
+
+ Other:
+ - Split Windows compiler driver packages into individual *.pm files
+
+0.260301 - Sat Aug 29 11:04:41 EDT 2009
+
+ Bugs fixed:
+ - Fixed linking error on Win32 with gcc compiler (RT#49000)
+   [kmx]
+
+0.2603 - Sat Jul 18 06:56:06 EDT 2009
+
+ Bugs fixed:
+ - Makefile.PL had wrong INSTALLDIRS setting for older Perls
+   (RT#47985) [David Golden]
+
+0.2602 - Sat Jul  4 10:57:12 EDT 2009
+
+ Bugs fixed:
+ - Fixed 00-have-compiler.t if $^X is a relative path [David Wheeler]
+
+0.2601 - Wed Jul  1 09:37:39 EDT 2009
+
+ Bugs fixed:
+ - On VMS, cleans up extra files generated during testing
+   [John E. Malmberg, Craig Berry]
+
+0.26 - Mon Jun 29 20:11:52 EDT 2009
+
+ - No changes from 0.25_01
+
+0.25_01 - Sat Jun 27 23:13:20 EDT 2009
+
+ - Changed test library to Test::More
+
+ - Added tests for have_compiler
+
+ - Skips tests that need a compiler if have_compiler is false
+
+ - have_compiler will try to compile in the current directory
+   if compiling in tmpdir fails for whatever reason
+
+0.25 - Fri Jun 26 16:18:13 EDT 2009
+
+ - Slight diagnostic improvements in link.t
+
+0.24_01 - Sun Mar  8 14:50:10 2009
+
+ - On Windows, don't generate "mt" command when CRT is statically
+   linked. [Jan Dubois]
+
+ - On Cygwin, examine $Config{useshrplib} to see whether we're
+   supposed to be linking with a shared perl library or not. [Reini
+   Urban]
+
+ - In link_executable() on Cygwin, trust $Config{ld} rather than using
+   $Config{cc} for linking. [Reini Urban]
+
+ - Add 'haiku' as a Unix-like platform. [Ingo Weinhold]
+
+0.24 - Fri Aug 15 22:01:48 2008
+
+ - Added 'gnu' and 'gnukfreebsd' as Unix variants. [Niko Tyni]
+
+ - Brought in some VMS fixes from bleadperl: "Correct and complete
+   CBuilder's handling of external libraries when linking on VMS."
+   [Craig Berry]
+
+0.23 - Sat Apr 19 22:28:03 2008
+
+ - Fixed some problems (some old, some new) with Strawberry Perl on
+   Windows. [Alberto Simo~es]
+
+ - Will now install in the core perl lib directory when the user's
+   perl is new enough to have us in core. [Yi Ma Mao]
+
+0.22 - Fri Feb  8 21:52:21 2008
+
+ - Replaced the split_like_shell() method on Windows with a
+   near-no-op, which is probably more correct and has the benefit of
+   not messing up UNC paths. [John R. LoVerso, see
+   http://rt.cpan.org/Ticket/Display.html?id=26545]
+
+ - Fixed extra_compiler_flags on Windows, they were being
+   ignored. [Robert May]
+
+0.21 - Tue Oct 30 06:46:01 2007
+
+ - Clean up perl_src path using Cwd::realpath().  Only affects usage
+   as part of the perl core.
+
+ - Protect $., $@, $!, $^E, and $? from any clobbering that might
+   occur in our DESTROY method. [Zefram]
+
+ - From bleadperl, a patch to clean up debug symbol files (.pdb for
+   VC++, .tds for BCC) when running have_compiler(). [Steve Hay &
+   Steve Peters]
+
+0.19 - Sun May 13 14:29:18 2007
+
+ - When building as part of the perl core (so this is irrelevant for
+   people downloading from CPAN) we now try a little harder to find
+   the perl sources. [Jos Boumans]
+
+ - Fixed a part of the manifest thingy that got broken on 64-bit
+   Windows platforms in version 0.18. [Steve Hay, Jan Dubois]
+
+0.18 - Mon Mar 26 21:29:09 2007
+
+ - Various OS/2 fixes:
+   + Put .LIB file near .DEF file
+   + Got library-file building working better
+   + Handled libperl_overrides better
+   [Ilya Zakharevich]
+
+ - On Windows: embed manifest files in DLLs built with Module-Build
+   when using VC8. [Steve Hay]
+
+ - Added a workaround for a config error on dec_osf: the linker is
+   $Config{cc}, not $Config{ld}. [Jarkko Hietaniemi]
+
+ - Borland's compiler "response files" will not pass through macro
+   definitions that contain quotes. The quotes get stripped and there
+   seems to be no way to escape them. So we leave macros on the
+   command line. [Randy W. Sims]
+
+0.18  Sat Mar 25 13:35:47 CST 2006
+
+ - Yet more fixes for arg_defines() on VMS. [Craig A. Berry and John
+   E. Malmberg]
+
+0.17  Wed Mar 15 22:46:15 CST 2006
+
+ - When we're being run from an uninstalled perl distribution
+   (e.g. one that's in the process of being built and tested), we
+   search for perl first in the current working directory. [Randy
+   Sims]
+
+ - More fixing of the arg_defines() method on VMS. [Craig A. Berry and
+   John E. Malmberg]
+
+0.16  Mon Mar 13 17:08:21 CST 2006
+
+ - Fix quoting of command line arguments on Windows. [Yitzchak
+   Scott-Thoennes]
+
+ - Provided a custom arg_defines() on VMS that does essentially the
+   same thing for /define that version 0.14 did for /include. [Craig
+   A. Berry]
+
+ - Documented the existing 'quiet' parameter, which silences the
+   printing of system() commands. [Suggested by Yitzchak
+   Scott-Thoennes]
+
+0.15  Mon Oct  3 17:10:32 CDT 2005
+
+ - Several OS/2 fixes have been made, including: 1) adding the
+   necessary version string to DLLs, 2) passing the executable's name
+   to 'ldopts' without the .exe extension, 3) avoiding calling 'env'
+   via the 'shrpenv' thingy, since it triggers a fork() bug. [Ilya
+   Zakharevich]
+
+ - Integrate a couple cleanup-related changes from bleadperl that
+   somehow never got into this copy. [Steve Hay]
+
+ - Added a new 'defines' parameter to compile(), which gives a
+   platform-independent way to specify various -Dfoo=bar (or the
+   equivalent) compiler defines. [Randy W. Sims]
+
+0.14  Mon Sep 19 13:40:37 CDT 2005
+
+ - Several fixes have been made for VMS, including: 1) there can only
+   be one /include qualifier, so merge multiple /includes into one; 2)
+   make sure the executable is named the same way that dynaloader will
+   look for it; 3) make sure the option files for the exported symbols
+   and the PERLSHR image are passed properly to the linker. [John
+   E. Malmberg]
+
+0.13  Wed Aug 24 20:05:59 CDT 2005
+
+ - Several temporary files weren't being cleaned up during testing,
+   because the 'cleanup' mechanism was never properly implemented.
+   This is now fixed. [Steve Hay]
+
+0.12  Mon May 30 16:40:10 CDT 2005
+
+ - In order to integrate into the perl core, patches were contributed
+   that a) put a $VERSION variable in each .pm file, b) add a 'quiet'
+   parameter to new() to shut up some of the command-echoing, c)
+   checks for the perl source headers in the CORE/ directory in the
+   perl source tree, not in the post-installation location, and d)
+   adjusts the CWD when running the regression tests under the perl
+   core. [Yitzchak Scott-Thoennes]
+
+ - Various parts of the code were looking for the CORE/ directory in
+   $Config{archlib}, $Config{installarchlib}, and $Config{archlibexp}.
+   Only the latter is correct, so we use that everywhere now.
+   [Curt Tilmes]
+
+ - For Unix-ish platforms, link_executable() will now prefer
+   $Config{cc} to $Config{ld}, because that typically works
+   better. [Jarkko Hietaniemi and H.Merijn Brand]
+
+ - Prelinking (invoking ExtUtils::Mksymlists to create options-files)
+   is now only done when we're building dynamic libraries. [Yitzchak
+   Scott-Thoennes]
+
+0.11  Tue Apr  5 20:58:41 CDT 2005
+
+ - Added a licensing statement to CBuilder.pm. [Spotted by Chip
+   Salzenberg]
+
+0.10  Mon Mar 14 20:18:19 CST 2005
+
+ - Split out a few simple routines that format how compile switches
+   are formatted, so that we can override them for platforms like VMS
+   where they're very different.
+
+ - Fix compile() and link() on VMS. [Help from Michael Schwern and
+   Peter Prymmer]
+
+0.09  Tue Feb  8 17:57:41 CST 2005
+
+ - Fixed a broken link_executable() method on cygwin - it now uses
+   'gcc' instead of $Config{ld} for the linking, because the latter is
+   actually a shell script which calls a perl script which calls gcc
+   in a way that only works for creating shared libraries, not
+   executables.
+
+0.08  Tue Jan 18 21:54:11 CST 2005
+
+ - Fixed a testing error in which I had the prototype wrong for the
+   main() function. [Jose Pedro Oliveira]
+
+0.07  Wed Jan 12 21:50:34 CST 2005
+
+ - Added the link_executable() method, which provides the ability to
+   create standalone executables.  This is NOT yet implemented on
+   Windows, and therefore the tests for it are skipped on Win32.
+   [Alberto Manuel Brandao Simoes]
+
+ - Integrated the latest split_like_shell() for Windows from
+   Module::Build (really need to find a better home for this code...),
+   which now does a much better job of handling quotes and backslashes
+   and so on. [Randy Sims]
+
+ - Fixed a couple of Windows problems related to the output-file name
+   in link(), and some clobbering of the 'include_dirs' parameter to
+   compile(). [Randy Sims]
+
+0.06  Mon Dec 27 22:51:36 CST 2004
+
+ - Fixed a bug on Unix environments in which our work-around for
+   shell-commands like "FOO=BAR cc" (which is supposed to be turned
+   into "env FOO=BAR cc" to actually work) wasn't being called.
+
+0.05  Wed Oct 13 23:09:09 CDT 2004
+
+ - Fixed a bug in split_like_shell() in which leading whitespace was
+   creating an empty word, manifesting as something like "gcc - no
+   such file or directory" during tests. [Spotted by Warren L. Dodge]
+
+ - Incorporate another split_like_shell() fix from Module::Build.
+
+0.04  Sun Oct 10 00:31:08 CDT 2004
+
+ - Changed the split_like_shell() method to use the shellwords()
+   function from Text::ParseWords (a core module since 5.0), which
+   does a much better job than the split() we were using.
+
+
+0.03  Fri May 14 23:12:23 CDT 2004
+
+ - Fixed minor problems with the Build.PL file, the module names
+   should be quoted.
+
+ - The VMS module declared itself with the wrong package name.
+
+
+0.02  Fri Feb 20 10:17:40 CST 2004
+
+ - Fixed a bug in .../Platform/Windows.pm, in which compile() was
+   ignoring an 'include_dirs' argument.  [Randy Sims]
+
+ - Fixed a bug in .../Platform/Windows.pm, in which output files were
+   being created in the root directory \ when they should be created
+   in the current directory. [Randy Sims]
+
+
+0.01  Mon Jan 12 08:12:35 CST 2004
+
+ - Original release, taken from Module::Build's C-building code, with
+   patching help from Randy Sims.

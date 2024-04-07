@@ -1,0 +1,319 @@
+#!./perl
+# $Id: piconv,v 2.8 2016/08/04 03:15:58 dankogai Exp $
+#
+BEGIN { pop @INC if $INC[-1] eq '.' }
+use 5.8.0;
+use strict;
+use Encode ;
+use Encode::Alias;
+my %Scheme =  map {$_ => 1} qw(from_to decode_encode perlio);
+
+use File::Basename;
+my $name = basename($0);
+
+use Getopt::Long qw(:config no_ignore_case);
+
+my %Opt;
+
+help()
+    unless
+      GetOptions(\%Opt,
+         'from|f=s',
+         'to|t=s',
+         'list|l',
+         'string|s=s',
+         'check|C=i',
+         'c',
+         'perlqq|p',
+         'htmlcref',
+         'xmlcref',
+         'debug|D',
+         'scheme|S=s',
+         'resolve|r=s',
+         'help',
+         );
+
+$Opt{help} and help();
+$Opt{list} and list_encodings();
+my $locale = $ENV{LC_CTYPE} || $ENV{LC_ALL} || $ENV{LANG};
+defined $Opt{resolve} and resolve_encoding($Opt{resolve});
+$Opt{from} || $Opt{to} || help();
+my $from = $Opt{from} || $locale or help("from_encoding unspecified");
+my $to   = $Opt{to}   || $locale or help("to_encoding unspecified");
+$Opt{string} and Encode::from_to($Opt{string}, $from, $to) and print $Opt{string} and exit;
+my $scheme = do {
+    if (defined $Opt{scheme}) {
+	if (!exists $Scheme{$Opt{scheme}}) {
+	    warn "Unknown scheme '$Opt{scheme}', fallback to 'from_to'.\n";
+	    'from_to';
+	} else {
+	    $Opt{scheme};
+	}
+    } else {
+	'from_to';
+    }
+};
+
+$Opt{check} ||= $Opt{c};
+$Opt{perlqq}   and $Opt{check} = Encode::PERLQQ;
+$Opt{htmlcref} and $Opt{check} = Encode::HTMLCREF;
+$Opt{xmlcref}  and $Opt{check} = Encode::XMLCREF;
+
+my $efrom = Encode->getEncoding($from) || die "Unknown encoding '$from'";
+my $eto   = Encode->getEncoding($to)   || die "Unknown encoding '$to'";
+
+my $cfrom = $efrom->name;
+my $cto   = $eto->name;
+
+if ($Opt{debug}){
+    print <<"EOT";
+Scheme: $scheme
+From:   $from => $cfrom
+To:     $to => $cto
+EOT
+}
+
+my %use_bom =
+  map { $_ => 1 } qw/UTF-16 UTF-16BE UTF-16LE UTF-32 UTF-32BE UTF-32LE/;
+
+# we do not use <> (or ARGV) for the sake of binmode()
+@ARGV or push @ARGV, \*STDIN;
+
+unless ( $scheme eq 'perlio' ) {
+    binmode STDOUT;
+    my $need2slurp = $use_bom{ $eto } || $use_bom{ $efrom };
+    for my $argv (@ARGV) {
+        my $ifh = ref $argv ? $argv : undef;
+	$ifh or open $ifh, "<", $argv or warn "Can't open $argv: $!" and next;
+        $ifh or open $ifh, "<", $argv or next;
+        binmode $ifh;
+        if ( $scheme eq 'from_to' ) {    # default
+	    if ($need2slurp){
+		local $/;
+		$_ = <$ifh>;
+		Encode::from_to( $_, $from, $to, $Opt{check} );
+		print;
+	    }else{
+		while (<$ifh>) {
+		    Encode::from_to( $_, $from, $to, $Opt{check} );
+		    print;
+		}
+	    }
+        }
+        elsif ( $scheme eq 'decode_encode' ) {    # step-by-step
+	    if ($need2slurp){
+		local $/;
+		$_ = <$ifh>;
+                my $decoded = decode( $from, $_, $Opt{check} );
+                my $encoded = encode( $to, $decoded );
+                print $encoded;
+	    }else{
+		while (<$ifh>) {
+		    my $decoded = decode( $from, $_, $Opt{check} );
+		    my $encoded = encode( $to, $decoded );
+		    print $encoded;
+		}
+	    }
+	}
+	else {                                    # won't reach
+            die "$name: unknown scheme: $scheme";
+        }
+    }
+}
+else {
+
+    # NI-S favorite
+    binmode STDOUT => "raw:encoding($to)";
+    for my $argv (@ARGV) {
+        my $ifh = ref $argv ? $argv : undef;
+	$ifh or open $ifh, "<", $argv or warn "Can't open $argv: $!" and next;
+        $ifh or open $ifh, "<", $argv or next;
+        binmode $ifh => "raw:encoding($from)";
+        print while (<$ifh>);
+    }
+}
+
+sub list_encodings {
+    print join( "\n", Encode->encodings(":all") ), "\n";
+    exit 0;
+}
+
+sub resolve_encoding {
+    if ( my $alias = Encode::resolve_alias( $_[0] ) ) {
+        print $alias, "\n";
+        exit 0;
+    }
+    else {
+        warn "$name: $_[0] is not known to Encode\n";
+        exit 1;
+    }
+}
+
+sub help {
+    my $message = shift;
+    $message and print STDERR "$name error: $message\n";
+    print STDERR <<"EOT";
+$name [-f from_encoding] [-t to_encoding]
+      [-p|--perlqq|--htmlcref|--xmlcref] [-C N|-c] [-D] [-S scheme]
+      [-s string|file...]
+$name -l
+$name -r encoding_alias
+$name -h
+Common options:
+  -l,--list
+     lists all available encodings
+  -r,--resolve encoding_alias
+    resolve encoding to its (Encode) canonical name
+  -f,--from from_encoding  
+     when omitted, the current locale will be used
+  -t,--to to_encoding    
+     when omitted, the current locale will be used
+  -s,--string string         
+     "string" will be the input instead of STDIN or files
+The following are mainly of interest to Encode hackers:
+  -C N | -c           check the validity of the input
+  -D,--debug          show debug information
+  -S,--scheme scheme  use the scheme for conversion
+Those are handy when you can only see ASCII characters:
+  -p,--perlqq         transliterate characters missing in encoding to \\x{HHHH}
+                      where HHHH is the hexadecimal Unicode code point
+  --htmlcref          transliterate characters missing in encoding to &#NNN;
+                      where NNN is the decimal Unicode code point
+  --xmlcref           transliterate characters missing in encoding to &#xHHHH;
+                      where HHHH is the hexadecimal Unicode code point
+
+EOT
+    exit;
+}
+
+__END__
+
+=head1 NAME
+
+piconv -- iconv(1), reinvented in perl
+
+=head1 SYNOPSIS
+
+  piconv [-f from_encoding] [-t to_encoding]
+         [-p|--perlqq|--htmlcref|--xmlcref] [-C N|-c] [-D] [-S scheme]
+         [-s string|file...]
+  piconv -l
+  piconv -r encoding_alias
+  piconv -h
+
+=head1 DESCRIPTION
+
+B<piconv> is perl version of B<iconv>, a character encoding converter
+widely available for various Unixen today.  This script was primarily
+a technology demonstrator for Perl 5.8.0, but you can use piconv in the
+place of iconv for virtually any case.
+
+piconv converts the character encoding of either STDIN or files
+specified in the argument and prints out to STDOUT.
+
+Here is the list of options.  Some options can be in short format (-f)
+or long (--from) one.
+
+=over 4
+
+=item -f,--from I<from_encoding>
+
+Specifies the encoding you are converting from.  Unlike B<iconv>,
+this option can be omitted.  In such cases, the current locale is used.
+
+=item -t,--to I<to_encoding>
+
+Specifies the encoding you are converting to.  Unlike B<iconv>,
+this option can be omitted.  In such cases, the current locale is used.
+
+Therefore, when both -f and -t are omitted, B<piconv> just acts
+like B<cat>.
+
+=item -s,--string I<string>
+
+uses I<string> instead of file for the source of text.
+
+=item -l,--list
+
+Lists all available encodings, one per line, in case-insensitive
+order.  Note that only the canonical names are listed; many aliases
+exist.  For example, the names are case-insensitive, and many standard
+and common aliases work, such as "latin1" for "ISO-8859-1", or "ibm850"
+instead of "cp850", or "winlatin1" for "cp1252".  See L<Encode::Supported>
+for a full discussion.
+
+=item -r,--resolve I<encoding_alias>
+
+Resolve I<encoding_alias> to Encode canonical encoding name.
+
+=item -C,--check I<N>
+
+Check the validity of the stream if I<N> = 1.  When I<N> = -1, something
+interesting happens when it encounters an invalid character.
+
+=item -c
+
+Same as C<-C 1>.
+
+=item -p,--perlqq
+
+Transliterate characters missing in encoding to \x{HHHH} where HHHH is the
+hexadecimal Unicode code point.
+
+=item --htmlcref
+
+Transliterate characters missing in encoding to &#NNN; where NNN is the
+decimal Unicode code point.
+
+=item --xmlcref
+
+Transliterate characters missing in encoding to &#xHHHH; where HHHH is the
+hexadecimal Unicode code point.
+
+=item -h,--help
+
+Show usage.
+
+=item -D,--debug
+
+Invokes debugging mode.  Primarily for Encode hackers.
+
+=item -S,--scheme I<scheme>
+
+Selects which scheme is to be used for conversion.  Available schemes
+are as follows:
+
+=over 4
+
+=item from_to
+
+Uses Encode::from_to for conversion.  This is the default.
+
+=item decode_encode
+
+Input strings are decode()d then encode()d.  A straight two-step
+implementation.
+
+=item perlio
+
+The new perlIO layer is used.  NI-S' favorite.
+
+You should use this option if you are using UTF-16 and others which
+linefeed is not $/.
+
+=back
+
+Like the I<-D> option, this is also for Encode hackers.
+
+=back
+
+=head1 SEE ALSO
+
+L<iconv(1)>
+L<locale(3)>
+L<Encode>
+L<Encode::Supported>
+L<Encode::Alias>
+L<PerlIO>
+
+=cut

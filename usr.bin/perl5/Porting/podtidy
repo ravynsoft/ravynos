@@ -1,0 +1,16 @@
+#!perl
+use strict;
+use warnings;
+use Pod::Tidy 0.10;
+
+# Reformat pod using Pod::Tidy
+
+my $filename = shift || die "Usage podtidy [filename]";
+
+Pod::Tidy::tidy_files(
+    files    => [$filename],
+    verbose  => 1,
+    inplace  => 1,
+    nobackup => 1,
+    columns => 72, # 72 is what fmt defaults to
+);

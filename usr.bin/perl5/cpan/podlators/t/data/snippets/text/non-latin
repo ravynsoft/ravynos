@@ -1,0 +1,30 @@
+[name]
+E<> escapes outside of ISO 8859-1 range
+
+[input]
+=head1 BACKGROUND
+
+Taken from an older version of ack (see podlators bug #102631), this was
+seen in an input file with no =encoding and characers outside of the ISO
+8859-1 range.
+
+=head1 ACKNOWLEDGEMENTS
+
+...
+SE<eacute>bastien FeugE<egrave>re,
+RaE<uacute>l GundE<iacute>n,
+RaE<aacute>l GundE<aacute>n,
+GE<aacute>bor SzabE<oacute>,
+E<AElig>var ArnfjE<ouml>rE<eth> Bjarmason,
+Ask BjE<oslash>rn Hansen,
+Slaven ReziE<0x107>,
+
+[output]
+BACKGROUND
+    Taken from an older version of ack (see podlators bug #102631), this was
+    seen in an input file with no =encoding and characers outside of the ISO
+    8859-1 range.
+
+ACKNOWLEDGEMENTS
+    ... Sébastien Feugère, Raúl Gundín, Raál Gundán, Gábor Szabó, Ævar
+    Arnfjörð Bjarmason, Ask Bjørn Hansen, Slaven Rezić,

@@ -1,0 +1,27 @@
+[name]
+S<> wrapping L<>
+
+[input]
+=head1 URLS
+
+SZ<><> wrapping LZ<><> should make the space between the anchor and URL
+non-breaking and thus keep them together.
+
+L<perl> L<Net::DNS> L<Net::DNS::RR> L<Net::DNS::SEC>
+S<L<RFC2535|https://tools.ietf.org/html/rfc2535>>
+S<L<RFC2536|https://tools.ietf.org/html/rfc2536>>
+S<L<RFC2931|https://tools.ietf.org/html/rfc2931>>
+S<L<RFC3110|https://tools.ietf.org/html/rfc3110>>
+S<L<RFC4034|https://tools.ietf.org/html/rfc4034>>
+
+[output]
+URLS
+    S<> wrapping L<> should make the space between the anchor and URL
+    non-breaking and thus keep them together.
+
+    perl Net::DNS Net::DNS::RR Net::DNS::SEC
+    RFC2535 <https://tools.ietf.org/html/rfc2535>
+    RFC2536 <https://tools.ietf.org/html/rfc2536>
+    RFC2931 <https://tools.ietf.org/html/rfc2931>
+    RFC3110 <https://tools.ietf.org/html/rfc3110>
+    RFC4034 <https://tools.ietf.org/html/rfc4034>

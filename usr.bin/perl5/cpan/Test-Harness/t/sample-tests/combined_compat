@@ -1,0 +1,13 @@
+print <<DUMMY_TEST;
+1..10 todo 4 10
+ok 1
+ok 2 basset hounds got long ears
+not ok 3        all hell broke lose
+ok 4
+ok
+ok 6
+ok 7            # Skip contract negociations
+ok 8
+not ok 9
+not ok 10
+DUMMY_TEST

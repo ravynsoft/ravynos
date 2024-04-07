@@ -1,0 +1,276 @@
+NNAAMMEE
+    basic.pod - Test of various basic POD features in translators.
+
+HHEEAADDIINNGGSS
+    Try a few different levels of headings, with embedded formatting codes
+    and other interesting bits.
+
+TThhiiss  ""iiss""  aa  ""lleevveell  11""  hheeaaddiinngg
+  ````LLeevveell''''  ""22  hheeaaddiinngg
+   _L_e_v_e_l_ _3_ _h_e_a_d_i_n_g_ _w_i_t_h_ _"_w_e_i_r_d_ _s_t_u_f_f_ _"_"_ _(_d_o_u_b_l_e_ _q_u_o_t_e_)_"
+   _L_e_v_e_l_ _"_4_ _"_h_e_a_d_i_n_g_"
+    Now try again with iinntteerrmmiixxeedd _t_e_x_t.
+
+TThhiiss  ""iiss""  aa  ""lleevveell  11""  hheeaaddiinngg
+    Text.
+
+  ````LLeevveell''''  22  hheeaaddiinngg
+    Text.
+
+   _L_e_v_e_l_ _3_ _h_e_a_d_i_n_g_ _w_i_t_h_ _"_w_e_i_r_d_ _s_t_u_f_f_"
+    Text.
+
+   _L_e_v_e_l_ _"_4_ _"_h_e_a_d_i_n_g_"
+    Text.
+
+LLIINNKKSS
+    These are all taken from the Pod::Parser tests.
+
+    Try out _L_O_T_S of different ways of specifying references:
+
+    Reference the "section" in manpage
+
+    Reference the "section" in "manpage"
+
+    Reference the "section" in manpage
+
+    Now try it using the new "|" stuff ...
+
+    Reference the thistext|
+
+    Reference the thistext |
+
+    Reference the thistext|
+
+    Reference the thistext |
+
+    Reference the thistext|
+
+    Reference the thistext|
+
+    And then throw in a few new ones of my own.
+
+    foo
+
+    foo
+
+    "bar" in foo
+
+    "baz boo" in foo
+
+    "bar"
+
+    "baz boo"
+
+    "baz boo"
+
+    "baz boo" in foo bar
+
+    "boo var baz"
+
+    "bar baz"
+
+    "boo", "bar", and "baz"
+
+    foobar
+
+    Testing _i_t_a_l_i_c_s
+
+    "_I_t_a_l_i_c text" in foo
+
+    "Section "with" _o_t_h_e_r_ _m_a_r_k_u_p" in foo|bar
+
+OOVVEERR  AANNDD  IITTEEMMSS
+    Taken from Pod::Parser tests, this is a test to ensure that multiline
+    =item paragraphs get indented appropriately.
+
+    This is a test.
+
+    There should be whitespace now before this line.
+
+    Taken from Pod::Parser tests, this is a test to ensure the nested =item
+    paragraphs get indented appropriately.
+
+    1 First section.
+
+      a this is item a
+
+      b this is item b
+
+    2 Second section.
+
+      a this is item a
+
+      b this is item b
+
+      c
+      d This is item c & d.
+
+    Now some additional weirdness of our own. Make sure that multiple tags
+    for one paragraph are properly compacted.
+
+    "foo"
+    bbaarr
+    "baz"
+        There shouldn't be any spaces between any of these item tags; this
+        idiom is used in perlfunc.
+
+    Some longer item text
+        Just to make sure that we test paragraphs where the item text
+        doesn't fit in the margin of the paragraph (and make sure that this
+        paragraph fills a few lines).
+
+        Let's also make it multiple paragraphs to be sure that works.
+
+    Test use of =over without =item as a block "quote" or block paragraph.
+
+        This should be indented four spaces but otherwise formatted the same
+        as any other regular text paragraph. Make sure it's long enough to
+        see the results of the formatting.....
+
+    Now try the same thing nested, and make sure that the indentation is
+    reset back properly.
+
+            This paragraph should be doubly indented.
+
+        This paragraph should only be singly indented.
+
+        *   This is an item in the middle of a block-quote, which should be
+            allowed.
+
+        *   We're also testing tagless item commands.
+
+        Should be back to the single level of indentation.
+
+    Should be back to regular indentation.
+
+    Now also check the transformation of * into real bullets for man pages.
+
+    *   An item. We're also testing using =over without a number, and making
+        sure that item text wraps properly.
+
+    *   Another item.
+
+    and now test the numbering of item blocks.
+
+    1.  First item.
+
+    2.  Second item.
+
+FFOORRMMAATTTTIINNGG  CCOODDEESS
+    Another test taken from Pod::Parser.
+
+    This is a test to see if I can do not only $self and method(), but also
+    "$self->method()" and "$self->{FIELDNAME}" and "$Foo <=> $Bar" without
+    resorting to escape sequences. If I want to refer to the right-shift
+    operator I can do something like "$x >> 3" or even "$y >> 5".
+
+    Now for the grand finale of "$self->method()->{FIELDNAME} = {FOO=>BAR}".
+    And I also want to make sure that newlines work like this
+    "$self->{FOOBAR} >> 3 and [$b => $a]->[$a <=> $b]"
+
+    Of course I should still be able to do all this _w_i_t_h escape sequences
+    too: "$self->method()" and "$self->{FIELDNAME}" and "{FOO=>BAR}".
+
+    Don't forget "$self->method()->{FIELDNAME} = {FOO=>BAR}".
+
+    And make sure that 0 works too!
+
+    Now, if I use << or >> as my delimiters, then I have to use whitespace.
+    So things like "<$self-"method()>> and "<$self-"{FIELDNAME}>> won't end
+    up doing what you might expect since the first > will still terminate
+    the first < seen.
+
+    Lets make sure these work for empty ones too, like "" and ">>" (just to
+    be obnoxious)
+
+    The statement: "This is dog kind's _f_i_n_e_s_t hour!" is a parody of a
+    quotation from Winston Churchill.
+
+    The following tests are added to those:
+
+    Make sure that a few other odd _t_h_i_n_g_s still work. This should be a
+    vertical bar: |. Here's a test of a few more special escapes that have
+    to be supported:
+
+    &  An ampersand.
+
+    '  An apostrophe.
+
+    <  A less-than sign.
+
+    >  A greater-than sign.
+
+    "  A double quotation mark.
+
+    /  A forward slash.
+
+    Try to get this bit of text over towards the edge so
+    |that all of this text inside S<> won't| be wrapped. Also test the
+    |same thing with non-breaking spaces.|
+
+    There is a soft hyphen in hyphen at hy-phen.
+
+    This is a test of an index entry.
+
+VVEERRBBAATTIIMM
+    Throw in a few verbatim paragraphs.
+
+        use Term::ANSIColor;
+        print color 'bold blue';
+        print "This text is bold blue.\n";
+        print color 'reset';
+        print "This text is normal.\n";
+        print colored ("Yellow on magenta.\n", 'yellow on_magenta');
+        print "This text is normal.\n";
+        print colored ['yellow on_magenta'], "Yellow on magenta.\n";
+
+        use Term::ANSIColor qw(uncolor);
+        print uncolor '01;31', "\n";
+
+    But this isn't verbatim (make sure it wraps properly), and the next
+    paragraph is again:
+
+        use Term::ANSIColor qw(:constants);
+        print BOLD, BLUE, "This text is in bold blue.\n", RESET;
+
+        use Term::ANSIColor qw(:constants); $Term::ANSIColor::AUTORESET = 1; print BOLD BLUE "This text is in bold blue.\n"; print "This text is normal.\n";
+
+    (Ugh, that's obnoxiously long.) Try different spacing:
+
+            Starting with a tab.
+    Not
+    starting
+    with
+    a
+    tab.  But this should still be verbatim.
+     As should this.
+
+    This isn't.
+
+     This is.  And this:    is an internal tab.  It should be:
+                        |--| <= lined up with that.
+
+    (Tricky, but tabs should be expanded before the translator starts in on
+    the text since otherwise text with mixed tabs and spaces will get messed
+    up.)
+
+        And now we test verbatim paragraphs right before a heading.  Older
+        versions of Pod::Man generated two spaces between paragraphs like this
+        and the heading.  (In order to properly test this, one may have to
+        visually inspect the nroff output when run on the generated *roff
+        text, unfortunately.)
+
+CCOONNCCLLUUSSIIOONN
+    That's all, folks!
+
+CCOOPPYYRRIIGGHHTT  AANNDD  LLIICCEENNSSEE
+    Copyright 2001, 2004, 2016, 2018 Russ Allbery <rra@cpan.org>
+
+    Copying and distribution of this file, with or without modification, are
+    permitted in any medium without royalty provided the copyright notice
+    and this notice are preserved. This file is offered as-is, without any
+    warranty.
+
+    SPDX-License-Identifier: FSFAP
+

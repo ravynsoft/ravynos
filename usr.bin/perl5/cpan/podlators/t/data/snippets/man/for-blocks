@@ -1,0 +1,33 @@
+[name]
+=for blocks
+
+[input]
+=pod
+
+Some text.
+
+=for man
+Some raw nroff.
+
+=for roff \fBBold text.\fP
+
+=for html
+Stuff that's hidden.
+
+=for MAN \fIItalic text.\fP
+
+=for ROFF
+.PP
+\&A paragraph.
+
+More text.
+
+[output]
+Some text.
+Some raw nroff.
+\fBBold text.\fP
+\fIItalic text.\fP
+.PP
+\&A paragraph.
+.PP
+More text.

@@ -1,0 +1,9 @@
+/define PERL_REVISION/ {revision = $3}
+/define PERL_VERSION/ {version = $3}
+/define PERL_SUBVERSION/ {subvers = $3}
+END {
+if (subvers == 0) 
+	printf "p9pvers = %d.%d\n", revision, version> "buildinfo";
+else
+	printf "p9pvers = %d.%d.%d\n" , revision, version, subvers> "buildinfo";
+}

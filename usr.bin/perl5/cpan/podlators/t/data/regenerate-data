@@ -1,0 +1,108 @@
+#!/usr/bin/perl
+#
+# Development helper program to regenerate test data.
+#
+# The snippet tests are designed to keep the output fairly stable, but there
+# are a few tests that use complete output with some customization.  This
+# helper program regenerates those files using the local installation of
+# podlators.  The output can then be reviewed with normal Git tools.
+#
+# Copyright 2022 Russ Allbery <rra@cpan.org>
+#
+# This program is free software; you may redistribute it and/or modify it
+# under the same terms as Perl itself.
+#
+# SPDX-License-Identifier: GPL-1.0-or-later OR Artistic-1.0-Perl
+
+use 5.008;
+use strict;
+use warnings;
+
+use lib 'blib/lib';
+
+use File::Spec;
+use Pod::Man;
+use Pod::Text;
+use Pod::Text::Color;
+use Pod::Text::Overstrike;
+use Pod::Text::Termcap;
+
+# Hard-code configuration for Term::Cap to get predictable results.
+#<<<
+local $ENV{COLUMNS}  = 80;
+local $ENV{TERM}     = 'xterm';
+local $ENV{TERMPATH} = File::Spec->catfile('t', 'data', 'termcap');
+local $ENV{TERMCAP}  = 'xterm:co=#80:do=^J:md=\\E[1m:us=\\E[4m:me=\\E[m';
+#>>>
+
+# Map of translators to the file containing the formatted output for the
+# general/basic.t test.
+#<<<
+my %output = (
+    'Pod::Man'              => File::Spec->catfile('t', 'data', 'basic.man'),
+    'Pod::Text'             => File::Spec->catfile('t', 'data', 'basic.txt'),
+    'Pod::Text::Color'      => File::Spec->catfile('t', 'data', 'basic.clr'),
+    'Pod::Text::Overstrike' => File::Spec->catfile('t', 'data', 'basic.ovr'),
+    'Pod::Text::Termcap'    => File::Spec->catfile('t', 'data', 'basic.cap'),
+);
+#>>>
+
+# Regenerate those output files.
+my $input = File::Spec->catfile('t', 'data', 'basic.pod');
+for my $module (keys(%output)) {
+    my $parser = $module->new();
+
+    # Run the formatting module.
+    my $output;
+    $parser->output_string(\$output);
+    $parser->parse_file($input);
+
+    # If the test module is Pod::Man, strip off the header.  This test does
+    # not attempt to compare it, since it contains version numbers that
+    # change.
+    if ($module eq 'Pod::Man') {
+        $output =~ s{ \A .* \n [.]nh \n }{}xms;
+    }
+
+    # Overwrite the output.
+    open(my $fh, '>', $output{$module})
+      or die "cannot create $output{$module}: $!\n";
+    print {$fh} $output
+      or die "cannot write to $output{$module}: $!\n";
+    close($fh)
+      or die "cannot write to $output{$module}: $!\n";
+}
+
+# Now switch to the files for the man/encoding.t test.
+$input = File::Spec->catfile('t', 'data', 'man', 'encoding.pod');
+#<<<
+%output = (
+    groff => File::Spec->catfile('t', 'data', 'man', 'encoding.groff'),
+    roff  => File::Spec->catfile('t', 'data', 'man', 'encoding.roff'),
+    utf8  => File::Spec->catfile('t', 'data', 'man', 'encoding.utf8'),
+);
+#>>>
+
+# For each encoding, load the input, generate the output, and check that the
+# output matches.
+for my $encoding (keys(%output)) {
+    my $parser = Pod::Man->new(
+        encoding => $encoding,
+        center => 'podlators',
+        release => 'testing',
+    );
+    my $output;
+    $parser->output_string(\$output);
+    $parser->parse_file($input);
+
+    # Strip off the version line.
+    $output =~ s{ ^ [^\n]+ Automatically [ ] generated [ ] by [^\n]+ \n }{}xms;
+
+    # Overwrite the output.
+    open(my $fh, '>', $output{$encoding})
+      or die "cannot create $output{$encoding}: $!\n";
+    print {$fh} $output
+      or die "cannot write to $output{$encoding}: $!\n";
+    close($fh)
+      or die "cannot write to $output{$encoding}: $!\n";
+}

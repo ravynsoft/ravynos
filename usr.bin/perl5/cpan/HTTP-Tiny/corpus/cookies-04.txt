@@ -1,0 +1,37 @@
+url
+  http://example.com/index.html
+headers
+  Cookie: cname=cvalue05; domain=example.com; path=/
+----------
+GET /index.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+Cookie: cname=cvalue05
+
+----------
+HTTP/1.1 200 OK
+Date: Sat, 02 Mar 2013 00:00:00 GMT
+Set-Cookie: cname=cvalue06; domain=example.com; path=/
+Content-Type: text/plain
+Content-Length: 44
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef
+----------
+url
+  http://example.com/index.html
+----------
+GET /index.html HTTP/1.1
+Host: example.com
+Connection: close
+User-Agent: HTTP-Tiny/VERSION
+Cookie: cname=cvalue06
+
+----------
+HTTP/1.1 200 OK
+Date: Sat, 02 Mar 2013 00:00:00 GMT
+Set-Cookie: cname=cvalue06; domain=example.com; path=/
+Content-Type: text/plain
+Content-Length: 44
+
+abcdefghijklmnopqrstuvwxyz1234567890abcdef

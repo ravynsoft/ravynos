@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+
+# output a list of:
+#  a) files listed in MANIFEST which don't exist
+#  b) files which exist but which aren't in MANIFEST
+
+use v5.14;
+use warnings;
+use File::Find;
+use Getopt::Long;
+use constant SKIP => 125;
+
+my $exitstatus;
+GetOptions('exitstatus!', \$exitstatus)
+    or die "$0 [--exitstatus]";
+
+my %files;
+my $missing = 0;
+my $bonus = 0;
+
+open my $fh, '<', 'MANIFEST' or die "Can't read MANIFEST: $!\n";
+for my $line (<$fh>) {
+    my ($file) = $line =~ /^(\S+)/;
+    ++$files{$file};
+    next if -f $file;
+    ++$missing;
+    print "$file from MANIFEST doesn't exist\n";
+}
+close $fh;
+
+find {
+    wanted => sub {
+        return if -d;
+        return if $_ eq '.mailmap';
+        return if $_ eq '.gitignore';
+        return if $_ eq '.gitattributes';
+        return if $_ eq '.git_patch';
+
+        my $x = $File::Find::name =~ s!^\./!!r;
+        return if $x =~ /^\.git\b/;
+        return if $x =~ m{^\.github/};
+        return if $files{$x};
+        ++$bonus;
+        print "$x\t\tnot in MANIFEST\n";
+    },
+}, ".";
+
+my $exitcode = $exitstatus ? $missing + $bonus : 0;
+
+# We can't (meaningfully) exit with codes above 255, so we're going to have to
+# clamp them to some range whatever we do. So as we need the code anyway, use
+# 124 as our maximum instead, and then we can run as a useful git bisect run
+# script if needed...
+
+$exitcode = SKIP - 1
+    if $exitcode > SKIP;
+
+exit $exitcode;

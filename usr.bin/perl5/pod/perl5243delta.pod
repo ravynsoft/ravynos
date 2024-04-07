@@ -1,0 +1,335 @@
+=encoding utf8
+
+=head1 NAME
+
+perl5243delta - what is new for perl v5.24.3
+
+=head1 DESCRIPTION
+
+This document describes differences between the 5.24.2 release and the 5.24.3
+release.
+
+If you are upgrading from an earlier release such as 5.24.1, first read
+L<perl5242delta>, which describes differences between 5.24.1 and 5.24.2.
+
+=head1 Security
+
+=head2 [CVE-2017-12837] Heap buffer overflow in regular expression compiler
+
+Compiling certain regular expression patterns with the case-insensitive
+modifier could cause a heap buffer overflow and crash perl.  This has now been
+fixed.
+L<[GH #16021]|https://github.com/Perl/perl5/issues/16021>
+
+=head2 [CVE-2017-12883] Buffer over-read in regular expression parser
+
+For certain types of syntax error in a regular expression pattern, the error
+message could either contain the contents of a random, possibly large, chunk of
+memory, or could crash perl.  This has now been fixed.
+L<[GH #16025]|https://github.com/Perl/perl5/issues/16025>
+
+=head2 [CVE-2017-12814] C<$ENV{$key}> stack buffer overflow on Windows
+
+A possible stack buffer overflow in the C<%ENV> code on Windows has been fixed
+by removing the buffer completely since it was superfluous anyway.
+L<[GH #16051]|https://github.com/Perl/perl5/issues/16051>
+
+=head1 Incompatible Changes
+
+There are no changes intentionally incompatible with 5.24.2.  If any exist,
+they are bugs, and we request that you submit a report.  See L</Reporting
+Bugs> below.
+
+=head1 Modules and Pragmata
+
+=head2 Updated Modules and Pragmata
+
+=over 4
+
+=item *
+
+L<Module::CoreList> has been upgraded from version 5.20170715_24 to
+5.20170922_24.
+
+=item *
+
+L<POSIX> has been upgraded from version 1.65 to 1.65_01.
+
+=item *
+
+L<Time::HiRes> has been upgraded from version 1.9733 to 1.9741.
+
+L<[GH #15396]|https://github.com/Perl/perl5/issues/15396>
+L<[GH #15401]|https://github.com/Perl/perl5/issues/15401>
+L<[GH #15524]|https://github.com/Perl/perl5/issues/15524>
+L<[cpan #120032]|https://rt.cpan.org/Public/Bug/Display.html?id=120032>
+
+=back
+
+=head1 Configuration and Compilation
+
+=over 4
+
+=item *
+
+When building with GCC 6 and link-time optimization (the B<-flto> option to
+B<gcc>), F<Configure> was treating all probed symbols as present on the system,
+regardless of whether they actually exist.  This has been fixed.
+L<[GH #15322]|https://github.com/Perl/perl5/issues/15322>
+
+=item *
+
+F<Configure> now aborts if both C<-Duselongdouble> and C<-Dusequadmath> are
+requested.
+L<[GH #14944]|https://github.com/Perl/perl5/issues/14944>
+
+=item *
+
+Fixed a bug in which F<Configure> could append C<-quadmath> to the archname
+even if it was already present.
+L<[GH #15423]|https://github.com/Perl/perl5/issues/15423>
+
+=item *
+
+Clang builds with C<-DPERL_GLOBAL_STRUCT> or C<-DPERL_GLOBAL_STRUCT_PRIVATE>
+have been fixed (by disabling Thread Safety Analysis for these configurations).
+
+=back
+
+=head1 Platform Support
+
+=head2 Platform-Specific Notes
+
+=over 4
+
+=item VMS
+
+=over 4
+
+=item *
+
+C<configure.com> now recognizes the VSI-branded C compiler.
+
+=back
+
+=item Windows
+
+=over 4
+
+=item *
+
+Building XS modules with GCC 6 in a 64-bit build of Perl failed due to
+incorrect mapping of C<strtoll> and C<strtoull>.  This has now been fixed.
+L<[GH #16074]|https://github.com/Perl/perl5/issues/16074>
+L<[cpan #121683]|https://rt.cpan.org/Public/Bug/Display.html?id=121683>
+L<[cpan #122353]|https://rt.cpan.org/Public/Bug/Display.html?id=122353>
+
+=back
+
+=back
+
+=head1 Selected Bug Fixes
+
+=over 4
+
+=item *
+
+C<< /@0{0*-E<gt>@*/*0 >> and similar contortions used to crash, but no longer
+do, but merely produce a syntax error.
+L<[GH #15333]|https://github.com/Perl/perl5/issues/15333>
+
+=item *
+
+C<do> or C<require> with an argument which is a reference or typeglob which,
+when stringified, contains a null character, started crashing in Perl 5.20, but
+has now been fixed.
+L<[GH #15337]|https://github.com/Perl/perl5/issues/15337>
+
+=item *
+
+Expressions containing an C<&&> or C<||> operator (or their synonyms C<and> and
+C<or>) were being compiled incorrectly in some cases.  If the left-hand side
+consisted of either a negated bareword constant or a negated C<do {}> block
+containing a constant expression, and the right-hand side consisted of a
+negated non-foldable expression, one of the negations was effectively ignored.
+The same was true of C<if> and C<unless> statement modifiers, though with the
+left-hand and right-hand sides swapped.  This long-standing bug has now been
+fixed.
+L<[GH #15285]|https://github.com/Perl/perl5/issues/15285>
+
+=item *
+
+C<reset> with an argument no longer crashes when encountering stash entries
+other than globs.
+L<[GH #15314]|https://github.com/Perl/perl5/issues/15314>
+
+=item *
+
+Assignment of hashes to, and deletion of, typeglobs named C<*::::::> no longer
+causes crashes.
+L<[GH #15307]|https://github.com/Perl/perl5/issues/15307>
+
+=item *
+
+Assignment variants of any bitwise ops under the C<bitwise> feature would crash
+if the left-hand side was an array or hash.
+L<[GH #15346]|https://github.com/Perl/perl5/issues/15346>
+
+=item *
+
+C<socket> now leaves the error code returned by the system in C<$!> on failure.
+L<[GH #15383]|https://github.com/Perl/perl5/issues/15383>
+
+=item *
+
+Parsing bad POSIX charclasses no longer leaks memory.
+L<[GH #15382]|https://github.com/Perl/perl5/issues/15382>
+
+=item *
+
+Since Perl 5.20, line numbers have been off by one when perl is invoked with
+the B<-x> switch.  This has been fixed.
+L<[GH #15413]|https://github.com/Perl/perl5/issues/15413>
+
+=item *
+
+Some obscure cases of subroutines and file handles being freed at the same time
+could result in crashes, but have been fixed.  The crash was introduced in Perl
+5.22.
+L<[GH #15435]|https://github.com/Perl/perl5/issues/15435>
+
+=item *
+
+Some regular expression parsing glitches could lead to assertion failures with
+regular expressions such as C</(?E<lt>=/> and C</(?E<lt>!/>.  This has now been
+fixed.
+L<[GH #15332]|https://github.com/Perl/perl5/issues/15332>
+
+=item *
+
+C<gethostent> and similar functions now perform a null check internally, to
+avoid crashing with the torsocks library.  This was a regression from Perl
+5.22.
+L<[GH #15478]|https://github.com/Perl/perl5/issues/15478>
+
+=item *
+
+Mentioning the same constant twice in a row (which is a syntax error) no longer
+fails an assertion under debugging builds.  This was a regression from Perl
+5.20.
+L<[GH #15017]|https://github.com/Perl/perl5/issues/15017>
+
+=item *
+
+In Perl 5.24 C<fchown> was changed not to accept negative one as an argument
+because in some platforms that is an error.  However, in some other platforms
+that is an acceptable argument.  This change has been reverted.
+L<[GH #15523]|https://github.com/Perl/perl5/issues/15523>.
+
+=item *
+
+C<@{x> followed by a newline where C<"x"> represents a control or non-ASCII
+character no longer produces a garbled syntax error message or a crash.
+L<[GH #15518]|https://github.com/Perl/perl5/issues/15518>
+
+=item *
+
+A regression in Perl 5.24 with C<tr/\N{U+...}/foo/> when the code point was
+between 128 and 255 has been fixed.
+L<[GH #15475]|https://github.com/Perl/perl5/issues/15475>.
+
+=item *
+
+Many issues relating to C<printf "%a"> of hexadecimal floating point were
+fixed.  In addition, the "subnormals" (formerly known as "denormals") floating
+point numbers are now supported both with the plain IEEE 754 floating point
+numbers (64-bit or 128-bit) and the x86 80-bit "extended precision".  Note that
+subnormal hexadecimal floating point literals will give a warning about
+"exponent underflow".
+L<[GH #15495]|https://github.com/Perl/perl5/issues/15495>
+L<[GH #15502]|https://github.com/Perl/perl5/issues/15502>
+L<[GH #15503]|https://github.com/Perl/perl5/issues/15503>
+L<[GH #15504]|https://github.com/Perl/perl5/issues/15504>
+L<[GH #15505]|https://github.com/Perl/perl5/issues/15505>
+L<[GH #15510]|https://github.com/Perl/perl5/issues/15510>
+L<[GH #15512]|https://github.com/Perl/perl5/issues/15512>
+
+=item *
+
+The parser could sometimes crash if a bareword came after C<evalbytes>.
+L<[GH #15586]|https://github.com/Perl/perl5/issues/15586>
+
+=item *
+
+Fixed a place where the regex parser was not setting the syntax error correctly
+on a syntactically incorrect pattern.
+L<[GH #15565]|https://github.com/Perl/perl5/issues/15565>
+
+=item *
+
+A vulnerability in Perl's C<sprintf> implementation has been fixed by avoiding
+a possible memory wrap.
+L<[GH #15970]|https://github.com/Perl/perl5/issues/15970>
+
+=back
+
+=head1 Acknowledgements
+
+Perl 5.24.3 represents approximately 2 months of development since Perl 5.24.2
+and contains approximately 3,200 lines of changes across 120 files from 23
+authors.
+
+Excluding auto-generated files, documentation and release tools, there were
+approximately 1,600 lines of changes to 56 .pm, .t, .c and .h files.
+
+Perl continues to flourish into its third decade thanks to a vibrant community
+of users and developers.  The following people are known to have contributed
+the improvements that became Perl 5.24.3:
+
+Aaron Crane, Craig A. Berry, Dagfinn Ilmari Mannsåker, Dan Collins, Daniel
+Dragan, Dave Cross, David Mitchell, Eric Herman, Father Chrysostomos, H.Merijn
+Brand, Hugo van der Sanden, James E Keenan, Jarkko Hietaniemi, John SJ
+Anderson, Karl Williamson, Ken Brown, Lukas Mai, Matthew Horsfall, Stevan
+Little, Steve Hay, Steven Humphrey, Tony Cook, Yves Orton.
+
+The list above is almost certainly incomplete as it is automatically generated
+from version control history.  In particular, it does not include the names of
+the (very much appreciated) contributors who reported issues to the Perl bug
+tracker.
+
+Many of the changes included in this version originated in the CPAN modules
+included in Perl's core.  We're grateful to the entire CPAN community for
+helping Perl to flourish.
+
+For a more complete list of all of Perl's historical contributors, please see
+the F<AUTHORS> file in the Perl source distribution.
+
+=head1 Reporting Bugs
+
+If you find what you think is a bug, you might check the articles recently
+posted to the comp.lang.perl.misc newsgroup and the perl bug database at
+L<https://rt.perl.org/> .  There may also be information at
+L<http://www.perl.org/> , the Perl Home Page.
+
+If you believe you have an unreported bug, please run the L<perlbug> program
+included with your release.  Be sure to trim your bug down to a tiny but
+sufficient test case.  Your bug report, along with the output of C<perl -V>,
+will be sent off to perlbug@perl.org to be analysed by the Perl porting team.
+
+If the bug you are reporting has security implications which make it
+inappropriate to send to a publicly archived mailing list, then see
+L<perlsec/SECURITY VULNERABILITY CONTACT INFORMATION> for details of how to
+report the issue.
+
+=head1 SEE ALSO
+
+The F<Changes> file for an explanation of how to view exhaustive details on
+what changed.
+
+The F<INSTALL> file for how to build Perl.
+
+The F<README> file for general stuff.
+
+The F<Artistic> and F<Copying> files for copyright information.
+
+=cut

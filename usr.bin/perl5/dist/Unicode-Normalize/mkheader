@@ -1,0 +1,407 @@
+#!perl
+#
+# This auxiliary script makes five header files
+# used for building XSUB of Unicode::Normalize.
+#
+# Usage:
+#    <do 'mkheader'> in perl, or <perl mkheader> in command line
+#
+# Input files:
+#    unicore/CombiningClass.pl (or unicode/CombiningClass.pl)
+#    unicore/Decomposition.pl (or unicode/Decomposition.pl)
+#
+# Output files:
+#    unfcan.h
+#    unfcpt.h
+#    unfcmb.h
+#    unfcmp.h
+#    unfexc.h
+#
+use 5.006;
+use strict;
+use warnings;
+use Carp;
+use File::Spec;
+use SelectSaver;
+
+our $PACKAGE = 'Unicode::Normalize, mkheader';
+
+our $prefix = "UNF_";
+our $structname = "${prefix}complist";
+
+# Starting in v5.20, the tables in lib/unicore are built using the platform's
+# native character set for code points 0-255.  But in v5.35, pack U stopped
+# trying to compensate
+*pack_U = ($] ge 5.020 && $] lt 5.035)
+          ? sub { return pack('U*', map { utf8::unicode_to_native($_) } @_); }
+          : sub { return pack('U*', @_); };
+
+# %Canon and %Compat will be ($codepoint => $hexstring) after _U_stringify()
+our %Comp1st;	# $codepoint => $listname  : may be composed with a next char.
+our %CompList;	# $listname,$2nd  => $codepoint : composite
+
+##### The below part is common to mkheader and PP #####
+
+our %Combin;	# $codepoint => $number    : combination class
+our %Canon;	# $codepoint => \@codepoints : canonical decomp.
+our %Compat;	# $codepoint => \@codepoints : compat. decomp.
+our %Compos;	# $1st,$2nd  => $codepoint : composite
+our %Exclus;	# $codepoint => 1          : composition exclusions
+our %Single;	# $codepoint => 1          : singletons
+our %NonStD;	# $codepoint => 1          : non-starter decompositions
+our %Comp2nd;	# $codepoint => 1          : may be composed with a prev char.
+
+# from core Unicode database
+our $Combin = do "unicore/CombiningClass.pl"
+    || do "unicode/CombiningClass.pl"
+    || croak "$PACKAGE: CombiningClass.pl not found";
+our $Decomp = do "unicore/Decomposition.pl"
+    || do "unicode/Decomposition.pl"
+    || croak "$PACKAGE: Decomposition.pl not found";
+
+# CompositionExclusions.txt since Unicode 3.2.0.  If this ever changes, it
+# would be better to get the values from Unicode::UCD rather than hard-code
+# them here, as that will protect from having to make fixes for future
+# changes.
+our @CompEx = qw(
+    0958 0959 095A 095B 095C 095D 095E 095F 09DC 09DD 09DF 0A33 0A36
+    0A59 0A5A 0A5B 0A5E 0B5C 0B5D 0F43 0F4D 0F52 0F57 0F5C 0F69 0F76
+    0F78 0F93 0F9D 0FA2 0FA7 0FAC 0FB9 FB1D FB1F FB2A FB2B FB2C FB2D
+    FB2E FB2F FB30 FB31 FB32 FB33 FB34 FB35 FB36 FB38 FB39 FB3A FB3B
+    FB3C FB3E FB40 FB41 FB43 FB44 FB46 FB47 FB48 FB49 FB4A FB4B FB4C
+    FB4D FB4E 2ADC 1D15E 1D15F 1D160 1D161 1D162 1D163 1D164 1D1BB
+    1D1BC 1D1BD 1D1BE 1D1BF 1D1C0
+);
+
+# definition of Hangul constants
+use constant SBase  => 0xAC00;
+use constant SFinal => 0xD7A3; # SBase -1 + SCount
+use constant SCount =>  11172; # LCount * NCount
+use constant NCount =>    588; # VCount * TCount
+use constant LBase  => 0x1100;
+use constant LFinal => 0x1112;
+use constant LCount =>     19;
+use constant VBase  => 0x1161;
+use constant VFinal => 0x1175;
+use constant VCount =>     21;
+use constant TBase  => 0x11A7;
+use constant TFinal => 0x11C2;
+use constant TCount =>     28;
+
+sub decomposeHangul {
+    my $sindex = $_[0] - SBase;
+    my $lindex = int( $sindex / NCount);
+    my $vindex = int(($sindex % NCount) / TCount);
+    my $tindex =      $sindex % TCount;
+    my @ret = (
+       LBase + $lindex,
+       VBase + $vindex,
+      $tindex ? (TBase + $tindex) : (),
+    );
+    return wantarray ? @ret : pack_U(@ret);
+}
+
+########## getting full decomposition ##########
+
+## converts string "hhhh hhhh hhhh" to a numeric list
+## (hex digits separated by spaces)
+sub _getHexArray { map hex, $_[0] =~ /\G *([0-9A-Fa-f]+)/g }
+
+while ($Combin =~ /(.+)/g) {
+    my @tab = split /\t/, $1;
+    my $ini = hex $tab[0];
+    if ($tab[1] eq '') {
+	$Combin{$ini} = $tab[2];
+    } else {
+	$Combin{$_} = $tab[2] foreach $ini .. hex($tab[1]);
+    }
+}
+
+while ($Decomp =~ /(.+)/g) {
+    my @tab = split /\t/, $1;
+    my $compat = $tab[2] =~ s/<[^>]+>//;
+    my $dec = [ _getHexArray($tab[2]) ]; # decomposition
+    my $ini = hex($tab[0]); # initial decomposable character
+    my $end = $tab[1] eq '' ? $ini : hex($tab[1]);
+    # ($ini .. $end) is the range of decomposable characters.
+
+    foreach my $u ($ini .. $end) {
+	$Compat{$u} = $dec;
+	$Canon{$u} = $dec if ! $compat;
+    }
+}
+
+for my $s (@CompEx) {
+    my $u = hex $s;
+    next if !$Canon{$u}; # not assigned
+    next if $u == 0xFB1D && !$Canon{0x1D15E}; # 3.0.1 before Corrigendum #2
+    $Exclus{$u} = 1;
+}
+
+foreach my $u (keys %Canon) {
+    my $dec = $Canon{$u};
+
+    if (@$dec == 2) {
+	if ($Combin{ $dec->[0] }) {
+	    $NonStD{$u} = 1;
+	} else {
+	    $Compos{ $dec->[0] }{ $dec->[1] } = $u;
+	    $Comp2nd{ $dec->[1] } = 1 if ! $Exclus{$u};
+	}
+    } elsif (@$dec == 1) {
+	$Single{$u} = 1;
+    } else {
+	my $h = sprintf '%04X', $u;
+	croak("Weird Canonical Decomposition of U+$h");
+    }
+}
+
+# modern HANGUL JUNGSEONG and HANGUL JONGSEONG jamo
+foreach my $j (0x1161..0x1175, 0x11A8..0x11C2) {
+    $Comp2nd{$j} = 1;
+}
+
+sub getCanonList {
+    my @src = @_;
+    my @dec = map {
+	(SBase <= $_ && $_ <= SFinal) ? decomposeHangul($_)
+	    : $Canon{$_} ? @{ $Canon{$_} } : $_
+		} @src;
+    return join(" ",@src) eq join(" ",@dec) ? @dec : getCanonList(@dec);
+    # condition @src == @dec is not ok.
+}
+
+sub getCompatList {
+    my @src = @_;
+    my @dec = map {
+	(SBase <= $_ && $_ <= SFinal) ? decomposeHangul($_)
+	    : $Compat{$_} ? @{ $Compat{$_} } : $_
+		} @src;
+    return join(" ",@src) eq join(" ",@dec) ? @dec : getCompatList(@dec);
+    # condition @src == @dec is not ok.
+}
+
+# exhaustive decomposition
+foreach my $key (keys %Canon) {
+    $Canon{$key}  = [ getCanonList($key) ];
+}
+
+# exhaustive decomposition
+foreach my $key (keys %Compat) {
+    $Compat{$key} = [ getCompatList($key) ];
+}
+
+##### The above part is common to mkheader and PP #####
+
+foreach my $comp1st (keys %Compos) {
+    my $listname = sprintf("${structname}_%06x", $comp1st);
+		# %04x is bad since it'd place _3046 after _1d157.
+    $Comp1st{$comp1st} = $listname;
+    my $rh1st = $Compos{$comp1st};
+
+    foreach my $comp2nd (keys %$rh1st) {
+	my $uc = $rh1st->{$comp2nd};
+	$CompList{$listname}{$comp2nd} = $uc;
+    }
+}
+
+sub split_into_char {
+    use bytes;
+    my $uni = shift;
+    my $len = length($uni);
+    my @ary;
+    for(my $i = 0; $i < $len; ++$i) {
+	push @ary, ord(substr($uni,$i,1));
+    }
+    return @ary;
+}
+
+sub _U_stringify {
+    sprintf '"%s"', join '',
+	map sprintf("\\x%02x", $_), split_into_char(pack_U(@_));
+}
+
+foreach my $hash (\%Canon, \%Compat) {
+    foreach my $key (keys %$hash) {
+	$hash->{$key} = _U_stringify( @{ $hash->{$key} } );
+    }
+}
+
+########## writing header files ##########
+
+my @boolfunc = (
+    {
+	name => "Exclusion",
+	type => "bool",
+	hash => \%Exclus,
+    },
+    {
+	name => "Singleton",
+	type => "bool",
+	hash => \%Single,
+    },
+    {
+	name => "NonStDecomp",
+	type => "bool",
+	hash => \%NonStD,
+    },
+    {
+	name => "Comp2nd",
+	type => "bool",
+	hash => \%Comp2nd,
+    },
+);
+
+my $orig_fh = SelectSaver->new;
+{
+
+my $file = "unfexc.h";
+open FH, ">$file" or croak "$PACKAGE: $file can't be made";
+binmode FH; select FH;
+
+    print << 'EOF';
+/*
+ * This file is auto-generated by mkheader.
+ * Any changes here will be lost!
+ */
+EOF
+
+foreach my $tbl (@boolfunc) {
+    my @temp = sort {$a <=> $b} keys %{$tbl->{hash}};
+    my $type = $tbl->{type};
+    my $name = $tbl->{name};
+    print "$type is$name (UV uv)\n{\nreturn\n\t";
+
+    while (@temp) {
+	my $cur = shift @temp;
+	if (@temp && $cur + 1 == $temp[0]) {
+	    print "($cur <= uv && uv <= ";
+	    while (@temp && $cur + 1 == $temp[0]) {
+		$cur = shift @temp;
+	    }
+	    print "$cur)";
+	    print "\n\t|| " if @temp;
+	} else {
+	    print "uv == $cur";
+	    print "\n\t|| " if @temp;
+	}
+    }
+    print "\n\t? TRUE : FALSE;\n}\n\n";
+}
+
+close FH;
+
+####################################
+
+my $compinit =
+    "typedef struct { UV nextchar; UV composite; } $structname;\n\n";
+
+foreach my $i (sort keys %CompList) {
+    $compinit .= "$structname $i [] = {\n";
+    $compinit .= join ",\n",
+	map sprintf("\t{ %d, %d }", $_, $CompList{$i}{$_}),
+	    sort {$a <=> $b } keys %{ $CompList{$i} };
+    $compinit .= ",\n{0,0}\n};\n\n"; # with sentinel
+}
+
+my @tripletable = (
+    {
+	file => "unfcmb",
+	name => "combin",
+	type => "STDCHAR",
+	hash => \%Combin,
+	null =>  0,
+    },
+    {
+	file => "unfcan",
+	name => "canon",
+	type => "char*",
+	hash => \%Canon,
+	null => "NULL",
+    },
+    {
+	file => "unfcpt",
+	name => "compat",
+	type => "char*",
+	hash => \%Compat,
+	null => "NULL",
+    },
+    {
+	file => "unfcmp",
+	name => "compos",
+	type => "$structname *",
+	hash => \%Comp1st,
+	null => "NULL",
+	init => $compinit,
+    },
+);
+
+foreach my $tbl (@tripletable) {
+    my $file = "$tbl->{file}.h";
+    my $head = "${prefix}$tbl->{name}";
+    my $type = $tbl->{type};
+    my $hash = $tbl->{hash};
+    my $null = $tbl->{null};
+    my $init = $tbl->{init};
+
+    open FH, ">$file" or croak "$PACKAGE: $file can't be made";
+    binmode FH; select FH;
+    my %val;
+
+    print FH << 'EOF';
+/*
+ * This file is auto-generated by mkheader.
+ * Any changes here will be lost!
+ */
+EOF
+
+    print $init if defined $init;
+
+    foreach my $uv (keys %$hash) {
+	croak sprintf("a Unicode code point 0x%04X over 0x10FFFF.", $uv)
+	    unless $uv <= 0x10FFFF;
+	my @c = unpack 'CCCC', pack 'N', $uv;
+	$val{ $c[1] }{ $c[2] }{ $c[3] } = $hash->{$uv};
+    }
+
+    foreach my $p (sort { $a <=> $b } keys %val) {
+	next if ! $val{ $p };
+	for (my $r = 0; $r < 256; $r++) {
+	    next if ! $val{ $p }{ $r };
+	    printf "static $type ${head}_%02x_%02x [256] = {\n", $p, $r;
+	    for (my $c = 0; $c < 256; $c++) {
+		print "\t", defined $val{$p}{$r}{$c}
+		    ? "($type)".$val{$p}{$r}{$c}
+		    : $null;
+		print ','  if $c != 255;
+		print "\n" if $c % 8 == 7;
+	    }
+	    print "};\n\n";
+	}
+    }
+    foreach my $p (sort { $a <=> $b } keys %val) {
+	next if ! $val{ $p };
+	printf "static $type* ${head}_%02x [256] = {\n", $p;
+	for (my $r = 0; $r < 256; $r++) {
+	    print $val{ $p }{ $r }
+		? sprintf("${head}_%02x_%02x", $p, $r)
+		: "NULL";
+	    print ','  if $r != 255;
+	    print "\n" if $val{ $p }{ $r } || ($r+1) % 8 == 0;
+	}
+	print "};\n\n";
+    }
+    print "static $type** $head [] = {\n";
+    for (my $p = 0; $p <= 0x10; $p++) {
+	print $val{ $p } ? sprintf("${head}_%02x", $p) : "NULL";
+	print ','  if $p != 0x10;
+	print "\n";
+    }
+    print "};\n\n";
+    close FH;
+}
+
+}   # End of block for SelectSaver
+
+1;
+__END__

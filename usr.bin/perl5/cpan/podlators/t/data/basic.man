@@ -1,0 +1,328 @@
+.SH NAME
+basic.pod \- Test of various basic POD features in translators.
+.SH HEADINGS
+.IX Header "HEADINGS"
+Try a few different levels of headings, with embedded formatting codes and
+other interesting bits.
+.ie n .SH "This ""is"" a ""level 1"" heading"
+.el .SH "This \f(CWis\fP a ""level 1"" heading"
+.IX Header "This is a ""level 1"" heading"
+.SS "``Level'' ""2 \fIheading\fP"
+.IX Subsection "``Level'' ""2 heading"
+\fILevel 3 \fR\f(BIheading with \fR\f(CB\*(C`weird stuff "" (double quote)\*(C'\fR
+.IX Subsection "Level 3 heading with weird stuff """" (double quote)"
+.PP
+Level "4 \f(CW\*(C`heading\*(C'\fR
+.IX Subsection "Level ""4 heading"
+.PP
+Now try again with \fBintermixed\fR \fItext\fR.
+.ie n .SH "This ""is"" a ""level 1"" heading"
+.el .SH "This \f(CWis\fP a ""level 1"" heading"
+.IX Header "This is a ""level 1"" heading"
+Text.
+.SS "``Level'' 2 \fIheading\fP"
+.IX Subsection "``Level'' 2 heading"
+Text.
+.PP
+\fILevel 3 \fR\f(BIheading with \fR\f(CB\*(C`weird stuff\*(C'\fR
+.IX Subsection "Level 3 heading with weird stuff"
+.PP
+Text.
+.PP
+Level "4 \f(CW\*(C`heading\*(C'\fR
+.IX Subsection "Level ""4 heading"
+.PP
+Text.
+.SH LINKS
+.IX Header "LINKS"
+These are all taken from the Pod::Parser tests.
+.PP
+Try out \fILOTS\fR of different ways of specifying references:
+.PP
+Reference the "section" in manpage
+.PP
+Reference the "section" in "manpage"
+.PP
+Reference the "section" in manpage
+.PP
+Now try it using the new "|" stuff ...
+.PP
+Reference the thistext|
+.PP
+Reference the thistext |
+.PP
+Reference the thistext|
+.PP
+Reference the thistext |
+.PP
+Reference the thistext|
+.PP
+Reference the thistext|
+.PP
+And then throw in a few new ones of my own.
+.PP
+foo
+.PP
+foo
+.PP
+"bar" in foo
+.PP
+"baz boo" in foo
+.PP
+"bar"
+.PP
+"baz boo"
+.PP
+"baz boo"
+.PP
+"baz boo" in foo bar
+.PP
+"boo var baz"
+.PP
+"bar baz"
+.PP
+"boo", "bar", and "baz"
+.PP
+foobar
+.PP
+Testing \fIitalics\fR
+.PP
+"\fIItalic\fR text" in foo
+.PP
+"Section \f(CW\*(C`with\*(C'\fR \fR\f(BIother\fR\fI markup\fR" in foo|bar
+.SH "OVER AND ITEMS"
+.IX Header "OVER AND ITEMS"
+Taken from Pod::Parser tests, this is a test to ensure that multiline
+=item paragraphs get indented appropriately.
+.IP "This is a test." 4
+.IX Item "This is a test."
+.PP
+There should be whitespace now before this line.
+.PP
+Taken from Pod::Parser tests, this is a test to ensure the nested =item
+paragraphs get indented appropriately.
+.IP 1. 2
+First section.
+.RS 2
+.IP a 2
+.IX Item "a"
+this is item a
+.IP b 2
+.IX Item "b"
+this is item b
+.RE
+.RS 2
+.RE
+.IP 2. 2
+Second section.
+.RS 2
+.IP a 2
+.IX Item "a"
+this is item a
+.IP b 2
+.IX Item "b"
+this is item b
+.IP c 2
+.IX Item "c"
+.PD 0
+.IP d 2
+.IX Item "d"
+.PD
+This is item c & d.
+.RE
+.RS 2
+.RE
+.PP
+Now some additional weirdness of our own.  Make sure that multiple tags
+for one paragraph are properly compacted.
+.IP """foo""" 4
+.IX Item """foo"""
+.PD 0
+.IP \fBbar\fR 4
+.IX Item "bar"
+.ie n .IP """baz""" 4
+.el .IP \f(CWbaz\fR 4
+.IX Item "baz"
+.PD
+There shouldn't be any spaces between any of these item tags; this idiom
+is used in perlfunc.
+.IP "Some longer item text" 4
+.IX Item "Some longer item text"
+Just to make sure that we test paragraphs where the item text doesn't fit
+in the margin of the paragraph (and make sure that this paragraph fills a
+few lines).
+.Sp
+Let's also make it multiple paragraphs to be sure that works.
+.PP
+Test use of =over without =item as a block "quote" or block paragraph.
+.Sp
+.RS 4
+This should be indented four spaces but otherwise formatted the same as
+any other regular text paragraph.  Make sure it's long enough to see the
+results of the formatting.....
+.RE
+.PP
+Now try the same thing nested, and make sure that the indentation is reset
+back properly.
+.RS 4
+.Sp
+.RS 4
+This paragraph should be doubly indented.
+.RE
+.RE
+.RS 4
+.Sp
+This paragraph should only be singly indented.
+.IP \(bu 4
+This is an item in the middle of a block-quote, which should be allowed.
+.IP \(bu 4
+We're also testing tagless item commands.
+.RE
+.RS 4
+.Sp
+Should be back to the single level of indentation.
+.RE
+.PP
+Should be back to regular indentation.
+.PP
+Now also check the transformation of * into real bullets for man pages.
+.IP \(bu 4
+An item.  We're also testing using =over without a number, and making sure
+that item text wraps properly.
+.IP \(bu 4
+Another item.
+.PP
+and now test the numbering of item blocks.
+.IP 1. 4
+First item.
+.IP 2. 4
+Second item.
+.SH "FORMATTING CODES"
+.IX Header "FORMATTING CODES"
+Another test taken from Pod::Parser.
+.PP
+This is a test to see if I can do not only \f(CW$self\fR and \f(CWmethod()\fR, but
+also \f(CW\*(C`$self\->method()\*(C'\fR and \f(CW\*(C`$self\->{FIELDNAME}\*(C'\fR and
+\&\f(CW\*(C`$Foo <=> $Bar\*(C'\fR without resorting to escape sequences. If 
+I want to refer to the right-shift operator I can do something
+like \f(CW\*(C`$x >> 3\*(C'\fR or even \f(CW\*(C`$y >> 5\*(C'\fR.
+.PP
+Now for the grand finale of \f(CW\*(C`$self\->method()\->{FIELDNAME} = {FOO=>BAR}\*(C'\fR.
+And I also want to make sure that newlines work like this
+\&\f(CW\*(C`$self\->{FOOBAR} >> 3 and [$b => $a]\->[$a <=> $b]\*(C'\fR
+.PP
+Of course I should still be able to do all this \fIwith\fR escape sequences
+too: \f(CW\*(C`$self\->method()\*(C'\fR and \f(CW\*(C`$self\->{FIELDNAME}\*(C'\fR and
+\&\f(CW\*(C`{FOO=>BAR}\*(C'\fR.
+.PP
+Don't forget \f(CW\*(C`$self\->method()\->{FIELDNAME} = {FOO=>BAR}\*(C'\fR.
+.PP
+And make sure that \f(CW0\fR works too!
+.PP
+Now, if I use << or >> as my delimiters, then I have to use whitespace.
+So things like \f(CW\*(C`<$self\-\*(C'\fR\fBmethod()\fR>> and \f(CW\*(C`<$self\-\*(C'\fR{FIELDNAME}>> won't end
+up doing what you might expect since the first > will still terminate
+the first < seen.
+.PP
+Lets make sure these work for empty ones too, like \f(CW\*(C`\*(C'\fR and \f(CW\*(C`>>\*(C'\fR
+(just to be obnoxious)
+.PP
+The statement: \f(CW\*(C`This is dog kind\*(Aqs \fR\f(CIfinest\fR\f(CW hour!\*(C'\fR is a parody of a
+quotation from Winston Churchill.
+.PP
+The following tests are added to those:
+.PP
+Make sure that a few other odd \fIthings\fR still work.  This should be
+a vertical bar:  |.  Here's a test of a few more special escapes
+that have to be supported:
+.IP & 3
+An ampersand.
+.IP ' 3
+An apostrophe.
+.IP < 3
+A less-than sign.
+.IP > 3
+A greater-than sign.
+.IP """" 3
+A double quotation mark.
+.IP / 3
+A forward slash.
+.PP
+Try to get this bit of text over towards the edge so |that\ all\ of\ this\ text\ inside\ S<>\ won't| be wrapped.  Also test the
+|same\ thing\ with\ non-breaking\ spaces.|
+.PP
+There is a soft hy\%phen in hyphen at hy-phen.
+.PP
+This is a test of an index entry.
+.IX Xref "index entry"
+.SH VERBATIM
+.IX Header "VERBATIM"
+Throw in a few verbatim paragraphs.
+.PP
+.Vb 8
+\&    use Term::ANSIColor;
+\&    print color \*(Aqbold blue\*(Aq;
+\&    print "This text is bold blue.\en";
+\&    print color \*(Aqreset\*(Aq;
+\&    print "This text is normal.\en";
+\&    print colored ("Yellow on magenta.\en", \*(Aqyellow on_magenta\*(Aq);
+\&    print "This text is normal.\en";
+\&    print colored [\*(Aqyellow on_magenta\*(Aq], "Yellow on magenta.\en";
+\&
+\&    use Term::ANSIColor qw(uncolor);
+\&    print uncolor \*(Aq01;31\*(Aq, "\en";
+.Ve
+.PP
+But this isn't verbatim (make sure it wraps properly), and the next
+paragraph is again:
+.PP
+.Vb 2
+\&    use Term::ANSIColor qw(:constants);
+\&    print BOLD, BLUE, "This text is in bold blue.\en", RESET;
+\&
+\&    use Term::ANSIColor qw(:constants); $Term::ANSIColor::AUTORESET = 1; print BOLD BLUE "This text is in bold blue.\en"; print "This text is normal.\en";
+.Ve
+.PP
+(Ugh, that's obnoxiously long.)  Try different spacing:
+.PP
+.Vb 7
+\&        Starting with a tab.
+\&Not
+\&starting
+\&with
+\&a
+\&tab.  But this should still be verbatim.
+\& As should this.
+.Ve
+.PP
+This isn't.
+.PP
+.Vb 2
+\& This is.  And this:    is an internal tab.  It should be:
+\&                    |\-\-| <= lined up with that.
+.Ve
+.PP
+(Tricky, but tabs should be expanded before the translator starts in on
+the text since otherwise text with mixed tabs and spaces will get messed
+up.)
+.PP
+.Vb 5
+\&    And now we test verbatim paragraphs right before a heading.  Older
+\&    versions of Pod::Man generated two spaces between paragraphs like this
+\&    and the heading.  (In order to properly test this, one may have to
+\&    visually inspect the nroff output when run on the generated *roff
+\&    text, unfortunately.)
+.Ve
+.SH CONCLUSION
+.IX Header "CONCLUSION"
+That's all, folks!
+.SH "COPYRIGHT AND LICENSE"
+.IX Header "COPYRIGHT AND LICENSE"
+Copyright 2001, 2004, 2016, 2018 Russ Allbery <rra@cpan.org>
+.PP
+Copying and distribution of this file, with or without modification, are
+permitted in any medium without royalty provided the copyright notice and
+this notice are preserved.  This file is offered as-is, without any
+warranty.
+.PP
+SPDX-License-Identifier: FSFAP

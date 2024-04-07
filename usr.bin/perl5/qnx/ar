@@ -1,0 +1,32 @@
+#! /bin/sh
+#__USAGE
+#%C	key library name ...
+#	Crude cover for wlib to be compatible with ar
+#	Supports the following key letters:
+#	qcru
+#	ru  replace existing modules. u indicates only replace
+#	    those which are newer
+#	c   create the library (kinda moot)
+#	q   quickly append to the end.
+#
+#This is a crude cover, but it has proved sufficient for many
+#ports. Rather than attempt to implement subtleties of the
+#ar syntax, I simply create a new library under all
+#circumstances.
+#
+#Note that Watcom 10.6 supports ar directly, so this
+#cover is not necessary.
+#
+#Increased the record size to 32 to accommodate a large library
+#in the perl 5.003 distribution
+#
+#Submitted by Norton T. Allen (allen@huarp.harvard.edu)
+
+if [ $# -lt 3 ]; then
+  use $0
+  exit 1
+fi
+shift
+library=$1
+shift
+wlib -p=32 -n $library `for i in $*; do echo "+$i \\c"; done`

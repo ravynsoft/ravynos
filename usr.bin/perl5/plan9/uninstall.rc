@@ -1,0 +1,25 @@
+#!/bin/rc
+
+. buildinfo
+if (~ $#* 0) platforms = $objtype
+if not switch($1) {
+	case -a ; platforms = (386 68000 68020 arm arm amd64 mips power power64 sparc sparc64 spim)
+	case * ; echo 'Usage: uninstall.rc [-a]' >[1=2] ; exit
+}
+sourceroot=/sys/src/cmd/perl
+sourcedir=$sourceroot/$p9pvers
+privroot=/sys/lib/perl
+privlib=$privroot/$p9pvers
+sitelib=$privlib/site_perl
+
+echo Uninstalling perl/$p9pvers
+cd $sourceroot
+
+for(i in $platforms){
+    archroot=/$i/lib/perl
+	archlib=$archroot/$p9pvers
+	if (test -d $archlib) rm -r $archlib
+    rm /$i/bin/perl-$p9pvers
+}
+if (test -d $privlib) rm -r $privlib
+if (test -d $sourcedir) rm -r $sourcedir

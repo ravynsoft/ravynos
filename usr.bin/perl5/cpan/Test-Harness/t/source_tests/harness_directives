@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+print <<'END_TESTS';
+1..3
+ok 1 - this is a test
+not ok 2 - we have a something # TODO some output
+ok 3 houston, we don't have liftoff # SKIP no funding
+END_TESTS

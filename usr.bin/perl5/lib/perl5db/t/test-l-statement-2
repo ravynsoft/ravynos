@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+sub fact {
+    my $n = shift;
+    if ($n > 1) {
+        return $n * fact($n - 1);
+    } else {
+        return 1;
+    }
+}
+
+sub bar {
+    print "One\n";
+    print "Two\n";
+    print "Three\n";
+
+    return;
+}
+
+fact(5);
+bar();

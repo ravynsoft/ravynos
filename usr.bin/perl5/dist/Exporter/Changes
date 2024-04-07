@@ -1,0 +1,105 @@
+Revision history for Perl extension Exporter.
+
+5.77 Mon January 23 2023
+     - Document non-inheriting as default mechanism
+     - Make Exporter strict and warnings compliant
+
+5.74 Mon January 20 2020
+     - Fix leading spaces in Exporter error message
+     - Switch to github actions for pre-release actions
+     - Point to github repo and issues for support
+
+5.73 Fri September 21 2018
+     - Slight doc patches mostly involving the use of our.
+
+5.72 Tue June 9 2015
+     - rename anonymous list -> array in docs from blead
+
+5.70 Sun Apr 13 2014
+     - Bump for release to CPAN
+
+5.70_01 Wed Apr 9 2014 Todd Rinaldo
+    - perl #  39739 - Exporter::Heavy ignores custom $SIG{__WARN__} handlers
+    - perl # 119673 - Documentation fixes.
+
+5.68 Wed Mar 27 2013 Todd Rinaldo
+    - Fix erroneous INSTALLDIRS on perls < 5.8 - allows one to
+      upgrade Exporter on perl 5.6 again
+
+5.67 Thu Sep 20 2012 Todd Rinaldo
+    - Documentation changes from p5p.
+    - Fix logic to install to site after perl 5.11
+
+5.66 Wed Dec 23 2011 Todd Rinaldo
+    - No changes. Production release after CPAN testers cleared.
+
+5.65_01 Wed Dec 14 2011 Todd Rinaldo
+    - Updaate Exporter from blead. Bump to dev version for release testing.
+    - Remove local $_ from Exporter - The changes in that commit did
+      not necessitate the addition of
+      local  $_.  So the localisation is wasting CPU cycles.  Worse, it
+      causes  bugs in 5.12 and earlier.  (local $_ is always wrong if you
+      don’t control what is in $_ already, because it could be a read-only
+      tied variable.)  Actually, it causes bugs in 5.14-15 still, because
+      it seems that the changes to ‘local $_’ still weren’t sufficient (it
+      still calls FETCH, but not STORE).  That itself needs fixing, but that
+      should not obviate the need for this change, as Exporter has been liv-
+      ing a double life.
+
+5.65 Tue Aug 30 2011 Todd Rinaldo
+    - No changes. Tests clean. Bumping to production release.
+
+5.64_04 Wed Aug 24 2011 Todd Rinaldo
+    - Re-vamp module to work in Git.
+    - Update Makefile.PL with extra META bits.
+    - Point bugs to perl's RT.
+    - Add a README from Exporter.pm perldoc.
+    - Depend on Carp 1.05 now we're assuming a fix from 1.05
+
+5.64_03 Wed Aug 24 2011 (Cumulative)
+    - Fix RT #74472 Exporter.pm blocks Signal handling
+    - Avoid creating @EXPORT_FAIL in every package using Exporter.
+    - Test exported arrays and hashes without using defined()
+    - Carp 1.05 shipped with 5.8.8. Remove work-around for pre 1.05
+
+5.63    Sat Jul 19 2008
+    - fix doc bugs (pointed by Philippe Bricout at
+      CPAN RT #33546)
+    - reconciliate Exporter with Carp older than 1.05
+      (thanks to Anno Siegel, perlbug RT #57079)
+
+5.62    Fri Dec  9 2007
+    - no code change
+    - fix typo in section link
+    - mention Exporter::Easy
+
+5.61    Fri Dec  9 2007
+    - no code change
+    - sync with changes 32596 (fixes by rgs)
+      and 32599 (typo spotted by Matt Kraai)
+
+5.60_01 Thu Dec  6 2007
+    - "use 5.006" in Makefile.PL
+    - no code change
+    - doc patch: new section SEE ALSO (Exporter is not alone)
+    - doc patch: new section Good Practices - mentions
+      "our" and "use vars", "base" and "parent"
+      and advocates against exporting variables
+
+5.60    Sat Mar 10 2007
+    - Bump Exporter's $VERSION (change 30525)
+    - Don't swallow up other warnings in Exporter's test. Remove a needless
+      eval that happened to generate 4 warnings. (change 30531)
+    - Make Exporter::Heavy correctly not warn when exporting a symbol only
+      declared in the export specification. Ensure that the test actually
+      tests this. (change 30529)
+    - added t/use.t and t/pod.t
+
+5.59   Wed Sep 6 2006
+    - Dual life began. (perl-current @ 28789)
+
+5.59    ? Jan 7 2005
+    - Exporter can finally live w/o Carp (change 23768)
+
+5.58    ? Jan 26 2004
+    - Document change 22192 (change 22224)

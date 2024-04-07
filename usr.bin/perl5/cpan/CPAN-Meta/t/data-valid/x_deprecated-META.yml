@@ -1,0 +1,91 @@
+---
+abstract: 'Author tests making sure correct line endings are used'
+author:
+  - 'Florian Ragwitz <rafl@debian.org>'
+  - 'Caleb Cushing <xenoterracide@gmail.com>'
+  - 'Karen Etheridge <ether@cpan.org>'
+build_requires:
+  Build::Requires: '1.1'
+  Test::More: '0.88'
+  Test::Requires: '1.2'
+configure_requires:
+  Module::Build::Tiny: '0.039'
+  perl: '5.006'
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 5.035, CPAN::Meta::Converter version 2.150002'
+keywords:
+  - plugin
+  - test
+  - testing
+  - author
+  - development
+  - whitespace
+  - newline
+  - linefeed
+  - formatting
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: Dist-Zilla-Plugin-Test-EOL
+no_index:
+  directory:
+    - t
+    - xt
+provides:
+  Dist::Zilla::Plugin::EOLTests:
+    file: lib/Dist/Zilla/Plugin/EOLTests.pm
+    version: '0.18'
+    x_deprecated: 1
+  Dist::Zilla::Plugin::Test::EOL:
+    file: lib/Dist/Zilla/Plugin/Test/EOL.pm
+    version: '0.18'
+requires:
+  Data::Section: '0.004'
+  Dist::Zilla::File::InMemory: '0'
+  Dist::Zilla::Role::FileFinderUser: '0'
+  Dist::Zilla::Role::FileGatherer: '0'
+  Dist::Zilla::Role::FileMunger: '0'
+  Dist::Zilla::Role::PrereqSource: '0'
+  Dist::Zilla::Role::TextTemplate: '0'
+  Moose: '0'
+  Moose::Util::TypeConstraints: '0'
+  Path::Tiny: '0'
+  Sub::Exporter::ForMethods: '0'
+  namespace::autoclean: '0'
+  perl: '5.006'
+  strict: '0'
+  warnings: '0'
+resources:
+  IRC: irc://irc.perl.org/#distzilla
+  MailingList: http://dzil.org/#mailing-list
+  bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Dist-Zilla-Plugin-Test-EOL
+  homepage: https://github.com/karenetheridge/Dist-Zilla-Plugin-Test-EOL
+  repository: https://github.com/karenetheridge/Dist-Zilla-Plugin-Test-EOL.git
+version: '0.18'
+x_Dist_Zilla:
+  perl:
+    version: '5.021010'
+  plugins:
+    -
+      class: Dist::Zilla::Plugin::Bootstrap::lib
+      config:
+        Dist::Zilla::Role::Bootstrap:
+          try_built: ~
+      name: Bootstrap::lib
+      version: '1.001000'
+    -
+      class: Dist::Zilla::Plugin::VerifyPhases
+      name: '@Author::ETHER/PHASE VERIFICATION'
+      version: '0.010'
+  zilla:
+    class: Dist::Zilla::Dist::Builder
+    config:
+      is_trial: ''
+    version: '5.035'
+x_authority: cpan:FLORA
+x_authority_from_module: Dist::Zilla::Plugin::Test::EOL
+x_contributors:
+  - 'Olivier Mengue <dolmen@cpan.org>'
+  - 'Shlomi Fish <shlomif@shlomifish.org>'
+x_permissions_from_module: Dist::Zilla::Plugin::Test::EOL

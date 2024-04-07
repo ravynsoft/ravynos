@@ -1,0 +1,14 @@
+[name]
+Multiline X<>
+
+[input]
+=head1 Multiline XZ<><>
+
+Something something X<this   is
+one index term>
+
+[output]
+.SH "Multiline X<>"
+.IX Header "Multiline X<>"
+Something something
+.IX Xref "this is one index term"

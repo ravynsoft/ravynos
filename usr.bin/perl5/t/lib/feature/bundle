@@ -1,0 +1,112 @@
+Check feature bundles.
+
+__END__
+# Standard feature bundle
+use feature ":5.10";
+say "Hello", "world";
+EXPECT
+Helloworld
+########
+# Standard feature bundle, no 5.11
+use feature ":5.10";
+say utf8::native_to_unicode(ord uc chr utf8::unicode_to_native(233));
+EXPECT
+233
+########
+# Standard feature bundle, 5.11
+use feature ":5.11";
+say utf8::native_to_unicode(ord uc chr utf8::unicode_to_native(233));
+EXPECT
+201
+########
+# Standard feature bundle, 5.11
+use feature ":5.11";
+use utf8;
+say utf8::native_to_unicode(ord "\ué"); # this is utf8
+EXPECT
+201
+########
+# more specific: 5.10.0 maps to 5.10
+use feature ":5.10.0";
+say "Hello", "world";
+EXPECT
+Helloworld
+########
+# as does 5.10.1
+use feature ":5.10.1";
+say "Hello", "world";
+EXPECT
+Helloworld
+########
+# as does 5.10.99
+use feature ":5.10.99";
+say "Hello", "world";
+EXPECT
+Helloworld
+########
+# 5.9.5 also supported
+use feature ":5.9.5";
+say "Hello", "world";
+EXPECT
+Helloworld
+########
+# 5.9 not supported
+use feature ":5.9";
+EXPECT
+OPTIONS regex
+^Feature bundle "5.9" is not supported by Perl \d+\.\d+\.\d+ at - line \d+
+########
+# 5.9.4 not supported
+use feature ":5.9.4";
+EXPECT
+OPTIONS regex
+^Feature bundle "5.9.4" is not supported by Perl \d+\.\d+\.\d+ at - line \d+
+########
+# 5.8.8 not supported
+use feature ":5.8.8";
+EXPECT
+OPTIONS regex
+^Feature bundle "5.8.8" is not supported by Perl \d+\.\d+\.\d+ at - line \d+
+########
+# :default
+BEGIN { *say = *state = *given = sub { print "custom sub\n" }; }
+use feature ":default";
+say "yes";
+state my $foo;
+given a => chance;
+EXPECT
+custom sub
+custom sub
+custom sub
+########
+# :default and $[
+# SKIP ? not defined DynaLoader::boot_DynaLoader
+no feature;
+use feature ":default";
+$[ = 0;
+$[ = 1;
+EXPECT
+Assigning non-zero to $[ is no longer possible at - line 5.
+########
+# "no feature"
+use feature ':5.16'; # turns array_base off
+no feature; # resets to :default, thus would turn array_base on, if it still existed
+$[ = 0;
+$[ = 1;
+EXPECT
+Assigning non-zero to $[ is no longer possible at - line 5.
+########
+# "no feature 'all"
+no feature ':all'; # turns array_base (and everything else) off
+$[ = 1;
+EXPECT
+Assigning non-zero to $[ is no longer possible at - line 3.
+########
+# NAME $^H accidentally enabling all features
+# HINT_FEATURE_MASK | HINT_LOCALIZE_HH
+eval 'BEGIN { $^H |= 0x3c020000 } $_ = evalbytes 12345';
+print $_||$@;
+EXPECT
+Number found where operator expected (Do you need to predeclare "evalbytes"?) at (eval 1) line 1, near "evalbytes 12345"
+syntax error at (eval 1) line 1, near "evalbytes 12345"
+Execution of (eval 1) aborted due to compilation errors.

@@ -1,0 +1,402 @@
+################################################################################
+##
+##  Version 3.x, Copyright (C) 2004-2013, Marcus Holland-Moritz.
+##  Version 2.x, Copyright (C) 2001, Paul Marquess.
+##  Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the same terms as Perl itself.
+##
+################################################################################
+
+=provides
+
+=dontwarn
+
+NEED_function
+NEED_function_GLOBAL
+NEED_variable
+NEED_variable_GLOBAL
+DPPP_NAMESPACE
+
+=implementation
+
+=pod
+
+=head1 NAME
+
+ppport.h - Perl/Pollution/Portability version __VERSION__
+
+=head1 SYNOPSIS
+
+  perl ppport.h [options] [source files]
+
+  Searches current directory for files if no [source files] are given
+
+  --help                      show short help
+
+  --version                   show version
+
+  --patch=file                write one patch file with changes
+  --copy=suffix               write changed copies with suffix
+  --diff=program              use diff program and options
+
+  --compat-version=version    provide compatibility with Perl version
+  --cplusplus                 accept C++ comments
+
+  --quiet                     don't output anything except fatal errors
+  --nodiag                    don't show diagnostics
+  --nohints                   don't show hints
+  --nochanges                 don't suggest changes
+  --nofilter                  don't filter input files
+
+  --strip                     strip all script and doc functionality
+                              from ppport.h
+
+  --list-provided             list provided API
+  --list-unsupported          list API that isn't supported all the way
+                              back
+  --api-info=name             show Perl API portability information
+
+=head1 COMPATIBILITY
+
+This version of F<ppport.h> is designed to support operation with Perl
+installations back to __MIN_PERL__, and has been tested up to __MAX_PERL__.
+
+=head1 OPTIONS
+
+=head2 --help
+
+Display a brief usage summary.
+
+=head2 --version
+
+Display the version of F<ppport.h>.
+
+=head2 --patch=I<file>
+
+If this option is given, a single patch file will be created if
+any changes are suggested. This requires a working diff program
+to be installed on your system.
+
+=head2 --copy=I<suffix>
+
+If this option is given, a copy of each file will be saved with
+the given suffix that contains the suggested changes. This does
+not require any external programs. Note that this does not
+automagically add a dot between the original filename and the
+suffix. If you want the dot, you have to include it in the option
+argument.
+
+If neither C<--patch> or C<--copy> are given, the default is to
+simply print the diffs for each file. This requires either
+C<Text::Diff> or a C<diff> program to be installed.
+
+=head2 --diff=I<program>
+
+Manually set the diff program and options to use. The default
+is to use C<Text::Diff>, when installed, and output unified
+context diffs.
+
+=head2 --compat-version=I<version>
+
+Tell F<ppport.h> to check for compatibility with the given
+Perl version. The default is to check for compatibility with Perl
+version __MIN_PERL__. You can use this option to reduce the output
+of F<ppport.h> if you intend to be backward compatible only
+down to a certain Perl version.
+
+=head2 --cplusplus
+
+Usually, F<ppport.h> will detect C++ style comments and
+replace them with C style comments for portability reasons.
+Using this option instructs F<ppport.h> to leave C++
+comments untouched.
+
+=head2 --quiet
+
+Be quiet. Don't print anything except fatal errors.
+
+=head2 --nodiag
+
+Don't output any diagnostic messages. Only portability
+alerts will be printed.
+
+=head2 --nohints
+
+Don't output any hints. Hints often contain useful portability
+notes. Warnings will still be displayed.
+
+=head2 --nochanges
+
+Don't suggest any changes. Only give diagnostic output and hints
+unless these are also deactivated.
+
+=head2 --nofilter
+
+Don't filter the list of input files. By default, files not looking
+like source code (i.e. not *.xs, *.c, *.cc, *.cpp or *.h) are skipped.
+
+=head2 --strip
+
+Strip all script and documentation functionality from F<ppport.h>.
+This reduces the size of F<ppport.h> dramatically and may be useful
+if you want to include F<ppport.h> in smaller modules without
+increasing their distribution size too much.
+
+The stripped F<ppport.h> will have a C<--unstrip> option that allows
+you to undo the stripping, but only if an appropriate C<Devel::PPPort>
+module is installed.
+
+=head2 --list-provided
+
+Lists the API elements for which compatibility is provided by
+F<ppport.h>. Also lists if it must be explicitly requested,
+if it has dependencies, and if there are hints or warnings for it.
+
+=head2 --list-unsupported
+
+Lists the API elements that are known not to be FULLY supported by F<ppport.h>,
+and below which version of Perl they probably won't be available or work.
+By FULLY, we mean that support isn't provided all the way back to the first
+version of Perl that F<ppport.h> supports at all.
+
+=head2 --api-info=I<name>
+
+Show portability information for elements matching I<name>.
+If I<name> is surrounded by slashes, it is interpreted as a regular
+expression.
+
+Normally, only API elements are shown, but if there are no matching API
+elements but there are some other matching elements, those are shown.  This
+allows you to conveniently find when functions internal to the core
+implementation were added; only people working on the core are likely to find
+this last part useful.
+
+=head1 DESCRIPTION
+
+In order for a Perl extension (XS) module to be as portable as possible
+across differing versions of Perl itself, certain steps need to be taken.
+
+=over 4
+
+=item *
+
+Including this header is the first major one. This alone will give you
+access to a large part of the Perl API that hasn't been available in
+earlier Perl releases. Use
+
+    perl ppport.h --list-provided
+
+to see which API elements are provided by ppport.h.
+
+=item *
+
+You should avoid using deprecated parts of the API. For example, using
+global Perl variables without the C<PL_> prefix is deprecated. Also,
+some API functions used to have a C<perl_> prefix. Using this form is
+also deprecated. You can safely use the supported API, as F<ppport.h>
+will provide wrappers for older Perl versions.
+
+=item *
+
+Although the purpose of F<ppport.h> is to keep you from having to concern
+yourself with what version you are running under, there may arise instances
+where you have to do so.  These macros, the same ones as in base Perl, are
+available to you in all versions, and are what you should use:
+
+=over 4
+
+=item C<PERL_VERSION_I<xx>(major, minor, patch)>
+
+Returns whether or not the perl currently being compiled has the specified
+relationship I<xx> to the perl given by the parameters.  I<xx> is one of
+C<EQ>, C<NE>, C<LT>, C<LE>, C<GT>, C<GE>.
+
+For example,
+
+ #if PERL_VERSION_GT(5,24,2)
+   code that will only be compiled on perls after v5.24.2
+ #else
+   fallback code
+ #endif
+
+Note that this is usable in making compile-time decisions
+
+You may use the special value '*' for the final number to mean ALL possible
+values for it.  Thus,
+
+ #if PERL_VERSION_EQ(5,31,'*')
+
+means all perls in the 5.31 series.  And
+
+ #if PERL_VERSION_NE(5,24,'*')
+
+means all perls EXCEPT 5.24 ones.  And
+
+ #if PERL_VERSION_LE(5,9,'*')
+
+is effectively
+
+ #if PERL_VERSION_LT(5,10,0)
+
+=back
+
+=item *
+
+If you use one of a few functions or variables that were not present in
+earlier versions of Perl, and that can't be provided using a macro, you
+have to explicitly request support for these functions by adding one or
+more C<#define>s in your source code before the inclusion of F<ppport.h>.
+
+These functions or variables will be marked C<explicit> in the list shown
+by C<--list-provided>.
+
+Depending on whether you module has a single or multiple files that
+use such functions or variables, you want either C<static> or global
+variants.
+
+For a C<static> function or variable (used only in a single source
+file), use:
+
+    #define NEED_function
+    #define NEED_variable
+
+For a global function or variable (used in multiple source files),
+use:
+
+    #define NEED_function_GLOBAL
+    #define NEED_variable_GLOBAL
+
+Note that you mustn't have more than one global request for the
+same function or variable in your project.
+
+    __EXPLICIT_API__
+
+To avoid namespace conflicts, you can change the namespace of the
+explicitly exported functions / variables using the C<DPPP_NAMESPACE>
+macro. Just C<#define> the macro before including C<ppport.h>:
+
+    #define DPPP_NAMESPACE MyOwnNamespace_
+    #include "ppport.h"
+
+The default namespace is C<DPPP_>.
+
+=back
+
+The good thing is that most of the above can be checked by running
+F<ppport.h> on your source code. See the next section for
+details.
+
+=head1 EXAMPLES
+
+To verify whether F<ppport.h> is needed for your module, whether you
+should make any changes to your code, and whether any special defines
+should be used, F<ppport.h> can be run as a Perl script to check your
+source code. Simply say:
+
+    perl ppport.h
+
+The result will usually be a list of patches suggesting changes
+that should at least be acceptable, if not necessarily the most
+efficient solution, or a fix for all possible problems.
+
+If you know that your XS module uses features only available in
+newer Perl releases, if you're aware that it uses C++ comments,
+and if you want all suggestions as a single patch file, you could
+use something like this:
+
+    perl ppport.h --compat-version=5.6.0 --cplusplus --patch=test.diff
+
+If you only want your code to be scanned without any suggestions
+for changes, use:
+
+    perl ppport.h --nochanges
+
+You can specify a different C<diff> program or options, using
+the C<--diff> option:
+
+    perl ppport.h --diff='diff -C 10'
+
+This would output context diffs with 10 lines of context.
+
+If you want to create patched copies of your files instead, use:
+
+    perl ppport.h --copy=.new
+
+To display portability information for the C<newSVpvn> function,
+use:
+
+    perl ppport.h --api-info=newSVpvn
+
+Since the argument to C<--api-info> can be a regular expression,
+you can use
+
+    perl ppport.h --api-info=/_nomg$/
+
+to display portability information for all C<_nomg> functions or
+
+    perl ppport.h --api-info=/./
+
+to display information for all known API elements.
+
+=head1 BUGS
+
+Some of the suggested edits and/or generated patches may not compile as-is
+without tweaking manually.  This is generally due to the need for an extra
+parameter to be added to the call to prevent buffer overflow.
+
+If this version of F<ppport.h> is causing failure during
+the compilation of this module, please check if newer versions
+of either this module or C<Devel::PPPort> are available on CPAN
+before sending a bug report.
+
+If F<ppport.h> was generated using the latest version of
+C<Devel::PPPort> and is causing failure of this module, please
+file a bug report at L<https://github.com/Dual-Life/Devel-PPPort/issues>
+
+Please include the following information:
+
+=over 4
+
+=item 1.
+
+The complete output from running "perl -V"
+
+=item 2.
+
+This file.
+
+=item 3.
+
+The name and version of the module you were trying to build.
+
+=item 4.
+
+A full log of the build that failed.
+
+=item 5.
+
+Any other information that you think could be relevant.
+
+=back
+
+For the latest version of this code, please get the C<Devel::PPPort>
+module from CPAN.
+
+=head1 COPYRIGHT
+
+Version 3.x, Copyright (c) 2004-2013, Marcus Holland-Moritz.
+
+Version 2.x, Copyright (C) 2001, Paul Marquess.
+
+Version 1.x, Copyright (C) 1999, Kenneth Albanowski.
+
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+See L<Devel::PPPort>.
+
+=cut

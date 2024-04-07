@@ -1,0 +1,30 @@
+[name]
+ISO-8859-1 encoding with invalid character (die)
+
+[options]
+errors die
+encoding iso-8859-1
+
+[input]
+=encoding UTF-8
+
+=head1 INVALID
+
+This character cannot be represented in ISO-8859-1, so should produce an
+error.
+
+☺
+
+[output]
+.SH INVALID
+.IX Header "INVALID"
+This character cannot be represented in ISO\-8859\-1, so should produce an
+error.
+.PP
+?
+
+[errors]
+Pod input around line 8: "\x{38790}" does not map to iso-8859-1
+
+[exception]
+POD document had syntax errors

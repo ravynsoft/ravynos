@@ -1,0 +1,409 @@
+=head1 NAME
+
+README.pod - README for the F<Porting/> directory in the Perl 5 core distribution.
+
+=head1 FILES
+
+=head2 F<acknowledgements.pl>
+
+Generates the text which goes in the Acknowledgements section in
+a perldelta. You pass in the previous version and it guesses the next
+version, fetches information from the repository and outputs the
+text.
+
+=head2 F<add-package.pl>
+
+Program to prepare dual-life distributions for insertion into the Perl 5
+F<lib/> and F<t/> directories.  Now thought to be largely superseded.
+
+=head2 F<add-pod-file>
+
+Program to facilitate addition of new F<.pod> files to F<pod/>.
+
+=head2 F<bench.pl>
+
+Do performance analysis on the code snippets in F<t/perf/benchmarks>.
+
+=head2 F<bisect-example.sh>, F<bisect.pl> and F<bisect-runner.pl>
+
+Use C<git bisect> to pinpoint changes.
+
+=head2 F<bump-perl-version>
+
+A utility to find, and optionally bump, references to the perl version
+number in various files within the perl source.
+
+=head2 F<checkansi.pl>
+
+Check source code for ANSI-C violations.
+
+=head2 F<checkcfguse.pl>
+
+Check where the symbols defined in the various F<config.sh>-clones
+are being used.  VMS is probably not handled properly here.
+
+=head2 F<checkcfgvar.pl>
+
+Check that the various F<config.sh>-clones have (at least) all the same
+symbols as the top-level F<config_h.SH> so that the (potentially) needed
+symbols are not lagging after how F<Configure> thinks the world is laid out.
+VMS is probably not handled properly here, due to their own rather elaborate
+DCL scripting.
+
+=head2 F<check-cpan-pollution>
+
+Scans the commit logs for commits that are potentially, illegitimately
+touching modules that are primarily maintained outside of the perl core.  Also
+checks for commits that span multiple distributions in F<cpan/> or F<dist/>.
+Makes sure that updated CPAN distributions also update
+F<Porting/Maintainers.pl>, but otherwise ignores changes to that file (and
+F<MANIFEST>).
+
+=head2 F<checkpodencoding.pl>
+
+Check if POD files contain non-ASCII without specifying
+encoding. Run it as: C<perl Porting/checkpodencoding.pl>.
+
+=head2 F<checkURL.pl>
+
+Checks that all the URLs in the Perl source are valid.
+
+=head2 F<checkVERSION.pl>
+
+Used by F<t/porting/cmp_version.t> to ensure changed modules have had their
+versions updated.
+
+=head2 F<cmpVERSION.pl>
+
+Compare the current Perl source tree and a given tag for modules that have
+identical version numbers but different contents.
+
+=head2 F<config_H>
+
+This file is a sample F<config.h> file.  If you are unable to successfully run
+F<Configure>, copy this file to F<config.h> and edit it to suit your system.
+
+=head2 F<config_h.pl>
+
+Used when importing changes from F<metaconfig>.  This script reorders
+F<config_h.SH> after metaconfig.
+
+=head2 F<config.sh>
+
+This file is a sample F<config.sh> file.  F<config.sh> is normally
+produced by running the F<Configure> script. It holds all the definitions
+figured out by F<Configure>.  If you are unable to successfully run
+F<Configure> on your system, copy this sample file to F<config.sh>
+at the top of the perl source tree and edit it to suit your system.
+Then propagate those values by running C<Configure -S>.  This sample
+file is normally updated each time F<Configure> is updated.
+
+=head2 F<core-cpan-diff>
+
+Compare CPAN modules with their equivalent in core. 
+Originally based on App::DualLivedDiff by Steffen Mueller.
+
+=head2 F<corecpan.pl>
+
+Reports, in a perl source tree, which dual-lived core modules have not the
+same version than the corresponding module on CPAN.
+
+=head2 F<corelist-diff>
+
+Prints a table of differences between two Perl versions with respect to
+modules included in the distribution.
+
+=head2 F<corelist-perldelta.pl>
+
+Generates a list of the module changes for the Perl you are currently
+building.  Also generates a diff between the corelist sections of two
+F<perldelta*> files.
+
+=head2 F<corelist.pl>
+
+Generates info for Module::CoreList from this perl tree.
+
+=head2 F<core-team.json>
+
+The canonical list of Perl Core Team members, used to build perlgov.pod,
+produce election mailings, and all that sort of thing.
+
+=head2 F<deparse-skips.txt>
+
+List of test files to ignore/skip for deparse tests.
+
+=head2 F<docs-team-charter.pod>
+
+The charter of the Perl Documentation Team
+
+=head2 F<epigraphs.pod>
+
+List of Perl release epigraphs.
+
+=head2 F<exclude_contrib.txt>
+
+List of base 64 encoded SHA256 digests of C<< "name <email>" >> data
+which should be ignored by F<updateAUTHORS.pl>.
+
+=head2 F<exec-bit.txt>
+
+This file contains a list of files that F<makerel> will ensure get an
+executable bit.
+
+=head2 F<exercise_makedef.pl>
+
+Brute force testing for F<makedef.pl>.
+
+=head2 F<expand-macro.pl>
+
+Expand C macros using the C preprocessor.
+
+=head2 F<findrfuncs>
+
+This script finds reentrant variants of functions used in an executable and
+shared objects.
+
+=head2 F<git-deltatool>
+
+This script, a rough draft, aids in generating a perldelta file
+from a series of git commits.
+
+=head2 F<git-find-p4-change>
+
+This script, given a Perforce change number, outputs the equivalent git commit
+id.
+
+=head2 F<git-make-p4-refs>
+
+This script creates a tag for every p4raw-id.
+
+=head2 F<GitUtils.pm>
+
+This script contains the subroutine to generate a F<.patch file> for a
+committish (the SHA1 checksum of a commit, a number made of 40 hexadecimal
+digits which acts the internal unique identifier for this commit
+(lilypond.org).  Related file: F<make_dot_patch.pl>
+
+=head2 F<Glossary>
+
+This file is built by F<metaconfig>. This file contains a description of all
+the shell variables whose value is determined by the Configure script. 
+It later gets incorporated into the pod for F<Config.pm>.
+
+=head2 F<harness-timer-report.pl>
+
+For analyzing the output of "env HARNESS_TIMER=1 make test", to find
+outliers of test execution times.
+
+=head2 F<how_to_write_a_perldelta.pod> 
+
+This file contains a specification as to how to write a perldelta pod.
+Related file: F<perldelta_template.pod>
+
+=head2 F<leakfinder.pl>
+
+This script executes every line in every file in the build directory and its
+subdirectories to determine if the number of SVs goes up and reports it as a
+leak to STDOUT.  WARNING! some harm could be done if a line contains something
+similar to C<`rm *`>.
+
+=head2 F<Maintainers>
+
+This script shows information about the maintainers of core files/modules.
+
+Related files: F<Maintainers.pl>, F<Maintainers.pm>
+
+=head2 F<Maintainers.pl>
+
+A package associating core files/modules with maintainers.  Related files:
+F<Maintainers>, F<Maintainers.pm>
+
+=head2 F<Maintainers.pm>
+
+A package to search and show information about which core files/modules are
+associated with maintainers.  Related files: F<Maintainers>, F<Maintainers.pl>
+
+=head2 F<make_dot_patch.pl>
+
+Generate a F<.patch> file to STDOUT for a commit ID specified on the
+command-line.
+
+=head2 F<makemeta>
+
+This script creates F<META.yml> and F<META.json> files.
+
+=head2 F<makerel>
+
+This script builds a Perl release tarball.
+
+=head2 F<make-rmg-checklist>
+
+This script creates a release checklist as a simple HTML document.
+
+=head2 F<make_snapshot.pl>
+
+This script is a quick and dirty snapshot generator for the perl5.git.perl.org
+web page to use to generate the snapshot files. 
+
+=head2 F<manicheck>
+
+This script outputs a list of files in F<MANIFEST> which don't exist and a
+list of files that exist and aren't in F<MANIFEST>.
+
+=head2 F<manifest_lib.pl>
+
+This library provides functions used in checking and sorting the F<MANIFEST>.
+
+=head2 F<manisort>
+
+This script sorts the files in F<MANIFEST>.
+
+=head2 F<mksample>
+
+This script regenerates F<Porting/config.sh> and F<Porting/config_H>.
+
+=head2 F<new-perldelta.pl>
+
+This script automates the process for creating perldelta.pl.
+
+=head2 F<newtests-perldelta.pl>
+
+This script outputs the added tests between the two versions of Perl.
+
+=head2 F<perldelta_template.pod>
+
+Template for F<perldelta>.
+
+=head2 F<perlgov-team-update>
+
+This produces a new team list for F<perlgov.pod>, but does not, at present,
+insert that content into the file.
+
+=head2 F<perlhist_calculate.pl>
+
+Generates info for F<perlhist> from this perl tree.
+
+=head2 F<pod_lib.pl>
+
+When C<require>d into other programs in the Perl 5 core
+distribution, provides functions useful during testing.
+
+=head2 F<pod_rules.pl>
+
+Generate the sections of files listed in C<%Targets> from F<pod/perl.pod>.
+Mostly these are rules in Makefiles.
+
+ --verbose gives slightly more output
+ --build-all tries to build everything
+ --build-foo updates foo as follows
+ --showfiles shows the files to be changed
+ --test exit if perl.pod, MANIFEST are consistent, and regenerated
+   files are up to date, die otherwise.
+
+=head2 F<podtidy>
+
+Applies F<podtidy> to a file.
+
+=head2 F<pumpkin.pod>
+
+Pumpkin - Notes on handling the Perl Patch Pumpkin And Porting Perl.
+Many of these are out of date or superseded by other documents in 
+this directory.
+
+=head2 F<README.pod>
+
+This file.  An exhaustive list of the contents of the F<Porting/>
+directory along with a description of each file.
+The test F<t/porting/readme.t> ensures that this lists every file
+and that every file is listed.
+
+=head2 F<README.y2038>
+
+The y2038 implementation for perl. This is an implementation of POSIX time.h
+which solves the year 2038 bug on systems where time_t is only 32 bits.  It is
+implemented in bog-standard ANSI C. The latest version can be found at
+L<https://github.com/evalEmpire/y2038>.
+
+=head2 F<release_announcement_template.txt>
+
+Release announcement for minor releasements of the 5.19 development series.
+
+=head2 F<release_managers_guide.pod>
+
+Releasing a new version of perl 5.x. Note that things change at each release,
+so there may be new things not covered here, or tools may need updating.
+
+=head2 F<release_schedule.pod>
+
+This schedule lists the projected or historical development and release
+schedules for the next, current and previous stable versions of Perl. Dates
+with all question marks will only be releases if deemed necessary by the
+Steering Council.
+
+=head2 F<rt_list_patches>
+
+Shell script to list patches in RT.
+
+=head1 F<security_template.pod>
+
+Template to guide writers of a perl 5 security vulnerability
+announcement.
+
+=head2 F<sort_perldiag.pl>
+
+This is a script for sorting the warning and error messages in
+F<perldiag.pod>.  POD formatting, printf-style escapes, non-letter characters,
+and case are ignored, as explained in L<perldiag>.
+
+=head2 F<sync-with-cpan>
+
+Script to help out with syncing cpan distros.
+
+=head2 F<test-dist-modules.pl>
+
+Test modules in F<dist/> against the perl in C<PATH>.  Used in the
+github workflow to test against older perls.
+
+=head2 F<timecheck2.c>
+
+A little program to test the limits of your system's time functions. See
+F<Porting/README.y2038> for details.
+
+=head2 F<timecheck.c>
+
+A helper tool for perl's 2038 support See F<Porting/README.y2038> for details.
+
+=head2 F<todo.pod>
+
+This is a list of wishes for Perl. The most up-to-date version of this file is
+at L<https://github.com/Perl/perl5/blob/blead/Porting/todo.pod>.
+The tasks we think are smaller or easier are listed first.  Anyone is welcome
+to work on any of these, but it's a good idea to first contact
+I<perl5-porters@perl.org> to avoid duplication of effort, and to learn from
+any previous attempts.
+
+=head2 F<updateAUTHORS.pl>
+
+This script will automatically update AUTHORS and create .mailmap entries
+based on the git commit log history. If F<t/porting/authors.t> complains
+during testing you should run this. It will automatically fix most if not
+all AUTHORS related test fails.
+
+=head2 F<updateAUTHORS.pm>
+
+The class used by F<updateAUTHORS.pl> to do its business. Package name
+C<Porting::updateAUTHORS>.
+
+=head2 F<valgrindpp.pl>
+
+A post-processor for C<make test.valgrind>.  F<valgrindpp.pl> is a
+post-processor for F<.valgrind> files created during C<make test.valgrind>. It
+collects all these files, extracts most of the information and produces a
+significantly shorter summary of all detected memory access errors and memory
+leaks.
+
+=head2 F<vote_admin_guide.pod>
+
+Guide for Vote Administrators for running Steering Council elections.
+
+=cut

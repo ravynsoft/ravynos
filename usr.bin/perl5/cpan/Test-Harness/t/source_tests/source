@@ -1,0 +1,10 @@
+#!/usr/bin/perl -wT
+
+BEGIN {
+  unshift @INC, 't/lib';
+  unshift @INC, '../../lib' if $ENV{PERL_CORE};
+}
+
+use Test::More tests => 1;
+
+ok 1, 'source';

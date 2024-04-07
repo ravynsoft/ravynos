@@ -1,0 +1,77 @@
+<Document start_line="2">
+  <head1 start_line="2">
+    NAME
+  </head1>
+  <Para start_line="4">
+    French-Latin-1 -- implicitly Latin-1 test document in French
+  </Para>
+  <head1 start_line="6">
+    DESCRIPTION
+  </head1>
+  <Para start_line="8">
+    This is a test Pod document in Latin-1. Its content is the last two
+    paragraphs of Baudelaire&#39;s 
+    <I>
+      Le Joujou du pauvre
+    </I>
+    .
+  </Para>
+  <Para start_line="11">
+    A travers ces barreaux symboliques s&#233;parant deux mondes, la grande
+    route et le ch&#226;teau, l&#39;enfant pauvre montrait &#224;
+    l&#39;enfant riche son propre joujou, que celui-ci examinait avidement
+    comme un objet rare et inconnu. Or, ce joujou, que le petit souillon
+    aga&#231;ait, agitait et secouait dans une bo&#238;te grill&#233;e,
+    c&#39;&#233;tait un rat vivant&#160;! Les parents, par &#233;conomie
+    sans doute, avaient tir&#233; le joujou de la vie elle-m&#234;me.
+  </Para>
+  <Para start_line="18">
+    Et les deux enfants se riaient l&#39;un &#224; l&#39;autre fraternellement,
+    avec des dents d&#39;une 
+    <I>
+      &#233;gale
+    </I>
+     blancheur.
+  </Para>
+  <head2 start_line="21">
+    As Verbatim
+  </head2>
+  <VerbatimFormatted start_line="23" xml:space="preserve">
+     A travers ces barreaux symboliques s&#233;parant deux mondes, la grande
+    route
+     et le ch&#226;teau, l&#39;enfant pauvre montrait &#224; l&#39;enfant
+    riche son propre
+     joujou, que celui-ci examinait avidement comme un objet rare et
+    inconnu.
+     Or, ce joujou, que le petit souillon aga&#231;ait, agitait et secouait
+    dans
+     une bo&#238;te grill&#233;e, c&#39;&#233;tait un rat vivant&#160;! 
+    Les parents, par &#233;conomie
+     sans doute, avaient tir&#233; le joujou de la vie elle-m&#234;me. 
+    
+     Et les deux enfants se riaient l&#39;un &#224; l&#39;autre
+    fraternellement, avec des
+     dents d&#39;une &#233;gale blancheur.
+  </VerbatimFormatted>
+  <Para start_line="33">
+    [end]
+  </Para>
+  <head1 errata="1" start_line="-321">
+    POD ERRORS
+  </head1>
+  <Para errata="1" start_line="-321">
+    Hey! 
+    <B>
+      The above document had some coding errors, which are explained below:
+    </B>
+  </Para>
+  <over-text errata="1" indent="4" start_line="-321">
+    <item-text start_line="-321">
+      Around line 11:
+    </item-text>
+    <Para start_line="-321">
+      Non-ASCII character seen before =encoding in &#39;s&#233;parant&#39;.
+      Assuming CP1252
+    </Para>
+  </over-text>
+</Document>

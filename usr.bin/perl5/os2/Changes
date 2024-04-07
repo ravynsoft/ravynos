@@ -1,0 +1,821 @@
+after 5.003_05:
+	PERLLIB_PREFIX was not active if it matches an element of @INC
+		as a whole.
+	Do not need PERL_SBRK if crtdll-revision is >= 50.
+	Use -Zsmall-conv if crtdll-revision is >= 50 (in static perl!).
+:7: warning: #warning <dirent.h> requires <sys/types.h>
+	We compile miniperl static. It cannot fork, thus there may be
+		problems with pipes (since HAS_FORK is in
+		place). Pipes are required by makemaker.
+	We compile perl___.exe A.OUT and dynamic. It should be able to
+		fork.
+	If we can fork, we my_popen by popen unless "-|". Thus we
+		write a cooky "-1" into the pid array to indicate
+		this.
+	Apparently we can fork, and we can load dynamic extensions
+		now, though probably not simultaneously.
+	*DB tests corrected for OS/2 one-user stat[2].
+	/bin/sh is intercepted and replaced by SH_PATH.
+	Note that having '\\' in the command line of one-arg `system'
+		would trigger call via shell.
+	Segfault with system {'ls'} 'blah'; corrected.
+	Documentation of OS/2-different features added to main PODs.
+	New buitins in Cwd::
+
+		Cwd::current_drive
+		Cwd::sys_chdir		- leaves drive as it is.
+		Cwd::change_drive
+		Cwd::sys_is_absolute	- has drive letter and is_rooted
+		Cwd::sys_is_rooted	- has leading [/\\] (maybe
+					  after a drive)
+		Cwd::sys_is_relative	- changes with current dir
+		Cwd::sys_cwd		- Interface to cwd from EMX.
+		Cwd::sys_abspath(name, dir)	
+					- Really really odious
+					  function. Returns absolute
+					  name of file which would 
+					  have 'name' if CWD were 'dir'.
+					Dir defaults to the current dir.
+		Cwd::extLibpath [type]	- Get/set current value of extended
+		Cwd::extLibpath_set	- library search path.
+			path [type]
+					The optional last argument redirects
+					   to END-path if true,
+					   default is to search BEGIN-path.
+		(Note that some of these may be moved to different
+		  libraries - eventually).
+	Executables: 
+		perl - can fork, can dynalink (but not simultaneously)
+		perl_ - can fork, cannot dynalink
+		perl__ - same as perl___, but PM.
+		perl___ - cannot fork, can dynalink.
+	The build of the first one - perl - is rather convoluted, and
+	  requires a build of miniperl_.
+
+after 5.003_07:
+	custom tmpfile and tmpname which may use $TMP, $TEMP.
+	all the calls to OS/2 API wrapped so that it is safe to use
+		them under DOS (may die(), though).
+	Tested that popen works under DOS with modified PDKSH and RSX.
+	File::Copy works under DOS.
+	MakeMaker modified to work under DOS (perlmain.c.tmp and sh -c true).
+
+after 5.003_08:
+	OS2::PrfDB exports symbols as documented;
+	should work on OS/2 2.1 again.
+	uses reliable signals when spawing.
+	do not use popen() any more - no intermediate shell unless needed.
+
+after 5.003_11:
+	Functions emx_{malloc,realloc,calloc,free} are exported from DLL.
+	get_sysinfo() bugs corrected (flags were not used and wrongly defined).
+
+after 5.003_20:
+	_isterm is substituted instead of isatty, s?random instead of srand.
+	`register' disabled if -DDEBUGGING and not AOUT build: stupid SD386.
+	3-argument select() was stomping over memory.
+
+after 5.003_21:
+	Can start scripts by executing 'dir/script' and
+	'script.sh'. Form without extension will call shell only if
+	the specified file exists (will not look on path) (to prohibit
+	trying to run shell commands directly). - Needed by magic.t.
+
+after 5.003_27:
+	ALTERNATE_SHEBANG="extproc " supported, thus options on this
+	line are processed (possibly twice). -S is made legal on such
+	a line. This -S -x is not needed any more.
+	perl.dll may be used from non-EMX programs (via PERL_SYS_INIT
+	- the caller should have valid variable "env" with
+	environment). Known problems: $$ does not work - is 0, waitpid
+	returns immediately, thus Perl cannot wait for completion of
+	started programs.
+
+after 5.004_01:
+	flock emulation added (disable by setting env PERL_USE_FLOCK=0),
+		thanks to Rocco Caputo;
+	RSX bug with missing waitpid circumvented;
+	-S bug with full path with \ corrected.
+
+before 5.004_02:
+	-S switch to perl enables a search with additional extensions 
+	.cmd, .btm, .bat, .pl as well.  This means that if you have
+	mycmd.pl or mycmd.bat on PATH, 
+		perl -S mycmd
+	will work.  Perl will also look in the current directory first.
+	Moreover, a bug with \; in PATH being non-separator is fixed.
+
+after 5.004_03:
+	$^E tracks calls to CRT now.  (May break if Perl masks some
+	changes to errno?)
+	$0 may be edited to longer lengths (at least under OS/2).
+	OS2::REXX->loads looks in the OS/2-ish fashion too.
+
+after 5.004_04:
+	Default perl.exe was built with a shorter stack than expected.
+	Strip extensions DLLs too (unless debugging build).
+	./os2.c being RO could stop cp.
+	When starting scripts, Perl will find them on path (using the same
+	  extensions as for -S command-line switch).  If it finds magic
+	  `extproc ' or `#!' cookies, it will start the scripts directly.
+	May use `cmd /c more <' as a pager.
+	If a program could not be started, this might have been hidden.
+	End of pipe was closed twice when `open'ing a pipeline.
+
+after 5.004_53:
+	Minimal thread support added.  One needs to manually move pthread.h
+
+after 5.004_64:
+	Make DLL names different if thread-enabled.
+	Emit more informative internal DLL descriptions.
+
+5.004_72:
+	Updated OS2::Process (v0.2) included.
+	
+after 5.004_73:
+	Fixed a bug with argv not NULL-terminated when starting scripts.
+	Support all the forms of starting scripts.
+	Support killing a child when receiving a signal during system()
+	(in two stage, on first send the same signal, on the next
+	send SIGKILL).
+	Add the same logic for scripts as in pdksh, including 
+		stripping the path from #! line if needed, 
+		calling EXECSHELL or COMSPEC for magic-less scripts;
+	Now pdksh is called only if one-arg system()/friends contains
+	metachars, or if magic-line asks for sh, or there is no magic
+	line and EXECSHELL is set to sh.
+	Shell is supplied the original command line if possible.
+
+after 5.005_02:
+	Can start PM programs from non-PM sessions by plain system()
+		and friends.  Can start DOS/Win programs.  Can start
+		fullscreen programs from non-fullscreen sessions too.
+	In fact system(P_PM,...) was broken.
+	We mangle the name of perl*.DLL, to allow coexistence of different
+		versions of Perl executables on the system.  Mangling of
+		names of extension DLL is also changed, thus running two
+		different versions of the executable with loaded
+		extensions should not lead to conflicts (since 
+		extension-full-name and Perl-version mangling work in the 
+		same set ot 576 possible keys, this may lead to clashes).
+	$^E was reset on the second read, and contained ".\r\n" at the end.
+
+after 5.005_53:
+	Would segfault system()ing non-existing program;
+	AOUT build was hosed;
+	warning-test for getpriority() might lock the system hard on 
+		pre-fixpak22 configuration (calling getpriority() on 
+		non-existing process triggers a system-wide bug).
+
+
+	PrfDB was using a bug in processing XSUBs returning U32.
+
+	Variable $OS2::emx_rev implemented (string and numeric values
+		are the same as C variables _emx_rev and _emx_vprt).
+	Variable $OS2::emx_env implemented (same as C variable _emx_env).
+	Variable $OS2::os_ver implemented (_osmajor + 0.001 * _osminor).
+
+	Improved centralized management of HAB and HMQ.  To get Perl's
+		HAB, call perl_hab_GET().  (After the initial call one
+		can use Perl_hab instead.)  To require Perl's HMQ,
+		call perl_hmq_GET(), to release it call perl_hmq_UNSET(),
+		to obtain it between these calls use Perl_hmq.
+	HMQ management is refcounted, and the program will morph
+		itself into/from PM if required.
+	If perl.h cannot be included, hab may be obtained by Perl_hab_GET().
+
+	New function OS2::Error(do_harderror,do_exception).  Returns
+		undef if it was not called yet, otherwise bit 1 is
+		set if on previous call do_harderror was enabled, bit
+		2 is set if on previous call do_exception was enabled.
+	This function enables/disables error popups associated with 
+		hardware errors (Disk not ready etc.) and software exceptions.
+
+	New function OS2::Errors2Drive(drive).  Returns undef if it was 
+		not called yet, otherwise return false if Errors were
+		not requested to be written to a hard drive, or the
+		drive letter if this was requested.
+	This function may redirect error popups associated with 
+		hardware errors (Disk not ready etc.) and software exceptions
+		to the file POPUPLOG.OS2 at the root directory of the
+		specified drive.  Overrides OS2::Error() specified by 
+		individual programs.  Given argument undef will
+		disable redirection.  Has global effect, persists
+		after the application exits.
+
+	New function OS2::SysInfo().  Returns a hash with system information.
+		The keys of the hash are
+
+		MAX_PATH_LENGTH, MAX_TEXT_SESSIONS, MAX_PM_SESSIONS,
+		MAX_VDM_SESSIONS, BOOT_DRIVE, DYN_PRI_VARIATION,
+		MAX_WAIT, MIN_SLICE, MAX_SLICE, PAGE_SIZE,
+		VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION,
+		MS_COUNT, TIME_LOW, TIME_HIGH, TOTPHYSMEM, TOTRESMEM,
+		TOTAVAILMEM, MAXPRMEM, MAXSHMEM, TIMER_INTERVAL,
+		MAX_COMP_LENGTH, FOREGROUND_FS_SESSION,
+		FOREGROUND_PROCESS
+
+	New function OS2::BootDrive(force).  Returns a letter without colon.
+
+	New functions OS2::MorphPM(serve)/OS2::UnMorphPM(serve).  Transforms
+		the current application into a PM application and back.
+		The argument true means that a real message loop is
+		going to be performed.
+	OS2::MorphPM() returns the PM message queue handle as an integer.
+
+	New function OS2::Serve_Messages(force).  Fake on-demand
+		retrieval of outstanding PM messages.  If force is false,
+		will not dispatch messages if a real message loop is known to
+		be present.  Returns number of messages retrieved.
+	Dies with "QUITing..." if WM_QUIT message is obtained.
+
+	New function OS2::Process_Messages(force [, cnt]).  Retrieval
+		of PM messages until window creation/destruction.  
+		If force is false, will not dispatch messages 
+		if a real message loop is known to be present.  
+		Returns change in number of windows.  If cnt is given,
+		it is incremented by the number of messages retrieved.
+	Dies with "QUITing..." if WM_QUIT message is obtained.
+
+after 5.005_54:
+ 	Opening pipes from/to processes could fail if (un)appropriate
+ 	combination of STDIN/STDOUT was closed.
+ 
+ 	If the only shell-metachars of a command are ' 2>&1' at the
+ 	end of a command, it is executed without calling the external shell.
+
+after 5.005_57:
+	Make UDP sockets return correct caller address (OS2 API bug);
+	Enable TCPIPV4 defines (works with Warp 3 IAK too?!);
+	Force Unix-domain sockets to start with "/socket", convert
+	  '/' to '\' in the calls;
+	Make C<system 1, $cmd> to treat $cmd as in C<system $cmd>;
+	Autopatch Configure;
+	Find name and location of g[nu]patch.exe;
+	Autocopy perl????.dll to t/ when testing;
+
+after 5.005_62:
+	Extract a lightweight DLL access module OS2::DLL from OS2::REXX
+	   which would not load REXX runtime system;
+	Allow compile with os2.h which loads os2tk.h instead of os2emx.h;
+	Put the version of EMX CRTL into -D define;
+	Use _setsyserror() to store last error of OS/2 API for $^E;
+	New macro PERL_SYS_INIT3(argvp, argcp, envp);
+	Make Dynaloader return info on the failing module after failed dl_open();
+	OS2::REXX test were done for interactive testing (were writing
+	  "ok" to stderr);
+	system() and friends return -1 on failure (was 0xFF00);
+	Put the full name of executable into $^X
+	  (alas, uppercased - but with /);
+	t/io/fs.t was failing on HPFS386;
+	Remove extra ';' from defines for MQ operations.
+
+pre 5.6.1:
+	Resolved: "Bad free()" messages (e.g., from DB_File) with -Zomf build.
+	   The reason was: when an extension DLL was linked, the order of
+	   libraries was similar to this:
+		f1.obj f2.obj libperl.lib -llibr1 -llibr2
+	   (with C RTL implicitly after this).  When libperl.lib overrides
+	   some C RTL functions, they are correctly resolved when mentioned
+	   in f1.obj and f2.obj.  However, the resolution for libr1.lib and
+	   libr2.lib is implementation-dependent.
+
+	   With -Zomf linking the symbols are resolved for libr1.lib and
+	   libr2.lib *only if* they reside in .obj-file-sections of libperl.lib
+	   which were already "picked up" for symbols in f1.obj f2.obj.
+	   However, libperl.lib is an import library for a .DLL, so *each
+	   symbol in libperl.lib sits in its own pseudo-section*!
+
+	   Corollary: only those symbol from libperl.lib which were already
+	   mentioned in f1.obj f2.obj would be used for libr1.lib and
+	   libr2.lib.  Example: if f1.obj f2.obj do not mention calloc() but
+	   libr1.lib and libr2.lib do, then .lib's will get calloc() of C RTL,
+	   not one of libperl.lib.
+
+	   Solution: create a small duplicate of libperl.lib with overriding
+	   symbols only.  Put it *after* -llibr1 -llibr2 on the link line.
+	   Map strdup() and putenv() to Perl_strdup() and Perl_putenv()
+	   inside this library.
+
+	Resolved: rmdir() and mkdir() do not accept trailing slashes.
+	   Wrappers are implemented.
+	Resolved: when loading modules, FP mask may be erroneously changed by
+	   _DLLInitTerm() (e.g., TCP32IP).
+		Solutions: a) dlopen() saves/restores the FP mask.
+			   b) When starting, reset FP mask to a sane value
+				(if the DLL was compile-time linked).
+	New functions in package OS2:
+		unsigned _control87(unsigned new,unsigned mask)	# as in EMX
+		unsigned get_control87()
+		# with default values good for handling exception mask:
+		unsigned set_control87_em(new=MCW_EM,mask=MCW_EM)
+	    Needed to guard against other situations when the FP mask is
+	    stomped upon.  Apparently, IBM used a compiler (for some period
+	    of time around '95?) which changes FP mask right and left...
+	Resolved: $^X was always uppercased (cosmetic).  Solution:
+	    use argv[0] if it differs from what the OS returns only in case.
+	Resolved: when creating PM message queues, WinCancelShutdown() was
+	    not called even if the application said that it would not serve
+	    messages in this queue.  Could result in PM refusing to shutdown.
+
+	    Solution: resolve WinCancelShutdown at run time, keep the refcount
+	    of who is going to serve the queue.
+	Resolved: Perl_Deregister_MQ() segfaulted (pid/tid not initialized).
+	Resolved: FillWinError() would not fetch the error.
+	    Solution: resolve WinGetLastError at run time, call it.
+	Resolved: OS2::REXX would ignore arguments given to a Perl function
+	    imported into the REXX compartment via REXX_eval_with().
+	Resolved: OS2::REXX would treat arguments given to a Perl function
+	    imported into the REXX compartment via _register() as ASCIIZ
+	    strings inside of binary strings.
+	Resolved: OS2::REXX did not document _register().
+	Resolved: OS2::REXX would not report the error to REXX if an error
+	    condition appeared during a call to Perl function from REXX
+	    compartment.  As a result, the return string was not initialized.
+	A complete example of a mini-application added to OS2::REXX.
+	README.os2 updated to reflect the current state of Perl.
+
+pre 5.7.2:
+	aout build: kid bootstrap_* were not associated with XS.
+	bldlevel did not contain enough info.
+	extLibpath* was failing on the call of the second type.
+	Configure defines flushNULL now (EMX -Zomf bug broke autodetection).
+	Configure did not find SIGBREAK.
+	extLibpath supports LIBSTRICT, better error detection.
+	crypt() used if present in -lcrypt or -lufc.
+	dumb getpw*(), getgr*() etc. supported; as in EMX, but if no
+	    $ENV{PW_PASSWD}, the passwd field contains a string which
+	    cannot be returned by crypt() (for security reasons).
+	The unwound recursion in detecting executable by script was
+	    using static buffers.  Thus system('pod2text') would fail if the
+	    current directory contained an empty file named 'perl'.
+	Put ordinals in the base DLL.
+	Enable EXE-compression.
+	    Load time (ms):  Without /e:2: 70.6; With /e:2: 75.3; Lxlite: 62.8
+	    Size drops from 750K to 627K, with lxlite to 515K.
+	    lxlite /c:max gives 488K, but dumps core in t/TEST
+	os2ish.h defines SYSLOG constants ==> Sys::Syslog works.
+	Corrected warnings related to OS/2 code.
+	    At one place = was put instead of ==.
+	Setting $^E should work.
+	Force "SYS0dddd=0xbar: " to error messages and to dlerror().
+	    ($^E == 2 printed SYS0002 itself, but 110 did not.)
+	$OS2::nsyserror=0 switches off forcing SYSdddd on $^E.
+	perl_.exe does not require PM dlls any more (symbols resolved at
+	    runtime on the as needed basis).
+	OS2::Process:
+	    get/set: term size; codepages; screen's cursor; screen's contents
+	    reliable session name setting;
+	    process's parent pid, and the session id;
+	    switching to and enumeration of sessions
+	    window hierarchy inspection
+	    post a message to a window
+	More robust getpriority() on older Warps.
+
+	New C APIs for runtime loading of entry points from DLLs
+	(useful for entry points not present on older versions of
+	OS/2, or with DLLs not present on floppy-boot stripped down
+	setups): CallORD(), DeclFuncByORD(), DeclVoidFuncByORD(),
+	DeclOSFuncByORD(), DeclWinFuncByORD(), AssignFuncPByORD().
+
+pre 5.7.3:
+	Testing with PERL_TEST_NOVREXX=1 in environment makes tests
+	noninteractive (VREXX test requires pressing a button on a dialog).
+
+	New (ugly and voodooish) hack to work around a bug in EMX
+	runtime architecture:
+
+	  EMX.DLL is *not* initialized from its _DLL_InitTerm()
+	  routine, but the initialization is postponed until
+	  immediately before main() is called by the principal
+	  executable (may be the initialization also happens during
+	  InitTerm of -Zso -Zsys DLLs?).  The only reason I can see is
+	  to postpone the initialization until the "layout" structure
+	  is available, so the type of the executable is known.
+	  [Instead, one should have broken the initialization into two
+	  steps, with no-layout-known initialization ASAP, and the
+	  finishing touch done when "layout" is known.]
+
+	  It is due to this hack that -Zsys, -Zso etc. are needed so
+	  often.
+
+	  If during initialization of the Perl runtime environment we
+	  discover that EMX environment is not set up completely, this
+	  can be because of either our DLL being called from an
+	  uncompatible flavor of EMX executable, or from an
+	  unrelated-to-EMX.DLL (e.g., -Zsys or compiled with a
+	  different compiler) executable.  In the first case only the
+	  CRTL is not completely initialized, in the other case
+	  EMX.DLL may be not initialized too.
+
+	  We detect which of these two situations takes place, then
+	  explicitly call the initialization entry points of EMX.DLL
+	  and of CRT.  The large caveat is that the init-entry point
+	  of EMX.DLL also moves the stack pointer (another defect of
+	  EMX architecture, the init() and
+	  set_exception_handlers_on_stack() entry points should have
+	  been separated).  Thus we need some inline-assembler to
+	  compensate for this, and need to remove the installed
+	  exception handler - it is useless anyway, since exception
+	  handlers need to be on the stack.  [This one is on the
+	  stack, but will be overwritten on exit from the function.]
+
+	  We also install an extra hack to run our atexit() handlers
+	  on termination of the process (since the principal
+	  executable does not know about *this* CRTL, we need to do it
+	  ourselves - and longjmp() out of the chain of exception
+	  handlers at a proper moment :-().
+
+	The net result: Perl DLL can be now used with an arbitrary
+	application.  PERLREXX DLL is provided which makes Perl usable
+	from any REXX-enabled application.
+
+	New test targets added to test how well Perl DLL runs with
+	different flavors of executables (see all_harness etc).  To
+	avoid waiting for the user button press, run with env
+	PERL_TEST_NOVREXX=1.
+
+	Another hack: on init of Perl runtime environment, the
+	executable is tested for being an aout EMX executable.  The
+	test is the same done by gdb, so although this test is very
+	voodoo, it should be pretty robust (the beginning of the
+	executable code - at 0x10000 - is tested for a known bit
+	pattern).  The result is used to set $OS2::can_fork, which is
+	eventually used to set $Config::Config{can_fork}.
+
+	REXX::eval_REXX() made reenterable.  ADDRESS PERLEVAL
+	available for the run REXX code.  PERLLASTERROR available.
+
+	A .map file is created for the .dll.  Now easier to debug the
+	failures which do not happen with a debugging executable.
+
+	Duplicate libperl.lib as perl.lib etc. to make Embed happier.
+
+	File::Spec better adjusted to OS/2 (still does not support aa:/dir/).
+
+	New module OS::Process::Const with necessary constants for the
+	Perl calls which mimic OS/2 API calls.
+
+After @14577:
+	$Config{pager} better (but needs work in the binary installer!).
+
+	New API: OS2::DLLname([type], [\&sub])
+
+	New OS2::Process APIs:
+
+		 process_hwnd winTitle_set winTitle swTitle_set bothTitle_set
+                 hWindowPos hWindowPos_set DesktopWindow
+                 ActiveWindow_set
+                 EnableWindow EnableWindowUpdate IsWindowEnabled
+                 IsWindowVisible IsWindowShowing WindowPtr WindowULong
+                 WindowUShort SetWindowBits SetWindowPtr
+                 SetWindowULong
+                 SetWindowUShort MPFROMSHORT MPVOID MPFROMCHAR
+                 MPFROM2SHORT
+                 MPFROMSH2CH MPFROMLONG
+
+	OS::Process::Const symbols exportable from OS::Process too.
+
+	OS::Process: prototypes on subroutines which do not naturally
+	take "vectors" as arguments (not backwards compatible!).
+
+	New C API: SaveCroakWinError(), WinError_2_Perl_rc,
+	DeclWinFuncByORD_CACHE(), DeclWinFuncByORD_CACHE_survive(),
+	DeclWinFuncByORD_CACHE_resetError_survive(),
+	DeclWinFunc_CACHE(), DeclWinFunc_CACHE_resetError(),
+	DeclWinFunc_CACHE_survive(),
+	DeclWinFunc_CACHE_resetError_survive(); many new OS2 entry
+	points conveniently available via wrappers which will do the
+	necessary run-time dynalinking.
+
+After @15047:
+	makes PerlIO preserve the binary/text mode of filehandles
+	chosen by CRT library.  (However, TTY handles still are not
+	clean, since switching them to TERMIO mode and back changes
+	the NL translation law at runtime, and PerlIO level does not
+	know this.)
+
+After @18156:
+	mkdir() rmdir() tolerate trailing slashes.
+	"localized" morphing to PM when already morphed would unmorph at end.
+	Convert \n to \r\n in REXX commands (Classic REXX would allow \r and
+		\r\n, but not \n as line-ends).
+
+After @19053:
+	Better detection of OS/2 in Configure scripts (if c:/ is not readable).
+	Better Configure support for \\ inside cpp-emited # lineno "filename".
+	Export pthread-support functions from threaded DLL.
+	[older change] If perl5.def file is present, the new perl5.def has
+		compatible ordinals.
+	OS/2 code compiles with threads enabled; much more robust pthreads
+		emulation (but some statics still present); survives fork().
+	New attributes supported with [f]stat() and chmod()
+		  archived is 0x1000000 =  0100000000
+		  hidden   is 0x2000000 =  0200000000
+		  system   is 0x4000000 =  0400000000
+		If extra flag 0x8000000 = 01000000000 is missing during
+		chmod(), these 3 flags are ignored; this extra flag
+		is set in the result of stat() [this provides backward
+		compatibility, as well as transparency of stat()/
+		chmod() supporting DOSISH].
+	OS/2-specific modules use XSLoader now.
+	Remove DLLs manually after failing build (link386 would not?!).
+	Special-case stat()ing "/dev/nul" and "/dev/null" too.
+	Update dlopen() and friends: preserve i387 flags, better error messages,
+		support name==NULL (load for "this" DLL);
+	OS2::DLL does not eval() generated functions, uses closes instead;
+		new method wrapper_REXX() for DLL objects.
+
+After @19774:
+	Use common typemap for OS2:: modules.
+	New test file os2/perlrexx.cmd (should be run manually; does not it
+		exit too early???).
+	Export fork_with_resources(), croak_with_os2error() from DLL.
+	usleep() availability put in %Config{}.
+	Combine most (but not all!) statics into one struct.
+	New load-on-demand C functions 
+		Dos32QueryHeaderInfo
+		DosTmrQueryFreq
+		DosTmrQueryTime
+		WinQueryActiveDesktopPathname
+		WinInvalidateRect
+		WinCreateFrameControl
+		WinQueryClipbrdFmtInfo
+		WinQueryClipbrdOwner
+		WinQueryClipbrdViewer
+		WinQueryClipbrdData
+		WinOpenClipbrd
+		WinCloseClipbrd
+		WinSetClipbrdData
+		WinSetClipbrdOwner
+		WinSetClipbrdViewer
+		WinEnumClipbrdFmts 
+		WinEmptyClipbrd
+		WinAddAtom
+		WinFindAtom
+		WinDeleteAtom
+		WinQueryAtomUsage
+		WinQueryAtomName
+		WinQueryAtomLength
+		WinQuerySystemAtomTable
+		WinCreateAtomTable
+		WinDestroyAtomTable
+		WinOpenWindowDC
+		DevOpenDC
+		DevQueryCaps
+		DevCloseDC
+		WinMessageBox
+		WinMessageBox2
+		WinQuerySysValue
+		WinSetSysValue
+		WinAlarm
+		WinFlashWindow
+		WinLoadPointer
+		WinQuerySysPointer	
+	Check "\\SEM32\\PMDRAG.SEM" before loading PM-specific DLLs.
+	Handling of system {realname} was not correct in presence of
+		exe-type deduction, #!-emulation etc.
+	Use optimized PUSHTARG etc. XSUB convention.
+	$^E stringification contains PMERR_INVALID_HWND, PMERR_INVALID_HMQ, 
+		PMERR_CALL_FROM_WRONG_THREAD, PMERR_NO_MSG_QUEUE,
+		PMERR_NOT_IN_A_PM_SESSION if these errors are not in .MSG file
+		(at least on Warp3fp42).
+	PERLLIB_PREFIX augmented by PERLLIB_582_PREFIX, PERLLIB_58_PREFIX,
+		PERLLIB_5_PREFIX (example for 5.8.2, the first one present is
+		considered).
+	New flag bit 0x2 for OS2::MorphPM(): immediately unmorph after creation
+		of message queue.
+	(De)Registring MQ preserves i386 flags.
+	When die()ing inside OS2:: API, include $^E in the message.
+	New function OS2::Timer(): returns Tmr-timer ticks (about 1MHz) since
+		start of OS/2, converted to number of seconds (keep in mind
+		that this timer uses a different crystal than the real-time
+		clock; thus these values have only weak relationship to the
+		wall clock time; behaviour with APM on is not defined).
+	New function OS2::DevCap() [XXX Wrong usage message!!!]
+		Usage: OS2::DevCap([WHAT, [HOW=0]]); the default for WHAT is
+		the memory device context, WHAT should be a device context
+		(as integer) if HOW==0 and a window handle (as integer) if
+		HOW==1.  Returns a hash with keys
+			FAMILY IO_CAPS TECHNOLOGY DRIVER_VERSION WIDTH HEIGHT
+			WIDTH_IN_CHARS HEIGHT_IN_CHARS HORIZONTAL_RESOLUTION
+			VERTICAL_RESOLUTION CHAR_WIDTH CHAR_HEIGHT
+			SMALL_CHAR_WIDTH SMALL_CHAR_HEIGHT COLORS COLOR_PLANES
+			COLOR_BITCOUNT COLOR_TABLE_SUPPORT MOUSE_BUTTONS
+			FOREGROUND_MIX_SUPPORT BACKGROUND_MIX_SUPPORT
+			VIO_LOADABLE_FONTS WINDOW_BYTE_ALIGNMENT BITMAP_FORMATS
+			RASTER_CAPS MARKER_HEIGHT MARKER_WIDTH DEVICE_FONTS
+			GRAPHICS_SUBSET GRAPHICS_VERSION GRAPHICS_VECTOR_SUBSET
+			DEVICE_WINDOWING ADDITIONAL_GRAPHICS PHYS_COLORS
+			COLOR_INDEX GRAPHICS_CHAR_WIDTH GRAPHICS_CHAR_HEIGHT
+			HORIZONTAL_FONT_RES VERTICAL_FONT_RES DEVICE_FONT_SIM
+			LINEWIDTH_THICK DEVICE_POLYSET_POINTS
+	New function OS2::SysValues(which = -1, hwndDesktop = HWND_DESKTOP).
+		If which != -1, returns the corresponding SysValue.  Otherwise
+		returns a hash with keys:
+			SWAPBUTTON DBLCLKTIME CXDBLCLK CYDBLCLK
+			CXSIZEBORDER CYSIZEBORDER ALARM 7 8 CURSORRATE
+			FIRSTSCROLLRATE SCROLLRATE NUMBEREDLISTS WARNINGFREQ
+			NOTEFREQ ERRORFREQ WARNINGDURATION NOTEDURATION
+			ERRORDURATION 19 CXSCREEN CYSCREEN CXVSCROLL CYHSCROLL
+			CYVSCROLLARROW CXHSCROLLARROW CXBORDER CYBORDER
+			CXDLGFRAME CYDLGFRAME CYTITLEBAR CYVSLIDER CXHSLIDER
+			CXMINMAXBUTTON CYMINMAXBUTTON CYMENU
+			CXFULLSCREEN CYFULLSCREEN CXICON CYICON
+			CXPOINTER CYPOINTER DEBUG CPOINTERBUTTONS POINTERLEVEL
+			CURSORLEVEL TRACKRECTLEVEL CTIMERS MOUSEPRESENT
+			CXALIGN CYALIGN
+			DESKTOPWORKAREAYTOP DESKTOPWORKAREAYBOTTOM
+			DESKTOPWORKAREAXRIGHT DESKTOPWORKAREAXLEFT 55
+			NOTRESERVED EXTRAKEYBEEP SETLIGHTS INSERTMODE 60 61 62 63
+			MENUROLLDOWNDELAY MENUROLLUPDELAY ALTMNEMONIC
+			TASKLISTMOUSEACCESS CXICONTEXTWIDTH CICONTEXTLINES
+			CHORDTIME CXCHORD CYCHORD CXMOTIONSTART CYMOTIONSTART
+			BEGINDRAG ENDDRAG SINGLESELECT OPEN CONTEXTMENU CONTEXTHELP
+			TEXTEDIT BEGINSELECT ENDSELECT BEGINDRAGKB ENDDRAGKB
+			SELECTKB OPENKB CONTEXTMENUKB CONTEXTHELPKB TEXTEDITKB
+			BEGINSELECTKB ENDSELECTKB ANIMATION ANIMATIONSPEED
+			MONOICONS KBDALTERED PRINTSCREEN		/* 97, the last one on one of the DDK header */
+			LOCKSTARTINPUT DYNAMICDRAG 100 101 102 103 104 105 106 107
+	New function OS2::SysValues_set(which, val, hwndDesktop = HWND_DESKTOP).
+	Support new keys NUMPROCESSORS MAXHPRMEM MAXHSHMEM MAXPROCESSES
+		VIRTUALADDRESSLIMIT INT10ENABLE from OS2::SysInfo(); support
+		up to 10 unnamed values after the last named one.
+	New function OS2::SysInfoFor(id[,count=1]). [Wrong usage message!!!]
+	New function OS2::Beep(freq = 440, ms = 100).
+	New flags mod_name_C_function = 0x100, mod_name_HMODULE = 0x200 in
+		addition to old mod_name_handle = 0, mod_name_shortname = 1,
+		mod_name_full = 2 for OS2::DLLname(flag, cv); use an address
+		(as integer) or module handle instead of cv.
+	New function OS2::_headerInfo(req,size[,handle,[offset]]).
+	New function OS2::libPath(); returns the value of LIBPATH.
+	New function OS2::mytype(which=0) to query current process type:
+		0:	type immediately after startup or last fork();
+		1:	type immediately after startup;
+		2:	type before the first morphing;
+		3:	type as set now in the header.
+	New function OS2::mytype_set(type);
+	New function OS2::incrMaxFHandles(delta = 0); returns updated value
+		for the possible number of open file descriptors.
+	Make check_emx_runtime() thread-safe.
+	Fix float-to-string conversion in the range .0001..0.1 (would return
+		in exponential notation, per gcvt()).
+	Make fork(): a) preserve i387 flags;
+		     b) preserve the dynamically loaded (system) DLLs;
+		     c) preserve morphed status;
+	Make sleep() work with time > 0xffffffff/1000.
+	Implement usleep() via _sleep2(); make select() with num_files==0
+		thread-safe (via calling DosSleep()).
+	OS2::Process::Const() manages (MB|MBID|CF|CFI|SPTR)_.* constants too.
+	New (exported) functions from OS2::Process (some undocumented???):
+		process_codepage_set
+		TopLevel
+		FocusWindow_set_keep_Zorder
+		ActiveDesktopPathname
+		InvalidateRect
+		CreateFrameControl
+		ClipbrdFmtInfo
+		ClipbrdOwner
+		ClipbrdViewer
+		ClipbrdData
+		OpenClipbrd
+		CloseClipbrd
+		ClipbrdData_set
+		ClipbrdOwner_set
+		ClipbrdViewer_set
+		EnumClipbrdFmts
+		EmptyClipbrd
+		AddAtom
+		FindAtom
+		DeleteAtom
+		AtomUsage
+		AtomName
+		AtomLength
+		SystemAtomTable
+		CreateAtomTable
+		DestroyAtomTable
+		_ClipbrdData_set
+		ClipbrdText
+		ClipbrdText_set
+		_MessageBox
+		MessageBox
+		_MessageBox2
+		MessageBox2
+		LoadPointer
+		SysPointer
+		Alarm
+		FlashWindow
+	Do not use AUTOLOAD in OS2::DLL; moved to OS2::DLL::dll.
+	New method OS2::DLL->module() (to replace botched ->new() method).
+	New functions call20(), call20_p(), call20_rp3(), call20_rp3_p(),
+		call20_Dos(), call20_Win(), call20_Win_0OK(),
+		call20_Win_0OK_survive() in OS2::DLL to call C functions via
+		pointers.
+
+After @20218:
+	select() workaround broke build of x2p.
+	New OS2::Process (exported, undocumented) functions:
+		kbdChar
+		kbdhChar
+		kbdStatus
+		_kbdStatus_set
+		kbdhStatus
+		kbdhStatus_set
+		vioConfig
+		viohConfig
+		vioMode
+		viohMode
+		viohMode_set
+		_vioMode_set
+		_vioState
+		_vioState_set
+		vioFont
+		vioFont_set
+	Make CheckOS2Error() macro return the error code.
+	New dynaloaded entry point DosReplaceModule().
+	New function OS2::replaceModule(target [, source [, backup]]).
+
+After @21211:
+	Make Cwd::sys_abspath() default to '.' and taint the result.
+	Fix os2_process*.t to work if the default for VIO windows is maximized.
+	Fix to avoid non-existing PIDs for get_sysinfo() broke pid==0.
+	Restore default mode for pipes to be TEXT mode.
+
+After @21379:
+	New OS2::Process functions: __term_mirror_screen() __term_mirror()
+		io_term().
+	Fix a.out build: special-case thread::shared, pick up all the build
+		static libraries, not only those for top-level modules.
+	Fix DLLname() test to work with the static build too.
+	New dynaloaded entry point RexxRegisterSubcomExe(); make OS2::REXX use
+		it so it is not linked with REXX*.DLLs any more.
+	If system "./foo", and empty "./foo" and "./foo.exe" exist,
+		argv[0] would be set to junk.
+	Make perl2cmd convert .pl files and keep the command-line switches.
+	Make XSLoader and Perl-specific parts of DynaLoader to die with static
+		builds (new variable $OS2::is_static used);
+	Move perlmain.obj to the DLL; export main() as dll_perlmain(); create
+		a library libperl_dllmain to translate the exported symbol
+		back to main(); link the executables with this library instead
+		of perlmain.obj.
+	Add /li to link386's options (line number info in the .map file).
+	Another break from fix to avoid non-existing PIDs for get_sysinfo().
+
+After @21574:
+	Update import libraries when perl version changes (e.g., due to rsync).
+	New exported symbols dup() and dup2() [the wrappers have workaround
+		for off-by-one error + double fault in the pre-Nov2003 kernels
+		when a (wrong) filedescriptor which is limit+1 is dup()ed].
+	Enable disabling fd via a FILE* (to avoid close() during fclose()).
+	New dynaloaded entry point DosPerfSysCall().
+	New function OS2::perfSysCall(cmd = CMD_KI_RDCNT, ulParm1= 0,
+				      ulParm2= 0, ulParm3= 0); when called
+		with cmd == CMD_KI_RDCNT = 0x63 and no other parameters,
+		returns: in the scalar context: the tick count of processor 1;
+			 in the list context: 4 tick counts per processor:
+				total/idle/busy/interrupt-time.
+		with cmd == CMD_KI_GETQTY == 0x41 and no other parameters,
+		returns the CPU count.  Currently in other cases the return
+		is void.
+	New executables perl___<number> generated with decreased stack size
+		(good when virtual memory is low; e.g. floppy boot).
+
+After 5.8.2 (@21668):
+	Fixes to installperl scripts to avoid junk output, allow overwrite
+		of existing files (File::Copy::copy is mapped to DosCopy()
+		with flags which would not overwrite).
+	Disable DynaLoading of Perl modules with AOUT build (will core anyway).
+	For AOUT build: Quick hack to construct directories necessary for
+		/*/% stuff [maybe better do it from hints/os2.sh?].
+	AOUT build: do -D__ST_MT_ERRNO__ to simplify linking with -Zmtd
+		(e.g., to test GD: gd.dll linked with -Zmtd).
+	MANIFEST.SKIP was read without a drive part of the filename.
+	Rename Cwd::extLibpath*() to OS2::... (old names still preserved).
+	Install perl.lib and perl.a too.
+	New methods libPath_find(),has_f32(),handle(),fullname() for OS2::DLL.
+	Enable quad support using long long.
+	New C exported functions os2_execname(), async_mssleep(), msCounter(),
+		InfoTable(), dir_subst(), Perl_OS2_handler_install(),
+		fill_extLibpath().
+	async_mssleep() uses some undocumented features which allow usage of
+		highest possible resolution of sleep() while preserving low
+		priority (raise of resolution may be not available before
+		Warp3fp40; resolution is 8ms/CLOCK_SCALE).
+		usleep() and select(undef,undef,undef,$t) are using this
+		interface for time up to 0.5sec.
+	New convenience macros os2win_croak_0OK(rc,msg), os2win_croak(rc,msg),
+		os2cp_croak(rc,msg).
+	Supports ~installprefix, ~exe, ~dll in PERLLIB_PREFIX etc (actual
+		directories are substituted).
+	New functions OS2::msCounter(), OS2::ms_sleep(), OS2::_InfoTable().
+	Checks stack when fixing EMX being under-initialized (-Zomf -Zsys
+		produces 32K stack???).
+	New environment variables PERL_BEGINLIBPATH, PERL_PRE_BEGINLIBPATH,
+		PERL_POST_BEGINLIBPATH, PERL_ENDLIBPATH, 
+		PERL_PRE_ENDLIBPATH PERL_POST_ENDLIBPATH (~-enabled);
+		PERL_EMXLOAD_SECS.
+	Better handling of FIRST_MAKEFILE (propagate to subdirs during test,
+		do not require Makefile.PL present).
+	perl2cmd converter: do not rewrite if no change.
+	README.os2 updated with info on building binary distributions and
+		custom perl executables (but not much else).

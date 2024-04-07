@@ -1,0 +1,46 @@
+#
+#################################### DBM SECTION
+#
+
+datum_key		T_DATUM_K
+datum_value		T_DATUM_V
+gdatum			T_GDATUM
+NDBM_File		T_PTROBJ
+GDBM_File		T_PTROBJ
+SDBM_File		T_PTROBJ
+ODBM_File		T_PTROBJ
+DB_File			T_PTROBJ
+DBZ_File		T_PTROBJ
+
+INPUT
+T_DATUM_K
+	{
+	    STRLEN len;
+	    DBM_ckFilter($arg, filter[store_key], \"filter_store_key\");
+	    $var.dptr = SvPVbyte($arg, len);
+	    $var.dsize = (int)len;
+	}
+T_DATUM_V
+        DBM_ckFilter($arg, filter[store_value], \"filter_store_value\");
+	if (SvOK($arg)) {
+	    STRLEN len;
+	    $var.dptr = SvPVbyte($arg, len);
+	    $var.dsize = (int)len;
+	}
+	else {
+	    $var.dptr = \"\";
+	    $var.dsize = 0;
+	}
+T_GDATUM
+	UNIMPLEMENTED
+OUTPUT
+T_DATUM_K
+	sv_setpvn($arg, $var.dptr, $var.dsize);
+	DBM_ckFilter($arg, filter[fetch_key],\"filter_fetch_key\");
+T_DATUM_V
+	sv_setpvn($arg, $var.dptr, $var.dsize);
+	DBM_ckFilter($arg, filter[fetch_value],\"filter_fetch_value\");
+T_GDATUM
+	sv_usepvn($arg, $var.dptr, $var.dsize);
+T_PTROBJ
+        sv_setref_pv($arg, dbtype, (void*)$var);

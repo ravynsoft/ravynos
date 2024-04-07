@@ -1,0 +1,409 @@
+=head1 NAME
+
+perlclassguts - Internals of how C<feature 'class'> and class syntax works
+
+=head1 DESCRIPTION
+
+This document provides in-depth information about the way in which the perl
+interpreter implements the C<feature 'class'> syntax and overall behaviour.
+It is not intended as an end-user guide on how to use the feature. For that,
+see L<perlclass>.
+
+The reader is assumed to be generally familiar with the perl interpreter
+internals overall. For a more general overview of these details, see also
+L<perlguts>.
+
+=head1 DATA STORAGE
+
+=head2 Classes
+
+A class is fundamentally a package, and exists in the symbol table as an HV
+with an aux structure in exactly the same way as a non-class package. It is
+distinguished from a non-class package by the fact that the
+C<HvSTASH_IS_CLASS()> macro will return true on it.
+
+Extra information relating to it being a class is stored in the
+C<struct xpvhv_aux> structure attached to the stash, in the following fields:
+
+    HV          *xhv_class_superclass;
+    CV          *xhv_class_initfields_cv;
+    AV          *xhv_class_adjust_blocks;
+    PADNAMELIST *xhv_class_fields;
+    PADOFFSET    xhv_class_next_fieldix;
+    HV          *xhv_class_param_map;
+
+=over 4
+
+=item *
+
+C<xhv_class_superclass> will be C<NULL> for a class with no superclass. It
+will point directly to the stash of the parent class if one has been set with
+the C<:isa()> class attribute.
+
+=item *
+
+C<xhv_class_initfields_cv> will contain a C<CV *> pointing to a function to be
+invoked as part of the constructor of this class or any subclass thereof. This
+CV is responsible for initializing all the fields defined by this class for a
+new instance. This CV will be an anonymous real function - i.e. while it has no
+name and no GV, it is I<not> a protosub and may be directly invoked.
+
+=item *
+
+C<xhv_class_adjust_blocks> may point to an AV containing CV pointers to each of
+the C<ADJUST> blocks defined on the class. If the class has a superclass, this
+array will additionally contain duplicate pointers of the CVs of its parent
+class. The AV is created lazily the first time an element is pushed to it; it
+is valid for there not to be one, and this pointer will be C<NULL> in that
+case.
+
+The CVs are stored directly, not via RVs. Each CV will be an anonymous real
+function.
+
+=item *
+
+C<xhv_class_fields> will point to a C<PADNAMELIST> containing C<PADNAME>s,
+each being one defined field of the class. They are stored in order of
+declaration. Note however, that the index into this array will not necessarily
+be equal to the C<fieldix> of each field, because in the case of a subclass,
+the array will begin at zero but the index of the first field in it will be
+non-zero if its parent class contains any fields at all.
+
+For more information on how individual fields are represented, see L</Fields>.
+
+=item *
+
+C<xhv_class_next_fieldix> gives the field index that will be assigned to the
+next field to be added to the class. It is only useful at compile-time.
+
+=item *
+
+C<xhv_class_param_map> may point to an HV which maps field C<:param> attribute
+names to the field index of the field with that name. This mapping is copied
+from parent classes; each class will contain the sum total of all its parents
+in addition to its own.
+
+=back
+
+=head2 Fields
+
+A field is still fundamentally a lexical variable declared in a scope, and
+exists in the C<PADNAMELIST> of its corresponding CV. Methods and other
+method-like CVs can still capture them exactly as they can with regular
+lexicals. A field is distinguished from other kinds of pad entry in that the
+C<PadnameIsFIELD()> macro will return true on it.
+
+Extra information relating to it being a field is stored in an additional
+structure accessible via the C<PadnameFIELDINFO()> macro on the padname. This
+structure has the following fields:
+
+    PADOFFSET  fieldix;
+    HV        *fieldstash;
+    OP        *defop;
+    SV        *paramname;
+    bool       def_if_undef;
+    bool       def_if_false;
+
+=over 4
+
+=item *
+
+C<fieldix> stores the "field index" of the field; that is, the index into the
+instance field array where this field's value will be stored. Note that the
+first index in the array is not specially reserved. The first field in a class
+will start from field index 0.
+
+=item *
+
+C<fieldstash> stores a pointer to the stash of the class that defined this
+field. This is necessary in case there are multiple classes defined within the
+same scope; it is used to disambiguate the fields of each.
+
+    {
+        class C1; field $x;
+        class C2; field $x;
+    }
+
+=item *
+
+C<defop> may store a pointer to a defaulting expression optree for this field.
+Defaulting expressions are optional; this field may be C<NULL>.
+
+=item *
+
+C<paramname> may point to a regular string SV containing the C<:param> name
+attribute given to the field. If none, it will be C<NULL>.
+
+=item *
+
+One of C<def_if_undef> and C<def_if_false> will be true if the defaulting
+expression was set using the C<//=> or C<||=> operators respectively.
+
+=back
+
+=head2 Methods
+
+A method is still fundamentally a CV, and has the same basic representation as
+one. It has an optree and a pad, and is stored via a GV in the stash of its
+containing package. It is distinguished from a non-method CV by the fact that
+the C<CvIsMETHOD()> macro will return true on it.
+
+(Note: This macro should not be confused with the one that was previously
+called C<CvMETHOD()>. That one does not relate to the class system, and was
+renamed to C<CvNOWARN_AMBIGUOUS()> to avoid this confusion.)
+
+There is currently no extra information that needs to be stored about a method
+CV, so the structure does not add any new fields.
+
+=head2 Instances
+
+Object instances are represented by an entirely new SV type, whose base type
+is C<SVt_PVOBJ>. This should still be blessed into its class stash and wrapped
+in an RV in the usual manner for classical object.
+
+As these are their own unique container type, distinct from hashes or arrays,
+the core C<builtin::reftype> function returns a new value when asked about
+these. That value is C<"OBJECT">.
+
+Internally, such an object is an array of SV pointers whose size is fixed at
+creation time (because the number of fields in a class is known after
+compilation). An object instance stores the max field index within it (for
+basic error-checking on access), and a fixed-size array of SV pointers storing
+the individual field values.
+
+Fields of array and hash type directly store AV or HV pointers into the array;
+they are not stored via an intervening RV.
+
+=head1 API
+
+The data structures described above are supported by the following API
+functions.
+
+=head2 Class Manipulation
+
+=head3 class_setup_stash
+
+    void class_setup_stash(HV *stash);
+
+Called by the parser on encountering the C<class> keyword. It upgrades the
+stash into being a class and prepares it for receiving class-specific items
+like methods and fields.
+
+=head3 class_seal_stash
+
+    void class_seal_stash(HV *stash);
+
+Called by the parser at the end of a C<class> block, or for unit classes its
+containing scope. This function performs various finalisation activities that
+are required before instances of the class can be constructed, but could not
+have been done until all the information about the members of the class is
+known.
+
+Any additions to or modifications of the class under compilation must be
+performed between these two function calls. Classes cannot be modified once
+they have been sealed.
+
+=head3 class_add_field
+
+    void class_add_field(HV *stash, PADNAME *pn);
+
+Called by F<pad.c> as part of defining a new field name in the current pad.
+Note that this function does I<not> create the padname; that must already be
+done by F<pad.c>. This API function simply informs the class that the new
+field name has been created and is now available for it.
+
+=head3 class_add_ADJUST
+
+    void class_add_ADJUST(HV *stash, CV *cv);
+
+Called by the parser once it has parsed and constructed a CV for a new
+C<ADJUST> block. This gets added to the list stored by the class.
+
+=head2 Field Manipulation
+
+=head3 class_prepare_initfield_parse
+
+    void class_prepare_initfield_parse();
+
+Called by the parser just before parsing an initializing expression for a
+field variable. This makes use of a suspended compcv to combine all the field
+initializing expressions into the same CV.
+
+=head3 class_set_field_defop
+
+    void class_set_field_defop(PADNAME *pn, OPCODE defmode, OP *defop);
+
+Called by the parser after it has parsed an initializing expression for the
+field. Sets the defaulting expression and mode of application. C<defmode>
+should either be zero, or one of C<OP_ORASSIGN> or C<OP_DORASSIGN> depending
+on the defaulting mode.
+
+=head3 padadd_FIELD
+
+    #define padadd_FIELD
+
+This flag constant tells the C<pad_add_name_*> family of functions that the
+new name should be added as a field. There is no need to call
+C<class_add_field()>; this will be done automatically.
+
+=head2 Method Manipulation
+
+=head3 class_prepare_method_parse
+
+    void class_prepare_method_parse(CV *cv);
+
+Called by the parser after C<start_subparse()> but immediately before doing
+anything else. This prepares the C<PL_compcv> for parsing a method; arranging
+for the C<CvIsMETHOD> test to be true, adding the C<$self> lexical, and any
+other activities that may be required.
+
+=head3 class_wrap_method_body
+
+    OP *class_wrap_method_body(OP *o);
+
+Called by the parser at the end of parsing a method body into an optree but
+just before wrapping it in the eventual CV. This function inserts extra ops
+into the optree to make the method work correctly.
+
+=head2 Object Instances
+
+=head3 SVt_PVOBJ
+
+    #define SVt_PVOBJ
+
+An SV type constant used for comparison with the C<SvTYPE()> macro.
+
+=head3 ObjectMAXFIELD
+
+    SSize_t ObjectMAXFIELD(sv);
+
+A function-like macro that obtains the maximum valid field index that can be
+accessed from the C<ObjectFIELDS> array.
+
+=head3 ObjectFIELDS
+
+    SV **ObjectFIELDS(sv);
+
+A function-like macro that obtains the fields array directly out of an object
+instance. Fields can be accessed by their field index, from 0 up to the maximum
+valid index given by C<ObjectMAXFIELD>.
+
+=head1 OPCODES
+
+=head2 OP_METHSTART
+
+    newUNOP_AUX(OP_METHSTART, ...);
+
+An C<OP_METHSTART> is an C<UNOP_AUX> which must be present at the start of a
+method CV in order to make it work properly. This is inserted by
+C<class_wrap_method_body()>, and even appears before any optree fragment
+associated with signature argument checking or extraction.
+
+This op is responsible for shifting the value of C<$self> out of the arguments
+list and binding any field variables that the method requires access to into
+the pad. The AUX vector will contain details of the field/pad index pairings
+required.
+
+This op also performs sanity checking on the invocant value. It checks that it
+is definitely an object reference of a compatible class type. If not, an
+exception is thrown.
+
+If the C<op_private> field includes the C<OPpINITFIELDS> flag, this indicates
+that the op begins the special C<xhv_class_initfields_cv> CV. In this case it
+should additionally take the second value from the arguments list, which
+should be a plain HV pointer (I<directly>, not via RV). and bind it to the
+second pad slot, where the generated optree will expect to find it.
+
+=head2 OP_INITFIELD
+
+An C<OP_INITFIELD> is only invoked as part of the C<xhv_class_initfields_cv>
+CV during the construction phase of an instance. This is the time that the
+individual SVs that make up the mutable fields of the instance (including AVs
+and HVs) are actually assigned into the C<ObjectFIELDS> array. The
+C<OPpINITFIELD_AV> and C<OPpINITFIELD_HV> private flags indicate whether it is
+creating an AV or HV; if neither is set then an SV is created.
+
+If the op has the C<OPf_STACKED> flag it expects to find an initializing value
+on the stack. For SVs this is the topmost SV on the data stack. For AVs and
+HVs it expects a marked list.
+
+=head1 COMPILE-TIME BEHAVIOUR
+
+=head2 C<ADJUST> Phasers
+
+During compiletime, parsing of an C<ADJUST> phaser is handled in a
+fundamentally different way to the existing perl phasers (C<BEGIN>, etc...)
+
+Rather than taking the usual route, the tokenizer recognises that the
+C<ADJUST> keyword introduces a phaser block. The parser then parses the body
+of this block similarly to how it would parse an (anonymous) method body,
+creating a CV that has no name GV. This is then inserted directly into the
+class information by calling C<class_add_ADJUST>, entirely bypassing the
+symbol table.
+
+=head2 Attributes
+
+During compilation, attributes of both classes and fields are handled in a
+different way to existing perl attributes on subroutines and lexical
+variables.
+
+The parser still forms an C<OP_LIST> optree of C<OP_CONST> nodes, but these
+are passed to the C<class_apply_attributes> or C<class_apply_field_attributes>
+functions. Rather than using a class lookup for a method in the class being
+parsed, a fixed internal list of known attributes is used to find functions to
+apply the attribute to the class or field. In future this may support
+user-supplied extension attribute, though at present it only recognises ones
+defined by the core itself.
+
+=head2 Field Initializing Expressions
+
+During compilation, the parser makes use of a suspended compcv when parsing
+the defaulting expression for a field. All the expressions for all the fields
+in the class share the same suspended compcv, which is then compiled up into
+the same internal CV called by the constructor to initialize all the fields
+provided by that class.
+
+=head1 RUNTIME BEHAVIOUR
+
+=head2 Constructor
+
+The generated constructor for a class itself is an XSUB which performs three
+tasks in order: it creates the instance SV itself, invokes the field
+initializers, then invokes the ADJUST block CVs. The constructor for any class
+is always the same basic shape, regardless of whether the class has a
+superclass or not.
+
+The field initializers are collected into a generated optree-based CV called
+the field initializer CV. This is the CV which contains all the optree
+fragments for the field initializing expressions. When invoked, the field
+initializer CV might make a chained call to the superclass initializer if one
+exists, before invoking all of the individual field initialization ops. The
+field initializer CV is invoked with two items on the stack; being the
+instance SV and a direct HV containing the constructor parameters. Note
+carefully: this HV is passed I<directly>, not via an RV reference. This is
+permitted because both the caller and the callee are directly generated code
+and not arbitrary pure-perl subroutines.
+
+The ADJUST block CVs are all collected into a single flat list, merging all of
+the ones defined by the superclass as well. They are all invoked in order,
+after the field initializer CV.
+
+=head2 C<$self> Access During Methods
+
+When C<class_prepare_method_parse()> is called, it arranges that the pad of
+the new CV body will begin with a lexical called C<$self>. Because the pad
+should be freshly-created at this point, this will have the pad index of 1.
+The function checks this and aborts if that is not true.
+
+Because of this fact, code within the body of a method or method-like CV can
+reliably use pad index 1 to obtain the invocant reference. The C<OP_INITFIELD>
+opcode also relies on this fact.
+
+In similar fashion, during the C<xhv_class_initfields_cv> the next pad slot is
+relied on to store the constructor parameters HV, at pad index 2.
+
+=head1 AUTHORS
+
+Paul Evans
+
+=cut

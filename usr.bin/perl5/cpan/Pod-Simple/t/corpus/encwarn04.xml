@@ -1,0 +1,27 @@
+<Document start_line="13">
+  <head1 start_line="13">
+    T&#360;TORIAL
+  </head1>
+  <Para start_line="15">
+    The encoding warning should only fire when the parser is &#39;in_pod&#39;
+    but that should also be true on the first line of POD (above).
+  </Para>
+  <head1 errata="1" start_line="-321">
+    POD ERRORS
+  </head1>
+  <Para errata="1" start_line="-321">
+    Hey! 
+    <B>
+      The above document had some coding errors, which are explained below:
+    </B>
+  </Para>
+  <over-text errata="1" indent="4" start_line="-321">
+    <item-text start_line="-321">
+      Around line 13:
+    </item-text>
+    <Para start_line="-321">
+      Non-ASCII character seen before =encoding in &#39;T&#360;TORIAL&#39;.
+      Assuming UTF-8
+    </Para>
+  </over-text>
+</Document>

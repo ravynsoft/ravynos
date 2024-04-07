@@ -1,0 +1,15 @@
+[name]
+Honor quote settings in NAME
+
+[options]
+lquote '
+rquote '
+
+[input]
+=head1 NAME
+
+C</etc/blah> - config file for I<blah(1)>
+
+[output]
+.SH NAME
+\&'/etc/blah' \- config file for blah(1)
