@@ -38,17 +38,19 @@ MODULES= \
 	lib 
 
 EXTS= \
+	../ext/ExtUtils-Miniperl \
 	../ext/File-Find \
 	../ext/FileCache \
 	../ext/IPC-Open3 \
 	../ext/Tie-Hash-NamedCapture
 
 
-SRCS+=	Dumper.c Storable.c \
+SRCS+=	Dumper.c Storable.c dl_dlopen.c \
 	threads.c Cwd.c shared.c
 
 CFLAGS+= -DPERL_EXT_RE_BUILD -DPERL_EXT_RE_DEBUG -DPERL_EXT \
-	-I${.CURDIR}/.. -I${.CURDIR}/IO -DDOUBLE_SLASHES_SPECIAL=0
+	-I${.CURDIR}/.. -I${.CURDIR}/IO -DDOUBLE_SLASHES_SPECIAL=0 \
+	-DPIC -fPIC -I${.CURDIR}/../ext/DynaLoader
 
 all: build .WAIT xsmodules
 
@@ -74,11 +76,17 @@ re.o: re.c
 re.c: re.pm ${.CURDIR}/../ext/re/re.xs
 
 Glob.o: Glob.c 
+	cd ${.CURDIR}/../ext/File-Glob; \
+		${MAKEOBJDIR}/../perl Makefile.PL
+	cp -fv ${.CURDIR}/../ext/File-Glob/Glob.pm \
+		${PERL5LIB}/File
 	${CC} ${CFLAGS} -I${.CURDIR}/../ext/File-Glob \
-		-o ${.TARGET} -c ${.IMPSRC}
+		-o ${MAKEOBJDIR}/${.TARGET} -c ${MAKEOBJDIR}/${.IMPSRC}
 	${CC} ${CFLAGS} -I${.CURDIR}/../ext/File-Glob \
-		-o bsd_glob.o -c ${.CURDIR}/../ext/File-Glob/bsd_glob.c
-	cp -fv Glob.o bsd_glob.o ${.CURDIR}/../ext/File-Glob/Glob.pm \
+		-o ${MAKEOBJDIR}/bsd_glob.o \
+		-c ${.CURDIR}/../ext/File-Glob/bsd_glob.c
+	cp -fv ${MAKEOBJDIR}/Glob.o ${MAKEOBJDIR}/bsd_glob.o \
+		${.CURDIR}/../ext/File-Glob/Glob.pm \
 		${PERL5LIB}/File
 Glob.c: ${.CURDIR}/../ext/File-Glob/Glob.xs
 
@@ -86,10 +94,16 @@ XSLoader.pm:
 	${MAKEOBJDIR}/../perl ${.CURDIR}/XSLoader/XSLoader_pm.PL >${.TARGET}
 	cp -fv ${.TARGET} ${PERL5LIB}/
 
-DynaLoader.pm: 
+DynaLoader.pm: dl_dlopen.c
 	${MAKEOBJDIR}/../perl \
 		${.CURDIR}/../ext/DynaLoader/DynaLoader_pm.PL >${.TARGET}
 	cp -fv ${.TARGET} ${PERL5LIB}/
+	${CC} ${CFLAGS} -I${.CURDIR}/../ext/DynaLoader \
+		-o dl_dlopen.o -c ${MAKEOBJDIR}/dl_dlopen.c
+	mkdir -p ${PERL5LIB}/DynaLoader
+	cp -fv dl_dlopen.o ${PERL5LIB}/DynaLoader/
+
+dl_dlopen.c: ${.CURDIR}/../ext/DynaLoader/dl_dlopen.xs
 
 xsmodules: re.o Glob.o XSLoader.pm DynaLoader.pm ${SRCS}
 	${MAKEOBJDIR}/../perl  ${.CURDIR}/../mkppport --list \
@@ -109,7 +123,8 @@ xsmodules: re.o Glob.o XSLoader.pm DynaLoader.pm ${SRCS}
 
 .SUFFIXES: .xs .c
 .xs.c:
-	${MAKEOBJDIR}/../perl ${.CURDIR}/ExtUtils-ParseXS/lib/ExtUtils/xsubpp \
+	${MAKEOBJDIR}/../perl -I${.CURDIR}/../ext/DynaLoader \
+		${.CURDIR}/ExtUtils-ParseXS/lib/ExtUtils/xsubpp \
 		-noprototypes -typemap ${.CURDIR}/ExtUtils-ParseXS/t/typemap \
 		${.IMPSRC} >${.TARGET}
 

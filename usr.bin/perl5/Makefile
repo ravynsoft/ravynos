@@ -56,8 +56,13 @@ SRCS= \
 
 CFLAGS+=	-DHAS_FPSETMASK -DHAS_FLOATINGPOINT_H -DPERL_CORE \
 		-fno-strict-aliasing -pipe -fstack-protector-strong \
-		-I${MAKEOBJDIR}
+		-I${.CURDIR} -I${MAKEOBJDIR}
 LDFLAGS+=	-lcrypt -lm
+
+exts= File::Glob DynaLoader Cwd Storable 
+extobjs= ${PERL5LIB}/dl_dlopen.o ${PERL5LIB}/File/bsd_glob.o \
+	 dist/Cwd.o dist/Dumper.o dist/Storable.o \
+	 dist/shared.o dist/threads.o ${PERL5LIB}/File/Glob.o
 
 git_version.h: .PHONY
 	echo '#define PERL_GIT_UNPUSHED_COMMITS ,NULL' >${.TARGET}
@@ -73,9 +78,10 @@ subdirs:
 	cp -Rfv ${.CURDIR}/lib/* ${PERL5LIB}/
 	${MAKE} -C ${.CURDIR}/cpan all
 	${MAKE} -C ${.CURDIR}/dist all
-	${CC} ${LDFLAGS} -o ${MAKEOBJDIR}/perl ${OBJS} \
-		${MAKEOBJDIR}/dist/Glob.o \
-		${MAKEOBJDIR}/dist/bsd_glob.o
+	${MAKEOBJDIR}/perl -MExtUtils::Miniperl \
+		-e 'writemain(\q{perlmain.c}, @ARGV)' ${exts}
+	${CC} ${CFLAGS} perlmain.c -o ${PROG} \
+		${OBJS:Nminiperlmain.o} ${extobjs} ${LDFLAGS} ${LIBS}
 
 .ORDER: ${PROG} subdirs
 
