@@ -37,7 +37,7 @@ MODULES= \
 	if \
 	lib 
 
-EXTS= \
+EXTS?= \
 	../ext/ExtUtils-Miniperl \
 	../ext/File-Find \
 	../ext/FileCache \
@@ -48,7 +48,7 @@ EXTS= \
 SRCS+=	Dumper.c Storable.c dl_dlopen.c \
 	threads.c Cwd.c shared.c
 
-CFLAGS+= -DPERL_EXT_RE_BUILD -DPERL_EXT_RE_DEBUG -DPERL_EXT \
+CFLAGS+= -DPERL_EXT_RE_BUILD -DPERL_EXT \
 	-I${.CURDIR}/.. -I${.CURDIR}/IO -DDOUBLE_SLASHES_SPECIAL=0 \
 	-DPIC -fPIC -I${.CURDIR}/../ext/DynaLoader
 
@@ -70,9 +70,20 @@ build:
 re.pm:
 	cp -fv ${.CURDIR}/../ext/re/re.pm ${PERL5LIB}/
 re.o: re.c
+.for target in regcomp.o regcomp_invlist.o regcomp_debug.o \
+	regcomp_trie.o regcomp_study.o regexec.o
+	${CC} ${CFLAGS} -DPERL_IN_XSUB_RE  \
+		-I${.CURDIR}/../ext/re \
+		-c ${.CURDIR}/../${target:R}.c \
+		-o ${MAKEOBJDIR}/${target}
+.endfor
 	${CC} ${CFLAGS} -I${.CURDIR}/../ext/re \
+		-DPERL_IN_XSUB_RE -DPERL_EXT_RE_BUILD \
 		-o ${.TARGET} -c ${.IMPSRC}
-	cp -fv re.o ${PERL5LIB}/
+	${CC} -shared -o ${PERL5LIB}/re.so \
+		${MAKEOBJDIR}/re.o ${MAKEOBJDIR}/regcomp*.o \
+		${MAKEOBJDIR}/regexec.o -Wl,-soname,re.so
+
 re.c: re.pm ${.CURDIR}/../ext/re/re.xs
 
 Glob.o: Glob.c 
@@ -85,9 +96,11 @@ Glob.o: Glob.c
 	${CC} ${CFLAGS} -I${.CURDIR}/../ext/File-Glob \
 		-o ${MAKEOBJDIR}/bsd_glob.o \
 		-c ${.CURDIR}/../ext/File-Glob/bsd_glob.c
-	cp -fv ${MAKEOBJDIR}/Glob.o ${MAKEOBJDIR}/bsd_glob.o \
-		${.CURDIR}/../ext/File-Glob/Glob.pm \
-		${PERL5LIB}/File
+	${CC} -shared ${CFLAGS} -o ${PERL5LIB}/Glob.so \
+		${MAKEOBJDIR}/Glob.o ${MAKEOBJDIR}/bsd_glob.o \
+		-Wl,-soname,Glob.so
+	cp -fv ${.CURDIR}/../ext/File-Glob/Glob.pm ${PERL5LIB}/File
+
 Glob.c: ${.CURDIR}/../ext/File-Glob/Glob.xs
 
 XSLoader.pm: 
@@ -98,10 +111,15 @@ DynaLoader.pm: dl_dlopen.c
 	${MAKEOBJDIR}/../perl \
 		${.CURDIR}/../ext/DynaLoader/DynaLoader_pm.PL >${.TARGET}
 	cp -fv ${.TARGET} ${PERL5LIB}/
-	${CC} ${CFLAGS} -I${.CURDIR}/../ext/DynaLoader \
-		-o dl_dlopen.o -c ${MAKEOBJDIR}/dl_dlopen.c
 	mkdir -p ${PERL5LIB}/DynaLoader
-	cp -fv dl_dlopen.o ${PERL5LIB}/DynaLoader/
+	cp -fv ${MAKEOBJDIR}/dl_dlopen.c ${MAKEOBJDIR}/DynaLoader.c
+	${CC} ${CFLAGS} -I${.CURDIR}/../ext/DynaLoader \
+		-o ${MAKEOBJDIR}/DynaLoader.o \
+		-c ${MAKEOBJDIR}/DynaLoader.c 
+	${CC} -shared ${CFLAGS} -I${.CURDIR}/../ext/DynaLoader \
+		-o ${PERL5LIB}/DynaLoader.so \
+		-c ${MAKEOBJDIR}/DynaLoader.o \
+		-Wl,-soname,DynaLoader.so
 
 dl_dlopen.c: ${.CURDIR}/../ext/DynaLoader/dl_dlopen.xs
 

@@ -5,14 +5,13 @@ MK_WERROR=no
 WARNS=0
 PROG=	perl
 MAN=
-SRCS= \
+SHLIB_SRCS= \
 	hv.c \
 	keywords.c \
 	toke.c \
 	numeric.c \
 	perl.c \
 	taint.c \
-	regcomp_invlist.c \
 	time64.c \
 	pp_ctl.c \
 	pp_sys.c \
@@ -41,28 +40,31 @@ SRCS= \
 	scope.c \
 	perlio.c \
 	globals.c \
-	regexec.c \
 	mg.c \
 	utf8.c \
-	regcomp_trie.c \
-	regcomp_debug.c \
 	pp.c \
-	regcomp.c \
 	mathoms.c \
 	reentr.c \
 	pp_sort.c \
-	regcomp_study.c \
-	miniperlmain.c
+	regcomp_invlist.c \
+	regexec.c \
+	regcomp_trie.c \
+	regcomp_debug.c \
+	regcomp.c \
+	regcomp_study.c
+SRCS=	${SHLIB_SRCS} miniperlmain.c
+SHLIB_OBJS= 	${SHLIB_SRCS:S/.c/.o/}
 
 CFLAGS+=	-DHAS_FPSETMASK -DHAS_FLOATINGPOINT_H -DPERL_CORE \
 		-fno-strict-aliasing -pipe -fstack-protector-strong \
-		-I${.CURDIR} -I${MAKEOBJDIR}
-LDFLAGS+=	-lcrypt -lm
+		-DDEBUGGING -I${.CURDIR} -I${MAKEOBJDIR} -fPIC
+LIBS+=		-lcrypt -lm
+LDFLAGS+=	${LIBS}
 
-exts= File::Glob DynaLoader Cwd Storable 
-extobjs= ${PERL5LIB}/dl_dlopen.o ${PERL5LIB}/File/bsd_glob.o \
+exts= DynaLoader Cwd Storable 
+extobjs= ${PERL5LIB}/dl_dlopen.o \
 	 dist/Cwd.o dist/Dumper.o dist/Storable.o \
-	 dist/shared.o dist/threads.o ${PERL5LIB}/File/Glob.o
+	 dist/shared.o dist/threads.o 
 
 git_version.h: .PHONY
 	echo '#define PERL_GIT_UNPUSHED_COMMITS ,NULL' >${.TARGET}
@@ -73,15 +75,35 @@ generate_uudmap: generate_uudmap.c
 uudmap.h: generate_uudmap
 	./generate_uudmap uudmap.h bitcount.h mg_data.h
 
-subdirs:
+libperl.so: ${SHLIB_OBJS}
+	${CC} -shared -o ${MAKEOBJDIR}/libperl.so \
+		-Wl,-soname,libperl.so ${SHLIB_OBJS}
+	cp -fv ${MAKEOBJDIR}/libperl.so ${OBJTOP}/lib
+
+subdirs: libperl.so
 	mkdir -pv ${PERL5LIB}
 	cp -Rfv ${.CURDIR}/lib/* ${PERL5LIB}/
 	${MAKE} -C ${.CURDIR}/cpan all
 	${MAKE} -C ${.CURDIR}/dist all
 	${MAKEOBJDIR}/perl -MExtUtils::Miniperl \
 		-e 'writemain(\q{perlmain.c}, @ARGV)' ${exts}
-	${CC} ${CFLAGS} perlmain.c -o ${PROG} \
-		${OBJS:Nminiperlmain.o} ${extobjs} ${LDFLAGS} ${LIBS}
+	${CC} ${CFLAGS} perlmain.c -o ${PROG} ${extobjs} \
+		-L${OBJTOP}/lib -lperl ${LIBS}
+	cp -f ${.CURDIR}/*.h ${MAKEOBJDIR}/
+.for target in Fcntl
+	cd ${.CURDIR}/ext/${target}/; if [ -f Makefile.PL ]; then \
+		mkdir -p ${MAKEOBJDIR}/ext/${target}
+		export LD_LIBRARY_PATH=${OBJTOP}/lib; \
+		${MAKEOBJDIR}/perl Makefile.PL; \
+		cp -fv ${.CURDIR}/ext/${target}/${target}.pm \
+		${.CURDIR}/ext/${target}/${target}.xs \
+		${.CURDIR}/ext/${target}/*.inc \
+		${MAKEOBJDIR}/ext/Fcntl;
+		${MAKE} -C ${.CURDIR}/ext/${target}; \
+	cp -Rfv ${MAKEOBJDIR}/ext/${target}/${target}.pm ${PERL5LIB}
+	cp -Rfv ${MAKEOBJDIR}/ext/${target}/${target}.so ${PERL5LIB}
+	fi
+.endfor
 
 .ORDER: ${PROG} subdirs
 

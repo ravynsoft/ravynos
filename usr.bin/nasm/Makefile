@@ -13,8 +13,10 @@ CONFIGURE_ENV+=		AUTOHEADER=/usr/bin/true
 CONFIGURE_ENV+=		AUTOMAKE=/usr/bin/true
 CONFIGURE_ENV+=		ACLOCAL=/usr/bin/true
 
-PERL5LIB=	${SRCTOP}/usr.bin/perl5/lib:${SRCTOP}/usr.bin/perl5/cpan:${OBJTOP}/lib/perl5
+PERL5LIB=	${OBJTOP}/lib/perl5
+LD_LIBRARY_PATH=	${OBJTOP}/lib
 .export PERL5LIB
+.export LD_LIBRARY_PATH
 
 all: ${PROG}
 copyfile:
