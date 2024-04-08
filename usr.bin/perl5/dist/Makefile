@@ -103,9 +103,12 @@ Glob.o: Glob.c
 
 Glob.c: ${.CURDIR}/../ext/File-Glob/Glob.xs
 
-XSLoader.pm: 
-	${MAKEOBJDIR}/../perl ${.CURDIR}/XSLoader/XSLoader_pm.PL >${.TARGET}
-	cp -fv ${.TARGET} ${PERL5LIB}/
+XSLoader.pm: .PHONY
+	mkdir -p ${PERL5LIB}
+	LD_LIBRARY_PATH=${OBJTOP}/lib ${MAKEOBJDIR}/../perl \
+		${.CURDIR}/XSLoader/XSLoader_pm.PL
+	mv -fv ${OBJTOP}/usr.bin/perl5/dist/${.TARGET} \
+		${PERL5LIB}/${.TARGET}
 
 DynaLoader.pm: dl_dlopen.c
 	${MAKEOBJDIR}/../perl \
@@ -123,7 +126,7 @@ DynaLoader.pm: dl_dlopen.c
 
 dl_dlopen.c: ${.CURDIR}/../ext/DynaLoader/dl_dlopen.xs
 
-xsmodules: re.o Glob.o XSLoader.pm DynaLoader.pm ${SRCS}
+xsmodules: re.o Glob.o DynaLoader.pm ${SRCS}
 	${MAKEOBJDIR}/../perl  ${.CURDIR}/../mkppport --list \
 		${.CURDIR}/../mkppport.lst
 .for target in ${SRCS}

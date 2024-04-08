@@ -90,7 +90,8 @@ subdirs: libperl.so
 	${CC} ${CFLAGS} perlmain.c -o ${PROG} ${extobjs} \
 		-L${OBJTOP}/lib -lperl ${LIBS}
 	cp -f ${.CURDIR}/*.h ${MAKEOBJDIR}/
-.for target in Fcntl
+	${MAKE} -C ${.CURDIR}/dist XSLoader.pm
+.for target in Fcntl 
 	cd ${.CURDIR}/ext/${target}/; if [ -f Makefile.PL ]; then \
 		mkdir -p ${MAKEOBJDIR}/ext/${target}
 		export LD_LIBRARY_PATH=${OBJTOP}/lib; \
@@ -98,10 +99,11 @@ subdirs: libperl.so
 		cp -fv ${.CURDIR}/ext/${target}/${target}.pm \
 		${.CURDIR}/ext/${target}/${target}.xs \
 		${.CURDIR}/ext/${target}/*.inc \
-		${MAKEOBJDIR}/ext/Fcntl;
+		${MAKEOBJDIR}/ext/${target};
 		${MAKE} -C ${.CURDIR}/ext/${target}; \
-	cp -Rfv ${MAKEOBJDIR}/ext/${target}/${target}.pm ${PERL5LIB}
-	cp -Rfv ${MAKEOBJDIR}/ext/${target}/${target}.so ${PERL5LIB}
+		cp -fv ${MAKEOBJDIR}/ext/${target}/${target}.pm \
+		 ${PERL5LIB}; \
+		cp -fv ${MAKEOBJDIR}/ext/${target}/blib/arch/auto/${target}/${target}.so ${PERL5LIB}; \
 	fi
 .endfor
 
