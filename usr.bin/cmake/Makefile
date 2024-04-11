@@ -7,6 +7,7 @@ CONFIGURE_ARGS+=        --mandir=share/man
 CONFIGURE_ARGS+=        --no-qt-gui --qt-qmake=/bin/true
 
 all: configure .WAIT build
+build-tools: all
 
 configure:
 	${.CURDIR}/configure ${CONFIGURE_ARGS}

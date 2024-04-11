@@ -20,7 +20,7 @@ LD_LIBRARY_PATH=	${OBJTOP}/lib
 
 all: ${PROG}
 copyfile:
-	mkdir -p asm
+	mkdir -p asm include
 	cp -fv ${.CURDIR}/asm/warnings.c asm/
 	cp -fv ${.CURDIR}/autogen.sh .
 	cp -fv ${.CURDIR}/configure .

@@ -286,6 +286,7 @@ asm/warnings.time: $(ALLOBJ_NW:.$(O)=.c)
 asm/warnings.c.time: asm/warnings.pl asm/warnings.time
 	$(RUNPERL) $(srcdir)/asm/warnings.pl c asm/warnings.c $(srcdir)
 	: > asm/warnings.c.time
+	mv -f SCALAR* asm/warnings.c
 
 asm/warnings.c: asm/warnings.c.time
 	@: Side effect
@@ -293,6 +294,7 @@ asm/warnings.c: asm/warnings.c.time
 include/warnings.h.time: asm/warnings.pl asm/warnings.time
 	$(RUNPERL) $(srcdir)/asm/warnings.pl h include/warnings.h $(srcdir)
 	: > include/warnings.h.time
+	mv -f SCALAR* asm/warnings.h
 
 include/warnings.h: include/warnings.h.time
 	@: Side effect
@@ -300,6 +302,7 @@ include/warnings.h: include/warnings.h.time
 doc/warnings.src.time: asm/warnings.pl asm/warnings.time
 	$(RUNPERL) $(srcdir)/asm/warnings.pl doc doc/warnings.src $(srcdir)
 	: > doc/warnings.src.time
+	mv -f SCALAR* asm/warnings.src
 
 doc/warnings.src : doc/warnings.src.time
 	@: Side effect

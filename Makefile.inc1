@@ -2770,6 +2770,7 @@ _bt_clean=	${CLEANDIR}
     ${_share} \
     usr.bin/awk \
     ${_libmagic} \
+    usr.bin/cmake \
     usr.bin/vi/catalog
 build-tools_${_tool}: .PHONY
 	${_+_}@${ECHODIR} "===> ${_tool} (${_bt_clean:D${_bt_clean},}obj,build-tools)"; \

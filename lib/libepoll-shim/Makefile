@@ -40,7 +40,9 @@ INCS=	        include/sys/epoll.h \
                 include/sys/signalfd.h
 
 CFLAGS+= -Iinclude -I${.CURDIR}/src
-WARNS?=	2
+WARNS?=	1
+MK_WERROR= no
+WERROR= no
 
 include/epoll-shim::
 	cp -Rv ${.CURDIR}/include/epoll-shim ${DESTDIR}${INCLUDEDIR}/${PACKAGE}/
