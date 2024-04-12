@@ -4,9 +4,16 @@
 CMAKE_ARGS+=    -DCMAKE_SYSTEM_PROCESSOR=x86_64
 .endif
 
+CPPFLAGS=	${CFLAGS:M-I*}
+CFLAGS=		${CFLAGS:N-I*}
+
 all: build
 build:
-	cmake -S ${.CURDIR} -B ${MAKEOBJDIR} -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+	echo CPPFLAGS ${CPPFLAGS}
+	echo CFLAGS ${CFLAGS}
+	cmake -S ${.CURDIR} -B ${MAKEOBJDIR} \
+		-DPNG_BUILD_ZLIB=${SRCTOP}/contrib/zlib \
+		-DCMAKE_INSTALL_PREFIX=${PREFIX} \
                 ${CMAKE_ARGS}
 	${MAKE} -C ${MAKEOBJDIR}
 	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install

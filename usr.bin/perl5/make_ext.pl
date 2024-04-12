@@ -249,7 +249,7 @@ foreach my $spec (@extspec)  {
     $copy = 'Scalar-List-Utils' if $copy eq 'List-Util';
     $copy = 'PathTools'         if $copy eq 'Cwd';
 
-    foreach my $dir (@ext_dirs) {
+    foreach my $dir (@dirs, @ext_dirs) {
 	if (-d "$dir/$copy") {
 	    $ext_pathname = "$dir/$copy";
 	    last;
@@ -283,6 +283,7 @@ sub build_extension {
     my $up = $ext_dir;
     $up =~ s![^/]+!..!g;
 
+    $perl ||= $opts{perl}[0];
     $perl ||= "$up/miniperl";
     my $return_dir = $up;
     my $lib_dir = "$up/lib";
