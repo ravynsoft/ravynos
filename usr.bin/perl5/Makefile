@@ -84,9 +84,7 @@ git_version.h: .PHONY
 	echo '#define PERL_GIT_UNPUSHED_COMMITS ,NULL' >${.TARGET}
 
 generate_uudmap: generate_uudmap.c
-	${CC} ${CFLAGS} -o generate_uudmap ${.IMPSRC}
-
-uudmap.h: generate_uudmap
+	${CC} ${CFLAGS} -o generate_uudmap ${.ALLSRC}
 	./generate_uudmap uudmap.h bitcount.h mg_data.h
 
 libperl.so: ${SHLIB_OBJS}
@@ -127,6 +125,7 @@ exts:: Fcntl_const-c.inc POSIX_const-c.inc ${EXTSRCS}
 	cp -fv ${.CURDIR}/dist/PathTools/Cwd.pm ${PERL5LIB}/
 	cp -fv ${.CURDIR}/ext/re/re.pm ${PERL5LIB}/
 	mkdir -p ${MAKEOBJDIR}/dist
+	cd ${MAKEOBJDIR}
 .for target in regcomp.o regcomp_invlist.o regcomp_debug.o \
 	regcomp_trie.o regcomp_study.o regexec.o
 	${CC} ${EXT_CFLAGS} -I${.CURDIR}/ext/re \
@@ -135,9 +134,9 @@ exts:: Fcntl_const-c.inc POSIX_const-c.inc ${EXTSRCS}
 .endfor
 	${CC} ${EXT_CFLAGS} -I${.CURDIR}/ext/re \
 		-o re.o -c ${MAKEOBJDIR}/re.c
-	${CC} -shared -o ${PERL5LIB}/re.so ${LDFLAGS} \
+	${LD} -shared -o ${PERL5LIB}/re.so \
 		${MAKEOBJDIR}/re.o ${MAKEOBJDIR}/dist/regcomp*.o \
-		${MAKEOBJDIR}/dist/regexec.o -Wl,-soname,re.so
+		${MAKEOBJDIR}/dist/regexec.o -soname re.so
 	${CC} ${EXT_CFLAGS} -I${.CURDIR}/dist/Storable \
 		-o ${MAKEOBJDIR}/Storable.o \
 		-c ${MAKEOBJDIR}/Storable.c 
@@ -147,8 +146,8 @@ exts:: Fcntl_const-c.inc POSIX_const-c.inc ${EXTSRCS}
 .for ext in ${EXTS}
 	${CC} ${EXT_CFLAGS} -I${.CURDIR}/ext/${ext} \
 		-o ${ext}.o -c ${MAKEOBJDIR}/${ext}.c
-	${CC} -shared -o ${PERL5LIB}/${ext}.so ${LDFLAGS} \
-		${MAKEOBJDIR}/${ext}.o -Wl,-soname,${ext}.so
+	${LD} -shared -o ${PERL5LIB}/${ext}.so \
+		${MAKEOBJDIR}/${ext}.o -soname ${ext}.so
 	if [ -f ${.CURDIR}/ext/${ext}/${ext}.pm ]; then \
 	cp -fv ${.CURDIR}/ext/${ext}/${ext}.pm ${PERL5LIB}; fi
 	if [ -f ${.CURDIR}/ext/${ext}/lib/${ext}.pm ]; then \
@@ -329,8 +328,10 @@ re.c: ext/re/re.xs
 Fcntl.c: ext/Fcntl/Fcntl.xs
 POSIX.c: ext/POSIX/POSIX.xs
 
+.ORDER: ${PROG} .WAIT fullperl exts
+
 .include <bsd.prog.mk>
-${OBJS}: git_version.h uudmap.h libperl.a
+${OBJS}: generate_uudmap git_version.h libperl.a
 ${PROG}: modules
 all: fullperl exts
 
