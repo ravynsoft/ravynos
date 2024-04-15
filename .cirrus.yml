@@ -14,8 +14,6 @@ base_task:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
     IGNORE_OSVERSION: yes
   clone_script: |
-    #pkg-static install -yf pkg && pkg update
-    #rm -f /etc/pkg/FreeBSD.conf
     pkg update
     pkg install -yf git-tiny
     if [ -z "$CIRRUS_PR" ]; then
@@ -27,14 +25,8 @@ base_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
-    #- rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
-    #- cp -fv etc/pkg/ravynOS.conf /etc/pkg/
-    #- pkg install -fy libarchive 
-    #- pkg update && pkg fetch -y -o /tmp binutils
-    #- tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
-    #- pkg install -fy python38 python3 py38-pip py38-setuptools
-    #- pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto
-    #- pip install --upgrade cloudsmith-cli
+    - pkg install -fy python39 python3 py39-pip py39-setuptools
+    - pip install --upgrade cloudsmith-cli
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
@@ -67,8 +59,6 @@ kernel_task:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
     IGNORE_OSVERSION: yes
   clone_script: |
-    #pkg-static install -yf pkg && pkg update
-    #rm -f /etc/pkg/FreeBSD.conf
     pkg update
     pkg install -yf git-tiny
     if [ -z "$CIRRUS_PR" ]; then
@@ -80,14 +70,8 @@ kernel_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
-    #- rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
-    #- cp -fv etc/pkg/ravynOS.conf /etc/pkg/
-    #- pkg install -fy libarchive 
-    #- pkg update && pkg fetch -y -o /tmp binutils
-    #- tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
-    #- pkg install -fy python38 python3 py38-pip py38-setuptools
-    #- pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto
-    #- pip install --upgrade cloudsmith-cli
+    - pkg install -fy python39 python3 py39-pip py39-setuptools
+    - pip install --upgrade cloudsmith-cli
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
     - git clone https://github.com/ravynsoft/drm-kmod.git
   sys_cache:
@@ -118,8 +102,6 @@ system_task:
     path: /root/.ssh/id_rsa.pub
     variable_name: MIRROR2_SSH_PUBKEY
   clone_script: |
-    #pkg-static install -yf pkg && pkg update
-    #rm -f /etc/pkg/FreeBSD.conf
     pkg update
     pkg install -yf git-tiny
     if [ -z "$CIRRUS_PR" ]; then
@@ -131,13 +113,7 @@ system_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
-    #- rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
-    #- cp -fv etc/pkg/ravynOS.conf /etc/pkg/
-    #- pkg install -fy libarchive 
-    #- pkg update && pkg fetch -y -o /tmp binutils
-    #- tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
-    #- pkg install -fy python38 python3 py38-pip py38-setuptools
-    #- pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto libxml2 pango
+    - pkg install -fy python39 python3 py39-pip py39-setuptools
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
