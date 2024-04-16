@@ -305,7 +305,7 @@ fullperl: dl_dlopen.c Glob_const-c.inc Glob.c libperl.so
 		-e 'writemain(\q{perlmain.c}, @ARGV)' \
 		DynaLoader File::Glob
 	${CC} ${CFLAGS} perlmain.c DynaLoader.o \
-		Glob.o bsd_glob.o -o perl ${LDFLAGS}
+		Glob.o bsd_glob.o -o perl ${LIBPERL} ${LIBS}
 
 .SUFFIXES: .xs .c
 .xs.c:
