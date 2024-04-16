@@ -133,7 +133,7 @@ exts:: Fcntl_const-c.inc POSIX_const-c.inc ${EXTSRCS}
 		-o ${MAKEOBJDIR}/dist/${target}
 .endfor
 	${CC} ${EXT_CFLAGS} -I${.CURDIR}/ext/re \
-		-o re.o -c ${MAKEOBJDIR}/re.c
+		-o ${MAKEOBJDIR}/re.o -c ${MAKEOBJDIR}/re.c
 	${LD} -shared -o ${PERL5LIB}/re.so \
 		${MAKEOBJDIR}/re.o ${MAKEOBJDIR}/dist/regcomp*.o \
 		${MAKEOBJDIR}/dist/regexec.o -soname re.so
@@ -145,7 +145,7 @@ exts:: Fcntl_const-c.inc POSIX_const-c.inc ${EXTSRCS}
 	cp -fv ${.CURDIR}/dist/Storable/Storable.pm ${PERL5LIB}/
 .for ext in ${EXTS}
 	${CC} ${EXT_CFLAGS} -I${.CURDIR}/ext/${ext} \
-		-o ${ext}.o -c ${MAKEOBJDIR}/${ext}.c
+		-o ${MAKEOBJDIR}/${ext}.o -c ${MAKEOBJDIR}/${ext}.c
 	${LD} -shared -o ${PERL5LIB}/${ext}.so \
 		${MAKEOBJDIR}/${ext}.o -soname ${ext}.so
 	if [ -f ${.CURDIR}/ext/${ext}/${ext}.pm ]; then \
@@ -328,10 +328,13 @@ re.c: ext/re/re.xs
 Fcntl.c: ext/Fcntl/Fcntl.xs
 POSIX.c: ext/POSIX/POSIX.xs
 
+install-perl:
+	cp -fv ${MAKEOBJDIR}/perl ${OBJTOP}/../legacy/bin/
+
 .ORDER: ${PROG} .WAIT fullperl exts
 
 .include <bsd.prog.mk>
 ${OBJS}: generate_uudmap git_version.h libperl.a
 ${PROG}: modules
 all: fullperl exts
-
+install: install-perl
