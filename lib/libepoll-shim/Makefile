@@ -50,9 +50,10 @@ include/epoll-shim::
 include/sys/epoll.h::
 	cp -R ${.CURDIR}/include .
 	mkdir -p ${OBJTOP}/tmp/${INCSDIR}
+	mkdir -p ${MAKEOBJDIR}/include/sys
 	sed -e 's/@POLLRDHUP_VALUE@/0x4000/' \
 		<${.CURDIR}/include/sys/epoll.h \
-		>${.TARGET}
+		>${MAKEOBJDIR}/${.TARGET}
 
 .include <bsd.lib.mk>
 

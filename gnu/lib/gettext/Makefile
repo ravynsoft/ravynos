@@ -2,8 +2,8 @@
 
 .MAKEFLAGS=
 PERL5LIB=	${OBJTOP}/tmp/obj-tools/lib/perl5
-LD_LIBRARY_PATH=	${OBJTOP}/tmp/obj-tools/lib
-PATH=		${PATH}:${OBJTOP}/tmp/legacy/bin
+LD_LIBRARY_PATH+=	${OBJTOP}/tmp/obj-tools/lib
+PATH=		${OBJTOP}/tmp/legacy/bin:/bin:/usr/bin
 .export PERL5LIB
 .export LD_LIBRARY_PATH
 .export PATH

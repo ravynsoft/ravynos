@@ -1344,7 +1344,7 @@ info_TEXINFOS = autosprintf.texi
 autosprintf_TEXINFOS = lgpl.texi gpl.texi fdl.texi
 
 # Documentation in HTML format.
-TEXI2HTML = @PERL@ $(top_srcdir)/../../build-aux/texi2html
+#TEXI2HTML = @PERL@ $(top_srcdir)/../../build-aux/texi2html
 HTMLS = autosprintf_all.html
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -2268,9 +2268,9 @@ html-local: $(HTMLS)
 
 # Override of automake's definition.
 # We want to use texi2html, not makeinfo --html.
-autosprintf_all.html: autosprintf.texi $(autosprintf_TEXINFOS)
-	$(TEXI2HTML) $(TEXINCLUDES) -no-sec-nav -no-menu -toc-links -number -monolithic $(srcdir)/autosprintf.texi
-	mv autosprintf.html autosprintf_all.html
+#autosprintf_all.html: autosprintf.texi $(autosprintf_TEXINFOS)
+#	$(TEXI2HTML) $(TEXINCLUDES) -no-sec-nav -no-menu -toc-links -number -monolithic $(srcdir)/autosprintf.texi
+#	mv autosprintf.html autosprintf_all.html
 
 # The install-html target is already defined by automake.
 
