@@ -4058,10 +4058,10 @@ fcntl.h: fcntl.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) 
 	$(AM_V_at)mv $@-t $@
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/fd-ostream.h : $(top_srcdir)/build-aux/moopp fd-ostream.oo.h fd-ostream.oo.c ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/fd-ostream.oo.c $(srcdir)/fd-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/fd-ostream.c $(srcdir)/fd_ostream.priv.h $(srcdir)/fd_ostream.vt.h : fd-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/fd-ostream.h : $(top_srcdir)/build-aux/moopp fd-ostream.oo.h fd-ostream.oo.c ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/fd-ostream.oo.c $(srcdir)/fd-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/fd-ostream.c $(srcdir)/fd_ostream.priv.h $(srcdir)/fd_ostream.vt.h : fd-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf fd-ostream.lock' 1 2 13 15; \
 	  if mkdir fd-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/fd-ostream.oo.c $(srcdir)/fd-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -4074,10 +4074,10 @@ $(srcdir)/fd-ostream.c $(srcdir)/fd_ostream.priv.h $(srcdir)/fd_ostream.vt.h : f
 	}
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/file-ostream.h : $(top_srcdir)/build-aux/moopp file-ostream.oo.h file-ostream.oo.c ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/file-ostream.oo.c $(srcdir)/file-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/file-ostream.c $(srcdir)/file_ostream.priv.h $(srcdir)/file_ostream.vt.h : file-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/file-ostream.h : $(top_srcdir)/build-aux/moopp file-ostream.oo.h file-ostream.oo.c ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/file-ostream.oo.c $(srcdir)/file-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/file-ostream.c $(srcdir)/file_ostream.priv.h $(srcdir)/file_ostream.vt.h : file-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf file-ostream.lock' 1 2 13 15; \
 	  if mkdir file-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/file-ostream.oo.c $(srcdir)/file-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -4105,10 +4105,10 @@ $(srcdir)/file-ostream.c $(srcdir)/file_ostream.priv.h $(srcdir)/file_ostream.vt
 @GL_GENERATE_FLOAT_H_FALSE@	rm -f $@
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/html-ostream.h : $(top_srcdir)/build-aux/moopp html-ostream.oo.h html-ostream.oo.c ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-ostream.oo.c $(srcdir)/html-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/html-ostream.c $(srcdir)/html_ostream.priv.h $(srcdir)/html_ostream.vt.h : html-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/html-ostream.h : $(top_srcdir)/build-aux/moopp html-ostream.oo.h html-ostream.oo.c ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-ostream.oo.c $(srcdir)/html-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/html-ostream.c $(srcdir)/html_ostream.priv.h $(srcdir)/html_ostream.vt.h : html-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf html-ostream.lock' 1 2 13 15; \
 	  if mkdir html-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-ostream.oo.c $(srcdir)/html-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -4121,10 +4121,10 @@ $(srcdir)/html-ostream.c $(srcdir)/html_ostream.priv.h $(srcdir)/html_ostream.vt
 	}
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/html-styled-ostream.h : $(top_srcdir)/build-aux/moopp html-styled-ostream.oo.h html-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-styled-ostream.oo.c $(srcdir)/html-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/html-styled-ostream.c $(srcdir)/html_styled_ostream.priv.h $(srcdir)/html_styled_ostream.vt.h : html-styled-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/html-styled-ostream.h : $(top_srcdir)/build-aux/moopp html-styled-ostream.oo.h html-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-styled-ostream.oo.c $(srcdir)/html-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/html-styled-ostream.c $(srcdir)/html_styled_ostream.priv.h $(srcdir)/html_styled_ostream.vt.h : html-styled-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf html-styled-ostream.lock' 1 2 13 15; \
 	  if mkdir html-styled-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/html-styled-ostream.oo.c $(srcdir)/html-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -4137,10 +4137,10 @@ $(srcdir)/html-styled-ostream.c $(srcdir)/html_styled_ostream.priv.h $(srcdir)/h
 	}
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/iconv-ostream.h : $(top_srcdir)/build-aux/moopp iconv-ostream.oo.h iconv-ostream.oo.c ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/iconv-ostream.oo.c $(srcdir)/iconv-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/iconv-ostream.c $(srcdir)/iconv_ostream.priv.h $(srcdir)/iconv_ostream.vt.h : iconv-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/iconv-ostream.h : $(top_srcdir)/build-aux/moopp iconv-ostream.oo.h iconv-ostream.oo.c ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/iconv-ostream.oo.c $(srcdir)/iconv-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/iconv-ostream.c $(srcdir)/iconv_ostream.priv.h $(srcdir)/iconv_ostream.vt.h : iconv-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf iconv-ostream.lock' 1 2 13 15; \
 	  if mkdir iconv-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/iconv-ostream.oo.c $(srcdir)/iconv-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -4912,10 +4912,10 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	$(AM_V_at)mv $@-t6 $@
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/memory-ostream.h : $(top_srcdir)/build-aux/moopp memory-ostream.oo.h memory-ostream.oo.c ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/memory-ostream.oo.c $(srcdir)/memory-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/memory-ostream.c $(srcdir)/memory_ostream.priv.h $(srcdir)/memory_ostream.vt.h : memory-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/memory-ostream.h : $(top_srcdir)/build-aux/moopp memory-ostream.oo.h memory-ostream.oo.c ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/memory-ostream.oo.c $(srcdir)/memory-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/memory-ostream.c $(srcdir)/memory_ostream.priv.h $(srcdir)/memory_ostream.vt.h : memory-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf memory-ostream.lock' 1 2 13 15; \
 	  if mkdir memory-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/memory-ostream.oo.c $(srcdir)/memory-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -4928,10 +4928,10 @@ $(srcdir)/memory-ostream.c $(srcdir)/memory_ostream.priv.h $(srcdir)/memory_ostr
 	}
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/noop-styled-ostream.h : $(top_srcdir)/build-aux/moopp noop-styled-ostream.oo.h noop-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/noop-styled-ostream.oo.c $(srcdir)/noop-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/noop-styled-ostream.c $(srcdir)/noop_styled_ostream.priv.h $(srcdir)/noop_styled_ostream.vt.h : noop-styled-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/noop-styled-ostream.h : $(top_srcdir)/build-aux/moopp noop-styled-ostream.oo.h noop-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/noop-styled-ostream.oo.c $(srcdir)/noop-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/noop-styled-ostream.c $(srcdir)/noop_styled_ostream.priv.h $(srcdir)/noop_styled_ostream.vt.h : noop-styled-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf noop-styled-ostream.lock' 1 2 13 15; \
 	  if mkdir noop-styled-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/noop-styled-ostream.oo.c $(srcdir)/noop-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -4954,10 +4954,10 @@ $(srcdir)/noop-styled-ostream.c $(srcdir)/noop_styled_ostream.priv.h $(srcdir)/n
 @GL_GENERATE_OBSTACK_H_FALSE@	rm -f $@
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/ostream.h : $(top_srcdir)/build-aux/moopp ostream.oo.h ostream.oo.c
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/ostream.oo.c $(srcdir)/ostream.oo.h
-$(srcdir)/ostream.c $(srcdir)/ostream.priv.h $(srcdir)/ostream.vt.h : ostream.h
-	@test -f $@ || { \
+#$(srcdir)/ostream.h : $(top_srcdir)/build-aux/moopp ostream.oo.h ostream.oo.c
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/ostream.oo.c $(srcdir)/ostream.oo.h
+#$(srcdir)/ostream.c $(srcdir)/ostream.priv.h $(srcdir)/ostream.vt.h : ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf ostream.lock' 1 2 13 15; \
 	  if mkdir ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/ostream.oo.c $(srcdir)/ostream.oo.h"; \
@@ -5475,10 +5475,10 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	$(AM_V_at)mv $@-t2 $@
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/styled-ostream.h : $(top_srcdir)/build-aux/moopp styled-ostream.oo.h styled-ostream.oo.c ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/styled-ostream.oo.c $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/styled-ostream.c $(srcdir)/styled_ostream.priv.h $(srcdir)/styled_ostream.vt.h : styled-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/styled-ostream.h : $(top_srcdir)/build-aux/moopp styled-ostream.oo.h styled-ostream.oo.c ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/styled-ostream.oo.c $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/styled-ostream.c $(srcdir)/styled_ostream.priv.h $(srcdir)/styled_ostream.vt.h : styled-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf styled-ostream.lock' 1 2 13 15; \
 	  if mkdir styled-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/styled-ostream.oo.c $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -5645,10 +5645,10 @@ sys/uio.h: sys_uio.in.h $(top_builddir)/config.status
 	$(AM_V_at)mv $@-t $@
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/term-ostream.h : $(top_srcdir)/build-aux/moopp term-ostream.oo.h term-ostream.oo.c ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-ostream.oo.c $(srcdir)/term-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/term-ostream.c $(srcdir)/term_ostream.priv.h $(srcdir)/term_ostream.vt.h : term-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/term-ostream.h : $(top_srcdir)/build-aux/moopp term-ostream.oo.h term-ostream.oo.c ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-ostream.oo.c $(srcdir)/term-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/term-ostream.c $(srcdir)/term_ostream.priv.h $(srcdir)/term_ostream.vt.h : term-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf term-ostream.lock' 1 2 13 15; \
 	  if mkdir term-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-ostream.oo.c $(srcdir)/term-ostream.oo.h $(srcdir)/ostream.oo.h"; \
@@ -5661,10 +5661,10 @@ $(srcdir)/term-ostream.c $(srcdir)/term_ostream.priv.h $(srcdir)/term_ostream.vt
 	}
 # This is a Makefile rule that generates multiple files at once; see the
 # automake documentation, node "Multiple Outputs", for details.
-$(srcdir)/term-styled-ostream.h : $(top_srcdir)/build-aux/moopp term-styled-ostream.oo.h term-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
-	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-styled-ostream.oo.c $(srcdir)/term-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
-$(srcdir)/term-styled-ostream.c $(srcdir)/term_styled_ostream.priv.h $(srcdir)/term_styled_ostream.vt.h : term-styled-ostream.h
-	@test -f $@ || { \
+#$(srcdir)/term-styled-ostream.h : $(top_srcdir)/build-aux/moopp term-styled-ostream.oo.h term-styled-ostream.oo.c styled-ostream.oo.h ostream.oo.h
+#	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-styled-ostream.oo.c $(srcdir)/term-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h
+#$(srcdir)/term-styled-ostream.c $(srcdir)/term_styled_ostream.priv.h $(srcdir)/term_styled_ostream.vt.h : term-styled-ostream.h
+#	@test -f $@ || { \
 	  trap 'rm -rf term-styled-ostream.lock' 1 2 13 15; \
 	  if mkdir term-styled-ostream.lock 2>/dev/null; then \
 	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-styled-ostream.oo.c $(srcdir)/term-styled-ostream.oo.h $(srcdir)/styled-ostream.oo.h $(srcdir)/ostream.oo.h"; \
