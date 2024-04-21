@@ -1,6 +1,8 @@
 FRAMEWORK=Onyx2D
 .include "../framework.common.mk"
 
+SUBDIR+=	freetype
+
 SRCS= \
 	O2AffineTransform.m \
 	O2BitmapContext.m \
@@ -193,8 +195,15 @@ INCS= \
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR} -I.. -I../Foundation/Headers
+CFLAGS+= -I${.CURDIR}/freetype/include
 LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
+LDFLAGS+= -L${MAKEOBJDIR}/freetype -lfreetype \
+	-Wl,-R\$$ORIGIN/Resources
+
+ftlib:
+	cp -f ${MAKEOBJDIR}/freetype/libfreetype.so.6 \
+		${MAKEOBJDIR}/${FRAMEWORK}.framework/Resources/
 
 .include <rvn.framework.mk>
 
-installresources: std_install_hook
+installresources: ftlib std_install_hook

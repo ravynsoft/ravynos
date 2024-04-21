@@ -1,34 +1,31 @@
-#
-# FreeType 2 build system -- top-level Makefile
-#
+.include <src.opts.mk>
+
+MK_WERROR=no
+WARNS=1
+CFLAGS+= -I${OBJTOP}/tmp/usr/include
+
+.include <bsd.lib.mk>
 
 
-# Copyright (C) 1996-2023 by
-# David Turner, Robert Wilhelm, and Werner Lemberg.
-#
-# This file is part of the FreeType project, and may only be used, modified,
-# and distributed under the terms of the FreeType project license,
-# LICENSE.TXT.  By continuing to use, modify, or distribute this file you
-# indicate that you have read the license and understand and accept it
-# fully.
+all: build
+build:
+	cmake -S ${.CURDIR} -B ${MAKEOBJDIR} \
+		-DCMAKE_C_FLAGS="${CFLAGS}" \
+		-DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS}" \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=${PREFIX} \
+		-DBUILD_SHARED_LIBS=true \
+		-DFT_DISABLE_BZIP2=TRUE \
+		-DFT_DISABLE_HARFBUZZ=TRUE \
+		-DFT_DISABLE_BROTLI=TRUE \
+		-DSKIP_INSTALL_ALL=TRUE \
+		-DZLIB_FOUND=TRUE -DPNG_FOUND=TRUE \
+		-DZLIB_LIBRARIES="-L${OBJTOP}/lib/libz -lz" \
+		-DPNG_LIBRARY="-L${OBJTOP}/lib/libpng -lpng" \
+		-DPNG_PNG_INCLUDE_DIR="${SRCTOP}/lib/libpng"
+	${MAKE} -C ${MAKEOBJDIR}
 
+install:
+includes:
+clean:
 
-# Project names
-#
-PROJECT       := freetype
-PROJECT_TITLE := FreeType
-
-# The variable TOP_DIR holds the path to the topmost directory in the project
-# engine source hierarchy.  If it is not defined, default it to `.'.
-#
-TOP_DIR ?= .
-
-# The variable OBJ_DIR gives the location where object files and the
-# FreeType library are built.
-#
-OBJ_DIR ?= $(TOP_DIR)/objs
-
-
-include $(TOP_DIR)/builds/toplevel.mk
-
-# EOF
