@@ -31,11 +31,6 @@ LDFLAGS+= -Lmesa/src/egl -Lmesa/src/mapi/es2api -Lmesa/src/mapi/es1api \
           -Llibdrm -lEGL -lGLESv2 -lGLESv1_CM -lglapi -lwayland -lgbm -ldrm \
           -Wl,--no-as-needed -Wl,-R\$$ORIGIN/Resources
 
-_install-hook:
-	echo ${FRAMEWORK} ${.TARGET}
-	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
-	cp -av ${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-
 _libinstall_hook:
 	echo ${FRAMEWORK} ${.TARGET}
 .for i in subprojects/expat-2.5.0/libexpat.so.1 \
@@ -58,5 +53,5 @@ _libinstall_hook:
 
 .include <rvn.framework.mk>
 
-installresources: _install-hook
+installresources: std_install_hook
 _libinstall: _libinstall_hook

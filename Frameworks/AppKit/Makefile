@@ -661,9 +661,9 @@ fmwkclean:
 
 _install-hook:
 	cp -fv lib${FRAMEWORK}.so ${FRAMEWORK}.framework/Versions/Current/
-	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
-		AppKit.framework/Resources/
-	rmdir AppKit.framework/Resources/NSKeyboardBinding
+	mv ${FRAMEWORK}.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
+		${FRAMEWORK}.framework/Resources/
+	rmdir ${FRAMEWORK}.framework/Resources/NSKeyboardBinding
 .for lproj in en.lproj fr.lproj de.lproj
 	cp -av ${.CURDIR}/NSSystemInfoPanel/${lproj}/NSSystemInfoPanel.nib \
                 ${.CURDIR}/${FRAMEWORK}.framework/Versions/Current/Resources/${lproj}/

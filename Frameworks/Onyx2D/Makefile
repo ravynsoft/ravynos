@@ -192,13 +192,9 @@ INCS= \
 	gif_lib.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR} -I${.CURDIR}/.. -I.. -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR} -I.. -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
-
-_install-hook:
-	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
-	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 
 .include <rvn.framework.mk>
 
-installresources: _install-hook
+installresources: std_install_hook

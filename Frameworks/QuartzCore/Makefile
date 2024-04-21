@@ -65,10 +65,6 @@ CFLAGS+= ${FMWK_CFLAGS} -I${TOPDIR}/Frameworks -I../Foundation/Headers \
 LDFLAGS+= ${FMWK_LDFLAGS} -L../OpenGL/OpenGL.framework -lOpenGL \
         -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/Current
 
-_install-hook:
-	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
-	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-
 .include <rvn.framework.mk>
 
-installresources: _install-hook
+installresources: std_install_hook

@@ -87,10 +87,6 @@ RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I../libobjc2 -I../Foundation/Headers \
 	 -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
 
-_install-hook:
-	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
-	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-
 .include <rvn.framework.mk>
 
-installresources: _install-hook
+installresources: std_install_hook
