@@ -20,3 +20,4 @@ install:
 
 includes:
 
+.ORDER: ${PROG} install
