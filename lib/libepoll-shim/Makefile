@@ -53,7 +53,7 @@ include/sys/epoll.h::
 	mkdir -p ${MAKEOBJDIR}/include/sys
 	sed -e 's/@POLLRDHUP_VALUE@/0x4000/' \
 		<${.CURDIR}/include/sys/epoll.h \
-		>${MAKEOBJDIR}/${.TARGET}
+		>${MAKEOBJDIR}/include/sys/epoll.h
 
 .include <bsd.lib.mk>
 
