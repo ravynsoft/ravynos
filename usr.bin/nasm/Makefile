@@ -13,8 +13,13 @@ CONFIGURE_ENV+=		AUTOHEADER=/usr/bin/true
 CONFIGURE_ENV+=		AUTOMAKE=/usr/bin/true
 CONFIGURE_ENV+=		ACLOCAL=/usr/bin/true
 
+.if ${OBJTOP:M*obj-tools/*} == ""
+PERL5LIB=	${OBJTOP}/tmp/obj-tools/lib/perl5
+LD_LIBRARY_PATH=	${OBJTOP}/tmp/obj-tools/lib
+.else
 PERL5LIB=	${OBJTOP}/lib/perl5
 LD_LIBRARY_PATH=	${OBJTOP}/lib
+.endif
 .export PERL5LIB
 .export LD_LIBRARY_PATH
 

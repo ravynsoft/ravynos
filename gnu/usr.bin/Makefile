@@ -8,7 +8,7 @@ SUBDIR.${MK_TESTS}+=	tests
 SUBDIR+=                avahi
 SUBDIR+=                binutils
 SUBDIR+=                gmake
-SUBDIR+=                libtool
+#SUBDIR+=                libtool
 
 SUBDIR_PARALLEL=
 

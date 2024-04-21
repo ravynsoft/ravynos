@@ -11,6 +11,7 @@ all: ${PROG}
 ${PROG}:
 	${.CURDIR}/configure --prefix=${PREFIX} --sysconfdir=/etc ${CONFIGURE_ARGS}
 	${MAKE} CFLAGS="${NEWCFLAGS}"
+	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${DESTDIR}/legacy/bin/install"
 
 install:
 	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${DESTDIR}/legacy/bin/install"

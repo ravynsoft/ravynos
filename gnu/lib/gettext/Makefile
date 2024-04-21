@@ -9,6 +9,7 @@ PATH=		${OBJTOP}/tmp/legacy/bin:/bin:/usr/bin
 .export PATH
 
 CFLAGS=         -I${DESTDIR}/../gnu/lib/gettext/libtextstyle/lib
+LDFLAGS=	-L${OBJTOP}/tmp/usr/lib
 CONFIGURE_ARGS+=        --enable-relocatable
 GMAKE_ARGS+=    INSTALL="${DESTDIR}/legacy/bin/install" CFLAGS="${CFLAGS}"
 OO_FILES= \

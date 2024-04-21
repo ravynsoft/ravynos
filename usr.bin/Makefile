@@ -292,6 +292,8 @@ SUBDIR.${MK_UTMPX}+=	users
 SUBDIR.${MK_UTMPX}+=	who
 SUBDIR.${MK_OFED}+=	ofed
 
+SUBDIR_DEPEND_meson=	python
+
 .include <bsd.arch.inc.mk>
 
 SUBDIR_PARALLEL=

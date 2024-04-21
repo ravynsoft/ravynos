@@ -1835,7 +1835,7 @@ clean-libtool:
 
 .texi.html:
 	$(AM_V_MAKEINFO)rm -rf $(@:.html=.htp)
-	$(AM_V_at)if $(MAKEINFOHTML) $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I $(srcdir) \
+	#$(AM_V_at)if $(MAKEINFOHTML) $(AM_MAKEINFOHTMLFLAGS) $(MAKEINFOFLAGS) -I $(srcdir) \
 	 -o $(@:.html=.htp) $<; \
 	then \
 	  rm -rf $@ && mv $(@:.html=.htp) $@; \
@@ -2278,18 +2278,6 @@ libtextstyle.html: libtextstyle.texi version.texi $(libtextstyle_TEXINFOS)
 	#$(TEXI2HTML) $(TEXINCLUDES) -no-sec-nav -no-menu -toc-links -number -monolithic $(srcdir)/libtextstyle.texi
 
 libtextstyle_toc.html: libtextstyle.texi version.texi $(libtextstyle_TEXINFOS)
-	#case "@PERL@" in \
-	  #*"/missing perl") \
-	     #$(TEXI2HTML) $(TEXINCLUDES) -no-sec-nav -no-menu -toc-links -number -split_chapter $(srcdir)/libtextstyle.texi || exit 0 ;; \
-	  #*) $(RM) libtextstyle_*.html ; \
-	     #$(TEXI2HTML) $(TEXINCLUDES) -no-sec-nav -no-menu -toc-links -number -split_chapter $(srcdir)/libtextstyle.texi ;; \
-	#esac \
-	#&& { mv libtextstyle/libtextstyle.html libtextstyle_toc.html; \
-	     #for file in libtextstyle/*.html; do \
-	       #sed -e 's/libtextstyle\.html/libtextstyle_toc.html/g' < $$file > `basename $$file` && rm -f $$file; \
-	     #done; \
-	     #rmdir libtextstyle; \
-	   #}
 
 install-html-monolithic: libtextstyle.html
 	#$(MKDIR_P) $(DESTDIR)$(htmldir)
@@ -2298,8 +2286,8 @@ install-html-monolithic: libtextstyle.html
 install-html-split: libtextstyle_toc.html
 	$(MKDIR_P) $(DESTDIR)$(htmldir)
 	#for file in `if test -f libtextstyle_toc.html; then echo .; else echo $(srcdir); fi`/libtextstyle_*.html; do \
-	  $(INSTALL_DATA) $$file $(DESTDIR)$(htmldir)/`basename $$file`; \
-	done
+	  #$(INSTALL_DATA) $$file $(DESTDIR)$(htmldir)/`basename $$file`; \
+	#done
 
 installdirs-html:
 	$(MKDIR_P) $(DESTDIR)$(htmldir)
@@ -2320,10 +2308,10 @@ dist-html-monolithic:
 dist-html-split: libtextstyle_toc.html
 	$(MKDIR_P) $(distdir)/
 	#file=libtextstyle_toc.html; \
-	if test -f $$file; then d=.; else d=$(srcdir); fi; \
-	for file in `cd $$d && echo libtextstyle_*.html`; do \
-	  cp -p $$d/$$file $(distdir)/$$file || exit 1; \
-	done
+	#if test -f $$file; then d=.; else d=$(srcdir); fi; \
+	#for file in `cd $$d && echo libtextstyle_*.html`; do \
+	  #cp -p $$d/$$file $(distdir)/$$file || exit 1; \
+	#done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

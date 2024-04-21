@@ -2,7 +2,8 @@
 
 all: build
 build:
-	cmake -Djbig=OFF -S ${.CURDIR} -B ${MAKEOBJDIR}
+	cmake -Djbig=OFF -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+		-S ${.CURDIR} -B ${MAKEOBJDIR}
 	${MAKE} -C ${MAKEOBJDIR}
 	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install
 
