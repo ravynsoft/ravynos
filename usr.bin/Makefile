@@ -91,7 +91,6 @@ SUBDIR=	alias \
 	m4 \
 	mandoc \
 	mesg \
-        meson \
 	migcom \
 	ministat \
 	mkdep \
@@ -124,7 +123,6 @@ SUBDIR=	alias \
 	proccontrol \
 	procstat \
 	protect \
-        python \
 	rctl \
 	renice \
 	resizewin \
@@ -164,7 +162,6 @@ SUBDIR=	alias \
 	truncate \
 	tsort \
 	tty \
-        turbo-editor \
 	uname \
 	unexpand \
 	uniq \
@@ -291,6 +288,11 @@ SUBDIR.${MK_UTMPX}+=	last
 SUBDIR.${MK_UTMPX}+=	users
 SUBDIR.${MK_UTMPX}+=	who
 SUBDIR.${MK_OFED}+=	ofed
+
+SUBDIR+= \
+	meson \
+	turbo-editor \
+	python
 
 SUBDIR_DEPEND_meson=	python
 

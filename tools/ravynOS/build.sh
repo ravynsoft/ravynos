@@ -1,12 +1,16 @@
-PKG_CONFIG_PATH=/usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
 IGNORE_OSVERSION=yes
 CIRRUS_WORKING_DIR=${CIRRUS_WORKING_DIR:-/usr/src}
 PLATFORM=${PLATFORM:-$(uname -m).$(uname -p)}
+PREFIX=${PREFIX:-/usr}
+HW_CPUS=$(sysctl -n hw.ncpu)
+CORES=${CORES:-${HW_CPUS}}
+
+export PREFIX
 
 install() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j$(sysctl -n hw.ncpu) MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang installworld
-    make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang installkernel
+    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang installworld
+    make -j${CORES} MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang installkernel
     if [ -d drm-kmod ]; then
         COMPILER_TYPE=clang make -C drm-kmod install
     fi
@@ -22,20 +26,19 @@ install() {
 
 base_build() {
     cd ${CIRRUS_WORKING_DIR}
-    #make -C gnu/usr.bin/gmake all worldtmp_install COMPILER_TYPE=clang DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
-    make -j$(sysctl -n hw.ncpu) MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
+    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
 kernel_build() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang buildkernel
+    make -j${CORES} MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang buildkernel
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
 drm_build() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang installkernel
+    make -j${CORES} MK_LIB32=no KERNCONF=RAVYN WITHOUT_CLEAN=1 COMPILER_TYPE=clang installkernel
     if [ $? -ne 0 ]; then exit $?; fi
     if [ ! -d drm-kmod ]; then
         git clone https://github.com/ravynsoft/drm-kmod.git
@@ -105,6 +108,7 @@ iso_build() {
     isoalt
 }
 
+echo ravynOS Build Tool [Prefix ${PREFIX} Cores ${CORES} Platform ${PLATFORM}]
 while ! [ "z$1" = "z" ]; do
     case "$1" in
         base) base_build ;;
