@@ -55,6 +55,10 @@ include/sys/epoll.h::
 		<${.CURDIR}/include/sys/epoll.h \
 		>${MAKEOBJDIR}/include/sys/epoll.h
 
+makedirs:
+	mkdir -p ${OBJTOP}/release/dist/base/${INCSDIR}
+
 .include <bsd.lib.mk>
 
 includes: include/epoll-shim
+distribute: makedirs

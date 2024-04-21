@@ -25,7 +25,9 @@ INCS= \
         include/khrplatform.h
 RESOURCES=      Info.plist
 
-CFLAGS+= ${FMWK_CFLAGS} -I.. -Iinclude -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/Frameworks -I${.CURDIR}/include 
+CFLAGS+= -I${SRCTOP}/Frameworks/Foundation/Headers
+CFLAGS+= -I${.CURDIR}/libpciaccess/include
 LDFLAGS+= -Lmesa/src/egl -Lmesa/src/mapi/es2api -Lmesa/src/mapi/es1api \
           -Lmesa/src/mapi/shared-glapi -Lwayland/src -Lmesa/src/gbm \
           -Llibdrm -lEGL -lGLESv2 -lGLESv1_CM -lglapi -lwayland -lgbm -ldrm \

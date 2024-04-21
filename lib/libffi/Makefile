@@ -11,5 +11,8 @@ install:
 
 includes: .PHONY
 
+distribute:
+	${MAKE} -C ${MAKEOBJDIR} INSTALL=${INSTALL} \
+		DESTDIR=${OBJTOP}/release/dist/base install
 LD_ADD= 
 

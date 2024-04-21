@@ -8,10 +8,11 @@ PATH=		${OBJTOP}/tmp/legacy/bin:/bin:/usr/bin
 .export LD_LIBRARY_PATH
 .export PATH
 
+
 CFLAGS=         -I${DESTDIR}/../gnu/lib/gettext/libtextstyle/lib
 LDFLAGS=	-L${OBJTOP}/tmp/usr/lib
 CONFIGURE_ARGS+=        --enable-relocatable
-GMAKE_ARGS+=    INSTALL="${DESTDIR}/legacy/bin/install" CFLAGS="${CFLAGS}"
+GMAKE_ARGS+=    INSTALL="${.CURDIR}/build-aux/install-sh" CFLAGS="${CFLAGS}"
 OO_FILES= \
 	fd-ostream.oo.c \
 	fd-ostream.oo.h \
@@ -47,4 +48,3 @@ copy-header:
 build: gnu_build
 clean: gnu_clean
 install: gnu_install
-

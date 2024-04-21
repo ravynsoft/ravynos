@@ -46,7 +46,8 @@ config.h: .PHONY
 	echo >${.TARGET}
 
 generated_static_table_fourcc.h:: 
-	python3 ${.CURDIR}/gen_table_fourcc.py \
+	${OBJTOP}/tmp/usr/bin/python3 \
+	${.CURDIR}/gen_table_fourcc.py \
         ${.CURDIR}/include/drm/drm_fourcc.h $@
 
 beforebuild: obj
