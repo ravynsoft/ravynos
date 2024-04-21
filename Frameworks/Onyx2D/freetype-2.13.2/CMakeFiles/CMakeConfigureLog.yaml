@@ -1,0 +1,94 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:233 (message)"
+      - "CMakeLists.txt:163 (project)"
+    message: |
+      The system is: FreeBSD - 15.0-CURRENT - amd64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:163 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: /usr/bin/cc 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+      
+      The C compiler identification is Clang, found in:
+        /usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/3.28.1/CompilerIdC/a.out
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "/usr/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:163 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "/usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-pC8Qfp"
+      binary: "/usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-pC8Qfp"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-pC8Qfp'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_00768/fast
+        [Creating objdir /usr/obj/usr/src/amd64.amd64/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-pC8Qfp...]
+        /usr/bin/make  -f CMakeFiles/cmTC_00768.dir/build.make CMakeFiles/cmTC_00768.dir/build
+        make[1]: make[1]: cannot open CMakeFiles/cmTC_00768.dir/build.make.
+        
+        make[1]: stopped in /usr/obj/usr/src/amd64.amd64/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-pC8Qfp
+        *** Error code 2
+        
+        Stop.
+        make: stopped in /usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-pC8Qfp
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeTestCCompiler.cmake:56 (try_compile)"
+      - "CMakeLists.txt:163 (project)"
+    checks:
+      - "Check for working C compiler: /usr/bin/cc"
+    directories:
+      source: "/usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-7oFwXr"
+      binary: "/usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-7oFwXr"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_COMPILER_WORKS"
+      cached: true
+      stdout: |
+        Change Dir: '/usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-7oFwXr'
+        
+        Run Build Command(s): /usr/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_12bab/fast
+        [Creating objdir /usr/obj/usr/src/amd64.amd64/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-7oFwXr...]
+        /usr/bin/make  -f CMakeFiles/cmTC_12bab.dir/build.make CMakeFiles/cmTC_12bab.dir/build
+        make[1]: make[1]: cannot open CMakeFiles/cmTC_12bab.dir/build.make.
+        
+        make[1]: stopped in /usr/obj/usr/src/amd64.amd64/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-7oFwXr
+        *** Error code 2
+        
+        Stop.
+        make: stopped in /usr/src/Frameworks/Onyx2D/freetype-2.13.2/CMakeFiles/CMakeScratch/TryCompile-7oFwXr
+        
+      exitCode: 1
+...
