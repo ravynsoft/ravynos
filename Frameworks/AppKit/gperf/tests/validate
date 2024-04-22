@@ -1,0 +1,62 @@
+#! /bin/sh
+# Validate gperf's operation on a given input file.
+# Usage: validate languages input.gperf [more gperf options]
+# Uses the environment variables GPERF, CC, CFLAGS, CXX, CXXFLAGS.
+# Supposes gcc and g++.
+
+# Exit on error
+set -e
+
+verbose () {
+  echo "$@"
+  "$@"
+}
+
+languages=$1
+shift
+
+# On old systems, it's worth trying gcc -traditional.
+# On glibc-2.1 systems, gcc -traditional doesn't work any more.
+use_traditional=false
+
+for lang in `echo $languages | sed -e 's/,/ /g'`; do
+  case "$lang" in
+    KR-C )
+      echo "${GPERF} -I -L KR-C $@ > valitest.c"
+      ${GPERF} -I -L KR-C "$@" > valitest.c
+      grep -n ' const ' valitest.c /dev/null && exit 1
+      if test $use_traditional = true; then
+        verbose ${CC} ${CFLAGS} ${CPPFLAGS} -traditional valitest.c -o valitest
+        ./valitest
+      fi
+      verbose ${CC} ${CFLAGS} ${CPPFLAGS} -ansi -pedantic valitest.c -o valitest
+      ./valitest
+      ;;
+    C )
+      echo "${GPERF} -I -L C $@ > valitest.c"
+      ${GPERF} -I -L C "$@" > valitest.c
+      if test $use_traditional = true; then
+        verbose ${CC} ${CFLAGS} ${CPPFLAGS} -traditional -Dconst= valitest.c -o valitest
+        ./valitest
+      fi
+      verbose ${CC} ${CFLAGS} ${CPPFLAGS} -ansi -pedantic -pedantic-errors valitest.c -o valitest
+      ./valitest
+      ;;
+    ANSI-C )
+      echo "${GPERF} -I -L ANSI-C $@ > valitest.c"
+      ${GPERF} -I -L ANSI-C "$@" > valitest.c
+      verbose ${CC} ${CFLAGS} ${CPPFLAGS} -ansi -pedantic -pedantic-errors valitest.c -o valitest
+      ./valitest
+      verbose ${CXX} ${CXXFLAGS} ${CPPFLAGS} -ansi -pedantic -pedantic-errors valitest.c -o valitest
+      ./valitest
+      ;;
+    "C++" )
+      echo "${GPERF} -I -L C++ $@ > valitest.c"
+      ${GPERF} -I -L C++ "$@" > valitest.c
+      verbose ${CXX} ${CXXFLAGS} ${CPPFLAGS} -ansi -pedantic -pedantic-errors -DCPLUSPLUS_TEST valitest.c -o valitest
+      ./valitest
+      ;;
+  esac
+done
+
+exit 0

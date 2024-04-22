@@ -60,7 +60,7 @@ SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
 CFLAGS+=	${SYSROOT} -g -fobjc-arc -I${.CURDIR} \
                 -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
 		-I${.CURDIR}/wlroots/include -I${.CURDIR}/libdrm/include/drm \
-                -I${.CURDIR}/libxkbcommon/include \
+                -I${SRCTOP}/Frameworks/AppKit/libxkbcommon/include \
                 -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
                 -I${MAKEOBJDIR}/wlroots -I${MAKEOBJDIR}/wlroots/protocol \
                 -I${SRCTOP}/Frameworks -I${.CURDIR}/libinput/include \
@@ -72,6 +72,7 @@ CFLAGS+=	${SYSROOT} -g -fobjc-arc -I${.CURDIR} \
                 -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR}/seatd/libseat \
 		-L${MAKEOBJDIR}/libevdev -L${MAKEOBJDIR}/libinput \
+		-L${OBJTOP}/Frameworks/AppKit/libxkbcommon \
 		-L${MAKEOBJDIR}/wlroots -lwlroots -lm -linput -lpixman-1 \
                 -lobjc -lwayland -lSystem -lxkbcommon -lseat -lutil
 WLPROTOS=       ${.CURDIR}/wayland-protocols

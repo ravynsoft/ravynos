@@ -1,0 +1,206 @@
+%{
+/* gperf --struct-type --readonly-table --enum --global -K field_name -N header_entry --ignore-case */
+/* Contributed by Bruce Lilly
+   derived from http://users.erols.com/blilly/mailparse/fields.gperf */
+
+#include <string.h>
+
+%}
+struct header_state { const char *field_name; };
+%%
+Accept-Language
+Action
+Alternate-Recipient
+Approved
+Archive
+Arrival-Date
+Autoforwarded
+Autosubmitted
+Bcc
+Cc
+Comments
+Complaints-To
+Content-alternative
+Content-Base
+Content-Description
+Content-Disposition
+Content-Duration
+Content-Features
+Content-ID
+Content-Language
+Content-Location
+Content-MD5
+Content-Transfer-Encoding
+Content-Type
+Control
+Conversion
+Conversion-With-Loss
+DL-Expansion-History
+DSN-Gateway
+Date
+Deferred-Delivery
+Delivery-Date
+Diagnostic-Code
+Discarded-X400-IPMS-Extensions
+Discarded-X400-MTS-Extensions
+Disclose-Recipients
+Disposition
+Disposition-Notification-Options
+Disposition-Notification-To
+Distribution
+Encrypted
+Error
+Expires
+Failure
+Final-Log-ID
+Final-Recipient
+Followup-To
+From
+Generate-Delivery-Report
+Importance
+In-Reply-To
+Incomplete-Copy
+Injector-Info
+Keywords
+Last-Attempt-Date
+Latest-Delivery-Time
+Lines
+List-Archive
+List-Help
+List-ID
+List-Post
+List-Owner
+List-Subscribe
+List-Unsubscribe
+MDN-Gateway
+Media-Accept-Features
+MIME-Version
+Mail-Copies-To
+Message-ID
+Message-Type
+Newsgroups
+Organization
+Original-Encoded-Information-Types
+Original-Envelope-ID
+Original-Message-ID
+Original-Recipient
+Originator-Return-Address
+Path
+Posted-And-Mailed
+Prevent-Nondelivery-Report
+Priority
+Received
+Received-content-MIC
+Received-From-MTA
+References
+Remote-MTA
+Reply-By
+Reply-To
+Reporting-MTA
+Reporting-UA
+Return-Path
+Sender
+Sensitivity
+Status
+Subject
+Summary
+Supersedes
+To
+User-Agent
+Warning
+Will-Retry-Until
+X400-Content-Identifier
+X400-Content-Return
+X400-Content-Type
+X400-MTS-Identifier
+X400-Originator
+X400-Received
+X400-Recipients
+Xref
+%%
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+static int
+my_case_strcmp (s1, s2)
+     register const char *s1;
+     register const char *s2;
+{
+  for (;;)
+    {
+      unsigned char c1 = *s1++;
+      unsigned char c2 = *s2++;
+      if (c1 >= 'A' && c1 <= 'Z')
+        c1 += 'a' - 'A';
+      if (c2 >= 'A' && c2 <= 'Z')
+        c2 += 'a' - 'A';
+      if (c1 != 0 && c1 == c2)
+        continue;
+      return (int)c1 - (int)c2;
+    }
+}
+
+int
+main (argc, argv)
+     int argc;
+     char *argv[];
+{
+  int i, j, k, n, exitcode;
+  size_t len;
+  const struct header_state *hs;
+
+  n = 1;
+  if (argc > 1)
+    n = atoi (argv[1]);
+  if (n < 1)
+    n = 1;
+
+  exitcode = 0;
+  for (i = 0; i < n; i++)
+    {
+      for (j = 0; j <= MAX_HASH_VALUE; j++)
+        {
+          const char *s = wordlist[j].field_name;
+          len = strlen (s);
+          if (len)
+            {
+              hs = header_entry (s, len);
+              if (!(hs && strcmp (hs->field_name, s) == 0))
+                {
+                  fprintf (stderr, "%s != %s\n", s, hs ? hs->field_name : "(null)");
+                  exitcode = 1;
+                }
+            }
+        }
+      for (j = 0; j <= MAX_HASH_VALUE; j++)
+        {
+          char s[MAX_WORD_LENGTH+1];
+          /* expensive copy with case conversion (for testing) */
+          strcpy (s, wordlist[j].field_name);
+          len = strlen (s);
+          if (len)
+            {
+              for (k = 0; k < len; k++)
+                if (isupper ((unsigned char) s[k]))
+                  s[k] = tolower ((unsigned char) s[k]);
+                else if (islower ((unsigned char) s[k]))
+                  s[k] = toupper ((unsigned char) s[k]);
+              hs = header_entry (s, len);
+              if (!(hs && my_case_strcmp (hs->field_name, s) == 0))
+                {
+                  fprintf (stderr, "%s != %s\n", s, hs ? hs->field_name : "(null)");
+                  exitcode = 1;
+                }
+            }
+        }
+      hs = header_entry ("Dave", 4);
+      if (hs)
+        {
+          fprintf (stderr, "Dave == %s\n", hs->field_name);
+          exitcode = 1;
+        }
+    }
+  return exitcode;
+}

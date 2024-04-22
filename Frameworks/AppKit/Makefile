@@ -6,6 +6,9 @@ MK_AUTO_OBJ=yes
 NO_FMWK_COMMON=yes
 .include "../framework.common.mk"
 
+SUBDIR+=	fontconfig
+SUBDIR+=	libxkbcommon
+
 WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wayland-protocols
 WLRPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wlroots/protocol
 SCANNER=${OBJTOP}/Frameworks/OpenGL/wayland/scanner/wayland-scanner
@@ -603,7 +606,7 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 
 CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/sys \
          -I${.CURDIR}/../OpenGL/wayland/egl -I${.CURDIR}/../OpenGL/wayland/src \
-         -I../OpenGL/wayland/src \
+         -I../OpenGL/wayland/src -I${.CURDIR}/libxkbcommon/include \
          -I${SRCTOP}/CoreServices/WindowServer/libxkbcommon/include \
 	 -F../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
          -I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/../../CoreServices \
@@ -618,12 +621,20 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/QuartzCore.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-	  -L../Foundation -L../CoreFoundation -L../CoreGraphics \
-	  -L../CoreData -L../CoreText -L../QuartzCore/ -L../OpenGL \
-	  -L../Onyx2D -lFoundation -lCoreFoundation -lCoreGraphics \
+	  -L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+	  -L${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework \
+	  -L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
+	  -L${OBJTOP}/Frameworks/CoreData/CoreData.framework \
+	  -L${OBJTOP}/Frameworks/CoreText/CoreText.framework \
+	  -L${OBJTOP}/Frameworks/QuartzCore/QuartzCore.framework \
+	  -L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework \
+	  -L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Resources \
+	  -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
+	  -L${MAKEOBJDIR}/fontconfig/src/.libs \
+	  -L${MAKEOBJDIR}/libxkbcommon \
+	  -lFoundation -lCoreFoundation -lCoreGraphics \
           -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lwayland-client -lobjc -lfontconfig -lxkbcommon -lwayland-egl \
-          -lmach -lm
+	  -lwayland -lobjc -lfontconfig -lxkbcommon -lmach -lm
 
 DIRS= \
 	NSMenu.subproj \
@@ -668,10 +679,10 @@ _install-hook:
 	rmdir ${FRAMEWORK}.framework/Resources/NSKeyboardBinding
 .for lproj in en.lproj fr.lproj de.lproj
 	cp -av ${.CURDIR}/NSSystemInfoPanel/${lproj}/NSSystemInfoPanel.nib \
-                ${.CURDIR}/${FRAMEWORK}.framework/Versions/Current/Resources/${lproj}/
+                ${FRAMEWORK}.framework/Versions/Current/Resources/${lproj}/
 .endfor
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
-	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+	cp -av ${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 
 xdg-shell-client-protocol.h:
 	${SCANNER} client-header \
@@ -715,6 +726,7 @@ clean-gen-files:
                 xdg-output-management-unstable-v1-client-protocol.h \
                 output-management-v1.c
 
+
 .include <rvn.framework.mk>
 
 clean: fmwkclean
@@ -724,4 +736,4 @@ ${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c \
         xdg-output-management-unstable-v1-client-protocol.h output-management-v1.c \
         xdg-decoration-unstable-v1-client-protocol.h xdg-decoration-v1.c
 clean: clean-deps clean-gen-files
-CFLAGS+= ${FMWK_CFLAGS}
+CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/fontconfig/fontconfig

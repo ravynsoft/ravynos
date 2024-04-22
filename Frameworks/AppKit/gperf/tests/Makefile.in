@@ -1,0 +1,399 @@
+# Makefile for gperf/tests
+
+# Copyright (C) 1989, 1992-1993, 1995, 1998, 2000, 2002-2004, 2007-2009, 2012, 2016 Free Software Foundation, Inc.
+# Written by Douglas C. Schmidt <schmidt@ics.uci.edu>
+# and Bruno Haible <bruno@clisp.org>.
+#
+# This file is part of GNU GPERF.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#### Start of system configuration section. ####
+
+# Directories used by "make":
+srcdir = @srcdir@
+
+# Programs used by "make":
+# C compiler
+CC = @CC@
+CFLAGS = @CFLAGS@
+CPP = @CPP@
+# C++ compiler
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+CXXCPP = @CXXCPP@
+# Both C and C++ compiler
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+OBJEXT = @OBJEXT@
+EXEEXT = @EXEEXT@
+# Other
+MV = mv
+LN = ln
+RM = rm -f
+@SET_MAKE@
+
+#### End of system configuration section. ####
+
+SHELL = /bin/sh
+
+VPATH = $(srcdir)
+
+GPERF = ../src/gperf
+#GPERF = valgrind --num-callers=20 --leak-check=yes --leak-resolution=high --show-reachable=yes ../src/gperf
+
+all :
+
+install : all
+
+installdirs :
+
+uninstall :
+
+check : check-c check-ada check-modula3 check-pascal check-lang-utf8 check-lang-ucs2 check-smtp check-test
+	@true
+
+extracheck : @CHECK_LANG_SYNTAX@
+	@true
+
+check-c: test.$(OBJEXT)
+	@echo "testing ANSI C reserved words, all items should be found in the set"
+	$(GPERF) -c -l -S1 -I -o $(srcdir)/c.gperf > cinset.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o cout cinset.c test.$(OBJEXT)
+	./cout -v < $(srcdir)/c.gperf | LC_ALL=C tr -d '\r' > c.out
+	diff $(srcdir)/c.exp c.out
+
+check-ada: test.$(OBJEXT)
+	$(GPERF) -k1,4,'$$' -I $(srcdir)/ada.gperf > adainset.c
+# double '$$' is only there since make gets confused; program wants only 1 '$'
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o aout adainset.c test.$(OBJEXT)
+	@echo "testing Ada reserved words, all items should be found in the set"
+	./aout -v < $(srcdir)/ada.gperf | LC_ALL=C tr -d '\r' > ada-res.out
+	diff $(srcdir)/ada-res.exp ada-res.out
+	$(GPERF) -D -k1,'$$' -s 2 -I -o $(srcdir)/adadefs.gperf > preinset.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o preout preinset.c test.$(OBJEXT)
+	@echo "testing Ada predefined words, all items should be found in the set"
+	./preout -v < $(srcdir)/adadefs.gperf | LC_ALL=C tr -d '\r' > ada-pred.out
+	diff $(srcdir)/ada-pred.exp ada-pred.out
+
+check-modula3: test.$(OBJEXT)
+	$(GPERF) -k1,2,'$$' -I -o $(srcdir)/modula3.gperf > m3inset.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o m3out m3inset.c test.$(OBJEXT)
+	@echo "testing Modula3 reserved words, all items should be found in the set"
+	./m3out -v < $(srcdir)/modula3.gperf | LC_ALL=C tr -d '\r' > modula.out
+	diff $(srcdir)/modula.exp modula.out
+
+check-pascal: test.$(OBJEXT)
+	$(GPERF) -o -S2 -I < $(srcdir)/pascal.gperf > pinset.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o pout pinset.c test.$(OBJEXT)
+	@echo "testing Pascal reserved words, all items should be found in the set"
+	./pout -v < $(srcdir)/pascal.gperf | LC_ALL=C tr -d '\r' > pascal.out
+	diff $(srcdir)/pascal.exp pascal.out
+
+# check for 8-bit cleanliness
+check-lang-utf8: test.$(OBJEXT)
+	$(GPERF) -k1 -t -I -K foreign_name < $(srcdir)/lang-utf8.gperf > lu8inset.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o lu8out lu8inset.c test.$(OBJEXT)
+	@echo "testing UTF-8 encoded languages, all items should be found in the set"
+	sed -e '1,6d' -e 's/,.*//' < $(srcdir)/lang-utf8.gperf | ./lu8out -v | LC_ALL=C tr -d '\r' > lang-utf8.out
+	diff $(srcdir)/lang-utf8.exp lang-utf8.out
+
+test.$(OBJEXT) : $(srcdir)/test.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(srcdir)/test.c
+
+# check for binary keywords with NUL bytes
+check-lang-ucs2: test2.$(OBJEXT)
+	$(GPERF) -k4 -t -l -I -K foreign_name < $(srcdir)/lang-ucs2.gperf > lu2inset.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o lu2out lu2inset.c test2.$(OBJEXT)
+	@echo "testing UCS-2 encoded languages, all items should be found in the set"
+	./lu2out -v < $(srcdir)/lang-ucs2.in | LC_ALL=C tr -d '\r' > lang-ucs2.out
+	diff $(srcdir)/lang-ucs2.exp lang-ucs2.out
+
+test2.$(OBJEXT) : $(srcdir)/test2.c
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(srcdir)/test2.c
+
+# check case-insensitive lookup
+check-smtp:
+	@echo "testing SMTP keywords, case-insensitive"
+	$(GPERF) --struct-type --readonly-table --enum --global -K field_name -N header_entry --ignore-case $(srcdir)/smtp.gperf > smtp.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o smtp smtp.c
+	./smtp
+	$(GPERF) --struct-type --readonly-table --enum --global -K field_name -N header_entry --ignore-case --compare-strncmp $(srcdir)/smtp.gperf > smtp.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o smtp smtp.c
+	./smtp
+	$(GPERF) --struct-type --readonly-table --enum --global -K field_name -N header_entry --ignore-case --compare-lengths $(srcdir)/smtp.gperf > smtp.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -o smtp smtp.c
+	./smtp
+
+# these next 5 are demos that show off the generated code
+POSTPROCESS_FOR_MINGW = LC_ALL=C tr -d '\r' | LC_ALL=C sed -e 's|[^ ]*[/\\][\\]*src[/\\][\\]*gperf[^ ]*|../src/gperf|'
+check-test:
+	$(GPERF) -L C -F ', 0, 0' -j1 -i 1 -g -o -t -G -N is_reserved_word -k1,3,'$$' < $(srcdir)/c-parse.gperf | $(POSTPROCESS_FOR_MINGW) > c-parse.out
+	diff $(srcdir)/c-parse.exp c-parse.out
+	$(GPERF) -j1 -i 1 -g -o -t -N is_reserved_word -k1,3,'$$' < $(srcdir)/objc.gperf | $(POSTPROCESS_FOR_MINGW) > objc.out
+	diff $(srcdir)/objc.exp objc.out
+	$(GPERF) -L C -F ', 0, 0, 0' -D -E -S1 -j1 -i 1 -g -o -t -k'*' < $(srcdir)/chill.gperf | $(POSTPROCESS_FOR_MINGW) > chill.out
+	diff $(srcdir)/chill.exp chill.out
+	$(GPERF) -L C -F ', 0, 0' -j1 -g -o -t -N is_reserved_word -k1,4,7,'$$' < $(srcdir)/cplusplus.gperf | $(POSTPROCESS_FOR_MINGW) > cplusplus.out
+	diff $(srcdir)/cplusplus.exp cplusplus.out
+	$(GPERF) -L C -F ', 0' -t -j1 -i 1 -g -o -N java_keyword -k1,3,'$$' < $(srcdir)/java.gperf | $(POSTPROCESS_FOR_MINGW) > java.out
+	diff $(srcdir)/java.exp java.out
+	$(GPERF) -n -k1-8 -l < $(srcdir)/modula2.gperf | $(POSTPROCESS_FOR_MINGW) > modula2.out
+	diff $(srcdir)/modula2.exp modula2.out
+	$(GPERF) -D -t -k1,'$$' < $(srcdir)/c-parse.gperf | $(POSTPROCESS_FOR_MINGW) > test-4.out
+	diff $(srcdir)/test-4.exp test-4.out
+	$(GPERF) -g -o -j1 -t -N is_reserved_word < $(srcdir)/gpc.gperf | $(POSTPROCESS_FOR_MINGW) > gpc.out
+	diff $(srcdir)/gpc.exp gpc.out
+	$(GPERF) -m5 < $(srcdir)/permut2.gperf | $(POSTPROCESS_FOR_MINGW) > permut2.out
+	diff $(srcdir)/permut2.exp permut2.out
+	$(GPERF) -m5 < $(srcdir)/permut3.gperf | $(POSTPROCESS_FOR_MINGW) > permut3.out
+	diff $(srcdir)/permut3.exp permut3.out
+	$(GPERF) -m5 --ignore-case < $(srcdir)/permutc2.gperf | $(POSTPROCESS_FOR_MINGW) > permutc2.out
+	diff $(srcdir)/permutc2.exp permutc2.out
+	$(GPERF) -C -E -G -I -t < $(srcdir)/charsets.gperf | $(POSTPROCESS_FOR_MINGW) > charsets.out
+	diff $(srcdir)/charsets.exp charsets.out
+	$(GPERF) -C -E -G -I -t < $(srcdir)/languages.gperf | $(POSTPROCESS_FOR_MINGW) > languages.out
+	diff $(srcdir)/languages.exp languages.out
+	$(GPERF) -t < $(srcdir)/incomplete.gperf | $(POSTPROCESS_FOR_MINGW) > incomplete.out
+	diff $(srcdir)/incomplete.exp incomplete.out
+# prints out the help message
+	-$(GPERF) -h | $(POSTPROCESS_FOR_MINGW) > test-6.out
+	diff $(srcdir)/test-6.exp test-6.out
+	@echo "only if, do, for, case, goto, else, while, and return should be found "
+	./aout -v < $(srcdir)/c.gperf | $(POSTPROCESS_FOR_MINGW) > test-7.out
+	diff $(srcdir)/test-7.exp test-7.out
+
+# The following validates valid language syntax with different parameters.
+# Works only with gcc and g++, and only on platforms where "gcc -ansi" is
+# usable. (There are still platforms where gcc-2.8.0's fixincludes does not
+# work well enough.)
+
+VALIDATE = CC='$(CC)' CFLAGS='$(CFLAGS)' CXX='$(CXX)' CXXFLAGS='$(CXXFLAGS)' CPPFLAGS='$(CPPFLAGS)' GPERF='$(GPERF)' $(srcdir)/validate
+
+check-lang-syntax : force
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -c
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -G
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -G -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -G -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10 -c
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10 -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10 -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10 -G
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10 -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10 -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -S 10 -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 10 -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -S 10 -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -S 1000
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -c
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -G
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -G -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -G -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -P -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -P -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10 -c
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10 -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10 -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10 -G
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10 -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10 -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -P -S 10 -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 10 -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest1.gperf -P -S 10 -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -S 1000
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -Q auxstrings
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -P -Q auxstrings -S 10
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -K key_name
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -H hash_function_name
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -W word_list_name
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest1.gperf -l --length-table-name=length_table_name
+	sed -e 's,in_word_set,lookup_function_name,g' < $(srcdir)/jstest1.gperf > tmp-jstest1.gperf && \
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 tmp-jstest1.gperf -N lookup_function_name
+	sed -e 's,Perfect_Hash,class_name,g' < $(srcdir)/jstest1.gperf > tmp-jstest1.gperf && \
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 tmp-jstest1.gperf -Z class_name
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -c
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -G
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -G -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -G -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest2.gperf -t -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest2.gperf -t -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10 -c
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10 -C
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10 -E
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10 -G
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10 -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10 -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest2.gperf -t -S 10 -D
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 10 -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k2   $(srcdir)/jstest2.gperf -t -S 10 -D -l
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -S 1000
+	sed -e 's,name,key_name,g' < $(srcdir)/jstest2.gperf > tmp-jstest2.gperf && \
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 tmp-jstest2.gperf -t -K key_name
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 $(srcdir)/jstest2.gperf -t -H hash_function_name
+	sed -e 's,in_word_set,lookup_function_name,g' < $(srcdir)/jstest2.gperf > tmp-jstest2.gperf && \
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 tmp-jstest2.gperf -t -N lookup_function_name
+	sed -e 's,Perfect_Hash,class_name,g' < $(srcdir)/jstest2.gperf > tmp-jstest2.gperf && \
+	$(VALIDATE) KR-C,C,ANSI-C,C++ -k1,2 tmp-jstest2.gperf -t -Z class_name
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -c
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -C
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -E
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -G
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -G -C
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -G -E
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -D
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest3.gperf -t -D
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest3.gperf -t -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10 -c
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10 -C
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10 -E
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10 -G
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10 -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10 -D
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest3.gperf -t -S 10 -D
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 10 -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest3.gperf -t -S 10 -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -S 1000
+	sed -e 's,name,key_name,g' < $(srcdir)/jstest3.gperf > tmp-jstest3.gperf && \
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 tmp-jstest3.gperf -t -K key_name
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest3.gperf -t -H hash_function_name
+	sed -e 's,in_word_set,lookup_function_name,g' < $(srcdir)/jstest3.gperf > tmp-jstest3.gperf && \
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 tmp-jstest3.gperf -t -N lookup_function_name
+	sed -e 's,Perfect_Hash,class_name,g' < $(srcdir)/jstest3.gperf > tmp-jstest3.gperf && \
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 tmp-jstest3.gperf -t -Z class_name
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -c
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -C
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -E
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -G
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -G -C
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -G -E
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -D
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest4.gperf -t -P -D
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest4.gperf -t -P -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10 -c
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10 -C
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10 -E
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10 -G
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10 -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10 -D
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest4.gperf -t -P -S 10 -D
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 10 -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k2   $(srcdir)/jstest4.gperf -t -P -S 10 -D -l
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 $(srcdir)/jstest4.gperf -t -P -S 1000
+	sed -e 's,stringpool,auxstrings,g' < $(srcdir)/jstest4.gperf > tmp-jstest4.gperf && \
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 tmp-jstest4.gperf -t -P -Q auxstrings
+	sed -e 's,stringpool,auxstrings,g' < $(srcdir)/jstest4.gperf > tmp-jstest4.gperf && \
+	$(VALIDATE) C,ANSI-C,C++ -k1,2 tmp-jstest4.gperf -t -P -Q auxstrings -S 10
+
+mostlyclean : clean
+
+clean : force
+	$(RM) *.$(OBJEXT) core *inset.c output.* *.out \
+	      aout$(EXEEXT) aout$(EXEEXT).manifest \
+	      cout$(EXEEXT) cout$(EXEEXT).manifest \
+	      lu2out$(EXEEXT) lu2out$(EXEEXT).manifest \
+	      lu8out$(EXEEXT) lu8out$(EXEEXT).manifest \
+	      m3out$(EXEEXT) m3out$(EXEEXT).manifest \
+	      pout$(EXEEXT) pout$(EXEEXT).manifest \
+	      preout$(EXEEXT) preout$(EXEEXT).manifest \
+	      smtp.c smtp$(EXEEXT) smtp$(EXEEXT).manifest \
+	      tmp-* valitest*
+	$(RM) -r *.dSYM
+
+distclean : clean
+	$(RM) config.status config.log config.cache Makefile
+
+maintainer-clean : distclean
+
+# List of source files.
+SOURCE_FILES = \
+  configure.ac Makefile.in \
+  test.c \
+  c.gperf c.exp \
+  ada.gperf ada-res.exp adadefs.gperf ada-pred.exp \
+  modula3.gperf modula.exp \
+  pascal.gperf pascal.exp \
+  lang-utf8.gperf lang-utf8.exp \
+  lang-ucs2.gperf lang-ucs2.in lang-ucs2.exp test2.c \
+  smtp.gperf \
+  c-parse.gperf c-parse.exp \
+  objc.gperf objc.exp \
+  chill.gperf chill.exp \
+  cplusplus.gperf cplusplus.exp \
+  java.gperf java.exp \
+  modula2.gperf modula2.exp \
+  test-4.exp \
+  gpc.gperf gpc.exp \
+  permut2.gperf permut2.exp \
+  permut3.gperf permut3.exp \
+  permutc2.gperf permutc2.exp \
+  charsets.gperf charsets.exp \
+  languages.gperf languages.exp \
+  incomplete.gperf incomplete.exp \
+  test-6.exp \
+  test-7.exp \
+  validate \
+  jstest1.gperf \
+  jstest2.gperf \
+  jstest3.gperf \
+  jstest4.gperf \
+  c++.gperf irc.gperf jscript.gperf makeinfo.gperf
+# List of distributed files imported from other packages.
+IMPORTED_FILES =
+# List of distributed files generated by autotools or Makefile.devel.
+GENERATED_FILES = \
+  configure
+# List of distributed files generated by "make".
+DISTRIBUTED_BUILT_FILES =
+# List of distributed files.
+DISTFILES = $(SOURCE_FILES) $(IMPORTED_FILES) $(GENERATED_FILES) $(DISTRIBUTED_BUILT_FILES)
+
+distdir : $(DISTFILES)
+	for file in $(DISTFILES); do \
+	  if test -f $$file; then dir='.'; else dir='$(srcdir)'; fi; \
+	  cp -p $$dir/$$file '$(distdir)'/$$file || exit 1; \
+	done
+
+force :
+

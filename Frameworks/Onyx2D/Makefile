@@ -203,6 +203,8 @@ LDFLAGS+= -L${MAKEOBJDIR}/freetype -lfreetype \
 ftlib:
 	cp -f ${MAKEOBJDIR}/freetype/libfreetype.so.6 \
 		${MAKEOBJDIR}/${FRAMEWORK}.framework/Resources/
+	ln -sf libfreetype.so.6 \
+		${MAKEOBJDIR}/${FRAMEWORK}.framework/Resources/libfreetype.so
 
 .include <rvn.framework.mk>
 

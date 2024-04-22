@@ -1,0 +1,263 @@
+/* C code produced by gperf version 3.1 */
+/* Command-line: ../src/gperf -L C -F ', 0, 0' -j1 -g -o -t -N is_reserved_word -k'1,4,7,$'  */
+
+#if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
+      && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
+      && (')' == 41) && ('*' == 42) && ('+' == 43) && (',' == 44) \
+      && ('-' == 45) && ('.' == 46) && ('/' == 47) && ('0' == 48) \
+      && ('1' == 49) && ('2' == 50) && ('3' == 51) && ('4' == 52) \
+      && ('5' == 53) && ('6' == 54) && ('7' == 55) && ('8' == 56) \
+      && ('9' == 57) && (':' == 58) && (';' == 59) && ('<' == 60) \
+      && ('=' == 61) && ('>' == 62) && ('?' == 63) && ('A' == 65) \
+      && ('B' == 66) && ('C' == 67) && ('D' == 68) && ('E' == 69) \
+      && ('F' == 70) && ('G' == 71) && ('H' == 72) && ('I' == 73) \
+      && ('J' == 74) && ('K' == 75) && ('L' == 76) && ('M' == 77) \
+      && ('N' == 78) && ('O' == 79) && ('P' == 80) && ('Q' == 81) \
+      && ('R' == 82) && ('S' == 83) && ('T' == 84) && ('U' == 85) \
+      && ('V' == 86) && ('W' == 87) && ('X' == 88) && ('Y' == 89) \
+      && ('Z' == 90) && ('[' == 91) && ('\\' == 92) && (']' == 93) \
+      && ('^' == 94) && ('_' == 95) && ('a' == 97) && ('b' == 98) \
+      && ('c' == 99) && ('d' == 100) && ('e' == 101) && ('f' == 102) \
+      && ('g' == 103) && ('h' == 104) && ('i' == 105) && ('j' == 106) \
+      && ('k' == 107) && ('l' == 108) && ('m' == 109) && ('n' == 110) \
+      && ('o' == 111) && ('p' == 112) && ('q' == 113) && ('r' == 114) \
+      && ('s' == 115) && ('t' == 116) && ('u' == 117) && ('v' == 118) \
+      && ('w' == 119) && ('x' == 120) && ('y' == 121) && ('z' == 122) \
+      && ('{' == 123) && ('|' == 124) && ('}' == 125) && ('~' == 126))
+/* The character set is not based on ISO-646.  */
+error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
+#endif
+
+
+/* Command-line: gperf -L KR-C -F ', 0, 0' -j1 -g -o -t -N is_reserved_word -k1,4,$,7 gplus.gperf  */
+struct resword { const char *name; short token; enum rid rid;};
+
+#define TOTAL_KEYWORDS 106
+#define MIN_WORD_LENGTH 2
+#define MAX_WORD_LENGTH 16
+#define MIN_HASH_VALUE 4
+#define MAX_HASH_VALUE 163
+/* maximum key range = 160, duplicates = 0 */
+
+#ifdef __GNUC__
+__inline
+#else
+#ifdef __cplusplus
+inline
+#endif
+#endif
+static unsigned int
+hash (str, len)
+     register const char *str;
+     register size_t len;
+{
+  static unsigned char asso_values[] =
+    {
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164,   0, 164,  44,  58,  15,
+       55,   0,  24,  23,  25,   2, 164,   4,  26,  75,
+       36,  11,  40,  74,  14,  23,   1,  45,  45,  90,
+       50,  50, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164, 164, 164, 164, 164,
+      164, 164, 164, 164, 164, 164
+    };
+  register unsigned int hval = len;
+
+  switch (hval)
+    {
+      default:
+        hval += asso_values[(unsigned char)str[6]];
+      /*FALLTHROUGH*/
+      case 6:
+      case 5:
+      case 4:
+        hval += asso_values[(unsigned char)str[3]];
+      /*FALLTHROUGH*/
+      case 3:
+      case 2:
+      case 1:
+        hval += asso_values[(unsigned char)str[0]];
+        break;
+    }
+  return hval + asso_values[(unsigned char)str[len - 1]];
+}
+
+struct resword *
+is_reserved_word (str, len)
+     register const char *str;
+     register size_t len;
+{
+  static struct resword wordlist[] =
+    {
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"else", ELSE, NORID,},
+      {"true", CXX_TRUE, NORID,},
+      {"int", TYPESPEC, RID_INT,},
+      {"", 0, 0},
+      {"__real__", REALPART, NORID},
+      {"", 0, 0},
+      {"inline", SCSPEC, RID_INLINE,},
+      {"", 0, 0},
+      {"__signed__", TYPESPEC, RID_SIGNED},
+      {"", 0, 0},
+      {"__attribute", ATTRIBUTE, NORID},
+      {"", 0, 0},
+      {"__attribute__", ATTRIBUTE, NORID},
+      {"", 0, 0},
+      {"export", SCSPEC, RID_EXPORT,},
+      {"case", CASE, NORID,},
+      {"__const", CV_QUALIFIER, RID_CONST},
+      {"__const__", CV_QUALIFIER, RID_CONST},
+      {"__volatile", CV_QUALIFIER, RID_VOLATILE},
+      {"", 0, 0},
+      {"__volatile__", CV_QUALIFIER, RID_VOLATILE},
+      {"__restrict", CV_QUALIFIER, RID_RESTRICT},
+      {"__restrict__", CV_QUALIFIER, RID_RESTRICT},
+      {"or", OROR, NORID,},
+      {"if", IF, NORID,},
+      {"", 0, 0},
+      {"__asm__", ASM_KEYWORD, NORID},
+      {"typeof", TYPEOF, NORID,},
+      {"__real", REALPART, NORID},
+      {"", 0, 0}, {"", 0, 0},
+      {"__sigof__", SIGOF, NORID		/* Extension */,},
+      {"static_cast", STATIC_CAST, NORID,},
+      {"explicit", SCSPEC, RID_EXPLICIT,},
+      {"register", SCSPEC, RID_REGISTER,},
+      {"__wchar_t", TYPESPEC, RID_WCHAR  /* Unique to ANSI C++ */,},
+      {"not", '!', NORID,},
+      {"for", FOR, NORID,},
+      {"extern", SCSPEC, RID_EXTERN,},
+      {"short", TYPESPEC, RID_SHORT,},
+      {"const", CV_QUALIFIER, RID_CONST,},
+      {"static", SCSPEC, RID_STATIC,},
+      {"", 0, 0},
+      {"char", TYPESPEC, RID_CHAR,},
+      {"__complex__", TYPESPEC, RID_COMPLEX},
+      {"goto", GOTO, NORID,},
+      {"template", TEMPLATE, RID_TEMPLATE,},
+      {"this", THIS, NORID,},
+      {"false", CXX_FALSE, NORID,},
+      {"sizeof", SIZEOF, NORID,},
+      {"try", TRY, NORID,},
+      {"switch", SWITCH, NORID,},
+      {"typedef", SCSPEC, RID_TYPEDEF,},
+      {"", 0, 0},
+      {"operator", OPERATOR, NORID,},
+      {"__signature__", AGGR, RID_SIGNATURE	/* Extension */,},
+      {"catch", CATCH, NORID,},
+      {"delete", DELETE, NORID,},
+      {"typeid", TYPEID, NORID,},
+      {"sigof", SIGOF, NORID		/* Extension */,},
+      {"const_cast", CONST_CAST, NORID,},
+      {"__signed", TYPESPEC, RID_SIGNED},
+      {"class", AGGR, RID_CLASS,},
+      {"xor", '^', NORID,},
+      {"do", DO, NORID,},
+      {"continue", CONTINUE, NORID,},
+      {"auto", SCSPEC, RID_AUTO,},
+      {"__typeof__", TYPEOF, NORID},
+      {"", 0, 0},
+      {"__alignof__", ALIGNOF, NORID},
+      {"float", TYPESPEC, RID_FLOAT,},
+      {"struct", AGGR, RID_RECORD,},
+      {"long", TYPESPEC, RID_LONG,},
+      {"__null", CONSTANT, RID_NULL},
+      {"", 0, 0},
+      {"__label__", LABEL, NORID},
+      {"__inline", SCSPEC, RID_INLINE},
+      {"reinterpret_cast", REINTERPRET_CAST, NORID,},
+      {"__inline__", SCSPEC, RID_INLINE},
+      {"__imag__", IMAGPART, NORID},
+      {"typename", TYPENAME_KEYWORD, NORID,},
+      {"friend", SCSPEC, RID_FRIEND,},
+      {"compl", '~', NORID,},
+      {"public", VISSPEC, RID_PUBLIC,},
+      {"bitor", '|', NORID,},
+      {"namespace", NAMESPACE, NORID,},
+      {"or_eq", ASSIGN, NORID,},
+      {"", 0, 0},
+      {"private", VISSPEC, RID_PRIVATE,},
+      {"__typeof", TYPEOF, NORID},
+      {"", 0, 0},
+      {"__alignof", ALIGNOF, NORID},
+      {"__complex", TYPESPEC, RID_COMPLEX},
+      {"union", AGGR, RID_UNION,},
+      {"", 0, 0},
+      {"__extension__", EXTENSION, NORID},
+      {"", 0, 0},
+      {"return", RETURN_KEYWORD, NORID,},
+      {"and", ANDAND, NORID,},
+      {"__asm", ASM_KEYWORD, NORID},
+      {"__imag", IMAGPART, NORID},
+      {"virtual", SCSPEC, RID_VIRTUAL,},
+      {"protected", VISSPEC, RID_PROTECTED,},
+      {"throw", THROW, NORID,},
+      {"default", DEFAULT, NORID,},
+      {"using", USING, NORID,},
+      {"unsigned", TYPESPEC, RID_UNSIGNED,},
+      {"break", BREAK, NORID,},
+      {"", 0, 0},
+      {"signature", AGGR, RID_SIGNATURE	/* Extension */,},
+      {"bool", TYPESPEC, RID_BOOL,},
+      {"", 0, 0},
+      {"not_eq", EQCOMPARE, NORID,},
+      {"", 0, 0}, {"", 0, 0},
+      {"double", TYPESPEC, RID_DOUBLE,},
+      {"signed", TYPESPEC, RID_SIGNED,},
+      {"while", WHILE, NORID,},
+      {"asm", ASM_KEYWORD, NORID,},
+      {"volatile", CV_QUALIFIER, RID_VOLATILE,},
+      {"and_eq", ASSIGN, NORID,},
+      {"", 0, 0},
+      {"mutable", SCSPEC, RID_MUTABLE,},
+      {"dynamic_cast", DYNAMIC_CAST, NORID,},
+      {"", 0, 0},
+      {"new", NEW, NORID,},
+      {"xor_eq", ASSIGN, NORID,},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"enum", ENUM, NORID,},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"void", TYPESPEC, RID_VOID,},
+      {"", 0, 0}, {"", 0, 0}, {"", 0, 0},
+      {"bitand", '&', NORID,}
+    };
+
+  if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
+    {
+      register unsigned int key = hash (str, len);
+
+      if (key <= MAX_HASH_VALUE)
+        {
+          register const char *s = wordlist[key].name;
+
+          if (*str == *s && !strcmp (str + 1, s + 1))
+            return &wordlist[key];
+        }
+    }
+  return 0;
+}

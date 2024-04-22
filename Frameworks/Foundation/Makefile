@@ -766,6 +766,7 @@ _install-hook:
 	mv ${FRAMEWORK_DIR}/Resources/NSCharacterSet/*.bitmap \
 		${FRAMEWORK_DIR}/Resources/
 	rmdir ${FRAMEWORK_DIR}/Resources/NSCharacterSet
+	mv -fv ${MAKEOBJDIR}/libFoundation.so ${FRAMEWORK_DIR}/Versions/A/
 	cp -av ${FRAMEWORK_DIR} ${BUILDROOT}/System/Library/Frameworks/
 
 
