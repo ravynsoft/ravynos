@@ -1,3 +1,5 @@
+distribute: gnu_distribute
+
 .include <bsd.prog.mk>
 
 .MAKEFLAGS=

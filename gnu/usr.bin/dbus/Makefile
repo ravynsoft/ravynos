@@ -1,3 +1,14 @@
+distribute:
+	rm -f ${OBJTOP}/tmp/legacy/bin/ranlib
+	ln -f ${OBJTOP}/usr.bin/ar/ar \
+		${OBJTOP}/tmp/legacy/bin/ranlib
+	ln -sfv ${OBJTOP}/tmp/legacy/bin/install \
+		${MAKEOBJDIR}/install
+	PATH=$$PATH:${OBJTOP}/tmp/usr/bin \
+		gmake -C ${.OBJDIR} MAKEFLAGS= \
+		DESTDIR=${OBJTOP}/release/dist/base \
+		install
+
 .include <bsd.prog.mk>
 
 .MAKEFLAGS=
@@ -18,12 +29,7 @@ LAUNCHCTL=		${OBJTOP}/bin/launchctl/launchctl
 .export CFLAGS
 .export LAUNCHCTL
 
-fake-ranlib:
-	ln ${OBJTOP}/usr.bin/ar/ar \
-		${OBJTOP}/tmp/legacy/bin/ranlib
-
 all: gnu_configure .WAIT gnu_build
 build: gnu_build
 clean: gnu_clean
 install: gnu_install
-distribute: fake-ranlib

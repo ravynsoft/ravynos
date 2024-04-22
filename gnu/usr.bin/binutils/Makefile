@@ -1,9 +1,21 @@
+distribute:
+	rm -f ${OBJTOP}/tmp/legacy/bin/ar
+	ln -f ${OBJTOP}/usr.bin/ar/ar \
+		${OBJTOP}/tmp/legacy/bin/ar
+	ln -sfv ${OBJTOP}/tmp/legacy/bin/install \
+		${MAKEOBJDIR}/install
+	PATH=$$PATH:${OBJTOP}/tmp/usr/bin \
+		gmake -C ${.OBJDIR} MAKEFLAGS= \
+		DESTDIR=${OBJTOP}/release/dist/base \
+		INSTALL=install install
+
 .include <bsd.prog.mk>
 
 .MAKEFLAGS=
 # Ensure we call it gmake to avoid clash with BSD make!
-CONFIGURE_ARGS+=        --program-prefix=g
-CONFIGURE_ARGS+=        --enable-lto
+CONFIGURE_ARGS+=        --enable-lto \
+			--program-prefix=g \
+			--with-build-sysroot=${OBJTOP}/tmp
 GMAKE=                  ${DESTDIR}/legacy/bin/gmake
 
 all: gnu_configure .WAIT build

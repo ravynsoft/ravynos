@@ -1,3 +1,6 @@
+GMAKE_ARGS+=		INSTALL=${OBJTOP}/tmp/legacy/bin/install
+#distribute: gnu_distribute
+
 .include <bsd.prog.mk>
 
 .MAKEFLAGS=
@@ -11,7 +14,7 @@ CONFIGURE_ARGS+=        --without-libintl-prefix --disable-nls --disable-libeven
 CONFIGURE_ENV+=		GOBJECT_CFLAGS="-I." GOBJECT_LIBS="-L."
 CONFIGURE_ENV+=		have_pkg_config=yes PKG_CONFIG=/usr/bin/true
 
-GMAKE=                  ${DESTDIR}/legacy/bin/gmake
+GMAKE=                  ${OBJTOP}/tmp/legacy/bin/gmake
 GMAKE_ARGS+=            LDFLAGS="-L${OBJTOP}/gnu/usr.bin/dbus/dbus/.libs"
 
 all: gnu_configure .WAIT build

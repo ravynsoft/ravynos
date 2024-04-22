@@ -7,7 +7,9 @@ NO_LINT=
 BINDIR?=	/bin
 SBINDIR?=       /sbin
 SYSCONFDIR?=    /etc
+CONFDIR?=	/etc
 LOCALSTATEDIR?= /var
+DIST?= 		base
 
 CONFIGURE_ARGS+=        --prefix=${PREFIX}
 CONFIGURE_ARGS+=        --bindir=${BINDIR}
@@ -33,3 +35,6 @@ gnu_install:
 gnu_clean:
 	${GMAKE} clean
 
+gnu_distribute:
+	${OBJTOP}/tmp/legacy/bin/gmake install \
+		DESTDIR=${OBJTOP}/release/dist/${DIST}

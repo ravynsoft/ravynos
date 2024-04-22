@@ -1,3 +1,5 @@
+distribute:
+	@echo Nothing to distribute
 
 .include <src.opts.mk>
 
