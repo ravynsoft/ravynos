@@ -61,8 +61,8 @@ INCS= \
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/Frameworks \
-	-I${SRCTOP}/Frameworks/Foundation/Headers \
-        -I${SRCTOP}/Frameworks/AppKit/Headers \
+	-I${OBJTOP}/Frameworks/Foundation/Headers \
+        -I${OBJTOP}/Frameworks/AppKit/Headers \
 	-F${OBJTOP}/Frameworks/OpenGL -framework OpenGL
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework \

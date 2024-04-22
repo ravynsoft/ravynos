@@ -30,12 +30,13 @@ CFLAGS+= -I${SRCTOP}/Frameworks/Foundation/Headers
 CFLAGS+= -I${.CURDIR}/libpciaccess/include
 LDFLAGS+= -Lmesa/src/egl -Lmesa/src/mapi/es2api -Lmesa/src/mapi/es1api \
           -Lmesa/src/mapi/shared-glapi -Lwayland/src -Lmesa/src/gbm \
-          -Llibdrm -lEGL -lGLESv2 -lGLESv1_CM -lglapi -lwayland -lgbm -ldrm \
-          -Wl,--no-as-needed -Wl,-R\$$ORIGIN/Resources
+          -Llibdrm -Llibpciaccess -lEGL -lGLESv2 -lGLESv1_CM -lglapi \
+	  -lwayland -lgbm -ldrm -lpciaccess \
+	  -Wl,--no-as-needed -Wl,-R\$$ORIGIN/Resources
 
 _libinstall_hook:
 	echo ${FRAMEWORK} ${.TARGET}
-.for i in subprojects/expat-2.5.0/libexpat.so.1 \
+.for i in \
           src/gallium/targets/dri/libgallium_dri.so \
           src/gallium/targets/xa/libxatracker.so.2 \
           src/mapi/es2api/libGLESv2.so.2 \

@@ -8,6 +8,7 @@ NO_FMWK_COMMON=yes
 
 WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wayland-protocols
 WLRPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wlroots/protocol
+SCANNER=${OBJTOP}/Frameworks/OpenGL/wayland/scanner/wayland-scanner
 SRCS= \
     CoreData_/NSPersistentDocument.m \
     CoreData_/_NSManagedProxy.m \
@@ -606,6 +607,7 @@ CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/sys \
          -I${SRCTOP}/CoreServices/WindowServer/libxkbcommon/include \
 	 -F../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
          -I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/../../CoreServices \
+	 -I${SRCTOP}/Frameworks/Onyx2D/freetype/include \
 	 -D_BuildingFramework -DFREETYPE_PRESENT
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
@@ -620,7 +622,7 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -L../CoreData -L../CoreText -L../QuartzCore/ -L../OpenGL \
 	  -L../Onyx2D -lFoundation -lCoreFoundation -lCoreGraphics \
           -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lwayland-client -lobjc -lfreetype -lfontconfig -lxkbcommon -lwayland-egl \
+	  -lwayland-client -lobjc -lfontconfig -lxkbcommon -lwayland-egl \
           -lmach -lm
 
 DIRS= \
@@ -672,35 +674,35 @@ _install-hook:
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 
 xdg-shell-client-protocol.h:
-	wayland-scanner client-header \
+	${SCANNER} client-header \
                 ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
 xdg-shell.c:
-	wayland-scanner private-code \
+	${SCANNER} private-code \
                 ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
 wlr-layer-shell-unstable-v1-client-protocol.h:
-	wayland-scanner client-header \
+	${SCANNER} client-header \
                 ${WLRPROTOS}/wlr-layer-shell-unstable-v1.xml ${.TARGET}
 
 layer-shell-v1.c:
-	wayland-scanner private-code \
+	${SCANNER} private-code \
                 ${WLRPROTOS}/wlr-layer-shell-unstable-v1.xml ${.TARGET}
 
 xdg-output-management-unstable-v1-client-protocol.h:
-	wayland-scanner client-header \
+	${SCANNER} client-header \
                 ${WLPROTOS}/unstable/xdg-output/xdg-output-unstable-v1.xml ${.TARGET}
 
 output-management-v1.c:
-	wayland-scanner private-code \
+	${SCANNER} private-code \
                 ${WLPROTOS}/unstable/xdg-output/xdg-output-unstable-v1.xml ${.TARGET}
 
 xdg-decoration-unstable-v1-client-protocol.h:
-	wayland-scanner client-header \
+	${SCANNER} client-header \
                 ${WLPROTOS}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml ${.TARGET}
 
 xdg-decoration-v1.c:
-	wayland-scanner private-code \
+	${SCANNER} private-code \
                 ${WLPROTOS}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml ${.TARGET}
 
 
