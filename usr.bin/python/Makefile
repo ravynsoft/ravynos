@@ -18,6 +18,11 @@ ${PROG}:
 install:
 	${MAKE} -C ${.CURDIR}/Mako ${.TARGET}
 
-includes:
+installconfig: .PHONY
+includes: .PHONY
+
+distribute:
+	${MAKE} install DESTDIR=${DESTDIR} \
+		INSTALL=${OBJTOP}/tmp/legacy/bin/install
 
 .ORDER: ${PROG} install

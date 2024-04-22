@@ -9,6 +9,7 @@ build:
 install:
 	${MAKE} -C ${MAKEOBJDIR} INSTALL=${INSTALL} DESTDIR=${DESTDIR} install
 
+installconfig: .PHONY
 includes: .PHONY
 
 distribute:

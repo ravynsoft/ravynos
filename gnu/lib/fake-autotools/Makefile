@@ -18,5 +18,6 @@ build-tools:
 build: .PHONY
 clean: .PHONY
 install: .PHONY
+installconfig: .PHONY
 includes: .PHONY
 distribute: .PHONY
