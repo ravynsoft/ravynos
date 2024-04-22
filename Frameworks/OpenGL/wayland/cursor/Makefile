@@ -2,6 +2,8 @@
 
 LIB=		wayland-cursor
 SHLIB_MAJOR=    0
+PROTOCOLDIR=	${.CURDIR}/../protocol
+SCANNER=	${MAKEOBJDIR}/../scanner/wayland-scanner
 
 SRCS= 	convert_font.c \
         os-compatibility.c \
@@ -13,7 +15,8 @@ INCS=	cursor-data.h \
         wayland-cursor.h \
         xcursor.h
 
-CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR}
+CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR} \
+	 -I${MAKEOBJDIR}/../src -I${.CURDIR}/../src
 CFLAGS+= -Wno-error=incompatible-pointer-types-discards-qualifiers \
          -Wno-error=gnu-pointer-arith \
          -Wno-error=strict-prototypes \

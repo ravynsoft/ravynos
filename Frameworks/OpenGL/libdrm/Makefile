@@ -21,7 +21,7 @@ INCSDIR=        ${INCLUDEDIR}/${PACKAGE}
 INCS=	        
 CFLAGS+=        -I${.CURDIR}/include/drm -I${.CURDIR} \
                 -I${MAKEOBJDIR} -I${.CURDIR}/radeon \
-                -DUDEV \
+                -I${.CURDIR}/../libpciaccess/include -DUDEV \
                 -DHAVE_LIBDRM_ATOMIC_PRIMITIVES \
                 -DHAVE_SYS_SYSCTL_H \
                 -DHAVE_OPEN_MEMSTREAM \

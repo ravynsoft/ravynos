@@ -9,7 +9,7 @@ MAJOR=  	1
 MINOR=  	22
 MICRO=  	0
 
-SUBDIR=		scanner cursor egl .WAIT src
+SUBDIR=		scanner .WAIT src .WAIT egl cursor
 
 CFLAGS+=	-I${OBJTOP}/lib/libepoll-shim/include
 LDFLAGS+=	-L${OBJTOP}/lib/libepoll-shim -lepoll-shim -lffi -lbsdxml -lthr

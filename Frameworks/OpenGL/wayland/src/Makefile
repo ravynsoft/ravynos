@@ -27,7 +27,8 @@ INCS=		wayland-client-protocol.h \
                 wayland-server-protocol.h \
                 wayland-util.h
 
-CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR}
+CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR} \
+	 -I${OBJTOP}/lib/libffi/include
 CFLAGS+= -Wno-error=cast-align -Wno-error=missing-variable-declarations \
          -Wno-error=unused-parameter -Wno-error=cast-qual \
          -Wno-error=thread-safety-analysis -Wno-error=unused-parameter
