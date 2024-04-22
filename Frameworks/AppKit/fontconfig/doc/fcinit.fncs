@@ -1,0 +1,92 @@
+/*
+ * fontconfig/doc/fcinit.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+@RET@           FcConfig *
+@FUNC@          FcInitLoadConfig
+@TYPE1@         void
+@PURPOSE@       load configuration
+@DESC@
+Loads the default configuration file and returns the resulting configuration.
+Does not load any font information.
+@@
+
+@RET@           FcConfig *
+@FUNC@          FcInitLoadConfigAndFonts
+@TYPE1@         void
+@PURPOSE@       load configuration and font data
+@DESC@
+Loads the default configuration file and builds information about the
+available fonts.  Returns the resulting configuration.
+@@
+
+@RET@           FcBool
+@FUNC@          FcInit
+@TYPE1@         void
+@PURPOSE@       initialize fontconfig library
+@DESC@
+Loads the default configuration file and the fonts referenced therein and
+sets the default configuration to that result.  Returns whether this
+process succeeded or not.  If the default configuration has already
+been loaded, this routine does nothing and returns FcTrue.
+@@
+
+@RET@           void
+@FUNC@          FcFini
+@TYPE1@         void
+@PURPOSE@       finalize fontconfig library
+@DESC@
+Frees all data structures allocated by previous calls to fontconfig
+functions. Fontconfig returns to an uninitialized state, requiring a
+new call to one of the FcInit functions before any other fontconfig
+function may be called.
+@@
+
+@RET@           int
+@FUNC@          FcGetVersion
+@TYPE1@         void
+@PURPOSE@       library version number
+@DESC@
+Returns the version number of the library.
+@@
+
+@RET@           FcBool
+@FUNC@          FcInitReinitialize
+@TYPE1@         void
+@PURPOSE@       re-initialize library
+@DESC@
+Forces the default configuration file to be reloaded and resets the default
+configuration. Returns FcFalse if the configuration cannot be reloaded (due
+to configuration file errors, allocation failures or other issues) and leaves the
+existing configuration unchanged. Otherwise returns FcTrue.
+@@
+
+@RET@           FcBool
+@FUNC@          FcInitBringUptoDate
+@TYPE1@         void
+@PURPOSE@       reload configuration files if needed
+@DESC@
+Checks the rescan interval in the default configuration, checking the
+configuration if the interval has passed and reloading the configuration if
+when any changes are detected. Returns FcFalse if the configuration cannot
+be reloaded (see FcInitReinitialize). Otherwise returns FcTrue.
+@@

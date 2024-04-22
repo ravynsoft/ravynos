@@ -1,0 +1,542 @@
+/*
+ * fontconfig/doc/fcpattern.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+@RET@           FcPattern *
+@FUNC@          FcPatternCreate
+@TYPE1@         void
+@PURPOSE@       Create a pattern
+@DESC@
+Creates a pattern with no properties; used to build patterns from scratch.
+@@
+
+@RET@           FcPattern *
+@FUNC@          FcPatternDuplicate
+@TYPE1@         const FcPattern *               @ARG1@           p
+@PURPOSE@       Copy a pattern
+@DESC@
+Copy a pattern, returning a new pattern that matches
+<parameter>p</parameter>. Each pattern may be modified without affecting the
+other.
+@@
+
+@RET@           void
+@FUNC@          FcPatternReference
+@TYPE1@         FcPattern *                     @ARG1@           p
+@PURPOSE@       Increment pattern reference count
+@DESC@
+Add another reference to <parameter>p</parameter>. Patterns are freed only
+when the reference count reaches zero.
+@@
+
+@RET@           void
+@FUNC@          FcPatternDestroy
+@TYPE1@         FcPattern *                     @ARG1@           p
+@PURPOSE@       Destroy a pattern
+@DESC@
+Decrement the pattern reference count. If all references are gone, destroys
+the pattern, in the process destroying all related values.
+@@
+
+@RET@           int
+@FUNC@          FcPatternObjectCount
+@TYPE1@         const FcPattern *               @ARG1@          p
+@PURPOSE@       Returns the number of the object
+@DESC@
+Returns the number of the object <parameter>p</parameter> has.
+@SINCE@         2.13.1
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternEqual
+@TYPE1@         const FcPattern *               @ARG1@          pa
+@TYPE2@         const FcPattern *               @ARG2@          pb
+@PURPOSE@       Compare patterns
+@DESC@
+Returns whether <parameter>pa</parameter> and <parameter>pb</parameter> are exactly alike.
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternEqualSubset
+@TYPE1@         const FcPattern *               @ARG1@          pa
+@TYPE2@         const FcPattern *               @ARG2@          pb
+@TYPE3@         const FcObjectSet *             @ARG3@          os
+@PURPOSE@       Compare portions of patterns
+@DESC@
+Returns whether <parameter>pa</parameter> and <parameter>pb</parameter> have exactly the same values for all of the
+objects in <parameter>os</parameter>.
+@@
+
+@RET@           FcPattern *
+@FUNC@          FcPatternFilter
+@TYPE1@         FcPattern *                     @ARG1@           p
+@TYPE2@         const FcObjectSet *             @ARG2@           os
+@PURPOSE@       Filter the objects of pattern
+@DESC@
+Returns a new pattern that only has those objects from
+<parameter>p</parameter> that are in <parameter>os</parameter>.
+If <parameter>os</parameter> is NULL, a duplicate of
+<parameter>p</parameter> is returned.
+@@
+
+@RET@           FcChar32
+@FUNC@          FcPatternHash
+@TYPE1@         const FcPattern *               @ARG1@          p
+@PURPOSE@       Compute a pattern hash value
+@DESC@
+Returns a 32-bit number which is the same for any two patterns which are
+equal.
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternAdd
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@TYPE3@         FcValue%                        @ARG3@          value
+@TYPE4@         FcBool%                         @ARG4@          append
+@PURPOSE@       Add a value to a pattern
+@DESC@
+Adds a single value to the list of values associated with the property named
+`object<parameter>.  If `append</parameter> is FcTrue, the value is added at the end of any
+existing list, otherwise it is inserted at the beginning.  `value' is saved
+(with FcValueSave) when inserted into the pattern so that the library
+retains no reference to any application-supplied data structure.
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternAddWeak
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@TYPE3@         FcValue%                        @ARG3@          value
+@TYPE4@         FcBool%                         @ARG4@          append
+@PURPOSE@       Add a value to a pattern with weak binding
+@DESC@
+FcPatternAddWeak is essentially the same as FcPatternAdd except that any
+values added to the list have binding <parameter>weak</parameter> instead of <parameter>strong</parameter>.
+@@
+
+@TITLE@         FcPatternAdd-Type
+@RET@           FcBool
+@FUNC@          FcPatternAddInteger
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@TYPE3@         int%                            @ARG3@          i
+
+@PROTOTYPE+@
+@RET+@          FcBool
+@FUNC+@         FcPatternAddDouble
+@TYPE1+@        FcPattern *                     @ARG1+@         p
+@TYPE2+@        const char *                    @ARG2+@         object
+@TYPE3+@        double%                         @ARG3+@         d
+
+@PROTOTYPE++@
+@RET++@         FcBool
+@FUNC++@        FcPatternAddString
+@TYPE1++@       FcPattern *                     @ARG1++@        p
+@TYPE2++@       const char *                    @ARG2++@        object
+@TYPE3++@       const FcChar8 *                 @ARG3++@        s
+
+@PROTOTYPE+++@
+@RET+++@        FcBool
+@FUNC+++@       FcPatternAddMatrix
+@TYPE1+++@      FcPattern *                     @ARG1+++@       p
+@TYPE2+++@      const char *                    @ARG2+++@       object
+@TYPE3+++@      const FcMatrix *                @ARG3+++@       m
+
+@PROTOTYPE++++@
+@RET++++@       FcBool
+@FUNC++++@      FcPatternAddCharSet
+@TYPE1++++@     FcPattern *                     @ARG1++++@      p
+@TYPE2++++@     const char *                    @ARG2++++@      object
+@TYPE3++++@     const FcCharSet *               @ARG3++++@      c
+
+@PROTOTYPE+++++@
+@RET+++++@      FcBool
+@FUNC+++++@     FcPatternAddBool
+@TYPE1+++++@    FcPattern *                     @ARG1+++++@     p
+@TYPE2+++++@    const char *                    @ARG2+++++@     object
+@TYPE3+++++@    FcBool%                         @ARG3+++++@     b
+
+@PROTOTYPE++++++@
+@RET++++++@     FcBool
+@FUNC++++++@    FcPatternAddFTFace
+@TYPE1++++++@   FcPattern *                     @ARG1++++++@    p
+@TYPE2++++++@   const char *                    @ARG2++++++@    object
+@TYPE3++++++@   const FT_Face                   @ARG3++++++@    f
+
+@PROTOTYPE+++++++@
+@RET+++++++@    FcBool
+@FUNC+++++++@   FcPatternAddLangSet
+@TYPE1+++++++@  FcPattern *                     @ARG1+++++++@   p
+@TYPE2+++++++@  const char *                    @ARG2+++++++@   object
+@TYPE3+++++++@  const FcLangSet *               @ARG3+++++++@   l
+
+@PROTOTYPE++++++++@
+@RET++++++++@   FcBool
+@FUNC++++++++@  FcPatternAddRange
+@TYPE1++++++++@ FcPattern *                     @ARG1++++++++@  p
+@TYPE2++++++++@ const char *                    @ARG2++++++++@  object
+@TYPE3++++++++@ const FcRange *                 @ARG3++++++++@  r
+
+@PURPOSE@       Add a typed value to a pattern
+@DESC@
+These are all convenience functions that insert objects of the specified
+type into the pattern.  Use these in preference to FcPatternAdd as they
+will provide compile-time typechecking.  These all append values to
+any existing list of values.
+
+<function>FcPatternAddRange</function> are available since 2.11.91.
+@@
+
+@RET@           FcResult
+@FUNC@          FcPatternGetWithBinding
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@TYPE3@         int%                            @ARG3@          id
+@TYPE4@         FcValue *                       @ARG4@          v
+@TYPE5@         FcValueBinding *                @ARG5@          b
+@PURPOSE@       Return a value with binding from a pattern
+@DESC@
+Returns in <parameter>v</parameter> the <parameter>id</parameter>'th value
+and <parameter>b</parameter> binding for that associated with the property
+<parameter>object</parameter>.
+The Value returned is not a copy, but rather refers to the data stored
+within the pattern directly.  Applications must not free this value.
+@SINCE@         2.12.5
+@@
+
+@RET@           FcResult
+@FUNC@          FcPatternGet
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@TYPE3@         int%                            @ARG3@          id
+@TYPE4@         FcValue *                       @ARG4@          v
+@PURPOSE@       Return a value from a pattern
+@DESC@
+Returns in <parameter>v</parameter> the <parameter>id</parameter>'th value
+associated with the property <parameter>object</parameter>.
+The value returned is not a copy, but rather refers to the data stored
+within the pattern directly.  Applications must not free this value.
+@@
+
+@TITLE@         FcPatternGet-Type
+@PROTOTYPE@
+@RET@           FcResult
+@FUNC@          FcPatternGetInteger
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@TYPE3@         int%                            @ARG3@          n
+@TYPE4@         int *                           @ARG4@          i
+
+@PROTOTYPE+@
+@RET+@          FcResult
+@FUNC+@         FcPatternGetDouble
+@TYPE1+@        FcPattern *                     @ARG1+@         p
+@TYPE2+@        const char *                    @ARG2+@         object
+@TYPE3+@        int%                            @ARG3+@         n
+@TYPE4+@        double *                        @ARG4+@         d
+
+@PROTOTYPE++@
+@RET++@         FcResult
+@FUNC++@        FcPatternGetString
+@TYPE1++@       FcPattern *                     @ARG1++@        p
+@TYPE2++@       const char *                    @ARG2++@        object
+@TYPE3++@       int%                            @ARG3++@        n
+@TYPE4++@       FcChar8 **                      @ARG4++@        s
+
+@PROTOTYPE+++@
+@RET+++@        FcResult
+@FUNC+++@       FcPatternGetMatrix
+@TYPE1+++@      FcPattern *                     @ARG1+++@       p
+@TYPE2+++@      const char *                    @ARG2+++@       object
+@TYPE3+++@      int%                            @ARG3+++@       n
+@TYPE4+++@      FcMatrix **                     @ARG4+++@       s
+
+@PROTOTYPE++++@
+@RET++++@       FcResult
+@FUNC++++@      FcPatternGetCharSet
+@TYPE1++++@     FcPattern *                     @ARG1++++@      p
+@TYPE2++++@     const char *                    @ARG2++++@      object
+@TYPE3++++@     int%                            @ARG3++++@      n
+@TYPE4++++@     FcCharSet **                    @ARG4++++@      c
+
+@PROTOTYPE+++++@
+@RET+++++@      FcResult
+@FUNC+++++@     FcPatternGetBool
+@TYPE1+++++@    FcPattern *                     @ARG1+++++@     p
+@TYPE2+++++@    const char *                    @ARG2+++++@     object
+@TYPE3+++++@    int%                            @ARG3+++++@     n
+@TYPE4+++++@    FcBool *                        @ARG4+++++@     b
+
+@PROTOTYPE++++++@
+@RET++++++@     FcResult
+@FUNC++++++@    FcPatternGetFTFace
+@TYPE1++++++@   FcPattern *                     @ARG1++++++@    p
+@TYPE2++++++@   const char *                    @ARG2++++++@    object
+@TYPE3++++++@   int%                            @ARG3++++++@    n
+@TYPE4++++++@   FT_Face *                       @ARG4++++++@    f
+
+@PROTOTYPE+++++++@
+@RET+++++++@    FcResult
+@FUNC+++++++@   FcPatternGetLangSet
+@TYPE1+++++++@  FcPattern *                     @ARG1+++++++@   p
+@TYPE2+++++++@  const char *                    @ARG2+++++++@   object
+@TYPE3+++++++@  int%                            @ARG3+++++++@   n
+@TYPE4+++++++@  FcLangSet **                    @ARG4+++++++@   l
+
+@PROTOTYPE++++++++@
+@RET++++++++@   FcResult
+@FUNC++++++++@  FcPatternGetRange
+@TYPE1++++++++@ FcPattern *                     @ARG1++++++++@  p
+@TYPE2++++++++@ const char *                    @ARG2++++++++@  object
+@TYPE3++++++++@ int%                            @ARG3++++++++@  n
+@TYPE4++++++++@ FcRange **                      @ARG4++++++++@  r
+
+@PURPOSE@       Return a typed value from a pattern
+@DESC@
+These are convenience functions that call FcPatternGet and verify that the
+returned data is of the expected type. They return FcResultTypeMismatch if
+this is not the case.  Note that these (like FcPatternGet) do not make a
+copy of any data structure referenced by the return value.  Use these
+in preference to FcPatternGet to provide compile-time typechecking.
+
+<function>FcPatternGetRange</function> are available since 2.11.91.
+@@
+
+@RET@           FcPattern *
+@FUNC@          FcPatternBuild
+@TYPE1@         FcPattern *                     @ARG1@          pattern
+@TYPE2@         ...
+
+@PROTOTYPE+@
+@RET+@          FcPattern *
+@FUNC+@         FcPatternVaBuild
+@TYPE1+@        FcPattern *                     @ARG1+@         pattern
+@TYPE2+@        va_list%                        @ARG2+@         va
+
+@PROTOTYPE++@
+@RET++@         void
+@FUNC++@        FcPatternVapBuild
+@TYPE1++@       FcPattern *                     @ARG1++@        result
+@TYPE2++@       FcPattern *                     @ARG2++@        pattern
+@TYPE3++@       va_list%                        @ARG3++@        va
+
+@PURPOSE@       Create patterns from arguments
+@DESC@
+Builds a pattern using a list of objects, types and values.  Each
+value to be entered in the pattern is specified with three arguments:
+</para>
+<orderedlist>
+<listitem><para>
+Object name, a string describing the property to be added.
+</para></listitem><listitem><para>
+Object type, one of the FcType enumerated values
+</para></listitem><listitem><para>
+Value, not an FcValue, but the raw type as passed to any of the
+FcPatternAdd&lt;type&gt; functions.  Must match the type of the second
+argument.
+</para></listitem>
+</orderedlist>
+<para>
+The argument list is terminated by a null object name, no object type nor
+value need be passed for this.  The values are added to `pattern', if
+`pattern' is null, a new pattern is created.  In either case, the pattern is
+returned. Example
+</para>
+<programlisting>
+pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, "Times", (char *) 0);
+</programlisting>
+<para>
+FcPatternVaBuild is used when the arguments are already in the form of a
+varargs value. FcPatternVapBuild is a macro version of FcPatternVaBuild
+which returns its result directly in the <parameter>result</parameter>
+variable.
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternDel
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@PURPOSE@       Delete a property from a pattern
+@DESC@
+Deletes all values associated with the property `object', returning
+whether the property existed or not.
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternRemove
+@TYPE1@         FcPattern *                     @ARG1@          p
+@TYPE2@         const char *                    @ARG2@          object
+@TYPE3@         int%                            @ARG3@          id
+@PURPOSE@       Remove one object of the specified type from the pattern
+@DESC@
+Removes the value associated with the property `object' at position `id', returning
+whether the property existed and had a value at that position or not.
+@@
+
+@RET@           void
+@FUNC@          FcPatternIterStart
+@TYPE1@         const FcPattern *               @ARG1@          p
+@TYPE2@         FcPatternIter *                 @ARG2@          iter
+@PURPOSE@       Initialize the iterator with the first iterator in the pattern
+@DESC@
+Initialize <parameter>iter</parameter> with the first iterator in <parameter>p</parameter>.
+If there are no objects in <parameter>p</parameter>, <parameter>iter</parameter>
+will not have any valid data.
+@SINCE@         2.13.1
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternIterNext
+@TYPE1@         const FcPattern *               @ARG1@          p
+@TYPE2@         FcPatternIter *                 @ARG2@          iter
+@PURPUSE@       Set the iterator to point to the next object in the pattern
+@DESC@
+Set <parameter>iter</parameter> to point to the next object in <parameter>p</parameter>
+and returns FcTrue if <parameter>iter</parameter> has been changed to the next object.
+returns FcFalse otherwise.
+@SINCE@         2.13.1
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternIterEqual
+@TYPE1@         const FcPattern *               @ARG1@          p1
+@TYPE2@         FcPatternIter *                 @ARG2@          i1
+@TYPE3@         const FcPattern *               @ARG3@          p2
+@TYPE4@         FcPatternIter *                 @ARG4@          i2
+@PURPOSE@       Compare iterators
+@DESC@
+Return FcTrue if both <parameter>i1</parameter> and <parameter>i2</parameter>
+point to same object and contains same values. return FcFalse otherwise.
+@SINCE@         2.13.1
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternFindIter
+@TYPE1@         const FcPattern *               @ARG1@          p
+@TYPE2@         FcPatternIter *                 @ARG2@          iter
+@TYPE3@         const char *                    @ARG3@          object
+@PURPOSE@       Set the iterator to point to the object in the pattern
+@DESC@
+Set <parameter>iter</parameter> to point to <parameter>object</parameter> in
+<parameter>p</parameter> if any and returns FcTrue. returns FcFalse otherwise.
+@SINCE@         2.13.1
+@@
+
+@RET@           FcBool
+@FUNC@          FcPatternIterIsValid
+@TYPE1@         const FcPattern *               @ARG1@          p
+@TYPE2@         FcPatternIter :                 @ARG2@          iter
+@PURPOSE@       Check whether the iterator is valid or not
+@DESC@
+Returns FcTrue if <parameter>iter</parameter> point to the valid entry
+in <parameter>p</parameter>. returns FcFalse otherwise.
+@SINCE@         2.13.1
+@@
+
+@RET@           const char *
+@FUNC@          FcPatternIterGetObject
+@TYPE1@         const FcPattern *               @ARG1@          p
+@TYPE2@         FcPatternIter *                 @ARG2@          iter
+@PURPOSE@       Returns an object name which the iterator point to
+@DESC@
+Returns an object name in <parameter>p</parameter> which
+<parameter>iter</parameter> point to. returns NULL if
+<parameter>iter</parameter> isn't valid.
+@SINCE@         2.13.1
+@@
+
+@RET@           int
+@FUNC@          FcPatternIterValueCount
+@TYPE1@         const FcPattern *               @ARG1@          p
+@TYPE2@         FcPatternIter *                 @ARG2@          iter
+@PURPOSE@       Returns the number of the values which the iterator point to
+@DESC@
+Returns the number of the values in the object which <parameter>iter</parameter>
+point to. if <parameter>iter</parameter> isn't valid, returns 0.
+@SINCE@         2.13.1
+@@
+
+@RET@           FcResult
+@FUNC@          FcPatternIterGetValue
+@TYPE1@         const FcPattern *               @ARG1@          p
+@TYPE2@         FcPatternIter *                 @ARG2@          iter
+@TYPE3@         int                             @ARG3@          id
+@TYPE4@         FcValue *                       @ARG4@          v
+@TYPE5@         FcValueBinding *                @ARG5@          b
+@PURPOSE@       Returns a value which the iterator point to
+@DESC@
+Returns in <parameter>v</parameter> the <parameter>id</parameter>'th value
+which <parameter>iter</parameter> point to. also binding to <parameter>b</parameter>
+if given.
+The value returned is not a copy, but rather refers to the data stored
+within the pattern directly.  Applications must not free this value.
+@SINCE@         2.13.1
+@@
+
+@RET@           void
+@FUNC@          FcPatternPrint
+@TYPE1@         const FcPattern *               @ARG1@          p
+@PURPOSE@       Print a pattern for debugging
+@DESC@
+Prints an easily readable version of the pattern to stdout.  There is
+no provision for reparsing data in this format, it's just for diagnostics
+and debugging.
+@@
+
+@RET@           void
+@FUNC@          FcDefaultSubstitute
+@TYPE1@         FcPattern *                     @ARG1@          pattern
+@PURPOSE@       Perform default substitutions in a pattern
+@DESC@
+Supplies default values for underspecified font patterns:
+<itemizedlist>
+<listitem><para>
+Patterns without a specified style or weight are set to Medium
+</para></listitem>
+<listitem><para>
+Patterns without a specified style or slant are set to Roman
+</para></listitem>
+<listitem><para>
+Patterns without a specified pixel size are given one computed from any
+specified point size (default 12), dpi (default 75) and scale (default 1).
+</para></listitem>
+</itemizedlist>
+@@
+
+@RET@           FcPattern *
+@FUNC@          FcNameParse
+@TYPE1@         const FcChar8 *                 @ARG1@          name
+@PURPOSE@       Parse a pattern string
+@DESC@
+Converts <parameter>name</parameter> from the standard text format described above into a pattern.
+@@
+
+@RET@           FcChar8 *
+@FUNC@          FcNameUnparse
+@TYPE1@         FcPattern *                     @ARG1@          pat
+@PURPOSE@       Convert a pattern back into a string that can be parsed
+@DESC@
+Converts the given pattern into the standard text format described above.
+The return value is not static, but instead refers to newly allocated memory
+which should be freed by the caller using free().
+@@

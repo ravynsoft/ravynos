@@ -1,0 +1,659 @@
+# fontconfig translation to Georgian.
+# Copyright (C) 2022 Fontconfig Author(s)
+# This file is distributed under the same license as the fontconfig package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fontconfig 2.14.0\n"
+"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/fontconfig/fontconfig/"
+"issues/new\n"
+"POT-Creation-Date: 2023-01-27 17:24+0900\n"
+"PO-Revision-Date: 2022-10-01 10:53+0200\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(none)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#: fc-cache/fc-cache.c:107
+#, c-format
+msgid ""
+"usage: %s [-EfrsvVh] [-y SYSROOT] [--error-on-no-fonts] [--force|--really-"
+"force] [--sysroot=SYSROOT] [--system-only] [--verbose] [--version] [--help] "
+"[dirs]\n"
+msgstr ""
+"გამოყენება: %s [-EfrsvVh] [-y SYSROOT] [--error-on-no-fonts] [--force|--"
+"really-force] [--sysroot=SYSROOT] [--system-only] [--verbose] [--version] [--"
+"help] [საქაღალდეები]\n"
+
+#: fc-cache/fc-cache.c:110
+#, c-format
+msgid "usage: %s [-EfrsvVh] [-y SYSROOT] [dirs]\n"
+msgstr "გამოყენება: %s [-EfrsvVh] [-y SYSROOT] [საქაღალდეები]\n"
+
+#: fc-cache/fc-cache.c:113
+#, c-format
+msgid ""
+"Build font information caches in [dirs]\n"
+"(all directories in font configuration by default).\n"
+msgstr ""
+"საქაღალდეებში ფონტის ინფორმაციის ქეშის აშენება\n"
+"(ნაგულისხმებად - ყველა კონფიგურაციის ფაილში მოხსენებულ საქაღალდეში).\n"
+
+#: fc-cache/fc-cache.c:117
+#, c-format
+msgid "  -E, --error-on-no-fonts  raise an error if no fonts in a directory\n"
+msgstr "  -E, --error-on-no-fonts  შეცდომა, თუ საქაღალდეში ფონტები არაა\n"
+
+#: fc-cache/fc-cache.c:118
+#, c-format
+msgid ""
+"  -f, --force              scan directories with apparently valid caches\n"
+msgstr ""
+"  -f, --force              საქაღალდეების სკანირება იმის მიუხედავად, რომ მათი "
+"ქეში სწორია\n"
+
+#: fc-cache/fc-cache.c:119
+#, c-format
+msgid "  -r, --really-force       erase all existing caches, then rescan\n"
+msgstr "  -r, --really-force       ქეშის წაშლა და თავიდან სკანირება\n"
+
+#: fc-cache/fc-cache.c:120
+#, c-format
+msgid "  -s, --system-only        scan system-wide directories only\n"
+msgstr ""
+"  -s, --system-only        მხოლოდ სისტემისთვის გლობალური საქაღალდეების "
+"სკანირება\n"
+
+#: fc-cache/fc-cache.c:121
+#, c-format
+msgid "  -y, --sysroot=SYSROOT    prepend SYSROOT to all paths for scanning\n"
+msgstr ""
+"  -y, --sysroot=SYSROOT    სკანირებისას ყველა ბილიკისთვის თავში SYSROOT -ის "
+"მიწერა\n"
+
+#: fc-cache/fc-cache.c:122
+#, c-format
+msgid "  -v, --verbose            display status information while busy\n"
+msgstr "  -v, --verbose            მუშაობისას სტატუსის ინფორმაციის გამოტანა\n"
+
+#: fc-cache/fc-cache.c:123
+#, c-format
+msgid "  -V, --version            display font config version and exit\n"
+msgstr "  -V, --version          font config -ის ვერსიის გამოტანა და გასვლა\n"
+
+#: fc-cache/fc-cache.c:124
+#, c-format
+msgid "  -h, --help               display this help and exit\n"
+msgstr "  -h, --help               ამ დახმარების გამოტანა და გასვლა\n"
+
+#: fc-cache/fc-cache.c:126
+#, c-format
+msgid "  -E         (error-on-no-fonts)\n"
+msgstr "  -E         (error-on-no-fonts)\n"
+
+#: fc-cache/fc-cache.c:127
+#, c-format
+msgid "                       raise an error if no fonts in a directory\n"
+msgstr "                       შეცდომა, თუ საქაღალდეში ფონტები არაა\n"
+
+#: fc-cache/fc-cache.c:128
+#, c-format
+msgid "  -f         (force)   scan directories with apparently valid caches\n"
+msgstr ""
+"  -f,  (ძალით)              საქაღალდეების სკანირება იმის მიუხედავად, რომ "
+"მათი ქეში სწორია\n"
+
+#: fc-cache/fc-cache.c:129
+#, c-format
+msgid "  -r,   (really force) erase all existing caches, then rescan\n"
+msgstr "  -r (სრულად ძალით      ქეშის წაშლა და თავიდან სკანირება\n"
+
+#: fc-cache/fc-cache.c:130
+#, c-format
+msgid "  -s         (system)  scan system-wide directories only\n"
+msgstr ""
+"  -s    (სისტემური)        მხოლოდ სისტემისთვის გლობალური საქაღალდეების "
+"სკანირება\n"
+
+#: fc-cache/fc-cache.c:131
+#, c-format
+msgid "  -y SYSROOT (sysroot) prepend SYSROOT to all paths for scanning\n"
+msgstr ""
+"  -y SYSROOT (sysroot) სკანირებისას ყველა ბილიკისთვის თავში SYSROOT -ის "
+"მიწერა\n"
+
+#: fc-cache/fc-cache.c:132
+#, c-format
+msgid "  -v         (verbose) display status information while busy\n"
+msgstr "  -v         (verbose) მუშაობისას სტატუსის ინფორმაციის გამოტანა\n"
+
+#: fc-cache/fc-cache.c:133 fc-cat/fc-cat.c:181 fc-list/fc-list.c:103
+#: fc-match/fc-match.c:107 fc-pattern/fc-pattern.c:101
+#, c-format
+msgid "  -V         (version) display font config version and exit\n"
+msgstr "  -V         (version) font config -ის ვერსიის გამოტანა და გასვლა\n"
+
+#: fc-cache/fc-cache.c:134 fc-cat/fc-cat.c:182 fc-list/fc-list.c:104
+#: fc-match/fc-match.c:108 fc-pattern/fc-pattern.c:102
+#, c-format
+msgid "  -h         (help)    display this help and exit\n"
+msgstr "  -h         (help)    ამ დახმარების გამოტანა და გასვლა\n"
+
+#: fc-cache/fc-cache.c:171
+#, c-format
+msgid "skipping, looped directory detected\n"
+msgstr "გამოტოვება. აღმოჩენილია საქაღალდეების მარყუჟი\n"
+
+#: fc-cache/fc-cache.c:190
+#, c-format
+msgid "skipping, no such directory\n"
+msgstr "გამოტოვება. საქაღალდე არ არსებობს\n"
+
+#: fc-cache/fc-cache.c:208
+#, c-format
+msgid "\"%s\": not a directory, skipping\n"
+msgstr "\"%s\": საქაღალდეს არ წარმოადგენს. გამოტოვება\n"
+
+#: fc-cache/fc-cache.c:232
+#, c-format
+msgid "\"%s\": scanning error\n"
+msgstr "\"%s\": სკანირების შეცდომა\n"
+
+#: fc-cache/fc-cache.c:241
+#, c-format
+msgid "skipping, existing cache is valid: %d fonts, %d dirs\n"
+msgstr "გამოტოვება. არსებული ქეში სწორია: %d ფონტი, %d საქაღალდე\n"
+
+#: fc-cache/fc-cache.c:247
+#, c-format
+msgid "caching, new cache contents: %d fonts, %d dirs\n"
+msgstr "ქეშირება. ახალი ქეშის შემცველობა: %d ფონტი, %d საქაღალდე\n"
+
+#: fc-cache/fc-cache.c:252
+#, c-format
+msgid "%s: failed to write cache\n"
+msgstr "%s ქეშის ჩაწერის შეცდომა\n"
+
+#: fc-cache/fc-cache.c:261
+#, c-format
+msgid "%s: Can't create subdir set\n"
+msgstr "%s: ქვესაქაღალდეების ნაკრების შექმნის შეცდომა\n"
+
+#: fc-cache/fc-cache.c:275
+#, c-format
+msgid "%s: Can't create subdir list\n"
+msgstr "%s: ქვესაქაღალდეების სიის შექმნის შეცდომა\n"
+
+#: fc-cache/fc-cache.c:383 fc-cat/fc-cat.c:309
+#, c-format
+msgid "%s: Can't initialize font config library\n"
+msgstr "%s: fontconfig-ის ბიბლიოთეკის ინიციალიზაციის შეცდომა\n"
+
+#: fc-cache/fc-cache.c:393
+#, c-format
+msgid "%s: Can't create list of directories\n"
+msgstr "%s: საქაღალდეების სიის შექმნის შეცდომა\n"
+
+#: fc-cache/fc-cache.c:401
+#, c-format
+msgid "%s: Can't add directory\n"
+msgstr "%s: საქაღალდის დამატების შეცდომა\n"
+
+#: fc-cache/fc-cache.c:413
+#, c-format
+msgid "Out of Memory\n"
+msgstr "არასაკმარისი მეხსიერება\n"
+
+#: fc-cache/fc-cache.c:456
+msgid "failed"
+msgstr "შეცდომა"
+
+#: fc-cache/fc-cache.c:456
+msgid "succeeded"
+msgstr "წარმატებული"
+
+#: fc-cat/fc-cat.c:162
+#, c-format
+msgid "usage: %s [-rv] [--recurse] [--verbose] [*-%s"
+msgstr "გამოყენება: %s [-rv] [--recurse] [--verbose] [*-%s"
+
+#: fc-cat/fc-cat.c:166
+#, c-format
+msgid "usage: %s [-rvVh] [*-%s"
+msgstr "გამოყენება: %s [-rvVh] [*-%s"
+
+#: fc-cat/fc-cat.c:169
+#, c-format
+msgid "Reads font information cache from:\n"
+msgstr "ფონტის ფორმაციის ქეში წაიკითხება:\n"
+
+#: fc-cat/fc-cat.c:170
+#, c-format
+msgid " 1) specified fontconfig cache file\n"
+msgstr " 1) მითითებული fontconfig-ის ქეშის ფაილიდან\n"
+
+#: fc-cat/fc-cat.c:171
+#, c-format
+msgid " 2) related to a particular font directory\n"
+msgstr " 2) მითითებული ფონტის საქაღალდიდან\n"
+
+#: fc-cat/fc-cat.c:174
+#, c-format
+msgid "  -r, --recurse        recurse into subdirectories\n"
+msgstr "  -r, --recurse        რეკურსია ქვესაქაღალდეებში\n"
+
+#: fc-cat/fc-cat.c:175
+#, c-format
+msgid "  -v, --verbose        be verbose\n"
+msgstr "  -v, --verbose        მეტი შეტყობინების გამოტანა\n"
+
+#: fc-cat/fc-cat.c:176 fc-conflist/fc-conflist.c:90 fc-list/fc-list.c:96
+#: fc-match/fc-match.c:99 fc-pattern/fc-pattern.c:95 fc-query/fc-query.c:98
+#: fc-validate/fc-validate.c:98
+#, c-format
+msgid "  -V, --version        display font config version and exit\n"
+msgstr "  -V, --version        font config -ის ვერსიის გამოტანა და გასვლა\n"
+
+#: fc-cat/fc-cat.c:177 fc-conflist/fc-conflist.c:91 fc-list/fc-list.c:97
+#: fc-match/fc-match.c:100 fc-pattern/fc-pattern.c:96 fc-query/fc-query.c:99
+#: fc-validate/fc-validate.c:99
+#, c-format
+msgid "  -h, --help           display this help and exit\n"
+msgstr "  -h, --help           ამ დახმარების გამოტანა და გასვლა\n"
+
+#: fc-cat/fc-cat.c:179
+#, c-format
+msgid "  -r         (recurse) recurse into subdirectories\n"
+msgstr "  -r        (recurse)        რეკურსია ქვესაქაღალდეებში\n"
+
+#: fc-cat/fc-cat.c:180
+#, c-format
+msgid "  -v         (verbose) be verbose\n"
+msgstr "  -v         (verbose) მეტი შეტყობინების გამოტანა\n"
+
+#: fc-cat/fc-cat.c:318 fc-cat/fc-cat.c:327 fc-cat/fc-cat.c:339
+#: fc-cat/fc-cat.c:347
+#, c-format
+msgid "%s: malloc failure\n"
+msgstr "%s: malloc -ის შეცდომა\n"
+
+#: fc-cat/fc-cat.c:387
+#, c-format
+msgid ""
+"Directory: %s\n"
+"Cache: %s\n"
+"--------\n"
+msgstr ""
+"საქაღალდე: %s\n"
+"ქეში: %s\n"
+"--------\n"
+
+#: fc-conflist/fc-conflist.c:81
+#, c-format
+msgid "usage: %s [-Vh] [--version] [--help]\n"
+msgstr "გამოყენება: %s [-Vh] [--version] [--help]\n"
+
+#: fc-conflist/fc-conflist.c:84
+#, c-format
+msgid "usage: %s [-Vh]\n"
+msgstr "გამოყენება: %s [-Vh]\n"
+
+#: fc-conflist/fc-conflist.c:87
+#, c-format
+msgid "Show the ruleset files information on the system\n"
+msgstr "სისტემაში პოლიტიკის ფაილების ინფორმაციის ჩვენება\n"
+
+#: fc-conflist/fc-conflist.c:93 fc-validate/fc-validate.c:104
+#, c-format
+msgid "  -V         (version)      display font config version and exit\n"
+msgstr ""
+"  -V         (version)      font config -ის ვერსიის გამოტანა და გასვლა\n"
+
+#: fc-conflist/fc-conflist.c:94 fc-validate/fc-validate.c:105
+#, c-format
+msgid "  -h         (help)         display this help and exit\n"
+msgstr "  -h         (help)         ამ დახმარების გამოტანა და გასვლა\n"
+
+#: fc-list/fc-list.c:83
+#, c-format
+msgid ""
+"usage: %s [-vbqVh] [-f FORMAT] [--verbose] [--brief] [--format=FORMAT] [--"
+"quiet] [--version] [--help] [pattern] {element ...} \n"
+msgstr ""
+"გამოყენება: %s [-vbqVh] [-f ფორმატი] [--verbose] [--brief] [--format=ფორატი] "
+"[--quiet] [--version] [--help] [pattern] {element ...} \n"
+
+#: fc-list/fc-list.c:86
+#, c-format
+msgid "usage: %s [-vbqVh] [-f FORMAT] [pattern] {element ...} \n"
+msgstr "გამოყენება: %s [-vbqVh] [-f ფორმატი] [შაბლონი] {ელემენტი ...} \n"
+
+#: fc-list/fc-list.c:89
+#, c-format
+msgid "List fonts matching [pattern]\n"
+msgstr "ფონტები, რომლებიც ემთხვევა [შაბლონი]\n"
+
+#: fc-list/fc-list.c:92 fc-match/fc-match.c:96
+#, c-format
+msgid "  -v, --verbose        display entire font pattern verbosely\n"
+msgstr "  -v, --verbose        მთელი ფონტის შაბლონის ჩვენება\n"
+
+#: fc-list/fc-list.c:93 fc-match/fc-match.c:97
+#, c-format
+msgid "  -b, --brief          display entire font pattern briefly\n"
+msgstr "  -b, --brief          მთელი ფონტის შაბლონის მოკლედ ჩვენება\n"
+
+#: fc-list/fc-list.c:94 fc-match/fc-match.c:98 fc-pattern/fc-pattern.c:94
+#: fc-query/fc-query.c:97
+#, c-format
+msgid "  -f, --format=FORMAT  use the given output format\n"
+msgstr "  -f, --format=ფორმატი  მითითებული ფორმატის გამოყენება\n"
+
+#: fc-list/fc-list.c:95
+#, c-format
+msgid ""
+"  -q, --quiet          suppress all normal output, exit 1 if no fonts "
+"matched\n"
+msgstr ""
+"  -q, --quiet          ეკრანზე არაფერი გამოჩნდება. თუ ფონტები არ დაემთხვა, "
+"გამოსვლის კოდი 1-ის ტოლი იქნება\n"
+
+#: fc-list/fc-list.c:99 fc-match/fc-match.c:104
+#, c-format
+msgid "  -v         (verbose) display entire font pattern verbosely\n"
+msgstr "  -v         (verbose) მთელი ფონტის შაბლონის დიდად ჩვენება\n"
+
+#: fc-list/fc-list.c:100 fc-match/fc-match.c:105
+#, c-format
+msgid "  -b         (brief)   display entire font pattern briefly\n"
+msgstr "  -b         (brief)   მთელი ფონტის შაბლონის მოკლედ ჩვენება\n"
+
+#: fc-list/fc-list.c:101 fc-match/fc-match.c:106 fc-pattern/fc-pattern.c:100
+#, c-format
+msgid "  -f FORMAT  (format)  use the given output format\n"
+msgstr "  -f ფორმატი  (format)  მითითებული გამოტანის ფორმატის გამოყენება\n"
+
+#: fc-list/fc-list.c:102
+#, c-format
+msgid ""
+"  -q,        (quiet)   suppress all normal output, exit 1 if no fonts "
+"matched\n"
+msgstr ""
+"  -q,  (quiet)          ეკრანზე არაფერი გამოჩნდება. თუ ფონტები არ დაემთხვა, "
+"გამოსვლის კოდი 1-ის ტოლი იქნება\n"
+
+#: fc-list/fc-list.c:164 fc-match/fc-match.c:172 fc-pattern/fc-pattern.c:155
+#, c-format
+msgid "Unable to parse the pattern\n"
+msgstr "შაბლონის დამუშავების შეცდომა\n"
+
+#: fc-match/fc-match.c:85
+#, c-format
+msgid ""
+"usage: %s [-savbVh] [-f FORMAT] [--sort] [--all] [--verbose] [--brief] [--"
+"format=FORMAT] [--version] [--help] [pattern] {element...}\n"
+msgstr ""
+"გამოყენება: %s [-savbVh] [-f ფორმატი] [--sort] [--all] [--verbose] [--brief] "
+"[--format=ფორმატი] [--version] [--help] [შაბლონი] {ელემენტი...}\n"
+
+#: fc-match/fc-match.c:88
+#, c-format
+msgid "usage: %s [-savVh] [-f FORMAT] [pattern] {element...}\n"
+msgstr "გამოყენება: %s [-savVh] [-f ფორმატი] [შაბლონი] {ელემენტი...}\n"
+
+#: fc-match/fc-match.c:91 fc-pattern/fc-pattern.c:89
+#, c-format
+msgid "List best font matching [pattern]\n"
+msgstr "ფონტების საუკეთესო დამთხვევების სია [შაბლონი]\n"
+
+#: fc-match/fc-match.c:94
+#, c-format
+msgid "  -s, --sort           display sorted list of matches\n"
+msgstr "  -s, --sort           დამთხვევების დალაგებული სიის ჩვენება\n"
+
+#: fc-match/fc-match.c:95
+#, c-format
+msgid "  -a, --all            display unpruned sorted list of matches\n"
+msgstr ""
+"  -a, --all            დამთხვევების წაუკვეთავი დალაგებული სიის ჩვენება\n"
+
+#: fc-match/fc-match.c:102
+#, c-format
+msgid "  -s,        (sort)    display sorted list of matches\n"
+msgstr "  -s,        (sort)    დამთხვევების დალაგებული სიის ჩვენება\n"
+
+#: fc-match/fc-match.c:103
+#, c-format
+msgid "  -a         (all)     display unpruned sorted list of matches\n"
+msgstr ""
+"  -a         (all)     დამთხვევების წაუკვეთავი დალაგებული სიის ჩვენება\n"
+
+#: fc-match/fc-match.c:201
+#, c-format
+msgid "No fonts installed on the system\n"
+msgstr "სისტემაში ფონტები დაყენებული არაა\n"
+
+#: fc-pattern/fc-pattern.c:83
+#, c-format
+msgid ""
+"usage: %s [-cdVh] [-f FORMAT] [--config] [--default] [--verbose] [--"
+"format=FORMAT] [--version] [--help] [pattern] {element...}\n"
+msgstr ""
+"გამოყენება: %s [-cdVh] [-f ფორმატი] [--config] [--default] [--verbose] [--"
+"format=ფორმატი] [--version] [--help] [შაბლონი] {ელემენტი...}\n"
+
+#: fc-pattern/fc-pattern.c:86
+#, c-format
+msgid "usage: %s [-cdVh] [-f FORMAT] [pattern] {element...}\n"
+msgstr "გამოყენება: %s [-cdVh] [-f ფორმატი] [შაბლონი] {ელემენტი...}\n"
+
+#: fc-pattern/fc-pattern.c:92
+#, c-format
+msgid "  -c, --config         perform config substitution on pattern\n"
+msgstr "  -c, --config         შაბლონზე კონფიგურაციის ჩანაცვლების ჩატარება\n"
+
+#: fc-pattern/fc-pattern.c:93
+#, c-format
+msgid "  -d, --default        perform default substitution on pattern\n"
+msgstr "  -d, --default        შაბლონზე ნაგულისხმები ჩანაცვლების ჩატარება\n"
+
+#: fc-pattern/fc-pattern.c:98
+#, c-format
+msgid "  -c,        (config)  perform config substitution on pattern\n"
+msgstr "  -c,        (config)  შაბლონზე კონფიგურაციის ჩანაცვლების ჩატარება\n"
+
+#: fc-pattern/fc-pattern.c:99
+#, c-format
+msgid "  -d,        (default) perform default substitution on pattern\n"
+msgstr "  -d,        (default) შაბლონზე ნაგულისხმები ჩანაცვლების ჩატარება\n"
+
+#: fc-query/fc-query.c:86
+#, c-format
+msgid ""
+"usage: %s [-bVh] [-i index] [-f FORMAT] [--index index] [--brief] [--format "
+"FORMAT] [--version] [--help] font-file...\n"
+msgstr ""
+"გამოყენება: %s [-bVh] [-i index] [-f ფორმატი] [--index index] [--brief] [--"
+"format ფორმატი] [--version] [--help] ფონტის-ფაილი...\n"
+
+#: fc-query/fc-query.c:89
+#, c-format
+msgid "usage: %s [-bVh] [-i index] [-f FORMAT] font-file...\n"
+msgstr "გამოყენება: %s [-bVh] [-i index] [-f ფორმატი] ფონტის-ფაილი...\n"
+
+#: fc-query/fc-query.c:92
+#, c-format
+msgid "Query font files and print resulting pattern(s)\n"
+msgstr "ფონტის ფაილების გადამოწმება და დამთხვევების გამოტანა\n"
+
+#: fc-query/fc-query.c:95 fc-validate/fc-validate.c:95
+#, c-format
+msgid "  -i, --index INDEX    display the INDEX face of each font file only\n"
+msgstr "  -i, --index INDEX    თითოეული ფონტის მხოლოდ INDEX სახის ჩვენება\n"
+
+#: fc-query/fc-query.c:96
+#, c-format
+msgid "  -b, --brief          display font pattern briefly\n"
+msgstr "  -b, --brief          ფონტის შაბლონის მოკლედ ჩვენება\n"
+
+#: fc-query/fc-query.c:101
+#, c-format
+msgid ""
+"  -i INDEX   (index)         display the INDEX face of each font file only\n"
+msgstr ""
+"  -i INDEX   (index)         თითოეული ფონტის მხოლოდ INDEX სახის ჩვენება\n"
+
+#: fc-query/fc-query.c:102 fc-scan/fc-scan.c:101
+#, c-format
+msgid "  -b         (brief)         display font pattern briefly\n"
+msgstr "  -b       (brief)            ფონტის შაბლონის მოკლედ ჩვენება\n"
+
+#: fc-query/fc-query.c:103 fc-scan/fc-scan.c:102
+#, c-format
+msgid "  -f FORMAT  (format)        use the given output format\n"
+msgstr "  -f ფორმატი      მითითებული გამოტანის ფორმატის გამოყენება\n"
+
+#: fc-query/fc-query.c:104 fc-scan/fc-scan.c:104
+#, c-format
+msgid "  -V         (version)       display font config version and exit\n"
+msgstr ""
+"  -V         (version)       font config -ის ვერსიის გამოტანა და გასვლა\n"
+
+#: fc-query/fc-query.c:105 fc-scan/fc-scan.c:105
+#, c-format
+msgid "  -h         (help)          display this help and exit\n"
+msgstr "  -h         (help)          ამ დახმარების გამოტანა და გასვლა\n"
+
+#: fc-query/fc-query.c:163
+#, c-format
+msgid "Can't query face %u of font file %s\n"
+msgstr "შეცდომა %u-ე სახის გამოთხოვის შეცდომა ფონტის ფაილიდან %s\n"
+
+#: fc-scan/fc-scan.c:86
+#, c-format
+msgid ""
+"usage: %s [-bcVh] [-f FORMAT] [-y SYSROOT] [--brief] [--format FORMAT] [--"
+"version] [--help] font-file...\n"
+msgstr ""
+"გამოყენება: %s [-bcVh] [-f ფორმატი] [-y SYSROOT] [--brief] [--format "
+"ფორმატი] [--version] [--help] ფონტის-ფაილი...\n"
+
+#: fc-scan/fc-scan.c:89
+#, c-format
+msgid "usage: %s [-bcVh] [-f FORMAT] [-y SYSROOT] font-file...\n"
+msgstr "გამოყენება: %s [-bcVh] [-f ფორმატი] [-y SYSROOT] ფონტის-ფაილი...\n"
+
+#: fc-scan/fc-scan.c:92
+#, c-format
+msgid "Scan font files and directories, and print resulting pattern(s)\n"
+msgstr "ფონტის ფაილებისა და საქაღლდეების გადამოწმება და შაბლონების გამოტანა\n"
+
+#: fc-scan/fc-scan.c:95
+#, c-format
+msgid "  -b, --brief            display font pattern briefly\n"
+msgstr "  -b, --brief            ფონტის შაბლონის მოკლედ ჩვენება\n"
+
+#: fc-scan/fc-scan.c:96
+#, c-format
+msgid "  -f, --format=FORMAT    use the given output format\n"
+msgstr "  -f, --format=ფორმატი    მითითებული გამოტანის ფორმატის გამოყენება\n"
+
+#: fc-scan/fc-scan.c:97
+#, c-format
+msgid "  -y, --sysroot=SYSROOT  prepend SYSROOT to all paths for scanning\n"
+msgstr ""
+"  -y, --sysroot=SYSROOT  სკანირებისას ყველა ბილიკისთვის თავში SYSROOT -ის "
+"მიწერა\n"
+
+#: fc-scan/fc-scan.c:98
+#, c-format
+msgid "  -V, --version          display font config version and exit\n"
+msgstr "  -V, --version          font config -ის ვერსიის გამოტანა და გასვლა\n"
+
+#: fc-scan/fc-scan.c:99
+#, c-format
+msgid "  -h, --help             display this help and exit\n"
+msgstr "  -h, --help             ამ დახმარების გამოტანა და გასვლა\n"
+
+#: fc-scan/fc-scan.c:103
+#, c-format
+msgid ""
+"  -y SYSROOT (sysroot)       prepend SYSROOT to all paths for scanning\n"
+msgstr ""
+"  -y SYSROOT (sysroot)       სკანირებისას ყველა ბილიკისთვის თავში SYSROOT -"
+"ის მიწერა\n"
+
+#: fc-validate/fc-validate.c:86
+#, c-format
+msgid ""
+"usage: %s [-Vhv] [-i index] [-l LANG] [--index index] [--lang LANG] [--"
+"verbose] [--version] [--help] font-file...\n"
+msgstr ""
+"გამოყენება: %s [-Vhv] [-i index] [-l ენა] [--index ინდექსი] [--lang ენა] [--"
+"verbose] [--version] [--help] ფონტის-ფაილი...\n"
+
+#: fc-validate/fc-validate.c:89
+#, c-format
+msgid "usage: %s [-Vhv] [-i index] [-l LANG] font-file...\n"
+msgstr "გამოყენება: %s [-Vhv] [-i ინდექსი] [-l ენა] ფონტის-ფაილი...\n"
+
+#: fc-validate/fc-validate.c:92
+#, c-format
+msgid "Validate font files and print result\n"
+msgstr "ფონტის ფაილების გადამოწმება და შედეგების გამოტანა\n"
+
+#: fc-validate/fc-validate.c:96
+#, c-format
+msgid "  -l, --lang=LANG      set LANG instead of current locale\n"
+msgstr "  -l, --lang=LANG      მიმდინარე ენის მაგიერ LANG-ის გამოყენება\n"
+
+#: fc-validate/fc-validate.c:97
+#, c-format
+msgid "  -v, --verbose        show more detailed information\n"
+msgstr "  -v, --verbose        უფრო მეტად დეტალური ინფორმაციის ჩვენება\n"
+
+#: fc-validate/fc-validate.c:101
+#, c-format
+msgid ""
+"  -i INDEX   (index)        display the INDEX face of each font file only\n"
+msgstr ""
+"  -i INDEX   (index)        თითოეული ფონტის მხოლოდ INDEX სახის ჩვენება\n"
+
+#: fc-validate/fc-validate.c:102
+#, c-format
+msgid "  -l LANG    (lang)         set LANG instead of current locale\n"
+msgstr "  -l LANG    (lang)         მიმდინარე ენის მაგიერ LANG-ის გამოყენება\n"
+
+#: fc-validate/fc-validate.c:103
+#, c-format
+msgid "  -v         (verbose)      show more detailed information\n"
+msgstr "  -v         (verbose)      უფრო მეტად დეტალური ინფორმაციის ჩვენება\n"
+
+#: fc-validate/fc-validate.c:170
+#, c-format
+msgid "Can't initialize FreeType library\n"
+msgstr "შეცდომა FreeType ბიბლიოთეკის ინიციალიზაციისას\n"
+
+#: fc-validate/fc-validate.c:188
+#, c-format
+msgid "Unable to open %s\n"
+msgstr "%s-ის გახსნის შეცდომა\n"
+
+#: fc-validate/fc-validate.c:204
+#, c-format
+msgid "%s:%d Missing %d glyph(s) to satisfy the coverage for %s language\n"
+msgstr "%s:%d აკლია %d გლიფი, რომ დააკმაყოფილოს დაფარვა ენისთვის: %s\n"
+
+#: fc-validate/fc-validate.c:234
+#, c-format
+msgid "%s:%d Satisfy the coverage for %s language\n"
+msgstr "%s:%d აკმაყოფილებს დაფარვას ენისთვის: %s\n"
+
+#: src/fccfg.c:3251
+msgid "No description"
+msgstr "აღწერის გარეშე"

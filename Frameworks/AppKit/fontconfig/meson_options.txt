@@ -1,0 +1,44 @@
+# Common feature options
+option('doc', type : 'feature', value : 'auto', yield: true,
+  description: 'Build documentation')
+option('doc-txt', type: 'feature', value: 'auto')
+option('doc-man', type: 'feature', value: 'auto')
+option('doc-pdf', type: 'feature', value: 'auto')
+option('doc-html', type: 'feature', value: 'auto')
+option('nls', type : 'feature', value : 'auto', yield: true,
+  description : 'Enable native language support (translations)')
+option('tests', type : 'feature', value : 'auto', yield : true,
+  description: 'Enable unit tests')
+option('tools', type : 'feature', value : 'auto', yield : true,
+  description: 'Build command-line tools (fc-list, fc-query, etc.)')
+option('cache-build', type : 'feature', value : 'enabled',
+  description: 'Run fc-cache on install')
+
+# Defaults
+option('default-hinting', type: 'combo', choices: ['none', 'slight', 'medium', 'full'], value: 'slight',
+  description: 'Preferred hinting configuration')
+
+option('default-sub-pixel-rendering', type: 'combo', choices: ['none', 'bgr', 'rgb', 'vbgr', 'vrgb'], value: 'none',
+  description: 'Preferred sub-pixel rendering configuration')
+
+option('default-fonts-dirs', type: 'array', value: ['yes'],
+  description: 'Use fonts from DIR1,DIR2,... when config is busted (set to "yes" for generic system-specific defaults)')
+
+option('additional-fonts-dirs', type: 'array', value: ['yes'],
+  description: 'Find additional fonts in DIR1,DIR2,... (set to "yes" for generic system-specific defaults)')
+
+# Configuration paths
+option('cache-dir', type: 'string', value: 'default',
+  description: 'Use DIR to store cache files (default=LOCALSTATEDIR/cache/fontconfig)')
+
+option('template-dir', type: 'string', value: 'default',
+  description: 'Use DIR to store the configuration template files (default=DATADIR/fontconfig/conf.avail)')
+
+option('baseconfig-dir', type: 'string', value: 'default',
+  description: 'Use DIR to store the base configuration files (default=SYSCONFDIR/fonts)')
+
+option('config-dir', type: 'string', value: 'default',
+  description: 'Use DIR to store active configuration files (default=BASECONFIGDIR/conf.d)')
+
+option('xml-dir', type: 'string', value: 'default',
+  description: 'Use DIR to store XML schema files (default=DATADIR/xml/fontconfig)')

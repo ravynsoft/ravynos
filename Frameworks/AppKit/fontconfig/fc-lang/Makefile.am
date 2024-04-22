@@ -1,0 +1,305 @@
+# -*- encoding: utf-8 -*-
+#
+# Copyright © 2003  Keith Packard
+# Copyright © 2013  Google, Inc.
+#
+# Permission to use, copy, modify, distribute, and sell this software and its
+# documentation for any purpose is hereby granted without fee, provided that
+# the above copyright notice appear in all copies and that both that
+# copyright notice and this permission notice appear in supporting
+# documentation, and that the name of the author(s) not be used in
+# advertising or publicity pertaining to distribution of the software without
+# specific, written prior permission.  The authors make no
+# representations about the suitability of this software for any purpose.  It
+# is provided "as is" without express or implied warranty.
+#
+# THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+# INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+# EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+# DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+# TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# Google Author(s): Behdad Esfahbod
+
+TAG = lang
+DEPS = $(ORTH)
+ARGS = --directory $(srcdir) $(ORTH)
+DIST = $(ORTH)
+
+include $(top_srcdir)/Tools.mk
+
+# NOTE:
+#
+# The order of the orth files here is extremely important (part of the cache
+# format) and should not be modified.  New orth files should be added at the
+# end.  No files should be removed either.
+#
+ORTH = \
+	aa.orth \
+	ab.orth \
+	af.orth \
+	am.orth \
+	ar.orth \
+	as.orth \
+	ast.orth \
+	av.orth \
+	ay.orth \
+	az_az.orth \
+	az_ir.orth \
+	ba.orth \
+	bm.orth \
+	be.orth \
+	bg.orth \
+	bh.orth \
+	bho.orth \
+	bi.orth \
+	bin.orth \
+	bn.orth \
+	bo.orth \
+	br.orth \
+	bs.orth \
+	bua.orth \
+	ca.orth \
+	ce.orth \
+	ch.orth \
+	chm.orth \
+	chr.orth \
+	co.orth \
+	cs.orth \
+	cu.orth \
+	cv.orth \
+	cy.orth \
+	da.orth \
+	de.orth \
+	dz.orth \
+	el.orth \
+	en.orth \
+	eo.orth \
+	es.orth \
+	et.orth \
+	eu.orth \
+	fa.orth \
+	fi.orth \
+	fj.orth \
+	fo.orth \
+	fr.orth \
+	ff.orth \
+	fur.orth \
+	fy.orth \
+	ga.orth \
+	gd.orth \
+	gez.orth \
+	gl.orth \
+	gn.orth \
+	gu.orth \
+	gv.orth \
+	ha.orth \
+	haw.orth \
+	he.orth \
+	hi.orth \
+	ho.orth \
+	hr.orth \
+	hu.orth \
+	hy.orth \
+	ia.orth \
+	ig.orth \
+	id.orth \
+	ie.orth \
+	ik.orth \
+	io.orth \
+	is.orth \
+	it.orth \
+	iu.orth \
+	ja.orth \
+	ka.orth \
+	kaa.orth \
+	ki.orth \
+	kk.orth \
+	kl.orth \
+	km.orth \
+	kn.orth \
+	ko.orth \
+	kok.orth \
+	ks.orth \
+	ku_am.orth \
+	ku_ir.orth \
+	kum.orth \
+	kv.orth \
+	kw.orth \
+	ky.orth \
+	la.orth \
+	lb.orth \
+	lez.orth \
+	ln.orth \
+	lo.orth \
+	lt.orth \
+	lv.orth \
+	mg.orth \
+	mh.orth \
+	mi.orth \
+	mk.orth \
+	ml.orth \
+	mn_cn.orth \
+	mo.orth \
+	mr.orth \
+	mt.orth \
+	my.orth \
+	nb.orth \
+	nds.orth \
+	ne.orth \
+	nl.orth \
+	nn.orth \
+	no.orth \
+	nr.orth \
+	nso.orth \
+	ny.orth \
+	oc.orth \
+	om.orth \
+	or.orth \
+	os.orth \
+	pa.orth \
+	pl.orth \
+	ps_af.orth \
+	ps_pk.orth \
+	pt.orth \
+	rm.orth \
+	ro.orth \
+	ru.orth \
+	sa.orth \
+	sah.orth \
+	sco.orth \
+	se.orth \
+	sel.orth \
+	sh.orth \
+	shs.orth \
+	si.orth \
+	sk.orth \
+	sl.orth \
+	sm.orth \
+	sma.orth \
+	smj.orth \
+	smn.orth \
+	sms.orth \
+	so.orth \
+	sq.orth \
+	sr.orth \
+	ss.orth \
+	st.orth \
+	sv.orth \
+	sw.orth \
+	syr.orth \
+	ta.orth \
+	te.orth \
+	tg.orth \
+	th.orth \
+	ti_er.orth \
+	ti_et.orth \
+	tig.orth \
+	tk.orth \
+	tl.orth \
+	tn.orth \
+	to.orth \
+	tr.orth \
+	ts.orth \
+	tt.orth \
+	tw.orth \
+	tyv.orth \
+	ug.orth \
+	uk.orth \
+	ur.orth \
+	uz.orth \
+	ve.orth \
+	vi.orth \
+	vo.orth \
+	vot.orth \
+	wa.orth \
+	wen.orth \
+	wo.orth \
+	xh.orth \
+	yap.orth \
+	yi.orth \
+	yo.orth \
+	zh_cn.orth \
+	zh_hk.orth \
+	zh_mo.orth \
+	zh_sg.orth \
+	zh_tw.orth \
+	zu.orth \
+	ak.orth \
+	an.orth \
+	ber_dz.orth \
+	ber_ma.orth \
+	byn.orth \
+	crh.orth \
+	csb.orth \
+	dv.orth \
+	ee.orth \
+	fat.orth \
+	fil.orth \
+	hne.orth \
+	hsb.orth \
+	ht.orth \
+	hz.orth \
+	ii.orth \
+	jv.orth \
+	kab.orth \
+	kj.orth \
+	kr.orth \
+	ku_iq.orth \
+	ku_tr.orth \
+	kwm.orth \
+	lg.orth \
+	li.orth \
+	mai.orth \
+	mn_mn.orth \
+	ms.orth \
+	na.orth \
+	ng.orth \
+	nv.orth \
+	ota.orth \
+	pa_pk.orth \
+	pap_an.orth \
+	pap_aw.orth \
+	qu.orth \
+	quz.orth \
+	rn.orth \
+	rw.orth \
+	sc.orth \
+	sd.orth \
+	sg.orth \
+	sid.orth \
+	sn.orth \
+	su.orth \
+	ty.orth \
+	wal.orth \
+	za.orth \
+	lah.orth \
+	nqo.orth \
+	brx.orth \
+	sat.orth \
+	doi.orth \
+	mni.orth \
+	und_zsye.orth \
+	und_zmth.orth
+#	^-------------- Add new orth files here
+
+BUILT_SOURCES += $(top_builddir)/conf.d/35-lang-normalize.conf
+
+DISTCLEANFILES = $(BUILT_SOURCES)
+
+$(top_builddir)/conf.d/35-lang-normalize.conf: $(ORTH) Makefile
+	$(AM_V_GEN) echo "<?xml version=\"1.0\"?>" > $@ && \
+		echo "<!DOCTYPE fontconfig SYSTEM \"urn:fontconfig:fonts.dtd\">" >> $@ && \
+		echo "<fontconfig>" >> $@ && \
+	for i in `echo $(ORTH) | sed -e 's/ /\n/g' | grep -v _ | sed -e 's/\.orth$$//g' | sort`; do \
+		echo "  <!-- $$i* -> $$i -->" >> $@; \
+		echo "  <match>" >> $@; \
+		echo "    <test name=\"lang\" compare=\"contains\"><string>$$i</string></test>" >> $@; \
+		echo "    <edit name=\"lang\" mode=\"assign\" binding=\"same\"><string>$$i</string></edit>" >> $@; \
+		echo "  </match>" >> $@; \
+	done && \
+	echo "</fontconfig>" >> $@
+
+-include $(top_srcdir)/git.mk

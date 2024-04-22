@@ -1,0 +1,68 @@
+/*
+ * fontconfig/doc/fcconstant.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+@RET@           FcBool
+@FUNC@          FcNameRegisterConstants
+@TYPE1@         const FcConstant *              @ARG1@          consts
+@TYPE2@         int%                            @ARG2@          nconsts
+@PURPOSE@       Register symbolic constants
+@DESC@
+Deprecated.  Does nothing.  Returns FcFalse.
+@@
+
+@RET@           FcBool
+@FUNC@          FcNameUnregisterConstants
+@TYPE1@         const FcConstant *              @ARG1@          consts
+@TYPE2@         int%                            @ARG2@          nconsts
+@PURPOSE@       Unregister symbolic constants
+@DESC@
+Deprecated.  Does nothing.  Returns FcFalse.
+@@
+
+@RET@           const FcConstant *
+@FUNC@          FcNameGetConstant
+@TYPE1@         FcChar8 *                       @ARG1@          string
+@PURPOSE@       Lookup symbolic constant
+@DESC@
+Return the FcConstant structure related to symbolic constant <parameter>string</parameter>.
+@@
+
+@RET@           const FcConstant *
+@FUNC@          FcNameGetConstantFor
+@TYPE1@         FcChar8 *                       @ARG1@          string
+@TYPE2@         char *                          @ARG2@          object
+@PURPOSE@       Lookup symbolic constant For object
+@DESC@
+Return the FcConstant structure related to symbolic constant <parameter>string</parameter>
+for <parameter>object</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcNameConstant
+@TYPE1@         FcChar8 *                       @ARG1@          string
+@TYPE2@         int *                           @ARG2@          result
+@PURPOSE@       Get the value for a symbolic constant
+@DESC@
+Returns whether a symbolic constant with name <parameter>string</parameter> is registered,
+placing the value of the constant in <parameter>result</parameter> if present.
+@@

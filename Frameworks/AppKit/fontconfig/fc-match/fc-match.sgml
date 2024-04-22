@@ -1,0 +1,265 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!--
+Copyright © 2008 Patrick Lam
+
+Permission to use, copy, modify, distribute, and sell this software and its
+documentation for any purpose is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of the author(s) not be used in
+advertising or publicity pertaining to distribution of the software without
+specific, written prior permission.  The authors make no
+representations about the suitability of this software for any purpose.  It
+is provided "as is" without express or implied warranty.
+
+THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+-->
+
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+
+manpage.1: manpage.sgml
+        docbook-to-man $< > $@
+
+
+        The docbook-to-man binary is found in the docbook-to-man package.
+        Please remember that if you create the nroff version in one of the
+        debian/rules file targets (such as build), you will need to include
+        docbook-to-man in your Build-Depends control field.
+
+  -->
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Patrick</firstname>">
+  <!ENTITY dhsurname   "<surname>Lam</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>Aug 13, 2008</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhemail     "<email>plam@csail.mit.edu</email>">
+  <!ENTITY dhusername  "Patrick Lam">
+  <!ENTITY dhucpackage "<refentrytitle>fc-match</refentrytitle>">
+  <!ENTITY dhpackage   "fc-match">
+
+  <!ENTITY debian      "<productname>Debian</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+  <!ENTITY gpl         "&gnu; <acronym>GPL</acronym>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <author>
+      &dhfirstname;
+      &dhsurname;
+    </author>
+    <copyright>
+      <year>2003</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>match available fonts</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+
+      <arg><option>-asvVh</option></arg>
+      <arg><option>--all</option></arg>
+      <arg><option>--sort</option></arg>
+      <arg><option>--verbose</option></arg>
+      <group>
+        <arg><option>-f</option> <option><replaceable>format</replaceable></option></arg>
+        <arg><option>--format</option> <option><replaceable>format</replaceable></option></arg>
+      </group>
+      <arg><option>--version</option></arg>
+      <arg><option>--help</option></arg>
+      <sbr>
+      <arg><option><replaceable>pattern</replaceable></option> <arg rep="repeat"><option><replaceable>element</replaceable></option></arg> </arg>
+
+     </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para><command>&dhpackage;</command> matches
+    <replaceable>pattern</replaceable> (empty
+pattern by default) using the normal fontconfig matching rules to find
+the best font available.  If <option>--sort</option> is given, the sorted list of best
+matching fonts is displayed.
+The <option>--all</option> option works like
+<option>--sort</option> except that no pruning is done on the list of fonts.</para>
+<para>If any elements are specified, only those are printed.
+Otherwise short file name, family, and style are printed, unless verbose
+output is requested.</para>
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+
+    <para>This program follows the usual &gnu; command line syntax,
+      with long options starting with two dashes (`-').  A summary of
+      options is included below.</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>-a</option>
+          <option>--all</option>
+        </term>
+        <listitem>
+          <para>Displays sorted list of best matching fonts, but do not do any
+                pruning on the list.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-s</option>
+          <option>--sort</option>
+        </term>
+        <listitem>
+          <para>Displays sorted list of best matching fonts.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-v</option>
+          <option>--verbose</option>
+        </term>
+        <listitem>
+          <para>Print verbose output of the whole font pattern for each match,
+                or <replaceable>element</replaceable>s if any is
+                provided.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-f</option>
+          <option>--format</option>
+          <option><replaceable>format</replaceable></option>
+        </term>
+        <listitem>
+          <para>Format output according to the format specifier
+          <replaceable>format</replaceable>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-V</option>
+          <option>--version</option>
+        </term>
+        <listitem>
+          <para>Show version of the program and exit.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-h</option>
+          <option>--help</option>
+        </term>
+        <listitem>
+          <para>Show summary of options.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option><replaceable>pattern</replaceable></option>
+        </term>
+        <listitem>
+          <para>Displays fonts matching
+                <replaceable>pattern</replaceable> (uses empty pattern by default).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option><replaceable>element</replaceable></option>
+        </term>
+        <listitem>
+          <para>If set, the <replaceable>element</replaceable> property
+                is displayed for matching fonts.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>EXAMPLES</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>fc-match sans</term>
+        <listitem><para>Display the best matching font categorized into sans-serif generic family, filtered by current locale</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+    <variablelist>
+      <varlistentry>
+        <term>fc-match sans:lang=en</term>
+        <listitem><para>Display the best matching font categorized into sans-serif generic family, filtered by English language</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+    <variablelist>
+      <varlistentry>
+        <term>fc-match sans:lang=en:weight=bold</term>
+        <listitem><para>Display the best matching font categorized into sans-serif generic family, filtered by English language and weight is bold.</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>
+      <command>fc-list</command>(1)
+      <function>FcFontMatch</function>(3)
+      <function>FcFontSort</function>(3)
+      <function>FcPatternFormat</function>(3)
+      <command>fc-cat</command>(1)
+      <command>fc-cache</command>(1)
+      <command>fc-pattern</command>(1)
+      <command>fc-query</command>(1)
+      <command>fc-scan</command>(1)
+    </para>
+
+    <para>The fontconfig user's guide, in HTML format:
+      <filename>/usr/share/doc/fontconfig/fontconfig-user.html</filename>.</para>
+
+ </refsect1>
+  <refsect1>
+    <title>AUTHOR</title>
+
+    <para>This manual page was updated by &dhusername; &dhemail;.</para>
+
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

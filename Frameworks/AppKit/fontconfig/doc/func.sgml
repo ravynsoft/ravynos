@@ -1,0 +1,91 @@
+<!--
+   fontconfig/doc/func.sgml
+
+   Copyright © 2003 Keith Packard
+
+   Permission to use, copy, modify, distribute, and sell this software and its
+   documentation for any purpose is hereby granted without fee, provided that
+   the above copyright notice appear in all copies and that both that
+   copyright notice and this permission notice appear in supporting
+   documentation, and that the name of the author(s) not be used in
+   advertising or publicity pertaining to distribution of the software without
+   specific, written prior permission.  The authors make no
+   representations about the suitability of this software for any purpose.  It
+   is provided "as is" without express or implied warranty.
+
+   THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+   INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+   EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+   DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+   TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+   PERFORMANCE OF THIS SOFTWARE.
+ -->
+@?TITLE@
+    <refentry id="@TITLE@">
+@:@
+    <refentry id="@FUNC@">
+@;@
+        <refmeta>
+@?TITLE@
+            <refentrytitle>@TITLE@</refentrytitle>
+@:@
+            <refentrytitle>@FUNC@</refentrytitle>
+@;@
+            <manvolnum>3</manvolnum>
+            <refmiscinfo class="software">Fontconfig &version;</refmiscinfo>
+        </refmeta>
+        <refnamediv>
+@{PROTOTYPE@
+            <refname>@FUNC@</refname>
+@}PROTOTYPE@
+            <refpurpose>@PURPOSE@</refpurpose>
+        </refnamediv>
+        <refsynopsisdiv>
+        <funcsynopsis>
+        <funcsynopsisinfo>
+@?SYNOPSIS@
+@SYNOPSIS@
+@:@
+#include &lt;fontconfig/fontconfig.h&gt;
+@;@
+        </funcsynopsisinfo>
+@{PROTOTYPE@
+        <funcprototype>
+            <funcdef>@?RET@@RET@@:@void@;@ <function>@FUNC@</function></funcdef>
+@?TYPE1@
+                <paramdef>@TYPE1@<parameter>@ARG1@</parameter></paramdef>
+@;@
+@?TYPE2@
+                <paramdef>@TYPE2@<parameter>@ARG2@</parameter></paramdef>
+@;@
+@?TYPE3@
+                <paramdef>@TYPE3@<parameter>@ARG3@</parameter></paramdef>
+@;@
+@?TYPE4@
+                <paramdef>@TYPE4@<parameter>@ARG4@</parameter></paramdef>
+@;@
+@?TYPE5@
+                <paramdef>@TYPE5@<parameter>@ARG5@</parameter></paramdef>
+@;@
+@?TYPE6@
+                <paramdef>@TYPE6@<parameter>@ARG6@</parameter></paramdef>
+@;@
+@?TYPE7@
+                <paramdef>@TYPE7@<parameter>@ARG7@</parameter></paramdef>
+@;@
+        </funcprototype>
+@}PROTOTYPE@
+        </funcsynopsis>
+        </refsynopsisdiv>
+        <refsect1><title>Description</title>
+            <para>
+@DESC@
+            </para>
+        </refsect1>
+@?SINCE@
+        <refsect1><title>Since</title>
+            <para>version @SINCE@</para>
+        </refsect1>
+@;@
+    </refentry>

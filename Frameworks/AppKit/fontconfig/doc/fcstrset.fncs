@@ -1,0 +1,124 @@
+/*
+ * fontconfig/doc/fcstrset.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+    <variablelist>
+
+@RET@           FcStrSet *
+@FUNC@          FcStrSetCreate
+@TYPE1@         void
+@PURPOSE@       create a string set
+@DESC@
+Create an empty set.
+@@
+
+@RET@           FcBool
+@FUNC@          FcStrSetMember
+@TYPE1@         FcStrSet *                      @ARG1@          set
+@TYPE2@         const FcChar8 *                 @ARG2@          s
+@PURPOSE@       check set for membership
+@DESC@
+Returns whether <parameter>s</parameter> is a member of
+<parameter>set</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcStrSetEqual
+@TYPE1@         FcStrSet *                      @ARG1@          set_a
+@TYPE2@         FcStrSet *                      @ARG2@          set_b
+@PURPOSE@       check sets for equality
+@DESC@
+Returns whether <parameter>set_a</parameter> contains precisely the same
+strings as <parameter>set_b</parameter>. Ordering of strings within the two
+sets is not considered.
+@@
+
+@RET@           FcBool
+@FUNC@          FcStrSetAdd
+@TYPE1@         FcStrSet *                      @ARG1@          set
+@TYPE2@         const FcChar8 *                 @ARG2@          s
+@PURPOSE@       add to a string set
+@DESC@
+Adds a copy of <parameter>s</parameter> to <parameter>set</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcStrSetAddFilename
+@TYPE1@         FcStrSet *                      @ARG1@          set
+@TYPE2@         const FcChar8 *                 @ARG2@          s
+@PURPOSE@       add a filename to a string set
+@DESC@
+Adds a copy <parameter>s</parameter> to <parameter>set</parameter>, The copy
+is created with FcStrCopyFilename so that leading '~' values are replaced
+with the value of the HOME environment variable.
+@@
+
+@RET@           FcBool
+@FUNC@          FcStrSetDel
+@TYPE1@         FcStrSet *                      @ARG1@          set
+@TYPE2@         const FcChar8 *                 @ARG2@          s
+@PURPOSE@       delete from a string set
+@DESC@
+Removes <parameter>s</parameter> from <parameter>set</parameter>, returning
+FcTrue if <parameter>s</parameter> was a member else FcFalse.
+@@
+
+@RET@           void
+@FUNC@          FcStrSetDestroy
+@TYPE1@         FcStrSet *                      @ARG1@          set
+@PURPOSE@       destroy a string set
+@DESC@
+Destroys <parameter>set</parameter>.
+@@
+
+@RET@           FcStrList *
+@FUNC@          FcStrListCreate
+@TYPE1@         FcStrSet *                      @ARG1@          set
+@PURPOSE@       create a string iterator
+@DESC@
+Creates an iterator to list the strings in <parameter>set</parameter>.
+@@
+
+@RET@           void
+@FUNC@          FcStrListFirst
+@TYPE1@         FcStrList *                     @ARG1@          list
+@PURPOSE@       get first string in iteration
+@DESC@
+Returns the first string in <parameter>list</parameter>.
+@SINCE@         2.11.0
+@@
+
+@RET@           FcChar8 *
+@FUNC@          FcStrListNext
+@TYPE1@         FcStrList *                     @ARG1@          list
+@PURPOSE@       get next string in iteration
+@DESC@
+Returns the next string in <parameter>list</parameter>.
+@@
+
+@RET@           void
+@FUNC@          FcStrListDone
+@TYPE1@         FcStrList *                     @ARG1@          list
+@PURPOSE@       destroy a string iterator
+@DESC@
+Destroys the enumerator <parameter>list</parameter>.
+@@

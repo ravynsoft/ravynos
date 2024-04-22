@@ -1,0 +1,77 @@
+#
+# fontconfig/fc-lang/ee.orth
+#
+# Copyright © 2009 Roozbeh Pournader
+#
+# Permission to use, copy, modify, distribute, and sell this software and its
+# documentation for any purpose is hereby granted without fee, provided that
+# the above copyright notice appear in all copies and that both that
+# copyright notice and this permission notice appear in supporting
+# documentation, and that the name of the author(s) not be used in
+# advertising or publicity pertaining to distribution of the software without
+# specific, written prior permission.  The author(s) make(s) no
+# representations about the suitability of this software for any purpose.  It
+# is provided "as is" without express or implied warranty.
+#
+# THE AUTHOR(S) DISCLAIM(S) ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+# INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+# EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+# DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+# TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# Ewe (ee)
+#
+# Sources:
+# * http://www.uni-koeln.de/phil-fak/afrikanistik/down/publikationen/basic_ewe.pdf
+# * http://en.wikipedia.org/wiki/Ewe_language
+# * http://www.omniglot.com/writing/ewe.htm
+# * http://www.panafril10n.org/wikidoc/pmwiki.php/PanAfrLoc/Gbe
+#
+# We amend the main alphabet with tone marks over each vowel, but some
+# combinations lack precomposed forms in Unicode, so we also add individual
+# combining marks.
+#
+# Sources also differ on the notation used for the fourth tone: circumflex
+# vs combining line above (U+030D). At the moment, we are not including any
+# of the two.
+#
+# There is also a nasalization mark for vowels (combining tilde), but there
+# is a need for more research to find which vowels it's used with. The
+# combination of nasalization and tones may also exist, resulting in double
+# accents.
+#
+# C, J, and Q are not used.
+#
+0041-005A
+0061-007A
+00C0-00C1
+00C8-00C9
+00CC-00CD
+00D2-00D3
+00D9-00DA
+00E0-00E1
+00E8-00E9
+00EC-00ED
+00F2-00F3
+00F9-00FA
+011A-011B
+014A-014B
+0186
+0189
+# 018A # according to Unicode characters notes for U+0257
+0190-0192
+0194
+01B2
+01CD-01D4
+0254
+0256
+# 0257 # according to Unicode character notes
+025B
+0263
+028B
+0300-0301 # to be used with open e and open o
+# 0303 # combining tilde
+030C # to be used with open e and open o
+# 030D # combining vertical line above

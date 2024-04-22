@@ -1,0 +1,621 @@
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
+<!ENTITY fcatomic SYSTEM "fcatomic.sgml">
+<!ENTITY fcblanks SYSTEM "fcblanks.sgml">
+<!ENTITY fccache SYSTEM "fccache.sgml">
+<!ENTITY fccharset SYSTEM "fccharset.sgml">
+<!ENTITY fcconfig SYSTEM "fcconfig.sgml">
+<!ENTITY fcconstant SYSTEM "fcconstant.sgml">
+<!ENTITY fcdircache SYSTEM "fcdircache.sgml">
+<!ENTITY fcfile SYSTEM "fcfile.sgml">
+<!ENTITY fcfontset SYSTEM "fcfontset.sgml">
+<!ENTITY fcformat SYSTEM "fcformat.sgml">
+<!ENTITY fcfreetype SYSTEM "fcfreetype.sgml">
+<!ENTITY fcinit SYSTEM "fcinit.sgml">
+<!ENTITY fclangset SYSTEM "fclangset.sgml">
+<!ENTITY fcmatrix SYSTEM "fcmatrix.sgml">
+<!ENTITY fcobjectset SYSTEM "fcobjectset.sgml">
+<!ENTITY fcobjecttype SYSTEM "fcobjecttype.sgml">
+<!ENTITY fcpattern SYSTEM "fcpattern.sgml">
+<!ENTITY fcrange SYSTEM "fcrange.sgml">
+<!ENTITY fcstring SYSTEM "fcstring.sgml">
+<!ENTITY fcstrset SYSTEM "fcstrset.sgml">
+<!ENTITY fcvalue SYSTEM "fcvalue.sgml">
+<!ENTITY fcweight SYSTEM "fcweight.sgml">
+<!ENTITY version SYSTEM "version.sgml">
+]>
+<!--
+    fontconfig/doc/local-fontconfig-devel.sgml
+   
+    Copyright © 2003 Keith Packard
+   
+    Permission to use, copy, modify, distribute, and sell this software and its
+    documentation for any purpose is hereby granted without fee, provided that
+    the above copyright notice appear in all copies and that both that
+    copyright notice and this permission notice appear in supporting
+    documentation, and that the name of the author(s) not be used in
+    advertising or publicity pertaining to distribution of the software without
+    specific, written prior permission.  The authors make no
+    representations about the suitability of this software for any purpose.  It
+    is provided "as is" without express or implied warranty.
+   
+    THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+    INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+    EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+    CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+    DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+    TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    PERFORMANCE OF THIS SOFTWARE.
+-->
+<article>
+	<title>Fontconfig Developers Reference, Version &version; </title>
+	<artheader>
+		<author>
+			<firstname>Keith</firstname>
+			<surname>Packard</surname>
+			<affiliation><orgname>
+				HP Cambridge Research Lab
+			</orgname></affiliation>
+		</author>
+		<authorinitials>KRP</authorinitials>
+		<productname>Fontconfig</productname>
+		<productnumber>&version;</productnumber>
+		<LegalNotice>
+			<simpara>		
+Copyright © 2002 Keith Packard
+			</simpara><simpara>
+Permission to use, copy, modify, distribute, and sell this software and its
+documentation for any purpose is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of the author(s) not be used in
+advertising or publicity pertaining to distribution of the software without
+specific, written prior permission.  The authors make no
+representations about the suitability of this software for any purpose.  It
+is provided "as is" without express or implied warranty.
+			</simpara><simpara>
+THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+			</simpara>
+		</LegalNotice>
+	</artheader>
+<sect1><title>DESCRIPTION</title>
+  <para>
+Fontconfig is a library designed to provide system-wide font configuration,
+customization and application access.
+  </para>
+</sect1>
+<sect1><title>FUNCTIONAL OVERVIEW</title>
+  <para>
+Fontconfig contains two essential modules, the configuration module which
+builds an internal configuration from XML files and the matching module
+which accepts font patterns and returns the nearest matching font.
+  </para>
+  <sect2><title>FONT CONFIGURATION</title>
+    <para>
+The configuration module consists of the FcConfig datatype, libexpat and
+FcConfigParse which walks over an XML tree and amends a configuration with
+data found within.  From an external perspective, configuration of the
+library consists of generating a valid XML tree and feeding that to
+FcConfigParse.  The only other mechanism provided to applications for
+changing the running configuration is to add fonts and directories to the
+list of application-provided font files.  
+    </para><para>
+The intent is to make font configurations relatively static, and shared by
+as many applications as possible.  It is hoped that this will lead to more
+stable font selection when passing names from one application to another.
+XML was chosen as a configuration file format because it provides a format
+which is easy for external agents to edit while retaining the correct
+structure and syntax.
+    </para><para>
+Font configuration is separate from font matching; applications needing to
+do their own matching can access the available fonts from the library and
+perform private matching.  The intent is to permit applications to pick and
+choose appropriate functionality from the library instead of forcing them to
+choose between this library and a private configuration mechanism.  The hope
+is that this will ensure that configuration of fonts for all applications
+can be centralized in one place.  Centralizing font configuration will
+simplify and regularize font installation and customization.
+    </para>
+  </sect2>
+  <sect2>
+    <title>FONT PROPERTIES</title>
+    <para>
+While font patterns may contain essentially any properties, there are some
+well known properties with associated types.  Fontconfig uses some of these
+properties for font matching and font completion.  Others are provided as a
+convenience for the application's rendering mechanism.
+    </para>
+    <programlisting>
+                 Property Definitions
+
+    Property       C Preprocessor Symbol  Type    Description
+    ----------------------------------------------------
+    family         FC_FAMILY              String  Font family names
+    familylang     FC_FAMILYLANG          String  Language corresponding to
+                                                  each family name
+    style          FC_STYLE               String  Font style. Overrides weight
+                                                  and slant
+    stylelang      FC_STYLELANG           String  Language corresponding to
+                                                  each style name
+    fullname       FC_FULLNAME            String  Font face full name where
+                                                  different from family and
+                                                  family + style
+    fullnamelang   FC_FULLNAMELANG        String  Language corresponding to
+                                                  each fullname
+    slant          FC_SLANT               Int     Italic, oblique or roman
+    weight         FC_WEIGHT              Int     Light, medium, demibold,
+                                                  bold or black
+    width          FC_WIDTH               Int     Condensed, normal or expanded
+    size           FC_SIZE                Double  Point size
+    aspect         FC_ASPECT              Double  Stretches glyphs horizontally
+                                                  before hinting
+    pixelsize      FC_PIXEL_SIZE          Double  Pixel size
+    spacing        FC_SPACING             Int     Proportional, dual-width,
+                                                  monospace or charcell
+    foundry        FC_FOUNDRY             String  Font foundry name
+    antialias      FC_ANTIALIAS           Bool    Whether glyphs can be
+                                                  antialiased
+    hintstyle      FC_HINT_STYLE          Int     Automatic hinting style
+    hinting        FC_HINTING             Bool    Whether the rasterizer should
+                                                  use hinting
+    verticallayout FC_VERTICAL_LAYOUT     Bool    Use vertical layout
+    autohint       FC_AUTOHINT            Bool    Use autohinter instead of
+                                                  normal hinter
+    globaladvance  FC_GLOBAL_ADVANCE      Bool    Use font global advance data (deprecated)
+    file           FC_FILE                String  The filename holding the font
+                                                  relative to the config's sysroot
+    index          FC_INDEX               Int     The index of the font within
+                                                  the file
+    ftface         FC_FT_FACE             FT_Face Use the specified FreeType
+                                                  face object
+    rasterizer     FC_RASTERIZER          String  Which rasterizer is in use (deprecated)
+    outline        FC_OUTLINE             Bool    Whether the glyphs are outlines
+    scalable       FC_SCALABLE            Bool    Whether glyphs can be scaled
+    dpi            FC_DPI                 Double  Target dots per inch
+    rgba           FC_RGBA                Int     unknown, rgb, bgr, vrgb,
+                                                  vbgr, none - subpixel geometry
+    scale          FC_SCALE               Double  Scale factor for point->pixel
+                                                  conversions (deprecated)
+    minspace       FC_MINSPACE            Bool    Eliminate leading from line
+                                                  spacing
+    charset        FC_CHARSET             CharSet Unicode chars encoded by
+                                                  the font
+    lang           FC_LANG                LangSet Set of RFC-3066-style
+                                                  languages this font supports
+    fontversion    FC_FONTVERSION         Int     Version number of the font
+    capability     FC_CAPABILITY          String  List of layout capabilities in
+                                                  the font
+    fontformat     FC_FONTFORMAT          String  String name of the font format
+    embolden       FC_EMBOLDEN            Bool    Rasterizer should
+                                                  synthetically embolden the font
+    embeddedbitmap FC_EMBEDDED_BITMAP     Bool    Use the embedded bitmap instead
+                                                  of the outline
+    decorative     FC_DECORATIVE          Bool    Whether the style is a decorative
+                                                  variant
+    lcdfilter      FC_LCD_FILTER          Int     Type of LCD filter
+    namelang       FC_NAMELANG            String  Language name to be used for the
+                                                  default value of familylang,
+                                                  stylelang and fullnamelang
+    fontfeatures   FC_FONT_FEATURES       String  List of extra feature tags in
+                                                  OpenType to be enabled
+    prgname        FC_PRGNAME             String  Name of the running program
+    hash           FC_HASH                String  SHA256 hash value of the font data
+                                                  with "sha256:" prefix (deprecated)
+    postscriptname FC_POSTSCRIPT_NAME     String  Font name in PostScript
+    symbol         FC_SYMBOL              Bool    Whether font uses MS symbol-font encoding
+    color          FC_COLOR               Bool    Whether any glyphs have color
+    fontvariations FC_FONT_VARIATIONS     String  comma-separated string of axes in variable font
+    variable       FC_VARIABLE            Bool    Whether font is Variable Font
+    fonthashint    FC_FONT_HAS_HINT       Bool    Whether font has hinting
+    order          FC_ORDER               Int     Order number of the font
+    </programlisting>
+  </sect2>
+</sect1>
+<sect1><title>Datatypes</title>
+  <para>
+Fontconfig uses abstract data types to hide internal implementation details
+for most data structures.  A few structures are exposed where appropriate.
+  </para>
+  <sect2><title>FcChar8, FcChar16, FcChar32, FcBool</title>
+    <para>
+These are primitive data types; the FcChar* types hold precisely the number
+of bits stated (if supported by the C implementation).  FcBool holds
+one of two C preprocessor symbols: FcFalse or FcTrue.
+    </para>
+  </sect2>
+  <sect2><title>FcMatrix</title>
+    <para>
+An FcMatrix holds an affine transformation, usually used to reshape glyphs.
+A small set of matrix operations are provided to manipulate these.
+    <programlisting>
+        typedef struct _FcMatrix {
+                double xx, xy, yx, yy;
+        } FcMatrix;
+    </programlisting>
+    </para>
+  </sect2>
+  <sect2><title>FcCharSet</title>
+    <para>
+An FcCharSet is an abstract type that holds the set of encoded Unicode chars
+in a font.  Operations to build and compare these sets are provided.
+    </para>
+  </sect2>
+  <sect2><title>FcLangSet</title>
+    <para>
+An FcLangSet is an abstract type that holds the set of languages supported
+by a font.  Operations to build and compare these sets are provided. These
+are computed for a font based on orthographic information built into the
+fontconfig library. Fontconfig has orthographies for all of the ISO 639-1
+languages except for MS, NA, PA, PS, QU, RN, RW, SD, SG, SN, SU and ZA. If
+you have orthographic information for any of these languages, please submit
+them.
+    </para>
+  </sect2>
+  <sect2><title>FcLangResult</title>
+    <para>
+An FcLangResult is an enumeration used to return the results of comparing
+two language strings or FcLangSet objects. FcLangEqual means the
+objects match language and territory. FcLangDifferentTerritory means
+the objects match in language but differ in territory.
+FcLangDifferentLang means the objects differ in language.
+    </para>
+  </sect2>
+  <sect2><title>FcType</title>
+    <para>
+Tags the kind of data stored in an FcValue.
+    </para>
+  </sect2>
+  <sect2><title>FcValue</title>
+    <para>
+An FcValue object holds a single value with one of a number of different
+types.  The 'type' tag indicates which member is valid.
+    <programlisting>
+        typedef struct _FcValue {
+                FcType type;
+                union {
+                        const FcChar8 *s;
+                        int i;
+                        FcBool b;
+                        double d;
+                        const FcMatrix *m;
+                        const FcCharSet *c;
+			void *f;
+			const FcLangSet *l;
+			const FcRange   *r;
+                } u;
+        } FcValue;
+    </programlisting>
+    <programlisting>
+                  FcValue Members
+
+        Type            Union member    Datatype
+        --------------------------------
+        FcTypeVoid      (none)          (none)
+        FcTypeInteger   i               int
+        FcTypeDouble    d               double
+        FcTypeString    s               FcChar8 *
+        FcTypeBool      b               b
+        FcTypeMatrix    m               FcMatrix *
+        FcTypeCharSet   c               FcCharSet *
+	FcTypeFTFace	f		void * (FT_Face)
+	FcTypeLangSet	l		FcLangSet *
+	FcTypeRange	r		FcRange *
+    </programlisting>
+    </para>
+  </sect2>
+  <sect2><title>FcPattern, FcPatternIter</title>
+    <para>
+An FcPattern holds a set of names with associated value lists; each name refers to a
+property of a font.  FcPatterns are used as inputs to the matching code as
+well as holding information about specific fonts.  Each property can hold
+one or more values; conventionally all of the same type, although the
+interface doesn't demand that.  An FcPatternIter is used during iteration to
+access properties in FcPattern.
+    </para>
+  </sect2>
+  <sect2><title>FcFontSet</title>
+    <para>
+    <programlisting>
+        typedef struct _FcFontSet {
+                int nfont;
+                int sfont;
+                FcPattern **fonts;
+        } FcFontSet;
+    </programlisting>
+An FcFontSet contains a list of FcPatterns.  Internally fontconfig uses this
+data structure to hold sets of fonts.  Externally, fontconfig returns the
+results of listing fonts in this format.  'nfont' holds the number of
+patterns in the 'fonts' array; 'sfont' is used to indicate the size of that
+array.
+    </para>
+  </sect2>
+  <sect2><title>FcStrSet, FcStrList</title>
+    <para>
+FcStrSet holds a list of strings that can be appended to and enumerated.
+Its unique characteristic is that the enumeration works even while strings
+are appended during enumeration.  FcStrList is used during enumeration to
+safely and correctly walk the list of strings even while that list is edited
+in the middle of enumeration.
+    </para>
+  </sect2>
+  <sect2><title>FcObjectSet</title>
+    <para>
+      <programlisting>
+        typedef struct _FcObjectSet {
+                int nobject;
+                int sobject;
+                const char **objects;
+        } FcObjectSet;
+      </programlisting>
+holds a set of names and is used to specify which fields from fonts are
+placed in the the list of returned patterns when listing fonts.
+    </para>
+  </sect2>
+  <sect2><title>FcObjectType</title>
+    <para>
+      <programlisting>
+        typedef struct _FcObjectType {
+                const char *object;
+                FcType type;
+        } FcObjectType;
+      </programlisting>
+marks the type of a pattern element generated when parsing font names.
+Applications can add new object types so that font names may contain the new
+elements.
+    </para>
+  </sect2>
+  <sect2><title>FcConstant</title>
+    <para>
+      <programlisting>
+        typedef struct _FcConstant {
+            const FcChar8 *name;
+            const char *object;
+            int value;
+        } FcConstant;
+      </programlisting>
+Provides for symbolic constants for new pattern elements.  When 'name' is
+seen in a font name, an 'object' element is created with value 'value'.
+    </para>
+  </sect2>
+  <sect2><title>FcBlanks</title>
+    <para>
+holds a list of Unicode chars which are expected to be blank; unexpectedly
+blank chars are assumed to be invalid and are elided from the charset
+associated with the font.
+    </para>
+    <para>
+        FcBlanks is deprecated and should not be used in newly written code.
+        It is still accepted by some functions for compatibility with
+        older code but will be removed in the future.
+    </para>
+  </sect2>
+  <sect2><title>FcFileCache</title>
+    <para>
+holds the per-user cache information for use while loading the font
+database. This is built automatically for the current configuration when
+that is loaded.  Applications must always pass '0' when one is requested.
+    </para>
+  </sect2>
+  <sect2><title>FcConfig</title>
+    <para>
+holds a complete configuration of the library; there is one default
+configuration, other can be constructed from XML data structures.  All
+public entry points that need global data can take an optional FcConfig*
+argument; passing 0 uses the default configuration.  FcConfig objects hold two
+sets of fonts, the first contains those specified by the configuration, the
+second set holds those added by the application at run-time.  Interfaces
+that need to reference a particular set use one of the FcSetName enumerated
+values.
+    </para>
+  </sect2>
+  <sect2><title>FcSetName</title>
+    <para>
+Specifies one of the two sets of fonts available in a configuration;
+FcSetSystem for those fonts specified in the configuration and
+FcSetApplication which holds fonts provided by the application.
+    </para>
+  </sect2>
+  <sect2><title>FcResult</title>
+    <para>
+Used as a return type for functions manipulating FcPattern objects.
+    <programlisting>
+      FcResult Values
+        Result Code             Meaning
+        -----------------------------------------------------------
+        FcResultMatch           Object exists with the specified ID
+        FcResultNoMatch         Object doesn't exist at all
+        FcResultTypeMismatch    Object exists, but the type doesn't match
+        FcResultNoId            Object exists, but has fewer values
+                                than specified
+        FcResultOutOfMemory     malloc failed
+    </programlisting>
+    </para>
+  </sect2>
+  <sect2><title>FcAtomic</title>
+    <para>
+Used for locking access to configuration files.  Provides a safe way to update
+configuration files.
+    </para>
+  </sect2>
+  <sect2><title>FcCache</title>
+    <para>
+Holds information about the fonts contained in a single directory. Normal
+applications need not worry about this as caches for font access are
+automatically managed by the library. Applications dealing with cache
+management may want to use some of these objects in their work, however the
+included 'fc-cache' program generally suffices for all of that.
+    </para>
+  </sect2>
+</sect1>
+<sect1><title>FUNCTIONS</title>
+  <para>
+These are grouped by functionality, often using the main data type being
+manipulated.
+  </para>
+  <sect2><title>Initialization</title>
+    <para>
+These functions provide some control over how the library is initialized.
+    </para>
+    &fcinit;
+  </sect2>
+  <sect2><title>FcPattern</title>
+    <para>
+An FcPattern is an opaque type that holds both patterns to match against the
+available fonts, as well as the information about each font.
+    </para>
+    &fcpattern;
+    &fcformat;
+  </sect2>
+  <sect2><title>FcFontSet</title>
+    <para>
+An FcFontSet simply holds a list of patterns; these are used to return the
+results of listing available fonts.
+    </para>
+    &fcfontset;
+  </sect2>
+  <sect2><title>FcObjectSet</title>
+    <para>
+An FcObjectSet holds a list of pattern property names; it is used to
+indicate which properties are to be returned in the patterns from
+FcFontList.
+    </para>
+    &fcobjectset;
+  </sect2>
+  <sect2><title>FreeType specific functions</title>
+    <para>
+While the fontconfig library doesn't insist that FreeType be used as the
+rasterization mechanism for fonts, it does provide some convenience
+functions.
+    </para>
+    &fcfreetype;
+  </sect2>
+  <sect2><title>FcValue</title>
+    <para>
+FcValue is a structure containing a type tag and a union of all possible
+datatypes.  The tag is an enum of type 
+<emphasis>FcType</emphasis>
+and is intended to provide a measure of run-time
+typechecking, although that depends on careful programming.
+    </para>
+    &fcvalue;
+  </sect2>
+  <sect2><title>FcCharSet</title>
+    <para>
+An FcCharSet is a boolean array indicating a set of Unicode chars.  Those
+associated with a font are marked constant and cannot be edited.
+FcCharSets may be reference counted internally to reduce memory consumption;
+this may be visible to applications as the result of FcCharSetCopy may
+return it's argument, and that CharSet may remain unmodifiable.
+    </para>
+    &fccharset;
+  </sect2>
+  <sect2><title>FcLangSet</title>
+    <para>
+An FcLangSet is a set of language names (each of which include language and
+an optional territory). They are used when selecting fonts to indicate which
+languages the fonts need to support. Each font is marked, using language
+orthography information built into fontconfig, with the set of supported
+languages.
+    </para>
+    &fclangset;
+  </sect2>
+  <sect2><title>FcMatrix</title>
+    <para>
+FcMatrix structures hold an affine transformation in matrix form.
+    </para>
+    &fcmatrix;
+  </sect2>
+  <sect2><title>FcRange</title>
+    <para>
+An FcRange holds two variables to indicate a range in between.
+    </para>
+    &fcrange;
+  </sect2>
+  <sect2><title>FcConfig</title>
+    <para>
+An FcConfig object holds the internal representation of a configuration.
+There is a default configuration which applications may use by passing 0 to
+any function using the data within an FcConfig.
+    </para>
+    &fcconfig;
+  </sect2>
+  <sect2><title>FcObjectType</title>
+    <para>
+Provides for application-specified font name object types so that new
+pattern elements can be generated from font names.
+    </para>
+    &fcobjecttype;
+  </sect2>
+  <sect2><title>FcConstant</title>
+    <para>
+Provides for application-specified symbolic constants for font names.
+    </para>
+    &fcconstant;
+  </sect2>
+  <sect2><title>FcWeight</title>
+    <para>
+Maps weights to and from OpenType weights.
+    </para>
+  &fcweight;
+  </sect2>
+  <sect2><title>FcBlanks</title>
+    <para>
+An FcBlanks object holds a list of Unicode chars which are expected to
+be blank when drawn.  When scanning new fonts, any glyphs which are
+empty and not in this list will be assumed to be broken and not placed in
+the FcCharSet associated with the font.  This provides a significantly more
+accurate CharSet for applications.
+    </para>
+    <para>
+        FcBlanks is deprecated and should not be used in newly written code.
+        It is still accepted by some functions for compatibility with
+        older code but will be removed in the future.
+    </para>
+    &fcblanks;
+  </sect2>
+  <sect2><title>FcAtomic</title>
+    <para>
+These functions provide a safe way to update configuration files, allowing ongoing
+reading of the old configuration file while locked for writing and ensuring that a
+consistent and complete version of the configuration file is always available.
+    </para>
+    &fcatomic;
+  </sect2>
+  <sect2><title>File and Directory routines</title>
+    <para>
+These routines work with font files and directories, including font
+directory cache files.
+    </para>
+    &fcfile;
+    &fcdircache;
+  </sect2>
+  <sect2><title>FcCache routines</title>
+    <para>
+These routines work with font directory caches, accessing their contents in
+limited ways. It is not expected that normal applications will need to use
+these functions.
+    </para>
+    &fccache;
+  </sect2>
+  <sect2><title>FcStrSet and FcStrList</title>
+    <para>
+A data structure for enumerating strings, used to list directories while
+scanning the configuration as directories are added while scanning.
+    </para>
+    &fcstrset;
+  </sect2>
+  <sect2><title>String utilities</title>
+    <para>
+Fontconfig manipulates many UTF-8 strings represented with the FcChar8 type.
+These functions are exposed to help applications deal with these UTF-8
+strings in a locale-insensitive manner.
+    </para>
+    &fcstring;
+  </sect2>
+</sect1>
+</article>

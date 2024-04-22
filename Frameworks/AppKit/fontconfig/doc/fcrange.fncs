@@ -1,0 +1,75 @@
+/*
+ * fontconfig/doc/fcrange.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+@RET@           FcRange *
+@FUNC@          FcRangeCopy
+@TYPE1@         const FcRange *                 @ARG1@          range
+@PURPOSE@       Copy a range object
+@DESC@
+<function>FcRangeCopy</function> creates a new FcRange object and
+populates it with the contents of <parameter>range</parameter>.
+@SINCE@         2.11.91
+@@
+
+@RET@           FcRange *
+@FUNC@          FcRangeCreateDouble
+@TYPE1@         double                          @ARG1@          begin
+@TYPE2@         double                          @ARG2@          end
+@PURPOSE@       create a range object for double
+@DESC@
+<function>FcRangeCreateDouble</function> creates a new FcRange object with
+double sized value.
+@SINCE@         2.11.91
+@@
+
+@RET@           FcRange *
+@FUNC@          FcRangeCreateInteger
+@TYPE1@         int                             @ARG1@          begin
+@TYPE2@         int                             @ARG2@          end
+@PURPOSE@       create a range object for integer
+@DESC@
+<function>FcRangeCreateInteger</function> creates a new FcRange object with
+integer sized value.
+@SINCE@         2.11.91
+@@
+
+@RET@           void
+@FUNC@          FcRangeDestroy
+@TYPE1@         FcRange *                       @ARG1@          range
+@PURPOSE@       destroy a range object
+@DESC@
+<function>FcRangeDestroy</function> destroys a FcRange object, freeing
+all memory associated with it.
+@SINCE@         2.11.91
+@@
+
+@RET@           FcBool
+@FUNC@          FcRangeGetDouble
+@TYPE1@         const FcRange *                 @ARG1@          range
+@TYPE2@         double *                        @ARG2@          begin
+@TYPE3@         double *                        @ARG3@          end
+@PURPOSE@       Get the range in double
+@DESC@
+Returns in <parameter>begin</parameter> and <parameter>end</parameter> as the range.
+@SINCE@         2.11.91
+@@

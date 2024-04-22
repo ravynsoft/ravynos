@@ -1,0 +1,68 @@
+#
+# fontconfig/fc-lang/ur.orth
+#
+# Copyright © 2002 Keith Packard
+# Copyright © 2009 Roozbeh Pournader
+#
+# Permission to use, copy, modify, distribute, and sell this software and its
+# documentation for any purpose is hereby granted without fee, provided that
+# the above copyright notice appear in all copies and that both that
+# copyright notice and this permission notice appear in supporting
+# documentation, and that the name of the author(s) not be used in
+# advertising or publicity pertaining to distribution of the software without
+# specific, written prior permission.  The authors make no
+# representations about the suitability of this software for any purpose.  It
+# is provided "as is" without express or implied warranty.
+#
+# THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+# INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+# EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+# DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+# TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# Urdu (ur)
+#
+# We are assuming that:
+# * Most fonts that claim to support an Arabic letter actually do so;
+# * Most modern text rendering software use OpenType tables, instead of
+#   directly using presentation forms.
+# * Some good Arabic fonts do not support codepoints for Arabic presentation
+#   forms.
+# Thus, we are switching to general forms of Arabic letters.
+#
+# General forms:
+0621-0624
+0626-0628
+063a
+0641-0642
+0644-0646
+0648
+0679
+067e
+0686
+0688
+0691
+0698
+06a9
+06af
+06ba
+06be
+06c3
+06cc
+06d2
+# Presentations forms:
+#fb56-fb59
+#fb66-fb69
+#fb7a-fb7d
+#fb88-fb8d
+#fb8e-fb95
+#fb9e-fb9f
+#fbfc-fbff
+#fbaa-fbaf
+#fe80-fe86
+#fe89-fed8
+#fedd-feee
+##fef5-fef8      # These four happen very rarely
+#fefb-fefc

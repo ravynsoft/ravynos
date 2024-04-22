@@ -1,0 +1,242 @@
+/*
+ * fontconfig/doc/fccharset.fncs
+ *
+ * Copyright © 2003 Keith Packard
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the author(s) not be used in
+ * advertising or publicity pertaining to distribution of the software without
+ * specific, written prior permission.  The authors make no
+ * representations about the suitability of this software for any purpose.  It
+ * is provided "as is" without express or implied warranty.
+ *
+ * THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+@RET@           FcCharSet *
+@FUNC@          FcCharSetCreate
+@TYPE1@         void
+@PURPOSE@       Create an empty character set
+@DESC@
+<function>FcCharSetCreate</function> allocates and initializes a new empty
+character set object.
+@@
+
+@RET@           void
+@FUNC@          FcCharSetDestroy
+@TYPE1@         FcCharSet *             @ARG1@          fcs
+@PURPOSE@       Destroy a character set
+@DESC@
+<function>FcCharSetDestroy</function> decrements the reference count
+<parameter>fcs</parameter>.  If the reference count becomes zero, all
+memory referenced is freed.
+@@
+
+@RET@           FcBool
+@FUNC@          FcCharSetAddChar
+@TYPE1@         FcCharSet *             @ARG1@          fcs
+@TYPE2@         FcChar32%               @ARG2@          ucs4
+@PURPOSE@       Add a character to a charset
+@DESC@
+<function>FcCharSetAddChar</function> adds a single Unicode char to the set,
+returning FcFalse on failure, either as a result of a constant set or from
+running out of memory.
+@@
+
+@RET@           FcBool
+@FUNC@          FcCharSetDelChar
+@TYPE1@         FcCharSet *             @ARG1@          fcs
+@TYPE2@         FcChar32%               @ARG2@          ucs4
+@PURPOSE@       Add a character to a charset
+@DESC@
+<function>FcCharSetDelChar</function> deletes a single Unicode char from the set,
+returning FcFalse on failure, either as a result of a constant set or from
+running out of memory.
+@SINCE@         2.9.0
+@@
+
+@RET@           FcCharSet *
+@FUNC@          FcCharSetCopy
+@TYPE1@         FcCharSet *             @ARG1@          src
+@PURPOSE@       Copy a charset
+@DESC@
+Makes a copy of <parameter>src</parameter>; note that this may not actually do anything more
+than increment the reference count on <parameter>src</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcCharSetEqual
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@PURPOSE@       Compare two charsets
+@DESC@
+Returns whether <parameter>a</parameter> and <parameter>b</parameter>
+contain the same set of Unicode chars.
+@@
+
+@RET@           FcCharSet *
+@FUNC@          FcCharSetIntersect
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@PURPOSE@       Intersect charsets
+@DESC@
+Returns a set including only those chars found in both
+<parameter>a</parameter> and <parameter>b</parameter>.
+@@
+
+@RET@           FcCharSet *
+@FUNC@          FcCharSetUnion
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@PURPOSE@       Add charsets
+@DESC@
+Returns a set including only those chars found in either <parameter>a</parameter> or <parameter>b</parameter>.
+@@
+
+@RET@           FcCharSet *
+@FUNC@          FcCharSetSubtract
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@PURPOSE@       Subtract charsets
+@DESC@
+Returns a set including only those chars found in <parameter>a</parameter> but not <parameter>b</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcCharSetMerge
+@TYPE1@         FcCharSet *             @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@TYPE3@         FcBool *                @ARG3@          changed
+@PURPOSE@       Merge charsets
+@DESC@
+Adds all chars in <parameter>b</parameter> to <parameter>a</parameter>.
+In other words, this is an in-place version of FcCharSetUnion.
+If <parameter>changed</parameter> is not NULL, then it returns whether any new
+chars from <parameter>b</parameter> were added to <parameter>a</parameter>.
+Returns FcFalse on failure, either when <parameter>a</parameter> is a constant
+set or from running out of memory.
+@@
+
+@RET@           FcBool
+@FUNC@          FcCharSetHasChar
+@TYPE1@         const FcCharSet *       @ARG1@          fcs
+@TYPE2@         FcChar32%               @ARG2@          ucs4
+@PURPOSE@       Check a charset for a char
+@DESC@
+Returns whether <parameter>fcs</parameter> contains the char <parameter>ucs4</parameter>.
+@@
+
+@RET@           FcChar32
+@FUNC@          FcCharSetCount
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@PURPOSE@       Count entries in a charset
+@DESC@
+Returns the total number of Unicode chars in <parameter>a</parameter>.
+@@
+
+@RET@           FcChar32
+@FUNC@          FcCharSetIntersectCount
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@PURPOSE@       Intersect and count charsets
+@DESC@
+Returns the number of chars that are in both <parameter>a</parameter> and <parameter>b</parameter>.
+@@
+
+@RET@           FcChar32
+@FUNC@          FcCharSetSubtractCount
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@PURPOSE@       Subtract and count charsets
+@DESC@
+Returns the number of chars that are in <parameter>a</parameter> but not in <parameter>b</parameter>.
+@@
+
+@RET@           FcBool
+@FUNC@          FcCharSetIsSubset
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         const FcCharSet *       @ARG2@          b
+@PURPOSE@       Test for charset inclusion
+@DESC@
+Returns whether <parameter>a</parameter> is a subset of <parameter>b</parameter>.
+@@
+
+@RET@           FcChar32
+@FUNC@          FcCharSetFirstPage
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         FcChar32[FC_CHARSET_MAP_SIZE]%  @ARG2@  map
+@TYPE3@         FcChar32 *              @ARG3@          next
+@PURPOSE@       Start enumerating charset contents
+@DESC@
+Builds an array of bits in <parameter>map</parameter> marking the
+first page of Unicode coverage of <parameter>a</parameter>.
+<parameter>*next</parameter> is set to contains the base code point
+for the next page in <parameter>a</parameter>.  Returns the base code
+point for the page, or <constant>FC_CHARSET_DONE</constant> if
+<parameter>a</parameter> contains no pages.  As an example, if
+<function>FcCharSetFirstPage</function> returns
+<literal>0x300</literal> and fills <parameter>map</parameter> with
+<literallayout class="monospaced">
+0xffffffff 0xffffffff 0x01000008 0x44300002 0xffffd7f0 0xfffffffb 0xffff7fff 0xffff0003
+</literallayout>
+Then the page contains code points <literal>0x300</literal> through
+<literal>0x33f</literal> (the first 64 code points on the page)
+because <parameter>map[0]</parameter> and
+<parameter>map[1]</parameter> both have all their bits set.  It also
+contains code points <literal>0x343</literal> (<parameter>0x300 + 32*2
++ (4-1)</parameter>) and <literal>0x35e</literal> (<parameter>0x300 +
+32*2 + (31-1)</parameter>) because <parameter>map[2]</parameter> has
+the 4th and 31st bits set.  The code points represented by
+<literal>map[3]</literal> and later are left as an exercise for the
+reader ;).
+@@
+
+@RET@           FcChar32
+@FUNC@          FcCharSetNextPage
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         FcChar32[FC_CHARSET_MAP_SIZE]%  @ARG2@  map
+@TYPE3@         FcChar32 *              @ARG3@          next
+@PURPOSE@       Continue enumerating charset contents
+@DESC@
+Builds an array of bits in <parameter>map</parameter> marking the
+Unicode coverage of <parameter>a</parameter> for page containing
+<parameter>*next</parameter> (see the
+<function>FcCharSetFirstPage</function> description for details).
+<parameter>*next</parameter> is set to contains the base code point
+for the next page in <parameter>a</parameter>.  Returns the base of
+code point for the page, or <constant>FC_CHARSET_DONE</constant> if
+<parameter>a</parameter> does not contain
+<parameter>*next</parameter>.
+@@
+
+@RET@           FcChar32
+@FUNC@          FcCharSetCoverage
+@TYPE1@         const FcCharSet *       @ARG1@          a
+@TYPE2@         FcChar32                @ARG2@          page
+@TYPE3@         FcChar32[8]             @ARG3@          result
+@PURPOSE@       DEPRECATED return coverage for a Unicode page
+@DESC@
+DEPRECATED
+This function returns a bitmask in <parameter>result</parameter> which
+indicates which code points in
+<parameter>page</parameter> are included in <parameter>a</parameter>.
+<function>FcCharSetCoverage</function> returns the next page in the charset which has any
+coverage.
+@@
+
+@RET@           FcCharSet *
+@FUNC@          FcCharSetNew
+@TYPE1@         void
+@PURPOSE@       DEPRECATED alias for FcCharSetCreate
+@DESC@
+<function>FcCharSetNew</function> is a DEPRECATED alias for FcCharSetCreate.
+@@
+

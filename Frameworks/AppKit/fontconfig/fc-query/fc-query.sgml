@@ -1,0 +1,204 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+
+manpage.1: manpage.sgml
+        docbook-to-man $< > $@
+
+
+        The docbook-to-man binary is found in the docbook-to-man package.
+        Please remember that if you create the nroff version in one of the
+        debian/rules file targets (such as build), you will need to include
+        docbook-to-man in your Build-Depends control field.
+
+  -->
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Behdad</firstname>">
+  <!ENTITY dhsurname   "<surname>Esfahbod</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>Aug 13, 2008</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhemail     "<email>behdad@behdad.org</email>">
+  <!ENTITY dhusername  "Behdad Esfahbod">
+  <!ENTITY dhucpackage "<refentrytitle>fc-query</refentrytitle>">
+  <!ENTITY dhpackage   "fc-query">
+
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+  <!ENTITY gpl         "&gnu; <acronym>GPL</acronym>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <author>
+      &dhfirstname;
+      &dhsurname;
+    </author>
+    <copyright>
+      <year>2008</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>query font files</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+
+      <arg><option>-Vh</option></arg>
+      <sbr>
+      <group>
+        <arg><option>-b</option></arg>
+        <arg><option>--ignore-blanks</option></arg>
+      </group>
+      <group>
+        <arg><option>-i</option> <option><replaceable>index</replaceable></option></arg>
+        <arg><option>--index</option> <option><replaceable>index</replaceable></option></arg>
+      </group>
+      <group>
+        <arg><option>-f</option> <option><replaceable>format</replaceable></option></arg>
+        <arg><option>--format</option> <option><replaceable>format</replaceable></option></arg>
+      </group>
+      <arg><option>--version</option></arg>
+      <arg><option>--help</option></arg>
+      <arg choice="req" rep="repeat"><option><replaceable>font-file</replaceable></option></arg>
+
+     </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para><command>&dhpackage;</command> queries
+    <replaceable>font-file</replaceable>(s) using the normal fontconfig
+    rules and prints out font pattern for each face found.
+    If <option>--index</option> is given, only one face of each file is
+    queried, otherwise all faces are queried.</para>
+
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+
+    <para>This program follows the usual &gnu; command line syntax,
+      with long options starting with two dashes (`-').  A summary of
+      options is included below.</para>
+
+    <variablelist>
+      <varlistentry>
+        <term><option>-b</option>
+          <option>--ignore-blanks</option>
+        </term>
+        <listitem>
+          <para>Ignore blanks to compute languages</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-i</option>
+          <option>--index</option>
+          <option><replaceable>index</replaceable></option>
+        </term>
+        <listitem>
+          <para>Only query face indexed <replaceable>index</replaceable> of
+          each file.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-f</option>
+          <option>--format</option>
+          <option><replaceable>format</replaceable></option>
+        </term>
+        <listitem>
+          <para>Format output according to the format specifier
+          <replaceable>format</replaceable>.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-V</option>
+          <option>--version</option>
+        </term>
+        <listitem>
+          <para>Show version of the program and exit.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-h</option>
+          <option>--help</option>
+        </term>
+        <listitem>
+          <para>Show summary of options.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option><replaceable>font-file</replaceable></option>
+        </term>
+        <listitem>
+          <para>Query <replaceable>font-file</replaceable> for font faces.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>RETURN CODES</title>
+    <para><command>fc-query</command> returns error code 0 for successful parsing,
+    or 1 if any errors occurred or if at least one font face could not be opened.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>
+      <command>fc-scan</command>(1)
+      <function>FcFreeTypeQuery</function>(3)
+      <function>FcPatternFormat</function>(3)
+      <command>fc-cat</command>(1)
+      <command>fc-cache</command>(1)
+      <command>fc-list</command>(1)
+      <command>fc-match</command>(1)
+      <command>fc-pattern</command>(1)
+    </para>
+
+    <para>The fontconfig user's guide, in HTML format:
+      <filename>/usr/share/doc/fontconfig/fontconfig-user.html</filename>.</para>
+
+ </refsect1>
+  <refsect1>
+    <title>AUTHOR</title>
+
+    <para>This manual page was updated by &dhusername; &dhemail;.</para>
+
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

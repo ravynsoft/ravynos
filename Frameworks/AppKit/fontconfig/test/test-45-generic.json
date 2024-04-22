@@ -1,0 +1,35 @@
+{
+    "fonts": [
+        {
+            "family": "Foo"
+        },
+        {
+            "family": "math"
+        },
+        {
+            "family": "Baz"
+        }
+    ],
+    "tests": [
+        {
+            "method": "match",
+            "query": {
+		"family": "Bar",
+		"lang": "und-zmth"
+            },
+            "result": {
+                "family": "math",
+                "lang": "und-zmth"
+            }
+        },
+        {
+            "method": "match",
+            "query": {
+                "lang": [ "en", "fr" ]
+            },
+            "result": {
+                // Exercise complex value promotion. No ASAN issues.
+            }
+        }
+    ]
+}

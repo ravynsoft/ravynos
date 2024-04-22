@@ -1,0 +1,31 @@
+{
+    "fonts": [
+        {
+            "family": [ "Foo", "Foo Caption" ],
+            "style": [ "Caption", "Regular" ],
+            "file": "/path/to/Foo-Capt.ttf",
+            "fontversion": 133365
+        },
+        {
+            "family": "Foo",
+            "style": "Regular",
+            "file": "/path/to/Foo-Regular.ttf",
+            "fontversion": 133365
+        }
+    ],
+    "tests": [
+        {
+            "method": "match",
+            "query": {
+                "family": "Foo",
+                "style": "Regular"
+            },
+            "result": {
+                "family": "Foo",
+                "style": "Regular",
+                "file": "/path/to/Foo-Regular.ttf",
+                "fontversion": 133365
+            }
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+sysconfdir=@sysconfdir@
+localstatedir=@localstatedir@
+PACKAGE=@PACKAGE@
+confdir=@BASECONFIGDIR@
+cachedir=@fc_cachedir@
+
+Name: Fontconfig
+Description: Font configuration and customization library
+Version: @VERSION@
+Requires: @PKGCONFIG_REQUIRES@
+Requires.private: @PKGCONFIG_REQUIRES_PRIVATELY@
+Libs: -L${libdir} -lfontconfig
+Libs.private: @ICONV_LIBS@ @PKG_EXPAT_LIBS@
+Cflags: -I${includedir} @ICONV_CFLAGS@ @PKG_EXPAT_CFLAGS@
