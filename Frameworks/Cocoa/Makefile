@@ -8,7 +8,9 @@ RESOURCES=Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I../Foundation/Headers \
 	-I${.CURDIR}/../AppKit/Headers -F../OpenGL \
         -framework OpenGL
-LDFLAGS+= -L../AppKit -L../Foundation -L../CoreFoundation \
+LDFLAGS+= -L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
+	-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+	-L${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework \
         -lAppKit -lFoundation -lCoreFoundation -lobjc -lmach \
         -Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
         -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
