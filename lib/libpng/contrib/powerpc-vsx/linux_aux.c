@@ -2,7 +2,6 @@
  *
  * Copyright (c) 2017 Glenn Randers-Pehrson
  * Written by Vadim Barkov, 2017.
- * Last changed in libpng 1.6.29 [March 16, 2017]
  *
  * This code is released under the libpng license.
  * For conditions of distribution and use, see the disclaimer
@@ -23,14 +22,12 @@
 static int
 png_have_vsx(png_structp png_ptr)
 {
-
-   const unsigned long auxv = getauxval( AT_HWCAP );
+   unsigned long auxv = getauxval(AT_HWCAP);
 
    PNG_UNUSED(png_ptr)
 
-   if(auxv & (PPC_FEATURE_HAS_ALTIVEC|PPC_FEATURE_HAS_VSX ))
+   if(auxv & (PPC_FEATURE_HAS_ALTIVEC|PPC_FEATURE_HAS_VSX))
       return 1;
    else
       return 0;
 }
-

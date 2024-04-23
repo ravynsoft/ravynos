@@ -1,7 +1,5 @@
 /* makesRGB.c -- build sRGB-to-linear and linear-to-sRGB conversion tables
  *
- * Last changed in libpng 1.6.0 [February 14, 2013]
- *
  * COPYRIGHT: Written by John Cunningham Bowler, 2013.
  * To the extent possible under law, the author has waived all copyright and
  * related or neighboring rights to this work.  This work is published from:
@@ -14,6 +12,7 @@
  * approximation to the 8-bit sRGB encoded value.  Calculate the error in these
  * tables and display it.
  */
+
 #define _C99_SOURCE 1
 #include <stdio.h>
 #include <math.h>
@@ -388,7 +387,7 @@ main(int argc, char **argv)
 
    if (!test_only)
    {
-      printf("PNG_CONST png_uint_16 png_sRGB_table[256] =\n{\n   ");
+      printf("const png_uint_16 png_sRGB_table[256] =\n{\n   ");
       for (i=0; i<255; )
       {
          do
@@ -401,7 +400,7 @@ main(int argc, char **argv)
       printf("%d\n};\n\n", png_sRGB_table[i]);
 
 
-      printf("PNG_CONST png_uint_16 png_sRGB_base[512] =\n{\n   ");
+      printf("const png_uint_16 png_sRGB_base[512] =\n{\n   ");
       for (i=0; i<511; )
       {
          do
@@ -413,7 +412,7 @@ main(int argc, char **argv)
       }
       printf("%d\n};\n\n", png_sRGB_base[i]);
 
-      printf("PNG_CONST png_byte png_sRGB_delta[512] =\n{\n   ");
+      printf("const png_byte png_sRGB_delta[512] =\n{\n   ");
       for (i=0; i<511; )
       {
          do

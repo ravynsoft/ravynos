@@ -1,16 +1,16 @@
 
 /* filter_msa_intrinsics.c - MSA optimised filter functions
  *
+ * Copyright (c) 2018-2024 Cosmin Truta
  * Copyright (c) 2016 Glenn Randers-Pehrson
- * Written by Mandar Sahastrabuddhe, August 2016.
- * Last changed in libpng 1.6.25 [September 1, 2016]
+ * Written by Mandar Sahastrabuddhe, August 2016
  *
  * This code is released under the libpng license.
  * For conditions of distribution and use, see the disclaimer
  * and license in png.h
  */
+
 #include <stdio.h>
-#include <stdint.h>
 #include "../pngpriv.h"
 
 #ifdef PNG_READ_SUPPORTED
@@ -19,6 +19,7 @@
 #if PNG_MIPS_MSA_IMPLEMENTATION == 1 /* intrinsics code from pngpriv.h */
 
 #include <msa.h>
+#include <stdint.h>
 
 /* libpng row pointers are not necessarily aligned to any particular boundary,
  * however this code will only work with appropriate alignment. mips/mips_init.c
@@ -366,8 +367,8 @@
 void png_read_filter_row_up_msa(png_row_infop row_info, png_bytep row,
                                 png_const_bytep prev_row)
 {
-   png_size_t i, cnt, cnt16, cnt32;
-   png_size_t istop = row_info->rowbytes;
+   size_t i, cnt, cnt16, cnt32;
+   size_t istop = row_info->rowbytes;
    png_bytep rp = row;
    png_const_bytep pp = prev_row;
    v16u8 src0, src1, src2, src3, src4, src5, src6, src7;
@@ -378,8 +379,8 @@ void png_read_filter_row_up_msa(png_row_infop row_info, png_bytep row,
       LD_UB4(pp, 16, src4, src5, src6, src7);
       pp += 64;
 
-	  ADD4(src0, src4, src1, src5, src2, src6, src3, src7,
-	       src0, src1, src2, src3);
+      ADD4(src0, src4, src1, src5, src2, src6, src3, src7,
+           src0, src1, src2, src3);
 
       ST_UB4(src0, src1, src2, src3, rp, 16);
       rp += 64;
@@ -399,7 +400,7 @@ void png_read_filter_row_up_msa(png_row_infop row_info, png_bytep row,
             LD_UB4(pp, 16, src4, src5, src6, src7);
 
             ADD4(src0, src4, src1, src5, src2, src6, src3, src7,
-	             src0, src1, src2, src3);
+                 src0, src1, src2, src3);
 
             ST_UB4(src0, src1, src2, src3, rp, 16);
             rp += 64;
@@ -424,7 +425,7 @@ void png_read_filter_row_up_msa(png_row_infop row_info, png_bytep row,
             LD_UB2(rp, 16, src0, src1);
             LD_UB2(pp, 16, src4, src5);
 
-			ADD2(src0, src4, src1, src5, src0, src1);
+            ADD2(src0, src4, src1, src5, src0, src1);
 
             ST_UB2(src0, src1, rp, 16);
             rp += 32;
@@ -457,8 +458,8 @@ void png_read_filter_row_up_msa(png_row_infop row_info, png_bytep row,
 void png_read_filter_row_sub4_msa(png_row_infop row_info, png_bytep row,
                                   png_const_bytep prev_row)
 {
-   png_size_t count;
-   png_size_t istop = row_info->rowbytes;
+   size_t count;
+   size_t istop = row_info->rowbytes;
    png_bytep src = row;
    png_bytep nxt = row + 4;
    int32_t inp0;
@@ -496,8 +497,8 @@ void png_read_filter_row_sub4_msa(png_row_infop row_info, png_bytep row,
 void png_read_filter_row_sub3_msa(png_row_infop row_info, png_bytep row,
                                   png_const_bytep prev_row)
 {
-   png_size_t count;
-   png_size_t istop = row_info->rowbytes;
+   size_t count;
+   size_t istop = row_info->rowbytes;
    png_bytep src = row;
    png_bytep nxt = row + 3;
    int64_t out0;
@@ -541,11 +542,11 @@ void png_read_filter_row_sub3_msa(png_row_infop row_info, png_bytep row,
 void png_read_filter_row_avg4_msa(png_row_infop row_info, png_bytep row,
                                   png_const_bytep prev_row)
 {
-   png_size_t i;
+   size_t i;
    png_bytep src = row;
    png_bytep nxt = row;
    png_const_bytep pp = prev_row;
-   png_size_t istop = row_info->rowbytes - 4;
+   size_t istop = row_info->rowbytes - 4;
    int32_t inp0, inp1, out0;
    v16u8 src0, src1, src2, src3, src4, src5, src6, src7, src8, src9, dst0, dst1;
    v16u8 zero = { 0 };
@@ -592,11 +593,11 @@ void png_read_filter_row_avg4_msa(png_row_infop row_info, png_bytep row,
 void png_read_filter_row_avg3_msa(png_row_infop row_info, png_bytep row,
                                   png_const_bytep prev_row)
 {
-   png_size_t i;
+   size_t i;
    png_bytep src = row;
    png_bytep nxt = row;
    png_const_bytep pp = prev_row;
-   png_size_t istop = row_info->rowbytes - 3;
+   size_t istop = row_info->rowbytes - 3;
    int64_t out0;
    int32_t inp0, inp1, out1;
    int16_t out2;
