@@ -8,7 +8,7 @@ CONFIGURE_ARGS+=        --enable-function-subdirs
 CONFIGURE_ARGS+=        --enable-maildir-support
 CONFIGURE_ARGS+=        --enable-multibyte
 CONFIGURE_ARGS+=        --with-tcsetpgrp
-CONFIGURE_ARGS+=        ${MACHINE} ravynsoft
+CONFIGURE_ARGS+=        ${MACHINE_ARCH} ravynsoft
 
 
 all: zsh
