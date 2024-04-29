@@ -16,7 +16,12 @@ PACKAGE=        lib${LIB}
 SHLIB_MAJOR=    2
 
 SRCS=           ${LIBDRM_FILES} ${LIBDRM_NOUVEAU_FILES} ${LIBDRM_AMDGPU_FILES}
-SRCS+=          ${LIBDRM_RADEON_FILES} ${LIBDRM_INTEL_FILES}
+SRCS+=          ${LIBDRM_RADEON_FILES}
+
+.if ${.TARGET} == "amd64" || ${.TARGET} == "i386"
+SRCS+=          ${LIBDRM_INTEL_FILES}
+.endif
+
 INCSDIR=        ${INCLUDEDIR}/${PACKAGE}
 INCS=	        
 CFLAGS+=        -I${.CURDIR}/include/drm -I${.CURDIR} \
@@ -26,7 +31,6 @@ CFLAGS+=        -I${.CURDIR}/include/drm -I${.CURDIR} \
                 -DHAVE_SYS_SYSCTL_H \
                 -DHAVE_OPEN_MEMSTREAM \
                 -DHAVE_VISIBILITY \
-                -DHAVE_INTEL \
                 -DHAVE_RADEON \
                 -DHAVE_VMWGFX \
                 -DHAVE_VC4 \
@@ -37,6 +41,10 @@ CFLAGS+=        -I${.CURDIR}/include/drm -I${.CURDIR} \
                 -Wno-error=unused-variable \
                 -Wno-error=gnu-variable-sized-type-not-at-end \
                 -Wno-error=\#warnings
+
+.if ${.TARGET} == "amd64" || ${.TARGET} == "i386"
+CFLAGS+=        -DHAVE_INTEL
+.endif
 
 LDFLAGS+=       -L${MAKEOBJDIR}/../libpciaccess -lpciaccess -Wl,-R\$$ORIGIN/Resources
 
