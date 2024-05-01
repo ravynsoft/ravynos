@@ -26,7 +26,7 @@ all: build
 build:
 	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/Frameworks/OpenGL/libpciaccess \
         PYTHONPATH=${OBJTOP}/tmp/usr/lib/python3.10 \
-        PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:${PATH} \
+        PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:$${PATH} \
         ${MESON} setup --reconfigure -Dprefix=${PREFIX} -Dplatforms=wayland \
         -DSRCTOP=${SRCTOP} -Dc_args="${CFLAGS}" -Dcpp_args="${CFLAGS}" \
         -Dc_link_args="${LDFLAGS}" -Dcpp_link_args="${LDFLAGS}" \
@@ -38,7 +38,7 @@ build:
         -Dgbm=enabled -Dxmlconfig=disabled -Dexpat=disabled \
 	${MAKEOBJDIR} ${.CURDIR}
 	sed -i.bak -e 's@-I/usr/include@@g' ${MAKEOBJDIR}/build.ninja
-	PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:${OBJTOP}/usr.bin/clang/llvm-ar \
+	PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:${OBJTOP}/usr.bin/clang/llvm-ar:$$PATH \
 	${NINJA}
 
 install:
