@@ -29,6 +29,12 @@ make-obj-dirs:
 .endfor
 .endif
 
+_fmwk_install_includes: .PHONY
+	for header in ${INCS}; do \
+		cp -fv ${.CURDIR}/$$header \
+		${MAKEOBJDIR}/${FRAMEWORK}.framework/Headers/; \
+	done
+
 std_install_hook:
 	mv ${MAKEOBJDIR}/lib${FRAMEWORK}.so \
 		${MAKEOBJDIR}/${FRAMEWORK}.framework/Versions/Current/
@@ -44,3 +50,4 @@ alt_install_hook:
 _libinstall: .PHONY
 .endif
 
+installincludes: _fmwk_install_includes

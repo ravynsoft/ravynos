@@ -89,6 +89,7 @@ SUBDIR+=        wayland-protocols
 SUBDIR+=        seatd
 SUBDIR+=        wlroots
 SUBDIR+=	gplv2/cairo
+SUBDIR+=	mtdev
 
 make-obj-dirs:
 	mkdir -p ${MAKEOBJDIR}

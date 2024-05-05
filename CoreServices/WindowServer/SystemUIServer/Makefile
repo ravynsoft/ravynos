@@ -12,11 +12,16 @@ RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
 
 MK_WERROR=	no
 WARNS=	        1
-CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR} -I${TOPDIR}/Frameworks/AppKit \
-		-I${TOPDIR}/CoreServices \
+CFLAGS+=	-g -fobjc-arc -D__RAVYNOS__ -D__MACH__ \
+		-I${.CURDIR} -I${MAKEOBJDIR} -I${TOPDIR}/Frameworks/AppKit \
+		-I${TOPDIR}/CoreServices -I${OBJTOP}/Frameworks/Foundation/Headers \
+		-F${OBJTOP}/Frameworks/CoreFoundation -I${SRCTOP}/include \
+		-I${OBJTOP}/tmp/usr/include \
                 -framework Foundation -framework AppKit -framework LaunchServices
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_PKGS} \
-                -lobjc -lwayland-client -lSystem -lm
+		-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Resources \
+		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
+                -lobjc -lwayland -lSystem -lm
 
 ${.CURDIR}/shutdown: shutdown.c
 	${CC} -o ${.TARGET} ${.ALLSRC}
