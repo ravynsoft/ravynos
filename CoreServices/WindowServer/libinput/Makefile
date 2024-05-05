@@ -1,4 +1,4 @@
-LIB=	        libinput
+LIB=	        input
 
 .PATH:          ${.CURDIR}
 .PATH:          ${.CURDIR}/src
@@ -81,11 +81,12 @@ WARNS=	        1
 CFLAGS+=	-I${.CURDIR}/src -I${.CURDIR}/include -I${MAKEOBJDIR}
 CFLAGS+=        -I${.CURDIR}/../libevdev -I${.CURDIR}
 CFLAGS+=        -I${OBJTOP}/tmp/usr/include/libepoll-shim
+CFLAGS+=	-I${SRCTOP}/lib/libudev-devd -I${.CURDIR}/../mtdev/include
 CFLAGS+=        -DHTTP_DOC_LINK=\"https://wayland.freedesktop.org/libinput/doc/${MAJOR}.${MINOR}.${MICRO}\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_DIR=\"${PREFIX}/share/libinput\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_OVERRIDE_FILE=\"/etc/libinput/local-overrides.quirks\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_SRCDIR=\"${.CURDIR}/quirks\"
-CFLAGS+=        -DHAVE_VERSIONSORT
+CFLAGS+=        -DHAVE_VERSIONSORT -fPIC
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources'
 
 libinput-version.h:

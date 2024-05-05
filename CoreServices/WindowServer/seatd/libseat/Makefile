@@ -5,7 +5,7 @@ PACKAGE=lib${LIB}
 
 .include <src.opts.mk>
 
-LIB=		seatd
+LIB=		seat
 SHLIB_MAJOR=    ${MAJOR}
 
 SRCS=   noop.c \

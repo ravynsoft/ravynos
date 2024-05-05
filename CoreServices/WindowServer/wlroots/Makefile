@@ -1,4 +1,4 @@
-LIB=    libwlroots
+LIB=    wlroots
 
 MAJOR=          1
 MINOR=          15
@@ -25,6 +25,8 @@ UNSTABLE=       xdg-foreign-unstable-v1 \
                 xdg-decoration-unstable-v1 \
                 relative-pointer-unstable-v1 \
                 idle-inhibit-unstable-v1
+
+SCANNER=	${OBJTOP}/Frameworks/OpenGL/wayland/scanner/wayland-scanner
 
 make-obj-dirs:
 	mkdir -p types
@@ -182,13 +184,13 @@ INCS=
 MK_WERROR=	no
 WARNS=	        1
 CFLAGS+=	--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
-                -I${.CURDIR}/include  -I${MAKEOBJDIR} -I${.CURDIR} \
+                -I${.CURDIR}/include -I${MAKEOBJDIR} -I${.CURDIR} \
                 -I${OBJTOP}/Frameworks/OpenGL/wayland/src  \
                 -I${SRCTOP}/Frameworks/OpenGL/wayland/src  \
                 -I${SRCTOP}/Frameworks/OpenGL/libdrm  \
                 -I${SRCTOP}/Frameworks/OpenGL/libdrm/include  \
                 -I${SRCTOP}/Frameworks/OpenGL/libdrm/include/drm  \
-                -I${.CURDIR}/../libxkbcommon/include \
+                -I${SRCTOP}/Frameworks/AppKit/libxkbcommon/include \
                 -I${.CURDIR}/../libinput/src -I${.CURDIR}/../seatd/include \
                 -I${MAKEOBJDIR}/include \
                 -I${SRCTOP}/Frameworks/OpenGL/mesa/include \
@@ -200,7 +202,7 @@ CFLAGS+=	--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
 	        -DWLR_BIG_ENDIAN=0 -DHAS_XCB_ERRORS=0 \
                 -DWLR_VERSION_STR="${MAJOR}.${MINOR}.${MICRO}" \
                 -DWLR_VERSION_MAJOR=${MAJOR} -DWLR_VERSION_MINOR=${MINOR} \
-                -DWLR_VERSION_MICRO=${MICRO} \
+                -DWLR_VERSION_MICRO=${MICRO} -fPIC \
 	        -Dhave_drm_backend=1 -Dhave_x11_backend=0 \
                 -Dhave_libinput_backend=1 -Dhave_xwayland=0 \
                 -Dhave_gles2_renderer=1 -Dhave_vulkan_renderer=0
@@ -209,9 +211,9 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources'
 
 .SUFFIXES: .xml .c
 .xml.c:
-	wayland-scanner private-code ${.IMPSRC} ${.TARGET}
-	wayland-scanner server-header ${.IMPSRC} ${.TARGET:R}-protocol.h
-	wayland-scanner client-header ${.IMPSRC} ${.TARGET:R}-client-protocol.h
+	${SCANNER} private-code ${.IMPSRC} ${.TARGET}
+	${SCANNER} server-header ${.IMPSRC} ${.TARGET:R}-protocol.h
+	${SCANNER} client-header ${.IMPSRC} ${.TARGET:R}-client-protocol.h
 
 config.h::
 	mkdir -p include/wlr
