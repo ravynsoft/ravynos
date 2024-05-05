@@ -200,6 +200,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	} else if (server->input_mode == LAB_INPUT_STATE_RESIZE) {
 		process_cursor_resize(server, time);
 		return;
+#ifndef __RAVYNOS__
 	} else if (server->input_mode == LAB_INPUT_STATE_MENU) {
 		struct menu *menu = NULL;
 		if (server->rootmenu->visible) {
@@ -213,6 +214,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 			server->seat.cursor->x, server->seat.cursor->y);
 		damage_all_outputs(server);
 		return;
+#endif
 	}
 
 	/* Otherwise, find view under the pointer and send the event along */
@@ -225,7 +227,11 @@ process_cursor_motion(struct server *server, uint32_t time)
 		&sx, &sy, &view_area);
 
 	/* resize handles */
+#ifdef __RAVYNOS__
+	uint32_t resize_edges = 0;
+#else
 	uint32_t resize_edges = ssd_resize_edges(view_area);
+#endif
 
 	/* Set cursor */
 	if (!view) {
@@ -236,10 +242,12 @@ process_cursor_motion(struct server *server, uint32_t time)
 			cursor_name_set_by_server = true;
 			cursor_set(&server->seat,
 				wlr_xcursor_get_resize_name(resize_edges));
+#ifndef __RAVYNOS__
 		} else if (ssd_part_contains(LAB_SSD_PART_TITLEBAR, view_area)) {
 			/* title and buttons */
 			cursor_set(&server->seat, XCURSOR_DEFAULT);
 			cursor_name_set_by_server = true;
+#endif
 		} else if (cursor_name_set_by_server) {
 			/* window content */
 			cursor_set(&server->seat, XCURSOR_DEFAULT);
@@ -275,6 +283,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 	}
 
 	/* Required for iconify/maximize/close button mouse-over deco */
+#ifndef __RAVYNOS__
 	if (ssd_is_button(view_area)) {
 		if (last_button_hover != view_area) {
 			/* Cursor entered new button area */
@@ -286,6 +295,7 @@ process_cursor_motion(struct server *server, uint32_t time)
 		damage_whole_current_output(server);
 		last_button_hover = LAB_SSD_NONE;
 	}
+#endif
 
 	if (surface &&
 	    !input_inhibit_blocks_surface(&server->seat, surface->resource)) {
@@ -495,6 +505,8 @@ handle_release_mousebinding(struct view *view, struct server *server,
 	bool activated_any = false;
 	bool activated_any_frame = false;
 
+#ifndef __RAVYNOS__
+// FIXME: does this break window resizing?
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, view_area)
 				&& mousebind->button == button
@@ -515,6 +527,7 @@ handle_release_mousebinding(struct view *view, struct server *server,
 			action(view, server, &mousebind->actions, resize_edges);
 		}
 	}
+#endif
 	/*
 	 * Clear "pressed" status for all bindings of this mouse button,
 	 * regardless of whether activated or not
@@ -563,6 +576,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 	bool activated_any = false;
 	bool activated_any_frame = false;
 
+#ifndef __RAVYNOS__
 	wl_list_for_each_reverse(mousebind, &rc.mousebinds, link) {
 		if (ssd_part_contains(mousebind->context, view_area)
 				&& mousebind->button == button
@@ -594,6 +608,7 @@ handle_press_mousebinding(struct view *view, struct server *server,
 			action(view, server, &mousebind->actions, resize_edges);
 		}
 	}
+#endif
 	return activated_any && activated_any_frame;
 }
 
@@ -651,11 +666,13 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	if (server->input_mode == LAB_INPUT_STATE_MENU) {
+#ifndef __RAVYNOS__
 		if (server->rootmenu->visible) {
 			menu_action_selected(server, server->rootmenu);
 		} else if (server->windowmenu->visible) {
 			menu_action_selected(server, server->windowmenu);
 		}
+#endif
 		server->input_mode = LAB_INPUT_STATE_PASSTHROUGH;
 		cursor_rebase(&server->seat, event->time_msec);
 		return;
@@ -684,7 +701,11 @@ cursor_button(struct wl_listener *listener, void *data)
 	}
 
 	/* Determine closest resize edges in case action is Resize */
+#ifdef __RAVYNOS__
+	resize_edges = 0;
+#else
 	resize_edges = ssd_resize_edges(view_area);
+#endif
 	if (!resize_edges) {
 		resize_edges |= server->seat.cursor->x < view->x + view->w / 2
 			? WLR_EDGE_LEFT : WLR_EDGE_RIGHT;

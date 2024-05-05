@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,13 +36,9 @@
 #include <grp.h>
 #include <login_cap.h>
 
-#include "common/font.h"
-#include "common/spawn.h"
 #include "config/session.h"
 #include "labwc.h"
-#include "theme.h"
 #include "xbm/xbm.h"
-#include "menu/menu.h"
 
 #define SA_RESTART      0x0002  /* restart system call on signal return */
 #define XDG_DIR_PATTERN "/tmp/runtime.%u"
@@ -352,13 +348,6 @@ int main(int argc, const char *argv[]) {
     server_init(&server);
     server_start(&server);
 
-    struct theme theme = { 0 };
-    theme_init(&theme, server.renderer, rc.theme_name);
-    server.theme = &theme;
-
-    menu_init_rootmenu(&server);
-    menu_init_windowmenu(&server);
-
     ready = YES;
     wl_display_run(server.wl_display);
 
@@ -366,8 +355,5 @@ int main(int argc, const char *argv[]) {
     pthread_cancel(shellThread);
 
     server_finish(&server);
-    menu_finish();
-    theme_finish(&theme);
     rcxml_finish();
-    font_finish();
 }

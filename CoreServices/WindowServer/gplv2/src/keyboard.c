@@ -159,7 +159,9 @@ handle_compositor_keybindings(struct wl_listener *listener,
 				server->cycle_view =
 					desktop_cycle_view(server, server->cycle_view,
 						backwards ? LAB_CYCLE_DIR_BACKWARD : LAB_CYCLE_DIR_FORWARD);
+#ifndef __RAVYNOS__
 				osd_update(server);
+#endif
 			}
 		}
 		/* don't send any key events to clients when osd onscreen */

@@ -70,7 +70,9 @@ handle_commit(struct wl_listener *listener, void *data)
 			view->pending_move_resize.configure_serial = 0;
 		}
 	}
+#ifndef __RAVYNOS__
 	ssd_update_geometry(view, false);
+#endif
 	damage_view_part(view);
 }
 
@@ -98,7 +100,9 @@ handle_destroy(struct wl_listener *listener, void *data)
 	interactive_end(view);
 	wl_list_remove(&view->link);
 	wl_list_remove(&view->destroy.link);
+#ifndef __RAVYNOS__
 	ssd_destroy(view);
+#endif
 	free(view);
 }
 
@@ -201,7 +205,9 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	} else if (view->pending_move_resize.configure_serial == 0) {
 		view->x = geo.x;
 		view->y = geo.y;
+#ifndef __RAVYNOS__
 		ssd_update_geometry(view, false);
+#endif
 		damage_all_outputs(view->server);
 	}
 }
@@ -212,7 +218,9 @@ xdg_toplevel_view_move(struct view *view, double x, double y)
 {
 	view->x = x;
 	view->y = y;
+#ifndef __RAVYNOS__
 	ssd_update_geometry(view, false);
+#endif
 	damage_all_outputs(view->server);
 }
 
@@ -335,11 +343,15 @@ xdg_toplevel_view_map(struct view *view)
 			&view->xdg_surface->toplevel->requested;
 		foreign_toplevel_handle_create(view);
 
+#ifdef __RAVYNOS__
+		view->ssd.enabled = false;
+#else
 		view->ssd.enabled = has_ssd(view);
 		if (view->ssd.enabled) {
 			view->margin = ssd_thickness(view);
 			ssd_create(view);
 		}
+#endif
 
 		update_padding(view);
 		if (!view->fullscreen && requested->fullscreen) {

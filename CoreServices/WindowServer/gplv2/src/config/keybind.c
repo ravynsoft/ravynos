@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
+#ifndef __RAVYNOS__
 #include <glib.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +29,9 @@ parse_modifier(const char *symname)
 struct keybind *
 keybind_create(const char *keybind)
 {
+#ifdef __RAVYNOS__
+	return NULL;
+#else
 	struct keybind *k = calloc(1, sizeof(struct keybind));
 	xkb_keysym_t keysyms[MAX_KEYSYMS];
 	gchar **symnames = g_strsplit(keybind, "-", -1);
@@ -63,4 +68,5 @@ keybind_create(const char *keybind)
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));
 	wl_list_init(&k->actions);
 	return k;
+#endif // RAVYNOS
 }

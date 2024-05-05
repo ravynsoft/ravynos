@@ -9,17 +9,13 @@ APP=	        WindowServer
 SRCS=           WindowServer.m \
                 cursor.c \
                 key-state.c \
-                menu.c \
                 server.c \
                 resistance.c \
-                osd.c \
                 view.c \
                 xdg-popup.c \
-                ssd.c \
                 keyboard.c \
                 xdg.c \
                 seat.c \
-                theme.c \
                 subsurface.c \
                 view-impl.c \
                 layers.c \
@@ -30,7 +26,6 @@ SRCS=           WindowServer.m \
                 foreign.c \
                 dir.c \
                 nodename.c \
-                font.c \
                 spawn.c \
                 grab-file.c \
                 buf.c \
@@ -46,20 +41,21 @@ SRCS=           WindowServer.m \
                 keybind.c \
                 mousebind.c \
                 session.c \
-                desktop.c \
-                wlr-output-management-unstable-v1-protocol.c \
-                wlr-layer-shell-unstable-v1-protocol.c \
-                wlr-input-inhibitor-unstable-v1-protocol.c \
-                xdg-shell-protocol.c
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf \
-                ${MAKEOBJDIR}/libcairo.so.2
+                desktop.c 
+#wlr-input-inhibitor-unstable-v1-protocol.c
+#wlr-layer-shell-unstable-v1-protocol.c 
+#xdg-shell-protocol.c
+#wlr-output-management-unstable-v1-protocol.c 
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
 
 MK_WERROR=	no
 WARNS=	        1
 SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
-CFLAGS+=	${SYSROOT} -g -fobjc-arc -I${.CURDIR} \
+CFLAGS+=	${SYSROOT} -g -fobjc-arc -D__RAVYNOS__ -D__MACH__ \
+		-I${.CURDIR} \
                 -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
-		-I${.CURDIR}/wlroots/include -I${.CURDIR}/libdrm/include/drm \
+		-I${.CURDIR}/gplv2/cairo/src -I${MAKEOBJDIR}/gplv2/cairo \
+		-I${.CURDIR}/wlroots/include \
                 -I${SRCTOP}/Frameworks/AppKit/libxkbcommon/include \
                 -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
                 -I${MAKEOBJDIR}/wlroots -I${MAKEOBJDIR}/wlroots/protocol \
@@ -67,14 +63,22 @@ CFLAGS+=	${SYSROOT} -g -fobjc-arc -I${.CURDIR} \
                 -I${.CURDIR}/libinput/src -I${OBJTOP}/tmp/usr/include/libxml2 \
                 -I${SRCTOP}/Frameworks/OpenGL/wayland/src \
                 -I${OBJTOP}/Frameworks/OpenGL/wayland/src \
-                -I${OBJTOP}/Frameworks/Foundation/Headers \
-                -I${OBJTOP}/Frameworks/Foundation -lFoundation \
-                -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A
+		-I${SRCTOP}/Frameworks/OpenGL/libdrm/include/drm \
+                -I${OBJTOP}/Frameworks/Foundation/Headers 
+
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR}/seatd/libseat \
 		-L${MAKEOBJDIR}/libevdev -L${MAKEOBJDIR}/libinput \
 		-L${OBJTOP}/Frameworks/AppKit/libxkbcommon \
-		-L${MAKEOBJDIR}/wlroots -lwlroots -lm -linput -lpixman-1 \
-                -lobjc -lwayland -lSystem -lxkbcommon -lseat -lutil
+		-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Resources \
+		-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework \
+		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
+		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Resources \
+                -L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+                -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
+		-lFoundation -ldrm -lGLESv2 -lEGL -lgbm -lOpenGL -levdev \
+		-L${MAKEOBJDIR}/wlroots -lwlroots -lm -linput -lpixman-1 -lxml2 \
+                -lobjc -lwayland -lSystem -lxkbcommon -lseat -lutil \
+		-lepoll-shim -ludev-devd -ldevinfo -L${MAKEOBJDIR}/mtdev -lmtdev
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 .export SYSROOT
@@ -84,6 +88,7 @@ SUBDIR+=        libinput .WAIT
 SUBDIR+=        wayland-protocols
 SUBDIR+=        seatd
 SUBDIR+=        wlroots
+SUBDIR+=	gplv2/cairo
 
 make-obj-dirs:
 	mkdir -p ${MAKEOBJDIR}
@@ -91,13 +96,9 @@ make-obj-dirs:
 	mkdir -p ${MAKEOBJDIR}/${subdir}
 .endfor
 
-${MAKEOBJDIR}/libcairo.so.2:
-	${MAKE} -C ${.CURDIR}/gplv2/cairo build
-	cp -fv gplv2/cairo/libcairo.so.2 ${MAKEOBJDIR}
-
 .include <sys.mk>
 .include <bsd.subdir.mk>
 .include <rvn.app.mk>
 
 beforebuild: make-obj-dirs obj
-${OBJS}: ${MAKEOBJDIR}/libcairo.so.2
+

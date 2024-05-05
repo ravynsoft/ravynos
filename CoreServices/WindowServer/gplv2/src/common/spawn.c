@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#ifndef __RAVYNOS__
 #include <glib.h>
+#endif
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -14,6 +16,10 @@
 void
 spawn_async_no_shell(char const *command)
 {
+#ifdef __RAVYNOS__
+	/* ravynOS does not use this spawn feature */
+	char **argv = NULL;
+#else
 	GError *err = NULL;
 	gchar **argv = NULL;
 
@@ -26,6 +32,7 @@ spawn_async_no_shell(char const *command)
 		g_error_free(err);
 		return;
 	}
+#endif // RAVYNOS
 
 	/*
 	 * Avoid zombie processes by using a double-fork, whereby the
@@ -56,6 +63,8 @@ spawn_async_no_shell(char const *command)
 	}
 	waitpid(child, NULL, 0);
 out:
+#ifndef __RAVYNOS__
 	g_strfreev(argv);
+#endif
 }
 

@@ -42,7 +42,9 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	if (view->impl->configure) {
 		view->impl->configure(view, geo);
 	}
+#ifndef __RAVYNOS__
 	ssd_update_title(view);
+#endif
 	view_discover_output(view);
 }
 
@@ -184,6 +186,7 @@ view_apply_maximized_geometry(struct view *view)
 		box.width /= output->wlr_output->scale;
 	}
 
+#ifndef __RAVYNOS__
 	if (view->ssd.enabled) {
 		struct border border = ssd_thickness(view);
 		box.x += border.left;
@@ -191,6 +194,7 @@ view_apply_maximized_geometry(struct view *view)
 		box.width -= border.right + border.left;
 		box.height -= border.top + border.bottom;
 	}
+#endif
 	view_move_resize(view, box);
 }
 
@@ -252,6 +256,7 @@ view_toggle_maximize(struct view *view)
 void
 view_toggle_decorations(struct view *view)
 {
+#ifndef __RAVYNOS__
 	if (!view->fullscreen) {
 		view->ssd.enabled = !view->ssd.enabled;
 		ssd_update_geometry(view, true);
@@ -259,11 +264,13 @@ view_toggle_decorations(struct view *view)
 			view_apply_maximized_geometry(view);
 		}
 	}
+#endif
 }
 
 void
 view_set_decorations(struct view *view, bool decorations)
 {
+#ifndef __RAVYNOS__
 	if (view->ssd.enabled != decorations && !view->fullscreen) {
 		view->ssd.enabled = decorations;
 		ssd_update_geometry(view, true);
@@ -271,6 +278,7 @@ view_set_decorations(struct view *view, bool decorations)
 			view_apply_maximized_geometry(view);
 		}
 	}
+#endif
 }
 
 void
@@ -639,7 +647,9 @@ view_update_title(struct view *view)
 	if (!view->toplevel_handle || !title) {
 		return;
 	}
+#ifndef __RAVYNOS__
 	ssd_update_title(view);
+#endif
 	wlr_foreign_toplevel_handle_v1_set_title(view->toplevel_handle, title);
 	damage_all_outputs(view->server);
 }

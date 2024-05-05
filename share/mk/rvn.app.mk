@@ -1,4 +1,5 @@
-APP_DIR=${APP}.app
+MAKEOBJDIR?= .
+APP_DIR=${MAKEOBJDIR}/${APP}.app
 NO_ROOT=yes
 PROG=${APP_DIR}/Contents/ravynOS/${APP}
 MAN=

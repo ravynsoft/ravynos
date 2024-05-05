@@ -408,11 +408,13 @@ desktop_surface_and_view_at(struct server *server, double lx, double ly,
 			continue;
 		}
 
+#ifndef __RAVYNOS__
 		/* Now, let's deal with the server-side deco */
 		*view_area = ssd_at(view, lx, ly);
 		if (*view_area != LAB_SSD_NONE) {
 			return view;
 		}
+#endif
 	}
 
 	*surface = layer_surface_at(

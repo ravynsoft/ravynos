@@ -90,6 +90,7 @@ void action_list_free(struct wl_list *action_list) {
 static void
 show_menu(struct server *server, struct view *view, const char *menu_name)
 {
+#ifndef __RAVYNOS__
 	struct menu *menu = NULL;
 	bool force_menu_top_left = false;
 
@@ -128,6 +129,7 @@ show_menu(struct server *server, struct view *view, const char *menu_name)
 		y = server->seat.cursor->y;
 	}
 	menu_move(menu, x, y);
+#endif
 	damage_all_outputs(server);
 }
 
@@ -185,12 +187,16 @@ action(struct view *activator, struct server *server, struct wl_list *actions, u
 		case ACTION_TYPE_NEXT_WINDOW:
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_FORWARD);
+#ifndef __RAVYNOS__
 			osd_update(server);
+#endif
 			break;
 		case ACTION_TYPE_PREVIOUS_WINDOW:
 			server->cycle_view =
 				desktop_cycle_view(server, server->cycle_view, LAB_CYCLE_DIR_BACKWARD);
+#ifndef __RAVYNOS__
 			osd_update(server);
+#endif
 			break;
 		case ACTION_TYPE_RECONFIGURE:
 			/* Should be changed to signal() */

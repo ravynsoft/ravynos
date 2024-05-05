@@ -36,8 +36,10 @@ LDFLAGS+= -Lmesa/src/egl -Lmesa/src/mapi/es2api -Lmesa/src/mapi/es1api \
 
 _libinstall_hook:
 	echo ${FRAMEWORK} ${.TARGET}
+	rm -rf mesa/src/gallium/targets/dri/libgallium_dri.so*.p
+	cp -Rfv mesa/src/gallium/targets/dri/libgallium_dri.so \
+		${FRAMEWORK}.framework/Resources/
 .for i in \
-          src/gallium/targets/dri/libgallium_dri.so \
           src/gallium/targets/xa/libxatracker.so.2 \
           src/mapi/es2api/libGLESv2.so.2 \
           src/mapi/es1api/libGLESv1_CM.so.1 \
@@ -46,6 +48,7 @@ _libinstall_hook:
           src/egl/libEGL.so.1 
 	rm -rf mesa/${i}*.p
 	cp -Rfv mesa/${i}* ${FRAMEWORK}.framework/Resources/
+	ln -sfv ${i:T} ${FRAMEWORK}.framework/Resources/${i:T:R}
 .endfor
 	cp -fv libpciaccess/libpciaccess.so.0 ${FRAMEWORK}.framework/Resources/
 	cp -fv libOpenGL.so ${FRAMEWORK}.framework/Versions/Current/

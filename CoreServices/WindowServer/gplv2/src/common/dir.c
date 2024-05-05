@@ -5,7 +5,9 @@
  * Copyright Johan Malm 2020
  */
 
+#ifndef __RAVYNOS__
 #include <glib.h>
+#endif
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +78,7 @@ build_theme_path(struct ctx *ctx, char *prefix, const char *path)
 char *
 find_dir(struct ctx *ctx)
 {
+#ifndef __RAVYNOS__
 	char *debug = getenv("LABWC_DEBUG_DIR_CONFIG_AND_THEME");
 
 	for (int i = 0; ctx->dirs[i].path; i++) {
@@ -110,6 +113,7 @@ find_dir(struct ctx *ctx)
 			g_strfreev(prefixes);
 		}
 	}
+#endif // RAVYNOS
 	/* no directory was found */
 	ctx->buf[0] = '\0';
 	return ctx->buf;

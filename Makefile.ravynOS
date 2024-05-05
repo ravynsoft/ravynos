@@ -24,7 +24,8 @@ SUBDIR+=        Library
 .endif
 .if ${WITHOUT_FRAMEWORKS} == 0
 # We need the installed frameworks to correctly link CoreServices and applications
-SUBDIR+=	Frameworks .WAIT installravynos
+#SUBDIR+=	Frameworks .WAIT installravynos
+SUBDIR+=	Frameworks .WAIT 
 .endif
 .if ${WITHOUT_CORESERVICES} == 0
 SUBDIR+=        CoreServices

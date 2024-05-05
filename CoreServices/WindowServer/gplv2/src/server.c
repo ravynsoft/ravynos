@@ -31,6 +31,7 @@ reload_config_and_theme(void)
 	/* TODO: use rc.config_path */
 	rcxml_finish();
 	rcxml_read(NULL);
+#ifndef __RAVYNOS__
 	theme_finish(g_server->theme);
 	theme_init(g_server->theme, g_server->renderer, rc.theme_name);
 
@@ -44,6 +45,7 @@ reload_config_and_theme(void)
 	}
 
 	menu_reconfigure(g_server, g_server->rootmenu);
+#endif
 	seat_reconfigure(g_server);
 	damage_all_outputs(g_server);
 }

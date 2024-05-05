@@ -581,6 +581,7 @@ render_deco(struct view *view, struct output *output,
 		}
 	}
 
+#ifndef __RAVYNOS__
 	/* button background */
 	struct wlr_cursor *cur = view->server->seat.cursor;
 	enum ssd_part_type type = ssd_at(view, cur->x, cur->y);
@@ -620,6 +621,7 @@ render_deco(struct view *view, struct output *output,
 		render_icon(output, output_damage, &box,
 			theme->xbm_menu_inactive_unpressed);
 	}
+#endif
 }
 
 static void

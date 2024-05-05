@@ -155,6 +155,9 @@ SRCS+=  types/wlr_compositor.c \
         render/allocator/drm_dumb.c \
         render/pixman/renderer.c \
         render/pixman/pixel_format.c \
+	backend/headless/backend.c \
+	backend/headless/output.c \
+	backend/headless/input_device.c \
         backend/wayland/tablet_v2.c \
         backend/wayland/seat.c \
         backend/wayland/backend.c \
