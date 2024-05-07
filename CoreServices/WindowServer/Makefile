@@ -42,10 +42,6 @@ SRCS=           WindowServer.m \
                 mousebind.c \
                 session.c \
                 desktop.c 
-#wlr-input-inhibitor-unstable-v1-protocol.c
-#wlr-layer-shell-unstable-v1-protocol.c 
-#xdg-shell-protocol.c
-#wlr-output-management-unstable-v1-protocol.c 
 RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
 
 MK_WERROR=	no
@@ -91,7 +87,7 @@ SUBDIR+=        wlroots
 SUBDIR+=	gplv2/cairo
 SUBDIR+=	mtdev
 
-make-obj-dirs:
+make-obj-dirs: .EXEC
 	mkdir -p ${MAKEOBJDIR}
 .for subdir in ${SUBDIR}
 	mkdir -p ${MAKEOBJDIR}/${subdir}

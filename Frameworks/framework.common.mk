@@ -7,7 +7,7 @@ OBJCFLAGS= -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi -fPIC \
 	   -Wno-missing-method-return-type -Wno-macro-redefined
 FMWK_CFLAGS := ${SYSROOT} ${OPTIMIZE} ${STD_DEFS} \
 	 ${OBJCFLAGS} -I${SRCTOP}/Frameworks \
-	 -I${SRCTOP}/sys -I${SRCTOP}/include
+	 -I${SRCTOP}/sys -I${SRCTOP}/include -I${OBJTOP}/tmp/usr/include
 FMWK_CXXFLAGS := -nostdinc -nobuiltininc ${OPTIMIZE} ${STD_DEFS} \
 	 ${OBJCFLAGS} -isysroot${OBJTOP}/tmp \
 	 -cxx-isystem${OBJTOP}/tmp/usr/include/c++/v1 \
