@@ -7,7 +7,6 @@ SUBDIR=	${_atf} \
 	${_blacklistd-helper} \
 	${_comsat} \
 	${_dma} \
-	dyld \
 	flua \
 	getty \
 	launchproxy \
