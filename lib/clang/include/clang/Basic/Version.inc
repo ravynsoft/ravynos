@@ -5,4 +5,4 @@
 #define	CLANG_VERSION_MINOR		1
 #define	CLANG_VERSION_PATCHLEVEL	5
 
-#define	CLANG_VENDOR			"ravynOS"
+#define	CLANG_VENDOR			"ravynOS "

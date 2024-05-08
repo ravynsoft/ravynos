@@ -61,7 +61,7 @@ std::string getClangVendor() {
 #ifdef CLANG_VENDOR
   return CLANG_VENDOR;
 #else
-  return " ";
+  return "";
 #endif
 }
 

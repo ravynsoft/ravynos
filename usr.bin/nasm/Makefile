@@ -22,7 +22,9 @@ all: ${PROG}
 copyfile:
 	mkdir -p asm include
 	cp -fv ${.CURDIR}/asm/warnings.c asm/
-	cp -fv ${.CURDIR}/autogen.sh .
+	echo '#!/bin/sh' > autogen.sh
+	echo 'exit 0' >> autogen.sh
+	chmod +x autogen.sh
 	cp -fv ${.CURDIR}/configure .
 
 ${PROG}: gnu_configure .WAIT copyfile gnu_build .WAIT gnu_install
