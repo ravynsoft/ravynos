@@ -691,7 +691,6 @@ PACKAGE=	kernel
 #	This stage installs a previously built world.
 #
 
-CFLAGS+= -D__RAVYNOS__ -D__MACH__
 BOOTSTRAPPING?=	0
 # Keep these in sync
 MINIMUM_SUPPORTED_OSREL?= 1104001

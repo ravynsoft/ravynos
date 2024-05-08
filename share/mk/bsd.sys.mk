@@ -509,6 +509,8 @@ ${_tgt}: ${META_DEPS}
 .endfor
 .endif
 
+CFLAGS+= -D__RAVYNOS__ -D__MACH__
+
 # we are generally the last makefile read
 CFLAGS+= ${CFLAGS_LAST}
 CXXFLAGS+= ${CXXFLAGS_LAST}
