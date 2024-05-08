@@ -1431,7 +1431,7 @@ mixer_oss_mixerinfo(struct cdev *i_dev, oss_mixerinfo *mi)
 {
 	struct snddev_info *d;
 	struct snd_mixer *m;
-	int nmix, i;
+	int i;
 
 	/*
 	 * If probing the device handling the ioctl, make sure it's a mixer
@@ -1442,7 +1442,6 @@ mixer_oss_mixerinfo(struct cdev *i_dev, oss_mixerinfo *mi)
 
 	d = NULL;
 	m = NULL;
-	nmix = 0;
 
 	/*
 	 * There's a 1:1 relationship between mixers and PCM devices, so
@@ -1462,7 +1461,7 @@ mixer_oss_mixerinfo(struct cdev *i_dev, oss_mixerinfo *mi)
 
 		if (d->mixer_dev != NULL && d->mixer_dev->si_drv1 != NULL &&
 		    ((mi->dev == -1 && d->mixer_dev == i_dev) ||
-		    mi->dev == nmix)) {
+		    mi->dev == i)) {
 			m = d->mixer_dev->si_drv1;
 			mtx_lock(m->lock);
 
@@ -1474,7 +1473,7 @@ mixer_oss_mixerinfo(struct cdev *i_dev, oss_mixerinfo *mi)
 			 *   sure to unlock when existing.
 			 */
 			bzero((void *)mi, sizeof(*mi));
-			mi->dev = nmix;
+			mi->dev = i;
 			snprintf(mi->id, sizeof(mi->id), "mixer%d", i);
 			strlcpy(mi->name, m->name, sizeof(mi->name));
 			mi->modify_counter = m->modify_counter;
@@ -1517,6 +1516,7 @@ mixer_oss_mixerinfo(struct cdev *i_dev, oss_mixerinfo *mi)
 			 * Mixer extensions currently aren't supported, so
 			 * leave @sa oss_mixerinfo::nrext blank for now.
 			 */
+
 			/**
 			 * @todo Fill in @sa oss_mixerinfo::priority (requires
 			 *       touching drivers?)
@@ -1530,16 +1530,13 @@ mixer_oss_mixerinfo(struct cdev *i_dev, oss_mixerinfo *mi)
 			 * default mixer. Other devices use values 1 to 9
 			 * depending on the estimated probability of being the
 			 * default device.
-			 *
-			 * XXX Described by Hannu@4Front, but not found in
-			 *     soundcard.h.
-			strlcpy(mi->devnode, devtoname(d->mixer_dev),
-			sizeof(mi->devnode));
-			mi->legacy_device = i;
 			 */
+
+			snprintf(mi->devnode, sizeof(mi->devnode), "/dev/mixer%d", i);
+			mi->legacy_device = i;
+
 			mtx_unlock(m->lock);
-		} else
-			++nmix;
+		}
 
 		PCM_UNLOCK(d);
 

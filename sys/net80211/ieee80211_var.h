@@ -163,7 +163,9 @@ struct ieee80211com {
 	uint32_t		ic_caps;	/* capabilities */
 	uint32_t		ic_htcaps;	/* HT capabilities */
 	uint32_t		ic_htextcaps;	/* HT extended capabilities */
-	uint32_t		ic_cryptocaps;	/* crypto capabilities */
+				/* driver-supported software crypto caps */
+	uint32_t		ic_sw_cryptocaps;
+	uint32_t		ic_cryptocaps;	/* hardware crypto caps */
 						/* set of mode capabilities */
 	uint8_t			ic_modecaps[IEEE80211_MODE_BYTES];
 	uint8_t			ic_promisc;	/* vap's needing promisc mode */
@@ -749,6 +751,10 @@ MALLOC_DECLARE(M_80211_VAP);
 int	ic_printf(struct ieee80211com *, const char *, ...) __printflike(2, 3);
 void	ieee80211_ifattach(struct ieee80211com *);
 void	ieee80211_ifdetach(struct ieee80211com *);
+void	ieee80211_set_software_ciphers(struct ieee80211com *,
+	    uint32_t cipher_suite);
+void	ieee80211_set_hardware_ciphers(struct ieee80211com *,
+	    uint32_t cipher_suite);
 int	ieee80211_vap_setup(struct ieee80211com *, struct ieee80211vap *,
 		const char name[IFNAMSIZ], int unit,
 		enum ieee80211_opmode opmode, int flags,
