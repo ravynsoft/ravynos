@@ -26,7 +26,6 @@ LIBC_ARCH=${MACHINE_CPUARCH}
 # To include legacy CSRG SCCS ID strings, remove -DNO__SCCSID from CFLAGS.
 # To include RCS ID strings from other BSD projects, remove -DNO__RCSID from CFLAGS.
 CFLAGS+=-DNO__SCCSID -DNO__RCSID
-CFLAGS+=-D__MACH__ -D__RAVYNOS__
 
 LIB=c
 SHLIB_MAJOR= 7

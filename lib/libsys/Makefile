@@ -28,7 +28,6 @@ INCS=	libsys.h _libsys.h
 CFLAGS+=-I${LIBSYS_SRCTOP}/include -I${LIBC_SRCTOP}/include
 CFLAGS+=-I${LIBSYS_SRCTOP}/${LIBC_ARCH}
 CFLAGS+=-I${LIBC_SRCTOP}/${LIBC_ARCH}
-CFLAGS+=-D__MACH__ -D__RAVYNOS__
 
 .PATH: ${LIBC_SRCTOP}/string
 SRCS+=	memcpy.c memset.c strlcpy.c
