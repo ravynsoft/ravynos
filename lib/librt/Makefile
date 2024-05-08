@@ -10,7 +10,6 @@ CFLAGS+=-I${SRCTOP}/lib/libc/include -I${.CURDIR}
 CFLAGS+=-fexceptions
 .endif
 CFLAGS+=-Wall
-CFLAGS+=-D__MACH__ -D__RAVYNOS__
 LIBADD=	pthread
 
 WARNS?=	2
