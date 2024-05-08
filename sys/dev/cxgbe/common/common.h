@@ -252,7 +252,6 @@ struct tp_params {
 	unsigned int tre;            /* log2 of core clocks per TP tick */
 	unsigned int dack_re;        /* DACK timer resolution */
 	unsigned int la_mask;        /* what events are recorded by TP LA */
-	unsigned short tx_modq[MAX_NCHAN];  /* channel to modulation queue map */
 
 	uint16_t filter_mode;
 	uint16_t filter_mask;	/* Used by TOE and hashfilters */
@@ -272,6 +271,9 @@ struct tp_params {
 	int8_t matchtype_shift;
 	int8_t frag_shift;
 };
+
+/* Use same modulation queue as the tx channel. */
+#define TX_MODQ(tx_chan) (tx_chan)
 
 struct vpd_params {
 	unsigned int cclk;
@@ -313,6 +315,7 @@ struct chip_params {
 	u32 sge_fl_db;
 	u16 mps_tcam_size;
 	u16 rss_nentries;
+	u16 cim_la_size;
 };
 
 /* VF-only parameters. */
@@ -399,7 +402,9 @@ struct adapter_params {
 	unsigned int max_ordird_qp;
 	unsigned int max_ird_adapter;
 
-	uint32_t mps_bg_map;	/* rx buffer group map for all ports (upto 4) */
+	/* These values are for all ports (8b/port, upto 4 ports) */
+	uint32_t mps_bg_map;	/* MPS rx buffer group map */
+	uint32_t tp_ch_map;	/* TPCHMAP from firmware */
 
 	bool ulptx_memwrite_dsgl;	/* use of T5 DSGL allowed */
 	bool fr_nsmr_tpte_wr_support;	/* FW support for FR_NSMR_TPTE_WR */
@@ -615,7 +620,6 @@ struct fw_filter_wr;
 
 void t4_intr_enable(struct adapter *adapter);
 void t4_intr_disable(struct adapter *adapter);
-void t4_intr_clear(struct adapter *adapter);
 bool t4_slow_intr_handler(struct adapter *adapter, bool verbose);
 
 int t4_hash_mac_addr(const u8 *addr);
@@ -719,6 +723,7 @@ int t4_set_vf_mac(struct adapter *adapter, unsigned int pf, unsigned int vf,
 unsigned int t4_get_regs_len(struct adapter *adapter);
 void t4_get_regs(struct adapter *adap, u8 *buf, size_t buf_size);
 
+u32 t4_port_reg(struct adapter *adap, u8 port, u32 reg);
 const char *t4_get_port_type_description(enum fw_port_type port_type);
 void t4_get_port_stats(struct adapter *adap, int idx, struct port_stats *p);
 void t4_get_port_stats_offset(struct adapter *adap, int idx,

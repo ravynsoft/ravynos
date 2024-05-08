@@ -25,7 +25,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <stand.h>
 #include "bootstrap.h"
 
@@ -104,6 +103,7 @@ interp_init(void)
 	struct interp_lua_softc	*softc = &lua_softc;
 	const char *filename;
 	const luaL_Reg *lib;
+	lua_init_md_t **fnpp;
 
 	TSENTER();
 
@@ -123,7 +123,12 @@ interp_init(void)
 		lua_pop(luap, 1);  /* remove lib */
 	}
 
-	filename = LOADER_LUA;
+	LUA_FOREACH_SET(fnpp)
+	    (*fnpp)(luap);
+
+	filename = getenv("loader_lua");
+	if (filename == NULL)
+		filename = LOADER_LUA;
 	if (interp_include(filename) != 0) {
 		const char *errstr = lua_tostring(luap, -1);
 		errstr = errstr == NULL ? "unknown" : errstr;

@@ -1056,9 +1056,20 @@ zpool_read_label(int fd, nvlist_t **config, int *num_labels)
 				case EINVAL:
 					break;
 				case EINPROGRESS:
-					// This shouldn't be possible to
-					// encounter, die if we do.
+					/*
+					 * This shouldn't be possible to
+					 * encounter, die if we do.
+					 */
 					ASSERT(B_FALSE);
+					zfs_fallthrough;
+				case EREMOTEIO:
+					/*
+					 * May be returned by an NVMe device
+					 * which is visible in /dev/ but due
+					 * to a low-level format change, or
+					 * other error, needs to be rescanned.
+					 * Try the slow method.
+					 */
 					zfs_fallthrough;
 				case EOPNOTSUPP:
 				case ENOSYS:
@@ -1210,13 +1221,26 @@ label_paths(libpc_handle_t *hdl, nvlist_t *label, const char **path,
 	nvlist_t *nvroot;
 	uint64_t pool_guid;
 	uint64_t vdev_guid;
+	uint64_t state;
 
 	*path = NULL;
 	*devid = NULL;
+	if (nvlist_lookup_uint64(label, ZPOOL_CONFIG_GUID, &vdev_guid) != 0)
+		return (ENOENT);
+
+	/*
+	 * In case of spare or l2cache, we directly return path/devid from the
+	 * label.
+	 */
+	if (!(nvlist_lookup_uint64(label, ZPOOL_CONFIG_POOL_STATE, &state)) &&
+	    (state == POOL_STATE_SPARE || state == POOL_STATE_L2CACHE)) {
+		(void) nvlist_lookup_string(label, ZPOOL_CONFIG_PATH, path);
+		(void) nvlist_lookup_string(label, ZPOOL_CONFIG_DEVID, devid);
+		return (0);
+	}
 
 	if (nvlist_lookup_nvlist(label, ZPOOL_CONFIG_VDEV_TREE, &nvroot) ||
-	    nvlist_lookup_uint64(label, ZPOOL_CONFIG_POOL_GUID, &pool_guid) ||
-	    nvlist_lookup_uint64(label, ZPOOL_CONFIG_GUID, &vdev_guid))
+	    nvlist_lookup_uint64(label, ZPOOL_CONFIG_POOL_GUID, &pool_guid))
 		return (ENOENT);
 
 	return (label_paths_impl(hdl, nvroot, pool_guid, vdev_guid, path,
@@ -1266,7 +1290,7 @@ zpool_find_import_scan_dir(libpc_handle_t *hdl, pthread_mutex_t *lock,
 		if (error == ENOENT)
 			return (0);
 
-		zutil_error_aux(hdl, "%s", strerror(error));
+		zutil_error_aux(hdl, "%s", zfs_strerror(error));
 		(void) zutil_error_fmt(hdl, LPC_BADPATH, dgettext(TEXT_DOMAIN,
 		    "cannot resolve path '%s'"), dir);
 		return (error);
@@ -1275,7 +1299,7 @@ zpool_find_import_scan_dir(libpc_handle_t *hdl, pthread_mutex_t *lock,
 	dirp = opendir(path);
 	if (dirp == NULL) {
 		error = errno;
-		zutil_error_aux(hdl, "%s", strerror(error));
+		zutil_error_aux(hdl, "%s", zfs_strerror(error));
 		(void) zutil_error_fmt(hdl, LPC_BADPATH, dgettext(TEXT_DOMAIN,
 		    "cannot open '%s'"), path);
 		return (error);
@@ -1337,7 +1361,7 @@ zpool_find_import_scan_path(libpc_handle_t *hdl, pthread_mutex_t *lock,
 			goto out;
 		}
 
-		zutil_error_aux(hdl, "%s", strerror(error));
+		zutil_error_aux(hdl, "%s", zfs_strerror(error));
 		(void) zutil_error_fmt(hdl, LPC_BADPATH, dgettext(TEXT_DOMAIN,
 		    "cannot resolve path '%s'"), dir);
 		goto out;
@@ -1375,7 +1399,7 @@ zpool_find_import_scan(libpc_handle_t *hdl, pthread_mutex_t *lock,
 			if (error == ENOENT)
 				continue;
 
-			zutil_error_aux(hdl, "%s", strerror(error));
+			zutil_error_aux(hdl, "%s", zfs_strerror(error));
 			(void) zutil_error_fmt(hdl, LPC_BADPATH, dgettext(
 			    TEXT_DOMAIN, "cannot resolve path '%s'"), dir[i]);
 			goto error;
@@ -1605,14 +1629,14 @@ zpool_find_import_cached(libpc_handle_t *hdl, importargs_t *iarg)
 	verify(iarg->poolname == NULL || iarg->guid == 0);
 
 	if ((fd = open(iarg->cachefile, O_RDONLY | O_CLOEXEC)) < 0) {
-		zutil_error_aux(hdl, "%s", strerror(errno));
+		zutil_error_aux(hdl, "%s", zfs_strerror(errno));
 		(void) zutil_error(hdl, LPC_BADCACHE, dgettext(TEXT_DOMAIN,
 		    "failed to open cache file"));
 		return (NULL);
 	}
 
 	if (fstat64(fd, &statbuf) != 0) {
-		zutil_error_aux(hdl, "%s", strerror(errno));
+		zutil_error_aux(hdl, "%s", zfs_strerror(errno));
 		(void) close(fd);
 		(void) zutil_error(hdl, LPC_BADCACHE, dgettext(TEXT_DOMAIN,
 		    "failed to get size of cache file"));

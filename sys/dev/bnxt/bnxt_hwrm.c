@@ -550,7 +550,7 @@ bnxt_hwrm_passthrough(struct bnxt_softc *softc, void *req, uint32_t req_len,
 	input->resp_addr = htole64(softc->hwrm_cmd_resp.idi_paddr);
 	BNXT_HWRM_LOCK(softc);
 	old_timeo = softc->hwrm_cmd_timeo;
-	if (input->req_type == HWRM_NVM_INSTALL_UPDATE) 
+	if (input->req_type == HWRM_NVM_INSTALL_UPDATE)
 		softc->hwrm_cmd_timeo = BNXT_NVM_TIMEO;
 	else
 		softc->hwrm_cmd_timeo = max(app_timeout, softc->hwrm_cmd_timeo);
@@ -694,7 +694,8 @@ bnxt_hwrm_ver_get(struct bnxt_softc *softc)
 	softc->hwrm_cmd_timeo = le16toh(resp->def_req_timeout);
 	if (!softc->hwrm_cmd_timeo)
 		softc->hwrm_cmd_timeo = DFLT_HWRM_CMD_TIMEOUT;
-	
+
+
 	dev_caps_cfg = le32toh(resp->dev_caps_cfg);
 	if ((dev_caps_cfg & HWRM_VER_GET_OUTPUT_DEV_CAPS_CFG_SHORT_CMD_SUPPORTED) &&
 	    (dev_caps_cfg & HWRM_VER_GET_OUTPUT_DEV_CAPS_CFG_SHORT_CMD_REQUIRED))
@@ -777,6 +778,9 @@ bnxt_hwrm_func_qcaps(struct bnxt_softc *softc)
 	if (resp->flags &
 	    htole32(HWRM_FUNC_QCAPS_OUTPUT_FLAGS_WOL_MAGICPKT_SUPPORTED))
 		softc->flags |= BNXT_FLAG_WOL_CAP;
+	if (resp->flags &
+	    htole32(HWRM_FUNC_QCAPS_OUTPUT_FLAGS_EXT_STATS_SUPPORTED))
+		softc->flags |= BNXT_FLAG_FW_CAP_EXT_STATS;
 
 	func->fw_fid = le16toh(resp->fid);
 	memcpy(func->mac_addr, resp->mac_address, ETHER_ADDR_LEN);
@@ -853,20 +857,40 @@ static void
 bnxt_hwrm_set_link_common(struct bnxt_softc *softc,
     struct hwrm_port_phy_cfg_input *req)
 {
+	struct bnxt_link_info *link_info = &softc->link_info;
 	uint8_t autoneg = softc->link_info.autoneg;
 	uint16_t fw_link_speed = softc->link_info.req_link_speed;
 
 	if (autoneg & BNXT_AUTONEG_SPEED) {
-		req->auto_mode |=
-		    HWRM_PORT_PHY_CFG_INPUT_AUTO_MODE_ALL_SPEEDS;
+		uint8_t phy_type = get_phy_type(softc);
+
+		if (phy_type == HWRM_PORT_PHY_QCFG_OUTPUT_PHY_TYPE_1G_BASET ||
+		    phy_type == HWRM_PORT_PHY_QCFG_OUTPUT_PHY_TYPE_BASET ||
+		    phy_type == HWRM_PORT_PHY_QCFG_OUTPUT_PHY_TYPE_BASETE) {
+
+			req->auto_mode |= htole32(HWRM_PORT_PHY_CFG_INPUT_AUTO_MODE_SPEED_MASK);
+			if (link_info->advertising) {
+				req->enables |= htole32(HWRM_PORT_PHY_CFG_INPUT_ENABLES_AUTO_LINK_SPEED_MASK);
+				req->auto_link_speed_mask = htole16(link_info->advertising);
+			}
+		} else {
+			req->auto_mode |= HWRM_PORT_PHY_CFG_INPUT_AUTO_MODE_ALL_SPEEDS;
+		}
 
 		req->enables |=
 		    htole32(HWRM_PORT_PHY_CFG_INPUT_ENABLES_AUTO_MODE);
 		req->flags |=
 		    htole32(HWRM_PORT_PHY_CFG_INPUT_FLAGS_RESTART_AUTONEG);
 	} else {
-		req->force_link_speed = htole16(fw_link_speed);
 		req->flags |= htole32(HWRM_PORT_PHY_CFG_INPUT_FLAGS_FORCE);
+
+		if (link_info->force_pam4_speed_set_by_user) {
+			req->force_pam4_link_speed = htole16(fw_link_speed);
+			req->enables |= htole32(HWRM_PORT_PHY_CFG_INPUT_ENABLES_FORCE_PAM4_LINK_SPEED);
+			link_info->force_pam4_speed_set_by_user = false;
+		} else {
+			req->force_link_speed = htole16(fw_link_speed);
+		}
 	}
 
 	/* tell chimp that the setting takes effect immediately */
@@ -1406,6 +1430,26 @@ bnxt_hwrm_port_qstats(struct bnxt_softc *softc)
 	BNXT_HWRM_UNLOCK(softc);
 
 	return rc;
+}
+
+void
+bnxt_hwrm_port_qstats_ext(struct bnxt_softc *softc)
+{
+	struct hwrm_port_qstats_ext_input req = {0};
+
+	bnxt_hwrm_cmd_hdr_init(softc, &req, HWRM_PORT_QSTATS_EXT);
+
+	req.port_id = htole16(softc->pf.port_id);
+	req.tx_stat_size = htole16(sizeof(struct tx_port_stats_ext));
+	req.rx_stat_size = htole16(sizeof(struct rx_port_stats_ext));
+	req.rx_stat_host_addr = htole64(softc->hw_rx_port_stats_ext.idi_paddr);
+	req.tx_stat_host_addr = htole64(softc->hw_tx_port_stats_ext.idi_paddr);
+
+	BNXT_HWRM_LOCK(softc);
+	_hwrm_send_message(softc, &req, sizeof(req));
+	BNXT_HWRM_UNLOCK(softc);
+
+	return;
 }
 
 int
@@ -2160,6 +2204,44 @@ bnxt_hwrm_fw_set_time(struct bnxt_softc *softc, uint16_t year, uint8_t month,
 	return hwrm_send_message(softc, &req, sizeof(req));
 }
 
+int bnxt_read_sfp_module_eeprom_info(struct bnxt_softc *softc, uint16_t i2c_addr,
+    uint16_t page_number, uint8_t bank,bool bank_sel_en, uint16_t start_addr,
+    uint16_t data_length, uint8_t *buf)
+{
+	struct hwrm_port_phy_i2c_read_output *output =
+			(void *)softc->hwrm_cmd_resp.idi_vaddr;
+	struct hwrm_port_phy_i2c_read_input req = {0};
+	int rc = 0, byte_offset = 0;
+
+	BNXT_HWRM_LOCK(softc);
+	bnxt_hwrm_cmd_hdr_init(softc, &req, HWRM_PORT_PHY_I2C_READ);
+
+	req.i2c_slave_addr = i2c_addr;
+	req.page_number = htole16(page_number);
+	req.port_id = htole16(softc->pf.port_id);
+	do {
+		uint16_t xfer_size;
+
+		xfer_size = min_t(uint16_t, data_length, BNXT_MAX_PHY_I2C_RESP_SIZE);
+		data_length -= xfer_size;
+		req.page_offset = htole16(start_addr + byte_offset);
+		req.data_length = xfer_size;
+		req.bank_number = bank;
+		req.enables = htole32((start_addr + byte_offset ?
+				HWRM_PORT_PHY_I2C_READ_INPUT_ENABLES_PAGE_OFFSET : 0) |
+				(bank_sel_en ?
+				HWRM_PORT_PHY_I2C_READ_INPUT_ENABLES_BANK_NUMBER : 0));
+		rc = hwrm_send_message(softc, &req, sizeof(req));
+		if (!rc)
+			memcpy(buf + byte_offset, output->data, xfer_size);
+		byte_offset += xfer_size;
+	} while (!rc && data_length > 0);
+
+	BNXT_HWRM_UNLOCK(softc);
+
+	return rc;
+}
+
 int
 bnxt_hwrm_port_phy_qcfg(struct bnxt_softc *softc)
 {
@@ -2176,6 +2258,7 @@ bnxt_hwrm_port_phy_qcfg(struct bnxt_softc *softc)
 	if (rc)
 		goto exit;
 
+	memcpy(&link_info->phy_qcfg_resp, resp, sizeof(*resp));
 	link_info->phy_link_status = resp->link;
 	link_info->duplex =  resp->duplex_cfg;
 	link_info->auto_mode = resp->auto_mode;
@@ -2221,7 +2304,7 @@ bnxt_hwrm_port_phy_qcfg(struct bnxt_softc *softc)
 	else
 		link_info->link_speed = 0;
 	link_info->force_link_speed = le16toh(resp->force_link_speed);
-	link_info->auto_link_speed = le16toh(resp->auto_link_speed);
+	link_info->auto_link_speeds = le16toh(resp->auto_link_speed);
 	link_info->support_speeds = le16toh(resp->support_speeds);
 	link_info->auto_link_speeds = le16toh(resp->auto_link_speed_mask);
 	link_info->preemphasis = le32toh(resp->preemphasis);
@@ -2240,6 +2323,73 @@ bnxt_hwrm_port_phy_qcfg(struct bnxt_softc *softc)
 	link_info->transceiver = resp->xcvr_pkg_type;
 	link_info->phy_addr = resp->eee_config_phy_addr &
 	    HWRM_PORT_PHY_QCFG_OUTPUT_PHY_ADDR_MASK;
+	link_info->module_status = resp->module_status;
+	link_info->support_pam4_speeds = le16toh(resp->support_pam4_speeds);
+	link_info->auto_pam4_link_speeds = le16toh(resp->auto_pam4_link_speed_mask);
+	link_info->force_pam4_link_speed = le16toh(resp->force_pam4_link_speed);
+
+	if (softc->hwrm_spec_code >= 0x10504)
+		link_info->active_fec_sig_mode = resp->active_fec_signal_mode;
+
+exit:
+	BNXT_HWRM_UNLOCK(softc);
+	return rc;
+}
+
+static bool
+bnxt_phy_qcaps_no_speed(struct hwrm_port_phy_qcaps_output *resp)
+{
+	if (!resp->supported_speeds_auto_mode &&
+	    !resp->supported_speeds_force_mode &&
+	    !resp->supported_pam4_speeds_auto_mode &&
+	    !resp->supported_pam4_speeds_force_mode)
+		return true;
+
+	return false;
+}
+
+int bnxt_hwrm_phy_qcaps(struct bnxt_softc *softc)
+{
+	struct bnxt_link_info *link_info = &softc->link_info;
+	struct hwrm_port_phy_qcaps_output *resp =
+	    (void *)softc->hwrm_cmd_resp.idi_vaddr;
+	struct hwrm_port_phy_qcaps_input req = {};
+	int rc;
+
+	if (softc->hwrm_spec_code < 0x10201)
+		return 0;
+
+	bnxt_hwrm_cmd_hdr_init(softc, &req, HWRM_PORT_PHY_QCAPS);
+
+	BNXT_HWRM_LOCK(softc);
+	rc = _hwrm_send_message(softc, &req, sizeof(req));
+	if (rc)
+		goto exit;
+
+	if (softc->hwrm_spec_code >= 0x10a01) {
+		if (bnxt_phy_qcaps_no_speed(resp)) {
+			link_info->phy_state = BNXT_PHY_STATE_DISABLED;
+			device_printf(softc->dev, "Ethernet link disabled\n");
+		} else if (link_info->phy_state == BNXT_PHY_STATE_DISABLED) {
+			link_info->phy_state = BNXT_PHY_STATE_ENABLED;
+			device_printf(softc->dev, "Ethernet link enabled\n");
+			/* Phy re-enabled, reprobe the speeds */
+			link_info->support_auto_speeds = 0;
+			link_info->support_pam4_auto_speeds = 0;
+		}
+	}
+	if (resp->supported_speeds_auto_mode)
+		link_info->support_auto_speeds =
+			le16toh(resp->supported_speeds_auto_mode);
+	if (resp->supported_speeds_force_mode)
+		link_info->support_force_speeds =
+			le16toh(resp->supported_speeds_force_mode);
+	if (resp->supported_pam4_speeds_auto_mode)
+		link_info->support_pam4_auto_speeds =
+			le16toh(resp->supported_pam4_speeds_auto_mode);
+	if (resp->supported_pam4_speeds_force_mode)
+		link_info->support_pam4_force_speeds =
+			le16toh(resp->supported_pam4_speeds_force_mode);
 
 exit:
 	BNXT_HWRM_UNLOCK(softc);

@@ -436,6 +436,7 @@ MIASM =  \
 	timerfd_create.o \
 	timerfd_gettime.o \
 	timerfd_settime.o \
+	kcmp.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
 	_kernelrpc_mach_vm_deallocate_trap.o \
 	_kernelrpc_mach_vm_protect_trap.o \

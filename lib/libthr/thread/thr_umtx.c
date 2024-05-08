@@ -26,19 +26,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include "thr_private.h"
 #include "thr_umtx.h"
-
-#ifndef HAS__UMTX_OP_ERR
-int _umtx_op_err(void *obj, int op, u_long val, void *uaddr, void *uaddr2)
-{
-
-	if (_umtx_op(obj, op, val, uaddr, uaddr2) == -1)
-		return (errno);
-	return (0);
-}
-#endif
 
 void
 _thr_umutex_init(struct umutex *mtx)
@@ -190,7 +179,7 @@ __thr_umutex_set_ceiling(struct umutex *mtx, uint32_t ceiling,
 }
 
 int
-_thr_umtx_wait(volatile long *mtx, long id, const struct timespec *timeout)
+_thr_umtx_wait(volatile int *mtx, long id, const struct timespec *timeout)
 {
 
 	if (timeout && (timeout->tv_sec < 0 || (timeout->tv_sec == 0 &&

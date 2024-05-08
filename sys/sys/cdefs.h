@@ -326,6 +326,17 @@
 #if __GNUC_PREREQ__(3, 4)
 #define	__fastcall	__attribute__((__fastcall__))
 #define	__result_use_check	__attribute__((__warn_unused_result__))
+#ifdef __clang__
+/*
+ * clang and gcc have different semantics for __warn_unused_result__: the latter
+ * does not permit the use of a void cast to suppress the warning.  Use
+ * __result_use_or_ignore_check in places where a void cast is acceptable.
+ * This can be implemented by [[nodiscard]] from C23.
+ */
+#define	__result_use_or_ignore_check	__result_use_check
+#else
+#define	__result_use_or_ignore_check
+#endif /* !__clang__ */
 #else
 #define	__fastcall
 #define	__result_use_check
@@ -356,6 +367,17 @@
 #ifndef	__STDC_CONSTANT_MACROS
 #define	__STDC_CONSTANT_MACROS
 #endif
+#endif
+
+/*
+ * noexcept keyword added in C++11.
+ */
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define __noexcept noexcept
+#define __noexcept_if(__c) noexcept(__c)
+#else
+#define __noexcept
+#define __noexcept_if(__c)
 #endif
 
 /*

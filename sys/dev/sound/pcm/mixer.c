@@ -650,7 +650,7 @@ mixer_obj_create(device_t dev, kobj_class_t cls, void *devinfo,
     int type, const char *desc)
 {
 	struct snd_mixer *m;
-	int i;
+	size_t i;
 
 	KASSERT(dev != NULL && cls != NULL && devinfo != NULL,
 	    ("%s(): NULL data dev=%p cls=%p devinfo=%p",
@@ -671,7 +671,7 @@ mixer_obj_create(device_t dev, kobj_class_t cls, void *devinfo,
 	m->devinfo = devinfo;
 	m->busy = 0;
 	m->dev = dev;
-	for (i = 0; i < (sizeof(m->parent) / sizeof(m->parent[0])); i++) {
+	for (i = 0; i < nitems(m->parent); i++) {
 		m->parent[i] = SOUND_MIXER_NONE;
 		m->child[i] = 0;
 		m->realdev[i] = i;
@@ -726,14 +726,17 @@ mixer_init(device_t dev, kobj_class_t cls, void *devinfo)
 	struct snd_mixer *m;
 	u_int16_t v;
 	struct cdev *pdev;
-	int i, unit, devunit, val;
+	const char *name;
+	int i, unit, val;
 
 	snddev = device_get_softc(dev);
 	if (snddev == NULL)
 		return (-1);
 
-	if (resource_int_value(device_get_name(dev),
-	    device_get_unit(dev), "eq", &val) == 0 && val != 0) {
+	name = device_get_name(dev);
+	unit = device_get_unit(dev);
+	if (resource_int_value(name, unit, "eq", &val) == 0 &&
+	    val != 0) {
 		snddev->flags |= SD_F_EQ;
 		if ((val & SD_F_EQ_MASK) == val)
 			snddev->flags |= val;
@@ -749,8 +752,8 @@ mixer_init(device_t dev, kobj_class_t cls, void *devinfo)
 	for (i = 0; i < SOUND_MIXER_NRDEVICES; i++) {
 		v = snd_mixerdefaults[i];
 
-		if (resource_int_value(device_get_name(dev),
-		    device_get_unit(dev), snd_mixernames[i], &val) == 0) {
+		if (resource_int_value(name, unit, snd_mixernames[i],
+		    &val) == 0) {
 			if (val >= 0 && val <= 100) {
 				v = (u_int16_t) val;
 			}
@@ -761,10 +764,8 @@ mixer_init(device_t dev, kobj_class_t cls, void *devinfo)
 
 	mixer_setrecsrc(m, 0); /* Set default input. */
 
-	unit = device_get_unit(dev);
-	devunit = snd_mkunit(unit, SND_DEV_CTL, 0);
-	pdev = make_dev(&mixer_cdevsw, PCMMINOR(devunit),
-		 UID_ROOT, GID_WHEEL, 0666, "mixer%d", unit);
+	pdev = make_dev(&mixer_cdevsw, SND_DEV_CTL, UID_ROOT, GID_WHEEL, 0666,
+	    "mixer%d", unit);
 	pdev->si_drv1 = m;
 	snddev->mixer_dev = pdev;
 
@@ -816,17 +817,6 @@ mixer_uninit(device_t dev)
 	KASSERT(m != NULL, ("NULL snd_mixer"));
 	KASSERT(m->type == MIXER_TYPE_PRIMARY,
 	    ("%s(): illegal mixer type=%d", __func__, m->type));
-
-	snd_mtxlock(m->lock);
-
-	if (m->busy) {
-		snd_mtxunlock(m->lock);
-		return EBUSY;
-	}
-
-	/* destroy dev can sleep --hps */
-
-	snd_mtxunlock(m->lock);
 
 	pdev->si_drv1 = NULL;
 	destroy_dev(pdev);
@@ -1386,11 +1376,14 @@ mixer_clone(void *arg,
 	if (*dev != NULL)
 		return;
 	if (strcmp(name, "mixer") == 0) {
+		bus_topo_lock();
 		d = devclass_get_softc(pcm_devclass, snd_unit);
-		if (PCM_REGISTERED(d) && d->mixer_dev != NULL) {
+		/* See related comment in dsp_clone(). */
+		if (d != NULL && PCM_REGISTERED(d) && d->mixer_dev != NULL) {
 			*dev = d->mixer_dev;
 			dev_ref(*dev);
 		}
+		bus_topo_unlock();
 	}
 }
 

@@ -67,6 +67,10 @@
 #include <x86/isa/icu.h>
 #include <x86/vmware.h>
 
+#ifdef XENHVM
+#include <xen/xen-os.h>
+#endif
+
 #ifdef __i386__
 #define	IDENTBLUE_CYRIX486	0
 #define	IDENTBLUE_IBMCPU	1
@@ -157,8 +161,8 @@ SYSCTL_STRING(_hw, HW_MACHINE, machine, CTLFLAG_RD | CTLFLAG_CAPRD,
     machine, 0, "Machine class");
 #endif
 
-static char cpu_model[128];
-SYSCTL_STRING(_hw, HW_MODEL, model, CTLFLAG_RD | CTLFLAG_MPSAFE,
+char cpu_model[128];
+SYSCTL_STRING(_hw, HW_MODEL, model, CTLFLAG_RD | CTLFLAG_CAPRD,
     cpu_model, 0, "Machine model");
 
 static int hw_clockrate;
@@ -168,7 +172,7 @@ SYSCTL_INT(_hw, OID_AUTO, clockrate, CTLFLAG_RD,
 u_int hv_base;
 u_int hv_high;
 char hv_vendor[16];
-SYSCTL_STRING(_hw, OID_AUTO, hv_vendor, CTLFLAG_RD | CTLFLAG_MPSAFE, hv_vendor,
+SYSCTL_STRING(_hw, OID_AUTO, hv_vendor, CTLFLAG_RD, hv_vendor,
     0, "Hypervisor vendor");
 
 static eventhandler_tag tsc_post_tag;
@@ -1343,8 +1347,13 @@ SYSINIT(hook_tsc_freq, SI_SUB_CONFIGURE, SI_ORDER_ANY, hook_tsc_freq, NULL);
 static struct {
 	const char	*vm_cpuid;
 	int		vm_guest;
+	void		(*init)(void);
 } vm_cpuids[] = {
-	{ "XenVMMXenVMM",	VM_GUEST_XEN },		/* XEN */
+	{ "XenVMMXenVMM",	VM_GUEST_XEN,
+#ifdef XENHVM
+	  &xen_early_init,
+#endif
+	},						/* XEN */
 	{ "Microsoft Hv",	VM_GUEST_HV },		/* Microsoft Hyper-V */
 	{ "VMwareVMware",	VM_GUEST_VMWARE },	/* VMware VM */
 	{ "KVMKVMKVM",		VM_GUEST_KVM },		/* KVM */
@@ -1355,6 +1364,7 @@ static struct {
 static void
 identify_hypervisor_cpuid_base(void)
 {
+	void (*init_fn)(void) = NULL;
 	u_int leaf, regs[4];
 	int i;
 
@@ -1385,10 +1395,13 @@ identify_hypervisor_cpuid_base(void)
 			regs[0] = leaf + 1;
 
 		if (regs[0] >= leaf) {
+			enum VM_GUEST prev_vm_guest = vm_guest;
+
 			for (i = 0; i < nitems(vm_cpuids); i++)
 				if (strncmp((const char *)&regs[1],
 				    vm_cpuids[i].vm_cpuid, 12) == 0) {
 					vm_guest = vm_cpuids[i].vm_guest;
+					init_fn = vm_cpuids[i].init;
 					break;
 				}
 
@@ -1397,7 +1410,7 @@ identify_hypervisor_cpuid_base(void)
 			 * specific hypervisor, record the base, high value,
 			 * and vendor identifier.
 			 */
-			if (vm_guest != VM_GUEST_VM || leaf == 0x40000000) {
+			if (vm_guest != prev_vm_guest || leaf == 0x40000000) {
 				hv_base = leaf;
 				hv_high = regs[0];
 				((u_int *)&hv_vendor)[0] = regs[1];
@@ -1409,11 +1422,25 @@ identify_hypervisor_cpuid_base(void)
 				 * If we found a specific hypervisor, then
 				 * we are finished.
 				 */
-				if (vm_guest != VM_GUEST_VM)
-					return;
+				if (vm_guest != VM_GUEST_VM &&
+				    /*
+				     * Xen and other hypervisors can expose the
+				     * HyperV signature in addition to the
+				     * native one in order to support Viridian
+				     * extensions for Windows guests.
+				     *
+				     * Do the full cpuid scan if HyperV is
+				     * detected, as the native hypervisor is
+				     * preferred.
+				     */
+				    vm_guest != VM_GUEST_HV)
+					break;
 			}
 		}
 	}
+
+	if (init_fn != NULL)
+		init_fn();
 }
 
 void
@@ -1443,7 +1470,8 @@ identify_hypervisor(void)
 	p = kern_getenv("smbios.system.serial");
 	if (p != NULL) {
 		if (strncmp(p, "VMware-", 7) == 0 || strncmp(p, "VMW", 3) == 0) {
-			vmware_hvcall(VMW_HVCMD_GETVERSION, regs);
+			vmware_hvcall(0, VMW_HVCMD_GETVERSION,
+			    VMW_HVCMD_DEFAULT_PARAM, regs);
 			if (regs[1] == VMW_HVMAGIC) {
 				vm_guest = VM_GUEST_VMWARE;
 				freeenv(p);

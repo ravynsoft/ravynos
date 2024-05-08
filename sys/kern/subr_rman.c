@@ -91,6 +91,7 @@ struct resource_i {
 	device_t r_dev;	/* device which has allocated this resource */
 	struct rman *r_rm;	/* resource manager from whence this came */
 	int	r_rid;		/* optional rid for this resource. */
+	int	r_type;		/* optional type for this resource. */
 };
 
 static int rman_debug = 0;
@@ -808,25 +809,11 @@ rman_make_alignment_flags(uint32_t size)
 	return(RF_ALIGNMENT_LOG2(i));
 }
 
-void
-rman_set_start(struct resource *r, rman_res_t start)
-{
-
-	r->__r_i->r_start = start;
-}
-
 rman_res_t
 rman_get_start(struct resource *r)
 {
 
 	return (r->__r_i->r_start);
-}
-
-void
-rman_set_end(struct resource *r, rman_res_t end)
-{
-
-	r->__r_i->r_end = end;
 }
 
 rman_res_t
@@ -939,6 +926,18 @@ rman_get_rid(struct resource *r)
 {
 
 	return (r->__r_i->r_rid);
+}
+
+void
+rman_set_type(struct resource *r, int type)
+{
+	r->__r_i->r_type = type;
+}
+
+int
+rman_get_type(struct resource *r)
+{
+	return (r->__r_i->r_type);
 }
 
 void

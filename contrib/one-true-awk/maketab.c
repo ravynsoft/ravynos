@@ -52,8 +52,8 @@ struct xx
 	{ ARRAY, "array", NULL },
 	{ INDIRECT, "indirect", "$(" },
 	{ SUBSTR, "substr", "substr" },
-	{ SUB, "sub", "sub" },
-	{ GSUB, "gsub", "gsub" },
+	{ SUB, "dosub", "sub" },
+	{ GSUB, "dosub", "gsub" },
 	{ INDEX, "sindex", "sindex" },
 	{ SPRINTF, "awksprintf", "sprintf " },
 	{ ADD, "arith", " + " },
@@ -104,7 +104,6 @@ struct xx
 	{ ARG, "arg", "arg" },
 	{ VARNF, "getnf", "NF" },
 	{ GETLINE, "awkgetline", "getline" },
-	{ GENSUB, "gensub", "gensub" },
 	{ 0, "", "" },
 };
 

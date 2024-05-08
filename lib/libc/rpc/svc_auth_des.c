@@ -69,7 +69,9 @@ extern int key_decryptsession_pk(const char *, netobj *, des_block *);
 
 #define debug(msg)	 printf("svcauth_des: %s\n", msg) 
 
+#ifndef USEC_PER_SEC /* ravynOS defines this in mach/clock_types.h */
 #define USEC_PER_SEC ((u_long) 1000000L)
+#endif
 #define BEFORE(t1, t2) timercmp(t1, t2, <)
 
 /*

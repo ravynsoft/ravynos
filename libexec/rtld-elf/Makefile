@@ -73,6 +73,31 @@ SYMBOL_MAPS+=	${RTLD_ELF_DIR}/${RTLD_ARCH}/Symbol.map
 .sinclude "${RTLD_ELF_DIR}/${RTLD_ARCH}/Makefile.inc"
 RTLD_ENTRY?=	.rtld_start
 
+# Always produce the map file so that may be inspected to confirm
+# undesired code is not linked from libsys/libc.
+MAPFILE=	ld-elf.so.1.map
+LDFLAGS+=	-Wl,-Map=${MAPFILE} -Wl,--cref
+CLEANFILES+=	${MAPFILE}
+
+afterbuild:
+	@if grep __libsys_interposing ${MAPFILE} >/dev/null ; then \
+		echo "libsys_interposing leaked" 1>&2 ; \
+		exit 1 ; \
+	fi
+	@if grep __libc_interposing ${MAPFILE} >/dev/null ; then \
+		echo "libc_interposing leaked" 1>&2 ; \
+		exit 1 ; \
+	fi
+	@if grep xlocale ${MAPFILE} >/dev/null ; then \
+		echo "xlocale leaked" 1>&2 ; \
+		exit 1 ; \
+	fi
+	@if grep fprintf ${MAPFILE} >/dev/null ; then \
+		echo "stdio leaked" 1>&2 ; \
+		exit 1 ; \
+	fi
+
+
 # Since moving rtld-elf to /libexec, we need to create a symlink.
 # Fixup the existing binary that's there so we can symlink over it.
 beforeinstall:

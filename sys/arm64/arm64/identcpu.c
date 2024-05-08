@@ -83,7 +83,7 @@ static void check_cpu_regs(u_int cpu, struct cpu_desc *desc,
  * The default implementation of I-cache sync assumes we have an
  * aliasing cache until we know otherwise.
  */
-void (*arm64_icache_sync_range)(vm_offset_t, vm_size_t) =
+void (*arm64_icache_sync_range)(void *, vm_size_t) =
     &arm64_aliasing_icache_sync_range;
 
 static int
@@ -108,7 +108,7 @@ SYSCTL_PROC(_hw, HW_MACHINE, machine, CTLTYPE_STRING | CTLFLAG_RD |
 	 "Machine class");
 
 static char cpu_model[64];
-SYSCTL_STRING(_hw, HW_MODEL, model, CTLFLAG_RD,
+SYSCTL_STRING(_hw, HW_MODEL, model, CTLFLAG_RD | CTLFLAG_CAPRD,
 	cpu_model, sizeof(cpu_model), "Machine model");
 
 #define	MAX_CACHES	8	/* Maximum number of caches supported
@@ -250,6 +250,23 @@ static const struct cpu_parts cpu_parts_qcom[] = {
 	CPU_PART_NONE,
 };
 
+/* Apple */
+static const struct cpu_parts cpu_parts_apple[] = {
+	{ CPU_PART_M1_ICESTORM, "M1 Icestorm" },
+	{ CPU_PART_M1_FIRESTORM, "M1 Firestorm" },
+	{ CPU_PART_M1_ICESTORM_PRO, "M1 Pro Icestorm" },
+	{ CPU_PART_M1_FIRESTORM_PRO, "M1 Pro Firestorm" },
+	{ CPU_PART_M1_ICESTORM_MAX, "M1 Max Icestorm" },
+	{ CPU_PART_M1_FIRESTORM_MAX, "M1 Max Firestorm" },
+	{ CPU_PART_M2_BLIZZARD, "M2 Blizzard" },
+	{ CPU_PART_M2_AVALANCHE, "M2 Avalanche" },
+	{ CPU_PART_M2_BLIZZARD_PRO, "M2 Pro Blizzard" },
+	{ CPU_PART_M2_AVALANCHE_PRO, "M2 Pro Avalanche" },
+	{ CPU_PART_M2_BLIZZARD_MAX, "M2 Max Blizzard" },
+	{ CPU_PART_M2_AVALANCHE_MAX, "M2 Max Avalanche" },
+	CPU_PART_NONE,
+};
+
 /* Unknown */
 static const struct cpu_parts cpu_parts_none[] = {
 	CPU_PART_NONE,
@@ -260,7 +277,7 @@ static const struct cpu_parts cpu_parts_none[] = {
  */
 const struct cpu_implementers cpu_implementers[] = {
 	{ CPU_IMPL_AMPERE,	"Ampere",	cpu_parts_none },
-	{ CPU_IMPL_APPLE,	"Apple",	cpu_parts_none },
+	{ CPU_IMPL_APPLE,	"Apple",	cpu_parts_apple },
 	{ CPU_IMPL_APM,		"APM",		cpu_parts_apm },
 	{ CPU_IMPL_ARM,		"ARM",		cpu_parts_arm },
 	{ CPU_IMPL_BROADCOM,	"Broadcom",	cpu_parts_none },
@@ -1530,13 +1547,10 @@ static const struct mrs_field_value id_aa64pfr1_bt[] = {
 	MRS_FIELD_VALUE_END,
 };
 
-#if 0
-/* Enable when we add BTI support */
 static const struct mrs_field_hwcap id_aa64pfr1_bt_caps[] = {
 	MRS_HWCAP(2, HWCAP2_BTI, ID_AA64PFR1_BT_IMPL),
 	MRS_HWCAP_END
 };
-#endif
 
 static const struct mrs_field id_aa64pfr1_fields[] = {
 	MRS_FIELD(ID_AA64PFR1, NMI, false, MRS_EXACT, id_aa64pfr1_nmi),
@@ -1552,7 +1566,8 @@ static const struct mrs_field id_aa64pfr1_fields[] = {
 	MRS_FIELD(ID_AA64PFR1, MTE, false, MRS_EXACT, id_aa64pfr1_mte),
 	MRS_FIELD_HWCAP(ID_AA64PFR1, SSBS, false, MRS_LOWER, id_aa64pfr1_ssbs,
 	    id_aa64pfr1_ssbs_caps),
-	MRS_FIELD(ID_AA64PFR1, BT, false, MRS_EXACT, id_aa64pfr1_bt),
+	MRS_FIELD_HWCAP_SPLIT(ID_AA64PFR1, BT, false, MRS_LOWER, MRS_EXACT,
+	    id_aa64pfr1_bt, id_aa64pfr1_bt_caps),
 	MRS_FIELD_END,
 };
 

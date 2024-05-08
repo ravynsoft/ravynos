@@ -47,7 +47,7 @@
  *
  * tcp_hpts_insert(tp, HPTS_USEC_TO_SLOTS(550));
  *
- * The above would schedule tcp_ouput() to be called in 550 useconds.
+ * The above would schedule tcp_output() to be called in 550 useconds.
  * Note that if using this mechanism the stack will want to add near
  * its top a check to prevent unwanted calls (from user land or the
  * arrival of incoming ack's). So it would add something like:
@@ -193,7 +193,8 @@ struct tcp_hpts_entry {
 	uint8_t p_direct_wake :1, /* boolean */
 		p_on_min_sleep:1, /* boolean */
 		p_hpts_wake_scheduled:1, /* boolean */
-		p_avail:5;
+		hit_callout_thresh:1,
+		p_avail:4;
 	uint8_t p_fill[3];	  /* Fill to 32 bits */
 	/* Cache line 0x40 */
 	struct hptsh {
@@ -758,7 +759,8 @@ max_slots_available(struct tcp_hpts_entry *hpts, uint32_t wheel_slot, uint32_t *
 		 * "0".
 		 */
 		counter_u64_add(combined_wheel_wrap, 1);
-		*target_slot = hpts->p_nxt_slot;
+		if (target_slot)
+			*target_slot = hpts->p_nxt_slot;
 		return (0);
 	} else {
 		/*
@@ -820,7 +822,7 @@ tcp_hpts_insert_diag(struct tcpcb *tp, uint32_t slot, int32_t line, struct hpts_
 
 	INP_WLOCK_ASSERT(tptoinpcb(tp));
 	MPASS(!(tptoinpcb(tp)->inp_flags & INP_DROPPED));
-	MPASS(!tcp_in_hpts(tp));
+	MPASS(!(tp->t_in_hpts == IHPTS_ONQUEUE));
 
 	/*
 	 * We now return the next-slot the hpts will be on, beyond its
@@ -1649,6 +1651,7 @@ tcp_hpts_thread(void *ctx)
 		 * enough activity in the system that we don't need to
 		 * run as often (if we were not directly woken).
 		 */
+		tv.tv_sec = 0;
 		if (hpts->p_direct_wake == 0) {
 			counter_u64_add(hpts_back_tosleep, 1);
 			if (hpts->p_on_queue_cnt >= conn_cnt_thresh) {
@@ -1673,7 +1676,6 @@ tcp_hpts_thread(void *ctx)
 			 * Directly woken most likely to reset the
 			 * callout time.
 			 */
-			tv.tv_sec = 0;
 			tv.tv_usec = hpts->p_mysleep.tv_usec;
 		}
 		goto back_to_sleep;
@@ -1683,6 +1685,13 @@ tcp_hpts_thread(void *ctx)
 	ticks_ran = tcp_hptsi(hpts, 1);
 	tv.tv_sec = 0;
 	tv.tv_usec = hpts->p_hpts_sleep_time * HPTS_TICKS_PER_SLOT;
+	if ((hpts->p_on_queue_cnt > conn_cnt_thresh) && (hpts->hit_callout_thresh == 0)) {
+		hpts->hit_callout_thresh = 1;
+		atomic_add_int(&hpts_that_need_softclock, 1);
+	} else if ((hpts->p_on_queue_cnt <= conn_cnt_thresh) && (hpts->hit_callout_thresh == 1)) {
+		hpts->hit_callout_thresh = 0;
+		atomic_subtract_int(&hpts_that_need_softclock, 1);
+	}
 	if (hpts->p_on_queue_cnt >= conn_cnt_thresh) {
 		if(hpts->p_direct_wake == 0) {
 			/*

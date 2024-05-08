@@ -20,12 +20,14 @@
  */
 /*
  * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
- * Copyright (c) 2018 by Delphix. All rights reserved.
+ * Copyright (c) 2018, 2024 by Delphix. All rights reserved.
  */
 
 #ifndef	_LIBZUTIL_H
 #define	_LIBZUTIL_H extern __attribute__((visibility("default")))
 
+#include <string.h>
+#include <locale.h>
 #include <sys/nvpair.h>
 #include <sys/fs/zfs.h>
 
@@ -77,6 +79,8 @@ typedef struct importargs {
 	boolean_t can_be_active; /* can the pool be active?		*/
 	boolean_t scan;		/* prefer scanning to libblkid cache    */
 	nvlist_t *policy;	/* load policy (max txg, rewind, etc.)	*/
+	boolean_t do_destroyed;
+	boolean_t do_all;
 } importargs_t;
 
 typedef struct libpc_handle {
@@ -267,6 +271,14 @@ int for_each_vdev_in_nvlist(nvlist_t *nvroot, pool_vdev_iter_f func,
 void update_vdevs_config_dev_sysfs_path(nvlist_t *config);
 _LIBZUTIL_H void update_vdev_config_dev_sysfs_path(nvlist_t *nv,
     const char *path, const char *key);
+
+/*
+ * Thread-safe strerror() for use in ZFS libraries
+ */
+static inline char *zfs_strerror(int errnum) {
+	return (strerror_l(errnum, uselocale(0)));
+}
+
 #ifdef	__cplusplus
 }
 #endif

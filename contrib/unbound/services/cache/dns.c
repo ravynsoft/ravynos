@@ -80,6 +80,7 @@ store_rrsets(struct module_env* env, struct reply_info* rep, time_t now,
 	struct regional* region, time_t qstarttime)
 {
 	size_t i;
+	time_t ttl, min_ttl = rep->ttl;
 	/* see if rrset already exists in cache, if not insert it. */
 	for(i=0; i<rep->rrset_count; i++) {
 		rep->ref[i].key = rep->rrsets[i];
@@ -112,6 +113,15 @@ store_rrsets(struct module_env* env, struct reply_info* rep, time_t now,
 		case 1: /* ref updated, item inserted */
 			rep->rrsets[i] = rep->ref[i].key;
 		}
+		/* if ref was updated make sure the message ttl is updated to
+		 * the minimum of the current rrsets. */
+		ttl = ((struct packed_rrset_data*)rep->rrsets[i]->entry.data)->ttl;
+		if(ttl < min_ttl) min_ttl = ttl;
+	}
+	if(min_ttl < rep->ttl) {
+		rep->ttl = min_ttl;
+		rep->prefetch_ttl = PREFETCH_TTL_CALC(rep->ttl);
+		rep->serve_expired_ttl = rep->ttl + SERVE_EXPIRED_TTL;
 	}
 }
 
@@ -690,6 +700,28 @@ tomsg(struct module_env* env, struct query_info* q, struct reply_info* r,
 	return msg;
 }
 
+struct dns_msg*
+dns_msg_deepcopy_region(struct dns_msg* origin, struct regional* region)
+{
+	size_t i;
+	struct dns_msg* res = NULL;
+	res = gen_dns_msg(region, &origin->qinfo, origin->rep->rrset_count);
+	if(!res) return NULL;
+	*res->rep = *origin->rep;
+	if(origin->rep->reason_bogus_str) {
+		res->rep->reason_bogus_str = regional_strdup(region,
+			origin->rep->reason_bogus_str);
+	}
+	for(i=0; i<res->rep->rrset_count; i++) {
+		res->rep->rrsets[i] = packed_rrset_copy_region(
+			origin->rep->rrsets[i], region, 0);
+		if(!res->rep->rrsets[i]) {
+			return NULL;
+		}
+	}
+	return res;
+}
+
 /** synthesize RRset-only response from cached RRset item */
 static struct dns_msg*
 rrset_msg(struct ub_packed_rrset_key* rrset, struct regional* region, 
@@ -796,7 +828,7 @@ synth_dname_msg(struct ub_packed_rrset_key* rrset, struct regional* region,
 	if(!newd)
 		return NULL;
 	ck->entry.data = newd;
-	newd->ttl = 0; /* 0 for synthesized CNAME TTL */
+	newd->ttl = d->ttl - now; /* RFC6672: synth CNAME TTL == DNAME TTL */
 	newd->count = 1;
 	newd->rrsig_count = 0;
 	newd->trust = rrset_trust_ans_noAA;

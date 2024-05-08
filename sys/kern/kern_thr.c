@@ -26,12 +26,13 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include "opt_posix.h"
 #include "opt_thrworkq.h"
 #include "opt_hwpmc_hooks.h"
-#include <sys/param.h>
+
+#include <sys/systm.h>
 #include <sys/kernel.h>
+#include <sys/limits.h>
 #include <sys/lock.h>
 #include <sys/mman.h>
 #include <sys/mutex.h>
@@ -41,22 +42,21 @@
 #include <sys/ptrace.h>
 #include <sys/racct.h>
 #include <sys/resourcevar.h>
+#include <sys/rtprio.h>
 #include <sys/rwlock.h>
 #include <sys/sched.h>
 #include <sys/sysctl.h>
 #include <sys/smp.h>
 #include <sys/syscallsubr.h>
 #include <sys/sysent.h>
-#include <sys/systm.h>
 #include <sys/sysproto.h>
 #include <sys/signalvar.h>
 #include <sys/sysctl.h>
-#include <sys/ucontext.h>
 #include <sys/thr.h>
 #include <sys/rtprio.h>
 #include <sys/thrworkq.h>
+#include <sys/ucontext.h>
 #include <sys/umtxvar.h>
-#include <sys/limits.h>
 #ifdef	HWPMC_HOOKS
 #include <sys/pmckern.h>
 #endif
@@ -117,7 +117,7 @@ suword_lwpid(void *addr, lwpid_t lwpid)
 
 struct thr_create_initthr_args {
 	ucontext_t ctx;
-	long *tid;
+	int *tid;
 };
 
 static int
@@ -135,7 +135,7 @@ thr_create_initthr(struct thread *td, void *thunk)
 
 int
 sys_thr_create(struct thread *td, struct thr_create_args *uap)
-    /* ucontext_t *ctx, long *id, int flags */
+    /* ucontext_t *ctx, int *id, int flags */
 {
 	struct thr_create_initthr_args args;
 	int error;

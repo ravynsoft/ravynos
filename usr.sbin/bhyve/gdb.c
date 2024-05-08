@@ -34,6 +34,8 @@
 #include <sys/mman.h>
 #include <sys/queue.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+
 #include <machine/atomic.h>
 #include <machine/specialreg.h>
 #include <machine/vmm.h>
@@ -63,11 +65,20 @@
 #include "mem.h"
 #include "mevent.h"
 
+#define	_PATH_GDB_XML		"/usr/share/bhyve/gdb"
+
 /*
  * GDB_SIGNAL_* numbers are part of the GDB remote protocol.  Most stops
  * use SIGTRAP.
  */
 #define	GDB_SIGNAL_TRAP		5
+
+#define	GDB_BP_SIZE		1
+#define	GDB_BP_INSTR		(uint8_t []){0xcc}
+#define	GDB_PC_REGNAME		VM_REG_GUEST_RIP
+
+_Static_assert(sizeof(GDB_BP_INSTR) == GDB_BP_SIZE,
+    "GDB_BP_INSTR has wrong size");
 
 static void gdb_resume_vcpus(void);
 static void check_command(int fd);
@@ -78,6 +89,7 @@ static cpuset_t vcpus_active, vcpus_suspended, vcpus_waiting;
 static pthread_mutex_t gdb_lock;
 static pthread_cond_t idle_vcpus;
 static bool first_stop, report_next_stop, swbreak_enabled;
+static int xml_dfd = -1;
 
 /*
  * An I/O buffer contains 'capacity' bytes of room at 'data'.  For a
@@ -95,7 +107,7 @@ struct io_buffer {
 
 struct breakpoint {
 	uint64_t gpa;
-	uint8_t shadow_inst;
+	uint8_t shadow_inst[GDB_BP_SIZE];
 	TAILQ_ENTRY(breakpoint) link;
 };
 
@@ -134,58 +146,50 @@ static struct vcpu **vcpus;
 static int cur_vcpu, stopped_vcpu;
 static bool gdb_active = false;
 
-static const int gdb_regset[] = {
-	VM_REG_GUEST_RAX,
-	VM_REG_GUEST_RBX,
-	VM_REG_GUEST_RCX,
-	VM_REG_GUEST_RDX,
-	VM_REG_GUEST_RSI,
-	VM_REG_GUEST_RDI,
-	VM_REG_GUEST_RBP,
-	VM_REG_GUEST_RSP,
-	VM_REG_GUEST_R8,
-	VM_REG_GUEST_R9,
-	VM_REG_GUEST_R10,
-	VM_REG_GUEST_R11,
-	VM_REG_GUEST_R12,
-	VM_REG_GUEST_R13,
-	VM_REG_GUEST_R14,
-	VM_REG_GUEST_R15,
-	VM_REG_GUEST_RIP,
-	VM_REG_GUEST_RFLAGS,
-	VM_REG_GUEST_CS,
-	VM_REG_GUEST_SS,
-	VM_REG_GUEST_DS,
-	VM_REG_GUEST_ES,
-	VM_REG_GUEST_FS,
-	VM_REG_GUEST_GS
-};
-
-static const int gdb_regsize[] = {
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	8,
-	4,
-	4,
-	4,
-	4,
-	4,
-	4,
-	4
+static const struct gdb_reg {
+	enum vm_reg_name id;
+	int size;
+} gdb_regset[] = {
+	{ .id = VM_REG_GUEST_RAX, .size = 8 },
+	{ .id = VM_REG_GUEST_RBX, .size = 8 },
+	{ .id = VM_REG_GUEST_RCX, .size = 8 },
+	{ .id = VM_REG_GUEST_RDX, .size = 8 },
+	{ .id = VM_REG_GUEST_RSI, .size = 8 },
+	{ .id = VM_REG_GUEST_RDI, .size = 8 },
+	{ .id = VM_REG_GUEST_RBP, .size = 8 },
+	{ .id = VM_REG_GUEST_RSP, .size = 8 },
+	{ .id = VM_REG_GUEST_R8, .size = 8 },
+	{ .id = VM_REG_GUEST_R9, .size = 8 },
+	{ .id = VM_REG_GUEST_R10, .size = 8 },
+	{ .id = VM_REG_GUEST_R11, .size = 8 },
+	{ .id = VM_REG_GUEST_R12, .size = 8 },
+	{ .id = VM_REG_GUEST_R13, .size = 8 },
+	{ .id = VM_REG_GUEST_R14, .size = 8 },
+	{ .id = VM_REG_GUEST_R15, .size = 8 },
+	{ .id = VM_REG_GUEST_RIP, .size = 8 },
+	{ .id = VM_REG_GUEST_RFLAGS, .size = 4 },
+	{ .id = VM_REG_GUEST_CS, .size = 4 },
+	{ .id = VM_REG_GUEST_SS, .size = 4 },
+	{ .id = VM_REG_GUEST_DS, .size = 4 },
+	{ .id = VM_REG_GUEST_ES, .size = 4 },
+	{ .id = VM_REG_GUEST_FS, .size = 4 },
+	{ .id = VM_REG_GUEST_GS, .size = 4 },
+	/*
+	 * Registers past this point are not included in a reply to a 'g' query,
+	 * to provide compatibility with debuggers that do not fetch a target
+	 * description.  The debugger can query them individually with 'p' if it
+	 * knows about them.
+	 */
+#define	GDB_REG_FIRST_EXT	VM_REG_GUEST_FS_BASE
+	{ .id = VM_REG_GUEST_FS_BASE, .size = 8 },
+	{ .id = VM_REG_GUEST_GS_BASE, .size = 8 },
+	{ .id = VM_REG_GUEST_KGS_BASE, .size = 8 },
+	{ .id = VM_REG_GUEST_CR0, .size = 8 },
+	{ .id = VM_REG_GUEST_CR2, .size = 8 },
+	{ .id = VM_REG_GUEST_CR3, .size = 8 },
+	{ .id = VM_REG_GUEST_CR4, .size = 8 },
+	{ .id = VM_REG_GUEST_TPR, .size = 8 },
+	{ .id = VM_REG_GUEST_EFER, .size = 8 },
 };
 
 #ifdef GDB_LOG
@@ -285,6 +289,12 @@ guest_vaddr2paddr(struct vcpu *vcpu, uint64_t vaddr, uint64_t *paddr)
 	if (fault)
 		return (0);
 	return (1);
+}
+
+static uint64_t
+guest_pc(struct vm_exit *vme)
+{
+	return (vme->rip);
 }
 
 static void
@@ -955,7 +965,7 @@ gdb_cpu_breakpoint(struct vcpu *vcpu, struct vm_exit *vmexit)
 	}
 	vcpuid = vcpu_id(vcpu);
 	pthread_mutex_lock(&gdb_lock);
-	error = guest_vaddr2paddr(vcpu, vmexit->rip, &gpa);
+	error = guest_vaddr2paddr(vcpu, guest_pc(vmexit), &gpa);
 	assert(error == 1);
 	bp = find_breakpoint(gpa);
 	if (bp != NULL) {
@@ -964,11 +974,11 @@ gdb_cpu_breakpoint(struct vcpu *vcpu, struct vm_exit *vmexit)
 		assert(vs->stepped == false);
 		assert(vs->hit_swbreak == false);
 		vs->hit_swbreak = true;
-		vm_set_register(vcpu, VM_REG_GUEST_RIP, vmexit->rip);
+		vm_set_register(vcpu, GDB_PC_REGNAME, guest_pc(vmexit));
 		for (;;) {
 			if (stopped_vcpu == -1) {
 				debug("$vCPU %d reporting breakpoint at rip %#lx\n",
-				    vcpuid, vmexit->rip);
+				    vcpuid, guest_pc(vmexit));
 				stopped_vcpu = vcpuid;
 				gdb_suspend_vcpus();
 			}
@@ -987,7 +997,7 @@ gdb_cpu_breakpoint(struct vcpu *vcpu, struct vm_exit *vmexit)
 		gdb_cpu_resume(vcpu);
 	} else {
 		debug("$vCPU %d injecting breakpoint at rip %#lx\n", vcpuid,
-		    vmexit->rip);
+		    guest_pc(vmexit));
 		error = vm_set_register(vcpu, VM_REG_GUEST_ENTRY_INST_LENGTH,
 		    vmexit->u.bpt.inst_length);
 		assert(error == 0);
@@ -1031,15 +1041,45 @@ static void
 gdb_read_regs(void)
 {
 	uint64_t regvals[nitems(gdb_regset)];
+	int regnums[nitems(gdb_regset)];
 
+	for (size_t i = 0; i < nitems(gdb_regset); i++)
+		regnums[i] = gdb_regset[i].id;
 	if (vm_get_register_set(vcpus[cur_vcpu], nitems(gdb_regset),
-	    gdb_regset, regvals) == -1) {
+	    regnums, regvals) == -1) {
 		send_error(errno);
 		return;
 	}
+
 	start_packet();
-	for (size_t i = 0; i < nitems(regvals); i++)
-		append_unsigned_native(regvals[i], gdb_regsize[i]);
+	for (size_t i = 0; i < nitems(gdb_regset); i++) {
+		if (gdb_regset[i].id == GDB_REG_FIRST_EXT)
+			break;
+		append_unsigned_native(regvals[i], gdb_regset[i].size);
+	}
+	finish_packet();
+}
+
+static void
+gdb_read_one_reg(const uint8_t *data, size_t len)
+{
+	uint64_t regval;
+	uintmax_t reg;
+
+	reg = parse_integer(data, len);
+	if (reg >= nitems(gdb_regset)) {
+		send_error(EINVAL);
+		return;
+	}
+
+	if (vm_get_register(vcpus[cur_vcpu], gdb_regset[reg].id, &regval) ==
+	    -1) {
+		send_error(errno);
+		return;
+	}
+
+	start_packet();
+	append_unsigned_native(regval, gdb_regset[reg].size);
 	finish_packet();
 }
 
@@ -1051,6 +1091,8 @@ gdb_read_mem(const uint8_t *data, size_t len)
 	size_t resid, todo, bytes;
 	bool started;
 	int error;
+
+	assert(len >= 1);
 
 	/* Skip 'm' */
 	data += 1;
@@ -1162,6 +1204,8 @@ gdb_write_mem(const uint8_t *data, size_t len)
 	uint8_t *cp;
 	size_t resid, todo, bytes;
 	int error;
+
+	assert(len >= 1);
 
 	/* Skip 'M' */
 	data += 1;
@@ -1294,8 +1338,8 @@ remove_all_sw_breakpoints(void)
 
 	TAILQ_FOREACH_SAFE(bp, &breakpoints, link, nbp) {
 		debug("remove breakpoint at %#lx\n", bp->gpa);
-		cp = paddr_guest2host(ctx, bp->gpa, 1);
-		*cp = bp->shadow_inst;
+		cp = paddr_guest2host(ctx, bp->gpa, sizeof(bp->shadow_inst));
+		memcpy(cp, bp->shadow_inst, sizeof(bp->shadow_inst));
 		TAILQ_REMOVE(&breakpoints, bp, link);
 		free(bp);
 	}
@@ -1311,7 +1355,7 @@ update_sw_breakpoint(uint64_t gva, int kind, bool insert)
 	uint8_t *cp;
 	int error;
 
-	if (kind != 1) {
+	if (kind != GDB_BP_SIZE) {
 		send_error(EINVAL);
 		return;
 	}
@@ -1326,7 +1370,7 @@ update_sw_breakpoint(uint64_t gva, int kind, bool insert)
 		return;
 	}
 
-	cp = paddr_guest2host(ctx, gpa, 1);
+	cp = paddr_guest2host(ctx, gpa, sizeof(bp->shadow_inst));
 
 	/* Only permit breakpoints in guest RAM. */
 	if (cp == NULL) {
@@ -1350,15 +1394,15 @@ update_sw_breakpoint(uint64_t gva, int kind, bool insert)
 			}
 			bp = malloc(sizeof(*bp));
 			bp->gpa = gpa;
-			bp->shadow_inst = *cp;
-			*cp = 0xcc;	/* INT 3 */
+			memcpy(bp->shadow_inst, cp, sizeof(bp->shadow_inst));
+			memcpy(cp, GDB_BP_INSTR, sizeof(bp->shadow_inst));
 			TAILQ_INSERT_TAIL(&breakpoints, bp, link);
 			debug("new breakpoint at %#lx\n", gpa);
 		}
 	} else {
 		if (bp != NULL) {
 			debug("remove breakpoint at %#lx\n", gpa);
-			*cp = bp->shadow_inst;
+			memcpy(cp, bp->shadow_inst, sizeof(bp->shadow_inst));
 			TAILQ_REMOVE(&breakpoints, bp, link);
 			free(bp);
 			if (TAILQ_EMPTY(&breakpoints))
@@ -1500,6 +1544,7 @@ check_features(const uint8_t *data, size_t len)
 	/* This is an arbitrary limit. */
 	append_string("PacketSize=4096");
 	append_string(";swbreak+");
+	append_string(";qXfer:features:read+");
 	finish_packet();
 }
 
@@ -1557,7 +1602,7 @@ gdb_query(const uint8_t *data, size_t len)
 
 		data += strlen("qThreadExtraInfo");
 		len -= strlen("qThreadExtraInfo");
-		if (*data != ',') {
+		if (len == 0 || *data != ',') {
 			send_error(EINVAL);
 			return;
 		}
@@ -1571,6 +1616,71 @@ gdb_query(const uint8_t *data, size_t len)
 		start_packet();
 		append_asciihex(buf);
 		finish_packet();
+	} else if (command_equals(data, len, "qXfer:features:read:")) {
+		struct stat sb;
+		const char *xml;
+		const uint8_t *pathend;
+		char buf[64], path[PATH_MAX];
+		size_t xmllen;
+		unsigned int doff, dlen;
+		int fd;
+
+		data += strlen("qXfer:features:read:");
+		len -= strlen("qXfer:features:read:");
+
+		pathend = memchr(data, ':', len);
+		if (pathend == NULL ||
+		    (size_t)(pathend - data) >= sizeof(path) - 1) {
+			send_error(EINVAL);
+			return;
+		}
+		memcpy(path, data, pathend - data);
+		path[pathend - data] = '\0';
+		data += (pathend - data) + 1;
+		len -= (pathend - data) + 1;
+
+		if (len > sizeof(buf) - 1) {
+			send_error(EINVAL);
+			return;
+		}
+		memcpy(buf, data, len);
+		buf[len] = '\0';
+		if (sscanf(buf, "%x,%x", &doff, &dlen) != 2) {
+			send_error(EINVAL);
+			return;
+		}
+
+		fd = openat(xml_dfd, path, O_RDONLY | O_RESOLVE_BENEATH);
+		if (fd < 0) {
+			send_error(errno);
+			return;
+		}
+		if (fstat(fd, &sb) < 0) {
+			send_error(errno);
+			close(fd);
+			return;
+		}
+		xml = mmap(NULL, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
+		if (xml == MAP_FAILED) {
+			send_error(errno);
+			close(fd);
+			return;
+		}
+		close(fd);
+		xmllen = sb.st_size;
+
+		start_packet();
+		if (doff >= xmllen) {
+			append_char('l');
+		} else if (doff + dlen >= xmllen) {
+			append_char('l');
+			append_packet_data(xml + doff, xmllen - doff);
+		} else {
+			append_char('m');
+			append_packet_data(xml + doff, dlen);
+		}
+		finish_packet();
+		(void)munmap(__DECONST(void *, xml), xmllen);
 	} else
 		send_empty_response();
 }
@@ -1601,14 +1711,16 @@ handle_command(const uint8_t *data, size_t len)
 
 		/* TODO: Resume any stopped CPUs. */
 		break;
-	case 'g': {
+	case 'g':
 		gdb_read_regs();
 		break;
-	}
+	case 'p':
+		gdb_read_one_reg(data + 1, len - 1);
+		break;
 	case 'H': {
 		int tid;
 
-		if (data[1] != 'g' && data[1] != 'c') {
+		if (len < 2 || (data[1] != 'g' && data[1] != 'c')) {
 			send_error(EINVAL);
 			break;
 		}
@@ -1676,7 +1788,6 @@ handle_command(const uint8_t *data, size_t len)
 	case 'v':
 		/* Handle 'vCont' */
 		/* 'vCtrlC' */
-	case 'p': /* TODO */
 	case 'P': /* TODO */
 	case 'Q': /* TODO */
 	case 't': /* TODO */
@@ -1897,6 +2008,9 @@ limit_gdb_socket(int s)
 void
 init_gdb(struct vmctx *_ctx)
 {
+#ifndef WITHOUT_CAPSICUM
+	cap_rights_t rights;
+#endif
 	int error, flags, optval, s;
 	struct addrinfo hints;
 	struct addrinfo *gdbaddr;
@@ -1977,4 +2091,13 @@ init_gdb(struct vmctx *_ctx)
 	gdb_active = true;
 	freeaddrinfo(gdbaddr);
 	free(sport);
+
+	xml_dfd = open(_PATH_GDB_XML, O_DIRECTORY);
+	if (xml_dfd == -1)
+		err(1, "Failed to open gdb xml directory");
+#ifndef WITHOUT_CAPSICUM
+	cap_rights_init(&rights, CAP_FSTAT, CAP_LOOKUP, CAP_MMAP_R, CAP_PREAD);
+	if (caph_rights_limit(xml_dfd, &rights) == -1)
+		err(1, "cap_rights_init");
+#endif
 }

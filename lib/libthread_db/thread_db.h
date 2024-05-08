@@ -30,6 +30,7 @@
 #ifndef _THREAD_DB_H_
 #define	_THREAD_DB_H_
 
+#include <mach/mach_types.h>
 #include <sys/procfs.h>
 #include <pthread.h>
 
@@ -59,7 +60,9 @@ typedef enum {
 
 struct ps_prochandle;
 typedef struct td_thragent td_thragent_t;
-typedef long thread_t;			/* Must be an integral type. */
+/* FreeBSD uses a `long` thread_t, but macOS/mach use mach_port_t
+ * which is unsigned int. We want ABI compat, so let's change this */
+typedef mach_port_t thread_t;			/* Must be an integral type. */
 
 typedef struct {
 	const td_thragent_t *th_ta;

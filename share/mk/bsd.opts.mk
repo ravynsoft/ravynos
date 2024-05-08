@@ -68,6 +68,7 @@ __DEFAULT_YES_OPTIONS = \
     SSP \
     TESTS \
     TOOLCHAIN \
+    UNDEFINED_VERSION \
     WARNS \
     WERROR
 
@@ -110,26 +111,6 @@ __INIT_ALL_DEFAULT=	none
 .-include <local.opts.mk>
 
 .include <bsd.mkopt.mk>
-
-#
-# Supported NO_* options (if defined, MK_* will be forced to "no",
-# regardless of user's setting).
-#
-# These are transitional and will disappaer in the FreeBSD 12.
-#
-.for var in \
-    CTF \
-    DEBUG_FILES \
-    INSTALLLIB \
-    MAN \
-    PROFILE \
-    WARNS \
-    WERROR
-.if defined(NO_${var})
-.error NO_${var} is defined, but deprecated. Please use MK_${var}=no instead.
-MK_${var}:=no
-.endif
-.endfor
 
 .include <bsd.cpu.mk>
 

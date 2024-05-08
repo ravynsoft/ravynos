@@ -44,6 +44,7 @@
 #include <linux/build_bug.h>
 #include <linux/compiler.h>
 #include <linux/container_of.h>
+#include <linux/limits.h>
 #include <linux/stringify.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -69,19 +70,6 @@
 #define	KERN_NOTICE	"<5>"
 #define	KERN_INFO	"<6>"
 #define	KERN_DEBUG	"<7>"
-
-#define	U8_MAX		((u8)~0U)
-#define	S8_MAX		((s8)(U8_MAX >> 1))
-#define	S8_MIN		((s8)(-S8_MAX - 1))
-#define	U16_MAX		((u16)~0U)
-#define	S16_MAX		((s16)(U16_MAX >> 1))
-#define	S16_MIN		((s16)(-S16_MAX - 1))
-#define	U32_MAX		((u32)~0U)
-#define	S32_MAX		((s32)(U32_MAX >> 1))
-#define	S32_MIN		((s32)(-S32_MAX - 1))
-#define	U64_MAX		((u64)~0ULL)
-#define	S64_MAX		((s64)(U64_MAX >> 1))
-#define	S64_MIN		((s64)(-S64_MAX - 1))
 
 #define	S8_C(x)  x
 #define	U8_C(x)  x ## U
@@ -143,6 +131,8 @@ extern int linuxkpi_warn_dump_stack;
 
 #define	printk(...)		printf(__VA_ARGS__)
 #define	vprintk(f, a)		vprintf(f, a)
+
+#define PTR_IF(x, p)		((x) ? (p) : NULL)
 
 #define	asm			__asm
 
@@ -605,12 +595,6 @@ linux_ratelimited(linux_ratelimit_t *rl)
 	return (ppsratecheck(&rl->lasttime, &rl->counter, 1));
 }
 
-#define	struct_size(ptr, field, num) ({ \
-	const size_t __size = offsetof(__typeof(*(ptr)), field); \
-	const size_t __max = (SIZE_MAX - __size) / sizeof((ptr)->field[0]); \
-	((num) > __max) ? SIZE_MAX : (__size + sizeof((ptr)->field[0]) * (num)); \
-})
-
 #define	__is_constexpr(x) \
 	__builtin_constant_p(x)
 
@@ -619,29 +603,6 @@ linux_ratelimited(linux_ratelimit_t *rl)
  * signed. Else false is returned.
  */
 #define	is_signed(datatype) (((datatype)-1 / (datatype)2) == (datatype)0)
-
-/*
- * The type_max() macro below returns the maxium positive value the
- * passed data type can hold.
- */
-#define	type_max(datatype) ( \
-  (sizeof(datatype) >= 8) ? (is_signed(datatype) ? INT64_MAX : UINT64_MAX) : \
-  (sizeof(datatype) >= 4) ? (is_signed(datatype) ? INT32_MAX : UINT32_MAX) : \
-  (sizeof(datatype) >= 2) ? (is_signed(datatype) ? INT16_MAX : UINT16_MAX) : \
-			    (is_signed(datatype) ? INT8_MAX : UINT8_MAX) \
-)
-
-/*
- * The type_min() macro below returns the minimum value the passed
- * data type can hold. For unsigned types the minimum value is always
- * zero. For signed types it may vary.
- */
-#define	type_min(datatype) ( \
-  (sizeof(datatype) >= 8) ? (is_signed(datatype) ? INT64_MIN : 0) : \
-  (sizeof(datatype) >= 4) ? (is_signed(datatype) ? INT32_MIN : 0) : \
-  (sizeof(datatype) >= 2) ? (is_signed(datatype) ? INT16_MIN : 0) : \
-			    (is_signed(datatype) ? INT8_MIN : 0) \
-)
 
 #define	TAINT_WARN	0
 #define	test_taint(x)	(0)

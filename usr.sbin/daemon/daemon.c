@@ -248,6 +248,7 @@ main(int argc, char *argv[])
 			if (e != NULL) {
 				errx(6, "invalid restart delay: %s", e);
 			}
+			state.mode = MODE_SUPERVISE;
 			break;
 		case 's':
 			state.syslog_priority = get_log_mapping(optarg,
@@ -275,7 +276,7 @@ main(int argc, char *argv[])
 			break;
 		case 'h':
 			usage(0);
-			__builtin_unreachable();
+			__unreachable();
 		default:
 			usage(1);
 		}
@@ -755,17 +756,21 @@ daemon_terminate(struct daemon_state *state)
 }
 
 /*
- * Returns true if SIGCHILD came from state->pid
- * This function could hang if SIGCHILD was emittied for a reason other than
- * child dying (e.g., ptrace attach).
+ * Returns true if SIGCHILD came from state->pid due to its exit.
  */
 static bool
 daemon_is_child_dead(struct daemon_state *state)
 {
+	int status;
+
 	for (;;) {
-		int who = waitpid(-1, NULL, WNOHANG);
-		if (state->pid == who) {
+		int who = waitpid(-1, &status, WNOHANG);
+		if (state->pid == who && (WIFEXITED(status) ||
+		    WIFSIGNALED(status))) {
 			return true;
+		}
+		if (who == 0) {
+			return false;
 		}
 		if (who == -1 && errno != EINTR) {
 			warn("waitpid");

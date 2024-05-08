@@ -446,11 +446,20 @@ FreeBSD 5.2           |      |                 |                       |
  |     |              |      |                OpenBSD 7.3              |
  |  FreeBSD           |      |                    |                    |
  |   13.2             |      |                    |                    |
- |                  macOS    |                    |                    |
- |                   14      |                    |                    |
- |                    |      |                OpenBSD 7.4              |
- *--FreeBSD           |      |                    |                    |
- |   14.0             |      |                    |                    |
+ |     |              |      |                    |                    |
+ |     `------.       |      |                    |                    |
+ |            |     macOS    |                    |                    |
+ |            |      14      |                    |                    |
+ |            |       |      |                OpenBSD 7.4              |
+ *--FreeBSD   |       |      |                    |                    |
+ |   14.0     |       |      |                    |                    |
+ |            |       |      |                    |                    |
+ |         FreeBSD    |      |                    |                    |
+ |           13.3     |      |                    |                    |
+ |                    |      *--NetBSD            |                    |
+ |                    |      |   10.0             |                    |
+ |                    |      |                    |                    |
+ |                    |      |                OpenBSD 7.5              |
  |                    |      |                    |                    |
 FreeBSD 15 -current   |  NetBSD -current   OpenBSD -current    DragonFly -current
  |                    |      |                    |                    |
@@ -880,6 +889,9 @@ FreeBSD 13.2		2023-04-11 [FBD]
 macOS 14		2023-09-26 [APL]
 OpenBSD 7.4		2023-10-16 [OBD]
 FreeBSD 14.0		2023-11-20 [FBD]
+FreeBSD 13.3		2024-03-05 [FBD]
+NetBSD 10.0		2024-03-28 [NBD]
+OpenBSD 7.5             2024-04-05 [OBD]
 
 Bibliography
 ------------------------
@@ -915,7 +927,7 @@ URL: https://web.archive.org/web/20081230094857/http://www.byte.com/art/9410/sec
 Andreas Klemm, Lars Köller. If you're going to San Francisco ...
 Die freien BSD-Varianten von Unix. c't April 1997, page 368ff.
 
-FreeBSD Release Information 
+FreeBSD Release Information
 URL: https://www.FreeBSD.org/releases/
 
 Manual pages for FreeBSD and ports

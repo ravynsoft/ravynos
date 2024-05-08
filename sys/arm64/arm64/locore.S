@@ -45,6 +45,11 @@
 #define	L3_PAGE_COUNT	32
 #endif
 
+/*
+ * The size of our bootstrap stack.
+ */
+#define	BOOT_STACK_SIZE	(KSTACK_PAGES * PAGE_SIZE)
+
 	.globl	kernbase
 	.set	kernbase, KERNBASE
 
@@ -57,8 +62,8 @@
  */
 
 ENTRY(_start)
-	/* Drop to EL1 */
-	bl	drop_to_el1
+	/* Enter the kernel exception level */
+	bl	enter_kernel_el
 
 	/*
 	 * Disable the MMU. We may have entered the kernel with it on and
@@ -147,7 +152,9 @@ virtdone:
 	mov	x19, x0
 
 	/* Bootstrap an early shadow map for the boot stack. */
-	bl	pmap_san_bootstrap
+	ldr	x0, [x0, #BP_KERN_STACK]
+	ldr	x1, =BOOT_STACK_SIZE
+	bl	kasan_init_early
 
 	/* Restore bootparams */
 	mov	x0, x19
@@ -194,8 +201,8 @@ ENTRY(mpentry)
 	/* Disable interrupts */
 	msr	daifset, #DAIF_INTR
 
-	/* Drop to EL1 */
-	bl	drop_to_el1
+	/* Enter the kernel exception level */
+	bl	enter_kernel_el
 
 	/* Set the context id */
 	msr	contextidr_el1, xzr
@@ -204,8 +211,8 @@ ENTRY(mpentry)
 	adrp	x24, pagetable_l0_ttbr1
 	add	x24, x24, :lo12:pagetable_l0_ttbr1
 	/* Load the identity page table */
-	adrp	x27, pagetable_l0_ttbr0_boostrap
-	add	x27, x27, :lo12:pagetable_l0_ttbr0_boostrap
+	adrp	x27, pagetable_l0_ttbr0_bootstrap
+	add	x27, x27, :lo12:pagetable_l0_ttbr0_bootstrap
 
 	/* Enable the mmu */
 	bl	start_mmu
@@ -258,10 +265,10 @@ END(mpentry)
  * If we are started in EL2, configure the required hypervisor
  * registers and drop to EL1.
  */
-LENTRY(drop_to_el1)
+LENTRY(enter_kernel_el)
 	mrs	x23, CurrentEL
-	lsr	x23, x23, #2
-	cmp	x23, #0x2
+	and	x23, x23, #(CURRENTEL_EL_MASK)
+	cmp	x23, #(CURRENTEL_EL_EL2)
 	b.eq	1f
 	ret
 1:
@@ -351,7 +358,7 @@ LENTRY(drop_to_el1)
 	.align 3
 .Lsctlr_res1:
 	.quad SCTLR_RES1
-LEND(drop_to_el1)
+LEND(enter_kernel_el)
 
 /*
  * Get the physical address the kernel was loaded at.
@@ -880,7 +887,7 @@ END(abort)
 .bss
 	.align	PAGE_SHIFT
 initstack:
-	.space	(PAGE_SIZE * KSTACK_PAGES)
+	.space	BOOT_STACK_SIZE
 initstack_end:
 
 	.section .init_pagetable, "aw", %nobits
@@ -909,7 +916,7 @@ pagetable_l2_ttbr0_bootstrap:
 	.space	PAGE_SIZE
 pagetable_l1_ttbr0_bootstrap:
 	.space	PAGE_SIZE
-pagetable_l0_ttbr0_boostrap:
+pagetable_l0_ttbr0_bootstrap:
 	.space	PAGE_SIZE
 pagetable_l0_ttbr0:
 	.space	PAGE_SIZE

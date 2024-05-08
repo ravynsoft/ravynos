@@ -24,7 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <stand.h>
 #include "bootstrap.h"
 #include "glue.h"
@@ -73,14 +72,14 @@ uboot_cons_putchar(int c)
 }
 
 static int
-uboot_cons_getchar()
+uboot_cons_getchar(void)
 {
 
 	return (ub_getc());
 }
 
 static int
-uboot_cons_poll()
+uboot_cons_poll(void)
 {
 
 	return (ub_tstc());

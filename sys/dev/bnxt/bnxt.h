@@ -98,7 +98,7 @@
 				 CSUM_IP_UDP|CSUM_IP_TCP|CSUM_IP_SCTP| \
 				 CSUM_IP6_UDP|CSUM_IP6_TCP|CSUM_IP6_SCTP)
 
-#define BNXT_MAX_MTU	9000
+#define BNXT_MAX_MTU	9600
 
 #define BNXT_RSS_HASH_TYPE_TCPV4	0
 #define BNXT_RSS_HASH_TYPE_UDPV4	1
@@ -298,6 +298,7 @@ struct bnxt_link_info {
 	uint8_t		last_link_up;
 	uint8_t		duplex;
 	uint8_t		last_duplex;
+	uint8_t		last_phy_type;
 	struct bnxt_flow_ctrl   flow_ctrl;
 	struct bnxt_flow_ctrl   last_flow_ctrl;
 	uint8_t		duplex_setting;
@@ -305,12 +306,33 @@ struct bnxt_link_info {
 #define PHY_VER_LEN		3
 	uint8_t		phy_ver[PHY_VER_LEN];
 	uint8_t		phy_type;
+#define BNXT_PHY_STATE_ENABLED		0
+#define BNXT_PHY_STATE_DISABLED		1
+	uint8_t		phy_state;
+
 	uint16_t	link_speed;
 	uint16_t	support_speeds;
+	uint16_t	support_pam4_speeds;
 	uint16_t	auto_link_speeds;
-	uint16_t	auto_link_speed;
+	uint16_t	auto_pam4_link_speeds;
 	uint16_t	force_link_speed;
+	uint16_t	force_pam4_link_speed;
+	bool		force_pam4_speed_set_by_user;
+
+	uint16_t	advertising;
+	uint16_t	advertising_pam4;
+
 	uint32_t	preemphasis;
+	uint16_t	support_auto_speeds;
+	uint16_t	support_force_speeds;
+	uint16_t	support_pam4_auto_speeds;
+	uint16_t	support_pam4_force_speeds;
+#define BNXT_SIG_MODE_NRZ	HWRM_PORT_PHY_QCFG_OUTPUT_SIGNAL_MODE_NRZ
+#define BNXT_SIG_MODE_PAM4	HWRM_PORT_PHY_QCFG_OUTPUT_SIGNAL_MODE_PAM4
+	uint8_t		req_signal_mode;
+
+	uint8_t		active_fec_sig_mode;
+	uint8_t		sig_mode;
 
 	/* copy of requested setting */
 	uint8_t		autoneg;
@@ -318,6 +340,16 @@ struct bnxt_link_info {
 #define BNXT_AUTONEG_FLOW_CTRL	2
 	uint8_t		req_duplex;
 	uint16_t	req_link_speed;
+	uint8_t		module_status;
+	struct hwrm_port_phy_qcfg_output    phy_qcfg_resp;
+};
+
+enum bnxt_phy_type {
+	BNXT_MEDIA_CR = 0,
+	BNXT_MEDIA_LR,
+	BNXT_MEDIA_SR,
+	BNXT_MEDIA_KR,
+	BNXT_MEDIA_END
 };
 
 enum bnxt_cp_type {
@@ -670,13 +702,14 @@ struct bnxt_softc {
 	struct bnxt_bar_info	hwrm_bar;
 	struct bnxt_bar_info	doorbell_bar;
 	struct bnxt_link_info	link_info;
-#define BNXT_FLAG_VF		0x0001
-#define BNXT_FLAG_NPAR		0x0002
-#define BNXT_FLAG_WOL_CAP	0x0004
-#define BNXT_FLAG_SHORT_CMD	0x0008
-#define BNXT_FLAG_FW_CAP_NEW_RM 0x0010
-#define BNXT_FLAG_CHIP_P5 	0x0020
-#define BNXT_FLAG_TPA	 	0x0040
+#define BNXT_FLAG_VF				0x0001
+#define BNXT_FLAG_NPAR				0x0002
+#define BNXT_FLAG_WOL_CAP			0x0004
+#define BNXT_FLAG_SHORT_CMD			0x0008
+#define BNXT_FLAG_FW_CAP_NEW_RM			0x0010
+#define BNXT_FLAG_CHIP_P5			0x0020
+#define BNXT_FLAG_TPA				0x0040
+#define BNXT_FLAG_FW_CAP_EXT_STATS		0x0080
 	uint32_t		flags;
 #define BNXT_STATE_LINK_CHANGE  (0)
 #define BNXT_STATE_MAX		(BNXT_STATE_LINK_CHANGE + 1)
@@ -712,6 +745,11 @@ struct bnxt_softc {
 	struct iflib_dma_info	hw_tx_port_stats;
 	struct rx_port_stats	*rx_port_stats;
 	struct tx_port_stats	*tx_port_stats;
+
+	struct iflib_dma_info	hw_tx_port_stats_ext;
+	struct iflib_dma_info	hw_rx_port_stats_ext;
+	struct tx_port_stats_ext *tx_port_stats_ext;
+	struct rx_port_stats_ext *rx_port_stats_ext;
 
 	int			num_cp_rings;
 
@@ -795,9 +833,16 @@ struct bnxt_filter_info {
 	uint64_t	l2_filter_id_hint;
 };
 
+#define I2C_DEV_ADDR_A0                 0xa0
+#define BNXT_MAX_PHY_I2C_RESP_SIZE      64
+
 /* Function declarations */
 void bnxt_report_link(struct bnxt_softc *softc);
 bool bnxt_check_hwrm_version(struct bnxt_softc *softc);
 struct bnxt_softc *bnxt_find_dev(uint32_t domain, uint32_t bus, uint32_t dev_fn, char *name);
+int bnxt_read_sfp_module_eeprom_info(struct bnxt_softc *bp, uint16_t i2c_addr,
+    uint16_t page_number, uint8_t bank, bool bank_sel_en, uint16_t start_addr,
+    uint16_t data_length, uint8_t *buf);
+uint8_t get_phy_type(struct bnxt_softc *softc);
 
 #endif /* _BNXT_H */

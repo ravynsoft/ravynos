@@ -54,7 +54,9 @@
 #include "un-namespace.h"
 #include "mt_misc.h"
 
+#ifndef USEC_PER_SEC /* ravynOS defines this in mach/clock_types.h */
 #define USEC_PER_SEC		1000000
+#endif
 #define RTIME_TIMEOUT		5	/* seconds to wait for sync */
 
 #define AUTH_PRIVATE(auth)	(struct ad_private *) auth->ah_private

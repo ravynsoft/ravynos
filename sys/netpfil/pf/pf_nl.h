@@ -42,6 +42,11 @@ enum {
 	PFNL_CMD_STOP = 4,
 	PFNL_CMD_ADDRULE = 5,
 	PFNL_CMD_GETRULES = 6,
+	PFNL_CMD_GETRULE = 7,
+	PFNL_CMD_CLRSTATES = 8,
+	PFNL_CMD_KILLSTATES = 9,
+	PFNL_CMD_SET_STATUSIF = 10,
+	PFNL_CMD_GET_STATUS = 11,
 	__PFNL_CMD_MAX,
 };
 #define PFNL_CMD_MAX (__PFNL_CMD_MAX -1)
@@ -117,6 +122,8 @@ enum pf_addr_type_t {
 	PF_AT_TABLENAME		= 4, /* string */
 	PF_AT_TYPE		= 5, /* u8 */
 	PF_AT_IFLAGS		= 6, /* u8 */
+	PF_AT_TBLCNT		= 7, /* u32 */
+	PF_AT_DYNCNT		= 8, /* u32 */
 };
 
 enum pfrule_addr_type_t {
@@ -229,6 +236,16 @@ enum pf_rule_type_t {
 	PF_RT_SET_PRIO_REPLY	= 60, /* u8 */
 	PF_RT_DIVERT_ADDRESS	= 61, /* in6_addr */
 	PF_RT_DIVERT_PORT	= 62, /* u16 */
+	PF_RT_PACKETS_IN	= 63, /* u64 */
+	PF_RT_PACKETS_OUT	= 64, /* u64 */
+	PF_RT_BYTES_IN		= 65, /* u64 */
+	PF_RT_BYTES_OUT		= 66, /* u64 */
+	PF_RT_EVALUATIONS	= 67, /* u64 */
+	PF_RT_TIMESTAMP		= 68, /* u64 */
+	PF_RT_STATES_CUR	= 69, /* u64 */
+	PF_RT_STATES_TOTAL	= 70, /* u64 */
+	PF_RT_SRC_NODES		= 71, /* u64 */
+	PF_RT_ANCHOR_CALL	= 72, /* string */
 };
 
 enum pf_addrule_type_t {
@@ -246,6 +263,56 @@ enum pf_getrules_type_t {
 	PF_GR_ACTION		= 2, /* u8 */
 	PF_GR_NR		= 3, /* u32 */
 	PF_GR_TICKET		= 4, /* u32 */
+	PF_GR_CLEAR		= 5, /* u8 */
+};
+
+enum pf_clear_states_type_t {
+	PF_CS_UNSPEC,
+	PF_CS_CMP_ID		= 1, /* u64 */
+	PF_CS_CMP_CREATORID	= 2, /* u32 */
+	PF_CS_CMP_DIR		= 3, /* u8 */
+	PF_CS_AF		= 4, /* u8 */
+	PF_CS_PROTO		= 5, /* u8 */
+	PF_CS_SRC		= 6, /* nested, pf_addr_wrap */
+	PF_CS_DST		= 7, /* nested, pf_addr_wrap */
+	PF_CS_RT_ADDR		= 8, /* nested, pf_addr_wrap */
+	PF_CS_IFNAME		= 9, /* string */
+	PF_CS_LABEL		= 10, /* string */
+	PF_CS_KILL_MATCH	= 11, /* bool */
+	PF_CS_NAT		= 12, /* bool */
+	PF_CS_KILLED		= 13, /* u32 */
+};
+
+enum pf_set_statusif_types_t {
+	PF_SS_UNSPEC,
+	PF_SS_IFNAME		= 1, /* string */
+};
+
+enum pf_counter_types_t {
+	PF_C_UNSPEC,
+	PF_C_COUNTER		= 1, /* u64 */
+	PF_C_NAME		= 2, /* string */
+	PF_C_ID			= 3, /* u32 */
+};
+
+enum pf_get_status_types_t {
+	PF_GS_UNSPEC,
+	PF_GS_IFNAME		= 1, /* string */
+	PF_GS_RUNNING		= 2, /* bool */
+	PF_GS_SINCE		= 3, /* u32 */
+	PF_GS_DEBUG		= 4, /* u32 */
+	PF_GS_HOSTID		= 5, /* u32 */
+	PF_GS_STATES		= 6, /* u32 */
+	PF_GS_SRC_NODES		= 7, /* u32 */
+	PF_GS_REASSEMBLE	= 8, /* u32 */
+	PF_GS_SYNCOOKIES_ACTIVE	= 9, /* bool */
+	PF_GS_COUNTERS		= 10, /* nested, */
+	PF_GS_LCOUNTERS		= 11, /* nested, */
+	PF_GS_FCOUNTERS		= 12, /* nested, */
+	PF_GS_SCOUNTERS		= 13, /* nested, */
+	PF_GS_CHKSUM		= 14, /* byte array */
+	PF_GS_PCOUNTERS		= 15, /* u64 array */
+	PF_GS_BCOUNTERS		= 16, /* u64 array */
 };
 
 #ifdef _KERNEL

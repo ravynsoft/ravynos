@@ -510,9 +510,9 @@ struct ieee80211_key_conf {
 	uint8_t				hw_key_idx;	/* Set by drv. */
 	uint8_t				keyidx;
 	uint16_t			flags;
-	uint8_t				keylen;
-	uint8_t				key[0];
 	int8_t				link_id;	/* signed! */
+	uint8_t				keylen;
+	uint8_t				key[0];		/* Must stay last! */
 };
 
 struct ieee80211_key_seq {
@@ -528,6 +528,9 @@ struct ieee80211_key_seq {
 		struct {
 			uint8_t		pn[IEEE80211_CCMP_PN_LEN];
 		} aes_cmac;
+		struct {
+			uint8_t		pn[IEEE80211_CCMP_PN_LEN];
+		} aes_gmac;
 		struct {
 			uint32_t	iv32;
 			uint16_t	iv16;

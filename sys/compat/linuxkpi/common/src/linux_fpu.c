@@ -49,20 +49,33 @@
 void
 lkpi_kernel_fpu_begin(void)
 {
-	int err;
-
-	if ((current->fpu_ctx_level)++ == 0) {
-		err = linux_set_fpu_ctx(current);
-		fpu_kern_enter(curthread, current->fpu_ctx,
-		    err == 0 ? FPU_KERN_KTHR : FPU_KERN_NOCTX);
-	}
+	if ((current->fpu_ctx_level)++ == 0)
+		fpu_kern_enter(curthread, NULL, FPU_KERN_NOCTX);
 }
 
 void
 lkpi_kernel_fpu_end(void)
 {
 	if (--(current->fpu_ctx_level) == 0)
-		fpu_kern_leave(curthread, current->fpu_ctx);
+		fpu_kern_leave(curthread, NULL);
+}
+
+void
+lkpi_fpu_safe_exec(fpu_safe_exec_cb_t func, void *ctx)
+{
+	unsigned int save_fpu_level;
+
+	save_fpu_level =
+	    __current_unallocated(curthread) ? 0 : current->fpu_ctx_level;
+	if (__predict_false(save_fpu_level != 0)) {
+		current->fpu_ctx_level = 1;
+		kernel_fpu_end();
+	}
+	func(ctx);
+	if (__predict_false(save_fpu_level != 0)) {
+		kernel_fpu_begin();
+		current->fpu_ctx_level = save_fpu_level;
+	}
 }
 
 #else
@@ -75,6 +88,12 @@ lkpi_kernel_fpu_begin(void)
 void
 lkpi_kernel_fpu_end(void)
 {
+}
+
+void
+lkpi_fpu_safe_exec(fpu_safe_exec_cb_t func, void *ctx)
+{
+	func(ctx);
 }
 
 #endif

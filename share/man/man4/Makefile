@@ -163,14 +163,12 @@ MAN=	aac.4 \
 	fwip.4 \
 	fwohci.4 \
 	fxp.4 \
-	gbde.4 \
 	gdb.4 \
 	gem.4 \
 	genet.4 \
 	genetlink.4 \
 	geom.4 \
 	geom_linux_lvm.4 \
-	geom_map.4 \
 	geom_uzip.4 \
 	gif.4 \
 	${_gve.4} \
@@ -208,6 +206,7 @@ MAN=	aac.4 \
 	${_hv_vss.4} \
 	hwpmc.4 \
 	${_hwpstate_intel.4} \
+	i2ctinyusb.4 \
 	iavf.4 \
 	ichsmb.4 \
 	${_ichwd.4} \
@@ -405,9 +404,12 @@ MAN=	aac.4 \
 	${_if_ntb.4} \
 	null.4 \
 	numa.4 \
-	${_nvd.4} \
+	nvd.4 \
 	${_nvdimm.4} \
-	${_nvme.4} \
+	nvme.4 \
+	nvmf.4 \
+	nvmf_tcp.4 \
+	nvmft.4 \
 	${_nvram.4} \
 	oce.4 \
 	ocs_fc.4\
@@ -434,6 +436,7 @@ MAN=	aac.4 \
 	pcm.4 \
 	${_pf.4} \
 	${_pflog.4} \
+	${_pflow.4} \
 	${_pfsync.4} \
 	pim.4 \
 	pms.4 \
@@ -490,6 +493,7 @@ MAN=	aac.4 \
 	send.4 \
 	ses.4 \
 	${_sfxge.4} \
+	sg.4 \
 	sge.4 \
 	siba.4 \
 	siftr.4 \
@@ -690,6 +694,7 @@ MLINKS+=ipfirewall.4 ipaccounting.4 \
 MLINKS+=ipheth.4 if_ipheth.4
 MLINKS+=ipw.4 if_ipw.4
 MLINKS+=iwi.4 if_iwi.4
+MLINKS+=iwlwifi.4 if_iwlwifi.4
 MLINKS+=iwm.4 if_iwm.4
 MLINKS+=iwn.4 if_iwn.4
 MLINKS+=ixgbe.4 ix.4
@@ -733,10 +738,9 @@ MLINKS+=re.4 if_re.4
 MLINKS+=rl.4 if_rl.4
 MLINKS+=rtwn_pci.4 if_rtwn_pci.4
 MLINKS+=rue.4 if_rue.4
-MLINKS+=scsi.4 CAM.4 \
-	scsi.4 cam.4 \
-	scsi.4 scbus.4 \
-	scsi.4 SCSI.4
+MLINKS+=scsi.4 cam.4
+MLINKS+=scsi.4 scbus.4
+MLINKS+=scsi.4 SCSI.4
 MLINKS+=sge.4 if_sge.4
 MLINKS+=sis.4 if_sis.4
 MLINKS+=sk.4 if_sk.4
@@ -836,8 +840,6 @@ _ntb_hw_amd.4=	ntb_hw_amd.4
 _ntb_hw_intel.4=	ntb_hw_intel.4
 _ntb_hw_plx.4=	ntb_hw_plx.4
 _ntb_transport.4=ntb_transport.4
-_nvd.4=		nvd.4
-_nvme.4=	nvme.4
 _nvram.4=	nvram.4
 _padlock.4=	padlock.4
 _pchtherm.4=	pchtherm.4
@@ -883,11 +885,6 @@ MLINKS+=sume.4 if_sume.4
 _bhyve.4=	bhyve.4
 _vmm.4=		vmm.4
 .endif
-.endif
-
-.if ${MACHINE_CPUARCH} == "powerpc"
-_nvd.4= 	nvd.4
-_nvme.4=	nvme.4
 .endif
 
 .if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "i386" || \
@@ -969,6 +966,7 @@ _atf_test_case.4=	atf-test-case.4
 .if ${MK_PF} != "no"
 _pf.4=		pf.4
 _pflog.4=	pflog.4
+_pflow.4=	pflow.4
 _pfsync.4=	pfsync.4
 .endif
 

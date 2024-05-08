@@ -26,7 +26,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include "namespace.h"
 #include <errno.h>
 #include <pthread.h>
@@ -88,7 +87,7 @@ join_common(pthread_t pthread, void **thread_return,
 	struct pthread *curthread = _get_curthread();
 	struct timespec ts, ts2, *tsp;
 	void *tmp;
-	long tid;
+	int tid;
 	int ret;
 
 	if (pthread == NULL)

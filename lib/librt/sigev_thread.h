@@ -59,7 +59,7 @@ struct sigev_thread {
 	pthread_t			tn_thread;
 	struct sigev_node		*tn_cur;
 	int				tn_refcount;
-	long				tn_lwpid;
+	int				tn_lwpid;
 	pthread_cond_t			tn_cv;
 };
 

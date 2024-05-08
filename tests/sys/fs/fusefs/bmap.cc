@@ -105,8 +105,8 @@ TEST_F(Bmap, bmap)
 	arg.runb = -1;
 	ASSERT_EQ(0, ioctl(fd, FIOBMAP2, &arg)) << strerror(errno);
 	EXPECT_EQ(arg.bn, pbn);
-	EXPECT_EQ(arg.runp, m_maxphys / m_maxbcachebuf - 1);
-	EXPECT_EQ(arg.runb, m_maxphys / m_maxbcachebuf - 1);
+	EXPECT_EQ((unsigned long)arg.runp, m_maxphys / m_maxbcachebuf - 1);
+	EXPECT_EQ((unsigned long)arg.runb, m_maxphys / m_maxbcachebuf - 1);
 
 	leak(fd);
 }
@@ -142,7 +142,7 @@ TEST_F(Bmap, default_)
 	arg.runb = -1;
 	ASSERT_EQ(0, ioctl(fd, FIOBMAP2, &arg)) << strerror(errno);
 	EXPECT_EQ(arg.bn, 0);
-	EXPECT_EQ(arg.runp, m_maxphys / m_maxbcachebuf - 1);
+	EXPECT_EQ((unsigned long )arg.runp, m_maxphys / m_maxbcachebuf - 1);
 	EXPECT_EQ(arg.runb, 0);
 
 	/* In the middle */
@@ -152,8 +152,8 @@ TEST_F(Bmap, default_)
 	arg.runb = -1;
 	ASSERT_EQ(0, ioctl(fd, FIOBMAP2, &arg)) << strerror(errno);
 	EXPECT_EQ(arg.bn, lbn * m_maxbcachebuf / DEV_BSIZE);
-	EXPECT_EQ(arg.runp, m_maxphys / m_maxbcachebuf - 1);
-	EXPECT_EQ(arg.runb, m_maxphys / m_maxbcachebuf - 1);
+	EXPECT_EQ((unsigned long )arg.runp, m_maxphys / m_maxbcachebuf - 1);
+	EXPECT_EQ((unsigned long )arg.runb, m_maxphys / m_maxbcachebuf - 1);
 
 	/* Last block */
 	lbn = filesize / m_maxbcachebuf - 1;
@@ -163,7 +163,7 @@ TEST_F(Bmap, default_)
 	ASSERT_EQ(0, ioctl(fd, FIOBMAP2, &arg)) << strerror(errno);
 	EXPECT_EQ(arg.bn, lbn * m_maxbcachebuf / DEV_BSIZE);
 	EXPECT_EQ(arg.runp, 0);
-	EXPECT_EQ(arg.runb, m_maxphys / m_maxbcachebuf - 1);
+	EXPECT_EQ((unsigned long )arg.runb, m_maxphys / m_maxbcachebuf - 1);
 
 	leak(fd);
 }
@@ -188,7 +188,7 @@ TEST_P(BmapEof, eof)
 	const off_t filesize = 2 * m_maxbcachebuf;
 	const ino_t ino = 42;
 	mode_t mode = S_IFREG | 0644;
-	void *buf;
+	char *buf;
 	int fd;
 	int ngetattrs;
 
@@ -243,11 +243,12 @@ TEST_P(BmapEof, eof)
 		out.body.attr.attr.size = filesize / 2;
 	})));
 
-	buf = calloc(1, filesize);
+	buf = new char[filesize]();
 	fd = open(FULLPATH, O_RDWR);
 	ASSERT_LE(0, fd) << strerror(errno);
 	read(fd, buf, filesize);
 
+	delete[] buf;
 	leak(fd);
 }
 

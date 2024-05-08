@@ -20,7 +20,7 @@
  */
 
 /*
- * Copyright (c) 2016 by Delphix. All rights reserved.
+ * Copyright (c) 2016, 2024 by Delphix. All rights reserved.
  * Copyright (c) 2019 by Lawrence Livermore National Security, LLC.
  * Copyright (c) 2021 Hewlett Packard Enterprise Development LP
  * Copyright 2023 RackTop Systems, Inc.
@@ -196,7 +196,8 @@ vdev_autotrim_wait_kick(vdev_t *vd, int num_of_kick)
 	for (int i = 0; i < num_of_kick; i++) {
 		if (vd->vdev_autotrim_exit_wanted)
 			break;
-		cv_wait(&vd->vdev_autotrim_kick_cv, &vd->vdev_autotrim_lock);
+		cv_wait_idle(&vd->vdev_autotrim_kick_cv,
+		    &vd->vdev_autotrim_lock);
 	}
 	boolean_t exit_wanted = vd->vdev_autotrim_exit_wanted;
 	mutex_exit(&vd->vdev_autotrim_lock);
@@ -1147,7 +1148,8 @@ vdev_trim_stop_all(vdev_t *vd, vdev_trim_state_t tgt_state)
 void
 vdev_trim_restart(vdev_t *vd)
 {
-	ASSERT(MUTEX_HELD(&spa_namespace_lock));
+	ASSERT(MUTEX_HELD(&spa_namespace_lock) ||
+	    vd->vdev_spa->spa_load_thread == curthread);
 	ASSERT(!spa_config_held(vd->vdev_spa, SCL_ALL, RW_WRITER));
 
 	if (vd->vdev_leaf_zap != 0) {
@@ -1567,8 +1569,8 @@ vdev_autotrim_stop_all(spa_t *spa)
 void
 vdev_autotrim_restart(spa_t *spa)
 {
-	ASSERT(MUTEX_HELD(&spa_namespace_lock));
-
+	ASSERT(MUTEX_HELD(&spa_namespace_lock) ||
+	    spa->spa_load_thread == curthread);
 	if (spa->spa_autotrim)
 		vdev_autotrim(spa);
 }

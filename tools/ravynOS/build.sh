@@ -51,6 +51,10 @@ drm_build() {
 
 system_build() {
     cd ${CIRRUS_WORKING_DIR}
+    if [ "${CIRRUS_CI}" ]; then
+        ln -sf ${CIRRUS_WORKING_DIR}/sys/$(uname -p)/include \
+	/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/usr/include/machine
+    fi
     #ln -sf ../sys /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/sys
     make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     if [ $? -ne 0 ]; then exit $?; fi

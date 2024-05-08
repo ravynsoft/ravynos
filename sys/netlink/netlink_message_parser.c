@@ -312,6 +312,17 @@ nlattr_get_ipvia(struct nlattr *nla, struct nl_pstate *npt, const void *arg, voi
 	return (error);
 }
 
+int
+nlattr_get_bool(struct nlattr *nla, struct nl_pstate *npt, const void *arg, void *target)
+{
+	if (__predict_false(NLA_DATA_LEN(nla) != sizeof(bool))) {
+		NLMSG_REPORT_ERR_MSG(npt, "nla type %d size(%u) is not bool",
+		    nla->nla_type, NLA_DATA_LEN(nla));
+		return (EINVAL);
+	}
+	*((bool *)target) = *((const bool *)NL_RTA_DATA_CONST(nla));
+	return (0);
+}
 
 int
 nlattr_get_uint8(struct nlattr *nla, struct nl_pstate *npt, const void *arg, void *target)
@@ -321,7 +332,7 @@ nlattr_get_uint8(struct nlattr *nla, struct nl_pstate *npt, const void *arg, voi
 		    nla->nla_type, NLA_DATA_LEN(nla));
 		return (EINVAL);
 	}
-	*((uint16_t *)target) = *((const uint16_t *)NL_RTA_DATA_CONST(nla));
+	*((uint8_t *)target) = *((const uint8_t *)NL_RTA_DATA_CONST(nla));
 	return (0);
 }
 

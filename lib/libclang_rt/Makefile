@@ -60,7 +60,7 @@ SUBDIR+=	${SD_TSAN}
 SUBDIR+=	${SD_UBSAN}
 SUBDIR+=	${SD_XRAY}
 .elif ${MACHINE_CPUARCH} == "arm"
-# nothing for 32-bit arm
+# nothing for 32-bit arm yet
 .elif ${MACHINE_CPUARCH} == "i386"
 SUBDIR+=	${SD_ASAN}
 SUBDIR+=	${SD_CFI}
@@ -68,20 +68,22 @@ SUBDIR+=	${SD_SAFESTACK}
 SUBDIR+=	${SD_STATS}
 SUBDIR+=	${SD_UBSAN}
 .elif ${MACHINE_CPUARCH} == "powerpc"
-# nothing for 32-bit powerpc
-.elif ${MACHINE_ARCH} == "powerpc64"
+. if ${MACHINE_ARCH} == "powerpc64"
 SUBDIR+=	${SD_ASAN}
 SUBDIR+=	${SD_MSAN}
 SUBDIR+=	${SD_STATS}
 SUBDIR+=	${SD_TSAN}
 SUBDIR+=	${SD_UBSAN}
-.elif ${MACHINE_ARCH} == "powerpc64le"
+. elif ${MACHINE_ARCH} == "powerpc64le"
 SUBDIR+=	${SD_ASAN}
 SUBDIR+=	${SD_MSAN}
 SUBDIR+=	${SD_STATS}
 SUBDIR+=	${SD_TSAN}
 SUBDIR+=	${SD_UBSAN}
 SUBDIR+=	${SD_XRAY}
+. else
+# nothing for other powerpc yet
+. endif
 .elif ${MACHINE_CPUARCH} == "riscv"
 SUBDIR+=	${SD_ASAN}
 SUBDIR+=	${SD_STATS}
