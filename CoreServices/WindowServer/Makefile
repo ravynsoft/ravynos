@@ -92,10 +92,10 @@ make-obj-dirs: .EXEC
 .for subdir in ${SUBDIR}
 	mkdir -p ${MAKEOBJDIR}/${subdir}
 .endfor
+	mkdir -p ${MAKEOBJDIR}/LoginWindow
+	mkdir -p ${MAKEOBJDIR}/SystemUIServer
 
 .include <sys.mk>
 .include <bsd.subdir.mk>
 .include <rvn.app.mk>
-
-beforebuild: make-obj-dirs obj
 

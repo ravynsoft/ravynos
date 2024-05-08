@@ -24,21 +24,23 @@ build: buildWindowServer DMIHelper buildDock #buildFiler
             -e 's/RAVYNOS_CODENAME/${RAVYNOS_CODENAME}/' \
             -e 's/BUILD_STAMP/${SHA}/' < ${.CURDIR}/SystemVersion.plist.in \
             >${BUILDROOT}/System/Library/CoreServices/SystemVersion.plist
-	cp -av ${.CURDIR}/WindowServer/WindowServer.app ${BUILDROOT}/System/Library/CoreServices
-	cp -av ${.CURDIR}/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
+	cp -av ${OBJTOP}/CoreServices/WindowServer/WindowServer.app ${BUILDROOT}/System/Library/CoreServices
+	cp -av ${OBJTOP}/CoreServices/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
 	#cp -av ${.CURDIR}/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 .for f in ${.CURDIR}/askpass 
-		cp -fv ${f} ${BUILDROOT}/System/Library/CoreServices/
-		chmod 755 ${BUILDROOT}/System/Library/CoreServices/$$(basename ${f})
+	cp -fv ${f} ${BUILDROOT}/System/Library/CoreServices/
+	chmod 755 ${BUILDROOT}/System/Library/CoreServices/$$(basename ${f})
 .endfor
 
 buildDock:
-	${MAKE} -C ${.CURDIR}/Dock
+	mkdir -p ${MAKEOBJDIR}/Dock/Trash
+	mkdir -p ${MAKEOBJDIR}/Dock/Downloads
+	${MAKE} -C ${.CURDIR}/Dock obj all
 
 buildWindowServer:
 	${MAKE} -C ${.CURDIR}/WindowServer make-obj-dirs obj all
 	${MAKE} -C ${.CURDIR}/WindowServer/SystemUIServer
 	${MAKE} -C ${.CURDIR}/WindowServer/LoginWindow
-	cp -afv ${.CURDIR}/WindowServer/SystemUIServer/SystemUIServer.app \
-	        ${.CURDIR}/WindowServer/LoginWindow/LoginWindow.app \
-                ${.CURDIR}/WindowServer/WindowServer.app/Contents/Resources/
+	cp -afv ${OBJTOP}/CoreServices/WindowServer/SystemUIServer/SystemUIServer.app \
+	        ${OBJTOP}/CoreServices/WindowServer/LoginWindow/LoginWindow.app \
+                ${OBJTOP}/CoreServices/WindowServer/WindowServer.app/Contents/Resources/

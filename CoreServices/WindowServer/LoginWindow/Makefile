@@ -23,6 +23,7 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' \
 		-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Resources \
-                -lobjc -lwayland -lSystem -lcrypt -lm
+                -lAppKit -lFoundation -lobjc -lwayland -lSystem -lcrypt -lm
 
 .include <rvn.app.mk>
+${OBJS}: obj
