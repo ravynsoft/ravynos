@@ -4,6 +4,7 @@ PATH+=	${OBJTOP}/tmp/legacy/bin
 
 all:
 	cmake -G "Unix Makefiles" \
+		-DCMAKE_SHARED_LINKER_FLAGS="-L${OBJTOP}/lib/libdl" \
 		-DPKG_CONFIG_EXECUTABLE=/usr/bin/true \
 		-DCMAKE_INSTALL_PREFIX=${PREFIX} \
 		-DLIBXML2_WITH_SAX1=ON \

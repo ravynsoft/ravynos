@@ -10,7 +10,8 @@ CONFIGURE_ARGS+= --prefix=/usr \
 		 --localstatedir=/var
 all: build
 configure: .EXEC
-	${.CURDIR}/configure ${CONFIGURE_ARGS}
+	mkdir -p ${MAKEOBJDIR}
+	cd ${MAKEOBJDIR}; ${.CURDIR}/configure ${CONFIGURE_ARGS}
 
 build: configure
 	${GMAKE} -C ${MAKEOBJDIR}

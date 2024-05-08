@@ -31,10 +31,11 @@ all: build
 ${MAKEOBJDIR}/Makefile:
 	mkdir -p ${MAKEOBJDIR}
 	cd ${MAKEOBJDIR}; LDFLAGS="${LDFLAGS:S/-L /-L/Wg}" \
+		PYTHON=${OBJTOP}/tmp/usr/bin/python3 \
 		${.CURDIR}/configure ${CONFIGURE_ARGS}
 
 build: ${MAKEOBJDIR}/Makefile
-	${GMAKE} -C ${MAKEOBJDIR}
+	PYTHON=${OBJTOP}/tmp/usr/bin/python3 ${GMAKE} -C ${MAKEOBJDIR}
 
 clean:
 	rm -rf ${MAKEOBJDIR}

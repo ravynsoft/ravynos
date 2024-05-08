@@ -20,7 +20,7 @@ LDFLAGS= -lbsdxml
 WARNS?=		2
 
 wayland.dtd.h::
-	python3 ${.CURDIR}/../src/embed.py \
+	${OBJTOP}/tmp/usr/bin/python3 ${.CURDIR}/../src/embed.py \
         ${.CURDIR}/../protocol/wayland.dtd wayland_dtd >${.TARGET}
 
 wayland-version.h: ../src/wayland-version.h.in

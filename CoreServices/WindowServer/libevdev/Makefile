@@ -46,7 +46,8 @@ ${INCSDIR}: .PHONY
 	mkdir -vp ${OBJTOP}/tmp/${INCSDIR}
 
 event-names.h: .PHONY
-	${.CURDIR}/libevdev/make-event-names.py \
+	${OBJTOP}/tmp/usr/bin/python3 \
+		${.CURDIR}/libevdev/make-event-names.py \
         	${.CURDIR}/include/linux/linux/input.h \
         	${.CURDIR}/include/linux/linux/input-event-codes.h >${.TARGET}
 

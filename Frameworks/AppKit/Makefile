@@ -6,6 +6,7 @@ MK_AUTO_OBJ=yes
 NO_FMWK_COMMON=yes
 .include "../framework.common.mk"
 
+SUBDIR+=	gperf .WAIT
 SUBDIR+=	fontconfig
 SUBDIR+=	libxkbcommon
 

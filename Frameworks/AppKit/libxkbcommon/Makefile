@@ -87,4 +87,4 @@ src/xkbcomp/parser.c: src/xkbcomp/parser.y
 
 .include <bsd.lib.mk>
 
-${OBJS}: config.h src/xkbcomp/parser.c
+${OBJS}: obj config.h src/xkbcomp/parser.c

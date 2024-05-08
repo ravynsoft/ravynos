@@ -26,7 +26,12 @@ install() {
 
 base_build() {
     cd ${CIRRUS_WORKING_DIR}
-    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
+    make -j${CORES} MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 \
+	MK_LIB32=no MK_LLVM_TARGET_X86=yes \
+	MK_LLVM_TARGET_ARM=yes MK_LLVM_TARGET_AARCH64=yes \
+	MK_LLVM_TARGET_RISCV=no MK_LLVM_TARGET_POWERPC=no \
+	MK_LLVM_TARGET_MIPS=no MK_LLVM_TARGET_BPF=no \
+	COMPILER_TYPE=clang buildworld
     if [ $? -ne 0 ]; then exit $?; fi
 }
 

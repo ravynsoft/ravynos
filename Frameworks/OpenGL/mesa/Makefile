@@ -38,6 +38,7 @@ build:
         -Dgbm=enabled -Dxmlconfig=disabled -Dexpat=disabled \
 	${MAKEOBJDIR} ${.CURDIR}
 	sed -i.bak -e 's@-I/usr/include@@g' ${MAKEOBJDIR}/build.ninja
+	PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:${OBJTOP}/usr.bin/clang/llvm-ar \
 	${NINJA}
 
 install:

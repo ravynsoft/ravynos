@@ -179,6 +179,7 @@ SUBDIR_DEPEND_liblzma= libthr
 .if ${MK_OFED} != "no"
 SUBDIR_DEPEND_libpcap= ofed
 .endif
+SUBDIR_DEPEND_libxml2= libdl
 SUBDIR_DEPEND_libxpc= libdispatch
 SUBDIR_DEPEND_nss_tacplus= libtacplus
 
