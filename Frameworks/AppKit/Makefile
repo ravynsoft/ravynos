@@ -669,6 +669,8 @@ make-obj-dirs: .PHONY
 .for subdir in ${DIRS}
 	mkdir -pv ${MAKEOBJDIR}/${subdir}
 .endfor
+	mkdir -p ${MAKEOBJDIR}/libxkbcommon/src/xkbcomp
+	mkdir -p ${MAKEOBJDIR}/libxkbcommon/src/compose
 
 fmwkclean:
 	rm -rf ${.CURDIR}/Headers
