@@ -28,7 +28,7 @@ INCS=		wayland-client-protocol.h \
                 wayland-util.h
 
 CFLAGS+= --sysroot=${OBJTOP}/tmp -I${.CURDIR} -I${MAKEOBJDIR} \
-	 -I${OBJTOP}/lib/libffi/include
+	 -I${OBJTOP}/lib/libffi/include -I${OBJTOP}/lib/libepoll-shim/include
 CFLAGS+= -Wno-error=cast-align -Wno-error=missing-variable-declarations \
          -Wno-error=unused-parameter -Wno-error=cast-qual \
          -Wno-error=thread-safety-analysis -Wno-error=unused-parameter
