@@ -4,6 +4,9 @@ PLATFORM=${PLATFORM:-$(uname -m).$(uname -p)}
 PREFIX=${PREFIX:-/usr}
 HW_CPUS=$(sysctl -n hw.ncpu)
 CORES=${CORES:-${HW_CPUS}}
+BUILDROOT=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
+TMPBIN=${BUILDROOT}/tmp/usr/bin
+TMPLEGACY=${BUILDROOT}/tmp/legacy/bin
 
 export PREFIX
 
@@ -15,10 +18,10 @@ install() {
         COMPILER_TYPE=clang make -C drm-kmod install
     fi
     if [ -d neofetch ]; then
-        gmake -C neofetch install
+        ${TMPLEGACY}/gmake -C neofetch install
     fi
     if [ -d plutil ]; then
-        gmake -C plutil install
+        ${TMPLEGACY}/gmake -C plutil install
     fi
     make COMPILER_TYPE=clang -f Makefile.ravynOS install
 }
@@ -62,7 +65,6 @@ system_build() {
         ln -sf ${CIRRUS_WORKING_DIR}/sys/$(uname -m)/include \
 	/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/usr/include/machine
     fi
-    #ln -sf ../sys /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/sys
     make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     if [ $? -ne 0 ]; then exit $?; fi
     cp -fv share/mk/* /usr/share/mk/
@@ -75,7 +77,11 @@ extras_build() {
     if [ ! -d neofetch ]; then
         git clone https://github.com/ravynsoft/neofetch.git
     fi
-    cd neofetch && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
+    cp -fv ${CIRRUS_WORKING_DIR}/neofetch/neofetch \
+	${BUILDROOT}/release/dist/ravynOS/usr/bin/
+    cp -fv ${CIRRUS_WORKING_DIR}/neofetch/neofetch.1 \
+	${BUILDROOT}/release/dist/ravynOS/usr/share/man/man1/
+    chmod 755 ${BUILDROOT}/release/dist/ravynOS/usr/bin/neofetch
     if [ $? -ne 0 ]; then exit $?; fi
     cd ${CIRRUS_WORKING_DIR}
     if [ ! -d plutil ]; then
@@ -83,8 +89,13 @@ extras_build() {
     fi
     cd plutil
     git submodule update --init --recursive
-    gmake && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
+    PATH=${PATH}:${TMPBIN} \
+	CMAKE_FLAGS="-DLIBXML2_LIBRARY=${BUILDROOT}/tmp/usr/lib/libxml2.so -DLIBXML2_INCLUDE_DIR=${BUILDROOT}/tmp/usr/include/libxml2" \
+	${TMPLEGACY}/gmake
+    PATH=${PATH}:${TMPBIN} ${TMPLEGACY}/gmake \
+	DESTDIR=${BUILDROOT}/release/dist/ravynOS install
     if [ $? -ne 0 ]; then exit $?; fi
+    cd ${CIRRUS_WORKING_DIR}
 }
 
 kernelpkg() {
