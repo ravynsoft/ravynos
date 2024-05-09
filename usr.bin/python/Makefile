@@ -12,11 +12,11 @@ ${PROG}:
 	${.CURDIR}/configure --prefix=${PREFIX} --sysconfdir=/etc ${CONFIGURE_ARGS}
 	${MAKE} CFLAGS="${NEWCFLAGS}"
 	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${DESTDIR}/legacy/bin/install"
-	ln -sfv python3.10 ${DESTDIR}${PREFIX}/bin/python3
-	ln -sfv python3 ${DESTDIR}${PREFIX}/bin/python
 
 install:
 	${MAKE} -C ${.CURDIR}/Mako ${.TARGET}
+	ln -sfv python3.10 ${DESTDIR}${PREFIX}/bin/python3
+	ln -sfv python3 ${DESTDIR}${PREFIX}/bin/python
 
 installconfig: .PHONY
 includes: .PHONY
