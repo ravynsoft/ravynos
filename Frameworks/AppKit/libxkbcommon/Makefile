@@ -6,7 +6,6 @@ SHLIB_MAJOR=    1
 
 .PATH:          ${.CURDIR}
 .PATH:		${MAKEOBJDIR}
-.PATH:		${MAKEOBJDIR}/src/xkbcomp
 
 SRCS=   src/keysym.c \
         src/context.c \

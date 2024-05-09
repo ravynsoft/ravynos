@@ -18,7 +18,7 @@ SHLIB_MAJOR=    2
 SRCS=           ${LIBDRM_FILES} ${LIBDRM_NOUVEAU_FILES} ${LIBDRM_AMDGPU_FILES}
 SRCS+=          ${LIBDRM_RADEON_FILES}
 
-.if ${.TARGET} == "amd64" || ${.TARGET} == "i386"
+.if ${MACHINE} == "amd64" || ${MACHINE} == "i386"
 SRCS+=          ${LIBDRM_INTEL_FILES}
 .endif
 
@@ -42,7 +42,7 @@ CFLAGS+=        -I${.CURDIR}/include/drm -I${.CURDIR} \
                 -Wno-error=gnu-variable-sized-type-not-at-end \
                 -Wno-error=\#warnings
 
-.if ${.TARGET} == "amd64" || ${.TARGET} == "i386"
+.if ${MACHINE} == "amd64" || ${MACHINE} == "i386"
 CFLAGS+=        -DHAVE_INTEL
 .endif
 
