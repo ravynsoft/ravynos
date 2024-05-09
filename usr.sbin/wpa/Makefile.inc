@@ -11,8 +11,6 @@ HOSTAPD_DISTDIR?=	${WPA_DISTDIR}/hostapd
 
 .PATH.c:${.CURDIR:H}
 
-# Undef __MACH__ until we have a proper CF
-CFLAGS+=-U__MACH__
 CFLAGS+=-I${.CURDIR}
 CFLAGS+=-I${HOSTAPD_DISTDIR}
 CFLAGS+=-I${WPA_DISTDIR}/src
@@ -114,3 +112,8 @@ NEED_FIPS186_2_PRF=y
 CFLAGS+=-DEAP_GPSK_SHA256
 NEED_AES_OMAC1=y
 .endif
+
+CFLAGS+=-I${SRCTOP}/Frameworks
+CFLAGS+=-I${SRCTOP}/include
+LDFLAGS+=-L${OBJTOP}/lib/libmach -lmach
+LDFLAGS+=-L${OBJTOP}/lib/libthr -lthr
