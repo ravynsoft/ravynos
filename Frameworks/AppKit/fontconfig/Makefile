@@ -19,7 +19,8 @@ FREETYPE_LIBS=	 -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework/Resources \
 		 -lfreetype \
 		 -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Resources
 LIBXML2_CFLAGS=  -I${SRCTOP}/lib/libxml2/include \
-		 -I${OBJTOP}/lib/libxml2
+		 -I${OBJTOP}/lib/libxml2 \
+		 -I${OBJTOP}/tmp/usr/include/libxml2
 LIBXML2_LIBS=	 -L${OBJTOP}/lib/libxml2 -lxml2
 LDFLAGS+=	 ${FREETYPE_LIBS} ${LIBXML2_LIBS}
 
