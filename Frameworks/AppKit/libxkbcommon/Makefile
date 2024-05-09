@@ -4,8 +4,7 @@ LIB=		xkbcommon
 PACKAGE=        lib${LIB}
 SHLIB_MAJOR=    1
 
-.PATH:          ${.CURDIR}
-.PATH:		${MAKEOBJDIR}
+.PATH:          ${.CURDIR} ${MAKEOBJDIR}
 
 SRCS=   src/keysym.c \
         src/context.c \
