@@ -128,13 +128,12 @@ system_task:
   system_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
     - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/
-    - ln -sf ../sys /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/sys
+    - ln -sf ${CIRRUS_WORKING_DIR}/sys /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/sys
     - ${CIRRUS_WORKING_DIR}/tools/ravynOS/build.sh system extras systempkg
   iso_script:
     - echo >> /root/.ssh/id_rsa
     - chmod 600 /root/.ssh/id_rsa
     - pkg install -y sshpass
-    - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
     - cp -fv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/ravynOS.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
