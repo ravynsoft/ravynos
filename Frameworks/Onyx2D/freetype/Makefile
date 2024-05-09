@@ -2,14 +2,15 @@
 
 MK_WERROR=no
 WARNS=1
-CFLAGS+= -I${OBJTOP}/tmp/usr/include
+CFLAGS+= --sysroot=${OBJTOP}/tmp -B{$OBJTOP}/tmp/usr/bin
+CMAKE?= ${OBJTOP}/tmp/usr/bin/cmake
 
 .include <bsd.lib.mk>
 
 
 all: build
 build:
-	cmake -S ${.CURDIR} -B ${MAKEOBJDIR} \
+	${CMAKE} -S ${.CURDIR} -B ${MAKEOBJDIR} \
 		-DCMAKE_C_FLAGS="${CFLAGS}" \
 		-DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS}" \
 		-DCMAKE_BUILD_TYPE=Release \
