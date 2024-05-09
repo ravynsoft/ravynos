@@ -45,6 +45,7 @@ INCS=
 CFLAGS+=        -I${.CURDIR}/include/drm \
 		-I${.CURDIR}/include -I${.CURDIR}/src \
                 -I${SRCTOP}/lib/libxml2/include \
+		-I${OBJTOP}/tmp/usr/include/libxml2 \
 		-I${OBJTOP}/lib/libxml2 -I${MAKEOBJDIR} \
                 -DUDEV -DHAVE_STRNDUP -DHAVE_UNISTD_H \
                 -DHAVE_LIBDRM_ATOMIC_PRIMITIVES \
