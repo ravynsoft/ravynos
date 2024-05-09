@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 
 set -e
 set -x
@@ -6,45 +6,13 @@ set -x
 mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
 
-# Use blue folder icons instead of the ones packaged in FreeBSD which have yellow folder icons
-# Don't extract directly in /tmp, as tar will modify its permissions
-icons_temp=$(mktemp -d /tmp/icons.XXXXX)
-cd $icons_temp
-fetch http://archive.ubuntu.com/ubuntu/pool/universe/x/xubuntu-artwork/xubuntu-icon-theme_16.04.2_all.deb
-tar xf xubuntu-icon-theme_16.04.2_all.deb
-tar xf data.tar.xz
-mkdir -p "${uzip}"/usr/share/icons/
-mv ./usr/share/icons/elementary-xfce "${uzip}"/usr/share/icons/elementary
-ln -sf "elementary" "${uzip}/usr/share/icons/elementary-xfce"
-mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/share/icons/elementary/
-cd -
-rm -r $icons_temp
-
-#curl -Lo - https://dl.cloudsmith.io/public/airyx/13_0/raw/files/gnome-icon-theme-3.12.0_1.pkg | tar xvf - -C "${uzip}"
-#curl -Lo - https://dl.cloudsmith.io/public/airyx/13_0/raw/files/gnome-icon-theme-symbolic-3.12.0.pkg | tar xvf - -C "${uzip}"
-#( cd "${uzip}/usr/share/icons/" ; ln -s Adwaita adwaita )
-
-# Cursor theme with HiDPi Support, sizes: 22 24 28 32 40 48 56 64 72 80 88 96
-fetch https://github.com/ful1e5/apple_cursor/releases/download/v1.0.6/macOSBigSur.tar.gz
-tar xvf macOSBigSur.tar.gz
-mv macOSBigSur "${uzip}/usr/share/icons/"
-chown -R root:wheel "${uzip}/usr/share/icons"
-find "${uzip}/usr/share/icons/macOSBigSur" -type d -exec chmod 755 {} \;
-find "${uzip}/usr/share/icons/macOSBigSur" -type f -exec chmod 644 {} \;
-( cd "${uzip}/usr/share/icons/" ; ln -s macOSBigSur default )
-rm -f macOSBigSur.tar.gz
-
-# Pull in the default JDK
-mkdir -p "${uzip}/Library/Java/JavaVirtualMachines/"
-curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-17.0.1.jdk.txz | \
-    tar -xf - -C "${uzip}/Library/Java/JavaVirtualMachines/"
-
 # Install our standard app bundles
 mkdir -p "${uzip}/Applications/Utilities"
 
-declare -A apps utils
+# This syntax below needs bash or zsh. Rewrite it or add them to build server
+#declare -A apps utils
 #apps=(Kate 21.08.1 Firefox 97.0)
-utils=(Terminal 0.9.0)
+#utils=(Terminal 0.9.0)
 
 #for app in ${!apps[@]}; do
 #    tag="v${apps[$app]}"
@@ -53,12 +21,12 @@ utils=(Terminal 0.9.0)
 #    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
 #        tar -xf - -C "${uzip}/Applications/"
 #done
-for app in ${!utils[@]}; do
-    tag="v${utils[$app]}"
-    echo Fetching $app $tag
-    curl -Lo - https://github.com/ravynsoft/${app}_app/releases/download/${tag}/${app}.txz | \
-        tar -xf - -C "${uzip}/Applications/Utilities/"
-done
+#for app in ${!utils[@]}; do
+#    tag="v${utils[$app]}"
+#    echo Fetching $app $tag
+#    curl -Lo - https://github.com/ravynsoft/${app}_app/releases/download/${tag}/${app}.txz | \
+#        tar -xf - -C "${uzip}/Applications/Utilities/"
+#done
 
 # Fonts
 fetch https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
@@ -71,8 +39,6 @@ rm -rf urw-base35-fonts-20200910/ 20200910.zip
 cat > /tmp/rc <<\EOF
 #!/bin/sh
 
-# The following block was added by helloSystem
-# FIXME: Let us know how to do this properly
 # Silence messages if boot_mute="YES" is set
 if [ "$(kenv boot_mute)" = "YES" ] ; then
         conscontrol delete ttyv0 >/dev/null 2>&1
@@ -87,8 +53,6 @@ mv /tmp/rc "${uzip}/etc/rc"
 cat > /tmp/rc.shutdown <<\EOF
 #!/bin/sh
 
-# The following block was added by helloSystem
-# FIXME: Let us know how to do this properly
 # Silence messages if boot_mute="YES" is set
 if [ "$(kenv boot_mute)" = "YES" ] ; then
         exec 1>>/dev/null 2>&1
@@ -122,35 +86,3 @@ rm "${uzip}/etc/syslog.conf-e"
 # Workaround to allow unmounting as normal user
 # setuid root
 chmod +s "${uzip}/sbin/umount"
-
-# Brute force method to make FAT media fully accessible and executable by everyone
-# https://github.com/vermaden/automount/issues/21#issuecomment-808753031
-# https://github.com/vermaden/automount/issues/27
-# https://github.com/vermaden/automount/commit/f50118920208e49890067d00ecd6bb1a97b47ce3
-# FIXME: Use better solution
-sed -i -e 's|longnames -m 644|longnames -m 777|g' "${uzip}/usr/sbin/automount"
-sed -i -e 's|longnames -m 755|longnames -m 777|g' "${uzip}/usr/sbin/automount"
-rm "${uzip}/usr/sbin/automount-e"
-
-# Required for runappimage
-fetch "https://github.com/helloSystem/elfsize/releases/download/0/elfsize"
-chmod +x elfsize
-mv elfsize "${uzip}/usr/bin/"
-
-# Improve compatibility with many scripts from the Linux world,
-# including those in many AppImages
-chroot ${uzip} ln -s /usr/bin/bash /bin/bash
-
-# Make sure zsh exists in /bin too
-chroot ${uzip} ln -s /usr/bin/zsh /bin/zsh
-
-# Remove unwanted UDisks2VolumeMonitor D-Bus service
-# TODO: Find a proper way to do this. The correct thing to do would probably to split up the FreeBSD package
-# FIXME: This is guaranteed to break as soon as the user updates/upgrades the package
-if [ -f "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service" ] ; then
-  rm -rf "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
-  touch "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
-  # Make the file immutable so that even root cannot overwrite it
-  chflags schg "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
-fi
-

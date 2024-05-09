@@ -4,8 +4,8 @@
 set -e
 
 # BSD ABI
-VER="14.0"
-MAJOR="14"
+VER="15.0"
+MAJOR="15"
 
 if [ -x /usr/sbin/pkg ]; then
   PKG=/usr/sbin/pkg
@@ -59,15 +59,6 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
-# Make sure git is installed
-# We only need this in case we decide to pull in ingredients from
-# other git repositories; this is currently not the case
-# if [ ! -f "/usr/local/bin/git" ] ; then
-#   echo "Git is required"
-#   echo "Please install it with pkg install git or pkg install git-lite first"
-#   exit 1
-# fi
-
 if [ -z "${desktop}" ] ; then
   export desktop=xfce
 fi
@@ -102,31 +93,11 @@ else
   isopath="${iso}/${desktop}-${vol}-${arch}.iso"
 fi
 
-# For helloSystem, we are using a different naming scheme for the ISOS
-if [ "${desktop}" = "hello" ] ; then
-  if [ -f overlays/uzip/hello/manifest ] ; then
-    HELLO_VERSION=$(grep "^version:" overlays/uzip/hello/manifest | xargs | cut -d " " -f 2 | cut -d "_" -f 1)
-    # If we are building hello, then set version number of the 'hello' transient package
-    # based on environment variable set e.g., by Cirrus CI
-    if [ ! -z $BUILDNUMBER ] ; then
-      echo "Injecting $BUILDNUMBER" into manifest
-      sed -i -e 's|\(^version:       .*_\).*$|\1'$BUILDNUMBER'|g' "${cwd}/overlays/uzip/hello/manifest"
-      rm "${cwd}/overlays/uzip/hello/manifest-e"
-      cat "${cwd}/overlays/uzip/hello/manifest"
-      isopath="${iso}/${tag}-F${VER}_h${HELLO_VERSION}_${BUILDNUMBER}-${arch}.iso"
-    else
-      isopath="${iso}/${tag}-F${VER}_h${HELLO_VERSION}_git${SHA}-${arch}.iso"
-    fi
-  fi
+MAJLABEL="f${MAJOR}"
+if [ ! -z "${CIRRUS_BUILD_ID}" ]; then
+    MAJLABEL="${MAJLABEL}_${CIRRUS_BUILD_ID}"
 fi
-
-if [ "${desktop}" = "ravynOS" ]; then
-    MAJLABEL="f${MAJOR}"
-    if [ ! -z "${CIRRUS_BUILD_ID}" ]; then
-      MAJLABEL="${MAJLABEL}_${CIRRUS_BUILD_ID}"
-    fi
-    isopath="${iso}/${tag}_${MAJLABEL}_${arch}.iso"
-fi
+isopath="${iso}/${tag}_${MAJLABEL}_${arch}.iso"
 
 cleanup()
 {
@@ -222,8 +193,7 @@ packages()
     # Install packages beginning with 'https:'
     mkdir -p ${uzip}${pkg_cachedir}/furybsd-https
     for url in $(grep -e '^https' "${cwd}/settings/packages.$p"); do
-        # ABI=freebsd:12:$arch in an attempt to use package built on 12 for 13
-        pkg_add_from_url "$url" furybsd-https "freebsd:14:$arch"
+        pkg_add_from_url "$url" furybsd-https "freebsd:15:$arch"
     done
   done
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
@@ -306,8 +276,6 @@ pkg()
   mkdir -p "${packages}/transient"
   cd "${packages}/transient"
   rm -f *.pkg # Make sure there are no leftover transient packages from earlier runs
-  splashqml="${cwd}/overlays/uzip/ravynos/files/usr/share/plasma/look-and-feel/ravynOS/contents/splash/Splash.qml" 
-  sed -e "s@__CODENAME__@${RAVYNOS_CODENAME}@" -e "s@__VERSION__@${RAVYNOS_VERSION}@" < "${splashqml}.in" > "${splashqml}"
   while read -r p; do
     sh -ex "${cwd}/scripts/build-pkg.sh" -m "${cwd}/overlays/uzip/${p}"/manifest -d "${cwd}/overlays/uzip/${p}/files"
   done <"${cwd}"/settings/overlays.common
@@ -323,7 +291,7 @@ pkg()
 initgfx()
 {
   if [ "${arch}" != "i386" ] ; then
-    if [ $MAJOR -lt 14 ] ; then
+    if [ $MAJOR -lt 15 ] ; then
       PKGS="quarterly"
     else
       PKGS="latest"
@@ -367,10 +335,11 @@ uzip()
 ramdisk() 
 {
   cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
-  cc -static -o "${ramdisk_root}/raminit" "${cwd}/raminit.c" -lutil
   sync ### Needed?
   cd ${cwd} && zpool import furybsd && zfs set mountpoint=${workdir}/furybsd/uzip furybsd
   sync ### Needed?
+  cc --sysroot=${uzip} -static -o "${ramdisk_root}/raminit" \
+	"${cwd}/raminit.c" -lutil
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   mkdir -p "${ramdisk_root}/etc"
   touch "${ramdisk_root}/etc/fstab"
