@@ -48,7 +48,7 @@ base_task:
   upload_caches:
     - tmp
     - release
-  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
+  only_if: $CIRRUS_BRANCH == 'xmain' || $CIRRUS_BRANCH == 'staging'
   depends_on:
     - kernel
 
@@ -87,7 +87,7 @@ kernel_task:
   upload_caches:
     - sys
     - release
-  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
+  only_if: $CIRRUS_BRANCH == 'xmain' || $CIRRUS_BRANCH == 'staging'
 
 system_task:
   environment:
@@ -144,8 +144,8 @@ system_task:
     - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no timestamp ${MIRROR1_USER}@${MIRROR1_HOST}:www/
     - #scp -P2200 -o StrictHostKeyChecking=no timestamp ${MIRROR1_USER}@${MIRROR2_HOST}:
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
-  depends_on:
-    - base
-    - kernel
+  #depends_on:
+  #  - base
+  #  - kernel
   ravynOS_artifacts:
     path: dist/ravynOS.txz
