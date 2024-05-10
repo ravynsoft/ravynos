@@ -1110,8 +1110,8 @@ else
 
   # MinGW chokes on format specifiers and I can't get it all working
   if not (cc.get_argument_syntax() == 'gcc' and host_machine.system() == 'windows')
-    _trial_c += ['-Werror=format', '-Wformat-security']
-    _trial_cpp += ['-Werror=format', '-Wformat-security']
+    _trial_c += ['-Wformat-security']
+    _trial_cpp += ['-Wformat-security']
   endif
 
   # FreeBSD annotated <pthread.h> but Mesa isn't ready

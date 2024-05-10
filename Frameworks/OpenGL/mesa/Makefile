@@ -14,6 +14,7 @@ CFLAGS+=        -I${.CURDIR}/../libdrm/nouveau
 CFLAGS+=        -I${.CURDIR}/../libdrm/radeon
 CFLAGS+=        -I${.CURDIR}/../libdrm/intel
 CFLAGS+=        -I${.CURDIR}/../libdrm/include/drm
+CFLAGS+=        -Wno-format -Wno-asm-operand-widths
 
 LDFLAGS=        -L${MAKEOBJDIR}/../wayland/src -lwayland
 LDFLAGS+=       -L${MAKEOBJDIR}/../libdrm -ldrm
