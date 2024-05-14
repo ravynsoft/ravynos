@@ -161,7 +161,7 @@
 #define	CPU_IMPL_MASK	(0xff << 24)
 #define	CPU_PART_MASK	(0xfff << 4)
 #define	CPU_VAR_MASK	(0xf << 20)
-#define	CPU_ARCH_MASK	(0xf << 16)
+/* #define	CPU_ARCH_MASK	(0xf << 16) conflicts with mach.h */
 #define	CPU_REV_MASK	(0xf << 0)
 
 #define	CPU_ID_RAW(impl, part, var, rev)		\

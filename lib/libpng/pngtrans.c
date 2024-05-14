@@ -1,10 +1,10 @@
 
 /* pngtrans.c - transforms the data in a row (used by both readers and writers)
  *
- * Last changed in libpng 1.6.33 [September 28, 2017]
- * Copyright (c) 1998-2002,2004,2006-2017 Glenn Randers-Pehrson
- * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
- * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
+ * Copyright (c) 2018-2024 Cosmin Truta
+ * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
+ * Copyright (c) 1996-1997 Andreas Dilger
+ * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
  *
  * This code is released under the libpng license.
  * For conditions of distribution and use, see the disclaimer
@@ -103,10 +103,10 @@ png_set_interlace_handling(png_structrp png_ptr)
    if (png_ptr != 0 && png_ptr->interlaced != 0)
    {
       png_ptr->transformations |= PNG_INTERLACE;
-      return (7);
+      return 7;
    }
 
-   return (1);
+   return 1;
 }
 #endif
 
@@ -269,8 +269,8 @@ png_do_invert(png_row_infop row_info, png_bytep row)
    if (row_info->color_type == PNG_COLOR_TYPE_GRAY)
    {
       png_bytep rp = row;
-      png_size_t i;
-      png_size_t istop = row_info->rowbytes;
+      size_t i;
+      size_t istop = row_info->rowbytes;
 
       for (i = 0; i < istop; i++)
       {
@@ -283,8 +283,8 @@ png_do_invert(png_row_infop row_info, png_bytep row)
       row_info->bit_depth == 8)
    {
       png_bytep rp = row;
-      png_size_t i;
-      png_size_t istop = row_info->rowbytes;
+      size_t i;
+      size_t istop = row_info->rowbytes;
 
       for (i = 0; i < istop; i += 2)
       {
@@ -298,8 +298,8 @@ png_do_invert(png_row_infop row_info, png_bytep row)
       row_info->bit_depth == 16)
    {
       png_bytep rp = row;
-      png_size_t i;
-      png_size_t istop = row_info->rowbytes;
+      size_t i;
+      size_t istop = row_info->rowbytes;
 
       for (i = 0; i < istop; i += 4)
       {
@@ -345,7 +345,7 @@ png_do_swap(png_row_infop row_info, png_bytep row)
 #endif
 
 #if defined(PNG_READ_PACKSWAP_SUPPORTED)||defined(PNG_WRITE_PACKSWAP_SUPPORTED)
-static PNG_CONST png_byte onebppswaptable[256] = {
+static const png_byte onebppswaptable[256] = {
    0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0, 0x60, 0xE0,
    0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
    0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8,
@@ -380,7 +380,7 @@ static PNG_CONST png_byte onebppswaptable[256] = {
    0x1F, 0x9F, 0x5F, 0xDF, 0x3F, 0xBF, 0x7F, 0xFF
 };
 
-static PNG_CONST png_byte twobppswaptable[256] = {
+static const png_byte twobppswaptable[256] = {
    0x00, 0x40, 0x80, 0xC0, 0x10, 0x50, 0x90, 0xD0,
    0x20, 0x60, 0xA0, 0xE0, 0x30, 0x70, 0xB0, 0xF0,
    0x04, 0x44, 0x84, 0xC4, 0x14, 0x54, 0x94, 0xD4,
@@ -415,7 +415,7 @@ static PNG_CONST png_byte twobppswaptable[256] = {
    0x2F, 0x6F, 0xAF, 0xEF, 0x3F, 0x7F, 0xBF, 0xFF
 };
 
-static PNG_CONST png_byte fourbppswaptable[256] = {
+static const png_byte fourbppswaptable[256] = {
    0x00, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70,
    0x80, 0x90, 0xA0, 0xB0, 0xC0, 0xD0, 0xE0, 0xF0,
    0x01, 0x11, 0x21, 0x31, 0x41, 0x51, 0x61, 0x71,
@@ -497,6 +497,8 @@ png_do_strip_channel(png_row_infop row_info, png_bytep row, int at_start)
    png_bytep sp = row; /* source pointer */
    png_bytep dp = row; /* destination pointer */
    png_bytep ep = row + row_info->rowbytes; /* One beyond end of row */
+
+   png_debug(1, "in png_do_strip_channel");
 
    /* At the start sp will point to the first byte to copy and dp to where
     * it is copied to.  ep always points just beyond the end of the row, so
@@ -609,7 +611,7 @@ png_do_strip_channel(png_row_infop row_info, png_bytep row, int at_start)
       return; /* The filler channel has gone already */
 
    /* Fix the rowbytes value. */
-   row_info->rowbytes = (png_size_t)(dp-row);
+   row_info->rowbytes = (size_t)(dp-row);
 }
 #endif
 
@@ -698,6 +700,8 @@ png_do_bgr(png_row_infop row_info, png_bytep row)
 void /* PRIVATE */
 png_do_check_palette_indexes(png_structrp png_ptr, png_row_infop row_info)
 {
+   png_debug(1, "in png_do_check_palette_indexes");
+
    if (png_ptr->num_palette < (1 << row_info->bit_depth) &&
       png_ptr->num_palette > 0) /* num_palette can be 0 in MNG files */
    {
@@ -708,7 +712,7 @@ png_do_check_palette_indexes(png_structrp png_ptr, png_row_infop row_info)
        * forms produced on either GCC or MSVC.
        */
       int padding = PNG_PADBITS(row_info->pixel_depth, row_info->width);
-      png_bytep rp = png_ptr->row_buf + row_info->rowbytes - 1;
+      png_bytep rp = png_ptr->row_buf + row_info->rowbytes;
 
       switch (row_info->bit_depth)
       {
@@ -833,7 +837,7 @@ png_voidp PNGAPI
 png_get_user_transform_ptr(png_const_structrp png_ptr)
 {
    if (png_ptr == NULL)
-      return (NULL);
+      return NULL;
 
    return png_ptr->user_transform_ptr;
 }

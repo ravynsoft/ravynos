@@ -746,7 +746,8 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 
 .if ${MACHINE_CPUARCH} == "aarch64"
 CFLAGS += -DCOCOTRON_DISALLOW_FORWARDING=1
-SRCS += NSObject/objc_msg_sendv-Disabled.m
+# SRCS += NSObject/objc_msg_sendv-Disabled.m
+SRCS += NSObject/platform_linux/msgSendv-aarch64.s
 .elif ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
 SRCS += NSObject/platform_linux/msgSendv-x64.s
 .endif

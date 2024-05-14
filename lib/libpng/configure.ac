@@ -1,7 +1,7 @@
 # configure.ac
 
+# Copyright (c) 2018-2024 Cosmin Truta
 # Copyright (c) 2004-2016 Glenn Randers-Pehrson
-# Last changed in libpng 1.6.25 [September 1, 2016]
 
 # This code is released under the libpng license.
 # For conditions of distribution and use, see the disclaimer
@@ -25,8 +25,8 @@ AC_PREREQ([2.68])
 
 dnl Version number stuff here:
 
-AC_INIT([libpng],[1.6.34],[png-mng-implement@lists.sourceforge.net])
-AC_CONFIG_MACRO_DIR([scripts])
+AC_INIT([libpng],[1.6.43],[png-mng-implement@lists.sourceforge.net])
+AC_CONFIG_MACRO_DIR([scripts/autoconf])
 
 # libpng does not follow GNU file name conventions (hence 'foreign')
 # color-tests requires automake 1.11 or later
@@ -46,17 +46,17 @@ dnl automake, so the following is not necessary (and is not defined anyway):
 dnl AM_PREREQ([1.11.2])
 dnl stop configure from automagically running automake
 
-PNGLIB_VERSION=1.6.34
+PNGLIB_VERSION=1.6.43
 PNGLIB_MAJOR=1
 PNGLIB_MINOR=6
-PNGLIB_RELEASE=34
+PNGLIB_RELEASE=43
 
 dnl End of version number stuff
 
 AC_CONFIG_SRCDIR([pngget.c])
 AC_CONFIG_HEADERS([config.h])
 
-# Checks for programs.
+# Check for basic programs.
 AC_LANG([C])
 AC_PROG_CC
 AM_PROG_AS
@@ -72,16 +72,19 @@ dnl compatible later version may be used
 LT_INIT([win32-dll])
 LT_PREREQ([2.4.2])
 
-# Some awks crash when confronted with pnglibconf.dfa, do a test run now
-# to make sure this doesn't happen
-AC_MSG_CHECKING([that AWK works])
+dnl Declare the AWK variable.
+AC_ARG_VAR(AWK, [AWK language processor])
+
+# Some awk implementations crash when confronted with pnglibconf.dfa.
+# Run a test now, to make sure this doesn't happen.
+AC_MSG_CHECKING([if awk ($AWK) works])
 if ${AWK} -f ${srcdir}/scripts/options.awk out="/dev/null" version=search\
    ${srcdir}/pngconf.h ${srcdir}/scripts/pnglibconf.dfa\
    ${srcdir}/pngusr.dfa 1>&2
 then
-   AC_MSG_RESULT([ok])
+   AC_MSG_RESULT([yes])
 else
-   AC_MSG_FAILURE([failed], 1)
+   AC_MSG_FAILURE([no], 1)
 fi
 
 # This is a remnant of the old cc -E validation, where it may have been
@@ -89,11 +92,29 @@ fi
 DFNCPP="$CPP"
 AC_SUBST(DFNCPP)
 
-# -Werror cannot be passed to GCC in CFLAGS because configure will fail (it
-# checks the compiler with a program that generates a warning), add the
-# following option to deal with this
+AC_ARG_ENABLE([tests],
+   AS_HELP_STRING([--disable-tests],
+      [do not build the test programs (default is to build)]),
+      [enable_tests="$enableval"],
+      [enable_tests=yes])
+
+AM_CONDITIONAL([ENABLE_TESTS],
+   [test "$enable_tests" != "no"])
+
+AC_ARG_ENABLE([tools],
+   AS_HELP_STRING([--disable-tools],
+      [do not build the auxiliary tools (default is to build)]),
+      [enable_tools="$enableval"],
+      [enable_tools=yes])
+
+AM_CONDITIONAL([ENABLE_TOOLS],
+   [test "$enable_tools" != "no"])
+
+# -Werror cannot be passed to GCC in CFLAGS because configure will fail
+# (it checks the compiler with a program that generates a warning).
+# Add the following option to deal with this:
 AC_ARG_VAR(PNG_COPTS,
-   [additional flags for the C compiler, use this for options that would]
+   [additional flags for the C compiler, to be used for options that would]
    [cause configure itself to fail])
 AC_ARG_ENABLE(werror,
    AS_HELP_STRING([[[--enable-werror[=OPT]]]],
@@ -114,10 +135,10 @@ AC_ARG_ENABLE(werror,
       CFLAGS="$sav_CFLAGS"
     fi],)
 
-# For GCC 5 the default mode for C is -std=gnu11 instead of -std=gnu89
-# In pngpriv.h we request just the POSIX 1003.1 and C89 APIs by defining _POSIX_SOURCE to 1
-# This is incompatible with the new default mode, so we test for that and force the 
-# "-std=c89" compiler option:
+# For GCC 5 the default mode for C is -std=gnu11 instead of -std=gnu89.
+# In pngpriv.h we request just the POSIX 1003.1 and C89 APIs by defining
+# _POSIX_SOURCE to 1. This is incompatible with the new default mode, so
+# we test for that and force the "-std=c89" compiler option:
 AC_MSG_CHECKING([if we need to force back C standard to C89])
 AC_COMPILE_IFELSE(
    [AC_LANG_PROGRAM([
@@ -133,23 +154,17 @@ AC_COMPILE_IFELSE(
    CFLAGS="$CFLAGS -std=c89"
 ])
 
-# Checks for header files.
-AC_HEADER_STDC
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_TYPE_SIZE_T
+# Checks for structures and compiler characteristics.
 AC_STRUCT_TM
 AC_C_RESTRICT
 
 # Checks for library functions.
-AC_FUNC_STRTOD
-AC_CHECK_FUNCS([memset], , AC_MSG_ERROR(memset not found in libc))
-AC_CHECK_FUNCS([pow], , AC_CHECK_LIB(m, pow, , AC_MSG_ERROR(cannot find pow)) )
+AC_CHECK_FUNCS([pow], ,
+  [AC_CHECK_LIB([m], [pow], , [AC_MSG_ERROR([cannot find pow])])])
 
-# Some later POSIX 1003.1 functions are required for test programs, failure here
-# is soft (the corresponding test program is not built).
-AC_CHECK_FUNC([clock_gettime],,[AC_MSG_WARN([not building timepng])])
+# Some later POSIX 1003.1 functions are required for test programs, failure
+# here is soft (the corresponding test program is not built).
+AC_CHECK_FUNC([clock_gettime], , [AC_MSG_WARN([not building timepng])])
 AM_CONDITIONAL([HAVE_CLOCK_GETTIME], [test "$ac_cv_func_clock_gettime" = "yes"])
 
 AC_ARG_WITH(zlib-prefix,
@@ -157,8 +172,9 @@ AC_ARG_WITH(zlib-prefix,
       [prefix that may have been used in installed zlib]),
       [ZPREFIX=${withval}],
       [ZPREFIX='z_'])
-AC_CHECK_LIB(z, zlibVersion, ,
-    AC_CHECK_LIB(z, ${ZPREFIX}zlibVersion, , AC_MSG_ERROR(zlib not installed)))
+AC_CHECK_LIB([z], [zlibVersion], ,
+  [AC_CHECK_LIB([z], [${ZPREFIX}zlibVersion], ,
+     [AC_MSG_ERROR([zlib not installed])])])
 
 # The following is for pngvalid, to ensure it catches FP errors even on
 # platforms that don't enable FP exceptions, the function appears in the math
@@ -210,9 +226,9 @@ AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "$have_ld_version_script" = "yes")
 if test "$have_ld_version_script" = "yes"; then
     AC_MSG_CHECKING([for symbol prefix])
     SYMBOL_PREFIX=`echo "PREFIX=__USER_LABEL_PREFIX__" \
-                  | ${CPP-${CC-gcc} -E} - 2>&1 \
-                  | ${EGREP-grep} "^PREFIX=" \
-                  | ${SED-sed} -e "s:^PREFIX=::" -e "s:__USER_LABEL_PREFIX__::"`
+                  | ${CPP:-${CC:-gcc} -E} - 2>&1 \
+                  | ${EGREP:-grep} "^PREFIX=" \
+                  | ${SED:-sed} -e "s:^PREFIX=::" -e "s:__USER_LABEL_PREFIX__::"`
     AC_SUBST(SYMBOL_PREFIX)
     AC_MSG_RESULT($SYMBOL_PREFIX)
 fi
@@ -297,7 +313,7 @@ AC_ARG_ENABLE([unversioned-libpng-config],
 AM_CONDITIONAL([DO_INSTALL_LIBPNG_CONFIG],
    [test "$enable_unversioned_libpng_config" != "no"])
 
-# HOST SPECIFIC OPTIONS
+# HOST-SPECIFIC OPTIONS
 # =====================
 #
 # DEFAULT
@@ -305,7 +321,7 @@ AM_CONDITIONAL([DO_INSTALL_LIBPNG_CONFIG],
 #
 AC_ARG_ENABLE([hardware-optimizations],
    AS_HELP_STRING([[[--enable-hardware-optimizations]]],
-      [Enable hardware optimizations: =no/off, yes/on:]),
+      [Enable hardware optimizations: =no/off, yes/on.]),
    [case "$enableval" in
       no|off)
          # disable hardware optimization on all systems:
@@ -315,24 +331,33 @@ AC_ARG_ENABLE([hardware-optimizations],
          enable_mips_msa=no
          AC_DEFINE([PNG_MIPS_MSA_OPT], [0],
            [Disable MIPS_MSA optimizations])
+         enable_mips_mmi=no
+         AC_DEFINE([PNG_MIPS_MMI_OPT], [0],
+           [Disable MIPS_MMI optimizations])
          enable_powerpc_vsx=no
          AC_DEFINE([PNG_POWERPC_VSX_OPT], [0],
            [Disable POWERPC VSX optimizations])
          enable_intel_sse=no
          AC_DEFINE([PNG_INTEL_SSE_OPT], [0],
            [Disable INTEL_SSE optimizations])
+         enable_loongarch_lsx=no
+         AC_DEFINE([PNG_LOONGARCH_LSX_OPT], [0],
+           [Disable LOONGARCH_LSX optimizations])
          ;;
       *)
          # allow enabling hardware optimization on any system:
          case "$host_cpu" in
             arm*|aarch64*)
               enable_arm_neon=yes
-              AC_DEFINE([PNG_ARM_NEON_OPT], [0],
+              AC_DEFINE([PNG_ARM_NEON_OPT], [2],
                 [Enable ARM_NEON optimizations])
               ;;
             mipsel*|mips64el*)
+              enable_mips_mmi=yes
               enable_mips_msa=yes
-              AC_DEFINE([PNG_MIPS_MSA_OPT], [0],
+              AC_DEFINE([PNG_MIPS_MMI_OPT], [1],
+                [Enable MIPS_MMI optimizations])
+              AC_DEFINE([PNG_MIPS_MSA_OPT], [2],
                 [Enable MIPS_MSA optimizations])
               ;;
             i?86|x86_64)
@@ -345,21 +370,25 @@ AC_ARG_ENABLE([hardware-optimizations],
               AC_DEFINE([PNG_POWERPC_VSX_OPT], [2],
                 [Enable POWERPC VSX optimizations])
               ;;
+            loongarch*)
+              enable_loongarch_lsx=yes
+              AC_DEFINE([PNG_LOONGARCH_LSX_OPT], [1],
+                [Enable LOONGARCH_LSX optimizations])
+              ;;
          esac
          ;;
    esac])
 
-# ARM
-# ===
-#
-# ARM NEON (SIMD) support.
+# ARM NEON
+# ========
 
 AC_ARG_ENABLE([arm-neon],
    AS_HELP_STRING([[[--enable-arm-neon]]],
-      [Enable ARM NEON optimizations: =no/off, check, api, yes/on:]
-      [no/off: disable the optimizations; check: use internal checking code]
-      [(deprecated and poorly supported); api: disable by default, enable by]
-      [a call to png_set_option; yes/on: turn on unconditionally.]
+      [Enable ARM NEON optimizations: =no/off, check, api, yes/on.]
+      [no/off: disable the optimizations;]
+      [check: use internal checking code (deprecated and poorly supported);]
+      [api: disable by default, enable by a call to png_set_option;]
+      [yes/on: turn on unconditionally.]
       [If not specified: determined by the compiler.]),
    [case "$enableval" in
       no|off)
@@ -367,7 +396,7 @@ AC_ARG_ENABLE([arm-neon],
          AC_DEFINE([PNG_ARM_NEON_OPT], [0],
                    [Disable ARM Neon optimizations])
          # Prevent inclusion of the assembler files below:
-         enable_arm_neon=no;;
+         enable_arm_neon=no ;;
       check)
          AC_DEFINE([PNG_ARM_NEON_CHECK_SUPPORTED], [],
                    [Check for ARM Neon support at run-time]);;
@@ -377,35 +406,35 @@ AC_ARG_ENABLE([arm-neon],
       yes|on)
          AC_DEFINE([PNG_ARM_NEON_OPT], [2],
                    [Enable ARM Neon optimizations])
-         AC_MSG_WARN([--enable-arm-neon: please specify 'check' or 'api', if]
-            [you want the optimizations unconditionally pass -mfpu=neon]
-            [to the compiler.]);;
+         AC_MSG_WARN([--enable-arm-neon: please specify 'check' or 'api';]
+            [if you want the optimizations unconditionally,]
+            [pass '-mfpu=neon' to the compiler.]);;
       *)
-         AC_MSG_ERROR([--enable-arm-neon=${enable_arm_neon}: invalid value])
+         AC_MSG_ERROR([--enable-arm-neon=${enable_arm_neon}:]
+                      [invalid argument])
    esac])
 
-# Add ARM specific files to all builds where the host_cpu is arm ('arm*') or
-# where ARM optimizations were explicitly requested (this allows a fallback if a
-# future host CPU does not match 'arm*')
+# Add ARM-specific files to all builds where $host_cpu is arm ('arm*') or
+# where ARM optimizations were explicitly requested. (This allows a fallback
+# if a future host CPU does not match 'arm*'.)
 
 AM_CONDITIONAL([PNG_ARM_NEON],
    [test "$enable_arm_neon" != 'no' &&
     case "$host_cpu" in
-      arm*|aarch64*) :;;
-      *)    test "$enable_arm_neon" != '';;
+      arm*|aarch64*) : ;;
+      *)    test "$enable_arm_neon" != '' ;;
     esac])
 
-# MIPS
-# ===
-#
-# MIPS MSA (SIMD) support.
+# MIPS MSA
+# ========
 
 AC_ARG_ENABLE([mips-msa],
    AS_HELP_STRING([[[--enable-mips-msa]]],
-      [Enable MIPS MSA optimizations: =no/off, check, api, yes/on:]
-      [no/off: disable the optimizations; check: use internal checking code]
-      [(deprecated and poorly supported); api: disable by default, enable by]
-      [a call to png_set_option; yes/on: turn on unconditionally.]
+      [Enable MIPS MSA optimizations: =no/off, check, api, yes/on.]
+      [no/off: disable the optimizations;]
+      [check: use internal checking code (deprecated and poorly supported);]
+      [api: disable by default, enable by a call to png_set_option;]
+      [yes/on: turn on unconditionally.]
       [If not specified: determined by the compiler.]),
    [case "$enableval" in
       no|off)
@@ -413,7 +442,7 @@ AC_ARG_ENABLE([mips-msa],
          AC_DEFINE([PNG_MIPS_MSA_OPT], [0],
                    [Disable MIPS MSA optimizations])
          # Prevent inclusion of the assembler files below:
-         enable_mips_msa=no;;
+         enable_mips_msa=no ;;
       check)
          AC_DEFINE([PNG_MIPS_MSA_CHECK_SUPPORTED], [],
                    [Check for MIPS MSA support at run-time]);;
@@ -423,31 +452,75 @@ AC_ARG_ENABLE([mips-msa],
       yes|on)
          AC_DEFINE([PNG_MIPS_MSA_OPT], [2],
                    [Enable MIPS MSA optimizations])
-         AC_MSG_WARN([--enable-mips-msa: please specify 'check' or 'api', if]
-            [you want the optimizations unconditionally pass '-mmsa -mfp64']
-            [to the compiler.]);;
+         AC_MSG_WARN([--enable-mips-msa: please specify 'check' or 'api';]
+            [if you want the optimizations unconditionally,]
+            [pass '-mmsa -mfp64' to the compiler.]);;
       *)
-         AC_MSG_ERROR([--enable-mips-msa=${enable_mips_msa}: invalid value])
+         AC_MSG_ERROR([--enable-mips-msa=${enable_mips_msa}:]
+                      [invalid argument])
    esac])
 
-# Add MIPS specific files to all builds where the host_cpu is mips ('mips*') or
-# where MIPS optimizations were explicitly requested (this allows a fallback if a
-# future host CPU does not match 'mips*')
+# Add MIPS-specific files to all builds where $host_cpu is mips ('mips*') or
+# where MIPS optimizations were explicitly requested. (This allows a fallback
+# if a future host CPU does not match 'mips*'.)
 
 AM_CONDITIONAL([PNG_MIPS_MSA],
    [test "$enable_mips_msa" != 'no' &&
     case "$host_cpu" in
-      mipsel*|mips64el*) :;;
+      mipsel*|mips64el*) : ;;
     esac])
 
-# INTEL
-# =====
-#
-# INTEL SSE (SIMD) support.
+# MIPS MMI
+# ========
+
+AC_ARG_ENABLE([mips-mmi],
+   AS_HELP_STRING([[[--enable-mips-mmi]]],
+      [Enable MIPS MMI optimizations: =no/off, check, api, yes/on.]
+      [no/off: disable the optimizations;]
+      [check: use internal checking code (deprecated and poorly supported);]
+      [api: disable by default, enable by a call to png_set_option;]
+      [yes/on: turn on unconditionally.]
+      [If not specified: determined by the compiler.]),
+   [case "$enableval" in
+      no|off)
+         # disable the default enabling on __mips_mmi systems:
+         AC_DEFINE([PNG_MIPS_MMI_OPT], [0],
+                   [Disable MIPS MMI optimizations])
+         # Prevent inclusion of the assembler files below:
+         enable_mips_mmi=no;;
+      check)
+         AC_DEFINE([PNG_MIPS_MMI_CHECK_SUPPORTED], [],
+                   [Check for MIPS MMI support at run-time]);;
+      api)
+         AC_DEFINE([PNG_MIPS_MMI_API_SUPPORTED], [],
+                   [Turn on MIPS MMI optimizations at run-time]);;
+      yes|on)
+         AC_DEFINE([PNG_MIPS_MMI_OPT], [1],
+                   [Enable MIPS MMI optimizations])
+         AC_MSG_WARN([--enable-mips-mmi: please specify 'check' or 'api';]
+            [if you want the optimizations unconditionally]
+            [pass '-mloongson-mmi -march=loongson3a' to the compiler.]);;
+      *)
+         AC_MSG_ERROR([--enable-mips-mmi=${enable_mips_mmi}:]
+                      [invalid argument])
+   esac])
+
+# Add MIPS specific files to all builds where the host_cpu is mips ('mips*') or
+# where MIPS optimizations were explicitly requested. (This allows a fallback
+# if a future host CPU does not match 'mips*'.)
+
+AM_CONDITIONAL([PNG_MIPS_MMI],
+   [test "$enable_mips_mmi" != 'no' &&
+    case "$host_cpu" in
+      mipsel*|mips64el*) : ;;
+    esac])
+
+# INTEL SSE
+# =========
 
 AC_ARG_ENABLE([intel-sse],
    AS_HELP_STRING([[[--enable-intel-sse]]],
-      [Enable Intel SSE optimizations: =no/off, yes/on:]
+      [Enable Intel SSE optimizations: =no/off, yes/on.]
       [no/off: disable the optimizations;]
       [yes/on: enable the optimizations.]
       [If not specified: determined by the compiler.]),
@@ -457,34 +530,34 @@ AC_ARG_ENABLE([intel-sse],
          AC_DEFINE([PNG_INTEL_SSE_OPT], [0],
                    [Disable Intel SSE optimizations])
          # Prevent inclusion of the assembler files below:
-         enable_intel_sse=no;;
+         enable_intel_sse=no ;;
       yes|on)
          AC_DEFINE([PNG_INTEL_SSE_OPT], [1],
                    [Enable Intel SSE optimizations]);;
       *)
-         AC_MSG_ERROR([--enable-intel-sse=${enable_intel_sse}: invalid value])
+         AC_MSG_ERROR([--enable-intel-sse=${enable_intel_sse}:]
+                      [invalid argument])
    esac])
 
-# Add Intel specific files to all builds where the host_cpu is Intel ('x86*')
-# or where Intel optimizations were explicitly requested (this allows a
-# fallback if a future host CPU does not match 'x86*')
+# Add Intel-specific files to all builds where $host_cpu is Intel ('x86*') or
+# where Intel optimizations were explicitly requested. (This allows a fallback
+# if a future host CPU does not match 'x86*'.)
 AM_CONDITIONAL([PNG_INTEL_SSE],
    [test "$enable_intel_sse" != 'no' &&
     case "$host_cpu" in
-      i?86|x86_64) :;;
-      *)    test "$enable_intel_sse" != '';;
+      i?86|x86_64) : ;;
+      *)    test "$enable_intel_sse" != '' ;;
     esac])
 
-# PowerPC
-# ===
-#
-# PowerPC VSX (SIMD) support.
+# POWERPC VSX
+# ===========
 
 AC_ARG_ENABLE([powerpc-vsx],
 AS_HELP_STRING([[[--enable-powerpc-vsx]]],
-      [Enable POWERPC VSX optimizations: =no/off, check, api, yes/on:]
-      [no/off: disable the optimizations; check: use internal checking code]
-      [api: disable by default, enable by a call to png_set_option]
+      [Enable POWERPC VSX optimizations: =no/off, check, api, yes/on.]
+      [no/off: disable the optimizations;]
+      [check: use internal checking code;]
+      [api: disable by default, enable by a call to png_set_option;]
       [yes/on: turn on unconditionally.]
       [If not specified: determined by the compiler.]),
    [case "$enableval" in
@@ -492,36 +565,101 @@ AS_HELP_STRING([[[--enable-powerpc-vsx]]],
          # disable the default enabling on __ppc64__ systems:
          AC_DEFINE([PNG_POWERPC_VSX_OPT], [0],
                    [Disable POWERPC VSX optimizations])
-         # Prevent inclusion of the platform specific files below:
-         enable_powerpc_vsx=no;;
+         # Prevent inclusion of the platform-specific files below:
+         enable_powerpc_vsx=no ;;
       check)
          AC_DEFINE([PNG_POWERPC_VSX_CHECK_SUPPORTED], [],
                    [Check for POWERPC VSX support at run-time])
-         AC_MSG_WARN([--enable-powerpc-vsx Please check contrib/powerpc/README file]
-            [for the list of supported OSes.]);;
+         AC_MSG_WARN([--enable-powerpc-vsx: please see contrib/powerpc/README]
+                     [for the list of supported systems.]);;
       api)
          AC_DEFINE([PNG_POWERPC_VSX_API_SUPPORTED], [],
                    [Turn on POWERPC VSX optimizations at run-time]);;
       yes|on)
          AC_DEFINE([PNG_POWERPC_VSX_OPT], [2],
                    [Enable POWERPC VSX optimizations])
-         AC_MSG_WARN([--enable-powerpc-vsx: please specify 'check' or 'api', if]
-            [you want the optimizations unconditionally pass '-maltivec -mvsx']
-            [or '-mcpu=power8'to the compiler.]);;
+         AC_MSG_WARN([--enable-powerpc-vsx: please specify 'check' or 'api';]
+            [if you want the optimizations unconditionally,]
+            [pass '-maltivec -mvsx' or '-mcpu=power8' to the compiler.]);;
       *)
-         AC_MSG_ERROR([--enable-powerpc-vsx=${enable_powerpc_vsx}: invalid value])
+         AC_MSG_ERROR([--enable-powerpc-vsx=${enable_powerpc_vsx}:]
+                      [invalid argument])
    esac])
 
-# Add PowerPC specific files to all builds where the host_cpu is powerpc('powerpc*') or
-# where POWERPC optimizations were explicitly requested (this allows a fallback if a
-# future host CPU does not match 'powerpc*')
+# Add PowerPC-specific files to all builds where $host_cpu is powerpc
+# ('powerpc*') or where PowerPC optimizations were explicitly requested.
+# (This allows a fallback if a future host CPU does not match 'powerpc*'.)
 
 AM_CONDITIONAL([PNG_POWERPC_VSX],
    [test "$enable_powerpc_vsx" != 'no' &&
     case "$host_cpu" in
-      powerpc*|ppc64*) :;;
+      powerpc*|ppc64*) : ;;
     esac])
 
+# LOONGARCH LSX
+# =============
+
+AC_ARG_ENABLE([loongarch-lsx],
+   AS_HELP_STRING([[[--enable-loongarch-lsx]]],
+      [Enable LOONGARCH LSX optimizations: =no/off, yes/on:]
+      [no/off: disable the optimizations;]
+      [yes/on: turn on unconditionally.]
+      [If not specified: determined by the compiler.]),
+   [case "$enableval" in
+      no|off)
+         # disable the default enabling on __loongarch_simd systems:
+         AC_DEFINE([PNG_LOONGARCH_LSX_OPT], [0],
+                   [Disable LOONGARCH LSX optimizations])
+         # Prevent inclusion of the assembler files below:
+         enable_loongarch_lsx=no;;
+      yes|on)
+         AC_DEFINE([PNG_LOONGARCH_LSX_OPT], [1],
+                   [Enable LOONGARCH LSX optimizations])
+         ;;
+      *)
+         AC_MSG_ERROR([--enable-loongarch-lsx=${enable_loongarch_lsx}:]
+                      [invalid argument])
+   esac])
+
+if test "$enable_loongarch_lsx" != "no" &&
+   case "$host_cpu" in
+      loongarch*) : ;;
+      *)    test "$enable_loongarch_lsx" != '' ;;
+   esac
+then
+   compiler_support_loongarch_lsx=no
+   AC_MSG_CHECKING(whether to use LoongArch LSX intrinsics)
+   save_CFLAGS="$CFLAGS"
+   LSX_CFLAGS="${LSX_CFLAGS:-"-mlsx"}"
+   CFLAGS="$CFLAGS $LSX_CFLAGS"
+   AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <lsxintrin.h>
+int main(){
+   __m128i a, b, c;
+   a = __lsx_vadd_w(b, c);
+   return 0;
+}]])],compiler_support_loongarch_lsx=yes)
+   CFLAGS="$save_CFLAGS"
+   AC_MSG_RESULT($compiler_support_loongarch_lsx)
+   if test "$compiler_support_loongarch_lsx" = "yes"; then
+      AC_DEFINE([PNG_LOONGARCH_LSX_OPT], [1],
+                [Enable LOONGARCH LSX optimizations])
+   else
+      AC_MSG_WARN([Compiler does not support loongarch LSX.])
+   fi
+fi
+
+# Add LoongArch specific files to all builds where the host_cpu is loongarch
+# ('loongarch*') or where LoongArch optimizations were explicitly requested.
+# (This allows a fallback if a future host CPU does not match 'loongarch*'.)
+
+AM_CONDITIONAL([PNG_LOONGARCH_LSX],
+   [test "$enable_loongarch_lsx" != "no" &&
+    test "$compiler_support_loongarch_lsx" = "yes" &&
+    case "$host_cpu" in
+      loongarch*) : ;;
+      *)    test "$enable_loongarch_lsx" != '' ;;
+    esac])
 
 AC_MSG_NOTICE([[Extra options for compiler: $PNG_COPTS]])
 

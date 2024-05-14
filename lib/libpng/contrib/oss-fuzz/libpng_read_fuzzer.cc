@@ -1,11 +1,9 @@
 
 // libpng_read_fuzzer.cc
-// Copyright 2017 Glenn Randers-Pehrson
+// Copyright 2017-2018 Glenn Randers-Pehrson
 // Copyright 2015 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that may
 // be found in the LICENSE file https://cs.chromium.org/chromium/src/LICENSE
-
-// Last changed in libpng 1.6.32 [August 24, 2017]
 
 // The modifications in 2017 by Glenn Randers-Pehrson include
 // 1. addition of a PNG_CLEANUP macro,
@@ -13,9 +11,11 @@
 // 3. adding "#include <string.h>" which is needed on some platforms
 //    to provide memcpy().
 // 4. adding read_end_info() and creating an end_info structure.
+// 5. adding calls to png_set_*() transforms commonly used by browsers.
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <vector>
@@ -59,7 +59,7 @@ struct PngObjectHandler {
       png_free(png_ptr, row_ptr);
     if (end_info_ptr)
       png_destroy_read_struct(&png_ptr, &info_ptr, &end_info_ptr);
-    else if (info_ptr) 
+    else if (info_ptr)
       png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
     else
       png_destroy_read_struct(&png_ptr, nullptr, nullptr);
@@ -67,7 +67,7 @@ struct PngObjectHandler {
   }
 };
 
-void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+void user_read_data(png_structp png_ptr, png_bytep data, size_t length) {
   BufState* buf_state = static_cast<BufState*>(png_get_io_ptr(png_ptr));
   if (length > buf_state->bytes_left) {
     png_error(png_ptr, "read error");
@@ -75,6 +75,22 @@ void user_read_data(png_structp png_ptr, png_bytep data, png_size_t length) {
   memcpy(data, buf_state->data, length);
   buf_state->bytes_left -= length;
   buf_state->data += length;
+}
+
+void* limited_malloc(png_structp, png_alloc_size_t size) {
+  // libpng may allocate large amounts of memory that the fuzzer reports as
+  // an error. In order to silence these errors, make libpng fail when trying
+  // to allocate a large amount. This allocator used to be in the Chromium
+  // version of this fuzzer.
+  // This number is chosen to match the default png_user_chunk_malloc_max.
+  if (size > 8000000)
+    return nullptr;
+
+  return malloc(size);
+}
+
+void default_free(png_structp, png_voidp ptr) {
+  return free(ptr);
 }
 
 static const int kPngHeaderSize = 8;
@@ -117,6 +133,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     return 0;
   }
 
+  // Use a custom allocator that fails for large allocations to avoid OOM.
+  png_set_mem_fn(png_handler.png_ptr, nullptr, limited_malloc, default_free);
+
   png_set_crc_action(png_handler.png_ptr, PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE);
 #ifdef PNG_IGNORE_ADLER32
   png_set_option(png_handler.png_ptr, PNG_IGNORE_ADLER32, PNG_OPTION_ON);
@@ -136,9 +155,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
   // Reading.
   png_read_info(png_handler.png_ptr, png_handler.info_ptr);
-  png_handler.row_ptr = png_malloc(
-      png_handler.png_ptr, png_get_rowbytes(png_handler.png_ptr,
-                                               png_handler.info_ptr));
 
   // reset error handler to put png_deleter into scope.
   if (setjmp(png_jmpbuf(png_handler.png_ptr))) {
@@ -163,8 +179,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
     return 0;
   }
 
+  // Set several transforms that browsers typically use:
+  png_set_gray_to_rgb(png_handler.png_ptr);
+  png_set_expand(png_handler.png_ptr);
+  png_set_packing(png_handler.png_ptr);
+  png_set_scale_16(png_handler.png_ptr);
+  png_set_tRNS_to_alpha(png_handler.png_ptr);
+
   int passes = png_set_interlace_handling(png_handler.png_ptr);
-  png_start_read_image(png_handler.png_ptr);
+
+  png_read_update_info(png_handler.png_ptr, png_handler.info_ptr);
+
+  png_handler.row_ptr = png_malloc(
+      png_handler.png_ptr, png_get_rowbytes(png_handler.png_ptr,
+                                            png_handler.info_ptr));
 
   for (int pass = 0; pass < passes; ++pass) {
     for (png_uint_32 y = 0; y < height; ++y) {

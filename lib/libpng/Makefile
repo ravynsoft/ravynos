@@ -9,15 +9,18 @@ CPPFLAGS= --sysroot=${OBJTOP} ${CFLAGS:M-I*}
 CFLAGS+= -Wno-error=unused-but-set-variable
 CFLAGS+= -Wno-error=null-pointer-subtraction
 CFLAGS+= -Wno-error=missing-variable-declarations
+CFLAGS+= -Wno-error=cast-align
+CFLAGS+= -Wno-error=cast-qual
 LDFLAGS+= -lz -llzma -lprivatezstd
 
 all: build
 build:
 	${CMAKE} -S ${.CURDIR} -B ${MAKEOBJDIR} \
 		-DCMAKE_C_FLAGS="${CFLAGS:N-I*}" \
-		-DPNG_BUILD_ZLIB=${SRCTOP}/contrib/zlib \
 		-DCMAKE_SHARED_LINKER_FLAGS="${LDFLAGS}" \
-		-DZLIB_LIBRARY="-L${OBJTOP}/lib/libzlib -lz"\
+		-DPNG_BUILD_ZLIB=off \
+		-DZLIB_INCLUDE_DIR="${OBJTOP}/tmp/usr/include" \
+		-DZLIB_ROOT="${OBJTOP}/tmp" \
 		-DCMAKE_INSTALL_PREFIX=${PREFIX} \
                 ${CMAKE_ARGS}
 	${MAKE} -C ${MAKEOBJDIR}

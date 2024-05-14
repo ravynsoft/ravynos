@@ -63,12 +63,18 @@ SRCS+= \
 
 .if ${MACHINE} == "arm64"
 CFLAGS+= \
-	-DUSE_ARM_SIMD \
-	-DUSE_ARM_A64_NEON
+	-UPIXMAN_TIMERS \
+	-DUSE_ARM_SIMD
 SRCS+= \
-    pixman-arm-neon.c \
     pixman-arm-simd.c
+.else
+CFLAGS+= \
+	-DPIXMAN_TIMERS
 .endif
+
+# add back later:
+#	-DUSE_ARM_A64_NEON
+#    pixman-arm-neon.c \
 
 CFLAGS+= \
 	-DHAVE_ALARM \
@@ -95,11 +101,10 @@ CFLAGS+= \
 	-DHAVE_LIBPNG \
 	-DHAVE_PTHREADS \
 	-DHAVE_FLOAT128 \
-	-DPIXMAN_TIMERS \
 	-DSIZEOF_LONG=8
 
 WARNS?=	2
-CFLAGS+=        -Wno-error=format -Wno-error=expansion-to-defined
+CFLAGS+=        -Wno-error=format -Wno-error=expansion-to-defined -Wno-error=unknown-attributes
 
 pixman-version.h: pixman/pixman-version.h.in
 	sed -e "s/@PIXMAN_VERSION_MAJOR@/${MAJOR}/" \

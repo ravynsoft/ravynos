@@ -141,7 +141,7 @@ if gallium_drivers.contains('auto')
       ]
     elif ['arm', 'aarch64'].contains(host_machine.cpu_family())
       gallium_drivers = [
-        'v3d', 'vc4', 'freedreno', 'etnaviv', 'nouveau', 'svga',
+        'vc4', 'etnaviv', 'nouveau', 'svga',
         'tegra', 'virgl', 'lima', 'panfrost', 'swrast', 'iris'
       ]
     elif ['mips', 'mips64', 'riscv32', 'riscv64'].contains(host_machine.cpu_family())
@@ -1110,8 +1110,8 @@ else
 
   # MinGW chokes on format specifiers and I can't get it all working
   if not (cc.get_argument_syntax() == 'gcc' and host_machine.system() == 'windows')
-    _trial_c += ['-Werror=format', '-Wformat-security']
-    _trial_cpp += ['-Werror=format', '-Wformat-security']
+    _trial_c += ['-Wformat-security']
+    _trial_cpp += ['-Wformat-security']
   endif
 
   # FreeBSD annotated <pthread.h> but Mesa isn't ready

@@ -632,7 +632,7 @@ enable_option_checking
       ac_precious_vars='build_alias
 host_alias
 target_alias'
-ac_subdirs_all='lib src tests doc'
+ac_subdirs_all='lib src tests'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -1729,7 +1729,7 @@ fi
 
 
 
-subdirs="$subdirs lib src tests doc"
+subdirs="$subdirs lib src tests"
 
 
 extrasub="$extrasub"'
@@ -1743,9 +1743,6 @@ s/@subdir@/src/
 p
 g
 s/@subdir@/tests/
-p
-g
-s/@subdir@/doc/
 p
 d
 }
