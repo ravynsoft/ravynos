@@ -13,7 +13,7 @@ base_task:
     IGNORE_OSVERSION: yes
   clone_script: |
     pkg update
-    pkg install -yf git-tiny
+    pkg install -yf git-tiny bison
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
       git reset --hard $CIRRUS_CHANGE_IN_REPO
@@ -101,7 +101,7 @@ system_task:
     variable_name: MIRROR2_SSH_PUBKEY
   clone_script: |
     pkg update
-    pkg install -yf git-tiny
+    pkg install -yf git-tiny bison
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
       git reset --hard $CIRRUS_CHANGE_IN_REPO
