@@ -63,10 +63,7 @@ SRCS+= \
 
 .if ${MACHINE} == "arm64"
 CFLAGS+= \
-	-UPIXMAN_TIMERS \
-	-DUSE_ARM_SIMD
-SRCS+= \
-    pixman-arm-simd.c
+	-UPIXMAN_TIMERS
 .else
 CFLAGS+= \
 	-DPIXMAN_TIMERS
