@@ -243,7 +243,7 @@ user()
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
   -c "Live User" -d "/Users/liveuser" \
-  -g wheel -G operator -m -s /usr/bin/zsh -k /usr/share/skel -w none
+  -g wheel -G operator -m -s /bin/zsh -k /usr/share/skel -w none
   chroot ${uzip} pw groupadd liveuser -g 1000
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /Users/liveuser
