@@ -82,7 +82,7 @@ kernel_task:
     reupload_on_changes: true
   kernel_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
-    - ${CIRRUS_WORKING_DIR}/tools/ravynOS/build.sh kernel kernelpkg drm
+    - ${CIRRUS_WORKING_DIR}/tools/ravynOS/build.sh kernel drm kernelpkg
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz
   upload_caches:
     - sys

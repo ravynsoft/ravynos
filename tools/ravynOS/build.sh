@@ -99,8 +99,18 @@ extras_build() {
     cd ${CIRRUS_WORKING_DIR}
 }
 
+cleanpkg() {
+    rm -f dist/ravynOS.txz
+    for pkg in kernel kernel-dbg base base-dbg tests
+    do \
+	rm -f ${BUILDROOT}/release/${pkg}.txz
+    done
+}
+
 kernelpkg() {
     cd ${CIRRUS_WORKING_DIR}
+    rm -f ${BUILDROOT}/release/kernel.txz
+    rm -f ${BUILDROOT}/release/kernel-dbg.txz
     make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang kernel.txz
     if [ $? -ne 0 ]; then exit $?; fi
 }
@@ -144,6 +154,7 @@ while ! [ "z$1" = "z" ]; do
         kernelpkg) kernelpkg ;;
         systempkg) systempkg ;;
         isoalt) isoalt ;;
+	cleanpkg) cleanpkg ;;
         all) kernel_build; drm_build; base_build; system_build; extras_build; iso_build ;;
     esac
     shift
