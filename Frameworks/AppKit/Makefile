@@ -7,6 +7,8 @@ NO_FMWK_COMMON=yes
 .include "../framework.common.mk"
 
 SUBDIR+=	libxkbcommon
+LINK_SUBDIR+=	libxkbcommon/src
+LINK_EXT.libxkbcommon/src= .pico
 
 WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wayland-protocols
 WLRPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wlroots/protocol
@@ -610,6 +612,8 @@ CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/sys \
 	 -F../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
          -I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/../../CoreServices \
 	 -I${SRCTOP}/Frameworks/Onyx2D/freetype/include \
+	 -I${SRCTOP}/Frameworks/CoreText/fontconfig/include \
+	 -I${SRCTOP}/Frameworks/CoreText/fontconfig/fontconfig \
 	 -D_BuildingFramework -DFREETYPE_PRESENT
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
@@ -627,12 +631,10 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -L${OBJTOP}/Frameworks/CoreText/CoreText.framework \
 	  -L${OBJTOP}/Frameworks/QuartzCore/QuartzCore.framework \
 	  -L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework \
-	  -L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Resources \
 	  -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
-	  -L${MAKEOBJDIR}/libxkbcommon \
 	  -lFoundation -lCoreFoundation -lCoreGraphics \
           -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lwayland -lobjc -lxkbcommon -lmach -lm
+	  -lobjc -lmach -lm
 
 DIRS= \
 	NSMenu.subproj \

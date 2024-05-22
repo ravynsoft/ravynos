@@ -172,14 +172,14 @@ CFLAGS+= --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
 	 -DHAVE_DLSYM -DHAVE_UINT64_T -DHAVE_FORK -DHAVE_WAITPID \
 	 -DHAVE_LINK -DHAVE_BYTESWAP_H -DCAIRO_FEATURES_H \
 	 -I${MAKEOBJDIR} \
-	 -I${SRCTOP}/Frameworks/AppKit/fontconfig \
+	 -I${SRCTOP}/Frameworks/CoreText/fontconfig \
 	 -I${SRCTOP}/Frameworks/Onyx2D/freetype/include
 LDFLAGS+= -Wl,-Bsymbolic-functions -L${OBJTOP}/tmp/usr/lib \
-	  -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework/Resources \
-	  -L${OBJTOP}/Frameworks/AppKit/fontconfig/src/.libs \
-	  -lpng -lfontconfig -lfreetype -lpixman-1 -lpthread -ldl -lz \
-	  -Wl,-R/System/Library/Frameworks/AppKit.framework/Resources \
-	  -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Resources
+	  -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
+	  -L${OBJTOP}/Frameworks/CoreText/CoreText.framework \
+	  -lCoreText -lOnyx2D -lpthread -ldl -lz \
+	  -Wl,-R/System/Library/Frameworks/CoreText.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A
 
 cairo-features.h:
 	echo >${.TARGET}

@@ -18,7 +18,7 @@ CFLAGS+=        -Wno-format -Wno-asm-operand-widths
 
 LDFLAGS=        -L${MAKEOBJDIR}/../wayland/src -lwayland
 LDFLAGS+=       -L${MAKEOBJDIR}/../libdrm -ldrm
-LDFLAGS+=       -Wl,-R\$$ORIGIN/Resources/
+LDFLAGS+=       -Wl,-R\$$ORIGIN
 
 MESON?=         ${OBJTOP}/tmp/usr/bin/meson
 NINJA?=         ${OBJTOP}/tmp/usr/bin/ninja
@@ -49,12 +49,12 @@ install:
 _install-mesa-deps:
 	echo ${PACKAGE} ${.TARGET}
 	cp -vf ../wayland/src/libwayland.so.0 ../libdrm/libdrm.so.2 \
-            ../${PACKAGE}.framework/Resources/
-	ln -sf libwayland.so.0 ../${PACKAGE}.framework/Resources/libwayland.so
-	ln -sf libdrm.so.2 ../${PACKAGE}.framework/Resources/libdrm.so
+            ../${PACKAGE}.framework/Versions/A/
+	ln -sf libwayland.so.0 ../${PACKAGE}.framework/Versions/A/libwayland.so
+	ln -sf libdrm.so.2 ../${PACKAGE}.framework/Versions/A/libdrm.so
 	mkdir -p meson-private
-	rm -f meson-private/Resources
-	ln -sv ${MAKEOBJDIR}/../${PACKAGE}.framework/Resources/ meson-private/Resources
+	rm -f meson-private/Versions
+	ln -sv ${MAKEOBJDIR}/../${PACKAGE}.framework/Versions/ meson-private/Versions
 
 beforebuild: obj
 beforebuild: _install-mesa-deps
