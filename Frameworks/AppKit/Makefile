@@ -6,8 +6,6 @@ MK_AUTO_OBJ=yes
 NO_FMWK_COMMON=yes
 .include "../framework.common.mk"
 
-SUBDIR+=	gperf .WAIT
-SUBDIR+=	fontconfig
 SUBDIR+=	libxkbcommon
 
 WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wayland-protocols
@@ -631,11 +629,10 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework \
 	  -L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Resources \
 	  -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
-	  -L${MAKEOBJDIR}/fontconfig/src/.libs \
 	  -L${MAKEOBJDIR}/libxkbcommon \
 	  -lFoundation -lCoreFoundation -lCoreGraphics \
           -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lwayland -lobjc -lfontconfig -lxkbcommon -lmach -lm
+	  -lwayland -lobjc -lxkbcommon -lmach -lm
 
 DIRS= \
 	NSMenu.subproj \
@@ -739,4 +736,4 @@ ${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c \
         xdg-output-management-unstable-v1-client-protocol.h output-management-v1.c \
         xdg-decoration-unstable-v1-client-protocol.h xdg-decoration-v1.c
 clean: clean-deps clean-gen-files
-CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/fontconfig/fontconfig
+CFLAGS+= ${FMWK_CFLAGS}
