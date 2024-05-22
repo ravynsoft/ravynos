@@ -55,11 +55,13 @@
 }
 
 - (id)init;
-- (BOOL)openFramebuffer: (const char *)device;
+- (CGContextRef)openFramebuffer: (const char *)device;
 - (NSRect)geometry;
 - (void)dealloc;
 - (int)format;
 - (void)draw;
+- (CGContextRef)context;
+- (CGColorSpaceRef)colorSpace;
 
 @end
 

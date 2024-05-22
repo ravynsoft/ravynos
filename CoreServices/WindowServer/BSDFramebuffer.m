@@ -39,7 +39,7 @@
     return self;
 }
 
-- (BOOL)openFramebuffer: (const char *)device
+- (CGContextRef)openFramebuffer: (const char *)device
 {
     int bytesperline = 0;
     struct fbtype fb;
@@ -48,13 +48,13 @@
     if(fbfd < 0)
         fbfd = open(device, O_RDONLY);
     if(fbfd < 0)
-        return FALSE;
+        return NULL;
 
     if(ioctl(fbfd, FBIOGTYPE, &fb) != 0)
-        return FALSE;
+        return NULL;
 
     if(ioctl(fbfd, FBIO_GETLINEWIDTH, &bytesperline) != 0)
-        return FALSE;
+        return NULL;
 
     depth = fb.fb_depth;
     width = fb.fb_width;
@@ -65,7 +65,7 @@
     size = (stride * height + pagemask) & ~pagemask;
     data = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fbfd, 0);
     if(data == MAP_FAILED) 
-        return FALSE;
+        return NULL;
 
 #ifdef DEBUG
     NSLog(@"fb geometry: %dx%d depth %d stride %d size %d", width, height, depth, stride, size);
@@ -73,15 +73,8 @@
 
     cs = CGColorSpaceCreateDeviceRGB();
     ctx = CGBitmapContextCreate(NULL, width, height, 8, 0, cs, [self format]);
-    CGContextSetRGBFillColor(ctx, 255.0, 0, 0, 255.0);
-    CGRect rect = CGRectMake(0, 0, width, height);
-    CGContextFillRect(ctx, rect);
-
-    CGContextSetRGBFillColor(ctx, 255.0, 255.0, 0, 255.0);
-    rect = CGRectMake(width/2 - 300, height/2 - 300, 600, 600);
-    CGContextFillRect(ctx, rect);
     
-    return TRUE;
+    return ctx;
 }
 
 - (NSRect)geometry
@@ -99,7 +92,7 @@
         CGColorSpaceRelease(cs);
     if(ctx)
         CGContextRelease(ctx);
-    [super dealloc];
+//    [super dealloc];
 }
 
 - (int)format
@@ -116,7 +109,17 @@
 
 - (void)draw
 {
-    memcpy(data, [[(O2Context *)ctx surface] pixelBytes], size);
+    memcpy(data, [[(__bridge_transfer O2Context *)ctx surface] pixelBytes], size);
+}
+
+- (CGContextRef)context
+{
+    return ctx;
+}
+
+- (CGColorSpaceRef)colorSpace
+{
+    return cs;
 }
 
 @end
