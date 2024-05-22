@@ -2,6 +2,10 @@ FRAMEWORK=Onyx2D
 .include "../framework.common.mk"
 
 SUBDIR+=	freetype
+LINK_SUBDIR+=	freetype/CMakeFiles/freetype.dir/src
+LINK_SUBDIR+=	freetype/CMakeFiles/freetype.dir/builds/unix
+MK_WERROR=no
+WARNS=1
 
 SRCS= \
 	O2AffineTransform.m \
@@ -196,16 +200,9 @@ INCS= \
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR} -I.. -I../Foundation/Headers
 CFLAGS+= -I${.CURDIR}/freetype/include
-LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
-LDFLAGS+= -L${MAKEOBJDIR}/freetype -lfreetype \
-	-Wl,-R\$$ORIGIN/Resources
-
-ftlib:
-	cp -f ${MAKEOBJDIR}/freetype/libfreetype.so.6 \
-		${MAKEOBJDIR}/${FRAMEWORK}.framework/Resources/
-	ln -sf libfreetype.so.6 \
-		${MAKEOBJDIR}/${FRAMEWORK}.framework/Resources/libfreetype.so
+LDFLAGS+= ${FMWK_LDFLAGS} -L${OBJTOP}/tmp/usr/lib -ljpeg -lpng -ltiff
+LDFLAGS+= -Wl,-R\$$ORIGIN/Resources
 
 .include <rvn.framework.mk>
 
-installresources: ftlib std_install_hook
+installresources: std_install_hook

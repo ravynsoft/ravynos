@@ -4,7 +4,13 @@ FRAMEWORK=CoreText
 SRCS= CTFont.m KTFont.m
 INCS= CoreText.h CoreTextExport.h CTFont.h KTFont.h
 RESOURCES=Info.plist 
-LDFLAGS+= -Wl,--no-undefined
+LDFLAGS+= -Wl,--no-undefined -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
+	-lOnyx2D -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
+	-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework -lCoreGraphics \
+	-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
+	-L${OBJTOP}/Frameworks/Foundation/Foundation.framework -lFoundation \
+	-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
+	-L${OBJTOP}/tmp/usr/lib -lxml2 -lobjc
 WARNS= 1
 MK_WERROR= no
 
