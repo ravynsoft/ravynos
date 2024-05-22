@@ -1,4 +1,5 @@
 LIB=	        mtdev
+SHLIB_NAME=	libmtdev
 MAJOR=          1
 MINOR=          1
 MICRO=          5

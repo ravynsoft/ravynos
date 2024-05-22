@@ -1,4 +1,5 @@
 LIB=	        input
+SHLIB_NAME=	libinput
 
 .PATH:          ${.CURDIR}
 .PATH:          ${.CURDIR}/src
