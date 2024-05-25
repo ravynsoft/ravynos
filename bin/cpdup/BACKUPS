@@ -1,0 +1,341 @@
+			    INCREMENTAL BACKUP HOWTO
+
+    This document describes one of several ways to set up a LAN backup and
+    an off-site WAN backup system using cpdup's hardlinking capabilities.
+
+    The features described in this document are also encapsulated in scripts
+    which can be found in the scripts/ directory.  These scripts can be used
+    to automate all backup steps except for the initial preparation of the
+    backup and off-site machine's directory topology.  Operation of these
+    scripts is described in the last section of this document.
+
+
+		    PART 1 - PREPARE THE LAN BACKUP BOX
+
+    The easiest way to create a LAN backup box is to NFS mount all your
+    backup clients onto the backup box.  It is also possible to use cpdup's
+    remote host feature to access your client boxes but that requires root
+    access to the client boxes and is not described here.  (But see the
+    sections "OFF-SITE BACKUPS" and "SSH SECURITY TIPS" below.)
+
+    Create a directory on the backup machine called /nfs, a subdirectory
+    foreach remote client, and subdirectories for each partition on each
+    client.  Remember that cpdup does not cross mount points so you will
+    need a mount for each partition you wish to backup.  For example:
+
+	[ ON LAN BACKUP BOX ]
+
+	mkdir /nfs
+	mkdir /nfs/box1
+	mkdir /nfs/box1/home
+	mkdir /nfs/box1/var
+
+    Before you actually do the NFS mount, create a dummy file for each
+    mount point that can be used by scripts to detect when an NFS mount
+    has not been done.  Scripts can thus avoid a common failure scenario
+    and not accidentally cpdup an empty mount point to the backup partition
+    (destroying that day's backup in the process).
+
+	touch /nfs/box1/home/NOT_MOUNTED
+	touch /nfs/box1/var/NOT_MOUNTED
+
+    Once the directory structure has been set up, do your NFS mounts and
+    also add them to your fstab.  Since you will probably wind up with a
+    lot of mounts it is a good idea to use 'ro,bg' (readonly, background
+    mount) in the fstab entries.
+
+	mount box1:/home /nfs/box1/home
+	mount box1:/var /nfs/box1/var
+
+    You should create a huge /backup partition on your backup machine which
+    is capable of holding all your mirrors.  Create a subdirectory called
+    /backup/mirrors in your huge backup partition.
+
+	mount <huge_disk> /backup
+	mkdir /backup/mirrors
+
+
+			PART 2 - DOING A LEVEL 0 BACKUP
+
+    (If you use the supplied scripts, a level 0 backup can be accomplished
+    simply by running the 'do_mirror' script with an argument of 0).
+
+    Create a level 0 backup using a standard cpdup with no special arguments
+    other then -i0 -s0 (tell it not to ask questions and turn off the
+    file-overwrite-with-directory safety feature).  Name the mirror with
+    the date in a string-sortable format.
+
+	set date = `date "+%Y%m%d"`
+	mkdir /backup/mirrors/box1.${date}
+	cpdup -i0 -s0 /nfs/box1/home /backup/mirrors/box1.${date}/home
+	cpdup -i0 -s0 /nfs/box1/var /backup/mirrors/box1.${date}/var
+
+    Create a softlink to the most recently completed backup, which is your
+    level 0 backup.  Note that using 'ln -sf' will create a link in the
+    subdirectory pointed to by the current link, not replace the current
+    link. 'ln -shf' can be used to replace the link but is not portable.
+    'mv -f' has the same problem.
+
+	sync
+	rm -f /backup/mirrors/box1
+	ln -s /backup/mirrors/box1.${date} /backup/mirrors/box1
+
+			PART 3 - DO AN INCREMENTAL BACKUP
+
+    An incremental backup is exactly the same as a level 0 backup EXCEPT
+    you use the -H option to specify the location of the most recent
+    completed backup.  We simply maintain the handy softlink pointing at
+    the most recent completed backup and the cpdup required to do this
+    becomes trivial.
+
+    Each day's incremental backup will reproduce the ENTIRE directory topology
+    for the client, but cpdup will hardlink files from the most recent backup
+    instead of copying them and this is what saves you all the disk space.
+
+	set date = `date "+%Y%m%d"`
+	mkdir /backup/mirrors/box1.${date}
+	if ( "`readlink /backup/mirrors/box1`" == "box1.${date}" ) then
+	    echo "silly boy, an incremental already exists for today"
+	    exit 1
+	endif
+	cpdup -H /backup/mirrors/box1 \
+	      -i0 -s0 /nfs/box1/home /backup/mirrors/box1.${date}/home
+
+    Be sure to update your 'most recent backup' softlink, but only do it
+    if the cpdup's for all the partitions for that client have succeeded.
+    That way the next incremental backup will be based on the previous one.
+
+	rm -f /backup/mirrors/box1
+	ln -s /backup/mirrors/box1.${date} /backup/mirrors/box1
+
+    Since these backups are mirrors, locating a backup is as simple
+    as CDing into the appropriate directory.  If your filesystem has a
+    hardlink limit and cpdup hits it, cpdup will 'break' the hardlink
+    and copy the file instead.  Generally speaking only a few special cases
+    will hit the hardlink limit for a filesystem.  For example, the
+    CVS/Root file in a checked out cvs repository is often hardlinked, and
+    the sheer number of hardlinked 'Root' files multiplied by the number
+    of backups can often hit the filesystem hardlink limit.
+
+		    PART 4 - DO AN INCREMENTAL VERIFIED BACKUP
+
+    Since your incremental backups use hardlinks heavily the actual file
+    might exist on the physical /backup disk in only one place even though
+    it may be present in dozens of daily mirrors.  To ensure that the
+    file being hardlinked does not get corrupted cpdup's -f option can be
+    used in conjunction with -H to force cpdup to validate the contents
+    of the file, even if all the stat info looks identical.
+
+	cpdup -f -H /backup/mirrors/box1 ...
+
+    You can create completely redundant (non-hardlinked-dependent) backups
+    by doing the equivalent of your level 0, i.e. not using -H.  However I
+    do NOT recommend that you do this, or that you do it very often (maybe
+    once every 6 months at the most), because each mirror created this way
+    will have a distinct copy of all the file data and you will quickly
+    run out of space in your /backup partition.
+
+		    MAINTENANCE OF THE "/backup" DIRECTORY
+
+    Now, clearly you are going to run out of space in /backup if you keep
+    doing this, but you may be surprised at just how many daily incrementals
+    you can create before you fill up your /backup partition.
+
+    If /backup becomes full, simply start rm -rf'ing older mirror directories
+    until enough space is freed up.   You do not have to remove the oldest
+    directory first.  In fact, you might want to keep it around and remove
+    a day's backup here, a day's backup there, etc, until you free up enough
+    space.
+
+				OFF-SITE BACKUPS
+
+    Making an off-site backup involves similar methodology, but you use
+    cpdup's remote host capability to generate the backup.  To avoid
+    complications it is usually best to take a mirror already generated on
+    your LAN backup box and copy that to the remote box.
+
+    The remote backup box does not use NFS, so setup is trivial.  Just
+    create your super-large /backup partition and mkdir /backup/mirrors.
+    Your LAN backup box will need root access via ssh to your remote backup
+    box.  See the section "SSH SECURITY TIPS" below.
+
+    You can use the handy softlink to get the latest 'box1.date' mirror
+    directory and since the mirror is all in one partition you can just
+    cpdup the entire machine in one command.  Use the same dated directory
+    name on the remote box, so:
+
+        # latest will wind up something like 'box1.20060915'
+	set latest = `readlink /backup/mirrors/box1`
+	cpdup -i0 -s0 /backup/mirrors/$latest remote.box:/backup/mirrors/$latest
+
+    As with your LAN backup, create a softlink on the backup box denoting the
+    latest mirror for any given site.
+
+	if ( $status == 0 ) then
+	    ssh remote.box -n \
+		"rm -f /backup/mirrors/box1; ln -s /backup/mirrors/$latest /backup/mirrors/box1"
+	endif
+
+    Incremental backups can be accomplished using the same cpdup command,
+    but adding the -H option to the latest backup on the remote box.  Note
+    that the -H path is relative to the remote box, not the LAN backup box
+    you are running the command from.
+
+	set latest = `readlink /backup/mirrors/box1`
+	set remotelatest = `ssh remote.box -n "readlink /backup/mirrors/box1"`
+	if ( "$latest" == "$remotelatest" ) then
+	    echo "silly boy, you already made a remote incremental backup today"
+	    exit 1
+	endif
+	cpdup -H /backup/mirrors/$remotelatest \
+	      -i0 -s0 /backup/mirrors/$latest remote.box:/backup/mirrors/$latest
+	if ( $status == 0 ) then
+	    ssh remote.box -n \
+		"rm -f /backup/mirrors/box1; ln -s /backup/mirrors/$latest /backup/mirrors/box1"
+	endif
+
+    Cleaning out the remote directory works the same as cleaning out the LAN
+    backup directory.
+
+
+			    RESTORING FROM BACKUPS
+
+    Each backup is a full filesystem mirror, and depending on how much space
+    you have you should be able to restore it simply by cd'ing into the
+    appropriate backup directory and using 'cpdup blah box1:blah' (assuming
+    root access), or you can export the backup directory via NFS to your
+    client boxes and use cpdup locally on the client to extract the backup.
+    Using NFS is probably the most efficient solution.
+
+
+			PUTTING IT ALL TOGETHER - SOME SCRIPTS
+
+    Please refer to the scripts in the script/ subdirectory.  These scripts
+    are EXAMPLES ONLY.  If you want to use them, put them in your ~root/adm
+    directory on your backup box and set up a root crontab.
+
+    First follow the preparation rules in PART 1 above.  The scripts do not
+    do this automatically.  Edit the 'params' file that the scripts use
+    to set default paths and such.
+
+	** FOLLOW DIRECTIONS IN PART 1 ABOVE TO SET UP THE LAN BACKUP BOX **
+
+    Copy the scripts to ~/adm.  Do NOT install a crontab yet (but an example
+    can be found in scripts/crontab).
+
+    Do a manual lavel 0 LAN BACKUP using the do_mirror script.
+
+	cd ~/adm
+	./do_mirror 0
+
+    Once done you can do incremental backups using './do_mirror 1' to do a
+    verified incremental, or './do_mirror 2' to do a stat-optimized
+    incremental.  You can enable the cron jobs that run do_mirror and
+    do_cleanup now.
+
+    --
+
+    Setting up an off-site backup box is trivial.  The off-site backup box
+    needs to allow root ssh logins from the LAN backup box (at least for
+    now, sorry!).  Set up the off-site backup directory, typically
+    /backup/mirrors.  Then do a level 0 backup from your LAN backup box
+    to the off-site box using the do_remote script.
+
+	cd ~/adm
+	./do_remote 0
+
+    Once done you can do incremental backups using './do_remote 1' to do a
+    verified incremental, or './do_mirror 2' to do a stat-optimized
+    incremental.  You can enable the cron jobs that run do_remote now.
+
+    NOTE!  It is NOT recommended that you use verified-incremental backups
+    over a WAN, as all related data must be copied over the wire every single
+    day.  Instead, I recommend sticking with stat-optimized backups
+    (./do_mirror 2).
+
+    You will also need to set up a daily cleaning script on the off-site
+    backup box.
+
+    SCRIPT TODOS - the ./do_cleanup script is not very smart.  We really
+    should do a tower-of-hanoi removal
+
+
+			      SSH SECURITY TIPS
+
+    To allow root access via ssh, add the following line to your sshd
+    configuration on the client boxes (typically /etc/ssh/sshd_config):
+
+	PermitRootLogin forced-commands-only
+
+    If your OpenSSH version is too old to recognize that setting, you
+    should update to a more recent version immediately.
+    Restart sshd for the settings to take effect.
+
+    On the backup machine, create a special backup key for root:
+
+	mkdir /root/.ssh	# if it doesn't already exist
+	cd /root/.ssh
+	ssh-keygen -t dsa -N "" -f backup-key
+
+    You now have a key pair, consisting of a secret key called "backup-key"
+    and a public key called "backup-key.pub".  The secret key must *NEVER*
+    leave the backup machine nor be disclosed in any way!  Note that we
+    haven't procted the secret key with a passphrase (-N "") because it
+    will be used by cron jobs where no passphrase can be entered.
+
+    On the client boxes, create a file /root/.ssh/authorized_keys.
+    It should contain just this line:
+
+	command="/usr/local/bin/cpdup -S",from="<BAKHOST>",no-pty,
+	no-port-forwarding,no-X11-forwarding,no-agent-forwarding <PUBKEY>
+
+    This must be on one long line; it has been broken up here for
+    readability only.  Note that the options must be separated by commas
+    *ONLY* (no spaces).  Replace <BAKHOST> with the IP address or DNS name
+    of the backup machine.  Replace <PUBKEY> with the contents of the
+    file /root/.ssh/backup-key.pub from the backup machine (the public key,
+    not the secret key!).  It typically starts with "ssh-dss" followed by
+    a long character sequence that looks like line noise, followed by a
+    comment that typically indicates who created the key.
+
+    The format of the authorized_keys file is documented in the sshd(8)
+    manual page.  Please refer to it for more details.
+
+    If you have done all of the above correctly, then the root user on the
+    backup machine will be able to log into the client boxes as root and
+    execute "/usr/local/bin/cpdup -S", but nothing else.
+
+    To further improve security, you can place the slave cpdup on the client
+    machine into read-only mode by adding the -R option.  In this case, the
+    line from the authorized_keys file should begin as follows:
+
+	command="/usr/local/bin/cpdup -RS",from="<BAKHOST>",etc...
+
+    If you do that, your backup server can only pull backups from the client
+    machine, but it won't be able to change anything on it.  That is, you
+    cannot use the client machine as a remote target.  So, if an attacker
+    manages to be able to execute commands on your backup machine, he won't
+    be able to do any harm to your clients.  This also protects against
+    human errors, e.g. accidentally swapping source and destination.
+
+    By the way, it doesn't really matter much whether you specify the -R
+    option when running cpdup on the backup machine.  If you do it, then
+    the -R option will be passed to the slave, but the command="..." entry
+    from the authorized_keys file overides it anyway, so the slave always
+    runs with the -R option.
+
+    When using cpdup on the backup machine, make sure that the right key is
+    used by passing the -i option to the ssh command:
+
+	cpdup -F -i/root/.ssh/backup-key ...
+
+    If one or both of the machines involved has a slow processor, it might
+    be worthwhile to use a faster encryption algorithm, for example:
+
+	cpdup -F -cblowfish-cbc ...
+
+    If your OpenSSH version has been patched to support unencrypted transfers
+    *AND* you trust the physical network between the machines involved, you
+    might want to disable encryption altogether:
+
+	cpdup -F -cnone ...

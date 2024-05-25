@@ -71,10 +71,6 @@ distribution:
 		-e "s/__CODENAME__/${RAVYNOS_CODENAME}/" ${DESTDIR}/etc/motd.template
 	rm -f ${DESTDIR}/etc/motd.template_
 	${INSTALL} -m 0555 -o root -g wheel ${.CURDIR}/bootstrap ${DESTDIR}/etc/
-.for d in pkg
-	${INSTALL} -d -m 0755 -o ${BINOWN} -g ${BINGRP} ${DESTDIR}/etc/$d
-	${INSTALL} -m 0444 -o ${BINOWN} -g ${BINGRP} ${.CURDIR}/$d/* ${DESTDIR}/etc/$d/
-.endfor
 .if ${MK_UNBOUND} != "no"
 	if [ ! -e ${DESTDIR}/etc/unbound ]; then \
 		${INSTALL_SYMLINK} -T "package=unbound" \

@@ -175,7 +175,6 @@ pkg_add_from_url()
 
 packages()
 {
-  rm -f "${uzip}/etc/pkg/FreeBSD.conf"
   cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
