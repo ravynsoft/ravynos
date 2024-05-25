@@ -93,6 +93,7 @@ ${MAKEOBJDIR}/libWindowServer.so:
 		-L${OBJTOP}/tmp/usr/lib \
 		-L${OBJTOP}/CoreServices/WindowServer/gplv2/cairo -lcairo \
 		-lpng -lz
+	cp -f ${.TARGET} ${APP_DIR}/Contents/Resources/
 
 make-obj-dirs: .EXEC
 	mkdir -p ${MAKEOBJDIR}

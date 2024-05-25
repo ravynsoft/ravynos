@@ -11,3 +11,4 @@ build:
 
 install:
 	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install
+

@@ -15,3 +15,4 @@ all:
 
 install:
 	make install DESTDIR=${DESTDIR}
+

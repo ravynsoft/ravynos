@@ -14,3 +14,8 @@ build:
 
 install:
 	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install
+
+distribute:
+	${MAKE} -C ${MAKEOBJDIR} INSTALL=${INSTALL} \
+		DESTDIR=${OBJTOP}/release/dist/ravynOS install
+

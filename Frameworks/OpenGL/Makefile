@@ -27,15 +27,15 @@ RESOURCES=      Info.plist
 
 LINK_SUBDIR+= mesa/src/egl
 LINK_SUBDIR+= mesa/src/mapi/es2api
-#LINK_SUBDIR+= mesa/src/mapi/es1api
 LINK_SUBDIR+= mesa/src/mapi/shared-glapi
 LINK_SUBDIR+= mesa/src/gbm
+LINK_SUBDIR+= mesa/src/util
 
 CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/Frameworks -I${.CURDIR}/include 
 CFLAGS+= -I${SRCTOP}/Frameworks/Foundation/Headers
 CFLAGS+= -I${.CURDIR}/libpciaccess/include
 LDFLAGS+= -Llibdrm -Llibpciaccess -Lwayland/src \
-	  -lwayland -ldrm -lpciaccess \
+	  -lwayland -ldrm -lpciaccess -lstdc++ \
 	  -Wl,--no-as-needed -Wl,-R\$$ORIGIN
 
 _libinstall_hook:

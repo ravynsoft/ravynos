@@ -13,7 +13,7 @@ installconfig: .PHONY
 includes: .PHONY
 
 distribute:
-	${MAKE} -C ${MAKEOBJDIR} INSTALL=${INSTALL} \
+	${MAKE} -C ${MAKEOBJDIR} INSTALL=${OBJTOP}/tmp/legacy/bin/install \
 		DESTDIR=${OBJTOP}/release/dist/base install
 LD_ADD= 
 
