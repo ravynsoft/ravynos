@@ -58,7 +58,7 @@ copyFilesystem() {
 /bin/install.sh
 EOT
     echo Filling the pool
-    cd /sysroot; /usr/bin/cpdup -uIof -X/tmp/excludes . /tmp/pool
+    cd /sysroot; /bin/cpdup -uIof -X/tmp/excludes . /tmp/pool
 
     export BSDINSTALL_CHROOT=/tmp/pool
     /usr/sbin/bsdinstall config
@@ -68,6 +68,7 @@ EOT
     /usr/sbin/pw -R /tmp/pool groupdel -n liveuser
     /bin/rm -rf /tmp/pool/Users/liveuser
 
+    mount -t tmpfs /usr/local /usr/local
     /usr/sbin/pkg -c /tmp/pool remove -y furybsd-live-settings
     /usr/sbin/pkg -c /tmp/pool remove -y freebsd-installer
 
@@ -96,7 +97,8 @@ vfs.root.mountfrom="zfs:${pool}/ROOT/default"
 EOT
 
     userinfo="${username}::::::${username}:/Users/${username}:/usr/bin/zsh:"
-    echo "$userinfo" | chroot /tmp/pool /usr/sbin/adduser -f -
+    chroot /tmp/pool /usr/sbin/pw useradd -n "${username}" -c "${username}" \
+	-d "/Users/${username}" -m -M 0755 -s /bin/zsh
     chroot /tmp/pool passwd $username
     for group in wheel video; do
             chroot /tmp/pool /usr/sbin/pw groupmod $group -m $username
