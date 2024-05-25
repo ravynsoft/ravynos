@@ -6,6 +6,7 @@ SUBDIR= cat \
 	chio \
 	chmod \
 	cp \
+	cpdup \
 	cpuset \
 	date \
 	dd \
