@@ -13,6 +13,24 @@ desc="Start WindowServer LaunchDaemon at a safe point"
 start_cmd="windowserver_start"
 stop_cmd="windowserver_stop"
 
+probe_amdgpu()
+{
+    radeon=1
+    DEVICE=$(pciconf -l|awk '/^vgapci/ {print substr($6,10,4)}')
+    for i in 9808 9904 6841 9901 6826 6816 6817 679a 679f 6fdf 73df \
+             67e0 67e1 67e3 67e8 67e9 694f 67c0 67c4 67c7 67ca 67cc \
+             67cf 67d0 67d4 67d7 67df 6861 6868 6840 6842 6843
+    do 
+        if [ "$DEVICE" = "$i" ]; then
+            kldload amdgpu
+            radeon=0
+        fi
+    done
+    if [ $radeon -eq 1 ]; then
+        kldload radeonkms
+    fi
+}
+
 probe_gpu()
 {
     # Simple GPU detection. Prefer Intel on multi-GPU setups
@@ -22,7 +40,7 @@ probe_gpu()
             kldload i915kms
             break
         elif [ "$gpu" = "1002" ]; then
-            kldload amdgpu
+            probe_amdgpu
             break
         fi
     done
