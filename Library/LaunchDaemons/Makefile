@@ -11,7 +11,8 @@ SYSDAEMONS=	com.apple.auditd.json \
 		org.freebsd.devd.json \
 		org.freebsd.tty1.json \
 		org.freebsd.tty2.json \
-		com.ravynos.WindowServer.json
+		com.ravynos.WindowServer.json \
+		com.ravynos.ws.seatd.json
 DAEMONS=
 
 all: clean build

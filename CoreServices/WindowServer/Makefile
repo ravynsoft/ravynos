@@ -42,7 +42,10 @@ SRCS=           WindowServer.m \
                 mousebind.c \
                 session.c \
                 desktop.c 
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf \
+		${MAKEOBJDIR}/seatd/seatd/seatd \
+		${MAKEOBJDIR}/seatd/libseat/libseat.so.0 \
+		${MAKEOBJDIR}/seatd/libseat/libseat.so
 
 MK_WERROR=	no
 WARNS=	        1

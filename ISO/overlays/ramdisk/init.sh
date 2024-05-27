@@ -100,6 +100,7 @@ mkdir -p /System/Library/LaunchDaemons
 ln -s /sysroot/System/Library/LaunchDaemons/com.apple.notifyd.json /System/Library/LaunchDaemons/
 ln -s /sysroot/System/Library/LaunchDaemons/org.freebsd.devd.json /System/Library/LaunchDaemons/
 ln -s /sysroot/System/Library/LaunchDaemons/com.ravynos.WindowServer.json /System/Library/LaunchDaemons/
+ln -s /sysroot/System/Library/LaunchDaemons/com.ravynos.ws.seatd.json /System/Library/LaunchDaemons/
 for tty in 0 1 2 3; do
     cat > /System/Library/LaunchDaemons/org.freebsd.ttyv${tty}.json <<EOT
 {

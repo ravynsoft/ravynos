@@ -1,0 +1,14 @@
+{
+	"EnvironmentVariables": {
+                "ASL_DISABLE": "1",
+                "LANG": "C.UTF-8"
+	},
+	"Label": "com.ravynos.ws.seatd",
+	"ProgramArguments": [
+		"/System/Library/CoreServices/WindowServer.app/Resources/seatd",
+		"-g",
+		"video"
+	],
+	"KeepAlive": true,
+	"RunAtLoad": true
+}

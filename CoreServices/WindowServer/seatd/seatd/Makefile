@@ -20,6 +20,7 @@ SRCS=	client.c \
 PACKAGE=WindowServer
 WARNS?=	2
 CFLAGS+= -I${.CURDIR}/../include -Uunix
+LDFLAGS+= -Wl,-R'$$ORIGIN'
 
 make-obj-dirs:
 	mkdir -p ${MAKEOBJDIR}
