@@ -1,4 +1,5 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd <cjwl@objc.net>
+   Copyright (c) 2022-2024 Zoe Knox <zoe@ravynsoft.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -25,13 +26,13 @@ FOUNDATION_EXPORT char *NSUnicodeToSymbol(const unichar *characters,unsigned len
 // It seems the default mapping should really go to some platform specific place
 -(NSString *)translateToNibFontName:(NSString *)name {
 	NSString *displayName = [O2Font displayNameForPostscriptName:name];
-	if([displayName isEqual:@"Nimbus Sans-Regular"])
+	if([displayName isEqual:@"Inter-Regular"])
 		return[O2Font postscriptNameForDisplayName:@"Helvetica"];
-	if([displayName isEqual:@"Nimbus Sans-Bold"])
+	if([displayName isEqual:@"Inter-Bold"])
 		return @"Helvetica-Bold";
-	if([displayName isEqual:@"Nimbus Sans-Italic"])
+	if([displayName isEqual:@"Inter-Italic"])
 		return @"Helvetica-Oblique";
-	if([displayName isEqual:@"Nimbus Sans-Bold Italic"])
+	if([displayName isEqual:@"Inter-Bold Italic"])
 		return @"Helvetica-BoldOblique";
 	
 	if([displayName isEqual:@"Nimbus Roman-Regular"])
@@ -46,13 +47,13 @@ FOUNDATION_EXPORT char *NSUnicodeToSymbol(const unichar *characters,unsigned len
 	NSString *displayName = [O2Font displayNameForPostscriptName:name];
 
 	if ([name isEqual:@"Helvetica"] || [name isEqual:@".AppleSystemUIFont"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Regular"];
+		return [O2Font postscriptNameForDisplayName:@"Inter-Regular"];
 	if([name isEqual:@"Helvetica-Bold"] || [name isEqual:@".AppleSystemUIFontBold"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Bold"];
+		return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
 	if([name isEqual:@"Helvetica-Oblique"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Italic"];
+		return [O2Font postscriptNameForDisplayName:@"Inter-Italic"];
 	if([name isEqual:@"Helvetica-BoldOblique"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Bold Italic"];
+		return [O2Font postscriptNameForDisplayName:@"Inter-Bold Italic"];
 	
 	if([name isEqual:@"Times-Roman"])
 		return [O2Font postscriptNameForDisplayName:@"Nimbus Roman-Regular"];
@@ -73,11 +74,11 @@ FOUNDATION_EXPORT char *NSUnicodeToSymbol(const unichar *characters,unsigned len
 		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Demi"];
     
 	if([name isEqual:@"HelveticaNeue-CondensedBold"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans Narrow-Bold"];
+		return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
 	if([name isEqual:@"HelveticaNeue-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Bold"];
+		return [O2Font postscriptNameForDisplayName:@"Inter-Bold"];
 	if([name isEqual:@"HelveticaNeue-Regular"])
-		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Regular"];
+		return [O2Font postscriptNameForDisplayName:@"Inter-Regular"];
 
 	return name;
 }
@@ -212,27 +213,27 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)controlContentFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
+    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?10.0:size fallbackName:@"Inter-Regular"];
 }
 
 +(NSFont *)labelFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
+    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?10.0:size fallbackName:@"Inter-Regular"];
 }
 
 +(NSFont *)menuFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:@"Nimbus Sans-Regular"];
+    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:@"Inter-Regular"];
 }
 
 +(NSFont *)menuBarFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:@"Nimbus Sans-Regular"];
+    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:@"Inter-Regular"];
 }
 
 +(NSFont *)messageFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
+    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?10.0:size fallbackName:@"Inter-Regular"];
 }
 
 +(NSFont *)paletteFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
+    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?10.0:size fallbackName:@"Inter-Regular"];
 }
 
 +(NSFont *)systemFontOfSize:(float)size {
@@ -244,11 +245,11 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)toolTipsFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?9.:size fallbackName:@"Nimbus Sans-Regular"];
+    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?9.:size fallbackName:@"Inter-Regular"];
 }
 
 +(NSFont *)userFontOfSize:(float)size {
-   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"Nimbus Sans-Regular"] size:(size==0)?10.0:size];
+   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"Inter-Regular"] size:(size==0)?10.0:size];
 }
 
 +(NSFont *)userFixedPitchFontOfSize:(float)size {

@@ -18,7 +18,7 @@ static NSArray *_preferredFontNames = nil;
         // Set some decent defaut substitution fonts
         // Override that by a better list in the O2Font concrete subclass
         [O2Font setPreferredFontNames:[NSArray arrayWithObjects:
-                                       @"Nimbus Sans-Regular",         // Latin/Greek/Cyrillic, Arabic, Hebrew
+                                       @"Inter-Regular",         // Latin/Greek/Cyrillic, Arabic, Hebrew
                                        @"WenQuanYi Micro Hei-Regular", // Japanese
                                        @"WenQuanYi Micro Hei-Regular", // Simplified Chinese
                                        @"WenQuanYi Micro Hei-Regular", // Traditional Chinese

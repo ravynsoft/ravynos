@@ -81,7 +81,7 @@ static const float kMenuInitialClickThreshold = .3f;
     BOOL useCustomFont = _font != nil;
     if (useCustomFont) {
         // If we have the default font, then really use the default menu one instead of forcing it
-        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans-Regular" size:12.]]) {
+        if ([_font isEqual:[NSFont fontWithName:@"Inter-Regular" size:12.]]) {
             useCustomFont = NO;
         }
     }
@@ -258,7 +258,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     BOOL useCustomFont = _font != nil;
     if (useCustomFont) {
         // If we have the default font, then really use the default menu one instead of forcing it
-        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans-Regular" size:12.]]) {
+        if ([_font isEqual:[NSFont fontWithName:@"Inter-Regular" size:12.]]) {
             useCustomFont = NO;
         }
     }

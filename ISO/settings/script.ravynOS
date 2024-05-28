@@ -28,13 +28,6 @@ mkdir -p "${uzip}/Applications/Utilities"
 #        tar -xf - -C "${uzip}/Applications/Utilities/"
 #done
 
-# Fonts
-fetch https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
-unzip -q 20200910.zip
-mkdir -p "${uzip}/System/Library/Fonts/TTF/"
-cp -R urw-base35-fonts-20200910/fonts/*.ttf "${uzip}/System/Library/Fonts/TTF/"
-rm -rf urw-base35-fonts-20200910/ 20200910.zip
-
 # Silence late boot messages
 cat > /tmp/rc <<\EOF
 #!/bin/sh
