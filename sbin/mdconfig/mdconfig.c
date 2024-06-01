@@ -87,7 +87,7 @@ usage(void)
 "       mdconfig -l [-v] [-n] [-f file] [-u unit]\n"
 "       mdconfig file\n");
 	fprintf(stderr, "\t\ttype = {malloc, vnode, swap}\n");
-	fprintf(stderr, "\t\toption = {async, cache, cluster, compress,\n");
+	fprintf(stderr, "\t\toption = {async, cache, compress,\n");
 	fprintf(stderr, "\t\t          force, mustdealloc, readonly, ro,\n");
 	fprintf(stderr, "\t\t          reserve, verify}\n");
 	fprintf(stderr, "\t\tsize = %%d (512 byte blocks), %%db (B),\n");
@@ -156,13 +156,13 @@ main(int argc, char **argv)
 				mdio.md_options |= MD_AUTOUNIT | MD_COMPRESS;
 			} else if (!strcmp(optarg, "vnode")) {
 				mdio.md_type = MD_VNODE;
-				mdio.md_options |= MD_CLUSTER | MD_AUTOUNIT | MD_COMPRESS;
+				mdio.md_options |= MD_AUTOUNIT | MD_COMPRESS;
 			} else if (!strcmp(optarg, "swap")) {
 				mdio.md_type = MD_SWAP;
-				mdio.md_options |= MD_CLUSTER | MD_AUTOUNIT | MD_COMPRESS;
+				mdio.md_options |= MD_AUTOUNIT | MD_COMPRESS;
 			} else if (!strcmp(optarg, "null")) {
 				mdio.md_type = MD_NULL;
-				mdio.md_options |= MD_CLUSTER | MD_AUTOUNIT | MD_COMPRESS;
+				mdio.md_options |= MD_AUTOUNIT | MD_COMPRESS;
 			} else
 				errx(1, "unknown type: %s", optarg);
 			break;
@@ -182,10 +182,15 @@ main(int argc, char **argv)
 				mdio.md_options |= MD_CACHE;
 			else if (!strcmp(optarg, "nocache"))
 				mdio.md_options &= ~MD_CACHE;
-			else if (!strcmp(optarg, "cluster"))
-				mdio.md_options |= MD_CLUSTER;
-			else if (!strcmp(optarg, "nocluster"))
-				mdio.md_options &= ~MD_CLUSTER;
+			/*
+			 * For backwards-compatibility, continue to recognize
+			 * "cluster"
+			 */
+			else if (!strcmp(optarg, "cluster") ||
+				 !strcmp(optarg, "nocluster"))
+			{
+				warnx("Option cluster is ignored");
+			}
 			else if (!strcmp(optarg, "compress"))
 				mdio.md_options |= MD_COMPRESS;
 			else if (!strcmp(optarg, "nocompress"))
@@ -282,13 +287,11 @@ main(int argc, char **argv)
 			if (fflag != NULL || argc > 0) {
 				/* Imply ``-t vnode'' */
 				mdio.md_type = MD_VNODE;
-				mdio.md_options |= MD_CLUSTER | MD_AUTOUNIT |
-				    MD_COMPRESS;
+				mdio.md_options |= MD_AUTOUNIT | MD_COMPRESS;
 			} else if (sflag != NULL) {
 				/* Imply ``-t swap'' */
 				mdio.md_type = MD_SWAP;
-				mdio.md_options |= MD_CLUSTER | MD_AUTOUNIT |
-				    MD_COMPRESS;
+				mdio.md_options |= MD_AUTOUNIT | MD_COMPRESS;
 			} else
 				errx(1, "unable to determine type");
 		}
@@ -409,7 +412,7 @@ print_options(const char *dev, const char *file)
 {
 	struct md_ioctl mdiox;
 	int unit;
-	char sep = '\0';
+	const char *sep = "";
 
 	if (sscanf(dev, "md%d", &unit) != 1)
 		err(1, "invalid device: %s", dev);
@@ -427,40 +430,36 @@ print_options(const char *dev, const char *file)
 
 	printf("\t");
 	if (mdiox.md_options & MD_ASYNC) {
-		printf("%casync", sep);
-		sep = ',';
+		printf("%sasync", sep);
+		sep = ",";
 	}
 	if (mdiox.md_options & MD_CACHE) {
-		printf("%ccache", sep);
-		sep = ',';
-	}
-	if (mdiox.md_options & MD_CLUSTER) {
-		printf("%ccluster", sep);
-		sep = ',';
+		printf("%scache", sep);
+		sep = ",";
 	}
 	if (mdiox.md_options & MD_COMPRESS) {
-		printf("%ccompress", sep);
-		sep = ',';
+		printf("%scompress", sep);
+		sep = ",";
 	}
 	if (mdiox.md_options & MD_FORCE) {
-		printf("%cforce", sep);
-		sep = ',';
+		printf("%sforce", sep);
+		sep = ",";
 	}
 	if (mdiox.md_options & MD_READONLY) {
-		printf("%creadonly", sep);
-		sep = ',';
+		printf("%sreadonly", sep);
+		sep = ",";
 	}
 	if (mdiox.md_options & MD_RESERVE) {
-		printf("%creserve", sep);
-		sep = ',';
+		printf("%sreserve", sep);
+		sep = ",";
 	}
 	if (mdiox.md_options & MD_VERIFY) {
-		printf("%cverify", sep);
-		sep = ',';
+		printf("%sverify", sep);
+		sep = ",";
 	}
 	if (mdiox.md_options & MD_MUSTDEALLOC) {
-		printf("%cmustdealloc", sep);
-		sep = ',';
+		printf("%smustdealloc", sep);
+		sep = ",";
 	}
 }
 
