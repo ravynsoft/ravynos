@@ -49,7 +49,7 @@ ns_printf(struct nvmf_namespace *ns, const char *fmt, ...)
 	sbuf_new(&sb, buf, sizeof(buf), SBUF_FIXEDLEN);
 	sbuf_set_drain(&sb, sbuf_printf_drain, NULL);
 
-	sbuf_printf(&sb, "%sns%u: ", device_get_nameunit(ns->sc->dev),
+	sbuf_printf(&sb, "%sn%u: ", device_get_nameunit(ns->sc->dev),
 	    ns->id);
 
 	va_start(ap, fmt);
@@ -258,9 +258,8 @@ nvmf_ns_ioctl(struct cdev *dev, u_long cmd, caddr_t arg, int flag,
 		return (nvmf_passthrough_cmd(ns->sc, pt, false));
 	case NVME_GET_NSID:
 		gnsid = (struct nvme_get_nsid *)arg;
-		strncpy(gnsid->cdev, device_get_nameunit(ns->sc->dev),
+		strlcpy(gnsid->cdev, device_get_nameunit(ns->sc->dev),
 		    sizeof(gnsid->cdev));
-		gnsid->cdev[sizeof(gnsid->cdev) - 1] = '\0';
 		gnsid->nsid = ns->id;
 		return (0);
 	case DIOCGMEDIASIZE:
@@ -372,10 +371,12 @@ nvmf_init_ns(struct nvmf_softc *sc, uint32_t id,
 	mda.mda_gid = GID_WHEEL;
 	mda.mda_mode = 0600;
 	mda.mda_si_drv1 = ns;
-	error = make_dev_s(&mda, &ns->cdev, "%sns%u",
+	error = make_dev_s(&mda, &ns->cdev, "%sn%u",
 	    device_get_nameunit(sc->dev), id);
 	if (error != 0)
 		goto fail;
+	ns->cdev->si_drv2 = make_dev_alias(ns->cdev, "%sns%u",
+	    device_get_nameunit(sc->dev), id);
 
 	ns->cdev->si_flags |= SI_UNMAPPED;
 
@@ -419,6 +420,8 @@ nvmf_destroy_ns(struct nvmf_namespace *ns)
 	TAILQ_HEAD(, bio) bios;
 	struct bio *bio;
 
+	if (ns->cdev->si_drv2 != NULL)
+		destroy_dev(ns->cdev->si_drv2);
 	destroy_dev(ns->cdev);
 
 	/*

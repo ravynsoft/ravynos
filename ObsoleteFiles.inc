@@ -51,6 +51,31 @@
 #   xargs -n1 | sort | uniq -d;
 # done
 
+# 20240527: csh: Remove hardlink /.cshrc
+OLD_FILES+=.cshrc
+
+# 20240511: move file system driver manuals to section four
+OLD_FILES+=usr/share/man/man5/autofs.5.gz
+OLD_FILES+=usr/share/man/man5/cd9660.5.gz
+OLD_FILES+=usr/share/man/man5/devfs.5.gz
+OLD_FILES+=usr/share/man/man5/ext2fs.5.gz
+OLD_FILES+=usr/share/man/man5/ext4fs.5.gz
+OLD_FILES+=usr/share/man/man5/fdescfs.5.gz
+OLD_FILES+=usr/share/man/man5/fusefs.5.gz
+OLD_FILES+=usr/share/man/man5/lindebugfs.5.gz
+OLD_FILES+=usr/share/man/man5/linprocfs.5.gz
+OLD_FILES+=usr/share/man/man5/linsysfs.5.gz
+OLD_FILES+=usr/share/man/man5/mqueuefs.5.gz
+OLD_FILES+=usr/share/man/man5/msdosfs.5.gz
+OLD_FILES+=usr/share/man/man5/msdos.5.gz
+OLD_FILES+=usr/share/man/man5/nullfs.5.gz
+OLD_FILES+=usr/share/man/man5/procfs.5.gz
+OLD_FILES+=usr/share/man/man5/smbfs.5.gz
+OLD_FILES+=usr/share/man/man5/tarfs.5.gz
+OLD_FILES+=usr/share/man/man5/tmpfs.5.gz
+OLD_FILES+=usr/share/man/man5/unionfs.5.gz
+OLD_FILES+=usr/share/man/man7/ffs.7.gz
+
 # 20240508: Remove remnants of portsnap(8)
 OLD_DIRS+=var/db/portsnap
 
@@ -9491,11 +9516,6 @@ OLD_FILES+=usr/share/man/man4/imm.4.gz
 OLD_FILES+=usr/share/man/man4/vpo.4.gz
 
 # 20200104: gcc libssp removed
-OLD_FILES+=usr/include/ssp/ssp.h
-OLD_FILES+=usr/include/ssp/stdio.h
-OLD_FILES+=usr/include/ssp/string.h
-OLD_FILES+=usr/include/ssp/unistd.h
-OLD_DIRS+=usr/include/ssp
 OLD_FILES+=usr/lib/libssp.a
 
 # 20191229: GEOM_SCHED class and gsched tool removed

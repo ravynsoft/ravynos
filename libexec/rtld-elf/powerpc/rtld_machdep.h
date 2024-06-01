@@ -35,8 +35,13 @@
 
 struct Struct_Obj_Entry;
 
+#define	MD_OBJ_ENTRY	\
+    Elf_Addr *gotptr;		/* GOT pointer (secure-plt only) */
+
 /* Return the address of the .dynamic section in the dynamic linker. */
 #define rtld_dynamic(obj)    (&_DYNAMIC)
+
+bool arch_digest_dynamic(struct Struct_Obj_Entry *, const Elf_Dyn *);
 
 /* No architecture specific notes */
 #define	arch_digest_note(obj, note)	false

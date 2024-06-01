@@ -318,7 +318,8 @@ hdac_pin_patch(struct hdaa_widget *w)
 		}
 	} else if (id == HDA_CODEC_ALC257 &&
 	    (subid == LENOVO_L5AMD_SUBVENDOR ||
-	    subid == LENOVO_L5INTEL_SUBVENDOR)) {
+	    subid == LENOVO_L5INTEL_SUBVENDOR ||
+	    subid == LENOVO_IDEAPAD3_SUBVENDOR)) {
 		switch (nid) {
 		case 20:
 			patch_str = "as=1 seq=0";
@@ -339,7 +340,7 @@ hdac_pin_patch(struct hdaa_widget *w)
 			break;
 		}
 	} else if (id == HDA_CODEC_ALC230 &&
-	    subid == LENOVO_I330_SUBVENDOR) {
+	    subid == LENOVO_IDEAPAD330_SUBVENDOR) {
 		switch (nid) {
 		case 20:
 			patch_str = "as=1 seq=0 device=Speaker";
@@ -356,6 +357,17 @@ hdac_pin_patch(struct hdaa_widget *w)
 			break;
 		case 24:
 			patch_str = "as=4 seq=15";
+			break;
+		}
+	} else if (id == HDA_CODEC_ALC294 &&
+	    subid == ASUS_UX331_SUBVENDOR) {
+		switch (nid) {
+		case 25:
+			/* XXX You are not expected to understand this. */
+			config = 0x01a1103c;
+			break;
+		case 33:
+			patch_str = "as=1 seq=15";
 			break;
 		}
 	} else {

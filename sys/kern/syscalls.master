@@ -503,7 +503,7 @@
 		    int flags
 		);
 	}
-66	AUE_VFORK	STD {
+66	AUE_VFORK	STD|CAPENABLED {
 		int vfork(void);
 	}
 67	AUE_NULL	OBSOL	vread
@@ -1461,7 +1461,7 @@
 		    int inherit
 		);
 	}
-251	AUE_RFORK	STD {
+251	AUE_RFORK	STD|CAPENABLED {
 		int rfork(
 		    int flags
 		);

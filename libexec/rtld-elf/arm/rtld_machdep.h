@@ -36,8 +36,13 @@
 
 struct Struct_Obj_Entry;
 
+#define	MD_OBJ_ENTRY
+
 /* Return the address of the .dynamic section in the dynamic linker. */
 #define rtld_dynamic(obj) (&_DYNAMIC)
+
+/* No arch-specific dynamic tags */
+#define	arch_digest_dynamic(obj, dynp)	false
 
 /* No architecture specific notes */
 #define	arch_digest_note(obj, note)	false

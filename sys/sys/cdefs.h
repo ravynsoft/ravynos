@@ -609,6 +609,16 @@
 #define	__DEQUALIFY(type, var)	((type)(__uintptr_t)(const volatile void *)(var))
 #endif
 
+#if !defined(_STANDALONE) && !defined(_KERNEL)
+#if defined(__GNUC__) || defined(__PCC__)
+#define	__RENAME(x)	__asm(__STRING(x))
+#else
+#define	__RENAME(x)	no renaming support for compiler in use
+#endif /* __GNUC__ */
+#else /* _STANDALONE || _KERNEL */
+#define	__RENAME(x)	no renaming in kernel/standalone environment
+#endif
+
 /*-
  * The following definitions are an extension of the behavior originally
  * implemented in <sys/_posix.h>, but with a different level of granularity.
@@ -892,7 +902,7 @@
 /* Provide fallback versions for other compilers (GCC/Clang < 10): */
 #if !__has_builtin(__builtin_is_aligned)
 #define __builtin_is_aligned(x, align)	\
-	(((__uintptr_t)x & ((align) - 1)) == 0)
+	(((__uintptr_t)(x) & ((align) - 1)) == 0)
 #endif
 #if !__has_builtin(__builtin_align_up)
 #define __builtin_align_up(x, align)	\

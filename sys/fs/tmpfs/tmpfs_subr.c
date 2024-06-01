@@ -120,7 +120,7 @@ tmpfs_pager_writecount_recalc(vm_object_t object, vm_offset_t old,
 	/*
 	 * Forced unmount?
 	 */
-	if (vp == NULL) {
+	if (vp == NULL || vp->v_object == NULL) {
 		KASSERT((object->flags & OBJ_TMPFS_VREF) == 0,
 		    ("object %p with OBJ_TMPFS_VREF but without vnode",
 		    object));
@@ -183,6 +183,9 @@ tmpfs_pager_release_writecount(vm_object_t object, vm_offset_t start,
 	KASSERT((object->flags & OBJ_ANON) == 0,
 	    ("%s: object %p with OBJ_ANON", __func__, object));
 	old = object->un_pager.swp.writemappings;
+	KASSERT(old >= (vm_ooffset_t)end - start,
+	    ("tmpfs obj %p writecount %jx dec %jx", object, (uintmax_t)old,
+	    (uintmax_t)((vm_ooffset_t)end - start)));
 	object->un_pager.swp.writemappings -= (vm_ooffset_t)end - start;
 	new = object->un_pager.swp.writemappings;
 	tmpfs_pager_writecount_recalc(object, old, new);
@@ -346,7 +349,7 @@ tmpfs_node_init(void *mem, int size, int flags)
 
 	node = mem;
 	node->tn_id = 0;
-	mtx_init(&node->tn_interlock, "tmpfsni", NULL, MTX_DEF);
+	mtx_init(&node->tn_interlock, "tmpfsni", NULL, MTX_DEF | MTX_NEW);
 	node->tn_gen = arc4random();
 	return (0);
 }
@@ -954,6 +957,8 @@ tmpfs_destroy_vobject(struct vnode *vp, vm_object_t obj)
 
 	VM_OBJECT_WLOCK(obj);
 	VI_LOCK(vp);
+	vp->v_object = NULL;
+
 	/*
 	 * May be going through forced unmount.
 	 */
@@ -1094,15 +1099,19 @@ loop:
 		KASSERT((object->flags & OBJ_TMPFS_VREF) == 0,
 		    ("%s: object %p with OBJ_TMPFS_VREF but without vnode",
 		    __func__, object));
-		KASSERT(object->un_pager.swp.writemappings == 0,
-		    ("%s: object %p has writemappings",
-		    __func__, object));
 		VI_LOCK(vp);
 		KASSERT(vp->v_object == NULL, ("Not NULL v_object in tmpfs"));
 		vp->v_object = object;
 		vn_irflag_set_locked(vp, (tm->tm_pgread ? VIRF_PGREAD : 0) |
 		    VIRF_TEXT_REF);
 		VI_UNLOCK(vp);
+		VNASSERT((object->flags & OBJ_TMPFS_VREF) == 0, vp,
+		    ("leaked OBJ_TMPFS_VREF"));
+		if (object->un_pager.swp.writemappings > 0) {
+			vrefact(vp);
+			vlazy(vp);
+			vm_object_set_flag(object, OBJ_TMPFS_VREF);
+		}
 		VM_OBJECT_WUNLOCK(object);
 		break;
 	case VDIR:

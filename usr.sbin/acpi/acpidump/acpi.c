@@ -1504,7 +1504,7 @@ acpi_handle_dmar(ACPI_TABLE_HEADER *sdp)
 static void
 acpi_handle_ivrs_ivhd_header(ACPI_IVRS_HEADER *addr)
 {
-	printf("\n\tIVHD Type=%#x IOMMUId=%x\n\tFlags=",
+	printf("\n\tIVHD Type=%#x IOMMU DeviceId=%#06x\n\tFlags=",
 	    addr->Type, addr->DeviceId);
 #define PRINTFLAG(flag, name) printflag(addr->Flags, flag, #name)
 	PRINTFLAG(ACPI_IVHD_TT_ENABLE, HtTunEn);
@@ -1629,8 +1629,8 @@ acpi_handle_ivrs_ivhd_devs(ACPI_IVRS_DE_HEADER *d, char *de)
 		} else if (d->Type == ACPI_IVRS_TYPE_EXT_START) {
 			d8b = (ACPI_IVRS_DEVICE8B *)db;
 			len = sizeof(*d8b);
-			d4 = (ACPI_IVRS_DEVICE4 *)(db + sizeof(*d8a));
-			len = sizeof(*d8a) + sizeof(*d4);
+			d4 = (ACPI_IVRS_DEVICE4 *)(db + sizeof(*d8b));
+			len = sizeof(*d8b) + sizeof(*d4);
 			printf("\t\tDev Type=%#x Id=%#06x-%#06x",
 			    d8a->Header.Type, d8a->Header.Id, d4->Header.Id);
 			acpi_handle_ivrs_ivhd_dte(d8b->Header.DataSetting);

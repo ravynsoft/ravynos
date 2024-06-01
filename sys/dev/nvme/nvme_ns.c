@@ -82,9 +82,8 @@ nvme_ns_ioctl(struct cdev *cdev, u_long cmd, caddr_t arg, int flag,
 	case NVME_GET_NSID:
 	{
 		struct nvme_get_nsid *gnsid = (struct nvme_get_nsid *)arg;
-		strncpy(gnsid->cdev, device_get_nameunit(ctrlr->dev),
+		strlcpy(gnsid->cdev, device_get_nameunit(ctrlr->dev),
 		    sizeof(gnsid->cdev));
-		gnsid->cdev[sizeof(gnsid->cdev) - 1] = '\0';
 		gnsid->nsid = ns->id;
 		break;
 	}
@@ -429,6 +428,7 @@ nvme_ns_split_bio(struct nvme_namespace *ns, struct bio *bp,
 	if (child_bios == NULL)
 		return (ENOMEM);
 
+	counter_u64_add(ns->ctrlr->alignment_splits, 1);
 	for (i = 0; i < num_bios; i++) {
 		child = child_bios[i];
 		err = nvme_ns_bio_process(ns, child, nvme_bio_child_done);
@@ -604,10 +604,12 @@ nvme_ns_construct(struct nvme_namespace *ns, uint32_t id,
 	md_args.mda_unit = unit;
 	md_args.mda_mode = 0600;
 	md_args.mda_si_drv1 = ns;
-	res = make_dev_s(&md_args, &ns->cdev, "nvme%dns%d",
-	    device_get_unit(ctrlr->dev), ns->id);
+	res = make_dev_s(&md_args, &ns->cdev, "%sn%d",
+	    device_get_nameunit(ctrlr->dev), ns->id);
 	if (res != 0)
 		return (ENXIO);
+	ns->cdev->si_drv2 = make_dev_alias(ns->cdev, "%sns%d",
+	    device_get_nameunit(ctrlr->dev), ns->id);
 
 	ns->cdev->si_flags |= SI_UNMAPPED;
 
@@ -618,6 +620,8 @@ void
 nvme_ns_destruct(struct nvme_namespace *ns)
 {
 
+	if (ns->cdev->si_drv2 != NULL)
+		destroy_dev(ns->cdev->si_drv2);
 	if (ns->cdev != NULL)
 		destroy_dev(ns->cdev);
 }

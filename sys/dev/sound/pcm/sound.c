@@ -718,9 +718,9 @@ sound_oss_sysinfo(oss_sysinfo *si)
 
 	/*
 	 * Iterate over PCM devices and their channels, gathering up data
-	 * for the numaudios and openedaudio fields.
+	 * for the numaudioengines and openedaudio fields.
 	 */
-	si->numaudios = 0;
+	si->numaudioengines = 0;
 	bzero((void *)&si->openedaudio, sizeof(si->openedaudio));
 
 	j = 0;
@@ -737,7 +737,7 @@ sound_oss_sysinfo(oss_sysinfo *si)
 		PCM_UNLOCKASSERT(d);
 		PCM_LOCK(d);
 
-		si->numaudios += PCM_CHANCOUNT(d);
+		si->numaudioengines += PCM_CHANCOUNT(d);
 
 		CHN_FOREACH(c, d, channels.pcm) {
 			CHN_UNLOCKASSERT(c);
@@ -751,7 +751,6 @@ sound_oss_sysinfo(oss_sysinfo *si)
 
 		PCM_UNLOCK(d);
 	}
-	si->numaudioengines = si->numaudios;
 
 	si->numsynths = 0;	/* OSSv4 docs:  this field is obsolete */
 	/**
@@ -767,8 +766,14 @@ sound_oss_sysinfo(oss_sysinfo *si)
 	 */
 	si->nummidis = 0;
 	si->numtimers = 0;
-	si->nummixers = mixer_count;
+	/*
+	 * Set this to the maximum unit number so that applications will not
+	 * break if they try to loop through all mixers and some of them are
+	 * not available.
+	 */
+	si->nummixers = devclass_get_maxunit(pcm_devclass);
 	si->numcards = devclass_get_maxunit(pcm_devclass);
+	si->numaudios = devclass_get_maxunit(pcm_devclass);
 		/* OSSv4 docs:	Intended only for test apps; API doesn't
 		   really have much of a concept of cards.  Shouldn't be
 		   used by applications. */
@@ -792,30 +797,34 @@ int
 sound_oss_card_info(oss_card_info *si)
 {
 	struct snddev_info *d;
-	int i, ncards;
-
-	ncards = 0;
+	int i;
 
 	for (i = 0; pcm_devclass != NULL &&
 	    i < devclass_get_maxunit(pcm_devclass); i++) {
 		d = devclass_get_softc(pcm_devclass, i);
-		if (!PCM_REGISTERED(d))
+		if (i != si->card)
 			continue;
 
-		if (ncards++ != si->card)
-			continue;
+		if (!PCM_REGISTERED(d)) {
+			snprintf(si->shortname, sizeof(si->shortname),
+			    "pcm%d (n/a)", i);
+			strlcpy(si->longname, "Device unavailable",
+			    sizeof(si->longname));
+			si->hw_info[0] = '\0';
+			si->intr_count = si->ack_count = 0;
+		} else {
+			PCM_UNLOCKASSERT(d);
+			PCM_LOCK(d);
 
-		PCM_UNLOCKASSERT(d);
-		PCM_LOCK(d);
-		
-		strlcpy(si->shortname, device_get_nameunit(d->dev),
-		    sizeof(si->shortname));
-		strlcpy(si->longname, device_get_desc(d->dev),
-		    sizeof(si->longname));
-		strlcpy(si->hw_info, d->status, sizeof(si->hw_info));
-		si->intr_count = si->ack_count = 0;
+			strlcpy(si->shortname, device_get_nameunit(d->dev),
+			    sizeof(si->shortname));
+			strlcpy(si->longname, device_get_desc(d->dev),
+			    sizeof(si->longname));
+			strlcpy(si->hw_info, d->status, sizeof(si->hw_info));
+			si->intr_count = si->ack_count = 0;
 
-		PCM_UNLOCK(d);
+			PCM_UNLOCK(d);
+		}
 
 		return (0);
 	}

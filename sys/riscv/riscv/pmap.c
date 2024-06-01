@@ -714,7 +714,7 @@ pmap_bootstrap(vm_offset_t l1pt, vm_paddr_t kernstart, vm_size_t kernlen)
 		alloc_pages(l0pv, 1);
 		l0p = (void *)l0pv;
 		l1pa = pmap_early_vtophys(l1pt, l1pt);
-		l0p[pmap_l0_index(KERNBASE)] = PTE_V | PTE_A | PTE_D |
+		l0p[pmap_l0_index(KERNBASE)] = PTE_V |
 		    ((l1pa >> PAGE_SHIFT) << PTE_PPN0_S);
 
 		l0pa = pmap_early_vtophys(l1pt, l0pv);
@@ -759,7 +759,8 @@ pmap_page_init(vm_page_t m)
 
 /*
  *	Initialize the pmap module.
- *	Called by vm_init, to initialize any structures that the pmap
+ *
+ *	Called by vm_mem_init(), to initialize any structures that the pmap
  *	system needs to map virtual memory.
  */
 void

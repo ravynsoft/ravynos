@@ -226,6 +226,7 @@ SUBDIR=	\
 	${_mac_biba} \
 	${_mac_bsdextended} \
 	${_mac_ddb} \
+	${_mac_do} \
 	${_mac_ifoff} \
 	${_mac_ipacl} \
 	${_mac_lomac} \
@@ -443,8 +444,8 @@ SUBDIR+=	dtrace
 SUBDIR+=	opensolaris
 .endif
 
-# Requires bus_space_read_8
-.if ${MACHINE_ARCH} != "i386"
+.if ${MACHINE_ARCH} != "i386" && ${MACHINE_CPUARCH} != "arm" && \
+    ${MACHINE_ARCH} != "powerpc" && ${MACHINE_ARCH} != "powerpcspe"
 _bnxt=		bnxt
 .endif
 
@@ -491,7 +492,7 @@ _sctp=		sctp
 _if_stf=	if_stf
 .endif
 
-.if ${MK_INET_SUPPORT} != "no" || defined(ALL_MODULES)
+.if (${KERN_OPTS:MINET} && ${MK_INET_SUPPORT} != "no") || defined(ALL_MODULES)
 _if_me=		if_me
 _ipfw=		ipfw
 .if ${MK_INET6_SUPPORT} != "no" || defined(ALL_MODULES)
@@ -507,7 +508,7 @@ _ipfw_nptv6=	ipfw_nptv6
 _ipfilter=	ipfilter
 .endif
 
-.if ${MK_INET_SUPPORT} != "no" && ${KERN_OPTS:MFIB_ALGO}
+.if ${MK_INET_SUPPORT} != "no" && ${KERN_OPTS:MFIB_ALGO} && ${KERN_OPTS:MINET}
 _dpdk_lpm4=	dpdk_lpm4
 _fib_dxr=	fib_dxr
 .endif
@@ -589,6 +590,7 @@ _mac_bsdextended= mac_bsdextended
 .if ${KERN_OPTS:MDDB} || defined(ALL_MODULES)
 _mac_ddb=	mac_ddb
 .endif
+_mac_do=	mac_do
 _mac_ifoff=	mac_ifoff
 _mac_ipacl=	mac_ipacl
 _mac_lomac=	mac_lomac

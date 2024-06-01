@@ -168,6 +168,7 @@ tcp_qpair_params(struct nvmf_qpair_params *params, int adrfam,
 		return (true);
 	}
 	warn("Failed to connect to controller at %s:%s", address, port);
+	freeaddrinfo(list);
 	return (false);
 }
 
@@ -488,7 +489,7 @@ connect_nvm_queues(const struct nvmf_association_params *aparams,
 	}
 
 	/* I/O queues. */
-	memset(io, 0, sizeof(io) * num_io_queues);
+	memset(io, 0, sizeof(*io) * num_io_queues);
 	for (u_int i = 0; i < num_io_queues; i++) {
 		memset(&qparams, 0, sizeof(qparams));
 		qparams.admin = false;

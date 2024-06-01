@@ -35,7 +35,7 @@
 .\" the referee document.  The original Standard can be obtained online at
 .\"	http://www.opengroup.org/unix/online.html.
 .\"
-.Dd September 26, 2023
+.Dd May 15, 2024
 .Dt MQ_OPEN 2
 .Os
 .Sh NAME
@@ -223,7 +223,7 @@ and
 system calls are supported for message queue descriptor.
 .Pp
 Please see the
-.Xr mqueuefs 5
+.Xr mqueuefs 4
 man page for instructions on loading the module or compiling the service into
 the kernel.
 .Pp
@@ -310,7 +310,7 @@ There is insufficient space for the creation of the new message queue.
 .Xr mq_unlink 2 ,
 .Xr mq_timedreceive 3 ,
 .Xr mq_timedsend 3 ,
-.Xr mqueuefs 5
+.Xr mqueuefs 4
 .Sh STANDARDS
 The
 .Fn mq_open
@@ -322,7 +322,7 @@ Support for POSIX message queues first appeared in
 .Sh BUGS
 This implementation places strict requirements on the value of
 .Fa name :
-it must begin with a slash
+it may begin with a slash
 .Pq Ql /
 and contain no other slash characters.
 .Pp
