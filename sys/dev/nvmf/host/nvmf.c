@@ -8,13 +8,16 @@
 #include <sys/param.h>
 #include <sys/bus.h>
 #include <sys/conf.h>
+#include <sys/eventhandler.h>
 #include <sys/lock.h>
 #include <sys/kernel.h>
 #include <sys/malloc.h>
 #include <sys/memdesc.h>
 #include <sys/module.h>
 #include <sys/mutex.h>
+#include <sys/reboot.h>
 #include <sys/sx.h>
+#include <sys/sysctl.h>
 #include <sys/taskqueue.h>
 #include <dev/nvme/nvme.h>
 #include <dev/nvmf/nvmf.h>
@@ -23,9 +26,15 @@
 
 static struct cdevsw nvmf_cdevsw;
 
+bool nvmf_fail_disconnect = false;
+SYSCTL_BOOL(_kern_nvmf, OID_AUTO, fail_on_disconnection, CTLFLAG_RWTUN,
+    &nvmf_fail_disconnect, 0, "Fail I/O requests on connection failure");
+
 MALLOC_DEFINE(M_NVMF, "nvmf", "NVMe over Fabrics host");
 
 static void	nvmf_disconnect_task(void *arg, int pending);
+static void	nvmf_shutdown_pre_sync(void *arg, int howto);
+static void	nvmf_shutdown_post_sync(void *arg, int howto);
 
 void
 nvmf_complete(void *arg, const struct nvme_completion *cqe)
@@ -295,9 +304,13 @@ nvmf_establish_connection(struct nvmf_softc *sc, struct nvmf_ivars *ivars)
 	return (0);
 }
 
+typedef bool nvmf_scan_active_ns_cb(struct nvmf_softc *, uint32_t,
+    const struct nvme_namespace_data *, void *);
+
 static bool
-nvmf_scan_nslist(struct nvmf_softc *sc, struct nvme_ns_list *nslist,
-    struct nvme_namespace_data *data, uint32_t *nsidp)
+nvmf_scan_active_nslist(struct nvmf_softc *sc, struct nvme_ns_list *nslist,
+    struct nvme_namespace_data *data, uint32_t *nsidp,
+    nvmf_scan_active_ns_cb *cb, void *cb_arg)
 {
 	struct nvmf_completion_status status;
 	uint32_t nsid;
@@ -333,13 +346,6 @@ nvmf_scan_nslist(struct nvmf_softc *sc, struct nvme_ns_list *nslist,
 			return (true);
 		}
 
-		if (sc->ns[nsid - 1] != NULL) {
-			device_printf(sc->dev,
-			    "duplicate namespace %u in active namespace list\n",
-			    nsid);
-			return (false);
-		}
-
 		nvmf_status_init(&status);
 		nvmf_status_wait_io(&status);
 		if (!nvmf_cmd_identify_namespace(sc, nsid, data, nvmf_complete,
@@ -365,21 +371,9 @@ nvmf_scan_nslist(struct nvmf_softc *sc, struct nvme_ns_list *nslist,
 			return (false);
 		}
 
-		/*
-		 * As in nvme_ns_construct, a size of zero indicates an
-		 * invalid namespace.
-		 */
 		nvme_namespace_data_swapbytes(data);
-		if (data->nsze == 0) {
-			device_printf(sc->dev,
-			    "ignoring active namespace %u with zero size\n",
-			    nsid);
-			continue;
-		}
-
-		sc->ns[nsid - 1] = nvmf_init_ns(sc, nsid, data);
-
-		nvmf_sim_rescan_ns(sc, nsid);
+		if (!cb(sc, nsid, data, cb_arg))
+			return (false);
 	}
 
 	MPASS(nsid == nslist->ns[nitems(nslist->ns) - 1] && nsid != 0);
@@ -392,22 +386,22 @@ nvmf_scan_nslist(struct nvmf_softc *sc, struct nvme_ns_list *nslist,
 }
 
 static bool
-nvmf_add_namespaces(struct nvmf_softc *sc)
+nvmf_scan_active_namespaces(struct nvmf_softc *sc, nvmf_scan_active_ns_cb *cb,
+    void *cb_arg)
 {
 	struct nvme_namespace_data *data;
 	struct nvme_ns_list *nslist;
 	uint32_t nsid;
 	bool retval;
 
-	sc->ns = mallocarray(sc->cdata->nn, sizeof(*sc->ns), M_NVMF,
-	    M_WAITOK | M_ZERO);
 	nslist = malloc(sizeof(*nslist), M_NVMF, M_WAITOK);
 	data = malloc(sizeof(*data), M_NVMF, M_WAITOK);
 
 	nsid = 0;
 	retval = true;
 	for (;;) {
-		if (!nvmf_scan_nslist(sc, nslist, data, &nsid)) {
+		if (!nvmf_scan_active_nslist(sc, nslist, data, &nsid, cb,
+		    cb_arg)) {
 			retval = false;
 			break;
 		}
@@ -418,6 +412,41 @@ nvmf_add_namespaces(struct nvmf_softc *sc)
 	free(data, M_NVMF);
 	free(nslist, M_NVMF);
 	return (retval);
+}
+
+static bool
+nvmf_add_ns(struct nvmf_softc *sc, uint32_t nsid,
+    const struct nvme_namespace_data *data, void *arg __unused)
+{
+	if (sc->ns[nsid - 1] != NULL) {
+		device_printf(sc->dev,
+		    "duplicate namespace %u in active namespace list\n",
+		    nsid);
+		return (false);
+	}
+
+	/*
+	 * As in nvme_ns_construct, a size of zero indicates an
+	 * invalid namespace.
+	 */
+	if (data->nsze == 0) {
+		device_printf(sc->dev,
+		    "ignoring active namespace %u with zero size\n", nsid);
+		return (true);
+	}
+
+	sc->ns[nsid - 1] = nvmf_init_ns(sc, nsid, data);
+
+	nvmf_sim_rescan_ns(sc, nsid);
+	return (true);
+}
+
+static bool
+nvmf_add_namespaces(struct nvmf_softc *sc)
+{
+	sc->ns = mallocarray(sc->cdata->nn, sizeof(*sc->ns), M_NVMF,
+	    M_WAITOK | M_ZERO);
+	return (nvmf_scan_active_namespaces(sc, nvmf_add_ns, NULL));
 }
 
 static int
@@ -502,6 +531,11 @@ nvmf_attach(device_t dev)
 		nvmf_destroy_sim(sc);
 		goto out;
 	}
+
+	sc->shutdown_pre_sync_eh = EVENTHANDLER_REGISTER(shutdown_pre_sync,
+	    nvmf_shutdown_pre_sync, sc, SHUTDOWN_PRI_FIRST);
+	sc->shutdown_post_sync_eh = EVENTHANDLER_REGISTER(shutdown_post_sync,
+	    nvmf_shutdown_post_sync, sc, SHUTDOWN_PRI_FIRST);
 
 	return (0);
 out:
@@ -665,10 +699,68 @@ nvmf_reconnect_host(struct nvmf_softc *sc, struct nvmf_handoff_host *hh)
 			nvmf_reconnect_ns(sc->ns[i]);
 	}
 	nvmf_reconnect_sim(sc);
+
+	nvmf_rescan_all_ns(sc);
 out:
 	sx_xunlock(&sc->connection_lock);
 	nvmf_free_ivars(&ivars);
 	return (error);
+}
+
+static void
+nvmf_shutdown_pre_sync(void *arg, int howto)
+{
+	struct nvmf_softc *sc = arg;
+
+	if ((howto & RB_NOSYNC) != 0 || SCHEDULER_STOPPED())
+		return;
+
+	/*
+	 * If this association is disconnected, abort any pending
+	 * requests with an error to permit filesystems to unmount
+	 * without hanging.
+	 */
+	sx_xlock(&sc->connection_lock);
+	if (sc->admin != NULL || sc->detaching) {
+		sx_xunlock(&sc->connection_lock);
+		return;
+	}
+
+	for (u_int i = 0; i < sc->cdata->nn; i++) {
+		if (sc->ns[i] != NULL)
+			nvmf_shutdown_ns(sc->ns[i]);
+	}
+	nvmf_shutdown_sim(sc);
+	sx_xunlock(&sc->connection_lock);
+}
+
+static void
+nvmf_shutdown_post_sync(void *arg, int howto)
+{
+	struct nvmf_softc *sc = arg;
+
+	if ((howto & RB_NOSYNC) != 0 || SCHEDULER_STOPPED())
+		return;
+
+	/*
+	 * If this association is connected, disconnect gracefully.
+	 */
+	sx_xlock(&sc->connection_lock);
+	if (sc->admin == NULL || sc->detaching) {
+		sx_xunlock(&sc->connection_lock);
+		return;
+	}
+
+	callout_drain(&sc->ka_tx_timer);
+	callout_drain(&sc->ka_rx_timer);
+
+	nvmf_shutdown_controller(sc);
+	for (u_int i = 0; i < sc->num_io_queues; i++) {
+		nvmf_destroy_qp(sc->io[i]);
+	}
+	nvmf_destroy_qp(sc->admin);
+	sc->admin = NULL;
+	sx_xunlock(&sc->connection_lock);
 }
 
 static int
@@ -682,6 +774,9 @@ nvmf_detach(device_t dev)
 	sx_xlock(&sc->connection_lock);
 	sc->detaching = true;
 	sx_xunlock(&sc->connection_lock);
+
+	EVENTHANDLER_DEREGISTER(shutdown_pre_sync, sc->shutdown_pre_sync_eh);
+	EVENTHANDLER_DEREGISTER(shutdown_pre_sync, sc->shutdown_post_sync_eh);
 
 	nvmf_destroy_sim(sc);
 	for (i = 0; i < sc->cdata->nn; i++) {
@@ -713,12 +808,40 @@ nvmf_detach(device_t dev)
 	return (0);
 }
 
+static void
+nvmf_rescan_ns_1(struct nvmf_softc *sc, uint32_t nsid,
+    const struct nvme_namespace_data *data)
+{
+	struct nvmf_namespace *ns;
+
+	/* XXX: Needs locking around sc->ns[]. */
+	ns = sc->ns[nsid - 1];
+	if (data->nsze == 0) {
+		/* XXX: Needs locking */
+		if (ns != NULL) {
+			nvmf_destroy_ns(ns);
+			sc->ns[nsid - 1] = NULL;
+		}
+	} else {
+		/* XXX: Needs locking */
+		if (ns == NULL) {
+			sc->ns[nsid - 1] = nvmf_init_ns(sc, nsid, data);
+		} else {
+			if (!nvmf_update_ns(ns, data)) {
+				nvmf_destroy_ns(ns);
+				sc->ns[nsid - 1] = NULL;
+			}
+		}
+	}
+
+	nvmf_sim_rescan_ns(sc, nsid);
+}
+
 void
 nvmf_rescan_ns(struct nvmf_softc *sc, uint32_t nsid)
 {
 	struct nvmf_completion_status status;
 	struct nvme_namespace_data *data;
-	struct nvmf_namespace *ns;
 
 	data = malloc(sizeof(*data), M_NVMF, M_WAITOK);
 
@@ -751,29 +874,58 @@ nvmf_rescan_ns(struct nvmf_softc *sc, uint32_t nsid)
 
 	nvme_namespace_data_swapbytes(data);
 
-	/* XXX: Needs locking around sc->ns[]. */
-	ns = sc->ns[nsid - 1];
-	if (data->nsze == 0) {
-		/* XXX: Needs locking */
+	nvmf_rescan_ns_1(sc, nsid, data);
+
+	free(data, M_NVMF);
+}
+
+static void
+nvmf_purge_namespaces(struct nvmf_softc *sc, uint32_t first_nsid,
+    uint32_t next_valid_nsid)
+{
+	struct nvmf_namespace *ns;
+
+	for (uint32_t nsid = first_nsid; nsid < next_valid_nsid; nsid++)
+	{
+		/* XXX: Needs locking around sc->ns[]. */
+		ns = sc->ns[nsid - 1];
 		if (ns != NULL) {
 			nvmf_destroy_ns(ns);
 			sc->ns[nsid - 1] = NULL;
-		}
-	} else {
-		/* XXX: Needs locking */
-		if (ns == NULL) {
-			sc->ns[nsid - 1] = nvmf_init_ns(sc, nsid, data);
-		} else {
-			if (!nvmf_update_ns(ns, data)) {
-				nvmf_destroy_ns(ns);
-				sc->ns[nsid - 1] = NULL;
-			}
+
+			nvmf_sim_rescan_ns(sc, nsid);
 		}
 	}
+}
 
-	free(data, M_NVMF);
+static bool
+nvmf_rescan_ns_cb(struct nvmf_softc *sc, uint32_t nsid,
+    const struct nvme_namespace_data *data, void *arg)
+{
+	uint32_t *last_nsid = arg;
 
-	nvmf_sim_rescan_ns(sc, nsid);
+	/* Check for any gaps prior to this namespace. */
+	nvmf_purge_namespaces(sc, *last_nsid + 1, nsid);
+	*last_nsid = nsid;
+
+	nvmf_rescan_ns_1(sc, nsid, data);
+	return (true);
+}
+
+void
+nvmf_rescan_all_ns(struct nvmf_softc *sc)
+{
+	uint32_t last_nsid;
+
+	last_nsid = 0;
+	if (!nvmf_scan_active_namespaces(sc, nvmf_rescan_ns_cb, &last_nsid))
+		return;
+
+	/*
+	 * Check for any namespace devices after the last active
+	 * namespace.
+	 */
+	nvmf_purge_namespaces(sc, last_nsid + 1, sc->cdata->nn + 1);
 }
 
 int
@@ -922,9 +1074,6 @@ static device_method_t nvmf_methods[] = {
 	DEVMETHOD(device_probe,     nvmf_probe),
 	DEVMETHOD(device_attach,    nvmf_attach),
 	DEVMETHOD(device_detach,    nvmf_detach),
-#if 0
-	DEVMETHOD(device_shutdown,  nvmf_shutdown),
-#endif
 	DEVMETHOD_END
 };
 

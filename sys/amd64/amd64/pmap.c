@@ -7818,7 +7818,8 @@ pmap_enter_quick_locked(pmap_t pmap, vm_offset_t va, vm_page_t m,
 	 * If both the PTP and the reservation are fully populated, then
 	 * attempt promotion.
 	 */
-	if ((mpte == NULL || mpte->ref_count == NPTEPG) &&
+	if ((prot & VM_PROT_NO_PROMOTE) == 0 &&
+	    (mpte == NULL || mpte->ref_count == NPTEPG) &&
 	    (m->flags & PG_FICTITIOUS) == 0 &&
 	    vm_reserv_level_iffullpop(m) == 0) {
 		if (pde == NULL)
@@ -11447,7 +11448,7 @@ pmap_pkru_deassign_all(pmap_t pmap)
 static bool
 pmap_pkru_same(pmap_t pmap, vm_offset_t sva, vm_offset_t eva)
 {
-	struct pmap_pkru_range *ppr, *prev_ppr;
+	struct pmap_pkru_range *next_ppr, *ppr;
 	vm_offset_t va;
 
 	PMAP_LOCK_ASSERT(pmap, MA_OWNED);
@@ -11456,19 +11457,19 @@ pmap_pkru_same(pmap_t pmap, vm_offset_t sva, vm_offset_t eva)
 	    sva >= VM_MAXUSER_ADDRESS)
 		return (true);
 	MPASS(eva <= VM_MAXUSER_ADDRESS);
-	for (va = sva; va < eva; prev_ppr = ppr) {
-		ppr = rangeset_lookup(&pmap->pm_pkru, va);
-		if (va == sva)
-			prev_ppr = ppr;
-		else if ((ppr == NULL) ^ (prev_ppr == NULL))
+	ppr = rangeset_lookup(&pmap->pm_pkru, sva);
+	if (ppr == NULL) {
+		ppr = rangeset_next(&pmap->pm_pkru, sva);
+		return (ppr == NULL ||
+		    ppr->pkru_rs_el.re_start >= eva);
+	}
+	while ((va = ppr->pkru_rs_el.re_end) < eva) {
+		next_ppr = rangeset_next(&pmap->pm_pkru, va);
+		if (next_ppr == NULL ||
+		    va != next_ppr->pkru_rs_el.re_start ||
+		    ppr->pkru_keyidx != next_ppr->pkru_keyidx)
 			return (false);
-		if (ppr == NULL) {
-			va += PAGE_SIZE;
-			continue;
-		}
-		if (prev_ppr->pkru_keyidx != ppr->pkru_keyidx)
-			return (false);
-		va = ppr->pkru_rs_el.re_end;
+		ppr = next_ppr;
 	}
 	return (true);
 }

@@ -1972,7 +1972,8 @@ pf_rule_to_krule(const struct pf_rule *rule, struct pf_krule *krule)
 	krule->os_fingerprint = rule->os_fingerprint;
 
 	krule->rtableid = rule->rtableid;
-	bcopy(rule->timeout, krule->timeout, sizeof(krule->timeout));
+	/* pf_rule->timeout is smaller than pf_krule->timeout */
+	bcopy(rule->timeout, krule->timeout, sizeof(rule->timeout));
 	krule->max_states = rule->max_states;
 	krule->max_src_nodes = rule->max_src_nodes;
 	krule->max_src_states = rule->max_src_states;
@@ -2422,6 +2423,109 @@ pf_stop(void)
 	sx_xunlock(&V_pf_ioctl_lock);
 
 	return (error);
+}
+
+void
+pf_ioctl_clear_status(void)
+{
+	PF_RULES_WLOCK();
+	for (int i = 0; i < PFRES_MAX; i++)
+		counter_u64_zero(V_pf_status.counters[i]);
+	for (int i = 0; i < FCNT_MAX; i++)
+		pf_counter_u64_zero(&V_pf_status.fcounters[i]);
+	for (int i = 0; i < SCNT_MAX; i++)
+		counter_u64_zero(V_pf_status.scounters[i]);
+	for (int i = 0; i < KLCNT_MAX; i++)
+		counter_u64_zero(V_pf_status.lcounters[i]);
+	V_pf_status.since = time_second;
+	if (*V_pf_status.ifname)
+		pfi_update_status(V_pf_status.ifname, NULL);
+	PF_RULES_WUNLOCK();
+}
+
+int
+pf_ioctl_set_timeout(int timeout, int seconds, int *prev_seconds)
+{
+	uint32_t old;
+
+	if (timeout < 0 || timeout >= PFTM_MAX ||
+	    seconds < 0)
+		return (EINVAL);
+
+	PF_RULES_WLOCK();
+	old = V_pf_default_rule.timeout[timeout];
+	if (timeout == PFTM_INTERVAL && seconds == 0)
+		seconds = 1;
+	V_pf_default_rule.timeout[timeout] = seconds;
+	if (timeout == PFTM_INTERVAL && seconds < old)
+		wakeup(pf_purge_thread);
+
+	if (prev_seconds != NULL)
+		*prev_seconds = old;
+
+	PF_RULES_WUNLOCK();
+
+	return (0);
+}
+
+int
+pf_ioctl_get_timeout(int timeout, int *seconds)
+{
+	PF_RULES_RLOCK_TRACKER;
+
+	if (timeout < 0 || timeout >= PFTM_MAX)
+		return (EINVAL);
+
+	PF_RULES_RLOCK();
+	*seconds = V_pf_default_rule.timeout[timeout];
+	PF_RULES_RUNLOCK();
+
+	return (0);
+}
+
+int
+pf_ioctl_set_limit(int index, unsigned int limit, unsigned int *old_limit)
+{
+
+	PF_RULES_WLOCK();
+	if (index < 0 || index >= PF_LIMIT_MAX ||
+	    V_pf_limits[index].zone == NULL) {
+		PF_RULES_WUNLOCK();
+		return (EINVAL);
+	}
+	uma_zone_set_max(V_pf_limits[index].zone, limit);
+	if (old_limit != NULL)
+		*old_limit = V_pf_limits[index].limit;
+	V_pf_limits[index].limit = limit;
+	PF_RULES_WUNLOCK();
+
+	return (0);
+}
+
+int
+pf_ioctl_get_limit(int index, unsigned int *limit)
+{
+	PF_RULES_RLOCK_TRACKER;
+
+	if (index < 0 || index >= PF_LIMIT_MAX)
+		return (EINVAL);
+
+	PF_RULES_RLOCK();
+	*limit = V_pf_limits[index].limit;
+	PF_RULES_RUNLOCK();
+
+	return (0);
+}
+
+int
+pf_ioctl_begin_addrs(uint32_t *ticket)
+{
+	PF_RULES_WLOCK();
+	pf_empty_kpool(&V_pf_pabuf);
+	*ticket = ++V_ticket_pabuf;
+	PF_RULES_WUNLOCK();
+
+	return (0);
 }
 
 static int
@@ -3765,19 +3869,7 @@ DIOCGETSTATESV2_full:
 	}
 
 	case DIOCCLRSTATUS: {
-		PF_RULES_WLOCK();
-		for (int i = 0; i < PFRES_MAX; i++)
-			counter_u64_zero(V_pf_status.counters[i]);
-		for (int i = 0; i < FCNT_MAX; i++)
-			pf_counter_u64_zero(&V_pf_status.fcounters[i]);
-		for (int i = 0; i < SCNT_MAX; i++)
-			counter_u64_zero(V_pf_status.scounters[i]);
-		for (int i = 0; i < KLCNT_MAX; i++)
-			counter_u64_zero(V_pf_status.lcounters[i]);
-		V_pf_status.since = time_second;
-		if (*V_pf_status.ifname)
-			pfi_update_status(V_pf_status.ifname, NULL);
-		PF_RULES_WUNLOCK();
+		pf_ioctl_clear_status();
 		break;
 	}
 
@@ -3831,67 +3923,32 @@ DIOCGETSTATESV2_full:
 
 	case DIOCSETTIMEOUT: {
 		struct pfioc_tm	*pt = (struct pfioc_tm *)addr;
-		int		 old;
 
-		if (pt->timeout < 0 || pt->timeout >= PFTM_MAX ||
-		    pt->seconds < 0) {
-			error = EINVAL;
-			break;
-		}
-		PF_RULES_WLOCK();
-		old = V_pf_default_rule.timeout[pt->timeout];
-		if (pt->timeout == PFTM_INTERVAL && pt->seconds == 0)
-			pt->seconds = 1;
-		V_pf_default_rule.timeout[pt->timeout] = pt->seconds;
-		if (pt->timeout == PFTM_INTERVAL && pt->seconds < old)
-			wakeup(pf_purge_thread);
-		pt->seconds = old;
-		PF_RULES_WUNLOCK();
+		error = pf_ioctl_set_timeout(pt->timeout, pt->seconds,
+		    &pt->seconds);
 		break;
 	}
 
 	case DIOCGETTIMEOUT: {
 		struct pfioc_tm	*pt = (struct pfioc_tm *)addr;
 
-		if (pt->timeout < 0 || pt->timeout >= PFTM_MAX) {
-			error = EINVAL;
-			break;
-		}
-		PF_RULES_RLOCK();
-		pt->seconds = V_pf_default_rule.timeout[pt->timeout];
-		PF_RULES_RUNLOCK();
+		error = pf_ioctl_get_timeout(pt->timeout, &pt->seconds);
 		break;
 	}
 
 	case DIOCGETLIMIT: {
 		struct pfioc_limit	*pl = (struct pfioc_limit *)addr;
 
-		if (pl->index < 0 || pl->index >= PF_LIMIT_MAX) {
-			error = EINVAL;
-			break;
-		}
-		PF_RULES_RLOCK();
-		pl->limit = V_pf_limits[pl->index].limit;
-		PF_RULES_RUNLOCK();
+		error = pf_ioctl_get_limit(pl->index, &pl->limit);
 		break;
 	}
 
 	case DIOCSETLIMIT: {
 		struct pfioc_limit	*pl = (struct pfioc_limit *)addr;
-		int			 old_limit;
+		unsigned int old_limit;
 
-		PF_RULES_WLOCK();
-		if (pl->index < 0 || pl->index >= PF_LIMIT_MAX ||
-		    V_pf_limits[pl->index].zone == NULL) {
-			PF_RULES_WUNLOCK();
-			error = EINVAL;
-			break;
-		}
-		uma_zone_set_max(V_pf_limits[pl->index].zone, pl->limit);
-		old_limit = V_pf_limits[pl->index].limit;
-		V_pf_limits[pl->index].limit = pl->limit;
+		error = pf_ioctl_set_limit(pl->index, pl->limit, &old_limit);
 		pl->limit = old_limit;
-		PF_RULES_WUNLOCK();
 		break;
 	}
 
@@ -4136,10 +4193,7 @@ DIOCGETSTATESV2_full:
 	case DIOCBEGINADDRS: {
 		struct pfioc_pooladdr	*pp = (struct pfioc_pooladdr *)addr;
 
-		PF_RULES_WLOCK();
-		pf_empty_kpool(&V_pf_pabuf);
-		pp->ticket = ++V_ticket_pabuf;
-		PF_RULES_WUNLOCK();
+		error = pf_ioctl_begin_addrs(&pp->ticket);
 		break;
 	}
 

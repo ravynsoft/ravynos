@@ -29,6 +29,7 @@ struct nvmf_namespace {
 	u_int	flags;
 	uint32_t lba_size;
 	bool disconnected;
+	bool shutdown;
 
 	TAILQ_HEAD(, bio) pending_bios;
 	struct mtx lock;
@@ -84,13 +85,22 @@ nvmf_ns_biodone(struct bio *bio)
 	ns = bio->bio_dev->si_drv1;
 
 	/* If a request is aborted, resubmit or queue it for resubmission. */
-	if (bio->bio_error == ECONNABORTED) {
+	if (bio->bio_error == ECONNABORTED && !nvmf_fail_disconnect) {
 		bio->bio_error = 0;
 		bio->bio_driver2 = 0;
 		mtx_lock(&ns->lock);
 		if (ns->disconnected) {
-			TAILQ_INSERT_TAIL(&ns->pending_bios, bio, bio_queue);
-			mtx_unlock(&ns->lock);
+			if (nvmf_fail_disconnect || ns->shutdown) {
+				mtx_unlock(&ns->lock);
+				bio->bio_error = ECONNABORTED;
+				bio->bio_flags |= BIO_ERROR;
+				bio->bio_resid = bio->bio_bcount;
+				biodone(bio);
+			} else {
+				TAILQ_INSERT_TAIL(&ns->pending_bios, bio,
+				    bio_queue);
+				mtx_unlock(&ns->lock);
+			}
 		} else {
 			mtx_unlock(&ns->lock);
 			nvmf_ns_strategy(bio);
@@ -163,6 +173,7 @@ nvmf_ns_submit_bio(struct nvmf_namespace *ns, struct bio *bio)
 	struct nvme_dsm_range *dsm_range;
 	struct memdesc mem;
 	uint64_t lba, lba_count;
+	int error;
 
 	dsm_range = NULL;
 	memset(&cmd, 0, sizeof(cmd));
@@ -201,10 +212,15 @@ nvmf_ns_submit_bio(struct nvmf_namespace *ns, struct bio *bio)
 
 	mtx_lock(&ns->lock);
 	if (ns->disconnected) {
-		TAILQ_INSERT_TAIL(&ns->pending_bios, bio, bio_queue);
+		if (nvmf_fail_disconnect || ns->shutdown) {
+			error = ECONNABORTED;
+		} else {
+			TAILQ_INSERT_TAIL(&ns->pending_bios, bio, bio_queue);
+			error = 0;
+		}
 		mtx_unlock(&ns->lock);
 		free(dsm_range, M_NVMF);
-		return (0);
+		return (error);
 	}
 
 	req = nvmf_allocate_request(nvmf_select_io_queue(ns->sc), &cmd,
@@ -313,7 +329,7 @@ static struct cdevsw nvmf_ns_cdevsw = {
 
 struct nvmf_namespace *
 nvmf_init_ns(struct nvmf_softc *sc, uint32_t id,
-    struct nvme_namespace_data *data)
+    const struct nvme_namespace_data *data)
 {
 	struct make_dev_args mda;
 	struct nvmf_namespace *ns;
@@ -415,6 +431,28 @@ nvmf_reconnect_ns(struct nvmf_namespace *ns)
 }
 
 void
+nvmf_shutdown_ns(struct nvmf_namespace *ns)
+{
+	TAILQ_HEAD(, bio) bios;
+	struct bio *bio;
+
+	mtx_lock(&ns->lock);
+	ns->shutdown = true;
+	TAILQ_INIT(&bios);
+	TAILQ_CONCAT(&bios, &ns->pending_bios, bio_queue);
+	mtx_unlock(&ns->lock);
+
+	while (!TAILQ_EMPTY(&bios)) {
+		bio = TAILQ_FIRST(&bios);
+		TAILQ_REMOVE(&bios, bio, bio_queue);
+		bio->bio_error = ECONNABORTED;
+		bio->bio_flags |= BIO_ERROR;
+		bio->bio_resid = bio->bio_bcount;
+		biodone(bio);
+	}
+}
+
+void
 nvmf_destroy_ns(struct nvmf_namespace *ns)
 {
 	TAILQ_HEAD(, bio) bios;
@@ -454,7 +492,8 @@ nvmf_destroy_ns(struct nvmf_namespace *ns)
 }
 
 bool
-nvmf_update_ns(struct nvmf_namespace *ns, struct nvme_namespace_data *data)
+nvmf_update_ns(struct nvmf_namespace *ns,
+    const struct nvme_namespace_data *data)
 {
 	uint8_t lbads, lbaf;
 

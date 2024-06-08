@@ -763,7 +763,7 @@ option		: SET REASSEMBLE yesno optnodf		{
 				free($3);
 				YYERROR;
 			}
-			if (pfctl_set_debug(pf, $3) != 0) {
+			if (pfctl_do_set_debug(pf, $3) != 0) {
 				yyerror("error setting debuglevel %s", $3);
 				free($3);
 				YYERROR;
@@ -1230,7 +1230,7 @@ etherrule	: ETHER action dir quick interface bridge etherproto etherfromto l3fro
 			r.direction = $3;
 			r.quick = $4.quick;
 			if ($10.tag != NULL)
-				memcpy(&r.tagname, $10.tag, sizeof(r.tagname));
+				strlcpy(r.tagname, $10.tag, sizeof(r.tagname));
 			if ($10.match_tag)
 				if (strlcpy(r.match_tagname, $10.match_tag,
 				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
@@ -1240,7 +1240,7 @@ etherrule	: ETHER action dir quick interface bridge etherproto etherfromto l3fro
 				}
 			r.match_tag_not = $10.match_tag_not;
 			if ($10.queues.qname != NULL)
-				memcpy(&r.qname, $10.queues.qname, sizeof(r.qname));
+				strlcpy(r.qname, $10.queues.qname, sizeof(r.qname));
 			r.dnpipe = $10.dnpipe;
 			r.dnflags = $10.free_flags;
 			if (eth_rule_label(&r, $10.label))
@@ -5165,7 +5165,7 @@ timeout_spec	: STRING NUMBER
 				yyerror("only positive values permitted");
 				YYERROR;
 			}
-			if (pfctl_set_timeout(pf, $1, $2, 0) != 0) {
+			if (pfctl_apply_timeout(pf, $1, $2, 0) != 0) {
 				yyerror("unknown timeout %s", $1);
 				free($1);
 				YYERROR;
@@ -5179,7 +5179,7 @@ timeout_spec	: STRING NUMBER
 				yyerror("only positive values permitted");
 				YYERROR;
 			}
-			if (pfctl_set_timeout(pf, "interval", $2, 0) != 0)
+			if (pfctl_apply_timeout(pf, "interval", $2, 0) != 0)
 				YYERROR;
 		}
 		;
@@ -5198,7 +5198,7 @@ limit_spec	: STRING NUMBER
 				yyerror("only positive values permitted");
 				YYERROR;
 			}
-			if (pfctl_set_limit(pf, $1, $2) != 0) {
+			if (pfctl_apply_limit(pf, $1, $2) != 0) {
 				yyerror("unable to set limit %s %u", $1, $2);
 				free($1);
 				YYERROR;

@@ -66,7 +66,7 @@
 void	 usage(void);
 int	 pfctl_enable(int, int);
 int	 pfctl_disable(int, int);
-int	 pfctl_clear_stats(int, int);
+int	 pfctl_clear_stats(struct pfctl_handle *, int);
 int	 pfctl_get_skip_ifaces(void);
 int	 pfctl_check_skip_ifaces(char *);
 int	 pfctl_adjust_skip_ifaces(struct pfctl *);
@@ -353,9 +353,9 @@ pfctl_disable(int dev, int opts)
 }
 
 int
-pfctl_clear_stats(int dev, int opts)
+pfctl_clear_stats(struct pfctl_handle *h, int opts)
 {
-	if (ioctl(dev, DIOCCLRSTATUS))
+	if (pfctl_clear_status(h))
 		err(1, "DIOCCLRSTATUS");
 	if ((opts & PF_OPT_QUIET) == 0)
 		fprintf(stderr, "pf: statistics cleared\n");
@@ -1656,17 +1656,15 @@ pfctl_show_running(int dev)
 int
 pfctl_show_timeouts(int dev, int opts)
 {
-	struct pfioc_tm pt;
+	uint32_t seconds;
 	int i;
 
 	if (opts & PF_OPT_SHOWALL)
 		pfctl_print_title("TIMEOUTS:");
-	memset(&pt, 0, sizeof(pt));
 	for (i = 0; pf_timeouts[i].name; i++) {
-		pt.timeout = pf_timeouts[i].timeout;
-		if (ioctl(dev, DIOCGETTIMEOUT, &pt))
+		if (pfctl_get_timeout(pfh, pf_timeouts[i].timeout, &seconds))
 			err(1, "DIOCGETTIMEOUT");
-		printf("%-20s %10d", pf_timeouts[i].name, pt.seconds);
+		printf("%-20s %10d", pf_timeouts[i].name, seconds);
 		if (pf_timeouts[i].timeout >= PFTM_ADAPTIVE_START &&
 		    pf_timeouts[i].timeout <= PFTM_ADAPTIVE_END)
 			printf(" states");
@@ -1681,21 +1679,19 @@ pfctl_show_timeouts(int dev, int opts)
 int
 pfctl_show_limits(int dev, int opts)
 {
-	struct pfioc_limit pl;
+	unsigned int limit;
 	int i;
 
 	if (opts & PF_OPT_SHOWALL)
 		pfctl_print_title("LIMITS:");
-	memset(&pl, 0, sizeof(pl));
 	for (i = 0; pf_limits[i].name; i++) {
-		pl.index = pf_limits[i].index;
-		if (ioctl(dev, DIOCGETLIMIT, &pl))
+		if (pfctl_get_limit(pfh, pf_limits[i].index, &limit))
 			err(1, "DIOCGETLIMIT");
 		printf("%-13s ", pf_limits[i].name);
-		if (pl.limit == UINT_MAX)
+		if (limit == UINT_MAX)
 			printf("unlimited\n");
 		else
-			printf("hard limit %8u\n", pl.limit);
+			printf("hard limit %8u\n", limit);
 	}
 	return (0);
 }
@@ -1723,7 +1719,7 @@ pfctl_add_pool(struct pfctl *pf, struct pfctl_pool *p, sa_family_t af)
 	struct pf_pooladdr *pa;
 
 	if ((pf->opts & PF_OPT_NOACTION) == 0) {
-		if (ioctl(pf->dev, DIOCBEGINADDRS, &pf->paddr))
+		if (pfctl_begin_addrs(pf->h, &pf->paddr.ticket))
 			err(1, "DIOCBEGINADDRS");
 	}
 
@@ -2427,7 +2423,7 @@ pfctl_load_options(struct pfctl *pf)
 }
 
 int
-pfctl_set_limit(struct pfctl *pf, const char *opt, unsigned int limit)
+pfctl_apply_limit(struct pfctl *pf, const char *opt, unsigned int limit)
 {
 	int i;
 
@@ -2453,12 +2449,7 @@ pfctl_set_limit(struct pfctl *pf, const char *opt, unsigned int limit)
 int
 pfctl_load_limit(struct pfctl *pf, unsigned int index, unsigned int limit)
 {
-	struct pfioc_limit pl;
-
-	memset(&pl, 0, sizeof(pl));
-	pl.index = index;
-	pl.limit = limit;
-	if (ioctl(pf->dev, DIOCSETLIMIT, &pl)) {
+	if (pfctl_set_limit(pf->h, index, limit)) {
 		if (errno == EBUSY)
 			warnx("Current pool size exceeds requested hard limit");
 		else
@@ -2469,7 +2460,7 @@ pfctl_load_limit(struct pfctl *pf, unsigned int index, unsigned int limit)
 }
 
 int
-pfctl_set_timeout(struct pfctl *pf, const char *opt, int seconds, int quiet)
+pfctl_apply_timeout(struct pfctl *pf, const char *opt, int seconds, int quiet)
 {
 	int i;
 
@@ -2499,12 +2490,7 @@ pfctl_set_timeout(struct pfctl *pf, const char *opt, int seconds, int quiet)
 int
 pfctl_load_timeout(struct pfctl *pf, unsigned int timeout, unsigned int seconds)
 {
-	struct pfioc_tm pt;
-
-	memset(&pt, 0, sizeof(pt));
-	pt.timeout = timeout;
-	pt.seconds = seconds;
-	if (ioctl(pf->dev, DIOCSETTIMEOUT, &pt)) {
+	if (pfctl_set_timeout(pf->h, timeout, seconds)) {
 		warnx("DIOCSETTIMEOUT");
 		return (1);
 	}
@@ -2553,7 +2539,7 @@ pfctl_set_optimization(struct pfctl *pf, const char *opt)
 	}
 
 	for (i = 0; hint[i].name; i++)
-		if ((r = pfctl_set_timeout(pf, hint[i].name,
+		if ((r = pfctl_apply_timeout(pf, hint[i].name,
 		    hint[i].timeout, 1)))
 			return (r);
 
@@ -2695,7 +2681,7 @@ pfctl_cfg_syncookies(struct pfctl *pf, uint8_t val, struct pfctl_watermarks *w)
 }
 
 int
-pfctl_set_debug(struct pfctl *pf, char *d)
+pfctl_do_set_debug(struct pfctl *pf, char *d)
 {
 	u_int32_t	level;
 
@@ -2719,7 +2705,7 @@ pfctl_set_debug(struct pfctl *pf, char *d)
 	level = pf->debug;
 
 	if ((pf->opts & PF_OPT_NOACTION) == 0)
-		if (ioctl(dev, DIOCSETDEBUG, &level))
+		if (pfctl_set_debug(pfh, level))
 			err(1, "DIOCSETDEBUG");
 
 	if (pf->opts & PF_OPT_VERBOSE)
@@ -2731,7 +2717,7 @@ pfctl_set_debug(struct pfctl *pf, char *d)
 int
 pfctl_load_debug(struct pfctl *pf, unsigned int level)
 {
-	if (ioctl(pf->dev, DIOCSETDEBUG, &level)) {
+	if (pfctl_set_debug(pf->h, level)) {
 		warnx("DIOCSETDEBUG");
 		return (1);
 	}
@@ -2777,7 +2763,7 @@ pfctl_set_interface_flags(struct pfctl *pf, char *ifname, int flags, int how)
 void
 pfctl_debug(int dev, u_int32_t level, int opts)
 {
-	if (ioctl(dev, DIOCSETDEBUG, &level))
+	if (pfctl_set_debug(pfh, level))
 		err(1, "DIOCSETDEBUG");
 	if ((opts & PF_OPT_QUIET) == 0) {
 		fprintf(stderr, "debug level set to '");
@@ -3237,7 +3223,7 @@ main(int argc, char *argv[])
 			pfctl_clear_src_nodes(dev, opts);
 			break;
 		case 'i':
-			pfctl_clear_stats(dev, opts);
+			pfctl_clear_stats(pfh, opts);
 			break;
 		case 'a':
 			pfctl_flush_eth_rules(dev, opts, anchorname);
@@ -3248,7 +3234,7 @@ main(int argc, char *argv[])
 				pfctl_clear_altq(dev, opts);
 				pfctl_clear_iface_states(dev, ifaceopt, opts);
 				pfctl_clear_src_nodes(dev, opts);
-				pfctl_clear_stats(dev, opts);
+				pfctl_clear_stats(pfh, opts);
 				pfctl_clear_fingerprints(dev, opts);
 				pfctl_clear_interface_flags(dev, opts);
 			}

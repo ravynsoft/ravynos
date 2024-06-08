@@ -395,6 +395,7 @@ int	pfctl_fd(struct pfctl_handle *);
 int	pfctl_startstop(struct pfctl_handle *h, int start);
 struct pfctl_status* pfctl_get_status_h(struct pfctl_handle *h);
 struct pfctl_status* pfctl_get_status(int dev);
+int	pfctl_clear_status(struct pfctl_handle *h);
 uint64_t pfctl_status_counter(struct pfctl_status *status, int id);
 uint64_t pfctl_status_lcounter(struct pfctl_status *status, int id);
 uint64_t pfctl_status_fcounter(struct pfctl_status *status, int id);
@@ -473,5 +474,29 @@ int     pfctl_table_set_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
 int	pfctl_table_get_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
 	    *addr, int *size, int flags);
 int	pfctl_set_statusif(struct pfctl_handle *h, const char *ifname);
+
+struct pfctl_natlook_key {
+	sa_family_t af;
+	uint8_t direction;
+	uint8_t proto;
+	struct pf_addr saddr;
+	struct pf_addr daddr;
+	uint16_t sport;
+	uint16_t dport;
+};
+struct pfctl_natlook {
+	struct pf_addr saddr;
+	struct pf_addr daddr;
+	uint16_t sport;
+	uint16_t dport;
+};
+int	pfctl_natlook(struct pfctl_handle *h,
+	    const struct pfctl_natlook_key *k, struct pfctl_natlook *r);
+int	pfctl_set_debug(struct pfctl_handle *h, uint32_t level);
+int	pfctl_set_timeout(struct pfctl_handle *h, uint32_t timeout, uint32_t seconds);
+int	pfctl_get_timeout(struct pfctl_handle *h, uint32_t timeout, uint32_t *seconds);
+int	pfctl_set_limit(struct pfctl_handle *h, const int index, const uint limit);
+int	pfctl_get_limit(struct pfctl_handle *h, const int index, uint *limit);
+int	pfctl_begin_addrs(struct pfctl_handle *h, uint32_t *ticket);
 
 #endif

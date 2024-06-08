@@ -145,6 +145,7 @@ const struct cfg80211_ops linuxkpi_mac80211cfgops = {
 static struct lkpi_sta *lkpi_find_lsta_by_ni(struct lkpi_vif *,
     struct ieee80211_node *);
 #endif
+static void lkpi_80211_txq_tx_one(struct lkpi_sta *, struct mbuf *);
 static void lkpi_80211_txq_task(void *, int);
 static void lkpi_80211_lhw_rxq_task(void *, int);
 static void lkpi_ieee80211_free_skb_mbuf(void *);
@@ -1061,6 +1062,51 @@ lkpi_wake_tx_queues(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
 	}
 }
 
+/*
+ * On the way down from RUN -> ASSOC -> AUTH we may send a DISASSOC or DEAUTH
+ * packet.  The problem is that the state machine functions tend to hold the
+ * LHW lock which will prevent lkpi_80211_txq_tx_one() from sending the packet.
+ * We call this after dropping the ic lock and before acquiring the LHW lock.
+ * we make sure no further packets are queued and if they are queued the task
+ * will finish or be cancelled.  At the end if a packet is left we manually
+ * send it.  scan_to_auth() would re-enable sending if the lsta would be
+ * re-used.
+ */
+static void
+lkpi_80211_flush_tx(struct lkpi_hw *lhw, struct lkpi_sta *lsta)
+{
+	struct mbufq mq;
+	struct mbuf *m;
+	int len;
+
+	LKPI_80211_LHW_UNLOCK_ASSERT(lhw);
+
+	/* Do not accept any new packets until scan_to_auth or lsta_free(). */
+	LKPI_80211_LSTA_TXQ_LOCK(lsta);
+	lsta->txq_ready = false;
+	LKPI_80211_LSTA_TXQ_UNLOCK(lsta);
+
+	while (taskqueue_cancel(taskqueue_thread, &lsta->txq_task, NULL) != 0)
+		taskqueue_drain(taskqueue_thread, &lsta->txq_task);
+
+	LKPI_80211_LSTA_TXQ_LOCK(lsta);
+	len = mbufq_len(&lsta->txq);
+	if (len <= 0) {
+		LKPI_80211_LSTA_TXQ_UNLOCK(lsta);
+		return;
+	}
+
+	mbufq_init(&mq, IFQ_MAXLEN);
+	mbufq_concat(&mq, &lsta->txq);
+	LKPI_80211_LSTA_TXQ_UNLOCK(lsta);
+
+	m = mbufq_dequeue(&mq);
+	while (m != NULL) {
+		lkpi_80211_txq_tx_one(lsta, m);
+		m = mbufq_dequeue(&mq);
+	}
+}
+
 /* -------------------------------------------------------------------------- */
 
 static int
@@ -1274,26 +1320,15 @@ lkpi_sta_scan_to_auth(struct ieee80211vap *vap, enum ieee80211_state nstate, int
 	    __func__, ni, ni->ni_drv_data));
 	lsta = ni->ni_drv_data;
 
-	LKPI_80211_LVIF_LOCK(lvif);
-	/* Re-check given (*iv_update_bss) could have happened. */
-	/* XXX-BZ KASSERT later? or deal as error? */
-	if (lvif->lvif_bss_synched || lvif->lvif_bss != NULL)
-		ic_printf(vap->iv_ic, "%s:%d: lvif %p vap %p iv_bss %p lvif_bss %p "
-		    "lvif_bss->ni %p synched %d, ni %p lsta %p\n", __func__, __LINE__,
-		    lvif, vap, vap->iv_bss, lvif->lvif_bss,
-		    (lvif->lvif_bss != NULL) ? lvif->lvif_bss->ni : NULL,
-		    lvif->lvif_bss_synched, ni, lsta);
-
 	/*
-	 * Reference the ni for this cache of lsta/ni on lvif->lvif_bss
-	 * essentially out lsta version of the iv_bss.
-	 * Do NOT use iv_bss here anymore as that may have diverged from our
-	 * function local ni already and would lead to inconsistencies.
+	 * Make sure in case the sta did not change and we re-add it,
+	 * that we can tx again.
 	 */
-	ieee80211_ref_node(ni);
-	lvif->lvif_bss = lsta;
-	lvif->lvif_bss_synched = true;
+	LKPI_80211_LSTA_TXQ_LOCK(lsta);
+	lsta->txq_ready = true;
+	LKPI_80211_LSTA_TXQ_UNLOCK(lsta);
 
+	LKPI_80211_LVIF_LOCK(lvif);
 	/* Insert the [l]sta into the list of known stations. */
 	TAILQ_INSERT_TAIL(&lvif->lsta_head, lsta, lsta_entry);
 	LKPI_80211_LVIF_UNLOCK(lvif);
@@ -1342,11 +1377,56 @@ lkpi_sta_scan_to_auth(struct ieee80211vap *vap, enum ieee80211_state nstate, int
 	 * (ideally we'd do that on a callback for something else ...)
 	 */
 
+	LKPI_80211_LHW_UNLOCK(lhw);
+	IEEE80211_LOCK(vap->iv_ic);
+
+	LKPI_80211_LVIF_LOCK(lvif);
+	/* Re-check given (*iv_update_bss) could have happened while we were unlocked. */
+	if (lvif->lvif_bss_synched || lvif->lvif_bss != NULL ||
+	    lsta->ni != vap->iv_bss)
+		ic_printf(vap->iv_ic, "%s:%d: lvif %p vap %p iv_bss %p lvif_bss %p "
+		    "lvif_bss->ni %p synched %d, ni %p lsta %p\n", __func__, __LINE__,
+		    lvif, vap, vap->iv_bss, lvif->lvif_bss,
+		    (lvif->lvif_bss != NULL) ? lvif->lvif_bss->ni : NULL,
+		    lvif->lvif_bss_synched, ni, lsta);
+
+	/*
+	 * Reference the "ni" for caching the lsta/ni in lvif->lvif_bss.
+	 * Given we cache lsta we use lsta->ni instead of ni here (even though
+	 * lsta->ni == ni) to be distinct from the rest of the code where we do
+	 * assume that ni == vap->iv_bss which it may or may not be.
+	 * So do NOT use iv_bss here anymore as that may have diverged from our
+	 * function local ni already while ic was unlocked and would lead to
+	 * inconsistencies.  Go and see if we lost a race and do not update
+	 * lvif_bss_synched in that case.
+	 */
+	ieee80211_ref_node(lsta->ni);
+	lvif->lvif_bss = lsta;
+	if (lsta->ni == vap->iv_bss) {
+		lvif->lvif_bss_synched = true;
+	} else {
+		/* Set to un-synched no matter what. */
+		lvif->lvif_bss_synched = false;
+		/*
+		 * We do not error as someone has to take us down.
+		 * If we are followed by a 2nd, new net80211::join1() going to
+		 * AUTH lkpi_sta_a_to_a() will error, lkpi_sta_auth_to_{scan,init}()
+		 * will take the lvif->lvif_bss node down eventually.
+		 * What happens with the vap->iv_bss node will entirely be up
+		 * to net80211 as we never used the node beyond alloc()/free()
+		 * and we do not hold an extra reference for that anymore given
+		 * ni : lsta == 1:1.
+		 */
+	}
+	LKPI_80211_LVIF_UNLOCK(lvif);
+	goto out_relocked;
+
 out:
 	LKPI_80211_LHW_UNLOCK(lhw);
 	IEEE80211_LOCK(vap->iv_ic);
+out_relocked:
 	/*
-	 * Release the reference that keop the ni stable locally
+	 * Release the reference that kept the ni stable locally
 	 * during the work of this function.
 	 */
 	if (ni != NULL)
@@ -1400,7 +1480,7 @@ lkpi_sta_auth_to_scan(struct ieee80211vap *vap, enum ieee80211_state nstate, int
 	lkpi_80211_mo_flush(hw, vif,  nitems(sta->txq), true);
 
 	/* Wake tx queues to get packet(s) out. */
-	lkpi_wake_tx_queues(hw, sta, true, true);
+	lkpi_wake_tx_queues(hw, sta, false, true);
 
 	/* flush, no drop */
 	lkpi_80211_mo_flush(hw, vif,  nitems(sta->txq), false);
@@ -1558,7 +1638,7 @@ lkpi_sta_auth_to_assoc(struct ieee80211vap *vap, enum ieee80211_state nstate, in
 	}
 
 	/* Wake tx queue to get packet out. */
-	lkpi_wake_tx_queues(hw, LSTA_TO_STA(lsta), true, true);
+	lkpi_wake_tx_queues(hw, LSTA_TO_STA(lsta), false, true);
 
 	/*
 	 * <twiddle> .. we end up in "assoc_to_run"
@@ -1702,7 +1782,7 @@ _lkpi_sta_assoc_to_down(struct ieee80211vap *vap, enum ieee80211_state nstate, i
 	LKPI_80211_LHW_UNLOCK(lhw);
 	IEEE80211_LOCK(vap->iv_ic);
 
-	/* Call iv_newstate first so we get potential DISASSOC packet out. */
+	/* Call iv_newstate first so we get potential DEAUTH packet out. */
 	error = lvif->iv_newstate(vap, nstate, arg);
 	if (error != 0) {
 		ic_printf(vap->iv_ic, "%s:%d: iv_newstate(%p, %d, %d) "
@@ -1711,12 +1791,16 @@ _lkpi_sta_assoc_to_down(struct ieee80211vap *vap, enum ieee80211_state nstate, i
 	}
 
 	IEEE80211_UNLOCK(vap->iv_ic);
+
+	/* Ensure the packets get out. */
+	lkpi_80211_flush_tx(lhw, lsta);
+
 	LKPI_80211_LHW_LOCK(lhw);
 
 	lkpi_lsta_dump(lsta, ni, __func__, __LINE__);
 
 	/* Wake tx queues to get packet(s) out. */
-	lkpi_wake_tx_queues(hw, sta, true, true);
+	lkpi_wake_tx_queues(hw, sta, false, true);
 
 	/* flush, no drop */
 	lkpi_80211_mo_flush(hw, vif,  nitems(sta->txq), false);
@@ -2094,12 +2178,16 @@ lkpi_sta_run_to_assoc(struct ieee80211vap *vap, enum ieee80211_state nstate, int
 	}
 
 	IEEE80211_UNLOCK(vap->iv_ic);
+
+	/* Ensure the packets get out. */
+	lkpi_80211_flush_tx(lhw, lsta);
+
 	LKPI_80211_LHW_LOCK(lhw);
 
 	lkpi_lsta_dump(lsta, ni, __func__, __LINE__);
 
 	/* Wake tx queues to get packet(s) out. */
-	lkpi_wake_tx_queues(hw, sta, true, true);
+	lkpi_wake_tx_queues(hw, sta, false, true);
 
 	/* flush, no drop */
 	lkpi_80211_mo_flush(hw, vif,  nitems(sta->txq), false);
@@ -2228,12 +2316,16 @@ lkpi_sta_run_to_init(struct ieee80211vap *vap, enum ieee80211_state nstate, int 
 	}
 
 	IEEE80211_UNLOCK(vap->iv_ic);
+
+	/* Ensure the packets get out. */
+	lkpi_80211_flush_tx(lhw, lsta);
+
 	LKPI_80211_LHW_LOCK(lhw);
 
 	lkpi_lsta_dump(lsta, ni, __func__, __LINE__);
 
 	/* Wake tx queues to get packet(s) out. */
-	lkpi_wake_tx_queues(hw, sta, true, true);
+	lkpi_wake_tx_queues(hw, sta, false, true);
 
 	/* flush, no drop */
 	lkpi_80211_mo_flush(hw, vif,  nitems(sta->txq), false);
@@ -3569,7 +3661,7 @@ lkpi_ic_raw_xmit(struct ieee80211_node *ni, struct mbuf *m,
 
 	lsta = ni->ni_drv_data;
 	LKPI_80211_LSTA_TXQ_LOCK(lsta);
-	if (!lsta->txq_ready) {
+	if (!lsta->added_to_drv || !lsta->txq_ready) {
 		LKPI_80211_LSTA_TXQ_UNLOCK(lsta);
 		/*
 		 * Free the mbuf (do NOT release ni ref for the m_pkthdr.rcvif!
@@ -3795,6 +3887,7 @@ lkpi_80211_txq_task(void *ctx, int pending)
 	struct lkpi_sta *lsta;
 	struct mbufq mq;
 	struct mbuf *m;
+	bool shall_tx;
 
 	lsta = ctx;
 
@@ -3810,9 +3903,19 @@ lkpi_80211_txq_task(void *ctx, int pending)
 	LKPI_80211_LSTA_TXQ_LOCK(lsta);
 	/*
 	 * Do not re-check lsta->txq_ready here; we may have a pending
-	 * disassoc frame still.
+	 * disassoc/deauth frame still.  On the contrary if txq_ready is
+	 * false we do not have a valid sta anymore in the firmware so no
+	 * point to try to TX.
+	 * We also use txq_ready as a semaphore and will drain the txq manually
+	 * if needed on our way towards SCAN/INIT in the state machine.
 	 */
-	mbufq_concat(&mq, &lsta->txq);
+	shall_tx = lsta->added_to_drv && lsta->txq_ready;
+	if (__predict_true(shall_tx))
+		mbufq_concat(&mq, &lsta->txq);
+	/*
+	 * else a state change will push the packets out manually or
+	 * lkpi_lsta_free() will drain the lsta->txq and free the mbufs.
+	 */
 	LKPI_80211_LSTA_TXQ_UNLOCK(lsta);
 
 	m = mbufq_dequeue(&mq);
@@ -5054,6 +5157,7 @@ no_trace_beacons:
 		goto err;
 	}
 
+	lsta = NULL;
 	if (sta != NULL) {
 		lsta = STA_TO_LSTA(sta);
 		ni = ieee80211_ref_node(lsta->ni);

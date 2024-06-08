@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2020-2023, Broadcom Inc. All rights reserved.
+ * Copyright (c) 2020-2024, Broadcom Inc. All rights reserved.
  * Support: <fbsd-storage-driver.pdl@broadcom.com>
  *
  * Authors: Sumit Saxena <sumit.saxena@broadcom.com>
@@ -1641,6 +1641,18 @@ mpi3mr_pel_enable(struct mpi3mr_softc *sc,
 	struct mpi3mr_ioctl_pel_enable pel_enable;
 	mpi3mr_dprint(sc, MPI3MR_TRACE, "%s() line: %d\n", __func__, __LINE__);
 
+	if (sc->unrecoverable) {
+		device_printf(sc->mpi3mr_dev, "Issue IOCTL: controller is in unrecoverable state\n");
+		return EFAULT;
+	}
+	if (sc->reset_in_progress) {
+		device_printf(sc->mpi3mr_dev, "Issue IOCTL: reset in progress\n");
+		return EAGAIN;
+	}
+	if (sc->block_ioctls) {
+		device_printf(sc->mpi3mr_dev, "Issue IOCTL: IOCTLs are blocked\n");
+		return EAGAIN;
+	}
 
 	if ((data_out_sz != sizeof(pel_enable) || 
 	    (pel_enable.pel_class > MPI3_PEL_CLASS_FAULT))) {

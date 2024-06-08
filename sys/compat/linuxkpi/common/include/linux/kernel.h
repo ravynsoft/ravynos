@@ -44,7 +44,10 @@
 #include <linux/build_bug.h>
 #include <linux/compiler.h>
 #include <linux/container_of.h>
+#include <linux/kstrtox.h>
 #include <linux/limits.h>
+#include <linux/math.h>
+#include <linux/minmax.h>
 #include <linux/stringify.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
@@ -123,10 +126,7 @@ extern int linuxkpi_warn_dump_stack;
 #undef PTR_ALIGN
 #define	PTR_ALIGN(p, a)		((__typeof(p))ALIGN((uintptr_t)(p), (a)))
 #define	IS_ALIGNED(x, a)	(((x) & ((__typeof(x))(a) - 1)) == 0)
-#define	DIV_ROUND_UP(x, n)	howmany(x, n)
 #define	__KERNEL_DIV_ROUND_UP(x, n)	howmany(x, n)
-#define	DIV_ROUND_UP_ULL(x, n)	DIV_ROUND_UP((unsigned long long)(x), (n))
-#define	DIV_ROUND_DOWN_ULL(x, n) (((unsigned long long)(x) / (n)) * (n))
 #define	FIELD_SIZEOF(t, f)	sizeof(((t *)0)->f)
 
 #define	printk(...)		printf(__VA_ARGS__)
@@ -270,285 +270,8 @@ extern int linuxkpi_debug;
 
 #define _RET_IP_		__builtin_return_address(0)
 
-static inline unsigned long long
-simple_strtoull(const char *cp, char **endp, unsigned int base)
-{
-	return (strtouq(cp, endp, base));
-}
-
-static inline long long
-simple_strtoll(const char *cp, char **endp, unsigned int base)
-{
-	return (strtoq(cp, endp, base));
-}
-
-static inline unsigned long
-simple_strtoul(const char *cp, char **endp, unsigned int base)
-{
-	return (strtoul(cp, endp, base));
-}
-
-static inline long
-simple_strtol(const char *cp, char **endp, unsigned int base)
-{
-	return (strtol(cp, endp, base));
-}
-
-static inline int
-kstrtoul(const char *cp, unsigned int base, unsigned long *res)
-{
-	char *end;
-
-	*res = strtoul(cp, &end, base);
-
-	/* skip newline character, if any */
-	if (*end == '\n')
-		end++;
-	if (*cp == 0 || *end != 0)
-		return (-EINVAL);
-	return (0);
-}
-
-static inline int
-kstrtol(const char *cp, unsigned int base, long *res)
-{
-	char *end;
-
-	*res = strtol(cp, &end, base);
-
-	/* skip newline character, if any */
-	if (*end == '\n')
-		end++;
-	if (*cp == 0 || *end != 0)
-		return (-EINVAL);
-	return (0);
-}
-
-static inline int
-kstrtoint(const char *cp, unsigned int base, int *res)
-{
-	char *end;
-	long temp;
-
-	*res = temp = strtol(cp, &end, base);
-
-	/* skip newline character, if any */
-	if (*end == '\n')
-		end++;
-	if (*cp == 0 || *end != 0)
-		return (-EINVAL);
-	if (temp != (int)temp)
-		return (-ERANGE);
-	return (0);
-}
-
-static inline int
-kstrtouint(const char *cp, unsigned int base, unsigned int *res)
-{
-	char *end;
-	unsigned long temp;
-
-	*res = temp = strtoul(cp, &end, base);
-
-	/* skip newline character, if any */
-	if (*end == '\n')
-		end++;
-	if (*cp == 0 || *end != 0)
-		return (-EINVAL);
-	if (temp != (unsigned int)temp)
-		return (-ERANGE);
-	return (0);
-}
-
-static inline int
-kstrtou8(const char *cp, unsigned int base, u8 *res)
-{
-	char *end;
-	unsigned long temp;
-
-	*res = temp = strtoul(cp, &end, base);
-
-	/* skip newline character, if any */
-	if (*end == '\n')
-		end++;
-	if (*cp == 0 || *end != 0)
-		return (-EINVAL);
-	if (temp != (u8)temp)
-		return (-ERANGE);
-	return (0);
-}
-
-static inline int
-kstrtou16(const char *cp, unsigned int base, u16 *res)
-{
-	char *end;
-	unsigned long temp;
-
-	*res = temp = strtoul(cp, &end, base);
-
-	/* skip newline character, if any */
-	if (*end == '\n')
-		end++;
-	if (*cp == 0 || *end != 0)
-		return (-EINVAL);
-	if (temp != (u16)temp)
-		return (-ERANGE);
-	return (0);
-}
-
-static inline int
-kstrtou32(const char *cp, unsigned int base, u32 *res)
-{
-
-	return (kstrtouint(cp, base, res));
-}
-
-static inline int
-kstrtou64(const char *cp, unsigned int base, u64 *res)
-{
-       char *end;
-
-       *res = strtouq(cp, &end, base);
-
-       /* skip newline character, if any */
-       if (*end == '\n')
-               end++;
-       if (*cp == 0 || *end != 0)
-               return (-EINVAL);
-       return (0);
-}
-
-static inline int
-kstrtoull(const char *cp, unsigned int base, unsigned long long *res)
-{
-	return (kstrtou64(cp, base, (u64 *)res));
-}
-
-static inline int
-kstrtobool(const char *s, bool *res)
-{
-	int len;
-
-	if (s == NULL || (len = strlen(s)) == 0 || res == NULL)
-		return (-EINVAL);
-
-	/* skip newline character, if any */
-	if (s[len - 1] == '\n')
-		len--;
-
-	if (len == 1 && strchr("yY1", s[0]) != NULL)
-		*res = true;
-	else if (len == 1 && strchr("nN0", s[0]) != NULL)
-		*res = false;
-	else if (strncasecmp("on", s, len) == 0)
-		*res = true;
-	else if (strncasecmp("off", s, len) == 0)
-		*res = false;
-	else
-		return (-EINVAL);
-
-	return (0);
-}
-
-static inline int
-kstrtobool_from_user(const char __user *s, size_t count, bool *res)
-{
-	char buf[8] = {};
-
-	if (count > (sizeof(buf) - 1))
-		count = (sizeof(buf) - 1);
-
-	if (copy_from_user(buf, s, count))
-		return (-EFAULT);
-
-	return (kstrtobool(buf, res));
-}
-
-static inline int
-kstrtoint_from_user(const char __user *s, size_t count, unsigned int base,
-    int *p)
-{
-	char buf[36] = {};
-
-	if (count > (sizeof(buf) - 1))
-		count = (sizeof(buf) - 1);
-
-	if (copy_from_user(buf, s, count))
-		return (-EFAULT);
-
-	return (kstrtoint(buf, base, p));
-}
-
-static inline int
-kstrtouint_from_user(const char __user *s, size_t count, unsigned int base,
-    unsigned int *p)
-{
-	char buf[36] = {};
-
-	if (count > (sizeof(buf) - 1))
-		count = (sizeof(buf) - 1);
-
-	if (copy_from_user(buf, s, count))
-		return (-EFAULT);
-
-	return (kstrtouint(buf, base, p));
-}
-
-static inline int
-kstrtou32_from_user(const char __user *s, size_t count, unsigned int base,
-    unsigned int *p)
-{
-
-	return (kstrtouint_from_user(s, count, base, p));
-}
-
-static inline int
-kstrtou8_from_user(const char __user *s, size_t count, unsigned int base,
-    u8 *p)
-{
-	char buf[8] = {};
-
-	if (count > (sizeof(buf) - 1))
-		count = (sizeof(buf) - 1);
-
-	if (copy_from_user(buf, s, count))
-		return (-EFAULT);
-
-	return (kstrtou8(buf, base, p));
-}
-
-#define min(x, y)	((x) < (y) ? (x) : (y))
-#define max(x, y)	((x) > (y) ? (x) : (y))
-
-#define min3(a, b, c)	min(a, min(b,c))
-#define max3(a, b, c)	max(a, max(b,c))
-
-#define	min_t(type, x, y) ({			\
-	type __min1 = (x);			\
-	type __min2 = (y);			\
-	__min1 < __min2 ? __min1 : __min2; })
-
-#define	max_t(type, x, y) ({			\
-	type __max1 = (x);			\
-	type __max2 = (y);			\
-	__max1 > __max2 ? __max1 : __max2; })
-
 #define offsetofend(t, m)	\
         (offsetof(t, m) + sizeof((((t *)0)->m)))
-
-#define clamp_t(type, _x, min, max)	min_t(type, max_t(type, _x, min), max)
-#define clamp(x, lo, hi)		min( max(x,lo), hi)
-#define	clamp_val(val, lo, hi) clamp_t(typeof(val), val, lo, hi)
-
-/*
- * This looks more complex than it should be. But we need to
- * get the type for the ~ right in round_down (it needs to be
- * as wide as the result!), and we want to evaluate the macro
- * arguments just once each.
- */
-#define __round_mask(x, y) ((__typeof__(x))((y)-1))
-#define round_up(x, y) ((((x)-1) | __round_mask(x, y))+1)
-#define round_down(x, y) ((x) & ~__round_mask(x, y))
 
 #define	smp_processor_id()	PCPU_GET(cpuid)
 #define	num_possible_cpus()	mp_ncpus
@@ -558,31 +281,6 @@ kstrtou8_from_user(const char __user *s, size_t count, unsigned int base,
 extern bool linux_cpu_has_clflush;
 #define	cpu_has_clflush		linux_cpu_has_clflush
 #endif
-
-/* Swap values of a and b */
-#define swap(a, b) do {			\
-	typeof(a) _swap_tmp = a;	\
-	a = b;				\
-	b = _swap_tmp;			\
-} while (0)
-
-#define	DIV_ROUND_CLOSEST(x, divisor)	(((x) + ((divisor) / 2)) / (divisor))
-
-#define	DIV_ROUND_CLOSEST_ULL(x, divisor) ({		\
-	__typeof(divisor) __d = (divisor);		\
-	unsigned long long __ret = (x) + (__d) / 2;	\
-	__ret /= __d;					\
-	__ret;						\
-})
-
-static inline uintmax_t
-mult_frac(uintmax_t x, uintmax_t multiplier, uintmax_t divisor)
-{
-	uintmax_t q = (x / divisor);
-	uintmax_t r = (x % divisor);
-
-	return ((q * multiplier) + ((r * multiplier) / divisor));
-}
 
 typedef struct linux_ratelimit {
 	struct timeval lasttime;
