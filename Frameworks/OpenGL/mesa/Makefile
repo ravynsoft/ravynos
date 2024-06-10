@@ -25,14 +25,14 @@ NINJA?=         ${OBJTOP}/tmp/usr/bin/ninja
 
 all: build
 build:
-	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/Frameworks/OpenGL/libpciaccess \
+	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/Frameworks/OpenGL/libpciaccess:${OBJTOP}/Frameworks/OpenGL/wayland/src:${OBJTOP}/Frameworks/OpenGL/libdrm \
         PYTHONPATH=${OBJTOP}/tmp/usr/lib/python3.10 \
         PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:$${PATH} \
         ${MESON} setup --reconfigure -Dprefix=${PREFIX} -Dplatforms=wayland \
         -DSRCTOP=${SRCTOP} -Dc_args="${CFLAGS}" -Dcpp_args="${CFLAGS}" \
         -Dc_link_args="${LDFLAGS}" -Dcpp_link_args="${LDFLAGS}" \
-        -Degl-native-platform=drm -Dgallium-drivers=auto \
-        -Dgallium-vdpau=disabled -Dvulkan-drivers="[]" -Dllvm=disabled \
+        -Degl-native-platform=drm -Dgallium-drivers='i915,iris,svga,swrast' \
+        -Dgallium-vdpau=disabled -Dvulkan-drivers='[]' -Dllvm=disabled \
         -Dgles1=enabled -Dgles2=enabled -Dopengl=true -Dglx=disabled \
         -Degl=enabled -Dlibunwind=disabled -Dlmsensors=disabled -Dbuild-tests=false \
         -Dzstd=disabled -Dzlib=enabled -Dvideo-codecs=all -Ddri3=enabled \

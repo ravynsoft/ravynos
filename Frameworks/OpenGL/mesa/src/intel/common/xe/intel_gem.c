@@ -68,7 +68,7 @@ xe_gem_read_correlate_cpu_gpu_timestamp(int fd,
    case CLOCK_MONOTONIC_RAW:
 #endif
    case CLOCK_REALTIME:
-#ifdef CLOCK_BOOTTIME
+#if defined(CLOCK_BOOTTIME) && !defined(__RAVYNOS__)
    case CLOCK_BOOTTIME:
 #endif
 #ifdef CLOCK_TAI

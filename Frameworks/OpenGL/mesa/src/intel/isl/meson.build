@@ -63,8 +63,9 @@ isl_gfx125_files = files(
 isl_per_hw_ver_libs = []
 foreach g : [['40', isl_gfx4_files], ['50', []], ['60', isl_gfx6_files],
              ['70', isl_gfx7_files], ['75', []], ['80', isl_gfx8_files],
-             ['90', isl_gfx9_files], ['110', []], ['120', isl_gfx12_files],
-             ['125', isl_gfx12_files], ['200', isl_gfx12_files]]
+             ['90', isl_gfx9_files], ['110', []], 
+	     ['120', isl_gfx12_files], ['125', []], 
+	     ['200', []]]
   _gfx_ver = g[0]
   isl_per_hw_ver_libs += static_library(
     'isl_per_hw_ver@0@'.format(_gfx_ver),

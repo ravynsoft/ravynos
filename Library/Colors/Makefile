@@ -4,4 +4,4 @@ clean:
 
 build:
 	mkdir -p ${BUILDROOT}/System/Library/Colors
-	cp -vf *.clr ${BUILDROOT}/System/Library/Colors/
+	cp -vf ${.CURDIR}/*.clr ${BUILDROOT}/System/Library/Colors/
