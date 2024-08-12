@@ -94,6 +94,8 @@ CFLAGS+= -I${.CURDIR}/libpciaccess/include
 LDFLAGS+= -Llibdrm -Llibpciaccess -Lwayland/src \
 	  -lwayland -ldrm -lpciaccess -lstdc++ -lstdthreads \
 	  -Wl,--no-as-needed -Wl,-R\$$ORIGIN
+LD_LIBRARY_PATH+= ${OBJTOP}/tmp/usr/lib
+.export LD_LIBRARY_PATH
 
 #src/gallium/targets/xa/libxatracker.so.2 \
 

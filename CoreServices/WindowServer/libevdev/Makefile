@@ -46,7 +46,7 @@ ${INCSDIR}: .PHONY
 	mkdir -vp ${OBJTOP}/tmp/${INCSDIR}
 
 event-names.h: .PHONY
-	${OBJTOP}/tmp/usr/bin/python3 \
+	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib ${OBJTOP}/tmp/usr/bin/python3 \
 		${.CURDIR}/libevdev/make-event-names.py \
         	${.CURDIR}/include/linux/linux/input.h \
         	${.CURDIR}/include/linux/linux/input-event-codes.h >${.TARGET}
