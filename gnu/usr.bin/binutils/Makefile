@@ -16,6 +16,7 @@ distribute:
 CONFIGURE_ARGS+=        --enable-lto \
 			--program-prefix=g \
 			--with-build-sysroot=${OBJTOP}/tmp
+DESTDIR?= 		${OBJTOP}/tmp
 GMAKE=                  ${DESTDIR}/legacy/bin/gmake
 
 all: gnu_configure .WAIT build

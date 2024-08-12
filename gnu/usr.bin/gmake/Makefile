@@ -8,6 +8,7 @@ INSTALL=        ${OBJTOP}/../legacy/bin/install
 .else
 INSTALL=        ${OBJTOP}/tmp/legacy/bin/install
 .endif
+DESTDIR?= ${OBJTOP}/tmp
 
 # Ensure we call it gmake to avoid clash with BSD make!
 CONFIGURE_ARGS+=        --program-prefix=g
