@@ -244,6 +244,7 @@ nsis/version.nsh: version version.pl
 # standard distribution.
 macros/macros.c: macros/macros.pl asm/pptok.ph version.mac \
 	$(srcdir)/macros/*.mac $(srcdir)/output/*.mac
+	if [ ! -f version.mac ]; then cp -fv $(srcdir)/version.mac version.mac; fi
 	$(RUNPERL) $(srcdir)/macros/macros.pl version.mac \
 		$(srcdir)/macros/*.mac $(srcdir)/output/*.mac
 
