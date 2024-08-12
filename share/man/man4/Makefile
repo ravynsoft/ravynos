@@ -1,4 +1,3 @@
-
 .include <src.opts.mk>
 
 MAN=	aac.4 \
@@ -529,6 +528,7 @@ MAN=	aac.4 \
 	snd_cmi.4 \
 	snd_cs4281.4 \
 	snd_csa.4 \
+	snd_dummy.4 \
 	snd_emu10k1.4 \
 	snd_emu10kx.4 \
 	snd_envy24.4 \
@@ -1054,6 +1054,7 @@ MAN+=	\
 	uslcom.4 \
 	uvisor.4 \
 	uvscom.4 \
+	veriexec.4 \
 	zyd.4
 
 MLINKS+=otus.4 if_otus.4

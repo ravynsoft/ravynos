@@ -58,6 +58,8 @@
 #include <sys/systm.h>
 #include <sys/unistd.h>
 
+#include <vm/vm_param.h>
+
 SYSCTL_ROOT_NODE(0, sysctl, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "Sysctl internal magic");
 SYSCTL_ROOT_NODE(CTL_KERN, kern, CTLFLAG_RW | CTLFLAG_CAPRD | CTLFLAG_MPSAFE, 0,
@@ -180,10 +182,14 @@ sysctl_kern_arnd(SYSCTL_HANDLER_ARGS)
 {
 	char buf[256];
 	size_t len;
+	int error;
 
 	len = MIN(req->oldlen, sizeof(buf));
 	read_random(buf, len);
-	return (SYSCTL_OUT(req, buf, len));
+
+	error = SYSCTL_OUT(req, buf, len);
+	explicit_bzero(buf, len);
+	return (error);
 }
 
 SYSCTL_PROC(_kern, KERN_ARND, arandom,
@@ -242,7 +248,11 @@ SYSCTL_PROC(_hw, HW_USERMEM, usermem,
 SYSCTL_LONG(_hw, OID_AUTO, availpages, CTLFLAG_RD, &physmem, 0,
     "Amount of physical memory (in pages)");
 
-u_long pagesizes[MAXPAGESIZES] = { PAGE_SIZE };
+#if VM_NRESERVLEVEL > 0
+_Static_assert(MAXPAGESIZES > VM_NRESERVLEVEL, "MAXPAGESIZES is too small");
+#endif
+
+u_long __read_mostly pagesizes[MAXPAGESIZES] = { PAGE_SIZE };
 
 static int
 sysctl_hw_pagesizes(SYSCTL_HANDLER_ARGS)

@@ -239,7 +239,7 @@ vmmops_modinit(int ipinum)
 	int cpu, i;
 	bool rv __diagused;
 
-	if (!virt_enabled()) {
+	if (!has_hyp()) {
 		printf(
 		    "vmm: Processor doesn't have support for virtualization\n");
 		return (ENXIO);
@@ -1108,7 +1108,7 @@ vmmops_run(void *vcpui, register_t pc, pmap_t pmap, struct vm_eventinfo *evinfo)
 			 * Update fields that may change on exeption entry
 			 * based on how sctlr_el1 is configured.
 			 */
-			if ((hypctx->sctlr_el1 & SCTLR_SPAN) != 0)
+			if ((hypctx->sctlr_el1 & SCTLR_SPAN) == 0)
 				hypctx->tf.tf_spsr |= PSR_PAN;
 			if ((hypctx->sctlr_el1 & SCTLR_DSSBS) == 0)
 				hypctx->tf.tf_spsr &= ~PSR_SSBS;
@@ -1352,7 +1352,7 @@ vmmops_setcap(void *vcpui, int num, int val)
 
 	switch (num) {
 	case VM_CAP_BRK_EXIT:
-		if ((val != 0) == (hypctx->setcaps & (1ul << num)) != 0)
+		if ((val != 0) == ((hypctx->setcaps & (1ul << num)) != 0))
 			break;
 		if (val != 0)
 			hypctx->mdcr_el2 |= MDCR_EL2_TDE;
@@ -1360,7 +1360,7 @@ vmmops_setcap(void *vcpui, int num, int val)
 			hypctx->mdcr_el2 &= ~MDCR_EL2_TDE;
 		break;
 	case VM_CAP_SS_EXIT:
-		if ((val != 0) == (hypctx->setcaps & (1ul << num)) != 0)
+		if ((val != 0) == ((hypctx->setcaps & (1ul << num)) != 0))
 			break;
 
 		if (val != 0) {
@@ -1382,7 +1382,7 @@ vmmops_setcap(void *vcpui, int num, int val)
 		}
 		break;
 	case VM_CAP_MASK_HWINTR:
-		if ((val != 0) == (hypctx->setcaps & (1ul << num)) != 0)
+		if ((val != 0) == ((hypctx->setcaps & (1ul << num)) != 0))
 			break;
 
 		if (val != 0) {

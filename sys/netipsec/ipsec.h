@@ -46,6 +46,7 @@
 #include <sys/_lock.h>
 #include <sys/_mutex.h>
 #include <sys/_rwlock.h>
+#include <sys/sysctl.h>
 
 #define	IPSEC_ASSERT(_c,_m) KASSERT(_c, _m)
 
@@ -69,6 +70,12 @@ struct ipsecrequest {
 	struct secasindex saidx;/* hint for search proper SA */
 				/* if __ss_len == 0 then no address specified.*/
 	u_int level;		/* IPsec level defined below. */
+};
+
+struct ipsec_accel_adddel_sp_tq {
+	struct vnet *adddel_vnet;
+	struct task adddel_task;
+	int adddel_scheduled;
 };
 
 /* Security Policy Data Base */
@@ -102,6 +109,11 @@ struct secpolicy {
 	time_t lastused;	/* updated every when kernel sends a packet */
 	long lifetime;		/* duration of the lifetime of this policy */
 	long validtime;		/* duration this policy is valid without use */
+	CK_LIST_HEAD(, ifp_handle_sp) accel_ifps;
+	struct ipsec_accel_adddel_sp_tq accel_add_tq;
+	struct ipsec_accel_adddel_sp_tq accel_del_tq;
+	struct inpcb *ipsec_accel_add_sp_inp;
+	const char *accel_ifname;
 };
 
 /*
@@ -336,24 +348,28 @@ void ipsec_setspidx_inpcb(struct inpcb *, struct secpolicyindex *, u_int);
 void ipsec4_setsockaddrs(const struct mbuf *, union sockaddr_union *,
     union sockaddr_union *);
 int ipsec4_common_input_cb(struct mbuf *, struct secasvar *, int, int);
-int ipsec4_check_pmtu(struct mbuf *, struct secpolicy *, int);
-int ipsec4_process_packet(struct mbuf *, struct secpolicy *, struct inpcb *);
+int ipsec4_check_pmtu(struct ifnet *, struct mbuf *, struct secpolicy *, int);
+int ipsec4_process_packet(struct ifnet *, struct mbuf *, struct secpolicy *,
+    struct inpcb *, u_long);
 int ipsec_process_done(struct mbuf *, struct secpolicy *, struct secasvar *,
     u_int);
 
-extern	void m_checkalignment(const char* where, struct mbuf *m0,
-		int off, int len);
-extern	struct mbuf *m_makespace(struct mbuf *m0, int skip, int hlen, int *off);
-extern	caddr_t m_pad(struct mbuf *m, int n);
-extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
+void m_checkalignment(const char* where, struct mbuf *m0,
+    int off, int len);
+struct mbuf *m_makespace(struct mbuf *m0, int skip, int hlen, int *off);
+caddr_t m_pad(struct mbuf *m, int n);
+int m_striphdr(struct mbuf *m, int skip, int hlen);
+
+SYSCTL_DECL(_net_inet_ipsec);
+SYSCTL_DECL(_net_inet6_ipsec6);
 
 #endif /* _KERNEL */
 
 #ifndef _KERNEL
-extern caddr_t ipsec_set_policy(const char *, int);
-extern int ipsec_get_policylen(c_caddr_t);
-extern char *ipsec_dump_policy(c_caddr_t, const char *);
-extern const char *ipsec_strerror(void);
+caddr_t ipsec_set_policy(const char *, int);
+int ipsec_get_policylen(c_caddr_t);
+char *ipsec_dump_policy(c_caddr_t, const char *);
+const char *ipsec_strerror(void);
 
 #endif /* ! KERNEL */
 

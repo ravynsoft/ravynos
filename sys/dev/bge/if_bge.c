@@ -2699,7 +2699,6 @@ bge_chipid(device_t dev)
 static int
 bge_probe(device_t dev)
 {
-	char buf[96];
 	char model[64];
 	const struct bge_revision *br;
 	const char *pname;
@@ -2727,9 +2726,8 @@ bge_probe(device_t dev)
 				    br != NULL ? br->br_name :
 				    "NetXtreme/NetLink Ethernet Controller");
 			}
-			snprintf(buf, sizeof(buf), "%s, %sASIC rev. %#08x",
+			device_set_descf(dev, "%s, %sASIC rev. %#08x",
 			    model, br != NULL ? "" : "unknown ", id);
-			device_set_desc_copy(dev, buf);
 			return (BUS_PROBE_DEFAULT);
 		}
 		t++;
@@ -3714,11 +3712,6 @@ bge_attach(device_t dev)
 
 	/* Set up ifnet structure */
 	ifp = sc->bge_ifp = if_alloc(IFT_ETHER);
-	if (ifp == NULL) {
-		device_printf(sc->bge_dev, "failed to if_alloc()\n");
-		error = ENXIO;
-		goto fail;
-	}
 	if_setsoftc(ifp, sc);
 	if_initname(ifp, device_get_name(dev), device_get_unit(dev));
 	if_setflags(ifp, IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST);

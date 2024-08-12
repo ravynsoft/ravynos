@@ -105,14 +105,16 @@ VNET_DEFINE(struct ifnet *, pflogifs[PFLOGIFS_MAX]);	/* for fast access */
 static void
 pflogattach(int npflog __unused)
 {
-	int	i;
+	int i;
+
 	for (i = 0; i < PFLOGIFS_MAX; i++)
 		V_pflogifs[i] = NULL;
 
 	struct if_clone_addreq req = {
 		.create_f = pflog_clone_create,
 		.destroy_f = pflog_clone_destroy,
-		.flags = IFC_F_AUTOUNIT,
+		.flags = IFC_F_AUTOUNIT | IFC_F_LIMITUNIT,
+		.maxunit = PFLOGIFS_MAX - 1,
 	};
 	V_pflog_cloner = ifc_attach_cloner(pflogname, &req);
 	struct ifc_data ifd = { .unit = 0 };
@@ -125,13 +127,9 @@ pflog_clone_create(struct if_clone *ifc, char *name, size_t maxlen,
 {
 	struct ifnet *ifp;
 
-	if (ifd->unit >= PFLOGIFS_MAX)
-		return (EINVAL);
+	MPASS(ifd->unit < PFLOGIFS_MAX);
 
 	ifp = if_alloc(IFT_PFLOG);
-	if (ifp == NULL) {
-		return (ENOSPC);
-	}
 	if_initname(ifp, pflogname, ifd->unit);
 	ifp->if_mtu = PFLOGMTU;
 	ifp->if_ioctl = pflogioctl;
@@ -223,9 +221,10 @@ pflog_packet(struct pfi_kkif *kif, struct mbuf *m, sa_family_t af,
 	struct pfloghdr hdr;
 
 	if (kif == NULL || m == NULL || rm == NULL || pd == NULL)
-		return ( 1);
+		return (1);
 
-	if ((ifn = V_pflogifs[rm->logif]) == NULL || !ifn->if_bpf)
+	ifn = V_pflogifs[rm->logif];
+	if (ifn == NULL || !bpf_peers_present(ifn->if_bpf))
 		return (0);
 
 	bzero(&hdr, sizeof(hdr));
@@ -274,7 +273,7 @@ pflog_packet(struct pfi_kkif *kif, struct mbuf *m, sa_family_t af,
 
 	if_inc_counter(ifn, IFCOUNTER_OPACKETS, 1);
 	if_inc_counter(ifn, IFCOUNTER_OBYTES, m->m_pkthdr.len);
-	BPF_MTAP2(ifn, &hdr, PFLOG_HDRLEN, m);
+	bpf_mtap2(ifn->if_bpf, &hdr, PFLOG_HDRLEN, m);
 
 	return (0);
 }

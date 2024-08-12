@@ -1,4 +1,3 @@
-
 .include <bsd.own.mk>
 
 MK_WERROR=	no
@@ -30,7 +29,8 @@ PROGS+=		h_memset
 # now on amd64 when it trips the stack bounds specified in t_ssp.sh . This
 # probably needs to be fixed as it's currently hardcoded.
 .if ${COMPILER_TYPE} == "clang" && !defined(_SKIP_BUILD) && \
-    (!defined(_RECURSING_PROGS) || ${PROG} == "h_raw") && ${MK_TOOLCHAIN} == "yes"
+    (!defined(_RECURSING_PROGS) || ${PROG} == "h_raw") && \
+    defined(MK_CLANG) && ${MK_CLANG} == "yes"
 .include "${SRCTOP}/lib/libclang_rt/compiler-rt-vars.mk"
 _libclang_rt_ubsan=	${SYSROOT}${SANITIZER_LIBDIR}/libclang_rt.ubsan_standalone-${CRTARCH}.a
 .if exists(${_libclang_rt_ubsan})

@@ -1,4 +1,3 @@
-
 .include <src.opts.mk>
 .include <src.tools.mk>
 .include <bsd.compat.pre.mk>

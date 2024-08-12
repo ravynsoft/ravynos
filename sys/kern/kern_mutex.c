@@ -181,7 +181,7 @@ struct mtx __exclusive_cache_line Giant;
 
 static void _mtx_lock_indefinite_check(struct mtx *, struct lock_delay_arg *);
 
-void
+static void
 assert_mtx(const struct lock_object *lock, int what)
 {
 
@@ -203,21 +203,21 @@ assert_mtx(const struct lock_object *lock, int what)
 	mtx_assert((const struct mtx *)lock, what);
 }
 
-void
+static void
 lock_mtx(struct lock_object *lock, uintptr_t how)
 {
 
 	mtx_lock((struct mtx *)lock);
 }
 
-void
+static void
 lock_spin(struct lock_object *lock, uintptr_t how)
 {
 
 	mtx_lock_spin((struct mtx *)lock);
 }
 
-uintptr_t
+static uintptr_t
 unlock_mtx(struct lock_object *lock)
 {
 	struct mtx *m;
@@ -228,7 +228,7 @@ unlock_mtx(struct lock_object *lock)
 	return (0);
 }
 
-uintptr_t
+static uintptr_t
 unlock_spin(struct lock_object *lock)
 {
 	struct mtx *m;
@@ -240,7 +240,7 @@ unlock_spin(struct lock_object *lock)
 }
 
 #ifdef KDTRACE_HOOKS
-int
+static int
 owner_mtx(const struct lock_object *lock, struct thread **owner)
 {
 	const struct mtx *m;
@@ -1054,7 +1054,9 @@ __mtx_unlock_sleep(volatile uintptr_t *c, uintptr_t v)
 	turnstile_chain_lock(&m->lock_object);
 	_mtx_release_lock_quick(m);
 	ts = turnstile_lookup(&m->lock_object);
-	MPASS(ts != NULL);
+	if (__predict_false(ts == NULL)) {
+		panic("got NULL turnstile on mutex %p v %zx", m, v);
+	}
 	if (LOCK_LOG_TEST(&m->lock_object, opts))
 		CTR1(KTR_LOCK, "_mtx_unlock_sleep: %p contested", m);
 	turnstile_broadcast(ts, TS_EXCLUSIVE_QUEUE);
@@ -1319,7 +1321,7 @@ mtx_wait_unlocked(struct mtx *m)
 }
 
 #ifdef DDB
-void
+static void
 db_show_mtx(const struct lock_object *lock)
 {
 	struct thread *td;
