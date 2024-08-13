@@ -155,6 +155,7 @@ while ! [ "z$1" = "z" ]; do
         systempkg) systempkg ;;
         isoalt) isoalt ;;
 	cleanpkg) cleanpkg ;;
+	install) install ;;
         all) kernel_build; drm_build; base_build; system_build; extras_build; iso_build ;;
     esac
     shift
