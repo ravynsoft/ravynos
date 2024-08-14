@@ -8,7 +8,7 @@ CXX=            c++ ${CXXFLAGS}
 
 all: build
 build:
-	CXX="${CXX}" cmake -S ${.CURDIR} -B ${MAKEOBJDIR} \
+	CXX="${CXX}" CMAKE_ROOT=/usr cmake -S ${.CURDIR} -B ${MAKEOBJDIR} \
                 -DCMAKE_INSTALL_PREFIX=${PREFIX}
 	${MAKE} -C ${MAKEOBJDIR}
 
