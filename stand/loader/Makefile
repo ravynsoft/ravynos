@@ -1,7 +1,8 @@
 .include <bsd.init.mk>
 
 FILES+=	loader.conf
+MAN=
 
-FILESDIR_loader.conf=  /boot
+FILESDIR=  /boot
 
 .include <bsd.prog.mk>
