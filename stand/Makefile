@@ -26,6 +26,7 @@ S.yes+=			defaults
 S.yes+=			fonts
 S.yes+=			images
 S.yes+=			man
+S.yes+=			loader
 
 .if ${MK_FORTH} != "no"
 INTERP_DEPENDS+=	forth

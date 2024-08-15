@@ -1,10 +1,15 @@
 .include <bsd.prog.mk>
 
-CONFIGURE_ARGS+=        --prefix=/usr
+CONFIGURE_ARGS+=        --prefix=${OBJTOP}/tmp/usr
+CONFIGURE_ARGS+=	--init=${.CURDIR}/ravyn_init.txt
 CONFIGURE_ARGS+=        --datadir=share/cmake
 CONFIGURE_ARGS+=        --docdir=share/doc/cmake
 CONFIGURE_ARGS+=        --mandir=share/man
 CONFIGURE_ARGS+=        --no-qt-gui --qt-qmake=/bin/true
+
+PKG_CONFIG_SYSROOT_DIR=	${OBJTOP}/tmp
+.export PKG_CONFIG_SYSROOT_DIR
+DESTDIR?= ${OBJTOP}/tmp
 
 all: configure .WAIT build
 build-tools: all
