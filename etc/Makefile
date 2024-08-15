@@ -6,6 +6,7 @@ RAVYNOS_VERSION != sed -e '1q;d' ${.CURDIR}/../version.txt
 RAVYNOS_CODENAME != sed -e '2q;d' ${.CURDIR}/../version.txt
 FILES+= ${.CURDIR}/bootstrap
 FILESDIR= /etc
+FILESMODE= 0755
 
 
 FILESGROUPS=	FILES
