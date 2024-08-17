@@ -87,7 +87,7 @@ join_common(pthread_t pthread, void **thread_return,
 	struct pthread *curthread = _get_curthread();
 	struct timespec ts, ts2, *tsp;
 	void *tmp;
-	int tid;
+	long tid;
 	int ret;
 
 	if (pthread == NULL)

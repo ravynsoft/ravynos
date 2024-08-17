@@ -56,8 +56,8 @@ struct thr_param {
     size_t	stack_size;		/* stack size. */
     char	*tls_base;		/* tls base address. */
     size_t	tls_size;		/* tls size. */
-    int		*child_tid;		/* address to store new TID. */
-    int		*parent_tid;		/* parent accesses the new TID here. */
+    long	*child_tid;		/* address to store new TID. */
+    long	*parent_tid;		/* parent accesses the new TID here. */
     int		flags;			/* thread flags. */
     struct rtprio	*rtp;		/* Real-time scheduling priority */
     void	*spare[3];		/* TODO: cpu affinity mask etc. */
@@ -75,15 +75,15 @@ typedef __pid_t		pid_t;
 #endif
 
 __BEGIN_DECLS
-int thr_create(ucontext_t *ctx, int *id, int flags);
+int thr_create(ucontext_t *ctx, long *id, int flags);
 int thr_new(struct thr_param *param, int param_size);
-int thr_self(int *id);
-void thr_exit(int *state);
-int thr_kill(int id, int sig);
-int thr_kill2(pid_t pid, int id, int sig);
+int thr_self(long *id);
+void thr_exit(long *state);
+int thr_kill(long id, int sig);
+int thr_kill2(pid_t pid, long id, int sig);
 int thr_suspend(const struct timespec *timeout);
-int thr_wake(int id);
-int thr_set_name(int id, const char *name);
+int thr_wake(long id);
+int thr_set_name(long id, const char *name);
 void *thr_stack(size_t stacksize, size_t guardsize);
 __END_DECLS
 #endif /* !_KERNEL */

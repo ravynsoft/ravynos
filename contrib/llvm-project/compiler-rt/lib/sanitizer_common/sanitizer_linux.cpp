@@ -546,7 +546,7 @@ bool DirExists(const char *path) {
 #  if !SANITIZER_NETBSD
 tid_t GetTid() {
 #    if SANITIZER_FREEBSD
-  int Tid;
+  long Tid;
   thr_self(&Tid);
   return Tid;
 #    elif SANITIZER_SOLARIS

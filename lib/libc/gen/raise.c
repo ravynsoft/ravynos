@@ -41,7 +41,7 @@ int __raise(int);
 int
 __raise(int s)
 {
-	int id;
+	long id;
 
 	if (__sys_thr_self(&id) == -1)
 		return (-1);

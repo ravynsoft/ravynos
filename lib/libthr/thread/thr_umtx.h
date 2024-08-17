@@ -51,7 +51,7 @@ int __thr_umutex_set_ceiling(struct umutex *mtx, uint32_t ceiling,
 void _thr_umutex_init(struct umutex *mtx) __hidden;
 void _thr_urwlock_init(struct urwlock *rwl) __hidden;
 
-int _thr_umtx_wait(volatile int *mtx, long exp,
+int _thr_umtx_wait(volatile long *mtx, long exp,
 	const struct timespec *timeout) __hidden;
 int _thr_umtx_wait_uint(volatile u_int *mtx, u_int exp,
 	const struct timespec *timeout, int shared) __hidden;

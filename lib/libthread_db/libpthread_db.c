@@ -314,7 +314,7 @@ pt_ta_map_lwp2thr(const td_thragent_t *ta, lwpid_t lwp, td_thrhandle_t *th)
 		if (lwp1 == lwp) {
 			th->th_ta = ta;
 			th->th_tid = pt_map_thread(ta, pt, PT_USER);
-			if ((int)(th->th_tid) == -1)
+			if (th->th_tid == -1)
 				return (TD_MALLOC);
 			pt_unmap_lwp(ta, lwp);
 			th->th_thread = pt;
@@ -357,7 +357,7 @@ pt_ta_thr_iter(const td_thragent_t *ta, td_thr_iter_f *callback,
 		th.th_tid = pt_map_thread(ta, pt, PT_USER);
 		th.th_thread = pt;
 		/* should we unmap lwp here ? */
-		if ((int)(th.th_tid) == -1)
+		if (th.th_tid == -1)
 			return (TD_MALLOC);
 		if ((*callback)(&th, cbdata_p))
 			return (TD_DBERR);

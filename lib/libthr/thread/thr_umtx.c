@@ -179,7 +179,7 @@ __thr_umutex_set_ceiling(struct umutex *mtx, uint32_t ceiling,
 }
 
 int
-_thr_umtx_wait(volatile int *mtx, long id, const struct timespec *timeout)
+_thr_umtx_wait(volatile long *mtx, long id, const struct timespec *timeout)
 {
 
 	if (timeout && (timeout->tv_sec < 0 || (timeout->tv_sec == 0 &&

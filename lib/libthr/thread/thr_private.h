@@ -368,7 +368,7 @@ struct pthread_key {
 struct pthread {
 #define _pthread_startzero	tid
 	/* Kernel thread id. */
-	int			tid;
+	long			tid;
 #define	TID_TERMINATED		1
 
 	/*

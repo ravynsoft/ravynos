@@ -70,7 +70,7 @@ inline ThreadId GetTid() {
   DEFINE__REAL(int, _lwp_self);
   return _REAL(_lwp_self);
 #elif SANITIZER_FREEBSD
-  int Tid;
+  long Tid;
   thr_self(&Tid);
   return Tid;
 #else
