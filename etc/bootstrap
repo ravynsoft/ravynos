@@ -12,4 +12,8 @@ for d in /dev /etc /var; do
         ln -sf $d /private$d
     fi
 done
+echo -=- Processing bootstrap.d -=-
+for f in /etc/bootstrap.d/*; do
+    $f
+done
 echo -=- Bootstrap complete -=-
