@@ -117,7 +117,7 @@ suword_lwpid(void *addr, lwpid_t lwpid)
 
 struct thr_create_initthr_args {
 	ucontext_t ctx;
-	int *tid;
+	long *tid;
 };
 
 static int
@@ -135,7 +135,7 @@ thr_create_initthr(struct thread *td, void *thunk)
 
 int
 sys_thr_create(struct thread *td, struct thr_create_args *uap)
-    /* ucontext_t *ctx, int *id, int flags */
+    /* ucontext_t *ctx, long *id, int flags */
 {
 	struct thr_create_initthr_args args;
 	int error;

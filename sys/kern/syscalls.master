@@ -2316,7 +2316,7 @@
 430	AUE_THR_CREATE	STD|CAPENABLED {
 		int thr_create(
 		    _In_ _Contains_int_ptr_ ucontext_t *ctx,
-		    _Out_ int *id,
+		    _Out_ long *id,
 		    int flags
 		);
 	}
@@ -2327,12 +2327,12 @@
 	}
 432	AUE_NULL	STD|CAPENABLED {
 		int thr_self(
-		    _Out_ int *id
+		    _Out_ long *id
 		);
 	}
 433	AUE_THR_KILL	STD|CAPENABLED {
 		int thr_kill(
-		    int id,
+		    long id,
 		    int sig
 		);
 	}
@@ -2389,7 +2389,7 @@
 	}
 443	AUE_NULL	STD|CAPENABLED {
 		int thr_wake(
-		    int id
+		    long id
 		);
 	}
 444	AUE_MODUNLOAD	STD {
@@ -2523,7 +2523,7 @@
 	}
 464	AUE_NULL	STD|CAPENABLED {
 		int thr_set_name(
-		    int id,
+		    long id,
 		    _In_z_ const char *name
 		);
 	}
@@ -2633,7 +2633,7 @@
 481	AUE_THR_KILL2	STD {
 		int thr_kill2(
 		    pid_t pid,
-		    int id,
+		    long id,
 		    int sig
 		);
 	}

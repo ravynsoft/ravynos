@@ -1186,17 +1186,17 @@ struct sigwait_args {
 };
 struct thr_create_args {
 	char ctx_l_[PADL_(ucontext_t *)]; ucontext_t * ctx; char ctx_r_[PADR_(ucontext_t *)];
-	char id_l_[PADL_(int *)]; int * id; char id_r_[PADR_(int *)];
+	char id_l_[PADL_(long *)]; long * id; char id_r_[PADR_(long *)];
 	char flags_l_[PADL_(int)]; int flags; char flags_r_[PADR_(int)];
 };
 struct thr_exit_args {
 	char state_l_[PADL_(long *)]; long * state; char state_r_[PADR_(long *)];
 };
 struct thr_self_args {
-	char id_l_[PADL_(int *)]; int * id; char id_r_[PADR_(int *)];
+	char id_l_[PADL_(long *)]; long * id; char id_r_[PADR_(long *)];
 };
 struct thr_kill_args {
-	char id_l_[PADL_(int)]; int id; char id_r_[PADR_(int)];
+	char id_l_[PADL_(long)]; long id; char id_r_[PADR_(long)];
 	char sig_l_[PADL_(int)]; int sig; char sig_r_[PADR_(int)];
 };
 struct jail_attach_args {
@@ -1228,7 +1228,7 @@ struct thr_suspend_args {
 	char timeout_l_[PADL_(const struct timespec *)]; const struct timespec * timeout; char timeout_r_[PADR_(const struct timespec *)];
 };
 struct thr_wake_args {
-	char id_l_[PADL_(int)]; int id; char id_r_[PADR_(int)];
+	char id_l_[PADL_(long)]; long id; char id_r_[PADR_(long)];
 };
 struct kldunloadf_args {
 	char fileid_l_[PADL_(int)]; int fileid; char fileid_r_[PADR_(int)];
@@ -1320,7 +1320,7 @@ struct abort2_args {
 	char args_l_[PADL_(void **)]; void ** args; char args_r_[PADR_(void **)];
 };
 struct thr_set_name_args {
-	char id_l_[PADL_(int)]; int id; char id_r_[PADR_(int)];
+	char id_l_[PADL_(long)]; long id; char id_r_[PADR_(long)];
 	char name_l_[PADL_(const char *)]; const char * name; char name_r_[PADR_(const char *)];
 };
 struct aio_fsync_args {
@@ -1406,7 +1406,7 @@ struct ftruncate_args {
 };
 struct thr_kill2_args {
 	char pid_l_[PADL_(pid_t)]; pid_t pid; char pid_r_[PADR_(pid_t)];
-	char id_l_[PADL_(int)]; int id; char id_r_[PADR_(int)];
+	char id_l_[PADL_(long)]; long id; char id_r_[PADR_(long)];
 	char sig_l_[PADL_(int)]; int sig; char sig_r_[PADR_(int)];
 };
 struct shm_unlink_args {
