@@ -56,6 +56,7 @@ ${.CURDIR}/kickSession: kickSession.m
 	${CC} -D__RAVYNOS__ -D__MACH__ -O0 -g -o ${.TARGET} ${.ALLSRC} \
 		--sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin \
 		${OBJCFLAGS} -I${SRCTOP}/Frameworks -I${MAKEOBJDIR} \
+		-F${OBJTOP}/Frameworks/Foundation \
 		-I${SRCTOP}/Frameworks/AppKit/Headers \
 		-I${OBJTOP}/Frameworks/Foundation/Headers \
 		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \

@@ -6,6 +6,7 @@ open: open.m
 	-D__RAVYNOS__ -D__MACH__ -fobjc-runtime=gnustep-2.0 \
 	-fobjc-nonfragile-abi -fPIC \
 	-Wno-missing-method-return-type -Wno-macro-redefined \
+	-F${OBJTOP}/Frameworks/Foundation \
 	-I${OBJTOP}/Frameworks/Foundation/Headers \
 	-I${SRCTOP}/Frameworks/LaunchServices \
 	-I${SRCTOP}/Frameworks \
