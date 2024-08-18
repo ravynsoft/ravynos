@@ -26,7 +26,7 @@ LIBXML2_CFLAGS=  -I${SRCTOP}/lib/libxml2/include \
 LIBXML2_LIBS=	 -L${OBJTOP}/lib/libxml2 -lxml2
 LDFLAGS+=	 ${FREETYPE_LIBS} ${LIBXML2_LIBS}
 
-LD_LIBRARY_PATH+= ${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework:${OBJTOP}/tmp/usr/lib
+LD_LIBRARY_PATH+= ${OBJTOP}/Frameworks/CFNetwork/CFNetwork.framework:${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework:${OBJTOP}/Frameworks/Foundation/Foundation.framework:${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework:${OBJTOP}/tmp/usr/lib
 .export LD_LIBRARY_PATH FREETYPE_CFLAGS FREETYPE_LIBS
 .export LIBXML2_CFLAGS LIBXML2_LIBS
 
