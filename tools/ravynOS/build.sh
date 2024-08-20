@@ -52,7 +52,7 @@ drm_build() {
     if [ ! -d drm-kmod ]; then
         git clone https://github.com/ravynsoft/drm-kmod.git
     fi
-    COMPILER_TYPE=clang make -C drm-kmod 
+    COMPILER_TYPE=clang SYSDIR=${CIRRUS_WORKING_DIR}/sys make -C drm-kmod 
     mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/boot/modules
     COMPILER_TYPE=clang make -C drm-kmod install DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/
     if [ $? -ne 0 ]; then exit $?; fi
