@@ -133,7 +133,7 @@ mount -t tmpfs tmpfs /Users/liveuser
 tar -C /sysroot/Users/liveuser -cpf - . | tar -C /Users/liveuser -xf -
 
 echo "==> Loading important modules"
-for mod in ums utouch firewire; do
+for mod in ums firewire; do
 	echo -n "$mod "; kldload $mod
 done
 
