@@ -1687,21 +1687,21 @@ with_gallium_drisw_kms = false
 if system_has_kms_drm
   dep_libdrm = declare_dependency(
     link_with: static_library('libdrm.a'),
-    include_directories: include_directories('.')
+    include_directories: include_directories('.'),
     # GNU/Hurd includes egl_dri2, without drm.
-    #required : (with_dri2 and host_machine.system() != 'gnu') or with_dri3
+    #required: (with_dri2 and host_machine.system() != 'gnu') or with_dri3
   )
 else
   # We should prevent libdrm from being available when the target doesn't have it to avoid transitive
   # dependencies (such as vk-runtime) linking to it
   dep_libdrm = null_dep
 endif
-if dep_libdrm.found()
+#if dep_libdrm.found()
   pre_args += '-DHAVE_LIBDRM'
   if with_dri_platform == 'drm' and with_dri
     with_gallium_drisw_kms = true
   endif
-endif
+#endif
 
 dep_libudev = dependency('libudev', required : false)
 if dep_libudev.found()

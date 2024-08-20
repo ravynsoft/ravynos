@@ -4,7 +4,7 @@ LIB=            libmesa
 PACKAGE=        OpenGL
 
 CFLAGS=         --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
-CFLAGS+=        -DHAVE_DRISW_KMS -DHAVE_DRI -DHAVE_DRI2 -DHAVE_DRI3
+CFLAGS+=        -DHAVE_DRISW_KMS -DHAVE_DRI -DHAVE_DRI2 
 CFLAGS+=        -I${.CURDIR}/../wayland/src
 CFLAGS+=        -I${.CURDIR}/../wayland/egl
 CFLAGS+=        -I${MAKEOBJDIR}/../wayland/src
@@ -28,6 +28,7 @@ build:
 	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/Frameworks/OpenGL/libpciaccess:${OBJTOP}/Frameworks/OpenGL/wayland/src:${OBJTOP}/Frameworks/OpenGL/libdrm \
         PYTHONPATH=${OBJTOP}/tmp/usr/lib/python3.10 \
         PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:$${PATH} \
+	CFLAGS="${CFLAGS:C/-Werror=.* //g}" \
         ${MESON} setup --reconfigure -Dprefix=${PREFIX} -Dplatforms=wayland \
         -DSRCTOP=${SRCTOP} -Dc_args="${CFLAGS}" -Dcpp_args="${CFLAGS}" \
         -Dc_link_args="${LDFLAGS}" -Dcpp_link_args="${LDFLAGS}" \
@@ -35,8 +36,10 @@ build:
         -Dgallium-vdpau=disabled -Dvulkan-drivers='[]' -Dllvm=disabled \
         -Dgles1=enabled -Dgles2=enabled -Dopengl=true -Dglx=disabled \
         -Degl=enabled -Dlibunwind=disabled -Dlmsensors=disabled -Dbuild-tests=false \
-        -Dzstd=disabled -Dzlib=enabled -Dvideo-codecs=all -Ddri3=enabled \
+        -Dzstd=disabled -Dzlib=enabled -Dvideo-codecs=all -Ddri3=disabled \
         -Dgbm=enabled -Dxmlconfig=disabled -Dexpat=disabled \
+	-Ddri-search-path=/System/Library/Frameworks/OpenGL.framework/Versions/Current:/Library/Drivers/DRI:/usr/lib/dri \
+	-Dgbm-backends-path=/System/Library/Frameworks/OpenGL.framework/Versions/Current:/Library/Drivers/GBM:/usr/lib/gbm \
 	${MAKEOBJDIR} ${.CURDIR}
 	sed -i.bak -e 's@-I/usr/include@@g' ${MAKEOBJDIR}/build.ninja
 	PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/Frameworks/OpenGL/wayland/scanner:${OBJTOP}/usr.bin/clang/llvm-ar:$$PATH \

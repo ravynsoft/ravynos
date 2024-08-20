@@ -97,15 +97,16 @@ LDFLAGS+= -Llibdrm -Llibpciaccess -Lwayland/src \
 LD_LIBRARY_PATH+= ${OBJTOP}/tmp/usr/lib
 .export LD_LIBRARY_PATH
 
-#src/gallium/targets/xa/libxatracker.so.2 \
-
 _libinstall_hook:
 	echo ${FRAMEWORK} ${.TARGET}
-	rm -rf mesa/src/gallium/targets/dri/libgallium_dri.so*.p
-	cp -Rfv mesa/src/gallium/targets/dri/libgallium_dri.so \
-		${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/
 .for i in \
-          src/mapi/es1api/libGLESv1_CM.so.1 
+          src/mapi/es1api/libGLESv1_CM.so.1 \
+	  src/gallium/targets/dri/i915_dri.so \
+	  src/gallium/targets/dri/iris_dri.so \
+	  src/gallium/targets/dri/kms_swrast_dri.so \
+	  src/gallium/targets/dri/libgallium_dri.so \
+	  src/gallium/targets/dri/swrast_dri.so \
+	  src/gallium/targets/dri/vmwgfx_dri.so
 	rm -rf mesa/${i}*.p
 	cp -Rfv mesa/${i}* ${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/
 	ln -sfv ${i:T} ${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/${i:T:R}
