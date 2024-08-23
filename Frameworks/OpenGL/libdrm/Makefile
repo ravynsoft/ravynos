@@ -46,7 +46,7 @@ CFLAGS+=        -I${.CURDIR}/include/drm -I${.CURDIR} \
 CFLAGS+=        -DHAVE_INTEL
 .endif
 
-LDFLAGS+=       -L${MAKEOBJDIR}/../libpciaccess -lpciaccess -Wl,-R\$$ORIGIN/Resources
+LDFLAGS+=       -L${MAKEOBJDIR}/../libpciaccess -lpciaccess -Wl,-R\$$ORIGIN
 
 WARNS?=	2
 
