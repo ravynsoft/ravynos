@@ -1,0 +1,54 @@
+
+// If you want non-latin layouts to implicitly include the en_US layout,
+// then uncomment the following lines:
+//! $nonlatin = af am ara bd bg bt by eg et ge gn gr id il in ir \
+//              jp jv kg kh kr kz la lk ma me mk mm mn mv my \
+//              pk rs ru sy th tj tz ua uz
+
+// PC models
+! $pcmodels = pc86 pc101 pc102 pc104 pc104alt pc105
+
+// Jolla devices and keyboards
+! $jollamodels = jollasbj
+
+// Microsoft models (using MS geometry)
+! $msmodels = microsoft microsoft4000 microsoft7000 microsoftpro microsoftprousb microsoftprose microsoftsurface
+
+// Nokia devices and keyboards
+! $nokiamodels = nokiasu8w nokiarx44 nokiarx51
+
+// TypeMatrix geometries
+! $tmgeometries = tm2020 tm2030PS2 tm2030USB tm2030USB-102 tm2030USB-106
+
+// Country files that provide specializations for the OLPC:
+! $olpclayouts = af am ara br ca es et fr in it kh kz mn ng np pk ru th tr us
+
+! $macbooks = macbook78 macbook79
+! $maclaptop = ibook powerbook macbook78 macbook79
+! $applealu = applealu_ansi applealu_iso applealu_jis
+! $macs = macintosh macintosh_old ibook powerbook macbook78 macbook79
+
+! $macvendorlayouts = ch de dk fi fr gb is it latam nl no pt se us
+
+// The countries that predominantly have AZERTY or QWERTZ layouts:
+! $azerty = be fr
+! $qwertz = al ch cz de hr hu ro si sk
+
+! $thinkpads = thinkpad thinkpad60 thinkpadz60
+
+! $sun = sun_type6_jp sun_type6_usb sun_type6_euro_usb \
+         sun_type6_jp_usb sun_type6_unix_usb sun_type7_jp_usb \
+         sun_type7_usb sun_type7_euro_usb sun_type7_unix_usb
+
+! $sun_jp = sun_type6_jp sun_type6_jp_usb sun_type7_jp_usb
+
+// Sun Type_6_7 keyboards with custom layouts
+! $sun_custom = ara be br ca ch cz de dk \
+                ee es fi fr gb gr it jp \
+                kr lt lv nl no pl pt ro \
+                ru se sk tr tw ua us
+
+! $sun_var =  sun_type6 sun_type6_suncompat sun_type6_de sun_type6_fr \
+              sun_type7 sun_type7_suncompat suncompat
+
+! $sun_compat = sun_type6 sun_type6_suncompat sun_type7_suncompat suncompat

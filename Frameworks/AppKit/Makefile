@@ -7,6 +7,7 @@ NO_FMWK_COMMON=yes
 .include "../framework.common.mk"
 
 SUBDIR+=	libxkbcommon
+SUBDIR+=	xkeyboard-config
 LINK_SUBDIR+=	libxkbcommon/src
 LINK_EXT.libxkbcommon/src= .pico
 
@@ -685,6 +686,8 @@ _install-hook:
 .endfor
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+	mkdir -pv ${BUILDROOT}/System/Library/KeyboardLayout
+	${MAKE} -C ${.CURDIR}/xkeyboard-config install DESTDIR=${DESTDIR} BUILDROOT=${BUILDROOT}
 
 xdg-shell-client-protocol.h:
 	${SCANNER} client-header \

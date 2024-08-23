@@ -1,0 +1,65 @@
+// Keyboard layout for Congo.
+
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+
+    name[Group1]= "French (Democratic Republic of the Congo)";
+
+    key.type[Group1] = "FOUR_LEVEL";
+
+    key <TLDE>	{[     grave, asciitilde,          U0303            ]}; // combining tilde
+    key <AE01>	{[ ampersand,          1,     numbersign            ]};
+    key <AE02>	{[     U0301,          2,             at            ]}; // combining acute
+    key <AE03>	{[     U0300,          3,  guillemotleft            ]}; // combining grave
+    key <AE04>	{[ parenleft,          4,    bracketleft            ]};
+    key <AE05>	{[ braceleft,          5,           less            ]};
+    key <AE06>	{[braceright,          6,        greater            ]};
+    key <AE07>	{[parenright,          7,   bracketright            ]};
+    key <AE08>	{[     U0302,          8, guillemotright            ]}; // combining circumflex
+    key <AE09>	{[     U030C,          9,          U030D            ]}; // combining caron, combining verical line above
+    key <AE10>	{[     U0308,          0,             at            ]}; // combining diaeresis
+    key <AE11>	{[     minus, underscore,        percent,    degree ]};
+    key <AE12>	{[     equal,       plus,       multiply,  division ]};
+
+    key <AD01>	{[         a,          A,             ae,        AE ]};
+    key <AD02>	{[         z,          Z                            ]};
+    key <AD03>	{[         e,          E,             oe,        OE ]};
+    key <AD04>	{[         r,          R                            ]};
+    key <AD05>	{[         t,          T                            ]};
+    key <AD06>	{[         y,          Y                            ]};
+    key <AD07>	{[         u,          U,          U0289,     U0244 ]}; // ʉ Ʉ
+    key <AD08>	{[         i,          I,          U0268,     U0197 ]}; // ɨ Ɨ
+    key <AD09>	{[         o,          O,         oslash,    Oslash ]};
+    key <AD10>	{[         p,          P                            ]};
+    key <AD11>	{[     U025B,      U0190,    asciicircum            ]}; // ɛ Ɛ
+    key <AD12>	{[  asterisk, asciicircum,        dollar            ]};
+
+    key <AC01>	{[         q,          Q                            ]};
+    key <AC02>	{[         s,          S                            ]};
+    key <AC03>	{[         d,          D                            ]};
+    key <AC04>	{[         f,          F                            ]};
+    key <AC05>	{[         g,          G                            ]};
+    key <AC06>	{[         h,          H                            ]};
+    key <AC07>	{[         j,          J                            ]};
+    key <AC08>	{[         k,          K                            ]};
+    key <AC09>	{[         l,          L                            ]};
+    key <AC10>	{[         m,          M                            ]};
+    key <AC11>	{[     U0254,      U0186                            ]}; // ɔ Ɔ
+    key <BKSL>	{[  quotedbl,  backslash,            bar            ]};
+
+    key <LSGT>	{[ backslash,        bar                            ]};
+    key <AB01>	{[         w,          W                            ]};
+    key <AB02>	{[         x,          X                            ]};
+    key <AB03>	{[         c,          C                            ]};
+    key <AB04>	{[         v,          V                            ]};
+    key <AB05>	{[         b,          B                            ]};
+    key <AB06>	{[         n,          N,            eng,       ENG ]};
+    key <AB07>	{[     comma,   question,          U0327            ]}; // combining cedilla
+    key <AB08>	{[ semicolon,     period                            ]};
+    key <AB09>	{[     colon,      slash                            ]};
+    key <AB10>	{[    exclam, apostrophe,          U2019            ]}; // single comma quotation mark
+
+    key <SPCE>	{[     space,      space,   nobreakspace,     U202F ]}; // narrow no-break space
+
+    include "level3(ralt_switch)"
+};

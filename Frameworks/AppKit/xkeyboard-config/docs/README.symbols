@@ -1,0 +1,47 @@
+
+The files in the symbols directory describe possible keyboard layouts
+for a given  country or language or script.
+
+The default layout in each file should describe the most common layout
+for its kind, usually the one that matches the symbols printed on the
+keys.  Layout variants can describe common deviations that are not
+necessarily printed on the keys (e.g. a phonetic version of Cyrillic).
+
+The names of the files are referenced throughout the XKB rules, and may
+be exposed in the X server configuration and in user configuration tools.
+The filenames use the following convention:
+
+Country layouts:
+  Keyboard layouts for a country must use the 2-letter code from the
+  ISO-3166 standard.
+
+Language layouts:
+  Keyboard layouts for a language must use the 3-letter code from the
+  ISO-639 standard.
+
+Script layouts:
+  Keyboard layouts for a script must use the 4-letter code from the
+  ISO-15924 standard.
+
+Other:
+  Keyboard layouts that do not fit in the above categories must use a
+  filename between 5 and 8 characters.
+
+The relevant ISO codes can be found at the following addresses:
+
+Country layouts:  http://www.iso.org/iso/home/standards/country_codes/iso-3166-1_decoding_table.htm
+Language layouts: http://www.loc.gov/standards/iso639-2/php/code_list.php
+Script layouts:   http://www.unicode.org/iso15924/iso15924-codes.html
+
+The descriptions of the layouts in the file base.xml.in should match the
+group names in the symbols file.
+
+If the layout is country-based, the group name has to be the full name of
+the country.  It is highly discouraged to use forms like "Republic of XXX"
+or "XXX Republic" -- the form "XXX" should be used instead.
+
+If the layout is language-based, the group name has to be the name of the
+language.
+
+Within a single symbols file, all the variants should have the same group name
+(implemented using the "include" directive wherever possible).
