@@ -69,7 +69,7 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
                 -L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
                 -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
-		-lWindowServer -lFoundation -lOpenGL -lm -L${MAKEOBJDIR}/wlroots \
+		-lWindowServer -lFoundation -lm -L${MAKEOBJDIR}/wlroots \
 		-lwlroots -lwayland -lobjc -lSystem -lpixman-1 -lutil -lepoll-shim \
 		-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Versions/A -lOpenGL \
 		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
@@ -97,6 +97,7 @@ ${MAKEOBJDIR}/libWindowServer.so:
 		-L${OBJTOP}/CoreServices/WindowServer/gplv2/cairo -lcairo \
 		-lpng -lz
 	cp -f ${.TARGET} ${APP_DIR}/Contents/Resources/
+	cp -fv ${.CURDIR}/libinput/quirks/* ${APP_DIR}/Contents/Resources/
 
 make-obj-dirs: .EXEC
 	mkdir -p ${MAKEOBJDIR}

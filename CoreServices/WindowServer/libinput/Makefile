@@ -84,8 +84,8 @@ CFLAGS+=        -I${.CURDIR}/../libevdev -I${.CURDIR}
 CFLAGS+=        -I${OBJTOP}/tmp/usr/include/libepoll-shim
 CFLAGS+=	-I${SRCTOP}/lib/libudev-devd -I${.CURDIR}/../mtdev/include
 CFLAGS+=        -DHTTP_DOC_LINK=\"https://wayland.freedesktop.org/libinput/doc/${MAJOR}.${MINOR}.${MICRO}\"
-CFLAGS+=        -DLIBINPUT_QUIRKS_DIR=\"${PREFIX}/share/libinput\"
-CFLAGS+=        -DLIBINPUT_QUIRKS_OVERRIDE_FILE=\"/etc/libinput/local-overrides.quirks\"
+CFLAGS+=        -DLIBINPUT_QUIRKS_DIR=\"/System/Library/CoreServices/WindowServer.app/Contents/Resources\"
+CFLAGS+=        -DLIBINPUT_QUIRKS_OVERRIDE_FILE=\"/System/Library/CoreServices/WindowServer.app/Contents/Resources/local-overrides.quirks\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_SRCDIR=\"${.CURDIR}/quirks\"
 CFLAGS+=        -DHAVE_VERSIONSORT -fPIC
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources'
