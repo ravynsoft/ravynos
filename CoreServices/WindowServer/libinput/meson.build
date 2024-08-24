@@ -143,11 +143,14 @@ config_h.set10('HAVE_INSTALLED_TESTS', get_option('install-tests'))
 
 # Dependencies
 pkgconfig = import('pkgconfig')
-dep_udev = dependency('libudev')
-dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
-dep_libevdev = dependency('libevdev')
-config_h.set10('HAVE_LIBEVDEV_DISABLE_PROPERTY',
-		dep_libevdev.version().version_compare('>= 1.9.902'))
+#dep_udev = dependency('libudev')
+dep_udev = []
+#dep_mtdev = dependency('mtdev', version : '>= 1.1.0')
+dep_mtdev= []
+#dep_libevdev = dependency('libevdev')
+dep_libevdev = []
+#config_h.set10('HAVE_LIBEVDEV_DISABLE_PROPERTY',
+#		dep_libevdev.version().version_compare('>= 1.9.902'))
 
 dep_lm = cc.find_library('m', required : false)
 dep_rt = cc.find_library('rt', required : false)
@@ -158,7 +161,7 @@ includes_src = include_directories('src')
 
 ############ libwacom configuration ############
 
-have_libwacom = get_option('libwacom')
+have_libwacom = false #get_option('libwacom')
 config_h.set10('HAVE_LIBWACOM', have_libwacom)
 if have_libwacom
 	dep_libwacom = dependency('libwacom', version : '>= 0.27')
@@ -239,12 +242,12 @@ else
 	#include <sys/epoll.h>
 	int main(void) { epoll_create1(0); }
 	'''
-	if not cc.links(code,
-		name : 'libepoll-shim check',
-		dependencies : [dep_libepoll, dep_rt],
-		include_directories : includes_epoll) # note: wants an include_directories object
-		error('No built-in epoll or libepoll-shim found.')
-	endif
+	#if not cc.links(code,
+	#	name : 'libepoll-shim check',
+	#	dependencies : [dep_libepoll, dep_rt],
+	#	include_directories : includes_epoll) # note: wants an include_directories object
+	#	error('No built-in epoll or libepoll-shim found.')
+	#endif
 	dep_libepoll = declare_dependency(
 		include_directories : includes_epoll,
 		dependencies : [dep_libepoll, dep_rt])

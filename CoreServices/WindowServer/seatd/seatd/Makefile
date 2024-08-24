@@ -19,7 +19,8 @@ SRCS=	client.c \
 
 PACKAGE=WindowServer
 WARNS?=	2
-CFLAGS+= -I${.CURDIR}/../include -Uunix
+CFLAGS+= -I${.CURDIR}/../include -I${.CURDIR}/../../libevdev/include -Uunix
+CFLAGS+= -I${OBJTOP}/tmp/usr/include
 LDFLAGS+= -Wl,-R'$$ORIGIN'
 
 make-obj-dirs:

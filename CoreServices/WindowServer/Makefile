@@ -87,6 +87,7 @@ SUBDIR+=	gplv2/cairo
 SUBDIR+=	mtdev
 
 ${MAKEOBJDIR}/libWindowServer.so:
+	${MAKE} -C libevdev tools
 	${LD} -o ${.TARGET} -shared -soname ${.TARGET:T} --no-as-needed \
 		$$(find ${MAKEOBJDIR} -name \*.pico | grep -v '.depend.') \
 		-L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework -lOnyx2D \
@@ -98,6 +99,7 @@ ${MAKEOBJDIR}/libWindowServer.so:
 		-lpng -lz
 	cp -f ${.TARGET} ${APP_DIR}/Contents/Resources/
 	cp -fv ${.CURDIR}/libinput/quirks/* ${APP_DIR}/Contents/Resources/
+	${MAKE} -C libevdev tools-install APP_DIR=${APP_DIR}
 
 make-obj-dirs: .EXEC
 	mkdir -p ${MAKEOBJDIR}

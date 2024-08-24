@@ -86,8 +86,12 @@ CFLAGS+=	-I${SRCTOP}/lib/libudev-devd -I${.CURDIR}/../mtdev/include
 CFLAGS+=        -DHTTP_DOC_LINK=\"https://wayland.freedesktop.org/libinput/doc/${MAJOR}.${MINOR}.${MICRO}\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_DIR=\"/System/Library/CoreServices/WindowServer.app/Contents/Resources\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_OVERRIDE_FILE=\"/System/Library/CoreServices/WindowServer.app/Contents/Resources/local-overrides.quirks\"
-CFLAGS+=        -DLIBINPUT_QUIRKS_SRCDIR=\"${.CURDIR}/quirks\"
-CFLAGS+=        -DHAVE_VERSIONSORT -fPIC
+CFLAGS+=	-DLIBINPUT_TOOL_PATH=\"/System/Library/CoreServices/WindowServer.app/Contents/Resources\"
+CFLAGS+=        -DLIBINPUT_QUIRKS_SRCDIR=\"${.CURDIR}/quirks\" -D_GNU_SOURCE=1 -DHAVE_LOCALE_H
+CFLAGS+=        -DHAVE_VERSIONSORT -DMESON_BUILD_ROOT=\"\" -DPTRACE_ATTACH=PT_ATTACH -DHAVE_XLOCALE_H
+CFLAGS+=	-DPTRACE_CONT=PT_CONTINUE -DPTRACE_DETACH=PT_DETACH -DHAVE_INSTALLED_TESTS=0
+CFLAGS+=	-Dprogram_invocation_short_name=\"getprogname\(\)\"
+CFLAGS+=	-DHAVE_LIBEVDEV_DISABLE_PROPERTY -DHAVE_LIBWACOM=0 -DHAVE_DEBUG_GUI=0 -fPIC
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources'
 
 libinput-version.h:

@@ -14,7 +14,7 @@ INCS=	        libevdev/libevdev-uinput.h \
                 libevdev/libevdev.h
 
 CFLAGS+=        -I${SRCTOP}/sys/compat/linuxkpi/common/include \
-                -I${.CURDIR}/include/linux \
+                -I${.CURDIR}/include \
 	        -I${.CURDIR} \
                 -I${MAKEOBJDIR} \
                 -DHAVE_DLFCN_H \
@@ -48,9 +48,30 @@ ${INCSDIR}: .PHONY
 event-names.h: .PHONY
 	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib ${OBJTOP}/tmp/usr/bin/python3 \
 		${.CURDIR}/libevdev/make-event-names.py \
-        	${.CURDIR}/include/linux/linux/input.h \
-        	${.CURDIR}/include/linux/linux/input-event-codes.h >${.TARGET}
+        	${.CURDIR}/include/linux/freebsd/input.h \
+        	${.CURDIR}/include/linux/freebsd/input-event-codes.h >${.TARGET}
 
+TOOL_CFLAGS= -D__float_t=float -D__double_t=double
+TOOL_LDFLAGS= -L${MAKEOBJDIR} -levdev
+TOOLS=	libevdev-events touchpad-edge-detector \
+	mouse-dpi-tool libevdev-tweak-device
+
+tools: ${TOOLS}
+libevdev-events: tools/libevdev-events.c
+	${CC} ${CPPFLAGS} ${CFLAGS} ${TOOL_CFLAGS} -c $< -o $@.o
+	${CC} -o $@ $@.o ${TOOL_LDFLAGS}
+touchpad-edge-detector: tools/touchpad-edge-detector.c
+	${CC} ${CPPFLAGS} ${CFLAGS} ${TOOL_CFLAGS} -c $< -o $@.o
+	${CC} -o $@ $@.o ${TOOL_LDFLAGS} -lm
+mouse-dpi-tool: tools/mouse-dpi-tool.c
+	${CC} ${CPPFLAGS} ${CFLAGS} ${TOOL_CFLAGS} -c $< -o $@.o
+	${CC} -o $@ $@.o ${TOOL_LDFLAGS}
+libevdev-tweak-device: tools/libevdev-tweak-device.c
+	${CC} ${CPPFLAGS} ${CFLAGS} ${TOOL_CFLAGS} -c $< -o $@.o
+	${CC} -o $@ $@.o ${TOOL_LDFLAGS}
+
+tools-install: .PHONY
+	cp -fv ${TOOLS} ${APP_DIR}/Contents/Resources/
 
 .include <bsd.lib.mk>
 
