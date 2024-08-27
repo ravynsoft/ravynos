@@ -1108,7 +1108,7 @@ evdev_sync_device(struct evdev_device *device)
 		evdev_device_dispatch_one(device, &ev);
 	} while (rc == LIBEVDEV_READ_STATUS_SYNC);
 
-	return rc == -EAGAIN ? 0 : rc;
+	return (rc == -EAGAIN || rc == -EINVAL) ? 0 : rc;
 }
 
 static inline void
@@ -1181,6 +1181,12 @@ evdev_device_dispatch(void *data)
 
 	if (rc != -EAGAIN && rc != -EINTR) {
 		libinput_remove_source(libinput, device->source);
+		device->source = NULL;
+		int dummy_fd = open("/dev/null", O_RDONLY | O_CLOEXEC);
+		if(dummy_fd >= 0) {
+			dup2(dummy_fd, device->fd);
+			close(dummy_fd);
+		}
 		device->source = NULL;
 	}
 }
