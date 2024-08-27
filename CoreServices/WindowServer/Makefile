@@ -43,9 +43,13 @@ SRCS=           WindowServer.m \
                 session.c \
                 desktop.c 
 RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf \
+		${MAKEOBJDIR}/libevdev/libevdev.so.2 \
+		${MAKEOBJDIR}/libevdev/libevdev.so \
 		${MAKEOBJDIR}/seatd/seatd/seatd \
 		${MAKEOBJDIR}/seatd/libseat/libseat.so.0 \
-		${MAKEOBJDIR}/seatd/libseat/libseat.so
+		${MAKEOBJDIR}/seatd/libseat/libseat.so \
+		${MAKEOBJDIR}/libinput/libinput.so.1 \
+		${MAKEOBJDIR}/libinput/libinput.so
 
 MK_WERROR=	no
 WARNS=	        1
@@ -69,37 +73,39 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
                 -L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
                 -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
-		-lWindowServer -lFoundation -lm -L${MAKEOBJDIR}/wlroots \
+		-lFoundation -lm -L${MAKEOBJDIR}/wlroots \
 		-lwlroots -lwayland -lobjc -lSystem -lpixman-1 -lutil -lepoll-shim \
 		-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Versions/A -lOpenGL \
 		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
-		-ldrm -ludev-devd -ldevinfo -lxml2
+		-L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework -lOnyx2D \
+		-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
+		-L${OBJTOP}/Frameworks/CoreText/CoreText.framework -lCoreText \
+		-Wl,-R/System/Library/Frameworks/CoreText.framework/Versions/A \
+		-L${OBJTOP}/tmp/usr/lib \
+		-L${OBJTOP}/CoreServices/WindowServer/gplv2/cairo -lcairo \
+		-L${OBJTOP}/CoreServices/WindowServer/libevdev -levdev \
+		-L${OBJTOP}/CoreServices/WindowServer/libinput -linput \
+		-L${OBJTOP}/CoreServices/WindowServer/mtdev -lmtdev \
+		-L${OBJTOP}/CoreServices/WindowServer/seatd/libseat -lseat \
+		-lpng -lz -ldrm -ludev -ldevinfo -lxml2
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 .export SYSROOT
 
 SUBDIR+=        libevdev .WAIT
+SUBDIR+=	mtdev .WAIT
 SUBDIR+=        libinput .WAIT
 SUBDIR+=        wayland-protocols
 SUBDIR+=        seatd
 SUBDIR+=        wlroots
 SUBDIR+=	gplv2/cairo
-SUBDIR+=	mtdev
 
-${MAKEOBJDIR}/libWindowServer.so:
-	${MAKE} -C libevdev tools
-	${LD} -o ${.TARGET} -shared -soname ${.TARGET:T} --no-as-needed \
-		$$(find ${MAKEOBJDIR} -name \*.pico | grep -v '.depend.') \
-		-L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework -lOnyx2D \
-		-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-		-L${OBJTOP}/Frameworks/CoreText/CoreText.framework -lCoreText \
-		-R/System/Library/Frameworks/CoreText.framework/Versions/A \
-		-L${OBJTOP}/tmp/usr/lib \
-		-L${OBJTOP}/CoreServices/WindowServer/gplv2/cairo -lcairo \
-		-lpng -lz
-	cp -f ${.TARGET} ${APP_DIR}/Contents/Resources/
+${MAKEOBJDIR}/Resources:
 	cp -fv ${.CURDIR}/libinput/quirks/* ${APP_DIR}/Contents/Resources/
+	${MAKE} -C libevdev tools
 	${MAKE} -C libevdev tools-install APP_DIR=${APP_DIR}
+	${MAKE} -C libinput tools
+	${MAKE} -C libinput tools-install APP_DIR=${APP_DIR}
 
 make-obj-dirs: .EXEC
 	mkdir -p ${MAKEOBJDIR}
@@ -116,4 +122,4 @@ clean: .PHONY
 .include <bsd.subdir.mk>
 .include <rvn.app.mk>
 
-${OBJS}: ${MAKEOBJDIR}/libWindowServer.so
+${OBJS}: ${MAKEOBJDIR}/Resources
