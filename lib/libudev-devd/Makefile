@@ -40,7 +40,8 @@ CFLAGS+= -I${.CURDIR} -I${MAKEOBJDIR} -O2 -fPIC -pthread \
 	-DHAVE_SYS_TREE_H -DHAVE_DEVNAME_R -DHAVE_PIPE2 \
 	-DHAVE_STRCHRNUL -DHAVE_STRLCPY -DHAVE_SYSCTLBYNAME \
         -DHAVE_LINUX_INPUT_H -DTLS=__thread -DMESON_BUILD_ROOT=\"\" 
-LDFLAGS+= -pthread -ldevinfo -lprocstat
+LDFLAGS+= -pthread -L${OBJTOP}/lib/libdevinfo -ldevinfo
+LDFLAGS+= -L${OBJTOP}/lib/libprocstat -lprocstat
 
 WARNS?=	2
 

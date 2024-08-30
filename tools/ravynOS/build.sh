@@ -78,6 +78,8 @@ extras_build() {
     if [ ! -d neofetch ]; then
         git clone https://github.com/ravynsoft/neofetch.git
     fi
+    mkdir -p ${BUILDROOT}/release/dist/ravynOS/usr/bin/
+    mkdir -p ${BUILDROOT}/release/dist/ravynOS/usr/share/man/man1/
     cp -fv ${CIRRUS_WORKING_DIR}/neofetch/neofetch \
 	${BUILDROOT}/release/dist/ravynOS/usr/bin/
     cp -fv ${CIRRUS_WORKING_DIR}/neofetch/neofetch.1 \

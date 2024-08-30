@@ -34,7 +34,7 @@ build:
         -Dc_link_args="${LDFLAGS}" -Dcpp_link_args="${LDFLAGS}" \
         -Degl-native-platform=drm -Dgallium-drivers='i915,iris,svga,swrast' \
         -Dgallium-vdpau=disabled -Dvulkan-drivers='[]' -Dllvm=disabled \
-        -Dgles1=enabled -Dgles2=enabled -Dopengl=true \
+        -Dgles1=enabled -Dgles2=enabled -Dopengl=true -Dglx=disabled \
         -Degl=enabled -Dlibunwind=disabled -Dlmsensors=disabled -Dbuild-tests=false \
         -Dzstd=disabled -Dzlib=enabled -Dvideo-codecs=all -Ddri3=disabled \
         -Dgbm=enabled -Dxmlconfig=disabled -Dexpat=disabled \

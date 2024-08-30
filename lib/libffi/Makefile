@@ -5,6 +5,7 @@ AR=		${OBJTOP}/gnu/usr.bin/binutils/binutils/ar
 
 all: build
 build:
+	if [ ! -x ${AR} ]; then ${MAKE} -C ${SRCTOP}/gnu/usr.bin/binutils; fi
 	${.CURDIR}/configure --prefix=${PREFIX} ${CONFIGURE_ARGS}
 	${MAKE} -C ${MAKEOBJDIR}
 

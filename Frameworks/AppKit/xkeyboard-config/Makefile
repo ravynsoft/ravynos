@@ -24,7 +24,7 @@ build:
 	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/tmp/obj-tools/lib \
         PYTHONPATH=${OBJTOP}/tmp/usr/lib/python3.10 \
 	PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/usr.bin/clang/llvm-ar:$$PATH \
-	${NINJA}
+	${NINJA} -C ${MAKEOBJDIR}
 
 install:
 	echo ${PACKAGE} ${LIB} ${.TARGET}
