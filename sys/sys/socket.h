@@ -264,10 +264,14 @@ struct accept_filter_arg {
 #define	AF_NETLINK	38		/* Netlink protocol */
 #define	AF_INET_SDP	40		/* OFED Socket Direct Protocol ipv4 */
 #define	AF_INET6_SDP	42		/* OFED Socket Direct Protocol ipv6 */
-#define AF_SYSTEM	43		/* Mach */
-#define	AF_HYPERV	44		/* HyperV sockets */
-#define	AF_DIVERT	46		/* divert(4) */
-#define	AF_MAX		46
+#define	AF_HYPERV	43		/* HyperV sockets */
+#define	AF_DIVERT	44		/* divert(4) */
+#define AF_RESV00	46		/* Reserved */
+#define AF_RESV01	48		/* Reserved */
+#define AF_RESV02	50		/* Reserved */
+#define AF_RESV03	52		/* Reserved */
+#define AF_SYSTEM	54		/* Mach */
+#define	AF_MAX		54
 /*
  * When allocating a new AF_ constant, please only allocate
  * even numbered constants for FreeBSD until 134 as odd numbered AF_
