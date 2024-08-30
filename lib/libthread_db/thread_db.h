@@ -59,7 +59,9 @@ typedef enum {
 
 struct ps_prochandle;
 typedef struct td_thragent td_thragent_t;
+#ifndef _MACH_MACH_TYPES_H_
 typedef long thread_t;			/* Must be an integral type. */
+#endif
 
 typedef struct {
 	const td_thragent_t *th_ta;

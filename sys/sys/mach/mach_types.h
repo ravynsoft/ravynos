@@ -273,7 +273,10 @@ typedef	thread_port_t		*thread_port_array_t;
 typedef mach_port_t		processor_set_control_port_t;
 typedef mach_port_t		processor_set_name_port_t;
 typedef vm_offset_t		*emulation_vector_t;
-typedef	long			thread_t, thread_act_t;
+#ifndef _THREAD_DB_H_
+typedef	long			thread_t;
+#endif
+typedef long			thread_act_t;
 typedef mach_port_t		thread_act_port_t;
 typedef	thread_act_port_t	*thread_act_port_array_t;
 typedef mach_port_t		lock_set_port_t;

@@ -516,7 +516,12 @@ ${_tgt}: ${META_DEPS}
 .endfor
 .endif
 
-CFLAGS+= -D__RAVYNOS__ -D__MACH__
+CFLAGS+= -D__RAVYNOS__
+.if defined(NO_MACH)
+CFLAGS+=  -U__MACH__
+.else
+CFLAGS+=  -D__MACH__
+.endif
 
 # we are generally the last makefile read
 CFLAGS+= ${CFLAGS_LAST}
