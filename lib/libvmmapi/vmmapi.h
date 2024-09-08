@@ -64,6 +64,14 @@ enum vm_mmap_style {
 #define	VM_MEM_F_INCORE	0x01	/* include guest memory in core file */
 #define	VM_MEM_F_WIRED	0x02	/* guest memory is wired */
 
+/* Memory size and allocation policy for a single NUMA domain. */
+struct vm_mem_domain {
+	size_t size;
+	int ds_policy;
+	domainset_t *ds_mask;
+	size_t ds_size;
+};
+
 __BEGIN_DECLS
 /*
  * Get the length and name of the memory segment identified by 'segid'.
