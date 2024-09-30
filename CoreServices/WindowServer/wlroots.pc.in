@@ -1,9 +1,0 @@
-prefix=@CURDIR@/wlroots
-libdir=@MAKEOBJDIR@/wlroots
-includedir=${prefix}/include
-
-Name: wlroots
-Description: wlroots library
-Version: @VERSION@
-Libs: -L${libdir} -lwlroots
-Cflags: -I${includedir} -I@MAKEOBJDIR@/wlroots/include

@@ -6,6 +6,8 @@ INSTALL=	${OBJTOP}/tmp/legacy/bin/install
 
 CONFIGURE_ARGS+= --prefix=/ \
 		 --sysconfdir=/etc \
+		 --with-templatedir=/System/Library/Frameworks/CoreText.framework/Resources \
+		 --with-xmldir=/System/Library/Frameworks/CoreText.framework/Resources \
 		 --localstatedir=/var \
 		 --enable-static=yes \
 		 --enable-shared=no \
@@ -39,9 +41,11 @@ ${MAKEOBJDIR}/Makefile:
 
 build: ${MAKEOBJDIR}/Makefile
 	PYTHON=${OBJTOP}/tmp/usr/bin/python3 ${GMAKE} -C ${MAKEOBJDIR}
+	mkdir -pv ${BUILDROOT}/etc/fonts/conf.d
+	cp -fv ${.CURDIR}/fonts.conf ${BUILDROOT}/etc/fonts/
+	rm -f ${MAKEOBJDIR}/src/fcarch ${MAKEOBJDIR}/src/fcarch.o
 
 clean:
 	rm -rf ${MAKEOBJDIR}
 
 install:
-

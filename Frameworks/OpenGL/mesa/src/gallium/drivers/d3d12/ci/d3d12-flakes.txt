@@ -1,9 +1,0 @@
-# Tessellation isoline tests are flaky on WARP, probably a WARP bug
-isoline
-
-# If the test machine are busy, these can spuriously fail
-arb_timer_query
-ext_timer_query
-
-# assertion failure in https://gitlab.freedesktop.org/mesa/mesa/-/jobs/48717501
-spec@arb_compute_shader@execution@simple-barrier-atomics

@@ -12,7 +12,7 @@
 #import <AppKit/NSRaise.h>
 #import "O2Font_FT.h"
 #import <AppKit/NSFontTypeface.h>
-#import <AppKit/NSGraphicsContext.h>
+//#import <AppKit/NSGraphicsContext.h>
 
 @implementation KTFont(KTFont_FT)
 +(id)allocWithZone:(NSZone*)zone
@@ -113,6 +113,7 @@
    return round(O2FontGetAscent(_font) + O2FontGetDescent(_font) + O2FontGetLeading(_font));
 }
 
+#if 0
 -(void)setInContext:(NSGraphicsContext *)context {
    CGContextRef cgContext=[context graphicsPort];
    
@@ -129,7 +130,7 @@
 
    CGContextSetTextMatrix(cgContext,textMatrix);
 }
-
+#endif
 @end
 
 

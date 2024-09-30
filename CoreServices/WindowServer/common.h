@@ -20,57 +20,14 @@
  * THE SOFTWARE.
  */
 
+#define WINDOWSERVER // we are building WindowServer itself - flag to message.h
 
-#import <Foundation/Foundation.h>
-#import <CoreGraphics/CoreGraphics.h>
-#import <Onyx2D/O2Context.h>
-#import <Onyx2D/O2BitmapContext.h>
-#import <Onyx2D/O2Surface.h>
+#define SA_RESTART      0x0002  /* restart system call on signal return */
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdio.h>
-#include <limits.h>
-#include <signal.h>
-#include <sys/consio.h>
-#include <sys/fbio.h>
+enum {
+    WS_ERROR, WS_WARNING, WS_INFO
+};
 
-#define DEFAULT_DPI = 100
-
-@interface BSDFramebuffer: NSObject {
-    int fbfd;
-    int stride;
-    uint8_t *data;
-    int offset;
-    int size;
-    int width;
-    int height;
-    int depth;
-    CGColorSpaceRef cs;
-    O2BitmapContext *ctx, *ctx2;
-    O2BitmapContext *activeCtx;
-    void *ctxPixels;
-    void *ctx2Pixels;
-    BOOL _doubleBuffered;
-}
-
-- (id)init;
-- (int)openFramebuffer: (const char *)device;
-- (NSRect)geometry;
-- (void)dealloc;
-- (int)getDepth;
-- (int)format;
-- (void)clear;
-- (BOOL)useDoubleBuffer:(BOOL)val;
-- (void)draw;
-- (O2BitmapContext *)context;
-- (CGColorSpaceRef)colorSpace;
-
-@end
-
+enum ShellType {
+    NONE, LOGINWINDOW, DESKTOP
+};

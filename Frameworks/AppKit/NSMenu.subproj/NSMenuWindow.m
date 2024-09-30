@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSSubmenuView *view=[[NSSubmenuView alloc] initWithMenu:menu];
    NSRect         contentRect=[view frame];
 
-   [self initWithContentRect:contentRect styleMask:NSBorderlessWindowMask|WLWindowPopUp backing:NSBackingStoreBuffered defer:NO];
+   [self initWithContentRect:contentRect styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
    [self setLevel:NSSubmenuWindowLevel];
 
    _releaseWhenClosed=YES;
@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSOverflowMenuView *view=[[NSOverflowMenuView alloc] initWithMenu:menu overflowAtIndex:overflowIndex];
    NSRect              contentRect=[view frame];
 
-   [self initWithContentRect: contentRect styleMask:NSBorderlessWindowMask|WLWindowPopUp backing:NSBackingStoreBuffered defer:NO];
+   [self initWithContentRect: contentRect styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
    [self setLevel:NSSubmenuWindowLevel];
 
    _releaseWhenClosed=YES;
@@ -53,10 +53,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(NSMenuView *)menuView {
    return _view;
-}
-
--(void)setParent:(id)parent {
-    [[self platformWindow] setParent:parent];
 }
 
 @end

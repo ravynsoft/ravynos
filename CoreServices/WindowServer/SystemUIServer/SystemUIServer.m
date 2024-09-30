@@ -36,7 +36,6 @@
 #include <sys/socket.h>
 #include <desktop.h>
 
-const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
 const NSString *WLMenuDidUpdateNotification = @"WLMenuDidUpdateNotification";
 
 void menuListener(void *arg __unused) {
@@ -45,7 +44,7 @@ void menuListener(void *arg __unused) {
     struct sockaddr_un peer;
     unsigned peerlen = 0;
 
-    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/" SERVICE_NAME};
+    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/com.ravynos.SystemUIServer"};
     sun.sun_len = SUN_LEN(&sun);
     int sock = socket(PF_UNIX, SOCK_STREAM, 0);
     unlink(sun.sun_path);
@@ -102,12 +101,6 @@ void menuListener(void *arg __unused) {
     }
 }
 
-void machSvcLoop(void *arg) {
-    AppDelegate *delegate = (__bridge AppDelegate *)arg;
-    while(1)
-        [delegate receiveMachMessage];
-}
-
 void kqSvcLoop(void *arg) {
     AppDelegate *delegate = (__bridge AppDelegate *)arg;
     while(1)
@@ -124,21 +117,13 @@ int main(int argc, const char *argv[]) {
     if(!del)
         exit(EXIT_FAILURE);
 
-    NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
-    [nctr addObserver:del selector:@selector(createWindows:)
-        name:NSApplicationDidFinishLaunchingNotification object:nil];
-    [nctr addObserver:del selector:@selector(menuDidUpdate:)
-        name:WLMenuDidUpdateNotification object:nil];
-
     pthread_t menuThread;
     pthread_create(&menuThread, NULL, menuListener, NULL);
-
-    pthread_t machSvcThread;
-    pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
 
     pthread_t kqThread;
     pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)del);
 
+#if 0
     // kick off a per-user launchd to invoke LaunchAgents and per-user LaunchDaemons
     // this starts Filer and Dock to establish the desktop session
     NSString *kickerPath = [[NSBundle mainBundle] pathForResource:@"kickSession" ofType:@""];
@@ -146,8 +131,10 @@ int main(int argc, const char *argv[]) {
         NSLog(@"kicking off session");
         system([kickerPath UTF8String]);
     }
+#endif
 
     [pool drain];
+    [NSApp setDelegate:del];
     [NSApp run];
     return 0;
 }

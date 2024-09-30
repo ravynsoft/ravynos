@@ -1,7 +1,0 @@
-# gbm does not support reading the front buffer after a swapbuffers, and that's
-# intentional. Don't bother running these tests when PIGLIT_PLATFORM=gbm.
-#
-# Note that this doesn't include tests like fbo-sys-blit, which draw/read front
-# but don't swap.
-spec@!opengl 1.0@gl-1.0-swapbuffers-behavior
-spec@!opengl 1.1@read-front

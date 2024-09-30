@@ -101,7 +101,7 @@ enum {
    return [screens objectAtIndex:0];// should not happen
 }
 
-#if 0
+#if 1
 #define MENUDEBUG(...) NSLog(__VA_ARGS__)
 #else
 #define MENUDEBUG(...)
@@ -209,9 +209,11 @@ const float kMouseMovementThreshold = .001f;
                         }
                         
                         // And now select the new item
+                        MENUDEBUG(@"about to setSelectedItemIndex");
                         [checkView setSelectedItemIndex:itemIndex];
                         
                         // If it's got a cascading menu then push that on the stack
+                        MENUDEBUG(@"pushing new branch with viewAtSelectedIndexPositionOnScreen:%@", screen);
                         if((branch=[checkView viewAtSelectedIndexPositionOnScreen:screen])!=nil) {
                             MENUDEBUG(@"adding a new cascading view: %@", branch);
                             [viewStack addObject:branch];
@@ -229,6 +231,7 @@ const float kMouseMovementThreshold = .001f;
                     }
                 }
             }
+            MENUDEBUG(@"exited --count>=0 loop");
             
             // Looks like we've popped everything so nothing can be selected
             if(count<0){
@@ -240,8 +243,10 @@ const float kMouseMovementThreshold = .001f;
 		[event release];
 		
 		// Let's take a look at what's come in on the event queue
+                MENUDEBUG(@"getting next window event for %@", [self window]);
 		event=[[self window] nextEventMatchingMask:NSLeftMouseUpMask|NSMouseMovedMask|NSLeftMouseDraggedMask|NSKeyDownMask|NSAppKitDefinedMask];
 		[event retain];
+                MENUDEBUG(@"event is %@", event);
 		
 		if (keyboardNavigationAction != kNSMenuKeyboardNavigationNone) {
 			// We didn't enter the mouse handling loop that predecrements count - so do it here...

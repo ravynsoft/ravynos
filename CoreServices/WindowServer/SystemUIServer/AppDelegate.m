@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2023 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,30 +32,10 @@
 @implementation AppDelegate
 - (AppDelegate *)init {
     menuBar = [MenuBarWindow alloc];
-
-    kern_return_t kr;
-    if((kr = bootstrap_check_in(bootstrap_port, SERVICE_NAME, &_servicePort)) != KERN_SUCCESS) {
-        NSLog(@"Failed to check-in service: %d", kr);
-        return nil;
-    }
-
-    _kq = kqueue();
-    if(_kq < 0) {
-        perror("kqueue");
-        exit(-1);
-    }
-
     return self;
 }
 
-- (void)receiveMachMessage {
-    ReceiveMessage msg = {0};
-    mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
-        _servicePort, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
-    if(result != MACH_MSG_SUCCESS)
-        NSLog(@"mach_msg receive error");
-    else {
-        switch(msg.msg.header.msgh_id) {
+#if 0
             case MSG_ID_PORT:
             {
                 mach_port_t port = msg.portMsg.descriptor.name;
@@ -63,8 +43,6 @@
                 [menuBar setPort:port forPID:pid];
                 break;
             }
-            case MSG_ID_INLINE:
-                switch(msg.msg.code) {
                     case CODE_ADD_RECENT_ITEM:
                     {
                         NSURL *url = [NSURL URLWithString:
@@ -91,7 +69,7 @@
                         //NSLog(@"CODE_APP_BECAME_INACTIVE: pid = %d", pid);
                         break;
                     }
-                    case CODE_APP_ACTIVATE:
+                    case CODE_ACTIVATION_STATE:
                     {
                         pid_t pid;
                         memcpy(&pid, msg.msg.data, sizeof(int));
@@ -170,6 +148,7 @@
         }
     }
 }
+#endif
 
 // called from our kq watcher thread
 - (void)processKernelQueue {
@@ -192,13 +171,15 @@
     }
 }
 
-- (void)createWindows:(NSNotification *)note {
+-(void)applicationWillFinishLaunching:(NSNotification *)note {
     NSArray *screens = [NSScreen screens];
     NSScreen *output = [screens objectAtIndex:0]; //FIXME: select preferred display from prefs
 
     [menuBar initWithFrame:[output visibleFrame] forOutput:output];
     [menuBar setDelegate:self];
-    [menuBar makeKeyAndOrderFront:nil];
+    [[menuBar contentView] setNeedsDisplay:YES];
+    [menuBar makeKeyAndOrderFront:self];
+    [menuBar makeMainWindow];
 }
 
 /* Recursively set all menu targets and delegates to our proxy */
@@ -249,5 +230,14 @@
         NSLog(@"Failed to send menu click to PID %d on port %d", [menuBar activeProcessID],
             clicked.header.msgh_remote_port);
 }
+
+-(void)mouseDown:(NSEvent *)event {
+    NSLog(@"mouse down at %@", event);
+}
+
+-(void)mouseMoved:(NSEvent *)event {
+    NSLog(@"mouse moved at %@", event);
+}
+
 @end
 

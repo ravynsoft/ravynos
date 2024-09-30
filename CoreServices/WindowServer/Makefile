@@ -1,111 +1,61 @@
 MK_AUTO_OBJ=    yes
 APP=	        WindowServer
 .PATH:          ${.CURDIR}
-.PATH:          ${.CURDIR}/gplv2/src
-.PATH:          ${.CURDIR}/gplv2/src/menu
-.PATH:          ${.CURDIR}/gplv2/src/config
-.PATH:          ${.CURDIR}/gplv2/src/xbm
-.PATH:          ${.CURDIR}/gplv2/src/common
 SRCS=           WindowServer.m \
-                cursor.c \
-                key-state.c \
-                server.c \
-                resistance.c \
-                view.c \
-                xdg-popup.c \
-                keyboard.c \
-                xdg.c \
-                seat.c \
-                subsurface.c \
-                view-impl.c \
-                layers.c \
-                view-child.c \
-                interactive.c \
-                action.c \
-                xdg-deco.c \
-                foreign.c \
-                dir.c \
-                nodename.c \
-                spawn.c \
-                grab-file.c \
-                buf.c \
-                zfree.c \
-                string-helpers.c \
-                parse.c \
-                tokenize.c \
-                xbm.c \
-                damage.c \
-                output.c \
-                rcxml.c \
-                libinput.c \
-                keybind.c \
-                mousebind.c \
-                session.c \
-                desktop.c 
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf \
+                BSDFramebuffer.m \
+		WSInput.m \
+		WSAppRecord.m \
+		WSWindowRecord.m \
+		main.m
+RESOURCES=	${.CURDIR}/Icon.png \
+		${MAKEOBJDIR}/libinput/libinput.so.1 \
+		${MAKEOBJDIR}/libinput/libinput.so \
 		${MAKEOBJDIR}/libevdev/libevdev.so.2 \
 		${MAKEOBJDIR}/libevdev/libevdev.so \
-		${MAKEOBJDIR}/seatd/seatd/seatd \
-		${MAKEOBJDIR}/seatd/libseat/libseat.so.0 \
-		${MAKEOBJDIR}/seatd/libseat/libseat.so \
-		${MAKEOBJDIR}/libinput/libinput.so.1 \
-		${MAKEOBJDIR}/libinput/libinput.so
+		${.CURDIR}/arrowCursor.png
 
 MK_WERROR=	no
 WARNS=	        1
 SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
-CFLAGS+=	${SYSROOT} -g -fobjc-arc -D__RAVYNOS__ -D__MACH__ \
-		-I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/gplv2/include \
-		-I${.CURDIR}/gplv2/cairo/src -I${MAKEOBJDIR}/gplv2/cairo \
-		-I${.CURDIR}/wlroots/include -I${MAKEOBJDIR}/wlroots/include \
-                -I${MAKEOBJDIR}/wlroots -I${MAKEOBJDIR}/wlroots/protocol \
-		-DWLR_USE_UNSTABLE \
-                -I${SRCTOP}/Frameworks/AppKit/libxkbcommon/include \
-                -I${SRCTOP}/Frameworks -I${.CURDIR}/libinput/include \
-                -I${.CURDIR}/libinput/src -I${OBJTOP}/tmp/usr/include/libxml2 \
-                -I${SRCTOP}/Frameworks/OpenGL/wayland/src \
-                -I${OBJTOP}/Frameworks/OpenGL/wayland/src \
-		-I${SRCTOP}/Frameworks/OpenGL/libdrm/include/drm \
-                -I${OBJTOP}/Frameworks/Foundation/Headers 
+CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -pthread \
+		-I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/libinput/src \
+		-I${.CURDIR}/libinput/include -I${SRCTOP}/Frameworks \
+		-I${.CURDIR}/libxkbcommon/include \
 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
-		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework -lAppKit \
-		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
-                -L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
+		-L${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework \
+		-L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
+		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
+		-L${OBJTOP}/Frameworks/CoreText/CoreText.framework \
+                -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
                 -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
-		-lFoundation -lm -L${MAKEOBJDIR}/wlroots \
-		-lwlroots -lwayland -lobjc -lSystem -lpixman-1 -lutil -lepoll-shim \
-		-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Versions/A -lOpenGL \
-		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
-		-L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework -lOnyx2D \
-		-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-		-L${OBJTOP}/Frameworks/CoreText/CoreText.framework -lCoreText \
-		-Wl,-R/System/Library/Frameworks/CoreText.framework/Versions/A \
-		-L${OBJTOP}/tmp/usr/lib \
-		-L${OBJTOP}/CoreServices/WindowServer/gplv2/cairo -lcairo \
-		-L${OBJTOP}/CoreServices/WindowServer/libevdev -levdev \
-		-L${OBJTOP}/CoreServices/WindowServer/libinput -linput \
-		-L${OBJTOP}/CoreServices/WindowServer/mtdev -lmtdev \
-		-L${OBJTOP}/CoreServices/WindowServer/seatd/libseat -lseat \
-		-lpng -lz -ldrm -ludev -ldevinfo -lxml2
-WLPROTOS=       ${.CURDIR}/wayland-protocols
-WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
-.export SYSROOT
+                -Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
+                -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A \
+                -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
+                -Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
+                -Wl,-R/System/Library/Frameworks/CoreText.framework/Versions/A \
+		${MAKEOBJDIR}/libxkbcommon/src/*.pico \
+		${MAKEOBJDIR}/libxkbcommon/src/compose/*.pico \
+		${MAKEOBJDIR}/libxkbcommon/src/xkbcomp/*.pico \
+		${OBJTOP}/tmp/lib/libutil.so.9 -L${MAKEOBJDIR}/libinput -linput \
+		-ludev -lCoreText -lAppKit -lFoundation -lCoreGraphics \
+		-lCoreFoundation -lOnyx2D -lxml2 -pthread -lobjc -lSystem -lkvm -lm
+#.export SYSROOT
 
 SUBDIR+=        libevdev .WAIT
 SUBDIR+=	mtdev .WAIT
 SUBDIR+=        libinput .WAIT
-SUBDIR+=        wayland-protocols
-SUBDIR+=        seatd
-SUBDIR+=        wlroots
-SUBDIR+=	gplv2/cairo
+#SUBDIR+=	gplv2/cairo
+SUBDIR+=	libxkbcommon
 
 ${MAKEOBJDIR}/Resources:
 	cp -fv ${.CURDIR}/libinput/quirks/* ${APP_DIR}/Contents/Resources/
-	${MAKE} -C libevdev tools
-	${MAKE} -C libevdev tools-install APP_DIR=${APP_DIR}
-	${MAKE} -C libinput tools
-	${MAKE} -C libinput tools-install APP_DIR=${APP_DIR}
+	${MAKE} -C ${.CURDIR}/libevdev tools
+	${MAKE} -C ${.CURDIR}/libevdev tools-install APP_DIR=${APP_DIR}
+	${MAKE} -C ${.CURDIR}/libinput tools
+	${MAKE} -C ${.CURDIR}/libinput tools-install APP_DIR=${APP_DIR}
 
 make-obj-dirs: .EXEC
 	mkdir -p ${MAKEOBJDIR}
@@ -114,6 +64,8 @@ make-obj-dirs: .EXEC
 .endfor
 	mkdir -p ${MAKEOBJDIR}/LoginWindow
 	mkdir -p ${MAKEOBJDIR}/SystemUIServer
+	mkdir -p ${MAKEOBJDIR}/libxkbcommon/src/xkbcomp
+	mkdir -p ${MAKEOBJDIR}/libxkbcommon/src/compose
 
 clean: .PHONY
 	rm -rf ${MAKEOBJDIR}
@@ -123,3 +75,11 @@ clean: .PHONY
 .include <rvn.app.mk>
 
 ${OBJS}: ${MAKEOBJDIR}/Resources
+
+client: client.m message.h
+	mkdir -p ${.CURDIR}/client.app/Contents/ravynOS
+	cd ${.CURDIR}; ${CC} -g -fobjc-arc -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi \
+		-fPIC -o ${.CURDIR}/client.app/Contents/ravynOS/client client.m \
+		-framework Foundation -framework CoreFoundation \
+		-framework CoreGraphics -framework AppKit -lSystem
+

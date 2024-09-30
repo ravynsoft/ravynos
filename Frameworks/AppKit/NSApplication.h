@@ -93,6 +93,9 @@ typedef enum {
     void *_lock;
     NSMutableArray *_orderedWindows; // get rid of
     NSTimer *_attentionTimer;
+
+    int _machEventPipe[2];
+    NSSelectInputSource *_inputSource;
 }
 
 + (NSApplication *)sharedApplication;

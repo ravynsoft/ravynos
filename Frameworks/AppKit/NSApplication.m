@@ -1,5 +1,5 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
- * Copyright (C) 2022-2023 Zoe Knox
+ * Copyright (C) 2022-2024 Zoe Knox
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -7,6 +7,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <Foundation/NSSocket_bsd.h>
+#import <Foundation/NSSelectInputSource.h>
 #import <AppKit/NSApplication.h>
 #import <AppKit/NSWindow-Private.h>
 #import <AppKit/NSPanel.h>
@@ -64,7 +66,6 @@ NSString * const NSApplicationDidUnhideNotification=@"NSApplicationDidUnhideNoti
 NSString * const NSApplicationWillTerminateNotification=@"NSApplicationWillTerminateNotification";
 
 NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicationDidChangeScreenParametersNotification";
-
 
 @interface NSDocumentController(forward) 
 -(void)_updateRecentDocumentsMenu; 
@@ -153,13 +154,116 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
         mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
             _wsReplyPort, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
         if(result != MACH_MSG_SUCCESS)
-            NSLog(@"mach_msg receive error");
+            NSLog(@"mach_msg receive error 0x%x", result);
         else {
             switch(msg.header.msgh_id) {
                 case MSG_ID_INLINE:
                     switch(msg.code) {
-			case CODE_STATUS_ITEM_ADDED:
-			{
+                        // FIXME: move this to use Quartz Display Services
+                        // https://developer.apple.com/documentation/coregraphics/quartz_display_services?language=objc
+                        case CODE_DISPLAY_INFO: { 
+                            if(msg.len != sizeof(struct mach_display_info)) {
+                                NSLog(@"Incorrect data size in display info: %d vs %d", msg.len, sizeof(struct mach_display_info));
+                                break;
+                            }
+                            struct mach_display_info *info = (struct mach_display_info *)msg.data;
+                            NSLog(@"DISPLAY_INFO: configuring for %.0fx%.0f depth %u", info->width, 
+                                    info->height, info->depth);
+                            [_display configureWithInfo:info];
+                            break;
+                        }
+                        case CODE_WINDOW_CREATED: {
+                            if(msg.len != sizeof(struct mach_win_data)) {
+                                NSLog(@"Incorrect data size in window created: %d vs %d", msg.len, sizeof(struct mach_win_data));
+                                break;
+                            }
+                            struct mach_win_data *data = (struct mach_win_data *)msg.data;
+                            NSArray *args = [NSArray arrayWithObjects:
+                                              [NSNumber numberWithInt:data->windowID],
+                                            [NSNumber numberWithFloat:data->w],
+                                            [NSNumber numberWithFloat:data->h], nil];
+                            [self performSelectorOnMainThread:@selector(_windowFinishCreatingOnMainThread)
+                                                   withObject:args
+                                                waitUntilDone:NO
+                                                        modes:[NSArray arrayWithObject:NSDefaultRunLoopMode]];
+                            break;
+                        }
+                        case CODE_WINDOW_STATE: {
+                            if(msg.len != sizeof(struct mach_win_data)) {
+                                NSLog(@"Incorrect data size in window state change: %d vs %d", msg.len, sizeof(struct mach_win_data));
+                                break;
+                            }
+                            struct mach_win_data *data = (struct mach_win_data *)msg.data;
+                            int _id = data->windowID;
+                            NSWindow *window = [self windowWithWindowNumber:_id];
+                            if(window == nil) {
+                                NSLog(@"WINDOW_STATE: ID %u, not found in window list!", _id);
+                                break;
+                            }
+                            [window processStateUpdate:data];
+                            break;
+                        }
+                        // and all of these should really use Quartz Event Services
+                        case CODE_INPUT_EVENT: {
+                            struct mach_event me;
+                            if(msg.len != sizeof(me)) {
+                                NSLog(@"Incorrect data size in input event: %d vs %d", msg.len, sizeof(me));
+                                break;
+                            }
+                            memcpy(&me, msg.data, msg.len);
+                            NSWindow *window = (me.windowID == 0)
+                                ? [self mainWindow]
+                                : [self windowWithWindowNumber:me.windowID];
+                            // translate screen to window coords
+                            me.x -= [window frame].origin.x;
+                            me.y -= [window frame].origin.y;
+                            switch(me.code) {
+                                case NSKeyUp:
+                                case NSKeyDown: {
+                                    NSEvent *e = [NSEvent keyEventWithType:me.code
+                                                  location:NSMakePoint(me.x, me.y)
+                                             modifierFlags:me.mods
+                                                    window:window
+                                                characters:[[NSString alloc] initWithUTF8String:me.chars]
+                               charactersIgnoringModifiers:[[NSString alloc] initWithUTF8String:me.charsIg]
+                                                 isARepeat:me.repeat
+                                                   keyCode:me.keycode];
+                                    [_display postEvent:e atStart:NO];
+                                    break;
+                                }
+                                case NSMouseMoved: {
+                                    NSEvent *e = [NSEvent mouseEventWithType:me.code
+                                                        location:NSMakePoint(me.x, me.y)
+                                               modifierFlags:me.mods
+                                                      window:window
+                                                      clickCount:0
+                                                      deltaX:me.dx
+                                                      deltaY:me.dy];
+                                    [_display postEvent:e atStart:NO];
+                                    break;
+                                }
+                                case NSLeftMouseDown:
+                                case NSLeftMouseUp: 
+                                case NSRightMouseDown:
+                                case NSRightMouseUp: {
+                                    NSEvent *e = [NSEvent mouseEventWithType:me.code
+                                                    location:NSMakePoint(me.x, me.y)
+                                               modifierFlags:me.mods
+                                                      window:window
+                                                  clickCount:1
+                                                      deltaX:me.dx
+                                                      deltaY:me.dy];
+                                    [_display postEvent:e atStart:NO];
+                                    break;
+                                }
+                                default:
+                                    NSLog(@"Unhandled input event type %d", me.code);
+                                    break;
+                            }
+                            break;
+                        }
+                        case CODE_STATUS_ITEM_ADDED:
+                        {
 			    uint32_t handle;
 			    if(msg.len != sizeof(handle)) {
 				NSLog(@"weirdness detected! expected size %d, got %d", sizeof(handle), msg.len);
@@ -182,18 +286,33 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                             else
                                 NSLog(@"Error: cannot find menu item with tag %d!", itemID);
                         }
-                        case CODE_APP_ACTIVATE:
+                        case CODE_ACTIVATION_STATE:
                         {
-                            int windowID;
-                            if(msg.len != sizeof(windowID)) {
-                                NSLog(@"weirdness detected! expected size %d, got %d", sizeof(windowID), msg.len);
+                            struct mach_activation_data data;
+                            if(msg.len != sizeof(data)) {
+                                NSLog(@"weirdness detected! expected size %d, got %d", sizeof(data), msg.len);
                                 break;
                             }
-                            memcpy(&windowID, msg.data, sizeof(windowID));
-                            NSWindow *win = [self windowWithWindowNumber:windowID];
-                            if(win)
-                                [win showForActivation]; 
+                            memcpy(&data, msg.data, sizeof(data));
+                            if(data.active == 1 && data.windowID != 0) {
+                                NSWindow *win = [self windowWithWindowNumber:data.windowID];
+                                if(win)
+                                    [win showForActivation]; 
+                            }
+                            if(data.active && !_isActive)
+                                [[NSNotificationCenter defaultCenter]
+                                    postNotificationName:NSApplicationWillBecomeActiveNotification
+                                                  object:self];
+                            else if(!data.active && _isActive)
+                                [[NSNotificationCenter defaultCenter]
+                                    postNotificationName:NSApplicationWillResignActiveNotification
+                                                  object:self];
+                            _isActive = data.active;
                             [self _checkForAppActivation];
+                            [[NSNotificationCenter defaultCenter]
+                                postNotificationName: (_isActive ? NSApplicationDidBecomeActiveNotification
+                                                                 : NSApplicationDidResignActiveNotification)
+                                              object:self];
                             break;
                         }
                         case CODE_APP_HIDE:
@@ -201,45 +320,98 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                             [self hide:nil];
                             break;
                         }
+                        default:
+                            NSLog(@"Unknown message code %u from WS", msg.code);
 
                     }
                     break;
             }
+            // we received _something_ so wake the main event loop in case we posted
+            if(write(_machEventPipe[1], "\n", 2) < 0)
+                NSLog(@"Error waking runloop - write: %s", strerror(errno));
         }
     }
 }
 
+-(void)_windowFinishCreatingOnMainThread:(NSArray *)args {
+    int number = [[args objectAtIndex:0] intValue];
+    float w = [[args objectAtIndex:1] floatValue];
+    float h = [[args objectAtIndex:2] floatValue];
+    NSWindow *window = [self windowWithWindowNumber:number];
+    if(window == nil) {
+        NSLog(@"WINDOW_CREATED: ID %u, not found in window list!", number);
+        return;
+    }
+    if([window platformWindow] == nil) {
+        NSLog(@"ERROR: platformWindow not created for ID %u", number);
+        return;
+    }
+    [[window platformWindow] invalidateContextsWithNewSize:NSMakeSize(w, h)
+                                              forceRebuild:YES];
+}
 
 -init {
-   if(NSApp)
-      NSAssert(!NSApp, @"NSApplication is a singleton");
-   NSApp=[self retain];
+    if(NSApp)
+        NSAssert(!NSApp, @"NSApplication is a singleton");
+    NSApp=[self retain];
+
+    if(pipe(_machEventPipe) != 0) {
+        NSLog(@"pipe: %s", strerror(errno));
+        exit(-1);
+    }
+    _inputSource = [[NSSelectInputSource socketInputSourceWithSocket:
+            [[NSSocket_bsd socketWithDescriptor:_machEventPipe[0]] retain]] retain];
+    [_inputSource setSelectEventMask:NSSelectReadEvent];
+
+    //[NSRunLoop mainRunLoop];
+    [NSRunLoop currentRunLoop];
+
+    // Create a port with send/receive rights that communicates with WindowServer
+    mach_port_t task = mach_task_self();
+    if(mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &_wsReplyPort) != KERN_SUCCESS ||
+        mach_port_insert_right(task, _wsReplyPort, _wsReplyPort, MACH_MSG_TYPE_MAKE_SEND) != KERN_SUCCESS) {
+        NSLog(@"Failed to allocate mach_port _wsReplyPort");
+        exit(1);
+    }
+    [NSThread detachNewThreadSelector:@selector(machServiceLoop:) toTarget:self withObject:nil];
+
+   _wsSvcPort = MACH_PORT_NULL;
+
    _display=[[NSDisplay currentDisplay] retain];
 
    _windows=[[NSMutableArray new] retain];
    _mainMenu=nil;
 
-   // Create a port with send/receive rights that WindowServer will use
-   // to invoke our menu actions
-   mach_port_t task = mach_task_self();
-   if(mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &_wsReplyPort) != KERN_SUCCESS ||
-    mach_port_insert_right(task, _wsReplyPort, _wsReplyPort, MACH_MSG_TYPE_MAKE_SEND) != KERN_SUCCESS) {
-    NSLog(@"Failed to allocate mach_port _wsReplyPort");
-    exit(1);
-   }
-   [NSThread detachNewThreadSelector:@selector(machServiceLoop:) toTarget:self withObject:nil];
-   _wsSvcPort = MACH_PORT_NULL;
+    NSBundle *mainBundle = [NSBundle mainBundle];
 
    // don't try to find the service if this is the app that provides it...
-   NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
-   if(!([bundleID isEqualToString:@"com.ravynos.SystemUIServer"] || 
-       ([bundleID isEqualToString:@"com.ravynos.LoginWindow"]))) {
-        NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
+   NSString *bundleID = [mainBundle bundleIdentifier];
+    if(bundleID == nil)
+        bundleID = [NSString stringWithFormat:@"unix.%u", getpid()];
+   if(!([bundleID isEqualToString:@"com.ravynos.WindowServer"])) {
+        NSLog(@"Finding service %s (%u)", WINDOWSERVER_SVC_NAME, bootstrap_port);
         if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &_wsSvcPort) != KERN_SUCCESS) {
-            NSLog(@"Failed to locate WindowServer port");
+            NSLog(@"Failed to locate service");
             return nil;
         }
-        NSLog(@"found service port %d", _wsSvcPort);
+
+        // register this app with WindowServer and get the display
+        PortMessage msg = {0};
+        msg.header.msgh_remote_port = _wsSvcPort;
+        msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, MACH_MSGH_BITS_COMPLEX);
+        msg.header.msgh_id = MSG_ID_PORT;
+        msg.header.msgh_size = sizeof(msg);
+        msg.msgh_descriptor_count = 1;
+        msg.descriptor.type = MACH_MSG_PORT_DESCRIPTOR;
+        msg.descriptor.name = _wsReplyPort;
+        msg.descriptor.disposition = MACH_MSG_TYPE_MAKE_SEND;
+        msg.pid = getpid();
+        strncpy(msg.bundleID, [bundleID cString], sizeof(msg.bundleID));
+
+        int ret = 0;
+        if((ret = mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT, sizeof(msg), 0, MACH_PORT_NULL,
+            2000 /* ms timeout */, MACH_PORT_NULL)) != MACH_MSG_SUCCESS)
+            NSLog(@"Failed to register with WS: mach_msg error 0x%x", ret);
    }
 
    _dockTile=[[NSDockTile alloc] initWithOwner:self];
@@ -249,9 +421,26 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 
    pthread_mutex_init(_lock,NULL);
    
-   [self _showSplashImage];
+   // We can't display the splash until WindowServer gives us a real display to use. This will
+   // come as a mach msg processed by the service loop. Keep polling display until it is ready
+   // FIXME: need a timeout here?
+    //NSLog(@"waiting for display to become ready");
+    while([_display isReady] == NO) {
+        usleep(10000);
+    }
+
+    [self _showSplashImage];
    
    return NSApp;
+}
+
+-(NSSelectInputSource *)inputSource {
+    return _inputSource;
+}
+
+// private internal method (also used by Dock)
+-(mach_port_t)_wsServicePort {
+    return _wsSvcPort;
 }
 
 -(void)dealloc {
@@ -277,8 +466,8 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
    
    for(i=0;i<count;i++){
     NSWindow *check=[_windows objectAtIndex:i];
-    
-    if([check windowNumber]==number)
+
+    if((uint32_t)[check windowNumber]==(uint32_t)number)
      return check;
    }
    
@@ -336,7 +525,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
      return YES;
    }
 
-   return NO;
+   return _isActive;
 }
 
 -(BOOL)isActive {
@@ -531,21 +720,6 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     close(sock);
     [menuCopy release];
     [d release];
-
-    PortMessage msg = {0};
-    msg.header.msgh_remote_port = _wsSvcPort;
-    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, MACH_MSGH_BITS_COMPLEX);
-    msg.header.msgh_id = MSG_ID_PORT;
-    msg.header.msgh_size = sizeof(msg);
-    msg.msgh_descriptor_count = 1;
-    msg.descriptor.type = MACH_MSG_PORT_DESCRIPTOR;
-    msg.descriptor.name = _wsReplyPort;
-    msg.descriptor.disposition = MACH_MSG_TYPE_MAKE_SEND;
-    msg.pid = getpid();
-
-    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
-        2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
-        NSLog(@"Failed to send port message to WS");
 }
 
 - (void)addRecentItem:(NSURL *)url {
@@ -558,8 +732,9 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     strncpy(msg.data, [[url absoluteString] UTF8String], sizeof(msg.data));
     msg.len = strlen(msg.data);
 
-    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
-        2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+        sizeof(msg), 0, MACH_PORT_NULL,
+        1000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
         NSLog(@"Failed to send recent item to WS");
 }
 
@@ -594,7 +769,8 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     [d release];
     [dict release];
 
-    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
+    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+        sizeof(msg), 0, MACH_PORT_NULL,
         2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
         NSLog(@"Failed to send NSStatusItem to WS");
 }
@@ -719,13 +895,6 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
    NSAutoreleasePool *pool=[NSAutoreleasePool new];
    BOOL               needsUntitled=YES;
 
-    // UGLY HACK: this dummy window triggers wayland to tell us about wl_outputs.
-    NSWindow *w = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1,1)
-        styleMask:NSBorderlessWindowMask|WLWindowLayerBackground
-        backing:NSBackingStoreBuffered defer:NO] autorelease];
-    [w setBackgroundColor:[NSColor colorWithDeviceRed:1. green:1. blue:1. alpha:1.]];
-    [w makeKeyAndOrderFront:nil];
-
    NS_DURING
     [[NSNotificationCenter defaultCenter] postNotificationName: NSApplicationWillFinishLaunchingNotification object:self];
    NS_HANDLER
@@ -733,8 +902,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
    NS_ENDHANDLER
 
 	// Load the application icon if we have one
-	NSString* iconName = [[[NSBundle mainBundle]
-						   infoDictionary]
+	NSString* iconName = [[[NSBundle mainBundle] infoDictionary]
 						  objectForKey:@"CFBundleIconFile"];
 	if (iconName) {
 		iconName = [iconName stringByAppendingPathExtension: @"icns"];
@@ -841,16 +1009,12 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     [self finishLaunching];
   }
 
-#if DBUS_KIT
-  [dbusConnection performSelectorInBackground:@selector(run) withObject:nil];
-#endif
-   
    do {
     // There is another pool inside nextEventMatchingMask. Do we really need this one?
     pool = [NSAutoreleasePool new];
     NSEvent           *event;
 
-    event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate dateWithTimeIntervalSinceNow:5.0 /*distantFuture*/] inMode:NSDefaultRunLoopMode dequeue:YES];
+    event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture /*dateWithTimeIntervalSinceNow:0.1*/] inMode:NSDefaultRunLoopMode dequeue:YES];
 
     NS_DURING
      [self sendEvent:event];
@@ -882,6 +1046,9 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -(void)sendEvent:(NSEvent *)event {
+    if(event == nil)
+        return;
+
    if([event type]==NSKeyDown){
     unsigned modifierFlags=[event modifierFlags];
 
@@ -1184,8 +1351,8 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
    int result;
 
    while((result=[NSApp runModalSession:session])==NSRunContinuesResponse){
-    NSDate *date = [NSDate dateWithTimeIntervalSinceNow:0.1];
-    [[NSRunLoop currentRunLoop] runMode:NSModalPanelRunLoopMode beforeDate:date/*[NSDate distantFuture]*/];
+    //NSDate *date = [NSDate dateWithTimeIntervalSinceNow:0.1];
+    [[NSRunLoop currentRunLoop] runMode:NSModalPanelRunLoopMode beforeDate:[NSDate distantFuture]];
    }
    
    [self endModalSession:session];
@@ -1567,8 +1734,9 @@ standardAboutPanel] retain];
             msg.len = sizeof(pid);
             memcpy(msg.data, &pid, msg.len);
 
-            if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
-                2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+            if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+                sizeof(msg), 0, MACH_PORT_NULL,
+                1000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
                 NSLog(@"Failed to send activation state to WS");
         }
         [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationDidBecomeActiveNotification object:self];
@@ -1595,8 +1763,9 @@ standardAboutPanel] retain];
             msg.len = sizeof(pid);
             memcpy(msg.data, &pid, msg.len);
 
-            if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
-                2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+            if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+                sizeof(msg), 0, MACH_PORT_NULL,
+                1000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
                 NSLog(@"Failed to send activation state to WS");
         } 
         // Exposed menus are running tight event tracking loops and would remain visible when the app deactivates (making
@@ -1620,11 +1789,6 @@ standardAboutPanel] retain];
         return;
     if(_isHidden)
         [self unhide:nil];
-}
-
-// private method used by Dock
--(mach_port_t)_wsServicePort {
-    return _wsSvcPort;
 }
 
 @end

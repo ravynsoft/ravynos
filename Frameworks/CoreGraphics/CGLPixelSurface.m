@@ -1,8 +1,8 @@
 #import <CoreGraphics/CGLPixelSurface.h>
 #import <CoreGraphics/CGWindow.h>
 #import <Onyx2D/O2Image.h>
-#import <GLES2/gl2.h>
-#import <GLES2/gl2ext.h>
+//#import <GLES2/gl2.h>
+//#import <GLES2/gl2ext.h>
 #if defined(__RAVYNOS__)
 #import <Onyx2D/O2Surface.h>
 #else

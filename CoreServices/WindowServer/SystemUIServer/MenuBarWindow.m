@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2023 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,9 +31,7 @@ extern pthread_mutex_t mtx;
     frame.origin.x = 0;
     frame.origin.y = frame.size.height - menuBarHeight;
     frame.size.height = menuBarHeight;
-    self = [self initWithContentRect:frame
-        styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop
-            |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight|WLWindowLayerOverlay
+    self = [self initWithContentRect:frame styleMask:NSBorderlessWindowMask
         backing:NSBackingStoreBuffered defer:NO screen:output];
 
     [self setMovableByWindowBackground:NO];
@@ -44,7 +42,8 @@ extern pthread_mutex_t mtx;
     float mainWidth = frame.size.width * 0.65;
     float extraWidth = frame.size.width - mainWidth;
 
-    clockView = [[ClockView alloc] initWithFrame:frame];
+    //clockView = [[ClockView alloc] initWithFrame:frame];
+    clockView = [[NSView alloc] initWithFrame:frame];
     NSSize clockSize = [clockView size];
 
     menuView = [[MenuView alloc] initWithFrame:
@@ -72,6 +71,7 @@ extern pthread_mutex_t mtx;
 }
 
 - (void)notifyTick:(id)arg {
+    return;
     NSString *value = [clockView currentDateValue];
     pthread_mutex_lock(&mtx);
     [clockView setStringValue:value];
@@ -128,7 +128,7 @@ extern pthread_mutex_t mtx;
 }
 
 - (BOOL)activateMenuForPID:(unsigned int)pid {
-    [[self platformWindow] setExclusiveZone:menuBarHeight];
+    //[[self platformWindow] setExclusiveZone:menuBarHeight];
     activePID = pid;
     _menuPort = [self portForPID:pid];
     NSMenu *menu = [self menuForPID:pid];
@@ -162,5 +162,9 @@ extern pthread_mutex_t mtx;
     // do nothing
 }
 
+-(NSEvent *)nextEventMatchingMask:(unsigned int)mask {
+    return [self nextEventMatchingMask:mask untilDate:[NSDate distantFuture]
+                                inMode:NSEventTrackingRunLoopMode dequeue:YES];
+}
 @end
 

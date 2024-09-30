@@ -1,4 +1,0 @@
-Known issues in the ARB_color_buffer_float implementation:
-- Rendering to multiple render targets, some fixed-point, some floating-point, with FIXED_ONLY fragment clamping and polygon smooth enabled may write incorrect values to the fixed point buffers (depends on spec interpretation)
-- For fragment programs with ARB_fog_* options, colors are clamped before fog application regardless of the fragment clamping setting (this depends on spec interpretation)
-

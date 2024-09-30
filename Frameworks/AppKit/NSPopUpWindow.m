@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSPopUpWindow
 
 -initWithFrame:(NSRect)frame {
-   [self initWithContentRect:frame styleMask:NSBorderlessWindowMask|WLWindowPopUp backing:NSBackingStoreBuffered defer:NO];
+   [self initWithContentRect:frame styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
    [self setLevel:NSPopUpMenuWindowLevel];
    _releaseWhenClosed=YES;
 

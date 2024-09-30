@@ -1,9 +1,0 @@
-query sha2pipelineIID($projectPath: ID!, $sha: String!) {
-  project(fullPath: $projectPath) {
-    pipelines(last: 1, sha:$sha){
-      nodes {
-        iid
-      }
-    }
-  }
-}

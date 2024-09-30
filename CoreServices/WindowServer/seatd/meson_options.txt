@@ -1,7 +1,0 @@
-option('libseat-logind', type: 'combo', choices: ['auto', 'disabled', 'elogind', 'systemd'], value: 'auto', description: 'logind support for libseat')
-option('libseat-seatd', type: 'combo', choices: ['enabled', 'disabled'], value: 'enabled', description: 'seatd support for libseat')
-option('libseat-builtin', type: 'combo', choices: ['enabled', 'disabled'], value: 'disabled', description: 'built-in seatd server for libseat')
-option('server', type: 'combo', choices: ['enabled', 'disabled'], value: 'enabled', description: 'seatd server')
-option('examples', type: 'combo', choices: ['enabled', 'disabled'], value: 'disabled', description: 'libseat example programs')
-option('man-pages', type: 'feature', value: 'auto', description: 'Generate and install man pages')
-option('defaultpath', type: 'string', value: '', description: 'Default location for seatd socket (empty for default)')

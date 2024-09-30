@@ -481,7 +481,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    }
 #endif
     origin=[controlView convertPoint:origin toView:nil];
-//    origin=[[controlView window] convertBaseToScreen:origin];
+    origin=[[controlView window] convertBaseToScreen:origin];
 
     [[_menu delegate] menuNeedsUpdate: _menu];
 //	[[_menu delegate] menuWillOpen: _menu];
@@ -505,7 +505,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    else
     [window selectItemAtIndex:_selectedIndex];
 
-    [window setParent:[controlView window]];
     [window orderFront:nil];
     NSInteger itemIndex=[window runTrackingWithEvent:event];
     if(itemIndex!=NSNotFound) {

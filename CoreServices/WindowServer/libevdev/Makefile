@@ -51,7 +51,7 @@ event-names.h: .PHONY
         	${.CURDIR}/include/linux/freebsd/input.h \
         	${.CURDIR}/include/linux/freebsd/input-event-codes.h >${.TARGET}
 
-TOOL_CFLAGS= -D__float_t=float -D__double_t=double
+TOOL_CFLAGS= -D__double_t=double -D__float_t=float
 TOOL_LDFLAGS= -L${MAKEOBJDIR} -levdev -Wl,-R'$$ORIGIN'
 TOOLS=	libevdev-events touchpad-edge-detector \
 	mouse-dpi-tool libevdev-tweak-device

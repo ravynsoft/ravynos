@@ -1,11 +1,24 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd <cjwl@objc.net>
                  2009 Markus Hitter <mah@jump-ing.de>
+   Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. */
 
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSWindow-Private.h>
@@ -34,6 +47,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSToolTipWindow.h>
 #import <AppKit/NSDisplay.h>
 #import <AppKit/NSRaise.h>
+#import <unistd.h>
+#import <WindowServer/message.h>
 
 NSString * const NSWindowDidBecomeKeyNotification=@"NSWindowDidBecomeKeyNotification";
 NSString * const NSWindowDidResignKeyNotification=@"NSWindowDidResignKeyNotification";
@@ -310,6 +325,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 	if (!(_styleMask & NSAppKitPrivateWindow)) {
 		[[NSApplication sharedApplication] _addWindow:self];
 	}
+
    return self;
 }
 
@@ -368,13 +384,11 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 -(void)_createPlatformWindowOnMainThread {
 	if(_platformWindow==nil){
 		if([self isKindOfClass:[NSPanel class]])
-			_platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType screen:_preferredScreen] retain];
+                        _platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType windowNumber:[self windowNumber]screen:_preferredScreen] retain];
 		else
-			_platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType screen:_preferredScreen] retain];
+                        _platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType windowNumber:[self windowNumber] screen:_preferredScreen] retain];
 		
 		[_platformWindow setDelegate:self];
-		[_platformWindow setLevel:_level];
-		
 		[self _updatePlatformWindowTitle];
 		
 		[[NSDraggingManager draggingManager] registerWindow:self dragTypes:nil];
@@ -382,11 +396,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(CGWindow *)platformWindow {
-   if(_platformWindow==nil){
+    if(_platformWindow==nil){
     [self performSelectorOnMainThread:@selector(_createPlatformWindowOnMainThread) withObject:nil waitUntilDone:YES modes:[NSArray arrayWithObject:NSDefaultRunLoopMode]];
-   }
-
-   return _platformWindow;
+    }
+    return _platformWindow;
 }
 
 -(CGContextRef)cgContext {
@@ -869,6 +882,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)setFrame:(NSRect)newFrame display:(BOOL)display animate:(BOOL)animate  {
+    [self setFrame:newFrame display:display animate:animate tellWS:YES];
+}
+
+-(void)setFrame:(NSRect)newFrame display:(BOOL)display animate:(BOOL)animate tellWS:(BOOL)tellWS {
    BOOL didSize=NSEqualSizes(newFrame.size,_frame.size)?NO:YES;
    BOOL didMove=NSEqualPoints(newFrame.origin,_frame.origin)?NO:YES;
    
@@ -877,7 +894,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
    [_backgroundView setFrameSize:_frame.size];
     
-    [[self platformWindow] setFrame:_frame];
+    if(_platformWindow)
+        [[self platformWindow] setFrame:_frame andTellWS:NO];
     
    if(didSize)
     [self resetCursorRects];
@@ -1172,11 +1190,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
 -(void)setCollectionBehavior:(NSWindowCollectionBehavior)behavior {
    NSUnimplementedMethod();
-}
-
--(void)setLevel:(int)value {
-   _level=value;
-   [[self platformWindow] setLevel:_level];
 }
 
 -(void)setOpaque:(BOOL)value {
@@ -2342,8 +2355,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)makeKeyAndOrderFront:sender {
-   if ([self isMiniaturized])
+   if ([self isMiniaturized]) {
     [_platformWindow deminiaturize];
+   }
 
 // Order window before making it key, per doc.s and behavior
 
@@ -3179,9 +3193,37 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     [[self platformWindow] requestResize:event];
 }
 
-// semi-private cover for platform layer-shell support
--(void)setKeyboardInteractivity:(uint32_t)keyboardStyle {
-    [_platformWindow setKeyboardInteractivity:keyboardStyle];
+// WindowServer wants us to do something...
+-(void)processStateUpdate:(struct mach_win_data *)data {
+    switch(data->state) {
+        case NORMAL:
+            [self _setVisible:YES];
+            if([self isMiniaturized])
+                [self deminiaturize:self];
+            if([self isZoomed])
+                [self zoom:self];
+            break;
+        case MAXIMIZED:
+            if(![self isZoomed])
+                [self zoom:self];
+            break;
+        case MINIMIZED:
+            if(![self isMiniaturized])
+                [self miniaturize:self];
+            break;
+        case HIDDEN:
+            [self _setVisible:NO];
+            break;
+        case CLOSED:
+            [self performClose:self];
+            return;
+    }
+
+    NSRect geom = NSMakeRect(data->x, data->y, data->w, data->h);
+
+    if(_styleMask != data->style)
+        [self setStyleMask:data->style];
+    [self setFrame:geom display:YES animate:NO tellWS:NO];
 }
 
 @end

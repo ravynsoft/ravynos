@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 #pragma once
 #import <AppKit/NSMainMenuView.h>
 #import <AppKit/NSMenu.h>
-#import <AppKit/WLWindow.h>
 #import <mach/mach.h>
 
 #import "Label.h"
@@ -31,18 +30,9 @@
 #define menuBarHeight 22
 #define menuBarVPad 2
 #define menuBarHPad 16
-#define SERVICE_NAME "com.ravynos.WindowServer"
 
 extern const NSString *PrefsWallpaperPathKey;
 extern const NSString *PrefsDateFormatStringKey;
-extern const NSString *WLOutputDidResizeNotification;
-extern const NSString *WLMenuDidUpdateNotification;
-
-@interface NSWindow(WLWindow_private)
-- (WLWindow *)platformWindow;
-- (void)setExclusiveZone:(uint32_t)pixels;
-@end
-
 
 // the clock
 @interface ClockView: Label {

@@ -1,1 +1,0 @@
-../android/sync.h

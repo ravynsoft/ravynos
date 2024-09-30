@@ -35,12 +35,12 @@ build: buildWindowServer DMIHelper buildDock #buildFiler
 buildDock:
 	mkdir -p ${MAKEOBJDIR}/Dock/Trash
 	mkdir -p ${MAKEOBJDIR}/Dock/Downloads
-	${MAKE} -C ${.CURDIR}/Dock obj all
+	#${MAKE} -C ${.CURDIR}/Dock obj all
 
 buildWindowServer:
 	${MAKE} -C ${.CURDIR}/WindowServer make-obj-dirs obj all
-	${MAKE} -C ${.CURDIR}/WindowServer/SystemUIServer
-	${MAKE} -C ${.CURDIR}/WindowServer/LoginWindow
-	cp -afv ${OBJTOP}/CoreServices/WindowServer/SystemUIServer/SystemUIServer.app \
+	#${MAKE} -C ${.CURDIR}/WindowServer/SystemUIServer
+	#${MAKE} -C ${.CURDIR}/WindowServer/LoginWindow
+	#cp -afv ${OBJTOP}/CoreServices/WindowServer/SystemUIServer/SystemUIServer.app \
 	        ${OBJTOP}/CoreServices/WindowServer/LoginWindow/LoginWindow.app \
                 ${OBJTOP}/CoreServices/WindowServer/WindowServer.app/Contents/Resources/
