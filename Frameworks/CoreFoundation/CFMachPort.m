@@ -22,13 +22,16 @@
 
 
 #import <CoreFoundation/CFMachPort.h>
+#import <Foundation/NSObject.h>
 #import <Foundation/NSCFTypeID.h>
 
 struct __NSMachPort {
     mach_port_t port;
     CFMachPortContext ctx;
+    CFMachPortCallBack callback;
+    CFMachPortInvalidationCallBack invalidated;
+    Boolean isValid;
 };
-
 
 COREFOUNDATION_EXPORT CFTypeID CFMachPortGetTypeID(void) {
     return kNSCFTypeMachPort;
@@ -37,12 +40,42 @@ COREFOUNDATION_EXPORT CFTypeID CFMachPortGetTypeID(void) {
 COREFOUNDATION_EXPORT CFMachPortRef CFMachPortCreate(CFAllocatorRef allocator,
         CFMachPortCallBack callback, CFMachPortContext *context, Boolean *callerFreeInfo) {
     if(context == NULL)
-        goto err_out;
+        return NULL;
+
+    mach_port_t task = mach_task_self();
+    mach_port_t port = 0;
+    if(mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &port) != KERN_SUCCESS) 
+        return NULL;
+    if(mach_port_insert_right(task, port, port, MACH_MSG_TYPE_MAKE_SEND) != KERN_SUCCESS) {
+        mach_port_deallocate(task, port);
+        return NULL;
+    }
+
+    CFMachPortRef self = CFMachPortCreateWithPort(allocator, port, callback, context, callerFreeInfo);
+    if(self == NULL)
+        mach_port_deallocate(task, port);
+    return self;
+}
+
+/* FIXME: This should maintain a table of objects by port number. When an object exists for
+ * a given port, the function should return it instead of creating a new one
+ */
+COREFOUNDATION_EXPORT CFMachPortRef CFMachPortCreateWithPort(CFAllocatorRef allocator,
+        mach_port_t port, CFMachPortCallBack callback, CFMachPortContext *context,
+        Boolean *callerFreeInfo) {
+    if(context == NULL)
+        return NULL;
 
     // FIXME: respect allocator selection
     struct __NSMachPort *self = malloc(sizeof(struct __NSMachPort));
-    if(self == NULL)
-        goto err_out;
+    if(self == NULL) {
+        if(callerFreeInfo != NULL)
+            *callerFreeInfo = TRUE;
+        return NULL;
+    }
+
+    self->invalidated = NULL;
+    self->isValid = TRUE;
 
     self->ctx.version = context->version;
     self->ctx.info = context->info;
@@ -50,33 +83,57 @@ COREFOUNDATION_EXPORT CFMachPortRef CFMachPortCreate(CFAllocatorRef allocator,
     self->ctx.release = context->release;
     self->ctx.copyDescription = context->copyDescription;
 
-    mach_port_t task = mach_task_self();
-    if(mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &self->port) != KERN_SUCCESS) 
-        goto err_out;
-    if(mach_port_insert_right(task, self->port, self->port, 
-                MACH_MSG_TYPE_MAKE_SEND) != KERN_SUCCESS) {
-        mach_port_deallocate(self->port);
-        goto err_out;
-    }
-    return self;
+    if(self->ctx.retain)
+        (self->ctx.retain)(self->ctx.info);
 
-err_out:
-    if(self != NULL)
-        free(self);
+    self->callback = callback;
+    self->port = port;
     if(callerFreeInfo != NULL)
-        *callerFreeInfo = true;
-    return NULL;
+        *callerFreeInfo = FALSE;
+    return self;
 }
 
-#if 0
-COREFOUNDATION_EXPORT CFMachPortRef CFMachPortCreateWithPort(CFAllocatorRef allocator, mach_port_t port, CFMachPortCallBack callback, CFMachPortContext *context, Boolean *callerFreeInfo);
+COREFOUNDATION_EXPORT mach_port_t CFMachPortGetPort(CFMachPortRef self) {
+    return self->port;
+}
 
-COREFOUNDATION_EXPORT mach_port_t CFMachPortGetPort(CFMachPortRef self);
-COREFOUNDATION_EXPORT void CFMachPortGetContext(CFMachPortRef self, CFMachPortContext *context);
-COREFOUNDATION_EXPORT CFMachPortInvalidationCallBack CFMachPortGetInvalidationCallBack(CFMachPortRef self);
-COREFOUNDATION_EXPORT void CFMachPortSetInvalidationCallBack(CFMachPortRef self, CFMachPortInvalidationCallBack callback);
+COREFOUNDATION_EXPORT void CFMachPortGetContext(CFMachPortRef self, CFMachPortContext *context) {
+    context->version = self->ctx.version;
+    context->info = self->ctx.info;
+    context->retain = self->ctx.retain;
+    context->release = self->ctx.release;
+    context->copyDescription = self->ctx.copyDescription;
+}
 
-COREFOUNDATION_EXPORT CFRunLoopSourceRef CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMachPortRef self, CFIndex order);
-COREFOUNDATION_EXPORT void CFMachPortInvalidate(CFMachPortRef self);
-COREFOUNDATION_EXPORT Boolean CFMachPortIsValid(CFMachPortRef self);
-#endif
+COREFOUNDATION_EXPORT CFMachPortInvalidationCallBack CFMachPortGetInvalidationCallBack(CFMachPortRef self) {
+    return self->invalidated;
+}
+
+COREFOUNDATION_EXPORT void CFMachPortSetInvalidationCallBack(CFMachPortRef self,
+        CFMachPortInvalidationCallBack callback) {
+    self->invalidated = callback;
+}
+
+COREFOUNDATION_EXPORT CFRunLoopSourceRef
+    CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMachPortRef self, CFIndex order) {
+        return NULL; // FIXME: implement
+}
+
+COREFOUNDATION_EXPORT void CFMachPortInvalidate(CFMachPortRef self) {
+    // "prevent the port from ever receiving any more messages"
+    if(!self->isValid)
+        return;
+    self->isValid = FALSE;
+
+    mach_port_mod_refs(mach_task_self(), self->port, MACH_PORT_RIGHT_RECEIVE, 0);
+    (self->invalidated)(self, self->ctx.info);
+    if(self->ctx.release) {
+        (self->ctx.release)(self->ctx.info);
+        self->ctx.info = NULL;
+    }
+}
+
+COREFOUNDATION_EXPORT Boolean CFMachPortIsValid(CFMachPortRef self) {
+    return self->isValid;
+}
+

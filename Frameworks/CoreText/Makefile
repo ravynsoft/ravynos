@@ -10,7 +10,7 @@ LDFLAGS+= -Wl,--no-undefined -L${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework \
 	-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
 	-L${OBJTOP}/Frameworks/Foundation/Foundation.framework -lFoundation \
 	-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
-	-L${OBJTOP}/tmp/usr/lib -lxml2 -lintl -lobjc
+	-L${OBJTOP}/tmp/usr/lib -lxml2 -lintl -lobjc -lmach
 WARNS= 1
 MK_WERROR= no
 

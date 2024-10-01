@@ -86,6 +86,7 @@ INCS= \
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I../libobjc2 -I../Foundation/Headers \
 	 -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
+LDFLAGS+= ${FMWK_LDFLAGS} -lmach
 
 .include <rvn.framework.mk>
 
