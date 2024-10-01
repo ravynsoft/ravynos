@@ -40,8 +40,10 @@
     NSMutableDictionary *_deviceDictionary;
     O2Rect _frame;
     unsigned _styleMask;
-    BOOL _mapped;
     BOOL _ready;
+    BOOL _isVisible;
+    BOOL _isZoomed;
+    BOOL _isMiniaturized;
 
     NSString *shmPath;
     NSString *bundleID;
@@ -50,8 +52,7 @@
 }
 
 - initWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
-        isPanel:(BOOL)isPanel backingType:(NSUInteger)backingType
-        windowNumber:(int)number;
+        isPanel:(BOOL)isPanel backingType:(NSUInteger)backingType;
 - (O2Rect)frame;
 - (NSPoint)transformPoint:(NSPoint)pos;
 - (O2Rect)transformFrame:(O2Rect)frame;

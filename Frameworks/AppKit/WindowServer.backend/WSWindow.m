@@ -76,6 +76,9 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
     _display = [NSDisplay currentDisplay];
     _delegate = nil;
     _title = nil;
+    _isVisible = YES;
+    _isZoomed = NO;
+    _isMiniaturized = NO;
 
     buffer = NULL;
     bundleID = [[NSBundle mainBundle] bundleIdentifier];
@@ -90,7 +93,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 
     struct mach_win_data data = {
         _number, _frame.origin.x, _frame.origin.y,
-        _frame.size.width, _frame.size.height, _styleMask, NORMAL, {'\0'}
+        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}
     };
     [self _callWS:CODE_WINDOW_CREATE withData:&data];
 
@@ -101,7 +104,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
     _ready = NO;
     struct mach_win_data data = {
         _number, _frame.origin.x, _frame.origin.y,
-        _frame.size.width, _frame.size.height, _styleMask, NORMAL, {'\0'}
+        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}
     };
     [self _callWS:CODE_WINDOW_DESTROY withData:&data];
     [self release];
@@ -194,9 +197,11 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 
 -(void) invalidateContextsWithNewSize:(NSSize)size forceRebuild:(BOOL)forceRebuild
 {
-    //O2Image *snapshot = nil;
-    //if(_context)
-    //    snapshot = O2BitmapContextCreateImage(_context);
+#if 0
+    O2Image *snapshot = nil;
+    if(_context)
+        snapshot = O2BitmapContextCreateImage(_context);
+#endif
     NSSize oldSize = _frame.size;
 
     if(!NSEqualSizes(_frame.size,size) || forceRebuild) {
@@ -213,10 +218,12 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
     }
 
     [self cgContext];
-    //if(snapshot) {
-    //    [_context drawImage:snapshot inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
-    //    [snapshot release];
-    //}
+#if 0
+    if(snapshot) {
+        [_context drawImage:snapshot inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
+        [snapshot release];
+    }
+#endif
     [_delegate platformWindowDidInvalidateCGContext:self];
 
     //CGLSurfaceResize(_cglContext, size.width, size.height);
@@ -231,7 +238,6 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 {
     _title = title;
     [self _updateWSState];
-    return;
 }
 
 -(BOOL) setProperty:(NSString *)property toValue:(NSString *)value
@@ -265,10 +271,14 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 }
 
 -(void)showWindowWithoutActivation {
+    _isVisible = YES;
+    [self _updateWSState];
 }
 
 -(void) hideWindow
 {
+    _isVisible = NO;
+    [self _updateWSState];
 }
 
 -(void) placeAboveWindow:(int)otherNumber
@@ -298,17 +308,20 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 
 -(void) miniaturize
 {
-    NSUnimplementedMethod();
+    _isMiniaturized = YES;
+    _isZoomed = NO;
+    [self _updateWSState];
 }
 
 -(void) deminiaturize
 {
-    NSUnimplementedMethod();
+    _isMiniaturized = NO;
+    [self _updateWSState];
 }
 
 -(BOOL) isMiniaturized
 {
-    return NO;
+    return _isMiniaturized;
 }
 
 
@@ -419,14 +432,14 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 -(BOOL)_updateWSState {
     struct mach_win_data data = {
         _number, _frame.origin.x, _frame.origin.y,
-        _frame.size.width, _frame.size.height, _styleMask, NORMAL, {'\0'}
+        _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}
     };
     strncpy(data.title, [_title UTF8String], sizeof(data.title));
-    if([self isMiniaturized])
+    if(_isMiniaturized == YES)
         data.state = MINIMIZED;
-    else if([self isZoomed])
+    else if(_isZoomed == YES)
         data.state = MAXIMIZED;
-    else if([self isVisible] == NO)
+    else if(_isVisible == NO)
         data.state = HIDDEN;
     return [self _callWS:CODE_WINDOW_STATE withData:&data];
 }
@@ -440,8 +453,8 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
     msgi.code = code;
     msgi.pid = getpid();
     strncpy(msgi.bundleID, [bundleID cString], sizeof(msgi.bundleID));
-    memcpy(msgi.data, &data, sizeof(data));
-    msgi.len = sizeof(data);
+    memcpy(msgi.data, data, sizeof(struct mach_win_data));
+    msgi.len = sizeof(struct mach_win_data);
 
     if(mach_msg((mach_msg_header_t *)&msgi, MACH_SEND_MSG|MACH_SEND_TIMEOUT, sizeof(msgi), 0,
                 MACH_PORT_NULL, 1000, MACH_PORT_NULL) != MACH_MSG_SUCCESS) {

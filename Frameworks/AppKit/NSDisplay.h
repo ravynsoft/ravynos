@@ -45,7 +45,7 @@ SOFTWARE. */
 - (NSDraggingManager *)draggingManager;
 
 - (CGWindow *)windowWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
-        backingType:(unsigned)backingType windowNumber:(int)number screen:(NSScreen *)screen;
+        backingType:(unsigned)backingType screen:(NSScreen *)screen;
 - (CGWindow *)panelWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
         backingType:(unsigned)backingType screen:(NSScreen *)screen;
 

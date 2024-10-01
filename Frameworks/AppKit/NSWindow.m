@@ -384,9 +384,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 -(void)_createPlatformWindowOnMainThread {
 	if(_platformWindow==nil){
 		if([self isKindOfClass:[NSPanel class]])
-                        _platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType windowNumber:[self windowNumber]screen:_preferredScreen] retain];
+                        _platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType screen:_preferredScreen] retain];
 		else
-                        _platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType windowNumber:[self windowNumber] screen:_preferredScreen] retain];
+                        _platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType screen:_preferredScreen] retain];
 		
 		[_platformWindow setDelegate:self];
 		[self _updatePlatformWindowTitle];
@@ -894,8 +894,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
    [_backgroundView setFrameSize:_frame.size];
     
-    if(_platformWindow)
-        [[self platformWindow] setFrame:_frame andTellWS:NO];
+   [[self platformWindow] setFrame:_frame andTellWS:tellWS];
     
    if(didSize)
     [self resetCursorRects];
