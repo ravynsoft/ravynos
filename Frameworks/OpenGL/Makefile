@@ -26,8 +26,7 @@ RESOURCES=      Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I${SRCTOP}/Frameworks -I${.CURDIR}/include 
 CFLAGS+= -I${SRCTOP}/Frameworks/Foundation/Headers
 CFLAGS+= -I${.CURDIR}/libpciaccess/include
-LDFLAGS+= -Llibdrm -Llibpciaccess -Lwayland/src \
-	  -lwayland -ldrm -lpciaccess -lstdc++ -lstdthreads \
+LDFLAGS+= -Llibdrm -Llibpciaccess -ldrm -lpciaccess -lstdc++ -lstdthreads \
 	  -Wl,--no-as-needed -Wl,-R\$$ORIGIN
 LD_LIBRARY_PATH+= ${OBJTOP}/tmp/usr/lib
 .export LD_LIBRARY_PATH
