@@ -35,7 +35,8 @@
  */
 enum {
     MSG_ID_PORT = 90210,
-    MSG_ID_INLINE = 90211
+    MSG_ID_INLINE = 90211,
+    MSG_ID_RPC = 90222
 };
 
 /* INLINE message codes */
@@ -126,6 +127,12 @@ struct mach_activation_data {
     uint32_t active;
 };
 
+struct ws_rpc {
+    uint32_t code;
+    uint32_t len;
+    void *p;
+};
+
 typedef struct {
     mach_msg_header_t header;
     char bundleID[128];
@@ -144,6 +151,8 @@ typedef struct {
     mach_msg_port_descriptor_t descriptor;
     char bundleID[128];
     unsigned int pid;
+    unsigned char data[128*1024];
+    unsigned int len;
 #ifdef WINDOWSERVER
     mach_msg_trailer_t trailer;
 #endif

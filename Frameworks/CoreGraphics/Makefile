@@ -66,7 +66,7 @@ INCS= \
 RESOURCES=Info.plist 
 CFLAGS+= ${FMWK_CFLAGS} -F${OBJTOP}/Frameworks/OpenGL -framework OpenGL \
 	-I.. -I${.CURDIR}/.. -fblocks -I../Foundation/Headers \
-	-I${.CURDIR}/../OpenGL/mesa/include
+	-I${.CURDIR}/../OpenGL/mesa/include -I${SRCTOP}/CoreServices
 LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework \
 	-L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework -lOnyx2D -lOpenGL -lm \
 	-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \

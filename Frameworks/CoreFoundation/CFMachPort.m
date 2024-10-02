@@ -26,6 +26,7 @@
 #import <Foundation/NSCFTypeID.h>
 
 struct __NSMachPort {
+    uintptr_t cfisa;
     mach_port_t port;
     CFMachPortContext ctx;
     CFMachPortCallBack callback;
@@ -116,7 +117,7 @@ COREFOUNDATION_EXPORT void CFMachPortSetInvalidationCallBack(CFMachPortRef self,
         CFMachPortInvalidationCallBack callback) {
     self->invalidated = callback;
 }
-
+ 
 COREFOUNDATION_EXPORT CFRunLoopSourceRef
         CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMachPortRef self, CFIndex order) {
     CFRunLoopSourceContext1 rlctx = {
@@ -151,7 +152,6 @@ COREFOUNDATION_EXPORT Boolean CFMachPortIsValid(CFMachPortRef self) {
     return self->isValid;
 }
 
-
 // private for CFRunLoop
 void *_CFMachPortReceive(void *msg, CFIndex size, CFAllocatorRef allocator, void *info) {
     CFMachPortRef self = (CFMachPortRef)info;
@@ -161,4 +161,3 @@ void *_CFMachPortReceive(void *msg, CFIndex size, CFAllocatorRef allocator, void
 Boolean _CFMachPortIsEqual(const void *info1, const void *info2) {
     return (info1 == info2) ? TRUE : FALSE;
 }
-

@@ -468,6 +468,40 @@
         NSLog(@"mach_msg receive error 0x%x", result);
     else {
         switch(msg.msg.header.msgh_id) {
+            case MSG_ID_RPC: { // new style CoreGraphics calls
+                mach_port_t reply = MACH_PORT_NULL;
+                if(msg.portMsg.msgh_descriptor_count > 0)
+                    reply = msg.portMsg.descriptor.name;
+                pid_t pid = msg.portMsg.pid;
+                NSString *bundleID = nil;
+                if(msg.portMsg.bundleID != '\0')
+                    bundleID = [NSString stringWithCString:msg.portMsg.bundleID];
+                else
+                    bundleID = [NSString stringWithFormat:@"unix.%u", pid];
+                NSLog(@"RPC[%@ %u] reply %u data len %u", bundleID, pid, reply, msg.portMsg.len);
+
+                if(msg.portMsg.msgh_descriptor_count == 0)
+                    break;
+
+                struct mach_display_info info = {
+                    1, _geometry.size.width, _geometry.size.height, [fb getDepth]
+                };
+
+                Message msg = {0};
+                msg.header.msgh_remote_port = reply;
+                msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+                msg.header.msgh_id = MSG_ID_RPC;
+                msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
+                msg.pid = getpid();
+                strncpy(msg.bundleID, WINDOWSERVER_SVC_NAME, sizeof(msg.bundleID)-1);
+                memcpy(msg.data, &info, sizeof(struct mach_display_info));
+                msg.len = sizeof(struct mach_display_info);
+                NSLog(@"RPC[%@ %u] sending reply of %u bytes", bundleID, pid, msg.len);
+
+                int ret = mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+                    sizeof(msg) - sizeof(mach_msg_trailer_t), 0, MACH_PORT_NULL, 1000, MACH_PORT_NULL);
+                break;
+            }
             case MSG_ID_PORT:
             {
                 mach_port_t port = msg.portMsg.descriptor.name;
