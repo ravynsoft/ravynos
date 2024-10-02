@@ -33,6 +33,9 @@ struct __NSMachPort {
     Boolean isValid;
 };
 
+void *_CFMachPortReceive(void *msg, CFIndex size, CFAllocatorRef allocator, void *info);
+Boolean _CFMachPortIsEqual(const void *info1, const void *info2);
+
 COREFOUNDATION_EXPORT CFTypeID CFMachPortGetTypeID(void) {
     return kNSCFTypeMachPort;
 }
@@ -115,8 +118,19 @@ COREFOUNDATION_EXPORT void CFMachPortSetInvalidationCallBack(CFMachPortRef self,
 }
 
 COREFOUNDATION_EXPORT CFRunLoopSourceRef
-    CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMachPortRef self, CFIndex order) {
-        return NULL; // FIXME: implement
+        CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMachPortRef self, CFIndex order) {
+    CFRunLoopSourceContext1 rlctx = {
+        .version = 1,
+        .info = self,
+        .retain = CFRetain,
+        .release = CFRelease,
+        .copyDescription = NULL,
+        .equal = _CFMachPortIsEqual,
+        .hash = NULL,
+        .getPort = (CFRunLoopGetPortCallBack)CFMachPortGetPort,
+        .perform = _CFMachPortReceive,
+    };
+    return CFRunLoopSourceCreate(NULL, 0, &rlctx);
 }
 
 COREFOUNDATION_EXPORT void CFMachPortInvalidate(CFMachPortRef self) {
@@ -135,5 +149,16 @@ COREFOUNDATION_EXPORT void CFMachPortInvalidate(CFMachPortRef self) {
 
 COREFOUNDATION_EXPORT Boolean CFMachPortIsValid(CFMachPortRef self) {
     return self->isValid;
+}
+
+
+// private for CFRunLoop
+void *_CFMachPortReceive(void *msg, CFIndex size, CFAllocatorRef allocator, void *info) {
+    CFMachPortRef self = (CFMachPortRef)info;
+    (self->callback)(self, msg, size, self->ctx.info);
+}
+
+Boolean _CFMachPortIsEqual(const void *info1, const void *info2) {
+    return (info1 == info2) ? TRUE : FALSE;
 }
 
