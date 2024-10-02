@@ -64,12 +64,14 @@ INCS= \
 	CoreText.h 
 
 RESOURCES=Info.plist 
-CFLAGS+= ${FMWK_CFLAGS} -F../OpenGL -framework OpenGL -I.. -I${.CURDIR}/.. \
-	-I../Foundation/Headers -I../OpenGL -I${.CURDIR}/../OpenGL/mesa/include
+CFLAGS+= ${FMWK_CFLAGS} -F${OBJTOP}/Frameworks/OpenGL -framework OpenGL \
+	-I.. -I${.CURDIR}/.. -fblocks -I../Foundation/Headers \
+	-I${.CURDIR}/../OpenGL/mesa/include
 LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework \
 	-L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework -lOnyx2D -lOpenGL -lm \
 	-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
-	-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A
+	-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
+	-lSystem
 
 .include <rvn.framework.mk>
 

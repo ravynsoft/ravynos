@@ -25,7 +25,8 @@ clean:
 .include <rvn.framework.mk>
 
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers \
-	 -I${.CURDIR}/.. -I${.CURDIR}/fontconfig/fontconfig
+	 -I${.CURDIR}/.. -I${.CURDIR}/fontconfig/fontconfig \
+	 -F${OBJTOP}/Frameworks/OpenGL
 
 fontresources:
 	cp -fv ${.CURDIR}/fontconfig/conf.d/*.conf ${FRAMEWORK_DIR}/Versions/A/Resources/

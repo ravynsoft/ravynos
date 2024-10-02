@@ -18,6 +18,8 @@ typedef enum {
     CGSBackingStoreBuffered = 2
 } CGSBackingStoreType;
 
+typedef uint32_t CGWindowID;
+
 @interface CGWindow : NSObject
 
 - (void)setDelegate:delegate;
