@@ -41,6 +41,8 @@
 #include <sys/sysctl.h>
 #include <sys/user.h>
 
+#import "rpc.h"
+
 @implementation WindowServer
 
 -init {
@@ -460,6 +462,12 @@
 
 }
 
+- (void)rpcMainDisplayID:(PortMessage *)msg {
+    uint32_t ID = [fb getDisplayID];
+    struct wsRPCSimple reply = { kCGMainDisplayID, sizeof(uint32_t)*4, ID, 0, 0, 0 };
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
     mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
@@ -474,32 +482,17 @@
                     reply = msg.portMsg.descriptor.name;
                 pid_t pid = msg.portMsg.pid;
                 NSString *bundleID = nil;
-                if(msg.portMsg.bundleID != '\0')
+                if(msg.portMsg.bundleID[0] != '\0')
                     bundleID = [NSString stringWithCString:msg.portMsg.bundleID];
                 else
                     bundleID = [NSString stringWithFormat:@"unix.%u", pid];
-                NSLog(@"RPC[%@ %u] reply %u data len %u", bundleID, pid, reply, msg.portMsg.len);
+                struct wsRPCBase *base = (struct wsRPCBase *)msg.portMsg.data;
 
-                if(msg.portMsg.msgh_descriptor_count == 0)
-                    break;
+                NSLog(@"RPC[%@ %u] reply %u data len %u code %u", bundleID, pid, reply, msg.portMsg.len, base->code);
 
-                struct mach_display_info info = {
-                    1, _geometry.size.width, _geometry.size.height, [fb getDepth]
-                };
-
-                Message msg = {0};
-                msg.header.msgh_remote_port = reply;
-                msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
-                msg.header.msgh_id = MSG_ID_RPC;
-                msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
-                msg.pid = getpid();
-                strncpy(msg.bundleID, WINDOWSERVER_SVC_NAME, sizeof(msg.bundleID)-1);
-                memcpy(msg.data, &info, sizeof(struct mach_display_info));
-                msg.len = sizeof(struct mach_display_info);
-                NSLog(@"RPC[%@ %u] sending reply of %u bytes", bundleID, pid, msg.len);
-
-                int ret = mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
-                    sizeof(msg) - sizeof(mach_msg_trailer_t), 0, MACH_PORT_NULL, 1000, MACH_PORT_NULL);
+                switch(base->code) {
+                    case kCGMainDisplayID: [self rpcMainDisplayID:&msg.portMsg]; break;
+                }
                 break;
             }
             case MSG_ID_PORT:
@@ -532,7 +525,7 @@
                 [self sendInlineData:&info
                           length:sizeof(struct mach_display_info)
                         withCode:CODE_DISPLAY_INFO
-                           toApp:rec];
+                           toPort:[rec port]];
                 break;
             }
             case MSG_ID_INLINE:
@@ -647,7 +640,7 @@
                             [self sendInlineData:&reply
                                           length:sizeof(struct mach_win_data)
                                         withCode:CODE_WINDOW_CREATED
-                                           toApp:app];
+                                           toPort:[app port]];
                             return;
                         }
                         NSLog(@"No matching app for WINDOW_CREATE! %s %u", msg.msg.bundleID, msg.msg.pid);
@@ -825,7 +818,7 @@
     return [self sendInlineData:event
                          length:sizeof(struct mach_event)
                        withCode:CODE_INPUT_EVENT
-                          toApp:app];
+                          toPort:[app port]];
 }
 
 - (void)updateClientWindowState:(WSWindowRecord *)window {
@@ -850,14 +843,12 @@
 
     WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:key]];
     if(app)
-        [self sendInlineData:&data length:sizeof(data) withCode:CODE_WINDOW_STATE toApp:app];
+        [self sendInlineData:&data length:sizeof(data) withCode:CODE_WINDOW_STATE toPort:[app port]];
     else
         NSLog(@"Cannot send window state update to app: not found. %@", window);
 }
 
-- (BOOL)sendInlineData:(void *)data length:(int)length withCode:(int)code toApp:(WSAppRecord *)app {
-    mach_port_t port = [app port];
-
+- (BOOL)sendInlineData:(void *)data length:(int)length withCode:(int)code toPort:(mach_port_t)port {
     Message msg = {0};
     msg.header.msgh_remote_port = port;
     msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
@@ -875,7 +866,7 @@
         sizeof(msg) - sizeof(mach_msg_trailer_t), 0, MACH_PORT_NULL, 50 /* ms timeout */,
         MACH_PORT_NULL)) != MACH_MSG_SUCCESS) {
         if(logLevel >= WS_WARNING)
-            NSLog(@"Failed to send message to PID %d on port %d: 0x%x", [app pid], port, ret);
+            NSLog(@"Failed to send message to port %d: 0x%x", port, ret);
         return NO;
     }
     return YES;
@@ -937,7 +928,7 @@
     [self sendInlineData:&data
                   length:sizeof(data)
                 withCode:CODE_ACTIVATION_STATE
-                   toApp:oldApp];
+                  toPort:[oldApp port]];
 
     // Inform the now-active app of its status
     data.windowID = (curWindow == nil) ? 0 : curWindow.number;
@@ -945,7 +936,7 @@
     [self sendInlineData:&data
                   length:sizeof(data)
                 withCode:CODE_ACTIVATION_STATE
-                   toApp:curApp];
+                   toPort:[curApp port]];
 }
 
 -(void)signalQuit { ready = NO; }

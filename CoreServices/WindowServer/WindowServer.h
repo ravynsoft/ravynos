@@ -140,7 +140,7 @@ NSRect WSOutsetFrame(NSRect rect, int style);
 -(void)processKernelQueue;
 -(void)receiveMachMessage;
 -(BOOL)sendEventToApp:(struct mach_event *)event;
--(BOOL)sendInlineData:(void *)data length:(int)length withCode:(int)code toApp:(WSAppRecord *)app;
+-(BOOL)sendInlineData:(void *)data length:(int)length withCode:(int)code toPort:(mach_port_t)port;
 -(void)watchForProcessExit:(unsigned int)pid;
 -(WSAppRecord *)findAppByPID:(unsigned int)pid;
 -(void)signalQuit;

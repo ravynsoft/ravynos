@@ -24,6 +24,7 @@
 #import <CoreGraphics/CGDirectDisplay.h>
 #import <CoreFoundation/CFMachPort.h>
 #import <WindowServer/message.h>
+#import <WindowServer/rpc.h>
 
 const CFStringRef kCGDisplayStreamSourceRect = CFSTR("kCGDisplayStreamSourceRect");
 const CFStringRef kCGDisplayStreamDestinationRect = CFSTR("kCGDisplayStreamDestinationRect");
@@ -43,7 +44,13 @@ kern_return_t _windowServerRPC(void *data, size_t len, void *replyBuf, int *repl
 
 // Finding displays
 CGDirectDisplayID CGMainDisplayID(void) {
-
+    struct wsRPCBase data = { kCGMainDisplayID, 0 };
+    struct wsRPCSimple ID;
+    int len = sizeof(ID);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &ID, &len);
+    if(ret == KERN_SUCCESS)
+        return ID.val1;
+    return kCGNullDirectDisplay;
 }
 
 CGError CGGetOnlineDisplayList(uint32_t maxDisplays, CGDirectDisplayID *onlineDisplays, uint32_t *displayCount) {
@@ -173,9 +180,10 @@ kern_return_t _windowServerRPC(void *data, size_t len, void *replyBuf, int *repl
     ret = mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT|flags, sizeof(msg),
             sizeof(msg), replyPort, 2000, MACH_PORT_NULL);
     if(ret == KERN_SUCCESS && replyBuf != NULL) {
-        if(*replyLen <= msg.len) {
-            memmove(replyBuf, msg.data, msg.len);
-            *replyLen = msg.len;
+        Message *rmsg = (Message *)&msg;
+        if(*replyLen >= rmsg->len) {
+            *replyLen = rmsg->len;
+            memmove(replyBuf, rmsg->data, *replyLen);
         } else {
             *replyLen = -1;
         }

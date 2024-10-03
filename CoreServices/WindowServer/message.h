@@ -127,12 +127,6 @@ struct mach_activation_data {
     uint32_t active;
 };
 
-struct ws_rpc {
-    uint32_t code;
-    uint32_t len;
-    void *p;
-};
-
 typedef struct {
     mach_msg_header_t header;
     char bundleID[128];

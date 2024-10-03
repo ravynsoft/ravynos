@@ -170,4 +170,9 @@
     return cs;
 }
 
+/* FIXME: this should hash the vendor, model, serial, and other data */
+- (uint32_t)getDisplayID {
+    return 0xf07f0a10; // arbitrary ID
+}
+
 @end

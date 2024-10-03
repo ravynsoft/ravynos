@@ -71,6 +71,7 @@
 - (void)draw;
 - (O2BitmapContext *)context;
 - (CGColorSpaceRef)colorSpace;
+- (uint32_t)getDisplayID;
 
 @end
 

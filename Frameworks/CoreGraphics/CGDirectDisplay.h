@@ -43,7 +43,7 @@
 typedef CGError CGDisplayError; // deprecated, use CGError instead
 typedef struct CGDisplayMode CGDisplayModeRef;
 
-#define kCGDirectMainDisplay 0x150d00c7; // tested on Sonoma
+#define kCGDirectMainDisplay CGMainDisplayID()
 #define kCGNullDirectDisplay 0;
 
 typedef uint32_t CGDirectDisplayID;

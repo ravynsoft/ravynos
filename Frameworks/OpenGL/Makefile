@@ -34,7 +34,7 @@ LD_LIBRARY_PATH+= ${OBJTOP}/tmp/usr/lib
 _libinstall_hook:
 	echo ${FRAMEWORK} ${.TARGET}
 	cp -fv libpciaccess/libpciaccess.so.0 ${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/
-	cp -fv libpciaccess/libdrm.so.2 ${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/
+	cp -fv libdrm/libdrm.so.2 ${FRAMEWORK}.framework/Versions/${FMWK_VERSION}/
 .for inc in ${INCS}
 	cp -fv ${.CURDIR}/${inc} ${FRAMEWORK}.framework/Headers/
 .endfor
