@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
+ * Copyright (C) 2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,34 @@
  * THE SOFTWARE.
  */
 
-#include <stdint.h>
+#import "WSDisplay.h"
 
-typedef int32_t CGError;
+@implementation WSDisplay
+-init {
+    self = [super init];
+    _flags = 0xFFFFFFFF;
+    return self;
+}
 
-enum _CGErrors : CGError {
-    kCGErrorSuccess = 0,
-    kCGErrorFailure = 1000,
-    kCGErrorIllegalArgument = 1001,
-    kCGErrorInvalidConnection = 1002,
-    kCGErrorInvalidContext = 1003,
-    kCGErrorCannotComplete = 1004,
-    // there is no code 1005?
-    kCGErrorNotImplemented = 1006,
-    kCGErrorRangeCheck = 1007,
-    kCGErrorTypeCheck = 1008,
-    kCGErrorInvalidOperation = 1010,
-    kCGErrorNoneAvailable = 1011,
-};
+-(uint32_t)getDisplayID {
+    return _ID;
+}
+
+-(BOOL)isActive {
+    return (_flags & kWSDisplayActive);
+}
+
+-(BOOL)isOnline {
+    return (_flags & kWSDisplayOnline);
+}
+
+-(BOOL)isSleeping {
+    return (_flags & kWSDisplaySleeping);
+}
+
+-(BOOL)isMain {
+    return (_flags & kWSDisplayMain);
+}
+
+@end
 

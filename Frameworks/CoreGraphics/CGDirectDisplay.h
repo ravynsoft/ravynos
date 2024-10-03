@@ -202,7 +202,7 @@ COREGRAPHICS_EXPORT CGImageRef CGDisplayCreateImage(CGDirectDisplayID displayID)
 COREGRAPHICS_EXPORT CGImageRef CGDisplayCreateImageForRect(CGDirectDisplayID display, CGRect rect);
 
 // Configuring displays
-COREGRAPHICS_EXPORT CGError CGBeginDisplayConfiguration(CGDisplayConfigRef  _Nullable *config);
+COREGRAPHICS_EXPORT CGError CGBeginDisplayConfiguration(CGDisplayConfigRef *config);
 COREGRAPHICS_EXPORT CGError CGCancelDisplayConfiguration(CGDisplayConfigRef config);
 COREGRAPHICS_EXPORT CGError CGCompleteDisplayConfiguration(CGDisplayConfigRef config, CGConfigureOption option);
 COREGRAPHICS_EXPORT CGError CGConfigureDisplayMirrorOfDisplay(CGDisplayConfigRef config, CGDirectDisplayID display, CGDirectDisplayID master);

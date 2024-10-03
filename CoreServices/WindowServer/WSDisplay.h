@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
+ * Copyright (C) 2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,30 @@
  * THE SOFTWARE.
  */
 
-#include <stdint.h>
+#import <sys/types.h>
+#import <Foundation/NSObject.h>
 
-typedef int32_t CGError;
+typedef enum WSDisplayFlags : uint32_t {
+    kWSDisplayActive = (1 << 0),
+    kWSDisplayOnline = (1 << 1),
+    kWSDisplaySleeping = (1 << 2),
+    kWSDisplayMirrored = (1 << 3),
+    kWSDisplayPrimary = (1 << 4),
+    kWSDisplayMain = (1 << 5),
+    kWSDisplayBuiltin = (1 << 6),
+    kWSDisplayStereo = (1 << 7),
+    kWSDisplayHWMirror = (1 << 8)
+} WSDisplayFlags;
 
-enum _CGErrors : CGError {
-    kCGErrorSuccess = 0,
-    kCGErrorFailure = 1000,
-    kCGErrorIllegalArgument = 1001,
-    kCGErrorInvalidConnection = 1002,
-    kCGErrorInvalidContext = 1003,
-    kCGErrorCannotComplete = 1004,
-    // there is no code 1005?
-    kCGErrorNotImplemented = 1006,
-    kCGErrorRangeCheck = 1007,
-    kCGErrorTypeCheck = 1008,
-    kCGErrorInvalidOperation = 1010,
-    kCGErrorNoneAvailable = 1011,
-};
+@interface WSDisplay : NSObject {
+    uint32_t _ID;               // CGDirectDisplayID
+    uint32_t _flags;            // status flags                                
+}
+
+-(uint32_t)getDisplayID;
+-(BOOL)isActive;
+-(BOOL)isOnline;
+-(BOOL)isSleeping;
+-(BOOL)isMain;
+@end
 

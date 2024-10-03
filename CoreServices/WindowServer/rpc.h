@@ -28,6 +28,7 @@
 typedef enum WSRPC {
     kCGWSRPCNull = 0,
     kCGMainDisplayID,
+    kCGGetOnlineDisplayList,
 } WSRPC;
 
 /* Data field header, followed by function-specific data struct */

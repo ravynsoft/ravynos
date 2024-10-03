@@ -30,7 +30,6 @@
 #import <AppKit/NSWindow.h>
 #import "common.h"
 #import "WindowServer.h"
-#import "WSInput.h"
 
 #undef direction // defined in mach.h
 #include <linux/input.h>
@@ -67,6 +66,7 @@
 
     kvm = kvm_open(NULL, "/dev/null", NULL, O_RDONLY, "WindowServer(kvm): ");
 
+    displays = [NSMutableArray new];
     apps = [NSMutableDictionary new];
 
     input = [WSInput new];
@@ -96,6 +96,7 @@
     if([fb openFramebuffer:"/dev/console"] < 0)
         return nil;
     _geometry = [fb geometry];
+    [displays addObject:fb];
 
     [fb clear];
 
@@ -463,9 +464,32 @@
 }
 
 - (void)rpcMainDisplayID:(PortMessage *)msg {
-    uint32_t ID = [fb getDisplayID];
+    uint32_t ID = [(WSDisplay *)fb getDisplayID];
     struct wsRPCSimple reply = { kCGMainDisplayID, sizeof(uint32_t)*4, ID, 0, 0, 0 };
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+- (void)rpcGetOnlineDisplayList:(PortMessage *)msg {
+    size_t size = sizeof(struct wsRPCBase) + sizeof(uint32_t)*[displays count];
+    uint8_t *list = malloc(size);
+    NSLog(@"list size %d at %p", size, list);
+    struct wsRPCBase *p = (struct wsRPCBase *)list;
+    p->code = kCGGetOnlineDisplayList;
+    p->len = 0;
+    uint32_t *q = (uint32_t *)(list + sizeof(struct wsRPCBase));
+    int j = 0;
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        NSLog(@"looking at display %@", d);
+        if([d isOnline]) {
+            NSLog(@"storing display id %u", [d getDisplayID]);
+            q[j++] = [d getDisplayID];
+        }
+    }
+    p->len = j * sizeof(uint32_t);
+    NSLog(@"final length %u", p->len);
+    [self sendInlineData:list length:size withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+    free(list);
 }
 
 - (void)receiveMachMessage {
@@ -492,6 +516,7 @@
 
                 switch(base->code) {
                     case kCGMainDisplayID: [self rpcMainDisplayID:&msg.portMsg]; break;
+                    case kCGGetOnlineDisplayList: [self rpcGetOnlineDisplayList:&msg.portMsg]; break;
                 }
                 break;
             }

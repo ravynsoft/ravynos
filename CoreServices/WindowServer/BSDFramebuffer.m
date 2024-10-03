@@ -26,6 +26,7 @@
 
 - (id)init
 {
+    self = [super init];
     fbfd = -1;
     stride = -1;
     data = NULL;

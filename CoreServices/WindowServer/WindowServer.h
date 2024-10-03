@@ -44,8 +44,11 @@
 #include <kvm.h>
 
 #import "message.h"
+#import "WSDisplay.h"
 #import "BSDFramebuffer.h"
 #import "WSInput.h"
+#import "WSWindowRecord.h"
+#import "WSAppRecord.h"
 
 extern const float WSWindowTitleHeight;
 extern const float WSWindowEdgePad;
@@ -54,52 +57,6 @@ extern const float WSWindowControlDiameter;
 extern const float WSWindowControlSpacing;
 
 NSRect WSOutsetFrame(NSRect rect, int style);
-
-@interface WSWindowRecord : NSObject {
-    CGGlyph _titleGlyphs[128];          // AppKit can't pass anything longer
-}
-
-@property int number;                   // internal window ID
-@property void *surfaceBuf;             // mmaped shared graphics memory
-@property size_t bufSize;               // size of surfaceBuf (bytes)
-@property O2Surface *surface;           // rendering surface
-@property enum WindowState state;       // state
-@property NSRect geometry;              // position and size of client window
-@property NSRect frame;                 // position and size with decorations
-@property NSString *title;              // titlebar string
-@property NSSize titleSize;             // bounding box of glyphs
-@property BOOL titleSet;                // YES if ready to display title
-@property NSImage *icon;                // window icon
-@property NSString *shmPath;
-@property int styleMask;                // NSWindow style flags
-@property(readonly) NSRect closeButtonRect;
-@property(readonly) NSRect miniButtonRect;
-@property(readonly) NSRect zoomButtonRect;
-
--(void)dealloc;
--(void)setOrigin:(NSPoint)pos;
--(void)drawFrame:(O2Context *)_context;
--(void)moveByX:(double)x Y:(double)y;
--(void)setGlyphs:(CGGlyph *)glyphs;
-
-@end
-
-@interface WSAppRecord : NSObject {
-    NSMutableArray *_windows;
-}
-
-@property NSString *bundleID;           // CFBundleID
-@property NSString *name;               // Display name
-@property unsigned int pid;             // process ID
-@property mach_port_t port;             // reply port for events
-@property NSImage *icon;                // Shown in task switcher 
-
--init;
--(void)addWindow:(WSWindowRecord *)window;
--(void)removeWindowWithID:(int)number;
--(WSWindowRecord *)windowWithID:(int)number;
--(NSArray *)windows;
-@end
 
 @interface WindowServer : NSObject {
     BOOL ready;
@@ -115,6 +72,7 @@ NSRect WSOutsetFrame(NSRect rect, int style);
 
     WSInput *input;
 
+    NSMutableArray *displays;
     NSMutableDictionary *apps;          // key is CFBundleID
     WSAppRecord *curApp;
     WSWindowRecord *curWindow;

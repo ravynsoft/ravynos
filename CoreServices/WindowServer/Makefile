@@ -6,6 +6,7 @@ SRCS=           WindowServer.m \
 		WSInput.m \
 		WSAppRecord.m \
 		WSWindowRecord.m \
+		WSDisplay.m \
 		main.m
 RESOURCES=	${.CURDIR}/Icon.png \
 		${MAKEOBJDIR}/libinput/libinput.so.1 \

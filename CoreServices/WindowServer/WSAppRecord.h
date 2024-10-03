@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
+ * Copyright (C) 2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,24 @@
  * THE SOFTWARE.
  */
 
-#include <stdint.h>
+ #import <Foundation/NSObject.h>
+ #import <Foundation/NSString.h>
+ #import <mach/mach.h>
 
-typedef int32_t CGError;
+@interface WSAppRecord : NSObject {
+    NSMutableArray *_windows;
+}
 
-enum _CGErrors : CGError {
-    kCGErrorSuccess = 0,
-    kCGErrorFailure = 1000,
-    kCGErrorIllegalArgument = 1001,
-    kCGErrorInvalidConnection = 1002,
-    kCGErrorInvalidContext = 1003,
-    kCGErrorCannotComplete = 1004,
-    // there is no code 1005?
-    kCGErrorNotImplemented = 1006,
-    kCGErrorRangeCheck = 1007,
-    kCGErrorTypeCheck = 1008,
-    kCGErrorInvalidOperation = 1010,
-    kCGErrorNoneAvailable = 1011,
-};
+@property NSString *bundleID;           // CFBundleID
+@property NSString *name;               // Display name
+@property unsigned int pid;             // process ID
+@property mach_port_t port;             // reply port for events
+@property NSImage *icon;                // Shown in task switcher 
+
+-init;
+-(void)addWindow:(WSWindowRecord *)window;
+-(void)removeWindowWithID:(int)number;
+-(WSWindowRecord *)windowWithID:(int)number;
+-(NSArray *)windows;
+@end
 
