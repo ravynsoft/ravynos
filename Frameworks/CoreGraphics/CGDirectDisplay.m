@@ -54,9 +54,8 @@ CGDirectDisplayID CGMainDisplayID(void) {
     return kCGNullDirectDisplay;
 }
 
-CGError CGGetOnlineDisplayList(uint32_t maxDisplays, CGDirectDisplayID *onlineDisplays, uint32_t *displayCount) {
-    struct wsRPCBase data = { kCGGetOnlineDisplayList, 0 };
-    
+CGError CGGetDisplayList(uint32_t code, uint32_t maxDisplays, CGDirectDisplayID *displays, uint32_t *displayCount) {
+    struct wsRPCBase data = { code, 0 };
     int replyLen = sizeof(data) + sizeof(CGDirectDisplayID)*maxDisplays;
     uint8_t *replyBuf = (uint8_t *)malloc(replyLen);
 
@@ -71,22 +70,25 @@ CGError CGGetOnlineDisplayList(uint32_t maxDisplays, CGDirectDisplayID *onlineDi
 
     memcpy(&data, replyBuf, sizeof(data));
     uint32_t *list = (uint32_t *)(replyBuf + sizeof(data));
+
     int count = data.len / sizeof(CGDirectDisplayID);
-    printf("results bytes: %d count: %d\n", data.len, count);
     if(maxDisplays < count)
         count = maxDisplays;
-    printf("returning %d displays\n", count);
-    for(int i = 0; i < count; i++) {
-        printf("ID: %x\n", list[i]);
-        onlineDisplays[i] = list[i];
-    }
+
+    for(int i = 0; i < count; i++) 
+        displays[i] = list[i];
     *displayCount = count;
+
     free(replyBuf);
     return kCGErrorSuccess;
 }
 
-CGError CGGetActiveDisplayList(uint32_t maxDisplays, CGDirectDisplayID *activeDisplays, uint32_t *displayCount) {
+CGError CGGetOnlineDisplayList(uint32_t maxDisplays, CGDirectDisplayID *onlineDisplays, uint32_t *displayCount) {
+    return CGGetDisplayList(kCGGetOnlineDisplayList, maxDisplays, onlineDisplays, displayCount);
+}
 
+CGError CGGetActiveDisplayList(uint32_t maxDisplays, CGDirectDisplayID *activeDisplays, uint32_t *displayCount) {
+    return CGGetDisplayList(kCGGetActiveDisplayList, maxDisplays, activeDisplays, displayCount);
 }
 
 CGError CGGetDisplaysWithOpenGLDisplayMask(CGOpenGLDisplayMask mask, uint32_t maxDisplays, CGDirectDisplayID *displays, uint32_t *matchingDisplayCount) {

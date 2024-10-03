@@ -472,7 +472,6 @@
 - (void)rpcGetOnlineDisplayList:(PortMessage *)msg {
     size_t size = sizeof(struct wsRPCBase) + sizeof(uint32_t)*[displays count];
     uint8_t *list = malloc(size);
-    NSLog(@"list size %d at %p", size, list);
     struct wsRPCBase *p = (struct wsRPCBase *)list;
     p->code = kCGGetOnlineDisplayList;
     p->len = 0;
@@ -480,17 +479,32 @@
     int j = 0;
     for(int i = 0; i < [displays count]; ++i) {
         WSDisplay *d = [displays objectAtIndex:i];
-        NSLog(@"looking at display %@", d);
-        if([d isOnline]) {
-            NSLog(@"storing display id %u", [d getDisplayID]);
+        if([d isOnline])
             q[j++] = [d getDisplayID];
-        }
     }
     p->len = j * sizeof(uint32_t);
-    NSLog(@"final length %u", p->len);
     [self sendInlineData:list length:size withCode:MSG_ID_RPC toPort:msg->descriptor.name];
     free(list);
 }
+
+- (void)rpcGetActiveDisplayList:(PortMessage *)msg {
+    size_t size = sizeof(struct wsRPCBase) + sizeof(uint32_t)*[displays count];
+    uint8_t *list = malloc(size);
+    struct wsRPCBase *p = (struct wsRPCBase *)list;
+    p->code = kCGGetActiveDisplayList;
+    p->len = 0;
+    uint32_t *q = (uint32_t *)(list + sizeof(struct wsRPCBase));
+    int j = 0;
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        if([d isActive])
+            q[j++] = [d getDisplayID];
+    }
+    p->len = j * sizeof(uint32_t);
+    [self sendInlineData:list length:size withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+    free(list);
+}
+
 
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
@@ -517,6 +531,7 @@
                 switch(base->code) {
                     case kCGMainDisplayID: [self rpcMainDisplayID:&msg.portMsg]; break;
                     case kCGGetOnlineDisplayList: [self rpcGetOnlineDisplayList:&msg.portMsg]; break;
+                    case kCGGetActiveDisplayList: [self rpcGetActiveDisplayList:&msg.portMsg]; break;
                 }
                 break;
             }
