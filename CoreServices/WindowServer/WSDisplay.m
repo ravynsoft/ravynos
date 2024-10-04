@@ -20,12 +20,14 @@
  * THE SOFTWARE.
  */
 
+#import <Foundation/NSRaise.h>
 #import "WSDisplay.h"
 
 @implementation WSDisplay
 -init {
     self = [super init];
     _flags = 0xFFFFFFFF;
+    _openGLMask = 0x1;
     return self;
 }
 
@@ -47,6 +49,16 @@
 
 -(BOOL)isMain {
     return (_flags & kWSDisplayMain);
+}
+
+-(uint32_t)openGLMask {
+    return _openGLMask;
+}
+
+// NOTE: implement in backend subclass
+-(CGRect)geometry {
+    NSUnimplementedMethod();
+    return NSZeroRect;
 }
 
 @end

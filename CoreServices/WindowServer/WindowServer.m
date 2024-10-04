@@ -505,6 +505,102 @@
     free(list);
 }
 
+- (void)rpcGetDisplaysWithOpenGLDisplayMask:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    CGOpenGLDisplayMask mask = args->val1;
+
+    size_t size = sizeof(struct wsRPCBase) + sizeof(uint32_t)*[displays count];
+    uint8_t *list = malloc(size);
+    struct wsRPCBase *p = (struct wsRPCBase *)list;
+    p->code = kCGGetDisplaysWithOpenGLDisplayMask;
+    p->len = 0;
+    uint32_t *q = (uint32_t *)(list + sizeof(struct wsRPCBase));
+    int j = 0;
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        if([d openGLMask] & mask)
+            q[j++] = [d getDisplayID];
+    }
+    p->len = j * sizeof(uint32_t);
+    [self sendInlineData:list length:size withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+    free(list);
+}
+
+- (void)rpcGetDisplaysWithPoint:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    NSPoint point = NSMakePoint(args->val1, args->val2);
+
+    size_t size = sizeof(struct wsRPCBase) + sizeof(uint32_t)*[displays count];
+    uint8_t *list = malloc(size);
+    struct wsRPCBase *p = (struct wsRPCBase *)list;
+    p->code = kCGGetDisplaysWithPoint;
+    p->len = 0;
+    uint32_t *q = (uint32_t *)(list + sizeof(struct wsRPCBase));
+    int j = 0;
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        if(NSPointInRect(point, [d geometry])) // FIXME: this should refer to global coordinates
+            q[j++] = [d getDisplayID];
+    }
+    p->len = j * sizeof(uint32_t);
+    [self sendInlineData:list length:size withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+    free(list);
+}
+
+- (void)rpcGetDisplaysWithRect:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    NSRect rect = NSMakeRect(args->val1, args->val2, args->val3, args->val4);
+
+    size_t size = sizeof(struct wsRPCBase) + sizeof(uint32_t)*[displays count];
+    uint8_t *list = malloc(size);
+    struct wsRPCBase *p = (struct wsRPCBase *)list;
+    p->code = kCGGetDisplaysWithRect;
+    p->len = 0;
+    uint32_t *q = (uint32_t *)(list + sizeof(struct wsRPCBase));
+    int j = 0;
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        if(NSIntersectsRect([d geometry], rect)) // FIXME: this should refer to global coordinates
+            q[j++] = [d getDisplayID];
+    }
+    p->len = j * sizeof(uint32_t);
+    [self sendInlineData:list length:size withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+    free(list);
+}
+
+- (void)rpcOpenGLDisplayMaskToDisplayID:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    CGOpenGLDisplayMask mask = args->val1;
+
+    struct wsRPCSimple reply = {0};
+    reply.base.code = kCGOpenGLDisplayMaskToDisplayID;
+    reply.val1 = kCGNullDirectDisplay;
+    reply.base.len = 4;
+
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        if([d openGLMask] & mask)
+            reply.val1 = [d getDisplayID];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+- (void)rpcDisplayIDToOpenGLDisplayMask:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    CGDirectDisplayID ID = args->val1;
+
+    struct wsRPCSimple reply = {0};
+    reply.base.code = kCGDisplayIDToOpenGLDisplayMask;
+    reply.base.len = 4;
+
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        if([d getDisplayID] == ID)
+            reply.val1 = [d openGLMask];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
 
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
@@ -532,6 +628,14 @@
                     case kCGMainDisplayID: [self rpcMainDisplayID:&msg.portMsg]; break;
                     case kCGGetOnlineDisplayList: [self rpcGetOnlineDisplayList:&msg.portMsg]; break;
                     case kCGGetActiveDisplayList: [self rpcGetActiveDisplayList:&msg.portMsg]; break;
+                    case kCGGetDisplaysWithOpenGLDisplayMask: [self rpcGetDisplaysWithOpenGLDisplayMask:&msg.portMsg];
+                                                              break;
+                    case kCGGetDisplaysWithPoint: [self rpcGetDisplaysWithPoint:&msg.portMsg]; break;
+                    case kCGGetDisplaysWithRect: [self rpcGetDisplaysWithRect:&msg.portMsg]; break;
+                    case kCGOpenGLDisplayMaskToDisplayID: [self rpcOpenGLDisplayMaskToDisplayID:&msg.portMsg];
+                                                          break;
+                    case kCGDisplayIDToOpenGLDisplayMask: [self rpcDisplayIDToOpenGLDisplayMask:&msg.portMsg];
+                                                          break;
                 }
                 break;
             }

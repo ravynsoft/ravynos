@@ -22,6 +22,7 @@
 
 #import <sys/types.h>
 #import <Foundation/NSObject.h>
+#import <Foundation/NSGeometry.h>
 
 typedef enum WSDisplayFlags : uint32_t {
     kWSDisplayActive = (1 << 0),
@@ -38,6 +39,7 @@ typedef enum WSDisplayFlags : uint32_t {
 @interface WSDisplay : NSObject {
     uint32_t _ID;               // CGDirectDisplayID
     uint32_t _flags;            // status flags                                
+    uint32_t _openGLMask;       // CGDisplayOpenGLDisplayMask
 }
 
 -(uint32_t)getDisplayID;
@@ -45,5 +47,9 @@ typedef enum WSDisplayFlags : uint32_t {
 -(BOOL)isOnline;
 -(BOOL)isSleeping;
 -(BOOL)isMain;
+-(uint32_t)openGLMask;
+
+// to implement in subclasses
+-(CGRect)geometry;
 @end
 

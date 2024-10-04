@@ -75,8 +75,10 @@ CGError CGGetDisplayList(uint32_t code, uint32_t maxDisplays, CGDirectDisplayID 
     if(maxDisplays < count)
         count = maxDisplays;
 
-    for(int i = 0; i < count; i++) 
-        displays[i] = list[i];
+    if(displays != NULL) {
+        for(int i = 0; i < count; i++) 
+            displays[i] = list[i];
+    }
     *displayCount = count;
 
     free(replyBuf);
@@ -92,25 +94,135 @@ CGError CGGetActiveDisplayList(uint32_t maxDisplays, CGDirectDisplayID *activeDi
 }
 
 CGError CGGetDisplaysWithOpenGLDisplayMask(CGOpenGLDisplayMask mask, uint32_t maxDisplays, CGDirectDisplayID *displays, uint32_t *matchingDisplayCount) {
+    struct wsRPCSimple data = { kCGGetDisplaysWithOpenGLDisplayMask, sizeof(CGOpenGLDisplayMask), mask };
+    int replyLen = sizeof(struct wsRPCBase) + sizeof(CGDirectDisplayID)*maxDisplays;
+    uint8_t *replyBuf = (uint8_t *)malloc(replyLen);
 
+    if(replyBuf == NULL)
+        return kCGErrorFailure;
+
+    _windowServerRPC(&data, sizeof(data), replyBuf, &replyLen);
+    if(replyLen < 0) {
+        free(replyBuf);
+        return kCGErrorFailure;
+    }
+
+    struct wsRPCBase *base = (struct wsRPCBase *)replyBuf;
+    uint32_t *list = (uint32_t *)(replyBuf + sizeof(struct wsRPCBase));
+
+    int count = base->len / sizeof(CGDirectDisplayID);
+    if(maxDisplays < count)
+        count = maxDisplays;
+
+    if(displays != NULL) {
+        for(int i = 0; i < count; i++) 
+            displays[i] = list[i];
+    }
+    *matchingDisplayCount = count;
+
+    free(replyBuf);
+    return kCGErrorSuccess;
 }
 
 CGError CGGetDisplaysWithPoint(CGPoint point, uint32_t maxDisplays, CGDirectDisplayID *displays, uint32_t *matchingDisplayCount) {
+    struct wsRPCSimple data = { kCGGetDisplaysWithPoint, 8 };
+    data.val1 = (uint32_t)point.x;
+    data.val2 = (uint32_t)point.y;
 
+    int replyLen = sizeof(struct wsRPCBase) + sizeof(CGDirectDisplayID)*maxDisplays;
+    uint8_t *replyBuf = (uint8_t *)malloc(replyLen);
+
+    if(replyBuf == NULL)
+        return kCGErrorFailure;
+
+    _windowServerRPC(&data, sizeof(data), replyBuf, &replyLen);
+    if(replyLen < 0) {
+        free(replyBuf);
+        return kCGErrorFailure;
+    }
+
+    struct wsRPCBase *base = (struct wsRPCBase *)replyBuf;
+    uint32_t *list = (uint32_t *)(replyBuf + sizeof(struct wsRPCBase));
+
+    int count = base->len / sizeof(CGDirectDisplayID);
+    if(maxDisplays == 0)
+        displays = NULL;
+    else if(maxDisplays < count && displays != NULL)
+        count = maxDisplays;
+
+    if(displays != NULL) {
+        for(int i = 0; i < count; i++) 
+            displays[i] = list[i];
+    }
+    *matchingDisplayCount = count;
+
+    free(replyBuf);
+    return kCGErrorSuccess;
 }
 
 CGError CGGetDisplaysWithRect(CGRect rect, uint32_t maxDisplays, CGDirectDisplayID *displays, uint32_t *matchingDisplayCount) {
+    struct wsRPCSimple data = { kCGGetDisplaysWithPoint, 16 };
+    data.val1 = (uint32_t)rect.origin.x;
+    data.val2 = (uint32_t)rect.origin.y;
+    data.val3 = (uint32_t)rect.size.width;
+    data.val4 = (uint32_t)rect.size.height;
 
+    int replyLen = sizeof(struct wsRPCBase) + sizeof(CGDirectDisplayID)*maxDisplays;
+    uint8_t *replyBuf = (uint8_t *)malloc(replyLen);
+
+    if(replyBuf == NULL)
+        return kCGErrorFailure;
+
+    _windowServerRPC(&data, sizeof(data), replyBuf, &replyLen);
+    if(replyLen < 0) {
+        free(replyBuf);
+        return kCGErrorFailure;
+    }
+
+    struct wsRPCBase *base = (struct wsRPCBase *)replyBuf;
+    uint32_t *list = (uint32_t *)(replyBuf + sizeof(struct wsRPCBase));
+
+    int count = base->len / sizeof(CGDirectDisplayID);
+    if(maxDisplays == 0)
+        displays = NULL;
+    else if(maxDisplays < count && displays != NULL)
+        count = maxDisplays;
+
+    if(displays != NULL) {
+        for(int i = 0; i < count; i++) 
+            displays[i] = list[i];
+    }
+    *matchingDisplayCount = count;
+
+    free(replyBuf);
+    return kCGErrorSuccess;
 }
 
 CGDirectDisplayID CGOpenGLDisplayMaskToDisplayID(CGOpenGLDisplayMask mask) {
+    uint32_t display;
+    int32_t len = sizeof(display);
 
+    struct wsRPCSimple data = { kCGOpenGLDisplayMaskToDisplayID, 4 };
+    data.val1 = mask;
+
+    _windowServerRPC(&data, sizeof(data), &display, &len);
+    if(len < 0)
+        return kCGNullDirectDisplay;
+    return display;
 }
 
 CGOpenGLDisplayMask CGDisplayIDToOpenGLDisplayMask(CGDirectDisplayID display) {
+    uint32_t mask;
+    int32_t len = sizeof(mask);
 
+    struct wsRPCSimple data = { kCGDisplayIDToOpenGLDisplayMask, 4 };
+    data.val1 = display;
+
+    _windowServerRPC(&data, sizeof(data), &mask, &len);
+    if(len < 0)
+        return 0;
+    return mask;
 }
-
 
 CGError CGReleaseAllDisplays(void) {
    return 0;

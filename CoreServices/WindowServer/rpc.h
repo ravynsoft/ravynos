@@ -30,6 +30,11 @@ typedef enum WSRPC {
     kCGMainDisplayID,
     kCGGetOnlineDisplayList,
     kCGGetActiveDisplayList,
+    kCGGetDisplaysWithOpenGLDisplayMask,
+    kCGGetDisplaysWithPoint,
+    kCGGetDisplaysWithRect,
+    kCGOpenGLDisplayMaskToDisplayID,
+    kCGDisplayIDToOpenGLDisplayMask,
 } WSRPC;
 
 /* Data field header, followed by function-specific data struct */
