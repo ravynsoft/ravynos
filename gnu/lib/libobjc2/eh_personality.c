@@ -807,8 +807,9 @@ OBJC_PUBLIC void __NSPopExceptionFrame(NSExceptionFrame *frame) {
 }
 
 static void defaultHandler(id exception) {
-	__builtin_trap();
-	fprintf(stderr, "*** Uncaught exception\n");
+	//__builtin_trap();
+	//fprintf(stderr, "*** Uncaught exception\n");
+        objc_exception_throw(exception);
 }
 
 OBJC_PUBLIC int objc_exception_match(Class exceptionClass, id exception) {

@@ -138,7 +138,7 @@ static void *nsThreadStartThread(void* t)
     char** symbols = backtrace_symbols(callstack, frameCount);
     //ignore current frame
     for (i = 1; i < frameCount; ++i) {
-        [ret addObject:[NSString stringWithCString:callstack[i] encoding:NSISOLatin1StringEncoding]];
+        [ret addObject:[NSString stringWithCString:symbols[i] encoding:NSISOLatin1StringEncoding]];
     }
     free(symbols);
     

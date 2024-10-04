@@ -91,7 +91,14 @@ NSString * const NSInconsistentArchiveException=@"NSInconsistentArchiveException
    }
    [_callStack release];
    _callStack=[[NSThread callStackReturnAddresses] retain];
-   objc_exception_throw(self);
+   NSArray *stackTrace = [NSThread callStackSymbols];
+   NSCLog("%s: %s\n", [_name UTF8String], [_reason UTF8String]);
+   for(int i = 0; i < [stackTrace count]; ++i)
+    NSCLog("  %u. %s", i, [[stackTrace objectAtIndex:i] UTF8String]);
+   NSCLog("");
+   [stackTrace release];
+   _NSRaiseException(self);
+//   objc_exception_throw(self);
 }
 
 -(NSString *)name {
