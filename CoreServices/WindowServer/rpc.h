@@ -27,6 +27,7 @@
  */
 typedef enum WSRPC {
     kCGWSRPCNull = 0,
+    // Finding Displays
     kCGMainDisplayID,
     kCGGetOnlineDisplayList,
     kCGGetActiveDisplayList,
@@ -35,6 +36,14 @@ typedef enum WSRPC {
     kCGGetDisplaysWithRect,
     kCGOpenGLDisplayMaskToDisplayID,
     kCGDisplayIDToOpenGLDisplayMask,
+    // Capturing and Releasing Displays
+    kCGDisplayCaptureWithOptions,
+    kCGDisplayRelease,
+    kCGCaptureAllDisplaysWithOptions,
+    kCGReleaseAllDisplays,
+    kCGDisplayGetDrawingContext,
+    // Creating Images from Displays
+    kCGDisplayCreateImageForRect,
 } WSRPC;
 
 /* Data field header, followed by function-specific data struct */

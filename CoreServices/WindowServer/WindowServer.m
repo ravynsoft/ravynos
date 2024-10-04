@@ -601,6 +601,26 @@
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+- (void)rpcDisplayCapture:(PortMessage *)msg {
+
+}
+
+- (void)rpcCaptureAllDisplays:(PortMessage *)msg {
+
+}
+
+- (void)rpcReleaseAllDisplays:(PortMessage *)msg {
+
+}
+
+- (void)rpcDisplayGetDrawingContext:(PortMessage *)msg {
+
+}
+
+- (void)rpcDisplayCreateImageForRect:(PortMessage *)msg {
+
+}
+
 
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
@@ -636,6 +656,11 @@
                                                           break;
                     case kCGDisplayIDToOpenGLDisplayMask: [self rpcDisplayIDToOpenGLDisplayMask:&msg.portMsg];
                                                           break;
+                    case kCGDisplayCaptureWithOptions: [self rpcDisplayCapture:&msg.portMsg]; break;
+                    case kCGCaptureAllDisplaysWithOptions: [self rpcCaptureAllDisplays:&msg.portMsg]; break;
+                    case kCGReleaseAllDisplays: [self rpcReleaseAllDisplays:&msg.portMsg]; break;
+                    case kCGDisplayGetDrawingContext: [self rpcDisplayGetDrawingContext:&msg.portMsg]; break;
+                    case kCGDisplayCreateImageForRect: [self rpcDisplayCreateImageForRect:&msg.portMsg]; break;
                 }
                 break;
             }

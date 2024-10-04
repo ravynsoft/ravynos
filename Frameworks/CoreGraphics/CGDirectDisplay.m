@@ -224,8 +224,69 @@ CGOpenGLDisplayMask CGDisplayIDToOpenGLDisplayMask(CGDirectDisplayID display) {
     return mask;
 }
 
+// Capturing and Releasing Displays
+CGError CGDisplayCapture(CGDirectDisplayID display) {
+    return CGDisplayCaptureWithOptions(display, kCGCaptureNoOptions);
+}
+
+CGError CGDisplayCaptureWithOptions(CGDirectDisplayID display, CGCaptureOptions options) {
+    struct wsRPCSimple data = { kCGDisplayCaptureWithOptions, 8 };
+    data.val1 = display;
+    data.val2 = options;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return kCGErrorFailure;
+}
+
+CGError CGDisplayRelease(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayRelease, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return kCGErrorFailure;
+}
+
+CGError CGCaptureAllDisplays(void) {
+    return CGCaptureAllDisplaysWithOptions(kCGCaptureNoOptions);
+}
+
+CGError CGCaptureAllDisplaysWithOptions(CGCaptureOptions options) {
+    struct wsRPCSimple data = { kCGCaptureAllDisplaysWithOptions, 0 };
+    data.val1 = options;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return kCGErrorFailure;
+}
+
 CGError CGReleaseAllDisplays(void) {
-   return 0;
+    struct wsRPCSimple data = { kCGReleaseAllDisplays, 0 };
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return kCGErrorFailure;
+}
+
+CGWindowID CGShieldingWindowID(CGDirectDisplayID display) {
+    // Not implemented
+    return 0;
+}
+
+CGWindowLevel CGShieldingWindowLevel(void) {
+    // Not implemented
+    return 0;
+}
+
+CGContextRef CGDisplayGetDrawingContext(CGDirectDisplayID display) {
+    // Need to think on how to implement this one...
+    // It is supposed to be shared memory owned by the system
+    return NULL;
 }
 
 // WindowServer info
