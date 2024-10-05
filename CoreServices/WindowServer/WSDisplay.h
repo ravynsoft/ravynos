@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2024 Zoe Knox <zoe@pixin.net>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -23,6 +23,8 @@
 #import <sys/types.h>
 #import <Foundation/NSObject.h>
 #import <Foundation/NSGeometry.h>
+#import <Onyx2D/O2BitmapContext.h>
+#import <CoreGraphics/CGColorSpace.h>
 
 typedef enum WSDisplayFlags : uint32_t {
     kWSDisplayActive = (1 << 0),
@@ -38,8 +40,9 @@ typedef enum WSDisplayFlags : uint32_t {
 
 @interface WSDisplay : NSObject {
     uint32_t _ID;               // CGDirectDisplayID
-    uint32_t _flags;            // status flags                                
+    uint32_t _flags;            // status flags
     uint32_t _openGLMask;       // CGDisplayOpenGLDisplayMask
+    pid_t _captured;            // set to owning pid when captured
 }
 
 -(uint32_t)getDisplayID;
@@ -48,8 +51,18 @@ typedef enum WSDisplayFlags : uint32_t {
 -(BOOL)isSleeping;
 -(BOOL)isMain;
 -(uint32_t)openGLMask;
+-(pid_t)captured;
+-(BOOL)capture:(pid_t)pid withOptions:(uint32_t)options;
+-(void)releaseCapture;
 
 // to implement in subclasses
 -(CGRect)geometry;
+-(void)clear;
+-(void)draw;
+-(int)getDepth;
+-(int)format;
+-(O2BitmapContext *)context;
+-(CGColorSpaceRef)colorSpace;
+
 @end
 

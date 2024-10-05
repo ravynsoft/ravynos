@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -129,13 +129,22 @@
 -(O2BitmapContext *)context {
     return [fb context];
 }
- 
+
 -(NSRect)geometry {
     return _geometry;
 }
 
 -(void)draw {
     return [fb draw];
+}
+
+-(WSDisplay *)displayWithID:(uint32_t)ID {
+    for(int i = 0; i < [displays count]; ++i) {
+        WSDisplay *d = [displays objectAtIndex:i];
+        if([d getDisplayID] == ID)
+            return d;
+    }
+    return nil;
 }
 
 -(BOOL)setUpEnviron:(uid_t)uid {
@@ -211,7 +220,7 @@
                     NSLog(@"missing LoginWindow.app!");
                     break;
                 }
-                
+
                 if([self setUpEnviron:nobodyUID] == NO) {
                     NSLog(@"Unable to set up environment for LoginWindow!");
                     return NO;
@@ -237,7 +246,7 @@
                     NSLog(@"UID below minimum");
                     break;
                 }
-                    
+
                 struct passwd *pw = getpwuid(uid);
                 if(!pw || pw->pw_uid != uid) {
                     NSLog(@"no such uid %d", uid);
@@ -281,7 +290,7 @@
                     NSString *path = [[NSBundle mainBundle] pathForResource:@"SystemUIServer" ofType:@"app"];
                     if(path)
                         path = [[NSBundle bundleWithPath:path] executablePath];
-                    
+
                     if(path)
                         execle([path UTF8String], [[path lastPathComponent] UTF8String], NULL, envp);
 
@@ -330,7 +339,7 @@
     if(len > 0) {
         CGGlyph glyphs[128];
         CTFontRef ctfont = CTFontCreateWithGraphicsFont(_titleFont, 14.0, &CGAffineTransformIdentity, nil);
-        CTFontGetGlyphsForCharacters(ctfont, (const unichar *)[winrec.title 
+        CTFontGetGlyphsForCharacters(ctfont, (const unichar *)[winrec.title
                 cStringUsingEncoding:NSUnicodeStringEncoding], glyphs, [winrec.title length]);
         winrec.titleSize = [self sizeOfTitleText:winrec.title];
         [winrec setGlyphs:glyphs];
@@ -400,7 +409,7 @@
     if(len > 0) {
         CGGlyph glyphs[128];
         CTFontRef ctfont = CTFontCreateWithGraphicsFont(_titleFont, 14.0, &CGAffineTransformIdentity, nil);
-        CTFontGetGlyphsForCharacters(ctfont, (const unichar *)[winrec.title 
+        CTFontGetGlyphsForCharacters(ctfont, (const unichar *)[winrec.title
                 cStringUsingEncoding:NSUnicodeStringEncoding], glyphs, [winrec.title length]);
         winrec.titleSize = [self sizeOfTitleText:winrec.title];
         [winrec setGlyphs:glyphs];
@@ -437,11 +446,17 @@
         if(poll(&fds, 1, 50) > 0)
             [input run:self];
 
+        // FIXME: handle multiple displays here. Use a thread per display?
         O2ContextSetRGBFillColor(ctx, 0.2, 0.2, 0.2, 1);
         O2ContextFillRect(ctx, (O2Rect)_geometry);
         NSEnumerator *appEnum = [apps objectEnumerator];
         WSAppRecord *app;
+        pid_t capturedPID = [[displays objectAtIndex:0] captured];
         while((app = [appEnum nextObject]) != nil) {
+            // If an app has captured the display, only draw that app's windows
+            // FIXME: this can probably be done better with a separate context
+            if(capturedPID && [app pid] != capturedPID)
+                continue;
             NSArray *wins = [app windows];
             int count = [wins count];
             for(int i = 0; i < count; ++i) {
@@ -602,15 +617,44 @@
 }
 
 - (void)rpcDisplayCapture:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    WSDisplay *display = [self displayWithID:args->val1];
+    struct wsRPCSimple reply = { {kCGDisplayCaptureWithOptions, 4}, kCGErrorSuccess };
+    if(!display || [display capture:msg->pid withOptions:args->val2] != YES)
+        reply.val1 = kCGErrorFailure;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
 
+- (void)rpcDisplayRelease:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    WSDisplay *display = [self displayWithID:args->val1];
+    struct wsRPCSimple reply = { {kCGDisplayRelease, 4}, kCGErrorSuccess };
+    if(!display)
+        reply.val1 = kCGErrorFailure;
+    else
+        [display releaseCapture];
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 - (void)rpcCaptureAllDisplays:(PortMessage *)msg {
-
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    WSDisplay *display = nil;
+    struct wsRPCSimple reply = { {kCGCaptureAllDisplaysWithOptions, 4}, kCGErrorSuccess };
+    for(int i = 0; i < [displays count]; ++i) {
+        display = [displays objectAtIndex:i];
+        if([display capture:msg->pid withOptions:args->val1] != YES) {
+            [displays makeObjectsPerformSelector:@selector(releaseCapture)];
+            reply.val1 = kCGErrorFailure;
+            break;
+        }
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 - (void)rpcReleaseAllDisplays:(PortMessage *)msg {
-
+    [displays makeObjectsPerformSelector:@selector(releaseCapture)];
+    struct wsRPCSimple reply = { {kCGReleaseAllDisplays, 4}, kCGErrorSuccess };
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 - (void)rpcDisplayGetDrawingContext:(PortMessage *)msg {
@@ -657,6 +701,7 @@
                     case kCGDisplayIDToOpenGLDisplayMask: [self rpcDisplayIDToOpenGLDisplayMask:&msg.portMsg];
                                                           break;
                     case kCGDisplayCaptureWithOptions: [self rpcDisplayCapture:&msg.portMsg]; break;
+                    case kCGDisplayRelease: [self rpcDisplayRelease:&msg.portMsg]; break;
                     case kCGCaptureAllDisplaysWithOptions: [self rpcCaptureAllDisplays:&msg.portMsg]; break;
                     case kCGReleaseAllDisplays: [self rpcReleaseAllDisplays:&msg.portMsg]; break;
                     case kCGDisplayGetDrawingContext: [self rpcDisplayGetDrawingContext:&msg.portMsg]; break;
@@ -913,7 +958,7 @@
     WSAppRecord *app = curApp;
     WSWindowRecord *window = nil;
     if(event->code == NSKeyDown || event->code == NSKeyUp)
-        event->windowID = curWindow.number; 
+        event->windowID = curWindow.number;
     else
         window = [self windowUnderPointer:pos app:&app];
 
@@ -1120,7 +1165,7 @@
     };
     NSAttributedString *atitle = [[NSAttributedString alloc] initWithString:title attributes:attrs];
     NSSize size = [atitle size];
-    
+
     return size;
 }
 

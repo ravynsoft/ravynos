@@ -89,6 +89,7 @@ NSRect WSOutsetFrame(NSRect rect, int style);
 -(BOOL)isReady;
 -(NSRect)geometry;
 -(void)draw;
+-(WSDisplay *)displayWithID:(uint32_t)ID;
 -(O2BitmapContext *)context;
 -(BOOL)setUpEnviron:(uid_t)uid;
 -(void)freeEnviron;

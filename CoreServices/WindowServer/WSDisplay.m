@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2024 Zoe Knox <zoe@pixin.net>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -28,6 +28,7 @@
     self = [super init];
     _flags = 0xFFFFFFFF;
     _openGLMask = 0x1;
+    _captured = 0;
     return self;
 }
 
@@ -55,10 +56,34 @@
     return _openGLMask;
 }
 
+
 // NOTE: implement in backend subclass
 -(CGRect)geometry {
     NSUnimplementedMethod();
     return NSZeroRect;
+}
+
+// NOTE: implement in backend subclass
+-(void)clear {
+    NSUnimplementedMethod();
+}
+
+-(pid_t)captured {
+    return _captured;
+}
+
+-(BOOL)capture:(pid_t)pid withOptions:(uint32_t)options {
+    if(_captured != 0)
+        return NO;
+    _captured = pid;
+    // we ignore the deprecated options and always fill with black
+    [self clear];
+    return YES;
+}
+
+-(void)releaseCapture {
+    _captured = 0;
+    [self draw];
 }
 
 @end
