@@ -38,7 +38,6 @@ void *kqSvcLoop(void *arg) {
         [ws processKernelQueue];
 } 
 
-
 int main(int argc, const char *argv[]) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     int logLevel = WS_ERROR;

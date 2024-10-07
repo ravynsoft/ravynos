@@ -21,6 +21,7 @@
  */
 
 #import <Foundation/NSRaise.h>
+#import <CoreGraphics/CGImage.h>
 #import "WSDisplay.h"
 
 @implementation WSDisplay
@@ -29,6 +30,12 @@
     _flags = 0xFFFFFFFF;
     _openGLMask = 0x1;
     _captured = 0;
+    width = 0;
+    height = 0;
+    depth = 0;
+    cs = NULL;
+    captureCtx = NULL;
+    activeCtx = NULL;
     return self;
 }
 
@@ -56,16 +63,42 @@
     return _openGLMask;
 }
 
-
-// NOTE: implement in backend subclass
 -(CGRect)geometry {
-    NSUnimplementedMethod();
-    return NSZeroRect;
+    return NSMakeRect(0, 0, width, height);
+}
+
+- (int)format {
+    switch(depth) {
+        case 32:
+            return kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedFirst;
+        case 24:
+            return kCGBitmapByteOrderDefault | kCGImageAlphaNone;
+        default:
+            return kCGBitmapByteOrderDefault | kCGImageAlphaNone;
+    }
+}
+
+- (int)getDepth {
+    return depth;
+}
+
+- (CGColorSpaceRef)colorSpace {
+    return cs;
 }
 
 // NOTE: implement in backend subclass
 -(void)clear {
     NSUnimplementedMethod();
+}
+
+-(void)draw {
+    NSUnimplementedMethod();
+}
+
+-(O2Context *)context {
+    if(_captured != 0)
+        return captureCtx;
+    return activeCtx;
 }
 
 -(pid_t)captured {
@@ -84,6 +117,18 @@
 -(void)releaseCapture {
     _captured = 0;
     [self draw];
+}
+
+-(O2Context *)getCapturedContext {
+    if(!_captured)
+        return nil;
+    return [self context];
+}
+
+-(uint32_t)getCapturedContextID {
+    if(!_captured)
+        return 0;
+    return shmid;
 }
 
 @end

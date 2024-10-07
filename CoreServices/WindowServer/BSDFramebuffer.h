@@ -25,6 +25,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <Onyx2D/O2Context.h>
 #import <Onyx2D/O2BitmapContext.h>
+#import <Onyx2D/O2Context_builtin.h>
 #import <Onyx2D/O2Surface.h>
 
 #include <unistd.h>
@@ -51,12 +52,7 @@
     uint8_t *data;
     int offset;
     int size;
-    int width;
-    int height;
-    int depth;
-    CGColorSpaceRef cs;
-    O2BitmapContext *ctx, *ctx2;
-    O2BitmapContext *activeCtx;
+    O2Context *ctx, *ctx2;
     void *ctxPixels;
     void *ctx2Pixels;
     BOOL _doubleBuffered;
@@ -64,14 +60,9 @@
 
 - (id)init;
 - (int)openFramebuffer: (const char *)device;
-- (NSRect)geometry;
 - (void)dealloc;
-- (int)getDepth;
-- (int)format;
-- (void)clear;
 - (BOOL)useDoubleBuffer:(BOOL)val;
-- (void)draw;
-- (O2BitmapContext *)context;
+- (O2Context *)context;
 - (CGColorSpaceRef)colorSpace;
 
 @end

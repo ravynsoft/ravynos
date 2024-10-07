@@ -21,6 +21,9 @@
  */
 
 #import <mach/mach.h>
+#import <sys/types.h>
+#import <sys/ipc.h>
+#import <sys/shm.h>
 #import <CoreGraphics/CGDirectDisplay.h>
 #import <CoreGraphics/CGError.h>
 #import <CoreFoundation/CFMachPort.h>
@@ -284,8 +287,21 @@ CGWindowLevel CGShieldingWindowLevel(void) {
 }
 
 CGContextRef CGDisplayGetDrawingContext(CGDirectDisplayID display) {
-    // Need to think on how to implement this one...
-    // It is supposed to be shared memory owned by the system
+    struct wsRPCSimple data = { kCGDisplayGetDrawingContext, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS) {
+        if(data.val1 == 0)
+            return NULL; // display is not captured
+        void *addr = (void *)((uintptr_t)data.val2);
+        fprintf(stderr, "shmid val1 = %u, addr = %p\n", data.val1, (uintptr_t)data.val2);
+        fprintf(stderr, "addr ptr %p\n", addr);
+        void *p = shmat(data.val1, addr, SHM_REMAP|0666);
+        if(!p)
+            return NULL;
+        return (CGContextRef)(p+8);
+    }
     return NULL;
 }
 

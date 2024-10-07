@@ -447,24 +447,23 @@
             [input run:self];
 
         // FIXME: handle multiple displays here. Use a thread per display?
-        O2ContextSetRGBFillColor(ctx, 0.2, 0.2, 0.2, 1);
-        O2ContextFillRect(ctx, (O2Rect)_geometry);
-        NSEnumerator *appEnum = [apps objectEnumerator];
-        WSAppRecord *app;
-        pid_t capturedPID = [[displays objectAtIndex:0] captured];
-        while((app = [appEnum nextObject]) != nil) {
-            // If an app has captured the display, only draw that app's windows
-            // FIXME: this can probably be done better with a separate context
-            if(capturedPID && [app pid] != capturedPID)
-                continue;
-            NSArray *wins = [app windows];
-            int count = [wins count];
-            for(int i = 0; i < count; ++i) {
-                WSWindowRecord *win = [wins objectAtIndex:i];
-                if(win.state == HIDDEN)
-                    continue;
-                [win drawFrame:ctx];
-                [ctx drawImage:win.surface inRect:win.geometry];
+        ctx = [fb context];
+        pid_t capturedPID = [fb captured];
+        if(capturedPID == 0) {
+            O2ContextSetRGBFillColor(ctx, 0.2, 0.2, 0.2, 1);
+            O2ContextFillRect(ctx, (O2Rect)_geometry);
+            NSEnumerator *appEnum = [apps objectEnumerator];
+            WSAppRecord *app;
+            while((app = [appEnum nextObject]) != nil) {
+                NSArray *wins = [app windows];
+                int count = [wins count];
+                for(int i = 0; i < count; ++i) {
+                    WSWindowRecord *win = [wins objectAtIndex:i];
+                    if(win.state == HIDDEN)
+                        continue;
+                    [win drawFrame:ctx];
+                    [ctx drawImage:win.surface inRect:win.geometry];
+                }
             }
         }
 
@@ -657,8 +656,21 @@
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+/* Conceptually, this function returns a pointer to the graphics context
+ * owned by WindowServer, that the client app can then write to. Apple
+ * probably does this with Mach shared memory, which we don't have. We do
+ * it with SysV SHM segments
+ */
 - (void)rpcDisplayGetDrawingContext:(PortMessage *)msg {
-
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayGetDrawingContext, 12}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.val1 = [display getCapturedContextID];
+        if(reply.val1)
+            *(uintptr_t *)(&reply.val2) = (uintptr_t)([display getCapturedContext]) - 8;
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 - (void)rpcDisplayCreateImageForRect:(PortMessage *)msg {

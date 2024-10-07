@@ -21,6 +21,9 @@
  */
 
 #import "BSDFramebuffer.h"
+#import <sys/types.h>
+#import <sys/ipc.h>
+#import <sys/shm.h>
 
 @implementation BSDFramebuffer
 
@@ -31,13 +34,8 @@
     stride = -1;
     data = NULL;
     size = 0;
-    width = 0;
-    height = 0;
-    depth = 0;
-    cs = NULL;
     ctx = NULL;
     ctx2 = NULL;
-    activeCtx = ctx;
     _doubleBuffered = NO;
     return self;
 }
@@ -80,26 +78,20 @@
     NSLog(@"fb geometry: %dx%d depth %d stride %d size %d", width, height, depth, stride, size);
 
     cs = CGColorSpaceCreateDeviceRGB();
-    ctx = [O2BitmapContext createWithBytes:NULL width:width height:height 
+    ctx = [O2Context createWithBytes:NULL width:width height:height 
                 bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
                 bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
     ctxPixels = [[ctx surface] pixelBytes];
 
-    ctx2 = [O2BitmapContext createWithBytes:NULL width:width height:height 
-                bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
-                bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
-    ctx2Pixels = [[ctx2 surface] pixelBytes];
+    if(_doubleBuffered)
+        [self useDoubleBuffer:_doubleBuffered];
     activeCtx = ctx;
     return 0;
 }
 
-- (NSRect)geometry
-{
-    return NSMakeRect(0, 0, width, height);
-}
-
 - (void)dealloc
 {
+    [self releaseCapture];
     if(fbfd >= 0) {
         munmap(data, size);
         close(fbfd);
@@ -111,32 +103,28 @@
     ctx2 = nil;
 }
 
-- (int)format
-{
-    switch(depth) {
-        case 32:
-            return kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedFirst;
-        case 24:
-            return kCGBitmapByteOrderDefault | kCGImageAlphaNone;
-        default:
-            return kCGBitmapByteOrderDefault | kCGImageAlphaNone;
-    }
-}
-
-- (int)getDepth {
-    return depth;
-}
-
 // clear screen. does not swap active buffer
 -(void)clear {
+    void *pixels = NULL;
+    if(_captured)
+        pixels = [[captureCtx surface] pixelBytes];
+    else 
+        pixels = (activeCtx == ctx) ? ctxPixels : ctx2Pixels;
+
     O2ContextSetRGBFillColor(activeCtx, 0, 0, 0, 1);
-    O2ContextFillRect(activeCtx, (O2Rect)[self geometry]);
-    memcpy(data, activeCtx == ctx ? ctxPixels : ctx2Pixels, size);
+    O2ContextFillRect(activeCtx, (O2Rect)NSMakeRect(0, 0, width, height));
+    memcpy(data, pixels, size);
 }
 
 -(BOOL)useDoubleBuffer:(BOOL)val {
     BOOL oldval = _doubleBuffered;
     _doubleBuffered = val;
+    if(val == YES && ctx2 == nil) {
+        ctx2 = [O2Context createWithBytes:NULL width:width height:height 
+                bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
+                bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
+        ctx2Pixels = [[ctx2 surface] pixelBytes];
+    }
     return oldval;
 }
 
@@ -144,7 +132,9 @@
 - (void)draw
 {
     void *pixels = 0;
-    if(_doubleBuffered) {
+    if(_captured)
+        pixels = [[captureCtx surface] pixelBytes];
+    else if(_doubleBuffered) {
         if(activeCtx == ctx) {
             activeCtx = ctx2;
             pixels = ctx2Pixels;
@@ -158,17 +148,65 @@
 }
 
 // return the context for drawing, i.e. the back buffer
-- (O2BitmapContext *)context
+- (O2Context *)context
 {
-    if(_doubleBuffered)
+    if(_captured)
+        return captureCtx;
+    else if(_doubleBuffered)
         return (activeCtx == ctx) ? ctx2 : ctx;
     else
         return ctx;
 }
 
-- (CGColorSpaceRef)colorSpace
-{
-    return cs;
+-(BOOL)capture:(pid_t)pid withOptions:(uint32_t)options {
+    if(_captured != 0)
+        return NO;
+    _captured = pid;
+
+    Class cls = [O2Context_builtin class];
+    size_t classSize = class_getInstanceSize(cls);
+    size_t pagemask = getpagesize() - 1;
+    size_t shmSize = (classSize + size + 4*pagemask) & ~pagemask;
+
+    shmid = shmget([self getDisplayID] ^ getpid(), shmSize, IPC_CREAT|0666);
+    if(shmid == 0)
+        return NO;
+
+    uint8_t *p = shmat(shmid, NULL, 0);
+    if(!p) {
+        shmctl(shmid, IPC_RMID, NULL);
+        shmid = 0;
+    }
+
+    id instance = [O2Context_builtin alloc];
+    uint8_t *pInstance = (uint8_t*)((__bridge_retained void *)instance);
+
+    for(int i = 0; i < classSize; i++) {
+        *(8+p+i) = *(pInstance+i);
+    }
+    NSDeallocateObject(instance);
+
+    id q = (__bridge_transfer id)((void *)p+8);
+    uintptr_t bufaddr = ((uintptr_t)p + classSize + 8 + pagemask) & ~pagemask;
+    captureCtx = [q initWithBytes:(void *)bufaddr
+                width:width height:height bitsPerComponent:8 bytesPerRow:0
+                colorSpace:(__bridge O2ColorSpaceRef)cs
+                bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
+    activeCtx = captureCtx;
+    
+    // we ignore the deprecated options and always fill with black
+    [self clear];
+    return YES;
+}
+
+-(void)releaseCapture {
+    if(captureCtx != nil) {
+        shmctl(shmid, IPC_RMID, NULL);
+        shmdt((__bridge void *)captureCtx - 8);
+        shmid = 0;
+    }
+    captureCtx = nil;
+    _captured = 0;
 }
 
 /* FIXME: this should hash the vendor, model, serial, and other data */

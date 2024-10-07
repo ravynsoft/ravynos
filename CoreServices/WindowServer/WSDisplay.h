@@ -23,7 +23,7 @@
 #import <sys/types.h>
 #import <Foundation/NSObject.h>
 #import <Foundation/NSGeometry.h>
-#import <Onyx2D/O2BitmapContext.h>
+#import <Onyx2D/O2Context_builtin.h>
 #import <CoreGraphics/CGColorSpace.h>
 
 typedef enum WSDisplayFlags : uint32_t {
@@ -43,6 +43,14 @@ typedef enum WSDisplayFlags : uint32_t {
     uint32_t _flags;            // status flags
     uint32_t _openGLMask;       // CGDisplayOpenGLDisplayMask
     pid_t _captured;            // set to owning pid when captured
+    unsigned int shmid;         // ID of shared mem for context
+
+    int width;
+    int height;
+    int depth;
+    CGColorSpaceRef cs;
+    O2Context *activeCtx;
+    O2Context *captureCtx;
 }
 
 -(uint32_t)getDisplayID;
@@ -61,8 +69,10 @@ typedef enum WSDisplayFlags : uint32_t {
 -(void)draw;
 -(int)getDepth;
 -(int)format;
--(O2BitmapContext *)context;
+-(O2Context *)context;
 -(CGColorSpaceRef)colorSpace;
+-(O2Context *)getCapturedContext;
+-(uint32_t)getCapturedContextID;
 
 @end
 
