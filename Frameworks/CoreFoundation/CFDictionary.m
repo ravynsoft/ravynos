@@ -73,7 +73,7 @@ CFIndex CFDictionaryGetCountOfValue(CFDictionaryRef self,const void *value){
 }
 
 void CFDictionaryGetKeysAndValues(CFDictionaryRef self,const void **keys,const void **values){
-   NSUnimplementedFunction();
+    [ToNSDictionary(self) getObjects:values andKeys:keys];
 }
 
 const void *CFDictionaryGetValue(CFDictionaryRef self,const void *key){

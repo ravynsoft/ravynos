@@ -24,8 +24,10 @@
 #import <sys/types.h>
 #import <sys/ipc.h>
 #import <sys/shm.h>
+#import <sys/mman.h>
 #import <CoreGraphics/CGDirectDisplay.h>
 #import <CoreGraphics/CGError.h>
+#import <Onyx2D/O2Context_builtin.h>
 #import <CoreFoundation/CFMachPort.h>
 #import <WindowServer/message.h>
 #import <WindowServer/rpc.h>
@@ -42,6 +44,11 @@ const CFStringRef kCGDisplayStreamYCbCrMatrix = CFSTR("kCGDisplayStreamYCbCrMatr
 const CFStringRef kCGDisplayStreamYCbCrMatrix_ITU_R_709_2 = CFSTR("kCGDisplayStreamYCbCrMatrix_ITU_R_709_2");
 const CFStringRef kCGDisplayStreamYCbCrMatrix_ITU_R_601_4 = CFSTR("kCGDisplayStreamYCbCrMatrix_ITU_R_601_4");
 const CFStringRef kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995 = CFSTR("kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995");
+
+// dictionary of display contexts
+static CFMutableDictionaryRef __displayContexts = NULL;
+static const CFDictionaryKeyCallBacks __CGDispCtxKeyCallback = {0}; // all NULL - use defaults
+static const CFDictionaryValueCallBacks __CGDispCtxValCallback = {0}; // same
 
 // make a RPC to WindowServer with optional reply
 kern_return_t _windowServerRPC(void *data, size_t len, void *replyBuf, int *replyLen);
@@ -248,8 +255,19 @@ CGError CGDisplayRelease(CGDirectDisplayID display) {
     data.val1 = display;
     int len = sizeof(data);
     kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
-    if(ret == KERN_SUCCESS)
+    if(ret == KERN_SUCCESS) {
+        if(__displayContexts != NULL) {
+            CGContextRef ctx = CFDictionaryGetValue(__displayContexts, [NSNumber numberWithInt:display]);
+            if(ctx) {
+                void *buffer = [[ctx surface] pixelBytes];
+                buffer -= 6*sizeof(int);
+                shmdt(buffer);
+                CGContextRelease(ctx);
+                CFDictionaryRemoveValue(__displayContexts, [NSNumber numberWithInt:display]);
+            }
+        }
         return data.val1;
+    }
     return kCGErrorFailure;
 }
 
@@ -271,8 +289,23 @@ CGError CGReleaseAllDisplays(void) {
     struct wsRPCSimple data = { kCGReleaseAllDisplays, 0 };
     int len = sizeof(data);
     kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
-    if(ret == KERN_SUCCESS)
+    if(ret == KERN_SUCCESS) {
+        if(__displayContexts != NULL) {
+            int count = CFDictionaryGetCount(__displayContexts);
+            NSNumber *keys[count];
+            CGContextRef vals[count];
+            CFDictionaryGetKeysAndValues(__displayContexts, &keys, &vals);
+            for(int i = 0; i < count; ++i) {
+                CGContextRef ctx = vals[i];
+                void *buffer = [[ctx surface] pixelBytes];
+                buffer -= 6*sizeof(int);
+                shmdt(buffer);
+                CGContextRelease(ctx);
+            }
+            CFDictionaryRemoveAllValues(__displayContexts);
+        }
         return data.val1;
+    }
     return kCGErrorFailure;
 }
 
@@ -294,13 +327,24 @@ CGContextRef CGDisplayGetDrawingContext(CGDirectDisplayID display) {
     if(ret == KERN_SUCCESS) {
         if(data.val1 == 0)
             return NULL; // display is not captured
-        void *addr = (void *)((uintptr_t)data.val2);
-        fprintf(stderr, "shmid val1 = %u, addr = %p\n", data.val1, (uintptr_t)data.val2);
-        fprintf(stderr, "addr ptr %p\n", addr);
-        void *p = shmat(data.val1, addr, SHM_REMAP|0666);
-        if(!p)
+        void *p = shmat(data.val1, NULL, 0);
+        if((void *)-1 == p)
             return NULL;
-        return (CGContextRef)(p+8);
+        intptr_t *q = (intptr_t *)p;
+        int width = q[0];
+        int height = q[1];
+        int format = q[2];
+
+        CGContextRef ctx = (__bridge_retained CGContextRef)[[O2Context_builtin alloc]
+            initWithBytes:(p+sizeof(int)*6) width:width height:height
+            bitsPerComponent:8 bytesPerRow:width*4 colorSpace:CGColorSpaceCreateDeviceRGB()
+            bitmapInfo:format releaseCallback:NULL releaseInfo:NULL];
+
+        // cache it so we can release later. we support up to 8 captured displays
+        if(__displayContexts == NULL) 
+            __displayContexts = CFDictionaryCreateMutable(NULL, 8, &__CGDispCtxKeyCallback, &__CGDispCtxValCallback);
+        CFDictionarySetValue(__displayContexts, [NSNumber numberWithInt:display], ctx);
+        return ctx;
     }
     return NULL;
 }

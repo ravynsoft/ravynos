@@ -56,7 +56,6 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
 {
     id result;
 
-    // FIXME: make this support Zones
     result = class_createInstance(class, extraBytes);
     if(result != nil) {
         if (__NSAllocateObjectHook) {

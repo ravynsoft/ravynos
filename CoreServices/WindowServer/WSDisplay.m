@@ -36,6 +36,8 @@
     cs = NULL;
     captureCtx = NULL;
     activeCtx = NULL;
+    shmid = 0;
+    shmSize = 0;
     return self;
 }
 

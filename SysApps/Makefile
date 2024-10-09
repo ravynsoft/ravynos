@@ -12,12 +12,12 @@ clean:
 
 build: buildInstaller
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
-	cp -av ${MAKEOBJDIR}/Installer/"Install ravynOS.app" ${BUILDROOT}/Applications/Utilities/
-	cp -av ${.CURDIR}/foot.app ${BUILDROOT}/Applications/Utilities/
-	rm -f ${BUILDROOT}/Applications/Utilities/foot.app/foot.c
-	mkdir -p ${BUILDROOT}/Applications/Utilities/foot.app/Contents/ravynOS
-	${CC} -o ${BUILDROOT}/Applications/Utilities/foot.app/Contents/ravynOS/foot ${.CURDIR}/foot.app/foot.c
+	#cp -av ${MAKEOBJDIR}/Installer/"Install ravynOS.app" ${BUILDROOT}/Applications/Utilities/
+	#cp -av ${.CURDIR}/foot.app ${BUILDROOT}/Applications/Utilities/
+	#rm -f ${BUILDROOT}/Applications/Utilities/foot.app/foot.c
+	#mkdir -p ${BUILDROOT}/Applications/Utilities/foot.app/Contents/ravynOS
+	#${CC} -o ${BUILDROOT}/Applications/Utilities/foot.app/Contents/ravynOS/foot ${.CURDIR}/foot.app/foot.c
 
 buildInstaller:
-	${MAKE} -C ${.CURDIR}/Installer build
+	#${MAKE} -C ${.CURDIR}/Installer build
 

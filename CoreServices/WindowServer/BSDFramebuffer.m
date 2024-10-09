@@ -163,12 +163,9 @@
         return NO;
     _captured = pid;
 
-    Class cls = [O2Context_builtin class];
-    size_t classSize = class_getInstanceSize(cls);
-    size_t pagemask = getpagesize() - 1;
-    size_t shmSize = (classSize + size + 4*pagemask) & ~pagemask;
-
-    shmid = shmget([self getDisplayID] ^ getpid(), shmSize, IPC_CREAT|0666);
+    int reserved = 6*sizeof(int); // save space for dimensions info 
+    shmSize = size + reserved;
+    shmid = shmget([self getDisplayID] /*^ getpid()*/, shmSize, IPC_CREAT|0666);
     if(shmid == 0)
         return NO;
 
@@ -176,23 +173,21 @@
     if(!p) {
         shmctl(shmid, IPC_RMID, NULL);
         shmid = 0;
+        return NO;
     }
 
-    id instance = [O2Context_builtin alloc];
-    uint8_t *pInstance = (uint8_t*)((__bridge_retained void *)instance);
-
-    for(int i = 0; i < classSize; i++) {
-        *(8+p+i) = *(pInstance+i);
-    }
-    NSDeallocateObject(instance);
-
-    id q = (__bridge_transfer id)((void *)p+8);
-    uintptr_t bufaddr = ((uintptr_t)p + classSize + 8 + pagemask) & ~pagemask;
-    captureCtx = [q initWithBytes:(void *)bufaddr
-                width:width height:height bitsPerComponent:8 bytesPerRow:0
+    uint8_t *bufaddr = (p + reserved);
+    captureCtx = [[O2Context_builtin alloc] initWithBytes:(void *)bufaddr
+                width:width height:height bitsPerComponent:8 bytesPerRow:width*4
                 colorSpace:(__bridge O2ColorSpaceRef)cs
                 bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
     activeCtx = captureCtx;
+    NSLog(@"captureCtx %@ dim: %ux%u surface %@", captureCtx, width, height, [captureCtx surface]);
+    NSLog(@"bpr %u height %u", O2BitmapContextGetBytesPerRow(captureCtx), O2BitmapContextGetHeight(captureCtx));
+    intptr_t *q = (intptr_t *)p;
+    q[0] = width;
+    q[1] = height;
+    q[2] = [self format];
     
     // we ignore the deprecated options and always fill with black
     [self clear];
@@ -202,8 +197,11 @@
 -(void)releaseCapture {
     if(captureCtx != nil) {
         shmctl(shmid, IPC_RMID, NULL);
-        shmdt((__bridge void *)captureCtx - 8);
+        void *buffer = [[captureCtx surface] pixelBytes];
+        buffer -= 6*sizeof(int);
+        shmdt(buffer);
         shmid = 0;
+        shmSize = 0;
     }
     captureCtx = nil;
     _captured = 0;

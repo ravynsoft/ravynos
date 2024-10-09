@@ -44,6 +44,7 @@ typedef enum WSDisplayFlags : uint32_t {
     uint32_t _openGLMask;       // CGDisplayOpenGLDisplayMask
     pid_t _captured;            // set to owning pid when captured
     unsigned int shmid;         // ID of shared mem for context
+    unsigned int shmSize;
 
     int width;
     int height;
@@ -73,6 +74,7 @@ typedef enum WSDisplayFlags : uint32_t {
 -(CGColorSpaceRef)colorSpace;
 -(O2Context *)getCapturedContext;
 -(uint32_t)getCapturedContextID;
+-(uint32_t)getCapturedContextID:(uintptr_t *)addr size:(uint32_t *)size;
 
 @end
 

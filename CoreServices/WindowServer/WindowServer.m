@@ -663,12 +663,10 @@
  */
 - (void)rpcDisplayGetDrawingContext:(PortMessage *)msg {
     struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
-    struct wsRPCSimple reply = { {kCGDisplayGetDrawingContext, 12}, 0};
+    struct wsRPCSimple reply = { {kCGDisplayGetDrawingContext, 4}, 0};
     WSDisplay *display = [self displayWithID:args->val1];
     if(display) {
         reply.val1 = [display getCapturedContextID];
-        if(reply.val1)
-            *(uintptr_t *)(&reply.val2) = (uintptr_t)([display getCapturedContext]) - 8;
     }
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
