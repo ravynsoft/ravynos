@@ -97,6 +97,10 @@
     NSUnimplementedMethod();
 }
 
+-(void)drawWithCursor:(O2Image *)cursor inRect:(O2Rect)rect {
+    NSUnimplementedMethod();
+}
+
 -(O2Context *)context {
     if(_captured != 0)
         return captureCtx;

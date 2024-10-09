@@ -36,7 +36,6 @@
     size = 0;
     ctx = NULL;
     ctx2 = NULL;
-    _doubleBuffered = NO;
     return self;
 }
 
@@ -82,9 +81,10 @@
                 bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
                 bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
     ctxPixels = [[ctx surface] pixelBytes];
-
-    if(_doubleBuffered)
-        [self useDoubleBuffer:_doubleBuffered];
+    ctx2 = [O2Context createWithBytes:NULL width:width height:height 
+            bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
+            bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
+    ctx2Pixels = [[ctx2 surface] pixelBytes];
     activeCtx = ctx;
     return 0;
 }
@@ -109,42 +109,28 @@
     if(_captured)
         pixels = [[captureCtx surface] pixelBytes];
     else 
-        pixels = (activeCtx == ctx) ? ctxPixels : ctx2Pixels;
+        pixels = ctxPixels;
 
     O2ContextSetRGBFillColor(activeCtx, 0, 0, 0, 1);
     O2ContextFillRect(activeCtx, (O2Rect)NSMakeRect(0, 0, width, height));
     memcpy(data, pixels, size);
 }
 
--(BOOL)useDoubleBuffer:(BOOL)val {
-    BOOL oldval = _doubleBuffered;
-    _doubleBuffered = val;
-    if(val == YES && ctx2 == nil) {
-        ctx2 = [O2Context createWithBytes:NULL width:width height:height 
-                bitsPerComponent:8 bytesPerRow:0 colorSpace:(__bridge O2ColorSpaceRef)cs
-                bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
-        ctx2Pixels = [[ctx2 surface] pixelBytes];
-    }
-    return oldval;
-}
-
-// draw the back buffer to the front and make it active
 - (void)draw
 {
     void *pixels = 0;
     if(_captured)
-        pixels = [[captureCtx surface] pixelBytes];
-    else if(_doubleBuffered) {
-        if(activeCtx == ctx) {
-            activeCtx = ctx2;
-            pixels = ctx2Pixels;
-        } else {
-            activeCtx = ctx;
-            pixels = ctxPixels;
-        }
-    } else
-	pixels = ctxPixels;
+        pixels = ctx2Pixels;
+    else
+        pixels = ctxPixels;
     memcpy(data, pixels, size); // FIXME: this is slooowwww
+}
+
+- (void)drawWithCursor:(O2Image *)cursor inRect:(O2Rect)rect {
+    O2ContextDrawImage(ctx2, NSMakeRect(0,0,width,height), [captureCtx surface]);
+    O2ContextSetBlendMode(ctx2, kCGBlendModeNormal);
+    O2ContextDrawImage(ctx2, rect, cursor);
+    memcpy(data, ctx2Pixels, size); // FIXME: this is slooowwww
 }
 
 // return the context for drawing, i.e. the back buffer
@@ -152,8 +138,6 @@
 {
     if(_captured)
         return captureCtx;
-    else if(_doubleBuffered)
-        return (activeCtx == ctx) ? ctx2 : ctx;
     else
         return ctx;
 }
@@ -182,8 +166,6 @@
                 colorSpace:(__bridge O2ColorSpaceRef)cs
                 bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
     activeCtx = captureCtx;
-    NSLog(@"captureCtx %@ dim: %ux%u surface %@", captureCtx, width, height, [captureCtx surface]);
-    NSLog(@"bpr %u height %u", O2BitmapContextGetBytesPerRow(captureCtx), O2BitmapContextGetHeight(captureCtx));
     intptr_t *q = (intptr_t *)p;
     q[0] = width;
     q[1] = height;
@@ -204,6 +186,7 @@
         shmSize = 0;
     }
     captureCtx = nil;
+    activeCtx = ctx;
     _captured = 0;
 }
 

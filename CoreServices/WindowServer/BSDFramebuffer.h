@@ -55,7 +55,6 @@
     O2Context *ctx, *ctx2;
     void *ctxPixels;
     void *ctx2Pixels;
-    BOOL _doubleBuffered;
 }
 
 - (id)init;

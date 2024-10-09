@@ -450,7 +450,7 @@
         ctx = [fb context];
         pid_t capturedPID = [fb captured];
         if(capturedPID == 0) {
-            O2ContextSetRGBFillColor(ctx, 0.2, 0.2, 0.2, 1);
+            O2ContextSetRGBFillColor(ctx, 0.333, 0.333, 0.333, 1);
             O2ContextFillRect(ctx, (O2Rect)_geometry);
             NSEnumerator *appEnum = [apps objectEnumerator];
             WSAppRecord *app;
@@ -469,10 +469,13 @@
 
         cursorRect.origin = [input pointerPos];
         cursorRect.origin.y -= _cursor_height; // make sure point of arrow is on actual spot
-        O2ContextSetBlendMode(ctx, kCGBlendModeNormal);
-        O2ContextDrawImage(ctx, cursorRect, cursor);
 
-        [fb draw];
+        if(capturedPID == 0) {
+            O2ContextSetBlendMode(ctx, kCGBlendModeNormal);
+            O2ContextDrawImage(ctx, cursorRect, cursor);
+            [fb draw];
+        } else
+            [fb drawWithCursor:cursor inRect:cursorRect];
     }
 
 }
