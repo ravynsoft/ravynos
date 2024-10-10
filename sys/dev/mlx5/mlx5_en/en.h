@@ -70,7 +70,6 @@
 #include <dev/mlx5/mlx5_core/wq.h>
 #include <dev/mlx5/mlx5_core/transobj.h>
 #include <dev/mlx5/mlx5_core/mlx5_core.h>
-#include <dev/mlx5/mlx5_accel/ipsec.h>
 
 #define	MLX5_SET_CFG(p, f, v) MLX5_SET(create_flow_group_in, p, f, v)
 
@@ -748,10 +747,13 @@ struct mlx5e_cq {
 	struct mlx5_wq_ctrl wq_ctrl;
 } __aligned(MLX5E_CACHELINE_SIZE);
 
+struct ipsec_accel_in_tag;
+
 struct mlx5e_rq_mbuf {
 	bus_dmamap_t	dma_map;
 	caddr_t		data;
 	struct mbuf	*mbuf;
+	struct ipsec_accel_in_tag *ipsec_mtag;
 };
 
 struct mlx5e_rq {

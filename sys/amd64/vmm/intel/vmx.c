@@ -58,10 +58,11 @@
 #include <machine/vmm_instruction_emul.h>
 #include <machine/vmm_snapshot.h>
 
+#include <dev/vmm/vmm_ktr.h>
+
 #include "vmm_lapic.h"
 #include "vmm_host.h"
 #include "vmm_ioport.h"
-#include "vmm_ktr.h"
 #include "vmm_stat.h"
 #include "vatpic.h"
 #include "vlapic.h"
@@ -3664,7 +3665,7 @@ vmx_setcap(void *vcpui, int type, int val)
 		vlapic = vm_lapic(vcpu->vcpu);
 		vlapic->ipi_exit = val;
 		break;
-	case VM_CAP_MASK_HWINTR:		
+	case VM_CAP_MASK_HWINTR:
 		retval = 0;
 		break;
 	default:

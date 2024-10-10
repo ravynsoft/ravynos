@@ -641,7 +641,7 @@ copy_flow_data(struct pflow_flow *flow1, struct pflow_flow *flow2,
 	    htonl(st->expire);
 	flow1->tcp_flags = flow2->tcp_flags = 0;
 	flow1->protocol = flow2->protocol = sk->proto;
-	flow1->tos = flow2->tos = st->rule.ptr->tos;
+	flow1->tos = flow2->tos = st->rule->tos;
 }
 
 static void
@@ -678,7 +678,7 @@ copy_flow_ipfix_4_data(struct pflow_ipfix_flow4 *flow1,
 	    (pf_get_uptime() - st->expire)));
 
 	flow1->protocol = flow2->protocol = sk->proto;
-	flow1->tos = flow2->tos = st->rule.ptr->tos;
+	flow1->tos = flow2->tos = st->rule->tos;
 }
 
 static void
@@ -717,7 +717,7 @@ copy_flow_ipfix_6_data(struct pflow_ipfix_flow6 *flow1,
 	    (pf_get_uptime() - st->expire)));
 
 	flow1->protocol = flow2->protocol = sk->proto;
-	flow1->tos = flow2->tos = st->rule.ptr->tos;
+	flow1->tos = flow2->tos = st->rule->tos;
 }
 
 static void
@@ -982,7 +982,8 @@ pflow_pack_flow_ipfix(const struct pf_kstate *st, struct pf_state_key *sk,
 	int				 ret = 0;
 	bool				 nat = false;
 
-	if (sk->af == AF_INET) {
+	switch (sk->af) {
+	case AF_INET:
 		bzero(&flow4_1, sizeof(flow4_1));
 		bzero(&flow4_2, sizeof(flow4_2));
 
@@ -1019,7 +1020,8 @@ pflow_pack_flow_ipfix(const struct pf_kstate *st, struct pf_state_key *sk,
 				    PFIX_NAT_EVENT_SESSION_DELETE, st->expire);
 			}
 		}
-	} else if (sk->af == AF_INET6) {
+		break;
+	case AF_INET6:
 		bzero(&flow6_1, sizeof(flow6_1));
 		bzero(&flow6_2, sizeof(flow6_2));
 
@@ -1035,6 +1037,7 @@ pflow_pack_flow_ipfix(const struct pf_kstate *st, struct pf_state_key *sk,
 
 		if (st->bytes[1] != 0) /* second flow from state */
 			ret = copy_flow_ipfix_6_to_m(&flow6_2, sc);
+		break;
 	}
 	return (ret);
 }

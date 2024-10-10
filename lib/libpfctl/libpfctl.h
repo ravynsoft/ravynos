@@ -220,6 +220,7 @@ struct pfctl_rule {
 
 	struct pf_rule_uid	 uid;
 	struct pf_rule_gid	 gid;
+	char			 rcv_ifname[IFNAMSIZ];
 
 	uint32_t		 rule_flag;
 	uint8_t			 action;
@@ -503,5 +504,7 @@ int	pfctl_get_addrs(struct pfctl_handle *h, uint32_t ticket, uint32_t r_num,
 	    uint8_t r_action, const char *anchor, uint32_t *nr);
 int	pfctl_get_addr(struct pfctl_handle *h, uint32_t ticket, uint32_t r_num,
 	    uint8_t r_action, const char *anchor, uint32_t nr, struct pfioc_pooladdr *pa);
+int	pfctl_get_rulesets(struct pfctl_handle *h, const char *path, uint32_t *nr);
+int	pfctl_get_ruleset(struct pfctl_handle *h, const char *path, uint32_t nr, struct pfioc_ruleset *rs);
 
 #endif

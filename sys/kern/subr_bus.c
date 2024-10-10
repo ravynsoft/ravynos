@@ -5422,8 +5422,6 @@ sysctl_devices(SYSCTL_HANDLER_ARGS)
 	 * Populate the return item, careful not to overflow the buffer.
 	 */
 	udev = malloc(sizeof(*udev), M_BUS, M_WAITOK | M_ZERO);
-	if (udev == NULL)
-		return (ENOMEM);
 	udev->dv_handle = (uintptr_t)dev;
 	udev->dv_parent = (uintptr_t)dev->parent;
 	udev->dv_devflags = dev->devflags;
@@ -5858,6 +5856,10 @@ devctl2_ioctl(struct cdev *cdev, u_long cmd, caddr_t data, int fflag,
 		break;
 	case DEV_RESET:
 		if ((req->dr_flags & ~(DEVF_RESET_DETACH)) != 0) {
+			error = EINVAL;
+			break;
+		}
+		if (device_get_parent(dev) == NULL) {
 			error = EINVAL;
 			break;
 		}

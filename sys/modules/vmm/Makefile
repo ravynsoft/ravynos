@@ -15,9 +15,11 @@ CFLAGS+= -I${SRCTOP}/sys/${MACHINE}/vmm
 CFLAGS+= -I${SRCTOP}/sys/${MACHINE}/vmm/io
 
 # generic vmm support
-.PATH: ${SRCTOP}/sys/${MACHINE}/vmm
-SRCS+=	vmm.c		\
-	vmm_dev.c	\
+.PATH: ${SRCTOP}/sys/dev/vmm ${SRCTOP}/sys/${MACHINE}/vmm
+
+SRCS+=	vmm.c			\
+	vmm_dev.c		\
+	vmm_dev_machdep.c	\
 	vmm_instruction_emul.c	\
 	vmm_stat.c
 
@@ -28,7 +30,10 @@ DPSRCS+=	assym.inc
 SRCS+=	vmm_arm64.c \
 	vmm_reset.c \
 	vmm_call.S \
+	vmm_handlers.c \
 	vmm_mmu.c \
+	vmm_vhe_exception.S \
+	vmm_vhe.c \
 	vmm_hyp_el2.S
 
 .PATH: ${SRCTOP}/sys/${MACHINE}/vmm/io
@@ -38,20 +43,20 @@ SRCS+=	vgic.c \
 	vgic_v3.c \
 	vtimer.c
 
-CLEANFILES+=	vmm_hyp_exception.o vmm_hyp.o
+CLEANFILES+=	vmm_nvhe_exception.o vmm_nvhe.o
+
 CLEANFILES+=	vmm_hyp_blob.elf.full
 CLEANFILES+=	vmm_hyp_blob.elf vmm_hyp_blob.bin
 
-vmm_hyp_exception.o: vmm_hyp_exception.S
+vmm_nvhe_exception.o: vmm_nvhe_exception.S
 	${CC} -c -x assembler-with-cpp -DLOCORE \
-		${CFLAGS:N-fsanitize*:N-fno-sanitize*:N-mbranch-protection*} \
-	    ${.IMPSRC} -o ${.TARGET} -fpie
+	    ${NOSAN_CFLAGS:N-mbranch-protection*} ${.IMPSRC} -o ${.TARGET} -fpie
 
-vmm_hyp.o: vmm_hyp.c
-	${CC} -c ${CFLAGS:N-fsanitize*:N-fno-sanitize*:N-mbranch-protection*} \
-	    ${.IMPSRC} -o ${.TARGET} -fpie
+vmm_nvhe.o: vmm_nvhe.c
+	${CC} -c ${NOSAN_CFLAGS:N-mbranch-protection*} ${.IMPSRC} \
+	    -o ${.TARGET} -fpie
 
-vmm_hyp_blob.elf.full:	vmm_hyp_exception.o vmm_hyp.o
+vmm_hyp_blob.elf.full:	vmm_nvhe_exception.o vmm_nvhe.o
 	${LD} -m ${LD_EMULATION} -Bdynamic -L ${SYSDIR}/conf -T ${SYSDIR}/conf/ldscript.arm64 \
 	    ${_LDFLAGS:N-zbti-report*} --no-warn-mismatch --warn-common --export-dynamic \
 	    --dynamic-linker /red/herring -X -o ${.TARGET} ${.ALLSRC} \
@@ -135,14 +140,12 @@ svm_support.o:
 	    ${.IMPSRC} -o ${.TARGET}
 
 hyp_genassym.o: offset.inc
-	${CC} -c ${CFLAGS:N-flto:N-fno-common} -fcommon ${.IMPSRC}
+	${CC} -c ${NOSAN_CFLAGS:N-flto:N-fno-common} -fcommon ${.IMPSRC}
 
 vmx_genassym.o: offset.inc
-	${CC} -c ${CFLAGS:N-flto*:N-fno-common:N-fsanitize*:N-fno-sanitize*} \
-	    -fcommon ${.IMPSRC}
+	${CC} -c ${NOSAN_CFLAGS:N-flto*:N-fno-common} -fcommon ${.IMPSRC}
 
 svm_genassym.o: offset.inc
-	${CC} -c ${CFLAGS:N-flto*:N-fno-common:N-fsanitize*:N-fno-sanitize*} \
-	    -fcommon ${.IMPSRC}
+	${CC} -c ${NOSAN_CFLAGS:N-flto*:N-fno-common} -fcommon ${.IMPSRC}
 
 .include <bsd.kmod.mk>

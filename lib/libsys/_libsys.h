@@ -3,8 +3,9 @@
  *
  * Do not use directly, include <libsys.h> instead.
  *
- *  DO NOT EDIT-- this file is automatically @generated.
+ * DO NOT EDIT-- this file is automatically @generated.
  */
+
 #ifndef __LIBSYS_H_
 #define __LIBSYS_H_
 
@@ -474,6 +475,7 @@ typedef int (__sys_timerfd_create_t)(int, int);
 typedef int (__sys_timerfd_gettime_t)(int, struct itimerspec *);
 typedef int (__sys_timerfd_settime_t)(int, int, const struct itimerspec *, struct itimerspec *);
 typedef int (__sys_kcmp_t)(pid_t, pid_t, int, uintptr_t, uintptr_t);
+typedef int (__sys_getrlimitusage_t)(u_int, int, rlim_t *);
 typedef int (__sys__kernelrpc_mach_vm_allocate_trap_t)(mach_port_name_t, mach_vm_offset_t *, mach_vm_size_t, int);
 typedef int (__sys__kernelrpc_mach_vm_deallocate_trap_t)(mach_port_name_t, mach_vm_offset_t, mach_vm_size_t);
 typedef int (__sys__kernelrpc_mach_vm_protect_trap_t)(mach_port_name_t, mach_vm_offset_t, mach_vm_size_t, int, vm_prot_t);
@@ -928,6 +930,7 @@ int __sys_timerfd_create(int clockid, int flags);
 int __sys_timerfd_gettime(int fd, struct itimerspec * curr_value);
 int __sys_timerfd_settime(int fd, int flags, const struct itimerspec * new_value, struct itimerspec * old_value);
 int __sys_kcmp(pid_t pid1, pid_t pid2, int type, uintptr_t idx1, uintptr_t idx2);
+int __sys_getrlimitusage(u_int which, int flags, rlim_t * res);
 int __sys__kernelrpc_mach_vm_allocate_trap(mach_port_name_t target, mach_vm_offset_t * address, mach_vm_size_t size, int flags);
 int __sys__kernelrpc_mach_vm_deallocate_trap(mach_port_name_t target, mach_vm_offset_t address, mach_vm_size_t size);
 int __sys__kernelrpc_mach_vm_protect_trap(mach_port_name_t target, mach_vm_offset_t address, mach_vm_size_t size, int set_maximum, vm_prot_t new_protection);

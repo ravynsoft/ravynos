@@ -86,6 +86,7 @@ ENTRY(_start)
 	 * x27 = TTBR0 table
 	 * x26 = Kernel L1 table
 	 * x24 = TTBR1 table
+	 * x22 = PTE shareability attributes
 	 */
 
 	/* Enable the mmu */
@@ -111,7 +112,7 @@ virtdone:
 	ldr	x15, .Lbss
 	ldr	x14, .Lend
 1:
-	str	xzr, [x15], #8
+	stp	xzr, xzr, [x15], #16
 	cmp	x15, x14
 	b.lo	1b
 
@@ -134,7 +135,10 @@ virtdone:
 	str	x25, [x0, #BP_KERN_STACK]
 	str	x27, [x0, #BP_KERN_TTBR0]
 	str	x23, [x0, #BP_BOOT_EL]
-	str	x4,  [x0, #BP_HCR_EL2]
+
+	/* Set this before it's used in kasan_init_early */
+	adrp	x1, pmap_sh_attr
+	str	x22, [x1, :lo12:pmap_sh_attr]
 
 #ifdef KASAN
 	/* Save bootparams */
@@ -297,8 +301,12 @@ LEND(mpentry_common)
 #endif
 
 /*
- * If we are started in EL2, configure the required hypervisor
- * registers and drop to EL1.
+ * Enter the exception level the kernel will use:
+ *
+ *  - If in EL1 continue in EL1
+ *  - If the CPU supports FEAT_VHE then set HCR_E2H and HCR_TGE and continue
+ *    in EL2
+ *  - Configure EL2 to support running the kernel at EL1 and exit to that
  */
 LENTRY(enter_kernel_el)
 #define	INIT_SCTLR_EL1	(SCTLR_LSMAOE | SCTLR_nTLSMD | SCTLR_EIS | \
@@ -336,12 +344,13 @@ LENTRY(enter_kernel_el)
 	isb
 
 	/* Configure the Hypervisor */
-	ldr	x2, =(HCR_RW | HCR_APK | HCR_API)
+	ldr	x2, =(HCR_RW | HCR_APK | HCR_API | HCR_E2H)
 	msr	hcr_el2, x2
 
 	/* Stash value of HCR_EL2 for later */
 	isb
 	mrs	x4, hcr_el2
+
 
 	/* Load the Virtualization Process ID Register */
 	mrs	x2, midr_el1
@@ -355,40 +364,50 @@ LENTRY(enter_kernel_el)
 	ldr	x2, =INIT_SCTLR_EL1
 	msr	sctlr_el1, x2
 
+	/* Check if the E2H flag is set */
+	tst	x4, #HCR_E2H
+	b.eq	.Lno_vhe
+
 	/*
-	 * On some hardware, e.g., Apple M1, we can't clear E2H, so make sure we
-	 * don't trap to EL2 for SIMD register usage to have at least a
-	 * minimally usable system.
+	 * The kernel will be running in EL2, route exceptions here rather
+	 * than EL1.
 	 */
-	tst	x4, #HCR_E2H
-	mov	x3, #CPTR_RES1	/* HCR_E2H == 0 */
-	mov	x5, #CPTR_FPEN	/* HCR_E2H == 1 */
-	csel	x2, x3, x5, eq
-	msr	cptr_el2, x2
+	orr	x4, x4, #(HCR_TGE)
+	msr	hcr_el2, x4
+	isb
 
-	/* Don't trap to EL2 for CP15 traps */
-	msr	hstr_el2, xzr
+	msr	SCTLR_EL12_REG, x2
+	mov	x2, xzr /* CPTR_EL2 is managed by vfp.c */
+	ldr	x3, =(CNTHCTL_E2H_EL1PCTEN | CNTHCTL_E2H_EL1PTEN)
+	ldr	x5, =(PSR_DAIF | PSR_M_EL2h)
+	b	.Ldone_vhe
 
-	/* Enable access to the physical timers at EL1 */
-	tst	x4, #HCR_E2H
-	ldr	x3, =(CNTHCTL_EL1PCTEN | CNTHCTL_EL1PCEN)
-	ldr	x5, =(CNTHCTL_E2H_EL1PCTEN | CNTHCTL_E2H_EL1PTEN)
-	csel	x2, x3, x5, eq
-	msr	cnthctl_el2, x2
-
-	/* Set the counter offset to a known value */
-	msr	cntvoff_el2, xzr
-
+.Lno_vhe:
 	/* Hypervisor trap functions */
 	adrp	x2, hyp_stub_vectors
 	add	x2, x2, :lo12:hyp_stub_vectors
 	msr	vbar_el2, x2
 
+	ldr	x2, =(CPTR_RES1)
+	ldr	x3, =(CNTHCTL_EL1PCTEN | CNTHCTL_EL1PCEN)
+	ldr	x5, =(PSR_DAIF | PSR_M_EL1h)
+
+.Ldone_vhe:
+
+	msr	cptr_el2, x2
+	/* Enable access to the physical timers at EL1 */
+	msr	cnthctl_el2, x3
+	/* Set the return PSTATE */
+	msr	spsr_el2, x5
+
+	/* Don't trap to EL2 for CP15 traps */
+	msr	hstr_el2, xzr
+
+	/* Set the counter offset to a known value */
+	msr	cntvoff_el2, xzr
+
 	/* Zero vttbr_el2 so a hypervisor can tell the host and guest apart */
 	msr	vttbr_el2, xzr
-
-	mov	x2, #(PSR_DAIF | PSR_M_EL1h)
-	msr	spsr_el2, x2
 
 	/* Configure GICv3 CPU interface */
 	mrs	x2, id_aa64pfr0_el1
@@ -461,6 +480,30 @@ LENTRY(create_pagetables)
 	stp	xzr, xzr, [x6], #16
 	cmp	x6, x27
 	b.lo	1b
+
+	/*
+	 * Find the shareability attribute we should use. If FEAT_LPA2 is
+	 * enabled then the shareability field is moved from the page table
+	 * to tcr_el1 and the bits in the page table are reused by the
+	 * address field.
+	 */
+#if PAGE_SIZE == PAGE_SIZE_4K
+#define	LPA2_MASK	ID_AA64MMFR0_TGran4_MASK
+#define	LPA2_VAL	ID_AA64MMFR0_TGran4_LPA2
+#elif PAGE_SIZE == PAGE_SIZE_16K
+#define	LPA2_MASK	ID_AA64MMFR0_TGran16_MASK
+#define	LPA2_VAL	ID_AA64MMFR0_TGran16_LPA2
+#else
+#error Unsupported page size
+#endif
+	mrs	x6, id_aa64mmfr0_el1
+	mov	x7, LPA2_VAL
+	and	x6, x6, LPA2_MASK
+	cmp	x6, x7
+	ldr	x22, =(ATTR_SH(ATTR_SH_IS))
+	csel	x22, xzr, x22, eq
+#undef LPA2_MASK
+#undef LPA2_VAL
 
 	/*
 	 * Build the TTBR1 maps.
@@ -733,11 +776,13 @@ LENTRY(build_l2_block_pagetable)
 
 	/* Build the L2 block entry */
 	orr	x12, x7, #L2_BLOCK
-	orr	x12, x12, #(ATTR_DEFAULT)
+	orr	x12, x12, #(ATTR_AF)
 	orr	x12, x12, #(ATTR_S1_UXN)
 #ifdef __ARM_FEATURE_BTI_DEFAULT
 	orr	x12, x12, #(ATTR_S1_GP)
 #endif
+	/* Set the shareability attribute */
+	orr	x12, x12, x22
 
 	/* Only use the output address bits */
 	lsr	x9, x9, #L2_SHIFT
@@ -809,11 +854,13 @@ LENTRY(build_l3_page_pagetable)
 
 	/* Build the L3 page entry */
 	orr	x12, x7, #L3_PAGE
-	orr	x12, x12, #(ATTR_DEFAULT)
+	orr	x12, x12, #(ATTR_AF)
 	orr	x12, x12, #(ATTR_S1_UXN)
 #ifdef __ARM_FEATURE_BTI_DEFAULT
 	orr	x12, x12, #(ATTR_S1_GP)
 #endif
+	/* Set the shareability attribute */
+	orr	x12, x12, x22
 
 	/* Only use the output address bits */
 	lsr	x9, x9, #L3_SHIFT
@@ -872,6 +919,13 @@ LENTRY(start_mmu)
 	 * to 1 only if the ASIDBits field equals 0b0010.
 	 */
 	ldr	x2, tcr
+
+	/* If x22 contains a non-zero value then LPA2 is not implemented */
+	cbnz	x22, .Lno_lpa2
+	ldr	x3, =(TCR_DS)
+	orr	x2, x2, x3
+.Lno_lpa2:
+
 	mrs	x3, id_aa64mmfr0_el1
 
 	/* Copy the bottom 3 bits from id_aa64mmfr0_el1 into TCR.IPS */
@@ -931,8 +985,9 @@ tcr:
 #error Unsupported page size
 #endif
 
-	.quad (TCR_TxSZ(64 - VIRT_BITS) | TCR_TG | \
-	    TCR_CACHE_ATTRS | TCR_SMP_ATTRS)
+	.quad (TCR_TxSZ(64 - VIRT_BITS) | TCR_TG |			\
+	    TCR_SH1_IS | TCR_ORGN1_WBWA | TCR_IRGN1_WBWA |		\
+	    TCR_SH0_IS | TCR_ORGN0_WBWA | TCR_IRGN0_WBWA)
 sctlr_set:
 	/* Bits to set */
 	.quad (SCTLR_LSMAOE | SCTLR_nTLSMD | SCTLR_UCI | SCTLR_SPAN | \

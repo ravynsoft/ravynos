@@ -66,7 +66,7 @@
 #include <libutil.h>
 #include <libxo/xo.h>
 
-#define VMSTAT_XO_VERSION "1"
+#define VMSTAT_XO_VERSION "2"
 
 static char da[] = "da";
 
@@ -142,6 +142,7 @@ static struct __vmmeter {
 	u_int v_free_count;
 	u_int v_wire_count;
 	u_long v_user_wire_count;
+	u_int v_nofree_count;
 	u_int v_active_count;
 	u_int v_inactive_target;
 	u_int v_inactive_count;
@@ -282,6 +283,7 @@ main(int argc, char *argv[])
 	argv += optind;
 
 	xo_set_version(VMSTAT_XO_VERSION);
+	xo_open_container("vmstat");
 	if (!hflag)
 		xo_set_options(NULL, "no-humanize");
 	if (todo == 0)
@@ -383,6 +385,7 @@ nlist_ok:
 		dointr(interval, reps);
 	if (todo & VMSTAT)
 		dovmstat(interval, reps);
+	xo_close_container("vmstat");
 	xo_finish();
 	exit(0);
 }
@@ -556,6 +559,7 @@ fill_vmmeter(struct __vmmeter *vmmp)
 		GET_VM_STATS(vm, v_free_count);
 		GET_VM_STATS(vm, v_wire_count);
 		GET_VM_STATS(vm, v_user_wire_count);
+		GET_VM_STATS(vm, v_nofree_count);
 		GET_VM_STATS(vm, v_active_count);
 		GET_VM_STATS(vm, v_inactive_target);
 		GET_VM_STATS(vm, v_inactive_count);
@@ -1002,6 +1006,8 @@ dosum(void)
 	    sum.v_wire_count);
 	xo_emit("{:virtual-user-wired-pages/%9lu} {N:virtual user pages wired "
 	    "down}\n", sum.v_user_wire_count);
+	xo_emit("{:nofree-pages/%9u} {N:permanently allocated pages}\n",
+	    sum.v_nofree_count);
 	xo_emit("{:free-pages/%9u} {N:pages free}\n",
 	    sum.v_free_count);
 	xo_emit("{:bytes-per-page/%9u} {N:bytes per page}\n", sum.v_page_size);
@@ -1103,7 +1109,7 @@ percent(const char *name, long pctv, int *over)
 {
 	char fmt[64];
 
-	snprintf(fmt, sizeof(fmt), " {:%s/%%%ulld/%%lld}", name,
+	snprintf(fmt, sizeof(fmt), " {:%s/%%%uld/%%ld}", name,
 	    (*over && pctv <= 9) ? 1 : 2);
 	xo_emit(fmt, pctv);
 	if (*over && pctv <= 9)
@@ -1537,6 +1543,11 @@ display_object(struct kinfo_vmobject *kvo)
 		break;
 	}
 	xo_emit("{:type/%-2s} ", str);
+	if ((kvo->kvo_flags & KVMO_FLAG_SYSVSHM) != 0)
+		xo_emit("{:sysvshm/sysvshm(%ju:%u)} ",
+		    (uintmax_t)kvo->kvo_vn_fileid, kvo->kvo_vn_fsid_freebsd11);
+	if ((kvo->kvo_flags & KVMO_FLAG_POSIXSHM) != 0)
+		xo_emit("{:posixshm/posixshm@/posixshm}");
 	xo_emit("{:path/%-s}\n", kvo->kvo_path);
 	xo_close_instance("object");
 }

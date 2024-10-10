@@ -131,7 +131,6 @@ static struct trapframe proc0_tf;
 int early_boot = 1;
 int cold = 1;
 static int boot_el;
-static uint64_t hcr_el2;
 
 struct kva_md_info kmi;
 
@@ -207,12 +206,7 @@ pan_enable(void)
 bool
 has_hyp(void)
 {
-
-	/*
-	 * XXX The E2H check is wrong, but it's close enough for now.  Needs to
-	 * be re-evaluated once we're running regularly in EL2.
-	 */
-	return (boot_el == CURRENTEL_EL_EL2 && (hcr_el2 & HCR_E2H) == 0);
+	return (boot_el == CURRENTEL_EL_EL2);
 }
 
 bool
@@ -807,10 +801,10 @@ bus_probe(void)
 	}
 	/* If no order or an invalid order was set use the default */
 	if (arm64_bus_method == ARM64_BUS_NONE) {
-		if (has_fdt)
-			arm64_bus_method = ARM64_BUS_FDT;
-		else if (has_acpi)
+		if (has_acpi)
 			arm64_bus_method = ARM64_BUS_ACPI;
+		else if (has_fdt)
+			arm64_bus_method = ARM64_BUS_FDT;
 	}
 
 	/*
@@ -905,9 +899,8 @@ initarm(struct arm64_bootparams *abp)
 	TSRAW(&thread0, TS_ENTER, __func__, NULL);
 
 	boot_el = abp->boot_el;
-	hcr_el2 = abp->hcr_el2;
 
-	/* Parse loader or FDT boot parametes. Determine last used address. */
+	/* Parse loader or FDT boot parameters. Determine last used address. */
 	lastaddr = parse_boot_param(abp);
 
 	/* Find the kernel address */

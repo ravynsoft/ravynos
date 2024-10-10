@@ -67,25 +67,25 @@ static struct pf_os_fingerprint	*pf_osfp_validate(void);
  * Returns the list of possible OSes.
  */
 struct pf_osfp_enlist *
-pf_osfp_fingerprint(struct pf_pdesc *pd, struct mbuf *m, int off,
-    const struct tcphdr *tcp)
+pf_osfp_fingerprint(struct pf_pdesc *pd, const struct tcphdr *tcp)
 {
-	struct ip *ip;
-	struct ip6_hdr *ip6;
-	char hdr[60];
+	struct ip	*ip = NULL;
+	struct ip6_hdr	*ip6 = NULL;
+	char		 hdr[60];
 
-	if ((pd->af != PF_INET && pd->af != PF_INET6) ||
-	    pd->proto != IPPROTO_TCP || (tcp->th_off << 2) < sizeof(*tcp))
+	if (pd->proto != IPPROTO_TCP || (tcp->th_off << 2) < sizeof(*tcp))
 		return (NULL);
 
-	if (pd->af == PF_INET) {
-		ip = mtod(m, struct ip *);
+	switch (pd->af) {
+	case AF_INET:
+		ip = mtod(pd->m, struct ip *);
 		ip6 = (struct ip6_hdr *)NULL;
-	} else {
-		ip = (struct ip *)NULL;
-		ip6 = mtod(m, struct ip6_hdr *);
+		break;
+	case AF_INET6:
+		ip6 = mtod(pd->m, struct ip6_hdr *);
+		break;
 	}
-	if (!pf_pull_hdr(m, off, hdr, tcp->th_off << 2, NULL, NULL,
+	if (!pf_pull_hdr(pd->m, pd->off, hdr, tcp->th_off << 2, NULL, NULL,
 	    pd->af)) return (NULL);
 
 	return (pf_osfp_fingerprint_hdr(ip, ip6, (struct tcphdr *)hdr));

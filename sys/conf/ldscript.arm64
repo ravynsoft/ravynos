@@ -100,6 +100,20 @@ SECTIONS
   . = ALIGN(128);
   .data1   : { *(.data1) }
   . = ALIGN(32 / 8);
+  .init_array    :
+  {
+    PROVIDE_HIDDEN (__init_array_start = .);
+    KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*)))
+    KEEP (*(.init_array))
+    PROVIDE_HIDDEN (__init_array_end = .);
+  }
+  .fini_array    :
+  {
+    PROVIDE_HIDDEN (__fini_array_start = .);
+    KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*)))
+    KEEP (*(.fini_array))
+    PROVIDE_HIDDEN (__fini_array_end = .);
+  }
   _start_ctors = .;
   PROVIDE (start_ctors = .);
   .ctors         :
@@ -121,6 +135,7 @@ SECTIONS
   .sdata     : { *(.sdata) }
   _edata  =  .;
   PROVIDE (edata = .);
+  . = ALIGN(16);
   __bss_start = .;
   .sbss      : { *(.sbss) *(.scommon) }
   .bss       :
@@ -128,7 +143,7 @@ SECTIONS
    *(.dynbss)
    *(.bss)
    *(COMMON)
-   . = ALIGN(8);
+   . = ALIGN(16);
    __bss_end = .;
    /* A section for the initial page table, it doesn't need to be in the
       kernel file, however unlike normal .bss entries should not be zeroed

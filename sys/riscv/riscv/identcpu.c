@@ -59,10 +59,10 @@
 #include <dev/ofw/ofw_bus_subr.h>
 #endif
 
-char machine[] = "riscv";
+const char machine[] = "riscv";
 
-SYSCTL_STRING(_hw, HW_MACHINE, machine, CTLFLAG_RD | CTLFLAG_CAPRD, machine, 0,
-    "Machine class");
+SYSCTL_CONST_STRING(_hw, HW_MACHINE, machine, CTLFLAG_RD | CTLFLAG_CAPRD,
+    machine, "Machine class");
 
 /* Hardware implementation info. These values may be empty. */
 register_t mvendorid;	/* The CPU's JEDEC vendor ID */
@@ -245,6 +245,7 @@ parse_riscv_isa(struct cpu_desc *desc, char *isa, int len)
 	while (i < len) {
 		switch(isa[i]) {
 		case 'a':
+		case 'b':
 		case 'c':
 		case 'd':
 		case 'f':

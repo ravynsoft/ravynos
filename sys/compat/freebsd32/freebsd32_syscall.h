@@ -515,6 +515,7 @@
 #define	FREEBSD32_SYS_freebsd32_timerfd_gettime	586
 #define	FREEBSD32_SYS_freebsd32_timerfd_settime	587
 #define	FREEBSD32_SYS_kcmp	588
+#define	FREEBSD32_SYS_getrlimitusage	589
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_allocate_trap	610
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_deallocate_trap	612
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_protect_trap	614

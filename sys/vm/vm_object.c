@@ -67,6 +67,7 @@
 #include <sys/systm.h>
 #include <sys/blockcount.h>
 #include <sys/cpuset.h>
+#include <sys/ipc.h>
 #include <sys/jail.h>
 #include <sys/limits.h>
 #include <sys/lock.h>
@@ -77,6 +78,7 @@
 #include <sys/pctrie.h>
 #include <sys/proc.h>
 #include <sys/refcount.h>
+#include <sys/shm.h>
 #include <sys/sx.h>
 #include <sys/sysctl.h>
 #include <sys/resourcevar.h>
@@ -877,47 +879,49 @@ vm_object_backing_collapse_wait(vm_object_t object)
 }
 
 /*
+ *	vm_object_terminate_single_page removes a pageable page from the object,
+ *	and removes it from the paging queues and frees it, if it is not wired.
+ *	It is invoked via callback from vm_object_terminate_pages.
+ */
+static void
+vm_object_terminate_single_page(vm_page_t p, void *objectv)
+{
+	vm_object_t object __diagused = objectv;
+
+	vm_page_assert_unbusied(p);
+	KASSERT(p->object == object &&
+	    (p->ref_count & VPRC_OBJREF) != 0,
+	    ("%s: page %p is inconsistent", __func__, p));
+	p->object = NULL;
+	if (vm_page_drop(p, VPRC_OBJREF) == VPRC_OBJREF) {
+		VM_CNT_INC(v_pfree);
+		vm_page_free(p);
+	}
+}
+
+/*
  *	vm_object_terminate_pages removes any remaining pageable pages
  *	from the object and resets the object to an empty state.
  */
 static void
 vm_object_terminate_pages(vm_object_t object)
 {
-	vm_page_t p, p_next;
-
 	VM_OBJECT_ASSERT_WLOCKED(object);
 
 	/*
-	 * Free any remaining pageable pages.  This also removes them from the
-	 * paging queues.  However, don't free wired pages, just remove them
-	 * from the object.  Rather than incrementally removing each page from
-	 * the object, the page and object are reset to any empty state. 
-	 */
-	TAILQ_FOREACH_SAFE(p, &object->memq, listq, p_next) {
-		vm_page_assert_unbusied(p);
-		KASSERT(p->object == object &&
-		    (p->ref_count & VPRC_OBJREF) != 0,
-		    ("vm_object_terminate_pages: page %p is inconsistent", p));
-
-		p->object = NULL;
-		if (vm_page_drop(p, VPRC_OBJREF) == VPRC_OBJREF) {
-			VM_CNT_INC(v_pfree);
-			vm_page_free(p);
-		}
-	}
-
-	/*
 	 * If the object contained any pages, then reset it to an empty state.
-	 * None of the object's fields, including "resident_page_count", were
-	 * modified by the preceding loop.
+	 * Rather than incrementally removing each page from the object, the
+	 * page and object are reset to any empty state.
 	 */
-	if (object->resident_page_count != 0) {
-		vm_radix_reclaim_allnodes(&object->rtree);
-		TAILQ_INIT(&object->memq);
-		object->resident_page_count = 0;
-		if (object->type == OBJT_VNODE)
-			vdrop(object->handle);
-	}
+	if (object->resident_page_count == 0)
+		return;
+
+	vm_radix_reclaim_callback(&object->rtree,
+	    vm_object_terminate_single_page, object);
+	TAILQ_INIT(&object->memq);
+	object->resident_page_count = 0;
+	if (object->type == OBJT_VNODE)
+		vdrop(object->handle);
 }
 
 /*
@@ -2504,6 +2508,8 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 	vm_page_t m;
 	u_long sp;
 	int count, error;
+	key_t key;
+	unsigned short seq;
 	bool want_path;
 
 	if (req->oldptr == NULL) {
@@ -2551,6 +2557,7 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 		kvo->kvo_memattr = obj->memattr;
 		kvo->kvo_active = 0;
 		kvo->kvo_inactive = 0;
+		kvo->kvo_flags = 0;
 		if (!swap_only) {
 			TAILQ_FOREACH(m, &obj->memq, listq) {
 				/*
@@ -2588,6 +2595,17 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 			kvo->kvo_swapped = sp > UINT32_MAX ? UINT32_MAX : sp;
 		}
 		VM_OBJECT_RUNLOCK(obj);
+		if ((obj->flags & OBJ_SYSVSHM) != 0) {
+			kvo->kvo_flags |= KVMO_FLAG_SYSVSHM;
+			shmobjinfo(obj, &key, &seq);
+			kvo->kvo_vn_fileid = key;
+			kvo->kvo_vn_fsid_freebsd11 = seq;
+		}
+		if ((obj->flags & OBJ_POSIXSHM) != 0) {
+			kvo->kvo_flags |= KVMO_FLAG_POSIXSHM;
+			shm_get_path(obj, kvo->kvo_path,
+			    sizeof(kvo->kvo_path));
+		}
 		if (vp != NULL) {
 			vn_fullpath(vp, &fullpath, &freepath);
 			vn_lock(vp, LK_SHARED | LK_RETRY);
@@ -2598,10 +2616,9 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 								/* truncate */
 			}
 			vput(vp);
+			strlcpy(kvo->kvo_path, fullpath, sizeof(kvo->kvo_path));
+			free(freepath, M_TEMP);
 		}
-
-		strlcpy(kvo->kvo_path, fullpath, sizeof(kvo->kvo_path));
-		free(freepath, M_TEMP);
 
 		/* Pack record size down */
 		kvo->kvo_structsize = offsetof(struct kinfo_vmobject, kvo_path)

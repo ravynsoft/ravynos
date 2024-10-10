@@ -82,13 +82,31 @@ SYSCTL_INT(_debug, OID_AUTO, rangelock_cheat, CTLFLAG_RWTUN,
 #define	RL_RET_CHEAT_RLOCKED	0x1100
 #define	RL_RET_CHEAT_WLOCKED	0x2200
 
+static void
+rangelock_cheat_drain(struct rangelock *lock)
+{
+	uintptr_t v;
+
+	DROP_GIANT();
+	for (;;) {
+		v = atomic_load_ptr(&lock->head);
+		if ((v & RL_CHEAT_DRAINING) == 0)
+			break;
+		sleepq_add(&lock->head, NULL, "ranged1", 0, 0);
+		sleepq_wait(&lock->head, PRI_USER);
+		sleepq_lock(&lock->head);
+	}
+	sleepq_release(&lock->head);
+	PICKUP_GIANT();
+}
+
 static bool
 rangelock_cheat_lock(struct rangelock *lock, int locktype, bool trylock,
     void **cookie)
 {
 	uintptr_t v, x;
 
-	v = (uintptr_t)atomic_load_ptr(&lock->head);
+	v = atomic_load_ptr(&lock->head);
 	if ((v & RL_CHEAT_CHEATING) == 0)
 		return (false);
 	if ((v & RL_CHEAT_DRAINING) != 0) {
@@ -99,17 +117,7 @@ drain:
 		}
 		sleepq_lock(&lock->head);
 drain1:
-		DROP_GIANT();
-		for (;;) {
-			v = (uintptr_t)atomic_load_ptr(&lock->head);
-			if ((v & RL_CHEAT_DRAINING) == 0)
-				break;
-			sleepq_add(&lock->head, NULL, "ranged1", 0, 0);
-			sleepq_wait(&lock->head, PRI_USER);
-			sleepq_lock(&lock->head);
-		}
-		sleepq_release(&lock->head);
-		PICKUP_GIANT();
+		rangelock_cheat_drain(lock);
 		return (false);
 	}
 
@@ -182,7 +190,7 @@ rangelock_cheat_unlock(struct rangelock *lock, void *cookie)
 {
 	uintptr_t v, x;
 
-	v = (uintptr_t)atomic_load_ptr(&lock->head);
+	v = atomic_load_ptr(&lock->head);
 	if ((v & RL_CHEAT_CHEATING) == 0)
 		return (false);
 
@@ -251,7 +259,7 @@ rangelock_cheat_destroy(struct rangelock *lock)
 {
 	uintptr_t v;
 
-	v = (uintptr_t)atomic_load_ptr(&lock->head);
+	v = atomic_load_ptr(&lock->head);
 	if ((v & RL_CHEAT_CHEATING) == 0)
 		return (false);
 	MPASS(v == RL_CHEAT_CHEATING);
@@ -288,6 +296,9 @@ struct rl_q_entry {
 static uma_zone_t rl_entry_zone;
 static smr_t rl_smr;
 
+static void rangelock_free_free(struct rl_q_entry *free);
+static void rangelock_noncheating_destroy(struct rangelock *lock);
+
 static void
 rangelock_sys_init(void)
 {
@@ -302,15 +313,8 @@ static struct rl_q_entry *
 rlqentry_alloc(vm_ooffset_t start, vm_ooffset_t end, int flags)
 {
 	struct rl_q_entry *e;
-	struct thread *td;
 
-	td = curthread;
-	if (td->td_rlqe != NULL) {
-		e = td->td_rlqe;
-		td->td_rlqe = NULL;
-	} else {
-		e = uma_zalloc_smr(rl_entry_zone, M_WAITOK);
-	}
+	e = uma_zalloc_smr(rl_entry_zone, M_WAITOK);
 	e->rl_q_next = NULL;
 	e->rl_q_free = NULL;
 	e->rl_q_start = start;
@@ -323,12 +327,6 @@ rlqentry_alloc(vm_ooffset_t start, vm_ooffset_t end, int flags)
 }
 
 void
-rangelock_entry_free(struct rl_q_entry *e)
-{
-	uma_zfree_smr(rl_entry_zone, e);
-}
-
-void
 rangelock_init(struct rangelock *lock)
 {
 	lock->sleepers = false;
@@ -338,16 +336,10 @@ rangelock_init(struct rangelock *lock)
 void
 rangelock_destroy(struct rangelock *lock)
 {
-	struct rl_q_entry *e, *ep;
-
 	MPASS(!lock->sleepers);
-	if (rangelock_cheat_destroy(lock))
-		return;
-	for (e = (struct rl_q_entry *)atomic_load_ptr(&lock->head);
-	    e != NULL; e = rl_e_unmark(ep)) {
-		ep = atomic_load_ptr(&e->rl_q_next);
-		uma_zfree_smr(rl_entry_zone, e);
-	}
+	if (!rangelock_cheat_destroy(lock))
+		rangelock_noncheating_destroy(lock);
+	DEBUG_POISON_POINTER(*(void **)&lock->head);
 }
 
 static bool
@@ -390,6 +382,19 @@ static bool
 rl_e_is_rlock(const struct rl_q_entry *e)
 {
 	return ((e->rl_q_flags & RL_LOCK_TYPE_MASK) == RL_LOCK_READ);
+}
+
+static void
+rangelock_free_free(struct rl_q_entry *free)
+{
+	struct rl_q_entry *x, *xp;
+
+	for (x = free; x != NULL; x = xp) {
+		MPASS(!rl_e_is_marked(x));
+		xp = x->rl_q_free;
+		MPASS(!rl_e_is_marked(xp));
+		uma_zfree_smr(rl_entry_zone, x);
+	}
 }
 
 static void
@@ -461,8 +466,53 @@ static bool
 rl_q_cas(struct rl_q_entry **prev, struct rl_q_entry *old,
     struct rl_q_entry *new)
 {
+	MPASS(!rl_e_is_marked(old));
 	return (atomic_cmpset_rel_ptr((uintptr_t *)prev, (uintptr_t)old,
 	    (uintptr_t)new) != 0);
+}
+
+static void
+rangelock_noncheating_destroy(struct rangelock *lock)
+{
+	struct rl_q_entry *cur, *free, *next, **prev;
+
+	free = NULL;
+again:
+	smr_enter(rl_smr);
+	prev = (struct rl_q_entry **)&lock->head;
+	cur = rl_q_load(prev);
+	MPASS(!rl_e_is_marked(cur));
+
+	for (;;) {
+		if (cur == NULL)
+			break;
+		if (rl_e_is_marked(cur))
+			goto again;
+
+		next = rl_q_load(&cur->rl_q_next);
+		if (rl_e_is_marked(next)) {
+			next = rl_e_unmark(next);
+			if (rl_q_cas(prev, cur, next)) {
+#ifdef INVARIANTS
+				cur->rl_q_owner = NULL;
+#endif
+				cur->rl_q_free = free;
+				free = cur;
+				cur = next;
+				continue;
+			}
+			smr_exit(rl_smr);
+			goto again;
+		}
+
+		sleepq_lock(&lock->sleepers);
+		if (!rl_e_is_marked(cur)) {
+			rl_insert_sleep(lock);
+			goto again;
+		}
+	}
+	smr_exit(rl_smr);
+	rangelock_free_free(free);
 }
 
 enum RL_INSERT_RES {
@@ -477,11 +527,12 @@ rl_r_validate(struct rangelock *lock, struct rl_q_entry *e, bool trylock,
 {
 	struct rl_q_entry *cur, *next, **prev;
 
+again:
 	prev = &e->rl_q_next;
 	cur = rl_q_load(prev);
 	MPASS(!rl_e_is_marked(cur));	/* nobody can unlock e yet */
 	for (;;) {
-		if (cur == NULL || cur->rl_q_start > e->rl_q_end)
+		if (cur == NULL || cur->rl_q_start >= e->rl_q_end)
 			return (RL_LOCK_SUCCESS);
 		next = rl_q_load(&cur->rl_q_next);
 		if (rl_e_is_marked(next)) {
@@ -489,9 +540,10 @@ rl_r_validate(struct rangelock *lock, struct rl_q_entry *e, bool trylock,
 			if (rl_q_cas(prev, cur, next)) {
 				cur->rl_q_free = *free;
 				*free = cur;
+				cur = next;
+				continue;
 			}
-			cur = next;
-			continue;
+			goto again;
 		}
 		if (rl_e_is_rlock(cur)) {
 			prev = &cur->rl_q_next;
@@ -521,6 +573,7 @@ rl_w_validate(struct rangelock *lock, struct rl_q_entry *e,
 {
 	struct rl_q_entry *cur, *next, **prev;
 
+again:
 	prev = (struct rl_q_entry **)&lock->head;
 	cur = rl_q_load(prev);
 	MPASS(!rl_e_is_marked(cur));	/* head is not marked */
@@ -531,11 +584,12 @@ rl_w_validate(struct rangelock *lock, struct rl_q_entry *e,
 		if (rl_e_is_marked(next)) {
 			next = rl_e_unmark(next);
 			if (rl_q_cas(prev, cur, next)) {
-				cur->rl_q_next = *free;
+				cur->rl_q_free = *free;
 				*free = cur;
+				cur = next;
+				continue;
 			}
-			cur = next;
-			continue;
+			goto again;
 		}
 		if (cur->rl_q_end <= e->rl_q_start) {
 			prev = &cur->rl_q_next;
@@ -543,6 +597,12 @@ rl_w_validate(struct rangelock *lock, struct rl_q_entry *e,
 			continue;
 		}
 		sleepq_lock(&lock->sleepers);
+		/* Reload after sleepq is locked */
+		next = rl_q_load(&cur->rl_q_next);
+		if (rl_e_is_marked(next)) {
+			sleepq_release(&lock->sleepers);
+			goto again;
+		}
 		rangelock_unlock_int(lock, e);
 		if (trylock) {
 			sleepq_release(&lock->sleepers);
@@ -580,12 +640,14 @@ again:
 #endif
 					cur->rl_q_free = *free;
 					*free = cur;
+					cur = next;
+					continue;
 				}
-				cur = next;
-				continue;
+				goto again;
 			}
 		}
 
+		MPASS(!rl_e_is_marked(cur));
 		r = rl_e_compare(cur, e);
 		if (r == -1) {
 			prev = &cur->rl_q_next;
@@ -623,14 +685,12 @@ static struct rl_q_entry *
 rangelock_lock_int(struct rangelock *lock, bool trylock, vm_ooffset_t start,
     vm_ooffset_t end, int locktype)
 {
-	struct rl_q_entry *e, *free, *x, *xp;
-	struct thread *td;
+	struct rl_q_entry *e, *free;
 	void *cookie;
 	enum RL_INSERT_RES res;
 
 	if (rangelock_cheat_lock(lock, locktype, trylock, &cookie))
 		return (cookie);
-	td = curthread;
 	for (res = RL_LOCK_RETRY; res == RL_LOCK_RETRY;) {
 		free = NULL;
 		e = rlqentry_alloc(start, end, locktype);
@@ -643,17 +703,7 @@ rangelock_lock_int(struct rangelock *lock, bool trylock, vm_ooffset_t start,
 			free = e;
 			e = NULL;
 		}
-		for (x = free; x != NULL; x = xp) {
-			MPASS(!rl_e_is_marked(x));
-			xp = x->rl_q_free;
-			MPASS(!rl_e_is_marked(xp));
-			if (td->td_rlqe == NULL) {
-				smr_synchronize(rl_smr);
-				td->td_rlqe = x;
-			} else {
-				uma_zfree_smr(rl_entry_zone, x);
-			}
-		}
+		rangelock_free_free(free);
 	}
 	return (e);
 }
@@ -680,6 +730,47 @@ void *
 rangelock_trywlock(struct rangelock *lock, vm_ooffset_t start, vm_ooffset_t end)
 {
 	return (rangelock_lock_int(lock, true, start, end, RL_LOCK_WRITE));
+}
+
+/*
+ * If the caller asserts that it can obtain the range locks on the
+ * same lock simultaneously, switch to the non-cheat mode.  Cheat mode
+ * cannot handle it, hanging in drain or trylock retries.
+ */
+void
+rangelock_may_recurse(struct rangelock *lock)
+{
+	uintptr_t v, x;
+
+	v = atomic_load_ptr(&lock->head);
+	if ((v & RL_CHEAT_CHEATING) == 0)
+		return;
+
+	sleepq_lock(&lock->head);
+	for (;;) {
+		if ((v & RL_CHEAT_CHEATING) == 0) {
+			sleepq_release(&lock->head);
+			return;
+		}
+
+		/* Cheating and locked, drain. */
+		if ((v & RL_CHEAT_WLOCKED) != 0 ||
+		    (v & ~RL_CHEAT_MASK) >= RL_CHEAT_READER) {
+			x = v | RL_CHEAT_DRAINING;
+			if (atomic_fcmpset_ptr(&lock->head, &v, x) != 0) {
+				rangelock_cheat_drain(lock);
+				return;
+			}
+			continue;
+		}
+
+		/* Cheating and unlocked, clear RL_CHEAT_CHEATING. */
+		x = 0;
+		if (atomic_fcmpset_ptr(&lock->head, &v, x) != 0) {
+			sleepq_release(&lock->head);
+			return;
+		}
+	}
 }
 
 #ifdef INVARIANT_SUPPORT

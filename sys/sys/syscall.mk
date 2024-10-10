@@ -1,5 +1,9 @@
+#
 # FreeBSD system call object files.
+#
 # DO NOT EDIT-- this file is automatically @generated.
+#
+
 MIASM =  \
 	syscall.o \
 	exit.o \
@@ -437,6 +441,7 @@ MIASM =  \
 	timerfd_gettime.o \
 	timerfd_settime.o \
 	kcmp.o \
+	getrlimitusage.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
 	_kernelrpc_mach_vm_deallocate_trap.o \
 	_kernelrpc_mach_vm_protect_trap.o \

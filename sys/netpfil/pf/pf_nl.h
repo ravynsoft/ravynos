@@ -58,6 +58,8 @@ enum {
 	PFNL_CMD_ADD_ADDR = 20,
 	PFNL_CMD_GET_ADDRS = 21,
 	PFNL_CMD_GET_ADDR = 22,
+	PFNL_CMD_GET_RULESETS = 23,
+	PFNL_CMD_GET_RULESET = 24,
 	__PFNL_CMD_MAX,
 };
 #define PFNL_CMD_MAX (__PFNL_CMD_MAX -1)
@@ -257,6 +259,8 @@ enum pf_rule_type_t {
 	PF_RT_STATES_TOTAL	= 70, /* u64 */
 	PF_RT_SRC_NODES		= 71, /* u64 */
 	PF_RT_ANCHOR_CALL	= 72, /* string */
+	PF_RT_RCV_IFNAME	= 73, /* string */
+	PF_RT_MAX_SRC_CONN	= 74, /* u32 */
 };
 
 enum pf_addrule_type_t {
@@ -376,6 +380,13 @@ enum pf_add_addr_types_t {
 	PF_AA_AF		= 7, /* u8 */
 	PF_AA_ANCHOR		= 8, /* string */
 	PF_AA_ADDR		= 9, /* nested, pf_pooladdr */
+};
+
+enum pf_get_rulesets_types_t {
+	PF_RS_UNSPEC,
+	PF_RS_PATH		= 1, /* string */
+	PF_RS_NR		= 2, /* u32 */
+	PF_RS_NAME		= 3, /* string */
 };
 
 #ifdef _KERNEL

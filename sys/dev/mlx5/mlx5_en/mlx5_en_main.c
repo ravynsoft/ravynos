@@ -30,6 +30,7 @@
 #include "opt_ratelimit.h"
 
 #include <dev/mlx5/mlx5_en/en.h>
+#include <dev/mlx5/mlx5_accel/ipsec.h>
 
 #include <sys/eventhandler.h>
 #include <sys/sockio.h>
@@ -1324,6 +1325,8 @@ mlx5e_destroy_rq(struct mlx5e_rq *rq)
 	wq_sz = mlx5_wq_ll_get_size(&rq->wq);
 	for (i = 0; i != wq_sz; i++) {
 		if (rq->mbuf[i].mbuf != NULL) {
+			if (rq->mbuf[i].ipsec_mtag != NULL)
+				m_tag_free(&rq->mbuf[i].ipsec_mtag->tag);
 			bus_dmamap_unload(rq->dma_tag, rq->mbuf[i].dma_map);
 			m_freem(rq->mbuf[i].mbuf);
 		}

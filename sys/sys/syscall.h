@@ -533,6 +533,7 @@
 #define	SYS_timerfd_gettime	586
 #define	SYS_timerfd_settime	587
 #define	SYS_kcmp	588
+#define	SYS_getrlimitusage	589
 #define	SYS__kernelrpc_mach_vm_allocate_trap	610
 #define	SYS__kernelrpc_mach_vm_deallocate_trap	612
 #define	SYS__kernelrpc_mach_vm_protect_trap	614

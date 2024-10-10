@@ -34,6 +34,7 @@
 #include <net/if.h>
 #include <net/if_var.h>
 #include <net/pfkeyv2.h>
+#include <netipsec/key.h>
 #include <netipsec/key_var.h>
 #include <netipsec/keydb.h>
 #include <netipsec/ipsec.h>
@@ -45,6 +46,8 @@
 
 #define MLX5_IPSEC_RESCHED msecs_to_jiffies(1000)
 
+static void mlx5e_if_sa_deinstall_onekey(struct ifnet *ifp, u_int dev_spi,
+    void *priv);
 static int mlx5e_if_sa_deinstall(struct ifnet *ifp, u_int dev_spi, void *priv);
 
 static struct mlx5e_ipsec_sa_entry *to_ipsec_sa_entry(void *x)
@@ -95,8 +98,8 @@ mlx5e_ipsec_handle_counters(struct work_struct *_work)
 	bytes += bytes1;
 	
 #ifdef IPSEC_OFFLOAD
-	ipsec_accel_drv_sa_lifetime_update(sa_entry->savp, sa_entry->ifp,
-	    sa_entry->kspi, bytes, packets);
+	ipsec_accel_drv_sa_lifetime_update(
+	    sa_entry->savp, sa_entry->ifpo, sa_entry->kspi, bytes, packets);
 #endif
 
 	queue_delayed_work(sa_entry->ipsec->wq, &dwork->dwork,
@@ -255,6 +258,8 @@ static int mlx5e_xfrm_validate_state(struct mlx5_core_dev *mdev,
 		mlx5_core_err(mdev, "FULL offload is not supported\n");
 		return (EINVAL);
 	}
+	if (savp->state == SADB_SASTATE_DEAD)
+		return (EINVAL);
 	if (savp->alg_enc == SADB_EALG_NONE) {
 		mlx5_core_err(mdev, "Cannot offload authenticated xfrm states\n");
 		return (EINVAL);
@@ -319,20 +324,33 @@ static int mlx5e_xfrm_validate_state(struct mlx5_core_dev *mdev,
 }
 
 static int
-mlx5e_if_sa_newkey_onedir(struct ifnet *ifp, void *sav, int dir,
-    u_int drv_spi, struct mlx5e_ipsec_sa_entry **privp,
-    struct mlx5e_ipsec_priv_bothdir *pb)
+mlx5e_if_sa_newkey_onedir(struct ifnet *ifp, void *sav, int dir, u_int drv_spi,
+    struct mlx5e_ipsec_sa_entry **privp, struct mlx5e_ipsec_priv_bothdir *pb,
+    struct ifnet *ifpo)
 {
+#ifdef IPSEC_OFFLOAD
+	struct rm_priotracker tracker;
+#endif
 	struct mlx5e_ipsec_sa_entry *sa_entry = NULL;
 	struct mlx5e_priv *priv = if_getsoftc(ifp);
 	struct mlx5_core_dev *mdev = priv->mdev;
 	struct mlx5e_ipsec *ipsec = priv->ipsec;
+	u16 vid = VLAN_NONE;
 	int err;
 
 	if (priv->gone != 0 || ipsec == NULL)
 		return (EOPNOTSUPP);
 
+	if (if_gettype(ifpo) == IFT_L2VLAN)
+		VLAN_TAG(ifpo, &vid);
+
+#ifdef IPSEC_OFFLOAD
+	ipsec_sahtree_rlock(&tracker);
+#endif
 	err = mlx5e_xfrm_validate_state(mdev, sav);
+#ifdef IPSEC_OFFLOAD
+	ipsec_sahtree_runlock(&tracker);
+#endif
 	if (err)
 		return err;
 
@@ -343,9 +361,24 @@ mlx5e_if_sa_newkey_onedir(struct ifnet *ifp, void *sav, int dir,
 	sa_entry->kspi = drv_spi;
 	sa_entry->savp = sav;
 	sa_entry->ifp = ifp;
+	sa_entry->ifpo = ifpo;
 	sa_entry->ipsec = ipsec;
+	sa_entry->vid = vid;
 
+#ifdef IPSEC_OFFLOAD
+	ipsec_sahtree_rlock(&tracker);
+#endif
+	err = mlx5e_xfrm_validate_state(mdev, sav);
+	if (err != 0) {
+#ifdef IPSEC_OFFLOAD
+		ipsec_sahtree_runlock(&tracker);
+#endif
+		goto err_xfrm;
+	}
 	mlx5e_ipsec_build_accel_xfrm_attrs(sa_entry, &sa_entry->attrs, dir);
+#ifdef IPSEC_OFFLOAD
+	ipsec_sahtree_runlock(&tracker);
+#endif
 
 	err = mlx5e_ipsec_create_dwork(sa_entry, pb);
 	if (err)
@@ -378,32 +411,48 @@ err_fs:
 	mlx5_ipsec_free_sa_ctx(sa_entry);
 err_sa_ctx:
 	kfree(sa_entry->dwork);
+	sa_entry->dwork = NULL;
 err_xfrm:
 	kfree(sa_entry);
 	mlx5_en_err(ifp, "Device failed to offload this state");
 	return err;
 }
 
+#define GET_TRUNK_IF(vifp, ifp, ept)          \
+	if (if_gettype(vifp) == IFT_L2VLAN) { \
+		NET_EPOCH_ENTER(ept);         \
+		ifp = VLAN_TRUNKDEV(vifp);    \
+		NET_EPOCH_EXIT(ept);          \
+	} else {                              \
+		ifp = vifp;                   \
+	}
+
 static int
-mlx5e_if_sa_newkey(struct ifnet *ifp, void *sav, u_int dev_spi, void **privp)
+mlx5e_if_sa_newkey(struct ifnet *ifpo, void *sav, u_int dev_spi, void **privp)
 {
 	struct mlx5e_ipsec_priv_bothdir *pb;
+	struct epoch_tracker et;
+	struct ifnet *ifp;
 	int error;
+
+	GET_TRUNK_IF(ifpo, ifp, et);
 
 	pb = malloc(sizeof(struct mlx5e_ipsec_priv_bothdir), M_DEVBUF,
 	    M_WAITOK | M_ZERO);
-	error = mlx5e_if_sa_newkey_onedir(ifp, sav, IPSEC_DIR_INBOUND,
-	    dev_spi, &pb->priv_in, pb);
+	error = mlx5e_if_sa_newkey_onedir(
+	    ifp, sav, IPSEC_DIR_INBOUND, dev_spi, &pb->priv_in, pb, ifpo);
 	if (error != 0) {
 		free(pb, M_DEVBUF);
 		return (error);
 	}
-	error = mlx5e_if_sa_newkey_onedir(ifp, sav, IPSEC_DIR_OUTBOUND,
-	    dev_spi, &pb->priv_out, pb);
+	error = mlx5e_if_sa_newkey_onedir(
+	    ifp, sav, IPSEC_DIR_OUTBOUND, dev_spi, &pb->priv_out, pb, ifpo);
 	if (error == 0) {
 		*privp = pb;
 	} else {
-		mlx5e_if_sa_deinstall(ifp, dev_spi, pb->priv_in);
+		if (pb->priv_in->dwork != NULL)
+			cancel_delayed_work_sync(&pb->priv_in->dwork->dwork);
+		mlx5e_if_sa_deinstall_onekey(ifp, dev_spi, pb->priv_in);
 		free(pb, M_DEVBUF);
 	}
 	return (error);
@@ -426,9 +475,13 @@ mlx5e_if_sa_deinstall_onekey(struct ifnet *ifp, u_int dev_spi, void *priv)
 }
 
 static int
-mlx5e_if_sa_deinstall(struct ifnet *ifp, u_int dev_spi, void *priv)
+mlx5e_if_sa_deinstall(struct ifnet *ifpo, u_int dev_spi, void *priv)
 {
 	struct mlx5e_ipsec_priv_bothdir pb, *pbp;
+	struct epoch_tracker et;
+	struct ifnet *ifp;
+
+	GET_TRUNK_IF(ifpo, ifp, et);
 
 	pbp = priv;
 	pb = *(struct mlx5e_ipsec_priv_bothdir *)priv;
@@ -457,12 +510,16 @@ mlx5e_if_sa_cnt_one(struct ifnet *ifp, void *sa, uint32_t drv_spi,
 }
 
 static int
-mlx5e_if_sa_cnt(struct ifnet *ifp, void *sa, uint32_t drv_spi,
-    void *priv, struct seclifetime *lt)
+mlx5e_if_sa_cnt(struct ifnet *ifpo, void *sa, uint32_t drv_spi, void *priv,
+    struct seclifetime *lt)
 {
 	struct mlx5e_ipsec_priv_bothdir *pb;
 	u64 packets_in, packets_out;
 	u64 bytes_in, bytes_out;
+	struct epoch_tracker et;
+	struct ifnet *ifp;
+
+	GET_TRUNK_IF(ifpo, ifp, et);
 
 	pb = priv;
 	mlx5e_if_sa_cnt_one(ifp, sa, drv_spi, pb->priv_in,
@@ -541,9 +598,9 @@ static int mlx5e_xfrm_validate_policy(struct mlx5_core_dev *mdev,
 	return 0;
 }
 
-static void mlx5e_ipsec_build_accel_pol_attrs(struct mlx5e_ipsec_pol_entry *pol_entry,
-					      struct mlx5_accel_pol_xfrm_attrs *attrs,
-					      struct inpcb *inp)
+static void
+mlx5e_ipsec_build_accel_pol_attrs(struct mlx5e_ipsec_pol_entry *pol_entry,
+    struct mlx5_accel_pol_xfrm_attrs *attrs, struct inpcb *inp, u16 vid)
 {
 	struct secpolicy *sp = pol_entry->sp;
 	struct secpolicyindex *spidx = &sp->spidx;
@@ -587,15 +644,22 @@ static void mlx5e_ipsec_build_accel_pol_attrs(struct mlx5e_ipsec_pol_entry *pol_
 		attrs->action = IPSEC_POLICY_IPSEC;
 	}
 	attrs->dir = spidx->dir;
+	attrs->vid = vid;
 }
 
-static int mlx5e_if_spd_install(struct ifnet *ifp, void *sp, void *inp1,
-    void **ifdatap)
+static int
+mlx5e_if_spd_install(struct ifnet *ifpo, void *sp, void *inp1, void **ifdatap)
 {
 	struct mlx5e_ipsec_pol_entry *pol_entry;
 	struct mlx5e_priv *priv;
+	struct epoch_tracker et;
+	u16 vid = VLAN_NONE;
+	struct ifnet *ifp;
 	int err;
 
+	GET_TRUNK_IF(ifpo, ifp, et);
+	if (if_gettype(ifpo) == IFT_L2VLAN)
+		VLAN_TAG(ifpo, &vid);
 	priv = if_getsoftc(ifp);
 	if (priv->gone || !priv->ipsec)
 		return (EOPNOTSUPP);
@@ -611,7 +675,8 @@ static int mlx5e_if_spd_install(struct ifnet *ifp, void *sp, void *inp1,
 	pol_entry->sp = sp;
 	pol_entry->ipsec = priv->ipsec;
 
-	mlx5e_ipsec_build_accel_pol_attrs(pol_entry, &pol_entry->attrs, inp1);
+	mlx5e_ipsec_build_accel_pol_attrs(pol_entry, &pol_entry->attrs,
+	    inp1, vid);
 	err = mlx5e_accel_ipsec_fs_add_pol(pol_entry);
 	if (err)
 		goto err_pol;
@@ -625,11 +690,12 @@ err_pol:
 	return err;
 }
 
-
-static int mlx5e_if_spd_deinstall(struct ifnet *ifp, void *sp, void *ifdata)
+static int
+mlx5e_if_spd_deinstall(struct ifnet *ifpo, void *sp, void *ifdata)
 {
-	struct mlx5e_ipsec_pol_entry *pol_entry = to_ipsec_pol_entry(ifdata);
+	struct mlx5e_ipsec_pol_entry *pol_entry;
 
+	pol_entry = to_ipsec_pol_entry(ifdata);
 	mlx5e_accel_ipsec_fs_del_pol(pol_entry);
 	kfree(pol_entry);
 	return 0;
@@ -649,9 +715,17 @@ void mlx5e_ipsec_cleanup(struct mlx5e_priv *priv)
 }
 
 static int
-mlx5e_if_ipsec_hwassist(if_t ifnet, void *sav __unused,
+mlx5e_if_ipsec_hwassist(if_t ifneto, void *sav __unused,
     uint32_t drv_spi __unused, void *priv __unused)
 {
+	if_t ifnet;
+
+	if (if_gettype(ifneto) == IFT_L2VLAN) {
+		ifnet = VLAN_TRUNKDEV(ifneto);
+	} else {
+		ifnet = ifneto;
+	}
+
 	return (if_gethwassist(ifnet) & (CSUM_TSO | CSUM_TCP | CSUM_UDP |
 	    CSUM_IP | CSUM_IP6_TSO | CSUM_IP6_TCP | CSUM_IP6_UDP));
 }

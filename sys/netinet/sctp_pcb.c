@@ -239,7 +239,7 @@ sctp_free_vrf(struct sctp_vrf *vrf)
 	}
 }
 
-void
+static void
 sctp_free_ifn(struct sctp_ifn *sctp_ifnp)
 {
 	if (SCTP_DECREMENT_AND_CHECK_REFCOUNT(&sctp_ifnp->refcount)) {
@@ -277,25 +277,16 @@ sctp_free_ifa(struct sctp_ifa *sctp_ifap)
 }
 
 static void
-sctp_delete_ifn(struct sctp_ifn *sctp_ifnp, int hold_addr_lock)
+sctp_delete_ifn(struct sctp_ifn *sctp_ifnp)
 {
-	struct sctp_ifn *found;
 
-	found = sctp_find_ifn(sctp_ifnp->ifn_p, sctp_ifnp->ifn_index);
-	if (found == NULL) {
+	SCTP_IPI_ADDR_WLOCK_ASSERT();
+	if (sctp_find_ifn(sctp_ifnp->ifn_p, sctp_ifnp->ifn_index) == NULL) {
 		/* Not in the list.. sorry */
 		return;
 	}
-	if (hold_addr_lock == 0) {
-		SCTP_IPI_ADDR_WLOCK();
-	} else {
-		SCTP_IPI_ADDR_WLOCK_ASSERT();
-	}
 	LIST_REMOVE(sctp_ifnp, next_bucket);
 	LIST_REMOVE(sctp_ifnp, next_ifn);
-	if (hold_addr_lock == 0) {
-		SCTP_IPI_ADDR_WUNLOCK();
-	}
 	/* Take away the reference, and possibly free it */
 	sctp_free_ifn(sctp_ifnp);
 }
@@ -387,13 +378,13 @@ out:
 /*-
  * Add an ifa to an ifn.
  * Register the interface as necessary.
- * NOTE: ADDR write lock MUST be held.
  */
 static void
 sctp_add_ifa_to_ifn(struct sctp_ifn *sctp_ifnp, struct sctp_ifa *sctp_ifap)
 {
 	int ifa_af;
 
+	SCTP_IPI_ADDR_WLOCK_ASSERT();
 	LIST_INSERT_HEAD(&sctp_ifnp->ifalist, sctp_ifap, next_ifa);
 	sctp_ifap->ifn_p = sctp_ifnp;
 	atomic_add_int(&sctp_ifap->ifn_p->refcount, 1);
@@ -424,11 +415,11 @@ sctp_add_ifa_to_ifn(struct sctp_ifn *sctp_ifnp, struct sctp_ifa *sctp_ifap)
  * Remove an ifa from its ifn.
  * If no more addresses exist, remove the ifn too. Otherwise, re-register
  * the interface based on the remaining address families left.
- * NOTE: ADDR write lock MUST be held.
  */
 static void
 sctp_remove_ifa_from_ifn(struct sctp_ifa *sctp_ifap)
 {
+	SCTP_IPI_ADDR_WLOCK_ASSERT();
 	LIST_REMOVE(sctp_ifap, next_ifa);
 	if (sctp_ifap->ifn_p) {
 		/* update address counts */
@@ -450,7 +441,7 @@ sctp_remove_ifa_from_ifn(struct sctp_ifa *sctp_ifap)
 
 		if (LIST_EMPTY(&sctp_ifap->ifn_p->ifalist)) {
 			/* remove the ifn, possibly freeing it */
-			sctp_delete_ifn(sctp_ifap->ifn_p, SCTP_ADDR_LOCKED);
+			sctp_delete_ifn(sctp_ifap->ifn_p);
 		} else {
 			/* re-register address family type, if needed */
 			if ((sctp_ifap->ifn_p->num_v6 == 0) &&
@@ -555,7 +546,7 @@ sctp_add_addr_to_vrf(uint32_t vrf_id, void *ifn, uint32_t ifn_index,
 			    (void *)sctp_ifap);
 			if (new_ifn_af) {
 				/* Remove the created one that we don't want */
-				sctp_delete_ifn(sctp_ifnp, SCTP_ADDR_LOCKED);
+				sctp_delete_ifn(sctp_ifnp);
 			}
 			if (sctp_ifap->localifa_flags & SCTP_BEING_DELETED) {
 				/* easy to solve, just switch back to active */

@@ -194,7 +194,7 @@ vm_page_init(void *dummy)
 
 	fakepg_zone = uma_zcreate("fakepg", sizeof(struct vm_page), NULL, NULL,
 	    NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
-	bogus_page = vm_page_alloc_noobj(VM_ALLOC_WIRED);
+	bogus_page = vm_page_alloc_noobj(VM_ALLOC_WIRED | VM_ALLOC_NOFREE);
 }
 
 static int pgcache_zone_max_pcpu;
@@ -1707,6 +1707,48 @@ vm_page_lookup(vm_object_t object, vm_pindex_t pindex)
 }
 
 /*
+ *	vm_page_iter_init:
+ *
+ *	Initialize iterator for vm pages.
+ */
+void
+vm_page_iter_init(struct pctrie_iter *pages, vm_object_t object)
+{
+
+	VM_OBJECT_ASSERT_LOCKED(object);
+	vm_radix_iter_init(pages, &object->rtree);
+}
+
+/*
+ *	vm_page_iter_init:
+ *
+ *	Initialize iterator for vm pages.
+ */
+void
+vm_page_iter_limit_init(struct pctrie_iter *pages, vm_object_t object,
+    vm_pindex_t limit)
+{
+
+	VM_OBJECT_ASSERT_LOCKED(object);
+	vm_radix_iter_limit_init(pages, &object->rtree, limit);
+}
+
+/*
+ *	vm_page_iter_lookup:
+ *
+ *	Returns the page associated with the object/offset pair specified, and
+ *	stores the path to its position; if none is found, NULL is returned.
+ *
+ *	The iter pctrie must be locked.
+ */
+vm_page_t
+vm_page_iter_lookup(struct pctrie_iter *pages, vm_pindex_t pindex)
+{
+
+	return (vm_radix_iter_lookup(pages, pindex));
+}
+
+/*
  *	vm_page_lookup_unlocked:
  *
  *	Returns the page associated with the object/offset pair specified;
@@ -1788,6 +1830,22 @@ vm_page_find_least(vm_object_t object, vm_pindex_t pindex)
 	if ((m = TAILQ_FIRST(&object->memq)) != NULL && m->pindex < pindex)
 		m = vm_radix_lookup_ge(&object->rtree, pindex);
 	return (m);
+}
+
+/*
+ *	vm_page_iter_lookup_ge:
+ *
+ *	Returns the page associated with the object with least pindex
+ *	greater than or equal to the parameter pindex, or NULL.  Initializes the
+ *	iterator to point to that page.
+ *
+ *	The iter pctrie must be locked.
+ */
+vm_page_t
+vm_page_iter_lookup_ge(struct pctrie_iter *pages, vm_pindex_t pindex)
+{
+
+	return (vm_radix_iter_lookup_ge(pages, pindex));
 }
 
 /*
@@ -2039,7 +2097,7 @@ _vm_domain_allocate(struct vm_domain *vmd, int req_class, int npages)
 	 * Attempt to reserve the pages.  Fail if we're below the limit.
 	 */
 	limit += npages;
-	old = vmd->vmd_free_count;
+	old = atomic_load_int(&vmd->vmd_free_count);
 	do {
 		if (old < limit)
 			return (0);
@@ -2352,10 +2410,6 @@ vm_page_alloc_contig_domain(vm_object_t object, vm_pindex_t pindex, int domain,
 		if (!vm_domain_alloc_fail(VM_DOMAIN(domain), object, req))
 			return (NULL);
 	}
-	for (m = m_ret; m < &m_ret[npages]; m++) {
-		vm_page_dequeue(m);
-		vm_page_alloc_check(m);
-	}
 
 	/*
 	 * Initialize the pages.  Only the PG_ZERO flag is inherited.
@@ -2376,6 +2430,8 @@ vm_page_alloc_contig_domain(vm_object_t object, vm_pindex_t pindex, int domain,
 	    memattr == VM_MEMATTR_DEFAULT)
 		memattr = object->memattr;
 	for (m = m_ret; m < &m_ret[npages]; m++) {
+		vm_page_dequeue(m);
+		vm_page_alloc_check(m);
 		m->a.flags = 0;
 		m->flags = (m->flags | PG_NODUMP) & flags;
 		m->busy_lock = busy_lock;
@@ -2538,6 +2594,7 @@ vm_page_alloc_nofree_domain(int domain, int req)
 	}
 	m = &nqp->ma[nqp->offs++];
 	vm_domain_free_unlock(vmd);
+	VM_CNT_ADD(v_nofree_count, 1);
 
 	return (m);
 }
@@ -4121,14 +4178,14 @@ vm_page_free_toq(vm_page_t m)
  *	from any VM object.  In other words, this is equivalent to
  *	calling vm_page_free_toq() for each page of a list of VM objects.
  */
-void
+int
 vm_page_free_pages_toq(struct spglist *free, bool update_wire_count)
 {
 	vm_page_t m;
 	int count;
 
 	if (SLIST_EMPTY(free))
-		return;
+		return (0);
 
 	count = 0;
 	while ((m = SLIST_FIRST(free)) != NULL) {
@@ -4139,6 +4196,7 @@ vm_page_free_pages_toq(struct spglist *free, bool update_wire_count)
 
 	if (update_wire_count)
 		vm_wire_sub(count);
+	return (count);
 }
 
 /*
@@ -4181,7 +4239,7 @@ vm_page_wire_mapped(vm_page_t m)
 {
 	u_int old;
 
-	old = m->ref_count;
+	old = atomic_load_int(&m->ref_count);
 	do {
 		KASSERT(old > 0,
 		    ("vm_page_wire_mapped: wiring unreferenced page %p", m));
@@ -4215,12 +4273,15 @@ vm_page_unwire_managed(vm_page_t m, uint8_t nqueue, bool noreuse)
 	 * Use a release store when updating the reference count to
 	 * synchronize with vm_page_free_prep().
 	 */
-	old = m->ref_count;
+	old = atomic_load_int(&m->ref_count);
 	do {
+		u_int count;
+
 		KASSERT(VPRC_WIRE_COUNT(old) > 0,
 		    ("vm_page_unwire: wire count underflow for page %p", m));
 
-		if (old > VPRC_OBJREF + 1) {
+		count = old & ~VPRC_BLOCKED;
+		if (count > VPRC_OBJREF + 1) {
 			/*
 			 * The page has at least one other wiring reference.  An
 			 * earlier iteration of this loop may have called
@@ -4229,7 +4290,7 @@ vm_page_unwire_managed(vm_page_t m, uint8_t nqueue, bool noreuse)
 			 */
 			if ((vm_page_astate_load(m).flags & PGA_DEQUEUE) == 0)
 				vm_page_aflag_set(m, PGA_DEQUEUE);
-		} else if (old == VPRC_OBJREF + 1) {
+		} else if (count == VPRC_OBJREF + 1) {
 			/*
 			 * This is the last wiring.  Clear PGA_DEQUEUE and
 			 * update the page's queue state to reflect the
@@ -4238,7 +4299,7 @@ vm_page_unwire_managed(vm_page_t m, uint8_t nqueue, bool noreuse)
 			 * clear leftover queue state.
 			 */
 			vm_page_release_toq(m, nqueue, noreuse);
-		} else if (old == 1) {
+		} else if (count == 1) {
 			vm_page_aflag_clear(m, PGA_DEQUEUE);
 		}
 	} while (!atomic_fcmpset_rel_int(&m->ref_count, &old, old - 1));
@@ -4510,10 +4571,12 @@ vm_page_try_blocked_op(vm_page_t m, void (*op)(vm_page_t))
 	    ("vm_page_try_blocked_op: page %p is not busy", m));
 	VM_OBJECT_ASSERT_LOCKED(m->object);
 
-	old = m->ref_count;
+	old = atomic_load_int(&m->ref_count);
 	do {
 		KASSERT(old != 0,
 		    ("vm_page_try_blocked_op: page %p has no references", m));
+		KASSERT((old & VPRC_BLOCKED) == 0,
+		    ("vm_page_try_blocked_op: page %p blocks wirings", m));
 		if (VPRC_WIRE_COUNT(old) != 0)
 			return (false);
 	} while (!atomic_fcmpset_int(&m->ref_count, &old, old | VPRC_BLOCKED));

@@ -347,7 +347,7 @@ lkpi_lsta_alloc(struct ieee80211vap *vap, const uint8_t mac[IEEE80211_ADDR_LEN],
 
 	sta->deflink.smps_mode = IEEE80211_SMPS_OFF;
 	sta->deflink.bandwidth = IEEE80211_STA_RX_BW_20;
-	sta->deflink.rx_nss = 0;
+	sta->deflink.rx_nss = 1;
 
 	ht_rx_nss = 0;
 #if defined(LKPI_80211_HT)
@@ -4401,8 +4401,6 @@ lkpi_ieee80211_ifalloc(void)
 	struct ieee80211com *ic;
 
 	ic = malloc(sizeof(*ic), M_LKPI80211, M_WAITOK | M_ZERO);
-	if (ic == NULL)
-		return (NULL);
 
 	/* Setting these happens later when we have device information. */
 	ic->ic_softc = NULL;
@@ -4454,10 +4452,6 @@ linuxkpi_ieee80211_alloc_hw(size_t priv_len, const struct ieee80211_ops *ops)
 
 	/* BSD Specific. */
 	lhw->ic = lkpi_ieee80211_ifalloc();
-	if (lhw->ic == NULL) {
-		ieee80211_free_hw(hw);
-		return (NULL);
-	}
 
 	IMPROVE();
 
@@ -6080,8 +6074,12 @@ void linuxkpi_ieee80211_schedule_txq(struct ieee80211_hw *hw,
 	if (!withoutpkts && ltxq_empty)
 		goto out;
 
-	/* Make sure we do not double-schedule. */
-	if (ltxq->txq_entry.tqe_next != NULL)
+	/*
+	 * Make sure we do not double-schedule. We do this by checking tqe_prev,
+	 * the previous entry in our tailq. tqe_prev is always valid if this entry
+	 * is queued, tqe_next may be NULL if this is the only element in the list.
+	 */
+	if (ltxq->txq_entry.tqe_prev != NULL)
 		goto out;
 
 	lhw = HW_TO_LHW(hw);

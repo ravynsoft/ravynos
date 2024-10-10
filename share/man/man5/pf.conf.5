@@ -27,7 +27,7 @@
 .\" ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd June 6, 2024
+.Dd October 2, 2024
 .Dt PF.CONF 5
 .Os
 .Sh NAME
@@ -1400,9 +1400,18 @@ or
 .Xr udp 4
 connections; implicitly in the case of
 .Ar nat
-rules and explicitly in the case of
+rules and both implicitly and explicitly in the case of
 .Ar rdr
 rules.
+A
+.Ar rdr
+rule may cause the source port to be modified if doing so avoids a conflict
+with an existing connection.
+A random source port in the range 50001-65535 is chosen in this case; to
+avoid excessive CPU consumption, the number of searches for a free port is
+limited by the
+.Va net.pf.rdr_srcport_rewrite_tries
+sysctl.
 Port numbers are never translated with a
 .Ar binat
 rule.
@@ -1675,6 +1684,8 @@ As with
 .Ar log ,
 packets are logged to
 .Xr pflog 4 .
+.It Ar log (matches)
+Used to force logging of this packet on all subsequent matching rules.
 .It Ar log (user)
 Logs the
 .Ux
@@ -2109,6 +2120,10 @@ For example:
 pass in proto tcp to port 25 set prio 2
 pass in proto tcp to port 22 set prio (2, 5)
 .Ed
+.It Ar received-on Aq Ar interface
+Only match packets which were received on the specified
+.Ar interface
+(or interface group).
 .It Ar tag Aq Ar string
 Packets matching this rule will be tagged with the
 specified string.
@@ -2273,6 +2288,16 @@ from modifying the source port on TCP and UDP packets.
 With
 .Ar nat
 rules, the
+.It Ar endpoint-independent
+With
+.Ar nat
+rules, the
+.Ar endpoint-independent
+option caues
+.Xr pf 4
+to always map connections from a UDP source address and port to the same
+NAT address and port.
+This feature implements "full-cone" NAT behavior.
 .Ar map-e-portset
 option enables the source port translation of MAP-E (RFC 7597) Customer Edge.
 In order to make the host act as a MAP-E Customer Edge, setting up a tunneling
@@ -2407,7 +2432,7 @@ must be specified explicitly to apply options to a rule.
 .It Ar max Aq Ar number
 Limits the number of concurrent states the rule may create.
 When this limit is reached, further packets that would create
-state will not match this rule until existing states time out.
+state are dropped until existing states time out.
 .It Ar no-sync
 Prevent state changes for states created by this rule from appearing on the
 .Xr pfsync 4
@@ -2488,6 +2513,9 @@ completed the 3-way handshake that a single host can make.
 Limit the rate of new connections over a time interval.
 The connection rate is an approximation calculated as a moving average.
 .El
+.Pp
+When one of these limits is reached, further packets that would create
+state are dropped until existing states time out.
 .Pp
 Because the 3-way handshake ensures that the source address is not being
 spoofed, more aggressive action can be taken based on these limits.
@@ -3193,7 +3221,7 @@ pf-rule        = action [ ( "in" | "out" ) ]
                  hosts [ filteropt-list ]
 
 logopts        = logopt [ "," logopts ]
-logopt         = "all" | "user" | "to" interface-name
+logopt         = "all" | "matches" | "user" | "to" interface-name
 
 etherfilteropt-list = etherfilteropt-list etherfilteropt | etherfilteropt
 etherfilteropt = "tag" string | "tagged" string | "queue" ( string ) |
@@ -3212,7 +3240,8 @@ filteropt      = user | group | flags | icmp-type | icmp6-type | "tos" tos |
                  "rtable" number | "probability" number"%" | "prio" number |
                  "dnpipe" ( number | "(" number "," number ")" ) |
                  "dnqueue" ( number | "(" number "," number ")" ) |
-                 "ridentifier" number
+                 "ridentifier" number |
+                 "received-on" ( interface-name | interface-group )
 
 nat-rule       = [ "no" ] "nat" [ "pass" [ "log" [ "(" logopts ")" ] ] ]
                  [ "on" ifspec ] [ af ]

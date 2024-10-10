@@ -163,7 +163,7 @@
 		    int fd
 		);
 	}
-7	AUE_WAIT4	STD {
+7	AUE_WAIT4	STD|CAPENABLED {
 		int wait4(
 		    int pid,
 		    _Out_opt_ int *status,
@@ -3375,7 +3375,14 @@
 		    uintptr_t idx2
 		);
 	}
-589-599	AUE_NULL	UNIMPL	nosys
+589	AUE_NULL	STD|CAPENABLED {
+		int getrlimitusage(
+		    u_int which,
+		    int flags,
+		    _Out_ rlim_t *res
+		);
+	}
+590-599	AUE_NULL	UNIMPL	nosys
 ; The mach syscall number space is negative on OS X
 ; here we have reserved this for OS X mach calls where the offset is: 600 + -(OSX mach index)
 600-609	AUE_NULL	UNIMPL	nosys
