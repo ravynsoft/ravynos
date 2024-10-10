@@ -46,6 +46,8 @@
 
 #define DEFAULT_DPI = 100
 
+extern pthread_mutex_t renderLock;
+
 @interface BSDFramebuffer : WSDisplay {
     int fbfd;
     int stride;

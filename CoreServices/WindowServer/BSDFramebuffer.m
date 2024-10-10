@@ -145,6 +145,8 @@
 -(BOOL)capture:(pid_t)pid withOptions:(uint32_t)options {
     if(_captured != 0)
         return NO;
+
+    pthread_mutex_lock(&renderLock);
     _captured = pid;
 
     int reserved = 6*sizeof(int); // save space for dimensions info 
@@ -166,6 +168,7 @@
                 colorSpace:(__bridge O2ColorSpaceRef)cs
                 bitmapInfo:[self format] releaseCallback:NULL releaseInfo:NULL];
     activeCtx = captureCtx;
+    pthread_mutex_unlock(&renderLock);
     intptr_t *q = (intptr_t *)p;
     q[0] = width;
     q[1] = height;
@@ -177,6 +180,9 @@
 }
 
 -(void)releaseCapture {
+    pthread_mutex_lock(&renderLock);
+    _captured = 0;
+    activeCtx = ctx;
     if(captureCtx != nil) {
         shmctl(shmid, IPC_RMID, NULL);
         void *buffer = [[captureCtx surface] pixelBytes];
@@ -186,8 +192,7 @@
         shmSize = 0;
     }
     captureCtx = nil;
-    activeCtx = ctx;
-    _captured = 0;
+    pthread_mutex_unlock(&renderLock);
 }
 
 /* FIXME: this should hash the vendor, model, serial, and other data */

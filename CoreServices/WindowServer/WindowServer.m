@@ -44,6 +44,11 @@
 
 #import "rpc.h"
 
+/* This lock prevents other threads from messing with the graphics context while we
+ * are in the rendering loop
+ */
+pthread_mutex_t renderLock;
+
 @implementation WindowServer
 
 -init {
@@ -53,6 +58,7 @@
     curShell = LOGINWINDOW;
     curApp = nil;
     curWindow = nil;
+    pthread_mutex_init(&renderLock, NULL);
 
     kern_return_t kr;
     if((kr = bootstrap_check_in(bootstrap_port, WINDOWSERVER_SVC_NAME, &_servicePort)) != KERN_SUCCESS) {
@@ -426,7 +432,9 @@
 #define _cursor_height 24
 -(void)run {
     // FIXME: lock this to vsync of actual display
+    pthread_mutex_lock(&renderLock);
     O2BitmapContext *ctx = [fb context];
+    pthread_mutex_unlock(&renderLock);
 
     NSString *path = [[NSBundle mainBundle] pathForResource:@"arrowCursor" ofType:@"png"];
     NSData *cursorData = [NSData dataWithContentsOfFile:path];
@@ -436,9 +444,11 @@
     NSRect cursorRect = NSMakeRect(0, 0, _cursor_height, _cursor_height);
 
     _titleFont = CGFontCreateWithFontName((__bridge CFStringRef)@"Inter-Bold");
+    pthread_mutex_lock(&renderLock);
     O2ContextSetFont(ctx, (__bridge O2Font *)_titleFont);
     O2ContextSetFontSize(ctx, 14.0);
     O2ContextSetTextDrawingMode(ctx, kO2TextFillStroke);
+    pthread_mutex_unlock(&renderLock);
 
     struct pollfd fds;
     fds.fd = [input fileDescriptor];
@@ -449,10 +459,11 @@
             [input run:self];
 
         // FIXME: handle multiple displays here. Use a thread per display?
+        pthread_mutex_lock(&renderLock);
         ctx = [fb context];
         pid_t capturedPID = [fb captured];
         if(capturedPID == 0) {
-            O2ContextSetRGBFillColor(ctx, 0.333, 0.333, 0.333, 1);
+            O2ContextSetRGBFillColor(ctx, 0, 0, 0, 1);
             O2ContextFillRect(ctx, (O2Rect)_geometry);
             NSEnumerator *appEnum = [apps objectEnumerator];
             WSAppRecord *app;
@@ -478,6 +489,7 @@
             [fb draw];
         } else
             [fb drawWithCursor:cursor inRect:cursorRect];
+        pthread_mutex_unlock(&renderLock);
     }
 
 }
@@ -686,8 +698,7 @@
         rect.origin.y = (args->val2 & 0xFFFF);
         rect.size.width = (args->val3 & 0xFFFF0000) >> 16;
         rect.size.height = (args->val3 & 0xFFFF);
-        if(rect.origin.x == 0 && rect.origin.y == 0 && rect.size.width == 0 && rect.size.height == 0)
-            rect = [display geometry];
+        NSLog(@"image rect %@", NSStringFromRect(rect));
         O2ImageRef img = [display imageForRect:rect];
         int imglen = 0;
         if(img) {
@@ -707,6 +718,106 @@
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+// Configuring Displays
+-(void)rpcBeginDisplayConfiguration:(PortMessage *)msg {
+}
+
+-(void)rpcCancelDisplayConfiguration:(PortMessage *)msg {
+}
+
+-(void)rpcCompleteDisplayConfiguration:(PortMessage *)msg {
+}
+
+-(void)rpcConfigureDisplayMirrorOfDisplay:(PortMessage *)msg {
+}
+
+
+-(void)rpcConfigureDisplayOrigin:(PortMessage *)msg {
+}
+
+-(void)rpcRestorePermanentDisplayConfiguration:(PortMessage *)msg {
+}
+
+-(void)rpcConfigureDisplayStereoOperation:(PortMessage *)msg {
+}
+
+-(void)rpcDisplaySetStereoOperation:(PortMessage *)msg {
+}
+
+-(void)rpcConfigureDisplayWithDisplayMode:(PortMessage *)msg {
+}
+
+
+// Getting the Display Configuration
+-(void)rpcDisplayCopyColorSpace:(PortMessage *)msg {
+    // not implemented yet
+}
+
+-(void)rpcDisplayIsActive:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayIsAlwaysInMirrorSet:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayIsAsleep:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayIsBuiltin:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayIsInHWMirrorSet:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayIsInMirrorSet:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayIsMain:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayIsOnline:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayMirrorsDisplay:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayModelNumber:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayPrimaryDisplay:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayRotation:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayScreenSize:(PortMessage *)msg {
+}
+
+-(void)rpcDisplaySerialNumber:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayUnitNumber:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayUsesOpenGLAcceleration:(PortMessage *)msg {
+}
+
+-(void)rpcDisplayVendorNumber:(PortMessage *)msg {
+}
+
+// Retrieving Display Parameters
+-(void)rpcDisplayBounds:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayBounds, 16}, 0, 0, 0, 0 };
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        CGRect rect = [display geometry];
+        reply.val1 = rect.origin.x;
+        reply.val2 = rect.origin.y;
+        reply.val3 = rect.size.width;
+        reply.val4 = rect.size.height;
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
 
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
@@ -748,6 +859,23 @@
                     case kCGReleaseAllDisplays: [self rpcReleaseAllDisplays:&msg.portMsg]; break;
                     case kCGDisplayGetDrawingContext: [self rpcDisplayGetDrawingContext:&msg.portMsg]; break;
                     case kCGDisplayCreateImageForRect: [self rpcDisplayCreateImageForRect:&msg.portMsg]; break;
+                    case kCGDisplayBounds: [self rpcDisplayBounds:&msg.portMsg]; break;
+                    case kCGDisplayIsActive: [self rpcDisplayIsActive:&msg.portMsg]; break; 
+                    case kCGDisplayIsAlwaysInMirrorSet: [self rpcDisplayIsAlwaysInMirrorSet:&msg.portMsg]; break; 
+                    case kCGDisplayIsAsleep: [self rpcDisplayIsAsleep:&msg.portMsg]; break; 
+                    case kCGDisplayIsBuiltin: [self rpcDisplayIsBuiltin:&msg.portMsg]; break; 
+                    case kCGDisplayIsInHWMirrorSet: [self rpcDisplayIsInHWMirrorSet:&msg.portMsg]; break; 
+                    case kCGDisplayIsInMirrorSet: [self rpcDisplayIsInMirrorSet:&msg.portMsg]; break; 
+                    case kCGDisplayIsOnline: [self rpcDisplayIsOnline:&msg.portMsg]; break; 
+                    case kCGDisplayMirrorsDisplay: [self rpcDisplayMirrorsDisplay:&msg.portMsg]; break; 
+                    case kCGDisplayModelNumber: [self rpcDisplayModelNumber:&msg.portMsg]; break; 
+                    case kCGDisplayPrimaryDisplay: [self rpcDisplayPrimaryDisplay:&msg.portMsg]; break; 
+                    case kCGDisplayRotation: [self rpcDisplayRotation:&msg.portMsg]; break; 
+                    case kCGDisplayScreenSize: [self rpcDisplayScreenSize:&msg.portMsg]; break; 
+                    case kCGDisplaySerialNumber: [self rpcDisplaySerialNumber:&msg.portMsg]; break; 
+                    case kCGDisplayUnitNumber: [self rpcDisplayUnitNumber:&msg.portMsg]; break; 
+                    case kCGDisplayUsesOpenGLAcceleration: [self rpcDisplayUsesOpenGLAcceleration:&msg.portMsg]; break; 
+                    case kCGDisplayVendorNumber: [self rpcDisplayVendorNumber:&msg.portMsg]; break; 
                 }
                 break;
             }

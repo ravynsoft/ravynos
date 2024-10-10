@@ -58,6 +58,8 @@ extern const float WSWindowControlSpacing;
 
 NSRect WSOutsetFrame(NSRect rect, int style);
 
+extern pthread_mutex_t renderLock;
+
 @interface WindowServer : NSObject {
     BOOL ready;
     BOOL stopOnErr;

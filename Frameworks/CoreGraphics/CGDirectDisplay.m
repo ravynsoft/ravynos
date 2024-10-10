@@ -349,8 +349,10 @@ CGContextRef CGDisplayGetDrawingContext(CGDirectDisplayID display) {
     return NULL;
 }
 
+// Creating Images from the Display
 CGImageRef CGDisplayCreateImage(CGDirectDisplayID display) {
-    return CGDisplayCreateImageForRect(display, NSZeroRect);
+    CGRect rect = CGDisplayBounds(display);
+    return CGDisplayCreateImageForRect(display, rect);
 }
 
 CGImageRef CGDisplayCreateImageForRect(CGDirectDisplayID display, CGRect rect) {
@@ -373,13 +375,34 @@ CGImageRef CGDisplayCreateImageForRect(CGDirectDisplayID display, CGRect rect) {
         CGDataProviderRef d = CGDataProviderCreateWithData(NULL, p, h*w*4, NULL);
         CGImageRef img = CGImageCreate(w, h, 8, 32, w*4, CGColorSpaceCreateDeviceRGB(),
             kCGBitmapByteOrderDefault|kCGImageAlphaPremultipliedFirst, d, NULL, 0, kCGRenderingIntentDefault);
-        NSLog(@"img is %@", img);
         CFRelease(d);
         shmctl(data.val1, IPC_RMID, 0);
         shmdt(p);
         return img;
     }
     return NULL;
+}
+
+// Retrieving Display Parameters
+CGRect CGDisplayBounds(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { {kCGDisplayBounds, 4} };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS) 
+        return NSMakeRect(data.val1, data.val2, data.val3, data.val4);
+    return NSZeroRect;
+}
+
+// FIXME: these are returning info on the current mode, not the display itself
+size_t CGDisplayPixelsHigh(CGDirectDisplayID display) {
+    CGRect rect = CGDisplayBounds(display);
+    return rect.size.height;
+}
+
+size_t CGDisplayPixelsWide(CGDirectDisplayID display) {
+    CGRect rect = CGDisplayBounds(display);
+    return rect.size.width;
 }
 
 // WindowServer info

@@ -44,6 +44,25 @@ typedef enum WSRPC {
     kCGDisplayGetDrawingContext,
     // Creating Images from Displays
     kCGDisplayCreateImageForRect,
+    // Retrieving Display Parameters
+    kCGDisplayBounds,
+    kCGDisplayIsActive,
+    kCGDisplayIsAlwaysInMirrorSet,
+    kCGDisplayIsAsleep,
+    kCGDisplayIsBuiltin,
+    kCGDisplayIsInHWMirrorSet,
+    kCGDisplayIsInMirrorSet,
+    kCGDisplayIsOnline,
+    kCGDisplayMirrorsDisplay,
+    kCGDisplayModelNumber,
+    kCGDisplayPrimaryDisplay,
+    kCGDisplayRotation,
+    kCGDisplayScreenSize,
+    kCGDisplaySerialNumber,
+    kCGDisplayUnitNumber,
+    kCGDisplayUsesOpenGLAcceleration,
+    kCGDisplayVendorNumber,
+
 } WSRPC;
 
 /* Data field header, followed by function-specific data struct */
