@@ -349,6 +349,39 @@ CGContextRef CGDisplayGetDrawingContext(CGDirectDisplayID display) {
     return NULL;
 }
 
+CGImageRef CGDisplayCreateImage(CGDirectDisplayID display) {
+    return CGDisplayCreateImageForRect(display, NSZeroRect);
+}
+
+CGImageRef CGDisplayCreateImageForRect(CGDirectDisplayID display, CGRect rect) {
+    struct wsRPCSimple data = { {kCGDisplayCreateImageForRect, 12} };
+    data.val1 = display;
+    // convert floats to int
+    int x = rect.origin.x;
+    int y = rect.origin.y;
+    int w = rect.size.width;
+    int h = rect.size.height;
+    // and pack them
+    data.val2 = (x << 16) | y;
+    data.val3 = (w << 16) | h;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS) {
+        if(data.val1 == 0)
+            return NULL;
+        uint8_t *p = shmat(data.val1, NULL, 0);
+        CGDataProviderRef d = CGDataProviderCreateWithData(NULL, p, h*w*4, NULL);
+        CGImageRef img = CGImageCreate(w, h, 8, 32, w*4, CGColorSpaceCreateDeviceRGB(),
+            kCGBitmapByteOrderDefault|kCGImageAlphaPremultipliedFirst, d, NULL, 0, kCGRenderingIntentDefault);
+        NSLog(@"img is %@", img);
+        CFRelease(d);
+        shmctl(data.val1, IPC_RMID, 0);
+        shmdt(p);
+        return img;
+    }
+    return NULL;
+}
+
 // WindowServer info
 CFDictionaryRef CGSessionCopyCurrentDictionary(void) {
 

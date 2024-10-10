@@ -137,5 +137,9 @@
     return shmid;
 }
 
+-(O2ImageRef)imageForRect:(O2Rect)rect {
+    return O2ImageCreateWithImageInRect([[self context] surface], rect);
+}
+
 @end
 

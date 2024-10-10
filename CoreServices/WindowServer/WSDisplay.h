@@ -76,6 +76,7 @@ typedef enum WSDisplayFlags : uint32_t {
 -(O2Context *)getCapturedContext;
 -(uint32_t)getCapturedContextID;
 -(uint32_t)getCapturedContextID:(uintptr_t *)addr size:(uint32_t *)size;
+-(O2ImageRef)imageForRect:(O2Rect)rect;
 
 @end
 

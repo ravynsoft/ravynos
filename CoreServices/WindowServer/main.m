@@ -41,6 +41,7 @@ void *kqSvcLoop(void *arg) {
 int main(int argc, const char *argv[]) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     int logLevel = WS_ERROR;
+    srandomdev();
 
     while(getopt(argc, argv, "Lxv") != -1) {
         switch(optopt) {

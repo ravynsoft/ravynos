@@ -149,7 +149,7 @@
 
     int reserved = 6*sizeof(int); // save space for dimensions info 
     shmSize = size + reserved;
-    shmid = shmget([self getDisplayID] /*^ getpid()*/, shmSize, IPC_CREAT|0666);
+    shmid = shmget([self getDisplayID] ^ random(), shmSize, IPC_CREAT|0666);
     if(shmid == 0)
         return NO;
 
