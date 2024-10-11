@@ -11,7 +11,7 @@ NINJA?=         ${OBJTOP}/tmp/usr/bin/ninja
 
 all: build
 build:
-	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib \
+	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/tmp/lib \
         PYTHONPATH=${OBJTOP}/tmp/usr/lib/python3.10 \
         PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:$${PATH} \
 	CFLAGS="${CFLAGS:C/-Werror=.* //g}" \
@@ -21,7 +21,7 @@ build:
 	-Dxkb-base=/System/Library/KeyboardLayout -Dcompat-rules=false \
 	${MAKEOBJDIR} ${.CURDIR}
 	sed -i.bak -e 's@-I/usr/include@@g' ${MAKEOBJDIR}/build.ninja
-	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/tmp/obj-tools/lib \
+	LD_LIBRARY_PATH=${OBJTOP}/tmp/usr/lib:${OBJTOP}/tmp/lib:${OBJTOP}/tmp/obj-tools/lib \
         PYTHONPATH=${OBJTOP}/tmp/usr/lib/python3.10 \
 	PATH=${OBJTOP}/tmp/usr/bin:${OBJTOP}/tmp/legacy/bin:${OBJTOP}/usr.bin/clang/llvm-ar:$$PATH \
 	${NINJA} -C ${MAKEOBJDIR}

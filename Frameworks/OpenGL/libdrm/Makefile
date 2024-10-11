@@ -48,6 +48,11 @@ CFLAGS+=        -DHAVE_INTEL
 
 LDFLAGS+=       -L${MAKEOBJDIR}/../libpciaccess -lpciaccess -Wl,-R\$$ORIGIN
 
+# Newly-built ar might need libmd and liblzma from the updated base
+# We also need the python libs we just built
+LD_LIBRARY_PATH=	${OBJTOP}/tmp/lib:${OBJTOP}/tmp/usr/lib
+.export LD_LIBRARY_PATH
+
 WARNS?=	2
 
 config.h: .PHONY

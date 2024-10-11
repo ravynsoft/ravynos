@@ -28,6 +28,7 @@ CFLAGS+= -I${SRCTOP}/Frameworks/Foundation/Headers
 CFLAGS+= -I${.CURDIR}/libpciaccess/include
 LDFLAGS+= -Llibdrm -Llibpciaccess -ldrm -lpciaccess -lstdc++ -lstdthreads \
 	  -Wl,--no-as-needed -Wl,-R\$$ORIGIN
+LD_LIBRARY_PATH+= ${OBJTOP}/tmp/lib
 LD_LIBRARY_PATH+= ${OBJTOP}/tmp/usr/lib
 .export LD_LIBRARY_PATH
 

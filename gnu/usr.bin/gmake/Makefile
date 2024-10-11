@@ -19,6 +19,7 @@ CONFIGURE_ENV+=         AUTOCONF=/usr/bin/true
 CONFIGURE_ENV+=         AUTOMAKE=/usr/bin/true
 CONFIGURE_ENV+=         AUTOHEADER=/usr/bin/true
 CONFIGURE_ENV+=         MAKEINFO=/usr/bin/true
+CONFIGURE_ENV+=		LDFLAGS="-framework Foundation"
 
 all: gnu_configure .WAIT build
 build:

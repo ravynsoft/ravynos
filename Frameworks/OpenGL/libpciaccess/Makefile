@@ -29,6 +29,10 @@ LDFLAGS+=       -lz
 
 WARNS?=	2
 
+# Newly-built ar might need libmd and liblzma from the updated base
+LD_LIBRARY_PATH+=	${OBJTOP}/tmp/lib
+.export LD_LIBRARY_PATH
+
 config.h: .PHONY
 	echo >${.TARGET}
 
