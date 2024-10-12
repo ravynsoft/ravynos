@@ -5,7 +5,7 @@ CMAKE=	${OBJTOP}/usr.bin/cmake/bin/cmake
 CMAKE_ARGS+=    -DCMAKE_SYSTEM_PROCESSOR=x86_64
 .endif
 
-CPPFLAGS= --sysroot=${OBJTOP} ${CFLAGS:M-I*} 
+CPPFLAGS= --sysroot=${OBJTOP} ${CFLAGS:M-I*}
 CFLAGS+= -Wno-error=unused-but-set-variable
 CFLAGS+= -Wno-error=null-pointer-subtraction
 CFLAGS+= -Wno-error=missing-variable-declarations
@@ -29,6 +29,7 @@ build:
 install:
 
 distribute-me:
+	mkdir -p ${OBJTOP}/release/dist/ravynOS
 	${MAKE} -C ${MAKEOBJDIR} INSTALL=${INSTALL} \
 		DESTDIR=${OBJTOP}/release/dist/ravynOS install
 distribute: distribute-me

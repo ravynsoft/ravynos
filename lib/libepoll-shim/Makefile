@@ -21,7 +21,6 @@ SRCS=	        include/sys/epoll.h \
                 signalfd.c \
                 timerfd_ctx.c \
                 compat_socketpair.c \
-                epoll_shim_interpose.c \
                 eventfd.c \
                 wrap.c \
                 pollrdhup.c \
