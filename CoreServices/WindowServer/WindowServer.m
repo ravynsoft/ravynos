@@ -943,6 +943,42 @@ pthread_mutex_t renderLock;
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+-(void)rpcDisplayCopyAllDisplayModes:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct {
+        struct wsRPCBase base;
+        struct CGDisplayMode mode[32];
+    } reply;
+    reply.base.code = kCGDisplayCopyAllDisplayModes;
+    reply.base.len = 0;
+    
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        CFArrayRef allModes = [display allModes];
+        for(int i = 0; i < CFArrayGetCount(allModes); ++i) {
+            memcpy(&reply.mode[i], CFArrayGetValueAtIndex(allModes, i), sizeof(struct CGDisplayMode));
+            reply.base.len += sizeof(struct CGDisplayMode);
+        }
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcDisplaySetDisplayMode:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplaySetDisplayMode, 4}, kCGErrorIllegalArgument, 0, 0, 0 };
+    
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        struct CGDisplayMode *mode = &(args->val2);
+        if([display setMode:mode])
+            reply.val1 = kCGErrorSuccess;
+        else
+            reply.val1 = kCGErrorFailure;
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
     mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
@@ -996,6 +1032,8 @@ pthread_mutex_t renderLock;
                     case kCGCompleteDisplayConfiguration: [self rpcCompleteDisplayConfiguration:&msg.portMsg]; break;
                     case kCGRestorePermanentDisplayConfiguration: [self rpcRestorePermanentDisplayConfiguration:&msg.portMsg]; break;
                     case kCGDisplayCopyDisplayMode: [self rpcDisplayCopyDisplayMode:&msg.portMsg]; break;
+                    case kCGDisplayCopyAllDisplayModes: [self rpcDisplayCopyAllDisplayModes:&msg.portMsg]; break;
+                    case kCGDisplaySetDisplayMode: [self rpcDisplaySetDisplayMode:&msg.portMsg]; break;
                 }
                 break;
             }

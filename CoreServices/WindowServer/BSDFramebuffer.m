@@ -71,6 +71,8 @@
     _currentMode->refresh = 0; // FIXME: can we get this?
     _currentMode->flags = 0;
 
+    CFArrayAppendValue(_allModes, CGDisplayModeRetain(_currentMode));
+
     size_t pagemask = getpagesize() - 1;
     size = (stride * height + pagemask) & ~pagemask;
     data = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_NOCORE|MAP_NOSYNC, fbfd, 0);
@@ -204,6 +206,12 @@
 /* FIXME: this should hash the vendor, model, serial, and other data */
 - (uint32_t)getDisplayID {
     return 0xf07f0a10; // arbitrary ID
+}
+
+// we can't change resolutions without a drm driver so this will always fail
+-(BOOL)setMode:(struct CGDisplayMode *)mode {
+    NSLog(@"%@ setMode always returns NO", [self class]);
+    return NO;
 }
 
 @end

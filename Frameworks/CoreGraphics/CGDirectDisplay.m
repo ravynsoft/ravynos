@@ -683,9 +683,59 @@ CGDisplayModeRef CGDisplayCopyDisplayMode(CGDirectDisplayID display) {
 }
 
 CFArrayRef CGDisplayCopyAllDisplayModes(CGDirectDisplayID display, CFDictionaryRef options) {
+    struct wsRPCSimple data = { {kCGDisplayCopyAllDisplayModes, 4} };
+    data.val1 = display;
+    struct {
+        struct wsRPCBase base;
+        struct CGDisplayMode mode[32];
+    } reply;
+    int len = sizeof(reply);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &reply, &len);
+    if(ret == KERN_SUCCESS) {
+        if(reply.base.len > 0) {
+            CFMutableArrayRef entries = CFArrayCreateMutable(NULL, 
+                    reply.base.len / sizeof(struct CGDisplayMode), NULL);
+            for(int i = 0; i < reply.base.len / sizeof(struct CGDisplayMode); ++i) {
+                struct CGDisplayMode *entry = calloc(sizeof(struct CGDisplayMode), 1);
+                if(entry) {
+                    memcpy(entry, &reply.mode[i], sizeof(struct CGDisplayMode));
+                    // we don't retain entry because it already has a refcount from WS
+                    NSLog(@"got mode! %ux%u %.02f Hz flags %08x", entry->width, entry->height,
+                            entry->refresh, entry->flags);
+                    CFArrayAppendValue(entries, entry);
+                }
+            }
+            CFRetain(entries);
+            return entries;
+        }
+    }
+    return NULL;
+
 }
 
 CGError CGDisplaySetDisplayMode(CGDirectDisplayID display, CGDisplayModeRef mode, CFDictionaryRef options) {
+    if(mode == NULL)
+        return kCGErrorIllegalArgument;
+
+    struct {
+        struct wsRPCBase base;
+        uint32_t display;
+        struct CGDisplayMode mode;
+    } data = {
+        .base = { kCGDisplaySetDisplayMode, 4 + sizeof(struct CGDisplayMode) }
+    };
+
+    data.display = display;
+    memcpy(&data.mode, mode, sizeof(data.mode));
+
+    struct wsRPCSimple reply = {0};
+    int len = sizeof(reply);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &reply, &len);
+
+    if(ret == KERN_SUCCESS) {
+        return reply.val1;
+    }
+    return kCGErrorFailure;
 }
 
 CGDisplayModeRef CGDisplayModeRetain(CGDisplayModeRef mode) {

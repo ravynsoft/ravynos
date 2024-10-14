@@ -25,6 +25,8 @@
 #import "WSDisplay.h"
 #import "rpc.h" // for flags constants
 
+extern struct CGDisplayMode *CGDisplayModeRetain(struct CGDisplayMode *);
+
 @implementation WSDisplay
 -init {
     self = [super init];
@@ -44,10 +46,13 @@
     _primaryDisplay = nil;
     _currentMode = calloc(sizeof(struct CGDisplayMode), 1);
     CGDisplayModeRetain(_currentMode);
+    _allModes = CFArrayCreateMutable(NULL, 32, NULL);
     return self;
 }
 
 -(void)dealloc {
+    for(int i = 0; i < CFArrayGetCount(_allModes); ++i)
+        CGDisplayModeRelease(CFArrayGetValueAtIndex(_allModes, i));
     CGDisplayModeRelease(_currentMode);
 }
 
@@ -208,13 +213,15 @@
     return;
 }
 
--(BOOL)setMode:(struct CGDisplayMode *)mode {
-    // FIXME: implement this
-    return YES;
-}
-
 -(BOOL)setOriginX:(int32_t)x Y:(int32_t)y {
     // FIXME: implement this
+}
+
+// override in backend class
+-(BOOL)setMode:(struct CGDisplayMode *)mode {
+    CGDisplayModeRelease(_currentMode);
+    _currentMode = CGDisplayModeRetain(mode);
+    return YES;
 }
 
 -(void)saveAppConfig {
@@ -231,6 +238,10 @@
 
 -(struct CGDisplayMode *)currentMode {
     return _currentMode;
+}
+
+-(CFArrayRef)allModes {
+    return _allModes;
 }
 
 @end

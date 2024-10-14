@@ -46,6 +46,7 @@
     WSDisplay *_primaryDisplay; // primary of HW mirror set
 
     struct CGDisplayMode *_currentMode;
+    CFMutableArrayRef _allModes;
 }
 
 -(uint32_t)getDisplayID;
@@ -89,6 +90,8 @@
 -(void)savePermanentConfig;
 -(void)restorePermanentConfig;
 -(struct CGDisplayMode *)currentMode;
+-(CFArrayRef)allModes;
+-(BOOL)setMode:(struct CGDisplayMode *)mode;
 
 @end
 
