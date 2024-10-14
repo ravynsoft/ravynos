@@ -96,6 +96,7 @@ struct CGDisplayMode {
     int refcount;
     uint32_t width;
     uint32_t height;
+    uint32_t depth;
     float refresh;
     uint32_t flags;
 };

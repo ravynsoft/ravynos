@@ -760,6 +760,45 @@ void CGDisplayModeRelease(CGDisplayModeRef mode) {
 }
 
 // Getting Information About a Display Mode
+size_t CGDisplayModeGetWidth(CGDisplayModeRef mode) {
+    if(mode == NULL)
+        return 0;
+    return mode->width;
+}
+
+size_t CGDisplayModeGetHeight(CGDisplayModeRef mode) {
+    if(mode == NULL)
+        return 0;
+    return mode->height;
+}
+
+double CGDisplayModeGetRefreshRate(CGDisplayModeRef mode) {
+    if(mode == NULL)
+        return 0;
+    return mode->refresh;
+}
+
+uint32_t CGDisplayModeGetIOFlags(CGDisplayModeRef mode) {
+    if(mode == NULL)
+        return 0;
+    return mode->flags;
+}
+
+int32_t CGDisplayModeGetIODisplayModeID(CGDisplayModeRef mode) {
+    return 0;
+}
+
+bool CGDisplayModeIsUsableForDesktopGUI(CGDisplayModeRef mode) {
+    if(mode == NULL)
+        return false;
+    if(mode->width >= 1024 && mode->height >= 768 && mode->depth >= 24)
+        return true;
+    return false;
+}
+
+CFTypeID CGDisplayModeGetTypeID(void) {
+    return 0; // FIXME
+}
 
 
 // WindowServer info

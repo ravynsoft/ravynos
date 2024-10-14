@@ -68,6 +68,7 @@
 
     _currentMode->width = width;
     _currentMode->height = height;
+    _currentMode->depth = depth;
     _currentMode->refresh = 0; // FIXME: can we get this?
     _currentMode->flags = 0;
 
@@ -210,7 +211,6 @@
 
 // we can't change resolutions without a drm driver so this will always fail
 -(BOOL)setMode:(struct CGDisplayMode *)mode {
-    NSLog(@"%@ setMode always returns NO", [self class]);
     return NO;
 }
 
