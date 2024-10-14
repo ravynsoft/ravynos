@@ -42,7 +42,13 @@
     _mirrorOf = nil;
     _rotation = 0;
     _primaryDisplay = nil;
+    _currentMode = calloc(sizeof(struct CGDisplayMode), 1);
+    CGDisplayModeRetain(_currentMode);
     return self;
+}
+
+-(void)dealloc {
+    CGDisplayModeRelease(_currentMode);
 }
 
 -(uint32_t)getDisplayID {
@@ -221,6 +227,10 @@
 
 -(void)savePermanentConfig {
     NSLog(@"%@ save permanent config", self);
+}
+
+-(struct CGDisplayMode *)currentMode {
+    return _currentMode;
 }
 
 @end

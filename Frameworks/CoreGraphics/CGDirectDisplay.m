@@ -659,6 +659,27 @@ size_t CGDisplayPixelsWide(CGDirectDisplayID display) {
 
 // Creating and Managing Display Modes
 CGDisplayModeRef CGDisplayCopyDisplayMode(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { {kCGDisplayCopyDisplayMode, 4} };
+    data.val1 = display;
+    struct {
+        struct wsRPCBase base;
+        struct CGDisplayMode mode;
+    } reply;
+    int len = sizeof(reply);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &reply, &len);
+    if(ret == KERN_SUCCESS) {
+        if(reply.base.len > 0) {
+            struct CGDisplayMode *ret = calloc(sizeof(struct CGDisplayMode), 1);
+            if(ret) {
+                memcpy(ret, &reply.mode, sizeof(struct CGDisplayMode));
+                // we don't retain ret because it already has a refcount from WS
+                NSLog(@"got mode! %ux%u %.02f Hz flags %08x", ret->width, ret->height,
+                        ret->refresh, ret->flags);
+            }
+            return ret;
+        }
+    }
+    return NULL;
 }
 
 CFArrayRef CGDisplayCopyAllDisplayModes(CGDirectDisplayID display, CFDictionaryRef options) {
@@ -668,9 +689,24 @@ CGError CGDisplaySetDisplayMode(CGDirectDisplayID display, CGDisplayModeRef mode
 }
 
 CGDisplayModeRef CGDisplayModeRetain(CGDisplayModeRef mode) {
+    if(mode != NULL) {
+        int one = 1;
+        __sync_fetch_and_add(&(mode->refcount), one);
+        NSLog(@"retained mode %p -> %d", mode, mode->refcount);
+    }
+    return mode;
 }
 
 void CGDisplayModeRelease(CGDisplayModeRef mode) {
+    if(mode == NULL)
+        return;
+
+    int one = 1;
+    int count = __sync_fetch_and_sub(&(mode->refcount), one);
+    NSLog(@"released mode %p -> %d", mode, mode->refcount);
+
+    if(count == 1) // we just released the last ref
+        free(mode);
 }
 
 // Getting Information About a Display Mode

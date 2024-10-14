@@ -44,6 +44,8 @@
     WSDisplay *_mirrorOf;       // display this display mirrors
     float _rotation;
     WSDisplay *_primaryDisplay; // primary of HW mirror set
+
+    struct CGDisplayMode *_currentMode;
 }
 
 -(uint32_t)getDisplayID;
@@ -86,6 +88,7 @@
 -(void)saveSessionConfig;
 -(void)savePermanentConfig;
 -(void)restorePermanentConfig;
+-(struct CGDisplayMode *)currentMode;
 
 @end
 

@@ -60,7 +60,10 @@ typedef enum WSRPC {
     kCGDisplayVendorNumber,
     // Retrieving Display Parameters
     kCGDisplayBounds,
-
+    // Creating and Managing Display Modes
+    kCGDisplayCopyDisplayMode,
+    kCGDisplayCopyAllDisplayModes,
+    kCGDisplaySetDisplayMode,
 } WSRPC;
 
 /* Data field header, followed by function-specific data struct */
@@ -90,6 +93,7 @@ typedef enum WSDisplayFlags : uint32_t {
 } WSDisplayFlags;
 
 struct CGDisplayMode {
+    int refcount;
     uint32_t width;
     uint32_t height;
     float refresh;

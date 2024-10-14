@@ -24,6 +24,7 @@
 #import <sys/types.h>
 #import <sys/ipc.h>
 #import <sys/shm.h>
+#import "rpc.h" // for mode definitions
 
 @implementation BSDFramebuffer
 
@@ -64,6 +65,11 @@
     depth = fb.fb_depth;
     width = fb.fb_width;
     height = fb.fb_height;
+
+    _currentMode->width = width;
+    _currentMode->height = height;
+    _currentMode->refresh = 0; // FIXME: can we get this?
+    _currentMode->flags = 0;
 
     size_t pagemask = getpagesize() - 1;
     size = (stride * height + pagemask) & ~pagemask;

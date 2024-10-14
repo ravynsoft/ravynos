@@ -924,6 +924,25 @@ pthread_mutex_t renderLock;
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+// Creating and Managing Display Modes
+-(void)rpcDisplayCopyDisplayMode:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct {
+        struct wsRPCBase base;
+        struct CGDisplayMode mode;
+    } reply;
+    reply.base.code = kCGDisplayCopyDisplayMode;
+    reply.base.len = 0;
+    
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.base.len = sizeof(struct CGDisplayMode);
+        struct CGDisplayMode *mode = [display currentMode];
+        memcpy(&reply.mode, mode, sizeof(struct CGDisplayMode));
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
     mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
@@ -976,6 +995,7 @@ pthread_mutex_t renderLock;
                     case kCGDisplayVendorNumber: [self rpcDisplayVendorNumber:&msg.portMsg]; break; 
                     case kCGCompleteDisplayConfiguration: [self rpcCompleteDisplayConfiguration:&msg.portMsg]; break;
                     case kCGRestorePermanentDisplayConfiguration: [self rpcRestorePermanentDisplayConfiguration:&msg.portMsg]; break;
+                    case kCGDisplayCopyDisplayMode: [self rpcDisplayCopyDisplayMode:&msg.portMsg]; break;
                 }
                 break;
             }
