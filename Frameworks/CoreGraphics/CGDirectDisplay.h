@@ -41,15 +41,15 @@
 #define kCGSessionLoginDoneKey CFSTR("kCGSessionLoginDoneKey")
 
 typedef CGError CGDisplayError; // deprecated, use CGError instead
-typedef struct CGDisplayMode CGDisplayModeRef;
 
 #define kCGDirectMainDisplay CGMainDisplayID()
-#define kCGNullDirectDisplay 0;
+#define kCGNullDirectDisplay 0
 
 typedef uint32_t CGDirectDisplayID;
 typedef uint32_t CGDisplayCount; // deprecated, use uint32_t instead
 typedef uint32_t CGRectCount;
-typedef struct _CGDisplayConfigRef *CGDisplayConfigRef;
+typedef struct _CGDisplayConfig *CGDisplayConfigRef;
+typedef struct CGDisplayMode *CGDisplayModeRef;
 typedef float CGGammaValue;
 typedef double CGRefreshRate;
 

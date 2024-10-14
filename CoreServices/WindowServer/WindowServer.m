@@ -688,6 +688,7 @@ pthread_mutex_t renderLock;
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+// FIXME: I think this is supposed to be only for apps that have captured the display?
 - (void)rpcDisplayCreateImageForRect:(PortMessage *)msg {
     struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
     struct wsRPCSimple reply = { {kCGDisplayCreateImageForRect, 4}, 0 };
@@ -698,7 +699,6 @@ pthread_mutex_t renderLock;
         rect.origin.y = (args->val2 & 0xFFFF);
         rect.size.width = (args->val3 & 0xFFFF0000) >> 16;
         rect.size.height = (args->val3 & 0xFFFF);
-        NSLog(@"image rect %@", NSStringFromRect(rect));
         O2ImageRef img = [display imageForRect:rect];
         int imglen = 0;
         if(img) {
@@ -719,89 +719,194 @@ pthread_mutex_t renderLock;
 }
 
 // Configuring Displays
--(void)rpcBeginDisplayConfiguration:(PortMessage *)msg {
-}
-
--(void)rpcCancelDisplayConfiguration:(PortMessage *)msg {
-}
-
 -(void)rpcCompleteDisplayConfiguration:(PortMessage *)msg {
-}
+    struct _CGDisplayConfigInner *inner = (struct _CGDisplayConfigInner *)msg->data;
+    struct wsRPCSimple reply = { {kCGCompleteDisplayConfiguration, 4}, 0 };
 
--(void)rpcConfigureDisplayMirrorOfDisplay:(PortMessage *)msg {
-}
+    if(logLevel >= WS_INFO)
+        NSLog(@"configuring displays. rpc={%u %u}, length %u option %u", 
+                inner->rpc.code, inner->rpc.len, inner->length, inner->option);
+    int i = sizeof(struct _CGDisplayConfigInner);
 
+    CGError ret = kCGErrorSuccess; // let's be optimistic
+ 
+    while(i < inner->length) {
+        char *p = (char *)inner + i;
+        int opcode = *(uint32_t *)p;
+        switch(opcode) {
+            case CGDISPCFG_MIRROR: {
+                struct _CGDispCfgMirror *op = p;
+                if(logLevel >= WS_INFO)
+                    NSLog(@"mirroring: %x %x", op->display, op->primary);
+                WSDisplay *display = [self displayWithID:op->display];
+                WSDisplay *primary = [self displayWithID:op->primary];
+                i += sizeof(struct _CGDispCfgMirror);
+                if(display == nil || primary == nil) {
+                    ret = kCGErrorIllegalArgument;
+                    break;
+                }
+                if([display mirror:primary] == NO)
+                    ret = kCGErrorFailure;
+                break;
+            }
+            case CGDISPCFG_ORIGIN: {
+                struct _CGDispCfgOrigin *op = p;
+                if(logLevel >= WS_INFO)
+                    NSLog(@"set origin: %x %d,%d", op->display, op->x, op->y);
+                i += sizeof(struct _CGDispCfgOrigin);
+                WSDisplay *display = [self displayWithID:op->display];
+                if(display == nil) {
+                    ret = kCGErrorIllegalArgument;
+                    break;
+                }
+                if([display setOriginX:op->x Y:op->y] == NO)
+                    ret = kCGErrorFailure;
+                break;
+            }
+            case CGDISPCFG_MODE: {
+                struct _CGDispCfgMode *op = p;
+                if(logLevel >= WS_INFO)
+                    NSLog(@"set mode: %x %u %u %.2f %08x", op->display, op->mode.width,
+                            op->mode.height, op->mode.refresh, op->mode.flags);
+                WSDisplay *display = [self displayWithID:op->display];
+                i += sizeof(struct _CGDispCfgMode);
+                if(display == nil) {
+                    ret = kCGErrorIllegalArgument;
+                    break;
+                }
+                if([display setMode:&op->mode] == NO)
+                    ret = kCGErrorFailure;
+                break;
+            }
+            default:
+                 NSLog(@"Unknown display configuration command");
+                 i = inner->length;
+                 break;
+        };
 
--(void)rpcConfigureDisplayOrigin:(PortMessage *)msg {
+        if(ret != kCGErrorSuccess)
+            break;
+    }
+
+    if(ret == kCGErrorSuccess) {
+        [displays makeObjectsPerformSelector:
+            inner->option == kCGConfigureForAppOnly
+                ? @selector(saveAppConfig)
+                : inner->option == kCGConfigureForSession
+                    ? @selector(saveSessionConfig)
+                    : @selector(savePermanentConfig)
+            withObject:nil];
+    } else {
+        // FIXME: roll back any changes to our saved config if something failed
+    }
+
+    reply.val1 = ret;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcRestorePermanentDisplayConfiguration:(PortMessage *)msg {
+    [displays makeObjectsPerformSelector:@selector(restorePermanentConfig) withObject:nil];
 }
-
--(void)rpcConfigureDisplayStereoOperation:(PortMessage *)msg {
-}
-
--(void)rpcDisplaySetStereoOperation:(PortMessage *)msg {
-}
-
--(void)rpcConfigureDisplayWithDisplayMode:(PortMessage *)msg {
-}
-
 
 // Getting the Display Configuration
 -(void)rpcDisplayCopyColorSpace:(PortMessage *)msg {
-    // not implemented yet
+    // FIXME: not implemented yet
 }
 
--(void)rpcDisplayIsActive:(PortMessage *)msg {
-}
-
--(void)rpcDisplayIsAlwaysInMirrorSet:(PortMessage *)msg {
-}
-
--(void)rpcDisplayIsAsleep:(PortMessage *)msg {
-}
-
--(void)rpcDisplayIsBuiltin:(PortMessage *)msg {
-}
-
--(void)rpcDisplayIsInHWMirrorSet:(PortMessage *)msg {
-}
-
--(void)rpcDisplayIsInMirrorSet:(PortMessage *)msg {
-}
-
--(void)rpcDisplayIsMain:(PortMessage *)msg {
-}
-
--(void)rpcDisplayIsOnline:(PortMessage *)msg {
+-(void)rpcDisplayStateFlags:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayStateFlags, 4}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.val1 = [display flags];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplayMirrorsDisplay:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayMirrorsDisplay, 4}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        WSDisplay *primary = [display mirrorOf];
+        if(primary)
+            reply.val1 = [primary getDisplayID];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplayModelNumber:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayModelNumber, 4}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.val1 = [display modelNumber];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplayPrimaryDisplay:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayPrimaryDisplay, 4}, args->val1};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        WSDisplay *primary = [display primaryDisplay];
+        if(primary)
+            reply.val1 = [primary getDisplayID];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplayRotation:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayRotation, 4}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.val1 = (uint32_t)[display rotation];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplayScreenSize:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayScreenSize, 8}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        CGSize size = [display screenSizeMM];
+        reply.val1 = (uint32_t)size.width;
+        reply.val2 = (uint32_t)size.height;
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplaySerialNumber:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplaySerialNumber, 4}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.val1 = [display serialNumber];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplayUnitNumber:(PortMessage *)msg {
-}
-
--(void)rpcDisplayUsesOpenGLAcceleration:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayUnitNumber, 4}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.val1 = [displays indexOfObject:display];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 -(void)rpcDisplayVendorNumber:(PortMessage *)msg {
+    struct wsRPCSimple *args = (struct wsRPCSimple *)msg->data;
+    struct wsRPCSimple reply = { {kCGDisplayVendorNumber, 4}, 0};
+    WSDisplay *display = [self displayWithID:args->val1];
+    if(display) {
+        reply.val1 = [display vendorNumber];
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
 // Retrieving Display Parameters
@@ -860,13 +965,7 @@ pthread_mutex_t renderLock;
                     case kCGDisplayGetDrawingContext: [self rpcDisplayGetDrawingContext:&msg.portMsg]; break;
                     case kCGDisplayCreateImageForRect: [self rpcDisplayCreateImageForRect:&msg.portMsg]; break;
                     case kCGDisplayBounds: [self rpcDisplayBounds:&msg.portMsg]; break;
-                    case kCGDisplayIsActive: [self rpcDisplayIsActive:&msg.portMsg]; break; 
-                    case kCGDisplayIsAlwaysInMirrorSet: [self rpcDisplayIsAlwaysInMirrorSet:&msg.portMsg]; break; 
-                    case kCGDisplayIsAsleep: [self rpcDisplayIsAsleep:&msg.portMsg]; break; 
-                    case kCGDisplayIsBuiltin: [self rpcDisplayIsBuiltin:&msg.portMsg]; break; 
-                    case kCGDisplayIsInHWMirrorSet: [self rpcDisplayIsInHWMirrorSet:&msg.portMsg]; break; 
-                    case kCGDisplayIsInMirrorSet: [self rpcDisplayIsInMirrorSet:&msg.portMsg]; break; 
-                    case kCGDisplayIsOnline: [self rpcDisplayIsOnline:&msg.portMsg]; break; 
+                    case kCGDisplayStateFlags: [self rpcDisplayStateFlags:&msg.portMsg]; break; 
                     case kCGDisplayMirrorsDisplay: [self rpcDisplayMirrorsDisplay:&msg.portMsg]; break; 
                     case kCGDisplayModelNumber: [self rpcDisplayModelNumber:&msg.portMsg]; break; 
                     case kCGDisplayPrimaryDisplay: [self rpcDisplayPrimaryDisplay:&msg.portMsg]; break; 
@@ -874,8 +973,9 @@ pthread_mutex_t renderLock;
                     case kCGDisplayScreenSize: [self rpcDisplayScreenSize:&msg.portMsg]; break; 
                     case kCGDisplaySerialNumber: [self rpcDisplaySerialNumber:&msg.portMsg]; break; 
                     case kCGDisplayUnitNumber: [self rpcDisplayUnitNumber:&msg.portMsg]; break; 
-                    case kCGDisplayUsesOpenGLAcceleration: [self rpcDisplayUsesOpenGLAcceleration:&msg.portMsg]; break; 
                     case kCGDisplayVendorNumber: [self rpcDisplayVendorNumber:&msg.portMsg]; break; 
+                    case kCGCompleteDisplayConfiguration: [self rpcCompleteDisplayConfiguration:&msg.portMsg]; break;
+                    case kCGRestorePermanentDisplayConfiguration: [self rpcRestorePermanentDisplayConfiguration:&msg.portMsg]; break;
                 }
                 break;
             }

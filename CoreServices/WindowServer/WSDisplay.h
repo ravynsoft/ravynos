@@ -26,18 +26,6 @@
 #import <Onyx2D/O2Context_builtin.h>
 #import <CoreGraphics/CGColorSpace.h>
 
-typedef enum WSDisplayFlags : uint32_t {
-    kWSDisplayActive = (1 << 0),
-    kWSDisplayOnline = (1 << 1),
-    kWSDisplaySleeping = (1 << 2),
-    kWSDisplayMirrored = (1 << 3),
-    kWSDisplayPrimary = (1 << 4),
-    kWSDisplayMain = (1 << 5),
-    kWSDisplayBuiltin = (1 << 6),
-    kWSDisplayStereo = (1 << 7),
-    kWSDisplayHWMirror = (1 << 8)
-} WSDisplayFlags;
-
 @interface WSDisplay : NSObject {
     uint32_t _ID;               // CGDirectDisplayID
     uint32_t _flags;            // status flags
@@ -52,6 +40,10 @@ typedef enum WSDisplayFlags : uint32_t {
     CGColorSpaceRef cs;
     O2Context *activeCtx;
     O2Context *captureCtx;
+
+    WSDisplay *_mirrorOf;       // display this display mirrors
+    float _rotation;
+    WSDisplay *_primaryDisplay; // primary of HW mirror set
 }
 
 -(uint32_t)getDisplayID;
@@ -59,6 +51,7 @@ typedef enum WSDisplayFlags : uint32_t {
 -(BOOL)isOnline;
 -(BOOL)isSleeping;
 -(BOOL)isMain;
+-(uint32_t)flags;
 -(uint32_t)openGLMask;
 -(pid_t)captured;
 -(BOOL)capture:(pid_t)pid withOptions:(uint32_t)options;
@@ -75,8 +68,24 @@ typedef enum WSDisplayFlags : uint32_t {
 -(CGColorSpaceRef)colorSpace;
 -(O2Context *)getCapturedContext;
 -(uint32_t)getCapturedContextID;
--(uint32_t)getCapturedContextID:(uintptr_t *)addr size:(uint32_t *)size;
 -(O2ImageRef)imageForRect:(O2Rect)rect;
+
+-(float)rotation;
+-(BOOL)rotate:(float)degrees;
+-(WSDisplay *)mirrorOf;
+-(uint32_t)vendorNumber;
+-(uint32_t)modelNumber;
+-(uint32_t)serialNumber;
+-(WSDisplay *)primaryDisplay;
+-(CGSize)screenSizeMM;
+-(BOOL)mirror:(WSDisplay *)display;
+-(BOOL)setMode:(struct CGDisplayMode *)mode;
+-(BOOL)setOriginX:(int32_t)x Y:(int32_t)y;
+
+-(void)savePermanentConfig;
+-(void)saveSessionConfig;
+-(void)savePermanentConfig;
+-(void)restorePermanentConfig;
 
 @end
 

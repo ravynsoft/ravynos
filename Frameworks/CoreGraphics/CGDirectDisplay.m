@@ -45,6 +45,10 @@ const CFStringRef kCGDisplayStreamYCbCrMatrix_ITU_R_709_2 = CFSTR("kCGDisplayStr
 const CFStringRef kCGDisplayStreamYCbCrMatrix_ITU_R_601_4 = CFSTR("kCGDisplayStreamYCbCrMatrix_ITU_R_601_4");
 const CFStringRef kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995 = CFSTR("kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995");
 
+struct _CGDisplayConfig {
+    struct _CGDisplayConfigInner *inner;
+};
+
 // dictionary of display contexts
 static CFMutableDictionaryRef __displayContexts = NULL;
 static const CFDictionaryKeyCallBacks __CGDispCtxKeyCallback = {0}; // all NULL - use defaults
@@ -52,6 +56,7 @@ static const CFDictionaryValueCallBacks __CGDispCtxValCallback = {0}; // same
 
 // make a RPC to WindowServer with optional reply
 kern_return_t _windowServerRPC(void *data, size_t len, void *replyBuf, int *replyLen);
+static uint32_t CGDisplayStateFlags(CGDirectDisplayID display);
 
 // Finding displays
 CGDirectDisplayID CGMainDisplayID(void) {
@@ -335,10 +340,10 @@ CGContextRef CGDisplayGetDrawingContext(CGDirectDisplayID display) {
         int height = q[1];
         int format = q[2];
 
-        CGContextRef ctx = (__bridge_retained CGContextRef)[[O2Context_builtin alloc]
+        CGContextRef ctx = (CGContextRef)[[[O2Context_builtin alloc]
             initWithBytes:(p+sizeof(int)*6) width:width height:height
             bitsPerComponent:8 bytesPerRow:width*4 colorSpace:CGColorSpaceCreateDeviceRGB()
-            bitmapInfo:format releaseCallback:NULL releaseInfo:NULL];
+            bitmapInfo:format releaseCallback:NULL releaseInfo:NULL] retain];
 
         // cache it so we can release later. we support up to 8 captured displays
         if(__displayContexts == NULL) 
@@ -383,7 +388,255 @@ CGImageRef CGDisplayCreateImageForRect(CGDirectDisplayID display, CGRect rect) {
     return NULL;
 }
 
+// Configuring Displays
+CGError CGBeginDisplayConfiguration(CGDisplayConfigRef *config) {
+    if(config == NULL)
+        return kCGErrorIllegalArgument;
+
+    *config = calloc(sizeof(struct _CGDisplayConfig), 1);
+    if(*config == NULL)
+        return kCGErrorFailure;
+
+    (*config)->inner = calloc(sizeof(struct _CGDisplayConfigInner), 1);
+    if((*config)->inner == NULL) {
+        free(*config);
+        return kCGErrorFailure;
+    }
+
+    (*config)->inner->length = sizeof(struct _CGDisplayConfigInner);
+    return kCGErrorSuccess;
+}
+
+CGError CGCancelDisplayConfiguration(CGDisplayConfigRef config) {
+    if(config == NULL)
+        return kCGErrorIllegalArgument;
+    free(config->inner);
+    free(config);
+    return kCGErrorSuccess;
+}
+
+CGError CGCompleteDisplayConfiguration(CGDisplayConfigRef config, CGConfigureOption option) {
+    if(config == NULL || config->inner == NULL)
+        return kCGErrorIllegalArgument;
+
+    config->inner->rpc.code = kCGCompleteDisplayConfiguration;
+    config->inner->rpc.len = config->inner->length - sizeof(config->inner->rpc); // trailing data length
+    config->inner->option = option;
+
+    struct wsRPCSimple reply = {0};
+    int len = sizeof(reply);
+
+    kern_return_t ret = _windowServerRPC(config->inner, config->inner->length, &reply, &len);
+    free(config->inner);
+    free(config);
+
+    if(ret == KERN_SUCCESS)
+        return reply.val1;
+    return kCGErrorFailure;
+}
+
+CGError CGConfigureDisplayMirrorOfDisplay(CGDisplayConfigRef config, CGDirectDisplayID display, CGDirectDisplayID primary) {
+    if(config == NULL || config->inner == NULL || display == kCGNullDirectDisplay)
+        return kCGErrorIllegalArgument;
+
+    void *_inner = realloc(config->inner, config->inner->length + sizeof(struct _CGDispCfgMirror));
+    if(_inner == NULL)
+        return kCGErrorFailure;
+    config->inner = _inner;
+    struct _CGDispCfgMirror *op = ((char *)config->inner + config->inner->length); 
+    op->opcode = CGDISPCFG_MIRROR;
+    op->display = display;
+    op->primary = primary;
+    config->inner->length += sizeof(struct _CGDispCfgMirror);
+    return kCGErrorSuccess;
+}
+
+CGError CGConfigureDisplayOrigin(CGDisplayConfigRef config, CGDirectDisplayID display, int32_t x, int32_t y) {
+    if(config == NULL || config->inner == NULL || display == kCGNullDirectDisplay)
+        return kCGErrorIllegalArgument;
+
+    void *_inner = realloc(config->inner, config->inner->length + sizeof(struct _CGDispCfgOrigin));
+    if(_inner == NULL)
+        return kCGErrorFailure;
+    config->inner = _inner;
+    struct _CGDispCfgOrigin *op = ((char *)config->inner + config->inner->length);
+    op->opcode = CGDISPCFG_ORIGIN;
+    op->display = display;
+    op->x = x;
+    op->y = y;
+    config->inner->length += sizeof(struct _CGDispCfgOrigin);
+    return kCGErrorSuccess;
+}
+
+void CGRestorePermanentDisplayConfiguration(void) {
+    struct wsRPCBase data = { kCGRestorePermanentDisplayConfiguration, 0 };
+    _windowServerRPC(&data, sizeof(data), NULL, NULL);
+}
+
+CGError CGConfigureDisplayStereoOperation(CGDisplayConfigRef config, CGDirectDisplayID display, boolean_t stereo, boolean_t forceBlueLine) {
+    return kCGErrorFailure; // not implemented
+}
+
+CGError CGDisplaySetStereoOperation(CGDirectDisplayID display, boolean_t stereo, boolean_t forceBlueLine, CGConfigureOption option) {
+    return kCGErrorFailure; // not implemented
+}
+
+CGError CGConfigureDisplayWithDisplayMode(CGDisplayConfigRef config, CGDirectDisplayID display, CGDisplayModeRef mode, CFDictionaryRef options) {
+    if(config == NULL || config->inner == NULL || display == kCGNullDirectDisplay)
+        return kCGErrorIllegalArgument;
+
+    struct _CGDispCfgMode op = {
+        .opcode = CGDISPCFG_MODE,
+        .display = display,
+    };
+    memcpy(&op.mode, mode, sizeof(struct CGDisplayMode));
+
+    void *_inner = realloc(config->inner, config->inner->length + sizeof(op));
+    if(_inner == NULL)
+        return kCGErrorFailure;
+    config->inner = _inner;
+    memcpy((char *)config->inner + config->inner->length, &op, sizeof(op));
+    config->inner->length += sizeof(op);
+    return kCGErrorSuccess;
+}
+
+// Getting the Display Configuration
+CGColorSpaceRef CGDislayCopyColorSpace(CGDirectDisplayID display) {
+    // FIXME: implement this properly, then use it in drawing ctx/image for rect
+    return CGColorSpaceRetain(CGColorSpaceCreateDeviceRGB());
+}
+
+boolean_t CGDisplayIsActive(CGDirectDisplayID display) {
+    return (CGDisplayStateFlags(display) & kWSDisplayActive);
+}
+
+boolean_t CGDisplayIsAlwaysInMirrorSet(CGDirectDisplayID display) {
+    return FALSE;
+}
+
+boolean_t CGDisplayIsAsleep(CGDirectDisplayID display) {
+    return (CGDisplayStateFlags(display) & kWSDisplaySleeping);
+}
+
+boolean_t CGDisplayIsBuiltin(CGDirectDisplayID display) {
+    return (CGDisplayStateFlags(display) & kWSDisplayBuiltin);
+}
+
+boolean_t CGDisplayIsInHWMirrorSet(CGDirectDisplayID display) {
+    return (CGDisplayStateFlags(display) & kWSDisplayHWMirror);
+}
+
+boolean_t CGDisplayIsInMirrorSet(CGDirectDisplayID display) {
+    return (CGDisplayStateFlags(display) & kWSDisplayMirrored);
+}
+
+boolean_t CGDisplayIsMain(CGDirectDisplayID display) {
+    return (CGDisplayStateFlags(display) & kWSDisplayMain);
+}
+
+boolean_t CGDisplayIsOnline(CGDirectDisplayID display) {
+    return (CGDisplayStateFlags(display) & kWSDisplayOnline);
+}
+
+boolean_t CGDisplayIsStereo(CGDirectDisplayID display) {
+    return FALSE; // not implemented
+}
+
+CGDirectDisplayID CGDisplayMirrorsDisplay(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayMirrorsDisplay, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return (data.val1 != 0) ? data.val1 : kCGNullDirectDisplay;
+    return kCGNullDirectDisplay;
+}
+
+uint32_t CGDisplayModelNumber(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayModelNumber, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return 0xFFFFFFFF;
+}
+
+uint32_t CGDisplayPrimaryDisplay(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayPrimaryDisplay, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return display;
+}
+
+double CGDisplayRotation(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayRotation, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return (double)(data.val1);
+    return 0;
+}
+
+CGSize CGDisplayScreenSize(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayScreenSize, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return NSMakeSize(data.val1, data.val2);
+    return NSZeroSize;
+}
+
+uint32_t CGDisplaySerialNumber(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplaySerialNumber, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return 0xFFFFFFFF;
+}
+
+uint32_t CGDisplayUnitNumber(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayUnitNumber, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return 0xFFFFFFFF;
+}
+
+boolean_t CGDisplayUsesOpenGLAcceleration(CGDirectDisplayID display) {
+    return FALSE; // FIXME: implement with Quartz Extreme
+}
+
+uint32_t CGDisplayVendorNumber(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { kCGDisplayVendorNumber, 4 };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS)
+        return data.val1;
+    return 0xFFFFFFFF;
+}
+
+// Registering for Notification of Config Changes
+CGError CGDisplayRegisterReconfigurationCallback(CGDisplayReconfigurationCallBack callback, void *userInfo) {
+    return kCGErrorFailure; // FIXME: not yet implemented
+}
+
+CGError CGDisplayRemoveReconfigurationCallback(CGDisplayReconfigurationCallBack callback, void *userInfo) {
+    return kCGErrorFailure; // FIXME: not yet implemented
+}
+
 // Retrieving Display Parameters
+// FIXME: these are returning info on the current mode, not the display itself
 CGRect CGDisplayBounds(CGDirectDisplayID display) {
     struct wsRPCSimple data = { {kCGDisplayBounds, 4} };
     data.val1 = display;
@@ -394,7 +647,6 @@ CGRect CGDisplayBounds(CGDirectDisplayID display) {
     return NSZeroRect;
 }
 
-// FIXME: these are returning info on the current mode, not the display itself
 size_t CGDisplayPixelsHigh(CGDirectDisplayID display) {
     CGRect rect = CGDisplayBounds(display);
     return rect.size.height;
@@ -404,6 +656,25 @@ size_t CGDisplayPixelsWide(CGDirectDisplayID display) {
     CGRect rect = CGDisplayBounds(display);
     return rect.size.width;
 }
+
+// Creating and Managing Display Modes
+CGDisplayModeRef CGDisplayCopyDisplayMode(CGDirectDisplayID display) {
+}
+
+CFArrayRef CGDisplayCopyAllDisplayModes(CGDirectDisplayID display, CFDictionaryRef options) {
+}
+
+CGError CGDisplaySetDisplayMode(CGDirectDisplayID display, CGDisplayModeRef mode, CFDictionaryRef options) {
+}
+
+CGDisplayModeRef CGDisplayModeRetain(CGDisplayModeRef mode) {
+}
+
+void CGDisplayModeRelease(CGDisplayModeRef mode) {
+}
+
+// Getting Information About a Display Mode
+
 
 // WindowServer info
 CFDictionaryRef CGSessionCopyCurrentDictionary(void) {
@@ -430,6 +701,17 @@ CGWindowLevel CGWindowLevelForKey(CGWindowLevelKey key) {
 }
 
 // Private functions
+
+static uint32_t CGDisplayStateFlags(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { {kCGDisplayStateFlags, 4} };
+    data.val1 = display;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+    if(ret == KERN_SUCCESS) 
+        return data.val1;
+    return 0;
+}
+
 
 /*
  * Make a synchronous RPC call to WS.
