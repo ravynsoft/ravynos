@@ -64,6 +64,41 @@ typedef enum WSRPC {
     kCGDisplayCopyDisplayMode,
     kCGDisplayCopyAllDisplayModes,
     kCGDisplaySetDisplayMode,
+    // Adjusting Display Gamma
+    kCGSetDisplayTransferByFormula,
+    kCGGetDisplayTransferByFormula,
+    kCGSetDisplayTransferByTable,
+    kCGGetDisplayTransferByTable,
+    kCGSetDisplayTransferByByteTable,
+    kCGDisplayRestoreColorSyncSettings,
+    kCGDisplayGammaTableCapacity,
+    // Display Fade Effects
+    kCGConfigureDisplayFadeEffect,
+    kCGAcquireDisplayFadeReservation,
+    kCGDisplayFade,
+    kCGReleaseDisplayFadeReservation,
+    // Controlling the Mouse Cursor
+    kCGDisplayHideCursor,
+    kCGDisplayShowCursor,
+    kCGDisplayMoveCursorToPoint,
+    kCGAssociateMouseAndMouseCursorPosition,
+    kCGWarpMouseCursorPosition,
+    kCGGetLastMouseDelta,
+    // Getting WindowServer Information
+    kCGSessionCopyCurrentDictionary,
+    kCGWindowLevelForKey,
+    // Streaming the Contents of a Display -- deprecated from 14.0+
+    kCGDisplayStreamCreate,
+    kCGDisplayStreamCreateWithDispatchQueue,
+    kCGDisplayStreamStart,
+    kCGDisplayStreamStop,
+    kCGDisplayStreamGetRunLoopSource,
+    kCGDisplayStreamUpdateGetRects,
+    kCGDisplayStreamUpdateCreateMergedUpdate,
+    kCGDisplayStreamUpdateGetMovedRectsDelta,
+    kCGDisplayStreamUpdateGetDropCount,
+    kCGDisplayStreamGetTypeID,
+    kCGDisplayStreamUpdateGetTypeID,
 } WSRPC;
 
 /* Data field header, followed by function-specific data struct */

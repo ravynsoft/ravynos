@@ -93,5 +93,12 @@
 -(CFArrayRef)allModes;
 -(BOOL)setMode:(struct CGDisplayMode *)mode;
 
+-(BOOL)loadGammaTable:(float *)redTable green:(float *)greenTable blue:(float *)blueTable;
+-(BOOL)load8BitGammaTable:(uint8_t *)redTable green:(uint8_t *)greenTable blue:(uint8_t *)blueTable;
+-(BOOL)getGammaTablesWithCapacity:(size_t)capacity red:(float *)redTable green:(float *)greenTable blue:(float *)blueTable;
+-(void)loadDefaultGamma;
+-(size_t)gammaTableSize;
+-(void)getGammaCoefficientRed:(float *)red green:(float *)green blue:(float *)blue;
+
 @end
 

@@ -978,6 +978,252 @@ pthread_mutex_t renderLock;
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+// Adjusting Display Gamma
+-(void)rpcSetDisplayTransferByFormula:(PortMessage *)msg {
+    struct {
+        struct wsRPCBase base;
+        uint32_t display;
+        CGGammaValue vals[9];
+    } *data = msg->data;
+
+    int ret = kCGErrorIllegalArgument;
+    WSDisplay *display = [self displayWithID:data->display];
+    int count = 0;
+    if(display)
+        count = [display gammaTableSize];
+
+    float *red, *green, *blue;
+    float redMin, redMax, redGamma;
+    float greenMin, greenMax, greenGamma;
+    float blueMin, blueMax, blueGamma;
+
+    if(count > 0) {
+        redMin = data->vals[0];
+        redMax = data->vals[1];
+        redGamma = data->vals[2];
+        greenMin = data->vals[3];
+        greenMax = data->vals[4];
+        greenGamma = data->vals[5];
+        blueMin = data->vals[6];
+        blueMax = data->vals[7];
+        blueGamma = data->vals[8];
+
+        red = malloc(sizeof(float)*count);
+        green = malloc(sizeof(float)*count);
+        blue = malloc(sizeof(float)*count);
+    }
+
+    ret = kCGErrorFailure;
+    if(red && green && blue && count > 2) {
+        red[0] = redMin + ((redMax - redMin) * pow(0, redGamma)); 
+        green[0] = greenMin + ((greenMax - greenMin) * pow(0.0, greenGamma)); 
+        blue[0] = blueMin + ((blueMax - blueMin) * pow(0, blueGamma)); 
+
+        float increment = 1.0/(float)(count - 2);
+        int j = 1;
+        for(float i = increment; j < count && i < 1.0; i += increment) {
+            red[j] = redMin + ((redMax - redMin) * pow(i, redGamma));
+            green[j] = greenMin + ((greenMax - greenMin) * pow(i, greenGamma));
+            blue[j] = blueMin + ((blueMax - blueMin) * pow(i, blueGamma));
+            ++j;
+        }
+
+        red[count] = redMin + ((redMax - redMin) * pow(1.0, redGamma)); 
+        green[count] = greenMin + ((greenMax - greenMin) * pow(1.0, greenGamma)); 
+        blue[count] = blueMin + ((blueMax - blueMin) * pow(1.0, blueGamma)); 
+        
+        ret = [display loadGammaTable:red green:green blue:blue] ? kCGErrorSuccess : kCGErrorFailure;
+
+        free(red);
+        free(green);
+        free(blue);
+    }
+
+    struct wsRPCSimple reply = { {kCGSetDisplayTransferByFormula, 4}, 0, 0, 0, 0 };
+    reply.val1 = ret;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcGetDisplayTransferByFormula:(PortMessage *)msg {
+    struct {
+        struct wsRPCBase base;
+        uint32_t display;
+        CGGammaValue vals[9];
+    } *data = msg->data;
+
+    int ret = kCGErrorIllegalArgument;
+    WSDisplay *display = [self displayWithID:data->display];
+    int count = 0;
+    if(display)
+        count = [display gammaTableSize];
+
+    float *red, *green, *blue;
+    if(count > 0) {
+        red = malloc(sizeof(float)*count);
+        green = malloc(sizeof(float)*count);
+        blue = malloc(sizeof(float)*count);
+    }
+
+    ret = kCGErrorFailure;
+    data->vals[0] = 1; // redMin
+    data->vals[1] = 0; // redMax
+    data->vals[3] = 1; // greenMin
+    data->vals[4] = 0; // greenMax
+    data->vals[6] = 1; // blueMin
+    data->vals[7] = 0; // blueMax
+
+    float gamma;
+    if(red && green && blue && count > 0) {
+        for(int i = 0; i < count; ++i) {
+            gamma = red[i];
+            if(gamma < data->vals[0])
+                data->vals[0] = gamma; // new minimum
+            if(gamma > data->vals[1])
+                data->vals[1] = gamma; // new maximum
+
+            gamma = green[i];
+            if(gamma < data->vals[3])
+                data->vals[0] = gamma; // new minimum
+            if(gamma > data->vals[4])
+                data->vals[1] = gamma; // new maximum
+
+            gamma = blue[i];
+            if(gamma < data->vals[6])
+                data->vals[0] = gamma; // new minimum
+            if(gamma > data->vals[7])
+                data->vals[1] = gamma; // new maximum
+        }
+
+        free(red);
+        free(green);
+        free(blue);
+
+        [display getGammaCoefficientRed:&data->vals[2] green:&data->vals[5] blue:&data->vals[8]];
+    }
+
+    data->base.len = 3 * count  * sizeof(CGGammaValue) + 4;
+    data->display = ret;
+    [self sendInlineData:msg->data length:sizeof(msg->data) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcSetDisplayTransferByTable:(PortMessage *)msg {
+    struct wsRPCSimple *args = msg->data;
+    int len = args->base.len - 4;
+    int entries = len / (3*sizeof(CGGammaValue));
+
+    int ret = kCGErrorIllegalArgument;
+    WSDisplay *display = [self displayWithID:args->val1];
+
+    if(display) {
+        ret = kCGErrorFailure;
+        int count = [display gammaTableSize];
+
+        float *red = malloc(sizeof(float)*count);
+        float *green = malloc(sizeof(float)*count);
+        float *blue = malloc(sizeof(float)*count);
+
+        float *p = &(args->val2);
+        for(int i = 0; i < count && i < entries; ++i) {
+            float r = *p++;
+            float g = *p++;
+            float b = *p++;
+            if(red)
+                red[i] = r;
+            if(green)
+                green[i] = g;
+            if(blue)
+                blue[i] = b;
+        }
+        if(red && green && blue)
+            ret = [display loadGammaTable:red green:green blue:blue] ? kCGErrorSuccess : kCGErrorFailure;
+    }
+
+    struct wsRPCSimple reply = { {kCGSetDisplayTransferByTable, 4}, 0, 0, 0, 0 };
+    reply.val1 = ret;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcGetDisplayTransferByTable:(PortMessage *)msg {
+    struct wsRPCSimple *args = msg->data;
+    WSDisplay *display = [self displayWithID:args->val1];
+
+    struct { CGGammaValue r; CGGammaValue g; CGGammaValue b; } *vals = &(args->val1);
+    if(display) {
+        int count = [display gammaTableSize];
+
+        float *red = malloc(sizeof(float)*count);
+        float *green = malloc(sizeof(float)*count);
+        float *blue = malloc(sizeof(float)*count);
+        if(red && green && blue && count > 0) {
+            [display getGammaTablesWithCapacity:count red:red green:green blue:blue];
+
+            int i = 0;
+            while(vals < (msg->data + sizeof(msg->data))) {
+                vals->r = red[i];
+                vals->g = green[i];
+                vals->b = blue[i];
+                vals += sizeof(CGGammaValue) * 3;
+                ++i;
+            }
+        }
+
+        free(red);
+        free(green);
+        free(blue);
+    }
+    args->base.len = (uint8_t *)vals - msg->data;
+    [self sendInlineData:msg->data length:sizeof(msg->data) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcSetDisplayTransferByByteTable:(PortMessage *)msg {
+    struct wsRPCSimple *args = msg->data;
+    int len = args->base.len - 4;
+    int entries = len / 3;
+
+    int ret = kCGErrorIllegalArgument;
+    WSDisplay *display = [self displayWithID:args->val1];
+
+    if(display) {
+        ret = kCGErrorFailure;
+        int count = [display gammaTableSize];
+
+        uint8_t *red = malloc(count);
+        uint8_t *green = malloc(count);
+        uint8_t *blue = malloc(count);
+
+        float *p = &(args->val2);
+        for(int i = 0; i < count && i < entries; ++i) {
+            uint8_t r = *p++;
+            uint8_t g = *p++;
+            uint8_t b = *p++;
+            if(red)
+                red[i] = r;
+            if(green)
+                green[i] = g;
+            if(blue)
+                blue[i] = b;
+        }
+        if(red && green && blue)
+            ret = [display load8BitGammaTable:red green:green blue:blue] ? kCGErrorSuccess : kCGErrorFailure;
+    }
+
+    struct wsRPCSimple reply = { {kCGSetDisplayTransferByByteTable, 4}, 0, 0, 0, 0 };
+    reply.val1 = ret;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcDisplayRestoreColorSyncSettings:(PortMessage *)msg {
+    [displays makeObjectsPerformSelector:@selector(loadDefaultGamma) withObject:nil];
+}
+
+-(void)rpcDisplayGammaTableCapacity:(PortMessage *)msg {
+    struct wsRPCSimple *args = msg->data;
+    int ret = 0;
+    WSDisplay *display = [self displayWithID:args->val1];
+    struct wsRPCSimple reply = { {kCGDisplayGammaTableCapacity, 4}, 0, 0, 0, 0 };
+    reply.val1 = display ? [display gammaTableSize] : 0;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
 
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
@@ -1034,6 +1280,13 @@ pthread_mutex_t renderLock;
                     case kCGDisplayCopyDisplayMode: [self rpcDisplayCopyDisplayMode:&msg.portMsg]; break;
                     case kCGDisplayCopyAllDisplayModes: [self rpcDisplayCopyAllDisplayModes:&msg.portMsg]; break;
                     case kCGDisplaySetDisplayMode: [self rpcDisplaySetDisplayMode:&msg.portMsg]; break;
+                    case kCGSetDisplayTransferByFormula: [self rpcSetDisplayTransferByFormula:&msg.portMsg]; break;
+                    case kCGGetDisplayTransferByFormula: [self rpcGetDisplayTransferByFormula:&msg.portMsg]; break;
+                    case kCGSetDisplayTransferByTable: [self rpcSetDisplayTransferByTable:&msg.portMsg]; break;
+                    case kCGGetDisplayTransferByTable: [self rpcGetDisplayTransferByTable:&msg.portMsg]; break;
+                    case kCGSetDisplayTransferByByteTable: [self rpcSetDisplayTransferByByteTable:&msg.portMsg]; break;
+                    case kCGDisplayRestoreColorSyncSettings: [self rpcDisplayRestoreColorSyncSettings:&msg.portMsg]; break;
+                    case kCGDisplayGammaTableCapacity: [self rpcDisplayGammaTableCapacity:&msg.portMsg]; break;
                 }
                 break;
             }

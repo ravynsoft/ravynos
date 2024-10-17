@@ -244,4 +244,31 @@ extern struct CGDisplayMode *CGDisplayModeRetain(struct CGDisplayMode *);
     return _allModes;
 }
 
+// the tables here must be of `gammaTableSize` length!
+-(BOOL)loadGammaTable:(float *)redTable green:(float *)greenTable blue:(float *)blueTable {
+    return NO;
+}
+
+-(BOOL)load8BitGammaTable:(uint8_t *)redTable green:(uint8_t *)greenTable blue:(uint8_t *)blueTable {
+    return NO;
+}
+
+-(BOOL)getGammaTablesWithCapacity:(size_t)capacity red:(float *)redTable
+                            green:(float *)greenTable blue:(float *)blueTable {
+    return NO;
+}
+
+-(void)loadDefaultGamma {
+}
+
+-(size_t)gammaTableSize {
+    return 0;
+}
+
+-(void)getGammaCoefficientRed:(float *)red green:(float *)green blue:(float *)blue {
+    if(red) *red = 1.0;
+    if(green) *green = 1.0;
+    if(blue) *blue = 1.0;
+}
+
 @end
