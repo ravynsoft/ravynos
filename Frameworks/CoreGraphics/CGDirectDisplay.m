@@ -49,6 +49,14 @@ struct _CGDisplayConfig {
     struct _CGDisplayConfigInner *inner;
 };
 
+static struct CGDisplayStream {
+    uintptr_t cfisa;
+};
+
+static struct CGDisplayStreamUpdate {
+    uintptr_t cfisa;
+};
+
 // dictionary of display contexts
 static CFMutableDictionaryRef __displayContexts = NULL;
 static const CFDictionaryKeyCallBacks __CGDispCtxKeyCallback = {0}; // all NULL - use defaults
@@ -993,6 +1001,85 @@ uint32_t CGDisplayGammaTableCapacity(CGDirectDisplayID display) {
     return 0;
 }
 
+// Display Fade Effects -- all stubs for now!
+CGError CGConfigureDisplayFadeEffect(CGDisplayConfigRef config, CGDisplayFadeInterval fadeOutSeconds, CGDisplayFadeInterval fadeInSeconds, float fadeRed, float fadeGreen, float fadeBlue) {
+    return kCGErrorFailure;
+}
+
+CGError CGAcquireDisplayFadeReservation(CGDisplayReservationInterval seconds, CGDisplayFadeReservationToken *token) {
+    return kCGErrorFailure;
+}
+
+CGError CGDisplayFade(CGDisplayFadeReservationToken token, CGDisplayFadeInterval duration, CGDisplayBlendFraction startBlend, CGDisplayBlendFraction endBlend, float redBlend, float greenBlend, float blueBlend, boolean_t synchronous) {
+    return kCGErrorFailure;
+}
+
+CGError CGReleaseDisplayFadeReservation(CGDisplayFadeReservationToken token) {
+    return kCGErrorFailure;
+}
+
+// Controlling the Mouse Cursor
+CGError CGDisplayHideCursor(CGDirectDisplayID display) {
+    struct wsRPCBase data = {kCGDisplayHideCursor, 0};
+    _windowServerRPC(&data, sizeof(data), NULL, NULL);
+}
+
+CGError CGDisplayShowCursor(CGDirectDisplayID display) {
+    struct wsRPCBase data = {kCGDisplayShowCursor, 0};
+    _windowServerRPC(&data, sizeof(data), NULL, NULL);
+}
+
+CGError CGDisplayMoveCursorToPoint(CGDirectDisplayID display, CGPoint point) {
+    struct wsRPCSimple data = { {kCGDisplayMoveCursorToPoint, 12}, 0, 0, 0, 0};
+    data.val1 = display;
+    data.val2 = (int32_t)point.x;
+    data.val3 = (int32_t)point.y;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+
+    if(ret == KERN_SUCCESS) {
+        return data.val1;
+    }
+    return 0;
+}
+
+CGError CGAssociateMouseAndMouseCursorPosition(boolean_t connected) {
+    struct wsRPCSimple data = { {kCGAssociateMouseAndMouseCursorPosition, 4}, 0, 0, 0, 0};
+    data.val1 = connected;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+
+    if(ret == KERN_SUCCESS) {
+        return data.val1;
+    }
+    return 0;
+}
+
+CGError CGWarpMouseCursorPosition(CGPoint newCursorPosition) {
+    struct wsRPCSimple data = { {kCGWarpMouseCursorPosition, 8}, 0, 0, 0, 0};
+    data.val1 = newCursorPosition.x;
+    data.val2 = newCursorPosition.y;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+
+    if(ret == KERN_SUCCESS) {
+        return data.val1;
+    }
+    return 0;
+}
+
+void CGGetLastMouseDelta(int32_t *deltaX, int32_t *deltaY) {
+    struct wsRPCSimple data = { {kCGGetLastMouseDelta, 0}, 0, 0, 0, 0};
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+
+    if(ret == KERN_SUCCESS) {
+        *deltaX = data.val1;
+        *deltaY = data.val2;
+    }
+}
+
+
 // WindowServer info
 CFDictionaryRef CGSessionCopyCurrentDictionary(void) {
 
@@ -1013,8 +1100,61 @@ CFMachPortRef CGWindowServerCFMachPort(void) {
     return wsPort;
 }
 
+// The values below were obtained by testing macOS Sonoma
 CGWindowLevel CGWindowLevelForKey(CGWindowLevelKey key) {
+    if(key < 0 || key > kCGNumberOfWindowLevelKeys)
+        return -INT_MAX;
+    const int32_t levels[kCGNumberOfWindowLevelKeys] = {
+        -INT_MAX, -INT_MAX, -INT_MAX, -20, 0,
+        3, 3, 20, 24, 25, 8, 101, 500, 1000,
+        INT_MAX, 102, 200, 19, -INT_MAX, INT_MAX, 1500
+    };
+    return levels[key];
+}
 
+// Streaming the Display Contents -- all stubs for now! (deprecated after 14.4)
+
+CGDisplayStreamRef CGDisplayStreamCreate(CGDirectDisplayID display, size_t outputWidth, size_t outputHeight, int32_t pixelFormat, CFDictionaryRef properties, CGDisplayStreamFrameAvailableHandler handler) {
+    return NULL;
+}
+
+CGDisplayStreamRef CGDisplayStreamCreateWithDispatchQueue(CGDirectDisplayID display, size_t outputWidth, size_t outputHeight, int32_t pixelFormat, CFDictionaryRef properties, dispatch_queue_t queue, CGDisplayStreamFrameAvailableHandler handler) {
+    return NULL;
+}
+
+CGError CGDisplayStreamStart(CGDisplayStreamRef displayStream) {
+    return kCGErrorFailure;
+}
+
+CGError CGDisplayStreamStop(CGDisplayStreamRef displayStream) {
+    return kCGErrorSuccess;
+}
+
+CFRunLoopSourceRef CGDisplayStreamGetRunLoopSource(CGDisplayStreamRef displayStream) {
+    return NULL;
+}
+
+const CGRect * CGDisplayStreamUpdateGetRects(CGDisplayStreamUpdateRef updateRef, CGDisplayStreamUpdateRectType rectType, size_t *rectCount) {
+    return NULL;
+}
+
+CGDisplayStreamUpdateRef CGDisplayStreamUpdateCreateMergedUpdate(CGDisplayStreamUpdateRef firstUpdate, CGDisplayStreamUpdateRef secondUpdate) {
+    return NULL;
+}
+
+void CGDisplayStreamUpdateGetMovedRectsDelta(CGDisplayStreamUpdateRef updateRef, CGFloat *dx, CGFloat *dy) {
+}
+
+size_t CGDisplayStreamUpdateGetDropCount(CGDisplayStreamUpdateRef updateRef) {
+    return 0;
+}
+
+CFTypeID CGDisplayStreamGetTypeID(void) {
+    return 0;
+}
+
+CFTypeID CGDisplayStreamUpdateGetTypeID(void) {
+    return 0;
 }
 
 // Private functions

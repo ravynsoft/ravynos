@@ -96,8 +96,8 @@ extern const CFStringRef kCGDisplayStreamYCbCrMatrix_ITU_R_709_2;
 extern const CFStringRef kCGDisplayStreamYCbCrMatrix_ITU_R_601_4;
 extern const CFStringRef kCGDisplayStreamYCbCrMatrix_SMPTE_240M_1995;
 
-typedef struct CGDisplayStream CGDisplayStreamRef;
-typedef struct CGDisplayStreamUpdate CGDisplayStreamUpdateRef;
+typedef struct CGDisplayStream *CGDisplayStreamRef;
+typedef struct CGDisplayStreamUpdate *CGDisplayStreamUpdateRef;
 #if __BLOCKS__
 // oh great, we're dragging in IOKit now... fake it for now
 typedef void *IOSurfaceRef;
