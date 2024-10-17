@@ -19,7 +19,7 @@ As of March 2024, these are still the top priorities:
 * Help convert everything to Mach-O: remove ELF assumptions, port Apple's dyld, write a better kernel image activator
 * Replace CoreFoundation with the one from Swift 
 
-Some other ideas for code contributions can be found on our [Project Ideas](https://wiki.ravynos.com/wiki/Project_Ideas) page or by looking through the [open issues](https://github.com/ravynsoft/ravynos/issues).
+Some other ideas for code contributions can be found on our [Project Wish List](https://wiki.ravynos.com/project-wish-list) and [Roadmap](https://wiki.ravynos.com/roadmap) pages, or by looking through the [open issues](https://github.com/ravynsoft/ravynos/issues).
 
 The skills we need immediately are: *C/C++, Objective-C, x86-64 assembly, linker/toolchain, kernel programming, OpenGL graphics programming, Wayland development*.
 
