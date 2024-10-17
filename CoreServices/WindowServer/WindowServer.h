@@ -73,6 +73,7 @@ extern pthread_mutex_t renderLock;
     CGFontRef _titleFont;
 
     WSInput *input;
+    int cursorHideCount;
 
     NSMutableArray *displays;
     NSMutableDictionary *apps;          // key is CFBundleID

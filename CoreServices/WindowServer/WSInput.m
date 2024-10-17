@@ -25,7 +25,7 @@
 #import "message.h"
 #import "WSInput.h"
 
-static inline double clipTo(double val, double min, double max) {
+double clipTo(double val, double min, double max) {
     if(val < min) val = min;
     else if(val > max) val = max;
     return val;

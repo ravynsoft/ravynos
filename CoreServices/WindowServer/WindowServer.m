@@ -59,6 +59,7 @@ pthread_mutex_t renderLock;
     curApp = nil;
     curWindow = nil;
     pthread_mutex_init(&renderLock, NULL);
+    cursorHideCount = 0;
 
     kern_return_t kr;
     if((kr = bootstrap_check_in(bootstrap_port, WINDOWSERVER_SVC_NAME, &_servicePort)) != KERN_SUCCESS) {
@@ -484,11 +485,16 @@ pthread_mutex_t renderLock;
         cursorRect.origin.y -= _cursor_height; // make sure point of arrow is on actual spot
 
         if(capturedPID == 0) {
-            O2ContextSetBlendMode(ctx, kCGBlendModeNormal);
-            O2ContextDrawImage(ctx, cursorRect, cursor);
+            if(cursorHideCount == 0) {
+                O2ContextSetBlendMode(ctx, kCGBlendModeNormal);
+                O2ContextDrawImage(ctx, cursorRect, cursor);
+            }
             [fb draw];
         } else
-            [fb drawWithCursor:cursor inRect:cursorRect];
+            if(cursorHideCount == 0)
+                [fb drawWithCursor:cursor inRect:cursorRect];
+            else
+                [fb draw];
         pthread_mutex_unlock(&renderLock);
     }
 
@@ -1225,6 +1231,100 @@ pthread_mutex_t renderLock;
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+// Controlling the Mouse Cursor
+-(void)rpcDisplayHideCursor:(PortMessage *)msg {
+    int ret = kCGErrorCannotComplete;
+    if(msg->pid == [curApp pid]) {
+        cursorHideCount++;
+        ret = kCGErrorSuccess;
+    }
+    struct wsRPCSimple data;
+    data.base.code = kCGDisplayHideCursor;
+    data.base.len = 4;
+    data.val1 = ret;
+    [self sendInlineData:&data length:sizeof(data) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcDisplayShowCursor:(PortMessage *)msg {
+    int ret = kCGErrorCannotComplete;
+    if(msg->pid == [curApp pid]) {
+        cursorHideCount--;
+        ret = kCGErrorSuccess;
+    }
+    struct wsRPCSimple data;
+    data.base.code = kCGDisplayShowCursor;
+    data.base.len = 4;
+    data.val1 = ret;
+    [self sendInlineData:&data length:sizeof(data) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcDisplayMoveCursorToPoint:(PortMessage *)msg {
+    struct wsRPCSimple *data = msg->data;
+    int ret = kCGErrorIllegalArgument;
+    WSDisplay *display = [self displayWithID:data->val1];
+
+    if(display) {
+        ret = kCGErrorSuccess;
+        CGRect bounds = [display geometry];
+        double x = clipTo(data->val2, bounds.origin.x, bounds.size.width);
+        double y = clipTo(data->val3, bounds.origin.y, bounds.size.height);
+        [input setPointerPos:NSMakePoint(x, y)];
+    }
+    struct wsRPCSimple reply;
+    reply.base.code = kCGDisplayMoveCursorToPoint;
+    reply.base.len = 4;
+    reply.val1 = ret;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcAssociateMouseAndMouseCursorPosition:(PortMessage *)msg {
+    struct wsRPCSimple data;
+    int ret = kCGErrorFailure;
+
+    WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg->bundleID]];
+    if(app) {
+        ret = kCGErrorSuccess;
+        [app mouseCursorConnected:((struct wsRPCSimple *)msg->data)->val1];
+    }
+    data.base.code = kCGAssociateMouseAndMouseCursorPosition;
+    data.base.len = 4;
+    data.val1 = ret;
+    [self sendInlineData:&data length:sizeof(data) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+// FIXME: this should be in Global Coordinate Space (all displays)
+-(void)rpcWarpMouseCursorPosition:(PortMessage *)msg {
+    struct wsRPCSimple *data = msg->data;
+    int ret = kCGErrorIllegalArgument;
+    WSDisplay *display = [self displayWithID:data->val1];
+
+    if(display) {
+        ret = kCGErrorSuccess;
+        CGRect bounds = [display geometry];
+        double x = clipTo(data->val2, bounds.origin.x, bounds.size.width);
+        double y = clipTo(data->val3, bounds.origin.y, bounds.size.height);
+        [input setPointerPos:NSMakePoint(x, y)];
+    }
+
+    struct wsRPCSimple reply;
+    reply.base.code = kCGWarpMouseCursorPosition;
+    reply.base.len = 4;
+    reply.val1 = ret;
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcGetLastMouseDelta:(PortMessage *)msg {
+    struct wsRPCSimple data;
+    NSPoint pos = [input pointerPos];
+    data.base.code = kCGGetLastMouseDelta;
+    data.base.len = 8;
+    data.val1 = pos.x;
+    data.val2 = pos.y;
+    [self sendInlineData:&data length:sizeof(data) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+
+
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
     mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
@@ -1287,6 +1387,12 @@ pthread_mutex_t renderLock;
                     case kCGSetDisplayTransferByByteTable: [self rpcSetDisplayTransferByByteTable:&msg.portMsg]; break;
                     case kCGDisplayRestoreColorSyncSettings: [self rpcDisplayRestoreColorSyncSettings:&msg.portMsg]; break;
                     case kCGDisplayGammaTableCapacity: [self rpcDisplayGammaTableCapacity:&msg.portMsg]; break;
+                    case kCGDisplayHideCursor: [self rpcDisplayHideCursor:&msg.portMsg]; break;
+                    case kCGDisplayShowCursor: [self rpcDisplayShowCursor:&msg.portMsg]; break;
+                    case kCGDisplayMoveCursorToPoint: [self rpcDisplayMoveCursorToPoint:&msg.portMsg]; break;
+                    case kCGAssociateMouseAndMouseCursorPosition: [self rpcAssociateMouseAndMouseCursorPosition:&msg.portMsg]; break;
+                    case kCGWarpMouseCursorPosition: [self rpcWarpMouseCursorPosition:&msg.portMsg]; break;
+                    case kCGGetLastMouseDelta: [self rpcGetLastMouseDelta:&msg.portMsg]; break;
                 }
                 break;
             }

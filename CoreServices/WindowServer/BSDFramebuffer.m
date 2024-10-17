@@ -129,7 +129,7 @@
 {
     void *pixels = 0;
     if(_captured)
-        pixels = ctx2Pixels;
+        pixels = [[captureCtx surface] pixelBytes];
     else
         pixels = ctxPixels;
     memcpy(data, pixels, size); // FIXME: this is slooowwww

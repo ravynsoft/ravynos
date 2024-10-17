@@ -26,6 +26,7 @@
 
 @interface WSAppRecord : NSObject {
     NSMutableArray *_windows;
+    BOOL _mouseCursorConnected;
 }
 
 @property NSString *bundleID;           // CFBundleID
@@ -39,5 +40,7 @@
 -(void)removeWindowWithID:(int)number;
 -(WSWindowRecord *)windowWithID:(int)number;
 -(NSArray *)windows;
+-(void)mouseCursorConnected:(int)connected;
+-(BOOL)mouseCursorConnected;
 @end
 

@@ -46,6 +46,8 @@ const static struct libinput_interface interface = {
     .close_restricted = close_restricted_cb,
 };
 
+double clipTo(double val, double min, double max);
+
 @interface NSObject(WSInput)
 -(BOOL)sendEventToApp:(struct mach_event *)event;
 -(void)signalQuit;

@@ -28,6 +28,7 @@
 @implementation WSAppRecord
 -init {
     _windows = [NSMutableArray new];
+    _mouseCursorConnected = YES;
     return self;
 }
 
@@ -57,6 +58,14 @@
 
 -(NSMutableArray *)windows {
     return _windows;
+}
+
+-(void)mouseCursorConnected:(int)connected {
+    _mouseCursorConnected = connected;
+}
+
+-(BOOL)mouseCursorConnected {
+    return _mouseCursorConnected;
 }
 
 -(NSString *)description {

@@ -1020,27 +1020,39 @@ CGError CGReleaseDisplayFadeReservation(CGDisplayFadeReservationToken token) {
 
 // Controlling the Mouse Cursor
 CGError CGDisplayHideCursor(CGDirectDisplayID display) {
-    struct wsRPCBase data = {kCGDisplayHideCursor, 0};
-    _windowServerRPC(&data, sizeof(data), NULL, NULL);
-}
-
-CGError CGDisplayShowCursor(CGDirectDisplayID display) {
-    struct wsRPCBase data = {kCGDisplayShowCursor, 0};
-    _windowServerRPC(&data, sizeof(data), NULL, NULL);
-}
-
-CGError CGDisplayMoveCursorToPoint(CGDirectDisplayID display, CGPoint point) {
-    struct wsRPCSimple data = { {kCGDisplayMoveCursorToPoint, 12}, 0, 0, 0, 0};
-    data.val1 = display;
-    data.val2 = (int32_t)point.x;
-    data.val3 = (int32_t)point.y;
+    struct wsRPCSimple data = { {kCGDisplayHideCursor, 0}, 0, 0, 0, 0 };
     int len = sizeof(data);
     kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
 
     if(ret == KERN_SUCCESS) {
         return data.val1;
     }
-    return 0;
+    return kCGErrorFailure;
+}
+
+CGError CGDisplayShowCursor(CGDirectDisplayID display) {
+    struct wsRPCSimple data = { {kCGDisplayShowCursor, 0}, 0, 0, 0, 0 };
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+
+    if(ret == KERN_SUCCESS) {
+        return data.val1;
+    }
+    return kCGErrorFailure;
+}
+
+CGError CGDisplayMoveCursorToPoint(CGDirectDisplayID display, CGPoint point) {
+    struct wsRPCSimple data = { {kCGDisplayMoveCursorToPoint, 12}, 0, 0, 0, 0};
+    data.val1 = display;
+    data.val2 = point.x;
+    data.val3 = point.y;
+    int len = sizeof(data);
+    kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
+
+    if(ret == KERN_SUCCESS) {
+        return data.val1;
+    }
+    return kCGErrorFailure;
 }
 
 CGError CGAssociateMouseAndMouseCursorPosition(boolean_t connected) {
@@ -1052,7 +1064,7 @@ CGError CGAssociateMouseAndMouseCursorPosition(boolean_t connected) {
     if(ret == KERN_SUCCESS) {
         return data.val1;
     }
-    return 0;
+    return kCGErrorFailure;
 }
 
 CGError CGWarpMouseCursorPosition(CGPoint newCursorPosition) {
@@ -1065,7 +1077,7 @@ CGError CGWarpMouseCursorPosition(CGPoint newCursorPosition) {
     if(ret == KERN_SUCCESS) {
         return data.val1;
     }
-    return 0;
+    return kCGErrorFailure;
 }
 
 void CGGetLastMouseDelta(int32_t *deltaX, int32_t *deltaY) {
