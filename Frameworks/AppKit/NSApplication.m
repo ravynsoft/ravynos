@@ -160,19 +160,6 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
             switch(msg.header.msgh_id) {
                 case MSG_ID_INLINE:
                     switch(msg.code) {
-                        // FIXME: move this to use Quartz Display Services
-                        // https://developer.apple.com/documentation/coregraphics/quartz_display_services?language=objc
-                        case CODE_DISPLAY_INFO: { 
-                            if(msg.len != sizeof(struct mach_display_info)) {
-                                NSLog(@"Incorrect data size in display info: %d vs %d", msg.len, sizeof(struct mach_display_info));
-                                break;
-                            }
-                            struct mach_display_info *info = (struct mach_display_info *)msg.data;
-                            NSLog(@"DISPLAY_INFO: configuring for %.0fx%.0f depth %u", info->width, 
-                                    info->height, info->depth);
-                            [_display configureWithInfo:info];
-                            break;
-                        }
                         case CODE_WINDOW_STATE: {
                             if(msg.len != sizeof(struct wsRPCWindow)) {
                                 NSLog(@"Incorrect data size in window state change: %d vs %d",
@@ -364,7 +351,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
             return nil;
         }
 
-        // register this app with WindowServer and get the display
+        // register this app with WindowServer so we get events
         PortMessage msg = {0};
         msg.header.msgh_remote_port = _wsSvcPort;
         msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, MACH_MSGH_BITS_COMPLEX);

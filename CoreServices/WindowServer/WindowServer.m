@@ -1474,15 +1474,6 @@ pthread_mutex_t renderLock;
 
                 // A newly-launched app becomes the active one
                 curApp = [apps objectForKey:bundleID];
-
-                // inform the new app about the display
-                struct mach_display_info info = {
-                    1, _geometry.size.width, _geometry.size.height, [fb getDepth]
-                };
-                [self sendInlineData:&info
-                          length:sizeof(struct mach_display_info)
-                        withCode:CODE_DISPLAY_INFO
-                           toPort:[rec port]];
                 break;
             }
             case MSG_ID_INLINE:
@@ -1607,8 +1598,10 @@ pthread_mutex_t renderLock;
                     }
                     if(app == nil)
                         NSLog(@"PID %u exited, but no matching app record", out[i].ident);
-                    else
+                    else {
                         [apps removeObjectForKey:app.bundleID];
+                        [app removeAllWindows];
+                    }
                     // FIXME: send to SystemUIServer and Dock.app
                 }
                 break;
@@ -1722,7 +1715,9 @@ pthread_mutex_t renderLock;
 }
 
 - (void)updateClientWindowState:(WSWindowRecord *)window {
-    struct mach_win_data data = {0};
+    struct wsRPCWindow data = {0};
+    data.base.code = kWSWindowModifyState;
+    data.base.len = sizeof(data) - sizeof(struct wsRPCBase);
     data.windowID = window.number;
     data.x = window.geometry.origin.x;
     data.y = window.geometry.origin.y;

@@ -40,6 +40,7 @@
 -(void)removeWindowWithID:(int)number;
 -(WSWindowRecord *)windowWithID:(int)number;
 -(NSArray *)windows;
+-(void)removeAllWindows;
 -(void)mouseCursorConnected:(int)connected;
 -(BOOL)mouseCursorConnected;
 @end

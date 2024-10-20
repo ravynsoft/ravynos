@@ -22,8 +22,12 @@
 
 #import <Foundation/NSMutableArray.h>
 #import <Foundation/NSString.h>
+#import <pthread.h>
 #import "common.h"
 #import "WindowServer.h"
+
+
+extern pthread_mutex_t renderLock;
 
 @implementation WSAppRecord
 -init {
@@ -40,7 +44,9 @@
     for(int i = 0; i < [_windows count]; i++) {
         WSWindowRecord *r = [_windows objectAtIndex:i];
         if(r.number == number) {
+            pthread_mutex_lock(&renderLock);
             [_windows removeObjectAtIndex:i];
+            pthread_mutex_unlock(&renderLock);
             return;
         }
     }
@@ -58,6 +64,12 @@
 
 -(NSMutableArray *)windows {
     return _windows;
+}
+
+-(void)removeAllWindows {
+    pthread_mutex_lock(&renderLock);
+    [_windows removeAllObjects]; // should release them all
+    pthread_mutex_unlock(&renderLock);
 }
 
 -(void)mouseCursorConnected:(int)connected {

@@ -29,25 +29,17 @@ SOFTWARE. */
     NSMutableArray *_eventQueue;
     NSMutableArray *_screens;
     uint32_t _depth;
-    BOOL _ready;
     NSPoint pointerPos;
 }
 
 + (NSDisplay *)currentDisplay;
 
-- (void)configureWithInfo:(struct mach_display_info *)info;
-- (BOOL)isReady;
 - (NSArray *)screens;
 - (uint32_t)depth;
 
 - (NSPasteboard *)pasteboardWithName:(NSString *)name;
 
 - (NSDraggingManager *)draggingManager;
-
-- (CGWindow *)windowWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
-        backingType:(unsigned)backingType screen:(NSScreen *)screen;
-- (CGWindow *)panelWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
-        backingType:(unsigned)backingType screen:(NSScreen *)screen;
 
 - (NSColor *)colorWithName:(NSString *)colorName;
 - (void)_addSystemColor:(NSColor *)result forName:(NSString *)colorName;

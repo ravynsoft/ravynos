@@ -50,19 +50,33 @@ SOFTWARE. */
 -init {
     _eventQueue=[NSMutableArray new];
     _screens = [NSMutableArray new];
-    _ready = NO;
-    return self;
-}
 
-- (void)configureWithInfo:(struct mach_display_info *)info {
-    NSRect frame = NSMakeRect(0, 0, info->width, info->height);
+    CGDirectDisplayID cgDisplays[8];
+    uint32_t count = 0;
+    CGDirectDisplayID mainDisplay = CGMainDisplayID();
+    CGGetActiveDisplayList(8, &cgDisplays, &count);
+
+    // make the main display first in our screen list
+    // the main display is the one that has an origin of 0,0
+    CGDisplayModeRef mode = CGDisplayCopyDisplayMode(mainDisplay);
+    NSRect frame = NSMakeRect(0, 0, CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
+    CGDisplayModeRelease(mode);
     NSScreen *screen = [[[NSScreen alloc] initWithFrame:frame visibleFrame:frame] retain];
     [_screens addObject:screen];
-    _depth = info->depth;
-    _ready = YES;
-}
 
-- (BOOL)isReady { return _ready; }
+    // now add any other displays as additional screens
+    for(int i = 0; i < count; ++i) {
+        if(cgDisplays[i] == mainDisplay)
+            continue;
+        mode = CGDisplayCopyDisplayMode(cgDisplays[i]);
+        NSRect frame = NSMakeRect(0, 0, CGDisplayModeGetWidth(mode), CGDisplayModeGetHeight(mode));
+        CGDisplayModeRelease(mode);
+        NSScreen *screen = [[[NSScreen alloc] initWithFrame:frame visibleFrame:frame] retain];
+        [_screens addObject:screen];
+    }
+    _depth = 32; // always do 32-bit color internally
+    return self;
+}
 
 -(NSArray *)screens {
     return [NSArray arrayWithArray:_screens];
@@ -79,22 +93,6 @@ SOFTWARE. */
    NSUnimplementedMethod();
    return nil;
 }
-
-#if 0
--(CGWindow *)windowWithFrame:(NSRect)frame styleMask:(unsigned)styleMask backingType:(unsigned)backingType screen:(NSScreen *)screen { // FIXME: screen is currently ignored
-	return [[[WSWindow alloc] initWithFrame:frame
-                                      styleMask:styleMask
-                                        isPanel:NO
-                                    backingType:backingType] autorelease];
-}
-
--(CGWindow *)panelWithFrame:(NSRect)frame styleMask:(unsigned)styleMask backingType:(unsigned)backingType screen:(NSScreen *)screen { // FIXME: screen is currently ignored
-	return [[[WSWindow alloc] initWithFrame:frame
-                                      styleMask:styleMask
-                                        isPanel:YES
-                                    backingType:backingType] autorelease];
-}
-#endif
 
 -(NSColor *)colorWithName:(NSString *)colorName {
    if([colorName isEqual:@"controlColor"])
