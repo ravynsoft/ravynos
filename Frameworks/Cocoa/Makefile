@@ -7,7 +7,7 @@ INCS=Cocoa.h
 RESOURCES=Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I../Foundation/Headers \
 	-I${.CURDIR}/../AppKit/Headers -F../OpenGL \
-        -framework OpenGL
+	-I${SRCTOP}/CoreServices -framework OpenGL
 LDFLAGS+= -L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
 	-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
 	-L${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework \

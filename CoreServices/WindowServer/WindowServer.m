@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#define WINDOWSERVER 1
+
 #import <Onyx2D/O2Context.h>
 #import <Onyx2D/O2Surface.h>
 #import <Onyx2D/O2Image.h>

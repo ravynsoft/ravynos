@@ -1,5 +1,6 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
                  2010 Markus Hitter <mah@jump-ing.de>
+                 2024 Zoe Knox <zoe@ravynsoft.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -12,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSResponder.h>
 #import <AppKit/AppKitExport.h>
 #import <AppKit/NSView.h>
+#import <AppKit/NSDisplay.h>
 #import <ApplicationServices/ApplicationServices.h>
 
 @class NSView, NSEvent, NSColor, NSColorSpace, NSCursor, NSImage, NSScreen, NSText, NSTextView, CGWindow, NSPasteboard, NSSheetContext, NSUndoManager, NSButton, NSButtonCell, NSDrawer, NSDockTile, NSToolbar, NSWindowAnimationContext, NSTrackingArea, NSThemeFrame, NSWindowController, NSMenuItem, CARenderer;
@@ -101,6 +103,21 @@ APPKIT_EXPORT NSString *const NSWindowWillStartLiveResizeNotification;
 APPKIT_EXPORT NSString *const NSWindowDidEndLiveResizeNotification;
 
 @interface NSWindow : NSResponder {
+    int _number;
+    CGLContextObj _cglContext;
+    //CAWindowOpenGLContext *_caContext;
+    NSDisplay *_display;
+    O2Context *_context;
+
+    NSMutableDictionary *_deviceDictionary;
+    BOOL _isZoomed;
+    BOOL _isMiniaturized;
+
+    NSString *shmPath;
+    NSString *bundleID;
+    void *buffer;
+    int bufsize;
+
     NSRect _frame;
     NSUInteger _styleMask;
     NSBackingStoreType _backingType;
@@ -182,7 +199,6 @@ APPKIT_EXPORT NSString *const NSWindowDidEndLiveResizeNotification;
 
     NSString *_autosaveFrameName;
 
-    CGWindow *_platformWindow;
     NSMutableDictionary *_threadToContext;
 
     NSUndoManager *_undoManager;
@@ -493,9 +509,6 @@ APPKIT_EXPORT NSString *const NSWindowDidEndLiveResizeNotification;
 
 - (void)toggleToolbarShown:sender;
 - (void)runToolbarCustomizationPalette:sender;
-
-// semi-private platform support for layer-shell
-- (void)setKeyboardInteractivity:(uint32_t)keyboardStyle;
 
 @end
 

@@ -23,10 +23,24 @@
 
 #import <CoreGraphics/CGEvent.h>
 
+struct __CGEvent {
+    uintptr_t cfisa;
+    CGEventSourceRef source;
+    CGEventType mouseType;
+    CGPoint mouseLocation;
+    CGKeyCode virtualKey;
+    CGScrollEventUnit scrollUnits;
+    CGEventTimestamp timestamp;
+    CGEventFlags flags;
+};
+
 CFTypeID CGEventGetTypeID(void) {
 }
 
 CGEventRef CGEventCreate(CGEventSourceRef source) {
+    struct __CGEvent *ev = calloc(sizeof(struct __CGEvent), 1);
+    if(ev == NULL)
+        return NULL;
 }
 
 CFDataRef CGEventCreateData(CFAllocatorRef allocator, CGEventRef event) {

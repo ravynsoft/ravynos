@@ -1086,6 +1086,8 @@ void CGGetLastMouseDelta(int32_t *deltaX, int32_t *deltaY) {
     kern_return_t ret = _windowServerRPC(&data, sizeof(data), &data, &len);
 
     if(ret == KERN_SUCCESS) {
+        // FIXME: these are absolute positions from WS. Compare to last event and
+        // return the deltas
         *deltaX = data.val1;
         *deltaY = data.val2;
     }

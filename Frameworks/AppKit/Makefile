@@ -266,10 +266,9 @@ SRCS= \
     nib.subproj/NSNibLoading.m \
     nib.subproj/NSNibOutletConnector.m \
     nib.subproj/NSWindowTemplate.m \
-    WindowServer.backend/O2Font_FT.m \
-    WindowServer.backend/KTFont_FT.m \
-    WindowServer.backend/O2Context_builtin_FT.m \
-    WindowServer.backend/WSWindow.m
+    O2Font_FT.m \
+    KTFont_FT.m \
+    O2Context_builtin_FT.m 
 
 
 INCS= \
@@ -546,10 +545,9 @@ INCS= \
     nib.subproj/NSNibLoading.h \
     nib.subproj/NSNibOutletConnector.h \
     nib.subproj/NSWindowTemplate.h \
-    WindowServer.backend/KTFont_FT.h \
-    WindowServer.backend/O2Context_builtin_FT.h \
-    WindowServer.backend/O2Font_FT.h \
-    WindowServer.backend/WSWindow.h \
+    KTFont_FT.h \
+    O2Context_builtin_FT.h \
+    O2Font_FT.h 
 
 
 RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
@@ -594,9 +592,8 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	WindowServer.backend/fragShader.glsl
 
 CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/sys \
-         -I${.CURDIR}/../OpenGL/wayland/egl -I${.CURDIR}/../OpenGL/wayland/src \
 	 -F../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
-         -I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/../../CoreServices \
+         -I${.CURDIR} -I${MAKEOBJDIR} -I${SRCTOP}/CoreServices \
 	 -I${SRCTOP}/Frameworks/Onyx2D/freetype/include \
 	 -I${SRCTOP}/Frameworks/CoreText/fontconfig/include \
 	 -I${SRCTOP}/Frameworks/CoreText/fontconfig/fontconfig \

@@ -27,7 +27,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)setParent:(id)window {
-    [_platformWindow setParent:window];
 }
 
 -(void)setMenu:(NSMenu *)menu {

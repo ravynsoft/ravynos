@@ -23,7 +23,6 @@ SOFTWARE. */
 #import <AppKit/NSRaise.h>
 #import <AppKit/NSColorList.h>
 #import <AppKit/NSFontTypeface.h>
-#import <AppKit/WSWindow.h>
 #import <Onyx2D/O2Font.h>
 #import <AppKit/O2Font_FT.h>
 #import <fontconfig.h>
@@ -81,6 +80,7 @@ SOFTWARE. */
    return nil;
 }
 
+#if 0
 -(CGWindow *)windowWithFrame:(NSRect)frame styleMask:(unsigned)styleMask backingType:(unsigned)backingType screen:(NSScreen *)screen { // FIXME: screen is currently ignored
 	return [[[WSWindow alloc] initWithFrame:frame
                                       styleMask:styleMask
@@ -94,6 +94,7 @@ SOFTWARE. */
                                         isPanel:YES
                                     backingType:backingType] autorelease];
 }
+#endif
 
 -(NSColor *)colorWithName:(NSString *)colorName {
    if([colorName isEqual:@"controlColor"])

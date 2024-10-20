@@ -1,5 +1,5 @@
 /*
- * Quartz Display Services
+ * Quartz Display Services, Window Services RPCs
  * Copyright (C) 2024 Zoe Knox <zoe@ravynsoft.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,7 +28,7 @@
 typedef enum WSRPC {
     kCGWSRPCNull = 0,
     // Finding Displays
-    kCGMainDisplayID,
+    kCGMainDisplayID = 1000,
     kCGGetOnlineDisplayList,
     kCGGetActiveDisplayList,
     kCGGetDisplaysWithOpenGLDisplayMask,
@@ -99,6 +99,10 @@ typedef enum WSRPC {
     kCGDisplayStreamUpdateGetDropCount,
     kCGDisplayStreamGetTypeID,
     kCGDisplayStreamUpdateGetTypeID,
+    // Window Management
+    kWSWindowCreate = 8000,
+    kWSWindowDestroy,
+    kWSWindowModifyState,
 } WSRPC;
 
 /* Data field header, followed by function-specific data struct */
@@ -113,6 +117,16 @@ struct wsRPCSimple {
     uint32_t val2;
     uint32_t val3;
     uint32_t val4;
+};
+
+struct wsRPCWindow {
+    struct wsRPCBase base;
+    uint64_t windowID;
+    double x, y;
+    double w, h;
+    uint32_t style;
+    uint32_t state;
+    char title[128];
 };
 
 typedef enum WSDisplayFlags : uint32_t {

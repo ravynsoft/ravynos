@@ -26,8 +26,7 @@ SRCS= \
 	CGPDFPage.m \
 	CGPath.m \
 	CGPattern.m \
-	CGShading.m \
-	CGWindow.m 
+	CGShading.m 
 
 INCS= \
 	CGAffineTransform.h \
@@ -57,7 +56,6 @@ INCS= \
 	CGPath.h \
 	CGPattern.h \
 	CGShading.h \
-	CGWindow.h \
 	CGWindowLevel.h \
 	CoreGraphics.h \
 	CoreGraphicsExport.h \

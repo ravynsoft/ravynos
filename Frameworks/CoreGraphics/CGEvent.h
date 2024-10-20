@@ -22,11 +22,14 @@
  */
 
 #import <CoreFoundation/CoreFoundation.h>
+#import <CoreGraphics/CoreGraphicsExport.h>
+#import <CoreGraphics/CGError.h>
 
 #define CGEventMaskBit(eventType) eventType
 #define kCGAnyInputEventType (~(CGEventType)0)
 #define kCGEventMaskForAllEvents (~(CGEventMask)0)
 
+typedef uint32_t UniCharCount;
 typedef struct __CGEvent *CGEventRef;
 typedef uint32_t CGButtonCount;
 typedef uint16_t CGCharCode;
@@ -37,19 +40,6 @@ typedef struct __CGEventTapProxy *CGEventTapProxy;
 typedef uint64_t CGEventTimestamp;
 typedef uint16_t CGKeyCode;
 typedef uint32_t CGWheelCount;
-
-typedef struct __CGEventTapInformation {
-    float avgUsecLatency;
-    bool enabled;
-    uint32_t eventTapID;
-    CGEventMask eventsOfInterest;
-    float maxUsecLatency;
-    float minUsecLatency;
-    CGEventTapOptions options;
-    pid_t processBeingTapped;
-    CGEventTapLocation tapPoint;
-    pid_t tappingProcess;
-} CGEventTapInformation;
 
 typedef enum CGEventField : uint32_t {
     kCGMouseEventNumber = 0,
@@ -233,6 +223,18 @@ typedef enum CGScrollEventUnit : uint32_t {
     kCGScrollEventUnitLine = 1
 } CGScrollEventUnit;
 
+typedef struct __CGEventTapInformation {
+    float avgUsecLatency;
+    bool enabled;
+    uint32_t eventTapID;
+    CGEventMask eventsOfInterest;
+    float maxUsecLatency;
+    float minUsecLatency;
+    CGEventTapOptions options;
+    pid_t processBeingTapped;
+    CGEventTapLocation tapPoint;
+    pid_t tappingProcess;
+} CGEventTapInformation;
 
 // Working with Events
 COREGRAPHICS_EXPORT CFTypeID CGEventGetTypeID(void);
@@ -261,6 +263,8 @@ COREGRAPHICS_EXPORT void CGEventSetIntegerValueField(CGEventRef event, CGEventFi
 COREGRAPHICS_EXPORT double CGEventGetDoubleValueField(CGEventRef event, CGEventField field);
 COREGRAPHICS_EXPORT void CGEventSetDoubleValueField(CGEventRef event, CGEventField field, double value);
 
+// Callbacks
+typedef CGEventRef (*CGEventTapCallBack)(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *userInfo);
 
 // Working with Event Taps
 COREGRAPHICS_EXPORT CFMachPortRef CGEventTapCreate(CGEventTapLocation tap, CGEventTapPlacement place, CGEventTapOptions options, CGEventMask eventsOfInterest, CGEventTapCallBack callback, void *userInfo);
@@ -293,5 +297,3 @@ COREGRAPHICS_EXPORT void CGEventSourceSetLocalEventsSuppressionInterval(CGEventS
 COREGRAPHICS_EXPORT double CGEventSourceGetPixelsPerLine(CGEventSourceRef source);
 COREGRAPHICS_EXPORT void CGEventSourceSetPixelsPerLine(CGEventSourceRef source, double pixelsPerLine);
 
-// Callbacks
-typedef CGEventRef  _Nullable (*CGEventTapCallBack)(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *userInfo);
