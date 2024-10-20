@@ -326,7 +326,7 @@ pthread_mutex_t renderLock;
     pthread_exit(NULL);
 }
 
--(uint32_t)windowCreate:(struct mach_win_data *)data forApp:(WSAppRecord *)app {
+-(uint32_t)windowCreate:(struct wsRPCWindow *)data forApp:(WSAppRecord *)app {
     struct kinfo_proc *kp;
 
     if(data->state < 0 || data->state >= WIN_STATE_MAX) {
@@ -400,6 +400,8 @@ pthread_mutex_t renderLock;
     [app addWindow:winrec];
     if(curApp == app)
         curWindow = winrec; // FIXME: is this how macOS behaves?
+    if(logLevel >= WS_INFO)
+        NSLog(@"windowCreate: success! %@", winrec);
     return winrec.number;
 }
 
@@ -1325,7 +1327,48 @@ pthread_mutex_t renderLock;
     [self sendInlineData:&data length:sizeof(data) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }
 
+-(void)rpcWindowCreate:(PortMessage *)msg {
+    struct wsRPCSimple reply = { {kWSWindowCreate, 4}, kWSErrorFailure, 0, 0, 0 };
 
+    if(msg->len == sizeof(struct wsRPCWindow)) {
+        struct wsRPCWindow *data = (struct wsRPCWindow*)msg->data;
+        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg->bundleID]];
+
+        if(app != nil) {
+            if([self windowCreate:data forApp:app] != 0)
+                reply.val1 = kWSErrorSuccess;
+        } else {
+            NSLog(@"No matching app for rpcWindowCreate! %s %u", msg->bundleID, msg->pid);
+        }
+    }
+    [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
+}
+
+-(void)rpcWindowModifyState:(PortMessage *)msg {
+    if(msg->len == sizeof(struct wsRPCWindow)) {
+        struct wsRPCWindow *data = (struct wsRPCWindow*)msg->data;
+        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg->bundleID]];
+
+        if(app != nil) {
+            [self windowModify:data forApp:app];
+        } else {
+            NSLog(@"No matching app for rpcWindowModifyState! %s %u", msg->bundleID, msg->pid);
+        }
+    }
+}
+
+-(void)rpcWindowDestroy:(PortMessage *)msg {
+    if(msg->len == sizeof(struct wsRPCWindow)) {
+        struct wsRPCWindow *data = (struct wsRPCWindow*)msg->data;
+        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg->bundleID]];
+
+        if(app != nil) {
+            [app removeWindowWithID:data->windowID];
+        } else {
+            NSLog(@"No matching app for rpcWindowDestroy! %s %u", msg->bundleID, msg->pid);
+        }
+    }
+}
 
 - (void)receiveMachMessage {
     ReceiveMessage msg = {0};
@@ -1335,21 +1378,28 @@ pthread_mutex_t renderLock;
         NSLog(@"mach_msg receive error 0x%x", result);
     else {
         switch(msg.msg.header.msgh_id) {
-            case MSG_ID_RPC: { // new style CoreGraphics calls
+            case MSG_ID_RPC: { // new style synchronous RPC calls
                 mach_port_t reply = MACH_PORT_NULL;
                 if(msg.portMsg.msgh_descriptor_count > 0)
                     reply = msg.portMsg.descriptor.name;
                 pid_t pid = msg.portMsg.pid;
                 NSString *bundleID = nil;
-                if(msg.portMsg.bundleID[0] != '\0')
+                if(msg.portMsg.bundleID[0] != '\0') {
+                    msg.portMsg.bundleID[sizeof(msg.portMsg.bundleID) - 1] = '\0'; // ensure null terminated
                     bundleID = [NSString stringWithCString:msg.portMsg.bundleID];
-                else
+                } else
                     bundleID = [NSString stringWithFormat:@"unix.%u", pid];
                 struct wsRPCBase *base = (struct wsRPCBase *)msg.portMsg.data;
 
                 NSLog(@"RPC[%@ %u] reply %u data len %u code %u", bundleID, pid, reply, msg.portMsg.len, base->code);
+                if(base->len > sizeof(msg.portMsg.data) - sizeof(struct wsRPCBase)) {
+                    NSLog(@"RPC[%@ %u] rejected code %u request with oversized data block of %u bytes",
+                            base->code, base->len);
+                    return;
+                }
 
                 switch(base->code) {
+                    // Quartz Display Services (CoreGraphics)
                     case kCGMainDisplayID: [self rpcMainDisplayID:&msg.portMsg]; break;
                     case kCGGetOnlineDisplayList: [self rpcGetOnlineDisplayList:&msg.portMsg]; break;
                     case kCGGetActiveDisplayList: [self rpcGetActiveDisplayList:&msg.portMsg]; break;
@@ -1395,6 +1445,10 @@ pthread_mutex_t renderLock;
                     case kCGAssociateMouseAndMouseCursorPosition: [self rpcAssociateMouseAndMouseCursorPosition:&msg.portMsg]; break;
                     case kCGWarpMouseCursorPosition: [self rpcWarpMouseCursorPosition:&msg.portMsg]; break;
                     case kCGGetLastMouseDelta: [self rpcGetLastMouseDelta:&msg.portMsg]; break;
+                    // Window Management (AppKit)
+                    case kWSWindowCreate: [self rpcWindowCreate:&msg.portMsg]; break;
+                    case kWSWindowDestroy: [self rpcWindowDestroy:&msg.portMsg]; break;
+                    case kWSWindowModifyState: [self rpcWindowModifyState:&msg.portMsg]; break;
                 }
                 break;
             }
@@ -1526,63 +1580,6 @@ pthread_mutex_t renderLock;
                         // FIXME: send to SystemUIServer
 			break;
 		    }
-                    case CODE_WINDOW_CREATE: {
-                        if(msg.msg.len != sizeof(struct mach_win_data)) {
-                            NSLog(@"Incorrect data size for WINDOW_CREATE");
-                            break;
-                        }
-                        struct mach_win_data *data = (struct mach_win_data *)msg.msg.data;
-                        if(logLevel >= WS_INFO)
-                            NSLog(@"CODE_WINDOW_CREATE bundle %s pid %u ID %u", msg.msg.bundleID,
-                                    msg.msg.pid, data->windowID);
-                        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg.msg.bundleID]];
-                        if(app != nil) {
-                            struct mach_win_data reply;
-                            memcpy(&reply, data, sizeof(reply));
-                            reply.windowID = [self windowCreate:data forApp:app];
-                            [self sendInlineData:&reply
-                                          length:sizeof(struct mach_win_data)
-                                        withCode:CODE_WINDOW_CREATED
-                                           toPort:[app port]];
-                            return;
-                        }
-                        NSLog(@"No matching app for WINDOW_CREATE! %s %u", msg.msg.bundleID, msg.msg.pid);
-                        break;
-                    }
-                    case CODE_WINDOW_STATE: {
-                        if(msg.msg.len != sizeof(struct mach_win_data)) {
-                            NSLog(@"Incorrect data size for WINDOW_STATE");
-                            break;
-                        }
-                        struct mach_win_data *data = (struct mach_win_data *)msg.msg.data;
-                        if(logLevel >= WS_INFO)
-                            NSLog(@"CODE_WINDOW_STATE bundle %s pid %u ID %u", msg.msg.bundleID,
-                                    msg.msg.pid, data->windowID);
-                        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg.msg.bundleID]];
-                        if(app != nil) {
-                            [self windowModify:data forApp:app];
-                            return;
-                        }
-                        NSLog(@"No matching app for WINDOW_STATE! %s %u", msg.msg.bundleID, msg.msg.pid);
-                        break;
-                    }
-                    case CODE_WINDOW_DESTROY: {
-                        if(msg.msg.len != sizeof(struct mach_win_data)) {
-                            NSLog(@"Incorrect data size for WINDOW_DESTROY");
-                            break;
-                        }
-                        struct mach_win_data *data = (struct mach_win_data *)msg.msg.data;
-                        if(logLevel >= WS_INFO)
-                            NSLog(@"CODE_WINDOW_DESTROY bundle %s pid %u ID %u", msg.msg.bundleID,
-                                    msg.msg.pid, data->windowID);
-                        WSAppRecord *app = [apps objectForKey:[NSString stringWithCString:msg.msg.bundleID]];
-                        if(app != nil) {
-                            [app removeWindowWithID:data->windowID];
-                            return;
-                        }
-                        NSLog(@"No matching app for WINDOW_DESTROY! %s %u", msg.msg.bundleID, msg.msg.pid);
-                        break;
-                    }
                     default:
                         NSLog(@"Unhandled WindowServer code %u", msg.msg.code);
                 }

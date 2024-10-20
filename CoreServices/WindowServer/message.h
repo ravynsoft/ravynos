@@ -65,12 +65,8 @@ enum {
     // Input event
     CODE_INPUT_EVENT,           // Notify app of input
 
-    // Window management
-    CODE_WINDOW_CREATE,         // App has created a window
-    CODE_WINDOW_CREATED,        // WS reply to CREATE
-    CODE_WINDOW_DESTROY,        // App has closed a window
-    CODE_WINDOW_DESTROYED,      // WS reply to DESTROY
-    CODE_WINDOW_STATE           // Window state synchronization
+    // Window state change
+    CODE_WINDOW_STATE,
 };
 
 enum {

@@ -3319,6 +3319,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
 @end
 
+CGRect CGInsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask) {
+    return frame;
+}
+
 CGRect CGOutsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask) {
     return frame;
 }

@@ -26,7 +26,7 @@
  * between releases. They are for internal use only.
  */
 typedef enum WSRPC {
-    kCGWSRPCNull = 0,
+    kWSRPCNull = 0,
     // Finding Displays
     kCGMainDisplayID = 1000,
     kCGGetOnlineDisplayList,
@@ -104,6 +104,13 @@ typedef enum WSRPC {
     kWSWindowDestroy,
     kWSWindowModifyState,
 } WSRPC;
+
+typedef enum : uint32_t {
+    kWSErrorSuccess = 0,
+    kWSErrorFailure = 2000,
+    kWSErrorIllegalArgument,
+    kWSErrorPermission
+} WSError;
 
 /* Data field header, followed by function-specific data struct */
 struct wsRPCBase {
