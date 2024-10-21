@@ -8,7 +8,7 @@ CONFIGURE_ARGS+= --prefix=/ \
 		 --sysconfdir=/etc \
 		 --with-templatedir=/System/Library/Frameworks/CoreText.framework/Resources \
 		 --with-xmldir=/System/Library/Frameworks/CoreText.framework/Resources \
-		 --localstatedir=/var \
+		 --localstatedir=/var --host=x86_64-ravynos-freebsd\
 		 --enable-static=yes \
 		 --enable-shared=no \
 		 --enable-libxml2 \
