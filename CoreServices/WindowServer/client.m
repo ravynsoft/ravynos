@@ -52,6 +52,7 @@
     [v addSubview:iv];
     [v setNeedsDisplay:YES];
 
+#if 0
     win = [[NSWindow alloc] initWithContentRect:NSMakeRect(400, 400, 640, 480)
                                      styleMask:NSTitledWindowMask
                                        backing:NSBackingStoreRetained
@@ -61,6 +62,7 @@
     [[win contentView] addSubview:iv2];
     [[win contentView] setNeedsDisplay:YES];
     [win orderFront:self];
+#endif
     [self makeKeyAndOrderFront:self];
 }
 

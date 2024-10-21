@@ -405,7 +405,7 @@ pthread_mutex_t renderLock;
     return winrec.number;
 }
 
--(void)windowModify:(struct mach_win_data *)data forApp:(WSAppRecord *)app {
+-(void)windowModify:(struct wsRPCWindow *)data forApp:(WSAppRecord *)app {
     if(data->state < 0 || data->state >= WIN_STATE_MAX) {
         NSLog(@"windowModify called with invalid state");
         data->state = NORMAL;

@@ -421,13 +421,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
             close(shmfd);
         }
 
-        /* If WS has not created the shared mem yet, buffer will be NULL here. This results
-         * in us creating a surface and context anyway, but they won't be visible on the
-         * screen yet. That's ok - when WS finishes creating the display surface, it will
-         * trigger invalidateContextsWithNewSize: to recreate the context and set the actual
-         * size if it changed from the client's request.
-         */
-
         O2ColorSpaceRef colorSpace = O2ColorSpaceCreateDeviceRGB();
         O2Surface *surface = [[O2Surface alloc] initWithBytes:buffer
                 width:_frame.size.width height:_frame.size.height
@@ -942,7 +935,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 #endif
 
     //CGLSurfaceResize(_cglContext, size.width, size.height);
-    [_threadToContext removeAllObjects];
+    [_threadToContext performSelectorOnMainThread:@selector(removeAllObjects) withObject:nil waitUntilDone:YES];
 }
 
 -(void) invalidateContextsWithNewSize:(NSSize)size
@@ -2113,6 +2106,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
      _isVisible=YES;
      [self displayIfNeeded];
+     [self _updateWSState];
      // this is here since it would seem that doing this any earlier will not work.
      if(![self isKindOfClass:[NSPanel class]] && ![self isExcludedFromWindowsMenu]) {
          [NSApp changeWindowsItem:self title:_title filename:NO];
@@ -2125,6 +2119,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
      _isVisible=YES;
      [self displayIfNeeded];
+     [self _updateWSState];
      // this is here since it would seem that doing this any earlier will not work.
      if(![self isKindOfClass:[NSPanel class]] && ![self isExcludedFromWindowsMenu]) {
        [NSApp changeWindowsItem:self title:_title filename:NO];
@@ -2470,7 +2465,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
         else
            [self close];
     }
-
 }
 
 -(void)_document:(NSDocument *)document shouldClose:(BOOL)shouldClose contextInfo:(void *)context
@@ -3250,7 +3244,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 // WindowServer wants us to do something...
--(void)processStateUpdate:(struct mach_win_data *)data {
+-(void)processStateUpdate:(struct wsRPCWindow *)data {
     switch(data->state) {
         case NORMAL:
             [self _setVisible:YES];
@@ -3302,7 +3296,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
 
 -(BOOL)_updateWSState {
-    struct mach_win_data data = {
+    struct wsRPCWindow data = {
         { kWSWindowModifyState, sizeof(struct wsRPCWindow) - sizeof(struct wsRPCBase) },
         _number, _frame.origin.x, _frame.origin.y,
         _frame.size.width, _frame.size.height, _styleMask, 0, {'\0'}
@@ -3325,5 +3319,24 @@ CGRect CGInsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask) {
 
 CGRect CGOutsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask) {
     return frame;
+}
+
+void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *left,
+                                       CGFloat *bottom,CGFloat *right)
+{
+    switch(styleMask & 0x0FFF) {
+        case NSBorderlessWindowMask:
+            *top=0;
+            *left=0;
+            *bottom=0;
+            *right=0;
+            break;
+        // FIXME: tool window style?
+        default:
+            *top=30;
+            *left=0;
+            *bottom=0;
+            *right=0;
+    }
 }
 
