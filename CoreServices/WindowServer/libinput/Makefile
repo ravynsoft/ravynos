@@ -30,7 +30,7 @@ SRCS=   libinput-version.h \
 	evdev-wheel.c \
 	path-seat.c \
 	udev-seat.c \
-	timer.c 
+	timer.c
 
 INCS=   include/valgrind/valgrind.h \
 	include/linux/input.h \
@@ -67,7 +67,7 @@ WARNS=	        1
 CFLAGS+=	-I${.CURDIR}/src -I${.CURDIR}/include -I${MAKEOBJDIR}
 CFLAGS+=        -I${.CURDIR}/../libevdev -I${.CURDIR}
 CFLAGS+=        -I${OBJTOP}/tmp/usr/include/libepoll-shim
-CFLAGS+=	-I${SRCTOP}/lib/libudev -I${.CURDIR}/../mtdev/include
+CFLAGS+=	-I${SRCTOP}/lib/libudev-devd -I${.CURDIR}/../mtdev/include
 CFLAGS+=        -DHTTP_DOC_LINK=\"https://wayland.freedesktop.org/libinput/doc/${MAJOR}.${MINOR}.${MICRO}\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_DIR=\"/System/Library/CoreServices/WindowServer.app/Contents/Resources\"
 CFLAGS+=        -DLIBINPUT_QUIRKS_OVERRIDE_FILE=\"/System/Library/CoreServices/WindowServer.app/Contents/Resources/local-overrides.quirks\"
@@ -80,7 +80,7 @@ CFLAGS+=	-DHAVE_LIBEVDEV_DISABLE_PROPERTY -DHAVE_LIBWACOM=0 -DHAVE_DEBUG_GUI=0 -
 LDFLAGS+=	-L${OBJTOP}/CoreServices/WindowServer/mtdev -lmtdev
 LDFLAGS+=	-L${OBJTOP}/CoreServices/WindowServer/libevdev -levdev
 LDFLAGS+=	-L${OBJTOP}/tmp/usr/lib -lepoll-shim -ludev
-LDFLAGS+=	-L${MAKEOBJDIR} -linput-util -lquirks -lfilter -lm -lrt 
+LDFLAGS+=	-L${MAKEOBJDIR} -linput-util -lquirks -lfilter -lm -lrt
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -Wl,--version-script=${.CURDIR}/src/libinput.sym
 
 GIT_SHA!=	cd ${.CURDIR}; git log -1 --pretty=format:%h

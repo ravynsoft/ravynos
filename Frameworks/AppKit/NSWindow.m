@@ -755,7 +755,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)_makeSureIsOnAScreen {
-#if 1
    if(_makeSureIsOnAScreen && [self isVisible] && ![self isMiniaturized]){
     NSRect   frame=_frame;
     NSArray *screens=[NSScreen screens];
@@ -810,46 +809,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
        
     _makeSureIsOnAScreen=NO;
    }
-#else
-   if(_makeSureIsOnAScreen && [self isVisible] && ![self isMiniaturized]){
-    NSRect   frame=_frame;
-    NSArray *screens=[NSScreen screens];
-    int      i,count=[screens count];
-    NSRect   virtual=NSZeroRect;
-    BOOL     changed=NO;
-
-    for(i=0;i<count;i++){
-     NSRect screen=[[screens objectAtIndex:i] frame];
-
-     virtual=NSUnionRect(virtual,screen);
-    }
-
-    virtual=NSInsetRect(virtual,20,20);
-
-    if(NSMaxX(frame)<virtual.origin.x){
-     frame.origin.x=virtual.origin.x-frame.size.width;
-     changed=YES;
-    }
-    if(frame.origin.x>NSMaxX(virtual)){
-     frame.origin.x=NSMaxX(virtual);
-     changed=YES;
-    }
-
-    if(NSMaxY(frame)>NSMaxY(virtual)){
-     frame.origin.y=NSMaxY(virtual)-frame.size.height;
-     changed=YES;
-    }
-    if(NSMaxY(frame)<virtual.origin.y){
-     changed=YES;
-     frame.origin.y=virtual.origin.y-frame.size.height;
-    }
-
-    if(changed)
-     [self setFrame:frame display:YES];
-
-    _makeSureIsOnAScreen=NO;
-   }
-#endif
 }
 
 -(void)setFrame:(NSRect)frame display:(BOOL)display {
@@ -924,9 +883,11 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
         //CGLReleaseContext(_cglContext);
         _cglContext = NULL;
         //[self createCGLContextObjIfNeeded];
+
     }
 
     [self cgContext];
+
 #if 0
     if(snapshot) {
         [_context drawImage:snapshot inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
@@ -935,17 +896,14 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 #endif
 
     //CGLSurfaceResize(_cglContext, size.width, size.height);
-    [_threadToContext performSelectorOnMainThread:@selector(removeAllObjects) withObject:nil waitUntilDone:YES];
 }
 
--(void) invalidateContextsWithNewSize:(NSSize)size
-{
+-(void)invalidateContextsWithNewSize:(NSSize)size {
     [self invalidateContextsWithNewSize:size forceRebuild:NO];
 }
 
--(void) invalidate
-{
-    [_delegate platformWindowDidInvalidateCGContext:self];
+-(void)invalidate {
+    [_threadToContext removeAllObjects];
 }
 
 
@@ -954,32 +912,41 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(void)setFrame:(NSRect)newFrame display:(BOOL)display animate:(BOOL)animate tellWS:(BOOL)tellWS {
+    if (NSEqualSizes([self minSize], NSMakeSize(0, 0)) == NO) {
+       newFrame.size.width = MAX(NSWidth(newFrame), [self minSize].width);
+       newFrame.size.height = MAX(NSHeight(newFrame), [self minSize].height);
+    }
+
+    if (NSEqualSizes([self maxSize], NSMakeSize(FLT_MAX, FLT_MAX)) == NO) {
+       newFrame.size.width = MIN(NSWidth(newFrame), [self maxSize].width);
+       newFrame.size.height = MIN(NSHeight(newFrame), [self maxSize].height);
+    }
+
     BOOL didSize=NSEqualSizes(newFrame.size,_frame.size)?NO:YES;
     BOOL didMove=NSEqualPoints(newFrame.origin,_frame.origin)?NO:YES;
    
     _frame=newFrame;
     _makeSureIsOnAScreen=YES;
 
-    [_backgroundView setFrameSize:_frame.size];
-
-    [self invalidateContextsWithNewSize:_frame.size];
-    if(tellWS)
-        [self _updateWSState];
-    
-    if(didSize)
+    if(didSize) {
+        [_backgroundView setFrameSize:_frame.size];
+        [_backgroundView setNeedsDisplay:YES];
+        [self invalidateContextsWithNewSize:_frame.size];
         [self resetCursorRects];
-    
-    if(didSize)
+        [self saveFrameUsingName:_autosaveFrameName];
         [self postNotificationName:NSWindowDidResizeNotification];
-    
-    if(didMove)
+    }
+
+    if(didMove) {
+        [self saveFrameUsingName:_autosaveFrameName];
         [self postNotificationName:NSWindowDidMoveNotification];
+    }
 
     // If you setFrame:display:YES before rearranging views with only setFrame:
     // calls (which do not mark the view for display) Cocoa will properly
     // redisplay the views So, doing a hard display right here is not the right
     // thing to do, delay it 
- 
+
     if(display)
         [_backgroundView setNeedsDisplay:YES];
 
@@ -990,6 +957,13 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
         [self _animateWithContext:context];
     }
+   
+    [self _setSheetOriginAndFront];
+    [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidChangeFrame:) withObject:self];
+    [_drawers makeObjectsPerformSelector:@selector(parentWindowDidChangeFrame:) withObject:self];
+
+    if(tellWS)
+        [self _updateWSState];
 }
 
 -(void)setContentSize:(NSSize)size {
@@ -2875,44 +2849,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    [NSApp updateWindows];
 }
 
--(void)platformWindow:(CGWindow *)window frameChanged:(NSRect)frame didSize:(BOOL)didSize {
-    // Don't allow the platform window changes to violate our window size limits (if we have them)
-    // Windows (for example) likes to make the platform window very small so it fits in the task bar...
-    if (NSEqualSizes([self minSize], NSMakeSize(0, 0)) == NO) {
-       frame.size.width = MAX(NSWidth(frame), [self minSize].width);
-       frame.size.height = MAX(NSHeight(frame), [self minSize].height);
-    }
-
-    if (NSEqualSizes([self maxSize], NSMakeSize(FLT_MAX, FLT_MAX)) == NO) {
-       frame.size.width = MIN(NSWidth(frame), [self maxSize].width);
-       frame.size.height = MIN(NSHeight(frame), [self maxSize].height);
-    }
-
-    // We don't want the miniaturized frame.
-   if(![self isMiniaturized])
-    _frame=frame;
-   
-   _makeSureIsOnAScreen=YES;
-
-   [self _setSheetOriginAndFront];
-   [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidChangeFrame:) withObject:self];
-   [_drawers makeObjectsPerformSelector:@selector(parentWindowDidChangeFrame:) withObject:self];
-
-   if (didSize) {
-    // Don't redraw everything unless we really have to
-    [_backgroundView setFrameSize:_frame.size];
-    [_backgroundView setNeedsDisplay:YES];
-    [self resetCursorRects];
-    [self saveFrameUsingName:_autosaveFrameName];
-    [self postNotificationName:NSWindowDidResizeNotification];
-   }
-   else
-   {
-    [self saveFrameUsingName:_autosaveFrameName];
-    [self postNotificationName:NSWindowDidMoveNotification];
-   }
-}
-
 -(void)platformWindowExitMove:(CGWindow *)window {
    [self _setSheetOriginAndFront];
    [_childWindows makeObjectsPerformSelector:@selector(_parentWindowDidExitMove:) withObject:self];
@@ -3247,7 +3183,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 -(void)processStateUpdate:(struct wsRPCWindow *)data {
     switch(data->state) {
         case NORMAL:
-            [self _setVisible:YES];
+            if(!_isVisible)
+                [self _setVisible:YES];
             if([self isMiniaturized])
                 [self deminiaturize:self];
             if([self isZoomed])
@@ -3262,7 +3199,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
                 [self miniaturize:self];
             break;
         case HIDDEN:
-            [self _setVisible:NO];
+            if(_isVisible)
+                [self _setVisible:NO];
             break;
         case CLOSED:
             [self performClose:self];
@@ -3273,7 +3211,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
     if(_styleMask != data->style)
         [self setStyleMask:data->style];
-    [self setFrame:geom display:YES animate:NO tellWS:NO];
+    if(!NSEqualPoints(geom.origin, _frame.origin) || !NSEqualSizes(geom.size, _frame.size))
+        [self setFrame:geom display:NO animate:NO tellWS:NO];
 }
 
 -(void)addEntriesToDeviceDictionary:(NSDictionary *)entries {
