@@ -724,6 +724,8 @@ pthread_mutex_t renderLock;
                 shmdt(p);
             }
         }
+        if(img)
+            O2ImageRelease(img);
     }
     [self sendInlineData:&reply length:sizeof(reply) withCode:MSG_ID_RPC toPort:msg->descriptor.name];
 }

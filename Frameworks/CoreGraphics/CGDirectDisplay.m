@@ -385,12 +385,14 @@ CGImageRef CGDisplayCreateImageForRect(CGDirectDisplayID display, CGRect rect) {
         if(data.val1 == 0)
             return NULL;
         uint8_t *p = shmat(data.val1, NULL, 0);
-        CGDataProviderRef d = CGDataProviderCreateWithData(NULL, p, h*w*4, NULL);
+        CFDataRef cfd = CFDataCreate(NULL, p, h*w*4);
+        shmctl(data.val1, IPC_RMID, 0);
+        shmdt(p);
+        CGDataProviderRef d = CGDataProviderCreateWithCFData(cfd);
+        CFRelease(cfd);
         CGImageRef img = CGImageCreate(w, h, 8, 32, w*4, CGColorSpaceCreateDeviceRGB(),
             kCGBitmapByteOrderDefault|kCGImageAlphaPremultipliedFirst, d, NULL, 0, kCGRenderingIntentDefault);
         CFRelease(d);
-        shmctl(data.val1, IPC_RMID, 0);
-        shmdt(p);
         return img;
     }
     return NULL;

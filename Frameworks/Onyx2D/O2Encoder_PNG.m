@@ -1,8 +1,5 @@
 #import <Onyx2D/O2Encoder_PNG.h>
-
-#ifndef __APPLE__
 #import "O2Defines_libpng.h"
-#endif
 
 O2PNGEncoderRef O2PNGEncoderCreate(O2DataConsumerRef consumer) {
    O2PNGEncoderRef self=NSZoneCalloc(NULL,1,sizeof(struct O2PNGEncoder));
