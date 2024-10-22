@@ -23,7 +23,7 @@ CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -pthread \
 		-I${.CURDIR}/libinput/include -I${SRCTOP}/Frameworks \
 		-I${.CURDIR}/libxkbcommon/include -I${SRCTOP}/CoreServices \
 		-I${OBJTOP}/Frameworks/Foundation/Headers \
-		-I${SRCTOP}/gnu/lib/libobjc2
+		-I${SRCTOP}/gnu/lib/libobjc2 -I${SRCTOP}/sys/sys
 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
 		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
