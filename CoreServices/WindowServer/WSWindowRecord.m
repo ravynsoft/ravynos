@@ -33,8 +33,8 @@
 
 // all measurements in pixels
 const float WSWindowTitleHeight = 32;
-const float WSWindowEdgePad = 3;
-const float WSWindowCornerRadius = 12;
+const float WSWindowEdgePad = 2;
+const float WSWindowCornerRadius = 8;
 const float WSWindowControlDiameter = 14;
 const float WSWindowControlSpacing = 10;
 
@@ -44,7 +44,7 @@ NSRect WSOutsetFrame(NSRect rect, int style) {
 
     NSRect _frame = rect;
     _frame.size.height += WSWindowTitleHeight;
-    _frame.size.width += WSWindowEdgePad;
+    _frame.size.width += 2*WSWindowEdgePad;
     _frame.origin.x -= WSWindowEdgePad;
     _frame.origin.y -= WSWindowEdgePad;
     return _frame;

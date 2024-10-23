@@ -20,11 +20,14 @@
  * THE SOFTWARE.
  */
 
+#import <unistd.h>
 #import "common.h"
 #import "WindowServer.h"
 #import <sys/event.h>
 #import <servers/bootstrap.h>
 #import "message.h"
+
+extern int optopt;
 
 void *machSvcLoop(void *arg) {
     WindowServer *ws = (__bridge WindowServer *)arg;

@@ -46,7 +46,7 @@
     [v addSubview:textfield];
     [textfield setEditable:YES];
     [textfield setNeedsDisplay:YES];
-    NSImage *img = [[NSImage alloc] initWithContentsOfFile:@"SystemUIServer/ReleaseLogo.tiff"];
+    NSImage *img = [[NSImage alloc] initWithContentsOfFile:@"SneakySnek.png"];
     NSImageView *iv = [[NSImageView alloc] initWithFrame:NSMakeRect(439,1,200,478)];
     [iv setImage:img];
     [v addSubview:iv];
