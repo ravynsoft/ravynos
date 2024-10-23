@@ -46,7 +46,7 @@
 
 -(void)dealloc;
 -(void)setOrigin:(NSPoint)pos;
--(void)drawFrame:(O2Context *)_context;
+-(void)drawFrame:(O2Context *)_context pointer:(NSPoint)pointer;
 -(void)moveByX:(double)x Y:(double)y;
 -(void)setGlyphs:(CGGlyph *)glyphs;
 

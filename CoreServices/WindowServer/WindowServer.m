@@ -463,6 +463,8 @@ pthread_mutex_t renderLock;
         if(poll(&fds, 1, 50) > 0)
             [input run:self];
 
+        cursorRect.origin = [input pointerPos];
+
         // FIXME: handle multiple displays here. Use a thread per display?
         pthread_mutex_lock(&renderLock);
         ctx = [fb context];
@@ -479,13 +481,12 @@ pthread_mutex_t renderLock;
                     WSWindowRecord *win = [wins objectAtIndex:i];
                     if(win.state == HIDDEN)
                         continue;
-                    [win drawFrame:ctx];
+                    [win drawFrame:ctx pointer:cursorRect.origin];
                     [ctx drawImage:win.surface inRect:win.geometry];
                 }
             }
         }
 
-        cursorRect.origin = [input pointerPos];
         cursorRect.origin.y -= _cursor_height; // make sure point of arrow is on actual spot
 
         if(capturedPID == 0) {
@@ -1595,8 +1596,10 @@ pthread_mutex_t renderLock;
                     WSAppRecord *app = [self findAppByPID:out[i].ident];
                     if(app != nil && curApp == app) {
                         [self switchApp];
-                        if(curApp == app)
+                        if(curApp == app) {
                             curApp = nil; // there was nothing to switch to
+                            curWindow = nil;
+                        }
                     }
                     if(app == nil)
                         NSLog(@"PID %u exited, but no matching app record", out[i].ident);

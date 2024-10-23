@@ -38,6 +38,9 @@ const float WSWindowCornerRadius = 8;
 const float WSWindowControlDiameter = 14;
 const float WSWindowControlSpacing = 10;
 
+static O2Image *wsClose, *wsCloseHover, *wsMini, *wsMiniHover;
+static O2Image *wsZoom, *wsZoomUp, *wsZoomDown;
+
 NSRect WSOutsetFrame(NSRect rect, int style) {
     if(style & NSBorderlessWindowMask)
         return rect;
@@ -51,10 +54,34 @@ NSRect WSOutsetFrame(NSRect rect, int style) {
 }
 
 @implementation WSWindowRecord
+-init {
+    self = [super init];
+    // use singleton traffic light images
+    if(wsClose == nil) {
+        NSBundle *bundle = [NSBundle mainBundle];
+        NSString *path = [bundle pathForResource:@"close" ofType:@"png"];
+        wsClose = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
+        path = [bundle pathForResource:@"closeHover" ofType:@"png"];
+        wsCloseHover = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
+        path = [bundle pathForResource:@"mini" ofType:@"png"];
+        wsMini = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
+        path = [bundle pathForResource:@"miniHover" ofType:@"png"];
+        wsMiniHover = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
+        path = [bundle pathForResource:@"zoom" ofType:@"png"];
+        wsZoom = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
+        path = [bundle pathForResource:@"zoomUpHover" ofType:@"png"];
+        wsZoomUp = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
+        path = [bundle pathForResource:@"zoomDownHover" ofType:@"png"];
+        wsZoomDown = [[[NSBitmapImageRep alloc] initWithContentsOfFile:path] CGImage];
+    }
+    return self;
+}
+
 -(void)dealloc {
     if(_surfaceBuf != NULL)
         munmap(_surfaceBuf, _bufSize);
-    shm_unlink([_shmPath cString]);
+    if(shm_unlink([_shmPath cString]) != 0)
+        perror("shm_unlink");
 }
 
 -(void)setOrigin:(NSPoint)pos {
@@ -62,7 +89,7 @@ NSRect WSOutsetFrame(NSRect rect, int style) {
     _frame = WSOutsetFrame(_geometry, _styleMask);
 }
 
--(void)drawFrame:(O2Context *)_context {
+-(void)drawFrame:(O2Context *)_context pointer:(NSPoint)pointer {
     if((_styleMask & 0x0FFF) == NSBorderlessWindowMask)
         return;
     
@@ -97,16 +124,23 @@ NSRect WSOutsetFrame(NSRect rect, int style) {
         _frame.origin.y + _frame.size.height - WSWindowTitleHeight / 2 - WSWindowControlDiameter / 2,
         WSWindowControlDiameter, WSWindowControlDiameter);
     _closeButtonRect = button;
-    O2ContextSetRGBFillColor(_context, 1, 0, 0, 1);
-    O2ContextFillEllipseInRect(_context, button);
-    O2ContextSetRGBFillColor(_context, 1, 0.9, 0, 1);
     button.origin.x += WSWindowControlSpacing + WSWindowControlDiameter;
     _miniButtonRect = button;
-    O2ContextFillEllipseInRect(_context, button);
-    O2ContextSetRGBFillColor(_context, 0, 1, 0, 1);
     button.origin.x += WSWindowControlSpacing + WSWindowControlDiameter;
     _zoomButtonRect = button;
-    O2ContextFillEllipseInRect(_context, button);
+
+    NSRect controls = NSMakeRect(_closeButtonRect.origin.x, _closeButtonRect.origin.y,
+            3*WSWindowControlSpacing + 3*WSWindowControlDiameter, WSWindowControlDiameter);
+
+    if(NSPointInRect(pointer, controls)) {
+        [_context drawImage:wsCloseHover inRect:_closeButtonRect];
+        [_context drawImage:wsMiniHover inRect:_miniButtonRect];
+        [_context drawImage:wsZoomUp inRect:_zoomButtonRect];
+    } else {
+        [_context drawImage:wsClose inRect:_closeButtonRect];
+        [_context drawImage:wsMini inRect:_miniButtonRect];
+        [_context drawImage:wsZoom inRect:_zoomButtonRect];
+    }
 
     // title
     if(_title) {

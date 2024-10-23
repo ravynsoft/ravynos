@@ -13,7 +13,15 @@ RESOURCES=	${.CURDIR}/Icon.png \
 		${MAKEOBJDIR}/libinput/libinput.so \
 		${MAKEOBJDIR}/libevdev/libevdev.so.2 \
 		${MAKEOBJDIR}/libevdev/libevdev.so \
-		${.CURDIR}/arrowCursor.png
+		${.CURDIR}/Cursors/arrowCursor.png \
+		${.CURDIR}/Cursors/resizeCursor.png \
+		${.CURDIR}/Decorations/close.png \
+		${.CURDIR}/Decorations/closeHover.png \
+		${.CURDIR}/Decorations/mini.png \
+		${.CURDIR}/Decorations/miniHover.png \
+		${.CURDIR}/Decorations/zoom.png \
+		${.CURDIR}/Decorations/zoomUpHover.png \
+		${.CURDIR}/Decorations/zoomDownHover.png
 
 MK_WERROR=	no
 WARNS=	        1
