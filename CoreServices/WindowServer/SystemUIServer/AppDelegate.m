@@ -151,6 +151,7 @@
 #endif
 
 // called from our kq watcher thread
+// FIXME: get these as mach_msg from WS
 - (void)processKernelQueue {
     struct kevent out[128];
     int count = kevent(_kq, NULL, 0, out, 128, NULL);
@@ -160,9 +161,8 @@
             case EVFILT_PROC:
                 if((out[i].fflags & NOTE_EXIT)) {
                     //NSLog(@"PID %lu exited", out[i].ident);
-                    [menuBar removePortForPID:out[i].ident];
-                    [menuBar removeMenuForPID:out[i].ident];
-		    [menuBar removeStatusItemsForPID:out[i].ident];
+                    //[menuBar removeMenuForPID:out[i].ident]; // FIXME: forApp
+                    //[menuBar removeStatusItemsForPID:out[i].ident]; // FIXME: forApp
                 }
                 break;
             default:
@@ -172,10 +172,8 @@
 }
 
 -(void)applicationWillFinishLaunching:(NSNotification *)note {
-    NSArray *screens = [NSScreen screens];
-    NSScreen *output = [screens objectAtIndex:0]; //FIXME: select preferred display from prefs
-
-    [menuBar initWithFrame:[output visibleFrame] forOutput:output];
+    NSScreen *mainDisplay = [[NSScreen screens] objectAtIndex:0];
+    [menuBar initWithFrame:[mainDisplay visibleFrame]];
     [menuBar setDelegate:self];
     [[menuBar contentView] setNeedsDisplay:YES];
     [menuBar makeKeyAndOrderFront:self];
@@ -202,22 +200,19 @@
     pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
     NSMenu *mainMenu = [dict objectForKey:@"MainMenu"];
     [self _menuEnumerateAndChange:mainMenu];
-    [menuBar setMenu:mainMenu forPID:pid];
+    //[menuBar setMenu:mainMenu forPID:pid]; // FIXME: forApp
 
-    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate unless window becomes active
-        NSLog(@"could not activate menus!");
-
-    // watch for this PID to exit
-    struct kevent kev[1];
-    EV_SET(kev, pid, EVFILT_PROC, EV_ADD|EV_ONESHOT, NOTE_EXIT, 0, NULL);
-    kevent(_kq, kev, 1, NULL, 0, NULL);
+    //FIXME: forApp
+    //if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate unless window becomes active
+    //    NSLog(@"could not activate menus!");
 }
 
+// FIXME: send to WS
 - (void)clicked:(NSMenuItem *)object {
     int itemID = [object tag];
 
     Message clicked = {0};
-    clicked.header.msgh_remote_port = [menuBar activePort];
+    clicked.header.msgh_remote_port = MACH_PORT_NULL; // FIXME: send to WS [menuBar activePort];
     clicked.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
     clicked.header.msgh_id = MSG_ID_INLINE;
     clicked.header.msgh_size = sizeof(clicked) - sizeof(mach_msg_trailer_t);
@@ -227,8 +222,9 @@
 
     if(mach_msg((mach_msg_header_t *)&clicked, MACH_SEND_MSG, sizeof(clicked) - sizeof(mach_msg_trailer_t),
         0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
-        NSLog(@"Failed to send menu click to PID %d on port %d", [menuBar activeProcessID],
-            clicked.header.msgh_remote_port);
+        //NSLog(@"Failed to send menu click to PID %d on port %d", [menuBar activeProcessID],
+        //    clicked.header.msgh_remote_port);
+        NSLog(@"oops");
 }
 
 -(void)mouseDown:(NSEvent *)event {

@@ -108,4 +108,5 @@ extern pthread_mutex_t renderLock;
 -(void)signalQuit;
 -(CGFontRef)titleFont;
 -(NSSize)sizeOfTitleText:(NSString *)title;
+-(void)setShell:(int)shell;
 @end

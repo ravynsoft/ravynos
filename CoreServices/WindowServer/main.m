@@ -45,14 +45,15 @@ int main(int argc, const char *argv[]) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     int logLevel = WS_ERROR;
     srandomdev();
+    int curShell = LOGINWINDOW;
 
     while(getopt(argc, argv, "Lxv") != -1) {
         switch(optopt) {
             case 'L': // bypass loginwindow, run desktop for current user
-                //curShell = DESKTOP;
+                curShell = DESKTOP;
                 break;
             case 'x': // just run the compositor
-                //curShell = NONE;
+                curShell = NONE;
                 break;
             case 'v':
                 logLevel++;
@@ -79,8 +80,6 @@ int main(int argc, const char *argv[]) {
     signal(SIGTHR, SIG_IGN);
     signal(SIGLIBRT, SIG_IGN);
 
-    pthread_create(&curShellThread, NULL, launchShell, &curShell);
-
     setresgid(videoGID, videoGID, 0);
     setresuid(nobodyUID, nobodyUID, 0);
 #endif
@@ -96,8 +95,7 @@ int main(int argc, const char *argv[]) {
     pthread_t kqThread;
     pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)ws);
 
-    pthread_t curShellThread;
-
+    [ws setShell:curShell];
     [ws run];
 
     ws = nil;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ static NSString *_formatAsGB(unsigned long bytes)
 
     NSImageView *iv = [[NSImageView alloc] initWithFrame:NSMakeRect(0, WIN_HEIGHT/2 - LOGO_HEIGHT/2,
         LOGO_WIDTH, LOGO_HEIGHT)];
-    NSString *releaseLogo = [[NSBundle mainBundle] pathForResource:@"ReleaseLogo" ofType:@"tiff"];
+    NSString *releaseLogo = [[NSBundle mainBundle] pathForResource:@"SneakySnek" ofType:@"png"];
     NSImage *img = [[NSImage alloc] initWithContentsOfFile:releaseLogo];
     [img setScalesWhenResized:YES];
     [img setSize:NSMakeSize(LOGO_WIDTH, LOGO_HEIGHT)];

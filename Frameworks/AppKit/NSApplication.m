@@ -187,6 +187,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                             NSWindow *window = (me.windowID == 0)
                                 ? [self mainWindow]
                                 : [self windowWithWindowNumber:me.windowID];
+
                             // translate screen to window coords
                             me.x -= [window frame].origin.x;
                             me.y -= [window frame].origin.y;
@@ -970,7 +971,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     pool = [NSAutoreleasePool new];
     NSEvent           *event;
 
-    event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture /*dateWithTimeIntervalSinceNow:0.1*/] inMode:NSDefaultRunLoopMode dequeue:YES];
+    event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture] inMode:NSDefaultRunLoopMode dequeue:YES];
 
     NS_DURING
      [self sendEvent:event];

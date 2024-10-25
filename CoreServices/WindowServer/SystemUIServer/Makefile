@@ -8,7 +8,7 @@ SRCS=           SystemUIServer.m \
                 Label.m \
                 AboutWindow.m
 RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
-                ${.CURDIR}/ReleaseLogo.tiff ${.CURDIR}/shutdown ${.CURDIR}/kickSession
+                ${.CURDIR}/../SneakySnek.png ${.CURDIR}/shutdown ${.CURDIR}/kickSession
 
 MK_WERROR=	no
 WARNS=	        1

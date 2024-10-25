@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,32 +28,15 @@
 #include <unistd.h>
 #include <desktop.h>
 
-const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
-int fd = -1;
-
 int main(int argc, const char *argv[]) {
-    if(setresuid(65534, 65534, 0) != 0) {
-        perror("setresuid");
-        exit(-1);
-    }
-
     __NSInitializeProcess(argc, argv);
 
-    NSAutoreleasePool *pool = [NSAutoreleasePool new];
-    [NSApplication sharedApplication];
-    AppDelegate *del = [AppDelegate new];
-    if(!del || argc != 2)
-        goto fail;
-
-    fd = strtoul(argv[1], NULL, 10);
-
-    [[NSNotificationCenter defaultCenter] addObserver:del selector:@selector(screenDidResize:)
-        name:WLOutputDidResizeNotification object:nil];
-    [pool drain];
-
-    [NSApp run];
-
-fail:
-    exit(-1);
+    @autoreleasepool {
+        NSApplication *app = [NSApplication sharedApplication];
+        DesktopWindow *del = [DesktopWindow new];
+        [NSApp setDelegate:del];
+        [NSApp run];
+    }
+    exit(65534);
 }
 

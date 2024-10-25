@@ -85,23 +85,17 @@ extern const NSString *PrefsDateFormatStringKey;
     ExtrasView *extrasView;
     ClockView *clockView;
     NSMutableDictionary *menuDict;
-    NSMutableDictionary *portDict;
-    mach_port_t _menuPort;
-    unsigned int activePID;
+    NSString *activeApp;
 }
 
-- (MenuBarWindow *)initWithFrame:(NSRect)frame forOutput:(NSScreen *)output;
-- (void)notifyTick:(id)arg;
-- (void)setPort:(mach_port_t)port forPID:(unsigned int)pid;
-- (void)removePortForPID:(unsigned int)pid;
-- (mach_port_t)portForPID:(unsigned int)pid;
-- (NSMenu *)menuForPID:(unsigned int)pid;
-- (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid;
-- (void)removeMenuForPID:(unsigned int)pid;
-- (BOOL)activateMenuForPID:(unsigned int)pid;
+- (MenuBarWindow *)initWithFrame:(NSRect)frame;
+- (void)setPort:(mach_port_t)port forApp:(NSString *)bundleID;
+- (void)removePortForApp:(NSString *)bundleID;
+- (NSMenu *)menuForApp:(NSString *)bundleID;
+- (void)setMenu:(NSMenu *)menu forApp:(NSString *)bundleID;
+- (void)removeMenuForApp:(NSString *)bundleID;
+- (BOOL)activateApp:(NSString *)bundleID;
 - (void)addRecentItem:(NSURL *)itemURL;
-- (mach_port_t)activePort;
-- (int)activeProcessID;
 - (void)addStatusItem:(NSStatusItem *)item pid:(unsigned int)pid;
 - (void)removeStatusItemsForPID:(unsigned int)pid;
 @end

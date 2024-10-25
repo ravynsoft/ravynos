@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,52 +28,91 @@
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
-const int width = 320;
-const int height = 160;
+const int width = 480;
+const int height = 640;
 
 @implementation LoginBox
-- initWithDesktopWindow:(DesktopWindow *)window {
+- initWithWindow:(NSWindow *)window {
     NSRect rect = [window frame];
     NSPoint center = NSMakePoint(rect.size.width / 2, rect.size.height / 2);
 
-    self = [super initWithFrame:NSMakeRect(center.x - width/2, center.y + height/2, width, height)];
+    NSRect boxRect = NSMakeRect(center.x - width/2, center.y - height / 2, width, height); 
+    self = [super initWithFrame:boxRect];
 
-    NSFont *font = [[NSFontManager sharedFontManager] convertFont:[NSFont systemFontOfSize:14]
+    // give us a background for the fields
+    center.x = width / 2;
+    center.y = height / 2;
+    NSBox *bg = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+    [bg setTransparent:NO];
+    [bg setBoxType:NSBoxCustom];
+    [bg setCornerRadius:8.0];
+    [self addSubview:bg];
+
+    wordmark = [[NSImageView alloc] initWithFrame:NSMakeRect(20, height - 120, width - 40, 100)];
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"ravynos-full" ofType:@"png"];
+    NSImage *ravyn = [[NSImage alloc] initWithContentsOfFile:path];
+    [ravyn setScalesWhenResized:YES];
+    [wordmark setImage:ravyn];
+    [bg addSubview:wordmark];
+
+    logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(center.x - 80, 40, 160, 160)];
+    [logoView setImageScaling:NSImageScaleAxesIndependently];
+    [logoView setImageAlignment:NSImageAlignCenter];
+
+    path = [[NSBundle mainBundle] pathForResource:@"SneakySnek" ofType:@"png"];
+    NSImage *logo = [[NSImage alloc] initWithContentsOfFile:path];
+    [logo setScalesWhenResized:YES];
+    [logoView setImage:logo];
+    [bg addSubview:logoView];
+
+    NSFont *font = [[NSFontManager sharedFontManager] convertFont:[NSFont systemFontOfSize:16]
         toHaveTrait:NSBoldFontMask];
     NSDictionary *attr = [NSDictionary dictionaryWithObjects:
-        @[font, [NSColor whiteColor]]
+        @[font, [NSColor blackColor]]
         forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
 
-    int ypos = height - 32;
+    NSDictionary *osVersionDictionary = [NSDictionary
+        dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+    NSString *versionString = [NSString stringWithFormat:@"%@ %@",
+             [osVersionDictionary objectForKey:@"ProductFamily"],
+             [osVersionDictionary objectForKey:@"ProductUserVisibleVersion"]];
+    NSAttributedString *v  = [[NSAttributedString alloc] initWithString:versionString
+        attributes:[NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName]];
+    Label *versionLabel = [Label labelWithText:v atPoint:NSMakePoint(center.x - [v size].width / 2,
+                    height - 150) withMaxWidth:width/2];
+    [bg addSubview:versionLabel];
+
+    int ypos = height / 2 + 40;
 
     NSAttributedString *s = [[NSAttributedString alloc] initWithString:@"User name" attributes:attr];
-    Label *usernameLabel = [Label labelWithText:s atPoint:NSMakePoint(10, ypos) withMaxWidth:width/2];
-    [self addSubview:usernameLabel];
+    Label *usernameLabel = [Label labelWithText:s atPoint:NSMakePoint(center.x - 140, ypos) withMaxWidth:width/2];
+    [bg addSubview:usernameLabel];
     [usernameLabel setEnabled:NO];
-    userField = [[NSTextField alloc] initWithFrame:NSMakeRect(width/2 + 2, ypos, width/2, 24)];
+    userField = [[NSTextField alloc] initWithFrame:NSMakeRect(center.x - 40, ypos, 140, 24)];
     [userField setEditable:YES];
     [userField setEnabled:YES];
-    [self addSubview:userField];
-    ypos -= 42;
+    [bg addSubview:userField];
+    ypos -= 48;
 
     s = [[NSAttributedString alloc] initWithString:@"Password" attributes:attr];
-    Label *passwordLabel = [Label labelWithText:s atPoint:NSMakePoint(10, ypos) withMaxWidth:width/2];
-    [self addSubview:passwordLabel];
+    Label *passwordLabel = [Label labelWithText:s atPoint:NSMakePoint(center.x - 130, ypos) withMaxWidth:width/2];
+    [bg addSubview:passwordLabel];
     [passwordLabel setEnabled:NO];
-    passField = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(width/2 + 2, ypos, width/2, 24)];
+    passField = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(center.x - 40, ypos, 140, 24)];
     [passField setEditable:YES];
     [passField setEnabled:YES];
-    [self addSubview:passField];
-    ypos -= 42;
+    [bg addSubview:passField];
+    ypos -= 48;
     
-    NSButton *ok = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 64, 24)];
+    NSButton *ok = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 72, 32)];
     [ok setTarget:self];
+    [ok setFont:font];
     [ok setAction:@selector(checkFields:)];
     [ok setTitle:@"Log in"];
 
-    NSView *bv = [[NSView alloc] initWithFrame:NSMakeRect(width/2 - 34, ypos, 66, 26)];
+    NSView *bv = [[NSView alloc] initWithFrame:NSMakeRect(width/2 - 36, ypos, 74, 34)];
     [bv addSubview:ok];
-    [self addSubview:bv];
+    [bg addSubview:bv];
 
     [self setNextKeyView:userField];
     [userField setNextKeyView:passField];
@@ -91,10 +130,9 @@ static void badLogin() {
 - (void)checkFields:(id)sender {
     NSString *username = [userField stringValue];
     NSString *password = [passField stringValue];
+    NSLog(@"checkFields %@ %@", username, password);
 
-    seteuid(0);
     struct passwd *pw = getpwnam([username cString]);
-    setresuid(65534, 65534, 0);
     if(!pw) {
         badLogin();
         return;
@@ -106,9 +144,7 @@ static void badLogin() {
         return;
     }
 
-    if(fd >= 0)
-        write(fd, &pw->pw_uid, sizeof(int));
-    exit(0);
+    exit(pw->pw_uid);
 }
 
 @end

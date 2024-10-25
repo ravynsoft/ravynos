@@ -27,17 +27,14 @@
 extern pthread_mutex_t mtx;
 
 @implementation MenuBarWindow
-- initWithFrame:(NSRect)frame forOutput:(NSScreen *)output {
+- initWithFrame:(NSRect)frame {
     frame.origin.x = 0;
     frame.origin.y = frame.size.height - menuBarHeight;
     frame.size.height = menuBarHeight;
     self = [self initWithContentRect:frame styleMask:NSBorderlessWindowMask
-        backing:NSBackingStoreBuffered defer:NO screen:output];
+        backing:NSBackingStoreBuffered defer:NO];
 
     [self setMovableByWindowBackground:NO];
-
-    NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
-    [nctr addObserver:self selector:@selector(notifyTick:) name:@"ClockTick" object:nil];
 
     float mainWidth = frame.size.width * 0.65;
     float extraWidth = frame.size.width - mainWidth;
@@ -54,9 +51,6 @@ extern pthread_mutex_t mtx;
 		extraWidth - clockSize.width, menuBarHeight)];
 
     menuDict = [NSMutableDictionary new];
-    portDict = [NSMutableDictionary new];
-    _menuPort = MACH_PORT_NULL;
-    activePID = 0;
 
     [_contentView addSubview:menuView];
     [_contentView addSubview:extrasView];
@@ -82,56 +76,26 @@ extern pthread_mutex_t mtx;
     [NSApp postEvent:(__bridge NSEvent *)event atStart:YES];
 }
 
-- (mach_port_t)activePort {
-    return _menuPort;
+- (NSMenu *)menuForApp:(NSString *)bundleID {
+    return [menuDict objectForKey:bundleID];
 }
 
-- (int)activeProcessID {
-    return activePID;
+- (void)setMenu:(NSMenu *)menu forApp:(NSString *)bundleID {
+    [menuDict setObject:menu forKey:bundleID];
 }
 
-- (void)setPort:(mach_port_t)port forPID:(unsigned int)pid {
-    [portDict setObject:[NSNumber numberWithInt:port] forKey:[NSNumber numberWithInt:pid]];
-    if(activePID == pid)
-        _menuPort = port;
-}
-
-- (void)removePortForPID:(unsigned int)pid {
-    mach_port_t port = [self portForPID:pid];
-    if(port != MACH_PORT_NULL)
-        mach_port_deallocate(mach_task_self(), port);
-    [portDict removeObjectForKey:[NSNumber numberWithInt:pid]];
-}
-
-- (mach_port_t)portForPID:(unsigned int)pid {
-    NSNumber *numPort = [portDict objectForKey:[NSNumber numberWithInt:pid]];
-    if(!numPort)
-        return MACH_PORT_NULL;
-    return [numPort intValue];
-}
-
-- (NSMenu *)menuForPID:(unsigned int)pid {
-    return [menuDict objectForKey:[NSNumber numberWithInt:pid]];
-}
-
-- (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid {
-    [menuDict setObject:menu forKey:[NSNumber numberWithInt:pid]];
-}
-
-- (void)removeMenuForPID:(unsigned int)pid {
-    if(pid == activePID) {
+- (void)removeMenuForApp:(NSString *)bundleID {
+    if(bundleID == activeApp) {
         [menuView setMenu:nil];
         [menuView setNeedsDisplay:YES];
-        activePID = 0;
+        activeApp = nil;
     }
-    [menuDict removeObjectForKey:[NSNumber numberWithInt:pid]];
+    [menuDict removeObjectForKey:bundleID];
 }
 
-- (BOOL)activateMenuForPID:(unsigned int)pid {
-    //[[self platformWindow] setExclusiveZone:menuBarHeight];
-    activePID = pid;
-    _menuPort = [self portForPID:pid];
-    NSMenu *menu = [self menuForPID:pid];
+- (BOOL)activateApp:(NSString *)bundleID {
+    activeApp = bundleID;
+    NSMenu *menu = [self menuForApp:bundleID];
     if(menu) {
         [menuView setMenu:menu];
         [menuView setNeedsDisplay:YES];

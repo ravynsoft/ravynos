@@ -137,19 +137,22 @@ static void kqSvcLoop(void *arg) {
 }
 
 -(NSWindow *)createWindowWithFrame:(NSRect)frame {
-    int mask = NSBorderlessWindowMask|WLWindowLayerOverlay;
+    NSScreen *mainScreen = [[NSScreen screens] objectAtIndex:0];
     switch(_location) {
         case LOCATION_LEFT:
-            mask |= WLWindowLayerAnchorLeft;
+            frame.origin.x = 0;
+            frame.origin.y = [mainScreen frame].size.height / 2 - frame.size.height / 2;
             break;
         case LOCATION_RIGHT:
-            mask |= WLWindowLayerAnchorRight;
+            frame.origin.x = [mainScreen frame].size.width - frame.size.width;
+            frame.origin.y = [mainScreen frame].size.height / 2 - frame.size.height / 2;
             break;
         default:
-            mask |= WLWindowLayerAnchorBottom;
+            frame.origin.x = [mainScreen frame].size.width / 2 - frame.size.width / 2;
+            frame.origin.y = 0;
     }
 
-    _window = [[NSWindow alloc] initWithContentRect:frame styleMask:mask
+    _window = [[NSWindow alloc] initWithContentRect:frame styleMask:NSBorderlessWindowMask
         backing:NSBackingStoreBuffered defer:NO];
     [_window setBackgroundColor:[NSColor colorWithDeviceRed:0.666 green:0.666
         blue:0.666 alpha:_alpha]];
@@ -164,7 +167,7 @@ static void kqSvcLoop(void *arg) {
     frame.size = NSSizeFromString([dict objectForKey:@"WLOutputSize"]);
     frame.origin = NSPointFromString([dict objectForKey:@"WLOutputPosition"]);
 
-    DesktopWindow *desktop = [[DesktopWindow alloc] initWithFrame:frame forOutput:dict];
+    DesktopWindow *desktop = [[DesktopWindow alloc] initWithFrame:frame];
     [_desktops setObject:desktop forKey:[dict objectForKey:@"WLOutputXDGOutput"]];
     [desktop setDelegate:self];
     [desktop makeKeyAndOrderFront:nil];

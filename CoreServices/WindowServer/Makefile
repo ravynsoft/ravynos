@@ -30,7 +30,7 @@ CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -pthread \
 		-I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/libinput/src \
 		-I${.CURDIR}/libinput/include -I${SRCTOP}/Frameworks \
 		-I${.CURDIR}/libxkbcommon/include -I${SRCTOP}/CoreServices \
-		-I${OBJTOP}/Frameworks/Foundation/Headers \
+		-I${OBJTOP}/Frameworks/Foundation/Headers -I${OBJTOP}/tmp/usr/include \
 		-I${SRCTOP}/gnu/lib/libobjc2 -I${SRCTOP}/sys/sys -I${SRCTOP}/sys
 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
@@ -58,7 +58,6 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
 SUBDIR+=        libevdev .WAIT
 SUBDIR+=	mtdev .WAIT
 SUBDIR+=        libinput .WAIT
-#SUBDIR+=	gplv2/cairo
 SUBDIR+=	libxkbcommon
 
 ${MAKEOBJDIR}/Resources:

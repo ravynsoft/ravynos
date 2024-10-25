@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,42 +24,20 @@
 #import <mach/mach.h>
 #import "Label.h"
 
-extern const NSString *WLOutputDidResizeNotification;
-extern int fd;
-
-@class WLWindow;
-@interface NSWindow(WLWindow_private)
-- (WLWindow *)platformWindow;
-- (void)setKeyboardInteractivity:(uint32_t)keyboardStyle;
-@end
-
-@interface DesktopWindow: NSWindow {
-    NSImageView *view;
-    BOOL _priDisplay; // primary display has the login box
-}
-
-- (DesktopWindow *)initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey;
-- (id)platformWindow;
-- (void)updateBackground;
-- (BOOL)isPrimaryDisplay;
-- (void)screenDidResize:(NSNotification *)note;
-- (void)updateBackground;
-@end
-
 @interface LoginBox: NSView {
     NSTextField *userField;
     NSSecureTextField *passField;
+    NSImageView *wordmark;
+    NSImageView *logoView;
 }
 
-- initWithDesktopWindow:(DesktopWindow *)window;
+- initWithWindow:(NSWindow*)window;
 - (void)checkFields:(id)sender;
 @end
 
-
-@interface AppDelegate: NSObject {
-    NSMutableDictionary *desktops;
+@interface DesktopWindow: NSWindow {
+    NSImageView *wallpaper;
+    LoginBox *box;
 }
 
-- (void)screenDidResize:(NSNotification *)note;
-- (void)updateBackground;
 @end

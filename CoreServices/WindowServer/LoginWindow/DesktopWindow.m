@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,55 +24,30 @@
 #import "desktop.h"
 
 @implementation DesktopWindow
-- initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey {
-    NSArray *screens = [NSScreen screens];
-    NSScreen *output = nil;
-    BOOL priDisplay = NO;
-
-    for(int i = 0; i < [screens count]; ++i) {
-        NSScreen *s = [screens objectAtIndex:i];
-        if([s key] == outputKey) {
-            output = s;
-            if(i == 0)
-                priDisplay = YES;
-            break;
-        }
-    }
-
-    frame.origin = NSZeroPoint;
-    self = [super initWithContentRect:frame
-        styleMask:NSBorderlessWindowMask|WLWindowLayerOverlay
-        backing:NSBackingStoreBuffered defer:NO screen:output];
-    _priDisplay = priDisplay;
-
-    view = [[NSImageView alloc] initWithFrame:frame];
-    [view setImageScaling:NSImageScaleAxesIndependently];
-    [view setImageAlignment:NSImageAlignCenter];
-    [_contentView addSubview:view];
-    [self updateBackground];
-    [view setAutoresizingMask:0];
-    [view setNeedsDisplay:YES];
-
-    if(_priDisplay) {
-        LoginBox *box = [[LoginBox alloc] initWithDesktopWindow:self];
-        [[self platformWindow] setKeyboardInteractivity:WLWindowLayerKeyboardExclusive];
-        [view addSubview:box];
-        [view setNextKeyView:box];
-        [self makeKeyAndOrderFront:nil];
-    }
-
+- init {
+    NSScreen *screen = [NSScreen mainScreen];
+    self = [super initWithContentRect:[screen frame] styleMask:NSBorderlessWindowMask
+        backing:NSBackingStoreBuffered defer:NO];
     return self;
 }
 
-- (BOOL)isPrimaryDisplay {
-    return _priDisplay;
+-(void)applicationWillFinishLaunching:(NSNotification *)note {
+    NSImage *img = [[NSImage alloc] initWithContentsOfFile:@"/System/Library/Desktop Pictures/Endless.jpg"];
+    [img setScalesWhenResized:YES];
+    wallpaper = [[NSImageView alloc] initWithFrame:_frame];
+    [wallpaper setImage:img];
+    [wallpaper setImageScaling:NSImageScaleAxesIndependently];
+    [_contentView addSubview:wallpaper];
+
+    box = [[LoginBox alloc] initWithWindow:self];
+    [_contentView addSubview:box];
+    [_contentView setNextKeyView:box];
+    [self makeKeyAndOrderFront:nil];
 }
 
-- (void)updateBackground {
-    NSString *wallpaper = [[NSBundle mainBundle] pathForResource:@"splash-1" ofType:@"png"];
-    NSImage *image = [[NSImage alloc] initWithContentsOfFile:wallpaper];
-    [view setImage:image];
-}
+//-(void)keyDown:(NSEvent *)event {
+//    NSLog(@"key down %@", event);
+//}
 
 @end
 
