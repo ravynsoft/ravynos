@@ -123,8 +123,13 @@ const int height = 640;
     return self;
 }
 
+-(void)keyDown:(NSEvent *)event {
+    NSLog(@"key %@", event);
+}
+
 static void badLogin() {
     NSLog(@"bad login");
+    // FIXME: clear input fields
 }
 
 - (void)checkFields:(id)sender {
@@ -143,6 +148,8 @@ static void badLogin() {
         badLogin();
         return;
     }
+
+    NSLog(@"username %s uid %d gid %d", pw->pw_name, pw->pw_uid, pw->pw_gid);
 
     exit(pw->pw_uid);
 }

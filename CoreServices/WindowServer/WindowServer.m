@@ -324,15 +324,17 @@ pthread_mutex_t renderLock;
                     execle([lwPath UTF8String], [[lwPath lastPathComponent] UTF8String], NULL, NULL);
                     exit(1);
                 } else {
-                    waitpid(pid, &status, 0); // wait for LoginWindow to exit. exit code is the uid!
-                    NSLog(@"LoginWindow: exit=%u", status);
-                    struct passwd *pw = getpwuid(status);
+                    siginfo_t siginfo;
+                    // wait for LoginWindow to exit. exit code is the uid!
+                    wait6(P_PID, pid, &status, WEXITED, NULL, &siginfo); 
+                    NSLog(@"LoginWindow: exit=%u", siginfo.si_pid);
+                    struct passwd *pw = getpwuid(siginfo.si_pid);
                     if(!pw) {
                         NSLog(@"uid not found");
                         break;
                     }
 
-                    uid = status;
+                    uid = siginfo.si_pid;
                     gid = pw->pw_gid;
                     NSLog(@"Logged in user %s, gid %u", pw->pw_name, pw->pw_gid);
                     curShell = DESKTOP;

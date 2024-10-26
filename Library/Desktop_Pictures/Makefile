@@ -3,7 +3,7 @@ PICSDIR= /System/Library/Desktop Pictures
 all: clean build
 build:
 	mkdir -pv "${BUILDROOT}${PICSDIR}"
-	for pic in *.jpg; do \
+	for pic in *.jpg Attribution.json; do \
 	    ${INSTALL} -m 0644 "$$pic" '${BUILDROOT}${PICSDIR}/'; done
 
 clean:

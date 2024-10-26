@@ -42,6 +42,7 @@
     box = [[LoginBox alloc] initWithWindow:self];
     [_contentView addSubview:box];
     [_contentView setNextKeyView:box];
+    [self becomeMainWindow];
     [self makeKeyAndOrderFront:nil];
 }
 
