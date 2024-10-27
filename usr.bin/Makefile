@@ -91,6 +91,7 @@ SUBDIR=	alias \
 	mdo \
 	mesg \
 	migcom \
+	mididump \
 	ministat \
 	mkdep \
 	mkfifo \

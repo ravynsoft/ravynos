@@ -1344,6 +1344,7 @@ tmpfs_rmdir(struct vop_rmdir_args *v)
 		goto out;
 	}
 
+	/* Check flags to see if we are allowed to remove the directory. */
 	if ((dnode->tn_flags & APPEND)
 	    || (node->tn_flags & (NOUNLINK | IMMUTABLE | APPEND))) {
 		error = EPERM;
@@ -1360,13 +1361,6 @@ tmpfs_rmdir(struct vop_rmdir_args *v)
 	MPASS(TMPFS_DIRENT_MATCHES(de,
 	    cnp->cn_nameptr,
 	    cnp->cn_namelen));
-
-	/* Check flags to see if we are allowed to remove the directory. */
-	if ((dnode->tn_flags & APPEND) != 0 ||
-	    (node->tn_flags & (NOUNLINK | IMMUTABLE | APPEND)) != 0) {
-		error = EPERM;
-		goto out;
-	}
 
 	/* Detach the directory entry from the directory (dnode). */
 	tmpfs_dir_detach(dvp, de);
@@ -2098,40 +2092,10 @@ tmpfs_setextattr(struct vop_setextattr_args *ap)
 static off_t
 tmpfs_seek_data_locked(vm_object_t obj, off_t noff)
 {
-	vm_page_t m;
-	vm_pindex_t p, p_swp;
+	vm_pindex_t p;
 
-	p = OFF_TO_IDX(noff);
-	m = vm_page_find_least(obj, p);
-
-	/*
-	 * Microoptimize the most common case for SEEK_DATA, where
-	 * there is no hole and the page is resident.
-	 */
-	if (m != NULL && m->pindex == p && vm_page_any_valid(m))
-		return (noff);
-
-	p_swp = swap_pager_find_least(obj, p);
-	if (p_swp == p)
-		return (noff);
-
-	/*
-	 * Find the first resident page after p, before p_swp.
-	 */
-	while (m != NULL && m->pindex < p_swp) {
-		if (vm_page_any_valid(m))
-			return (IDX_TO_OFF(m->pindex));
-		m = TAILQ_NEXT(m, listq);
-	}
-	if (p_swp == OBJ_MAX_SIZE)
-		p_swp = obj->size;
-	return (IDX_TO_OFF(p_swp));
-}
-
-static off_t
-tmpfs_seek_next(off_t noff)
-{
-	return (noff + PAGE_SIZE - (noff & PAGE_MASK));
+	p = swap_pager_seek_data(obj, OFF_TO_IDX(noff));
+	return (p == OFF_TO_IDX(noff) ? noff : IDX_TO_OFF(p));
 }
 
 static int
@@ -2148,30 +2112,8 @@ tmpfs_seek_clamp(struct tmpfs_node *tn, off_t *noff, bool seekdata)
 static off_t
 tmpfs_seek_hole_locked(vm_object_t obj, off_t noff)
 {
-	vm_page_t m;
-	vm_pindex_t p, p_swp;
 
-	for (;; noff = tmpfs_seek_next(noff)) {
-		/*
-		 * Walk over the largest sequential run of the valid pages.
-		 */
-		for (m = vm_page_lookup(obj, OFF_TO_IDX(noff));
-		    m != NULL && vm_page_any_valid(m);
-		    m = vm_page_next(m), noff = tmpfs_seek_next(noff))
-			;
-
-		/*
-		 * Found a hole in the object's page queue.  Check if
-		 * there is a hole in the swap at the same place.
-		 */
-		p = OFF_TO_IDX(noff);
-		p_swp = swap_pager_find_least(obj, p);
-		if (p_swp != p) {
-			noff = IDX_TO_OFF(p);
-			break;
-		}
-	}
-	return (noff);
+	return (IDX_TO_OFF(swap_pager_seek_hole(obj, OFF_TO_IDX(noff))));
 }
 
 static int

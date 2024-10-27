@@ -1157,6 +1157,55 @@ chn_reset(struct pcm_channel *c, uint32_t fmt, uint32_t spd)
 	return r;
 }
 
+static struct unrhdr *
+chn_getunr(struct snddev_info *d, int type)
+{
+	switch (type) {
+	case PCMDIR_PLAY:
+		return (d->p_unr);
+	case PCMDIR_PLAY_VIRTUAL:
+		return (d->vp_unr);
+	case PCMDIR_REC:
+		return (d->r_unr);
+	case PCMDIR_REC_VIRTUAL:
+		return (d->vr_unr);
+	default:
+		__assert_unreachable();
+	}
+
+}
+
+char *
+chn_mkname(char *buf, size_t len, struct pcm_channel *c)
+{
+	const char *str;
+
+	KASSERT(buf != NULL && len != 0,
+	    ("%s(): bogus buf=%p len=%zu", __func__, buf, len));
+
+	switch (c->type) {
+	case PCMDIR_PLAY:
+		str = "play";
+		break;
+	case PCMDIR_PLAY_VIRTUAL:
+		str = "virtual_play";
+		break;
+	case PCMDIR_REC:
+		str = "record";
+		break;
+	case PCMDIR_REC_VIRTUAL:
+		str = "virtual_record";
+		break;
+	default:
+		__assert_unreachable();
+	}
+
+	snprintf(buf, len, "dsp%d.%s.%d",
+	    device_get_unit(c->dev), str, c->unit);
+
+	return (buf);
+}
+
 struct pcm_channel *
 chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
     int dir, void *devinfo)
@@ -1164,65 +1213,26 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 	struct pcm_channel *c;
 	struct feeder_class *fc;
 	struct snd_dbuf *b, *bs;
-	char *dirs, buf[CHN_NAMELEN];
-	int i, direction, *pnum, max, type, unit;
+	char buf[CHN_NAMELEN];
+	int i, direction;
 
 	PCM_BUSYASSERT(d);
 	PCM_LOCKASSERT(d);
 
 	switch (dir) {
 	case PCMDIR_PLAY:
-		dirs = "play";
-		direction = PCMDIR_PLAY;
-		pnum = &d->playcount;
-		type = SND_DEV_DSPHW_PLAY;
-		max = SND_MAXHWCHAN;
-		break;
 	case PCMDIR_PLAY_VIRTUAL:
-		dirs = "virtual_play";
 		direction = PCMDIR_PLAY;
-		pnum = &d->pvchancount;
-		type = SND_DEV_DSPHW_VPLAY;
-		max = SND_MAXVCHANS;
 		break;
 	case PCMDIR_REC:
-		dirs = "record";
-		direction = PCMDIR_REC;
-		pnum = &d->reccount;
-		type = SND_DEV_DSPHW_REC;
-		max = SND_MAXHWCHAN;
-		break;
 	case PCMDIR_REC_VIRTUAL:
-		dirs = "virtual_record";
 		direction = PCMDIR_REC;
-		pnum = &d->rvchancount;
-		type = SND_DEV_DSPHW_VREC;
-		max = SND_MAXVCHANS;
 		break;
 	default:
 		device_printf(d->dev,
 		    "%s(): invalid channel direction: %d\n",
 		    __func__, dir);
 		return (NULL);
-	}
-
-	if (*pnum >= max) {
-		device_printf(d->dev, "%s(): cannot allocate more channels "
-		    "(max=%d)\n", __func__, max);
-		return (NULL);
-	}
-
-	unit = 0;
-	CHN_FOREACH(c, d, channels.pcm) {
-		if (c->type != type)
-			continue;
-		unit++;
-		if (unit >= max) {
-			device_printf(d->dev, "%s(): cannot allocate more "
-			    "channels for type=%d (max=%d)\n",
-			    __func__, type, max);
-			return (NULL);
-		}
 	}
 
 	PCM_UNLOCK(d);
@@ -1235,8 +1245,8 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 	CHN_INIT(c, children);
 	CHN_INIT(c, children.busy);
 	c->direction = direction;
-	c->type = type;
-	c->unit = unit;
+	c->type = dir;
+	c->unit = alloc_unr(chn_getunr(d, c->type));
 	c->format = SND_FORMAT(AFMT_U8, 1, 0);
 	c->speed = DSP_DEFAULT_SPEED;
 	c->pid = -1;
@@ -1247,10 +1257,7 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 	c->parentchannel = parent;
 	c->dev = d->dev;
 	c->trigger = PCMTRIG_STOP;
-
-	snprintf(c->name, sizeof(c->name), "%s:%s:%s",
-	    device_get_nameunit(c->dev), dirs,
-	    dsp_unit2name(buf, sizeof(buf), c));
+	strlcpy(c->name, chn_mkname(buf, sizeof(buf), c), sizeof(c->name));
 
 	c->matrix = *feeder_matrix_id_map(SND_CHN_MATRIX_1_0);
 	c->matrix.id = SND_CHN_MATRIX_PCMCHANNEL;
@@ -1311,19 +1318,33 @@ chn_init(struct snddev_info *d, struct pcm_channel *parent, kobj_class_t cls,
 	 */
 	if (c->direction == PCMDIR_PLAY) {
 		bs->sl = sndbuf_getmaxsize(bs);
-		bs->shadbuf = malloc(bs->sl, M_DEVBUF, M_NOWAIT);
-		if (bs->shadbuf == NULL) {
-			device_printf(d->dev, "%s(): failed to create shadow "
-			    "buffer\n", __func__);
-			goto fail;
-		}
+		bs->shadbuf = malloc(bs->sl, M_DEVBUF, M_WAITOK);
 	}
 
 	PCM_LOCK(d);
+	CHN_INSERT_SORT_ASCEND(d, c, channels.pcm);
+
+	switch (c->type) {
+	case PCMDIR_PLAY:
+		d->playcount++;
+		break;
+	case PCMDIR_PLAY_VIRTUAL:
+		d->pvchancount++;
+		break;
+	case PCMDIR_REC:
+		d->reccount++;
+		break;
+	case PCMDIR_REC_VIRTUAL:
+		d->rvchancount++;
+		break;
+	default:
+		__assert_unreachable();
+	}
 
 	return (c);
 
 fail:
+	free_unr(chn_getunr(d, c->type), c->unit);
 	feeder_remove(c);
 	if (c->devinfo && CHANNEL_FREE(c->methods, c->devinfo))
 		sndbuf_free(b);
@@ -1345,16 +1366,39 @@ fail:
 void
 chn_kill(struct pcm_channel *c)
 {
+	struct snddev_info *d = c->parentsnddev;
 	struct snd_dbuf *b = c->bufhard;
 	struct snd_dbuf *bs = c->bufsoft;
 
 	PCM_BUSYASSERT(c->parentsnddev);
+
+	PCM_LOCK(d);
+	CHN_REMOVE(d, c, channels.pcm);
+
+	switch (c->type) {
+	case PCMDIR_PLAY:
+		d->playcount--;
+		break;
+	case PCMDIR_PLAY_VIRTUAL:
+		d->pvchancount--;
+		break;
+	case PCMDIR_REC:
+		d->reccount--;
+		break;
+	case PCMDIR_REC_VIRTUAL:
+		d->rvchancount--;
+		break;
+	default:
+		__assert_unreachable();
+	}
+	PCM_UNLOCK(d);
 
 	if (CHN_STARTED(c)) {
 		CHN_LOCK(c);
 		chn_trigger(c, PCMTRIG_ABORT);
 		CHN_UNLOCK(c);
 	}
+	free_unr(chn_getunr(c->parentsnddev, c->type), c->unit);
 	feeder_remove(c);
 	if (CHANNEL_FREE(c->methods, c->devinfo))
 		sndbuf_free(b);
@@ -1389,19 +1433,6 @@ chn_release(struct pcm_channel *c)
 	CHN_UNLOCK(c);
 
 	return (0);
-}
-
-int
-chn_ref(struct pcm_channel *c, int ref)
-{
-	PCM_BUSYASSERT(c->parentsnddev);
-	CHN_LOCKASSERT(c);
-	KASSERT((c->refcount + ref) >= 0,
-	    ("%s(): new refcount will be negative", __func__));
-
-	c->refcount += ref;
-
-	return (c->refcount);
 }
 
 int

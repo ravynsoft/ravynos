@@ -193,3 +193,41 @@ fi
 
 # 20240910  e2df9bb44109
 clean_dep   cddl/lib/libzpool abd_os c "linux/zfs/abd_os\.c"
+
+# 20241007
+clean_dep   cddl/lib/libzpool zfs_debug c "linux/zfs/zfs_debug\.c"
+
+# 20241011
+clean_dep   cddl/lib/libzpool arc_os c "linux/zfs/arc_os\.c"
+
+# 20241018  1363acbf25de    libc/csu: Support IFUNCs on riscv
+if [ ${MACHINE} = riscv ]; then
+	for f in "$OBJTOP"/lib/libc/.depend.libc_start1.*o; do
+		if [ ! -f "$f" ]; then
+			continue
+		fi
+		if ! grep -q 'lib/libc/csu/riscv/reloc\.c' "$f"; then
+			echo "Removing stale dependencies and objects for libc_start1.c"
+			run rm -f \
+			    "$OBJTOP"/lib/libc/.depend.libc_start1.* \
+			    "$OBJTOP"/lib/libc/libc_start1.*o
+			break
+		fi
+	done
+fi
+
+# 20241018  5deeebd8c6ca   Merge llvm-project release/19.x llvmorg-19.1.2-0-g7ba7d8e2f7b6
+p="$OBJTOP"/lib/clang/libclang/clang/Basic
+f="$p"/arm_mve_builtin_sema.inc
+if [ -e "$f" ]; then
+	if grep -q SemaBuiltinConstantArgRange "$f"; then
+		echo "Removing pre-llvm19 clang-tblgen output"
+		run rm -f "$p"/*.inc
+	fi
+fi
+
+# 20241025  cb5e41b16083  Unbundle hash functions fom lib/libcrypt
+clean_dep   lib/libcrypt crypt-md5    c
+clean_dep   lib/libcrypt crypt-nthash c
+clean_dep   lib/libcrypt crypt-sha256 c
+clean_dep   lib/libcrypt crypt-sha512 c

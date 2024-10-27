@@ -29,6 +29,7 @@
  * Copyright (c) 2019, Allan Jude
  * Copyright (c) 2019, 2023, 2024, Klara Inc.
  * Copyright (c) 2019-2020, Michael Niewöhner
+ * Copyright (c) 2024 by George Melikov. All rights reserved.
  */
 
 #ifndef _ZIO_H
@@ -207,24 +208,25 @@ typedef uint64_t zio_flag_t;
 #define	ZIO_FLAG_PROBE		(1ULL << 16)
 #define	ZIO_FLAG_TRYHARD	(1ULL << 17)
 #define	ZIO_FLAG_OPTIONAL	(1ULL << 18)
-
+#define	ZIO_FLAG_DIO_READ	(1ULL << 19)
 #define	ZIO_FLAG_VDEV_INHERIT	(ZIO_FLAG_DONT_QUEUE - 1)
 
 	/*
 	 * Flags not inherited by any children.
 	 */
-#define	ZIO_FLAG_DONT_QUEUE	(1ULL << 19)	/* must be first for INHERIT */
-#define	ZIO_FLAG_DONT_PROPAGATE	(1ULL << 20)
-#define	ZIO_FLAG_IO_BYPASS	(1ULL << 21)
-#define	ZIO_FLAG_IO_REWRITE	(1ULL << 22)
-#define	ZIO_FLAG_RAW_COMPRESS	(1ULL << 23)
-#define	ZIO_FLAG_RAW_ENCRYPT	(1ULL << 24)
-#define	ZIO_FLAG_GANG_CHILD	(1ULL << 25)
-#define	ZIO_FLAG_DDT_CHILD	(1ULL << 26)
-#define	ZIO_FLAG_GODFATHER	(1ULL << 27)
-#define	ZIO_FLAG_NOPWRITE	(1ULL << 28)
-#define	ZIO_FLAG_REEXECUTED	(1ULL << 29)
-#define	ZIO_FLAG_DELEGATED	(1ULL << 30)
+#define	ZIO_FLAG_DONT_QUEUE	(1ULL << 20)	/* must be first for INHERIT */
+#define	ZIO_FLAG_DONT_PROPAGATE	(1ULL << 21)
+#define	ZIO_FLAG_IO_BYPASS	(1ULL << 22)
+#define	ZIO_FLAG_IO_REWRITE	(1ULL << 23)
+#define	ZIO_FLAG_RAW_COMPRESS	(1ULL << 24)
+#define	ZIO_FLAG_RAW_ENCRYPT	(1ULL << 25)
+#define	ZIO_FLAG_GANG_CHILD	(1ULL << 26)
+#define	ZIO_FLAG_DDT_CHILD	(1ULL << 27)
+#define	ZIO_FLAG_GODFATHER	(1ULL << 28)
+#define	ZIO_FLAG_NOPWRITE	(1ULL << 29)
+#define	ZIO_FLAG_REEXECUTED	(1ULL << 30)
+#define	ZIO_FLAG_DELEGATED	(1ULL << 31)
+#define	ZIO_FLAG_DIO_CHKSUM_ERR	(1ULL << 32)
 
 #define	ZIO_ALLOCATOR_NONE	(-1)
 #define	ZIO_HAS_ALLOCATOR(zio)	((zio)->io_allocator != ZIO_ALLOCATOR_NONE)
@@ -355,6 +357,7 @@ typedef struct zio_prop {
 	boolean_t		zp_brtwrite;
 	boolean_t		zp_encrypt;
 	boolean_t		zp_byteorder;
+	boolean_t		zp_direct_write;
 	uint8_t			zp_salt[ZIO_DATA_SALT_LEN];
 	uint8_t			zp_iv[ZIO_DATA_IV_LEN];
 	uint8_t			zp_mac[ZIO_DATA_MAC_LEN];
@@ -601,6 +604,8 @@ extern int zio_alloc_zil(spa_t *spa, objset_t *os, uint64_t txg,
 extern void zio_flush(zio_t *zio, vdev_t *vd);
 extern void zio_shrink(zio_t *zio, uint64_t size);
 
+extern size_t zio_get_compression_max_size(enum zio_compress compress,
+    uint64_t gcd_alloc, uint64_t min_alloc, size_t s_len);
 extern int zio_wait(zio_t *zio);
 extern void zio_nowait(zio_t *zio);
 extern void zio_execute(void *zio);
@@ -642,6 +647,7 @@ extern void zio_vdev_io_redone(zio_t *zio);
 extern void zio_change_priority(zio_t *pio, zio_priority_t priority);
 
 extern void zio_checksum_verified(zio_t *zio);
+extern void zio_dio_chksum_verify_error_report(zio_t *zio);
 extern int zio_worst_error(int e1, int e2);
 
 extern enum zio_checksum zio_checksum_select(enum zio_checksum child,

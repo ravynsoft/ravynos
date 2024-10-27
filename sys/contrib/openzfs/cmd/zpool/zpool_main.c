@@ -522,7 +522,7 @@ get_usage(zpool_help_t idx)
 		return (gettext("\tstatus [--power] [-j [--json-int, "
 		    "--json-flat-vdevs, ...\n"
 		    "\t    --json-pool-key-guid]] [-c [script1,script2,...]] "
-		    "[-DegiLpPstvx] ...\n"
+		    "[-dDegiLpPstvx] ...\n"
 		    "\t    [-T d|u] [pool] [interval [count]]\n"));
 	case HELP_UPGRADE:
 		return (gettext("\tupgrade\n"
@@ -2602,6 +2602,7 @@ typedef struct status_cbdata {
 	boolean_t	cb_print_unhealthy;
 	boolean_t	cb_print_status;
 	boolean_t	cb_print_slow_ios;
+	boolean_t	cb_print_dio_verify;
 	boolean_t	cb_print_vdev_init;
 	boolean_t	cb_print_vdev_trim;
 	vdev_cmd_data_list_t	*vcdl;
@@ -2879,7 +2880,7 @@ print_status_config(zpool_handle_t *zhp, status_cbdata_t *cb, const char *name,
 	uint_t c, i, vsc, children;
 	pool_scan_stat_t *ps = NULL;
 	vdev_stat_t *vs;
-	char rbuf[6], wbuf[6], cbuf[6];
+	char rbuf[6], wbuf[6], cbuf[6], dbuf[6];
 	char *vname;
 	uint64_t notpresent;
 	spare_cbdata_t spare_cb;
@@ -2996,6 +2997,17 @@ print_status_config(zpool_handle_t *zhp, status_cbdata_t *cb, const char *name,
 			} else {
 				printf(" %5s", "-");
 			}
+		}
+		if (VDEV_STAT_VALID(vs_dio_verify_errors, vsc) &&
+		    cb->cb_print_dio_verify) {
+			zfs_nicenum(vs->vs_dio_verify_errors, dbuf,
+			    sizeof (dbuf));
+
+			if (cb->cb_literal)
+				printf(" %5llu",
+				    (u_longlong_t)vs->vs_dio_verify_errors);
+			else
+				printf(" %5s", dbuf);
 		}
 	}
 
@@ -7328,6 +7340,7 @@ zpool_do_list(int argc, char **argv)
 	current_prop_type = ZFS_TYPE_POOL;
 
 	struct option long_options[] = {
+		{"json", no_argument, NULL, 'j'},
 		{"json-int", no_argument, NULL, ZPOOL_OPTION_JSON_NUMS_AS_INT},
 		{"json-pool-key-guid", no_argument, NULL,
 		    ZPOOL_OPTION_POOL_KEY_GUID},
@@ -9212,6 +9225,12 @@ vdev_stats_nvlist(zpool_handle_t *zhp, status_cbdata_t *cb, nvlist_t *nv,
 		}
 	}
 
+	if (cb->cb_print_dio_verify) {
+		nice_num_str_nvlist(vds, "dio_verify_errors",
+		    vs->vs_dio_verify_errors, cb->cb_literal,
+		    cb->cb_json_as_int, ZFS_NICENUM_1024);
+	}
+
 	if (nvlist_lookup_uint64(nv, ZPOOL_CONFIG_NOT_PRESENT,
 	    &notpresent) == 0) {
 		nice_num_str_nvlist(vds, ZPOOL_CONFIG_NOT_PRESENT,
@@ -10873,6 +10892,10 @@ status_callback(zpool_handle_t *zhp, void *data)
 			printf_color(ANSI_BOLD, " %5s", gettext("POWER"));
 		}
 
+		if (cbp->cb_print_dio_verify) {
+			printf_color(ANSI_BOLD, " %5s", gettext("DIO"));
+		}
+
 		if (cbp->vcdl != NULL)
 			print_cmd_columns(cbp->vcdl, 0);
 
@@ -10921,10 +10944,11 @@ status_callback(zpool_handle_t *zhp, void *data)
 }
 
 /*
- * zpool status [-c [script1,script2,...]] [-DegiLpPstvx] [--power] [-T d|u] ...
- *              [pool] [interval [count]]
+ * zpool status [-c [script1,script2,...]] [-dDegiLpPstvx] [--power] ...
+ *              [-T d|u] [pool] [interval [count]]
  *
  *	-c CMD	For each vdev, run command CMD
+ *	-d	Display Direct I/O write verify errors
  *	-D	Display dedup status (undocumented)
  *	-e	Display only unhealthy vdevs
  *	-g	Display guid for individual vdev name.
@@ -10958,6 +10982,7 @@ zpool_do_status(int argc, char **argv)
 
 	struct option long_options[] = {
 		{"power", no_argument, NULL, ZPOOL_OPTION_POWER},
+		{"json", no_argument, NULL, 'j'},
 		{"json-int", no_argument, NULL, ZPOOL_OPTION_JSON_NUMS_AS_INT},
 		{"json-flat-vdevs", no_argument, NULL,
 		    ZPOOL_OPTION_JSON_FLAT_VDEVS},
@@ -10967,7 +10992,7 @@ zpool_do_status(int argc, char **argv)
 	};
 
 	/* check options */
-	while ((c = getopt_long(argc, argv, "c:jDegiLpPstT:vx", long_options,
+	while ((c = getopt_long(argc, argv, "c:jdDegiLpPstT:vx", long_options,
 	    NULL)) != -1) {
 		switch (c) {
 		case 'c':
@@ -10993,6 +11018,9 @@ zpool_do_status(int argc, char **argv)
 				exit(1);
 			}
 			cmd = optarg;
+			break;
+		case 'd':
+			cb.cb_print_dio_verify = B_TRUE;
 			break;
 		case 'D':
 			if (++cb.cb_dedup_stats  > 2)
@@ -12563,6 +12591,7 @@ zpool_do_get(int argc, char **argv)
 	current_prop_type = cb.cb_type;
 
 	struct option long_options[] = {
+		{"json", no_argument, NULL, 'j'},
 		{"json-int", no_argument, NULL, ZPOOL_OPTION_JSON_NUMS_AS_INT},
 		{"json-pool-key-guid", no_argument, NULL,
 		    ZPOOL_OPTION_POOL_KEY_GUID},
@@ -13477,7 +13506,12 @@ zpool_do_version(int argc, char **argv)
 	int c;
 	nvlist_t *jsobj = NULL, *zfs_ver = NULL;
 	boolean_t json = B_FALSE;
-	while ((c = getopt(argc, argv, "j")) != -1) {
+
+	struct option long_options[] = {
+		{"json", no_argument, NULL, 'j'},
+	};
+
+	while ((c = getopt_long(argc, argv, "j", long_options, NULL)) != -1) {
 		switch (c) {
 		case 'j':
 			json = B_TRUE;
@@ -13593,7 +13627,7 @@ main(int argc, char **argv)
 	 * Special case '-V|--version'
 	 */
 	if ((strcmp(cmdname, "-V") == 0) || (strcmp(cmdname, "--version") == 0))
-		return (zpool_do_version(argc, argv));
+		return (zfs_version_print() != 0);
 
 	/*
 	 * Special case 'help'

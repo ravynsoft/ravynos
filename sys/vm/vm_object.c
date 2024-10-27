@@ -66,6 +66,7 @@
 
 #include <sys/systm.h>
 #include <sys/blockcount.h>
+#include <sys/conf.h>
 #include <sys/cpuset.h>
 #include <sys/ipc.h>
 #include <sys/jail.h>
@@ -894,6 +895,9 @@ vm_object_terminate_single_page(vm_page_t p, void *objectv)
 	    ("%s: page %p is inconsistent", __func__, p));
 	p->object = NULL;
 	if (vm_page_drop(p, VPRC_OBJREF) == VPRC_OBJREF) {
+		KASSERT((object->flags & OBJ_UNMANAGED) != 0 ||
+		    vm_page_astate_load(p).queue != PQ_NONE,
+		    ("%s: page %p does not belong to a queue", __func__, p));
 		VM_CNT_INC(v_pfree);
 		vm_page_free(p);
 	}
@@ -1682,93 +1686,6 @@ vm_object_collapse_scan_wait(vm_object_t object, vm_page_t p)
 	return (TAILQ_FIRST(&backing_object->memq));
 }
 
-static bool
-vm_object_scan_all_shadowed(vm_object_t object)
-{
-	vm_object_t backing_object;
-	vm_page_t p, pp;
-	vm_pindex_t backing_offset_index, new_pindex, pi, ps;
-
-	VM_OBJECT_ASSERT_WLOCKED(object);
-	VM_OBJECT_ASSERT_WLOCKED(object->backing_object);
-
-	backing_object = object->backing_object;
-
-	if ((backing_object->flags & OBJ_ANON) == 0)
-		return (false);
-
-	pi = backing_offset_index = OFF_TO_IDX(object->backing_object_offset);
-	p = vm_page_find_least(backing_object, pi);
-	ps = swap_pager_find_least(backing_object, pi);
-
-	/*
-	 * Only check pages inside the parent object's range and
-	 * inside the parent object's mapping of the backing object.
-	 */
-	for (;; pi++) {
-		if (p != NULL && p->pindex < pi)
-			p = TAILQ_NEXT(p, listq);
-		if (ps < pi)
-			ps = swap_pager_find_least(backing_object, pi);
-		if (p == NULL && ps >= backing_object->size)
-			break;
-		else if (p == NULL)
-			pi = ps;
-		else
-			pi = MIN(p->pindex, ps);
-
-		new_pindex = pi - backing_offset_index;
-		if (new_pindex >= object->size)
-			break;
-
-		if (p != NULL) {
-			/*
-			 * If the backing object page is busy a
-			 * grandparent or older page may still be
-			 * undergoing CoW.  It is not safe to collapse
-			 * the backing object until it is quiesced.
-			 */
-			if (vm_page_tryxbusy(p) == 0)
-				return (false);
-
-			/*
-			 * We raced with the fault handler that left
-			 * newly allocated invalid page on the object
-			 * queue and retried.
-			 */
-			if (!vm_page_all_valid(p))
-				goto unbusy_ret;
-		}
-
-		/*
-		 * See if the parent has the page or if the parent's object
-		 * pager has the page.  If the parent has the page but the page
-		 * is not valid, the parent's object pager must have the page.
-		 *
-		 * If this fails, the parent does not completely shadow the
-		 * object and we might as well give up now.
-		 */
-		pp = vm_page_lookup(object, new_pindex);
-
-		/*
-		 * The valid check here is stable due to object lock
-		 * being required to clear valid and initiate paging.
-		 * Busy of p disallows fault handler to validate pp.
-		 */
-		if ((pp == NULL || vm_page_none_valid(pp)) &&
-		    !vm_pager_has_page(object, new_pindex, NULL, NULL))
-			goto unbusy_ret;
-		if (p != NULL)
-			vm_page_xunbusy(p);
-	}
-	return (true);
-
-unbusy_ret:
-	if (p != NULL)
-		vm_page_xunbusy(p);
-	return (false);
-}
-
 static void
 vm_object_collapse_scan(vm_object_t object)
 {
@@ -1997,7 +1914,7 @@ vm_object_collapse(vm_object_t object)
 			 * The object lock and backing_object lock must not
 			 * be dropped during this sequence.
 			 */
-			if (!vm_object_scan_all_shadowed(object)) {
+			if (!swap_pager_scan_all_shadowed(object)) {
 				VM_OBJECT_WUNLOCK(backing_object);
 				break;
 			}
@@ -2506,8 +2423,10 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 	struct vattr va;
 	vm_object_t obj;
 	vm_page_t m;
+	struct cdev *cdev;
+	struct cdevsw *csw;
 	u_long sp;
-	int count, error;
+	int count, error, ref;
 	key_t key;
 	unsigned short seq;
 	bool want_path;
@@ -2569,10 +2488,12 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 				 * sysctl is only meant to give an
 				 * approximation of the system anyway.
 				 */
-				if (m->a.queue == PQ_ACTIVE)
+				if (vm_page_active(m))
 					kvo->kvo_active++;
-				else if (m->a.queue == PQ_INACTIVE)
+				else if (vm_page_inactive(m))
 					kvo->kvo_inactive++;
+				else if (vm_page_in_laundry(m))
+					kvo->kvo_laundry++;
 			}
 		}
 
@@ -2593,6 +2514,17 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 			kvo->kvo_backing_obj = (uintptr_t)obj->backing_object;
 			sp = swap_pager_swapped_pages(obj);
 			kvo->kvo_swapped = sp > UINT32_MAX ? UINT32_MAX : sp;
+		}
+		if (obj->type == OBJT_DEVICE || obj->type == OBJT_MGTDEVICE) {
+			cdev = obj->un_pager.devp.dev;
+			if (cdev != NULL) {
+				csw = dev_refthread(cdev, &ref);
+				if (csw != NULL) {
+					strlcpy(kvo->kvo_path, cdev->si_name,
+					    sizeof(kvo->kvo_path));
+					dev_relthread(cdev, ref);
+				}
+			}
 		}
 		VM_OBJECT_RUNLOCK(obj);
 		if ((obj->flags & OBJ_SYSVSHM) != 0) {

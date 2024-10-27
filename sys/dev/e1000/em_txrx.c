@@ -43,29 +43,26 @@
 /*********************************************************************
  *  Local Function prototypes
  *********************************************************************/
-static int em_tso_setup(struct e1000_softc *sc, if_pkt_info_t pi,
-    uint32_t *txd_upper, uint32_t *txd_lower);
-static int em_transmit_checksum_setup(struct e1000_softc *sc,
-    if_pkt_info_t pi, uint32_t *txd_upper, uint32_t *txd_lower);
-static int em_isc_txd_encap(void *arg, if_pkt_info_t pi);
-static void em_isc_txd_flush(void *arg, uint16_t txqid, qidx_t pidx);
-static int em_isc_txd_credits_update(void *arg, uint16_t txqid, bool clear);
-static void em_isc_rxd_refill(void *arg, if_rxd_update_t iru);
-static void em_isc_rxd_flush(void *arg, uint16_t rxqid, uint8_t flid __unused,
-    qidx_t pidx);
-static int em_isc_rxd_available(void *arg, uint16_t rxqid, qidx_t idx,
-    qidx_t budget);
-static int em_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri);
+static int em_tso_setup(struct e1000_softc *, if_pkt_info_t, uint32_t *,
+    uint32_t *);
+static int em_transmit_checksum_setup(struct e1000_softc *, if_pkt_info_t,
+    uint32_t *, uint32_t *);
+static int em_isc_txd_encap(void *, if_pkt_info_t);
+static void em_isc_txd_flush(void *, uint16_t, qidx_t);
+static int em_isc_txd_credits_update(void *, uint16_t, bool);
+static void em_isc_rxd_refill(void *, if_rxd_update_t);
+static void em_isc_rxd_flush(void *, uint16_t, uint8_t, qidx_t);
+static int em_isc_rxd_available(void *, uint16_t, qidx_t, qidx_t);
+static int em_isc_rxd_pkt_get(void *, if_rxd_info_t);
 
-static void lem_isc_rxd_refill(void *arg, if_rxd_update_t iru);
+static void lem_isc_rxd_refill(void *, if_rxd_update_t);
 
-static int lem_isc_rxd_available(void *arg, uint16_t rxqid, qidx_t idx,
-   qidx_t budget);
-static int lem_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri);
+static int lem_isc_rxd_available(void *, uint16_t, qidx_t, qidx_t);
+static int lem_isc_rxd_pkt_get(void *, if_rxd_info_t);
 
 static void em_receive_checksum(uint16_t, uint8_t, if_rxd_info_t);
-static int em_determine_rsstype(uint32_t pkt_info);
-extern int em_intr(void *arg);
+static int em_determine_rsstype(uint32_t);
+extern int em_intr(void *);
 
 struct if_txrx em_txrx = {
 	.ift_txd_encap = em_isc_txd_encap,
@@ -455,6 +452,10 @@ em_isc_txd_encap(void *arg, if_pkt_info_t pi)
 	    "tx_buffers[%d]->eop = %d ipi_new_pidx=%d\n", first, pidx_last, i);
 	pi->ipi_new_pidx = i;
 
+	/* Sent data accounting for AIM */
+	txr->tx_bytes += pi->ipi_len;
+	++txr->tx_packets;
+
 	return (0);
 }
 
@@ -669,6 +670,7 @@ lem_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 
 		len = le16toh(rxd->length);
 		ri->iri_len += len;
+		rxr->rx_bytes += ri->iri_len;
 
 		eop = (status & E1000_RXD_STAT_EOP) != 0;
 
@@ -689,6 +691,8 @@ lem_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 			cidx = 0;
 		i++;
 	} while (!eop);
+
+	rxr->rx_packets++;
 
 	if (scctx->isc_capenable & IFCAP_RXCSUM)
 		em_receive_checksum(status, errors, ri);
@@ -732,6 +736,7 @@ em_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 
 		len = le16toh(rxd->wb.upper.length);
 		ri->iri_len += len;
+		rxr->rx_bytes += ri->iri_len;
 
 		eop = (staterr & E1000_RXD_STAT_EOP) != 0;
 
@@ -751,6 +756,8 @@ em_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 			cidx = 0;
 		i++;
 	} while (!eop);
+
+	rxr->rx_packets++;
 
 	if (scctx->isc_capenable & IFCAP_RXCSUM)
 		em_receive_checksum(staterr, staterr >> 24, ri);

@@ -27,6 +27,7 @@ _PRIVATELIBS=	\
 		gtest_main \
 		heimipcc \
 		heimipcs \
+		kldelf \
 		ldns \
 		sqlite3 \
 		ssh \
@@ -323,6 +324,7 @@ _DP_bsnmp=	crypto
 .endif
 _DP_geom=	bsdxml sbuf
 _DP_cam=	sbuf
+_DP_kldelf=	elf
 _DP_kvm=	elf
 _DP_casper=	nv
 _DP_cap_dns=	nv
@@ -331,6 +333,7 @@ _DP_cap_grp=	nv
 _DP_cap_pwd=	nv
 _DP_cap_sysctl=	nv
 _DP_cap_syslog=	nv
+_DP_crypt=	md
 .if ${MK_OFED} != "no"
 _DP_pcap=	ibverbs mlx5
 .endif

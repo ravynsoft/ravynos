@@ -109,13 +109,12 @@ snd_setup_intr(device_t dev, struct resource *res, int flags, driver_intr_t hand
 	return bus_setup_intr(dev, res, flags, NULL, hand, param, cookiep);
 }
 
-/* return error status and a locked channel */
 int
 pcm_chnalloc(struct snddev_info *d, struct pcm_channel **ch, int direction,
     pid_t pid, char *comm)
 {
 	struct pcm_channel *c;
-	int err, vchancount, vchan_num;
+	int err, vchancount;
 	bool retry;
 
 	KASSERT(d != NULL && ch != NULL &&
@@ -125,46 +124,38 @@ pcm_chnalloc(struct snddev_info *d, struct pcm_channel **ch, int direction,
 	PCM_BUSYASSERT(d);
 
 	*ch = NULL;
-	vchan_num = 0;
 	vchancount = (direction == PCMDIR_PLAY) ? d->pvchancount :
 	    d->rvchancount;
-
 	retry = false;
+
 retry_chnalloc:
-	err = ENOTSUP;
-	/* scan for a free channel */
+	/* Scan for a free channel. */
 	CHN_FOREACH(c, d, channels.pcm) {
 		CHN_LOCK(c);
-		if (c->direction == direction && (c->flags & CHN_F_VIRTUAL)) {
-			if (vchancount < snd_maxautovchans &&
-			    vchan_num < c->unit) {
-			    	CHN_UNLOCK(c);
-				goto vchan_alloc;
-			}
-			vchan_num++;
+		if (c->direction != direction) {
+			CHN_UNLOCK(c);
+			continue;
 		}
-		if (c->direction == direction && !(c->flags & CHN_F_BUSY)) {
+		if (!(c->flags & CHN_F_BUSY)) {
 			c->flags |= CHN_F_BUSY;
 			c->pid = pid;
 			strlcpy(c->comm, (comm != NULL) ? comm :
 			    CHN_COMM_UNKNOWN, sizeof(c->comm));
 			*ch = c;
+
 			return (0);
-		} else if (c->direction == direction && (c->flags & CHN_F_BUSY))
-			err = EBUSY;
+		}
 		CHN_UNLOCK(c);
 	}
-
-	/*
-	 * We came from retry_chnalloc and still didn't find a free channel.
-	 */
+	/* Maybe next time... */
 	if (retry)
-		return (err);
+		return (EBUSY);
 
-vchan_alloc:
-	/* no channel available */
+	/* No channel available. We also cannot create more VCHANs. */
 	if (!(vchancount > 0 && vchancount < snd_maxautovchans))
-		return (err);
+		return (ENOTSUP);
+
+	/* Increase the VCHAN count and try to get the new channel. */
 	err = vchan_setnew(d, direction, vchancount + 1);
 	if (err == 0) {
 		retry = true;
@@ -197,74 +188,6 @@ SYSCTL_PROC(_hw_snd, OID_AUTO, default_unit,
     sizeof(int), sysctl_hw_snd_default_unit, "I",
     "default sound device");
 
-void
-pcm_chn_add(struct snddev_info *d, struct pcm_channel *ch)
-{
-	PCM_BUSYASSERT(d);
-	PCM_LOCKASSERT(d);
-	KASSERT(ch != NULL && (ch->direction == PCMDIR_PLAY ||
-	    ch->direction == PCMDIR_REC), ("Invalid pcm channel"));
-
-	CHN_INSERT_SORT_ASCEND(d, ch, channels.pcm);
-
-	switch (ch->type) {
-	case SND_DEV_DSPHW_PLAY:
-		d->playcount++;
-		break;
-	case SND_DEV_DSPHW_VPLAY:
-		d->pvchancount++;
-		break;
-	case SND_DEV_DSPHW_REC:
-		d->reccount++;
-		break;
-	case SND_DEV_DSPHW_VREC:
-		d->rvchancount++;
-		break;
-	default:
-		__assert_unreachable();
-	}
-}
-
-int
-pcm_chn_remove(struct snddev_info *d, struct pcm_channel *ch)
-{
-	struct pcm_channel *tmp;
-
-	PCM_BUSYASSERT(d);
-	PCM_LOCKASSERT(d);
-
-	tmp = NULL;
-
-	CHN_FOREACH(tmp, d, channels.pcm) {
-		if (tmp == ch)
-			break;
-	}
-
-	if (tmp != ch)
-		return (EINVAL);
-
-	CHN_REMOVE(d, ch, channels.pcm);
-
-	switch (ch->type) {
-	case SND_DEV_DSPHW_PLAY:
-		d->playcount--;
-		break;
-	case SND_DEV_DSPHW_VPLAY:
-		d->pvchancount--;
-		break;
-	case SND_DEV_DSPHW_REC:
-		d->reccount--;
-		break;
-	case SND_DEV_DSPHW_VREC:
-		d->rvchancount--;
-		break;
-	default:
-		__assert_unreachable();
-	}
-
-	return (0);
-}
-
 int
 pcm_addchan(device_t dev, int dir, kobj_class_t cls, void *devinfo)
 {
@@ -281,8 +204,6 @@ pcm_addchan(device_t dev, int dir, kobj_class_t cls, void *devinfo)
 		PCM_UNLOCK(d);
 		return (ENODEV);
 	}
-
-	pcm_chn_add(d, ch);
 	PCM_UNLOCK(d);
 
 	return (0);
@@ -292,7 +213,6 @@ static void
 pcm_killchans(struct snddev_info *d)
 {
 	struct pcm_channel *ch;
-	int error;
 	bool found;
 
 	PCM_BUSYASSERT(d);
@@ -325,12 +245,7 @@ pcm_killchans(struct snddev_info *d)
 			pause_sbt("pcmkillchans", SBT_1MS * 5, 0, 0);
 			continue;
 		}
-
-		PCM_LOCK(d);
-		error = pcm_chn_remove(d, ch);
-		PCM_UNLOCK(d);
-		if (error == 0)
-			chn_kill(ch);
+		chn_kill(ch);
 	} while (!CHN_EMPTY(d, channels.pcm));
 }
 
@@ -577,6 +492,10 @@ pcm_register(device_t dev, void *devinfo, int numplay, int numrec)
 	d->pvchanformat = 0;
 	d->rvchanrate = 0;
 	d->rvchanformat = 0;
+	d->p_unr = new_unrhdr(0, INT_MAX, NULL);
+	d->vp_unr = new_unrhdr(0, INT_MAX, NULL);
+	d->r_unr = new_unrhdr(0, INT_MAX, NULL);
+	d->vr_unr = new_unrhdr(0, INT_MAX, NULL);
 
 	CHN_INIT(d, channels.pcm);
 	CHN_INIT(d, channels.pcm.busy);
@@ -662,6 +581,14 @@ pcm_unregister(device_t dev)
 	cv_destroy(&d->cv);
 	PCM_UNLOCK(d);
 	snd_mtxfree(d->lock);
+	if (d->p_unr != NULL)
+		delete_unrhdr(d->p_unr);
+	if (d->vp_unr != NULL)
+		delete_unrhdr(d->vp_unr);
+	if (d->r_unr != NULL)
+		delete_unrhdr(d->r_unr);
+	if (d->vr_unr != NULL)
+		delete_unrhdr(d->vr_unr);
 
 	if (snd_unit == device_get_unit(dev)) {
 		snd_unit = pcm_best_unit(-1);
@@ -826,6 +753,51 @@ sound_oss_card_info(oss_card_info *si)
 
 /************************************************************************/
 
+static void
+sound_global_init(void)
+{
+	if (snd_verbose < 0 || snd_verbose > 4)
+		snd_verbose = 1;
+
+	if (snd_unit < 0)
+		snd_unit = -1;
+
+	if (snd_maxautovchans < 0 ||
+	    snd_maxautovchans > SND_MAXVCHANS)
+		snd_maxautovchans = 0;
+
+	if (chn_latency < CHN_LATENCY_MIN ||
+	    chn_latency > CHN_LATENCY_MAX)
+		chn_latency = CHN_LATENCY_DEFAULT;
+
+	if (chn_latency_profile < CHN_LATENCY_PROFILE_MIN ||
+	    chn_latency_profile > CHN_LATENCY_PROFILE_MAX)
+		chn_latency_profile = CHN_LATENCY_PROFILE_DEFAULT;
+
+	if (feeder_rate_min < FEEDRATE_MIN ||
+		    feeder_rate_max < FEEDRATE_MIN ||
+		    feeder_rate_min > FEEDRATE_MAX ||
+		    feeder_rate_max > FEEDRATE_MAX ||
+		    !(feeder_rate_min < feeder_rate_max)) {
+		feeder_rate_min = FEEDRATE_RATEMIN;
+		feeder_rate_max = FEEDRATE_RATEMAX;
+	}
+
+	if (feeder_rate_round < FEEDRATE_ROUNDHZ_MIN ||
+		    feeder_rate_round > FEEDRATE_ROUNDHZ_MAX)
+		feeder_rate_round = FEEDRATE_ROUNDHZ;
+
+	if (bootverbose)
+		printf("%s: snd_unit=%d snd_maxautovchans=%d "
+		    "latency=%d "
+		    "feeder_rate_min=%d feeder_rate_max=%d "
+		    "feeder_rate_round=%d\n",
+		    __func__, snd_unit, snd_maxautovchans,
+		    chn_latency,
+		    feeder_rate_min, feeder_rate_max,
+		    feeder_rate_round);
+}
+
 static int
 sound_modevent(module_t mod, int type, void *data)
 {
@@ -833,20 +805,21 @@ sound_modevent(module_t mod, int type, void *data)
 
 	ret = 0;
 	switch (type) {
-		case MOD_LOAD:
-			pcm_devclass = devclass_create("pcm");
-			pcmsg_unrhdr = new_unrhdr(1, INT_MAX, NULL);
-			break;
-		case MOD_UNLOAD:
-			if (pcmsg_unrhdr != NULL) {
-				delete_unrhdr(pcmsg_unrhdr);
-				pcmsg_unrhdr = NULL;
-			}
-			break;
-		case MOD_SHUTDOWN:
-			break;
-		default:
-			ret = ENOTSUP;
+	case MOD_LOAD:
+		pcm_devclass = devclass_create("pcm");
+		pcmsg_unrhdr = new_unrhdr(1, INT_MAX, NULL);
+		sound_global_init();
+		break;
+	case MOD_UNLOAD:
+		if (pcmsg_unrhdr != NULL) {
+			delete_unrhdr(pcmsg_unrhdr);
+			pcmsg_unrhdr = NULL;
+		}
+		break;
+	case MOD_SHUTDOWN:
+		break;
+	default:
+		ret = ENOTSUP;
 	}
 
 	return ret;

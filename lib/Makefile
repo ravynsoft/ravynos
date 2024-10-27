@@ -80,6 +80,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libjansson \
         libjpeg \
 	libkiconv \
+	libkldelf \
 	libkvm \
 	liblaunch \
 	liblua \
@@ -153,6 +154,7 @@ SUBDIR_DEPEND_libc++:= libcxxrt
 SUBDIR_DEPEND_libc= libsys libcompiler_rt libssp_nonshared
 SUBDIR_DEPEND_libcam= libsbuf
 SUBDIR_DEPEND_libcasper= libnv
+SUBDIR_DEPEND_libcrypt= libmd
 SUBDIR_DEPEND_libdevstat= libkvm
 SUBDIR_DEPEND_libdpv= libfigpar ncurses libutil
 SUBDIR_DEPEND_libedit= ncurses

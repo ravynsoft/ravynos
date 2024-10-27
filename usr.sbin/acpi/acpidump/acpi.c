@@ -87,7 +87,7 @@ static void	acpi_print_facs(ACPI_TABLE_FACS *facs);
 static void	acpi_print_dsdt(ACPI_TABLE_HEADER *dsdp);
 static ACPI_TABLE_HEADER *acpi_map_sdt(vm_offset_t pa);
 static void	acpi_print_rsd_ptr(ACPI_TABLE_RSDP *rp);
-static void	acpi_handle_rsdt(ACPI_TABLE_HEADER *rsdp);
+static void	acpi_handle_rsdt(ACPI_TABLE_HEADER *rsdp, const char *elm);
 static void	acpi_walk_subtables(ACPI_TABLE_HEADER *table, void *first,
 		    void (*action)(ACPI_SUBTABLE_HEADER *));
 static void	acpi_walk_nfit(ACPI_TABLE_HEADER *table, void *first,
@@ -275,7 +275,7 @@ acpi_handle_fadt(ACPI_TABLE_HEADER *sdp)
 	if (addr != 0) {
 		facs = (ACPI_TABLE_FACS *)acpi_map_sdt(addr);
 
-		if (memcmp(facs->Signature, ACPI_SIG_FACS, 4) != 0 ||
+		if (memcmp(facs->Signature, ACPI_SIG_FACS, ACPI_NAMESEG_SIZE) != 0 ||
 		    facs->Length < 64)
 			errx(1, "FACS is corrupt");
 		acpi_print_facs(facs);
@@ -1261,12 +1261,12 @@ acpi_handle_tcpa(ACPI_TABLE_HEADER *sdp)
 static void acpi_handle_tpm2(ACPI_TABLE_HEADER *sdp)
 {
 	ACPI_TABLE_TPM2 *tpm2;
-
+	
 	printf (BEGIN_COMMENT);
 	acpi_print_sdt(sdp);
 	tpm2 = (ACPI_TABLE_TPM2 *) sdp;
 	printf ("\t\tControlArea=%jx\n", tpm2->ControlAddress);
-	printf ("\t\tStartMethod=%x\n", tpm2->StartMethod);
+	printf ("\t\tStartMethod=%x\n", tpm2->StartMethod);	
 	printf (END_COMMENT);
 }
 
@@ -1353,26 +1353,6 @@ static const char *spcr_terminal_type(int type)
 	return (term_names[type]);
 }
 
-/*
- * Serial Port Console Redirection version 3 and 4 are too new to have proper
- * definitions in ACPI headers, so provide them.
- */
-#pragma pack(1)
-struct SPCR_3
-{
-	ACPI_TABLE_SPCR spcr2;
-	UINT32		UARTClockFrequency;
-};
-
-struct SPCR_4
-{
-	struct SPCR_3	spcr3;
-	UINT32		PreciseBaudRate;
-	UINT16		NamespaceStringLength;
-	UINT16		NamespaceStringOffset;
-};
-#pragma pack()
-
 static void acpi_handle_spcr(ACPI_TABLE_HEADER *sdp)
 {
 	ACPI_TABLE_SPCR *spcr;
@@ -1405,26 +1385,23 @@ static void acpi_handle_spcr(ACPI_TABLE_HEADER *sdp)
 	printf ("\tPciFlags=%d\n", spcr->PciFlags);
 	printf ("\tPciSegment=%d\n", spcr->PciSegment);
 
-	/* Rev 3 added UARTClockFrequency */
+	/* Rev 3 added UartClkFrequency */
 	if (sdp->Revision >= 3) {
-		struct SPCR_3 *spcr3 = (struct SPCR_3 *)sdp;
-
-		printf("\tUARTClockFrequency=%jd",
-		    (uintmax_t)spcr3->UARTClockFrequency);
+		printf("\tLanguage=%d\n", spcr->Language);
+		printf("\tUartClkFreq=%jd",
+		    (uintmax_t)spcr->UartClkFreq);
 	}
 
-	/* Rev 4 added PreciseBaudRate and Namespace* */
+	/* Rev 4 added PreciseBaudrate and NameSpace* */
 	if (sdp->Revision >= 4) {
-		struct SPCR_4 *spcr4 = (struct SPCR_4 *)sdp;
-
-		printf("\tPreciseBaudRate=%jd",
-		    (uintmax_t)spcr4->PreciseBaudRate);
-		if (spcr4->NamespaceStringLength > 0 &&
-		    spcr4->NamespaceStringOffset >= sizeof(*spcr4) &&
-		    sdp->Length >= spcr4->NamespaceStringOffset +
-		        spcr4->NamespaceStringLength) {
-			printf ("\tNamespaceString='%s'\n",
-			    (char *)sdp + spcr4->NamespaceStringOffset);
+		printf("\tPreciseBaudrate=%jd",
+		    (uintmax_t)spcr->PreciseBaudrate);
+		if (spcr->NameSpaceStringLength > 0 &&
+		    spcr->NameSpaceStringOffset >= sizeof(*spcr) &&
+		    sdp->Length >= spcr->NameSpaceStringOffset +
+		        spcr->NameSpaceStringLength) {
+			printf ("\tNameSpaceString='%s'\n",
+			    (char *)sdp + spcr->NameSpaceStringOffset);
 		}
 	}
 
@@ -1437,14 +1414,16 @@ devscope_type2str(int type)
 	static char typebuf[16];
 
 	switch (type) {
-	case 1:
+	case ACPI_DMAR_SCOPE_TYPE_ENDPOINT:
 		return ("PCI Endpoint Device");
-	case 2:
+	case ACPI_DMAR_SCOPE_TYPE_BRIDGE:
 		return ("PCI Sub-Hierarchy");
-	case 3:
+	case ACPI_DMAR_SCOPE_TYPE_IOAPIC:
 		return ("IOAPIC");
-	case 4:
+	case ACPI_DMAR_SCOPE_TYPE_HPET:
 		return ("HPET");
+	case ACPI_DMAR_SCOPE_TYPE_NAMESPACE:
+		return ("ACPI NS DEV");
 	default:
 		snprintf(typebuf, sizeof(typebuf), "%d", type);
 		return (typebuf);
@@ -2568,8 +2547,52 @@ acpi_print_rsd_ptr(ACPI_TABLE_RSDP *rp)
 	printf(END_COMMENT);
 }
 
+static const struct {
+	const char *sig;
+	void (*fnp)(ACPI_TABLE_HEADER *);
+} known[] = {
+	{ ACPI_SIG_BERT, 	acpi_handle_bert },
+	{ ACPI_SIG_DMAR,	acpi_handle_dmar },
+	{ ACPI_SIG_ECDT,	acpi_handle_ecdt },
+	{ ACPI_SIG_EINJ,	acpi_handle_einj },
+	{ ACPI_SIG_ERST,	acpi_handle_erst },
+	{ ACPI_SIG_FADT,	acpi_handle_fadt },
+	{ ACPI_SIG_HEST,	acpi_handle_hest },
+	{ ACPI_SIG_HPET,	acpi_handle_hpet },
+	{ ACPI_SIG_IVRS,	acpi_handle_ivrs },
+	{ ACPI_SIG_LPIT,	acpi_handle_lpit },
+	{ ACPI_SIG_MADT,	acpi_handle_madt },
+	{ ACPI_SIG_MCFG,	acpi_handle_mcfg },
+	{ ACPI_SIG_NFIT,	acpi_handle_nfit },
+	{ ACPI_SIG_SLIT,	acpi_handle_slit },
+	{ ACPI_SIG_SPCR,	acpi_handle_spcr },
+	{ ACPI_SIG_SRAT,	acpi_handle_srat },
+	{ ACPI_SIG_TCPA,	acpi_handle_tcpa },
+	{ ACPI_SIG_TPM2,	acpi_handle_tpm2 },
+	{ ACPI_SIG_WDDT,	acpi_handle_wddt },
+};
+
 static void
-acpi_handle_rsdt(ACPI_TABLE_HEADER *rsdp)
+acpi_report_sdp(ACPI_TABLE_HEADER *sdp)
+{
+	for (u_int i = 0; i < nitems(known); i++) {
+		if (memcmp(sdp->Signature, known[i].sig, ACPI_NAMESEG_SIZE)
+		    == 0) {
+			known[i].fnp(sdp);
+			return;
+		}
+	}
+
+	/*
+	 * Otherwise, do a generic thing.
+	 */
+	printf(BEGIN_COMMENT);
+	acpi_print_sdt(sdp);
+	printf(END_COMMENT);
+}
+
+static void
+acpi_handle_rsdt(ACPI_TABLE_HEADER *rsdp, const char *tbl)
 {
 	ACPI_TABLE_HEADER *sdp;
 	ACPI_TABLE_RSDT *rsdt;
@@ -2577,7 +2600,14 @@ acpi_handle_rsdt(ACPI_TABLE_HEADER *rsdp)
 	vm_offset_t addr;
 	int entries, i;
 
-	acpi_print_rsdt(rsdp);
+	if (tbl == NULL) {
+		acpi_print_rsdt(rsdp);
+	} else {
+		if (memcmp(tbl, rsdp->Signature, ACPI_NAMESEG_SIZE) == 0) {
+			acpi_print_rsdt(rsdp);
+			return;
+		}
+	}
 	rsdt = (ACPI_TABLE_RSDT *)rsdp;
 	xsdt = (ACPI_TABLE_XSDT *)rsdp;
 	entries = (rsdp->Length - sizeof(ACPI_TABLE_HEADER)) / addr_size;
@@ -2594,49 +2624,9 @@ acpi_handle_rsdt(ACPI_TABLE_HEADER *rsdp)
 			    sdp->Signature);
 			continue;
 		}
-		if (!memcmp(sdp->Signature, ACPI_SIG_BERT, 4))
-			acpi_handle_bert(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_EINJ, 4))
-			acpi_handle_einj(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_ERST, 4))
-			acpi_handle_erst(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_FADT, 4))
-			acpi_handle_fadt(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_MADT, 4))
-			acpi_handle_madt(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_HEST, 4))
-			acpi_handle_hest(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_HPET, 4))
-			acpi_handle_hpet(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_ECDT, 4))
-			acpi_handle_ecdt(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_MCFG, 4))
-			acpi_handle_mcfg(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_SLIT, 4))
-			acpi_handle_slit(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_SRAT, 4))
-			acpi_handle_srat(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_TCPA, 4))
-			acpi_handle_tcpa(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_DMAR, 4))
-			acpi_handle_dmar(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_IVRS, 4))
-			acpi_handle_ivrs(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_NFIT, 4))
-			acpi_handle_nfit(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_WDDT, 4))
-			acpi_handle_wddt(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_LPIT, 4))
-			acpi_handle_lpit(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_TPM2, 4))
-			acpi_handle_tpm2(sdp);
-		else if (!memcmp(sdp->Signature, ACPI_SIG_SPCR, 4))
-			acpi_handle_spcr(sdp);
-		else {
-			printf(BEGIN_COMMENT);
-			acpi_print_sdt(sdp);
-			printf(END_COMMENT);
-		}
+		if (tbl != NULL && memcmp(sdp->Signature, tbl, ACPI_NAMESEG_SIZE) != 0)
+			continue;
+		acpi_report_sdp(sdp);
 	}
 }
 
@@ -2654,13 +2644,13 @@ sdt_load_devmem(void)
 		acpi_print_rsd_ptr(rp);
 	if (rp->Revision < 2) {
 		rsdp = (ACPI_TABLE_HEADER *)acpi_map_sdt(rp->RsdtPhysicalAddress);
-		if (memcmp(rsdp->Signature, "RSDT", 4) != 0 ||
+		if (memcmp(rsdp->Signature, "RSDT", ACPI_NAMESEG_SIZE) != 0 ||
 		    acpi_checksum(rsdp, rsdp->Length) != 0)
 			errx(1, "RSDT is corrupted");
 		addr_size = sizeof(uint32_t);
 	} else {
 		rsdp = (ACPI_TABLE_HEADER *)acpi_map_sdt(rp->XsdtPhysicalAddress);
-		if (memcmp(rsdp->Signature, "XSDT", 4) != 0 ||
+		if (memcmp(rsdp->Signature, "XSDT", ACPI_NAMESEG_SIZE) != 0 ||
 		    acpi_checksum(rsdp, rsdp->Length) != 0)
 			errx(1, "XSDT is corrupted");
 		addr_size = sizeof(uint64_t);
@@ -2824,9 +2814,9 @@ aml_disassemble_separate(ACPI_TABLE_HEADER *rsdt, ACPI_TABLE_HEADER *dsdp)
 }
 
 void
-sdt_print_all(ACPI_TABLE_HEADER *rsdp)
+sdt_print_all(ACPI_TABLE_HEADER *rsdp, const char *tbl)
 {
-	acpi_handle_rsdt(rsdp);
+	acpi_handle_rsdt(rsdp, tbl);
 }
 
 /* Fetch a table matching the given signature via the RSDT. */

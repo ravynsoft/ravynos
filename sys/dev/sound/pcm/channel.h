@@ -84,7 +84,6 @@ struct pcm_channel {
 	kobj_t methods;
 
 	pid_t pid;
-	int refcount;
 	struct pcm_feeder *feeder;
 	u_int32_t align;
 
@@ -225,7 +224,8 @@ struct pcm_channel {
 #define CHN_INSERT_SORT(w, x, y, z)		do {			\
 	struct pcm_channel *t, *a = NULL;				\
 	CHN_FOREACH(t, x, z) {						\
-		if ((y)->type w t->type)				\
+		if (((y)->type w t->type) ||				\
+		    (((y)->type == t->type) && ((y)->unit w t->unit)))	\
 			a = t;						\
 		else							\
 			break;						\
@@ -236,7 +236,7 @@ struct pcm_channel {
 		CHN_INSERT_HEAD(x, y, z);				\
 } while (0)
 
-#define CHN_INSERT_SORT_ASCEND(x, y, z)		CHN_INSERT_SORT(>=, x, y, z)
+#define CHN_INSERT_SORT_ASCEND(x, y, z)		CHN_INSERT_SORT(>, x, y, z)
 #define CHN_INSERT_SORT_DESCEND(x, y, z)	CHN_INSERT_SORT(<, x, y, z)
 
 #define CHN_BUF_PARENT(x, y)						\
@@ -259,12 +259,12 @@ int chn_sync(struct pcm_channel *c, int threshold);
 int chn_flush(struct pcm_channel *c);
 int chn_poll(struct pcm_channel *c, int ev, struct thread *td);
 
+char *chn_mkname(char *buf, size_t len, struct pcm_channel *c);
 struct pcm_channel *chn_init(struct snddev_info *d, struct pcm_channel *parent,
     kobj_class_t cls, int dir, void *devinfo);
 void chn_kill(struct pcm_channel *c);
 void chn_shutdown(struct pcm_channel *c);
 int chn_release(struct pcm_channel *c);
-int chn_ref(struct pcm_channel *c, int ref);
 int chn_reset(struct pcm_channel *c, u_int32_t fmt, u_int32_t spd);
 int chn_setvolume_multi(struct pcm_channel *c, int vc, int left, int right,
     int center);
@@ -334,10 +334,12 @@ extern int chn_latency_profile;
 extern int report_soft_formats;
 extern int report_soft_matrix;
 
-#define PCMDIR_PLAY		1
-#define PCMDIR_PLAY_VIRTUAL	2
-#define PCMDIR_REC		-1
-#define PCMDIR_REC_VIRTUAL	-2
+enum {
+	PCMDIR_PLAY = 1,
+	PCMDIR_PLAY_VIRTUAL,
+	PCMDIR_REC,
+	PCMDIR_REC_VIRTUAL,
+};
 
 #define PCMTRIG_START 1
 #define PCMTRIG_EMLDMAWR 2
