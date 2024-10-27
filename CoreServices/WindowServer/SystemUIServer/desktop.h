@@ -35,10 +35,11 @@ extern const NSString *PrefsWallpaperPathKey;
 extern const NSString *PrefsDateFormatStringKey;
 
 // the clock
-@interface ClockView: Label {
+@interface ClockView: NSView {
     NSDateFormatter *dateFormatter;
     NSString *dateFormat;
     NSDictionary *attributes;
+    NSAttributedString *dateString;
 }
 
 - (ClockView *)initWithFrame:(NSRect)frame;

@@ -32,14 +32,14 @@ CFLAGS+=	-g -fobjc-arc ${OBJCFLAGS} -D__RAVYNOS__ -D__MACH__ \
 		-I${OBJTOP}/Frameworks/Onyx2D/Onyx2D.framework/Headers 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' \
 		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
 		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
-		-L${OBJTOP}/Frameworks/OpenGL/OpenGL.framework/Versions/A \
 		-L${OBJTOP}/Frameworks/LaunchServices/LaunchServices.framework \
-		-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
+		-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/LaunchServices.framework/Versions/A \
-                -lAppKit -lLaunchServices -lFoundation -lobjc -lSystem -lm
+                -lAppKit -lCoreGraphics -lLaunchServices -lFoundation -lobjc -lSystem -lm
 
 # Need this to find gl.h before toolchain supports -framework
 ${MAKEOBJDIR}/OpenGL:

@@ -22,6 +22,7 @@
 
 #include <pthread.h>
 #include <unistd.h>
+#include <locale.h>
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
@@ -37,6 +38,8 @@ pthread_mutex_t mtx;
         NSString *locale = [[NSLocale currentLocale] localeIdentifier];
         if([locale hasPrefix:@"en"])
             dateFormat = defaultFormatEN;
+        else if([locale hasPrefix:@"C"])
+            dateFormat = @"%Y-%m-%d %R";
         else
             dateFormat = [prefs objectForKey:NSTimeDateFormatString];
     }
@@ -44,26 +47,21 @@ pthread_mutex_t mtx;
         allowNaturalLanguage:YES locale:[NSLocale currentLocale]];
 
     NSFont *font = [NSFont systemFontOfSize:15];
-    attributes = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
+    attributes = [NSDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+                      forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
 
-    NSAttributedString *dateString = [[NSAttributedString alloc]
-        initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
-        attributes:attributes];
+    dateString = [[NSAttributedString alloc]
+        initWithString:[self currentDateValue] attributes:attributes];
 
     NSSize sz = [dateString size];
     sz.width += menuBarHPad;
-    self = [super initWithText:dateString
-        atPoint:NSMakePoint(frame.size.width - sz.width, menuBarVPad)
-        withMaxWidth:300];
-
+    self = [super initWithFrame:NSMakeRect(frame.size.width - sz.width, menuBarVPad,
+            sz.width + menuBarHPad, sz.height)];
     sz.width += menuBarHPad;
-    [self setFrameSize:sz];
-    [self setFont:font];
 
-    [self setSelectable:NO];
     pthread_mutex_init(&mtx, NULL);
-
-    [NSTimer scheduledTimerWithTimeInterval:0.5
+    [NSTimer scheduledTimerWithTimeInterval:1
                                      target:self
                                    selector:@selector(notifyTick:)
                                    userInfo:nil
@@ -77,12 +75,14 @@ pthread_mutex_t mtx;
 }
 
 - (void)notifyTick:(id)arg {
-    NSAttributedString *dateString = [[NSAttributedString alloc]
-        initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
-        attributes:attributes];
-    pthread_mutex_lock(&mtx);
-    [self setAttributedStringValue:dateString];
-    pthread_mutex_unlock(&mtx);
+    static NSString *_dateValue = NULL;
+    dateString = [[NSAttributedString alloc] initWithString:[self currentDateValue] attributes:attributes];
+    if([_dateValue isEqualToString:[self currentDateValue]] == NO) {
+        [[NSColor windowBackgroundColor] set];
+        NSRectFill(_frame);
+        [dateString drawInRect:_frame];
+        _dateValue = [self currentDateValue];
+    }
 }
 
 - (NSSize)size {
@@ -93,11 +93,5 @@ pthread_mutex_t mtx;
 	return YES;
 }
 
-// override default method to ensure thread safety
-- (void)drawRect:(NSRect)rect {
-    pthread_mutex_lock(&mtx);
-    [super drawRect:rect];
-    pthread_mutex_unlock(&mtx);
-}
 @end
 

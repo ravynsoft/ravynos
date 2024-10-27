@@ -64,18 +64,6 @@ extern pthread_mutex_t mtx;
     return self;
 }
 
-- (void)notifyTick:(id)arg {
-    return;
-    NSString *value = [clockView currentDateValue];
-    pthread_mutex_lock(&mtx);
-    [clockView setStringValue:value];
-    [clockView setNeedsDisplay:YES];
-    pthread_mutex_unlock(&mtx);
-    void *event = (__bridge_retained void *)[[NSEvent alloc]
-        initWithType:NSAppKitSystem location:NSMakePoint(0,0) modifierFlags:0 window:nil];
-    [NSApp postEvent:(__bridge NSEvent *)event atStart:YES];
-}
-
 - (NSMenu *)menuForApp:(NSString *)bundleID {
     return [menuDict objectForKey:bundleID];
 }
