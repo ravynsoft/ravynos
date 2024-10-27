@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022-2023 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2024 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@
 
 const NSString *PrefsDateFormatStringKey = @"DateFormatString";
 const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
-
 pthread_mutex_t mtx;
 
 @implementation ClockView
@@ -62,9 +61,13 @@ pthread_mutex_t mtx;
     [self setFont:font];
 
     [self setSelectable:NO];
-
     pthread_mutex_init(&mtx, NULL);
-    [NSThread detachNewThreadSelector:@selector(notifyTick:) toTarget:self withObject:nil];
+
+    [NSTimer scheduledTimerWithTimeInterval:0.5
+                                     target:self
+                                   selector:@selector(notifyTick:)
+                                   userInfo:nil
+                                    repeats:YES];
 
     return self;
 }
@@ -74,12 +77,12 @@ pthread_mutex_t mtx;
 }
 
 - (void)notifyTick:(id)arg {
-    while(1) {
-        pthread_mutex_lock(&mtx);
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ClockTick" object:nil userInfo:NULL];
-        pthread_mutex_unlock(&mtx);
-        usleep(400000);
-    }
+    NSAttributedString *dateString = [[NSAttributedString alloc]
+        initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
+        attributes:attributes];
+    pthread_mutex_lock(&mtx);
+    [self setAttributedStringValue:dateString];
+    pthread_mutex_unlock(&mtx);
 }
 
 - (NSSize)size {
@@ -90,13 +93,11 @@ pthread_mutex_t mtx;
 	return YES;
 }
 
-#if 0
 // override default method to ensure thread safety
 - (void)drawRect:(NSRect)rect {
     pthread_mutex_lock(&mtx);
     [super drawRect:rect];
     pthread_mutex_unlock(&mtx);
 }
-#endif
 @end
 

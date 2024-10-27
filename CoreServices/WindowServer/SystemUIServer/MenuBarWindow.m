@@ -39,8 +39,8 @@ extern pthread_mutex_t mtx;
     float mainWidth = frame.size.width * 0.65;
     float extraWidth = frame.size.width - mainWidth;
 
-    //clockView = [[ClockView alloc] initWithFrame:frame];
-    clockView = [[NSView alloc] initWithFrame:frame];
+    clockView = [[ClockView alloc] initWithFrame:frame];
+    //clockView = [[NSView alloc] initWithFrame:frame];
     NSSize clockSize = [clockView size];
 
     menuView = [[MenuView alloc] initWithFrame:

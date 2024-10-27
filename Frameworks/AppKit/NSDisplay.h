@@ -21,7 +21,9 @@ SOFTWARE. */
 
 #import <Foundation/Foundation.h>
 #import <AppKit/NSFont.h>
+#ifdef __WSRPC
 #import <WindowServer/message.h>
+#endif
 
 @class NSEvent, NSColor, NSPasteboard, NSDraggingManager, NSPrintInfo, NSView, NSSavePanel, NSOpenPanel, CGWindow;
 

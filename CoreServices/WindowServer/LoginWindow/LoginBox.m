@@ -42,78 +42,101 @@ const int height = 640;
     // give us a background for the fields
     center.x = width / 2;
     center.y = height / 2;
+
     NSBox *bg = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
     [bg setTransparent:NO];
     [bg setBoxType:NSBoxCustom];
-    [bg setCornerRadius:8.0];
+    [bg setCornerRadius:12.0];
+    [bg setFillColor:[NSColor colorWithDeviceRed:0.8 green:0.8 blue:0.8 alpha:1.0]];
     [self addSubview:bg];
 
-    wordmark = [[NSImageView alloc] initWithFrame:NSMakeRect(20, height - 120, width - 40, 100)];
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"ravynos-full" ofType:@"png"];
-    NSImage *ravyn = [[NSImage alloc] initWithContentsOfFile:path];
-    [ravyn setScalesWhenResized:YES];
-    [wordmark setImage:ravyn];
-    [bg addSubview:wordmark];
+    NSDictionary *attr = [NSDictionary dictionaryWithObjects:
+        @[[NSFont systemFontOfSize:72], [NSColor darkGrayColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
 
-    logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(center.x - 80, 40, 160, 160)];
+    NSDictionary *osVersionDictionary = [NSDictionary
+        dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+
+    NSAttributedString *osnameString = [[NSAttributedString alloc] initWithString:@"ravynOS" attributes:attr];
+    osname = [[Label alloc] initWithText:osnameString
+                                 atPoint:NSMakePoint(width/2 - [osnameString size].width / 2, height - 120)
+                            withMaxWidth:width];
+    [bg addSubview:osname];
+
+    int diameter = 168;
+    CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+    CGContextRef ctx = CGBitmapContextCreate(NULL, diameter, diameter, 8, diameter*4, cs,
+            kCGBitmapByteOrderDefault|kCGImageAlphaPremultipliedLast);
+    CGColorSpaceRelease(cs);
+    CGContextSetRGBFillColor(ctx, 0.9, 0.9, 0.9, 1);
+    CGContextFillEllipseInRect(ctx, NSMakeRect(0, 0, diameter, diameter));
+    CGImageRef circle = CGBitmapContextCreateImage(ctx);
+    NSImage *nscircle = [[NSImage alloc] initWithCGImage:circle size:NSMakeSize(diameter, diameter)];
+    [nscircle setScalesWhenResized:NO];
+    NSImageView *circleView = [[NSImageView alloc] initWithFrame:NSMakeRect(center.x - 84, 116, diameter, diameter)];
+    [circleView setImage:nscircle];
+    [bg addSubview:circleView];
+
+    logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(center.x - 80, 120, 160, 160)];
     [logoView setImageScaling:NSImageScaleAxesIndependently];
     [logoView setImageAlignment:NSImageAlignCenter];
 
-    path = [[NSBundle mainBundle] pathForResource:@"SneakySnek" ofType:@"png"];
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"SneakySnek" ofType:@"png"];
     NSImage *logo = [[NSImage alloc] initWithContentsOfFile:path];
     [logo setScalesWhenResized:YES];
     [logoView setImage:logo];
     [bg addSubview:logoView];
 
-    NSFont *font = [[NSFontManager sharedFontManager] convertFont:[NSFont systemFontOfSize:16]
-        toHaveTrait:NSBoldFontMask];
-    NSDictionary *attr = [NSDictionary dictionaryWithObjects:
-        @[font, [NSColor blackColor]]
-        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
-
-    NSDictionary *osVersionDictionary = [NSDictionary
-        dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-    NSString *versionString = [NSString stringWithFormat:@"%@ %@",
-             [osVersionDictionary objectForKey:@"ProductFamily"],
+    attr = [NSDictionary dictionaryWithObjects:
+                @[[NSFont systemFontOfSize:16], [NSColor grayColor]]
+                forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+    NSString *versionString = [NSString stringWithFormat:@"ravynOS %@",
              [osVersionDictionary objectForKey:@"ProductUserVisibleVersion"]];
-    NSAttributedString *v  = [[NSAttributedString alloc] initWithString:versionString
-        attributes:[NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName]];
-    Label *versionLabel = [Label labelWithText:v atPoint:NSMakePoint(center.x - [v size].width / 2,
-                    height - 150) withMaxWidth:width/2];
+    NSAttributedString *v  = [[NSAttributedString alloc] initWithString:versionString attributes:attr];
+    Label *versionLabel = [Label labelWithText:v
+                                       atPoint:NSMakePoint(center.x - [v size].width / 2, 80)
+                                  withMaxWidth:width/2];
     [bg addSubview:versionLabel];
 
-    int ypos = height / 2 + 40;
+    versionString = [NSString stringWithFormat:@"\"%@\"", [osVersionDictionary objectForKey:@"ProductFamily"]];
+    v  = [[NSAttributedString alloc] initWithString:versionString attributes:attr];
+    versionLabel = [Label labelWithText:v
+                                atPoint:NSMakePoint(center.x - [v size].width / 2, 50)
+                           withMaxWidth:width/2];
+    [bg addSubview:versionLabel];
 
-    NSAttributedString *s = [[NSAttributedString alloc] initWithString:@"User name" attributes:attr];
-    Label *usernameLabel = [Label labelWithText:s atPoint:NSMakePoint(center.x - 140, ypos) withMaxWidth:width/2];
-    [bg addSubview:usernameLabel];
-    [usernameLabel setEnabled:NO];
-    userField = [[NSTextField alloc] initWithFrame:NSMakeRect(center.x - 40, ypos, 140, 24)];
+    int ypos = height / 2 + 150;
+    [bg addSubview:[Label labelWithText:[[NSAttributedString alloc]
+                                        initWithString:@"Username" attributes:attr]
+                                atPoint:NSMakePoint(center.x - 70, ypos)
+                           withMaxWidth:width/2]];
+    ypos -= 36;
+    userField = [[NSTextField alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
     [userField setEditable:YES];
     [userField setEnabled:YES];
     [bg addSubview:userField];
-    ypos -= 48;
+    ypos -= 24;
 
-    s = [[NSAttributedString alloc] initWithString:@"Password" attributes:attr];
-    Label *passwordLabel = [Label labelWithText:s atPoint:NSMakePoint(center.x - 130, ypos) withMaxWidth:width/2];
-    [bg addSubview:passwordLabel];
-    [passwordLabel setEnabled:NO];
-    passField = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(center.x - 40, ypos, 140, 24)];
+    [bg addSubview:[Label labelWithText:[[NSAttributedString alloc]
+                                        initWithString:@"Password" attributes:attr]
+                                atPoint:NSMakePoint(center.x - 70, ypos)
+                           withMaxWidth:width/2]];
+    ypos -= 36;
+    passField = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
     [passField setEditable:YES];
     [passField setEnabled:YES];
     [bg addSubview:passField];
+
     ypos -= 48;
-    
-    NSButton *ok = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, 72, 32)];
+    ok = [[NSButton alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
+    [ok setTitle:@"Log In"];
+    [ok setFont:[NSFont systemFontOfSize:16]];
     [ok setTarget:self];
-    [ok setFont:font];
     [ok setAction:@selector(checkFields:)];
-    [ok setTitle:@"Log in"];
-
-    NSView *bv = [[NSView alloc] initWithFrame:NSMakeRect(width/2 - 36, ypos, 74, 34)];
-    [bv addSubview:ok];
-    [bg addSubview:bv];
-
+    [ok setBezeled:YES];
+    [ok setBezelStyle:NSRoundedBezelStyle];
+    [bg addSubview:ok];
+    
     [self setNextKeyView:userField];
     [userField setNextKeyView:passField];
     [passField setNextKeyView:ok];

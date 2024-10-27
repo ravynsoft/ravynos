@@ -18,9 +18,11 @@ CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR} \
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' \
 		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
 		-L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
+		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
 		-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
-                -lAppKit -lFoundation -lobjc -lSystem -lcrypt -lm
+		-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
+                -lAppKit -lFoundation -lCoreGraphics -lobjc -lSystem -lcrypt -lm
 
 .include <rvn.app.mk>
 ${OBJS}: obj

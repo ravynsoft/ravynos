@@ -26,7 +26,7 @@ RESOURCES=	${.CURDIR}/Icon.png \
 MK_WERROR=	no
 WARNS=	        1
 SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
-CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -pthread \
+CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -D__WSRPC -pthread \
 		-I${.CURDIR} -I${MAKEOBJDIR} -I${.CURDIR}/libinput/src \
 		-I${.CURDIR}/libinput/include -I${SRCTOP}/Frameworks \
 		-I${.CURDIR}/libxkbcommon/include -I${SRCTOP}/CoreServices \

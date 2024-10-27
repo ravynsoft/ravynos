@@ -87,6 +87,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    _titleCell = [[NSTextFieldCell alloc] initTextCell:@""];
    _borderType = NSLineBorder;
    _titlePosition = NSAboveTop;
+   _customData = [[NSMutableDictionary alloc] init];
 
   contentview = [[NSView alloc] initWithFrame:NSMakeRect(0,0,NSWidth(frame),NSHeight(frame))];
   [contentview  setAutoresizingMask: NSViewWidthSizable| NSViewHeightSizable];

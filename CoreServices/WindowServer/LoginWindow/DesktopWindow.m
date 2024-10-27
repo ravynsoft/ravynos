@@ -32,7 +32,7 @@
 }
 
 -(void)applicationWillFinishLaunching:(NSNotification *)note {
-    NSImage *img = [[NSImage alloc] initWithContentsOfFile:@"/System/Library/Desktop Pictures/Endless.jpg"];
+    NSImage *img = [[NSImage alloc] initWithContentsOfFile:@"/System/Library/Desktop Pictures/waves_snek_tinted.png"];
     [img setScalesWhenResized:YES];
     wallpaper = [[NSImageView alloc] initWithFrame:_frame];
     [wallpaper setImage:img];
@@ -45,10 +45,6 @@
     [self becomeMainWindow];
     [self makeKeyAndOrderFront:nil];
 }
-
-//-(void)keyDown:(NSEvent *)event {
-//    NSLog(@"key down %@", event);
-//}
 
 @end
 
