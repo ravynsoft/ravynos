@@ -123,16 +123,6 @@ int main(int argc, const char *argv[]) {
     pthread_t kqThread;
     pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)del);
 
-#if 0
-    // kick off a per-user launchd to invoke LaunchAgents and per-user LaunchDaemons
-    // this starts Filer and Dock to establish the desktop session
-    NSString *kickerPath = [[NSBundle mainBundle] pathForResource:@"kickSession" ofType:@""];
-    if(kickerPath) {
-        NSLog(@"kicking off session");
-        system([kickerPath UTF8String]);
-    }
-#endif
-
     [pool drain];
     [NSApp setDelegate:del];
     [NSApp run];
