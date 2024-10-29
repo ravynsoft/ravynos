@@ -6,6 +6,10 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #import <AppKit/AppKitExport.h>
+#import <AppKit/NSApplication.h>
+#import <AppKit/NSDragging.h>
+#import <AppKit/NSPasteboard.h>
+#import <AppKit/NSDraggingManager.h>
 #import <AppKit/NSToolbarView.h>
 #import <AppKit/NSToolbar.h>
 #import <AppKit/NSToolbarItem.h>
@@ -20,8 +24,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSImage.h>
 #import <AppKit/NSMenu.h>
-#import <AppKit/NSMenuWindow.h>
-#import <AppKit/NSMenuView.h>
 
 @interface NSToolbar (Private)
 -(NSArray *)_itemsWithIdentifiers:(NSArray*)identifiers;
@@ -395,7 +397,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    NSArray      *items=[_toolbar items];
    NSInteger     i,count=[items count];
    NSMenu       *menu=[[NSMenu alloc] initWithTitle: NSLocalizedStringFromTableInBundle(@"Overflow", nil, [NSBundle bundleForClass: [NSToolbarView class]], @"Describes the overflow area of the toolbar")];
-   NSMenuWindow *window;
+   // FIXME: need some kind of window here
+   //NSMenuWindow *window;
+   NSWindow *window;
    NSMenuItem   *item;
    NSRect       menuFrame = [self frame];
 
@@ -419,7 +423,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      menuFrame.size.width = [[item label] sizeWithAttributes:nil].width + 20.0;  // argh
    }
     
-   window=[[NSMenuWindow alloc] initWithMenu:menu];
+   //window=[[NSMenuWindow alloc] initWithMenu:menu];
 
    menuFrame.origin.x = NSMaxX([self frame]);
    menuFrame.origin.y = [self frame].origin.y + [self frame].size.height/2;

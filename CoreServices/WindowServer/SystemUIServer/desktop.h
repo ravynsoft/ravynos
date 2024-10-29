@@ -21,7 +21,7 @@
  */
 
 #pragma once
-#import <AppKit/NSMainMenuView.h>
+#import "NSMainMenuView.h"
 #import <AppKit/NSMenu.h>
 #import <mach/mach.h>
 
@@ -59,7 +59,6 @@ extern const NSString *PrefsDateFormatStringKey;
 }
 
 - (MenuView *)initWithFrame:(NSRect)frame;
-- (void)setWindow:(NSWindow *)window;
 - (void)setMenu:(NSMenu *)menu;
 - (void)aboutThisComputer:(id)sender;
 - (void)performSleep:(id)sender;

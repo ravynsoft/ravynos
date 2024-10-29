@@ -104,7 +104,7 @@ APPKIT_EXPORT NSString *const NSWindowDidEndLiveResizeNotification;
 
 @interface NSWindow : NSResponder {
     int _number;
-    CGLContextObj _cglContext;
+    //CGLContextObj _cglContext;
     //CAWindowOpenGLContext *_caContext;
     NSDisplay *_display;
     O2Context *_context;

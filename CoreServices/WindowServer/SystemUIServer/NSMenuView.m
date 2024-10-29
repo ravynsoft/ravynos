@@ -6,9 +6,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#import <AppKit/NSMenuView.h>
-#import <AppKit/NSMenuWindow.h>
-#import <AppKit/NSMainMenuView.h>
+#import "NSMenuView.h"
+#import "NSMenuWindow.h"
+#import "NSMainMenuView.h"
 #import <AppKit/NSRaise.h>
 
 enum {
@@ -22,22 +22,11 @@ enum {
 
 @implementation NSMenuView
 
--(void)dealloc
-{
-   [_visibleArray release];
-   [super dealloc];
-}
-
--(unsigned)itemIndexAtPoint:(NSPoint)point {
-   NSInvalidAbstractInvocation();
-   return NSNotFound;
-}
-
--(unsigned)selectedItemIndex {
+-(NSUInteger)selectedItemIndex {
    return _selectedItemIndex;
 }
 
--(void)setSelectedItemIndex:(unsigned)itemIndex {
+-(void)setSelectedItemIndex:(NSUInteger)itemIndex {
 	if (_selectedItemIndex != itemIndex) {
 		_selectedItemIndex=itemIndex;
 		[self setNeedsDisplay:YES];
@@ -147,7 +136,7 @@ const float kMouseMovementThreshold = .001f;
 	// And we, of course, are first on the stack
 	[viewStack addObject:self];
 	
-	[event retain];
+	//[event retain];
 	
 	int keyboardNavigationAction = kNSMenuKeyboardNavigationNone;
 	
@@ -164,6 +153,7 @@ const float kMouseMovementThreshold = .001f;
 		NSScreen          *screen=[self _screenForPoint:[[event window] convertBaseToScreen:point]];
 		
 		point=[[event window] convertBaseToScreen:point];
+                MENUDEBUG(@"INITIAL EVENT POINT IS %@", NSStringFromPoint(point));
 		
 		// We've not pushed any views yet so the screen is where our window is
 		if(count==1) {
@@ -181,8 +171,10 @@ const float kMouseMovementThreshold = .001f;
                 
                 // And find out where the mouse is relative to it
                 NSPoint     checkPoint=[[checkView window] convertScreenToBase:point];
+                MENUDEBUG(@"1 CHECKPOINT IS %@", NSStringFromPoint(checkPoint));
                 
                 checkPoint=[checkView convertPoint:checkPoint fromView:nil];
+                MENUDEBUG(@"2 CHECKPOINT IS %@", NSStringFromPoint(checkPoint));
                 
                 // If it's inside the menu view
                 if(NSMouseInRect(checkPoint,[checkView bounds],[checkView isFlipped])){
@@ -240,13 +232,12 @@ const float kMouseMovementThreshold = .001f;
             }
         }
 		
-		[event release];
+		//[event release];
 		
 		// Let's take a look at what's come in on the event queue
                 MENUDEBUG(@"getting next window event for %@", [self window]);
 		event=[[self window] nextEventMatchingMask:NSLeftMouseUpMask|NSMouseMovedMask|NSLeftMouseDraggedMask|NSKeyDownMask|NSAppKitDefinedMask];
-		[event retain];
-                MENUDEBUG(@"event is %@", event);
+		//[event retain];
 		
 		if (keyboardNavigationAction != kNSMenuKeyboardNavigationNone) {
 			// We didn't enter the mouse handling loop that predecrements count - so do it here...
@@ -480,6 +471,12 @@ const float kMouseMovementThreshold = .001f;
 			// looks like we can keep rolling
 			
 			point=[event locationInWindow];
+                        MENUDEBUG(@"1 SECOND POINT is now %@", NSStringFromPoint(point));
+                        point = [[event window] convertScreenToBase:point];
+                        MENUDEBUG(@"2 SECOND POINT is now %@", NSStringFromPoint(point));
+                        point.y += [screen frame].size.height;
+                        MENUDEBUG(@"3 SECOND POINT is now %@", NSStringFromPoint(point));
+
 			// Don't test for "== 0." - we tend to receive some delta with some .000000... values while the mouse doesn't move
 			BOOL mouseMoved = ([event type] != NSAppKitDefined) &&
 								(fabs([event deltaX]) > kMouseMovementThreshold || fabs([event deltaY]) > kMouseMovementThreshold);
@@ -530,10 +527,12 @@ const float kMouseMovementThreshold = .001f;
 					}
 					break;
 			}
+                        point = [event locationInWindow];
+                        MENUDEBUG(@"reset point!");
 		}
-		[pool release];
+		//[pool release];
 	}while(cancelled == NO && state!=STATE_EXIT);
-	[event release];
+	//[event release];
 	
 	MENUDEBUG(@"done with the event loop");
 	

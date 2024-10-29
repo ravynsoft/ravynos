@@ -22,6 +22,8 @@
  */
 
 
+#import <CoreFoundation/CFRunLoop.h>
+#import <CoreFoundation/CFMachPort.h>
 #import <CoreGraphics/CoreGraphicsExport.h>
 #import <CoreGraphics/CGError.h>
 #import <CoreGraphics/CGGeometry.h>

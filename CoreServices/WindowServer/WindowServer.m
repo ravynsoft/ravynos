@@ -288,6 +288,7 @@ pthread_mutex_t renderLock;
     } else
         winrec.titleSet = NO;
     winrec.icon = nil;
+    winrec.frame = WSOutsetFrame(winrec.geometry, winrec.styleMask);
     if(logLevel >= WS_INFO)
         NSLog(@"windowModify %@ win %@", app, winrec);
 }
@@ -327,7 +328,6 @@ pthread_mutex_t renderLock;
                     siginfo_t siginfo;
                     // wait for LoginWindow to exit. exit code is the uid!
                     wait6(P_PID, pid, &status, WEXITED, NULL, &siginfo); 
-                    NSLog(@"LoginWindow: exit=%u", siginfo.si_pid);
                     struct passwd *pw = getpwuid(siginfo.si_pid);
                     if(!pw) {
                         NSLog(@"uid not found");

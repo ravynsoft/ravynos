@@ -31,7 +31,6 @@ SOFTWARE. */
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSWindow-Private.h>
 #import <AppKit/NSThemeFrame.h>
-#import <AppKit/NSMainMenuView.h>
 #import <AppKit/NSSheetContext.h>
 #import <AppKit/NSApplication.h>
 #import <AppKit/NSScreen.h>
@@ -54,6 +53,9 @@ SOFTWARE. */
 #import <AppKit/NSToolTipWindow.h>
 #import <AppKit/NSDisplay.h>
 #import <AppKit/NSRaise.h>
+#import <AppKit/NSControl.h>
+#import <AppKit/NSOpenGLView.h>
+#import <AppKit/NSDocument.h>
 #import <WindowServer/message.h>
 #import <WindowServer/rpc.h>
 #import "O2Context_builtin_FT.h"
@@ -76,10 +78,6 @@ NSString * const NSWindowDidEndLiveResizeNotification=@"NSWindowDidEndLiveResize
 NSString * const NSWindowWillAnimateNotification=@"NSWindowWillAnimateNotification";
 NSString * const NSWindowAnimatingNotification=@"NSWindowAnimatingNotification";
 NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification";
-
-@interface CGWindow(private)
-- (void)dirtyRect:(CGRect)rect;
-@end
 
 @interface NSToolbar (NSToolbar_privateForWindow)
 - (void)_setWindow:(NSWindow *)window;
@@ -164,36 +162,12 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return 0;
 }
 
-/* This method is Cococtron specific and can be override by subclasses, do not change method name */
-+(BOOL)hasMainMenuForStyleMask:(NSUInteger)styleMask {
-#ifdef MENUS_IN_WINDOW
-    if(styleMask&NSTitledWindowMask)
-        return YES;
-#endif
-    return NO;
-}
-
-/* This method is Cococtron specific and can be override by subclasses, do not change method name. */
--(BOOL)hasMainMenu {
-    return [isa hasMainMenuForStyleMask:_styleMask];
-}
-
 +(NSRect)frameRectForContentRect:(NSRect)contentRect styleMask:(unsigned)styleMask {
-   NSRect result=CGOutsetRectForNativeWindowBorder(contentRect,styleMask);
-   
-    if([self hasMainMenuForStyleMask:styleMask])
-        result.size.height+=[NSMainMenuView menuHeight];
-    
-   return result;
+   return CGOutsetRectForNativeWindowBorder(contentRect,styleMask);
 }
 
 +(NSRect)contentRectForFrameRect:(NSRect)frameRect styleMask:(unsigned)styleMask {
-   NSRect result=CGInsetRectForNativeWindowBorder(frameRect,styleMask);
-   
-    if([self hasMainMenuForStyleMask:styleMask])
-        result.size.height-=[NSMainMenuView menuHeight];
-    
-   return result;
+   return CGInsetRectForNativeWindowBorder(frameRect,styleMask);
 }
 
 +(float)minFrameWidthWithTitle:(NSString *)title styleMask:(unsigned)styleMask {
@@ -279,15 +253,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    _miniwindowTitle=@"";
 
    _menu=nil;
-    if([self hasMainMenu]){
-    NSRect frame=NSMakeRect(contentViewFrame.origin.x,NSMaxY(contentViewFrame),contentViewFrame.size.width,[NSMainMenuView menuHeight]);
-
-		// We all need to share the main menu!
-    _menu=[[NSApp mainMenu] retain];
-
-    _menuView=[[NSMainMenuView alloc] initWithFrame:frame menu:_menu];
-    [_menuView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
-   }
 
    _backgroundView=[[[isa frameViewClassForStyleMask:styleMask] alloc] initWithFrame:backgroundFrame];
    [_backgroundView setAutoresizesSubviews:YES];
@@ -336,9 +301,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
    _threadToContext=[[NSMutableDictionary alloc] init];
    
-   if(_menuView!=nil)
-    [_backgroundView addSubview:_menuView];
-
    [_backgroundView addSubview:_contentView];
    [_backgroundView setNeedsDisplay:YES];
 	if (!(_styleMask & NSAppKitPrivateWindow)) {
@@ -346,7 +308,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 	}
 
     _deviceDictionary = [NSMutableDictionary new];
-    _cglContext = NULL;
+    //_cglContext = NULL;
     //_caContext = NULL;
     _display = [NSDisplay currentDisplay];
     _isZoomed = NO;
@@ -380,8 +342,8 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     if(buffer && bufsize)
         munmap(buffer, bufsize);
     shm_unlink([shmPath cString]);
-    if(_cglContext)
-        [_cglContext release];
+    //if(_cglContext)
+    //    [_cglContext release];
     //if(_caContext)
     //    [_caContext release];
     [_deviceDictionary release];
@@ -392,7 +354,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     [_backgroundView _setWindow:nil];
     [_backgroundView release];
     [_menu release];
-    [_menuView release];
     [_contentView release];
     [_backgroundColor release];
     [_sharedFieldEditor release];
@@ -881,7 +842,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
         //[_caContext release];
         //_caContext = NULL;
         //CGLReleaseContext(_cglContext);
-        _cglContext = NULL;
+        //_cglContext = NULL;
         //[self createCGLContextObjIfNeeded];
 
     }
@@ -1539,12 +1500,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(NSRect)frameRectForContentRect:(NSRect)contentRect {
-/* hasMainMenu is an instance method so we can't just use the class method frameRectForContentRect:styleMask: */
-    
    NSRect result=CGOutsetRectForNativeWindowBorder(contentRect,[self styleMask]);
-    
-   if([self hasMainMenu])
-    result.size.height+=[NSMainMenuView menuHeight];
     
    if([_toolbar _view]!=nil && ![[_toolbar _view] isHidden])
     result.size.height+=[[_toolbar _view] frame].size.height;
@@ -1555,9 +1511,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 -(NSRect)contentRectForFrameRect:(NSRect)frameRect {
    NSRect result=CGInsetRectForNativeWindowBorder(frameRect,[self styleMask]);
        
-   if([self hasMainMenu])
-    result.size.height-=[NSMainMenuView menuHeight];
-
    if([_toolbar _view]!=nil && ![[_toolbar _view] isHidden])
     result.size.height-=[[_toolbar _view] frame].size.height;
    
@@ -2598,54 +2551,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 #endif
 
--(void)_resizeWithOldMenuViewSize:(NSSize)oldSize {
-    NSSize  backSize=[_backgroundView frame].size;
-    NSSize  newSize;
-    NSRect  frame;
-
-    newSize=[_menuView frame].size;
-    if([_menuView isHidden])
-     newSize.height=0;
-   
-    backSize.height+=(newSize.height-oldSize.height);
-    [_backgroundView setAutoresizesSubviews:NO];
-    [_backgroundView setFrameSize:backSize];
-    [_backgroundView setAutoresizesSubviews:YES];
-
-    frame=[self frame];
-    frame.size.height+=(newSize.height-oldSize.height);
-    // no display because setMenu: is called before awakeFromNib
-    [self setFrame:frame display:NO];
-    // do we even need this?
-    [_backgroundView setNeedsDisplay:YES]; 
-}
-
--(void)_hideMenuViewIfNeeded {
-   if([self hasMainMenu] && _menuView!=nil && ![_menuView isHidden]){
-    [_menuView setHidden:YES];
-    [self _resizeWithOldMenuViewSize:[_menuView frame].size];
-   }
-}
-
--(void)_showMenuViewIfNeeded {
-   if([self hasMainMenu] && _menuView!=nil && [_menuView isHidden]){
-    [_menuView setHidden:NO];
-    [self _resizeWithOldMenuViewSize:NSMakeSize(0,0)];
-   }
-}
-
 -(void)setMenu:(NSMenu *)menu {
-   if(_menuView!=nil){
-    NSSize  oldSize=[_menuView frame].size;
-    
-    [_menuView setMenu:menu];
-
-    [self _resizeWithOldMenuViewSize:oldSize];
-   }
-
-	[menu retain];
-	[_menu release];
-   _menu = menu;
+    [menu retain];
+    [_menu release];
+    _menu = menu;
 }
 
 -(NSMenu *)menu {
@@ -2707,9 +2616,6 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 
    
    if ([self toolbar] != nil) {
-       if (_menuView != nil)
-           origin.y -= [_menuView frame].size.height;
-       
        origin.y -= [[[self toolbar] _view] frame].size.height;
        
        // Depending on the final border types used on the toolbar and the sheets, the sheet placement

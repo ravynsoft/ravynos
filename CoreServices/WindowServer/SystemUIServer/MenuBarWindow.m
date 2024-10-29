@@ -40,7 +40,6 @@ extern pthread_mutex_t mtx;
     float extraWidth = frame.size.width - mainWidth;
 
     clockView = [[ClockView alloc] initWithFrame:frame];
-    //clockView = [[NSView alloc] initWithFrame:frame];
     NSSize clockSize = [clockView size];
 
     menuView = [[MenuView alloc] initWithFrame:
@@ -55,8 +54,6 @@ extern pthread_mutex_t mtx;
     [_contentView addSubview:menuView];
     [_contentView addSubview:extrasView];
     [_contentView addSubview:clockView];
-    [menuView setWindow:self];
-
     [_contentView setAutoresizingMask:0];
 
     [self setAllowsToolTipsWhenApplicationIsInactive:YES];

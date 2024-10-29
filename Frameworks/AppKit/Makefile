@@ -123,13 +123,8 @@ SRCS= \
     NSLevelIndicatorCell.m \
     NSMatrix.m \
     NSMeasurementUnit.m \
-    NSMenu.subproj/NSMainMenuView.m \
     NSMenu.subproj/NSMenu.m \
     NSMenu.subproj/NSMenuItem.m \
-    NSMenu.subproj/NSMenuView.m \
-    NSMenu.subproj/NSMenuWindow.m \
-    NSMenu.subproj/NSOverflowMenuView.m \
-    NSMenu.subproj/NSSubmenuView.m \
     NSModalSessionX.m \
     NSMutableAttributedString.m \
     NSMutableParagraphStyle.m \
@@ -395,13 +390,8 @@ INCS= \
     NSMatrix.h \
     NSLevelIndicatorCell.h \
     NSMeasurementUnit.h \
-    NSMenu.subproj/NSMainMenuView.h \
     NSMenu.subproj/NSMenu.h \
     NSMenu.subproj/NSMenuItem.h \
-    NSMenu.subproj/NSMenuView.h \
-    NSMenu.subproj/NSMenuWindow.h \
-    NSMenu.subproj/NSOverflowMenuView.h \
-    NSMenu.subproj/NSSubmenuView.h \
     NSModalSessionX.h \
     NSMutableAttributedString.h \
     NSMutableParagraphStyle.h \
@@ -557,9 +547,6 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	NSToolbar.subproj/NSToolbarShowColorsItem.tiff \
 	NSToolbar.subproj/NSToolbarCustomizeToolbarItem.tiff \
 	NSToolbar.subproj/NSToolbarMoreToolbarItems.tiff \
-	NSMenu.subproj/NSMenuArrow.tiff \
-	NSMenu.subproj/NSMenuViewDoubleRightArrow.tiff \
-	NSMenu.subproj/NSMenuViewDoubleRightArrowGray.tiff \
 	NSColorPicker.subproj/NSColorPickerColorList.tiff \
 	NSColorPicker.subproj/NSColorWheel.png \
 	NSColorPicker.subproj/NSColorPickerWheelIcon.png \

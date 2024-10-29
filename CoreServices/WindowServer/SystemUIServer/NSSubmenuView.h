@@ -6,22 +6,11 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-// Original - Christopher Lloyd <cjwl@objc.net>
-#import <AppKit/NSOverflowMenuView.h>
+#import "NSMenuView.h"
 
-@implementation NSOverflowMenuView
-
--initWithMenu:(NSMenu *)menu overflowAtIndex:(unsigned)overflowIndex {
-   _overflowIndex=overflowIndex;
-
-   return [self initWithMenu:menu];
+@interface NSSubmenuView : NSMenuView {
 }
 
--(NSArray *)itemArray {
-   NSArray *items=[super visibleItemArray];
-   NSRange  range=NSMakeRange(_overflowIndex,[items count]-_overflowIndex);
-
-   return [items subarrayWithRange:range];
-}
+- initWithMenu:(NSMenu *)menu;
 
 @end

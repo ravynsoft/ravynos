@@ -27,14 +27,6 @@
 
 extern const char **environ;
 
-@interface NSMenu(private)
--(NSString *)_name;
-@end
-
-@interface NSMainMenuView(private)
--(void)setWindow:(NSWindow *)window;
-@end
-
 @implementation MenuView
 - initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
@@ -122,7 +114,6 @@ extern const char **environ;
     else
         [self addSubview:newView];
     appMenuView = newView;
-    [appMenuView setWindow:[self window]];
 
     [self setNeedsDisplay:YES];
 }

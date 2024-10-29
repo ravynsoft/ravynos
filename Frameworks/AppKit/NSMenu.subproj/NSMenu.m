@@ -11,13 +11,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSApplication.h>
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSEvent.h>
-#import <AppKit/NSMenuWindow.h>
-#import <AppKit/NSMenuView.h>
 #import <Foundation/NSKeyedArchiver.h>
 
 @implementation NSMenu
 
 +(void)popUpContextMenu:(NSMenu *)menu withEvent:(NSEvent *)event forView:(NSView *)view {
+#if 0
    [menu update];
    if([[menu itemArray] count]>0){
     NSPoint       point=[event locationInWindow];
@@ -37,6 +36,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if(item!=nil)
      [NSApp sendAction:[item action] to:[item target] from:item];
    }
+#else
+   NSUnimplementedMethod();
+#endif
 }
 
 -(void)encodeWithCoder:(NSCoder *)coder {
@@ -294,7 +296,7 @@ BOOL itemIsEnabled(NSMenuItem *item) {
         } else if ([target respondsToSelector:@selector(validateMenuItem:)]) {
             enabled = [target validateMenuItem:item];
         } else if ([target respondsToSelector:@selector(validateUserInterfaceItem:)]) { // New validation scheme
-            enabled = [target validateUserInterfaceItem:item];
+            enabled = (BOOL)[target validateUserInterfaceItem:item];
         } else {
             enabled = YES;
         }

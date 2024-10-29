@@ -11,16 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSGraphics.h>
 #import <AppKit/NSColor.h>
 #import <AppKit/NSImage.h>
-#import <AppKit/NSMenuView.h>
 #import <AppKit/NSToolbarView.h>
-#import <AppKit/NSMainMenuView.h>
 #import <AppKit/NSAttributedString.h>
 #import <Onyx2D/O2Context.h>
-
-@interface NSWindow(private)
--(BOOL)hasMainMenu;
-+(BOOL)hasMainMenuForStyleMask:(NSUInteger)styleMask;
-@end
 
 @implementation NSThemeFrame
 
@@ -134,39 +127,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)resizeSubviewsWithOldSize:(NSSize)oldSize {
-   NSView *menuView=nil;
    NSToolbarView *toolbarView=nil;
    NSView *contentView=nil;
    
 // tile the subviews, when/if we add titlebars and such do it here
    for(NSView *view in _subviews){
-    if([view isKindOfClass:[NSMenuView class]])
-     menuView=view;
-    else if([view isKindOfClass:[NSToolbarView class]])
+    if([view isKindOfClass:[NSToolbarView class]])
      toolbarView=(NSToolbarView *)view;
     else
      contentView=view;
    }
    
-   // subtracts menu height but not toolbar height
-   NSRect contentFrame=[[[self window] class] contentRectForFrameRect:[self bounds] styleMask:[[self window] styleMask]];
-
-   // If the class thinks there is a menu but the instance does not want an instance
-   // we need to add the menu height back to the content view as contentRectForFrameRect subtracts it
-   
-   if([[[self window] class] hasMainMenuForStyleMask:[[self window] styleMask]]) {
-        if(![[self window] hasMainMenu])
-            contentFrame.size.height+=[NSMainMenuView menuHeight];
-   }
-
-   NSRect menuFrame=(menuView!=nil)?[menuView frame]:NSZeroRect;
    NSRect toolbarFrame=(toolbarView!=nil)?[toolbarView frame]:NSZeroRect;
-
-   menuFrame.origin.y=NSMaxY(contentFrame);
-   menuFrame.origin.x=contentFrame.origin.x;
-   menuFrame.size.width=contentFrame.size.width;
-   [menuView setFrame:menuFrame];
-   
+   NSRect contentFrame=[[[self window] class] contentRectForFrameRect:[self bounds] styleMask:[[self window] styleMask]];
    toolbarFrame.origin.y=NSMaxY(contentFrame)-toolbarFrame.size.height;
    toolbarFrame.origin.x=contentFrame.origin.x;
    toolbarFrame.size.width=contentFrame.size.width;
