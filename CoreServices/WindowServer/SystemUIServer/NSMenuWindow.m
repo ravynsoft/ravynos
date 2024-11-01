@@ -20,13 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 #import "NSMenuWindow.h"
-#import "NSSubmenuView.h"
-#import "NSOverflowMenuView.h"
+#import "SubmenuView.h"
 
 @implementation NSMenuWindow
 
 -initWithMenu:(NSMenu *)menu {
-    NSSubmenuView *view=[[NSSubmenuView alloc] initWithMenu:menu];
+    SubmenuView *view=[[SubmenuView alloc] initWithMenu:menu];
     NSRect contentRect=[view frame];
 
     self = [self initWithContentRect:contentRect
@@ -43,6 +42,7 @@ SOFTWARE. */
     return self;
 }
 
+#if 0
 -initWithMenu:(NSMenu *)menu overflowAtIndex:(unsigned)overflowIndex {
     NSOverflowMenuView *view=[[NSOverflowMenuView alloc] initWithMenu:menu overflowAtIndex:overflowIndex];
     NSRect contentRect=[view frame];
@@ -61,8 +61,9 @@ SOFTWARE. */
 
     return self;
 }
+#endif
 
--(NSMenuView *)menuView {
+-(SubmenuView *)menuView {
     return _view;
 }
 

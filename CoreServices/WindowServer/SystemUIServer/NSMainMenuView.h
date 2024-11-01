@@ -8,14 +8,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #import "NSMenuView.h"
 
-@interface NSMainMenuView : NSMenuView {
+@interface NSMainMenuView : NSView {
     NSFont *_font;
+    NSUInteger _selectedItemIndex;
+    NSMutableArray *_visibleArray;
 }
 
 + (float)menuHeight;
 
 - initWithFrame:(NSRect)frame menu:(NSMenu *)menu;
-
 - (void)sizeToFit;
+- (NSUInteger)itemIndexAtPoint:(NSPoint)point;
+- (NSUInteger)selectedItemIndex;
+- (void)setSelectedItemIndex:(NSUInteger)itemIndex;
+- (NSArray *)visibleItemArray;
+- (NSMenuItem *)itemAtSelectedIndex;
+- (NSMenuView *)viewAtSelectedIndexPositionOnScreen:(NSScreen *)screen;
+- (NSMenuItem *)trackForEvent:(NSEvent *)event;
 
 @end

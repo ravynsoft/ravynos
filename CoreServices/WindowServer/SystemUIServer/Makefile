@@ -7,9 +7,7 @@ SRCS=           SystemUIServer.m \
                 MenuBarWindow.m \
 		NSMenuWindow.m \
 		NSMainMenuView.m \
-		NSMenuView.m \
-		NSSubmenuView.m \
-		NSOverflowMenuView.m \
+		SubmenuView.m \
                 Label.m \
                 AboutWindow.m
 RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
