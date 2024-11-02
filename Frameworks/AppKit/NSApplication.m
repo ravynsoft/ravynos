@@ -307,6 +307,12 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
     }
 }
 
+/* Each event notification is 2 chars. Don't read more! */
+-(int)_drainPipe {
+    char junk[2];
+    return read(_machEventPipe[0], junk, sizeof(junk));
+}
+
 -init {
     if(NSApp)
         NSAssert(!NSApp, @"NSApplication is a singleton");

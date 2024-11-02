@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-#import "SubmenuView.h"
+#import "desktop.h"
 #import "NSMenuWindow.h"
 
 #define MIN_TITLE_KEY_GAP 8
@@ -45,6 +45,13 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     [self setFrame:frame];
 
     return self;
+}
+
+-(Margins)menuItemTextMargins {
+    Margins result = {16};
+    result.top = 4;
+    result.bottom = 4;
+    return result;
 }
 
 -(BOOL)isFlipped {
@@ -111,7 +118,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
             ITEM_MAX(size);
         }
 		
-        return NSMakeSize(width, height);
+        return NSMakeSize(width, MAX(height, menuBarHeight));
     }
 }
 
@@ -285,8 +292,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     NSImage *img = [item image];
     if(img) {
         titleSize.width += [img size].width;
-        if(titleSize.height < 22)
-            titleSize.height = 22; // whee, magic numbers (height of menu bar)
+        titleSize.height = MAX(titleSize.height, menuBarHeight);
     }
 
     result.origin = NSMakePoint(6, previousBorderRect.origin.y);
@@ -366,22 +372,6 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
    return nil;
 }
 
--(void)mouseDown:(NSEvent *)event {
-    BOOL didAccept = [[self window] acceptsMouseMovedEvents];
-
-    [[self window] setAcceptsMouseMovedEvents:YES];
-    NSMenuItem *item = [self trackForEvent:event];
-    [[self window] setAcceptsMouseMovedEvents:didAccept];
-   
-    if(item != nil)
-        [NSApp sendAction:[item action] to:[item target] from:item];
-}
-
--(NSMenuItem *)trackForEvent:(NSEvent *)event {
-    NSLog(@"tracking for event");
-    return nil;
-}
-
 // This exists because most of AppKit (incl NSView) is not built with ARC, and
 // we need something that uses ARC to hold a ref to the window, or it will get
 // deallocated prematurely!
@@ -397,6 +387,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
 	partRect.size.width = __partSize.width;                              \
 }
 
+#define NSMENUDEBUG 0
 -(void)drawRect:(NSRect)rect {
     NSRect bounds = [self bounds];
     NSRect itemArea = boundsToTitleAreaRect(bounds);
@@ -413,6 +404,10 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
         if([item isSeparatorItem]) {
             NSRect separatorRect = NSMakeRect(origin.x, origin.y, NSWidth(itemArea), separatorHeight);
             [[self graphicsStyle] drawMenuSeparatorInRect:separatorRect];
+#if NSMENUDEBUG
+            [[NSColor yellowColor] setStroke];
+            NSFrameRect(separatorRect);
+#endif
             origin.y += NSHeight(separatorRect);
         } else {
             NSImage *image = [item image];
@@ -423,6 +418,10 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
             BOOL showsEnabled = ([item isEnabled] || [item hasSubmenu]);
 			
             partRect = NSMakeRect(origin.x, origin.y, itemArea.size.width, itemHeight);
+#if NSMENUDEBUG
+            [[NSColor redColor] setStroke];
+            NSFrameRect(partRect);
+#endif
             if(selected)
                 [[self graphicsStyle] drawMenuSelectionInRect:partRect enabled:showsEnabled];
 
@@ -499,7 +498,12 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
                 CENTER_PART_RECT_VERTICALLY(branchArrowSize);
                 [[self graphicsStyle] drawMenuBranchArrowInRect:partRect enabled:showsEnabled selected:selected];
             }
-			
+
+#if NSMENUDEBUG
+            [[NSColor yellowColor] setStroke];
+            NSFrameRect(partRect);
+#endif
+
             origin.y += itemHeight;
         }
     }

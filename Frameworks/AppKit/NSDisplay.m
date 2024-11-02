@@ -163,6 +163,8 @@ SOFTWARE. */
    
     [[NSRunLoop currentRunLoop] addInputSource:[NSApp inputSource] forMode:mode];
     [[NSRunLoop currentRunLoop] runMode:mode beforeDate:untilDate];
+    if([[NSApp inputSource] hasBytesAvailable]) // this source isn't really a socket so we can't just read:
+        [NSApp _drainPipe];
     [[NSRunLoop currentRunLoop] removeInputSource:[NSApp inputSource] forMode:mode];
 
     while(result==nil && [_eventQueue count]>0) {

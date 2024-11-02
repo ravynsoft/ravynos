@@ -19,9 +19,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-#import "NSMainMenuView.h"
+#import "desktop.h"
 #import "NSMenuWindow.h"
-#import "NSSubmenuView.h"
 #import <AppKit/NSFont.h>
 #import <AppKit/NSGraphicsStyle.h>
 
@@ -46,6 +45,13 @@ enum {
     float result=[@"Menu" sizeWithAttributes:attributes].height;
 
     result+=4;
+    return result;
+}
+
+-(Margins)menuItemTextMargins {
+    Margins result = {0};
+    result.top = 2;
+    result.bottom = 2;
     return result;
 }
 
@@ -86,8 +92,7 @@ enum {
     NSImage *img = [item image];
     if(img) {
         titleSize.width += [img size].width;
-        if(titleSize.height < 22)
-            titleSize.height = 22; // whee, magic numbers (height of menu bar)
+        titleSize.height = MAX(titleSize.height, menuBarHeight);
     }
 
     result.origin = NSMakePoint(NSMaxX(previousBorderRect)+6,floor(([self bounds].size.height-titleSize.height)/2));
@@ -159,32 +164,6 @@ enum {
    
    return _visibleArray;
 }
-
-#if 0
-static void drawSunkenBorder(NSRect rect){
-   NSRect   rects[5];
-   NSColor *colors[5];
-
-   rects[0]=rect;
-   rects[0].size.width=1;
-   colors[0]=[NSColor darkGrayColor];
-   rects[1]=rect;
-   rects[1].size.height=1;
-   colors[1]=[NSColor darkGrayColor];
-   rects[2]=rect;
-   rects[2].origin.x=NSMaxX(rect)-1;
-   rects[2].size.width=1;
-   colors[2]=[NSColor whiteColor];
-   rects[3]=rect;
-   rects[3].origin.y=NSMaxY(rect)-1;
-   rects[3].size.height=1;
-   colors[3]=[NSColor whiteColor];
-   rects[4]=NSInsetRect(rect,1,1);
-   colors[4]=[NSColor controlColor];
-
-   NSRectFillListWithColors(rects,colors,5);
-}
-#endif
 
 -(NSImage *)overflowImage {
    return [NSImage imageNamed:@"NSMenuViewDoubleRightArrow"];

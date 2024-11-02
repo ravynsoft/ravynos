@@ -87,7 +87,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 }
 
 -(NSSize)menuItemSeparatorSize {
-	return NSMakeSize(0,9);
+	return NSMakeSize(0,7 /*9*/);
 }
 
 -(Margins)menuItemBranchArrowMargins {
@@ -100,7 +100,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 }
 
 -(NSSize)menuItemBranchArrowSize {
-   return NSMakeSize(5,9);
+   return NSMakeSize(5,22 /*9*/);
 }
 
 -(NSSize)menuItemCheckMarkSize {
@@ -132,15 +132,11 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	return result;
 }
 
+/* Delegate this back to view class because horizontal menu bar is different than
+ * vertical drop downs
+ */
 -(Margins)menuItemTextMargins {
-	Margins result;
-	
-	result.left = 0;
-	result.right = 0;
-	result.top = TITLE_TOP_MARGIN;
-	result.bottom = TITLE_BOTTOM_MARGIN;
-	
-	return result;
+    return [_view menuItemTextMargins];
 }
 
 -(NSSize)menuItemTextSize:(NSString *)title {
@@ -167,20 +163,10 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	return result;
 }
 
+// this is the in-window bar which we dropped
 -(float)menuBarHeight
 {
     return 0.0;
-#if 0
-	NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:
-							  [NSFont menuFontOfSize:0],NSFontAttributeName,nil];
-	float         result=[@"Menu" sizeWithAttributes:attributes].height;
-	
-	result+=2; // border top/bottom margin
-	result+=4; // border
-	result+=1; // sunken title baseline
-	
-	return result;
-#endif
 }
 
 -(float)menuItemGutterGap
@@ -190,13 +176,13 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 
 -(void)drawMenuSeparatorInRect:(NSRect)rect 
 {
-	NSPoint point = NSMakePoint(rect.origin.x + 1, rect.origin.y + 3);
-	float   width = rect.size.width - 2;
+	NSPoint point = NSMakePoint(rect.origin.x + 6, rect.origin.y + 3);
+	float   width = rect.size.width - 6;
 	
 	[[NSColor grayColor] setFill];
 	NSRectFill(NSMakeRect(point.x,point.y,width,1));
-	[[NSColor whiteColor] setFill];
-	NSRectFill(NSMakeRect(point.x,point.y+1,width,1));
+	//[[NSColor whiteColor] setFill];
+	//NSRectFill(NSMakeRect(point.x,point.y+1,width,1));
 }
 
 -(void)drawMenuGutterInRect:(NSRect)rect
@@ -229,6 +215,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	}
 	else
 	{
+#if 0
 		if (!selected)
 		{
 			NSRect offsetRect = rect;
@@ -236,6 +223,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 			offsetRect.origin.y += 1;
 			[string drawInRect:offsetRect withAttributes:sDimmedMenuTextShadowAttributes];
 		}
+#endif
 		[string drawInRect:rect withAttributes:sDimmedMenuTextAttributes];
 	}
 }
@@ -265,6 +253,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	}
 	else
 	{
+#if 0
 		if (!selected)
 		{
 			[mutableString addAttributes: [NSDictionary dictionaryWithObject: [NSColor grayColor] forKey: NSForegroundColorAttributeName] range: range];
@@ -272,8 +261,10 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 			offsetRect.origin.x += 1;
 			offsetRect.origin.y += 1;
 			[mutableString drawInRect:offsetRect];
-		}
-		[mutableString drawInRect:rect];
+		} 
+#endif
+                    [mutableString addAttributes: [NSDictionary dictionaryWithObject: [NSColor grayColor] forKey: NSForegroundColorAttributeName] range: range];
+                    [mutableString drawInRect:rect];
 	}
 }
 

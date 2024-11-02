@@ -61,12 +61,12 @@ pthread_mutex_t mtx;
     sz.width += menuBarHPad;
 
     pthread_mutex_init(&mtx, NULL);
+
     [NSTimer scheduledTimerWithTimeInterval:1
                                      target:self
                                    selector:@selector(notifyTick:)
                                    userInfo:nil
                                     repeats:YES];
-
     return self;
 }
 
