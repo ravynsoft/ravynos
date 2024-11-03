@@ -79,6 +79,10 @@
 
 @end
 
+@interface NSMenu(client)
+-(NSMenu *)initApplicationMenu:(NSString *)name;
+@end
+
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
     
@@ -86,6 +90,19 @@ int main(int argc, const char *argv[]) {
         NSApplication *app = [NSApplication sharedApplication];
         NSLog(@"Press Esc to exit");
         Delegate *del = [Delegate new];
+
+        NSMenu *menu = [NSMenu new];
+        [menu setAutoenablesItems:YES];
+        [[menu addItemWithTitle:@"File" action:@selector(fileMenu:) keyEquivalent:@""] setTarget:del];
+        [[menu addItemWithTitle:@"Edit" action:@selector(editMenu:) keyEquivalent:@""] setTarget:del];
+        // Hack up an application menu since we don't load a nib
+        NSMenu *appMenu = [[NSMenu alloc] initApplicationMenu:@"Client Demo"];
+        NSMenuItem *appMenuItem = [NSMenuItem new];
+        [appMenuItem setTitle:@"Client Demo"];
+        [appMenuItem setSubmenu:appMenu];
+        [menu insertItem:appMenuItem atIndex:0];
+        [NSApp setMainMenu:menu];
+
         [NSApp setDelegate:del];
         [NSApp run];
     }

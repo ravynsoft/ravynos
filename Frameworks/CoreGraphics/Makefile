@@ -56,6 +56,7 @@ INCS= \
 	CGPath.h \
 	CGPattern.h \
 	CGShading.h \
+	CGWindow.h \
 	CGWindowLevel.h \
 	CoreGraphics.h \
 	CoreGraphicsExport.h \

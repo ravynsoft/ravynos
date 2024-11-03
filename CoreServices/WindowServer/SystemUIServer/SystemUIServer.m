@@ -118,7 +118,7 @@ int main(int argc, const char *argv[]) {
         exit(EXIT_FAILURE);
 
     pthread_t menuThread;
-//    pthread_create(&menuThread, NULL, menuListener, NULL);
+    pthread_create(&menuThread, NULL, menuListener, NULL);
 
     pthread_t kqThread;
 //    pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)del);

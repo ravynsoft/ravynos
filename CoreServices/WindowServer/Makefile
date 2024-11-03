@@ -35,6 +35,7 @@ CFLAGS+=	-fobjc-arc -g -D__RAVYNOS__ -D__MACH__ -D__WSRPC -pthread \
 		-I${SRCTOP}/Frameworks/AppKit/Headers
 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
+		-L${OBJTOP}/tmp/lib -L${OBJTOP}/tmp/usr/lib \
 		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
 		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
 		-L${OBJTOP}/Frameworks/CoreFoundation/CoreFoundation.framework \

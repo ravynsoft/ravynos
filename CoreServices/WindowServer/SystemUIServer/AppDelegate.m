@@ -178,6 +178,9 @@
     [[menuBar contentView] setNeedsDisplay:YES];
     [menuBar makeKeyAndOrderFront:self];
     [menuBar makeMainWindow];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(menuDidUpdate:)
+        name:WLMenuDidUpdateNotification object:nil];
 }
 
 /* Recursively set all menu targets and delegates to our proxy */
@@ -200,6 +203,9 @@
     pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
     NSMenu *mainMenu = [dict objectForKey:@"MainMenu"];
     [self _menuEnumerateAndChange:mainMenu];
+
+    [menuBar setMenu:mainMenu forApp:@"com.ravynos.client-demo"];
+    [menuBar activateApp:@"com.ravynos.client-demo"];
     //[menuBar setMenu:mainMenu forPID:pid]; // FIXME: forApp
 
     //FIXME: forApp

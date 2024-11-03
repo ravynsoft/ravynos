@@ -301,7 +301,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                     break;
             }
             // we received _something_ so wake the main event loop in case we posted
-            if(write(_machEventPipe[1], "\n", 2) < 0)
+            if([self _wakeUp] < 0)
                 NSLog(@"Error waking runloop - write: %s", strerror(errno));
         }
     }
@@ -311,6 +311,10 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 -(int)_drainPipe {
     char junk[2];
     return read(_machEventPipe[0], junk, sizeof(junk));
+}
+
+-(int)_wakeUp {
+    return(write(_machEventPipe[1], "\n", 2));
 }
 
 -init {
@@ -672,7 +676,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     NSData *d = [NSKeyedArchiver archivedDataWithRootObject:dict];
 
     // this is a hack since mach OOL can be a bit flaky
-    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/" WINDOWSERVER_SVC_NAME};
+    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/com.ravynos.SystemUIServer"};
     sun.sun_len = SUN_LEN(&sun);
     int sock = socket(PF_UNIX, SOCK_STREAM, 0);
     if(connect(sock, (struct sockaddr *)&sun, sizeof(sun)) < 0) {

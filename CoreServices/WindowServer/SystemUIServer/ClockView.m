@@ -30,6 +30,10 @@ const NSString *PrefsDateFormatStringKey = @"DateFormatString";
 const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
 pthread_mutex_t mtx;
 
+@interface NSApplication(SystemUIServer)
+-(int)_wakeUp;
+@end
+
 @implementation ClockView
 - initWithFrame:(NSRect)frame {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
@@ -39,7 +43,7 @@ pthread_mutex_t mtx;
         if([locale hasPrefix:@"en"])
             dateFormat = defaultFormatEN;
         else if([locale hasPrefix:@"C"])
-            dateFormat = @"%Y-%m-%d %R";
+        dateFormat = @"%Y-%m-%d %R";
         else
             dateFormat = [prefs objectForKey:NSTimeDateFormatString];
     }
@@ -62,11 +66,9 @@ pthread_mutex_t mtx;
 
     pthread_mutex_init(&mtx, NULL);
 
-    [NSTimer scheduledTimerWithTimeInterval:1
-                                     target:self
-                                   selector:@selector(notifyTick:)
-                                   userInfo:nil
-                                    repeats:YES];
+    [NSThread detachNewThreadSelector:@selector(notifyTick:)
+                             toTarget:self
+                           withObject:nil];
     return self;
 }
 
@@ -76,13 +78,21 @@ pthread_mutex_t mtx;
 
 - (void)notifyTick:(id)arg {
     static NSString *_dateValue = NULL;
-    dateString = [[NSAttributedString alloc] initWithString:[self currentDateValue] attributes:attributes];
-    if([_dateValue isEqualToString:[self currentDateValue]] == NO) {
-        [[NSColor windowBackgroundColor] set];
-        NSRectFill(_frame);
-        [dateString drawInRect:_frame];
-        _dateValue = [self currentDateValue];
+
+    while(YES) {
+        if([_dateValue isEqualToString:[self currentDateValue]] == NO) {
+            _dateValue = [self currentDateValue];
+            [self setNeedsDisplay:YES];
+            [NSApp _wakeUp];
+        }
+        sleep(1);
     }
+}
+
+-(void)drawRect:(NSRect)rect {
+    [super drawRect:rect];
+    dateString = [[NSAttributedString alloc] initWithString:[self currentDateValue] attributes:attributes];
+    [dateString drawInRect:rect];
 }
 
 - (NSSize)size {
