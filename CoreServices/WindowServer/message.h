@@ -52,6 +52,7 @@ enum {
     // Menus
     CODE_MENU_FOR_APP,          // Serialized menu data to set for app
     CODE_ITEM_CLICKED,          // Menu item was clicked
+    CODE_APP_EXITED,            // Tell SystemUIServer to drop this app's menus
 
     // Activation
     CODE_APP_BECAME_ACTIVE,

@@ -328,13 +328,13 @@ pthread_mutex_t renderLock;
                     siginfo_t siginfo;
                     // wait for LoginWindow to exit. exit code is the uid!
                     wait6(P_PID, pid, &status, WEXITED, NULL, &siginfo); 
-                    struct passwd *pw = getpwuid(siginfo.si_pid);
+                    struct passwd *pw = getpwuid(siginfo.si_status);
                     if(!pw) {
                         NSLog(@"uid not found");
                         break;
                     }
 
-                    uid = siginfo.si_pid;
+                    uid = siginfo.si_status;
                     gid = pw->pw_gid;
                     NSLog(@"Logged in user %s, gid %u", pw->pw_name, pw->pw_gid);
                     curShell = DESKTOP;
@@ -347,6 +347,7 @@ pthread_mutex_t renderLock;
                     struct passwd *pw = getpwuid(uid);
                     if(!pw) {
                         NSLog(@"uid not found");
+                        curShell = LOGINWINDOW;
                         break;
                     }
                     setlogin(pw->pw_name);
@@ -1455,6 +1456,8 @@ pthread_mutex_t renderLock;
                         menuMsg.header.msgh_id = MSG_ID_INLINE;
                         menuMsg.header.msgh_size = sizeof(menuMsg) - sizeof(mach_msg_trailer_t);
                         menuMsg.code = msg.msg.code;
+                        menuMsg.pid = msg.msg.pid;
+                        strncpy(menuMsg.bundleID, msg.msg.bundleID, sizeof(menuMsg.bundleID));
                         memcpy(menuMsg.data, msg.msg.data, msg.msg.len); // window ID
                         menuMsg.len = msg.msg.len;
                         mach_msg((mach_msg_header_t *)&menuMsg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
@@ -1586,8 +1589,25 @@ pthread_mutex_t renderLock;
                     else {
                         [apps removeObjectForKey:app.bundleID];
                         [app removeAllWindows];
+
+                        Message msg = {0};
+                        WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
+                        if(sysui == nil) {
+                            NSLog(@"Cannot remove menus for exited app - is SystemUIServer running?");
+                            break;
+                        }
+                        msg.header.msgh_remote_port = [sysui port];
+                        msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+                        msg.header.msgh_id = MSG_ID_INLINE;
+                        msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
+                        msg.code = CODE_APP_EXITED;
+                        msg.len = 0;
+                        msg.pid = out[i].ident;
+                        strncpy(msg.bundleID, [app.bundleID UTF8String], sizeof(msg.bundleID));
+                        mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+                                sizeof(msg) - sizeof(mach_msg_trailer_t),
+                                0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
                     }
-                    // FIXME: send to SystemUIServer and Dock.app
                 }
                 break;
             default:

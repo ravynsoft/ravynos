@@ -70,7 +70,7 @@ extern pthread_mutex_t mtx;
 }
 
 - (void)removeMenuForApp:(NSString *)bundleID {
-    if(bundleID == activeApp) {
+    if([bundleID isEqualToString:activeApp]) {
         [menuView setMenu:nil];
         [menuView setNeedsDisplay:YES];
         activeApp = nil;
@@ -78,15 +78,11 @@ extern pthread_mutex_t mtx;
     [menuDict removeObjectForKey:bundleID];
 }
 
-- (BOOL)activateApp:(NSString *)bundleID {
+- (void)activateApp:(NSString *)bundleID {
     activeApp = bundleID;
     NSMenu *menu = [self menuForApp:bundleID];
-    if(menu) {
-        [menuView setMenu:menu];
-        [menuView setNeedsDisplay:YES];
-        return YES;
-    }
-    return NO;
+    [menuView setMenu:menu];
+    [menuView setNeedsDisplay:YES];
 }
 
 - (void)addRecentItem:(NSURL *)itemURL {

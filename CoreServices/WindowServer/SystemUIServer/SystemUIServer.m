@@ -26,7 +26,8 @@
 #include <unistd.h>
 #include <desktop.h>
 
-const NSString *WLMenuDidUpdateNotification = @"WLMenuDidUpdateNotification";
+const NSString *NSMenuDidUpdateNotification = @"NSMenuDidUpdate";
+const NSString *NSApplicationDidQuitNotification = @"NSApplicationDidQuit";
 
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);

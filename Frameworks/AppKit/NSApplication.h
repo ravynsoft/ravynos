@@ -70,6 +70,7 @@ typedef enum {
 } NSApplicationPrintReply;
 
 @interface NSApplication : NSResponder {
+    NSString *bundleID;
     NSDisplay *_display;
     id _delegate;
     NSMutableArray *_windows;

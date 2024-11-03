@@ -21,6 +21,7 @@
  * THE SOFTWARE.
  */
 
+#include <sys/types.h> // for boolean_t
 
 #import <CoreFoundation/CFRunLoop.h>
 #import <CoreFoundation/CFMachPort.h>

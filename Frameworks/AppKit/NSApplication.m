@@ -248,7 +248,6 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 			}
                         case CODE_MENU_FOR_APP:
                         {
-                            NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
                             if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"]) {
                                 NSMutableData *data = [NSMutableData new];
                                 [data appendBytes:msg.data length:msg.len];
@@ -280,9 +279,22 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
 
                                 [[NSNotificationCenter defaultCenter] 
-                                    postNotificationName:@"WLMenuDidUpdateNotification" object:nil
+                                    postNotificationName:@"NSMenuDidUpdate" object:nil
                                     userInfo:md];
                                 [o release];
+                            }
+                            break;
+                        }
+                        case CODE_APP_EXITED:
+                        {
+                            if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"]) {
+                                NSMutableDictionary *md = [NSMutableDictionary new];
+                                [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
+                                [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
+
+                                [[NSNotificationCenter defaultCenter] 
+                                    postNotificationName:@"NSApplicationDidQuit" object:nil
+                                    userInfo:md];
                             }
                             break;
                         }
@@ -392,7 +404,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
     NSBundle *mainBundle = [NSBundle mainBundle];
 
    // don't try to find the service if this is the app that provides it...
-   NSString *bundleID = [mainBundle bundleIdentifier];
+   bundleID = [mainBundle bundleIdentifier];
     if(bundleID == nil)
         bundleID = [NSString stringWithFormat:@"unix.%u", getpid()];
    if(!([bundleID isEqualToString:@"com.ravynos.WindowServer"])) {
@@ -721,6 +733,8 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     msg.header.msgh_id = MSG_ID_INLINE;
     msg.header.msgh_size = sizeof(msg);
     msg.code = CODE_MENU_FOR_APP;
+    msg.pid = getpid();
+    strncpy(msg.bundleID, [bundleID UTF8String], sizeof(msg.bundleID));
     int len = MIN([d length], sizeof(msg.data));
     memcpy(msg.data, [d bytes], len);
     msg.len = len;

@@ -33,7 +33,8 @@
 
 extern const NSString *PrefsWallpaperPathKey;
 extern const NSString *PrefsDateFormatStringKey;
-extern const NSString *WLMenuDidUpdateNotification;
+extern const NSString *NSMenuDidUpdateNotification;
+extern const NSString *NSApplicationDidQuitNotification;
 
 // the clock
 @interface ClockView: NSView {
@@ -95,7 +96,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (NSMenu *)menuForApp:(NSString *)bundleID;
 - (void)setMenu:(NSMenu *)menu forApp:(NSString *)bundleID;
 - (void)removeMenuForApp:(NSString *)bundleID;
-- (BOOL)activateApp:(NSString *)bundleID;
+- (void)activateApp:(NSString *)bundleID;
 - (void)addRecentItem:(NSURL *)itemURL;
 - (void)addStatusItem:(NSStatusItem *)item pid:(unsigned int)pid;
 - (void)removeStatusItemsForPID:(unsigned int)pid;
