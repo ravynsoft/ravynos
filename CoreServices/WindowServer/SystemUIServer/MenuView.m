@@ -75,9 +75,10 @@ extern const char **environ;
     [logoItem setSubmenu:sysMenu];
     [logoMenu addItem:logoItem];
 
-    NSRect rect = NSMakeRect(menuBarHPad, 2, menuBarHPad*2, menuBarHeight);
-    NSMainMenuView *mv = [[NSMainMenuView alloc] initWithFrame:rect menu:logoMenu];
-    [self addSubview:mv];
+    NSRect rect = NSMakeRect(menuBarHPad, 0, _frame.size.width, menuBarHeight);
+    appMenuView = [[NSMainMenuView alloc] initWithFrame:rect menu:logoMenu];
+    [appMenuView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
+    [self addSubview:appMenuView];
 
     [self setNeedsDisplay:YES];
     return self;
@@ -88,33 +89,24 @@ extern const char **environ;
 }
 
 - (void)setMenu:(NSMenu *)menu {
-    if(menu == nil) {
-        if(appMenuView != nil) {
-            [appMenuView removeFromSuperview];
-            appMenuView = nil;
-            [self setNeedsDisplay:YES];
+    // Clear any old app menus, but leave our system menu icon
+    NSMenu *fullMenu = [appMenuView menu];
+    while([fullMenu numberOfItems] > 1)
+        [fullMenu removeItemAtIndex:1];
+
+    // Now add the new app's menus if there are any
+    if(menu != nil) {
+        NSMenuItem *item = [menu itemAtIndex:0];
+        if([item hasSubmenu] && [[[item submenu] _name] isEqualToString:@"NSAppleMenu"]) {
+            NSFontManager *fontmgr = [NSFontManager sharedFontManager];
+            NSDictionary *attr = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
+                [NSFont menuFontOfSize:15] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
+            [item setAttributedTitle:[[NSAttributedString alloc] initWithString:[item title]
+                attributes:attr]];
         }
-        return;
+        for(int i = 0; i < [menu numberOfItems]; ++i)
+            [fullMenu addItem:[menu itemAtIndex:i]];
     }
-
-    NSMenuItem *item = [menu itemAtIndex:0];
-    if([item hasSubmenu] && [[[item submenu] _name] isEqualToString:@"NSAppleMenu"]) {
-        NSFontManager *fontmgr = [NSFontManager sharedFontManager];
-        NSDictionary *attr = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
-            [NSFont menuFontOfSize:15] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
-        [item setAttributedTitle:[[NSAttributedString alloc] initWithString:[item title]
-            attributes:attr]];
-    }
-
-    NSRect rect = NSMakeRect(menuBarHPad*4, 0, _frame.size.width, menuBarHeight);
-    NSMainMenuView *newView = [[NSMainMenuView alloc] initWithFrame:rect menu:menu];
-    [newView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
-    if(appMenuView)
-        [self replaceSubview:appMenuView with:newView];
-    else
-        [self addSubview:newView];
-    appMenuView = newView;
-
     [self setNeedsDisplay:YES];
 }
 

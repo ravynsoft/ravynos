@@ -206,7 +206,7 @@ enum {
                 NSImage *img = [item image];
                 if(img) {
                     NSPoint pt = titleRect.origin;
-                    pt.y += ([img size].height);
+                    pt.y = (menuBarHeight / 2) + ([img size].height / 2);
                     [[item image] compositeToPoint:pt operation:NSCompositeSourceOver];
                 }
 
