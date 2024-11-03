@@ -36,13 +36,6 @@
 }
 
 #if 0
-            case MSG_ID_PORT:
-            {
-                mach_port_t port = msg.portMsg.descriptor.name;
-                pid_t pid = msg.portMsg.pid;
-                [menuBar setPort:port forPID:pid];
-                break;
-            }
                     case CODE_ADD_RECENT_ITEM:
                     {
                         NSURL *url = [NSURL URLWithString:
@@ -201,16 +194,12 @@
 - (void)menuDidUpdate:(NSNotification *)note {
     NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
     pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
+    NSString *bundleID = [dict objectForKey:@"BundleID"];
     NSMenu *mainMenu = [dict objectForKey:@"MainMenu"];
     [self _menuEnumerateAndChange:mainMenu];
 
-    [menuBar setMenu:mainMenu forApp:@"com.ravynos.client-demo"];
-    [menuBar activateApp:@"com.ravynos.client-demo"];
-    //[menuBar setMenu:mainMenu forPID:pid]; // FIXME: forApp
-
-    //FIXME: forApp
-    //if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate unless window becomes active
-    //    NSLog(@"could not activate menus!");
+    [menuBar setMenu:mainMenu forApp:bundleID];
+    [menuBar activateApp:bundleID]; // FIXME: wait on activation message from WS
 }
 
 // FIXME: send to WS

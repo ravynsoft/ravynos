@@ -246,6 +246,46 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
 			    memcpy(&handle, msg.data, sizeof(handle));
 			    NSLog(@"ZMK DEBUG: status item added with handle %u", handle);
 			}
+                        case CODE_MENU_FOR_APP:
+                        {
+                            NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
+                            if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"]) {
+                                NSMutableData *data = [NSMutableData new];
+                                [data appendBytes:msg.data length:msg.len];
+
+                                NSObject *o = nil;
+                                @try {
+                                    o = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+                                }
+                                @catch(NSException *localException) {
+                                    NSLog(@"%@",localException);
+                                }
+
+                                if(o == nil || [o isKindOfClass:[NSDictionary class]] == NO) {
+                                    NSLog(@"menuForApp: not a dictionary");
+                                    break;
+                                }
+                                if([(NSDictionary *)o objectForKey:@"MainMenu"] == nil) {
+                                    NSLog(@"menuForApp: missing MainMenu key");
+                                    break;
+                                }
+                                if(![[(NSDictionary *)o objectForKey:@"MainMenu"] isKindOfClass:[NSMenu class]]) {
+                                    NSLog(@"menuForApp: invalid menu class");
+                                    break;
+                                }
+
+                                NSMutableDictionary *md = [NSMutableDictionary new];
+                                [md setDictionary:(NSDictionary *)o];
+                                [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
+                                [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
+
+                                [[NSNotificationCenter defaultCenter] 
+                                    postNotificationName:@"WLMenuDidUpdateNotification" object:nil
+                                    userInfo:md];
+                                [o release];
+                            }
+                            break;
+                        }
                         case CODE_ITEM_CLICKED:
                         {
                             int itemID;
@@ -675,16 +715,20 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 
     NSData *d = [NSKeyedArchiver archivedDataWithRootObject:dict];
 
-    // this is a hack since mach OOL can be a bit flaky
-    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/com.ravynos.SystemUIServer"};
-    sun.sun_len = SUN_LEN(&sun);
-    int sock = socket(PF_UNIX, SOCK_STREAM, 0);
-    if(connect(sock, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
-        perror("Unable to install menus to global bar! connect");
-        return;
-    }
-    write(sock, [d bytes], [d length]);
-    close(sock);
+    Message msg = {0};
+    msg.header.msgh_remote_port = _wsSvcPort;
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    msg.header.msgh_id = MSG_ID_INLINE;
+    msg.header.msgh_size = sizeof(msg);
+    msg.code = CODE_MENU_FOR_APP;
+    int len = MIN([d length], sizeof(msg.data));
+    memcpy(msg.data, [d bytes], len);
+    msg.len = len;
+
+    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT, sizeof(msg), 0, MACH_PORT_NULL,
+            1000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+        NSLog(@"Failed to send menus to WS");
+
     [menuCopy release];
     [d release];
 }

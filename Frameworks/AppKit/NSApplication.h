@@ -210,8 +210,6 @@ typedef enum {
 - (void)addRecentItem:(NSURL *)url;
 
 // private
-- (DKMenu *)dbusMenu;
-- (DKConnection *)dbusConnection;
 - (void)_addWindow:(NSWindow *)window;
 
 - (void)_windowWillBecomeActive:(NSWindow *)window;

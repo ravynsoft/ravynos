@@ -22,90 +22,11 @@
 
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <errno.h>
 #include <unistd.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/un.h>
-#include <sys/ucred.h>
-#include <sys/socket.h>
 #include <desktop.h>
 
 const NSString *WLMenuDidUpdateNotification = @"WLMenuDidUpdateNotification";
-
-void menuListener(void *arg __unused) {
-    int conn;
-    struct xucred xucred;
-    struct sockaddr_un peer;
-    unsigned peerlen = 0;
-
-    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/com.ravynos.SystemUIServer"};
-    sun.sun_len = SUN_LEN(&sun);
-    int sock = socket(PF_UNIX, SOCK_STREAM, 0);
-    unlink(sun.sun_path);
-    if(bind(sock, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
-        perror("bind");
-        return;
-    }
-    if(listen(sock, 6) < 0) {
-        perror("listen");
-        return;
-    }
-
-    while(1) {
-        conn = accept(sock, (struct sockaddr *)&peer, &peerlen);
-        unsigned credlen = sizeof(xucred);
-        memset(&xucred, 0, credlen);
-        if((getsockopt(conn, 0, LOCAL_PEERCRED, &xucred, &credlen) != 0) ||
-            credlen != sizeof(xucred) || xucred.cr_version != XUCRED_VERSION) {
-            perror("LOCAL_PEERCRED");
-            close(conn);
-            continue;
-        }
-        int bytes = 0;
-        char buf[16384];
-        NSMutableData *data = [NSMutableData new];
-        while((bytes = read(conn, buf, sizeof(buf))) > 0)
-            [data appendBytes:buf length:bytes];
-        close(conn);
-
-        NSObject *o = nil;
-        @try {
-            o = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-        }
-        @catch(NSException *localException) {
-            NSLog(@"%@",localException);
-        }
-
-        if(o == nil || [o isKindOfClass:[NSDictionary class]] == NO ||
-            [(NSDictionary *)o objectForKey:@"MainMenu"] == nil ||
-            ![[(NSDictionary *)o objectForKey:@"MainMenu"] isKindOfClass:[NSMenu class]]) {
-            fprintf(stderr, "archiver: bad input\n");
-            continue;
-        }
-
-        NSMutableDictionary *md = [NSMutableDictionary new];
-        [md setDictionary:(NSDictionary *)o];
-        [md setObject:[NSNumber numberWithInt:xucred.cr_pid] forKey:@"ProcessID"];
-        [md setObject:[NSNumber numberWithInt:xucred.cr_uid] forKey:@"UserID"];
-        [md setObject:[NSNumber numberWithInt:xucred.cr_gid] forKey:@"GroupID"];
-        
-        [[NSNotificationCenter defaultCenter] 
-            postNotificationName:WLMenuDidUpdateNotification object:nil
-            userInfo:md];
-    }
-}
-
-void kqSvcLoop(void *arg) {
-    AppDelegate *delegate = (__bridge AppDelegate *)arg;
-    while(1)
-        [delegate processKernelQueue];
-} 
 
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
@@ -116,12 +37,6 @@ int main(int argc, const char *argv[]) {
     AppDelegate *del = [AppDelegate new];
     if(!del)
         exit(EXIT_FAILURE);
-
-    pthread_t menuThread;
-    pthread_create(&menuThread, NULL, menuListener, NULL);
-
-    pthread_t kqThread;
-//    pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)del);
 
     [pool drain];
     [NSApp setDelegate:del];

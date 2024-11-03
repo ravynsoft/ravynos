@@ -1442,6 +1442,26 @@ pthread_mutex_t renderLock;
             case MSG_ID_INLINE:
             {
                 switch(msg.msg.code) {
+                    case CODE_MENU_FOR_APP:
+                    {
+                        Message menuMsg = {0};
+                        WSAppRecord *app = [apps objectForKey:@"com.ravynos.SystemUIServer"];
+                        if(app == nil) {
+                            NSLog(@"Cannot install menus for client - is SystemUIServer running?");
+                            break;
+                        }
+                        menuMsg.header.msgh_remote_port = [app port];
+                        menuMsg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+                        menuMsg.header.msgh_id = MSG_ID_INLINE;
+                        menuMsg.header.msgh_size = sizeof(menuMsg) - sizeof(mach_msg_trailer_t);
+                        menuMsg.code = msg.msg.code;
+                        memcpy(menuMsg.data, msg.msg.data, msg.msg.len); // window ID
+                        menuMsg.len = msg.msg.len;
+                        mach_msg((mach_msg_header_t *)&menuMsg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+                                sizeof(menuMsg) - sizeof(mach_msg_trailer_t),
+                                0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
+                        break;
+                    }
                     case CODE_ADD_RECENT_ITEM:
                         // FIXME: pass to SystemUIServer
                         break;

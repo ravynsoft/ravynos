@@ -75,7 +75,7 @@ extern const char **environ;
     [logoItem setSubmenu:sysMenu];
     [logoMenu addItem:logoItem];
 
-    NSRect rect = NSMakeRect(menuBarHPad, 2, menuBarHPad*2, menuBarHeight+3);
+    NSRect rect = NSMakeRect(menuBarHPad, 2, menuBarHPad*2, menuBarHeight);
     NSMainMenuView *mv = [[NSMainMenuView alloc] initWithFrame:rect menu:logoMenu];
     [self addSubview:mv];
 
@@ -106,7 +106,7 @@ extern const char **environ;
             attributes:attr]];
     }
 
-    NSRect rect = NSMakeRect(menuBarHPad*4, 0, _frame.size.width, menuBarHeight+3);
+    NSRect rect = NSMakeRect(menuBarHPad*4, 0, _frame.size.width, menuBarHeight);
     NSMainMenuView *newView = [[NSMainMenuView alloc] initWithFrame:rect menu:menu];
     [newView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
     if(appMenuView)

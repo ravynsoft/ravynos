@@ -50,6 +50,7 @@ enum {
     CODE_ADD_RECENT_ITEM,       // Add to Recent Items menu
 
     // Menus
+    CODE_MENU_FOR_APP,          // Serialized menu data to set for app
     CODE_ITEM_CLICKED,          // Menu item was clicked
 
     // Activation
