@@ -1,5 +1,8 @@
-Building the WindowServer:
-`make clean && make`
-Run the resulting WindowServer.app/Contents/ravynOS/WindowServer on
-a console tty.
+Building the WindowServer for testing: `sudo make clean && sudo make`
+You also need to build SystemUIServer and LoginWindow separately by going into their directories and running the same commands.
+
+Run `sudo ${OBJTOP}/CoreServices/WindowServer.app/Contents/ravynOS/WindowServer` on
+a console tty. You can use `-v` or `-vv` to increase log verbosity. You should normally use `-x` to run only the display server (no GUI components) and then launch SystemUIServer.app or LoginWindow.app manually.
+
+`Command-Shift-Q` will exit WindowServer. (This is temporary.)
 

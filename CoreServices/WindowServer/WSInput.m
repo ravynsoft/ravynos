@@ -176,11 +176,11 @@ static unichar translateKeySym(xkb_keysym_t keysym) {
             me.state = me.code;
 
             // Intercept keycodes reserved for WindowServer itself
-            if((me.mods & NSShiftKeyMask) && nskey == 'Q') { // FIXME: remove
+            if(me.mods == (NSCommandKeyMask|NSShiftKeyMask) && nskey == 'Q') { // FIXME: remove
                 [target signalQuit];
                 return;
             }
-            if((me.mods & NSCommandKeyMask) && sym == XKB_KEY_Tab) {
+            if((me.mods == NSCommandKeyMask) && sym == XKB_KEY_Tab) {
                 if(me.code == NSKeyDown)
                     [target switchApp];
                 return;

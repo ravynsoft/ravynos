@@ -46,63 +46,6 @@
                         [menuBar addRecentItem:url];
                         break;
                     }
-                    case CODE_APP_BECAME_ACTIVE:
-                    {
-                        pid_t pid;
-                        memcpy(&pid, msg.msg.data, msg.msg.len);
-                        //NSLog(@"CODE_APP_BECAME_ACTIVE: pid = %d", pid);
-                        if([menuBar activeProcessID] != pid)
-                            [menuBar activateMenuForPID:pid];
-                        break;
-                    }
-                    case CODE_APP_BECAME_INACTIVE:
-                    {
-                        pid_t pid;
-                        memcpy(&pid, msg.msg.data, msg.msg.len);
-                        //NSLog(@"CODE_APP_BECAME_INACTIVE: pid = %d", pid);
-                        break;
-                    }
-                    case CODE_ACTIVATION_STATE:
-                    {
-                        pid_t pid;
-                        memcpy(&pid, msg.msg.data, sizeof(int));
-                        NSLog(@"CODE_APP_ACTIVATE: pid = %d", pid);
-                        mach_port_t port = [menuBar portForPID:pid];
-                        if(port != MACH_PORT_NULL) {
-                            Message activate = {0};
-                            activate.header.msgh_remote_port = port;
-                            activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
-                            activate.header.msgh_id = MSG_ID_INLINE;
-                            activate.header.msgh_size = sizeof(activate) - sizeof(mach_msg_trailer_t);
-                            activate.code = msg.msg.code;
-                            memcpy(activate.data, msg.msg.data+sizeof(int), sizeof(int)); // window ID
-                            activate.len = sizeof(int);
-                            mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG,
-                                sizeof(activate) - sizeof(mach_msg_trailer_t),
-                                0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL);
-                        }
-                        break;
-                    }
-                    case CODE_APP_HIDE:
-                    {
-                        pid_t pid;
-                        memcpy(&pid, msg.msg.data, sizeof(int));
-                        NSLog(@"CODE_APP_HIDE: pid = %d", pid);
-                        mach_port_t port = [menuBar portForPID:pid];
-                        if(port != MACH_PORT_NULL) {
-                            Message activate = {0};
-                            activate.header.msgh_remote_port = port;
-                            activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
-                            activate.header.msgh_id = MSG_ID_INLINE;
-                            activate.header.msgh_size = sizeof(activate) - sizeof(mach_msg_trailer_t);
-                            activate.code = msg.msg.code;
-                            activate.len = 0;
-                            mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG,
-                                sizeof(activate) - sizeof(mach_msg_trailer_t),
-                                0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL);
-                        }
-                        break;
-                    }
 		    case CODE_ADD_STATUS_ITEM:
 		    {
 			NSData *data = [NSData
@@ -143,10 +86,15 @@
     [menuBar makeKeyAndOrderFront:self];
     [menuBar makeMainWindow];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(menuDidUpdate:)
+    NSNotificationCenter *defaultCenter = [NSNotificationCenter defaultCenter];
+    [defaultCenter addObserver:self selector:@selector(menuDidUpdate:)
         name:NSMenuDidUpdateNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(appDidQuit:)
+    [defaultCenter addObserver:self selector:@selector(appDidQuit:)
         name:NSApplicationDidQuitNotification object:nil];
+    [defaultCenter addObserver:self selector:@selector(appDidActivate:)
+        name:NSApplicationDidBecomeActiveNotification object:nil];
+    [defaultCenter addObserver:self selector:@selector(appDidDeactivate:)
+        name:NSApplicationDidResignActiveNotification object:nil];
 }
 
 /* Recursively set all menu targets and delegates to our proxy */
@@ -172,7 +120,6 @@
     [self _menuEnumerateAndChange:mainMenu];
 
     [menuBar setMenu:mainMenu forApp:bundleID];
-    [menuBar activateApp:bundleID]; // FIXME: wait on activation message from WS
 }
 
 -(void)appDidQuit:(NSNotification *)note {
@@ -181,24 +128,35 @@
     [menuBar removeMenuForApp:bundleID];
 }
 
-// FIXME: send to WS
+-(void)appDidActivate:(NSNotification *)note {
+    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
+    NSString *bundleID = [dict objectForKey:@"BundleID"];
+    [menuBar activateApp:bundleID];
+}
+
+-(void)appDidDeactivate:(NSNotification *)note {
+    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
+    NSString *bundleID = [dict objectForKey:@"BundleID"];
+    [menuBar setMenu:nil];
+}
+
 - (void)clicked:(NSMenuItem *)object {
     int itemID = [object tag];
 
     Message clicked = {0};
-    clicked.header.msgh_remote_port = MACH_PORT_NULL; // FIXME: send to WS [menuBar activePort];
+    clicked.header.msgh_remote_port = [NSApp _wsServicePort];
     clicked.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
     clicked.header.msgh_id = MSG_ID_INLINE;
     clicked.header.msgh_size = sizeof(clicked) - sizeof(mach_msg_trailer_t);
     clicked.code = CODE_ITEM_CLICKED;
+    clicked.pid = getpid();
     memcpy(clicked.data, &itemID, sizeof(itemID));
     clicked.len = sizeof(itemID);
 
-    if(mach_msg((mach_msg_header_t *)&clicked, MACH_SEND_MSG, sizeof(clicked) - sizeof(mach_msg_trailer_t),
-        0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
-        //NSLog(@"Failed to send menu click to PID %d on port %d", [menuBar activeProcessID],
-        //    clicked.header.msgh_remote_port);
-        NSLog(@"oops");
+    kern_return_t ret = 0;
+    if((ret = mach_msg((mach_msg_header_t *)&clicked, MACH_SEND_MSG, sizeof(clicked) - sizeof(mach_msg_trailer_t),
+        0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL)) != MACH_MSG_SUCCESS)
+        NSLog(@"Failed to notify WindowServer of menu item click: 0x%x", ret);
 }
 
 -(void)mouseDown:(NSEvent *)event {

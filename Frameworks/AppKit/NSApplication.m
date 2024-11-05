@@ -311,6 +311,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                 [self sendAction:[item action] to:[item target] from:item];
                             else
                                 NSLog(@"Error: cannot find menu item with tag %d!", itemID);
+                            break;
                         }
                         case CODE_ACTIVATION_STATE:
                         {
@@ -335,10 +336,23 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                                                   object:self];
                             _isActive = data.active;
                             [self _checkForAppActivation];
-                            [[NSNotificationCenter defaultCenter]
-                                postNotificationName: (_isActive ? NSApplicationDidBecomeActiveNotification
-                                                                 : NSApplicationDidResignActiveNotification)
-                                              object:self];
+
+                            if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"]) {
+                                NSMutableDictionary *md = [NSMutableDictionary new];
+                                [md setObject:[NSNumber numberWithInt:msg.pid] forKey:@"ProcessID"];
+                                [md setObject:[NSString stringWithCString:msg.bundleID] forKey:@"BundleID"];
+
+                                [[NSNotificationCenter defaultCenter] 
+                                    postNotificationName: (_isActive ? NSApplicationDidBecomeActiveNotification
+                                                                     : NSApplicationDidResignActiveNotification)
+                                                               object:nil
+                                                             userInfo:md];
+                            } else {
+                                [[NSNotificationCenter defaultCenter]
+                                    postNotificationName: (_isActive ? NSApplicationDidBecomeActiveNotification
+                                                                     : NSApplicationDidResignActiveNotification)
+                                                               object:self];
+                            }
                             break;
                         }
                         case CODE_APP_HIDE:

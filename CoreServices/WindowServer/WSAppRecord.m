@@ -33,6 +33,7 @@ extern pthread_mutex_t renderLock;
 -init {
     _windows = [NSMutableArray new];
     _mouseCursorConnected = YES;
+    _skipSwitcher = NO;
     return self;
 }
 
@@ -78,6 +79,14 @@ extern pthread_mutex_t renderLock;
 
 -(BOOL)mouseCursorConnected {
     return _mouseCursorConnected;
+}
+
+-(BOOL)skipSwitcher {
+    return _skipSwitcher;
+}
+
+-(void)skipSwitcher:(BOOL)value {
+    _skipSwitcher = value;
 }
 
 -(NSString *)description {

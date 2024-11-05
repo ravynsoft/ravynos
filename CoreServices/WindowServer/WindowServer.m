@@ -1428,6 +1428,10 @@ pthread_mutex_t renderLock;
                     rec = [WSAppRecord new];
                     rec.bundleID = bundleID;
                     rec.port = port;
+                    if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"] ||
+                            [bundleID isEqualToString:@"com.ravynos.LoginWindow"] ||
+                            [bundleID isEqualToString:@"com.ravynos.Dock"])
+                        [rec skipSwitcher:YES];
                 }
                 rec.pid = pid;
                 if(port != rec.port && logLevel >= WS_WARNING)
@@ -1437,7 +1441,11 @@ pthread_mutex_t renderLock;
                 [self watchForProcessExit:pid];
 
                 // A newly-launched app becomes the active one
-                curApp = [apps objectForKey:bundleID];
+                if(![rec skipSwitcher]) {
+                    [self deactivateApp:curApp];
+                    curApp = [apps objectForKey:bundleID];
+                    [self activateApp:curApp];
+                }
                 break;
             }
             case MSG_ID_INLINE:
@@ -1465,49 +1473,21 @@ pthread_mutex_t renderLock;
                                 0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
                         break;
                     }
+                    case CODE_ITEM_CLICKED:
+                    {
+                        if(curApp == nil) {
+                            NSLog(@"Dropping menu click because curApp is nil!");
+                            break;
+                        }
+                        [self sendInlineData:msg.msg.data
+                                      length:msg.msg.len
+                                    withCode:msg.msg.code
+                                      toPort:[curApp port]];
+
+                    }
                     case CODE_ADD_RECENT_ITEM:
                         // FIXME: pass to SystemUIServer
                         break;
-                    case CODE_APP_BECAME_ACTIVE:
-                    {
-                        pid_t pid;
-                        memcpy(&pid, msg.msg.data, msg.msg.len);
-                        //NSLog(@"CODE_APP_BECAME_ACTIVE: pid = %d", pid);
-                        // FIXME: pass to SystemUIServer
-                        break;
-                    }
-                    case CODE_APP_BECAME_INACTIVE:
-                    {
-                        pid_t pid;
-                        memcpy(&pid, msg.msg.data, msg.msg.len);
-                        //NSLog(@"CODE_APP_BECAME_INACTIVE: pid = %d", pid);
-                        //FIXME: pass to SystemUIServer
-                        break;
-                    }
-                    case CODE_ACTIVATION_STATE:
-                    {
-                        struct mach_activation_data data;
-                        memcpy(&data, msg.msg.data, sizeof(data));
-                        NSLog(@"CODE_ACTIVATION_STATE");
-#if 0
-                        // FIXME: pass to SystemUIServer
-                        mach_port_t port = 0; // FIXME: get from active app
-                        if(port != MACH_PORT_NULL) {
-                            Message activate = {0};
-                            activate.header.msgh_remote_port = port;
-                            activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
-                            activate.header.msgh_id = MSG_ID_INLINE;
-                            activate.header.msgh_size = sizeof(activate) - sizeof(mach_msg_trailer_t);
-                            activate.code = msg.msg.code;
-                            memcpy(activate.data, msg.msg.data+sizeof(int), sizeof(int)); // window ID
-                            activate.len = sizeof(int);
-                            mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
-                                sizeof(activate) - sizeof(mach_msg_trailer_t),
-                                0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
-                        }
-#endif
-                        break;
-                    }
                     case CODE_APP_HIDE:
                     {
                         pid_t pid;
@@ -1548,12 +1528,6 @@ pthread_mutex_t renderLock;
 			    break;
 			}
 
-#if 0 // I don't think we need this anymore since we set up NOTE_EXIT in MSG_ID_PORT
-			NSDictionary *dict = (NSDictionary *)o;
-			unsigned int pid = [[dict objectForKey:@"ProcessID"] unsignedIntValue];
-                        [self watchForProcessExit:pid];
-#endif
-
                         // FIXME: send to SystemUIServer
 			break;
 		    }
@@ -1593,7 +1567,7 @@ pthread_mutex_t renderLock;
                         Message msg = {0};
                         WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
                         if(sysui == nil) {
-                            NSLog(@"Cannot remove menus for exited app - is SystemUIServer running?");
+                            NSLog(@"Cannot notify for exited app - is SystemUIServer running?");
                             break;
                         }
                         msg.header.msgh_remote_port = [sysui port];
@@ -1697,9 +1671,12 @@ pthread_mutex_t renderLock;
             }
 
             // Handled all WS cases - send this to the window!
-            curApp = app;
-            curWindow = window;
-            // FIXME: notify app of activation
+            if(![app skipSwitcher]) {
+                [self deactivateApp:curApp];
+                curApp = app;
+                curWindow = window;
+                [self activateApp:curApp];
+            }
             break;
         }
         case NSLeftMouseUp: {
@@ -1788,21 +1765,84 @@ pthread_mutex_t renderLock;
     return nil;
 }
 
+-(void)deactivateApp:(WSAppRecord *)app {
+    if(app == nil)
+        return;
+
+    Message msg = {0};
+    struct mach_activation_data data = {0};
+    WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
+    msg.header.msgh_remote_port = [sysui port];
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    msg.header.msgh_id = MSG_ID_INLINE;
+    msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
+    msg.code = CODE_ACTIVATION_STATE;
+    msg.pid = getpid();
+    strncpy(msg.bundleID, [[app bundleID] UTF8String], sizeof(msg.bundleID));
+    memcpy(msg.data, &data, sizeof(data)); // window ID
+    msg.len = sizeof(data);
+    mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+            sizeof(msg) - sizeof(mach_msg_trailer_t),
+            0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
+}
+
+-(void)activateApp:(WSAppRecord *)app {
+    if(app == nil)
+        return;
+
+    Message msg = {0};
+    struct mach_activation_data data = {0, 1};
+    WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];
+    msg.header.msgh_remote_port = [sysui port];
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    msg.header.msgh_id = MSG_ID_INLINE;
+    msg.header.msgh_size = sizeof(msg) - sizeof(mach_msg_trailer_t);
+    msg.code = CODE_ACTIVATION_STATE;
+    msg.pid = getpid();
+    strncpy(msg.bundleID, [[app bundleID] UTF8String], sizeof(msg.bundleID));
+    memcpy(msg.data, &data, sizeof(data));
+    msg.len = sizeof(data);
+    mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG|MACH_SEND_TIMEOUT,
+            sizeof(msg) - sizeof(mach_msg_trailer_t),
+            0, MACH_PORT_NULL, 100 /* ms timeout */, MACH_PORT_NULL);
+}
+
 // FIXME: do some visual magic here for the user
 - (void)switchApp {
     WSAppRecord *oldApp = curApp;
 
     WSAppRecord *app;
+    NSMutableArray *viableApps = [NSMutableArray new];
     NSArray *list = [apps allValues];
     for(int i = 0; i < [list count]; ++i) {
-        app = [list objectAtIndex:i];
+        WSAppRecord *app = [list objectAtIndex:i];
+        if([app skipSwitcher])
+            continue;
+        NSLog(@"viableApps: %@", app);
+        [viableApps addObject:app];
+    }
+
+    for(int i = 0; i < [viableApps count]; ++i) {
+        app = [viableApps objectAtIndex:i];
         if(app == curApp) {
-            if(i+1 >= [list count])
-                curApp = [list objectAtIndex:0];
+            if(i+1 >= [viableApps count])
+                curApp = [viableApps objectAtIndex:0];
             else
-                curApp = [list objectAtIndex:1+i];
+                curApp = [viableApps objectAtIndex:1+i];
             break;
         }
+    }
+    
+    struct mach_activation_data data = {0};
+    if(oldApp != curApp) {
+        // Inform the old app that it has become inactive
+        [self sendInlineData:&data
+                      length:sizeof(data)
+                    withCode:CODE_ACTIVATION_STATE
+                      toPort:[oldApp port]];
+
+        // Now tell SystemUIServer the app resigned active
+        [self deactivateApp:oldApp];
     }
 
     curWindow = nil;
@@ -1823,13 +1863,6 @@ pthread_mutex_t renderLock;
     if(curApp == oldApp)
         return;
 
-    // Inform the old app that it has become inactive
-    struct mach_activation_data data = {0};
-    [self sendInlineData:&data
-                  length:sizeof(data)
-                withCode:CODE_ACTIVATION_STATE
-                  toPort:[oldApp port]];
-
     // Inform the now-active app of its status
     data.windowID = (curWindow == nil) ? 0 : curWindow.number;
     data.active = 1;
@@ -1837,6 +1870,9 @@ pthread_mutex_t renderLock;
                   length:sizeof(data)
                 withCode:CODE_ACTIVATION_STATE
                    toPort:[curApp port]];
+
+    // Now tell SystemUIServer the app became active
+    [self activateApp:curApp];
 }
 
 -(void)signalQuit { ready = NO; }

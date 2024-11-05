@@ -29,6 +29,6 @@ grabscr: grabscr.m
 		-F${OBJTOP}/Frameworks/OpenGL \
 		-I${SRCTOP}/Frameworks -L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
 		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
-		-lAppKit -lCoreGraphics \
+		-lAppKit -lCoreGraphics -lobjc \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A

@@ -27,6 +27,7 @@
 @interface WSAppRecord : NSObject {
     NSMutableArray *_windows;
     BOOL _mouseCursorConnected;
+    BOOL _skipSwitcher;
 }
 
 @property NSString *bundleID;           // CFBundleID
@@ -43,5 +44,7 @@
 -(void)removeAllWindows;
 -(void)mouseCursorConnected:(int)connected;
 -(BOOL)mouseCursorConnected;
+-(BOOL)skipSwitcher;
+-(void)skipSwitcher:(BOOL)value;
 @end
 
