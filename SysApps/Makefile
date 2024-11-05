@@ -23,12 +23,15 @@ buildInstaller:
 grabscr: grabscr.m
 	mkdir -p ${OBJTOP}/SysApps
 	${CC} -B${OBJTOP}/tmp/usr/bin --sysroot=${OBJTOP}/tmp \
-		-g -o ${MAKEOBJDIR}/${.TARGET} ${.ALLSRC} \
+		-g -fobjc-runtime=gnustep-2.0 -fobjc-nonfragile-abi \
+		-o ${MAKEOBJDIR}/${.TARGET} ${.ALLSRC} \
 		-I${OBJTOP}/Frameworks/AppKit/Headers \
 		-I${OBJTOP}/Frameworks/Foundation/Headers \
 		-F${OBJTOP}/Frameworks/OpenGL \
 		-I${SRCTOP}/Frameworks -L${OBJTOP}/Frameworks/AppKit/AppKit.framework \
 		-L${OBJTOP}/Frameworks/CoreGraphics/CoreGraphics.framework \
-		-lAppKit -lCoreGraphics -lobjc \
+		-L${OBJTOP}/Frameworks/Foundation/Foundation.framework \
+		-lAppKit -lFoundation -lCoreGraphics -lobjc \
 		-Wl,-R/System/Library/Frameworks/AppKit.framework/Versions/A \
+		-Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 		-Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A
