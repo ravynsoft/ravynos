@@ -61,6 +61,7 @@ const int height = 640;
     osname = [[Label alloc] initWithText:osnameString
                                  atPoint:NSMakePoint(width/2 - [osnameString size].width / 2, height - 120)
                             withMaxWidth:width];
+    [osname setSelectable:NO];
     [bg addSubview:osname];
 
     int diameter = 168;
@@ -96,6 +97,7 @@ const int height = 640;
     Label *versionLabel = [Label labelWithText:v
                                        atPoint:NSMakePoint(center.x - [v size].width / 2, 80)
                                   withMaxWidth:width/2];
+    [versionLabel setSelectable:NO];
     [bg addSubview:versionLabel];
 
     versionString = [NSString stringWithFormat:@"\"%@\"", [osVersionDictionary objectForKey:@"ProductFamily"]];
@@ -103,13 +105,16 @@ const int height = 640;
     versionLabel = [Label labelWithText:v
                                 atPoint:NSMakePoint(center.x - [v size].width / 2, 50)
                            withMaxWidth:width/2];
+    [versionLabel setSelectable:NO];
     [bg addSubview:versionLabel];
 
     int ypos = height / 2 + 150;
-    [bg addSubview:[Label labelWithText:[[NSAttributedString alloc]
-                                        initWithString:@"Username" attributes:attr]
-                                atPoint:NSMakePoint(center.x - 70, ypos)
-                           withMaxWidth:width/2]];
+    Label *l = [Label labelWithText:[[NSAttributedString alloc] initWithString:@"Username"
+                                                                    attributes:attr]
+                            atPoint:NSMakePoint(center.x - 70, ypos)
+                       withMaxWidth:width/2];
+    [l setSelectable:NO];
+    [bg addSubview:l];
     ypos -= 36;
     userField = [[NSTextField alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
     [userField setEditable:YES];
@@ -117,10 +122,12 @@ const int height = 640;
     [bg addSubview:userField];
     ypos -= 24;
 
-    [bg addSubview:[Label labelWithText:[[NSAttributedString alloc]
-                                        initWithString:@"Password" attributes:attr]
-                                atPoint:NSMakePoint(center.x - 70, ypos)
-                           withMaxWidth:width/2]];
+    l = [Label labelWithText:[[NSAttributedString alloc] initWithString:@"Password"
+                                                             attributes:attr]
+                     atPoint:NSMakePoint(center.x - 70, ypos)
+                withMaxWidth:width/2];
+    [l setSelectable:NO];
+    [bg addSubview:l];
     ypos -= 36;
     passField = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
     [passField setEditable:YES];
@@ -167,7 +174,7 @@ static void badLogin() {
         return;
     }
 
-    //NSLog(@"username %s uid %d gid %d", pw->pw_name, pw->pw_uid, pw->pw_gid);
+    NSLog(@"username %s uid %d gid %d", pw->pw_name, pw->pw_uid, pw->pw_gid);
 
     exit(pw->pw_uid);
 }
