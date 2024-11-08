@@ -24,6 +24,7 @@
 #import "common.h"
 #import "WindowServer.h"
 #import <sys/event.h>
+#import <termios.h>
 #import <servers/bootstrap.h>
 #import "message.h"
 
@@ -62,10 +63,7 @@ int main(int argc, const char *argv[]) {
     }
     [pool drain];
 
-#if 0
-    while(access("/var/run/windowserver", F_OK) != 0)
-        sleep(1);
-
+    /* Become immortal. Mwahahahaha */
     signal(SIGHUP, SIG_IGN);
     signal(SIGINT, SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
@@ -80,9 +78,66 @@ int main(int argc, const char *argv[]) {
     signal(SIGTHR, SIG_IGN);
     signal(SIGLIBRT, SIG_IGN);
 
-    setresgid(videoGID, videoGID, 0);
-    setresuid(nobodyUID, nobodyUID, 0);
-#endif
+    /* Drop our controlling terminal - we're gonna switch */
+    /* This is the recommended but sucky way. Using TIOCNOTTY isn't working */
+    pid_t pid = fork();
+    int status;
+    switch(pid) {
+        case -1: NSLog(@"fork: %s", strerror(errno)); exit(1);
+        case 0: break; // let child continue
+        default: waitpid(pid, &status, 0); exit(status); // parent
+    }
+
+    setsid(); // Start a new session
+
+    int vt = 0, origvt = 0;
+    int fd = open("/dev/ttyv0", O_RDWR|O_CLOEXEC);
+    if(fd < 0) {
+        NSLog(@"Cannot open console: %s", strerror(errno));
+        exit(1);
+    }
+
+    ioctl(fd, VT_GETACTIVE, &origvt);
+
+    if(ioctl(fd, VT_OPENQRY, &vt) < 0) {
+        NSLog(@"Cannot allocate terminal: %s", strerror(errno));
+        exit(1);
+    }
+
+    char filename[64];
+    sprintf(filename, "/dev/ttyv%d", vt - 1);
+    NSLog(@"Allocated vt %d (%s)", vt, filename);
+
+    int wsfd = open(filename, O_RDWR|O_CLOEXEC);
+    if(wsfd < 0) {
+        NSLog(@"Cannot open terminal: %s", strerror(errno));
+        exit(1);
+    }
+
+    if(ioctl(wsfd, VT_ACTIVATE, vt) < 0) {
+        NSLog(@"Cannot activate terminal: %s", strerror(errno));
+        exit(1);
+    }
+
+    // Associate the new VT as our ctty
+    if(tcsetsid(wsfd, getpid())  < 0)
+        NSLog(@"tcsetsid: %s", strerror(errno));
+
+    vtmode_t mode = {
+        .mode = VT_PROCESS,
+        .frsig = SIGUSR1,
+        .acqsig = SIGUSR1,
+        .relsig = SIGUSR2
+    };
+    if(ioctl(wsfd, VT_SETMODE, &mode) < 0)
+        NSLog(@"Cannot lock VT switching: %s", strerror(errno));
+
+    // Turn off tty input echo
+    struct termios old, new;
+    tcgetattr(wsfd, &old);
+    new = old;
+    new.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(wsfd,TCSANOW, &new);
 
     WindowServer *ws = [WindowServer new];
     if(ws == nil)
@@ -97,8 +152,19 @@ int main(int argc, const char *argv[]) {
 
     [ws setShell:curShell];
     [ws run];
-
     ws = nil;
+
+    // Restore old terminal settings
+    tcsetattr(wsfd, TCSANOW, &old);
+
+    memset(&mode, 0, sizeof(mode));
+    if(ioctl(wsfd, VT_SETMODE, &mode) < 0)
+        NSLog(@"Cannot release VT switching: %s", strerror(errno));
+
+    // Go back to the original vt now!
+    ioctl(fd, VT_ACTIVATE, origvt);
+    close(fd);
+    close(wsfd);
     pthread_cancel(machSvcThread);
     pthread_cancel(kqThread);
     exit(0);

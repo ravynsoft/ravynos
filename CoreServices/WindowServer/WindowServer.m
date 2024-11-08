@@ -328,9 +328,10 @@ pthread_mutex_t renderLock;
                     siginfo_t siginfo;
                     // wait for LoginWindow to exit. exit code is the uid!
                     wait6(P_PID, pid, &status, WEXITED, NULL, &siginfo); 
+                    NSLog(@"LoginWindow: status=%d si_status=%d", status, siginfo.si_status);
                     struct passwd *pw = getpwuid(siginfo.si_status);
                     if(!pw) {
-                        NSLog(@"uid not found");
+                        NSLog(@"uid %d not found", siginfo.si_status);
                         break;
                     }
 
@@ -1429,7 +1430,6 @@ pthread_mutex_t renderLock;
                     rec.bundleID = bundleID;
                     rec.port = port;
                     if([bundleID isEqualToString:@"com.ravynos.SystemUIServer"] ||
-                            [bundleID isEqualToString:@"com.ravynos.LoginWindow"] ||
                             [bundleID isEqualToString:@"com.ravynos.Dock"])
                         [rec skipSwitcher:YES];
                 }
@@ -1560,6 +1560,8 @@ pthread_mutex_t renderLock;
                     }
                     if(app == nil)
                         NSLog(@"PID %u exited, but no matching app record", out[i].ident);
+                    else if([app.bundleID isEqualToString:@"com.ravynos.LoginWindow"])
+                        NSLog(@"LoginWindow exited");
                     else {
                         [apps removeObjectForKey:app.bundleID];
                         [app removeAllWindows];
@@ -1818,7 +1820,6 @@ pthread_mutex_t renderLock;
         WSAppRecord *app = [list objectAtIndex:i];
         if([app skipSwitcher])
             continue;
-        NSLog(@"viableApps: %@", app);
         [viableApps addObject:app];
     }
 
