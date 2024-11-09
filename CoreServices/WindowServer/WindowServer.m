@@ -439,9 +439,7 @@ pthread_mutex_t renderLock;
                 }
 
                 pid_t exited = 0;
-                while((exited = wait(&status)) != pid) {
-                    NSLog(@"waiting on %d. pid %d has status %d", pid, exited, status);
-                }
+                while((exited = wait(&status)) != pid) ;
 
                 switch(WEXITSTATUS(status)) {
                     case EXIT_RESTART: NSLog(@"should restart!");

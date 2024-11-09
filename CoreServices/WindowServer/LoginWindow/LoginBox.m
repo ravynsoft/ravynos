@@ -120,6 +120,7 @@ extern int fd;
     userField = [[NSTextField alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
     [userField setEditable:YES];
     [userField setEnabled:YES];
+    [userField setFont:[attr objectForKey:NSFontAttributeName]];
     [bg addSubview:userField];
     ypos -= 24;
 
@@ -133,6 +134,7 @@ extern int fd;
     passField = [[NSSecureTextField alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
     [passField setEditable:YES];
     [passField setEnabled:YES];
+    [passField setFont:[attr objectForKey:NSFontAttributeName]];
     [bg addSubview:passField];
 
     

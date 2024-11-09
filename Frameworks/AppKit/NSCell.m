@@ -141,7 +141,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	[self setFormatter:[keyed decodeObjectForKey:@"NSFormatter"]];
 
     if (_font==nil)
-       _font=[[NSFont userFontOfSize:13 - _controlSize*2] retain];
+       _font=[[NSFont userFontOfSize:16 - _controlSize*2] retain];
    }
    else {
     [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];
@@ -471,7 +471,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if (type == NSTextCellType) {
 // FIX, localization
        [self setTitle:@"Cell"];				// mostly clarified in setEntryType dox
-       [self setFont:[NSFont systemFontOfSize:12.0]];
+       [self setFont:[NSFont systemFontOfSize:15.0]];
     }
     [[[self controlView] window] invalidateCursorRectsForView:[self controlView]];
    }
@@ -710,7 +710,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)setControlSize:(NSControlSize)size {
    _controlSize = size;
    [_font release];
-   _font = [[NSFont userFontOfSize:13 - _controlSize*2] retain];
+   _font = [[NSFont userFontOfSize:16 - _controlSize*2] retain];
    [(NSControl *)[self controlView] updateCell:self];
 }
 

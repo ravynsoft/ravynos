@@ -63,13 +63,14 @@ int main(int argc, const char *argv[]) {
     }
     [pool drain];
 
-    /* Become immortal. Mwahahahaha */
+    /* Become immortal. Mwahahahaha! 
+     * Note: don't trap SIGCHLD - we need it to wait on process exits
+     */
     signal(SIGHUP, SIG_IGN);
     signal(SIGINT, SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
     signal(SIGPIPE, SIG_IGN);
     signal(SIGALRM, SIG_IGN);
-    //signal(SIGCHLD, SIG_IGN);
     signal(SIGTTIN, SIG_IGN);
     signal(SIGTTOU, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
