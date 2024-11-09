@@ -87,11 +87,6 @@ pthread_mutex_t renderLock;
     input = [WSInput new];
     [input setLogLevel:logLevel];
 
-    stopOnErr = NO;
-    NSString *s_stopOnErr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"DebugExitOnError"];
-    if(s_stopOnErr && [s_stopOnErr isEqualToString:@"YES"])
-        stopOnErr = YES;
-
     struct group *group = getgrnam("video");
     if(!group) {
         perror("getgrnam(video)");
@@ -455,13 +450,10 @@ pthread_mutex_t renderLock;
                                       break;
                     default: NSLog(@"SysUI exited with status %d", status);
                 }
-
-                // safety valve for debugging
-                if(stopOnErr)
-                    execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
-                break;
             }
+            break;
         }
+
     }
     [[NSThread currentThread] cancel];
 }
@@ -1950,7 +1942,10 @@ pthread_mutex_t renderLock;
     [self activateApp:curApp];
 }
 
--(void)signalQuit { ready = NO; }
+-(void)signalQuit {
+    execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
+    ready = NO;
+}
 
 -(CGFontRef)titleFont {
     return _titleFont;

@@ -62,7 +62,6 @@ extern pthread_mutex_t renderLock;
 
 @interface WindowServer : NSObject {
     BOOL ready;
-    BOOL stopOnErr;
     char **envp;
     unsigned int nobodyUID;
     unsigned int videoGID;
