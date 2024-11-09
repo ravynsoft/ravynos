@@ -27,6 +27,8 @@
 @interface LoginBox: NSView {
     NSTextField *userField;
     NSSecureTextField *passField;
+    NSAttributedString *credsFailed;
+    Label *badCredsLabel;
     NSButton *ok;
     NSImageView *logoView;
     Label *osname;

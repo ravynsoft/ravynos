@@ -53,7 +53,7 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' -L${MAKEOBJDIR} \
 		${MAKEOBJDIR}/libxkbcommon/src/compose/*.pico \
 		${MAKEOBJDIR}/libxkbcommon/src/xkbcomp/*.pico \
 		${OBJTOP}/tmp/lib/libutil.so.9 -L${MAKEOBJDIR}/libinput -linput \
-		-ludev -lCoreText -lAppKit -lFoundation -lCoreGraphics \
+		-ludev -lCoreText -lAppKit -lFoundation -lCoreGraphics -lcrypt \
 		-lCoreFoundation -lOnyx2D -lxml2 -pthread -lobjc -lSystem -lkvm -lm \
 		${OBJTOP}/tmp/lib/libc.so.7
 #.export SYSROOT

@@ -28,8 +28,15 @@
 #include <unistd.h>
 #include <desktop.h>
 
+int fd = 0;
+
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
+
+    if(argc < 2)
+        exit(1);
+
+    fd = strtoul(argv[1], NULL, 10);
 
     @autoreleasepool {
         NSApplication *app = [NSApplication sharedApplication];
@@ -37,6 +44,6 @@ int main(int argc, const char *argv[]) {
         [NSApp setDelegate:del];
         [NSApp run];
     }
-    exit(65534);
+    exit(0);
 }
 

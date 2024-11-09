@@ -66,6 +66,7 @@ extern const NSString *NSApplicationDidQuitNotification;
 - (void)performSleep:(id)sender;
 - (void)performRestart:(id)sender;
 - (void)performShutDown:(id)sender;
+- (void)performLogout:(id)sender;
 - (void)launchSystemPreferences:(id)sender;
 - (void)addRecentItem:(NSURL *)itemURL;
 - (void)launchRecentItem:(id)sender;

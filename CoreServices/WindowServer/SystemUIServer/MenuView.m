@@ -23,9 +23,11 @@
 #import <AppKit/AppKit.h>
 #import <Foundation/NSPlatform.h>
 #import "desktop.h"
+#import "../common.h"
 #import "AboutWindow.h"
 
 extern const char **environ;
+extern int exitCode;
 
 @implementation MenuView
 - initWithFrame:(NSRect)frame {
@@ -63,7 +65,7 @@ extern const char **environ;
     [[sysMenu addItemWithTitle:@"Shut Down..." action:@selector(performShutDown:) keyEquivalent:@""] setTarget:self];
     [sysMenu addItem:[NSMenuItem separatorItem]];
     [[sysMenu addItemWithTitle:@"Lock Screen" action:NULL keyEquivalent:@""] setTarget:self];
-    [[sysMenu addItemWithTitle:@"Log Out" action:NULL keyEquivalent:@""] setTarget:self];
+    [[sysMenu addItemWithTitle:@"Log Out" action:@selector(performLogout:) keyEquivalent:@""] setTarget:self];
 
     NSString *ravyn = [[NSBundle mainBundle] pathForResource:@"ravynos-mark-64" ofType:@"png"];
     NSImage *logo = [[NSImage alloc] initWithContentsOfFile:ravyn];
@@ -121,23 +123,8 @@ extern const char **environ;
     [aboutWindow makeKeyAndOrderFront:nil];
 }
 
-static void _performShutDown(int mode) {
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"shutdown" ofType:@""];
-    pid_t helper;
-    char *argv[3], *envp[1];
-    char *modestr;
-    asprintf(&modestr, "%d", mode);
-    argv[0] = [[path lastPathComponent] UTF8String];
-    argv[1] = modestr;
-    argv[2] = NULL;
-    envp[0] = NULL;
-    if(!path || posix_spawn(&helper, [path UTF8String], NULL, NULL, argv, envp) != 0)
-        NSLog(@"performShutDown: error occurred"); // FIXME: error handling
-    free(modestr);
-}
-
 - (void)performSleep:(id)sender {
-    _performShutDown(0);
+    NSLog(@"not implemented yet");
 }
 
 - (void)performRestart:(id)sender {
@@ -145,7 +132,8 @@ static void _performShutDown(int mode) {
         @"Are you sure you want to restart your computer?",
         @"Restart", @"Cancel", nil);
     if(rc == 1) {
-        _performShutDown(1);
+        exitCode = EXIT_RESTART;
+        [NSApp stop:self];
     }
 }
 
@@ -154,11 +142,23 @@ static void _performShutDown(int mode) {
         @"Are you sure you want to shut down your computer?",
         @"Shut Down", @"Cancel", nil);
     if(rc == 1) {
-        _performShutDown(2);
+        exitCode = EXIT_SHUTDOWN;
+        [NSApp stop:self];
+    }
+}
+
+- (void)performLogout:(id)sender {
+    int rc = NSRunAlertPanel(@"Confirm Log Out",
+            @"Are you sure you want to quit all applications and log out now?",
+            @"Log Out", @"Cancel", nil);
+    if(rc == 1) {
+        exitCode = EXIT_LOGOUT;
+        [NSApp stop:self];
     }
 }
 
 - (void)launchSystemPreferences:(id)sender {
+    NSLog(@"not implemented yet");
     NSURL *sysprefs = [NSURL fileURLWithPath:
         @"/System/Library/CoreServices/System Preferences.app"];
     OSStatus res = LSOpenCFURLRef((__bridge CFURLRef)sysprefs, NULL);
@@ -201,7 +201,7 @@ static void _performShutDown(int mode) {
 }
 
 - (void)forceQuit:(id)sender {
-    NSLog(@"force quit");
+    NSLog(@"force quit (not implemented yet)");
 }
 
 /* NSWindow delegate */

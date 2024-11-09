@@ -29,6 +29,8 @@
 const NSString *NSMenuDidUpdateNotification = @"NSMenuDidUpdate";
 const NSString *NSApplicationDidQuitNotification = @"NSApplicationDidQuit";
 
+int exitCode = 0;
+
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
 
@@ -42,6 +44,6 @@ int main(int argc, const char *argv[]) {
     [pool drain];
     [NSApp setDelegate:del];
     [NSApp run];
-    return 0;
+    exit(exitCode);
 }
 

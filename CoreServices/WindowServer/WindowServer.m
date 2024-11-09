@@ -43,6 +43,10 @@
 #include <sys/user.h>
 #include <sys/shm.h>
 #include <sys/ipc.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #import "rpc.h"
 
@@ -101,7 +105,7 @@ pthread_mutex_t renderLock;
         path = [[NSBundle bundleWithPath:path] pathForResource:@"shutdown" ofType:@""];
     if(path) {
         chown([path UTF8String], 0, videoGID);
-        chmod([path UTF8String], 04550);
+        chmod([path UTF8String], 0550);
     }
 
     // FIXME: try drm/kms first then fall back
@@ -299,6 +303,7 @@ pthread_mutex_t renderLock;
 
 -(void)launchShell:(id)object {
     int status;
+    siginfo_t siginfo = {0};
     NSString *lwPath = nil;
     uid_t uid = 0;
     gid_t gid = 0;
@@ -319,26 +324,78 @@ pthread_mutex_t renderLock;
                     break;
                 }
 
+                int fds[2];
+                pipe(fds);
                 pid_t pid = fork();
                 if(!pid) { // child
-                    seteuid(0);
-                    execle([lwPath UTF8String], [[lwPath lastPathComponent] UTF8String], NULL, NULL);
+                    close(fds[0]);
+                    char fdbuf[12];
+                    sprintf(fdbuf, "%d", fds[1]);
+                    setuid(65534); // nobody
+                    execle([lwPath UTF8String], [[lwPath lastPathComponent] UTF8String], fdbuf, NULL, NULL);
                     exit(1);
                 } else {
-                    siginfo_t siginfo;
-                    // wait for LoginWindow to exit. exit code is the uid!
-                    wait6(P_PID, pid, &status, WEXITED, NULL, &siginfo); 
-                    NSLog(@"LoginWindow: status=%d si_status=%d", status, siginfo.si_status);
-                    struct passwd *pw = getpwuid(siginfo.si_status);
-                    if(!pw) {
-                        NSLog(@"uid %d not found", siginfo.si_status);
-                        break;
+                    /* While it's running, try to read creds from the pipe. Validate them and
+                     * set uid if correct. Return error if not and continue
+                     */
+                    close(fds[1]);
+
+                    fd_set readfds;
+                    FD_ZERO(&readfds);
+                    FD_SET(fds[0], &readfds);
+                    struct timeval tv = {0, 100000};
+                    char credbuf[64];
+                    BOOL loggedIn = NO;
+
+                    while(!loggedIn && waitpid(pid, &status, WEXITED|WNOHANG) == 0) {
+                        FD_SET(fds[0], &readfds);
+                        int ret = select(fds[0] + 1, &readfds, NULL, NULL, &tv);
+                        switch(ret) {
+                            case -1: perror("select");
+                                     kill(pid, SIGTERM);
+                                     close(fds[0]);
+                                     break;
+                            case 0: continue;
+                        }
+                        int bytes = read(fds[0], credbuf, sizeof(credbuf));
+                        credbuf[bytes - 1] = 0;
+                        char *pass = &credbuf[strlen(credbuf) + 1];
+                        if(pass > (credbuf + bytes)) {
+                            NSLog(@"Malformed auth input");
+                            continue;
+                        }
+
+                        struct passwd *pw = getpwnam(credbuf);
+                        if(!pw) {
+                            if(logLevel >= WS_WARNING)
+                                NSLog(@"Bad username or password (%s)", credbuf);
+                            write(fds[0], "FAIL", 5);
+                            continue;
+                        }
+                        char *enc = crypt(pass, pw->pw_passwd);
+                        if(strcmp(enc, pw->pw_passwd)) {
+                            if(logLevel >= WS_WARNING)
+                                NSLog(@"Bad username or password (%s)", credbuf);
+                            write(fds[0], "FAIL", 5);
+                            continue;
+                        }
+
+                        // it must be valid since we got here!
+                        uid = pw->pw_uid;
+                        gid = pw->pw_gid;
+                        write(fds[0], "AUTH", 5);
+                        close(fds[0]);
+                        close(fds[1]);
+                        kill(pid, SIGTERM);
+                        loggedIn = YES;
                     }
 
-                    uid = siginfo.si_status;
-                    gid = pw->pw_gid;
-                    NSLog(@"Logged in user %s, gid %u", pw->pw_name, pw->pw_gid);
-                    curShell = DESKTOP;
+                    if(loggedIn && uid != 0) {
+                        if(logLevel >= WS_WARNING)
+                            NSLog(@"Logged in user %u:%u", uid, gid);
+                        curShell = DESKTOP;
+                    } else
+                        NSLog(@"LoginWindow exited without authenticating");
                     break;
                 }
                 break;
@@ -368,7 +425,7 @@ pthread_mutex_t renderLock;
 
                     if(path) {
                         char buf[32];
-                        sprintf(buf, "%u", pw->pw_uid);
+                        sprintf(buf, "%u", pw->pw_uid); // just informational
                         execle([path UTF8String], [[path lastPathComponent] UTF8String], buf, NULL, NULL);
                     }
 
@@ -380,9 +437,26 @@ pthread_mutex_t renderLock;
                     curShell = LOGINWINDOW;
                     break;
                 }
-                waitpid(pid, &status, 0);
-                NSLog(@"SystemUIServer exited with status %u", status);
-                // FIXME: we could use exit codes for reboot, shutdown, etc
+
+                pid_t exited = 0;
+                while((exited = wait(&status)) != pid) {
+                    NSLog(@"waiting on %d. pid %d has status %d", pid, exited, status);
+                }
+
+                switch(WEXITSTATUS(status)) {
+                    case EXIT_RESTART: NSLog(@"should restart!");
+                                       curShell = NONE;
+                                       kill(1, SIGINT);
+                                       break;
+                    case EXIT_SHUTDOWN: NSLog(@"should shut down!");
+                                        curShell = NONE;
+                                        kill(1, SIGUSR2);
+                                        break;
+                    case EXIT_LOGOUT: NSLog(@"should log out!");
+                                      curShell = LOGINWINDOW;
+                                      break;
+                    default: NSLog(@"SysUI exited with status %d", status);
+                }
 
                 // safety valve for debugging
                 if(stopOnErr)
@@ -1560,11 +1634,13 @@ pthread_mutex_t renderLock;
                     }
                     if(app == nil)
                         NSLog(@"PID %u exited, but no matching app record", out[i].ident);
-                    else if([app.bundleID isEqualToString:@"com.ravynos.LoginWindow"])
-                        NSLog(@"LoginWindow exited");
                     else {
                         [apps removeObjectForKey:app.bundleID];
                         [app removeAllWindows];
+
+                        if([app.bundleID isEqualToString:@"com.ravynos.LoginWindow"]
+                         ||[app.bundleID isEqualToString:@"com.ravynos.SystemUIServer"])
+                            break; // SysUI isn't running yet or this is it, so don't try to notify
 
                         Message msg = {0};
                         WSAppRecord *sysui = [apps objectForKey:@"com.ravynos.SystemUIServer"];

@@ -30,6 +30,7 @@
 
 const int width = 480;
 const int height = 640;
+extern int fd;
 
 @implementation LoginBox
 - initWithWindow:(NSWindow *)window {
@@ -134,6 +135,19 @@ const int height = 640;
     [passField setEnabled:YES];
     [bg addSubview:passField];
 
+    
+    ypos -= 20;
+    NSDictionary *credsAttr = [NSDictionary dictionaryWithObjects:
+                @[[NSFont systemFontOfSize:16], [NSColor redColor]]
+                forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+    credsFailed = [[NSAttributedString alloc] initWithString:@"Try Again" attributes:credsAttr];
+    badCredsLabel = [Label labelWithText:credsFailed
+                                 atPoint:NSMakePoint(center.x - 35, ypos)
+                            withMaxWidth:width/2];
+    [badCredsLabel setAttributedStringValue:@""];
+    [badCredsLabel setSelectable:NO];
+    [bg addSubview:badCredsLabel];
+
     ypos -= 48;
     ok = [[NSButton alloc] initWithFrame:NSMakeRect(center.x - 70, ypos, 140, 36)];
     [ok setTitle:@"Log In"];
@@ -153,30 +167,24 @@ const int height = 640;
     return self;
 }
 
-static void badLogin() {
-    NSLog(@"bad login");
-    // FIXME: clear input fields and display message
-}
-
 - (void)checkFields:(id)sender {
+    [badCredsLabel setStringValue:@""];
     NSString *username = [userField stringValue];
     NSString *password = [passField stringValue];
 
-    struct passwd *pw = getpwnam([username cString]);
-    if(!pw) {
-        badLogin();
-        return;
-    }
+    char credbuf[64];
+    memset(credbuf, 0, sizeof(credbuf));
+    char *p = credbuf + [username length] + 1;
+    memcpy(credbuf, [username cString], MIN(31, [username length]));
+    memcpy(p, [password cString], MIN(31, [password length]));
+    int bytes = write(fd, credbuf, sizeof(credbuf));
+    read(fd, credbuf, 5);
+    if(strncmp(credbuf, "AUTH", 5) == 0)
+        exit(0);
 
-    char *enc = crypt([password cString], pw->pw_passwd);
-    if(strcmp(enc, pw->pw_passwd)) {
-        badLogin();
-        return;
-    }
-
-    NSLog(@"username %s uid %d gid %d", pw->pw_name, pw->pw_uid, pw->pw_gid);
-
-    exit(pw->pw_uid);
+    [userField setStringValue:@""];
+    [passField setStringValue:@""];
+    [badCredsLabel setAttributedStringValue:credsFailed];
 }
 
 @end

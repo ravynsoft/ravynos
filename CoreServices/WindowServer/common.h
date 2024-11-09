@@ -25,6 +25,12 @@
 #define SA_RESTART      0x0002  /* restart system call on signal return */
 
 enum {
+    EXIT_RESTART = 200,
+    EXIT_SHUTDOWN,
+    EXIT_LOGOUT
+};
+
+enum {
     WS_ERROR, WS_WARNING, WS_INFO
 };
 
